@@ -2,10 +2,6 @@
 
 **Game Engine written in C++ using OpenGL and Vulkan.**
 
-[![Build status](https://img.shields.io/appveyor/ci/jmorton06/UnititledEngine.svg?style=flat&label=Windows)](https://ci.appveyor.com/project/jmorton06/UnititledEngine) [![Build status]( https://img.shields.io/travis/jmorton06/UnititledEngine.svg?style=flat&label=Linux%20macOS)](https://travis-ci.org/jmorton06/UnititledEngine)
-
-</details>
-
 ## Building
 
 ### CMake
