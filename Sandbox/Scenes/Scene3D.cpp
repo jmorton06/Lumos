@@ -97,27 +97,6 @@ void Scene3D::LoadModels()
 	const float groundHeight = 0.5f;
 	const float groundLength = 100.0f;
 
-	auto grassMaterial = std::make_shared<Material>();
-	grassMaterial->LoadPBRMaterial("grass", "/Textures");
-
-	auto stonewallMaterial = std::make_shared<Material>();
-	stonewallMaterial->LoadPBRMaterial("stonewall", "/Textures");
-
-	auto castIronMaterial = std::make_shared<Material>();
-	castIronMaterial->LoadPBRMaterial("CastIron", "/Textures",".tga");
-
-	auto GunMetalMaterial = std::make_shared<Material>();
-	GunMetalMaterial->LoadPBRMaterial("GunMetal", "/Textures",".tga");
-
-	auto WornWoodMaterial = std::make_shared<Material>();
-	WornWoodMaterial->LoadPBRMaterial("WornWood", "/Textures",".tga");
-
-	auto marbleMaterial = std::make_shared<Material>();
-	marbleMaterial->LoadPBRMaterial("marble", "/Textures");
-
-	auto stoneMaterial = std::make_shared<Material>();
-	stoneMaterial->LoadPBRMaterial("stone", "/Textures");
-
 	auto testMaterial = std::make_shared<Material>();
 	testMaterial->LoadMaterial("checkerboard", "/CoreTextures/checkerboard.tga");
 
@@ -147,6 +126,29 @@ void Scene3D::LoadModels()
 	groundModel->SetMaterial(testMaterial);
 
 	AddEntity(ground);
+
+	#ifdef TEST_PBR
+
+	auto grassMaterial = std::make_shared<Material>();
+	grassMaterial->LoadPBRMaterial("grass", "/Textures");
+
+	auto stonewallMaterial = std::make_shared<Material>();
+	stonewallMaterial->LoadPBRMaterial("stonewall", "/Textures");
+
+	auto castIronMaterial = std::make_shared<Material>();
+	castIronMaterial->LoadPBRMaterial("CastIron", "/Textures",".tga");
+
+	auto GunMetalMaterial = std::make_shared<Material>();
+	GunMetalMaterial->LoadPBRMaterial("GunMetal", "/Textures",".tga");
+
+	auto WornWoodMaterial = std::make_shared<Material>();
+	WornWoodMaterial->LoadPBRMaterial("WornWood", "/Textures",".tga");
+
+	auto marbleMaterial = std::make_shared<Material>();
+	marbleMaterial->LoadPBRMaterial("marble", "/Textures");
+
+	auto stoneMaterial = std::make_shared<Material>();
+	stoneMaterial->LoadPBRMaterial("stone", "/Textures");
 
 	//Create a Rest Cube
 	std::shared_ptr<Entity> cube = std::make_shared<Entity>("cube",this);
@@ -184,25 +186,6 @@ void Scene3D::LoadModels()
 	std::shared_ptr<Model> restsphereModel = std::make_shared<Model>(*AssetsManager::DefaultModels()->GetAsset("Cube"));
 	restsphere->AddComponent(std::make_unique<ModelComponent>(restsphereModel));
 	restsphere->GetComponent<ModelComponent>()->m_Model->SetMaterial(castIronMaterial);
-
-#if 0
-	auto soundFilePath = String("/Sounds/fire.ogg");
-	bool loadedSound = Sound::AddSound("Background", soundFilePath);
-
-	if(loadedSound)
-	{
-		auto soundNode = std::make_shared<SoundNode>(Sound::GetSound("Background"));
-		soundNode->SetVolume(1.0f);
-		soundNode->SetPosition(maths::Vector3(0.1f, 10.0f, 10.0f));
-		soundNode->SetLooping(true);
-		soundNode->SetIsGlobal(false);
-		soundNode->SetPaused(false);
-		soundNode->SetReferenceDistance(1.0f);
-		soundNode->SetRadius(30.0f);
-
-		restsphere->AddComponent(std::make_unique<SoundComponent>(soundNode));
-	}
-#endif
 
 	AddEntity(restsphere);
 
@@ -281,6 +264,8 @@ void Scene3D::LoadModels()
 	stoneSphere->GetComponent<ModelComponent>()->m_Model->SetMaterial(stoneMaterial);
 
 	AddEntity(stoneSphere);
+#endif
+
 	//Create a pendulum
 	std::shared_ptr<Entity> pendulumHolder = std::make_shared<Entity>("pendulumHolder",this);
 	std::shared_ptr<PhysicsObject3D> pendulumHolderPhysics = std::make_shared<PhysicsObject3D>();
@@ -296,7 +281,6 @@ void Scene3D::LoadModels()
 
 	std::shared_ptr<Model> pendulumHolderModel = std::make_shared<Model>(*AssetsManager::DefaultModels()->GetAsset("Cube"));
 	pendulumHolder->AddComponent(std::make_unique<ModelComponent>(pendulumHolderModel));
-	pendulumHolder->GetComponent<ModelComponent>()->m_Model->SetMaterial(WornWoodMaterial);
 
 	AddEntity(pendulumHolder);
 
@@ -315,12 +299,30 @@ void Scene3D::LoadModels()
 
 	std::shared_ptr<Model> pendulumModel = std::make_shared<Model>(*AssetsManager::DefaultModels()->GetAsset("Sphere"));
 	pendulum->AddComponent(std::make_unique<ModelComponent>(pendulumModel));
-	pendulum->GetComponent<ModelComponent>()->m_Model->SetMaterial(grassMaterial);
 
 	AddEntity(pendulum);
 
 	auto pendulumConstraint = new SpringConstraint(pendulumHolder->GetComponent<Physics3DComponent>()->m_PhysicsObject.get(), pendulum->GetComponent<Physics3DComponent>()->m_PhysicsObject.get(), pendulumHolder->GetComponent<Physics3DComponent>()->m_PhysicsObject->GetPosition(), pendulum->GetComponent<Physics3DComponent>()->m_PhysicsObject->GetPosition(), 0.9f, 0.5f);
 	JMPhysicsEngine::Instance()->AddConstraint(pendulumConstraint);
+
+	#if TEST_SOUND
+	auto soundFilePath = String("/Sounds/fire.ogg");
+	bool loadedSound = Sound::AddSound("Background", soundFilePath);
+
+	if(loadedSound)
+	{
+		auto soundNode = std::make_shared<SoundNode>(Sound::GetSound("Background"));
+		soundNode->SetVolume(1.0f);
+		soundNode->SetPosition(maths::Vector3(0.1f, 10.0f, 10.0f));
+		soundNode->SetLooping(true);
+		soundNode->SetIsGlobal(false);
+		soundNode->SetPaused(false);
+		soundNode->SetReferenceDistance(1.0f);
+		soundNode->SetRadius(30.0f);
+
+		pendulum->AddComponent(std::make_unique<SoundComponent>(soundNode));
+	}
+#endif
 
 	for (int i = 0; i < 10; i++)
 	{
