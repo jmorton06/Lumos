@@ -1,0 +1,270 @@
+#shader vertex
+
+layout(location = 0) in vec3 inPosition;
+layout(location = 1) in vec3 inColor;
+layout(location = 2) in vec2 inTexCoord;
+
+out vec3 fragColor;
+out vec2 fragTexCoord;
+
+void main() 
+{
+    gl_Position = vec4(inPosition, 1.0);
+    fragColor = inColor;
+	fragTexCoord = inTexCoord;
+}
+#shader end
+
+#shader fragment
+
+in vec3 fragColor;
+in vec2 fragTexCoord;
+
+uniform sampler2D uColourSampler;
+uniform sampler2D uPositionSampler;
+uniform sampler2D uNormalSampler;
+uniform sampler2D uPBRSampler;
+uniform sampler2D uPreintegratedFG;
+uniform samplerCube uEnvironmentMap;
+uniform sampler2DArrayShadow uShadowMap;
+uniform sampler2D uDepthSampler;
+
+layout (std140) uniform LightData
+{
+	vec4 position;
+ 	vec4 direction;
+ 	vec4 cameraPosition;
+	mat4 uShadowTransform[16];
+    vec2 uShadowSinglePixel;
+};
+
+#define PI 3.1415926535897932384626433832795
+#define GAMMA 2.2
+
+vec2 poissonDisk[16] = vec2[](
+	vec2(-0.94201624, -0.39906216),
+	vec2(0.94558609, -0.76890725),
+	vec2(-0.094184101, -0.92938870),
+	vec2(0.34495938, 0.29387760),
+	vec2(-0.91588581, 0.45771432),
+	vec2(-0.81544232, -0.87912464),
+	vec2(-0.38277543, 0.27676845),
+	vec2(0.97484398, 0.75648379),
+	vec2(0.44323325, -0.97511554),
+	vec2(0.53742981, -0.47373420),
+	vec2(-0.26496911, -0.41893023),
+	vec2(0.79197514, 0.19090188),
+	vec2(-0.24188840, 0.99706507),
+	vec2(-0.81409955, 0.91437590),
+	vec2(0.19984126, 0.78641367),
+	vec2(0.14383161, -0.14100790)
+	);
+
+struct Light
+{
+	vec3 position;
+	vec3 colour;
+	vec3 direction;
+	float radius;
+	float intensity;
+	int type;
+};
+
+struct Material
+{
+	vec4 albedo;
+	vec3 specular;
+	float roughness;
+	vec3 normal;
+};
+
+vec3 FinalGamma(vec3 color)
+{
+	return pow(color, vec3(1.0 / GAMMA));
+}
+
+vec3 GammaCorrectTextureRGB(vec3 texCol)
+{
+	return vec3(pow(texCol.rgb, vec3(GAMMA)));
+}
+
+float FresnelSchlick(float f0, float fd90, float view)
+{
+	return f0 + (fd90 - f0) * pow(max(1.0 - view, 0.1), 5.0);
+}
+
+float Disney(Light light, Material material, vec3 eye)
+{
+	vec3 halfVector = normalize(light.direction + eye);
+
+	float NdotL = max(dot(material.normal, light.direction), 0.0);
+	float LdotH = max(dot(light.direction, halfVector), 0.0);
+	float NdotV = max(dot(material.normal, eye), 0.0);
+
+	float energyBias = mix(0.0, 0.5, material.roughness);
+	float energyFactor = mix(1.0, 1.0 / 1.51, material.roughness);
+	float fd90 = energyBias + 2.0 * (LdotH * LdotH) * material.roughness;
+	float f0 = 1.0;
+
+	float lightScatter = FresnelSchlick(f0, fd90, NdotL);
+	float viewScatter = FresnelSchlick(f0, fd90, NdotV);
+
+	return lightScatter * viewScatter * energyFactor;
+}
+
+vec3 GGX(Light light, Material material, vec3 eye)
+{
+	vec3 h = normalize(light.direction + eye);
+	float NdotH = max(dot(material.normal, h), 0.0);
+
+	float rough2 = max(material.roughness * material.roughness, 2.0e-3); // capped so spec highlights doesn't disappear
+	float rough4 = rough2 * rough2;
+
+	float d = (NdotH * rough4 - NdotH) * NdotH + 1.0;
+	float D = rough4 / (PI * (d * d));
+
+	// Fresnel
+	vec3 reflectivity = material.specular;
+	float fresnel = 1.0;
+	float NdotL = clamp(dot(material.normal, light.direction), 0.0, 1.0);
+	float LdotH = clamp(dot(light.direction, h), 0.0, 1.0);
+	float NdotV = clamp(dot(material.normal, eye), 0.0, 1.0);
+	vec3 F = reflectivity + (fresnel - fresnel * reflectivity) * exp2((-5.55473 * LdotH - 6.98316) * LdotH);
+
+	// geometric / visibility
+	float k = rough2 * 0.5;
+	float G_SmithL = NdotL * (1.0 - k) + k;
+	float G_SmithV = NdotV * (1.0 - k) + k;
+	float G = 0.25 / (G_SmithL * G_SmithV);
+
+	return G * D * F;
+}
+
+vec3 RadianceIBLIntegration(float NdotV, float roughness, vec3 specular)
+{
+	vec2 preintegratedFG = texture(uPreintegratedFG, vec2(roughness, 1.0 - NdotV)).rg;
+	return specular * preintegratedFG.r + preintegratedFG.g;
+}
+
+vec3 IBL(Light light, Material material, vec3 eye)
+{
+	float NdotV = max(dot(material.normal, eye), 0.0);
+
+	vec3 reflectionVector = normalize(reflect(-eye, material.normal));
+	float smoothness = 1.0 - material.roughness;
+	float mipLevel = (1.0 - smoothness * smoothness) * 10.0;
+	vec4 cs = textureLod(uEnvironmentMap, reflectionVector, mipLevel);
+	vec3 result = pow(cs.xyz, vec3(GAMMA)) * RadianceIBLIntegration(NdotV, material.roughness, material.specular);
+
+	vec3 diffuseDominantDirection = material.normal;
+	float diffuseLowMip = 9.6;
+	vec3 diffuseImageLighting = textureLod(uEnvironmentMap, diffuseDominantDirection, diffuseLowMip).rgb;
+	diffuseImageLighting = pow(diffuseImageLighting, vec3(GAMMA));
+
+	return result + diffuseImageLighting * material.albedo.rgb;
+}
+
+float Diffuse(Light light, Material material, vec3 eye)
+{
+	return Disney(light, material, eye);
+}
+
+vec3 Specular(Light light, Material material, vec3 eye)
+{
+	return GGX(light, material, eye);
+}
+
+float DoShadowTest(vec3 tsShadow, int tsLayer, vec2 pix)
+{
+	vec4 tCoord;
+	tCoord.xyw = tsShadow;
+	tCoord.z = float(tsLayer);
+
+	if (tsLayer > 0)
+	{
+		return 1.0f;//texture(uShadowTex, tCoord);
+	}
+	else
+	{
+		float shadow = 0.0f;
+		for (float y = -1.5f; y <= 1.5f; y += 1.0f)
+			for (float x = -1.5f; x <= 1.5f; x += 1.0f)
+				shadow += texture(uShadowMap, tCoord + vec4(pix.x * x, pix.y * y, 0, 0));
+
+		return shadow / 16.0f;
+	}
+}
+
+layout(location = 0) out vec4 outColor;
+
+//const float BIAS = 0.4f;
+const float NORMAL_BIAS = 0.002f;
+const float RAW_BIAS 	= 0.00025f;
+const int NUM_SHADOWMAPS = 4; //TODO : uniform
+
+void main()
+{
+	vec4 colourTex   = texture(uColourSampler   , fragTexCoord);
+
+    if(colourTex.w < 0.1)
+        discard;
+
+    vec3 positionTex = texture(uPositionSampler , fragTexCoord).rgb;
+    vec4 pbrTex		 = texture(uPBRSampler   , fragTexCoord);
+    vec3 normal      = normalize(texture(uNormalSampler, fragTexCoord).rgb);
+
+    vec3  spec      = vec3(pbrTex.x);
+	float roughness = pbrTex.y;
+
+    vec3 wsPos      = positionTex;
+
+    Light light;
+    light.direction = direction.xyz;
+    light.position  = position.xyz;
+    light.colour    = vec3(1.0);
+    light.intensity = 4.0;
+
+    vec3 finalColour;
+
+    Material material;
+    material.albedo    = colourTex;
+    material.specular  = spec;
+    material.roughness = roughness;
+    material.normal    = normal;
+
+    vec3 eye      = normalize(cameraPosition.xyz - wsPos);
+    vec4 diffuse  = vec4(0.0);
+    vec3 specular = vec3(0.0);
+
+	vec4 shadowWsPos = vec4(wsPos + normal * NORMAL_BIAS, 1.0f);
+	float shadow = 1.0f;
+
+	for (int layerIdx = 0; layerIdx < NUM_SHADOWMAPS; layerIdx++)
+	{
+		vec4 hcsShadow = uShadowTransform[layerIdx] * shadowWsPos;
+
+		if (abs(hcsShadow.x) <= 1.0f && abs(hcsShadow.y) <= 1.0f)
+		{
+			hcsShadow.z -= RAW_BIAS;
+			hcsShadow.xyz = hcsShadow.xyz * 0.5f + 0.5f;
+
+			shadow = DoShadowTest(hcsShadow.xyz, layerIdx, uShadowSinglePixel);
+			break;
+		}
+	}
+
+	shadow = max(0.1,shadow);
+
+    float NdotL = clamp(dot(material.normal, light.direction), 0.0, 1.0)  * shadow;
+    diffuse  += NdotL * Diffuse(light, material, eye)  * light.intensity;
+    specular += NdotL * Specular(light, material, eye) * light.intensity;
+
+    diffuse = max(diffuse, vec4(0.1));
+
+    //finalColour = material.albedo.xyz * diffuse.rgb + specular;
+    finalColour = material.albedo.xyz * diffuse.rgb + (specular + IBL(light, material, eye));
+
+	finalColour = FinalGamma(finalColour);
+	outColor = vec4(finalColour, 1.0);
+}
+#shader end

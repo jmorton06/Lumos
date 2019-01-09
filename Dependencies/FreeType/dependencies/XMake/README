@@ -1,0 +1,46 @@
+********************************************************************************
+*                                                                              *
+*                                     XMake                                    *
+*                          http://github.com/Kanma/XMake                       *
+*                                                                              *
+********************************************************************************
+
+
+---------------------------------------
+- Summary
+---------------------------------------
+
+XMake (eXtended cMake) is a helper script to use in combination with GIT
+submodules to more easily compile complex applications relying on a lot of libraries.
+
+See http://www.idiap.ch/~pabbet/articles/combining-git-submodules-and-cmake-for-library-development/
+for a detailed explanation of the problem and the way I setup my projects
+using XMake, CMake and GIT submodules.
+
+
+---------------------------------------
+- Examples & tests
+---------------------------------------
+
+The 'test' folder contain a sample CMake project using XMake.
+
+
+---------------------------------------
+- License
+---------------------------------------
+
+XMake is released under the MIT License. The text of the license is at the top
+of the Xmake script.
+
+Under the MIT License you may use XMake for any purpose you wish, without
+warranty, and modify it if you want, subject to one condition:
+
+   "The above copyright notice and this permission notice shall be included in
+   all copies or substantial portions of the Software."
+
+In practice this means that whenever you distribute the XMake script, you must
+leave the license text at the top of the script, or distribute it in a separate
+file.
+
+Even if the license doesn't require it, please consider to contribute your
+modifications back to the community.

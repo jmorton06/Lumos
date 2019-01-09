@@ -1,0 +1,3 @@
+this is my custom converted skybox to sky sphere that most up to date programs use. otherwise use the original textures if you wish to use a skybox
+
+just click and drag this to your sky for results :) enjoy!

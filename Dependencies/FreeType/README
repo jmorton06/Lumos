@@ -1,0 +1,32 @@
+This is a custom distribution of FreeType, version 2.4.9, with a XMake-based build
+system.
+
+The original README file of FreeType is at 'docs/FreeType-Readme'.
+
+
+License
+-------
+
+FreeType's license is unchanged: this library is free software; you can redistribute
+it and/or modify it under the terms of either the 'FreeType License' or the 'GNU General
+Public License  version 2'. See the file 'docs/License.txt' for the details.
+
+
+Submodules
+----------
+
+This distribution use XMake as a GIT submodule. To download it, do:
+
+	$ git submodule init
+	$ git submodule update
+
+
+Compilation
+-----------
+
+It is recommended to compile the library in a separate folder. Here's how I do it:
+
+	$ mkdir build
+	$ cd build
+	$ cmake ..
+	$ make

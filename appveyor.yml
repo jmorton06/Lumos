@@ -1,0 +1,17 @@
+version: 0.1.{build}
+
+os: Visual Studio 2017
+
+configuration:
+- Debug
+- Release
+platform: 
+- x64
+
+before_build:
+- cd Scripts
+- ./GenerateVS.bat
+
+build:
+  project: build/JMEngine.sln
+  verbosity: minimal

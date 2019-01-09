@@ -1,0 +1,22 @@
+This is the hierarchy of softwares built by this test:
+
+executable1
+  -> static_lib2
+       -> static_lib1
+
+executable2
+  -> dynamic_lib1
+       -> static_lib1
+
+executable3
+  -> dynamic_lib3
+       -> dynamic_lib2
+  -> dynamic_lib4
+       -> dynamic_lib2
+       -> dynamic_lib1
+            -> static_lib1
+
+executable4
+  -> framework1
+       -> dynamic_lib2
+       -> static_lib1

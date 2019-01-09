@@ -1,0 +1,88 @@
+
+language: cpp
+
+sudo: false
+
+dist: trusty
+
+matrix:
+  include:
+    - os: osx
+      env: BUILD_TYPE=native
+      language: c++
+      compiler: clang
+    # - os: osx
+    #   env: BUILD_TYPE=IOS
+    #   osx_image: xcode8.3
+    #   language: c++
+    #   compiler: clang
+    #   addons:
+    #     apt:
+    #       packages:
+    #         - cmake
+    #         - libxrandr-dev
+    #         - libxinerama-dev
+    #         - libxcursor-dev
+    #         - libxi-dev
+    #         - clang-3.8
+    - os: linux
+      language: c++
+      compiler: gcc
+      env: BUILD_TYPE=native COMPILER_NAME=gcc CXX=g++-7 CC=gcc-7
+      addons:
+        apt:
+          sources:
+            - ubuntu-toolchain-r-test
+          packages:
+            - g++-7
+            - libxrandr-dev
+            - libxinerama-dev
+            - libxcursor-dev
+            - libxi-dev
+            - libopenal-dev
+    - os: linux
+      language: c++
+      compiler: clang
+      env: BUILD_TYPE=native COMPILER_NAME=clang CXX=clang++-6.0 CC=clang-6.0
+      addons:
+        apt:
+          sources:
+            - kubuntu-backports
+            - ubuntu-toolchain-r-test
+            - llvm-toolchain-trusty-6.0
+          packages:
+            - libxrandr-dev
+            - libxinerama-dev
+            - libxcursor-dev
+            - libxi-dev
+            - libc++-dev
+            - clang-6.0
+            - gcc-7
+            - g++-7
+            - libopenal-dev
+before_install:
+  - chmod +x ./Scripts/travis-build.sh
+  - chmod +x ./Scripts/cmake-android.sh
+  - chmod +x ./Scripts/cmake-ios.sh
+  - chmod +x ./Scripts/cmake-make.sh
+  - chmod +x ./Scripts/premake-make.sh
+  - chmod +x ./Tools/linux/premake5
+
+install:
+  - if [ "$CXX" = "g++" ] && [ $TRAVIS_OS_NAME == linux ]; then export CXX="g++-7" CC="gcc-7"; fi
+  - if [ "$CXX" = "clang++" ] && [ $TRAVIS_OS_NAME == linux ]; then export CXX="clang++-6.0" CC="clang-6.0"; fi
+
+before_script:
+
+script:
+  - ./Scripts/travis-build.sh
+
+branches:
+  only:
+    - master
+    - Vulkan
+
+notifications:
+  email:
+    on_success: change
+    on_failure: change
