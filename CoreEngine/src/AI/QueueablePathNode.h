@@ -8,7 +8,7 @@
 namespace jm
 {
 
-	class CORE_DLL QueueablePathNode
+	class JM_EXPORT QueueablePathNode
 	{
 	public:
 

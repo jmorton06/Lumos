@@ -7,7 +7,7 @@
 
 namespace jm
 {
-	class CORE_DLL AStar
+	class JM_EXPORT AStar
 	{
 	public:
 		explicit AStar(const std::vector<PathNode *> &nodes);

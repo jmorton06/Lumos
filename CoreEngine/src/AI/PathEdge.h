@@ -5,7 +5,7 @@
 namespace jm
 {
 
-	class CORE_DLL PathEdge
+	class JM_EXPORT PathEdge
 	{
 	public:
 		PathEdge(PathNode* a, PathNode* b);

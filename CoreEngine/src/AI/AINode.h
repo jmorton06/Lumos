@@ -3,7 +3,7 @@
 
 namespace jm
 {
-	class CORE_DLL AINode
+	class JM_EXPORT AINode
 	{
 	public:
 		AINode();

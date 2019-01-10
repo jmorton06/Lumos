@@ -10,7 +10,7 @@ namespace jm
 
 	class PathEdge;
 
-	class CORE_DLL PathNode : public PhysicsObject3D
+	class JM_EXPORT PathNode : public PhysicsObject3D
 	{
 	public:
 		explicit PathNode(const maths::Vector3& position = maths::Vector3());
