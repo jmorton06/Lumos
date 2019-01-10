@@ -54,10 +54,12 @@ namespace jm
 	void Material::LoadPBRMaterial(const String& name, const String& path, const String& extension)
 	{
 		m_PBRMaterialTextures = PBRMataterialTextures();
-		m_PBRMaterialTextures.albedo    = std::shared_ptr<Texture2D>(Texture2D::CreateFromFile(name, path + "/" + name + "/albedo" + extension));
-		m_PBRMaterialTextures.normal    = std::shared_ptr<Texture2D>(Texture2D::CreateFromFile(name, path + "/" + name + "/normal" + extension));
-		m_PBRMaterialTextures.roughness = std::shared_ptr<Texture2D>(Texture2D::CreateFromFile(name, path + "/" + name + "/roughness" + extension));
-		m_PBRMaterialTextures.metallic  = std::shared_ptr<Texture2D>(Texture2D::CreateFromFile(name, path + "/" + name + "/metallic" + extension));
+        auto params = TextureParameters(TextureFormat::RGBA, TextureFilter::LINEAR, TextureWrap::CLAMP_TO_EDGE);
+        
+        m_PBRMaterialTextures.albedo    = std::shared_ptr<Texture2D>(Texture2D::CreateFromFile(name, path + "/" + name + "/albedo" + extension,params));
+		m_PBRMaterialTextures.normal    = std::shared_ptr<Texture2D>(Texture2D::CreateFromFile(name, path + "/" + name + "/normal" + extension,params));
+		m_PBRMaterialTextures.roughness = std::shared_ptr<Texture2D>(Texture2D::CreateFromFile(name, path + "/" + name + "/roughness" + extension,params));
+		m_PBRMaterialTextures.metallic  = std::shared_ptr<Texture2D>(Texture2D::CreateFromFile(name, path + "/" + name + "/metallic" + extension,params));
 	}
 
 	void Material::LoadMaterial(const String& name, const String& path)
