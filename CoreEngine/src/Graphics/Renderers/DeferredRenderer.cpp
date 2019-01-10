@@ -184,7 +184,7 @@ namespace jm
 
 		m_ShadowTexture = std::unique_ptr<TextureDepthArray>(TextureDepthArray::Create(2048, 2048, 4));
 		m_SkyboxRenderer = nullptr;
-        m_ShadowRenderer = nullptr;//new ShadowRenderer(m_ShadowTexture.get(), 2048, 4);
+        m_ShadowRenderer = new ShadowRenderer(m_ShadowTexture.get(), 2048, 4);
 		m_FBO = nullptr;
 	}
 
