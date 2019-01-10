@@ -11,7 +11,7 @@ layout(set = 1, binding = 2) uniform sampler2D uNormalSampler;
 layout(set = 1, binding = 3) uniform sampler2D uPBRSampler;
 layout(set = 1, binding = 4) uniform sampler2D uPreintegratedFG;
 layout(set = 1, binding = 5) uniform samplerCube uEnvironmentMap;
-layout(set = 1, binding = 6) uniform sampler2DArray uShadowMap;
+layout(set = 1, binding = 6) uniform sampler2DArrayShadow uShadowMap;
 layout(set = 1, binding = 7) uniform sampler2D uDepthSampler;
 
 layout(set = 0, binding = 0) uniform UniformBufferLight
@@ -155,7 +155,7 @@ float DoShadowTest(vec3 tsShadow, int tsLayer, vec2 pix)
 		float shadow = 0.0f;
 		for (float y = -1.5f; y <= 1.5f; y += 1.0f)
 			for (float x = -1.5f; x <= 1.5f; x += 1.0f)
-				shadow += texture(uShadowMap, tCoord.xyz + vec3(pix.x * x, pix.y * y, 0)).r;
+				shadow += texture(uShadowMap, tCoord + vec4(pix.x * x, pix.y * y, 0,0));
 
 		return shadow / 16.0f;
 	}
