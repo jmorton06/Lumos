@@ -122,9 +122,6 @@ namespace jm
 		m_CommandQueue.clear();
 		m_CommandBuffer->BeginRecording();
 		m_CommandBuffer->UpdateViewport(m_ShadowMapSize, m_ShadowMapSize);
-		m_RenderPass->BeginRenderpass(m_CommandBuffer, maths::Vector4(0.0f), m_ShadowFramebuffer[m_Layer], graphics::api::SECONDARY, m_ShadowMapSize, m_ShadowMapSize);
-
-		memcpy(m_VSSystemUniformBuffer + m_VSSystemUniformBufferOffsets[VSSystemUniformIndex_ProjectionViewMatrix], &m_ShadowProjView[m_Layer], sizeof(maths::Matrix4));
 	}
 
 	void ShadowRenderer::BeginScene(Camera * camera)
@@ -137,35 +134,39 @@ namespace jm
 
 	void ShadowRenderer::End()
 	{
-		m_RenderPass->EndRenderpass(m_CommandBuffer);
 		m_CommandBuffer->EndRecording();
-		//m_CommandBuffer->Execute(true);
+		m_CommandBuffer->Execute(true);
 	}
 
 	void ShadowRenderer::Present()
 	{
 		int index = 0;
 
+			m_RenderPass->BeginRenderpass(m_CommandBuffer, maths::Vector4(0.0f), m_ShadowFramebuffer[m_Layer], graphics::api::INLINE, m_ShadowMapSize, m_ShadowMapSize);
+
+			m_Pipeline->SetActive(m_CommandBuffer);
+
+
 		for (auto& command : m_CommandQueue)
 		{
             Mesh* mesh = command.mesh;
 
-			graphics::api::CommandBuffer* currentCMDBuffer = mesh->GetCommandBuffer(0);
+			//graphics::api::CommandBuffer* currentCMDBuffer = mesh->GetCommandBuffer(0);
 
             uint32_t dynamicOffset = index * static_cast<uint32_t>(dynamicAlignment);
 
-			currentCMDBuffer->BeginRecordingSecondary(m_RenderPass, m_ShadowFramebuffer[m_Layer]);
-			currentCMDBuffer->UpdateViewport(m_ShadowMapSize, m_ShadowMapSize);
+			//m_CommandBuffer->BeginRecording(m_RenderPass, m_ShadowFramebuffer[m_Layer]);
+			//currentCMDBuffer->UpdateViewport(m_ShadowMapSize, m_ShadowMapSize);
 
-			m_Pipeline->SetActive(currentCMDBuffer);
+			Renderer::RenderMesh(mesh, m_Pipeline, m_CommandBuffer, dynamicOffset, nullptr, false);
 
-			Renderer::RenderMesh(mesh, m_Pipeline, currentCMDBuffer, dynamicOffset, nullptr, false);
 
-			currentCMDBuffer->EndRecording();
-			currentCMDBuffer->ExecuteSecondary(m_CommandBuffer);
+			//currentCMDBuffer->ExecuteSecondary(m_CommandBuffer);
 
             index++;
 		}
+
+		m_RenderPass->EndRenderpass(m_CommandBuffer);
 	}
 
 	void ShadowRenderer::SetShadowMapNum(uint num)
@@ -211,11 +212,10 @@ namespace jm
 	{
 		SortRenderLists(scene);
 
+		Begin();
 		for (uint i = 0; i < m_ShadowMapNum; ++i)
 		{
 			m_Layer = i;
-
-			Begin();
 
 			m_apShadowRenderLists[i]->RenderOpaqueObjects([&](Entity* obj)
 			{
@@ -233,12 +233,14 @@ namespace jm
 				}
 			});
 
+			memcpy(m_VSSystemUniformBuffer + m_VSSystemUniformBufferOffsets[VSSystemUniformIndex_ProjectionViewMatrix], &m_ShadowProjView[m_Layer], sizeof(maths::Matrix4));
+
 			SetSystemUniforms(m_Shader);
 
 			Present();
 
-			End();
 		}
+		End();
 
 		Renderer::SetCulling(true);
 	}
@@ -296,7 +298,9 @@ namespace jm
 			bb.Upper().z = maths::Max(bb.Upper().z, sceneBoundingRadius);
 
 			//Build Light Projection
-			m_ShadowProjView[i] = maths::Matrix4::Orthographic(bb.Upper().GetZ(), bb.Lower().GetZ(), bb.Lower().GetX(), bb.Upper().GetX(), bb.Upper().GetY(), bb.Lower().GetY()) * localView;
+            auto shadowProj = maths::Matrix4::Orthographic(bb.Upper().GetZ(), bb.Lower().GetZ(), bb.Lower().GetX(), bb.Upper().GetX(), bb.Upper().GetY(), bb.Lower().GetY());
+
+			m_ShadowProjView[i] = shadowProj * localView;
 
 			//Construct Shadow RenderList
 			const maths::Vector3 top_mid = centre + lightView * maths::Vector3(0.0f, 0.0f, bb.Upper().GetZ());
