@@ -135,7 +135,7 @@ namespace jm
 	void ShadowRenderer::End()
 	{
 		m_CommandBuffer->EndRecording();
-		//m_CommandBuffer->Execute(true);
+		m_CommandBuffer->Execute(true);
 	}
 
 	void ShadowRenderer::Present()
