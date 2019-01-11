@@ -83,7 +83,7 @@ namespace jm
 			case TextureFormat::RGBA8:				return VK_FORMAT_R8G8B8A8_UNORM;
 			case TextureFormat::LUMINANCE:			return VK_FORMAT_R8G8B8A8_UNORM;
 			case TextureFormat::LUMINANCE_ALPHA:	return VK_FORMAT_R8G8B8A8_UNORM;
-			default: JM_ERROR("[Texture] Unsupported image bit-depth!");  return VK_FORMAT_R8G8B8A8_UNORM;
+			default: JM_CORE_ERROR("[Texture] Unsupported image bit-depth!");  return VK_FORMAT_R8G8B8A8_UNORM;
 			}
 		}
 

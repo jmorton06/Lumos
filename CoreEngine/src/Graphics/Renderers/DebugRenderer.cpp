@@ -347,7 +347,7 @@ namespace jm
 			m_LogEntriesOffset = (m_LogEntriesOffset + 1) % MAX_LOG_SIZE;
 		}
 
-		JM_WARN(text);
+		JM_CORE_WARN(text);
 	}
 
 	void DebugRenderer::Log(const maths::Vector3& colour, const std::string text, ...)
@@ -735,7 +735,7 @@ namespace jm
 		m_FontTex = Texture2D::CreateFromFile("Debug Font", "/Textures/font512.png", TextureParameters(), TextureLoadOptions());
 		if (!m_FontTex)
 		{
-			JM_ERROR("JMDebug could not load font texture", "");
+			JM_CORE_ERROR("JMDebug could not load font texture", "");
 		}
 	}
 

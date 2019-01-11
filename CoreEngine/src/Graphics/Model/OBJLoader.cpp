@@ -28,7 +28,7 @@ namespace jm
 
 		if (!ok)
 		{
-			JM_ERROR(error);
+			JM_CORE_ERROR(error);
 		}
 
 		for (const auto& shape : shapes)

@@ -70,7 +70,7 @@ namespace jm
 					case TextureType::DEPTH : descriptorWrites.push_back(initializers::writeDescriptorSet(m_DescriptorSet, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, imageInfo.binding, static_cast<VKTextureDepth*>(imageInfo.texture)->GetDescriptor())); break;
 					case TextureType::DEPTHARRAY : descriptorWrites.push_back(initializers::writeDescriptorSet(m_DescriptorSet, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, imageInfo.binding, static_cast<VKTextureDepthArray*>(imageInfo.texture)->GetDescriptor())); break;
 					case TextureType::CUBE : descriptorWrites.push_back(initializers::writeDescriptorSet(m_DescriptorSet, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, imageInfo.binding, static_cast<VKTextureCube*>(imageInfo.texture)->GetDescriptor())); break;
-					default : JM_ERROR("Unsupported Texture Type",""); break;
+					default : JM_CORE_ERROR("Unsupported Texture Type",""); break;
 				}
 			}
 			vkUpdateDescriptorSets(VKDevice::Instance()->GetDevice(), static_cast<uint32_t>(descriptorWrites.size()),
@@ -91,7 +91,7 @@ namespace jm
 					case TextureType::DEPTH : descriptorWrites.push_back(initializers::writeDescriptorSet(m_DescriptorSet, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, imageInfo.binding, static_cast<VKTextureDepth*>(imageInfo.texture)->GetDescriptor())); break;
 					case TextureType::DEPTHARRAY : descriptorWrites.push_back(initializers::writeDescriptorSet(m_DescriptorSet, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, imageInfo.binding, static_cast<VKTextureDepthArray*>(imageInfo.texture)->GetDescriptor())); break;
 					case TextureType::CUBE : descriptorWrites.push_back(initializers::writeDescriptorSet(m_DescriptorSet, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, imageInfo.binding, static_cast<VKTextureCube*>(imageInfo.texture)->GetDescriptor())); break;
-					default : JM_ERROR("Unsupported Texture Type",""); break;
+					default : JM_CORE_ERROR("Unsupported Texture Type",""); break;
 				}
 			}
 

@@ -91,12 +91,12 @@ namespace jm
 		else if (fileExtension == "gltf" || fileExtension == "glb")
 			LoadGLTF(resolvedPath);
 		else
-			JM_ERROR("Unsupported File Type : ", fileExtension);
+			JM_CORE_ERROR("Unsupported File Type : ", fileExtension);
 #else
 	LoadModelAssimp(resolvedPath);
 #endif
 
-		JM_INFO("Loaded Model - ", resolvedPath);
+		JM_CORE_INFO("Loaded Model - ", resolvedPath);
 	}
 
 	void Model::Draw(const bool bind)
