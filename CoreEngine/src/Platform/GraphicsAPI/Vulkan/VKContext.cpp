@@ -102,28 +102,28 @@ namespace jm
 
 			if (flags & VK_DEBUG_REPORT_ERROR_BIT_EXT)
 			{
-				JM_WARN("[VULKAN] - ", "ERROR :", " [", layerPrefix, "] Code ", code, " : ", msg);
+				JM_CORE_WARN("[VULKAN] - ", "ERROR :", " [", layerPrefix, "] Code ", code, " : ", msg);
 			};
 			// Warnings may hint at unexpected / non-spec API usage
 			if (flags & VK_DEBUG_REPORT_WARNING_BIT_EXT)
 			{
-				JM_WARN("[VULKAN] - ", "WARNING :", " [", layerPrefix, "] Code ", code, " : ", msg);
+				JM_CORE_WARN("[VULKAN] - ", "WARNING :", " [", layerPrefix, "] Code ", code, " : ", msg);
 			};
 			// May indicate sub-optimal usage of the API
 			if (flags & VK_DEBUG_REPORT_PERFORMANCE_WARNING_BIT_EXT)
 			{
-				JM_INFO("[VULKAN] - ", "PERFORMANCE :", " [", layerPrefix, "] Code ", code, " : ", msg);
+				JM_CORE_INFO("[VULKAN] - ", "PERFORMANCE :", " [", layerPrefix, "] Code ", code, " : ", msg);
 			};
 			// Informal messages that may become handy during debugging
 			if (flags & VK_DEBUG_REPORT_INFORMATION_BIT_EXT)
 			{
-				JM_INFO("[VULKAN] - ", "INFO :", " [", layerPrefix, "] Code ", code, " : ", msg);
+				JM_CORE_INFO("[VULKAN] - ", "INFO :", " [", layerPrefix, "] Code ", code, " : ", msg);
 			}
 			// Diagnostic info from the Vulkan loader and layers
 			// Usually not helpful in terms of API usage, but may help to debug layer and loader problems 
 			if (flags & VK_DEBUG_REPORT_DEBUG_BIT_EXT)
 			{
-				JM_INFO("[VULKAN] - ", "DEBUG :", " [", layerPrefix, "] Code ", code, " : ", msg);
+				JM_CORE_INFO("[VULKAN] - ", "DEBUG :", " [", layerPrefix, "] Code ", code, " : ", msg);
 			}
 
 			return VK_FALSE;
@@ -200,7 +200,7 @@ namespace jm
 			VkResult createResult = vkCreateInstance(&createInfo, nullptr, &m_VkInstance);
 			if (createResult != VK_SUCCESS)
 			{
-				JM_ERROR("failed to create instance!");
+				JM_CORE_ERROR("failed to create instance!");
 			}
 		}
 

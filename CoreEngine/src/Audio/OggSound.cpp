@@ -111,7 +111,7 @@ namespace jm
 
 		if (!m_FileHandle)
 		{
-			JM_FATAL("Failed to load OGG file '", filename, "'!");
+			JM_CORE_ERROR("Failed to load OGG file '", filename, "'!");
 			return false;
 		}
 
@@ -119,7 +119,7 @@ namespace jm
 
 		if (!m_StreamHandle)
 		{
-			JM_FATAL("Failed to load OGG file '", filename, "'!");
+			JM_CORE_ERROR("Failed to load OGG file '", filename, "'!");
 			return false;
 		}
 

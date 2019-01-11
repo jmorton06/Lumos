@@ -17,7 +17,7 @@ namespace jm
 		if (!GLShader::Compile(sources, info))
 		{
 			error = info.message[info.shader];
-			JM_ERROR(error);
+			JM_CORE_ERROR(error);
 			return false;
 		}
 		return true;
@@ -73,14 +73,14 @@ namespace jm
 		m_Handle = Compile(sources, error);
 
 		if (!m_Handle)
-			JM_ERROR(error.message[error.shader], " - ", m_Name);
+            JM_CORE_ERROR("{0} - {1}", error.message[error.shader], m_Name);
 
 		JM_CORE_ASSERT(m_Handle, "");
 
 		ResolveUniforms();
 		ValidateUniforms();
 
-		JM_WARN("Successfully compiled shader: ", m_Name);
+		JM_CORE_WARN("Successfully compiled shader: ", m_Name);
 
 		delete sources;
 	}
@@ -164,7 +164,7 @@ namespace jm
 					if (j != std::string::npos)
 						file.erase(j, rem.length());
 					file = StringReplace(file, '\"');
-					JM_WARN("Including file \'", file, "\' into shader.");
+					JM_CORE_WARN("Including file \'", file, "\' into shader.");
 					VFS::Get()->ReadTextFile(file);
 					ReadShaderFile(GetLines(VFS::Get()->ReadTextFile(file)), shaders);
 				}
@@ -235,7 +235,7 @@ namespace jm
 			info.line[info.shader] = 0;
 			info.message[info.shader] += errorMessage;
 
-			JM_ERROR(info.message[info.shader]);
+			JM_CORE_ERROR(info.message[info.shader]);
 			return 0;
 		}
 
@@ -268,7 +268,7 @@ namespace jm
 		case COMPUTE:
 			return GL_COMPUTE_SHADER;
 #endif
-			default: JM_ERROR("Unsupported Shader Type"); return -1;
+			default: JM_CORE_ERROR("Unsupported Shader Type"); return -1;
 		}
 		return -1;
 	}
@@ -321,7 +321,7 @@ namespace jm
 			info.message[info.shader] += errorMessage;
 			GLCall(glDeleteShader(shader));
 
-			JM_ERROR(info.message[info.shader]);
+			JM_CORE_ERROR(info.message[info.shader]);
 			return -1;
 		}
 		return shader;
@@ -655,7 +655,7 @@ namespace jm
 	{
 		GLCall(const GLint result = glGetUniformLocation(m_Handle, name.c_str()));
 		if (result == -1)
-			JM_WARN(m_Name + ": could not find uniform " + name + " in shader!");
+			JM_CORE_WARN(m_Name + ": could not find uniform " + name + " in shader!");
 
 		return result;
 	}
@@ -749,7 +749,7 @@ namespace jm
 	{
 		if (uniform->GetLocation() == -1)
 		{
-			//JM_ERROR( "Couldnt Find Uniform In Shader: " + uniform->GetName());
+			//JM_CORE_ERROR( "Couldnt Find Uniform In Shader: " + uniform->GetName());
 			return;
 		}
 

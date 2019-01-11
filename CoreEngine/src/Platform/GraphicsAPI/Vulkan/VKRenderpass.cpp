@@ -67,7 +67,7 @@ namespace jm
 			else
 			{
 				VkAttachmentDescription Attachment = {};
-				JM_ERROR("[VULKAN] - Unsupported TextureType - ", static_cast<int>(type));
+				JM_CORE_ERROR("[VULKAN] - Unsupported TextureType - ", static_cast<int>(type));
 				return Attachment;
 			}
 		}

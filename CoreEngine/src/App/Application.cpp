@@ -69,9 +69,9 @@ namespace jm
 
 		Renderer::Init(screenWidth, screenHeight);
 
-        system::JobSystem::Execute([] { JMPhysicsEngine::Instance(); JM_INFO("Initialised JMPhysics"); });
-        system::JobSystem::Execute([] { B2PhysicsEngine::Instance(); JM_INFO("Initialised B2Physics"); });
-        system::JobSystem::Execute([] { SoundSystem::Initialise();   JM_INFO("Initialised Audio"); });
+        system::JobSystem::Execute([] { JMPhysicsEngine::Instance(); JM_CORE_INFO("Initialised JMPhysics"); });
+        system::JobSystem::Execute([] { B2PhysicsEngine::Instance(); JM_CORE_INFO("Initialised B2Physics"); });
+        system::JobSystem::Execute([] { SoundSystem::Initialise();   JM_CORE_INFO("Initialised Audio"); });
 
         system::JobSystem::Wait();
         
@@ -100,7 +100,7 @@ namespace jm
 
 		if (pause)
 		{
-			JM_FATAL(reason);
+            JM_CORE_ERROR("{0}", reason);
 		}
 
 		return 0;

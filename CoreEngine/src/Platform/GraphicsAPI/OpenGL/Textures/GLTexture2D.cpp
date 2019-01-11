@@ -183,7 +183,7 @@ namespace jm
 		case TextureFormat::RGBA8:				return GL_RGBA8;
 		case TextureFormat::LUMINANCE:			return GL_LUMINANCE;
 		case TextureFormat::LUMINANCE_ALPHA:	return GL_LUMINANCE_ALPHA;
-		default: JM_ERROR("[Texture] Unsupported image bit-depth!");  return 0;
+		default: JM_CORE_ERROR("[Texture] Unsupported image bit-depth!");  return 0;
 		}
 	}
 
@@ -198,7 +198,7 @@ namespace jm
 		case TextureWrap::CLAMP_TO_EDGE:	return GL_CLAMP_TO_EDGE;
 		case TextureWrap::REPEAT:			return GL_REPEAT;
 		case TextureWrap::MIRRORED_REPEAT:	return GL_MIRRORED_REPEAT;
-		default: JM_ERROR("[Texture] Unsupported image bit-depth!");  return 0;
+		default: JM_CORE_ERROR("[Texture] Unsupported image bit-depth!");  return 0;
 		}
 	}
 
@@ -211,7 +211,7 @@ namespace jm
 		case 24:	return TextureFormat::RGB8;
 		case 32:	return TextureFormat::RGBA8;
 
-		default: JM_ERROR("[Texture] Unsupported image bit-depth! (", bits, ")");  return TextureFormat::RGB8;
+		default: JM_CORE_ERROR("[Texture] Unsupported image bit-depth! (", bits, ")");  return TextureFormat::RGB8;
 		}
 	}
 
@@ -227,7 +227,7 @@ namespace jm
 		case GL_RGBA8:				return GL_RGBA;
 		case GL_LUMINANCE:			return GL_LUMINANCE;
 		case GL_LUMINANCE_ALPHA:	return GL_LUMINANCE_ALPHA;
-		default: JM_ERROR("[Texture] Unsupported Texture Format");  return 0;
+		default: JM_CORE_ERROR("[Texture] Unsupported Texture Format");  return 0;
 		}
 	}
 

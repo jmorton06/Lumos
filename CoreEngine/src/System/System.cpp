@@ -9,13 +9,14 @@ namespace jm
 	{
 	void System::Init()
 	{
-		JM_INFO("Initializing System");
+        JMLog::Init();
+		JM_CORE_INFO("Initializing System");
 		VFS::Init();
 	}
 
 	void System::Shutdown()
 	{
-		JM_INFO("Shutting down System");
+		JM_CORE_INFO("Shutting down System");
 		VFS::Shutdown();
     }
 } }

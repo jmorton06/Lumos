@@ -107,11 +107,11 @@ void APIENTRY openglCallbackFunction(GLenum source,
 	if(!PrintMessage(type))
 		return;
 
-	JM_INFO(OPENGLLOG, "Message: " , message);
-	JM_INFO(OPENGLLOG, "Type: "	   , GetStringForType(type));
-	JM_INFO(OPENGLLOG, "Source: "  , GetStringForSource(source));
-	JM_INFO(OPENGLLOG, "ID: "      , id);
-	JM_INFO(OPENGLLOG, "Severity: ", GetStringForSeverity(source));
+	JM_CORE_INFO(OPENGLLOG, "Message: " , message);
+	JM_CORE_INFO(OPENGLLOG, "Type: "	   , GetStringForType(type));
+	JM_CORE_INFO(OPENGLLOG, "Source: "  , GetStringForSource(source));
+	JM_CORE_INFO(OPENGLLOG, "ID: "      , id);
+	JM_CORE_INFO(OPENGLLOG, "Severity: ", GetStringForSeverity(source));
 }
 
 #endif
@@ -125,21 +125,21 @@ namespace jm
 #ifndef JM_PLATFORM_MOBILE
 			if(!gladLoadGLLoader(reinterpret_cast<GLADloadproc>(glfwGetProcAddress)))
 			{
-				JM_ERROR("Failed to initialize OpenGL context");
+				JM_CORE_ERROR("Failed to initialize OpenGL context");
 			}
 #endif
 			glClearColor(0.2f, 0.2f, 0.2f, 1.0f);
 
-			JM_INFO("----------------------------------");
-			JM_INFO(OPENGLLOG);
-			JM_INFO("	", glGetString(GL_VERSION));
-			JM_INFO("	", glGetString(GL_VENDOR));
-			JM_INFO("	", glGetString(GL_RENDERER));
-			JM_INFO("----------------------------------");
+			JM_CORE_INFO("----------------------------------");
+			JM_CORE_INFO(OPENGLLOG);
+			JM_CORE_INFO("	", glGetString(GL_VERSION));
+			JM_CORE_INFO("	", glGetString(GL_VENDOR));
+			JM_CORE_INFO("	", glGetString(GL_RENDERER));
+			JM_CORE_INFO("----------------------------------");
 
 #if JM_DEBUG
 #ifdef GL_DEBUD_CALLBACK
-				JM_INFO(OPENGLLOG"Registering OpenGL debug callback");
+				JM_CORE_INFO(OPENGLLOG"Registering OpenGL debug callback");
 
 				glEnable(GL_DEBUG_OUTPUT);
 				glEnable(GL_DEBUG_OUTPUT_SYNCHRONOUS);
@@ -152,7 +152,7 @@ namespace jm
 					&unusedIds,
 					true);
 #else
-			JM_INFO(OPENGLLOG"glDebugMessageCallback not available");
+			JM_CORE_INFO(OPENGLLOG"glDebugMessageCallback not available");
 #endif
 #endif
 		}

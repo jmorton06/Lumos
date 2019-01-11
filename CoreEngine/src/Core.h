@@ -113,7 +113,7 @@ typedef uint8		byte;
 	{                                                       \
 		if (!(x))                                           \
 		{                                                   \
-			JM_ERROR("Assertion failed: ", __VA_ARGS__); 	\
+			JM_CORE_ERROR("Assertion failed: ", __VA_ARGS__); 	\
 			crash();                                 		\
 		}                                                   \
 	}
@@ -121,7 +121,7 @@ typedef uint8		byte;
 	{                                                            \
 		if (!(x))                                                \
 		{                                                        \
-			JM_ERROR("Assertion failed: ", __VA_ARGS__); 		 \
+			JM_CORE_ERROR("Assertion failed: ", __VA_ARGS__); 		 \
 			crash();                                     		 \
 		}                                                        \
 	}
@@ -132,7 +132,7 @@ typedef uint8		byte;
 
 #define UNIMPLEMENTED	 											\
 	{																\
-		JM_ERROR("Unimplemented : ", __FILE__, " : ", __LINE__); 	\
+		JM_CORE_ERROR("Unimplemented : ", __FILE__, " : ", __LINE__); 	\
 		crash();  													\
 	}																\
 

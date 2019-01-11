@@ -39,7 +39,7 @@ namespace jm
 
 		if (!file)
 		{
-			JM_FATAL("Failed to load WAV file '", filename, "'!");
+			JM_CORE_ERROR("Failed to load WAV file '", filename, "'!");
 			return false;
 		}
 
@@ -110,7 +110,7 @@ namespace jm
 			String physicalPath;
 			if (!jm::VFS::Get()->ResolvePhysicalPath(fileName, physicalPath))
 			{
-				JM_FATAL("Could not load Audio File : ", fileName);
+				JM_CORE_ERROR("Could not load Audio File : ", fileName);
 			}
 
 			fileName = physicalPath;
@@ -137,7 +137,7 @@ namespace jm
 			}
 			else
             {
-				JM_ERROR("Incompatible file extension '", extension);
+				JM_CORE_ERROR("Incompatible file extension '", extension);
                 return false;
 			}
 

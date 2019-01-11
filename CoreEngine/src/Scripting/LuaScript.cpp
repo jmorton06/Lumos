@@ -73,12 +73,12 @@ namespace jm
 
 			if (tobacklog)
 			{
-				JM_INFO(ss.str().c_str());
+				JM_CORE_INFO(ss.str().c_str());
 			}
 			if (todebug)
 			{
 				ss << std::endl;
-				JM_INFO(ss.str().c_str());
+				JM_CORE_INFO(ss.str().c_str());
 			}
 
 			lua_pop(m_luaState, 1); // remove error message
@@ -228,7 +228,7 @@ namespace jm
 		}
 		ss << std::endl;
 
-		JM_INFO(ss.str().c_str());
+		JM_CORE_INFO(ss.str().c_str());
 
 		//number of results
 		return 0;
@@ -329,7 +329,7 @@ namespace jm
 		}
 		if (tobacklog)
 		{
-			JM_INFO(ss.str().c_str());
+			JM_CORE_INFO(ss.str().c_str());
 		}
 	}
 

@@ -162,7 +162,7 @@ namespace jm
 		case DataType::FLOAT		 : return GL_FLOAT;
 		case DataType::UNSIGNED_INT  : return GL_UNSIGNED_INT;
 		case DataType::UNSIGNED_BYTE : return GL_UNSIGNED_BYTE;
-		default: JM_ERROR("Unsupported DataType"); break;
+		default: JM_CORE_ERROR("Unsupported DataType"); break;
 		}
 		return 0;
 	}
@@ -174,7 +174,7 @@ namespace jm
 		case DrawType::POINT:    return GL_POINTS;
 		case DrawType::LINES:    return GL_LINES;
 		case DrawType::TRIANGLE: return GL_TRIANGLES;
-		default: JM_ERROR("Unsupported DrawType"); break;
+		default: JM_CORE_ERROR("Unsupported DrawType"); break;
 		}
 		return 0;
 	}
@@ -218,7 +218,7 @@ namespace jm
 		case 3: GLCall(glDrawBuffers(3, drawbuffers_3)); break;
 		case 4: GLCall(glDrawBuffers(4, drawbuffers_4)); break;
 		case 5: GLCall(glDrawBuffers(5, drawbuffers_5)); break;
-		default: JM_ERROR("Unsupported amount of render targets"); break;
+		default: JM_CORE_ERROR("Unsupported amount of render targets"); break;
 		}
 	}
 

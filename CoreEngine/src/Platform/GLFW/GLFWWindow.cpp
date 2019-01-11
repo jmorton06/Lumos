@@ -32,7 +32,7 @@ namespace jm
 
 	static void GLFWErrorCallback(int error, const char* description)
 	{
-		JM_ERROR("GLFW Error - ", error," : ", description);
+		JM_CORE_ERROR("GLFW Error - ", error," : ", description);
 	}
 
 	GLFWWindow::GLFWWindow(const WindowProperties& properties, const String& title, RenderAPI api)
@@ -67,7 +67,7 @@ namespace jm
 
 	bool GLFWWindow::Init(const WindowProperties& properties, const String& title)
 	{
-		JM_INFO("Creating window - ","Title : ", title, " Width : ", properties.Width, " Height : ", properties.Height);
+		JM_CORE_INFO("Creating window - ","Title : ", title, " Width : ", properties.Width, " Height : ", properties.Height);
 
 		if (!s_GLFWInitialized)
 		{
@@ -229,7 +229,7 @@ namespace jm
 			data.EventCallback(event);
 		});
 
-		JM_INFO("Initialised GLFW version : ", glfwGetVersionString());
+		JM_CORE_INFO("Initialised GLFW version : ", glfwGetVersionString());
 
 		return true;
 	}
@@ -371,7 +371,7 @@ namespace jm
 		case GLFW_KEY_KP_ADD: return JM_KEY_ADD;
 		case GLFW_KEY_COMMA: return JM_KEY_COMMA;
 
-		default: JM_ERROR("Unsupported Key used : ", glfwKey); return 0;
+		default: JM_CORE_ERROR("Unsupported Key used : ", glfwKey); return 0;
 		}
 	}
 
@@ -382,7 +382,7 @@ namespace jm
 		case GLFW_MOUSE_BUTTON_LEFT		: return JM_MOUSE_LEFT;
 		case GLFW_MOUSE_BUTTON_RIGHT	: return JM_MOUSE_RIGHT;
 		case GLFW_MOUSE_BUTTON_MIDDLE	: return JM_MOUSE_MIDDLE;
-		default: JM_ERROR("Unsupported Key used : ", glfwKey); return 0;
+		default: JM_CORE_ERROR("Unsupported Key used : ", glfwKey); return 0;
 		}
 	}
 }
