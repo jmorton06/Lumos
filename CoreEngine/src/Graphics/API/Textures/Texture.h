@@ -54,7 +54,7 @@ namespace jm
 
 		TextureParameters()
 		{
-			format = TextureFormat::RGBA8;
+			format = TextureFormat::RGBA;
 			filter = TextureFilter::NEAREST;
 			wrap = TextureWrap::REPEAT;
 		}

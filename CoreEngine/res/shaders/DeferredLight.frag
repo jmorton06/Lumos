@@ -155,7 +155,7 @@ float DoShadowTest(vec3 tsShadow, int tsLayer, vec2 pix)
 		float shadow = 0.0f;
 		for (float y = -1.5f; y <= 1.5f; y += 1.0f)
 			for (float x = -1.5f; x <= 1.5f; x += 1.0f)
-				shadow += texture(uShadowMap, tCoord + vec4(pix.x * x, pix.y * y, 0, 0));
+				shadow += texture(uShadowMap, tCoord + vec4(pix.x * x, pix.y * y, 0,0));
 
 		return shadow / 16.0f;
 	}
