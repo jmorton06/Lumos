@@ -16,14 +16,14 @@ namespace jm
 		{
 			if (filename.empty())
 			{
-				JM_ERROR("Failed to Open : ", filename);
+				JM_CORE_ERROR("Failed to Open : {0}", filename);
 				return;
 			}
 
 			std::ifstream fileIn(filename);
 			if (!fileIn.is_open())
 			{
-				JM_ERROR("Failed to Open : ", filename);
+				JM_CORE_ERROR("Failed to Open : {0}", filename);
 				return;
 			}
 
@@ -87,13 +87,13 @@ namespace jm
 				else if (it->second == "false")
 					value = false;
 				else
-					JM_ERROR("Invalid value set to name - ", it->second);
+					JM_CORE_ERROR("Invalid value set to name - {0}", it->second);
 
 				return true;
 			}
 			else
 			{
-				JM_ERROR("Couldn't Find value - ", name, " in Settings File");
+				JM_CORE_ERROR("Couldn't Find value - {0} in Settings File", name);
 				return false;
 			}
 		}
@@ -108,7 +108,7 @@ namespace jm
 			}
 			else
 			{
-				JM_ERROR("Couldn't Find value - ", name, " in Settings File");
+				JM_CORE_ERROR("Couldn't Find value - {0} in Settings File", name);
 				return false;
 			}
 		}
@@ -127,7 +127,7 @@ namespace jm
 			}
 			else
 			{
-				JM_ERROR("Couldn't Find value - ", name, " in Settings File");
+				JM_CORE_ERROR("Couldn't Find value - {0} in Settings File", name);
 				return false;
 			}
 		}
@@ -147,7 +147,7 @@ namespace jm
 			}
 			else
 			{
-				JM_ERROR("Couldn't Find value - ", name, " in Settings File");
+				JM_CORE_ERROR("Couldn't Find value - {0} in Settings File", name);
 				return false;
 			}
 		}
@@ -166,7 +166,7 @@ namespace jm
 			}
 			else
 			{
-				JM_ERROR("Couldn't Find value - ", name, " in Settings File");
+				JM_CORE_ERROR("Couldn't Find value - {0} in Settings File", name);
 				return false;
 			}
 		}

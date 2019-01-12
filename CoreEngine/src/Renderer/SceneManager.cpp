@@ -25,11 +25,11 @@ namespace jm
 	{
 		if (scene == nullptr)
 		{
-			JM_ERROR("Attempting to enqueue nullptr scene", "");
+			JM_CORE_ERROR("Attempting to enqueue nullptr scene", "");
 			return;
 		}
 
-		JM_INFO("[SceneManager] - Enqueued scene: ", scene->GetSceneName().c_str());
+        JM_CORE_INFO("[SceneManager] - Enqueued scene : {0}", scene->GetSceneName().c_str());
 		m_vpAllScenes.push_back(std::unique_ptr<Scene>(scene));
 
 		scene->SetScreenWidth(Application::Instance()->GetWindow()->GetWidth());
@@ -49,14 +49,14 @@ namespace jm
 	{
 		if (idx < 0 || idx >= static_cast<int>(m_vpAllScenes.size()))
 		{
-			JM_ERROR("Invalid Scene Index: ", idx);
+			JM_CORE_ERROR("[SceneManager] - Invalid Scene Index : {0}", idx);
 			return;
 		}
 
 		//Clear up old scene
 		if (m_CurrentScene)
 		{
-			JM_INFO("[SceneManager] - Exiting scene - " , m_CurrentScene->GetSceneName());
+            JM_CORE_INFO("[SceneManager] - Exiting scene : {0}" , m_CurrentScene->GetSceneName());
 			JMPhysicsEngine::Instance()->RemoveAllPhysicsObjects();
             JMPhysicsEngine::Instance()->SetPaused(true);
 			m_CurrentScene->OnCleanupScene();
@@ -73,7 +73,7 @@ namespace jm
         Application::Instance()->GetGraphicsPipeline()->Reset();
 		m_CurrentScene->OnInit();
 
-		JM_INFO("[SceneManager] - Scene switched to: ", m_CurrentScene->GetSceneName().c_str());
+		JM_CORE_INFO("[SceneManager] - Scene switched to : {0}", m_CurrentScene->GetSceneName().c_str());
 	}
 
 	void SceneManager::JumpToScene(const std::string& friendly_name)
@@ -96,7 +96,7 @@ namespace jm
 		}
 		else
 		{
-			JM_ERROR("Unknown Scene Alias: ", friendly_name.c_str());
+			JM_CORE_ERROR("[SceneManager] - Unknown Scene Alias : {0}", friendly_name.c_str());
 		}
 	}
 

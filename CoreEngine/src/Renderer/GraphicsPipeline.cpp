@@ -27,7 +27,7 @@ namespace jm
 
 		if (!RenderList::AllocateNewRenderList(m_pFrameRenderList.get(), true))
 		{
-			JM_ERROR("Unable to allocate scene render list! - Try using less shadow maps", "");
+			JM_CORE_ERROR("Unable to allocate scene render list! - Try using less shadow maps", "");
 		}
 	}
 

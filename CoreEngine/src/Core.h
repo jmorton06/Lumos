@@ -109,32 +109,32 @@ typedef uint8		byte;
 #endif
 
 #ifdef JM_ENABLE_ASSERTS
-	#define JM_ASSERT(x, ...)                               \
-	{                                                       \
-		if (!(x))                                           \
-		{                                                   \
-			JM_ERROR("Assertion failed: ", __VA_ARGS__); 	\
-			crash();                                 		\
-		}                                                   \
+	#define JM_ASSERT(x, ...)                               		\
+	{                                                       		\
+		if (!(x))                                           		\
+		{                                                   		\
+			JM_CORE_ERROR("Assertion failed: {0}", __VA_ARGS__); 	\
+			crash();                                 				\
+		}                                                   		\
 	}
-	#define JM_CORE_ASSERT(x, ...)                               \
-	{                                                            \
-		if (!(x))                                                \
-		{                                                        \
-			JM_ERROR("Assertion failed: ", __VA_ARGS__); 		 \
-			crash();                                     		 \
-		}                                                        \
+	#define JM_CORE_ASSERT(x, ...)                               	\
+	{                                                            	\
+		if (!(x))                                                	\
+		{                                                        	\
+			JM_CORE_ERROR("Assertion failed: {0}", __VA_ARGS__);    \
+			crash();                                     		 	\
+		}                                                        	\
 	}
 #else
 	#define JM_ASSERT(x, ...)
 	#define JM_CORE_ASSERT(x, ...)
 #endif
 
-#define UNIMPLEMENTED	 											\
-	{																\
-		JM_ERROR("Unimplemented : ", __FILE__, " : ", __LINE__); 	\
-		crash();  													\
-	}																\
+#define UNIMPLEMENTED	 													\
+	{																		\
+		JM_CORE_ERROR("Unimplemented : {0} : {1}", __FILE__, __LINE__); 	\
+		crash();  															\
+	}																		\
 
 namespace jm
 {

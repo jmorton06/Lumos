@@ -96,7 +96,7 @@ namespace jm
 		}
 		else
 		{
-			JM_ERROR("Shape Not Supported");
+			JM_CORE_ERROR("Shape Not Supported");
 		}
 	}
     
