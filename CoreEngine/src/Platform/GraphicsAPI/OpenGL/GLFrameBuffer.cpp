@@ -160,7 +160,7 @@ namespace jm
 		uint status = glCheckFramebufferStatus(GL_FRAMEBUFFER);
 		if (status != GL_FRAMEBUFFER_COMPLETE)
 		{
-			JM_ERROR("Unable to create Screen Framebuffer! StatusCode: %x", status);
+			JM_CORE_ERROR("Unable to create Screen Framebuffer! StatusCode: {0}", status);
 		}
 	}
 }

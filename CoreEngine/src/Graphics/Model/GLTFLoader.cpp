@@ -360,17 +360,17 @@ namespace jm
 
 		if (!err.empty())
 		{
-			JM_ERROR(err);
+			JM_CORE_ERROR(err);
 		}
 
 		if (!warn.empty())
 		{
-			JM_ERROR(warn);
+			JM_CORE_ERROR(warn);
 		}
 
 		if (!ret)
 		{
-			JM_ERROR("Failed to parse glTF");
+			JM_CORE_ERROR("Failed to parse glTF");
 		}
 
 		auto LoadedMaterials = LoadMaterials(model);
@@ -379,7 +379,7 @@ namespace jm
 		{
 			if (mesh.primitives.size() > 1)
 			{
-				JM_WARN("UNIMPLEMENTED : glTF model with several primitives ", path, mesh.primitives.size());
+				JM_CORE_WARN("UNIMPLEMENTED : glTF model with several primitives {0} {1}", path, mesh.primitives.size());
 			}
 
 			const tinygltf::Primitive &primitive = mesh.primitives[0];

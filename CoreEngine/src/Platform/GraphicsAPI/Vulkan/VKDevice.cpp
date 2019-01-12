@@ -54,7 +54,7 @@ namespace jm
 			vkEnumeratePhysicalDevices(m_VKContext->GetVKInstance(), &numGPUs, VK_NULL_HANDLE);
 			if (numGPUs == 0)
 			{
-				JM_ERROR("ERROR : No GPUs found!");
+				JM_CORE_ERROR("ERROR : No GPUs found!");
 				return false;
 			}
 
@@ -64,14 +64,14 @@ namespace jm
 
 			vkGetPhysicalDeviceProperties(m_PhysicalDevice, &m_PhysicalDeviceProperties);
 			vkGetPhysicalDeviceMemoryProperties(m_PhysicalDevice, &m_MemoryProperties);
-			JM_INFO("Rendering with : " + std::string(m_PhysicalDeviceProperties.deviceName));
+			JM_CORE_INFO("Rendering with : {0}", std::string(m_PhysicalDeviceProperties.deviceName));
 
 			// Queue family
 			uint32_t numQueueFamily = 0;
 			vkGetPhysicalDeviceQueueFamilyProperties(m_PhysicalDevice, &numQueueFamily, VK_NULL_HANDLE);
 			if (numQueueFamily == 0)
 			{
-				JM_ERROR("ERROR : No Queue Families were found!");
+				JM_CORE_ERROR("ERROR : No Queue Families were found!");
 				return false;
 			}
 
@@ -116,7 +116,7 @@ namespace jm
 
 			if (m_GraphicsQueueFamilyIndex == UINT32_MAX)
 			{
-				JM_ERROR("ERROR : Couldn't find a graphics queue family index!");
+				JM_CORE_ERROR("ERROR : Couldn't find a graphics queue family index!");
 				return false;
 			}
 
@@ -124,7 +124,7 @@ namespace jm
 			result = vkGetPhysicalDeviceSurfaceFormatsKHR(m_PhysicalDevice, m_Surface, &numFormats, VK_NULL_HANDLE);
 			if (result != VK_SUCCESS)
 			{
-				JM_ERROR("ERROR : Couldn't get surface formats!");
+				JM_CORE_ERROR("ERROR : Couldn't get surface formats!");
 				return false;
 			}
 
@@ -175,7 +175,7 @@ namespace jm
 			result = vkCreateDevice(m_PhysicalDevice, &deviceCI, VK_NULL_HANDLE, &m_Device);
 			if (result != VK_SUCCESS)
 			{
-				JM_ERROR("ERROR : vkCreateDevice() failed!");
+				JM_CORE_ERROR("ERROR : vkCreateDevice() failed!");
 				return false;
 			}
 

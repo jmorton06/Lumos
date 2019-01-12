@@ -16,15 +16,15 @@ namespace jm
 		m_MasterVolume = 1.0f;
 
 #ifdef JM_OPENAL
-		JM_INFO("Creating SoundSystem!");
-		JM_INFO("Found the following devices: ", alcGetString(nullptr, ALC_DEVICE_SPECIFIER));
+		JM_CORE_INFO("Creating SoundSystem!");
+		JM_CORE_INFO("Found the following devices: {0}", alcGetString(nullptr, ALC_DEVICE_SPECIFIER));
 
 		m_Device = alcOpenDevice(nullptr);
 
 		if (!m_Device)
-			JM_INFO("Failed to create SoundSystem! (No valid device!)");
+			JM_CORE_INFO("Failed to create SoundSystem! (No valid device!)");
 
-		JM_INFO("SoundSystem created with device: ", alcGetString(m_Device, ALC_DEVICE_SPECIFIER));	//Outputs used OAL device!
+		JM_CORE_INFO("SoundSystem created with device: {0}", alcGetString(m_Device, ALC_DEVICE_SPECIFIER));	//Outputs used OAL device!
 
 		m_Context = alcCreateContext(m_Device, nullptr);
 
@@ -49,7 +49,7 @@ namespace jm
 		}
 #endif
 
-		JM_INFO("SoundSystem has ", m_Sources.size(), " channels available!");
+		JM_CORE_INFO("SoundSystem has {0} channels available!", m_Sources.size());
 	}
 
 	SoundSystem::~SoundSystem()

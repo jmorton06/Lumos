@@ -40,7 +40,7 @@ namespace jm
 			m_apShadowRenderLists[i] = new RenderList();
 			if (!RenderList::AllocateNewRenderList(m_apShadowRenderLists[i], true))
 			{
-				JM_ERROR("Unable to allocate shadow render list %d! - Try using less shadow maps", i);
+				JM_CORE_ERROR("Unable to allocate shadow render list {0} - Try using less shadow maps", i);
 			}
 		}
 

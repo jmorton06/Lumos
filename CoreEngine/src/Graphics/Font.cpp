@@ -34,13 +34,13 @@ namespace jm
 
         // All functions return a value different than 0 whenever an error occurred
         if (FT_Init_FreeType(&ft))
-            JM_ERROR("ERROR::FREETYPE: Could not init FreeType Library");
+            JM_CORE_ERROR("ERROR::FREETYPE: Could not init FreeType Library");
 
         // Load font as face
 
         //if (FT_New_Face(ft, TEXTUREDIR"OpenSans-Semibold.ttf", 0, &face))
         if (FT_New_Face(ft, fontName, 0, &face))
-            JM_ERROR("ERROR::FREETYPE: Failed to load font");
+            JM_CORE_ERROR("ERROR::FREETYPE: Failed to load font");
 
         // Set size to load glyphs as
         FT_Set_Pixel_Sizes(face, 0, 48);
@@ -54,7 +54,7 @@ namespace jm
             // Load character glyph
             if (FT_Load_Char(face, c, FT_LOAD_RENDER))
             {
-                JM_ERROR("ERROR::FREETYTPE: Failed to load Glyph");
+                JM_CORE_ERROR("ERROR::FREETYTPE: Failed to load Glyph");
                 continue;
             }
 
