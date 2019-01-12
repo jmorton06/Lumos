@@ -122,9 +122,7 @@ namespace jm
                     worker.detach();
                 }
 
-                std::stringstream ss("");
-                ss << "Initialised JobSystem with [" << numCores << " cores] [" << numThreads << " threads]";
-                JM_CORE_INFO(ss.str().c_str());
+                JM_CORE_INFO("Initialised JobSystem with [{0} cores] [{1} threads]" ,numCores, numThreads);
             }
 
             // This little function will not let the system to be deadlocked while the main thread is waiting for something
