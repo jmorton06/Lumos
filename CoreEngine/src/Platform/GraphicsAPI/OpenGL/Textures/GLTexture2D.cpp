@@ -211,7 +211,7 @@ namespace jm
 		case 24:	return TextureFormat::RGB8;
 		case 32:	return TextureFormat::RGBA8;
 
-		default: JM_CORE_ERROR("[Texture] Unsupported image bit-depth! (", bits, ")");  return TextureFormat::RGB8;
+		default: JM_CORE_ERROR("[Texture] Unsupported image bit-depth! ({0})", bits);  return TextureFormat::RGB8;
 		}
 	}
 

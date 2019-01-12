@@ -34,7 +34,7 @@ EntityBinding::~EntityBinding()
 
 int EntityBinding::PrintName(::lua_State* L)
 {
-	JM_CORE_INFO("Entity Name - ", entity->GetName());
+	JM_CORE_INFO("Entity Name - {0}", entity->GetName());
 	return 1;
 }
 

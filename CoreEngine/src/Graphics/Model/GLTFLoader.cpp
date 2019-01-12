@@ -379,7 +379,7 @@ namespace jm
 		{
 			if (mesh.primitives.size() > 1)
 			{
-				JM_CORE_WARN("UNIMPLEMENTED : glTF model with several primitives ", path, mesh.primitives.size());
+				JM_CORE_WARN("UNIMPLEMENTED : glTF model with several primitives {0} {1}", path, mesh.primitives.size());
 			}
 
 			const tinygltf::Primitive &primitive = mesh.primitives[0];
