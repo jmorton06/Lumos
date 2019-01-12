@@ -164,7 +164,7 @@ namespace jm
 					if (j != std::string::npos)
 						file.erase(j, rem.length());
 					file = StringReplace(file, '\"');
-					JM_CORE_WARN("Including file \'", file, "\' into shader.");
+					JM_CORE_WARN("Including file \'{0}\' into shader.",file);
 					VFS::Get()->ReadTextFile(file);
 					ReadShaderFile(GetLines(VFS::Get()->ReadTextFile(file)), shaders);
 				}
@@ -655,7 +655,7 @@ namespace jm
 	{
 		GLCall(const GLint result = glGetUniformLocation(m_Handle, name.c_str()));
 		if (result == -1)
-			JM_CORE_WARN(m_Name + ": could not find uniform " + name + " in shader!");
+			JM_CORE_WARN("{0} : could not find uniform {1} in shader!",m_Name,name);
 
 		return result;
 	}
@@ -793,7 +793,7 @@ namespace jm
 		ShaderUniformDeclaration* uniform = FindUniformDeclaration(name);
 		if (!uniform)
 		{
-			JM_CORE_ASSERT("Cannot find uniform in ", m_Name, " shader with name '", name, "'");
+			JM_CORE_ASSERT("Cannot find uniform in {0} shader with name '{1}'", m_Name, name);
 			return;
 		}
 		ResolveAndSetUniform(static_cast<GLShaderUniformDeclaration*>(uniform), data, 0, uniform->GetCount());

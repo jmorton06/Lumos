@@ -39,7 +39,7 @@ namespace jm
 
 		if (!file)
 		{
-			JM_CORE_ERROR("Failed to load WAV file '", filename, "'!");
+			JM_CORE_ERROR("Failed to load WAV file '{0}'!", filename);
 			return false;
 		}
 

@@ -64,7 +64,7 @@ namespace jm
 
 			vkGetPhysicalDeviceProperties(m_PhysicalDevice, &m_PhysicalDeviceProperties);
 			vkGetPhysicalDeviceMemoryProperties(m_PhysicalDevice, &m_MemoryProperties);
-			JM_CORE_INFO("Rendering with : " + std::string(m_PhysicalDeviceProperties.deviceName));
+			JM_CORE_INFO("Rendering with : {0}", std::string(m_PhysicalDeviceProperties.deviceName));
 
 			// Queue family
 			uint32_t numQueueFamily = 0;

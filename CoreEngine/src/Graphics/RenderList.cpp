@@ -11,7 +11,7 @@ namespace jm
 	{
 		if (g_NumRenderLists >= 31)
 		{
-			JM_CORE_ERROR("Attempting to create more than 32 renderlists!", "");
+			JM_CORE_ERROR("Attempting to create more than 32 renderlists!");
 			return false;
 		}
 

@@ -107,11 +107,11 @@ void APIENTRY openglCallbackFunction(GLenum source,
 	if(!PrintMessage(type))
 		return;
 
-	JM_CORE_INFO(OPENGLLOG, "Message: " , message);
-	JM_CORE_INFO(OPENGLLOG, "Type: "	   , GetStringForType(type));
-	JM_CORE_INFO(OPENGLLOG, "Source: "  , GetStringForSource(source));
-	JM_CORE_INFO(OPENGLLOG, "ID: "      , id);
-	JM_CORE_INFO(OPENGLLOG, "Severity: ", GetStringForSeverity(source));
+	JM_CORE_INFO(OPENGLLOG"Message: {0}" , message);
+	JM_CORE_INFO(OPENGLLOG"Type: {0}"	   , GetStringForType(type));
+	JM_CORE_INFO(OPENGLLOG"Source: {0}"  , GetStringForSource(source));
+	JM_CORE_INFO(OPENGLLOG"ID: {0}"      , id);
+	JM_CORE_INFO(OPENGLLOG"Severity: {0}", GetStringForSeverity(source));
 }
 
 #endif
@@ -132,9 +132,9 @@ namespace jm
 
 			JM_CORE_INFO("----------------------------------");
 			JM_CORE_INFO(OPENGLLOG);
-			JM_CORE_INFO("	", glGetString(GL_VERSION));
-			JM_CORE_INFO("	", glGetString(GL_VENDOR));
-			JM_CORE_INFO("	", glGetString(GL_RENDERER));
+			JM_CORE_INFO(glGetString(GL_VERSION));
+			JM_CORE_INFO(glGetString(GL_VENDOR));
+			JM_CORE_INFO(glGetString(GL_RENDERER));
 			JM_CORE_INFO("----------------------------------");
 
 #if JM_DEBUG
