@@ -26,7 +26,7 @@ namespace jm
 #define JM_CORE_ERROR(...)    ::jm::JMLog::GetCoreLogger()->error(__VA_ARGS__)
 #define JM_CORE_FATAL(...)    ::jm::JMLog::GetCoreLogger()->fatal(__VA_ARGS__)
 
-// Client log macrosJM
+// Client log macros
 #define JM_TRACE(...)         ::jm::JMLog::GetClientLogger()->trace(__VA_ARGS__)
 #define JM_INFO(...)          ::jm::JMLog::GetClientLogger()->info(__VA_ARGS__)
 #define JM_WARN(...)          ::jm::JMLog::GetClientLogger()->warn(__VA_ARGS__)
