@@ -80,7 +80,7 @@ script:
 branches:
   only:
     - master
-    - Vulkan
+    - dev
 
 notifications:
   email:
