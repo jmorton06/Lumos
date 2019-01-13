@@ -18,6 +18,7 @@
 #include "App/Input.h"
 #include "System/VFS.h"
 #include "System/JobSystem.h"
+#include "Graphics/ImGuiLayer.h"
 
 namespace jm
 {
@@ -175,6 +176,9 @@ namespace jm
 
 			m_TimeStep->Update(now);
 
+			for (Layer* layer : m_LayerStack)
+				layer->OnUpdate(m_TimeStep.get());
+
 			m_GraphicsPipeline->UpdateScene(m_TimeStep.get());
 			m_GraphicsPipeline->RenderScene();
 
@@ -215,6 +219,13 @@ namespace jm
         dispatcher.Dispatch<WindowResizeEvent>(BIND_EVENT_FN(Application::OnWindowResize));
 
 		Input::GetInput().OnEvent(e);
+
+		for (auto it = m_LayerStack.end(); it != m_LayerStack.begin();)
+		{
+			(*--it)->OnEvent(e);
+			if (e.Handled())
+				break;
+		}
 	}
 
 	void Application::Run()
@@ -228,6 +239,18 @@ namespace jm
 		Quit();
 	}
 
+	void Application::PushLayer(Layer * layer)
+	{
+		m_LayerStack.PushLayer(layer);
+		layer->OnAttach();
+	}
+
+	void Application::PushOverLay(Layer * overlay)
+	{
+		m_LayerStack.PushOverlay(overlay);
+		overlay->OnAttach();
+	}
+
 	bool Application::OnWindowClose(WindowCloseEvent& e)
 	{
         m_CurrentState = AppState::Closing;
@@ -236,7 +259,12 @@ namespace jm
 
     bool Application::OnWindowResize(WindowResizeEvent &e)
     {
-        GetGraphicsPipeline()->OnResize(e.GetWidth(), e.GeHeight());
-        return true;
+        GetGraphicsPipeline()->OnResize(e.GetWidth(), e.GetHeight());
+        return false;
     }
+
+	void Application::OnImGui()
+	{
+		m_SceneManager->GetCurrentScene()->OnIMGUI();
+	}
 }

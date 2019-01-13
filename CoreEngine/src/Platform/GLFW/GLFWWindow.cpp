@@ -231,6 +231,14 @@ namespace jm
 			data.EventCallback(event);
 		});
 
+		glfwSetCharCallback(m_Handle, [](GLFWwindow* window, unsigned int keycode)
+ 		{
+ 			WindowData& data = *(WindowData*)(glfwGetWindowUserPointer(window));
+
+  			KeyTypedEvent event(keycode);
+ 			data.EventCallback(event);
+ 		});
+
 		JM_CORE_INFO("Initialised GLFW version : {0}", glfwGetVersionString());
 
 		return true;
