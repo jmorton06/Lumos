@@ -50,44 +50,44 @@ namespace jm
 	{
 		SetKeyPressed(e.GetKeyCode(), e.GetRepeatCount() < 1);
 		SetKeyHeld(e.GetKeyCode(), true);
-		return true;
+		return false;
 	}
 
 	bool Input::OnKeyReleased(KeyReleasedEvent& e)
 	{
 		SetKeyPressed(e.GetKeyCode(), false);
 		SetKeyHeld(e.GetKeyCode(), false);
-		return true;
+		return false;
 	}
 
 	bool Input::OnMousePressed(MouseButtonPressedEvent& e)
 	{
 		SetMouseClicked(e.GetMouseButton(), true);
 		SetMouseHeld(e.GetMouseButton(), true);
-		return true;
+		return false;
 	}
 	bool Input::OnMouseReleased(MouseButtonReleasedEvent& e)
 	{
 		SetMouseClicked(e.GetMouseButton(), false);
 		SetMouseHeld(e.GetMouseButton(), false);
-		return true;
+		return false;
 	}
 
 	bool Input::OnMouseScrolled(MouseScrolledEvent& e)
 	{
 		SetScrollOffset(e.GetYOffset());
-		return true;
+		return false;
 	}
 
 	bool Input::OnMouseMoved(MouseMovedEvent& e)
 	{
 		StoreMousePosition((int)e.GetX(), (int)e.GetY());
-		return true;
+		return false;
 	}
 
 	bool Input::OnMouseEnter(MouseEnterEvent& e)
 	{
 		SetMouseOnScreen(e.GetEntered());
-		return true;
+		return false;
 	}
 }

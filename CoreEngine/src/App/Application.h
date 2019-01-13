@@ -3,6 +3,9 @@
 #include "Graphics/API/Context.h"
 #include "Events/Event.h"
 #include "Events/ApplicationEvent.h"
+
+#include "Graphics/LayerStack.h"
+#include "Events/Event.h"
 #include <thread>
 
 namespace jm
@@ -31,6 +34,10 @@ namespace jm
 		void Run();
 		bool OnFrame();
 		void OnEvent(Event& e);
+		void OnImGui();
+		void PushLayer(Layer* layer);
+		void PushOverLay(Layer* overlay);
+
 		virtual void Init();
 
 		void DefaultControls();
@@ -60,6 +67,8 @@ namespace jm
 		std::unique_ptr<Window> m_Window;
         std::unique_ptr<GraphicsPipeline> m_GraphicsPipeline;
         std::unique_ptr<SceneManager> m_SceneManager;
+
+		LayerStack m_LayerStack;
 
         AppState m_CurrentState = AppState::Loading;
 

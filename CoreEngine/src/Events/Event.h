@@ -9,7 +9,7 @@ namespace jm
 		None = 0,
 		WindowClose, WindowResize, WindowFocus, WindowLostFocus, WindowMoved,
 		AppTick, AppUpdate, AppRender,
-		KeyPressed, KeyReleased,
+		KeyPressed, KeyReleased, KeyTyped,
 		MouseButtonPressed, MouseButtonReleased, MouseMoved, MouseScrolled, MouseEntered
 	};
 
@@ -44,6 +44,9 @@ namespace jm
 		{
 			return GetCategoryFlags() & category;
 		}
+
+		inline bool Handled() const { return m_Handled; }
+
 	protected:
 		bool m_Handled = false;
 	};
