@@ -2,6 +2,7 @@
 
 **Game Engine written in C++ using OpenGL and Vulkan.**
 
+[![Build status](https://img.shields.io/appveyor/ci/jmorton06/UntitledEngine/dev.svg?style=flat&label=Windows)](https://ci.appveyor.com/project/jmorton06/UntitledEngine/branch/dev) [![Build status]( https://img.shields.io/travis/jmorton06/UntitledEngine/dev.svg?style=flat&label=Linux%20macOS)](https://travis-ci.org/jmorton06/UntitledEngine)
 ## Building
 
 ### CMake
@@ -42,5 +43,3 @@ make
 
 [![License](http://img.shields.io/:license-mit-blue.svg)](http://doge.mit-license.org)
 <br>
-
-
