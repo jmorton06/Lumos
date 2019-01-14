@@ -12,9 +12,9 @@ project "Sandbox"
 
 	sysincludedirs
 	{
-		"../CoreEngine/external/spdlog/include",
-		"../CoreEngine/external/",
-		"../CoreEngine/external/stb/",
+		"../Lumos/external/spdlog/include",
+		"../Lumos/external/",
+		"../Lumos/external/stb/",
 		"../Dependencies/lua/src/",
 		"../Dependencies/GLFW/include/",
 		"../Dependencies/glad/include/",
@@ -24,22 +24,22 @@ project "Sandbox"
 		"../Dependencies/Box2D/",
 		"../Dependencies/vulkan/",
 		"../Dependencies/",
-		"../CoreEngine/external/",
-		"../CoreEngine/external/spdlog/include",
-		"../CoreEngine/src"
+		"../Lumos/external/",
+		"../Lumos/external/spdlog/include",
+		"../Lumos/src"
 	}
 
 	links
 	{
-		"CoreEngine"
+		"Lumos"
 	}
 
 	cwd = os.getcwd() .. "/.."
 
 	defines
 	{
-		"JM_DYNAMIC",
-		"JM_ROOT_DIR="  .. cwd,
+		"LUMOS_DYNAMIC",
+		"LUMOS_ROOT_DIR="  .. cwd,
 	}
 
 	filter "system:windows"
@@ -49,9 +49,9 @@ project "Sandbox"
 
 		defines
 		{
-			"JM_PLATFORM_WINDOWS",
-			"JM_RENDER_API_OPENGL",
-			"JM_RENDER_API_VULKAN",
+			"LUMOS_PLATFORM_WINDOWS",
+			"LUMOS_RENDER_API_OPENGL",
+			"LUMOS_RENDER_API_VULKAN",
 			"VK_USE_PLATFORM_WIN32_KHR",
 			"WIN32_LEAN_AND_MEAN",
 			"_CRT_SECURE_NO_WARNINGS",
@@ -70,12 +70,12 @@ project "Sandbox"
 
 		defines
 		{
-			"JM_PLATFORM_MACOS",
-			"JM_PLATFORM_UNIX",
-			"JM_RENDER_API_OPENGL",
-			"JM_RENDER_API_VULKAN",
+			"LUMOS_PLATFORM_MACOS",
+			"LUMOS_PLATFORM_UNIX",
+			"LUMOS_RENDER_API_OPENGL",
+			"LUMOS_RENDER_API_VULKAN",
 			"VK_USE_PLATFORM_MACOS_MVK",
-			"JM_IMGUI"
+			"LUMOS_IMGUI"
 		}
 
 	filter "system:linux"
@@ -85,12 +85,12 @@ project "Sandbox"
 
 		defines
 		{
-			"JM_PLATFORM_LINUX",
-			"JM_PLATFORM_UNIX",
-			"JM_RENDER_API_OPENGL",
-			"JM_RENDER_API_VULKAN",
+			"LUMOS_PLATFORM_LINUX",
+			"LUMOS_PLATFORM_UNIX",
+			"LUMOS_RENDER_API_OPENGL",
+			"LUMOS_RENDER_API_VULKAN",
 			"VK_USE_PLATFORM_XCB_KHR",
-			"JM_IMGUI"
+			"LUMOS_IMGUI"
 		}
 
 		buildoptions
@@ -110,13 +110,13 @@ project "Sandbox"
 		linkoptions{ "-Wl,-rpath=\\$$ORIGIN" }
 
 	filter "configurations:Debug"
-		defines "JM_DEBUG"
+		defines "LUMOS_DEBUG"
 		symbols "On"
 
 	filter "configurations:Release"
-		defines "JM_RELEASE"
+		defines "LUMOS_RELEASE"
 		optimize "On"
 
 	filter "configurations:Dist"
-		defines "JM_DIST"
+		defines "LUMOS_DIST"
 		optimize "On"

@@ -1,6 +1,6 @@
 #include "SceneModelViewer.h"
 
-using namespace jm;
+using namespace Lumos;
 using namespace maths;
 
 SceneModelViewer::SceneModelViewer(const std::string& SceneName)

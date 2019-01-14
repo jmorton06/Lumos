@@ -1,4 +1,4 @@
-#include <JMEngine.h>
+#include <LumosEngine.h>
 #include <App/EntryPoint.h>
 #include "Scenes/Scene3D.h"
 #include "Scenes/GraphicsScene.h"
@@ -9,7 +9,7 @@
 #include "Scenes/SceneSelect.h"
 
 
-using namespace jm;
+using namespace Lumos;
 
 class Game : public Application
 {
@@ -27,9 +27,9 @@ public:
 		Application::Init();
 
 		const String root = ROOT_DIR;
-		jm::VFS::Get()->Mount("Meshes", root + "/Sandbox/res/meshes");
-		jm::VFS::Get()->Mount("Textures", root + "/Sandbox/res/textures");
-		jm::VFS::Get()->Mount("Sounds", root + "/Sandbox/res/sounds");
+		Lumos::VFS::Get()->Mount("Meshes", root + "/Sandbox/res/meshes");
+		Lumos::VFS::Get()->Mount("Textures", root + "/Sandbox/res/textures");
+		Lumos::VFS::Get()->Mount("Sounds", root + "/Sandbox/res/sounds");
 
 
 		GetSceneManager()->EnqueueScene(new SceneSelect("SceneSelect"));
@@ -42,7 +42,7 @@ public:
 	}
 };
 
-jm::Application* jm::CreateApplication()
+Lumos::Application* Lumos::CreateApplication()
 {
     System::CFG cfg(ROOT_DIR"/Sandbox/Settings.cfg");
     const WindowProperties windowProperties(cfg);

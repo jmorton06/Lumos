@@ -1,8 +1,8 @@
 #pragma once
 
-#include <JMEngine.h>
+#include <LumosEngine.h>
 
-class SceneModelViewer : public jm::Scene
+class SceneModelViewer : public Lumos::Scene
 {
 public:
 	explicit SceneModelViewer(const String& SceneName);
@@ -10,7 +10,7 @@ public:
 
 	virtual void OnInit() override;
 	virtual void OnCleanupScene() override;
-	virtual void OnUpdate(jm::TimeStep* timeStep) override;
+	virtual void OnUpdate(Lumos::TimeStep* timeStep) override;
 	virtual void OnIMGUI() override;
 	void LoadModels();
 };

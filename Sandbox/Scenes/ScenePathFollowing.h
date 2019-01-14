@@ -1,8 +1,8 @@
 #pragma once
 
-#include <JMEngine.h>
+#include <LumosEngine.h.h>
 
-using namespace jm;
+using namespace Lumos;
 using namespace maths;
 
 const float time_between_nodes = 0.5f;
@@ -126,22 +126,22 @@ public:
 		{
 			DebugRenderer::AddStatusEntry(Vector4(1.0f, 0.9f, 0.8f, 1.0f), "       Tangent Factor: %5.2f [1/2]", cubic_tangent_weighting);
 
-			if (Input::GetInput().GetKeyPressed(JM_KEY_1))
+			if (Input::GetInput().GetKeyPressed(LUMOS_KEY_1))
 			{
 				cubic_tangent_weighting -= timeStep->GetSeconds() * 0.25f;
 			}
-			if (Input::GetInput().GetKeyPressed(JM_KEY_2))
+			if (Input::GetInput().GetKeyPressed(LUMOS_KEY_2))
 			{
 				cubic_tangent_weighting += timeStep->GetSeconds() * 0.25f;
 			}
 		}
 
-		if (Input::GetInput().GetKeyPressed(JM_KEY_G))
+		if (Input::GetInput().GetKeyPressed(LUMOS_KEY_G))
 		{
 			interpolation_type_pos = (interpolation_type_pos + 1) % 2;
 		}
 
-		if (Input::GetInput().GetKeyPressed(JM_KEY_H))
+		if (Input::GetInput().GetKeyPressed(LUMOS_KEY_H))
 		{
 			interpolation_type_rot = (interpolation_type_rot + 1) % 3;
 		}
@@ -353,7 +353,7 @@ public:
 				break;
 				}
 
-				jm::DebugRenderer::DrawThickLineNDT(start, end, 0.05f, line_col);
+				Lumos::DebugRenderer::DrawThickLineNDT(start, end, 0.05f, line_col);
 				start = end;
 			}
 		}

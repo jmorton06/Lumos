@@ -1,0 +1,27 @@
+#pragma once
+
+#include "VKBuffer.h"
+#include "Graphics/API/IndexBuffer.h"
+
+namespace Lumos
+{
+	namespace graphics
+	{
+		class VKIndexBuffer : public IndexBuffer, public VKBuffer
+		{
+			BufferUsage m_Usage;
+			uint m_Count;
+			uint m_Size;
+			graphics::BufferLayout m_Layout;
+		public:
+			VKIndexBuffer(uint16* data, uint count, BufferUsage bufferUsage);
+			VKIndexBuffer(uint* data, uint count, BufferUsage bufferUsage);
+			~VKIndexBuffer();
+
+			void Bind() const override;
+			void Unbind() const override;
+			uint GetCount() const override;
+			uint GetSize() const override;
+		};
+	}
+}

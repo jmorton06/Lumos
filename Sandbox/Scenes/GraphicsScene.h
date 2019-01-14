@@ -1,7 +1,7 @@
 #pragma once
-#include <JMEngine.h>
+#include <LumosEngine.h>
 
-class GraphicsScene : public jm::Scene
+class GraphicsScene : public Lumos::Scene
 {
 public:
 	GraphicsScene(const std::string& SceneName);
@@ -9,7 +9,7 @@ public:
 
 	virtual void OnInit() override;
 	virtual void OnCleanupScene() override;
-	virtual void OnUpdate(jm::TimeStep* timeStep) override;
+	virtual void OnUpdate(Lumos::TimeStep* timeStep) override;
 	virtual void OnIMGUI() override;
 
 	void LoadModels();
