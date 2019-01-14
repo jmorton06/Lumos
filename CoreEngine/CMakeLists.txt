@@ -384,6 +384,7 @@ include_directories(
 	"../Dependencies/OpenAL/include/"
 	"../Dependencies/FreeType/include/"
 	"external/stb/"
+	"external/"
 	"../Dependencies/Box2D/"
 	"../Dependencies/vulkan/"
 	"../Dependencies/"

@@ -71,10 +71,6 @@ void Scene3D::Render2D()
 	RenderString("FPS : " + StringFormat::ToString(Engine::Instance()->GetFPS()), Vector2(0.9f, 0.9f), 0.6f, Vector4(1.0f, 1.0f, 1.0f, 1.0f));
 }
 
-void Scene3D::Controls()
-{
-}
-
 void Scene3D::OnCleanupScene()
 {
 	if (m_CurrentScene)

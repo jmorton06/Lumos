@@ -95,30 +95,18 @@ namespace jm
 
 				if(m_IMGUIRenderer && m_IMGUIRenderer->Implemented())
 				{
-					m_IMGUIRenderer->NewFrame();
-					m_pScene->OnIMGUI();
-					OnIMGUI();
 					m_IMGUIRenderer->Render(m_DeferredRenderer->GetCommandBuffer(commandBufferIndex));
 				}
-
 				m_DeferredRenderer->End();
 			}
 
 			m_DeferredRenderer->PresentToScreen();
+
 		}
 	}
 
 	void GraphicsPipeline::DebugRenderScene()
 	{
-	}
-
-
-	void GraphicsPipeline::UpdateScene(TimeStep* timeStep)
-	{
-		if (m_pScene != nullptr)
-		{
-			m_pScene->OnUpdate(timeStep);
-		}
 	}
 
 	void GraphicsPipeline::OnResize(uint width, uint height)

@@ -29,7 +29,6 @@ namespace jm
 
 		void DebugRenderScene();
 		void RenderScene();
-		void UpdateScene(TimeStep* timeStep);
 
 		bool Init(uint width, uint height);
 		void InitialiseDefaults();

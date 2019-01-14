@@ -376,7 +376,7 @@ namespace jm
 		case GLFW_KEY_RIGHT: return JM_KEY_RIGHT;
 		case GLFW_KEY_UP: return JM_KEY_UP;
 		case GLFW_KEY_DOWN: return JM_KEY_DOWN;
-		case GLFW_KEY_LEFT_SHIFT: return JM_KEY_LSHIFT;
+		case GLFW_KEY_LEFT_SHIFT: return JM_KEY_LEFT_SHIFT;
 		case GLFW_KEY_ESCAPE: return JM_KEY_ESCAPE;
 		case GLFW_KEY_KP_ADD: return JM_KEY_ADD;
 		case GLFW_KEY_COMMA: return JM_KEY_COMMA;

@@ -41,7 +41,6 @@ namespace jm
 		virtual void OnUpdate(TimeStep* timeStep);
 		virtual void OnTick() { };
 		virtual void OnIMGUI() { };
-		virtual void Controls() { }
 		// Delete all contained Objects
 		//    - This is the default action upon firing OnCleanupScene()
 		void DeleteAllGameObjects();
