@@ -20,8 +20,8 @@ file(GLOB TARGET_SRC
 )
 
 include_directories(
-	"../CoreEngine/src/"
-	"../CoreEngine/"
+	"../Lumos/src/"
+	"../Lumos/"
 	"../Dependencies/lua/src/"
 	"../Dependencies/OpenAL/include/"
 	"../Dependencies/FreeType/include/"
@@ -31,8 +31,8 @@ include_directories(
 	"../Dependencies/vulkan/"
 	"../Dependencies/"
 	"../"
-	"../CoreEngine/external/"
-	"../CoreEngine/external/stb/"
+	"../Lumos/external/"
+	"../Lumos/external/stb/"
 	)
 
 if(USEOGGVORBIS)
@@ -89,4 +89,4 @@ if (IOS)
     target_link_libraries(Sandbox "-framework Foundation -framework CoreGraphics -framework UIKit -framework OpenGLES -framework QuartzCore -framework OpenAL")
 endif(IOS)
 
-target_link_libraries(Sandbox CoreEngine)
+target_link_libraries(Sandbox Lumos)

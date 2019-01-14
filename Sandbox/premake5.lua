@@ -12,9 +12,9 @@ project "Sandbox"
 
 	sysincludedirs
 	{
-		"../CoreEngine/external/spdlog/include",
-		"../CoreEngine/external/",
-		"../CoreEngine/external/stb/",
+		"../Lumos/external/spdlog/include",
+		"../Lumos/external/",
+		"../Lumos/external/stb/",
 		"../Dependencies/lua/src/",
 		"../Dependencies/GLFW/include/",
 		"../Dependencies/glad/include/",
@@ -24,14 +24,14 @@ project "Sandbox"
 		"../Dependencies/Box2D/",
 		"../Dependencies/vulkan/",
 		"../Dependencies/",
-		"../CoreEngine/external/",
-		"../CoreEngine/external/spdlog/include",
-		"../CoreEngine/src"
+		"../Lumos/external/",
+		"../Lumos/external/spdlog/include",
+		"../Lumos/src"
 	}
 
 	links
 	{
-		"CoreEngine"
+		"Lumos"
 	}
 
 	cwd = os.getcwd() .. "/.."

@@ -42,9 +42,9 @@ namespace jm
 
 		const String root = ROOT_DIR;
 
-		jm::VFS::Get()->Mount("CoreShaders", root + "/CoreEngine/res/shaders");
-		jm::VFS::Get()->Mount("CoreMeshes", root + "/CoreEngine/res/meshes");
-		jm::VFS::Get()->Mount("CoreTextures", root + "/CoreEngine/res/textures");
+		jm::VFS::Get()->Mount("CoreShaders", root + "/Lumos/res/shaders");
+		jm::VFS::Get()->Mount("CoreMeshes", root + "/Lumos/res/meshes");
+		jm::VFS::Get()->Mount("CoreTextures", root + "/Lumos/res/textures");
 
 		m_Window = std::unique_ptr<Window>(Window::Create("Game Engine", properties));
 		m_Window->SetEventCallback(BIND_EVENT_FN(Application::OnEvent));
