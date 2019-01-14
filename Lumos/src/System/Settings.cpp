@@ -1,8 +1,8 @@
-#include "JM.h"
+#include "LM.h"
 #include "Settings.h"
 #include "JMLog.h"
 
-namespace jm
+namespace Lumos
 {
 
 	namespace System
@@ -16,14 +16,14 @@ namespace jm
 		{
 			if (filename.empty())
 			{
-				JM_CORE_ERROR("Failed to Open : {0}", filename);
+				LUMOS_CORE_ERROR("Failed to Open : {0}", filename);
 				return;
 			}
 
 			std::ifstream fileIn(filename);
 			if (!fileIn.is_open())
 			{
-				JM_CORE_ERROR("Failed to Open : {0}", filename);
+				LUMOS_CORE_ERROR("Failed to Open : {0}", filename);
 				return;
 			}
 
@@ -87,13 +87,13 @@ namespace jm
 				else if (it->second == "false")
 					value = false;
 				else
-					JM_CORE_ERROR("Invalid value set to name - {0}", it->second);
+					LUMOS_CORE_ERROR("Invalid value set to name - {0}", it->second);
 
 				return true;
 			}
 			else
 			{
-				JM_CORE_ERROR("Couldn't Find value - {0} in Settings File", name);
+				LUMOS_CORE_ERROR("Couldn't Find value - {0} in Settings File", name);
 				return false;
 			}
 		}
@@ -108,7 +108,7 @@ namespace jm
 			}
 			else
 			{
-				JM_CORE_ERROR("Couldn't Find value - {0} in Settings File", name);
+				LUMOS_CORE_ERROR("Couldn't Find value - {0} in Settings File", name);
 				return false;
 			}
 		}
@@ -118,7 +118,7 @@ namespace jm
 			const std::map<String, String>::iterator it = m_CFGMap.find(name);
 			if (it != m_CFGMap.end())
 			{
-#ifdef JM_PLATFORM_MOBILE
+#ifdef LUMOS_PLATFORM_MOBILE
 				value = 0;
 #else
 				value = std::stoi(it->second.c_str());
@@ -127,7 +127,7 @@ namespace jm
 			}
 			else
 			{
-				JM_CORE_ERROR("Couldn't Find value - {0} in Settings File", name);
+				LUMOS_CORE_ERROR("Couldn't Find value - {0} in Settings File", name);
 				return false;
 			}
 		}
@@ -137,7 +137,7 @@ namespace jm
 			const std::map<String, String>::iterator it = m_CFGMap.find(name);
 			if (it != m_CFGMap.end())
 			{
-#ifdef JM_PLATFORM_MOBILE
+#ifdef LUMOS_PLATFORM_MOBILE
 				value = 0;
 #else
 				value = std::stoi(it->second.c_str());
@@ -147,7 +147,7 @@ namespace jm
 			}
 			else
 			{
-				JM_CORE_ERROR("Couldn't Find value - {0} in Settings File", name);
+				LUMOS_CORE_ERROR("Couldn't Find value - {0} in Settings File", name);
 				return false;
 			}
 		}
@@ -157,7 +157,7 @@ namespace jm
 			const std::map<String, String>::iterator it = m_CFGMap.find(name);
 			if (it != m_CFGMap.end())
 			{
-#ifdef JM_PLATFORM_MOBILE
+#ifdef LUMOS_PLATFORM_MOBILE
 				value = 0.0f;
 #else
 				value = std::stof(it->second.c_str());
@@ -166,7 +166,7 @@ namespace jm
 			}
 			else
 			{
-				JM_CORE_ERROR("Couldn't Find value - {0} in Settings File", name);
+				LUMOS_CORE_ERROR("Couldn't Find value - {0} in Settings File", name);
 				return false;
 			}
 		}

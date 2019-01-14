@@ -1,11 +1,11 @@
 #pragma once
-#include "JM.h"
+#include "LM.h"
 #include "Texture.h"
 
-namespace jm
+namespace Lumos
 {
 
-	class JM_EXPORT TextureDepthArray : public Texture
+	class LUMOS_EXPORT TextureDepthArray : public Texture
 	{
 	public:
 		static TextureDepthArray* Create(uint width, uint height, uint count);

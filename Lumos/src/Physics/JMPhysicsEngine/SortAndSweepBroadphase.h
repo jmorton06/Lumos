@@ -1,13 +1,13 @@
 #pragma once
 
-#include "JM.h"
+#include "LM.h"
 #include "Broadphase.h"
 #include "Maths/Maths.h"
 
-namespace jm
+namespace Lumos
 {
 
-	class JM_EXPORT SortAndSweepBroadphase : public Broadphase
+	class LUMOS_EXPORT SortAndSweepBroadphase : public Broadphase
 	{
 	public:
 		explicit SortAndSweepBroadphase(const maths::Vector3 &axis = maths::Vector3(1.0f, 0.0f, 0.0f));

@@ -1,13 +1,13 @@
 #pragma once
 
-#include "JM.h"
+#include "LM.h"
 #include <random>
 #include <cstdint>
 
-namespace jm
+namespace Lumos
 {
 
-	class JM_EXPORT RandomNumberGenerator32
+	class LUMOS_EXPORT RandomNumberGenerator32
 	{
 	private:
 
@@ -60,7 +60,7 @@ namespace jm
 		static RandomNumberGenerator32 Rand;
 	};
 
-	class JM_EXPORT RandomNumberGenerator64
+	class LUMOS_EXPORT RandomNumberGenerator64
 	{
 	private:
 		std::mt19937_64 engine;

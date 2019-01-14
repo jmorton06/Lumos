@@ -1,20 +1,20 @@
 #pragma once
 
-#if defined(JM_PLATFORM_MACOS) || defined(JM_PLATFORM_LINUX) || defined(JM_PLATFORM_WINDOWS)
+#if defined(LUMOS_PLATFORM_MACOS) || defined(LUMOS_PLATFORM_LINUX) || defined(LUMOS_PLATFORM_WINDOWS)
 
 #include "System/System.h"
 
-extern jm::Application* jm::CreateApplication();
+extern Lumos::Application* Lumos::CreateApplication();
 
 int main(int argc, char** argv)
 {
-	jm::internal::System::Init();
+	Lumos::internal::System::Init();
 
-	auto app = jm::CreateApplication();
+	auto app = Lumos::CreateApplication();
     app->Init();
 	app->Run();
 	delete app;
 
-	jm::internal::System::Shutdown();
+	Lumos::internal::System::Shutdown();
 }
 #endif

@@ -1,12 +1,12 @@
 #pragma once
-#include "JM.h"
+#include "LM.h"
 #include "Graphics/API/Pipeline.h"
 #include "Maths/Maths.h"
 #include "App/Window.h"
 #include "Graphics/API/Renderer.h"
 #include "GLSwapchain.h"
 
-namespace jm
+namespace Lumos
 {
 	namespace graphics
 	{
@@ -16,7 +16,7 @@ namespace jm
 	class Shader;
 	class Window;
 
-	class JM_EXPORT GLRenderer : public Renderer
+	class LUMOS_EXPORT GLRenderer : public Renderer
 	{
 	public:
 		friend class Window;

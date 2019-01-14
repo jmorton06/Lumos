@@ -1,18 +1,18 @@
 #pragma once
-#include "JM.h"
+#include "LM.h"
 #include "Maths/Maths.h"
 
-namespace jm
+namespace Lumos
 {
 
-	enum class JM_EXPORT LightType
+	enum class LUMOS_EXPORT LightType
 	{
 		DirectionalLight = 0,
 		SpotLight = 1,
 		PointLight = 2
 	};
 
-	struct JM_EXPORT Light
+	struct LUMOS_EXPORT Light
 	{
 	public:
 

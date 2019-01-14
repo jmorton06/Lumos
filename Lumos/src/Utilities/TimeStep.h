@@ -1,9 +1,9 @@
 #pragma once
-#include "JM.h"
+#include "LM.h"
 
-namespace jm
+namespace Lumos
 {
-    struct JM_EXPORT TimeStep
+    struct LUMOS_EXPORT TimeStep
     {
     public:
         inline TimeStep(float initialTime)

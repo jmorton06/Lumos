@@ -1,8 +1,8 @@
 #pragma once
 
-#include "JM.h"
+#include "LM.h"
 
-namespace jm
+namespace Lumos
  {
 	enum class EventType
 	{
@@ -31,7 +31,7 @@ namespace jm
 
 #define EVENT_CLASS_CATEGORY(category) virtual int GetCategoryFlags() const override { return category; }
 
-	class JM_EXPORT Event
+	class LUMOS_EXPORT Event
 	{
 		friend class EventDispatcher;
 	public:

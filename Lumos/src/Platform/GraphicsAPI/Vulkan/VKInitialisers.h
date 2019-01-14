@@ -1,9 +1,9 @@
 #pragma once
 
-#include "JM.h"
+#include "LM.h"
 #include "Dependencies/vulkan/vulkan.h"
 
-namespace jm
+namespace Lumos
 {
 
 	namespace initializers

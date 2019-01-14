@@ -1,4 +1,4 @@
-#include "JM.h"
+#include "LM.h"
 #include "SceneBinding.h"
 #include "Renderer/Scene.h"
 #include "CameraBindings/CameraBinding.h"
@@ -8,7 +8,7 @@
 #include "CameraBindings/Camera2DBinding.h"
 #include "EntityBinding.h"
 
-namespace jm
+namespace Lumos
 {
     const char SceneBinding::className[] = "Scene";
 

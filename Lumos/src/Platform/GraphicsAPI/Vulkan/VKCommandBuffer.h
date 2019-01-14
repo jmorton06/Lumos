@@ -3,7 +3,7 @@
 #include "Graphics/API/CommandBuffer.h"
 
 
-namespace jm
+namespace Lumos
 {
 	namespace graphics
 	{

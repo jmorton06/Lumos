@@ -1,9 +1,9 @@
-#include "JM.h"
+#include "LM.h"
 #include "FPSCamera.h"
 #include "App/Application.h"
 
 
-namespace jm
+namespace Lumos
 {
 
 	FPSCamera::FPSCamera(float FOV, float Near, float Far, float aspect)
@@ -28,7 +28,7 @@ namespace jm
 		{
 			//if (!Input::GetInput().firstUpdate)
 			{
-				//JM_CORE_ASSERT(false,"");
+				//LUMOS_CORE_ASSERT(false,"");
 				maths::Vector2 windowCentre = maths::Vector2();// Window::Instance()->GetScreenSize().GetX() / 2.0f, Window::Instance()->GetScreenSize().GetY() / 2.0f);
 				xpos -= windowCentre.GetX();
 				ypos -= windowCentre.GetY();
@@ -62,32 +62,32 @@ namespace jm
 
 		m_CameraSpeed = 1000.0f * dt;
 
-		if (Input::GetInput().GetKeyHeld(JM_KEY_W))
+		if (Input::GetInput().GetKeyHeld(LUMOS_KEY_W))
 		{
 			m_Velocity += forward * m_CameraSpeed;
 		}
 
-		if (Input::GetInput().GetKeyHeld(JM_KEY_S))
+		if (Input::GetInput().GetKeyHeld(LUMOS_KEY_S))
 		{
 			m_Velocity -= forward * m_CameraSpeed;
 		}
 
-		if (Input::GetInput().GetKeyHeld(JM_KEY_A))
+		if (Input::GetInput().GetKeyHeld(LUMOS_KEY_A))
 		{
 			m_Velocity -= right * m_CameraSpeed;
 		}
 
-		if (Input::GetInput().GetKeyHeld(JM_KEY_D))
+		if (Input::GetInput().GetKeyHeld(LUMOS_KEY_D))
 		{
 			m_Velocity += right * m_CameraSpeed;
 		}
 
-		if (Input::GetInput().GetKeyHeld(JM_KEY_SPACE))
+		if (Input::GetInput().GetKeyHeld(LUMOS_KEY_SPACE))
 		{
 			m_Velocity -= up * m_CameraSpeed;
 		}
 
-		if (Input::GetInput().GetKeyHeld(JM_KEY_LEFT_SHIFT))
+		if (Input::GetInput().GetKeyHeld(LUMOS_KEY_LEFT_SHIFT))
 		{
 			m_Velocity += up * m_CameraSpeed;
 		}

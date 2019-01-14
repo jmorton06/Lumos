@@ -1,11 +1,11 @@
 #pragma once
-#include "JM.h"
+#include "LM.h"
 #include "Camera.h"
 
-namespace jm
+namespace Lumos
 {
 
-	class JM_EXPORT SkyDomeCamera : public Camera
+	class LUMOS_EXPORT SkyDomeCamera : public Camera
 	{
 	public:
 		SkyDomeCamera(float Near, float Far);

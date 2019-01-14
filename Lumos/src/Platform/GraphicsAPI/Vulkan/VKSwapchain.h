@@ -1,5 +1,5 @@
 #pragma once
-#include "JM.h"
+#include "LM.h"
 #include "VKDevice.h"
 #include "VKCommandBuffer.h"
 #include "VKRenderpass.h"
@@ -7,7 +7,7 @@
 #include "VKFramebuffer.h"
 #include "Graphics/API/Swapchain.h"
 
-namespace jm
+namespace Lumos
 {
 	namespace graphics
 	{

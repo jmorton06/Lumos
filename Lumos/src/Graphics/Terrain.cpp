@@ -1,10 +1,10 @@
-#include "JM.h"
+#include "LM.h"
 #include "Terrain.h"
 #include "Renderer/SceneManager.h"
 #include "Maths/BoundingSphere.h"
 #include "external/simplex/simplexnoise.h"
 
-namespace jm
+namespace Lumos
 {
 	Terrain::Terrain()
 	{

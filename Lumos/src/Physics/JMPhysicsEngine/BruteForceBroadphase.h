@@ -1,12 +1,12 @@
 #pragma once
 
-#include "JM.h"
+#include "LM.h"
 #include "Broadphase.h"
 
-namespace jm
+namespace Lumos
 {
 
-	class JM_EXPORT BruteForceBroadphase : public Broadphase
+	class LUMOS_EXPORT BruteForceBroadphase : public Broadphase
 	{
 	public:
 		BruteForceBroadphase();

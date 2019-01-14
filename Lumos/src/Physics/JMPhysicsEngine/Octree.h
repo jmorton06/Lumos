@@ -1,9 +1,9 @@
 #pragma once
 
-#include "JM.h"
+#include "LM.h"
 #include "Broadphase.h"
 
-namespace jm
+namespace Lumos
 {
 	class PhysicsObject3D;
 	struct CollisionPair;
@@ -13,7 +13,7 @@ namespace jm
 		class BoundingBox;
 	}
 
-	class JM_EXPORT Octree : public Broadphase
+	class LUMOS_EXPORT Octree : public Broadphase
 	{
 	public:
 		Octree(size_t maxObjectsPerPartition, size_t maxPartitionDepth, std::shared_ptr<Broadphase> secondaryBroadphase);

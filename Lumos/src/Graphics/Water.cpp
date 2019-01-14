@@ -1,4 +1,4 @@
-#include "JM.h"
+#include "LM.h"
 #include "Water.h"
 #include "Utilities/AssetsManager.h"
 #include "API/FrameBuffer.h"
@@ -10,7 +10,7 @@
 #include "Utilities/Timer.h"
 #include "Graphics/API/Shader.h"
 
-namespace jm
+namespace Lumos
 {
 
 	Water::Water(const maths::Vector3 &position, const maths::Vector3 &scale)

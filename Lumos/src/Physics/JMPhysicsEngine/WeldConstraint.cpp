@@ -1,11 +1,11 @@
-#include "JM.h"
+#include "LM.h"
 #include "Maths/Maths.h"
 #include "WeldConstraint.h"
 #include "PhysicsObject3D.h"
 
 #include "Graphics/Renderers/DebugRenderer.h"
 
-namespace jm
+namespace Lumos
 {
 
 	WeldConstraint::WeldConstraint(PhysicsObject3D *obj1, PhysicsObject3D *obj2)

@@ -1,4 +1,4 @@
-#include "JM.h"
+#include "LM.h"
 #include "GLTexture2D.h"
 
 #include "Platform/GraphicsAPI/OpenGL/GL.h"
@@ -6,7 +6,7 @@
 #include "Utilities/LoadImage.h"
 #include "Platform/GraphicsAPI/OpenGL/GLShader.h"
 
-namespace jm
+namespace Lumos
 {
 
 	GLTexture2D::GLTexture2D() : m_Width(0), m_Height(0)
@@ -94,7 +94,7 @@ namespace jm
 
 		GLCall(glTexImage2D(GL_TEXTURE_2D, 0, TextureFormatToGL(m_Parameters.format), m_Width, m_Height, 0, TextureFormatToGL(m_Parameters.format), GL_UNSIGNED_BYTE, data ? data : NULL));
 		GLCall(glGenerateMipmap(GL_TEXTURE_2D));
-#ifdef JM_DEBUG
+#ifdef LUMOS_DEBUG
 		GLCall(glBindTexture(GL_TEXTURE_2D, 0));
 #endif
 
@@ -108,7 +108,7 @@ namespace jm
 		if (m_FileName != "NULL")
 		{
 			uint bits;
-			pixels = jm::LoadImageFromFile(m_FileName.c_str(), &m_Width, &m_Height, &bits, !m_LoadOptions.flipY);
+			pixels = Lumos::LoadImageFromFile(m_FileName.c_str(), &m_Width, &m_Height, &bits, !m_LoadOptions.flipY);
 			m_Parameters.format = BitsToTextureFormat(bits);
 		}
 
@@ -123,7 +123,7 @@ namespace jm
 		uint format = TextureFormatToGL(m_Parameters.format);
 		GLCall(glTexImage2D(GL_TEXTURE_2D, 0, format, m_Width, m_Height, 0, TextureFormatToInternalFormat(format), GL_UNSIGNED_BYTE, pixels ? pixels : NULL));
 		GLCall(glGenerateMipmap(GL_TEXTURE_2D));
-#ifdef JM_DEBUG
+#ifdef LUMOS_DEBUG
 		GLCall(glBindTexture(GL_TEXTURE_2D, 0));
 #endif
 
@@ -142,7 +142,7 @@ namespace jm
 
 	void GLTexture2D::SetData(uint color)
 	{
-		JM_CORE_ASSERT(false, "Broken");
+		LUMOS_CORE_ASSERT(false, "Broken");
 		uint stride = m_Parameters.format == TextureFormat::RGB ? 3 : 4;
 		uint size = m_Width * m_Height * stride;
 		byte* data = new byte[size];
@@ -183,7 +183,7 @@ namespace jm
 		case TextureFormat::RGBA8:				return GL_RGBA8;
 		case TextureFormat::LUMINANCE:			return GL_LUMINANCE;
 		case TextureFormat::LUMINANCE_ALPHA:	return GL_LUMINANCE_ALPHA;
-		default: JM_CORE_ERROR("[Texture] Unsupported image bit-depth!");  return 0;
+		default: LUMOS_CORE_ERROR("[Texture] Unsupported image bit-depth!");  return 0;
 		}
 	}
 
@@ -191,14 +191,14 @@ namespace jm
 	{
 		switch (wrap)
 		{
-#ifndef JM_PLATFORM_MOBILE
+#ifndef LUMOS_PLATFORM_MOBILE
 		case TextureWrap::CLAMP:			return GL_CLAMP;
 		case TextureWrap::CLAMP_TO_BORDER:	return GL_CLAMP_TO_BORDER;
 #endif
 		case TextureWrap::CLAMP_TO_EDGE:	return GL_CLAMP_TO_EDGE;
 		case TextureWrap::REPEAT:			return GL_REPEAT;
 		case TextureWrap::MIRRORED_REPEAT:	return GL_MIRRORED_REPEAT;
-		default: JM_CORE_ERROR("[Texture] Unsupported image bit-depth!");  return 0;
+		default: LUMOS_CORE_ERROR("[Texture] Unsupported image bit-depth!");  return 0;
 		}
 	}
 
@@ -211,7 +211,7 @@ namespace jm
 		case 24:	return TextureFormat::RGB8;
 		case 32:	return TextureFormat::RGBA8;
 
-		default: JM_CORE_ERROR("[Texture] Unsupported image bit-depth! ({0})", bits);  return TextureFormat::RGB8;
+		default: LUMOS_CORE_ERROR("[Texture] Unsupported image bit-depth! ({0})", bits);  return TextureFormat::RGB8;
 		}
 	}
 
@@ -227,7 +227,7 @@ namespace jm
 		case GL_RGBA8:				return GL_RGBA;
 		case GL_LUMINANCE:			return GL_LUMINANCE;
 		case GL_LUMINANCE_ALPHA:	return GL_LUMINANCE_ALPHA;
-		default: JM_CORE_ERROR("[Texture] Unsupported Texture Format");  return 0;
+		default: LUMOS_CORE_ERROR("[Texture] Unsupported Texture Format");  return 0;
 		}
 	}
 
@@ -266,7 +266,7 @@ namespace jm
 		if (samplerShadow)
 		{
 			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_COMPARE_FUNC, GL_LEQUAL);
-#ifndef JM_PLATFORM_MOBILE
+#ifndef LUMOS_PLATFORM_MOBILE
 			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_COMPARE_MODE, GL_COMPARE_R_TO_TEXTURE);
 			glTexParameteri(GL_TEXTURE_2D, GL_DEPTH_TEXTURE_MODE, GL_INTENSITY);
 #endif
@@ -286,7 +286,7 @@ namespace jm
 		if (m_FileName != "NULL")
 		{
 			uint bits;
-			pixels = jm::LoadImageFromFile(m_FileName.c_str(), &m_Width, &m_Height, &bits, !m_LoadOptions.flipY);
+			pixels = Lumos::LoadImageFromFile(m_FileName.c_str(), &m_Width, &m_Height, &bits, !m_LoadOptions.flipY);
 			m_Parameters.format = BitsToTextureFormat(bits);
 		}
 		return pixels;

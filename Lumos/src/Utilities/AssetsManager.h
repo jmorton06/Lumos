@@ -1,8 +1,8 @@
 #pragma once
-#include "JM.h"
+#include "LM.h"
 #include "Utilities/AssetManager.h"
 
-namespace jm
+namespace Lumos
 {
 	class Texture2D;
 	class TextureCube;
@@ -11,7 +11,7 @@ namespace jm
 	class Shader;
 	class Object3D;
 
-	class JM_EXPORT AssetsManager
+	class LUMOS_EXPORT AssetsManager
 	{
 	public:
 		static AssetManager<Model>*		DefaultModels()   { return s_DefaultModels; };

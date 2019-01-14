@@ -1,4 +1,4 @@
-#include "JM.h"
+#include "LM.h"
 #include "ParticleManager.h"
 #include "Material.h"
 #include "Particle.h"
@@ -9,7 +9,7 @@
 #include "Mesh.h"
 #include "MeshFactory.h"
 
-namespace jm
+namespace Lumos
 {
 
 	ParticleManager::ParticleManager()

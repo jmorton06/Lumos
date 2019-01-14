@@ -1,7 +1,7 @@
-﻿#include "JM.h"
+﻿#include "LM.h"
 #include "AIComponent.h"
 
-namespace jm
+namespace Lumos
 {
 	AIComponent::AIComponent(std::shared_ptr<AINode>& aiNode)
 		: m_AINode(aiNode)

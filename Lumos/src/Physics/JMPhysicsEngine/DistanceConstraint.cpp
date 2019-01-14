@@ -1,10 +1,10 @@
-#include "JM.h"
+#include "LM.h"
 #include "Maths/Maths.h"
 #include "JMPhysicsEngine.h"
 #include "DistanceConstraint.h"
 #include "Graphics/Renderers/DebugRenderer.h"
 
-namespace jm
+namespace Lumos
 {
 
 	DistanceConstraint::DistanceConstraint(PhysicsObject3D *obj1, PhysicsObject3D *obj2, const maths::Vector3 &globalOnA,

@@ -1,4 +1,4 @@
-#include "JM.h"
+#include "LM.h"
 #include "ForwardRenderer.h"
 #include "Graphics/API/Shader.h"
 #include "Graphics/RenderList.h"
@@ -23,13 +23,13 @@
 #include "Entity/Entity.h"
 #include "App/Application.h"
 
-#ifdef JM_RENDER_API_VULKAN
+#ifdef LUMOS_RENDER_API_VULKAN
 #include "Platform/GraphicsAPI/Vulkan/VKRenderer.h"
 #endif
 
 int i = 0;
 
-namespace jm
+namespace Lumos
 {
 	ForwardRenderer::ForwardRenderer(uint width, uint height)
 	{
@@ -83,7 +83,7 @@ namespace jm
 			EndScene();
 			End();
 		}
-#ifdef JM_RENDER_API_VULKAN
+#ifdef LUMOS_RENDER_API_VULKAN
 		if (graphics::Context::GetRenderAPI() == RenderAPI::VULKAN)
 			graphics::VKRenderer::GetRenderer()->Present(static_cast<graphics::VKCommandBuffer*>(commandBuffers[graphics::VKRenderer::GetRenderer()->GetSwapchain()->GetCurrentBufferId()]));
 #endif
@@ -162,7 +162,7 @@ namespace jm
 
 		const size_t minUboAlignment = graphics::Context::GetContext()->GetMinUniformBufferOffsetAlignment();
 
-		dynamicAlignment = sizeof(jm::maths::Matrix4);
+		dynamicAlignment = sizeof(Lumos::maths::Matrix4);
 		if (minUboAlignment > 0)
 		{
 			dynamicAlignment = (dynamicAlignment + minUboAlignment - 1) & ~(minUboAlignment - 1);
@@ -215,7 +215,7 @@ namespace jm
 	{
 		auto proj = camera->GetProjectionMatrix();
 
-#ifdef JM_RENDER_API_VULKAN
+#ifdef LUMOS_RENDER_API_VULKAN
 		if (graphics::Context::GetRenderAPI() == RenderAPI::VULKAN)
 		proj[5] *= -1;
 #endif

@@ -1,8 +1,8 @@
 #pragma once
 
-#include "JM.h"
+#include "LM.h"
 
-namespace jm
+namespace Lumos
 {
     class Mesh;
     class Material;
@@ -15,10 +15,10 @@ namespace jm
 
     namespace MeshFactory
     {
-        JM_EXPORT Mesh *CreateQuad();
-        JM_EXPORT Mesh *CreateQuad(float x, float y, float width, float height, std::shared_ptr<Material> material);
-        JM_EXPORT Mesh *CreateQuad(const maths::Vector2 &position, const maths::Vector2 &size, std::shared_ptr<Material> material);
-        JM_EXPORT Mesh *CreateCube(float size, std::shared_ptr<Material> material);
-        JM_EXPORT Mesh *CreatePlane(float width, float height, const maths::Vector3 &normal, std::shared_ptr<Material> material);
+        LUMOS_EXPORT Mesh *CreateQuad();
+        LUMOS_EXPORT Mesh *CreateQuad(float x, float y, float width, float height, std::shared_ptr<Material> material);
+        LUMOS_EXPORT Mesh *CreateQuad(const maths::Vector2 &position, const maths::Vector2 &size, std::shared_ptr<Material> material);
+        LUMOS_EXPORT Mesh *CreateCube(float size, std::shared_ptr<Material> material);
+        LUMOS_EXPORT Mesh *CreatePlane(float width, float height, const maths::Vector3 &normal, std::shared_ptr<Material> material);
     }
 }

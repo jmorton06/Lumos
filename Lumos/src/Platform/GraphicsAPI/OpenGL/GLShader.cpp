@@ -1,9 +1,9 @@
-#include "JM.h"
+#include "LM.h"
 #include "GLShader.h"
 
 #include "Platform/GraphicsAPI/OpenGL/GL.h"
 
-namespace jm
+namespace Lumos
 {
 	bool IGNORE_LINES = false;
 	ShaderType type = ShaderType::UNKNOWN;
@@ -17,7 +17,7 @@ namespace jm
 		if (!GLShader::Compile(sources, info))
 		{
 			error = info.message[info.shader];
-			JM_CORE_ERROR(error);
+			LUMOS_CORE_ERROR(error);
 			return false;
 		}
 		return true;
@@ -73,14 +73,14 @@ namespace jm
 		m_Handle = Compile(sources, error);
 
 		if (!m_Handle)
-            JM_CORE_ERROR("{0} - {1}", error.message[error.shader], m_Name);
+            LUMOS_CORE_ERROR("{0} - {1}", error.message[error.shader], m_Name);
 
-		JM_CORE_ASSERT(m_Handle, "");
+		LUMOS_CORE_ASSERT(m_Handle, "");
 
 		ResolveUniforms();
 		ValidateUniforms();
 
-		JM_CORE_WARN("Successfully compiled shader: ", m_Name);
+		LUMOS_CORE_WARN("Successfully compiled shader: ", m_Name);
 
 		delete sources;
 	}
@@ -164,7 +164,7 @@ namespace jm
 					if (j != std::string::npos)
 						file.erase(j, rem.length());
 					file = StringReplace(file, '\"');
-					JM_CORE_WARN("Including file \'{0}\' into shader.",file);
+					LUMOS_CORE_WARN("Including file \'{0}\' into shader.",file);
 					VFS::Get()->ReadTextFile(file);
 					ReadShaderFile(GetLines(VFS::Get()->ReadTextFile(file)), shaders);
 				}
@@ -202,7 +202,7 @@ namespace jm
 
 		String glVersion;
 
-#ifndef JM_PLATFORM_MOBILE
+#ifndef LUMOS_PLATFORM_MOBILE
 		glVersion = "#version 330 core \n";
 #else
 		glVersion = "#version 300 es \n precision highp float; \n precision highp int; \n";
@@ -235,7 +235,7 @@ namespace jm
 			info.line[info.shader] = 0;
 			info.message[info.shader] += errorMessage;
 
-			JM_CORE_ERROR(info.message[info.shader]);
+			LUMOS_CORE_ERROR(info.message[info.shader]);
 			return 0;
 		}
 
@@ -258,7 +258,7 @@ namespace jm
 			return GL_VERTEX_SHADER;
 		case FRAGMENT:
 			return GL_FRAGMENT_SHADER;
-#ifndef JM_PLATFORM_MOBILE
+#ifndef LUMOS_PLATFORM_MOBILE
 		case GEOMETRY:
 			return GL_GEOMETRY_SHADER;
 		case TESSELLATION_CONTROL:
@@ -268,7 +268,7 @@ namespace jm
 		case COMPUTE:
 			return GL_COMPUTE_SHADER;
 #endif
-			default: JM_CORE_ERROR("Unsupported Shader Type"); return -1;
+			default: LUMOS_CORE_ERROR("Unsupported Shader Type"); return -1;
 		}
 		return -1;
 	}
@@ -321,7 +321,7 @@ namespace jm
 			info.message[info.shader] += errorMessage;
 			GLCall(glDeleteShader(shader));
 
-			JM_CORE_ERROR(info.message[info.shader]);
+			LUMOS_CORE_ERROR(info.message[info.shader]);
 			return -1;
 		}
 		return shader;
@@ -339,7 +339,7 @@ namespace jm
 	void GLShader::Unbind() const
 	{
 
-#ifdef JM_DEBUG
+#ifdef LUMOS_DEBUG
 		GLCall(glUseProgram(0));
 		s_CurrentlyBound = nullptr;
 #endif
@@ -409,7 +409,7 @@ namespace jm
 					if (t == GLShaderUniformDeclaration::Type::NONE)
 					{
 						ShaderStruct* s = FindStruct(typeString);
-						JM_CORE_ASSERT(s, "");
+						LUMOS_CORE_ASSERT(s, "");
 						declaration = new GLShaderUniformDeclaration(s, name, count);
 
 						ISStruct = true;
@@ -460,7 +460,7 @@ namespace jm
 				if (t == GLShaderUniformDeclaration::Type::NONE)
 				{
 					//ShaderStruct* s = FindStruct(typeString);
-					//JM_CORE_ASSERT(s, "");
+					//LUMOS_CORE_ASSERT(s, "");
 					//declaration = new GLShaderUniformDeclaration(s, name, count);
 					return;
 				}
@@ -655,7 +655,7 @@ namespace jm
 	{
 		GLCall(const GLint result = glGetUniformLocation(m_Handle, name.c_str()));
 		if (result == -1)
-			JM_CORE_WARN("{0} : could not find uniform {1} in shader!",m_Name,name);
+			LUMOS_CORE_WARN("{0} : could not find uniform {1} in shader!",m_Name,name);
 
 		return result;
 	}
@@ -710,7 +710,7 @@ namespace jm
 	void GLShader::SetSystemUniformBuffer(ShaderType type, byte* data, uint size, uint slot)
 	{
 		Bind();
-		JM_CORE_ASSERT(m_UniformBuffers[type].size() > slot, "");
+		LUMOS_CORE_ASSERT(m_UniformBuffers[type].size() > slot, "");
 		if (!m_UniformBuffers[type].empty()) 
 		{
 			ShaderUniformBufferDeclaration* declaration = m_UniformBuffers[type][slot];
@@ -749,7 +749,7 @@ namespace jm
 	{
 		if (uniform->GetLocation() == -1)
 		{
-			//JM_CORE_ERROR( "Couldnt Find Uniform In Shader: " + uniform->GetName());
+			//LUMOS_CORE_ERROR( "Couldnt Find Uniform In Shader: " + uniform->GetName());
 			return;
 		}
 
@@ -784,7 +784,7 @@ namespace jm
 			SetUniformStruct(uniform, data, offset);
 			break;
 		default:
-			JM_CORE_ASSERT(false, "Unknown type!");
+			LUMOS_CORE_ASSERT(false, "Unknown type!");
 		}
 	}
 
@@ -793,7 +793,7 @@ namespace jm
 		ShaderUniformDeclaration* uniform = FindUniformDeclaration(name);
 		if (!uniform)
 		{
-			JM_CORE_ASSERT("Cannot find uniform in {0} shader with name '{1}'", m_Name, name);
+			LUMOS_CORE_ASSERT("Cannot find uniform in {0} shader with name '{1}'", m_Name, name);
 			return;
 		}
 		ResolveAndSetUniform(static_cast<GLShaderUniformDeclaration*>(uniform), data, 0, uniform->GetCount());
@@ -801,7 +801,7 @@ namespace jm
 
 	void GLShader::ResolveAndSetUniformField(const GLShaderUniformDeclaration& field, byte* data, int32 offset, uint count) const
 	{
-		//JM_CORE_ASSERT(field.GetLocation() < 0, "Couldnt Find Uniform In Shader: " + field.GetName());
+		//LUMOS_CORE_ASSERT(field.GetLocation() < 0, "Couldnt Find Uniform In Shader: " + field.GetName());
 
 		switch (field.GetType())
 		{
@@ -830,7 +830,7 @@ namespace jm
 			SetUniformMat4Array(field.GetLocation(), count, *reinterpret_cast<maths::Matrix4*>(&data[offset]));
 			break;
 		default:
-			JM_CORE_ASSERT(false, "Unknown type!");
+			LUMOS_CORE_ASSERT(false, "Unknown type!");
 		}
 	}
 

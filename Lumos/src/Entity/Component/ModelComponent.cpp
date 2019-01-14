@@ -1,4 +1,4 @@
-﻿#include "JM.h"
+﻿#include "LM.h"
 #include "ModelComponent.h"
 #include "Graphics/Model/Model.h"
 #include "Maths/BoundingSphere.h"
@@ -7,7 +7,7 @@
 #include "Entity/Entity.h"
 
 
-namespace jm
+namespace Lumos
 {
 	ModelComponent::ModelComponent(std::shared_ptr<Model>& model)
 		: m_Model(model)

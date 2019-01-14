@@ -1,10 +1,10 @@
-#include "JM.h"
+#include "LM.h"
 #include "VFS.h"
 
 #include "FileSystem.h"
 
 
-namespace jm 
+namespace Lumos 
 {
 
 	VFS* VFS::s_Instance = nullptr;
@@ -21,13 +21,13 @@ namespace jm
 
 	void VFS::Mount(const String& virtualPath, const String& physicalPath)
 	{
-		JM_CORE_ASSERT(s_Instance,"");
+		LUMOS_CORE_ASSERT(s_Instance,"");
 		m_MountPoints[virtualPath].push_back(physicalPath);
 	}
 
 	void VFS::Unmount(const String& path)
 	{
-		JM_CORE_ASSERT(s_Instance,"");
+		LUMOS_CORE_ASSERT(s_Instance,"");
 		m_MountPoints[path].clear();
 	}
 
@@ -63,21 +63,21 @@ namespace jm
 
 	byte* VFS::ReadFile(const String& path)
 	{
-		JM_CORE_ASSERT(s_Instance,"");
+		LUMOS_CORE_ASSERT(s_Instance,"");
 		String physicalPath;
 		return ResolvePhysicalPath(path, physicalPath) ? FileSystem::ReadFile(physicalPath) : nullptr;
 	}
 
 	String VFS::ReadTextFile(const String& path)
 	{
-		JM_CORE_ASSERT(s_Instance,"");
+		LUMOS_CORE_ASSERT(s_Instance,"");
 		String physicalPath;
 		return ResolvePhysicalPath(path, physicalPath) ? FileSystem::ReadTextFile(physicalPath) : nullptr;
 	}
 
 	bool VFS::WriteFile(const String& path, byte* buffer)
 	{
-		JM_CORE_ASSERT(s_Instance,"");
+		LUMOS_CORE_ASSERT(s_Instance,"");
 		String physicalPath;
 		return ResolvePhysicalPath(path, physicalPath) ? FileSystem::WriteFile(physicalPath, buffer) : false;
 
@@ -85,7 +85,7 @@ namespace jm
 
 	bool VFS::WriteTextFile(const String& path, const String& text)
 	{
-		JM_CORE_ASSERT(s_Instance,"");
+		LUMOS_CORE_ASSERT(s_Instance,"");
 		String physicalPath;
 		return ResolvePhysicalPath(path, physicalPath) ? FileSystem::WriteTextFile(physicalPath, text) : false;
 	}

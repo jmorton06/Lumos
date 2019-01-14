@@ -1,8 +1,8 @@
-#include "JM.h"
+#include "LM.h"
 #include "Camera2D.h"
 #include "App/Application.h"
 
-namespace jm
+namespace Lumos
 {
 
 	Camera2D::Camera2D(float FOV, float Near, float Far, float aspect, int scale)
@@ -47,22 +47,22 @@ namespace jm
 
 		m_CameraSpeed = 1000.0f * dt;
 
-		if (Input::GetInput().GetKeyHeld(JM_KEY_A))
+		if (Input::GetInput().GetKeyHeld(LUMOS_KEY_A))
 		{
 			m_Velocity -= right * m_CameraSpeed;
 		}
 
-		if (Input::GetInput().GetKeyHeld(JM_KEY_D))
+		if (Input::GetInput().GetKeyHeld(LUMOS_KEY_D))
 		{
 			m_Velocity += right * m_CameraSpeed;
 		}
 
-		if (Input::GetInput().GetKeyHeld(JM_KEY_W))
+		if (Input::GetInput().GetKeyHeld(LUMOS_KEY_W))
 		{
 			m_Velocity -= up * m_CameraSpeed;
 		}
 
-		if (Input::GetInput().GetKeyHeld(JM_KEY_S))
+		if (Input::GetInput().GetKeyHeld(LUMOS_KEY_S))
 		{
 			m_Velocity += up * m_CameraSpeed;
 		}

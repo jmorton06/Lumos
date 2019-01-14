@@ -1,6 +1,6 @@
 #pragma once
 
-#include "JM.h"
+#include "LM.h"
 
 #include "Maths/Maths.h"
 #include "System/VFS.h"
@@ -20,7 +20,7 @@
 #define SHADER_UNIFORM_MODEL_MATRIX_NAME		"sys_ModelMatrix"
 #define SHADER_UNIFORM_TEXTURE_MATRIX_NAME		"sys_TextureMatrix"
 
-namespace jm
+namespace Lumos
 {
 	enum ShaderType : int
 	{
@@ -48,7 +48,7 @@ namespace jm
 	template <typename Key, typename T>
 	using UnorderedMap = std::unordered_map<Key, T, HashType<Key>>;
 
-	class JM_EXPORT Shader
+	class LUMOS_EXPORT Shader
 	{
 	public:
 		static const Shader* s_CurrentlyBound;

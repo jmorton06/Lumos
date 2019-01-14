@@ -1,7 +1,7 @@
 #pragma once
-#include "JM.h"
+#include "LM.h"
 
-#ifdef JM_PLATFORM_WINDOWS
+#ifdef LUMOS_PLATFORM_WINDOWS
 #include <windows.h>
 typedef LARGE_INTEGER TimeStamp;
 #else
@@ -9,10 +9,10 @@ typedef LARGE_INTEGER TimeStamp;
 typedef std::chrono::time_point<std::chrono::high_resolution_clock> TimeStamp;
 #endif
 
-namespace jm
+namespace Lumos
 {
 
-	class JM_EXPORT Timer
+	class LUMOS_EXPORT Timer
 	{
 	public:
 

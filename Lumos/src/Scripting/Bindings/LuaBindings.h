@@ -1,6 +1,6 @@
 #pragma once
 //Include all bindings for each classes
-#include "JM.h"
+#include "LM.h"
 #include "Scripting/Bindings/CameraBindings/CameraThirdPersonBinding.h"
 #include "EntityBinding.h"
 #include "MathsBindings/Vector2Binding.h"
@@ -14,7 +14,7 @@
 #include "CameraBindings/CameraMayaBinding.h"
 #include "SceneBinding.h"
 
-namespace jm
+namespace Lumos
 {
 	namespace luabindings
 	{

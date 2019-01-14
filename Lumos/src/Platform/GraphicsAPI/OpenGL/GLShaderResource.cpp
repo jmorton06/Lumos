@@ -1,7 +1,7 @@
-#include "JM.h"
+#include "LM.h"
 #include "GLShaderResource.h"
 
-namespace jm
+namespace Lumos
 {
 
 	GLShaderResourceDeclaration::GLShaderResourceDeclaration(Type type, const String& name, uint count)

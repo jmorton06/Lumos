@@ -1,6 +1,6 @@
 #pragma once
 
-#include "JM.h"
+#include "LM.h"
 #include "Dependencies/vulkan/vulkan.h"
 
 #include "Maths/Maths.h"
@@ -16,17 +16,17 @@
 
 #include "Graphics/API/Renderer.h"
 
-namespace jm
+namespace Lumos
 {
 	namespace graphics
 	{
 		struct Vertex
 		{
-			jm::maths::Vector3 pos;
-			jm::maths::Vector3 color;
-			jm::maths::Vector2 texCoord;
-			jm::maths::Vector3 normal;
-			jm::maths::Vector3 tangent;
+			Lumos::maths::Vector3 pos;
+			Lumos::maths::Vector3 color;
+			Lumos::maths::Vector2 texCoord;
+			Lumos::maths::Vector3 normal;
+			Lumos::maths::Vector3 tangent;
 
 			static std::array<api::VertexInputDescription, 5> getAttributeDescriptions()
 			{
@@ -61,7 +61,7 @@ namespace jm
 			}
 		};
 
-		class JM_EXPORT VKRenderer : public Renderer
+		class LUMOS_EXPORT VKRenderer : public Renderer
 		{
 		public:
             VKRenderer(uint width, uint height) { m_Width = width; m_Height = height; }
@@ -107,9 +107,9 @@ namespace jm
 			void RenderMeshInternal(Mesh* mesh, graphics::api::Pipeline* pipeline, graphics::api::CommandBuffer* cmdBuffer, uint dynamicOffset, graphics::api::DescriptorSet* descriptorSet, bool useMaterialDescriptorSet) override;
 
 		private:
-			jm::graphics::VKContext* m_Context;
+			Lumos::graphics::VKContext* m_Context;
 
-			jm::graphics::VKSwapchain* m_Swapchain;
+			Lumos::graphics::VKSwapchain* m_Swapchain;
 
 			VkSemaphore imageAvailableSemaphore;
 			VkSemaphore renderFinishedSemaphore;

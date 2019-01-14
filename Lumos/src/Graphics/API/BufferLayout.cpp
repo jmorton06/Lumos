@@ -1,14 +1,14 @@
-#include "JM.h"
+#include "LM.h"
 #include "BufferLayout.h"
 
-#ifdef JM_RENDER_API_OPENGL
+#ifdef LUMOS_RENDER_API_OPENGL
 #include "Platform/GraphicsAPI/OpenGL/GLTypes.h"
 #endif
-#ifdef JM_RENDER_API_DIRECT3D
+#ifdef LUMOS_RENDER_API_DIRECT3D
 #include "graphics/DirectX/DXTypes.h"
 #endif
 
-namespace jm
+namespace Lumos
 {
 	namespace graphics
 	{
@@ -34,17 +34,17 @@ namespace jm
         {
             switch (graphics::Context::GetRenderAPI())
             {
-#ifdef JM_RENDER_API_OPENGL
+#ifdef LUMOS_RENDER_API_OPENGL
                 case RenderAPI::OPENGL:
                     Push(name, GL_FLOAT, sizeof(float), count, normalized);
                     break;
 #endif
-#ifdef JM_RENDER_API_DIRECT3D
+#ifdef LUMOS_RENDER_API_DIRECT3D
                 case RenderAPI::DIRECT3D:
 					Push(name, DX_TYPE_R32_FLOAT, sizeof(float), count, normalized);
 					break;
 #endif
-#ifdef JM_RENDER_API_VULKAN
+#ifdef LUMOS_RENDER_API_VULKAN
                 case RenderAPI::VULKAN:
                     break;
 #endif
@@ -56,17 +56,17 @@ namespace jm
         {
             switch (graphics::Context::GetRenderAPI())
             {
-#ifdef JM_RENDER_API_OPENGL
+#ifdef LUMOS_RENDER_API_OPENGL
                 case RenderAPI::OPENGL:
                     Push(name, GL_UNSIGNED_INT, sizeof(uint), count, normalized);
                     break;
 #endif
-#ifdef JM_RENDER_API_DIRECT3D
+#ifdef LUMOS_RENDER_API_DIRECT3D
                 case RenderAPI::DIRECT3D:
 					Push(name, DX_TYPE_R32_UINT, sizeof(uint), count, normalized);
 					break;
 #endif
-#ifdef JM_RENDER_API_VULKAN
+#ifdef LUMOS_RENDER_API_VULKAN
                 case RenderAPI::VULKAN:
                     break;
 #endif
@@ -78,17 +78,17 @@ namespace jm
         {
             switch (graphics::Context::GetRenderAPI())
             {
-#ifdef JM_RENDER_API_OPENGL
+#ifdef LUMOS_RENDER_API_OPENGL
                 case RenderAPI::OPENGL:
                     Push(name, GL_UNSIGNED_BYTE, sizeof(byte), count, normalized);
                     break;
 #endif
-#ifdef JM_RENDER_API_DIRECT3D
+#ifdef LUMOS_RENDER_API_DIRECT3D
                 case RenderAPI::DIRECT3D:
 					Push(name, DX_TYPE_R8G8B8A8_UNORM, sizeof(byte) * 4, 1, normalized);
 					break;
 #endif
-#ifdef JM_RENDER_API_VULKAN
+#ifdef LUMOS_RENDER_API_VULKAN
                 case RenderAPI::VULKAN:
                     break;
 #endif
@@ -100,17 +100,17 @@ namespace jm
         {
             switch (graphics::Context::GetRenderAPI())
             {
-#ifdef JM_RENDER_API_OPENGL
+#ifdef LUMOS_RENDER_API_OPENGL
                 case RenderAPI::OPENGL:
                     Push(name, GL_FLOAT, sizeof(float), 2, normalized, sizeof(maths::Vector2));
                     break;
 #endif
-#ifdef JM_RENDER_API_DIRECT3D
+#ifdef LUMOS_RENDER_API_DIRECT3D
                 case RenderAPI::DIRECT3D:
 					Push(name, DX_TYPE_R32G32_FLOAT, sizeof(maths::Vector2), count, normalized);
 					break;
 #endif
-#ifdef JM_RENDER_API_VULKAN
+#ifdef LUMOS_RENDER_API_VULKAN
                 case RenderAPI::VULKAN:
                     break;
 #endif
@@ -122,17 +122,17 @@ namespace jm
         {
             switch (graphics::Context::GetRenderAPI())
             {
-#ifdef JM_RENDER_API_OPENGL
+#ifdef LUMOS_RENDER_API_OPENGL
                 case RenderAPI::OPENGL:
                     Push(name, GL_FLOAT, sizeof(float), 3, normalized, sizeof(maths::Vector3));
                     break;
 #endif
-#ifdef JM_RENDER_API_DIRECT3D
+#ifdef LUMOS_RENDER_API_DIRECT3D
                 case RenderAPI::DIRECT3D:
 					Push(name, DX_TYPE_R32G32B32_FLOAT, sizeof(maths::Vector3), count, normalized);
 					break;
 #endif
-#ifdef JM_RENDER_API_VULKAN
+#ifdef LUMOS_RENDER_API_VULKAN
                 case RenderAPI::VULKAN:
                     break;
 #endif
@@ -144,17 +144,17 @@ namespace jm
         {
             switch (graphics::Context::GetRenderAPI())
             {
-#ifdef JM_RENDER_API_OPENGL
+#ifdef LUMOS_RENDER_API_OPENGL
                 case RenderAPI::OPENGL:
                     Push(name, GL_FLOAT, sizeof(float), 4, normalized, sizeof(maths::Vector4));
                     break;
 #endif
-#ifdef JM_RENDER_API_DIRECT3D
+#ifdef LUMOS_RENDER_API_DIRECT3D
                 case RenderAPI::DIRECT3D:
 					Push(name, DX_TYPE_R32G32B32A32_FLOAT, sizeof(maths::Vector4), count, normalized);
 					break;
 #endif
-#ifdef JM_RENDER_API_VULKAN
+#ifdef LUMOS_RENDER_API_VULKAN
                 case RenderAPI::VULKAN:
                     break;
 #endif

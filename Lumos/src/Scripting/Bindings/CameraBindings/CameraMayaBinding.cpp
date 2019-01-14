@@ -1,10 +1,10 @@
-#include "JM.h"
+#include "LM.h"
 #include "CameraMayaBinding.h"
 #include "Scripting/LuaScript.h"
 #include "../MathsBindings/Vector3Binding.h"
 #include "Scripting/Bindings/MathsBindings/Matrix4Binding.h"
 
-namespace jm
+namespace Lumos
 {
 	const char CameraMayaBinding::className[] = "MayaCamera";
 

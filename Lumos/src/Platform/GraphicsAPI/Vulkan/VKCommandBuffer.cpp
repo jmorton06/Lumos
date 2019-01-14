@@ -1,11 +1,11 @@
-#include "JM.h"
+#include "LM.h"
 #include "VKCommandBuffer.h"
 
 #include "VKDevice.h"
 #include "VKCommandPool.h"
 #include "VKFramebuffer.h"
 
-namespace jm
+namespace Lumos
 {
 	namespace graphics
 	{
@@ -66,7 +66,7 @@ namespace jm
 				vkBeginCommandBuffer(m_CommandBuffer, &beginCI);
 			}
 			else
-				JM_CORE_ERROR("WARNING: BeginRecording() called from a secondary command buffer!");
+				LUMOS_CORE_ERROR("WARNING: BeginRecording() called from a secondary command buffer!");
 		}
 
 		void VKCommandBuffer::BeginRecordingSecondary(api::RenderPass* renderPass, Framebuffer* framebuffer)
@@ -87,7 +87,7 @@ namespace jm
 				vkBeginCommandBuffer(m_CommandBuffer, &beginCI);
 			}
 			else
-				JM_CORE_ERROR("WARNING: BeginRecordingSecondary() called from a primary command buffer!");
+				LUMOS_CORE_ERROR("WARNING: BeginRecordingSecondary() called from a primary command buffer!");
 		}
 
 		void VKCommandBuffer::EndRecording()
@@ -134,7 +134,7 @@ namespace jm
 					vkQueueSubmit(VKDevice::Instance()->GetGraphicsQueue(), 1, &submitInfo, VK_NULL_HANDLE);
 			}
 			else
-				JM_CORE_ERROR("WARNING: Used Execute on secondary command buffer!");
+				LUMOS_CORE_ERROR("WARNING: Used Execute on secondary command buffer!");
 		}
 
 		void VKCommandBuffer::ExecuteSecondary(CommandBuffer* primaryCmdBuffer)
@@ -142,7 +142,7 @@ namespace jm
 			if (!m_Primary)
 				vkCmdExecuteCommands(((VKCommandBuffer*)primaryCmdBuffer)->GetCommandBuffer(), 1, &m_CommandBuffer);
 			else
-				JM_CORE_ERROR("WARNING: Used ExecuteSecondary on primary command buffer!");
+				LUMOS_CORE_ERROR("WARNING: Used ExecuteSecondary on primary command buffer!");
 		}
 
 		void VKCommandBuffer::UpdateViewport(uint width, uint height)

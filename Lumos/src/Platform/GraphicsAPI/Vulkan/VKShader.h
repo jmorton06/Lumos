@@ -3,7 +3,7 @@
 #include "Dependencies/vulkan/vulkan.h"
 #include "Graphics/API/Shader.h"
 
-namespace jm
+namespace Lumos
 {
 	namespace graphics
 	{

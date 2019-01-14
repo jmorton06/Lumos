@@ -1,12 +1,12 @@
 #pragma once
-#include "JM.h"
+#include "LM.h"
 #include "Maths.h"
 
-namespace jm
+namespace Lumos
 {
 	namespace maths
 	{
-		class JM_EXPORT BoundingShape
+		class LUMOS_EXPORT BoundingShape
 		{
 		public:
 			BoundingShape() = default;

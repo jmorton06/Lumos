@@ -1,12 +1,12 @@
 #pragma once
-#include "JM.h"
+#include "LM.h"
 #include "Scripting/LuaScript.h"
 #include "Scripting/Luna.h"
 #include "Maths/Vector3.h"
 
-namespace jm
+namespace Lumos
 {
-	class JM_EXPORT Vector3Binding
+	class LUMOS_EXPORT Vector3Binding
 	{
 	public:
 		maths::Vector3 vec3;

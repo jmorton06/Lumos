@@ -1,4 +1,4 @@
-#include "JM.h"
+#include "LM.h"
 #include "VKPipeline.h"
 #include "VKDevice.h"
 #include "VKCommandBuffer.h"
@@ -9,7 +9,7 @@
 #include "Graphics/API/DescriptorSet.h"
 
 
-namespace jm
+namespace Lumos
 {
 	namespace graphics
 	{

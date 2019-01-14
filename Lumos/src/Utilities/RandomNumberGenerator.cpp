@@ -1,13 +1,13 @@
-#include "JM.h"
+#include "LM.h"
 #include "RandomNumberGenerator.h"
 
-#define SUPPORT_RANDOM_DEVICE JM_PLATFORM_WINDOWS
+#define SUPPORT_RANDOM_DEVICE LUMOS_PLATFORM_WINDOWS
 
 #if !SUPPORT_RANDOM_DEVICE
 #include <chrono>
 #endif
 
-namespace jm
+namespace Lumos
 {
 	RandomNumberGenerator32 RandomNumberGenerator32::Rand = RandomNumberGenerator32(RandomNumberGenerator32::RandSeed());
 	RandomNumberGenerator64 RandomNumberGenerator64::Rand = RandomNumberGenerator64(RandomNumberGenerator64::RandSeed());

@@ -3,7 +3,7 @@
 #include "Dependencies/vulkan/vulkan.h"
 #include "VKContext.h"
 
-namespace jm
+namespace Lumos
 {
 	namespace graphics
 	{

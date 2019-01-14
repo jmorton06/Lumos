@@ -4,9 +4,9 @@
 #include "spdlog/spdlog.h"
 #include "spdlog/fmt/ostr.h"
 
-namespace jm
+namespace Lumos
 {
-    class JM_EXPORT JMLog
+    class LUMOS_EXPORT JMLog
     {
     public:
         static void Init();
@@ -20,15 +20,15 @@ namespace jm
 }
 
 // Core log macros
-#define JM_CORE_TRACE(...)    ::jm::JMLog::GetCoreLogger()->trace(__VA_ARGS__)
-#define JM_CORE_INFO(...)     ::jm::JMLog::GetCoreLogger()->info(__VA_ARGS__)
-#define JM_CORE_WARN(...)     ::jm::JMLog::GetCoreLogger()->warn(__VA_ARGS__)
-#define JM_CORE_ERROR(...)    ::jm::JMLog::GetCoreLogger()->error(__VA_ARGS__)
-#define JM_CORE_FATAL(...)    ::jm::JMLog::GetCoreLogger()->fatal(__VA_ARGS__)
+#define LUMOS_CORE_TRACE(...)    ::Lumos::JMLog::GetCoreLogger()->trace(__VA_ARGS__)
+#define LUMOS_CORE_INFO(...)     ::Lumos::JMLog::GetCoreLogger()->info(__VA_ARGS__)
+#define LUMOS_CORE_WARN(...)     ::Lumos::JMLog::GetCoreLogger()->warn(__VA_ARGS__)
+#define LUMOS_CORE_ERROR(...)    ::Lumos::JMLog::GetCoreLogger()->error(__VA_ARGS__)
+#define LUMOS_CORE_FATAL(...)    ::Lumos::JMLog::GetCoreLogger()->fatal(__VA_ARGS__)
 
 // Client log macros
-#define JM_TRACE(...)         ::jm::JMLog::GetClientLogger()->trace(__VA_ARGS__)
-#define JM_INFO(...)          ::jm::JMLog::GetClientLogger()->info(__VA_ARGS__)
-#define JM_WARN(...)          ::jm::JMLog::GetClientLogger()->warn(__VA_ARGS__)
-#define JM_ERROR(...)         ::jm::JMLog::GetClientLogger()->error(__VA_ARGS__)
-#define JM_FATAL(...)         ::jm::JMLog::GetClientLogger()->fatal(__VA_ARGS__)
+#define LUMOS_TRACE(...)         ::Lumos::JMLog::GetClientLogger()->trace(__VA_ARGS__)
+#define LUMOS_INFO(...)          ::Lumos::JMLog::GetClientLogger()->info(__VA_ARGS__)
+#define LUMOS_WARN(...)          ::Lumos::JMLog::GetClientLogger()->warn(__VA_ARGS__)
+#define LUMOS_ERROR(...)         ::Lumos::JMLog::GetClientLogger()->error(__VA_ARGS__)
+#define LUMOS_FATAL(...)         ::Lumos::JMLog::GetClientLogger()->fatal(__VA_ARGS__)

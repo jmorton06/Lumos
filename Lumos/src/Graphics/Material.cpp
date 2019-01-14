@@ -1,4 +1,4 @@
-#include "JM.h"
+#include "LM.h"
 #include "Material.h"
 #include "Graphics/API/Textures/Texture2D.h"
 #include "Graphics/API/ShaderResource.h"
@@ -7,7 +7,7 @@
 #include "Graphics/API/UniformBuffer.h"
 #include "Graphics/API/Shader.h"
 
-namespace jm
+namespace Lumos
 {
 
 	Material::Material(std::shared_ptr<Shader>& shader, const MaterialProperties& properties, const PBRMataterialTextures& textures) : m_PBRMaterialTextures(textures), m_Shader(shader)

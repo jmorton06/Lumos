@@ -1,6 +1,6 @@
 #pragma once
 
-#include "JM.h"
+#include "LM.h"
 #include "Component/Components.h"
 
 struct EnumClassHash
@@ -12,11 +12,11 @@ struct EnumClassHash
     }
 };
 
-namespace jm
+namespace Lumos
 {
 	class Scene;
 
-	class JM_EXPORT Entity
+	class LUMOS_EXPORT Entity
 	{
 	protected:
 		std::unordered_map<ComponentType, std::unique_ptr<JMComponent>, EnumClassHash> m_Components;

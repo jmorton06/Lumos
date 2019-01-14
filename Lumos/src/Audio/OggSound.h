@@ -1,5 +1,5 @@
 #pragma once
-#include "JM.h"
+#include "LM.h"
 #include "Sound.h"
 
 #define BUFFERLENGTH 32768
@@ -14,10 +14,10 @@
 #include "stb_vorbis.c"
 #endif
 
-namespace jm
+namespace Lumos
 {
 
-	class JM_EXPORT OggSound : public Sound
+	class LUMOS_EXPORT OggSound : public Sound
 	{
 	public:
 		OggSound();

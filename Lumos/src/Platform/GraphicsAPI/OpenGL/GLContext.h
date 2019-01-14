@@ -1,13 +1,13 @@
 #pragma once
-#include "JM.h"
+#include "LM.h"
 #include "Graphics/API/Context.h"
 
-namespace jm
+namespace Lumos
 {
 	class GLDebug;
 	namespace graphics
 	{
-		class JM_EXPORT GLContext : public Context
+		class LUMOS_EXPORT GLContext : public Context
 		{
 		public:
 			GLContext(WindowProperties properties, void* deviceContext);

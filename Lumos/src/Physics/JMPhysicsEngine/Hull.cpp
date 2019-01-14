@@ -1,9 +1,9 @@
-#include "JM.h"
+#include "LM.h"
 #include "Hull.h"
 
 #include "Graphics/Renderers/DebugRenderer.h"
 
-namespace jm
+namespace Lumos
 {
 
 	Hull::Hull()

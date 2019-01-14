@@ -1,13 +1,13 @@
 #pragma once
-#include "JM.h"
+#include "LM.h"
 #include "Scripting/LuaScript.h"
 #include "Scripting/Luna.h"
 
-namespace jm
+namespace Lumos
 {
 	class Entity;
 
-	class JM_EXPORT EntityBinding
+	class LUMOS_EXPORT EntityBinding
 	{
 	public:
 		static const char className[];

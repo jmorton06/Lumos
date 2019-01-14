@@ -1,16 +1,16 @@
 #pragma once
 
-#include "JM.h"
+#include "LM.h"
 #include "PhysicsObject3D.h"
 #include "Maths/Maths.h"
 
-namespace jm
+namespace Lumos
 {
 	/* A contact constraint is actually the summation of a normal distance constraint
 	along with two friction constraints going along the axes perpendicular to the collision
 	normal.
 	*/
-	struct JM_EXPORT ContactPoint
+	struct LUMOS_EXPORT ContactPoint
 	{
 		float   sumImpulseContact;
 		float	sumImpulseFriction;
@@ -22,7 +22,7 @@ namespace jm
 		maths::Vector3 relPosB;			//Position relative to objectB
 	};
 
-	class JM_EXPORT Manifold
+	class LUMOS_EXPORT Manifold
 	{
 	public:
 		Manifold();

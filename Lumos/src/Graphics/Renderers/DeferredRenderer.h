@@ -1,7 +1,7 @@
 #pragma once
 #include "Renderer3D.h"
 
-namespace jm
+namespace Lumos
 {
 	class Texture2D;
 	class TextureDepth;
@@ -58,21 +58,21 @@ namespace jm
 
 		struct UniformBufferObject
 		{
-			jm::maths::Matrix4 projView;
+			Lumos::maths::Matrix4 projView;
 		};
 
 		struct UniformBufferModel
 		{
-			jm::maths::Matrix4* model;
+			Lumos::maths::Matrix4* model;
 		};
 
 		struct UniformBufferLight
 		{
-			jm::maths::Vector4 position;
-			jm::maths::Vector4 direction;
-			jm::maths::Vector4 cameraPosition;
-			jm::maths::Matrix4 uShadowTransform[16];
-    		jm::maths::Vector2 uShadowSinglePixel;
+			Lumos::maths::Vector4 position;
+			Lumos::maths::Vector4 direction;
+			Lumos::maths::Vector4 cameraPosition;
+			Lumos::maths::Matrix4 uShadowTransform[16];
+    		Lumos::maths::Vector2 uShadowSinglePixel;
 		};
 
 		void CreateOffScreenPipeline();
@@ -83,7 +83,7 @@ namespace jm
 		void SetCubeMap(Texture* cubeMap);
 
 		int GetCommandBufferCount() const { return (int)m_CommandBuffers.size(); }
-		jm::graphics::api::CommandBuffer* GetCommandBuffer(int id) const { return m_CommandBuffers[id]; }
+		Lumos::graphics::api::CommandBuffer* GetCommandBuffer(int id) const { return m_CommandBuffers[id]; }
 
 		GBuffer* GetGBuffer() const { return m_GBuffer.get(); }
 
@@ -96,33 +96,33 @@ namespace jm
 		graphics::api::DescriptorSet* m_DefaultDescriptorSet;
 		graphics::api::DescriptorSet* m_DeferredDescriptorSet;
 
-		jm::graphics::api::Pipeline* m_OffScreenPipeline;
-		jm::graphics::api::Pipeline* m_DeferredPipeline;
+		Lumos::graphics::api::Pipeline* m_OffScreenPipeline;
+		Lumos::graphics::api::Pipeline* m_DeferredPipeline;
 
-		jm::Texture2D* m_DefaultTexture;
-		jm::TextureDepth* m_DepthTexture;
+		Lumos::Texture2D* m_DefaultTexture;
+		Lumos::TextureDepth* m_DepthTexture;
 
-		jm::Shader* m_OffScreenShader;
-		jm::Shader* m_DeferredShader;
+		Lumos::Shader* m_OffScreenShader;
+		Lumos::Shader* m_DeferredShader;
 
-		jm::graphics::api::RenderPass* m_DeferredRenderpass;
-		jm::graphics::api::RenderPass* m_OffScreenRenderpass;
+		Lumos::graphics::api::RenderPass* m_DeferredRenderpass;
+		Lumos::graphics::api::RenderPass* m_OffScreenRenderpass;
 
-		jm::graphics::api::UniformBuffer* m_UniformBuffer;
-		jm::graphics::api::UniformBuffer* m_ModelUniformBuffer;
-		jm::graphics::api::UniformBuffer* m_LightUniformBuffer;
-		jm::graphics::api::UniformBuffer* m_DefaultMaterialDataUniformBuffer;
+		Lumos::graphics::api::UniformBuffer* m_UniformBuffer;
+		Lumos::graphics::api::UniformBuffer* m_ModelUniformBuffer;
+		Lumos::graphics::api::UniformBuffer* m_LightUniformBuffer;
+		Lumos::graphics::api::UniformBuffer* m_DefaultMaterialDataUniformBuffer;
 
 		std::unique_ptr<GBuffer> m_GBuffer;
 
-		std::vector<jm::graphics::api::CommandBuffer*> m_CommandBuffers;
+		std::vector<Lumos::graphics::api::CommandBuffer*> m_CommandBuffers;
 
-		jm::graphics::api::CommandBuffer* m_DeferredCommandBuffers;
+		Lumos::graphics::api::CommandBuffer* m_DeferredCommandBuffers;
 
 		size_t dynamicAlignment;
 		UniformBufferModel uboDataDynamic;
 
-		jm::Mesh* m_ScreenQuad = nullptr;
+		Lumos::Mesh* m_ScreenQuad = nullptr;
 
 		SkyboxRenderer* m_SkyboxRenderer;
 		ShadowRenderer* m_ShadowRenderer;

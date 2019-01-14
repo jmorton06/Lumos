@@ -1,4 +1,4 @@
-#include "JM.h"
+#include "LM.h"
 #include "System/FileSystem.h"
 
 #include <stdio.h>
@@ -7,7 +7,7 @@
 #include <fcntl.h>
 #include <unistd.h>
 
-namespace jm
+namespace Lumos
 {
     static bool ReadFileInternal(FILE* file, void* buffer, int64 size, bool readbytemode)
     {

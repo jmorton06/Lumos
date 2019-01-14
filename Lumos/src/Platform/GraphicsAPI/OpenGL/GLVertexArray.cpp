@@ -1,10 +1,10 @@
-#include "JM.h"
+#include "LM.h"
 #include "GLVertexArray.h"
 
 #include "GL.h"
 #include "GLDebug.h"
 
-namespace jm
+namespace Lumos
 {
 
 	GLVertexArray::GLVertexArray()
@@ -40,7 +40,7 @@ namespace jm
 
 	void GLVertexArray::Unbind() const
 	{
-#ifdef JM_DEBUG
+#ifdef LUMOS_DEBUG
 		if (!m_Buffers.empty())
 			m_Buffers.front()->Unbind();
 		GLCall(glBindVertexArray(0));

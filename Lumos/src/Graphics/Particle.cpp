@@ -1,7 +1,7 @@
-#include "JM.h"
+#include "LM.h"
 #include "Particle.h"
 
-namespace jm
+namespace Lumos
 {
 
 	Particle::Particle()

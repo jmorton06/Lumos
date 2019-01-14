@@ -1,6 +1,6 @@
 #include "Scene2D.h"
 
-using namespace jm;
+using namespace Lumos;
 using namespace maths;
 
 Player2D::Player2D(std::shared_ptr<Texture2D> texture, const Vector2& position, const Vector2& scale, const Vector4& colour, float colourMix,Scene* scene)
@@ -20,17 +20,17 @@ void Player2D::Update(float dt) const
 
 	if (physicsComponent)
 	{
-		if (Input::GetInput().GetKeyHeld(JM_KEY_LEFT))
+		if (Input::GetInput().GetKeyHeld(LUMOS_KEY_LEFT))
 		{
 			physicsComponent->m_PhysicsObject->SetLinearVelocity(Vector2(-1000.0f * speed, 0.0f));
 		}
 
-		if (Input::GetInput().GetKeyHeld(JM_KEY_RIGHT))
+		if (Input::GetInput().GetKeyHeld(LUMOS_KEY_RIGHT))
 		{
 			physicsComponent->m_PhysicsObject->SetLinearVelocity(Vector2(1000.0f * speed, 0.0f));
 		}
 
-		if (Input::GetInput().GetKeyHeld(JM_KEY_UP))
+		if (Input::GetInput().GetKeyHeld(LUMOS_KEY_UP))
 		{
 			physicsComponent->m_PhysicsObject->SetLinearVelocity(Vector2(0.0f, 100.0f * speed));
 		}

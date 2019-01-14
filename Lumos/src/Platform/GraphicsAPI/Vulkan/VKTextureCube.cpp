@@ -1,4 +1,4 @@
-#include "JM.h"
+#include "LM.h"
 #include "VKTextureCube.h"
 #include "VKDevice.h"
 #include "Utilities/LoadImage.h"
@@ -11,7 +11,7 @@
 #include "VKInitialisers.h"
 #include "VKBuffer.h"
 
-namespace jm
+namespace Lumos
 {
 	namespace graphics
 	{
@@ -83,7 +83,7 @@ namespace jm
 			case TextureFormat::RGBA8:				return VK_FORMAT_R8G8B8A8_UNORM;
 			case TextureFormat::LUMINANCE:			return VK_FORMAT_R8G8B8A8_UNORM;
 			case TextureFormat::LUMINANCE_ALPHA:	return VK_FORMAT_R8G8B8A8_UNORM;
-			default: JM_CORE_ERROR("[Texture] Unsupported image bit-depth!");  return VK_FORMAT_R8G8B8A8_UNORM;
+			default: LUMOS_CORE_ERROR("[Texture] Unsupported image bit-depth!");  return VK_FORMAT_R8G8B8A8_UNORM;
 			}
 		}
 
@@ -201,7 +201,7 @@ namespace jm
 
 			for (uint m = 0; m < mips; m++)
 			{
-				byte* data = jm::LoadImageFromFile(m_Files[m], &srcWidth, &srcHeight, &bits, !m_LoadOptions.flipY);
+				byte* data = Lumos::LoadImageFromFile(m_Files[m], &srcWidth, &srcHeight, &bits, !m_LoadOptions.flipY);
 				//m_Parameters.format = VKTexture2D::BitsToTextureFormat(bits);
 				uint stride = bits / 8;
 				

@@ -1,10 +1,10 @@
 #pragma once
-#include "JM.h"
+#include "LM.h"
 #include "Graphics/API/Textures/TextureCube.h"
 #include "../GLDebug.h"
 
 #define MAX_MIPS 11
-namespace jm
+namespace Lumos
 {
 
 	class GLTextureCube : public TextureCube

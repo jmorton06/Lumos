@@ -1,12 +1,12 @@
-#include "JM.h"
+#include "LM.h"
 #include "Quaternion.h"
 #include "MathsUtilities.h"
 
-namespace jm
+namespace Lumos
 {
 	namespace maths
 	{
-#ifdef JM_SSEQUAT
+#ifdef LUMOS_SSEQUAT
 		const Quaternion Quaternion::EMPTY = Quaternion(_mm_setzero_ps());
 		const Quaternion Quaternion::IDENTITY = Quaternion(_mm_set_ps(1.0f, 0, 0, 0));
 
@@ -766,9 +766,9 @@ namespace jm
 namespace std 
 {
 	template<>
-	struct hash<jm::maths::Quaternion>
+	struct hash<Lumos::maths::Quaternion>
 	{
-		size_t operator()(const jm::maths::Quaternion& value) const
+		size_t operator()(const Lumos::maths::Quaternion& value) const
 		{
 			return std::hash<float>()(value.x) ^ std::hash<float>()(value.y)
 				^ std::hash<float>()(value.z) ^ std::hash<float>()(value.w);

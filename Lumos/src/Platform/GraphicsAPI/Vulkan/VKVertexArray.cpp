@@ -1,7 +1,7 @@
-#include "JM.h"
+#include "LM.h"
 #include "VKVertexArray.h"
 
-namespace jm
+namespace Lumos
 {
 	namespace graphics
 	{
@@ -35,7 +35,7 @@ namespace jm
 
 		void VKVertexArray::Unbind() const
 		{
-#ifdef JM_DEBUG
+#ifdef LUMOS_DEBUG
 			if (!m_Buffers.empty())
 				m_Buffers.front()->Unbind();
 #endif

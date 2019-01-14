@@ -1,18 +1,18 @@
 #pragma once
 
-#include "JM.h"
+#include "LM.h"
 #include "Vector3.h"
 #include "MathsCommon.h"
 
-namespace jm
+namespace Lumos
 {
 	namespace maths {
 
 		class Matrix4;
 
-#ifdef JM_SSEMAT3
+#ifdef LUMOS_SSEMAT3
 
-		class JM_EXPORT MEM_ALIGN Matrix3 {
+		class LUMOS_EXPORT MEM_ALIGN Matrix3 {
 		public:
 			inline Matrix3() { ToIdentity(); }
 
@@ -166,14 +166,14 @@ namespace jm
 
 			friend std::ostream &operator<<(std::ostream &o, const Matrix3 &m);
 
-#ifdef JM_SSEMAT3
+#ifdef LUMOS_SSEMAT3
 			MEM_ALIGN_NEW_DELETE;
 #endif
 		};
 
 #else
 
-        class JM_EXPORT Matrix3
+        class LUMOS_EXPORT Matrix3
         {
         public:
 

@@ -2,7 +2,7 @@
 
 #include "Dependencies/vulkan/vulkan.h"
 
-namespace jm
+namespace Lumos
 {
 	namespace graphics
 	{

@@ -1,4 +1,4 @@
-#include "JM.h"
+#include "LM.h"
 #include "Manifold.h"
 #include "Maths/Matrix3.h"
 
@@ -6,7 +6,7 @@
 #include "Graphics/Renderers/DebugRenderer.h"
 #include "Maths/MathsUtilities.h"
 
-namespace jm
+namespace Lumos
 {
 
 #define persistentThresholdSq 0.025f

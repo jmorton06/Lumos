@@ -1,8 +1,8 @@
 #pragma once
-#include "JM.h"
+#include "LM.h"
 #include "DescriptorSet.h"
 
-namespace jm
+namespace Lumos
 {
 	class Shader;
 
@@ -46,7 +46,7 @@ namespace jm
 				uint maxObjects;
 
 			};
-			class JM_EXPORT Pipeline
+			class LUMOS_EXPORT Pipeline
 			{
 			public:
 				static Pipeline* Create(const PipelineInfo& pipelineInfo);

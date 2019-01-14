@@ -1,8 +1,8 @@
 #pragma once
-#include "JM.h"
+#include "LM.h"
 #include "Graphics/API/Textures/Texture2D.h"
 
-namespace jm
+namespace Lumos
 {
 
 	class GLTexture2D : public Texture2D

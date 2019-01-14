@@ -1,17 +1,17 @@
 #pragma once
 
-#include "JM.h"
+#include "LM.h"
 #include "Utilities/Timer.h"
 #include "Maths/Vector2.h"
 #include "System/Settings.h"
 #include "Utilities/TSingleton.h"
 #include "Events/Event.h"
 
-namespace jm
+namespace Lumos
 {
 	class Texture2D;
 
-	struct JM_EXPORT WindowProperties
+	struct LUMOS_EXPORT WindowProperties
 	{
 		WindowProperties(System::CFG& cfg)
 		{
@@ -45,7 +45,7 @@ namespace jm
 
 	};
 
-	class JM_EXPORT Window
+	class LUMOS_EXPORT Window
 	{
 	public:
 		using EventCallbackFn = std::function<void(Event&)>; 

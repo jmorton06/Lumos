@@ -1,8 +1,8 @@
 #pragma once
-#include "JM.h"
+#include "LM.h"
 #include "Textures/Texture.h"
 
-namespace jm
+namespace Lumos
 {
 	namespace maths
 	{
@@ -12,7 +12,7 @@ namespace jm
 	class Framebuffer;
 }
 
-namespace jm
+namespace Lumos
 {
 	namespace graphics
 	{
@@ -33,7 +33,7 @@ namespace jm
 				SECONDARY
 			};
 
-			class JM_EXPORT RenderPass
+			class LUMOS_EXPORT RenderPass
 			{
 			public:
 				virtual ~RenderPass() = default;

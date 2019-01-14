@@ -1,11 +1,11 @@
 #pragma once
-#include "JM.h"
+#include "LM.h"
 #include "Camera.h"
 
-namespace jm
+namespace Lumos
 {
 
-	class JM_EXPORT MayaCamera : public Camera
+	class LUMOS_EXPORT MayaCamera : public Camera
 	{
 	public:
 		MayaCamera(float FOV, float Near, float Far, float aspect);

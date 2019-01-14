@@ -1,4 +1,4 @@
-#include "JM.h"
+#include "LM.h"
 #include "B2PhysicsEngine.h"
 
 #include "Utilities/TimeStep.h"
@@ -6,7 +6,7 @@
 #include <Box2D/Box2D.h>
 #include <Box2D/Common/b2Math.h>
 
-namespace jm
+namespace Lumos
 {
 	B2PhysicsEngine::B2PhysicsEngine()
 		: m_UpdateTimestep(1.0f / 60.f)
@@ -40,7 +40,7 @@ namespace jm
 
 			if (m_UpdateAccum >= m_UpdateTimestep)
 			{
-				JM_CORE_ERROR("Physics too slow to run in real time!");
+				LUMOS_CORE_ERROR("Physics too slow to run in real time!");
 				//Drop Time in the hope that it can continue to run in real-time
 				m_UpdateAccum = 0.0f;
 			}

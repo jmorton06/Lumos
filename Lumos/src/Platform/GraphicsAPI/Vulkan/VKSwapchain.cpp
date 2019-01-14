@@ -1,9 +1,9 @@
-#include "JM.h"
+#include "LM.h"
 #include "VKSwapchain.h"
 #include "VKTools.h"
 
 
-namespace jm
+namespace Lumos
 {
 	namespace graphics
 	{

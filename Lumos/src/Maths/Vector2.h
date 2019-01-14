@@ -1,16 +1,16 @@
 #pragma once
-#include "JM.h"
+#include "LM.h"
 #include "MathsCommon.h"
 
-namespace jm
+namespace Lumos
 {
 	namespace maths
 	{
-#ifdef JM_SSEVEC2
+#ifdef LUMOS_SSEVEC2
 
-		class JM_EXPORT MEM_ALIGN Vector2
+		class LUMOS_EXPORT MEM_ALIGN Vector2
 #else
-		class JM_EXPORT Vector2
+		class LUMOS_EXPORT Vector2
 #endif
 		{
 		public:
@@ -20,7 +20,7 @@ namespace jm
 			~Vector2() {}
 
 		private:
-#ifdef JM_SSEVEC2
+#ifdef LUMOS_SSEVEC2
 			union 
 			{
 				struct
@@ -68,7 +68,7 @@ namespace jm
 			inline Vector2 operator/(const float v) const { return Vector2(x / v, y / v); };
 			inline bool operator==(const Vector2 &A) const { return (A.x == x && A.y == y) ? true : false; };
 
-#ifdef JM_SSEVEC2
+#ifdef LUMOS_SSEVEC2
 			MEM_ALIGN_NEW_DELETE;
 #endif
 
@@ -78,9 +78,9 @@ namespace jm
 namespace std 
 {
 	template<>
-	struct hash<jm::maths::Vector2>
+	struct hash<Lumos::maths::Vector2>
 	{
-		size_t operator()(const jm::maths::Vector2& x) const
+		size_t operator()(const Lumos::maths::Vector2& x) const
 		{
 			return hash<float>()(x.GetX()) ^ (hash<float>()(x.GetY()) * 997u);
 		}

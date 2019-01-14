@@ -1,12 +1,12 @@
 #pragma once
-#include "JM.h"
+#include "LM.h"
 #include "Scripting/LuaScript.h"
 #include "Scripting/Luna.h"
 #include "Maths/Matrix4.h"
 
-namespace jm
+namespace Lumos
 {
-	class JM_EXPORT Matrix4Binding
+	class LUMOS_EXPORT Matrix4Binding
 	{
 	public:
 		maths::Matrix4 matrix4;

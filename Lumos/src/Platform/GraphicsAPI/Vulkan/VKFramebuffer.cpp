@@ -1,11 +1,11 @@
-#include "JM.h"
+#include "LM.h"
 #include "VKFramebuffer.h"
 #include "VKDevice.h"
 #include "VKTextureDepth.h"
 #include "VKTextureDepthArray.h"
 
 
-namespace jm
+namespace Lumos
 {
 	namespace graphics
 	{

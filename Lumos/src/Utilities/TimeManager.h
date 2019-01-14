@@ -1,13 +1,13 @@
 #pragma once
 
-#include "JM.h"
+#include "LM.h"
 #include "Maths/Maths.h"
 #include "Utilities/Timer.h"
 
-namespace jm
+namespace Lumos
 {
 
-	class JM_EXPORT TimeManager
+	class LUMOS_EXPORT TimeManager
 	{
 	public:
 		TimeManager();

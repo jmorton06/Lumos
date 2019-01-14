@@ -1,14 +1,14 @@
 #pragma once
-#include "JM.h"
+#include "LM.h"
 #include "JMComponent.h"
 #include "Maths/Vector3.h"
 
 
-namespace jm
+namespace Lumos
 {
 	struct Light;
 
-	class JM_EXPORT LightComponent : public JMComponent
+	class LUMOS_EXPORT LightComponent : public JMComponent
 	{
 	public:
 		std::shared_ptr<Light> m_Light;

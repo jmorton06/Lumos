@@ -1,9 +1,9 @@
 #pragma once
 
-#include "JM.h"
+#include "LM.h"
 #include "Maths/Maths.h"
 
-namespace jm
+namespace Lumos
 {
 	class Texture2D;
 	class Shader;
@@ -24,8 +24,8 @@ namespace jm
 		float usingSpecularMap 	= 1.0f;
 		float usingGlossMap 	= 1.0f;
 		float usingNormalMap 	= 1.0f;
-		jm::maths::Vector4  albedoColour    = jm::maths::Vector4(1.0f,0.0f,1.0f,1.0f);
-		jm::maths::Vector4  specularColour  = jm::maths::Vector4(0.0f,1.0f,0.0f,1.0f);
+		Lumos::maths::Vector4  albedoColour    = Lumos::maths::Vector4(1.0f,0.0f,1.0f,1.0f);
+		Lumos::maths::Vector4  specularColour  = Lumos::maths::Vector4(0.0f,1.0f,0.0f,1.0f);
 	};
 
 	struct PBRMataterialTextures
@@ -36,7 +36,7 @@ namespace jm
 		std::shared_ptr<Texture2D> roughness;
 	};
 
-	class JM_EXPORT Material
+	class LUMOS_EXPORT Material
 	{
 	public:
 		enum class RenderFlags

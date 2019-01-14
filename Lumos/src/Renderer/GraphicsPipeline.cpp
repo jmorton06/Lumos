@@ -1,4 +1,4 @@
-#include "JM.h"
+#include "LM.h"
 #include "GraphicsPipeline.h"
 #include "Utilities/AssetsManager.h"
 #include "Graphics/Renderers/DebugRenderer.h"
@@ -14,7 +14,7 @@
 #include "App/Engine.h"
 #include "App/Application.h"
 
-namespace jm
+namespace Lumos
 {
 
 	GraphicsPipeline::GraphicsPipeline()
@@ -27,7 +27,7 @@ namespace jm
 
 		if (!RenderList::AllocateNewRenderList(m_pFrameRenderList.get(), true))
 		{
-			JM_CORE_ERROR("Unable to allocate scene render list! - Try using less shadow maps", "");
+			LUMOS_CORE_ERROR("Unable to allocate scene render list! - Try using less shadow maps", "");
 		}
 	}
 

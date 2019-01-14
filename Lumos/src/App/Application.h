@@ -1,5 +1,5 @@
 #pragma once
-#include "JM.h"
+#include "LM.h"
 #include "Graphics/API/Context.h"
 #include "Events/Event.h"
 #include "Events/ApplicationEvent.h"
@@ -8,7 +8,7 @@
 #include "Events/Event.h"
 #include <thread>
 
-namespace jm
+namespace Lumos
 {
 	class Timer;
 	struct TimeStep;
@@ -23,7 +23,7 @@ namespace jm
         Closing
     };
 
-	class JM_EXPORT Application
+	class LUMOS_EXPORT Application
 	{
 	public:
 		Application(const WindowProperties& properties, const RenderAPI& api);

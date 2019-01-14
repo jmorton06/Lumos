@@ -1,11 +1,11 @@
 #pragma once
 
-#include "JM.h"
+#include "LM.h"
 #include "Graphics/API/ShaderUniform.h"
 #include "GLDebug.h"
 
 
-namespace jm
+namespace Lumos
 {
 
 	class GLShaderUniformDeclaration : public ShaderUniformDeclaration
@@ -40,7 +40,7 @@ namespace jm
 
 		int32 GetLocation() const { return m_Location; }
 		inline Type GetType() const { return m_Type; }
-		inline const ShaderStruct& GetShaderUniformStruct() const { JM_CORE_ASSERT(m_Struct, "");  return *m_Struct; }
+		inline const ShaderStruct& GetShaderUniformStruct() const { LUMOS_CORE_ASSERT(m_Struct, "");  return *m_Struct; }
 
 	protected:
 		void SetOffset(uint offset) override;
@@ -50,7 +50,7 @@ namespace jm
 		static String TypeToString(Type type);
 	};
 
-	struct JM_EXPORT GLShaderUniformField
+	struct LUMOS_EXPORT GLShaderUniformField
 	{
 		GLShaderUniformDeclaration::Type type;
 		String name;

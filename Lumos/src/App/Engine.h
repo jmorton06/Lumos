@@ -1,15 +1,15 @@
 #pragma once
 
-#include "JM.h"
+#include "LM.h"
 #include "Utilities/TSingleton.h"
 
-//#define JM_LIMIT_FRAMERATE
+//#define LUMOS_LIMIT_FRAMERATE
 
-namespace jm
+namespace Lumos
 {
     class Timer;
 
-    class JM_EXPORT Engine : public TSingleton<Engine>
+    class LUMOS_EXPORT Engine : public TSingleton<Engine>
     {
         friend class TSingleton<Engine>;
 

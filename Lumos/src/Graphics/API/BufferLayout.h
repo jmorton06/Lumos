@@ -1,15 +1,15 @@
 #pragma once
 
-#include "JM.h"
+#include "LM.h"
 
 #include "Maths/Maths.h"
 #include "Context.h"
 
-namespace jm
+namespace Lumos
 {
 	namespace graphics
 	{
-		struct JM_EXPORT BufferElement
+		struct LUMOS_EXPORT BufferElement
 		{
 			String name;
 			uint type;
@@ -19,7 +19,7 @@ namespace jm
 			bool normalized;
 		};
 
-		class JM_EXPORT BufferLayout
+		class LUMOS_EXPORT BufferLayout
 		{
 		private:
 			uint m_Size;
@@ -30,7 +30,7 @@ namespace jm
 			template<typename T>
 			void Push(const String& name, uint count = 1, bool normalized = false)
 			{
-				JM_CORE_ASSERT(false, "Unkown type!");
+				LUMOS_CORE_ASSERT(false, "Unkown type!");
 			}
 
 			inline const std::vector<BufferElement>& GetLayout() const { return m_Layout; }

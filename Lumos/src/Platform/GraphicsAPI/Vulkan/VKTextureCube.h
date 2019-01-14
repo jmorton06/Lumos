@@ -6,7 +6,7 @@
 
 #define MAX_MIPS 11
 
-namespace jm
+namespace Lumos
 {
 	namespace graphics
 	{

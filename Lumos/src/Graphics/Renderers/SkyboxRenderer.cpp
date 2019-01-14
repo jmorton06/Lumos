@@ -1,4 +1,4 @@
-#include "JM.h"
+#include "LM.h"
 #include "SkyboxRenderer.h"
 #include "Graphics/API/Shader.h"
 #include "Graphics/RenderList.h"
@@ -22,7 +22,7 @@
 #include "Renderer/Scene.h"
 #include "Entity/Entity.h"
 
-namespace jm
+namespace Lumos
 {
 	SkyboxRenderer::SkyboxRenderer(uint width, uint height) : m_UniformBuffer(nullptr), m_CubeMap(nullptr)
 	{
@@ -102,7 +102,7 @@ namespace jm
 	{
 		auto proj = camera->GetProjectionMatrix();
 
-#ifdef JM_RENDER_API_VULKAN
+#ifdef LUMOS_RENDER_API_VULKAN
 		if (graphics::Context::GetRenderAPI() == RenderAPI::VULKAN)
 			proj[5] *= -1;
 #endif

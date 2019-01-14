@@ -1,16 +1,16 @@
-#include "JM.h"
+#include "LM.h"
 #include "CommandBuffer.h"
 #include "Context.h"
 
-#ifdef JM_RENDER_API_VULKAN
+#ifdef LUMOS_RENDER_API_VULKAN
 #include "Platform/GraphicsAPI/Vulkan/VKCommandBuffer.h"
 #endif
 
-#ifdef JM_RENDER_API_OPENGL
+#ifdef LUMOS_RENDER_API_OPENGL
 #include "Platform/GraphicsAPI/OpenGL/GLCommandBuffer.h"
 #endif
 
-namespace jm
+namespace Lumos
 {
 	namespace graphics
 	{
@@ -20,10 +20,10 @@ namespace jm
 			{
 				switch (graphics::Context::GetRenderAPI())
 				{
-#ifdef JM_RENDER_API_OPENGL
+#ifdef LUMOS_RENDER_API_OPENGL
 				case RenderAPI::OPENGL:		return new GLCommandBuffer();
 #endif
-#ifdef JM_RENDER_API_VULKAN
+#ifdef LUMOS_RENDER_API_VULKAN
 				case RenderAPI::VULKAN:		return new VKCommandBuffer();
 #endif
 				}

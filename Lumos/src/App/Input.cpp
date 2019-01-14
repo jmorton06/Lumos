@@ -1,7 +1,7 @@
-#include "JM.h"
+#include "LM.h"
 #include "Input.h"
 
-namespace jm
+namespace Lumos
 {
 
 	Input* Input::s_Input;

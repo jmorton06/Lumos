@@ -1,5 +1,5 @@
 #pragma once
-#include "JM.h"
+#include "LM.h"
 
 struct JobDispatchArgs
 {
@@ -7,7 +7,7 @@ struct JobDispatchArgs
 	uint32_t groupIndex;
 };
 
-namespace jm 
+namespace Lumos 
 {
     namespace system 
     {

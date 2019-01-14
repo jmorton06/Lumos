@@ -1,8 +1,8 @@
 #pragma once
 
-#include "JM.h"
+#include "LM.h"
 
-namespace jm
+namespace Lumos
 {
 
 	class ShaderResourceDeclaration

@@ -1,11 +1,11 @@
-#include "JM.h"
+#include "LM.h"
 #include "System/FileSystem.h"
 
 
 #ifndef LINUX
 #include <Windows.h>
 
-namespace jm 
+namespace Lumos 
 {
 
 	/*void CALLBACK FileIOCompletionRoutine(DWORD dwErrorCode, DWORD dwNumberOfBytesTransfered, LPOVERLAPPED lpOverlapped)

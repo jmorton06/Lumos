@@ -1,19 +1,19 @@
 #pragma once
-#include "JM.h"
+#include "LM.h"
 #include "Vector2.h"
 #include "MathsCommon.h"
 
-namespace jm 
+namespace Lumos 
 {
 	namespace maths 
 	{
-		class JM_EXPORT MEM_ALIGN Vector3
+		class LUMOS_EXPORT MEM_ALIGN Vector3
 		{
 		public:
 
 			Vector3()
 			{
-#ifdef JM_SSEVEC3
+#ifdef LUMOS_SSEVEC3
 				m_Value = _mm_set1_ps(0.0f);
 #else
 				x = y = z = 0.0f;
@@ -22,7 +22,7 @@ namespace jm
 
 			Vector3(const float xVal, const float yVal, const float zVal)
 			{
-#ifdef JM_SSEVEC3
+#ifdef LUMOS_SSEVEC3
 				m_Value = _mm_set_ps(0, zVal, yVal, xVal);
 #else
 				x = xVal; y = yVal; z = zVal;
@@ -31,7 +31,7 @@ namespace jm
 
 			explicit Vector3(const float value) 
 			{
-#ifdef JM_SSEVEC3
+#ifdef LUMOS_SSEVEC3
 				m_Value = _mm_set_ps(0, value, value, value);
 #else
 				x = y = z = value;
@@ -40,14 +40,14 @@ namespace jm
 
 			Vector3(const Vector2 &vec2, float zVal)
 			{
-#ifdef JM_SSEVEC3
+#ifdef LUMOS_SSEVEC3
 				m_Value = _mm_set_ps(0, zVal, vec2.GetY(), vec2.GetX());
 #else
 				x = vec2.GetX(); y = vec2.GetY(); z = zVal;
 #endif
 			}
 
-#ifdef JM_SSEVEC3
+#ifdef LUMOS_SSEVEC3
 			Vector3(const __m128 m) : m_Value(m) {}
 #endif
 
@@ -58,7 +58,7 @@ namespace jm
 
 			static Vector3 ZAxis() { return Vector3(0.0f, 0.0f, 1.0f); };
 
-#ifdef JM_SSEVEC3
+#ifdef LUMOS_SSEVEC3
 			union 
 			{
 				struct
@@ -79,7 +79,7 @@ namespace jm
 			float GetY() const { return y; }
 			float GetZ() const { return z; }
 
-#ifdef JM_SSEVEC3
+#ifdef LUMOS_SSEVEC3
 			void SetX(const float X) { reinterpret_cast<float *>(&m_Value)[0] = X; }
 			void SetY(const float Y) { reinterpret_cast<float *>(&m_Value)[1] = Y; }
 			void SetZ(const float Z) { reinterpret_cast<float *>(&m_Value)[2] = Z; }
@@ -91,7 +91,7 @@ namespace jm
 
 			void ToZero() 
 			{
-#ifdef JM_SSEVEC3
+#ifdef LUMOS_SSEVEC3
 				m_Value = _mm_setzero_ps();
 #else
 				x = y = z = 0.0f;
@@ -100,7 +100,7 @@ namespace jm
 
 			static inline float Sqrt(float x)
 			{
-#ifdef JM_SSEVEC3
+#ifdef LUMOS_SSEVEC3
 				__m128 v = _mm_set_ss(x);
 				v = _mm_sqrt_ss(v);
 				return _mm_cvtss_f32(v);
@@ -116,7 +116,7 @@ namespace jm
 
 			float LengthSquared() const 
 			{
-#ifdef JM_SSEVEC3
+#ifdef LUMOS_SSEVEC3
 				return _mm_cvtss_f32(_mm_dp_ps(m_Value, m_Value, 0x71));
 #else
 				return (x*x + y * y + z * z);
@@ -130,7 +130,7 @@ namespace jm
 
 			void Invert() 
 			{
-#ifdef JM_SSEVEC3
+#ifdef LUMOS_SSEVEC3
 				m_Value = _mm_mul_ps(m_Value, _mm_set1_ps(-1.0f));
 #else
 				x = -x; y = -y; z = -z;
@@ -139,7 +139,7 @@ namespace jm
 
 			void Normalise()
 			{
-#ifdef JM_SSEVEC3
+#ifdef LUMOS_SSEVEC3
 				m_Value = _mm_mul_ps(m_Value, _mm_rsqrt_ps(_mm_dp_ps(m_Value, m_Value, 0x77)));
 #else
 				float length = Length();
@@ -161,7 +161,7 @@ namespace jm
 
 			static float Dot(const Vector3 &a, const Vector3 &b)
 			{
-#ifdef JM_SSEVEC3
+#ifdef LUMOS_SSEVEC3
 				return _mm_cvtss_f32(_mm_dp_ps(a.m_Value, b.m_Value, 0x7f));
 #else
 				return (a.x*b.x) + (a.y*b.y) + (a.z*b.z);
@@ -175,7 +175,7 @@ namespace jm
 
 			static Vector3 Cross(const Vector3 &a, const Vector3 &b)
 			{
-#ifdef JM_SSEVEC3
+#ifdef LUMOS_SSEVEC3
 				return _mm_sub_ps(
 					_mm_mul_ps(_mm_shuffle_ps(a.m_Value, a.m_Value, _MM_SHUFFLE(3, 0, 2, 1)),
 						_mm_shuffle_ps(b.m_Value, b.m_Value, _MM_SHUFFLE(3, 1, 0, 2))),
@@ -197,7 +197,7 @@ namespace jm
 				return o;
 			}
 
-#ifdef JM_SSEVEC3
+#ifdef LUMOS_SSEVEC3
 			inline Vector3 operator+(float v) const { return _mm_add_ps(m_Value, _mm_set1_ps(v)); }
 			inline Vector3 operator-(float v) const { return _mm_sub_ps(m_Value, _mm_set1_ps(v)); }
 			inline Vector3 operator*(float v) const { return _mm_mul_ps(m_Value, _mm_set1_ps(v)); }
@@ -246,7 +246,7 @@ namespace jm
 
 			inline bool operator==(const Vector3 &v) const
 			{
-#ifdef JM_SSEVEC3
+#ifdef LUMOS_SSEVEC3
 				return (_mm_movemask_ps(_mm_cmpneq_ps(m_Value, v.m_Value)) & 0x7) == 0;
 #else
 				return (v.x == x && v.y == y && v.z == z) ? true : false;
@@ -255,7 +255,7 @@ namespace jm
 
 			inline bool operator!=(const Vector3 &v) const
 			{
-#ifdef JM_SSEVEC3
+#ifdef LUMOS_SSEVEC3
 				return (_mm_movemask_ps(_mm_cmpneq_ps(m_Value, v.m_Value)) & 0x7) != 0;
 #else
 				return (v.x == x && v.y == y && v.z == z) ? false : true;
@@ -290,9 +290,9 @@ namespace jm
 namespace std 
 {
 	template<>
-	struct hash<jm::maths::Vector3>
+	struct hash<Lumos::maths::Vector3>
 	{
-		size_t operator()(const jm::maths::Vector3& x) const
+		size_t operator()(const Lumos::maths::Vector3& x) const
 		{
 			return hash<float>()(x.GetX()) ^ (hash<float>()(x.GetY()) * 997u) ^ (hash<float>()(x.GetZ()) * 999983u);
 

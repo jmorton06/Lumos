@@ -1,9 +1,9 @@
 #pragma once
 
-#include "JM.h"
+#include "LM.h"
 #include "Constraint.h"
 
-namespace jm
+namespace Lumos
 {
 	namespace maths
 	{
@@ -12,7 +12,7 @@ namespace jm
 
 	class PhysicsObject3D;
 
-	class JM_EXPORT DistanceConstraint : public Constraint
+	class LUMOS_EXPORT DistanceConstraint : public Constraint
 	{
 	public:
 		DistanceConstraint(PhysicsObject3D *obj1, PhysicsObject3D *obj2, const maths::Vector3 &globalOnA, const maths::Vector3 &globalOnB);

@@ -1,8 +1,8 @@
-#include "JM.h"
+#include "LM.h"
 #include "Rectangle.h"
 #include "MathsUtilities.h"
 
-namespace jm
+namespace Lumos
 {
 	namespace maths
 	{

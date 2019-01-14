@@ -1,11 +1,11 @@
 #pragma once
 
-#include "JM.h"
+#include "LM.h"
 #include "Graphics/API/ShaderResource.h"
 #include "GLShaderUniform.h"
 #include "GLDebug.h"
 
-namespace jm
+namespace Lumos
 {
 
 	class GLShaderResourceDeclaration : public ShaderResourceDeclaration

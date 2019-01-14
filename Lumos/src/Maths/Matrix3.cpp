@@ -1,14 +1,14 @@
-#include "JM.h"
+#include "LM.h"
 #include "Matrix3.h"
 #include "Matrix4.h"
 
 #include "MathsUtilities.h"
 
-namespace jm
+namespace Lumos
 {
 	namespace maths {
 
-#ifdef JM_SSEMAT3
+#ifdef LUMOS_SSEMAT3
 
 		const float Matrix3::EMPTY_DATA[9] =
 				{
@@ -32,7 +32,7 @@ namespace jm
 				const Vector3 &v1,
 				const Vector3 &v2,
 				const Vector3 &v3) {
-#ifdef JM_SSEVEC3
+#ifdef LUMOS_SSEVEC3
 			const unsigned int size = 3 * sizeof(float);
 			memcpy(&values[0], &v1.x, size);
 			memcpy(&values[3], &v2.x, size);
@@ -54,7 +54,7 @@ namespace jm
 
 
 		Matrix3::Matrix3(const Matrix4 &m4) {
-#ifdef JM_SSEMAT4
+#ifdef LUMOS_SSEMAT4
 			_mm_storeu_ps(&values[0], m4.mmvalues[0]);
 			_mm_storeu_ps(&values[3], m4.mmvalues[1]);
 			values[6] = m4.values[8];
@@ -74,8 +74,8 @@ namespace jm
 			Vector3 axisNorm = axis;
 			axisNorm.Normalise();
 
-			float c = cos(jm::maths::DegToRad(degrees));
-			float s = sin(jm::maths::DegToRad(degrees));
+			float c = cos(Lumos::maths::DegToRad(degrees));
+			float s = sin(Lumos::maths::DegToRad(degrees));
 
 			__m128 normXYZW = _mm_set_ps(0, axisNorm.GetZ(), axisNorm.GetY(), axisNorm.GetX());
 			__m128 normXYZWWithC = _mm_mul_ps(normXYZW, _mm_set1_ps(1.0f - c));
@@ -97,7 +97,7 @@ namespace jm
 
 		Matrix3 Matrix3::Rotation(float degreesX, float degreesY, float degreesZ) {
 			// Building this matrix directly is faster than multiplying three matrices for X, Y and Z
-			float phi = jm::maths::DegToRad(degreesX), theta = jm::maths::DegToRad(degreesY), psi = jm::maths::DegToRad(
+			float phi = Lumos::maths::DegToRad(degreesX), theta = Lumos::maths::DegToRad(degreesY), psi = Lumos::maths::DegToRad(
 					degreesZ);
 			float sinTh = sin(theta), cosTh = cos(theta),
 					sinPh = sin(phi), cosPh = cos(phi),
@@ -118,7 +118,7 @@ namespace jm
 
 		Matrix3 Matrix3::RotationX(float degrees) {
 			Matrix3 m;
-			float rad = jm::maths::DegToRad(degrees);
+			float rad = Lumos::maths::DegToRad(degrees);
 			float c = cos(rad);
 			float s = sin(rad);
 
@@ -133,7 +133,7 @@ namespace jm
 
 		Matrix3 Matrix3::RotationY(float degrees) {
 			Matrix4 m;
-			float rad = jm::maths::DegToRad(degrees);
+			float rad = Lumos::maths::DegToRad(degrees);
 			float c = cos(rad);
 			float s = sin(rad);
 
@@ -148,7 +148,7 @@ namespace jm
 
 		Matrix3 Matrix3::RotationZ(float degrees) {
 			Matrix4 m;
-			float rad = jm::maths::DegToRad(degrees);
+			float rad = Lumos::maths::DegToRad(degrees);
 			float c = cos(rad);
 			float s = sin(rad);
 

@@ -1,10 +1,10 @@
-﻿#include "JM.h"
+﻿#include "LM.h"
 #include "Physics3DComponent.h"
 #include "Physics/JMPhysicsEngine/PhysicsObject3D.h"
 #include "Physics/JMPhysicsEngine/JMPhysicsEngine.h"
 #include "Entity/Entity.h"
 
-namespace jm
+namespace Lumos
 {
 	Physics3DComponent::Physics3DComponent(std::shared_ptr<PhysicsObject3D>& physics)
 		: m_PhysicsObject(physics)

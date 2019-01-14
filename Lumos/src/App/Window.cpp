@@ -1,32 +1,32 @@
-#include "JM.h"
+#include "LM.h"
 #include "Window.h"
 #include "Graphics/API/Context.h"
 
-#ifdef JM_PLATFORM_MOBILE
+#ifdef LUMOS_PLATFORM_MOBILE
 #include "Platform/GLFM/GLFMWindow.h"
 #endif
 
-#if ( defined JM_RENDER_API_OPENGL || defined JM_RENDER_API_VULKAN && !defined JM_PLATFORM_MOBILE )
+#if ( defined LUMOS_RENDER_API_OPENGL || defined LUMOS_RENDER_API_VULKAN && !defined LUMOS_PLATFORM_MOBILE )
 #include "Platform/GLFW/GLFWWindow.h"
 #endif
-namespace jm
+namespace Lumos
 {
 	Window* Window::Create(const std::string& title, const WindowProperties& properties)
 	{
 		switch (graphics::Context::GetRenderAPI())
 		{
-#ifdef JM_PLATFORM_MOBILE
-#ifdef JM_RENDER_API_OPENGL 
+#ifdef LUMOS_PLATFORM_MOBILE
+#ifdef LUMOS_RENDER_API_OPENGL 
 		case RenderAPI::OPENGL:		return new GLFMWindow(properties, title);
 #endif
-#ifdef JM_RENDER_API_VULKAN
+#ifdef LUMOS_RENDER_API_VULKAN
         case RenderAPI::VULKAN:		return new GLFMWindow(properties, title);
 #endif
 #endif
 
-#if ( ( defined JM_RENDER_API_OPENGL || defined JM_RENDER_API_VULKAN ) && !defined JM_PLATFORM_MOBILE )
+#if ( ( defined LUMOS_RENDER_API_OPENGL || defined LUMOS_RENDER_API_VULKAN ) && !defined LUMOS_PLATFORM_MOBILE )
 		case RenderAPI::OPENGL:		return new GLFWWindow(properties, title);
-#ifdef JM_RENDER_API_VULKAN
+#ifdef LUMOS_RENDER_API_VULKAN
 		case RenderAPI::VULKAN:		return new GLFWWindow(properties, title, RenderAPI::VULKAN);
 #endif
 #endif

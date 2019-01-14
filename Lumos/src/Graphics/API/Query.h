@@ -1,10 +1,10 @@
 #pragma once
-#include "JM.h"
+#include "LM.h"
 
-namespace jm
+namespace Lumos
 {
 
-	enum class JM_EXPORT QueryType
+	enum class LUMOS_EXPORT QueryType
 	{
 		SAMPLES_PASSED,
 		ANY_SAMPLES_PASSED

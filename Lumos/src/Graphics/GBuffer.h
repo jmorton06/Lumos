@@ -1,14 +1,14 @@
 #pragma once
 
-#include "JM.h"
+#include "LM.h"
 
-namespace jm
+namespace Lumos
 {
 	class Framebuffer;
 	class Texture2D;
 	class TextureDepth;
 
-	enum JM_EXPORT ScreenTextures
+	enum LUMOS_EXPORT ScreenTextures
 	{
 		SCREENTEX_DEPTH 		= 0,	//Depth Buffer
 		SCREENTEX_STENCIL 		= 0,	//Stencil Buffer (Same Tex as Depth)
@@ -21,7 +21,7 @@ namespace jm
 		SCREENTEX_MAX
 	};
 
-	class JM_EXPORT GBuffer
+	class LUMOS_EXPORT GBuffer
 	{
 	public:
 

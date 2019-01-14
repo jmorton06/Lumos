@@ -3,7 +3,7 @@
 
 #include "Textures/Texture.h"
 
-namespace jm
+namespace Lumos
 {
     class Shader;
 	enum ShaderType : int;

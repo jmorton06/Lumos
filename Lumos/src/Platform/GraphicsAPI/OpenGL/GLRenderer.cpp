@@ -1,4 +1,4 @@
-#include "JM.h"
+#include "LM.h"
 #include "GLRenderer.h"
 #include "Graphics/API/Shader.h"
 #include "App/Window.h"
@@ -9,7 +9,7 @@
 #include "GLDescriptorSet.h"
 #include "Graphics/Material.h"
 
-namespace jm
+namespace Lumos
 {
 
 	const GLenum drawbuffers_1[1] = { GL_COLOR_ATTACHMENT0 };
@@ -40,7 +40,7 @@ namespace jm
 		GLCall(glEnable(GL_BLEND));
 		GLCall(glDepthFunc(GL_LEQUAL));
 		GLCall(glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA));
-#ifndef JM_PLATFORM_MOBILE
+#ifndef LUMOS_PLATFORM_MOBILE
 		GLCall(glEnable(GL_DEPTH_CLAMP));
 		GLCall(glEnable(GL_TEXTURE_CUBE_MAP_SEAMLESS));
 #endif
@@ -117,7 +117,7 @@ namespace jm
 
 	void GLRenderer::SetBlendEquationInternal(RendererBlendFunction blendEquation)
 	{
-		JM_CORE_ASSERT(false, "Not implemented");
+		LUMOS_CORE_ASSERT(false, "Not implemented");
 	}
 
 	void GLRenderer::SetViewportInternal(uint x, uint y, uint width, uint height)
@@ -162,7 +162,7 @@ namespace jm
 		case DataType::FLOAT		 : return GL_FLOAT;
 		case DataType::UNSIGNED_INT  : return GL_UNSIGNED_INT;
 		case DataType::UNSIGNED_BYTE : return GL_UNSIGNED_BYTE;
-		default: JM_CORE_ERROR("Unsupported DataType"); break;
+		default: LUMOS_CORE_ERROR("Unsupported DataType"); break;
 		}
 		return 0;
 	}
@@ -174,7 +174,7 @@ namespace jm
 		case DrawType::POINT:    return GL_POINTS;
 		case DrawType::LINES:    return GL_LINES;
 		case DrawType::TRIANGLE: return GL_TRIANGLES;
-		default: JM_CORE_ERROR("Unsupported DrawType"); break;
+		default: LUMOS_CORE_ERROR("Unsupported DrawType"); break;
 		}
 		return 0;
 	}
@@ -195,7 +195,7 @@ namespace jm
 
 	void GLRenderer::SetRenderModeInternal(RenderMode mode)
 	{
-#ifndef JM_PLATFORM_MOBILE
+#ifndef LUMOS_PLATFORM_MOBILE
 		switch (mode)
 		{
 		case RenderMode::FILL	   : GLCall(glPolygonMode(GL_FRONT_AND_BACK, GL_FILL)); break;
@@ -218,7 +218,7 @@ namespace jm
 		case 3: GLCall(glDrawBuffers(3, drawbuffers_3)); break;
 		case 4: GLCall(glDrawBuffers(4, drawbuffers_4)); break;
 		case 5: GLCall(glDrawBuffers(5, drawbuffers_5)); break;
-		default: JM_CORE_ERROR("Unsupported amount of render targets"); break;
+		default: LUMOS_CORE_ERROR("Unsupported amount of render targets"); break;
 		}
 	}
 

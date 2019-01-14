@@ -1,10 +1,10 @@
 #pragma once
-#include "JM.h"
+#include "LM.h"
 
-namespace jm
+namespace Lumos
 {
 
-	class JM_EXPORT Constraint
+	class LUMOS_EXPORT Constraint
 	{
 	public:
 		virtual ~Constraint() = default;

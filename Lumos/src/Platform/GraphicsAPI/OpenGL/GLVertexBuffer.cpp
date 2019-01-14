@@ -1,9 +1,9 @@
-#include "JM.h"
+#include "LM.h"
 #include "GLVertexBuffer.h"
 
 #include "GL.h"
 
-namespace jm
+namespace Lumos
 {
 	static uint BufferUsageToOpenGL(const BufferUsage usage)
 	{
@@ -64,7 +64,7 @@ namespace jm
 
 	void* GLVertexBuffer::GetPointerInternal()
 	{
-#ifndef JM_PLATFORM_MOBILE
+#ifndef LUMOS_PLATFORM_MOBILE
 		GLCall(void* result = glMapBuffer(GL_ARRAY_BUFFER, GL_WRITE_ONLY));
 		return result;
 #else
@@ -86,7 +86,7 @@ namespace jm
 	void GLVertexBuffer::Unbind()
 	{
 
-#ifdef JM_DEBUG
+#ifdef LUMOS_DEBUG
 		GLCall(glBindBuffer(GL_ARRAY_BUFFER, 0));
 #endif
 	}

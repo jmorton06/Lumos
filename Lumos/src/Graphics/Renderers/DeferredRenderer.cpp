@@ -1,4 +1,4 @@
-#include "JM.h"
+#include "LM.h"
 #include "DeferredRenderer.h"
 #include "Graphics/API/Shader.h"
 #include "Graphics/RenderList.h"
@@ -31,13 +31,13 @@
 #include "ShadowRenderer.h"
 #include "App/Application.h"
 
-#ifdef JM_RENDER_API_VULKAN
+#ifdef LUMOS_RENDER_API_VULKAN
 #include "Platform/GraphicsAPI/Vulkan/VKRenderer.h"
 #endif
 
 #define MAX_LIGHTS 10
 
-namespace jm
+namespace Lumos
 {
 
 	enum VSSystemUniformIndices : int32
@@ -112,7 +112,7 @@ namespace jm
 		m_ModelUniformBuffer = nullptr;
 		m_DefaultMaterialDataUniformBuffer = nullptr;
 
-		m_ScreenQuad = jm::MeshFactory::CreateQuad();
+		m_ScreenQuad = Lumos::MeshFactory::CreateQuad();
 
 		m_CommandQueue.reserve(1000);
 
@@ -248,7 +248,7 @@ namespace jm
 
 	void DeferredRenderer::PresentToScreen()
 	{
-#ifdef JM_RENDER_API_VULKAN //TODO : remove platform specific code
+#ifdef LUMOS_RENDER_API_VULKAN //TODO : remove platform specific code
 		if (graphics::Context::GetRenderAPI() == RenderAPI::VULKAN)
 			graphics::VKRenderer::GetRenderer()->Present(static_cast<graphics::VKCommandBuffer*>(m_CommandBuffers[graphics::VKRenderer::GetRenderer()->GetSwapchain()->GetCurrentBufferId()]));
 #endif
@@ -427,7 +427,7 @@ namespace jm
 	{
 		auto proj = camera->GetProjectionMatrix();
 
-#ifdef JM_RENDER_API_VULKAN
+#ifdef LUMOS_RENDER_API_VULKAN
 		if (graphics::Context::GetRenderAPI() == RenderAPI::VULKAN)
 		proj[5] *= -1;
 #endif
@@ -459,15 +459,15 @@ namespace jm
 			maths::Vector4 cameraPos = maths::Vector4(scene->GetCamera()->GetPosition());
 
 			memcpy(m_PSSystemUniformBuffer, &lightPos, sizeof(maths::Vector4));
-			memcpy(m_PSSystemUniformBuffer + sizeof(jm::maths::Vector4), &lightDir, sizeof(maths::Vector4));
-			memcpy(m_PSSystemUniformBuffer + sizeof(jm::maths::Vector4) + sizeof(jm::maths::Vector4), &cameraPos, sizeof(maths::Vector4));
+			memcpy(m_PSSystemUniformBuffer + sizeof(Lumos::maths::Vector4), &lightDir, sizeof(maths::Vector4));
+			memcpy(m_PSSystemUniformBuffer + sizeof(Lumos::maths::Vector4) + sizeof(Lumos::maths::Vector4), &cameraPos, sizeof(maths::Vector4));
 
 			if(m_ShadowRenderer)
 			{
 				maths::Matrix4* shadowTransforms = m_ShadowRenderer->GetShadowProjView();
             	maths::Vector2 shadowPixalSize   = maths::Vector2(1.0f / m_ShadowRenderer->GetShadowMapSize());
-				memcpy(m_PSSystemUniformBuffer + sizeof(jm::maths::Vector4) + sizeof(jm::maths::Vector4) + sizeof(jm::maths::Vector4), shadowTransforms, sizeof(maths::Matrix4) * 16);
-				memcpy(m_PSSystemUniformBuffer + sizeof(jm::maths::Vector4) + sizeof(jm::maths::Vector4) + sizeof(jm::maths::Vector4) + sizeof(maths::Matrix4) * 16, &shadowPixalSize, sizeof(maths::Vector2));
+				memcpy(m_PSSystemUniformBuffer + sizeof(Lumos::maths::Vector4) + sizeof(Lumos::maths::Vector4) + sizeof(Lumos::maths::Vector4), shadowTransforms, sizeof(maths::Matrix4) * 16);
+				memcpy(m_PSSystemUniformBuffer + sizeof(Lumos::maths::Vector4) + sizeof(Lumos::maths::Vector4) + sizeof(Lumos::maths::Vector4) + sizeof(maths::Matrix4) * 16, &shadowPixalSize, sizeof(maths::Vector2));
 			}
 		}
 	}
@@ -702,7 +702,7 @@ namespace jm
 			m_ModelUniformBuffer = graphics::api::UniformBuffer::Create();
 			const size_t minUboAlignment = graphics::Context::GetContext()->GetMinUniformBufferOffsetAlignment();
 
-			dynamicAlignment = sizeof(jm::maths::Matrix4);
+			dynamicAlignment = sizeof(Lumos::maths::Matrix4);
 			if (minUboAlignment > 0)
 			{
 				dynamicAlignment = (dynamicAlignment + minUboAlignment - 1) & ~(minUboAlignment - 1);

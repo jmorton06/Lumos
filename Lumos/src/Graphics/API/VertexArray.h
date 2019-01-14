@@ -1,12 +1,12 @@
 #pragma once
 
-#include "JM.h"
+#include "LM.h"
 #include "VertexBuffer.h"
 
-namespace jm
+namespace Lumos
 {
 
-	class JM_EXPORT VertexArray
+	class LUMOS_EXPORT VertexArray
 	{
 	public:
 		virtual ~VertexArray() = default;

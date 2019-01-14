@@ -1,11 +1,11 @@
-#include "JM.h"
+#include "LM.h"
 #include "Matrix4.h"
 #include "Matrix3.h"
 #include "MathsUtilities.h"
 
-namespace jm {
+namespace Lumos {
 	namespace maths {
-#ifdef JM_SSEMAT4
+#ifdef LUMOS_SSEMAT4
 
 		Matrix4::Matrix4(const Matrix3 &mat) {
 			const unsigned int size = 3 * sizeof(float);
@@ -58,7 +58,7 @@ namespace jm {
             __m128 m1 = _mm_mul_ps(mmvalues[1], _mm_set1_ps(v.GetY()));
             __m128 m2 = _mm_mul_ps(mmvalues[2], _mm_set1_ps(v.GetZ()));
 
-#ifdef JM_SSEVEC3
+#ifdef LUMOS_SSEVEC3
             __m128 tempValue = _mm_add_ps(_mm_add_ps(m0, m1), _mm_add_ps(m2, mmvalues[3]));
             return _mm_div_ps(tempValue, _mm_shuffle_ps(tempValue, tempValue, _MM_SHUFFLE(0, 0, 0, 0)));
 #else
@@ -77,7 +77,7 @@ namespace jm {
 			__m128 m2 = _mm_mul_ps(mmvalues[2], _mm_set1_ps(v.GetZ()));
 			__m128 m3 = _mm_mul_ps(mmvalues[3], _mm_set1_ps(v.GetW()));
 
-#ifdef JM_SSEVEC4
+#ifdef LUMOS_SSEVEC4
 			return Vector4(_mm_add_ps(_mm_add_ps(m0, m1), _mm_add_ps(m2, m3)));
 #else
             __m128 tempValue = _mm_add_ps(_mm_add_ps(m0, m1), _mm_add_ps(m2, m3));
@@ -104,19 +104,19 @@ namespace jm {
 			float angle_z = 0.0f;
 
 			float c = cos(angle_y);
-			angle_y = jm::maths::RadToDeg(angle_y);
+			angle_y = Lumos::maths::RadToDeg(angle_y);
 
 			if (fabs(c) > 0.005) {
 				c = 1.0f / c;
 				float tr_x = mat.values[10] * c;
 				float tr_y = -mat.values[9] * c;
 
-				angle_x = jm::maths::RadToDeg(atan2(tr_y, tr_x));
+				angle_x = Lumos::maths::RadToDeg(atan2(tr_y, tr_x));
 
 				tr_x = mat.values[0] * c;
 				tr_y = -mat.values[4] * c;
 
-				angle_z = jm::maths::RadToDeg(atan2(tr_y, tr_x));
+				angle_z = Lumos::maths::RadToDeg(atan2(tr_y, tr_x));
 			} else {
 				float tr_x = mat.values[5];
 				float tr_y = mat.values[1];
@@ -124,13 +124,13 @@ namespace jm {
 				angle_z = atan2(tr_y, tr_x);
 			}
 
-			return Vector3(jm::maths::Clamp(angle_x, 0.0f, 360.0f), jm::maths::Clamp(angle_y, 0.0f, 360.0f),
-						   jm::maths::Clamp(angle_z, 0.0f, 360.0f));
+			return Vector3(Lumos::maths::Clamp(angle_x, 0.0f, 360.0f), Lumos::maths::Clamp(angle_y, 0.0f, 360.0f),
+						   Lumos::maths::Clamp(angle_z, 0.0f, 360.0f));
 		}
 
 		Matrix4 Matrix4::Perspective(float znear, float zfar, float aspect, float fov) {
 			Matrix4 m;
-			const float h = 1.0f / tan(fov * jm::maths::PI_OVER_360);
+			const float h = 1.0f / tan(fov * Lumos::maths::PI_OVER_360);
 			float neg_depth_r = 1.0f / (znear - zfar);
 
 			m.values[0] = h / aspect;
@@ -194,7 +194,7 @@ namespace jm {
 
 		Matrix4 Matrix4::RotationX(float degrees) {
 			Matrix4 m;
-			float rad = jm::maths::DegToRad(degrees);
+			float rad = Lumos::maths::DegToRad(degrees);
 			float c = cos(rad);
 			float s = sin(rad);
 
@@ -209,7 +209,7 @@ namespace jm {
 
 		Matrix4 Matrix4::RotationY(float degrees) {
 			Matrix4 m;
-			float rad = jm::maths::DegToRad(degrees);
+			float rad = Lumos::maths::DegToRad(degrees);
 			float c = cos(rad);
 			float s = sin(rad);
 
@@ -224,7 +224,7 @@ namespace jm {
 
 		Matrix4 Matrix4::RotationZ(float degrees) {
 			Matrix4 m;
-			float rad = jm::maths::DegToRad(degrees);
+			float rad = Lumos::maths::DegToRad(degrees);
 			float c = cos(rad);
 			float s = sin(rad);
 
@@ -241,7 +241,7 @@ namespace jm {
 			Vector3 axisNorm = axis;
 			axisNorm.Normalise();
 
-			float rad = jm::maths::DegToRad(degrees);
+			float rad = Lumos::maths::DegToRad(degrees);
 			float c = cos(rad);
 			float s = sin(rad);
 
@@ -267,7 +267,7 @@ namespace jm {
 
 		Matrix4 Matrix4::Rotation(float degreesX, float degreesY, float degreesZ) {
 			// Building this matrix directly is faster than multiplying three matrices for X, Y and Z
-			float phi = jm::maths::DegToRad(degreesX), theta = jm::maths::DegToRad(degreesY), psi = jm::maths::DegToRad(
+			float phi = Lumos::maths::DegToRad(degreesX), theta = Lumos::maths::DegToRad(degreesY), psi = Lumos::maths::DegToRad(
 					degreesZ);
 			float sinTh = sin(theta), cosTh = cos(theta),
 					sinPh = sin(phi), cosPh = cos(phi),
@@ -577,12 +577,12 @@ namespace jm {
 namespace std 
 {
 	template<>
-	struct hash<jm::maths::Matrix4>
+	struct hash<Lumos::maths::Matrix4>
 	{
-		size_t operator()(const jm::maths::Matrix4& value) const
+		size_t operator()(const Lumos::maths::Matrix4& value) const
 		{
-			return std::hash<jm::maths::Vector4>()(jm::maths::Vector4(value.values[0], value.values[1], value.values[2], value.values[3])) ^ std::hash<jm::maths::Vector4>()(jm::maths::Vector4(value.values[4], value.values[5], value.values[6], value.values[7]))
-				^ std::hash<jm::maths::Vector4>()(jm::maths::Vector4(value.values[8], value.values[9], value.values[10], value.values[11])) ^ std::hash<jm::maths::Vector4>()(jm::maths::Vector4(value.values[12], value.values[13], value.values[14], value.values[15]));
+			return std::hash<Lumos::maths::Vector4>()(Lumos::maths::Vector4(value.values[0], value.values[1], value.values[2], value.values[3])) ^ std::hash<Lumos::maths::Vector4>()(Lumos::maths::Vector4(value.values[4], value.values[5], value.values[6], value.values[7]))
+				^ std::hash<Lumos::maths::Vector4>()(Lumos::maths::Vector4(value.values[8], value.values[9], value.values[10], value.values[11])) ^ std::hash<Lumos::maths::Vector4>()(Lumos::maths::Vector4(value.values[12], value.values[13], value.values[14], value.values[15]));
 		}
 	};
 }

@@ -1,4 +1,4 @@
-#include "JM.h"
+#include "LM.h"
 #include "PhysicsObject2D.h"
 #include "B2PhysicsEngine.h"
 
@@ -7,7 +7,7 @@
 #include <Box2D/Box2D.h>
 #include <Box2D/Dynamics/b2World.h>
 
-namespace jm
+namespace Lumos
 {
 
 	PhysicsObject2D::PhysicsObject2D() : m_B2Body(nullptr)
@@ -96,7 +96,7 @@ namespace jm
 		}
 		else
 		{
-			JM_CORE_ERROR("Shape Not Supported");
+			LUMOS_CORE_ERROR("Shape Not Supported");
 		}
 	}
     

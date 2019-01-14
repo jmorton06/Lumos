@@ -1,4 +1,4 @@
-﻿#include "JM.h"
+﻿#include "LM.h"
 #include "LightComponent.h"
 #include "Graphics/Light.h"
 #include "Physics3DComponent.h"
@@ -10,7 +10,7 @@
 #include "Maths/BoundingSphere.h"
 #include "Graphics/Renderers/DebugRenderer.h"
 
-namespace jm
+namespace Lumos
 {
 	LightComponent::LightComponent(std::shared_ptr<Light>& light)
 		: m_Light(light), m_PostionOffset(maths::Vector3(0.0f))

@@ -1,19 +1,19 @@
 #pragma once
-#include "JM.h"
+#include "LM.h"
 #include "Maths/Maths.h"
 #include "SoundPriority.h"
 
 #include <AL/al.h>
 #include <AL/alc.h>
 
-namespace jm
+namespace Lumos
 {
 	class SoundNode;
     class Sound;
     class Camera;
 	struct TimeStep;
 
-	struct JM_EXPORT OALSource
+	struct LUMOS_EXPORT OALSource
 	{
 		ALuint	source;
 		bool	inUse;
@@ -25,7 +25,7 @@ namespace jm
 		}
 	};
 
-	class JM_EXPORT SoundSystem
+	class LUMOS_EXPORT SoundSystem
 	{
 	public:
 		static void Initialise(unsigned int channels = 8)

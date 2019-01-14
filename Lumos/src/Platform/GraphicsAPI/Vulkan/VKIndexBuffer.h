@@ -3,7 +3,7 @@
 #include "VKBuffer.h"
 #include "Graphics/API/IndexBuffer.h"
 
-namespace jm
+namespace Lumos
 {
 	namespace graphics
 	{

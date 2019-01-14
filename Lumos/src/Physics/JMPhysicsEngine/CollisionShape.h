@@ -1,12 +1,12 @@
 #pragma once
-#include "JM.h"
+#include "LM.h"
 #include "Maths/Maths.h"
 
-namespace jm
+namespace Lumos
 {
 	class PhysicsObject3D;
 
-	struct JM_EXPORT CollisionEdge
+	struct LUMOS_EXPORT CollisionEdge
 	{
 		CollisionEdge(const maths::Vector3& a, const maths::Vector3& b)
 			: posA(a), posB(b) {}
@@ -23,7 +23,7 @@ namespace jm
 		CollisionShapeTypeMax
 	};
 
-	class JM_EXPORT CollisionShape
+	class LUMOS_EXPORT CollisionShape
 	{
 	public:
 		CollisionShape(): m_Type() { m_LocalTransform.ToIdentity(); }

@@ -1,8 +1,8 @@
-#include "JM.h"
+#include "LM.h"
 #include "VKDevice.h"
 #include "VKVertexBuffer.h"
 
-namespace jm
+namespace Lumos
 { 
 	namespace graphics
 	{

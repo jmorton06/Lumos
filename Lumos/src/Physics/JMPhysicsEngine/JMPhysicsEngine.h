@@ -1,17 +1,17 @@
 #pragma once
 
-#include "JM.h"
+#include "LM.h"
 #include "Utilities/TSingleton.h"
 #include "PhysicsObject3D.h"
 #include "Manifold.h"
 #include "Broadphase.h"
 
-namespace jm
+namespace Lumos
 {
 
 #define SOLVER_ITERATIONS 50
 
-	enum JM_EXPORT IntegrationType
+	enum LUMOS_EXPORT IntegrationType
 	{
 		INTEGRATION_EXPLICIT_EULER,
 		INTEGRATION_SEMI_IMPLICIT_EULER,
@@ -22,7 +22,7 @@ namespace jm
 	class Constraint;
 	struct TimeStep;
 
-	class JM_EXPORT JMPhysicsEngine : public TSingleton<JMPhysicsEngine>
+	class LUMOS_EXPORT JMPhysicsEngine : public TSingleton<JMPhysicsEngine>
 	{
 		friend class TSingleton<JMPhysicsEngine>;
 	public:

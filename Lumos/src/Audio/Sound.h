@@ -1,8 +1,8 @@
 #pragma once
 
-#include "JM.h"
+#include "LM.h"
 
-namespace jm
+namespace Lumos
 {
 	struct FMTCHUNK
 	{
@@ -39,7 +39,7 @@ namespace jm
 		short bitsPerSample;
 	};
 
-	class JM_EXPORT Sound
+	class LUMOS_EXPORT Sound
 	{
 	public:
 		unsigned char*	GetData() const { return m_Data; }

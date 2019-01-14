@@ -1,11 +1,11 @@
 #pragma once
-#include "JM.h"
+#include "LM.h"
 #include "Camera.h"
 
-namespace jm
+namespace Lumos
 {
 
-	class JM_EXPORT FPSCamera : public Camera
+	class LUMOS_EXPORT FPSCamera : public Camera
 	{
 	public:
 		FPSCamera(float FOV, float Near, float Far, float aspect);

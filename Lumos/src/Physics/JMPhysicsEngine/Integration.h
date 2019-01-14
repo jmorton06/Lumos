@@ -1,12 +1,12 @@
 #pragma once
 
-#include "JM.h"
+#include "LM.h"
 #include "Maths/Maths.h"
 
-namespace jm
+namespace Lumos
 {
 
-	class JM_EXPORT Integration
+	class LUMOS_EXPORT Integration
 	{
 	public:
 

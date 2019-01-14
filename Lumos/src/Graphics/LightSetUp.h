@@ -1,12 +1,12 @@
 #pragma once
 
-#include "JM.h"
+#include "LM.h"
 #include "Light.h"
 
-namespace jm
+namespace Lumos
 {
 
-	class JM_EXPORT LightSetup
+	class LUMOS_EXPORT LightSetup
 	{
 	public:
 		LightSetup();

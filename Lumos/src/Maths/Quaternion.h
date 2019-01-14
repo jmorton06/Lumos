@@ -1,19 +1,19 @@
 #pragma once
 
-#include "JM.h"
+#include "LM.h"
 #include "Matrix3.h"
 #include "Matrix4.h"
 #include "MathsCommon.h"
 
-namespace jm
+namespace Lumos
 {
 	namespace maths
 	{
 
 		class Matrix4;
-#ifdef JM_SSEQUAT
+#ifdef LUMOS_SSEQUAT
 
-		class JM_EXPORT MEM_ALIGN Quaternion
+		class LUMOS_EXPORT MEM_ALIGN Quaternion
 		{
 		public:
 			Quaternion() : mmvalue(_mm_set_ps(1.0f, 0, 0, 0)) {}
@@ -103,7 +103,7 @@ namespace jm
 			}
 		};
 #else
-		class JM_EXPORT Quaternion
+		class LUMOS_EXPORT Quaternion
 		{
 		public:
 			Quaternion(void);

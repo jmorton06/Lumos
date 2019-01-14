@@ -1,11 +1,11 @@
 #pragma once
-#include "JM.h"
+#include "LM.h"
 #include "Textures/Texture2D.h"
 #include "Maths/Maths.h"
 
-namespace jm
+namespace Lumos
 {
-	enum class JM_EXPORT Attachment
+	enum class LUMOS_EXPORT Attachment
 	{
 		Colour0,
 		Colour1,
@@ -45,12 +45,12 @@ namespace jm
 		uint height;
 		uint layer = 0;
 		uint attachmentCount;
-		jm::Texture** attachments;
-		jm::TextureType* attachmentTypes;
-		jm::graphics::api::RenderPass* renderPass;
+		Lumos::Texture** attachments;
+		Lumos::TextureType* attachmentTypes;
+		Lumos::graphics::api::RenderPass* renderPass;
 	};
 
-	class JM_EXPORT Framebuffer
+	class LUMOS_EXPORT Framebuffer
 	{
 	public:
 

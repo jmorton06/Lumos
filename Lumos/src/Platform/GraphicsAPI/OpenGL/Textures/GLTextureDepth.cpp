@@ -1,10 +1,10 @@
-#include "JM.h"
+#include "LM.h"
 #include "GLTextureDepth.h"
 
 #include "Platform/GraphicsAPI/OpenGL/GL.h"
 
 
-namespace jm
+namespace Lumos
 {
 
 	GLTextureDepth::GLTextureDepth(uint width, uint height)
@@ -42,7 +42,7 @@ namespace jm
 		GLCall(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE));
 		GLCall(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE));
 		GLCall(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_COMPARE_FUNC, GL_LEQUAL));
-#ifndef JM_PLATFORM_MOBILE
+#ifndef LUMOS_PLATFORM_MOBILE
 		GLCall(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_COMPARE_MODE, GL_NONE));
 #endif
 		GLCall(glBindTexture(GL_TEXTURE_2D, 0));

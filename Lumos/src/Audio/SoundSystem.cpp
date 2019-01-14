@@ -1,11 +1,11 @@
-#include "JM.h"
+#include "LM.h"
 #include "SoundSystem.h"
 #include "Sound.h"
 #include "SoundNode.h"
 #include "Utilities/TimeStep.h"
 #include "Graphics/Camera/Camera.h"
 
-namespace jm
+namespace Lumos
 {
 
 	SoundSystem* SoundSystem::m_Instance = nullptr;
@@ -15,16 +15,16 @@ namespace jm
 		m_Listener = nullptr;
 		m_MasterVolume = 1.0f;
 
-#ifdef JM_OPENAL
-		JM_CORE_INFO("Creating SoundSystem!");
-		JM_CORE_INFO("Found the following devices: {0}", alcGetString(nullptr, ALC_DEVICE_SPECIFIER));
+#ifdef LUMOS_OPENAL
+		LUMOS_CORE_INFO("Creating SoundSystem!");
+		LUMOS_CORE_INFO("Found the following devices: {0}", alcGetString(nullptr, ALC_DEVICE_SPECIFIER));
 
 		m_Device = alcOpenDevice(nullptr);
 
 		if (!m_Device)
-			JM_CORE_INFO("Failed to create SoundSystem! (No valid device!)");
+			LUMOS_CORE_INFO("Failed to create SoundSystem! (No valid device!)");
 
-		JM_CORE_INFO("SoundSystem created with device: {0}", alcGetString(m_Device, ALC_DEVICE_SPECIFIER));	//Outputs used OAL device!
+		LUMOS_CORE_INFO("SoundSystem created with device: {0}", alcGetString(m_Device, ALC_DEVICE_SPECIFIER));	//Outputs used OAL device!
 
 		m_Context = alcCreateContext(m_Device, nullptr);
 
@@ -49,7 +49,7 @@ namespace jm
 		}
 #endif
 
-		JM_CORE_INFO("SoundSystem has {0} channels available!", m_Sources.size());
+		LUMOS_CORE_INFO("SoundSystem has {0} channels available!", m_Sources.size());
 	}
 
 	SoundSystem::~SoundSystem()
@@ -58,7 +58,7 @@ namespace jm
 
 		for (auto& source : m_Sources)
 		{
-#ifdef JM_OPENAL
+#ifdef LUMOS_OPENAL
 			alDeleteSources(1, &source->source);
 #endif
 			delete source;
@@ -66,7 +66,7 @@ namespace jm
 
 		m_Sources.clear();
 
-#ifdef JM_OPENAL
+#ifdef LUMOS_OPENAL
 		alcMakeContextCurrent(nullptr);
 		alcDestroyContext(m_Context);
 		alcCloseDevice(m_Device);
@@ -174,7 +174,7 @@ namespace jm
 		value = maths::Max(0.0f, value);
 		value = maths::Min(1.0f, value);
 		m_MasterVolume = value;
-#ifdef JM_OPENAL
+#ifdef LUMOS_OPENAL
 		alListenerf(AL_GAIN, m_MasterVolume);
 #endif
 	}
@@ -190,7 +190,7 @@ namespace jm
 			dirup[0] = m_Listener->GetForwardDirection();
 			dirup[1] = m_Listener->GetUpDirection();
 
-#ifdef JM_OPENAL
+#ifdef LUMOS_OPENAL
 			alListenerfv(AL_POSITION, reinterpret_cast<float*>(&worldPos));
 			alListenerfv(AL_VELOCITY, reinterpret_cast<float*>(&velocity));
 			alListenerfv(AL_ORIENTATION, reinterpret_cast<float*>(&dirup));

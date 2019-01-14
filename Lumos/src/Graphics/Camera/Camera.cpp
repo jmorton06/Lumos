@@ -1,7 +1,7 @@
-#include "JM.h"
+#include "LM.h"
 #include "Camera.h"
 
-namespace jm
+namespace Lumos
 {
 
 	Camera::Camera(float FOV, float Near, float Far, float aspect)

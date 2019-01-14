@@ -1,11 +1,11 @@
 #pragma once
-#include "JM.h"
+#include "LM.h"
 
-namespace jm
+namespace Lumos
 {
 	namespace maths
 	{
-		class JM_EXPORT Rectangle
+		class LUMOS_EXPORT Rectangle
 		{
 		public:
 

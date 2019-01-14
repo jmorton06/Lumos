@@ -1,4 +1,4 @@
-#include "JM.h"
+#include "LM.h"
 #include "ShadowRenderer.h"
 #include "Graphics/RenderList.h"
 #include "Graphics/API/Textures/TextureDepthArray.h"
@@ -17,7 +17,7 @@
 #include "Graphics/API/UniformBuffer.h"
 #include "RenderCommand.h"
 
-namespace jm
+namespace Lumos
 {
 	enum VSSystemUniformIndices : int32
 	{
@@ -40,7 +40,7 @@ namespace jm
 			m_apShadowRenderLists[i] = new RenderList();
 			if (!RenderList::AllocateNewRenderList(m_apShadowRenderLists[i], true))
 			{
-				JM_CORE_ERROR("Unable to allocate shadow render list {0} - Try using less shadow maps", i);
+				LUMOS_CORE_ERROR("Unable to allocate shadow render list {0} - Try using less shadow maps", i);
 			}
 		}
 
@@ -249,7 +249,7 @@ namespace jm
 	{
 		scene->GetCamera()->BuildViewMatrix();
 		maths::Matrix4 cameraProj = scene->GetCamera()->GetProjectionMatrix();
-#ifdef JM_RENDER_API_VULKAN
+#ifdef LUMOS_RENDER_API_VULKAN
 		if (graphics::Context::GetRenderAPI() == RenderAPI::VULKAN)
 		 	cameraProj[5] *= -1;
 #endif
@@ -403,7 +403,7 @@ namespace jm
 			m_ModelUniformBuffer = graphics::api::UniformBuffer::Create();
 			const size_t minUboAlignment = graphics::Context::GetContext()->GetMinUniformBufferOffsetAlignment();
 
-			dynamicAlignment = sizeof(jm::maths::Matrix4);
+			dynamicAlignment = sizeof(Lumos::maths::Matrix4);
 			if (minUboAlignment > 0)
 			{
 				dynamicAlignment = (dynamicAlignment + minUboAlignment - 1) & ~(minUboAlignment - 1);

@@ -1,9 +1,9 @@
-#include "JM.h"
+#include "LM.h"
 #include "Maths/BoundingBox.h"
 #include "Octree.h"
 #include "Graphics/Renderers/DebugRenderer.h"
 
-namespace jm
+namespace Lumos
 {
 
 	Octree::Octree(const size_t maxObjectsPerPartition, const size_t maxPartitionDepth, std::shared_ptr<Broadphase> secondaryBroadphase)

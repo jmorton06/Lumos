@@ -4,7 +4,7 @@
 #include "Graphics/API/Context.h"
 #include "VKContext.h"
 
-namespace jm
+namespace Lumos
 {
 	namespace graphics
 	{

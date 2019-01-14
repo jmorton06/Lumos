@@ -1,7 +1,7 @@
-#include "JM.h"
+#include "LM.h"
 #include "BruteForceBroadphase.h"
 
-namespace jm
+namespace Lumos
 {
 
 	BruteForceBroadphase::BruteForceBroadphase()

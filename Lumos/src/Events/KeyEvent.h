@@ -2,10 +2,10 @@
 
 #include "Event.h"
 
-namespace jm
+namespace Lumos
 {
 
-	class JM_EXPORT KeyEvent : public Event
+	class LUMOS_EXPORT KeyEvent : public Event
 	{
 	public:
 		inline int GetKeyCode() const { return m_KeyCode; }
@@ -19,7 +19,7 @@ namespace jm
 		int m_KeyCode;
 	};
 
-	class JM_EXPORT KeyPressedEvent : public KeyEvent
+	class LUMOS_EXPORT KeyPressedEvent : public KeyEvent
 	{
 	public:
 		KeyPressedEvent(int keycode, int repeatCount)
@@ -39,7 +39,7 @@ namespace jm
 		int m_RepeatCount;
 	};
 
-	class JM_EXPORT KeyReleasedEvent : public KeyEvent
+	class LUMOS_EXPORT KeyReleasedEvent : public KeyEvent
 	{
 	public:
 		KeyReleasedEvent(int keycode)
@@ -55,7 +55,7 @@ namespace jm
 		EVENT_CLASS_TYPE(KeyReleased)
 	};
 
-	class JM_EXPORT KeyTypedEvent : public KeyEvent
+	class LUMOS_EXPORT KeyTypedEvent : public KeyEvent
  	{
  	public:
  		KeyTypedEvent(int keycode)

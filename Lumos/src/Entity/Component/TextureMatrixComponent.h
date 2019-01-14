@@ -1,11 +1,11 @@
 #pragma once
-#include "JM.h"
+#include "LM.h"
 #include "JMComponent.h"
 #include "Maths/Matrix4.h"
 
-namespace jm
+namespace Lumos
 {
-	class JM_EXPORT TextureMatrixComponent : public JMComponent
+	class LUMOS_EXPORT TextureMatrixComponent : public JMComponent
 	{
 	public:
 		maths::Matrix4 m_TextureMatrix;

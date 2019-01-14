@@ -1,7 +1,7 @@
-#include "JM.h"
+#include "LM.h"
 #include "LayerStack.h"
 
-namespace jm
+namespace Lumos
 {
 
 	LayerStack::LayerStack()

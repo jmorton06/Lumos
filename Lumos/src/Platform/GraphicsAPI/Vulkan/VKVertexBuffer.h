@@ -3,7 +3,7 @@
 #include "VKBuffer.h"
 #include "Graphics/API/VertexBuffer.h"
 
-namespace jm
+namespace Lumos
 {
 	namespace graphics
 	{

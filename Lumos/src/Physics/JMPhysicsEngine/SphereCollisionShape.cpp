@@ -1,11 +1,11 @@
-#include "JM.h"
+#include "LM.h"
 #include "SphereCollisionShape.h"
 #include "PhysicsObject3D.h"
 #include "Maths/Matrix3.h"
 
 #include "Graphics/Renderers/DebugRenderer.h"
 
-namespace jm
+namespace Lumos
 {
 
 	SphereCollisionShape::SphereCollisionShape()

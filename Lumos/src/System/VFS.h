@@ -1,10 +1,10 @@
 #pragma once
 
-#include "JM.h"
+#include "LM.h"
 
-namespace jm
+namespace Lumos
 {
-	class JM_EXPORT VFS
+	class LUMOS_EXPORT VFS
 	{
 	private:
 		static VFS* s_Instance;

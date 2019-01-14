@@ -1,4 +1,4 @@
-#include "JM.h"
+#include "LM.h"
 #include "Application.h"
 #include "Audio/Sound.h"
 #include "Audio/SoundSystem.h"
@@ -22,14 +22,14 @@
 
 #include <imgui/imgui.h>
 
-namespace jm
+namespace Lumos
 {
 	Application* Application::s_Instance = nullptr;
 
 	Application::Application(const WindowProperties& properties, const RenderAPI& api)
 		: m_SecondTimer(0.0f), m_UpdateTimer(0), m_Frames(0), m_Updates(0)
 	{
-		JM_ASSERT(!s_Instance, "Application already exists!");
+		LUMOS_ASSERT(!s_Instance, "Application already exists!");
 		s_Instance = this;
 
         system::JobSystem::Initialize();
@@ -42,9 +42,9 @@ namespace jm
 
 		const String root = ROOT_DIR;
 
-		jm::VFS::Get()->Mount("CoreShaders", root + "/Lumos/res/shaders");
-		jm::VFS::Get()->Mount("CoreMeshes", root + "/Lumos/res/meshes");
-		jm::VFS::Get()->Mount("CoreTextures", root + "/Lumos/res/textures");
+		Lumos::VFS::Get()->Mount("CoreShaders", root + "/Lumos/res/shaders");
+		Lumos::VFS::Get()->Mount("CoreMeshes", root + "/Lumos/res/meshes");
+		Lumos::VFS::Get()->Mount("CoreTextures", root + "/Lumos/res/textures");
 
 		m_Window = std::unique_ptr<Window>(Window::Create("Game Engine", properties));
 		m_Window->SetEventCallback(BIND_EVENT_FN(Application::OnEvent));
@@ -66,15 +66,15 @@ namespace jm
 		uint screenWidth = m_Window->GetWidth();
 		uint screenHeight = m_Window->GetHeight();
 
-		jm::Input::Create();
+		Lumos::Input::Create();
 
 		graphics::Context::GetContext()->Init();
 
 		Renderer::Init(screenWidth, screenHeight);
 
-        system::JobSystem::Execute([] { JMPhysicsEngine::Instance(); JM_CORE_INFO("Initialised JMPhysics"); });
-        system::JobSystem::Execute([] { B2PhysicsEngine::Instance(); JM_CORE_INFO("Initialised B2Physics"); });
-        system::JobSystem::Execute([] { SoundSystem::Initialise();   JM_CORE_INFO("Initialised Audio"); });
+        system::JobSystem::Execute([] { JMPhysicsEngine::Instance(); LUMOS_CORE_INFO("Initialised JMPhysics"); });
+        system::JobSystem::Execute([] { B2PhysicsEngine::Instance(); LUMOS_CORE_INFO("Initialised B2Physics"); });
+        system::JobSystem::Execute([] { SoundSystem::Initialise();   LUMOS_CORE_INFO("Initialised Audio"); });
 
         system::JobSystem::Wait();
 
@@ -98,13 +98,13 @@ namespace jm
 		Sound::DeleteSounds();
 		SoundSystem::Destroy();
 
-#ifdef JM_DEBUG_RENDERER
+#ifdef LUMOS_DEBUG_RENDERER
 		DebugRenderer::Release();
 #endif
 
 		if (pause)
 		{
-            JM_CORE_ERROR("{0}", reason);
+            LUMOS_CORE_ERROR("{0}", reason);
 		}
 
 		return 0;
@@ -115,18 +115,18 @@ namespace jm
 		const uint sceneIdx = m_SceneManager->GetCurrentSceneIndex();
 		const uint sceneMax = m_SceneManager->SceneCount();
 
-		if (Input::GetInput().GetKeyPressed(JM_KEY_1)) m_SceneManager->GetCurrentScene()->ToggleDrawObjects();
-		if (Input::GetInput().GetKeyPressed(JM_KEY_2)) m_SceneManager->GetCurrentScene()->SetDrawDebugData(!m_SceneManager->GetCurrentScene()->GetDrawDebugData());
-        if (Input::GetInput().GetKeyPressed(JM_KEY_P)) JMPhysicsEngine::Instance()->SetPaused(!JMPhysicsEngine::Instance()->IsPaused());
+		if (Input::GetInput().GetKeyPressed(LUMOS_KEY_1)) m_SceneManager->GetCurrentScene()->ToggleDrawObjects();
+		if (Input::GetInput().GetKeyPressed(LUMOS_KEY_2)) m_SceneManager->GetCurrentScene()->SetDrawDebugData(!m_SceneManager->GetCurrentScene()->GetDrawDebugData());
+        if (Input::GetInput().GetKeyPressed(LUMOS_KEY_P)) JMPhysicsEngine::Instance()->SetPaused(!JMPhysicsEngine::Instance()->IsPaused());
 
-		if (Input::GetInput().GetKeyPressed(JM_KEY_J)) CommonUtils::AddSphere(m_SceneManager->GetCurrentScene());
-		if (Input::GetInput().GetKeyPressed(JM_KEY_K)) CommonUtils::AddPyramid(m_SceneManager->GetCurrentScene());
-		if (Input::GetInput().GetKeyPressed(JM_KEY_L)) CommonUtils::AddLightCube(m_SceneManager->GetCurrentScene());
+		if (Input::GetInput().GetKeyPressed(LUMOS_KEY_J)) CommonUtils::AddSphere(m_SceneManager->GetCurrentScene());
+		if (Input::GetInput().GetKeyPressed(LUMOS_KEY_K)) CommonUtils::AddPyramid(m_SceneManager->GetCurrentScene());
+		if (Input::GetInput().GetKeyPressed(LUMOS_KEY_L)) CommonUtils::AddLightCube(m_SceneManager->GetCurrentScene());
 
-		if (Input::GetInput().GetKeyPressed(JM_KEY_E)) m_SceneManager->JumpToScene((sceneIdx + 1) % sceneMax);
-		if (Input::GetInput().GetKeyPressed(JM_KEY_Q)) m_SceneManager->JumpToScene((sceneIdx == 0 ? sceneMax : sceneIdx) - 1);
-		if (Input::GetInput().GetKeyPressed(JM_KEY_R)) m_SceneManager->JumpToScene(sceneIdx);
-		if (Input::GetInput().GetKeyPressed(JM_KEY_V)) m_Window->ToggleVSync();
+		if (Input::GetInput().GetKeyPressed(LUMOS_KEY_E)) m_SceneManager->JumpToScene((sceneIdx + 1) % sceneMax);
+		if (Input::GetInput().GetKeyPressed(LUMOS_KEY_Q)) m_SceneManager->JumpToScene((sceneIdx == 0 ? sceneMax : sceneIdx) - 1);
+		if (Input::GetInput().GetKeyPressed(LUMOS_KEY_R)) m_SceneManager->JumpToScene(sceneIdx);
+		if (Input::GetInput().GetKeyPressed(LUMOS_KEY_V)) m_Window->ToggleVSync();
 	}
 
 	void Application::PhysicsUpdate(float targetUpdateTime)
@@ -169,7 +169,7 @@ namespace jm
 	{
 		float now = m_Timer->GetMS(1.0f) * 1000.0f;
 
-#ifdef JM_LIMIT_FRAMERATE
+#ifdef LUMOS_LIMIT_FRAMERATE
 		if (now - m_UpdateTimer > Engine::Instance()->TargetFrameRate())
 		{
 			m_UpdateTimer += Engine::Instance()->TargetFrameRate();
@@ -194,11 +194,11 @@ namespace jm
             m_Window->OnUpdate();
             OnUpdate(m_TimeStep.get());
 
-			if (Input::GetInput().GetKeyPressed(JM_KEY_ESCAPE))
+			if (Input::GetInput().GetKeyPressed(LUMOS_KEY_ESCAPE))
 				m_CurrentState = AppState::Closing;
 
 			Input::GetInput().ResetPressed();
-#ifdef JM_LIMIT_FRAMERATE
+#ifdef LUMOS_LIMIT_FRAMERATE
 		}
 #endif
 

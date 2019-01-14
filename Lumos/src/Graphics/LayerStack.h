@@ -5,10 +5,10 @@
 
 #include <vector>
 
-namespace jm
+namespace Lumos
 {
 
-	class JM_EXPORT LayerStack
+	class LUMOS_EXPORT LayerStack
 	{
 	public:
 		LayerStack();

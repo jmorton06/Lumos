@@ -1,5 +1,5 @@
 #pragma once
-#include "JM.h"
+#include "LM.h"
 #include "Sound.h"
 #include "SoundSystem.h"
 #include "SoundPriority.h"
@@ -7,9 +7,9 @@
 
 #define NUM_STREAM_BUFFERS 3
 
-namespace jm
+namespace Lumos
 {
-	class JM_EXPORT SoundNode
+	class LUMOS_EXPORT SoundNode
 	{
 	public:
 		SoundNode();

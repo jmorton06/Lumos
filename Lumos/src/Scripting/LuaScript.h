@@ -1,14 +1,14 @@
 #pragma once
 
-#include "JM.h"  
+#include "LM.h"  
 #include "lua.hpp"
 
-namespace jm
+namespace Lumos
 {
 
 typedef int(*lua_CFunction) (lua_State *L);
 
-class JM_EXPORT LuaScripting
+class LUMOS_EXPORT LuaScripting
 {
 private:
 	lua_State * m_luaState;

@@ -1,9 +1,9 @@
-#include "JM.h"
+#include "LM.h"
 #include "VKBuffer.h"
 #include "VKDevice.h"
 #include "VKRenderer.h"
 
-namespace jm
+namespace Lumos
 {
 	namespace graphics
 	{

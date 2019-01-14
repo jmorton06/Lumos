@@ -1,9 +1,9 @@
 #pragma once
 
-#include "JM.h"
+#include "LM.h"
 #include "Mesh.h"
 
-namespace jm
+namespace Lumos
 {
 
 #define RAW_WIDTH_RANDOM     500
@@ -17,7 +17,7 @@ namespace jm
 #define HEIGHTMAP_TEX_X_RANDOM   1.0f / 16.0f
 #define HEIGHTMAP_TEX_Z_RANDOM   1.0f / 16.0f
 
-	class JM_EXPORT Terrain : public Mesh
+	class LUMOS_EXPORT Terrain : public Mesh
 	{
 	public:
 		Terrain();

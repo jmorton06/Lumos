@@ -1,15 +1,15 @@
 #pragma once
 
-#include "JM.h"
+#include "LM.h"
 #include "App/Window.h"
 #include "Graphics/API/Context.h"
 
 struct GLFWwindow;
 
-namespace jm
+namespace Lumos
 {
 
-	class JM_EXPORT GLFWWindow : public Window
+	class LUMOS_EXPORT GLFWWindow : public Window
 	{
 	public:
 		GLFWWindow(const WindowProperties& properties, const String& title, RenderAPI api = RenderAPI::OPENGL);

@@ -1,10 +1,10 @@
-#include "JM.h"
+#include "LM.h"
 #include "CameraFPSBinding.h"
 #include "Scripting/LuaScript.h"
 #include "../MathsBindings/Vector3Binding.h"
 #include "Scripting/Bindings/MathsBindings/Matrix4Binding.h"
 
-namespace jm
+namespace Lumos
 {
 	const char CameraFPSBinding::className[] = "FPSCamera";
 

@@ -3,13 +3,13 @@
 
 #include "Dependencies/vulkan/vulkan.h"
 
-#ifdef JM_RELEASE
+#ifdef LUMOS_RELEASE
 const bool enableValidationLayers = false;
 #else
 const bool enableValidationLayers = false;
 #endif
 
-namespace jm
+namespace Lumos
 {
 	namespace graphics
 	{

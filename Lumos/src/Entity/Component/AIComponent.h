@@ -1,12 +1,12 @@
 #pragma once
-#include "JM.h"
+#include "LM.h"
 #include "JMComponent.h"
 
-namespace jm
+namespace Lumos
 {
 	class AINode;
 
-	class JM_EXPORT AIComponent : public JMComponent
+	class LUMOS_EXPORT AIComponent : public JMComponent
 	{
 	public:
 		std::shared_ptr<AINode> m_AINode;

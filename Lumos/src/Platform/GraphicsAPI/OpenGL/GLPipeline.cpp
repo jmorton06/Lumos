@@ -1,9 +1,9 @@
-#include "JM.h"
+#include "LM.h"
 #include "GLPipeline.h"
 #include "GLDescriptorSet.h"
 #include "GLShader.h"
 
-namespace jm
+namespace Lumos
 {
     namespace graphics
     {

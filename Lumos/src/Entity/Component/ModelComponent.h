@@ -1,12 +1,12 @@
 #pragma once
-#include "JM.h"
+#include "LM.h"
 #include "JMComponent.h"
 
-namespace jm
+namespace Lumos
 {
 	class Model;
 
-	class JM_EXPORT ModelComponent : public JMComponent
+	class LUMOS_EXPORT ModelComponent : public JMComponent
 	{
 	public:
 		std::shared_ptr<Model> m_Model;

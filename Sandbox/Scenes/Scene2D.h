@@ -1,21 +1,21 @@
 #pragma once
-#include <JMEngine.h>
+#include <LumosEngine.h>
 
-class Player2D : public jm::Entity
+class Player2D : public Lumos::Entity
 {
 public:
-	Player2D(std::shared_ptr<jm::Texture2D> texture, const jm::maths::Vector2& position, const jm::maths::Vector2& scale, const jm::maths::Vector4& colour, float colourMix, jm::Scene* scene);
+	Player2D(std::shared_ptr<Lumos::Texture2D> texture, const Lumos::maths::Vector2& position, const Lumos::maths::Vector2& scale, const Lumos::maths::Vector4& colour, float colourMix, Lumos::Scene* scene);
 	~Player2D();
 
 	void Update(float dt) const;
 
 };
 
-class Block : public jm::Entity
+class Block : public Lumos::Entity
 {
 public:
-	Block(std::shared_ptr<jm::Texture2D> texture, const jm::maths::Vector2& position, const jm::maths::Vector2& scale, const jm::maths::Vector4& colour, float colourMix, jm::Scene* scene);
-	Block(jm::Scene* scene);
+	Block(std::shared_ptr<Lumos::Texture2D> texture, const Lumos::maths::Vector2& position, const Lumos::maths::Vector2& scale, const Lumos::maths::Vector4& colour, float colourMix, Lumos::Scene* scene);
+	Block(Lumos::Scene* scene);
 	~Block();
 
 	void Update(float dt) const;
@@ -26,16 +26,16 @@ public:
 	int GetHealth() const;
 };
 
-class Ball : public jm::Entity
+class Ball : public Lumos::Entity
 {
 public:
-	Ball(std::shared_ptr<jm::Texture2D> texture, const jm::maths::Vector2& position, const jm::maths::Vector2& scale, const jm::maths::Vector4& colour, float colourMix, jm::Scene* scene);
+	Ball(std::shared_ptr<Lumos::Texture2D> texture, const Lumos::maths::Vector2& position, const Lumos::maths::Vector2& scale, const Lumos::maths::Vector4& colour, float colourMix, Lumos::Scene* scene);
     ~Ball();
 
     void Update(float dt) const;
 };
 
-class Scene2D : public jm::Scene
+class Scene2D : public Lumos::Scene
 {
 public:
 	explicit Scene2D(const String& SceneName);
@@ -43,14 +43,14 @@ public:
 
 	virtual void OnInit() override;
 	virtual void OnCleanupScene() override;
-	virtual void OnUpdate(jm::TimeStep* timeStep) override;
+	virtual void OnUpdate(Lumos::TimeStep* timeStep) override;
 	virtual void Render2D() override;
 	virtual void OnIMGUI() override;
 
 	void AddBreakoutLevel(int cameraScale);
 
 	std::shared_ptr<Player2D> m_Player;
-	std::vector<jm::Sprite*> m_Blocks;
-	jm::Sprite* m_Ball;
+	std::vector<Lumos::Sprite*> m_Blocks;
+	Lumos::Sprite* m_Ball;
 };
 
