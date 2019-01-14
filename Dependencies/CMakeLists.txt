@@ -18,7 +18,7 @@ ENDIF(NOT IOS)
 
 # On iOS, OpenAL comes preinstalled
 if (NOT IOS)
-include(${CMAKE_SOURCE_DIR}/CMake/Modules/FindOpenAL.cmake)
+include(${CMAKE_SOURCE_DIR}/Scripts/CMake/Modules/FindOpenAL.cmake)
 if(NOT OPENAL_FOUND)
 message("++ OpenAL not found - Building Source")
 add_subdirectory(OpenAL)

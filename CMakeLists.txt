@@ -18,7 +18,7 @@ else()
 		message(FATAL_ERROR "Unknown system")
 endif()
 
-project (Lumos)
+project (LumosEngine)
 enable_language(CXX)
 enable_language(C)
 
