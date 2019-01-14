@@ -20,6 +20,8 @@
 #include "System/JobSystem.h"
 #include "Graphics/ImGuiLayer.h"
 
+#include <imgui/imgui.h>
+
 namespace jm
 {
 	Application* Application::s_Instance = nullptr;
@@ -75,7 +77,8 @@ namespace jm
         system::JobSystem::Execute([] { SoundSystem::Initialise();   JM_CORE_INFO("Initialised Audio"); });
 
         system::JobSystem::Wait();
-        
+
+		PushOverLay(new ImGuiLayer());
         m_GraphicsPipeline->Init(screenWidth, screenHeight);
 
         m_CurrentState = AppState::Running;
@@ -107,7 +110,7 @@ namespace jm
 		return 0;
 	}
 
-	void Application::DefaultControls()
+	void Application::OnUpdate(TimeStep* dt)
 	{
 		const uint sceneIdx = m_SceneManager->GetCurrentSceneIndex();
 		const uint sceneMax = m_SceneManager->SceneCount();
@@ -179,15 +182,17 @@ namespace jm
 			for (Layer* layer : m_LayerStack)
 				layer->OnUpdate(m_TimeStep.get());
 
-			m_GraphicsPipeline->UpdateScene(m_TimeStep.get());
+			m_SceneManager->GetCurrentScene()->OnUpdate(m_TimeStep.get());
+
 			m_GraphicsPipeline->RenderScene();
+
+			for (Layer* layer : m_LayerStack)
+				layer->OnRender(m_SceneManager->GetCurrentScene());
 
 			SoundSystem::Instance()->Update(m_TimeStep.get());
 
-			m_Window->OnUpdate();
-
-			DefaultControls();
-			m_SceneManager->GetCurrentScene()->Controls();
+            m_Window->OnUpdate();
+            OnUpdate(m_TimeStep.get());
 
 			if (Input::GetInput().GetKeyPressed(JM_KEY_ESCAPE))
 				m_CurrentState = AppState::Closing;
@@ -265,6 +270,18 @@ namespace jm
 
 	void Application::OnImGui()
 	{
+		ImGui::Begin("Engine Information");
+		ImGui::Text("--------------------------------");
+		ImGui::Text("Physics Engine: %s (Press P to toggle)", JMPhysicsEngine::Instance()->IsPaused() ? "Paused" : "Enabled");
+		ImGui::Text("Number Of Collision Pairs  : %5.2i", JMPhysicsEngine::Instance()->GetNumberCollisionPairs());
+		ImGui::Text("Number Of Physics Objects  : %5.2i", JMPhysicsEngine::Instance()->GetNumberPhysicsObjects());
+		ImGui::Text("--------------------------------");
+		ImGui::Text("FPS : %5.2i", Engine::Instance()->GetFPS());
+		ImGui::Text("UPS : %5.2i", Engine::Instance()->GetUPS());
+		ImGui::Text("Frame Time : %5.2f ms", Engine::Instance()->GetFrametime());
+		ImGui::Text("--------------------------------");
+		ImGui::End();
+
 		m_SceneManager->GetCurrentScene()->OnIMGUI();
 	}
 }

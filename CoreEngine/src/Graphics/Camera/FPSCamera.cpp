@@ -87,7 +87,7 @@ namespace jm
 			m_Velocity -= up * m_CameraSpeed;
 		}
 
-		if (Input::GetInput().GetKeyHeld(JM_KEY_LSHIFT))
+		if (Input::GetInput().GetKeyHeld(JM_KEY_LEFT_SHIFT))
 		{
 			m_Velocity += up * m_CameraSpeed;
 		}

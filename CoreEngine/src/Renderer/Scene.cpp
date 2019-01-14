@@ -25,19 +25,19 @@ namespace jm
 
 		m_MaterialManager = new AssetManager<Material>();
 	}
-    
+
     Scene::~Scene()
     {
         DeleteAllGameObjects();
-        
+
         if (m_ParticleManager)
         {
             delete m_ParticleManager;
             m_ParticleManager = nullptr;
         }
-        
+
         delete m_LightSetup;
-        
+
         SAFE_DELETE(m_MaterialManager);
     }
 

@@ -20,6 +20,7 @@ namespace jm
 		void OnDetach() override;
 		void OnUpdate(TimeStep* dt) override;
 		void OnEvent(Event& event) override;
+		void OnRender(Scene* scene) override;
 
 	private:
 
@@ -31,6 +32,8 @@ namespace jm
 		bool OnKeyReleasedEvent(KeyReleasedEvent& e);
 		bool OnKeyTypedEvent(KeyTypedEvent& e);
 		bool OnwindowResizeEvent(WindowResizeEvent& e);
+
+		void SetImGuiKeyCodes();
 	};
 
 }

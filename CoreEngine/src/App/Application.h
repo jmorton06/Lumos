@@ -33,14 +33,13 @@ namespace jm
 
 		void Run();
 		bool OnFrame();
+		void OnUpdate(TimeStep* dt);
 		void OnEvent(Event& e);
 		void OnImGui();
 		void PushLayer(Layer* layer);
 		void PushOverLay(Layer* overlay);
 
 		virtual void Init();
-
-		void DefaultControls();
 
         SceneManager* GetSceneManager() const { return m_SceneManager.get(); }
         GraphicsPipeline* GetGraphicsPipeline() const { return m_GraphicsPipeline.get(); }

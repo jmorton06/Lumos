@@ -193,14 +193,17 @@ namespace jm
 #define JM_KEY_F22            0x85
 #define JM_KEY_F23            0x86
 #define JM_KEY_F24            0x87
-
+#define JM_KEY_ENTER		  0x88
+#define JM_KEY_BACKSPACE	  0x89
 #define JM_KEY_NUMLOCK        0x90
 #define JM_KEY_SCROLL         0x91
+#define JM_KEY_PAGE_DOWN	  0x92
+#define JM_KEY_PAGE_UP		  0x93
 
-#define JM_KEY_LSHIFT         0xA0
-#define JM_KEY_RSHIFT         0xA1
-#define JM_KEY_LCONTROL       0xA2
-#define JM_KEY_RCONTROL       0xA3
-#define JM_KEY_LMENU          0xA4
-#define JM_KEY_RMENU          0xA5
+#define JM_KEY_LEFT_SHIFT     0xA0
+#define JM_KEY_RIGHT_SHIFT    0xA1
+#define JM_KEY_LEFT_CONTROL   0xA2
+#define JM_KEY_RIGHT_CONTROL  0xA3
+#define JM_KEY_LEFT_MENU      0xA4
+#define JM_KEY_RIGHT_MENU     0xA5
 }

@@ -6,6 +6,7 @@
 
 namespace jm
 {
+	class Scene;
 
 	class JM_EXPORT Layer
 	{
@@ -17,6 +18,7 @@ namespace jm
 		virtual void OnDetach() {}
 		virtual void OnUpdate(TimeStep* dt) {}
 		virtual void OnEvent(Event& event) {}
+		virtual void OnRender(Scene* scene) {}
 
 		inline const std::string& GetName() const { return m_DebugName; }
 	protected:

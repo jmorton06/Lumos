@@ -11,7 +11,6 @@ public:
 	virtual void OnCleanupScene() override;
 	virtual void OnUpdate(jm::TimeStep* timeStep) override;
 	virtual void Render2D() override;
-	virtual void Controls() override;
 	virtual void OnIMGUI() override;
 	void LoadModels();
 };
