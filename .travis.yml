@@ -13,18 +13,8 @@ matrix:
       compiler: clang
     # - os: osx
     #   env: BUILD_TYPE=IOS
-    #   osx_image: xcode8.3
     #   language: c++
     #   compiler: clang
-    #   addons:
-    #     apt:
-    #       packages:
-    #         - cmake
-    #         - libxrandr-dev
-    #         - libxinerama-dev
-    #         - libxcursor-dev
-    #         - libxi-dev
-    #         - clang-3.8
     - os: linux
       language: c++
       compiler: gcc
@@ -80,7 +70,7 @@ script:
 branches:
   only:
     - master
-    - Vulkan
+    - dev
 
 notifications:
   email:

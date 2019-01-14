@@ -18,7 +18,7 @@ else()
 		message(FATAL_ERROR "Unknown system")
 endif()
 
-project (VulkanTest)
+project (LumosEngine)
 enable_language(CXX)
 enable_language(C)
 
@@ -27,7 +27,7 @@ message ("CMAKE_CXX_COMPILER_ID:" ${CMAKE_CXX_COMPILER_ID})
 set(CMAKE_CXX_STANDARD 17)
 set(BUILD_SHARED_LIBS TRUE)
 
-set (CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/CMake/Modules")
+set (CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/Scripts/CMake/Modules")
 
 INCLUDE(FindSSE)
 FindSSE()
@@ -112,22 +112,22 @@ message ("cxx Flags debug:" ${CMAKE_CXX_FLAGS_DEBUG})
 message ("cxx Flags release:" ${CMAKE_CXX_FLAGS_RELEASE})
 
 add_subdirectory(Dependencies)
-add_subdirectory(CoreEngine)
+add_subdirectory(Lumos)
 add_subdirectory(Sandbox)
 
 IF(NOT IOS)
-add_dependencies(CoreEngine glfw)
-add_dependencies(CoreEngine glad)
+add_dependencies(Lumos glfw)
+add_dependencies(Lumos glad)
 
 IF(OpenAL)
-add_dependencies(CoreEngine OpenAL)
+add_dependencies(Lumos OpenAL)
 ENDIF(OpenAL)
 
 ENDIF(NOT IOS)
 
-add_dependencies(CoreEngine freetype)
-add_dependencies(CoreEngine box2d)
-add_dependencies(CoreEngine lua)
-add_dependencies(Sandbox CoreEngine)
+add_dependencies(Lumos freetype)
+add_dependencies(Lumos box2d)
+add_dependencies(Lumos lua)
+add_dependencies(Sandbox Lumos)
 
 set_property(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR} PROPERTY VS_STARTUP_PROJECT Sandbox)

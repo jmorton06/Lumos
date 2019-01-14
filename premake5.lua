@@ -1,4 +1,4 @@
-workspace "JMEngine"
+workspace "LumosEngine"
 	architecture "x64"
 
 	configurations
@@ -22,7 +22,7 @@ workspace "JMEngine"
 	require("Dependencies/lua/premake5")
 	require("Dependencies/glad/premake5")
 	require("Dependencies/FreeType/premake5")
-	require("CoreEngine/premake5")
+	require("Lumos/premake5")
 	require("Sandbox/premake5")
 
 newaction 
