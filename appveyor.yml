@@ -13,5 +13,5 @@ before_build:
 - ./GenerateVS.bat
 
 build:
-  project: build/JMEngine.sln
+  project: build/LumosEngine.sln
   verbosity: minimal
