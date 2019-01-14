@@ -115,8 +115,8 @@ cmake-build-debug/
 *.make
 *.pc
 
-CoreEngine/CoreEngine.dir/
-CoreEngine/CoreEngine.dir/
+Lumos/Lumos.dir/
+Lumos/Lumos.dir/
 
 *.xcbkptlist
 \.codelite/

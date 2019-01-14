@@ -1,5 +1,5 @@
 
-project "CoreEngine"
+project "Lumos"
 	kind "SharedLib"
 	language "C++"
 
@@ -193,8 +193,8 @@ project "CoreEngine"
 		}
 
 		filter { "action:xcode4" }
-			pchheader "../CoreEngine/src/JM.h"
-			pchsource "../CoreEngine/src/JM.cpp"
+			pchheader "../Lumos/src/JM.h"
+			pchsource "../Lumos/src/JM.cpp"
 
 			filter 'files:external/**.cpp'
 				flags  { 'NoPCH' }
@@ -258,8 +258,8 @@ project "CoreEngine"
 
 		links { "X11", "pthread", "libvulkan.so.1"}
 
-		pchheader "../CoreEngine/src/JM.h"
-		pchsource "../CoreEngine/src/JM.cpp"
+		pchheader "../Lumos/src/JM.h"
+		pchsource "../Lumos/src/JM.cpp"
 
 		filter 'files:external/**.cpp'
 			flags  { 'NoPCH' }
