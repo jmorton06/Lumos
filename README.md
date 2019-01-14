@@ -1,15 +1,15 @@
-# Unititled Engine
+# Lumos
 
 **Game Engine written in C++ using OpenGL and Vulkan.**
 
-[![Build status](https://img.shields.io/appveyor/ci/jmorton06/UntitledEngine/dev.svg?style=flat&label=Windows)](https://ci.appveyor.com/project/jmorton06/UntitledEngine/branch/dev) [![Build status]( https://img.shields.io/travis/jmorton06/UntitledEngine/dev.svg?style=flat&label=Linux%20macOS)](https://travis-ci.org/jmorton06/UntitledEngine)
+[![Build status](https://img.shields.io/appveyor/ci/jmorton06/Lumos/dev.svg?style=flat&label=Windows)](https://ci.appveyor.com/project/jmorton06/Lumos/branch/dev) [![Build status]( https://img.shields.io/travis/jmorton06/Lumos/dev.svg?style=flat&label=Linux%20macOS)](https://travis-ci.org/jmorton06/Lumos)
 ## Building
 
 ### CMake
 
 ```
-git clone https://github.com/jmorton06/UnititledEngine.git
-cd UnititledEngine
+git clone https://github.com/jmorton06/Lumos.git
+cd Lumos
 
 mkdir build
 cd build
@@ -19,8 +19,8 @@ cmake ..
 
 ### Premake
 ```
-git clone https://github.com/jmorton06/UnititledEngine.git
-cd UnititledEngine
+git clone https://github.com/jmorton06/Lumos.git
+cd Lumos
 
 Tools/premake5 gmake
 
