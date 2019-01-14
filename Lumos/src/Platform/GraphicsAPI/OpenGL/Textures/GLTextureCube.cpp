@@ -1,10 +1,10 @@
-#include "JM.h"
+#include "LM.h"
 #include "GLTextureCube.h"
 #include "Platform/GraphicsAPI/OpenGL/GL.h"
 #include "Utilities/LoadImage.h"
 #include "GLTexture2D.h"
 
-namespace jm
+namespace Lumos
 {
 
 	GLTextureCube::GLTextureCube(uint size)
@@ -12,7 +12,7 @@ namespace jm
 	{
 		glGenTextures(1, &m_Handle);
 		glBindTexture(GL_TEXTURE_CUBE_MAP, m_Handle);
-#ifndef JM_PLATFORM_MOBILE
+#ifndef LUMOS_PLATFORM_MOBILE
 		glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_S, GL_CLAMP);
 		glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_T, GL_CLAMP);
 		glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_R, GL_CLAMP);
@@ -91,12 +91,12 @@ namespace jm
 		m_Parameters.format = TextureFormat::RGBA;
 
 		uint width, height, bits;
-		byte* xp = jm::LoadImageFromFile(xpos, &width, &height, &bits, true);
-		byte* xn = jm::LoadImageFromFile(xneg, &width, &height, &bits, true);
-		byte* yp = jm::LoadImageFromFile(ypos, &width, &height, &bits, true);
-		byte* yn = jm::LoadImageFromFile(yneg, &width, &height, &bits, true);
-		byte* zp = jm::LoadImageFromFile(zpos, &width, &height, &bits, true);
-		byte* zn = jm::LoadImageFromFile(zneg, &width, &height, &bits, true);
+		byte* xp = Lumos::LoadImageFromFile(xpos, &width, &height, &bits, true);
+		byte* xn = Lumos::LoadImageFromFile(xneg, &width, &height, &bits, true);
+		byte* yp = Lumos::LoadImageFromFile(ypos, &width, &height, &bits, true);
+		byte* yn = Lumos::LoadImageFromFile(yneg, &width, &height, &bits, true);
+		byte* zp = Lumos::LoadImageFromFile(zpos, &width, &height, &bits, true);
+		byte* zn = Lumos::LoadImageFromFile(zneg, &width, &height, &bits, true);
 
 		uint result;
 		GLCall(glGenTextures(1, &result));
@@ -142,7 +142,7 @@ namespace jm
 
 		for (uint m = 0; m < mips; m++)
 		{
-			byte* data = jm::LoadImageFromFile(m_Files[m], &srcWidth, &srcHeight, &bits, !m_LoadOptions.flipY);
+			byte* data = Lumos::LoadImageFromFile(m_Files[m], &srcWidth, &srcHeight, &bits, !m_LoadOptions.flipY);
 			m_Parameters.format = GLTexture2D::BitsToTextureFormat(bits);
 			uint stride = bits / 8;
 

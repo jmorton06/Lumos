@@ -1,4 +1,4 @@
-#include "JM.h"
+#include "LM.h"
 #include "JobSystem.h"
 #include "Maths/MathsUtilities.h"
 
@@ -7,11 +7,11 @@
 #include <condition_variable>
 #include <deque>
 
-#ifdef JM_PLATFORM_WINDOWS
+#ifdef LUMOS_PLATFORM_WINDOWS
 #define NOMINMAX
 #include <Windows.h>
 #endif
-namespace jm 
+namespace Lumos 
 {
     namespace system 
     {
@@ -104,25 +104,25 @@ namespace jm
 
                     });
 
-        #ifdef JM_PLATFORM_WINDOWS
+        #ifdef LUMOS_PLATFORM_WINDOWS
                     // Do Windows-specific thread setup:
                     HANDLE handle = (HANDLE)worker.native_handle();
 
                     // Put each thread on to dedicated core
                     DWORD_PTR affinityMask = 1ull << threadID; 
                     DWORD_PTR affinity_result = SetThreadAffinityMask(handle, affinityMask);
-                    JM_ASSERT(affinity_result > 0,"");
+                    LUMOS_ASSERT(affinity_result > 0,"");
                     // Name the thread:
                     std::wstringstream wss;
                     wss << "JobSystem_" << threadID;
                     HRESULT hr = SetThreadDescription(handle, wss.str().c_str());
-                    JM_ASSERT(SUCCEEDED(hr),"");
-        #endif // JM_PLATFORM_WINDOWS
+                    LUMOS_ASSERT(SUCCEEDED(hr),"");
+        #endif // LUMOS_PLATFORM_WINDOWS
 
                     worker.detach();
                 }
 
-                JM_CORE_INFO("Initialised JobSystem with [{0} cores] [{1} threads]" ,numCores, numThreads);
+                LUMOS_CORE_INFO("Initialised JobSystem with [{0} cores] [{1} threads]" ,numCores, numThreads);
             }
 
             // This little function will not let the system to be deadlocked while the main thread is waiting for something

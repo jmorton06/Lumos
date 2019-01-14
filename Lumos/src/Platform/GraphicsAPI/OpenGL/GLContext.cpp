@@ -1,10 +1,10 @@
-#include "JM.h"
+#include "LM.h"
 #include "GLContext.h"
 
 #include "GLVertexArray.h"
 #include "GL.h"
 #include "GLDebug.h"
-#ifndef JM_PLATFORM_MOBILE
+#ifndef LUMOS_PLATFORM_MOBILE
 #include "GLFW/glfw3.h"
 #endif
 
@@ -81,13 +81,13 @@ static std::string GetStringForSeverity(GLenum severity)
 	switch (severity)
 	{
 	case GL_DEBUG_SEVERITY_HIGH:
-		JM_CORE_ASSERT(0,"");
+		LUMOS_CORE_ASSERT(0,"");
 		return "High";
 	case GL_DEBUG_SEVERITY_MEDIUM:
-		JM_CORE_ASSERT(0,"");
+		LUMOS_CORE_ASSERT(0,"");
 		return "Medium";
 	case GL_DEBUG_SEVERITY_LOW:
-		JM_CORE_ASSERT(0,"");
+		LUMOS_CORE_ASSERT(0,"");
 		return "Low";
 	case GL_DEBUG_SEVERITY_NOTIFICATION:
 		return "Notification";
@@ -107,39 +107,39 @@ void APIENTRY openglCallbackFunction(GLenum source,
 	if(!PrintMessage(type))
 		return;
 
-	JM_CORE_INFO(OPENGLLOG"Message: {0}" , message);
-	JM_CORE_INFO(OPENGLLOG"Type: {0}"	   , GetStringForType(type));
-	JM_CORE_INFO(OPENGLLOG"Source: {0}"  , GetStringForSource(source));
-	JM_CORE_INFO(OPENGLLOG"ID: {0}"      , id);
-	JM_CORE_INFO(OPENGLLOG"Severity: {0}", GetStringForSeverity(source));
+	LUMOS_CORE_INFO(OPENGLLOG"Message: {0}" , message);
+	LUMOS_CORE_INFO(OPENGLLOG"Type: {0}"	   , GetStringForType(type));
+	LUMOS_CORE_INFO(OPENGLLOG"Source: {0}"  , GetStringForSource(source));
+	LUMOS_CORE_INFO(OPENGLLOG"ID: {0}"      , id);
+	LUMOS_CORE_INFO(OPENGLLOG"Severity: {0}", GetStringForSeverity(source));
 }
 
 #endif
 
-namespace jm
+namespace Lumos
 {
 	namespace graphics
 	{
 		GLContext::GLContext(WindowProperties properties, void* deviceContext)
 		{
-#ifndef JM_PLATFORM_MOBILE
+#ifndef LUMOS_PLATFORM_MOBILE
 			if(!gladLoadGLLoader(reinterpret_cast<GLADloadproc>(glfwGetProcAddress)))
 			{
-				JM_CORE_ERROR("Failed to initialize OpenGL context");
+				LUMOS_CORE_ERROR("Failed to initialize OpenGL context");
 			}
 #endif
 			glClearColor(0.2f, 0.2f, 0.2f, 1.0f);
 
-			JM_CORE_INFO("----------------------------------");
-			JM_CORE_INFO(OPENGLLOG);
-			JM_CORE_INFO(glGetString(GL_VERSION));
-			JM_CORE_INFO(glGetString(GL_VENDOR));
-			JM_CORE_INFO(glGetString(GL_RENDERER));
-			JM_CORE_INFO("----------------------------------");
+			LUMOS_CORE_INFO("----------------------------------");
+			LUMOS_CORE_INFO(OPENGLLOG);
+			LUMOS_CORE_INFO(glGetString(GL_VERSION));
+			LUMOS_CORE_INFO(glGetString(GL_VENDOR));
+			LUMOS_CORE_INFO(glGetString(GL_RENDERER));
+			LUMOS_CORE_INFO("----------------------------------");
 
-#if JM_DEBUG
+#if LUMOS_DEBUG
 #ifdef GL_DEBUD_CALLBACK
-				JM_CORE_INFO(OPENGLLOG"Registering OpenGL debug callback");
+				LUMOS_CORE_INFO(OPENGLLOG"Registering OpenGL debug callback");
 
 				glEnable(GL_DEBUG_OUTPUT);
 				glEnable(GL_DEBUG_OUTPUT_SYNCHRONOUS);
@@ -152,7 +152,7 @@ namespace jm
 					&unusedIds,
 					true);
 #else
-			JM_CORE_INFO(OPENGLLOG"glDebugMessageCallback not available");
+			LUMOS_CORE_INFO(OPENGLLOG"glDebugMessageCallback not available");
 #endif
 #endif
 		}

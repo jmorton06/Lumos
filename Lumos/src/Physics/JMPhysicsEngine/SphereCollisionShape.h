@@ -1,12 +1,12 @@
 #pragma once
 
-#include "JM.h"
+#include "LM.h"
 #include "CollisionShape.h"
 
-namespace jm
+namespace Lumos
 {
 
-	class JM_EXPORT SphereCollisionShape : public CollisionShape
+	class LUMOS_EXPORT SphereCollisionShape : public CollisionShape
 	{
 	public:
 		SphereCollisionShape();

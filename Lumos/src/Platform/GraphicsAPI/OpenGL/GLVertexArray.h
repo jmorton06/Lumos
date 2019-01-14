@@ -1,8 +1,8 @@
 #pragma once
-#include "JM.h"
+#include "LM.h"
 #include "Graphics/API/VertexArray.h"
 
-namespace jm
+namespace Lumos
 {
 
 	class GLVertexArray : public VertexArray

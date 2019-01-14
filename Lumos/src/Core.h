@@ -1,12 +1,12 @@
 #pragma once
 
-#ifndef JM_PLATFORM_WINDOWS
+#ifndef LUMOS_PLATFORM_WINDOWS
 #include <signal.h>
 #endif
 
 #include <stdint.h>
 
-#ifdef JM_PLATFORM_WINDOWS
+#ifdef LUMOS_PLATFORM_WINDOWS
 
 #define MEM_ALIGNMENT 16
 
@@ -34,24 +34,24 @@
 
 #endif
 
-#ifdef JM_PLATFORM_WINDOWS
+#ifdef LUMOS_PLATFORM_WINDOWS
 #pragma warning (disable:4251)
-#ifdef JM_DYNAMIC
-#ifdef JM_ENGINE
-#define JM_EXPORT __declspec(dllexport)
+#ifdef LUMOS_DYNAMIC
+#ifdef LUMOS_ENGINE
+#define LUMOS_EXPORT __declspec(dllexport)
 #else
-#define JM_EXPORT __declspec(dllimport)
+#define LUMOS_EXPORT __declspec(dllimport)
 #endif
 #else
-#define JM_EXPORT
+#define LUMOS_EXPORT
 #endif
-#define JM_HIDDEN
+#define LUMOS_HIDDEN
 #else
-#define JM_EXPORT __attribute__ ((visibility ("default")))
-#define JM_HIDDEN __attribute__ ((visibility ("hidden")))
+#define LUMOS_EXPORT __attribute__ ((visibility ("default")))
+#define LUMOS_HIDDEN __attribute__ ((visibility ("hidden")))
 #endif
 
-#define IMGUI_API JM_EXPORT
+#define IMGUI_API LUMOS_EXPORT
 
 #define BIT(x) (1 << x)
 
@@ -84,59 +84,59 @@ typedef uint8		byte;
 #define SAFE_DELETE(mem) { if(mem) { delete mem; mem = NULL; } }
 #define SAFE_UNLOAD(mem, ...) { if(mem) { mem->Unload(__VA_ARGS__); delete mem; mem = NULL; } }
 
-#ifdef JM_DEBUG
-#define JM_DEBUG_METHOD(x) x;
-#define JM_DEBUG_METHOD_CALL(x) x;
+#ifdef LUMOS_DEBUG
+#define LUMOS_DEBUG_METHOD(x) x;
+#define LUMOS_DEBUG_METHOD_CALL(x) x;
 #else
-#define JM_DEBUG_METHOD(x) x {}
-#define JM_DEBUG_METHOD_CALL(x);
+#define LUMOS_DEBUG_METHOD(x) x {}
+#define LUMOS_DEBUG_METHOD_CALL(x);
 #endif
 
 #define MAX_OBJECTS 2048
 
 #define STRINGIZE2(s) #s
 #define STRINGIZE(s) STRINGIZE2(s)
-#define ROOT_DIR STRINGIZE(JM_ROOT_DIR)
+#define ROOT_DIR STRINGIZE(LUMOS_ROOT_DIR)
 
-#if JM_PLATFORM_WINDOWS
+#if LUMOS_PLATFORM_WINDOWS
 #define crash() __debugbreak(); 
 #else
 #define crash() raise(SIGTRAP);
 #endif
 
-#ifdef JM_DEBUG
-	#define JM_ENABLE_ASSERTS
+#ifdef LUMOS_DEBUG
+	#define LUMOS_ENABLE_ASSERTS
 #endif
 
-#ifdef JM_ENABLE_ASSERTS
-	#define JM_ASSERT(x, ...)                               		\
+#ifdef LUMOS_ENABLE_ASSERTS
+	#define LUMOS_ASSERT(x, ...)                               		\
 	{                                                       		\
 		if (!(x))                                           		\
 		{                                                   		\
-			JM_CORE_ERROR("Assertion failed: {0}", __VA_ARGS__); 	\
+			LUMOS_CORE_ERROR("Assertion failed: {0}", __VA_ARGS__); 	\
 			crash();                                 				\
 		}                                                   		\
 	}
-	#define JM_CORE_ASSERT(x, ...)                               	\
+	#define LUMOS_CORE_ASSERT(x, ...)                               	\
 	{                                                            	\
 		if (!(x))                                                	\
 		{                                                        	\
-			JM_CORE_ERROR("Assertion failed: {0}", __VA_ARGS__);    \
+			LUMOS_CORE_ERROR("Assertion failed: {0}", __VA_ARGS__);    \
 			crash();                                     		 	\
 		}                                                        	\
 	}
 #else
-	#define JM_ASSERT(x, ...)
-	#define JM_CORE_ASSERT(x, ...)
+	#define LUMOS_ASSERT(x, ...)
+	#define LUMOS_CORE_ASSERT(x, ...)
 #endif
 
 #define UNIMPLEMENTED	 													\
 	{																		\
-		JM_CORE_ERROR("Unimplemented : {0} : {1}", __FILE__, __LINE__); 	\
+		LUMOS_CORE_ERROR("Unimplemented : {0} : {1}", __FILE__, __LINE__); 	\
 		crash();  															\
 	}																		\
 
-namespace jm
+namespace Lumos
 {
 	static void* AlignedAlloc(size_t size, size_t alignment)
 	{

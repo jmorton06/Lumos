@@ -1,11 +1,11 @@
-#include "JM.h"
+#include "LM.h"
 #include "EntityBinding.h"
 #include "Entity/Entity.h"
 
 #include "Renderer/SceneManager.h"
 #include "App/Application.h"
 
-namespace jm
+namespace Lumos
 {
 const char EntityBinding::className[] = "Entity";
 
@@ -34,7 +34,7 @@ EntityBinding::~EntityBinding()
 
 int EntityBinding::PrintName(::lua_State* L)
 {
-	JM_CORE_INFO("Entity Name - {0}", entity->GetName());
+	LUMOS_CORE_INFO("Entity Name - {0}", entity->GetName());
 	return 1;
 }
 

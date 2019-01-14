@@ -1,9 +1,9 @@
 #pragma once
 
-#include "JM.h"
+#include "LM.h"
 #include "API/Renderer.h"
 
-namespace jm
+namespace Lumos
 {
     class Texture2D;
     class VertexArray;
@@ -17,7 +17,7 @@ namespace jm
         uint Advance;    // Horizontal offset to advance to next glyph
     };
 
-    class JM_EXPORT Font
+    class LUMOS_EXPORT Font
     {
     public:
         Font(const char* fontName);

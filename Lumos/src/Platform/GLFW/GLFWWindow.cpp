@@ -1,6 +1,6 @@
-#include "JM.h"
+#include "LM.h"
 
-#if defined(JM_PLATFORM_MACOS)
+#if defined(LUMOS_PLATFORM_MACOS)
 //#define VK_USE_PLATFORM_MACOS_MVK
 #define GLFW_EXPOSE_NATIVE_COCOA
 #endif
@@ -13,7 +13,7 @@
 #include "Platform/GraphicsAPI/OpenGL/GL.h"
 #include <GLFW/glfw3.h>
 #include <GLFW/glfw3native.h>
-#ifdef JM_RENDER_API_VULKAN
+#ifdef LUMOS_RENDER_API_VULKAN
 #include <vulkan.h>
 #include "Platform/GraphicsAPI/Vulkan/VKRenderer.h"
 #endif
@@ -25,14 +25,14 @@
 #include "Events/MouseEvent.h"
 #include "Events/KeyEvent.h"
 
-namespace jm
+namespace Lumos
 {
 	static bool s_GLFWInitialized = false;
 	static int  s_NumGLFWWindows = 0;
 
 	static void GLFWErrorCallback(int error, const char* description)
 	{
-		JM_CORE_ERROR("GLFW Error - {0} : {1}", error, description);
+		LUMOS_CORE_ERROR("GLFW Error - {0} : {1}", error, description);
 	}
 
 	GLFWWindow::GLFWWindow(const WindowProperties& properties, const String& title, RenderAPI api)
@@ -67,19 +67,19 @@ namespace jm
 
 	bool GLFWWindow::Init(const WindowProperties& properties, const String& title)
 	{
-		JM_CORE_INFO("Creating window - Title : {0}, Width : {1}, Height : {2}", title, properties.Width, properties.Height);
+		LUMOS_CORE_INFO("Creating window - Title : {0}, Width : {1}, Height : {2}", title, properties.Width, properties.Height);
 
 		if (!s_GLFWInitialized)
 		{
 			int success = glfwInit();
-			JM_CORE_ASSERT(success, "Could not initialize GLFW!");
+			LUMOS_CORE_ASSERT(success, "Could not initialize GLFW!");
 			glfwSetErrorCallback(GLFWErrorCallback);
 
 			s_GLFWInitialized = true;
 			s_NumGLFWWindows++;
 		}
 
-#ifdef JM_PLATFORM_MACOS
+#ifdef LUMOS_PLATFORM_MACOS
 		if (m_RenderAPI == RenderAPI::OPENGL)
 		{
             glfwWindowHint(GLFW_SAMPLES, 1);
@@ -118,7 +118,7 @@ namespace jm
 		m_Data.Height = ScreenHeight;
 		m_Data.Exit = false;
 
-#ifdef JM_RENDER_API_VULKAN
+#ifdef LUMOS_RENDER_API_VULKAN
 		if(m_RenderAPI == RenderAPI::VULKAN)
 			glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
 #endif
@@ -239,7 +239,7 @@ namespace jm
  			data.EventCallback(event);
  		});
 
-		JM_CORE_INFO("Initialised GLFW version : {0}", glfwGetVersionString());
+		LUMOS_CORE_INFO("Initialised GLFW version : {0}", glfwGetVersionString());
 
 		return true;
 	}
@@ -247,7 +247,7 @@ namespace jm
 	void GLFWWindow::SetIcon(const String& file)
 	{
 		uint width, height;
-		byte* pixels = jm::LoadImageFromFile(file, &width, &height, nullptr, true);
+		byte* pixels = Lumos::LoadImageFromFile(file, &width, &height, nullptr, true);
 
 		GLFWimage image;
 		image.height = height;
@@ -331,57 +331,57 @@ namespace jm
 	{
 		switch (glfwKey)
 		{
-		case GLFW_KEY_A: return JM_KEY_A;
-		case GLFW_KEY_B: return JM_KEY_B;
-		case GLFW_KEY_C: return JM_KEY_C;
-		case GLFW_KEY_D: return JM_KEY_D;
-		case GLFW_KEY_E: return JM_KEY_E;
-		case GLFW_KEY_F: return JM_KEY_F;
-		case GLFW_KEY_G: return JM_KEY_G;
-		case GLFW_KEY_H: return JM_KEY_H;
-		case GLFW_KEY_I: return JM_KEY_I;
-		case GLFW_KEY_J: return JM_KEY_J;
-		case GLFW_KEY_K: return JM_KEY_K;
-		case GLFW_KEY_L: return JM_KEY_L;
-		case GLFW_KEY_M: return JM_KEY_M;
-		case GLFW_KEY_N: return JM_KEY_N;
-		case GLFW_KEY_O: return JM_KEY_O;
-		case GLFW_KEY_P: return JM_KEY_P;
-		case GLFW_KEY_Q: return JM_KEY_Q;
-		case GLFW_KEY_R: return JM_KEY_R;
-		case GLFW_KEY_S: return JM_KEY_S;
-		case GLFW_KEY_T: return JM_KEY_T;
-		case GLFW_KEY_U: return JM_KEY_U;
-		case GLFW_KEY_V: return JM_KEY_V;
-		case GLFW_KEY_W: return JM_KEY_W;
-		case GLFW_KEY_X: return JM_KEY_X;
-		case GLFW_KEY_Y: return JM_KEY_Y;
-		case GLFW_KEY_Z: return JM_KEY_Z;
+		case GLFW_KEY_A: return LUMOS_KEY_A;
+		case GLFW_KEY_B: return LUMOS_KEY_B;
+		case GLFW_KEY_C: return LUMOS_KEY_C;
+		case GLFW_KEY_D: return LUMOS_KEY_D;
+		case GLFW_KEY_E: return LUMOS_KEY_E;
+		case GLFW_KEY_F: return LUMOS_KEY_F;
+		case GLFW_KEY_G: return LUMOS_KEY_G;
+		case GLFW_KEY_H: return LUMOS_KEY_H;
+		case GLFW_KEY_I: return LUMOS_KEY_I;
+		case GLFW_KEY_J: return LUMOS_KEY_J;
+		case GLFW_KEY_K: return LUMOS_KEY_K;
+		case GLFW_KEY_L: return LUMOS_KEY_L;
+		case GLFW_KEY_M: return LUMOS_KEY_M;
+		case GLFW_KEY_N: return LUMOS_KEY_N;
+		case GLFW_KEY_O: return LUMOS_KEY_O;
+		case GLFW_KEY_P: return LUMOS_KEY_P;
+		case GLFW_KEY_Q: return LUMOS_KEY_Q;
+		case GLFW_KEY_R: return LUMOS_KEY_R;
+		case GLFW_KEY_S: return LUMOS_KEY_S;
+		case GLFW_KEY_T: return LUMOS_KEY_T;
+		case GLFW_KEY_U: return LUMOS_KEY_U;
+		case GLFW_KEY_V: return LUMOS_KEY_V;
+		case GLFW_KEY_W: return LUMOS_KEY_W;
+		case GLFW_KEY_X: return LUMOS_KEY_X;
+		case GLFW_KEY_Y: return LUMOS_KEY_Y;
+		case GLFW_KEY_Z: return LUMOS_KEY_Z;
 
-		case GLFW_KEY_0: return JM_KEY_0;
-		case GLFW_KEY_1: return JM_KEY_1;
-		case GLFW_KEY_2: return JM_KEY_2;
-		case GLFW_KEY_3: return JM_KEY_3;
-		case GLFW_KEY_4: return JM_KEY_4;
-		case GLFW_KEY_5: return JM_KEY_5;
-		case GLFW_KEY_6: return JM_KEY_6;
-		case GLFW_KEY_7: return JM_KEY_7;
-		case GLFW_KEY_8: return JM_KEY_8;
-		case GLFW_KEY_9: return JM_KEY_9;
+		case GLFW_KEY_0: return LUMOS_KEY_0;
+		case GLFW_KEY_1: return LUMOS_KEY_1;
+		case GLFW_KEY_2: return LUMOS_KEY_2;
+		case GLFW_KEY_3: return LUMOS_KEY_3;
+		case GLFW_KEY_4: return LUMOS_KEY_4;
+		case GLFW_KEY_5: return LUMOS_KEY_5;
+		case GLFW_KEY_6: return LUMOS_KEY_6;
+		case GLFW_KEY_7: return LUMOS_KEY_7;
+		case GLFW_KEY_8: return LUMOS_KEY_8;
+		case GLFW_KEY_9: return LUMOS_KEY_9;
 
-		case GLFW_KEY_KP_SUBTRACT: return JM_KEY_SUBTRACT;
-		case GLFW_KEY_DELETE: return JM_KEY_DELETE;
-		case GLFW_KEY_SPACE: return JM_KEY_SPACE;
-		case GLFW_KEY_LEFT: return JM_KEY_LEFT;
-		case GLFW_KEY_RIGHT: return JM_KEY_RIGHT;
-		case GLFW_KEY_UP: return JM_KEY_UP;
-		case GLFW_KEY_DOWN: return JM_KEY_DOWN;
-		case GLFW_KEY_LEFT_SHIFT: return JM_KEY_LEFT_SHIFT;
-		case GLFW_KEY_ESCAPE: return JM_KEY_ESCAPE;
-		case GLFW_KEY_KP_ADD: return JM_KEY_ADD;
-		case GLFW_KEY_COMMA: return JM_KEY_COMMA;
+		case GLFW_KEY_KP_SUBTRACT: return LUMOS_KEY_SUBTRACT;
+		case GLFW_KEY_DELETE: return LUMOS_KEY_DELETE;
+		case GLFW_KEY_SPACE: return LUMOS_KEY_SPACE;
+		case GLFW_KEY_LEFT: return LUMOS_KEY_LEFT;
+		case GLFW_KEY_RIGHT: return LUMOS_KEY_RIGHT;
+		case GLFW_KEY_UP: return LUMOS_KEY_UP;
+		case GLFW_KEY_DOWN: return LUMOS_KEY_DOWN;
+		case GLFW_KEY_LEFT_SHIFT: return LUMOS_KEY_LEFT_SHIFT;
+		case GLFW_KEY_ESCAPE: return LUMOS_KEY_ESCAPE;
+		case GLFW_KEY_KP_ADD: return LUMOS_KEY_ADD;
+		case GLFW_KEY_COMMA: return LUMOS_KEY_COMMA;
 
-		default: JM_CORE_ERROR("Unsupported Key used : {0}", glfwKey); return 0;
+		default: LUMOS_CORE_ERROR("Unsupported Key used : {0}", glfwKey); return 0;
 		}
 	}
 
@@ -389,10 +389,10 @@ namespace jm
 	{
 		switch (glfwKey)
 		{
-		case GLFW_MOUSE_BUTTON_LEFT		: return JM_MOUSE_LEFT;
-		case GLFW_MOUSE_BUTTON_RIGHT	: return JM_MOUSE_RIGHT;
-		case GLFW_MOUSE_BUTTON_MIDDLE	: return JM_MOUSE_MIDDLE;
-		default: JM_CORE_ERROR("Unsupported Key used : {0}", glfwKey); return 0;
+		case GLFW_MOUSE_BUTTON_LEFT		: return LUMOS_MOUSE_LEFT;
+		case GLFW_MOUSE_BUTTON_RIGHT	: return LUMOS_MOUSE_RIGHT;
+		case GLFW_MOUSE_BUTTON_MIDDLE	: return LUMOS_MOUSE_MIDDLE;
+		default: LUMOS_CORE_ERROR("Unsupported Key used : {0}", glfwKey); return 0;
 		}
 	}
 }

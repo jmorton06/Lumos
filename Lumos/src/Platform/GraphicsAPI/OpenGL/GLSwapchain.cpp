@@ -1,9 +1,9 @@
-﻿#include "JM.h"
+﻿#include "LM.h"
 #include "GLSwapchain.h"
 #include "Graphics/API/FrameBuffer.h"
 #include "App/Window.h"
 
-namespace jm
+namespace Lumos
 {
 	namespace graphics
 	{

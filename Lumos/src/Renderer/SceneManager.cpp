@@ -1,4 +1,4 @@
-#include "JM.h"
+#include "LM.h"
 #include "SceneManager.h"
 
 #include "Physics/B2PhysicsEngine/B2PhysicsEngine.h"
@@ -7,7 +7,7 @@
 #include "GraphicsPipeline.h"
 #include "Scene.h"
 
-namespace jm
+namespace Lumos
 {
 
 	SceneManager::SceneManager()
@@ -25,11 +25,11 @@ namespace jm
 	{
 		if (scene == nullptr)
 		{
-			JM_CORE_ERROR("Attempting to enqueue nullptr scene", "");
+			LUMOS_CORE_ERROR("Attempting to enqueue nullptr scene", "");
 			return;
 		}
 
-        JM_CORE_INFO("[SceneManager] - Enqueued scene : {0}", scene->GetSceneName().c_str());
+        LUMOS_CORE_INFO("[SceneManager] - Enqueued scene : {0}", scene->GetSceneName().c_str());
 		m_vpAllScenes.push_back(std::unique_ptr<Scene>(scene));
 
 		scene->SetScreenWidth(Application::Instance()->GetWindow()->GetWidth());
@@ -49,14 +49,14 @@ namespace jm
 	{
 		if (idx < 0 || idx >= static_cast<int>(m_vpAllScenes.size()))
 		{
-			JM_CORE_ERROR("[SceneManager] - Invalid Scene Index : {0}", idx);
+			LUMOS_CORE_ERROR("[SceneManager] - Invalid Scene Index : {0}", idx);
 			return;
 		}
 
 		//Clear up old scene
 		if (m_CurrentScene)
 		{
-            JM_CORE_INFO("[SceneManager] - Exiting scene : {0}" , m_CurrentScene->GetSceneName());
+            LUMOS_CORE_INFO("[SceneManager] - Exiting scene : {0}" , m_CurrentScene->GetSceneName());
 			JMPhysicsEngine::Instance()->RemoveAllPhysicsObjects();
             JMPhysicsEngine::Instance()->SetPaused(true);
 			m_CurrentScene->OnCleanupScene();
@@ -73,7 +73,7 @@ namespace jm
         Application::Instance()->GetGraphicsPipeline()->Reset();
 		m_CurrentScene->OnInit();
 
-		JM_CORE_INFO("[SceneManager] - Scene switched to : {0}", m_CurrentScene->GetSceneName().c_str());
+		LUMOS_CORE_INFO("[SceneManager] - Scene switched to : {0}", m_CurrentScene->GetSceneName().c_str());
 	}
 
 	void SceneManager::JumpToScene(const std::string& friendly_name)
@@ -96,7 +96,7 @@ namespace jm
 		}
 		else
 		{
-			JM_CORE_ERROR("[SceneManager] - Unknown Scene Alias : {0}", friendly_name.c_str());
+			LUMOS_CORE_ERROR("[SceneManager] - Unknown Scene Alias : {0}", friendly_name.c_str());
 		}
 	}
 

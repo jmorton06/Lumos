@@ -1,8 +1,8 @@
-#include "JM.h"
+#include "LM.h"
 #include "RenderList.h"
 
 
-namespace jm
+namespace Lumos
 {
 
 	uint RenderList::g_NumRenderLists = 0;
@@ -11,7 +11,7 @@ namespace jm
 	{
 		if (g_NumRenderLists >= 31)
 		{
-			JM_CORE_ERROR("Attempting to create more than 32 renderlists!");
+			LUMOS_CORE_ERROR("Attempting to create more than 32 renderlists!");
 			return false;
 		}
 

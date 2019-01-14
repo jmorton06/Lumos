@@ -1,5 +1,5 @@
 #pragma once
-#include "JM.h"
+#include "LM.h"
 #include "PhysicsObject3D.h"
 #include "CollisionShape.h"
 #include "Manifold.h"
@@ -8,16 +8,16 @@
 
 #define CALL_MEMBER_FN(instance, ptrToMemberFn)  ((instance).*(ptrToMemberFn))
 
-namespace jm
+namespace Lumos
 {
-	struct JM_EXPORT CollisionData
+	struct LUMOS_EXPORT CollisionData
 	{
 		float penetration;
 		maths::Vector3 normal;
 		maths::Vector3 pointOnPlane;
 	};
 
-	class JM_EXPORT CollisionDetection : public TSingleton<CollisionDetection>
+	class LUMOS_EXPORT CollisionDetection : public TSingleton<CollisionDetection>
 	{
 		friend class TSingleton<CollisionDetection>;
 		typedef  bool (CollisionDetection::*CollisionCheckFunc)(const PhysicsObject3D* obj1, const PhysicsObject3D* obj2, const CollisionShape* shape1, const CollisionShape* shape2, CollisionData* out_coldata) const;

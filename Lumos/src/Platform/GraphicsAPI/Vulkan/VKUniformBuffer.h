@@ -3,7 +3,7 @@
 #include "VKBuffer.h"
 #include "Graphics/API/UniformBuffer.h"
 
-namespace jm
+namespace Lumos
 {
 	namespace graphics
 	{

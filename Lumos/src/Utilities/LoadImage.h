@@ -1,8 +1,8 @@
 #pragma once
-#include "JM.h"
+#include "LM.h"
 
-namespace jm
+namespace Lumos
 {
-	JM_EXPORT byte* LoadImageFromFile(const char* filename, uint* width = nullptr, uint* height = nullptr, uint* bits = nullptr, bool flipY = false);
-	JM_EXPORT byte* LoadImageFromFile(const String& filename, uint* width = nullptr, uint* height = nullptr, uint* bits = nullptr, bool flipY = false);
+	LUMOS_EXPORT byte* LoadImageFromFile(const char* filename, uint* width = nullptr, uint* height = nullptr, uint* bits = nullptr, bool flipY = false);
+	LUMOS_EXPORT byte* LoadImageFromFile(const String& filename, uint* width = nullptr, uint* height = nullptr, uint* bits = nullptr, bool flipY = false);
 }

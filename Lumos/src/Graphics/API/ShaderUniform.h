@@ -1,11 +1,11 @@
 #pragma once
 
-#include "JM.h"
+#include "LM.h"
 
-namespace jm
+namespace Lumos
 {
 
-	class JM_EXPORT ShaderUniformDeclaration
+	class LUMOS_EXPORT ShaderUniformDeclaration
 	{
 	private:
 		friend class Shader;

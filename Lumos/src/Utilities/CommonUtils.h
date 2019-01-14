@@ -1,8 +1,8 @@
 #pragma once
-#include "JM.h"
+#include "LM.h"
 #include "Entity/Entity.h"
 
-namespace jm
+namespace Lumos
 {
 	class PhysicsObject;
 

@@ -1,8 +1,8 @@
-#include "JM.h"
+#include "LM.h"
 #include "MayaCamera.h"
 #include "App/Application.h"
 
-namespace jm
+namespace Lumos
 {
 
 	MayaCamera::MayaCamera(float FOV, float Near, float Far, float aspect)
@@ -49,11 +49,11 @@ namespace jm
 	{
 		const maths::Vector2 delta = (maths::Vector2(xpos, ypos) - m_PreviousCurserPos);
 
-		if (Input::GetInput().GetMouseHeld(JM_MOUSE_MIDDLE))
+		if (Input::GetInput().GetMouseHeld(LUMOS_MOUSE_MIDDLE))
 			MousePan(delta);
-		else if (Input::GetInput().GetMouseHeld(JM_MOUSE_LEFT))
+		else if (Input::GetInput().GetMouseHeld(LUMOS_MOUSE_LEFT))
 			MouseRotate(delta, dt);
-		else if (Input::GetInput().GetMouseHeld(JM_MOUSE_RIGHT))
+		else if (Input::GetInput().GetMouseHeld(LUMOS_MOUSE_RIGHT))
 			MouseZoom(delta.GetY(), dt);
 
 		float yawSign = GetUpDirection().GetY() < 0 ? -1.0f : 1.0f;

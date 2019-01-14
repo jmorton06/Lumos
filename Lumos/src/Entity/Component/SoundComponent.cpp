@@ -1,4 +1,4 @@
-#include "JM.h"
+#include "LM.h"
 #include "SoundComponent.h"
 #include "Audio/SoundNode.h"
 #include "Renderer/Scene.h"
@@ -6,7 +6,7 @@
 #include "Maths/BoundingSphere.h"
 #include "Graphics/Renderers/DebugRenderer.h"
 
-namespace jm
+namespace Lumos
 {
 	SoundComponent::SoundComponent(std::shared_ptr<SoundNode>& sound)
 		: m_SoundNode(sound)

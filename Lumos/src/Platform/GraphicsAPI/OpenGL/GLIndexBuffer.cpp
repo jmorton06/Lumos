@@ -1,10 +1,10 @@
-#include "JM.h"
+#include "LM.h"
 #include "GLIndexBuffer.h"
 
 #include "GL.h"
 
 
-namespace jm
+namespace Lumos
 {
 	static uint BufferUsageToOpenGL(const BufferUsage usage)
 	{
@@ -46,7 +46,7 @@ namespace jm
 	void GLIndexBuffer::Unbind() const
 	{
 
-#ifdef JM_DEBUG
+#ifdef LUMOS_DEBUG
 		GLCall(glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0));
 #endif
 	}

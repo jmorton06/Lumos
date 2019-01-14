@@ -1,19 +1,19 @@
-#include "JM.h"
+#include "LM.h"
 #include "Shader.h"
 
-#ifdef JM_RENDER_API_OPENGL
+#ifdef LUMOS_RENDER_API_OPENGL
 #include "Platform/GraphicsAPI/OpenGL/GLShader.h"
 #endif
-#ifdef JM_RENDER_API_DIRECT3D
+#ifdef LUMOS_RENDER_API_DIRECT3D
 #include "graphics/DirectX/DXShader.h"
 #endif
-#ifdef JM_RENDER_API_VULKAN
+#ifdef LUMOS_RENDER_API_VULKAN
 #include "Platform/GraphicsAPI/Vulkan/VKShader.h"
 #endif
 
 #include "Graphics/API/Context.h"
 
-namespace jm
+namespace Lumos
 {
 
 	const Shader* Shader::s_CurrentlyBound = nullptr;
@@ -21,7 +21,7 @@ namespace jm
 	Shader* Shader::CreateFromFile(const String& name, const String& filepath, void* address)
 	{
         String filePath;
-#ifdef JM_PLATFORM_MOBILE
+#ifdef LUMOS_PLATFORM_MOBILE
         filePath = name;
 #else
         filePath = filepath;
@@ -29,28 +29,28 @@ namespace jm
 
 		switch (graphics::Context::GetRenderAPI())
 		{
-#ifdef JM_RENDER_API_OPENGL
+#ifdef LUMOS_RENDER_API_OPENGL
 		case RenderAPI::OPENGL:
 		{
-			const String source = jm::VFS::Get()->ReadTextFile(filePath + name + ".glsl");
+			const String source = Lumos::VFS::Get()->ReadTextFile(filePath + name + ".glsl");
 			GLShader* result = address ? new(address)GLShader(name, source) : new GLShader(name, source);
 			result->m_Path = filePath;
 			return result;
 		}
 #endif
-#ifdef JM_RENDER_API_VULKAN
+#ifdef LUMOS_RENDER_API_VULKAN
 		case RenderAPI::VULKAN:
 		{
 			std::string physicalPath;
-			jm::VFS::Get()->ResolvePhysicalPath(filepath, physicalPath);
+			Lumos::VFS::Get()->ResolvePhysicalPath(filepath, physicalPath);
 			graphics::VKShader* result = new graphics::VKShader(name, physicalPath);
 			return result;
 		}
 #endif
-#ifdef JM_RENDER_API_DIRECT3D
+#ifdef LUMOS_RENDER_API_DIRECT3D
 		case RenderAPI::DIRECT3D:
 		{
-			const String source = jm::VFS::Get()->ReadTextFile(filepath + ".hlsl");
+			const String source = Lumos::VFS::Get()->ReadTextFile(filepath + ".hlsl");
 			D3DShader* result = address ? new(address)D3DShader(name, source) : new D3DShader(name, source);
 			result->m_FilePath = filepath;
 			return result;
@@ -64,13 +64,13 @@ namespace jm
 	{
 		switch (graphics::Context::GetRenderAPI())
 		{
-#ifdef JM_RENDER_API_OPENGL
+#ifdef LUMOS_RENDER_API_OPENGL
 		case RenderAPI::OPENGL:		return GLShader::TryCompile(source, error);
 #endif
-#ifdef JM_RENDER_API_DIRECT3D
+#ifdef LUMOS_RENDER_API_DIRECT3D
 		case RenderAPI::DIRECT3D:	return D3DShader::TryCompile(source, error);
 #endif
-#ifdef JM_RENDER_API_VULKAN
+#ifdef LUMOS_RENDER_API_VULKAN
         case RenderAPI::VULKAN:     return false; //VKShader::TryCompile(source, error);
 #endif
 		}
@@ -79,7 +79,7 @@ namespace jm
 
 	bool Shader::TryCompileFromFile(const String& filepath, String& error)
 	{
-		String source = jm::VFS::Get()->ReadTextFile(filepath);
+		String source = Lumos::VFS::Get()->ReadTextFile(filepath);
 		return TryCompile(source, error, filepath);
 	}
 }

@@ -64,10 +64,10 @@ project "Lumos"
 
 	defines
 	{
-		"JM_ENGINE",
+		"LUMOS_ENGINE",
 		"FREEIMAGE_LIB",
-		"JM_DYNAMIC",
-		"JM_ROOT_DIR="  .. cwd,
+		"LUMOS_DYNAMIC",
+		"LUMOS_ROOT_DIR="  .. cwd,
 	}
 
 	filter "system:windows"
@@ -93,22 +93,22 @@ project "Lumos"
 			"external/imgui/examples/imgui_impl_glfw.cpp"
 		}
 
-		pchheader "JM.h"
-		pchsource "src/JM.cpp"
+		pchheader "LM.h"
+		pchsource "src/LM.cpp"
 
 		defines
 		{
-			"JM_PLATFORM_WINDOWS",
-			"JM_BUILD_DLL",
-			"JM_RENDER_API_OPENGL",
-			"JM_RENDER_API_VULKAN",
+			"LUMOS_PLATFORM_WINDOWS",
+			"LUMOS_BUILD_DLL",
+			"LUMOS_RENDER_API_OPENGL",
+			"LUMOS_RENDER_API_VULKAN",
 			"VK_USE_PLATFORM_WIN32_KHR",
 			"WIN32_LEAN_AND_MEAN",
 			"_CRT_SECURE_NO_WARNINGS",
 			"_DISABLE_EXTENDED_ALIGNED_STORAGE",
 			"_SILENCE_CXX17_OLD_ALLOCATOR_MEMBERS_DEPRECATION_WARNING",
-			"JM_IMGUI",
-			"JM_OPENAL"
+			"LUMOS_IMGUI",
+			"LUMOS_OPENAL"
 		}
 
 		links
@@ -160,13 +160,13 @@ project "Lumos"
 
 		defines
 		{
-			"JM_PLATFORM_MACOS",
-			"JM_PLATFORM_UNIX",
-			"JM_RENDER_API_OPENGL",
-			"JM_RENDER_API_VULKAN",
+			"LUMOS_PLATFORM_MACOS",
+			"LUMOS_PLATFORM_UNIX",
+			"LUMOS_RENDER_API_OPENGL",
+			"LUMOS_RENDER_API_VULKAN",
 			"VK_USE_PLATFORM_MACOS_MVK",
-			"JM_IMGUI",
-			"JM_OPENAL"
+			"LUMOS_IMGUI",
+			"LUMOS_OPENAL"
 		}
 
 		links
@@ -193,8 +193,8 @@ project "Lumos"
 		}
 
 		filter { "action:xcode4" }
-			pchheader "../Lumos/src/JM.h"
-			pchsource "../Lumos/src/JM.cpp"
+			pchheader "../Lumos/src/LM.h"
+			pchsource "../Lumos/src/LM.cpp"
 
 			filter 'files:external/**.cpp'
 				flags  { 'NoPCH' }
@@ -227,12 +227,12 @@ project "Lumos"
 
 		defines
 		{
-			"JM_PLATFORM_LINUX",
-			"JM_PLATFORM_UNIX",
-			"JM_RENDER_API_OPENGL",
-			"JM_RENDER_API_VULKAN",
+			"LUMOS_PLATFORM_LINUX",
+			"LUMOS_PLATFORM_UNIX",
+			"LUMOS_RENDER_API_OPENGL",
+			"LUMOS_RENDER_API_VULKAN",
 			"VK_USE_PLATFORM_XCB_KHR",
-			"JM_IMGUI"
+			"LUMOS_IMGUI"
 		}
 
 		linkoptions
@@ -258,8 +258,8 @@ project "Lumos"
 
 		links { "X11", "pthread", "libvulkan.so.1"}
 
-		pchheader "../Lumos/src/JM.h"
-		pchsource "../Lumos/src/JM.cpp"
+		pchheader "../Lumos/src/LM.h"
+		pchsource "../Lumos/src/LM.cpp"
 
 		filter 'files:external/**.cpp'
 			flags  { 'NoPCH' }
@@ -269,13 +269,13 @@ project "Lumos"
 			flags  { 'NoPCH' }
 
 	filter "configurations:Debug"
-		defines "JM_DEBUG"
+		defines "LUMOS_DEBUG"
 		symbols "On"
 
 	filter "configurations:Release"
-		defines "JM_RELEASE"
+		defines "LUMOS_RELEASE"
 		optimize "On"
 
 	filter "configurations:Dist"
-		defines "JM_DIST"
+		defines "LUMOS_DIST"
 		optimize "On"

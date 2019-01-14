@@ -7,10 +7,10 @@
 #include "Events/MouseEvent.h"
 #include "Events/ApplicationEvent.h"
 
-namespace jm
+namespace Lumos
 {
 
-	class JM_EXPORT ImGuiLayer : public Layer
+	class LUMOS_EXPORT ImGuiLayer : public Layer
 	{
 	public:
 		ImGuiLayer(const std::string& name = "ImGuiLayer");

@@ -9,12 +9,12 @@
 	VkResult res = (f);																					\
 	if (res != VK_SUCCESS)																				\
 	{																									\
-		JM_CORE_ERROR("[VULKAN] : VkResult is {0} in {1} at line {2}",jm::graphics::VKTools::errorString(res) , __FILE__ , __LINE__); \
+		LUMOS_CORE_ERROR("[VULKAN] : VkResult is {0} in {1} at line {2}",Lumos::graphics::VKTools::errorString(res) , __FILE__ , __LINE__); \
 		assert(res == VK_SUCCESS);																		\
 	}																									\
 }
 
-namespace jm
+namespace Lumos
 {
 	namespace graphics
 	{

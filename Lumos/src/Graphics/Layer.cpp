@@ -1,7 +1,7 @@
-#include "JM.h"
+#include "LM.h"
 #include "Layer.h"
 
-namespace jm
+namespace Lumos
 {
 
 	Layer::Layer(const std::string& debugName)

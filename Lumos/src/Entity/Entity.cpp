@@ -1,9 +1,9 @@
-#include "JM.h"
+#include "LM.h"
 #include "Entity.h"
 
 #include "Graphics/Renderers/DebugRenderer.h"
 
-namespace jm
+namespace Lumos
 {
 	Entity::Entity(Scene* scene): m_Name("Unnamed"), m_pScene(scene), m_pParent(nullptr), m_BoundingRadius(1), m_FrustumCullFlags(0)
 	{
@@ -20,7 +20,7 @@ namespace jm
 
 	void Entity::AddComponent(std::unique_ptr<JMComponent> component)
 	{
-		//JM_CORE_ASSERT(component->GetType(),"");
+		//LUMOS_CORE_ASSERT(component->GetType(),"");
 		component->SetEntity(this);
 		component->Init();
 		m_Components[component->GetType()] = std::move(component);

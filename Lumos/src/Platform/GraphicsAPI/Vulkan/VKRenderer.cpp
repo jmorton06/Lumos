@@ -1,4 +1,4 @@
-#include "JM.h"
+#include "LM.h"
 #include "VKRenderer.h"
 #include "VKDevice.h"
 #include "Graphics/MeshFactory.h"
@@ -12,7 +12,7 @@
 #include "VKDescriptorSet.h"
 #include "Renderer/SceneManager.h"
 
-namespace jm
+namespace Lumos
 {
 	namespace graphics
 	{

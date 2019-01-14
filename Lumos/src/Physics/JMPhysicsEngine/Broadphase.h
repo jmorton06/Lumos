@@ -1,18 +1,18 @@
 #pragma once
 
-#include "JM.h"
+#include "LM.h"
 #include "PhysicsObject3D.h"
 
-namespace jm
+namespace Lumos
 {
 
-	struct JM_EXPORT CollisionPair
+	struct LUMOS_EXPORT CollisionPair
 	{
 		PhysicsObject3D *pObjectA;
 		PhysicsObject3D *pObjectB;
 	};
 
-	class JM_EXPORT Broadphase
+	class LUMOS_EXPORT Broadphase
 	{
 	public:
 		virtual ~Broadphase() = default;

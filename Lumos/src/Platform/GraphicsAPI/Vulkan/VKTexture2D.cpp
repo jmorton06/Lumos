@@ -1,4 +1,4 @@
-#include "JM.h"
+#include "LM.h"
 #include "VKTexture2D.h"
 #include "VKDevice.h"
 #include "Utilities/LoadImage.h"
@@ -9,7 +9,7 @@
 
 #include <cmath>
 
-namespace jm
+namespace Lumos
 {
 	namespace graphics
 	{
@@ -138,7 +138,7 @@ namespace jm
 			case TextureFormat::LUMINANCE:			return VK_FORMAT_R8G8B8A8_UNORM;
 			case TextureFormat::LUMINANCE_ALPHA:	return VK_FORMAT_R8G8B8A8_UNORM;
 			case TextureFormat::RGB16: 				return VK_FORMAT_R16G16B16A16_SFLOAT;
-			default: JM_CORE_ERROR("[Texture] Unsupported image bit-depth!");  return VK_FORMAT_R8G8B8A8_UNORM;
+			default: LUMOS_CORE_ERROR("[Texture] Unsupported image bit-depth!");  return VK_FORMAT_R8G8B8A8_UNORM;
 			}
 		}
 
@@ -151,7 +151,7 @@ namespace jm
 			case TextureWrap::CLAMP_TO_EDGE:	return VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_EDGE;
 			case TextureWrap::REPEAT:			return VK_SAMPLER_ADDRESS_MODE_REPEAT;
 			case TextureWrap::MIRRORED_REPEAT:	return VK_SAMPLER_ADDRESS_MODE_MIRRORED_REPEAT;
-			default: JM_CORE_ERROR("[Texture] Unsupported wrap type!");  return VkSamplerAddressMode();
+			default: LUMOS_CORE_ERROR("[Texture] Unsupported wrap type!");  return VkSamplerAddressMode();
 			}
 		}
 
@@ -361,7 +361,7 @@ namespace jm
 			byte* pixels;
 
 			if (m_Data == nullptr)
-				pixels = jm::LoadImageFromFile(m_FileName, &texWidth, &texHeight, &texChannels);
+				pixels = Lumos::LoadImageFromFile(m_FileName, &texWidth, &texHeight, &texChannels);
 			else
 			{
 				texWidth = m_Width;

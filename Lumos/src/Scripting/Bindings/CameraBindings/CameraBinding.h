@@ -1,12 +1,12 @@
 #pragma once
-#include "JM.h"
+#include "LM.h"
 #include "Scripting/LuaScript.h"
 #include "Scripting/Luna.h"
 #include "Graphics/Camera/FPSCamera.h"
 
-namespace jm
+namespace Lumos
 {
-	class JM_EXPORT CameraBinding
+	class LUMOS_EXPORT CameraBinding
 	{
 	public:
 		Camera* camera;

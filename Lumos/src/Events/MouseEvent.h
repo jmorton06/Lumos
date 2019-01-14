@@ -2,10 +2,10 @@
 #include "Renderer/GraphicsPipeline.h"
 #include "Event.h"
 
-namespace jm
+namespace Lumos
 {
 
-	class JM_EXPORT MouseMovedEvent : public Event
+	class LUMOS_EXPORT MouseMovedEvent : public Event
 	{
 	public:
 		MouseMovedEvent(float x, float y)
@@ -29,7 +29,7 @@ namespace jm
 	};
 
 
-	class JM_EXPORT MouseScrolledEvent : public Event
+	class LUMOS_EXPORT MouseScrolledEvent : public Event
 	{
 	public:
 		MouseScrolledEvent(float xOffset, float yOffset)
@@ -52,7 +52,7 @@ namespace jm
 		float m_XOffset, m_YOffset;
 	};
 
-	class JM_EXPORT MouseButtonEvent : public Event
+	class LUMOS_EXPORT MouseButtonEvent : public Event
 	{
 	public:
 		inline int GetMouseButton() const { return m_Button; }
@@ -66,7 +66,7 @@ namespace jm
 		int m_Button;
 	};
 
-	class JM_EXPORT MouseButtonPressedEvent : public MouseButtonEvent
+	class LUMOS_EXPORT MouseButtonPressedEvent : public MouseButtonEvent
 	{
 	public:
 		MouseButtonPressedEvent(int button)
@@ -83,7 +83,7 @@ namespace jm
 
 	};
 
-	class JM_EXPORT MouseButtonReleasedEvent : public MouseButtonEvent
+	class LUMOS_EXPORT MouseButtonReleasedEvent : public MouseButtonEvent
 	{
 	public:
 		MouseButtonReleasedEvent(int button)
@@ -100,7 +100,7 @@ namespace jm
 
 	};
 
-	class JM_EXPORT MouseEnterEvent : public Event
+	class LUMOS_EXPORT MouseEnterEvent : public Event
 	{
 	public:
 		MouseEnterEvent(bool enter) : m_Entered(enter) {}

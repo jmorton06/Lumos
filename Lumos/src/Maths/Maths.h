@@ -1,6 +1,6 @@
 #pragma once
 
-#include "JM.h"
+#include "LM.h"
 #include "Matrix3.h"
 #include "Matrix4.h"
 #include "Plane.h"
@@ -9,7 +9,7 @@
 #include "Vector3.h"
 #include "Vector4.h"
 
-namespace jm
+namespace Lumos
 {
 	namespace maths
 	{

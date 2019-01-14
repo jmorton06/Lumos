@@ -3,7 +3,7 @@
 #include "VKDevice.h"
 #include "Graphics/API/RenderPass.h"
 
-namespace jm
+namespace Lumos
 {
 	namespace graphics
 	{

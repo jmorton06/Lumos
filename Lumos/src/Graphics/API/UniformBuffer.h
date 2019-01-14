@@ -1,6 +1,6 @@
 #pragma once
 
-namespace jm
+namespace Lumos
 {
 	namespace graphics
 	{

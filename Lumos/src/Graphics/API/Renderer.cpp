@@ -1,14 +1,14 @@
-#include "JM.h"
+#include "LM.h"
 #include "Renderer.h"
 
-#ifdef JM_RENDER_API_OPENGL
+#ifdef LUMOS_RENDER_API_OPENGL
 #include "Platform/GraphicsAPI/OpenGL/GLRenderer.h"
 #endif
-#ifdef JM_RENDER_API_DIRECT3D
+#ifdef LUMOS_RENDER_API_DIRECT3D
 #include "DirectX/DXRenderer.h"
 #endif
 
-#ifdef JM_RENDER_API_VULKAN
+#ifdef LUMOS_RENDER_API_VULKAN
 #include "Platform/GraphicsAPI/Vulkan/VKRenderer.h"
 #endif
 
@@ -16,7 +16,7 @@
 
 #include "../Camera/Camera.h"
 
-namespace jm
+namespace Lumos
 {
 
 	Renderer* Renderer::s_Instance = nullptr;
@@ -25,14 +25,14 @@ namespace jm
 	{
 		switch (graphics::Context::GetRenderAPI())
 		{
-#ifdef JM_RENDER_API_OPENGL
+#ifdef LUMOS_RENDER_API_OPENGL
 		case RenderAPI::OPENGL:	s_Instance = new GLRenderer(width, height); break;
 #endif
 
-#ifdef JM_RENDER_API_VULKAN
+#ifdef LUMOS_RENDER_API_VULKAN
 		case RenderAPI::VULKAN: s_Instance = new graphics::VKRenderer(width, height); break;
 #endif
-#ifdef JM_RENDER_API_DIRECT3D
+#ifdef LUMOS_RENDER_API_DIRECT3D
 		case RenderAPI::DIRECT3D: s_Instance = new D3DRenderer(width, height); break;
 #endif
 		}

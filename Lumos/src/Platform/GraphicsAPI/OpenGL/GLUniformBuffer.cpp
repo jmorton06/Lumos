@@ -1,10 +1,10 @@
-#include "JM.h"
+#include "LM.h"
 #include "GLUniformBuffer.h"
 #include "GL.h"
 #include "GLDebug.h"
 #include "GLShader.h"
 
-namespace jm
+namespace Lumos
 {
     namespace graphics
     {

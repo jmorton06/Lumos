@@ -1,6 +1,6 @@
 #include "CubeGame.h"
 
-using namespace jm;
+using namespace Lumos;
 using namespace maths;
 
 CubeGame::CubeGame(const std::string& SceneName) : Scene(SceneName) {}

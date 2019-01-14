@@ -1,10 +1,10 @@
 #pragma once
-#include "JM.h"
+#include "LM.h"
 #include "GLRenderer.h"
 #include "GL.h"
  //for crash()
 
-namespace jm
+namespace Lumos
 {
 	class Material;
 
@@ -80,7 +80,7 @@ namespace jm
 		static Material*	s_DebugDrawShader;
 	};
 
-#ifdef JM_DEBUG
+#ifdef LUMOS_DEBUG
 #ifdef glDebugMessageCallback
 //#define GL_DEBUD_CALLBACK 1
 #else

@@ -1,12 +1,12 @@
 #pragma once
-#include "JM.h"
+#include "LM.h"
 #include "Constraint.h"
 
-namespace jm
+namespace Lumos
 {
 	class PhysicsObject3D;
 
-	class JM_EXPORT SpringConstraint : public Constraint
+	class LUMOS_EXPORT SpringConstraint : public Constraint
 	{
 	public:
 		SpringConstraint(PhysicsObject3D *obj1, PhysicsObject3D *obj2, const maths::Vector3 &globalOnA, const maths::Vector3 &globalOnB,

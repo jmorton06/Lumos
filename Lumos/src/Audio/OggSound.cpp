@@ -1,9 +1,9 @@
-#include "JM.h"
+#include "LM.h"
 #include "OggSound.h"
 
 #include <AL/al.h>
 
-namespace jm
+namespace Lumos
 {
 
 #ifdef OGGVORBIS
@@ -29,13 +29,13 @@ namespace jm
 
 		if (!m_FileHandle)
 		{
-			JM_FATAL("Failed to load OGG file '" ,filename);
+			LUMOS_FATAL("Failed to load OGG file '" ,filename);
 			return;
 		}
 
 		if (ov_open(m_FileHandle, &m_StreamHandle, nullptr, 0) < 0)
 		{
-			JM_FATAL("Failed to get OGG stream handle!");
+			LUMOS_FATAL("Failed to get OGG stream handle!");
 			return;
 		}
 
@@ -111,7 +111,7 @@ namespace jm
 
 		if (!m_FileHandle)
 		{
-			JM_CORE_ERROR("Failed to load OGG file '{0}'!", filename);
+			LUMOS_CORE_ERROR("Failed to load OGG file '{0}'!", filename);
 			return false;
 		}
 
@@ -119,7 +119,7 @@ namespace jm
 
 		if (!m_StreamHandle)
 		{
-			JM_CORE_ERROR("Failed to load OGG file '{0}'!", filename);
+			LUMOS_CORE_ERROR("Failed to load OGG file '{0}'!", filename);
 			return false;
 		}
 
@@ -154,7 +154,7 @@ namespace jm
 
 		if (read > 0)
 		{
-#ifdef JM_OPENAL
+#ifdef LUMOS_OPENAL
 			alBufferData(buffer, GetOALFormat(), data.get(), read * sizeof(ALshort), static_cast<ALsizei>(GetFrequency()));
 #endif
 		}

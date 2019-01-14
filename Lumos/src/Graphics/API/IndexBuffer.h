@@ -1,13 +1,13 @@
 #pragma once
 
-#include "JM.h"
+#include "LM.h"
 
 #include "Graphics/API/VertexBuffer.h"
 
-namespace jm
+namespace Lumos
 {
 
-	class JM_EXPORT IndexBuffer
+	class LUMOS_EXPORT IndexBuffer
 	{
 	public:
 		virtual ~IndexBuffer() = default;

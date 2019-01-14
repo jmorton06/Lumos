@@ -1,12 +1,12 @@
 #pragma once
-#include "JM.h"
+#include "LM.h"
 #include "JMComponent.h"
 
-namespace jm
+namespace Lumos
 {
 	class SoundNode;
 
-	class JM_EXPORT SoundComponent : public JMComponent
+	class LUMOS_EXPORT SoundComponent : public JMComponent
 	{
 	public:
 		std::shared_ptr<SoundNode> m_SoundNode;

@@ -1,11 +1,11 @@
-#include "JM.h"
+#include "LM.h"
 #include "Sound.h"
 #include "OggSound.h"
 #include "System/VFS.h"
 
 #include <AL/al.h>
 
-namespace jm
+namespace Lumos
 {
 
 	std::map<String, Sound*>* Sound::m_Sounds = new std::map<String, Sound*>();
@@ -23,7 +23,7 @@ namespace jm
 	Sound::~Sound()
 	{
 		delete m_Data;
-#ifdef JM_OPENAL
+#ifdef LUMOS_OPENAL
 		alDeleteBuffers(1, &m_Buffer);
 #endif
 	}
@@ -39,7 +39,7 @@ namespace jm
 
 		if (!file)
 		{
-			JM_CORE_ERROR("Failed to load WAV file '{0}'!", filename);
+			LUMOS_CORE_ERROR("Failed to load WAV file '{0}'!", filename);
 			return false;
 		}
 
@@ -108,9 +108,9 @@ namespace jm
 		if (!s)
 		{
 			String physicalPath;
-			if (!jm::VFS::Get()->ResolvePhysicalPath(fileName, physicalPath))
+			if (!Lumos::VFS::Get()->ResolvePhysicalPath(fileName, physicalPath))
 			{
-				JM_CORE_ERROR("Could not load Audio File : ", fileName);
+				LUMOS_CORE_ERROR("Could not load Audio File : ", fileName);
 			}
 
 			fileName = physicalPath;
@@ -123,7 +123,7 @@ namespace jm
 
 				if (!s->LoadWAVFile(fileName))
 					return false;
-#ifdef JM_OPENAL
+#ifdef LUMOS_OPENAL
 				alGenBuffers(1, &s->m_Buffer);
 				alBufferData(s->m_Buffer, s->GetOALFormat(), s->GetData(), s->GetSize(), static_cast<ALsizei>(s->GetFrequency()));
 #endif
@@ -137,7 +137,7 @@ namespace jm
 			}
 			else
             {
-				JM_CORE_ERROR("Incompatible file extension '", extension);
+				LUMOS_CORE_ERROR("Incompatible file extension '", extension);
                 return false;
 			}
 

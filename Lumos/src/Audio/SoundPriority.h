@@ -1,7 +1,7 @@
 #pragma once 
 
-#include "JM.h"
-namespace jm
+#include "LM.h"
+namespace Lumos
 {
 	enum SoundPriority
 	{

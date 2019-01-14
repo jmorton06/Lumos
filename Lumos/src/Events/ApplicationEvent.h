@@ -2,9 +2,9 @@
 
 #include "Event.h"
 
-namespace jm 
+namespace Lumos 
 {
-	class JM_EXPORT WindowResizeEvent : public Event
+	class LUMOS_EXPORT WindowResizeEvent : public Event
 	{
 	public:
 		WindowResizeEvent(unsigned int width, unsigned int height)
@@ -27,7 +27,7 @@ namespace jm
 		unsigned int m_Width, m_Height;
 	};
 
-	class JM_EXPORT WindowCloseEvent : public Event
+	class LUMOS_EXPORT WindowCloseEvent : public Event
 	{
 	public:
 		WindowCloseEvent() {}
@@ -36,7 +36,7 @@ namespace jm
 		EVENT_CLASS_CATEGORY(EventCategoryApplication)
 	};
 
-	class JM_EXPORT AppTickEvent : public Event
+	class LUMOS_EXPORT AppTickEvent : public Event
 	{
 	public:
 		AppTickEvent() {}
@@ -45,7 +45,7 @@ namespace jm
 		EVENT_CLASS_CATEGORY(EventCategoryApplication)
 	};
 
-	class JM_EXPORT AppUpdateEvent : public Event
+	class LUMOS_EXPORT AppUpdateEvent : public Event
 	{
 	public:
 		AppUpdateEvent() {}
@@ -54,7 +54,7 @@ namespace jm
 		EVENT_CLASS_CATEGORY(EventCategoryApplication)
 	};
 
-	class JM_EXPORT AppRenderEvent : public Event
+	class LUMOS_EXPORT AppRenderEvent : public Event
 	{
 	public:
 		AppRenderEvent() {}

@@ -1,8 +1,8 @@
-#include "JM.h"
+#include "LM.h"
 #include "Vector4Binding.h"
 #include "Scripting/LuaScript.h"
 
-namespace jm
+namespace Lumos
 {
 	const char Vector4Binding::className[] = "Vector4";
 

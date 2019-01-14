@@ -129,15 +129,15 @@ function getDeltaTime()
 end
 -- Wait until the game engine fixed update function runs again
 function fixedupdate()
-	waitSignal("jmengine_fixed_update_tick")
+	waitSignal("LumosEngine_fixed_update_tick")
 end
 -- Wait until the game engine update function runs again
 function update()
-	waitSignal("jmengine_update_tick")
+	waitSignal("LumosEngine_update_tick")
 end
 -- Wait until the game engine drawing function runs again
 function render()
-	waitSignal("jmengine_render_tick")
+	waitSignal("LumosEngine_render_tick")
 end
 -- linear interpolation
 function math.lerp(a,b,t)

@@ -1,11 +1,11 @@
 #pragma once
-#include "JM.h"
+#include "LM.h"
 #include "Vector3.h"
 
-namespace jm {
+namespace Lumos {
 	namespace maths {
 
-		class JM_EXPORT Plane {
+		class LUMOS_EXPORT Plane {
 		public:
 			Plane() : distance(0) {
 			}

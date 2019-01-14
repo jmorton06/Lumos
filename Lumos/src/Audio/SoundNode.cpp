@@ -1,8 +1,8 @@
-#include "JM.h"
+#include "LM.h"
 #include "SoundNode.h"
 #include "Graphics/Camera/Camera.h"
 
-namespace jm
+namespace Lumos
 {
 
 	SoundNode::SoundNode()
@@ -57,7 +57,7 @@ namespace jm
 		{
 			m_TimeLeft = m_Sound->GetLength();
 
-#ifdef JM_OPENAL
+#ifdef LUMOS_OPENAL
 			if (m_Sound->IsStreaming())
 			{
 				alGenBuffers(NUM_STREAM_BUFFERS, m_StreamBuffers);
@@ -81,7 +81,7 @@ namespace jm
 
 		m_OALSource->inUse = true;
 
-#ifdef JM_OPENAL
+#ifdef LUMOS_OPENAL
 		alSourceStop(m_OALSource->source);
 		alSourcef(m_OALSource->source, AL_MAX_DISTANCE, m_Radius);
 		alSourcef(m_OALSource->source, AL_ROLLOFF_FACTOR, 1.0f);
@@ -105,20 +105,20 @@ namespace jm
 					break;
 				}
 			}
-#ifdef JM_OPENAL
+#ifdef LUMOS_OPENAL
 			alSourceQueueBuffers(m_OALSource->source, numBuffered, &m_StreamBuffers[0]);
 #endif
 		}
 		else
 		{
-#ifdef JM_OPENAL
+#ifdef LUMOS_OPENAL
 			alSourcei(m_OALSource->source, AL_BUFFER, m_Sound->GetBuffer());
 			alSourcef(m_OALSource->source, AL_SEC_OFFSET, static_cast<ALfloat>((m_Sound->GetLength() / 1000.0) - (m_TimeLeft / 1000.0)));
 			alSourcePlay(m_OALSource->source);
 #endif
 		}
 
-#ifdef JM_OPENAL
+#ifdef LUMOS_OPENAL
 		alSourcePlay(m_OALSource->source);
 #endif
 	}
@@ -131,7 +131,7 @@ namespace jm
 		}
 
 		m_OALSource->inUse = false;
-#ifdef JM_OPENAL
+#ifdef LUMOS_OPENAL
 		alSourcef(m_OALSource->source, AL_GAIN, 0.0f);
 		alSourceStop(m_OALSource->source);
 		alSourcei(m_OALSource->source, AL_BUFFER, 0);
@@ -168,7 +168,7 @@ namespace jm
 
 			if (m_OALSource)
 			{
-#ifdef JM_OPENAL
+#ifdef LUMOS_OPENAL
 				alSourcef(m_OALSource->source, AL_GAIN, m_Volume);
 				alSourcef(m_OALSource->source, AL_PITCH, m_Pitch);
 				alSourcef(m_OALSource->source, AL_MAX_DISTANCE, m_Radius);
@@ -195,7 +195,7 @@ namespace jm
 					velocity = m_Velocity;
 				}
 
-#ifdef JM_OPENAL
+#ifdef LUMOS_OPENAL
 				alSourcefv(m_OALSource->source, AL_POSITION, reinterpret_cast<float*>(&position));
 
 				if (m_Sound->IsStreaming())

@@ -1,4 +1,4 @@
-#include "JM.h"
+#include "LM.h"
 #include "Sprite.h"
 #include "Graphics/Material.h"
 #include "Graphics/API/Textures/Texture2D.h"
@@ -6,7 +6,7 @@
 #include "Utilities/AssetsManager.h"
 #include "MeshFactory.h"
 
-namespace jm
+namespace Lumos
 {
 	Sprite::Sprite(const maths::Vector2& position, const maths::Vector2& scale, const maths::Vector4& colour, float colourMix)
 		: m_Texture(nullptr)

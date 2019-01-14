@@ -1,9 +1,9 @@
 #pragma once
 
-#include "JM.h"
+#include "LM.h"
 #include "Maths/Frustum.h"
 
-namespace jm
+namespace Lumos
 {
 	class Scene;
 	class ForwardRenderer;
@@ -20,7 +20,7 @@ namespace jm
 
 	struct TimeStep;
 
-	class JM_EXPORT GraphicsPipeline
+	class LUMOS_EXPORT GraphicsPipeline
     {
 	public:
 

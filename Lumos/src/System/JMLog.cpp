@@ -1,9 +1,9 @@
-#include "JM.h"
+#include "LM.h"
 #include "JMLog.h"
 
 #include "spdlog/sinks/stdout_color_sinks.h"
 
-namespace jm
+namespace Lumos
 {
     std::shared_ptr<spdlog::logger> JMLog::s_CoreLogger;
     std::shared_ptr<spdlog::logger> JMLog::s_ClientLogger;

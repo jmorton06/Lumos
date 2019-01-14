@@ -1,13 +1,13 @@
 #pragma once
 
-#include "JM.h"
+#include "LM.h"
 #include "Timer.h"
 #include "Maths/Vector4.h"
 #include "Graphics/Renderers/DebugRenderer.h"
 
-namespace jm
+namespace Lumos
 {
-	class JM_EXPORT PerformanceTimer
+	class LUMOS_EXPORT PerformanceTimer
 	{
 	public:
 		PerformanceTimer()

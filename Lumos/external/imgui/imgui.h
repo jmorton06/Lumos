@@ -7,7 +7,7 @@
 // Get latest version at https://github.com/ocornut/imgui
 
 #pragma once
-#include "JM.h"
+#include "LM.h"
 // Configuration file (edit imconfig.h or define IMGUI_USER_CONFIG to set your own filename)
 #ifdef IMGUI_USER_CONFIG
 #include IMGUI_USER_CONFIG

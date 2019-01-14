@@ -1,13 +1,13 @@
 #pragma once
-#include "JM.h"
+#include "LM.h"
 #include "Graphics/API/FrameBuffer.h"
 #include "Platform/GraphicsAPI/OpenGL/GL.h"
 #include "Textures/GLTexture2D.h"
 
-namespace jm
+namespace Lumos
 {
 
-	class JM_EXPORT GLFramebuffer : public Framebuffer
+	class LUMOS_EXPORT GLFramebuffer : public Framebuffer
 	{
 	public:
 

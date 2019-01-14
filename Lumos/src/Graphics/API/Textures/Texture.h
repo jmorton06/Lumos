@@ -1,11 +1,11 @@
 #pragma once
 
-#include "JM.h"
+#include "LM.h"
 
-namespace jm
+namespace Lumos
 {
 
-	enum class JM_EXPORT TextureWrap
+	enum class LUMOS_EXPORT TextureWrap
 	{
 		NONE = 0,
 		REPEAT,
@@ -15,14 +15,14 @@ namespace jm
 		CLAMP_TO_BORDER
 	};
 
-	enum class JM_EXPORT TextureFilter
+	enum class LUMOS_EXPORT TextureFilter
 	{
 		NONE = 0,
 		LINEAR,
 		NEAREST
 	};
 
-	enum class JM_EXPORT TextureFormat
+	enum class LUMOS_EXPORT TextureFormat
 	{
 		NONE = 0,
 		R8,
@@ -37,7 +37,7 @@ namespace jm
 		RGB16
 	};
 
-	enum class JM_EXPORT TextureType
+	enum class LUMOS_EXPORT TextureType
 	{
 		DEPTH,
 		COLOUR,
@@ -46,7 +46,7 @@ namespace jm
 		OTHER
 	};
 
-	struct JM_EXPORT TextureParameters
+	struct LUMOS_EXPORT TextureParameters
 	{
 		TextureFormat format;
 		TextureFilter filter;
@@ -85,7 +85,7 @@ namespace jm
 		}
 	};
 
-	struct JM_EXPORT TextureLoadOptions
+	struct LUMOS_EXPORT TextureLoadOptions
 	{
 		bool flipX;
 		bool flipY;
@@ -102,7 +102,7 @@ namespace jm
 		}
 	};
 
-	class JM_EXPORT Texture
+	class LUMOS_EXPORT Texture
 	{
 	protected:
 		static TextureWrap s_WrapMode;

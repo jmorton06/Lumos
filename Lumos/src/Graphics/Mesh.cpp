@@ -1,11 +1,11 @@
-#include "JM.h"
+#include "LM.h"
 #include "Mesh.h"
 #include "Material.h"
 #include "API/Renderer.h"
 #include "Platform/GraphicsAPI/Vulkan/VKDevice.h"
 #include "Maths/BoundingSphere.h"
 
-namespace jm
+namespace Lumos
 {
 
 	Mesh::Mesh() : m_VertexArray(nullptr), m_IndexBuffer(nullptr), m_Material(nullptr), m_ArrayCleanUp(false), m_TextureCleanUp(false), m_BoundingSphere(nullptr)

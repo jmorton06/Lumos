@@ -1,5 +1,5 @@
 #pragma once
-#include "JM.h"
+#include "LM.h"
 #include "Maths/Frustum.h"
 #include "Physics/JMPhysicsEngine/JMPhysicsEngine.h"
 #include "Utilities/TSingleton.h"
@@ -9,7 +9,7 @@
 #include "Entity/Entity.h"
 #include "Utilities/AssetManager.h"
 
-namespace jm
+namespace Lumos
 {
 	class ParticleManager;
 	class Font;
@@ -17,7 +17,7 @@ namespace jm
 	class TextureCube;
 	class Material;
 
-	class JM_EXPORT Scene
+	class LUMOS_EXPORT Scene
 	{
 	public:
 		explicit Scene(const String& SceneName); //Called once at program start - all scene initialization should be done in 'OnInitialize'

@@ -7,11 +7,11 @@ class b2Body;
 struct b2BodyDef;
 struct b2FixtureDef;
 
-namespace jm
+namespace Lumos
 {
 	struct TimeStep;
 
-	class JM_EXPORT B2PhysicsEngine : public TSingleton<B2PhysicsEngine>
+	class LUMOS_EXPORT B2PhysicsEngine : public TSingleton<B2PhysicsEngine>
 	{
 		friend class TSingleton<B2PhysicsEngine>;
 

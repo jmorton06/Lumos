@@ -1,11 +1,11 @@
-#include "JM.h"
+#include "LM.h"
 #include "Model.h"
 #include "Maths/BoundingSphere.h"
 
 #define TINYGLTF_IMPLEMENTATION
 #define STB_IMAGE_WRITE_IMPLEMENTATION
 
-#ifdef JM_DIST
+#ifdef LUMOS_DIST
 #define TINYGLTF_NOEXCEPTION
 #endif
 #include "external/tinygltf/tiny_gltf.h"
@@ -15,7 +15,7 @@
 #include "Maths/MathsUtilities.h"
 #include "Maths/Matrix4.h"
 
-namespace jm
+namespace Lumos
 {
 	String AlbedoTexName = "baseColorTexture";
 	String NormalTexName = "normalTexture";
@@ -360,17 +360,17 @@ namespace jm
 
 		if (!err.empty())
 		{
-			JM_CORE_ERROR(err);
+			LUMOS_CORE_ERROR(err);
 		}
 
 		if (!warn.empty())
 		{
-			JM_CORE_ERROR(warn);
+			LUMOS_CORE_ERROR(warn);
 		}
 
 		if (!ret)
 		{
-			JM_CORE_ERROR("Failed to parse glTF");
+			LUMOS_CORE_ERROR("Failed to parse glTF");
 		}
 
 		auto LoadedMaterials = LoadMaterials(model);
@@ -379,7 +379,7 @@ namespace jm
 		{
 			if (mesh.primitives.size() > 1)
 			{
-				JM_CORE_WARN("UNIMPLEMENTED : glTF model with several primitives {0} {1}", path, mesh.primitives.size());
+				LUMOS_CORE_WARN("UNIMPLEMENTED : glTF model with several primitives {0} {1}", path, mesh.primitives.size());
 			}
 
 			const tinygltf::Primitive &primitive = mesh.primitives[0];

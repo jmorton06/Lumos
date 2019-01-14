@@ -1,12 +1,12 @@
 #pragma once
-#include "JM.h"
+#include "LM.h"
 
-namespace jm
+namespace Lumos
 {
 
 	namespace System
 	{
-		class JM_EXPORT CFG
+		class LUMOS_EXPORT CFG
 		{
 
 		public:

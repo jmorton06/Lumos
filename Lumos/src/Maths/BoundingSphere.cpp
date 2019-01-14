@@ -1,9 +1,9 @@
-#include "JM.h"
+#include "LM.h"
 #include "BoundingSphere.h"
 #include "MathsUtilities.h"
 #include "BoundingBox.h"
 
-namespace jm
+namespace Lumos
 {
 	namespace maths
 	{

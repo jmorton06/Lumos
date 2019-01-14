@@ -1,15 +1,15 @@
 #pragma once
 
-#include "JM.h"
+#include "LM.h"
 #include "Maths/Maths.h"
 
 struct HullEdge;
 struct HullFace;
 
-namespace jm
+namespace Lumos
 {
 
-	struct JM_EXPORT HullVertex
+	struct LUMOS_EXPORT HullVertex
 	{
 		int idx;
 		maths::Vector3 pos;
@@ -17,7 +17,7 @@ namespace jm
 		std::vector<int> enclosing_faces;
 	};
 
-	struct JM_EXPORT HullEdge
+	struct LUMOS_EXPORT HullEdge
 	{
 		int idx;
 		int vStart, vEnd;
@@ -25,7 +25,7 @@ namespace jm
 		std::vector<int> enclosing_faces;
 	};
 
-	struct JM_EXPORT HullFace
+	struct LUMOS_EXPORT HullFace
 	{
 		int idx;
 		maths::Vector3 normal;
@@ -34,7 +34,7 @@ namespace jm
 		std::vector<int> adjoining_face_ids;
 	};
 
-	class JM_EXPORT Hull
+	class LUMOS_EXPORT Hull
 	{
 	public:
 		Hull();

@@ -1,8 +1,8 @@
 #pragma once
-#include "JM.h"
+#include "LM.h"
 #include "Graphics/API/Query.h"
 
-namespace jm
+namespace Lumos
 {
 
 	class GLQuery : public Query

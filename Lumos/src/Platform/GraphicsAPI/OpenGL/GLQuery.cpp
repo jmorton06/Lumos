@@ -1,16 +1,16 @@
-#include "JM.h"
+#include "LM.h"
 #include "GLQuery.h"
 #include "GL.h"
 #include "GLDebug.h"
 
-namespace jm
+namespace Lumos
 {
 
 	uint QueryTypeToGL(const QueryType type)
 	{
 		switch (type)
 		{
-#ifndef JM_PLATFORM_MOBILE
+#ifndef LUMOS_PLATFORM_MOBILE
 		case QueryType::SAMPLES_PASSED:	    return GL_SAMPLES_PASSED;
 #endif
 		case QueryType::ANY_SAMPLES_PASSED:	return GL_ANY_SAMPLES_PASSED;
@@ -44,7 +44,7 @@ namespace jm
 	uint GLQuery::GetResult()
 	{
 		int SamplesPassed = 0;
-#ifndef JM_PLATFORM_MOBILE
+#ifndef LUMOS_PLATFORM_MOBILE
 		GLCall(glGetQueryObjectiv(m_Handle, GL_QUERY_RESULT, &SamplesPassed));
 #endif
 		m_InUse = false;
@@ -54,7 +54,7 @@ namespace jm
 	bool GLQuery::GetResultReady()
 	{
 		int ResultReady = 0;
-#ifndef JM_PLATFORM_MOBILE
+#ifndef LUMOS_PLATFORM_MOBILE
 		GLCall(glGetQueryObjectiv(m_Handle, GL_QUERY_RESULT_AVAILABLE, &ResultReady));
 #endif
 		return ResultReady > 0;

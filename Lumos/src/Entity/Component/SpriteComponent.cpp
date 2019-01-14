@@ -1,4 +1,4 @@
-#include "JM.h"
+#include "LM.h"
 #include "SpriteComponent.h"
 #include "Graphics/Sprite.h"
 #include "Physics2DComponent.h"
@@ -6,7 +6,7 @@
 #include "Physics/B2PhysicsEngine/PhysicsObject2D.h"
 #include "Maths/MathsUtilities.h"
 
-namespace jm
+namespace Lumos
 {
 	SpriteComponent::SpriteComponent(std::shared_ptr<Sprite>& sprite)
 		: m_Sprite(sprite)

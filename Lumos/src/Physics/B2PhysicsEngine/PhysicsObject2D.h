@@ -1,19 +1,19 @@
 #pragma once
 
-#include "JM.h"
+#include "LM.h"
 #include "Physics/PhysicsObject.h"
 
 class Object;
 class b2Body;
 
-namespace jm
+namespace Lumos
 {
     namespace maths
     {
         class Vector2;
     }
     
-	class JM_EXPORT PhysicsObject2D : public PhysicsObject
+	class LUMOS_EXPORT PhysicsObject2D : public PhysicsObject
 	{
 	public:
 		PhysicsObject2D();

@@ -1,7 +1,7 @@
-#include "JM.h"
+#include "LM.h"
 #include "Integration.h"
 
-namespace jm
+namespace Lumos
 {
 
 	void Integration::RK2(State &state,float t, float dt)

@@ -1,8 +1,8 @@
-#include "JM.h"
+#include "LM.h"
 #include "ThirdPersonCamera.h"
 #include "App/Application.h"
 
-namespace jm
+namespace Lumos
 {
 
 	ThirdPersonCamera::ThirdPersonCamera(float FOV, float Near, float Far, float aspect)
@@ -30,7 +30,7 @@ namespace jm
 		//if (Input::GetInput().m_UpdateCamera)
 		{
 			//if (!Input::GetInput().firstUpdate)
-			if (Input::GetInput().GetMouseHeld(JM_MOUSE_RIGHT))
+			if (Input::GetInput().GetMouseHeld(LUMOS_MOUSE_RIGHT))
 			{
 				m_RotateVelocity = m_RotateVelocity + maths::Vector2((xpos - m_PreviousCurserPos.GetX()), (ypos - m_PreviousCurserPos.GetY())) *  m_MouseSensitivity;
 				m_Pitch -= m_RotateVelocity.GetY();
@@ -65,32 +65,32 @@ namespace jm
 	{
 		m_CameraSpeed = 1000.0f * dt;
 
-		if (Input::GetInput().GetKeyHeld(JM_KEY_W))
+		if (Input::GetInput().GetKeyHeld(LUMOS_KEY_W))
 		{
 			m_Velocity += GetForwardDirection() * m_CameraSpeed;
 		}
 
-		if (Input::GetInput().GetKeyHeld(JM_KEY_S))
+		if (Input::GetInput().GetKeyHeld(LUMOS_KEY_S))
 		{
 			m_Velocity -= GetForwardDirection() * m_CameraSpeed;
 		}
 
-		if (Input::GetInput().GetKeyHeld(JM_KEY_A))
+		if (Input::GetInput().GetKeyHeld(LUMOS_KEY_A))
 		{
 			m_Velocity -= GetRightDirection() * m_CameraSpeed;
 		}
 
-		if (Input::GetInput().GetKeyHeld(JM_KEY_D))
+		if (Input::GetInput().GetKeyHeld(LUMOS_KEY_D))
 		{
 			m_Velocity += GetRightDirection() * m_CameraSpeed;
 		}
 
-		if (Input::GetInput().GetKeyHeld(JM_KEY_SPACE))
+		if (Input::GetInput().GetKeyHeld(LUMOS_KEY_SPACE))
 		{
 			m_Velocity -= GetUpDirection() * m_CameraSpeed;
 		}
 
-		if (Input::GetInput().GetKeyHeld(JM_KEY_LEFT_SHIFT))
+		if (Input::GetInput().GetKeyHeld(LUMOS_KEY_LEFT_SHIFT))
 		{
 			m_Velocity += GetUpDirection() * m_CameraSpeed;
 		}

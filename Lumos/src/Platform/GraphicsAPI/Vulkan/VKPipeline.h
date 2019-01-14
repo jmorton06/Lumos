@@ -3,7 +3,7 @@
 #include "Graphics/API/Pipeline.h"
 #include "VKDescriptorSet.h"
 
-namespace jm
+namespace Lumos
 {
 	class Shader;
 

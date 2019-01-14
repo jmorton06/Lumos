@@ -1,13 +1,13 @@
 #pragma once
-#include "JM.h"
+#include "LM.h"
 #include "JMComponent.h"
 #include "Maths/Vector3.h"
 
-namespace  jm
+namespace Lumos
 {
     class ParticleEmitter;
 
-    class JM_EXPORT ParticleComponent : public JMComponent
+    class LUMOS_EXPORT ParticleComponent : public JMComponent
     {
     public:
         std::shared_ptr<ParticleEmitter> m_ParticleEmitter;

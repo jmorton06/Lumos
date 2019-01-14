@@ -1,14 +1,14 @@
 #pragma once
-#include "JM.h"
+#include "LM.h"
 #include "Plane.h"
 #include "Matrix4.h"
 #include "BoundingBox.h"
 
-namespace jm
+namespace Lumos
 {
 	namespace maths
 	{
-		class JM_EXPORT Frustum
+		class LUMOS_EXPORT Frustum
 		{
 		public:
 

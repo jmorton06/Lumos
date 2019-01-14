@@ -1,11 +1,11 @@
-#include "JM.h"
+#include "LM.h"
 #include "VKRenderpass.h"
 #include "VKCommandBuffer.h"
 #include "VKFramebuffer.h"
 #include "VKRenderer.h"
 
 
-namespace jm
+namespace Lumos
 {
 	namespace graphics
 	{
@@ -67,7 +67,7 @@ namespace jm
 			else
 			{
 				VkAttachmentDescription Attachment = {};
-				JM_CORE_ERROR("[VULKAN] - Unsupported TextureType - {0}", static_cast<int>(type));
+				LUMOS_CORE_ERROR("[VULKAN] - Unsupported TextureType - {0}", static_cast<int>(type));
 				return Attachment;
 			}
 		}

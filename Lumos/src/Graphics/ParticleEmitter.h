@@ -1,8 +1,8 @@
 #pragma once
-#include "JM.h"
+#include "LM.h"
 #include "Maths/Maths.h"
 
-namespace jm
+namespace Lumos
 {
 	class Material;
 	class Particle;
@@ -15,7 +15,7 @@ namespace jm
 		class BoundingBox;
 	}
 	
-	class JM_EXPORT ParticleEmitter
+	class LUMOS_EXPORT ParticleEmitter
 	{
 	public:
 

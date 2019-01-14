@@ -1,13 +1,13 @@
 #pragma once
-#include "JM.h"
+#include "LM.h"
 #include "Maths/Maths.h"
 
 #define MAX_POINT_LIGHTS 50
 
-namespace jm
+namespace Lumos
 {
 
-	enum JM_EXPORT RendererBufferType
+	enum LUMOS_EXPORT RendererBufferType
 	{
 		RENDERER_BUFFER_NONE = 0,
 		RENDERER_BUFFER_COLOUR = BIT(0),
@@ -15,14 +15,14 @@ namespace jm
 		RENDERER_BUFFER_STENCIL = BIT(2)
 	};
 
-	enum class JM_EXPORT DrawType
+	enum class LUMOS_EXPORT DrawType
 	{
 		POINT,
 		TRIANGLE,
 		LINES
 	};
 
-	enum class JM_EXPORT StencilType
+	enum class LUMOS_EXPORT StencilType
 	{
 		EQUAL,
 		NOTEQUAL,
@@ -32,13 +32,13 @@ namespace jm
 		ALWAYS
 	};
 
-	enum class JM_EXPORT PixelPackType
+	enum class LUMOS_EXPORT PixelPackType
 	{
 		PACK,
 		UNPACK
 	};
 
-	enum class JM_EXPORT RendererBlendFunction
+	enum class LUMOS_EXPORT RendererBlendFunction
 	{
 		NONE,
 		ZERO,
@@ -48,20 +48,20 @@ namespace jm
 		ONE_MINUS_SOURCE_ALPHA
 	};
 
-	enum class JM_EXPORT RendererBlendEquation
+	enum class LUMOS_EXPORT RendererBlendEquation
 	{
 		NONE,
 		ADD,
 		SUBTRACT
 	};
 
-	enum class JM_EXPORT RenderMode
+	enum class LUMOS_EXPORT RenderMode
 	{
 		FILL,
 		WIREFRAME
 	};
 
-	enum class JM_EXPORT DataType
+	enum class LUMOS_EXPORT DataType
 	{
 		FLOAT,
 		UNSIGNED_INT,
@@ -81,7 +81,7 @@ namespace jm
 		};
 	};
 
-	class JM_EXPORT Renderer
+	class LUMOS_EXPORT Renderer
 	{
 	public:
 		Renderer() : init(false)

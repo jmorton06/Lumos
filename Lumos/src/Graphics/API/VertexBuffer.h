@@ -1,9 +1,9 @@
 #pragma once
 
-#include "JM.h"
+#include "LM.h"
 #include "Graphics/API/BufferLayout.h"
 
-namespace jm
+namespace Lumos
 {
 
 	enum class BufferUsage

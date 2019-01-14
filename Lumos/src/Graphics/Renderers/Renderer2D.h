@@ -1,9 +1,9 @@
 #pragma once
-#include "JM.h"
+#include "LM.h"
 
 class Sprite;
 
-namespace jm
+namespace Lumos
 {
 
 	class Renderer2D

@@ -1,6 +1,6 @@
 #pragma once
 
-#include "JM.h"
+#include "LM.h"
 #include "Physics/PhysicsObject.h"
 #include "Maths/Quaternion.h"
 #include "Maths/Matrix3.h"
@@ -8,7 +8,7 @@
 #include "Maths/BoundingBox.h"
 #include <memory>
 
-namespace jm
+namespace Lumos
 {
 	class JMPhysicsEngine;
 	class Entity;
@@ -24,7 +24,7 @@ namespace jm
 	//			  > This can be useful for AI to see if a player/agent is inside an area/collision volume
 	typedef std::function<bool(PhysicsObject3D* this_obj, PhysicsObject3D* colliding_obj)> PhysicsCollisionCallback;
 
-	class JM_EXPORT PhysicsObject3D : public PhysicsObject
+	class LUMOS_EXPORT PhysicsObject3D : public PhysicsObject
 	{
 		friend class JMPhysicsEngine;
 

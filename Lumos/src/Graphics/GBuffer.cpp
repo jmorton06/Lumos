@@ -1,10 +1,10 @@
-#include "JM.h"
+#include "LM.h"
 #include "GBuffer.h"
 #include "API/FrameBuffer.h"
 #include "API/Textures/TextureDepth.h"
 #include "API/Textures/Texture2D.h"
 
-namespace jm
+namespace Lumos
 {
 
 	GBuffer::GBuffer(uint width, uint height)

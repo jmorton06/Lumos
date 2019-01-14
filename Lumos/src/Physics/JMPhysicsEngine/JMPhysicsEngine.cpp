@@ -1,4 +1,4 @@
-#include "JM.h"
+#include "LM.h"
 #include "JMPhysicsEngine.h"
 #include "CollisionDetection.h"
 #include "PhysicsObject3D.h"
@@ -9,7 +9,7 @@
 #include "Entity/Entity.h"
 #include "Utilities/TimeStep.h"
 
-namespace jm
+namespace Lumos
 {
 
 	JMPhysicsEngine::JMPhysicsEngine()

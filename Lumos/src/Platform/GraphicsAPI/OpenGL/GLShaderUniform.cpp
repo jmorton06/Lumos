@@ -1,8 +1,8 @@
-#include "JM.h"
+#include "LM.h"
 #include "GLShaderUniform.h"
 #include "Graphics/API/Shader.h"
 
-namespace jm
+namespace Lumos
 {
 
 	GLShaderUniformDeclaration::GLShaderUniformDeclaration(Type type, const String& name, uint count)

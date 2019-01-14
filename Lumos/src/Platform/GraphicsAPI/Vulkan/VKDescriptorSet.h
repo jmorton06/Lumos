@@ -2,7 +2,7 @@
 #include "Graphics/API/DescriptorSet.h"
 #include "Dependencies/vulkan/vulkan.h"
 
-namespace jm
+namespace Lumos
 {
 	namespace graphics
 	{

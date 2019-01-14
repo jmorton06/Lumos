@@ -1,12 +1,12 @@
 
-#include "JM.h"
+#include "LM.h"
 #include "SortAndSweepBroadphase.h"
 
 #include "Graphics/Renderers/DebugRenderer.h"
 #include <memory>
 #include <vector>
 
-namespace jm
+namespace Lumos
 {
 
 	SortAndSweepBroadphase::SortAndSweepBroadphase(const maths::Vector3 &axis)

@@ -1,11 +1,11 @@
-#include "JM.h"
+#include "LM.h"
 #include "PhysicsObject3D.h"
 #include "JMPhysicsEngine.h"
 #include "Entity/Entity.h"
 
 #include "Graphics/Renderers/DebugRenderer.h"
 
-namespace jm
+namespace Lumos
 {
 
 	PhysicsObject3D::PhysicsObject3D() : PhysicsObject()

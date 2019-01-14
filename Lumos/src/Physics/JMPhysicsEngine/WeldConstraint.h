@@ -2,7 +2,7 @@
 
 #include "Constraint.h"
 
-namespace jm
+namespace Lumos
 {
 	namespace maths
 	{
@@ -13,7 +13,7 @@ namespace jm
 	class Quaternion;
 	class PhysicsObject3D;
 
-	class JM_EXPORT WeldConstraint : public Constraint
+	class LUMOS_EXPORT WeldConstraint : public Constraint
 	{
 	public:
 		WeldConstraint(PhysicsObject3D *obj1, PhysicsObject3D *obj2);

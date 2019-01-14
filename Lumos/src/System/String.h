@@ -1,10 +1,10 @@
 #pragma once
 
-#include "JM.h"
+#include "LM.h"
 
 typedef std::string String;
 
-#ifdef JM_PLATFORM_ANDROID 
+#ifdef LUMOS_PLATFORM_ANDROID 
 template < typename T > std::string to_string( const T& n )
     {
         std::ostringstream stm ;
@@ -13,12 +13,12 @@ template < typename T > std::string to_string( const T& n )
     }
 #endif
 
-namespace jm 
+namespace Lumos 
 {
 
 #define STRINGFORMAT_BUFFER_SIZE 10 * 1024
 
-	class JM_EXPORT StringFormat
+	class LUMOS_EXPORT StringFormat
 	{
 	private:
 		static char* s_Buffer;
@@ -50,7 +50,7 @@ namespace jm
 		template<typename T>
 		static String ToString(const T& input)
 		{
-			#ifdef JM_PLATFORM_ANDROID
+			#ifdef LUMOS_PLATFORM_ANDROID
 			return to_string(input);
 			#else
 			return std::to_string(input);

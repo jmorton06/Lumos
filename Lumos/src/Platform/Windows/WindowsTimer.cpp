@@ -1,7 +1,7 @@
-#include "JM.h"
+#include "LM.h"
 #include "Utilities/Timer.h"
 
-namespace jm
+namespace Lumos
 {
 	static double GetQueryPerformancePeriod()
 	{

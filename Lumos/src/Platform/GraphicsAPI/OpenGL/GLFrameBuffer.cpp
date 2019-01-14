@@ -1,10 +1,10 @@
-#include "JM.h"
+#include "LM.h"
 #include "GLFrameBuffer.h"
 
 #include "Platform/GraphicsAPI/OpenGL/GLDebug.h"
 #include "Graphics/API/Textures/TextureCube.h"
 
-namespace jm
+namespace Lumos
 {
 	Attachment GetColourAttachment(int index)
 	{
@@ -65,7 +65,7 @@ namespace jm
 
 	void GLFramebuffer::UnBind() const
 	{
-#ifdef JM_DEBUG
+#ifdef LUMOS_DEBUG
 		GLCall(glBindFramebuffer(GL_FRAMEBUFFER, 0));
 #endif
 	}
@@ -137,7 +137,7 @@ namespace jm
 
 	void GLFramebuffer::AddShadowAttachment(Texture* texture)
 	{
-#ifdef JM_PLATFORM_MOBILE
+#ifdef LUMOS_PLATFORM_MOBILE
 		GLCall(glFramebufferTextureLayer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, texture->GetHandle(), 0, 0));
 #else
 		GLCall(glFramebufferTextureLayer(GL_FRAMEBUFFER_EXT, GL_DEPTH_ATTACHMENT, texture->GetHandle(), 0, 0));
@@ -147,7 +147,7 @@ namespace jm
 
 	void GLFramebuffer::AddTextureLayer(int index, Texture* texture)
 	{
-#ifdef JM_PLATFORM_MOBILE
+#ifdef LUMOS_PLATFORM_MOBILE
 		GLCall(glFramebufferTextureLayer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, texture->GetHandle(), 0, index));
 #else
 		GLCall(glFramebufferTextureLayer(GL_FRAMEBUFFER_EXT, GL_DEPTH_ATTACHMENT, texture->GetHandle(), 0, index));
@@ -160,7 +160,7 @@ namespace jm
 		uint status = glCheckFramebufferStatus(GL_FRAMEBUFFER);
 		if (status != GL_FRAMEBUFFER_COMPLETE)
 		{
-			JM_CORE_ERROR("Unable to create Screen Framebuffer! StatusCode: {0}", status);
+			LUMOS_CORE_ERROR("Unable to create Screen Framebuffer! StatusCode: {0}", status);
 		}
 	}
 }

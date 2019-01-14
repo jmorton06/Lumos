@@ -1,4 +1,4 @@
-#include "JM.h"
+#include "LM.h"
 #include "Scene.h"
 #include "Graphics/ParticleManager.h"
 #include "Graphics/API/Context.h"
@@ -14,7 +14,7 @@
 #include "App/Input.h"
 #include "App/Application.h"
 
-namespace jm
+namespace Lumos
 {
 	Scene::Scene(const String& friendly_name)
 		: m_SceneName(friendly_name), m_pCamera(nullptr), m_EnvironmentMap(nullptr), m_SceneBoundingRadius(0), m_DebugDrawFlags(0), m_DrawDebugData(false)
@@ -50,37 +50,37 @@ namespace jm
 		String RenderAPI;
 		String dash = " - ";
 
-#ifdef JM_DEBUG
+#ifdef LUMOS_DEBUG
 		Configuration = "Debug";
 #else
 		Configuration = "Release";
 #endif
 
-#ifdef JM_PLATFORM_WINDOWS
+#ifdef LUMOS_PLATFORM_WINDOWS
 		Platform = "Windows";
-#elif JM_PLATFORM_LINUX
+#elif LUMOS_PLATFORM_LINUX
 		Platform = "Linux";
-#elif JM_PLATFORM_MACOS
+#elif LUMOS_PLATFORM_MACOS
 		Platform = "MacOS";
-#elif JM_PLATFORM_IOS
+#elif LUMOS_PLATFORM_IOS
 		Platform = "iOS";
 #endif
 
 		switch (graphics::Context::GetRenderAPI())
 		{
-#ifdef JM_RENDER_API_OPENGL
+#ifdef LUMOS_RENDER_API_OPENGL
 		case OPENGL: RenderAPI = "OpenGL"; break;
 #endif
 
-#ifdef JM_RENDER_API_VULKAN
-#if defined(JM_PLATFORM_MACOS) || defined(JM_PLATFORM_IOS)
+#ifdef LUMOS_RENDER_API_VULKAN
+#if defined(LUMOS_PLATFORM_MACOS) || defined(LUMOS_PLATFORM_IOS)
 		case VULKAN: RenderAPI = "Vulkan ( MoltenVK )"; break;
 #else
 		case VULKAN: RenderAPI = "Vulkan"; break;
 #endif
 #endif
 
-#ifdef JM_RENDER_API_DIRECT3D
+#ifdef LUMOS_RENDER_API_DIRECT3D
 		case DIRECT3D: RenderAPI = "Direct3D"; break;
 #endif
 		}

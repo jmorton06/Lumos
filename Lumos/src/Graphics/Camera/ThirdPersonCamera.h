@@ -1,10 +1,10 @@
 #pragma once
 #include "Camera.h"
 
-namespace jm
+namespace Lumos
 {
 
-	class JM_EXPORT ThirdPersonCamera : public Camera
+	class LUMOS_EXPORT ThirdPersonCamera : public Camera
 	{
 	public:
 		ThirdPersonCamera(float FOV, float Near, float Far, float aspect);

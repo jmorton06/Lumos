@@ -1,9 +1,9 @@
 #pragma once
-#include "JM.h"
+#include "LM.h"
 #include "Graphics/API/Textures/TextureDepthArray.h"
 #include "../GLDebug.h"
 
-namespace jm
+namespace Lumos
 {
 
 	class GLTextureDepthArray : public TextureDepthArray

@@ -1,11 +1,11 @@
 #pragma once
-#include "JM.h"
+#include "LM.h"
 #include "Texture.h"
 
-namespace jm
+namespace Lumos
 {
 
-	class JM_EXPORT Texture2D : public Texture
+	class LUMOS_EXPORT Texture2D : public Texture
 	{
 	public:
 		virtual void SetData(const void* pixels) = 0;

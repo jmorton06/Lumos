@@ -1,22 +1,22 @@
-#include "JM.h"
+#include "LM.h"
 #include "System.h"
 #include "VFS.h"
 
 
-namespace jm
+namespace Lumos
 { 
 	namespace internal 
 	{
 	void System::Init()
 	{
         JMLog::Init();
-		JM_CORE_INFO("Initializing System");
+		LUMOS_CORE_INFO("Initializing System");
 		VFS::Init();
 	}
 
 	void System::Shutdown()
 	{
-		JM_CORE_INFO("Shutting down System");
+		LUMOS_CORE_INFO("Shutting down System");
 		VFS::Shutdown();
     }
 } }

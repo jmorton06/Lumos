@@ -1,15 +1,15 @@
 #pragma once
-#include "JM.h"
+#include "LM.h"
 #include "Graphics/API/FrameBuffer.h"
 #include "Dependencies/vulkan/vulkan.h"
 #include "VKTexture2D.h"
 #include "VKRenderpass.h"
 
-namespace jm
+namespace Lumos
 {
 	namespace graphics
 	{
-		class JM_EXPORT VKFrameBuffer : public Framebuffer
+		class LUMOS_EXPORT VKFrameBuffer : public Framebuffer
 		{
 		public:
 

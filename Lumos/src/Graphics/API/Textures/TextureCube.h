@@ -1,11 +1,11 @@
 #pragma once
-#include "JM.h"
+#include "LM.h"
 #include "Texture.h"
 
-namespace jm
+namespace Lumos
 {
 
-	class JM_EXPORT TextureCube : public Texture
+	class LUMOS_EXPORT TextureCube : public Texture
 	{
 	protected:
 		enum class InputFormat

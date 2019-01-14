@@ -1,9 +1,9 @@
 #pragma once
-#include "JM.h"
+#include "LM.h"
 #include "Renderer3D.h"
 #include "SkyboxRenderer.h"
 
-namespace jm
+namespace Lumos
 {
 	class LightSetup;
 	class DescriptorSet;
@@ -39,13 +39,13 @@ namespace jm
 
 		struct UniformBufferObject
 		{
-			jm::maths::Matrix4 proj;
-			jm::maths::Matrix4 view;
+			Lumos::maths::Matrix4 proj;
+			Lumos::maths::Matrix4 view;
 		};
 
 		struct UniformBufferModel
 		{
-			jm::maths::Matrix4* model;
+			Lumos::maths::Matrix4* model;
 		};
 
 		void SetCubeMap(Texture* cubeMap);
@@ -56,15 +56,15 @@ namespace jm
 		maths::Vector4 m_ClearColour;
 
 		graphics::api::DescriptorSet* m_DefaultDescriptorSet;
-		jm::graphics::api::Pipeline* m_GraphicsPipeline;
+		Lumos::graphics::api::Pipeline* m_GraphicsPipeline;
 
-		jm::Texture2D* m_DefaultTexture;
-		jm::TextureDepth* m_DepthTexture;
+		Lumos::Texture2D* m_DefaultTexture;
+		Lumos::TextureDepth* m_DepthTexture;
 
-		jm::graphics::api::UniformBuffer* m_UniformBuffer;
-		jm::graphics::api::UniformBuffer* m_ModelUniformBuffer;
+		Lumos::graphics::api::UniformBuffer* m_UniformBuffer;
+		Lumos::graphics::api::UniformBuffer* m_ModelUniformBuffer;
 
-		std::vector<jm::graphics::api::CommandBuffer*> commandBuffers;
+		std::vector<Lumos::graphics::api::CommandBuffer*> commandBuffers;
 
 		size_t dynamicAlignment;
 		UniformBufferModel uboDataDynamic;

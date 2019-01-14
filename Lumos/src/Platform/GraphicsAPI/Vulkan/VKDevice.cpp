@@ -1,6 +1,6 @@
-#include "JM.h"
+#include "LM.h"
 
-#if defined(JM_PLATFORM_MACOS)
+#if defined(LUMOS_PLATFORM_MACOS)
 #ifndef VK_USE_PLATFORM_MACOS_MVK
 #define VK_USE_PLATFORM_MACOS_MVK
 #endif
@@ -10,18 +10,18 @@
 #include "VKDevice.h"
 
 #include "VKInitialisers.h"
-#ifndef JM_PLATFORM_IOS
+#ifndef LUMOS_PLATFORM_IOS
 #include <GLFW/glfw3.h>
 #include <GLFW/glfw3native.h>
 #endif
 
-#ifdef JM_PLATFORM_MACOS
+#ifdef LUMOS_PLATFORM_MACOS
 extern "C" {
     void* makeViewMetalCompatible(void* handle);
 }
 #endif
 
-namespace jm
+namespace Lumos
 {
 	namespace graphics
 	{
@@ -54,7 +54,7 @@ namespace jm
 			vkEnumeratePhysicalDevices(m_VKContext->GetVKInstance(), &numGPUs, VK_NULL_HANDLE);
 			if (numGPUs == 0)
 			{
-				JM_CORE_ERROR("ERROR : No GPUs found!");
+				LUMOS_CORE_ERROR("ERROR : No GPUs found!");
 				return false;
 			}
 
@@ -64,23 +64,23 @@ namespace jm
 
 			vkGetPhysicalDeviceProperties(m_PhysicalDevice, &m_PhysicalDeviceProperties);
 			vkGetPhysicalDeviceMemoryProperties(m_PhysicalDevice, &m_MemoryProperties);
-			JM_CORE_INFO("Rendering with : {0}", std::string(m_PhysicalDeviceProperties.deviceName));
+			LUMOS_CORE_INFO("Rendering with : {0}", std::string(m_PhysicalDeviceProperties.deviceName));
 
 			// Queue family
 			uint32_t numQueueFamily = 0;
 			vkGetPhysicalDeviceQueueFamilyProperties(m_PhysicalDevice, &numQueueFamily, VK_NULL_HANDLE);
 			if (numQueueFamily == 0)
 			{
-				JM_CORE_ERROR("ERROR : No Queue Families were found!");
+				LUMOS_CORE_ERROR("ERROR : No Queue Families were found!");
 				return false;
 			}
 
 			m_QueueFamiliyProperties.resize(numQueueFamily);
 			vkGetPhysicalDeviceQueueFamilyProperties(m_PhysicalDevice, &numQueueFamily, m_QueueFamiliyProperties.data());
 
-#ifndef JM_PLATFORM_IOS
+#ifndef LUMOS_PLATFORM_IOS
 			// Surface
-#if defined(JM_PLATFORM_MACOS)
+#if defined(LUMOS_PLATFORM_MACOS)
             VkMacOSSurfaceCreateInfoMVK surfaceInfo;
             surfaceInfo.sType = VK_STRUCTURE_TYPE_MACOS_SURFACE_CREATE_INFO_MVK;
             surfaceInfo.pNext = NULL;
@@ -116,7 +116,7 @@ namespace jm
 
 			if (m_GraphicsQueueFamilyIndex == UINT32_MAX)
 			{
-				JM_CORE_ERROR("ERROR : Couldn't find a graphics queue family index!");
+				LUMOS_CORE_ERROR("ERROR : Couldn't find a graphics queue family index!");
 				return false;
 			}
 
@@ -124,7 +124,7 @@ namespace jm
 			result = vkGetPhysicalDeviceSurfaceFormatsKHR(m_PhysicalDevice, m_Surface, &numFormats, VK_NULL_HANDLE);
 			if (result != VK_SUCCESS)
 			{
-				JM_CORE_ERROR("ERROR : Couldn't get surface formats!");
+				LUMOS_CORE_ERROR("ERROR : Couldn't get surface formats!");
 				return false;
 			}
 
@@ -175,7 +175,7 @@ namespace jm
 			result = vkCreateDevice(m_PhysicalDevice, &deviceCI, VK_NULL_HANDLE, &m_Device);
 			if (result != VK_SUCCESS)
 			{
-				JM_CORE_ERROR("ERROR : vkCreateDevice() failed!");
+				LUMOS_CORE_ERROR("ERROR : vkCreateDevice() failed!");
 				return false;
 			}
 

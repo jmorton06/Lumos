@@ -1,4 +1,4 @@
-#include "JM.h"
+#include "LM.h"
 #include "Model.h"
 #include "Graphics/API/Textures/Texture2D.h"
 #include "Maths/BoundingSphere.h"
@@ -9,7 +9,7 @@
 #include "Utilities/AssetsManager.h"
 
 
-namespace jm
+namespace Lumos
 {
 	void Model::LoadOBJ(const String& path)
 	{
@@ -28,7 +28,7 @@ namespace jm
 
 		if (!ok)
 		{
-			JM_CORE_ERROR(error);
+			LUMOS_CORE_ERROR(error);
 		}
 
 		for (const auto& shape : shapes)

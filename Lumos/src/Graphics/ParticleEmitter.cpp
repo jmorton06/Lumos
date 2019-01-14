@@ -1,4 +1,4 @@
-#include "JM.h"
+#include "LM.h"
 #include "ParticleEmitter.h"
 #include "Material.h"
 #include "Particle.h"
@@ -8,7 +8,7 @@
 #include "Utilities/RandomNumberGenerator.h"
 #include "Maths/BoundingBox.h"
 
-namespace jm
+namespace Lumos
 {
 
 	ParticleEmitter::ParticleEmitter()
@@ -66,7 +66,7 @@ namespace jm
 		{
 			for (uint i = 0; i < m_NumLaunchParticles; ++i)
 			{
-				m_Particles.push_back(std::make_shared<Particle>(m_Position + maths::Vector3(jm::RandomNumberGenerator32::Rand(-m_Area.x, m_Area.x),jm::RandomNumberGenerator32::Rand(-m_Area.y, m_Area.y),jm::RandomNumberGenerator32::Rand(-m_Area.z, m_Area.z)), m_InitialVelocity + maths::Vector3(jm::RandomNumberGenerator32::Rand(m_VelocityVarianceX.GetX(),m_VelocityVarianceX.GetY()),jm::RandomNumberGenerator32::Rand(m_VelocityVarianceY.GetX(), m_VelocityVarianceY.GetY()),jm::RandomNumberGenerator32::Rand(m_VelocityVarianceZ.GetX(), m_VelocityVarianceZ.GetY())), m_GravityEffect, m_ParticleLife * jm::RandomNumberGenerator32::Rand(m_LifeLengthVariance,1.0f), m_Scale * jm::RandomNumberGenerator32::Rand(m_ScaleVariance,1.0f)));
+				m_Particles.push_back(std::make_shared<Particle>(m_Position + maths::Vector3(Lumos::RandomNumberGenerator32::Rand(-m_Area.x, m_Area.x),Lumos::RandomNumberGenerator32::Rand(-m_Area.y, m_Area.y),Lumos::RandomNumberGenerator32::Rand(-m_Area.z, m_Area.z)), m_InitialVelocity + maths::Vector3(Lumos::RandomNumberGenerator32::Rand(m_VelocityVarianceX.GetX(),m_VelocityVarianceX.GetY()),Lumos::RandomNumberGenerator32::Rand(m_VelocityVarianceY.GetX(), m_VelocityVarianceY.GetY()),Lumos::RandomNumberGenerator32::Rand(m_VelocityVarianceZ.GetX(), m_VelocityVarianceZ.GetY())), m_GravityEffect, m_ParticleLife * Lumos::RandomNumberGenerator32::Rand(m_LifeLengthVariance,1.0f), m_Scale * Lumos::RandomNumberGenerator32::Rand(m_ScaleVariance,1.0f)));
 			}
 
 			m_NextParticleTime += m_ParticleRate;

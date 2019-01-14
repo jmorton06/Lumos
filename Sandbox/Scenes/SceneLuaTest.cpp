@@ -1,6 +1,6 @@
 #include "SceneLuaTest.h"
 
-using namespace jm;
+using namespace Lumos;
 using namespace maths;
 
 SceneLuaTest::SceneLuaTest(const std::string& SceneName)
@@ -34,7 +34,7 @@ void SceneLuaTest::OnUpdate(TimeStep* timeStep)
 
 void SceneLuaTest::Render2D()
 {
-	using namespace jm::internal;
+	using namespace Lumos::internal;
 
 	RenderString("FPS : " + StringFormat::ToString(Engine::Instance()->GetFPS()), Vector2(0.9f, 0.9f), 0.6f, Vector4(1.0f, 1.0f, 1.0f, 1.0f));
 }

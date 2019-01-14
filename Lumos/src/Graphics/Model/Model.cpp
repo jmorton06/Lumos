@@ -1,4 +1,4 @@
-#include "JM.h"
+#include "LM.h"
 #include "Model.h"
 #include "Graphics/API/Textures/Texture2D.h"
 #include "System/VFS.h"
@@ -8,7 +8,7 @@
 #include "../API/Shader.h"
 #include "Utilities/AssetsManager.h"
 
-namespace jm
+namespace Lumos
 {
 	std::shared_ptr<Texture2D> Model::LoadMaterialTextures(const String& typeName, std::vector<std::shared_ptr<Texture2D>>& textures_loaded, const String& name, const String& directory, TextureParameters format)
 	{
@@ -36,7 +36,7 @@ namespace jm
 	Model::Model(const String& path, bool gamma) : m_GammaCorrection(gamma), m_NeedFrustumCheck(true), m_RootBone(nullptr)
 	{
         String filePath;
-#ifdef JM_PLATFORM_MOBILE
+#ifdef LUMOS_PLATFORM_MOBILE
         if (filePath.find_last_of("/") != String::npos)
             filePath = filePath.substr(filePath.find_last_of("/") + 1);
 #else
@@ -77,7 +77,7 @@ namespace jm
 	void Model::LoadModel(const String& path)
 	{
 		std::string physicalPath;
-		jm::VFS::Get()->ResolvePhysicalPath(path, physicalPath);
+		Lumos::VFS::Get()->ResolvePhysicalPath(path, physicalPath);
 
 		String resolvedPath = physicalPath;
 
@@ -91,12 +91,12 @@ namespace jm
 		else if (fileExtension == "gltf" || fileExtension == "glb")
 			LoadGLTF(resolvedPath);
 		else
-			JM_CORE_ERROR("Unsupported File Type : {0}", fileExtension);
+			LUMOS_CORE_ERROR("Unsupported File Type : {0}", fileExtension);
 #else
 	LoadModelAssimp(resolvedPath);
 #endif
 
-		JM_CORE_INFO("Loaded Model - {0}", resolvedPath);
+		LUMOS_CORE_INFO("Loaded Model - {0}", resolvedPath);
 	}
 
 	void Model::Draw(const bool bind)

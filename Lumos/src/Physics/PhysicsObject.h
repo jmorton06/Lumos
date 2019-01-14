@@ -1,18 +1,18 @@
 #pragma once
-#include "JM.h"
+#include "LM.h"
 #include "Maths/Maths.h"
 
-namespace jm
+namespace Lumos
 {
 
-	enum class JM_EXPORT Shape
+	enum class LUMOS_EXPORT Shape
 	{
 		Square,
 		Circle,
 		Custom
 	};
 
-	struct JM_EXPORT PhysicsObjectParamaters
+	struct LUMOS_EXPORT PhysicsObjectParamaters
 	{
 		PhysicsObjectParamaters()
 		{
@@ -30,7 +30,7 @@ namespace jm
 		Shape shape;
 	};
 
-	class JM_EXPORT PhysicsObject
+	class LUMOS_EXPORT PhysicsObject
 	{
 
 	public:

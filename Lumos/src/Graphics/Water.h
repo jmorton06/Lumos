@@ -1,9 +1,9 @@
 #pragma once
-#include "JM.h"
+#include "LM.h"
 #include "Maths/Maths.h"
 #include "Mesh.h"
 
-namespace jm
+namespace Lumos
 {
 	class Mesh;
 	class Framebuffer;
@@ -12,7 +12,7 @@ namespace jm
 	class Material;
 	class Timer;
 
-	class JM_EXPORT Water : public Mesh
+	class LUMOS_EXPORT Water : public Mesh
 	{
 	public:
 		Water(const maths::Vector3 &position, const maths::Vector3 &scale);

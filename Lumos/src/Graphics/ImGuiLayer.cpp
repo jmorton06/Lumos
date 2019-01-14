@@ -1,11 +1,11 @@
-#include "JM.h"
+#include "LM.h"
 #include "ImGuiLayer.h"
 #include "App/Application.h"
 
 #include "external/imgui/imgui.h"
 #include "App/Input.h"
 
-namespace jm
+namespace Lumos
 {
 
 	ImGuiLayer::ImGuiLayer(const std::string& debugName)
@@ -102,9 +102,9 @@ namespace jm
 		ImGuiIO& io = ImGui::GetIO();
 		io.KeysDown[e.GetKeyCode()] = true;
 
-		io.KeyCtrl = io.KeysDown[JM_KEY_LEFT_CONTROL] || io.KeysDown[JM_KEY_RIGHT_CONTROL];
-		io.KeyShift = io.KeysDown[JM_KEY_LEFT_SHIFT] || io.KeysDown[JM_KEY_RIGHT_SHIFT];
-		io.KeyAlt = io.KeysDown[JM_KEY_ALT] || io.KeysDown[JM_KEY_ALT];
+		io.KeyCtrl = io.KeysDown[LUMOS_KEY_LEFT_CONTROL] || io.KeysDown[LUMOS_KEY_RIGHT_CONTROL];
+		io.KeyShift = io.KeysDown[LUMOS_KEY_LEFT_SHIFT] || io.KeysDown[LUMOS_KEY_RIGHT_SHIFT];
+		io.KeyAlt = io.KeysDown[LUMOS_KEY_ALT] || io.KeysDown[LUMOS_KEY_ALT];
 
 		return false;
 	}
@@ -141,26 +141,26 @@ namespace jm
 		ImGuiIO& io = ImGui::GetIO();
 		io.BackendFlags |= ImGuiBackendFlags_HasMouseCursors;
     	io.BackendFlags |= ImGuiBackendFlags_HasSetMousePos;
-		io.KeyMap[ImGuiKey_Tab] 		= JM_KEY_TAB;
-		io.KeyMap[ImGuiKey_LeftArrow] 	= JM_KEY_LEFT;
-		io.KeyMap[ImGuiKey_RightArrow] 	= JM_KEY_RIGHT;
-		io.KeyMap[ImGuiKey_UpArrow] 	= JM_KEY_UP;
-		io.KeyMap[ImGuiKey_DownArrow] 	= JM_KEY_DOWN;
-		io.KeyMap[ImGuiKey_PageUp] 		= JM_KEY_PAGE_UP;
-		io.KeyMap[ImGuiKey_PageDown] 	= JM_KEY_PAGE_DOWN;
-		io.KeyMap[ImGuiKey_Home] 		= JM_KEY_HOME;
-		io.KeyMap[ImGuiKey_End] 		= JM_KEY_END;
-		io.KeyMap[ImGuiKey_Insert] 		= JM_KEY_INSERT;
-		io.KeyMap[ImGuiKey_Delete] 		= JM_KEY_DELETE;
-		io.KeyMap[ImGuiKey_Backspace] 	= JM_KEY_BACKSPACE;
-		io.KeyMap[ImGuiKey_Space] 		= JM_KEY_SPACE;
-		io.KeyMap[ImGuiKey_Enter] 		= JM_KEY_ENTER;
-		io.KeyMap[ImGuiKey_Escape] 		= JM_KEY_ESCAPE;
-		io.KeyMap[ImGuiKey_A] = JM_KEY_A;
-		io.KeyMap[ImGuiKey_C] = JM_KEY_C;
-		io.KeyMap[ImGuiKey_V] = JM_KEY_V;
-		io.KeyMap[ImGuiKey_X] = JM_KEY_X;
-		io.KeyMap[ImGuiKey_Y] = JM_KEY_Y;
-		io.KeyMap[ImGuiKey_Z] = JM_KEY_Z;
+		io.KeyMap[ImGuiKey_Tab] 		= LUMOS_KEY_TAB;
+		io.KeyMap[ImGuiKey_LeftArrow] 	= LUMOS_KEY_LEFT;
+		io.KeyMap[ImGuiKey_RightArrow] 	= LUMOS_KEY_RIGHT;
+		io.KeyMap[ImGuiKey_UpArrow] 	= LUMOS_KEY_UP;
+		io.KeyMap[ImGuiKey_DownArrow] 	= LUMOS_KEY_DOWN;
+		io.KeyMap[ImGuiKey_PageUp] 		= LUMOS_KEY_PAGE_UP;
+		io.KeyMap[ImGuiKey_PageDown] 	= LUMOS_KEY_PAGE_DOWN;
+		io.KeyMap[ImGuiKey_Home] 		= LUMOS_KEY_HOME;
+		io.KeyMap[ImGuiKey_End] 		= LUMOS_KEY_END;
+		io.KeyMap[ImGuiKey_Insert] 		= LUMOS_KEY_INSERT;
+		io.KeyMap[ImGuiKey_Delete] 		= LUMOS_KEY_DELETE;
+		io.KeyMap[ImGuiKey_Backspace] 	= LUMOS_KEY_BACKSPACE;
+		io.KeyMap[ImGuiKey_Space] 		= LUMOS_KEY_SPACE;
+		io.KeyMap[ImGuiKey_Enter] 		= LUMOS_KEY_ENTER;
+		io.KeyMap[ImGuiKey_Escape] 		= LUMOS_KEY_ESCAPE;
+		io.KeyMap[ImGuiKey_A] = LUMOS_KEY_A;
+		io.KeyMap[ImGuiKey_C] = LUMOS_KEY_C;
+		io.KeyMap[ImGuiKey_V] = LUMOS_KEY_V;
+		io.KeyMap[ImGuiKey_X] = LUMOS_KEY_X;
+		io.KeyMap[ImGuiKey_Y] = LUMOS_KEY_Y;
+		io.KeyMap[ImGuiKey_Z] = LUMOS_KEY_Z;
 	}
 }

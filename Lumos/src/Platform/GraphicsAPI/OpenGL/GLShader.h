@@ -1,11 +1,11 @@
 #pragma once
-#include "JM.h"
+#include "LM.h"
 #include "Graphics/API/Shader.h"
 #include "GLDebug.h"
 #include "GLShaderUniform.h"
 #include "GLShaderResource.h"
 
-namespace jm
+namespace Lumos
 {
 
 	struct GLShaderErrorInfo

@@ -1,12 +1,12 @@
 #pragma once
-#include "JM.h"
+#include "LM.h"
 
-namespace jm
+namespace Lumos
 {
 	class Framebuffer;
 }
 
-namespace jm
+namespace Lumos
 {
 	namespace graphics
 	{
@@ -24,7 +24,7 @@ namespace jm
 				
 			};
 
-			class JM_EXPORT CommandBuffer
+			class LUMOS_EXPORT CommandBuffer
 			{
 			public:
 

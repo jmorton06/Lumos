@@ -1,6 +1,6 @@
 #include "GraphicsScene.h"
 
-using namespace jm;
+using namespace Lumos;
 using namespace maths;
 
 GraphicsScene::GraphicsScene(const std::string& SceneName) : Scene(SceneName) {}

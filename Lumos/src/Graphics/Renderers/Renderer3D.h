@@ -1,9 +1,9 @@
 #pragma once
-#include "JM.h"
+#include "LM.h"
 #include "RenderCommand.h"
 
 
-namespace jm
+namespace Lumos
 {
 	class RenderList;
 	class Shader;
@@ -40,8 +40,8 @@ namespace jm
 		Framebuffer* m_FBO;
 		Shader* m_Shader;
 
-		jm::graphics::api::RenderPass* m_RenderPass;
-		jm::graphics::api::Pipeline* m_Pipeline;
+		Lumos::graphics::api::RenderPass* m_RenderPass;
+		Lumos::graphics::api::Pipeline* m_Pipeline;
 		graphics::api::DescriptorSet* m_DescriptorSet;
 
 		uint m_ScreenBufferWidth, m_ScreenBufferHeight;

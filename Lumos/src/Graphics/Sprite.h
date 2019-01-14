@@ -1,16 +1,16 @@
 #pragma once
-#include "JM.h"
+#include "LM.h"
 #include "Maths/Vector2.h"
 #include "Maths/Vector4.h"
 #include "Maths/Matrix4.h"
 
-namespace jm
+namespace Lumos
 {
 	class Material;
 	class Texture2D;
 	class Mesh;
 
-	class JM_EXPORT Sprite
+	class LUMOS_EXPORT Sprite
 	{
 	public:
 		Sprite(const maths::Vector2& position, const maths::Vector2& scale, const maths::Vector4& colour, float colourMix);

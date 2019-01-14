@@ -1,11 +1,11 @@
-#include "JM.h"
+#include "LM.h"
 #include "LuaScript.h"
 #include "LuaGlobals.h"
 
 #include "Bindings/LuaBindings.h"
 #include <mutex>
 
-namespace jm
+namespace Lumos
 {
 	LuaScripting* LuaScripting::g_Lua = nullptr;
 
@@ -31,7 +31,7 @@ namespace jm
 		{
 			g_Lua = new LuaScripting();
 
-			jm::luabindings::BindAll();
+			Lumos::luabindings::BindAll();
 		}
 		return g_Lua;
 	}
@@ -73,12 +73,12 @@ namespace jm
 
 			if (tobacklog)
 			{
-				JM_CORE_INFO(ss.str().c_str());
+				LUMOS_CORE_INFO(ss.str().c_str());
 			}
 			if (todebug)
 			{
 				ss << std::endl;
-				JM_CORE_INFO(ss.str().c_str());
+				LUMOS_CORE_INFO(ss.str().c_str());
 			}
 
 			lua_pop(m_luaState, 1); // remove error message
@@ -177,15 +177,15 @@ namespace jm
 	}
 	void LuaScripting::FixedUpdate()
 	{
-		TrySignal("jmengine_fixed_update_tick");
+		TrySignal("LumosEngine_fixed_update_tick");
 	}
 	void LuaScripting::Update()
 	{
-		TrySignal("jmengine_update_tick");
+		TrySignal("LumosEngine_update_tick");
 	}
 	void LuaScripting::Render()
 	{
-		TrySignal("jmengine_render_tick");
+		TrySignal("LumosEngine_render_tick");
 	}
 
 	inline void SignalHelper(lua_State* L, const std::string& name)
@@ -228,7 +228,7 @@ namespace jm
 		}
 		ss << std::endl;
 
-		JM_CORE_INFO(ss.str().c_str());
+		LUMOS_CORE_INFO(ss.str().c_str());
 
 		//number of results
 		return 0;
@@ -329,7 +329,7 @@ namespace jm
 		}
 		if (tobacklog)
 		{
-			JM_CORE_INFO(ss.str().c_str());
+			LUMOS_CORE_INFO(ss.str().c_str());
 		}
 	}
 

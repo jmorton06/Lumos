@@ -4,11 +4,11 @@
 #include "Events/Event.h"
 #include "Utilities/TimeStep.h"
 
-namespace jm
+namespace Lumos
 {
 	class Scene;
 
-	class JM_EXPORT Layer
+	class LUMOS_EXPORT Layer
 	{
 	public:
 		Layer(const std::string& name = "Layer");

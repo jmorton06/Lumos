@@ -1,9 +1,9 @@
-#include "JM.h"
+#include "LM.h"
 #include "CollisionDetection.h"
 
 #include "SphereCollisionShape.h"
 
-namespace jm
+namespace Lumos
 {
 
 	CollisionDetection::CollisionDetection()
@@ -21,7 +21,7 @@ namespace jm
 
 	bool CollisionDetection::InvalidCheckCollision(const PhysicsObject3D* obj1, const PhysicsObject3D* obj2, const CollisionShape* shape1, const CollisionShape* shape2, CollisionData* out_coldata) const
 	{
-		JM_CORE_ERROR("Invalid Collision type specified");
+		LUMOS_CORE_ERROR("Invalid Collision type specified");
 		return false;
 	}
 

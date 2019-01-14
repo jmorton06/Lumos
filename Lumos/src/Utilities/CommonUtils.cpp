@@ -1,4 +1,4 @@
-#include "JM.h"
+#include "LM.h"
 #include "CommonUtils.h"
 #include "Physics/JMPhysicsEngine/SphereCollisionShape.h"
 #include "Physics/JMPhysicsEngine/PyramidCollisionShape.h"
@@ -12,7 +12,7 @@
 #include "Renderer/Scene.h"
 #include "App/Application.h"
 
-namespace jm
+namespace Lumos
 {
 	using namespace maths;
 

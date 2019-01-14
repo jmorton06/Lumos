@@ -2,7 +2,7 @@
 
 #include "Graphics/API/IMGUIRenderer.h"
 
-namespace jm
+namespace Lumos
 {
 	namespace graphics
 	{
@@ -14,7 +14,7 @@ namespace jm
 
             void Init() override;
             void NewFrame() override;
-            void Render(jm::graphics::api::CommandBuffer* commandBuffer) override;
+            void Render(Lumos::graphics::api::CommandBuffer* commandBuffer) override;
 
         private:
 			void* m_WindowHandle;

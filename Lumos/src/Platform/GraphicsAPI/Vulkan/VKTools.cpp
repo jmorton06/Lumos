@@ -1,11 +1,11 @@
-#include "JM.h"
+#include "LM.h"
 #include "VKTools.h"
 #include "Graphics/API/DescriptorSet.h"
 #include "VKInitialisers.h"
 #include "Graphics/API/Pipeline.h"
 #include "Platform/GraphicsAPI/Vulkan/VKCommandBuffer.h"
 
-namespace jm
+namespace Lumos
 {
 	namespace graphics
 	{

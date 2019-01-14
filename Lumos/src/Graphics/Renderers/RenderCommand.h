@@ -1,19 +1,19 @@
 #pragma once
-#include "JM.h"
+#include "LM.h"
 #include "System/String.h"
 #include "Graphics/Mesh.h"
 #include "Graphics/API/Shader.h"
 
-namespace jm
+namespace Lumos
 {
 
-	struct JM_EXPORT RendererUniform
+	struct LUMOS_EXPORT RendererUniform
 	{
 		String uniform;
 		byte* value;
 	};
 
-	struct JM_EXPORT RenderCommand
+	struct LUMOS_EXPORT RenderCommand
 	{
 		Mesh* mesh;
 		maths::Matrix4 transform;

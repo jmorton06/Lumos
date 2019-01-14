@@ -1,4 +1,4 @@
-#include "JM.h"
+#include "LM.h"
 #include "VKIMGUIRenderer.h"
 #include "external/imgui/imgui.h"
 
@@ -22,7 +22,7 @@ static void check_vk_result(VkResult err)
         abort();
 }
 
-namespace jm
+namespace Lumos
 {
     namespace graphics
     {
@@ -318,7 +318,7 @@ namespace jm
             check_vk_result(err);
         }
 
-        void VKIMGUIRenderer::Render(jm::graphics::api::CommandBuffer* commandBuffer)
+        void VKIMGUIRenderer::Render(Lumos::graphics::api::CommandBuffer* commandBuffer)
         {
             //FrameRender(&g_WindowData);
            // FramePresent(&g_WindowData);

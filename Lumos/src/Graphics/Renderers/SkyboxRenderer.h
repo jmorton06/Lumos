@@ -1,8 +1,8 @@
 #pragma once
-#include "JM.h"
+#include "LM.h"
 #include "Renderer3D.h"
 
-namespace jm
+namespace Lumos
 {
 	class LightSetup;
 	class TextureDepth;
@@ -33,7 +33,7 @@ namespace jm
 
 		struct UniformBufferObject
 		{
-			jm::maths::Matrix4 invprojview;
+			Lumos::maths::Matrix4 invprojview;
 		};
 
 	private:
@@ -48,8 +48,8 @@ namespace jm
 		std::vector<uint> m_VSSystemUniformBufferOffsets;
 		std::vector<uint> m_PSSystemUniformBufferOffsets;
 
-		jm::graphics::api::UniformBuffer* m_UniformBuffer;
-		std::vector<jm::graphics::api::CommandBuffer*> m_CommandBuffers;
+		Lumos::graphics::api::UniformBuffer* m_UniformBuffer;
+		std::vector<Lumos::graphics::api::CommandBuffer*> m_CommandBuffers;
 
 		Mesh* m_Skybox;
 		Texture* m_CubeMap;

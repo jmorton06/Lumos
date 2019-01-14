@@ -1,7 +1,7 @@
-#include "JM.h"
+#include "LM.h"
 #include "LightSetUp.h"
 
-namespace jm
+namespace Lumos
 {
 
 	LightSetup::LightSetup()

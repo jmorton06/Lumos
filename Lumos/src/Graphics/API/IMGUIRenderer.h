@@ -1,7 +1,7 @@
 #pragma once
-#include "JM.h"
+#include "LM.h"
 
-namespace jm
+namespace Lumos
 {
     namespace graphics
     {
@@ -9,7 +9,7 @@ namespace jm
         {
             class CommandBuffer;
 
-            class JM_EXPORT IMGUIRenderer
+            class LUMOS_EXPORT IMGUIRenderer
             {
             public:
                 static IMGUIRenderer* Create(uint width, uint height, void* windowHandle);

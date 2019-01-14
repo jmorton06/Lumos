@@ -1,10 +1,10 @@
-#include "JM.h"																									
+#include "LM.h"																									
 
 
 #include "GLFMWindow.h"
 #include "Graphics/API/Context.h"
 
-namespace jm
+namespace Lumos
 {
 
 	GLFMWindow::GLFMWindow(const WindowProperties& properties, const String& title)

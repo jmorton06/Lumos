@@ -3,7 +3,7 @@
 #include "Graphics/API/VertexBuffer.h"
 #include "GLDebug.h"
 
-namespace jm
+namespace Lumos
 {
 	class GLVertexBuffer : public VertexBuffer
 	{

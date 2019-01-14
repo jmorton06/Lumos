@@ -1,19 +1,19 @@
 #pragma once
-#include "JM.h"
+#include "LM.h"
 #include "Vector3.h"
 #include "Vector4.h"
 #include "MathsCommon.h"
 
-namespace jm
+namespace Lumos
 {
 	namespace maths
 	{
 		class Vector3;
 		class Matrix3;
 
-#ifdef JM_SSEMAT4
+#ifdef LUMOS_SSEMAT4
 
-		class JM_EXPORT MEM_ALIGN Matrix4
+		class LUMOS_EXPORT MEM_ALIGN Matrix4
 		{
 		public:
 			inline Matrix4()
@@ -59,7 +59,7 @@ namespace jm
 
 			inline Vector4 GetCol(unsigned int column) const
 			{
-#ifdef JM_SSEVEC4
+#ifdef LUMOS_SSEVEC4
 				return Vector4(mmvalues[column]);
 #else
 				return Vector4();// mmvalues[column]);
@@ -75,7 +75,7 @@ namespace jm
 			}
 
 			inline void SetCol(unsigned int column, const Vector4 &val) {
-#ifdef JM_SSEVEC4
+#ifdef LUMOS_SSEVEC4
 				mmvalues[column] = val.m_Value;
 #endif
 			}
@@ -85,7 +85,7 @@ namespace jm
 				return Vector3(values[12], values[13], values[14]);
 			}
 
-#ifdef JM_SSEVEC3
+#ifdef LUMOS_SSEVEC3
 
 			inline Vector3 GetTranslationMemAligned() const
 			{
@@ -414,7 +414,7 @@ namespace jm
 
 #else
 
-        class JM_EXPORT Matrix4
+        class LUMOS_EXPORT Matrix4
         {
         public:
 

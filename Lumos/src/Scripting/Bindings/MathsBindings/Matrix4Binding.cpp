@@ -1,9 +1,9 @@
-#include "JM.h"
+#include "LM.h"
 #include "Matrix4Binding.h"
 #include "Scripting/LuaScript.h"
 #include "Vector4Binding.h"
 
-namespace jm
+namespace Lumos
 {
 	const char Matrix4Binding::className[] = "Matrix4";
 

@@ -1,10 +1,10 @@
-#include "JM.h"
+#include "LM.h"
 #include "GLRenderPass.h"
 #include "Graphics/API/Renderer.h"
 #include "GLFrameBuffer.h"
 #include "GLDebug.h"
 
-namespace jm
+namespace Lumos
 {
     namespace graphics
     {
@@ -50,7 +50,7 @@ namespace jm
 
         void GLRenderPass::EndRenderpass(api::CommandBuffer *commandBuffer)
         {
-#ifdef JM_DEBUG
+#ifdef LUMOS_DEBUG
 			GLCall(glBindFramebuffer(GL_FRAMEBUFFER, 0));
 #endif
         }

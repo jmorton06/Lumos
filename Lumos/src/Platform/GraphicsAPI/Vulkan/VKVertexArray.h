@@ -2,7 +2,7 @@
 
 #include "Graphics/API/VertexArray.h"
 
-namespace jm
+namespace Lumos
 {
 	namespace graphics
 	{

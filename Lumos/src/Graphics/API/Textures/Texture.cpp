@@ -1,7 +1,7 @@
-#include "JM.h"
+#include "LM.h"
 #include "Texture.h"
 
-namespace jm
+namespace Lumos
 {
 
 	TextureWrap Texture::s_WrapMode = TextureWrap::REPEAT;

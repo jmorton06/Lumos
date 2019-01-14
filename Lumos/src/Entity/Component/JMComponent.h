@@ -1,9 +1,9 @@
 #pragma once
 
-#include "JM.h"
+#include "LM.h"
 #include "Maths/BoundingShape.h"
 
-namespace jm 
+namespace Lumos 
 {
 	class Entity;
 
@@ -22,7 +22,7 @@ namespace jm
         Error
 	};
 
-	class JM_EXPORT JMComponent
+	class LUMOS_EXPORT JMComponent
 	{
 	public:
 		virtual ~JMComponent() = default;

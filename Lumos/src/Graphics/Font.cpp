@@ -1,4 +1,4 @@
-#include "JM.h"
+#include "LM.h"
 #include "Font.h"
 #include "System/VFS.h"
 #include "Utilities/AssetsManager.h"
@@ -11,7 +11,7 @@
 #include <ft2build.h>
 #include FT_FREETYPE_H
 
-namespace jm
+namespace Lumos
 {
     Font::Font(const char* fontName)
             : m_VAO(nullptr)
@@ -20,13 +20,13 @@ namespace jm
         m_Material = std::make_shared<Material>();//std::shared_ptr<Shader>(Shader::CreateFromFile("text", "/Shaders/Scene/text")));
 
         String filePath = String(fontName);
-#ifdef JM_PLATFORM_MOBILE
+#ifdef LUMOS_PLATFORM_MOBILE
         if (filePath.find_last_of("/") != String::npos)
             filePath = filePath.substr(filePath.find_last_of("/") + 1);
 #endif
 
         std::string physicalPath;
-        jm::VFS::Get()->ResolvePhysicalPath(filePath, physicalPath);
+        Lumos::VFS::Get()->ResolvePhysicalPath(filePath, physicalPath);
         fontName = physicalPath.c_str();
 
         FT_Library ft;
@@ -34,13 +34,13 @@ namespace jm
 
         // All functions return a value different than 0 whenever an error occurred
         if (FT_Init_FreeType(&ft))
-            JM_CORE_ERROR("ERROR::FREETYPE: Could not init FreeType Library");
+            LUMOS_CORE_ERROR("ERROR::FREETYPE: Could not init FreeType Library");
 
         // Load font as face
 
         //if (FT_New_Face(ft, TEXTUREDIR"OpenSans-Semibold.ttf", 0, &face))
         if (FT_New_Face(ft, fontName, 0, &face))
-            JM_CORE_ERROR("ERROR::FREETYPE: Failed to load font");
+            LUMOS_CORE_ERROR("ERROR::FREETYPE: Failed to load font");
 
         // Set size to load glyphs as
         FT_Set_Pixel_Sizes(face, 0, 48);
@@ -54,7 +54,7 @@ namespace jm
             // Load character glyph
             if (FT_Load_Char(face, c, FT_LOAD_RENDER))
             {
-                JM_CORE_ERROR("ERROR::FREETYTPE: Failed to load Glyph");
+                LUMOS_CORE_ERROR("ERROR::FREETYTPE: Failed to load Glyph");
                 continue;
             }
 

@@ -1,10 +1,10 @@
-#include "JM.h"
+#include "LM.h"
 #include "VKUniformBuffer.h"
 #include "VKDevice.h"
 #include "VKTools.h"
 #include "VKInitialisers.h"
 
-namespace jm
+namespace Lumos
 {
 	namespace graphics
 	{

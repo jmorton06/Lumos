@@ -1,4 +1,4 @@
-#include "JM.h"
+#include "LM.h"
 #include "DebugRenderer.h"
 #include "Graphics/API/Textures/Texture2D.h"
 #include "App/Window.h"
@@ -13,7 +13,7 @@
 #include <cstdarg>
 #include <cstdio>
 
-namespace jm
+namespace Lumos
 {
 	maths::Vector3	DebugRenderer::m_CameraPosition;
 	maths::Matrix4	DebugRenderer::m_ProjMtx;
@@ -42,19 +42,19 @@ namespace jm
 	uint DebugRenderer::m_Width = 0;
 	uint DebugRenderer::m_Height = 0;
 
-#ifdef JM_PLATFORM_WINDOWS
+#ifdef LUMOS_PLATFORM_WINDOWS
 #define VSNPRINTF( _DstBuf, _DstSize, _MaxCount, _Format, _ArgList ) vsnprintf_s( _DstBuf, _DstSize, _MaxCount, _Format, _ArgList )
-#elif JM_PLATFORM_MACOS
+#elif LUMOS_PLATFORM_MACOS
 #define VSNPRINTF( _DstBuf, _DstSize, _MaxCount, _Format, _ArgList ) vsnprintf_l( _DstBuf, _DstSize, _MaxCount, _Format, _ArgList )
-#elif JM_PLATFORM_LINUX
+#elif LUMOS_PLATFORM_LINUX
 #define VSNPRINTF( _DstBuf, _DstSize, _MaxCount, _Format, _ArgList ) vsnprintf( _DstBuf, _DstSize, _Format, _ArgList )
-#elif JM_PLATFORM_MOBILE
+#elif LUMOS_PLATFORM_MOBILE
 #define VSNPRINTF( _DstBuf, _DstSize, _MaxCount, _Format, _ArgList ) 0
 #else
 #define VSNPRINTF( _DstBuf, _DstSize, _MaxCount, _Format, _ArgList ) 0
 #endif
 
-#ifndef JM_PLATFORM_WINDOWS
+#ifndef LUMOS_PLATFORM_WINDOWS
 #define _TRUNCATE 0
 #endif
 
@@ -347,7 +347,7 @@ namespace jm
 			m_LogEntriesOffset = (m_LogEntriesOffset + 1) % MAX_LOG_SIZE;
 		}
 
-		JM_CORE_WARN(text);
+		LUMOS_CORE_WARN(text);
 	}
 
 	void DebugRenderer::Log(const maths::Vector3& colour, const std::string text, ...)
@@ -435,7 +435,7 @@ namespace jm
 
 	void DebugRenderer::DebugDraw(maths::BoundingSphere* sphere, const maths::Vector4 &colour)
 	{
-		jm::DebugRenderer::DrawPointNDT(sphere->Centre(), sphere->SphereRadius(), colour);
+		Lumos::DebugRenderer::DrawPointNDT(sphere->Centre(), sphere->SphereRadius(), colour);
 	}
 
 	void DebugRenderer::ClearDebugLists()
@@ -735,7 +735,7 @@ namespace jm
 		m_FontTex = Texture2D::CreateFromFile("Debug Font", "/Textures/font512.png", TextureParameters(), TextureLoadOptions());
 		if (!m_FontTex)
 		{
-			JM_CORE_ERROR("JMDebug could not load font texture", "");
+			LUMOS_CORE_ERROR("JMDebug could not load font texture", "");
 		}
 	}
 

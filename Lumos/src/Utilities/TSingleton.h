@@ -1,8 +1,8 @@
 #pragma once
-#include "JM.h"
+#include "LM.h"
 #include <mutex>
 
-namespace jm
+namespace Lumos
 {
 
 	template <class T>

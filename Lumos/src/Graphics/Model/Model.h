@@ -1,6 +1,6 @@
 #pragma once
 
-#include "JM.h"
+#include "LM.h"
 #include "../Mesh.h"
 #include "../Material.h"
 
@@ -10,14 +10,14 @@ struct aiScene;
 struct aiNode;
 #endif
 
-namespace jm
+namespace Lumos
 {
 	class Shader;
 	class Texture2D;
 	struct TextureParameters;
 	struct Bone;
 
-	class JM_EXPORT Model
+	class LUMOS_EXPORT Model
 	{
 	public:
 

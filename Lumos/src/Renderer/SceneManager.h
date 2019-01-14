@@ -1,12 +1,12 @@
 #pragma once
 
-#include "JM.h"
+#include "LM.h"
 
-namespace jm
+namespace Lumos
 {
 	class Scene;
 
-	class JM_EXPORT SceneManager
+	class LUMOS_EXPORT SceneManager
     {
 	public:
         SceneManager();

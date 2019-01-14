@@ -1,13 +1,13 @@
 #pragma once
 
-#include "JM.h"
+#include "LM.h"
 
-namespace jm
+namespace Lumos
 { 
 	namespace internal 
 	{
 	// Low-level system operations
-	class JM_EXPORT System
+	class LUMOS_EXPORT System
 	{
 	public:
 		static void Init();

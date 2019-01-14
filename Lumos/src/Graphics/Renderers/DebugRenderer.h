@@ -1,13 +1,13 @@
 #pragma once
 
-#include "JM.h"
+#include "LM.h"
 #include "Maths/Maths.h"
 
-#ifndef JM_PLATFORM_WINDOWS
+#ifndef LUMOS_PLATFORM_WINDOWS
 #include <signal.h>
 #endif
 
-namespace jm
+namespace Lumos
 {
 
 #define MAX_LOG_SIZE		25
@@ -38,7 +38,7 @@ namespace jm
 		class BoundingBox;
 	}
 
-	class JM_EXPORT DebugRenderer
+	class LUMOS_EXPORT DebugRenderer
 	{
 		friend class Scene;
 		friend class GraphicsPipeline;

@@ -1,7 +1,7 @@
-﻿#include "JM.h"
+﻿#include "LM.h"
 #include "TextureMatrixComponent.h"
 
-namespace jm
+namespace Lumos
 {
 	TextureMatrixComponent::TextureMatrixComponent(const maths::Matrix4& matrix)
 		: m_TextureMatrix(matrix)

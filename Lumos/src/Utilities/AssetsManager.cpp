@@ -1,9 +1,9 @@
-#include "JM.h"
+#include "LM.h"
 #include "AssetsManager.h"
 #include "Graphics/Model/Model.h"
 #include "Graphics/MeshFactory.h"
 
-namespace jm
+namespace Lumos
 {
 	AssetManager<Model>*	 AssetsManager::s_DefaultModels   = nullptr;
 	AssetManager<Texture2D>* AssetsManager::s_DefaultTextures = nullptr;

@@ -1,13 +1,13 @@
 #pragma once
-#include "JM.h"
+#include "LM.h"
 #include "Scripting/LuaScript.h"
 #include "Scripting/Luna.h"
 
-namespace jm
+namespace Lumos
 {
     class Scene;
 
-    class JM_EXPORT SceneBinding
+    class LUMOS_EXPORT SceneBinding
     {
     public:
         static const char className[];

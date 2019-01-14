@@ -1,9 +1,9 @@
 #pragma once
-#include "JM.h"
+#include "LM.h"
 #include "Maths/Maths.h"
 #include "Renderer3D.h"
 
-namespace jm
+namespace Lumos
 {
 
 	class TextureDepthArray;
@@ -71,12 +71,12 @@ namespace jm
 
 		struct UniformBufferObject
 		{
-			jm::maths::Matrix4 projView;
+			Lumos::maths::Matrix4 projView;
 		};
 
 		struct UniformBufferModel
 		{
-			jm::maths::Matrix4* model;
+			Lumos::maths::Matrix4* model;
 		};
 
 		void CreateGraphicsPipeline(graphics::api::RenderPass* renderPass);
@@ -96,9 +96,9 @@ namespace jm
 		RenderList**	m_apShadowRenderLists;
 		bool			m_DeleteTexture = false;
 
-		jm::graphics::api::UniformBuffer* m_UniformBuffer;
-		jm::graphics::api::UniformBuffer* m_ModelUniformBuffer;
-		jm::graphics::api::CommandBuffer* m_CommandBuffer;
+		Lumos::graphics::api::UniformBuffer* m_UniformBuffer;
+		Lumos::graphics::api::UniformBuffer* m_ModelUniformBuffer;
+		Lumos::graphics::api::CommandBuffer* m_CommandBuffer;
 
 		uint m_Layer = 0;
 

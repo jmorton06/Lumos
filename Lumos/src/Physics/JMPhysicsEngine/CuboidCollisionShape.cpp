@@ -1,9 +1,9 @@
-#include "JM.h"
+#include "LM.h"
 #include "CuboidCollisionShape.h"
 #include "PhysicsObject3D.h"
 #include "Maths/Matrix3.h"
 
-namespace jm
+namespace Lumos
 {
 
 	std::shared_ptr<Hull> CuboidCollisionShape::m_CubeHull = std::make_shared<Hull>();

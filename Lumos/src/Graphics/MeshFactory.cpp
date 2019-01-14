@@ -1,4 +1,4 @@
-#include "JM.h"
+#include "LM.h"
 #include "MeshFactory.h"
 #include "Maths/BoundingSphere.h"
 #include "Mesh.h"
@@ -6,7 +6,7 @@
 #include "API/VertexArray.h"
 #include "Maths/Maths.h"
 
-namespace jm
+namespace Lumos
 {
     namespace MeshFactory
     {
@@ -69,18 +69,18 @@ namespace jm
 
             data[0].Position = maths::Vector3(-1.0f, -1.0f, 0.0f);
             data[0].TexCoords = maths::Vector2(0.0f, 0.0f);
-			data[0].Colours = jm::maths::Vector4(0.0f);
+			data[0].Colours = Lumos::maths::Vector4(0.0f);
 
             data[1].Position = maths::Vector3(1.0f, -1.0f, 0.0f);
-			data[1].Colours = jm::maths::Vector4(0.0f);
+			data[1].Colours = Lumos::maths::Vector4(0.0f);
             data[1].TexCoords = maths::Vector2(1.0f, 0.0f);
 
             data[2].Position = maths::Vector3(1.0f, 1.0f, 0.0f);
-			data[2].Colours = jm::maths::Vector4(0.0f);
+			data[2].Colours = Lumos::maths::Vector4(0.0f);
             data[2].TexCoords = maths::Vector2(1.0f, 1.0f);
 
             data[3].Position = maths::Vector3(-1.0f, 1.0f, 0.0f);
-			data[3].Colours = jm::maths::Vector4(0.0f);
+			data[3].Colours = Lumos::maths::Vector4(0.0f);
             data[3].TexCoords = maths::Vector2(0.0f, 1.0f);
 
             std::shared_ptr<VertexArray> va;

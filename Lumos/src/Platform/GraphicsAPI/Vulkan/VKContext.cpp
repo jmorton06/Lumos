@@ -1,11 +1,11 @@
-#include "JM.h"
+#include "LM.h"
 #include "VKContext.h"
 #include "VKDevice.h"
 #include "VKCommandPool.h"
 #include "VKCommandBuffer.h"
 
 
-namespace jm
+namespace Lumos
 {
 	namespace graphics
 	{
@@ -102,28 +102,28 @@ namespace jm
 
 			if (flags & VK_DEBUG_REPORT_ERROR_BIT_EXT)
 			{
-				JM_CORE_WARN("[VULKAN] - ERROR : [{0}] Code {1}  : {2}", layerPrefix, code, msg);
+				LUMOS_CORE_WARN("[VULKAN] - ERROR : [{0}] Code {1}  : {2}", layerPrefix, code, msg);
 			};
 			// Warnings may hint at unexpected / non-spec API usage
 			if (flags & VK_DEBUG_REPORT_WARNING_BIT_EXT)
 			{
-				JM_CORE_WARN("[VULKAN] - WARNING : [{0}] Code {1}  : {2}", layerPrefix, code, msg);
+				LUMOS_CORE_WARN("[VULKAN] - WARNING : [{0}] Code {1}  : {2}", layerPrefix, code, msg);
 			};
 			// May indicate sub-optimal usage of the API
 			if (flags & VK_DEBUG_REPORT_PERFORMANCE_WARNING_BIT_EXT)
 			{
-				JM_CORE_INFO("[VULKAN] - PERFORMANCE : [{0}] Code {1}  : {2}", layerPrefix, code, msg);
+				LUMOS_CORE_INFO("[VULKAN] - PERFORMANCE : [{0}] Code {1}  : {2}", layerPrefix, code, msg);
 			};
 			// Informal messages that may become handy during debugging
 			if (flags & VK_DEBUG_REPORT_INFORMATION_BIT_EXT)
 			{
-				JM_CORE_INFO("[VULKAN] - INFO : [{0}] Code {1}  : {2}", layerPrefix, code, msg);
+				LUMOS_CORE_INFO("[VULKAN] - INFO : [{0}] Code {1}  : {2}", layerPrefix, code, msg);
 			}
 			// Diagnostic info from the Vulkan loader and layers
 			// Usually not helpful in terms of API usage, but may help to debug layer and loader problems 
 			if (flags & VK_DEBUG_REPORT_DEBUG_BIT_EXT)
 			{
-				JM_CORE_INFO("[VULKAN] - DEBUG : [{0}] Code {1}  : {2}", layerPrefix, code, msg);
+				LUMOS_CORE_INFO("[VULKAN] - DEBUG : [{0}] Code {1}  : {2}", layerPrefix, code, msg);
 			}
 
 			return VK_FALSE;
@@ -200,7 +200,7 @@ namespace jm
 			VkResult createResult = vkCreateInstance(&createInfo, nullptr, &m_VkInstance);
 			if (createResult != VK_SUCCESS)
 			{
-				JM_CORE_ERROR("failed to create instance!");
+				LUMOS_CORE_ERROR("failed to create instance!");
 			}
 		}
 

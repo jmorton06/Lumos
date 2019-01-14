@@ -1,10 +1,10 @@
 #pragma once
-#include "JM.h"
+#include "LM.h"
 #include "Entity/Entity.h"
 #include "Maths/Frustum.h"
 #include "Maths/Maths.h"
 
-namespace jm
+namespace Lumos
 {
 
 	//Maximum number of elements added to the renderlist per frame
@@ -16,13 +16,13 @@ namespace jm
 	// - Transparent objects however always need to be sorted in order to correctly blend with background objects.
 #define SORT_OPAQUE_LIST FALSE
 
-	struct JM_EXPORT RenderList_Object
+	struct LUMOS_EXPORT RenderList_Object
 	{
 		float cam_dist_sq;
 		Entity* target_obj;
 	};
 
-	class JM_EXPORT RenderList
+	class LUMOS_EXPORT RenderList
 	{
 	public:
 

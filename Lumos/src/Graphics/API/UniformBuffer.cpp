@@ -1,17 +1,17 @@
-#include "JM.h"
+#include "LM.h"
 #include "UniformBuffer.h"
 
 #include "Context.h"
 
-#ifdef JM_RENDER_API_VULKAN 
+#ifdef LUMOS_RENDER_API_VULKAN 
 #include "Platform/GraphicsAPI/Vulkan/VKUniformBuffer.h"
 #endif
 
-#ifdef JM_RENDER_API_OPENGL
+#ifdef LUMOS_RENDER_API_OPENGL
 #include "Platform/GraphicsAPI/OpenGL/GLUniformBuffer.h"
 #endif
 
-namespace jm
+namespace Lumos
 {
 	namespace graphics
 	{
@@ -21,13 +21,13 @@ namespace jm
 			{
 				switch (graphics::Context::GetRenderAPI())
 				{
-#ifdef JM_RENDER_API_OPENGL
+#ifdef LUMOS_RENDER_API_OPENGL
 				case RenderAPI::OPENGL:	return new GLUniformBuffer();
 #endif
-#ifdef JM_RENDER_API_VULKAN
+#ifdef LUMOS_RENDER_API_VULKAN
 				case RenderAPI::VULKAN:	return new graphics::VKUniformBuffer();
 #endif
-#ifdef JM_RENDER_API_DIRECT3D
+#ifdef LUMOS_RENDER_API_DIRECT3D
 				case RenderAPI::DIRECT3D: return nullptr;
 #endif
 				}
@@ -38,13 +38,13 @@ namespace jm
 			{
 				switch (graphics::Context::GetRenderAPI())
 				{
-#ifdef JM_RENDER_API_OPENGL
+#ifdef LUMOS_RENDER_API_OPENGL
 				case RenderAPI::OPENGL:	return new GLUniformBuffer();
 #endif
-#ifdef JM_RENDER_API_VULKAN
+#ifdef LUMOS_RENDER_API_VULKAN
 				case RenderAPI::VULKAN:	return new graphics::VKUniformBuffer(size,data);
 #endif
-#ifdef JM_RENDER_API_DIRECT3D
+#ifdef LUMOS_RENDER_API_DIRECT3D
 				case RenderAPI::DIRECT3D: return nullptr;
 #endif
 				}

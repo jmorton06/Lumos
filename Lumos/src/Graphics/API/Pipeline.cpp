@@ -1,16 +1,16 @@
-#include "JM.h"
+#include "LM.h"
 #include "Pipeline.h"
 #include "Context.h"
 
-#ifdef JM_RENDER_API_VULKAN
+#ifdef LUMOS_RENDER_API_VULKAN
 #include "Platform/GraphicsAPI/Vulkan/VKPipeline.h"
 #endif
 
-#ifdef JM_RENDER_API_OPENGL
+#ifdef LUMOS_RENDER_API_OPENGL
 #include "Platform/GraphicsAPI/OpenGL/GLPipeline.h"
 #endif
 
-namespace jm
+namespace Lumos
 {
 	namespace graphics
 	{
@@ -20,10 +20,10 @@ namespace jm
 			{
 				switch (Context::GetRenderAPI())
 				{
-#ifdef JM_RENDER_API_OPENGL
+#ifdef LUMOS_RENDER_API_OPENGL
 					case OPENGL: return new GLPipeline(pipelineInfo);
 #endif
-#ifdef JM_RENDER_API_VULKAN
+#ifdef LUMOS_RENDER_API_VULKAN
 					case VULKAN: return new VKPipeline(pipelineInfo);
 #endif
 				}

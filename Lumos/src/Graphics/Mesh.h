@@ -1,5 +1,5 @@
 #pragma once
-#include "JM.h"
+#include "LM.h"
 
 #include "API/IndexBuffer.h"
 #include "API/VertexArray.h"
@@ -8,7 +8,7 @@
 
 #include <array>
 
-namespace jm
+namespace Lumos
 {
 	class Material;
 	class Texture2D;
@@ -20,14 +20,14 @@ namespace jm
 		class BoundingSphere;
 	}
 
-    struct JM_EXPORT BasicVertex
+    struct LUMOS_EXPORT BasicVertex
     {
 		maths::Vector3 Position;
 		maths::Vector3 color;
 		maths::Vector2 TexCoords;
     };
 
-	struct JM_EXPORT Vertex
+	struct LUMOS_EXPORT Vertex
 	{
 		Vertex()
 			: Position(maths::Vector3(0.0f))
@@ -83,7 +83,7 @@ namespace jm
 		}
 	};
 
-	class JM_EXPORT Mesh
+	class LUMOS_EXPORT Mesh
 	{
 	public:
 
@@ -126,15 +126,15 @@ namespace jm
 
 namespace std
 {
-	template<> struct hash<jm::Vertex>
+	template<> struct hash<Lumos::Vertex>
 	{
-		size_t operator()(jm::Vertex const& vertex) const
+		size_t operator()(Lumos::Vertex const& vertex) const
 		{
-			return ((hash<jm::maths::Vector3>()(vertex.Position) ^
-				(hash<jm::maths::Vector2>()(vertex.TexCoords) << 1) ^
-				(hash<jm::maths::Vector4>()(vertex.Colours) << 1) ^
-				(hash<jm::maths::Vector3>()(vertex.Normal) << 1) ^
-				(hash<jm::maths::Vector3>()(vertex.Tangent) << 1)));
+			return ((hash<Lumos::maths::Vector3>()(vertex.Position) ^
+				(hash<Lumos::maths::Vector2>()(vertex.TexCoords) << 1) ^
+				(hash<Lumos::maths::Vector4>()(vertex.Colours) << 1) ^
+				(hash<Lumos::maths::Vector3>()(vertex.Normal) << 1) ^
+				(hash<Lumos::maths::Vector3>()(vertex.Tangent) << 1)));
 		}
 
 	};

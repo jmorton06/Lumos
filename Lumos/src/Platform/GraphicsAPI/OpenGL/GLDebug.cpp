@@ -1,11 +1,11 @@
-#include "JM.h"
+#include "LM.h"
 #include "GLDebug.h"
 
 #include "Graphics/Mesh.h"
 #include "Graphics/Material.h"
 #include "Maths/MathsUtilities.h"
 
-namespace jm
+namespace Lumos
 {
 
 	DebugDrawData* GLDebug::s_OrthoDebugData	   = nullptr;

@@ -1,8 +1,8 @@
 #pragma once
-#include "JM.h"
+#include "LM.h"
 #include "Graphics/API/UniformBuffer.h"
 
-namespace jm
+namespace Lumos
 {
 	class GLShader;
 

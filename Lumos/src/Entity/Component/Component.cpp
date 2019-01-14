@@ -1,6 +1,6 @@
-#include "JM.h"
+#include "LM.h"
 #include "JMComponent.h"
 
-namespace jm 
+namespace Lumos 
 {
 }

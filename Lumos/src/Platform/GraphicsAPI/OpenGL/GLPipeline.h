@@ -1,8 +1,8 @@
 #pragma once
-#include "JM.h"
+#include "LM.h"
 #include "Graphics/API/Pipeline.h"
 
-namespace jm
+namespace Lumos
 {
     namespace graphics
     {

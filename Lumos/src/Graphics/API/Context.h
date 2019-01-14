@@ -1,23 +1,23 @@
 #pragma once
-#include "JM.h"
+#include "LM.h"
 #include "App/Window.h"
 
-enum JM_EXPORT RenderAPI
+enum LUMOS_EXPORT RenderAPI
 {
-#ifdef JM_RENDER_API_OPENGL
+#ifdef LUMOS_RENDER_API_OPENGL
 	OPENGL,
 #endif
 
-#ifdef JM_RENDER_API_DIRECT3D
+#ifdef LUMOS_RENDER_API_DIRECT3D
 	DIRECT3D,
 #endif
 
-#ifdef JM_RENDER_API_VULKAN
+#ifdef LUMOS_RENDER_API_VULKAN
 	VULKAN,
 #endif
 };
 
-namespace jm
+namespace Lumos
 {
 
 	class Material;
@@ -27,7 +27,7 @@ namespace jm
 	namespace graphics
 	{
 
-		class JM_EXPORT Context
+		class LUMOS_EXPORT Context
 		{
 		public:
 			virtual ~Context();

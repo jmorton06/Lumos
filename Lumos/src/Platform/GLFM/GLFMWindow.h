@@ -1,12 +1,12 @@
 #pragma once
 
-#include "JM.h"
+#include "LM.h"
 #include "Input/Window.h"
 
-namespace jm
+namespace Lumos
 {
 
-	class JM_EXPORT GLFMWindow : public Window
+	class LUMOS_EXPORT GLFMWindow : public Window
 	{
 	public:
 		GLFMWindow(const WindowProperties& properties, const String& title);

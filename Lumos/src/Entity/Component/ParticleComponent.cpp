@@ -1,4 +1,4 @@
-#include "JM.h"
+#include "LM.h"
 #include "ParticleComponent.h"
 #include "Graphics/ParticleEmitter.h"
 #include "Entity/Entity.h"
@@ -7,7 +7,7 @@
 #include "Maths/BoundingSphere.h"
 #include "Graphics/Renderers/DebugRenderer.h"
 
-namespace jm
+namespace Lumos
 {
     ParticleComponent::ParticleComponent(std::shared_ptr<ParticleEmitter>& emitter)
             : m_ParticleEmitter(emitter), m_PositionOffset(maths::Vector3(0.0f,0.0f,0.0f))

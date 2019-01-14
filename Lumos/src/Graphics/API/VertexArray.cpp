@@ -1,31 +1,31 @@
-#include "JM.h"
+#include "LM.h"
 #include "VertexArray.h"
 
-#ifdef JM_RENDER_API_OPENGL
+#ifdef LUMOS_RENDER_API_OPENGL
 #include "Platform/GraphicsAPI/OpenGL/GLVertexArray.h"
 #endif
-#ifdef JM_RENDER_API_DIRECT3D
+#ifdef LUMOS_RENDER_API_DIRECT3D
 #include "graphics/DirectX/DXVertexArray.h"
 #endif
 #include "Graphics/API/Context.h"
-#ifdef JM_RENDER_API_VULKAN
+#ifdef LUMOS_RENDER_API_VULKAN
 #include "Platform/GraphicsAPI/Vulkan/VKVertexArray.h"
 #endif
 
-namespace jm
+namespace Lumos
 {
 
 	VertexArray* VertexArray::Create()
 	{
 		switch (graphics::Context::GetRenderAPI())
 		{
-#ifdef JM_RENDER_API_OPENGL
+#ifdef LUMOS_RENDER_API_OPENGL
 		case RenderAPI::OPENGL:		return new GLVertexArray();
 #endif
-#ifdef JM_RENDER_API_VULKAN
+#ifdef LUMOS_RENDER_API_VULKAN
 		case RenderAPI::VULKAN:		return new graphics::VKVertexArray();
 #endif
-#ifdef JM_RENDER_API_DIRECT3D
+#ifdef LUMOS_RENDER_API_DIRECT3D
 		case RenderAPI::DIRECT3D:	return new D3DVertexArray();
 #endif
 		}

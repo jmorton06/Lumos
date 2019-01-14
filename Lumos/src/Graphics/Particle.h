@@ -1,13 +1,13 @@
 #pragma once
-#include "JM.h"
+#include "LM.h"
 #include "Maths/Maths.h"
 
 #define GRAVITY -9.8f
 
-namespace jm
+namespace Lumos
 {
 
-	class JM_EXPORT Particle
+	class LUMOS_EXPORT Particle
 	{
 	public:
 		Particle();

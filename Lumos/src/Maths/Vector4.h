@@ -1,18 +1,18 @@
 #pragma once
-#include "JM.h"
+#include "LM.h"
 #include "Vector3.h" 
 #include "MathsCommon.h"
 
-namespace jm
+namespace Lumos
 {
 	namespace maths
 	{
-		class JM_EXPORT MEM_ALIGN Vector4
+		class LUMOS_EXPORT MEM_ALIGN Vector4
 		{
 		public:
 			Vector4()
 			{
-#ifdef JM_SSEVEC4
+#ifdef LUMOS_SSEVEC4
 				m_Value = _mm_set1_ps(1.0f);
 #else
 				x = y = z = w = 1.0f;
@@ -21,7 +21,7 @@ namespace jm
 
 			Vector4(float xVal, float yVal, float zVal, float wVal)
 			{
-#ifdef JM_SSEVEC4
+#ifdef LUMOS_SSEVEC4
 				m_Value = _mm_set_ps(wVal, zVal, yVal, xVal);
 #else
                 x = xVal; y = yVal; z = zVal; w = wVal;
@@ -30,20 +30,20 @@ namespace jm
 
 			Vector4(float xVal)
 			{
-#ifdef JM_SSEVEC4
+#ifdef LUMOS_SSEVEC4
 				m_Value = _mm_set_ps(xVal, xVal, xVal, xVal);
 #else
 				x = y = z = w = xVal;
 #endif
 			}
 
-#ifdef JM_SSEVEC4
+#ifdef LUMOS_SSEVEC4
 			Vector4(__m128 m) : m_Value(m) { }
 #endif
 
 			Vector4(const Vector4 &v) 
 			{
-#ifdef JM_SSEVEC4
+#ifdef LUMOS_SSEVEC4
 				m_Value = v.m_Value;
 #else
 				x = v.GetX(); y = v.GetY(); z = v.GetZ(); w = v.GetW();
@@ -52,14 +52,14 @@ namespace jm
 
 			Vector4(const Vector3 &v, float wVal = 1.0f)
 			{
-#ifdef JM_SSEVEC4
+#ifdef LUMOS_SSEVEC4
 				m_Value = _mm_set_ps(wVal, v.GetZ(), v.GetY(), v.GetX());
 #else
 				x = v.GetX(); y = v.GetY(); z = v.GetZ(); w = wVal;
 #endif
 			}
 
-#ifdef JM_SSEVEC4
+#ifdef LUMOS_SSEVEC4
 			union
 			{
 				struct 
@@ -84,7 +84,7 @@ namespace jm
 			float GetW() const { return w; }
 
             float* GetPointer() { return &x; }
-#ifdef JM_SSEVEC4
+#ifdef LUMOS_SSEVEC4
 			void SetX(const float X) { reinterpret_cast<float *>(&m_Value)[0] = X; }
 			void SetY(const float Y) { reinterpret_cast<float *>(&m_Value)[1] = Y; }
 			void SetZ(const float Z) { reinterpret_cast<float *>(&m_Value)[2] = Z; }
@@ -100,7 +100,7 @@ namespace jm
 
 			inline void ToZero()
 			{
-#ifdef JM_SSEVEC4
+#ifdef LUMOS_SSEVEC4
 				m_Value = _mm_setzero_ps(); 
 #else
 				x = y = z = w = 0.0f;
@@ -109,7 +109,7 @@ namespace jm
 
 			inline float Length() const
 			{
-#ifdef JM_SSEVEC4
+#ifdef LUMOS_SSEVEC4
 				return _mm_cvtss_f32(_mm_sqrt_ss(_mm_dp_ps(m_Value, m_Value, 0xF1))); 
 #else
 				return sqrt((x*x) + (y*y) + (z*z) + (w*w));
@@ -118,7 +118,7 @@ namespace jm
 
 			inline float LengthR() const 
 			{ 
-#ifdef JM_SSEVEC4
+#ifdef LUMOS_SSEVEC4
 				return _mm_cvtss_f32(_mm_rsqrt_ss(_mm_dp_ps(m_Value, m_Value, 0xF1)));
 #else
 				return sqrt((x*x) + (y*y) + (z*z) + (w*w));
@@ -127,7 +127,7 @@ namespace jm
 
 			inline float LengthSq() const 
 			{ 
-#ifdef JM_SSEVEC4
+#ifdef LUMOS_SSEVEC4
 				return _mm_cvtss_f32(_mm_dp_ps(m_Value, m_Value, 0xF1));
 #else
 				return (x*x) + (y*y) + (z*z) + (w*w);
@@ -136,7 +136,7 @@ namespace jm
 
 			inline void Normalise() 
 			{
-#ifdef JM_SSEVEC4
+#ifdef LUMOS_SSEVEC4
 				m_Value = _mm_mul_ps(m_Value, _mm_rsqrt_ps(_mm_dp_ps(m_Value, m_Value, 0xFF)));
 #else
 				float length = Length();
@@ -154,7 +154,7 @@ namespace jm
 
 			inline Vector4 Normal()
 			{
-#ifdef JM_SSEVEC4
+#ifdef LUMOS_SSEVEC4
 				return _mm_mul_ps(m_Value, _mm_rsqrt_ps(_mm_dp_ps(m_Value, m_Value, 0xFF)));
 #else
 				float length = Length();
@@ -174,14 +174,14 @@ namespace jm
 
 			inline float Dot(const Vector4 &v)
 			{
-#ifdef JM_SSEVEC4
+#ifdef LUMOS_SSEVEC4
 				return _mm_cvtss_f32(_mm_dp_ps(m_Value, v.m_Value, 0xF1));
 #else
 				return (x*v.x) + (y*v.y) + (z*v.z) + (w*v.w);
 #endif
 			}
 
-#ifdef JM_SSEVEC4
+#ifdef LUMOS_SSEVEC4
 			inline Vector4 operator+(float v) const { return _mm_add_ps(m_Value, _mm_set1_ps(v)); }
 			inline Vector4 operator-(float v) const { return _mm_sub_ps(m_Value, _mm_set1_ps(v)); }
 			inline Vector4 operator*(float v) const { return _mm_mul_ps(m_Value, _mm_set1_ps(v)); }
@@ -235,7 +235,7 @@ namespace jm
 		inline Vector4 operator+(float f, const Vector4 &v) { return v + f; }
 		inline Vector4 operator*(float f, const Vector4 &v) { return v * f; }
 
-#ifdef JM_SSEVEC4
+#ifdef LUMOS_SSEVEC4
 		inline Vector4 operator-(float f, const Vector4 &v) { return Vector4(_mm_set1_ps(f)) - v; }
 		inline Vector4 operator/(float f, const Vector4 &v) { return Vector4(_mm_set1_ps(f)) / v; }
 #else
@@ -248,9 +248,9 @@ namespace jm
 namespace std 
 {
 	template<>
-	struct hash<jm::maths::Vector4>
+	struct hash<Lumos::maths::Vector4>
 	{
-		size_t operator()(const jm::maths::Vector4& x) const
+		size_t operator()(const Lumos::maths::Vector4& x) const
 		{
 			return hash<float>()(x.GetX()) ^ (hash<float>()(x.GetY()) * 997u) ^ (hash<float>()(x.GetZ()) * 999983u) ^ (hash<float>()(x.GetW()) * 999999937);
 
