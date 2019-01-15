@@ -31,10 +31,6 @@
 #include "ShadowRenderer.h"
 #include "App/Application.h"
 
-#ifdef LUMOS_RENDER_API_VULKAN
-#include "Platform/GraphicsAPI/Vulkan/VKRenderer.h"
-#endif
-
 #define MAX_LIGHTS 10
 
 namespace Lumos
@@ -184,7 +180,7 @@ namespace Lumos
 
 		m_ShadowTexture = std::unique_ptr<TextureDepthArray>(TextureDepthArray::Create(2048, 2048, 4));
 		m_SkyboxRenderer = nullptr;
-        m_ShadowRenderer = new ShadowRenderer(m_ShadowTexture.get(), 2048, 4);
+        m_ShadowRenderer = nullptr;//new ShadowRenderer(m_ShadowTexture.get(), 2048, 4);
 		m_FBO = nullptr;
 	}
 
@@ -248,10 +244,7 @@ namespace Lumos
 
 	void DeferredRenderer::PresentToScreen()
 	{
-#ifdef LUMOS_RENDER_API_VULKAN //TODO : remove platform specific code
-		if (graphics::Context::GetRenderAPI() == RenderAPI::VULKAN)
-			graphics::VKRenderer::GetRenderer()->Present(static_cast<graphics::VKCommandBuffer*>(m_CommandBuffers[graphics::VKRenderer::GetRenderer()->GetSwapchain()->GetCurrentBufferId()]));
-#endif
+		Renderer::GetRenderer()->Present((m_CommandBuffers[Renderer::GetRenderer()->GetSwapchain()->GetCurrentBufferId()]));
 	}
 
 	void DeferredRenderer::InitScene(Scene* scene, bool newScene)

@@ -6,6 +6,7 @@
 #include "Graphics/Renderers/DeferredRenderer.h"
 #include "Graphics/API/IMGUIRenderer.h"
 #include "Graphics/API/Renderer.h"
+#include "Graphics/API/Swapchain.h"
 #include "Graphics/RenderList.h"
 #include "Graphics/GBuffer.h"
 #include "Utilities/TimeStep.h"
@@ -13,6 +14,7 @@
 #include "Scene.h"
 #include "App/Engine.h"
 #include "App/Application.h"
+
 
 namespace Lumos
 {
@@ -84,25 +86,22 @@ namespace Lumos
 		m_pFrameRenderList->SortLists();
 		m_pScene->InsertToRenderList(m_pFrameRenderList.get(), m_FrameFrustum);
 
-		if (m_pScene->GetDrawObjects())
+		m_DeferredRenderer->RenderScene(m_pFrameRenderList.get(), m_pScene);
+
+		//for (int commandBufferIndex = 0; commandBufferIndex < m_DeferredRenderer->GetCommandBufferCount(); commandBufferIndex++)
 		{
-			m_DeferredRenderer->RenderScene(m_pFrameRenderList.get(), m_pScene);
+			int commandBufferIndex = Renderer::GetRenderer()->GetSwapchain()->GetCurrentBufferId();
+			m_DeferredRenderer->Begin(commandBufferIndex);
+			m_DeferredRenderer->Present();
 
-			for (int commandBufferIndex = 0; commandBufferIndex < m_DeferredRenderer->GetCommandBufferCount(); commandBufferIndex++)
+			if(m_IMGUIRenderer && m_IMGUIRenderer->Implemented())
 			{
-				m_DeferredRenderer->Begin(commandBufferIndex);
-				m_DeferredRenderer->Present();
-
-				if(m_IMGUIRenderer && m_IMGUIRenderer->Implemented())
-				{
-					m_IMGUIRenderer->Render(m_DeferredRenderer->GetCommandBuffer(commandBufferIndex));
-				}
-				m_DeferredRenderer->End();
+				m_IMGUIRenderer->Render(m_DeferredRenderer->GetCommandBuffer(commandBufferIndex));
 			}
-
-			m_DeferredRenderer->PresentToScreen();
-
+			m_DeferredRenderer->End();
 		}
+
+		m_DeferredRenderer->PresentToScreen();
 	}
 
 	void GraphicsPipeline::DebugRenderScene()
@@ -113,8 +112,6 @@ namespace Lumos
 	{
 		m_NeedSceneInit = true;
 
-		Renderer::GetRenderer()->OnResize(width, height);
-
 		m_DeferredRenderer->OnResize(width, height);
 
 		if (m_pScene)
@@ -122,21 +119,6 @@ namespace Lumos
 			if (m_pScene->GetCamera())
 				m_pScene->GetCamera()->UpdateProjectionMatrix(static_cast<float>(m_ScreenTexWidth), static_cast<float>(m_ScreenTexHeight));
 		}
-	}
-
-	void GraphicsPipeline::OnIMGUI()
-	{
-		ImGui::Begin("Engine Information");
-		ImGui::Text("--------------------------------");
-		ImGui::Text("Physics Engine: %s (Press P to toggle)", JMPhysicsEngine::Instance()->IsPaused() ? "Paused" : "Enabled");
-		ImGui::Text("Number Of Collision Pairs  : %5.2i", JMPhysicsEngine::Instance()->GetNumberCollisionPairs());
-		ImGui::Text("Number Of Physics Objects  : %5.2i", JMPhysicsEngine::Instance()->GetNumberPhysicsObjects());
-		ImGui::Text("--------------------------------");
-		ImGui::Text("FPS : %5.2i", Engine::Instance()->GetFPS());
-		ImGui::Text("UPS : %5.2i", Engine::Instance()->GetUPS());
-		ImGui::Text("Frame Time : %5.2f ms", Engine::Instance()->GetFrametime());
-		ImGui::Text("--------------------------------");
-		ImGui::End();
 	}
 
 	void GraphicsPipeline::Reset()

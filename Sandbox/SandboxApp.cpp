@@ -2,8 +2,6 @@
 #include <App/EntryPoint.h>
 #include "Scenes/Scene3D.h"
 #include "Scenes/GraphicsScene.h"
-#include "Scenes/CubeGame/CubeGame.h"
-#include "Scenes/Scene2D.h"
 #include "Scenes/SceneLuaTest.h"
 #include "Scenes/SceneModelViewer.h"
 #include "Scenes/SceneSelect.h"
@@ -34,11 +32,10 @@ public:
 
 		GetSceneManager()->EnqueueScene(new SceneSelect("SceneSelect"));
 		GetSceneManager()->EnqueueScene(new SceneLuaTest("Lua Test Scene"));
-		GetSceneManager()->EnqueueScene(new CubeGame("Cube Game Scene"));
 		GetSceneManager()->EnqueueScene(new SceneModelViewer("SceneModelViewer"));
 		GetSceneManager()->EnqueueScene(new Scene3D("Physics Scene"));
 		GetSceneManager()->EnqueueScene(new GraphicsScene("graphics Scene"));
-		GetSceneManager()->JumpToScene(4);
+		GetSceneManager()->JumpToScene(3);
 	}
 };
 

@@ -20,6 +20,13 @@ namespace Lumos
 {
 	namespace graphics
 	{
+		class GLContext;
+
+		namespace api
+		{
+			class CommandBuffer;
+		}
+
 		struct Vertex
 		{
 			Lumos::maths::Vector3 pos;
@@ -71,7 +78,6 @@ namespace Lumos
 			static VKRenderer* GetRenderer() { return static_cast<VKRenderer*>(s_Instance); }
 
 			static void Render(IndexBuffer* indexBuffer, VertexArray* vertexBuffer, VKCommandBuffer* commandBuffer, std::vector<VkDescriptorSet>& descriptorSet, VkPipelineLayout layout, uint32_t offset, uint numDynamicDescriptorSets);
-			void Present(VKCommandBuffer* cmdBuffer);
 
 			api::Swapchain* GetSwapchainInternal() const override { return m_Swapchain; }
 
@@ -82,6 +88,7 @@ namespace Lumos
 
 			void ClearInternal(uint buffer) override;
 			void PresentInternal() override;
+			void PresentInternal(api::CommandBuffer* cmdBuffer) override;
 
 			void SetColourMaskInternal(bool r, bool g, bool b, bool a) override;
 			void SetDepthTestingInternal(bool enabled) override;

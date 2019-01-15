@@ -110,25 +110,6 @@ namespace Lumos
 		return 0;
 	}
 
-	void Application::OnUpdate(TimeStep* dt)
-	{
-		const uint sceneIdx = m_SceneManager->GetCurrentSceneIndex();
-		const uint sceneMax = m_SceneManager->SceneCount();
-
-		if (Input::GetInput().GetKeyPressed(LUMOS_KEY_1)) m_SceneManager->GetCurrentScene()->ToggleDrawObjects();
-		if (Input::GetInput().GetKeyPressed(LUMOS_KEY_2)) m_SceneManager->GetCurrentScene()->SetDrawDebugData(!m_SceneManager->GetCurrentScene()->GetDrawDebugData());
-        if (Input::GetInput().GetKeyPressed(LUMOS_KEY_P)) JMPhysicsEngine::Instance()->SetPaused(!JMPhysicsEngine::Instance()->IsPaused());
-
-		if (Input::GetInput().GetKeyPressed(LUMOS_KEY_J)) CommonUtils::AddSphere(m_SceneManager->GetCurrentScene());
-		if (Input::GetInput().GetKeyPressed(LUMOS_KEY_K)) CommonUtils::AddPyramid(m_SceneManager->GetCurrentScene());
-		if (Input::GetInput().GetKeyPressed(LUMOS_KEY_L)) CommonUtils::AddLightCube(m_SceneManager->GetCurrentScene());
-
-		if (Input::GetInput().GetKeyPressed(LUMOS_KEY_E)) m_SceneManager->JumpToScene((sceneIdx + 1) % sceneMax);
-		if (Input::GetInput().GetKeyPressed(LUMOS_KEY_Q)) m_SceneManager->JumpToScene((sceneIdx == 0 ? sceneMax : sceneIdx) - 1);
-		if (Input::GetInput().GetKeyPressed(LUMOS_KEY_R)) m_SceneManager->JumpToScene(sceneIdx);
-		if (Input::GetInput().GetKeyPressed(LUMOS_KEY_V)) m_Window->ToggleVSync();
-	}
-
 	void Application::PhysicsUpdate(float targetUpdateTime)
 	{
 		Timer t;
@@ -184,13 +165,9 @@ namespace Lumos
 
 			m_SceneManager->GetCurrentScene()->OnUpdate(m_TimeStep.get());
 
-			m_GraphicsPipeline->RenderScene();
-
-			for (Layer* layer : m_LayerStack)
-				layer->OnRender(m_SceneManager->GetCurrentScene());
-
 			SoundSystem::Instance()->Update(m_TimeStep.get());
 
+			OnRender();
             m_Window->OnUpdate();
             OnUpdate(m_TimeStep.get());
 
@@ -215,6 +192,33 @@ namespace Lumos
 		}
 
 		return m_CurrentState == AppState::Running;
+	}
+
+	void Application::OnRender()
+	{
+		m_GraphicsPipeline->RenderScene();
+
+		for (Layer* layer : m_LayerStack)
+			layer->OnRender(m_SceneManager->GetCurrentScene());
+	}
+
+	void Application::OnUpdate(TimeStep* dt)
+	{
+		const uint sceneIdx = m_SceneManager->GetCurrentSceneIndex();
+		const uint sceneMax = m_SceneManager->SceneCount();
+
+		if (Input::GetInput().GetKeyPressed(LUMOS_KEY_1)) m_SceneManager->GetCurrentScene()->ToggleDrawObjects();
+		if (Input::GetInput().GetKeyPressed(LUMOS_KEY_2)) m_SceneManager->GetCurrentScene()->SetDrawDebugData(!m_SceneManager->GetCurrentScene()->GetDrawDebugData());
+        if (Input::GetInput().GetKeyPressed(LUMOS_KEY_P)) JMPhysicsEngine::Instance()->SetPaused(!JMPhysicsEngine::Instance()->IsPaused());
+
+		if (Input::GetInput().GetKeyPressed(LUMOS_KEY_J)) CommonUtils::AddSphere(m_SceneManager->GetCurrentScene());
+		if (Input::GetInput().GetKeyPressed(LUMOS_KEY_K)) CommonUtils::AddPyramid(m_SceneManager->GetCurrentScene());
+		if (Input::GetInput().GetKeyPressed(LUMOS_KEY_L)) CommonUtils::AddLightCube(m_SceneManager->GetCurrentScene());
+
+		if (Input::GetInput().GetKeyPressed(LUMOS_KEY_E)) m_SceneManager->JumpToScene((sceneIdx + 1) % sceneMax);
+		if (Input::GetInput().GetKeyPressed(LUMOS_KEY_Q)) m_SceneManager->JumpToScene((sceneIdx == 0 ? sceneMax : sceneIdx) - 1);
+		if (Input::GetInput().GetKeyPressed(LUMOS_KEY_R)) m_SceneManager->JumpToScene(sceneIdx);
+		if (Input::GetInput().GetKeyPressed(LUMOS_KEY_V)) m_Window->ToggleVSync();
 	}
 
 	void Application::OnEvent(Event& e)
@@ -264,6 +268,7 @@ namespace Lumos
 
     bool Application::OnWindowResize(WindowResizeEvent &e)
     {
+		Renderer::GetRenderer()->OnResize(e.GetWidth(), e.GetHeight());
         GetGraphicsPipeline()->OnResize(e.GetWidth(), e.GetHeight());
         return false;
     }

@@ -94,7 +94,7 @@ void GraphicsScene::LoadModels()
 	std::shared_ptr<Model> terrain = std::make_shared<Model>(*terrainMesh);
 	auto material = std::make_shared<Material>();
 
-	material->LoadPBRMaterial("stone", "/Textures");
+	material->LoadMaterial("checkerboard", "/CoreTextures/checkerboard.tga");
 	terrain->SetMaterial(material);
 
 	//terrain->SetMaterial(std::make_shared<Material>(*m_MaterialManager->GetAsset("Stone").get()));
