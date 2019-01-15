@@ -43,7 +43,6 @@ namespace Lumos
 		uint GetScreenHeight() const { return m_ScreenTexHeight; }
 
 		void OnResize(uint width, uint height);
-		void OnIMGUI();
 
         maths::Frustum GetFrustum() const { return m_FrameFrustum; }
 

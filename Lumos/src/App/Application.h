@@ -34,6 +34,7 @@ namespace Lumos
 		void Run();
 		bool OnFrame();
 		void OnUpdate(TimeStep* dt);
+		void OnRender();
 		void OnEvent(Event& e);
 		void OnImGui();
 		void PushLayer(Layer* layer);

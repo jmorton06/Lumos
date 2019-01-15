@@ -55,7 +55,7 @@ namespace Lumos
 	{
 		m_PBRMaterialTextures = PBRMataterialTextures();
         auto params = TextureParameters(TextureFormat::RGBA, TextureFilter::LINEAR, TextureWrap::CLAMP_TO_EDGE);
-        
+
         m_PBRMaterialTextures.albedo    = std::shared_ptr<Texture2D>(Texture2D::CreateFromFile(name, path + "/" + name + "/albedo" + extension,params));
 		m_PBRMaterialTextures.normal    = std::shared_ptr<Texture2D>(Texture2D::CreateFromFile(name, path + "/" + name + "/normal" + extension,params));
 		m_PBRMaterialTextures.roughness = std::shared_ptr<Texture2D>(Texture2D::CreateFromFile(name, path + "/" + name + "/roughness" + extension,params));

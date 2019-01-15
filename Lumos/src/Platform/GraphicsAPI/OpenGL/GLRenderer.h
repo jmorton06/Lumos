@@ -11,6 +11,11 @@ namespace Lumos
 	namespace graphics
 	{
 		class GLContext;
+
+		namespace api
+		{
+			class CommandBuffer;
+		}
 	}
 
 	class Shader;
@@ -35,7 +40,7 @@ namespace Lumos
 		void OnResize(uint width, uint height) override;
 		void ClearInternal(uint buffer) override;
 		void PresentInternal() override;
-
+		void PresentInternal(graphics::api::CommandBuffer* cmdBuffer) override;
 		void SetDepthTestingInternal(bool enabled) override;
 		void SetBlendInternal(bool enabled) override;
 		void SetStencilTestInternal(bool enabled) override;
