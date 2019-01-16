@@ -1,4 +1,3 @@
-
 project "Lumos"
 	kind "SharedLib"
 	language "C++"

@@ -57,13 +57,8 @@ void GraphicsScene::OnCleanupScene()
 {
 	if (m_CurrentScene)
 	{
-		if (m_pCamera)
-		{
-			delete m_pCamera;
-			m_pCamera = nullptr;
-		}
-
-        //delete m_EnvironmentMap;
+		SAFE_DELETE(m_pCamera)
+        SAFE_DELETE(m_EnvironmentMap);
 	}
 
 	Scene::OnCleanupScene();

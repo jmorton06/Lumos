@@ -38,7 +38,7 @@ namespace Lumos
 		~ShadowRenderer();
 
 		void Init() override;
-		void BeginScene(Camera* camera) override;
+		void BeginScene(Scene* scene) override;
 		void OnResize(uint width, uint height) override;
 
 		void SetShadowMapNum(uint num);

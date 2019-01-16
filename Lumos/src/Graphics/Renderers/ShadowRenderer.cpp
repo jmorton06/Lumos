@@ -124,7 +124,7 @@ namespace Lumos
 		m_CommandBuffer->UpdateViewport(m_ShadowMapSize, m_ShadowMapSize);
 	}
 
-	void ShadowRenderer::BeginScene(Camera * camera)
+	void ShadowRenderer::BeginScene(Scene* scene)
 	{
 	}
 
@@ -142,9 +142,9 @@ namespace Lumos
 	{
 		int index = 0;
 
-			m_RenderPass->BeginRenderpass(m_CommandBuffer, maths::Vector4(0.0f), m_ShadowFramebuffer[m_Layer], graphics::api::INLINE, m_ShadowMapSize, m_ShadowMapSize);
+		m_RenderPass->BeginRenderpass(m_CommandBuffer, maths::Vector4(0.0f), m_ShadowFramebuffer[m_Layer], graphics::api::INLINE, m_ShadowMapSize, m_ShadowMapSize);
 
-			m_Pipeline->SetActive(m_CommandBuffer);
+		m_Pipeline->SetActive(m_CommandBuffer);
 
 
 		for (auto& command : m_CommandQueue)
