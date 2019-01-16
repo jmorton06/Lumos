@@ -13,10 +13,10 @@ namespace Lumos
 	public:
 		SkyboxRenderer(uint width, uint height);
 		~SkyboxRenderer();
-		void Render(graphics::api::CommandBuffer* commandBuffer, Camera* camera, int framebufferId);
+		void Render(graphics::api::CommandBuffer* commandBuffer, Scene* scene, int framebufferId);
 
 		void Init() override;
-		void BeginScene(Camera* camera) override;
+		void BeginScene(Scene* scene) override;
 		void OnResize(uint width, uint height) override;
 		void CreateGraphicsPipeline();
 		void SetCubeMap(Texture* cubeMap);

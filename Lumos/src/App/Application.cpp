@@ -18,7 +18,7 @@
 #include "App/Input.h"
 #include "System/VFS.h"
 #include "System/JobSystem.h"
-#include "Graphics/ImGuiLayer.h"
+#include "Graphics/Layers/ImGuiLayer.h"
 
 #include <imgui/imgui.h>
 
@@ -98,10 +98,6 @@ namespace Lumos
 		Sound::DeleteSounds();
 		SoundSystem::Destroy();
 
-#ifdef LUMOS_DEBUG_RENDERER
-		DebugRenderer::Release();
-#endif
-
 		if (pause)
 		{
             LUMOS_CORE_ERROR("{0}", reason);
@@ -155,26 +151,24 @@ namespace Lumos
 		{
 			m_UpdateTimer += Engine::Instance()->TargetFrameRate();
 #endif
-			m_Updates++;
-			m_Frames++;
 
 			m_TimeStep->Update(now);
 
-			for (Layer* layer : m_LayerStack)
-				layer->OnUpdate(m_TimeStep.get());
+			{
+				OnUpdate(m_TimeStep.get());
+				m_Updates++;
+			}
 
-			m_SceneManager->GetCurrentScene()->OnUpdate(m_TimeStep.get());
+			{
+				OnRender();
+				m_Frames++;
+			}
 
-			SoundSystem::Instance()->Update(m_TimeStep.get());
-
-			OnRender();
+			Input::GetInput().ResetPressed();
             m_Window->OnUpdate();
-            OnUpdate(m_TimeStep.get());
 
 			if (Input::GetInput().GetKeyPressed(LUMOS_KEY_ESCAPE))
 				m_CurrentState = AppState::Closing;
-
-			Input::GetInput().ResetPressed();
 #ifdef LUMOS_LIMIT_FRAMERATE
 		}
 #endif
@@ -219,6 +213,12 @@ namespace Lumos
 		if (Input::GetInput().GetKeyPressed(LUMOS_KEY_Q)) m_SceneManager->JumpToScene((sceneIdx == 0 ? sceneMax : sceneIdx) - 1);
 		if (Input::GetInput().GetKeyPressed(LUMOS_KEY_R)) m_SceneManager->JumpToScene(sceneIdx);
 		if (Input::GetInput().GetKeyPressed(LUMOS_KEY_V)) m_Window->ToggleVSync();
+
+		for (Layer* layer : m_LayerStack)
+			layer->OnUpdate(m_TimeStep.get());
+
+		m_SceneManager->GetCurrentScene()->OnUpdate(m_TimeStep.get());
+		SoundSystem::Instance()->Update(m_TimeStep.get());
 	}
 
 	void Application::OnEvent(Event& e)

@@ -52,7 +52,7 @@ namespace Lumos
 
 		virtual void Init() = 0;
 		virtual void Begin() = 0;
-		virtual void BeginScene(Camera* camera) = 0;
+		virtual void BeginScene(Scene* scene) = 0;
 		virtual void Submit(const RenderCommand& command) = 0;
 		virtual void SubmitMesh(Mesh* mesh, const maths::Matrix4& transform, const maths::Matrix4& textureMatrix) = 0;
 		virtual void EndScene() = 0;

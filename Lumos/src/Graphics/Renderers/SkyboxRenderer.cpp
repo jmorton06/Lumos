@@ -37,7 +37,6 @@ namespace Lumos
 		delete m_Skybox;
 		delete m_Pipeline;
         delete[] m_VSSystemUniformBuffer;
-		SAFE_DELETE(m_CubeMap);
 
 		for(auto& commandBuffer : m_CommandBuffers)
 		{
@@ -47,9 +46,9 @@ namespace Lumos
 		m_CommandBuffers.clear();
 	}
 
-	void SkyboxRenderer::Render(graphics::api::CommandBuffer* commandBuffer, Camera* camera, int framebufferId)
+	void SkyboxRenderer::Render(graphics::api::CommandBuffer* commandBuffer, Scene* scene, int framebufferId)
 	{
-		BeginScene(camera);
+		BeginScene(scene);
 		SetSystemUniforms(m_Shader);
 
 		graphics::api::CommandBuffer* currentCMDBuffer = m_CommandBuffers[framebufferId];
@@ -98,8 +97,9 @@ namespace Lumos
 		UpdateUniformBuffer();
 	}
 
-	void SkyboxRenderer::BeginScene(Camera* camera)
+	void SkyboxRenderer::BeginScene(Scene* scene)
 	{
+		auto camera = scene->GetCamera();
 		auto proj = camera->GetProjectionMatrix();
 
 #ifdef LUMOS_RENDER_API_VULKAN
@@ -209,7 +209,6 @@ namespace Lumos
 
 	void SkyboxRenderer::SetCubeMap(Texture* cubeMap)
 	{
-		SAFE_DELETE(m_CubeMap);
 		m_CubeMap = cubeMap;
 		UpdateUniformBuffer();
 	}

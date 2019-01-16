@@ -20,6 +20,7 @@ namespace Lumos
 		m_MaterialPropertiesBuffer = nullptr;
         m_MaterialBufferSize = sizeof(MaterialProperties);
         m_MaterialBufferData = new byte[m_MaterialBufferSize];
+		m_Pipeline = nullptr;
 	}
 
 	Material::Material() : m_Shader(nullptr)
@@ -33,6 +34,8 @@ namespace Lumos
 
         m_MaterialBufferSize = sizeof(MaterialProperties);
         m_MaterialBufferData = new byte[m_MaterialBufferSize];
+
+		m_Pipeline = nullptr;
 	}
 
 	Material::~Material()

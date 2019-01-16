@@ -36,7 +36,7 @@ namespace Lumos
 		inline Scene* GetScene() const { return m_pScene; }
 
 		void Reset();
-		void SetScene(Scene* scene) { m_pScene = scene; m_NewScene = true; };
+		void SetScene(Scene* scene) { m_pScene = scene; };
 
 		void SetScreenSize(uint width, uint height) { m_ScreenTexWidth = width; m_ScreenTexHeight = height; }
 		uint GetScreenWidth()  const { return m_ScreenTexWidth; }
@@ -56,9 +56,6 @@ namespace Lumos
 		std::unique_ptr<DeferredRenderer>				m_DeferredRenderer;
 		std::unique_ptr<RenderList>					    m_pFrameRenderList;
 		std::unique_ptr<graphics::api::IMGUIRenderer>   m_IMGUIRenderer;
-
-		bool m_NeedSceneInit = true;
-		bool m_NewScene = false;
 
 		uint	m_ScreenTexWidth, m_ScreenTexHeight;
 	};

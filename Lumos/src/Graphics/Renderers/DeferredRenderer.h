@@ -39,10 +39,9 @@ namespace Lumos
 		std::vector<uint> m_PSSystemUniformBufferOffsets;
 
 		void Init() override;
-		void InitScene(Scene* scene, bool newScene = true);
 		void Begin() override { };
 		void Begin(int commandBufferID);
-		void BeginScene(Camera* camera) override;
+		void BeginScene(Scene* scene) override;
 		void Submit(const RenderCommand& command) override;
 		void SubmitMesh(Mesh* mesh, const maths::Matrix4& transform, const maths::Matrix4& textureMatrix) override;
 		void SubmitLightSetup(const LightSetup& lightSetup, Scene* scene);
@@ -80,6 +79,8 @@ namespace Lumos
 		void CreateOffScreenBuffer();
 		void CreateOffScreenFBO();
 		void CreateLightBuffer();
+		void CreateDefaultDescriptorSet();
+		void CreateScreenDescriptorSet();
 		void SetCubeMap(Texture* cubeMap);
 
 		int GetCommandBufferCount() const { return (int)m_CommandBuffers.size(); }
@@ -132,6 +133,7 @@ namespace Lumos
 		int m_CommandBufferIndex = 0;
 
 		std::unique_ptr<TextureDepthArray> m_ShadowTexture;
+		Texture* m_CubeMap = nullptr;
 	};
 
 }

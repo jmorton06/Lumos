@@ -43,11 +43,7 @@ void SceneLuaTest::OnCleanupScene()
 {
 	if (m_CurrentScene)
 	{
-		if (m_pCamera)
-		{
-			delete m_pCamera;
-			m_pCamera = nullptr;
-		}
+		SAFE_DELETE(m_pCamera)
 	}
 
 	Scene::OnCleanupScene();

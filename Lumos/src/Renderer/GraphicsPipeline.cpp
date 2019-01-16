@@ -59,22 +59,12 @@ namespace Lumos
 	void GraphicsPipeline::InitialiseDefaults()
 	{
 		DebugRenderer::ClearLog();
-		m_NeedSceneInit = true;
 	}
 
 	void GraphicsPipeline::RenderScene()
 	{
 		if (m_pScene == nullptr)
 			return;
-
-		if(m_NeedSceneInit)
-		{
-			//m_ForwardRenderer->InitScene(m_pScene);
-			m_DeferredRenderer->InitScene(m_pScene, m_NewScene);
-
-			m_NewScene = false;
-			m_NeedSceneInit = false;
-		}
 
 		m_pScene->GetCamera()->BuildViewMatrix();
 		m_FrameFrustum.FromMatrix(m_pScene->GetCamera()->GetProjectionMatrix() * m_pScene->GetCamera()->GetViewMatrix());
@@ -110,8 +100,6 @@ namespace Lumos
 
 	void GraphicsPipeline::OnResize(uint width, uint height)
 	{
-		m_NeedSceneInit = true;
-
 		m_DeferredRenderer->OnResize(width, height);
 
 		if (m_pScene)
