@@ -28,17 +28,18 @@ namespace Lumos
 			VkSwapchainKHR 		GetSwapchain() 				const { return m_SwapChain; }
 			api::RenderPass* 	GetRenderPass() 			const { return m_RenderPass; }
 			uint32_t 			GetCurrentBufferId() 		const override { return m_CurrentBuffer; };
-			Framebuffer* 		GetFramebuffer(int id) 		const override { return reinterpret_cast<Framebuffer*>(m_FrameBuffers[id]); };
+			Framebuffer* 		GetFramebuffer(int id) 		const override { return reinterpret_cast<Framebuffer*>(m_Framebuffers[id]); };
 			size_t 				GetSwapchainBufferCount() 	const override { return m_SwapChainBuffers.size(); };
 			uint 		 		GetFramebufferCount() 		const override { return static_cast<uint>(m_SwapChainBuffers.size()); }
 			VKTexture2D* 		GetTexture(int id) 			const { return m_SwapChainBuffers[id]; }
 			Texture* 			GetCurrentImage() 			override { return (Texture*)m_SwapChainBuffers[m_CurrentBuffer]; };
+			Framebuffer*		CreateFramebuffer(api::RenderPass* renderPass, uint id) override { return nullptr; }
 
 		private:
 			VkSwapchainKHR 				m_SwapChain;
 			std::vector<VKTexture2D*> 	m_SwapChainBuffers;
 			uint32_t 					m_CurrentBuffer = 0;
-			std::vector<VKFrameBuffer*> m_FrameBuffers;
+			std::vector<VKFramebuffer*> m_Framebuffers;
 			api::RenderPass* 			m_RenderPass;
 			uint						m_Width;
 			uint						m_Height;

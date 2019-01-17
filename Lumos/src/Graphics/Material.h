@@ -67,9 +67,10 @@ namespace Lumos
         void UpdateMaterialPropertiesData();
 
 		PBRMataterialTextures 			GetTextures() 		const { return m_PBRMaterialTextures; }
-		std::shared_ptr<Shader> 		GetShader()			const { return m_Shader; }
+		Shader* 						GetShader()			const { return m_Shader.get(); }
 		graphics::api::DescriptorSet* 	GetDescriptorSet() 	const { return m_DescriptorSet; }
 		int								GetRenderFlags()	const { return m_RenderFlags; }
+		graphics::api::Pipeline* 		GetPipeline()		const { return m_Pipeline; }
 
 	private:
 		PBRMataterialTextures   		m_PBRMaterialTextures;

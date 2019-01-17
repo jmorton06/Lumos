@@ -77,7 +77,7 @@ namespace Lumos
 				inheritanceInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_INHERITANCE_INFO;
 				inheritanceInfo.subpass = 0;
 				inheritanceInfo.renderPass = ((VKRenderpass*)renderPass)->GetRenderpass();
-				inheritanceInfo.framebuffer = ((VKFrameBuffer*)framebuffer)->GetFrameBuffer();
+				inheritanceInfo.framebuffer = ((VKFramebuffer*)framebuffer)->GetFramebuffer();
 
 				VkCommandBufferBeginInfo beginCI{};
 				beginCI.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;

@@ -3,7 +3,7 @@
 #include "Graphics/RenderList.h"
 #include "Graphics/API/Textures/TextureDepthArray.h"
 #include "Utilities/AssetsManager.h"
-#include "Graphics/API/FrameBuffer.h"
+#include "Graphics/API/Framebuffer.h"
 #include "Renderer/Scene.h"
 #include "Graphics/API/Shader.h"
 #include "Maths/Maths.h"
@@ -124,7 +124,7 @@ namespace Lumos
 		m_CommandBuffer->UpdateViewport(m_ShadowMapSize, m_ShadowMapSize);
 	}
 
-	void ShadowRenderer::BeginScene(Camera * camera)
+	void ShadowRenderer::BeginScene(Scene* scene)
 	{
 	}
 
@@ -142,9 +142,9 @@ namespace Lumos
 	{
 		int index = 0;
 
-			m_RenderPass->BeginRenderpass(m_CommandBuffer, maths::Vector4(0.0f), m_ShadowFramebuffer[m_Layer], graphics::api::INLINE, m_ShadowMapSize, m_ShadowMapSize);
+		m_RenderPass->BeginRenderpass(m_CommandBuffer, maths::Vector4(0.0f), m_ShadowFramebuffer[m_Layer], graphics::api::INLINE, m_ShadowMapSize, m_ShadowMapSize);
 
-			m_Pipeline->SetActive(m_CommandBuffer);
+		m_Pipeline->SetActive(m_CommandBuffer);
 
 
 		for (auto& command : m_CommandQueue)
@@ -325,7 +325,7 @@ namespace Lumos
 				TextureType attachmentTypes[attachmentCount];
 				attachmentTypes[0] = TextureType::DEPTHARRAY;
 
-				FrameBufferInfo bufferInfo{};
+				FramebufferInfo bufferInfo{};
 				bufferInfo.width = m_ShadowMapSize;
 				bufferInfo.height = m_ShadowMapSize;
 				bufferInfo.attachmentCount = attachmentCount;

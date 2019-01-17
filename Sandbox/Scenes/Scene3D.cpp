@@ -66,22 +66,14 @@ void Scene3D::OnUpdate(TimeStep* timeStep)
 
 void Scene3D::Render2D()
 {
-	using namespace Lumos::internal;
-
-	RenderString("FPS : " + StringFormat::ToString(Engine::Instance()->GetFPS()), Vector2(0.9f, 0.9f), 0.6f, Vector4(1.0f, 1.0f, 1.0f, 1.0f));
 }
 
 void Scene3D::OnCleanupScene()
 {
 	if (m_CurrentScene)
 	{
-		if (m_pCamera)
-		{
-			delete m_pCamera;
-			m_pCamera = nullptr;
-		}
-
-        //delete m_EnvironmentMap;
+		SAFE_DELETE(m_pCamera)
+        SAFE_DELETE(m_EnvironmentMap);
 	}
 
 	Scene::OnCleanupScene();

@@ -65,6 +65,10 @@ namespace Lumos
 	{
 	}
 
+	void GLRenderer::PresentInternal(graphics::api::CommandBuffer* cmdBuffer)
+	{
+	}
+
 	void GLRenderer::SetDepthTestingInternal(bool enabled)
 	{
 		if (enabled)

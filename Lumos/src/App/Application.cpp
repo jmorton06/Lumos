@@ -9,7 +9,7 @@
 #include "Renderer/Scene.h"
 #include "Renderer/SceneManager.h"
 #include "Renderer/GraphicsPipeline.h"
-
+#include "Utilities/AssetsManager.h"
 #include "Scripting/LuaScript.h"
 #include "Graphics/API/Renderer.h"
 #include "Utilities/CommonUtils.h"
@@ -18,7 +18,7 @@
 #include "App/Input.h"
 #include "System/VFS.h"
 #include "System/JobSystem.h"
-#include "Graphics/ImGuiLayer.h"
+#include "Graphics/Layers/ImGuiLayer.h"
 
 #include <imgui/imgui.h>
 
@@ -75,8 +75,9 @@ namespace Lumos
         system::JobSystem::Execute([] { JMPhysicsEngine::Instance(); LUMOS_CORE_INFO("Initialised JMPhysics"); });
         system::JobSystem::Execute([] { B2PhysicsEngine::Instance(); LUMOS_CORE_INFO("Initialised B2Physics"); });
         system::JobSystem::Execute([] { SoundSystem::Initialise();   LUMOS_CORE_INFO("Initialised Audio"); });
-
         system::JobSystem::Wait();
+
+        AssetsManager::InitializeMeshes();
 
 		PushOverLay(new ImGuiLayer());
         m_GraphicsPipeline->Init(screenWidth, screenHeight);
@@ -94,13 +95,10 @@ namespace Lumos
 		JMPhysicsEngine::Release();
 		B2PhysicsEngine::Release();
 		Input::Release();
+		AssetsManager::ReleaseMeshes();
 
 		Sound::DeleteSounds();
 		SoundSystem::Destroy();
-
-#ifdef LUMOS_DEBUG_RENDERER
-		DebugRenderer::Release();
-#endif
 
 		if (pause)
 		{
@@ -108,25 +106,6 @@ namespace Lumos
 		}
 
 		return 0;
-	}
-
-	void Application::OnUpdate(TimeStep* dt)
-	{
-		const uint sceneIdx = m_SceneManager->GetCurrentSceneIndex();
-		const uint sceneMax = m_SceneManager->SceneCount();
-
-		if (Input::GetInput().GetKeyPressed(LUMOS_KEY_1)) m_SceneManager->GetCurrentScene()->ToggleDrawObjects();
-		if (Input::GetInput().GetKeyPressed(LUMOS_KEY_2)) m_SceneManager->GetCurrentScene()->SetDrawDebugData(!m_SceneManager->GetCurrentScene()->GetDrawDebugData());
-        if (Input::GetInput().GetKeyPressed(LUMOS_KEY_P)) JMPhysicsEngine::Instance()->SetPaused(!JMPhysicsEngine::Instance()->IsPaused());
-
-		if (Input::GetInput().GetKeyPressed(LUMOS_KEY_J)) CommonUtils::AddSphere(m_SceneManager->GetCurrentScene());
-		if (Input::GetInput().GetKeyPressed(LUMOS_KEY_K)) CommonUtils::AddPyramid(m_SceneManager->GetCurrentScene());
-		if (Input::GetInput().GetKeyPressed(LUMOS_KEY_L)) CommonUtils::AddLightCube(m_SceneManager->GetCurrentScene());
-
-		if (Input::GetInput().GetKeyPressed(LUMOS_KEY_E)) m_SceneManager->JumpToScene((sceneIdx + 1) % sceneMax);
-		if (Input::GetInput().GetKeyPressed(LUMOS_KEY_Q)) m_SceneManager->JumpToScene((sceneIdx == 0 ? sceneMax : sceneIdx) - 1);
-		if (Input::GetInput().GetKeyPressed(LUMOS_KEY_R)) m_SceneManager->JumpToScene(sceneIdx);
-		if (Input::GetInput().GetKeyPressed(LUMOS_KEY_V)) m_Window->ToggleVSync();
 	}
 
 	void Application::PhysicsUpdate(float targetUpdateTime)
@@ -174,30 +153,24 @@ namespace Lumos
 		{
 			m_UpdateTimer += Engine::Instance()->TargetFrameRate();
 #endif
-			m_Updates++;
-			m_Frames++;
 
 			m_TimeStep->Update(now);
 
-			for (Layer* layer : m_LayerStack)
-				layer->OnUpdate(m_TimeStep.get());
+			{
+				OnUpdate(m_TimeStep.get());
+				m_Updates++;
+			}
 
-			m_SceneManager->GetCurrentScene()->OnUpdate(m_TimeStep.get());
+			{
+				OnRender();
+				m_Frames++;
+			}
 
-			m_GraphicsPipeline->RenderScene();
-
-			for (Layer* layer : m_LayerStack)
-				layer->OnRender(m_SceneManager->GetCurrentScene());
-
-			SoundSystem::Instance()->Update(m_TimeStep.get());
-
+			Input::GetInput().ResetPressed();
             m_Window->OnUpdate();
-            OnUpdate(m_TimeStep.get());
 
 			if (Input::GetInput().GetKeyPressed(LUMOS_KEY_ESCAPE))
 				m_CurrentState = AppState::Closing;
-
-			Input::GetInput().ResetPressed();
 #ifdef LUMOS_LIMIT_FRAMERATE
 		}
 #endif
@@ -217,6 +190,39 @@ namespace Lumos
 		return m_CurrentState == AppState::Running;
 	}
 
+	void Application::OnRender()
+	{
+		m_GraphicsPipeline->RenderScene();
+
+		for (Layer* layer : m_LayerStack)
+			layer->OnRender(m_SceneManager->GetCurrentScene());
+	}
+
+	void Application::OnUpdate(TimeStep* dt)
+	{
+		const uint sceneIdx = m_SceneManager->GetCurrentSceneIndex();
+		const uint sceneMax = m_SceneManager->SceneCount();
+
+		if (Input::GetInput().GetKeyPressed(LUMOS_KEY_1)) m_SceneManager->GetCurrentScene()->ToggleDrawObjects();
+		if (Input::GetInput().GetKeyPressed(LUMOS_KEY_2)) m_SceneManager->GetCurrentScene()->SetDrawDebugData(!m_SceneManager->GetCurrentScene()->GetDrawDebugData());
+        if (Input::GetInput().GetKeyPressed(LUMOS_KEY_P)) JMPhysicsEngine::Instance()->SetPaused(!JMPhysicsEngine::Instance()->IsPaused());
+
+		if (Input::GetInput().GetKeyPressed(LUMOS_KEY_J)) CommonUtils::AddSphere(m_SceneManager->GetCurrentScene());
+		if (Input::GetInput().GetKeyPressed(LUMOS_KEY_K)) CommonUtils::AddPyramid(m_SceneManager->GetCurrentScene());
+		if (Input::GetInput().GetKeyPressed(LUMOS_KEY_L)) CommonUtils::AddLightCube(m_SceneManager->GetCurrentScene());
+
+		if (Input::GetInput().GetKeyPressed(LUMOS_KEY_E)) m_SceneManager->JumpToScene((sceneIdx + 1) % sceneMax);
+		if (Input::GetInput().GetKeyPressed(LUMOS_KEY_Q)) m_SceneManager->JumpToScene((sceneIdx == 0 ? sceneMax : sceneIdx) - 1);
+		if (Input::GetInput().GetKeyPressed(LUMOS_KEY_R)) m_SceneManager->JumpToScene(sceneIdx);
+		if (Input::GetInput().GetKeyPressed(LUMOS_KEY_V)) m_Window->ToggleVSync();
+
+		for (Layer* layer : m_LayerStack)
+			layer->OnUpdate(m_TimeStep.get());
+
+		m_SceneManager->GetCurrentScene()->OnUpdate(m_TimeStep.get());
+		SoundSystem::Instance()->Update(m_TimeStep.get());
+	}
+
 	void Application::OnEvent(Event& e)
 	{
 		EventDispatcher dispatcher(e);
@@ -224,6 +230,8 @@ namespace Lumos
         dispatcher.Dispatch<WindowResizeEvent>(BIND_EVENT_FN(Application::OnWindowResize));
 
 		Input::GetInput().OnEvent(e);
+
+		m_SceneManager->GetCurrentScene()->OnEvent(e);
 
 		for (auto it = m_LayerStack.end(); it != m_LayerStack.begin();)
 		{
@@ -264,6 +272,7 @@ namespace Lumos
 
     bool Application::OnWindowResize(WindowResizeEvent &e)
     {
+		Renderer::GetRenderer()->OnResize(e.GetWidth(), e.GetHeight());
         GetGraphicsPipeline()->OnResize(e.GetWidth(), e.GetHeight());
         return false;
     }

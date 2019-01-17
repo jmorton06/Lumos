@@ -121,7 +121,7 @@ namespace Lumos
 
 			Texture* attachments[2];
 			attachments[1] = reinterpret_cast<Texture*>(depthImageView);//new VKTexture2D(VkImage(), depthImageView);
-			FrameBufferInfo bufferInfo{};
+			FramebufferInfo bufferInfo{};
 			bufferInfo.width = m_Width;
 			bufferInfo.height = m_Height;
 			bufferInfo.attachmentCount = 2;
@@ -133,7 +133,7 @@ namespace Lumos
 				attachments[0] = m_SwapChainBuffers[i];
 				bufferInfo.attachments = attachments;
 
-				m_FrameBuffers.emplace_back(new VKFrameBuffer(bufferInfo));
+				m_Framebuffers.emplace_back(new VKFramebuffer(bufferInfo));
 			}
 
 			graphics::VKDevice::Instance()->m_SwapChainSize = static_cast<uint>(GetSwapchainBufferCount());
@@ -151,7 +151,7 @@ namespace Lumos
 		{
 			for (uint32_t i = 0; i < m_SwapChainBuffers.size(); i++)
 			{
-				delete m_FrameBuffers[i];
+				delete m_Framebuffers[i];
 				delete m_SwapChainBuffers[i];
 			}
 			vkDestroySwapchainKHR(VKDevice::Instance()->GetDevice(), m_SwapChain, VK_NULL_HANDLE);

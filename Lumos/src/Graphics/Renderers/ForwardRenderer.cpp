@@ -2,7 +2,7 @@
 #include "ForwardRenderer.h"
 #include "Graphics/API/Shader.h"
 #include "Graphics/RenderList.h"
-#include "Graphics/API/FrameBuffer.h"
+#include "Graphics/API/Framebuffer.h"
 #include "Graphics/ParticleManager.h"
 #include "Graphics/Light.h"
 #include "Graphics/API/Textures/TextureCube.h"
@@ -53,7 +53,7 @@ namespace Lumos
 		for (i = 0; i < commandBuffers.size(); i++)
 		{
 			Begin();
-			BeginScene(scene->GetCamera());
+			BeginScene(scene);
 
 			renderList->RenderOpaqueObjects([&](Entity* obj)
 			{
@@ -211,8 +211,9 @@ namespace Lumos
 
     }
 
-	void ForwardRenderer::BeginScene(Camera* camera)
+	void ForwardRenderer::BeginScene(Scene* scene)
 	{
+		auto camera = scene->GetCamera();
 		auto proj = camera->GetProjectionMatrix();
 
 #ifdef LUMOS_RENDER_API_VULKAN
@@ -342,7 +343,7 @@ namespace Lumos
 		}
 
 		if(m_SkyboxRenderer)
-			m_SkyboxRenderer->Render(commandBuffers[i], Application::Instance()->GetSceneManager()->GetCurrentScene()->GetCamera(), i);
+			m_SkyboxRenderer->Render(commandBuffers[i], Application::Instance()->GetSceneManager()->GetCurrentScene(), i);
 	}
 
 	void ForwardRenderer::OnResize(uint width, uint height)

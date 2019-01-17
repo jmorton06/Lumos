@@ -4,7 +4,7 @@
 #include "Events/Event.h"
 #include "Events/ApplicationEvent.h"
 
-#include "Graphics/LayerStack.h"
+#include "Graphics/Layers/LayerStack.h"
 #include "Events/Event.h"
 #include <thread>
 
@@ -34,6 +34,7 @@ namespace Lumos
 		void Run();
 		bool OnFrame();
 		void OnUpdate(TimeStep* dt);
+		void OnRender();
 		void OnEvent(Event& e);
 		void OnImGui();
 		void PushLayer(Layer* layer);

@@ -1,4 +1,3 @@
-
 project "Lumos"
 	kind "SharedLib"
 	language "C++"
@@ -10,7 +9,7 @@ project "Lumos"
 		"src/**.cpp",
 
 		"external/imgui/imgui.h",
-        "external/imgui/imconfig.h",
+        	"external/imgui/imconfig.h",
 		"external/imgui/imgui.cpp",
 		"external/imgui/imgui_demo.cpp",
 		"external/imgui/imgui_draw.cpp",
@@ -174,8 +173,8 @@ project "Lumos"
 			"QuartzCore.framework",
 			"Metal.framework",
 			"Cocoa.framework",
-        	"IOKit.framework",
-        	"CoreFoundation.framework",
+        		"IOKit.framework",
+        		"CoreFoundation.framework",
 			"CoreVideo.framework",
 			"OpenAL.framework",
 			"MoltenVK"
@@ -237,7 +236,8 @@ project "Lumos"
 
 		linkoptions
 		{
-			"../Dependencies/OpenAL/libs/linux/libopenal.so"
+			"../Dependencies/OpenAL/libs/linux/libopenal.so",
+			"../Dependencies/vulkan/libs/linux/libvulkan.so.1"
 		}
 
 		linkoptions{ "-Wl,-rpath=\\$$ORIGIN" }
@@ -256,7 +256,7 @@ project "Lumos"
 			"-Wignored-attributes"
 		}
 
-		links { "X11", "pthread", "libvulkan.so.1"}
+		links { "X11", "pthread" }
 
 		pchheader "../Lumos/src/LM.h"
 		pchsource "../Lumos/src/LM.cpp"

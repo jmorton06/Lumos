@@ -68,6 +68,7 @@ namespace Lumos
             }
 
             wd->Surface = surface;
+            wd->ClearEnable = false;
 
             // Check for WSI support
             VkBool32 res;
@@ -93,15 +94,19 @@ namespace Lumos
 
             // Create SwapChain, RenderPass, Framebuffer, etc.
             ImGui_ImplVulkanH_CreateWindowDataCommandBuffers(VKDevice::Instance()->GetGPU(), VKDevice::Instance()->GetDevice(), VKDevice::Instance()->GetGraphicsQueueFamilyIndex(), wd, g_Allocator);
-            wd->Swapchain = ((VKSwapchain*)VKRenderer::GetRenderer()->GetSwapchain())->GetSwapchain();
+            auto swapChain = ((VKSwapchain*)VKRenderer::GetRenderer()->GetSwapchain());
+            wd->Swapchain = swapChain->GetSwapchain();
             wd->Width = width;
             wd->Height = height;
             VkResult err;
 
+            wd->BackBufferCount = (size_t)swapChain->GetSwapchainBufferCount();
+/*
             err = vkGetSwapchainImagesKHR(VKDevice::Instance()->GetDevice(), wd->Swapchain, &wd->BackBufferCount, NULL);
             check_vk_result(err);
             err = vkGetSwapchainImagesKHR(VKDevice::Instance()->GetDevice(), wd->Swapchain, &wd->BackBufferCount, wd->BackBuffer);
             check_vk_result(err);
+            */
 
             // Create the Render Pass
             {
@@ -145,7 +150,7 @@ namespace Lumos
 
             // Create The Image Views
             {
-                VkImageViewCreateInfo info = {};
+                /*VkImageViewCreateInfo info = {};
                 info.sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO;
                 info.viewType = VK_IMAGE_VIEW_TYPE_2D;
                 info.format = wd->SurfaceFormat.format;
@@ -154,12 +159,15 @@ namespace Lumos
                 info.components.b = VK_COMPONENT_SWIZZLE_B;
                 info.components.a = VK_COMPONENT_SWIZZLE_A;
                 VkImageSubresourceRange image_range = { VK_IMAGE_ASPECT_COLOR_BIT, 0, 1, 0, 1 };
-                info.subresourceRange = image_range;
+                info.subresourceRange = image_range;*/
                 for (uint32_t i = 0; i < wd->BackBufferCount; i++)
                 {
-                    info.image = wd->BackBuffer[i];
-                    err = vkCreateImageView(VKDevice::Instance()->GetDevice(), &info, NULL, &wd->BackBufferView[i]);
-                    check_vk_result(err);
+                    auto scBuffer = swapChain->GetTexture(i);
+                    wd->BackBuffer[i] = scBuffer->GetImage();
+                    wd->BackBufferView[i] = scBuffer->GetImageView();
+                    //info.image = wd->BackBuffer[i];
+                    //err = vkCreateImageView(VKDevice::Instance()->GetDevice(), &info, NULL, &wd->BackBufferView[i]);
+                    //check_vk_result(err);
                 }
             }
 
@@ -320,8 +328,11 @@ namespace Lumos
 
         void VKIMGUIRenderer::Render(Lumos::graphics::api::CommandBuffer* commandBuffer)
         {
+            //g_WindowData.FrameIndex = ((VKSwapchain*)VKRenderer::GetRenderer()->GetSwapchain())->GetCurrentBufferId();
+           // ImGui_ImplVulkanH_FrameData* fd = &g_WindowData.Frames[g_WindowData.FrameIndex];
             //FrameRender(&g_WindowData);
-           // FramePresent(&g_WindowData);
+          //  ((VKSwapchain*)VKRenderer::GetRenderer()->GetSwapchain())->Present(fd->RenderCompleteSemaphore);
+            //FramePresent(&g_WindowData);
             ImGui_ImplVulkan_RenderDrawData(ImGui::GetDrawData(), ((VKCommandBuffer*)commandBuffer)->GetCommandBuffer());
         }
     }
