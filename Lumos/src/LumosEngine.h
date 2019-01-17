@@ -30,7 +30,6 @@
 #include "Graphics/API/Framebuffer.h"
 #include "Graphics/Mesh.h"
 #include "Renderer/Scene.h"
-#include "Renderer/GraphicsPipeline.h"
 #include "Graphics/Model/Model.h"
 #include "Graphics/Particle.h"
 #include "Graphics/ParticleEmitter.h"

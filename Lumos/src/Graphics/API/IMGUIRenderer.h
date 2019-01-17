@@ -12,7 +12,7 @@ namespace Lumos
             class LUMOS_EXPORT IMGUIRenderer
             {
             public:
-                static IMGUIRenderer* Create(uint width, uint height, void* windowHandle);
+                static IMGUIRenderer* Create(uint width, uint height);
 
                 virtual ~IMGUIRenderer() = default;
                 virtual void Init() = 0;

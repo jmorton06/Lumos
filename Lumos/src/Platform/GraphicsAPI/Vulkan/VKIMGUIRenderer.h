@@ -9,7 +9,7 @@ namespace Lumos
 		class VKIMGUIRenderer : public api::IMGUIRenderer
 		{
         public:
-            VKIMGUIRenderer(uint width, uint height, void* windowHandle);
+            VKIMGUIRenderer(uint width, uint height);
             ~VKIMGUIRenderer();
 
             void Init() override;

@@ -10,7 +10,7 @@ namespace Lumos
 		class GLIMGUIRenderer : public api::IMGUIRenderer
 		{
         public:
-            GLIMGUIRenderer(uint width, uint height, void* windowHandle);
+            GLIMGUIRenderer(uint width, uint height);
             ~GLIMGUIRenderer();
 
             void Init() override;
