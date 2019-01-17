@@ -7,6 +7,8 @@
 #include "Graphics/API/Swapchain.h"
 #include "Graphics/Renderers/DeferredRenderer.h"
 
+#include "App/Application.h"
+
 namespace Lumos
 {
     Layer3DDeferred::Layer3DDeferred(Scene* scene, Renderer3D* renderer, const std::string& debugName)
@@ -14,7 +16,7 @@ namespace Lumos
         m_Scene = scene;
         m_Renderer = renderer;
         
-        m_IMGUIRenderer = std::unique_ptr<graphics::api::IMGUIRenderer>(graphics::api::IMGUIRenderer::Create(scene->GetScreenWidth(),scene->GetScreenHeight()));
+        m_IMGUIRenderer = std::unique_ptr<graphics::api::IMGUIRenderer>(graphics::api::IMGUIRenderer::Create(Application::Instance()->GetWindow()->GetWidth(),Application::Instance()->GetWindow()->GetHeight()));
         
         if(m_IMGUIRenderer)
             m_IMGUIRenderer->Init();

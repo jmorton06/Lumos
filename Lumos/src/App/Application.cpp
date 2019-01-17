@@ -18,6 +18,8 @@
 #include "System/VFS.h"
 #include "System/JobSystem.h"
 #include "Graphics/Layers/ImGuiLayer.h"
+#include "Graphics/API/IMGUIRenderer.h"
+
 #include "Graphics/Layers/Layer3DDeferred.h"
 #include "Graphics/Renderers/DeferredRenderer.h"
 
@@ -80,6 +82,8 @@ namespace Lumos
         AssetsManager::InitializeMeshes();
         
         PushOverLay(new ImGuiLayer());
+        auto deferredRenderer = new DeferredRenderer(m_Window->GetWidth(), m_Window->GetHeight());
+        PushLayer(new Layer3DDeferred(nullptr,deferredRenderer));
 
         m_CurrentState = AppState::Running;
 		m_PhysicsThread = std::thread(PhysicsUpdate, 1000.0f/120.0f);
@@ -240,10 +244,6 @@ namespace Lumos
 
 	void Application::Run()
 	{
-        //
-        auto deferredRenderer = new DeferredRenderer(m_Window->GetWidth(), m_Window->GetHeight());
-        PushLayer(new Layer3DDeferred(m_SceneManager->GetCurrentScene(),deferredRenderer));
-        
 		m_UpdateTimer = m_Timer->GetMS(1.0f);
 		while (OnFrame())
 		{
