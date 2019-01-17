@@ -66,9 +66,6 @@ void Scene3D::OnUpdate(TimeStep* timeStep)
 
 void Scene3D::Render2D()
 {
-	using namespace Lumos::internal;
-
-	RenderString("FPS : " + StringFormat::ToString(Engine::Instance()->GetFPS()), Vector2(0.9f, 0.9f), 0.6f, Vector4(1.0f, 1.0f, 1.0f, 1.0f));
 }
 
 void Scene3D::OnCleanupScene()

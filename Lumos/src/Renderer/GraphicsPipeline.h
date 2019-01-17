@@ -9,6 +9,8 @@ namespace Lumos
 	class ForwardRenderer;
 	class DeferredRenderer;
 	class RenderList;
+	class TextureDepthArray;
+	class ShadowRenderer;
 
     namespace graphics
     {
@@ -27,7 +29,6 @@ namespace Lumos
 		GraphicsPipeline();
 		~GraphicsPipeline();
 
-		void DebugRenderScene();
 		void RenderScene();
 
 		bool Init(uint width, uint height);
@@ -44,17 +45,11 @@ namespace Lumos
 
 		void OnResize(uint width, uint height);
 
-        maths::Frustum GetFrustum() const { return m_FrameFrustum; }
-
 	protected:
 
 		Scene* m_pScene;
-
-		maths::Frustum									m_FrameFrustum;
-
 		std::unique_ptr<ForwardRenderer>				m_ForwardRenderer;
 		std::unique_ptr<DeferredRenderer>				m_DeferredRenderer;
-		std::unique_ptr<RenderList>					    m_pFrameRenderList;
 		std::unique_ptr<graphics::api::IMGUIRenderer>   m_IMGUIRenderer;
 
 		uint	m_ScreenTexWidth, m_ScreenTexHeight;

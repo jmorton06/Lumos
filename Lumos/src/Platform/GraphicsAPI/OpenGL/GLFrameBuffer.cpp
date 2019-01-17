@@ -1,5 +1,5 @@
 #include "LM.h"
-#include "GLFrameBuffer.h"
+#include "GLFramebuffer.h"
 
 #include "Platform/GraphicsAPI/OpenGL/GLDebug.h"
 #include "Graphics/API/Textures/TextureCube.h"
@@ -26,7 +26,7 @@ namespace Lumos
 		GLCall(glBindFramebuffer(GL_FRAMEBUFFER, m_Handle));
 	}
 
-    GLFramebuffer::GLFramebuffer(FrameBufferInfo bufferInfo)
+    GLFramebuffer::GLFramebuffer(FramebufferInfo bufferInfo)
     {
         GLCall(glGenFramebuffers(1, &m_Handle));
         GLCall(glBindFramebuffer(GL_FRAMEBUFFER, m_Handle));
@@ -58,7 +58,7 @@ namespace Lumos
 		GLCall(glDeleteFramebuffers(1, &m_Handle));
 	}
 
-	void GLFramebuffer::GenerateFrameBuffer()
+	void GLFramebuffer::GenerateFramebuffer()
 	{
 		GLCall(glGenFramebuffers(1, &m_Handle));
 	}

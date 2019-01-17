@@ -9,6 +9,11 @@
 #include "Entity/Entity.h"
 #include "Utilities/AssetManager.h"
 
+#include "Events/KeyEvent.h"
+#include "Events/Event.h"
+#include "Events/MouseEvent.h"
+#include "Events/ApplicationEvent.h"
+
 namespace Lumos
 {
 	class ParticleManager;
@@ -16,6 +21,7 @@ namespace Lumos
 	class GBuffer;
 	class TextureCube;
 	class Material;
+	class Event;
 
 	class LUMOS_EXPORT Scene
 	{
@@ -41,6 +47,7 @@ namespace Lumos
 		virtual void OnUpdate(TimeStep* timeStep);
 		virtual void OnTick() { };
 		virtual void OnIMGUI() { };
+		virtual void OnEvent(Event& e);
 		// Delete all contained Objects
 		//    - This is the default action upon firing OnCleanupScene()
 		void DeleteAllGameObjects();
@@ -68,7 +75,7 @@ namespace Lumos
 
 		void AddPointLight(std::shared_ptr<Light> light) const;
 
-		void RenderString(const String& text, const maths::Vector2& pos, float scale, const maths::Vector4& colour) const;
+		void BuildFrameRenderList();
 
 		std::vector <std::shared_ptr<Entity>>& GetEntities() { return m_Entities; }
 
@@ -101,6 +108,9 @@ namespace Lumos
 		void SetScreenWidth(uint width)   { m_ScreenWidth = width; }
 		void SetScreenHeight(uint height) { m_ScreenHeight = height; }
 
+		maths::Frustum GetFrustum() const { return m_FrameFrustum; }
+		RenderList* GetRenderList() const { return m_pFrameRenderList.get(); }
+
 	protected:
 
 		String				m_SceneName;
@@ -128,8 +138,14 @@ namespace Lumos
 
 		uint m_ScreenWidth;
 		uint m_ScreenHeight;
+
+		maths::Frustum				m_FrameFrustum;
+		std::unique_ptr<RenderList>	m_pFrameRenderList;
+
     private:
         Scene(Scene const&) = delete;
         Scene& operator=(Scene const&) = delete;
+
+		bool OnWindowResize(WindowResizeEvent& e);
 	};
 }

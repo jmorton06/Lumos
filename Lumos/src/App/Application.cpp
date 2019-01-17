@@ -9,7 +9,7 @@
 #include "Renderer/Scene.h"
 #include "Renderer/SceneManager.h"
 #include "Renderer/GraphicsPipeline.h"
-
+#include "Utilities/AssetsManager.h"
 #include "Scripting/LuaScript.h"
 #include "Graphics/API/Renderer.h"
 #include "Utilities/CommonUtils.h"
@@ -75,7 +75,7 @@ namespace Lumos
         system::JobSystem::Execute([] { JMPhysicsEngine::Instance(); LUMOS_CORE_INFO("Initialised JMPhysics"); });
         system::JobSystem::Execute([] { B2PhysicsEngine::Instance(); LUMOS_CORE_INFO("Initialised B2Physics"); });
         system::JobSystem::Execute([] { SoundSystem::Initialise();   LUMOS_CORE_INFO("Initialised Audio"); });
-
+		system::JobSystem::Execute([] { AssetsManager::InitializeMeshes(); });
         system::JobSystem::Wait();
 
 		PushOverLay(new ImGuiLayer());
@@ -94,6 +94,7 @@ namespace Lumos
 		JMPhysicsEngine::Release();
 		B2PhysicsEngine::Release();
 		Input::Release();
+		AssetsManager::ReleaseMeshes();
 
 		Sound::DeleteSounds();
 		SoundSystem::Destroy();
@@ -228,6 +229,8 @@ namespace Lumos
         dispatcher.Dispatch<WindowResizeEvent>(BIND_EVENT_FN(Application::OnWindowResize));
 
 		Input::GetInput().OnEvent(e);
+
+		m_SceneManager->GetCurrentScene()->OnEvent(e);
 
 		for (auto it = m_LayerStack.end(); it != m_LayerStack.begin();)
 		{

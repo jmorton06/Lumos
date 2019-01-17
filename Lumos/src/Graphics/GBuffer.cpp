@@ -1,6 +1,6 @@
 #include "LM.h"
 #include "GBuffer.h"
-#include "API/FrameBuffer.h"
+#include "API/Framebuffer.h"
 #include "API/Textures/TextureDepth.h"
 #include "API/Textures/Texture2D.h"
 

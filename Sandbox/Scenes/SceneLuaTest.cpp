@@ -34,9 +34,6 @@ void SceneLuaTest::OnUpdate(TimeStep* timeStep)
 
 void SceneLuaTest::Render2D()
 {
-	using namespace Lumos::internal;
-
-	RenderString("FPS : " + StringFormat::ToString(Engine::Instance()->GetFPS()), Vector2(0.9f, 0.9f), 0.6f, Vector4(1.0f, 1.0f, 1.0f, 1.0f));
 }
 
 void SceneLuaTest::OnCleanupScene()

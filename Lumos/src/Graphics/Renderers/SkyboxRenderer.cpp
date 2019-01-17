@@ -2,7 +2,7 @@
 #include "SkyboxRenderer.h"
 #include "Graphics/API/Shader.h"
 #include "Graphics/RenderList.h"
-#include "Graphics/API/FrameBuffer.h"
+#include "Graphics/API/Framebuffer.h"
 #include "Graphics/ParticleManager.h"
 #include "Graphics/Light.h"
 #include "Graphics/API/Textures/TextureCube.h"

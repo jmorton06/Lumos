@@ -27,7 +27,7 @@
 #include "Graphics/API/Textures/Texture2D.h"
 #include "Graphics/Material.h"
 #include "Graphics/API/Context.h"
-#include "Graphics/API/FrameBuffer.h"
+#include "Graphics/API/Framebuffer.h"
 #include "Graphics/Mesh.h"
 #include "Renderer/Scene.h"
 #include "Renderer/GraphicsPipeline.h"
