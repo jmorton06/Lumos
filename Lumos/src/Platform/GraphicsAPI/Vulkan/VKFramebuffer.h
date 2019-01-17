@@ -1,6 +1,6 @@
 #pragma once
 #include "LM.h"
-#include "Graphics/API/FrameBuffer.h"
+#include "Graphics/API/Framebuffer.h"
 #include "Dependencies/vulkan/vulkan.h"
 #include "VKTexture2D.h"
 #include "VKRenderpass.h"
@@ -9,14 +9,14 @@ namespace Lumos
 {
 	namespace graphics
 	{
-		class LUMOS_EXPORT VKFrameBuffer : public Framebuffer
+		class LUMOS_EXPORT VKFramebuffer : public Framebuffer
 		{
 		public:
 
-			VKFrameBuffer(FrameBufferInfo frameBufferInfo);
-			~VKFrameBuffer();
+			VKFramebuffer(FramebufferInfo frameBufferInfo);
+			~VKFramebuffer();
 
-			inline VkFramebuffer GetFrameBuffer() const { return m_Framebuffer; }
+			inline VkFramebuffer GetFramebuffer() const { return m_Framebuffer; }
 
 			void SetClearColour(const maths::Vector4& colour) override {};
 
@@ -32,7 +32,7 @@ namespace Lumos
 			void AddCubeTextureAttachment(Attachment attachmentType, CubeFace face, TextureCube* texture) override {};
 			void AddShadowAttachment(Texture* texture) override {};
 			void AddTextureLayer(int index, Texture* texture) override {};
-			void GenerateFrameBuffer() override {};
+			void GenerateFramebuffer() override {};
 
 		private:
 

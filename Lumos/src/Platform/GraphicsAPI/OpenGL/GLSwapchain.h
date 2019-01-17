@@ -21,6 +21,7 @@ namespace Lumos
 			Framebuffer* GetFramebuffer(int id) const override;
 			size_t GetSwapchainBufferCount() const override;
 			uint GetFramebufferCount() const override { return static_cast<uint>(swapChainBuffers.size()); }
+			Framebuffer* CreateFramebuffer(api::RenderPass* renderPass, uint id) override { return nullptr; }
 		private:
 			std::vector<GLTexture2D*> swapChainBuffers;
 			uint32_t currentBuffer = 0;

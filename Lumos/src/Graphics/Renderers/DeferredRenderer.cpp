@@ -2,7 +2,7 @@
 #include "DeferredRenderer.h"
 #include "Graphics/API/Shader.h"
 #include "Graphics/RenderList.h"
-#include "Graphics/API/FrameBuffer.h"
+#include "Graphics/API/Framebuffer.h"
 #include "Graphics/ParticleManager.h"
 #include "Graphics/Light.h"
 #include "Graphics/API/Textures/TextureCube.h"
@@ -72,7 +72,6 @@ namespace Lumos
 		delete m_OffScreenPipeline;
 		delete m_DepthTexture;
 		delete m_ScreenQuad;
-		delete m_ShadowRenderer;
         delete m_DefaultDescriptorSet;
 		SAFE_DELETE(m_SkyboxRenderer);
 
@@ -191,9 +190,9 @@ namespace Lumos
 
 		m_ClearColour = maths::Vector4(0.8f, 0.8f, 0.8f, 1.0f);
 
-		m_ShadowTexture = std::unique_ptr<TextureDepthArray>(TextureDepthArray::Create(2048, 2048, 4));
 		m_SkyboxRenderer = nullptr;
-        m_ShadowRenderer = new ShadowRenderer(m_ShadowTexture.get(), 2048, 4);
+		m_ShadowTexture  = std::unique_ptr<TextureDepthArray>(TextureDepthArray::Create(2048, 2048, 4));
+        m_ShadowRenderer = nullptr;//std::make_unique<ShadowRenderer>(m_ShadowTexture.get(), 2048, 4);
 	}
 
 	void DeferredRenderer::RenderScene(RenderList* renderList, Scene* scene)
@@ -311,8 +310,11 @@ namespace Lumos
 		else
 		{
 			m_CubeMap = nullptr;
-			SAFE_DELETE(m_SkyboxRenderer);
-			CreateScreenDescriptorSet();
+			if(m_SkyboxRenderer)
+			{
+				SAFE_DELETE(m_SkyboxRenderer);
+				CreateScreenDescriptorSet();
+			}
 		}
 	}
 
@@ -632,7 +634,7 @@ namespace Lumos
 		attachmentTypes[3] = TextureType::COLOUR;
 		attachmentTypes[4] = TextureType::DEPTH;
 
-		FrameBufferInfo bufferInfo{};
+		FramebufferInfo bufferInfo{};
 		bufferInfo.width = m_ScreenBufferWidth;
 		bufferInfo.height = m_ScreenBufferHeight;
 		bufferInfo.attachmentCount = attachmentCount;

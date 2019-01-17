@@ -176,7 +176,7 @@ namespace Lumos
 			rpBegin.pNext = NULL;
 			rpBegin.renderPass = m_RenderPass;
 			if(frame)
-				rpBegin.framebuffer = static_cast<VKFrameBuffer*>(frame)->GetFrameBuffer();
+				rpBegin.framebuffer = static_cast<VKFramebuffer*>(frame)->GetFramebuffer();
 			rpBegin.renderArea.offset.x = 0;
 			rpBegin.renderArea.offset.y = 0;
 			rpBegin.renderArea.extent.width = width;

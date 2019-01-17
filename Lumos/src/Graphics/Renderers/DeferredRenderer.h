@@ -114,8 +114,6 @@ namespace Lumos
 		Lumos::graphics::api::UniformBuffer* m_LightUniformBuffer;
 		Lumos::graphics::api::UniformBuffer* m_DefaultMaterialDataUniformBuffer;
 
-		std::unique_ptr<GBuffer> m_GBuffer;
-
 		std::vector<Lumos::graphics::api::CommandBuffer*> m_CommandBuffers;
 
 		Lumos::graphics::api::CommandBuffer* m_DeferredCommandBuffers;
@@ -125,14 +123,14 @@ namespace Lumos
 
 		Lumos::Mesh* m_ScreenQuad = nullptr;
 
-		SkyboxRenderer* m_SkyboxRenderer;
-		ShadowRenderer* m_ShadowRenderer;
-
 		std::unique_ptr<Texture2D> m_PreintegratedFG;
 
 		int m_CommandBufferIndex = 0;
 
+		std::unique_ptr<GBuffer> m_GBuffer;
+		std::unique_ptr<ShadowRenderer> m_ShadowRenderer;
 		std::unique_ptr<TextureDepthArray> m_ShadowTexture;
+		SkyboxRenderer* m_SkyboxRenderer;
 		Texture* m_CubeMap = nullptr;
 	};
 

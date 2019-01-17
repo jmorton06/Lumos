@@ -39,7 +39,7 @@ namespace Lumos
 		}
 	}
 
-	struct FrameBufferInfo
+	struct FramebufferInfo
 	{
 		uint width;
 		uint height;
@@ -54,7 +54,7 @@ namespace Lumos
 	{
 	public:
 
-		static Framebuffer* Create(FrameBufferInfo framebufferInfo = FrameBufferInfo());
+		static Framebuffer* Create(FramebufferInfo framebufferInfo = FramebufferInfo());
 
 		virtual ~Framebuffer(){};
 
@@ -67,7 +67,7 @@ namespace Lumos
 		virtual void AddCubeTextureAttachment(Attachment attachmentType, CubeFace face, TextureCube* texture) = 0;
 		virtual void AddShadowAttachment(Texture* texture) = 0;
 		virtual void AddTextureLayer(int index, Texture* texture) = 0;
-		virtual void GenerateFrameBuffer() = 0;
+		virtual void GenerateFramebuffer() = 0;
 
 		virtual uint GetWidth() const = 0;
 		virtual uint GetHeight() const = 0;

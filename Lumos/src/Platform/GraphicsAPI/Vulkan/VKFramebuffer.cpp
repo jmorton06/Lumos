@@ -9,7 +9,7 @@ namespace Lumos
 {
 	namespace graphics
 	{
-		VKFrameBuffer::VKFrameBuffer(FrameBufferInfo frameBufferInfo)
+		VKFramebuffer::VKFramebuffer(FramebufferInfo frameBufferInfo)
 		{
 			m_Width  = frameBufferInfo.width;
 			m_Height = frameBufferInfo.height;
@@ -45,7 +45,7 @@ namespace Lumos
 			vkCreateFramebuffer(VKDevice::Instance()->GetDevice(), &fbCI, VK_NULL_HANDLE, &m_Framebuffer);
 		}
 
-		VKFrameBuffer::~VKFrameBuffer()
+		VKFramebuffer::~VKFramebuffer()
 		{
 			vkDestroyFramebuffer(VKDevice::Instance()->GetDevice(), m_Framebuffer, VK_NULL_HANDLE);
 		}

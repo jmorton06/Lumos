@@ -1,7 +1,7 @@
 #include "LM.h"
 #include "Water.h"
 #include "Utilities/AssetsManager.h"
-#include "API/FrameBuffer.h"
+#include "API/Framebuffer.h"
 #include "Renderer/SceneManager.h"
 #include "Mesh.h"
 #include "Material.h"

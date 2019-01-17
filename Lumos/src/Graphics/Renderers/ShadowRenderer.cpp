@@ -3,7 +3,7 @@
 #include "Graphics/RenderList.h"
 #include "Graphics/API/Textures/TextureDepthArray.h"
 #include "Utilities/AssetsManager.h"
-#include "Graphics/API/FrameBuffer.h"
+#include "Graphics/API/Framebuffer.h"
 #include "Renderer/Scene.h"
 #include "Graphics/API/Shader.h"
 #include "Maths/Maths.h"
@@ -325,7 +325,7 @@ namespace Lumos
 				TextureType attachmentTypes[attachmentCount];
 				attachmentTypes[0] = TextureType::DEPTHARRAY;
 
-				FrameBufferInfo bufferInfo{};
+				FramebufferInfo bufferInfo{};
 				bufferInfo.width = m_ShadowMapSize;
 				bufferInfo.height = m_ShadowMapSize;
 				bufferInfo.attachmentCount = attachmentCount;

@@ -26,6 +26,7 @@ namespace Lumos
 				virtual Framebuffer* GetFramebuffer(int id) const = 0;
 				virtual size_t GetSwapchainBufferCount() const = 0;
 				virtual uint GetFramebufferCount() const = 0;
+				virtual Framebuffer* CreateFramebuffer(RenderPass* renderPass, uint id) = 0;
 			};
 		}
 	}
