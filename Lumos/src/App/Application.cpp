@@ -75,8 +75,9 @@ namespace Lumos
         system::JobSystem::Execute([] { JMPhysicsEngine::Instance(); LUMOS_CORE_INFO("Initialised JMPhysics"); });
         system::JobSystem::Execute([] { B2PhysicsEngine::Instance(); LUMOS_CORE_INFO("Initialised B2Physics"); });
         system::JobSystem::Execute([] { SoundSystem::Initialise();   LUMOS_CORE_INFO("Initialised Audio"); });
-		system::JobSystem::Execute([] { AssetsManager::InitializeMeshes(); });
         system::JobSystem::Wait();
+
+        AssetsManager::InitializeMeshes();
 
 		PushOverLay(new ImGuiLayer());
         m_GraphicsPipeline->Init(screenWidth, screenHeight);

@@ -328,12 +328,12 @@ namespace Lumos
 
         void VKIMGUIRenderer::Render(Lumos::graphics::api::CommandBuffer* commandBuffer)
         {
-            g_WindowData.FrameIndex = ((VKSwapchain*)VKRenderer::GetRenderer()->GetSwapchain())->GetCurrentBufferId();
+            //g_WindowData.FrameIndex = ((VKSwapchain*)VKRenderer::GetRenderer()->GetSwapchain())->GetCurrentBufferId();
            // ImGui_ImplVulkanH_FrameData* fd = &g_WindowData.Frames[g_WindowData.FrameIndex];
-            FrameRender(&g_WindowData);
+            //FrameRender(&g_WindowData);
           //  ((VKSwapchain*)VKRenderer::GetRenderer()->GetSwapchain())->Present(fd->RenderCompleteSemaphore);
-            FramePresent(&g_WindowData);
-         //   ImGui_ImplVulkan_RenderDrawData(ImGui::GetDrawData(), ((VKCommandBuffer*)commandBuffer)->GetCommandBuffer());
+            //FramePresent(&g_WindowData);
+            ImGui_ImplVulkan_RenderDrawData(ImGui::GetDrawData(), ((VKCommandBuffer*)commandBuffer)->GetCommandBuffer());
         }
     }
 }

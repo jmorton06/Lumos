@@ -66,12 +66,12 @@ namespace Lumos
 
 			if(m_IMGUIRenderer && m_IMGUIRenderer->Implemented())
 			{
-			}
-			m_DeferredRenderer->End();
-		}
+                m_IMGUIRenderer->Render(m_DeferredRenderer->GetCommandBuffer(commandBufferIndex));
+            }
+            m_DeferredRenderer->End();
+        }
 
-		m_DeferredRenderer->PresentToScreen();
-				m_IMGUIRenderer->Render(nullptr);//m_DeferredRenderer->GetCommandBuffer(commandBufferIndex));
+        m_DeferredRenderer->PresentToScreen();
 	}
 
 	void GraphicsPipeline::OnResize(uint width, uint height)
