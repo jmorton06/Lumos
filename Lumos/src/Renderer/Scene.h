@@ -107,6 +107,9 @@ namespace Lumos
 
 		void SetScreenWidth(uint width)   { m_ScreenWidth = width; }
 		void SetScreenHeight(uint height) { m_ScreenHeight = height; }
+        
+        uint GetScreenWidth() const { return m_ScreenWidth; }
+        uint GetScreenHeight() const { return m_ScreenHeight; }
 
 		maths::Frustum GetFrustum() const { return m_FrameFrustum; }
 		RenderList* GetRenderList() const { return m_pFrameRenderList.get(); }

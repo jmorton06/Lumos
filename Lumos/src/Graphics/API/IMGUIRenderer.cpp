@@ -18,16 +18,16 @@ namespace Lumos
     {
         namespace api
         {
-            IMGUIRenderer* IMGUIRenderer::Create(uint width, uint height, void* windowHandle)
+            IMGUIRenderer* IMGUIRenderer::Create(uint width, uint height)
 			{
 #ifdef LUMOS_IMGUI
 				switch (Context::GetRenderAPI())
 				{
 #ifdef LUMOS_RENDER_API_OPENGL
-					case OPENGL: return new GLIMGUIRenderer(width, height, windowHandle);
+                    case OPENGL: return new GLIMGUIRenderer(width, height);
 #endif
 #ifdef LUMOS_RENDER_API_VULKAN
-					case VULKAN: return new VKIMGUIRenderer(width, height, windowHandle);
+					case VULKAN: return new VKIMGUIRenderer(width, height);
 #endif
 				}
 #endif

@@ -22,7 +22,6 @@
 #include "Graphics/GBuffer.h"
 #include "Renderer/SceneManager.h"
 #include "Renderer/Scene.h"
-#include "Renderer/GraphicsPipeline.h"
 #include "Entity/Entity.h"
 #include "SkyboxRenderer.h"
 #include "Maths/Maths.h"

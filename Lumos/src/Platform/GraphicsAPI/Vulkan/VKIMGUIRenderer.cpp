@@ -26,10 +26,10 @@ namespace Lumos
 {
     namespace graphics
     {
-        VKIMGUIRenderer::VKIMGUIRenderer(uint width, uint height, void* windowHandle)
+        VKIMGUIRenderer::VKIMGUIRenderer(uint width, uint height)
         {
             m_Implemented = true;
-			m_WindowHandle = windowHandle;
+			m_WindowHandle = nullptr;
 			m_Width = width;
 			m_Height = height;
         }
@@ -193,7 +193,7 @@ namespace Lumos
 
         void VKIMGUIRenderer::Init()
         {
-            VKSwapchain* swapChain = (VKSwapchain*)VKRenderer::GetRenderer()->GetSwapchain();
+            //VKSwapchain* swapChain = (VKSwapchain*)VKRenderer::GetRenderer()->GetSwapchain();
 
             int w, h;
             w = (int)m_Width;

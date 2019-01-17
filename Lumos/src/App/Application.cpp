@@ -8,7 +8,6 @@
 #include "Physics/JMPhysicsEngine/JMPhysicsEngine.h"
 #include "Renderer/Scene.h"
 #include "Renderer/SceneManager.h"
-#include "Renderer/GraphicsPipeline.h"
 #include "Utilities/AssetsManager.h"
 #include "Scripting/LuaScript.h"
 #include "Graphics/API/Renderer.h"
@@ -19,6 +18,8 @@
 #include "System/VFS.h"
 #include "System/JobSystem.h"
 #include "Graphics/Layers/ImGuiLayer.h"
+#include "Graphics/Layers/Layer3DDeferred.h"
+#include "Graphics/Renderers/DeferredRenderer.h"
 
 #include <imgui/imgui.h>
 
@@ -49,7 +50,6 @@ namespace Lumos
 		m_Window = std::unique_ptr<Window>(Window::Create("Game Engine", properties));
 		m_Window->SetEventCallback(BIND_EVENT_FN(Application::OnEvent));
 
-        m_GraphicsPipeline = std::make_unique<GraphicsPipeline>();
         m_SceneManager = std::make_unique<SceneManager>();
 	}
 
@@ -78,9 +78,8 @@ namespace Lumos
         system::JobSystem::Wait();
 
         AssetsManager::InitializeMeshes();
-
-		PushOverLay(new ImGuiLayer());
-        m_GraphicsPipeline->Init(screenWidth, screenHeight);
+        
+        PushOverLay(new ImGuiLayer());
 
         m_CurrentState = AppState::Running;
 		m_PhysicsThread = std::thread(PhysicsUpdate, 1000.0f/120.0f);
@@ -192,9 +191,7 @@ namespace Lumos
 
 	void Application::OnRender()
 	{
-		m_GraphicsPipeline->RenderScene();
-
-		for (Layer* layer : m_LayerStack)
+        for (Layer* layer : m_LayerStack)
 			layer->OnRender(m_SceneManager->GetCurrentScene());
 	}
 
@@ -243,6 +240,10 @@ namespace Lumos
 
 	void Application::Run()
 	{
+        //
+        auto deferredRenderer = new DeferredRenderer(m_Window->GetWidth(), m_Window->GetHeight());
+        PushLayer(new Layer3DDeferred(m_SceneManager->GetCurrentScene(),deferredRenderer));
+        
 		m_UpdateTimer = m_Timer->GetMS(1.0f);
 		while (OnFrame())
 		{
@@ -273,7 +274,6 @@ namespace Lumos
     bool Application::OnWindowResize(WindowResizeEvent &e)
     {
 		Renderer::GetRenderer()->OnResize(e.GetWidth(), e.GetHeight());
-        GetGraphicsPipeline()->OnResize(e.GetWidth(), e.GetHeight());
         return false;
     }
 
@@ -293,4 +293,12 @@ namespace Lumos
 
 		m_SceneManager->GetCurrentScene()->OnIMGUI();
 	}
+    
+    void Application::SetScene(Scene* scene)
+    {
+        for (auto it = m_LayerStack.end(); it != m_LayerStack.begin();)
+        {
+            (*--it)->OnNewScene(m_SceneManager->GetCurrentScene());
+        }
+    }
 }

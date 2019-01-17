@@ -4,7 +4,6 @@
 #include "Physics/B2PhysicsEngine/B2PhysicsEngine.h"
 #include "Scene.h"
 #include "App/Application.h"
-#include "GraphicsPipeline.h"
 #include "Scene.h"
 
 namespace Lumos
@@ -69,8 +68,7 @@ namespace Lumos
 		JMPhysicsEngine::Instance()->SetDefaults();
 		B2PhysicsEngine::Instance()->SetDefaults();
 
-        Application::Instance()->GetGraphicsPipeline()->SetScene(m_CurrentScene);
-        Application::Instance()->GetGraphicsPipeline()->Reset();
+        Application::Instance()->SetScene(m_CurrentScene);
 		m_CurrentScene->OnInit();
 
 		LUMOS_CORE_INFO("[SceneManager] - Scene switched to : {0}", m_CurrentScene->GetSceneName().c_str());
