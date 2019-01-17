@@ -6,7 +6,7 @@
 #include "Platform/GraphicsAPI/Vulkan/VKFramebuffer.h"
 #endif
 #ifdef LUMOS_RENDER_API_OPENGL
-#include "Platform/GraphicsAPI/OpenGL/GLFrameBuffer.h"
+#include "Platform/GraphicsAPI/OpenGL/GLFramebuffer.h"
 #endif
 #ifdef LUMOS_RENDER_API_DIRECT3D
 #include "graphics/DirectX/DXFrameBuffer2D.h"
