@@ -20,6 +20,7 @@ namespace Lumos
 		m_MaterialPropertiesBuffer = nullptr;
         m_MaterialBufferSize = sizeof(MaterialProperties);
         m_MaterialBufferData = new byte[m_MaterialBufferSize];
+		m_Pipeline = nullptr;
 	}
 
 	Material::Material() : m_Shader(nullptr)
@@ -33,6 +34,8 @@ namespace Lumos
 
         m_MaterialBufferSize = sizeof(MaterialProperties);
         m_MaterialBufferData = new byte[m_MaterialBufferSize];
+
+		m_Pipeline = nullptr;
 	}
 
 	Material::~Material()
@@ -55,7 +58,7 @@ namespace Lumos
 	{
 		m_PBRMaterialTextures = PBRMataterialTextures();
         auto params = TextureParameters(TextureFormat::RGBA, TextureFilter::LINEAR, TextureWrap::CLAMP_TO_EDGE);
-        
+
         m_PBRMaterialTextures.albedo    = std::shared_ptr<Texture2D>(Texture2D::CreateFromFile(name, path + "/" + name + "/albedo" + extension,params));
 		m_PBRMaterialTextures.normal    = std::shared_ptr<Texture2D>(Texture2D::CreateFromFile(name, path + "/" + name + "/normal" + extension,params));
 		m_PBRMaterialTextures.roughness = std::shared_ptr<Texture2D>(Texture2D::CreateFromFile(name, path + "/" + name + "/roughness" + extension,params));

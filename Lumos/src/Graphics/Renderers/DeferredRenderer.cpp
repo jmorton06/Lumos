@@ -2,7 +2,7 @@
 #include "DeferredRenderer.h"
 #include "Graphics/API/Shader.h"
 #include "Graphics/RenderList.h"
-#include "Graphics/API/FrameBuffer.h"
+#include "Graphics/API/Framebuffer.h"
 #include "Graphics/ParticleManager.h"
 #include "Graphics/Light.h"
 #include "Graphics/API/Textures/TextureCube.h"
@@ -30,10 +30,6 @@
 #include "Maths/BoundingSphere.h"
 #include "ShadowRenderer.h"
 #include "App/Application.h"
-
-#ifdef LUMOS_RENDER_API_VULKAN
-#include "Platform/GraphicsAPI/Vulkan/VKRenderer.h"
-#endif
 
 #define MAX_LIGHTS 10
 
@@ -76,7 +72,6 @@ namespace Lumos
 		delete m_OffScreenPipeline;
 		delete m_DepthTexture;
 		delete m_ScreenQuad;
-		delete m_ShadowRenderer;
         delete m_DefaultDescriptorSet;
 		SAFE_DELETE(m_SkyboxRenderer);
 
@@ -110,7 +105,20 @@ namespace Lumos
 		m_LightUniformBuffer = nullptr;
 		m_UniformBuffer = nullptr;
 		m_ModelUniformBuffer = nullptr;
-		m_DefaultMaterialDataUniformBuffer = nullptr;
+
+		m_DefaultMaterialDataUniformBuffer = graphics::api::UniformBuffer::Create();
+
+		MaterialProperties properties;
+		properties.glossColour = 1.0f;
+		properties.specularColour = maths::Vector4(0.0f,1.0f,0.0f,1.0f);
+		properties.usingAlbedoMap   = 1.0f;
+		properties.usingGlossMap    = 0.0f;
+		properties.usingNormalMap   = 0.0f;
+		properties.usingSpecularMap = 0.0f;
+
+		uint32_t bufferSize = static_cast<uint32_t>(sizeof(MaterialProperties));
+		m_DefaultMaterialDataUniformBuffer->Init(bufferSize, nullptr);
+		m_DefaultMaterialDataUniformBuffer->SetData(bufferSize, &properties);
 
 		m_ScreenQuad = Lumos::MeshFactory::CreateQuad();
 
@@ -170,33 +178,35 @@ namespace Lumos
         CreateOffScreenPipeline();
 		CreateDeferredPipeline();
 		CreateOffScreenBuffer();
+		CreateOffScreenFBO();
 		CreateLightBuffer();
+		CreateDefaultDescriptorSet();
 
 		graphics::api::DescriptorInfo info{};
 		info.pipeline = m_DeferredPipeline;
 		info.layoutIndex = 1; //?
 		info.shader = m_DeferredShader;
-		if(m_DeferredDescriptorSet)
-			delete m_DeferredDescriptorSet;
 		m_DeferredDescriptorSet = graphics::api::DescriptorSet::Create(info);
 
 		m_ClearColour = maths::Vector4(0.8f, 0.8f, 0.8f, 1.0f);
 
-		m_ShadowTexture = std::unique_ptr<TextureDepthArray>(TextureDepthArray::Create(2048, 2048, 4));
 		m_SkyboxRenderer = nullptr;
-        m_ShadowRenderer = new ShadowRenderer(m_ShadowTexture.get(), 2048, 4);
-		m_FBO = nullptr;
+		m_ShadowTexture  = std::unique_ptr<TextureDepthArray>(TextureDepthArray::Create(2048, 2048, 4));
+        m_ShadowRenderer = nullptr;//std::make_unique<ShadowRenderer>(m_ShadowTexture.get(), 2048, 4);
 	}
 
 	void DeferredRenderer::RenderScene(RenderList* renderList, Scene* scene)
 	{
+		if(m_ShadowRenderer)
+			m_ShadowRenderer->ClearRenderLists();
+
 		if(m_ShadowRenderer)
 			m_ShadowRenderer->RenderScene(nullptr, scene);
 
 		SubmitLightSetup(*scene->GetLightSetup(),scene);
 
 		BeginOffscreen();
-		BeginScene(scene->GetCamera());
+		BeginScene(scene);
 
 		renderList->RenderOpaqueObjects([&](Entity* obj)
 		{
@@ -207,8 +217,11 @@ namespace Lumos
 				{
 					for (auto& mesh : model->m_Model->GetMeshs())
 					{
-						if (mesh->GetMaterial() && mesh->GetMaterial()->GetDescriptorSet() == nullptr)
-							mesh->GetMaterial()->CreateDescriptorSet(m_OffScreenPipeline, 1);
+						if (mesh->GetMaterial())
+						{
+							if(mesh->GetMaterial()->GetDescriptorSet() == nullptr || mesh->GetMaterial()->GetPipeline() != m_OffScreenPipeline)
+								mesh->GetMaterial()->CreateDescriptorSet(m_OffScreenPipeline, 1);
+						}
 
 						TextureMatrixComponent* textureMatrixTransform = obj->GetComponent<TextureMatrixComponent>();
 						maths::Matrix4 textureMatrix;
@@ -248,157 +261,7 @@ namespace Lumos
 
 	void DeferredRenderer::PresentToScreen()
 	{
-#ifdef LUMOS_RENDER_API_VULKAN //TODO : remove platform specific code
-		if (graphics::Context::GetRenderAPI() == RenderAPI::VULKAN)
-			graphics::VKRenderer::GetRenderer()->Present(static_cast<graphics::VKCommandBuffer*>(m_CommandBuffers[graphics::VKRenderer::GetRenderer()->GetSwapchain()->GetCurrentBufferId()]));
-#endif
-	}
-
-	void DeferredRenderer::InitScene(Scene* scene, bool newScene)
-	{
-		if(m_ShadowRenderer)
-			m_ShadowRenderer->ClearRenderLists();
-
-		for (auto& entity : scene->GetEntities())
-		{
-			auto modelComponent = entity->GetComponent<ModelComponent>();
-			if(modelComponent)
-			{
-				Model* model = entity->GetComponent<ModelComponent>()->m_Model.get();
-				auto& meshes = model->GetMeshs();
-
-				for (auto& mesh : meshes)
-				{
-					if (mesh->GetMaterial())
-						mesh->GetMaterial()->CreateDescriptorSet(m_OffScreenPipeline, 1);
-				}
-			}
-		}
-
-		{
-			if(m_DefaultMaterialDataUniformBuffer == nullptr)
-			{
-				m_DefaultMaterialDataUniformBuffer = graphics::api::UniformBuffer::Create();
-
-				MaterialProperties properties;
-				properties.glossColour = 1.0f;
-				properties.specularColour = maths::Vector4(0.0f,1.0f,0.0f,1.0f);
-				properties.usingAlbedoMap   = 1.0f;
-				properties.usingGlossMap    = 0.0f;
-				properties.usingNormalMap   = 0.0f;
-				properties.usingSpecularMap = 0.0f;
-
-				uint32_t bufferSize = static_cast<uint32_t>(sizeof(MaterialProperties));
-				m_DefaultMaterialDataUniformBuffer->Init(bufferSize, nullptr);
-				m_DefaultMaterialDataUniformBuffer->SetData(bufferSize, &properties);
-			}
-
-            if(m_DefaultDescriptorSet)
-                delete m_DefaultDescriptorSet;
-
-			graphics::api::DescriptorInfo info{};
-			info.pipeline = m_OffScreenPipeline;
-			info.layoutIndex = 1;
-			info.shader = m_OffScreenShader;
-			m_DefaultDescriptorSet = graphics::api::DescriptorSet::Create(info);
-
-			std::vector<graphics::api::ImageInfo> imageInfos;
-
-			graphics::api::ImageInfo imageInfo = {};
-			imageInfo.texture = m_DefaultTexture;
-			imageInfo.binding = 0;
-			imageInfo.name = "u_AlbedoMap";
-
-			imageInfos.push_back(imageInfo);
-
-			std::vector<graphics::api::BufferInfo> bufferInfos;
-
-			graphics::api::BufferInfo bufferInfo = {};
-			bufferInfo.buffer = m_DefaultMaterialDataUniformBuffer;
-			bufferInfo.offset = 0;
-			bufferInfo.size = sizeof(MaterialProperties);
-			bufferInfo.type = graphics::api::DescriptorType::UNIFORM_BUFFER;
-			bufferInfo.binding = 4;
-			bufferInfo.shaderType = ShaderType::FRAGMENT;
-			bufferInfo.name = "UniformMaterialData";
-			bufferInfo.systemUniforms = false;
-
-			bufferInfos.push_back(bufferInfo);
-
-			m_DefaultDescriptorSet->Update(imageInfos, bufferInfos);
-		}
-
-		{
-			std::vector<graphics::api::ImageInfo> bufferInfos;
-
-			graphics::api::ImageInfo imageInfo = {};
-			imageInfo.texture = m_GBuffer->m_ScreenTex[SCREENTEX_COLOUR];
-			imageInfo.binding = 0;
-			imageInfo.name = "uColourSampler";
-
-			graphics::api::ImageInfo imageInfo2 = {};
-			imageInfo2.texture = m_GBuffer->m_ScreenTex[SCREENTEX_POSITION];
-			imageInfo2.binding = 1;
-			imageInfo2.name = "uPositionSampler";
-
-			graphics::api::ImageInfo imageInfo3 = {};
-			imageInfo3.texture = m_GBuffer->m_ScreenTex[SCREENTEX_NORMALS];
-			imageInfo3.binding = 2;
-			imageInfo3.name = "uNormalSampler";
-
-			graphics::api::ImageInfo imageInfo4 = {};
-			imageInfo4.texture = m_GBuffer->m_ScreenTex[SCREENTEX_PBR];
-			imageInfo4.binding = 3;
-			imageInfo4.name = "uPBRSampler";
-
-			graphics::api::ImageInfo imageInfo5 = {};
-			imageInfo5.texture = m_PreintegratedFG.get();
-			imageInfo5.binding = 4;
-			imageInfo5.name = "uPreintegratedFG";
-
-			graphics::api::ImageInfo imageInfo6 = {};
-			imageInfo6.texture = scene->GetEnvironmentMap();
-			imageInfo6.binding = 5;
-			imageInfo6.type = TextureType::CUBE;
-			imageInfo6.name = "uEnvironmentMap";
-
-            graphics::api::ImageInfo imageInfo7 = {};
-            imageInfo7.texture = (Texture*)m_ShadowTexture.get();
-            imageInfo7.binding = 6;
-			imageInfo7.type = TextureType::DEPTHARRAY;
-            imageInfo7.name = "uShadowMap";
-
-			graphics::api::ImageInfo imageInfo8 = {};
-			imageInfo8.texture = m_GBuffer->m_DepthTexture;
-			imageInfo8.binding = 7;
-			imageInfo8.type = TextureType::DEPTH;
-			imageInfo8.name = "uDepthSampler";
-
-			bufferInfos.push_back(imageInfo);
-			bufferInfos.push_back(imageInfo2);
-			bufferInfos.push_back(imageInfo3);
-			bufferInfos.push_back(imageInfo4);
-			bufferInfos.push_back(imageInfo5);
-			if(scene->GetEnvironmentMap())
-				bufferInfos.push_back(imageInfo6);
-			bufferInfos.push_back(imageInfo7);
-
-			m_DeferredDescriptorSet->Update(bufferInfos);
-		}
-
-		if(m_FBO)
-			delete m_FBO;
-
-		CreateOffScreenFBO();
-		if(newScene)
-		{
-			if(scene->GetEnvironmentMap())
-				SetCubeMap((Texture*)scene->GetEnvironmentMap());
-			else
-			{
-				SAFE_DELETE(m_SkyboxRenderer);
-			}
-		}
+		Renderer::GetRenderer()->Present((m_CommandBuffers[Renderer::GetRenderer()->GetSwapchain()->GetCurrentBufferId()]));
 	}
 
 	void DeferredRenderer::Begin(int commandBufferID)
@@ -423,8 +286,9 @@ namespace Lumos
 		m_OffScreenRenderpass->BeginRenderpass(m_DeferredCommandBuffers, maths::Vector4(0.0f), m_FBO, graphics::api::SECONDARY, m_ScreenBufferWidth, m_ScreenBufferHeight);
 	}
 
-	void DeferredRenderer::BeginScene(Camera* camera)
+	void DeferredRenderer::BeginScene(Scene* scene)
 	{
+		auto camera = scene->GetCamera();
 		auto proj = camera->GetProjectionMatrix();
 
 #ifdef LUMOS_RENDER_API_VULKAN
@@ -433,6 +297,25 @@ namespace Lumos
 #endif
 		auto projView = proj * camera->GetViewMatrix();
 		memcpy(m_VSSystemUniformBuffer + m_VSSystemUniformBufferOffsets[VSSystemUniformIndex_ProjectionMatrix], &projView, sizeof(maths::Matrix4));
+
+
+		if(scene->GetEnvironmentMap())
+		{
+			if(scene->GetEnvironmentMap() != m_CubeMap)
+			{
+				SetCubeMap((Texture*)scene->GetEnvironmentMap());
+				CreateScreenDescriptorSet();
+			}
+		}
+		else
+		{
+			m_CubeMap = nullptr;
+			if(m_SkyboxRenderer)
+			{
+				SAFE_DELETE(m_SkyboxRenderer);
+				CreateScreenDescriptorSet();
+			}
+		}
 	}
 
 	void DeferredRenderer::Submit(const RenderCommand& command)
@@ -521,7 +404,7 @@ namespace Lumos
 		currentCMDBuffer->ExecuteSecondary(m_CommandBuffers[m_CommandBufferIndex]);
 
 		if(m_SkyboxRenderer)
-			m_SkyboxRenderer->Render(m_CommandBuffers[m_CommandBufferIndex], Application::Instance()->GetSceneManager()->GetCurrentScene()->GetCamera(), m_CommandBufferIndex);
+			m_SkyboxRenderer->Render(m_CommandBuffers[m_CommandBufferIndex], Application::Instance()->GetSceneManager()->GetCurrentScene(), m_CommandBufferIndex);
 	}
 
 	void DeferredRenderer::PresentOffScreen()
@@ -751,7 +634,7 @@ namespace Lumos
 		attachmentTypes[3] = TextureType::COLOUR;
 		attachmentTypes[4] = TextureType::DEPTH;
 
-		FrameBufferInfo bufferInfo{};
+		FramebufferInfo bufferInfo{};
 		bufferInfo.width = m_ScreenBufferWidth;
 		bufferInfo.height = m_ScreenBufferHeight;
 		bufferInfo.attachmentCount = attachmentCount;
@@ -801,6 +684,7 @@ namespace Lumos
 		delete m_DeferredPipeline;
 		delete m_OffScreenPipeline;
 		delete m_DepthTexture;
+		delete m_FBO;
 
 		DeferredRenderer::SetScreenBufferSize(width, height);
 
@@ -813,7 +697,9 @@ namespace Lumos
         CreateOffScreenPipeline();
 		CreateDeferredPipeline();
 		CreateOffScreenBuffer();
+		CreateOffScreenFBO();
 		CreateLightBuffer();
+		CreateDefaultDescriptorSet();
 
 		graphics::api::DescriptorInfo info{};
 		info.pipeline = m_DeferredPipeline;
@@ -822,6 +708,8 @@ namespace Lumos
 		if(m_DeferredDescriptorSet)
 			delete m_DeferredDescriptorSet;
 		m_DeferredDescriptorSet = graphics::api::DescriptorSet::Create(info);
+
+		m_CubeMap = nullptr;
 
 		m_ClearColour = maths::Vector4(0.8f, 0.8f, 0.8f, 1.0f);
 
@@ -835,6 +723,7 @@ namespace Lumos
 
 	void DeferredRenderer::SetCubeMap(Texture* cubeMap)
 	{
+		m_CubeMap = cubeMap;
 		if(m_SkyboxRenderer == nullptr)
 		{
 			m_SkyboxRenderer = new SkyboxRenderer(m_ScreenBufferWidth, m_ScreenBufferHeight);
@@ -846,5 +735,101 @@ namespace Lumos
 		{
 			m_SkyboxRenderer->SetCubeMap(cubeMap);
 		}
+	}
+
+	void DeferredRenderer::CreateDefaultDescriptorSet()
+	{
+		if(m_DefaultDescriptorSet)
+			delete m_DefaultDescriptorSet;
+
+		graphics::api::DescriptorInfo info{};
+		info.pipeline = m_OffScreenPipeline;
+		info.layoutIndex = 1;
+		info.shader = m_OffScreenShader;
+		m_DefaultDescriptorSet = graphics::api::DescriptorSet::Create(info);
+
+		std::vector<graphics::api::ImageInfo> imageInfos;
+
+		graphics::api::ImageInfo imageInfo = {};
+		imageInfo.texture = m_DefaultTexture;
+		imageInfo.binding = 0;
+		imageInfo.name = "u_AlbedoMap";
+
+		imageInfos.push_back(imageInfo);
+
+		std::vector<graphics::api::BufferInfo> bufferInfos;
+
+		graphics::api::BufferInfo bufferInfo = {};
+		bufferInfo.buffer = m_DefaultMaterialDataUniformBuffer;
+		bufferInfo.offset = 0;
+		bufferInfo.size = sizeof(MaterialProperties);
+		bufferInfo.type = graphics::api::DescriptorType::UNIFORM_BUFFER;
+		bufferInfo.binding = 4;
+		bufferInfo.shaderType = ShaderType::FRAGMENT;
+		bufferInfo.name = "UniformMaterialData";
+		bufferInfo.systemUniforms = false;
+
+		bufferInfos.push_back(bufferInfo);
+
+		m_DefaultDescriptorSet->Update(imageInfos, bufferInfos);
+	}
+
+	void DeferredRenderer::CreateScreenDescriptorSet()
+	{
+		std::vector<graphics::api::ImageInfo> bufferInfos;
+
+		graphics::api::ImageInfo imageInfo = {};
+		imageInfo.texture = m_GBuffer->m_ScreenTex[SCREENTEX_COLOUR];
+		imageInfo.binding = 0;
+		imageInfo.name = "uColourSampler";
+
+		graphics::api::ImageInfo imageInfo2 = {};
+		imageInfo2.texture = m_GBuffer->m_ScreenTex[SCREENTEX_POSITION];
+		imageInfo2.binding = 1;
+		imageInfo2.name = "uPositionSampler";
+
+		graphics::api::ImageInfo imageInfo3 = {};
+		imageInfo3.texture = m_GBuffer->m_ScreenTex[SCREENTEX_NORMALS];
+		imageInfo3.binding = 2;
+		imageInfo3.name = "uNormalSampler";
+
+		graphics::api::ImageInfo imageInfo4 = {};
+		imageInfo4.texture = m_GBuffer->m_ScreenTex[SCREENTEX_PBR];
+		imageInfo4.binding = 3;
+		imageInfo4.name = "uPBRSampler";
+
+		graphics::api::ImageInfo imageInfo5 = {};
+		imageInfo5.texture = m_PreintegratedFG.get();
+		imageInfo5.binding = 4;
+		imageInfo5.name = "uPreintegratedFG";
+
+		graphics::api::ImageInfo imageInfo6 = {};
+		imageInfo6.texture = m_CubeMap;
+		imageInfo6.binding = 5;
+		imageInfo6.type = TextureType::CUBE;
+		imageInfo6.name = "uEnvironmentMap";
+
+		graphics::api::ImageInfo imageInfo7 = {};
+		imageInfo7.texture = (Texture*)m_ShadowTexture.get();
+		imageInfo7.binding = 6;
+		imageInfo7.type = TextureType::DEPTHARRAY;
+		imageInfo7.name = "uShadowMap";
+
+		graphics::api::ImageInfo imageInfo8 = {};
+		imageInfo8.texture = m_GBuffer->m_DepthTexture;
+		imageInfo8.binding = 7;
+		imageInfo8.type = TextureType::DEPTH;
+		imageInfo8.name = "uDepthSampler";
+
+		bufferInfos.push_back(imageInfo);
+		bufferInfos.push_back(imageInfo2);
+		bufferInfos.push_back(imageInfo3);
+		bufferInfos.push_back(imageInfo4);
+		bufferInfos.push_back(imageInfo5);
+		if(m_CubeMap)
+			bufferInfos.push_back(imageInfo6);
+		bufferInfos.push_back(imageInfo7);
+
+		m_DeferredDescriptorSet->Update(bufferInfos);
 	}
 }

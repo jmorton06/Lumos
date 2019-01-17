@@ -1,9 +1,10 @@
 #include "LM.h"
 #include "ImGuiLayer.h"
+#include "App/Input.h"
 #include "App/Application.h"
 
-#include "external/imgui/imgui.h"
-#include "App/Input.h"
+#include <imgui/imgui.h>
+
 
 namespace Lumos
 {

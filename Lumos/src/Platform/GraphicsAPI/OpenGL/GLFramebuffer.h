@@ -1,6 +1,6 @@
 #pragma once
 #include "LM.h"
-#include "Graphics/API/FrameBuffer.h"
+#include "Graphics/API/Framebuffer.h"
 #include "Platform/GraphicsAPI/OpenGL/GL.h"
 #include "Textures/GLTexture2D.h"
 
@@ -12,12 +12,12 @@ namespace Lumos
 	public:
 
 		GLFramebuffer();
-		GLFramebuffer(FrameBufferInfo bufferInfo);
+		GLFramebuffer(FramebufferInfo bufferInfo);
 		~GLFramebuffer();
 
-		inline uint GetFrameBuffer() const { return m_Handle; }
+		inline uint GetFramebuffer() const { return m_Handle; }
 
-		void GenerateFrameBuffer() override;
+		void GenerateFramebuffer() override;
 
 		void Bind(uint width, uint height) const override;
 		void Bind() const override;

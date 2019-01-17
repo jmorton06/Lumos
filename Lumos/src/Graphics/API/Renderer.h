@@ -103,6 +103,7 @@ namespace Lumos
 
 		virtual void ClearInternal(uint buffer) = 0;
 		virtual void PresentInternal() = 0;
+		virtual void PresentInternal(graphics::api::CommandBuffer* cmdBuffer) = 0;
 
 		virtual void SetColourMaskInternal(bool r, bool g, bool b, bool a) = 0;
 		virtual void SetDepthTestingInternal(bool enabled) = 0;
@@ -130,6 +131,7 @@ namespace Lumos
 		inline static void Clear(uint buffer) { s_Instance->ClearInternal(buffer); }
 		inline static void BindScreenFBO() { s_Instance->BindScreenFBOInternal(); }
 		inline static void Present() { s_Instance->PresentInternal(); }
+		inline static void Present(graphics::api::CommandBuffer* cmdBuffer) { s_Instance->PresentInternal(cmdBuffer); }
 		inline static void Draw(DrawType type, uint count, DataType datayType = DataType::UNSIGNED_INT, void* indices = nullptr) { s_Instance->DrawInternal(type, count, datayType, indices); }
 		inline static void DrawArrays(DrawType type, uint numIndices) { s_Instance->DrawArraysInternal(type, numIndices); }
 		inline static void DrawArrays(DrawType type, uint start, uint numIndices) { s_Instance->DrawArraysInternal(type, start, numIndices); }

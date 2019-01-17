@@ -1,7 +1,7 @@
 #include "LM.h"
 #include "GLRenderPass.h"
 #include "Graphics/API/Renderer.h"
-#include "GLFrameBuffer.h"
+#include "GLFramebuffer.h"
 #include "GLDebug.h"
 
 namespace Lumos

@@ -39,10 +39,9 @@ namespace Lumos
 		std::vector<uint> m_PSSystemUniformBufferOffsets;
 
 		void Init() override;
-		void InitScene(Scene* scene, bool newScene = true);
 		void Begin() override { };
 		void Begin(int commandBufferID);
-		void BeginScene(Camera* camera) override;
+		void BeginScene(Scene* scene) override;
 		void Submit(const RenderCommand& command) override;
 		void SubmitMesh(Mesh* mesh, const maths::Matrix4& transform, const maths::Matrix4& textureMatrix) override;
 		void SubmitLightSetup(const LightSetup& lightSetup, Scene* scene);
@@ -80,6 +79,8 @@ namespace Lumos
 		void CreateOffScreenBuffer();
 		void CreateOffScreenFBO();
 		void CreateLightBuffer();
+		void CreateDefaultDescriptorSet();
+		void CreateScreenDescriptorSet();
 		void SetCubeMap(Texture* cubeMap);
 
 		int GetCommandBufferCount() const { return (int)m_CommandBuffers.size(); }
@@ -113,8 +114,6 @@ namespace Lumos
 		Lumos::graphics::api::UniformBuffer* m_LightUniformBuffer;
 		Lumos::graphics::api::UniformBuffer* m_DefaultMaterialDataUniformBuffer;
 
-		std::unique_ptr<GBuffer> m_GBuffer;
-
 		std::vector<Lumos::graphics::api::CommandBuffer*> m_CommandBuffers;
 
 		Lumos::graphics::api::CommandBuffer* m_DeferredCommandBuffers;
@@ -124,14 +123,15 @@ namespace Lumos
 
 		Lumos::Mesh* m_ScreenQuad = nullptr;
 
-		SkyboxRenderer* m_SkyboxRenderer;
-		ShadowRenderer* m_ShadowRenderer;
-
 		std::unique_ptr<Texture2D> m_PreintegratedFG;
 
 		int m_CommandBufferIndex = 0;
 
+		std::unique_ptr<GBuffer> m_GBuffer;
+		std::unique_ptr<ShadowRenderer> m_ShadowRenderer;
 		std::unique_ptr<TextureDepthArray> m_ShadowTexture;
+		SkyboxRenderer* m_SkyboxRenderer;
+		Texture* m_CubeMap = nullptr;
 	};
 
 }

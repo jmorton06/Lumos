@@ -106,12 +106,21 @@ namespace Lumos
 		m_UseShadow    = true;
 		m_DrawObjects  = true;
 		m_ReflectScene = false;
+
+		m_pFrameRenderList = std::make_unique<RenderList>();
+
+		if (!RenderList::AllocateNewRenderList(m_pFrameRenderList.get(), true))
+		{
+			LUMOS_CORE_ERROR("Unable to allocate scene render list! - Try using less shadow maps");
+		}
 	}
 
 	void Scene::OnCleanupScene()
 	{
 		m_LightSetup->Clear();
 		m_MaterialManager->Clear();
+
+		m_pFrameRenderList.reset();
 
 		DeleteAllGameObjects();
 
@@ -146,6 +155,8 @@ namespace Lumos
 			m_pCamera->HandleKeyboard(timeStep->GetSeconds());
 			m_pCamera->BuildViewMatrix();
 		}
+
+		BuildFrameRenderList();
 
 		for (const auto& entity : m_Entities)
 		{
@@ -212,7 +223,30 @@ namespace Lumos
 		m_LightSetup->Add(light);
 	}
 
-	void Scene::RenderString(const String & text, const maths::Vector2 & pos, float scale, const maths::Vector4 & colour) const
+	void Scene::BuildFrameRenderList()
 	{
+		m_pCamera->BuildViewMatrix();
+		m_FrameFrustum.FromMatrix(m_pCamera->GetProjectionMatrix() * m_pCamera->GetViewMatrix());
+
+		BuildWorldMatrices();
+
+		m_pFrameRenderList->UpdateCameraWorldPos(m_pCamera->GetPosition());
+		m_pFrameRenderList->RemoveExcessObjects(m_FrameFrustum);
+		m_pFrameRenderList->SortLists();
+		InsertToRenderList(m_pFrameRenderList.get(), m_FrameFrustum);
+	}
+
+	void Scene::OnEvent(Event& e)
+	{
+		EventDispatcher dispatcher(e);
+ 		dispatcher.Dispatch<WindowResizeEvent>(BIND_EVENT_FN(Scene::OnWindowResize));
+	}
+
+	bool Scene::OnWindowResize(WindowResizeEvent& e)
+	{
+		if (m_pCamera)
+			m_pCamera->UpdateProjectionMatrix(static_cast<float>(e.GetWidth()), static_cast<float>(e.GetHeight()));
+
+		return false;
 	}
 }

@@ -110,6 +110,9 @@ file(GLOB LUMOS_SOURCES
 		${CMAKE_CURRENT_SOURCE_DIR}/src/Graphics/Particles/*.cpp
 		${CMAKE_CURRENT_SOURCE_DIR}/src/Graphics/Renderers/*.cpp
 
+		${CMAKE_CURRENT_SOURCE_DIR}/src/Graphics/Layers/*.h
+		${CMAKE_CURRENT_SOURCE_DIR}/src/Graphics/Layers/*.cpp
+
   		${CMAKE_CURRENT_SOURCE_DIR}/src/Input/*.cpp
   		${CMAKE_CURRENT_SOURCE_DIR}/src/Maths/*.cpp
   		${CMAKE_CURRENT_SOURCE_DIR}/src/Physics/*.cpp

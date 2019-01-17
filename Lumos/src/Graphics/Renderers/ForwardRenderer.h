@@ -27,7 +27,7 @@ namespace Lumos
 		void Init() override;
 		void InitScene(Scene* scene);
 		void Begin() override;
-		void BeginScene(Camera* camera) override;
+		void BeginScene(Scene* scene) override;
 		void Submit(const RenderCommand& command) override;
 		void SubmitMesh(Mesh* mesh, const maths::Matrix4& transform, const maths::Matrix4& textureMatrix) override;
 		void EndScene() override;
