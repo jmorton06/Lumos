@@ -1,6 +1,6 @@
 #include "LM.h"
 #include "Terrain.h"
-#include "Renderer/SceneManager.h"
+#include "App/SceneManager.h"
 #include "Maths/BoundingSphere.h"
 #include "external/simplex/simplexnoise.h"
 

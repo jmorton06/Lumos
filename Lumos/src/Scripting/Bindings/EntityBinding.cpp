@@ -2,7 +2,7 @@
 #include "EntityBinding.h"
 #include "Entity/Entity.h"
 
-#include "Renderer/SceneManager.h"
+#include "App/SceneManager.h"
 #include "App/Application.h"
 
 namespace Lumos

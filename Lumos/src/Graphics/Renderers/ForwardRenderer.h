@@ -36,6 +36,7 @@ namespace Lumos
 		void OnResize(uint width, uint height) override;
 
 		void CreateGraphicsPipeline();
+		void CreateFramebuffers();
 
 		struct UniformBufferObject
 		{
@@ -65,6 +66,7 @@ namespace Lumos
 		Lumos::graphics::api::UniformBuffer* m_ModelUniformBuffer;
 
 		std::vector<Lumos::graphics::api::CommandBuffer*> commandBuffers;
+		std::vector<Framebuffer*> m_Framebuffers;
 
 		size_t dynamicAlignment;
 		UniformBufferModel uboDataDynamic;

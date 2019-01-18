@@ -19,7 +19,6 @@
 #endif
 #include "App/Input.h"
 #include "App/Application.h"
-#include "Renderer/GraphicsPipeline.h"
 
 #include "Events/ApplicationEvent.h"
 #include "Events/MouseEvent.h"

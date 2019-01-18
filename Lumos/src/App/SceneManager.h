@@ -38,7 +38,6 @@ namespace Lumos
 		uint								m_SceneIdx;
 		Scene*								m_CurrentScene;
 		std::vector<std::unique_ptr<Scene>> m_vpAllScenes;
-        
     private:
         SceneManager(SceneManager const&) = delete;
         SceneManager& operator=(SceneManager const&) = delete;

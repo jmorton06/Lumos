@@ -13,27 +13,23 @@ namespace Lumos
 			info.width = width;
 			info.height = height;
 			info.attachments = nullptr;
-			frameBuffers.push_back(Framebuffer::Create(info));
 			swapChainBuffers.push_back(new GLTexture2D(width,height));
 		}
 
 		GLSwapchain::~GLSwapchain()
 		{
-			for (auto& framebuffer : frameBuffers)
-				delete framebuffer;
-
 			for (auto& buffer : swapChainBuffers)
 				delete buffer;
 		}
 
-		bool GLSwapchain::Init(TextureDepth* depthTexture, api::RenderPass* vulkanRenderpass)
+		bool GLSwapchain::Init()
 		{
 			return true;
 		}
 
 		Texture* GLSwapchain::GetCurrentImage()
 		{
-			return swapChainBuffers[0];
+			return nullptr;//swapChainBuffers[0];
 		}
 
 		uint32_t GLSwapchain::GetCurrentBufferId() const
@@ -41,14 +37,9 @@ namespace Lumos
 			return 0;
 		}
 
-		Framebuffer* GLSwapchain::GetFramebuffer(int id) const
-		{
-			return nullptr;// static_cast<int>(frameBuffers.size()) >= id ? frameBuffers[id] : nullptr;
-		}
-
 		size_t GLSwapchain::GetSwapchainBufferCount() const
 		{
-			return frameBuffers.size();
+			return 1;
 		}
 	}
 }
