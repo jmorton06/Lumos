@@ -57,11 +57,13 @@ before_install:
   - chmod +x ./Scripts/cmake-make.sh
   - chmod +x ./Scripts/premake-make.sh
   - chmod +x ./Tools/linux/premake5
+  - cd / && sudo wget -O VulkanSDK.run https://vulkan.lunarg.com/sdk/download/1.0.85.0/linux/vulkansdk-linux-x86_64-1.0.85.0.run?human=true && sudo chmod ugo+x VulkanSDK.run
+  - sudo ./VulkanSDK.run
+  - export VULKAN_SDK="/VulkanSDK/1.0.85.0/x86_64"
 
 install:
   - if [ "$CXX" = "g++" ] && [ $TRAVIS_OS_NAME == linux ]; then export CXX="g++-7" CC="gcc-7"; fi
   - if [ "$CXX" = "clang++" ] && [ $TRAVIS_OS_NAME == linux ]; then export CXX="clang++-6.0" CC="clang-6.0"; fi
-
 before_script:
 
 script:
