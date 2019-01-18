@@ -15,6 +15,7 @@ namespace Lumos
             void Init() override;
             void NewFrame() override;
             void Render(Lumos::graphics::api::CommandBuffer* commandBuffer) override;
+            void OnResize(uint width, uint height) override;
 
         private:
 			void* m_WindowHandle;

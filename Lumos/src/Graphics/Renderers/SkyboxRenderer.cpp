@@ -18,8 +18,8 @@
 #include "Graphics/API/Shader.h"
 #include "Graphics/GBuffer.h"
 #include "Graphics/MeshFactory.h"
-#include "Renderer/SceneManager.h"
-#include "Renderer/Scene.h"
+#include "App/SceneManager.h"
+#include "App/Scene.h"
 #include "Entity/Entity.h"
 
 namespace Lumos
@@ -43,6 +43,12 @@ namespace Lumos
 			delete commandBuffer;
 		}
 
+		for(auto& fbo : m_Framebuffers)
+		{
+			delete fbo;
+		}
+
+		m_Framebuffers.clear();
 		m_CommandBuffers.clear();
 	}
 
@@ -53,7 +59,7 @@ namespace Lumos
 
 		graphics::api::CommandBuffer* currentCMDBuffer = m_CommandBuffers[framebufferId];
 
-		currentCMDBuffer->BeginRecordingSecondary(m_RenderPass, Renderer::GetSwapchain()->GetFramebuffer(framebufferId));
+		currentCMDBuffer->BeginRecordingSecondary(m_RenderPass, m_Framebuffers[framebufferId]);
 
 		currentCMDBuffer->UpdateViewport(m_ScreenBufferWidth, m_ScreenBufferHeight);
 
@@ -95,6 +101,7 @@ namespace Lumos
 
         CreateGraphicsPipeline();
 		UpdateUniformBuffer();
+		CreateFramebuffers();
 	}
 
 	void SkyboxRenderer::BeginScene(Scene* scene)
@@ -119,10 +126,15 @@ namespace Lumos
 	{
 		delete m_Pipeline;
 
+		for(auto fbo : m_Framebuffers)
+			delete fbo;
+		m_Framebuffers.clear();
+
 		SetScreenBufferSize(width, height);
 
 		CreateGraphicsPipeline();
 		UpdateUniformBuffer();
+		CreateFramebuffers();
 	}
 
     void SkyboxRenderer::CreateGraphicsPipeline()
@@ -211,5 +223,30 @@ namespace Lumos
 	{
 		m_CubeMap = cubeMap;
 		UpdateUniformBuffer();
+	}
+
+	void SkyboxRenderer::CreateFramebuffers()
+	{
+		TextureType attachmentTypes[1];
+		attachmentTypes[0] = TextureType::COLOUR;
+		//attachmentTypes[1] = TextureType::DEPTH;
+
+		Texture* attachments[1];
+		//attachments[1] = reinterpret_cast<Texture*>(m_DepthTexture);//new VKTexture2D(VkImage(), depthImageView);
+		FramebufferInfo bufferInfo{};
+		bufferInfo.width = m_ScreenBufferWidth;
+		bufferInfo.height = m_ScreenBufferHeight;
+		bufferInfo.attachmentCount = 1;
+		bufferInfo.renderPass = m_RenderPass;
+		bufferInfo.attachmentTypes = attachmentTypes;
+		bufferInfo.screenFBO = true;
+
+		for (uint32_t i = 0; i < Renderer::GetRenderer()->GetSwapchain()->GetSwapchainBufferCount(); i++)
+		{
+			attachments[0] = Renderer::GetRenderer()->GetSwapchain()->GetImage(i);
+			bufferInfo.attachments = attachments;
+
+			m_Framebuffers.emplace_back(Framebuffer::Create(bufferInfo));
+		}
 	}
 }

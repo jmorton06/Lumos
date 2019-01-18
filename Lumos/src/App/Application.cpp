@@ -6,8 +6,8 @@
 #include "Graphics/Renderers/DebugRenderer.h"
 #include "Physics/B2PhysicsEngine/B2PhysicsEngine.h"
 #include "Physics/JMPhysicsEngine/JMPhysicsEngine.h"
-#include "Renderer/Scene.h"
-#include "Renderer/SceneManager.h"
+#include "App/Scene.h"
+#include "App/SceneManager.h"
 #include "Utilities/AssetsManager.h"
 #include "Scripting/LuaScript.h"
 #include "Graphics/API/Renderer.h"
@@ -22,6 +22,7 @@
 
 #include "Graphics/Layers/Layer3DDeferred.h"
 #include "Graphics/Renderers/DeferredRenderer.h"
+#include "Graphics/Renderers/ForwardRenderer.h"
 
 #include <imgui/imgui.h>
 
@@ -80,10 +81,12 @@ namespace Lumos
         system::JobSystem::Wait();
 
         AssetsManager::InitializeMeshes();
-        
+
+		m_LayerStack = LayerStack();
+
         PushOverLay(new ImGuiLayer());
-        auto deferredRenderer = new DeferredRenderer(m_Window->GetWidth(), m_Window->GetHeight());
-        PushLayer(new Layer3DDeferred(nullptr,deferredRenderer));
+        PushLayer(new Layer3DDeferred(m_Window->GetWidth(), m_Window->GetHeight()));
+		//PushLayer(new Layer3D(new ForwardRenderer(m_Window->GetWidth(), m_Window->GetHeight())));
 
         m_CurrentState = AppState::Running;
 		m_PhysicsThread = std::thread(PhysicsUpdate, 1000.0f/120.0f);
@@ -197,6 +200,8 @@ namespace Lumos
 	{
         for (Layer* layer : m_LayerStack)
 			layer->OnRender(m_SceneManager->GetCurrentScene());
+
+		Renderer::GetRenderer()->Present();
 	}
 
 	void Application::OnUpdate(TimeStep* dt)
@@ -293,7 +298,7 @@ namespace Lumos
 
 		m_SceneManager->GetCurrentScene()->OnIMGUI();
 	}
-    
+
     void Application::SetScene(Scene* scene)
     {
         for (auto it = m_LayerStack.end(); it != m_LayerStack.begin();)

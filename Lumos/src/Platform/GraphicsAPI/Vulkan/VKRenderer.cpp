@@ -6,11 +6,11 @@
 #include "Graphics/Model/Model.h"
 #include "VKInitialisers.h"
 #include "System/System.h"
-#include "Renderer/Scene.h"
+#include "App/Scene.h"
 #include "VKVertexBuffer.h"
 #include "VKIndexBuffer.h"
 #include "VKDescriptorSet.h"
-#include "Renderer/SceneManager.h"
+#include "App/SceneManager.h"
 
 namespace Lumos
 {
@@ -30,6 +30,8 @@ namespace Lumos
 			VKDevice::Instance();
 
 			m_Swapchain = new VKSwapchain(m_Width, m_Height);
+			m_Swapchain->Init();
+
 			createSemaphores();
 		}
 
@@ -59,8 +61,12 @@ namespace Lumos
 
 			((VKCommandBuffer*)cmdBuffer)->ExecuteInternal(VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT,
 				imageAvailableSemaphore, renderFinishedSemaphore, false);
-			m_Swapchain->Present(renderFinishedSemaphore);
+				SetPreviousImageAvailable(renderFinishedSemaphore);
+		}
 
+		void VKRenderer::PresentInternal()
+		{
+			m_Swapchain->Present(GetPreviousRenderFinish());
 			VK_CHECK_RESULT(vkQueueWaitIdle(VKDevice::Instance()->GetPresentQueue()));
 		}
 
@@ -73,6 +79,7 @@ namespace Lumos
 
 			delete m_Swapchain;
 			m_Swapchain = new VKSwapchain(width, height);
+			m_Swapchain->Init();
 		}
 
 		void VKRenderer::createSemaphores()
@@ -118,9 +125,6 @@ namespace Lumos
 		{
 		}
 		void VKRenderer::ClearInternal(uint buffer)
-		{
-		}
-		void VKRenderer::PresentInternal()
 		{
 		}
 		void VKRenderer::SetColourMaskInternal(bool r, bool g, bool b, bool a)

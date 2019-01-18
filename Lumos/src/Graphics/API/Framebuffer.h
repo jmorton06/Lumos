@@ -45,6 +45,7 @@ namespace Lumos
 		uint height;
 		uint layer = 0;
 		uint attachmentCount;
+		bool screenFBO = false;
 		Lumos::Texture** attachments;
 		Lumos::TextureType* attachmentTypes;
 		Lumos::graphics::api::RenderPass* renderPass;

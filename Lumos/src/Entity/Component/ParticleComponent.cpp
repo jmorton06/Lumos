@@ -2,7 +2,7 @@
 #include "ParticleComponent.h"
 #include "Graphics/ParticleEmitter.h"
 #include "Entity/Entity.h"
-#include "Renderer/Scene.h"
+#include "App/Scene.h"
 #include "Graphics/ParticleManager.h"
 #include "Maths/BoundingSphere.h"
 #include "Graphics/Renderers/DebugRenderer.h"

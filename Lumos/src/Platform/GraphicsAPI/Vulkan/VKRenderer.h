@@ -113,6 +113,11 @@ namespace Lumos
 
 			void RenderMeshInternal(Mesh* mesh, graphics::api::Pipeline* pipeline, graphics::api::CommandBuffer* cmdBuffer, uint dynamicOffset, graphics::api::DescriptorSet* descriptorSet, bool useMaterialDescriptorSet) override;
 
+			VkSemaphore& GetPreviousImageAvailable() { return imageAvailableSemaphore;}
+			VkSemaphore& GetPreviousRenderFinish() { return renderFinishedSemaphore;}
+			void SetPreviousImageAvailable(VkSemaphore& sem) { imageAvailableSemaphore = sem;}
+			void SetPreviousRenderFinish(VkSemaphore& sem) { renderFinishedSemaphore = sem;}
+
 		private:
 			Lumos::graphics::VKContext* m_Context;
 
