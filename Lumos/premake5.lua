@@ -204,6 +204,8 @@ project "Lumos"
 		cppdialect "C++17"
 		systemversion "latest"
 
+		local VULKAN_SDK = os.getenv("VULKAN_SDK");
+
 		removefiles
 		{
 			"src/Platform/GLFM/*.h",
@@ -243,7 +245,8 @@ project "Lumos"
 		libdirs
 		{
 			"../bin/**",
-			"../Dependencies/vulkan/libs/linux/"
+			"../Dependencies/vulkan/libs/linux/",
+			"$(VULKAN_SDK)"
 		}
 
 		buildoptions
