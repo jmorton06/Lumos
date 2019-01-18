@@ -1,6 +1,6 @@
 #include "LM.h"
 #include "SceneBinding.h"
-#include "Renderer/Scene.h"
+#include "App/Scene.h"
 #include "CameraBindings/CameraBinding.h"
 #include "CameraBindings/CameraFPSBinding.h"
 #include "CameraBindings/CameraThirdPersonBinding.h"

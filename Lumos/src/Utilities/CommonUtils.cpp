@@ -8,8 +8,8 @@
 #include "Physics/JMPhysicsEngine/JMPhysicsEngine.h"
 #include "Graphics/Model/Model.h"
 #include "Utilities/RandomNumberGenerator.h"
-#include "Renderer/SceneManager.h"
-#include "Renderer/Scene.h"
+#include "App/SceneManager.h"
+#include "App/Scene.h"
 #include "App/Application.h"
 
 namespace Lumos

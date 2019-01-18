@@ -13,19 +13,17 @@ namespace Lumos
 			GLSwapchain(uint width, uint height);
 			~GLSwapchain();
 
-			bool Init(TextureDepth* depthTexture, api::RenderPass* vulkanRenderpass) override;
-			bool Init(api::RenderPass* vulkanRenderpass) override { return true; };
+			bool Init() override;
 
 			Texture* GetCurrentImage() override;
+			Texture* GetImage(uint id) override { return nullptr; };
 			uint32_t GetCurrentBufferId() const override;
-			Framebuffer* GetFramebuffer(int id) const override;
 			size_t GetSwapchainBufferCount() const override;
-			uint GetFramebufferCount() const override { return static_cast<uint>(swapChainBuffers.size()); }
+			uint GetFramebufferCount() const override { return 1; }
 			Framebuffer* CreateFramebuffer(api::RenderPass* renderPass, uint id) override { return nullptr; }
 		private:
 			std::vector<GLTexture2D*> swapChainBuffers;
 			uint32_t currentBuffer = 0;
-			std::vector<Framebuffer*> frameBuffers;
 
 			uint m_Width;
 			uint m_Height;

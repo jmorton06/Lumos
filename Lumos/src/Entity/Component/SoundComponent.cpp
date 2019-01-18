@@ -1,7 +1,7 @@
 #include "LM.h"
 #include "SoundComponent.h"
 #include "Audio/SoundNode.h"
-#include "Renderer/Scene.h"
+#include "App/Scene.h"
 #include "Audio/SoundSystem.h"
 #include "Maths/BoundingSphere.h"
 #include "Graphics/Renderers/DebugRenderer.h"

@@ -4,6 +4,7 @@
 #include "VKDevice.h"
 #include "VKCommandPool.h"
 #include "VKFramebuffer.h"
+#include "VKTools.h"
 
 namespace Lumos
 {
@@ -125,13 +126,13 @@ namespace Lumos
 
 				if (waitFence)
 				{
-					vkQueueSubmit(VKDevice::Instance()->GetGraphicsQueue(), 1, &submitInfo, m_Fence);
+					VK_CHECK_RESULT(vkQueueSubmit(VKDevice::Instance()->GetGraphicsQueue(), 1, &submitInfo, m_Fence));
 
 					vkWaitForFences(VKDevice::Instance()->GetDevice(), 1, &m_Fence, VK_TRUE, UINT64_MAX);
 					vkResetFences(VKDevice::Instance()->GetDevice(), 1, &m_Fence);
 				}
 				else
-					vkQueueSubmit(VKDevice::Instance()->GetGraphicsQueue(), 1, &submitInfo, VK_NULL_HANDLE);
+					VK_CHECK_RESULT(vkQueueSubmit(VKDevice::Instance()->GetGraphicsQueue(), 1, &submitInfo, VK_NULL_HANDLE));
 			}
 			else
 				LUMOS_CORE_ERROR("WARNING: Used Execute on secondary command buffer!");

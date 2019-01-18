@@ -2,6 +2,7 @@
 #include "ImGuiLayer.h"
 #include "App/Input.h"
 #include "App/Application.h"
+#include "Graphics/API/IMGUIRenderer.h"
 
 #include <imgui/imgui.h>
 
@@ -30,6 +31,11 @@ namespace Lumos
 		io.DisplaySize = ImVec2((float)app->GetWindow()->GetWidth(), (float)app->GetWindow()->GetHeight());
 
 		SetImGuiKeyCodes();
+
+		m_IMGUIRenderer = std::unique_ptr<graphics::api::IMGUIRenderer>(graphics::api::IMGUIRenderer::Create(Application::Instance()->GetWindow()->GetWidth(),Application::Instance()->GetWindow()->GetHeight()));
+
+        if(m_IMGUIRenderer)
+            m_IMGUIRenderer->Init();
 	}
 
 	void ImGuiLayer::OnDetach()
@@ -63,6 +69,10 @@ namespace Lumos
 	void ImGuiLayer::OnRender(Scene* scene)
 	{
 		//TODO: Render Using api
+		if(m_IMGUIRenderer && m_IMGUIRenderer->Implemented())
+		{
+			m_IMGUIRenderer->Render(nullptr);
+		}
 	}
 
 	bool ImGuiLayer::OnMouseButtonPressedEvent(MouseButtonPressedEvent & e)
@@ -133,6 +143,8 @@ namespace Lumos
 		ImGuiIO& io = ImGui::GetIO();
 		io.DisplaySize = ImVec2((float)e.GetWidth(), (float)e.GetHeight());
 		io.DisplayFramebufferScale = ImVec2(1.0f, 1.0f);
+
+		m_IMGUIRenderer->OnResize(e.GetWidth(), e.GetHeight());
 
 		return false;
 	}

@@ -79,6 +79,7 @@ namespace Lumos
 		void CreateOffScreenBuffer();
 		void CreateOffScreenFBO();
 		void CreateLightBuffer();
+		void CreateFramebuffers();
 		void CreateDefaultDescriptorSet();
 		void CreateScreenDescriptorSet();
 		void SetCubeMap(Texture* cubeMap);
@@ -114,6 +115,7 @@ namespace Lumos
 		Lumos::graphics::api::UniformBuffer* m_LightUniformBuffer;
 		Lumos::graphics::api::UniformBuffer* m_DefaultMaterialDataUniformBuffer;
 
+		std::vector<Framebuffer*> m_Framebuffers;
 		std::vector<Lumos::graphics::api::CommandBuffer*> m_CommandBuffers;
 
 		Lumos::graphics::api::CommandBuffer* m_DeferredCommandBuffers;

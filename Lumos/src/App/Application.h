@@ -13,7 +13,6 @@ namespace Lumos
 	class Timer;
 	struct TimeStep;
 	class Window;
-    class GraphicsPipeline;
     class SceneManager;
 
     enum class AppState
@@ -39,11 +38,11 @@ namespace Lumos
 		void OnImGui();
 		void PushLayer(Layer* layer);
 		void PushOverLay(Layer* overlay);
+        void SetScene(Scene* scene);
 
 		virtual void Init();
 
         SceneManager* GetSceneManager() const { return m_SceneManager.get(); }
-        GraphicsPipeline* GetGraphicsPipeline() const { return m_GraphicsPipeline.get(); }
         Window* GetWindow() const { return m_Window.get(); }
         AppState GetState() const { return m_CurrentState; }
 
@@ -65,7 +64,6 @@ namespace Lumos
 		float m_SecondTimer;
 
 		std::unique_ptr<Window> m_Window;
-        std::unique_ptr<GraphicsPipeline> m_GraphicsPipeline;
         std::unique_ptr<SceneManager> m_SceneManager;
 
 		LayerStack m_LayerStack;

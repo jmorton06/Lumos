@@ -19,6 +19,7 @@ namespace Lumos
 		virtual void OnUpdate(TimeStep* dt) {}
 		virtual void OnEvent(Event& event) {}
 		virtual void OnRender(Scene* scene) {}
+        virtual void OnNewScene(Scene* scene) {}
 
 		inline const std::string& GetName() const { return m_DebugName; }
 	protected:

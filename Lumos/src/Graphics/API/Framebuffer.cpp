@@ -19,7 +19,7 @@ namespace Lumos
 		switch (graphics::Context::GetRenderAPI())
 		{
 #ifdef LUMOS_RENDER_API_OPENGL
-		case RenderAPI::OPENGL:	return new GLFramebuffer(framebufferInfo);
+		case RenderAPI::OPENGL: return framebufferInfo.screenFBO ?  nullptr : new GLFramebuffer(framebufferInfo); //TODO: REMOVE
 #endif
 #ifdef LUMOS_RENDER_API_VULKAN
 		case RenderAPI::VULKAN:	return new graphics::VKFramebuffer(framebufferInfo);

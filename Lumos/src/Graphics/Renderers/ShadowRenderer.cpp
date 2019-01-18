@@ -4,7 +4,7 @@
 #include "Graphics/API/Textures/TextureDepthArray.h"
 #include "Utilities/AssetsManager.h"
 #include "Graphics/API/Framebuffer.h"
-#include "Renderer/Scene.h"
+#include "App/Scene.h"
 #include "Graphics/API/Shader.h"
 #include "Maths/Maths.h"
 #include "Maths/BoundingBox.h"

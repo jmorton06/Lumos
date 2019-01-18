@@ -20,9 +20,8 @@
 #include "Graphics/API/Pipeline.h"
 #include "Graphics/API/Shader.h"
 #include "Graphics/GBuffer.h"
-#include "Renderer/SceneManager.h"
-#include "Renderer/Scene.h"
-#include "Renderer/GraphicsPipeline.h"
+#include "App/SceneManager.h"
+#include "App/Scene.h"
 #include "Entity/Entity.h"
 #include "SkyboxRenderer.h"
 #include "Maths/Maths.h"
@@ -81,6 +80,9 @@ namespace Lumos
 		{
 			delete commandBuffer;
 		}
+
+		for(auto fbo : m_Framebuffers)
+			delete fbo;
 
 		m_CommandBuffers.clear();
 	}
@@ -162,8 +164,6 @@ namespace Lumos
 
 		m_OffScreenRenderpass->Init(renderpassCIOffScreen);
 
-		Renderer::GetSwapchain()->Init(m_DepthTexture, m_DeferredRenderpass);
-
 		m_CommandBuffers.resize(Renderer::GetSwapchain()->GetSwapchainBufferCount());
 
 		for (auto& commandBuffer : m_CommandBuffers)
@@ -179,6 +179,7 @@ namespace Lumos
 		CreateDeferredPipeline();
 		CreateOffScreenBuffer();
 		CreateOffScreenFBO();
+		CreateFramebuffers();
 		CreateLightBuffer();
 		CreateDefaultDescriptorSet();
 
@@ -273,7 +274,7 @@ namespace Lumos
 
         m_CommandBuffers[m_CommandBufferIndex]->BeginRecording();
 
-		m_DeferredRenderpass->BeginRenderpass(m_CommandBuffers[m_CommandBufferIndex], m_ClearColour, Renderer::GetSwapchain()->GetFramebuffer(m_CommandBufferIndex), graphics::api::SECONDARY, m_ScreenBufferWidth, m_ScreenBufferHeight);
+		m_DeferredRenderpass->BeginRenderpass(m_CommandBuffers[m_CommandBufferIndex], m_ClearColour, m_Framebuffers[m_CommandBufferIndex], graphics::api::SECONDARY, m_ScreenBufferWidth, m_ScreenBufferHeight);
 	}
 
 	void DeferredRenderer::BeginOffscreen()
@@ -393,7 +394,7 @@ namespace Lumos
 	{
 		graphics::api::CommandBuffer* currentCMDBuffer = (m_ScreenQuad->GetCommandBuffer(static_cast<int>(m_CommandBufferIndex)));
 
-		currentCMDBuffer->BeginRecordingSecondary(m_DeferredRenderpass, Renderer::GetSwapchain()->GetFramebuffer(m_CommandBufferIndex));
+		currentCMDBuffer->BeginRecordingSecondary(m_DeferredRenderpass, m_Framebuffers[m_CommandBufferIndex]);
 		currentCMDBuffer->UpdateViewport(m_ScreenBufferWidth,m_ScreenBufferHeight);
 
 		m_DeferredPipeline->SetActive(currentCMDBuffer);
@@ -652,6 +653,31 @@ namespace Lumos
 		m_FBO = Framebuffer::Create(bufferInfo);
 	}
 
+	void DeferredRenderer::CreateFramebuffers()
+	{
+		TextureType attachmentTypes[2];
+		attachmentTypes[0] = TextureType::COLOUR;
+		attachmentTypes[1] = TextureType::DEPTH;
+
+		Texture* attachments[2];
+		attachments[1] = reinterpret_cast<Texture*>(m_DepthTexture);//new VKTexture2D(VkImage(), depthImageView);
+		FramebufferInfo bufferInfo{};
+		bufferInfo.width = m_ScreenBufferWidth;
+		bufferInfo.height = m_ScreenBufferHeight;
+		bufferInfo.attachmentCount = 2;
+		bufferInfo.renderPass = m_DeferredRenderpass;
+		bufferInfo.attachmentTypes = attachmentTypes;
+		bufferInfo.screenFBO = true;
+
+		for (uint32_t i = 0; i < Renderer::GetRenderer()->GetSwapchain()->GetSwapchainBufferCount(); i++)
+		{
+			attachments[0] = Renderer::GetRenderer()->GetSwapchain()->GetImage(i);
+			bufferInfo.attachments = attachments;
+
+			m_Framebuffers.emplace_back(Framebuffer::Create(bufferInfo));
+		}
+	}
+
 	void DeferredRenderer::CreateLightBuffer()
 	{
 		if(m_LightUniformBuffer == nullptr)
@@ -686,18 +712,21 @@ namespace Lumos
 		delete m_DepthTexture;
 		delete m_FBO;
 
+		for(auto fbo : m_Framebuffers)
+			delete fbo;
+		m_Framebuffers.clear();
+
 		DeferredRenderer::SetScreenBufferSize(width, height);
 
 		m_GBuffer->UpdateTextureSize(m_ScreenBufferWidth,m_ScreenBufferHeight);
 
 		m_DepthTexture = TextureDepth::Create(m_ScreenBufferWidth, m_ScreenBufferHeight);
 
-		Renderer::GetSwapchain()->Init(m_DepthTexture, m_DeferredRenderpass);
-
         CreateOffScreenPipeline();
 		CreateDeferredPipeline();
 		CreateOffScreenBuffer();
 		CreateOffScreenFBO();
+		CreateFramebuffers();
 		CreateLightBuffer();
 		CreateDefaultDescriptorSet();
 

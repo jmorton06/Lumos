@@ -8,7 +8,7 @@ namespace Lumos
 {
     namespace graphics
     {
-        GLIMGUIRenderer::GLIMGUIRenderer(uint width, uint height, void* windowHandle)
+        GLIMGUIRenderer::GLIMGUIRenderer(uint width, uint height)
         {
             m_Implemented = true;
             ImGui_ImplOpenGL3_Init("#version 410");
@@ -32,6 +32,11 @@ namespace Lumos
         void GLIMGUIRenderer::Render(Lumos::graphics::api::CommandBuffer* commandBuffer)
         {
             ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
+        }
+
+        void GLIMGUIRenderer::OnResize(uint width, uint height)
+        {
+            
         }
     }
 }

@@ -1,5 +1,4 @@
 #pragma once
-#include "Renderer/GraphicsPipeline.h"
 #include "Event.h"
 
 namespace Lumos

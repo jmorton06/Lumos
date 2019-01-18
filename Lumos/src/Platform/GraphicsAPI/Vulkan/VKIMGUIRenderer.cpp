@@ -26,10 +26,10 @@ namespace Lumos
 {
     namespace graphics
     {
-        VKIMGUIRenderer::VKIMGUIRenderer(uint width, uint height, void* windowHandle)
+        VKIMGUIRenderer::VKIMGUIRenderer(uint width, uint height)
         {
             m_Implemented = true;
-			m_WindowHandle = windowHandle;
+			m_WindowHandle = nullptr;
 			m_Width = width;
 			m_Height = height;
         }
@@ -193,7 +193,7 @@ namespace Lumos
 
         void VKIMGUIRenderer::Init()
         {
-            VKSwapchain* swapChain = (VKSwapchain*)VKRenderer::GetRenderer()->GetSwapchain();
+            //VKSwapchain* swapChain = (VKSwapchain*)VKRenderer::GetRenderer()->GetSwapchain();
 
             int w, h;
             w = (int)m_Width;
@@ -255,9 +255,10 @@ namespace Lumos
         {
             VkResult err;
 
-            VkSemaphore& image_acquired_semaphore  = wd->Frames[wd->FrameIndex].ImageAcquiredSemaphore;
-            err = vkAcquireNextImageKHR(VKDevice::Instance()->GetDevice(), wd->Swapchain, UINT64_MAX, image_acquired_semaphore, VK_NULL_HANDLE, &wd->FrameIndex);
-            check_vk_result(err);
+            wd->FrameIndex = Renderer::GetRenderer()->GetSwapchain()->GetCurrentBufferId();
+            VkSemaphore& image_acquired_semaphore  = VKRenderer::GetRenderer()->GetPreviousImageAvailable();
+           // err = vkAcquireNextImageKHR(VKDevice::Instance()->GetDevice(), wd->Swapchain, UINT64_MAX, image_acquired_semaphore, VK_NULL_HANDLE, &wd->FrameIndex);
+           // check_vk_result(err);
 
             ImGui_ImplVulkanH_FrameData* fd = &wd->Frames[wd->FrameIndex];
             {
@@ -310,6 +311,8 @@ namespace Lumos
                 err = vkQueueSubmit(VKDevice::Instance()->GetGraphicsQueue(), 1, &info, fd->Fence);
                 check_vk_result(err);
             }
+
+             VKRenderer::GetRenderer()->SetPreviousRenderFinish(wd->Frames[wd->FrameIndex].RenderCompleteSemaphore);
         }
 
         static void FramePresent(ImGui_ImplVulkanH_WindowData* wd)
@@ -328,12 +331,57 @@ namespace Lumos
 
         void VKIMGUIRenderer::Render(Lumos::graphics::api::CommandBuffer* commandBuffer)
         {
-            //g_WindowData.FrameIndex = ((VKSwapchain*)VKRenderer::GetRenderer()->GetSwapchain())->GetCurrentBufferId();
-           // ImGui_ImplVulkanH_FrameData* fd = &g_WindowData.Frames[g_WindowData.FrameIndex];
-            //FrameRender(&g_WindowData);
-          //  ((VKSwapchain*)VKRenderer::GetRenderer()->GetSwapchain())->Present(fd->RenderCompleteSemaphore);
-            //FramePresent(&g_WindowData);
-            ImGui_ImplVulkan_RenderDrawData(ImGui::GetDrawData(), ((VKCommandBuffer*)commandBuffer)->GetCommandBuffer());
+            if(commandBuffer)
+            {
+                ImGui_ImplVulkan_RenderDrawData(ImGui::GetDrawData(), ((VKCommandBuffer*)commandBuffer)->GetCommandBuffer());
+            }
+            else
+            {
+                FrameRender(&g_WindowData);
+                //FramePresent(&g_WindowData);
+                //	VK_CHECK_RESULT(vkQueueWaitIdle(VKDevice::Instance()->GetPresentQueue()));
+            }
+        }
+
+        void VKIMGUIRenderer::OnResize(uint width, uint height)
+        {
+            auto* wd = &g_WindowData;
+            auto swapChain = ((VKSwapchain*)VKRenderer::GetRenderer()->GetSwapchain());
+            wd->Swapchain = swapChain->GetSwapchain();
+            for (uint32_t i = 0; i < wd->BackBufferCount; i++)
+            {
+                auto scBuffer = swapChain->GetTexture(i);
+                wd->BackBuffer[i] = scBuffer->GetImage();
+                wd->BackBufferView[i] = scBuffer->GetImageView();
+                //info.image = wd->BackBuffer[i];
+                //err = vkCreateImageView(VKDevice::Instance()->GetDevice(), &info, NULL, &wd->BackBufferView[i]);
+                //check_vk_result(err);
+            }
+
+            wd->Width = width;
+            wd->Height = height;
+
+            for (uint32_t i = 0; i < wd->BackBufferCount; i++)
+            {
+                vkDestroyFramebuffer(VKDevice::Instance()->GetDevice(), wd->Framebuffer[i], VK_NULL_HANDLE);
+            }
+            // Create Framebuffer
+            {
+                VkImageView attachment[1];
+                VkFramebufferCreateInfo info = {};
+                info.sType = VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO;
+                info.renderPass = wd->RenderPass;
+                info.attachmentCount = 1;
+                info.pAttachments = attachment;
+                info.width = wd->Width;
+                info.height = wd->Height;
+                info.layers = 1;
+                for (uint32_t i = 0; i < wd->BackBufferCount; i++)
+                {
+                    attachment[0] = wd->BackBufferView[i];
+                    vkCreateFramebuffer(VKDevice::Instance()->GetDevice(), &info, NULL, &wd->Framebuffer[i]);
+                }
+            }
         }
     }
 }
