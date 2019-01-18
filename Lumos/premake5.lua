@@ -9,7 +9,7 @@ project "Lumos"
 		"src/**.cpp",
 
 		"external/imgui/imgui.h",
-        	"external/imgui/imconfig.h",
+        "external/imgui/imconfig.h",
 		"external/imgui/imgui.cpp",
 		"external/imgui/imgui_demo.cpp",
 		"external/imgui/imgui_draw.cpp",
@@ -171,8 +171,8 @@ project "Lumos"
 			"QuartzCore.framework",
 			"Metal.framework",
 			"Cocoa.framework",
-        		"IOKit.framework",
-        		"CoreFoundation.framework",
+        	"IOKit.framework",
+        	"CoreFoundation.framework",
 			"CoreVideo.framework",
 			"OpenAL.framework",
 			"MoltenVK"
@@ -243,7 +243,7 @@ project "Lumos"
 		libdirs
 		{
 			"../bin/**",
-			"../Dependencies/vulkan/libs/linux"
+			"../Dependencies/vulkan/libs/linux/"
 		}
 
 		buildoptions
@@ -254,7 +254,7 @@ project "Lumos"
 			"-Wignored-attributes"
 		}
 
-		links { "X11", "pthread" }
+		links { "X11", "pthread", "vulkan"}
 
 		pchheader "../Lumos/src/LM.h"
 		pchsource "../Lumos/src/LM.cpp"

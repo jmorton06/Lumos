@@ -30,6 +30,7 @@ matrix:
             - libxcursor-dev
             - libxi-dev
             - libopenal-dev
+            - libvulkan-dev
     - os: linux
       language: c++
       compiler: clang
@@ -50,6 +51,7 @@ matrix:
             - gcc-7
             - g++-7
             - libopenal-dev
+            - libvulkan-dev
 before_install:
   - chmod +x ./Scripts/travis-build.sh
   - chmod +x ./Scripts/cmake-android.sh
