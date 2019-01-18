@@ -339,12 +339,6 @@ if(USEOGGVORBIS)
 	target_link_libraries(Lumos vorbis ${VORBIS_LIBRARIES})
 endif(USEOGGVORBIS)
 
-if(USEFREEIMAGE)
-	add_definitions(-DFREEIMAGE)
-	target_link_libraries(Lumos FreeImage  ${FREEIMAGE_LIBRARIES})
-endif(USEFREEIMAGE)
-
-target_link_libraries(Lumos freetype 	${FREETYPE_LIBRARIES})
 target_link_libraries(Lumos box2d 		${BOX2D_LIBRARIES})
 target_link_libraries(Lumos lua 		${LUA_LIBRARIES})
 
@@ -385,7 +379,6 @@ include_directories(
 	"../Dependencies/GLFW/include/"
 	"../Dependencies/glad/include/"
 	"../Dependencies/OpenAL/include/"
-	"../Dependencies/FreeType/include/"
 	"external/stb/"
 	"external/"
 	"../Dependencies/Box2D/"
