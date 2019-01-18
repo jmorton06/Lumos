@@ -21,7 +21,6 @@ workspace "LumosEngine"
 	require("Dependencies/GLFW/premake5")
 	require("Dependencies/lua/premake5")
 	require("Dependencies/glad/premake5")
-	require("Dependencies/FreeType/premake5")
 	require("Lumos/premake5")
 	require("Sandbox/premake5")
 

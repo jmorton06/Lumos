@@ -19,7 +19,6 @@ project "Sandbox"
 		"../Dependencies/GLFW/include/",
 		"../Dependencies/glad/include/",
 		"../Dependencies/OpenAL/include/",
-		"../Dependencies/FreeType/include/",
 		"../Dependencies/stb/",
 		"../Dependencies/Box2D/",
 		"../Dependencies/vulkan/",

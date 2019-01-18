@@ -146,9 +146,6 @@ bin-int
 # Specific files
 Dependencies/OpenAL/native-tools/bin2h
 Dependencies/OpenAL/native-tools/bsincgen
-Dependencies/Assimp/assimp.pc
-Dependencies/Assimp/cmake_uninstall.cmake
-Dependencies/Assimp/revision.h
 Dependencies/OpenAL/config.h
 Dependencies/OpenAL/openal.pc
 Dependencies/OpenAL/OpenALConfig.cmake
@@ -156,7 +153,6 @@ Dependencies/OpenAL/version.h
 Dependencies/Assimp/contrib/zlib/CTestTestfile.cmake
 Dependencies/Assimp/contrib/zlib/CTestTestfile.cmake
 Dependencies/GLFM/example/CMake-Info.plist.in
-Dependencies/FreeType/JMEngine.build/Debug-iphonesimulator/freetype.build/dgph
 Dependencies/tinyobjloader/tinyobjloader-targets.cmake
 imgui.ini
 *.kdev4

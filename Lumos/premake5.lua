@@ -45,7 +45,6 @@ project "Lumos"
 		"../Dependencies/GLFW/include/",
 		"../Dependencies/glad/include/",
 		"../Dependencies/OpenAL/include/",
-		"../Dependencies/FreeType/include/",
 		"../Dependencies/Box2D/",
 		"../Dependencies/vulkan/"
 	}
@@ -55,8 +54,7 @@ project "Lumos"
 		"glfw",
 		"lua",
 		"Box2D",
-		"glad",
-		"freetype"
+		"glad"
 	}
 
 	cwd = os.getcwd() .. "/.."
