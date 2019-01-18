@@ -21,7 +21,7 @@
 
 //Graphics
 #include "Utilities/AssetsManager.h"
-#include "Renderer/SceneManager.h"
+#include "App/SceneManager.h"
 #include "Graphics/Terrain.h"
 #include "Graphics/API/Textures/TextureCube.h"
 #include "Graphics/API/Textures/Texture2D.h"
@@ -29,7 +29,7 @@
 #include "Graphics/API/Context.h"
 #include "Graphics/API/Framebuffer.h"
 #include "Graphics/Mesh.h"
-#include "Renderer/Scene.h"
+#include "App/Scene.h"
 #include "Graphics/Model/Model.h"
 #include "Graphics/Particle.h"
 #include "Graphics/ParticleEmitter.h"

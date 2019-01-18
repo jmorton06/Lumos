@@ -21,9 +21,8 @@ namespace Lumos
 			m_SwapChain = VK_NULL_HANDLE;
 		}
 
-		bool VKSwapchain::Init(TextureDepth* depthImageView, api::RenderPass* vulkanRenderpass)
+		bool VKSwapchain::Init()
 		{
-			m_RenderPass = vulkanRenderpass;
 			// Swap chain
 			VkSurfaceCapabilitiesKHR surfaceCapabilities;
 
@@ -115,43 +114,15 @@ namespace Lumos
 			delete[] pSwapChainImages;
 			delete[] pPresentModes;
 
-			TextureType attachmentTypes[2];
-			attachmentTypes[0] = TextureType::COLOUR;
-			attachmentTypes[1] = TextureType::DEPTH;
-
-			Texture* attachments[2];
-			attachments[1] = reinterpret_cast<Texture*>(depthImageView);//new VKTexture2D(VkImage(), depthImageView);
-			FramebufferInfo bufferInfo{};
-			bufferInfo.width = m_Width;
-			bufferInfo.height = m_Height;
-			bufferInfo.attachmentCount = 2;
-			bufferInfo.renderPass = reinterpret_cast<api::RenderPass*>(vulkanRenderpass);
-			bufferInfo.attachmentTypes = attachmentTypes;
-
-			for (uint32_t i = 0; i < swapChainImageCount; i++)
-			{
-				attachments[0] = m_SwapChainBuffers[i];
-				bufferInfo.attachments = attachments;
-
-				m_Framebuffers.emplace_back(new VKFramebuffer(bufferInfo));
-			}
-
 			graphics::VKDevice::Instance()->m_SwapChainSize = static_cast<uint>(GetSwapchainBufferCount());
 
 			return true;
 		}
 
-		bool VKSwapchain::Init(api::RenderPass* vulkanRenderpass)
-		{
-			m_RenderPass = vulkanRenderpass; graphics::VKDevice::Instance()->m_SwapChainSize = static_cast<uint>(GetSwapchainBufferCount()); return true;
-		};
-
-
 		void VKSwapchain::Unload()
 		{
 			for (uint32_t i = 0; i < m_SwapChainBuffers.size(); i++)
 			{
-				delete m_Framebuffers[i];
 				delete m_SwapChainBuffers[i];
 			}
 			vkDestroySwapchainKHR(VKDevice::Instance()->GetDevice(), m_SwapChain, VK_NULL_HANDLE);

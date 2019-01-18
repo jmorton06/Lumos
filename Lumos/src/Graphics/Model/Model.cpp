@@ -3,7 +3,7 @@
 #include "Graphics/API/Textures/Texture2D.h"
 #include "System/VFS.h"
 #include "../Material.h"
-#include "Renderer/SceneManager.h"
+#include "App/SceneManager.h"
 #include "../Mesh.h"
 #include "../API/Shader.h"
 #include "Utilities/AssetsManager.h"

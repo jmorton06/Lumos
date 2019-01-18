@@ -33,6 +33,11 @@ namespace Lumos
         {
             ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
         }
+
+        void GLIMGUIRenderer::OnResize(uint width, uint height)
+        {
+            
+        }
     }
 }
 

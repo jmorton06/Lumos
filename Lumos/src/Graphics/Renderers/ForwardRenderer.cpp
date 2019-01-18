@@ -18,8 +18,8 @@
 #include "Graphics/API/Pipeline.h"
 #include "Graphics/API/Shader.h"
 #include "Graphics/GBuffer.h"
-#include "Renderer/SceneManager.h"
-#include "Renderer/Scene.h"
+#include "App/SceneManager.h"
+#include "App/Scene.h"
 #include "Entity/Entity.h"
 #include "App/Application.h"
 
@@ -64,6 +64,12 @@ namespace Lumos
 					{
 						for (auto& mesh : model->m_Model->GetMeshs())
 						{
+							if (mesh->GetMaterial())
+							{
+								if(mesh->GetMaterial()->GetDescriptorSet() == nullptr || mesh->GetMaterial()->GetPipeline() != m_GraphicsPipeline)
+									mesh->GetMaterial()->CreateDescriptorSet(m_GraphicsPipeline, 1);
+							}
+
 							TextureMatrixComponent* textureMatrixTransform = obj->GetComponent<TextureMatrixComponent>();
 							maths::Matrix4 textureMatrix;
 							if (textureMatrixTransform)
@@ -143,9 +149,9 @@ namespace Lumos
 
 		m_RenderPass->Init(renderpassCI);
 
-		//Renderer::GetSwapchain()->Init(m_DepthTexture, m_Renderpass);
-
 		m_FBO = nullptr;
+
+		CreateFramebuffers();
 
 		commandBuffers.resize(2);
 
@@ -197,6 +203,25 @@ namespace Lumos
 
 		m_ClearColour = maths::Vector4(0.8f, 0.8f, 0.8f, 1.0f);
 		m_SkyboxRenderer = nullptr;
+
+		m_DefaultTexture = Texture2D::CreateFromFile("Test", "/CoreTextures/checkerboard.tga");
+
+		graphics::api::DescriptorInfo info{};
+		info.pipeline = m_GraphicsPipeline;
+		info.layoutIndex = 1;
+		info.shader = m_Shader;
+		m_DefaultDescriptorSet = graphics::api::DescriptorSet::Create(info);
+
+		std::vector<graphics::api::ImageInfo> bufferInfosDefault;
+
+		graphics::api::ImageInfo imageInfo = {};
+		imageInfo.texture = m_DefaultTexture;
+		imageInfo.binding = 0;
+		imageInfo.name = "texSampler";
+
+		bufferInfosDefault.push_back(imageInfo);
+
+		m_DefaultDescriptorSet->Update(bufferInfosDefault);
 	}
 
 	void ForwardRenderer::Begin()
@@ -206,7 +231,7 @@ namespace Lumos
 
         commandBuffers[i]->BeginRecording();
 
-		m_RenderPass->BeginRenderpass(commandBuffers[i], m_ClearColour, Renderer::GetSwapchain()->GetFramebuffer(i), graphics::api::SECONDARY, m_ScreenBufferWidth, m_ScreenBufferHeight);
+		m_RenderPass->BeginRenderpass(commandBuffers[i], m_ClearColour, m_Framebuffers[i], graphics::api::SECONDARY, m_ScreenBufferWidth, m_ScreenBufferHeight);
 		m_Shader->Bind();
 
     }
@@ -279,39 +304,6 @@ namespace Lumos
 
 	void ForwardRenderer::InitScene(Scene* scene)
 	{
-		m_DefaultTexture = Texture2D::CreateFromFile("Test", "/CoreTextures/checkerboard.tga");
-
-		for (auto& entity : scene->GetEntities())
-		{
-			Model* model = entity->GetComponent<ModelComponent>()->m_Model.get();
-			auto& meshes = model->GetMeshs();
-
-			for (auto& mesh : meshes)
-			{
-				if (mesh->GetMaterial())
-					mesh->GetMaterial()->CreateDescriptorSet(m_GraphicsPipeline, 1);
-			}
-		}
-
-		graphics::api::DescriptorInfo info{};
-		info.pipeline = m_GraphicsPipeline;
-		info.layoutIndex = 1;
-		info.shader = m_Shader;
-		m_DefaultDescriptorSet = graphics::api::DescriptorSet::Create(info);
-
-		std::vector<graphics::api::ImageInfo> bufferInfos;
-
-		graphics::api::ImageInfo imageInfo = {};
-		imageInfo.texture = m_DefaultTexture;
-		imageInfo.binding = 0;
-		imageInfo.name = "texSampler";
-
-		bufferInfos.push_back(imageInfo);
-
-		m_DefaultDescriptorSet->Update(bufferInfos);
-
-		if(scene->GetEnvironmentMap())
-			SetCubeMap((Texture*)scene->GetEnvironmentMap());
 	}
 
 	void ForwardRenderer::Present()
@@ -324,7 +316,7 @@ namespace Lumos
 
             graphics::api::CommandBuffer* currentCMDBuffer = (mesh->GetCommandBuffer(static_cast<int>(i)));
 
-			currentCMDBuffer->BeginRecordingSecondary(m_RenderPass, Renderer::GetSwapchain()->GetFramebuffer(i));
+			currentCMDBuffer->BeginRecordingSecondary(m_RenderPass, m_Framebuffers[i]);
 
             currentCMDBuffer->UpdateViewport(m_ScreenBufferWidth,m_ScreenBufferHeight);
 
@@ -356,6 +348,11 @@ namespace Lumos
 		delete m_RenderPass;
 		delete m_Shader;
 
+		for(auto fbo : m_Framebuffers)
+			delete fbo;
+
+		m_Framebuffers.clear();
+
 		m_RenderPass = graphics::api::RenderPass::Create();
 		m_DepthTexture = TextureDepth::Create(width, height);
 
@@ -367,7 +364,7 @@ namespace Lumos
 
         CreateGraphicsPipeline();
 
-		Renderer::GetSwapchain()->Init(m_DepthTexture, m_RenderPass);
+		CreateFramebuffers();
 
 		std::vector<graphics::api::BufferInfo> bufferInfos;
 
@@ -451,4 +448,29 @@ namespace Lumos
 
         m_GraphicsPipeline = graphics::api::Pipeline::Create(pipelineCI);
     }
+
+	void ForwardRenderer::CreateFramebuffers()
+	{
+		TextureType attachmentTypes[2];
+		attachmentTypes[0] = TextureType::COLOUR;
+		attachmentTypes[1] = TextureType::DEPTH;
+
+		Texture* attachments[2];
+		attachments[1] = reinterpret_cast<Texture*>(m_DepthTexture);//new VKTexture2D(VkImage(), depthImageView);
+		FramebufferInfo bufferInfo{};
+		bufferInfo.width = m_ScreenBufferWidth;
+		bufferInfo.height = m_ScreenBufferHeight;
+		bufferInfo.attachmentCount = 2;
+		bufferInfo.renderPass = m_RenderPass;
+		bufferInfo.attachmentTypes = attachmentTypes;
+		bufferInfo.screenFBO = true;
+
+		for (uint32_t i = 0; i < Renderer::GetRenderer()->GetSwapchain()->GetSwapchainBufferCount(); i++)
+		{
+			attachments[0] = Renderer::GetRenderer()->GetSwapchain()->GetImage(i);
+			bufferInfo.attachments = attachments;
+
+			m_Framebuffers.emplace_back(Framebuffer::Create(bufferInfo));
+		}
+	}
 }

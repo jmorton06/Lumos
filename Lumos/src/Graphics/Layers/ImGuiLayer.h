@@ -9,6 +9,13 @@
 
 namespace Lumos
 {
+    namespace graphics
+    {
+        namespace api
+        {
+            class IMGUIRenderer;
+        }
+    }
 
 	class LUMOS_EXPORT ImGuiLayer : public Layer
 	{
@@ -34,6 +41,8 @@ namespace Lumos
 		bool OnwindowResizeEvent(WindowResizeEvent& e);
 
 		void SetImGuiKeyCodes();
+
+        std::unique_ptr<graphics::api::IMGUIRenderer> m_IMGUIRenderer;
 	};
 
 }

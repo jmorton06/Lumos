@@ -36,7 +36,7 @@ namespace Lumos
 		case RenderAPI::DIRECT3D: s_Instance = new D3DRenderer(width, height); break;
 #endif
 		}
-		s_Instance->InitInternal(); 
+		s_Instance->InitInternal();
 	}
 
 	void Renderer::Release()

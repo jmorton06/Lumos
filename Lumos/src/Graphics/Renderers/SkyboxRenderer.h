@@ -31,6 +31,8 @@ namespace Lumos
 		void Present() override {};
 		void RenderScene(RenderList* renderList, Scene* scene) override {}
 
+		void CreateFramebuffers();
+
 		struct UniformBufferObject
 		{
 			Lumos::maths::Matrix4 invprojview;
@@ -50,6 +52,7 @@ namespace Lumos
 
 		Lumos::graphics::api::UniformBuffer* m_UniformBuffer;
 		std::vector<Lumos::graphics::api::CommandBuffer*> m_CommandBuffers;
+		std::vector<Framebuffer*> m_Framebuffers;
 
 		Mesh* m_Skybox;
 		Texture* m_CubeMap;

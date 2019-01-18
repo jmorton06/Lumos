@@ -2,7 +2,7 @@
 #include "Water.h"
 #include "Utilities/AssetsManager.h"
 #include "API/Framebuffer.h"
-#include "Renderer/SceneManager.h"
+#include "App/SceneManager.h"
 #include "Mesh.h"
 #include "Material.h"
 #include "MeshFactory.h"
