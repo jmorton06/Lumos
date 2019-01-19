@@ -178,15 +178,11 @@ project "Lumos"
 			"MoltenVK"
 		}
 
-		runpathdirs
-		{
-			"../Dependencies/vulkan/libs/macOS/"
-		}
+		os.copyfile("../Dependencies/vulkan/libs/macOS/libMoltenVK.dylib","../bin")
 
 		libdirs
 		{
-			"../bin/**",
-			"../Dependencies/vulkan/libs/macOS"
+			"../bin/**"
 		}
 
 		buildoptions
@@ -243,10 +239,7 @@ project "Lumos"
 			--"../Dependencies/vulkan/libs/linux/libvulkan.so.1"
 		}
 
-		runpathdirs
-		{
-			"../Dependencies/vulkan/libs/linux"
-		}
+		os.copyfile("../Dependencies/vulkan/libs/linux/libvulkan.so.1","../bin")
 
 		linkoptions{ "-Wl,-rpath=\\$$ORIGIN" }
 
