@@ -210,7 +210,8 @@ namespace Lumos
 
 	void ShadowRenderer::RenderScene(RenderList* renderList, Scene* scene)
 	{
-		SortRenderLists(scene);
+		//SortRenderLists(scene);
+        UpdateCascades(scene);
 
 		Begin();
 		for (uint i = 0; i < m_ShadowMapNum; ++i)
@@ -312,6 +313,107 @@ namespace Lumos
 			scene->InsertToRenderList(m_apShadowRenderLists[i], f);
 		}
 	}
+    
+    float cascadeSplitLambda = 0.95f;
+    
+    void ShadowRenderer::UpdateCascades(Scene* scene)
+    {
+        float cascadeSplits[SHADOWMAP_MAX];
+        
+        float nearClip = scene->GetCamera()->GetNear();
+        float farClip = scene->GetCamera()->GetFar();
+        float clipRange = farClip - nearClip;
+        
+        float minZ = nearClip;
+        float maxZ = nearClip + clipRange;
+        
+        float range = maxZ - minZ;
+        float ratio = maxZ / minZ;
+        
+        // Calculate split depths based on view camera furstum
+        // Based on method presentd in https://developer.nvidia.com/gpugems/GPUGems3/gpugems3_ch10.html
+        for (uint32_t i = 0; i < m_ShadowMapNum; i++) {
+            float p = (i + 1) / static_cast<float>(m_ShadowMapNum);
+            float log = minZ * std::pow(ratio, p);
+            float uniform = minZ + range * p;
+            float d = cascadeSplitLambda * (log - uniform) + uniform;
+            cascadeSplits[i] = (d - nearClip) / clipRange;
+        }
+        
+        float lastSplitDist = 0.0;
+        for (uint32_t i = 0; i < m_ShadowMapNum; i++) {
+            float splitDist = cascadeSplits[i];
+            
+            maths::Vector3 frustumCorners[8] = {
+                maths::Vector3(-1.0f,  1.0f, -1.0f),
+                maths::Vector3( 1.0f,  1.0f, -1.0f),
+                maths::Vector3( 1.0f, -1.0f, -1.0f),
+                maths::Vector3(-1.0f, -1.0f, -1.0f),
+                maths::Vector3(-1.0f,  1.0f,  1.0f),
+                maths::Vector3( 1.0f,  1.0f,  1.0f),
+                maths::Vector3( 1.0f, -1.0f,  1.0f),
+                maths::Vector3(-1.0f, -1.0f,  1.0f),
+            };
+            
+            scene->GetCamera()->BuildViewMatrix();
+            maths::Matrix4 cameraProj = scene->GetCamera()->GetProjectionMatrix();
+#ifdef LUMOS_RENDER_API_VULKAN
+            if (graphics::Context::GetRenderAPI() == RenderAPI::VULKAN)
+                cameraProj[5] *= -1;
+#endif
+            
+            const maths::Matrix4 invCam = maths::Matrix4::Inverse(cameraProj * scene->GetCamera()->GetViewMatrix());
+            
+            // Project frustum corners into world space
+            for (uint32_t i = 0; i < 8; i++)
+            {
+                 maths::Vector4 invCorner = invCam * maths::Vector4(frustumCorners[i], 1.0f);
+                 frustumCorners[i] = (invCorner / invCorner.GetW()).ToVector3();
+            }
+            
+            for (uint32_t i = 0; i < 4; i++) {
+                 maths::Vector3 dist = frustumCorners[i + 4] - frustumCorners[i];
+                frustumCorners[i + 4] = frustumCorners[i] + (dist * splitDist);
+                frustumCorners[i] = frustumCorners[i] + (dist * lastSplitDist);
+            }
+            
+            // Get frustum center
+             maths::Vector3 frustumCenter =  maths::Vector3(0.0f);
+            for (uint32_t i = 0; i < 8; i++) {
+                frustumCenter += frustumCorners[i];
+            }
+            frustumCenter /= 8.0f;
+            
+            float radius = 0.0f;
+            for (uint32_t i = 0; i < 8; i++) {
+                float distance = (frustumCorners[i] - frustumCenter).Length();
+                radius = maths::Max(radius, distance);
+            }
+            radius = std::ceil(radius * 16.0f) / 16.0f;
+            
+             maths::Vector3 maxExtents =  maths::Vector3(radius);
+             maths::Vector3 minExtents = -maxExtents;
+            
+            const maths::Matrix4 lightViewMatrix = maths::Matrix4::BuildViewMatrix(maths::Vector3(0.0f, 0.0f, 0.0f), scene->GetLightSetup()->GetDirectionalLightDirection());
+             //maths::Vector3 lightDir = (-lightPos);
+             //maths::Matrix4 lightViewMatrix = glm::lookAt(frustumCenter - lightDir * -minExtents.z, frustumCenter,  maths::Vector3(0.0f, 1.0f, 0.0f));
+            maths::Matrix4 lightOrthoMatrix = maths::Matrix4::Orthographic(minExtents.x, maxExtents.x, minExtents.y, maxExtents.y, 0.0f, maxExtents.z - minExtents.z);
+            
+            // Store split distance and matrix in cascade
+            splitDepth[i] = (scene->GetCamera()->GetNear() + splitDist * clipRange) * -1.0f;
+            m_ShadowProjView[i] = lightOrthoMatrix * lightViewMatrix;
+            
+            lastSplitDist = cascadeSplits[i];
+            
+            const maths::Vector3 top_mid = frustumCenter + lightViewMatrix * maths::Vector3(0.0f, 0.0f, maxExtents.GetZ());
+            maths::Frustum f;
+            f.FromMatrix(m_ShadowProjView[i]);
+            m_apShadowRenderLists[i]->UpdateCameraWorldPos(top_mid);
+            m_apShadowRenderLists[i]->RemoveExcessObjects(f);
+            m_apShadowRenderLists[i]->SortLists();
+            scene->InsertToRenderList(m_apShadowRenderLists[i], f);
+        }
+    }
 
 	void ShadowRenderer::CreateFramebuffers()
 	{

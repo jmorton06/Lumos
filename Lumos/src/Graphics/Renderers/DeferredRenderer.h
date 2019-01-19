@@ -71,7 +71,7 @@ namespace Lumos
 			Lumos::maths::Vector4 direction;
 			Lumos::maths::Vector4 cameraPosition;
 			Lumos::maths::Matrix4 uShadowTransform[16];
-    		Lumos::maths::Vector2 uShadowSinglePixel;
+    		float uSplitDepth[16];
 		};
 
 		void CreateOffScreenPipeline();
