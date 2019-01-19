@@ -94,6 +94,9 @@ namespace Lumos
 			{
 				throw std::runtime_error("failed to create semaphores!");
 			}
+            
+            m_PreviousImageAvailableSemaphore = imageAvailableSemaphore;
+            m_PreviousRenderFinishedSemaphore = renderFinishedSemaphore;
 		}
 
 		void VKRenderer::Render(IndexBuffer* indexBuffer, VertexArray* vertexArray,
