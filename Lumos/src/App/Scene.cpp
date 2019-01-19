@@ -225,6 +225,8 @@ namespace Lumos
 
 	void Scene::BuildFrameRenderList()
 	{
+        if(!m_pCamera)
+            return;
 		m_pCamera->BuildViewMatrix();
 		m_FrameFrustum.FromMatrix(m_pCamera->GetProjectionMatrix() * m_pCamera->GetViewMatrix());
 
