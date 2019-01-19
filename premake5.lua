@@ -14,7 +14,7 @@ workspace "LumosEngine"
 
 	outputdir = "%{cfg.buildcfg}-%{cfg.system}-%{cfg.architecture}"
 
-	targetdir ("bin/") -- .. outputdir)
+	targetdir ("bin/" .. outputdir)
 	objdir ("bin-int/" .. outputdir .. "/%{prj.name}")
 
 	require("Dependencies/Box2D/premake5")
