@@ -193,7 +193,7 @@ namespace Lumos
 
 		m_SkyboxRenderer = nullptr;
 		m_ShadowTexture  = std::unique_ptr<TextureDepthArray>(TextureDepthArray::Create(2048, 2048, 4));
-        m_ShadowRenderer = nullptr;//std::make_unique<ShadowRenderer>(m_ShadowTexture.get(), 2048, 4);
+        m_ShadowRenderer = std::make_unique<ShadowRenderer>(m_ShadowTexture.get(), 2048, 4);
 	}
 
 	void DeferredRenderer::RenderScene(RenderList* renderList, Scene* scene)
@@ -349,9 +349,10 @@ namespace Lumos
 			if(m_ShadowRenderer)
 			{
 				maths::Matrix4* shadowTransforms = m_ShadowRenderer->GetShadowProjView();
-            	maths::Vector2 shadowPixalSize   = maths::Vector2(1.0f / m_ShadowRenderer->GetShadowMapSize());
+                float* uSplitDepth = m_ShadowRenderer->GetSplitDepths();
+            	//maths::Vector2 shadowPixalSize   = maths::Vector2(1.0f / m_ShadowRenderer->GetShadowMapSize());
 				memcpy(m_PSSystemUniformBuffer + sizeof(Lumos::maths::Vector4) + sizeof(Lumos::maths::Vector4) + sizeof(Lumos::maths::Vector4), shadowTransforms, sizeof(maths::Matrix4) * 16);
-				memcpy(m_PSSystemUniformBuffer + sizeof(Lumos::maths::Vector4) + sizeof(Lumos::maths::Vector4) + sizeof(Lumos::maths::Vector4) + sizeof(maths::Matrix4) * 16, &shadowPixalSize, sizeof(maths::Vector2));
+				memcpy(m_PSSystemUniformBuffer + sizeof(Lumos::maths::Vector4) + sizeof(Lumos::maths::Vector4) + sizeof(Lumos::maths::Vector4) + sizeof(maths::Matrix4) * 16, uSplitDepth, sizeof(float) * 16);
 			}
 		}
 	}
