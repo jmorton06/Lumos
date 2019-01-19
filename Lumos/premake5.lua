@@ -178,6 +178,11 @@ project "Lumos"
 			"MoltenVK"
 		}
 
+		runpathdirs
+		{
+			"../Dependencies/vulkan/libs/macOS/"
+		}
+
 		libdirs
 		{
 			"../bin/**",
@@ -236,6 +241,11 @@ project "Lumos"
 		{
 			"../Dependencies/OpenAL/libs/linux/libopenal.so"
 			--"../Dependencies/vulkan/libs/linux/libvulkan.so.1"
+		}
+
+		runpathdirs
+		{
+			"../Dependencies/vulkan/libs/linux"
 		}
 
 		linkoptions{ "-Wl,-rpath=\\$$ORIGIN" }
