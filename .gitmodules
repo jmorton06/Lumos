@@ -1,0 +1,3 @@
+[submodule "Examples"]
+	path = Examples
+	url = https://github.com/jmorton06/LumosExamples

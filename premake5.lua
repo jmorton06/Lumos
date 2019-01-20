@@ -26,6 +26,7 @@ workspace "LumosEngine"
 
 	require("Lumos/premake5")
 	require("Sandbox/premake5")
+	--require("Examples/premake5")
 
 newaction 
 {
