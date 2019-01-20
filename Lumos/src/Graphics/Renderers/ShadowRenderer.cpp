@@ -332,7 +332,8 @@ namespace Lumos
         
         // Calculate split depths based on view camera furstum
         // Based on method presentd in https://developer.nvidia.com/gpugems/GPUGems3/gpugems3_ch10.html
-        for (uint32_t i = 0; i < m_ShadowMapNum; i++) {
+        for (uint32_t i = 0; i < m_ShadowMapNum; i++)
+        {
             float p = (i + 1) / static_cast<float>(m_ShadowMapNum);
             float log = minZ * std::pow(ratio, p);
             float uniform = minZ + range * p;
@@ -341,7 +342,8 @@ namespace Lumos
         }
         
         float lastSplitDist = 0.0;
-        for (uint32_t i = 0; i < m_ShadowMapNum; i++) {
+        for (uint32_t i = 0; i < m_ShadowMapNum; i++)
+        {
             float splitDist = cascadeSplits[i];
             
             maths::Vector3 frustumCorners[8] = {
@@ -371,21 +373,24 @@ namespace Lumos
                  frustumCorners[i] = (invCorner / invCorner.GetW()).ToVector3();
             }
             
-            for (uint32_t i = 0; i < 4; i++) {
-                 maths::Vector3 dist = frustumCorners[i + 4] - frustumCorners[i];
+            for (uint32_t i = 0; i < 4; i++)
+            {
+                maths::Vector3 dist = frustumCorners[i + 4] - frustumCorners[i];
                 frustumCorners[i + 4] = frustumCorners[i] + (dist * splitDist);
                 frustumCorners[i] = frustumCorners[i] + (dist * lastSplitDist);
             }
             
             // Get frustum center
              maths::Vector3 frustumCenter =  maths::Vector3(0.0f);
-            for (uint32_t i = 0; i < 8; i++) {
+            for (uint32_t i = 0; i < 8; i++)
+            {
                 frustumCenter += frustumCorners[i];
             }
             frustumCenter /= 8.0f;
             
             float radius = 0.0f;
-            for (uint32_t i = 0; i < 8; i++) {
+            for (uint32_t i = 0; i < 8; i++)
+            {
                 float distance = (frustumCorners[i] - frustumCenter).Length();
                 radius = maths::Max(radius, distance);
             }
@@ -394,9 +399,7 @@ namespace Lumos
              maths::Vector3 maxExtents =  maths::Vector3(radius);
              maths::Vector3 minExtents = -maxExtents;
             
-            const maths::Matrix4 lightViewMatrix = maths::Matrix4::BuildViewMatrix(maths::Vector3(0.0f, 0.0f, 0.0f), scene->GetLightSetup()->GetDirectionalLightDirection());
-             //maths::Vector3 lightDir = (-lightPos);
-             //maths::Matrix4 lightViewMatrix = glm::lookAt(frustumCenter - lightDir * -minExtents.z, frustumCenter,  maths::Vector3(0.0f, 1.0f, 0.0f));
+            const maths::Matrix4 lightViewMatrix = maths::Matrix4::BuildViewMatrix(frustumCenter - scene->GetLightSetup()->GetDirectionalLightDirection() * -minExtents.z,frustumCenter );
             maths::Matrix4 lightOrthoMatrix = maths::Matrix4::Orthographic(minExtents.x, maxExtents.x, minExtents.y, maxExtents.y, 0.0f, maxExtents.z - minExtents.z);
             
             // Store split distance and matrix in cascade
