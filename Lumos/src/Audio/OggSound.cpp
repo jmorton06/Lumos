@@ -29,7 +29,7 @@ namespace Lumos
 
 		if (!m_FileHandle)
 		{
-			LUMOS_FATAL("Failed to load OGG file '" ,filename);
+            LUMOS_FATAL("Failed to load OGG file {0}" ,filename);
 			return;
 		}
 
