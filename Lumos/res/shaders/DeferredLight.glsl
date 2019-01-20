@@ -302,8 +302,10 @@ void main()
 
  	vec4 shadowWsPos = vec4(wsPos + normal * NORMAL_BIAS, 1.0f);
 	int cascadeIndex = 0;
-	for(int i = 0; i < NUM_SHADOWMAPS - 1; ++i) {
-		if(wsPos.z < uSplitDepths[i]) {	
+	for(int i = 0; i < NUM_SHADOWMAPS - 1; ++i) 
+	{
+		if(wsPos.z < uSplitDepths[i]) 
+		{	
 			cascadeIndex = i + 1;
 		}
 	}
