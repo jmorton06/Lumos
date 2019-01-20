@@ -246,7 +246,7 @@ layout(location = 0) out vec4 outColor;
 const float NORMAL_BIAS = 0.002f;
 const float RAW_BIAS 	= 0.00025f;
 const int NUM_SHADOWMAPS = 4; //TODO : uniform
-const int enablePCF = 0;
+const int enablePCF = 1;
 void main()
 {
 	vec4 colourTex   = texture(uColourSampler   , fragTexCoord);
@@ -308,10 +308,11 @@ void main()
 		}
 	}
 
+	float shadow = 0;
 	// Depth compare for shadowing
 	vec4 shadowCoord = (biasMat * uShadowTransform[cascadeIndex]) * vec4(wsPos, 1.0);	
 
-	float shadow = 0;
+	
 	if (enablePCF == 1) 
 	{
 		shadow = filterPCF(shadowCoord / shadowCoord.w, cascadeIndex);
