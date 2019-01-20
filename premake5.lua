@@ -17,10 +17,13 @@ workspace "LumosEngine"
 	targetdir ("bin/" .. outputdir)
 	objdir ("bin-int/" .. outputdir .. "/%{prj.name}")
 
-	require("Dependencies/Box2D/premake5")
-	require("Dependencies/GLFW/premake5")
-	require("Dependencies/lua/premake5")
-	require("Dependencies/glad/premake5")
+	group "Dependencies"
+		require("Dependencies/Box2D/premake5")
+		require("Dependencies/GLFW/premake5")
+		require("Dependencies/lua/premake5")
+		require("Dependencies/glad/premake5")
+	group ""
+
 	require("Lumos/premake5")
 	require("Sandbox/premake5")
 
