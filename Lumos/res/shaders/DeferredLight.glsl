@@ -249,7 +249,6 @@ layout(location = 0) out vec4 outColor;
 const float NORMAL_BIAS = 0.002f;
 const float RAW_BIAS 	= 0.00025f;
 const int NUM_SHADOWMAPS = 4; //TODO : uniform
-const int enablePCF = 0;
 void main()
 {
 	vec4 colourTex   = texture(uColourSampler   , fragTexCoord);
@@ -298,30 +297,39 @@ void main()
 		}
 	}
 
-	// for (int layerIdx = 0; layerIdx < NUM_SHADOWMAPS; layerIdx++)
-	// {
-	// 	vec4 hcsShadow = uShadowTransform[layerIdx] * shadowWsPos;
+	int shadowMethod = 0;
 
-	// 	if (abs(hcsShadow.x) <= 1.0f && abs(hcsShadow.y) <= 1.0f)
-	// 	{
-	// 		hcsShadow.z -= RAW_BIAS;
-	// 		hcsShadow.xyz = hcsShadow.xyz;// * 0.5f + 0.5f;
-
-	// 		shadow = DoShadowTest(hcsShadow.xyz, layerIdx, textureSize(uShadowMap, 0).xy);
-	// 		break;
-	// 	}
-	// }
-
-	vec4 shadowCoord = (biasMat * uShadowTransform[cascadeIndex]) * vec4(wsPos, 1.0);
-
-	if (enablePCF == 1)
+	if(shadowMethod == 0)
 	{
-		//shadow = DoShadowTest(shadowCoord.xyz, cascadeIndex, textureSize(uShadowMap, 0).xy);
-		shadow = filterPCF(shadowCoord / shadowCoord.w, cascadeIndex);
+		//for (int layerIdx = 0; layerIdx < NUM_SHADOWMAPS; layerIdx++)
+		{
+			int layerIdx = cascadeIndex;
+			vec4 hcsShadow = uShadowTransform[layerIdx] * shadowWsPos;
+
+			if (abs(hcsShadow.x) <= 1.0f && abs(hcsShadow.y) <= 1.0f)
+			{
+				hcsShadow.z -= RAW_BIAS;
+				hcsShadow.xyz = hcsShadow.xyz * 0.5f + 0.5f;
+
+				shadow = DoShadowTest(hcsShadow.xyz, layerIdx, textureSize(uShadowMap, 0).xy);
+				//break;
+			}
+		}
 	}
 	else
 	{
-	 	shadow = textureProj(shadowCoord / shadowCoord.w, vec2(0.0), cascadeIndex);
+		vec4 shadowCoord = (biasMat * uShadowTransform[cascadeIndex]) * vec4(wsPos, 1.0);
+
+		const int enablePCF = 0;
+		if (enablePCF == 1)
+		{
+			//shadow = DoShadowTest(shadowCoord.xyz, cascadeIndex, textureSize(uShadowMap, 0).xy);
+			shadow = filterPCF(shadowCoord / shadowCoord.w, cascadeIndex);
+		}
+		else
+		{
+			shadow = textureProj(shadowCoord / shadowCoord.w, vec2(0.0), cascadeIndex);
+		}
 	}
 
 	//shadow = max(0.1,shadow);
