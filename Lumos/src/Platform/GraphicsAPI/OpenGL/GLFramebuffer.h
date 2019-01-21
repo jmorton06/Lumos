@@ -39,7 +39,7 @@ namespace Lumos
 	private:
 
 		uint m_Handle;
-		uint m_Width, m_Height, m_AttachmentCount;
+		uint m_Width, m_Height, m_AttachmentCount, m_ColourAttachmentCount;
 		maths::Vector4 m_ClearColour;
 	};
 }

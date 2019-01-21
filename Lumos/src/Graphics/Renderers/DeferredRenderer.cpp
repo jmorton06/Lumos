@@ -198,8 +198,8 @@ namespace Lumos
 
 	void DeferredRenderer::RenderScene(RenderList* renderList, Scene* scene)
 	{
-		if(m_ShadowRenderer)
-			m_ShadowRenderer->ClearRenderLists();
+		//if(m_ShadowRenderer)
+		//	m_ShadowRenderer->ClearRenderLists();
 
 		if(m_ShadowRenderer)
 			m_ShadowRenderer->RenderScene(nullptr, scene);
@@ -338,21 +338,30 @@ namespace Lumos
 		//One Directional Light
 		if (lightSetup.GetDirectionalLight() != nullptr)
 		{
+			uint32_t currentOffset = 0;
 			maths::Vector4 lightPos = maths::Vector4(lightSetup.GetDirectionalLight()->GetPosition());
 			maths::Vector4 lightDir = maths::Vector4(lightSetup.GetDirectionalLight()->GetDirection());
 			maths::Vector4 cameraPos = maths::Vector4(scene->GetCamera()->GetPosition());
 
-			memcpy(m_PSSystemUniformBuffer, &lightPos, sizeof(maths::Vector4));
-			memcpy(m_PSSystemUniformBuffer + sizeof(Lumos::maths::Vector4), &lightDir, sizeof(maths::Vector4));
-			memcpy(m_PSSystemUniformBuffer + sizeof(Lumos::maths::Vector4) + sizeof(Lumos::maths::Vector4), &cameraPos, sizeof(maths::Vector4));
+			memcpy(m_PSSystemUniformBuffer + currentOffset, &lightPos, sizeof(maths::Vector4));
+			currentOffset += sizeof(maths::Vector4);
+			memcpy(m_PSSystemUniformBuffer + currentOffset, &lightDir, sizeof(maths::Vector4));
+			currentOffset += sizeof(maths::Vector4);
+			memcpy(m_PSSystemUniformBuffer + currentOffset, &cameraPos, sizeof(maths::Vector4));
+			currentOffset += sizeof(maths::Vector4);
 
 			if(m_ShadowRenderer)
 			{
 				maths::Matrix4* shadowTransforms = m_ShadowRenderer->GetShadowProjView();
-                float* uSplitDepth = m_ShadowRenderer->GetSplitDepths();
-            	//maths::Vector2 shadowPixalSize   = maths::Vector2(1.0f / m_ShadowRenderer->GetShadowMapSize());
-				memcpy(m_PSSystemUniformBuffer + sizeof(Lumos::maths::Vector4) + sizeof(Lumos::maths::Vector4) + sizeof(Lumos::maths::Vector4), shadowTransforms, sizeof(maths::Matrix4) * 16);
-				memcpy(m_PSSystemUniformBuffer + sizeof(Lumos::maths::Vector4) + sizeof(Lumos::maths::Vector4) + sizeof(Lumos::maths::Vector4) + sizeof(maths::Matrix4) * 16, uSplitDepth, sizeof(float) * 16);
+				auto viewMat = scene->GetCamera()->GetViewMatrix();
+                Lumos::maths::Vector4* uSplitDepth = m_ShadowRenderer->GetSplitDepths();
+
+				memcpy(m_PSSystemUniformBuffer + currentOffset, &viewMat, sizeof(maths::Matrix4));
+				currentOffset += sizeof(maths::Matrix4);
+				memcpy(m_PSSystemUniformBuffer + currentOffset, shadowTransforms, sizeof(maths::Matrix4) * 16);
+				currentOffset += sizeof(maths::Matrix4) * 16;
+				memcpy(m_PSSystemUniformBuffer + currentOffset, uSplitDepth, sizeof(Lumos::maths::Vector4) * 16);
+				currentOffset += sizeof(Lumos::maths::Vector4) * 16;
 			}
 		}
 	}

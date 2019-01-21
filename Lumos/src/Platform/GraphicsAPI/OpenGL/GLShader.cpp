@@ -80,7 +80,7 @@ namespace Lumos
 		ResolveUniforms();
 		ValidateUniforms();
 
-		LUMOS_CORE_WARN("Successfully compiled shader: ", m_Name);
+		LUMOS_CORE_WARN("Successfully compiled shader: {0}", m_Name);
 
 		delete sources;
 	}

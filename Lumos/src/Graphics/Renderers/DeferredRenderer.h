@@ -70,8 +70,9 @@ namespace Lumos
 			Lumos::maths::Vector4 position;
 			Lumos::maths::Vector4 direction;
 			Lumos::maths::Vector4 cameraPosition;
+			Lumos::maths::Matrix4 viewMatrix;
 			Lumos::maths::Matrix4 uShadowTransform[16];
-    		float uSplitDepth[16];
+    		Lumos::maths::Vector4 uSplitDepth[16];
 		};
 
 		void CreateOffScreenPipeline();
