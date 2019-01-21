@@ -52,8 +52,6 @@ namespace Lumos
 		}
 		else
 			m_ShadowTex = texture;
-		//m_ShadowFBO = Framebuffer::Create();
-		//m_ShadowFBO->AddTextureLayer(0, m_ShadowTex);
 
 		Renderer::GetRenderer()->SetRenderTargets(0);
 
@@ -146,22 +144,13 @@ namespace Lumos
 
 		m_Pipeline->SetActive(m_CommandBuffer);
 
-
 		for (auto& command : m_CommandQueue)
 		{
             Mesh* mesh = command.mesh;
 
-			//graphics::api::CommandBuffer* currentCMDBuffer = mesh->GetCommandBuffer(0);
-
             uint32_t dynamicOffset = index * static_cast<uint32_t>(dynamicAlignment);
 
-			//m_CommandBuffer->BeginRecording(m_RenderPass, m_ShadowFramebuffer[m_Layer]);
-			//currentCMDBuffer->UpdateViewport(m_ShadowMapSize, m_ShadowMapSize);
-
 			Renderer::RenderMesh(mesh, m_Pipeline, m_CommandBuffer, dynamicOffset, nullptr, false);
-
-
-			//currentCMDBuffer->ExecuteSecondary(m_CommandBuffer);
 
             index++;
 		}
@@ -211,7 +200,7 @@ namespace Lumos
 	void ShadowRenderer::RenderScene(RenderList* renderList, Scene* scene)
 	{
 		//SortRenderLists(scene);
-        UpdateCascades(scene);
+    	UpdateCascades(scene);
 
 		Begin();
 		for (uint i = 0; i < m_ShadowMapNum; ++i)
@@ -313,23 +302,21 @@ namespace Lumos
 			scene->InsertToRenderList(m_apShadowRenderLists[i], f);
 		}
 	}
-    
+
     float cascadeSplitLambda = 0.95f;
-    
+
     void ShadowRenderer::UpdateCascades(Scene* scene)
     {
         float cascadeSplits[SHADOWMAP_MAX];
-        
+
         float nearClip = scene->GetCamera()->GetNear();
         float farClip = scene->GetCamera()->GetFar();
         float clipRange = farClip - nearClip;
-        
+
         float minZ = nearClip;
         float maxZ = nearClip + clipRange;
-        
         float range = maxZ - minZ;
         float ratio = maxZ / minZ;
-        
         // Calculate split depths based on view camera furstum
         // Based on method presentd in https://developer.nvidia.com/gpugems/GPUGems3/gpugems3_ch10.html
         for (uint32_t i = 0; i < m_ShadowMapNum; i++)
@@ -340,12 +327,12 @@ namespace Lumos
             float d = cascadeSplitLambda * (log - uniform) + uniform;
             cascadeSplits[i] = (d - nearClip) / clipRange;
         }
-        
+
         float lastSplitDist = 0.0;
         for (uint32_t i = 0; i < m_ShadowMapNum; i++)
         {
             float splitDist = cascadeSplits[i];
-            
+
             maths::Vector3 frustumCorners[8] = {
                 maths::Vector3(-1.0f,  1.0f, -1.0f),
                 maths::Vector3( 1.0f,  1.0f, -1.0f),
@@ -356,30 +343,30 @@ namespace Lumos
                 maths::Vector3( 1.0f, -1.0f,  1.0f),
                 maths::Vector3(-1.0f, -1.0f,  1.0f),
             };
-            
+
             scene->GetCamera()->BuildViewMatrix();
             maths::Matrix4 cameraProj = scene->GetCamera()->GetProjectionMatrix();
 #ifdef LUMOS_RENDER_API_VULKAN
             if (graphics::Context::GetRenderAPI() == RenderAPI::VULKAN)
                 cameraProj[5] *= -1;
 #endif
-            
+
             const maths::Matrix4 invCam = maths::Matrix4::Inverse(cameraProj * scene->GetCamera()->GetViewMatrix());
-            
+
             // Project frustum corners into world space
             for (uint32_t i = 0; i < 8; i++)
             {
                  maths::Vector4 invCorner = invCam * maths::Vector4(frustumCorners[i], 1.0f);
                  frustumCorners[i] = (invCorner / invCorner.GetW()).ToVector3();
             }
-            
+
             for (uint32_t i = 0; i < 4; i++)
             {
                 maths::Vector3 dist = frustumCorners[i + 4] - frustumCorners[i];
                 frustumCorners[i + 4] = frustumCorners[i] + (dist * splitDist);
                 frustumCorners[i] = frustumCorners[i] + (dist * lastSplitDist);
             }
-            
+
             // Get frustum center
              maths::Vector3 frustumCenter =  maths::Vector3(0.0f);
             for (uint32_t i = 0; i < 8; i++)
@@ -387,7 +374,7 @@ namespace Lumos
                 frustumCenter += frustumCorners[i];
             }
             frustumCenter /= 8.0f;
-            
+
             float radius = 0.0f;
             for (uint32_t i = 0; i < 8; i++)
             {
@@ -395,19 +382,21 @@ namespace Lumos
                 radius = maths::Max(radius, distance);
             }
             radius = std::ceil(radius * 16.0f) / 16.0f;
-            
+
              maths::Vector3 maxExtents =  maths::Vector3(radius);
              maths::Vector3 minExtents = -maxExtents;
-            
-            const maths::Matrix4 lightViewMatrix = maths::Matrix4::BuildViewMatrix(frustumCenter - scene->GetLightSetup()->GetDirectionalLightDirection() * -minExtents.z,frustumCenter );
-            maths::Matrix4 lightOrthoMatrix = maths::Matrix4::Orthographic(minExtents.x, maxExtents.x, minExtents.y, maxExtents.y, 0.0f, maxExtents.z - minExtents.z);
-            
+
+			maths::Vector3 lightDir = scene->GetLightSetup()->GetDirectionalLightDirection();
+            const maths::Matrix4 lightViewMatrix = maths::Matrix4::BuildViewMatrix( frustumCenter ,frustumCenter + lightDir * -minExtents.z);
+            //maths::Matrix4 lightOrthoMatrix = maths::Matrix4::Orthographic(minExtents.x, maxExtents.x, minExtents.y, maxExtents.y, 0.0f, maxExtents.z - minExtents.z);
+			maths::Matrix4 lightOrthoMatrix = maths::Matrix4::Orthographic(maxExtents.z, minExtents.z, maxExtents.x, minExtents.x, maxExtents.y, minExtents.y);
+
             // Store split distance and matrix in cascade
-            splitDepth[i] = (scene->GetCamera()->GetNear() + splitDist * clipRange) * -1.0f;
+            m_SplitDepth[i] = maths::Vector4((scene->GetCamera()->GetNear() + splitDist * clipRange) * -1.0f);
             m_ShadowProjView[i] = lightOrthoMatrix * lightViewMatrix;
-            
+
             lastSplitDist = cascadeSplits[i];
-            
+
             const maths::Vector3 top_mid = frustumCenter + lightViewMatrix * maths::Vector3(0.0f, 0.0f, maxExtents.GetZ());
             maths::Frustum f;
             f.FromMatrix(m_ShadowProjView[i]);
@@ -437,6 +426,7 @@ namespace Lumos
 				bufferInfo.renderPass = m_RenderPass;
 				bufferInfo.attachmentTypes = attachmentTypes;
 				bufferInfo.layer = i;
+				bufferInfo.screenFBO = false;
 
 				Texture* attachments[attachmentCount];
 				attachments[0] = m_ShadowTex;

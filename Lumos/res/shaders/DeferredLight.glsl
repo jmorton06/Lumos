@@ -26,7 +26,7 @@ uniform sampler2D uNormalSampler;
 uniform sampler2D uPBRSampler;
 uniform sampler2D uPreintegratedFG;
 uniform samplerCube uEnvironmentMap;
-uniform sampler2DArray uShadowMap;
+uniform sampler2DArrayShadow uShadowMap;
 uniform sampler2D uDepthSampler;
 
 layout (std140) uniform LightData
@@ -34,8 +34,9 @@ layout (std140) uniform LightData
 	vec4 position;
  	vec4 direction;
  	vec4 cameraPosition;
+	mat4 viewMatrix;
 	mat4 uShadowTransform[16];
-    float uSplitDepths[16];
+    vec4 uSplitDepths[16];
 };
 
 #define PI 3.1415926535897932384626433832795
@@ -187,19 +188,19 @@ float DoShadowTest(vec3 tsShadow, int tsLayer, vec2 pix)
 	else
 	{
 		float shadow = 0.0f;
-		//for (float y = -1.5f; y <= 1.5f; y += 1.0f)
-		//	for (float x = -1.5f; x <= 1.5f; x += 1.0f)
-				//shadow += texture(uShadowMap, tCoord + vec4(pix.x * x, pix.y * y, 0, 0));
+		for (float y = -1.5f; y <= 1.5f; y += 1.0f)
+			for (float x = -1.5f; x <= 1.5f; x += 1.0f)
+				shadow += texture(uShadowMap, tCoord + vec4(pix.x * x, pix.y * y, 0, 0));
 
 		return shadow / 16.0f;
 	}
 }
 
-const mat4 biasMat = mat4( 
+const mat4 biasMat = mat4(
 	0.5, 0.0, 0.0, 0.0,
 	0.0, 0.5, 0.0, 0.0,
 	0.0, 0.0, 1.0, 0.0,
-	0.5, 0.5, 0.0, 1.0 
+	0.5, 0.5, 0.0, 1.0
 );
 
 #define ambient 0.3
@@ -210,9 +211,11 @@ float textureProj(vec4 P, vec2 offset, int cascadeIndex)
 	float bias = 0.005;
 
 	vec4 shadowCoord = P / P.w;
-	if ( shadowCoord.z > -1.0 && shadowCoord.z < 1.0 ) {
-		float dist = texture(uShadowMap, vec3(shadowCoord.st + offset, cascadeIndex)).r;
-		if (shadowCoord.w > 0 && dist < shadowCoord.z - bias) {
+	if ( shadowCoord.z > -1.0 && shadowCoord.z < 1.0 )
+	{
+		float dist = texture(uShadowMap, vec4(shadowCoord.st + offset, cascadeIndex, 0.0));
+		if (shadowCoord.w > 0 && dist < shadowCoord.z - bias)
+		{
 			shadow = ambient;
 		}
 	}
@@ -230,7 +233,7 @@ float filterPCF(vec4 sc, int cascadeIndex)
 	float shadowFactor = 0.0;
 	int count = 0;
 	int range = 1;
-	
+
 	for (int x = -range; x <= range; x++) {
 		for (int y = -range; y <= range; y++) {
 			shadowFactor += textureProj(sc, vec2(dx*x, dy*y), cascadeIndex);
@@ -246,7 +249,7 @@ layout(location = 0) out vec4 outColor;
 const float NORMAL_BIAS = 0.002f;
 const float RAW_BIAS 	= 0.00025f;
 const int NUM_SHADOWMAPS = 4; //TODO : uniform
-const int enablePCF = 1;
+const int enablePCF = 0;
 void main()
 {
 	vec4 colourTex   = texture(uColourSampler   , fragTexCoord);
@@ -281,8 +284,19 @@ void main()
     vec4 diffuse  = vec4(0.0);
     vec3 specular = vec3(0.0);
 
-	// vec4 shadowWsPos = vec4(wsPos + normal * NORMAL_BIAS, 1.0f);
-	// float shadow = 1.0f;
+	vec4 shadowWsPos = vec4(wsPos + normal * NORMAL_BIAS, 1.0f);
+	float shadow = 0.0f;
+
+	int cascadeIndex = 0;
+	vec4 viewPos = viewMatrix * vec4(wsPos, 1.0);
+
+	for(int i = 0; i < NUM_SHADOWMAPS - 1; ++i)
+	{
+		if(viewPos.z < uSplitDepths[i].x)
+		{
+			cascadeIndex = i + 1;
+		}
+	}
 
 	// for (int layerIdx = 0; layerIdx < NUM_SHADOWMAPS; layerIdx++)
 	// {
@@ -291,39 +305,26 @@ void main()
 	// 	if (abs(hcsShadow.x) <= 1.0f && abs(hcsShadow.y) <= 1.0f)
 	// 	{
 	// 		hcsShadow.z -= RAW_BIAS;
-	// 		hcsShadow.xyz = hcsShadow.xyz * 0.5f + 0.5f;
+	// 		hcsShadow.xyz = hcsShadow.xyz;// * 0.5f + 0.5f;
 
-	// 		//shadow = DoShadowTest(hcsShadow.xyz, layerIdx, uShadowSinglePixel);
+	// 		shadow = DoShadowTest(hcsShadow.xyz, layerIdx, textureSize(uShadowMap, 0).xy);
 	// 		break;
 	// 	}
 	// }
 
-	// shadow = max(0.1,shadow);
+	vec4 shadowCoord = (biasMat * uShadowTransform[cascadeIndex]) * vec4(wsPos, 1.0);
 
- 	vec4 shadowWsPos = vec4(wsPos + normal * NORMAL_BIAS, 1.0f);
-	int cascadeIndex = 0;
-	for(int i = 0; i < NUM_SHADOWMAPS - 1; ++i) 
+	if (enablePCF == 1)
 	{
-		if(wsPos.z < uSplitDepths[i]) 
-		{	
-			cascadeIndex = i + 1;
-		}
-	}
-
-	float shadow = 0;
-	// Depth compare for shadowing
-	vec4 shadowCoord = (biasMat * uShadowTransform[cascadeIndex]) * vec4(wsPos, 1.0);	
-
-	
-	if (enablePCF == 1) 
-	{
+		//shadow = DoShadowTest(shadowCoord.xyz, cascadeIndex, textureSize(uShadowMap, 0).xy);
 		shadow = filterPCF(shadowCoord / shadowCoord.w, cascadeIndex);
-	} 
-	else 
+	}
+	else
 	{
-		shadow = textureProj(shadowCoord / shadowCoord.w, vec2(0.0), cascadeIndex);
+	 	shadow = textureProj(shadowCoord / shadowCoord.w, vec2(0.0), cascadeIndex);
 	}
 
+	//shadow = max(0.1,shadow);
     float NdotL = clamp(dot(material.normal, light.direction), 0.0, 1.0)  * shadow;
     diffuse  += NdotL * Diffuse(light, material, eye)  * light.intensity;
     specular += NdotL * Specular(light, material, eye) * light.intensity;

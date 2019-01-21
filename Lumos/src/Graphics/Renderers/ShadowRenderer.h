@@ -54,7 +54,7 @@ namespace Lumos
 		void Present() override;
 		void RenderScene(RenderList* renderList, Scene* scene) override;
 
-        float* GetSplitDepths() { return splitDepth;}
+        maths::Vector4* GetSplitDepths() { return m_SplitDepth;}
 		maths::Matrix4* GetShadowProjView() { return m_ShadowProjView; }
 
 		inline uint GetShadowMapSize() const { return m_ShadowMapSize; }
@@ -94,7 +94,7 @@ namespace Lumos
 		bool		    m_ShadowMapsInvalidated;
 		Framebuffer*    m_ShadowFramebuffer[SHADOWMAP_MAX];
 		maths::Matrix4	m_ShadowProjView[SHADOWMAP_MAX];
-        float           splitDepth[SHADOWMAP_MAX];
+        maths::Vector4  m_SplitDepth[SHADOWMAP_MAX];
 		RenderList**	m_apShadowRenderLists;
 		bool			m_DeleteTexture = false;
 
