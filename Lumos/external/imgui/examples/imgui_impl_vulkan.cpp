@@ -602,7 +602,7 @@ bool ImGui_ImplVulkan_CreateDeviceObjects()
     raster_info.sType = VK_STRUCTURE_TYPE_PIPELINE_RASTERIZATION_STATE_CREATE_INFO;
     raster_info.polygonMode = VK_POLYGON_MODE_FILL;
     raster_info.cullMode = VK_CULL_MODE_NONE;
-    raster_info.frontFace = VK_FRONT_FACE_COUNTER_CLOCKWISE;
+    raster_info.frontFace = VK_FRONT_FACE_CLOCKWISE;
     raster_info.lineWidth = 1.0f;
 
     VkPipelineMultisampleStateCreateInfo ms_info = {};

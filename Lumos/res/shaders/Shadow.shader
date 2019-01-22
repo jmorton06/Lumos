@@ -1,7 +1,7 @@
 #shader vertex
-DeferredColour.vert.spv
+Shadow.vert.spv
 #shader end
 
 #shader fragment
-DeferredColour.frag.spv
+Shadow.frag.spv
 #shader end
