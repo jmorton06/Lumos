@@ -192,8 +192,8 @@ namespace Lumos
 		m_ClearColour = maths::Vector4(0.8f, 0.8f, 0.8f, 1.0f);
 
 		m_SkyboxRenderer = nullptr;
-		m_ShadowTexture  = std::unique_ptr<TextureDepthArray>(TextureDepthArray::Create(2048, 2048, 4));
-        m_ShadowRenderer = std::make_unique<ShadowRenderer>(m_ShadowTexture.get(), 2048, 4);
+		m_ShadowTexture  = std::unique_ptr<TextureDepthArray>(TextureDepthArray::Create(4096, 4096, 4));
+        m_ShadowRenderer = std::make_unique<ShadowRenderer>(m_ShadowTexture.get(), 4096, 4);
 	}
 
 	void DeferredRenderer::RenderScene(RenderList* renderList, Scene* scene)
@@ -293,8 +293,8 @@ namespace Lumos
 		auto proj = camera->GetProjectionMatrix();
 
 #ifdef LUMOS_RENDER_API_VULKAN
-		if (graphics::Context::GetRenderAPI() == RenderAPI::VULKAN)
-		proj[5] *= -1;
+		//if (graphics::Context::GetRenderAPI() == RenderAPI::VULKAN)
+		//proj[5] *= -1;
 #endif
 		auto projView = proj * camera->GetViewMatrix();
 		memcpy(m_VSSystemUniformBuffer + m_VSSystemUniformBufferOffsets[VSSystemUniformIndex_ProjectionMatrix], &projView, sizeof(maths::Matrix4));
@@ -571,7 +571,7 @@ namespace Lumos
         pipelineCI.strideSize = sizeof(Vertex);
         pipelineCI.numColorAttachments = 1;
         pipelineCI.wireframeEnabled = false;
-        pipelineCI.cullMode = graphics::api::CullMode::NONE;
+        pipelineCI.cullMode = graphics::api::CullMode::BACK;
         pipelineCI.transparencyEnabled = false;
         pipelineCI.depthBiasEnabled = false;
         pipelineCI.width = m_ScreenBufferWidth;

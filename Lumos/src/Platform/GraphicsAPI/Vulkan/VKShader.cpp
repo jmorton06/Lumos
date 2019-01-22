@@ -79,7 +79,7 @@ namespace Lumos
 				m_ShaderStages[currentShaderStage].flags = 0;
 
 				result = vkCreateShaderModule(VKDevice::Instance()->GetDevice(), &vertexShaderCI, VK_NULL_HANDLE, &m_ShaderStages[currentShaderStage].module);
-                
+
                 delete source;
 
 				if (result != VK_SUCCESS)

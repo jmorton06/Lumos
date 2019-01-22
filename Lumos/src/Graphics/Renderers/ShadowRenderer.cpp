@@ -347,8 +347,8 @@ namespace Lumos
             scene->GetCamera()->BuildViewMatrix();
             maths::Matrix4 cameraProj = scene->GetCamera()->GetProjectionMatrix();
 #ifdef LUMOS_RENDER_API_VULKAN
-            if (graphics::Context::GetRenderAPI() == RenderAPI::VULKAN)
-                cameraProj[5] *= -1;
+           // if (graphics::Context::GetRenderAPI() == RenderAPI::VULKAN)
+           //     cameraProj[5] *= -1;
 #endif
 
             const maths::Matrix4 invCam = maths::Matrix4::Inverse(cameraProj * scene->GetCamera()->GetViewMatrix());
@@ -382,14 +382,22 @@ namespace Lumos
                 radius = maths::Max(radius, distance);
             }
             radius = std::ceil(radius * 16.0f) / 16.0f;
+			float sceneBoundingRadius = 50.0f;
+			//Extend the Z depths to catch shadow casters outside view frustum
+			radius = maths::Max(radius, sceneBoundingRadius);
 
-             maths::Vector3 maxExtents =  maths::Vector3(radius);
-             maths::Vector3 minExtents = -maxExtents;
+            maths::Vector3 maxExtents =  maths::Vector3(radius);
+            maths::Vector3 minExtents = -maxExtents;
 
 			maths::Vector3 lightDir = scene->GetLightSetup()->GetDirectionalLightDirection();
-            const maths::Matrix4 lightViewMatrix = maths::Matrix4::BuildViewMatrix( frustumCenter ,frustumCenter + lightDir * -minExtents.z);
+            maths::Matrix4 lightViewMatrix = maths::Matrix4::BuildViewMatrix( frustumCenter ,frustumCenter + lightDir * -minExtents.z);
+
+			#ifdef LUMOS_RENDER_API_VULKAN
+            //if (graphics::Context::GetRenderAPI() == RenderAPI::VULKAN)
+            //    lightViewMatrix[5] *= -1;
+			#endif
             //maths::Matrix4 lightOrthoMatrix = maths::Matrix4::Orthographic(minExtents.x, maxExtents.x, minExtents.y, maxExtents.y, 0.0f, maxExtents.z - minExtents.z);
-			maths::Matrix4 lightOrthoMatrix = maths::Matrix4::Orthographic(maxExtents.z, minExtents.z, maxExtents.x, minExtents.x, maxExtents.y, minExtents.y);
+			maths::Matrix4 lightOrthoMatrix = maths::Matrix4::Orthographic( maxExtents.z - minExtents.z, -(maxExtents.z - minExtents.z), maxExtents.x, minExtents.x, maxExtents.y, minExtents.y);
 
             // Store split distance and matrix in cascade
             m_SplitDepth[i] = maths::Vector4((scene->GetCamera()->GetNear() + splitDist * clipRange) * -1.0f);
