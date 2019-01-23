@@ -111,5 +111,14 @@ namespace Lumos
 			vkUpdateDescriptorSets(VKDevice::Instance()->GetDevice(), static_cast<uint32_t>(descriptorWrites.size()),
 				descriptorWrites.data(), 0, nullptr);
 		}
+
+		void VKDescriptorSet::SetPushConstants(std::vector<api::PushConstant>& pushConstants)
+		{
+			m_PushConstants.clear();
+			for (auto& pushConstant : pushConstants)
+			{
+				m_PushConstants.push_back(pushConstant);
+			}
+		}
 	}
 }

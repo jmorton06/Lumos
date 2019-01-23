@@ -98,6 +98,18 @@ namespace Lumos
                 }
 
 			}
+
+            for(auto pc : m_PushConstants)
+                ((GLShader*)m_Shader)->SetUniform("PushConstant", (byte*)pc.data);
+		}
+
+        void GLDescriptorSet::SetPushConstants(std::vector<api::PushConstant>& pushConstants)
+		{
+			m_PushConstants.clear();
+			for (auto& pushConstant : pushConstants)
+			{
+				m_PushConstants.push_back(pushConstant);
+			}
 		}
     }
 }

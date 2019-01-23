@@ -211,6 +211,14 @@ namespace Lumos
 				}
 			}
 
+			uint index = 0;
+			for(auto pc : static_cast<graphics::VKDescriptorSet*>(pipeline->GetDescriptorSet())->GetPushConstants())
+			{
+				//TODO : Shader Stage;
+				vkCmdPushConstants(static_cast<graphics::VKCommandBuffer*>(cmdBuffer)->GetCommandBuffer(), static_cast<graphics::VKPipeline*>(pipeline)->GetPipelineLayout(), VK_SHADER_STAGE_VERTEX_BIT, index, pc.size, pc.data);
+			}
+
+
 			graphics::VKRenderer::Render(mesh->GetIndexBuffer().get(), mesh->GetVertexArray().get(), static_cast<graphics::VKCommandBuffer*>(cmdBuffer), descriptorSets, static_cast<graphics::VKPipeline*>(pipeline)->GetPipelineLayout(), dynamicOffset, numDynamicDescriptorSets);
 
 		}

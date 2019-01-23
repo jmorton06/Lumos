@@ -3,7 +3,7 @@
 #include "VKDevice.h"
 #include "VKCommandPool.h"
 #include "VKCommandBuffer.h"
-
+#include "Maths/Matrix4.h"
 
 namespace Lumos
 {
@@ -44,10 +44,12 @@ namespace Lumos
 		{
 			auto func = reinterpret_cast<PFN_vkCreateDebugReportCallbackEXT>(vkGetInstanceProcAddr(instance, "vkCreateDebugReportCallbackEXT"));
 
-			if (func != nullptr) {
+			if (func != nullptr)
+			{
 				return func(instance, pCreateInfo, pAllocator, pCallback);
 			}
-			else {
+			else
+			{
 				return VK_ERROR_EXTENSION_NOT_PRESENT;
 			}
 		}
@@ -69,6 +71,8 @@ namespace Lumos
 			SetupDebugCallback();
 
 			m_WindowContext = deviceContext;
+
+			maths::Matrix4::SetUpCoordSystem(false, true);
 		}
 
 		VKContext::~VKContext()
