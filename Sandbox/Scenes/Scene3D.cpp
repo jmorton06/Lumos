@@ -30,7 +30,7 @@ void Scene3D::OnInit()
 
 	LoadModels();
 
-	m_pCamera = new ThirdPersonCamera(-20.0f, -40.0f, maths::Vector3(-3.0f, 10.0f, 15.0f), 60.0f, 0.1f, 1000.0f, (float) m_ScreenWidth / (float) m_ScreenHeight);
+	m_pCamera = new ThirdPersonCamera(-20.0f, -40.0f, maths::Vector3(-3.0f, 10.0f, 15.0f), 60.0f, 0.1f, 100.0f, (float) m_ScreenWidth / (float) m_ScreenHeight);
 
 	String environmentFiles[11] =
 	{
@@ -104,7 +104,7 @@ void Scene3D::LoadModels()
 
 	MaterialProperties properties;
 	properties.albedoColour = Vector4(0.6f,0.1f,0.1f,1.0f);
-	properties.glossColour = 0.8f;
+	properties.glossColour = Vector4(0.8f);
 	properties.specularColour = Vector4(0.8f);
 	properties.usingAlbedoMap   = 0.5f;
 	properties.usingGlossMap    = 0.0f;
@@ -321,7 +321,7 @@ void Scene3D::LoadModels()
 		std::shared_ptr<Material> m = std::make_shared<Material>();
 		MaterialProperties properties;
 		properties.albedoColour = diffuse;
-		properties.glossColour = 1.0f - roughness;
+		properties.glossColour = Vector4(1.0f - roughness);
 		properties.specularColour = spec;
 		properties.usingAlbedoMap   = 0.0f;
 		properties.usingGlossMap    = 0.0f;
@@ -349,7 +349,7 @@ void Scene3D::LoadModels()
 		std::shared_ptr<Material> m = std::make_shared<Material>();
 		MaterialProperties properties;
 		properties.albedoColour = diffuse;
-		properties.glossColour = 1.0f - roughness;
+		properties.glossColour = Vector4(1.0f - roughness);
 		properties.specularColour = spec;
 		properties.usingAlbedoMap   = 0.0f;
 		properties.usingGlossMap    = 0.0f;
@@ -377,7 +377,7 @@ void Scene3D::LoadModels()
 		std::shared_ptr<Material> m = std::make_shared<Material>();
 		MaterialProperties properties;
 		properties.albedoColour = diffuse;
-		properties.glossColour = 1.0f - roughness;
+		properties.glossColour = Vector4(1.0f - roughness);
 		properties.specularColour = spec;
 		properties.usingAlbedoMap   = 0.0f;
 		properties.usingGlossMap    = 0.0f;

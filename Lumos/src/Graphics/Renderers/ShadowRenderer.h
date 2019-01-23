@@ -71,7 +71,7 @@ namespace Lumos
 
 		struct UniformBufferObject
 		{
-			Lumos::maths::Matrix4 projView;
+			Lumos::maths::Matrix4 projView[SHADOWMAP_MAX];
 		};
 
 		struct UniformBufferModel

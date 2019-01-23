@@ -145,7 +145,7 @@ namespace Lumos
 			rs.pNext = NULL;
 			rs.polygonMode = (pipelineCI.wireframeEnabled ? VK_POLYGON_MODE_LINE : VK_POLYGON_MODE_FILL);
 			rs.cullMode = VKTools::CullModeToVK(pipelineCI.cullMode);
-			rs.frontFace = VK_FRONT_FACE_CLOCKWISE;
+			rs.frontFace = VK_FRONT_FACE_COUNTER_CLOCKWISE;
 			rs.depthClampEnable = VK_FALSE;
 			rs.rasterizerDiscardEnable = VK_FALSE;
 			rs.depthBiasEnable = (pipelineCI.depthBiasEnabled ? VK_TRUE : VK_FALSE);

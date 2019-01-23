@@ -100,7 +100,7 @@ namespace Lumos
             wd->Height = height;
             VkResult err;
 
-            wd->BackBufferCount = (size_t)swapChain->GetSwapchainBufferCount();
+            wd->BackBufferCount = (uint32_t)swapChain->GetSwapchainBufferCount();
 /*
             err = vkGetSwapchainImagesKHR(VKDevice::Instance()->GetDevice(), wd->Swapchain, &wd->BackBufferCount, NULL);
             check_vk_result(err);

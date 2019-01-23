@@ -292,10 +292,6 @@ namespace Lumos
 		auto camera = scene->GetCamera();
 		auto proj = camera->GetProjectionMatrix();
 
-#ifdef LUMOS_RENDER_API_VULKAN
-		//if (graphics::Context::GetRenderAPI() == RenderAPI::VULKAN)
-		//proj[5] *= -1;
-#endif
 		auto projView = proj * camera->GetViewMatrix();
 		memcpy(m_VSSystemUniformBuffer + m_VSSystemUniformBufferOffsets[VSSystemUniformIndex_ProjectionMatrix], &projView, sizeof(maths::Matrix4));
 
@@ -571,7 +567,7 @@ namespace Lumos
         pipelineCI.strideSize = sizeof(Vertex);
         pipelineCI.numColorAttachments = 1;
         pipelineCI.wireframeEnabled = false;
-        pipelineCI.cullMode = graphics::api::CullMode::BACK;
+        pipelineCI.cullMode = graphics::api::CullMode::NONE;
         pipelineCI.transparencyEnabled = false;
         pipelineCI.depthBiasEnabled = false;
         pipelineCI.width = m_ScreenBufferWidth;

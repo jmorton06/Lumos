@@ -41,7 +41,7 @@ namespace Lumos
 			Vector4(__m128 m) : m_Value(m) { }
 #endif
 
-			Vector4(const Vector4 &v) 
+			Vector4(const Vector4 &v)
 			{
 #ifdef LUMOS_SSEVEC4
 				m_Value = v.m_Value;

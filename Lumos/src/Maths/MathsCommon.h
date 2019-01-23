@@ -1,6 +1,6 @@
 #pragma once
 #include "LM.h"
-#define LUMOS_SSE //TODO : remove
+//#define LUMOS_SSE //TODO : remove
 
 #ifdef LUMOS_SSE
 #define LUMOS_SSEVEC4
@@ -21,3 +21,4 @@ inline float GetValue(const __m128& v, const int index)
 #endif
 }
 #endif
+

@@ -86,7 +86,7 @@ namespace Lumos
 
 	void ShadowRenderer::Init()
 	{
-		m_VSSystemUniformBufferSize = sizeof(maths::Matrix4);
+		m_VSSystemUniformBufferSize = sizeof(maths::Matrix4) * 16;
 		m_VSSystemUniformBuffer = new byte[m_VSSystemUniformBufferSize];
 		memset(m_VSSystemUniformBuffer, 0, m_VSSystemUniformBufferSize);
 		m_VSSystemUniformBufferOffsets.resize(VSSystemUniformIndex_Size);
@@ -202,6 +202,10 @@ namespace Lumos
 		//SortRenderLists(scene);
     	UpdateCascades(scene);
 
+		memcpy(m_VSSystemUniformBuffer + m_VSSystemUniformBufferOffsets[VSSystemUniformIndex_ProjectionViewMatrix], m_ShadowProjView, sizeof(maths::Matrix4) * 16);
+
+		SetSystemUniforms(m_Shader);
+
 		Begin();
 		for (uint i = 0; i < m_ShadowMapNum; ++i)
 		{
@@ -222,10 +226,14 @@ namespace Lumos
 					}
 				}
 			});
+			graphics::api::PushConstant pc;
 
-			memcpy(m_VSSystemUniformBuffer + m_VSSystemUniformBufferOffsets[VSSystemUniformIndex_ProjectionViewMatrix], &m_ShadowProjView[m_Layer], sizeof(maths::Matrix4));
-
-			SetSystemUniforms(m_Shader);
+			pc.type = graphics::api::PushConstantDataType::UINT;
+			pc.size = sizeof(uint);
+			pc.data = &m_Layer;
+			std::vector<graphics::api::PushConstant> pcVector;
+			pcVector.push_back(pc);
+			m_Pipeline->GetDescriptorSet()->SetPushConstants(pcVector);
 
 			Present();
 
@@ -346,10 +354,6 @@ namespace Lumos
 
             scene->GetCamera()->BuildViewMatrix();
             maths::Matrix4 cameraProj = scene->GetCamera()->GetProjectionMatrix();
-#ifdef LUMOS_RENDER_API_VULKAN
-           // if (graphics::Context::GetRenderAPI() == RenderAPI::VULKAN)
-           //     cameraProj[5] *= -1;
-#endif
 
             const maths::Matrix4 invCam = maths::Matrix4::Inverse(cameraProj * scene->GetCamera()->GetViewMatrix());
 
@@ -382,9 +386,9 @@ namespace Lumos
                 radius = maths::Max(radius, distance);
             }
             radius = std::ceil(radius * 16.0f) / 16.0f;
-			float sceneBoundingRadius = 50.0f;
+			//float sceneBoundingRadius = 50.0f;
 			//Extend the Z depths to catch shadow casters outside view frustum
-			radius = maths::Max(radius, sceneBoundingRadius);
+			//radius = maths::Max(radius, sceneBoundingRadius);
 
             maths::Vector3 maxExtents =  maths::Vector3(radius);
             maths::Vector3 minExtents = -maxExtents;
@@ -392,10 +396,6 @@ namespace Lumos
 			maths::Vector3 lightDir = scene->GetLightSetup()->GetDirectionalLightDirection();
             maths::Matrix4 lightViewMatrix = maths::Matrix4::BuildViewMatrix( frustumCenter ,frustumCenter + lightDir * -minExtents.z);
 
-			#ifdef LUMOS_RENDER_API_VULKAN
-            //if (graphics::Context::GetRenderAPI() == RenderAPI::VULKAN)
-            //    lightViewMatrix[5] *= -1;
-			#endif
             //maths::Matrix4 lightOrthoMatrix = maths::Matrix4::Orthographic(minExtents.x, maxExtents.x, minExtents.y, maxExtents.y, 0.0f, maxExtents.z - minExtents.z);
 			maths::Matrix4 lightOrthoMatrix = maths::Matrix4::Orthographic( maxExtents.z - minExtents.z, -(maxExtents.z - minExtents.z), maxExtents.x, minExtents.x, maxExtents.y, minExtents.y);
 
@@ -528,7 +528,7 @@ namespace Lumos
 		bufferInfo.type = graphics::api::DescriptorType::UNIFORM_BUFFER;
 		bufferInfo.binding = 0;
 		bufferInfo.shaderType = ShaderType::VERTEX;
-		bufferInfo.systemUniforms = true;
+		bufferInfo.systemUniforms = false;
 
 		graphics::api::BufferInfo bufferInfo2 = {};
 		bufferInfo2.buffer = m_ModelUniformBuffer;

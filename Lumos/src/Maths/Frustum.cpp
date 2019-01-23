@@ -12,23 +12,12 @@ namespace Lumos
 			const Vector3 zaxis = Vector3(mat.values[2], mat.values[6], mat.values[10]);
 			const Vector3 waxis = Vector3(mat.values[3], mat.values[7], mat.values[11]);
 
-			// RIGHT
-			planes[0] = Plane(waxis - xaxis, (mat.values[15] - mat.values[12]), true);
-
-			// LEFT
-			planes[1] = Plane(waxis + xaxis, (mat.values[15] + mat.values[12]), true);
-
-			// BOTTOM
-			planes[2] = Plane(waxis + yaxis, (mat.values[15] + mat.values[13]), true);
-
-			// TOP
-			planes[3] = Plane(waxis - yaxis, (mat.values[15] - mat.values[13]), true);
-
-			// FAR
-			planes[4] = Plane(waxis - zaxis, (mat.values[15] - mat.values[14]), true);
-
-			// NEAR
-			planes[5] = Plane(waxis + zaxis, (mat.values[15] + mat.values[14]), true);
+			planes[0] = Plane(waxis - xaxis, (mat.values[15] - mat.values[12]), true); // RIGHT
+			planes[1] = Plane(waxis + xaxis, (mat.values[15] + mat.values[12]), true); // LEFT
+			planes[2] = Plane(waxis + yaxis, (mat.values[15] + mat.values[13]), true); // BOTTOM
+			planes[3] = Plane(waxis - yaxis, (mat.values[15] - mat.values[13]), true); // TOP
+			planes[4] = Plane(waxis - zaxis, (mat.values[15] - mat.values[14]), true); // FAR
+			planes[5] = Plane(waxis + zaxis, (mat.values[15] + mat.values[14]), true); // NEAR
 		}
 
 		bool Frustum::InsideFrustum(const Vector3 &position, float radius) const

@@ -46,7 +46,7 @@ namespace Lumos
 		std::shared_ptr<Material> matInstance = std::make_shared<Material>();
 		MaterialProperties properties;
 		properties.albedoColour = color;
-		properties.glossColour = RandomNumberGenerator32::Rand(0.0f, 1.0f);
+		properties.glossColour = Vector4(RandomNumberGenerator32::Rand(0.0f, 1.0f));
 		properties.specularColour = Vector4(RandomNumberGenerator32::Rand(0.0f, 1.0f));
 		properties.usingAlbedoMap   = 0.0f;
 		properties.usingGlossMap    = 0.0f;
@@ -107,7 +107,7 @@ namespace Lumos
 		//matInstance->SetUniform("uColour", color);
 		MaterialProperties properties;
 		properties.albedoColour = color;
-		properties.glossColour = RandomNumberGenerator32::Rand(0.0f, 1.0f);
+		properties.glossColour = Vector4(RandomNumberGenerator32::Rand(0.0f, 1.0f));
 		properties.specularColour = Vector4(RandomNumberGenerator32::Rand(0.0f, 1.0f));
 		properties.usingAlbedoMap   = 0.0f;
 		properties.usingGlossMap    = 0.0f;
@@ -171,7 +171,7 @@ namespace Lumos
 		//matInstance->SetAlbedo(color);
 		MaterialProperties properties;
 		properties.albedoColour = color;
-		properties.glossColour = RandomNumberGenerator32::Rand(0.0f, 1.0f);
+		properties.glossColour = Vector4(RandomNumberGenerator32::Rand(0.0f, 1.0f));
 		properties.specularColour = Vector4(RandomNumberGenerator32::Rand(0.0f, 1.0f));
 		properties.usingAlbedoMap   = 0.0f;
 		properties.usingGlossMap    = 0.0f;
