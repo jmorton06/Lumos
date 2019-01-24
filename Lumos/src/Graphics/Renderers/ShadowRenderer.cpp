@@ -229,7 +229,7 @@ namespace Lumos
 			graphics::api::PushConstant pc;
 
 			pc.type = graphics::api::PushConstantDataType::UINT;
-			pc.size = sizeof(uint);
+			pc.size = sizeof(int);
 			pc.data = &m_Layer;
 			std::vector<graphics::api::PushConstant> pcVector;
 			pcVector.push_back(pc);
@@ -524,6 +524,7 @@ namespace Lumos
 		graphics::api::BufferInfo bufferInfo = {};
 		bufferInfo.buffer = m_UniformBuffer;
 		bufferInfo.offset = 0;
+        bufferInfo.name = "UniformBufferObject";
 		bufferInfo.size = sizeof(UniformBufferObject);
 		bufferInfo.type = graphics::api::DescriptorType::UNIFORM_BUFFER;
 		bufferInfo.binding = 0;

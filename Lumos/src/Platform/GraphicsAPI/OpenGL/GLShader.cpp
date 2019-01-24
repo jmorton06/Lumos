@@ -215,7 +215,7 @@ namespace Lumos
 		}
 			
 		for (unsigned int shader : shaders)
-			GLCall(glAttachShader(program, shader));
+			glAttachShader(program, shader);
 
 		GLCall(glLinkProgram(program));
 
@@ -242,10 +242,10 @@ namespace Lumos
 		GLCall(glValidateProgram(program));
 
 		for (int z = 0; z < shaders.size(); z++) 
-			GLCall(glDetachShader(program, shaders[z]));
+			glDetachShader(program, shaders[z]);
 
 		for (int z = 0; z < shaders.size(); z++) 
-			GLCall(glDeleteShader(shaders[z]));
+			glDeleteShader(shaders[z]);
 
 		return program;
 	}

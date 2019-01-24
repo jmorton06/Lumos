@@ -1,11 +1,11 @@
 #shader vertex
 
-layout(set = 0,binding = 0) uniform UniformBufferObject
+layout (std140) uniform UniformBufferObject
 {
     mat4 projView[16];
 } ubo;
 
-uniform uint PushConstant;
+uniform int PushConstant;
 uniform mat4 modelMatrix;
 
 layout (location = 0) in vec3 position;

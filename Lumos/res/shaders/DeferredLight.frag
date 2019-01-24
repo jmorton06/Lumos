@@ -11,7 +11,7 @@ layout(set = 1, binding = 2) uniform sampler2D uNormalSampler;
 layout(set = 1, binding = 3) uniform sampler2D uPBRSampler;
 layout(set = 1, binding = 4) uniform sampler2D uPreintegratedFG;
 layout(set = 1, binding = 5) uniform samplerCube uEnvironmentMap;
-layout(set = 1, binding = 6) uniform sampler2DArrayShadow uShadowMap;
+layout(set = 1, binding = 6) uniform sampler2DArray uShadowMap;
 layout(set = 1, binding = 7) uniform sampler2D uDepthSampler;
 
 layout(set = 0, binding = 0) uniform UniformBufferLight
@@ -149,14 +149,14 @@ float DoShadowTest(vec3 tsShadow, int tsLayer, vec2 pix)
 
 	if (tsLayer > 0)
 	{
-		return texture(uShadowMap, tCoord);
+		return 0.0f;//texture(uShadowMap, tCoord);
 	}
 	else
 	{
 		float shadow = 0.0f;
 		for (float y = -1.5f; y <= 1.5f; y += 1.0f)
 			for (float x = -1.5f; x <= 1.5f; x += 1.0f)
-				shadow += texture(uShadowMap, tCoord + vec4(pix.x * x, pix.y * y, 0, 0));
+				//shadow += texture(uShadowMap, tCoord + vec4(pix.x * x, pix.y * y, 0, 0));
 
 		return shadow / 16.0f;
 	}
@@ -179,7 +179,7 @@ float textureProj(vec4 P, vec2 offset, int cascadeIndex)
 	vec4 shadowCoord = P / P.w;
 	if ( shadowCoord.z > -1.0 && shadowCoord.z < 1.0 )
 	{
-		float dist = texture(uShadowMap, vec4(shadowCoord.st + offset, cascadeIndex, shadowCoord.z));
+		float dist = texture(uShadowMap, vec3(shadowCoord.st + offset, cascadeIndex)).x;//, shadowCoord.z));
 		if (shadowCoord.w > 0 && dist < shadowCoord.z - bias)
 		{
 			shadow = ambient;
@@ -263,7 +263,7 @@ void main()
 		}
 	}
 
-	int shadowMethod = 0;
+	int shadowMethod = 1;
 
 	if(shadowMethod == 0)
 	{
@@ -286,7 +286,7 @@ void main()
 	{
 		vec4 shadowCoord = (biasMat * ubo.uShadowTransform[cascadeIndex]) * vec4(wsPos, 1.0);
 
-		const int enablePCF = 0;
+		const int enablePCF = 1;
 		if (enablePCF == 1)
 		{
 			shadow = filterPCF(shadowCoord / shadowCoord.w, cascadeIndex);
