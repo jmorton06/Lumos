@@ -42,7 +42,6 @@ namespace Lumos
 		static int GLFWToJMMouseKey(int glfwKey);
 
 		GLFWwindow* m_Handle;
-		RenderAPI m_RenderAPI;
 
 		struct WindowData
 		{
@@ -50,6 +49,7 @@ namespace Lumos
 			uint Width, Height;
 			bool VSync;
 			bool Exit;
+            RenderAPI m_RenderAPI;
 
 			EventCallbackFn EventCallback;
 		};

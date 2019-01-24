@@ -12,7 +12,7 @@ using namespace Lumos;
 class Game : public Application
 {
 public:
-	Game(WindowProperties windowProperties) : Application(windowProperties, RenderAPI::OPENGL)
+	Game(WindowProperties windowProperties) : Application(windowProperties, RenderAPI::VULKAN)
 	{
 	}
 
