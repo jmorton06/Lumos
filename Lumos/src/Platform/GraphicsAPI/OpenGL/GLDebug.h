@@ -2,7 +2,6 @@
 #include "LM.h"
 #include "GLRenderer.h"
 #include "GL.h"
- //for crash()
 
 namespace Lumos
 {
@@ -81,8 +80,8 @@ namespace Lumos
 	};
 
 #ifdef LUMOS_DEBUG
-#ifdef glDebugMessageCallback
-//#define GL_DEBUD_CALLBACK 1
+#ifdef glDebugMessageCallback1
+#define GL_DEBUD_CALLBACK 1
 #else
 #define GL_DEBUG 1
 #endif

@@ -666,7 +666,7 @@ namespace Lumos
 		attachmentTypes[1] = TextureType::DEPTH;
 
 		Texture* attachments[2];
-		attachments[1] = reinterpret_cast<Texture*>(m_DepthTexture);//new VKTexture2D(VkImage(), depthImageView);
+		attachments[1] = reinterpret_cast<Texture*>(m_DepthTexture);
 		FramebufferInfo bufferInfo{};
 		bufferInfo.width = m_ScreenBufferWidth;
 		bufferInfo.height = m_ScreenBufferHeight;

@@ -30,7 +30,7 @@ void Scene3D::OnInit()
 
 	LoadModels();
 
-	m_pCamera = new ThirdPersonCamera(-20.0f, -40.0f, maths::Vector3(-3.0f, 10.0f, 15.0f), 60.0f, 0.1f, 100.0f, (float) m_ScreenWidth / (float) m_ScreenHeight);
+	m_pCamera = new ThirdPersonCamera(-20.0f, -40.0f, maths::Vector3(-3.0f, 10.0f, 15.0f), 60.0f, 0.1f, 1000.0f, (float) m_ScreenWidth / (float) m_ScreenHeight);
 
 	String environmentFiles[11] =
 	{
