@@ -1,5 +1,6 @@
 project 'lua'
 	kind 'StaticLib'
+	systemversion "latest"
 
 	defines 
 	{

@@ -1,5 +1,6 @@
 project 'glad'
 	kind 'StaticLib'
+	systemversion "latest"
 	cppdialect "C++14"
 	files
 	{
