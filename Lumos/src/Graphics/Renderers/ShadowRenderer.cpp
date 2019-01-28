@@ -213,8 +213,6 @@ namespace Lumos
 
 		memcpy(m_VSSystemUniformBuffer + m_VSSystemUniformBufferOffsets[VSSystemUniformIndex_ProjectionViewMatrix], m_ShadowProjView, sizeof(maths::Matrix4) * 16);
 
-		SetSystemUniforms(m_Shader);
-
 		Begin();
 		for (uint i = 0; i < m_ShadowMapNum; ++i)
 		{
@@ -235,6 +233,8 @@ namespace Lumos
 					}
 				}
 			});
+
+			SetSystemUniforms(m_Shader);
 
             int32 test = (int32)m_Layer;
             memcpy(m_PushConstant->data, &test, sizeof(int32));
@@ -565,7 +565,7 @@ namespace Lumos
             *modelMat = command.transform;
             index++;
         }
-        m_ModelUniformBuffer->SetDynamicData(static_cast<uint32_t>(MAX_OBJECTS * dynamicAlignment), sizeof(maths::Matrix4), &*uboDataDynamic.model);
+        m_ModelUniformBuffer->SetDynamicData(static_cast<uint32_t>(MAX_OBJECTS * dynamicAlignment), sizeof(maths::Matrix4), *&uboDataDynamic.model);
 	}
 
 	void ShadowRenderer::Submit(const RenderCommand& command)
