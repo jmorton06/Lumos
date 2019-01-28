@@ -108,7 +108,7 @@ namespace Lumos
 		graphics::api::RenderpassInfo renderpassCI{};
 		renderpassCI.attachmentCount = 1;
 		renderpassCI.textureType = textureTypes;
-		renderpassCI.depthOnly = true;
+		renderpassCI.depthOnly = false;
 
 		m_RenderPass->Init(renderpassCI);
 
@@ -393,9 +393,9 @@ namespace Lumos
                 radius = maths::Max(radius, distance);
             }
             radius = std::ceil(radius * 16.0f) / 16.0f;
-			//float sceneBoundingRadius = 50.0f;
+			float sceneBoundingRadius = 50.0f;
 			//Extend the Z depths to catch shadow casters outside view frustum
-			//radius = maths::Max(radius, sceneBoundingRadius);
+			radius = maths::Max(radius, sceneBoundingRadius);
 
             maths::Vector3 maxExtents =  maths::Vector3(radius);
             maths::Vector3 minExtents = -maxExtents;
