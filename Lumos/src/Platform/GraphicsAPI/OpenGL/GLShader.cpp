@@ -762,6 +762,9 @@ namespace Lumos
 		case GLShaderUniformDeclaration::Type::INT32:
 			SetUniform1i(uniform->GetLocation(), *reinterpret_cast<int32*>(&data[offset]));
 			break;
+        case GLShaderUniformDeclaration::Type::INT:
+            SetUniform1i(uniform->GetLocation(), *reinterpret_cast<int*>(&data[offset]));
+            break;
 		case GLShaderUniformDeclaration::Type::VEC2:
 			SetUniform2f(uniform->GetLocation(), *reinterpret_cast<maths::Vector2*>(&data[offset]));
 			break;

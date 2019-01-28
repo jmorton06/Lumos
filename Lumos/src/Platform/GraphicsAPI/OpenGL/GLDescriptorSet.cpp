@@ -100,7 +100,8 @@ namespace Lumos
 			}
 
             for(auto pc : m_PushConstants)
-                ((GLShader*)m_Shader)->SetUniform("PushConstant", (byte*)pc.data);
+                //((GLShader*)m_Shader)->SetUniform("PushConstant", (byte*)pc.data);
+                static_cast<GLShader*>(m_Shader)->SetUniform1i("PushConstant", (int32)pc.data[0]); //TEMP
 		}
 
         void GLDescriptorSet::SetPushConstants(std::vector<api::PushConstant>& pushConstants)

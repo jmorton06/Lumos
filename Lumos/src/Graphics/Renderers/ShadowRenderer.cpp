@@ -74,6 +74,9 @@ namespace Lumos
 		}
 
 		delete[] m_apShadowRenderLists;
+        
+        delete[] m_PushConstant->data;
+        delete m_PushConstant;
 
 		delete m_DescriptorSet;
 		delete m_Pipeline;
@@ -90,6 +93,12 @@ namespace Lumos
 		m_VSSystemUniformBuffer = new byte[m_VSSystemUniformBufferSize];
 		memset(m_VSSystemUniformBuffer, 0, m_VSSystemUniformBufferSize);
 		m_VSSystemUniformBufferOffsets.resize(VSSystemUniformIndex_Size);
+        
+        
+        m_PushConstant = new graphics::api::PushConstant();
+        m_PushConstant->type = graphics::api::PushConstantDataType::UINT;
+        m_PushConstant->size = sizeof(int32);
+        m_PushConstant->data = new byte[sizeof(int32)];
 
         // Per Scene System Uniforms
         m_VSSystemUniformBufferOffsets[VSSystemUniformIndex_ProjectionViewMatrix] = 0;
@@ -226,13 +235,11 @@ namespace Lumos
 					}
 				}
 			});
-			graphics::api::PushConstant pc;
 
-			pc.type = graphics::api::PushConstantDataType::UINT;
-			pc.size = sizeof(int);
-			pc.data = &m_Layer;
+            int32 test = (int32)m_Layer;
+            memcpy(m_PushConstant->data, &test, sizeof(int32));
 			std::vector<graphics::api::PushConstant> pcVector;
-			pcVector.push_back(pc);
+			pcVector.push_back(*m_PushConstant);
 			m_Pipeline->GetDescriptorSet()->SetPushConstants(pcVector);
 
 			Present();

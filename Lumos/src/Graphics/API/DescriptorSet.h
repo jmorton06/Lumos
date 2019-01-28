@@ -92,7 +92,7 @@ namespace Lumos
 			{
 				uint size;
 				PushConstantDataType type;
-				void* data;
+				byte* data;
 			};
 
 			struct ImageInfo

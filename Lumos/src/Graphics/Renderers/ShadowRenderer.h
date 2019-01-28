@@ -96,6 +96,7 @@ namespace Lumos
 		maths::Matrix4	m_ShadowProjView[SHADOWMAP_MAX];
         maths::Vector4  m_SplitDepth[SHADOWMAP_MAX];
 		RenderList**	m_apShadowRenderLists;
+        graphics::api::PushConstant* m_PushConstant = nullptr;
 		bool			m_DeleteTexture = false;
 
 		Lumos::graphics::api::UniformBuffer* m_UniformBuffer;

@@ -5,8 +5,8 @@ layout (std140) uniform UniformBufferObject
     mat4 projView[16];
 } ubo;
 
-uniform int PushConstant;
 uniform mat4 modelMatrix;
+uniform int PushConstant;
 
 layout (location = 0) in vec3 position;
 
