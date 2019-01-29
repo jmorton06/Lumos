@@ -1,7 +1,7 @@
 #pragma once
 #include "Graphics/API/Context.h"
 
-#include "Dependencies/vulkan/vulkan.h"
+#include "VK.h"
 
 #ifdef LUMOS_RELEASE
 const bool enableValidationLayers = false;

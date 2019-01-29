@@ -1,6 +1,6 @@
 #pragma once
 #include "Graphics/API/Textures/TextureDepthArray.h"
-#include "Dependencies/vulkan/vulkan.h"
+#include "VK.h"
 #include "Graphics/API/Context.h"
 #include "VKContext.h"
 

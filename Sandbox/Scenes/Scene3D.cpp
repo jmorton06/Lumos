@@ -49,7 +49,7 @@ void Scene3D::OnInit()
 
 	m_EnvironmentMap = TextureCube::CreateFromVCross(environmentFiles, 11);
 
-	Light* sun = new Light();
+	auto sun = std::make_shared<Light>();
 	sun->SetDirection(maths::Vector3(26.0f, 22.0f, 48.5f));
 	sun->SetPosition(maths::Vector3(26.0f, 22.0f, 48.5f) * 10000.0f);
 	m_LightSetup->SetDirectionalLight(sun);

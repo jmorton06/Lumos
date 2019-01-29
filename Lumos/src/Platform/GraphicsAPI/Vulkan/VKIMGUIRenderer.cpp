@@ -1,9 +1,7 @@
 #include "LM.h"
 #include "VKIMGUIRenderer.h"
 #include "external/imgui/imgui.h"
-
 #include "external/imgui/examples/imgui_impl_vulkan.h"
-#include "Dependencies/vulkan/vulkan.h"
 
 #include "VKDevice.h"
 #include "VKCommandBuffer.h"

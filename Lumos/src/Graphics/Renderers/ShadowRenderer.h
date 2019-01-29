@@ -44,8 +44,6 @@ namespace Lumos
 		void SetShadowMapNum(uint num);
 		void SetShadowMapSize(uint size);
 
-		void SortRenderLists(Scene* scene);
-
 		void Begin() override;
 		void Submit(const RenderCommand& command) override;
 		void SubmitMesh(Mesh* mesh, const maths::Matrix4& transform, const maths::Matrix4& textureMatrix) override;

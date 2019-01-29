@@ -332,7 +332,7 @@ void main()
 		}
 	}
 
-	//shadow = max(0.1,shadow);
+	shadow = max(0.3,shadow);
     float NdotL = clamp(dot(material.normal, light.direction), 0.0, 1.0)  * shadow;
     diffuse  += NdotL * Diffuse(light, material, eye)  * light.intensity;
     specular += NdotL * Specular(light, material, eye) * light.intensity;

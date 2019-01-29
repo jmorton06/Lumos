@@ -198,9 +198,6 @@ namespace Lumos
 
 	void DeferredRenderer::RenderScene(RenderList* renderList, Scene* scene)
 	{
-		//if(m_ShadowRenderer)
-		//	m_ShadowRenderer->ClearRenderLists();
-
 		if(m_ShadowRenderer)
 			m_ShadowRenderer->RenderScene(nullptr, scene);
 
