@@ -1,6 +1,6 @@
 #pragma once
 #include "Graphics/API/DescriptorSet.h"
-#include "Dependencies/vulkan/vulkan.h"
+#include "VK.h"
 
 namespace Lumos
 {

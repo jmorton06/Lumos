@@ -1,7 +1,7 @@
 #pragma once
 
 #include "LM.h"
-#include "Dependencies/vulkan/vulkan.h"
+#include "VK.h"
 
 #include "Maths/Maths.h"
 #include "VKContext.h"

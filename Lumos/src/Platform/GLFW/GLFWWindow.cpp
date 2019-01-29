@@ -10,13 +10,9 @@
 #include "Graphics/API/Context.h"
 #include "Utilities/LoadImage.h"
 
-#include "Platform/GraphicsAPI/OpenGL/GL.h"
 #include <GLFW/glfw3.h>
 #include <GLFW/glfw3native.h>
-#ifdef LUMOS_RENDER_API_VULKAN
-#include <vulkan.h>
-#include "Platform/GraphicsAPI/Vulkan/VKRenderer.h"
-#endif
+
 #include "App/Input.h"
 #include "App/Application.h"
 
