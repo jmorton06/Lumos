@@ -1,8 +1,6 @@
 set(EXPORT_INCLUDES "")
 set(EXPORT_LIBS "")
 
-add_definitions(-DFREETYPE_NO_DIST=true)
-add_subdirectory(FreeType)
 add_subdirectory(Box2D)
 add_subdirectory(lua)
 
@@ -15,6 +13,7 @@ add_subdirectory(GLFW)
 add_subdirectory(glad)
 ENDIF(NOT IOS)
 
+add_subdirectory(volk)
 
 # On iOS, OpenAL comes preinstalled
 if (NOT IOS)

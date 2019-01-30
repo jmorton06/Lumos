@@ -81,6 +81,20 @@ namespace Lumos
 				bool systemUniforms = false;
 			};
 
+			enum class PushConstantDataType
+			{
+				UINT,
+				FLOAT,
+				VEC4
+			};
+
+			struct PushConstant
+			{
+				uint size;
+				PushConstantDataType type;
+				byte* data;
+			};
+
 			struct ImageInfo
 			{
 				Texture* texture;
@@ -98,6 +112,7 @@ namespace Lumos
 				virtual void Update(std::vector<ImageInfo>& imageInfos, std::vector<BufferInfo>& bufferInfos) = 0;
 				virtual void Update(std::vector<ImageInfo>& imageInfos) = 0;
 				virtual void Update(std::vector<BufferInfo>& bufferInfos) = 0;
+				virtual void SetPushConstants(std::vector<PushConstant>& pushConstants) = 0;
 
 				void SetDynamicOffset(uint offset) { m_DynamicOffset = offset; }
 				uint GetDynamicOffset() const { return m_DynamicOffset; }

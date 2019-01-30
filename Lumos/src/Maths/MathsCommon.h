@@ -21,3 +21,4 @@ inline float GetValue(const __m128& v, const int index)
 #endif
 }
 #endif
+

@@ -11,7 +11,7 @@
 // The aim of imgui_impl_vulkan.h/.cpp is to be usable in your engine without any modification. 
 // IF YOU FEEL YOU NEED TO MAKE ANY CHANGE TO THIS CODE, please share them and your feedback at https://github.com/ocornut/imgui/
 
-#include <vulkan/vulkan.h>
+#include "Platform/GraphicsAPI/Vulkan/VK.h"
 
 #define IMGUI_VK_QUEUED_FRAMES      2
 

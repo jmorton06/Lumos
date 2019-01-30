@@ -1,5 +1,5 @@
 #pragma once
-#include "Dependencies/vulkan/vulkan.h"
+#include "VK.h"
 #include "VKBuffer.h"
 #include "Graphics/API/UniformBuffer.h"
 

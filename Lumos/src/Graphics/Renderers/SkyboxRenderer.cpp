@@ -109,10 +109,6 @@ namespace Lumos
 		auto camera = scene->GetCamera();
 		auto proj = camera->GetProjectionMatrix();
 
-#ifdef LUMOS_RENDER_API_VULKAN
-		if (graphics::Context::GetRenderAPI() == RenderAPI::VULKAN)
-			proj[5] *= -1;
-#endif
 		auto invViewProj = maths::Matrix4::Inverse(proj * camera->GetViewMatrix());
 		memcpy(m_VSSystemUniformBuffer + m_VSSystemUniformBufferOffsets[VSSystemUniformIndex_InverseProjectionViewMatrix], &invViewProj, sizeof(maths::Matrix4));
 	}

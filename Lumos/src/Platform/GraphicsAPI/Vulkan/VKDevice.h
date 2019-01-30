@@ -1,6 +1,6 @@
 #pragma once
 #include "Utilities/TSingleton.h"
-#include "Dependencies/vulkan/vulkan.h"
+#include "VK.h"
 #include "VKContext.h"
 
 namespace Lumos

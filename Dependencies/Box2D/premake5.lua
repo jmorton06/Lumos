@@ -7,7 +7,8 @@ project 'Box2D'
 	files { 'Box2D/**' }
 	includedirs { '.' }
 
-    filter "system:windows"
+	filter "system:windows"
+		systemversion "latest"
    		buildoptions { "/MP" }
 	filter "system:linux"
 		buildoptions { "-fPIC" }

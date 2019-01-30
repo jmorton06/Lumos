@@ -35,22 +35,21 @@ namespace Lumos
 		m_Height = bufferInfo.height;
 
 		m_AttachmentCount = bufferInfo.attachmentCount;
-
-		int numColourAttachments = 0;
+		m_ColourAttachmentCount = 0;
 		for(uint i = 0; i < m_AttachmentCount; i++)
 		{
 			switch (bufferInfo.attachmentTypes[i])
 			{
-			case TextureType::COLOUR 	 : AddTextureAttachment(GetColourAttachment(numColourAttachments),bufferInfo.attachments[i]); numColourAttachments++;  break;
+			case TextureType::COLOUR 	 : AddTextureAttachment(GetColourAttachment(m_ColourAttachmentCount),bufferInfo.attachments[i]); m_ColourAttachmentCount++;  break;
 			case TextureType::DEPTH  	 : AddTextureAttachment(Attachment::Depth,bufferInfo.attachments[i]); break;
 			case TextureType::DEPTHARRAY : AddTextureLayer(bufferInfo.layer, bufferInfo.attachments[i]); break;
-			case TextureType::OTHER  	 : AddTextureAttachment(GetColourAttachment(numColourAttachments),bufferInfo.attachments[i]); numColourAttachments++;  break;
+			case TextureType::OTHER  	 : AddTextureAttachment(GetColourAttachment(m_ColourAttachmentCount),bufferInfo.attachments[i]); m_ColourAttachmentCount++;  break;
             case TextureType::CUBE   : UNIMPLEMENTED; break;
 			}
 		}
 
 		if(GLRenderer::s_Instance != nullptr)
-			GLRenderer::s_Instance->SetRenderTargets(m_AttachmentCount);
+			GLRenderer::s_Instance->SetRenderTargets(m_ColourAttachmentCount);
     }
 
 	GLFramebuffer::~GLFramebuffer()
@@ -76,7 +75,7 @@ namespace Lumos
 		GLCall(glViewport(0, 0, width, height));
 
 		if(GLRenderer::s_Instance != nullptr)
-			GLRenderer::s_Instance->SetRenderTargets(m_AttachmentCount);
+			GLRenderer::s_Instance->SetRenderTargets(m_ColourAttachmentCount);
 	}
 
 	void GLFramebuffer::Bind() const

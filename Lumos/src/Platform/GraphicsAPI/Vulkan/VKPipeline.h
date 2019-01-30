@@ -1,5 +1,5 @@
 #pragma once
-#include "Dependencies/vulkan/vulkan.h"
+#include "VK.h"
 #include "Graphics/API/Pipeline.h"
 #include "VKDescriptorSet.h"
 

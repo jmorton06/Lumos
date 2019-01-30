@@ -1,7 +1,7 @@
 #pragma once
 #include "LM.h"
 #include "Graphics/API/Framebuffer.h"
-#include "Dependencies/vulkan/vulkan.h"
+#include "VK.h"
 #include "VKTexture2D.h"
 #include "VKRenderpass.h"
 

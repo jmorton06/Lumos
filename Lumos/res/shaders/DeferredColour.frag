@@ -16,12 +16,12 @@ layout(set = 1, binding = 3) uniform sampler2D u_NormalMap;
 
 layout(set = 1,binding = 4) uniform UniformMaterialData
 {
-	float glossColour;
 	float usingAlbedoMap;
 	float usingSpecularMap;
 	float usingGlossMap;
 	float usingNormalMap;
 	vec4  albedoColour;
+	vec4  glossColour;
 	vec4  specularColour;
 } materialProperties;
 
@@ -56,7 +56,7 @@ vec3 GetSpecular()
 
 float GetGloss()
 {
-	return (1.0 - materialProperties.usingGlossMap) *  materialProperties.glossColour +  materialProperties.usingGlossMap * GammaCorrectTextureRGB(texture(u_GlossMap, fragTexCoord)).r;
+	return (1.0 - materialProperties.usingGlossMap) *  materialProperties.glossColour.r +  materialProperties.usingGlossMap * GammaCorrectTextureRGB(texture(u_GlossMap, fragTexCoord)).r;
 }
 
 float GetRoughness()

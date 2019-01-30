@@ -192,15 +192,12 @@ namespace Lumos
 		m_ClearColour = maths::Vector4(0.8f, 0.8f, 0.8f, 1.0f);
 
 		m_SkyboxRenderer = nullptr;
-		m_ShadowTexture  = std::unique_ptr<TextureDepthArray>(TextureDepthArray::Create(2048, 2048, 4));
-        m_ShadowRenderer = nullptr;//std::make_unique<ShadowRenderer>(m_ShadowTexture.get(), 2048, 4);
+		m_ShadowTexture  = std::unique_ptr<TextureDepthArray>(TextureDepthArray::Create(4096, 4096, 4));
+        m_ShadowRenderer = std::make_unique<ShadowRenderer>(m_ShadowTexture.get(), 4096, 4);
 	}
 
 	void DeferredRenderer::RenderScene(RenderList* renderList, Scene* scene)
 	{
-		if(m_ShadowRenderer)
-			m_ShadowRenderer->ClearRenderLists();
-
 		if(m_ShadowRenderer)
 			m_ShadowRenderer->RenderScene(nullptr, scene);
 
@@ -292,10 +289,6 @@ namespace Lumos
 		auto camera = scene->GetCamera();
 		auto proj = camera->GetProjectionMatrix();
 
-#ifdef LUMOS_RENDER_API_VULKAN
-		if (graphics::Context::GetRenderAPI() == RenderAPI::VULKAN)
-		proj[5] *= -1;
-#endif
 		auto projView = proj * camera->GetViewMatrix();
 		memcpy(m_VSSystemUniformBuffer + m_VSSystemUniformBufferOffsets[VSSystemUniformIndex_ProjectionMatrix], &projView, sizeof(maths::Matrix4));
 
@@ -338,20 +331,30 @@ namespace Lumos
 		//One Directional Light
 		if (lightSetup.GetDirectionalLight() != nullptr)
 		{
+			uint32_t currentOffset = 0;
 			maths::Vector4 lightPos = maths::Vector4(lightSetup.GetDirectionalLight()->GetPosition());
 			maths::Vector4 lightDir = maths::Vector4(lightSetup.GetDirectionalLight()->GetDirection());
 			maths::Vector4 cameraPos = maths::Vector4(scene->GetCamera()->GetPosition());
 
-			memcpy(m_PSSystemUniformBuffer, &lightPos, sizeof(maths::Vector4));
-			memcpy(m_PSSystemUniformBuffer + sizeof(Lumos::maths::Vector4), &lightDir, sizeof(maths::Vector4));
-			memcpy(m_PSSystemUniformBuffer + sizeof(Lumos::maths::Vector4) + sizeof(Lumos::maths::Vector4), &cameraPos, sizeof(maths::Vector4));
+			memcpy(m_PSSystemUniformBuffer + currentOffset, &lightPos, sizeof(maths::Vector4));
+			currentOffset += sizeof(maths::Vector4);
+			memcpy(m_PSSystemUniformBuffer + currentOffset, &lightDir, sizeof(maths::Vector4));
+			currentOffset += sizeof(maths::Vector4);
+			memcpy(m_PSSystemUniformBuffer + currentOffset, &cameraPos, sizeof(maths::Vector4));
+			currentOffset += sizeof(maths::Vector4);
 
 			if(m_ShadowRenderer)
 			{
 				maths::Matrix4* shadowTransforms = m_ShadowRenderer->GetShadowProjView();
-            	maths::Vector2 shadowPixalSize   = maths::Vector2(1.0f / m_ShadowRenderer->GetShadowMapSize());
-				memcpy(m_PSSystemUniformBuffer + sizeof(Lumos::maths::Vector4) + sizeof(Lumos::maths::Vector4) + sizeof(Lumos::maths::Vector4), shadowTransforms, sizeof(maths::Matrix4) * 16);
-				memcpy(m_PSSystemUniformBuffer + sizeof(Lumos::maths::Vector4) + sizeof(Lumos::maths::Vector4) + sizeof(Lumos::maths::Vector4) + sizeof(maths::Matrix4) * 16, &shadowPixalSize, sizeof(maths::Vector2));
+				auto viewMat = scene->GetCamera()->GetViewMatrix();
+                Lumos::maths::Vector4* uSplitDepth = m_ShadowRenderer->GetSplitDepths();
+
+				memcpy(m_PSSystemUniformBuffer + currentOffset, &viewMat, sizeof(maths::Matrix4));
+				currentOffset += sizeof(maths::Matrix4);
+				memcpy(m_PSSystemUniformBuffer + currentOffset, shadowTransforms, sizeof(maths::Matrix4) * 16);
+				currentOffset += sizeof(maths::Matrix4) * 16;
+				memcpy(m_PSSystemUniformBuffer + currentOffset, uSplitDepth, sizeof(Lumos::maths::Vector4) * 16);
+				currentOffset += sizeof(Lumos::maths::Vector4) * 16;
 			}
 		}
 	}
@@ -660,7 +663,7 @@ namespace Lumos
 		attachmentTypes[1] = TextureType::DEPTH;
 
 		Texture* attachments[2];
-		attachments[1] = reinterpret_cast<Texture*>(m_DepthTexture);//new VKTexture2D(VkImage(), depthImageView);
+		attachments[1] = reinterpret_cast<Texture*>(m_DepthTexture);
 		FramebufferInfo bufferInfo{};
 		bufferInfo.width = m_ScreenBufferWidth;
 		bufferInfo.height = m_ScreenBufferHeight;

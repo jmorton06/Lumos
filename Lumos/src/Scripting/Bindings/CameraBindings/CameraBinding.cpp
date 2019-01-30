@@ -63,6 +63,7 @@ namespace Lumos
 
 	CameraBinding::~CameraBinding()
 	{
+        delete camera;
 	}
 
 	void CameraBinding::Bind()

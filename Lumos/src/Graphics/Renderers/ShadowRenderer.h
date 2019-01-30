@@ -44,8 +44,6 @@ namespace Lumos
 		void SetShadowMapNum(uint num);
 		void SetShadowMapSize(uint size);
 
-		void SortRenderLists(Scene* scene);
-
 		void Begin() override;
 		void Submit(const RenderCommand& command) override;
 		void SubmitMesh(Mesh* mesh, const maths::Matrix4& transform, const maths::Matrix4& textureMatrix) override;
@@ -54,7 +52,7 @@ namespace Lumos
 		void Present() override;
 		void RenderScene(RenderList* renderList, Scene* scene) override;
 
-
+        maths::Vector4* GetSplitDepths() { return m_SplitDepth;}
 		maths::Matrix4* GetShadowProjView() { return m_ShadowProjView; }
 
 		inline uint GetShadowMapSize() const { return m_ShadowMapSize; }
@@ -71,7 +69,7 @@ namespace Lumos
 
 		struct UniformBufferObject
 		{
-			Lumos::maths::Matrix4 projView;
+			Lumos::maths::Matrix4 projView[SHADOWMAP_MAX];
 		};
 
 		struct UniformBufferModel
@@ -82,6 +80,7 @@ namespace Lumos
 		void CreateGraphicsPipeline(graphics::api::RenderPass* renderPass);
 		void CreateFramebuffers();
 		void CreateUniformBuffer();
+        void UpdateCascades(Scene* scene);
 
 	protected:
 
@@ -93,7 +92,9 @@ namespace Lumos
 		bool		    m_ShadowMapsInvalidated;
 		Framebuffer*    m_ShadowFramebuffer[SHADOWMAP_MAX];
 		maths::Matrix4	m_ShadowProjView[SHADOWMAP_MAX];
+        maths::Vector4  m_SplitDepth[SHADOWMAP_MAX];
 		RenderList**	m_apShadowRenderLists;
+        graphics::api::PushConstant* m_PushConstant = nullptr;
 		bool			m_DeleteTexture = false;
 
 		Lumos::graphics::api::UniformBuffer* m_UniformBuffer;

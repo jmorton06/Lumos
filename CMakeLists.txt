@@ -125,7 +125,7 @@ ENDIF(OpenAL)
 
 ENDIF(NOT IOS)
 
-add_dependencies(Lumos freetype)
+add_dependencies(Lumos volk)
 add_dependencies(Lumos box2d)
 add_dependencies(Lumos lua)
 add_dependencies(Sandbox Lumos)

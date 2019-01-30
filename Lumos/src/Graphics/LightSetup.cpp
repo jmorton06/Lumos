@@ -11,15 +11,14 @@ namespace Lumos
 
 	LightSetup::~LightSetup()
 	{
-		delete m_DirectionalLight;
 	};
 
-	void LightSetup::Add(std::shared_ptr<Light> light)
+	void LightSetup::Add(std::shared_ptr<Light>& light)
 	{
 		m_Lights.push_back(light);
 	}
 
-	void LightSetup::Remove(std::shared_ptr<Light> light)
+	void LightSetup::Remove(std::shared_ptr<Light>& light)
 	{
 		for (uint i = 0; i < m_Lights.size(); i++)
 		{
@@ -34,7 +33,6 @@ namespace Lumos
 	void LightSetup::Clear()
 	{
 		m_Lights.clear();
-		delete m_DirectionalLight;
-		m_DirectionalLight = nullptr;
+		m_DirectionalLight.reset();
 	}
 }
