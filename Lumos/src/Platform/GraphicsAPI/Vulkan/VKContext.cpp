@@ -3,7 +3,7 @@
 #include "VKDevice.h"
 #include "VKCommandPool.h"
 #include "VKCommandBuffer.h"
-
+#include "Maths/Matrix4.h"
 
 namespace Lumos
 {
@@ -44,10 +44,12 @@ namespace Lumos
 		{
 			auto func = reinterpret_cast<PFN_vkCreateDebugReportCallbackEXT>(vkGetInstanceProcAddr(instance, "vkCreateDebugReportCallbackEXT"));
 
-			if (func != nullptr) {
+			if (func != nullptr)
+			{
 				return func(instance, pCreateInfo, pAllocator, pCallback);
 			}
-			else {
+			else
+			{
 				return VK_ERROR_EXTENSION_NOT_PRESENT;
 			}
 		}
@@ -69,6 +71,8 @@ namespace Lumos
 			SetupDebugCallback();
 
 			m_WindowContext = deviceContext;
+
+			maths::Matrix4::SetUpCoordSystem(false, true);
 		}
 
 		VKContext::~VKContext()
@@ -166,6 +170,16 @@ namespace Lumos
 
 		void VKContext::CreateInstance()
 		{
+			if (volkInitialize() != VK_SUCCESS)
+			{
+				LUMOS_CORE_ERROR("volkInitialize failed");
+			}
+
+			if (volkGetInstanceVersion() == 0)
+			{
+				LUMOS_CORE_ERROR("Could not find loader");
+			}
+
 			if (enableValidationLayers && !checkValidationLayerSupport())
 			{
 				throw std::runtime_error("validation layers requested, but not available!");
@@ -175,7 +189,7 @@ namespace Lumos
 			appInfo.sType = VK_STRUCTURE_TYPE_APPLICATION_INFO;
 			appInfo.pApplicationName = "Sandbox";
 			appInfo.applicationVersion = VK_MAKE_VERSION(1, 0, 0);
-			appInfo.pEngineName = "JMEngine";
+			appInfo.pEngineName = "Lumos";
 			appInfo.engineVersion = VK_MAKE_VERSION(1, 0, 0);
 			appInfo.apiVersion = VK_API_VERSION_1_0;
 
@@ -202,6 +216,8 @@ namespace Lumos
 			{
 				LUMOS_CORE_ERROR("failed to create instance!");
 			}
+
+			volkLoadInstance(m_VkInstance);
 		}
 
 		void VKContext::SetupDebugCallback()

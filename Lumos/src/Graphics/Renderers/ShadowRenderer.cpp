@@ -52,8 +52,6 @@ namespace Lumos
 		}
 		else
 			m_ShadowTex = texture;
-		//m_ShadowFBO = Framebuffer::Create();
-		//m_ShadowFBO->AddTextureLayer(0, m_ShadowTex);
 
 		Renderer::GetRenderer()->SetRenderTargets(0);
 
@@ -76,6 +74,9 @@ namespace Lumos
 		}
 
 		delete[] m_apShadowRenderLists;
+        
+        delete[] m_PushConstant->data;
+        delete m_PushConstant;
 
 		delete m_DescriptorSet;
 		delete m_Pipeline;
@@ -88,10 +89,16 @@ namespace Lumos
 
 	void ShadowRenderer::Init()
 	{
-		m_VSSystemUniformBufferSize = sizeof(maths::Matrix4);
+		m_VSSystemUniformBufferSize = sizeof(maths::Matrix4) * 16;
 		m_VSSystemUniformBuffer = new byte[m_VSSystemUniformBufferSize];
 		memset(m_VSSystemUniformBuffer, 0, m_VSSystemUniformBufferSize);
 		m_VSSystemUniformBufferOffsets.resize(VSSystemUniformIndex_Size);
+        
+        
+        m_PushConstant = new graphics::api::PushConstant();
+        m_PushConstant->type = graphics::api::PushConstantDataType::UINT;
+        m_PushConstant->size = sizeof(int32);
+        m_PushConstant->data = new byte[sizeof(int32)];
 
         // Per Scene System Uniforms
         m_VSSystemUniformBufferOffsets[VSSystemUniformIndex_ProjectionViewMatrix] = 0;
@@ -101,7 +108,7 @@ namespace Lumos
 		graphics::api::RenderpassInfo renderpassCI{};
 		renderpassCI.attachmentCount = 1;
 		renderpassCI.textureType = textureTypes;
-		renderpassCI.depthOnly = true;
+		renderpassCI.depthOnly = false;
 
 		m_RenderPass->Init(renderpassCI);
 
@@ -146,22 +153,13 @@ namespace Lumos
 
 		m_Pipeline->SetActive(m_CommandBuffer);
 
-
 		for (auto& command : m_CommandQueue)
 		{
             Mesh* mesh = command.mesh;
 
-			//graphics::api::CommandBuffer* currentCMDBuffer = mesh->GetCommandBuffer(0);
-
             uint32_t dynamicOffset = index * static_cast<uint32_t>(dynamicAlignment);
 
-			//m_CommandBuffer->BeginRecording(m_RenderPass, m_ShadowFramebuffer[m_Layer]);
-			//currentCMDBuffer->UpdateViewport(m_ShadowMapSize, m_ShadowMapSize);
-
 			Renderer::RenderMesh(mesh, m_Pipeline, m_CommandBuffer, dynamicOffset, nullptr, false);
-
-
-			//currentCMDBuffer->ExecuteSecondary(m_CommandBuffer);
 
             index++;
 		}
@@ -210,7 +208,10 @@ namespace Lumos
 
 	void ShadowRenderer::RenderScene(RenderList* renderList, Scene* scene)
 	{
-		SortRenderLists(scene);
+		//SortRenderLists(scene);
+    	UpdateCascades(scene);
+
+		memcpy(m_VSSystemUniformBuffer + m_VSSystemUniformBufferOffsets[VSSystemUniformIndex_ProjectionViewMatrix], m_ShadowProjView, sizeof(maths::Matrix4) * 16);
 
 		Begin();
 		for (uint i = 0; i < m_ShadowMapNum; ++i)
@@ -233,9 +234,13 @@ namespace Lumos
 				}
 			});
 
-			memcpy(m_VSSystemUniformBuffer + m_VSSystemUniformBufferOffsets[VSSystemUniformIndex_ProjectionViewMatrix], &m_ShadowProjView[m_Layer], sizeof(maths::Matrix4));
-
 			SetSystemUniforms(m_Shader);
+
+            int32 test = (int32)m_Layer;
+            memcpy(m_PushConstant->data, &test, sizeof(int32));
+			std::vector<graphics::api::PushConstant> pcVector;
+			pcVector.push_back(*m_PushConstant);
+			m_Pipeline->GetDescriptorSet()->SetPushConstants(pcVector);
 
 			Present();
 
@@ -245,73 +250,109 @@ namespace Lumos
 		Renderer::SetCulling(true);
 	}
 
-	void ShadowRenderer::SortRenderLists(Scene* scene)
-	{
-		scene->GetCamera()->BuildViewMatrix();
-		maths::Matrix4 cameraProj = scene->GetCamera()->GetProjectionMatrix();
-#ifdef LUMOS_RENDER_API_VULKAN
-		if (graphics::Context::GetRenderAPI() == RenderAPI::VULKAN)
-		 	cameraProj[5] *= -1;
-#endif
+    float cascadeSplitLambda = 0.95f;
 
-		const float proj_range = scene->GetCamera()->GetFar() - scene->GetCamera()->GetNear();
-		const maths::Matrix4 lightView = maths::Matrix4::BuildViewMatrix(maths::Vector3(0.0f, 0.0f, 0.0f), scene->GetLightSetup()->GetDirectionalLightDirection());
-		const maths::Matrix4 invCamProjView = maths::Matrix4::Inverse(cameraProj * scene->GetCamera()->GetViewMatrix());
+    void ShadowRenderer::UpdateCascades(Scene* scene)
+    {
+        float cascadeSplits[SHADOWMAP_MAX];
 
-		auto compute_depth = [&](float x)
-		{
-			float proj_start = -(proj_range * x + scene->GetCamera()->GetNear());
-			return (proj_start * cameraProj[10] + cameraProj[14]) / (proj_start * cameraProj[11]);
-		};
+        float nearClip = scene->GetCamera()->GetNear();
+        float farClip = scene->GetCamera()->GetFar();
+        float clipRange = farClip - nearClip;
 
-		const float divisor = (m_ShadowMapNum*m_ShadowMapNum) - 1.f;
-		for (int i = 0; i < static_cast<int>(m_ShadowMapNum); ++i)
-		{
-			//Linear scalars going from 0.0f (near) to 1.0f (far)
-			float lin_near = (powf(2.0f, static_cast<float>(i)) - 1.f) / divisor;
-			float lin_far = (powf(2.0f, static_cast<float>(i + 1)) - 1.f) / divisor;
+        float minZ = nearClip;
+        float maxZ = nearClip + clipRange;
+        float range = maxZ - minZ;
+        float ratio = maxZ / minZ;
+        // Calculate split depths based on view camera furstum
+        // Based on method presentd in https://developer.nvidia.com/gpugems/GPUGems3/gpugems3_ch10.html
+        for (uint32_t i = 0; i < m_ShadowMapNum; i++)
+        {
+            float p = (i + 1) / static_cast<float>(m_ShadowMapNum);
+            float log = minZ * std::pow(ratio, p);
+            float uniform = minZ + range * p;
+            float d = cascadeSplitLambda * (log - uniform) + uniform;
+            cascadeSplits[i] = (d - nearClip) / clipRange;
+        }
 
-			//True non-linear depth ranging from -1.0f (near) to 1.0f (far)
-			float norm_near = compute_depth(lin_near);
-			float norm_far = compute_depth(lin_far);
+        float lastSplitDist = 0.0;
+        for (uint32_t i = 0; i < m_ShadowMapNum; i++)
+        {
+            float splitDist = cascadeSplits[i];
 
-			//Build Bounding Box around frustum section (Axis Aligned)
-			maths::BoundingBox bb;
-			bb.ExpandToFit(invCamProjView * maths::Vector3(-1.0f, -1.0f, norm_near));
-			bb.ExpandToFit(invCamProjView * maths::Vector3(-1.0f, 1.0f, norm_near));
-			bb.ExpandToFit(invCamProjView * maths::Vector3(1.0f, -1.0f, norm_near));
-			bb.ExpandToFit(invCamProjView * maths::Vector3(1.0f, 1.0f, norm_near));
-			bb.ExpandToFit(invCamProjView * maths::Vector3(-1.0f, -1.0f, norm_far));
-			bb.ExpandToFit(invCamProjView * maths::Vector3(-1.0f, 1.0f, norm_far));
-			bb.ExpandToFit(invCamProjView * maths::Vector3(1.0f, -1.0f, norm_far));
-			bb.ExpandToFit(invCamProjView * maths::Vector3(1.0f, 1.0f, norm_far));
+            maths::Vector3 frustumCorners[8] = {
+                maths::Vector3(-1.0f,  1.0f, -1.0f),
+                maths::Vector3( 1.0f,  1.0f, -1.0f),
+                maths::Vector3( 1.0f, -1.0f, -1.0f),
+                maths::Vector3(-1.0f, -1.0f, -1.0f),
+                maths::Vector3(-1.0f,  1.0f,  1.0f),
+                maths::Vector3( 1.0f,  1.0f,  1.0f),
+                maths::Vector3( 1.0f, -1.0f,  1.0f),
+                maths::Vector3(-1.0f, -1.0f,  1.0f),
+            };
 
-			//Rotate bounding box so it's orientated in the lights direction
-            const maths::Vector3 centre = (bb.Upper() + bb.Lower()) * 0.5f;
-            const maths::Matrix4 localView = lightView * maths::Matrix4::Translation(-centre);
+            scene->GetCamera()->BuildViewMatrix();
+            maths::Matrix4 cameraProj = scene->GetCamera()->GetProjectionMatrix();
 
-			bb = bb.Transform(localView);
+            const maths::Matrix4 invCam = maths::Matrix4::Inverse(cameraProj * scene->GetCamera()->GetViewMatrix());
 
-			float sceneBoundingRadius = 1000.0f;
+            // Project frustum corners into world space
+            for (uint32_t i = 0; i < 8; i++)
+            {
+                 maths::Vector4 invCorner = invCam * maths::Vector4(frustumCorners[i], 1.0f);
+                 frustumCorners[i] = (invCorner / invCorner.GetW()).ToVector3();
+            }
+
+            for (uint32_t i = 0; i < 4; i++)
+            {
+                maths::Vector3 dist = frustumCorners[i + 4] - frustumCorners[i];
+                frustumCorners[i + 4] = frustumCorners[i] + (dist * splitDist);
+                frustumCorners[i] = frustumCorners[i] + (dist * lastSplitDist);
+            }
+
+            // Get frustum center
+             maths::Vector3 frustumCenter =  maths::Vector3(0.0f);
+            for (uint32_t i = 0; i < 8; i++)
+            {
+                frustumCenter += frustumCorners[i];
+            }
+            frustumCenter /= 8.0f;
+
+            float radius = 0.0f;
+            for (uint32_t i = 0; i < 8; i++)
+            {
+                float distance = (frustumCorners[i] - frustumCenter).Length();
+                radius = maths::Max(radius, distance);
+            }
+            radius = std::ceil(radius * 16.0f) / 16.0f;
+			float sceneBoundingRadius = 50.0f;
 			//Extend the Z depths to catch shadow casters outside view frustum
-			bb.Lower().z = maths::Min(bb.Lower().z, -sceneBoundingRadius);
-			bb.Upper().z = maths::Max(bb.Upper().z, sceneBoundingRadius);
+			radius = maths::Max(radius, sceneBoundingRadius);
 
-			//Build Light Projection
-            auto shadowProj = maths::Matrix4::Orthographic(bb.Upper().GetZ(), bb.Lower().GetZ(), bb.Lower().GetX(), bb.Upper().GetX(), bb.Upper().GetY(), bb.Lower().GetY());
+            maths::Vector3 maxExtents =  maths::Vector3(radius);
+            maths::Vector3 minExtents = -maxExtents;
 
-			m_ShadowProjView[i] = shadowProj * localView;
+			maths::Vector3 lightDir = scene->GetLightSetup()->GetDirectionalLightDirection();
+            maths::Matrix4 lightViewMatrix = maths::Matrix4::BuildViewMatrix( frustumCenter ,frustumCenter + lightDir * -minExtents.z);
 
-			//Construct Shadow RenderList
-			const maths::Vector3 top_mid = centre + lightView * maths::Vector3(0.0f, 0.0f, bb.Upper().GetZ());
-			maths::Frustum f;
-			f.FromMatrix(m_ShadowProjView[i]);
-			m_apShadowRenderLists[i]->UpdateCameraWorldPos(top_mid);
-			m_apShadowRenderLists[i]->RemoveExcessObjects(f);
-			m_apShadowRenderLists[i]->SortLists();
-			scene->InsertToRenderList(m_apShadowRenderLists[i], f);
-		}
-	}
+            //maths::Matrix4 lightOrthoMatrix = maths::Matrix4::Orthographic(minExtents.x, maxExtents.x, minExtents.y, maxExtents.y, 0.0f, maxExtents.z - minExtents.z);
+			maths::Matrix4 lightOrthoMatrix = maths::Matrix4::Orthographic( maxExtents.z - minExtents.z, -(maxExtents.z - minExtents.z), maxExtents.x, minExtents.x, maxExtents.y, minExtents.y);
+
+            // Store split distance and matrix in cascade
+            m_SplitDepth[i] = maths::Vector4((scene->GetCamera()->GetNear() + splitDist * clipRange) * -1.0f);
+            m_ShadowProjView[i] = lightOrthoMatrix * lightViewMatrix;
+
+            lastSplitDist = cascadeSplits[i];
+
+            const maths::Vector3 top_mid = frustumCenter + lightViewMatrix * maths::Vector3(0.0f, 0.0f, maxExtents.GetZ());
+            maths::Frustum f;
+            f.FromMatrix(m_ShadowProjView[i]);
+            m_apShadowRenderLists[i]->UpdateCameraWorldPos(top_mid);
+            m_apShadowRenderLists[i]->RemoveExcessObjects(f);
+            m_apShadowRenderLists[i]->SortLists();
+            scene->InsertToRenderList(m_apShadowRenderLists[i], f);
+        }
+    }
 
 	void ShadowRenderer::CreateFramebuffers()
 	{
@@ -332,6 +373,7 @@ namespace Lumos
 				bufferInfo.renderPass = m_RenderPass;
 				bufferInfo.attachmentTypes = attachmentTypes;
 				bufferInfo.layer = i;
+				bufferInfo.screenFBO = false;
 
 				Texture* attachments[attachmentCount];
 				attachments[0] = m_ShadowTex;
@@ -421,11 +463,12 @@ namespace Lumos
 		graphics::api::BufferInfo bufferInfo = {};
 		bufferInfo.buffer = m_UniformBuffer;
 		bufferInfo.offset = 0;
+        bufferInfo.name = "UniformBufferObject";
 		bufferInfo.size = sizeof(UniformBufferObject);
 		bufferInfo.type = graphics::api::DescriptorType::UNIFORM_BUFFER;
 		bufferInfo.binding = 0;
 		bufferInfo.shaderType = ShaderType::VERTEX;
-		bufferInfo.systemUniforms = true;
+		bufferInfo.systemUniforms = false;
 
 		graphics::api::BufferInfo bufferInfo2 = {};
 		bufferInfo2.buffer = m_ModelUniformBuffer;
@@ -454,7 +497,7 @@ namespace Lumos
             *modelMat = command.transform;
             index++;
         }
-        m_ModelUniformBuffer->SetDynamicData(static_cast<uint32_t>(MAX_OBJECTS * dynamicAlignment), sizeof(maths::Matrix4), &*uboDataDynamic.model);
+        m_ModelUniformBuffer->SetDynamicData(static_cast<uint32_t>(MAX_OBJECTS * dynamicAlignment), sizeof(maths::Matrix4), *&uboDataDynamic.model);
 	}
 
 	void ShadowRenderer::Submit(const RenderCommand& command)

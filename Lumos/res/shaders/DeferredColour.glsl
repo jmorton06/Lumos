@@ -47,14 +47,14 @@ layout(location = 4) out vec4 outDepth;
 
 layout (std140) uniform UniformMaterialData
 {
-	float glossColour;
 	float usingAlbedoMap;
 	float usingSpecularMap;
 	float usingGlossMap;
 	float usingNormalMap;
 	vec4  albedoColour;
+	vec4  glossColour;
 	vec4  specularColour;
-};
+} materialProperties;
 
 #define PI 3.1415926535897932384626433832795
 #define GAMMA 2.2
@@ -73,17 +73,17 @@ vec3 GammaCorrectTextureRGB(sampler2D tex, vec2 uv)
 
 vec4 GetAlbedo()
 {
-	return (1.0 - usingAlbedoMap) * albedoColour + usingAlbedoMap * GammaCorrectTexture(u_AlbedoMap, fragTexCoord);
+	return (1.0 - materialProperties.usingAlbedoMap) * materialProperties.albedoColour + materialProperties.usingAlbedoMap * GammaCorrectTexture(u_AlbedoMap, fragTexCoord);
 }
 
 vec3 GetSpecular()
 {
-	return (1.0 - usingSpecularMap) * specularColour.xyz + usingSpecularMap * texture(u_SpecularMap, fragTexCoord).rgb;//GammaCorrectTextureRGB(u_SpecularMap, fragTexCoord);
+	return (1.0 - materialProperties.usingSpecularMap) * materialProperties.specularColour.xyz + materialProperties.usingSpecularMap * texture(u_SpecularMap, fragTexCoord).rgb;//GammaCorrectTextureRGB(u_SpecularMap, fragTexCoord);
 }
 
 float GetGloss()
 {
-	return (1.0 - usingGlossMap) *  glossColour +  usingGlossMap * texture(u_GlossMap, fragTexCoord).r;//GammaCorrectTextureRGB(u_GlossMap, fragTexCoord).r;
+	return (1.0 - materialProperties.usingGlossMap) *  materialProperties.glossColour.r +  materialProperties.usingGlossMap * texture(u_GlossMap, fragTexCoord).r;//GammaCorrectTextureRGB(u_GlossMap, fragTexCoord).r;
 }
 
 float GetRoughness()
@@ -93,7 +93,7 @@ float GetRoughness()
 
 vec3 GetNormalFromMap()
 {
-	if (usingNormalMap < 0.1)
+	if (materialProperties.usingNormalMap < 0.1)
 		return normalize(normal);
 
 	vec3 tangentNormal = texture(u_NormalMap, fragTexCoord).xyz * 2.0 - 1.0;

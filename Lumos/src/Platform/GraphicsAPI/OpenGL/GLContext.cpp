@@ -8,6 +8,8 @@
 #include "GLFW/glfw3.h"
 #endif
 
+#include "Maths/Matrix4.h"
+
 #ifdef GL_DEBUD_CALLBACK
 static std::string GetStringForType(GLenum type)
 {
@@ -155,6 +157,7 @@ namespace Lumos
 			LUMOS_CORE_INFO(OPENGLLOG"glDebugMessageCallback not available");
 #endif
 #endif
+			maths::Matrix4::SetUpCoordSystem(false, false);
 		}
 
 		GLContext::~GLContext() = default;

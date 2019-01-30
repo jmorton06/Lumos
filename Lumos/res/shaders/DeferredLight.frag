@@ -11,16 +11,17 @@ layout(set = 1, binding = 2) uniform sampler2D uNormalSampler;
 layout(set = 1, binding = 3) uniform sampler2D uPBRSampler;
 layout(set = 1, binding = 4) uniform sampler2D uPreintegratedFG;
 layout(set = 1, binding = 5) uniform samplerCube uEnvironmentMap;
-layout(set = 1, binding = 6) uniform sampler2DArrayShadow uShadowMap;
+layout(set = 1, binding = 6) uniform sampler2DArray uShadowMap;
 layout(set = 1, binding = 7) uniform sampler2D uDepthSampler;
 
 layout(set = 0, binding = 0) uniform UniformBufferLight
 {
 	vec4 position;
-    vec4 direction;
-    vec4 cameraPosition;
+ 	vec4 direction;
+ 	vec4 cameraPosition;
+	mat4 viewMatrix;
 	mat4 uShadowTransform[16];
-    vec2 uShadowSinglePixel;
+    vec4 uSplitDepths[16];
 } ubo;
 
 #define PI 3.1415926535897932384626433832795
@@ -148,17 +149,64 @@ float DoShadowTest(vec3 tsShadow, int tsLayer, vec2 pix)
 
 	if (tsLayer > 0)
 	{
-		return 1.0f;//texture(uShadowMap, tCoord);
+		return 0.0f;//texture(uShadowMap, tCoord);
 	}
 	else
 	{
 		float shadow = 0.0f;
 		for (float y = -1.5f; y <= 1.5f; y += 1.0f)
 			for (float x = -1.5f; x <= 1.5f; x += 1.0f)
-				shadow += texture(uShadowMap, tCoord + vec4(pix.x * x, pix.y * y, 0,0));
+				//shadow += texture(uShadowMap, tCoord + vec4(pix.x * x, pix.y * y, 0, 0));
 
 		return shadow / 16.0f;
 	}
+}
+
+const mat4 biasMat = mat4(
+	0.5, 0.0, 0.0, 0.0,
+	0.0, 0.5, 0.0, 0.0,
+	0.0, 0.0, 1.0, 0.0,
+	0.5, 0.5, 0.0, 1.0
+);
+
+#define ambient 0.3
+
+float textureProj(vec4 P, vec2 offset, int cascadeIndex)
+{
+	float shadow = 1.0;
+	float bias = 0.005;
+
+	vec4 shadowCoord = P / P.w;
+	if ( shadowCoord.z > -1.0 && shadowCoord.z < 1.0 )
+	{
+		float dist = texture(uShadowMap, vec3(shadowCoord.st + offset, cascadeIndex)).x;//, shadowCoord.z));
+		if (shadowCoord.w > 0 && dist < shadowCoord.z - bias)
+		{
+			shadow = ambient;
+		}
+	}
+	return shadow;
+
+}
+
+float filterPCF(vec4 sc, int cascadeIndex)
+{
+	ivec2 texDim = textureSize(uShadowMap, 0).xy;
+	float scale = 0.75;
+	float dx = scale * 1.0 / float(texDim.x);
+	float dy = scale * 1.0 / float(texDim.y);
+
+	float shadowFactor = 0.0;
+	int count = 0;
+	int range = 1;
+
+	for (int x = -range; x <= range; x++) {
+		for (int y = -range; y <= range; y++) {
+			shadowFactor += textureProj(sc, vec2(dx*x, dy*y), cascadeIndex);
+			count++;
+		}
+	}
+	return shadowFactor / count;
 }
 
 layout(location = 0) out vec4 outColor;
@@ -202,23 +250,52 @@ void main()
     vec3 specular = vec3(0.0);
 
 	vec4 shadowWsPos = vec4(wsPos + normal * NORMAL_BIAS, 1.0f);
-	float shadow = 1.0f;
+	float shadow = 0.0f;
 
-	for (int layerIdx = 0; layerIdx < NUM_SHADOWMAPS; layerIdx++)
+	int cascadeIndex = 0;
+	vec4 viewPos = ubo.viewMatrix * vec4(wsPos, 1.0);
+
+	for(int i = 0; i < NUM_SHADOWMAPS - 1; ++i)
 	{
-		vec4 hcsShadow = ubo.uShadowTransform[layerIdx] * shadowWsPos;
-
-		if (abs(hcsShadow.x) <= 1.0f && abs(hcsShadow.y) <= 1.0f)
+		if(viewPos.z < ubo.uSplitDepths[i].x)
 		{
-			hcsShadow.z -= RAW_BIAS;
-			hcsShadow.xyz = hcsShadow.xyz * 0.5f + 0.5f;
-
-			shadow = DoShadowTest(hcsShadow.xyz, layerIdx, ubo.uShadowSinglePixel);
-			break;
+			cascadeIndex = i + 1;
 		}
 	}
 
-	shadow = max(0.1,shadow);
+	int shadowMethod = 1;
+
+	if(shadowMethod == 0)
+	{
+		//for (int layerIdx = 0; layerIdx < NUM_SHADOWMAPS; layerIdx++)
+		{
+			int layerIdx = cascadeIndex;
+			vec4 hcsShadow = ubo.uShadowTransform[layerIdx] * shadowWsPos;
+
+			if (abs(hcsShadow.x) <= 1.0f && abs(hcsShadow.y) <= 1.0f)
+			{
+				hcsShadow.z -= RAW_BIAS;
+				hcsShadow.xyz = hcsShadow.xyz * 0.5f + 0.5f;
+
+				shadow = DoShadowTest(hcsShadow.xyz, layerIdx, textureSize(uShadowMap, 0).xy);
+				//break;
+			}
+		}
+	}
+	else
+	{
+		vec4 shadowCoord = (biasMat * ubo.uShadowTransform[cascadeIndex]) * vec4(wsPos, 1.0);
+
+		const int enablePCF = 1;
+		if (enablePCF == 1)
+		{
+			shadow = filterPCF(shadowCoord / shadowCoord.w, cascadeIndex);
+		}
+		else
+		{
+			shadow = textureProj(shadowCoord, vec2(0.0), cascadeIndex);
+		}
+	}
 
     float NdotL = clamp(dot(material.normal, light.direction), 0.0, 1.0)  * shadow;
     diffuse  += NdotL * Diffuse(light, material, eye)  * light.intensity;

@@ -199,7 +199,7 @@ namespace Lumos
 
 	void Scene::InsertToRenderList(RenderList* list, const maths::Frustum& frustum) const
 	{
-		for (const auto& entity : m_Entities)
+		for (auto entity : m_Entities)
 		{
 			auto modelComponent = entity->GetComponent<ModelComponent>();
 			if(modelComponent)
@@ -211,7 +211,7 @@ namespace Lumos
 					//Check to see if the object is already listed or not
 					if (!(list->BitMask() & entity->GetFrustumCullFlags()))
 					{
-						list->InsertObject(entity.get());
+						list->InsertObject(entity);
 					}
 				}
 			}
@@ -225,6 +225,8 @@ namespace Lumos
 
 	void Scene::BuildFrameRenderList()
 	{
+        if(!m_pCamera)
+            return;
 		m_pCamera->BuildViewMatrix();
 		m_FrameFrustum.FromMatrix(m_pCamera->GetProjectionMatrix() * m_pCamera->GetViewMatrix());
 

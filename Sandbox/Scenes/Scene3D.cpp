@@ -49,7 +49,7 @@ void Scene3D::OnInit()
 
 	m_EnvironmentMap = TextureCube::CreateFromVCross(environmentFiles, 11);
 
-	Light* sun = new Light();
+	auto sun = std::make_shared<Light>();
 	sun->SetDirection(maths::Vector3(26.0f, 22.0f, 48.5f));
 	sun->SetPosition(maths::Vector3(26.0f, 22.0f, 48.5f) * 10000.0f);
 	m_LightSetup->SetDirectionalLight(sun);
@@ -104,7 +104,7 @@ void Scene3D::LoadModels()
 
 	MaterialProperties properties;
 	properties.albedoColour = Vector4(0.6f,0.1f,0.1f,1.0f);
-	properties.glossColour = 0.8f;
+	properties.glossColour = Vector4(0.8f);
 	properties.specularColour = Vector4(0.8f);
 	properties.usingAlbedoMap   = 0.5f;
 	properties.usingGlossMap    = 0.0f;
@@ -321,7 +321,7 @@ void Scene3D::LoadModels()
 		std::shared_ptr<Material> m = std::make_shared<Material>();
 		MaterialProperties properties;
 		properties.albedoColour = diffuse;
-		properties.glossColour = 1.0f - roughness;
+		properties.glossColour = Vector4(1.0f - roughness);
 		properties.specularColour = spec;
 		properties.usingAlbedoMap   = 0.0f;
 		properties.usingGlossMap    = 0.0f;
@@ -349,7 +349,7 @@ void Scene3D::LoadModels()
 		std::shared_ptr<Material> m = std::make_shared<Material>();
 		MaterialProperties properties;
 		properties.albedoColour = diffuse;
-		properties.glossColour = 1.0f - roughness;
+		properties.glossColour = Vector4(1.0f - roughness);
 		properties.specularColour = spec;
 		properties.usingAlbedoMap   = 0.0f;
 		properties.usingGlossMap    = 0.0f;
@@ -377,7 +377,7 @@ void Scene3D::LoadModels()
 		std::shared_ptr<Material> m = std::make_shared<Material>();
 		MaterialProperties properties;
 		properties.albedoColour = diffuse;
-		properties.glossColour = 1.0f - roughness;
+		properties.glossColour = Vector4(1.0f - roughness);
 		properties.specularColour = spec;
 		properties.usingAlbedoMap   = 0.0f;
 		properties.usingGlossMap    = 0.0f;

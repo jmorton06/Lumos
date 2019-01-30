@@ -1,9 +1,7 @@
 #include "LM.h"
 #include "VKIMGUIRenderer.h"
 #include "external/imgui/imgui.h"
-
 #include "external/imgui/examples/imgui_impl_vulkan.h"
-#include "Dependencies/vulkan/vulkan.h"
 
 #include "VKDevice.h"
 #include "VKCommandBuffer.h"
@@ -100,7 +98,7 @@ namespace Lumos
             wd->Height = height;
             VkResult err;
 
-            wd->BackBufferCount = (size_t)swapChain->GetSwapchainBufferCount();
+            wd->BackBufferCount = (uint32_t)swapChain->GetSwapchainBufferCount();
 /*
             err = vkGetSwapchainImagesKHR(VKDevice::Instance()->GetDevice(), wd->Swapchain, &wd->BackBufferCount, NULL);
             check_vk_result(err);

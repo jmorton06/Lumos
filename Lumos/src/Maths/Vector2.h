@@ -6,12 +6,7 @@ namespace Lumos
 {
 	namespace maths
 	{
-#ifdef LUMOS_SSEVEC2
-
 		class LUMOS_EXPORT MEM_ALIGN Vector2
-#else
-		class LUMOS_EXPORT Vector2
-#endif
 		{
 		public:
 			Vector2() { ToZero(); }
@@ -21,7 +16,7 @@ namespace Lumos
 
 		private:
 #ifdef LUMOS_SSEVEC2
-			union 
+			union
 			{
 				struct
 				{
@@ -42,11 +37,11 @@ namespace Lumos
 
 			void ToZero() { x = 0.0f; y = 0.0f; }
 
-			inline void Normalise() 
+			inline void Normalise()
 			{
 				float length = Length();
 
-				if (length != 0.0f) 
+				if (length != 0.0f)
 				{
 					length = 1.0f / length;
 					x = x * length;
@@ -56,7 +51,7 @@ namespace Lumos
 
 			inline float Length() const { return sqrt((x * x) + (y * y)); }
 
-			inline friend std::ostream &operator<<(std::ostream &o, const Vector2 &v) 
+			inline friend std::ostream &operator<<(std::ostream &o, const Vector2 &v)
 			{
 				o << "Vector2(" << v.x << "," << v.y << ")" << std::endl;
 				return o;
@@ -75,7 +70,7 @@ namespace Lumos
 		};
 	}
 }
-namespace std 
+namespace std
 {
 	template<>
 	struct hash<Lumos::maths::Vector2>

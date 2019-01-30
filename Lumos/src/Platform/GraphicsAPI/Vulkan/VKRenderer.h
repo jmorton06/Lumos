@@ -1,7 +1,7 @@
 #pragma once
 
 #include "LM.h"
-#include "Dependencies/vulkan/vulkan.h"
+#include "VK.h"
 
 #include "Maths/Maths.h"
 #include "VKContext.h"
@@ -113,10 +113,10 @@ namespace Lumos
 
 			void RenderMeshInternal(Mesh* mesh, graphics::api::Pipeline* pipeline, graphics::api::CommandBuffer* cmdBuffer, uint dynamicOffset, graphics::api::DescriptorSet* descriptorSet, bool useMaterialDescriptorSet) override;
 
-			VkSemaphore& GetPreviousImageAvailable() { return imageAvailableSemaphore;}
-			VkSemaphore& GetPreviousRenderFinish() { return renderFinishedSemaphore;}
-			void SetPreviousImageAvailable(VkSemaphore& sem) { imageAvailableSemaphore = sem;}
-			void SetPreviousRenderFinish(VkSemaphore& sem) { renderFinishedSemaphore = sem;}
+			VkSemaphore& GetPreviousImageAvailable() { return m_PreviousImageAvailableSemaphore;}
+			VkSemaphore& GetPreviousRenderFinish() { return m_PreviousRenderFinishedSemaphore;}
+			void SetPreviousImageAvailable(VkSemaphore& sem) { m_PreviousImageAvailableSemaphore = sem;}
+			void SetPreviousRenderFinish(VkSemaphore& sem) { m_PreviousRenderFinishedSemaphore = sem;}
 
 		private:
 			Lumos::graphics::VKContext* m_Context;
@@ -125,6 +125,9 @@ namespace Lumos
 
 			VkSemaphore imageAvailableSemaphore;
 			VkSemaphore renderFinishedSemaphore;
+            
+            VkSemaphore m_PreviousImageAvailableSemaphore;
+            VkSemaphore m_PreviousRenderFinishedSemaphore;
 
 			String m_RendererTitle;
 			uint m_Width, m_Height;

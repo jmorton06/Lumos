@@ -35,7 +35,7 @@ namespace Lumos
 			m_DescriptorPool = VK_NULL_HANDLE;
 			m_PipelineLayout = VK_NULL_HANDLE;
 			m_Pipeline = VK_NULL_HANDLE;
-            
+
             delete descriptorSet;
 		}
 

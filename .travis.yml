@@ -61,7 +61,6 @@ before_install:
 install:
   - if [ "$CXX" = "g++" ] && [ $TRAVIS_OS_NAME == linux ]; then export CXX="g++-7" CC="gcc-7"; fi
   - if [ "$CXX" = "clang++" ] && [ $TRAVIS_OS_NAME == linux ]; then export CXX="clang++-6.0" CC="clang-6.0"; fi
-
 before_script:
 
 script:

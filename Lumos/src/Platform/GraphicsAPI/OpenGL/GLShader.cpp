@@ -80,7 +80,7 @@ namespace Lumos
 		ResolveUniforms();
 		ValidateUniforms();
 
-		LUMOS_CORE_WARN("Successfully compiled shader: ", m_Name);
+		LUMOS_CORE_WARN("Successfully compiled shader: {0}", m_Name);
 
 		delete sources;
 	}
@@ -215,7 +215,7 @@ namespace Lumos
 		}
 			
 		for (unsigned int shader : shaders)
-			GLCall(glAttachShader(program, shader));
+			glAttachShader(program, shader);
 
 		GLCall(glLinkProgram(program));
 
@@ -242,10 +242,10 @@ namespace Lumos
 		GLCall(glValidateProgram(program));
 
 		for (int z = 0; z < shaders.size(); z++) 
-			GLCall(glDetachShader(program, shaders[z]));
+			glDetachShader(program, shaders[z]);
 
 		for (int z = 0; z < shaders.size(); z++) 
-			GLCall(glDeleteShader(shaders[z]));
+			glDeleteShader(shaders[z]);
 
 		return program;
 	}
@@ -762,6 +762,9 @@ namespace Lumos
 		case GLShaderUniformDeclaration::Type::INT32:
 			SetUniform1i(uniform->GetLocation(), *reinterpret_cast<int32*>(&data[offset]));
 			break;
+        case GLShaderUniformDeclaration::Type::INT:
+            SetUniform1i(uniform->GetLocation(), *reinterpret_cast<int*>(&data[offset]));
+            break;
 		case GLShaderUniformDeclaration::Type::VEC2:
 			SetUniform2f(uniform->GetLocation(), *reinterpret_cast<maths::Vector2*>(&data[offset]));
 			break;

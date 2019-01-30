@@ -34,7 +34,7 @@ public:
 		GetSceneManager()->EnqueueScene(new SceneLuaTest("Lua Test Scene"));
 		GetSceneManager()->EnqueueScene(new SceneModelViewer("SceneModelViewer"));
 		GetSceneManager()->EnqueueScene(new Scene3D("Physics Scene"));
-		GetSceneManager()->EnqueueScene(new GraphicsScene("graphics Scene"));
+		GetSceneManager()->EnqueueScene(new GraphicsScene("Terrain Test"));
 		GetSceneManager()->JumpToScene(3);
 	}
 };

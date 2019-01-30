@@ -24,7 +24,6 @@ include_directories(
 	"../Lumos/"
 	"../Dependencies/lua/src/"
 	"../Dependencies/OpenAL/include/"
-	"../Dependencies/FreeType/include/"
 	"../Dependencies/Box2D/"
 	"/"
 	"../Dependencies/GLFW/include/"

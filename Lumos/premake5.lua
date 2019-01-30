@@ -9,7 +9,7 @@ project "Lumos"
 		"src/**.cpp",
 
 		"external/imgui/imgui.h",
-        	"external/imgui/imconfig.h",
+        "external/imgui/imconfig.h",
 		"external/imgui/imgui.cpp",
 		"external/imgui/imgui_demo.cpp",
 		"external/imgui/imgui_draw.cpp",
@@ -45,7 +45,6 @@ project "Lumos"
 		"../Dependencies/GLFW/include/",
 		"../Dependencies/glad/include/",
 		"../Dependencies/OpenAL/include/",
-		"../Dependencies/FreeType/include/",
 		"../Dependencies/Box2D/",
 		"../Dependencies/vulkan/"
 	}
@@ -56,7 +55,7 @@ project "Lumos"
 		"lua",
 		"Box2D",
 		"glad",
-		"freetype"
+		"volk"
 	}
 
 	cwd = os.getcwd() .. "/.."
@@ -112,13 +111,13 @@ project "Lumos"
 
 		links
 		{
-			"vulkan-1.lib",
+			--"vulkan-1.lib",
 			"OpenAL32"
 		}
 
 		libdirs
 		{
-			"../Dependencies/vulkan/libs/windows/64bit",
+			--"../Dependencies/vulkan/libs/windows/64bit",
 			"../Dependencies/OpenAL/libs/Win32"
 		}
 
@@ -173,17 +172,22 @@ project "Lumos"
 			"QuartzCore.framework",
 			"Metal.framework",
 			"Cocoa.framework",
-        		"IOKit.framework",
-        		"CoreFoundation.framework",
+        	"IOKit.framework",
+        	"CoreFoundation.framework",
 			"CoreVideo.framework",
-			"OpenAL.framework",
-			"MoltenVK"
+			"OpenAL.framework"--,
+			--"MoltenVK"
+		}
+
+		runpathdirs
+		{
+			--"../Dependencies/vulkan/libs/macOS/"
 		}
 
 		libdirs
 		{
 			"../bin/**",
-			"../Dependencies/vulkan/libs/macOS"
+			--"../Dependencies/vulkan/libs/macOS"
 		}
 
 		buildoptions
@@ -236,8 +240,13 @@ project "Lumos"
 
 		linkoptions
 		{
-			"../Dependencies/OpenAL/libs/linux/libopenal.so",
-			"../Dependencies/vulkan/libs/linux/libvulkan.so.1"
+			"../Dependencies/OpenAL/libs/linux/libopenal.so"
+			--"../Dependencies/vulkan/libs/linux/libvulkan.so.1"
+		}
+
+		runpathdirs
+		{
+		--	"../Dependencies/vulkan/libs/linux"
 		}
 
 		linkoptions{ "-Wl,-rpath=\\$$ORIGIN" }
@@ -245,7 +254,7 @@ project "Lumos"
 		libdirs
 		{
 			"../bin/**",
-			"../Dependencies/vulkan/libs/linux"
+			--"../Dependencies/vulkan/libs/linux/"
 		}
 
 		buildoptions
@@ -256,7 +265,7 @@ project "Lumos"
 			"-Wignored-attributes"
 		}
 
-		links { "X11", "pthread" }
+		links { "X11", "pthread"}--, "vulkan"}
 
 		pchheader "../Lumos/src/LM.h"
 		pchsource "../Lumos/src/LM.cpp"
