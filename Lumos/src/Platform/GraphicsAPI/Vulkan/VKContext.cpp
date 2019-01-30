@@ -170,6 +170,16 @@ namespace Lumos
 
 		void VKContext::CreateInstance()
 		{
+			if (volkInitialize() != VK_SUCCESS)
+			{
+				LUMOS_CORE_ERROR("volkInitialize failed");
+			}
+
+			if (volkGetInstanceVersion() == 0)
+			{
+				LUMOS_CORE_ERROR("Could not find loader");
+			}
+
 			if (enableValidationLayers && !checkValidationLayerSupport())
 			{
 				throw std::runtime_error("validation layers requested, but not available!");
@@ -206,6 +216,8 @@ namespace Lumos
 			{
 				LUMOS_CORE_ERROR("failed to create instance!");
 			}
+
+			volkLoadInstance(m_VkInstance);
 		}
 
 		void VKContext::SetupDebugCallback()
