@@ -22,13 +22,14 @@ workspace "LumosEngine"
 		require("Dependencies/GLFW/premake5")
 		require("Dependencies/lua/premake5")
 		require("Dependencies/glad/premake5")
+		require("Dependencies/volk/premake5")
 	group ""
 
 	require("Lumos/premake5")
 	require("Sandbox/premake5")
 	--require("Examples/premake5")
 
-newaction 
+newaction
 {
 	trigger     = "clean",
 	description = "clean the software",

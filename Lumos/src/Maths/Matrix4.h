@@ -64,7 +64,7 @@ namespace Lumos
 
 			inline Vector4 GetCol(unsigned int column) const
 			{
-#ifdef LUMOS_SSEVEC4
+#if defined(LUMOS_SSEVEC4) && defined(LUMOS_SSEMAT4)
 				return Vector4(mmvalues[column]);
 #else
 				return Vector4();// mmvalues[column]);
@@ -81,7 +81,7 @@ namespace Lumos
 
 			inline void SetCol(unsigned int column, const Vector4 &val)
             {
-#ifdef LUMOS_SSEVEC4
+#if defined(LUMOS_SSEVEC4) && defined(LUMOS_SSEMAT4)
 				mmvalues[column] = val.m_Value;
 #endif
 			}
@@ -91,7 +91,7 @@ namespace Lumos
 				return Vector3(values[12], values[13], values[14]);
 			}
 
-#ifdef LUMOS_SSEVEC3
+#if defined(LUMOS_SSEVEC3) && defined(LUMOS_SSEMAT4)
 			inline Vector3 GetTranslationMemAligned() const
 			{
 				return Vector3(mmvalues[3]);

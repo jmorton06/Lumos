@@ -728,7 +728,8 @@ namespace Lumos
 
 		Vector3 Matrix4::operator*(const Vector3 &v) const
 		{
-		#ifdef LUMOS_SSEMAT4
+		#ifdef LUMOS_SSEMAT40 
+			//Breaks collision - bounding box
             __m128 m0 = _mm_mul_ps(mmvalues[0], _mm_set1_ps(v.GetX()));
             __m128 m1 = _mm_mul_ps(mmvalues[1], _mm_set1_ps(v.GetY()));
             __m128 m2 = _mm_mul_ps(mmvalues[2], _mm_set1_ps(v.GetZ()));
