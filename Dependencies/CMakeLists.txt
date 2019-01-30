@@ -13,6 +13,7 @@ add_subdirectory(GLFW)
 add_subdirectory(glad)
 ENDIF(NOT IOS)
 
+add_subdirectory(volk)
 
 # On iOS, OpenAL comes preinstalled
 if (NOT IOS)

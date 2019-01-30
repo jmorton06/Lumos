@@ -13,11 +13,28 @@ project 'volk'
 		"../"
 	}
 
+	filter "system:windows"
+		defines
+		{
+			"VK_USE_PLATFORM_WIN32_KHR"
+		}
+
 	filter "system:linux"
+		defines
+		{
+			"VK_USE_PLATFORM_XCB_KHR"
+		}
 		buildoptions
     	{
     	  "-fPIC"
 		}
+	filter "system:macosx"
+		defines
+		{
+			"VK_USE_PLATFORM_MACOS_MVK"
+		}
+
+
 
 	filter "configurations:Debug"
 	symbols "On"

@@ -19,7 +19,9 @@ IF(IOS)
 	Set(API_OPENGL OFF)
 	Set(JMIMGUI OFF)
 ENDIF(IOS)
-	 
+
+set(LINK_VULKAN OFF)
+
 IF(UNIX)
 	SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++17 -fpermissive -w -g -Wall -fPIC")
 
@@ -86,7 +88,6 @@ file(GLOB LUMOS_SOURCES
   		${CMAKE_CURRENT_SOURCE_DIR}/src/Platform/*.h
   		${CMAKE_CURRENT_SOURCE_DIR}/src/Entity/*.h
 		${CMAKE_CURRENT_SOURCE_DIR}/src/Entity/Component/*.h
-		   
 		${CMAKE_CURRENT_SOURCE_DIR}/src/Events/*.h
 
   		${CMAKE_CURRENT_SOURCE_DIR}/src/Renderer/*.h
@@ -123,7 +124,6 @@ file(GLOB LUMOS_SOURCES
 
   		${CMAKE_CURRENT_SOURCE_DIR}/src/Entity/*.cpp
 		${CMAKE_CURRENT_SOURCE_DIR}/src/Entity/Component/*.cpp
-		   
 		${CMAKE_CURRENT_SOURCE_DIR}/src/Events/*.cpp
 
   		${CMAKE_CURRENT_SOURCE_DIR}/src/Renderer/*.cpp
@@ -263,7 +263,7 @@ endif(JMCORESHARED)
 
 install (FILES ${LUMOS_SOURCE} DESTINATION include/Lumos)
 
-IF(API_VULKAN)
+IF(API_VULKAN AND LINK_VULKAN)
 
 	message(STATUS "Using module to find Vulkan")
 	find_package(Vulkan)
@@ -327,7 +327,7 @@ IF(API_VULKAN)
 		message(STATUS "Vulkan lib : " ${Vulkan_LIBRARY})
 	ENDIF()
 ENDIF(API_VULKAN)
- 
+
 if(USEASSIMP)
 	add_definitions(-DASSIMP)
 	target_link_libraries(Lumos assimp ${ASSIMP_LIBRARIES})
@@ -343,7 +343,11 @@ target_link_libraries(Lumos box2d 		${BOX2D_LIBRARIES})
 target_link_libraries(Lumos lua 		${LUA_LIBRARIES})
 
 IF(API_VULKAN)
+	IF(LINK_VULKAN)
 	target_link_libraries(Lumos ${Vulkan_LIBRARY})
+	ELSE()
+	target_link_libraries(Lumos volk ${VOLK_LIBRARIES})
+	ENDIF(LINK_VULKAN)
 
 	if(APPLE)
 	link_libraries(Lumos ${METAL_LIBRARY})
