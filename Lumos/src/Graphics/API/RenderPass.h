@@ -25,6 +25,7 @@ namespace Lumos
 				TextureType* textureType;
 				int attachmentCount;
 				bool depthOnly = false;
+                bool clear = true;
 			};
 
 			enum SubPassContents

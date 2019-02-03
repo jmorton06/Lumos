@@ -92,9 +92,6 @@ namespace Lumos
             VkPresentModeKHR present_modes[] = { VK_PRESENT_MODE_FIFO_KHR };
         #endif
             wd->PresentMode = ImGui_ImplVulkanH_SelectPresentMode(VKDevice::Instance()->GetGPU(), wd->Surface, &present_modes[0], IM_ARRAYSIZE(present_modes));
-
-            // Create SwapChain, RenderPass, Framebuffer, etc.
-            //ImGui_ImplVulkanH_CreateWindowDataCommandBuffers(VKDevice::Instance()->GetGPU(), VKDevice::Instance()->GetDevice(), VKDevice::Instance()->GetGraphicsQueueFamilyIndex(), wd, g_Allocator);
             
             VkResult err;
             for (int i = 0; i < IMGUI_VK_QUEUED_FRAMES; i++)
@@ -105,32 +102,8 @@ namespace Lumos
                 
                 ImGui_ImplVulkanH_FrameData* fd = &wd->Frames[i];
                 {
-                    //VkCommandPoolCreateInfo info = {};
-                    //info.sType = VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO;
-                    //info.flags = VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT;
-                    //info.queueFamilyIndex = VKDevice::Instance()->GetGraphicsQueueFamilyIndex();
-                    //err = vkCreateCommandPool(VKDevice::Instance()->GetDevice(), &info, nullptr, &fd->CommandPool);
-                    //check_vk_result(err);
                     fd->CommandPool = VKDevice::Instance()->GetVKContext()->GetCommandPool()->GetCommandPool();
-                }
-                {
-                    //VkCommandBufferAllocateInfo info = {};
-                    //info.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
-                    //info.commandPool = fd->CommandPool;
-                    //info.level = VK_COMMAND_BUFFER_LEVEL_PRIMARY;
-                    //info.commandBufferCount = 1;
-                    //err = vkAllocateCommandBuffers(VKDevice::Instance()->GetDevice(), &info, &fd->CommandBuffer);
-                    //check_vk_result(err);
-                    
                     fd->CommandBuffer = commandBuffer->GetCommandBuffer();
-                }
-                {
-                    //VkFenceCreateInfo info = {};
-                    //info.sType = VK_STRUCTURE_TYPE_FENCE_CREATE_INFO;
-                    //info.flags = VK_FENCE_CREATE_SIGNALED_BIT;
-                    //err = vkCreateFence(VKDevice::Instance()->GetDevice(), &info, nullptr, &fd->Fence);
-                    //check_vk_result(err);
-                    
                     fd->Fence = commandBuffer->GetFence();
                 }
                 {
@@ -152,64 +125,57 @@ namespace Lumos
 
             // Create the Render Pass
             {
-                VkAttachmentDescription attachment = {};
-                attachment.format = wd->SurfaceFormat.format;
-                attachment.samples = VK_SAMPLE_COUNT_1_BIT;
-                attachment.loadOp = wd->ClearEnable ? VK_ATTACHMENT_LOAD_OP_CLEAR : VK_ATTACHMENT_LOAD_OP_DONT_CARE;
-                attachment.storeOp = VK_ATTACHMENT_STORE_OP_STORE;
-                attachment.stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
-                attachment.stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
-                attachment.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
-                attachment.finalLayout = VK_IMAGE_LAYOUT_PRESENT_SRC_KHR;
-                VkAttachmentReference color_attachment = {};
-                color_attachment.attachment = 0;
-                color_attachment.layout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
-                VkSubpassDescription subpass = {};
-                subpass.pipelineBindPoint = VK_PIPELINE_BIND_POINT_GRAPHICS;
-                subpass.colorAttachmentCount = 1;
-                subpass.pColorAttachments = &color_attachment;
-                VkSubpassDependency dependency = {};
-                dependency.srcSubpass = VK_SUBPASS_EXTERNAL;
-                dependency.dstSubpass = 0;
-                dependency.srcStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
-                dependency.dstStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
-                dependency.srcAccessMask = 0;
-                dependency.dstAccessMask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;
-                VkRenderPassCreateInfo info = {};
-                info.sType = VK_STRUCTURE_TYPE_RENDER_PASS_CREATE_INFO;
-                info.attachmentCount = 1;
-                info.pAttachments = &attachment;
-                info.subpassCount = 1;
-                info.pSubpasses = &subpass;
-                info.dependencyCount = 1;
-                info.pDependencies = &dependency;
-                err = vkCreateRenderPass(VKDevice::Instance()->GetDevice(), &info, NULL, &wd->RenderPass);
-                check_vk_result(err);
-
-                //auto Renderp = ((VKSwapchain*)VKRenderer::GetRenderer()->GetSwapchain())->GetRenderPass();
-               // wd->RenderPass = ((VKRenderpass*)Renderp)->GetRenderpass();
+//                VkAttachmentDescription attachment = {};
+//                attachment.format = wd->SurfaceFormat.format;
+//                attachment.samples = VK_SAMPLE_COUNT_1_BIT;
+//                attachment.loadOp = wd->ClearEnable ? VK_ATTACHMENT_LOAD_OP_CLEAR : VK_ATTACHMENT_LOAD_OP_DONT_CARE;
+//                attachment.storeOp = VK_ATTACHMENT_STORE_OP_STORE;
+//                attachment.stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
+//                attachment.stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
+//                attachment.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
+//                attachment.finalLayout = VK_IMAGE_LAYOUT_PRESENT_SRC_KHR;
+//                VkAttachmentReference color_attachment = {};
+//                color_attachment.attachment = 0;
+//                color_attachment.layout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
+//                VkSubpassDescription subpass = {};
+//                subpass.pipelineBindPoint = VK_PIPELINE_BIND_POINT_GRAPHICS;
+//                subpass.colorAttachmentCount = 1;
+//                subpass.pColorAttachments = &color_attachment;
+//                VkSubpassDependency dependency = {};
+//                dependency.srcSubpass = VK_SUBPASS_EXTERNAL;
+//                dependency.dstSubpass = 0;
+//                dependency.srcStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
+//                dependency.dstStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
+//                dependency.srcAccessMask = 0;
+//                dependency.dstAccessMask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;
+//                VkRenderPassCreateInfo info = {};
+//                info.sType = VK_STRUCTURE_TYPE_RENDER_PASS_CREATE_INFO;
+//                info.attachmentCount = 1;
+//                info.pAttachments = &attachment;
+//                info.subpassCount = 1;
+//                info.pSubpasses = &subpass;
+//                info.dependencyCount = 1;
+//                info.pDependencies = &dependency;
+//                err = vkCreateRenderPass(VKDevice::Instance()->GetDevice(), &info, NULL, &wd->RenderPass);
+//                check_vk_result(err);
             }
+            
+            VKRenderpass* test = new VKRenderpass();
+            TextureType textureTypes[1] = { TextureType::COLOUR};
+            graphics::api::RenderpassInfo renderpassCI{};
+            renderpassCI.attachmentCount = 1;
+            renderpassCI.textureType = textureTypes;
+            renderpassCI.clear = false;
+            test->Init(renderpassCI);
+            wd->RenderPass = test->GetRenderpass();
 
             // Create The Image Views
             {
-                /*VkImageViewCreateInfo info = {};
-                info.sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO;
-                info.viewType = VK_IMAGE_VIEW_TYPE_2D;
-                info.format = wd->SurfaceFormat.format;
-                info.components.r = VK_COMPONENT_SWIZZLE_R;
-                info.components.g = VK_COMPONENT_SWIZZLE_G;
-                info.components.b = VK_COMPONENT_SWIZZLE_B;
-                info.components.a = VK_COMPONENT_SWIZZLE_A;
-                VkImageSubresourceRange image_range = { VK_IMAGE_ASPECT_COLOR_BIT, 0, 1, 0, 1 };
-                info.subresourceRange = image_range;*/
                 for (uint32_t i = 0; i < wd->BackBufferCount; i++)
                 {
                     auto scBuffer = swapChain->GetTexture(i);
                     wd->BackBuffer[i] = scBuffer->GetImage();
                     wd->BackBufferView[i] = scBuffer->GetImageView();
-                    //info.image = wd->BackBuffer[i];
-                    //err = vkCreateImageView(VKDevice::Instance()->GetDevice(), &info, NULL, &wd->BackBufferView[i]);
-                    //check_vk_result(err);
                 }
             }
 
@@ -235,8 +201,6 @@ namespace Lumos
 
         void VKIMGUIRenderer::Init()
         {
-            //VKSwapchain* swapChain = (VKSwapchain*)VKRenderer::GetRenderer()->GetSwapchain();
-
             int w, h;
             w = (int)m_Width;
             h = (int)m_Height;
@@ -264,8 +228,6 @@ namespace Lumos
                 VkCommandPool command_pool = wd->Frames[wd->FrameIndex].CommandPool;
                 VkCommandBuffer command_buffer = wd->Frames[wd->FrameIndex].CommandBuffer;
 
-                //err = vkResetCommandPool(VKDevice::Instance()->GetDevice(), command_pool, 0);
-                //check_vk_result(err);
                 VkCommandBufferBeginInfo begin_info = {};
                 begin_info.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
                 begin_info.flags |= VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT;
@@ -356,20 +318,6 @@ namespace Lumos
              VKRenderer::GetRenderer()->SetPreviousRenderFinish(wd->Frames[wd->FrameIndex].RenderCompleteSemaphore);
         }
 
-        static void FramePresent(ImGui_ImplVulkanH_WindowData* wd)
-        {
-            ImGui_ImplVulkanH_FrameData* fd = &wd->Frames[wd->FrameIndex];
-            VkPresentInfoKHR info = {};
-            info.sType = VK_STRUCTURE_TYPE_PRESENT_INFO_KHR;
-            info.waitSemaphoreCount = 1;
-            info.pWaitSemaphores = &fd->RenderCompleteSemaphore;
-            info.swapchainCount = 1;
-            info.pSwapchains = &wd->Swapchain;
-            info.pImageIndices = &wd->FrameIndex;
-            VkResult err = vkQueuePresentKHR(VKDevice::Instance()->GetGraphicsQueue(), &info);
-            check_vk_result(err);
-        }
-
         void VKIMGUIRenderer::Render(Lumos::graphics::api::CommandBuffer* commandBuffer)
         {
             if(commandBuffer)
@@ -392,9 +340,6 @@ namespace Lumos
                 auto scBuffer = swapChain->GetTexture(i);
                 wd->BackBuffer[i] = scBuffer->GetImage();
                 wd->BackBufferView[i] = scBuffer->GetImageView();
-                //info.image = wd->BackBuffer[i];
-                //err = vkCreateImageView(VKDevice::Instance()->GetDevice(), &info, NULL, &wd->BackBufferView[i]);
-                //check_vk_result(err);
             }
 
             wd->Width = width;
