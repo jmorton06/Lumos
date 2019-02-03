@@ -82,5 +82,11 @@
 #include "Utilities/TimeStep.h"
 #include "Utilities/CommonUtils.h"
 
+//Layers
+#include "Graphics/Layers/ImGuiLayer.h"
+#include "Graphics/Layers/Layer3DDeferred.h"
+#include "Graphics/Renderers/DeferredRenderer.h"
+#include "Graphics/Renderers/ForwardRenderer.h"
+
 //External
 #include <imgui/imgui.h>

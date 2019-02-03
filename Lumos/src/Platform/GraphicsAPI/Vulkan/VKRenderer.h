@@ -27,53 +27,11 @@ namespace Lumos
 			class CommandBuffer;
 		}
 
-		struct Vertex
-		{
-			Lumos::maths::Vector3 pos;
-			Lumos::maths::Vector3 color;
-			Lumos::maths::Vector2 texCoord;
-			Lumos::maths::Vector3 normal;
-			Lumos::maths::Vector3 tangent;
-
-			static std::array<api::VertexInputDescription, 5> getAttributeDescriptions()
-			{
-				std::array<api::VertexInputDescription, 5> attributeDescriptions = {};
-
-				attributeDescriptions[0].binding = 0;
-				attributeDescriptions[0].location = 0;
-				attributeDescriptions[0].format = api::Format::R32G32B32_FLOAT;
-				attributeDescriptions[0].offset = offsetof(Vertex, pos);
-
-				attributeDescriptions[1].binding = 0;
-				attributeDescriptions[1].location = 1;
-				attributeDescriptions[1].format = api::Format::R32G32B32_FLOAT;
-				attributeDescriptions[1].offset = offsetof(Vertex, color);
-
-				attributeDescriptions[2].binding = 0;
-				attributeDescriptions[2].location = 2;
-				attributeDescriptions[2].format = api::Format::R32G32_FLOAT;
-				attributeDescriptions[2].offset = offsetof(Vertex, texCoord);
-
-				attributeDescriptions[3].binding = 0;
-				attributeDescriptions[3].location = 3;
-				attributeDescriptions[3].format = api::Format::R32G32B32_FLOAT;
-				attributeDescriptions[3].offset = offsetof(Vertex, normal);
-
-				attributeDescriptions[4].binding = 0;
-				attributeDescriptions[4].location = 4;
-				attributeDescriptions[4].format = api::Format::R32G32B32_FLOAT;
-				attributeDescriptions[4].offset = offsetof(Vertex, tangent);
-
-				return attributeDescriptions;
-			}
-		};
-
 		class LUMOS_EXPORT VKRenderer : public Renderer
 		{
 		public:
             VKRenderer(uint width, uint height) { m_Width = width; m_Height = height; }
-
-			void cleanup();
+            ~VKRenderer();
 
 			static VKRenderer* GetRenderer() { return static_cast<VKRenderer*>(s_Instance); }
 
@@ -89,6 +47,7 @@ namespace Lumos
 			void ClearInternal(uint buffer) override;
 			void PresentInternal() override;
 			void PresentInternal(api::CommandBuffer* cmdBuffer) override;
+            void Prensent(VkCommandBuffer commandBuffer);
 
 			void SetColourMaskInternal(bool r, bool g, bool b, bool a) override;
 			void SetDepthTestingInternal(bool enabled) override;
@@ -113,6 +72,8 @@ namespace Lumos
 
 			void RenderMeshInternal(Mesh* mesh, graphics::api::Pipeline* pipeline, graphics::api::CommandBuffer* cmdBuffer, uint dynamicOffset, graphics::api::DescriptorSet* descriptorSet, bool useMaterialDescriptorSet) override;
 
+            void CreateSemaphores();
+            
 			VkSemaphore& GetPreviousImageAvailable() { return m_PreviousImageAvailableSemaphore;}
 			VkSemaphore& GetPreviousRenderFinish() { return m_PreviousRenderFinishedSemaphore;}
 			void SetPreviousImageAvailable(VkSemaphore& sem) { m_PreviousImageAvailableSemaphore = sem;}
@@ -131,10 +92,6 @@ namespace Lumos
 
 			String m_RendererTitle;
 			uint m_Width, m_Height;
-
-			void initVulkan();
-
-			void createSemaphores();
 		};
 	}
 }

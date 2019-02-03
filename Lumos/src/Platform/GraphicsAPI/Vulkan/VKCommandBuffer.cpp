@@ -44,6 +44,7 @@ namespace Lumos
 
 			VkFenceCreateInfo fenceCI{};
 			fenceCI.sType = VK_STRUCTURE_TYPE_FENCE_CREATE_INFO;
+            fenceCI.flags = VK_FENCE_CREATE_SIGNALED_BIT;
 
 			vkCreateFence(VKDevice::Instance()->GetDevice(), &fenceCI, VK_NULL_HANDLE, &m_Fence);
 

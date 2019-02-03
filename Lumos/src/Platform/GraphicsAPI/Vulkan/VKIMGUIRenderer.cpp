@@ -34,10 +34,13 @@ namespace Lumos
 
         VKIMGUIRenderer::~VKIMGUIRenderer()
         {
+            for(auto commandBuffer : m_CommandBuffers)
+                delete commandBuffer;
+
             ImGui_ImplVulkan_Shutdown();
         }
 
-        static void SetupVulkanWindowData(ImGui_ImplVulkanH_WindowData* wd, VkSurfaceKHR surface, int width, int height)
+        void VKIMGUIRenderer::SetupVulkanWindowData(ImGui_ImplVulkanH_WindowData* wd, VkSurfaceKHR surface, int width, int height)
         {
             // Create Descriptor Pool
             {
@@ -91,20 +94,61 @@ namespace Lumos
             wd->PresentMode = ImGui_ImplVulkanH_SelectPresentMode(VKDevice::Instance()->GetGPU(), wd->Surface, &present_modes[0], IM_ARRAYSIZE(present_modes));
 
             // Create SwapChain, RenderPass, Framebuffer, etc.
-            ImGui_ImplVulkanH_CreateWindowDataCommandBuffers(VKDevice::Instance()->GetGPU(), VKDevice::Instance()->GetDevice(), VKDevice::Instance()->GetGraphicsQueueFamilyIndex(), wd, g_Allocator);
+            //ImGui_ImplVulkanH_CreateWindowDataCommandBuffers(VKDevice::Instance()->GetGPU(), VKDevice::Instance()->GetDevice(), VKDevice::Instance()->GetGraphicsQueueFamilyIndex(), wd, g_Allocator);
+            
+            VkResult err;
+            for (int i = 0; i < IMGUI_VK_QUEUED_FRAMES; i++)
+            {
+                VKCommandBuffer* commandBuffer = new VKCommandBuffer();
+                commandBuffer->Init(true);
+                m_CommandBuffers[i] = commandBuffer;
+                
+                ImGui_ImplVulkanH_FrameData* fd = &wd->Frames[i];
+                {
+                    //VkCommandPoolCreateInfo info = {};
+                    //info.sType = VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO;
+                    //info.flags = VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT;
+                    //info.queueFamilyIndex = VKDevice::Instance()->GetGraphicsQueueFamilyIndex();
+                    //err = vkCreateCommandPool(VKDevice::Instance()->GetDevice(), &info, nullptr, &fd->CommandPool);
+                    //check_vk_result(err);
+                    fd->CommandPool = VKDevice::Instance()->GetVKContext()->GetCommandPool()->GetCommandPool();
+                }
+                {
+                    //VkCommandBufferAllocateInfo info = {};
+                    //info.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
+                    //info.commandPool = fd->CommandPool;
+                    //info.level = VK_COMMAND_BUFFER_LEVEL_PRIMARY;
+                    //info.commandBufferCount = 1;
+                    //err = vkAllocateCommandBuffers(VKDevice::Instance()->GetDevice(), &info, &fd->CommandBuffer);
+                    //check_vk_result(err);
+                    
+                    fd->CommandBuffer = commandBuffer->GetCommandBuffer();
+                }
+                {
+                    //VkFenceCreateInfo info = {};
+                    //info.sType = VK_STRUCTURE_TYPE_FENCE_CREATE_INFO;
+                    //info.flags = VK_FENCE_CREATE_SIGNALED_BIT;
+                    //err = vkCreateFence(VKDevice::Instance()->GetDevice(), &info, nullptr, &fd->Fence);
+                    //check_vk_result(err);
+                    
+                    fd->Fence = commandBuffer->GetFence();
+                }
+                {
+                    VkSemaphoreCreateInfo info = {};
+                    info.sType = VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO;
+                    err = vkCreateSemaphore(VKDevice::Instance()->GetDevice(), &info, nullptr, &fd->ImageAcquiredSemaphore);
+                    check_vk_result(err);
+                    err = vkCreateSemaphore(VKDevice::Instance()->GetDevice(), &info, nullptr, &fd->RenderCompleteSemaphore);
+                    check_vk_result(err);
+                }
+            }
+            
             auto swapChain = ((VKSwapchain*)VKRenderer::GetRenderer()->GetSwapchain());
             wd->Swapchain = swapChain->GetSwapchain();
             wd->Width = width;
             wd->Height = height;
-            VkResult err;
 
             wd->BackBufferCount = (uint32_t)swapChain->GetSwapchainBufferCount();
-/*
-            err = vkGetSwapchainImagesKHR(VKDevice::Instance()->GetDevice(), wd->Swapchain, &wd->BackBufferCount, NULL);
-            check_vk_result(err);
-            err = vkGetSwapchainImagesKHR(VKDevice::Instance()->GetDevice(), wd->Swapchain, &wd->BackBufferCount, wd->BackBuffer);
-            check_vk_result(err);
-            */
 
             // Create the Render Pass
             {
@@ -220,8 +264,8 @@ namespace Lumos
                 VkCommandPool command_pool = wd->Frames[wd->FrameIndex].CommandPool;
                 VkCommandBuffer command_buffer = wd->Frames[wd->FrameIndex].CommandBuffer;
 
-                err = vkResetCommandPool(VKDevice::Instance()->GetDevice(), command_pool, 0);
-                check_vk_result(err);
+                //err = vkResetCommandPool(VKDevice::Instance()->GetDevice(), command_pool, 0);
+                //check_vk_result(err);
                 VkCommandBufferBeginInfo begin_info = {};
                 begin_info.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
                 begin_info.flags |= VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT;
@@ -249,26 +293,24 @@ namespace Lumos
         {
         }
 
-        static void FrameRender(ImGui_ImplVulkanH_WindowData* wd)
+        void VKIMGUIRenderer::FrameRender(ImGui_ImplVulkanH_WindowData* wd)
         {
             VkResult err;
 
             wd->FrameIndex = Renderer::GetRenderer()->GetSwapchain()->GetCurrentBufferId();
             VkSemaphore& image_acquired_semaphore  = VKRenderer::GetRenderer()->GetPreviousImageAvailable();
-           // err = vkAcquireNextImageKHR(VKDevice::Instance()->GetDevice(), wd->Swapchain, UINT64_MAX, image_acquired_semaphore, VK_NULL_HANDLE, &wd->FrameIndex);
-           // check_vk_result(err);
 
             ImGui_ImplVulkanH_FrameData* fd = &wd->Frames[wd->FrameIndex];
             {
-                err = vkWaitForFences(VKDevice::Instance()->GetDevice(), 1, &fd->Fence, VK_TRUE, UINT64_MAX);	// wait indefinitely instead of periodically checking
-                check_vk_result(err);
+               // err = vkWaitForFences(VKDevice::Instance()->GetDevice(), 1, &fd->Fence, VK_TRUE, UINT64_MAX);	// wait indefinitely instead of periodically checking
+               // check_vk_result(err);
 
-                err = vkResetFences(VKDevice::Instance()->GetDevice(), 1, &fd->Fence);
-                check_vk_result(err);
+               // err = vkResetFences(VKDevice::Instance()->GetDevice(), 1, &fd->Fence);
+                //check_vk_result(err);
             }
             {
-                err = vkResetCommandPool(VKDevice::Instance()->GetDevice(), fd->CommandPool, 0);
-                check_vk_result(err);
+                //err = vkResetCommandPool(VKDevice::Instance()->GetDevice(), fd->CommandPool, 0);
+                //check_vk_result(err);
                 VkCommandBufferBeginInfo info = {};
                 info.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
                 info.flags |= VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT;
@@ -303,11 +345,12 @@ namespace Lumos
                 info.pCommandBuffers = &fd->CommandBuffer;
                 info.signalSemaphoreCount = 1;
                 info.pSignalSemaphores = &fd->RenderCompleteSemaphore;
-
+                
                 err = vkEndCommandBuffer(fd->CommandBuffer);
                 check_vk_result(err);
                 err = vkQueueSubmit(VKDevice::Instance()->GetGraphicsQueue(), 1, &info, fd->Fence);
                 check_vk_result(err);
+            //    VKRenderer::GetRenderer()->Present(m_CommandBuffers[wd->FrameIndex]);
             }
 
              VKRenderer::GetRenderer()->SetPreviousRenderFinish(wd->Frames[wd->FrameIndex].RenderCompleteSemaphore);
@@ -336,8 +379,6 @@ namespace Lumos
             else
             {
                 FrameRender(&g_WindowData);
-                //FramePresent(&g_WindowData);
-                //	VK_CHECK_RESULT(vkQueueWaitIdle(VKDevice::Instance()->GetPresentQueue()));
             }
         }
 

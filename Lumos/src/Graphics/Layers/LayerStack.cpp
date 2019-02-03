@@ -39,5 +39,12 @@ namespace Lumos
 		if (it != m_Layers.end())
 			m_Layers.erase(it);
 	}
-
+    
+    void LayerStack::Clear()
+    {
+        for (Layer* layer : m_Layers)
+            delete layer;
+        
+        m_Layers.clear();
+    }
 }

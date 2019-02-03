@@ -57,6 +57,10 @@ void Scene3D::OnInit()
 	lightDirection = maths::Vector3(26.0f, 22.0f, 48.5f);
 
 	SoundSystem::Instance()->SetListener(m_pCamera);
+    
+    Application::Instance()->PushOverLay(new ImGuiLayer());
+    Application::Instance()->PushLayer(new Layer3DDeferred(m_ScreenWidth, m_ScreenHeight));
+    //Application::Instance()->PushLayer(new Layer3D(new ForwardRenderer(m_ScreenWidth, m_ScreenHeight)));
 }
 
 void Scene3D::OnUpdate(TimeStep* timeStep)
@@ -74,6 +78,8 @@ void Scene3D::OnCleanupScene()
 	{
 		SAFE_DELETE(m_pCamera)
         SAFE_DELETE(m_EnvironmentMap);
+        
+        Application::Instance()->ClearLayers();
 	}
 
 	Scene::OnCleanupScene();
