@@ -241,11 +241,6 @@ namespace Lumos
 		auto camera = scene->GetCamera();
 		auto proj = camera->GetProjectionMatrix();
 
-#ifdef LUMOS_RENDER_API_VULKAN
-		if (graphics::Context::GetRenderAPI() == RenderAPI::VULKAN)
-		proj[5] *= -1;
-#endif
-
 		memcpy(m_VSSystemUniformBuffer + m_VSSystemUniformBufferOffsets[VSSystemUniformIndex_ProjectionMatrix], &proj, sizeof(maths::Matrix4));
 		memcpy(m_VSSystemUniformBuffer + m_VSSystemUniformBufferOffsets[VSSystemUniformIndex_ViewMatrix], &camera->GetViewMatrix(), sizeof(maths::Matrix4));
 	}

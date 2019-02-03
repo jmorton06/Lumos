@@ -22,32 +22,27 @@ namespace Lumos
 
 			m_RendererTitle = "Vulkan";
 
-			initVulkan();
+            VKDevice::Instance();
+            
+            m_Swapchain = new VKSwapchain(m_Width, m_Height);
+            m_Swapchain->Init();
+            
+            CreateSemaphores();
 		}
 
-		void VKRenderer::initVulkan()
+        VKRenderer::~VKRenderer()
 		{
-			VKDevice::Instance();
-
-			m_Swapchain = new VKSwapchain(m_Width, m_Height);
-			m_Swapchain->Init();
-
-			createSemaphores();
-		}
-
-		void VKRenderer::cleanup()
-		{
-			delete m_Swapchain;
-
-			vkDestroySemaphore(VKDevice::Instance()->GetDevice(), renderFinishedSemaphore, nullptr);
-			vkDestroySemaphore(VKDevice::Instance()->GetDevice(), imageAvailableSemaphore, nullptr);
-
-			m_Context->Unload();
+            delete m_Swapchain;
+            
+            vkDestroySemaphore(VKDevice::Instance()->GetDevice(), renderFinishedSemaphore, nullptr);
+            vkDestroySemaphore(VKDevice::Instance()->GetDevice(), imageAvailableSemaphore, nullptr);
+            
+            m_Context->Unload();
 		}
 
 		void VKRenderer::PresentInternal(api::CommandBuffer* cmdBuffer)
 		{
-			auto result = m_Swapchain->AcquireNextImage(imageAvailableSemaphore);
+			auto result = m_Swapchain->AcquireNextImage(m_PreviousImageAvailableSemaphore);
 
 			if (result == VK_ERROR_OUT_OF_DATE_KHR)
 			{
@@ -60,15 +55,16 @@ namespace Lumos
 			}
 
 			((VKCommandBuffer*)cmdBuffer)->ExecuteInternal(VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT,
-				imageAvailableSemaphore, renderFinishedSemaphore, false);
-				SetPreviousImageAvailable(renderFinishedSemaphore);
+				m_PreviousImageAvailableSemaphore, m_PreviousRenderFinishedSemaphore, false);
+				SetPreviousImageAvailable(m_PreviousRenderFinishedSemaphore);
+            //    SetPreviousRenderFinish(m_PreviousImageAvailableSemaphore);
 		}
-
-		void VKRenderer::PresentInternal()
-		{
-			m_Swapchain->Present(GetPreviousRenderFinish());
-			VK_CHECK_RESULT(vkQueueWaitIdle(VKDevice::Instance()->GetPresentQueue()));
-		}
+        
+        void VKRenderer::PresentInternal()
+        {
+            m_Swapchain->Present(GetPreviousRenderFinish());
+            VK_CHECK_RESULT(vkQueueWaitIdle(VKDevice::Instance()->GetPresentQueue()));
+        }
 
 		void VKRenderer::OnResize(uint width, uint height)
 		{
@@ -82,7 +78,7 @@ namespace Lumos
 			m_Swapchain->Init();
 		}
 
-		void VKRenderer::createSemaphores()
+		void VKRenderer::CreateSemaphores()
 		{
 			VkSemaphoreCreateInfo semaphoreInfo = {};
 			semaphoreInfo.sType = VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO;

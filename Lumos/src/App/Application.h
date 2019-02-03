@@ -38,6 +38,7 @@ namespace Lumos
 		void OnImGui();
 		void PushLayer(Layer* layer);
 		void PushOverLay(Layer* overlay);
+        void ClearLayers() { m_LayerStack.Clear(); };
         void SetScene(Scene* scene);
 
 		virtual void Init();

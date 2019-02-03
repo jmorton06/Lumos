@@ -17,12 +17,6 @@
 #include "App/Input.h"
 #include "System/VFS.h"
 #include "System/JobSystem.h"
-#include "Graphics/Layers/ImGuiLayer.h"
-#include "Graphics/API/IMGUIRenderer.h"
-
-#include "Graphics/Layers/Layer3DDeferred.h"
-#include "Graphics/Renderers/DeferredRenderer.h"
-#include "Graphics/Renderers/ForwardRenderer.h"
 
 #include <imgui/imgui.h>
 
@@ -84,10 +78,6 @@ namespace Lumos
 
 		m_LayerStack = LayerStack();
 
-        PushOverLay(new ImGuiLayer());
-        PushLayer(new Layer3DDeferred(m_Window->GetWidth(), m_Window->GetHeight()));
-		//PushLayer(new Layer3D(new ForwardRenderer(m_Window->GetWidth(), m_Window->GetHeight())));
-
         m_CurrentState = AppState::Running;
 		m_PhysicsThread = std::thread(PhysicsUpdate, 1000.0f/120.0f);
 	}
@@ -97,11 +87,13 @@ namespace Lumos
 		m_PhysicsThread.join();
 
         Engine::Release();
-		Renderer::Release();
 		JMPhysicsEngine::Release();
 		B2PhysicsEngine::Release();
 		Input::Release();
 		AssetsManager::ReleaseMeshes();
+        
+        m_LayerStack.Clear();
+        Renderer::Release();
 
 		Sound::DeleteSounds();
 		SoundSystem::Destroy();
@@ -201,7 +193,8 @@ namespace Lumos
         for (Layer* layer : m_LayerStack)
 			layer->OnRender(m_SceneManager->GetCurrentScene());
 
-		Renderer::GetRenderer()->Present();
+        if(m_LayerStack.GetCount() > 0)
+            Renderer::GetRenderer()->Present();
 	}
 
 	void Application::OnUpdate(TimeStep* dt)
