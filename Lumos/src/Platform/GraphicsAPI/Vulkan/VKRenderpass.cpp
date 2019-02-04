@@ -23,14 +23,14 @@ namespace Lumos
 			m_RenderPass = VK_NULL_HANDLE;
 		}
 
-		VkAttachmentDescription GetAttachmentDescription(TextureType type)
+		VkAttachmentDescription GetAttachmentDescription(TextureType type, bool clear = true)
 		{
 			if (type == TextureType::COLOUR)
 			{
 				VkAttachmentDescription colorAttachment = {};
 				colorAttachment.format = VKDevice::Instance()->GetFormat();
 				colorAttachment.samples = VK_SAMPLE_COUNT_1_BIT;
-				colorAttachment.loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR;
+				colorAttachment.loadOp = clear ? VK_ATTACHMENT_LOAD_OP_CLEAR : VK_ATTACHMENT_LOAD_OP_DONT_CARE;
 				colorAttachment.storeOp = VK_ATTACHMENT_STORE_OP_STORE;
 				colorAttachment.stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
 				colorAttachment.stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
@@ -80,7 +80,7 @@ namespace Lumos
 			dependency.srcStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
 			dependency.srcAccessMask = 0;
 			dependency.dstStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
-			dependency.dstAccessMask = VK_ACCESS_COLOR_ATTACHMENT_READ_BIT | VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;
+			dependency.dstAccessMask = /*VK_ACCESS_COLOR_ATTACHMENT_READ_BIT |*/ VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;
 
 			std::vector<VkAttachmentDescription> attachments;
 
@@ -89,7 +89,7 @@ namespace Lumos
 
 			for(int i = 0; i < renderpassCI.attachmentCount;i++)
 			{
-				attachments.push_back(GetAttachmentDescription(renderpassCI.textureType[i]));
+				attachments.push_back(GetAttachmentDescription(renderpassCI.textureType[i], renderpassCI.clear));
 
 				if(renderpassCI.textureType[i] == TextureType::COLOUR)
 				{

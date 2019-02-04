@@ -22,7 +22,7 @@ namespace Lumos
 		}
 	}
 
-	class DeferredRenderer : public Renderer3D
+	class LUMOS_EXPORT DeferredRenderer : public Renderer3D
 	{
 	public:
 		DeferredRenderer(uint width, uint height);
@@ -54,6 +54,8 @@ namespace Lumos
 		void BeginOffscreen();
 		void PresentOffScreen();
 		void EndOffScreen();
+
+		void LightPass();
 
 		struct UniformBufferObject
 		{

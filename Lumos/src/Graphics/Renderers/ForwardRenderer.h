@@ -9,7 +9,7 @@ namespace Lumos
 	class DescriptorSet;
 	class TextureDepth;
 
-	class ForwardRenderer : public Renderer3D
+	class LUMOS_EXPORT ForwardRenderer : public Renderer3D
 	{
 	public:
 		ForwardRenderer(uint width, uint height);

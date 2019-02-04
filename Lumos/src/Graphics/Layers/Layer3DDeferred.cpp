@@ -41,12 +41,5 @@ namespace Lumos
     void Layer3DDeferred::OnRender(Scene* scene)
     {
         m_Renderer->RenderScene(scene->GetRenderList(), scene);
-
-        int commandBufferIndex = Renderer::GetRenderer()->GetSwapchain()->GetCurrentBufferId();
-
-        ((DeferredRenderer*)m_Renderer)->Begin(commandBufferIndex);
-        m_Renderer->Present();
-        m_Renderer->End();
-        ((DeferredRenderer*)m_Renderer)->PresentToScreen();
     }
 }

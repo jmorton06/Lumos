@@ -6,7 +6,7 @@ class Sprite;
 namespace Lumos
 {
 
-	class Renderer2D
+	class LUMOS_EXPORT Renderer2D
 	{
 	public:
 		Renderer2D();

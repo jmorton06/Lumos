@@ -27,7 +27,7 @@ namespace Lumos
 		}
 	}
 
-	class Renderer3D
+	class LUMOS_EXPORT Renderer3D
 	{
 	public:
 

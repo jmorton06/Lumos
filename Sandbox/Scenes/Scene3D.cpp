@@ -59,7 +59,7 @@ void Scene3D::OnInit()
 	SoundSystem::Instance()->SetListener(m_pCamera);
     
     Application::Instance()->PushOverLay(new ImGuiLayer());
-    Application::Instance()->PushLayer(new Layer3DDeferred(m_ScreenWidth, m_ScreenHeight));
+	Application::Instance()->PushLayer(new Layer3D(new DeferredRenderer(m_ScreenWidth, m_ScreenHeight)));
     //Application::Instance()->PushLayer(new Layer3D(new ForwardRenderer(m_ScreenWidth, m_ScreenHeight)));
 }
 
