@@ -74,10 +74,10 @@ namespace Lumos
 
             void CreateSemaphores();
             
-			VkSemaphore& GetPreviousImageAvailable() { return m_PreviousImageAvailableSemaphore;}
-			VkSemaphore& GetPreviousRenderFinish() { return m_PreviousRenderFinishedSemaphore;}
-			void SetPreviousImageAvailable(VkSemaphore& sem) { m_PreviousImageAvailableSemaphore = sem;}
-			void SetPreviousRenderFinish(VkSemaphore& sem) { m_PreviousRenderFinishedSemaphore = sem;}
+			//VkSemaphore& GetPreviousImageAvailable() { return m_PreviousImageAvailableSemaphore;}
+			//VkSemaphore& GetPreviousRenderFinish() { return m_PreviousRenderFinishedSemaphore;}
+			//void SetPreviousImageAvailable(VkSemaphore& sem) { m_PreviousImageAvailableSemaphore = sem;}
+			//void SetPreviousRenderFinish(VkSemaphore& sem) { m_PreviousRenderFinishedSemaphore = sem;}
 
 		private:
 			Lumos::graphics::VKContext* m_Context;
@@ -87,8 +87,8 @@ namespace Lumos
 			VkSemaphore imageAvailableSemaphore;
 			VkSemaphore renderFinishedSemaphore;
             
-            VkSemaphore m_PreviousImageAvailableSemaphore;
-            VkSemaphore m_PreviousRenderFinishedSemaphore;
+           // VkSemaphore m_PreviousImageAvailableSemaphore;
+           // VkSemaphore m_PreviousRenderFinishedSemaphore;
 
 			String m_RendererTitle;
 			uint m_Width, m_Height;

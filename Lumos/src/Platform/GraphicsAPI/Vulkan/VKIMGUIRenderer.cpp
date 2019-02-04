@@ -228,31 +228,30 @@ namespace Lumos
             // Submit command buffer
 			m_Renderpass->EndRenderpass(m_CommandBuffers[wd->FrameIndex]);
             
-			auto result = ((VKSwapchain*)Renderer::GetRenderer()->GetSwapchain())->AcquireNextImage(fd->ImageAcquiredSemaphore);
-            VkPipelineStageFlags wait_stage = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
-            VkSubmitInfo info = {};
-            info.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
-            info.waitSemaphoreCount = 1;
-			VkSemaphore& image_acquired_semaphore = VKRenderer::GetRenderer()->GetPreviousImageAvailable();
-			VkSemaphore& render_finished_semaphore = VKRenderer::GetRenderer()->GetPreviousImageAvailable();
-			info.pWaitSemaphores = &image_acquired_semaphore;
-            info.pWaitDstStageMask = &wait_stage;
-            info.commandBufferCount = 1;
-			auto cmd = m_CommandBuffers[wd->FrameIndex]->GetCommandBuffer();
-            info.pCommandBuffers = &cmd;
-            info.signalSemaphoreCount = 1;
-			info.pSignalSemaphores = &render_finished_semaphore;// fd->RenderCompleteSemaphore;
+			//((VKSwapchain*)Renderer::GetRenderer()->GetSwapchain())->AcquireNextImage(fd->ImageAcquiredSemaphore);
+            //VkPipelineStageFlags wait_stage = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
+            //VkSubmitInfo info = {};
+            //info.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
+            //info.waitSemaphoreCount = 1;
+			//VkSemaphore& image_acquired_semaphore = VKRenderer::GetRenderer()->GetPreviousImageAvailable();
+			//VkSemaphore& render_finished_semaphore = VKRenderer::GetRenderer()->GetPreviousImageAvailable();
+			//info.pWaitSemaphores = &image_acquired_semaphore;
+            //info.pWaitDstStageMask = &wait_stage;
+            //info.commandBufferCount = 1;
+			//auto cmd = m_CommandBuffers[wd->FrameIndex]->GetCommandBuffer();
+            //info.pCommandBuffers = &cmd;
+            //info.signalSemaphoreCount = 1;
+			//info.pSignalSemaphores = &render_finished_semaphore;// fd->RenderCompleteSemaphore;
                 
 			m_CommandBuffers[wd->FrameIndex]->EndRecording();
 
 
-            err = vkQueueSubmit(VKDevice::Instance()->GetGraphicsQueue(), 1, &info, fd->Fence);
-            check_vk_result(err);
+            //err = vkQueueSubmit(VKDevice::Instance()->GetGraphicsQueue(), 1, &info, fd->Fence);
+            //check_vk_result(err);
 			
-            //VKRenderer::GetRenderer()->Present(m_CommandBuffers[wd->FrameIndex]);
+            VKRenderer::GetRenderer()->Present(m_CommandBuffers[wd->FrameIndex]);
             
-
-			VKRenderer::GetRenderer()->SetPreviousRenderFinish(render_finished_semaphore);// wd->Frames[wd->FrameIndex].RenderCompleteSemaphore);
+			//VKRenderer::GetRenderer()->SetPreviousRenderFinish(render_finished_semaphore);// wd->Frames[wd->FrameIndex].RenderCompleteSemaphore);
         }
 
         void VKIMGUIRenderer::Render(Lumos::graphics::api::CommandBuffer* commandBuffer)

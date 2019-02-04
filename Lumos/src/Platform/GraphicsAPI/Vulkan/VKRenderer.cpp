@@ -42,7 +42,7 @@ namespace Lumos
 
 		void VKRenderer::PresentInternal(api::CommandBuffer* cmdBuffer)
 		{
-			auto result = m_Swapchain->AcquireNextImage(m_PreviousImageAvailableSemaphore);
+			auto result = m_Swapchain->AcquireNextImage(imageAvailableSemaphore);
 
 			if (result == VK_ERROR_OUT_OF_DATE_KHR)
 			{
@@ -55,14 +55,14 @@ namespace Lumos
 			}
 
 			((VKCommandBuffer*)cmdBuffer)->ExecuteInternal(VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT,
-				m_PreviousImageAvailableSemaphore, m_PreviousRenderFinishedSemaphore, false);
-				SetPreviousImageAvailable(m_PreviousRenderFinishedSemaphore);
-                SetPreviousRenderFinish(m_PreviousImageAvailableSemaphore);
+				imageAvailableSemaphore, renderFinishedSemaphore, false);
+				//SetPreviousImageAvailable(m_PreviousRenderFinishedSemaphore);
+                //SetPreviousRenderFinish(m_PreviousImageAvailableSemaphore);
 		}
         
         void VKRenderer::PresentInternal()
         {
-            m_Swapchain->Present(GetPreviousRenderFinish());
+            m_Swapchain->Present(renderFinishedSemaphore);
             VK_CHECK_RESULT(vkQueueWaitIdle(VKDevice::Instance()->GetPresentQueue()));
         }
 
@@ -91,8 +91,8 @@ namespace Lumos
 				throw std::runtime_error("failed to create semaphores!");
 			}
 
-            m_PreviousImageAvailableSemaphore = imageAvailableSemaphore;
-            m_PreviousRenderFinishedSemaphore = renderFinishedSemaphore;
+            //m_PreviousImageAvailableSemaphore = imageAvailableSemaphore;
+            //m_PreviousRenderFinishedSemaphore = renderFinishedSemaphore;
 		}
 
 		void VKRenderer::Render(IndexBuffer* indexBuffer, VertexArray* vertexArray,
