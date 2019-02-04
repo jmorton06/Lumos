@@ -42,18 +42,6 @@ namespace Lumos
 
 		void VKRenderer::PresentInternal(api::CommandBuffer* cmdBuffer)
 		{
-			auto result = m_Swapchain->AcquireNextImage(imageAvailableSemaphore);
-
-			if (result == VK_ERROR_OUT_OF_DATE_KHR)
-			{
-				OnResize(m_Width,m_Height);
-				return;
-			}
-			else if (result != VK_SUCCESS && result != VK_SUBOPTIMAL_KHR)
-			{
-				throw std::runtime_error("failed to acquire swap chain image!");
-			}
-
 			((VKCommandBuffer*)cmdBuffer)->ExecuteInternal(VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT,
 				imageAvailableSemaphore, renderFinishedSemaphore, false);
 				//SetPreviousImageAvailable(m_PreviousRenderFinishedSemaphore);
@@ -62,6 +50,18 @@ namespace Lumos
         
         void VKRenderer::PresentInternal()
         {
+            auto result = m_Swapchain->AcquireNextImage(imageAvailableSemaphore);
+            
+            if (result == VK_ERROR_OUT_OF_DATE_KHR)
+            {
+                OnResize(m_Width,m_Height);
+                return;
+            }
+            else if (result != VK_SUCCESS && result != VK_SUBOPTIMAL_KHR)
+            {
+                throw std::runtime_error("failed to acquire swap chain image!");
+            }
+            
             m_Swapchain->Present(renderFinishedSemaphore);
             VK_CHECK_RESULT(vkQueueWaitIdle(VKDevice::Instance()->GetPresentQueue()));
         }
