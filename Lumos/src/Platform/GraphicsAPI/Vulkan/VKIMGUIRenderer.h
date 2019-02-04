@@ -10,6 +10,9 @@ namespace Lumos
 {
 	namespace graphics
 	{
+		class VKFramebuffer;
+		class VKRenderpass;
+
 		class VKIMGUIRenderer : public api::IMGUIRenderer
 		{
         public:
@@ -30,6 +33,8 @@ namespace Lumos
 			uint m_Width;
 			uint m_Height;
             VKCommandBuffer* m_CommandBuffers[3];
+			VKFramebuffer* m_Framebuffers[3];
+			VKRenderpass* m_Renderpass;
             
         };
     }

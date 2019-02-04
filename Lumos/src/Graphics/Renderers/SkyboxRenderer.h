@@ -8,7 +8,7 @@ namespace Lumos
 	class TextureDepth;
 	class Shader;
 
-	class SkyboxRenderer : public Renderer3D
+	class LUMOS_EXPORT SkyboxRenderer : public Renderer3D
 	{
 	public:
 		SkyboxRenderer(uint width, uint height);

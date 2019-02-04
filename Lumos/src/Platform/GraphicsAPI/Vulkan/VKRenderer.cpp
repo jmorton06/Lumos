@@ -57,7 +57,7 @@ namespace Lumos
 			((VKCommandBuffer*)cmdBuffer)->ExecuteInternal(VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT,
 				m_PreviousImageAvailableSemaphore, m_PreviousRenderFinishedSemaphore, false);
 				SetPreviousImageAvailable(m_PreviousRenderFinishedSemaphore);
-            //    SetPreviousRenderFinish(m_PreviousImageAvailableSemaphore);
+                SetPreviousRenderFinish(m_PreviousImageAvailableSemaphore);
 		}
         
         void VKRenderer::PresentInternal()

@@ -255,6 +255,17 @@ namespace Lumos
 
 		EndOffScreen();
 
+		LightPass();
+	}
+
+	void DeferredRenderer::LightPass()
+	{
+		int commandBufferIndex = Renderer::GetRenderer()->GetSwapchain()->GetCurrentBufferId();
+
+		Begin(commandBufferIndex);
+		Present();
+		End();
+		PresentToScreen();
 	}
 
 	void DeferredRenderer::PresentToScreen()

@@ -93,6 +93,8 @@ namespace Lumos
 		AssetsManager::ReleaseMeshes();
         
         m_LayerStack.Clear();
+		m_SceneManager.release();
+
         Renderer::Release();
 
 		Sound::DeleteSounds();
