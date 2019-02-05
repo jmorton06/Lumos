@@ -13,4 +13,7 @@ public:
 	virtual void Render2D() override;
 	virtual void OnIMGUI() override;
 	void LoadModels();
+
+private:
+	std::unique_ptr<Lumos::TextureDepthArray> m_ShadowTexture;
 };

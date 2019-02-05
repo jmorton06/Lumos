@@ -31,6 +31,7 @@ void Scene3D::OnInit()
 	LoadModels();
 
 	m_pCamera = new ThirdPersonCamera(-20.0f, -40.0f, maths::Vector3(-3.0f, 10.0f, 15.0f), 60.0f, 0.1f, 1000.0f, (float) m_ScreenWidth / (float) m_ScreenHeight);
+	m_SceneBoundingRadius = 20.0f;
 
 	String environmentFiles[11] =
 	{
@@ -58,8 +59,13 @@ void Scene3D::OnInit()
 
 	SoundSystem::Instance()->SetListener(m_pCamera);
     
-    Application::Instance()->PushOverLay(new ImGuiLayer());
+	m_ShadowTexture = std::unique_ptr<TextureDepthArray>(TextureDepthArray::Create(4096, 4096, 4));
+
+	auto shadowRenderer = new ShadowRenderer(m_ShadowTexture.get(), 4096, 4);
+	Application::Instance()->GetRenderManager()->SetShadowRenderer(shadowRenderer);
+	Application::Instance()->PushLayer(new Layer3D(shadowRenderer));
 	Application::Instance()->PushLayer(new Layer3D(new DeferredRenderer(m_ScreenWidth, m_ScreenHeight)));
+    Application::Instance()->PushOverLay(new ImGuiLayer(false));
     //Application::Instance()->PushLayer(new Layer3D(new ForwardRenderer(m_ScreenWidth, m_ScreenHeight)));
 }
 
@@ -78,8 +84,7 @@ void Scene3D::OnCleanupScene()
 	{
 		SAFE_DELETE(m_pCamera)
         SAFE_DELETE(m_EnvironmentMap);
-        
-        Application::Instance()->ClearLayers();
+		m_ShadowTexture.reset();
 	}
 
 	Scene::OnCleanupScene();

@@ -4,6 +4,7 @@
 #include "Audio/SoundSystem.h"
 #include "Graphics/API/Textures/Texture2D.h"
 #include "Graphics/Renderers/DebugRenderer.h"
+#include "Graphics/RenderManager.h"
 #include "Physics/B2PhysicsEngine/B2PhysicsEngine.h"
 #include "Physics/JMPhysicsEngine/JMPhysicsEngine.h"
 #include "App/Scene.h"
@@ -48,10 +49,16 @@ namespace Lumos
 		m_Window->SetEventCallback(BIND_EVENT_FN(Application::OnEvent));
 
         m_SceneManager = std::make_unique<SceneManager>();
+		m_RenderManager = std::make_unique<RenderManager>();
+
+		IMGUI_CHECKVERSION();
+		ImGui::CreateContext();
+		ImGui::StyleColorsDark();
 	}
 
 	Application::~Application()
 	{
+		ImGui::DestroyContext();
 	}
 
 	void Application::Init()
@@ -76,7 +83,7 @@ namespace Lumos
 
         AssetsManager::InitializeMeshes();
 
-		m_LayerStack = LayerStack();
+		m_LayerStack = new LayerStack();
 
         m_CurrentState = AppState::Running;
 		m_PhysicsThread = std::thread(PhysicsUpdate, 1000.0f/120.0f);
@@ -92,7 +99,7 @@ namespace Lumos
 		Input::Release();
 		AssetsManager::ReleaseMeshes();
         
-        m_LayerStack.Clear();
+        m_LayerStack->Clear();
 		m_SceneManager.release();
 
         Renderer::Release();
@@ -192,11 +199,14 @@ namespace Lumos
 
 	void Application::OnRender()
 	{
-        for (Layer* layer : m_LayerStack)
-			layer->OnRender(m_SceneManager->GetCurrentScene());
+		if (m_LayerStack->GetCount() > 0)
+		{
+			Renderer::GetRenderer()->Begin();
 
-        if(m_LayerStack.GetCount() > 0)
-            Renderer::GetRenderer()->Present();
+			m_LayerStack->OnRender(m_SceneManager->GetCurrentScene());
+
+			Renderer::GetRenderer()->Present();
+		}
 	}
 
 	void Application::OnUpdate(TimeStep* dt)
@@ -217,11 +227,10 @@ namespace Lumos
 		if (Input::GetInput().GetKeyPressed(LUMOS_KEY_R)) m_SceneManager->JumpToScene(sceneIdx);
 		if (Input::GetInput().GetKeyPressed(LUMOS_KEY_V)) m_Window->ToggleVSync();
 
-		for (Layer* layer : m_LayerStack)
-			layer->OnUpdate(m_TimeStep.get());
-
 		m_SceneManager->GetCurrentScene()->OnUpdate(m_TimeStep.get());
 		SoundSystem::Instance()->Update(m_TimeStep.get());
+
+		m_LayerStack->OnUpdate(m_TimeStep.get());
 	}
 
 	void Application::OnEvent(Event& e)
@@ -234,12 +243,7 @@ namespace Lumos
 
 		m_SceneManager->GetCurrentScene()->OnEvent(e);
 
-		for (auto it = m_LayerStack.end(); it != m_LayerStack.begin();)
-		{
-			(*--it)->OnEvent(e);
-			if (e.Handled())
-				break;
-		}
+		m_LayerStack->OnEvent(e);
 	}
 
 	void Application::Run()
@@ -253,15 +257,15 @@ namespace Lumos
 		Quit();
 	}
 
-	void Application::PushLayer(Layer * layer)
+	void Application::PushLayer(Layer* layer)
 	{
-		m_LayerStack.PushLayer(layer);
+		m_LayerStack->PushLayer(layer);
 		layer->OnAttach();
 	}
 
-	void Application::PushOverLay(Layer * overlay)
+	void Application::PushOverLay(Layer* overlay)
 	{
-		m_LayerStack.PushOverlay(overlay);
+		m_LayerStack->PushOverlay(overlay);
 		overlay->OnAttach();
 	}
 
@@ -296,9 +300,9 @@ namespace Lumos
 
     void Application::SetScene(Scene* scene)
     {
-        for (auto it = m_LayerStack.end(); it != m_LayerStack.begin();)
+       /* for (auto it = m_LayerStack->end(); it != m_LayerStack->begin();)
         {
             (*--it)->OnNewScene(m_SceneManager->GetCurrentScene());
-        }
+        }*/
     }
 }

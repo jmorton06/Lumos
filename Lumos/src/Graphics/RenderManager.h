@@ -7,6 +7,7 @@ namespace Lumos
     class TextureCube;
     class TextureDepthArray;
     class GBuffer;
+	class ShadowRenderer;
     
     class LUMOS_EXPORT RenderManager
     {
@@ -28,7 +29,12 @@ namespace Lumos
         void SetNumShadowMaps(uint num) { m_NumShadowMaps = num; }
         void SetSkyBoxTexture(TextureCube* cube) { m_SkyBoxTexture = cube; }
         void SetTextureDepthArray(TextureDepthArray* texture) { m_ShadowTexture = texture; }
-        
+
+		ShadowRenderer* GetShadowRenderer() const { return m_ShadowRenderer; };
+		void SetShadowRenderer(ShadowRenderer* renderer) { m_ShadowRenderer = renderer; }
+
+		//TODO refactor
+		
     private:
         bool m_ReflectSkyBox = false;
         bool m_UseShadowMap = false;
@@ -38,6 +44,8 @@ namespace Lumos
         Texture* m_ScreenTexture = nullptr;
         
         GBuffer* m_GBuffer = nullptr;
+
+		ShadowRenderer* m_ShadowRenderer = nullptr;
     };
 }
 

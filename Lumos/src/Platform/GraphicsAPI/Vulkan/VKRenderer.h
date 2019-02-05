@@ -47,7 +47,6 @@ namespace Lumos
 			void ClearInternal(uint buffer) override;
 			void PresentInternal() override;
 			void PresentInternal(api::CommandBuffer* cmdBuffer) override;
-            void Prensent(VkCommandBuffer commandBuffer);
 
 			void SetColourMaskInternal(bool r, bool g, bool b, bool a) override;
 			void SetDepthTestingInternal(bool enabled) override;
@@ -73,22 +72,14 @@ namespace Lumos
 			void RenderMeshInternal(Mesh* mesh, graphics::api::Pipeline* pipeline, graphics::api::CommandBuffer* cmdBuffer, uint dynamicOffset, graphics::api::DescriptorSet* descriptorSet, bool useMaterialDescriptorSet) override;
 
             void CreateSemaphores();
-            
-			//VkSemaphore& GetPreviousImageAvailable() { return m_PreviousImageAvailableSemaphore;}
-			//VkSemaphore& GetPreviousRenderFinish() { return m_PreviousRenderFinishedSemaphore;}
-			//void SetPreviousImageAvailable(VkSemaphore& sem) { m_PreviousImageAvailableSemaphore = sem;}
-			//void SetPreviousRenderFinish(VkSemaphore& sem) { m_PreviousRenderFinishedSemaphore = sem;}
 
 		private:
 			Lumos::graphics::VKContext* m_Context;
 
 			Lumos::graphics::VKSwapchain* m_Swapchain;
 
-			VkSemaphore imageAvailableSemaphore;
-			VkSemaphore renderFinishedSemaphore;
-            
-           // VkSemaphore m_PreviousImageAvailableSemaphore;
-           // VkSemaphore m_PreviousRenderFinishedSemaphore;
+			VkSemaphore m_ImageAvailableSemaphore[5];
+			uint m_CurrentSemaphoreIndex = 0;
 
 			String m_RendererTitle;
 			uint m_Width, m_Height;

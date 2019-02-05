@@ -16,7 +16,7 @@ namespace Lumos
 		class VKIMGUIRenderer : public api::IMGUIRenderer
 		{
         public:
-            VKIMGUIRenderer(uint width, uint height);
+            VKIMGUIRenderer(uint width, uint height, bool clearScreen);
             ~VKIMGUIRenderer();
 
             void Init() override;
@@ -35,6 +35,7 @@ namespace Lumos
             VKCommandBuffer* m_CommandBuffers[3];
 			VKFramebuffer* m_Framebuffers[3];
 			VKRenderpass* m_Renderpass;
+			bool m_ClearScreen;
             
         };
     }

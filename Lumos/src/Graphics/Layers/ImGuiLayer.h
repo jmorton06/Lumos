@@ -20,7 +20,7 @@ namespace Lumos
 	class LUMOS_EXPORT ImGuiLayer : public Layer
 	{
 	public:
-		ImGuiLayer(const std::string& name = "ImGuiLayer");
+		ImGuiLayer(bool clearScreen = false, const std::string& name = "ImGuiLayer");
 		~ImGuiLayer();
 
 		void OnAttach() override;
@@ -43,6 +43,7 @@ namespace Lumos
 		void SetImGuiKeyCodes();
 
         std::unique_ptr<graphics::api::IMGUIRenderer> m_IMGUIRenderer;
+		bool m_ClearScreen;
 	};
 
 }

@@ -29,6 +29,7 @@
 #include "Maths/BoundingSphere.h"
 #include "ShadowRenderer.h"
 #include "App/Application.h"
+#include "Graphics/RenderManager.h"
 
 #define MAX_LIGHTS 10
 
@@ -192,14 +193,14 @@ namespace Lumos
 		m_ClearColour = maths::Vector4(0.8f, 0.8f, 0.8f, 1.0f);
 
 		m_SkyboxRenderer = nullptr;
-		m_ShadowTexture  = std::unique_ptr<TextureDepthArray>(TextureDepthArray::Create(4096, 4096, 4));
-        m_ShadowRenderer = std::make_unique<ShadowRenderer>(m_ShadowTexture.get(), 4096, 4);
+		//m_ShadowTexture  = std::unique_ptr<TextureDepthArray>(TextureDepthArray::Create(4096, 4096, 4));
+        //m_ShadowRenderer = std::make_unique<ShadowRenderer>(m_ShadowTexture.get(), 4096, 4);
 	}
 
 	void DeferredRenderer::RenderScene(RenderList* renderList, Scene* scene)
 	{
-		if(m_ShadowRenderer)
-			m_ShadowRenderer->RenderScene(nullptr, scene);
+		//if(m_ShadowRenderer)
+		//	m_ShadowRenderer->RenderScene(nullptr, scene);
 
 		SubmitLightSetup(*scene->GetLightSetup(),scene);
 
@@ -354,11 +355,12 @@ namespace Lumos
 			memcpy(m_PSSystemUniformBuffer + currentOffset, &cameraPos, sizeof(maths::Vector4));
 			currentOffset += sizeof(maths::Vector4);
 
-			if(m_ShadowRenderer)
+			auto shadowRenderer = Application::Instance()->GetRenderManager()->GetShadowRenderer();
+			if(shadowRenderer)
 			{
-				maths::Matrix4* shadowTransforms = m_ShadowRenderer->GetShadowProjView();
+				maths::Matrix4* shadowTransforms = shadowRenderer->GetShadowProjView();
 				auto viewMat = scene->GetCamera()->GetViewMatrix();
-                Lumos::maths::Vector4* uSplitDepth = m_ShadowRenderer->GetSplitDepths();
+                Lumos::maths::Vector4* uSplitDepth = shadowRenderer->GetSplitDepths();
 
 				memcpy(m_PSSystemUniformBuffer + currentOffset, &viewMat, sizeof(maths::Matrix4));
 				currentOffset += sizeof(maths::Matrix4);
@@ -853,10 +855,14 @@ namespace Lumos
 		imageInfo6.name = "uEnvironmentMap";
 
 		graphics::api::ImageInfo imageInfo7 = {};
-		imageInfo7.texture = (Texture*)m_ShadowTexture.get();
-		imageInfo7.binding = 6;
-		imageInfo7.type = TextureType::DEPTHARRAY;
-		imageInfo7.name = "uShadowMap";
+		auto shadowRenderer = Application::Instance()->GetRenderManager()->GetShadowRenderer();
+		if (shadowRenderer)
+		{
+			imageInfo7.texture = (Texture*)shadowRenderer->GetTexture();
+			imageInfo7.binding = 6;
+			imageInfo7.type = TextureType::DEPTHARRAY;
+			imageInfo7.name = "uShadowMap";
+		}
 
 		graphics::api::ImageInfo imageInfo8 = {};
 		imageInfo8.texture = m_GBuffer->m_DepthTexture;
@@ -870,8 +876,9 @@ namespace Lumos
 		bufferInfos.push_back(imageInfo4);
 		bufferInfos.push_back(imageInfo5);
 		if(m_CubeMap)
-			bufferInfos.push_back(imageInfo6);
-		bufferInfos.push_back(imageInfo7);
+			bufferInfos.push_back(imageInfo6); 
+		if (shadowRenderer)
+			bufferInfos.push_back(imageInfo7);
 
 		m_DeferredDescriptorSet->Update(bufferInfos);
 	}

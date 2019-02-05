@@ -7,6 +7,9 @@
 
 namespace Lumos
 {
+	struct TimeStep;
+	class Scene;
+	class Event;
 
 	class LUMOS_EXPORT LayerStack
 	{
@@ -18,14 +21,16 @@ namespace Lumos
 		void PushOverlay(Layer* overlay);
 		void PopLayer(Layer* layer);
 		void PopOverlay(Layer* overlay);
-        void Clear();
+		void Clear();
 
-		std::deque<Layer*>::iterator begin() { return m_Layers.begin(); }
-		std::deque<Layer*>::iterator end() { return m_Layers.end(); }
-        
-        uint GetCount() const { return (uint)m_Layers.size(); }
+		void OnRender(Scene* scene);
+		void OnUpdate(TimeStep* timeStep);
+		void OnEvent(Event& e);
+
+		uint GetCount() const { return (uint)m_Layers.size() + (uint)m_Overlays.size(); }
+
 	private:
-		std::deque<Layer*> m_Layers;
+		std::vector<Layer*> m_Layers;
+		std::vector<Layer*> m_Overlays;
 	};
-
 }
