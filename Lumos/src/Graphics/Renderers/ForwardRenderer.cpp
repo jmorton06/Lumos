@@ -67,7 +67,7 @@ namespace Lumos
 							if (mesh->GetMaterial())
 							{
 								if(mesh->GetMaterial()->GetDescriptorSet() == nullptr || mesh->GetMaterial()->GetPipeline() != m_GraphicsPipeline)
-									mesh->GetMaterial()->CreateDescriptorSet(m_GraphicsPipeline, 1);
+									mesh->GetMaterial()->CreateDescriptorSet(m_GraphicsPipeline, 1, false);
 							}
 
 							TextureMatrixComponent* textureMatrixTransform = obj->GetComponent<TextureMatrixComponent>();
@@ -89,10 +89,8 @@ namespace Lumos
 			EndScene();
 			End();
 		}
-#ifdef LUMOS_RENDER_API_VULKAN
-		if (graphics::Context::GetRenderAPI() == RenderAPI::VULKAN)
-			graphics::VKRenderer::GetRenderer()->Present(static_cast<graphics::VKCommandBuffer*>(commandBuffers[graphics::VKRenderer::GetRenderer()->GetSwapchain()->GetCurrentBufferId()]));
-#endif
+
+		Renderer::GetRenderer()->Present((commandBuffers[Renderer::GetRenderer()->GetSwapchain()->GetCurrentBufferId()]));
 	}
 
 	enum VSSystemUniformIndices : int32
@@ -232,8 +230,6 @@ namespace Lumos
         commandBuffers[i]->BeginRecording();
 
 		m_RenderPass->BeginRenderpass(commandBuffers[i], m_ClearColour, m_Framebuffers[i], graphics::api::SECONDARY, m_ScreenBufferWidth, m_ScreenBufferHeight);
-		m_Shader->Bind();
-
     }
 
 	void ForwardRenderer::BeginScene(Scene* scene)

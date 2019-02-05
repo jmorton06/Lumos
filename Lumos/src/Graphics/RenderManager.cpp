@@ -10,5 +10,6 @@ namespace Lumos
         m_NumShadowMaps = 4;
         m_SkyBoxTexture = nullptr;
         m_ShadowTexture = nullptr;
+		m_ShadowRenderer = nullptr;
     }
 }

@@ -14,6 +14,7 @@ namespace Lumos
 	struct TimeStep;
 	class Window;
     class SceneManager;
+	class RenderManager;
 
     enum class AppState
     {
@@ -38,12 +39,13 @@ namespace Lumos
 		void OnImGui();
 		void PushLayer(Layer* layer);
 		void PushOverLay(Layer* overlay);
-        void ClearLayers() { m_LayerStack.Clear(); };
+		void ClearLayers() { m_LayerStack->Clear(); };
         void SetScene(Scene* scene);
 
 		virtual void Init();
 
         SceneManager* GetSceneManager() const { return m_SceneManager.get(); }
+		RenderManager* GetRenderManager() const { return m_RenderManager.get(); }
         Window* GetWindow() const { return m_Window.get(); }
         AppState GetState() const { return m_CurrentState; }
 
@@ -66,8 +68,9 @@ namespace Lumos
 
 		std::unique_ptr<Window> m_Window;
         std::unique_ptr<SceneManager> m_SceneManager;
+		std::unique_ptr<RenderManager> m_RenderManager;
 
-		LayerStack m_LayerStack;
+		LayerStack* m_LayerStack;
 
         AppState m_CurrentState = AppState::Loading;
 

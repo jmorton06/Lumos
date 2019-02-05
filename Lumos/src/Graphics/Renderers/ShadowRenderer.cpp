@@ -325,7 +325,7 @@ namespace Lumos
                 radius = maths::Max(radius, distance);
             }
             radius = std::ceil(radius * 16.0f) / 16.0f;
-			float sceneBoundingRadius = 50.0f;
+			float sceneBoundingRadius = scene->GetWorldRadius();
 			//Extend the Z depths to catch shadow casters outside view frustum
 			radius = maths::Max(radius, sceneBoundingRadius);
 
@@ -420,7 +420,7 @@ namespace Lumos
         pipelineCI.strideSize = sizeof(Vertex);
         pipelineCI.numColorAttachments = 0;
         pipelineCI.wireframeEnabled = false;
-        pipelineCI.cullMode = graphics::api::CullMode::NONE;
+        pipelineCI.cullMode = graphics::api::CullMode::FRONT;
         pipelineCI.transparencyEnabled = false;
         pipelineCI.depthBiasEnabled = true;
         pipelineCI.width = m_ShadowMapSize;

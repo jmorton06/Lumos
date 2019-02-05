@@ -18,7 +18,7 @@ void SceneSelect::OnInit()
     m_SceneNames = Application::Instance()->GetSceneManager()->GetSceneNames();
     m_pCamera = new ThirdPersonCamera(-20.0f, -40.0f, maths::Vector3(-3.0f, 10.0f, 15.0f), 60.0f, 0.1f, 10000.0f, (float) m_ScreenWidth / (float) m_ScreenHeight);
     
-    Application::Instance()->PushOverLay(new ImGuiLayer());
+    Application::Instance()->PushOverLay(new ImGuiLayer(true));
 }
 
 void SceneSelect::OnIMGUI()
@@ -30,8 +30,11 @@ void SceneSelect::OnIMGUI()
         if(name == "SceneSelect")
             continue;
 
-        if(ImGui::Button(name.c_str()))
+		if (ImGui::Button(name.c_str()))
+		{
             Application::Instance()->GetSceneManager()->JumpToScene(name);
+			break;
+		}
     }
 
 
@@ -43,7 +46,6 @@ void SceneSelect::OnCleanupScene()
     if (m_CurrentScene)
     {
         SAFE_DELETE(m_pCamera);
-        Application::Instance()->ClearLayers();
     }
 
     Scene::OnCleanupScene();
