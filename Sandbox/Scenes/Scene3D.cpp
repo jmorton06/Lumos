@@ -58,15 +58,16 @@ void Scene3D::OnInit()
 	lightDirection = maths::Vector3(26.0f, 22.0f, 48.5f);
 
 	SoundSystem::Instance()->SetListener(m_pCamera);
-    
-	m_ShadowTexture = std::unique_ptr<TextureDepthArray>(TextureDepthArray::Create(4096, 4096, 4));
 
-	auto shadowRenderer = new ShadowRenderer(m_ShadowTexture.get(), 4096, 4);
-	Application::Instance()->GetRenderManager()->SetShadowRenderer(shadowRenderer);
+	m_ShadowTexture = std::unique_ptr<TextureDepthArray>(TextureDepthArray::Create(4096, 4096, 4));
+	auto shadowRenderer = new ShadowRenderer();
+
 	Application::Instance()->PushLayer(new Layer3D(shadowRenderer));
 	Application::Instance()->PushLayer(new Layer3D(new DeferredRenderer(m_ScreenWidth, m_ScreenHeight)));
     Application::Instance()->PushOverLay(new ImGuiLayer(false));
     //Application::Instance()->PushLayer(new Layer3D(new ForwardRenderer(m_ScreenWidth, m_ScreenHeight)));
+
+	Application::Instance()->GetRenderManager()->SetShadowRenderer(shadowRenderer);
 }
 
 void Scene3D::OnUpdate(TimeStep* timeStep)

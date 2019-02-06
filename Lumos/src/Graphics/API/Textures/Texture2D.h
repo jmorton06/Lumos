@@ -22,7 +22,7 @@ namespace Lumos
 		static Texture2D* CreateFromFile(const String& filepath, TextureLoadOptions loadOptions);
 		static Texture2D* CreateFromFile(const String& name, const String& filepath, TextureParameters parameters = TextureParameters(), TextureLoadOptions loadOptions = TextureLoadOptions());
 		static Texture2D* CreateFromFile(const String& name, const String& filepath, TextureLoadOptions loadOptions);
-		static Texture2D* Create(int width, int height, const void* pixels);
+		static Texture2D* Create(int width, int height, void* pixels);
 
 		virtual void BuildTexture(TextureFormat internalformat, uint width, uint height, bool depth, bool samplerShadow) = 0;
 	};

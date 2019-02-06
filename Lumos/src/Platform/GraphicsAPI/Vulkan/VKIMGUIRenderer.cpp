@@ -196,6 +196,17 @@ namespace Lumos
 				m_CommandBuffers[wd->FrameIndex]->EndRecording();
 				m_CommandBuffers[wd->FrameIndex]->Execute(false);
 
+				//ImGuiIO& io = ImGui::GetIO();
+				//
+				//unsigned char* pixels;
+				//int width, height;
+				//io.Fonts->GetTexDataAsRGBA32(&pixels, &width, &height);
+				//size_t upload_size = width * height * 4 * sizeof(char);
+				//
+				//auto fontTex = new VKTexture2D(width, height, pixels);
+				//
+				//io.Fonts->TexID = (ImTextureID)(intptr_t)fontTex->GetImage();
+
                 ImGui_ImplVulkan_InvalidateFontUploadObjects();
             }
         }
@@ -247,7 +258,7 @@ namespace Lumos
             wd->Width = width;
             wd->Height = height;
 
-			for (int i = 0; i < wd->BackBufferCount; i++)
+			for (uint32_t i = 0; i < wd->BackBufferCount; i++)
 			{
 				delete m_Framebuffers[i];
 			}

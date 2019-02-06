@@ -34,7 +34,7 @@ namespace Lumos
 			VKTexture2D(uint width, uint height, TextureParameters parameters, TextureLoadOptions loadOptions, void* data);
 			VKTexture2D(uint width, uint height, uint color, TextureParameters parameters = TextureParameters(), TextureLoadOptions loadOptions = TextureLoadOptions());
 			VKTexture2D(const String& name, const String& filename, TextureParameters parameters = TextureParameters(), TextureLoadOptions loadOptions = TextureLoadOptions());
-			VKTexture2D(int width, int height, const void* pixels);
+			VKTexture2D(int width, int height, void* pixels);
 			VKTexture2D(VkImage image, VkImageView imageView);
 			VKTexture2D();
 			~VKTexture2D();
