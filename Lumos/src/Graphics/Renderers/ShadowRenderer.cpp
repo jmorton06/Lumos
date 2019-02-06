@@ -34,6 +34,7 @@ namespace Lumos
 		, m_ModelUniformBuffer(nullptr)
 	{
 		m_apShadowRenderLists = new RenderList*[SHADOWMAP_MAX];
+
 		//Initialize the shadow render lists
 		for (uint i = 0; i < m_ShadowMapNum; ++i)
 		{
@@ -52,8 +53,6 @@ namespace Lumos
 		}
 		else
 			m_ShadowTex = texture;
-
-		Renderer::GetRenderer()->SetRenderTargets(0);
 
         m_DescriptorSet = nullptr;
 
@@ -246,8 +245,6 @@ namespace Lumos
 
 		}
 		End();
-
-		Renderer::SetCulling(true);
 	}
 
     float cascadeSplitLambda = 0.95f;
@@ -325,9 +322,9 @@ namespace Lumos
                 radius = maths::Max(radius, distance);
             }
             radius = std::ceil(radius * 16.0f) / 16.0f;
-			float sceneBoundingRadius = scene->GetWorldRadius();
+			//float sceneBoundingRadius = scene->GetWorldRadius();
 			//Extend the Z depths to catch shadow casters outside view frustum
-			radius = maths::Max(radius, sceneBoundingRadius);
+			//radius = maths::Max(radius, sceneBoundingRadius);
 
             maths::Vector3 maxExtents =  maths::Vector3(radius);
             maths::Vector3 minExtents = -maxExtents;

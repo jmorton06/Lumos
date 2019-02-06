@@ -4,12 +4,15 @@
 #define IMGUI_IMPL_OPENGL_LOADER_GLAD
 #include "external/imgui/examples/imgui_impl_opengl3.h"
 
+#include "GLDebug.h"
+
 namespace Lumos
 {
     namespace graphics
     {
-        GLIMGUIRenderer::GLIMGUIRenderer(uint width, uint height)
+        GLIMGUIRenderer::GLIMGUIRenderer(uint width, uint height, bool clearScreen)
         {
+			m_ClearScreen = clearScreen;
             m_Implemented = true;
             ImGui_ImplOpenGL3_Init("#version 410");
             ImGui_ImplOpenGL3_NewFrame();
@@ -31,6 +34,10 @@ namespace Lumos
 
         void GLIMGUIRenderer::Render(Lumos::graphics::api::CommandBuffer* commandBuffer)
         {
+			if (m_ClearScreen)
+			{
+				GLCall(glClear(GL_COLOR_BUFFER_BIT));
+			}
             ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
         }
 

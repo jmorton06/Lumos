@@ -355,7 +355,7 @@ namespace Lumos
 			memcpy(m_PSSystemUniformBuffer + currentOffset, &cameraPos, sizeof(maths::Vector4));
 			currentOffset += sizeof(maths::Vector4);
 
-			auto shadowRenderer = Application::Instance()->GetRenderManager()->GetShadowRenderer();
+			auto shadowRenderer = Application::Instance()->GetRenderManager()->GetShadowRenderer();// m_ShadowRenderer.get(); 
 			if(shadowRenderer)
 			{
 				maths::Matrix4* shadowTransforms = shadowRenderer->GetShadowProjView();
@@ -734,8 +734,9 @@ namespace Lumos
 
 		DeferredRenderer::SetScreenBufferSize(width, height);
 
-		m_GBuffer->UpdateTextureSize(m_ScreenBufferWidth,m_ScreenBufferHeight);
-
+		//m_GBuffer->UpdateTextureSize(m_ScreenBufferWidth,m_ScreenBufferHeight);
+		m_GBuffer.reset();
+		m_GBuffer = std::make_unique<GBuffer>(m_ScreenBufferWidth, m_ScreenBufferHeight);
 		m_DepthTexture = TextureDepth::Create(m_ScreenBufferWidth, m_ScreenBufferHeight);
 
         CreateOffScreenPipeline();
@@ -855,7 +856,7 @@ namespace Lumos
 		imageInfo6.name = "uEnvironmentMap";
 
 		graphics::api::ImageInfo imageInfo7 = {};
-		auto shadowRenderer = Application::Instance()->GetRenderManager()->GetShadowRenderer();
+		auto shadowRenderer = Application::Instance()->GetRenderManager()->GetShadowRenderer(); ;// m_ShadowRenderer.get();//
 		if (shadowRenderer)
 		{
 			imageInfo7.texture = (Texture*)shadowRenderer->GetTexture();

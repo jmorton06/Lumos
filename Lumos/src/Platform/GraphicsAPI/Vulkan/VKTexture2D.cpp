@@ -73,14 +73,19 @@ namespace Lumos
 			UpdateDescriptor();
 		}
 
-		VKTexture2D::VKTexture2D(int width, int height, const void* pixels)
+		VKTexture2D::VKTexture2D(int width, int height, void* pixels)
 			: m_FileName("NULL"), m_TextureSampler(NULL), m_TextureImageView(NULL)
 		{
 			m_Width = width;
 			m_Height = height;
 			m_Parameters = TextureParameters();
 			m_LoadOptions = TextureLoadOptions();
+			m_Data = static_cast<byte*>(pixels);
 			Load();
+
+			m_TextureImageView = createImageView(m_TextureImage, VK_FORMAT_R8G8B8A8_UNORM, VK_IMAGE_ASPECT_COLOR_BIT, m_MipLevels);
+
+			CreateTextureSampler();
 
 			UpdateDescriptor();
 		}
@@ -160,14 +165,11 @@ namespace Lumos
 			m_Width = width;
 			m_Height = height;
 			m_Handle = 0;
-			m_DeleteImage = false;
+			m_DeleteImage = true;
 			m_MipLevels = 1;
 			CreateImage(m_Width, m_Height, m_MipLevels,TextureFormatToVK(internalformat), VK_IMAGE_TILING_OPTIMAL,
 				VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT | VK_IMAGE_USAGE_SAMPLED_BIT, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, m_TextureImage,
 				m_TextureImageMemory);
-
-			VKCommandBuffer cmdBuffer;
-			cmdBuffer.Init(true);
 
 			//VKTools::SetImageLayout(m_TextureImage, VK_IMAGE_ASPECT_COLOR_BIT, VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL, NULL, &cmdBuffer, true);
 

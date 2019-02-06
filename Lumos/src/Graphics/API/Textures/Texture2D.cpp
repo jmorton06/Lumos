@@ -136,7 +136,7 @@ namespace Lumos
 		return nullptr;
 	}
 
-	Texture2D* Texture2D::Create(int width, int height, const void* pixels)
+	Texture2D* Texture2D::Create(int width, int height, void* pixels)
 	{
 		switch (graphics::Context::GetRenderAPI())
 		{

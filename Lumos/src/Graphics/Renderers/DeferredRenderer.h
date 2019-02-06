@@ -133,8 +133,8 @@ namespace Lumos
 		int m_CommandBufferIndex = 0;
 
 		std::unique_ptr<GBuffer> m_GBuffer;
-		//std::unique_ptr<ShadowRenderer> m_ShadowRenderer;
-		////std::unique_ptr<TextureDepthArray> m_ShadowTexture;
+		std::unique_ptr<ShadowRenderer> m_ShadowRenderer;
+		std::unique_ptr<TextureDepthArray> m_ShadowTexture;
 		SkyboxRenderer* m_SkyboxRenderer;
 		Texture* m_CubeMap = nullptr;
 	};
