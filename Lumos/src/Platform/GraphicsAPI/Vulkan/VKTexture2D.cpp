@@ -93,6 +93,7 @@ namespace Lumos
 		VKTexture2D::VKTexture2D(VkImage image, VkImageView imageView) : m_TextureImage(image), m_TextureImageView(imageView), m_TextureSampler(NULL)
 		{
 			m_DeleteImage = false;
+			m_TextureImageMemory = NULL;
 		}
 
 		VKTexture2D::VKTexture2D()
@@ -118,7 +119,10 @@ namespace Lumos
 			if (m_DeleteImage)
 			{
 				vkDestroyImage(VKDevice::Instance()->GetDevice(), m_TextureImage, nullptr);
-				vkFreeMemory(VKDevice::Instance()->GetDevice(), m_TextureImageMemory, nullptr);
+				if (m_TextureImageMemory)
+				{
+					vkFreeMemory(VKDevice::Instance()->GetDevice(), m_TextureImageMemory, nullptr);
+				}
 			}
 		}
 

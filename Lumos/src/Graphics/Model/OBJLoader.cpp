@@ -122,7 +122,7 @@ namespace Lumos
 
 				if (mp->diffuse_texname.length() > 0)
 				{
-					std::shared_ptr<Texture2D> texture = LoadMaterialTextures("Albedo", m_Textures, mp->diffuse_texname, m_Directory, TextureParameters(TextureWrap::REPEAT));
+					std::shared_ptr<Texture2D> texture = LoadMaterialTextures("Albedo", m_Textures, mp->diffuse_texname, m_Directory, TextureParameters(TextureFilter::NEAREST, TextureWrap::CLAMP_TO_EDGE));
 					if (texture)
 						textures.albedo = texture;
 				}

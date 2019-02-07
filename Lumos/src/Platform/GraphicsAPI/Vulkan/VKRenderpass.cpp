@@ -14,6 +14,7 @@ namespace Lumos
 		{
 			m_RenderPass = VK_NULL_HANDLE;
 			m_ClearValue = NULL;
+			m_ClearDepth = false;
 		}
 
 		VKRenderpass::~VKRenderpass()
@@ -80,7 +81,7 @@ namespace Lumos
 			dependency.srcStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
 			dependency.srcAccessMask = 0;
 			dependency.dstStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
-			dependency.dstAccessMask = /*VK_ACCESS_COLOR_ATTACHMENT_READ_BIT |*/ VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;
+			dependency.dstAccessMask = VK_ACCESS_COLOR_ATTACHMENT_READ_BIT | VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;
 
 			std::vector<VkAttachmentDescription> attachments;
 
@@ -104,6 +105,7 @@ namespace Lumos
 					depthAttachmentRef.attachment = i;
 					depthAttachmentRef.layout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
 					depthAttachmentReferences.push_back(depthAttachmentRef);
+					m_ClearDepth = true;
 				}
 				else if (renderpassCI.textureType[i] == TextureType::DEPTHARRAY)
 				{
@@ -111,6 +113,7 @@ namespace Lumos
 					depthAttachmentRef.attachment = i;
 					depthAttachmentRef.layout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
 					depthAttachmentReferences.push_back(depthAttachmentRef);
+					m_ClearDepth = true;
 				}
 			}
 
@@ -168,8 +171,10 @@ namespace Lumos
 				}
 			}
 
-
-			m_ClearValue[m_ClearCount - 1].depthStencil = { 1.0f , 0 };
+			if (m_ClearDepth)
+			{
+				m_ClearValue[m_ClearCount - 1].depthStencil = { 1.0f , 0 };
+			}
 
 			VkRenderPassBeginInfo rpBegin{};
 			rpBegin.sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO;
