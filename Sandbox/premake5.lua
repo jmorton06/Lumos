@@ -115,6 +115,7 @@ project "Sandbox"
 	filter "configurations:Release"
 		defines "LUMOS_RELEASE"
 		optimize "On"
+		symbols "On"
 
 	filter "configurations:Dist"
 		defines "LUMOS_DIST"

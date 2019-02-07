@@ -43,6 +43,9 @@ namespace Lumos
 		delete m_FBO;
 		delete m_DefaultTexture;
 		delete m_UniformBuffer;
+        
+        AlignedFree(uboDataDynamic.model);
+        
 		delete m_ModelUniformBuffer;
 		delete m_RenderPass;
 		delete m_DepthTexture;

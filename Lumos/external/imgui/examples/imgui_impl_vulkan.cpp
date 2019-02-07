@@ -689,6 +689,7 @@ void    ImGui_ImplVulkan_InvalidateDeviceObjects()
     if (g_FontMemory)           { vkFreeMemory(g_Device, g_FontMemory, g_Allocator); g_FontMemory = VK_NULL_HANDLE; }
     if (g_FontSampler)          { vkDestroySampler(g_Device, g_FontSampler, g_Allocator); g_FontSampler = VK_NULL_HANDLE; }
     if (g_DescriptorSetLayout)  { vkDestroyDescriptorSetLayout(g_Device, g_DescriptorSetLayout, g_Allocator); g_DescriptorSetLayout = VK_NULL_HANDLE; }
+    
     if (g_PipelineLayout)       { vkDestroyPipelineLayout(g_Device, g_PipelineLayout, g_Allocator); g_PipelineLayout = VK_NULL_HANDLE; }
     if (g_Pipeline)             { vkDestroyPipeline(g_Device, g_Pipeline, g_Allocator); g_Pipeline = VK_NULL_HANDLE; }
 }
@@ -1049,18 +1050,18 @@ void ImGui_ImplVulkanH_DestroyWindowData(VkInstance instance, VkDevice device, I
     {
         ImGui_ImplVulkanH_FrameData* fd = &wd->Frames[i];
         vkDestroyFence(device, fd->Fence, allocator);
-        vkFreeCommandBuffers(device, fd->CommandPool, 1, &fd->CommandBuffer);
+        //vkFreeCommandBuffers(device, fd->CommandPool, 1, &fd->CommandBuffer);
         vkDestroyCommandPool(device, fd->CommandPool, allocator);
-        vkDestroySemaphore(device, fd->ImageAcquiredSemaphore, allocator);
-        vkDestroySemaphore(device, fd->RenderCompleteSemaphore, allocator);
+        //vkDestroySemaphore(device, fd->ImageAcquiredSemaphore, allocator);
+        //vkDestroySemaphore(device, fd->RenderCompleteSemaphore, allocator);
     }
     for (uint32_t i = 0; i < wd->BackBufferCount; i++)
     {
-        vkDestroyImageView(device, wd->BackBufferView[i], allocator);
-        vkDestroyFramebuffer(device, wd->Framebuffer[i], allocator);
+        //vkDestroyImageView(device, wd->BackBufferView[i], allocator);
+        //vkDestroyFramebuffer(device, wd->Framebuffer[i], allocator);
     }
-    vkDestroyRenderPass(device, wd->RenderPass, allocator);
-    vkDestroySwapchainKHR(device, wd->Swapchain, allocator);
-    vkDestroySurfaceKHR(instance, wd->Surface, allocator);
+    //vkDestroyRenderPass(device, wd->RenderPass, allocator);
+    //vkDestroySwapchainKHR(device, wd->Swapchain, allocator);
+    //vkDestroySurfaceKHR(instance, wd->Surface, allocator);
     *wd = ImGui_ImplVulkanH_WindowData();
 }

@@ -43,6 +43,15 @@ namespace Lumos
                
 			delete m_Renderpass;
 
+            for (int i = 0; i < IMGUI_VK_QUEUED_FRAMES; i++)
+            {
+                ImGui_ImplVulkanH_FrameData* fd = &g_WindowData.Frames[i];
+                vkDestroyFence(VKDevice::Instance()->GetDevice(), fd->Fence, g_Allocator);
+                vkDestroyCommandPool(VKDevice::Instance()->GetDevice(), fd->CommandPool, g_Allocator);
+            }
+            
+            vkDestroyDescriptorPool(VKDevice::Instance()->GetDevice(),g_DescriptorPool,nullptr);
+            
             ImGui_ImplVulkan_Shutdown();
         }
 
@@ -99,22 +108,11 @@ namespace Lumos
         #endif
             wd->PresentMode = ImGui_ImplVulkanH_SelectPresentMode(VKDevice::Instance()->GetGPU(), wd->Surface, &present_modes[0], IM_ARRAYSIZE(present_modes));
             
-            VkResult err;
             for (int i = 0; i < IMGUI_VK_QUEUED_FRAMES; i++)
             {
                 VKCommandBuffer* commandBuffer = new VKCommandBuffer();
                 commandBuffer->Init(true);
                 m_CommandBuffers[i] = commandBuffer;
-                
-                ImGui_ImplVulkanH_FrameData* fd = &wd->Frames[i];
-                {
-                    VkSemaphoreCreateInfo info = {};
-                    info.sType = VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO;
-                    err = vkCreateSemaphore(VKDevice::Instance()->GetDevice(), &info, nullptr, &fd->ImageAcquiredSemaphore);
-                    check_vk_result(err);
-                    err = vkCreateSemaphore(VKDevice::Instance()->GetDevice(), &info, nullptr, &fd->RenderCompleteSemaphore);
-                    check_vk_result(err);
-                }
             }
             
             auto swapChain = ((VKSwapchain*)VKRenderer::GetRenderer()->GetSwapchain());

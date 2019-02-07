@@ -73,6 +73,7 @@ namespace Lumos
 		}
 
 		delete[] m_apShadowRenderLists;
+        delete[] m_VSSystemUniformBuffer;
         
         delete[] m_PushConstant->data;
         delete m_PushConstant;
@@ -80,6 +81,9 @@ namespace Lumos
 		delete m_DescriptorSet;
 		delete m_Pipeline;
 		delete m_UniformBuffer;
+        
+        AlignedFree(uboDataDynamic.model);
+
 		delete m_ModelUniformBuffer;
 		delete m_CommandBuffer;
 		delete m_RenderPass;
@@ -449,7 +453,7 @@ namespace Lumos
 			}
 
 			uint32_t bufferSize2 = static_cast<uint32_t>(MAX_OBJECTS * dynamicAlignment);
-
+            
 			uboDataDynamic.model = static_cast<maths::Matrix4*>(AlignedAlloc(bufferSize2, dynamicAlignment));
 
 			m_ModelUniformBuffer->Init(bufferSize2, nullptr);
