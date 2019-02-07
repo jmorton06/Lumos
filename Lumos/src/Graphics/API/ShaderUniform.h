@@ -63,6 +63,14 @@ namespace Lumos
 				m_Fields.push_back(field);
 			}
 		}
+        
+        ~ShaderStruct()
+        {
+            for(auto field : m_Fields)
+            {
+                delete field;
+            }
+        }
 
 		void AddField(ShaderUniformDeclaration* field)
 		{
