@@ -64,6 +64,9 @@ namespace Lumos
 		delete m_FBO;
 		delete m_DefaultTexture;
 		delete m_UniformBuffer;
+        
+        AlignedFree(uboDataDynamic.model);
+
 		delete m_ModelUniformBuffer;
 		delete m_LightUniformBuffer;
 		delete m_DeferredRenderpass;
@@ -73,6 +76,8 @@ namespace Lumos
 		delete m_DepthTexture;
 		delete m_ScreenQuad;
         delete m_DefaultDescriptorSet;
+        delete m_DeferredDescriptorSet;
+        delete m_DefaultMaterialDataUniformBuffer;
 		SAFE_DELETE(m_SkyboxRenderer);
 
         delete[] m_VSSystemUniformBuffer;
@@ -86,6 +91,8 @@ namespace Lumos
 			delete fbo;
 
 		m_CommandBuffers.clear();
+        
+        delete m_DeferredCommandBuffers;
 	}
 
 	void DeferredRenderer::Init()
