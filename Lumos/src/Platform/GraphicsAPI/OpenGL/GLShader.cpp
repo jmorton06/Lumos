@@ -49,12 +49,17 @@ namespace Lumos
 			delete structs;
 		}
         
-        for (auto shader : m_UniformBuffers)
+        for (auto& shader : m_UniformBuffers)
         {
             for (auto j : shader.second)
             {
                 delete j;
             }
+        }
+        
+        for (auto& shader : m_UserUniformBuffers)
+        {
+            delete shader.second;
         }
 	}
 
