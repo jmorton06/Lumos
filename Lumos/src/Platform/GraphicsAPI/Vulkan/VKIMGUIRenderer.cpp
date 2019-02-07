@@ -219,12 +219,11 @@ namespace Lumos
         {
             wd->FrameIndex = Renderer::GetRenderer()->GetSwapchain()->GetCurrentBufferId();
 
-            ImGui_ImplVulkanH_FrameData* fd = &wd->Frames[wd->FrameIndex];
             {
 				m_CommandBuffers[wd->FrameIndex]->BeginRecording();
             }
             {
-				m_Renderpass->BeginRenderpass(m_CommandBuffers[wd->FrameIndex], maths::Vector4(0.0f), m_Framebuffers[wd->FrameIndex], graphics::api::SubPassContents::INLINE, wd->Width, wd->Height);
+				m_Renderpass->BeginRenderpass(m_CommandBuffers[wd->FrameIndex], maths::Vector4(0.1f,0.1f,0.1f,1.0f), m_Framebuffers[wd->FrameIndex], graphics::api::SubPassContents::INLINE, wd->Width, wd->Height);
             }
 
             // Record Imgui Draw Data and draw funcs into command buffer
