@@ -22,53 +22,38 @@ namespace Lumos
 
 			m_RendererTitle = "Vulkan";
 
-			initVulkan();
+            VKDevice::Instance();
+            
+            m_Swapchain = new VKSwapchain(m_Width, m_Height);
+            m_Swapchain->Init();
+            
+            CreateSemaphores();
 		}
 
-		void VKRenderer::initVulkan()
+        VKRenderer::~VKRenderer()
 		{
-			VKDevice::Instance();
-
-			m_Swapchain = new VKSwapchain(m_Width, m_Height);
-			m_Swapchain->Init();
-
-			createSemaphores();
-		}
-
-		void VKRenderer::cleanup()
-		{
-			delete m_Swapchain;
-
-			vkDestroySemaphore(VKDevice::Instance()->GetDevice(), renderFinishedSemaphore, nullptr);
-			vkDestroySemaphore(VKDevice::Instance()->GetDevice(), imageAvailableSemaphore, nullptr);
-
-			m_Context->Unload();
+            delete m_Swapchain;
+            
+			for (int i = 0; i < 5; i++)
+			{
+				vkDestroySemaphore(VKDevice::Instance()->GetDevice(), m_ImageAvailableSemaphore[i], nullptr);
+			}
+            
+            m_Context->Unload();
 		}
 
 		void VKRenderer::PresentInternal(api::CommandBuffer* cmdBuffer)
 		{
-			auto result = m_Swapchain->AcquireNextImage(imageAvailableSemaphore);
-
-			if (result == VK_ERROR_OUT_OF_DATE_KHR)
-			{
-				OnResize(m_Width,m_Height);
-				return;
-			}
-			else if (result != VK_SUCCESS && result != VK_SUBOPTIMAL_KHR)
-			{
-				throw std::runtime_error("failed to acquire swap chain image!");
-			}
-
 			((VKCommandBuffer*)cmdBuffer)->ExecuteInternal(VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT,
-				imageAvailableSemaphore, renderFinishedSemaphore, false);
-				SetPreviousImageAvailable(renderFinishedSemaphore);
+				m_ImageAvailableSemaphore[m_CurrentSemaphoreIndex], m_ImageAvailableSemaphore[m_CurrentSemaphoreIndex + 1], false);
+			m_CurrentSemaphoreIndex++;
 		}
-
-		void VKRenderer::PresentInternal()
-		{
-			m_Swapchain->Present(GetPreviousRenderFinish());
-			VK_CHECK_RESULT(vkQueueWaitIdle(VKDevice::Instance()->GetPresentQueue()));
-		}
+        
+        void VKRenderer::PresentInternal()
+        {
+            m_Swapchain->Present(m_ImageAvailableSemaphore[m_CurrentSemaphoreIndex]);
+            VK_CHECK_RESULT(vkQueueWaitIdle(VKDevice::Instance()->GetPresentQueue()));
+        }
 
 		void VKRenderer::OnResize(uint width, uint height)
 		{
@@ -82,21 +67,19 @@ namespace Lumos
 			m_Swapchain->Init();
 		}
 
-		void VKRenderer::createSemaphores()
+		void VKRenderer::CreateSemaphores()
 		{
 			VkSemaphoreCreateInfo semaphoreInfo = {};
 			semaphoreInfo.sType = VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO;
 
-			if (vkCreateSemaphore(VKDevice::Instance()->GetDevice(), &semaphoreInfo, nullptr, &imageAvailableSemaphore) !=
-				VK_SUCCESS ||
-				vkCreateSemaphore(VKDevice::Instance()->GetDevice(), &semaphoreInfo, nullptr, &renderFinishedSemaphore) !=
-				VK_SUCCESS)
+			for (int i = 0; i < 5; i++)
 			{
-				throw std::runtime_error("failed to create semaphores!");
+				if (vkCreateSemaphore(VKDevice::Instance()->GetDevice(), &semaphoreInfo, nullptr, &m_ImageAvailableSemaphore[i]) !=
+					VK_SUCCESS)
+				{
+					throw std::runtime_error("failed to create semaphores!");
+				}
 			}
-
-            m_PreviousImageAvailableSemaphore = imageAvailableSemaphore;
-            m_PreviousRenderFinishedSemaphore = renderFinishedSemaphore;
 		}
 
 		void VKRenderer::Render(IndexBuffer* indexBuffer, VertexArray* vertexArray,
@@ -123,6 +106,18 @@ namespace Lumos
 
 		void VKRenderer::Begin()
 		{
+			m_CurrentSemaphoreIndex = 0;
+			auto result = m_Swapchain->AcquireNextImage(m_ImageAvailableSemaphore[m_CurrentSemaphoreIndex]);
+
+			if (result == VK_ERROR_OUT_OF_DATE_KHR)
+			{
+				OnResize(m_Width, m_Height);
+				return;
+			}
+			else if (result != VK_SUCCESS && result != VK_SUBOPTIMAL_KHR)
+			{
+				throw std::runtime_error("failed to acquire swap chain image!");
+			}
 		}
 		void VKRenderer::BindScreenFBOInternal()
 		{

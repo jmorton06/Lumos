@@ -10,9 +10,10 @@
 namespace Lumos
 {
 
-	ImGuiLayer::ImGuiLayer(const std::string& debugName)
+	ImGuiLayer::ImGuiLayer(bool clearScreen, const std::string& debugName)
 		: Layer(debugName)
 	{
+		m_ClearScreen = clearScreen;
 	}
 
 	ImGuiLayer::~ImGuiLayer()
@@ -22,17 +23,13 @@ namespace Lumos
 
 	void ImGuiLayer::OnAttach()
 	{
-		IMGUI_CHECKVERSION();
-		ImGui::CreateContext();
-		ImGui::StyleColorsDark();
-
 		Application* app = Application::Instance();
 		ImGuiIO& io = ImGui::GetIO();
 		io.DisplaySize = ImVec2((float)app->GetWindow()->GetWidth(), (float)app->GetWindow()->GetHeight());
 
 		SetImGuiKeyCodes();
 
-		m_IMGUIRenderer = std::unique_ptr<graphics::api::IMGUIRenderer>(graphics::api::IMGUIRenderer::Create(app->GetWindow()->GetWidth(),app->GetWindow()->GetHeight()));
+		m_IMGUIRenderer = std::unique_ptr<graphics::api::IMGUIRenderer>(graphics::api::IMGUIRenderer::Create(app->GetWindow()->GetWidth(),app->GetWindow()->GetHeight(), m_ClearScreen));
 
         if(m_IMGUIRenderer)
             m_IMGUIRenderer->Init();
@@ -40,7 +37,6 @@ namespace Lumos
 
 	void ImGuiLayer::OnDetach()
 	{
-		ImGui::DestroyContext();
 	}
 
 	void ImGuiLayer::OnUpdate(TimeStep* dt)

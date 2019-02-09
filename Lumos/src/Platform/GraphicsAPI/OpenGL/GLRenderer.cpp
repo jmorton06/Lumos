@@ -48,7 +48,6 @@ namespace Lumos
 
 	void GLRenderer::Begin()
 	{
-
 	}
 
 	void GLRenderer::BindScreenFBOInternal()

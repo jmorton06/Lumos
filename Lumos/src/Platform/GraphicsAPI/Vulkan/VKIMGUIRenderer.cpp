@@ -24,20 +24,38 @@ namespace Lumos
 {
     namespace graphics
     {
-        VKIMGUIRenderer::VKIMGUIRenderer(uint width, uint height)
+        VKIMGUIRenderer::VKIMGUIRenderer(uint width, uint height, bool clearScreen)
         {
             m_Implemented = true;
 			m_WindowHandle = nullptr;
 			m_Width = width;
 			m_Height = height;
+			m_ClearScreen = clearScreen;
         }
 
         VKIMGUIRenderer::~VKIMGUIRenderer()
         {
+			for (int i = 0; i < IMGUI_VK_QUEUED_FRAMES; i++)
+			{
+				delete m_CommandBuffers[i];
+				delete m_Framebuffers[i];
+			}
+               
+			delete m_Renderpass;
+
+            for (int i = 0; i < IMGUI_VK_QUEUED_FRAMES; i++)
+            {
+                ImGui_ImplVulkanH_FrameData* fd = &g_WindowData.Frames[i];
+                vkDestroyFence(VKDevice::Instance()->GetDevice(), fd->Fence, g_Allocator);
+                vkDestroyCommandPool(VKDevice::Instance()->GetDevice(), fd->CommandPool, g_Allocator);
+            }
+            
+            vkDestroyDescriptorPool(VKDevice::Instance()->GetDevice(),g_DescriptorPool,nullptr);
+            
             ImGui_ImplVulkan_Shutdown();
         }
 
-        static void SetupVulkanWindowData(ImGui_ImplVulkanH_WindowData* wd, VkSurfaceKHR surface, int width, int height)
+        void VKIMGUIRenderer::SetupVulkanWindowData(ImGui_ImplVulkanH_WindowData* wd, VkSurfaceKHR surface, int width, int height)
         {
             // Create Descriptor Pool
             {
@@ -66,7 +84,7 @@ namespace Lumos
             }
 
             wd->Surface = surface;
-            wd->ClearEnable = false;
+            wd->ClearEnable = m_ClearScreen;
 
             // Check for WSI support
             VkBool32 res;
@@ -89,110 +107,64 @@ namespace Lumos
             VkPresentModeKHR present_modes[] = { VK_PRESENT_MODE_FIFO_KHR };
         #endif
             wd->PresentMode = ImGui_ImplVulkanH_SelectPresentMode(VKDevice::Instance()->GetGPU(), wd->Surface, &present_modes[0], IM_ARRAYSIZE(present_modes));
-
-            // Create SwapChain, RenderPass, Framebuffer, etc.
-            ImGui_ImplVulkanH_CreateWindowDataCommandBuffers(VKDevice::Instance()->GetGPU(), VKDevice::Instance()->GetDevice(), VKDevice::Instance()->GetGraphicsQueueFamilyIndex(), wd, g_Allocator);
+            
+            for (int i = 0; i < IMGUI_VK_QUEUED_FRAMES; i++)
+            {
+                VKCommandBuffer* commandBuffer = new VKCommandBuffer();
+                commandBuffer->Init(true);
+                m_CommandBuffers[i] = commandBuffer;
+            }
+            
             auto swapChain = ((VKSwapchain*)VKRenderer::GetRenderer()->GetSwapchain());
             wd->Swapchain = swapChain->GetSwapchain();
             wd->Width = width;
             wd->Height = height;
-            VkResult err;
 
             wd->BackBufferCount = (uint32_t)swapChain->GetSwapchainBufferCount();
-/*
-            err = vkGetSwapchainImagesKHR(VKDevice::Instance()->GetDevice(), wd->Swapchain, &wd->BackBufferCount, NULL);
-            check_vk_result(err);
-            err = vkGetSwapchainImagesKHR(VKDevice::Instance()->GetDevice(), wd->Swapchain, &wd->BackBufferCount, wd->BackBuffer);
-            check_vk_result(err);
-            */
-
-            // Create the Render Pass
-            {
-                VkAttachmentDescription attachment = {};
-                attachment.format = wd->SurfaceFormat.format;
-                attachment.samples = VK_SAMPLE_COUNT_1_BIT;
-                attachment.loadOp = wd->ClearEnable ? VK_ATTACHMENT_LOAD_OP_CLEAR : VK_ATTACHMENT_LOAD_OP_DONT_CARE;
-                attachment.storeOp = VK_ATTACHMENT_STORE_OP_STORE;
-                attachment.stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
-                attachment.stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
-                attachment.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
-                attachment.finalLayout = VK_IMAGE_LAYOUT_PRESENT_SRC_KHR;
-                VkAttachmentReference color_attachment = {};
-                color_attachment.attachment = 0;
-                color_attachment.layout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
-                VkSubpassDescription subpass = {};
-                subpass.pipelineBindPoint = VK_PIPELINE_BIND_POINT_GRAPHICS;
-                subpass.colorAttachmentCount = 1;
-                subpass.pColorAttachments = &color_attachment;
-                VkSubpassDependency dependency = {};
-                dependency.srcSubpass = VK_SUBPASS_EXTERNAL;
-                dependency.dstSubpass = 0;
-                dependency.srcStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
-                dependency.dstStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
-                dependency.srcAccessMask = 0;
-                dependency.dstAccessMask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;
-                VkRenderPassCreateInfo info = {};
-                info.sType = VK_STRUCTURE_TYPE_RENDER_PASS_CREATE_INFO;
-                info.attachmentCount = 1;
-                info.pAttachments = &attachment;
-                info.subpassCount = 1;
-                info.pSubpasses = &subpass;
-                info.dependencyCount = 1;
-                info.pDependencies = &dependency;
-                err = vkCreateRenderPass(VKDevice::Instance()->GetDevice(), &info, NULL, &wd->RenderPass);
-                check_vk_result(err);
-
-                //auto Renderp = ((VKSwapchain*)VKRenderer::GetRenderer()->GetSwapchain())->GetRenderPass();
-               // wd->RenderPass = ((VKRenderpass*)Renderp)->GetRenderpass();
-            }
+            
+			m_Renderpass = new VKRenderpass();
+            TextureType textureTypes[1] = { TextureType::COLOUR};
+            graphics::api::RenderpassInfo renderpassCI{};
+            renderpassCI.attachmentCount = 1;
+            renderpassCI.textureType = textureTypes;
+            renderpassCI.clear = m_ClearScreen;
+			m_Renderpass->Init(renderpassCI);
+            wd->RenderPass = m_Renderpass->GetRenderpass();
 
             // Create The Image Views
             {
-                /*VkImageViewCreateInfo info = {};
-                info.sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO;
-                info.viewType = VK_IMAGE_VIEW_TYPE_2D;
-                info.format = wd->SurfaceFormat.format;
-                info.components.r = VK_COMPONENT_SWIZZLE_R;
-                info.components.g = VK_COMPONENT_SWIZZLE_G;
-                info.components.b = VK_COMPONENT_SWIZZLE_B;
-                info.components.a = VK_COMPONENT_SWIZZLE_A;
-                VkImageSubresourceRange image_range = { VK_IMAGE_ASPECT_COLOR_BIT, 0, 1, 0, 1 };
-                info.subresourceRange = image_range;*/
                 for (uint32_t i = 0; i < wd->BackBufferCount; i++)
                 {
                     auto scBuffer = swapChain->GetTexture(i);
                     wd->BackBuffer[i] = scBuffer->GetImage();
                     wd->BackBufferView[i] = scBuffer->GetImageView();
-                    //info.image = wd->BackBuffer[i];
-                    //err = vkCreateImageView(VKDevice::Instance()->GetDevice(), &info, NULL, &wd->BackBufferView[i]);
-                    //check_vk_result(err);
                 }
             }
 
-            // Create Framebuffer
-            {
-                VkImageView attachment[1];
-                VkFramebufferCreateInfo info = {};
-                info.sType = VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO;
-                info.renderPass = wd->RenderPass;
-                info.attachmentCount = 1;
-                info.pAttachments = attachment;
-                info.width = wd->Width;
-                info.height = wd->Height;
-                info.layers = 1;
-                for (uint32_t i = 0; i < wd->BackBufferCount; i++)
-                {
-                    attachment[0] = wd->BackBufferView[i];
-                    err = vkCreateFramebuffer(VKDevice::Instance()->GetDevice(), &info, NULL, &wd->Framebuffer[i]);
-                    check_vk_result(err);
-                }
-            }
+			TextureType attachmentTypes[1];
+			attachmentTypes[0] = TextureType::COLOUR;
+
+			Texture* attachments[1];
+			FramebufferInfo bufferInfo{};
+			bufferInfo.width = wd->Width;
+			bufferInfo.height = wd->Height;
+			bufferInfo.attachmentCount = 1;
+			bufferInfo.renderPass = m_Renderpass;
+			bufferInfo.attachmentTypes = attachmentTypes;
+			bufferInfo.screenFBO = true;
+
+			for (uint32_t i = 0; i < Renderer::GetRenderer()->GetSwapchain()->GetSwapchainBufferCount(); i++)
+			{
+				attachments[0] = Renderer::GetRenderer()->GetSwapchain()->GetImage(i);
+				bufferInfo.attachments = attachments;
+
+				m_Framebuffers[i] = new VKFramebuffer(bufferInfo);
+				wd->Framebuffer[i] = m_Framebuffers[i]->GetFramebuffer();
+			}
         }
 
         void VKIMGUIRenderer::Init()
         {
-            //VKSwapchain* swapChain = (VKSwapchain*)VKRenderer::GetRenderer()->GetSwapchain();
-
             int w, h;
             w = (int)m_Width;
             h = (int)m_Height;
@@ -213,34 +185,26 @@ namespace Lumos
             init_info.CheckVkResultFn = NULL;
             ImGui_ImplVulkan_Init(&init_info, wd->RenderPass);
 
-            VkResult err;
             // Upload Fonts
             {
-                // Use any command queue
-                VkCommandPool command_pool = wd->Frames[wd->FrameIndex].CommandPool;
-                VkCommandBuffer command_buffer = wd->Frames[wd->FrameIndex].CommandBuffer;
+				m_CommandBuffers[wd->FrameIndex]->BeginRecording();
 
-                err = vkResetCommandPool(VKDevice::Instance()->GetDevice(), command_pool, 0);
-                check_vk_result(err);
-                VkCommandBufferBeginInfo begin_info = {};
-                begin_info.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
-                begin_info.flags |= VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT;
-                err = vkBeginCommandBuffer(command_buffer, &begin_info);
-                check_vk_result(err);
+                ImGui_ImplVulkan_CreateFontsTexture(m_CommandBuffers[wd->FrameIndex]->GetCommandBuffer());
 
-                ImGui_ImplVulkan_CreateFontsTexture(command_buffer);
+				m_CommandBuffers[wd->FrameIndex]->EndRecording();
+				m_CommandBuffers[wd->FrameIndex]->Execute(false);
 
-                VkSubmitInfo end_info = {};
-                end_info.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
-                end_info.commandBufferCount = 1;
-                end_info.pCommandBuffers = &command_buffer;
-                err = vkEndCommandBuffer(command_buffer);
-                check_vk_result(err);
-                err = vkQueueSubmit(VKDevice::Instance()->GetGraphicsQueue(), 1, &end_info, VK_NULL_HANDLE);
-                check_vk_result(err);
+				//ImGuiIO& io = ImGui::GetIO();
+				//
+				//unsigned char* pixels;
+				//int width, height;
+				//io.Fonts->GetTexDataAsRGBA32(&pixels, &width, &height);
+				//size_t upload_size = width * height * 4 * sizeof(char);
+				//
+				//auto fontTex = new VKTexture2D(width, height, pixels);
+				//
+				//io.Fonts->TexID = (ImTextureID)(intptr_t)fontTex->GetImage();
 
-                err = vkDeviceWaitIdle(VKDevice::Instance()->GetDevice());
-                check_vk_result(err);
                 ImGui_ImplVulkan_InvalidateFontUploadObjects();
             }
         }
@@ -249,96 +213,31 @@ namespace Lumos
         {
         }
 
-        static void FrameRender(ImGui_ImplVulkanH_WindowData* wd)
+        void VKIMGUIRenderer::FrameRender(ImGui_ImplVulkanH_WindowData* wd)
         {
-            VkResult err;
-
             wd->FrameIndex = Renderer::GetRenderer()->GetSwapchain()->GetCurrentBufferId();
-            VkSemaphore& image_acquired_semaphore  = VKRenderer::GetRenderer()->GetPreviousImageAvailable();
-           // err = vkAcquireNextImageKHR(VKDevice::Instance()->GetDevice(), wd->Swapchain, UINT64_MAX, image_acquired_semaphore, VK_NULL_HANDLE, &wd->FrameIndex);
-           // check_vk_result(err);
 
-            ImGui_ImplVulkanH_FrameData* fd = &wd->Frames[wd->FrameIndex];
             {
-                err = vkWaitForFences(VKDevice::Instance()->GetDevice(), 1, &fd->Fence, VK_TRUE, UINT64_MAX);	// wait indefinitely instead of periodically checking
-                check_vk_result(err);
-
-                err = vkResetFences(VKDevice::Instance()->GetDevice(), 1, &fd->Fence);
-                check_vk_result(err);
+				m_CommandBuffers[wd->FrameIndex]->BeginRecording();
             }
             {
-                err = vkResetCommandPool(VKDevice::Instance()->GetDevice(), fd->CommandPool, 0);
-                check_vk_result(err);
-                VkCommandBufferBeginInfo info = {};
-                info.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
-                info.flags |= VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT;
-                err = vkBeginCommandBuffer(fd->CommandBuffer, &info);
-                check_vk_result(err);
-            }
-            {
-                VkRenderPassBeginInfo info = {};
-                info.sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO;
-                info.renderPass = wd->RenderPass;
-                info.framebuffer = wd->Framebuffer[wd->FrameIndex];
-                info.renderArea.extent.width = wd->Width;
-                info.renderArea.extent.height = wd->Height;
-                info.clearValueCount = 1;
-                info.pClearValues = &wd->ClearValue;
-                vkCmdBeginRenderPass(fd->CommandBuffer, &info, VK_SUBPASS_CONTENTS_INLINE);
+				m_Renderpass->BeginRenderpass(m_CommandBuffers[wd->FrameIndex], maths::Vector4(0.1f,0.1f,0.1f,1.0f), m_Framebuffers[wd->FrameIndex], graphics::api::SubPassContents::INLINE, wd->Width, wd->Height);
             }
 
             // Record Imgui Draw Data and draw funcs into command buffer
-            ImGui_ImplVulkan_RenderDrawData(ImGui::GetDrawData(), fd->CommandBuffer);
+            ImGui_ImplVulkan_RenderDrawData(ImGui::GetDrawData(), m_CommandBuffers[wd->FrameIndex]->GetCommandBuffer());
 
             // Submit command buffer
-            vkCmdEndRenderPass(fd->CommandBuffer);
-            {
-                VkPipelineStageFlags wait_stage = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
-                VkSubmitInfo info = {};
-                info.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
-                info.waitSemaphoreCount = 1;
-                info.pWaitSemaphores = &image_acquired_semaphore;
-                info.pWaitDstStageMask = &wait_stage;
-                info.commandBufferCount = 1;
-                info.pCommandBuffers = &fd->CommandBuffer;
-                info.signalSemaphoreCount = 1;
-                info.pSignalSemaphores = &fd->RenderCompleteSemaphore;
+			m_Renderpass->EndRenderpass(m_CommandBuffers[wd->FrameIndex]);
+                
+			m_CommandBuffers[wd->FrameIndex]->EndRecording();
 
-                err = vkEndCommandBuffer(fd->CommandBuffer);
-                check_vk_result(err);
-                err = vkQueueSubmit(VKDevice::Instance()->GetGraphicsQueue(), 1, &info, fd->Fence);
-                check_vk_result(err);
-            }
-
-             VKRenderer::GetRenderer()->SetPreviousRenderFinish(wd->Frames[wd->FrameIndex].RenderCompleteSemaphore);
-        }
-
-        static void FramePresent(ImGui_ImplVulkanH_WindowData* wd)
-        {
-            ImGui_ImplVulkanH_FrameData* fd = &wd->Frames[wd->FrameIndex];
-            VkPresentInfoKHR info = {};
-            info.sType = VK_STRUCTURE_TYPE_PRESENT_INFO_KHR;
-            info.waitSemaphoreCount = 1;
-            info.pWaitSemaphores = &fd->RenderCompleteSemaphore;
-            info.swapchainCount = 1;
-            info.pSwapchains = &wd->Swapchain;
-            info.pImageIndices = &wd->FrameIndex;
-            VkResult err = vkQueuePresentKHR(VKDevice::Instance()->GetGraphicsQueue(), &info);
-            check_vk_result(err);
+            VKRenderer::GetRenderer()->Present(m_CommandBuffers[wd->FrameIndex]);
         }
 
         void VKIMGUIRenderer::Render(Lumos::graphics::api::CommandBuffer* commandBuffer)
         {
-            if(commandBuffer)
-            {
-                ImGui_ImplVulkan_RenderDrawData(ImGui::GetDrawData(), ((VKCommandBuffer*)commandBuffer)->GetCommandBuffer());
-            }
-            else
-            {
-                FrameRender(&g_WindowData);
-                //FramePresent(&g_WindowData);
-                //	VK_CHECK_RESULT(vkQueueWaitIdle(VKDevice::Instance()->GetPresentQueue()));
-            }
+            FrameRender(&g_WindowData);
         }
 
         void VKIMGUIRenderer::OnResize(uint width, uint height)
@@ -351,35 +250,36 @@ namespace Lumos
                 auto scBuffer = swapChain->GetTexture(i);
                 wd->BackBuffer[i] = scBuffer->GetImage();
                 wd->BackBufferView[i] = scBuffer->GetImageView();
-                //info.image = wd->BackBuffer[i];
-                //err = vkCreateImageView(VKDevice::Instance()->GetDevice(), &info, NULL, &wd->BackBufferView[i]);
-                //check_vk_result(err);
             }
 
             wd->Width = width;
             wd->Height = height;
 
-            for (uint32_t i = 0; i < wd->BackBufferCount; i++)
-            {
-                vkDestroyFramebuffer(VKDevice::Instance()->GetDevice(), wd->Framebuffer[i], VK_NULL_HANDLE);
-            }
+			for (uint32_t i = 0; i < wd->BackBufferCount; i++)
+			{
+				delete m_Framebuffers[i];
+			}
             // Create Framebuffer
-            {
-                VkImageView attachment[1];
-                VkFramebufferCreateInfo info = {};
-                info.sType = VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO;
-                info.renderPass = wd->RenderPass;
-                info.attachmentCount = 1;
-                info.pAttachments = attachment;
-                info.width = wd->Width;
-                info.height = wd->Height;
-                info.layers = 1;
-                for (uint32_t i = 0; i < wd->BackBufferCount; i++)
-                {
-                    attachment[0] = wd->BackBufferView[i];
-                    vkCreateFramebuffer(VKDevice::Instance()->GetDevice(), &info, NULL, &wd->Framebuffer[i]);
-                }
-            }
+			TextureType attachmentTypes[1];
+			attachmentTypes[0] = TextureType::COLOUR;
+
+			Texture* attachments[1];
+			FramebufferInfo bufferInfo{};
+			bufferInfo.width = wd->Width;
+			bufferInfo.height = wd->Height;
+			bufferInfo.attachmentCount = 1;
+			bufferInfo.renderPass = m_Renderpass;
+			bufferInfo.attachmentTypes = attachmentTypes;
+			bufferInfo.screenFBO = true;
+
+			for (uint32_t i = 0; i < Renderer::GetRenderer()->GetSwapchain()->GetSwapchainBufferCount(); i++)
+			{
+				attachments[0] = Renderer::GetRenderer()->GetSwapchain()->GetImage(i);
+				bufferInfo.attachments = attachments;
+
+				m_Framebuffers[i] = new VKFramebuffer(bufferInfo);
+				wd->Framebuffer[i] = m_Framebuffers[i]->GetFramebuffer();
+			}
         }
     }
 }

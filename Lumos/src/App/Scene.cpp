@@ -13,6 +13,7 @@
 #include "Utilities/TimeStep.h"
 #include "App/Input.h"
 #include "App/Application.h"
+#include "Graphics/RenderManager.h"
 
 namespace Lumos
 {
@@ -127,6 +128,9 @@ namespace Lumos
 		SoundSystem::Instance()->RemoveAllSoundNodes();
 
 		Input::GetInput().Reset();
+
+		Application::Instance()->ClearLayers();
+		Application::Instance()->GetRenderManager()->Reset();
 
 		m_CurrentScene = false;
 	};

@@ -13,8 +13,6 @@ public:
 	virtual void OnIMGUI() override;
 
 	void LoadModels();
-
-	int moonID;
-
-protected:
+private:
+	std::unique_ptr<Lumos::TextureDepthArray> m_ShadowTexture;
 };

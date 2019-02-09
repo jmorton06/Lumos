@@ -29,6 +29,7 @@
 #include "Maths/BoundingSphere.h"
 #include "ShadowRenderer.h"
 #include "App/Application.h"
+#include "Graphics/RenderManager.h"
 
 #define MAX_LIGHTS 10
 
@@ -63,15 +64,19 @@ namespace Lumos
 		delete m_FBO;
 		delete m_DefaultTexture;
 		delete m_UniformBuffer;
+        
+        AlignedFree(uboDataDynamic.model);
+
 		delete m_ModelUniformBuffer;
 		delete m_LightUniformBuffer;
 		delete m_DeferredRenderpass;
 		delete m_DeferredPipeline;
 		delete m_OffScreenRenderpass;
 		delete m_OffScreenPipeline;
-		delete m_DepthTexture;
 		delete m_ScreenQuad;
         delete m_DefaultDescriptorSet;
+        delete m_DeferredDescriptorSet;
+        delete m_DefaultMaterialDataUniformBuffer;
 		SAFE_DELETE(m_SkyboxRenderer);
 
         delete[] m_VSSystemUniformBuffer;
@@ -85,6 +90,8 @@ namespace Lumos
 			delete fbo;
 
 		m_CommandBuffers.clear();
+        
+        delete m_DeferredCommandBuffers;
 	}
 
 	void DeferredRenderer::Init()
@@ -148,7 +155,6 @@ namespace Lumos
 
 		m_OffScreenRenderpass = graphics::api::RenderPass::Create();
 		m_DeferredRenderpass = graphics::api::RenderPass::Create();
-		m_DepthTexture = TextureDepth::Create(m_ScreenBufferWidth, m_ScreenBufferHeight);
 
 		TextureType textureTypes[2] = { TextureType::COLOUR, TextureType::DEPTH };
 		graphics::api::RenderpassInfo renderpassCI{};
@@ -192,14 +198,14 @@ namespace Lumos
 		m_ClearColour = maths::Vector4(0.8f, 0.8f, 0.8f, 1.0f);
 
 		m_SkyboxRenderer = nullptr;
-		m_ShadowTexture  = std::unique_ptr<TextureDepthArray>(TextureDepthArray::Create(4096, 4096, 4));
-        m_ShadowRenderer = std::make_unique<ShadowRenderer>(m_ShadowTexture.get(), 4096, 4);
+		//m_ShadowTexture  = std::unique_ptr<TextureDepthArray>(TextureDepthArray::Create(4096, 4096, 4));
+        //m_ShadowRenderer = std::make_unique<ShadowRenderer>(m_ShadowTexture.get(), 4096, 4);
 	}
 
 	void DeferredRenderer::RenderScene(RenderList* renderList, Scene* scene)
 	{
-		if(m_ShadowRenderer)
-			m_ShadowRenderer->RenderScene(nullptr, scene);
+		//if(m_ShadowRenderer)
+		//	m_ShadowRenderer->RenderScene(nullptr, scene);
 
 		SubmitLightSetup(*scene->GetLightSetup(),scene);
 
@@ -255,6 +261,17 @@ namespace Lumos
 
 		EndOffScreen();
 
+		LightPass();
+	}
+
+	void DeferredRenderer::LightPass()
+	{
+		int commandBufferIndex = Renderer::GetRenderer()->GetSwapchain()->GetCurrentBufferId();
+
+		Begin(commandBufferIndex);
+		Present();
+		End();
+		PresentToScreen();
 	}
 
 	void DeferredRenderer::PresentToScreen()
@@ -343,11 +360,12 @@ namespace Lumos
 			memcpy(m_PSSystemUniformBuffer + currentOffset, &cameraPos, sizeof(maths::Vector4));
 			currentOffset += sizeof(maths::Vector4);
 
-			if(m_ShadowRenderer)
+			auto shadowRenderer = Application::Instance()->GetRenderManager()->GetShadowRenderer();// m_ShadowRenderer.get(); 
+			if(shadowRenderer)
 			{
-				maths::Matrix4* shadowTransforms = m_ShadowRenderer->GetShadowProjView();
+				maths::Matrix4* shadowTransforms = shadowRenderer->GetShadowProjView();
 				auto viewMat = scene->GetCamera()->GetViewMatrix();
-                Lumos::maths::Vector4* uSplitDepth = m_ShadowRenderer->GetSplitDepths();
+                Lumos::maths::Vector4* uSplitDepth = shadowRenderer->GetSplitDepths();
 
 				memcpy(m_PSSystemUniformBuffer + currentOffset, &viewMat, sizeof(maths::Matrix4));
 				currentOffset += sizeof(maths::Matrix4);
@@ -663,7 +681,7 @@ namespace Lumos
 		attachmentTypes[1] = TextureType::DEPTH;
 
 		Texture* attachments[2];
-		attachments[1] = reinterpret_cast<Texture*>(m_DepthTexture);
+		attachments[1] = reinterpret_cast<Texture*>(m_GBuffer->m_DepthTexture);
 		FramebufferInfo bufferInfo{};
 		bufferInfo.width = m_ScreenBufferWidth;
 		bufferInfo.height = m_ScreenBufferHeight;
@@ -712,7 +730,6 @@ namespace Lumos
 	{
 		delete m_DeferredPipeline;
 		delete m_OffScreenPipeline;
-		delete m_DepthTexture;
 		delete m_FBO;
 
 		for(auto fbo : m_Framebuffers)
@@ -721,9 +738,8 @@ namespace Lumos
 
 		DeferredRenderer::SetScreenBufferSize(width, height);
 
-		m_GBuffer->UpdateTextureSize(m_ScreenBufferWidth,m_ScreenBufferHeight);
-
-		m_DepthTexture = TextureDepth::Create(m_ScreenBufferWidth, m_ScreenBufferHeight);
+		m_GBuffer.reset();
+		m_GBuffer = std::make_unique<GBuffer>(m_ScreenBufferWidth, m_ScreenBufferHeight);
 
         CreateOffScreenPipeline();
 		CreateDeferredPipeline();
@@ -842,10 +858,14 @@ namespace Lumos
 		imageInfo6.name = "uEnvironmentMap";
 
 		graphics::api::ImageInfo imageInfo7 = {};
-		imageInfo7.texture = (Texture*)m_ShadowTexture.get();
-		imageInfo7.binding = 6;
-		imageInfo7.type = TextureType::DEPTHARRAY;
-		imageInfo7.name = "uShadowMap";
+		auto shadowRenderer = Application::Instance()->GetRenderManager()->GetShadowRenderer(); ;// m_ShadowRenderer.get();//
+		if (shadowRenderer)
+		{
+			imageInfo7.texture = (Texture*)shadowRenderer->GetTexture();
+			imageInfo7.binding = 6;
+			imageInfo7.type = TextureType::DEPTHARRAY;
+			imageInfo7.name = "uShadowMap";
+		}
 
 		graphics::api::ImageInfo imageInfo8 = {};
 		imageInfo8.texture = m_GBuffer->m_DepthTexture;
@@ -859,8 +879,9 @@ namespace Lumos
 		bufferInfos.push_back(imageInfo4);
 		bufferInfos.push_back(imageInfo5);
 		if(m_CubeMap)
-			bufferInfos.push_back(imageInfo6);
-		bufferInfos.push_back(imageInfo7);
+			bufferInfos.push_back(imageInfo6); 
+		if (shadowRenderer)
+			bufferInfos.push_back(imageInfo7);
 
 		m_DeferredDescriptorSet->Update(bufferInfos);
 	}

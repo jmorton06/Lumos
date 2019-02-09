@@ -34,6 +34,7 @@ namespace Lumos
 		, m_ModelUniformBuffer(nullptr)
 	{
 		m_apShadowRenderLists = new RenderList*[SHADOWMAP_MAX];
+
 		//Initialize the shadow render lists
 		for (uint i = 0; i < m_ShadowMapNum; ++i)
 		{
@@ -52,8 +53,6 @@ namespace Lumos
 		}
 		else
 			m_ShadowTex = texture;
-
-		Renderer::GetRenderer()->SetRenderTargets(0);
 
         m_DescriptorSet = nullptr;
 
@@ -74,6 +73,7 @@ namespace Lumos
 		}
 
 		delete[] m_apShadowRenderLists;
+        delete[] m_VSSystemUniformBuffer;
         
         delete[] m_PushConstant->data;
         delete m_PushConstant;
@@ -81,6 +81,9 @@ namespace Lumos
 		delete m_DescriptorSet;
 		delete m_Pipeline;
 		delete m_UniformBuffer;
+        
+        AlignedFree(uboDataDynamic.model);
+
 		delete m_ModelUniformBuffer;
 		delete m_CommandBuffer;
 		delete m_RenderPass;
@@ -246,8 +249,6 @@ namespace Lumos
 
 		}
 		End();
-
-		Renderer::SetCulling(true);
 	}
 
     float cascadeSplitLambda = 0.95f;
@@ -325,9 +326,9 @@ namespace Lumos
                 radius = maths::Max(radius, distance);
             }
             radius = std::ceil(radius * 16.0f) / 16.0f;
-			float sceneBoundingRadius = 50.0f;
+			//float sceneBoundingRadius = scene->GetWorldRadius();
 			//Extend the Z depths to catch shadow casters outside view frustum
-			radius = maths::Max(radius, sceneBoundingRadius);
+			//radius = maths::Max(radius, sceneBoundingRadius);
 
             maths::Vector3 maxExtents =  maths::Vector3(radius);
             maths::Vector3 minExtents = -maxExtents;
@@ -420,7 +421,7 @@ namespace Lumos
         pipelineCI.strideSize = sizeof(Vertex);
         pipelineCI.numColorAttachments = 0;
         pipelineCI.wireframeEnabled = false;
-        pipelineCI.cullMode = graphics::api::CullMode::NONE;
+        pipelineCI.cullMode = graphics::api::CullMode::FRONT;
         pipelineCI.transparencyEnabled = false;
         pipelineCI.depthBiasEnabled = true;
         pipelineCI.width = m_ShadowMapSize;
@@ -452,7 +453,7 @@ namespace Lumos
 			}
 
 			uint32_t bufferSize2 = static_cast<uint32_t>(MAX_OBJECTS * dynamicAlignment);
-
+            
 			uboDataDynamic.model = static_cast<maths::Matrix4*>(AlignedAlloc(bufferSize2, dynamicAlignment));
 
 			m_ModelUniformBuffer->Init(bufferSize2, nullptr);

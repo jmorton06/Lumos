@@ -20,6 +20,12 @@ namespace Lumos
 			vkDestroyImageView(VKDevice::Instance()->GetDevice(), m_TextureImageView, nullptr);
 			vkDestroyImage(VKDevice::Instance()->GetDevice(), m_TextureImage, nullptr);
 			vkFreeMemory(VKDevice::Instance()->GetDevice(), m_TextureImageMemory, nullptr);
+            vkDestroySampler(VKDevice::Instance()->GetDevice(), m_TextureSampler, nullptr);
+            
+            for (uint32_t i = 0; i < m_Count; i++)
+            {
+                vkDestroyImageView(VKDevice::Instance()->GetDevice(), m_IndividualImageViews[i], nullptr);
+            }
 		}
 
 		void VKTextureDepthArray::Bind(uint slot) const

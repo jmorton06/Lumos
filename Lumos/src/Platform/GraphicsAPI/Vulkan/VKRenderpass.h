@@ -26,6 +26,7 @@ namespace Lumos
 			VkClearValue* 	m_ClearValue;
 			int 			m_ClearCount;
 			bool 			m_DepthOnly;
+			bool			m_ClearDepth;
 		};
 	}
 }
