@@ -105,7 +105,6 @@ namespace Lumos
 		Lumos::graphics::api::Pipeline* m_DeferredPipeline;
 
 		Lumos::Texture2D* m_DefaultTexture;
-		Lumos::TextureDepth* m_DepthTexture;
 
 		Lumos::Shader* m_OffScreenShader;
 		Lumos::Shader* m_DeferredShader;

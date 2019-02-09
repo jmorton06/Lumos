@@ -49,6 +49,24 @@ namespace Lumos
 		delete m_ModelUniformBuffer;
 		delete m_RenderPass;
 		delete m_DepthTexture;
+        delete m_GraphicsPipeline;
+        delete m_DefaultDescriptorSet;
+        
+        delete[] m_VSSystemUniformBuffer;
+        delete[] m_PSSystemUniformBuffer;
+        
+        SAFE_DELETE(m_SkyboxRenderer);
+        
+        for (auto& framebuffer : m_Framebuffers)
+        {
+            delete framebuffer;
+        }
+
+        
+        for (auto& commandBuffer : commandBuffers)
+        {
+            delete commandBuffer;
+        }
 	}
 
 	void ForwardRenderer::RenderScene(RenderList* renderList, Scene* scene)
