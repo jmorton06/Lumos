@@ -60,7 +60,7 @@ namespace Lumos
 		void SetRenderFlag(Material::RenderFlags flag) { m_RenderFlags |= static_cast<int>(flag); }
 		void LoadPBRMaterial(const String& name, const String& path, const String& extension = ".png"); //TODO : Texture Parameters
 		void LoadMaterial(const String& name, const String& path);
-		void CreateDescriptorSet(graphics::api::Pipeline* pipeline, int layoutID);
+		void CreateDescriptorSet(graphics::api::Pipeline* pipeline, int layoutID, bool pbr = true);
 
 		void SetTextures(const PBRMataterialTextures& textures);
         void SetMaterialProperites(const MaterialProperties& properties);

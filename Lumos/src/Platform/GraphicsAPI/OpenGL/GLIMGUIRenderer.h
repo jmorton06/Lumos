@@ -10,7 +10,7 @@ namespace Lumos
 		class GLIMGUIRenderer : public api::IMGUIRenderer
 		{
         public:
-            GLIMGUIRenderer(uint width, uint height);
+            GLIMGUIRenderer(uint width, uint height, bool clearScreen);
             ~GLIMGUIRenderer();
 
             void Init() override;
@@ -20,6 +20,7 @@ namespace Lumos
 
 		private:
 			void* m_WindowHandle;
+			bool m_ClearScreen;
         };
     }
 }

@@ -14,6 +14,7 @@ namespace Lumos
 		{
 			m_RenderPass = VK_NULL_HANDLE;
 			m_ClearValue = NULL;
+			m_ClearDepth = false;
 		}
 
 		VKRenderpass::~VKRenderpass()
@@ -23,14 +24,14 @@ namespace Lumos
 			m_RenderPass = VK_NULL_HANDLE;
 		}
 
-		VkAttachmentDescription GetAttachmentDescription(TextureType type)
+		VkAttachmentDescription GetAttachmentDescription(TextureType type, bool clear = true)
 		{
 			if (type == TextureType::COLOUR)
 			{
 				VkAttachmentDescription colorAttachment = {};
 				colorAttachment.format = VKDevice::Instance()->GetFormat();
 				colorAttachment.samples = VK_SAMPLE_COUNT_1_BIT;
-				colorAttachment.loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR;
+				colorAttachment.loadOp = clear ? VK_ATTACHMENT_LOAD_OP_CLEAR : VK_ATTACHMENT_LOAD_OP_DONT_CARE;
 				colorAttachment.storeOp = VK_ATTACHMENT_STORE_OP_STORE;
 				colorAttachment.stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
 				colorAttachment.stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
@@ -89,7 +90,7 @@ namespace Lumos
 
 			for(int i = 0; i < renderpassCI.attachmentCount;i++)
 			{
-				attachments.push_back(GetAttachmentDescription(renderpassCI.textureType[i]));
+				attachments.push_back(GetAttachmentDescription(renderpassCI.textureType[i], renderpassCI.clear));
 
 				if(renderpassCI.textureType[i] == TextureType::COLOUR)
 				{
@@ -104,6 +105,7 @@ namespace Lumos
 					depthAttachmentRef.attachment = i;
 					depthAttachmentRef.layout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
 					depthAttachmentReferences.push_back(depthAttachmentRef);
+					m_ClearDepth = true;
 				}
 				else if (renderpassCI.textureType[i] == TextureType::DEPTHARRAY)
 				{
@@ -111,6 +113,7 @@ namespace Lumos
 					depthAttachmentRef.attachment = i;
 					depthAttachmentRef.layout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
 					depthAttachmentReferences.push_back(depthAttachmentRef);
+					m_ClearDepth = true;
 				}
 			}
 
@@ -168,8 +171,10 @@ namespace Lumos
 				}
 			}
 
-
-			m_ClearValue[m_ClearCount - 1].depthStencil = { 1.0f , 0 };
+			if (m_ClearDepth)
+			{
+				m_ClearValue[m_ClearCount - 1].depthStencil = { 1.0f , 0 };
+			}
 
 			VkRenderPassBeginInfo rpBegin{};
 			rpBegin.sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO;

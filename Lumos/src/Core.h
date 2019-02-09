@@ -150,4 +150,13 @@ namespace Lumos
 	#endif
 		return data;
 	}
+    
+    static void AlignedFree(void* data)
+    {
+#if defined(_MSC_VER) || defined(__MINGW32__)
+        _aligned_free(data);
+#else
+        free(data);
+#endif
+    }
 }

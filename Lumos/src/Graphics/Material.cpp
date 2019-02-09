@@ -92,7 +92,7 @@ namespace Lumos
         UpdateMaterialPropertiesData();
     }
 
-	void Material::CreateDescriptorSet(graphics::api::Pipeline* pipeline, int layoutID)
+	void Material::CreateDescriptorSet(graphics::api::Pipeline* pipeline, int layoutID, bool pbr)
 	{
         if(m_DescriptorSet)
             delete m_DescriptorSet;
@@ -104,7 +104,7 @@ namespace Lumos
 		info.layoutIndex = layoutID;
 		info.shader = pipeline->GetShader();
 
-		if(m_MaterialPropertiesBuffer == nullptr)
+		if(m_MaterialPropertiesBuffer == nullptr && pbr)
 		{
 			m_MaterialPropertiesBuffer = graphics::api::UniformBuffer::Create();
 
@@ -161,20 +161,23 @@ namespace Lumos
 		else
 			m_MaterialProperties->usingNormalMap = 0.0f;
 
-		graphics::api::BufferInfo bufferInfo = {};
-		bufferInfo.buffer = m_MaterialPropertiesBuffer;
-		bufferInfo.offset = 0;
-		bufferInfo.size = sizeof(MaterialProperties);
-		bufferInfo.type = graphics::api::DescriptorType::UNIFORM_BUFFER;
-		bufferInfo.binding = 4;
-		bufferInfo.shaderType = ShaderType::FRAGMENT;
-		bufferInfo.name = "UniformMaterialData";
-		bufferInfo.systemUniforms = false;
+		if (pbr)
+		{
+			graphics::api::BufferInfo bufferInfo = {};
+			bufferInfo.buffer = m_MaterialPropertiesBuffer;
+			bufferInfo.offset = 0;
+			bufferInfo.size = sizeof(MaterialProperties);
+			bufferInfo.type = graphics::api::DescriptorType::UNIFORM_BUFFER;
+			bufferInfo.binding = 4;
+			bufferInfo.shaderType = ShaderType::FRAGMENT;
+			bufferInfo.name = "UniformMaterialData";
+			bufferInfo.systemUniforms = false;
 
-		bufferInfos.push_back(bufferInfo);
+			bufferInfos.push_back(bufferInfo);
 
-        UpdateMaterialPropertiesData();
-		m_MaterialPropertiesBuffer->SetData(m_MaterialBufferSize, *&m_MaterialBufferData);
+			UpdateMaterialPropertiesData();
+			m_MaterialPropertiesBuffer->SetData(m_MaterialBufferSize, *&m_MaterialBufferData);
+		}
 
 		m_DescriptorSet->Update(imageInfos, bufferInfos);
 	}

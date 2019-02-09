@@ -31,7 +31,7 @@ namespace Lumos
 
 #define SHADOWMAP_MAX 16
 
-	class ShadowRenderer : public Renderer3D
+	class LUMOS_EXPORT ShadowRenderer : public Renderer3D
 	{
 	public:
 		ShadowRenderer(TextureDepthArray* texture = nullptr, uint shadowMapSize = 2048, uint numMaps = 4);

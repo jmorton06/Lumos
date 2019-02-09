@@ -25,6 +25,8 @@
 #include "Graphics/Terrain.h"
 #include "Graphics/API/Textures/TextureCube.h"
 #include "Graphics/API/Textures/Texture2D.h"
+#include "Graphics/API/Textures/TextureDepth.h"
+#include "Graphics/API/Textures/TextureDepthArray.h"
 #include "Graphics/Material.h"
 #include "Graphics/API/Context.h"
 #include "Graphics/API/Framebuffer.h"
@@ -81,6 +83,14 @@
 #include "Utilities/RandomNumberGenerator.h"
 #include "Utilities/TimeStep.h"
 #include "Utilities/CommonUtils.h"
+
+//Layers
+#include "Graphics/Layers/ImGuiLayer.h"
+#include "Graphics/Layers/Layer3D.h"
+#include "Graphics/Renderers/DeferredRenderer.h"
+#include "Graphics/Renderers/ForwardRenderer.h"
+#include "Graphics/Renderers/ShadowRenderer.h"
+#include "Graphics/RenderManager.h"
 
 //External
 #include <imgui/imgui.h>

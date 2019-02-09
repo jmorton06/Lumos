@@ -43,9 +43,30 @@ namespace Lumos
 		delete m_FBO;
 		delete m_DefaultTexture;
 		delete m_UniformBuffer;
+        
+        AlignedFree(uboDataDynamic.model);
+        
 		delete m_ModelUniformBuffer;
 		delete m_RenderPass;
 		delete m_DepthTexture;
+        delete m_GraphicsPipeline;
+        delete m_DefaultDescriptorSet;
+        
+        delete[] m_VSSystemUniformBuffer;
+        delete[] m_PSSystemUniformBuffer;
+        
+        SAFE_DELETE(m_SkyboxRenderer);
+        
+        for (auto& framebuffer : m_Framebuffers)
+        {
+            delete framebuffer;
+        }
+
+        
+        for (auto& commandBuffer : commandBuffers)
+        {
+            delete commandBuffer;
+        }
 	}
 
 	void ForwardRenderer::RenderScene(RenderList* renderList, Scene* scene)
@@ -67,7 +88,7 @@ namespace Lumos
 							if (mesh->GetMaterial())
 							{
 								if(mesh->GetMaterial()->GetDescriptorSet() == nullptr || mesh->GetMaterial()->GetPipeline() != m_GraphicsPipeline)
-									mesh->GetMaterial()->CreateDescriptorSet(m_GraphicsPipeline, 1);
+									mesh->GetMaterial()->CreateDescriptorSet(m_GraphicsPipeline, 1, false);
 							}
 
 							TextureMatrixComponent* textureMatrixTransform = obj->GetComponent<TextureMatrixComponent>();
@@ -89,10 +110,8 @@ namespace Lumos
 			EndScene();
 			End();
 		}
-#ifdef LUMOS_RENDER_API_VULKAN
-		if (graphics::Context::GetRenderAPI() == RenderAPI::VULKAN)
-			graphics::VKRenderer::GetRenderer()->Present(static_cast<graphics::VKCommandBuffer*>(commandBuffers[graphics::VKRenderer::GetRenderer()->GetSwapchain()->GetCurrentBufferId()]));
-#endif
+
+		Renderer::GetRenderer()->Present((commandBuffers[Renderer::GetRenderer()->GetSwapchain()->GetCurrentBufferId()]));
 	}
 
 	enum VSSystemUniformIndices : int32
@@ -232,19 +251,12 @@ namespace Lumos
         commandBuffers[i]->BeginRecording();
 
 		m_RenderPass->BeginRenderpass(commandBuffers[i], m_ClearColour, m_Framebuffers[i], graphics::api::SECONDARY, m_ScreenBufferWidth, m_ScreenBufferHeight);
-		m_Shader->Bind();
-
     }
 
 	void ForwardRenderer::BeginScene(Scene* scene)
 	{
 		auto camera = scene->GetCamera();
 		auto proj = camera->GetProjectionMatrix();
-
-#ifdef LUMOS_RENDER_API_VULKAN
-		if (graphics::Context::GetRenderAPI() == RenderAPI::VULKAN)
-		proj[5] *= -1;
-#endif
 
 		memcpy(m_VSSystemUniformBuffer + m_VSSystemUniformBufferOffsets[VSSystemUniformIndex_ProjectionMatrix], &proj, sizeof(maths::Matrix4));
 		memcpy(m_VSSystemUniformBuffer + m_VSSystemUniformBufferOffsets[VSSystemUniformIndex_ViewMatrix], &camera->GetViewMatrix(), sizeof(maths::Matrix4));

@@ -42,6 +42,9 @@ void SceneModelViewer::OnInit()
 	sun->SetPosition(maths::Vector3(26.0f, 22.0f, 48.5f) * 10000.0f);
 	sun->SetBrightness(4.0f);
 	m_LightSetup->SetDirectionalLight(sun);
+
+	Application::Instance()->PushOverLay(new ImGuiLayer(false));
+	Application::Instance()->PushLayer(new Layer3D(new ForwardRenderer(m_ScreenWidth, m_ScreenHeight)));
 }
 
 void SceneModelViewer::OnUpdate(TimeStep* timeStep)
