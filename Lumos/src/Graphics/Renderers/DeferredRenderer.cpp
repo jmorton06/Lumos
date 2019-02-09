@@ -73,7 +73,6 @@ namespace Lumos
 		delete m_DeferredPipeline;
 		delete m_OffScreenRenderpass;
 		delete m_OffScreenPipeline;
-		delete m_DepthTexture;
 		delete m_ScreenQuad;
         delete m_DefaultDescriptorSet;
         delete m_DeferredDescriptorSet;
@@ -156,7 +155,6 @@ namespace Lumos
 
 		m_OffScreenRenderpass = graphics::api::RenderPass::Create();
 		m_DeferredRenderpass = graphics::api::RenderPass::Create();
-		m_DepthTexture = TextureDepth::Create(m_ScreenBufferWidth, m_ScreenBufferHeight);
 
 		TextureType textureTypes[2] = { TextureType::COLOUR, TextureType::DEPTH };
 		graphics::api::RenderpassInfo renderpassCI{};
@@ -683,7 +681,7 @@ namespace Lumos
 		attachmentTypes[1] = TextureType::DEPTH;
 
 		Texture* attachments[2];
-		attachments[1] = reinterpret_cast<Texture*>(m_DepthTexture);
+		attachments[1] = reinterpret_cast<Texture*>(m_GBuffer->m_DepthTexture);
 		FramebufferInfo bufferInfo{};
 		bufferInfo.width = m_ScreenBufferWidth;
 		bufferInfo.height = m_ScreenBufferHeight;
@@ -732,7 +730,6 @@ namespace Lumos
 	{
 		delete m_DeferredPipeline;
 		delete m_OffScreenPipeline;
-		delete m_DepthTexture;
 		delete m_FBO;
 
 		for(auto fbo : m_Framebuffers)
@@ -741,10 +738,8 @@ namespace Lumos
 
 		DeferredRenderer::SetScreenBufferSize(width, height);
 
-		//m_GBuffer->UpdateTextureSize(m_ScreenBufferWidth,m_ScreenBufferHeight);
 		m_GBuffer.reset();
 		m_GBuffer = std::make_unique<GBuffer>(m_ScreenBufferWidth, m_ScreenBufferHeight);
-		m_DepthTexture = TextureDepth::Create(m_ScreenBufferWidth, m_ScreenBufferHeight);
 
         CreateOffScreenPipeline();
 		CreateDeferredPipeline();

@@ -27,10 +27,13 @@ namespace Lumos
 		void OnUpdate(TimeStep* timeStep);
 		void OnEvent(Event& e);
 
-		uint GetCount() const { return (uint)m_Layers.size() + (uint)m_Overlays.size(); }
+		uint GetCount() const { return (uint)m_Layers.size(); }
+        
+        std::vector<Layer*>::iterator begin() { return m_Layers.begin(); }
+        std::vector<Layer*>::iterator end() { return m_Layers.end(); }
 
 	private:
-		std::vector<Layer*> m_Layers;
-		std::vector<Layer*> m_Overlays;
+        std::vector<Layer*> m_Layers;
+        std::vector<Layer*>::iterator m_LayerInsert;
 	};
 }
