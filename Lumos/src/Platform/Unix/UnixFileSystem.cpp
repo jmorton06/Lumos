@@ -19,8 +19,8 @@ namespace Lumos
 
         if(size != read_size)
         {
-            delete[] buffer;
-            buffer = NULL;
+            //delete[] buffer;
+            //buffer = NULL;
             return false;
         }
         else
@@ -56,11 +56,11 @@ namespace Lumos
             result = ReadFileInternal(file, buffer, size, true);
             fclose(file);
         }
-        else
-        {
-            delete[] buffer;
-            return false;
-        }
+//        else
+//        {
+//            delete[] buffer;
+//            return false;
+//        }
         return result;
     }
 
