@@ -49,7 +49,6 @@ namespace Lumos
 		m_Window->SetEventCallback(BIND_EVENT_FN(Application::OnEvent));
 
         m_SceneManager = std::make_unique<SceneManager>();
-		m_RenderManager = std::make_unique<RenderManager>();
 
 		IMGUI_CHECKVERSION();
 		ImGui::CreateContext();
@@ -84,6 +83,7 @@ namespace Lumos
         AssetsManager::InitializeMeshes();
 
 		m_LayerStack = new LayerStack();
+        m_RenderManager = std::make_unique<RenderManager>(screenWidth, screenHeight);
 
         m_CurrentState = AppState::Running;
 		m_PhysicsThread = std::thread(PhysicsUpdate, 1000.0f/120.0f);
@@ -277,6 +277,7 @@ namespace Lumos
 
     bool Application::OnWindowResize(WindowResizeEvent &e)
     {
+        m_RenderManager->OnResize(e.GetWidth(), e.GetHeight());
 		Renderer::GetRenderer()->OnResize(e.GetWidth(), e.GetHeight());
         return false;
     }

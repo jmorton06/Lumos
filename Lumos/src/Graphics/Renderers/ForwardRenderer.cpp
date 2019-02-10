@@ -288,9 +288,9 @@ namespace Lumos
 
 	void ForwardRenderer::SetCubeMap(Texture* cubeMap)
 	{
-		m_SkyboxRenderer = new SkyboxRenderer(m_ScreenBufferWidth, m_ScreenBufferHeight);
+		//m_SkyboxRenderer = new SkyboxRenderer(m_ScreenBufferWidth, m_ScreenBufferHeight);
 		m_SkyboxRenderer->SetCubeMap(cubeMap);
-		m_SkyboxRenderer->SetRenderInfo(m_RenderPass);
+		//m_SkyboxRenderer->SetRenderInfo(m_RenderPass);
 		m_SkyboxRenderer->Init();
 	}
 
@@ -346,8 +346,8 @@ namespace Lumos
             index++;
 		}
 
-		if(m_SkyboxRenderer)
-			m_SkyboxRenderer->Render(commandBuffers[i], Application::Instance()->GetSceneManager()->GetCurrentScene(), i);
+		//if(m_SkyboxRenderer)
+			//m_SkyboxRenderer->Render(commandBuffers[i], Application::Instance()->GetSceneManager()->GetCurrentScene(), i);
 	}
 
 	void ForwardRenderer::OnResize(uint width, uint height)
