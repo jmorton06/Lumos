@@ -111,13 +111,11 @@ project "Lumos"
 
 		links
 		{
-			--"vulkan-1.lib",
 			"OpenAL32"
 		}
 
 		libdirs
 		{
-			--"../Dependencies/vulkan/libs/windows/64bit",
 			"../Dependencies/OpenAL/libs/Win32"
 		}
 
@@ -175,19 +173,12 @@ project "Lumos"
         	"IOKit.framework",
         	"CoreFoundation.framework",
 			"CoreVideo.framework",
-			"OpenAL.framework"--,
-			--"MoltenVK"
-		}
-
-		runpathdirs
-		{
-			--"../Dependencies/vulkan/libs/macOS/"
+			"OpenAL.framework"
 		}
 
 		libdirs
 		{
-			"../bin/**",
-			--"../Dependencies/vulkan/libs/macOS"
+			"../bin/**"
 		}
 
 		buildoptions
@@ -241,20 +232,13 @@ project "Lumos"
 		linkoptions
 		{
 			"../Dependencies/OpenAL/libs/linux/libopenal.so"
-			--"../Dependencies/vulkan/libs/linux/libvulkan.so.1"
-		}
-
-		runpathdirs
-		{
-		--	"../Dependencies/vulkan/libs/linux"
 		}
 
 		linkoptions{ "-Wl,-rpath=\\$$ORIGIN" }
 
 		libdirs
 		{
-			"../bin/**",
-			--"../Dependencies/vulkan/libs/linux/"
+			"../bin/**"
 		}
 
 		buildoptions
@@ -265,7 +249,7 @@ project "Lumos"
 			"-Wignored-attributes"
 		}
 
-		links { "X11", "pthread"}--, "vulkan"}
+		links { "X11", "pthread"}
 
 		pchheader "../Lumos/src/LM.h"
 		pchsource "../Lumos/src/LM.cpp"
@@ -280,12 +264,15 @@ project "Lumos"
 	filter "configurations:Debug"
 		defines "LUMOS_DEBUG"
 		symbols "On"
+		runtime "Debug"
 
 	filter "configurations:Release"
 		defines "LUMOS_RELEASE"
 		optimize "On"
 		symbols "On"
+		runtime "Release"
 
 	filter "configurations:Dist"
 		defines "LUMOS_DIST"
 		optimize "On"
+		runtime "Release"
