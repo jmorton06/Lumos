@@ -202,6 +202,8 @@ project "Lumos"
 			filter 'files:src/**.m'
 				flags  { 'NoPCH' }
 
+	
+	require 'Scripts/ios'
 	filter "system:ios"
 		cppdialect "C++17"
 		systemversion "latest"
@@ -220,8 +222,7 @@ project "Lumos"
 		files
 		{
 			"external/imgui/examples/imgui_impl_vulkan.h",
-			"external/imgui/examples/imgui_impl_vulkan.cpp",
-			"src/Platform/GraphicsAPI/Vulkan/MakeMetalView.mm"
+			"external/imgui/examples/imgui_impl_vulkan.cpp"
 		}
 
 		defines

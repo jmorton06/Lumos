@@ -10,10 +10,10 @@ namespace Lumos
 	GLFMWindow::GLFMWindow(const WindowProperties& properties, const String& title)
 	{
 		m_Init = false;
-		m_Exit = false;
-		m_VSync = properties.vsync;
+		//m_Exit = false;
+		//m_VSync = properties.vsync;
 		m_Timer = new Timer();
-		m_NumSuperSamples = properties.numSuperSamples;
+		//m_NumSuperSamples = properties.numSuperSamples;
 
 		m_Init = Init(properties, title);
 
@@ -45,13 +45,8 @@ namespace Lumos
 	{
 
 	}
-
-	void GLFMWindow::SwapBuffers()
-	{
-
-	}
-
-	void GLFMWindow::Update()
+    
+	void GLFMWindow::OnUpdate()
 	{
 
 	}

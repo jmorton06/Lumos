@@ -92,6 +92,17 @@ project "Sandbox"
 			"LUMOS_IMGUI"
 		}
 
+		xcodebuildsettings
+		{
+			["ARCHS"] = "$(ARCHS_STANDARD)",
+			["ONLY_ACTIVE_ARCH"] = "NO",
+			["SDKROOT"] = "iphoneos",
+			["SUPPORTED_PLATFORMS"] = "iphonesimulator iphoneos",
+			["CODE_SIGN_IDENTITY[sdk=iphoneos*]"] = "iPhone Developer",
+			['IPHONEOS_DEPLOYMENT_TARGET'] = '12.1',
+			['INFOPLIST_FILE'] = "../Lumos/src/Platform/iOS/Info.plist",
+		}
+
 		files
 		{
 			"../Lumos/src/Platform/iOS/**"
