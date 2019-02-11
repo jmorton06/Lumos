@@ -58,7 +58,7 @@ namespace Lumos
 		m_CommandBuffers.clear();
 	}
 
-    void SkyboxRenderer::RenderScene(RenderList* renderList, Scene* scene)//graphics::api::CommandBuffer* commandBuffer, Scene* scene, int framebufferId)
+    void SkyboxRenderer::RenderScene(RenderList* renderList, Scene* scene)
 	{
         m_CurrentBufferID = Renderer::GetRenderer()->GetSwapchain()->GetCurrentBufferId();
 
@@ -136,6 +136,7 @@ namespace Lumos
     {
         m_RenderPass->EndRenderpass(m_CommandBuffers[m_CurrentBufferID]);
         m_CommandBuffers[m_CurrentBufferID]->EndRecording();
+		m_CommandBuffers[m_CurrentBufferID]->Execute(true);
     }
 
 	void SkyboxRenderer::SetSystemUniforms(Shader* shader) const

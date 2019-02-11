@@ -301,9 +301,7 @@ namespace Lumos
 
     void Application::SetScene(Scene* scene)
     {
-       /* for (auto it = m_LayerStack->end(); it != m_LayerStack->begin();)
-        {
-            (*--it)->OnNewScene(m_SceneManager->GetCurrentScene());
-        }*/
+		scene->SetScreenWidth(m_Window->GetWidth());
+		scene->SetScreenHeight(m_Window->GetHeight());
     }
 }

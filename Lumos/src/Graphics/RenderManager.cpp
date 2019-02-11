@@ -10,7 +10,8 @@ namespace Lumos
         
         m_GBuffer = new GBuffer(width, height);
         Reset();
-    };
+    }
+	RenderManager::~RenderManager() { delete m_GBuffer; }
     
     void RenderManager::OnResize(uint width, uint height)
     {

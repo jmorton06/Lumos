@@ -14,7 +14,7 @@ namespace Lumos
     {
     public:
         RenderManager(uint width, uint height);
-        ~RenderManager() { delete m_GBuffer;};
+		~RenderManager();
         
         void Reset();
         void OnResize(uint width, uint height);

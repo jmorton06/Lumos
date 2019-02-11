@@ -77,7 +77,6 @@ namespace Lumos
         delete m_DefaultDescriptorSet;
         delete m_DeferredDescriptorSet;
         delete m_DefaultMaterialDataUniformBuffer;
-		//SAFE_DELETE(m_SkyboxRenderer);
 
         delete[] m_VSSystemUniformBuffer;
         delete[] m_PSSystemUniformBuffer;
@@ -99,7 +98,6 @@ namespace Lumos
 		m_OffScreenShader = Shader::CreateFromFile("DeferredColour", "/CoreShaders/");
 		m_DeferredShader = Shader::CreateFromFile("DeferredLight", "/CoreShaders/");
 
-		//m_GBuffer = std::make_unique<GBuffer>(m_ScreenBufferWidth, m_ScreenBufferHeight);
         m_DefaultTexture = Texture2D::CreateFromFile("Test", "/CoreTextures/checkerboard.tga");
 
         m_DeferredDescriptorSet = nullptr;
@@ -197,9 +195,7 @@ namespace Lumos
 
 		m_ClearColour = maths::Vector4(0.8f, 0.8f, 0.8f, 1.0f);
 
-		//m_SkyboxRenderer = nullptr;
-		//m_ShadowTexture  = std::unique_ptr<TextureDepthArray>(TextureDepthArray::Create(4096, 4096, 4));
-        //m_ShadowRenderer = std::make_unique<ShadowRenderer>(m_ShadowTexture.get(), 4096, 4);
+		CreateScreenDescriptorSet();
 	}
 
 	void DeferredRenderer::RenderScene(RenderList* renderList, Scene* scene)
@@ -310,7 +306,7 @@ namespace Lumos
 		memcpy(m_VSSystemUniformBuffer + m_VSSystemUniformBufferOffsets[VSSystemUniformIndex_ProjectionMatrix], &projView, sizeof(maths::Matrix4));
 
 
-		if(scene->GetEnvironmentMap())
+		if(Application::Instance()->GetRenderManager()->GetSkyBox())
 		{
 			if(Application::Instance()->GetRenderManager()->GetSkyBox() != m_CubeMap)
 			{
@@ -320,10 +316,9 @@ namespace Lumos
 		}
 		else
 		{
-			m_CubeMap = nullptr;
-			//if(m_SkyboxRenderer)
+			if(m_CubeMap)
 			{
-			//	SAFE_DELETE(m_SkyboxRenderer);
+				m_CubeMap = nullptr;
 				CreateScreenDescriptorSet();
 			}
 		}
@@ -424,9 +419,6 @@ namespace Lumos
 
 		currentCMDBuffer->EndRecording();
 		currentCMDBuffer->ExecuteSecondary(m_CommandBuffers[m_CommandBufferIndex]);
-
-		//if(m_SkyboxRenderer)
-			//m_SkyboxRenderer->Render(m_CommandBuffers[m_CommandBufferIndex], Application::Instance()->GetSceneManager()->GetCurrentScene(), m_CommandBufferIndex);
 	}
 
 	void DeferredRenderer::PresentOffScreen()
@@ -760,29 +752,11 @@ namespace Lumos
 		m_CubeMap = nullptr;
 
 		m_ClearColour = maths::Vector4(0.8f, 0.8f, 0.8f, 1.0f);
-
-		//if(m_SkyboxRenderer != nullptr)
-		//{
-		//	m_SkyboxRenderer->SetRenderInfo(m_DeferredRenderpass);
-		//	m_SkyboxRenderer->OnResize(m_ScreenBufferWidth, m_ScreenBufferHeight);
-		//}
-
 	}
 
 	void DeferredRenderer::SetCubeMap(Texture* cubeMap)
 	{
 		m_CubeMap = cubeMap;
-		//if(m_SkyboxRenderer == nullptr)
-		{
-			//m_SkyboxRenderer = new SkyboxRenderer(m_ScreenBufferWidth, m_ScreenBufferHeight);
-			//m_SkyboxRenderer->SetCubeMap(cubeMap);
-			//m_SkyboxRenderer->SetRenderInfo(m_DeferredRenderpass);
-			//m_SkyboxRenderer->Init();
-		}
-		//else
-		{
-			//m_SkyboxRenderer->SetCubeMap(cubeMap);
-		}
 	}
 
 	void DeferredRenderer::CreateDefaultDescriptorSet()
@@ -858,7 +832,7 @@ namespace Lumos
 		imageInfo6.name = "uEnvironmentMap";
 
 		graphics::api::ImageInfo imageInfo7 = {};
-		auto shadowRenderer = Application::Instance()->GetRenderManager()->GetShadowRenderer(); ;// m_ShadowRenderer.get();//
+		auto shadowRenderer = Application::Instance()->GetRenderManager()->GetShadowRenderer();
 		if (shadowRenderer)
 		{
 			imageInfo7.texture = (Texture*)shadowRenderer->GetTexture();

@@ -63,12 +63,9 @@ void Scene3D::OnInit()
 	auto shadowRenderer = new ShadowRenderer();
 
 	Application::Instance()->PushLayer(new Layer3D(shadowRenderer));
-    Application::Instance()->PushLayer(new Layer3D(new SkyboxRenderer(m_ScreenWidth, m_ScreenHeight,m_EnvironmentMap)));
     Application::Instance()->PushLayer(new Layer3D(new DeferredRenderer(m_ScreenWidth, m_ScreenHeight)));
-
-
-    Application::Instance()->PushOverLay(new ImGuiLayer(false));
-    //Application::Instance()->PushLayer(new Layer3D(new ForwardRenderer(m_ScreenWidth, m_ScreenHeight)));
+	Application::Instance()->PushLayer(new Layer3D(new SkyboxRenderer(m_ScreenWidth, m_ScreenHeight, m_EnvironmentMap)));
+	Application::Instance()->PushOverLay(new ImGuiLayer(false));
 
 	Application::Instance()->GetRenderManager()->SetShadowRenderer(shadowRenderer);
     Application::Instance()->GetRenderManager()->SetSkyBoxTexture(m_EnvironmentMap);

@@ -20,7 +20,7 @@
 
 #include "Core.h"
 #include "System/String.h"
-#include "System/JMLog.h"
+#include "System/LMLog.h"
 #endif
 
 #include <stdio.h>

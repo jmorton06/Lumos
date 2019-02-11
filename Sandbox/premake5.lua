@@ -77,6 +77,28 @@ project "Sandbox"
 			"LUMOS_IMGUI"
 		}
 
+	filter "system:ios"
+		cppdialect "C++17"
+		staticruntime "On"
+		systemversion "latest"
+
+		defines
+		{
+			"LUMOS_PLATFORM_IOS",
+			"LUMOS_PLATFORM_MOBILE",
+			"LUMOS_PLATFORM_UNIX",
+			"LUMOS_RENDER_API_VULKAN",
+			"VK_USE_PLATFORM_IOS_MVK",
+			"LUMOS_IMGUI"
+		}
+
+		files
+		{
+			"../Lumos/src/Platform/iOS/**"
+		}
+
+		xcodebuildresources { "res/**" }
+
 	filter "system:linux"
 		cppdialect "C++17"
 		staticruntime "On"

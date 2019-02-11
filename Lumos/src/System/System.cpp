@@ -9,7 +9,7 @@ namespace Lumos
 	{
 	void System::Init()
 	{
-        JMLog::Init();
+		LMLog::Init();
 		LUMOS_CORE_INFO("Initializing System");
 		VFS::Init();
 	}
