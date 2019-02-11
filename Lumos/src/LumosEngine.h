@@ -70,6 +70,7 @@
 #include "System/String.h"
 #include "System/System.h"
 #include "System/Settings.h"
+#include "System/LMLog.h"
 
 //Scripting
 #include "Scripting/LuaScript.h"

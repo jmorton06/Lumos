@@ -34,6 +34,6 @@ namespace Lumos
 
 	private:
         std::vector<Layer*> m_Layers;
-        std::vector<Layer*>::iterator m_LayerInsert;
+		size_t m_LayerCount = 0;
 	};
 }

@@ -1,6 +1,5 @@
 #include "LM.h"
 #include "Settings.h"
-#include "JMLog.h"
 
 namespace Lumos
 {

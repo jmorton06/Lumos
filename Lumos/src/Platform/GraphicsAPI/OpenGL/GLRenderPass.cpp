@@ -20,6 +20,7 @@ namespace Lumos
 
         bool GLRenderPass::Init(const api::RenderpassInfo &renderpassCI)
         {
+			m_Clear = renderpassCI.clear;
             return false;
         }
 
@@ -45,7 +46,8 @@ namespace Lumos
                 GLCall(glViewport(0, 0, width, height));
             }
 
-            Renderer::Clear(RENDERER_BUFFER_COLOUR | RENDERER_BUFFER_DEPTH | RENDERER_BUFFER_STENCIL);
+			if(m_Clear)
+				Renderer::Clear(RENDERER_BUFFER_COLOUR | RENDERER_BUFFER_DEPTH | RENDERER_BUFFER_STENCIL);
         }
 
         void GLRenderPass::EndRenderpass(api::CommandBuffer *commandBuffer)

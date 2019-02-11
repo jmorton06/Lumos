@@ -27,6 +27,11 @@ project "Lumos"
 		"external/simplex/**.cpp"
 	}
 
+	removefiles
+	{
+		"src/Platform/iOS/**"
+	}
+
 	includedirs
 	{
 		"../",
@@ -196,6 +201,63 @@ project "Lumos"
 				flags  { 'NoPCH' }
 			filter 'files:src/**.m'
 				flags  { 'NoPCH' }
+
+	filter "system:ios"
+		cppdialect "C++17"
+		systemversion "latest"
+		kind "StaticLib"
+
+		removefiles
+		{
+			"src/Platform/GLFW/*.h",
+			"src/Platform/GLFW/*.cpp",
+			"src/Platform/Windows/*.h",
+			"src/Platform/Windows/*.cpp",
+			"src/Platform/GraphicsAPI/OpenGL/**.h",
+			"src/Platform/GraphicsAPI/OpenGL/**.cpp"
+		}
+
+		files
+		{
+			"external/imgui/examples/imgui_impl_vulkan.h",
+			"external/imgui/examples/imgui_impl_vulkan.cpp",
+			"src/Platform/GraphicsAPI/Vulkan/MakeMetalView.mm"
+		}
+
+		defines
+		{
+			"LUMOS_PLATFORM_IOS",
+			"LUMOS_PLATFORM_MOBILE",
+			"LUMOS_PLATFORM_UNIX",
+			"LUMOS_RENDER_API_VULKAN",
+			"VK_USE_PLATFORM_IOS_MVK",
+			"LUMOS_IMGUI",
+			"LUMOS_OPENAL"
+		}
+
+		links
+		{
+			"QuartzCore.framework",
+			"Metal.framework",
+			"Cocoa.framework",
+        	"IOKit.framework",
+        	"CoreFoundation.framework",
+			"CoreVideo.framework",
+			"OpenAL.framework"
+		}
+
+		libdirs
+		{
+			"../bin/**"
+		}
+
+		buildoptions
+		{
+			"-Wno-attributes"
+		}
+
+		xcodebuildresources { "res/**" }
+
 
 	filter "system:linux"
 		cppdialect "C++17"

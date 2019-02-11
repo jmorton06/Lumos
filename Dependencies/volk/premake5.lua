@@ -34,7 +34,11 @@ project 'volk'
 			"VK_USE_PLATFORM_MACOS_MVK"
 		}
 
-
+	filter "system:ios"
+		defines
+		{
+			"VK_USE_PLATFORM_IOS_MVK"
+		}
 
 	filter "configurations:Debug"
 	symbols "On"
