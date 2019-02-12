@@ -21,6 +21,8 @@ int main(int argc, char** argv)
 #elif defined(LUMOS_PLATFORM_IOS)
 
 #include "Application.h"
+#include "System/System.h"
+
 extern Lumos::Application* Lumos::CreateApplication();
 
 namespace iosApp

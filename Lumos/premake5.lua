@@ -56,10 +56,8 @@ project "Lumos"
 
 	links
 	{
-		"glfw",
 		"lua",
 		"Box2D",
-		"glad",
 		"volk"
 	}
 
@@ -116,7 +114,9 @@ project "Lumos"
 
 		links
 		{
-			"OpenAL32"
+			"OpenAL32",
+			"glfw",
+			"glad"
 		}
 
 		libdirs
@@ -178,7 +178,9 @@ project "Lumos"
         	"IOKit.framework",
         	"CoreFoundation.framework",
 			"CoreVideo.framework",
-			"OpenAL.framework"
+			"OpenAL.framework",
+			"glfw",
+			"glad"
 		}
 
 		libdirs
@@ -289,6 +291,12 @@ project "Lumos"
 			"LUMOS_RENDER_API_VULKAN",
 			"VK_USE_PLATFORM_XCB_KHR",
 			"LUMOS_IMGUI"
+		}
+
+		links
+		{
+			"glfw",
+			"glad"
 		}
 
 		linkoptions

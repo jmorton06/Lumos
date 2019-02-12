@@ -92,6 +92,18 @@ project "Sandbox"
 			"LUMOS_IMGUI"
 		}
 
+		links
+		{
+			"QuartzCore.framework",
+			"Metal.framework",
+			"Cocoa.framework",
+        	"IOKit.framework",
+        	"CoreFoundation.framework",
+			"CoreVideo.framework",
+			"UIKit.framework,"
+			"OpenAL.framework"
+		}
+
 		xcodebuildsettings
 		{
 			["ARCHS"] = "$(ARCHS_STANDARD)",
@@ -100,7 +112,7 @@ project "Sandbox"
 			["SUPPORTED_PLATFORMS"] = "iphonesimulator iphoneos",
 			["CODE_SIGN_IDENTITY[sdk=iphoneos*]"] = "iPhone Developer",
 			['IPHONEOS_DEPLOYMENT_TARGET'] = '12.1',
-			['INFOPLIST_FILE'] = "../Lumos/src/Platform/iOS/Info.plist",
+			--['INFOPLIST_FILE'] = "../Lumos/src/Platform/iOS/Info.plist",
 		}
 
 		files
