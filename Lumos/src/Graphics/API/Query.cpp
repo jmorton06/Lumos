@@ -2,7 +2,7 @@
 #include "Query.h"
 
 #ifdef LUMOS_RENDER_API_OPENGL
-#include "Platform/GraphicsAPI/OpenGL/GLQuery.h"
+#include "Platform/OpenGL/GLQuery.h"
 #endif
 
 #ifdef LUMOS_RENDER_API_DIRECT3D

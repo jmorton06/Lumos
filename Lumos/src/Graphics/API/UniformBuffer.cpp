@@ -4,11 +4,11 @@
 #include "Context.h"
 
 #ifdef LUMOS_RENDER_API_VULKAN 
-#include "Platform/GraphicsAPI/Vulkan/VKUniformBuffer.h"
+#include "Platform/Vulkan/VKUniformBuffer.h"
 #endif
 
 #ifdef LUMOS_RENDER_API_OPENGL
-#include "Platform/GraphicsAPI/OpenGL/GLUniformBuffer.h"
+#include "Platform/OpenGL/GLUniformBuffer.h"
 #endif
 
 namespace Lumos

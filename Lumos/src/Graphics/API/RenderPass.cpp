@@ -3,11 +3,11 @@
 #include "Context.h"
 
 #ifdef LUMOS_RENDER_API_VULKAN
-#include "Platform/GraphicsAPI/Vulkan/VKRenderpass.h"
+#include "Platform/Vulkan/VKRenderpass.h"
 #endif
 
 #ifdef LUMOS_RENDER_API_OPENGL
-#include "Platform/GraphicsAPI/OpenGL/GLRenderPass.h"
+#include "Platform/OpenGL/GLRenderPass.h"
 #endif
 
 namespace Lumos

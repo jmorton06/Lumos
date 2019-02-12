@@ -1,5 +1,5 @@
 #include "LM.h"
-#include "JMPhysicsEngine.h"
+#include "LumosPhysicsEngine.h"
 #include "CollisionDetection.h"
 #include "PhysicsObject3D.h"
 #include "App/Window.h"
@@ -12,7 +12,7 @@
 namespace Lumos
 {
 
-	JMPhysicsEngine::JMPhysicsEngine()
+	LumosPhysicsEngine::LumosPhysicsEngine()
 		: m_IsPaused(true)
 		, m_UpdateTimestep(1.0f / 60.f)
 		, m_UpdateAccum(0.0f)
@@ -23,7 +23,7 @@ namespace Lumos
 	{
 	}
 
-	void JMPhysicsEngine::SetDefaults()
+	void LumosPhysicsEngine::SetDefaults()
 	{
 		m_IsPaused = true;
 		m_UpdateTimestep = 1.0f / 60.f;
@@ -33,7 +33,7 @@ namespace Lumos
 		m_integrationType = IntegrationType::INTEGRATION_RUNGE_KUTTA_4;
 	}
 
-	JMPhysicsEngine::~JMPhysicsEngine()
+	LumosPhysicsEngine::~LumosPhysicsEngine()
 	{
 		RemoveAllPhysicsObjects();
 
@@ -43,12 +43,12 @@ namespace Lumos
 			delete m_BroadphaseDetection;
 	}
 
-	void JMPhysicsEngine::AddPhysicsObject(std::shared_ptr<PhysicsObject3D> obj)
+	void LumosPhysicsEngine::AddPhysicsObject(std::shared_ptr<PhysicsObject3D> obj)
 	{
 		m_PhysicsObjects.push_back(obj);
 	}
 
-	void JMPhysicsEngine::RemovePhysicsObject(std::shared_ptr<PhysicsObject3D> obj)
+	void LumosPhysicsEngine::RemovePhysicsObject(std::shared_ptr<PhysicsObject3D> obj)
 	{
 		//// Lookup the object in question
 		const auto it = std::find(m_PhysicsObjects.begin(), m_PhysicsObjects.end(), obj);
@@ -58,7 +58,7 @@ namespace Lumos
 			m_PhysicsObjects.erase(it);
 	}
 
-	void JMPhysicsEngine::RemoveAllPhysicsObjects()
+	void LumosPhysicsEngine::RemoveAllPhysicsObjects()
 	{
 		//delete and remove all constraints/collision manifolds
 		for (Constraint* c : m_Constraints)
@@ -72,7 +72,7 @@ namespace Lumos
 		m_PhysicsObjects.clear();
 	}
 
-	void JMPhysicsEngine::Update(TimeStep* timeStep)
+	void LumosPhysicsEngine::Update(TimeStep* timeStep)
 	{
 		if (!m_IsPaused)
 		{
@@ -82,7 +82,7 @@ namespace Lumos
 		}
 	}
 
-	void JMPhysicsEngine::UpdatePhysics()
+	void LumosPhysicsEngine::UpdatePhysics()
 	{
 		for (Manifold* m : m_Manifolds)
 		{
@@ -101,7 +101,7 @@ namespace Lumos
 		UpdatePhysicsObjects();
 	}
 
-	void JMPhysicsEngine::DebugRender(uint64 debugFlags)
+	void LumosPhysicsEngine::DebugRender(uint64 debugFlags)
 	{
 		// Draw all collision manifolds
 		if (debugFlags & DEBUGDRAW_FLAGS_MANIFOLD)
@@ -121,7 +121,7 @@ namespace Lumos
 			m_BroadphaseDetection->DebugDraw();
 	}
 
-	void JMPhysicsEngine::UpdatePhysicsObjects()
+	void LumosPhysicsEngine::UpdatePhysicsObjects()
 	{
 		for (const auto& obj : m_PhysicsObjects)
 		{
@@ -129,7 +129,7 @@ namespace Lumos
 		}
 	}
 
-	void JMPhysicsEngine::UpdatePhysicsObject(PhysicsObject3D* obj) const
+	void LumosPhysicsEngine::UpdatePhysicsObject(PhysicsObject3D* obj) const
 	{
 		if (!obj->GetIsStatic() && obj->IsAwake())
 		{
@@ -247,14 +247,14 @@ namespace Lumos
 		}
 	}
 
-	void JMPhysicsEngine::BroadPhaseCollisions()
+	void LumosPhysicsEngine::BroadPhaseCollisions()
 	{
 		m_BroadphaseCollisionPairs.clear();
 		if (m_BroadphaseDetection)
 			m_BroadphaseDetection->FindPotentialCollisionPairs(m_PhysicsObjects, m_BroadphaseCollisionPairs);
 	}
 
-	void JMPhysicsEngine::NarrowPhaseCollisions()
+	void LumosPhysicsEngine::NarrowPhaseCollisions()
 	{
 		if (!m_BroadphaseCollisionPairs.empty())
 		{
@@ -305,7 +305,7 @@ namespace Lumos
 		}
 	}
 
-	void JMPhysicsEngine::SolveConstraints()
+	void LumosPhysicsEngine::SolveConstraints()
 	{
 		for (Manifold* m : m_Manifolds)		m->PreSolverStep(m_UpdateTimestep);
 		for (Constraint* c : m_Constraints)	c->PreSolverStep(m_UpdateTimestep);
@@ -323,7 +323,7 @@ namespace Lumos
 			}
 		}
 	}
-	PhysicsObject3D* JMPhysicsEngine::FindObjectByName(const String& name)
+	PhysicsObject3D* LumosPhysicsEngine::FindObjectByName(const String& name)
 	{
 		auto it = std::find_if(m_PhysicsObjects.begin(), m_PhysicsObjects.end(), [name](std::shared_ptr<PhysicsObject3D> o) 
 		{

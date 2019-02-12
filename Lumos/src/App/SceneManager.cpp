@@ -56,8 +56,8 @@ namespace Lumos
 		if (m_CurrentScene)
 		{
             LUMOS_CORE_INFO("[SceneManager] - Exiting scene : {0}" , m_CurrentScene->GetSceneName());
-			JMPhysicsEngine::Instance()->RemoveAllPhysicsObjects();
-            JMPhysicsEngine::Instance()->SetPaused(true);
+			LumosPhysicsEngine::Instance()->RemoveAllPhysicsObjects();
+            LumosPhysicsEngine::Instance()->SetPaused(true);
 			m_CurrentScene->OnCleanupScene();
 		}
 
@@ -65,7 +65,7 @@ namespace Lumos
 		m_CurrentScene = m_vpAllScenes[idx].get();
 
 		//Initialize new scene
-		JMPhysicsEngine::Instance()->SetDefaults();
+		LumosPhysicsEngine::Instance()->SetDefaults();
 		B2PhysicsEngine::Instance()->SetDefaults();
 
         Application::Instance()->SetScene(m_CurrentScene);

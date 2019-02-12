@@ -2,14 +2,14 @@
 #include "IndexBuffer.h"
 
 #ifdef LUMOS_RENDER_API_OPENGL
-#include "Platform/GraphicsAPI/OpenGL/GLIndexBuffer.h"
+#include "Platform/OpenGL/GLIndexBuffer.h"
 #endif
 #ifdef LUMOS_RENDER_API_DIRECT3D
 #include "graphics/DirectX/DXIndexBuffer.h"
 #endif
 
 #ifdef LUMOS_RENDER_API_VULKAN
-#include "Platform/GraphicsAPI/Vulkan/VKIndexBuffer.h"
+#include "Platform/Vulkan/VKIndexBuffer.h"
 #endif
 
 #include "Graphics/API/Context.h"

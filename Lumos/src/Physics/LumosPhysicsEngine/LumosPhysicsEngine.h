@@ -22,12 +22,12 @@ namespace Lumos
 	class Constraint;
 	struct TimeStep;
 
-	class LUMOS_EXPORT JMPhysicsEngine : public TSingleton<JMPhysicsEngine>
+	class LUMOS_EXPORT LumosPhysicsEngine : public TSingleton<LumosPhysicsEngine>
 	{
-		friend class TSingleton<JMPhysicsEngine>;
+		friend class TSingleton<LumosPhysicsEngine>;
 	public:
-		JMPhysicsEngine();
-		~JMPhysicsEngine();
+		LumosPhysicsEngine();
+		~LumosPhysicsEngine();
 
 		void SetDefaults();
 

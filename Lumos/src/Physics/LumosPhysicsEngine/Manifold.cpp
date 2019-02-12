@@ -2,7 +2,7 @@
 #include "Manifold.h"
 #include "Maths/Matrix3.h"
 
-#include "JMPhysicsEngine.h"
+#include "LumosPhysicsEngine.h"
 #include "Graphics/Renderers/DebugRenderer.h"
 #include "Maths/MathsUtilities.h"
 
@@ -76,7 +76,7 @@ namespace Lumos
 
 				float penetrationSlop = maths::Min(c.collisionPenetration + baumgarteSlop, 0.0f);
 
-				b = -(baumgarteScalar / JMPhysicsEngine::Instance()->GetDeltaTime()) * penetrationSlop;
+				b = -(baumgarteScalar / LumosPhysicsEngine::Instance()->GetDeltaTime()) * penetrationSlop;
 			}
 
 			float b_real = maths::Max(b, c.elatisity_term + b * 0.2f);

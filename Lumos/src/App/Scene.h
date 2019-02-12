@@ -1,7 +1,7 @@
 #pragma once
 #include "LM.h"
 #include "Maths/Frustum.h"
-#include "Physics/JMPhysicsEngine/JMPhysicsEngine.h"
+#include "Physics/LumosPhysicsEngine/LumosPhysicsEngine.h"
 #include "Utilities/TSingleton.h"
 #include "Graphics/RenderList.h"
 #include "Graphics/Camera/Camera.h"

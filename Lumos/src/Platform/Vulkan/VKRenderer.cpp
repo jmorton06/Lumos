@@ -1,16 +1,14 @@
 #include "LM.h"
 #include "VKRenderer.h"
 #include "VKDevice.h"
-#include "Graphics/MeshFactory.h"
 #include "VKShader.h"
-#include "Graphics/Model/Model.h"
-#include "VKInitialisers.h"
-#include "System/System.h"
-#include "App/Scene.h"
 #include "VKVertexBuffer.h"
 #include "VKIndexBuffer.h"
+#include "VKInitialisers.h"
 #include "VKDescriptorSet.h"
-#include "App/SceneManager.h"
+#include "Graphics/Mesh.h"
+#include "Graphics/Material.h"
+#include "System/System.h"
 
 namespace Lumos
 {

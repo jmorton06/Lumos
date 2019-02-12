@@ -22,10 +22,10 @@ namespace Lumos
         Error
 	};
 
-	class LUMOS_EXPORT JMComponent
+	class LUMOS_EXPORT LumosComponent
 	{
 	public:
-		virtual ~JMComponent() = default;
+		virtual ~LumosComponent() = default;
 		virtual Entity* GetEntity() { return m_Entity; }
         virtual ComponentType GetType() const { return ComponentType::Error; }
 

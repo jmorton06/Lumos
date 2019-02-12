@@ -1,6 +1,6 @@
 #include "LM.h"
 #include "GLTextureCube.h"
-#include "Platform/GraphicsAPI/OpenGL/GL.h"
+#include "Platform/OpenGL/GL.h"
 #include "Utilities/LoadImage.h"
 #include "GLTexture2D.h"
 

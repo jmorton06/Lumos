@@ -3,11 +3,11 @@
 #include "Context.h"
 
 #ifdef LUMOS_RENDER_API_VULKAN
-#include "Platform/GraphicsAPI/Vulkan/VKCommandBuffer.h"
+#include "Platform/Vulkan/VKCommandBuffer.h"
 #endif
 
 #ifdef LUMOS_RENDER_API_OPENGL
-#include "Platform/GraphicsAPI/OpenGL/GLCommandBuffer.h"
+#include "Platform/OpenGL/GLCommandBuffer.h"
 #endif
 
 namespace Lumos

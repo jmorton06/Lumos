@@ -1,10 +1,10 @@
 #include "LM.h"
 #include "GLTexture2D.h"
 
-#include "Platform/GraphicsAPI/OpenGL/GL.h"
+#include "Platform/OpenGL/GL.h"
 
 #include "Utilities/LoadImage.h"
-#include "Platform/GraphicsAPI/OpenGL/GLShader.h"
+#include "Platform/OpenGL/GLShader.h"
 
 namespace Lumos
 {

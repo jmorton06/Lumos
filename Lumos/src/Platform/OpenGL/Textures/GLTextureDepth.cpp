@@ -1,7 +1,7 @@
 #include "LM.h"
 #include "GLTextureDepth.h"
 
-#include "Platform/GraphicsAPI/OpenGL/GL.h"
+#include "Platform/OpenGL/GL.h"
 
 
 namespace Lumos

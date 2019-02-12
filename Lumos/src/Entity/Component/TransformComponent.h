@@ -1,11 +1,11 @@
 #pragma once
 #include "LM.h"
-#include "JMComponent.h"
+#include "LumosComponent.h"
 #include "Maths/Matrix4.h"
 
 namespace Lumos
 {
-	class LUMOS_EXPORT TransformComponent : public JMComponent
+	class LUMOS_EXPORT TransformComponent : public LumosComponent
 	{
 	public:
 		maths::Matrix4 m_WorldSpaceTransform;

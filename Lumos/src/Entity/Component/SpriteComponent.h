@@ -1,12 +1,12 @@
 #pragma once
 #include "LM.h"
-#include "JMComponent.h"
+#include "LumosComponent.h"
 
 namespace Lumos
 {
 	class Sprite;
 
-	class LUMOS_EXPORT SpriteComponent : public JMComponent
+	class LUMOS_EXPORT SpriteComponent : public LumosComponent
 	{
 	public:
 		std::shared_ptr<Sprite> m_Sprite;

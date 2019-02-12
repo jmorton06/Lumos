@@ -1,7 +1,7 @@
 #include "LM.h"
 #include "GLFramebuffer.h"
 
-#include "Platform/GraphicsAPI/OpenGL/GLDebug.h"
+#include "Platform/OpenGL/GLDebug.h"
 #include "Graphics/API/Textures/TextureCube.h"
 
 namespace Lumos

@@ -25,7 +25,7 @@
 #include "Graphics/RenderManager.h"
 
 #ifdef LUMOS_RENDER_API_VULKAN
-#include "Platform/GraphicsAPI/Vulkan/VKRenderer.h"
+#include "Platform/Vulkan/VKRenderer.h"
 #endif
 
 namespace Lumos

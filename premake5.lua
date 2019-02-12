@@ -1,4 +1,5 @@
 require 'Scripts/ios'
+require 'Scripts/premakeDefines'
 
 workspace "LumosEngine"
 	architecture "x64"
@@ -13,8 +14,6 @@ workspace "LumosEngine"
 	startproject "Sandbox"
 
 	location "build"
-
-	outputdir = "%{cfg.buildcfg}-%{cfg.system}-%{cfg.architecture}"
 
 	targetdir ("bin/" .. outputdir)
 	objdir ("bin-int/" .. outputdir .. "/%{prj.name}")
