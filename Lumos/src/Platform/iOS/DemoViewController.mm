@@ -7,12 +7,12 @@
 
 #import "DemoViewController.h"
 
-#include "EntryPoint.h"
+#include "../Lumos/src/App/EntryPoint.h"
 
 
-const std::string VulkanExampleBase::getAssetPath() {
-    return [NSBundle.mainBundle.resourcePath stringByAppendingString: @"/data/"].UTF8String;
-}
+//const std::string VulkanExampleBase::getAssetPath() {
+//    return [NSBundle.mainBundle.resourcePath stringByAppendingString: @"/data/"].UTF8String;
+//}
 
 
 #pragma mark -
@@ -80,7 +80,7 @@ const std::string VulkanExampleBase::getAssetPath() {
 
 // Handle keyboard input
 -(void) handleKeyboardInput: (unichar) keycode {
-    OnKeyPressed();
+    iosApp::OnKeyPressed();
 }
 
 

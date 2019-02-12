@@ -12,7 +12,7 @@ if act then
 end
 
 filter "system:ios"
-	kind "StaticLib"
+	--kind "StaticLib"
 	xcodebuildsettings
 	{
 		["ARCHS"] = "$(ARCHS_STANDARD)",
