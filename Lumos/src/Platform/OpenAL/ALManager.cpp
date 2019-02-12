@@ -56,10 +56,27 @@ namespace Lumos
 				maths::Vector3 dirup[2];
 				dirup[0] = m_Listener->GetForwardDirection();
 				dirup[1] = m_Listener->GetUpDirection();
+                
+                ALfloat direction[6];
+                
+                auto orientation = m_Listener->GetOrientation();
+                
+                direction[0] = -2 * (orientation.w * orientation.y +
+                                     orientation.x * orientation.z);
+                direction[1] = 2 * (orientation.x * orientation.w -
+                                    orientation.z * orientation.y);
+                direction[2] = 2 * (orientation.x * orientation.x +
+                                    orientation.y * orientation.y) - 1;
+                direction[3] = 2 * (orientation.x * orientation.y -
+                                    orientation.w * orientation.z);
+                direction[4] = 1 - 2 * (orientation.x * orientation.x +
+                                        orientation.z * orientation.z);
+                direction[5] = 2 * (orientation.w * orientation.x +
+                                    orientation.y * orientation.z);
 
 				alListenerfv(AL_POSITION, reinterpret_cast<float*>(&worldPos));
 				alListenerfv(AL_VELOCITY, reinterpret_cast<float*>(&velocity));
-				alListenerfv(AL_ORIENTATION, reinterpret_cast<float*>(&dirup));
+                alListenerfv(AL_ORIENTATION,direction);// reinterpret_cast<float*>(&dirup));
 			}
 		}
     }
