@@ -10,9 +10,9 @@ GraphicsScene::~GraphicsScene() = default;
 void GraphicsScene::OnInit()
 {
 	Scene::OnInit();
-	JMPhysicsEngine::Instance()->SetDampingFactor(0.998f);
-	JMPhysicsEngine::Instance()->SetIntegrationType(IntegrationType::INTEGRATION_RUNGE_KUTTA_4);
-	JMPhysicsEngine::Instance()->SetBroadphase(new Octree(5, 3, std::make_shared<BruteForceBroadphase>()));
+	LumosPhysicsEngine::Instance()->SetDampingFactor(0.998f);
+	LumosPhysicsEngine::Instance()->SetIntegrationType(IntegrationType::INTEGRATION_RUNGE_KUTTA_4);
+	LumosPhysicsEngine::Instance()->SetBroadphase(new Octree(5, 3, std::make_shared<BruteForceBroadphase>()));
 
 	LoadModels();
 
@@ -45,7 +45,7 @@ void GraphicsScene::OnInit()
 	sun->SetPosition(maths::Vector3(26.0f, 22.0f, 48.5f) * 10000.0f);
 	m_LightSetup->SetDirectionalLight(sun);
 
-	SoundSystem::Instance()->SetListener(m_pCamera);
+	//SoundSystem::Instance()->SetListener(m_pCamera);
 
 	auto shadowRenderer = new ShadowRenderer(m_ShadowTexture.get(), 4096, 4);
 	Application::Instance()->GetRenderManager()->SetShadowRenderer(shadowRenderer);

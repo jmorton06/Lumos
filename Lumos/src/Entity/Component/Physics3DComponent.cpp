@@ -1,7 +1,7 @@
 ﻿#include "LM.h"
 #include "Physics3DComponent.h"
-#include "Physics/JMPhysicsEngine/PhysicsObject3D.h"
-#include "Physics/JMPhysicsEngine/JMPhysicsEngine.h"
+#include "Physics/LumosPhysicsEngine/PhysicsObject3D.h"
+#include "Physics/LumosPhysicsEngine/LumosPhysicsEngine.h"
 #include "Entity/Entity.h"
 
 namespace Lumos
@@ -9,7 +9,7 @@ namespace Lumos
 	Physics3DComponent::Physics3DComponent(std::shared_ptr<PhysicsObject3D>& physics)
 		: m_PhysicsObject(physics)
 	{
-		JMPhysicsEngine::Instance()->AddPhysicsObject(physics);
+		LumosPhysicsEngine::Instance()->AddPhysicsObject(physics);
 	}
 
 	void Physics3DComponent::Init()

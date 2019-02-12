@@ -1,7 +1,7 @@
 #pragma once
 #include "LM.h"
 #include "Graphics/API/Framebuffer.h"
-#include "Platform/GraphicsAPI/OpenGL/GL.h"
+#include "Platform/OpenGL/GL.h"
 #include "Textures/GLTexture2D.h"
 
 namespace Lumos

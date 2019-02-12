@@ -1,6 +1,6 @@
 #include "LM.h"
 #include "PhysicsObject3D.h"
-#include "JMPhysicsEngine.h"
+#include "LumosPhysicsEngine.h"
 #include "Entity/Entity.h"
 
 #include "Graphics/Renderers/DebugRenderer.h"

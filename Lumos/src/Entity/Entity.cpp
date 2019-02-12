@@ -18,7 +18,7 @@ namespace Lumos
 	{
 	}
 
-	void Entity::AddComponent(std::unique_ptr<JMComponent> component)
+	void Entity::AddComponent(std::unique_ptr<LumosComponent> component)
 	{
 		//LUMOS_CORE_ASSERT(component->GetType(),"");
 		component->SetEntity(this);

@@ -3,7 +3,7 @@
 #include "Graphics/API/DescriptorSet.h"
 #include "VKInitialisers.h"
 #include "Graphics/API/Pipeline.h"
-#include "Platform/GraphicsAPI/Vulkan/VKCommandBuffer.h"
+#include "Platform/Vulkan/VKCommandBuffer.h"
 
 namespace Lumos
 {

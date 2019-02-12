@@ -2,7 +2,7 @@
 #include "Texture2D.h"
 
 #ifdef LUMOS_RENDER_API_OPENGL
-#include "Platform/GraphicsAPI/OpenGL/Textures/GLTexture2D.h"
+#include "Platform/OpenGL/Textures/GLTexture2D.h"
 #endif
 
 #ifdef LUMOS_RENDER_API_DIRECT3D
@@ -11,7 +11,7 @@
 
 #include "Graphics/API/Context.h"
 #ifdef LUMOS_RENDER_API_VULKAN
-#include "Platform/GraphicsAPI/Vulkan/VKTexture2D.h"
+#include "Platform/Vulkan/VKTexture2D.h"
 #endif
 
 namespace Lumos

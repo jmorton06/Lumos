@@ -2,9 +2,11 @@
 #include "SoundComponent.h"
 #include "Audio/SoundNode.h"
 #include "App/Scene.h"
-#include "Audio/SoundSystem.h"
 #include "Maths/BoundingSphere.h"
 #include "Graphics/Renderers/DebugRenderer.h"
+
+#include "App/Application.h"
+#include "Audio/AudioManager.h"
 
 namespace Lumos
 {
@@ -20,6 +22,7 @@ namespace Lumos
 		if (physicsComponent)
 		{
 			m_SoundNode->SetPosition(physicsComponent->m_PhysicsObject->GetPosition());
+			m_SoundNode->SetVelocity(physicsComponent->m_PhysicsObject->GetLinearVelocity());
 			m_BoundingShape->SetPosition(m_SoundNode->GetPosition());
 		}
 	}
@@ -31,6 +34,6 @@ namespace Lumos
 
 	void SoundComponent::Init()
 	{
-		SoundSystem::Instance()->AddSoundNode(m_SoundNode);
+		Application::Instance()->GetAudioManager()->AddSoundNode(m_SoundNode.get());
 	}
 }

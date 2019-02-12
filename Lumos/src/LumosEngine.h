@@ -3,21 +3,21 @@
 #include "App/Application.h"
 
 //Physics
-#include "Physics/JMPhysicsEngine/JMPhysicsEngine.h"
+#include "Physics/LumosPhysicsEngine/LumosPhysicsEngine.h"
 #include "Physics/B2PhysicsEngine/B2PhysicsEngine.h"
-#include "Physics/JMPhysicsEngine/SphereCollisionShape.h"
-#include "Physics/JMPhysicsEngine/CuboidCollisionShape.h"
-#include "Physics/JMPhysicsEngine/PyramidCollisionShape.h"
-#include "Physics/JMPhysicsEngine/DistanceConstraint.h"
-#include "Physics/JMPhysicsEngine/SpringConstraint.h"
-#include "Physics/JMPhysicsEngine/WeldConstraint.h"
-#include "Physics/JMPhysicsEngine/Broadphase.h"
-#include "Physics/JMPhysicsEngine/Octree.h"
-#include "Physics/JMPhysicsEngine/BruteForceBroadphase.h"
-#include "Physics/JMPhysicsEngine/SortAndSweepBroadphase.h"
+#include "Physics/LumosPhysicsEngine/SphereCollisionShape.h"
+#include "Physics/LumosPhysicsEngine/CuboidCollisionShape.h"
+#include "Physics/LumosPhysicsEngine/PyramidCollisionShape.h"
+#include "Physics/LumosPhysicsEngine/DistanceConstraint.h"
+#include "Physics/LumosPhysicsEngine/SpringConstraint.h"
+#include "Physics/LumosPhysicsEngine/WeldConstraint.h"
+#include "Physics/LumosPhysicsEngine/Broadphase.h"
+#include "Physics/LumosPhysicsEngine/Octree.h"
+#include "Physics/LumosPhysicsEngine/BruteForceBroadphase.h"
+#include "Physics/LumosPhysicsEngine/SortAndSweepBroadphase.h"
 #include "Physics/PhysicsObject.h"
 #include "Physics/B2PhysicsEngine/PhysicsObject2D.h"
-#include "Physics/JMPhysicsEngine/PhysicsObject3D.h"
+#include "Physics/LumosPhysicsEngine/PhysicsObject3D.h"
 
 //Graphics
 #include "Utilities/AssetsManager.h"
@@ -59,10 +59,11 @@
 #include "Maths/Maths.h"
 
 //Audio
-#include "Audio/OggSound.h"
+#include "Audio/AudioManager.h"
+//#include "Audio/OggSound.h"
 #include "Audio/Sound.h"
 #include "Audio/SoundNode.h"
-#include "Audio/SoundSystem.h"
+//#include "Audio/SoundSystem.h"
 
 //System
 #include "System/VFS.h"

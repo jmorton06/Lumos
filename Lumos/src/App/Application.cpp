@@ -1,12 +1,10 @@
 #include "LM.h"
 #include "Application.h"
-#include "Audio/Sound.h"
-#include "Audio/SoundSystem.h"
 #include "Graphics/API/Textures/Texture2D.h"
 #include "Graphics/Renderers/DebugRenderer.h"
 #include "Graphics/RenderManager.h"
 #include "Physics/B2PhysicsEngine/B2PhysicsEngine.h"
-#include "Physics/JMPhysicsEngine/JMPhysicsEngine.h"
+#include "Physics/LumosPhysicsEngine/LumosPhysicsEngine.h"
 #include "App/Scene.h"
 #include "App/SceneManager.h"
 #include "Utilities/AssetsManager.h"
@@ -18,6 +16,7 @@
 #include "App/Input.h"
 #include "System/VFS.h"
 #include "System/JobSystem.h"
+#include "Audio/AudioManager.h"
 
 #include <imgui/imgui.h>
 
@@ -75,15 +74,17 @@ namespace Lumos
 
 		Renderer::Init(screenWidth, screenHeight);
 
-        system::JobSystem::Execute([] { JMPhysicsEngine::Instance(); LUMOS_CORE_INFO("Initialised JMPhysics"); });
+        system::JobSystem::Execute([] { LumosPhysicsEngine::Instance(); LUMOS_CORE_INFO("Initialised JMPhysics"); });
         system::JobSystem::Execute([] { B2PhysicsEngine::Instance(); LUMOS_CORE_INFO("Initialised B2Physics"); });
-        system::JobSystem::Execute([] { SoundSystem::Initialise();   LUMOS_CORE_INFO("Initialised Audio"); });
+        //system::JobSystem::Execute([] { SoundSystem::Initialise();   LUMOS_CORE_INFO("Initialised Audio"); });
         system::JobSystem::Wait();
 
         AssetsManager::InitializeMeshes();
 
 		m_LayerStack = new LayerStack();
         m_RenderManager = std::make_unique<RenderManager>(screenWidth, screenHeight);
+		m_AudioManager = std::unique_ptr<AudioManager>(AudioManager::Create());
+		m_AudioManager->OnInit();
 
         m_CurrentState = AppState::Running;
 		m_PhysicsThread = std::thread(PhysicsUpdate, 1000.0f/120.0f);
@@ -94,7 +95,7 @@ namespace Lumos
 		m_PhysicsThread.join();
 
         Engine::Release();
-		JMPhysicsEngine::Release();
+		LumosPhysicsEngine::Release();
 		B2PhysicsEngine::Release();
 		Input::Release();
 		AssetsManager::ReleaseMeshes();
@@ -104,8 +105,7 @@ namespace Lumos
 
         Renderer::Release();
 
-		Sound::DeleteSounds();
-		SoundSystem::Destroy();
+		//SoundSystem::Destroy();
 
 		if (pause)
 		{
@@ -137,8 +137,8 @@ namespace Lumos
 
 				timeStep->Update(now);
 
-				JMPhysicsEngine::Instance()->Update(timeStep);
-				B2PhysicsEngine::Instance()->Update(JMPhysicsEngine::Instance()->IsPaused(), timeStep);
+				LumosPhysicsEngine::Instance()->Update(timeStep);
+				B2PhysicsEngine::Instance()->Update(LumosPhysicsEngine::Instance()->IsPaused(), timeStep);
 			}
 
 			if (t.GetMS() - timer > 1.0f)
@@ -216,7 +216,7 @@ namespace Lumos
 
 		if (Input::GetInput().GetKeyPressed(LUMOS_KEY_1)) m_SceneManager->GetCurrentScene()->ToggleDrawObjects();
 		if (Input::GetInput().GetKeyPressed(LUMOS_KEY_2)) m_SceneManager->GetCurrentScene()->SetDrawDebugData(!m_SceneManager->GetCurrentScene()->GetDrawDebugData());
-        if (Input::GetInput().GetKeyPressed(LUMOS_KEY_P)) JMPhysicsEngine::Instance()->SetPaused(!JMPhysicsEngine::Instance()->IsPaused());
+        if (Input::GetInput().GetKeyPressed(LUMOS_KEY_P)) LumosPhysicsEngine::Instance()->SetPaused(!LumosPhysicsEngine::Instance()->IsPaused());
 
 		if (Input::GetInput().GetKeyPressed(LUMOS_KEY_J)) CommonUtils::AddSphere(m_SceneManager->GetCurrentScene());
 		if (Input::GetInput().GetKeyPressed(LUMOS_KEY_K)) CommonUtils::AddPyramid(m_SceneManager->GetCurrentScene());
@@ -228,7 +228,8 @@ namespace Lumos
 		if (Input::GetInput().GetKeyPressed(LUMOS_KEY_V)) m_Window->ToggleVSync();
 
 		m_SceneManager->GetCurrentScene()->OnUpdate(m_TimeStep.get());
-		SoundSystem::Instance()->Update(m_TimeStep.get());
+		//SoundSystem::Instance()->Update(m_TimeStep.get());
+		m_AudioManager->OnUpdate();
 
 		m_LayerStack->OnUpdate(m_TimeStep.get());
 	}
@@ -286,9 +287,9 @@ namespace Lumos
 	{
 		ImGui::Begin("Engine Information");
 		ImGui::Text("--------------------------------");
-		ImGui::Text("Physics Engine: %s (Press P to toggle)", JMPhysicsEngine::Instance()->IsPaused() ? "Paused" : "Enabled");
-		ImGui::Text("Number Of Collision Pairs  : %5.2i", JMPhysicsEngine::Instance()->GetNumberCollisionPairs());
-		ImGui::Text("Number Of Physics Objects  : %5.2i", JMPhysicsEngine::Instance()->GetNumberPhysicsObjects());
+		ImGui::Text("Physics Engine: %s (Press P to toggle)", LumosPhysicsEngine::Instance()->IsPaused() ? "Paused" : "Enabled");
+		ImGui::Text("Number Of Collision Pairs  : %5.2i", LumosPhysicsEngine::Instance()->GetNumberCollisionPairs());
+		ImGui::Text("Number Of Physics Objects  : %5.2i", LumosPhysicsEngine::Instance()->GetNumberPhysicsObjects());
 		ImGui::Text("--------------------------------");
 		ImGui::Text("FPS : %5.2i", Engine::Instance()->GetFPS());
 		ImGui::Text("UPS : %5.2i", Engine::Instance()->GetUPS());

@@ -2,7 +2,7 @@
 
 // Header file with all component includes
 
-#include "JMComponent.h"
+#include "LumosComponent.h"
 #include "TransformComponent.h"
 #include "ModelComponent.h"
 #include "SpriteComponent.h"

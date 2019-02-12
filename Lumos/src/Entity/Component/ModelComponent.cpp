@@ -3,7 +3,7 @@
 #include "Graphics/Model/Model.h"
 #include "Maths/BoundingSphere.h"
 #include "Physics3DComponent.h"
-#include "Physics/JMPhysicsEngine/PhysicsObject3D.h"
+#include "Physics/LumosPhysicsEngine/PhysicsObject3D.h"
 #include "Entity/Entity.h"
 
 

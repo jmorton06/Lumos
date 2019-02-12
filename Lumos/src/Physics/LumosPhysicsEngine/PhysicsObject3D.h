@@ -10,7 +10,7 @@
 
 namespace Lumos
 {
-	class JMPhysicsEngine;
+	class LumosPhysicsEngine;
 	class Entity;
 	class Manifold;
 
@@ -26,7 +26,7 @@ namespace Lumos
 
 	class LUMOS_EXPORT PhysicsObject3D : public PhysicsObject
 	{
-		friend class JMPhysicsEngine;
+		friend class LumosPhysicsEngine;
 
 	public:
 		PhysicsObject3D();

@@ -2,11 +2,11 @@
 #include "Swapchain.h"
 
 #ifdef LUMOS_RENDER_API_VULKAN
-#include "Platform/GraphicsAPI/Vulkan/VKSwapchain.h"
+#include "Platform/Vulkan/VKSwapchain.h"
 #endif
 
 #ifdef LUMOS_RENDER_API_OPENGL
-#include "Platform/GraphicsAPI/OpenGL/GLSwapchain.h"
+#include "Platform/OpenGL/GLSwapchain.h"
 #endif
 
 #include "Graphics/API/Context.h"

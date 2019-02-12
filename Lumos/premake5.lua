@@ -156,7 +156,7 @@ project "Lumos"
 			"external/imgui/examples/imgui_impl_opengl3.cpp",
 			"external/imgui/examples/imgui_impl_glfw.h",
 			"external/imgui/examples/imgui_impl_glfw.cpp",
-			"src/Platform/GraphicsAPI/Vulkan/MakeMetalView.mm"
+			"src/Platform/Vulkan/MakeMetalView.mm"
 		}
 
 		defines
@@ -202,7 +202,6 @@ project "Lumos"
 			filter 'files:src/**.m'
 				flags  { 'NoPCH' }
 
-	
 	require 'Scripts/ios'
 	filter "system:ios"
 		cppdialect "C++17"
@@ -215,8 +214,8 @@ project "Lumos"
 			"src/Platform/GLFW/*.cpp",
 			"src/Platform/Windows/*.h",
 			"src/Platform/Windows/*.cpp",
-			"src/Platform/GraphicsAPI/OpenGL/**.h",
-			"src/Platform/GraphicsAPI/OpenGL/**.cpp"
+			"src/Platform/OpenGL/**.h",
+			"src/Platform/OpenGL/**.cpp"
 		}
 
 		files

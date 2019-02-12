@@ -2,10 +2,10 @@
 #include "VertexBuffer.h"
 
 #ifdef LUMOS_RENDER_API_OPENGL
-#include "Platform/GraphicsAPI/OpenGL/GLVertexBuffer.h"
+#include "Platform/OpenGL/GLVertexBuffer.h"
 #endif
 #ifdef LUMOS_RENDER_API_VULKAN
-#include "Platform/GraphicsAPI/Vulkan/VKVertexBuffer.h"
+#include "Platform/Vulkan/VKVertexBuffer.h"
 #endif
 #ifdef LUMOS_RENDER_API_DIRECT3D
 #include "graphics/DirectX/DXVertexBuffer.h"
