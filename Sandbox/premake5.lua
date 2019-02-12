@@ -100,7 +100,7 @@ project "Sandbox"
         	"IOKit.framework",
         	"CoreFoundation.framework",
 			"CoreVideo.framework",
-			"UIKit.framework,"
+			"UIKit.framework",
 			"OpenAL.framework"
 		}
 
