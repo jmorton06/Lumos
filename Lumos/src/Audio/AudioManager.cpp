@@ -1,4 +1,5 @@
 #include "LM.h"
+#include "AudioManager.h"
 
 #ifdef LUMOS_OPENAL
 #include "Platform/OpenAL/ALManager.h"
