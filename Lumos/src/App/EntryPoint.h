@@ -23,13 +23,17 @@ int main(int argc, char** argv)
 #include "Application.h"
 #include "System/System.h"
 
+#ifdef LUMOS_RENDER_API_VULKAN
+#include "Platform/Vulkan/VKDevice.h"
+#endif
+
 extern Lumos::Application* Lumos::CreateApplication();
 
 namespace iosApp
 {
-	Lumos::Application* app;
+	static Lumos::Application* app = nullptr;
 
-	void Init()
+	static void Init()
 	{
 		Lumos::internal::System::Init();
 
@@ -37,16 +41,24 @@ namespace iosApp
 		app->Init();
 	}
 
-	void OnKeyPressed()
+	static void OnKeyPressed()
 	{
 	}
 
-	void OnFrame()
+	#ifdef LUMOS_RENDER_API_VULKAN
+
+	static void SetIOSView(void* view)
+	{
+        Lumos::graphics::VKDevice::m_IOSView = view;
+	}
+	#endif
+
+	static void OnFrame()
 	{
 		app->OnFrame();
 	}
 
-	void Quit()
+	static void Quit()
 	{
 		delete app;
 

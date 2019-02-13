@@ -21,6 +21,10 @@ extern "C" {
 }
 #endif
 
+#ifdef LUMOS_PLATFORM_IOS
+void* Lumos::graphics::VKDevice::m_IOSView = nullptr;
+#endif
+
 namespace Lumos
 {
 	namespace graphics
@@ -36,7 +40,7 @@ namespace Lumos
 
 			CreatePipelineCache();
 		}
-
+		
 		VKDevice::~VKDevice()
 		{
 			Unload();
@@ -93,6 +97,14 @@ namespace Lumos
                 throw std::runtime_error("failed to create window surface!");
             }
 #endif
+            
+#else
+            VkIOSSurfaceCreateInfoMVK surfaceCreateInfo = {};
+            surfaceCreateInfo.sType = VK_STRUCTURE_TYPE_IOS_SURFACE_CREATE_INFO_MVK;
+            surfaceCreateInfo.pNext = NULL;
+            surfaceCreateInfo.flags = 0;
+            surfaceCreateInfo.pView = m_IOSView;
+            vkCreateIOSSurfaceMVK(m_VKContext->GetVKInstance(), &surfaceCreateInfo, nullptr, &m_Surface);
 #endif
 
 			VkBool32 * supportsPresent = new VkBool32[m_QueueFamiliyProperties.size()];
