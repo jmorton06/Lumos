@@ -30,6 +30,7 @@
     self.view.contentScaleFactor = UIScreen.mainScreen.nativeScale;
 
     iosApp::Init();
+    iosApp::SetIOSView(self.view);
 
     uint32_t fps = 60;
     _displayLink = [CADisplayLink displayLinkWithTarget: self selector: @selector(renderFrame)];

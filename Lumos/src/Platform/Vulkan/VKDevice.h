@@ -18,7 +18,7 @@ namespace Lumos
 			}
 		};
 
-		class VKDevice : public TSingleton<VKDevice>
+		class LUMOS_EXPORT VKDevice : public TSingleton<VKDevice>
 		{
 			friend class TSingleton<VKDevice>;
 
@@ -45,6 +45,10 @@ namespace Lumos
 			VKContext* GetVKContext() 						const { return m_VKContext; }
 
 			uint m_SwapChainSize = 0;
+            
+#ifdef LUMOS_PLATFORM_IOS
+            static void* m_IOSView;
+#endif
 
 		private:
 

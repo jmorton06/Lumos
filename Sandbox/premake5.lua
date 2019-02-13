@@ -81,6 +81,7 @@ project "Sandbox"
 		cppdialect "C++17"
 		staticruntime "On"
 		systemversion "latest"
+		kind "WindowedApp"
 
 		defines
 		{
@@ -96,7 +97,6 @@ project "Sandbox"
 		{
 			"QuartzCore.framework",
 			"Metal.framework",
-			"Cocoa.framework",
         	"IOKit.framework",
         	"CoreFoundation.framework",
 			"CoreVideo.framework",
@@ -112,6 +112,7 @@ project "Sandbox"
 			["SUPPORTED_PLATFORMS"] = "iphonesimulator iphoneos",
 			["CODE_SIGN_IDENTITY[sdk=iphoneos*]"] = "iPhone Developer",
 			['IPHONEOS_DEPLOYMENT_TARGET'] = '12.1',
+			['PRODUCT_BUNDLE_IDENTIFIER'] = "com.jmorton06"
 			--['INFOPLIST_FILE'] = "../Lumos/src/Platform/iOS/Info.plist",
 		}
 
