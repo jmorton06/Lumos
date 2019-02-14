@@ -130,7 +130,6 @@ build-windows/
 
 *.workspace
 *.xcscheme
-*.storyboard
 *.pc
 *.d
 *.dia

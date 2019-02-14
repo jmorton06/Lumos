@@ -82,6 +82,7 @@ project "Sandbox"
 		staticruntime "On"
 		systemversion "latest"
 		kind "WindowedApp"
+		targetextension ".app"
 
 		defines
 		{
