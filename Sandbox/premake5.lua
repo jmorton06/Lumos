@@ -119,7 +119,8 @@ project "Sandbox"
 
 		files
 		{
-			"../Lumos/src/Platform/iOS/**"
+			"../Lumos/src/Platform/iOS/**",
+			"res/**"
 		}
 
 		xcodebuildresources { "res/**" }

@@ -89,15 +89,17 @@ namespace Lumos
 	{
 		bool flipX;
 		bool flipY;
+		bool generateMipMaps;
 
 		TextureLoadOptions()
 		{
 			flipX = false;
 			flipY = false;
+			generateMipMaps = true;
 		}
 
-		TextureLoadOptions(bool flipX, bool flipY)
-			: flipX(flipX), flipY(flipY)
+		TextureLoadOptions(bool flipX, bool flipY, bool genMips = true)
+			: flipX(flipX), flipY(flipY), generateMipMaps(genMips)
 		{
 		}
 	};

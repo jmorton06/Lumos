@@ -240,11 +240,14 @@ namespace Lumos
 		dispatcher.Dispatch<WindowCloseEvent>(BIND_EVENT_FN(Application::OnWindowClose));
         dispatcher.Dispatch<WindowResizeEvent>(BIND_EVENT_FN(Application::OnWindowResize));
 
-		Input::GetInput().OnEvent(e);
+		m_LayerStack->OnEvent(e);
+
+		if (e.Handled())
+			return;
 
 		m_SceneManager->GetCurrentScene()->OnEvent(e);
 
-		m_LayerStack->OnEvent(e);
+		Input::GetInput().OnEvent(e);
 	}
 
 	void Application::Run()
@@ -285,7 +288,13 @@ namespace Lumos
 
 	void Application::OnImGui()
 	{
-		ImGui::Begin("Engine Information");
+		ImGuiWindowFlags window_flags = 0;
+		window_flags |= ImGuiWindowFlags_MenuBar;
+		window_flags |= ImGuiWindowFlags_NoMove;
+		window_flags |= ImGuiWindowFlags_NoResize;
+		ImGui::Begin("Engine Information", NULL, window_flags);
+		ImGui::SetWindowPos(ImVec2(0, 0));
+		ImGui::SetWindowSize(ImVec2(ImGui::GetIO().DisplaySize.x /5.0f, ImGui::GetIO().DisplaySize.y));
 		ImGui::Text("--------------------------------");
 		ImGui::Text("Physics Engine: %s (Press P to toggle)", LumosPhysicsEngine::Instance()->IsPaused() ? "Paused" : "Enabled");
 		ImGui::Text("Number Of Collision Pairs  : %5.2i", LumosPhysicsEngine::Instance()->GetNumberCollisionPairs());
