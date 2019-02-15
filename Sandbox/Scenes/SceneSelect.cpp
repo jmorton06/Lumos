@@ -23,6 +23,9 @@ void SceneSelect::OnInit()
 
 void SceneSelect::OnIMGUI()
 {
+	static bool show = true;
+	ImGui::ShowDemoWindow(&show);
+
     ImGui::Begin(m_SceneName.c_str());
 
     for(auto& name : m_SceneNames)

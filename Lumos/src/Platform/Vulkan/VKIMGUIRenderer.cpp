@@ -35,7 +35,7 @@ namespace Lumos
 
         VKIMGUIRenderer::~VKIMGUIRenderer()
         {
-			for (int i = 0; i < IMGUI_VK_QUEUED_FRAMES; i++)
+			for (int i = 0; i < Renderer::GetRenderer()->GetSwapchain()->GetSwapchainBufferCount(); i++)
 			{
 				delete m_CommandBuffers[i];
 				delete m_Framebuffers[i];
@@ -43,7 +43,7 @@ namespace Lumos
                
 			delete m_Renderpass;
 
-            for (int i = 0; i < IMGUI_VK_QUEUED_FRAMES; i++)
+            for (int i = 0; i < Renderer::GetRenderer()->GetSwapchain()->GetSwapchainBufferCount(); i++)
             {
                 ImGui_ImplVulkanH_FrameData* fd = &g_WindowData.Frames[i];
                 vkDestroyFence(VKDevice::Instance()->GetDevice(), fd->Fence, g_Allocator);
@@ -85,30 +85,8 @@ namespace Lumos
 
             wd->Surface = surface;
             wd->ClearEnable = m_ClearScreen;
-
-            // Check for WSI support
-            VkBool32 res;
-            vkGetPhysicalDeviceSurfaceSupportKHR(VKDevice::Instance()->GetGPU(), VKDevice::Instance()->GetGraphicsQueueFamilyIndex(), wd->Surface, &res);
-            if (res != VK_TRUE)
-            {
-                fprintf(stderr, "Error no WSI support on physical device 0\n");
-                exit(-1);
-            }
-
-            // Get Surface Format
-            const VkFormat requestSurfaceImageFormat[] = { VK_FORMAT_B8G8R8A8_UNORM, VK_FORMAT_R8G8B8A8_UNORM, VK_FORMAT_B8G8R8_UNORM, VK_FORMAT_R8G8B8_UNORM };
-            const VkColorSpaceKHR requestSurfaceColorSpace = VK_COLORSPACE_SRGB_NONLINEAR_KHR;
-            wd->SurfaceFormat = ImGui_ImplVulkanH_SelectSurfaceFormat(VKDevice::Instance()->GetGPU(), wd->Surface, requestSurfaceImageFormat, (size_t)IM_ARRAYSIZE(requestSurfaceImageFormat), requestSurfaceColorSpace);
-
-            // Get Present Mode
-        #ifdef IMGUI_UNLIMITED_FRAME_RATE
-            VkPresentModeKHR present_modes[] = { VK_PRESENT_MODE_MAILBOX_KHR, VK_PRESENT_MODE_IMMEDIATE_KHR, VK_PRESENT_MODE_FIFO_KHR };
-        #else
-            VkPresentModeKHR present_modes[] = { VK_PRESENT_MODE_FIFO_KHR };
-        #endif
-            wd->PresentMode = ImGui_ImplVulkanH_SelectPresentMode(VKDevice::Instance()->GetGPU(), wd->Surface, &present_modes[0], IM_ARRAYSIZE(present_modes));
             
-            for (int i = 0; i < IMGUI_VK_QUEUED_FRAMES; i++)
+            for (int i = 0; i < Renderer::GetRenderer()->GetSwapchain()->GetSwapchainBufferCount(); i++)
             {
                 VKCommandBuffer* commandBuffer = new VKCommandBuffer();
                 commandBuffer->Init(true);
@@ -187,23 +165,24 @@ namespace Lumos
 
             // Upload Fonts
             {
-				m_CommandBuffers[wd->FrameIndex]->BeginRecording();
+				ImGuiIO& io = ImGui::GetIO();
 
-                ImGui_ImplVulkan_CreateFontsTexture(m_CommandBuffers[wd->FrameIndex]->GetCommandBuffer());
+				unsigned char* pixels;
+				int width, height;
+				io.Fonts->GetTexDataAsRGBA32(&pixels, &width, &height);
+				size_t upload_size = width * height * 4 * sizeof(char);
 
-				m_CommandBuffers[wd->FrameIndex]->EndRecording();
-				m_CommandBuffers[wd->FrameIndex]->Execute(false);
+				auto fontTex = new VKTexture2D(width, height, pixels);
 
-				//ImGuiIO& io = ImGui::GetIO();
-				//
-				//unsigned char* pixels;
-				//int width, height;
-				//io.Fonts->GetTexDataAsRGBA32(&pixels, &width, &height);
-				//size_t upload_size = width * height * 4 * sizeof(char);
-				//
-				//auto fontTex = new VKTexture2D(width, height, pixels);
-				//
-				//io.Fonts->TexID = (ImTextureID)(intptr_t)fontTex->GetImage();
+				VkWriteDescriptorSet write_desc[1] = {};
+				write_desc[0].sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
+				write_desc[0].dstSet = ImGui_ImplVulkanH_GetFontDescriptor();
+				write_desc[0].descriptorCount = 1;
+				write_desc[0].descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
+				write_desc[0].pImageInfo = fontTex->GetDescriptor();
+				vkUpdateDescriptorSets(VKDevice::Instance()->GetDevice(), 1, write_desc, 0, NULL);
+
+				io.Fonts->TexID = (ImTextureID)(intptr_t)fontTex->GetImage();
 
                 ImGui_ImplVulkan_InvalidateFontUploadObjects();
             }
@@ -283,4 +262,3 @@ namespace Lumos
         }
     }
 }
-

@@ -390,6 +390,8 @@ namespace Lumos
 		case GLFW_KEY_ESCAPE: return LUMOS_KEY_ESCAPE;
 		case GLFW_KEY_KP_ADD: return LUMOS_KEY_ADD;
 		case GLFW_KEY_COMMA: return LUMOS_KEY_COMMA;
+		case GLFW_KEY_BACKSPACE: return LUMOS_KEY_BACKSPACE;
+		case GLFW_KEY_ENTER: return LUMOS_KEY_ENTER;
 
 		default: LUMOS_CORE_ERROR("Unsupported Key used : {0}", glfwKey); return 0;
 		}

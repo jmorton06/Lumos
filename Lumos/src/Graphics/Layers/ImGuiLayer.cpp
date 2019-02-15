@@ -113,7 +113,8 @@ namespace Lumos
 		io.KeyShift = io.KeysDown[LUMOS_KEY_LEFT_SHIFT] || io.KeysDown[LUMOS_KEY_RIGHT_SHIFT];
 		io.KeyAlt = io.KeysDown[LUMOS_KEY_ALT] || io.KeysDown[LUMOS_KEY_ALT];
 
-		return false;
+		
+		return io.WantTextInput;
 	}
 
 	bool ImGuiLayer::OnKeyReleasedEvent(KeyReleasedEvent & e)
