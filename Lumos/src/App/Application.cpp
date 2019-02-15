@@ -304,6 +304,10 @@ namespace Lumos
 		ImGui::Text("UPS : %5.2i", Engine::Instance()->GetUPS());
 		ImGui::Text("Frame Time : %5.2f ms", Engine::Instance()->GetFrametime());
 		ImGui::Text("--------------------------------");
+        ImGui::Text("Scene : %s", m_SceneManager->GetCurrentScene()->GetSceneName().c_str());
+        ImGui::Text("Number of Entities: %5.2i", (int)m_SceneManager->GetCurrentScene()->GetEntities().size());
+        ImGui::Text("--------------------------------");
+        
 		ImGui::End();
 
 		m_SceneManager->GetCurrentScene()->OnIMGUI();
