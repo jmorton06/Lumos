@@ -72,8 +72,8 @@ namespace Lumos
         window_flags |= ImGuiWindowFlags_NoMove;
         window_flags |= ImGuiWindowFlags_NoResize;
         ImGui::Begin(m_Name.c_str(), NULL, window_flags);
-        ImGui::SetWindowPos(ImVec2(ImGui::GetIO().DisplaySize.x - ImGui::GetIO().DisplaySize.x /5.0f, 0));
-        ImGui::SetWindowSize(ImVec2(ImGui::GetIO().DisplaySize.x /5.0f, ImGui::GetIO().DisplaySize.y));
+        ImGui::SetWindowPos(ImVec2(ImGui::GetIO().DisplaySize.x - ImGui::GetIO().DisplaySize.x /4.0f, 0));
+        ImGui::SetWindowSize(ImVec2(ImGui::GetIO().DisplaySize.x /4.0f, ImGui::GetIO().DisplaySize.y));
 
         for(auto& component: m_Components)
         {

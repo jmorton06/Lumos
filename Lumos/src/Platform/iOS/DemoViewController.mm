@@ -10,9 +10,9 @@
 #include "../Lumos/src/App/EntryPoint.h"
 
 
-//const std::string VulkanExampleBase::getAssetPath() {
-//    return [NSBundle.mainBundle.resourcePath stringByAppendingString: @"/data/"].UTF8String;
-//}
+const std::string iosApp::getAssetPath() {
+    return [NSBundle.mainBundle.resourcePath stringByAppendingString: @"/"].UTF8String;
+}
 
 
 #pragma mark -

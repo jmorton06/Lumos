@@ -51,17 +51,17 @@ namespace Lumos
 
             auto elasticity = m_PhysicsObject->GetElasticity();
 
-            ImGui::Text("Position : %5.2f, %5.2f, %5.2f", pos.GetX(), pos.GetY(), pos.GetZ());
-            ImGui::Text("Velocity : %5.2f, %5.2f, %5.2f", velocity.GetX(), velocity.GetY(), velocity.GetZ());
-            ImGui::Text("Force : %5.2f, %5.2f, %5.2f", force.GetX(), force.GetY(), force.GetZ());
-            ImGui::Text("Torque : %5.2f, %5.2f, %5.2f", torque.GetX(), torque.GetY(), torque.GetZ());
+            ImGui::Text("Position    : %5.2f, %5.2f, %5.2f", pos.GetX(), pos.GetY(), pos.GetZ());
+            ImGui::Text("Velocity    : %5.2f, %5.2f, %5.2f", velocity.GetX(), velocity.GetY(), velocity.GetZ());
+            ImGui::Text("Force       : %5.2f, %5.2f, %5.2f", force.GetX(), force.GetY(), force.GetZ());
+            ImGui::Text("Torque      : %5.2f, %5.2f, %5.2f", torque.GetX(), torque.GetY(), torque.GetZ());
             ImGui::Text("Orientation : %5.2f, %5.2f, %5.2f", orientation.x, orientation.y, orientation.z);
-            ImGui::Text("Friction : %5.2f", friction);
-            ImGui::Text("Mass : %5.2f", mass);
+            ImGui::Text("Friction    : %5.2f", friction);
+            ImGui::Text("Mass        : %5.2f", mass);
 
-            ImGui::Text("Elasticity : %5.2f", elasticity);
-            ImGui::Text("Is Static : %s", isStatic ? "true" : "false");
-            ImGui::Text("At Rest : %s", isRest ? "true" : "false");
+            ImGui::Text("Elasticity  : %5.2f", elasticity);
+            ImGui::Text("Is Static   : %s", isStatic ? "true" : "false");
+            ImGui::Text("At Rest     : %s", isRest ? "true" : "false");
 
             
             ImGui::TreePop();
