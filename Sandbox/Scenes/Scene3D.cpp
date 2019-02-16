@@ -326,6 +326,7 @@ void Scene3D::LoadModels()
 	}
 #endif
 
+    int numSpheres = 0;
 	for (int i = 0; i < 10; i++)
 	{
 		float roughness = i / 10.0f;
@@ -343,7 +344,7 @@ void Scene3D::LoadModels()
 		properties.usingSpecularMap = 0.0f;
 		m->SetMaterialProperites(properties);
 
-		std::shared_ptr<Entity> sphere = std::make_shared<Entity>("Wall4",this);
+        std::shared_ptr<Entity> sphere = std::make_shared<Entity>("Sphere" + StringFormat::ToString(numSpheres++),this);
 
 		sphere->AddComponent(std::make_unique<TransformComponent>(Matrix4::Scale(maths::Vector3(0.5f, 0.5f, 0.5f)) * Matrix4::Translation(maths::Vector3(i * 2.0f, 30.0f, 0.0f))));
 		sphere->AddComponent(std::make_unique<TextureMatrixComponent>(Matrix4()));
@@ -371,7 +372,7 @@ void Scene3D::LoadModels()
 		properties.usingSpecularMap = 0.0f;
 		m->SetMaterialProperites(properties);
 
-		std::shared_ptr<Entity> sphere = std::make_shared<Entity>("Wall4",this);
+		std::shared_ptr<Entity> sphere = std::make_shared<Entity>("Sphere" + StringFormat::ToString(numSpheres++),this);
 
 		sphere->AddComponent(std::make_unique<TransformComponent>(Matrix4::Scale(maths::Vector3(0.5f, 0.5f, 0.5f)) * Matrix4::Translation(maths::Vector3(i * 2.0f, 30.0f, 3.0f))));
 		sphere->AddComponent(std::make_unique<TextureMatrixComponent>(Matrix4()));
@@ -382,6 +383,7 @@ void Scene3D::LoadModels()
 		AddEntity(sphere);
 	}
 
+    int numCubes = 0;
 	for (int i = 0; i < 10; i++)
 	{
 		float roughness = i / 10.0f;
@@ -399,7 +401,7 @@ void Scene3D::LoadModels()
 		properties.usingSpecularMap = 0.0f;
 		m->SetMaterialProperites(properties);
 
-		std::shared_ptr<Entity> cube2 = std::make_shared<Entity>("cube",this);
+		std::shared_ptr<Entity> cube2 = std::make_shared<Entity>("Cube" + StringFormat::ToString(numCubes++),this);
 
 		cube2->AddComponent(std::make_unique<TransformComponent>(Matrix4::Scale(maths::Vector3(0.5f, 0.5f, 0.5f)) * Matrix4::Translation(maths::Vector3(i * 2.0f, 30.0f, -3.0f))));
 		cube2->AddComponent(std::make_unique<TextureMatrixComponent>(Matrix4()));
@@ -418,21 +420,22 @@ void Scene3D::OnIMGUI()
     if (show_demo_window)
         ImGui::ShowDemoWindow(&show_demo_window);
 
-	ImGui::Begin(m_SceneName.c_str());
- 	if(ImGui::Button("<- Back"))
+	//ImGui::Begin(m_SceneName.c_str());
+    
+    ImVec4 test = ImVec4(lightDirection.GetX(),lightDirection.GetY(), lightDirection.GetZ(), 1.0f);
+    
+    ImGui::Text("Light");
+    ImGui::DragFloat4("Direction", &test.x);
+    
+    lightDirection = maths::Vector3(test.x,test.y,test.z);
+    m_LightSetup->GetDirectionalLight()->SetDirection(lightDirection);
+    
+ 	if(ImGui::Button("<- SceneSelect"))
 	{
 		Application::Instance()->GetSceneManager()->JumpToScene("SceneSelect");
 		ImGui::End();
 		return;
 	}
 
-	ImVec4 test = ImVec4(lightDirection.GetX(),lightDirection.GetY(), lightDirection.GetZ(), 1.0f);
-
-	ImGui::Text("Light");
-	ImGui::DragFloat4("Direction", &test.x);
-
-	lightDirection = maths::Vector3(test.x,test.y,test.z);
-	m_LightSetup->GetDirectionalLight()->SetDirection(lightDirection);
-
-    ImGui::End();
+    //ImGui::End();
 }

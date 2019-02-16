@@ -41,6 +41,7 @@ namespace Lumos
 
 		void OnRenderObject();
 		virtual void OnUpdateObject(float dt);
+        virtual void OnIMGUI();
 
 		std::vector<Entity*>& GetChildren() { return m_vpChildren; }
 		void AddChildObject(Entity* child);

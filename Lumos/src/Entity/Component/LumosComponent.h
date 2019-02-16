@@ -32,6 +32,7 @@ namespace Lumos
 		virtual void Init() {}; //Called After entity is set
 		virtual void OnRenderComponent() {};
 		virtual void OnUpdateComponent(float dt) {};
+        virtual void OnIMGUI() {}
 
 		void SetEntity(Entity* entity) { m_Entity = entity; }
 

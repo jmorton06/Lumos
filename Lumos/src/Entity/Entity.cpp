@@ -63,4 +63,12 @@ namespace Lumos
 			component.second->DebugDraw(debugFlags);
 		}
 	}
+    
+    void Entity::OnIMGUI()
+    {
+        for(auto& component: m_Components)
+        {
+            component.second->OnIMGUI();
+        }
+    }
 }

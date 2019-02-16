@@ -107,7 +107,6 @@ cmake-build-debug/
 *.makeDebug
 *.xcsettings
 *.xcuserstate
-*.plist
 *.makeRelease
 *.makeMinSizeRel
 *.makeRelWithDebInfo
