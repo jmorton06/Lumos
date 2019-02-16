@@ -136,7 +136,6 @@ namespace Lumos
     {
         m_RenderPass->EndRenderpass(m_CommandBuffers[m_CurrentBufferID]);
         m_CommandBuffers[m_CurrentBufferID]->EndRecording();
-		m_CommandBuffers[m_CurrentBufferID]->Execute(true);
     }
 
 	void SkyboxRenderer::SetSystemUniforms(Shader* shader) const

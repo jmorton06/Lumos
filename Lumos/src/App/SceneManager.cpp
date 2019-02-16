@@ -77,6 +77,7 @@ namespace Lumos
 	void SceneManager::JumpToScene(const std::string& friendly_name)
 	{
 		bool found = false;
+        m_SwitchingScenes = true;
 		uint idx = 0;
 		for (uint i = 0; !found && i < m_vpAllScenes.size(); ++i)
 		{

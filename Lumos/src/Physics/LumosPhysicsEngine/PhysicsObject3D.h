@@ -79,8 +79,8 @@ namespace Lumos
 			//m_AtRest = false;
 		}
 
-		void SetLinearVelocity(const maths::Vector3& v) { m_LinearVelocity = v; }
-		void SetForce(const maths::Vector3& v) { m_Force = v; }
+        void SetLinearVelocity(const maths::Vector3& v) { if(m_Static) return; m_LinearVelocity = v; }
+		void SetForce(const maths::Vector3& v) { if(m_Static) return; m_Force = v; }
 		void SetInverseMass(const float& v) { m_InvMass = v; }
 
 		void SetOrientation(const maths::Quaternion& v)
@@ -90,8 +90,8 @@ namespace Lumos
 			//m_AtRest = false;
 		}
 
-		void SetAngularVelocity(const maths::Vector3& v) { m_AngularVelocity = v; }
-		void SetTorque(const maths::Vector3& v) { m_Torque = v; }
+		void SetAngularVelocity(const maths::Vector3& v) { if(m_Static) return; m_AngularVelocity = v; }
+		void SetTorque(const maths::Vector3& v) {if(m_Static) return;  m_Torque = v; }
 		void SetInverseInertia(const maths::Matrix3& v) { m_InvInertia = v; }
 
 		void SetCollisionShape(std::unique_ptr<CollisionShape> colShape) { m_CollisionShape = std::move(colShape); }

@@ -1,5 +1,7 @@
-﻿#include "LM.h"
+#include "LM.h"
 #include "TransformComponent.h"
+
+#include <imgui/imgui.h>
 
 namespace Lumos
 {
@@ -8,5 +10,13 @@ namespace Lumos
 	{
 
 	}
+    
+    void TransformComponent::OnIMGUI()
+    {
+        if (ImGui::TreeNode("Transform"))
+        {
+            ImGui::TreePop();
+        }
+    }
 
 }

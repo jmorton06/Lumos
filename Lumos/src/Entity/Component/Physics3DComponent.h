@@ -24,5 +24,7 @@ namespace Lumos
 		void DebugDraw(uint64 debugFlags) override;
 
 		inline virtual ComponentType GetType() const override { return GetStaticType(); }
+        
+        void OnIMGUI() override;
 	};
 }
