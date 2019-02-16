@@ -305,13 +305,31 @@ namespace Lumos
 		ImGui::Text("Frame Time : %5.2f ms", Engine::Instance()->GetFrametime());
 		ImGui::Text("--------------------------------");
         ImGui::Text("Scene : %s", m_SceneManager->GetCurrentScene()->GetSceneName().c_str());
-        ImGui::Text("Number of Entities: %5.2i", (int)m_SceneManager->GetCurrentScene()->GetEntities().size());
+        
+        auto entities = m_SceneManager->GetCurrentScene()->GetEntities();
+        ImGui::Text("Number of Entities: %5.2i", (int)entities.size());
+
+        static Entity* selected = nullptr;
+
+        if (ImGui::TreeNode("Enitities"))
+        {
+            for (int i = 0; i < entities.size(); i++)
+            {
+                if (ImGui::Selectable(entities[i]->GetName().c_str(), selected == entities[i].get()))
+                    selected = entities[i].get();
+            }
+            ImGui::TreePop();
+        }
+    
+        if(selected)
+            selected->OnIMGUI();
+        
+        m_SceneManager->GetCurrentScene()->OnIMGUI();
+
         ImGui::Text("--------------------------------");
         
 		ImGui::End();
-
-		m_SceneManager->GetCurrentScene()->OnIMGUI();
-	}
+    }
 
     void Application::SetScene(Scene* scene)
     {
