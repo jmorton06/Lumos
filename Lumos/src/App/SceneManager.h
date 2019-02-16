@@ -33,12 +33,16 @@ namespace Lumos
 		inline uint   SceneCount() const { return static_cast<uint>(m_vpAllScenes.size()); }
 
 		std::vector<String> GetSceneNames();
+        
+        void SetSwitchScene(bool switching) { m_SwitchingScenes = switching; }
+        bool GetSwitchingScene() const { return m_SwitchingScenes; }
 
 	protected:
 		uint								m_SceneIdx;
 		Scene*								m_CurrentScene;
 		std::vector<std::unique_ptr<Scene>> m_vpAllScenes;
     private:
+        bool m_SwitchingScenes = false;
         SceneManager(SceneManager const&) = delete;
         SceneManager& operator=(SceneManager const&) = delete;
 	};

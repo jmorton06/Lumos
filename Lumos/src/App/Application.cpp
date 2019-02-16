@@ -289,7 +289,6 @@ namespace Lumos
 	void Application::OnImGui()
 	{
 		ImGuiWindowFlags window_flags = 0;
-		window_flags |= ImGuiWindowFlags_MenuBar;
 		window_flags |= ImGuiWindowFlags_NoMove;
 		window_flags |= ImGuiWindowFlags_NoResize;
 		ImGui::Begin("Engine Information", NULL, window_flags);
@@ -327,7 +326,6 @@ namespace Lumos
         m_SceneManager->GetCurrentScene()->OnIMGUI();
 
         ImGui::Text("--------------------------------");
-        
 		ImGui::End();
     }
 
