@@ -116,7 +116,8 @@ project "Lumos"
 		{
 			"OpenAL32",
 			"glfw",
-			"glad"
+			"glad",
+			"opengl32.lib"
 		}
 
 		libdirs
