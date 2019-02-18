@@ -128,6 +128,7 @@ namespace Lumos
 
 		ShowWindow(hWnd, SW_SHOW);
 		SetFocus(hWnd);
+		SetWindowTitle(title);
 		
 		//Input
 		rid.usUsagePage = HID_USAGE_PAGE_GENERIC;
@@ -139,10 +140,25 @@ namespace Lumos
 		return true;
 	}
 
+	void ResizeCallback(Window* window, int32 width, int32 height)
+	{
+		Win32Window::WindowData data = ((Win32Window*)window)->m_Data;
+
+		data.Width = width;
+		data.Height = height;
+
+		WindowResizeEvent event(width, height);
+		data.EventCallback(event);
+	}
+
+	void FocusCallback(Window* window, bool focused)
+	{
+	}
+
 	void Win32Window::OnUpdate()
 	{
 		MSG message;
-	/*	while (PeekMessage(&message, NULL, NULL, NULL, PM_REMOVE) > 0)
+		while (PeekMessage(&message, NULL, NULL, NULL, PM_REMOVE) > 0)
 		{
 			if (message.message == WM_QUIT)
 			{
@@ -151,23 +167,23 @@ namespace Lumos
 			}
 			TranslateMessage(&message);
 			DispatchMessage(&message);
-		}*/
+		}
 
-		//UINT dwSize;
-		//GetRawInputData((HRAWINPUT)message.lParam, RID_INPUT, NULL, &dwSize, sizeof(RAWINPUTHEADER));
-		//BYTE *lpb = new BYTE[dwSize];
+		UINT dwSize;
+		GetRawInputData((HRAWINPUT)message.lParam, RID_INPUT, NULL, &dwSize, sizeof(RAWINPUTHEADER));
+		BYTE *lpb = new BYTE[dwSize];
 
-		//GetRawInputData((HRAWINPUT)message.lParam, RID_INPUT, lpb, &dwSize, sizeof(RAWINPUTHEADER));
-		//RAWINPUT *raw = (RAWINPUT *)lpb;
+		GetRawInputData((HRAWINPUT)message.lParam, RID_INPUT, lpb, &dwSize, sizeof(RAWINPUTHEADER));
+		RAWINPUT *raw = (RAWINPUT *)lpb;
 
-		//RAWINPUT* rw = (RAWINPUT*)raw;
-		//DWORD key = (DWORD)rw->data.keyboard.VKey;
+		RAWINPUT* rw = (RAWINPUT*)raw;
+		DWORD key = (DWORD)rw->data.keyboard.VKey;
 
-		//// We should do bounds checking!
-		//if (key < 0 || key > 1048)
-		//{
-		//	return;
-		//}
+		// We should do bounds checking!
+		if (key < 0 || key > 1048)
+		{
+			return;
+		}
 
 		//m_KeyPressed[Win32KeyToLumos(key)] = !(rw->data.keyboard.Flags & RI_KEY_BREAK);
 
@@ -177,16 +193,6 @@ namespace Lumos
 	void Win32Window::SetWindowTitle(const String& title)
 	{
 		SetWindowText(hWnd, title.c_str());
-	}
-
-	LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
-	{
-		LRESULT result = NULL;
-		Window* window = Application::Instance()->GetWindow();
-		if (window == nullptr)
-			return DefWindowProc(hWnd, message, wParam, lParam);
-		else
-			return result;
 	}
 
 	void Win32Window::ToggleVSync()
@@ -206,5 +212,79 @@ namespace Lumos
 	void Win32Window::SetBorderlessWindow(bool borderless)
 	{
 
+	}
+
+	void MouseButtonCallback(Window* window, int32 button, int32 x, int32 y)
+	{
+
+	}
+	void KeyCallback(Window* window, int32 flags, int32 key, uint message)
+	{
+
+	}
+
+	LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
+	{
+		LRESULT result = NULL;
+		Window* window = Application::Instance()->GetWindow(); //Window::GetWindowClass(hWnd);
+		if (window == nullptr)
+			return DefWindowProc(hWnd, message, wParam, lParam);
+
+		switch (message)
+		{
+		case WM_ACTIVATE:
+		{
+			if (!HIWORD(wParam)) // Is minimized
+			{
+				// active
+			}
+			else
+			{
+				// inactive
+			}
+
+			return 0;
+		}
+		case WM_SYSCOMMAND:
+		{
+			switch (wParam)
+			{
+			case SC_SCREENSAVE:
+			case SC_MONITORPOWER:
+				return 0;
+			}
+			result = DefWindowProc(hWnd, message, wParam, lParam);
+		} break;
+		case WM_SETFOCUS:
+			FocusCallback(window, true);
+			break;
+		case WM_KILLFOCUS:
+			FocusCallback(window, false);
+			break;
+		case WM_CLOSE:
+		case WM_DESTROY:
+			PostQuitMessage(0);
+			break;
+		case WM_KEYDOWN:
+		case WM_KEYUP:
+		case WM_SYSKEYDOWN:
+		case WM_SYSKEYUP:
+			KeyCallback(window, lParam, wParam, message);
+			break;
+		case WM_LBUTTONDOWN:
+		case WM_LBUTTONUP:
+		case WM_RBUTTONDOWN:
+		case WM_RBUTTONUP:
+		case WM_MBUTTONDOWN:
+		case WM_MBUTTONUP:
+			MouseButtonCallback(window, message, GET_X_LPARAM(lParam), GET_Y_LPARAM(lParam));
+			break;
+		case WM_SIZE:
+			ResizeCallback(window, LOWORD(lParam), HIWORD(lParam));
+			break;
+		default:
+			result = DefWindowProc(hWnd, message, wParam, lParam);
+		}
+		return result;
 	}
 }
