@@ -33,13 +33,6 @@ namespace Lumos
 
 		inline void* GetHandle() override { return hWnd; }
 
-	protected:
-
-		HINSTANCE hInstance;
-		HDC hDc;
-		HWND hWnd;
-		RAWINPUTDEVICE rid;
-
 		struct WindowData
 		{
 			std::string Title;
@@ -52,6 +45,15 @@ namespace Lumos
 		};
 
 		WindowData m_Data;
+
+		HINSTANCE GetHInstance() const { return hInstance; }
+
+	protected:
+
+		HINSTANCE hInstance;
+		HDC hDc;
+		HWND hWnd;
+		RAWINPUTDEVICE rid;
 	};
 
 }
