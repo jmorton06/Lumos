@@ -51,19 +51,33 @@ namespace Lumos
 
             auto elasticity = m_PhysicsObject->GetElasticity();
 
-            ImGui::Text("Position    : %5.2f, %5.2f, %5.2f", pos.GetX(), pos.GetY(), pos.GetZ());
-            ImGui::Text("Velocity    : %5.2f, %5.2f, %5.2f", velocity.GetX(), velocity.GetY(), velocity.GetZ());
-            ImGui::Text("Force       : %5.2f, %5.2f, %5.2f", force.GetX(), force.GetY(), force.GetZ());
-            ImGui::Text("Torque      : %5.2f, %5.2f, %5.2f", torque.GetX(), torque.GetY(), torque.GetZ());
-            ImGui::Text("Orientation : %5.2f, %5.2f, %5.2f", orientation.x, orientation.y, orientation.z);
-            ImGui::Text("Friction    : %5.2f", friction);
-            ImGui::Text("Mass        : %5.2f", mass);
+            ImGui::DragFloat3("Position", &pos.x);
+			m_PhysicsObject->SetPosition(pos);
 
-            ImGui::Text("Elasticity  : %5.2f", elasticity);
-            ImGui::Text("Is Static   : %s", isStatic ? "true" : "false");
-            ImGui::Text("At Rest     : %s", isRest ? "true" : "false");
+			ImGui::DragFloat3("Velocity", &velocity.x);
+			m_PhysicsObject->SetLinearVelocity(velocity);
 
-            
+			ImGui::DragFloat3("Torque", &torque.x);
+			m_PhysicsObject->SetTorque(torque);
+
+			ImGui::DragFloat3("Orientation", &orientation.x);
+			m_PhysicsObject->SetOrientation(orientation);
+
+			ImGui::DragFloat("Friction", &friction);
+			m_PhysicsObject->SetFriction(friction);
+
+			ImGui::DragFloat("Mass", &mass);
+			m_PhysicsObject->SetInverseMass(1.0f / mass);
+
+			ImGui::DragFloat("Elasticity", &elasticity);
+			m_PhysicsObject->SetElasticity(elasticity);
+
+			ImGui::Checkbox("Static", &isStatic);
+			m_PhysicsObject->SetIsStatic(isStatic);
+
+			ImGui::Checkbox("At Rest", &isRest);
+			m_PhysicsObject->SetIsAtRest(isRest);
+
             ImGui::TreePop();
         }
     }

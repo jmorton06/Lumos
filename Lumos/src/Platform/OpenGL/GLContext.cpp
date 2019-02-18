@@ -10,6 +10,12 @@
 
 #include "Maths/Matrix4.h"
 
+#ifdef LUMOS_PLATFORM_WINDOWS
+#undef NOGDI
+#include <Windows.h>
+#define NOGDI
+#endif
+
 #ifdef GL_DEBUD_CALLBACK
 static std::string GetStringForType(GLenum type)
 {
@@ -125,7 +131,16 @@ namespace Lumos
 		GLContext::GLContext(WindowProperties properties, void* deviceContext)
 		{
 #ifndef LUMOS_PLATFORM_MOBILE
-			if(!gladLoadGLLoader(reinterpret_cast<GLADloadproc>(glfwGetProcAddress)))
+
+#ifdef LUMOS_PLATFORM_WINDOWS
+			HDC hDc = GetDC((HWND)deviceContext);
+			HGLRC hrc = wglCreateContext(hDc);
+			if(hrc)
+			if(!wglMakeCurrent(hDc, hrc) || !gladLoadGL())
+#else
+			if (!gladLoadGLLoader(reinterpret_cast<GLADloadproc>(glfwGetProcAddress)))
+#endif
+			
 			{
 				LUMOS_CORE_ERROR("Failed to initialize OpenGL context");
 			}

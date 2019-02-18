@@ -119,7 +119,7 @@ namespace Lumos
 		virtual const String& GetFilepath() const = 0;
 
 		virtual uint GetSize() const { return 0; }
-		virtual uint GetHandle() const = 0;
+		virtual void* GetHandle() const = 0;
 
 	public:
 		inline static void SetWrap(const TextureWrap mode) { s_WrapMode = mode; }

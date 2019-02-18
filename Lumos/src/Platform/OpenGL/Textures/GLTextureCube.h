@@ -26,7 +26,7 @@ namespace Lumos
 		GLTextureCube(const String& name, const String* files, uint mips, InputFormat format);
 		~GLTextureCube();
 
-		inline uint GetHandle() const override { return m_Handle; }
+		inline void* GetHandle() const override { return (void*)(size_t)m_Handle; }
 
 		void Bind(uint slot = 0) const override;
 		void Unbind(uint slot = 0) const override;

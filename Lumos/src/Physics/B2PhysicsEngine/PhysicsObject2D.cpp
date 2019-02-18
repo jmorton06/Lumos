@@ -34,6 +34,11 @@ namespace Lumos
 		//m_B2Body->SetForce(b2Vec2(v.x, v.y));
 	}
 
+	void PhysicsObject2D::SetPosition(const maths::Vector2 & pos) const
+	{
+		//m_B2Body->SetPosition(b2Vec2(pos.GetX(), pos.GetY()));
+	}
+
 	void PhysicsObject2D::Init(const PhysicsObjectParamaters& params)
 	{
 		m_Static = params.isStatic;

@@ -52,6 +52,8 @@ namespace Lumos
 		void ResetPressed();
 		void OnEvent(Event& e);
 
+		virtual void Update(void* raw) {}
+
 	protected:
 
 		bool OnKeyPressed(KeyPressedEvent& e);

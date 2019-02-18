@@ -20,7 +20,7 @@ namespace Lumos
 		void Unbind(uint slot = 0) const override;
 		void Resize(uint width, uint height, uint count) override;
 
-		inline uint GetHandle() const override { return m_Handle; }
+		inline void* GetHandle() const override { return (void*)(size_t)m_Handle; }
 
 		inline const String& GetName() const override { return m_Name; }
 		inline const String& GetFilepath() const override { return m_Name; }

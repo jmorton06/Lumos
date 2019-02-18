@@ -100,7 +100,7 @@ namespace Lumos
 
 		default: attachment = 0;
 		}
-		GLCall(glFramebufferTexture2D(GL_DRAW_FRAMEBUFFER, attachment, GL_TEXTURE_2D, texture->GetHandle(), 0));
+		GLCall(glFramebufferTexture2D(GL_DRAW_FRAMEBUFFER, attachment, GL_TEXTURE_2D, (GLuint)(size_t)texture->GetHandle(), 0));
 	}
 
 	void GLFramebuffer::AddCubeTextureAttachment(const Attachment attachmentType, const CubeFace face, TextureCube* texture)
@@ -131,15 +131,15 @@ namespace Lumos
 		case CubeFace::NegativeZ: faceID = GL_TEXTURE_CUBE_MAP_NEGATIVE_Z; break;
 		}
 
-		GLCall(glFramebufferTexture2D(GL_FRAMEBUFFER, attachment, faceID, texture->GetHandle(), 0));
+		GLCall(glFramebufferTexture2D(GL_FRAMEBUFFER, attachment, faceID, (GLuint)(size_t)texture->GetHandle(), 0));
 	}
 
 	void GLFramebuffer::AddShadowAttachment(Texture* texture)
 	{
 #ifdef LUMOS_PLATFORM_MOBILE
-		GLCall(glFramebufferTextureLayer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, texture->GetHandle(), 0, 0));
+		GLCall(glFramebufferTextureLayer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, (GLuint)texture->GetHandle(), 0, 0));
 #else
-		GLCall(glFramebufferTextureLayer(GL_FRAMEBUFFER_EXT, GL_DEPTH_ATTACHMENT, texture->GetHandle(), 0, 0));
+		GLCall(glFramebufferTextureLayer(GL_FRAMEBUFFER_EXT, GL_DEPTH_ATTACHMENT, (GLuint)(size_t)texture->GetHandle(), 0, 0));
 #endif
 		GLCall(glDrawBuffers(0, GL_NONE));
 	}
@@ -147,9 +147,9 @@ namespace Lumos
 	void GLFramebuffer::AddTextureLayer(int index, Texture* texture)
 	{
 #ifdef LUMOS_PLATFORM_MOBILE
-		GLCall(glFramebufferTextureLayer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, texture->GetHandle(), 0, index));
+		GLCall(glFramebufferTextureLayer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, (GLuint)(size_t)texture->GetHandle(), 0, index));
 #else
-		GLCall(glFramebufferTextureLayer(GL_FRAMEBUFFER_EXT, GL_DEPTH_ATTACHMENT, texture->GetHandle(), 0, index));
+		GLCall(glFramebufferTextureLayer(GL_FRAMEBUFFER_EXT, GL_DEPTH_ATTACHMENT, (GLuint)(size_t)texture->GetHandle(), 0, index));
 #endif
 
 	}

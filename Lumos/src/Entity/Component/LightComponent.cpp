@@ -10,6 +10,8 @@
 #include "Maths/BoundingSphere.h"
 #include "Graphics/Renderers/DebugRenderer.h"
 
+#include <imgui/imgui.h>
+
 namespace Lumos
 {
 	LightComponent::LightComponent(std::shared_ptr<Light>& light)
@@ -43,5 +45,13 @@ namespace Lumos
 	void LightComponent::DebugDraw(uint64 debugFlags)
 	{
 		DebugRenderer::DebugDraw(static_cast<maths::BoundingSphere*>(m_BoundingShape.get()), maths::Vector4(m_Light->GetColour(),0.2f));
+	}
+
+	void LightComponent::OnIMGUI()
+	{
+		if (ImGui::TreeNode("Light"))
+		{
+			ImGui::TreePop();
+		}
 	}
 }

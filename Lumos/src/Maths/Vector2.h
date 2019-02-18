@@ -14,7 +14,6 @@ namespace Lumos
 			Vector2(const float x) : x(x), y(x) { }
 			~Vector2() {}
 
-		private:
 #ifdef LUMOS_SSEVEC2
 			union
 			{
