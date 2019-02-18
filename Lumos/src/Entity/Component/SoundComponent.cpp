@@ -7,6 +7,7 @@
 
 #include "App/Application.h"
 #include "Audio/AudioManager.h"
+#include <imgui/imgui.h>
 
 namespace Lumos
 {
@@ -35,5 +36,30 @@ namespace Lumos
 	void SoundComponent::Init()
 	{
 		Application::Instance()->GetAudioManager()->AddSoundNode(m_SoundNode.get());
+	}
+
+	void SoundComponent::OnIMGUI()
+	{
+		if (ImGui::TreeNode("Sound"))
+		{
+			auto pos = m_SoundNode->GetPosition();
+			auto radius = m_SoundNode->GetRadius();
+			auto paused = m_SoundNode->GetPaused();
+			auto pitch = m_SoundNode->GetPitch();
+			auto referenceDistance = m_SoundNode->GetReferenceDistance();
+
+			ImGui::InputFloat3("Position", &pos.x);
+			m_SoundNode->SetPosition(pos);
+			ImGui::InputFloat("Radius", &radius);
+			m_SoundNode->SetRadius(radius);
+			ImGui::DragFloat("Pitch", &pitch);
+			m_SoundNode->SetPitch(pitch);
+			ImGui::DragFloat("Reference Distance", &referenceDistance);
+			m_SoundNode->SetReferenceDistance(referenceDistance);
+			ImGui::Checkbox("Paused", &paused);
+			m_SoundNode->SetPaused(paused);
+
+			ImGui::TreePop();
+		}
 	}
 }

@@ -40,7 +40,7 @@ namespace Lumos
 
 			static VkFormat TextureFormatToVK(TextureFormat);
 
-			inline uint GetHandle() const override { return m_Handle; }
+			virtual void* GetHandle() const override { return (void*)m_TextureImageView; }
 
 			void Bind(uint slot = 0) const override;
 			void Unbind(uint slot = 0) const override;

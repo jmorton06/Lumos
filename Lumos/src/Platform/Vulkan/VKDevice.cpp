@@ -92,7 +92,16 @@ namespace Lumos
             surfaceInfo.pView = makeViewMetalCompatible((void*)glfwGetCocoaWindow(static_cast<GLFWwindow*>(m_VKContext->GetWindowContext())));
             vkCreateMacOSSurfaceMVK(m_VKContext->GetVKInstance(), &surfaceInfo, NULL, &m_Surface);
 #else
+#ifdef LUMOS_PLATFORM_WINDOWS
+			VkWin32SurfaceCreateInfoKHR surfaceInfo;
+			surfaceInfo.sType = VK_STRUCTURE_TYPE_MACOS_SURFACE_CREATE_INFO_MVK;
+			surfaceInfo.pNext = NULL;
+			surfaceInfo.flags = 0;
+			surfaceInfo.hwnd = (HWND)VKContext::Get()->GetWindowContext();
+			if (vkCreateWin32SurfaceKHR(m_VKContext->GetVKInstance(), &surfaceInfo, NULL, &m_Surface) != VK_SUCCESS)
+#else
             if (glfwCreateWindowSurface(m_VKContext->GetVKInstance(), static_cast<GLFWwindow*>(m_VKContext->GetWindowContext()), nullptr, &m_Surface) != VK_SUCCESS)
+#endif
             {
                 throw std::runtime_error("failed to create window surface!");
             }

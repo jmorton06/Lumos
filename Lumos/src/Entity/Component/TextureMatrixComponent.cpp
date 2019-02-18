@@ -1,5 +1,6 @@
 ﻿#include "LM.h"
 #include "TextureMatrixComponent.h"
+#include <imgui/imgui.h>
 
 namespace Lumos
 {
@@ -7,6 +8,14 @@ namespace Lumos
 		: m_TextureMatrix(matrix)
 	{
 
+	}
+
+	void TextureMatrixComponent::OnIMGUI()
+	{
+		if (ImGui::TreeNode("TextureMatrix"))
+		{
+			ImGui::TreePop();
+		}
 	}
 
 }

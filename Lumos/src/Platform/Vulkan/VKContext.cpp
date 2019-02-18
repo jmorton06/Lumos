@@ -67,10 +67,9 @@ namespace Lumos
 
 		VKContext::VKContext(WindowProperties properties, void* deviceContext)
 		{
+			m_WindowContext = deviceContext;
 			CreateInstance();
 			SetupDebugCallback();
-
-			m_WindowContext = deviceContext;
 
 			maths::Matrix4::SetUpCoordSystem(false, true);
 		}

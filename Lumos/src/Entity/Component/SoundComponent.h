@@ -24,5 +24,7 @@ namespace Lumos
 		void Init() override ;
 
 		inline virtual ComponentType GetType() const override { return GetStaticType(); }
+
+		void OnIMGUI() override;
 	};
 }

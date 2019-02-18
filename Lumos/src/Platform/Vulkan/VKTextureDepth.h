@@ -29,7 +29,7 @@ namespace Lumos
 			void Unbind(uint slot = 0) const override;
 			void Resize(uint width, uint height) override;
 
-			inline uint GetHandle() const override { return m_Handle; }
+			virtual void* GetHandle() const override { return (void*)m_TextureImageView; }
 
 			inline const String& GetName() const override { return m_Name; }
 			inline const String& GetFilepath() const override { return m_Name; }

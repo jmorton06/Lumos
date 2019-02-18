@@ -1,6 +1,8 @@
 #include "LM.h"
 #include "Application.h"
 #include "Graphics/API/Textures/Texture2D.h"
+#include "Graphics/API/Textures/TextureCube.h"
+#include "Graphics/API/Textures/TextureDepthArray.h"
 #include "Graphics/Renderers/DebugRenderer.h"
 #include "Graphics/RenderManager.h"
 #include "Physics/B2PhysicsEngine/B2PhysicsEngine.h"
@@ -17,6 +19,7 @@
 #include "System/VFS.h"
 #include "System/JobSystem.h"
 #include "Audio/AudioManager.h"
+#include "Graphics/GBuffer.h"
 
 #include <imgui/imgui.h>
 
@@ -294,17 +297,38 @@ namespace Lumos
 		ImGui::Begin("Engine Information", NULL, window_flags);
 		ImGui::SetWindowPos(ImVec2(0, 0));
 		ImGui::SetWindowSize(ImVec2(ImGui::GetIO().DisplaySize.x /5.0f, ImGui::GetIO().DisplaySize.y));
-		ImGui::Text("--------------------------------");
+		ImGui::NewLine();
 		ImGui::Text("Physics Engine: %s (Press P to toggle)", LumosPhysicsEngine::Instance()->IsPaused() ? "Paused" : "Enabled");
 		ImGui::Text("Number Of Collision Pairs  : %5.2i", LumosPhysicsEngine::Instance()->GetNumberCollisionPairs());
 		ImGui::Text("Number Of Physics Objects  : %5.2i", LumosPhysicsEngine::Instance()->GetNumberPhysicsObjects());
-		ImGui::Text("--------------------------------");
+		ImGui::NewLine();
 		ImGui::Text("FPS : %5.2i", Engine::Instance()->GetFPS());
 		ImGui::Text("UPS : %5.2i", Engine::Instance()->GetUPS());
 		ImGui::Text("Frame Time : %5.2f ms", Engine::Instance()->GetFrametime());
-		ImGui::Text("--------------------------------");
+		ImGui::NewLine();
         ImGui::Text("Scene : %s", m_SceneManager->GetCurrentScene()->GetSceneName().c_str());
-        
+
+		if (ImGui::TreeNode("Colour Texture"))
+		{
+			ImGui::Image(m_RenderManager->GetGBuffer()->m_ScreenTex[SCREENTEX_COLOUR]->GetHandle(), ImVec2(128, 128));
+			ImGui::TreePop();
+		}
+		if (ImGui::TreeNode("Normal Texture"))
+		{
+			ImGui::Image(m_RenderManager->GetGBuffer()->m_ScreenTex[SCREENTEX_NORMALS]->GetHandle(), ImVec2(128, 128));
+			ImGui::TreePop();
+		}
+		if (ImGui::TreeNode("PBR Texture"))
+		{
+			ImGui::Image(m_RenderManager->GetGBuffer()->m_ScreenTex[SCREENTEX_PBR]->GetHandle(), ImVec2(128, 128));
+			ImGui::TreePop();
+		}
+		if (ImGui::TreeNode("Position Texture"))
+		{
+			ImGui::Image(m_RenderManager->GetGBuffer()->m_ScreenTex[SCREENTEX_POSITION]->GetHandle(), ImVec2(128, 128));
+			ImGui::TreePop();
+		}
+
         auto entities = m_SceneManager->GetCurrentScene()->GetEntities();
         ImGui::Text("Number of Entities: %5.2i", (int)entities.size());
 
@@ -325,8 +349,10 @@ namespace Lumos
         
         m_SceneManager->GetCurrentScene()->OnIMGUI();
 
-        ImGui::Text("--------------------------------");
+		ImGui::NewLine();
 		ImGui::End();
+
+		ImGui::ShowMetricsWindow();
     }
 
     void Application::SetScene(Scene* scene)
