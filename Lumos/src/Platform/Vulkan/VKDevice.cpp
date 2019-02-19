@@ -55,6 +55,19 @@ namespace Lumos
 			m_Surface = VK_NULL_HANDLE;
 		}
 
+		const char* TranslateVkPhysicalDeviceTypeToString(VkPhysicalDeviceType type)
+		{
+			switch (type)
+			{
+			case VK_PHYSICAL_DEVICE_TYPE_OTHER: return "OTHER";
+			case VK_PHYSICAL_DEVICE_TYPE_INTEGRATED_GPU: return "INTEGRATED_GPU";
+			case VK_PHYSICAL_DEVICE_TYPE_DISCRETE_GPU: return "DISCRETE_GPU";
+			case VK_PHYSICAL_DEVICE_TYPE_VIRTUAL_GPU: return "VIRTUAL_GPU";
+			case VK_PHYSICAL_DEVICE_TYPE_CPU: return "CPU";
+			default: return "UNKNOWN";
+			}
+		}
+
 		bool VKDevice::Init()
 		{
 			VkResult result;
@@ -73,8 +86,13 @@ namespace Lumos
 			m_PhysicalDevice = pGPUs[0];
 
 			vkGetPhysicalDeviceProperties(m_PhysicalDevice, &m_PhysicalDeviceProperties);
+
 			vkGetPhysicalDeviceMemoryProperties(m_PhysicalDevice, &m_MemoryProperties);
-			LUMOS_CORE_INFO("Rendering with : {0}", std::string(m_PhysicalDeviceProperties.deviceName));
+			LUMOS_CORE_INFO("Vulkan : {0}.{1}.{2}", VK_VERSION_MAJOR(m_PhysicalDeviceProperties.apiVersion), VK_VERSION_MINOR(m_PhysicalDeviceProperties.apiVersion), VK_VERSION_PATCH(m_PhysicalDeviceProperties.apiVersion));
+			LUMOS_CORE_INFO("GPU : {0}", std::string(m_PhysicalDeviceProperties.deviceName));
+			LUMOS_CORE_INFO("Vendor ID : {0}", StringFormat::ToString(m_PhysicalDeviceProperties.vendorID));
+			LUMOS_CORE_INFO("Device Type : {0}", String(TranslateVkPhysicalDeviceTypeToString(m_PhysicalDeviceProperties.deviceType)));
+			LUMOS_CORE_INFO("Driver Version : {0}.{1}.{2}", VK_VERSION_MAJOR(m_PhysicalDeviceProperties.driverVersion), VK_VERSION_MINOR(m_PhysicalDeviceProperties.driverVersion), VK_VERSION_PATCH(m_PhysicalDeviceProperties.driverVersion));
 
 			// Queue family
 			uint32_t numQueueFamily = 0;
