@@ -3,8 +3,10 @@
 #include "Graphics/Model/Model.h"
 #include "Maths/BoundingSphere.h"
 #include "Physics3DComponent.h"
-#include "Physics/JMPhysicsEngine/PhysicsObject3D.h"
+#include "Physics/LumosPhysicsEngine/PhysicsObject3D.h"
 #include "Entity/Entity.h"
+
+#include <imgui/imgui.h>
 
 
 namespace Lumos
@@ -21,6 +23,14 @@ namespace Lumos
 		if (physicsComponent)
 		{
 			m_BoundingShape->SetPosition(physicsComponent->m_PhysicsObject->GetPosition());
+		}
+	}
+
+	void ModelComponent::OnIMGUI()
+	{
+		if (ImGui::TreeNode("Model"))
+		{
+			ImGui::TreePop();
 		}
 	}
 

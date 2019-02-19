@@ -77,6 +77,54 @@ project "Sandbox"
 			"LUMOS_IMGUI"
 		}
 
+	filter "system:ios"
+		cppdialect "C++17"
+		staticruntime "On"
+		systemversion "latest"
+		kind "WindowedApp"
+		targetextension ".app"
+
+		defines
+		{
+			"LUMOS_PLATFORM_IOS",
+			"LUMOS_PLATFORM_MOBILE",
+			"LUMOS_PLATFORM_UNIX",
+			"LUMOS_RENDER_API_VULKAN",
+			"VK_USE_PLATFORM_IOS_MVK",
+			"LUMOS_IMGUI"
+		}
+
+		links
+		{
+			"QuartzCore.framework",
+			"Metal.framework",
+        	"IOKit.framework",
+        	"CoreFoundation.framework",
+			"CoreVideo.framework",
+			"UIKit.framework",
+			"OpenAL.framework"
+		}
+
+		xcodebuildsettings
+		{
+			["ARCHS"] = "$(ARCHS_STANDARD)",
+			["ONLY_ACTIVE_ARCH"] = "NO",
+			["SDKROOT"] = "iphoneos",
+			["SUPPORTED_PLATFORMS"] = "iphonesimulator iphoneos",
+			["CODE_SIGN_IDENTITY[sdk=iphoneos*]"] = "iPhone Developer",
+			['IPHONEOS_DEPLOYMENT_TARGET'] = '12.1',
+			['PRODUCT_BUNDLE_IDENTIFIER'] = "com.jmorton06"
+			--['INFOPLIST_FILE'] = "../Lumos/src/Platform/iOS/Info.plist",
+		}
+
+		files
+		{
+			"../Lumos/src/Platform/iOS/**",
+			"res/**"
+		}
+
+		xcodebuildresources { "res/**" }
+
 	filter "system:linux"
 		cppdialect "C++17"
 		staticruntime "On"
@@ -111,12 +159,15 @@ project "Sandbox"
 	filter "configurations:Debug"
 		defines "LUMOS_DEBUG"
 		symbols "On"
+		runtime "Debug"
 
 	filter "configurations:Release"
 		defines "LUMOS_RELEASE"
 		optimize "On"
 		symbols "On"
+		runtime "Release"
 
 	filter "configurations:Dist"
 		defines "LUMOS_DIST"
 		optimize "On"
+		runtime "Release"

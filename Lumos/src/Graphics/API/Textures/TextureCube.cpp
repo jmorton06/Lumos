@@ -2,10 +2,10 @@
 #include "TextureCube.h"
 
 #ifdef LUMOS_RENDER_API_OPENGL
-#include "Platform/GraphicsAPI/OpenGL/Textures/GLTextureCube.h"
+#include "Platform/OpenGL/Textures/GLTextureCube.h"
 #endif
 #ifdef LUMOS_RENDER_API_VULKAN
-#include "Platform/GraphicsAPI/Vulkan/VKTextureCube.h"
+#include "Platform/Vulkan/VKTextureCube.h"
 #endif
 #ifdef LUMOS_RENDER_API_DIRECT3D
 #include "graphics/directx/DXTextureCube.h"

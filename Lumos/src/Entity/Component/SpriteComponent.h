@@ -1,12 +1,12 @@
 #pragma once
 #include "LM.h"
-#include "JMComponent.h"
+#include "LumosComponent.h"
 
 namespace Lumos
 {
 	class Sprite;
 
-	class LUMOS_EXPORT SpriteComponent : public JMComponent
+	class LUMOS_EXPORT SpriteComponent : public LumosComponent
 	{
 	public:
 		std::shared_ptr<Sprite> m_Sprite;
@@ -22,5 +22,7 @@ namespace Lumos
 		void OnUpdateComponent(float dt) override;
 
 		inline virtual ComponentType GetType() const override { return GetStaticType(); }
+
+		void OnIMGUI() override;
 	};
 }

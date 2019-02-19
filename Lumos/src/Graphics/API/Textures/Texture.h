@@ -89,15 +89,17 @@ namespace Lumos
 	{
 		bool flipX;
 		bool flipY;
+		bool generateMipMaps;
 
 		TextureLoadOptions()
 		{
 			flipX = false;
 			flipY = false;
+			generateMipMaps = true;
 		}
 
-		TextureLoadOptions(bool flipX, bool flipY)
-			: flipX(flipX), flipY(flipY)
+		TextureLoadOptions(bool flipX, bool flipY, bool genMips = true)
+			: flipX(flipX), flipY(flipY), generateMipMaps(genMips)
 		{
 		}
 	};
@@ -117,7 +119,7 @@ namespace Lumos
 		virtual const String& GetFilepath() const = 0;
 
 		virtual uint GetSize() const { return 0; }
-		virtual uint GetHandle() const = 0;
+		virtual void* GetHandle() const = 0;
 
 	public:
 		inline static void SetWrap(const TextureWrap mode) { s_WrapMode = mode; }

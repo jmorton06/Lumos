@@ -18,16 +18,21 @@
 #include "Graphics/API/Shader.h"
 #include "Graphics/GBuffer.h"
 #include "Graphics/MeshFactory.h"
+#include "Graphics/RenderManager.h"
 #include "App/SceneManager.h"
 #include "App/Scene.h"
+#include "App/Application.h"
 #include "Entity/Entity.h"
 
 namespace Lumos
 {
-	SkyboxRenderer::SkyboxRenderer(uint width, uint height) : m_UniformBuffer(nullptr), m_CubeMap(nullptr)
+	SkyboxRenderer::SkyboxRenderer(uint width, uint height, Texture* cubeMap) : m_UniformBuffer(nullptr), m_CubeMap(nullptr)
 	{
 		m_Pipeline = nullptr;
+        m_CubeMap = cubeMap;
+        
 		SetScreenBufferSize(width, height);
+        Init();
 	}
 
 	SkyboxRenderer::~SkyboxRenderer()
@@ -36,6 +41,7 @@ namespace Lumos
 		delete m_UniformBuffer;
 		delete m_Skybox;
 		delete m_Pipeline;
+        delete m_RenderPass;
         delete[] m_VSSystemUniformBuffer;
 
 		for(auto& commandBuffer : m_CommandBuffers)
@@ -52,23 +58,20 @@ namespace Lumos
 		m_CommandBuffers.clear();
 	}
 
-	void SkyboxRenderer::Render(graphics::api::CommandBuffer* commandBuffer, Scene* scene, int framebufferId)
+    void SkyboxRenderer::RenderScene(RenderList* renderList, Scene* scene)
 	{
+        m_CurrentBufferID = Renderer::GetRenderer()->GetSwapchain()->GetCurrentBufferId();
+
+        Begin();
 		BeginScene(scene);
 		SetSystemUniforms(m_Shader);
+		m_Pipeline->SetActive(m_CommandBuffers[m_CurrentBufferID]);
 
-		graphics::api::CommandBuffer* currentCMDBuffer = m_CommandBuffers[framebufferId];
+		Renderer::RenderMesh(m_Skybox, m_Pipeline, m_CommandBuffers[m_CurrentBufferID], 0, nullptr);
 
-		currentCMDBuffer->BeginRecordingSecondary(m_RenderPass, m_Framebuffers[framebufferId]);
-
-		currentCMDBuffer->UpdateViewport(m_ScreenBufferWidth, m_ScreenBufferHeight);
-
-		m_Pipeline->SetActive(currentCMDBuffer);
-
-		Renderer::RenderMesh(m_Skybox, m_Pipeline, currentCMDBuffer, 0, nullptr);
-
-		currentCMDBuffer->EndRecording();
-		currentCMDBuffer->ExecuteSecondary(commandBuffer);
+        End();
+        
+        Renderer::GetRenderer()->Present((m_CommandBuffers[Renderer::GetRenderer()->GetSwapchain()->GetCurrentBufferId()]));
 	}
 
 	enum VSSystemUniformIndices : int32
@@ -96,13 +99,29 @@ namespace Lumos
 		for (auto& commandBuffer : m_CommandBuffers)
 		{
 			commandBuffer = graphics::api::CommandBuffer::Create();
-			commandBuffer->Init(false);
+			commandBuffer->Init(true);
 		}
+        
+        m_RenderPass = graphics::api::RenderPass::Create();
+        TextureType textureTypes[2] = { TextureType::COLOUR, TextureType::DEPTH};
+        graphics::api::RenderpassInfo renderpassCI{};
+        renderpassCI.attachmentCount = 2;
+        renderpassCI.textureType = textureTypes;
+        renderpassCI.clear = false;
+        
+        m_RenderPass->Init(renderpassCI);
 
         CreateGraphicsPipeline();
 		UpdateUniformBuffer();
 		CreateFramebuffers();
 	}
+    
+    void SkyboxRenderer::Begin()
+    {
+        m_CommandBuffers[m_CurrentBufferID]->BeginRecording();
+        
+        m_RenderPass->BeginRenderpass(m_CommandBuffers[m_CurrentBufferID], maths::Vector4(0.0f), m_Framebuffers[m_CurrentBufferID], graphics::api::INLINE, m_ScreenBufferWidth, m_ScreenBufferHeight);
+    }
 
 	void SkyboxRenderer::BeginScene(Scene* scene)
 	{
@@ -112,6 +131,12 @@ namespace Lumos
 		auto invViewProj = maths::Matrix4::Inverse(proj * camera->GetViewMatrix());
 		memcpy(m_VSSystemUniformBuffer + m_VSSystemUniformBufferOffsets[VSSystemUniformIndex_InverseProjectionViewMatrix], &invViewProj, sizeof(maths::Matrix4));
 	}
+    
+    void SkyboxRenderer::End()
+    {
+        m_RenderPass->EndRenderpass(m_CommandBuffers[m_CurrentBufferID]);
+        m_CommandBuffers[m_CurrentBufferID]->EndRecording();
+    }
 
 	void SkyboxRenderer::SetSystemUniforms(Shader* shader) const
 	{
@@ -223,20 +248,21 @@ namespace Lumos
 
 	void SkyboxRenderer::CreateFramebuffers()
 	{
-		TextureType attachmentTypes[1];
+		TextureType attachmentTypes[2];
 		attachmentTypes[0] = TextureType::COLOUR;
-		//attachmentTypes[1] = TextureType::DEPTH;
+        attachmentTypes[1] = TextureType::DEPTH;
 
-		Texture* attachments[1];
-		//attachments[1] = reinterpret_cast<Texture*>(m_DepthTexture);//new VKTexture2D(VkImage(), depthImageView);
+		Texture* attachments[2];
 		FramebufferInfo bufferInfo{};
 		bufferInfo.width = m_ScreenBufferWidth;
 		bufferInfo.height = m_ScreenBufferHeight;
-		bufferInfo.attachmentCount = 1;
+		bufferInfo.attachmentCount = 2;
 		bufferInfo.renderPass = m_RenderPass;
 		bufferInfo.attachmentTypes = attachmentTypes;
 		bufferInfo.screenFBO = true;
 
+        attachments[1] = (Texture*)Application::Instance()->GetRenderManager()->GetGBuffer()->m_DepthTexture;
+        
 		for (uint32_t i = 0; i < Renderer::GetRenderer()->GetSwapchain()->GetSwapchainBufferCount(); i++)
 		{
 			attachments[0] = Renderer::GetRenderer()->GetSwapchain()->GetImage(i);

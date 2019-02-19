@@ -15,6 +15,7 @@ namespace Lumos
 	class Window;
     class SceneManager;
 	class RenderManager;
+	class AudioManager;
 
     enum class AppState
     {
@@ -46,6 +47,7 @@ namespace Lumos
 
         SceneManager* GetSceneManager() const { return m_SceneManager.get(); }
 		RenderManager* GetRenderManager() const { return m_RenderManager.get(); }
+		AudioManager* GetAudioManager() const { return m_AudioManager.get(); }
         Window* GetWindow() const { return m_Window.get(); }
         AppState GetState() const { return m_CurrentState; }
 
@@ -69,6 +71,7 @@ namespace Lumos
 		std::unique_ptr<Window> m_Window;
         std::unique_ptr<SceneManager> m_SceneManager;
 		std::unique_ptr<RenderManager> m_RenderManager;
+		std::unique_ptr<AudioManager> m_AudioManager;
 
 		LayerStack* m_LayerStack;
 

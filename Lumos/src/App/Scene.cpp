@@ -3,10 +3,10 @@
 #include "Graphics/ParticleManager.h"
 #include "Graphics/API/Context.h"
 #include "System/String.h"
-#include "Audio/SoundSystem.h"
+#include "Audio/AudioManager.h"
 #include "Graphics/Mesh.h"
-#include "Physics/JMPhysicsEngine/SortAndSweepBroadphase.h"
-#include "Physics/JMPhysicsEngine/Octree.h"
+#include "Physics/LumosPhysicsEngine/SortAndSweepBroadphase.h"
+#include "Physics/LumosPhysicsEngine/Octree.h"
 #include "Graphics/GBuffer.h"
 #include "Graphics/Light.h"
 #include "Graphics/Model/Model.h"
@@ -92,9 +92,9 @@ namespace Lumos
 		Application::Instance()->GetWindow()->SetWindowTitle(Title.str());
 
 		//Default physics setup
-		JMPhysicsEngine::Instance()->SetDampingFactor(0.998f);
-		JMPhysicsEngine::Instance()->SetIntegrationType(INTEGRATION_RUNGE_KUTTA_4);
-		JMPhysicsEngine::Instance()->SetBroadphase(new Octree(5, 5, std::make_shared<SortAndSweepBroadphase>()));
+		LumosPhysicsEngine::Instance()->SetDampingFactor(0.998f);
+		LumosPhysicsEngine::Instance()->SetIntegrationType(INTEGRATION_RUNGE_KUTTA_4);
+		LumosPhysicsEngine::Instance()->SetBroadphase(new Octree(5, 5, std::make_shared<SortAndSweepBroadphase>()));
 		SetDebugDrawFlags(DEBUGDRAW_FLAGS_COLLISIONVOLUMES
 			| DEBUGDRAW_FLAGS_AABB
 			| DEBUGDRAW_FLAGS_COLLISIONNORMALS
@@ -125,12 +125,11 @@ namespace Lumos
 
 		DeleteAllGameObjects();
 
-		SoundSystem::Instance()->RemoveAllSoundNodes();
-
 		Input::GetInput().Reset();
 
 		Application::Instance()->ClearLayers();
 		Application::Instance()->GetRenderManager()->Reset();
+		Application::Instance()->GetAudioManager()->ClearNodes();
 
 		m_CurrentScene = false;
 	};

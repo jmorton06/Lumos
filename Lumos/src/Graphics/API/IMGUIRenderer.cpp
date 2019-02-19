@@ -4,11 +4,11 @@
 
 #ifdef LUMOS_IMGUI
 #ifdef LUMOS_RENDER_API_OPENGL
-#include "Platform/GraphicsAPI/OpenGL/GLIMGUIRenderer.h"
+#include "Platform/OpenGL/GLIMGUIRenderer.h"
 #endif
 
 #ifdef LUMOS_RENDER_API_VULKAN
-#include "Platform/GraphicsAPI/Vulkan/VKIMGUIRenderer.h"
+#include "Platform/Vulkan/VKIMGUIRenderer.h"
 #endif
 #endif
 

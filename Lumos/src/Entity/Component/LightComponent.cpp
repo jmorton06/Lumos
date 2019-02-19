@@ -2,13 +2,15 @@
 #include "LightComponent.h"
 #include "Graphics/Light.h"
 #include "Physics3DComponent.h"
-#include "Physics/JMPhysicsEngine/PhysicsObject3D.h"
+#include "Physics/LumosPhysicsEngine/PhysicsObject3D.h"
 #include "Entity/Entity.h"
 #include "App/Scene.h"
 #include "Graphics/LightSetUp.h"
 #include "Maths/Vector3.h"
 #include "Maths/BoundingSphere.h"
 #include "Graphics/Renderers/DebugRenderer.h"
+
+#include <imgui/imgui.h>
 
 namespace Lumos
 {
@@ -43,5 +45,13 @@ namespace Lumos
 	void LightComponent::DebugDraw(uint64 debugFlags)
 	{
 		DebugRenderer::DebugDraw(static_cast<maths::BoundingSphere*>(m_BoundingShape.get()), maths::Vector4(m_Light->GetColour(),0.2f));
+	}
+
+	void LightComponent::OnIMGUI()
+	{
+		if (ImGui::TreeNode("Light"))
+		{
+			ImGui::TreePop();
+		}
 	}
 }

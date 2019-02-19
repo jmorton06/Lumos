@@ -5,10 +5,10 @@
 #include "Textures/Texture2D.h"
 
 #ifdef LUMOS_RENDER_API_OPENGL
-#include "Platform/GraphicsAPI/OpenGL/GLContext.h"
+#include "Platform/OpenGL/GLContext.h"
 #endif
 #ifdef LUMOS_RENDER_API_VULKAN
-#include "Platform/GraphicsAPI/Vulkan/VKContext.h"
+#include "Platform/Vulkan/VKContext.h"
 #endif
 #ifdef LUMOS_RENDER_API_DIRECT3D
 #include "graphics/DirectX/DXContext.h"

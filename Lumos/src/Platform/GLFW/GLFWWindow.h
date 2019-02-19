@@ -38,9 +38,6 @@ namespace Lumos
 
 	protected:
 
-		static int GLFWToJMKeyboardKey(int glfwKey);
-		static int GLFWToJMMouseKey(int glfwKey);
-
 		GLFWwindow* m_Handle;
 
 		struct WindowData

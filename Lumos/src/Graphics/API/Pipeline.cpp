@@ -3,11 +3,11 @@
 #include "Context.h"
 
 #ifdef LUMOS_RENDER_API_VULKAN
-#include "Platform/GraphicsAPI/Vulkan/VKPipeline.h"
+#include "Platform/Vulkan/VKPipeline.h"
 #endif
 
 #ifdef LUMOS_RENDER_API_OPENGL
-#include "Platform/GraphicsAPI/OpenGL/GLPipeline.h"
+#include "Platform/OpenGL/GLPipeline.h"
 #endif
 
 namespace Lumos

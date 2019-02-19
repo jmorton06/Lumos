@@ -22,12 +22,11 @@
 #include "App/Scene.h"
 #include "Entity/Entity.h"
 #include "App/Application.h"
+#include "Graphics/RenderManager.h"
 
 #ifdef LUMOS_RENDER_API_VULKAN
-#include "Platform/GraphicsAPI/Vulkan/VKRenderer.h"
+#include "Platform/Vulkan/VKRenderer.h"
 #endif
-
-int i = 0;
 
 namespace Lumos
 {
@@ -48,14 +47,11 @@ namespace Lumos
         
 		delete m_ModelUniformBuffer;
 		delete m_RenderPass;
-		delete m_DepthTexture;
         delete m_GraphicsPipeline;
         delete m_DefaultDescriptorSet;
         
         delete[] m_VSSystemUniformBuffer;
         delete[] m_PSSystemUniformBuffer;
-        
-        SAFE_DELETE(m_SkyboxRenderer);
         
         for (auto& framebuffer : m_Framebuffers)
         {
@@ -71,8 +67,9 @@ namespace Lumos
 
 	void ForwardRenderer::RenderScene(RenderList* renderList, Scene* scene)
 	{
-		for (i = 0; i < commandBuffers.size(); i++)
+		//for (i = 0; i < commandBuffers.size(); i++)
 		{
+			m_CurrentBufferID = Renderer::GetRenderer()->GetSwapchain()->GetCurrentBufferId();
 			Begin();
 			BeginScene(scene);
 
@@ -157,7 +154,6 @@ namespace Lumos
 		m_PSSystemUniformBufferOffsets[PSSystemUniformIndex_Lights] = 0;
 
 		m_RenderPass = graphics::api::RenderPass::Create();
-		m_DepthTexture = TextureDepth::Create(m_ScreenBufferWidth, m_ScreenBufferHeight);
 		m_UniformBuffer = graphics::api::UniformBuffer::Create();
 		m_ModelUniformBuffer = graphics::api::UniformBuffer::Create();
 
@@ -221,7 +217,6 @@ namespace Lumos
 		m_GraphicsPipeline->GetDescriptorSet()->Update(bufferInfos);
 
 		m_ClearColour = maths::Vector4(0.8f, 0.8f, 0.8f, 1.0f);
-		m_SkyboxRenderer = nullptr;
 
 		m_DefaultTexture = Texture2D::CreateFromFile("Test", "/CoreTextures/checkerboard.tga");
 
@@ -248,9 +243,9 @@ namespace Lumos
 		m_CommandQueue.clear();
 		m_SystemUniforms.clear();
 
-        commandBuffers[i]->BeginRecording();
+        commandBuffers[m_CurrentBufferID]->BeginRecording();
 
-		m_RenderPass->BeginRenderpass(commandBuffers[i], m_ClearColour, m_Framebuffers[i], graphics::api::SECONDARY, m_ScreenBufferWidth, m_ScreenBufferHeight);
+		m_RenderPass->BeginRenderpass(commandBuffers[m_CurrentBufferID], m_ClearColour, m_Framebuffers[m_CurrentBufferID], graphics::api::SECONDARY, m_ScreenBufferWidth, m_ScreenBufferHeight);
     }
 
 	void ForwardRenderer::BeginScene(Scene* scene)
@@ -282,17 +277,17 @@ namespace Lumos
 
 	void ForwardRenderer::End()
 	{
-		m_RenderPass->EndRenderpass(commandBuffers[i]);
-        commandBuffers[i]->EndRecording();
+		m_RenderPass->EndRenderpass(commandBuffers[m_CurrentBufferID]);
+        commandBuffers[m_CurrentBufferID]->EndRecording();
 	}
 
-	void ForwardRenderer::SetCubeMap(Texture* cubeMap)
-	{
-		m_SkyboxRenderer = new SkyboxRenderer(m_ScreenBufferWidth, m_ScreenBufferHeight);
-		m_SkyboxRenderer->SetCubeMap(cubeMap);
-		m_SkyboxRenderer->SetRenderInfo(m_RenderPass);
-		m_SkyboxRenderer->Init();
-	}
+	//void ForwardRenderer::SetCubeMap(Texture* cubeMap)
+	//{
+	//	//m_SkyboxRenderer = new SkyboxRenderer(m_ScreenBufferWidth, m_ScreenBufferHeight);
+	//	m_SkyboxRenderer->SetCubeMap(cubeMap);
+	//	//m_SkyboxRenderer->SetRenderInfo(m_RenderPass);
+	//	m_SkyboxRenderer->Init();
+	//}
 
 	void ForwardRenderer::SetSystemUniforms(Shader* shader) const
 	{
@@ -326,9 +321,9 @@ namespace Lumos
 		{
             Mesh* mesh = command.mesh;
 
-            graphics::api::CommandBuffer* currentCMDBuffer = (mesh->GetCommandBuffer(static_cast<int>(i)));
+            graphics::api::CommandBuffer* currentCMDBuffer = (mesh->GetCommandBuffer(static_cast<int>(m_CurrentBufferID)));
 
-			currentCMDBuffer->BeginRecordingSecondary(m_RenderPass, m_Framebuffers[i]);
+			currentCMDBuffer->BeginRecordingSecondary(m_RenderPass, m_Framebuffers[m_CurrentBufferID]);
 
             currentCMDBuffer->UpdateViewport(m_ScreenBufferWidth,m_ScreenBufferHeight);
 
@@ -341,13 +336,13 @@ namespace Lumos
 			Renderer::RenderMesh(mesh, m_GraphicsPipeline, currentCMDBuffer, dynamicOffset, m_DefaultDescriptorSet);
 
             currentCMDBuffer->EndRecording();
-            currentCMDBuffer->ExecuteSecondary(commandBuffers[i]);
+            currentCMDBuffer->ExecuteSecondary(commandBuffers[m_CurrentBufferID]);
 
             index++;
 		}
 
-		if(m_SkyboxRenderer)
-			m_SkyboxRenderer->Render(commandBuffers[i], Application::Instance()->GetSceneManager()->GetCurrentScene(), i);
+		//if(m_SkyboxRenderer)
+			//m_SkyboxRenderer->Render(commandBuffers[i], Application::Instance()->GetSceneManager()->GetCurrentScene(), i);
 	}
 
 	void ForwardRenderer::OnResize(uint width, uint height)
@@ -356,7 +351,6 @@ namespace Lumos
 		m_ScreenBufferHeight = static_cast<uint>(height);
 
 		delete m_GraphicsPipeline;
-		delete m_DepthTexture;
 		delete m_RenderPass;
 		delete m_Shader;
 
@@ -366,7 +360,6 @@ namespace Lumos
 		m_Framebuffers.clear();
 
 		m_RenderPass = graphics::api::RenderPass::Create();
-		m_DepthTexture = TextureDepth::Create(width, height);
 
 		TextureType textureTypes[2] = { TextureType::COLOUR , TextureType::DEPTH };
 		graphics::api::RenderpassInfo renderpassCI{};
@@ -468,7 +461,7 @@ namespace Lumos
 		attachmentTypes[1] = TextureType::DEPTH;
 
 		Texture* attachments[2];
-		attachments[1] = reinterpret_cast<Texture*>(m_DepthTexture);//new VKTexture2D(VkImage(), depthImageView);
+		attachments[1] = reinterpret_cast<Texture*>(Application::Instance()->GetRenderManager()->GetGBuffer()->m_DepthTexture);
 		FramebufferInfo bufferInfo{};
 		bufferInfo.width = m_ScreenBufferWidth;
 		bufferInfo.height = m_ScreenBufferHeight;

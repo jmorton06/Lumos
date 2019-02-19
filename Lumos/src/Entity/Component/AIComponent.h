@@ -1,12 +1,12 @@
 #pragma once
 #include "LM.h"
-#include "JMComponent.h"
+#include "LumosComponent.h"
 
 namespace Lumos
 {
 	class AINode;
 
-	class LUMOS_EXPORT AIComponent : public JMComponent
+	class LUMOS_EXPORT AIComponent : public LumosComponent
 	{
 	public:
 		std::shared_ptr<AINode> m_AINode;
@@ -20,5 +20,7 @@ namespace Lumos
 		}
 
 		inline virtual ComponentType GetType() const override { return GetStaticType(); }
+
+		void OnIMGUI() override;
 	};
 }

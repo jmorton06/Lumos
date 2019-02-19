@@ -114,16 +114,12 @@ namespace Lumos
 				values[10] = in.GetZ();
 			}
 
-            Vector3 GetScalingVector() const;
-            void	SetScalingVector(const Vector3 &in);
-
 			Matrix4 operator*(const Matrix4 &m) const;
 			Vector3 operator*(const Vector3 &v) const;
 			Vector4 operator*(const Vector4 &v) const;
 
 			void Transpose();
             Matrix4 GetRotation() const;
-            Matrix4 GetTransposedRotation() const;
 
 			static Vector3 GetEulerAngles(const Matrix4 &mat);
 			static Matrix4 RotationX(float degrees);
