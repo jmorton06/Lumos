@@ -189,7 +189,6 @@ namespace Lumos
 			rpBegin.clearValueCount = m_ClearCount;
 			rpBegin.pClearValues = m_ClearValue;
 
-
 			vkCmdBeginRenderPass(static_cast<VKCommandBuffer*>(commandBuffer)->GetCommandBuffer(), &rpBegin, SubPassContentsToVK(contents));
 		}
 
