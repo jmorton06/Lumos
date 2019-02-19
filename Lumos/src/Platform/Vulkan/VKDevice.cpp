@@ -18,7 +18,7 @@
 #endif
 
 #ifdef LUMOS_PLATFORM_WINDOWS
-#include "Platform/Windows/Win32Window.h"
+#include "Platform/Windows/WindowsWindow.h"
 #endif
 
 #ifdef LUMOS_PLATFORM_MACOS
@@ -104,7 +104,7 @@ namespace Lumos
 			surfaceInfo.pNext = NULL;
 			surfaceInfo.flags = 0;
 			surfaceInfo.hwnd = (HWND)VKContext::Get()->GetWindowContext();
-			surfaceInfo.hinstance = ((Win32Window*)Application::Instance()->GetWindow())->GetHInstance();
+			surfaceInfo.hinstance = ((WindowsWindow*)Application::Instance()->GetWindow())->GetHInstance();
 			if (vkCreateWin32SurfaceKHR(m_VKContext->GetVKInstance(), &surfaceInfo, NULL, &m_Surface) != VK_SUCCESS)
 #else
             if (glfwCreateWindowSurface(m_VKContext->GetVKInstance(), static_cast<GLFWwindow*>(m_VKContext->GetWindowContext()), nullptr, &m_Surface) != VK_SUCCESS)

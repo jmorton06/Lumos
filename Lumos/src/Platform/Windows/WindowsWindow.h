@@ -7,11 +7,11 @@
 namespace Lumos
 {
 
-	class LUMOS_EXPORT Win32Window : public Window
+	class LUMOS_EXPORT WindowsWindow : public Window
 	{
 	public:
-		Win32Window(const WindowProperties& properties, const String& title, RenderAPI api = RenderAPI::OPENGL);
-		~Win32Window();
+		WindowsWindow(const WindowProperties& properties, const String& title, RenderAPI api = RenderAPI::OPENGL);
+		~WindowsWindow();
 
 		void ToggleVSync() override;
 		void SetWindowTitle(const String& title) override;
@@ -47,6 +47,7 @@ namespace Lumos
 		WindowData m_Data;
 
 		HINSTANCE GetHInstance() const { return hInstance; }
+		HWND GetHWND() const { return hWnd; }
 
 	protected:
 
