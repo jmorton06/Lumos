@@ -5,11 +5,17 @@
 #include <Windowsx.h>
 #define NOGDI
 
+#ifndef GET_WHEEL_DELTA_WPARAM
+#define GET_WHEEL_DELTA_WPARAM(wParam)  ((short)HIWORD(wParam))
+#endif
+
 #include "System/LMLog.h"
-#include "Win32Window.h"
+#include "WindowsWindow.h"
+#include "WindowsKeyCodes.h"
 #include "Graphics/API/Context.h"
 #include "App/Application.h"
 #include "App/Input.h"
+#include "Maths/MathsUtilities.h"
 
 namespace Lumos
 {
@@ -30,7 +36,7 @@ namespace Lumos
 #define HID_USAGE_GENERIC_KEYBOARD ((USHORT)0x06)
 #endif
 
-	Win32Window::Win32Window(const WindowProperties& properties, const String& title, RenderAPI api)
+	WindowsWindow::WindowsWindow(const WindowProperties& properties, const String& title, RenderAPI api)
 	{
 		m_Init = false;
 		m_VSync = properties.VSync;
@@ -43,7 +49,7 @@ namespace Lumos
 		graphics::Context::Create(properties, hWnd);
 	}
 
-	Win32Window::~Win32Window()
+	WindowsWindow::~WindowsWindow()
 	{
 		if (m_Timer != nullptr)
 		{
@@ -67,7 +73,7 @@ namespace Lumos
 		return result;
 	}
 
-	bool Win32Window::Init(const WindowProperties& properties, const String& title)
+	bool WindowsWindow::Init(const WindowProperties& properties, const String& title)
 	{
 		m_Data.Title = title;
 		m_Data.Width = properties.Width;
@@ -142,7 +148,7 @@ namespace Lumos
 
 	void ResizeCallback(Window* window, int32 width, int32 height)
 	{
-		Win32Window::WindowData data = ((Win32Window*)window)->m_Data;
+		WindowsWindow::WindowData data = ((WindowsWindow*)window)->m_Data;
 
 		data.Width = width;
 		data.Height = height;
@@ -153,49 +159,34 @@ namespace Lumos
 
 	void FocusCallback(Window* window, bool focused)
 	{
+		Input::GetInput().SetWindowFocus(focused);
 	}
 
-	void Win32Window::OnUpdate()
+	void WindowsWindow::OnUpdate()
 	{
 		MSG message;
 		while (PeekMessage(&message, NULL, NULL, NULL, PM_REMOVE) > 0)
 		{
 			if (message.message == WM_QUIT)
 			{
-				SetExit(true);
+				WindowCloseEvent event;
+				m_Data.EventCallback(event);
+				m_Data.Exit = true;
 				return;
 			}
 			TranslateMessage(&message);
 			DispatchMessage(&message);
 		}
 
-		UINT dwSize;
-		GetRawInputData((HRAWINPUT)message.lParam, RID_INPUT, NULL, &dwSize, sizeof(RAWINPUTHEADER));
-		BYTE *lpb = new BYTE[dwSize];
-
-		GetRawInputData((HRAWINPUT)message.lParam, RID_INPUT, lpb, &dwSize, sizeof(RAWINPUTHEADER));
-		RAWINPUT *raw = (RAWINPUT *)lpb;
-
-		RAWINPUT* rw = (RAWINPUT*)raw;
-		DWORD key = (DWORD)rw->data.keyboard.VKey;
-
-		// We should do bounds checking!
-		if (key < 0 || key > 1048)
-		{
-			return;
-		}
-
-		//m_KeyPressed[Win32KeyToLumos(key)] = !(rw->data.keyboard.Flags & RI_KEY_BREAK);
-
 		::SwapBuffers(hDc);
 	}
 
-	void Win32Window::SetWindowTitle(const String& title)
+	void WindowsWindow::SetWindowTitle(const String& title)
 	{
 		SetWindowText(hWnd, title.c_str());
 	}
 
-	void Win32Window::ToggleVSync()
+	void WindowsWindow::ToggleVSync()
 	{
 		if (m_VSync)
 		{
@@ -209,18 +200,96 @@ namespace Lumos
 		}
 	}
 
-	void Win32Window::SetBorderlessWindow(bool borderless)
+	void WindowsWindow::SetBorderlessWindow(bool borderless)
 	{
 
 	}
 
 	void MouseButtonCallback(Window* window, int32 button, int32 x, int32 y)
 	{
+		WindowsWindow::WindowData data = ((WindowsWindow*)window)->m_Data;
+		HWND hWnd = ((WindowsWindow*)window)->GetHWND();
 
+		bool down = false;
+		switch (button)
+		{
+		case WM_LBUTTONDOWN:
+			SetCapture(hWnd);
+			button = LUMOS_MOUSE_LEFT;
+			down = true;
+			break;
+		case WM_LBUTTONUP:
+			ReleaseCapture();
+			button = LUMOS_MOUSE_LEFT;
+			down = false;
+			break;
+		case WM_RBUTTONDOWN:
+			SetCapture(hWnd);
+			button = LUMOS_MOUSE_RIGHT;
+			down = true;
+			break;
+		case WM_RBUTTONUP:
+			ReleaseCapture();
+			button = LUMOS_MOUSE_RIGHT;
+			down = false;
+			break;
+		case WM_MBUTTONDOWN:
+			SetCapture(hWnd);
+			button = LUMOS_MOUSE_MIDDLE;
+			down = true;
+			break;
+		case WM_MBUTTONUP:
+			ReleaseCapture();
+			button = LUMOS_MOUSE_MIDDLE;
+			down = false;
+			break;
+		}
+
+		if (down)
+		{
+			MouseButtonPressedEvent event(button);
+			data.EventCallback(event);
+		}
+		else
+		{
+			MouseButtonReleasedEvent event(button);
+			data.EventCallback(event);
+		}
 	}
-	void KeyCallback(Window* window, int32 flags, int32 key, uint message)
-	{
 
+	void MouseScrollCallback(Window* window, int inSw, WPARAM wParam, LPARAM lParam)
+	{
+		WindowsWindow::WindowData data = ((WindowsWindow*)window)->m_Data;
+		HWND hWnd = ((WindowsWindow*)window)->GetHWND();
+
+		MouseScrolledEvent event(0.0f, (float)GET_WHEEL_DELTA_WPARAM(wParam) / (float)WHEEL_DELTA);
+		data.EventCallback(event);
+	}
+
+	void MouseMoveCallback(Window* window, int32 x, int32 y)
+	{
+		WindowsWindow::WindowData data = ((WindowsWindow*)window)->m_Data;
+		MouseMovedEvent event((float)x, (float)y);
+		data.EventCallback(event);
+	}
+
+	void KeyCallback(Window* window, int32 key, int32 flags, UINT message)
+	{
+		bool pressed = message == WM_KEYDOWN || message == WM_SYSKEYDOWN;
+		bool repeat = (flags >> 30) & 1;
+
+		WindowsWindow::WindowData data = ((WindowsWindow*)window)->m_Data;
+	
+		if (pressed)
+		{
+			KeyPressedEvent event(WindowsKeyCodes::WindowsKeyToLumos(key), repeat ? 1 : 0);
+			data.EventCallback(event);
+		}
+		else
+		{
+			KeyReleasedEvent event(WindowsKeyCodes::WindowsKeyToLumos(key));
+			data.EventCallback(event);
+		}
 	}
 
 	LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
@@ -269,7 +338,7 @@ namespace Lumos
 		case WM_KEYUP:
 		case WM_SYSKEYDOWN:
 		case WM_SYSKEYUP:
-			KeyCallback(window, lParam, wParam, message);
+			KeyCallback(window, int32(wParam), int32(lParam), message);
 			break;
 		case WM_LBUTTONDOWN:
 		case WM_LBUTTONUP:
@@ -278,6 +347,12 @@ namespace Lumos
 		case WM_MBUTTONDOWN:
 		case WM_MBUTTONUP:
 			MouseButtonCallback(window, message, GET_X_LPARAM(lParam), GET_Y_LPARAM(lParam));
+			break;
+		case WM_MOUSEMOVE:
+			MouseMoveCallback(window, GET_X_LPARAM(lParam), GET_Y_LPARAM(lParam));
+			break;
+		case WM_MOUSEWHEEL:
+			MouseScrollCallback(window, WM_VSCROLL, wParam, lParam);
 			break;
 		case WM_SIZE:
 			ResizeCallback(window, LOWORD(lParam), HIWORD(lParam));

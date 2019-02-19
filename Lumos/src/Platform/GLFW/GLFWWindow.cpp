@@ -13,6 +13,8 @@
 #include <GLFW/glfw3.h>
 #include <GLFW/glfw3native.h>
 
+#include "GLFWKeyCodes.h"
+
 #include "App/Input.h"
 #include "App/Application.h"
 
@@ -177,19 +179,19 @@ namespace Lumos
 			{
 				case GLFW_PRESS:
 				{
-					KeyPressedEvent event(GLFWToJMKeyboardKey(key), 0);
+					KeyPressedEvent event(GLFWKeyCodes::GLFWToLumosKeyboardKey(key), 0);
 					data.EventCallback(event);
 					break;
 				}
 				case GLFW_RELEASE:
 				{
-					KeyReleasedEvent event(GLFWToJMKeyboardKey(key));
+					KeyReleasedEvent event(GLFWKeyCodes::GLFWToLumosKeyboardKey(key));
 					data.EventCallback(event);
 					break;
 				}
 				case GLFW_REPEAT:
 				{
-					KeyPressedEvent event(GLFWToJMKeyboardKey(key), 1);
+					KeyPressedEvent event(GLFWKeyCodes::GLFWToLumosKeyboardKey(key), 1);
 					data.EventCallback(event);
 					break;
 				}
@@ -204,13 +206,13 @@ namespace Lumos
 			{
 				case GLFW_PRESS:
 				{
-					MouseButtonPressedEvent event(GLFWToJMMouseKey(button));
+					MouseButtonPressedEvent event(GLFWKeyCodes::GLFWToLumosMouseKey(button));
 					data.EventCallback(event);
 					break;
 				}
 				case GLFW_RELEASE:
 				{
-					MouseButtonReleasedEvent event(GLFWToJMMouseKey(button));
+					MouseButtonReleasedEvent event(GLFWKeyCodes::GLFWToLumosMouseKey(button));
 					data.EventCallback(event);
 					break;
 				}
@@ -335,76 +337,5 @@ namespace Lumos
 	void GLFWWindow::SetMousePosition(const maths::Vector2& pos)
 	{
 		glfwSetCursorPos(m_Handle, pos.GetX(), pos.GetY());
-	}
-
-	int GLFWWindow::GLFWToJMKeyboardKey(int glfwKey)
-	{
-		switch (glfwKey)
-		{
-		case GLFW_KEY_A: return LUMOS_KEY_A;
-		case GLFW_KEY_B: return LUMOS_KEY_B;
-		case GLFW_KEY_C: return LUMOS_KEY_C;
-		case GLFW_KEY_D: return LUMOS_KEY_D;
-		case GLFW_KEY_E: return LUMOS_KEY_E;
-		case GLFW_KEY_F: return LUMOS_KEY_F;
-		case GLFW_KEY_G: return LUMOS_KEY_G;
-		case GLFW_KEY_H: return LUMOS_KEY_H;
-		case GLFW_KEY_I: return LUMOS_KEY_I;
-		case GLFW_KEY_J: return LUMOS_KEY_J;
-		case GLFW_KEY_K: return LUMOS_KEY_K;
-		case GLFW_KEY_L: return LUMOS_KEY_L;
-		case GLFW_KEY_M: return LUMOS_KEY_M;
-		case GLFW_KEY_N: return LUMOS_KEY_N;
-		case GLFW_KEY_O: return LUMOS_KEY_O;
-		case GLFW_KEY_P: return LUMOS_KEY_P;
-		case GLFW_KEY_Q: return LUMOS_KEY_Q;
-		case GLFW_KEY_R: return LUMOS_KEY_R;
-		case GLFW_KEY_S: return LUMOS_KEY_S;
-		case GLFW_KEY_T: return LUMOS_KEY_T;
-		case GLFW_KEY_U: return LUMOS_KEY_U;
-		case GLFW_KEY_V: return LUMOS_KEY_V;
-		case GLFW_KEY_W: return LUMOS_KEY_W;
-		case GLFW_KEY_X: return LUMOS_KEY_X;
-		case GLFW_KEY_Y: return LUMOS_KEY_Y;
-		case GLFW_KEY_Z: return LUMOS_KEY_Z;
-
-		case GLFW_KEY_0: return LUMOS_KEY_0;
-		case GLFW_KEY_1: return LUMOS_KEY_1;
-		case GLFW_KEY_2: return LUMOS_KEY_2;
-		case GLFW_KEY_3: return LUMOS_KEY_3;
-		case GLFW_KEY_4: return LUMOS_KEY_4;
-		case GLFW_KEY_5: return LUMOS_KEY_5;
-		case GLFW_KEY_6: return LUMOS_KEY_6;
-		case GLFW_KEY_7: return LUMOS_KEY_7;
-		case GLFW_KEY_8: return LUMOS_KEY_8;
-		case GLFW_KEY_9: return LUMOS_KEY_9;
-
-		case GLFW_KEY_KP_SUBTRACT: return LUMOS_KEY_SUBTRACT;
-		case GLFW_KEY_DELETE: return LUMOS_KEY_DELETE;
-		case GLFW_KEY_SPACE: return LUMOS_KEY_SPACE;
-		case GLFW_KEY_LEFT: return LUMOS_KEY_LEFT;
-		case GLFW_KEY_RIGHT: return LUMOS_KEY_RIGHT;
-		case GLFW_KEY_UP: return LUMOS_KEY_UP;
-		case GLFW_KEY_DOWN: return LUMOS_KEY_DOWN;
-		case GLFW_KEY_LEFT_SHIFT: return LUMOS_KEY_LEFT_SHIFT;
-		case GLFW_KEY_ESCAPE: return LUMOS_KEY_ESCAPE;
-		case GLFW_KEY_KP_ADD: return LUMOS_KEY_ADD;
-		case GLFW_KEY_COMMA: return LUMOS_KEY_COMMA;
-		case GLFW_KEY_BACKSPACE: return LUMOS_KEY_BACKSPACE;
-		case GLFW_KEY_ENTER: return LUMOS_KEY_ENTER;
-
-		default: LUMOS_CORE_ERROR("Unsupported Key used : {0}", glfwKey); return 0;
-		}
-	}
-
-	int GLFWWindow::GLFWToJMMouseKey(int glfwKey)
-	{
-		switch (glfwKey)
-		{
-		case GLFW_MOUSE_BUTTON_LEFT		: return LUMOS_MOUSE_LEFT;
-		case GLFW_MOUSE_BUTTON_RIGHT	: return LUMOS_MOUSE_RIGHT;
-		case GLFW_MOUSE_BUTTON_MIDDLE	: return LUMOS_MOUSE_MIDDLE;
-		default: LUMOS_CORE_ERROR("Unsupported Key used : {0}", glfwKey); return 0;
-		}
 	}
 }

@@ -7,7 +7,7 @@
 #endif
 
 #ifdef LUMOS_PLATFORM_WINDOWS
-#include "Platform/Windows/Win32Window.h"
+#include "Platform/Windows/WindowsWindow.h"
 #endif
 
 #if ( defined LUMOS_RENDER_API_OPENGL || defined LUMOS_RENDER_API_VULKAN && !defined LUMOS_PLATFORM_MOBILE )
@@ -30,10 +30,10 @@ namespace Lumos
 
 #ifdef LUMOS_PLATFORM_WINDOWS
 #ifdef LUMOS_RENDER_API_OPENGL
-		case RenderAPI::OPENGL:		return new Win32Window(properties, title);
+		case RenderAPI::OPENGL:		return new WindowsWindow(properties, title);
 #endif
 #ifdef LUMOS_RENDER_API_VULKAN
-		case RenderAPI::VULKAN:		return new Win32Window(properties, title, RenderAPI::VULKAN);
+		case RenderAPI::VULKAN:		return new WindowsWindow(properties, title, RenderAPI::VULKAN);
 #endif
 #endif
 
