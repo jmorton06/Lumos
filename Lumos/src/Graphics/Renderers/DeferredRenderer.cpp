@@ -77,7 +77,6 @@ namespace Lumos
         delete m_DefaultDescriptorSet;
         delete m_DeferredDescriptorSet;
         delete m_DefaultMaterialDataUniformBuffer;
-		SAFE_DELETE(m_SkyboxRenderer);
 
         delete[] m_VSSystemUniformBuffer;
         delete[] m_PSSystemUniformBuffer;
@@ -99,7 +98,6 @@ namespace Lumos
 		m_OffScreenShader = Shader::CreateFromFile("DeferredColour", "/CoreShaders/");
 		m_DeferredShader = Shader::CreateFromFile("DeferredLight", "/CoreShaders/");
 
-		m_GBuffer = std::make_unique<GBuffer>(m_ScreenBufferWidth, m_ScreenBufferHeight);
         m_DefaultTexture = Texture2D::CreateFromFile("Test", "/CoreTextures/checkerboard.tga");
 
         m_DeferredDescriptorSet = nullptr;
@@ -197,9 +195,7 @@ namespace Lumos
 
 		m_ClearColour = maths::Vector4(0.8f, 0.8f, 0.8f, 1.0f);
 
-		m_SkyboxRenderer = nullptr;
-		//m_ShadowTexture  = std::unique_ptr<TextureDepthArray>(TextureDepthArray::Create(4096, 4096, 4));
-        //m_ShadowRenderer = std::make_unique<ShadowRenderer>(m_ShadowTexture.get(), 4096, 4);
+		CreateScreenDescriptorSet();
 	}
 
 	void DeferredRenderer::RenderScene(RenderList* renderList, Scene* scene)
@@ -310,20 +306,19 @@ namespace Lumos
 		memcpy(m_VSSystemUniformBuffer + m_VSSystemUniformBufferOffsets[VSSystemUniformIndex_ProjectionMatrix], &projView, sizeof(maths::Matrix4));
 
 
-		if(scene->GetEnvironmentMap())
+		if(Application::Instance()->GetRenderManager()->GetSkyBox())
 		{
-			if(scene->GetEnvironmentMap() != m_CubeMap)
+			if(Application::Instance()->GetRenderManager()->GetSkyBox() != m_CubeMap)
 			{
-				SetCubeMap((Texture*)scene->GetEnvironmentMap());
+				SetCubeMap(Application::Instance()->GetRenderManager()->GetSkyBox());
 				CreateScreenDescriptorSet();
 			}
 		}
 		else
 		{
-			m_CubeMap = nullptr;
-			if(m_SkyboxRenderer)
+			if(m_CubeMap)
 			{
-				SAFE_DELETE(m_SkyboxRenderer);
+				m_CubeMap = nullptr;
 				CreateScreenDescriptorSet();
 			}
 		}
@@ -424,9 +419,6 @@ namespace Lumos
 
 		currentCMDBuffer->EndRecording();
 		currentCMDBuffer->ExecuteSecondary(m_CommandBuffers[m_CommandBufferIndex]);
-
-		if(m_SkyboxRenderer)
-			m_SkyboxRenderer->Render(m_CommandBuffers[m_CommandBufferIndex], Application::Instance()->GetSceneManager()->GetCurrentScene(), m_CommandBufferIndex);
 	}
 
 	void DeferredRenderer::PresentOffScreen()
@@ -664,11 +656,11 @@ namespace Lumos
 		bufferInfo.attachmentTypes = attachmentTypes;
 
 		Texture* attachments[attachmentCount];
-		attachments[0] = m_GBuffer->m_ScreenTex[SCREENTEX_COLOUR];
-		attachments[1] = m_GBuffer->m_ScreenTex[SCREENTEX_POSITION];
-		attachments[2] = m_GBuffer->m_ScreenTex[SCREENTEX_NORMALS];
-		attachments[3] = m_GBuffer->m_ScreenTex[SCREENTEX_PBR];
-		attachments[4] = m_GBuffer->m_DepthTexture;
+        attachments[0] = Application::Instance()->GetRenderManager()->GetGBuffer()->m_ScreenTex[SCREENTEX_COLOUR];
+		attachments[1] = Application::Instance()->GetRenderManager()->GetGBuffer()->m_ScreenTex[SCREENTEX_POSITION];
+		attachments[2] = Application::Instance()->GetRenderManager()->GetGBuffer()->m_ScreenTex[SCREENTEX_NORMALS];
+		attachments[3] = Application::Instance()->GetRenderManager()->GetGBuffer()->m_ScreenTex[SCREENTEX_PBR];
+		attachments[4] = Application::Instance()->GetRenderManager()->GetGBuffer()->m_DepthTexture;
 		bufferInfo.attachments = attachments;
 
 		m_FBO = Framebuffer::Create(bufferInfo);
@@ -681,7 +673,7 @@ namespace Lumos
 		attachmentTypes[1] = TextureType::DEPTH;
 
 		Texture* attachments[2];
-		attachments[1] = reinterpret_cast<Texture*>(m_GBuffer->m_DepthTexture);
+		attachments[1] = reinterpret_cast<Texture*>(Application::Instance()->GetRenderManager()->GetGBuffer()->m_DepthTexture);
 		FramebufferInfo bufferInfo{};
 		bufferInfo.width = m_ScreenBufferWidth;
 		bufferInfo.height = m_ScreenBufferHeight;
@@ -738,8 +730,8 @@ namespace Lumos
 
 		DeferredRenderer::SetScreenBufferSize(width, height);
 
-		m_GBuffer.reset();
-		m_GBuffer = std::make_unique<GBuffer>(m_ScreenBufferWidth, m_ScreenBufferHeight);
+		//m_GBuffer.reset();
+		//m_GBuffer = std::make_unique<GBuffer>(m_ScreenBufferWidth, m_ScreenBufferHeight);
 
         CreateOffScreenPipeline();
 		CreateDeferredPipeline();
@@ -760,29 +752,11 @@ namespace Lumos
 		m_CubeMap = nullptr;
 
 		m_ClearColour = maths::Vector4(0.8f, 0.8f, 0.8f, 1.0f);
-
-		if(m_SkyboxRenderer != nullptr)
-		{
-			m_SkyboxRenderer->SetRenderInfo(m_DeferredRenderpass);
-			m_SkyboxRenderer->OnResize(m_ScreenBufferWidth, m_ScreenBufferHeight);
-		}
-
 	}
 
 	void DeferredRenderer::SetCubeMap(Texture* cubeMap)
 	{
 		m_CubeMap = cubeMap;
-		if(m_SkyboxRenderer == nullptr)
-		{
-			m_SkyboxRenderer = new SkyboxRenderer(m_ScreenBufferWidth, m_ScreenBufferHeight);
-			m_SkyboxRenderer->SetCubeMap(cubeMap);
-			m_SkyboxRenderer->SetRenderInfo(m_DeferredRenderpass);
-			m_SkyboxRenderer->Init();
-		}
-		else
-		{
-			m_SkyboxRenderer->SetCubeMap(cubeMap);
-		}
 	}
 
 	void DeferredRenderer::CreateDefaultDescriptorSet()
@@ -827,22 +801,22 @@ namespace Lumos
 		std::vector<graphics::api::ImageInfo> bufferInfos;
 
 		graphics::api::ImageInfo imageInfo = {};
-		imageInfo.texture = m_GBuffer->m_ScreenTex[SCREENTEX_COLOUR];
+		imageInfo.texture = Application::Instance()->GetRenderManager()->GetGBuffer()->m_ScreenTex[SCREENTEX_COLOUR];
 		imageInfo.binding = 0;
 		imageInfo.name = "uColourSampler";
 
 		graphics::api::ImageInfo imageInfo2 = {};
-		imageInfo2.texture = m_GBuffer->m_ScreenTex[SCREENTEX_POSITION];
+		imageInfo2.texture = Application::Instance()->GetRenderManager()->GetGBuffer()->m_ScreenTex[SCREENTEX_POSITION];
 		imageInfo2.binding = 1;
 		imageInfo2.name = "uPositionSampler";
 
 		graphics::api::ImageInfo imageInfo3 = {};
-		imageInfo3.texture = m_GBuffer->m_ScreenTex[SCREENTEX_NORMALS];
+		imageInfo3.texture = Application::Instance()->GetRenderManager()->GetGBuffer()->m_ScreenTex[SCREENTEX_NORMALS];
 		imageInfo3.binding = 2;
 		imageInfo3.name = "uNormalSampler";
 
 		graphics::api::ImageInfo imageInfo4 = {};
-		imageInfo4.texture = m_GBuffer->m_ScreenTex[SCREENTEX_PBR];
+		imageInfo4.texture = Application::Instance()->GetRenderManager()->GetGBuffer()->m_ScreenTex[SCREENTEX_PBR];
 		imageInfo4.binding = 3;
 		imageInfo4.name = "uPBRSampler";
 
@@ -858,7 +832,7 @@ namespace Lumos
 		imageInfo6.name = "uEnvironmentMap";
 
 		graphics::api::ImageInfo imageInfo7 = {};
-		auto shadowRenderer = Application::Instance()->GetRenderManager()->GetShadowRenderer(); ;// m_ShadowRenderer.get();//
+		auto shadowRenderer = Application::Instance()->GetRenderManager()->GetShadowRenderer();
 		if (shadowRenderer)
 		{
 			imageInfo7.texture = (Texture*)shadowRenderer->GetTexture();
@@ -868,7 +842,7 @@ namespace Lumos
 		}
 
 		graphics::api::ImageInfo imageInfo8 = {};
-		imageInfo8.texture = m_GBuffer->m_DepthTexture;
+		imageInfo8.texture = Application::Instance()->GetRenderManager()->GetGBuffer()->m_DepthTexture;
 		imageInfo8.binding = 7;
 		imageInfo8.type = TextureType::DEPTH;
 		imageInfo8.name = "uDepthSampler";

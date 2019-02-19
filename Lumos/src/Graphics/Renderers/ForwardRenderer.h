@@ -49,7 +49,7 @@ namespace Lumos
 			Lumos::maths::Matrix4* model;
 		};
 
-		void SetCubeMap(Texture* cubeMap);
+		//void SetCubeMap(Texture* cubeMap);
 	private:
 
 		void SetSystemUniforms(Shader* shader) const;
@@ -60,7 +60,6 @@ namespace Lumos
 		Lumos::graphics::api::Pipeline* m_GraphicsPipeline;
 
 		Lumos::Texture2D* m_DefaultTexture;
-		Lumos::TextureDepth* m_DepthTexture;
 
 		Lumos::graphics::api::UniformBuffer* m_UniformBuffer;
 		Lumos::graphics::api::UniformBuffer* m_ModelUniformBuffer;
@@ -71,7 +70,7 @@ namespace Lumos
 		size_t dynamicAlignment;
 		UniformBufferModel uboDataDynamic;
 
-		SkyboxRenderer* m_SkyboxRenderer;
+		uint m_CurrentBufferID = 0;
 
 	};
 }

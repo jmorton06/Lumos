@@ -5,6 +5,7 @@
 #include "Entity/Entity.h"
 #include "Physics/B2PhysicsEngine/PhysicsObject2D.h"
 #include "Maths/MathsUtilities.h"
+#include <imgui/imgui.h>
 
 namespace Lumos
 {
@@ -23,6 +24,14 @@ namespace Lumos
 			m_Sprite->m_RotationMatrix = maths::Matrix4::Rotation(static_cast<float>(maths::RadToDeg(physicsComponent->m_PhysicsObject->GetAngle())), maths::Vector3::ZAxis());
 		}
 			
+	}
+
+	void SpriteComponent::OnIMGUI()
+	{
+		if (ImGui::TreeNode("Sprite"))
+		{
+			ImGui::TreePop();
+		}
 	}
 
 }

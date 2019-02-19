@@ -1,5 +1,5 @@
 #include "LM.h"
-#include "JMComponent.h"
+#include "LumosComponent.h"
 
 namespace Lumos 
 {

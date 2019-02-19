@@ -1,6 +1,6 @@
 #pragma once
 #include "LM.h"
-#include "JMComponent.h"
+#include "LumosComponent.h"
 #include "Maths/Vector3.h"
 
 
@@ -8,7 +8,7 @@ namespace Lumos
 {
 	struct Light;
 
-	class LUMOS_EXPORT LightComponent : public JMComponent
+	class LUMOS_EXPORT LightComponent : public LumosComponent
 	{
 	public:
 		std::shared_ptr<Light> m_Light;
@@ -30,5 +30,7 @@ namespace Lumos
 		void DebugDraw(uint64 debugFlags) override;
 
 		inline virtual ComponentType GetType() const override { return GetStaticType(); }
+
+		void OnIMGUI() override;
 	};
 }

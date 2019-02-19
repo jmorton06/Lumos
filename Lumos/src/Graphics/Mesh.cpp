@@ -2,7 +2,7 @@
 #include "Mesh.h"
 #include "Material.h"
 #include "API/Renderer.h"
-#include "Platform/GraphicsAPI/Vulkan/VKDevice.h"
+#include "Platform/Vulkan/VKDevice.h"
 #include "Maths/BoundingSphere.h"
 
 namespace Lumos

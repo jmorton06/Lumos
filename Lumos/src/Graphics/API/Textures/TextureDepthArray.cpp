@@ -2,13 +2,13 @@
 #include "TextureDepthArray.h"
 
 #ifdef LUMOS_RENDER_API_OPENGL
-#include "Platform/GraphicsAPI/OpenGL/Textures/GLTextureDepthArray.h"
+#include "Platform/OpenGL/Textures/GLTextureDepthArray.h"
 #endif
 #ifdef LUMOS_RENDER_API_DIRECT3D
 #include "graphics/DirectX/DXTextureDepthArray.h"
 #endif
 #ifdef LUMOS_RENDER_API_VULKAN
-#include "Platform/GraphicsAPI/Vulkan/VKTextureDepthArray.h"
+#include "Platform/Vulkan/VKTextureDepthArray.h"
 #endif
 #include "Graphics/API/Context.h"
 

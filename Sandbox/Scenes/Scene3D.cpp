@@ -19,9 +19,9 @@ void Scene3D::OnInit()
 {
 	Scene::OnInit();
 
-	JMPhysicsEngine::Instance()->SetDampingFactor(0.998f);
-	JMPhysicsEngine::Instance()->SetIntegrationType(INTEGRATION_RUNGE_KUTTA_4);
-	JMPhysicsEngine::Instance()->SetBroadphase(new Octree(5, 5, std::make_shared<SortAndSweepBroadphase>()));
+	LumosPhysicsEngine::Instance()->SetDampingFactor(0.998f);
+	LumosPhysicsEngine::Instance()->SetIntegrationType(INTEGRATION_RUNGE_KUTTA_4);
+	LumosPhysicsEngine::Instance()->SetBroadphase(new Octree(5, 5, std::make_shared<SortAndSweepBroadphase>()));
 
 	SetDebugDrawFlags( DEBUGDRAW_FLAGS_ENTITY_COMPONENTS | DEBUGDRAW_FLAGS_COLLISIONVOLUMES  );
 
@@ -52,22 +52,23 @@ void Scene3D::OnInit()
 
 	auto sun = std::make_shared<Light>();
 	sun->SetDirection(maths::Vector3(26.0f, 22.0f, 48.5f));
-	sun->SetPosition(maths::Vector3(26.0f, 22.0f, 48.5f) * 10000.0f);
+	sun->SetPosition(maths::Vector3(26.0f, 22.0f, 48.5f) * 100.0f);
 	m_LightSetup->SetDirectionalLight(sun);
 
 	lightDirection = maths::Vector3(26.0f, 22.0f, 48.5f);
 
-	SoundSystem::Instance()->SetListener(m_pCamera);
+	Application::Instance()->GetAudioManager()->SetListener(m_pCamera);
 
 	m_ShadowTexture = std::unique_ptr<TextureDepthArray>(TextureDepthArray::Create(4096, 4096, 4));
 	auto shadowRenderer = new ShadowRenderer();
 
 	Application::Instance()->PushLayer(new Layer3D(shadowRenderer));
-	Application::Instance()->PushLayer(new Layer3D(new DeferredRenderer(m_ScreenWidth, m_ScreenHeight)));
-    Application::Instance()->PushOverLay(new ImGuiLayer(false));
-    //Application::Instance()->PushLayer(new Layer3D(new ForwardRenderer(m_ScreenWidth, m_ScreenHeight)));
+    Application::Instance()->PushLayer(new Layer3D(new DeferredRenderer(m_ScreenWidth, m_ScreenHeight)));
+	Application::Instance()->PushLayer(new Layer3D(new SkyboxRenderer(m_ScreenWidth, m_ScreenHeight, m_EnvironmentMap)));
+	Application::Instance()->PushOverLay(new ImGuiLayer(false));
 
 	Application::Instance()->GetRenderManager()->SetShadowRenderer(shadowRenderer);
+    Application::Instance()->GetRenderManager()->SetSkyBoxTexture(m_EnvironmentMap);
 }
 
 void Scene3D::OnUpdate(TimeStep* timeStep)
@@ -303,15 +304,16 @@ void Scene3D::LoadModels()
 	AddEntity(pendulum);
 
 	auto pendulumConstraint = new SpringConstraint(pendulumHolder->GetComponent<Physics3DComponent>()->m_PhysicsObject.get(), pendulum->GetComponent<Physics3DComponent>()->m_PhysicsObject.get(), pendulumHolder->GetComponent<Physics3DComponent>()->m_PhysicsObject->GetPosition(), pendulum->GetComponent<Physics3DComponent>()->m_PhysicsObject->GetPosition(), 0.9f, 0.5f);
-	JMPhysicsEngine::Instance()->AddConstraint(pendulumConstraint);
+	LumosPhysicsEngine::Instance()->AddConstraint(pendulumConstraint);
 
-	#if TEST_SOUND
+	#if 1
 	auto soundFilePath = String("/Sounds/fire.ogg");
 	bool loadedSound = Sound::AddSound("Background", soundFilePath);
 
 	if(loadedSound)
 	{
-		auto soundNode = std::make_shared<SoundNode>(Sound::GetSound("Background"));
+		auto soundNode = std::shared_ptr<SoundNode>(SoundNode::Create());
+		soundNode->SetSound(Sound::GetSound("Background"));
 		soundNode->SetVolume(1.0f);
 		soundNode->SetPosition(maths::Vector3(0.1f, 10.0f, 10.0f));
 		soundNode->SetLooping(true);
@@ -324,6 +326,7 @@ void Scene3D::LoadModels()
 	}
 #endif
 
+    int numSpheres = 0;
 	for (int i = 0; i < 10; i++)
 	{
 		float roughness = i / 10.0f;
@@ -341,7 +344,7 @@ void Scene3D::LoadModels()
 		properties.usingSpecularMap = 0.0f;
 		m->SetMaterialProperites(properties);
 
-		std::shared_ptr<Entity> sphere = std::make_shared<Entity>("Wall4",this);
+        std::shared_ptr<Entity> sphere = std::make_shared<Entity>("Sphere" + StringFormat::ToString(numSpheres++),this);
 
 		sphere->AddComponent(std::make_unique<TransformComponent>(Matrix4::Scale(maths::Vector3(0.5f, 0.5f, 0.5f)) * Matrix4::Translation(maths::Vector3(i * 2.0f, 30.0f, 0.0f))));
 		sphere->AddComponent(std::make_unique<TextureMatrixComponent>(Matrix4()));
@@ -369,7 +372,7 @@ void Scene3D::LoadModels()
 		properties.usingSpecularMap = 0.0f;
 		m->SetMaterialProperites(properties);
 
-		std::shared_ptr<Entity> sphere = std::make_shared<Entity>("Wall4",this);
+		std::shared_ptr<Entity> sphere = std::make_shared<Entity>("Sphere" + StringFormat::ToString(numSpheres++),this);
 
 		sphere->AddComponent(std::make_unique<TransformComponent>(Matrix4::Scale(maths::Vector3(0.5f, 0.5f, 0.5f)) * Matrix4::Translation(maths::Vector3(i * 2.0f, 30.0f, 3.0f))));
 		sphere->AddComponent(std::make_unique<TextureMatrixComponent>(Matrix4()));
@@ -380,6 +383,7 @@ void Scene3D::LoadModels()
 		AddEntity(sphere);
 	}
 
+    int numCubes = 0;
 	for (int i = 0; i < 10; i++)
 	{
 		float roughness = i / 10.0f;
@@ -397,7 +401,7 @@ void Scene3D::LoadModels()
 		properties.usingSpecularMap = 0.0f;
 		m->SetMaterialProperites(properties);
 
-		std::shared_ptr<Entity> cube2 = std::make_shared<Entity>("cube",this);
+		std::shared_ptr<Entity> cube2 = std::make_shared<Entity>("Cube" + StringFormat::ToString(numCubes++),this);
 
 		cube2->AddComponent(std::make_unique<TransformComponent>(Matrix4::Scale(maths::Vector3(0.5f, 0.5f, 0.5f)) * Matrix4::Translation(maths::Vector3(i * 2.0f, 30.0f, -3.0f))));
 		cube2->AddComponent(std::make_unique<TextureMatrixComponent>(Matrix4()));
@@ -409,28 +413,29 @@ void Scene3D::LoadModels()
 	}
 }
 
-bool show_demo_window = false;
+bool show_demo_window = true;
 
 void Scene3D::OnIMGUI()
 {
     if (show_demo_window)
         ImGui::ShowDemoWindow(&show_demo_window);
 
-	ImGui::Begin(m_SceneName.c_str());
- 	if(ImGui::Button("<- Back"))
+	//ImGui::Begin(m_SceneName.c_str());
+    
+    ImVec4 test = ImVec4(lightDirection.GetX(),lightDirection.GetY(), lightDirection.GetZ(), 1.0f);
+    
+    ImGui::Text("Light");
+    ImGui::DragFloat4("Direction", &test.x);
+    
+    lightDirection = maths::Vector3(test.x,test.y,test.z);
+    m_LightSetup->GetDirectionalLight()->SetDirection(lightDirection);
+    
+ 	if(ImGui::Button("<- SceneSelect"))
 	{
 		Application::Instance()->GetSceneManager()->JumpToScene("SceneSelect");
-		ImGui::End();
+		//ImGui::End();
 		return;
 	}
 
-	ImVec4 test = ImVec4(lightDirection.GetX(),lightDirection.GetY(), lightDirection.GetZ(), 1.0f);
-
-	ImGui::Text("Light");
-	ImGui::DragFloat4("Direction", &test.x);
-
-	lightDirection = maths::Vector3(test.x,test.y,test.z);
-	m_LightSetup->GetDirectionalLight()->SetDirection(lightDirection);
-
-    ImGui::End();
+    //ImGui::End();
 }

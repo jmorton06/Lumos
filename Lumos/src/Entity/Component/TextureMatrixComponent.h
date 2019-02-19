@@ -1,11 +1,11 @@
 #pragma once
 #include "LM.h"
-#include "JMComponent.h"
+#include "LumosComponent.h"
 #include "Maths/Matrix4.h"
 
 namespace Lumos
 {
-	class LUMOS_EXPORT TextureMatrixComponent : public JMComponent
+	class LUMOS_EXPORT TextureMatrixComponent : public LumosComponent
 	{
 	public:
 		maths::Matrix4 m_TextureMatrix;
@@ -19,5 +19,7 @@ namespace Lumos
 		}
 
 		inline virtual ComponentType GetType() const override { return GetStaticType(); }
+
+		void OnIMGUI() override;
 	};
 }

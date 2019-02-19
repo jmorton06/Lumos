@@ -2,13 +2,13 @@
 #include "Shader.h"
 
 #ifdef LUMOS_RENDER_API_OPENGL
-#include "Platform/GraphicsAPI/OpenGL/GLShader.h"
+#include "Platform/OpenGL/GLShader.h"
 #endif
 #ifdef LUMOS_RENDER_API_DIRECT3D
 #include "graphics/DirectX/DXShader.h"
 #endif
 #ifdef LUMOS_RENDER_API_VULKAN
-#include "Platform/GraphicsAPI/Vulkan/VKShader.h"
+#include "Platform/Vulkan/VKShader.h"
 #endif
 
 #include "Graphics/API/Context.h"

@@ -6,6 +6,7 @@
 #include "Graphics/ParticleManager.h"
 #include "Maths/BoundingSphere.h"
 #include "Graphics/Renderers/DebugRenderer.h"
+#include <imgui/imgui.h>
 
 namespace Lumos
 {
@@ -33,4 +34,12 @@ namespace Lumos
 
 	
     }
+
+	void ParticleComponent::OnIMGUI()
+	{
+		if (ImGui::TreeNode("Particle"))
+		{
+			ImGui::TreePop();
+		}
+	}
 }

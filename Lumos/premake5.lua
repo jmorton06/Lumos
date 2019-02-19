@@ -27,6 +27,11 @@ project "Lumos"
 		"external/simplex/**.cpp"
 	}
 
+	removefiles
+	{
+		"src/Platform/iOS/**"
+	}
+
 	includedirs
 	{
 		"../",
@@ -51,10 +56,8 @@ project "Lumos"
 
 	links
 	{
-		"glfw",
 		"lua",
 		"Box2D",
-		"glad",
 		"volk"
 	}
 
@@ -111,13 +114,14 @@ project "Lumos"
 
 		links
 		{
-			--"vulkan-1.lib",
-			"OpenAL32"
+			"OpenAL32",
+			"glfw",
+			"glad",
+			"opengl32.lib"
 		}
 
 		libdirs
 		{
-			--"../Dependencies/vulkan/libs/windows/64bit",
 			"../Dependencies/OpenAL/libs/Win32"
 		}
 
@@ -153,7 +157,7 @@ project "Lumos"
 			"external/imgui/examples/imgui_impl_opengl3.cpp",
 			"external/imgui/examples/imgui_impl_glfw.h",
 			"external/imgui/examples/imgui_impl_glfw.cpp",
-			"src/Platform/GraphicsAPI/Vulkan/MakeMetalView.mm"
+			"src/Platform/Vulkan/MakeMetalView.mm"
 		}
 
 		defines
@@ -175,19 +179,14 @@ project "Lumos"
         	"IOKit.framework",
         	"CoreFoundation.framework",
 			"CoreVideo.framework",
-			"OpenAL.framework"--,
-			--"MoltenVK"
-		}
-
-		runpathdirs
-		{
-			--"../Dependencies/vulkan/libs/macOS/"
+			"OpenAL.framework",
+			"glfw",
+			"glad"
 		}
 
 		libdirs
 		{
-			"../bin/**",
-			--"../Dependencies/vulkan/libs/macOS"
+			"../bin/**"
 		}
 
 		buildoptions
@@ -205,6 +204,63 @@ project "Lumos"
 				flags  { 'NoPCH' }
 			filter 'files:src/**.m'
 				flags  { 'NoPCH' }
+
+	require 'Scripts/ios'
+	filter "system:ios"
+		cppdialect "C++17"
+		systemversion "latest"
+		kind "StaticLib"
+
+		removefiles
+		{
+			"src/Platform/GLFW/*.h",
+			"src/Platform/GLFW/*.cpp",
+			"src/Platform/Windows/*.h",
+			"src/Platform/Windows/*.cpp",
+			"src/Platform/OpenGL/**.h",
+			"src/Platform/OpenGL/**.cpp"
+		}
+
+		files
+		{
+			"external/imgui/examples/imgui_impl_vulkan.h",
+			"external/imgui/examples/imgui_impl_vulkan.cpp"
+		}
+
+		defines
+		{
+			"LUMOS_PLATFORM_IOS",
+			"LUMOS_PLATFORM_MOBILE",
+			"LUMOS_PLATFORM_UNIX",
+			"LUMOS_RENDER_API_VULKAN",
+			"VK_USE_PLATFORM_IOS_MVK",
+			"LUMOS_IMGUI",
+			"LUMOS_OPENAL"
+		}
+
+		links
+		{
+			"QuartzCore.framework",
+			"Metal.framework",
+			"Cocoa.framework",
+        	"IOKit.framework",
+        	"CoreFoundation.framework",
+			"CoreVideo.framework",
+			"OpenAL.framework"
+		}
+
+		libdirs
+		{
+			"../bin/**"
+		}
+
+		buildoptions
+		{
+			"-Wno-attributes"
+		}
+
+		xcodebuildresources { "res/**" }
+
 
 	filter "system:linux"
 		cppdialect "C++17"
@@ -238,23 +294,22 @@ project "Lumos"
 			"LUMOS_IMGUI"
 		}
 
+		links
+		{
+			"glfw",
+			"glad"
+		}
+
 		linkoptions
 		{
 			"../Dependencies/OpenAL/libs/linux/libopenal.so"
-			--"../Dependencies/vulkan/libs/linux/libvulkan.so.1"
-		}
-
-		runpathdirs
-		{
-		--	"../Dependencies/vulkan/libs/linux"
 		}
 
 		linkoptions{ "-Wl,-rpath=\\$$ORIGIN" }
 
 		libdirs
 		{
-			"../bin/**",
-			--"../Dependencies/vulkan/libs/linux/"
+			"../bin/**"
 		}
 
 		buildoptions
@@ -265,7 +320,7 @@ project "Lumos"
 			"-Wignored-attributes"
 		}
 
-		links { "X11", "pthread"}--, "vulkan"}
+		links { "X11", "pthread"}
 
 		pchheader "../Lumos/src/LM.h"
 		pchsource "../Lumos/src/LM.cpp"
@@ -280,12 +335,15 @@ project "Lumos"
 	filter "configurations:Debug"
 		defines "LUMOS_DEBUG"
 		symbols "On"
+		runtime "Debug"
 
 	filter "configurations:Release"
 		defines "LUMOS_RELEASE"
 		optimize "On"
 		symbols "On"
+		runtime "Release"
 
 	filter "configurations:Dist"
 		defines "LUMOS_DIST"
 		optimize "On"
+		runtime "Release"

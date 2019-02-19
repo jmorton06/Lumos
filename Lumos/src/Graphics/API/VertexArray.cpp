@@ -2,14 +2,14 @@
 #include "VertexArray.h"
 
 #ifdef LUMOS_RENDER_API_OPENGL
-#include "Platform/GraphicsAPI/OpenGL/GLVertexArray.h"
+#include "Platform/OpenGL/GLVertexArray.h"
 #endif
 #ifdef LUMOS_RENDER_API_DIRECT3D
 #include "graphics/DirectX/DXVertexArray.h"
 #endif
 #include "Graphics/API/Context.h"
 #ifdef LUMOS_RENDER_API_VULKAN
-#include "Platform/GraphicsAPI/Vulkan/VKVertexArray.h"
+#include "Platform/Vulkan/VKVertexArray.h"
 #endif
 
 namespace Lumos

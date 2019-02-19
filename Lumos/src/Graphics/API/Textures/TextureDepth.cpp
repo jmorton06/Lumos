@@ -2,10 +2,10 @@
 #include "TextureDepth.h"
 
 #ifdef LUMOS_RENDER_API_OPENGL
-#include "Platform/GraphicsAPI/OpenGL/Textures/GLTextureDepth.h"
+#include "Platform/OpenGL/Textures/GLTextureDepth.h"
 #endif
 #ifdef LUMOS_RENDER_API_VULKAN
-#include "Platform/GraphicsAPI/Vulkan/VKTextureDepth.h"
+#include "Platform/Vulkan/VKTextureDepth.h"
 #endif
 #ifdef LUMOS_RENDER_API_DIRECT3D
 #include "graphics/DirectX/DXTextureDepth.h"

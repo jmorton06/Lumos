@@ -2,7 +2,7 @@
 #include "BufferLayout.h"
 
 #ifdef LUMOS_RENDER_API_OPENGL
-#include "Platform/GraphicsAPI/OpenGL/GLTypes.h"
+#include "Platform/OpenGL/GLTypes.h"
 #endif
 #ifdef LUMOS_RENDER_API_DIRECT3D
 #include "graphics/DirectX/DXTypes.h"

@@ -1,12 +1,12 @@
 #pragma once
 #include "LM.h"
-#include "JMComponent.h"
+#include "LumosComponent.h"
 
 namespace Lumos
 {
 	class SoundNode;
 
-	class LUMOS_EXPORT SoundComponent : public JMComponent
+	class LUMOS_EXPORT SoundComponent : public LumosComponent
 	{
 	public:
 		std::shared_ptr<SoundNode> m_SoundNode;
@@ -24,5 +24,7 @@ namespace Lumos
 		void Init() override ;
 
 		inline virtual ComponentType GetType() const override { return GetStaticType(); }
+
+		void OnIMGUI() override;
 	};
 }

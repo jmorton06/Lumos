@@ -1,3 +1,6 @@
+require 'Scripts/ios'
+require 'Scripts/premakeDefines'
+
 workspace "LumosEngine"
 	architecture "x64"
 
@@ -12,17 +15,17 @@ workspace "LumosEngine"
 
 	location "build"
 
-	outputdir = "%{cfg.buildcfg}-%{cfg.system}-%{cfg.architecture}"
-
 	targetdir ("bin/" .. outputdir)
 	objdir ("bin-int/" .. outputdir .. "/%{prj.name}")
 
 	group "Dependencies"
 		require("Dependencies/Box2D/premake5")
-		require("Dependencies/GLFW/premake5")
 		require("Dependencies/lua/premake5")
-		require("Dependencies/glad/premake5")
 		require("Dependencies/volk/premake5")
+		filter "system:not ios"
+			require("Dependencies/GLFW/premake5")
+			require("Dependencies/glad/premake5")
+		filter()
 	group ""
 
 	require("Lumos/premake5")

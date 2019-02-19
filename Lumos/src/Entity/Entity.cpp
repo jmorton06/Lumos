@@ -3,6 +3,8 @@
 
 #include "Graphics/Renderers/DebugRenderer.h"
 
+#include <imgui/imgui.h>
+
 namespace Lumos
 {
 	Entity::Entity(Scene* scene): m_Name("Unnamed"), m_pScene(scene), m_pParent(nullptr), m_BoundingRadius(1), m_FrustumCullFlags(0)
@@ -18,7 +20,7 @@ namespace Lumos
 	{
 	}
 
-	void Entity::AddComponent(std::unique_ptr<JMComponent> component)
+	void Entity::AddComponent(std::unique_ptr<LumosComponent> component)
 	{
 		//LUMOS_CORE_ASSERT(component->GetType(),"");
 		component->SetEntity(this);
@@ -63,4 +65,21 @@ namespace Lumos
 			component.second->DebugDraw(debugFlags);
 		}
 	}
+    
+    void Entity::OnIMGUI()
+    {
+        ImGuiWindowFlags window_flags = 0;
+        window_flags |= ImGuiWindowFlags_NoMove;
+        window_flags |= ImGuiWindowFlags_NoResize;
+        ImGui::Begin(m_Name.c_str(), NULL, window_flags);
+        ImGui::SetWindowPos(ImVec2(ImGui::GetIO().DisplaySize.x - ImGui::GetIO().DisplaySize.x /4.0f, 0));
+        ImGui::SetWindowSize(ImVec2(ImGui::GetIO().DisplaySize.x /4.0f, ImGui::GetIO().DisplaySize.y));
+
+        for(auto& component: m_Components)
+        {
+            component.second->OnIMGUI();
+        }
+        
+        ImGui::End();
+    }
 }

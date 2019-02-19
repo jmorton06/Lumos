@@ -19,13 +19,13 @@ namespace Lumos
 	class LUMOS_EXPORT Entity
 	{
 	protected:
-		std::unordered_map<ComponentType, std::unique_ptr<JMComponent>, EnumClassHash> m_Components;
+		std::unordered_map<ComponentType, std::unique_ptr<LumosComponent>, EnumClassHash> m_Components;
 	public:
 		Entity(Scene* scene);
 		virtual ~Entity();
 		explicit Entity(const String& name, Scene* scene);
 
-		void AddComponent(std::unique_ptr<JMComponent> component);
+		void AddComponent(std::unique_ptr<LumosComponent> component);
 
 		template <typename T>
 		/*const */T* GetComponent() const
@@ -41,6 +41,7 @@ namespace Lumos
 
 		void OnRenderObject();
 		virtual void OnUpdateObject(float dt);
+        virtual void OnIMGUI();
 
 		std::vector<Entity*>& GetChildren() { return m_vpChildren; }
 		void AddChildObject(Entity* child);
