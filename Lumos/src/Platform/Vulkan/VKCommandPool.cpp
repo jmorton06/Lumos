@@ -9,28 +9,25 @@ namespace Lumos
 
 		VKCommandPool::VKCommandPool()
 		{
-			m_CommandPool = VK_NULL_HANDLE;
 			Init();
 		}
 
 		VKCommandPool::~VKCommandPool()
 		{
 			Unload();
-			m_CommandPool = VK_NULL_HANDLE;
 		}
 
 		bool VKCommandPool::Init()
 		{
-			VkResult result;
-			VkCommandPoolCreateInfo cmdPoolCI{};
+			vk::Result result;
+			vk::CommandPoolCreateInfo cmdPoolCI{};
 
-			cmdPoolCI.sType = VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO;
 			cmdPoolCI.queueFamilyIndex = VKDevice::Instance()->GetGraphicsQueueFamilyIndex();
-			cmdPoolCI.flags = VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT;
+			cmdPoolCI.flags = vk::CommandPoolCreateFlagBits::eResetCommandBuffer;
 
-			result = vkCreateCommandPool(VKDevice::Instance()->GetDevice(), &cmdPoolCI, VK_NULL_HANDLE, &m_CommandPool);
+			m_CommandPool = VKDevice::Instance()->GetDevice().createCommandPool(cmdPoolCI);
 
-			return result == VK_SUCCESS;
+			return true;
 		}
 
 		void VKCommandPool::Unload() const
@@ -38,7 +35,7 @@ namespace Lumos
 			vkDestroyCommandPool(VKDevice::Instance()->GetDevice(), m_CommandPool, VK_NULL_HANDLE);
 		}
 
-		VkCommandPool VKCommandPool::GetCommandPool() const
+		vk::CommandPool VKCommandPool::GetCommandPool() const
 		{
 			return m_CommandPool;
 		}

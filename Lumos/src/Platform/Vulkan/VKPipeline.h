@@ -23,22 +23,22 @@ namespace Lumos
 			void Unload() const;
 			void SetActive(graphics::api::CommandBuffer* cmdBuffer) override;
 
-			VkDescriptorSetLayout* GetDescriptorLayout(int id) { return &m_DescriptorLayouts[id]; };
+			vk::DescriptorSetLayout* GetDescriptorLayout(int id) { return &m_DescriptorLayouts[id]; };
+			
+			vk::DescriptorPool  GetDescriptorPool() const { return m_DescriptorPool; };
+			vk::PipelineLayout  GetPipelineLayout() const { return m_PipelineLayout; };
+			std::string 		GetPipelineName() 	const { return m_PipelineName; };
+			vk::Pipeline 		GetPipeline() 		const { return m_Pipeline; }
 
-			VkDescriptorPool GetDescriptorPool() const { return m_DescriptorPool; };
-			VkPipelineLayout GetPipelineLayout() const { return m_PipelineLayout; };
-			std::string 	 GetPipelineName() 	 const { return m_PipelineName; };
-			VkPipeline 		 GetPipeline() 		 const { return m_Pipeline; }
-
-			VkDescriptorSet CreateDescriptorSet();
+			vk::DescriptorSet CreateDescriptorSet();
 
 		private:
-			VkVertexInputBindingDescription 	m_VertexBindingDescription;
-			VkPipelineLayout 					m_PipelineLayout;
-			VkDescriptorPool 					m_DescriptorPool;
-			VkPipeline 							m_Pipeline;
+			vk::VertexInputBindingDescription 	m_VertexBindingDescription;
+			vk::PipelineLayout 					m_PipelineLayout;
+			vk::DescriptorPool 					m_DescriptorPool;
+			vk::Pipeline 							m_Pipeline;
 
-			std::vector<VkDescriptorSetLayout> 	m_DescriptorLayouts;
+			std::vector<vk::DescriptorSetLayout> 	m_DescriptorLayouts;
 
 			std::string 						m_PipelineName;
 		};

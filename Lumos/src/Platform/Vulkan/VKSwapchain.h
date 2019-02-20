@@ -21,10 +21,10 @@ namespace Lumos
 
 			void Unload();
 
-			VkResult AcquireNextImage(VkSemaphore signalSemaphore);
-			void Present(VkSemaphore waitSemaphore);
+            vk::Result AcquireNextImage(vk::Semaphore signalSemaphore);
+            void Present(vk::Semaphore waitSemaphore);
 
-			VkSwapchainKHR 		GetSwapchain() 				const { return m_SwapChain; }
+            vk::SwapchainKHR 	GetSwapchain() 				const { return m_SwapChain; }
 			uint32_t 			GetCurrentBufferId() 		const override { return m_CurrentBuffer; };
 			size_t 				GetSwapchainBufferCount() 	const override { return m_SwapChainBuffers.size(); };
 			uint 		 		GetFramebufferCount() 		const override { return static_cast<uint>(m_SwapChainBuffers.size()); }
@@ -34,7 +34,7 @@ namespace Lumos
 			Framebuffer*		CreateFramebuffer(api::RenderPass* renderPass, uint id) override { return nullptr; };
 
 		private:
-			VkSwapchainKHR 				m_SwapChain;
+            vk::SwapchainKHR 			m_SwapChain;
 			std::vector<VKTexture2D*> 	m_SwapChainBuffers;
 			uint32_t 					m_CurrentBuffer = 0;
 			uint						m_Width;

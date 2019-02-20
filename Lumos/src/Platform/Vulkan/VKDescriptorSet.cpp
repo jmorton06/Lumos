@@ -16,23 +16,54 @@ namespace Lumos
 	{
 		VKDescriptorSet::VKDescriptorSet(api::DescriptorInfo info)
 		{
-			VkDescriptorSetAllocateInfo allocInfo =
-				initializers::descriptorSetAllocateInfo(
-					static_cast<graphics::VKPipeline*>(info.pipeline)->GetDescriptorPool(),
-					static_cast<graphics::VKPipeline*>(info.pipeline)->GetDescriptorLayout(info.layoutIndex),
-					1);
+			vk::DescriptorSetAllocateInfo descriptorSetAllocateInfo{};
+			descriptorSetAllocateInfo.descriptorPool = static_cast<graphics::VKPipeline*>(info.pipeline)->GetDescriptorPool();
+			descriptorSetAllocateInfo.pSetLayouts = static_cast<graphics::VKPipeline*>(info.pipeline)->GetDescriptorLayout(info.layoutIndex);
+			descriptorSetAllocateInfo.descriptorSetCount = 1;
 
-			VK_CHECK_RESULT(vkAllocateDescriptorSets(graphics::VKDevice::Instance()->GetDevice(), &allocInfo, &m_DescriptorSet));
+			graphics::VKDevice::Instance()->GetDevice().allocateDescriptorSets(&descriptorSetAllocateInfo, &m_DescriptorSet);
 		}
 
 		VKDescriptorSet::~VKDescriptorSet()
 		{
 		}
 
+		VkWriteDescriptorSet writeDescriptorSet(
+			vk::DescriptorSet dstSet,
+			vk::DescriptorType type,
+			uint32_t binding,
+			vk::DescriptorImageInfo *imageInfo,
+			uint32_t descriptorCount = 1)
+		{
+			vk::WriteDescriptorSet writeDescriptorSet{};
+			writeDescriptorSet.dstSet = dstSet;
+			writeDescriptorSet.descriptorType = type;
+			writeDescriptorSet.dstBinding = binding;
+			writeDescriptorSet.pImageInfo = imageInfo;
+			writeDescriptorSet.descriptorCount = descriptorCount;
+			return writeDescriptorSet;
+		}
+
+		VkWriteDescriptorSet writeDescriptorSet(
+			vk::DescriptorSet dstSet,
+			vk::DescriptorType type,
+			uint32_t binding,
+			vk::DescriptorBufferInfo *bufferInfo,
+			uint32_t descriptorCount = 1)
+		{
+			vk::WriteDescriptorSet writeDescriptorSet{};
+			writeDescriptorSet.dstSet = dstSet;
+			writeDescriptorSet.descriptorType = type;
+			writeDescriptorSet.dstBinding = binding;
+			writeDescriptorSet.pBufferInfo = bufferInfo;
+			writeDescriptorSet.descriptorCount = descriptorCount;
+			return writeDescriptorSet;
+		}
+
 		void VKDescriptorSet::Update(std::vector<api::BufferInfo>& bufferInfos)
 		{
 			std::vector<VkWriteDescriptorSet> descriptorWrites;
-			VkDescriptorBufferInfo* buffersInfo = new VkDescriptorBufferInfo[bufferInfos.size()];
+			vk::DescriptorBufferInfo* buffersInfo = new vk::DescriptorBufferInfo[bufferInfos.size()];
 
 			m_Dynamic = false;
 
@@ -43,15 +74,22 @@ namespace Lumos
 				buffersInfo[index].buffer = *static_cast<VKUniformBuffer*>(bufferInfo.buffer)->GetBuffer();
 				buffersInfo[index].offset = bufferInfo.offset;
 				buffersInfo[index].range = bufferInfo.size;
-				descriptorWrites.emplace_back(initializers::writeDescriptorSet(m_DescriptorSet, VKTools::DescriptorTypeToVK(bufferInfo.type), bufferInfo.binding, &buffersInfo[index]));
+
+				vk::WriteDescriptorSet writeDescriptorSet{};
+				writeDescriptorSet.dstSet = m_DescriptorSet;
+				writeDescriptorSet.descriptorType = VKTools::DescriptorTypeToVK(bufferInfo.type);
+				writeDescriptorSet.dstBinding = bufferInfo.binding;
+				writeDescriptorSet.pBufferInfo = &buffersInfo[index];
+				writeDescriptorSet.descriptorCount = 1;
+				
+				descriptorWrites.emplace_back(writeDescriptorSet);
 				index++;
 
 				if (bufferInfo.type == api::DescriptorType::UNIFORM_BUFFER_DYNAMIC)
 					m_Dynamic = true;
 			}
 
-			vkUpdateDescriptorSets(VKDevice::Instance()->GetDevice(), static_cast<uint32_t>(descriptorWrites.size()),
-				descriptorWrites.data(), 0, nullptr);
+			VKDevice::Instance()->GetDevice().updateDescriptorSets(static_cast<uint32_t>(descriptorWrites.size()), descriptorWrites.data(),0,nullptr);
 
 			delete[] buffersInfo;
 		}
@@ -66,10 +104,10 @@ namespace Lumos
 			{
 				switch(imageInfo.type)
 				{
-					case TextureType::COLOUR : descriptorWrites.push_back(initializers::writeDescriptorSet(m_DescriptorSet, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, imageInfo.binding, static_cast<VKTexture2D*>(imageInfo.texture)->GetDescriptor())); break;
-					case TextureType::DEPTH : descriptorWrites.push_back(initializers::writeDescriptorSet(m_DescriptorSet, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, imageInfo.binding, static_cast<VKTextureDepth*>(imageInfo.texture)->GetDescriptor())); break;
-					case TextureType::DEPTHARRAY : descriptorWrites.push_back(initializers::writeDescriptorSet(m_DescriptorSet, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, imageInfo.binding, static_cast<VKTextureDepthArray*>(imageInfo.texture)->GetDescriptor())); break;
-					case TextureType::CUBE : descriptorWrites.push_back(initializers::writeDescriptorSet(m_DescriptorSet, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, imageInfo.binding, static_cast<VKTextureCube*>(imageInfo.texture)->GetDescriptor())); break;
+				case TextureType::COLOUR : descriptorWrites.push_back(writeDescriptorSet(m_DescriptorSet, vk::DescriptorType::eCombinedImageSampler, imageInfo.binding, static_cast<VKTexture2D*>(imageInfo.texture)->GetDescriptor())); break;
+				case TextureType::DEPTH : descriptorWrites.push_back(writeDescriptorSet(m_DescriptorSet, vk::DescriptorType::eCombinedImageSampler, imageInfo.binding, static_cast<VKTextureDepth*>(imageInfo.texture)->GetDescriptor())); break;
+				case TextureType::DEPTHARRAY : descriptorWrites.push_back(writeDescriptorSet(m_DescriptorSet, vk::DescriptorType::eCombinedImageSampler, imageInfo.binding, static_cast<VKTextureDepthArray*>(imageInfo.texture)->GetDescriptor())); break;
+				case TextureType::CUBE : descriptorWrites.push_back(writeDescriptorSet(m_DescriptorSet, vk::DescriptorType::eCombinedImageSampler, imageInfo.binding, static_cast<VKTextureCube*>(imageInfo.texture)->GetDescriptor())); break;
 					default : LUMOS_CORE_ERROR("Unsupported Texture Type",""); break;
 				}
 			}
@@ -87,17 +125,17 @@ namespace Lumos
 			{
 				switch(imageInfo.type)
 				{
-					case TextureType::COLOUR : descriptorWrites.push_back(initializers::writeDescriptorSet(m_DescriptorSet, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, imageInfo.binding, static_cast<VKTexture2D*>(imageInfo.texture)->GetDescriptor())); break;
-					case TextureType::DEPTH : descriptorWrites.push_back(initializers::writeDescriptorSet(m_DescriptorSet, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, imageInfo.binding, static_cast<VKTextureDepth*>(imageInfo.texture)->GetDescriptor())); break;
-					case TextureType::DEPTHARRAY : descriptorWrites.push_back(initializers::writeDescriptorSet(m_DescriptorSet, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, imageInfo.binding, static_cast<VKTextureDepthArray*>(imageInfo.texture)->GetDescriptor())); break;
-					case TextureType::CUBE : descriptorWrites.push_back(initializers::writeDescriptorSet(m_DescriptorSet, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, imageInfo.binding, static_cast<VKTextureCube*>(imageInfo.texture)->GetDescriptor())); break;
+					case TextureType::COLOUR : descriptorWrites.push_back(writeDescriptorSet(m_DescriptorSet, vk::DescriptorType::eCombinedImageSampler, imageInfo.binding, static_cast<VKTexture2D*>(imageInfo.texture)->GetDescriptor())); break;
+					case TextureType::DEPTH : descriptorWrites.push_back(writeDescriptorSet(m_DescriptorSet, vk::DescriptorType::eCombinedImageSampler, imageInfo.binding, static_cast<VKTextureDepth*>(imageInfo.texture)->GetDescriptor())); break;
+					case TextureType::DEPTHARRAY : descriptorWrites.push_back(writeDescriptorSet(m_DescriptorSet, vk::DescriptorType::eCombinedImageSampler, imageInfo.binding, static_cast<VKTextureDepthArray*>(imageInfo.texture)->GetDescriptor())); break;
+					case TextureType::CUBE : descriptorWrites.push_back(writeDescriptorSet(m_DescriptorSet, vk::DescriptorType::eCombinedImageSampler, imageInfo.binding, static_cast<VKTextureCube*>(imageInfo.texture)->GetDescriptor())); break;
 					default : LUMOS_CORE_ERROR("Unsupported Texture Type",""); break;
 				}
 			}
 
 			for (auto& bufferInfo : bufferInfos)
 			{
-				VkDescriptorBufferInfo info = {};
+				vk::DescriptorBufferInfo info = {};
 				info.buffer = *static_cast<VKUniformBuffer*>(bufferInfo.buffer)->GetBuffer();
 				info.offset = bufferInfo.offset;
 				info.range = bufferInfo.size;
@@ -105,7 +143,7 @@ namespace Lumos
 				if (bufferInfo.type == api::DescriptorType::UNIFORM_BUFFER_DYNAMIC)
 					m_Dynamic = true;
 
-				descriptorWrites.push_back(initializers::writeDescriptorSet(m_DescriptorSet, VKTools::DescriptorTypeToVK(bufferInfo.type), bufferInfo.binding, &info));
+				descriptorWrites.push_back(writeDescriptorSet(m_DescriptorSet, VKTools::DescriptorTypeToVK(bufferInfo.type), bufferInfo.binding, &info));
 			}
 
 			vkUpdateDescriptorSets(VKDevice::Instance()->GetDevice(), static_cast<uint32_t>(descriptorWrites.size()),

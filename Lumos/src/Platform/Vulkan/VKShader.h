@@ -16,7 +16,7 @@ namespace Lumos
 			bool Init();
 			void Unload() const;
 
-			VkPipelineShaderStageCreateInfo* GetShaderStages() const;
+			vk::PipelineShaderStageCreateInfo* GetShaderStages() const;
 			uint32_t GetStageCount() const;
 
 			void Bind() const {};
@@ -37,7 +37,7 @@ namespace Lumos
 			static void ReadShaderFile(std::vector<String> lines, std::map<ShaderType, String>* shaders);
 
 		private:
-			VkPipelineShaderStageCreateInfo* 	m_ShaderStages;
+			vk::PipelineShaderStageCreateInfo* 	m_ShaderStages;
 			uint32_t 							m_StageCount;
 			String 								m_Name;
 			String								m_FilePath;

@@ -30,7 +30,7 @@ namespace Lumos
 
 		namespace VKTools
 		{
-			uint32_t FindMemoryType(uint32_t typeFilter, VkMemoryPropertyFlags properties);
+            uint32_t FindMemoryType(uint32_t typeFilter, vk::MemoryPropertyFlags properties);
 
 			void CreateBuffer(VkDeviceSize size, VkBufferUsageFlags usage, VkMemoryPropertyFlags properties, VkBuffer& buffer,
 			                  VkDeviceMemory& bufferMemory);
@@ -47,19 +47,18 @@ namespace Lumos
 			void transitionImageLayout(VkImage image, VkFormat format, VkImageLayout oldLayout, VkImageLayout newLayout);
 			void transitionImageLayout(VkImage image, VkFormat format, VkImageLayout oldLayout, VkImageLayout newLayout, uint32_t mipLevels);
 
-			VkFormat findSupportedFormat(const std::vector<VkFormat>& candidates, VkImageTiling tiling,
-			                             VkFormatFeatureFlags features);
+			vk::Format findSupportedFormat(const std::vector<vk::Format>& candidates, vk::ImageTiling tiling,
+			                             vk::FormatFeatureFlags features);
 
-			VkFormat findDepthFormat();
+			vk::Format findDepthFormat();
 
 			std::string errorString(VkResult errorCode);
 
-			VkVertexInputAttributeDescription VertexInputDescriptionToVK(api::VertexInputDescription description);
-
-			VkCullModeFlags CullModeToVK(api::CullMode mode);
-
-			VkDescriptorType DescriptorTypeToVK(api::DescriptorType type);
-			VkShaderStageFlags ShaderStageToVK(api::ShaderStage type);
+			vk::VertexInputAttributeDescription VertexInputDescriptionToVK(api::VertexInputDescription description);
+			vk::CullModeFlags CullModeToVK(api::CullMode mode);
+			vk::DescriptorType DescriptorTypeToVK(api::DescriptorType type);
+			vk::ShaderStageFlags ShaderStageToVK(api::ShaderStage type);
+			vk::Format FormatToVK(api::Format format);
 
 			void setImageLayout(
 				VkCommandBuffer cmdbuffer,

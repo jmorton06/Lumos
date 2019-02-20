@@ -95,7 +95,7 @@ namespace Lumos
 			delete m_CommandPool;
 		}
 
-		VkBool32 VKContext::DebugCallback(VkDebugReportFlagsEXT flags, VkDebugReportObjectTypeEXT objType, uint64_t obj,
+		VkBool32 VKContext::DebugCallback(vk::DebugReportFlagsEXT flags, vk::DebugReportObjectTypeEXT objType, uint64_t obj,
 		                                  size_t location, int32_t code, const char* layerPrefix, const char* msg,
 		                                  void* userData)
 		{
@@ -103,28 +103,28 @@ namespace Lumos
 			// Note that multiple flags may be set for a single validation message
 			// Error that may result in undefined behaviour
 
-			if (flags & VK_DEBUG_REPORT_ERROR_BIT_EXT)
+			if (flags & vk::DebugReportFlagBitsEXT::eError)
 			{
 				LUMOS_CORE_WARN("[VULKAN] - ERROR : [{0}] Code {1}  : {2}", layerPrefix, code, msg);
 			};
 			// Warnings may hint at unexpected / non-spec API usage
-			if (flags & VK_DEBUG_REPORT_WARNING_BIT_EXT)
+			if (flags & vk::DebugReportFlagBitsEXT::eWarning)
 			{
 				LUMOS_CORE_WARN("[VULKAN] - WARNING : [{0}] Code {1}  : {2}", layerPrefix, code, msg);
 			};
 			// May indicate sub-optimal usage of the API
-			if (flags & VK_DEBUG_REPORT_PERFORMANCE_WARNING_BIT_EXT)
+			if (flags & vk::DebugReportFlagBitsEXT::ePerformanceWarning)
 			{
 				LUMOS_CORE_INFO("[VULKAN] - PERFORMANCE : [{0}] Code {1}  : {2}", layerPrefix, code, msg);
 			};
 			// Informal messages that may become handy during debugging
-			if (flags & VK_DEBUG_REPORT_INFORMATION_BIT_EXT)
+			if (flags & vk::DebugReportFlagBitsEXT::eInformation)
 			{
 				LUMOS_CORE_INFO("[VULKAN] - INFO : [{0}] Code {1}  : {2}", layerPrefix, code, msg);
 			}
 			// Diagnostic info from the Vulkan loader and layers
 			// Usually not helpful in terms of API usage, but may help to debug layer and loader problems 
-			if (flags & VK_DEBUG_REPORT_DEBUG_BIT_EXT)
+			if (flags & vk::DebugReportFlagBitsEXT::eDebug)
 			{
 				LUMOS_CORE_INFO("[VULKAN] - DEBUG : [{0}] Code {1}  : {2}", layerPrefix, code, msg);
 			}
@@ -184,16 +184,14 @@ namespace Lumos
 				throw std::runtime_error("validation layers requested, but not available!");
 			}
 
-			VkApplicationInfo appInfo = {};
-			appInfo.sType = VK_STRUCTURE_TYPE_APPLICATION_INFO;
+			vk::ApplicationInfo appInfo = {};
 			appInfo.pApplicationName = "Sandbox";
 			appInfo.applicationVersion = VK_MAKE_VERSION(1, 0, 0);
 			appInfo.pEngineName = "Lumos";
 			appInfo.engineVersion = VK_MAKE_VERSION(1, 0, 0);
 			appInfo.apiVersion = VK_API_VERSION_1_0;
 
-			VkInstanceCreateInfo createInfo = {};
-			createInfo.sType = VK_STRUCTURE_TYPE_INSTANCE_CREATE_INFO;
+			vk::InstanceCreateInfo createInfo = {};
 			createInfo.pApplicationInfo = &appInfo;
 
 			auto extensions = GetRequiredExtensions();
@@ -210,8 +208,8 @@ namespace Lumos
 				createInfo.enabledLayerCount = 0;
 			}
 
-			VkResult createResult = vkCreateInstance(&createInfo, nullptr, &m_VkInstance);
-			if (createResult != VK_SUCCESS)
+			m_VkInstance = vk::createInstance(createInfo, nullptr);
+			if (!m_VkInstance)
 			{
 				LUMOS_CORE_ERROR("failed to create instance!");
 			}
@@ -223,14 +221,14 @@ namespace Lumos
 		{
 			if (!enableValidationLayers) return;
 
-			VkDebugReportCallbackCreateInfoEXT createInfo = {};
-			createInfo.sType = VK_STRUCTURE_TYPE_DEBUG_REPORT_CALLBACK_CREATE_INFO_EXT;
-			createInfo.flags = VK_DEBUG_REPORT_ERROR_BIT_EXT | VK_DEBUG_REPORT_WARNING_BIT_EXT |
-							   VK_DEBUG_REPORT_INFORMATION_BIT_EXT | VK_DEBUG_REPORT_DEBUG_BIT_EXT;
-			createInfo.pfnCallback = DebugCallback;
+			vk::DebugReportCallbackCreateInfoEXT createInfo = {};
+			createInfo.flags =	vk::DebugReportFlagBitsEXT::eError | vk::DebugReportFlagBitsEXT::eWarning |
+								vk::DebugReportFlagBitsEXT::eInformation | vk::DebugReportFlagBitsEXT::eDebug;
 
-			VkResult result = CreateDebugReportCallbackEXT(m_VkInstance, &createInfo, nullptr, &callback);
-			if (result != VK_SUCCESS)
+			createInfo.pfnCallback = reinterpret_cast<PFN_vkDebugReportCallbackEXT>(DebugCallback);
+
+			callback = m_VkInstance.createDebugReportCallbackEXT(createInfo);
+			if (!callback)
 			{
 				throw std::runtime_error("failed to set up debug callback!");
 			}
