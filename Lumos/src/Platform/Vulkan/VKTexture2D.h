@@ -10,38 +10,19 @@ namespace Lumos
 	{
 		class VKTexture2D : public Texture2D
 		{
-		private:
-			String m_Name;
-			String m_FileName;
-			uint m_Handle;
-			uint m_Width, m_Height;
-			uint m_MipLevels = 1;
-			byte* m_Data = nullptr;
-
-			TextureParameters m_Parameters;
-			TextureLoadOptions m_LoadOptions;
-
-			VkImage m_TextureImage;
-			VkImageLayout m_ImageLayout;
-			VkDeviceMemory m_TextureImageMemory;
-			VkImageView m_TextureImageView;// = nullptr;
-			VkSampler m_TextureSampler;// = nullptr;
-			VkDescriptorImageInfo m_Descriptor;
-
-			bool m_DeleteImage = true;
 		public:
 			VKTexture2D(uint width, uint height, TextureParameters parameters = TextureParameters(), TextureLoadOptions loadOptions = TextureLoadOptions());
 			VKTexture2D(uint width, uint height, TextureParameters parameters, TextureLoadOptions loadOptions, void* data);
 			VKTexture2D(uint width, uint height, uint color, TextureParameters parameters = TextureParameters(), TextureLoadOptions loadOptions = TextureLoadOptions());
 			VKTexture2D(const String& name, const String& filename, TextureParameters parameters = TextureParameters(), TextureLoadOptions loadOptions = TextureLoadOptions());
 			VKTexture2D(int width, int height, void* pixels);
-			VKTexture2D(VkImage image, VkImageView imageView);
+            VKTexture2D(vk::Image image, vk::ImageView imageView);
 			VKTexture2D();
 			~VKTexture2D();
 
 			void Bind(uint slot = 0) const override;
 			void Unbind(uint slot = 0) const override;
-			static VkFormat TextureFormatToVK(TextureFormat);
+            static vk::Format TextureFormatToVK(TextureFormat);
 
 			virtual void SetData(const void* pixels) override {};
 			virtual void SetData(uint color) override {};
@@ -57,21 +38,41 @@ namespace Lumos
 			void BuildTexture(TextureFormat internalformat, uint width, uint height, bool depth, bool samplerShadow) override;
 
 			void CreateTextureSampler();
-			void CreateImage(uint32_t width, uint32_t height,uint32_t mipLevels, VkFormat format, VkImageTiling tiling,
-			                 VkImageUsageFlags usage, VkMemoryPropertyFlags properties, VkImage& image,
-			                 VkDeviceMemory& imageMemory);
-			VkImageView createImageView(VkImage image, VkFormat format, VkImageAspectFlags aspectFlags, uint32_t mipLevels);
+            void CreateImage(uint32_t width, uint32_t height,uint32_t mipLevels, vk::Format format, vk::ImageTiling tiling,
+                             vk::ImageUsageFlags usage, vk::MemoryPropertyFlags properties, vk::Image& image,
+                             vk::DeviceMemory& imageMemory);
+            vk::ImageView createImageView(vk::Image image, vk::Format format, vk::ImageAspectFlags aspectFlags, uint32_t mipLevels);
 
-			VkDescriptorImageInfo* GetDescriptor() { return &m_Descriptor; }
+            vk::DescriptorImageInfo* GetDescriptor() { return &m_Descriptor; }
 
 			void UpdateDescriptor();
 
 			bool Load();
 
-			VkImage GetImage() const { return m_TextureImage; };
-			VkDeviceMemory GetDeviceMemory() const { return m_TextureImageMemory; }
-			VkImageView GetImageView() const { return  m_TextureImageView; }
-			VkSampler GetSampler() const { return m_TextureSampler; }
+            vk::Image GetImage() const { return m_TextureImage; };
+            vk::DeviceMemory GetDeviceMemory() const { return m_TextureImageMemory; }
+            vk::ImageView GetImageView() const { return  m_TextureImageView; }
+            vk::Sampler GetSampler() const { return m_TextureSampler; }
+            
+        private:
+            String m_Name;
+            String m_FileName;
+            uint m_Handle;
+            uint m_Width, m_Height;
+            uint m_MipLevels = 1;
+            byte* m_Data = nullptr;
+            
+            TextureParameters m_Parameters;
+            TextureLoadOptions m_LoadOptions;
+            
+            vk::Image m_TextureImage;
+            vk::ImageLayout m_ImageLayout;
+            vk::DeviceMemory m_TextureImageMemory;
+            vk::ImageView m_TextureImageView;// = nullptr;
+            vk::Sampler m_TextureSampler;// = nullptr;
+            vk::DescriptorImageInfo m_Descriptor;
+            
+            bool m_DeleteImage = true;
 		};
 	}
 }

@@ -34,7 +34,7 @@ namespace Lumos
             
 			for (int i = 0; i < 5; i++)
 			{
-				vkDestroySemaphore(VKDevice::Instance()->GetDevice(), m_ImageAvailableSemaphore[i], nullptr);
+				VKDevice::Instance()->GetDevice().destroySemaphore(m_ImageAvailableSemaphore[i]);
 			}
             
             m_Context->Unload();
@@ -42,7 +42,7 @@ namespace Lumos
 
 		void VKRenderer::PresentInternal(api::CommandBuffer* cmdBuffer)
 		{
-			((VKCommandBuffer*)cmdBuffer)->ExecuteInternal(VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT,
+			((VKCommandBuffer*)cmdBuffer)->ExecuteInternal(vk::PipelineStageFlagBits::eColorAttachmentOutput,
 				m_ImageAvailableSemaphore[m_CurrentSemaphoreIndex], m_ImageAvailableSemaphore[m_CurrentSemaphoreIndex + 1], false);
 			m_CurrentSemaphoreIndex++;
 		}
@@ -50,7 +50,8 @@ namespace Lumos
         void VKRenderer::PresentInternal()
         {
             m_Swapchain->Present(m_ImageAvailableSemaphore[m_CurrentSemaphoreIndex]);
-            VK_CHECK_RESULT(vkQueueWaitIdle(VKDevice::Instance()->GetPresentQueue()));
+			
+            vkQueueWaitIdle(VKDevice::Instance()->GetPresentQueue());
         }
 
 		void VKRenderer::OnResize(uint width, uint height)
@@ -67,13 +68,13 @@ namespace Lumos
 
 		void VKRenderer::CreateSemaphores()
 		{
-			VkSemaphoreCreateInfo semaphoreInfo = {};
-			semaphoreInfo.sType = VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO;
+			vk::SemaphoreCreateInfo semaphoreInfo = {};
 
 			for (int i = 0; i < 5; i++)
 			{
-				if (vkCreateSemaphore(VKDevice::Instance()->GetDevice(), &semaphoreInfo, nullptr, &m_ImageAvailableSemaphore[i]) !=
-					VK_SUCCESS)
+				m_ImageAvailableSemaphore[i] = VKDevice::Instance()->GetDevice().createSemaphore(semaphoreInfo);
+				if (!m_ImageAvailableSemaphore[i]/*vkCreateSemaphore(VKDevice::Instance()->GetDevice(), &semaphoreInfo, nullptr, &m_ImageAvailableSemaphore[i]) !=
+					VK_SUCCESS*/)
 				{
 					throw std::runtime_error("failed to create semaphores!");
 				}
@@ -81,22 +82,28 @@ namespace Lumos
 		}
 
 		void VKRenderer::Render(IndexBuffer* indexBuffer, VertexArray* vertexArray,
-			VKCommandBuffer* commandBuffer, std::vector<VkDescriptorSet>& descriptorSet, VkPipelineLayout layout, uint32_t offset, uint numDynamicDescriptorSets)
+			VKCommandBuffer* commandBuffer, std::vector<vk::DescriptorSet>& descriptorSet, vk::PipelineLayout layout, uint32_t offset, uint numDynamicDescriptorSets)
 		{
 			uint vertexArraySize = vertexArray->GetCount();
-			VkBuffer* vertexBuffers = new VkBuffer[vertexArraySize];
-			VkDeviceSize* offsets = new VkDeviceSize[vertexArraySize];
+			vk::Buffer* vertexBuffers = new vk::Buffer[vertexArraySize];
+			vk::DeviceSize* offsets = new vk::DeviceSize[vertexArraySize];
 			for (uint i = 0; i < vertexArraySize; i++)
 			{
 				VKVertexBuffer* buffer = static_cast<VKVertexBuffer*>(vertexArray->GetBuffer(i));
 				vertexBuffers[i] = buffer->GetBuffer();
-				offsets[i] = static_cast<VkDeviceSize>(buffer->GetLayout().GetStride());
+				offsets[i] = static_cast<vk::DeviceSize>(buffer->GetLayout().GetStride());
 			}
 
-			vkCmdBindDescriptorSets(commandBuffer->GetCommandBuffer(), VK_PIPELINE_BIND_POINT_GRAPHICS, layout, 0, static_cast<uint32_t>(descriptorSet.size()), descriptorSet.data(), numDynamicDescriptorSets, &offset);
-			vkCmdBindVertexBuffers(commandBuffer->GetCommandBuffer(), 0, 1, vertexBuffers, offsets);
-			vkCmdBindIndexBuffer(commandBuffer->GetCommandBuffer(), static_cast<VKIndexBuffer*>(indexBuffer)->GetBuffer(), 0, VK_INDEX_TYPE_UINT32);
-			vkCmdDrawIndexed(commandBuffer->GetCommandBuffer(), static_cast<uint32_t>(indexBuffer->GetCount()), 1, 0, 0, 0);
+			commandBuffer->GetCommandBuffer().bindDescriptorSets(vk::PipelineBindPoint::eGraphics, layout, 0, static_cast<uint32_t>(descriptorSet.size()), descriptorSet.data(), numDynamicDescriptorSets, &offset);
+			commandBuffer->GetCommandBuffer().bindVertexBuffers(0,1, vertexBuffers, offsets);
+			commandBuffer->GetCommandBuffer().bindIndexBuffer(static_cast<VKIndexBuffer*>(indexBuffer)->GetBuffer(), 0, vk::IndexType::eUint32);
+			commandBuffer->GetCommandBuffer().drawIndexed(static_cast<uint32_t>(indexBuffer->GetCount()), 1, 0, 0, 0);
+			
+			
+			
+			//vkCmdBindVertexBuffers(commandBuffer->GetCommandBuffer(), 0, 1, vertexBuffers, offsets);
+			//vkCmdBindIndexBuffer(commandBuffer->GetCommandBuffer(), static_cast<VKIndexBuffer*>(indexBuffer)->GetBuffer(), 0, VK_INDEX_TYPE_UINT32);
+			//vkCmdDrawIndexed(commandBuffer->GetCommandBuffer(), static_cast<uint32_t>(indexBuffer->GetCount()), 1, 0, 0, 0);
 
 			delete[] vertexBuffers;
 			delete[] offsets;
@@ -181,7 +188,7 @@ namespace Lumos
 
 		void VKRenderer::RenderMeshInternal(Mesh *mesh, graphics::api::Pipeline *pipeline, graphics::api::CommandBuffer* cmdBuffer, uint dynamicOffset, graphics::api::DescriptorSet* descriptorSet, bool useMaterialDescriptorSet)
 		{
-			std::vector<VkDescriptorSet> descriptorSets;
+			std::vector<vk::DescriptorSet> descriptorSets;
 			uint numDynamicDescriptorSets = 0;
 
 			if (static_cast<graphics::VKDescriptorSet*>(pipeline->GetDescriptorSet())->GetIsDynamic())

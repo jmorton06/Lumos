@@ -19,11 +19,11 @@ namespace Lumos
 				                     api::SubPassContents contents, uint32_t width, uint32_t height) const  override;
 				void EndRenderpass(api::CommandBuffer* commandBuffer) override;
 
-				VkRenderPass GetRenderpass() const { return m_RenderPass; };
+				vk::RenderPass GetRenderpass() const { return m_RenderPass; };
 
 		private:
-			VkRenderPass 	m_RenderPass;
-			VkClearValue* 	m_ClearValue;
+			vk::RenderPass 	m_RenderPass;
+			vk::ClearValue* m_ClearValue;
 			int 			m_ClearCount;
 			bool 			m_DepthOnly;
 			bool			m_ClearDepth;

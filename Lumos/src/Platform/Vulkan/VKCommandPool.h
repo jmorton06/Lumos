@@ -14,10 +14,10 @@ namespace Lumos
 
 			bool Init();
 			void Unload() const;
-			VkCommandPool GetCommandPool() const;
+			vk::CommandPool GetCommandPool() const;
 
 		private:
-			VkCommandPool m_CommandPool;
+			vk::CommandPool m_CommandPool;
 		};
 	}
 }

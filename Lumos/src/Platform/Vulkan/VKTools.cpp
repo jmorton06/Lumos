@@ -11,10 +11,9 @@ namespace Lumos
 	{
 		namespace VKTools
 		{
-			uint32_t FindMemoryType(uint32_t typeFilter, VkMemoryPropertyFlags properties)
+            uint32_t FindMemoryType(uint32_t typeFilter, vk::MemoryPropertyFlags properties)
 			{
-				VkPhysicalDeviceMemoryProperties memProperties;
-				vkGetPhysicalDeviceMemoryProperties(VKDevice::Instance()->GetGPU(), &memProperties);
+                vk::PhysicalDeviceMemoryProperties memProperties = VKDevice::Instance()->GetGPU().getMemoryProperties();
 
 				for (uint32_t i = 0; i < memProperties.memoryTypeCount; i++)
 				{
@@ -285,19 +284,18 @@ namespace Lumos
 				endSingleTimeCommands(commandBuffer);
 			}
 
-			VkFormat findSupportedFormat(const std::vector<VkFormat>& candidates, VkImageTiling tiling,
-			                             VkFormatFeatureFlags features)
+			vk::Format findSupportedFormat(const std::vector<vk::Format>& candidates, vk::ImageTiling tiling,
+											vk::FormatFeatureFlags features)
 			{
-				for (VkFormat format : candidates)
+				for (vk::Format format : candidates)
 				{
-					VkFormatProperties props;
-					vkGetPhysicalDeviceFormatProperties(VKDevice::Instance()->GetGPU(), format, &props);
+					vk::FormatProperties props = VKDevice::Instance()->GetGPU().getFormatProperties(format);
 
-					if (tiling == VK_IMAGE_TILING_LINEAR && (props.linearTilingFeatures & features) == features)
+					if (tiling == vk::ImageTiling::eLinear && (props.linearTilingFeatures & features) == features)
 					{
 						return format;
 					}
-					else if (tiling == VK_IMAGE_TILING_OPTIMAL && (props.optimalTilingFeatures & features) == features)
+					else if (tiling == vk::ImageTiling::eOptimal && (props.optimalTilingFeatures & features) == features)
 					{
 						return format;
 					}
@@ -306,12 +304,12 @@ namespace Lumos
 				throw std::runtime_error("failed to find supported format!");
 			}
 
-			VkFormat findDepthFormat()
+			vk::Format findDepthFormat()
 			{
 				return findSupportedFormat(
-					{VK_FORMAT_D32_SFLOAT, VK_FORMAT_D32_SFLOAT_S8_UINT, VK_FORMAT_D24_UNORM_S8_UINT},
-					VK_IMAGE_TILING_OPTIMAL,
-					VK_FORMAT_FEATURE_DEPTH_STENCIL_ATTACHMENT_BIT
+					{ vk::Format::eD32Sfloat, vk::Format::eD32SfloatS8Uint,vk::Format::eD24UnormS8Uint},
+					vk::ImageTiling::eOptimal,
+					vk::FormatFeatureFlagBits::eDepthStencilAttachment
 				);
 			}
 
@@ -349,58 +347,63 @@ namespace Lumos
 				}
 			}
 
-			VkFormat FormatToVK(api::Format format)
+			vk::Format FormatToVK(api::Format format)
 			{
 				switch(format)
 				{
-				case api::R32G32B32A32_FLOAT : return VK_FORMAT_R32G32B32A32_SFLOAT;
-				case api::R32G32B32_FLOAT	 : return VK_FORMAT_R32G32B32_SFLOAT;
-				case api::R32G32_FLOAT		 : return VK_FORMAT_R32G32_SFLOAT;
-				default: return VK_FORMAT_R32G32B32_SFLOAT;
+				case api::R32G32B32A32_FLOAT : return vk::Format::eR32G32B32A32Sfloat;// VK_FORMAT_R32G32B32A32_SFLOAT;
+				case api::R32G32B32_FLOAT	 : return vk::Format::eR32G32B32Sfloat;
+				case api::R32G32_FLOAT		 : return vk::Format::eR32G32Sfloat;
+				default: return vk::Format::eR32G32B32Sfloat;
 				}
 			}
 
-			VkVertexInputAttributeDescription VertexInputDescriptionToVK(api::VertexInputDescription description)
+			vk::VertexInputAttributeDescription VertexInputDescriptionToVK(api::VertexInputDescription description)
 			{
-				return initializers::vertexInputAttributeDescription(description.binding, description.location, FormatToVK(description.format), description.offset);
+				vk::VertexInputAttributeDescription vInputAttribDescription{};
+				vInputAttribDescription.location = description.location;
+				vInputAttribDescription.binding = description.binding;
+				vInputAttribDescription.format = FormatToVK(description.format);
+				vInputAttribDescription.offset = description.offset;
+				return vInputAttribDescription;
 			}
 
-			VkCullModeFlags CullModeToVK(api::CullMode mode)
+			vk::CullModeFlags CullModeToVK(api::CullMode mode)
 			{
 				switch(mode)
 				{
-				case api::CullMode::BACK		 : return VK_CULL_MODE_BACK_BIT;
-				case api::CullMode::FRONT		 : return VK_CULL_MODE_FRONT_BIT;
-				case api::CullMode::FRONTANDBACK : return VK_CULL_MODE_FRONT_AND_BACK;
-				case api::CullMode::NONE		 : return VK_CULL_MODE_NONE;
+				case api::CullMode::BACK		 : return vk::CullModeFlagBits::eBack;
+				case api::CullMode::FRONT		 : return vk::CullModeFlagBits::eFront;
+				case api::CullMode::FRONTANDBACK : return vk::CullModeFlagBits::eFrontAndBack;
+				case api::CullMode::NONE		 : return vk::CullModeFlagBits::eNone;
 
 				}
 
-				return VK_CULL_MODE_BACK_BIT;
+				return vk::CullModeFlagBits::eBack;
 			}
 
-			VkDescriptorType DescriptorTypeToVK(api::DescriptorType type)
+			vk::DescriptorType DescriptorTypeToVK(api::DescriptorType type)
 			{
 				switch (type)
 				{
-				case api::DescriptorType::UNIFORM_BUFFER		 : return VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
-				case api::DescriptorType::UNIFORM_BUFFER_DYNAMIC : return VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER_DYNAMIC;
-				case api::DescriptorType::IMAGE_SAMPLER			 : return VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
+				case api::DescriptorType::UNIFORM_BUFFER		 : return vk::DescriptorType::eUniformBuffer;
+				case api::DescriptorType::UNIFORM_BUFFER_DYNAMIC : return vk::DescriptorType::eUniformBufferDynamic;
+				case api::DescriptorType::IMAGE_SAMPLER			 : return  vk::DescriptorType::eCombinedImageSampler;
 				}
 
-				return VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
+				return vk::DescriptorType::eUniformBuffer;
 			}
 
-			VkShaderStageFlags ShaderStageToVK(api::ShaderStage type)
+			vk::ShaderStageFlags ShaderStageToVK(api::ShaderStage type)
 			{
 				switch (type)
 				{
-				case api::ShaderStage::VERTEX   : return VK_SHADER_STAGE_VERTEX_BIT;
-				case api::ShaderStage::FRAGMENT : return VK_SHADER_STAGE_FRAGMENT_BIT;
-				case api::ShaderStage::GEOMETRY : return VK_SHADER_STAGE_GEOMETRY_BIT;
+				case api::ShaderStage::VERTEX   : return vk::ShaderStageFlagBits::eVertex;
+				case api::ShaderStage::FRAGMENT : return vk::ShaderStageFlagBits::eFragment;
+				case api::ShaderStage::GEOMETRY : return vk::ShaderStageFlagBits::eGeometry;
 				}
 
-				return VK_SHADER_STAGE_VERTEX_BIT;
+				return vk::ShaderStageFlagBits::eVertex;
 			}
 
 			void setImageLayout(

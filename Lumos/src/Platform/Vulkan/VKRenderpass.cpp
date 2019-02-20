@@ -12,7 +12,6 @@ namespace Lumos
 
 		VKRenderpass::VKRenderpass()
 		{
-			m_RenderPass = VK_NULL_HANDLE;
 			m_ClearValue = NULL;
 			m_ClearDepth = false;
 		}
@@ -21,48 +20,47 @@ namespace Lumos
 		{
 			delete[] m_ClearValue;
 			Unload();
-			m_RenderPass = VK_NULL_HANDLE;
 		}
 
-		VkAttachmentDescription GetAttachmentDescription(TextureType type, bool clear = true)
+		vk::AttachmentDescription GetAttachmentDescription(TextureType type, bool clear = true)
 		{
 			if (type == TextureType::COLOUR)
 			{
-				VkAttachmentDescription colorAttachment = {};
+				vk::AttachmentDescription colorAttachment = {};
 				colorAttachment.format = VKDevice::Instance()->GetFormat();
-				colorAttachment.samples = VK_SAMPLE_COUNT_1_BIT;
-				colorAttachment.loadOp = clear ? VK_ATTACHMENT_LOAD_OP_CLEAR : VK_ATTACHMENT_LOAD_OP_DONT_CARE;
-				colorAttachment.storeOp = VK_ATTACHMENT_STORE_OP_STORE;
-				colorAttachment.stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
-				colorAttachment.stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
-				colorAttachment.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
-				colorAttachment.finalLayout = VK_IMAGE_LAYOUT_PRESENT_SRC_KHR;
+				colorAttachment.samples = vk::SampleCountFlagBits::e1;
+				colorAttachment.loadOp = clear ? vk::AttachmentLoadOp::eClear : vk::AttachmentLoadOp::eDontCare;
+				colorAttachment.storeOp = vk::AttachmentStoreOp::eStore;
+				colorAttachment.stencilLoadOp = vk::AttachmentLoadOp::eDontCare;// VK_ATTACHMENT_LOAD_OP_DONT_CARE;
+				colorAttachment.stencilStoreOp = vk::AttachmentStoreOp::eDontCare;// VK_ATTACHMENT_STORE_OP_DONT_CARE;
+				colorAttachment.initialLayout = vk::ImageLayout::eUndefined;// VK_IMAGE_LAYOUT_UNDEFINED;
+				colorAttachment.finalLayout = vk::ImageLayout::ePresentSrcKHR;// VK_IMAGE_LAYOUT_PRESENT_SRC_KHR;
 				return colorAttachment;
 			}
 			else if (type == TextureType::DEPTH)
 			{
-				VkAttachmentDescription depthAttachment = {};
+				vk::AttachmentDescription depthAttachment = {};
 				depthAttachment.format = VKTools::findDepthFormat();
-				depthAttachment.samples = VK_SAMPLE_COUNT_1_BIT;
-				depthAttachment.loadOp = clear ? VK_ATTACHMENT_LOAD_OP_CLEAR : VK_ATTACHMENT_LOAD_OP_DONT_CARE;
-				depthAttachment.storeOp = VK_ATTACHMENT_STORE_OP_STORE;// VK_ATTACHMENT_STORE_OP_DONT_CARE;
-				depthAttachment.stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
-				depthAttachment.stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
-				depthAttachment.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
-				depthAttachment.finalLayout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
+				depthAttachment.samples = vk::SampleCountFlagBits::e1;
+				depthAttachment.loadOp = clear ? vk::AttachmentLoadOp::eClear : vk::AttachmentLoadOp::eDontCare;
+				depthAttachment.storeOp = vk::AttachmentStoreOp::eStore;// VK_ATTACHMENT_STORE_OP_DONT_CARE;
+				depthAttachment.stencilLoadOp = vk::AttachmentLoadOp::eDontCare;
+				depthAttachment.stencilStoreOp = vk::AttachmentStoreOp::eDontCare;
+				depthAttachment.initialLayout = vk::ImageLayout::eUndefined;
+				depthAttachment.finalLayout = vk::ImageLayout::eDepthStencilAttachmentOptimal;
 				return depthAttachment;
 			}
 				else if (type == TextureType::DEPTHARRAY)
 			{
-				VkAttachmentDescription depthAttachment = {};
+				vk::AttachmentDescription depthAttachment = {};
 				depthAttachment.format = VKTools::findDepthFormat();
-				depthAttachment.samples = VK_SAMPLE_COUNT_1_BIT;
-				depthAttachment.loadOp = clear ? VK_ATTACHMENT_LOAD_OP_CLEAR : VK_ATTACHMENT_LOAD_OP_DONT_CARE;
-				depthAttachment.storeOp = VK_ATTACHMENT_STORE_OP_STORE;
-				depthAttachment.stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
-				depthAttachment.stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
-				depthAttachment.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
-				depthAttachment.finalLayout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_READ_ONLY_OPTIMAL;
+				depthAttachment.samples = vk::SampleCountFlagBits::e1;
+				depthAttachment.loadOp = clear ? vk::AttachmentLoadOp::eClear : vk::AttachmentLoadOp::eDontCare;
+				depthAttachment.storeOp = vk::AttachmentStoreOp::eStore;
+				depthAttachment.stencilLoadOp = vk::AttachmentLoadOp::eDontCare;
+				depthAttachment.stencilStoreOp = vk::AttachmentStoreOp::eDontCare;
+				depthAttachment.initialLayout = vk::ImageLayout::eUndefined;
+				depthAttachment.finalLayout = vk::ImageLayout::eDepthStencilReadOnlyOptimal;// VK_IMAGE_LAYOUT_DEPTH_STENCIL_READ_ONLY_OPTIMAL;
 				return depthAttachment;
 			}
 			else
@@ -75,18 +73,18 @@ namespace Lumos
 
 		bool VKRenderpass::Init(const api::RenderpassInfo& renderpassCI)
 		{
-			VkSubpassDependency dependency = {};
+			vk::SubpassDependency dependency = {};
 			dependency.srcSubpass = VK_SUBPASS_EXTERNAL;
 			dependency.dstSubpass = 0;
-			dependency.srcStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
-			dependency.srcAccessMask = 0;
-			dependency.dstStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
-			dependency.dstAccessMask = VK_ACCESS_COLOR_ATTACHMENT_READ_BIT | VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;
+			dependency.srcStageMask = vk::PipelineStageFlagBits::eColorAttachmentOutput;// VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
+			//dependency.srcAccessMask =  0;
+			dependency.dstStageMask = vk::PipelineStageFlagBits::eColorAttachmentOutput;// VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
+			dependency.dstAccessMask = vk::AccessFlagBits::eColorAttachmentRead | vk::AccessFlagBits::eColorAttachmentWrite;// VK_ACCESS_COLOR_ATTACHMENT_READ_BIT | VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;
 
-			std::vector<VkAttachmentDescription> attachments;
+			std::vector<vk::AttachmentDescription> attachments;
 
-			std::vector<VkAttachmentReference> colourAttachmentReferences;
-			std::vector<VkAttachmentReference> depthAttachmentReferences;
+			std::vector<vk::AttachmentReference> colourAttachmentReferences;
+			std::vector<vk::AttachmentReference> depthAttachmentReferences;
 
 			for(int i = 0; i < renderpassCI.attachmentCount;i++)
 			{
@@ -94,37 +92,36 @@ namespace Lumos
 
 				if(renderpassCI.textureType[i] == TextureType::COLOUR)
 				{
-					VkAttachmentReference colourAttachmentRef = {};
+					vk::AttachmentReference colourAttachmentRef = {};
 					colourAttachmentRef.attachment = i;
-					colourAttachmentRef.layout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
+					colourAttachmentRef.layout = vk::ImageLayout::eColorAttachmentOptimal;// VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
 					colourAttachmentReferences.push_back(colourAttachmentRef);
 				}
 				else if (renderpassCI.textureType[i] == TextureType::DEPTH)
 				{
-					VkAttachmentReference depthAttachmentRef = {};
+					vk::AttachmentReference depthAttachmentRef = {};
 					depthAttachmentRef.attachment = i;
-					depthAttachmentRef.layout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
+					depthAttachmentRef.layout = vk::ImageLayout::eDepthStencilAttachmentOptimal;// VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
 					depthAttachmentReferences.push_back(depthAttachmentRef);
 					m_ClearDepth = true;
 				}
 				else if (renderpassCI.textureType[i] == TextureType::DEPTHARRAY)
 				{
-					VkAttachmentReference depthAttachmentRef = {};
+					vk::AttachmentReference depthAttachmentRef = {};
 					depthAttachmentRef.attachment = i;
-					depthAttachmentRef.layout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
+					depthAttachmentRef.layout = vk::ImageLayout::eDepthStencilAttachmentOptimal;//VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
 					depthAttachmentReferences.push_back(depthAttachmentRef);
 					m_ClearDepth = true;
 				}
 			}
 
-			VkSubpassDescription subpass{};
-			subpass.pipelineBindPoint = VK_PIPELINE_BIND_POINT_GRAPHICS;
+			vk::SubpassDescription subpass{};
+			subpass.pipelineBindPoint = vk::PipelineBindPoint::eGraphics;// VK_PIPELINE_BIND_POINT_GRAPHICS;
 			subpass.colorAttachmentCount = static_cast<uint>(colourAttachmentReferences.size());
 			subpass.pColorAttachments = colourAttachmentReferences.data();
 			subpass.pDepthStencilAttachment = depthAttachmentReferences.data();
 
-			VkRenderPassCreateInfo vkRenderpassCI{};
-			vkRenderpassCI.sType = VK_STRUCTURE_TYPE_RENDER_PASS_CREATE_INFO;
+			vk::RenderPassCreateInfo vkRenderpassCI{};
 			vkRenderpassCI.attachmentCount = renderpassCI.attachmentCount;
 			vkRenderpassCI.pAttachments = attachments.data();
 			vkRenderpassCI.subpassCount = 1;
@@ -132,11 +129,11 @@ namespace Lumos
 			vkRenderpassCI.dependencyCount = 1;
 			vkRenderpassCI.pDependencies = &dependency;
 
-			VkResult result = vkCreateRenderPass(VKDevice::Instance()->GetDevice(), &vkRenderpassCI, VK_NULL_HANDLE, &m_RenderPass);
-			if (result != VK_SUCCESS)
+			m_RenderPass = VKDevice::Instance()->GetDevice().createRenderPass(vkRenderpassCI);
+			if (!m_RenderPass)
 				return false;
 
-			m_ClearValue = new VkClearValue[renderpassCI.attachmentCount];
+			m_ClearValue = new vk::ClearValue[renderpassCI.attachmentCount];
 			m_ClearCount = renderpassCI.attachmentCount;
 			m_DepthOnly = renderpassCI.depthOnly;
 			return true;
@@ -147,13 +144,13 @@ namespace Lumos
 			vkDestroyRenderPass(VKDevice::Instance()->GetDevice(), m_RenderPass, VK_NULL_HANDLE);
 		}
 
-		VkSubpassContents SubPassContentsToVK(api::SubPassContents contents)
+		vk::SubpassContents SubPassContentsToVK(api::SubPassContents contents)
 		{
 			switch(contents)
 			{
-			case api::INLINE	: return VK_SUBPASS_CONTENTS_INLINE;
-			case api::SECONDARY : return VK_SUBPASS_CONTENTS_SECONDARY_COMMAND_BUFFERS;
-			default: return VK_SUBPASS_CONTENTS_INLINE;
+			case api::INLINE: return vk::SubpassContents::eInline;// VK_SUBPASS_CONTENTS_INLINE;
+			case api::SECONDARY : return vk::SubpassContents::eSecondaryCommandBuffers;
+			default: return vk::SubpassContents::eInline;
 			}
 		}
 
@@ -176,8 +173,7 @@ namespace Lumos
 				m_ClearValue[m_ClearCount - 1].depthStencil = { 1.0f , 0 };
 			}
 
-			VkRenderPassBeginInfo rpBegin{};
-			rpBegin.sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO;
+			vk::RenderPassBeginInfo rpBegin{};
 			rpBegin.pNext = NULL;
 			rpBegin.renderPass = m_RenderPass;
 			if(frame)
@@ -189,7 +185,7 @@ namespace Lumos
 			rpBegin.clearValueCount = m_ClearCount;
 			rpBegin.pClearValues = m_ClearValue;
 
-			vkCmdBeginRenderPass(static_cast<VKCommandBuffer*>(commandBuffer)->GetCommandBuffer(), &rpBegin, SubPassContentsToVK(contents));
+			static_cast<VKCommandBuffer*>(commandBuffer)->GetCommandBuffer().beginRenderPass(rpBegin, SubPassContentsToVK(contents));
 		}
 
 		void VKRenderpass::EndRenderpass(api::CommandBuffer* commandBuffer)
