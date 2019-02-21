@@ -146,9 +146,7 @@ namespace Lumos
 			viewport.minDepth = 0.0f;
 			viewport.maxDepth = 1.0f;
 
-			vk::Rect2D scissor = {};
-			scissor.offset = { 0, 0 };
-			scissor.extent = { width, height };
+            vk::Rect2D scissor = vk::Rect2D(vk::Offset2D(0, 0), vk::Extent2D(width,height));
 
 			m_CommandBuffer[0].setViewport(0, 1, &viewport);
 			m_CommandBuffer[0].setScissor(0, 1, &scissor);

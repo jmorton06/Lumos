@@ -36,7 +36,7 @@ namespace Lumos
 			m_Data = static_cast<byte*>(data);
 			Load();
 
-			m_TextureImageView = createImageView(m_TextureImage, vk::Format::eR8G8B8A8Unorm,  vk::ImageAspectFlagBits::eColor, m_MipLevels);
+			m_TextureImageView = CreateImageView(m_TextureImage, vk::Format::eR8G8B8A8Unorm,  vk::ImageAspectFlagBits::eColor, m_MipLevels);
 
 			CreateTextureSampler();
 
@@ -67,7 +67,7 @@ namespace Lumos
 			if(!m_DeleteImage)
 				return;
 
-            m_TextureImageView = createImageView(m_TextureImage, vk::Format::eR8G8B8A8Unorm, vk::ImageAspectFlagBits::eColor, m_MipLevels);
+            m_TextureImageView = CreateImageView(m_TextureImage, vk::Format::eR8G8B8A8Unorm, vk::ImageAspectFlagBits::eColor, m_MipLevels);
 
 			CreateTextureSampler();
 			UpdateDescriptor();
@@ -83,7 +83,7 @@ namespace Lumos
 			m_Data = static_cast<byte*>(pixels);
 			Load();
 
-            m_TextureImageView = createImageView(m_TextureImage, vk::Format::eR8G8B8A8Unorm, vk::ImageAspectFlagBits::eColor, m_MipLevels);
+            m_TextureImageView = CreateImageView(m_TextureImage, vk::Format::eR8G8B8A8Unorm, vk::ImageAspectFlagBits::eColor, m_MipLevels);
 
 			CreateTextureSampler();
 
@@ -110,18 +110,18 @@ namespace Lumos
 
 		VKTexture2D::~VKTexture2D()
 		{
-			if(m_TextureSampler)
-				vkDestroySampler(VKDevice::Instance()->GetDevice(), m_TextureSampler, nullptr);
+			if (m_TextureSampler)
+				VKDevice::Instance()->GetDevice().destroySampler(m_TextureSampler);
 
 			if (m_TextureImageView)
-				vkDestroyImageView(VKDevice::Instance()->GetDevice(), m_TextureImageView, nullptr);
+				VKDevice::Instance()->GetDevice().destroyImageView(m_TextureImageView);
 
 			if (m_DeleteImage)
 			{
-				vkDestroyImage(VKDevice::Instance()->GetDevice(), m_TextureImage, nullptr);
+				VKDevice::Instance()->GetDevice().destroyImage(m_TextureImage);
 				if (m_TextureImageMemory)
 				{
-					vkFreeMemory(VKDevice::Instance()->GetDevice(), m_TextureImageMemory, nullptr);
+					VKDevice::Instance()->GetDevice().freeMemory(m_TextureImageMemory);
 				}
 			}
 		}
@@ -138,7 +138,7 @@ namespace Lumos
 		{
 			switch (format)
 			{
-            case TextureFormat::RGBA:			return vk::Format::eR8G8B8A8Unorm;
+            case TextureFormat::RGBA:				return vk::Format::eR8G8B8A8Unorm;
 			case TextureFormat::RGB:				return vk::Format::eR8G8B8Unorm;
 			case TextureFormat::R8:				    return vk::Format::eR8Unorm;
 			case TextureFormat::RG8:				return vk::Format::eR8G8Unorm;
@@ -177,7 +177,7 @@ namespace Lumos
 
 			//VKTools::SetImageLayout(m_TextureImage, VK_IMAGE_ASPECT_COLOR_BIT, VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL, NULL, &cmdBuffer, true);
 
-			m_TextureImageView = createImageView(m_TextureImage, TextureFormatToVK(internalformat), vk::ImageAspectFlagBits::eColor, m_MipLevels);
+			m_TextureImageView = CreateImageView(m_TextureImage, TextureFormatToVK(internalformat), vk::ImageAspectFlagBits::eColor, m_MipLevels);
 
 			UpdateDescriptor();
 		}
@@ -204,7 +204,7 @@ namespace Lumos
 			samplerInfo.addressModeV = TextureWrapToVK(m_Parameters.wrap);
 			samplerInfo.addressModeW = TextureWrapToVK(m_Parameters.wrap);
 
-            VKDevice::Instance()->GetDevice().createSampler(samplerInfo, nullptr, m_TextureSampler);
+			m_TextureSampler = VKDevice::Instance()->GetDevice().createSampler(samplerInfo);
 		}
 
         void VKTexture2D::CreateImage(uint32_t width, uint32_t height, uint32_t mipLevels, vk::Format format, vk::ImageTiling tiling,
@@ -225,21 +225,20 @@ namespace Lumos
             imageInfo.samples = vk::SampleCountFlagBits::e1;
             imageInfo.sharingMode = vk::SharingMode::eExclusive;
 
-            VKDevice::Instance()->GetDevice().createImage(imageInfo, nullptr, image);
+			image = VKDevice::Instance()->GetDevice().createImage(imageInfo);
 
             vk::MemoryRequirements memRequirements;
             VKDevice::Instance()->GetDevice().getImageMemoryRequirements(image, &memRequirements);
 
             vk::MemoryAllocateInfo allocInfo = {};
 			allocInfo.allocationSize = memRequirements.size;
-            allocInfo.memoryTypeIndex = VKTools::FindMemoryType(memRequirements.memoryTypeBits, properties); //) VKTools::FindMemoryType(memRequirements.memoryTypeBits, properties);
+			allocInfo.memoryTypeIndex = VKTools::FindMemoryType(memRequirements.memoryTypeBits, properties);
 
-            VKDevice::Instance()->GetDevice().allocateMemory(allocInfo, nullptr, imageMemory);
-
-			vkBindImageMemory(VKDevice::Instance()->GetDevice(), image, imageMemory, 0);
+			imageMemory = VKDevice::Instance()->GetDevice().allocateMemory(allocInfo);
+			VKDevice::Instance()->GetDevice().bindImageMemory(image, imageMemory, 0);
 		}
 
-        vk::ImageView VKTexture2D::createImageView(vk::Image image, vk::Format format, vk::ImageAspectFlags aspectFlags, uint32_t mipLevels)
+        vk::ImageView VKTexture2D::CreateImageView(vk::Image image, vk::Format format, vk::ImageAspectFlags aspectFlags, uint32_t mipLevels)
 		{
             vk::ImageViewCreateInfo viewInfo = {};
 			viewInfo.image = image;
@@ -251,8 +250,7 @@ namespace Lumos
 			viewInfo.subresourceRange.baseArrayLayer = 0;
 			viewInfo.subresourceRange.layerCount = 1;
 
-			VkImageView imageView;
-            VKDevice::Instance()->GetDevice().createImageView(viewInfo, nullptr, imageView);
+			vk::ImageView imageView = VKDevice::Instance()->GetDevice().createImageView(viewInfo);
 			return imageView;
 		}
 
@@ -263,7 +261,7 @@ namespace Lumos
             m_Descriptor.imageLayout = vk::ImageLayout::eShaderReadOnlyOptimal;
 		}
 
-		void GenerateMipmaps(VkImage image, int32_t texWidth, int32_t texHeight, uint32_t mipLevels) 
+		void GenerateMipmaps(vk::Image image, int32_t texWidth, int32_t texHeight, uint32_t mipLevels) 
 		{
             vk::CommandBuffer commandBuffer = VKTools::beginSingleTimeCommands();
 
@@ -284,15 +282,10 @@ namespace Lumos
 				barrier.subresourceRange.baseMipLevel = i - 1;
                 barrier.oldLayout = vk::ImageLayout::eTransferDstOptimal;
                 barrier.newLayout = vk::ImageLayout::eTransferSrcOptimal;
-                barrier.srcAccessMask = vk::AccessFlagBits::eHostWrite;// VK_ACCESS_TRANSFER_WRITE_BIT;
-                barrier.dstAccessMask = vk::AccessFlagBits::eHostRead; //VK_ACCESS_TRANSFER_READ_BIT;
+                barrier.srcAccessMask = vk::AccessFlagBits::eTransferWrite;
+                barrier.dstAccessMask = vk::AccessFlagBits::eTransferRead;
 
-                commandBuffer.pipelineBarrier(vk::PipelineStageFlagBits::eTransfer, vk::PipelineStageFlagBits::eTransfer, 0, 0, nullptr, 0, nullptr, 1, &barrier);
-//                vkCmdPipelineBarrier(commandBuffer,
-//                    VK_PIPELINE_STAGE_TRANSFER_BIT, VK_PIPELINE_STAGE_TRANSFER_BIT, 0,
-//                    0, nullptr,
-//                    0, nullptr,
-//                    1, &barrier);
+                commandBuffer.pipelineBarrier(vk::PipelineStageFlagBits::eTransfer, vk::PipelineStageFlagBits::eTransfer, vk::DependencyFlagBits::eDeviceGroupKHR, 0, nullptr, 0, nullptr, 1, &barrier);
 
                 vk::ImageBlit blit = {};
                 blit.srcOffsets[0] = vk::Offset3D{ 0, 0, 0 };
@@ -309,11 +302,6 @@ namespace Lumos
 				blit.dstSubresource.layerCount = 1;
 
                 commandBuffer.blitImage(image, vk::ImageLayout::eTransferSrcOptimal, image, vk::ImageLayout::eTransferDstOptimal, 1, &blit, vk::Filter::eLinear);
-//                vkCmdBlitImage(commandBuffer,
-//                    image, VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL,
-//                    image, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
-//                    1, &blit,
-//                    VK_FILTER_LINEAR);
 
                 barrier.oldLayout = vk::ImageLayout::eTransferSrcOptimal;
                 barrier.newLayout = vk::ImageLayout::eShaderReadOnlyOptimal;
@@ -321,12 +309,7 @@ namespace Lumos
                 barrier.dstAccessMask = vk::AccessFlagBits::eShaderRead;
 
                 
-                commandBuffer.pipelineBarrier(vk::PipelineStageFlagBits::eTransfer, vk::PipelineStageFlagBits::eFragmentShader, 0, 0, nullptr, 0, nullptr, 1, &barrier);
-//                vkCmdPipelineBarrier(commandBuffer,
-//                    VK_PIPELINE_STAGE_TRANSFER_BIT, VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT, 0,
-//                    0, nullptr,
-//                    0, nullptr,
-//                    1, &barrier);
+				commandBuffer.pipelineBarrier(vk::PipelineStageFlagBits::eTransfer, vk::PipelineStageFlagBits::eFragmentShader, vk::DependencyFlagBits::eDeviceGroupKHR, 0, nullptr, 0, nullptr, 1, &barrier);
 
 				if (mipWidth > 1) mipWidth /= 2;
 				if (mipHeight > 1) mipHeight /= 2;
@@ -338,11 +321,7 @@ namespace Lumos
             barrier.srcAccessMask = vk::AccessFlagBits::eTransferWrite;
             barrier.dstAccessMask = vk::AccessFlagBits::eShaderRead;
 
-			vkCmdPipelineBarrier(commandBuffer,
-				VK_PIPELINE_STAGE_TRANSFER_BIT, VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT, 0,
-				0, nullptr,
-				0, nullptr,
-				1, &barrier);
+			commandBuffer.pipelineBarrier(vk::PipelineStageFlagBits::eTransfer, vk::PipelineStageFlagBits::eFragmentShader, vk::DependencyFlagBits::eDeviceGroupKHR, 0, nullptr, 0, nullptr, 1, &barrier);
 
 			VKTools::endSingleTimeCommands(commandBuffer);
 		}
@@ -366,7 +345,7 @@ namespace Lumos
 			if(pixels == nullptr)
 				return false;
 
-			VkDeviceSize imageSize = texWidth * texHeight * 4;
+			vk::DeviceSize imageSize = texWidth * texHeight * 4;
 
 			if (!pixels)
 			{
@@ -376,29 +355,29 @@ namespace Lumos
 			m_MipLevels = static_cast<uint32_t>(std::floor(std::log2(maths::Max(texWidth, texHeight)))) + 1;
 
 
-			VkBuffer stagingBuffer;
-			VkDeviceMemory stagingBufferMemory;
-			VKTools::CreateBuffer(imageSize, VK_BUFFER_USAGE_TRANSFER_SRC_BIT,
-				VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, stagingBuffer,
+			vk::Buffer stagingBuffer;
+			vk::DeviceMemory stagingBufferMemory;
+			VKTools::CreateBuffer(imageSize, vk::BufferUsageFlagBits::eTransferSrc,
+				vk::MemoryPropertyFlagBits::eHostVisible | vk::MemoryPropertyFlagBits::eHostCoherent, stagingBuffer,
 				stagingBufferMemory);
 
 			void* data;
-			vkMapMemory(VKDevice::Instance()->GetDevice(), stagingBufferMemory, 0, imageSize, 0, &data);
+			VKDevice::Instance()->GetDevice().mapMemory(stagingBufferMemory, vk::DeviceSize(0), imageSize, vk::MemoryMapFlagBits(), &data);
 			memcpy(data, pixels, static_cast<size_t>(imageSize));
-			vkUnmapMemory(VKDevice::Instance()->GetDevice(), stagingBufferMemory);
+			VKDevice::Instance()->GetDevice().unmapMemory(stagingBufferMemory);
 
 			if (m_Data == nullptr)
 				delete[] pixels;
 
-            CreateImage(texWidth, texHeight, m_MipLevels, vk::Format::eR8G8B8A8Unorm, vk::ImageTiling::eOptimal,  VK_IMAGE_USAGE_TRANSFER_SRC_BIT | VK_IMAGE_USAGE_TRANSFER_DST_BIT | VK_IMAGE_USAGE_SAMPLED_BIT, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, m_TextureImage, m_TextureImageMemory);
+            CreateImage(texWidth, texHeight, m_MipLevels, vk::Format::eR8G8B8A8Unorm, vk::ImageTiling::eOptimal,  vk::ImageUsageFlagBits::eTransferSrc | vk::ImageUsageFlagBits::eTransferDst | vk::ImageUsageFlagBits::eSampled, vk::MemoryPropertyFlagBits::eDeviceLocal, m_TextureImage, m_TextureImageMemory);
 
 
-			VKTools::transitionImageLayout(m_TextureImage, VK_FORMAT_R8G8B8A8_UNORM, VK_IMAGE_LAYOUT_UNDEFINED,
-				VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, m_MipLevels);
-			VKTools::copyBufferToImage(stagingBuffer, m_TextureImage, static_cast<uint32_t>(texWidth), static_cast<uint32_t>(texHeight));
-
-			vkDestroyBuffer(VKDevice::Instance()->GetDevice(), stagingBuffer, nullptr);
-			vkFreeMemory(VKDevice::Instance()->GetDevice(), stagingBufferMemory, nullptr);
+			VKTools::TransitionImageLayout(m_TextureImage, vk::Format::eR8G8B8A8Unorm, vk::ImageLayout::eUndefined,
+				vk::ImageLayout::eTransferDstOptimal, m_MipLevels);
+			VKTools::CopyBufferToImage(stagingBuffer, m_TextureImage, static_cast<uint32_t>(texWidth), static_cast<uint32_t>(texHeight));
+			
+			VKDevice::Instance()->GetDevice().destroyBuffer(stagingBuffer);
+			VKDevice::Instance()->GetDevice().freeMemory(stagingBufferMemory);
 
 			GenerateMipmaps(m_TextureImage, texWidth, texHeight, m_MipLevels);
 

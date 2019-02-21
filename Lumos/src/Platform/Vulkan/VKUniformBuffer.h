@@ -18,17 +18,17 @@ namespace Lumos
 
 			void SetData(uint32_t size, const void* data) override;
 			void SetDynamicData(uint32_t size,  uint32_t typeSize, const void* data) override;
-			VkBuffer* GetBuffer() { return &m_Buffer; }
 
-			VkDescriptorBufferInfo GetBufferInfo() const { return m_DesciptorBufferInfo; };
-			VkDeviceMemory* GetMemory() { return &m_Memory; }
+			vk::Buffer* GetBuffer() { return &m_Buffer; }
+			vk::DescriptorBufferInfo GetBufferInfo() const { return m_DesciptorBufferInfo; };
+			vk::DeviceMemory* GetMemory() { return &m_Memory; }
 
 			byte* GetBuffer() const override { return nullptr; };
 
 		protected:
-			VkBuffer m_Buffer{};
-			VkDeviceMemory m_Memory{};
-			VkDescriptorBufferInfo m_DesciptorBufferInfo;
+			vk::Buffer m_Buffer{};
+			vk::DeviceMemory m_Memory{};
+			vk::DescriptorBufferInfo m_DesciptorBufferInfo;
 		};
 	}
 }

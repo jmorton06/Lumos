@@ -19,7 +19,6 @@ namespace Lumos
 
 		bool VKCommandPool::Init()
 		{
-			vk::Result result;
 			vk::CommandPoolCreateInfo cmdPoolCI{};
 
 			cmdPoolCI.queueFamilyIndex = VKDevice::Instance()->GetGraphicsQueueFamilyIndex();

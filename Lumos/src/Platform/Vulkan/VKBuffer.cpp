@@ -56,7 +56,7 @@ namespace Lumos
 			allocate_info.allocationSize = memory_requirements.size;
 			allocate_info.memoryTypeIndex = memory_index;
 
-			VkDeviceMemory upload_memory = VKDevice::Instance()->GetDevice().allocateMemory(allocate_info);
+			vk::DeviceMemory upload_memory = VKDevice::Instance()->GetDevice().allocateMemory(allocate_info);
 			VKDevice::Instance()->GetDevice().bindBufferMemory(upload_buffer, upload_memory, 0);
 
 			void* transfer_data = VKDevice::Instance()->GetDevice().mapMemory(upload_memory, 0, size);
@@ -82,7 +82,7 @@ namespace Lumos
 			VKDevice::Instance()->GetDevice().bindBufferMemory(m_Buffer, m_Memory, 0);
 
 			const vk::DeviceSize copy_size = static_cast<vk::DeviceSize>(size);
-			VKTools::copyBuffer(upload_buffer, m_Buffer, copy_size);
+			VKTools::CopyBuffer(upload_buffer, m_Buffer, copy_size);
 
 			m_DesciptorBufferInfo.buffer = m_Buffer;
 			m_DesciptorBufferInfo.offset = 0;

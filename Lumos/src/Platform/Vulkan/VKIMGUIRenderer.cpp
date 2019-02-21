@@ -179,9 +179,9 @@ namespace Lumos
 				write_desc[0].descriptorCount = 1;
                 write_desc[0].descriptorType = vk::DescriptorType::eCombinedImageSampler;
 				write_desc[0].pImageInfo = fontTex->GetDescriptor();
-				vkUpdateDescriptorSets(VKDevice::Instance()->GetDevice(), 1, write_desc, 0, NULL);
+				VKDevice::Instance()->GetDevice().updateDescriptorSets(1, write_desc, 0, nullptr);
 
-				io.Fonts->TexID = (ImTextureID)(intptr_t)fontTex->GetImage();
+				io.Fonts->TexID = (ImTextureID)(intptr_t)(VkImage)fontTex->GetImage();
 
                 ImGui_ImplVulkan_InvalidateFontUploadObjects();
             }

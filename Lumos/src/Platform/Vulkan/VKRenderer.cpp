@@ -73,8 +73,7 @@ namespace Lumos
 			for (int i = 0; i < 5; i++)
 			{
 				m_ImageAvailableSemaphore[i] = VKDevice::Instance()->GetDevice().createSemaphore(semaphoreInfo);
-				if (!m_ImageAvailableSemaphore[i]/*vkCreateSemaphore(VKDevice::Instance()->GetDevice(), &semaphoreInfo, nullptr, &m_ImageAvailableSemaphore[i]) !=
-					VK_SUCCESS*/)
+				if (!m_ImageAvailableSemaphore[i])
 				{
 					throw std::runtime_error("failed to create semaphores!");
 				}
@@ -98,12 +97,6 @@ namespace Lumos
 			commandBuffer->GetCommandBuffer().bindVertexBuffers(0,1, vertexBuffers, offsets);
 			commandBuffer->GetCommandBuffer().bindIndexBuffer(static_cast<VKIndexBuffer*>(indexBuffer)->GetBuffer(), 0, vk::IndexType::eUint32);
 			commandBuffer->GetCommandBuffer().drawIndexed(static_cast<uint32_t>(indexBuffer->GetCount()), 1, 0, 0, 0);
-			
-			
-			
-			//vkCmdBindVertexBuffers(commandBuffer->GetCommandBuffer(), 0, 1, vertexBuffers, offsets);
-			//vkCmdBindIndexBuffer(commandBuffer->GetCommandBuffer(), static_cast<VKIndexBuffer*>(indexBuffer)->GetBuffer(), 0, VK_INDEX_TYPE_UINT32);
-			//vkCmdDrawIndexed(commandBuffer->GetCommandBuffer(), static_cast<uint32_t>(indexBuffer->GetCount()), 1, 0, 0, 0);
 
 			delete[] vertexBuffers;
 			delete[] offsets;
@@ -114,12 +107,12 @@ namespace Lumos
 			m_CurrentSemaphoreIndex = 0;
 			auto result = m_Swapchain->AcquireNextImage(m_ImageAvailableSemaphore[m_CurrentSemaphoreIndex]);
 
-			if (result == VK_ERROR_OUT_OF_DATE_KHR)
+			if (result == vk::Result::eErrorOutOfDateKHR)
 			{
 				OnResize(m_Width, m_Height);
 				return;
 			}
-			else if (result != VK_SUCCESS && result != VK_SUBOPTIMAL_KHR)
+			else if (result != vk::Result::eSuccess && result != vk::Result::eSuboptimalKHR)
 			{
 				throw std::runtime_error("failed to acquire swap chain image!");
 			}

@@ -28,7 +28,7 @@ namespace Lumos
 		{
 		}
 
-		VkWriteDescriptorSet writeDescriptorSet(
+		vk::WriteDescriptorSet writeDescriptorSet(
 			vk::DescriptorSet dstSet,
 			vk::DescriptorType type,
 			uint32_t binding,
@@ -44,7 +44,7 @@ namespace Lumos
 			return writeDescriptorSet;
 		}
 
-		VkWriteDescriptorSet writeDescriptorSet(
+		vk::WriteDescriptorSet writeDescriptorSet(
 			vk::DescriptorSet dstSet,
 			vk::DescriptorType type,
 			uint32_t binding,
@@ -62,7 +62,7 @@ namespace Lumos
 
 		void VKDescriptorSet::Update(std::vector<api::BufferInfo>& bufferInfos)
 		{
-			std::vector<VkWriteDescriptorSet> descriptorWrites;
+			std::vector<vk::WriteDescriptorSet> descriptorWrites;
 			vk::DescriptorBufferInfo* buffersInfo = new vk::DescriptorBufferInfo[bufferInfos.size()];
 
 			m_Dynamic = false;
@@ -96,7 +96,7 @@ namespace Lumos
 
 		void VKDescriptorSet::Update(std::vector<api::ImageInfo>& imageInfos)
 		{
-			std::vector<VkWriteDescriptorSet> descriptorWrites;
+			std::vector<vk::WriteDescriptorSet> descriptorWrites;
 
 			m_Dynamic = false;
 
@@ -111,13 +111,13 @@ namespace Lumos
 					default : LUMOS_CORE_ERROR("Unsupported Texture Type",""); break;
 				}
 			}
-			vkUpdateDescriptorSets(VKDevice::Instance()->GetDevice(), static_cast<uint32_t>(descriptorWrites.size()),
-				descriptorWrites.data(), 0, nullptr);
+			VKDevice::Instance()->GetDevice().updateDescriptorSets(static_cast<uint32_t>(descriptorWrites.size()), descriptorWrites.data(), 0, nullptr);
+
 		}
 
 		void VKDescriptorSet::Update(std::vector<api::ImageInfo>& imageInfos, std::vector<api::BufferInfo>& bufferInfos)
 		{
-			std::vector<VkWriteDescriptorSet> descriptorWrites;
+			std::vector<vk::WriteDescriptorSet> descriptorWrites;
 
 			m_Dynamic = false;
 
@@ -146,8 +146,7 @@ namespace Lumos
 				descriptorWrites.push_back(writeDescriptorSet(m_DescriptorSet, VKTools::DescriptorTypeToVK(bufferInfo.type), bufferInfo.binding, &info));
 			}
 
-			vkUpdateDescriptorSets(VKDevice::Instance()->GetDevice(), static_cast<uint32_t>(descriptorWrites.size()),
-				descriptorWrites.data(), 0, nullptr);
+			VKDevice::Instance()->GetDevice().updateDescriptorSets(static_cast<uint32_t>(descriptorWrites.size()), descriptorWrites.data(), 0, nullptr);
 		}
 
 		void VKDescriptorSet::SetPushConstants(std::vector<api::PushConstant>& pushConstants)

@@ -41,7 +41,7 @@ namespace Lumos
             void CreateImage(uint32_t width, uint32_t height,uint32_t mipLevels, vk::Format format, vk::ImageTiling tiling,
                              vk::ImageUsageFlags usage, vk::MemoryPropertyFlags properties, vk::Image& image,
                              vk::DeviceMemory& imageMemory);
-            vk::ImageView createImageView(vk::Image image, vk::Format format, vk::ImageAspectFlags aspectFlags, uint32_t mipLevels);
+            vk::ImageView CreateImageView(vk::Image image, vk::Format format, vk::ImageAspectFlags aspectFlags, uint32_t mipLevels);
 
             vk::DescriptorImageInfo* GetDescriptor() { return &m_Descriptor; }
 

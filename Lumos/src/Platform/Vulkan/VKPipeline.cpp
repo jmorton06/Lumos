@@ -32,8 +32,6 @@ namespace Lumos
 
 		bool VKPipeline::Init(const api::PipelineInfo& pipelineCI)
 		{
-			VkResult result;
-
 			m_PipelineName = pipelineCI.pipelineName;
 			m_Shader	   = pipelineCI.shader;
 
@@ -67,7 +65,7 @@ namespace Lumos
 				descriptorLayoutCI.bindingCount = static_cast<uint>(setLayoutBindings.size());
 				descriptorLayoutCI.pBindings = setLayoutBindings.data();
 
-				VkDescriptorSetLayout layout = VKDevice::Instance()->GetDevice().createDescriptorSetLayout(descriptorLayoutCI);
+				vk::DescriptorSetLayout layout = VKDevice::Instance()->GetDevice().createDescriptorSetLayout(descriptorLayoutCI);
 
 				m_DescriptorLayouts.push_back(layout);
 			}
@@ -76,7 +74,7 @@ namespace Lumos
 			pipelineLayoutCreateInfo.setLayoutCount = static_cast<uint32_t>(m_DescriptorLayouts.size());
 			pipelineLayoutCreateInfo.pSetLayouts = m_DescriptorLayouts.data();
 
-			VKDevice::Instance()->GetDevice().createPipelineLayout(pipelineLayoutCreateInfo);
+			m_PipelineLayout = VKDevice::Instance()->GetDevice().createPipelineLayout(pipelineLayoutCreateInfo);
 
 			std::vector<vk::DescriptorPoolSize> poolSizes;
 			poolSizes.reserve(pipelineCI.numLayoutBindings);
@@ -157,20 +155,26 @@ namespace Lumos
 			{
 				if (pipelineCI.transparencyEnabled)
 				{
-					blendAttachState[i] = {};
-					blendAttachState[i].colorWriteMask = vk::ColorComponentFlagBits::eR;// 0x0f;
+                    blendAttachState[i] = vk::PipelineColorBlendAttachmentState();
+					blendAttachState[i].colorWriteMask = vk::ColorComponentFlagBits::eR |
+														 vk::ColorComponentFlagBits::eG |
+														 vk::ColorComponentFlagBits::eB |
+														 vk::ColorComponentFlagBits::eA;
 					blendAttachState[i].blendEnable = VK_TRUE;
-					blendAttachState[i].alphaBlendOp = vk::BlendOp::eAdd;// VK_BLEND_OP_ADD;
-					blendAttachState[i].colorBlendOp = vk::BlendOp::eAdd;// VK_BLEND_OP_ADD;
-					blendAttachState[i].srcColorBlendFactor = vk::BlendFactor::eOneMinusSrcAlpha;// VK_BLEND_FACTOR_SRC_ALPHA;
-					blendAttachState[i].dstColorBlendFactor = vk::BlendFactor::eOneMinusSrcAlpha;// VK_BLEND_FACTOR_ONE_MINUS_SRC_ALPHA;
-					blendAttachState[i].srcAlphaBlendFactor = vk::BlendFactor::eOne;// VK_BLEND_FACTOR_ONE;
-					blendAttachState[i].dstAlphaBlendFactor = vk::BlendFactor::eZero;// VK_BLEND_FACTOR_ZERO;
+					blendAttachState[i].alphaBlendOp = vk::BlendOp::eAdd;
+					blendAttachState[i].colorBlendOp = vk::BlendOp::eAdd;
+					blendAttachState[i].srcColorBlendFactor = vk::BlendFactor::eSrcAlpha;
+					blendAttachState[i].dstColorBlendFactor = vk::BlendFactor::eOneMinusSrcAlpha;
+					blendAttachState[i].srcAlphaBlendFactor = vk::BlendFactor::eOne;
+					blendAttachState[i].dstAlphaBlendFactor = vk::BlendFactor::eZero;
 				}
 				else
 				{
-					blendAttachState[i] = {};
-					blendAttachState[i].colorWriteMask = vk::ColorComponentFlagBits::eR;// 0xf;
+					blendAttachState[i] = vk::PipelineColorBlendAttachmentState();
+					blendAttachState[i].colorWriteMask = vk::ColorComponentFlagBits::eR |
+														 vk::ColorComponentFlagBits::eG |
+														 vk::ColorComponentFlagBits::eB |
+														 vk::ColorComponentFlagBits::eA;
 					blendAttachState[i].blendEnable = VK_FALSE;
 					blendAttachState[i].alphaBlendOp = vk::BlendOp::eAdd;
 					blendAttachState[i].colorBlendOp = vk::BlendOp::eAdd;
