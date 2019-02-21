@@ -285,7 +285,7 @@ namespace Lumos
                 barrier.srcAccessMask = vk::AccessFlagBits::eTransferWrite;
                 barrier.dstAccessMask = vk::AccessFlagBits::eTransferRead;
 
-                commandBuffer.pipelineBarrier(vk::PipelineStageFlagBits::eTransfer, vk::PipelineStageFlagBits::eTransfer, vk::DependencyFlagBits::eDeviceGroupKHR, 0, nullptr, 0, nullptr, 1, &barrier);
+                commandBuffer.pipelineBarrier(vk::PipelineStageFlagBits::eTransfer, vk::PipelineStageFlagBits::eTransfer, static_cast<vk::DependencyFlagBits>(0), 0, nullptr, 0, nullptr, 1, &barrier);
 
                 vk::ImageBlit blit = {};
                 blit.srcOffsets[0] = vk::Offset3D{ 0, 0, 0 };
@@ -309,7 +309,7 @@ namespace Lumos
                 barrier.dstAccessMask = vk::AccessFlagBits::eShaderRead;
 
                 
-				commandBuffer.pipelineBarrier(vk::PipelineStageFlagBits::eTransfer, vk::PipelineStageFlagBits::eFragmentShader, vk::DependencyFlagBits::eDeviceGroupKHR, 0, nullptr, 0, nullptr, 1, &barrier);
+				commandBuffer.pipelineBarrier(vk::PipelineStageFlagBits::eTransfer, vk::PipelineStageFlagBits::eFragmentShader, static_cast<vk::DependencyFlagBits>(0), 0, nullptr, 0, nullptr, 1, &barrier);
 
 				if (mipWidth > 1) mipWidth /= 2;
 				if (mipHeight > 1) mipHeight /= 2;
@@ -321,7 +321,7 @@ namespace Lumos
             barrier.srcAccessMask = vk::AccessFlagBits::eTransferWrite;
             barrier.dstAccessMask = vk::AccessFlagBits::eShaderRead;
 
-			commandBuffer.pipelineBarrier(vk::PipelineStageFlagBits::eTransfer, vk::PipelineStageFlagBits::eFragmentShader, vk::DependencyFlagBits::eDeviceGroupKHR, 0, nullptr, 0, nullptr, 1, &barrier);
+			commandBuffer.pipelineBarrier(vk::PipelineStageFlagBits::eTransfer, vk::PipelineStageFlagBits::eFragmentShader, static_cast<vk::DependencyFlagBits>(0), 0, nullptr, 0, nullptr, 1, &barrier);
 
 			VKTools::endSingleTimeCommands(commandBuffer);
 		}

@@ -95,9 +95,9 @@ namespace Lumos
 		void VKBuffer::SetData(uint32_t size, const void* data)
 		{
 			void* temp;
-			vkMapMemory(VKDevice::Instance()->GetDevice(), m_Memory, 0, size, 0, &temp);
+            VKDevice::Instance()->GetDevice().mapMemory(m_Memory, 0, size, vk::MemoryMapFlagBits(), &temp);
 			memcpy(temp, data, size);
-			vkUnmapMemory(VKDevice::Instance()->GetDevice(), m_Memory);
+            VKDevice::Instance()->GetDevice().unmapMemory(m_Memory);
 		}
 	}
 }

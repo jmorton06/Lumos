@@ -306,7 +306,7 @@ void Scene3D::LoadModels()
 	auto pendulumConstraint = new SpringConstraint(pendulumHolder->GetComponent<Physics3DComponent>()->m_PhysicsObject.get(), pendulum->GetComponent<Physics3DComponent>()->m_PhysicsObject.get(), pendulumHolder->GetComponent<Physics3DComponent>()->m_PhysicsObject->GetPosition(), pendulum->GetComponent<Physics3DComponent>()->m_PhysicsObject->GetPosition(), 0.9f, 0.5f);
 	LumosPhysicsEngine::Instance()->AddConstraint(pendulumConstraint);
 
-	#if 1
+#if 0
 	auto soundFilePath = String("/Sounds/fire.ogg");
 	bool loadedSound = Sound::AddSound("Background", soundFilePath);
 
