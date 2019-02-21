@@ -43,7 +43,7 @@ namespace Lumos
 
 		bool VKShader::Init()
 		{
-			VkResult result;
+			VkResult result = VK_SUCCESS;
 			uint32_t currentShaderStage = 0;
 			m_StageCount = 0;
 
@@ -59,7 +59,7 @@ namespace Lumos
 			m_ShaderStages = new vk::PipelineShaderStageCreateInfo[m_StageCount];
 
 			for (uint32_t i = 0; i < m_StageCount; i++)
-				m_ShaderStages[i] = {};
+                m_ShaderStages[i] = vk::PipelineShaderStageCreateInfo();
 
 			for (auto& file : *files)
 			{

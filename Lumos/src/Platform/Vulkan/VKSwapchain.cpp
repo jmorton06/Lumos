@@ -10,7 +10,6 @@ namespace Lumos
 
 		VKSwapchain::VKSwapchain(uint width, uint height)
 		{
-			m_SwapChain = VK_NULL_HANDLE;
 			m_Width = width;
 			m_Height = height;
 		}
@@ -18,7 +17,6 @@ namespace Lumos
 		VKSwapchain::~VKSwapchain()
 		{
 			Unload();
-			m_SwapChain = VK_NULL_HANDLE;
 		}
 
 		bool VKSwapchain::Init()
@@ -100,8 +98,7 @@ namespace Lumos
                 viewCI.viewType = vk::ImageViewType::e2D;
 				viewCI.image = pSwapChainImages[i];
 
-                vk::ImageView imageView;
-                VKDevice::Instance()->GetDevice().createImageView(viewCI, nullptr, imageView);
+                vk::ImageView imageView = VKDevice::Instance()->GetDevice().createImageView(viewCI);
 				VKTexture2D* swapChainBuffer = new VKTexture2D(pSwapChainImages[i], imageView);
 
 				m_SwapChainBuffers.push_back(swapChainBuffer);

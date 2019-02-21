@@ -31,19 +31,19 @@ namespace Lumos
 				colorAttachment.samples = vk::SampleCountFlagBits::e1;
 				colorAttachment.loadOp = clear ? vk::AttachmentLoadOp::eClear : vk::AttachmentLoadOp::eDontCare;
 				colorAttachment.storeOp = vk::AttachmentStoreOp::eStore;
-				colorAttachment.stencilLoadOp = vk::AttachmentLoadOp::eDontCare;// VK_ATTACHMENT_LOAD_OP_DONT_CARE;
-				colorAttachment.stencilStoreOp = vk::AttachmentStoreOp::eDontCare;// VK_ATTACHMENT_STORE_OP_DONT_CARE;
-				colorAttachment.initialLayout = vk::ImageLayout::eUndefined;// VK_IMAGE_LAYOUT_UNDEFINED;
-				colorAttachment.finalLayout = vk::ImageLayout::ePresentSrcKHR;// VK_IMAGE_LAYOUT_PRESENT_SRC_KHR;
+				colorAttachment.stencilLoadOp = vk::AttachmentLoadOp::eDontCare;
+				colorAttachment.stencilStoreOp = vk::AttachmentStoreOp::eDontCare;
+				colorAttachment.initialLayout = vk::ImageLayout::eUndefined;
+				colorAttachment.finalLayout = vk::ImageLayout::ePresentSrcKHR;
 				return colorAttachment;
 			}
 			else if (type == TextureType::DEPTH)
 			{
 				vk::AttachmentDescription depthAttachment = {};
-				depthAttachment.format = VKTools::findDepthFormat();
+				depthAttachment.format = VKTools::FindDepthFormat();
 				depthAttachment.samples = vk::SampleCountFlagBits::e1;
 				depthAttachment.loadOp = clear ? vk::AttachmentLoadOp::eClear : vk::AttachmentLoadOp::eDontCare;
-				depthAttachment.storeOp = vk::AttachmentStoreOp::eStore;// VK_ATTACHMENT_STORE_OP_DONT_CARE;
+				depthAttachment.storeOp = vk::AttachmentStoreOp::eStore;
 				depthAttachment.stencilLoadOp = vk::AttachmentLoadOp::eDontCare;
 				depthAttachment.stencilStoreOp = vk::AttachmentStoreOp::eDontCare;
 				depthAttachment.initialLayout = vk::ImageLayout::eUndefined;
@@ -53,7 +53,7 @@ namespace Lumos
 				else if (type == TextureType::DEPTHARRAY)
 			{
 				vk::AttachmentDescription depthAttachment = {};
-				depthAttachment.format = VKTools::findDepthFormat();
+				depthAttachment.format = VKTools::FindDepthFormat();
 				depthAttachment.samples = vk::SampleCountFlagBits::e1;
 				depthAttachment.loadOp = clear ? vk::AttachmentLoadOp::eClear : vk::AttachmentLoadOp::eDontCare;
 				depthAttachment.storeOp = vk::AttachmentStoreOp::eStore;
@@ -65,7 +65,7 @@ namespace Lumos
 			}
 			else
 			{
-				VkAttachmentDescription Attachment = {};
+				vk::AttachmentDescription Attachment = {};
 				LUMOS_CORE_ERROR("[VULKAN] - Unsupported TextureType - {0}", static_cast<int>(type));
 				return Attachment;
 			}
@@ -76,10 +76,9 @@ namespace Lumos
 			vk::SubpassDependency dependency = {};
 			dependency.srcSubpass = VK_SUBPASS_EXTERNAL;
 			dependency.dstSubpass = 0;
-			dependency.srcStageMask = vk::PipelineStageFlagBits::eColorAttachmentOutput;// VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
-			//dependency.srcAccessMask =  0;
-			dependency.dstStageMask = vk::PipelineStageFlagBits::eColorAttachmentOutput;// VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
-			dependency.dstAccessMask = vk::AccessFlagBits::eColorAttachmentRead | vk::AccessFlagBits::eColorAttachmentWrite;// VK_ACCESS_COLOR_ATTACHMENT_READ_BIT | VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;
+			dependency.srcStageMask = vk::PipelineStageFlagBits::eColorAttachmentOutput;
+			dependency.dstStageMask = vk::PipelineStageFlagBits::eColorAttachmentOutput;
+			dependency.dstAccessMask = vk::AccessFlagBits::eColorAttachmentRead | vk::AccessFlagBits::eColorAttachmentWrite;
 
 			std::vector<vk::AttachmentDescription> attachments;
 
@@ -94,14 +93,14 @@ namespace Lumos
 				{
 					vk::AttachmentReference colourAttachmentRef = {};
 					colourAttachmentRef.attachment = i;
-					colourAttachmentRef.layout = vk::ImageLayout::eColorAttachmentOptimal;// VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
+					colourAttachmentRef.layout = vk::ImageLayout::eColorAttachmentOptimal;
 					colourAttachmentReferences.push_back(colourAttachmentRef);
 				}
 				else if (renderpassCI.textureType[i] == TextureType::DEPTH)
 				{
 					vk::AttachmentReference depthAttachmentRef = {};
 					depthAttachmentRef.attachment = i;
-					depthAttachmentRef.layout = vk::ImageLayout::eDepthStencilAttachmentOptimal;// VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
+					depthAttachmentRef.layout = vk::ImageLayout::eDepthStencilAttachmentOptimal;
 					depthAttachmentReferences.push_back(depthAttachmentRef);
 					m_ClearDepth = true;
 				}
@@ -109,14 +108,14 @@ namespace Lumos
 				{
 					vk::AttachmentReference depthAttachmentRef = {};
 					depthAttachmentRef.attachment = i;
-					depthAttachmentRef.layout = vk::ImageLayout::eDepthStencilAttachmentOptimal;//VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
+					depthAttachmentRef.layout = vk::ImageLayout::eDepthStencilAttachmentOptimal;
 					depthAttachmentReferences.push_back(depthAttachmentRef);
 					m_ClearDepth = true;
 				}
 			}
 
 			vk::SubpassDescription subpass{};
-			subpass.pipelineBindPoint = vk::PipelineBindPoint::eGraphics;// VK_PIPELINE_BIND_POINT_GRAPHICS;
+			subpass.pipelineBindPoint = vk::PipelineBindPoint::eGraphics;
 			subpass.colorAttachmentCount = static_cast<uint>(colourAttachmentReferences.size());
 			subpass.pColorAttachments = colourAttachmentReferences.data();
 			subpass.pDepthStencilAttachment = depthAttachmentReferences.data();
@@ -141,14 +140,14 @@ namespace Lumos
 
 		void VKRenderpass::Unload() const
 		{
-			vkDestroyRenderPass(VKDevice::Instance()->GetDevice(), m_RenderPass, VK_NULL_HANDLE);
+			VKDevice::Instance()->GetDevice().destroyRenderPass(m_RenderPass);
 		}
 
 		vk::SubpassContents SubPassContentsToVK(api::SubPassContents contents)
 		{
 			switch(contents)
 			{
-			case api::INLINE: return vk::SubpassContents::eInline;// VK_SUBPASS_CONTENTS_INLINE;
+			case api::INLINE: return vk::SubpassContents::eInline;
 			case api::SECONDARY : return vk::SubpassContents::eSecondaryCommandBuffers;
 			default: return vk::SubpassContents::eInline;
 			}
@@ -170,7 +169,7 @@ namespace Lumos
 
 			if (m_ClearDepth)
 			{
-				m_ClearValue[m_ClearCount - 1].depthStencil = { 1.0f , 0 };
+                m_ClearValue[m_ClearCount - 1].depthStencil = vk::ClearDepthStencilValue{ 1.0f , 0 };
 			}
 
 			vk::RenderPassBeginInfo rpBegin{};
@@ -190,7 +189,7 @@ namespace Lumos
 
 		void VKRenderpass::EndRenderpass(api::CommandBuffer* commandBuffer)
 		{
-			vkCmdEndRenderPass(reinterpret_cast<VKCommandBuffer*>(commandBuffer)->GetCommandBuffer());
+			reinterpret_cast<VKCommandBuffer*>(commandBuffer)->GetCommandBuffer().endRenderPass();
 		}
 	}
 }

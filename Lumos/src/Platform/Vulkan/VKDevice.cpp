@@ -64,8 +64,6 @@ namespace Lumos
 
 		bool VKDevice::Init()
 		{
-			VkResult result;
-
 			// GPU
 			uint32_t numGPUs = 0;
 			vkEnumeratePhysicalDevices(m_VKContext->GetVKInstance(), &numGPUs, VK_NULL_HANDLE);
@@ -75,8 +73,8 @@ namespace Lumos
 				return false;
 			}
 
-			std::vector<VkPhysicalDevice> pGPUs(numGPUs);
-			vkEnumeratePhysicalDevices(m_VKContext->GetVKInstance(), &numGPUs, pGPUs.data());
+			std::vector<vk::PhysicalDevice> pGPUs(numGPUs);
+			m_VKContext->GetVKInstance().enumeratePhysicalDevices(&numGPUs, pGPUs.data());
 			m_PhysicalDevice = pGPUs[0];
 			m_PhysicalDeviceProperties = m_PhysicalDevice.getProperties();
 			m_MemoryProperties = m_PhysicalDevice.getMemoryProperties();

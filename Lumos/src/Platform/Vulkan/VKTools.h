@@ -32,25 +32,24 @@ namespace Lumos
 		{
             uint32_t FindMemoryType(uint32_t typeFilter, vk::MemoryPropertyFlags properties);
 
-			void CreateBuffer(VkDeviceSize size, VkBufferUsageFlags usage, VkMemoryPropertyFlags properties, VkBuffer& buffer,
-			                  VkDeviceMemory& bufferMemory);
+			void CreateBuffer(vk::DeviceSize size, vk::BufferUsageFlags usage, vk::MemoryPropertyFlags properties, vk::Buffer& buffer,
+				vk::DeviceMemory& bufferMemory);
 
 			void endSingleTimeCommands(VkCommandBuffer commandBuffer);
 
 			VkCommandBuffer beginSingleTimeCommands();
 
-			void copyBufferToImage(VkBuffer buffer, VkImage image, uint32_t width, uint32_t height);
-			void copyBuffer(VkBuffer srcBuffer, VkBuffer dstBuffer, VkDeviceSize size);
+			void CopyBufferToImage(vk::Buffer buffer, vk::Image image, uint32_t width, uint32_t height);
+			void CopyBuffer(vk::Buffer srcBuffer, vk::Buffer dstBuffer, vk::DeviceSize size);
 
-			bool hasStencilComponent(VkFormat format);
+			bool HasStencilComponent(vk::Format format);
 
-			void transitionImageLayout(VkImage image, VkFormat format, VkImageLayout oldLayout, VkImageLayout newLayout);
-			void transitionImageLayout(VkImage image, VkFormat format, VkImageLayout oldLayout, VkImageLayout newLayout, uint32_t mipLevels);
+			void TransitionImageLayout(vk::Image image, vk::Format format, vk::ImageLayout oldLayout, vk::ImageLayout newLayout, uint32_t mipLevels = 1);
 
 			vk::Format findSupportedFormat(const std::vector<vk::Format>& candidates, vk::ImageTiling tiling,
 			                             vk::FormatFeatureFlags features);
 
-			vk::Format findDepthFormat();
+			vk::Format FindDepthFormat();
 
 			std::string errorString(VkResult errorCode);
 
@@ -58,25 +57,24 @@ namespace Lumos
 			vk::CullModeFlags CullModeToVK(api::CullMode mode);
 			vk::DescriptorType DescriptorTypeToVK(api::DescriptorType type);
 			vk::ShaderStageFlags ShaderStageToVK(api::ShaderStage type);
-			vk::Format FormatToVK(api::Format format);
 
-			void setImageLayout(
-				VkCommandBuffer cmdbuffer,
-				VkImage image,
-				VkImageLayout oldImageLayout,
-				VkImageLayout newImageLayout,
-				VkImageSubresourceRange subresourceRange,
-				VkPipelineStageFlags srcStageMask = VK_PIPELINE_STAGE_ALL_COMMANDS_BIT,
-				VkPipelineStageFlags dstStageMask = VK_PIPELINE_STAGE_ALL_COMMANDS_BIT);
+			void SetImageLayout(
+				vk::CommandBuffer cmdbuffer,
+				vk::Image image,
+				vk::ImageLayout oldImageLayout,
+				vk::ImageLayout newImageLayout,
+				vk::ImageSubresourceRange subresourceRange,
+				vk::PipelineStageFlags srcStageMask = vk::PipelineStageFlagBits::eAllCommands,
+				vk::PipelineStageFlags dstStageMask = vk::PipelineStageFlagBits::eAllCommands);
 			// Uses a fixed sub resource layout with first mip level and layer
-			void setImageLayout(
-				VkCommandBuffer cmdbuffer,
-				VkImage image,
-				VkImageAspectFlags aspectMask,
-				VkImageLayout oldImageLayout,
-				VkImageLayout newImageLayout,
-				VkPipelineStageFlags srcStageMask = VK_PIPELINE_STAGE_ALL_COMMANDS_BIT,
-				VkPipelineStageFlags dstStageMask = VK_PIPELINE_STAGE_ALL_COMMANDS_BIT);
+			void SetImageLayout(
+				vk::CommandBuffer cmdbuffer,
+				vk::Image image,
+				vk::ImageAspectFlags aspectMask,
+				vk::ImageLayout oldImageLayout,
+				vk::ImageLayout newImageLayout,
+				vk::PipelineStageFlags srcStageMask = vk::PipelineStageFlagBits::eAllCommands,
+				vk::PipelineStageFlags dstStageMask = vk::PipelineStageFlagBits::eAllCommands);
 
 				VkPipelineShaderStageCreateInfo loadShader(std::string fileName, VkShaderStageFlagBits stage);
 		}

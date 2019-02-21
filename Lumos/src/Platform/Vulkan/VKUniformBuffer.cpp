@@ -10,8 +10,8 @@ namespace Lumos
 	{
 		VKUniformBuffer::VKUniformBuffer(uint32_t size, const void* data)
 		{
-			VKTools::CreateBuffer(size, VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT,
-			VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, m_Buffer,
+			VKTools::CreateBuffer(size, vk::BufferUsageFlagBits::eUniformBuffer,
+			vk::MemoryPropertyFlagBits::eHostVisible | vk::MemoryPropertyFlagBits::eHostCoherent, m_Buffer,
 			m_Memory);
 		}
 
@@ -25,30 +25,29 @@ namespace Lumos
 
 		void VKUniformBuffer::Init(uint32_t size, const void* data)
 		{
-			VKTools::CreateBuffer(size, VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT,
-				VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, m_Buffer, m_Memory
+			VKTools::CreateBuffer(size, vk::BufferUsageFlagBits::eUniformBuffer,
+				vk::MemoryPropertyFlagBits::eHostVisible | vk::MemoryPropertyFlagBits::eHostCoherent, m_Buffer, m_Memory
 			);
 		}
 
 		void VKUniformBuffer::SetData(uint32_t size, const void* data)
 		{
 			void* temp;
-			vkMapMemory(VKDevice::Instance()->GetDevice(), m_Memory, 0, size, 0, &temp);
-			memcpy(temp, data, size);
-			vkUnmapMemory(VKDevice::Instance()->GetDevice(), m_Memory);
+			VKDevice::Instance()->GetDevice().mapMemory(m_Memory, vk::DeviceSize(0), size, vk::MemoryMapFlagBits(), &temp);
+			memcpy(temp, data, static_cast<size_t>(size));
+			VKDevice::Instance()->GetDevice().unmapMemory(m_Memory);
 		}
 
 		void VKUniformBuffer::SetDynamicData(uint32_t size, uint32_t typeSize, const void* data)
 		{
 			void* temp;
-			vkMapMemory(VKDevice::Instance()->GetDevice(), m_Memory, 0, size, 0, &temp);
+			VKDevice::Instance()->GetDevice().mapMemory(m_Memory, vk::DeviceSize(0), size, vk::MemoryMapFlagBits(), &temp);
 			memcpy(temp, data, size);
-			// Flush to make changes visible to the host
-			VkMappedMemoryRange memoryRange = initializers::mappedMemoryRange();
+			vk::MappedMemoryRange memoryRange;
 			memoryRange.memory = m_Memory;
 			memoryRange.size = size;
-			vkFlushMappedMemoryRanges(VKDevice::Instance()->GetDevice(), 1, &memoryRange);
-			vkUnmapMemory(VKDevice::Instance()->GetDevice(), m_Memory);
+			VKDevice::Instance()->GetDevice().flushMappedMemoryRanges(1, &memoryRange);
+			VKDevice::Instance()->GetDevice().unmapMemory(m_Memory);
 		}
 	}
 }

@@ -12,25 +12,6 @@ namespace Lumos
 	{
 		class VKTextureCube : public TextureCube
 		{
-		private:
-			String m_Name;
-			String m_Files[MAX_MIPS];
-			uint m_Handle;
-			uint m_Width, m_Height, m_Size;
-			uint m_NumMips;
-			byte* m_Data = nullptr;
-
-			TextureParameters m_Parameters;
-			TextureLoadOptions m_LoadOptions;
-
-			VkImage m_TextureImage;
-			VkImageLayout m_ImageLayout;
-			VkDeviceMemory m_TextureImageMemory;
-			VkImageView m_TextureImageView;// = nullptr;
-			VkSampler m_TextureSampler;// = nullptr;
-			VkDescriptorImageInfo m_Descriptor;
-
-			bool m_DeleteImage = true;
 		public:
 			VKTextureCube(uint size);
 			VKTextureCube(const String& name, const String& filepath);
@@ -38,7 +19,7 @@ namespace Lumos
 			VKTextureCube(const String& name, const String* files, uint mips, InputFormat format);
 			~VKTextureCube();
 
-			static VkFormat TextureFormatToVK(TextureFormat);
+			static vk::Format TextureFormatToVK(TextureFormat);
 
 			virtual void* GetHandle() const override { return (void*)m_TextureImageView; }
 
@@ -50,21 +31,41 @@ namespace Lumos
 			inline const String& GetFilepath() const override { return m_Files[0]; }
 
 			void CreateTextureSampler();
-			void CreateImage(uint32_t width, uint32_t height, uint32_t mipLevels, VkFormat format, VkImageTiling tiling,
-				VkImageUsageFlags usage, VkMemoryPropertyFlags properties, VkImage& image,
-				VkDeviceMemory& imageMemory);
-			VkImageView createImageView(VkImage image, VkFormat format, uint32_t mipLevels);
+			void CreateImage(uint32_t width, uint32_t height, uint32_t mipLevels, vk::Format format, vk::ImageTiling tiling,
+			vk::ImageUsageFlags usage, vk::MemoryPropertyFlags properties, vk::Image& image,
+			vk::DeviceMemory& imageMemory);
+			vk::ImageView CreateImageView(vk::Image image, vk::Format format, uint32_t mipLevels);
 
-			VkDescriptorImageInfo* GetDescriptor() { return &m_Descriptor; }
+			vk::DescriptorImageInfo* GetDescriptor() { return &m_Descriptor; }
 
 			void UpdateDescriptor();
 
 			void Load(uint mips);
 
-			VkImage GetImage() const { return m_TextureImage; };
-			VkDeviceMemory GetDeviceMemory() const { return m_TextureImageMemory; }
-			VkImageView GetImageView() const { return  m_TextureImageView; }
-			VkSampler GetSampler() const { return m_TextureSampler; }
+			vk::Image GetImage() const { return m_TextureImage; };
+			vk::DeviceMemory GetDeviceMemory() const { return m_TextureImageMemory; }
+			vk::ImageView GetImageView() const { return  m_TextureImageView; }
+			vk::Sampler GetSampler() const { return m_TextureSampler; }
+
+		private:
+			String m_Name;
+			String m_Files[MAX_MIPS];
+			uint m_Handle;
+			uint m_Width, m_Height, m_Size;
+			uint m_NumMips;
+			byte* m_Data = nullptr;
+
+			TextureParameters m_Parameters;
+			TextureLoadOptions m_LoadOptions;
+
+			vk::Image m_TextureImage;
+			vk::ImageLayout m_ImageLayout;
+			vk::DeviceMemory m_TextureImageMemory;
+			vk::ImageView m_TextureImageView;// = nullptr;
+			vk::Sampler m_TextureSampler;// = nullptr;
+			vk::DescriptorImageInfo m_Descriptor;
+
+			bool m_DeleteImage = true;
 		};
 	}
 }

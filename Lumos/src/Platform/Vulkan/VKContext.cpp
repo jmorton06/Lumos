@@ -103,6 +103,9 @@ namespace Lumos
 			// Note that multiple flags may be set for a single validation message
 			// Error that may result in undefined behaviour
 
+			LUMOS_CORE_WARN("[VULKAN] : [{0}] Code {1}  : {2}", layerPrefix, code, msg);
+			return false;
+
 			if (flags & vk::DebugReportFlagBitsEXT::eError)
 			{
 				LUMOS_CORE_WARN("[VULKAN] - ERROR : [{0}] Code {1}  : {2}", layerPrefix, code, msg);
@@ -137,8 +140,8 @@ namespace Lumos
 			uint32_t layerCount;
 			vkEnumerateInstanceLayerProperties(&layerCount, nullptr);
 
-			std::vector<VkLayerProperties> availableLayers(layerCount);
-			vkEnumerateInstanceLayerProperties(&layerCount, availableLayers.data());
+			std::vector<vk::LayerProperties> availableLayers(layerCount);
+			vk::enumerateInstanceLayerProperties(&layerCount, availableLayers.data());
 
 			for (const char* layerName : validationLayers)
 			{

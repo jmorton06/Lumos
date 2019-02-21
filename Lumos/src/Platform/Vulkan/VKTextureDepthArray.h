@@ -10,19 +10,6 @@ namespace Lumos
 	{
 		class VKTextureDepthArray : public TextureDepthArray
 		{
-		private:
-			String m_Name;
-			uint m_Handle;
-			uint m_Width, m_Height;
-			uint m_Count;
-
-			VkImage m_TextureImage;
-			VkDeviceMemory m_TextureImageMemory;
-			VkImageView m_TextureImageView;
-			VkSampler m_TextureSampler;
-			VkDescriptorImageInfo m_Descriptor;
-
-			std::vector<VkImageView> m_IndividualImageViews;
 		public:
 			VKTextureDepthArray(uint width, uint height, uint count);
 			~VKTextureDepthArray();
@@ -37,21 +24,35 @@ namespace Lumos
 			inline const String& GetFilepath() const override { return m_Name; }
 
 			void CreateTextureSampler();
-			void CreateImage(uint32_t width, uint32_t height, VkFormat format, VkImageTiling tiling,
-			                 VkImageUsageFlags usage, VkMemoryPropertyFlags properties, VkImage& image,
-			                 VkDeviceMemory& imageMemory);
-			void createImageView(VkImage image, VkFormat format, VkImageAspectFlags aspectFlags);
+			void CreateImage(uint32_t width, uint32_t height, vk::Format format, vk::ImageTiling tiling,
+			                 vk::ImageUsageFlags usage, vk::MemoryPropertyFlags properties, vk::Image& image,
+			                 vk::DeviceMemory& imageMemory);
+			void CreateImageView(vk::Image image, vk::Format format, vk::ImageAspectFlags aspectFlags);
 
-			VkImage GetImage() const { return m_TextureImage; };
-			VkDeviceMemory GetDeviceMemory() const { return m_TextureImageMemory; }
-			VkImageView GetImageView() const { return  m_TextureImageView; }
-			VkImageView GetImageView(int index) const { return  m_IndividualImageViews[index]; }
-			VkSampler GetSampler() const { return m_TextureSampler; }
-			VkDescriptorImageInfo* GetDescriptor() { return &m_Descriptor; }
+			vk::Image GetImage() const { return m_TextureImage; };
+			vk::DeviceMemory GetDeviceMemory() const { return m_TextureImageMemory; }
+			vk::ImageView GetImageView() const { return  m_TextureImageView; }
+			vk::ImageView GetImageView(int index) const { return  m_IndividualImageViews[index]; }
+			vk::Sampler GetSampler() const { return m_TextureSampler; }
+			vk::DescriptorImageInfo* GetDescriptor() { return &m_Descriptor; }
 			void UpdateDescriptor();
 
 		protected:
 			void Init() override;
+
+		private:
+			String m_Name;
+			uint m_Handle;
+			uint m_Width, m_Height;
+			uint m_Count;
+
+			vk::Image m_TextureImage;
+			vk::DeviceMemory m_TextureImageMemory;
+			vk::ImageView m_TextureImageView;
+			vk::Sampler m_TextureSampler;
+			vk::DescriptorImageInfo m_Descriptor;
+
+			std::vector<vk::ImageView> m_IndividualImageViews;
 		};
 	}
 }
