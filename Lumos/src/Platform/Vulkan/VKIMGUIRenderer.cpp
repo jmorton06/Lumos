@@ -170,7 +170,6 @@ namespace Lumos
 				unsigned char* pixels;
 				int width, height;
 				io.Fonts->GetTexDataAsRGBA32(&pixels, &width, &height);
-				size_t upload_size = width * height * 4 * sizeof(char);
 
 				auto fontTex = new VKTexture2D(width, height, pixels);
 

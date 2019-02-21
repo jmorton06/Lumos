@@ -60,7 +60,7 @@ namespace Lumos
 				depthAttachment.stencilLoadOp = vk::AttachmentLoadOp::eDontCare;
 				depthAttachment.stencilStoreOp = vk::AttachmentStoreOp::eDontCare;
 				depthAttachment.initialLayout = vk::ImageLayout::eUndefined;
-				depthAttachment.finalLayout = vk::ImageLayout::eDepthStencilReadOnlyOptimal;// VK_IMAGE_LAYOUT_DEPTH_STENCIL_READ_ONLY_OPTIMAL;
+				depthAttachment.finalLayout = vk::ImageLayout::eDepthStencilReadOnlyOptimal;
 				return depthAttachment;
 			}
 			else
@@ -76,6 +76,7 @@ namespace Lumos
 			vk::SubpassDependency dependency = {};
 			dependency.srcSubpass = VK_SUBPASS_EXTERNAL;
 			dependency.dstSubpass = 0;
+            //dependency.srcAccessMask = 0;
 			dependency.srcStageMask = vk::PipelineStageFlagBits::eColorAttachmentOutput;
 			dependency.dstStageMask = vk::PipelineStageFlagBits::eColorAttachmentOutput;
 			dependency.dstAccessMask = vk::AccessFlagBits::eColorAttachmentRead | vk::AccessFlagBits::eColorAttachmentWrite;

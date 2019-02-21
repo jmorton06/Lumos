@@ -187,7 +187,7 @@ namespace Lumos
 					LUMOS_CORE_ERROR("unsupported layout transition!");
 				}
 
-				commandBuffer.pipelineBarrier(sourceStage, destinationStage, vk::DependencyFlagBits::eDeviceGroupKHR, 0, nullptr, 0, nullptr, 1, &barrier);
+				commandBuffer.pipelineBarrier(sourceStage, destinationStage, static_cast<vk::DependencyFlagBits>(0), 0, nullptr, 0, nullptr, 1, &barrier);
 
 				/*vkCmdPipelineBarrier(
 					commandBuffer,
@@ -305,7 +305,7 @@ namespace Lumos
 				{
 				case api::DescriptorType::UNIFORM_BUFFER		 : return vk::DescriptorType::eUniformBuffer;
 				case api::DescriptorType::UNIFORM_BUFFER_DYNAMIC : return vk::DescriptorType::eUniformBufferDynamic;
-				case api::DescriptorType::IMAGE_SAMPLER			 : return  vk::DescriptorType::eCombinedImageSampler;
+				case api::DescriptorType::IMAGE_SAMPLER			 : return vk::DescriptorType::eCombinedImageSampler;
 				}
 
 				return vk::DescriptorType::eUniformBuffer;
@@ -435,7 +435,7 @@ namespace Lumos
 				}
 
 				// Put barrier inside setup command buffer
-				cmdbuffer.pipelineBarrier(srcStageMask, dstStageMask, vk::DependencyFlagBits(), 0, nullptr, 0, nullptr, 1, &imageMemoryBarrier);
+				cmdbuffer.pipelineBarrier(srcStageMask, dstStageMask, static_cast<vk::DependencyFlagBits>(0), 0, nullptr, 0, nullptr, 1, &imageMemoryBarrier);
 			}
 
 			// Fixed sub resource on first mip level and layer
