@@ -50,8 +50,7 @@ namespace Lumos
         void VKRenderer::PresentInternal()
         {
             m_Swapchain->Present(m_ImageAvailableSemaphore[m_CurrentSemaphoreIndex]);
-			
-            vkQueueWaitIdle(VKDevice::Instance()->GetPresentQueue());
+			VKDevice::Instance()->GetPresentQueue().waitIdle();
         }
 
 		void VKRenderer::OnResize(uint width, uint height)
@@ -208,7 +207,7 @@ namespace Lumos
 			for(auto pc : static_cast<graphics::VKDescriptorSet*>(pipeline->GetDescriptorSet())->GetPushConstants())
 			{
 				//TODO : Shader Stage;
-				vkCmdPushConstants(static_cast<graphics::VKCommandBuffer*>(cmdBuffer)->GetCommandBuffer(), static_cast<graphics::VKPipeline*>(pipeline)->GetPipelineLayout(), VK_SHADER_STAGE_VERTEX_BIT, index, pc.size, pc.data);
+				static_cast<graphics::VKCommandBuffer*>(cmdBuffer)->GetCommandBuffer().pushConstants(static_cast<graphics::VKPipeline*>(pipeline)->GetPipelineLayout(), vk::ShaderStageFlagBits::eVertex, index, pc.size, pc.data);
 			}
 
 

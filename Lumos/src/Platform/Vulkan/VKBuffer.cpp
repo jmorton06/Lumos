@@ -50,7 +50,7 @@ namespace Lumos
 			uint32_t memory_index = memoryIndexFromPropertyFlags(memory_properties, 
 				memory_requirements, vk::MemoryPropertyFlagBits::eHostVisible | vk::MemoryPropertyFlagBits::eHostCoherent);
 			if (memory_index == INVALID_MEMORY_INDEX)
-				throw std::runtime_error("Invalid memory index");
+				LUMOS_CORE_ERROR("Invalid memory index");
 
 			vk::MemoryAllocateInfo allocate_info{};
 			allocate_info.allocationSize = memory_requirements.size;
@@ -60,20 +60,17 @@ namespace Lumos
 			VKDevice::Instance()->GetDevice().bindBufferMemory(upload_buffer, upload_memory, 0);
 
 			void* transfer_data = VKDevice::Instance()->GetDevice().mapMemory(upload_memory, 0, size);
-
 			memcpy(transfer_data, data, size);
-
 			VKDevice::Instance()->GetDevice().unmapMemory(upload_memory);
 
 			buffer_desc.usage = vk::BufferUsageFlagBits::eTransferDst | usage;
 			m_Buffer = VKDevice::Instance()->GetDevice().createBuffer(buffer_desc);
 
 			memory_requirements = VKDevice::Instance()->GetDevice().getBufferMemoryRequirements(m_Buffer);
+			memory_index = memoryIndexFromPropertyFlags(memory_properties, memory_requirements, vk::MemoryPropertyFlagBits::eDeviceLocal);
 
-			memory_index = memoryIndexFromPropertyFlags(memory_properties,
-				memory_requirements, vk::MemoryPropertyFlagBits::eDeviceLocal);
 			if (memory_index == INVALID_MEMORY_INDEX)
-				throw std::runtime_error("Invalid memory index");
+				LUMOS_CORE_ERROR("Invalid memory index");
 
 			allocate_info.allocationSize = memory_requirements.size;
 			allocate_info.memoryTypeIndex = memory_index;

@@ -83,7 +83,7 @@ namespace Lumos
 			case TextureFormat::RGBA8:				return vk::Format::eR8G8B8A8Unorm;
 			case TextureFormat::LUMINANCE:			return vk::Format::eR8G8B8A8Unorm;
 			case TextureFormat::LUMINANCE_ALPHA:	return vk::Format::eR8G8B8A8Unorm;
-			case TextureFormat::RGB16: 				return vk::Format::eR16G16B16A16Unorm;
+			case TextureFormat::RGB16: 				return vk::Format::eR16G16B16A16Sfloat;
 			default: LUMOS_CORE_ERROR("[Texture] Unsupported image bit-depth!");  return vk::Format::eR8G8B8A8Unorm;
 			}
 		}
@@ -260,7 +260,7 @@ namespace Lumos
 
 			CreateImage(faceWidths[0], faceHeights[0], m_NumMips, vk::Format::eR8G8B8A8Unorm, vk::ImageTiling::eOptimal, /*vk::ImageUsageFlagBits::eTransferSrc|*/ vk::ImageUsageFlagBits::eTransferDst | vk::ImageUsageFlagBits::eSampled, vk::MemoryPropertyFlagBits::eDeviceLocal, m_TextureImage, m_TextureImageMemory);
 
-			vk::CommandBuffer cmdBuffer = VKTools::beginSingleTimeCommands();
+			vk::CommandBuffer cmdBuffer = VKTools::BeginSingleTimeCommands();
 
 			// Setup buffer copy regions for each face including all of it's miplevels
 			std::vector<vk::BufferImageCopy> bufferCopyRegions;
@@ -314,7 +314,7 @@ namespace Lumos
 				m_ImageLayout,
 				subresourceRange);
 
-			VKTools::endSingleTimeCommands(cmdBuffer);
+			VKTools::EndSingleTimeCommands(cmdBuffer);
 
 			CreateTextureSampler();
 			m_TextureImageView =  CreateImageView(m_TextureImage, vk::Format::eR8G8B8A8Unorm, m_NumMips);

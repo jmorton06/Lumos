@@ -1,7 +1,7 @@
 require 'Scripts/ios'
 require 'Scripts/premakeDefines'
 
-workspace "LumosEngine"
+workspace "Lumos"
 	architecture "x64"
 
 	configurations
