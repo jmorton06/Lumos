@@ -581,8 +581,8 @@ namespace ImGuizmo
 
    static Context gContext;
 
-   static const float angleLimit = 0.96f;
-   static const float planeLimit = 0.2f;
+   //static const float angleLimit = 0.96f;
+   //static const float planeLimit = 0.2f;
 
    static const vec_t directionUnary[3] = { makeVect(1.f, 0.f, 0.f), makeVect(0.f, 1.f, 0.f), makeVect(0.f, 0.f, 1.f) };
    static const ImU32 directionColor[3] = { 0xFF0000AA, 0xFF00AA00, 0xFFAA0000 };

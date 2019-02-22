@@ -86,15 +86,9 @@ namespace Lumos
 
 		auto& io = ImGui::GetIO();
 		ImGuizmo::SetRect(0, 0, io.DisplaySize.x, io.DisplaySize.y);
-		ImVec2 size = ImGui::GetWindowSize();
-		//size.y -= 110;
+	
 		maths::Matrix4 view = m_pScene->GetCamera()->GetViewMatrix();
 		maths::Matrix4 proj = m_pScene->GetCamera()->GetProjectionMatrix();
-
-		ImVec2 const rectSize = ImGui::GetItemRectSize();
-		ImVec2 const rectMin = ImGui::GetItemRectMin();
-
-		ImGuizmo::SetRect(rectMin.x, rectMin.y, rectSize.x, rectSize.y);
 
 		ImGuizmo::SetDrawlist();
 
