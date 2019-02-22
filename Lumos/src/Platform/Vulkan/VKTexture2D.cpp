@@ -146,7 +146,7 @@ namespace Lumos
 			case TextureFormat::RGBA8:				return vk::Format::eR8G8B8A8Unorm;
 			case TextureFormat::LUMINANCE:			return vk::Format::eR8G8B8A8Unorm;
 			case TextureFormat::LUMINANCE_ALPHA:	return vk::Format::eR8G8B8A8Unorm;
-			case TextureFormat::RGB16: 				return vk::Format::eR16G16B16A16Unorm;
+			case TextureFormat::RGB16: 				return vk::Format::eR16G16B16A16Sfloat;
 			default: LUMOS_CORE_ERROR("[Texture] Unsupported image bit-depth!");  return vk::Format::eR8G8B8A8Unorm;
 			}
 		}
@@ -263,7 +263,7 @@ namespace Lumos
 
 		void GenerateMipmaps(vk::Image image, int32_t texWidth, int32_t texHeight, uint32_t mipLevels) 
 		{
-            vk::CommandBuffer commandBuffer = VKTools::beginSingleTimeCommands();
+            vk::CommandBuffer commandBuffer = VKTools::BeginSingleTimeCommands();
 
             vk::ImageMemoryBarrier barrier = {};
 			barrier.image = image;
@@ -323,7 +323,7 @@ namespace Lumos
 
 			commandBuffer.pipelineBarrier(vk::PipelineStageFlagBits::eTransfer, vk::PipelineStageFlagBits::eFragmentShader, static_cast<vk::DependencyFlagBits>(0), 0, nullptr, 0, nullptr, 1, &barrier);
 
-			VKTools::endSingleTimeCommands(commandBuffer);
+			VKTools::EndSingleTimeCommands(commandBuffer);
 		}
 
 

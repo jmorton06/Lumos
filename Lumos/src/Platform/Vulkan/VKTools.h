@@ -35,9 +35,9 @@ namespace Lumos
 			void CreateBuffer(vk::DeviceSize size, vk::BufferUsageFlags usage, vk::MemoryPropertyFlags properties, vk::Buffer& buffer,
 				vk::DeviceMemory& bufferMemory);
 
-			void endSingleTimeCommands(VkCommandBuffer commandBuffer);
+			void EndSingleTimeCommands(vk::CommandBuffer commandBuffer);
 
-			VkCommandBuffer beginSingleTimeCommands();
+			vk::CommandBuffer BeginSingleTimeCommands();
 
 			void CopyBufferToImage(vk::Buffer buffer, vk::Image image, uint32_t width, uint32_t height);
 			void CopyBuffer(vk::Buffer srcBuffer, vk::Buffer dstBuffer, vk::DeviceSize size);
@@ -46,7 +46,7 @@ namespace Lumos
 
 			void TransitionImageLayout(vk::Image image, vk::Format format, vk::ImageLayout oldLayout, vk::ImageLayout newLayout, uint32_t mipLevels = 1);
 
-			vk::Format findSupportedFormat(const std::vector<vk::Format>& candidates, vk::ImageTiling tiling,
+			vk::Format FindSupportedFormat(const std::vector<vk::Format>& candidates, vk::ImageTiling tiling,
 			                             vk::FormatFeatureFlags features);
 
 			vk::Format FindDepthFormat();

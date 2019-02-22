@@ -51,45 +51,40 @@ namespace Lumos
 				VKDevice::Instance()->GetDevice().bindBufferMemory(buffer,bufferMemory, 0);
 			}
 
-			void endSingleTimeCommands(VkCommandBuffer commandBuffer)
+			vk::CommandBuffer BeginSingleTimeCommands()
 			{
-				vkEndCommandBuffer(commandBuffer);
-
-				VkSubmitInfo submitInfo = {};
-				submitInfo.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
-				submitInfo.commandBufferCount = 1;
-				submitInfo.pCommandBuffers = &commandBuffer;
-
-				vkQueueSubmit(VKDevice::Instance()->GetGraphicsQueue(), 1, &submitInfo, VK_NULL_HANDLE);
-				vkQueueWaitIdle(VKDevice::Instance()->GetGraphicsQueue());
-
-				vkFreeCommandBuffers(VKDevice::Instance()->GetDevice(),
-				                     VKDevice::Instance()->GetVKContext()->GetCommandPool()->GetCommandPool(), 1, &commandBuffer);
-			}
-
-			VkCommandBuffer beginSingleTimeCommands()
-			{
-				VkCommandBufferAllocateInfo allocInfo = {};
-				allocInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
-				allocInfo.level = VK_COMMAND_BUFFER_LEVEL_PRIMARY;
+				vk::CommandBufferAllocateInfo allocInfo = {};
+				allocInfo.level = vk::CommandBufferLevel::ePrimary;
 				allocInfo.commandPool = VKDevice::Instance()->GetVKContext()->GetCommandPool()->GetCommandPool();
 				allocInfo.commandBufferCount = 1;
 
-				VkCommandBuffer commandBuffer;
-				vkAllocateCommandBuffers(VKDevice::Instance()->GetDevice(), &allocInfo, &commandBuffer);
+				vk::CommandBuffer commandBuffer = VKDevice::Instance()->GetDevice().allocateCommandBuffers(allocInfo)[0];
 
-				VkCommandBufferBeginInfo beginInfo = {};
-				beginInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
-				beginInfo.flags = VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT;
+				vk::CommandBufferBeginInfo beginInfo = {};
+				beginInfo.flags = vk::CommandBufferUsageFlagBits::eOneTimeSubmit;
 
-				vkBeginCommandBuffer(commandBuffer, &beginInfo);
+				commandBuffer.begin(beginInfo);
 
 				return commandBuffer;
 			}
 
+			void EndSingleTimeCommands(vk::CommandBuffer commandBuffer)
+			{
+				vkEndCommandBuffer(commandBuffer);
+
+				vk::SubmitInfo submitInfo = {};
+				submitInfo.commandBufferCount = 1;
+				submitInfo.pCommandBuffers = &commandBuffer;
+
+				VKDevice::Instance()->GetGraphicsQueue().submit(1, &submitInfo, nullptr);
+				VKDevice::Instance()->GetGraphicsQueue().waitIdle();
+
+				VKDevice::Instance()->GetDevice().freeCommandBuffers(VKDevice::Instance()->GetVKContext()->GetCommandPool()->GetCommandPool(), 1, &commandBuffer);
+			}
+
 			void CopyBufferToImage(vk::Buffer buffer, vk::Image image, uint32_t width, uint32_t height)
 			{
-				vk::CommandBuffer commandBuffer = beginSingleTimeCommands();
+				vk::CommandBuffer commandBuffer = BeginSingleTimeCommands();
 
 				vk::BufferImageCopy region = {};
 				region.bufferOffset = 0;
@@ -105,18 +100,18 @@ namespace Lumos
 
 				commandBuffer.copyBufferToImage(buffer, image, vk::ImageLayout::eTransferDstOptimal, 1, &region);
 
-				VKTools::endSingleTimeCommands(commandBuffer);
+				VKTools::EndSingleTimeCommands(commandBuffer);
 			}
 
 			void CopyBuffer(vk::Buffer srcBuffer, vk::Buffer dstBuffer, vk::DeviceSize size)
 			{
-				vk::CommandBuffer commandBuffer = VKTools::beginSingleTimeCommands();
+				vk::CommandBuffer commandBuffer = VKTools::BeginSingleTimeCommands();
 
 				vk::BufferCopy copyRegion = {};
 				copyRegion.size = size;
 				commandBuffer.copyBuffer(srcBuffer, dstBuffer, copyRegion);
 
-				VKTools::endSingleTimeCommands(commandBuffer);
+				VKTools::EndSingleTimeCommands(commandBuffer);
 			}
 
 			bool HasStencilComponent(vk::Format format)
@@ -127,7 +122,7 @@ namespace Lumos
 			void TransitionImageLayout(vk::Image image, vk::Format format, vk::ImageLayout oldLayout, vk::ImageLayout newLayout,
 				uint32_t mipLevels)
 			{
-				vk::CommandBuffer commandBuffer = beginSingleTimeCommands();
+				vk::CommandBuffer commandBuffer = BeginSingleTimeCommands();
 
 				vk::ImageMemoryBarrier barrier = {};
 				barrier.oldLayout = oldLayout;
@@ -160,7 +155,7 @@ namespace Lumos
 
 				if (oldLayout == vk::ImageLayout::eUndefined && newLayout == vk::ImageLayout::eTransferDstOptimal)
 				{
-					//barrier.srcAccessMask = 0;
+					barrier.srcAccessMask = vk::AccessFlagBits(0);
 					barrier.dstAccessMask = vk::AccessFlagBits::eTransferWrite;
 
 					sourceStage = vk::PipelineStageFlagBits::eTopOfPipe;
@@ -176,7 +171,7 @@ namespace Lumos
 				}
 				else if (oldLayout == vk::ImageLayout::eUndefined && newLayout == vk::ImageLayout::eDepthStencilAttachmentOptimal)
 				{
-					//barrier.srcAccessMask = 0;
+					barrier.srcAccessMask = vk::AccessFlagBits(0);
 					barrier.dstAccessMask = vk::AccessFlagBits::eDepthStencilAttachmentRead | vk::AccessFlagBits::eDepthStencilAttachmentWrite;
 
 					sourceStage = vk::PipelineStageFlagBits::eTopOfPipe;
@@ -189,19 +184,10 @@ namespace Lumos
 
 				commandBuffer.pipelineBarrier(sourceStage, destinationStage, static_cast<vk::DependencyFlagBits>(0), 0, nullptr, 0, nullptr, 1, &barrier);
 
-				/*vkCmdPipelineBarrier(
-					commandBuffer,
-					sourceStage, destinationStage,
-					0,
-					0, nullptr,
-					0, nullptr,
-					1, &barrier
-				);*/
-
-				endSingleTimeCommands(commandBuffer);
+				EndSingleTimeCommands(commandBuffer);
 			}
 
-			vk::Format findSupportedFormat(const std::vector<vk::Format>& candidates, vk::ImageTiling tiling,
+			vk::Format FindSupportedFormat(const std::vector<vk::Format>& candidates, vk::ImageTiling tiling,
 											vk::FormatFeatureFlags features)
 			{
 				for (vk::Format format : candidates)
@@ -223,7 +209,7 @@ namespace Lumos
 
 			vk::Format FindDepthFormat()
 			{
-				return findSupportedFormat(
+				return FindSupportedFormat(
 					{ vk::Format::eD32Sfloat, vk::Format::eD32SfloatS8Uint,vk::Format::eD24UnormS8Uint},
 					vk::ImageTiling::eOptimal,
 					vk::FormatFeatureFlagBits::eDepthStencilAttachment
@@ -268,7 +254,7 @@ namespace Lumos
 			{
 				switch(format)
 				{
-				case api::R32G32B32A32_FLOAT : return vk::Format::eR32G32B32A32Sfloat;// VK_FORMAT_R32G32B32A32_SFLOAT;
+				case api::R32G32B32A32_FLOAT : return vk::Format::eR32G32B32A32Sfloat;
 				case api::R32G32B32_FLOAT	 : return vk::Format::eR32G32B32Sfloat;
 				case api::R32G32_FLOAT		 : return vk::Format::eR32G32Sfloat;
 				default: return vk::Format::eR32G32B32Sfloat;
