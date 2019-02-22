@@ -3,19 +3,7 @@
 **Game Engine written in C++ using OpenGL and Vulkan.**
 
 [![Build status](https://img.shields.io/appveyor/ci/jmorton06/Lumos.svg?style=flat-square&label=Windows)](https://ci.appveyor.com/project/jmorton06/Lumos) [![Build status]( https://img.shields.io/travis/jmorton06/Lumos.svg?style=flat-square&label=Linux%20macOS)](https://travis-ci.org/jmorton06/Lumos)
-## Building
-
-### CMake
-
-```
-git clone https://github.com/jmorton06/Lumos.git
-cd Lumos
-
-mkdir build
-cd build
-cmake ..
-
-```
+## Building 
 
 ### Premake
 ```
