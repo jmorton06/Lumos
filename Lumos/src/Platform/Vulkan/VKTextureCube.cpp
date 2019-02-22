@@ -1,15 +1,13 @@
 #include "LM.h"
 #include "VKTextureCube.h"
 #include "VKDevice.h"
-#include "Utilities/LoadImage.h"
 #include "VKTools.h"
+#include "VKBuffer.h"
 #include "VKCommandBuffer.h"
 
+#include "Utilities/LoadImage.h"
 #include "Maths/MathsUtilities.h"
-
 #include <cmath>
-#include "VKInitialisers.h"
-#include "VKBuffer.h"
 
 namespace Lumos
 {

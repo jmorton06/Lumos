@@ -2,7 +2,6 @@
 #include "VKUniformBuffer.h"
 #include "VKDevice.h"
 #include "VKTools.h"
-#include "VKInitialisers.h"
 
 namespace Lumos
 {

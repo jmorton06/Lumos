@@ -11,7 +11,6 @@
 
 #include "VKDevice.h"
 
-#include "VKInitialisers.h"
 #ifndef LUMOS_PLATFORM_IOS
 #include <GLFW/glfw3.h>
 #include <GLFW/glfw3native.h>

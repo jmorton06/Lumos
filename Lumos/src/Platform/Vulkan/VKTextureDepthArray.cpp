@@ -3,7 +3,6 @@
 #include "VKDevice.h"
 #include "Utilities/LoadImage.h"
 #include "VKTools.h"
-#include "VKInitialisers.h"
 
 namespace Lumos
 {
