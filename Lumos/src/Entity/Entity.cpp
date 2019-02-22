@@ -2,8 +2,10 @@
 #include "Entity.h"
 
 #include "Graphics/Renderers/DebugRenderer.h"
+#include "App/Scene.h"
 
 #include <imgui/imgui.h>
+#include <imgui/plugins/ImGuizmo.h>
 
 namespace Lumos
 {
@@ -81,5 +83,29 @@ namespace Lumos
         }
         
         ImGui::End();
+
+		auto& io = ImGui::GetIO();
+		ImGuizmo::SetRect(0, 0, io.DisplaySize.x, io.DisplaySize.y);
+		ImVec2 size = ImGui::GetWindowSize();
+		//size.y -= 110;
+		maths::Matrix4 view = m_pScene->GetCamera()->GetViewMatrix();
+		maths::Matrix4 proj = m_pScene->GetCamera()->GetProjectionMatrix();
+
+		ImVec2 const rectSize = ImGui::GetItemRectSize();
+		ImVec2 const rectMin = ImGui::GetItemRectMin();
+
+		ImGuizmo::SetRect(rectMin.x, rectMin.y, rectSize.x, rectSize.y);
+
+		ImGuizmo::SetDrawlist();
+
+		maths::Matrix4 model = maths::Matrix4();
+		if (this->GetComponent<TransformComponent>() != nullptr)
+			model = GetComponent<TransformComponent>()->m_WorldSpaceTransform;
+		ImGuizmo::Manipulate(view.values, proj.values, ImGuizmo::TRANSLATE, ImGuizmo::WORLD, model.values, NULL, NULL);
+
+		if (this->GetComponent<TransformComponent>() != nullptr)
+			GetComponent<TransformComponent>()->SetBothTransforms(model);
+
+
     }
 }

@@ -41,6 +41,7 @@ namespace Lumos
 		bool OnwindowResizeEvent(WindowResizeEvent& e);
 
 		void SetImGuiKeyCodes();
+		void SetImGuiStyle();
 
         std::unique_ptr<graphics::api::IMGUIRenderer> m_IMGUIRenderer;
 		bool m_ClearScreen;
