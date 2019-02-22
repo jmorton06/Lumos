@@ -349,7 +349,7 @@ namespace Lumos
 
 			if (!pixels)
 			{
-				throw std::runtime_error("failed to load texture image!");
+                LUMOS_CORE_ERROR("failed to load texture image!");
 			}
 
 			m_MipLevels = static_cast<uint32_t>(std::floor(std::log2(maths::Max(texWidth, texHeight)))) + 1;
@@ -370,7 +370,6 @@ namespace Lumos
 				delete[] pixels;
 
             CreateImage(texWidth, texHeight, m_MipLevels, vk::Format::eR8G8B8A8Unorm, vk::ImageTiling::eOptimal,  vk::ImageUsageFlagBits::eTransferSrc | vk::ImageUsageFlagBits::eTransferDst | vk::ImageUsageFlagBits::eSampled, vk::MemoryPropertyFlagBits::eDeviceLocal, m_TextureImage, m_TextureImageMemory);
-
 
 			VKTools::TransitionImageLayout(m_TextureImage, vk::Format::eR8G8B8A8Unorm, vk::ImageLayout::eUndefined,
 				vk::ImageLayout::eTransferDstOptimal, m_MipLevels);

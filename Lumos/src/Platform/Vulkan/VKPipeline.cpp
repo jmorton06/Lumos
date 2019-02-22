@@ -4,7 +4,6 @@
 #include "VKCommandBuffer.h"
 #include "VKRenderpass.h"
 #include "VKShader.h"
-#include "VKInitialisers.h"
 #include "VKTools.h"
 #include "Graphics/API/DescriptorSet.h"
 

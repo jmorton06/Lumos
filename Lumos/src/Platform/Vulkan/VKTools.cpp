@@ -1,7 +1,6 @@
 #include "LM.h"
 #include "VKTools.h"
 #include "Graphics/API/DescriptorSet.h"
-#include "VKInitialisers.h"
 #include "Graphics/API/Pipeline.h"
 #include "Platform/Vulkan/VKCommandBuffer.h"
 
@@ -319,7 +318,7 @@ namespace Lumos
 				vk::PipelineStageFlags dstStageMask)
 			{
 				// Create an image barrier object
-				vk::ImageMemoryBarrier imageMemoryBarrier = initializers::imageMemoryBarrier();
+				vk::ImageMemoryBarrier imageMemoryBarrier;
 				imageMemoryBarrier.oldLayout = oldImageLayout;
 				imageMemoryBarrier.newLayout = newImageLayout;
 				imageMemoryBarrier.image = image;

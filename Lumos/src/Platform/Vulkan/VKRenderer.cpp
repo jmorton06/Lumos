@@ -4,7 +4,6 @@
 #include "VKShader.h"
 #include "VKVertexBuffer.h"
 #include "VKIndexBuffer.h"
-#include "VKInitialisers.h"
 #include "VKDescriptorSet.h"
 #include "Graphics/Mesh.h"
 #include "Graphics/Material.h"
