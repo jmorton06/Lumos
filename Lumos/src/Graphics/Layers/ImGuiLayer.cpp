@@ -179,16 +179,17 @@ namespace Lumos
 
 	void ImGuiLayer::SetImGuiStyle()
 	{
-		ImGuiIO& io = ImGui::GetIO();
-
+#if 0
 		std::string filePath = "/CoreTextures/DroidSans.ttf";
 		std::string physicalPath;
 		if (!VFS::Get()->ResolvePhysicalPath(filePath, physicalPath))
 			LUMOS_CORE_ERROR("Failed to Load font {0}", filePath);
 
 		filePath = physicalPath.c_str();
-		//io.Fonts->AddFontFromFileTTF(filePath.c_str(), 15.0f);
-		//io.IniFilename = nullptr;
+        ImGuiIO& io = ImGui::GetIO();
+		io.Fonts->AddFontFromFileTTF(filePath.c_str(), 15.0f);
+		io.IniFilename = nullptr;
+#endif
 
 		ImGuiStyle& style = ImGui::GetStyle();
 
