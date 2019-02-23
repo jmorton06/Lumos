@@ -9,9 +9,6 @@ namespace Lumos
 	{
 		class VKVertexBuffer : public VertexBuffer, public VKBuffer
 		{
-			BufferUsage m_Usage;
-			uint m_Size;
-			graphics::BufferLayout m_Layout;
 		public:
 			explicit VKVertexBuffer(BufferUsage usage);
 			~VKVertexBuffer();
@@ -29,6 +26,10 @@ namespace Lumos
 			void Unbind() override;
 		protected:
 			void* GetPointerInternal() override;
+
+			BufferUsage m_Usage;
+			uint m_Size;
+			graphics::BufferLayout m_Layout;
 		};
 
 	}

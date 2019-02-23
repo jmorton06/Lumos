@@ -26,24 +26,24 @@ namespace Lumos
 			m_ShaderStages = nullptr;
 		}
 
-		VkShaderStageFlagBits ShaderTypeToVK(const ShaderType& shaderName)
+		vk::ShaderStageFlagBits ShaderTypeToVK(const ShaderType& shaderName)
 		{
 			switch (shaderName)
 			{
-			case ShaderType::VERTEX: return VK_SHADER_STAGE_VERTEX_BIT;
-			case ShaderType::GEOMETRY: return VK_SHADER_STAGE_GEOMETRY_BIT;
-			case ShaderType::FRAGMENT: return VK_SHADER_STAGE_FRAGMENT_BIT;
-			case ShaderType::TESSELLATION_CONTROL: return VK_SHADER_STAGE_TESSELLATION_CONTROL_BIT;
-			case ShaderType::TESSELLATION_EVALUATION: return VK_SHADER_STAGE_TESSELLATION_EVALUATION_BIT;
-			case ShaderType::COMPUTE: return VK_SHADER_STAGE_COMPUTE_BIT;
-			case ShaderType::UNKNOWN: return VK_SHADER_STAGE_VERTEX_BIT;
-			default: return VK_SHADER_STAGE_VERTEX_BIT;
+			case ShaderType::VERTEX: return vk::ShaderStageFlagBits::eVertex;
+			case ShaderType::GEOMETRY: return vk::ShaderStageFlagBits::eGeometry;
+			case ShaderType::FRAGMENT: return vk::ShaderStageFlagBits::eFragment;
+			case ShaderType::TESSELLATION_CONTROL: return vk::ShaderStageFlagBits::eTessellationControl;
+			case ShaderType::TESSELLATION_EVALUATION: return vk::ShaderStageFlagBits::eTessellationEvaluation;
+			case ShaderType::COMPUTE: return vk::ShaderStageFlagBits::eCompute;
+			case ShaderType::UNKNOWN: return vk::ShaderStageFlagBits::eVertex;
+			default: return vk::ShaderStageFlagBits::eVertex;
 			}
 		}
 
 		bool VKShader::Init()
 		{
-			VkResult result;
+			VkResult result = VK_SUCCESS;
 			uint32_t currentShaderStage = 0;
 			m_StageCount = 0;
 
@@ -56,29 +56,25 @@ namespace Lumos
 				m_StageCount++;
 			}
 
-			m_ShaderStages = new VkPipelineShaderStageCreateInfo[m_StageCount];
+			m_ShaderStages = new vk::PipelineShaderStageCreateInfo[m_StageCount];
 
 			for (uint32_t i = 0; i < m_StageCount; i++)
-				m_ShaderStages[i] = {};
+                m_ShaderStages[i] = vk::PipelineShaderStageCreateInfo();
 
 			for (auto& file : *files)
 			{
 				auto fileSize = FileSystem::GetFileSize(m_FilePath + file.second); //TODO: once process
 				byte* source = FileSystem::ReadFile(m_FilePath + file.second);
-				VkShaderModuleCreateInfo vertexShaderCI{};
-				vertexShaderCI.sType = VK_STRUCTURE_TYPE_SHADER_MODULE_CREATE_INFO;
+				vk::ShaderModuleCreateInfo vertexShaderCI{};
 				vertexShaderCI.codeSize = fileSize;
 				vertexShaderCI.pCode = reinterpret_cast<uint32_t*>(source);
 				vertexShaderCI.pNext = VK_NULL_HANDLE;
-				vertexShaderCI.flags = 0;
 
-				m_ShaderStages[currentShaderStage].sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO;
 				m_ShaderStages[currentShaderStage].stage = ShaderTypeToVK(file.first);
 				m_ShaderStages[currentShaderStage].pName = "main";
 				m_ShaderStages[currentShaderStage].pNext = VK_NULL_HANDLE;
-				m_ShaderStages[currentShaderStage].flags = 0;
 
-				result = vkCreateShaderModule(VKDevice::Instance()->GetDevice(), &vertexShaderCI, VK_NULL_HANDLE, &m_ShaderStages[currentShaderStage].module);
+				m_ShaderStages[currentShaderStage].module = VKDevice::Instance()->GetDevice().createShaderModule(vertexShaderCI);
 
                 delete source;
 
@@ -100,7 +96,7 @@ namespace Lumos
 				vkDestroyShaderModule(VKDevice::Instance()->GetDevice(), m_ShaderStages[i].module, VK_NULL_HANDLE);
 		}
 
-		VkPipelineShaderStageCreateInfo* VKShader::GetShaderStages() const
+		vk::PipelineShaderStageCreateInfo* VKShader::GetShaderStages() const
 		{
 			return m_ShaderStages;
 		}

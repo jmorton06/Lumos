@@ -39,13 +39,13 @@ namespace Lumos
 
 		void VKVertexBuffer::SetData(uint size, const void* data)
 		{
-			VKBuffer::Init(VK_BUFFER_USAGE_VERTEX_BUFFER_BIT, size, data);
+			VKBuffer::Init(vk::BufferUsageFlagBits::eVertexBuffer, size, data);
 		}
 
 
 		void VKVertexBuffer::SetDataSub(uint size, const void* data, uint offset)
 		{
-			VKBuffer::Init(VK_BUFFER_USAGE_VERTEX_BUFFER_BIT, size, data);
+			VKBuffer::Init(vk::BufferUsageFlagBits::eVertexBuffer, size, data);
 		}
 
 

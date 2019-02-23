@@ -101,7 +101,7 @@ namespace Lumos
             wd->BackBufferCount = (uint32_t)swapChain->GetSwapchainBufferCount();
             
 			m_Renderpass = new VKRenderpass();
-            TextureType textureTypes[1] = { TextureType::COLOUR};
+            TextureType textureTypes[1] = { TextureType::COLOUR };
             graphics::api::RenderpassInfo renderpassCI{};
             renderpassCI.attachmentCount = 1;
             renderpassCI.textureType = textureTypes;
@@ -170,19 +170,17 @@ namespace Lumos
 				unsigned char* pixels;
 				int width, height;
 				io.Fonts->GetTexDataAsRGBA32(&pixels, &width, &height);
-				size_t upload_size = width * height * 4 * sizeof(char);
 
 				auto fontTex = new VKTexture2D(width, height, pixels);
 
-				VkWriteDescriptorSet write_desc[1] = {};
-				write_desc[0].sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
+                vk::WriteDescriptorSet write_desc[1] = {};
 				write_desc[0].dstSet = ImGui_ImplVulkanH_GetFontDescriptor();
 				write_desc[0].descriptorCount = 1;
-				write_desc[0].descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
+                write_desc[0].descriptorType = vk::DescriptorType::eCombinedImageSampler;
 				write_desc[0].pImageInfo = fontTex->GetDescriptor();
-				vkUpdateDescriptorSets(VKDevice::Instance()->GetDevice(), 1, write_desc, 0, NULL);
+				VKDevice::Instance()->GetDevice().updateDescriptorSets(1, write_desc, 0, nullptr);
 
-				io.Fonts->TexID = (ImTextureID)(intptr_t)fontTex->GetImage();
+				io.Fonts->TexID = (ImTextureID)(intptr_t)(VkImage)fontTex->GetImage();
 
                 ImGui_ImplVulkan_InvalidateFontUploadObjects();
             }

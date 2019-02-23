@@ -6,11 +6,11 @@ namespace Lumos
 {
 	namespace graphics
 	{
-		VKIndexBuffer::VKIndexBuffer(uint16* data, uint count, BufferUsage bufferUsage) : VKBuffer(VK_BUFFER_USAGE_INDEX_BUFFER_BIT, count * sizeof(uint16), data), m_Size(count * sizeof(uint16)), m_Count(count), m_Usage(bufferUsage)
+		VKIndexBuffer::VKIndexBuffer(uint16* data, uint count, BufferUsage bufferUsage) : VKBuffer(vk::BufferUsageFlagBits::eIndexBuffer, count * sizeof(uint16), data), m_Size(count * sizeof(uint16)), m_Count(count), m_Usage(bufferUsage)
 		{
 		}
 
-		VKIndexBuffer::VKIndexBuffer(uint* data, uint count, BufferUsage bufferUsage) : VKBuffer(VK_BUFFER_USAGE_INDEX_BUFFER_BIT, count * sizeof(uint), data) , m_Size(count * sizeof(uint)), m_Count(count), m_Usage(bufferUsage)
+		VKIndexBuffer::VKIndexBuffer(uint* data, uint count, BufferUsage bufferUsage) : VKBuffer(vk::BufferUsageFlagBits::eIndexBuffer, count * sizeof(uint), data) , m_Size(count * sizeof(uint)), m_Count(count), m_Usage(bufferUsage)
 		{
 		}
 
