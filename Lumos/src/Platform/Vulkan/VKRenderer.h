@@ -35,7 +35,7 @@ namespace Lumos
 
 			static VKRenderer* GetRenderer() { return static_cast<VKRenderer*>(s_Instance); }
 
-			static void Render(IndexBuffer* indexBuffer, VertexArray* vertexBuffer, VKCommandBuffer* commandBuffer, std::vector<VkDescriptorSet>& descriptorSet, VkPipelineLayout layout, uint32_t offset, uint numDynamicDescriptorSets);
+			static void Render(IndexBuffer* indexBuffer, VertexArray* vertexBuffer, VKCommandBuffer* commandBuffer, std::vector<vk::DescriptorSet>& descriptorSet, vk::PipelineLayout layout, uint32_t offset, uint numDynamicDescriptorSets);
 
 			api::Swapchain* GetSwapchainInternal() const override { return m_Swapchain; }
 
@@ -78,7 +78,7 @@ namespace Lumos
 
 			Lumos::graphics::VKSwapchain* m_Swapchain;
 
-			VkSemaphore m_ImageAvailableSemaphore[5];
+			vk::Semaphore m_ImageAvailableSemaphore[5];
 			uint m_CurrentSemaphoreIndex = 0;
 
 			String m_RendererTitle;

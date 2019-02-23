@@ -52,9 +52,6 @@ matrix:
             - libopenal-dev
 before_install:
   - chmod +x ./Scripts/travis-build.sh
-  - chmod +x ./Scripts/cmake-android.sh
-  - chmod +x ./Scripts/cmake-ios.sh
-  - chmod +x ./Scripts/cmake-make.sh
   - chmod +x ./Scripts/premake-make.sh
   - chmod +x ./Tools/linux/premake5
 

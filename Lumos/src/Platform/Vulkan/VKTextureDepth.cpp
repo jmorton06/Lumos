@@ -16,12 +16,12 @@ namespace Lumos
 
 		VKTextureDepth::~VKTextureDepth()
 		{
-            if(m_TextureSampler)
-                vkDestroySampler(VKDevice::Instance()->GetDevice(), m_TextureSampler, nullptr);
-
-			vkDestroyImageView(VKDevice::Instance()->GetDevice(), m_TextureImageView, nullptr);
-			vkDestroyImage(VKDevice::Instance()->GetDevice(), m_TextureImage, nullptr);
-			vkFreeMemory(VKDevice::Instance()->GetDevice(), m_TextureImageMemory, nullptr);
+			if (m_TextureSampler)
+				VKDevice::Instance()->GetDevice().destroySampler(m_TextureSampler);
+	
+			VKDevice::Instance()->GetDevice().destroyImageView(m_TextureImageView);
+			VKDevice::Instance()->GetDevice().destroyImage(m_TextureImage);
+			VKDevice::Instance()->GetDevice().freeMemory(m_TextureImageMemory);
 		}
 
 		void VKTextureDepth::Bind(uint slot) const
@@ -34,19 +34,19 @@ namespace Lumos
 
 		void VKTextureDepth::Init()
 		{
-			VkFormat depthFormat = VKTools::findDepthFormat();
+			vk::Format depthFormat = VKTools::FindDepthFormat();
 
-			CreateImage(m_Width, m_Height, depthFormat, VK_IMAGE_TILING_OPTIMAL,
-				VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, m_TextureImage,
+			CreateImage(m_Width, m_Height, depthFormat, vk::ImageTiling::eOptimal,
+				vk::ImageUsageFlagBits::eDepthStencilAttachment, vk::MemoryPropertyFlagBits::eDeviceLocal, m_TextureImage,
 				m_TextureImageMemory);
             
             if(m_TextureImageView)
-                vkDestroyImageView(VKDevice::Instance()->GetDevice(), m_TextureImageView, nullptr);
+				VKDevice::Instance()->GetDevice().destroyImageView(m_TextureImageView);
                 
-			m_TextureImageView = createImageView(m_TextureImage, depthFormat, VK_IMAGE_ASPECT_DEPTH_BIT);
+			m_TextureImageView = CreateImageView(m_TextureImage, depthFormat, vk::ImageAspectFlagBits::eDepth);
 
-			VKTools::transitionImageLayout(m_TextureImage, depthFormat, VK_IMAGE_LAYOUT_UNDEFINED,
-				VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL);
+			VKTools::TransitionImageLayout(m_TextureImage, depthFormat, vk::ImageLayout::eUndefined,
+				vk::ImageLayout::eDepthStencilAttachmentOptimal);
 
 			CreateTextureSampler();
 
@@ -55,37 +55,32 @@ namespace Lumos
 
 		void VKTextureDepth::CreateTextureSampler()
 		{
-            if(m_TextureSampler)
-                vkDestroySampler(VKDevice::Instance()->GetDevice(), m_TextureSampler, nullptr);
-                
-			VkSamplerCreateInfo samplerInfo = {};
-			samplerInfo.sType = VK_STRUCTURE_TYPE_SAMPLER_CREATE_INFO;
-			samplerInfo.magFilter = VK_FILTER_LINEAR;
-			samplerInfo.minFilter = VK_FILTER_LINEAR;
-			samplerInfo.addressModeU = VK_SAMPLER_ADDRESS_MODE_REPEAT;
-			samplerInfo.addressModeV = VK_SAMPLER_ADDRESS_MODE_REPEAT;
-			samplerInfo.addressModeW = VK_SAMPLER_ADDRESS_MODE_REPEAT;
+			if (m_TextureSampler)
+				VKDevice::Instance()->GetDevice().destroySampler(m_TextureSampler);
+
+			vk::SamplerCreateInfo samplerInfo = {};
+			samplerInfo.magFilter = vk::Filter::eLinear;
+			samplerInfo.minFilter = vk::Filter::eLinear;
+			samplerInfo.addressModeU = vk::SamplerAddressMode::eRepeat;
+			samplerInfo.addressModeV = vk::SamplerAddressMode::eRepeat;
+			samplerInfo.addressModeW = vk::SamplerAddressMode::eRepeat;
 			samplerInfo.anisotropyEnable = VK_TRUE;
-			samplerInfo.maxAnisotropy = 16;
-			samplerInfo.borderColor = VK_BORDER_COLOR_INT_OPAQUE_BLACK;
+			samplerInfo.maxAnisotropy = VKDevice::Instance()->GetGPUProperties().limits.maxSamplerAnisotropy;
+			samplerInfo.borderColor = vk::BorderColor::eFloatOpaqueBlack;
 			samplerInfo.unnormalizedCoordinates = VK_FALSE;
 			samplerInfo.compareEnable = VK_FALSE;
-			samplerInfo.compareOp = VK_COMPARE_OP_ALWAYS;
-			samplerInfo.mipmapMode = VK_SAMPLER_MIPMAP_MODE_LINEAR;
+			samplerInfo.compareOp = vk::CompareOp::eAlways;
+			samplerInfo.mipmapMode = vk::SamplerMipmapMode::eLinear;
 
-			if (vkCreateSampler(VKDevice::Instance()->GetDevice(), &samplerInfo, nullptr, &m_TextureSampler) != VK_SUCCESS)
-			{
-				throw std::runtime_error("failed to create texture sampler!");
-			}
+			m_TextureSampler = VKDevice::Instance()->GetDevice().createSampler(samplerInfo);
 		}
 
-		void VKTextureDepth::CreateImage(uint32_t width, uint32_t height, VkFormat format, VkImageTiling tiling,
-		                              VkImageUsageFlags usage, VkMemoryPropertyFlags properties, VkImage& image,
-		                              VkDeviceMemory& imageMemory)
+		void VKTextureDepth::CreateImage(uint32_t width, uint32_t height, vk::Format format, vk::ImageTiling tiling,
+		                              vk::ImageUsageFlags usage, vk::MemoryPropertyFlags properties, vk::Image& image,
+		                              vk::DeviceMemory& imageMemory)
 		{
-			VkImageCreateInfo imageInfo = {};
-			imageInfo.sType = VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO;
-			imageInfo.imageType = VK_IMAGE_TYPE_2D;
+			vk::ImageCreateInfo imageInfo = {};
+			imageInfo.imageType = vk::ImageType::e2D;
 			imageInfo.extent.width = width;
 			imageInfo.extent.height = height;
 			imageInfo.extent.depth = 1;
@@ -93,38 +88,29 @@ namespace Lumos
 			imageInfo.arrayLayers = 1;
 			imageInfo.format = format;
 			imageInfo.tiling = tiling;
-			imageInfo.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
+			imageInfo.initialLayout = vk::ImageLayout::eUndefined;
 			imageInfo.usage = usage;
-			imageInfo.samples = VK_SAMPLE_COUNT_1_BIT;
-			imageInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
+			imageInfo.samples = vk::SampleCountFlagBits::e1;
+			imageInfo.sharingMode = vk::SharingMode::eExclusive;
 
-			if (vkCreateImage(VKDevice::Instance()->GetDevice(), &imageInfo, nullptr, &image) != VK_SUCCESS)
-			{
-				throw std::runtime_error("failed to create image!");
-			}
+			image = VKDevice::Instance()->GetDevice().createImage(imageInfo);
 
-			VkMemoryRequirements memRequirements;
-			vkGetImageMemoryRequirements(VKDevice::Instance()->GetDevice(), image, &memRequirements);
+			vk::MemoryRequirements memRequirements;
+			VKDevice::Instance()->GetDevice().getImageMemoryRequirements(image, &memRequirements);
 
-			VkMemoryAllocateInfo allocInfo = {};
-			allocInfo.sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
+			vk::MemoryAllocateInfo allocInfo = {};
 			allocInfo.allocationSize = memRequirements.size;
 			allocInfo.memoryTypeIndex = VKTools::FindMemoryType(memRequirements.memoryTypeBits, properties);
 
-			if (vkAllocateMemory(VKDevice::Instance()->GetDevice(), &allocInfo, nullptr, &imageMemory) != VK_SUCCESS)
-			{
-				throw std::runtime_error("failed to allocate image memory!");
-			}
-
-			vkBindImageMemory(VKDevice::Instance()->GetDevice(), image, imageMemory, 0);
+			imageMemory = VKDevice::Instance()->GetDevice().allocateMemory(allocInfo);
+			VKDevice::Instance()->GetDevice().bindImageMemory(image, imageMemory, 0);
 		}
 
-		VkImageView VKTextureDepth::createImageView(VkImage image, VkFormat format, VkImageAspectFlags aspectFlags)
+		vk::ImageView VKTextureDepth::CreateImageView(vk::Image image, vk::Format format, vk::ImageAspectFlags aspectFlags)
 		{
-			VkImageViewCreateInfo viewInfo = {};
-			viewInfo.sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO;
+			vk::ImageViewCreateInfo viewInfo = {};
 			viewInfo.image = image;
-			viewInfo.viewType = VK_IMAGE_VIEW_TYPE_2D;
+			viewInfo.viewType = vk::ImageViewType::e2D;
 			viewInfo.format = format;
 			viewInfo.subresourceRange.aspectMask = aspectFlags;
 			viewInfo.subresourceRange.baseMipLevel = 0;
@@ -132,11 +118,7 @@ namespace Lumos
 			viewInfo.subresourceRange.baseArrayLayer = 0;
 			viewInfo.subresourceRange.layerCount = 1;
 
-			VkImageView imageView;
-			if (vkCreateImageView(VKDevice::Instance()->GetDevice(), &viewInfo, nullptr, &imageView) != VK_SUCCESS)
-			{
-				throw std::runtime_error("failed to create texture image view!");
-			}
+			vk::ImageView imageView = VKDevice::Instance()->GetDevice().createImageView(viewInfo);
 
 			return imageView;
 		}
@@ -145,7 +127,7 @@ namespace Lumos
 		{
 			m_Descriptor.sampler = m_TextureSampler;
 			m_Descriptor.imageView = m_TextureImageView;
-			m_Descriptor.imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
+			m_Descriptor.imageLayout = vk::ImageLayout::eShaderReadOnlyOptimal;
 		}
 
 		void VKTextureDepth::Resize(uint width, uint height)

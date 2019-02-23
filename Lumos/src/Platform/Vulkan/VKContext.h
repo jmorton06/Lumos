@@ -36,11 +36,11 @@ namespace Lumos
 
 			inline static VKContext* Get() { return static_cast<VKContext*>(s_Context); }
 
-			static VKAPI_ATTR VkBool32 VKAPI_CALL DebugCallback(VkDebugReportFlagsEXT flags, VkDebugReportObjectTypeEXT objType,
+			static VKAPI_ATTR vk::Bool32 VKAPI_CALL DebugCallback(vk::DebugReportFlagsEXT flags, vk::DebugReportObjectTypeEXT objType,
 			                                                    uint64_t obj, size_t location, int32_t code,
 			                                                    const char* layerPrefix, const char* msg, void* userData);
 
-			VkInstance GetVKInstance() const { return m_VkInstance; }
+			vk::Instance GetVKInstance() const { return m_VkInstance; }
 
 			void AddInstanceLayer(const char* instanceLayerName)
 			{
@@ -65,8 +65,8 @@ namespace Lumos
 
 		private:
 
-			VkInstance m_VkInstance{};
-			VkDebugReportCallbackEXT callback{};
+			vk::Instance m_VkInstance{};
+			vk::DebugReportCallbackEXT callback{};
 
 			std::vector<const char*> instanceLayers;
 			std::vector<const char*> instanceExtensions;

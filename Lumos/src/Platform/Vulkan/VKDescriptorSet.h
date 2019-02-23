@@ -12,7 +12,7 @@ namespace Lumos
 			VKDescriptorSet(api::DescriptorInfo info);
 			~VKDescriptorSet();
 
-			VkDescriptorSet GetDescriptorSet() const { return m_DescriptorSet; }
+			vk::DescriptorSet GetDescriptorSet() const { return m_DescriptorSet; }
 
 			void Update(std::vector<api::ImageInfo>& imageInfos, std::vector<api::BufferInfo>& bufferInfos) override;
 			void Update(std::vector<api::BufferInfo>& bufferInfos) override;
@@ -23,7 +23,7 @@ namespace Lumos
 			std::vector<api::PushConstant> GetPushConstants() const { return m_PushConstants; }
 
 		private:
-			VkDescriptorSet m_DescriptorSet;
+			vk::DescriptorSet m_DescriptorSet;
 			bool m_Dynamic = false;
 
 			std::vector<api::PushConstant> m_PushConstants;

@@ -8,6 +8,7 @@ project "Lumos"
 		"src/**.c",
 		"src/**.cpp",
 
+		"external/imgui/plugins/**",
 		"external/imgui/imgui.h",
         "external/imgui/imconfig.h",
 		"external/imgui/imgui.cpp",
