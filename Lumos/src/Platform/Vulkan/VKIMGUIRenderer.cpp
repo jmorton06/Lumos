@@ -101,7 +101,7 @@ namespace Lumos
             wd->BackBufferCount = (uint32_t)swapChain->GetSwapchainBufferCount();
             
 			m_Renderpass = new VKRenderpass();
-            TextureType textureTypes[1] = { TextureType::COLOUR};
+            TextureType textureTypes[1] = { TextureType::COLOUR };
             graphics::api::RenderpassInfo renderpassCI{};
             renderpassCI.attachmentCount = 1;
             renderpassCI.textureType = textureTypes;

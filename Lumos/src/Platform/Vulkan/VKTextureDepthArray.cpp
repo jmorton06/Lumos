@@ -63,6 +63,9 @@ namespace Lumos
 			samplerInfo.addressModeW = vk::SamplerAddressMode::eClampToEdge;
 			samplerInfo.maxAnisotropy = 1.0f;
 			samplerInfo.borderColor = vk::BorderColor::eFloatOpaqueWhite;
+            samplerInfo.mipLodBias = 0.0f;
+            samplerInfo.minLod = 0.0f;
+            samplerInfo.maxLod = 1.0f;
 			//samplerInfo.unnormalizedCoordinates = VK_FALSE;
 			//samplerInfo.compareEnable = VK_FALSE;
 			//samplerInfo.compareOp = vk::CompareOp::eAlways;
