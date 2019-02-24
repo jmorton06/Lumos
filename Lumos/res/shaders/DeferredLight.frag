@@ -212,7 +212,6 @@ float filterPCF(vec4 sc, int cascadeIndex)
 layout(location = 0) out vec4 outColor;
 
 const float NORMAL_BIAS = 0.002f;
-const float RAW_BIAS 	= 0.00025f;
 const int NUM_SHADOWMAPS = 4; //TODO : uniform
 
 void main()
@@ -249,9 +248,6 @@ void main()
     vec4 diffuse  = vec4(0.0);
     vec3 specular = vec3(0.0);
 
-	vec4 shadowWsPos = vec4(wsPos + normal * NORMAL_BIAS, 1.0f);
-	float shadow = 0.0f;
-
 	int cascadeIndex = 0;
 	vec4 viewPos = ubo.viewMatrix * vec4(wsPos, 1.0);
 
@@ -262,41 +258,11 @@ void main()
 			cascadeIndex = i + 1;
 		}
 	}
+	
+	vec4 shadowCoord = (biasMat * ubo.uShadowTransform[cascadeIndex]) * vec4(wsPos, 1.0);
 
-	int shadowMethod = 1;
 
-	if(shadowMethod == 0)
-	{
-		//for (int layerIdx = 0; layerIdx < NUM_SHADOWMAPS; layerIdx++)
-		{
-			int layerIdx = cascadeIndex;
-			vec4 hcsShadow = ubo.uShadowTransform[layerIdx] * shadowWsPos;
-
-			if (abs(hcsShadow.x) <= 1.0f && abs(hcsShadow.y) <= 1.0f)
-			{
-				hcsShadow.z -= RAW_BIAS;
-				hcsShadow.xyz = hcsShadow.xyz * 0.5f + 0.5f;
-
-				shadow = DoShadowTest(hcsShadow.xyz, layerIdx, textureSize(uShadowMap, 0).xy);
-				//break;
-			}
-		}
-	}
-	else
-	{
-		vec4 shadowCoord = (biasMat * ubo.uShadowTransform[cascadeIndex]) * vec4(wsPos, 1.0);
-
-		const int enablePCF = 1;
-		if (enablePCF == 1)
-		{
-			shadow = filterPCF(shadowCoord / shadowCoord.w, cascadeIndex);
-		}
-		else
-		{
-			shadow = textureProj(shadowCoord, vec2(0.0), cascadeIndex);
-		}
-	}
-
+	float shadow = filterPCF(shadowCoord / shadowCoord.w, cascadeIndex);
     float NdotL = clamp(dot(material.normal, light.direction), 0.0, 1.0)  * shadow;
     diffuse  += NdotL * Diffuse(light, material, eye)  * light.intensity;
     specular += NdotL * Specular(light, material, eye) * light.intensity;
