@@ -83,23 +83,36 @@ namespace Lumos
         }
         
         ImGui::End();
+        
+        auto& io = ImGui::GetIO();
+        ImGui::SetNextWindowSize(io.DisplaySize);
 
-		auto& io = ImGui::GetIO();
+        ImGuiWindowFlags windowFlags = 0;
+        windowFlags |= ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoNav | ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoBringToFrontOnFocus | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoInputs;
+        
+        ImGui::SetNextWindowBgAlpha(0.0f);
+        ImGui::Begin("Actors", nullptr, windowFlags);
+		
+        ImGui::SetNextWindowPos(ImVec2 (0.0f, -20.0f));
+
 		ImGuizmo::SetRect(0, 0, io.DisplaySize.x, io.DisplaySize.y);
 	
 		maths::Matrix4 view = m_pScene->GetCamera()->GetViewMatrix();
 		maths::Matrix4 proj = m_pScene->GetCamera()->GetProjectionMatrix();
 
+#ifdef LUMOS_GRAPHICS_API_VULKAN
+        proj[5] *= -1.0f;
+#endif
 		ImGuizmo::SetDrawlist();
 
 		maths::Matrix4 model = maths::Matrix4();
 		if (this->GetComponent<TransformComponent>() != nullptr)
 			model = GetComponent<TransformComponent>()->m_WorldSpaceTransform;
-		ImGuizmo::Manipulate(view.values, proj.values, ImGuizmo::TRANSLATE, ImGuizmo::WORLD, model.values, NULL, NULL);
+		ImGuizmo::Manipulate(view.values, proj.values, ImGuizmo::SCALE, ImGuizmo::WORLD, model.values, NULL, NULL);
 
 		if (this->GetComponent<TransformComponent>() != nullptr)
 			GetComponent<TransformComponent>()->SetBothTransforms(model);
-
+        ImGui::End();
 
     }
 }
