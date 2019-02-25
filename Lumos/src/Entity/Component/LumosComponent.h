@@ -37,6 +37,7 @@ namespace Lumos
 		void SetEntity(Entity* entity) { m_Entity = entity; }
 
 		virtual void UpdateBoundingShape() { };
+		virtual void OnUpdateTransform(const maths::Matrix4& entityTransform) {};
 
 		maths::BoundingShape* GetBoundingShape() const { return m_BoundingShape.get(); }
 

@@ -193,7 +193,7 @@ namespace Lumos
 		info.shader = m_DeferredShader;
 		m_DeferredDescriptorSet = graphics::api::DescriptorSet::Create(info);
 
-		m_ClearColour = maths::Vector4(0.8f, 0.8f, 0.8f, 1.0f);
+		m_ClearColour = maths::Vector4(0.9f, 0.1f, 0.8f, 1.0f);
 
 		CreateScreenDescriptorSet();
 	}
@@ -262,12 +262,16 @@ namespace Lumos
 
 	void DeferredRenderer::LightPass()
 	{
-		int commandBufferIndex = Renderer::GetRenderer()->GetSwapchain()->GetCurrentBufferId();
+		int commandBufferIndex = 0;
+		if(!m_RenderTexture)
+			commandBufferIndex = Renderer::GetRenderer()->GetSwapchain()->GetCurrentBufferId();
 
 		Begin(commandBufferIndex);
 		Present();
 		End();
-		PresentToScreen();
+
+		if(!m_RenderTexture)
+			PresentToScreen();
 	}
 
 	void DeferredRenderer::PresentToScreen()
@@ -380,6 +384,9 @@ namespace Lumos
 	{
 		m_DeferredRenderpass->EndRenderpass(m_CommandBuffers[m_CommandBufferIndex]);
         m_CommandBuffers[m_CommandBufferIndex]->EndRecording();
+
+		if(m_RenderTexture)
+			m_CommandBuffers[0]->Execute(true);
 	}
 
 	void DeferredRenderer::EndOffScreen()
@@ -666,6 +673,17 @@ namespace Lumos
 		m_FBO = Framebuffer::Create(bufferInfo);
 	}
 
+	void DeferredRenderer::SetRenderTarget(Texture* texture)
+	{
+		m_RenderTexture = texture;
+
+		for (auto fbo : m_Framebuffers)
+			delete fbo;
+		m_Framebuffers.clear();
+
+		CreateFramebuffers();
+	}
+
 	void DeferredRenderer::CreateFramebuffers()
 	{
 		TextureType attachmentTypes[2];
@@ -680,14 +698,24 @@ namespace Lumos
 		bufferInfo.attachmentCount = 2;
 		bufferInfo.renderPass = m_DeferredRenderpass;
 		bufferInfo.attachmentTypes = attachmentTypes;
-		bufferInfo.screenFBO = true;
 
-		for (uint32_t i = 0; i < Renderer::GetRenderer()->GetSwapchain()->GetSwapchainBufferCount(); i++)
+		if (m_RenderTexture)
 		{
-			attachments[0] = Renderer::GetRenderer()->GetSwapchain()->GetImage(i);
+			attachments[0] = m_RenderTexture;
 			bufferInfo.attachments = attachments;
-
+			bufferInfo.screenFBO = false;
 			m_Framebuffers.emplace_back(Framebuffer::Create(bufferInfo));
+		}
+		else
+		{
+			for (uint32_t i = 0; i < Renderer::GetRenderer()->GetSwapchain()->GetSwapchainBufferCount(); i++)
+			{
+				bufferInfo.screenFBO = true;
+				attachments[0] = Renderer::GetRenderer()->GetSwapchain()->GetImage(i);
+				bufferInfo.attachments = attachments;
+
+				m_Framebuffers.emplace_back(Framebuffer::Create(bufferInfo));
+			}
 		}
 	}
 
@@ -729,9 +757,6 @@ namespace Lumos
 		m_Framebuffers.clear();
 
 		DeferredRenderer::SetScreenBufferSize(width, height);
-
-		//m_GBuffer.reset();
-		//m_GBuffer = std::make_unique<GBuffer>(m_ScreenBufferWidth, m_ScreenBufferHeight);
 
         CreateOffScreenPipeline();
 		CreateDeferredPipeline();

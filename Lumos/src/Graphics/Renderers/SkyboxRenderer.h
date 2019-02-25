@@ -39,6 +39,8 @@ namespace Lumos
 			Lumos::maths::Matrix4 invprojview;
 		};
 
+		void SetRenderTarget(Texture* texture) override;
+
 	private:
 
 		void SetSystemUniforms(Shader* shader) const;

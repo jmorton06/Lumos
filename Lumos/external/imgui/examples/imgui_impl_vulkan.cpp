@@ -50,6 +50,9 @@ static VkPipelineLayout             g_PipelineLayout = VK_NULL_HANDLE;
 static VkDescriptorSet              g_DescriptorSet = VK_NULL_HANDLE;
 static VkPipeline                   g_Pipeline = VK_NULL_HANDLE;
 
+static std::map<ImTextureID, VkDescriptorSet> g_DescriptorSets;
+
+
 // Frame data
 struct FrameDataForRender
 {
@@ -197,6 +200,45 @@ static void CreateOrResizeBuffer(VkBuffer& buffer, VkDeviceMemory& buffer_memory
     p_buffer_size = new_size;
 }
 
+void CreateDescriptorSets(ImDrawData* draw_data)
+{
+	for (int n = 0; n < draw_data->CmdListsCount; n++)
+	{
+		const ImDrawList* cmd_list = draw_data->CmdLists[n];
+		for (int cmd_i = 0; cmd_i < cmd_list->CmdBuffer.Size; cmd_i++)
+		{
+			const ImDrawCmd* pcmd = &cmd_list->CmdBuffer[cmd_i];
+
+			if (pcmd->TextureId)
+			{
+				if (!g_DescriptorSets[pcmd->TextureId])
+				{
+					VkWriteDescriptorSet descriptorWrites[1] = {};
+
+					VkDescriptorSet set;
+					VkDescriptorSetAllocateInfo alloc_info = {};
+					alloc_info.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO;
+					alloc_info.descriptorPool = g_DescriptorPool;
+					alloc_info.descriptorSetCount = 1;
+					alloc_info.pSetLayouts = &g_DescriptorSetLayout;
+					vkAllocateDescriptorSets(g_Device, &alloc_info, &set);
+
+					descriptorWrites[0].sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
+					descriptorWrites[0].dstSet = set;
+					descriptorWrites[0].descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
+					descriptorWrites[0].pImageInfo = (VkDescriptorImageInfo*)pcmd->TextureId;
+					descriptorWrites[0].descriptorCount = 1;
+
+					vkUpdateDescriptorSets(g_Device, 1, descriptorWrites, 0, nullptr);
+
+					g_DescriptorSets[pcmd->TextureId] = set;
+				}
+			}
+			
+		}
+	}
+}
+
 // Render function
 // (this used to be set in io.RenderDrawListsFn and called by ImGui::Render(), but you can now call this directly from your main loop)
 void ImGui_ImplVulkan_RenderDrawData(ImDrawData* draw_data, VkCommandBuffer command_buffer)
@@ -204,6 +246,8 @@ void ImGui_ImplVulkan_RenderDrawData(ImDrawData* draw_data, VkCommandBuffer comm
     VkResult err;
     if (draw_data->TotalVtxCount == 0)
         return;
+
+	CreateDescriptorSets(draw_data);
 
     FrameDataForRender* fd = &g_FramesDataBuffers[g_FrameIndex];
     g_FrameIndex = (g_FrameIndex + 1) % IMGUI_VK_QUEUED_FRAMES;
@@ -248,8 +292,8 @@ void ImGui_ImplVulkan_RenderDrawData(ImDrawData* draw_data, VkCommandBuffer comm
     // Bind pipeline and descriptor sets:
     {
         vkCmdBindPipeline(command_buffer, VK_PIPELINE_BIND_POINT_GRAPHICS, g_Pipeline);
-        VkDescriptorSet desc_set[1] = { g_DescriptorSet };
-        vkCmdBindDescriptorSets(command_buffer, VK_PIPELINE_BIND_POINT_GRAPHICS, g_PipelineLayout, 0, 1, desc_set, 0, NULL);
+        //VkDescriptorSet desc_set[1] = { g_DescriptorSet };
+        //vkCmdBindDescriptorSets(command_buffer, VK_PIPELINE_BIND_POINT_GRAPHICS, g_PipelineLayout, 0, 1, desc_set, 0, NULL);
     }
 
     // Bind Vertex And Index Buffer:
@@ -303,6 +347,29 @@ void ImGui_ImplVulkan_RenderDrawData(ImDrawData* draw_data, VkCommandBuffer comm
             {
                 // Apply scissor/clipping rectangle
                 // FIXME: We could clamp width/height based on clamped min/max values.
+
+				static VkDescriptorSet lastSet = VK_NULL_HANDLE;
+				VkDescriptorSet desc_set[1];
+				if (pcmd->TextureId)
+				{
+					auto desc = g_DescriptorSets[pcmd->TextureId];
+					if (lastSet != desc)
+					{
+						desc_set[0] = desc;
+						lastSet = desc;
+						vkCmdBindDescriptorSets(command_buffer, VK_PIPELINE_BIND_POINT_GRAPHICS, g_PipelineLayout, 0, 1, desc_set, 0, NULL);
+					}
+				}
+				else
+				{
+					if (lastSet != g_DescriptorSet)
+					{
+						desc_set[0] = g_DescriptorSet;
+						lastSet = g_DescriptorSet;
+						vkCmdBindDescriptorSets(command_buffer, VK_PIPELINE_BIND_POINT_GRAPHICS, g_PipelineLayout, 0, 1, desc_set, 0, NULL);
+					}
+				}
+
                 VkRect2D scissor;
                 scissor.offset.x = (int32_t)(pcmd->ClipRect.x - display_pos.x) > 0 ? (int32_t)(pcmd->ClipRect.x - display_pos.x) : 0;
                 scissor.offset.y = (int32_t)(pcmd->ClipRect.y - display_pos.y) > 0 ? (int32_t)(pcmd->ClipRect.y - display_pos.y) : 0;
@@ -366,7 +433,7 @@ bool ImGui_ImplVulkan_CreateDeviceObjects()
         binding[0].descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
         binding[0].descriptorCount = 1;
         binding[0].stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT;
-        binding[0].pImmutableSamplers = sampler;
+       // binding[0].pImmutableSamplers = sampler;
         VkDescriptorSetLayoutCreateInfo info = {};
         info.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO;
         info.bindingCount = 1;
@@ -384,6 +451,20 @@ bool ImGui_ImplVulkan_CreateDeviceObjects()
         alloc_info.pSetLayouts = &g_DescriptorSetLayout;
         err = vkAllocateDescriptorSets(g_Device, &alloc_info, &g_DescriptorSet);
         check_vk_result(err);
+
+		//VkWriteDescriptorSet writeDescriptorSet{};
+		//writeDescriptorSet.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
+		//writeDescriptorSet.dstSet = g_DescriptorSet;
+		//writeDescriptorSet.descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
+		//ImGuiIO& io = ImGui::GetIO();
+		//auto imageInfo = (VkDescriptorImageInfo*)io.Fonts->TexID;
+		//writeDescriptorSet.pImageInfo = imageInfo;
+		//writeDescriptorSet.descriptorCount = 1;
+		//
+		//std::vector<VkWriteDescriptorSet> descriptorWrites;
+		//vkUpdateDescriptorSets(g_Device, static_cast<uint32_t>(descriptorWrites.size()), descriptorWrites.data(), 0, nullptr);
+
+		//g_DescriptorSets[io.Fonts->TexID] = g_DescriptorSet;
     }
 
     if (!g_PipelineLayout)
@@ -542,6 +623,11 @@ void    ImGui_ImplVulkan_InvalidateDeviceObjects()
     
     if (g_PipelineLayout)       { vkDestroyPipelineLayout(g_Device, g_PipelineLayout, g_Allocator); g_PipelineLayout = VK_NULL_HANDLE; }
     if (g_Pipeline)             { vkDestroyPipeline(g_Device, g_Pipeline, g_Allocator); g_Pipeline = VK_NULL_HANDLE; }
+}
+
+IMGUI_IMPL_API void ImGui_ImplVulkan_AddTexture(ImTextureID id, VkDescriptorSet sets)
+{
+	g_DescriptorSets[id] = sets;
 }
 
 bool    ImGui_ImplVulkan_Init(ImGui_ImplVulkan_InitInfo* info, VkRenderPass render_pass)

@@ -36,20 +36,6 @@ namespace Lumos
 		virtual void RenderScene(RenderList* renderList, Scene* scene) = 0;
 		Framebuffer* GetFBO() const { return m_FBO; }
 
-	protected:
-		Framebuffer* m_FBO;
-		Shader* m_Shader;
-
-		Lumos::graphics::api::RenderPass* m_RenderPass;
-		Lumos::graphics::api::Pipeline* m_Pipeline;
-		graphics::api::DescriptorSet* m_DescriptorSet;
-
-		uint m_ScreenBufferWidth, m_ScreenBufferHeight;
-		CommandQueue m_CommandQueue;
-		SystemUniformList m_SystemUniforms;
-
-	public:
-
 		virtual void Init() = 0;
 		virtual void Begin() = 0;
 		virtual void BeginScene(Scene* scene) = 0;
@@ -62,6 +48,20 @@ namespace Lumos
 		virtual void OnResize(uint width, uint height) = 0;
 
         virtual void SetScreenBufferSize(uint width, uint height) { if(width == 0) width = 1; if(height == 0) height = 1; m_ScreenBufferWidth = width; m_ScreenBufferHeight = height; }
+
+		virtual void SetRenderTarget(Texture* texture) { m_RenderTexture = texture; }
+	protected:
+		Framebuffer* m_FBO;
+		Shader* m_Shader;
+
+		Lumos::graphics::api::RenderPass* m_RenderPass;
+		Lumos::graphics::api::Pipeline* m_Pipeline;
+		graphics::api::DescriptorSet* m_DescriptorSet;
+
+		uint m_ScreenBufferWidth, m_ScreenBufferHeight;
+		CommandQueue m_CommandQueue;
+		SystemUniformList m_SystemUniforms;
+		Texture* m_RenderTexture = nullptr;
 	};
 }
 

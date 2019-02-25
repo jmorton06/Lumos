@@ -90,7 +90,7 @@ namespace Lumos
 		int GetCommandBufferCount() const { return (int)m_CommandBuffers.size(); }
 		Lumos::graphics::api::CommandBuffer* GetCommandBuffer(int id) const { return m_CommandBuffers[id]; }
 
-		//GBuffer* GetGBuffer() const { return m_GBuffer.get(); }
+		void SetRenderTarget(Texture* texture) override;
 
 	private:
 
@@ -131,10 +131,6 @@ namespace Lumos
 
 		int m_CommandBufferIndex = 0;
 
-		//std::unique_ptr<GBuffer> m_GBuffer;
-		std::unique_ptr<ShadowRenderer> m_ShadowRenderer;
-		std::unique_ptr<TextureDepthArray> m_ShadowTexture;
-		//SkyboxRenderer* m_SkyboxRenderer;
 		Texture* m_CubeMap = nullptr;
 	};
 
