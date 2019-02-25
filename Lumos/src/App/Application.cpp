@@ -22,6 +22,7 @@
 #include "Graphics/GBuffer.h"
 
 #include <imgui/imgui.h>
+#include <imgui/plugins/ImGuizmo.h>
 
 namespace Lumos
 {
@@ -33,12 +34,17 @@ namespace Lumos
 		LUMOS_ASSERT(!s_Instance, "Application already exists!");
 		s_Instance = this;
 
-        system::JobSystem::Initialize();
+		system::JobSystem::Initialize();
 		graphics::Context::SetRenderAPI(api);
+
+#ifdef LUMOS_RENDER_API_OPENGL
+		if (api == RenderAPI::OPENGL)
+			m_FlipImGuiImage = true;
+#endif
 
 		Engine::Instance();
 
-        m_TimeStep = std::make_unique<TimeStep>(0.0f);
+		m_TimeStep = std::make_unique<TimeStep>(0.0f);
 		m_Timer = std::make_unique<Timer>();
 
 		const String root = ROOT_DIR;
@@ -50,11 +56,14 @@ namespace Lumos
 		m_Window = std::unique_ptr<Window>(Window::Create("Game Engine", properties));
 		m_Window->SetEventCallback(BIND_EVENT_FN(Application::OnEvent));
 
-        m_SceneManager = std::make_unique<SceneManager>();
+		m_SceneManager = std::make_unique<SceneManager>();
 
-		IMGUI_CHECKVERSION();
 		ImGui::CreateContext();
 		ImGui::StyleColorsDark();
+
+#ifdef  LUMOS_EDITOR
+		m_SceneViewSize = maths::Vector2((float)properties.Width, (float)properties.Height);
+#endif
 	}
 
 	Application::~Application()
@@ -77,42 +86,46 @@ namespace Lumos
 
 		Renderer::Init(screenWidth, screenHeight);
 
-        system::JobSystem::Execute([] { LumosPhysicsEngine::Instance(); LUMOS_CORE_INFO("Initialised JMPhysics"); });
-        system::JobSystem::Execute([] { B2PhysicsEngine::Instance(); LUMOS_CORE_INFO("Initialised B2Physics"); });
-        //system::JobSystem::Execute([] { SoundSystem::Initialise();   LUMOS_CORE_INFO("Initialised Audio"); });
-        system::JobSystem::Wait();
+		system::JobSystem::Execute([] { LumosPhysicsEngine::Instance(); LUMOS_CORE_INFO("Initialised JMPhysics"); });
+		system::JobSystem::Execute([] { B2PhysicsEngine::Instance(); LUMOS_CORE_INFO("Initialised B2Physics"); });
+		system::JobSystem::Execute([this] 
+		{ 
+			m_AudioManager = std::unique_ptr<AudioManager>(AudioManager::Create());
+			m_AudioManager->OnInit(); 
+		});
+		system::JobSystem::Wait();
 
-        AssetsManager::InitializeMeshes();
+		AssetsManager::InitializeMeshes();
 
 		m_LayerStack = new LayerStack();
-        m_RenderManager = std::make_unique<RenderManager>(screenWidth, screenHeight);
+		m_RenderManager = std::make_unique<RenderManager>(screenWidth, screenHeight);
 		m_AudioManager = std::unique_ptr<AudioManager>(AudioManager::Create());
 		m_AudioManager->OnInit();
 
-        m_CurrentState = AppState::Running;
-		m_PhysicsThread = std::thread(PhysicsUpdate, 1000.0f/120.0f);
+		m_CurrentState = AppState::Running;
+		m_PhysicsThread = std::thread(PhysicsUpdate, 1000.0f / 120.0f);
 	}
 
 	int Application::Quit(bool pause, const std::string &reason)
 	{
 		m_PhysicsThread.join();
 
-        Engine::Release();
+		Engine::Release();
 		LumosPhysicsEngine::Release();
 		B2PhysicsEngine::Release();
 		Input::Release();
 		AssetsManager::ReleaseMeshes();
-        
-        m_LayerStack->Clear();
+
+		m_LayerStack->Clear();
 		m_SceneManager.release();
 
-        Renderer::Release();
+		Renderer::Release();
 
 		//SoundSystem::Destroy();
 
 		if (pause)
 		{
-            LUMOS_CORE_ERROR("{0}", reason);
+			LUMOS_CORE_ERROR("{0}", reason);
 		}
 
 		return 0;
@@ -128,7 +141,7 @@ namespace Lumos
 
 		TimeStep* timeStep = new TimeStep(static_cast<float>(t.GetMS()) * 1000.0f);
 
-        while(Application::Instance()->GetState() == AppState::Running)
+		while (Application::Instance()->GetState() == AppState::Running)
 		{
 			float now = t.GetMS(1.0f) * 1000.0f;
 
@@ -151,7 +164,7 @@ namespace Lumos
 			}
 		}
 
-        delete timeStep;
+		delete timeStep;
 	}
 
 	bool Application::OnFrame()
@@ -177,7 +190,7 @@ namespace Lumos
 			}
 
 			Input::GetInput().ResetPressed();
-            m_Window->OnUpdate();
+			m_Window->OnUpdate();
 
 			if (Input::GetInput().GetKeyPressed(LUMOS_KEY_ESCAPE))
 				m_CurrentState = AppState::Closing;
@@ -188,11 +201,11 @@ namespace Lumos
 		if (m_Timer->GetMS() - m_SecondTimer > 1.0f)
 		{
 			m_SecondTimer += 1.0f;
-            Engine::Instance()->SetFPS(m_Frames);
-            Engine::Instance()->SetUPS(m_Updates);
-			Engine::Instance()->SetFrametime(1000.0f/m_Frames);
+			Engine::Instance()->SetFPS(m_Frames);
+			Engine::Instance()->SetUPS(m_Updates);
+			Engine::Instance()->SetFrametime(1000.0f / m_Frames);
 
-			m_Frames  = 0;
+			m_Frames = 0;
 			m_Updates = 0;
 			m_SceneManager->GetCurrentScene()->OnTick();
 		}
@@ -219,7 +232,7 @@ namespace Lumos
 
 		if (Input::GetInput().GetKeyPressed(LUMOS_KEY_1)) m_SceneManager->GetCurrentScene()->ToggleDrawObjects();
 		if (Input::GetInput().GetKeyPressed(LUMOS_KEY_2)) m_SceneManager->GetCurrentScene()->SetDrawDebugData(!m_SceneManager->GetCurrentScene()->GetDrawDebugData());
-        if (Input::GetInput().GetKeyPressed(LUMOS_KEY_P)) LumosPhysicsEngine::Instance()->SetPaused(!LumosPhysicsEngine::Instance()->IsPaused());
+		if (Input::GetInput().GetKeyPressed(LUMOS_KEY_P)) LumosPhysicsEngine::Instance()->SetPaused(!LumosPhysicsEngine::Instance()->IsPaused());
 
 		if (Input::GetInput().GetKeyPressed(LUMOS_KEY_J)) CommonUtils::AddSphere(m_SceneManager->GetCurrentScene());
 		if (Input::GetInput().GetKeyPressed(LUMOS_KEY_K)) CommonUtils::AddPyramid(m_SceneManager->GetCurrentScene());
@@ -231,7 +244,7 @@ namespace Lumos
 		if (Input::GetInput().GetKeyPressed(LUMOS_KEY_V)) m_Window->ToggleVSync();
 
 		m_SceneManager->GetCurrentScene()->OnUpdate(m_TimeStep.get());
-		//SoundSystem::Instance()->Update(m_TimeStep.get());
+
 		m_AudioManager->OnUpdate();
 
 		m_LayerStack->OnUpdate(m_TimeStep.get());
@@ -241,7 +254,7 @@ namespace Lumos
 	{
 		EventDispatcher dispatcher(e);
 		dispatcher.Dispatch<WindowCloseEvent>(BIND_EVENT_FN(Application::OnWindowClose));
-        dispatcher.Dispatch<WindowResizeEvent>(BIND_EVENT_FN(Application::OnWindowResize));
+		dispatcher.Dispatch<WindowResizeEvent>(BIND_EVENT_FN(Application::OnWindowResize));
 
 		m_LayerStack->OnEvent(e);
 
@@ -278,16 +291,39 @@ namespace Lumos
 
 	bool Application::OnWindowClose(WindowCloseEvent& e)
 	{
-        m_CurrentState = AppState::Closing;
+		m_CurrentState = AppState::Closing;
 		return true;
 	}
 
-    bool Application::OnWindowResize(WindowResizeEvent &e)
-    {
-        m_RenderManager->OnResize(e.GetWidth(), e.GetHeight());
+	bool Application::OnWindowResize(WindowResizeEvent &e)
+	{
+		m_RenderManager->OnResize(e.GetWidth(), e.GetHeight());
 		Renderer::GetRenderer()->OnResize(e.GetWidth(), e.GetHeight());
-        return false;
-    }
+		return false;
+	}
+
+	void Application::OnGuizmo()
+	{
+		auto& io = ImGui::GetIO();
+
+		ImGuiWindowFlags windowFlags = 0;
+		windowFlags |= ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoNavInputs | ImGuiWindowFlags_NoNavFocus;// | | ImGuiWindowFlags_NoInputs | ImGuiWindowFlags_NoMove ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoBringToFrontOnFocus |
+
+		ImGui::SetNextWindowBgAlpha(0.0f);
+		ImGui::Begin("Scene", nullptr, windowFlags);
+		ImGuizmo::SetRect(ImGui::GetWindowPos().x, ImGui::GetWindowPos().y, ImGui::GetWindowSize().x, ImGui::GetWindowSize().y);
+
+		m_SceneViewSize = maths::Vector2(ImGui::GetWindowSize().x, ImGui::GetWindowSize().y);
+
+		m_SceneManager->GetCurrentScene()->GetCamera()->SetAspectRatio((float)ImGui::GetWindowSize().x / (float)ImGui::GetWindowSize().y);
+
+		ImGui::Image(m_RenderManager->GetGBuffer()->m_ScreenTex[SCREENTEX_OFFSCREEN0]->GetHandle(), io.DisplaySize, ImVec2(0.0f, m_FlipImGuiImage ? 1.0f : 0.0f), ImVec2(1.0f, m_FlipImGuiImage ? 0.0f : 1.0f));
+		
+		if (m_Selected)
+			m_Selected->OnGuizmo();
+
+		ImGui::End();
+	}
 
 	void Application::OnImGui()
 	{
@@ -310,49 +346,47 @@ namespace Lumos
 
 		if (ImGui::TreeNode("Colour Texture"))
 		{
-			ImGui::Image(m_RenderManager->GetGBuffer()->m_ScreenTex[SCREENTEX_COLOUR]->GetHandle(), ImVec2(128, 128));
+			ImGui::Image(m_RenderManager->GetGBuffer()->m_ScreenTex[SCREENTEX_COLOUR]->GetHandle(), ImVec2(128, 128), ImVec2(0.0f, m_FlipImGuiImage ? 1.0f : 0.0f), ImVec2(1.0f, m_FlipImGuiImage ? 0.0f : 1.0f));
 			ImGui::TreePop();
 		}
 		if (ImGui::TreeNode("Normal Texture"))
 		{
-			ImGui::Image(m_RenderManager->GetGBuffer()->m_ScreenTex[SCREENTEX_NORMALS]->GetHandle(), ImVec2(128, 128));
+			ImGui::Image(m_RenderManager->GetGBuffer()->m_ScreenTex[SCREENTEX_NORMALS]->GetHandle(), ImVec2(128, 128), ImVec2(0.0f, m_FlipImGuiImage ? 1.0f : 0.0f), ImVec2(1.0f, m_FlipImGuiImage ? 0.0f : 1.0f));
 			ImGui::TreePop();
 		}
 		if (ImGui::TreeNode("PBR Texture"))
 		{
-			ImGui::Image(m_RenderManager->GetGBuffer()->m_ScreenTex[SCREENTEX_PBR]->GetHandle(), ImVec2(128, 128));
+			ImGui::Image(m_RenderManager->GetGBuffer()->m_ScreenTex[SCREENTEX_PBR]->GetHandle(), ImVec2(128, 128), ImVec2(0.0f, m_FlipImGuiImage ? 1.0f : 0.0f), ImVec2(1.0f, m_FlipImGuiImage ? 0.0f : 1.0f));
 			ImGui::TreePop();
 		}
 		if (ImGui::TreeNode("Position Texture"))
 		{
-			ImGui::Image(m_RenderManager->GetGBuffer()->m_ScreenTex[SCREENTEX_POSITION]->GetHandle(), ImVec2(128, 128));
+			ImGui::Image(m_RenderManager->GetGBuffer()->m_ScreenTex[SCREENTEX_POSITION]->GetHandle(), ImVec2(128, 128), ImVec2(0.0f, m_FlipImGuiImage ? 1.0f : 0.0f), ImVec2(1.0f, m_FlipImGuiImage ? 0.0f : 1.0f));
 			ImGui::TreePop();
 		}
 
         auto entities = m_SceneManager->GetCurrentScene()->GetEntities();
         ImGui::Text("Number of Entities: %5.2i", (int)entities.size());
 
-        static Entity* selected = nullptr;
-
         if (ImGui::TreeNode("Enitities"))
         {
             for (int i = 0; i < entities.size(); i++)
             {
-                if (ImGui::Selectable(entities[i]->GetName().c_str(), selected == entities[i].get()))
-                    selected = entities[i].get();
+                if (ImGui::Selectable(entities[i]->GetName().c_str(), m_Selected == entities[i].get()))
+					m_Selected = entities[i].get();
             }
             ImGui::TreePop();
         }
     
-        if(selected)
-            selected->OnIMGUI();
+        if(m_Selected)
+			m_Selected->OnIMGUI();
         
         m_SceneManager->GetCurrentScene()->OnIMGUI();
 
 		ImGui::NewLine();
 		ImGui::End();
 
-		ImGui::ShowMetricsWindow();
+		OnGuizmo();
     }
 
     void Application::SetScene(Scene* scene)

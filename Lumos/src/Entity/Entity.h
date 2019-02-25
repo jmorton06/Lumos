@@ -42,6 +42,7 @@ namespace Lumos
 		void OnRenderObject();
 		virtual void OnUpdateObject(float dt);
         virtual void OnIMGUI();
+		virtual void OnGuizmo();
 
 		std::vector<Entity*>& GetChildren() { return m_vpChildren; }
 		void AddChildObject(Entity* child);
@@ -81,5 +82,6 @@ namespace Lumos
 		float					m_BoundingRadius;
 		uint					m_FrustumCullFlags;
 		maths::Vector3			m_Position;
+		bool					m_UpdateTransforms;
 	};
 }

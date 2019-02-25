@@ -61,11 +61,15 @@ void Scene3D::OnInit()
 
 	m_ShadowTexture = std::unique_ptr<TextureDepthArray>(TextureDepthArray::Create(4096, 4096, 4));
 	auto shadowRenderer = new ShadowRenderer();
+	auto deferredRenderer = new DeferredRenderer(m_ScreenWidth, m_ScreenHeight);
+	auto skyboxRenderer = new SkyboxRenderer(m_ScreenWidth, m_ScreenHeight, m_EnvironmentMap);
+	deferredRenderer->SetRenderTarget(Application::Instance()->GetRenderManager()->GetGBuffer()->m_ScreenTex[SCREENTEX_OFFSCREEN0]);
+	skyboxRenderer->SetRenderTarget(Application::Instance()->GetRenderManager()->GetGBuffer()->m_ScreenTex[SCREENTEX_OFFSCREEN0]);
 
 	Application::Instance()->PushLayer(new Layer3D(shadowRenderer));
-    Application::Instance()->PushLayer(new Layer3D(new DeferredRenderer(m_ScreenWidth, m_ScreenHeight)));
-	Application::Instance()->PushLayer(new Layer3D(new SkyboxRenderer(m_ScreenWidth, m_ScreenHeight, m_EnvironmentMap)));
-	Application::Instance()->PushOverLay(new ImGuiLayer(false));
+    Application::Instance()->PushLayer(new Layer3D(deferredRenderer));
+	Application::Instance()->PushLayer(new Layer3D(skyboxRenderer));
+	Application::Instance()->PushOverLay(new ImGuiLayer(true));
 
 	Application::Instance()->GetRenderManager()->SetShadowRenderer(shadowRenderer);
     Application::Instance()->GetRenderManager()->SetSkyBoxTexture(m_EnvironmentMap);
@@ -413,7 +417,7 @@ void Scene3D::LoadModels()
 	}
 }
 
-bool show_demo_window = true;
+bool show_demo_window = false;
 
 void Scene3D::OnIMGUI()
 {

@@ -3,18 +3,22 @@
 
 #include "Graphics/Renderers/DebugRenderer.h"
 #include "App/Scene.h"
+#include "App/Application.h"
+#include "Graphics/GBuffer.h"
+#include "Graphics/RenderManager.h"
+#include "Graphics/API/Context.h"
 
 #include <imgui/imgui.h>
 #include <imgui/plugins/ImGuizmo.h>
 
 namespace Lumos
 {
-	Entity::Entity(Scene* scene): m_Name("Unnamed"), m_pScene(scene), m_pParent(nullptr), m_BoundingRadius(1), m_FrustumCullFlags(0)
+	Entity::Entity(Scene* scene) : m_Name("Unnamed"), m_pScene(scene), m_pParent(nullptr), m_BoundingRadius(1), m_FrustumCullFlags(0), m_UpdateTransforms(false)
 	{
 	}
 
 	Entity::Entity(const String& name,Scene* scene) : m_Name(name), m_pScene(scene), m_pParent(nullptr), m_BoundingRadius(1),
-	                                     m_FrustumCullFlags(0)
+	                                     m_FrustumCullFlags(0), m_UpdateTransforms(false)
 	{
 	}
 
@@ -43,6 +47,9 @@ namespace Lumos
 		for (const auto& component : m_Components)
 		{
 			component.second->OnUpdateComponent(dt);
+
+			if (m_UpdateTransforms)
+				component.second->OnUpdateTransform(maths::Matrix4());
 		}
 	}
 
@@ -67,6 +74,29 @@ namespace Lumos
 			component.second->DebugDraw(debugFlags);
 		}
 	}
+
+	void Entity::OnGuizmo()
+	{
+		maths::Matrix4 view = m_pScene->GetCamera()->GetViewMatrix();
+		maths::Matrix4 proj = m_pScene->GetCamera()->GetProjectionMatrix();
+
+#ifdef LUMOS_RENDER_API_VULKAN
+		if(graphics::Context::GetContext()->GetRenderAPI() == RenderAPI::VULKAN)
+			proj[5] *= -1.0f;
+#endif
+		ImGuizmo::SetDrawlist();
+
+		maths::Matrix4 model = maths::Matrix4();
+		if (this->GetComponent<TransformComponent>() != nullptr)
+			model = GetComponent<TransformComponent>()->m_WorldSpaceTransform;
+		ImGuizmo::Manipulate(view.values, proj.values, ImGuizmo::SCALE, ImGuizmo::WORLD, model.values, NULL, NULL);
+
+		//ImGuizmo::DrawCube(view.values, proj.values, (maths::Matrix4::Translation(m_Position) * maths::Matrix4::Scale(maths::Vector3(m_BoundingRadius))).values);
+		//ImGuizmo::DrawGrid(view.values, proj.values, maths::Matrix4().values, 100.0f);
+
+		if (this->GetComponent<TransformComponent>() != nullptr)
+			GetComponent<TransformComponent>()->SetBothTransforms(model);
+	}
     
     void Entity::OnIMGUI()
     {
@@ -84,35 +114,5 @@ namespace Lumos
         
         ImGui::End();
         
-        auto& io = ImGui::GetIO();
-        ImGui::SetNextWindowSize(io.DisplaySize);
-
-        ImGuiWindowFlags windowFlags = 0;
-        windowFlags |= ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoNav | ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoBringToFrontOnFocus | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoInputs;
-        
-        ImGui::SetNextWindowBgAlpha(0.0f);
-        ImGui::Begin("Actors", nullptr, windowFlags);
-		
-        ImGui::SetNextWindowPos(ImVec2 (0.0f, -20.0f));
-
-		ImGuizmo::SetRect(0, 0, io.DisplaySize.x, io.DisplaySize.y);
-	
-		maths::Matrix4 view = m_pScene->GetCamera()->GetViewMatrix();
-		maths::Matrix4 proj = m_pScene->GetCamera()->GetProjectionMatrix();
-
-#ifdef LUMOS_GRAPHICS_API_VULKAN
-        proj[5] *= -1.0f;
-#endif
-		ImGuizmo::SetDrawlist();
-
-		maths::Matrix4 model = maths::Matrix4();
-		if (this->GetComponent<TransformComponent>() != nullptr)
-			model = GetComponent<TransformComponent>()->m_WorldSpaceTransform;
-		ImGuizmo::Manipulate(view.values, proj.values, ImGuizmo::SCALE, ImGuizmo::WORLD, model.values, NULL, NULL);
-
-		if (this->GetComponent<TransformComponent>() != nullptr)
-			GetComponent<TransformComponent>()->SetBothTransforms(model);
-        ImGui::End();
-
     }
 }

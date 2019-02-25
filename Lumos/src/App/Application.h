@@ -8,6 +8,8 @@
 #include "Events/Event.h"
 #include <thread>
 
+#define LUMOS_EDITOR //temp
+
 namespace Lumos
 {
 	class Timer;
@@ -16,6 +18,7 @@ namespace Lumos
     class SceneManager;
 	class RenderManager;
 	class AudioManager;
+	class Entity;
 
     enum class AppState
     {
@@ -23,6 +26,12 @@ namespace Lumos
         Loading,
         Closing
     };
+
+	enum class AppType
+	{
+		Game,
+		Editor
+	};
 
 	class LUMOS_EXPORT Application
 	{
@@ -38,6 +47,7 @@ namespace Lumos
 		void OnRender();
 		void OnEvent(Event& e);
 		void OnImGui();
+		void OnGuizmo();
 		void PushLayer(Layer* layer);
 		void PushOverLay(Layer* overlay);
 		void ClearLayers() { m_LayerStack->Clear(); };
@@ -76,8 +86,17 @@ namespace Lumos
 		LayerStack* m_LayerStack;
 
         AppState m_CurrentState = AppState::Loading;
+		AppType m_AppType = AppType::Editor;
 
 		static Application* s_Instance;
+
+		Entity* m_Selected = nullptr;
+
+		bool m_FlipImGuiImage = false;
+
+#ifdef LUMOS_EDITOR
+		maths::Vector2 m_SceneViewSize;
+#endif
 	};
 
 	//Defined by client
