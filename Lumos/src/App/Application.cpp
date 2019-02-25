@@ -88,11 +88,6 @@ namespace Lumos
 
 		system::JobSystem::Execute([] { LumosPhysicsEngine::Instance(); LUMOS_CORE_INFO("Initialised JMPhysics"); });
 		system::JobSystem::Execute([] { B2PhysicsEngine::Instance(); LUMOS_CORE_INFO("Initialised B2Physics"); });
-		system::JobSystem::Execute([this] 
-		{ 
-			m_AudioManager = std::unique_ptr<AudioManager>(AudioManager::Create());
-			m_AudioManager->OnInit(); 
-		});
 		system::JobSystem::Wait();
 
 		AssetsManager::InitializeMeshes();
