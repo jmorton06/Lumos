@@ -208,7 +208,6 @@ namespace Lumos
             // Record Imgui Draw Data and draw funcs into command buffer
             ImGui_ImplVulkan_RenderDrawData(ImGui::GetDrawData(), m_CommandBuffers[wd->FrameIndex]->GetCommandBuffer());
 
-            // Submit command buffer
 			m_Renderpass->EndRenderpass(m_CommandBuffers[wd->FrameIndex]);
                 
 			m_CommandBuffers[wd->FrameIndex]->EndRecording();
