@@ -353,7 +353,7 @@ void ImGui_ImplVulkan_RenderDrawData(ImDrawData* draw_data, VkCommandBuffer comm
 				if (pcmd->TextureId)
 				{
 					auto desc = g_DescriptorSets[pcmd->TextureId];
-					if (lastSet != desc)
+					//if (lastSet != desc)
 					{
 						desc_set[0] = desc;
 						lastSet = desc;
