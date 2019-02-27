@@ -3,26 +3,18 @@
 #include "Graphics/API/Shader.h"
 #include "Graphics/RenderList.h"
 #include "Graphics/API/Framebuffer.h"
-#include "Graphics/ParticleManager.h"
-#include "Graphics/Light.h"
 #include "Graphics/API/Textures/TextureCube.h"
-#include "Graphics/Model/Model.h"
 #include "Graphics/Mesh.h"
-#include "Graphics/Material.h"
-#include "Graphics/LightSetUp.h"
 #include "Graphics/API/Renderer.h"
 #include "Graphics/API/CommandBuffer.h"
 #include "Graphics/API/Swapchain.h"
 #include "Graphics/API/RenderPass.h"
 #include "Graphics/API/Pipeline.h"
-#include "Graphics/API/Shader.h"
 #include "Graphics/GBuffer.h"
 #include "Graphics/MeshFactory.h"
 #include "Graphics/RenderManager.h"
-#include "App/SceneManager.h"
 #include "App/Scene.h"
 #include "App/Application.h"
-#include "Entity/Entity.h"
 
 namespace Lumos
 {
@@ -62,7 +54,7 @@ namespace Lumos
 	{
 		m_CurrentBufferID = 0;
 		if (!m_RenderTexture)
-			m_CurrentBufferID = Renderer::GetRenderer()->GetSwapchain()->GetCurrentBufferId();
+			m_CurrentBufferID = Renderer::GetSwapchain()->GetCurrentBufferId();
 
         Begin();
 		BeginScene(scene);
@@ -74,7 +66,7 @@ namespace Lumos
         End();
         
 		if (!m_RenderTexture)
-        Renderer::GetRenderer()->Present((m_CommandBuffers[Renderer::GetRenderer()->GetSwapchain()->GetCurrentBufferId()]));
+			Renderer::Present((m_CommandBuffers[Renderer::GetSwapchain()->GetCurrentBufferId()]));
 	}
 
 	enum VSSystemUniformIndices : int32
@@ -150,6 +142,18 @@ namespace Lumos
 		m_UniformBuffer->SetData(sizeof(UniformBufferObject), *&m_VSSystemUniformBuffer);
 	}
 
+	void SkyboxRenderer::SetRenderToGBufferTexture(bool set)
+	{
+		m_RenderToGBufferTexture = true;
+		m_RenderTexture = Application::Instance()->GetRenderManager()->GetGBuffer()->m_ScreenTex[SCREENTEX_OFFSCREEN0];
+
+		for (auto fbo : m_Framebuffers)
+			delete fbo;
+		m_Framebuffers.clear();
+
+		CreateFramebuffers();
+	}
+
 	void SkyboxRenderer::OnResize(uint width, uint height)
 	{
 		delete m_Pipeline;
@@ -157,6 +161,9 @@ namespace Lumos
 		for(auto fbo : m_Framebuffers)
 			delete fbo;
 		m_Framebuffers.clear();
+
+		if (m_RenderToGBufferTexture)
+			m_RenderTexture = Application::Instance()->GetRenderManager()->GetGBuffer()->m_ScreenTex[SCREENTEX_OFFSCREEN0];
 
 		SetScreenBufferSize(width, height);
 

@@ -51,11 +51,14 @@ namespace Lumos
 
 		void* VKVertexBuffer::GetPointerInternal()
 		{
-			return nullptr;
+			void* temp;
+			VKDevice::Instance()->GetDevice().mapMemory(m_Memory, 0, m_Size, vk::MemoryMapFlagBits(), &temp);
+			return temp;
 		}
 
 		void VKVertexBuffer::ReleasePointer()
 		{
+			VKDevice::Instance()->GetDevice().unmapMemory(m_Memory);
 		}
 
 		void VKVertexBuffer::Bind()

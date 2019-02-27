@@ -3,30 +3,21 @@
 #include "Graphics/API/Shader.h"
 #include "Graphics/RenderList.h"
 #include "Graphics/API/Framebuffer.h"
-#include "Graphics/ParticleManager.h"
 #include "Graphics/Light.h"
 #include "Graphics/API/Textures/TextureCube.h"
-#include "Graphics/API/Textures/TextureDepth.h"
 #include "Graphics/Model/Model.h"
 #include "Graphics/Mesh.h"
 #include "Graphics/Material.h"
-#include "Graphics/LightSetUp.h"
 #include "Graphics/API/Renderer.h"
 #include "Graphics/API/CommandBuffer.h"
 #include "Graphics/API/Swapchain.h"
 #include "Graphics/API/RenderPass.h"
 #include "Graphics/API/Pipeline.h"
-#include "Graphics/API/Shader.h"
 #include "Graphics/GBuffer.h"
-#include "App/SceneManager.h"
 #include "App/Scene.h"
 #include "Entity/Entity.h"
 #include "App/Application.h"
 #include "Graphics/RenderManager.h"
-
-#ifdef LUMOS_RENDER_API_VULKAN
-#include "Platform/Vulkan/VKRenderer.h"
-#endif
 
 namespace Lumos
 {
@@ -338,6 +329,18 @@ namespace Lumos
 		}
 	}
 
+	void ForwardRenderer::SetRenderToGBufferTexture(bool set)
+	{
+		m_RenderToGBufferTexture = true;
+		m_RenderTexture = Application::Instance()->GetRenderManager()->GetGBuffer()->m_ScreenTex[SCREENTEX_OFFSCREEN0];
+
+		for (auto fbo : m_Framebuffers)
+			delete fbo;
+		m_Framebuffers.clear();
+
+		CreateFramebuffers();
+	}
+
 	void ForwardRenderer::OnResize(uint width, uint height)
 	{
 		m_ScreenBufferWidth  = static_cast<uint>(width);
@@ -351,6 +354,9 @@ namespace Lumos
 			delete fbo;
 
 		m_Framebuffers.clear();
+
+		if (m_RenderToGBufferTexture)
+			m_RenderTexture = Application::Instance()->GetRenderManager()->GetGBuffer()->m_ScreenTex[SCREENTEX_OFFSCREEN0];
 
 		m_RenderPass = graphics::api::RenderPass::Create();
 
