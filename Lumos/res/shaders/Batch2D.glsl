@@ -28,7 +28,7 @@ void main()
 	vs_out.tid = tid;
 	vs_out.mid = mid;
 	vs_out.color = color;
-};
+}
 
 #shader fragment
 
@@ -43,16 +43,16 @@ in DATA
 	flat uint color;
 } fs_in;
 
-uniform sampler2D textures[32];
+uniform sampler2D textures[16];
 
 void main()
 {
-	vec4 texColor = vec4(0.4,0.3,0.0,1.0);
+	vec4 texColor = vec4(0.0,0.0,0.9,1.0);
 	if (fs_in.tid > 0.0)
 	{
 		int tid = int(fs_in.tid - 0.5);
-		//texColor = texture(textures[tid], fs_in.uv);
+		texColor = texture(textures[tid], fs_in.uv);
 	}
 
-	color = texColor;
-};
+	color =  vec4(0.0,0.0,0.9,1.0);
+}

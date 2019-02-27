@@ -255,6 +255,7 @@ namespace Lumos
 				case api::R32G32B32A32_FLOAT : return vk::Format::eR32G32B32A32Sfloat;
 				case api::R32G32B32_FLOAT	 : return vk::Format::eR32G32B32Sfloat;
 				case api::R32G32_FLOAT		 : return vk::Format::eR32G32Sfloat;
+                case api::R32_FLOAT          : return vk::Format::eR32Sfloat;
 				default: return vk::Format::eR32G32B32Sfloat;
 				}
 			}

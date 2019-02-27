@@ -85,12 +85,17 @@ void Scene3D::OnInit()
 
 	auto renderer2D = new Renderer2D(m_ScreenWidth, m_ScreenHeight);
 	Application::Instance()->PushLayer(new Layer2D(renderer2D));
-	renderer2D->SetRenderToGBufferTexture(true);
-	std::shared_ptr<Entity> testSprite = std::make_shared<Entity>("Sprite", this);
+	renderer2D->SetRenderToGBufferTexture(false);
+    
+    for(int i = 0; i < 10000; i++)
+    {
+        std::shared_ptr<Entity> testSprite = std::make_shared<Entity>("Sprite", this);
+        
+        std::shared_ptr<Sprite> sprite = std::make_shared<Sprite>(maths::Vector2(RandomNumberGenerator32::Rand(0.0f, 500.0f), RandomNumberGenerator32::Rand(0.0f, 500.0f)), maths::Vector2(RandomNumberGenerator32::Rand(0.0f, 500.0f),RandomNumberGenerator32::Rand(0.0f, 500.0f)), 0xf);
+        testSprite->AddComponent(std::make_unique<SpriteComponent>(sprite));
+        AddEntity(testSprite);
+    }
 
-	std::shared_ptr<Sprite> sprite =std::make_shared<Sprite>(maths::Vector2(0.4f,0.4f),maths::Vector2(200.0f,200.0f), 0xf);
-	testSprite->AddComponent(std::make_unique<SpriteComponent>(sprite));
-	AddEntity(testSprite);
 }
 
 void Scene3D::OnUpdate(TimeStep* timeStep)

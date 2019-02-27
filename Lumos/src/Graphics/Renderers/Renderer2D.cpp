@@ -376,10 +376,10 @@ namespace Lumos
 		pipelineCI.vertexLayout = attributeDescriptions.data();
 		pipelineCI.numLayoutBindings = static_cast<uint>(poolInfo.size());
 		pipelineCI.typeCounts = poolInfo.data();
-		pipelineCI.strideSize = sizeof(Vertex);
+		pipelineCI.strideSize = sizeof(VertexData);
 		pipelineCI.numColorAttachments = 1;
 		pipelineCI.wireframeEnabled = false;
-		pipelineCI.cullMode = graphics::api::CullMode::BACK;
+		pipelineCI.cullMode = graphics::api::CullMode::NONE;
 		pipelineCI.transparencyEnabled = false;
 		pipelineCI.depthBiasEnabled = false;
 		pipelineCI.width = m_ScreenBufferWidth;
@@ -431,7 +431,7 @@ namespace Lumos
 			graphics::api::ImageInfo imageInfo = {};
 			imageInfo.texture = texture;
 			imageInfo.binding = index;
-			imageInfo.name = "uTextures";
+			imageInfo.name = "textures";
 		}
 
 		m_DescriptorSet->Update(bufferInfos);
