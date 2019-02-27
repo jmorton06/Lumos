@@ -3,11 +3,9 @@
 #include "Graphics/API/Shader.h"
 #include "Graphics/RenderList.h"
 #include "Graphics/API/Framebuffer.h"
-#include "Graphics/ParticleManager.h"
 #include "Graphics/Light.h"
-#include "Graphics/API/Textures/TextureCube.h"
 #include "Graphics/API/Textures/TextureDepth.h"
-#include "Graphics/API/Textures/TextureDepthArray.h"
+#include "Graphics/API/Textures/TextureCube.h"
 #include "Graphics/Model/Model.h"
 #include "Graphics/Mesh.h"
 #include "Graphics/MeshFactory.h"
@@ -18,15 +16,11 @@
 #include "Graphics/API/Swapchain.h"
 #include "Graphics/API/RenderPass.h"
 #include "Graphics/API/Pipeline.h"
-#include "Graphics/API/Shader.h"
 #include "Graphics/GBuffer.h"
-#include "App/SceneManager.h"
 #include "App/Scene.h"
 #include "Entity/Entity.h"
 #include "SkyboxRenderer.h"
 #include "Maths/Maths.h"
-#include "Maths/MathsUtilities.h"
-#include "Maths/BoundingSphere.h"
 #include "ShadowRenderer.h"
 #include "App/Application.h"
 #include "Graphics/RenderManager.h"
@@ -684,6 +678,18 @@ namespace Lumos
 		CreateFramebuffers();
 	}
 
+	void DeferredRenderer::SetRenderToGBufferTexture(bool set)
+	{
+		m_RenderToGBufferTexture = true;
+		m_RenderTexture = Application::Instance()->GetRenderManager()->GetGBuffer()->m_ScreenTex[SCREENTEX_OFFSCREEN0];
+
+		for (auto fbo : m_Framebuffers)
+			delete fbo;
+		m_Framebuffers.clear();
+
+		CreateFramebuffers();
+	}
+
 	void DeferredRenderer::CreateFramebuffers()
 	{
 		TextureType attachmentTypes[2];
@@ -755,6 +761,9 @@ namespace Lumos
 		for(auto fbo : m_Framebuffers)
 			delete fbo;
 		m_Framebuffers.clear();
+
+		if(m_RenderToGBufferTexture)
+			m_RenderTexture = Application::Instance()->GetRenderManager()->GetGBuffer()->m_ScreenTex[SCREENTEX_OFFSCREEN0];
 
 		DeferredRenderer::SetScreenBufferSize(width, height);
 

@@ -40,6 +40,7 @@ namespace Lumos
 		};
 
 		void SetRenderTarget(Texture* texture) override;
+		void SetRenderToGBufferTexture(bool set) override;
 
 	private:
 

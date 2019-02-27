@@ -61,6 +61,8 @@ namespace Lumos
         Window* GetWindow() const { return m_Window.get(); }
         AppState GetState() const { return m_CurrentState; }
 
+		maths::Vector2 GetWindowSize() const;
+
 		static void PhysicsUpdate(float targetUpdateTime);
 
 		static Application* Instance() { return s_Instance; }
@@ -76,14 +78,14 @@ namespace Lumos
 
 		uint m_Frames;
 		uint m_Updates;
-		float m_SecondTimer;
+		float m_SecondTimer = 0.0f;
 
 		std::unique_ptr<Window> m_Window;
         std::unique_ptr<SceneManager> m_SceneManager;
 		std::unique_ptr<RenderManager> m_RenderManager;
 		std::unique_ptr<AudioManager> m_AudioManager;
 
-		LayerStack* m_LayerStack;
+		LayerStack* m_LayerStack{};
 
         AppState m_CurrentState = AppState::Loading;
 		AppType m_AppType = AppType::Editor;

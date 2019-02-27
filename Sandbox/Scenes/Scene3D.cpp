@@ -30,7 +30,13 @@ void Scene3D::OnInit()
 
 	LoadModels();
 
-	m_pCamera = new ThirdPersonCamera(-20.0f, -40.0f, maths::Vector3(-3.0f, 10.0f, 15.0f), 60.0f, 0.1f, 1000.0f, (float) m_ScreenWidth / (float) m_ScreenHeight);
+	//m_pCamera = new ThirdPersonCamera(-20.0f, -40.0f, maths::Vector3(-3.0f, 10.0f, 15.0f), 60.0f, 0.1f, 1000.0f, (float) m_ScreenWidth / (float) m_ScreenHeight);
+
+	m_pCamera = new Camera2D(m_ScreenWidth,
+		m_ScreenHeight,
+		(float)m_ScreenWidth / (float)m_ScreenHeight
+		, 32);
+	
 	m_SceneBoundingRadius = 20.0f;
 
 	String environmentFiles[11] =
@@ -60,19 +66,31 @@ void Scene3D::OnInit()
 	Application::Instance()->GetAudioManager()->SetListener(m_pCamera);
 
 	m_ShadowTexture = std::unique_ptr<TextureDepthArray>(TextureDepthArray::Create(4096, 4096, 4));
-	auto shadowRenderer = new ShadowRenderer();
-	auto deferredRenderer = new DeferredRenderer(m_ScreenWidth, m_ScreenHeight);
-	auto skyboxRenderer = new SkyboxRenderer(m_ScreenWidth, m_ScreenHeight, m_EnvironmentMap);
-	deferredRenderer->SetRenderTarget(Application::Instance()->GetRenderManager()->GetGBuffer()->m_ScreenTex[SCREENTEX_OFFSCREEN0]);
-	skyboxRenderer->SetRenderTarget(Application::Instance()->GetRenderManager()->GetGBuffer()->m_ScreenTex[SCREENTEX_OFFSCREEN0]);
+	//auto shadowRenderer = new ShadowRenderer();
+	//auto deferredRenderer = new DeferredRenderer(m_ScreenWidth, m_ScreenHeight);
+	//auto skyboxRenderer = new SkyboxRenderer(m_ScreenWidth, m_ScreenHeight, m_EnvironmentMap);
+	//deferredRenderer->SetRenderTarget(Application::Instance()->GetRenderManager()->GetGBuffer()->m_ScreenTex[SCREENTEX_OFFSCREEN0]);
+	//skyboxRenderer->SetRenderTarget(Application::Instance()->GetRenderManager()->GetGBuffer()->m_ScreenTex[SCREENTEX_OFFSCREEN0]);
 
-	Application::Instance()->PushLayer(new Layer3D(shadowRenderer));
-    Application::Instance()->PushLayer(new Layer3D(deferredRenderer));
-	Application::Instance()->PushLayer(new Layer3D(skyboxRenderer));
-	Application::Instance()->PushOverLay(new ImGuiLayer(true));
+	//deferredRenderer->SetRenderToGBufferTexture(true);
+	//skyboxRenderer->SetRenderToGBufferTexture(true);
 
-	Application::Instance()->GetRenderManager()->SetShadowRenderer(shadowRenderer);
-    Application::Instance()->GetRenderManager()->SetSkyBoxTexture(m_EnvironmentMap);
+	//Application::Instance()->PushLayer(new Layer3D(shadowRenderer));
+    //Application::Instance()->PushLayer(new Layer3D(deferredRenderer));
+	//Application::Instance()->PushLayer(new Layer3D(skyboxRenderer));
+	//Application::Instance()->PushOverLay(new ImGuiLayer(true));
+
+	//Application::Instance()->GetRenderManager()->SetShadowRenderer(shadowRenderer);
+    //Application::Instance()->GetRenderManager()->SetSkyBoxTexture(m_EnvironmentMap);
+
+	auto renderer2D = new Renderer2D(m_ScreenWidth, m_ScreenHeight);
+	Application::Instance()->PushLayer(new Layer2D(renderer2D));
+	renderer2D->SetRenderToGBufferTexture(true);
+	std::shared_ptr<Entity> testSprite = std::make_shared<Entity>("Sprite", this);
+
+	std::shared_ptr<Sprite> sprite =std::make_shared<Sprite>(maths::Vector2(0.4f,0.4f),maths::Vector2(200.0f,200.0f), 0xf);
+	testSprite->AddComponent(std::make_unique<SpriteComponent>(sprite));
+	AddEntity(testSprite);
 }
 
 void Scene3D::OnUpdate(TimeStep* timeStep)

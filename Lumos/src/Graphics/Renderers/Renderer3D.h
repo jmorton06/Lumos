@@ -50,6 +50,7 @@ namespace Lumos
         virtual void SetScreenBufferSize(uint width, uint height) { if(width == 0) width = 1; if(height == 0) height = 1; m_ScreenBufferWidth = width; m_ScreenBufferHeight = height; }
 
 		virtual void SetRenderTarget(Texture* texture) { m_RenderTexture = texture; }
+		virtual void SetRenderToGBufferTexture(bool set) { m_RenderToGBufferTexture = set; }
 	protected:
 		Framebuffer* m_FBO;
 		Shader* m_Shader;
@@ -62,6 +63,7 @@ namespace Lumos
 		CommandQueue m_CommandQueue;
 		SystemUniformList m_SystemUniforms;
 		Texture* m_RenderTexture = nullptr;
+		bool m_RenderToGBufferTexture = false;
 	};
 }
 

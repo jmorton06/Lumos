@@ -92,6 +92,8 @@
 //Layers
 #include "Graphics/Layers/ImGuiLayer.h"
 #include "Graphics/Layers/Layer3D.h"
+#include "Graphics/Layers/Layer2D.h"
+#include "Graphics/Renderers/Renderer2D.h"
 #include "Graphics/Renderers/DeferredRenderer.h"
 #include "Graphics/Renderers/ForwardRenderer.h"
 #include "Graphics/Renderers/ShadowRenderer.h"

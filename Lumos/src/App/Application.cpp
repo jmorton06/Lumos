@@ -29,7 +29,7 @@ namespace Lumos
 	Application* Application::s_Instance = nullptr;
 
 	Application::Application(const WindowProperties& properties, const RenderAPI& api)
-		: m_SecondTimer(0.0f), m_UpdateTimer(0), m_Frames(0), m_Updates(0)
+		: m_UpdateTimer(0), m_Frames(0), m_Updates(0)
 	{
 		LUMOS_ASSERT(!s_Instance, "Application already exists!");
 		s_Instance = this;
@@ -62,7 +62,7 @@ namespace Lumos
 		ImGui::StyleColorsDark();
 
 #ifdef  LUMOS_EDITOR
-		m_SceneViewSize = maths::Vector2((float)properties.Width, (float)properties.Height);
+		m_SceneViewSize = maths::Vector2(static_cast<float>(properties.Width), static_cast<float>(properties.Height));
 #endif
 	}
 
@@ -124,6 +124,15 @@ namespace Lumos
 		}
 
 		return 0;
+	}
+
+	maths::Vector2 Application::GetWindowSize() const
+	{
+#ifdef LUMOS_EDITOR
+		return m_SceneViewSize;
+#else
+		return m_Window->GetScreenSize();
+#endif
 	}
 
 	void Application::PhysicsUpdate(float targetUpdateTime)
@@ -302,7 +311,7 @@ namespace Lumos
 		auto& io = ImGui::GetIO();
 
 		ImGuiWindowFlags windowFlags = 0;
-		//windowFlags |= ImGuiWindowFlags_NoMouseInputs;// | | ImGuiWindowFlags_NoInputs | ImGuiWindowFlags_NoMove ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoBringToFrontOnFocus |
+		windowFlags |= ImGuiWindowFlags_NoMouseInputs;// | | ImGuiWindowFlags_NoInputs | ImGuiWindowFlags_NoMove ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoBringToFrontOnFocus |
 
 		ImGui::SetNextWindowBgAlpha(0.0f);
 		ImGui::Begin("Scene", nullptr, windowFlags);
@@ -310,7 +319,7 @@ namespace Lumos
 
 		m_SceneViewSize = maths::Vector2(ImGui::GetWindowSize().x, ImGui::GetWindowSize().y);
 
-		m_SceneManager->GetCurrentScene()->GetCamera()->SetAspectRatio((float)ImGui::GetWindowSize().x / (float)ImGui::GetWindowSize().y);
+		m_SceneManager->GetCurrentScene()->GetCamera()->SetAspectRatio(static_cast<float>(ImGui::GetWindowSize().x) / static_cast<float>(ImGui::GetWindowSize().y));
 
 		ImGui::Image(m_RenderManager->GetGBuffer()->m_ScreenTex[SCREENTEX_OFFSCREEN0]->GetHandle(), io.DisplaySize, ImVec2(0.0f, m_FlipImGuiImage ? 1.0f : 0.0f), ImVec2(1.0f, m_FlipImGuiImage ? 0.0f : 1.0f));
 		
