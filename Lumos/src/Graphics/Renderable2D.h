@@ -4,6 +4,7 @@
 #include "Maths/Vector3.h"
 
 #include "Graphics/API/DescriptorSet.h"
+#include "Maths/Vector4.h"
 
 #define RENDERER2D_VERTEX_SIZE	sizeof(VertexData)
 
@@ -17,7 +18,7 @@ namespace Lumos
 		maths::Vector2 uv;
 		float tid;
 		float mid;
-		uint color;
+		maths::Vector4 color;
 
         bool operator==(const VertexData& other) const
         {
@@ -50,7 +51,7 @@ namespace Lumos
             
             attributeDescriptions[4].binding = 0;
             attributeDescriptions[4].location = 4;
-            attributeDescriptions[4].format = graphics::api::Format::R32_FLOAT;
+            attributeDescriptions[4].format = graphics::api::Format::R32G32B32A32_FLOAT;
             attributeDescriptions[4].offset = offsetof(VertexData, color);
             
             return attributeDescriptions;
@@ -66,7 +67,7 @@ namespace Lumos
 		Texture2D* GetTexture() const { return m_Texture.get(); }
 		maths::Vector2 GetPosition() const { return m_Position; }
 		maths::Vector2 GetScale() const { return m_Scale; }
-		uint GetColour() const { return m_Colour; }
+		const maths::Vector4& GetColour() const { return m_Colour; }
 		const std::vector<maths::Vector2>& GetUVs() const { return m_UVs; }
 
 		static const std::vector<maths::Vector2>& GetDefaultUVs();
@@ -75,7 +76,7 @@ namespace Lumos
 		std::shared_ptr<Texture2D> m_Texture;
 		maths::Vector2 m_Position;
 		maths::Vector2 m_Scale;
-		uint m_Colour;
+		maths::Vector4 m_Colour;
 		std::vector<maths::Vector2> m_UVs;
 	};
 }

@@ -80,6 +80,9 @@ namespace Lumos
 		bufferInfo.offset = 0;
 		bufferInfo.size = sizeof(UniformBufferObject);
 		bufferInfo.type = graphics::api::DescriptorType::UNIFORM_BUFFER;
+		bufferInfo.shaderType = ShaderType::VERTEX;
+		bufferInfo.systemUniforms = false;
+		bufferInfo.name = "UniformBufferObject";
 		bufferInfo.binding = 0;
 
 		bufferInfos.push_back(bufferInfo);
@@ -125,7 +128,7 @@ namespace Lumos
 
 		delete[] indices;
 
-		m_ClearColour = maths::Vector4(0.8f, 0.8f, 0.8f, 1.0f);
+		m_ClearColour = maths::Vector4(0.5f, 0.5f, 0.5f, 1.0f);
 	}
 
 	void Renderer2D::Submit(Renderable2D* renderable)
@@ -133,7 +136,7 @@ namespace Lumos
 		const maths::Vector2 min = renderable->GetPosition();
 		const maths::Vector2 max = renderable->GetPosition() + renderable->GetScale();
 
-		const uint color = renderable->GetColour();
+		const maths::Vector4 color = renderable->GetColour();
 		const std::vector<maths::Vector2>& uv = renderable->GetUVs();
 		const Texture* texture = renderable->GetTexture();
 
@@ -199,23 +202,22 @@ namespace Lumos
 	void Renderer2D::BeginScene(Scene* scene)
 	{
 		auto camera = scene->GetCamera();
-		auto projView = camera->GetProjectionMatrix() * camera->GetViewMatrix();
+		auto projView = camera->GetProjectionMatrix()*camera->GetViewMatrix();
 
 		memcpy(m_VSSystemUniformBuffer, &projView, sizeof(maths::Matrix4));
 	}
 
 	void Renderer2D::Present()
 	{
+		m_Pipeline->SetActive(m_CommandBuffers[m_CurrentBufferID]);
+
 		m_VertexArray->GetBuffer()->ReleasePointer();
 		m_VertexArray->Unbind();
+		m_IndexBuffer->SetCount(m_IndexCount);
 
-		((graphics::GLDescriptorSet*)m_Pipeline->GetDescriptorSet())->Bind(0);
-		((graphics::GLDescriptorSet*)m_DescriptorSet)->Bind(0);
-		m_VertexArray->Bind();
-		m_IndexBuffer->Bind();
-		m_VertexArray->Draw(m_IndexCount);
-		m_IndexBuffer->Unbind();
-		m_VertexArray->Unbind();
+		std::vector<graphics::api::DescriptorSet*> descriptors = {m_Pipeline->GetDescriptorSet(), m_DescriptorSet };
+
+		Renderer::GetRenderer()->Render(m_VertexArray, m_IndexBuffer, m_CommandBuffers[m_CurrentBufferID], descriptors, m_Pipeline, 0);
 	}
 
 	void Renderer2D::End()
@@ -228,6 +230,8 @@ namespace Lumos
 
 		if (!m_RenderTexture)
 			PresentToScreen();
+
+		m_IndexCount = 0;
 	}
 
 	void Renderer2D::Render(Scene* scene)
@@ -313,8 +317,6 @@ namespace Lumos
 #define MAX_BATCH_DRAW_CALLS 5
 	void Renderer2D::CreateGraphicsPipeline()
 	{
-		m_Shader = Shader::CreateFromFile("Simple", "/CoreShaders/");
-
 		std::vector<graphics::api::DescriptorPoolInfo> poolInfo =
 		{
 			{ graphics::api::DescriptorType::UNIFORM_BUFFER, MAX_BATCH_DRAW_CALLS },
@@ -435,5 +437,28 @@ namespace Lumos
 		}
 
 		m_DescriptorSet->Update(bufferInfos);
+	}
+
+	void Renderer2D::SetRenderTarget(Texture* texture)
+	{
+		m_RenderTexture = texture;
+
+		for (auto fbo : m_Framebuffers)
+			delete fbo;
+		m_Framebuffers.clear();
+
+		CreateFramebuffers();
+	}
+
+	void Renderer2D::SetRenderToGBufferTexture(bool set)
+	{
+		m_RenderToGBufferTexture = true;
+		m_RenderTexture = Application::Instance()->GetRenderManager()->GetGBuffer()->m_ScreenTex[SCREENTEX_OFFSCREEN0];
+
+		for (auto fbo : m_Framebuffers)
+			delete fbo;
+		m_Framebuffers.clear();
+
+		CreateFramebuffers();
 	}
 }

@@ -57,6 +57,7 @@ namespace Lumos
 		void SetStencilOpInternal(StencilType fail, StencilType zfail, StencilType zpass) override;
 
 		void RenderMeshInternal(Mesh* mesh, graphics::api::Pipeline* pipeline, graphics::api::CommandBuffer* cmdBuffer, uint dynamicOffset, graphics::api::DescriptorSet* descriptorSet, bool useMaterialDescriptorSet) override;
+		void Render(VertexArray* vertexArray, IndexBuffer* indexBuffer, graphics::api::CommandBuffer* cmdBuffer, std::vector<graphics::api::DescriptorSet*>& descriptorSets, graphics::api::Pipeline* pipeline, uint dynamicOffset) override;
 
 		graphics::api::Swapchain* GetSwapchainInternal() const override { return m_Swapchain; }
 

@@ -1,6 +1,7 @@
 #include "LM.h"
 #include "VKDevice.h"
 #include "VKVertexBuffer.h"
+#include "VKRenderer.h"
 
 namespace Lumos
 { 
@@ -29,6 +30,8 @@ namespace Lumos
 		void VKVertexBuffer::Resize(uint size)
 		{
 			m_Size = size;
+			VKTools::CreateBuffer(size, vk::BufferUsageFlagBits::eVertexBuffer,
+				vk::MemoryPropertyFlagBits::eHostVisible | vk::MemoryPropertyFlagBits::eHostCoherent, m_Buffer, m_Memory);
 
 		}
 

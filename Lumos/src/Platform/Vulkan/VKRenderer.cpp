@@ -182,35 +182,62 @@ namespace Lumos
 			std::vector<vk::DescriptorSet> descriptorSets;
 			uint numDynamicDescriptorSets = 0;
 
-			if (static_cast<graphics::VKDescriptorSet*>(pipeline->GetDescriptorSet())->GetIsDynamic())
+			if (dynamic_cast<graphics::VKDescriptorSet*>(pipeline->GetDescriptorSet())->GetIsDynamic())
 				numDynamicDescriptorSets++;
 
-			descriptorSets.push_back(static_cast<graphics::VKDescriptorSet*>(pipeline->GetDescriptorSet())->GetDescriptorSet());
+			descriptorSets.push_back(dynamic_cast<graphics::VKDescriptorSet*>(pipeline->GetDescriptorSet())->GetDescriptorSet());
 			if(useMaterialDescriptorSet)
 			{
 				if (mesh->GetMaterial() && mesh->GetMaterial()->GetDescriptorSet())
 				{
-					descriptorSets.push_back(static_cast<graphics::VKDescriptorSet*>(mesh->GetMaterial()->GetDescriptorSet())->GetDescriptorSet());
-					if (static_cast<graphics::VKDescriptorSet*>(mesh->GetMaterial()->GetDescriptorSet())->GetIsDynamic())
+					descriptorSets.push_back(dynamic_cast<graphics::VKDescriptorSet*>(mesh->GetMaterial()->GetDescriptorSet())->GetDescriptorSet());
+					if (dynamic_cast<graphics::VKDescriptorSet*>(mesh->GetMaterial()->GetDescriptorSet())->GetIsDynamic())
 						numDynamicDescriptorSets++;
 				}
 				else if(descriptorSet)
 				{
-					descriptorSets.push_back(static_cast<graphics::VKDescriptorSet*>(descriptorSet)->GetDescriptorSet());
-					if (static_cast<graphics::VKDescriptorSet*>(descriptorSet)->GetIsDynamic())
+					descriptorSets.push_back(dynamic_cast<graphics::VKDescriptorSet*>(descriptorSet)->GetDescriptorSet());
+					if (dynamic_cast<graphics::VKDescriptorSet*>(descriptorSet)->GetIsDynamic())
 						numDynamicDescriptorSets++;
 				}
 			}
 
 			uint index = 0;
-			for(auto pc : static_cast<graphics::VKDescriptorSet*>(pipeline->GetDescriptorSet())->GetPushConstants())
+			for(auto pc : dynamic_cast<graphics::VKDescriptorSet*>(pipeline->GetDescriptorSet())->GetPushConstants())
 			{
 				//TODO : Shader Stage;
-				static_cast<graphics::VKCommandBuffer*>(cmdBuffer)->GetCommandBuffer().pushConstants(static_cast<graphics::VKPipeline*>(pipeline)->GetPipelineLayout(), vk::ShaderStageFlagBits::eVertex, index, pc.size, pc.data);
+				dynamic_cast<graphics::VKCommandBuffer*>(cmdBuffer)->GetCommandBuffer().pushConstants(dynamic_cast<graphics::VKPipeline*>(pipeline)->GetPipelineLayout(), vk::ShaderStageFlagBits::eVertex, index, pc.size, pc.data);
 			}
 
 
-			graphics::VKRenderer::Render(mesh->GetIndexBuffer().get(), mesh->GetVertexArray().get(), static_cast<graphics::VKCommandBuffer*>(cmdBuffer), descriptorSets, static_cast<graphics::VKPipeline*>(pipeline)->GetPipelineLayout(), dynamicOffset, numDynamicDescriptorSets);
+			graphics::VKRenderer::Render(mesh->GetIndexBuffer().get(), mesh->GetVertexArray().get(), dynamic_cast<graphics::VKCommandBuffer*>(cmdBuffer), descriptorSets,
+			                             dynamic_cast<graphics::VKPipeline*>(pipeline)->GetPipelineLayout(), dynamicOffset, numDynamicDescriptorSets);
+
+		}
+
+		void VKRenderer::Render(VertexArray* vertexArray, IndexBuffer* indexBuffer,
+			graphics::api::CommandBuffer* cmdBuffer, std::vector<graphics::api::DescriptorSet*>& descriptorSets,
+			graphics::api::Pipeline* pipeline, uint dynamicOffset)
+		{
+			std::vector<vk::DescriptorSet> vkdescriptorSets;
+			uint numDynamicDescriptorSets = 0;
+
+			for(auto descriptorSet : descriptorSets)
+			{
+				if (static_cast<graphics::VKDescriptorSet*>(descriptorSet)->GetIsDynamic())
+					numDynamicDescriptorSets++;
+
+				vkdescriptorSets.push_back(static_cast<graphics::VKDescriptorSet*>(descriptorSet)->GetDescriptorSet());
+
+				uint index = 0;
+				for (auto pc : static_cast<graphics::VKDescriptorSet*>(descriptorSet)->GetPushConstants())
+				{
+					//TODO : Shader Stage;
+					static_cast<graphics::VKCommandBuffer*>(cmdBuffer)->GetCommandBuffer().pushConstants(static_cast<graphics::VKPipeline*>(pipeline)->GetPipelineLayout(), vk::ShaderStageFlagBits::eVertex, index, pc.size, pc.data);
+				}
+			}
+
+			graphics::VKRenderer::Render(indexBuffer, vertexArray, static_cast<graphics::VKCommandBuffer*>(cmdBuffer), vkdescriptorSets, static_cast<graphics::VKPipeline*>(pipeline)->GetPipelineLayout(), dynamicOffset, numDynamicDescriptorSets);
 
 		}
 	}
