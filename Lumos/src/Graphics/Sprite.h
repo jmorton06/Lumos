@@ -5,13 +5,18 @@
 
 namespace Lumos
 {
+	namespace maths 
+	{
+		class Vector4;
+	}
+
 	class Texture2D;
 
 	class LUMOS_EXPORT Sprite : public Renderable2D
 	{
 	public:
-		Sprite(const maths::Vector2& position, const maths::Vector2& scale, uint colour);
-		Sprite(std::shared_ptr<Texture2D> texture, const maths::Vector2& position, const maths::Vector2& scale, uint colour);
+		Sprite(const maths::Vector2& position, const maths::Vector2& scale, const maths::Vector4& colour);
+		Sprite(std::shared_ptr<Texture2D> texture, const maths::Vector2& position, const maths::Vector2& scale, const maths::Vector4& colour);
 		virtual ~Sprite();
 	};
 }

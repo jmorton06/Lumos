@@ -16,6 +16,7 @@ namespace Lumos
 
 		virtual uint GetCount() const = 0;
 		virtual uint GetSize() const { return 0; }
+		virtual void SetCount(uint m_index_count) = 0;
 	public:
 		static IndexBuffer* Create(uint16* data, uint count, BufferUsage bufferUsage = BufferUsage::STATIC);
 		static IndexBuffer* Create(uint* data  , uint count, BufferUsage bufferUsage = BufferUsage::STATIC);

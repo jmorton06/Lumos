@@ -311,7 +311,7 @@ namespace Lumos
 		auto& io = ImGui::GetIO();
 
 		ImGuiWindowFlags windowFlags = 0;
-		windowFlags |= ImGuiWindowFlags_NoMouseInputs;// | | ImGuiWindowFlags_NoInputs | ImGuiWindowFlags_NoMove ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoBringToFrontOnFocus |
+		//windowFlags |= ImGuiWindowFlags_NoMouseInputs;// | | ImGuiWindowFlags_NoInputs | ImGuiWindowFlags_NoMove ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoBringToFrontOnFocus |
 
 		ImGui::SetNextWindowBgAlpha(0.0f);
 		ImGui::Begin("Scene", nullptr, windowFlags);

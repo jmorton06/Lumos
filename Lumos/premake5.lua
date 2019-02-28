@@ -25,7 +25,9 @@ project "Lumos"
 		"external/tinygltf/tiny_gltf.h",
 		"external/stb/stb_vorbis.c",
 		"external/simplex/**.h",
-		"external/simplex/**.cpp"
+		"external/simplex/**.cpp",
+
+		"res/**"
 	}
 
 	removefiles

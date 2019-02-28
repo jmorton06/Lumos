@@ -41,8 +41,7 @@ namespace Lumos
 
 	void Renderer::Release()
 	{
-		if (s_Instance != nullptr)
-			delete s_Instance;
+		delete s_Instance;
 
 		s_Instance = nullptr;
 	}

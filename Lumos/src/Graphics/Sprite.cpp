@@ -8,15 +8,16 @@
 
 namespace Lumos
 {
-	Sprite::Sprite(const maths::Vector2& position, const maths::Vector2& scale, uint colour)
+	Sprite::Sprite(const maths::Vector2& position, const maths::Vector2& scale, const maths::Vector4& colour)
 	{
 		m_Position = position;
 		m_Scale = scale;
 		m_Colour = colour;
 		m_UVs = GetDefaultUVs();
+		m_Texture = nullptr;
 	}
 
-	Sprite::Sprite(std::shared_ptr<Texture2D> texture, const maths::Vector2& position, const maths::Vector2& scale, uint colour)
+	Sprite::Sprite(std::shared_ptr<Texture2D> texture, const maths::Vector2& position, const maths::Vector2& scale, const maths::Vector4& colour)
 	{
 		m_Texture = texture;
 		m_Position = position;

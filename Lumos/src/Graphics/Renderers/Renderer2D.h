@@ -45,8 +45,8 @@ namespace Lumos
 
 		virtual void SetScreenBufferSize(uint width, uint height);
 
-		virtual void SetRenderTarget(Texture* texture) { m_RenderTexture = texture; }
-		virtual void SetRenderToGBufferTexture(bool set) { m_RenderToGBufferTexture = set; }
+		virtual void SetRenderTarget(Texture* texture);
+		virtual void SetRenderToGBufferTexture(bool set);
 
 		struct UniformBufferObject
 		{
