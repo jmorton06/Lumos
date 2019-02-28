@@ -102,7 +102,8 @@ namespace Lumos
 		layout.Push<maths::Vector3>("POSITION"); // Position
 		layout.Push<maths::Vector2>("TEXCOORD"); // UV
 		layout.Push<float>("ID"); // Texture Index
-		layout.Push<byte>("COLOR", 4, true); // Color
+        layout.Push<float>("MID"); // Mask Index
+		layout.Push<maths::Vector4>("COLOR"); // Color
 		buffer->SetLayout(layout);
 
 		m_VertexArray = VertexArray::Create();
@@ -126,9 +127,9 @@ namespace Lumos
 
 		m_IndexBuffer = IndexBuffer::Create(indices, RENDERER_INDICES_SIZE);
 
-		delete[] indices;
+		//delete[] indices;
 
-		m_ClearColour = maths::Vector4(0.5f, 0.5f, 0.5f, 1.0f);
+		m_ClearColour = maths::Vector4(0.8f, 0.5f, 0.5f, 1.0f);
 	}
 
 	void Renderer2D::Submit(Renderable2D* renderable)
@@ -353,7 +354,7 @@ namespace Lumos
 			 { graphics::api::DescriptorType::IMAGE_SAMPLER,graphics::api::ShaderStage::FRAGMENT , 0 }
 		};
 
-		auto attributeDescriptions = Vertex::getAttributeDescriptions();
+		auto attributeDescriptions = VertexData::getAttributeDescriptions();
 
 		std::vector<graphics::api::DescriptorLayout> descriptorLayouts;
 
