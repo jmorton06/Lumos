@@ -61,6 +61,10 @@ namespace Lumos
 
 		void VKVertexBuffer::ReleasePointer()
 		{
+			vk::MappedMemoryRange memoryRange;
+			memoryRange.memory = m_Memory;
+			memoryRange.size = m_Size;
+			VKDevice::Instance()->GetDevice().flushMappedMemoryRanges(1, &memoryRange);
 			VKDevice::Instance()->GetDevice().unmapMemory(m_Memory);
 		}
 

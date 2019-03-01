@@ -58,7 +58,7 @@ namespace Lumos
 				}
 			}
 		}
-		camera = new Camera2D(fov, n, f, sr,1);
+		camera = new Camera2D(fov, n,1);
 	}
 
 	Camera2DBinding::~Camera2DBinding()

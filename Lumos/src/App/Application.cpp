@@ -331,27 +331,27 @@ namespace Lumos
 
 	void Application::OnImGui()
 	{
-		if (ImGui::BeginMainMenuBar())
-		{
-			if (ImGui::BeginMenu("File"))
-			{
-				if (ImGui::MenuItem("Exit")) { m_CurrentState = AppState::Closing; }
-				ImGui::EndMenu();
-			}
-			if (ImGui::BeginMenu("Edit"))
-			{
-				if (ImGui::MenuItem("Undo", "CTRL+Z")) {}
-				if (ImGui::MenuItem("Redo", "CTRL+Y", false, false)) {}  // Disabled item
-				ImGui::Separator();
-				if (ImGui::MenuItem("Cut", "CTRL+X")) {}
-				if (ImGui::MenuItem("Copy", "CTRL+C")) {}
-				if (ImGui::MenuItem("Paste", "CTRL+V")) {}
-				ImGui::EndMenu();
-			}
+		//if (ImGui::BeginMainMenuBar())
+		//{
+		//	if (ImGui::BeginMenu("File"))
+		//	{
+		//		if (ImGui::MenuItem("Exit")) { m_CurrentState = AppState::Closing; }
+		//		ImGui::EndMenu();
+		//	}
+		//	if (ImGui::BeginMenu("Edit"))
+		//	{
+		//		if (ImGui::MenuItem("Undo", "CTRL+Z")) {}
+		//		if (ImGui::MenuItem("Redo", "CTRL+Y", false, false)) {}  // Disabled item
+		//		ImGui::Separator();
+		//		if (ImGui::MenuItem("Cut", "CTRL+X")) {}
+		//		if (ImGui::MenuItem("Copy", "CTRL+C")) {}
+		//		if (ImGui::MenuItem("Paste", "CTRL+V")) {}
+		//		ImGui::EndMenu();
+		//	}
 
-			if (ImGui::MenuItem("X")) { m_CurrentState = AppState::Closing; }
-			ImGui::EndMainMenuBar();
-		}
+		//	if (ImGui::MenuItem("X")) { m_CurrentState = AppState::Closing; }
+		//	ImGui::EndMainMenuBar();
+		//}
 
 		ImGuiWindowFlags window_flags = 0;
 		ImGui::Begin("Engine Information", NULL, window_flags);
