@@ -25,10 +25,7 @@ void Scene2D::OnInit()
 	SetDrawObjects(true);
 	SetUseShadow(true);
 
-	m_pCamera = new Camera2D(m_ScreenWidth,
-		m_ScreenHeight,
-		static_cast<float>(m_ScreenWidth) / static_cast<float>(m_ScreenHeight)
-		, 6);
+	m_pCamera = new Camera2D(16, 9 , 1);
 
 	m_SceneBoundingRadius = 20.0f;
 
@@ -44,10 +41,16 @@ void Scene2D::OnInit()
 	{
 		std::shared_ptr<Entity> testSprite = std::make_shared<Entity>("Sprite", this);
 
-		std::shared_ptr<Sprite> sprite = std::make_shared<Sprite>(maths::Vector2(RandomNumberGenerator32::Rand(-10.0f, 100.0f), RandomNumberGenerator32::Rand(-10.0f, 100.0f)), maths::Vector2(RandomNumberGenerator32::Rand(10.0f, 100.0f), RandomNumberGenerator32::Rand(10.0f, 100.0f)), maths::Vector4(RandomNumberGenerator32::Rand(0.0f, 1.0f), RandomNumberGenerator32::Rand(0.0f, 1.0f), RandomNumberGenerator32::Rand(0.0f, 1.0f), 1.0f));
+		std::shared_ptr<Sprite> sprite = std::make_shared<Sprite>(maths::Vector2(RandomNumberGenerator32::Rand(-5.0f, 5.0f), RandomNumberGenerator32::Rand(-5.0f, 5.0f)), maths::Vector2(RandomNumberGenerator32::Rand(1.0f, 2.0f), RandomNumberGenerator32::Rand(1.0f, 2.0f)), maths::Vector4(RandomNumberGenerator32::Rand(0.0f, 1.0f), RandomNumberGenerator32::Rand(0.0f, 1.0f), RandomNumberGenerator32::Rand(0.0f, 1.0f), 1.0f));
 		testSprite->AddComponent(std::make_unique<SpriteComponent>(sprite));
 		AddEntity(testSprite);
 	}
+
+	//std::shared_ptr<Entity> testSprite = std::make_shared<Entity>("Sprite", this);
+
+	//std::shared_ptr<Sprite> sprite = std::make_shared<Sprite>(maths::Vector2(0.0f,0.0f), maths::Vector2(1.0f,1.0f), maths::Vector4(0.4f,0.1f,0.6f,1.0f));
+	//testSprite->AddComponent(std::make_unique<SpriteComponent>(sprite));
+	//AddEntity(testSprite);
 
 }
 

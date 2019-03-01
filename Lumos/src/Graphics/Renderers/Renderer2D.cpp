@@ -55,6 +55,7 @@ namespace Lumos
 		graphics::api::RenderpassInfo renderpassCI{};
 		renderpassCI.attachmentCount = 1;
 		renderpassCI.textureType = textureTypes;
+		renderpassCI.clear = true;
 
 		m_RenderPass->Init(renderpassCI);
 
@@ -103,7 +104,7 @@ namespace Lumos
 		layout.Push<maths::Vector2>("TEXCOORD"); // UV
 		layout.Push<float>("ID"); // Texture Index
         layout.Push<float>("MID"); // Mask Index
-		layout.Push<maths::Vector4>("COLOR"); // Color
+		layout.Push<maths::Vector4>("COLOUR"); // Color
 		buffer->SetLayout(layout);
 
 		m_VertexArray = VertexArray::Create();
@@ -149,6 +150,7 @@ namespace Lumos
 		m_Buffer->vertex = vertex;
 		m_Buffer->uv = uv[0];
 		m_Buffer->tid = textureSlot;
+		m_Buffer->mid = 0;
 		m_Buffer->color = color;
 		m_Buffer++;
 
@@ -156,6 +158,7 @@ namespace Lumos
 		m_Buffer->vertex = vertex;
 		m_Buffer->uv = uv[1];
 		m_Buffer->tid = textureSlot;
+		m_Buffer->mid = 0;
 		m_Buffer->color = color;
 		m_Buffer++;
 
@@ -163,6 +166,7 @@ namespace Lumos
 		m_Buffer->vertex = vertex;
 		m_Buffer->uv = uv[2];
 		m_Buffer->tid = textureSlot;
+		m_Buffer->mid = 0;
 		m_Buffer->color = color;
 		m_Buffer++;
 
@@ -170,6 +174,7 @@ namespace Lumos
 		m_Buffer->vertex = vertex;
 		m_Buffer->uv = uv[3];
 		m_Buffer->tid = textureSlot;
+		m_Buffer->mid = 0;
 		m_Buffer->color = color;
 		m_Buffer++;
 
@@ -203,7 +208,7 @@ namespace Lumos
 	void Renderer2D::BeginScene(Scene* scene)
 	{
 		auto camera = scene->GetCamera();
-		auto projView = camera->GetProjectionMatrix()*camera->GetViewMatrix();
+		auto projView = maths::Matrix4();// camera->GetProjectionMatrix();// *camera->GetViewMatrix();
 
 		memcpy(m_VSSystemUniformBuffer, &projView, sizeof(maths::Matrix4));
 	}
@@ -291,7 +296,43 @@ namespace Lumos
 
 	void Renderer2D::OnResize(uint width, uint height)
 	{
+		delete m_Pipeline;
+
+		for (auto fbo : m_Framebuffers)
+			delete fbo;
+		m_Framebuffers.clear();
+
+		if (m_RenderToGBufferTexture)
+			m_RenderTexture = Application::Instance()->GetRenderManager()->GetGBuffer()->m_ScreenTex[SCREENTEX_OFFSCREEN0];
+
 		SetScreenBufferSize(width, height);
+
+		CreateGraphicsPipeline();
+
+		if (m_UniformBuffer == nullptr)
+		{
+			m_UniformBuffer = graphics::api::UniformBuffer::Create();
+			uint32_t bufferSize = static_cast<uint32_t>(sizeof(UniformBufferObject));
+			m_UniformBuffer->Init(bufferSize, nullptr);
+		}
+
+		std::vector<graphics::api::BufferInfo> bufferInfos;
+
+		graphics::api::BufferInfo bufferInfo = {};
+		bufferInfo.buffer = m_UniformBuffer;
+		bufferInfo.offset = 0;
+		bufferInfo.size = sizeof(UniformBufferObject);
+		bufferInfo.type = graphics::api::DescriptorType::UNIFORM_BUFFER;
+		bufferInfo.shaderType = ShaderType::VERTEX;
+		bufferInfo.systemUniforms = false;
+		bufferInfo.name = "UniformBufferObject";
+		bufferInfo.binding = 0;
+
+		bufferInfos.push_back(bufferInfo);
+
+		m_Pipeline->GetDescriptorSet()->Update(bufferInfos);
+
+		CreateFramebuffers();
 	}
 
 	void Renderer2D::PresentToScreen()

@@ -34,19 +34,18 @@ namespace Lumos
 		virtual void Init();
 		virtual void Submit(Renderable2D* renderable);
 		virtual void Begin();
-		void SetSystemUniforms(Shader* shader) const;
 		virtual void BeginScene(Scene* scene);
 		virtual void Present();
 		virtual void End();
 		virtual void Render(Scene* scene);
-		float SubmitTexture(Texture* texture);
 		virtual void OnResize(uint width, uint height);
 		virtual void PresentToScreen();
-
 		virtual void SetScreenBufferSize(uint width, uint height);
-
 		virtual void SetRenderTarget(Texture* texture);
 		virtual void SetRenderToGBufferTexture(bool set);
+
+		void SetSystemUniforms(Shader* shader) const;
+		float SubmitTexture(Texture* texture);
 
 		struct UniformBufferObject
 		{

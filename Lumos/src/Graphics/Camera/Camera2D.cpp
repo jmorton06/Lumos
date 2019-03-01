@@ -4,34 +4,15 @@
 
 namespace Lumos
 {
-
-	Camera2D::Camera2D(float FOV, float Near, float Far, float aspect, int scale)
-		: Camera(FOV, Near, Far, aspect)
+	Camera2D::Camera2D(uint width, uint height, int scale) : Camera(45.0f, 0.0f, 1.0f, 1.0f)
 		, m_Scale(scale)
 	{
 		Application::Instance()->GetWindow()->HideMouse(false);
-		m_ProjMatrix = maths::Matrix4::Orthographic(-1.0f, 1.0f, 1.0f, 0.0f, 1.0f, 0.0f);
+		m_ProjMatrix = maths::Matrix4::Orthographic(-1.0f, 1.0f, static_cast<float>(width), static_cast<float>(-width), static_cast<float>(height), static_cast<float>(-height));
 		m_Position = maths::Vector3(0.0f);
-	}
-
-	Camera2D::Camera2D(uint width, uint height, float aspect, int scale) : Camera(45.0f, 0.0f, 1.0f, aspect)
-		, m_Scale(scale)
-	{
-		Application::Instance()->GetWindow()->HideMouse(false);
-		m_ProjMatrix = maths::Matrix4::Orthographic(-1.0f, 1.0f, static_cast<float>(width), 0.0f, static_cast<float>(height), 0.0f);
-		m_Position = maths::Vector3(0.0f);
+		m_Velocity = maths::Vector3(0.0f);
 
 	}
-
-	Camera2D::Camera2D(float pitch, float yaw, const maths::Vector3& position, float FOV, float Near, float Far, float aspect, int scale)
-		: Camera(pitch, yaw, position, FOV, Near, Far, aspect)
-		, m_Scale(scale)
-	{
-		Application::Instance()->GetWindow()->HideMouse(false);
-		m_ProjMatrix = maths::Matrix4::Orthographic(-1.0f, 1.0f, 1.0f, 0.0f, 1.0f, 0.0f);
-		m_Position = maths::Vector3(0.0f);
-	}
-
 
 	Camera2D::~Camera2D()
 	{
@@ -45,7 +26,7 @@ namespace Lumos
 	{
 		maths::Vector3 up = maths::Vector3(0, 1, 0), right = maths::Vector3(1, 0, 0);
 
-		m_CameraSpeed = 1000.0f * dt;
+		m_CameraSpeed = 100.0f * dt;
 
 		if (Input::GetInput().GetKeyHeld(LUMOS_KEY_A))
 		{
@@ -73,7 +54,7 @@ namespace Lumos
 
 	void Camera2D::UpdateProjectionMatrix(float width, float height)
 	{
-		m_ProjMatrix = maths::Matrix4::Orthographic(-1.0f, 1.0f, width, 0.0f, height, 0.0f);
+		m_ProjMatrix = maths::Matrix4::Orthographic(-1.0f, 1.0f, width, -width, height, -height);
 	}
 
 	void Camera2D::BuildViewMatrix()
