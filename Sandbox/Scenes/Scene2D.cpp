@@ -41,7 +41,8 @@ void Scene2D::OnInit()
     {
         std::shared_ptr<Entity> testSprite = std::make_shared<Entity>("Sprite", this);
 
-        std::shared_ptr<Sprite> sprite = std::make_shared<Sprite>(maths::Vector2(RandomNumberGenerator32::Rand(-5.0f, 5.0f), RandomNumberGenerator32::Rand(-5.0f, 5.0f)), maths::Vector2(RandomNumberGenerator32::Rand(1.0f, 2.0f), RandomNumberGenerator32::Rand(1.0f, 2.0f)), maths::Vector4(RandomNumberGenerator32::Rand(0.0f, 1.0f), RandomNumberGenerator32::Rand(0.0f, 1.0f), RandomNumberGenerator32::Rand(0.0f, 1.0f), 1.0f));
+        auto texture = std::shared_ptr<Texture2D>(Texture2D::CreateFromFile("Test", "/CoreTextures/checkerboard.tga"));
+        std::shared_ptr<Sprite> sprite = std::make_shared<Sprite>(texture, maths::Vector2(RandomNumberGenerator32::Rand(-5.0f, 5.0f), RandomNumberGenerator32::Rand(-5.0f, 5.0f)), maths::Vector2(RandomNumberGenerator32::Rand(1.0f, 2.0f), RandomNumberGenerator32::Rand(1.0f, 2.0f)), maths::Vector4(RandomNumberGenerator32::Rand(0.0f, 1.0f), RandomNumberGenerator32::Rand(0.0f, 1.0f), RandomNumberGenerator32::Rand(0.0f, 1.0f), 1.0f));
         testSprite->AddComponent(std::make_unique<SpriteComponent>(sprite));
         AddEntity(testSprite);
     }
