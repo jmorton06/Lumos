@@ -208,8 +208,8 @@ namespace Lumos
 	void Renderer2D::BeginScene(Scene* scene)
 	{
 		auto camera = scene->GetCamera();
-		auto projView = maths::Matrix4();// camera->GetProjectionMatrix();// *camera->GetViewMatrix();
-
+        auto projView = camera->GetViewMatrix();
+        
 		memcpy(m_VSSystemUniformBuffer, &projView, sizeof(maths::Matrix4));
 	}
 

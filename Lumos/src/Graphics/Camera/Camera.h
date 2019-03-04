@@ -36,7 +36,7 @@ namespace Lumos
 		void InvertPitch() { m_Pitch = -m_Pitch; }
 		void InvertYaw() { m_Yaw = -m_Yaw; }
 
-		void UpdateScroll(float offset, float dt);
+		virtual void UpdateScroll(float offset, float dt);
 		void SetMouseSensitivity(float value) { m_MouseSensitivity = value; }
 
 		inline const maths::Matrix4& GetProjectionMatrix() const { return m_ProjMatrix; }
@@ -56,7 +56,7 @@ namespace Lumos
 
 		maths::Vector3 GetVelocity() const { return m_Velocity; }
 
-		virtual int GetScale() const { return 1; }
+		virtual float GetScale() const { return 1.0f; }
 
 		friend std::ostream& operator<<(std::ostream& o, const Camera& cam)
 		{

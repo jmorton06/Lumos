@@ -1,17 +1,19 @@
 #include "LM.h"
 #include "Camera2D.h"
 #include "App/Application.h"
+#include "Maths/MathsUtilities.h"
 
 namespace Lumos
 {
-	Camera2D::Camera2D(uint width, uint height, int scale) : Camera(45.0f, 0.0f, 1.0f, 1.0f)
+    Camera2D::Camera2D(uint width, uint height, float scale) : Camera(45.0f, 0.0f, 1.0f, 1.0f)
 		, m_Scale(scale)
 	{
 		Application::Instance()->GetWindow()->HideMouse(false);
-		m_ProjMatrix = maths::Matrix4::Orthographic(-1.0f, 1.0f, static_cast<float>(width), static_cast<float>(-width), static_cast<float>(height), static_cast<float>(-height));
+		m_ProjMatrix = maths::Matrix4::Orthographic(-1.0f, 1.0f, static_cast<float>(width), 0.0f, static_cast<float>(height), 0.0f);
 		m_Position = maths::Vector3(0.0f);
 		m_Velocity = maths::Vector3(0.0f);
 
+        BuildViewMatrix();
 	}
 
 	Camera2D::~Camera2D()
@@ -50,26 +52,40 @@ namespace Lumos
 
 		m_Position += m_Velocity * dt;
 		m_Velocity = m_Velocity * pow(m_DampeningFactor, dt);
+        
+        UpdateScroll(Input::GetInput().GetScrollOffset(), dt);
 	}
 
 	void Camera2D::UpdateProjectionMatrix(float width, float height)
 	{
-		m_ProjMatrix = maths::Matrix4::Orthographic(-1.0f, 1.0f, width, -width, height, -height);
+		m_ProjMatrix = maths::Matrix4::Orthographic(-1.0f, 1.0f, width, 0.0f, height, 0.0f);
 	}
 
 	void Camera2D::BuildViewMatrix()
 	{
-		m_ViewMatrix = maths::Matrix4::Scale(maths::Vector3(static_cast<float>(m_Scale))) *
+		m_ViewMatrix = maths::Matrix4::Scale(maths::Vector3(m_Scale)) *
 				maths::Matrix4::Translation(-m_Position);
 	}
 
-	int Camera2D::GetScale() const
+	float Camera2D::GetScale() const
 	{
 		return m_Scale;
 	}
 
-	void Camera2D::SetScale(int scale)
+	void Camera2D::SetScale(float scale)
 	{
 		m_Scale = scale;
 	}
+    
+    void Camera2D::UpdateScroll(float offset, float dt)
+    {
+        if (offset != 0.0f)
+        {
+            m_ZoomVelocity += dt * offset * 0.1f;
+        }
+        
+        m_Scale += m_ZoomVelocity;
+        m_Scale = maths::Max(m_Scale, 0.0f);
+        m_ZoomVelocity = m_ZoomVelocity * pow(m_ZoomDampeningFactor, dt);
+    }
 }
