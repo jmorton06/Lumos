@@ -28,7 +28,7 @@ namespace Lumos
 	{
 		maths::Vector3 up = maths::Vector3(0, 1, 0), right = maths::Vector3(1, 0, 0);
 
-		m_CameraSpeed = 100.0f * dt;
+		m_CameraSpeed = 100.0f * dt * m_Scale;
 
 		if (Input::GetInput().GetKeyHeld(LUMOS_KEY_A))
 		{
@@ -54,6 +54,7 @@ namespace Lumos
 		m_Velocity = m_Velocity * pow(m_DampeningFactor, dt);
         
         UpdateScroll(Input::GetInput().GetScrollOffset(), dt);
+		Input::GetInput().SetScrollOffset(0.0f);
 	}
 
 	void Camera2D::UpdateProjectionMatrix(float width, float height)

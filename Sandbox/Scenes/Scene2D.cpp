@@ -37,13 +37,32 @@ void Scene2D::OnInit()
 	Application::Instance()->PushLayer(new Layer2D(renderer2D));
 	renderer2D->SetRenderToGBufferTexture(true);
 
-    for (int i = 0; i < 100; i++)
+	std::vector<std::shared_ptr<Texture2D>> textures = 
+	{
+		std::shared_ptr<Texture2D>(Texture2D::CreateFromFile("Test", "/CoreTextures/icon.png")),
+		std::shared_ptr<Texture2D>(Texture2D::CreateFromFile("Test2", "/CoreTextures/noise.png")),
+		std::shared_ptr<Texture2D>(Texture2D::CreateFromFile("Test3", "/CoreTextures/checkerboard.tga")),
+		std::shared_ptr<Texture2D>(Texture2D::CreateFromFile("Test4", "/CoreTextures/water/waterDUDV.png")),
+		//std::shared_ptr<Texture2D>(Texture2D::CreateFromFile("Test5", "/CoreTextures/water/waterNoise.png"))
+	};
+    for (int i = 0; i < 5; i++)
     {
         std::shared_ptr<Entity> testSprite = std::make_shared<Entity>("Sprite", this);
 
-        auto texture = std::shared_ptr<Texture2D>(Texture2D::CreateFromFile("Test", "/CoreTextures/checkerboard.tga"));
-        std::shared_ptr<Sprite> sprite = std::make_shared<Sprite>(texture, maths::Vector2(RandomNumberGenerator32::Rand(-5.0f, 5.0f), RandomNumberGenerator32::Rand(-5.0f, 5.0f)), maths::Vector2(RandomNumberGenerator32::Rand(1.0f, 2.0f), RandomNumberGenerator32::Rand(1.0f, 2.0f)), maths::Vector4(RandomNumberGenerator32::Rand(0.0f, 1.0f), RandomNumberGenerator32::Rand(0.0f, 1.0f), RandomNumberGenerator32::Rand(0.0f, 1.0f), 1.0f));
-        testSprite->AddComponent(std::make_unique<SpriteComponent>(sprite));
+		Vector2 pos(RandomNumberGenerator32::Rand(-5.0f, 5.0f), RandomNumberGenerator32::Rand(-5.0f, 5.0f));
+		Vector2 size(RandomNumberGenerator32::Rand(1.0f, 2.0f), RandomNumberGenerator32::Rand(1.0f, 2.0f));
+
+		std::shared_ptr<Sprite> sprite = std::make_shared<Sprite>(textures[(int)RandomNumberGenerator32::Rand(0.0f, 1.0f)],pos,size, maths::Vector4(RandomNumberGenerator32::Rand(0.0f, 1.0f), RandomNumberGenerator32::Rand(0.0f, 1.0f), RandomNumberGenerator32::Rand(0.0f, 1.0f), 1.0f));
+		testSprite->AddComponent(std::make_unique<SpriteComponent>(sprite));
+		//test->SetIsStatic(true);
+		PhysicsObjectParamaters params;
+		params.position = Vector3(pos, 1.0f);
+		params.scale = Vector3(size / 2.0f, 1.0f);
+		params.shape = Shape::Square;
+		params.isStatic = false;
+		std::shared_ptr<PhysicsObject2D> blockPhysics = std::make_shared<PhysicsObject2D>();
+		blockPhysics->Init(params);
+		testSprite->AddComponent(std::make_unique<Physics2DComponent>(blockPhysics));
         AddEntity(testSprite);
     }
 
@@ -65,7 +84,7 @@ void Scene2D::OnCleanupScene()
 	if (m_CurrentScene)
 	{
 		SAFE_DELETE(m_pCamera)
-			SAFE_DELETE(m_EnvironmentMap);
+		SAFE_DELETE(m_EnvironmentMap);
 	}
 
 	Scene::OnCleanupScene();

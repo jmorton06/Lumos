@@ -14,6 +14,12 @@ project 'glad'
 		"include/"
 	}
 
+	filter "system:windows"
+		files
+		{
+			"include/glad/glad_wgl.h",
+			"src/glad_wgl.c"
+		}
 	filter "system:linux"
 		buildoptions
     	{

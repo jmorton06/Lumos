@@ -243,7 +243,8 @@ namespace Lumos
 		std::vector<graphics::api::ImageInfo> imageInfos;
 
 		graphics::api::ImageInfo imageInfo = {};
-		imageInfo.texture = m_CubeMap;
+		imageInfo.texture = new Texture*[1];
+		imageInfo.texture[0] = m_CubeMap;
 		imageInfo.name = "u_CubeMap";
 		imageInfo.binding = 1;
 		imageInfo.type = TextureType::CUBE;
