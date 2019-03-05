@@ -18,7 +18,7 @@ namespace Lumos
 			vk::DescriptorSetAllocateInfo descriptorSetAllocateInfo{};
 			descriptorSetAllocateInfo.descriptorPool = static_cast<graphics::VKPipeline*>(info.pipeline)->GetDescriptorPool();
 			descriptorSetAllocateInfo.pSetLayouts = static_cast<graphics::VKPipeline*>(info.pipeline)->GetDescriptorLayout(info.layoutIndex);
-			descriptorSetAllocateInfo.descriptorSetCount = 1;
+			descriptorSetAllocateInfo.descriptorSetCount = info.count;
 
 			graphics::VKDevice::Instance()->GetDevice().allocateDescriptorSets(&descriptorSetAllocateInfo, &m_DescriptorSet);
 		}
@@ -59,6 +59,31 @@ namespace Lumos
 			return writeDescriptorSet;
 		}
 
+		vk::WriteDescriptorSet VKDescriptorSet::ImageInfoToVK(api::ImageInfo& imageInfo)
+		{
+			std::vector<vk::DescriptorImageInfo*> descriptorInfo;
+			for(int i = 0; i < imageInfo.count; i++)
+			{
+				switch (imageInfo.type)
+				{
+				case TextureType::COLOUR: descriptorInfo.push_back(static_cast<VKTexture2D*>(imageInfo.texture[i])->GetDescriptor()); break;
+				case TextureType::DEPTH: descriptorInfo.push_back(static_cast<VKTextureDepth*>(imageInfo.texture[i])->GetDescriptor()); break;
+				case TextureType::DEPTHARRAY: descriptorInfo.push_back(static_cast<VKTextureDepthArray*>(imageInfo.texture[i])->GetDescriptor()); break;
+				case TextureType::CUBE: descriptorInfo.push_back(static_cast<VKTextureCube*>(imageInfo.texture[i])->GetDescriptor()); break;
+				default: LUMOS_CORE_ERROR("Unsupported Texture Type"); break;
+				}
+			}
+
+			vk::WriteDescriptorSet writeDescriptorSet{};
+			writeDescriptorSet.dstSet = m_DescriptorSet;
+			writeDescriptorSet.descriptorType = vk::DescriptorType::eCombinedImageSampler;
+			writeDescriptorSet.dstBinding = imageInfo.binding;
+			writeDescriptorSet.pImageInfo = *descriptorInfo.data();
+			writeDescriptorSet.descriptorCount = imageInfo.count;
+
+			return writeDescriptorSet;
+		}
+
 		void VKDescriptorSet::Update(std::vector<api::BufferInfo>& bufferInfos)
 		{
 			std::vector<vk::WriteDescriptorSet> descriptorWrites;
@@ -70,7 +95,7 @@ namespace Lumos
 
 			for (auto& bufferInfo : bufferInfos)
 			{
-				buffersInfo[index].buffer = *static_cast<VKUniformBuffer*>(bufferInfo.buffer)->GetBuffer();
+				buffersInfo[index].buffer = *dynamic_cast<VKUniformBuffer*>(bufferInfo.buffer)->GetBuffer();
 				buffersInfo[index].offset = bufferInfo.offset;
 				buffersInfo[index].range = bufferInfo.size;
 
@@ -101,14 +126,7 @@ namespace Lumos
 
 			for (auto& imageInfo : imageInfos)
 			{
-				switch(imageInfo.type)
-				{
-				case TextureType::COLOUR : descriptorWrites.push_back(writeDescriptorSet(m_DescriptorSet, vk::DescriptorType::eCombinedImageSampler, imageInfo.binding, static_cast<VKTexture2D*>(imageInfo.texture)->GetDescriptor())); break;
-				case TextureType::DEPTH : descriptorWrites.push_back(writeDescriptorSet(m_DescriptorSet, vk::DescriptorType::eCombinedImageSampler, imageInfo.binding, static_cast<VKTextureDepth*>(imageInfo.texture)->GetDescriptor())); break;
-				case TextureType::DEPTHARRAY : descriptorWrites.push_back(writeDescriptorSet(m_DescriptorSet, vk::DescriptorType::eCombinedImageSampler, imageInfo.binding, static_cast<VKTextureDepthArray*>(imageInfo.texture)->GetDescriptor())); break;
-				case TextureType::CUBE : descriptorWrites.push_back(writeDescriptorSet(m_DescriptorSet, vk::DescriptorType::eCombinedImageSampler, imageInfo.binding, static_cast<VKTextureCube*>(imageInfo.texture)->GetDescriptor())); break;
-					default : LUMOS_CORE_ERROR("Unsupported Texture Type",""); break;
-				}
+				descriptorWrites.push_back(ImageInfoToVK(imageInfo));
 			}
 			VKDevice::Instance()->GetDevice().updateDescriptorSets(static_cast<uint32_t>(descriptorWrites.size()), descriptorWrites.data(), 0, nullptr);
 
@@ -120,22 +138,15 @@ namespace Lumos
 
 			m_Dynamic = false;
 
-			for(auto& imageInfo : imageInfos)
+			for (auto& imageInfo : imageInfos)
 			{
-				switch(imageInfo.type)
-				{
-					case TextureType::COLOUR : descriptorWrites.push_back(writeDescriptorSet(m_DescriptorSet, vk::DescriptorType::eCombinedImageSampler, imageInfo.binding, static_cast<VKTexture2D*>(imageInfo.texture)->GetDescriptor())); break;
-					case TextureType::DEPTH : descriptorWrites.push_back(writeDescriptorSet(m_DescriptorSet, vk::DescriptorType::eCombinedImageSampler, imageInfo.binding, static_cast<VKTextureDepth*>(imageInfo.texture)->GetDescriptor())); break;
-					case TextureType::DEPTHARRAY : descriptorWrites.push_back(writeDescriptorSet(m_DescriptorSet, vk::DescriptorType::eCombinedImageSampler, imageInfo.binding, static_cast<VKTextureDepthArray*>(imageInfo.texture)->GetDescriptor())); break;
-					case TextureType::CUBE : descriptorWrites.push_back(writeDescriptorSet(m_DescriptorSet, vk::DescriptorType::eCombinedImageSampler, imageInfo.binding, static_cast<VKTextureCube*>(imageInfo.texture)->GetDescriptor())); break;
-					default : LUMOS_CORE_ERROR("Unsupported Texture Type",""); break;
-				}
+				descriptorWrites.push_back(ImageInfoToVK(imageInfo));
 			}
 
 			for (auto& bufferInfo : bufferInfos)
 			{
 				vk::DescriptorBufferInfo info = {};
-				info.buffer = *static_cast<VKUniformBuffer*>(bufferInfo.buffer)->GetBuffer();
+				info.buffer = *dynamic_cast<VKUniformBuffer*>(bufferInfo.buffer)->GetBuffer();
 				info.offset = bufferInfo.offset;
 				info.range = bufferInfo.size;
 

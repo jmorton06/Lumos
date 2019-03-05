@@ -221,7 +221,8 @@ namespace Lumos
 		std::vector<graphics::api::ImageInfo> bufferInfosDefault;
 
 		graphics::api::ImageInfo imageInfo = {};
-		imageInfo.texture = m_DefaultTexture;
+		imageInfo.texture = new Texture*[1];
+		imageInfo.texture[0] = m_DefaultTexture;
 		imageInfo.binding = 0;
 		imageInfo.name = "texSampler";
 

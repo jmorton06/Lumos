@@ -12,6 +12,7 @@
 
 #ifdef LUMOS_PLATFORM_WINDOWS
 #undef NOGDI
+#include <glad/glad_wgl.h>
 #include <Windows.h>
 #define NOGDI
 #endif
@@ -130,21 +131,54 @@ namespace Lumos
 	{
 		GLContext::GLContext(WindowProperties properties, void* deviceContext)
 		{
-#ifndef LUMOS_PLATFORM_MOBILE
 
 #ifdef LUMOS_PLATFORM_WINDOWS
-			HDC hDc = GetDC((HWND)deviceContext);
-			HGLRC hrc = wglCreateContext(hDc);
-			if(hrc)
-			if(!wglMakeCurrent(hDc, hrc) || !gladLoadGL())
+			HDC hDc = GetDC(static_cast<HWND>(deviceContext));
+
+			HGLRC tempContext = wglCreateContext(hDc);
+			wglMakeCurrent(hDc, tempContext);
+		
+			if (!wglMakeCurrent(hDc, tempContext))
+			{
+				LUMOS_CORE_ERROR("Failed to initialize OpenGL context");
+			}
+
+			if (!gladLoadWGL(hDc))
+				LUMOS_CORE_ERROR("glad failed to load WGL!");
+			if (!gladLoadGL())
+				LUMOS_CORE_ERROR("glad failed to load OpenGL!");
+
+			const int contextAttribsList[] =
+			{
+				WGL_CONTEXT_MAJOR_VERSION_ARB, 4,
+				WGL_CONTEXT_MINOR_VERSION_ARB, 4,
+				WGL_CONTEXT_PROFILE_MASK_ARB, WGL_CONTEXT_CORE_PROFILE_BIT_ARB,
+		#ifdef _DEBUG
+				WGL_CONTEXT_FLAGS_ARB, WGL_CONTEXT_DEBUG_BIT_ARB,
+		#else
+				WGL_CONTEXT_FLAGS_ARB, 0,
+		#endif
+				0,
+			};
+
+			HGLRC hrc = wglCreateContextAttribsARB(hDc, nullptr, contextAttribsList);
+			if (hrc == nullptr)
+			{
+				LUMOS_CORE_ERROR("Failed to create core OpenGL context");
+			}
+			else
+			{
+				wglMakeCurrent(NULL, NULL);
+				wglDeleteContext(tempContext);
+				wglMakeCurrent(hDc, hrc);
+			}
 #else
 			if (!gladLoadGLLoader(reinterpret_cast<GLADloadproc>(glfwGetProcAddress)))
-#endif
-			
 			{
 				LUMOS_CORE_ERROR("Failed to initialize OpenGL context");
 			}
 #endif
+
 			glClearColor(0.2f, 0.2f, 0.2f, 1.0f);
 
 			LUMOS_CORE_INFO("----------------------------------");

@@ -55,6 +55,7 @@ namespace Lumos
 				DescriptorType type;
 				ShaderStage stage;
 				uint size;
+				uint count = 1;
 			};
 
 			struct DescriptorLayout
@@ -68,6 +69,7 @@ namespace Lumos
 				Pipeline* pipeline;
 				uint layoutIndex;
                 Shader* shader;
+				uint count = 1;
 			};
 
 			struct BufferInfo
@@ -98,7 +100,8 @@ namespace Lumos
 
 			struct ImageInfo
 			{
-				Texture* texture;
+				Texture** texture;
+				int count = 1;
 				int binding;
 				String name;
 				TextureType type = TextureType::COLOUR;

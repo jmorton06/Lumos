@@ -24,7 +24,10 @@ namespace Lumos
             for(auto& imageInfo : imageInfos)
             {
 				m_ImageInfos.push_back(imageInfo);
-                imageInfo.texture->Bind(imageInfo.binding);
+				for (int i = 0; i < imageInfo.count; i++)
+				{
+					imageInfo.texture[i]->Bind(imageInfo.binding + i);
+				}
 				static_cast<GLShader*>(m_Shader)->SetUniform1i(imageInfo.name, imageInfo.binding);
             }
 
@@ -43,7 +46,10 @@ namespace Lumos
             for(auto& imageInfo : imageInfos)
             {
 				m_ImageInfos.push_back(imageInfo);
-                imageInfo.texture->Bind(imageInfo.binding);
+				for (int i = 0; i < imageInfo.count; i++)
+				{
+					imageInfo.texture[i]->Bind(imageInfo.binding + i);
+				}
 				static_cast<GLShader*>(m_Shader)->SetUniform1i(imageInfo.name, imageInfo.binding);
             }
 
@@ -63,7 +69,11 @@ namespace Lumos
 		{
 			for (auto& imageInfo : m_ImageInfos)
 			{
-				imageInfo.texture->Bind(imageInfo.binding);
+				for(int i = 0; i < imageInfo.count; i++)
+				{
+					imageInfo.texture[i]->Bind(imageInfo.binding + i);
+				}
+				
 				static_cast<GLShader*>(m_Shader)->SetUniform1i(imageInfo.name, imageInfo.binding);
 			}
 

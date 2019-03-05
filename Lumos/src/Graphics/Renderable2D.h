@@ -17,12 +17,11 @@ namespace Lumos
 		maths::Vector3 vertex;
 		maths::Vector2 uv;
 		float tid;
-		float mid;
 		maths::Vector4 color;
 
         bool operator==(const VertexData& other) const
         {
-            return vertex == other.vertex  && uv == other.uv && tid == other.tid && mid == other.mid && color == other.color;
+            return vertex == other.vertex  && uv == other.uv && tid == other.tid && color == other.color;
         }
         
         static std::array<graphics::api::VertexInputDescription, 5> getAttributeDescriptions()
@@ -44,13 +43,8 @@ namespace Lumos
             attributeDescriptions[2].format = graphics::api::Format::R32_FLOAT;
             attributeDescriptions[2].offset = offsetof(VertexData, tid);
             
-            attributeDescriptions[3].binding = 0;
-            attributeDescriptions[3].location = 3;
-            attributeDescriptions[3].format = graphics::api::Format::R32_FLOAT;
-            attributeDescriptions[3].offset = offsetof(VertexData, mid);
-            
             attributeDescriptions[4].binding = 0;
-            attributeDescriptions[4].location = 4;
+            attributeDescriptions[4].location = 3;
             attributeDescriptions[4].format = graphics::api::Format::R32G32B32A32_FLOAT;
             attributeDescriptions[4].offset = offsetof(VertexData, color);
             

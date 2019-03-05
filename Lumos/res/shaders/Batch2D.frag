@@ -8,7 +8,6 @@ layout (location = 0) in DATA
 	vec3 position;
 	vec2 uv;
 	float tid;
-	float mid;
 	vec4 color;
 } fs_in;
 

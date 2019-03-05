@@ -36,7 +36,7 @@ namespace Lumos
 #define HID_USAGE_GENERIC_KEYBOARD ((USHORT)0x06)
 #endif
 
-	WindowsWindow::WindowsWindow(const WindowProperties& properties, const String& title, RenderAPI api)
+	WindowsWindow::WindowsWindow(const WindowProperties& properties, const String& title, RenderAPI api): hWnd(nullptr)
 	{
 		m_Init = false;
 		m_VSync = properties.VSync;
@@ -80,12 +80,12 @@ namespace Lumos
 		m_Data.Height = properties.Height;
 		m_Data.Exit = false;
 
-		hInstance = (HINSTANCE)&__ImageBase;
+		hInstance = reinterpret_cast<HINSTANCE>(&__ImageBase);
 
 		WNDCLASS winClass = {};
 		winClass.hInstance = hInstance; // GetModuleHandle(0);
 		winClass.style = CS_HREDRAW | CS_VREDRAW | CS_OWNDC;
-		winClass.lpfnWndProc = (WNDPROC)WndProc;
+		winClass.lpfnWndProc = static_cast<WNDPROC>(WndProc);
 		winClass.lpszClassName = title.c_str();
 		winClass.hCursor = LoadCursor(NULL, IDC_ARROW);
 		winClass.hIcon = LoadIcon(NULL, IDI_WINLOGO);
@@ -148,7 +148,7 @@ namespace Lumos
 
 	void ResizeCallback(Window* window, int32 width, int32 height)
 	{
-		WindowsWindow::WindowData data = ((WindowsWindow*)window)->m_Data;
+		WindowsWindow::WindowData data = static_cast<WindowsWindow*>(window)->m_Data;
 
 		data.Width = width;
 		data.Height = height;
@@ -207,8 +207,8 @@ namespace Lumos
 
 	void MouseButtonCallback(Window* window, int32 button, int32 x, int32 y)
 	{
-		WindowsWindow::WindowData data = ((WindowsWindow*)window)->m_Data;
-		HWND hWnd = ((WindowsWindow*)window)->GetHWND();
+		WindowsWindow::WindowData data = static_cast<WindowsWindow*>(window)->m_Data;
+		HWND hWnd = static_cast<WindowsWindow*>(window)->GetHWND();
 
 		bool down = false;
 		switch (button)
@@ -259,17 +259,17 @@ namespace Lumos
 
 	void MouseScrollCallback(Window* window, int inSw, WPARAM wParam, LPARAM lParam)
 	{
-		WindowsWindow::WindowData data = ((WindowsWindow*)window)->m_Data;
-		HWND hWnd = ((WindowsWindow*)window)->GetHWND();
+		WindowsWindow::WindowData data = static_cast<WindowsWindow*>(window)->m_Data;
+		HWND hWnd = static_cast<WindowsWindow*>(window)->GetHWND();
 
-		MouseScrolledEvent event(0.0f, (float)GET_WHEEL_DELTA_WPARAM(wParam) / (float)WHEEL_DELTA);
+		MouseScrolledEvent event(0.0f, static_cast<float>(GET_WHEEL_DELTA_WPARAM(wParam)) / static_cast<float>(WHEEL_DELTA));
 		data.EventCallback(event);
 	}
 
 	void MouseMoveCallback(Window* window, int32 x, int32 y)
 	{
-		WindowsWindow::WindowData data = ((WindowsWindow*)window)->m_Data;
-		MouseMovedEvent event((float)x, (float)y);
+		WindowsWindow::WindowData data = static_cast<WindowsWindow*>(window)->m_Data;
+		MouseMovedEvent event(static_cast<float>(x), static_cast<float>(y));
 		data.EventCallback(event);
 	}
 
@@ -278,7 +278,7 @@ namespace Lumos
 		bool pressed = message == WM_KEYDOWN || message == WM_SYSKEYDOWN;
 		bool repeat = (flags >> 30) & 1;
 
-		WindowsWindow::WindowData data = ((WindowsWindow*)window)->m_Data;
+		WindowsWindow::WindowData data = static_cast<WindowsWindow*>(window)->m_Data;
 	
 		if (pressed)
 		{

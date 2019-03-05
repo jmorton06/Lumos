@@ -17,11 +17,11 @@
 #include "Platform/OpenGL/GLDescriptorSet.h"
 #include "Graphics/Renderable2D.h"
 
-#define RENDERER_MAX_SPRITES	60000
+#define RENDERER_MAX_SPRITES	10000
 #define RENDERER_SPRITE_SIZE	RENDERER2D_VERTEX_SIZE * 4
 #define RENDERER_BUFFER_SIZE	RENDERER_SPRITE_SIZE * RENDERER_MAX_SPRITES
 #define RENDERER_INDICES_SIZE	RENDERER_MAX_SPRITES * 6
-#define RENDERER_MAX_TEXTURES	32 - 1
+#define RENDERER_MAX_TEXTURES	16 - 1
 
 namespace Lumos
 {
@@ -103,7 +103,6 @@ namespace Lumos
 		layout.Push<maths::Vector3>("POSITION"); // Position
 		layout.Push<maths::Vector2>("TEXCOORD"); // UV
 		layout.Push<float>("ID"); // Texture Index
-        layout.Push<float>("MID"); // Mask Index
 		layout.Push<maths::Vector4>("COLOUR"); // Color
 		buffer->SetLayout(layout);
 
@@ -138,7 +137,7 @@ namespace Lumos
 		const maths::Vector2 min = renderable->GetPosition();
 		const maths::Vector2 max = renderable->GetPosition() + renderable->GetScale();
 
-		const maths::Vector4 color = renderable->GetColour();
+		const maths::Vector4 colour = renderable->GetColour();
 		const std::vector<maths::Vector2>& uv = renderable->GetUVs();
 		const Texture* texture = renderable->GetTexture();
 
@@ -150,32 +149,28 @@ namespace Lumos
 		m_Buffer->vertex = vertex;
 		m_Buffer->uv = uv[0];
 		m_Buffer->tid = textureSlot;
-		m_Buffer->mid = 0;
-		m_Buffer->color = color;
+		m_Buffer->color = colour;
 		m_Buffer++;
 
 		vertex = maths::Vector3(max.x, min.y, 0.0f);
 		m_Buffer->vertex = vertex;
 		m_Buffer->uv = uv[1];
 		m_Buffer->tid = textureSlot;
-		m_Buffer->mid = 0;
-		m_Buffer->color = color;
+		m_Buffer->color = colour;
 		m_Buffer++;
 
 		vertex = maths::Vector3(max.x, max.y, 0.0f);
 		m_Buffer->vertex = vertex;
 		m_Buffer->uv = uv[2];
 		m_Buffer->tid = textureSlot;
-		m_Buffer->mid = 0;
-		m_Buffer->color = color;
+		m_Buffer->color = colour;
 		m_Buffer++;
 
 		vertex = maths::Vector3(min.x, max.y, 0.0f);
 		m_Buffer->vertex = vertex;
 		m_Buffer->uv = uv[3];
 		m_Buffer->tid = textureSlot;
-		m_Buffer->mid = 0;
-		m_Buffer->color = color;
+		m_Buffer->color = colour;
 		m_Buffer++;
 
 		m_IndexCount += 6;
@@ -183,9 +178,6 @@ namespace Lumos
 
 	void Renderer2D::Begin()
 	{
-		m_Textures.clear();
-		m_Sprites.clear();
-
 		m_CurrentBufferID = 0;
 		if (!m_RenderTexture)
 			m_CurrentBufferID = Renderer::GetSwapchain()->GetCurrentBufferId();
@@ -193,6 +185,9 @@ namespace Lumos
 		m_CommandBuffers[m_CurrentBufferID]->BeginRecording();
 
 		m_RenderPass->BeginRenderpass(m_CommandBuffers[m_CurrentBufferID], m_ClearColour, m_Framebuffers[m_CurrentBufferID], graphics::api::INLINE, m_ScreenBufferWidth, m_ScreenBufferHeight);
+
+		m_Textures.clear();
+		m_Sprites.clear();
 
 		m_VertexArray->Bind();
 		m_Buffer = m_VertexArray->GetBuffer()->GetPointer<VertexData>();
@@ -215,15 +210,20 @@ namespace Lumos
 
 	void Renderer2D::Present()
 	{
+		UpdateDesciptorSet();
+
 		m_Pipeline->SetActive(m_CommandBuffers[m_CurrentBufferID]);
 
 		m_VertexArray->GetBuffer()->ReleasePointer();
 		m_VertexArray->Unbind();
+
 		m_IndexBuffer->SetCount(m_IndexCount);
 
 		std::vector<graphics::api::DescriptorSet*> descriptors = {m_Pipeline->GetDescriptorSet(), m_DescriptorSet };
 
 		Renderer::GetRenderer()->Render(m_VertexArray, m_IndexBuffer, m_CommandBuffers[m_CurrentBufferID], descriptors, m_Pipeline, 0);
+
+		m_IndexCount = 0;
 	}
 
 	void Renderer2D::End()
@@ -237,13 +237,14 @@ namespace Lumos
 		if (!m_RenderTexture)
 			PresentToScreen();
 
-		m_IndexCount = 0;
 	}
 
 	void Renderer2D::Render(Scene* scene)
 	{
 		Begin();
 		BeginScene(scene);
+
+		SetSystemUniforms(m_Shader);
 
 		for(const auto& entity : scene->GetEntities())
 		{
@@ -257,10 +258,6 @@ namespace Lumos
 			}
 		}
 
-		SetSystemUniforms(m_Shader);
-
-		UpdateDesciptorSet();
-
 		Present();
 
 		End();
@@ -272,7 +269,7 @@ namespace Lumos
 		bool found = false;
 		for (uint i = 0; i < m_Textures.size(); i++)
 		{
-			if (m_Textures[i] == texture)
+			if (m_Textures[i] == texture) //Temp
 			{
 				result = static_cast<float>(i + 1);
 				found = true;
@@ -284,9 +281,13 @@ namespace Lumos
 		{
 			if (m_Textures.size() >= RENDERER_MAX_TEXTURES)
 			{
-				/*End();
 				Present();
-				Begin();*/
+				
+				m_Textures.clear();
+				m_Sprites.clear();
+
+				m_VertexArray->Bind();
+				m_Buffer = m_VertexArray->GetBuffer()->GetPointer<VertexData>();
 			}
 			m_Textures.push_back(texture);
 			result = static_cast<float>(m_Textures.size());
@@ -382,17 +383,7 @@ namespace Lumos
 
 		std::vector<graphics::api::DescriptorLayoutInfo> layoutInfoMesh =
 		{
-			 { graphics::api::DescriptorType::IMAGE_SAMPLER,graphics::api::ShaderStage::FRAGMENT , 0 },
-			 { graphics::api::DescriptorType::IMAGE_SAMPLER,graphics::api::ShaderStage::FRAGMENT , 0 },
-			 { graphics::api::DescriptorType::IMAGE_SAMPLER,graphics::api::ShaderStage::FRAGMENT , 0 },
-			 { graphics::api::DescriptorType::IMAGE_SAMPLER,graphics::api::ShaderStage::FRAGMENT , 0 },
-			 { graphics::api::DescriptorType::IMAGE_SAMPLER,graphics::api::ShaderStage::FRAGMENT , 0 },
-			 { graphics::api::DescriptorType::IMAGE_SAMPLER,graphics::api::ShaderStage::FRAGMENT , 0 },
-			 { graphics::api::DescriptorType::IMAGE_SAMPLER,graphics::api::ShaderStage::FRAGMENT , 0 },
-			 { graphics::api::DescriptorType::IMAGE_SAMPLER,graphics::api::ShaderStage::FRAGMENT , 0 },
-			 { graphics::api::DescriptorType::IMAGE_SAMPLER,graphics::api::ShaderStage::FRAGMENT , 0 },
-			 { graphics::api::DescriptorType::IMAGE_SAMPLER,graphics::api::ShaderStage::FRAGMENT , 0 },
-			 { graphics::api::DescriptorType::IMAGE_SAMPLER,graphics::api::ShaderStage::FRAGMENT , 0 }
+			 { graphics::api::DescriptorType::IMAGE_SAMPLER,graphics::api::ShaderStage::FRAGMENT , 0, RENDERER_MAX_TEXTURES }
 		};
 
 		auto attributeDescriptions = VertexData::getAttributeDescriptions();
@@ -468,17 +459,24 @@ namespace Lumos
 
 	void Renderer2D::UpdateDesciptorSet()
 	{
-		std::vector<graphics::api::ImageInfo> bufferInfos;
-		int index = 0;
+		std::vector<graphics::api::ImageInfo> imageInfos;
+
+		graphics::api::ImageInfo imageInfo = {};
+		
+		imageInfo.binding = 0;
+		imageInfo.name = "textures";
+		imageInfo.count = 0;
+		imageInfo.texture = new Texture*[static_cast<int>(m_Textures.size())];
+
 		for(const auto& texture : m_Textures)
 		{
-			graphics::api::ImageInfo imageInfo = {};
-			imageInfo.texture = texture;
-			imageInfo.binding = index;
-			imageInfo.name = "textures";
+			imageInfo.texture[imageInfo.count] = texture;
+			imageInfo.count++;
 		}
 
-		m_DescriptorSet->Update(bufferInfos);
+		imageInfos.push_back(imageInfo);
+
+		m_DescriptorSet->Update(imageInfos);
 	}
 
 	void Renderer2D::SetRenderTarget(Texture* texture)
