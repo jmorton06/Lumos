@@ -66,6 +66,8 @@ typedef uint32_t	uint32;
 typedef uint64_t	uint64;
 typedef uint32		uint;
 typedef uint8		byte;
+typedef long long	intptr;
+typedef unsigned long long uintptr;
 
 #define DEBUGDRAW_FLAGS_CONSTRAINT			1
 #define DEBUGDRAW_FLAGS_MANIFOLD			2

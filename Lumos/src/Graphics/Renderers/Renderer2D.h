@@ -83,7 +83,7 @@ namespace Lumos
 
 		std::vector<Texture*> m_Textures;
 
-		Texture* m_RenderTexture = nullptr;
+		Texture* m_RenderTexture;
 		bool m_RenderToGBufferTexture = false;
 		uint m_CurrentBufferID = 0;
 		maths::Vector4 m_ClearColour;

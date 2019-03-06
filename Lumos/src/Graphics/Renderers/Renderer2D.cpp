@@ -25,7 +25,7 @@
 
 namespace Lumos
 {
-	Renderer2D::Renderer2D(uint width, uint height) : m_IndexCount(0)
+	Renderer2D::Renderer2D(uint width, uint height) : m_IndexCount(0), m_RenderTexture(nullptr)
 	{
 		SetScreenBufferSize(width, height);
 

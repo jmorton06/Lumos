@@ -1028,7 +1028,7 @@ struct ImGuiContext
 
     // Tab bars
     ImPool<ImGuiTabBar>             TabBars;
-    ImGuiTabBar*                    CurrentTabBar;
+	ImGuiTabBar*                    CurrentTabBar = nullptr;
     ImVector<ImGuiTabBarRef>        CurrentTabBarStack;
     ImVector<ImGuiTabBarSortItem>   TabSortByWidthBuffer;
 
