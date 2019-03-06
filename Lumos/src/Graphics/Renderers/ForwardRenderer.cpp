@@ -100,7 +100,7 @@ namespace Lumos
 		}
 
 		if (!m_RenderTexture)
-			Renderer::GetRenderer()->Present((commandBuffers[Renderer::GetRenderer()->GetSwapchain()->GetCurrentBufferId()]));
+			Renderer::Present((commandBuffers[Renderer::GetSwapchain()->GetCurrentBufferId()]));
 	}
 
 	enum VSSystemUniformIndices : int32

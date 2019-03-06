@@ -32,11 +32,6 @@ void Scene3D::OnInit()
 
 	m_pCamera = new ThirdPersonCamera(-20.0f, -40.0f, maths::Vector3(-3.0f, 10.0f, 15.0f), 60.0f, 0.1f, 1000.0f, (float) m_ScreenWidth / (float) m_ScreenHeight);
 
-	//m_pCamera = new Camera2D(m_ScreenWidth,
-	//	m_ScreenHeight,
-	//	static_cast<float>(m_ScreenWidth) / static_cast<float>(m_ScreenHeight)
-	//	, 6);
-	
 	m_SceneBoundingRadius = 20.0f;
 
 	String environmentFiles[11] =
@@ -82,21 +77,6 @@ void Scene3D::OnInit()
 
 	Application::Instance()->GetRenderManager()->SetShadowRenderer(shadowRenderer);
     Application::Instance()->GetRenderManager()->SetSkyBoxTexture(m_EnvironmentMap);
-
-	return;
-	auto renderer2D = new Renderer2D(m_ScreenWidth, m_ScreenHeight);
-	Application::Instance()->PushLayer(new Layer2D(renderer2D));
-	renderer2D->SetRenderToGBufferTexture(true);
-    
-    for(int i = 0; i < 1000; i++)
-    {
-        std::shared_ptr<Entity> testSprite = std::make_shared<Entity>("Sprite", this);
-        
-        std::shared_ptr<Sprite> sprite = std::make_shared<Sprite>(maths::Vector2(RandomNumberGenerator32::Rand(-10.0f, 100.0f), RandomNumberGenerator32::Rand(-10.0f, 100.0f)), maths::Vector2(RandomNumberGenerator32::Rand(10.0f, 100.0f),RandomNumberGenerator32::Rand(10.0f, 100.0f)), maths::Vector4(RandomNumberGenerator32::Rand(0.0f, 1.0f), RandomNumberGenerator32::Rand(0.0f, 1.0f), RandomNumberGenerator32::Rand(0.0f, 1.0f),1.0f));
-        testSprite->AddComponent(std::make_unique<SpriteComponent>(sprite));
-        AddEntity(testSprite);
-    }
-
 }
 
 void Scene3D::OnUpdate(TimeStep* timeStep)

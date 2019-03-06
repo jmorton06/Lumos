@@ -45,7 +45,7 @@ void Scene2D::OnInit()
 		std::shared_ptr<Texture2D>(Texture2D::CreateFromFile("Test4", "/CoreTextures/water/waterDUDV.png")),
 		//std::shared_ptr<Texture2D>(Texture2D::CreateFromFile("Test5", "/CoreTextures/water/waterNoise.png"))
 	};
-    for (int i = 0; i < 5; i++)
+    for (int i = 0; i < 50; i++)
     {
         std::shared_ptr<Entity> testSprite = std::make_shared<Entity>("Sprite", this);
 

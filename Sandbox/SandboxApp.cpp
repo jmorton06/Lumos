@@ -13,7 +13,7 @@ using namespace Lumos;
 class Game : public Application
 {
 public:
-	Game(WindowProperties windowProperties) : Application(windowProperties, RenderAPI::OPENGL)
+	Game(WindowProperties windowProperties) : Application(windowProperties, RenderAPI::VULKAN)
 	{
 	}
 
@@ -36,7 +36,7 @@ public:
 		GetSceneManager()->EnqueueScene(new Scene2D("2D Test"));
 		GetSceneManager()->EnqueueScene(new Scene3D("Physics Scene"));
 		GetSceneManager()->EnqueueScene(new GraphicsScene("Terrain Test"));
-		GetSceneManager()->JumpToScene(3);
+		GetSceneManager()->JumpToScene(4);
 	}
 };
 

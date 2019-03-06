@@ -10,7 +10,7 @@ namespace Lumos
     {
 		ALManager::ALManager(int numChannels) : m_NumChannels(numChannels)
         {
-
+			m_Listener = nullptr;
         }
 
 		ALManager::~ALManager()
