@@ -48,7 +48,6 @@ namespace Lumos
             auto isRest = m_PhysicsObject->GetIsAtRest();
             auto mass = 1.0f / m_PhysicsObject->GetInverseMass();
             auto velocity = m_PhysicsObject->GetLinearVelocity();
-
             auto elasticity = m_PhysicsObject->GetElasticity();
 
             ImGui::DragFloat3("Position", &pos.x);

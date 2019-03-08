@@ -15,16 +15,23 @@ namespace Lumos
 {
 	Entity::Entity(Scene* scene) : m_Name("Unnamed"), m_pScene(scene), m_pParent(nullptr), m_BoundingRadius(1), m_FrustumCullFlags(0), m_UpdateTransforms(false)
 	{
+        Init();
 	}
 
 	Entity::Entity(const String& name,Scene* scene) : m_Name(name), m_pScene(scene), m_pParent(nullptr), m_BoundingRadius(1),
 	                                     m_FrustumCullFlags(0), m_UpdateTransforms(false)
 	{
+        Init();
 	}
 
 	Entity::~Entity()
 	{
 	}
+    
+    void Entity::Init()
+    {
+        m_DefaultTransformComponent = std::make_unique<TransformComponent>(maths::Matrix4());
+    }
 
 	void Entity::AddComponent(std::unique_ptr<LumosComponent> component)
 	{

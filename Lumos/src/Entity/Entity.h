@@ -43,6 +43,7 @@ namespace Lumos
 		virtual void OnUpdateObject(float dt);
         virtual void OnIMGUI();
 		virtual void OnGuizmo();
+        virtual void Init();
 
 		std::vector<Entity*>& GetChildren() { return m_vpChildren; }
 		void AddChildObject(Entity* child);
@@ -59,6 +60,8 @@ namespace Lumos
 
 		void DebugDraw(uint64 debugFlags);
 		void SetPosition(const maths::Vector3& pos) { m_Position = pos; };
+        
+        TransformComponent* GetTransform() const { return m_DefaultTransformComponent.get(); }
 
 	private:
 
@@ -83,5 +86,6 @@ namespace Lumos
 		uint					m_FrustumCullFlags;
 		maths::Vector3			m_Position;
 		bool					m_UpdateTransforms;
+        std::unique_ptr<TransformComponent> m_DefaultTransformComponent = nullptr;
 	};
 }
