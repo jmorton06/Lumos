@@ -15,8 +15,8 @@ workspace "Lumos"
 
 	location "build"
 
-	targetdir ("bin/" .. outputdir)
-	objdir ("bin-int/" .. outputdir .. "/%{prj.name}")
+	targetdir ("bin/%{cfg.longname}/")
+	objdir ("bin-int/%{cfg.longname}/obj/")
 
 	group "Dependencies"
 		require("Dependencies/Box2D/premake5")
@@ -31,6 +31,8 @@ workspace "Lumos"
 	require("Lumos/premake5")
 	require("Sandbox/premake5")
 	--require("Examples/premake5")
+
+	filter()
 
 newaction
 {
