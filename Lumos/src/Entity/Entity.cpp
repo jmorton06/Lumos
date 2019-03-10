@@ -35,8 +35,7 @@ namespace Lumos
 
 	void Entity::AddComponent(std::unique_ptr<LumosComponent> component)
 	{
-		LUMOS_CORE_ASSERT(component->GetType(),"");
-		component->SetEntity(this);
+        component->SetEntity(this);
 		component->Init();
 		m_Components[component->GetType()] = std::move(component);
 	}
