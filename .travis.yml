@@ -19,6 +19,7 @@ matrix:
       language: c++
       compiler: gcc
       env: BUILD_TYPE=native COMPILER_NAME=gcc CXX=g++-7 CC=gcc-7
+      after_success: bash <(curl -s https://codecov.io/bash)
       addons:
         apt:
           sources:
