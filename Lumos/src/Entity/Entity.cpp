@@ -35,7 +35,7 @@ namespace Lumos
 
 	void Entity::AddComponent(std::unique_ptr<LumosComponent> component)
 	{
-		//LUMOS_CORE_ASSERT(component->GetType(),"");
+		LUMOS_CORE_ASSERT(component->GetType(),"");
 		component->SetEntity(this);
 		component->Init();
 		m_Components[component->GetType()] = std::move(component);
@@ -97,9 +97,6 @@ namespace Lumos
 		if (this->GetComponent<TransformComponent>() != nullptr)
 			model = GetComponent<TransformComponent>()->m_WorldSpaceTransform;
 		ImGuizmo::Manipulate(view.values, proj.values, ImGuizmo::SCALE, ImGuizmo::WORLD, model.values, NULL, NULL);
-
-		//ImGuizmo::DrawCube(view.values, proj.values, (maths::Matrix4::Translation(m_Position) * maths::Matrix4::Scale(maths::Vector3(m_BoundingRadius))).values);
-		//ImGuizmo::DrawGrid(view.values, proj.values, maths::Matrix4().values, 100.0f);
 
 		if (this->GetComponent<TransformComponent>() != nullptr)
 			GetComponent<TransformComponent>()->SetBothTransforms(model);

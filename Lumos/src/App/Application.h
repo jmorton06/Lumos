@@ -60,6 +60,7 @@ namespace Lumos
 		AudioManager* GetAudioManager() const { return m_AudioManager.get(); }
         Window* GetWindow() const { return m_Window.get(); }
         AppState GetState() const { return m_CurrentState; }
+        void SetAppState(AppState state) { m_CurrentState = state; }
 
 		maths::Vector2 GetWindowSize() const;
 
