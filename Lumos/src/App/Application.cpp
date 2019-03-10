@@ -301,6 +301,7 @@ namespace Lumos
 
 	bool Application::OnWindowResize(WindowResizeEvent &e)
 	{
+        auto windowSize = GetWindowSize();
 		m_RenderManager->OnResize(e.GetWidth(), e.GetHeight());
 		Renderer::GetRenderer()->OnResize(e.GetWidth(), e.GetHeight());
 		return false;

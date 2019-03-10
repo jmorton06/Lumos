@@ -67,18 +67,42 @@ namespace Lumos
         | ImGuiWindowFlags_NoCollapse
         | ImGuiWindowFlags_NoResize
         | ImGuiWindowFlags_NoBackground
-        | ImGuiWindowFlags_NoMove;
+        | ImGuiWindowFlags_NoMove
+        | ImGuiDockNodeFlags_PassthruDockspace;
         
         ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0.0f, 0.0f));
         ImGui::Begin("DockSpace", nullptr, windowFlags);
+        ImGui::PopStyleVar(3);
         
         ImGuiID dockspaceId = ImGui::GetID("DockSpace");
         ImGui::DockSpace(dockspaceId, ImVec2(0.0f, 0.0f));
         
-        ImGui::End();
-        ImGui::PopStyleVar(3);
+        if (ImGui::BeginMainMenuBar())
+        {
+            if (ImGui::BeginMenu("File"))
+            {
+                if (ImGui::MenuItem("Exit")) { Application::Instance()->SetAppState(AppState::Closing); }
+                ImGui::EndMenu();
+            }
+            if (ImGui::BeginMenu("Edit"))
+            {
+                if (ImGui::MenuItem("Undo", "CTRL+Z")) {}
+                if (ImGui::MenuItem("Redo", "CTRL+Y", false, false)) {}  // Disabled item
+                ImGui::Separator();
+                if (ImGui::MenuItem("Cut", "CTRL+X")) {}
+                if (ImGui::MenuItem("Copy", "CTRL+C")) {}
+                if (ImGui::MenuItem("Paste", "CTRL+V")) {}
+                ImGui::EndMenu();
+            }
+            
+            if (ImGui::MenuItem("X")) { Application::Instance()->SetAppState(AppState::Closing);  }
+            ImGui::EndMainMenuBar();
+        }
+    
         
 		Application::Instance()->OnImGui();
+        
+           ImGui::End();
 		ImGui::Render();
 	}
 
