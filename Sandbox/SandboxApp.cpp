@@ -13,7 +13,7 @@ using namespace Lumos;
 class Game : public Application
 {
 public:
-	Game(WindowProperties windowProperties) : Application(windowProperties, RenderAPI::VULKAN)
+	Game(const WindowProperties& windowProperties) : Application(windowProperties, RenderAPI::VULKAN)
 	{
 	}
 
@@ -43,7 +43,7 @@ public:
 Lumos::Application* Lumos::CreateApplication()
 {
     System::CFG cfg(ROOT_DIR"/Sandbox/Settings.cfg");
-    WindowProperties windowProperties(cfg);
+    const WindowProperties windowProperties(cfg);
 
     return new Game(windowProperties);
 }

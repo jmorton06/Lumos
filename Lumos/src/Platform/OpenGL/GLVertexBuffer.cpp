@@ -71,12 +71,13 @@ namespace Lumos
 	void GLVertexBuffer::ReleasePointer()
 	{
 		GLCall(glUnmapBuffer(GL_ARRAY_BUFFER));
+		SetLayout(m_Layout);
 	}
 
 	void GLVertexBuffer::Bind()
 	{
 		GLCall(glBindBuffer(GL_ARRAY_BUFFER, m_Handle));
-		SetLayout(m_Layout);
+		// SetLayout(m_Layout);
 	}
 
 	void GLVertexBuffer::Unbind()

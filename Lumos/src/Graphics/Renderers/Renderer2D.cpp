@@ -22,6 +22,7 @@
 #define RENDERER_BUFFER_SIZE	RENDERER_SPRITE_SIZE * RENDERER_MAX_SPRITES
 #define RENDERER_INDICES_SIZE	RENDERER_MAX_SPRITES * 6
 #define RENDERER_MAX_TEXTURES	16 - 1
+#define MAX_BATCH_DRAW_CALLS    20
 
 namespace Lumos
 {
@@ -102,7 +103,7 @@ namespace Lumos
 		graphics::BufferLayout layout;
 		layout.Push<maths::Vector3>("POSITION"); // Position
 		layout.Push<maths::Vector2>("TEXCOORD"); // UV
-		layout.Push<float>("ID"); // Texture Index
+		layout.Push<maths::Vector2>("ID"); // Texture Index
 		layout.Push<maths::Vector4>("COLOUR"); // Color
 		buffer->SetLayout(layout);
 
@@ -357,22 +358,11 @@ namespace Lumos
 		m_ScreenBufferHeight = height;
 	}
 
-#define MAX_BATCH_DRAW_CALLS 5
 	void Renderer2D::CreateGraphicsPipeline()
 	{
 		std::vector<graphics::api::DescriptorPoolInfo> poolInfo =
 		{
 			{ graphics::api::DescriptorType::UNIFORM_BUFFER, MAX_BATCH_DRAW_CALLS },
-			{ graphics::api::DescriptorType::IMAGE_SAMPLER, MAX_BATCH_DRAW_CALLS },
-			{ graphics::api::DescriptorType::IMAGE_SAMPLER, MAX_BATCH_DRAW_CALLS },
-			{ graphics::api::DescriptorType::IMAGE_SAMPLER, MAX_BATCH_DRAW_CALLS },
-			{ graphics::api::DescriptorType::IMAGE_SAMPLER, MAX_BATCH_DRAW_CALLS },
-			{ graphics::api::DescriptorType::IMAGE_SAMPLER, MAX_BATCH_DRAW_CALLS },
-			{ graphics::api::DescriptorType::IMAGE_SAMPLER, MAX_BATCH_DRAW_CALLS },
-			{ graphics::api::DescriptorType::IMAGE_SAMPLER, MAX_BATCH_DRAW_CALLS },
-			{ graphics::api::DescriptorType::IMAGE_SAMPLER, MAX_BATCH_DRAW_CALLS },
-			{ graphics::api::DescriptorType::IMAGE_SAMPLER, MAX_BATCH_DRAW_CALLS },
-			{ graphics::api::DescriptorType::IMAGE_SAMPLER, MAX_BATCH_DRAW_CALLS },
 			{ graphics::api::DescriptorType::IMAGE_SAMPLER, MAX_BATCH_DRAW_CALLS }
 		};
 

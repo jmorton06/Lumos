@@ -4,7 +4,7 @@
 
 layout (location = 0) in vec3 position;
 layout (location = 1) in vec2 uv;
-layout (location = 2) in float tid;
+layout (location = 2) in vec2 tid;
 layout (location = 3) in vec4 color;
 
 layout(set = 0,binding = 0) uniform UniformBufferObject
@@ -25,6 +25,6 @@ void main()
 	gl_Position = ubo.projView * vec4(position,1.0);
 	vs_out.position = position;
 	vs_out.uv = uv;
-	vs_out.tid = tid;
+	vs_out.tid = tid.x;
 	vs_out.color = color;
 }
