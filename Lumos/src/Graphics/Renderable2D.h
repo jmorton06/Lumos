@@ -16,7 +16,7 @@ namespace Lumos
 	{
 		maths::Vector3 vertex;
 		maths::Vector2 uv;
-		float tid;
+		maths::Vector2 tid;
 		maths::Vector4 color;
 
         bool operator==(const VertexData& other) const
@@ -40,7 +40,7 @@ namespace Lumos
             
             attributeDescriptions[2].binding = 0;
             attributeDescriptions[2].location = 2;
-            attributeDescriptions[2].format = graphics::api::Format::R32_FLOAT;
+            attributeDescriptions[2].format = graphics::api::Format::R32G32_FLOAT;
             attributeDescriptions[2].offset = offsetof(VertexData, tid);
             
             attributeDescriptions[4].binding = 0;
