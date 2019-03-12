@@ -59,9 +59,8 @@ namespace Lumos
 		void SetScene(Scene* scene) { m_pScene = scene; }
 
 		void DebugDraw(uint64 debugFlags);
-		void SetPosition(const maths::Vector3& pos) { m_Position = pos; };
         
-        TransformComponent* GetTransform() const { return m_DefaultTransformComponent.get(); }
+        TransformComponent* GetTransform() const { return GetComponent<TransformComponent>(); }
 
 	private:
 
@@ -84,7 +83,6 @@ namespace Lumos
 		std::vector<Entity*>	m_vpChildren;
 		float					m_BoundingRadius;
 		uint					m_FrustumCullFlags;
-		maths::Vector3			m_Position;
 		bool					m_UpdateTransforms;
         std::unique_ptr<TransformComponent> m_DefaultTransformComponent = nullptr;
 	};

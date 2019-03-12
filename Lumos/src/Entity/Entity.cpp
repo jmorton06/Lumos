@@ -30,7 +30,6 @@ namespace Lumos
     
     void Entity::Init()
     {
-        m_DefaultTransformComponent = std::make_unique<TransformComponent>(maths::Matrix4());
     }
 
 	void Entity::AddComponent(std::unique_ptr<LumosComponent> component)
@@ -72,7 +71,7 @@ namespace Lumos
 			maths::Vector4 boundRadiusCol(0.3f, 0.6f, 0.4f, 0.8f);
 			boundRadiusCol.SetW(0.2f);
 			if (GetComponent<TransformComponent>())
-				DebugRenderer::DrawPointNDT(GetComponent<TransformComponent>()->m_WorldSpaceTransform.GetPositionVector(), m_BoundingRadius, boundRadiusCol);
+				DebugRenderer::DrawPointNDT(GetComponent<TransformComponent>()->m_Transform.GetWorldMatrix().GetPositionVector(), m_BoundingRadius, boundRadiusCol);
 		}
 		
 		for(auto& component: m_Components)
@@ -87,18 +86,18 @@ namespace Lumos
 		maths::Matrix4 proj = m_pScene->GetCamera()->GetProjectionMatrix();
 
 #ifdef LUMOS_RENDER_API_VULKAN
-		if(graphics::Context::GetContext()->GetRenderAPI() == RenderAPI::VULKAN)
+		if(graphics::Context::GetRenderAPI() == RenderAPI::VULKAN)
 			proj[5] *= -1.0f;
 #endif
 		ImGuizmo::SetDrawlist();
 
 		maths::Matrix4 model = maths::Matrix4();
 		if (this->GetComponent<TransformComponent>() != nullptr)
-			model = GetComponent<TransformComponent>()->m_WorldSpaceTransform;
+			model = GetComponent<TransformComponent>()->m_Transform.GetWorldMatrix();
 		ImGuizmo::Manipulate(view.values, proj.values, ImGuizmo::SCALE, ImGuizmo::WORLD, model.values, NULL, NULL);
 
 		if (this->GetComponent<TransformComponent>() != nullptr)
-			GetComponent<TransformComponent>()->SetBothTransforms(model);
+			GetComponent<TransformComponent>()->SetWorldMatrix(model);
 	}
     
     void Entity::OnIMGUI()

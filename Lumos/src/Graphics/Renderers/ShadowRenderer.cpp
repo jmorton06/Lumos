@@ -229,7 +229,7 @@ namespace Lumos
 					{
 						for (auto& mesh : model->m_Model->GetMeshs())
 						{
-							SubmitMesh(mesh.get(), obj->GetComponent<TransformComponent>()->m_WorldSpaceTransform, maths::Matrix4());
+							SubmitMesh(mesh.get(), obj->GetComponent<TransformComponent>()->m_Transform.GetWorldMatrix(), maths::Matrix4());
 						}
 					}
 				}
@@ -237,8 +237,8 @@ namespace Lumos
 
 			SetSystemUniforms(m_Shader);
 
-            int32 test = (int32)m_Layer;
-            memcpy(m_PushConstant->data, &test, sizeof(int32));
+            int32 layer = static_cast<int32>(m_Layer);
+            memcpy(m_PushConstant->data, &layer, sizeof(int32));
 			std::vector<graphics::api::PushConstant> pcVector;
 			pcVector.push_back(*m_PushConstant);
 			m_Pipeline->GetDescriptorSet()->SetPushConstants(pcVector);

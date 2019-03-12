@@ -85,7 +85,7 @@ namespace Lumos
 								textureMatrix = textureMatrixTransform->m_TextureMatrix;
 							else
 								textureMatrix = maths::Matrix4();
-							SubmitMesh(mesh.get(), obj->GetComponent<TransformComponent>()->m_WorldSpaceTransform, textureMatrix);
+							SubmitMesh(mesh.get(), obj->GetComponent<TransformComponent>()->m_Transform.GetWorldMatrix(), textureMatrix);
 						}
 					}
 				}

@@ -179,12 +179,12 @@ namespace Lumos
 			if (physicsComponent)
 			{
 				if(transformComponent)
-					transformComponent->m_WorldSpaceTransform = physicsComponent->m_PhysicsObject->GetWorldSpaceTransform() * transformComponent->m_LocalTransform;
+					transformComponent->m_Transform.GetWorldMatrix() = physicsComponent->m_PhysicsObject->GetWorldSpaceTransform() * transformComponent->m_Transform.GetLocalMatrix();
 			}
 			else
             {
                 if (transformComponent)
-                    transformComponent->m_WorldSpaceTransform = transformComponent->m_LocalTransform;
+                    transformComponent->m_Transform.GetWorldMatrix() = transformComponent->m_Transform.GetLocalMatrix();
             }
 		}
 	}
@@ -207,7 +207,7 @@ namespace Lumos
 			auto modelComponent = entity->GetComponent<ModelComponent>();
 			if(modelComponent)
 			{
-				bool inside = modelComponent->m_Model->GetNeedFrustumCheck() ? frustum.InsideFrustum(entity->GetComponent<TransformComponent>()->m_WorldSpaceTransform.GetPositionVector(), entity->GetBoundingRadius()) : true;
+				bool inside = modelComponent->m_Model->GetNeedFrustumCheck() ? frustum.InsideFrustum(entity->GetComponent<TransformComponent>()->m_Transform.GetWorldMatrix().GetPositionVector(), entity->GetBoundingRadius()) : true;
 
 				if (inside)
 				{

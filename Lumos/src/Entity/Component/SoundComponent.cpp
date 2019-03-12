@@ -22,7 +22,7 @@ namespace Lumos
 		Physics3DComponent* physicsComponent = m_Entity->GetComponent<Physics3DComponent>();
 		if (physicsComponent)
 		{
-			m_SoundNode->SetPosition(physicsComponent->m_PhysicsObject->GetPosition());
+			m_SoundNode->SetPosition(physicsComponent->m_PhysicsObject->GetPosition()); //TODO : Get From Entity Transform
 			m_SoundNode->SetVelocity(physicsComponent->m_PhysicsObject->GetLinearVelocity());
 			m_BoundingShape->SetPosition(m_SoundNode->GetPosition());
 		}

@@ -42,8 +42,7 @@ void Scene2D::OnInit()
 		std::shared_ptr<Texture2D>(Texture2D::CreateFromFile("Test", "/CoreTextures/icon.png")),
 		std::shared_ptr<Texture2D>(Texture2D::CreateFromFile("Test2", "/CoreTextures/noise.png")),
 		std::shared_ptr<Texture2D>(Texture2D::CreateFromFile("Test3", "/CoreTextures/checkerboard.tga")),
-		std::shared_ptr<Texture2D>(Texture2D::CreateFromFile("Test4", "/CoreTextures/water/waterDUDV.png")),
-		//std::shared_ptr<Texture2D>(Texture2D::CreateFromFile("Test5", "/CoreTextures/water/waterNoise.png"))
+		std::shared_ptr<Texture2D>(Texture2D::CreateFromFile("Test4", "/CoreTextures/water/waterDUDV.png"))
 	};
     for (int i = 0; i < 100; i++)
     {

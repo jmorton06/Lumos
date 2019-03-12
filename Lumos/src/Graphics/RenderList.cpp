@@ -68,7 +68,7 @@ namespace Lumos
 #pragma omp parallel for
 			for (auto &i : list)
 			{
-				i.cam_dist_sq = (i.target_obj.lock()->GetComponent<TransformComponent>()->m_WorldSpaceTransform.GetPositionVector() - m_CameraPos).LengthSquared() * mul;
+				i.cam_dist_sq = (i.target_obj.lock()->GetComponent<TransformComponent>()->m_Transform.GetWorldMatrix().GetPositionVector() - m_CameraPos).LengthSquared() * mul;
 			}
 		};
 
@@ -125,7 +125,7 @@ namespace Lumos
 
 				Entity* entity = list[i].target_obj.lock().get();
 
-				if (!frustum.InsideFrustum(entity->GetComponent<TransformComponent>()->m_WorldSpaceTransform.GetPositionVector(), entity->GetBoundingRadius()))
+				if (!frustum.InsideFrustum(entity->GetComponent<TransformComponent>()->m_Transform.GetWorldMatrix().GetPositionVector(), entity->GetBoundingRadius()))
 				{
 					entity->GetFrustumCullFlags() &= ~m_BitMask;
 				}
@@ -187,7 +187,7 @@ namespace Lumos
 		if (!isOpaque)
 		{
 #endif
-			carry_obj.cam_dist_sq = (obj->GetComponent<TransformComponent>()->m_WorldSpaceTransform.GetPositionVector() - m_CameraPos).LengthSquared();
+			carry_obj.cam_dist_sq = (obj->GetComponent<TransformComponent>()->m_Transform.GetWorldMatrix().GetPositionVector() - m_CameraPos).LengthSquared();
 
 			if (!isOpaque)
 			{
