@@ -224,7 +224,7 @@ namespace Lumos
 						else
 							textureMatrix = maths::Matrix4();
 
-						auto transform = obj->GetComponent<TransformComponent>()->m_WorldSpaceTransform;
+						auto transform = obj->GetComponent<TransformComponent>()->m_Transform.GetWorldMatrix();
 
 						bool inside = true;
 

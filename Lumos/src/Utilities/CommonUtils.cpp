@@ -55,15 +55,10 @@ namespace Lumos
 		matInstance->SetMaterialProperites(properties);
 		pSphere->GetComponent<ModelComponent>()->m_Model->SetMaterial(matInstance);
 
-		pSphere->AddComponent(std::make_unique<TransformComponent>(maths::Matrix4::Scale(maths::Vector3(radius, radius, radius))));
+		pSphere->AddComponent(std::make_unique<TransformComponent>(maths::Matrix4::Scale(maths::Vector3(radius, radius, radius))));// *maths::Matrix4::Translation(pos)));
 		pSphere->SetBoundingRadius(radius);
 
-		if (!physics_enabled)
-		{
-			//If no physics object is present, just set the local transform (modelMatrix) directly
-			pSphere->GetComponent<TransformComponent>()->SetBothTransforms(maths::Matrix4::Translation(pos) * pSphere->GetComponent<TransformComponent>()->m_LocalTransform);
-		}
-		else
+		if (physics_enabled)
 		{
 			//Otherwise create a physics object, and set it's position etc
 			std::shared_ptr<PhysicsObject3D> testPhysics = std::make_shared<PhysicsObject3D>();
@@ -118,16 +113,10 @@ namespace Lumos
 		matInstance->SetRenderFlag(Material::RenderFlags::FORWARDRENDER); //TODO: Temporary;
 		Cube->GetComponent<ModelComponent>()->m_Model->SetMaterial(std::make_shared<Material>(*matInstance));
 
-		Cube->AddComponent(std::make_unique<TransformComponent>(maths::Matrix4::Scale(halfdims)));
+		Cube->AddComponent(std::make_unique<TransformComponent>(maths::Matrix4::Scale(halfdims) * maths::Matrix4::Translation(pos)));
 		Cube->SetBoundingRadius(halfdims.Length());
 
-		if (!physics_enabled)
-		{
-			//If no physics object is present, just set the local transform (modelMatrix) directly
-			Cube->GetComponent<TransformComponent>()->m_LocalTransform = maths::Matrix4::Scale(halfdims);// Matrix4::Translation(pos) * Cube->GetComponent<TransformComponent>()->m_LocalTransform;
-			Cube->GetComponent<TransformComponent>()->m_WorldSpaceTransform = maths::Matrix4::Scale(halfdims) * maths::Matrix4::Translation(pos);
-		}
-		else
+		if (physics_enabled)
 		{
 			//Otherwise create a physics object, and set it's position etc
 			std::shared_ptr<PhysicsObject3D> testPhysics = std::make_shared<PhysicsObject3D>();
@@ -180,15 +169,10 @@ namespace Lumos
 		matInstance->SetMaterialProperites(properties);
 		Cube->GetComponent<ModelComponent>()->m_Model->SetMaterial(matInstance);
 
-		Cube->AddComponent(std::make_unique<TransformComponent>(maths::Matrix4::Scale(halfdims)));
+		Cube->AddComponent(std::make_unique<TransformComponent>(maths::Matrix4::Scale(halfdims) * maths::Matrix4::Translation(pos)));
 		Cube->SetBoundingRadius(halfdims.Length());
 
-		if (!physics_enabled)
-		{
-			//If no physics object is present, just set the local transform (modelMatrix) directly
-			Cube->GetComponent<TransformComponent>()->m_LocalTransform = maths::Matrix4::Translation(pos) * Cube->GetComponent<TransformComponent>()->m_LocalTransform;
-		}
-		else
+		if (physics_enabled)
 		{
 			//Otherwise create a physics object, and set it's position etc
 			std::shared_ptr<PhysicsObject3D> testPhysics = std::make_shared<PhysicsObject3D>();
@@ -281,7 +265,7 @@ namespace Lumos
 		viewRotation = maths::Matrix3::Inverse(viewRotation);
 		const maths::Vector3 forward = viewRotation * maths::Vector3(0.0f, 0.0f, -1.0f);
 		sphere->GetComponent<Physics3DComponent>()->m_PhysicsObject->SetLinearVelocity(forward * 30.0f);
-		sphere->GetComponent<TransformComponent>()->m_LocalTransform = (maths::Matrix4::Scale(maths::Vector3(0.5f, 0.5f, 0.5f))
+		sphere->GetComponent<TransformComponent>()->m_Transform.SetWorldMatrix(maths::Matrix4::Scale(maths::Vector3(0.5f, 0.5f, 0.5f))
 																		* maths::Matrix4::Rotation(-89.9f, maths::Vector3(1.0f, 0.0f, 0.0f)));
 
 		scene->AddEntity(sphere);

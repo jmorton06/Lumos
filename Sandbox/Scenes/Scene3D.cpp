@@ -117,7 +117,7 @@ void Scene3D::LoadModels()
 	testPhysics->SetIsAtRest(true);
 	testPhysics->SetIsStatic(true);
 
-	ground->AddComponent(std::make_unique<TransformComponent>((Matrix4::Translation(maths::Vector3(0.0, 0.0, 0.0f)) *Matrix4::Scale(maths::Vector3(groundWidth, groundHeight, groundLength)))));
+	ground->AddComponent(std::make_unique<TransformComponent>(Matrix4::Scale(maths::Vector3(groundWidth, groundHeight, groundLength))));
 	ground->AddComponent(std::make_unique<Physics3DComponent>(testPhysics));
 
 	std::shared_ptr<Model> groundModel = std::make_shared<Model>(*AssetsManager::DefaultModels()->GetAsset("Cube"));
