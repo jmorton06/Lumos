@@ -63,21 +63,18 @@ namespace Lumos
 
 	bool CollisionDetection::CheckPolyhedronSphereCollision(const PhysicsObject3D* obj1, const PhysicsObject3D* obj2, const CollisionShape* shape1, const CollisionShape* shape2, CollisionData* out_coldata) const 
 	{
-		const SphereCollisionShape* sphereShape;
 		const CollisionShape* complexShape;
 		const PhysicsObject3D* complexObj;
 		const PhysicsObject3D* sphereObj;
 
 		if (obj1->GetCollisionShape()->GetType() == CollisionShapeType::CollisionSphere) 
 		{
-			sphereShape = reinterpret_cast<const SphereCollisionShape*>(shape1);
 			sphereObj = obj1;
 			complexShape = shape2;
 			complexObj = obj2;
 		}
 		else 
 		{
-			sphereShape = reinterpret_cast<const SphereCollisionShape*>(shape2);
 			sphereObj = obj2;
 			complexShape = shape1;
 			complexObj = obj1;
@@ -213,7 +210,7 @@ namespace Lumos
 		shape1->GetIncidentReferencePolygon(obj1, coldata.normal, &polygon1, &normal1, &adjPlanes1);
 		shape2->GetIncidentReferencePolygon(obj2, -coldata.normal, &polygon2, &normal2, &adjPlanes2);
 
-		if (polygon1.size() == 0 || polygon2.size() == 0)
+		if (polygon1.empty() || polygon2.empty())
 			return false;
 		else if (polygon1.size() == 1)
 			manifold->AddContact(polygon1.front(), polygon1.front() - coldata.normal * coldata.penetration, coldata.normal, coldata.penetration);
@@ -223,7 +220,6 @@ namespace Lumos
 		{
 			bool flipped;
 			std::list<maths::Vector3>* incPolygon;
-			maths::Vector3* incNormal;
 			std::vector<maths::Plane>* refAdjPlanes;
 			maths::Plane refPlane;
 
@@ -234,7 +230,6 @@ namespace Lumos
 				refAdjPlanes = &adjPlanes1;
 
 				incPolygon = &polygon2;
-				incNormal = &normal2;
 
 				flipped = false;
 			}
@@ -245,7 +240,6 @@ namespace Lumos
 				refAdjPlanes = &adjPlanes2;
 
 				incPolygon = &polygon1;
-				incNormal = &normal1;
 
 				flipped = true;
 			}
