@@ -21,7 +21,7 @@ namespace Lumos
 
 	void Physics3DComponent::OnUpdateComponent(float dt)
 	{
-		m_Entity->GetTransform()->SetWorldMatrix(m_Entity->GetTransform()->m_Transform.GetLocalMatrix() * m_PhysicsObject->GetWorldSpaceTransform());
+		m_Entity->GetTransform()->SetWorldMatrix(m_PhysicsObject->GetWorldSpaceTransform() * m_Entity->GetTransform()->m_Transform.GetLocalMatrix());
 	}
 
 	void Physics3DComponent::DebugDraw(uint64 debugFlags)

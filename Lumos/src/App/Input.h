@@ -13,7 +13,6 @@
 
 namespace Lumos
 {
-
 	class Event;
 
 	class LUMOS_EXPORT Input
