@@ -6,7 +6,7 @@ namespace Lumos
 {
 
 	ThirdPersonCamera::ThirdPersonCamera(float FOV, float Near, float Far, float aspect)
-		: Camera(FOV, Near, Far, aspect)
+		: Camera(FOV, Near, Far, aspect), m_Free(false)
 	{
 		Application::Instance()->GetWindow()->HideMouse(false);
 		m_ProjMatrix = maths::Matrix4::Perspective(m_Near, m_Far, aspect, FOV);
@@ -14,7 +14,7 @@ namespace Lumos
 	}
 
 	ThirdPersonCamera::ThirdPersonCamera(float pitch, float yaw, const maths::Vector3& position, float FOV, float Near, float Far, float aspect)
-		: Camera(pitch, yaw, position, FOV, Near, Far, aspect)
+		: Camera(pitch, yaw, position, FOV, Near, Far, aspect), m_Free(false)
 	{
 		Application::Instance()->GetWindow()->HideMouse(false);
 		m_ProjMatrix = maths::Matrix4::Perspective(m_Near, m_Far, aspect, FOV);

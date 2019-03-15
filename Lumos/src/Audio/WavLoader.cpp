@@ -25,8 +25,6 @@ namespace Lumos
 			if (chunkName == "RIFF")
 			{
 				file.seekg(4, std::ios_base::cur);
-				//char waveString[4];
-				//file.read((char*)&waveString,4);
 			}
 			else if (chunkName == "fmt ")
 			{

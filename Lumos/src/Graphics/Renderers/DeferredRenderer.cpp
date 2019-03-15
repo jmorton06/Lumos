@@ -194,9 +194,6 @@ namespace Lumos
 
 	void DeferredRenderer::RenderScene(RenderList* renderList, Scene* scene)
 	{
-		//if(m_ShadowRenderer)
-		//	m_ShadowRenderer->RenderScene(nullptr, scene);
-
 		SubmitLightSetup(*scene->GetLightSetup(),scene);
 
 		BeginOffscreen();
@@ -258,7 +255,7 @@ namespace Lumos
 	{
 		int commandBufferIndex = 0;
 		if(!m_RenderTexture)
-			commandBufferIndex = Renderer::GetRenderer()->GetSwapchain()->GetCurrentBufferId();
+			commandBufferIndex = Renderer::GetSwapchain()->GetCurrentBufferId();
 
 		Begin(commandBufferIndex);
 		Present();
@@ -270,7 +267,7 @@ namespace Lumos
 
 	void DeferredRenderer::PresentToScreen()
 	{
-		Renderer::GetRenderer()->Present((m_CommandBuffers[Renderer::GetRenderer()->GetSwapchain()->GetCurrentBufferId()]));
+		Renderer::Present((m_CommandBuffers[Renderer::GetSwapchain()->GetCurrentBufferId()]));
 	}
 
 	void DeferredRenderer::Begin(int commandBufferID)
@@ -714,10 +711,10 @@ namespace Lumos
 		}
 		else
 		{
-			for (uint32_t i = 0; i < Renderer::GetRenderer()->GetSwapchain()->GetSwapchainBufferCount(); i++)
+			for (uint32_t i = 0; i < Renderer::GetSwapchain()->GetSwapchainBufferCount(); i++)
 			{
 				bufferInfo.screenFBO = true;
-				attachments[0] = Renderer::GetRenderer()->GetSwapchain()->GetImage(i);
+				attachments[0] = Renderer::GetSwapchain()->GetImage(i);
 				bufferInfo.attachments = attachments;
 
 				m_Framebuffers.emplace_back(Framebuffer::Create(bufferInfo));
@@ -877,7 +874,7 @@ namespace Lumos
 		if (shadowRenderer)
 		{
 			imageInfo7.texture = new Texture*[1];
-			imageInfo7.texture[0] = (Texture*)shadowRenderer->GetTexture();
+			imageInfo7.texture[0] = reinterpret_cast<Texture*>(shadowRenderer->GetTexture());
 			imageInfo7.binding = 6;
 			imageInfo7.type = TextureType::DEPTHARRAY;
 			imageInfo7.name = "uShadowMap";

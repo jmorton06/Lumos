@@ -9,7 +9,7 @@
 namespace Lumos
 {
 	std::map<String, Sound*>* Sound::m_Sounds = new std::map<String, Sound*>();
-	Sound::Sound()
+	Sound::Sound(): m_Streaming(false)
 	{
 		m_Data = AudioData();
 	}

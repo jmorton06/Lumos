@@ -5,7 +5,7 @@ namespace Lumos
 {
 	namespace graphics
 	{
-		GLCommandBuffer::GLCommandBuffer()
+		GLCommandBuffer::GLCommandBuffer(): primary(false)
 		{
 		}
 

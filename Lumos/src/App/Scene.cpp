@@ -18,9 +18,12 @@
 namespace Lumos
 {
 	Scene::Scene(const String& friendly_name)
-		: m_SceneName(friendly_name), m_pCamera(nullptr), m_EnvironmentMap(nullptr), m_SceneBoundingRadius(0), m_DebugDrawFlags(0), m_DrawDebugData(false)
+		: m_SceneName(friendly_name), m_pCamera(nullptr), m_EnvironmentMap(nullptr), m_SceneBoundingRadius(0),
+		  m_DebugDrawFlags(0), m_DrawObjects(false), m_ReflectScene(false), m_UseShadow(false), m_ScreenWidth(0),
+		  m_ScreenHeight(0),
+		  m_DrawDebugData(false)
 	{
-		m_ParticleManager = nullptr;//  new ParticleManager();
+		m_ParticleManager = nullptr; //  new ParticleManager();
 
 		m_LightSetup = new LightSetup();
 

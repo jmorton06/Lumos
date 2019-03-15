@@ -80,6 +80,24 @@ namespace Lumos
 		}
 	}
 
+	TransformComponent* Entity::GetTransform()
+	{
+		auto transform = m_DefaultTransformComponent;
+
+		if (!transform)
+		{
+			transform = GetComponent<TransformComponent>();
+
+			if(!transform)
+				AddComponent(std::make_unique<TransformComponent>(maths::Matrix4()));
+
+			if (!m_DefaultTransformComponent)
+				m_DefaultTransformComponent = GetComponent<TransformComponent>();
+		}
+
+		return m_DefaultTransformComponent;
+	}
+
 	void Entity::OnGuizmo()
 	{
 		maths::Matrix4 view = m_pScene->GetCamera()->GetViewMatrix();
