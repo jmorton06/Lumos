@@ -86,11 +86,11 @@ namespace Lumos
 
 		auto sort_list = [&](std::vector<RenderList_Object>& list)
 		{
-			int i = 1, j = 0, size = static_cast<int>(list.size());
+			int i = 1, size = static_cast<int>(list.size());
 			for (; i < size; ++i)
 			{
 				swap_buffer = list[i];
-				j = i - 1;
+				int j = i - 1;
 
 				while (j >= 0 && list[j].cam_dist_sq > swap_buffer.cam_dist_sq)
 				{
@@ -182,6 +182,7 @@ namespace Lumos
 
 		RenderList_Object carry_obj;
 		carry_obj.target_obj = obj;
+		carry_obj.cam_dist_sq = 0.0f;
 
 #if !SORT_OPAQUE_LIST
 		if (!isOpaque)

@@ -33,7 +33,7 @@ namespace Lumos
 		virtual ~Renderer2D();
 
 		virtual void Init();
-		virtual void Submit(Renderable2D* renderable);
+		virtual void Submit(Renderable2D* renderable, const maths::Matrix4& transform);
 		virtual void Begin();
 		virtual void BeginScene(Scene* scene);
 		virtual void Present();
@@ -62,25 +62,29 @@ namespace Lumos
 
 	private:
 		std::vector<Renderable2D*> m_Sprites;
-		uint m_ScreenBufferWidth, m_ScreenBufferHeight;
+		uint m_ScreenBufferWidth{}, m_ScreenBufferHeight{};
 
-		graphics::api::RenderPass* m_RenderPass;
-		graphics::api::Pipeline* m_Pipeline;
-		graphics::api::DescriptorSet* m_DescriptorSet;
-		graphics::api::UniformBuffer* m_UniformBuffer;
+		graphics::api::RenderPass* m_RenderPass{};
+		graphics::api::Pipeline* m_Pipeline{};
+		graphics::api::DescriptorSet* m_DescriptorSet{};
+		graphics::api::UniformBuffer* m_UniformBuffer{};
 		std::vector<graphics::api::CommandBuffer*> m_CommandBuffers;
+		std::vector<graphics::api::CommandBuffer*> m_SecondaryCommandBuffers;
+
+		uint m_BatchDrawCallIndex = 0;
+
 		std::vector<Framebuffer*> m_Framebuffers;
 
-		Shader* m_Shader;
+		Shader* m_Shader{};
 
-		VertexArray* m_VertexArray;
-		IndexBuffer* m_IndexBuffer;
+		VertexArray* m_VertexArray{};
+		IndexBuffer* m_IndexBuffer{};
 		uint m_IndexCount;
 
-		VertexData* m_Buffer;
+		VertexData* m_Buffer{};
 
 		std::vector<maths::Matrix4> m_TransformationStack;
-		const maths::Matrix4* m_TransformationBack;
+		const maths::Matrix4* m_TransformationBack{};
 
 		std::vector<Texture*> m_Textures;
 

@@ -6,28 +6,26 @@ namespace Lumos
 
 	Particle::Particle()
 		: m_Position(maths::Vector3(0.0f))
-		, m_Velocity(maths::Vector3(10.0f))
-		, m_GravityEffect(1.0f)
-		, m_LifeLength(5.0f)
-		, m_Rotation(0.0f)
-		, m_Scale(1.0f)
-		, m_ElapsedTime(0.0f)
-		, m_TextureOffset1(maths::Vector2(0.0f))
-		, m_TextureOffset2(maths::Vector2(0.0f))
+		  , m_Velocity(maths::Vector3(10.0f))
+		  , m_GravityEffect(1.0f)
+		  , m_LifeLength(5.0f)
+		  , m_Rotation(0.0f)
+		  , m_Scale(1.0f)
+		  , m_ElapsedTime(0.0f)
+		  , m_TextureOffset1(maths::Vector2(0.0f))
+		  , m_TextureOffset2(maths::Vector2(0.0f)), m_Blend(0)
 	{
-
 	}
 
 	Particle::Particle(const maths::Vector3& position, const maths::Vector3& velocity, float gravityEffect, float lifeLength, float scale)
 		: m_Position(position)
-		, m_Velocity(velocity)
-		, m_GravityEffect(gravityEffect)
-		, m_LifeLength(lifeLength)
-		, m_Rotation(0.0f)
-		, m_Scale(scale)
-		, m_ElapsedTime(0.0f)
+		  , m_Velocity(velocity)
+		  , m_GravityEffect(gravityEffect)
+		  , m_LifeLength(lifeLength)
+		  , m_Rotation(0.0f)
+		  , m_Scale(scale)
+		  , m_ElapsedTime(0.0f), m_Blend(0)
 	{
-
 	}
 
 	Particle::~Particle()

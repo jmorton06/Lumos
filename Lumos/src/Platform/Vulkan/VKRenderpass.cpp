@@ -10,7 +10,7 @@ namespace Lumos
 	namespace graphics
 	{
 
-		VKRenderpass::VKRenderpass()
+		VKRenderpass::VKRenderpass(): m_ClearCount(0), m_DepthOnly(false)
 		{
 			m_ClearValue = NULL;
 			m_ClearDepth = false;

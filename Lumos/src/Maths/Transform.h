@@ -20,6 +20,7 @@ namespace Lumos
 
 			void SetWorldScale(const Vector3& worldScale);
 			void SetLocalScale(const Vector3& localScale);
+			void SetOrientation(const Quaternion& quat);
 
 			Matrix4 GetWorldMatrix() const
 			{

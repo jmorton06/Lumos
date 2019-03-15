@@ -24,13 +24,15 @@ namespace Lumos
 {
     namespace graphics
     {
-        VKIMGUIRenderer::VKIMGUIRenderer(uint width, uint height, bool clearScreen)
+        VKIMGUIRenderer::VKIMGUIRenderer(uint width, uint height, bool clearScreen): m_CommandBuffers{},
+                                                                                     m_Framebuffers{},
+                                                                                     m_Renderpass(nullptr)
         {
-            m_Implemented = true;
-			m_WindowHandle = nullptr;
-			m_Width = width;
-			m_Height = height;
-			m_ClearScreen = clearScreen;
+	        m_Implemented = true;
+	        m_WindowHandle = nullptr;
+	        m_Width = width;
+	        m_Height = height;
+	        m_ClearScreen = clearScreen;
         }
 
         VKIMGUIRenderer::~VKIMGUIRenderer()

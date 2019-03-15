@@ -113,7 +113,7 @@ namespace Lumos
 		matInstance->SetRenderFlag(Material::RenderFlags::FORWARDRENDER); //TODO: Temporary;
 		Cube->GetComponent<ModelComponent>()->m_Model->SetMaterial(std::make_shared<Material>(*matInstance));
 
-		Cube->AddComponent(std::make_unique<TransformComponent>(maths::Matrix4::Scale(halfdims) * maths::Matrix4::Translation(pos)));
+		Cube->AddComponent(std::make_unique<TransformComponent>(maths::Matrix4::Scale(halfdims)));
 		Cube->SetBoundingRadius(halfdims.Length());
 
 		if (physics_enabled)
@@ -169,7 +169,7 @@ namespace Lumos
 		matInstance->SetMaterialProperites(properties);
 		Cube->GetComponent<ModelComponent>()->m_Model->SetMaterial(matInstance);
 
-		Cube->AddComponent(std::make_unique<TransformComponent>(maths::Matrix4::Scale(halfdims) * maths::Matrix4::Translation(pos)));
+		Cube->AddComponent(std::make_unique<TransformComponent>(maths::Matrix4::Scale(halfdims) * maths::Matrix4::RotationX(-90.0f)));
 		Cube->SetBoundingRadius(halfdims.Length());
 
 		if (physics_enabled)

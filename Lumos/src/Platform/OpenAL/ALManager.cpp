@@ -8,10 +8,10 @@ namespace Lumos
 {
     namespace Audio
     {
-		ALManager::ALManager(int numChannels) : m_NumChannels(numChannels)
-        {
+		ALManager::ALManager(int numChannels) : m_Context(nullptr), m_Device(nullptr), m_NumChannels(numChannels)
+		{
 			m_Listener = nullptr;
-        }
+		}
 
 		ALManager::~ALManager()
         {
@@ -52,10 +52,6 @@ namespace Lumos
 			{
 				maths::Vector3 worldPos = m_Listener->GetPosition();
 				maths::Vector3 velocity = m_Listener->GetVelocity();
-
-				maths::Vector3 dirup[2];
-				dirup[0] = m_Listener->GetForwardDirection();
-				dirup[1] = m_Listener->GetUpDirection();
                 
                 ALfloat direction[6];
                 

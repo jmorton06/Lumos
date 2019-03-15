@@ -18,7 +18,6 @@ namespace Lumos
 		Mesh* mesh;
 		maths::Matrix4 transform;
 		maths::Matrix4 textureMatrix;
-		Shader* shader;
 		std::vector<RendererUniform> uniforms;
 	};
 }

@@ -59,8 +59,8 @@ namespace Lumos
 		void SetScene(Scene* scene) { m_pScene = scene; }
 
 		void DebugDraw(uint64 debugFlags);
-        
-        TransformComponent* GetTransform() const { return GetComponent<TransformComponent>(); }
+
+		TransformComponent* GetTransform();
 
 	private:
 
@@ -84,6 +84,6 @@ namespace Lumos
 		float					m_BoundingRadius;
 		uint					m_FrustumCullFlags;
 		bool					m_UpdateTransforms;
-        std::unique_ptr<TransformComponent> m_DefaultTransformComponent = nullptr;
+		TransformComponent*		m_DefaultTransformComponent = nullptr;
 	};
 }

@@ -28,7 +28,7 @@ namespace Lumos
 	{
 		maths::Vector3 up = maths::Vector3(0, 1, 0), right = maths::Vector3(1, 0, 0);
 
-		m_CameraSpeed = 100.0f * dt * m_Scale;
+		m_CameraSpeed = 100.0f * dt;// *m_Scale;
 
 		if (Input::GetInput().GetKeyHeld(LUMOS_KEY_A))
 		{
@@ -42,12 +42,12 @@ namespace Lumos
 
 		if (Input::GetInput().GetKeyHeld(LUMOS_KEY_W))
 		{
-			m_Velocity -= up * m_CameraSpeed;
+			m_Velocity += up * m_CameraSpeed;
 		}
 
 		if (Input::GetInput().GetKeyHeld(LUMOS_KEY_S))
 		{
-			m_Velocity += up * m_CameraSpeed;
+			m_Velocity -= up * m_CameraSpeed;
 		}
 
 		m_Position += m_Velocity * dt;

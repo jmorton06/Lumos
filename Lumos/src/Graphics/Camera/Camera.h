@@ -28,7 +28,7 @@ namespace Lumos
 		void SetYaw(float y) { m_Yaw = y; }
 
 		float GetAspectRatio()   const { return m_AspectRatio; }
-		void SetAspectRatio(float y) { m_AspectRatio = y; m_ProjMatrix = maths::Matrix4::Perspective(m_Near, m_Far, m_AspectRatio, m_Fov); }
+		void SetAspectRatio(float y) { m_AspectRatio = y; };// m_ProjMatrix = maths::Matrix4::Perspective(m_Near, m_Far, m_AspectRatio, m_Fov);}
 
 		float GetPitch() const { return m_Pitch; }
 		void SetPitch(float p) { m_Pitch = p; }

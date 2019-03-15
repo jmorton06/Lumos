@@ -140,8 +140,6 @@ namespace Lumos
 		Timer t;
 
 		float updateTimer = 0.0f;
-		float updates = 0;
-		float timer = 0;
 
 		TimeStep* timeStep = new TimeStep(static_cast<float>(t.GetMS()) * 1000.0f);
 
@@ -153,18 +151,10 @@ namespace Lumos
 			{
 				updateTimer += targetUpdateTime;
 
-				updates++;
-
 				timeStep->Update(now);
 
 				LumosPhysicsEngine::Instance()->Update(timeStep);
 				B2PhysicsEngine::Instance()->Update(LumosPhysicsEngine::Instance()->IsPaused(), timeStep);
-			}
-
-			if (t.GetMS() - timer > 1.0f)
-			{
-				timer += 1.0f;
-				updates = 0;
 			}
 		}
 

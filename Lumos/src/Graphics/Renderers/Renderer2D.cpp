@@ -21,12 +21,12 @@
 #define RENDERER_SPRITE_SIZE	RENDERER2D_VERTEX_SIZE * 4
 #define RENDERER_BUFFER_SIZE	RENDERER_SPRITE_SIZE * RENDERER_MAX_SPRITES
 #define RENDERER_INDICES_SIZE	RENDERER_MAX_SPRITES * 6
-#define RENDERER_MAX_TEXTURES	16 - 1
-#define MAX_BATCH_DRAW_CALLS    20
+#define RENDERER_MAX_TEXTURES	2//16 - 1
+#define MAX_BATCH_DRAW_CALLS    100
 
 namespace Lumos
 {
-	Renderer2D::Renderer2D(uint width, uint height) : m_IndexCount(0), m_RenderTexture(nullptr)
+	Renderer2D::Renderer2D(uint width, uint height) : m_IndexCount(0), m_RenderTexture(nullptr), m_Buffer(nullptr)
 	{
 		SetScreenBufferSize(width, height);
 
@@ -68,6 +68,14 @@ namespace Lumos
 		{
 			commandBuffer = graphics::api::CommandBuffer::Create();
 			commandBuffer->Init(true);
+		}
+
+		m_SecondaryCommandBuffers.resize(MAX_BATCH_DRAW_CALLS);
+
+		for (auto& cmdBuffer : m_SecondaryCommandBuffers)
+		{
+			cmdBuffer = graphics::api::CommandBuffer::Create();
+			cmdBuffer->Init(false);
 		}
 
 		CreateGraphicsPipeline();
@@ -133,7 +141,7 @@ namespace Lumos
 		m_ClearColour = maths::Vector4(0.8f, 0.5f, 0.5f, 1.0f);
 	}
 
-	void Renderer2D::Submit(Renderable2D* renderable)
+	void Renderer2D::Submit(Renderable2D* renderable, const maths::Matrix4& transform)
 	{
 		const maths::Vector2 min = renderable->GetPosition();
 		const maths::Vector2 max = renderable->GetPosition() + renderable->GetScale();
@@ -146,28 +154,28 @@ namespace Lumos
 		if (texture)
 			textureSlot = SubmitTexture(renderable->GetTexture());
 
-		maths::Vector3 vertex = maths::Vector3(min.x, min.y, 0.0f);
+		maths::Vector3 vertex = transform * maths::Vector3(min.x, min.y, 0.0f);
 		m_Buffer->vertex = vertex;
 		m_Buffer->uv = uv[0];
 		m_Buffer->tid = textureSlot;
 		m_Buffer->color = colour;
 		m_Buffer++;
 
-		vertex = maths::Vector3(max.x, min.y, 0.0f);
+		vertex = transform * maths::Vector3(max.x, min.y, 0.0f);
 		m_Buffer->vertex = vertex;
 		m_Buffer->uv = uv[1];
 		m_Buffer->tid = textureSlot;
 		m_Buffer->color = colour;
 		m_Buffer++;
 
-		vertex = maths::Vector3(max.x, max.y, 0.0f);
+		vertex = transform * maths::Vector3(max.x, max.y, 0.0f);
 		m_Buffer->vertex = vertex;
 		m_Buffer->uv = uv[2];
 		m_Buffer->tid = textureSlot;
 		m_Buffer->color = colour;
 		m_Buffer++;
 
-		vertex = maths::Vector3(min.x, max.y, 0.0f);
+		vertex = transform * maths::Vector3(min.x, max.y, 0.0f);
 		m_Buffer->vertex = vertex;
 		m_Buffer->uv = uv[3];
 		m_Buffer->tid = textureSlot;
@@ -185,7 +193,7 @@ namespace Lumos
 
 		m_CommandBuffers[m_CurrentBufferID]->BeginRecording();
 
-		m_RenderPass->BeginRenderpass(m_CommandBuffers[m_CurrentBufferID], m_ClearColour, m_Framebuffers[m_CurrentBufferID], graphics::api::INLINE, m_ScreenBufferWidth, m_ScreenBufferHeight);
+		m_RenderPass->BeginRenderpass(m_CommandBuffers[m_CurrentBufferID], m_ClearColour, m_Framebuffers[m_CurrentBufferID], graphics::api::SECONDARY, m_ScreenBufferWidth, m_ScreenBufferHeight);
 
 		m_Textures.clear();
 		m_Sprites.clear();
@@ -204,7 +212,7 @@ namespace Lumos
 	void Renderer2D::BeginScene(Scene* scene)
 	{
 		auto camera = scene->GetCamera();
-        auto projView = camera->GetViewMatrix();
+        auto projView = camera->GetProjectionMatrix() * camera->GetViewMatrix();
         
 		memcpy(m_VSSystemUniformBuffer, &projView, sizeof(maths::Matrix4));
 	}
@@ -213,18 +221,27 @@ namespace Lumos
 	{
 		UpdateDesciptorSet();
 
-		m_Pipeline->SetActive(m_CommandBuffers[m_CurrentBufferID]);
+		graphics::api::CommandBuffer* currentCMDBuffer = m_SecondaryCommandBuffers[m_BatchDrawCallIndex];
+
+		currentCMDBuffer->BeginRecordingSecondary(m_RenderPass, m_Framebuffers[m_CurrentBufferID]);
+		currentCMDBuffer->UpdateViewport(m_ScreenBufferWidth, m_ScreenBufferHeight);
+		m_Pipeline->SetActive(currentCMDBuffer);
 
 		m_VertexArray->GetBuffer()->ReleasePointer();
 		m_VertexArray->Unbind();
 
 		m_IndexBuffer->SetCount(m_IndexCount);
 
-		std::vector<graphics::api::DescriptorSet*> descriptors = {m_Pipeline->GetDescriptorSet(), m_DescriptorSet };
+		std::vector<graphics::api::DescriptorSet*> descriptors = { m_Pipeline->GetDescriptorSet(), m_DescriptorSet };
 
-		Renderer::GetRenderer()->Render(m_VertexArray, m_IndexBuffer, m_CommandBuffers[m_CurrentBufferID], descriptors, m_Pipeline, 0);
+		Renderer::GetRenderer()->Render(m_VertexArray, m_IndexBuffer, currentCMDBuffer, descriptors, m_Pipeline, 0);
 
 		m_IndexCount = 0;
+
+		currentCMDBuffer->EndRecording();
+		currentCMDBuffer->ExecuteSecondary(m_CommandBuffers[m_CurrentBufferID]);
+
+		m_BatchDrawCallIndex++;
 	}
 
 	void Renderer2D::End()
@@ -238,6 +255,7 @@ namespace Lumos
 		if (!m_RenderTexture)
 			PresentToScreen();
 
+		m_BatchDrawCallIndex = 0;
 	}
 
 	void Renderer2D::Render(Scene* scene)
@@ -254,7 +272,7 @@ namespace Lumos
 				auto* sprite = entity->GetComponent<SpriteComponent>();
 				if (sprite)
 				{
-					Submit(reinterpret_cast<Renderable2D*>(sprite->m_Sprite.get()));
+					Submit(reinterpret_cast<Renderable2D*>(sprite->m_Sprite.get()), entity->GetTransform()->m_Transform.GetWorldMatrix());
 				}
 			}
 		}
@@ -404,7 +422,7 @@ namespace Lumos
 		pipelineCI.strideSize = sizeof(VertexData);
 		pipelineCI.numColorAttachments = 1;
 		pipelineCI.wireframeEnabled = false;
-		pipelineCI.cullMode = graphics::api::CullMode::NONE;
+		pipelineCI.cullMode = graphics::api::CullMode::BACK;
 		pipelineCI.transparencyEnabled = false;
 		pipelineCI.depthBiasEnabled = false;
 		pipelineCI.width = m_ScreenBufferWidth;

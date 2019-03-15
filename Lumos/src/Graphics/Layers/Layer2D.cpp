@@ -6,7 +6,7 @@
 namespace Lumos
 {
 	Layer2D::Layer2D(Renderer2D* renderer, const std::string& debugName)
-		: m_Renderer(renderer), Layer(debugName)
+		: Layer(debugName), m_Scene(nullptr), m_Renderer(renderer)
 	{
 	}
 

@@ -18,5 +18,6 @@ namespace Lumos
 		Sprite(const maths::Vector2& position, const maths::Vector2& scale, const maths::Vector4& colour);
 		Sprite(std::shared_ptr<Texture2D> texture, const maths::Vector2& position, const maths::Vector2& scale, const maths::Vector4& colour);
 		virtual ~Sprite();
+		void SetPosition(const maths::Vector2& vector2) { m_Position = vector2; };
 	};
 }
