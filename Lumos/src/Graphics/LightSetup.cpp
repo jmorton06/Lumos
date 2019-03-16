@@ -4,9 +4,8 @@
 namespace Lumos
 {
 
-	LightSetup::LightSetup()
+    LightSetup::LightSetup() : m_DirectionalLight(nullptr)
 	{
-		m_DirectionalLight = nullptr;
 	}
 
 	LightSetup::~LightSetup()

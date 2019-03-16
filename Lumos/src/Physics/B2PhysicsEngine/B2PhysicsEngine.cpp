@@ -11,8 +11,8 @@ namespace Lumos
 	B2PhysicsEngine::B2PhysicsEngine()
 		: m_UpdateTimestep(1.0f / 60.f)
 		, m_UpdateAccum(0.0f)
+        , m_B2DWorld(std::make_unique<b2World>(b2Vec2(0.0f,-9.81f)))
 	{
-		m_B2DWorld = std::make_unique<b2World>(b2Vec2(0.0f, -9.81f));
 	}
 
 	B2PhysicsEngine::~B2PhysicsEngine()
