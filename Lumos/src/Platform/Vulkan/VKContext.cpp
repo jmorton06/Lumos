@@ -76,8 +76,8 @@ namespace Lumos
 
 		VKContext::~VKContext()
 		{
-			if (m_CommandPool)
-				delete m_CommandPool;
+			delete m_CommandPool;
+            
 			DestroyDebugReportCallbackEXT(m_VkInstance, callback, nullptr);
 			vkDestroyInstance(m_VkInstance, nullptr);
 		}

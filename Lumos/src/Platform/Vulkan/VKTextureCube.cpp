@@ -328,8 +328,6 @@ namespace Lumos
 			delete[] cubeTextureData;
 			delete[] faceHeights;
 			delete[] faceWidths;
-
-			delete[] allData;
 		}
 	}
 }
