@@ -41,14 +41,34 @@ namespace Lumos
 
 		void VKRenderer::PresentInternal(api::CommandBuffer* cmdBuffer)
 		{
-			((VKCommandBuffer*)cmdBuffer)->ExecuteInternal(vk::PipelineStageFlagBits::eColorAttachmentOutput,
+			dynamic_cast<VKCommandBuffer*>(cmdBuffer)->ExecuteInternal(vk::PipelineStageFlagBits::eColorAttachmentOutput,
 				m_ImageAvailableSemaphore[m_CurrentSemaphoreIndex], m_ImageAvailableSemaphore[m_CurrentSemaphoreIndex + 1], false);
 			m_CurrentSemaphoreIndex++;
 		}
-        
-        void VKRenderer::PresentInternal()
+
+		void VKRenderer::ClearSwapchainImage() const
+		{
+			for(int i = 0; i < m_Swapchain->GetSwapchainBufferCount(); i++)
+			{
+				auto cmd = VKTools::BeginSingleTimeCommands();
+
+				vk::ImageSubresourceRange subresourceRange = {};
+				subresourceRange.aspectMask = vk::ImageAspectFlagBits::eColor;
+				subresourceRange.baseMipLevel = 0;
+				subresourceRange.layerCount = 1;
+				subresourceRange.levelCount = 1;
+
+				vk::ClearColorValue clearColorValue = vk::ClearColorValue(std::array<float, 4> { 0.0f, 0.0f, 0.0f, 0.0f });
+
+				cmd.clearColorImage(static_cast<VKTexture2D*>(m_Swapchain->GetImage(i))->GetImage(), vk::ImageLayout::eTransferSrcOptimal, &clearColorValue, 1, &subresourceRange);
+
+				VKTools::EndSingleTimeCommands(cmd);
+			}
+		}
+
+		void VKRenderer::PresentInternal()
         {
-            m_Swapchain->Present(m_ImageAvailableSemaphore[m_CurrentSemaphoreIndex]);
+			m_Swapchain->Present(m_ImageAvailableSemaphore[m_CurrentSemaphoreIndex]);
 			VKDevice::Instance()->GetPresentQueue().waitIdle();
         }
 
@@ -86,14 +106,14 @@ namespace Lumos
 			vk::DeviceSize* offsets = new vk::DeviceSize[vertexArraySize];
 			for (uint i = 0; i < vertexArraySize; i++)
 			{
-				VKVertexBuffer* buffer = static_cast<VKVertexBuffer*>(vertexArray->GetBuffer(i));
+				auto* buffer = dynamic_cast<VKVertexBuffer*>(vertexArray->GetBuffer(i));
 				vertexBuffers[i] = buffer->GetBuffer();
 				offsets[i] = static_cast<vk::DeviceSize>(buffer->GetLayout().GetStride());
 			}
 
 			commandBuffer->GetCommandBuffer().bindDescriptorSets(vk::PipelineBindPoint::eGraphics, layout, 0, static_cast<uint32_t>(descriptorSet.size()), descriptorSet.data(), numDynamicDescriptorSets, &offset);
 			commandBuffer->GetCommandBuffer().bindVertexBuffers(0,1, vertexBuffers, offsets);
-			commandBuffer->GetCommandBuffer().bindIndexBuffer(static_cast<VKIndexBuffer*>(indexBuffer)->GetBuffer(), 0, vk::IndexType::eUint32);
+			commandBuffer->GetCommandBuffer().bindIndexBuffer(dynamic_cast<VKIndexBuffer*>(indexBuffer)->GetBuffer(), 0, vk::IndexType::eUint32);
 			commandBuffer->GetCommandBuffer().drawIndexed(static_cast<uint32_t>(indexBuffer->GetCount()), 1, 0, 0, 0);
 
 			delete[] vertexBuffers;
@@ -114,6 +134,8 @@ namespace Lumos
 			{
 				throw std::runtime_error("failed to acquire swap chain image!");
 			}
+
+			ClearSwapchainImage();
 		}
 		void VKRenderer::BindScreenFBOInternal()
 		{
@@ -170,6 +192,7 @@ namespace Lumos
 		void VKRenderer::SetRenderTargets(uint numTargets)
 		{
 		}
+
 		void VKRenderer::SetPixelPackType(PixelPackType type)
 		{
 		}
@@ -182,35 +205,63 @@ namespace Lumos
 			std::vector<vk::DescriptorSet> descriptorSets;
 			uint numDynamicDescriptorSets = 0;
 
-			if (static_cast<graphics::VKDescriptorSet*>(pipeline->GetDescriptorSet())->GetIsDynamic())
+			if (dynamic_cast<graphics::VKDescriptorSet*>(pipeline->GetDescriptorSet())->GetIsDynamic())
 				numDynamicDescriptorSets++;
 
-			descriptorSets.push_back(static_cast<graphics::VKDescriptorSet*>(pipeline->GetDescriptorSet())->GetDescriptorSet());
+			descriptorSets.push_back(dynamic_cast<graphics::VKDescriptorSet*>(pipeline->GetDescriptorSet())->GetDescriptorSet());
 			if(useMaterialDescriptorSet)
 			{
 				if (mesh->GetMaterial() && mesh->GetMaterial()->GetDescriptorSet())
 				{
-					descriptorSets.push_back(static_cast<graphics::VKDescriptorSet*>(mesh->GetMaterial()->GetDescriptorSet())->GetDescriptorSet());
-					if (static_cast<graphics::VKDescriptorSet*>(mesh->GetMaterial()->GetDescriptorSet())->GetIsDynamic())
+					descriptorSets.push_back(dynamic_cast<graphics::VKDescriptorSet*>(mesh->GetMaterial()->GetDescriptorSet())->GetDescriptorSet());
+					if (dynamic_cast<graphics::VKDescriptorSet*>(mesh->GetMaterial()->GetDescriptorSet())->GetIsDynamic())
 						numDynamicDescriptorSets++;
 				}
 				else if(descriptorSet)
 				{
-					descriptorSets.push_back(static_cast<graphics::VKDescriptorSet*>(descriptorSet)->GetDescriptorSet());
-					if (static_cast<graphics::VKDescriptorSet*>(descriptorSet)->GetIsDynamic())
+					descriptorSets.push_back(dynamic_cast<graphics::VKDescriptorSet*>(descriptorSet)->GetDescriptorSet());
+					if (dynamic_cast<graphics::VKDescriptorSet*>(descriptorSet)->GetIsDynamic())
 						numDynamicDescriptorSets++;
 				}
 			}
 
 			uint index = 0;
-			for(auto pc : static_cast<graphics::VKDescriptorSet*>(pipeline->GetDescriptorSet())->GetPushConstants())
+			for(auto pc : dynamic_cast<graphics::VKDescriptorSet*>(pipeline->GetDescriptorSet())->GetPushConstants())
 			{
 				//TODO : Shader Stage;
-				static_cast<graphics::VKCommandBuffer*>(cmdBuffer)->GetCommandBuffer().pushConstants(static_cast<graphics::VKPipeline*>(pipeline)->GetPipelineLayout(), vk::ShaderStageFlagBits::eVertex, index, pc.size, pc.data);
+				dynamic_cast<graphics::VKCommandBuffer*>(cmdBuffer)->GetCommandBuffer().pushConstants(dynamic_cast<graphics::VKPipeline*>(pipeline)->GetPipelineLayout(), vk::ShaderStageFlagBits::eVertex, index, pc.size, pc.data);
 			}
 
 
-			graphics::VKRenderer::Render(mesh->GetIndexBuffer().get(), mesh->GetVertexArray().get(), static_cast<graphics::VKCommandBuffer*>(cmdBuffer), descriptorSets, static_cast<graphics::VKPipeline*>(pipeline)->GetPipelineLayout(), dynamicOffset, numDynamicDescriptorSets);
+			graphics::VKRenderer::Render(mesh->GetIndexBuffer().get(), mesh->GetVertexArray().get(), dynamic_cast<graphics::VKCommandBuffer*>(cmdBuffer), descriptorSets,
+			                             dynamic_cast<graphics::VKPipeline*>(pipeline)->GetPipelineLayout(), dynamicOffset, numDynamicDescriptorSets);
+
+		}
+
+		void VKRenderer::Render(VertexArray* vertexArray, IndexBuffer* indexBuffer,
+			graphics::api::CommandBuffer* cmdBuffer, std::vector<graphics::api::DescriptorSet*>& descriptorSets,
+			graphics::api::Pipeline* pipeline, uint dynamicOffset)
+		{
+			std::vector<vk::DescriptorSet> vkdescriptorSets;
+			uint numDynamicDescriptorSets = 0;
+
+			for(auto descriptorSet : descriptorSets)
+			{
+				if (dynamic_cast<graphics::VKDescriptorSet*>(descriptorSet)->GetIsDynamic())
+					numDynamicDescriptorSets++;
+
+				vkdescriptorSets.push_back(dynamic_cast<graphics::VKDescriptorSet*>(descriptorSet)->GetDescriptorSet());
+
+				uint index = 0;
+				for (auto pc : dynamic_cast<graphics::VKDescriptorSet*>(descriptorSet)->GetPushConstants())
+				{
+					//TODO : Shader Stage;
+					dynamic_cast<graphics::VKCommandBuffer*>(cmdBuffer)->GetCommandBuffer().pushConstants(dynamic_cast<graphics::VKPipeline*>(pipeline)->GetPipelineLayout(), vk::ShaderStageFlagBits::eVertex, index, pc.size, pc.data);
+				}
+			}
+
+			Render(indexBuffer, vertexArray, dynamic_cast<graphics::VKCommandBuffer*>(cmdBuffer), vkdescriptorSets,
+			       dynamic_cast<graphics::VKPipeline*>(pipeline)->GetPipelineLayout(), dynamicOffset, numDynamicDescriptorSets);
 
 		}
 	}

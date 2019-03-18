@@ -25,7 +25,9 @@ project "Lumos"
 		"external/tinygltf/tiny_gltf.h",
 		"external/stb/stb_vorbis.c",
 		"external/simplex/**.h",
-		"external/simplex/**.cpp"
+		"external/simplex/**.cpp",
+
+		"res/**"
 	}
 
 	removefiles
@@ -90,9 +92,7 @@ project "Lumos"
 			"external/imgui/examples/imgui_impl_vulkan.h",
 			"external/imgui/examples/imgui_impl_vulkan.cpp",
 			"external/imgui/examples/imgui_impl_opengl3.h",
-			"external/imgui/examples/imgui_impl_opengl3.cpp",
-			"external/imgui/examples/imgui_impl_glfw.h",
-			"external/imgui/examples/imgui_impl_glfw.cpp"
+			"external/imgui/examples/imgui_impl_opengl3.cpp"
 		}
 
 		pchheader "LM.h"
@@ -156,8 +156,6 @@ project "Lumos"
 			"external/imgui/examples/imgui_impl_vulkan.cpp",
 			"external/imgui/examples/imgui_impl_opengl3.h",
 			"external/imgui/examples/imgui_impl_opengl3.cpp",
-			"external/imgui/examples/imgui_impl_glfw.h",
-			"external/imgui/examples/imgui_impl_glfw.cpp",
 			"src/Platform/Vulkan/MakeMetalView.mm"
 		}
 
@@ -280,9 +278,7 @@ project "Lumos"
 			"external/imgui/examples/imgui_impl_vulkan.h",
 			"external/imgui/examples/imgui_impl_vulkan.cpp",
 			"external/imgui/examples/imgui_impl_opengl3.h",
-			"external/imgui/examples/imgui_impl_opengl3.cpp",
-			"external/imgui/examples/imgui_impl_glfw.h",
-			"external/imgui/examples/imgui_impl_glfw.cpp"
+			"external/imgui/examples/imgui_impl_opengl3.cpp"
 		}
 
 		defines

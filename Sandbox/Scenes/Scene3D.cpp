@@ -31,6 +31,7 @@ void Scene3D::OnInit()
 	LoadModels();
 
 	m_pCamera = new ThirdPersonCamera(-20.0f, -40.0f, maths::Vector3(-3.0f, 10.0f, 15.0f), 60.0f, 0.1f, 1000.0f, (float) m_ScreenWidth / (float) m_ScreenHeight);
+
 	m_SceneBoundingRadius = 20.0f;
 
 	String environmentFiles[11] =
@@ -61,11 +62,25 @@ void Scene3D::OnInit()
 
 	m_ShadowTexture = std::unique_ptr<TextureDepthArray>(TextureDepthArray::Create(4096, 4096, 4));
 	auto shadowRenderer = new ShadowRenderer();
+	auto deferredRenderer = new DeferredRenderer(m_ScreenWidth, m_ScreenHeight);
+	auto skyboxRenderer = new SkyboxRenderer(m_ScreenWidth, m_ScreenHeight, m_EnvironmentMap);
+	deferredRenderer->SetRenderTarget(Application::Instance()->GetRenderManager()->GetGBuffer()->m_ScreenTex[SCREENTEX_OFFSCREEN0]);
+	skyboxRenderer->SetRenderTarget(Application::Instance()->GetRenderManager()->GetGBuffer()->m_ScreenTex[SCREENTEX_OFFSCREEN0]);
 
-	Application::Instance()->PushLayer(new Layer3D(shadowRenderer));
-    Application::Instance()->PushLayer(new Layer3D(new DeferredRenderer(m_ScreenWidth, m_ScreenHeight)));
-	Application::Instance()->PushLayer(new Layer3D(new SkyboxRenderer(m_ScreenWidth, m_ScreenHeight, m_EnvironmentMap)));
-	Application::Instance()->PushOverLay(new ImGuiLayer(false));
+	deferredRenderer->SetRenderToGBufferTexture(true);
+	skyboxRenderer->SetRenderToGBufferTexture(true);
+
+	auto shadowLayer = new Layer3D(shadowRenderer);
+	auto deferredLayer = new Layer3D(deferredRenderer);
+	auto skyBoxLayer = new Layer3D(skyboxRenderer);
+	Application::Instance()->PushLayer(shadowLayer);
+    Application::Instance()->PushLayer(deferredLayer);
+	Application::Instance()->PushLayer(skyBoxLayer);
+
+	m_SceneLayers.emplace_back(shadowLayer);
+	m_SceneLayers.emplace_back(deferredLayer);
+	m_SceneLayers.emplace_back(skyBoxLayer);
+	//Application::Instance()->PushOverLay(new ImGuiLayer(true));
 
 	Application::Instance()->GetRenderManager()->SetShadowRenderer(shadowRenderer);
     Application::Instance()->GetRenderManager()->SetSkyBoxTexture(m_EnvironmentMap);
@@ -109,7 +124,7 @@ void Scene3D::LoadModels()
 	testPhysics->SetIsAtRest(true);
 	testPhysics->SetIsStatic(true);
 
-	ground->AddComponent(std::make_unique<TransformComponent>((Matrix4::Translation(maths::Vector3(0.0, 0.0, 0.0f)) *Matrix4::Scale(maths::Vector3(groundWidth, groundHeight, groundLength)))));
+	ground->AddComponent(std::make_unique<TransformComponent>(Matrix4::Scale(maths::Vector3(groundWidth, groundHeight, groundLength))));
 	ground->AddComponent(std::make_unique<Physics3DComponent>(testPhysics));
 
 	std::shared_ptr<Model> groundModel = std::make_shared<Model>(*AssetsManager::DefaultModels()->GetAsset("Cube"));

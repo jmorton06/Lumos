@@ -64,6 +64,7 @@ namespace Lumos
 		m_ScreenTex[SCREENTEX_POSITION]->BuildTexture(TextureFormat::RGB16, m_Width, m_Height, false, false);
 		m_ScreenTex[SCREENTEX_NORMALS]->BuildTexture(TextureFormat::RGB16, m_Width, m_Height, false, false);
 		m_ScreenTex[SCREENTEX_PBR]->BuildTexture(TextureFormat::RGB16 , m_Width, m_Height, false, false);
+		m_ScreenTex[SCREENTEX_OFFSCREEN0]->BuildTexture(TextureFormat::RGBA, m_Width, m_Height, false, false);
 
         m_DepthTexture->Resize(m_Width, m_Height);
 

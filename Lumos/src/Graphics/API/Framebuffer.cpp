@@ -14,7 +14,7 @@
 namespace Lumos
 {
 
-	Framebuffer* Framebuffer::Create(FramebufferInfo framebufferInfo)
+	Framebuffer* Framebuffer::Create(const FramebufferInfo& framebufferInfo)
 	{
 		switch (graphics::Context::GetRenderAPI())
 		{

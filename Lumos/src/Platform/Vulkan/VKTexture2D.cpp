@@ -94,6 +94,8 @@ namespace Lumos
 		{
 			m_DeleteImage = false;
 			m_TextureImageMemory = nullptr;
+
+			UpdateDescriptor();
 		}
 
 		VKTexture2D::VKTexture2D()
@@ -171,11 +173,8 @@ namespace Lumos
 			m_Handle = 0;
 			m_DeleteImage = true;
 			m_MipLevels = 1;
-            CreateImage(m_Width, m_Height, m_MipLevels,TextureFormatToVK(internalformat), vk::ImageTiling::eOptimal,
-                        vk::ImageUsageFlagBits::eColorAttachment | vk::ImageUsageFlagBits::eSampled, vk::MemoryPropertyFlagBits::eDeviceLocal, m_TextureImage,
+			CreateImage(m_Width, m_Height, m_MipLevels, TextureFormatToVK(internalformat), vk::ImageTiling::eOptimal, vk::ImageUsageFlagBits::eColorAttachment | vk::ImageUsageFlagBits::eSampled, vk::MemoryPropertyFlagBits::eDeviceLocal, m_TextureImage,
 				m_TextureImageMemory);
-
-			//VKTools::SetImageLayout(m_TextureImage, VK_IMAGE_ASPECT_COLOR_BIT, VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL, NULL, &cmdBuffer, true);
 
 			m_TextureImageView = CreateImageView(m_TextureImage, TextureFormatToVK(internalformat), vk::ImageAspectFlagBits::eColor, m_MipLevels);
 

@@ -31,8 +31,9 @@ namespace Lumos
         LUMOS_CORE_INFO("[SceneManager] - Enqueued scene : {0}", scene->GetSceneName().c_str());
 		m_vpAllScenes.push_back(std::unique_ptr<Scene>(scene));
 
-		scene->SetScreenWidth(Application::Instance()->GetWindow()->GetWidth());
-		scene->SetScreenHeight(Application::Instance()->GetWindow()->GetHeight());
+		auto screenSize = Application::Instance()->GetWindowSize();
+		scene->SetScreenWidth(static_cast<uint>(screenSize.GetX()));
+		scene->SetScreenHeight(static_cast<uint>(screenSize.GetY()));
 
 		//If this was the first scene, activate it immediately
 		// if (m_vpAllScenes.size() == 1)

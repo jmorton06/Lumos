@@ -6,7 +6,7 @@
 namespace Lumos
 {
 	TransformComponent::TransformComponent(const maths::Matrix4& matrix)
-		: m_WorldSpaceTransform(matrix) , m_LocalTransform(matrix)
+		: m_Transform(matrix)
 	{
 
 	}
@@ -15,8 +15,8 @@ namespace Lumos
     {
         if (ImGui::TreeNode("Transform"))
         {
-			auto pos = m_WorldSpaceTransform.GetPositionVector();
-			auto scale = m_WorldSpaceTransform.GetScaling();
+			auto pos = m_Transform.GetWorldMatrix().GetPositionVector();
+			auto scale = m_Transform.GetWorldMatrix().GetScaling();
 
 			ImGui::DragFloat3("Position", &pos.x);
 			ImGui::DragFloat3("Scale", &scale.x);

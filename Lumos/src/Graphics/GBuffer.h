@@ -16,8 +16,8 @@ namespace Lumos
 		SCREENTEX_POSITION 		= 2,	//Deferred Render - World Space Positions
 		SCREENTEX_NORMALS 		= 3,	//Deferred Render - World Space Normals
 		SCREENTEX_PBR 			= 4,	//Metallic/Roughness/Ao Stored Here
-		SCREENTEX_POSTPROCESS0 	= 5,	//Extra Textures for multipass post processing
-		SCREENTEX_POSTPROCESS1 	= 6,
+		SCREENTEX_OFFSCREEN0 	= 5,	//Extra Textures for multipass post processing
+		SCREENTEX_OFFSCREEN1 	= 6,    //Or Displaying scene in editor mode
 		SCREENTEX_MAX
 	};
 

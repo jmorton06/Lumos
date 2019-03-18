@@ -12,4 +12,7 @@ C:/VulkanSDK/1.1.82.1/Bin32/glslangValidator.exe -V DeferredLight.frag -o Deferr
 
 C:/VulkanSDK/1.1.82.1/Bin32/glslangValidator.exe -V Shadow.vert -o Shadow.vert.spv
 C:/VulkanSDK/1.1.82.1/Bin32/glslangValidator.exe -V Shadow.frag -o Shadow.frag.spv
+
+C:/VulkanSDK/1.1.82.1/Bin32/glslangValidator.exe -V Batch2D.vert -o Batch2D.vert.spv
+C:/VulkanSDK/1.1.82.1/Bin32/glslangValidator.exe -V Batch2D.frag -o Batch2D.frag.spv
 pause

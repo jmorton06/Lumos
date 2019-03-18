@@ -215,6 +215,7 @@ namespace Lumos
 		contact.relPosB = r2;
 		contact.collisionNormal = _normal;
 		contact.collisionPenetration = _penetration;
+		contact.elatisity_term = 1.0f;
 
 		//Check to see if we already contain a contact point almost in that location
 		const float min_allowed_dist_sq = 0.2f * 0.2f;

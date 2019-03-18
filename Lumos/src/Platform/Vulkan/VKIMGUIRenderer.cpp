@@ -24,13 +24,15 @@ namespace Lumos
 {
     namespace graphics
     {
-        VKIMGUIRenderer::VKIMGUIRenderer(uint width, uint height, bool clearScreen)
+        VKIMGUIRenderer::VKIMGUIRenderer(uint width, uint height, bool clearScreen): m_CommandBuffers{},
+                                                                                     m_Framebuffers{},
+                                                                                     m_Renderpass(nullptr)
         {
-            m_Implemented = true;
-			m_WindowHandle = nullptr;
-			m_Width = width;
-			m_Height = height;
-			m_ClearScreen = clearScreen;
+	        m_Implemented = true;
+	        m_WindowHandle = nullptr;
+	        m_Width = width;
+	        m_Height = height;
+	        m_ClearScreen = clearScreen;
         }
 
         VKIMGUIRenderer::~VKIMGUIRenderer()
@@ -161,10 +163,9 @@ namespace Lumos
             init_info.DescriptorPool = g_DescriptorPool;
             init_info.Allocator = g_Allocator;
             init_info.CheckVkResultFn = NULL;
-            ImGui_ImplVulkan_Init(&init_info, wd->RenderPass);
-
-            // Upload Fonts
-            {
+			ImGui_ImplVulkan_Init(&init_info, wd->RenderPass);
+			// Upload Fonts
+			{
 				ImGuiIO& io = ImGui::GetIO();
 
 				unsigned char* pixels;
@@ -173,17 +174,22 @@ namespace Lumos
 
 				auto fontTex = new VKTexture2D(width, height, pixels);
 
-                vk::WriteDescriptorSet write_desc[1] = {};
-				write_desc[0].dstSet = ImGui_ImplVulkanH_GetFontDescriptor();
-				write_desc[0].descriptorCount = 1;
-                write_desc[0].descriptorType = vk::DescriptorType::eCombinedImageSampler;
-				write_desc[0].pImageInfo = fontTex->GetDescriptor();
-				VKDevice::Instance()->GetDevice().updateDescriptorSets(1, write_desc, 0, nullptr);
+				 vk::WriteDescriptorSet write_desc[1] = {};
+				 write_desc[0].dstSet = ImGui_ImplVulkanH_GetFontDescriptor();
+				 write_desc[0].descriptorCount = 1;
+				 write_desc[0].descriptorType = vk::DescriptorType::eCombinedImageSampler;
+				 write_desc[0].pImageInfo = fontTex->GetDescriptor();
+				 VKDevice::Instance()->GetDevice().updateDescriptorSets(1, write_desc, 0, nullptr);
 
-				io.Fonts->TexID = (ImTextureID)(intptr_t)(VkImage)fontTex->GetImage();
+				io.Fonts->TexID = (ImTextureID)fontTex->GetHandle();// GetImage();
 
-                ImGui_ImplVulkan_InvalidateFontUploadObjects();
-            }
+				ImGui_ImplVulkan_AddTexture(io.Fonts->TexID, ImGui_ImplVulkanH_GetFontDescriptor());
+
+				ImGui_ImplVulkan_InvalidateFontUploadObjects();
+			}
+
+          
+
         }
 
         void VKIMGUIRenderer::NewFrame()
@@ -204,7 +210,6 @@ namespace Lumos
             // Record Imgui Draw Data and draw funcs into command buffer
             ImGui_ImplVulkan_RenderDrawData(ImGui::GetDrawData(), m_CommandBuffers[wd->FrameIndex]->GetCommandBuffer());
 
-            // Submit command buffer
 			m_Renderpass->EndRenderpass(m_CommandBuffers[wd->FrameIndex]);
                 
 			m_CommandBuffers[wd->FrameIndex]->EndRecording();
@@ -257,6 +262,11 @@ namespace Lumos
 				m_Framebuffers[i] = new VKFramebuffer(bufferInfo);
 				wd->Framebuffer[i] = m_Framebuffers[i]->GetFramebuffer();
 			}
+        }
+
+        void VKIMGUIRenderer::Clear()
+        {
+			//ImGui_ImplVulkan_ClearDescriptors();
         }
     }
 }

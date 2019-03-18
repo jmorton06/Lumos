@@ -40,6 +40,8 @@ IMGUI_IMPL_API void     ImGui_ImplVulkan_InvalidateFontUploadObjects();
 // Called by ImGui_ImplVulkan_Init() might be useful elsewhere.
 IMGUI_IMPL_API bool     ImGui_ImplVulkan_CreateDeviceObjects();
 IMGUI_IMPL_API void     ImGui_ImplVulkan_InvalidateDeviceObjects();
+IMGUI_IMPL_API void     ImGui_ImplVulkan_AddTexture(ImTextureID id, VkDescriptorSet sets);
+IMGUI_IMPL_API void		ImGui_ImplVulkan_ClearDescriptors();
 
 
 //-------------------------------------------------------------------------

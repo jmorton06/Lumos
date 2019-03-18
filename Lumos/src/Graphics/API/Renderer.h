@@ -1,11 +1,13 @@
 #pragma once
 #include "LM.h"
 #include "Maths/Maths.h"
+#include "VertexArray.h"
 
 #define MAX_POINT_LIGHTS 50
 
 namespace Lumos
 {
+	class IndexBuffer;
 
 	enum LUMOS_EXPORT RendererBufferType
 	{
@@ -98,6 +100,8 @@ namespace Lumos
 		virtual void OnResize(uint width, uint height) = 0;
 		static Renderer* s_Instance;
 		inline static Renderer* GetRenderer() { return s_Instance; }
+
+		virtual void Render(VertexArray* vertexArray, IndexBuffer* indexBuffer, graphics::api::CommandBuffer* cmdBuffer, std::vector<graphics::api::DescriptorSet*>& descriptorSets, graphics::api::Pipeline* pipeline, uint dynamicOffset = 0 ) = 0;
 
 		bool init;
 

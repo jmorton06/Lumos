@@ -37,6 +37,9 @@ namespace Lumos
 		ShadowRenderer(TextureDepthArray* texture = nullptr, uint shadowMapSize = 2048, uint numMaps = 4);
 		~ShadowRenderer();
 
+		ShadowRenderer(ShadowRenderer const&) = delete;
+		ShadowRenderer& operator=(ShadowRenderer const&) = delete;
+
 		void Init() override;
 		void BeginScene(Scene* scene) override;
 		void OnResize(uint width, uint height) override;

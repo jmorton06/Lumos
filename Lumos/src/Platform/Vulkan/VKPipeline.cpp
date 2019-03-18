@@ -54,7 +54,7 @@ namespace Lumos
 					setLayoutBinding.descriptorType = VKTools::DescriptorTypeToVK(info.type);
 					setLayoutBinding.stageFlags = VKTools::ShaderStageToVK(info.stage);
 					setLayoutBinding.binding = info.size;
-					setLayoutBinding.descriptorCount = 1;
+					setLayoutBinding.descriptorCount = info.count;
 
 					setLayoutBindings.push_back(setLayoutBinding);
 				}

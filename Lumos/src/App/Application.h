@@ -7,6 +7,9 @@
 #include "Graphics/Layers/LayerStack.h"
 #include "Events/Event.h"
 #include <thread>
+#include "imgui/plugins/ImGuizmo.h"
+
+#define LUMOS_EDITOR //temp
 
 namespace Lumos
 {
@@ -16,6 +19,7 @@ namespace Lumos
     class SceneManager;
 	class RenderManager;
 	class AudioManager;
+	class Entity;
 
     enum class AppState
     {
@@ -23,6 +27,12 @@ namespace Lumos
         Loading,
         Closing
     };
+
+	enum class AppType
+	{
+		Game,
+		Editor
+	};
 
 	class LUMOS_EXPORT Application
 	{
@@ -38,6 +48,7 @@ namespace Lumos
 		void OnRender();
 		void OnEvent(Event& e);
 		void OnImGui();
+		void OnGuizmo();
 		void PushLayer(Layer* layer);
 		void PushOverLay(Layer* overlay);
 		void ClearLayers() { m_LayerStack->Clear(); };
@@ -45,15 +56,23 @@ namespace Lumos
 
 		virtual void Init();
 
+		LayerStack* GetLayerStack() const { return m_LayerStack; }
         SceneManager* GetSceneManager() const { return m_SceneManager.get(); }
 		RenderManager* GetRenderManager() const { return m_RenderManager.get(); }
 		AudioManager* GetAudioManager() const { return m_AudioManager.get(); }
         Window* GetWindow() const { return m_Window.get(); }
         AppState GetState() const { return m_CurrentState; }
+        void SetAppState(AppState state) { m_CurrentState = state; }
+
+		maths::Vector2 GetWindowSize() const;
 
 		static void PhysicsUpdate(float targetUpdateTime);
 
 		static Application* Instance() { return s_Instance; }
+
+#ifdef LUMOS_EDITOR
+		ImGuizmo::OPERATION GetImGuizmoOperation() const { return m_ImGuizmoOperation; }
+#endif
 
 	private:
 		bool OnWindowClose(WindowCloseEvent& e);
@@ -66,18 +85,28 @@ namespace Lumos
 
 		uint m_Frames;
 		uint m_Updates;
-		float m_SecondTimer;
+		float m_SecondTimer = 0.0f;
 
 		std::unique_ptr<Window> m_Window;
         std::unique_ptr<SceneManager> m_SceneManager;
 		std::unique_ptr<RenderManager> m_RenderManager;
 		std::unique_ptr<AudioManager> m_AudioManager;
 
-		LayerStack* m_LayerStack;
+		LayerStack* m_LayerStack{};
 
         AppState m_CurrentState = AppState::Loading;
+		AppType m_AppType = AppType::Editor;
 
 		static Application* s_Instance;
+
+		Entity* m_Selected = nullptr;
+
+		bool m_FlipImGuiImage = false;
+
+#ifdef LUMOS_EDITOR
+		maths::Vector2 m_SceneViewSize;
+		ImGuizmo::OPERATION m_ImGuizmoOperation = ImGuizmo::OPERATION::TRANSLATE;
+#endif
 	};
 
 	//Defined by client

@@ -11,9 +11,9 @@ namespace Lumos
 	WeldConstraint::WeldConstraint(PhysicsObject3D *obj1, PhysicsObject3D *obj2)
 		: m_pObj1(obj1)
 		, m_pObj2(obj2)
+        , m_positionOffset(obj2->GetPosition() - obj1->GetPosition())
+        , m_orientation(obj2->GetOrientation())
 	{
-		m_positionOffset = obj2->GetPosition() - obj1->GetPosition();
-		m_orientation = obj2->GetOrientation();
 	}
 
 	void WeldConstraint::ApplyImpulse()
