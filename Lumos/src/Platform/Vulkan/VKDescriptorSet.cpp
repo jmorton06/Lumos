@@ -84,9 +84,8 @@ namespace Lumos
 			return writeDescriptorSet;
 		}
 
-		vk::WriteDescriptorSet VKDescriptorSet::ImageInfoToVK2(api::ImageInfo& imageInfo)
+		vk::WriteDescriptorSet VKDescriptorSet::ImageInfoToVK2(api::ImageInfo& imageInfo,vk::DescriptorImageInfo* imageInfos)
 		{
-			vk::DescriptorImageInfo* imageInfos = new vk::DescriptorImageInfo[imageInfo.count];
 			for (int i = 0; i < imageInfo.count; i++)
 			{
 				vk::DescriptorImageInfo des;
@@ -167,26 +166,37 @@ namespace Lumos
 		void VKDescriptorSet::Update(std::vector<api::ImageInfo>& imageInfos)
 		{
 			std::vector<vk::WriteDescriptorSet> descriptorWrites;
+            std::vector<vk::DescriptorImageInfo*> allocatedArrays;
 
 			m_Dynamic = false;
 
 			for (auto& imageInfo : imageInfos)
 			{
-				descriptorWrites.push_back(ImageInfoToVK2(imageInfo));
+                vk::DescriptorImageInfo* imageInfos = new vk::DescriptorImageInfo[imageInfo.count];
+                allocatedArrays.emplace_back(imageInfos);
+				descriptorWrites.push_back(ImageInfoToVK2(imageInfo,imageInfos));
 			}
+            
 			VKDevice::Instance()->GetDevice().updateDescriptorSets(static_cast<uint32_t>(descriptorWrites.size()), descriptorWrites.data(), 0, nullptr);
-
-		}
+		
+            for (auto& allocatedArray : allocatedArrays)
+            {
+                delete[] allocatedArray;
+            }
+        }
 
 		void VKDescriptorSet::Update(std::vector<api::ImageInfo>& imageInfos, std::vector<api::BufferInfo>& bufferInfos)
 		{
 			std::vector<vk::WriteDescriptorSet> descriptorWrites;
+            std::vector<vk::DescriptorImageInfo*> allocatedArrays;
 
 			m_Dynamic = false;
 
 			for (auto& imageInfo : imageInfos)
 			{
-				descriptorWrites.push_back(ImageInfoToVK2(imageInfo));
+                vk::DescriptorImageInfo* imageInfos = new vk::DescriptorImageInfo[imageInfo.count];
+                allocatedArrays.emplace_back(imageInfos);
+				descriptorWrites.push_back(ImageInfoToVK2(imageInfo,imageInfos));
 			}
 
 			for (auto& bufferInfo : bufferInfos)
@@ -203,7 +213,12 @@ namespace Lumos
 			}
 
 			VKDevice::Instance()->GetDevice().updateDescriptorSets(static_cast<uint32_t>(descriptorWrites.size()), descriptorWrites.data(), 0, nullptr);
-		}
+		
+            for (auto& allocatedArray : allocatedArrays)
+            {
+                delete[] allocatedArray;
+            }
+        }
 
 		void VKDescriptorSet::SetPushConstants(std::vector<api::PushConstant>& pushConstants)
 		{
