@@ -36,9 +36,27 @@ namespace Lumos
 	Renderer2D::~Renderer2D()
 	{
 		delete m_IndexBuffer;
+        delete m_Pipeline;
+        delete m_DescriptorSet;
+        delete m_RenderPass;
+        delete m_Shader;
+        delete m_UniformBuffer;
+        
+        delete[] m_VSSystemUniformBuffer;
+        
+        for(auto frameBuffer : m_Framebuffers)
+            delete frameBuffer;
 
-		for(int i = 0; i < RENDERER_MAX_TEXTURES; i++)
+		for(int i = 0; i < MAX_BATCH_DRAW_CALLS; i++)
 			delete m_VertexArrays[i];
+        
+        for(int i = 0; i < MAX_BATCH_DRAW_CALLS; i++)
+            delete m_SecondaryCommandBuffers[i];
+        
+        for (auto& commandBuffer : m_CommandBuffers)
+        {
+            delete commandBuffer;
+        }
 	}
 
 	void Renderer2D::Init()
@@ -145,7 +163,7 @@ namespace Lumos
 
 		m_IndexBuffer = IndexBuffer::Create(indices, RENDERER_INDICES_SIZE);
 
-		//delete[] indices;
+		delete[] indices;
 
 		m_ClearColour = maths::Vector4(0.8f, 0.5f, 0.5f, 1.0f);
 	}
@@ -489,13 +507,8 @@ namespace Lumos
 		imageInfo.binding = 0;
 		imageInfo.name = "textures";
 		imageInfo.count = 0;
-		imageInfo.texture = new Texture*[static_cast<int>(m_Textures.size())];
-
-		for(const auto& texture : m_Textures)
-		{
-			imageInfo.texture[imageInfo.count] = texture;
-			imageInfo.count++;
-		}
+		imageInfo.texture = m_Textures;
+        imageInfo.count = static_cast<int>(m_Textures.size());
 
 		imageInfos.push_back(imageInfo);
 

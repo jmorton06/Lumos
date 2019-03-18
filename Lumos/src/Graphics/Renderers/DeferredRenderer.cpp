@@ -804,8 +804,7 @@ namespace Lumos
 		std::vector<graphics::api::ImageInfo> imageInfos;
 
 		graphics::api::ImageInfo imageInfo = {};
-		imageInfo.texture = new Texture*[1];
-		imageInfo.texture[0] = m_DefaultTexture;
+		imageInfo.texture = { m_DefaultTexture };
 		imageInfo.binding = 0;
 		imageInfo.name = "u_AlbedoMap";
 
@@ -833,38 +832,32 @@ namespace Lumos
 		std::vector<graphics::api::ImageInfo> bufferInfos;
 
 		graphics::api::ImageInfo imageInfo = {};
-		imageInfo.texture = new Texture*[1];
-		imageInfo.texture[0] = Application::Instance()->GetRenderManager()->GetGBuffer()->m_ScreenTex[SCREENTEX_COLOUR];
+		imageInfo.texture = { Application::Instance()->GetRenderManager()->GetGBuffer()->m_ScreenTex[SCREENTEX_COLOUR] };
 		imageInfo.binding = 0;
 		imageInfo.name = "uColourSampler";
 
 		graphics::api::ImageInfo imageInfo2 = {};
-		imageInfo2.texture = new Texture*[1];
-		imageInfo2.texture[0] = Application::Instance()->GetRenderManager()->GetGBuffer()->m_ScreenTex[SCREENTEX_POSITION];
+        imageInfo2.texture = { Application::Instance()->GetRenderManager()->GetGBuffer()->m_ScreenTex[SCREENTEX_POSITION] };
 		imageInfo2.binding = 1;
 		imageInfo2.name = "uPositionSampler";
 
 		graphics::api::ImageInfo imageInfo3 = {};
-		imageInfo3.texture = new Texture*[1];
-		imageInfo3.texture[0] = Application::Instance()->GetRenderManager()->GetGBuffer()->m_ScreenTex[SCREENTEX_NORMALS];
+        imageInfo3.texture = { Application::Instance()->GetRenderManager()->GetGBuffer()->m_ScreenTex[SCREENTEX_NORMALS] };
 		imageInfo3.binding = 2;
 		imageInfo3.name = "uNormalSampler";
 
 		graphics::api::ImageInfo imageInfo4 = {};
-		imageInfo4.texture = new Texture*[1];
-		imageInfo4.texture[0] = Application::Instance()->GetRenderManager()->GetGBuffer()->m_ScreenTex[SCREENTEX_PBR];
+        imageInfo4.texture = { Application::Instance()->GetRenderManager()->GetGBuffer()->m_ScreenTex[SCREENTEX_PBR] };
 		imageInfo4.binding = 3;
 		imageInfo4.name = "uPBRSampler";
 
 		graphics::api::ImageInfo imageInfo5 = {};
-		imageInfo5.texture = new Texture*[1];
-		imageInfo5.texture[0] = m_PreintegratedFG.get();
+        imageInfo5.texture = { m_PreintegratedFG.get() };
 		imageInfo5.binding = 4;
 		imageInfo5.name = "uPreintegratedFG";
 
 		graphics::api::ImageInfo imageInfo6 = {};
-		imageInfo6.texture = new Texture*[1];
-		imageInfo6.texture[0] = m_CubeMap;
+        imageInfo6.texture = { m_CubeMap };
 		imageInfo6.binding = 5;
 		imageInfo6.type = TextureType::CUBE;
 		imageInfo6.name = "uEnvironmentMap";
@@ -873,16 +866,14 @@ namespace Lumos
 		auto shadowRenderer = Application::Instance()->GetRenderManager()->GetShadowRenderer();
 		if (shadowRenderer)
 		{
-			imageInfo7.texture = new Texture*[1];
-			imageInfo7.texture[0] = reinterpret_cast<Texture*>(shadowRenderer->GetTexture());
+            imageInfo7.texture = { reinterpret_cast<Texture*>(shadowRenderer->GetTexture()) };
 			imageInfo7.binding = 6;
 			imageInfo7.type = TextureType::DEPTHARRAY;
 			imageInfo7.name = "uShadowMap";
 		}
 
 		graphics::api::ImageInfo imageInfo8 = {};
-		imageInfo8.texture = new Texture*[1];
-		imageInfo8.texture[0] = Application::Instance()->GetRenderManager()->GetGBuffer()->m_DepthTexture;
+        imageInfo8.texture = { Application::Instance()->GetRenderManager()->GetGBuffer()->m_DepthTexture };
 		imageInfo8.binding = 7;
 		imageInfo8.type = TextureType::DEPTH;
 		imageInfo8.name = "uDepthSampler";
