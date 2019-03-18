@@ -120,8 +120,7 @@ namespace Lumos
 		if(m_PBRMaterialTextures.albedo != nullptr)
 		{
 			graphics::api::ImageInfo imageInfo1 = {};
-			imageInfo1.texture = new Texture*[1];
-			imageInfo1.texture[0] = m_PBRMaterialTextures.albedo.get();
+			imageInfo1.texture = { m_PBRMaterialTextures.albedo.get() };
 			imageInfo1.binding = 0;
 			imageInfo1.name = "u_AlbedoMap";
 			imageInfos.push_back(imageInfo1);
@@ -132,8 +131,7 @@ namespace Lumos
 		if(m_PBRMaterialTextures.metallic != nullptr)
 		{
 			graphics::api::ImageInfo imageInfo2 = {};
-			imageInfo2.texture = new Texture*[1];
-			imageInfo2.texture[0] = m_PBRMaterialTextures.metallic.get();
+			imageInfo2.texture ={ m_PBRMaterialTextures.metallic.get() };
 			imageInfo2.binding = 1;
 			imageInfo2.name = "u_SpecularMap";
 			imageInfos.push_back(imageInfo2);
@@ -144,8 +142,7 @@ namespace Lumos
 		if(m_PBRMaterialTextures.roughness != nullptr)
 		{
 			graphics::api::ImageInfo imageInfo3 = {};
-			imageInfo3.texture = new Texture*[1];
-			imageInfo3.texture[0] = m_PBRMaterialTextures.roughness.get();
+            imageInfo3.texture = { m_PBRMaterialTextures.metallic.get() };
 			imageInfo3.binding = 2;
 			imageInfo3.name = "u_GlossMap";
 			imageInfos.push_back(imageInfo3);
@@ -156,8 +153,7 @@ namespace Lumos
 		if(m_PBRMaterialTextures.normal != nullptr)
 		{
 			graphics::api::ImageInfo imageInfo4 = {};
-			imageInfo4.texture = new Texture*[1];
-			imageInfo4.texture[0] = m_PBRMaterialTextures.normal.get();
+			imageInfo4.texture = { m_PBRMaterialTextures.metallic.get() };
 			imageInfo4.binding = 3;
 			imageInfo4.name = "u_NormalMap";
 			imageInfos.push_back(imageInfo4);

@@ -45,6 +45,7 @@ namespace Lumos
 		auto it = std::find(m_Layers.begin(), m_Layers.begin() + m_LayerCount, layer);
 		if (it != m_Layers.end())
 		{
+            delete *it;
 			m_Layers.erase(it);
 			m_LayerCount--;
 		}
@@ -58,7 +59,10 @@ namespace Lumos
 
 		auto it = std::find(m_Layers.begin() + m_LayerCount, m_Layers.end(), overlay);
 		if (it != m_Layers.end())
-			m_Layers.erase(it);
+        {
+            delete *it;
+            m_Layers.erase(it);
+        }
 	}
 
 	void LayerStack::OnRender(Scene * scene)
