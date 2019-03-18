@@ -625,6 +625,11 @@ void    ImGui_ImplVulkan_InvalidateDeviceObjects()
     if (g_Pipeline)             { vkDestroyPipeline(g_Device, g_Pipeline, g_Allocator); g_Pipeline = VK_NULL_HANDLE; }
 }
 
+IMGUI_IMPL_API void ImGui_ImplVulkan_ClearDescriptors()
+{
+	g_DescriptorSets.clear();
+}
+
 IMGUI_IMPL_API void ImGui_ImplVulkan_AddTexture(ImTextureID id, VkDescriptorSet sets)
 {
 	g_DescriptorSets[id] = sets;

@@ -33,10 +33,11 @@ void Scene2D::OnInit()
 
 	Application::Instance()->GetAudioManager()->SetListener(m_pCamera);
 
-	Application::Instance()->PushOverLay(new ImGuiLayer(true));
-
 	auto renderer2D = new Renderer2D(m_ScreenWidth, m_ScreenHeight);
-	Application::Instance()->PushLayer(new Layer2D(renderer2D));
+	auto layer2D = new Layer2D(renderer2D);
+
+	m_SceneLayers.emplace_back(layer2D);
+	Application::Instance()->PushLayer(layer2D);
 	renderer2D->SetRenderToGBufferTexture(true);
 
 	std::vector<std::shared_ptr<Texture2D>> textures = 

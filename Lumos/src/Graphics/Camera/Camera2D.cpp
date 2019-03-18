@@ -59,7 +59,7 @@ namespace Lumos
 
 	void Camera2D::UpdateProjectionMatrix(float width, float height)
 	{
-		m_ProjMatrix = maths::Matrix4::Orthographic(-1.0f, 1.0f, width, 0.0f, height, 0.0f);
+		//m_ProjMatrix = maths::Matrix4::Orthographic(-1.0f, 1.0f, width, 0.0f, height, 0.0f);
 	}
 
 	void Camera2D::BuildViewMatrix()

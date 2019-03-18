@@ -263,5 +263,10 @@ namespace Lumos
 				wd->Framebuffer[i] = m_Framebuffers[i]->GetFramebuffer();
 			}
         }
+
+        void VKIMGUIRenderer::Clear()
+        {
+			//ImGui_ImplVulkan_ClearDescriptors();
+        }
     }
 }

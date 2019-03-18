@@ -23,6 +23,7 @@ namespace Lumos
             void NewFrame() override;
             void Render(Lumos::graphics::api::CommandBuffer* commandBuffer) override;
             void OnResize(uint width, uint height) override;
+			void Clear() override;
             
             void FrameRender(ImGui_ImplVulkanH_WindowData* wd);
             void SetupVulkanWindowData(ImGui_ImplVulkanH_WindowData* wd, VkSurfaceKHR surface, int width, int height);

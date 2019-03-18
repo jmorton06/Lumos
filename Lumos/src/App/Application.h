@@ -7,6 +7,7 @@
 #include "Graphics/Layers/LayerStack.h"
 #include "Events/Event.h"
 #include <thread>
+#include "imgui/plugins/ImGuizmo.h"
 
 #define LUMOS_EDITOR //temp
 
@@ -55,6 +56,7 @@ namespace Lumos
 
 		virtual void Init();
 
+		LayerStack* GetLayerStack() const { return m_LayerStack; }
         SceneManager* GetSceneManager() const { return m_SceneManager.get(); }
 		RenderManager* GetRenderManager() const { return m_RenderManager.get(); }
 		AudioManager* GetAudioManager() const { return m_AudioManager.get(); }
@@ -67,6 +69,10 @@ namespace Lumos
 		static void PhysicsUpdate(float targetUpdateTime);
 
 		static Application* Instance() { return s_Instance; }
+
+#ifdef LUMOS_EDITOR
+		ImGuizmo::OPERATION GetImGuizmoOperation() const { return m_ImGuizmoOperation; }
+#endif
 
 	private:
 		bool OnWindowClose(WindowCloseEvent& e);
@@ -99,6 +105,7 @@ namespace Lumos
 
 #ifdef LUMOS_EDITOR
 		maths::Vector2 m_SceneViewSize;
+		ImGuizmo::OPERATION m_ImGuizmoOperation = ImGuizmo::OPERATION::TRANSLATE;
 #endif
 	};
 

@@ -29,6 +29,7 @@ namespace Lumos
 		ImGuiIO& io = ImGui::GetIO();
 		io.DisplaySize = ImVec2((float)app->GetWindow()->GetWidth(), (float)app->GetWindow()->GetHeight());
         io.ConfigFlags |= ImGuiConfigFlags_DockingEnable;
+		io.ConfigWindowsMoveFromTitleBarOnly = true;
 
 		SetImGuiKeyCodes();
 		SetImGuiStyle();
@@ -51,58 +52,9 @@ namespace Lumos
 		ImGui::NewFrame();
 		ImGuizmo::BeginFrame();
         
-        ImGuiViewport* viewport = ImGui::GetMainViewport();
-        ImGui::SetNextWindowPos(viewport->Pos);
-        ImGui::SetNextWindowSize(viewport->Size);
-        ImGui::SetNextWindowViewport(viewport->ID);
-		ImGui::SetNextWindowBgAlpha(0.0f);
-        ImGui::PushStyleVar(ImGuiStyleVar_WindowRounding, 0.0f);
-        ImGui::PushStyleVar(ImGuiStyleVar_WindowBorderSize, 0.0f);
-        
-        auto windowFlags
-        = ImGuiWindowFlags_NoDocking
-        | ImGuiWindowFlags_NoBringToFrontOnFocus
-        | ImGuiWindowFlags_NoNavFocus
-        | ImGuiWindowFlags_NoTitleBar
-        | ImGuiWindowFlags_NoCollapse
-        | ImGuiWindowFlags_NoResize
-        | ImGuiWindowFlags_NoBackground
-        | ImGuiWindowFlags_NoMove
-        | ImGuiDockNodeFlags_PassthruDockspace;
-        
-        ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0.0f, 0.0f));
-        ImGui::Begin("DockSpace", nullptr, windowFlags);
-        ImGui::PopStyleVar(3);
-        
-        ImGuiID dockspaceId = ImGui::GetID("DockSpace");
-        ImGui::DockSpace(dockspaceId, ImVec2(0.0f, 0.0f));
-        
-        if (ImGui::BeginMainMenuBar())
-        {
-            if (ImGui::BeginMenu("File"))
-            {
-                if (ImGui::MenuItem("Exit")) { Application::Instance()->SetAppState(AppState::Closing); }
-                ImGui::EndMenu();
-            }
-            if (ImGui::BeginMenu("Edit"))
-            {
-                if (ImGui::MenuItem("Undo", "CTRL+Z")) {}
-                if (ImGui::MenuItem("Redo", "CTRL+Y", false, false)) {}  // Disabled item
-                ImGui::Separator();
-                if (ImGui::MenuItem("Cut", "CTRL+X")) {}
-                if (ImGui::MenuItem("Copy", "CTRL+C")) {}
-                if (ImGui::MenuItem("Paste", "CTRL+V")) {}
-                ImGui::EndMenu();
-            }
-            
-            if (ImGui::MenuItem("X")) { Application::Instance()->SetAppState(AppState::Closing);  }
-            ImGui::EndMainMenuBar();
-        }
-    
-        
 		Application::Instance()->OnImGui();
         
-           ImGui::End();
+        ImGui::End();
 		ImGui::Render();
 	}
 
@@ -126,6 +78,11 @@ namespace Lumos
 		{
 			m_IMGUIRenderer->Render(nullptr);
 		}
+	}
+
+	void ImGuiLayer::OnNewScene(Scene* scene)
+	{
+		m_IMGUIRenderer->Clear();
 	}
 
 	bool ImGuiLayer::OnMouseButtonPressedEvent(MouseButtonPressedEvent & e)

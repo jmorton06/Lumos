@@ -28,6 +28,7 @@ namespace Lumos
 		void OnUpdate(TimeStep* dt) override;
 		void OnEvent(Event& event) override;
 		void OnRender(Scene* scene) override;
+		void OnNewScene(Scene* scene) override;
 
 	private:
 

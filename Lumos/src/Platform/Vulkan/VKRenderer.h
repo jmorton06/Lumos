@@ -48,6 +48,8 @@ namespace Lumos
 			void PresentInternal() override;
 			void PresentInternal(api::CommandBuffer* cmdBuffer) override;
 
+			void ClearSwapchainImage() const;
+
 			void SetColourMaskInternal(bool r, bool g, bool b, bool a) override;
 			void SetDepthTestingInternal(bool enabled) override;
 			void SetStencilTestInternal(bool enabled) override;

@@ -112,7 +112,7 @@ namespace Lumos
 		maths::Matrix4 model = maths::Matrix4();
 		if (this->GetComponent<TransformComponent>() != nullptr)
 			model = GetComponent<TransformComponent>()->m_Transform.GetWorldMatrix();
-		ImGuizmo::Manipulate(view.values, proj.values, ImGuizmo::SCALE, ImGuizmo::WORLD, model.values, NULL, NULL);
+		ImGuizmo::Manipulate(view.values, proj.values, Application::Instance()->GetImGuizmoOperation(), ImGuizmo::WORLD, model.values, nullptr, nullptr);
 
 		if (this->GetComponent<TransformComponent>() != nullptr)
 			GetComponent<TransformComponent>()->SetWorldMatrix(model);
