@@ -48,6 +48,9 @@ namespace Lumos
 
 	void GLRenderer::Begin()
 	{
+		GLCall(glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0));
+		GLCall(glClearColor(0.0f,0.0f,0.0f,0.0f));
+		GLCall(glClear(GL_COLOR_BUFFER_BIT));
 	}
 
 	void GLRenderer::BindScreenFBOInternal()

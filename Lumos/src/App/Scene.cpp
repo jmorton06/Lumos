@@ -128,9 +128,16 @@ namespace Lumos
 
 		DeleteAllGameObjects();
 
+		auto layerStack = Application::Instance()->GetLayerStack();
+		for(auto& layer : m_SceneLayers)
+		{
+			layerStack->PopLayer(layer);
+		}
+
+		m_SceneLayers.clear();
+
 		Input::GetInput().Reset();
 
-		Application::Instance()->ClearLayers();
 		Application::Instance()->GetRenderManager()->Reset();
 		Application::Instance()->GetAudioManager()->ClearNodes();
 

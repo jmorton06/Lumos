@@ -77,7 +77,7 @@ namespace Lumos
 
 		Shader* m_Shader{};
 
-		VertexArray* m_VertexArray{};
+		std::vector<VertexArray*> m_VertexArrays;
 		IndexBuffer* m_IndexBuffer{};
 		uint m_IndexCount;
 

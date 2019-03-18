@@ -21,8 +21,8 @@
 #define RENDERER_SPRITE_SIZE	RENDERER2D_VERTEX_SIZE * 4
 #define RENDERER_BUFFER_SIZE	RENDERER_SPRITE_SIZE * RENDERER_MAX_SPRITES
 #define RENDERER_INDICES_SIZE	RENDERER_MAX_SPRITES * 6
-#define RENDERER_MAX_TEXTURES	2//16 - 1
-#define MAX_BATCH_DRAW_CALLS    100
+#define RENDERER_MAX_TEXTURES	16 - 1
+#define MAX_BATCH_DRAW_CALLS	100
 
 namespace Lumos
 {
@@ -36,7 +36,9 @@ namespace Lumos
 	Renderer2D::~Renderer2D()
 	{
 		delete m_IndexBuffer;
-		delete m_VertexArray;
+
+		for(int i = 0; i < RENDERER_MAX_TEXTURES; i++)
+			delete m_VertexArrays[i];
 	}
 
 	void Renderer2D::Init()
@@ -105,18 +107,25 @@ namespace Lumos
 		info.shader = m_Shader;
 		m_DescriptorSet = graphics::api::DescriptorSet::Create(info);
 
-		VertexBuffer* buffer = VertexBuffer::Create(BufferUsage::DYNAMIC);
-		buffer->Resize(RENDERER_BUFFER_SIZE);
+		
 
 		graphics::BufferLayout layout;
 		layout.Push<maths::Vector3>("POSITION"); // Position
 		layout.Push<maths::Vector2>("TEXCOORD"); // UV
 		layout.Push<maths::Vector2>("ID"); // Texture Index
 		layout.Push<maths::Vector4>("COLOUR"); // Color
-		buffer->SetLayout(layout);
+	
 
-		m_VertexArray = VertexArray::Create();
-		m_VertexArray->PushBuffer(buffer);
+		m_VertexArrays.resize(MAX_BATCH_DRAW_CALLS);
+
+		for (auto& vertexArray : m_VertexArrays)
+		{
+			VertexBuffer* buffer = VertexBuffer::Create(BufferUsage::DYNAMIC);
+			buffer->Resize(RENDERER_BUFFER_SIZE);
+			buffer->SetLayout(layout);
+			vertexArray = VertexArray::Create();
+			vertexArray->PushBuffer(buffer);
+		}
 
 		uint* indices = new uint[RENDERER_INDICES_SIZE];
 
@@ -198,8 +207,8 @@ namespace Lumos
 		m_Textures.clear();
 		m_Sprites.clear();
 
-		m_VertexArray->Bind();
-		m_Buffer = m_VertexArray->GetBuffer()->GetPointer<VertexData>();
+		m_VertexArrays[m_BatchDrawCallIndex]->Bind();
+		m_Buffer = m_VertexArrays[m_BatchDrawCallIndex]->GetBuffer()->GetPointer<VertexData>();
 	}
 
 	void Renderer2D::SetSystemUniforms(Shader* shader) const
@@ -227,14 +236,14 @@ namespace Lumos
 		currentCMDBuffer->UpdateViewport(m_ScreenBufferWidth, m_ScreenBufferHeight);
 		m_Pipeline->SetActive(currentCMDBuffer);
 
-		m_VertexArray->GetBuffer()->ReleasePointer();
-		m_VertexArray->Unbind();
+		m_VertexArrays[m_BatchDrawCallIndex]->GetBuffer()->ReleasePointer();
+		m_VertexArrays[m_BatchDrawCallIndex]->Unbind();
 
 		m_IndexBuffer->SetCount(m_IndexCount);
 
 		std::vector<graphics::api::DescriptorSet*> descriptors = { m_Pipeline->GetDescriptorSet(), m_DescriptorSet };
 
-		Renderer::GetRenderer()->Render(m_VertexArray, m_IndexBuffer, currentCMDBuffer, descriptors, m_Pipeline, 0);
+		Renderer::GetRenderer()->Render(m_VertexArrays[m_BatchDrawCallIndex], m_IndexBuffer, currentCMDBuffer, descriptors, m_Pipeline, 0);
 
 		m_IndexCount = 0;
 
@@ -305,8 +314,8 @@ namespace Lumos
 				m_Textures.clear();
 				m_Sprites.clear();
 
-				m_VertexArray->Bind();
-				m_Buffer = m_VertexArray->GetBuffer()->GetPointer<VertexData>();
+				m_VertexArrays[m_BatchDrawCallIndex]->Bind();
+				m_Buffer = m_VertexArrays[m_BatchDrawCallIndex]->GetBuffer()->GetPointer<VertexData>();
 			}
 			m_Textures.push_back(texture);
 			result = static_cast<float>(m_Textures.size());
@@ -349,6 +358,12 @@ namespace Lumos
 		bufferInfo.binding = 0;
 
 		bufferInfos.push_back(bufferInfo);
+
+		delete m_DescriptorSet; graphics::api::DescriptorInfo info{};
+		info.pipeline = m_Pipeline;
+		info.layoutIndex = 1; //?
+		info.shader = m_Shader;
+		m_DescriptorSet = graphics::api::DescriptorSet::Create(info);
 
 		m_Pipeline->GetDescriptorSet()->Update(bufferInfos);
 
