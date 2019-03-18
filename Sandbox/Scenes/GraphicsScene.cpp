@@ -47,13 +47,29 @@ void GraphicsScene::OnInit()
 
 	//SoundSystem::Instance()->SetListener(m_pCamera);
 
-	auto shadowRenderer = new ShadowRenderer(m_ShadowTexture.get(), 4096, 4);
+	m_ShadowTexture = std::unique_ptr<TextureDepthArray>(TextureDepthArray::Create(4096, 4096, 4));
+	auto shadowRenderer = new ShadowRenderer();
+	auto deferredRenderer = new DeferredRenderer(m_ScreenWidth, m_ScreenHeight);
+	auto skyboxRenderer = new SkyboxRenderer(m_ScreenWidth, m_ScreenHeight, m_EnvironmentMap);
+	deferredRenderer->SetRenderTarget(Application::Instance()->GetRenderManager()->GetGBuffer()->m_ScreenTex[SCREENTEX_OFFSCREEN0]);
+	skyboxRenderer->SetRenderTarget(Application::Instance()->GetRenderManager()->GetGBuffer()->m_ScreenTex[SCREENTEX_OFFSCREEN0]);
+
+	deferredRenderer->SetRenderToGBufferTexture(true);
+	skyboxRenderer->SetRenderToGBufferTexture(true);
+
+	auto shadowLayer = new Layer3D(shadowRenderer);
+	auto deferredLayer = new Layer3D(deferredRenderer);
+	auto skyBoxLayer = new Layer3D(skyboxRenderer);
+	Application::Instance()->PushLayer(shadowLayer);
+	Application::Instance()->PushLayer(deferredLayer);
+	Application::Instance()->PushLayer(skyBoxLayer);
+
+	m_SceneLayers.emplace_back(shadowLayer);
+	m_SceneLayers.emplace_back(deferredLayer);
+	m_SceneLayers.emplace_back(skyBoxLayer);
+
 	Application::Instance()->GetRenderManager()->SetShadowRenderer(shadowRenderer);
 	Application::Instance()->GetRenderManager()->SetSkyBoxTexture(m_EnvironmentMap);
-	Application::Instance()->PushLayer(new Layer3D(shadowRenderer));
-	Application::Instance()->PushLayer(new Layer3D(new DeferredRenderer(m_ScreenWidth, m_ScreenHeight)));
-	Application::Instance()->PushLayer(new Layer3D(new SkyboxRenderer(m_ScreenWidth, m_ScreenHeight, m_EnvironmentMap)));
-	Application::Instance()->PushOverLay(new ImGuiLayer(false));
 }
 
 void GraphicsScene::OnUpdate(TimeStep* timeStep)

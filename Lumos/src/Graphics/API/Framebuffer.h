@@ -55,7 +55,7 @@ namespace Lumos
 	{
 	public:
 
-		static Framebuffer* Create(FramebufferInfo framebufferInfo = FramebufferInfo());
+		static Framebuffer* Create(const FramebufferInfo& framebufferInfo);
 
 		virtual ~Framebuffer(){};
 

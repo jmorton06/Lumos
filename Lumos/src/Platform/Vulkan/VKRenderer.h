@@ -48,6 +48,8 @@ namespace Lumos
 			void PresentInternal() override;
 			void PresentInternal(api::CommandBuffer* cmdBuffer) override;
 
+			void ClearSwapchainImage() const;
+
 			void SetColourMaskInternal(bool r, bool g, bool b, bool a) override;
 			void SetDepthTestingInternal(bool enabled) override;
 			void SetStencilTestInternal(bool enabled) override;
@@ -70,7 +72,7 @@ namespace Lumos
 			void SetRenderModeInternal(RenderMode mode) override;
 
 			void RenderMeshInternal(Mesh* mesh, graphics::api::Pipeline* pipeline, graphics::api::CommandBuffer* cmdBuffer, uint dynamicOffset, graphics::api::DescriptorSet* descriptorSet, bool useMaterialDescriptorSet) override;
-
+			void Render(VertexArray* vertexArray, IndexBuffer* indexBuffer, graphics::api::CommandBuffer* cmdBuffer, std::vector<graphics::api::DescriptorSet*>& descriptorSets, graphics::api::Pipeline* pipeline, uint dynamicOffset) override;
             void CreateSemaphores();
 
 		private:

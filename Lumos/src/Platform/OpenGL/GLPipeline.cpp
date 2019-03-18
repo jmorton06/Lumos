@@ -8,12 +8,12 @@ namespace Lumos
     namespace graphics
     {
 
-        GLPipeline::GLPipeline()
+        GLPipeline::GLPipeline() : m_RenderPass(nullptr)
         {
-            descriptorSet = nullptr;
+	        descriptorSet = nullptr;
         }
 
-        GLPipeline::GLPipeline(const api::PipelineInfo &pipelineCI)
+        GLPipeline::GLPipeline(const api::PipelineInfo &pipelineCI) : m_RenderPass(nullptr)
         {
             Init(pipelineCI);
         }

@@ -20,5 +20,7 @@ namespace Lumos
 		void Bind() const override;
 		void Unbind() const override;
 		uint GetCount() const override;
+		void SetCount(uint m_index_count) override { m_Count = m_index_count; };
+
 	};
 }

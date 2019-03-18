@@ -14,7 +14,6 @@ namespace Lumos
 
 	ParticleManager::ParticleManager()
 	{
-		m_ParticleMaterial = new Material();
 		m_Quad = MeshFactory::CreateQuad();
 		m_VAO = VertexArray::Create();
 
@@ -24,7 +23,6 @@ namespace Lumos
 	{
 		m_Emitters.clear();
 
-		delete m_ParticleMaterial;
         delete m_Quad;
 	}
 
@@ -43,7 +41,7 @@ namespace Lumos
 
 		for (auto emitter : m_Emitters)
 		{
-			emitter->Render(m_ParticleMaterial, camera, m_Quad);
+			emitter->Render(nullptr, camera, m_Quad);
 		}
 
 		Renderer::SetDepthMask(true);

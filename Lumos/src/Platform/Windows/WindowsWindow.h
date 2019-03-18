@@ -51,10 +51,10 @@ namespace Lumos
 
 	protected:
 
-		HINSTANCE hInstance;
-		HDC hDc;
+		HINSTANCE hInstance{};
+		HDC hDc{};
 		HWND hWnd;
-		RAWINPUTDEVICE rid;
+		RAWINPUTDEVICE rid{};
 	};
 
 }

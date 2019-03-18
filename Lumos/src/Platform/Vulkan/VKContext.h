@@ -3,7 +3,7 @@
 
 #include "VK.h"
 
-#ifdef LUMOS_RELEASE
+#ifdef LUMOS_DEBUG
 const bool enableValidationLayers = false;
 #else
 const bool enableValidationLayers = false;

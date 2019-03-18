@@ -49,7 +49,8 @@ namespace Lumos
 			Lumos::maths::Matrix4* model;
 		};
 
-		//void SetCubeMap(Texture* cubeMap);
+		void SetRenderTarget(Texture* texture) override;
+		void SetRenderToGBufferTexture(bool set) override;
 	private:
 
 		void SetSystemUniforms(Shader* shader) const;

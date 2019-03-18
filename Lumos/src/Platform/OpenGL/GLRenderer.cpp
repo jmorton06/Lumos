@@ -48,6 +48,9 @@ namespace Lumos
 
 	void GLRenderer::Begin()
 	{
+		GLCall(glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0));
+		GLCall(glClearColor(0.0f,0.0f,0.0f,0.0f));
+		GLCall(glClear(GL_COLOR_BUFFER_BIT));
 	}
 
 	void GLRenderer::BindScreenFBOInternal()
@@ -298,4 +301,19 @@ namespace Lumos
 		}
 		mesh->Draw();
     }
+
+	void GLRenderer::Render(VertexArray* vertexArray, IndexBuffer* indexBuffer, graphics::api::CommandBuffer* cmdBuffer,
+		std::vector<graphics::api::DescriptorSet*>& descriptorSets, graphics::api::Pipeline* pipeline, uint dynamicOffset)
+	{
+		for(auto descriptor : descriptorSets)
+		{
+			static_cast<graphics::GLDescriptorSet*>(descriptor)->Bind(dynamicOffset);
+		}
+	
+		vertexArray->Bind();
+		indexBuffer->Bind();
+		Renderer::Draw(DrawType::TRIANGLE, indexBuffer->GetCount());
+		indexBuffer->Unbind();
+		vertexArray->Unbind();
+	}
 }

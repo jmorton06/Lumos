@@ -18,9 +18,12 @@
 namespace Lumos
 {
 	Scene::Scene(const String& friendly_name)
-		: m_SceneName(friendly_name), m_pCamera(nullptr), m_EnvironmentMap(nullptr), m_SceneBoundingRadius(0), m_DebugDrawFlags(0), m_DrawDebugData(false)
+		: m_SceneName(friendly_name), m_pCamera(nullptr), m_EnvironmentMap(nullptr), m_SceneBoundingRadius(0),
+		  m_DebugDrawFlags(0), m_DrawObjects(false), m_ReflectScene(false), m_UseShadow(false), m_ScreenWidth(0),
+		  m_ScreenHeight(0),
+		  m_DrawDebugData(false)
 	{
-		m_ParticleManager = nullptr;//  new ParticleManager();
+		m_ParticleManager = nullptr; //  new ParticleManager();
 
 		m_LightSetup = new LightSetup();
 
@@ -125,9 +128,16 @@ namespace Lumos
 
 		DeleteAllGameObjects();
 
+		auto layerStack = Application::Instance()->GetLayerStack();
+		for(auto& layer : m_SceneLayers)
+		{
+			layerStack->PopLayer(layer);
+		}
+
+		m_SceneLayers.clear();
+
 		Input::GetInput().Reset();
 
-		Application::Instance()->ClearLayers();
 		Application::Instance()->GetRenderManager()->Reset();
 		Application::Instance()->GetAudioManager()->ClearNodes();
 
@@ -179,12 +189,12 @@ namespace Lumos
 			if (physicsComponent)
 			{
 				if(transformComponent)
-					transformComponent->m_WorldSpaceTransform = physicsComponent->m_PhysicsObject->GetWorldSpaceTransform() * transformComponent->m_LocalTransform;
+					transformComponent->m_Transform.GetWorldMatrix() = physicsComponent->m_PhysicsObject->GetWorldSpaceTransform() * transformComponent->m_Transform.GetLocalMatrix();
 			}
 			else
             {
                 if (transformComponent)
-                    transformComponent->m_WorldSpaceTransform = transformComponent->m_LocalTransform;
+                    transformComponent->m_Transform.GetWorldMatrix() = transformComponent->m_Transform.GetLocalMatrix();
             }
 		}
 	}
@@ -207,7 +217,7 @@ namespace Lumos
 			auto modelComponent = entity->GetComponent<ModelComponent>();
 			if(modelComponent)
 			{
-				bool inside = modelComponent->m_Model->GetNeedFrustumCheck() ? frustum.InsideFrustum(entity->GetComponent<TransformComponent>()->m_WorldSpaceTransform.GetPositionVector(), entity->GetBoundingRadius()) : true;
+				bool inside = modelComponent->m_Model->GetNeedFrustumCheck() ? frustum.InsideFrustum(entity->GetComponent<TransformComponent>()->m_Transform.GetWorldMatrix().GetPositionVector(), entity->GetBoundingRadius()) : true;
 
 				if (inside)
 				{

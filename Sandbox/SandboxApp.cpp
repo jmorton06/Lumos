@@ -5,6 +5,7 @@
 #include "Scenes/SceneLuaTest.h"
 #include "Scenes/SceneModelViewer.h"
 #include "Scenes/SceneSelect.h"
+#include "Scenes/Scene2D.h"
 
 
 using namespace Lumos;
@@ -12,7 +13,7 @@ using namespace Lumos;
 class Game : public Application
 {
 public:
-	Game(WindowProperties windowProperties) : Application(windowProperties, RenderAPI::VULKAN)
+	Game(const WindowProperties& windowProperties) : Application(windowProperties, RenderAPI::VULKAN)
 	{
 	}
 
@@ -29,10 +30,10 @@ public:
 		Lumos::VFS::Get()->Mount("Textures", root + "/Sandbox/res/textures");
 		Lumos::VFS::Get()->Mount("Sounds", root + "/Sandbox/res/sounds");
 
-
 		GetSceneManager()->EnqueueScene(new SceneSelect("SceneSelect"));
 		GetSceneManager()->EnqueueScene(new SceneLuaTest("Lua Test Scene"));
 		GetSceneManager()->EnqueueScene(new SceneModelViewer("SceneModelViewer"));
+		GetSceneManager()->EnqueueScene(new Scene2D("2D Test"));
 		GetSceneManager()->EnqueueScene(new Scene3D("Physics Scene"));
 		GetSceneManager()->EnqueueScene(new GraphicsScene("Terrain Test"));
 		GetSceneManager()->JumpToScene(3);

@@ -21,7 +21,7 @@ namespace Lumos
 
 	void Physics3DComponent::OnUpdateComponent(float dt)
 	{
-		m_Entity->SetPosition(m_PhysicsObject->GetPosition());
+		m_Entity->GetTransform()->SetWorldMatrix(m_PhysicsObject->GetWorldSpaceTransform() * m_Entity->GetTransform()->m_Transform.GetLocalMatrix());
 	}
 
 	void Physics3DComponent::DebugDraw(uint64 debugFlags)
@@ -48,7 +48,6 @@ namespace Lumos
             auto isRest = m_PhysicsObject->GetIsAtRest();
             auto mass = 1.0f / m_PhysicsObject->GetInverseMass();
             auto velocity = m_PhysicsObject->GetLinearVelocity();
-
             auto elasticity = m_PhysicsObject->GetElasticity();
 
             ImGui::DragFloat3("Position", &pos.x);

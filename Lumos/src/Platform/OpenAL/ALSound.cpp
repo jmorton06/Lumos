@@ -6,7 +6,7 @@
 
 namespace Lumos
 {
-	ALSound::ALSound(const String& fileName, const String& format)
+    ALSound::ALSound(const String& fileName, const String& format) : m_Format(0)
 	{
 		if (format == "wav")
 			m_Data = LoadWav(fileName);

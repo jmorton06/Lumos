@@ -43,8 +43,9 @@ void SceneModelViewer::OnInit()
 	sun->SetBrightness(4.0f);
 	m_LightSetup->SetDirectionalLight(sun);
 
-	Application::Instance()->PushOverLay(new ImGuiLayer(false));
-	Application::Instance()->PushLayer(new Layer3D(new ForwardRenderer(m_ScreenWidth, m_ScreenHeight)));
+	auto deferredLayer = new Layer3D(new ForwardRenderer(m_ScreenWidth, m_ScreenHeight));
+	Application::Instance()->PushLayer(deferredLayer);
+	m_SceneLayers.emplace_back(deferredLayer);
 }
 
 void SceneModelViewer::OnUpdate(TimeStep* timeStep)

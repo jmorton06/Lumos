@@ -24,8 +24,11 @@ namespace Lumos
             for(auto& imageInfo : imageInfos)
             {
 				m_ImageInfos.push_back(imageInfo);
-                imageInfo.texture->Bind(imageInfo.binding);
-				static_cast<GLShader*>(m_Shader)->SetUniform1i(imageInfo.name, imageInfo.binding);
+				for (int i = 0; i < imageInfo.count; i++)
+				{
+					imageInfo.texture[i]->Bind(imageInfo.binding + i);
+				}
+				dynamic_cast<GLShader*>(m_Shader)->SetUniform1i(imageInfo.name, imageInfo.binding);
             }
 
 			for (auto& bufferInfo : bufferInfos)
@@ -43,8 +46,11 @@ namespace Lumos
             for(auto& imageInfo : imageInfos)
             {
 				m_ImageInfos.push_back(imageInfo);
-                imageInfo.texture->Bind(imageInfo.binding);
-				static_cast<GLShader*>(m_Shader)->SetUniform1i(imageInfo.name, imageInfo.binding);
+				for (int i = 0; i < imageInfo.count; i++)
+				{
+					imageInfo.texture[i]->Bind(imageInfo.binding + i);
+				}
+				dynamic_cast<GLShader*>(m_Shader)->SetUniform1i(imageInfo.name, imageInfo.binding);
             }
 
         }
@@ -63,13 +69,17 @@ namespace Lumos
 		{
 			for (auto& imageInfo : m_ImageInfos)
 			{
-				imageInfo.texture->Bind(imageInfo.binding);
-				static_cast<GLShader*>(m_Shader)->SetUniform1i(imageInfo.name, imageInfo.binding);
+				for(int i = 0; i < imageInfo.count; i++)
+				{
+					imageInfo.texture[i]->Bind(imageInfo.binding + i);
+				}
+
+				dynamic_cast<GLShader*>(m_Shader)->SetUniform1i(imageInfo.name, imageInfo.binding);
 			}
 
             for (auto& bufferInfo : m_BufferInfos)
 			{
-                GLUniformBuffer* buffer = (GLUniformBuffer*)bufferInfo.buffer;
+				auto* buffer = dynamic_cast<GLUniformBuffer*>(bufferInfo.buffer);
 
                 byte* data;
                 uint size;
@@ -85,9 +95,9 @@ namespace Lumos
                     size  = buffer->GetSize();
                 }
 
-                if(bufferInfo.name != "")
+                if(!bufferInfo.name.empty())
                 {
-                    ((GLUniformBuffer*)buffer)->Bind(0,(GLShader*)m_Shader, bufferInfo.name);
+                    static_cast<GLUniformBuffer*>(buffer)->Bind(0, dynamic_cast<GLShader*>(m_Shader), bufferInfo.name);
                 }
                 else
                 {
@@ -101,7 +111,7 @@ namespace Lumos
 
             for(auto pc : m_PushConstants)
                 //((GLShader*)m_Shader)->SetUniform("PushConstant", (byte*)pc.data);
-                static_cast<GLShader*>(m_Shader)->SetUniform1i("PushConstant", (int32)pc.data[0]); //TEMP
+	            dynamic_cast<GLShader*>(m_Shader)->SetUniform1i("PushConstant", static_cast<int32>(pc.data[0])); //TEMP
 		}
 
         void GLDescriptorSet::SetPushConstants(std::vector<api::PushConstant>& pushConstants)

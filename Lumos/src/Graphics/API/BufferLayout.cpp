@@ -30,28 +30,6 @@ namespace Lumos
 		}
 
         template<>
-        void BufferLayout::Push<float>(const String& name, uint count, bool normalized)
-        {
-            switch (graphics::Context::GetRenderAPI())
-            {
-#ifdef LUMOS_RENDER_API_OPENGL
-                case RenderAPI::OPENGL:
-                    Push(name, GL_FLOAT, sizeof(float), count, normalized);
-                    break;
-#endif
-#ifdef LUMOS_RENDER_API_DIRECT3D
-                case RenderAPI::DIRECT3D:
-					Push(name, DX_TYPE_R32_FLOAT, sizeof(float), count, normalized);
-					break;
-#endif
-#ifdef LUMOS_RENDER_API_VULKAN
-                case RenderAPI::VULKAN:
-                    break;
-#endif
-            }
-        }
-
-        template<>
         void BufferLayout::Push<uint>(const String& name, uint count, bool normalized)
         {
             switch (graphics::Context::GetRenderAPI())
@@ -94,6 +72,28 @@ namespace Lumos
 #endif
             }
         }
+
+		template<>
+		void BufferLayout::Push<float>(const String& name, uint count, bool normalized)
+		{
+			switch (graphics::Context::GetRenderAPI())
+			{
+#ifdef LUMOS_RENDER_API_OPENGL
+			case RenderAPI::OPENGL:
+				Push(name, GL_FLOAT, sizeof(float), count, normalized);
+				break;
+#endif
+#ifdef LUMOS_RENDER_API_DIRECT3D
+			case RenderAPI::DIRECT3D:
+				Push(name, DX_TYPE_R32_FLOAT, sizeof(float), count, normalized);
+				break;
+#endif
+#ifdef LUMOS_RENDER_API_VULKAN
+			case RenderAPI::VULKAN:
+				break;
+#endif
+			}
+		}
 
         template<>
         void BufferLayout::Push<maths::Vector2>(const String& name, uint count, bool normalized)

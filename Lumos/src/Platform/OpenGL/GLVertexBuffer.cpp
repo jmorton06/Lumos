@@ -64,28 +64,24 @@ namespace Lumos
 
 	void* GLVertexBuffer::GetPointerInternal()
 	{
-#ifndef LUMOS_PLATFORM_MOBILE
 		GLCall(void* result = glMapBuffer(GL_ARRAY_BUFFER, GL_WRITE_ONLY));
 		return result;
-#else
-		return nullptr;
-#endif
 	}
 
 	void GLVertexBuffer::ReleasePointer()
 	{
 		GLCall(glUnmapBuffer(GL_ARRAY_BUFFER));
+		SetLayout(m_Layout);
 	}
 
 	void GLVertexBuffer::Bind()
 	{
 		GLCall(glBindBuffer(GL_ARRAY_BUFFER, m_Handle));
-		//SetLayout(m_Layout); //TODO: Check if needed
+		// SetLayout(m_Layout);
 	}
 
 	void GLVertexBuffer::Unbind()
 	{
-
 #ifdef LUMOS_DEBUG
 		GLCall(glBindBuffer(GL_ARRAY_BUFFER, 0));
 #endif

@@ -1,6 +1,7 @@
 #include "LM.h"
 #include "VKDevice.h"
 #include "VKVertexBuffer.h"
+#include "VKRenderer.h"
 
 namespace Lumos
 { 
@@ -29,6 +30,8 @@ namespace Lumos
 		void VKVertexBuffer::Resize(uint size)
 		{
 			m_Size = size;
+			VKTools::CreateBuffer(size, vk::BufferUsageFlagBits::eVertexBuffer,
+				vk::MemoryPropertyFlagBits::eHostVisible | vk::MemoryPropertyFlagBits::eHostCoherent, m_Buffer, m_Memory);
 
 		}
 
@@ -51,11 +54,18 @@ namespace Lumos
 
 		void* VKVertexBuffer::GetPointerInternal()
 		{
-			return nullptr;
+			void* temp;
+			VKDevice::Instance()->GetDevice().mapMemory(m_Memory, 0, m_Size, vk::MemoryMapFlagBits(), &temp);
+			return temp;
 		}
 
 		void VKVertexBuffer::ReleasePointer()
 		{
+			vk::MappedMemoryRange memoryRange;
+			memoryRange.memory = m_Memory;
+			memoryRange.size = m_Size;
+			VKDevice::Instance()->GetDevice().flushMappedMemoryRanges(1, &memoryRange);
+			VKDevice::Instance()->GetDevice().unmapMemory(m_Memory);
 		}
 
 		void VKVertexBuffer::Bind()

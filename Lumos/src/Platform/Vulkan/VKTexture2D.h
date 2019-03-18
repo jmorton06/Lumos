@@ -27,7 +27,7 @@ namespace Lumos
 			virtual void SetData(const void* pixels) override {};
 			virtual void SetData(uint color) override {};
 
-			virtual void* GetHandle() const override { return (void*)m_TextureImageView; }
+			virtual void* GetHandle() const override { return (void*)&m_Descriptor; }
 
 			inline uint GetWidth() const override { return m_Width; }
 			inline uint GetHeight() const override { return m_Height; }

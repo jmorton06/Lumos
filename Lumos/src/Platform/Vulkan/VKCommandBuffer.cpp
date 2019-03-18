@@ -11,7 +11,7 @@ namespace Lumos
 	namespace graphics
 	{
 
-		VKCommandBuffer::VKCommandBuffer()
+		VKCommandBuffer::VKCommandBuffer(): m_Primary(false)
 		{
 		}
 

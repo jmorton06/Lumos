@@ -13,6 +13,7 @@
 #include "Events/Event.h"
 #include "Events/MouseEvent.h"
 #include "Events/ApplicationEvent.h"
+#include "Graphics/Layers/Layer.h"
 
 namespace Lumos
 {
@@ -144,6 +145,8 @@ namespace Lumos
 
 		maths::Frustum				m_FrameFrustum;
 		std::unique_ptr<RenderList>	m_pFrameRenderList;
+
+		std::vector<Layer*> m_SceneLayers;
 
     private:
         Scene(Scene const&) = delete;

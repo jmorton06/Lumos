@@ -77,6 +77,39 @@ project "Sandbox"
 			"LUMOS_IMGUI"
 		}
 
+		filter {"system:macosx", "configurations:release"}
+
+			local source = "../Dependencies/vulkan/libs/macOS/**"
+			local target = "../bin/release/"
+			
+			buildmessage("copying "..source.." -> "..target)
+			
+			postbuildcommands {
+				"{COPY} "..source.." "..target
+			}
+
+		filter {"system:macosx", "configurations:dist"}
+
+			local source = "../Dependencies/vulkan/libs/macOS/**"
+			local target = "../bin/dist/"
+			
+			buildmessage("copying "..source.." -> "..target)
+			
+			postbuildcommands {
+				"{COPY} "..source.." "..target
+			}
+
+		filter {"system:macosx", "configurations:debug"}
+
+			local source = "../Dependencies/vulkan/libs/macOS/**"
+			local target = "../bin/debug/"
+			
+			buildmessage("copying "..source.." -> "..target)
+			
+			postbuildcommands {
+				"{COPY} "..source.." "..target
+			}
+
 	filter "system:ios"
 		cppdialect "C++17"
 		staticruntime "On"
