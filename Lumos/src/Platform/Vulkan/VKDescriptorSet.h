@@ -23,7 +23,7 @@ namespace Lumos
 			std::vector<api::PushConstant> GetPushConstants() const { return m_PushConstants; }
 
 			vk::WriteDescriptorSet ImageInfoToVK(api::ImageInfo& imageInfo);
-			vk::WriteDescriptorSet ImageInfoToVK2(api::ImageInfo& imageInfo);
+			vk::WriteDescriptorSet ImageInfoToVK2(api::ImageInfo& imageInfo,vk::DescriptorImageInfo* imageInfos);
 
 
 		private:
