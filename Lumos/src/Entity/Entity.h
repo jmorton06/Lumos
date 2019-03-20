@@ -42,7 +42,7 @@ namespace Lumos
 		void OnRenderObject();
 		virtual void OnUpdateObject(float dt);
         virtual void OnIMGUI();
-		virtual void OnGuizmo();
+		virtual void OnGuizmo(uint mode = 0);
         virtual void Init();
 
 		std::vector<Entity*>& GetChildren() { return m_vpChildren; }

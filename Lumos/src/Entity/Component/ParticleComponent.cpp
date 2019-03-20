@@ -7,6 +7,7 @@
 #include "Maths/BoundingSphere.h"
 #include "Graphics/Renderers/DebugRenderer.h"
 #include <imgui/imgui.h>
+#include "Physics/LumosPhysicsEngine/PhysicsObject3D.h"
 
 namespace Lumos
 {

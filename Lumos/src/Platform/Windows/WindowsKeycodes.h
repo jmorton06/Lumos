@@ -155,7 +155,7 @@ namespace Lumos
 			KEYBOARD_MAX = 0xFF
 		};
 
-		uint WindowsKeyToLumos(uint key)
+		inline uint WindowsKeyToLumos(uint key)
 		{
 			static std::map<uint, uint> keyMap = 
 			{

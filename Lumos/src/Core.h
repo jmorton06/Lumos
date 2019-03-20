@@ -82,6 +82,7 @@ typedef unsigned long long uintptr;
 #define DEBUGDRAW_FLAGS_ENTITY_COMPONENTS	1024
 
 #define NUMBONES 64
+#define INPUT_BUF_SIZE 128
 
 #define SAFE_DELETE(mem) { if(mem) { delete mem; mem = NULL; } }
 #define SAFE_UNLOAD(mem, ...) { if(mem) { mem->Unload(__VA_ARGS__); delete mem; mem = NULL; } }

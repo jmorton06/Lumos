@@ -4,11 +4,6 @@
 #include "Events/Event.h"
 #include "Events/ApplicationEvent.h"
 
-#include "Graphics/Layers/LayerStack.h"
-#include "Events/Event.h"
-#include <thread>
-#include "imgui/plugins/ImGuizmo.h"
-
 #define LUMOS_EDITOR //temp
 
 namespace Lumos
@@ -20,6 +15,10 @@ namespace Lumos
 	class RenderManager;
 	class AudioManager;
 	class Entity;
+	class Editor;
+	class LayerStack;
+	class Layer;
+	enum class RenderAPI;
 
     enum class AppState
     {
@@ -36,6 +35,7 @@ namespace Lumos
 
 	class LUMOS_EXPORT Application
 	{
+		friend class Editor;
 	public:
 		Application(const WindowProperties& properties, const RenderAPI& api);
 		virtual ~Application();
@@ -48,11 +48,9 @@ namespace Lumos
 		void OnRender();
 		void OnEvent(Event& e);
 		void OnImGui();
-		void OnGuizmo();
 		void PushLayer(Layer* layer);
 		void PushOverLay(Layer* overlay);
-		void ClearLayers() { m_LayerStack->Clear(); };
-        void SetScene(Scene* scene);
+		void ClearLayers();;
 
 		virtual void Init();
 
@@ -69,10 +67,6 @@ namespace Lumos
 		static void PhysicsUpdate(float targetUpdateTime);
 
 		static Application* Instance() { return s_Instance; }
-
-#ifdef LUMOS_EDITOR
-		ImGuizmo::OPERATION GetImGuizmoOperation() const { return m_ImGuizmoOperation; }
-#endif
 
 	private:
 		bool OnWindowClose(WindowCloseEvent& e);
@@ -99,13 +93,8 @@ namespace Lumos
 
 		static Application* s_Instance;
 
-		Entity* m_Selected = nullptr;
-
-		bool m_FlipImGuiImage = false;
-
 #ifdef LUMOS_EDITOR
-		maths::Vector2 m_SceneViewSize;
-		ImGuizmo::OPERATION m_ImGuizmoOperation = ImGuizmo::OPERATION::TRANSLATE;
+		Editor* m_Editor = nullptr;
 #endif
 	};
 

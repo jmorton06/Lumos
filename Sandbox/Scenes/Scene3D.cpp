@@ -435,8 +435,6 @@ void Scene3D::OnIMGUI()
     if (show_demo_window)
         ImGui::ShowDemoWindow(&show_demo_window);
 
-	//ImGui::Begin(m_SceneName.c_str());
-    
     ImVec4 test = ImVec4(lightDirection.GetX(),lightDirection.GetY(), lightDirection.GetZ(), 1.0f);
     
     ImGui::Text("Light");
@@ -448,9 +446,6 @@ void Scene3D::OnIMGUI()
  	if(ImGui::Button("<- SceneSelect"))
 	{
 		Application::Instance()->GetSceneManager()->JumpToScene("SceneSelect");
-		//ImGui::End();
 		return;
 	}
-
-    //ImGui::End();
 }

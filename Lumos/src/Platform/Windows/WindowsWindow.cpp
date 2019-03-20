@@ -135,6 +135,15 @@ namespace Lumos
 		ShowWindow(hWnd, SW_SHOW);
 		SetFocus(hWnd);
 		SetWindowTitle(title);
+
+		if(!properties.ShowConsole)
+		{
+			HWND consoleWindow = GetConsoleWindow();
+
+			ShowWindow(consoleWindow, SW_HIDE);
+
+			SetActiveWindow(hWnd);
+		}
 		
 		//Input
 		rid.usUsagePage = HID_USAGE_PAGE_GENERIC;
@@ -273,6 +282,14 @@ namespace Lumos
 		data.EventCallback(event);
 	}
 
+	void CharCallback(Window* window, int32 key, int32 flags, UINT message)
+	{
+		WindowsWindow::WindowData data = static_cast<WindowsWindow*>(window)->m_Data;
+
+		KeyTypedEvent event(key);// WindowsKeyCodes::WindowsKeyToLumos(key)); //TODO : FIX
+		data.EventCallback(event);
+	}
+
 	void KeyCallback(Window* window, int32 key, int32 flags, UINT message)
 	{
 		bool pressed = message == WM_KEYDOWN || message == WM_SYSKEYDOWN;
@@ -357,6 +374,10 @@ namespace Lumos
 		case WM_SIZE:
 			ResizeCallback(window, LOWORD(lParam), HIWORD(lParam));
 			break;
+		case WM_CHAR:
+		case WM_SYSCHAR:
+		case WM_UNICHAR:
+			CharCallback(window, int32(wParam), int32(lParam), message);
 		default:
 			result = DefWindowProc(hWnd, message, wParam, lParam);
 		}

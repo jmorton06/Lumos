@@ -18,6 +18,7 @@
 #include "Entity/Entity.h"
 #include "App/Application.h"
 #include "Graphics/RenderManager.h"
+#include "Graphics/Camera/Camera.h"
 
 namespace Lumos
 {
