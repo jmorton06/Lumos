@@ -14,6 +14,7 @@
 #include "Graphics/API/Pipeline.h"
 #include "Graphics/API/UniformBuffer.h"
 #include "RenderCommand.h"
+#include "Graphics/Camera/Camera.h"
 
 namespace Lumos
 {
@@ -94,7 +95,6 @@ namespace Lumos
 		m_VSSystemUniformBuffer = new byte[m_VSSystemUniformBufferSize];
 		memset(m_VSSystemUniformBuffer, 0, m_VSSystemUniformBufferSize);
 		m_VSSystemUniformBufferOffsets.resize(VSSystemUniformIndex_Size);
-        
         
         m_PushConstant = new graphics::api::PushConstant();
         m_PushConstant->type = graphics::api::PushConstantDataType::UINT;

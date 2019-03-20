@@ -4,16 +4,17 @@
 #include "Graphics/API/Context.h"
 #include "System/String.h"
 #include "Audio/AudioManager.h"
-#include "Graphics/Mesh.h"
 #include "Physics/LumosPhysicsEngine/SortAndSweepBroadphase.h"
 #include "Physics/LumosPhysicsEngine/Octree.h"
-#include "Graphics/GBuffer.h"
+#include "Graphics/Layers/LayerStack.h"
 #include "Graphics/Light.h"
 #include "Graphics/Model/Model.h"
 #include "Utilities/TimeStep.h"
 #include "App/Input.h"
 #include "App/Application.h"
 #include "Graphics/RenderManager.h"
+#include "Physics/LumosPhysicsEngine/LumosPhysicsEngine.h"
+#include "Graphics/Camera/Camera.h"
 
 namespace Lumos
 {
@@ -73,14 +74,14 @@ namespace Lumos
 		switch (graphics::Context::GetRenderAPI())
 		{
 #ifdef LUMOS_RENDER_API_OPENGL
-		case OPENGL: RenderAPI = "OpenGL"; break;
+		case RenderAPI::OPENGL: RenderAPI = "OpenGL"; break;
 #endif
 
 #ifdef LUMOS_RENDER_API_VULKAN
 #if defined(LUMOS_PLATFORM_MACOS) || defined(LUMOS_PLATFORM_IOS)
-		case VULKAN: RenderAPI = "Vulkan ( MoltenVK )"; break;
+		case RenderAPI::VULKAN: RenderAPI = "Vulkan ( MoltenVK )"; break;
 #else
-		case VULKAN: RenderAPI = "Vulkan"; break;
+		case RenderAPI::VULKAN: RenderAPI = "Vulkan"; break;
 #endif
 #endif
 

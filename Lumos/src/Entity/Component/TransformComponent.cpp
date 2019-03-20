@@ -20,6 +20,10 @@ namespace Lumos
 
 			ImGui::DragFloat3("Position", &pos.x);
 			ImGui::DragFloat3("Scale", &scale.x);
+
+			m_Transform.SetWorldPosition(pos);
+			m_Transform.SetWorldScale(scale);
+
             ImGui::TreePop();
         }
     }

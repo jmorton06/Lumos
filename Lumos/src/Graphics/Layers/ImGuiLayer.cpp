@@ -9,7 +9,6 @@
 #include <imgui/imgui.h>
 #include <imgui/plugins/ImGuizmo.h>
 
-
 namespace Lumos
 {
 	ImGuiLayer::ImGuiLayer(bool clearScreen, const std::string& debugName)
@@ -27,7 +26,7 @@ namespace Lumos
 	{
 		Application* app = Application::Instance();
 		ImGuiIO& io = ImGui::GetIO();
-		io.DisplaySize = ImVec2((float)app->GetWindow()->GetWidth(), (float)app->GetWindow()->GetHeight());
+		io.DisplaySize = ImVec2(static_cast<float>(app->GetWindow()->GetWidth()), static_cast<float>(app->GetWindow()->GetHeight()));
         io.ConfigFlags |= ImGuiConfigFlags_DockingEnable;
 		io.ConfigWindowsMoveFromTitleBarOnly = true;
 
@@ -125,7 +124,7 @@ namespace Lumos
 
 		io.KeyCtrl = io.KeysDown[LUMOS_KEY_LEFT_CONTROL] || io.KeysDown[LUMOS_KEY_RIGHT_CONTROL];
 		io.KeyShift = io.KeysDown[LUMOS_KEY_LEFT_SHIFT] || io.KeysDown[LUMOS_KEY_RIGHT_SHIFT];
-		io.KeyAlt = io.KeysDown[LUMOS_KEY_ALT] || io.KeysDown[LUMOS_KEY_ALT];
+		io.KeyAlt = io.KeysDown[LUMOS_KEY_ALT];// || io.KeysDown[LUMOS_KEY_ALT];
 
 		
 		return io.WantTextInput;
@@ -152,7 +151,7 @@ namespace Lumos
 	bool ImGuiLayer::OnwindowResizeEvent(WindowResizeEvent & e)
 	{
 		ImGuiIO& io = ImGui::GetIO();
-		io.DisplaySize = ImVec2((float)e.GetWidth(), (float)e.GetHeight());
+		io.DisplaySize = ImVec2(static_cast<float>(e.GetWidth()), static_cast<float>(e.GetHeight()));
 		io.DisplayFramebufferScale = ImVec2(1.0f, 1.0f);
 
 		m_IMGUIRenderer->OnResize(e.GetWidth(), e.GetHeight());
@@ -190,13 +189,13 @@ namespace Lumos
 
 	void ImGuiLayer::SetImGuiStyle()
 	{
-#if 0
-		std::string filePath = "/CoreTextures/DroidSans.ttf";
+#if 1
+		std::string filePath = "/CoreTextures/Roboto-Medium.ttf";
 		std::string physicalPath;
 		if (!VFS::Get()->ResolvePhysicalPath(filePath, physicalPath))
 			LUMOS_CORE_ERROR("Failed to Load font {0}", filePath);
 
-		filePath = physicalPath.c_str();
+		filePath = physicalPath;
         ImGuiIO& io = ImGui::GetIO();
 		io.Fonts->AddFontFromFileTTF(filePath.c_str(), 15.0f);
 		io.IniFilename = nullptr;

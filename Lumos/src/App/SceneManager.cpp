@@ -5,6 +5,7 @@
 #include "Scene.h"
 #include "App/Application.h"
 #include "Scene.h"
+#include "Physics/LumosPhysicsEngine/LumosPhysicsEngine.h"
 
 namespace Lumos
 {
@@ -69,7 +70,9 @@ namespace Lumos
 		LumosPhysicsEngine::Instance()->SetDefaults();
 		B2PhysicsEngine::Instance()->SetDefaults();
 
-        Application::Instance()->SetScene(m_CurrentScene);
+		auto screenSize = Application::Instance()->GetWindowSize();
+		m_CurrentScene->SetScreenWidth(static_cast<uint>(screenSize.GetX()));
+		m_CurrentScene->SetScreenHeight(static_cast<uint>(screenSize.GetY()));
 		m_CurrentScene->OnInit();
 
 		LUMOS_CORE_INFO("[SceneManager] - Scene switched to : {0}", m_CurrentScene->GetSceneName().c_str());

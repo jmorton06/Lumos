@@ -1,28 +1,25 @@
 #pragma once
 #include "LM.h"
 #include "Maths/Frustum.h"
-#include "Physics/LumosPhysicsEngine/LumosPhysicsEngine.h"
-#include "Utilities/TSingleton.h"
 #include "Graphics/RenderList.h"
-#include "Graphics/Camera/Camera.h"
 #include "Graphics/LightSetUp.h"
-#include "Entity/Entity.h"
 #include "Utilities/AssetManager.h"
 
-#include "Events/KeyEvent.h"
 #include "Events/Event.h"
-#include "Events/MouseEvent.h"
 #include "Events/ApplicationEvent.h"
-#include "Graphics/Layers/Layer.h"
 
 namespace Lumos
 {
+	struct TimeStep;
 	class ParticleManager;
 	class Font;
 	class GBuffer;
 	class TextureCube;
 	class Material;
 	class Event;
+	class Layer;
+	class Camera;
+	class Entity;
 
 	class LUMOS_EXPORT Scene
 	{

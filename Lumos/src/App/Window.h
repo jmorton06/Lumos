@@ -41,6 +41,7 @@ namespace Lumos
 		bool Fullscreen;
 		bool VSync;
 		bool Borderless;
+		bool ShowConsole = false;
 		String Title;
 
 	};

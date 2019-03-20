@@ -11,6 +11,7 @@
 #include "App/SceneManager.h"
 #include "App/Scene.h"
 #include "App/Application.h"
+#include "Graphics/Camera/Camera.h"
 
 namespace Lumos
 {
