@@ -223,7 +223,7 @@ namespace Lumos
 			{
 				if (obj)
 				{
-					ModelComponent* model = obj->GetComponent<ModelComponent>();
+					const auto model = obj->GetComponent<ModelComponent>();
 
 					if (model && model->m_Model)
 					{
@@ -484,7 +484,7 @@ namespace Lumos
 		m_Pipeline->GetDescriptorSet()->Update(bufferInfos);
 	}
 
-	void ShadowRenderer::SetSystemUniforms(Shader* shader) const
+	void ShadowRenderer::SetSystemUniforms(Shader* shader)
 	{
         m_UniformBuffer->SetData(sizeof(UniformBufferObject), *&m_VSSystemUniformBuffer);
 
@@ -496,7 +496,7 @@ namespace Lumos
             *modelMat = command.transform;
             index++;
         }
-        m_ModelUniformBuffer->SetDynamicData(static_cast<uint32_t>(MAX_OBJECTS * dynamicAlignment), sizeof(maths::Matrix4), *&uboDataDynamic.model);
+        m_ModelUniformBuffer->SetDynamicData(static_cast<uint32_t>(MAX_OBJECTS * dynamicAlignment), sizeof(maths::Matrix4), &*uboDataDynamic.model);
 	}
 
 	void ShadowRenderer::Submit(const RenderCommand& command)

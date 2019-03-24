@@ -6,6 +6,7 @@ namespace Lumos
 	class Application;
 	class Entity;
 	class Console;
+	class Texture2D;
 
 	class Editor
 	{
@@ -22,11 +23,13 @@ namespace Lumos
 		void DrawInspectorWindow();
 		void DrawSceneView();
 		void DrawSceneInfoWindow();
-		void AddDockSpace();
+		void BeginDockSpace();
+		void EndDockSpace();
 
 		void SelectEntity();
 
 		uint GetImGuizmoOperation() const { return m_ImGuizmoOperation; }
+		void OnInit();
 
 	private:
 		Application* m_Application;
@@ -37,5 +40,7 @@ namespace Lumos
 		uint m_ImGuizmoOperation = 0;
 		bool m_FlipImGuiImage = false;
 		Entity* m_Selected = nullptr;
+
+		std::map<String, Texture2D*> m_Icons;
 	};
 }

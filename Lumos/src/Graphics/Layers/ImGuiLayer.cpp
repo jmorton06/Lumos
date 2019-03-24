@@ -53,7 +53,6 @@ namespace Lumos
         
 		Application::Instance()->OnImGui();
         
-        ImGui::End();
 		ImGui::Render();
 	}
 

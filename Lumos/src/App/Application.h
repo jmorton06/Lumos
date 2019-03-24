@@ -18,6 +18,7 @@ namespace Lumos
 	class Editor;
 	class LayerStack;
 	class Layer;
+	class ISystem;
 	enum class RenderAPI;
 
     enum class AppState
@@ -26,6 +27,14 @@ namespace Lumos
         Loading,
         Closing
     };
+
+	enum class EditorState
+	{
+		Paused,
+		Play,
+		Next,
+		Preview
+	};
 
 	enum class AppType
 	{
@@ -39,6 +48,9 @@ namespace Lumos
 	public:
 		Application(const WindowProperties& properties, const RenderAPI& api);
 		virtual ~Application();
+
+		Application(Application const&) = delete;
+		Application& operator=(Application const&) = delete;
 
 		int Quit(bool pause = false, const std::string &reason = "");
 
@@ -61,6 +73,9 @@ namespace Lumos
         Window* GetWindow() const { return m_Window.get(); }
         AppState GetState() const { return m_CurrentState; }
         void SetAppState(AppState state) { m_CurrentState = state; }
+
+		EditorState GetEditorState() const { return m_EditorState; }
+		void SetEditorState(EditorState state) { m_EditorState = state; }
 
 		maths::Vector2 GetWindowSize() const;
 
@@ -86,9 +101,12 @@ namespace Lumos
 		std::unique_ptr<RenderManager> m_RenderManager;
 		std::unique_ptr<AudioManager> m_AudioManager;
 
+		std::vector<ISystem*> m_Systems;
+
 		LayerStack* m_LayerStack{};
 
         AppState m_CurrentState = AppState::Loading;
+		EditorState m_EditorState = EditorState::Play;
 		AppType m_AppType = AppType::Editor;
 
 		static Application* s_Instance;

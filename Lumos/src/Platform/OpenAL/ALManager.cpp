@@ -3,6 +3,7 @@
 #include "ALSoundNode.h"
 #include "Maths/Maths.h"
 #include "Graphics/Camera/Camera.h"
+#include "Utilities/TimeStep.h"
 
 namespace Lumos
 {
@@ -38,12 +39,12 @@ namespace Lumos
             alDistanceModel(AL_LINEAR_DISTANCE_CLAMPED);
         }
 
-        void ALManager::OnUpdate()
+        void ALManager::OnUpdate(TimeStep* dt)
         {
 			UpdateListener();
 
 			for (auto node : m_SoundNodes)
-				node->OnUpdate(0.0f);
+				node->OnUpdate(dt->GetElapsedMillis());
         }
 
 		void ALManager::UpdateListener()

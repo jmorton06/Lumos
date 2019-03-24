@@ -44,6 +44,5 @@ Lumos::Application* Lumos::CreateApplication()
 {
     System::CFG cfg(ROOT_DIR"/Sandbox/Settings.cfg");
     const WindowProperties windowProperties(cfg);
-
     return new Game(windowProperties);
 }

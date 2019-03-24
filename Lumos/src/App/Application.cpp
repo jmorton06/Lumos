@@ -90,6 +90,10 @@ namespace Lumos
 
 		graphics::Context::GetContext()->Init();
 
+#ifdef  LUMOS_EDITOR
+		m_Editor->OnInit();
+#endif
+
 		Renderer::Init(screenWidth, screenHeight);
 
 		system::JobSystem::Execute([] { LumosPhysicsEngine::Instance(); LUMOS_CORE_INFO("Initialised JMPhysics"); });
@@ -106,13 +110,17 @@ namespace Lumos
 		m_AudioManager = std::unique_ptr<AudioManager>(AudioManager::Create());
 		m_AudioManager->OnInit();
 
+		m_Systems.emplace_back(m_AudioManager.get());
+		m_Systems.emplace_back(LumosPhysicsEngine::Instance());
+		m_Systems.emplace_back(B2PhysicsEngine::Instance());
+
 		m_CurrentState = AppState::Running;
-		m_PhysicsThread = std::thread(PhysicsUpdate, 1000.0f / 120.0f);
+		//m_PhysicsThread = std::thread(PhysicsUpdate, 1000.0f / 120.0f);
 	}
 
 	int Application::Quit(bool pause, const std::string &reason)
 	{
-		m_PhysicsThread.join();
+		//m_PhysicsThread.join();
 
 		Engine::Release();
 		LumosPhysicsEngine::Release();
@@ -154,16 +162,21 @@ namespace Lumos
 
 		while (Application::Instance()->GetState() == AppState::Running)
 		{
-			float now = t.GetMS(1.0f) * 1000.0f;
-
-			if (now - updateTimer > targetUpdateTime)
+#ifdef LUMOS_EDITOR
+			if(Application::Instance()->GetEditorState() != EditorState::Paused && Application::Instance()->GetEditorState() != EditorState::Preview)
+#endif
 			{
-				updateTimer += targetUpdateTime;
+				float now = t.GetMS(1.0f) * 1000.0f;
 
-				timeStep->Update(now);
+				if (now - updateTimer > targetUpdateTime)
+				{
+					updateTimer += targetUpdateTime;
 
-				LumosPhysicsEngine::Instance()->Update(timeStep);
-				B2PhysicsEngine::Instance()->Update(LumosPhysicsEngine::Instance()->IsPaused(), timeStep);
+					timeStep->Update(now);
+
+					/*LumosPhysicsEngine::Instance()->OnUpdate(timeStep);
+					B2PhysicsEngine::Instance()->OnUpdate(timeStep);*/
+				}
 			}
 		}
 
@@ -213,7 +226,10 @@ namespace Lumos
 			m_SceneManager->GetCurrentScene()->OnTick();
 		}
 
-		return m_CurrentState == AppState::Running;
+		if (m_EditorState == EditorState::Next)
+			m_EditorState = EditorState::Paused;
+
+		return m_CurrentState != AppState::Closing;
 	}
 
 	void Application::OnRender()
@@ -236,6 +252,7 @@ namespace Lumos
 		if (Input::GetInput().GetKeyPressed(LUMOS_KEY_1)) m_SceneManager->GetCurrentScene()->ToggleDrawObjects();
 		if (Input::GetInput().GetKeyPressed(LUMOS_KEY_2)) m_SceneManager->GetCurrentScene()->SetDrawDebugData(!m_SceneManager->GetCurrentScene()->GetDrawDebugData());
 		if (Input::GetInput().GetKeyPressed(LUMOS_KEY_P)) LumosPhysicsEngine::Instance()->SetPaused(!LumosPhysicsEngine::Instance()->IsPaused());
+		if (Input::GetInput().GetKeyPressed(LUMOS_KEY_P)) B2PhysicsEngine::Instance()->SetPaused(!B2PhysicsEngine::Instance()->IsPaused());
 
 		if (Input::GetInput().GetKeyPressed(LUMOS_KEY_J)) CommonUtils::AddSphere(m_SceneManager->GetCurrentScene());
 		if (Input::GetInput().GetKeyPressed(LUMOS_KEY_K)) CommonUtils::AddPyramid(m_SceneManager->GetCurrentScene());
@@ -246,9 +263,15 @@ namespace Lumos
 		if (Input::GetInput().GetKeyPressed(LUMOS_KEY_R)) m_SceneManager->JumpToScene(sceneIdx);
 		if (Input::GetInput().GetKeyPressed(LUMOS_KEY_V)) m_Window->ToggleVSync();
 
-		m_SceneManager->GetCurrentScene()->OnUpdate(m_TimeStep.get());
-
-		m_AudioManager->OnUpdate();
+#ifdef LUMOS_EDITOR
+		if (Application::Instance()->GetEditorState() != EditorState::Paused && Application::Instance()->GetEditorState() != EditorState::Preview)
+#endif
+		{
+			m_SceneManager->GetCurrentScene()->OnUpdate(m_TimeStep.get());
+			
+			for (auto& system : m_Systems)
+				system->OnUpdate(m_TimeStep.get());
+		}
 
 		m_LayerStack->OnUpdate(m_TimeStep.get());
 	}
@@ -308,6 +331,7 @@ namespace Lumos
 
 	void Application::OnImGui()
 	{
-		m_Editor->OnImGui();
+		if(m_AppType == AppType::Editor)
+			m_Editor->OnImGui();
     }
 }

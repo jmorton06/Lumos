@@ -2,7 +2,6 @@
 #include "System.h"
 #include "VFS.h"
 
-
 namespace Lumos
 { 
 	namespace internal 
