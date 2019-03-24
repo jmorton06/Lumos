@@ -30,7 +30,7 @@ vec3 getSky()
 	sunPos.y = sin(radian);
 	sunPos.z = 0.0;
 
-	float sunDistance = distance(uv, normalize(sunPos));// clamp(sunPos, -1.0, 1.0));
+	float sunDistance = length(uv - normalize(sunPos));// clamp(sunPos, -1.0, 1.0));
 
 	float scatterMult = clamp(sunDistance, 0.0, 1.0);
 	float sun = clamp(1.0 - smoothstep(0.01, 0.011, scatterMult), 0.0, 1.0);
@@ -50,7 +50,7 @@ vec3 getSky()
 
 //	colour *= 1.0 + pow(1.0 - scatterMult, 10.0) * 10.0;
 
-	float underscatter = distance(sunPos.y * 0.5 + 0.5, 0.8);
+	float underscatter = (sunPos.y * 0.5 + 0.5 - 0.8);
 
 	//vec3 nightcolour = texture(cubeTex, uv).xyz;
 
