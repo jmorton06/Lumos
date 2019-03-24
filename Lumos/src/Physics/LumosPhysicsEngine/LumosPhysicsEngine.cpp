@@ -72,13 +72,34 @@ namespace Lumos
 		m_PhysicsObjects.clear();
 	}
 
-	void LumosPhysicsEngine::Update(TimeStep* timeStep)
+	void LumosPhysicsEngine::OnUpdate(TimeStep* timeStep)
 	{
 		if (!m_IsPaused)
 		{
-			m_UpdateTimestep = timeStep->GetSeconds();
+			if (m_MultipleUpdates)
+			{
+				const int max_updates_per_frame = 5;
 
-			UpdatePhysics();
+				m_UpdateAccum += timeStep->GetSeconds();
+				for (int i = 0; (m_UpdateAccum >= m_UpdateTimestep) && i < max_updates_per_frame; ++i)
+				{
+					m_UpdateAccum -= m_UpdateTimestep;
+					UpdatePhysics();
+				}
+
+				if (m_UpdateAccum >= m_UpdateTimestep)
+				{
+					LUMOS_CORE_ERROR("Physics too slow to run in real time!");
+					//Drop Time in the hope that it can continue to run in real-time
+					m_UpdateAccum = 0.0f;
+				}
+
+			}
+			else
+			{
+				m_UpdateTimestep = timeStep->GetSeconds();
+				UpdatePhysics();
+			}
 		}
 	}
 
