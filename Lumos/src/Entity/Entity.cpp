@@ -54,6 +54,8 @@ namespace Lumos
 			if (m_UpdateTransforms)
 				component.second->OnUpdateTransform(maths::Matrix4());
 		}
+
+		m_UpdateTransforms = false;
 	}
 
 	void Entity::AddChildObject(Entity* child)

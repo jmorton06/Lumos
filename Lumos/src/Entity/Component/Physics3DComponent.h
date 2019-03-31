@@ -21,6 +21,7 @@ namespace Lumos
 
 		void Init() override;
 		void OnUpdateComponent(float dt) override;
+		void OnUpdateTransform(const maths::Matrix4& entityTransform) override;
 		void DebugDraw(uint64 debugFlags) override;
 
 		inline virtual ComponentType GetType() const override { return GetStaticType(); }

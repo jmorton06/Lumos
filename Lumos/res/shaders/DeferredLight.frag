@@ -269,8 +269,8 @@ void main()
 
     diffuse = max(diffuse, vec4(0.1));
 
-    //finalColour = material.albedo.xyz * diffuse.rgb + specular;
-    finalColour = material.albedo.xyz * diffuse.rgb + (specular + IBL(light, material, eye));
+    finalColour = material.albedo.xyz * diffuse.rgb + specular;
+    //finalColour = material.albedo.xyz * diffuse.rgb + (specular + IBL(light, material, eye));
 
 	finalColour = FinalGamma(finalColour);
 	outColor = vec4(finalColour, 1.0);

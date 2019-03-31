@@ -150,7 +150,7 @@ namespace Lumos
 		for (uint i = 0; i < numVertices; i++)
 		{
 			verts[i].Position = vertices[i];
-			verts[i].Colours = maths::Vector4(1.0f);
+			verts[i].Colours = maths::Vector4(0.0f);
 			verts[i].Normal = normals[i];
 			verts[i].TexCoords = texCoords[i];
 			verts[i].Tangent = tangents[i];

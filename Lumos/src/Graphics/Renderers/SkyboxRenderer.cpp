@@ -243,14 +243,18 @@ namespace Lumos
 
 		std::vector<graphics::api::ImageInfo> imageInfos;
 
-		graphics::api::ImageInfo imageInfo = {};
-		imageInfo.texture = { m_CubeMap };
-		imageInfo.name = "u_CubeMap";
-		imageInfo.binding = 1;
-		imageInfo.type = TextureType::CUBE;
 
-		imageInfos.push_back(imageInfo);
+		if(m_CubeMap)
+		{
+			graphics::api::ImageInfo imageInfo = {};
+			imageInfo.texture = { m_CubeMap };
+			imageInfo.name = "u_CubeMap";
+			imageInfo.binding = 1;
+			imageInfo.type = TextureType::CUBE;
 
+			imageInfos.push_back(imageInfo);
+		}
+		
 		if(m_Pipeline != nullptr)
 			m_Pipeline->GetDescriptorSet()->Update(imageInfos, bufferInfos);
 	}
@@ -297,10 +301,10 @@ namespace Lumos
 		}
 		else
 		{
-			for (uint32_t i = 0; i < Renderer::GetRenderer()->GetSwapchain()->GetSwapchainBufferCount(); i++)
+			for (uint32_t i = 0; i < Renderer::GetSwapchain()->GetSwapchainBufferCount(); i++)
 			{
 				bufferInfo.screenFBO = true;
-				attachments[0] = Renderer::GetRenderer()->GetSwapchain()->GetImage(i);
+				attachments[0] = Renderer::GetSwapchain()->GetImage(i);
 				bufferInfo.attachments = attachments;
 
 				m_Framebuffers.emplace_back(Framebuffer::Create(bufferInfo));

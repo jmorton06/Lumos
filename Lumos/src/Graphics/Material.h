@@ -71,6 +71,8 @@ namespace Lumos
 		graphics::api::DescriptorSet* 	GetDescriptorSet() 	const { return m_DescriptorSet; }
 		int								GetRenderFlags()	const { return m_RenderFlags; }
 		graphics::api::Pipeline* 		GetPipeline()		const { return m_Pipeline; }
+		String							GetName()			const { return m_Name; }
+		MaterialProperties*				GetProperties()		const { return m_MaterialProperties; }
 
 	private:
 		PBRMataterialTextures   		m_PBRMaterialTextures;
@@ -81,6 +83,7 @@ namespace Lumos
 		MaterialProperties*				m_MaterialProperties;
 		uint							m_MaterialBufferSize;
         byte*                           m_MaterialBufferData;
+		String							m_Name;
 
 	};
 }

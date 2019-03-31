@@ -113,7 +113,7 @@ vec3 GetNormalFromMap()
 
 void main()
 {
-	vec4 texColour = GetAlbedo();
+	vec4 texColour = GetAlbedo() + vec4(fragColor, 0.0);
 	if(texColour.w < 0.4)
 		discard;
 
