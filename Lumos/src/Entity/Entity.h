@@ -61,6 +61,7 @@ namespace Lumos
 		void DebugDraw(uint64 debugFlags);
 
 		TransformComponent* GetTransform();
+		void SetUpdateTransforms(bool set) { m_UpdateTransforms = set; }
 
 	private:
 

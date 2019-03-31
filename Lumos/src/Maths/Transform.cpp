@@ -22,9 +22,7 @@ namespace Lumos
 			SetWorldPosition(position);
 		}
 
-		Transform::~Transform()
-		{
-		}
+		Transform::~Transform() = default;
 
 		void Transform::UpdateMatrices() 
 		{
@@ -36,28 +34,33 @@ namespace Lumos
 		{
 			m_LocalPosition = worldPos;
 			UpdateMatrices();
+			m_HasUpdated = true;
 		}
 
 		void Transform::SetLocalPosition(const Vector3& localPos)
 		{
 			m_LocalPosition = localPos;
 			UpdateMatrices();
+			m_HasUpdated = true;
 		}
 
 		void Transform::SetWorldScale(const Vector3& worldScale) 
 		{
 			m_LocalScale = worldScale;
 			UpdateMatrices();
+			m_HasUpdated = true;
 		}
 
 		void Transform::SetLocalScale(const Vector3& newScale)
 		{
 			m_LocalScale = newScale;
 			UpdateMatrices();
+			m_HasUpdated = true;
 		}
 		void Transform::SetOrientation(const Quaternion & quat)
 		{
 			m_Orientation = quat;
+			m_HasUpdated = true;
 		}
 	}
 }

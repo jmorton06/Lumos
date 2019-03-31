@@ -42,17 +42,17 @@ namespace Lumos
 		};
 
 		template<>
-		void BufferLayout::Push<float>(const String& name, uint count , bool normalized );
+		void LUMOS_EXPORT BufferLayout::Push<float>(const String& name, uint count , bool normalized );
 		template<>
-		void BufferLayout::Push<uint>(const String& name, uint count , bool normalized );
+		void LUMOS_EXPORT BufferLayout::Push<uint>(const String& name, uint count , bool normalized );
 		template<>
-		void BufferLayout::Push<byte>(const String& name, uint count , bool normalized );
+		void LUMOS_EXPORT BufferLayout::Push<byte>(const String& name, uint count , bool normalized );
 		template<>
-		void BufferLayout::Push<maths::Vector2>(const String& name, uint count , bool normalized );
+		void LUMOS_EXPORT BufferLayout::Push<maths::Vector2>(const String& name, uint count , bool normalized );
 		template<>
-		void BufferLayout::Push<maths::Vector3>(const String& name, uint count , bool normalized );
+		void LUMOS_EXPORT BufferLayout::Push<maths::Vector3>(const String& name, uint count , bool normalized );
 		template<>
-		void BufferLayout::Push<maths::Vector4>(const String& name, uint count , bool normalized );
+		void LUMOS_EXPORT BufferLayout::Push<maths::Vector4>(const String& name, uint count , bool normalized );
 
 	}
 }

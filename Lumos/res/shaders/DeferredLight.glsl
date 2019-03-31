@@ -339,26 +339,10 @@ void main()
 
     diffuse = max(diffuse, vec4(0.1));
 
-    //finalColour = material.albedo.xyz * diffuse.rgb + specular;
-    finalColour = material.albedo.xyz * diffuse.rgb + (specular + IBL(light, material, eye));
+    finalColour = material.albedo.xyz * diffuse.rgb + specular;
+    //finalColour = material.albedo.xyz * diffuse.rgb + (specular + IBL(light, material, eye));
 
 	finalColour = FinalGamma(finalColour);
 	outColor = vec4(finalColour, 1.0);
-
-	// switch(cascadeIndex)
-	// {
-	// 		case 0 :
-	// 			outColor.rgb *= vec3(1.0f, 0.25f, 0.25f);
-	// 			break;
-	// 		case 1 :
-	// 			outColor.rgb *= vec3(0.25f, 1.0f, 0.25f);
-	// 			break;
-	// 		case 2 :
-	// 			outColor.rgb *= vec3(0.25f, 0.25f, 1.0f);
-	// 			break;
-	// 		case 3 :
-	// 			outColor.rgb *= vec3(1.0f, 1.0f, 0.25f);
-	// 			break;
-	// }
 }
 #shader end

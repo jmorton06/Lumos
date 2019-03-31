@@ -30,6 +30,36 @@ namespace Lumos
 	{
 		if (ImGui::TreeNode("Model"))
 		{
+			auto meshes = m_Model->GetMeshs();
+			ImGui::Text("Number Of Meshes", "%s", static_cast<int>(meshes.size()));
+			
+			if (ImGui::TreeNode("Meshes"))
+			{
+				for (auto& mesh : meshes)
+				{
+					if (ImGui::TreeNode("Mesh"))
+					{
+						if (ImGui::TreeNode("Material : ", "%s", mesh->GetMaterial()->GetName().c_str()))
+						{
+							MaterialProperties* prop = mesh->GetMaterial()->GetProperties();
+
+							ImGui::InputFloat("Use Albedo Map", &prop->usingAlbedoMap);
+							ImGui::InputFloat("Use Specular Map", &prop->usingSpecularMap);
+							ImGui::InputFloat("Use Gloss Map", &prop->usingGlossMap);
+							ImGui::InputFloat("Use Normal Map", &prop->usingNormalMap);
+
+							ImGui::InputFloat3("Albedo", &prop->albedoColour.x);
+							ImGui::InputFloat3("Gloss", &prop->glossColour.x);
+							ImGui::InputFloat3("Specular", &prop->specularColour.x);
+
+							mesh->GetMaterial()->SetMaterialProperites(*prop);
+							ImGui::TreePop();
+						}
+						ImGui::TreePop();
+					}
+				}
+				ImGui::TreePop();
+			}
 			ImGui::TreePop();
 		}
 	}

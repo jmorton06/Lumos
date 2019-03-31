@@ -6,10 +6,8 @@
 
 namespace Lumos
 {
-	namespace maths {
-
-#ifdef LUMOS_SSEMAT3
-
+	namespace maths
+	{
 		const float Matrix3::EMPTY_DATA[9] =
 				{
 						0, 0, 0,
@@ -31,7 +29,8 @@ namespace Lumos
 		Matrix3::Matrix3(
 				const Vector3 &v1,
 				const Vector3 &v2,
-				const Vector3 &v3) {
+				const Vector3 &v3) 
+		{
 #ifdef LUMOS_SSEVEC3
 			const unsigned int size = 3 * sizeof(float);
 			memcpy(&values[0], &v1.x, size);
@@ -53,7 +52,8 @@ namespace Lumos
 				_31(c1), _32(c2), _33(c3) {}
 
 
-		Matrix3::Matrix3(const Matrix4 &m4) {
+		Matrix3::Matrix3(const Matrix4 &m4) 
+		{
 #ifdef LUMOS_SSEMAT4
 			_mm_storeu_ps(&values[0], m4.mmvalues[0]);
 			_mm_storeu_ps(&values[3], m4.mmvalues[1]);
@@ -69,7 +69,8 @@ namespace Lumos
 		}
 
 
-		Matrix3 Matrix3::Rotation(float degrees, const Vector3 &axis) {
+		Matrix3 Matrix3::Rotation(float degrees, const Vector3 &axis) 
+		{
 			Matrix3 m;
 			Vector3 axisNorm = axis;
 			axisNorm.Normalise();
@@ -77,6 +78,7 @@ namespace Lumos
 			float c = cos(Lumos::maths::DegToRad(degrees));
 			float s = sin(Lumos::maths::DegToRad(degrees));
 
+#ifdef LUMOS_SSEMAT3
 			__m128 normXYZW = _mm_set_ps(0, axisNorm.GetZ(), axisNorm.GetY(), axisNorm.GetX());
 			__m128 normXYZWWithC = _mm_mul_ps(normXYZW, _mm_set1_ps(1.0f - c));
 			__m128 col0 = _mm_mul_ps(normXYZW, _mm_set1_ps(GetValue(normXYZWWithC, 0)));
@@ -92,10 +94,24 @@ namespace Lumos
 			m.values[6] = GetValue(col2, 0) + (axisNorm.GetY() * s);
 			m.values[7] = GetValue(col2, 1) - (axisNorm.GetX() * s);
 			m.values[8] = GetValue(col2, 2) + c;
+#else
+			m(0, 0) = (axis.GetX() * axis.GetX()) * (1.0f - c) + c;
+			m(1, 0) = (axis.GetY() * axis.GetX()) * (1.0f - c) + (axis.GetZ() * s);
+			m(2, 0) = (axis.GetZ() * axis.GetX()) * (1.0f - c) - (axis.GetY() * s);
+
+			m(0, 1) = (axis.GetX() * axis.GetY()) * (1.0f - c) - (axis.GetZ() * s);
+			m(1, 1) = (axis.GetY() * axis.GetY()) * (1.0f - c) + c;
+			m(2, 1) = (axis.GetZ() * axis.GetY()) * (1.0f - c) + (axis.GetX() * s);
+
+			m(0, 2) = (axis.GetX() * axis.GetZ()) * (1.0f - c) + (axis.GetY() * s);
+			m(1, 2) = (axis.GetY() * axis.GetZ()) * (1.0f - c) - (axis.GetX() * s);
+			m(2, 2) = (axis.GetZ() * axis.GetZ()) * (1.0f - c) + c;
+#endif
 			return m;
 		}
 
-		Matrix3 Matrix3::Rotation(float degreesX, float degreesY, float degreesZ) {
+		Matrix3 Matrix3::Rotation(float degreesX, float degreesY, float degreesZ)
+		{
 			// Building this matrix directly is faster than multiplying three matrices for X, Y and Z
 			float phi = Lumos::maths::DegToRad(degreesX), theta = Lumos::maths::DegToRad(degreesY), psi = Lumos::maths::DegToRad(
 					degreesZ);
@@ -116,7 +132,8 @@ namespace Lumos
 			return result;
 		}
 
-		Matrix3 Matrix3::RotationX(float degrees) {
+		Matrix3 Matrix3::RotationX(float degrees) 
+		{
 			Matrix3 m;
 			float rad = Lumos::maths::DegToRad(degrees);
 			float c = cos(rad);
@@ -131,7 +148,8 @@ namespace Lumos
 			return m;
 		}
 
-		Matrix3 Matrix3::RotationY(float degrees) {
+		Matrix3 Matrix3::RotationY(float degrees) 
+		{
 			Matrix4 m;
 			float rad = Lumos::maths::DegToRad(degrees);
 			float c = cos(rad);
@@ -146,7 +164,8 @@ namespace Lumos
 			return m;
 		}
 
-		Matrix3 Matrix3::RotationZ(float degrees) {
+		Matrix3 Matrix3::RotationZ(float degrees) 
+		{
 			Matrix4 m;
 			float rad = Lumos::maths::DegToRad(degrees);
 			float c = cos(rad);
@@ -161,24 +180,48 @@ namespace Lumos
 			return m;
 		}
 
-		Matrix3 Matrix3::Scale(const Vector3 &scale) {
+		Matrix3 Matrix3::Scale(const Vector3 &scale) 
+		{
 			Matrix3 m;
 			m.SetDiagonal(scale);
 			return m;
 		}
 
+		Vector3 Matrix3::operator*(const Vector3& v) const
+		{
+			return Vector3(
+				v.GetX() * values[0] + v.GetY() * values[3] + v.GetZ() * values[6],
+				v.GetX() * values[1] + v.GetY() * values[4] + v.GetZ() * values[7],
+				v.GetX() * values[2] + v.GetY() * values[5] + v.GetZ() * values[8]
+			);
+		}
 
-		float Matrix3::Determinant() const {
+		Matrix3 Matrix3::operator*(const Matrix3& m) const
+		{
+			Matrix3 result;
+			for (unsigned i = 0; i < 9; i += 3)
+				for (unsigned j = 0; j < 3; ++j)
+					result.values[i + j] = m.values[i] * values[j] + m.values[i + 1] * values[j + 3] +
+						m.values[i + 2] * values[j + 6];
+
+			return result;
+		}
+
+
+		float Matrix3::Determinant() const
+		{
 			return
 					values[0] * (values[4] * values[8] - values[5] * values[7]) -
 					values[3] * (values[1] * values[8] - values[7] * values[2]) +
 					values[6] * (values[1] * values[5] - values[4] * values[2]);
 		}
 
-		Matrix3 Matrix3::Inverse() const {
+		Matrix3 Matrix3::Inverse() const 
+		{
 			Matrix3 result;
 			float det = Determinant();
-			if (det != 0.0f) {
+			if (det != 0.0f) 
+			{
 				float detReciprocal = 1.0f / det;
 				result.values[0] = (values[4] * values[8] - values[5] * values[7]) * detReciprocal;
 				result.values[1] = (values[7] * values[2] - values[1] * values[8]) * detReciprocal;
@@ -193,9 +236,11 @@ namespace Lumos
 			return result;
 		}
 
-		bool Matrix3::TryInvert() {
+		bool Matrix3::TryInvert() 
+		{
 			float det = Determinant();
-			if (det != 0.0f) {
+			if (det != 0.0f) 
+			{
 				float detReciprocal = 1.0f / det;
 				float result[9];
 				result[0] = (values[4] * values[8] - values[5] * values[7]) * detReciprocal;
@@ -213,9 +258,11 @@ namespace Lumos
 			return false;
 		}
 
-		bool Matrix3::TryTransposedInvert() {
+		bool Matrix3::TryTransposedInvert()
+		{
 			float det = Determinant();
-			if (det != 0.0f) {
+			if (det != 0.0f) 
+			{
 				float invdet = 1.0f / det;
 				float result[9];
 				result[0] = (values[4] * values[8] - values[5] * values[7]) * invdet;
@@ -233,26 +280,8 @@ namespace Lumos
 			return false;
 		}
 
-// Standard Matrix Functionality
-		Matrix3 Matrix3::Inverse(const Matrix3 &rhs) {
-			Matrix3 out;
-			const float det = rhs.Determinant();
-			if (det != 0.f) {
-				const float invdet = 1.0f / det;
-				out(0, 0) = (rhs(1, 1) * rhs(2, 2) - rhs(2, 1) * rhs(1, 2)) * invdet;
-				out(0, 1) = -(rhs(0, 1) * rhs(2, 2) - rhs(0, 2) * rhs(2, 1)) * invdet;
-				out(0, 2) = (rhs(0, 1) * rhs(1, 2) - rhs(0, 2) * rhs(1, 1)) * invdet;
-				out(1, 0) = -(rhs(1, 0) * rhs(2, 2) - rhs(1, 2) * rhs(2, 0)) * invdet;
-				out(1, 1) = (rhs(0, 0) * rhs(2, 2) - rhs(0, 2) * rhs(2, 0)) * invdet;
-				out(1, 2) = -(rhs(0, 0) * rhs(1, 2) - rhs(1, 0) * rhs(0, 2)) * invdet;
-				out(2, 0) = (rhs(1, 0) * rhs(2, 1) - rhs(2, 0) * rhs(1, 1)) * invdet;
-				out(2, 1) = -(rhs(0, 0) * rhs(2, 1) - rhs(2, 0) * rhs(0, 1)) * invdet;
-				out(2, 2) = (rhs(0, 0) * rhs(1, 1) - rhs(1, 0) * rhs(0, 1)) * invdet;
-			}
-			return out;
-		}
-
-		Matrix3 Matrix3::Transpose(const Matrix3 &rhs) {
+		Matrix3 Matrix3::Transpose(const Matrix3 &rhs) 
+		{
 			Matrix3 m;
 
 			m._11 = rhs._11;
@@ -270,7 +299,8 @@ namespace Lumos
 			return m;
 		}
 
-		Matrix3 Matrix3::Adjugate(const Matrix3 &m) {
+		Matrix3 Matrix3::Adjugate(const Matrix3 &m)
+		{
 			Matrix3 adj;
 
 			adj._11 = m._22 * m._33 - m._23 * m._32;
@@ -289,7 +319,8 @@ namespace Lumos
 		}
 
 
-		std::ostream &operator<<(std::ostream &o, const Matrix3 &m) {
+		std::ostream &operator<<(std::ostream &o, const Matrix3 &m) 
+		{
 			return o << "Mat3(" << "/n" <<
 					 "\t" << m.values[0] << ", " << m.values[3] << ", " << m.values[6] << ", " << "/n" <<
 					 "\t" << m.values[1] << ", " << m.values[4] << ", " << m.values[7] << ", " << "/n" <<
@@ -297,103 +328,8 @@ namespace Lumos
 					 ")";
 		}
 
-#else
 
-        const Matrix3 Matrix3::Identity = Matrix3();
-        const Matrix3 Matrix3::ZeroMatrix = Matrix3(0.0f, 0.0f, 0.0f,
-            0.0f, 0.0f, 0.0f,
-            0.0f, 0.0f, 0.0f);
-
-        //ctor
-        Matrix3::Matrix3() :
-            _11(1.0f), _12(0.0f), _13(0.0f),
-            _21(0.0f), _22(1.0f), _23(0.0f),
-            _31(0.0f), _32(0.0f), _33(1.0f)
-        {
-        }
-
-        Matrix3::Matrix3(const float e[9]) :
-            _11(e[0]), _12(e[1]), _13(e[2]),
-            _21(e[3]), _22(e[4]), _23(e[5]),
-            _31(e[6]), _32(e[7]), _33(e[8])
-        {
-        }
-
-        Matrix3::Matrix3(const Vector3& c1, const Vector3& c2, const Vector3& c3)
-        {
-            //const unsigned int size = 3 * sizeof(float);
-            //memcpy(&mat_array[0], &c1.GetX(), size);
-            //memcpy(&mat_array[3], &c2.GetY(), size);
-            //memcpy(&mat_array[6], &c3.GetZ(), size);
-
-            _11 = c1.GetX(); _12 = c1.GetY(); _13 = c1.GetZ();
-            _21 = c2.GetX(); _22 = c2.GetY(); _23 = c2.GetZ();
-            _31 = c3.GetX(); _32 = c3.GetY(); _33 = c3.GetZ();
-        }
-
-        Matrix3::Matrix3(const float a1, const float a2, const float a3,
-                         const float b1, const float b2, const float b3,
-                         const float c1, const float c2, const float c3) :
-            _11(a1), _12(a2), _13(a3),
-            _21(b1), _22(b2), _23(b3),
-            _31(c1), _32(c2), _33(c3)
-        {
-        }
-
-        Matrix3::Matrix3(const Matrix4& mat44)
-        {
-            const unsigned int size = 3 * sizeof(float);
-            memcpy(&values[0], &mat44.values[0], size);
-            memcpy(&values[3], &mat44.values[4], size);
-            memcpy(&values[6], &mat44.values[8], size);
-        }
-
-        //Default States
-        void Matrix3::ToZero()
-        {
-            memset(values, 0, 9 * sizeof(float));
-        }
-
-        void Matrix3::ToIdentity()
-        {
-            _11 = 1.0f; _12 = 0.0f; _13 = 0.0f;
-            _21 = 0.0f; _22 = 1.0f; _23 = 0.0f;
-            _31 = 0.0f; _32 = 0.0f; _33 = 1.0f;
-        }
-
-        //Transformation Matrix
-        Matrix3 Matrix3::Rotation(const float degrees, const Vector3 &inaxis)
-        {
-            Matrix3 m;
-
-            Vector3 axis = inaxis;
-            axis.Normalise();
-
-            const float c = cosf(static_cast<float>(maths::DegToRad(degrees)));
-            const float s = sinf(static_cast<float>(maths::DegToRad(degrees)));
-
-            m(0, 0) = (axis.GetX() * axis.GetX()) * (1.0f - c) + c;
-            m(1, 0) = (axis.GetY() * axis.GetX()) * (1.0f - c) + (axis.GetZ() * s);
-            m(2, 0) = (axis.GetZ() * axis.GetX()) * (1.0f - c) - (axis.GetY() * s);
-
-            m(0, 1) = (axis.GetX() * axis.GetY()) * (1.0f - c) - (axis.GetZ() * s);
-            m(1, 1) = (axis.GetY() * axis.GetY()) * (1.0f - c) + c;
-            m(2, 1) = (axis.GetZ() * axis.GetY()) * (1.0f - c) + (axis.GetX() * s);
-
-            m(0, 2) = (axis.GetX() * axis.GetZ()) * (1.0f - c) + (axis.GetY() * s);
-            m(1, 2) = (axis.GetY() * axis.GetZ()) * (1.0f - c) - (axis.GetX() * s);
-            m(2, 2) = (axis.GetZ() * axis.GetZ()) * (1.0f - c) + c;
-
-            return m;
-        }
-
-        Matrix3 Matrix3::Scale(const Vector3 &scale)
-        {
-            Matrix3 m;
-            m.SetScalingVector(scale);
-            return m;
-        }
-
+     
         // Standard Matrix Functionality
         Matrix3 Matrix3::Inverse(const Matrix3& rhs)
         {
@@ -415,44 +351,6 @@ namespace Lumos
             return out;
         }
 
-        Matrix3 Matrix3::Transpose(const Matrix3& rhs)
-        {
-            Matrix3 m;
-
-            m._11 = rhs._11;
-            m._21 = rhs._12;
-            m._31 = rhs._13;
-
-            m._12 = rhs._21;
-            m._22 = rhs._22;
-            m._32 = rhs._23;
-
-            m._13 = rhs._31;
-            m._23 = rhs._32;
-            m._33 = rhs._33;
-
-            return m;
-        }
-
-        Matrix3 Matrix3::Adjugate(const Matrix3& m)
-        {
-            Matrix3 adj;
-
-            adj._11 = m._22 * m._33 - m._23 * m._32;
-            adj._12 = m._13 * m._32 - m._12 * m._33;
-            adj._13 = m._12 * m._23 - m._13 * m._22;
-
-            adj._21 = m._23 * m._31 - m._21 * m._33;
-            adj._22 = m._11 * m._33 - m._13 * m._31;
-            adj._23 = m._13 * m._21 - m._11 * m._23;
-
-            adj._31 = m._21 * m._32 - m._22 * m._31;
-            adj._32 = m._12 * m._31 - m._11 * m._32;
-            adj._33 = m._11 * m._22 - m._12 * m._21;
-
-            return adj;
-        }
-
         Matrix3 Matrix3::OuterProduct(const Vector3& a, const Vector3& b)
         {
             Matrix3 m;
@@ -472,142 +370,9 @@ namespace Lumos
             return m;
         }
 
-        // Additional Functionality
         float Matrix3::Trace() const
         {
             return _11 + _22 + _33;
         }
-
-        float Matrix3::Determinant() const
-        {
-            return +_11*(_22*_33 - _32*_23) - _12*(_21*_33 - _23*_31) + _13*(_21*_32 - _22*_31);
-        }
-
-        Matrix3& operator+=(Matrix3& a, const Matrix3& b)
-        {
-            for (unsigned int i = 0; i < 9; ++i)
-                a.values[i] += b.values[i];
-            return a;
-        }
-
-        Matrix3& operator-=(Matrix3& a, const Matrix3& b)
-        {
-            for (unsigned int i = 0; i < 9; ++i)
-                a.values[i] -= b.values[i];
-            return a;
-        }
-
-        Matrix3 operator+(const Matrix3& a, const Matrix3& b)
-        {
-            Matrix3 m;
-            for (unsigned int i = 0; i < 9; ++i)
-                m.values[i] = a.values[i] + b.values[i];
-            return m;
-        }
-
-        Matrix3 operator-(const Matrix3& a, const Matrix3& b)
-        {
-            Matrix3 m;
-            for (unsigned int i = 0; i < 9; ++i)
-                m.values[i] = a.values[i] - b.values[i];
-            return m;
-        }
-
-        Matrix3 operator*(const Matrix3& a, const Matrix3& b)
-        {
-            Matrix3 out;
-
-            out._11 = a._11 * b._11 + a._12 * b._21 + a._13 * b._31;
-            out._12 = a._11 * b._12 + a._12 * b._22 + a._13 * b._32;
-            out._13 = a._11 * b._13 + a._12 * b._23 + a._13 * b._33;
-
-            out._21 = a._21 * b._11 + a._22 * b._21 + a._23 * b._31;
-            out._22 = a._21 * b._12 + a._22 * b._22 + a._23 * b._32;
-            out._23 = a._21 * b._13 + a._22 * b._23 + a._23 * b._33;
-
-            out._31 = a._31 * b._11 + a._32 * b._21 + a._33 * b._31;
-            out._32 = a._31 * b._12 + a._32 * b._22 + a._33 * b._32;
-            out._33 = a._31 * b._13 + a._32 * b._23 + a._33 * b._33;
-
-            return out;
-        }
-
-        Matrix3& operator+=(Matrix3& a, const float b)
-        {
-            for (unsigned int i = 0; i < 9; ++i)
-                a.values[i] += b;
-            return a;
-        }
-
-        Matrix3& operator-=(Matrix3& a, const float b)
-        {
-            for (unsigned int i = 0; i < 9; ++i)
-                a.values[i] -= b;
-            return a;
-        }
-        Matrix3& operator*=(Matrix3& a, const float b)
-        {
-            for (unsigned int i = 0; i < 9; ++i)
-                a.values[i] *= b;
-            return a;
-        }
-        Matrix3& operator/=(Matrix3& a, const float b)
-        {
-            for (unsigned int i = 0; i < 9; ++i)
-                a.values[i] /= b;
-            return a;
-        }
-
-        Matrix3 operator+(Matrix3& a, const float b)
-        {
-            Matrix3 m;
-            for (unsigned int i = 0; i < 9; ++i)
-                m.values[i] = a.values[i] + b;
-            return m;
-        }
-
-        Matrix3 operator-(const Matrix3& a, const float b)
-        {
-            Matrix3 m;
-            for (unsigned int i = 0; i < 9; ++i)
-                m.values[i] = a.values[i] - b;
-            return m;
-        }
-        Matrix3 operator*(const Matrix3& a, const float b)
-        {
-            Matrix3 m;
-            for (unsigned int i = 0; i < 9; ++i)
-                m.values[i] = a.values[i] * b;
-            return m;
-        }
-        Matrix3 operator/(const Matrix3& a, const float b)
-        {
-            Matrix3 m;
-            for (unsigned int i = 0; i < 9; ++i)
-                m.values[i] = a.values[i] / b;
-            return m;
-        }
-
-        Vector3 operator*(const Matrix3& a, const Vector3& b)
-        {
-            Vector3 out;
-
-            out.SetX( a._11 * b.GetX()
-                    + a._21 * b.GetY()
-                    + a._31 * b.GetZ());
-
-            out.SetY( a._12 * b.GetX()
-                    + a._22 * b.GetY()
-                    + a._32 * b.GetZ());
-
-            out.SetZ( a._13 * b.GetX()
-                    + a._23 * b.GetY()
-                    + a._33 * b.GetZ());
-
-            return out;
-        }
-
-#endif
-
 	}
 }

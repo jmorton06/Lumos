@@ -3,7 +3,6 @@
 #include "Vector3.h"
 #include "Vector4.h"
 #include "MathsCommon.h"
-#include "SSEUtilities.h"
 
 #define CLIP_CONTROL_ZO_BIT		(1 << 0) // ZERO_TO_ONE
 #define CLIP_CONTROL_NO_BIT		(1 << 1) // NEGATIVE_ONE_TO_ONE

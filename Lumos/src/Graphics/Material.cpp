@@ -56,6 +56,7 @@ namespace Lumos
 
 	void Material::LoadPBRMaterial(const String& name, const String& path, const String& extension)
 	{
+		m_Name = name;
 		m_PBRMaterialTextures = PBRMataterialTextures();
         auto params = TextureParameters(TextureFormat::RGBA, TextureFilter::LINEAR, TextureWrap::CLAMP_TO_EDGE);
 
@@ -67,6 +68,7 @@ namespace Lumos
 
 	void Material::LoadMaterial(const String& name, const String& path)
 	{
+		m_Name = name;
 		m_PBRMaterialTextures = PBRMataterialTextures();
 		m_PBRMaterialTextures.albedo    = std::shared_ptr<Texture2D>(Texture2D::CreateFromFile(name, path));
 		m_PBRMaterialTextures.normal    = nullptr;
@@ -90,6 +92,8 @@ namespace Lumos
         m_MaterialProperties->usingGlossMap     = properties.usingGlossMap;
 
         UpdateMaterialPropertiesData();
+		if(m_MaterialPropertiesBuffer)
+		m_MaterialPropertiesBuffer->SetData(m_MaterialBufferSize, *&m_MaterialBufferData);
     }
 
 	void Material::CreateDescriptorSet(graphics::api::Pipeline* pipeline, int layoutID, bool pbr)
