@@ -1,4 +1,4 @@
-﻿#include "LM.h"
+#include "LM.h"
 #include "ModelComponent.h"
 #include "Graphics/Model/Model.h"
 #include "Maths/BoundingSphere.h"
@@ -43,14 +43,14 @@ namespace Lumos
 						{
 							MaterialProperties* prop = mesh->GetMaterial()->GetProperties();
 
-							ImGui::InputFloat("Use Albedo Map", &prop->usingAlbedoMap);
-							ImGui::InputFloat("Use Specular Map", &prop->usingSpecularMap);
-							ImGui::InputFloat("Use Gloss Map", &prop->usingGlossMap);
-							ImGui::InputFloat("Use Normal Map", &prop->usingNormalMap);
+							ImGui::SliderFloat("Use Albedo Map", &prop->usingAlbedoMap, 0.0f, 1.0f);
+							ImGui::SliderFloat("Use Specular Map", &prop->usingSpecularMap, 0.0f, 1.0f);
+							ImGui::SliderFloat("Use Gloss Map", &prop->usingGlossMap, 0.0f, 1.0f);
+							ImGui::SliderFloat("Use Normal Map", &prop->usingNormalMap, 0.0f, 1.0f);
 
-							ImGui::InputFloat3("Albedo", &prop->albedoColour.x);
-							ImGui::InputFloat3("Gloss", &prop->glossColour.x);
-							ImGui::InputFloat3("Specular", &prop->specularColour.x);
+							ImGui::SliderFloat3("Albedo", &prop->albedoColour.x, 0.0f, 1.0f);
+							ImGui::SliderFloat3("Gloss", &prop->glossColour.x, 0.0f, 1.0f);
+							ImGui::SliderFloat3("Specular", &prop->specularColour.x, 0.0f, 1.0f);
 
 							mesh->GetMaterial()->SetMaterialProperites(*prop);
 							ImGui::TreePop();
