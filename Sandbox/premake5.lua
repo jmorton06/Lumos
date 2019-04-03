@@ -24,6 +24,7 @@ project "Sandbox"
 		"../Dependencies/vulkan/",
 		"../Dependencies/",
 		"../Lumos/external/",
+		"../Lumos/external/jsonhpp/",
 		"../Lumos/external/spdlog/include",
 		"../Lumos/src"
 	}

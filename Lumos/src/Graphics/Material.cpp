@@ -146,7 +146,7 @@ namespace Lumos
 		if(m_PBRMaterialTextures.roughness != nullptr)
 		{
 			graphics::api::ImageInfo imageInfo3 = {};
-            imageInfo3.texture = { m_PBRMaterialTextures.metallic.get() };
+            imageInfo3.texture = { m_PBRMaterialTextures.roughness.get() };
 			imageInfo3.binding = 2;
 			imageInfo3.name = "u_GlossMap";
 			imageInfos.push_back(imageInfo3);
@@ -157,7 +157,7 @@ namespace Lumos
 		if(m_PBRMaterialTextures.normal != nullptr)
 		{
 			graphics::api::ImageInfo imageInfo4 = {};
-			imageInfo4.texture = { m_PBRMaterialTextures.metallic.get() };
+			imageInfo4.texture = { m_PBRMaterialTextures.normal.get() };
 			imageInfo4.binding = 3;
 			imageInfo4.name = "u_NormalMap";
 			imageInfos.push_back(imageInfo4);

@@ -133,8 +133,6 @@ namespace Lumos
 
 		Renderer::Release();
 
-		//SoundSystem::Destroy();
-
 		if (pause)
 		{
 			LUMOS_CORE_ERROR("{0}", reason);
@@ -150,37 +148,6 @@ namespace Lumos
 //#else
 		return maths::Vector2(static_cast<float>(m_Window->GetWidth()), static_cast<float>(m_Window->GetHeight()));
 //
-	}
-
-	void Application::PhysicsUpdate(float targetUpdateTime)
-	{
-		Timer t;
-
-		float updateTimer = 0.0f;
-
-		TimeStep* timeStep = new TimeStep(static_cast<float>(t.GetMS()) * 1000.0f);
-
-		while (Application::Instance()->GetState() == AppState::Running)
-		{
-#ifdef LUMOS_EDITOR
-			if(Application::Instance()->GetEditorState() != EditorState::Paused && Application::Instance()->GetEditorState() != EditorState::Preview)
-#endif
-			{
-				float now = t.GetMS(1.0f) * 1000.0f;
-
-				if (now - updateTimer > targetUpdateTime)
-				{
-					updateTimer += targetUpdateTime;
-
-					timeStep->Update(now);
-
-					/*LumosPhysicsEngine::Instance()->OnUpdate(timeStep);
-					B2PhysicsEngine::Instance()->OnUpdate(timeStep);*/
-				}
-			}
-		}
-
-		delete timeStep;
 	}
 
 	bool Application::OnFrame()
