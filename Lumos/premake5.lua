@@ -19,13 +19,13 @@ project "Lumos"
 		"external/imgui/imstb_rectpack.h",
 		"external/imgui/imstb_textedit.h",
 		"external/imgui/imstb_truetype.h",
-		"external/tinygltf/json.hpp",
 		"external/tinygltf/stb_image_write.h",
 		"external/tinygltf/stb_image.h",
 		"external/tinygltf/tiny_gltf.h",
 		"external/stb/stb_vorbis.c",
 		"external/simplex/**.h",
 		"external/simplex/**.cpp",
+		"external/jsonhpp/json.hpp",
 
 		"res/**"
 	}
@@ -46,7 +46,9 @@ project "Lumos"
 	sysincludedirs
 	{
 		"external/",
+		"external/jsonhpp/",
 		"external/stb/",
+		"external/imgui/",
 		"external/spdlog/include",
 		"../Dependencies/",
 		"../Dependencies/lua/src/",

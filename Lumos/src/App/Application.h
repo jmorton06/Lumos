@@ -79,8 +79,6 @@ namespace Lumos
 
 		maths::Vector2 GetWindowSize() const;
 
-		static void PhysicsUpdate(float targetUpdateTime);
-
 		static Application* Instance() { return s_Instance; }
 
 	private:
@@ -90,7 +88,6 @@ namespace Lumos
 		float 	  				  	m_UpdateTimer;
 		std::unique_ptr<Timer>	  	m_Timer;
 		std::unique_ptr<TimeStep> 	m_TimeStep;
-		std::thread 				m_PhysicsThread;
 
 		uint m_Frames;
 		uint m_Updates;
