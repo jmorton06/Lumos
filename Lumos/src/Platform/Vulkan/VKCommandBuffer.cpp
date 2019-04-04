@@ -70,8 +70,8 @@ namespace Lumos
 			{
 				vk::CommandBufferInheritanceInfo inheritanceInfo{};
 				inheritanceInfo.subpass = 0;
-				inheritanceInfo.renderPass = ((VKRenderpass*)renderPass)->GetRenderpass();
-				inheritanceInfo.framebuffer = ((VKFramebuffer*)framebuffer)->GetFramebuffer();
+				inheritanceInfo.renderPass = static_cast<VKRenderpass*>(renderPass)->GetRenderpass();
+				inheritanceInfo.framebuffer = static_cast<VKFramebuffer*>(framebuffer)->GetFramebuffer();
 
 				vk::CommandBufferBeginInfo beginCI{};
 				beginCI.flags = vk::CommandBufferUsageFlagBits::eRenderPassContinue;
@@ -131,7 +131,7 @@ namespace Lumos
 		void VKCommandBuffer::ExecuteSecondary(CommandBuffer* primaryCmdBuffer)
 		{
 			if (!m_Primary)
-				((VKCommandBuffer*)primaryCmdBuffer)->GetCommandBuffer().executeCommands(m_CommandBuffer[0]);
+				static_cast<VKCommandBuffer*>(primaryCmdBuffer)->GetCommandBuffer().executeCommands(m_CommandBuffer[0]);
 			else
 				LUMOS_CORE_ERROR("WARNING: Used ExecuteSecondary on primary command buffer!");
 		}

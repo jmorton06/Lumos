@@ -17,6 +17,10 @@ namespace Lumos
 	public:
 		Water(const maths::Vector3 &position, const maths::Vector3 &scale);
 		~Water();
+        
+        Water(Water const&) = delete;
+        Water& operator=(Water const&) = delete;
+
 
 		void Draw() override;
 

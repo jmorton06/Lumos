@@ -31,7 +31,7 @@ namespace Lumos
 
 		virtual void Draw(bool bind = false);
 
-		void SetMaterial(std::shared_ptr<Material> material);
+		void SetMaterial(std::shared_ptr<Material>& material);
 		void SetMaterialFlag(Material::RenderFlags flag);
 		void ResetRenderFlags();
 

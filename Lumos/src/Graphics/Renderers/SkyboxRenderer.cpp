@@ -3,6 +3,7 @@
 #include "Graphics/API/Shader.h"
 #include "Graphics/RenderList.h"
 #include "Graphics/API/Framebuffer.h"
+#include "Graphics/API/Textures/TextureDepth.h"
 #include "Graphics/API/Textures/TextureCube.h"
 #include "Graphics/Mesh.h"
 #include "Graphics/API/Renderer.h"
@@ -290,7 +291,7 @@ namespace Lumos
 		bufferInfo.renderPass = m_RenderPass;
 		bufferInfo.attachmentTypes = attachmentTypes;
 
-        attachments[1] = (Texture*)Application::Instance()->GetRenderManager()->GetGBuffer()->m_DepthTexture;
+        attachments[1] = dynamic_cast<Texture*>(Application::Instance()->GetRenderManager()->GetGBuffer()->m_DepthTexture);
         
 		if (m_RenderTexture)
 		{

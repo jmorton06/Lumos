@@ -61,9 +61,9 @@ namespace Lumos
 	{
 		//for (i = 0; i < commandBuffers.size(); i++)
 		{
-			int m_CommandBufferIndex = 0;
+            m_CurrentBufferID = 0;
 			if (!m_RenderTexture)
-				m_CommandBufferIndex = Renderer::GetSwapchain()->GetCurrentBufferId();
+				m_CurrentBufferID = Renderer::GetSwapchain()->GetCurrentBufferId();
 
 			Begin();
 			BeginScene(scene);
