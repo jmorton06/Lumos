@@ -88,19 +88,19 @@ namespace Lumos
             wd->Surface = surface;
             wd->ClearEnable = m_ClearScreen;
             
-            for (int i = 0; i < Renderer::GetRenderer()->GetSwapchain()->GetSwapchainBufferCount(); i++)
+            for (int i = 0; i < Renderer::GetSwapchain()->GetSwapchainBufferCount(); i++)
             {
                 VKCommandBuffer* commandBuffer = new VKCommandBuffer();
                 commandBuffer->Init(true);
                 m_CommandBuffers[i] = commandBuffer;
             }
             
-            auto swapChain = ((VKSwapchain*)VKRenderer::GetRenderer()->GetSwapchain());
+            auto swapChain = static_cast<VKSwapchain*>(VKRenderer::GetSwapchain());
             wd->Swapchain = swapChain->GetSwapchain();
             wd->Width = width;
             wd->Height = height;
 
-            wd->BackBufferCount = (uint32_t)swapChain->GetSwapchainBufferCount();
+            wd->BackBufferCount = static_cast<uint32_t>(swapChain->GetSwapchainBufferCount());
             
 			m_Renderpass = new VKRenderpass();
             TextureType textureTypes[1] = { TextureType::COLOUR };
