@@ -44,7 +44,6 @@ namespace Lumos
 		BeginDockSpace();
 		//SelectEntity();
 		DrawSceneView();
-		DrawSceneInfoWindow();
 		DrawConsole();
 		DrawHierarchyWindow();
 		DrawInspectorWindow();
@@ -80,8 +79,7 @@ namespace Lumos
 				ImGui::EndMenu();
 			}
 
-			if (ImGui::MenuItem("X")) { Application::Instance()->SetAppState(AppState::Closing); }
-
+			ImGui::SameLine(ImGui::GetWindowContentRegionMax().x / 2.0f);
 			if (ImGui::ImageButton(m_Icons["play"]->GetHandle(), ImVec2(16, 16), ImVec2(0.0f, m_FlipImGuiImage ? 1.0f : 0.0f), ImVec2(1.0f, m_FlipImGuiImage ? 0.0f : 1.0f)))
 				m_Application->SetEditorState(EditorState::Play);
 			
@@ -90,6 +88,9 @@ namespace Lumos
 
 			if (ImGui::ImageButton(m_Icons["next"]->GetHandle(), ImVec2(16, 16), ImVec2(0.0f, m_FlipImGuiImage ? 1.0f : 0.0f), ImVec2(1.0f, m_FlipImGuiImage ? 0.0f : 1.0f)))
 				m_Application->SetEditorState(EditorState::Next);
+
+			ImGui::SameLine(ImGui::GetWindowContentRegionMax().x - 330.0f);
+			ImGui::Text("Application average %.3f ms/frame (%i FPS)", 1000.0f / (float)Engine::Instance()->GetFPS(), Engine::Instance()->GetFPS());
 
 			ImGui::EndMainMenuBar();
 		}
@@ -157,12 +158,21 @@ namespace Lumos
 				ImGui::TreePop();
 			}
 
+			
+			m_Application->m_SceneManager->GetCurrentScene()->OnIMGUI();
 			if (ImGui::TreeNode("Scene"))
 			{
-				auto entities = m_Application->m_SceneManager->GetCurrentScene()->GetEntities();
-				ImGui::Text("Number of Entities: %5.2i", static_cast<int>(entities.size()));
+				auto scene = m_Application->m_SceneManager->GetCurrentScene();
 
-				if (ImGui::TreeNode("Entities"))
+				if(scene->GetLightSetup())
+					scene->GetLightSetup()->OnImGUI();
+
+				auto entities = scene->GetEntities();
+				scene->GetCamera()->OnImGUI();
+				
+				std::string title = "Number of Entities : " + StringFormat::ToString(static_cast<int>(entities.size()));
+
+				if (ImGui::TreeNode(title.c_str()))
 				{
 					for (auto& entity : entities)
 					{
@@ -249,15 +259,6 @@ namespace Lumos
 			m_Selected->OnGuizmo(m_ImGuizmoOperation);
 		}
 
-		ImGui::End();
-	}
-
-	void Editor::DrawSceneInfoWindow()
-	{
-		ImGui::Begin("Scene Information", NULL, 0);
-		{
-			m_Application->m_SceneManager->GetCurrentScene()->OnIMGUI();
-		}
 		ImGui::End();
 	}
 

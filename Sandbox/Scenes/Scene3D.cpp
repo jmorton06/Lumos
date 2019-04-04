@@ -4,8 +4,6 @@
 using namespace Lumos;
 using namespace maths;
 
-maths::Vector3 lightDirection;
-
 Scene3D::Scene3D(const std::string& SceneName)
 		: Scene(SceneName)
 {
@@ -55,8 +53,6 @@ void Scene3D::OnInit()
 	sun->SetDirection(maths::Vector3(26.0f, 22.0f, 48.5f));
 	sun->SetPosition(maths::Vector3(26.0f, 22.0f, 48.5f) * 100.0f);
 	m_LightSetup->SetDirectionalLight(sun);
-
-	lightDirection = maths::Vector3(26.0f, 22.0f, 48.5f);
 
 	Application::Instance()->GetAudioManager()->SetListener(m_pCamera);
 
@@ -434,14 +430,6 @@ void Scene3D::OnIMGUI()
 {
     if (show_demo_window)
         ImGui::ShowDemoWindow(&show_demo_window);
-
-    ImVec4 test = ImVec4(lightDirection.GetX(),lightDirection.GetY(), lightDirection.GetZ(), 1.0f);
-    
-    ImGui::Text("Light");
-    ImGui::DragFloat4("Direction", &test.x);
-    
-    lightDirection = maths::Vector3(test.x,test.y,test.z);
-    m_LightSetup->GetDirectionalLight()->SetDirection(lightDirection);
     
  	if(ImGui::Button("<- SceneSelect"))
 	{

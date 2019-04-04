@@ -57,6 +57,7 @@ namespace Lumos
 		maths::Vector3 GetVelocity() const { return m_Velocity; }
 
 		virtual float GetScale() const { return 1.0f; }
+		virtual void OnImGUI();
 
 		friend std::ostream& operator<<(std::ostream& o, const Camera& cam)
 		{
