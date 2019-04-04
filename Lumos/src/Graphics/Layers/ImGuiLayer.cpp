@@ -188,7 +188,7 @@ namespace Lumos
 
 	void ImGuiLayer::SetImGuiStyle()
 	{
-#if 1
+#if 0
 		std::string filePath = "/CoreTextures/Roboto-Medium.ttf";
 		std::string physicalPath;
 		if (!VFS::Get()->ResolvePhysicalPath(filePath, physicalPath))

@@ -12,6 +12,9 @@ namespace Lumos
 	public:
 		TimeManager();
 		~TimeManager();
+        
+        TimeManager(TimeManager const&) = delete;
+        TimeManager& operator=(TimeManager const&) = delete;
 
 		static float GetTimePercentage(float currentTime, float minSec, float maxSec);
 

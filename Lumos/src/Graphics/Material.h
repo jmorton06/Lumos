@@ -53,6 +53,9 @@ namespace Lumos
 	public:
 		Material(std::shared_ptr<Shader>& shader, const MaterialProperties& properties = MaterialProperties(), const PBRMataterialTextures& textures = PBRMataterialTextures());
 		Material();
+        
+        Material(Material const&) = delete;
+        Material& operator=(Material const&) = delete;
 
 		~Material();
 

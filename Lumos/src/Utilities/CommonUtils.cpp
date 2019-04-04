@@ -99,7 +99,7 @@ namespace Lumos
 		std::shared_ptr<Model> cubeModel = std::make_shared<Model>(*AssetsManager::DefaultModels()->GetAsset("Cube").get());
 		Cube->AddComponent(std::make_unique<ModelComponent>(cubeModel));
 
-		Material* matInstance = new Material();//std::shared_ptr<Shader>(Shader::CreateFromFile("ForwardRender", "/Shaders/Scene/ForwardRender")));
+		auto matInstance = std::make_shared<Material>();//std::shared_ptr<Shader>(Shader::CreateFromFile("ForwardRender", "/Shaders/Scene/ForwardRender")));
 		//matInstance->SetUniform("uColour", color);
 		MaterialProperties properties;
 		properties.albedoColour = color;
@@ -112,7 +112,7 @@ namespace Lumos
 		matInstance->SetMaterialProperites(properties);
 		matInstance->SetRenderFlags(0);
 		matInstance->SetRenderFlag(Material::RenderFlags::FORWARDRENDER); //TODO: Temporary;
-		Cube->GetComponent<ModelComponent>()->m_Model->SetMaterial(std::make_shared<Material>(*matInstance));
+		Cube->GetComponent<ModelComponent>()->m_Model->SetMaterial(matInstance);
 
 		Cube->AddComponent(std::make_unique<TransformComponent>(maths::Matrix4::Scale(halfdims)));
 		Cube->SetBoundingRadius(halfdims.Length());

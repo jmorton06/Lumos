@@ -16,6 +16,9 @@ namespace Lumos
         RenderManager(uint width, uint height);
 		~RenderManager();
         
+        RenderManager(RenderManager const&) = delete;
+        RenderManager& operator=(RenderManager const&) = delete;
+        
         void Reset();
         void OnResize(uint width, uint height);
         

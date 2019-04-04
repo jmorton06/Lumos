@@ -18,7 +18,7 @@ namespace Lumos
 
 	const Shader* Shader::s_CurrentlyBound = nullptr;
 
-	Shader* Shader::CreateFromFile(const String& name, const String& filepath, void* address)
+	Shader* Shader::CreateFromFile(const String& name, const String& filepath)
 	{
         String filePath;
 #ifdef LUMOS_PLATFORM_MOBILE
@@ -33,7 +33,7 @@ namespace Lumos
 		case RenderAPI::OPENGL:
 		{
 			const String source = Lumos::VFS::Get()->ReadTextFile(filePath + name + ".glsl");
-			GLShader* result = address ? new(address)GLShader(name, source) : new GLShader(name, source);
+			GLShader* result = new GLShader(name, source);
 			result->m_Path = filePath;
 			return result;
 		}
@@ -51,7 +51,7 @@ namespace Lumos
 		case RenderAPI::DIRECT3D:
 		{
 			const String source = Lumos::VFS::Get()->ReadTextFile(filepath + ".hlsl");
-			D3DShader* result = address ? new(address)D3DShader(name, source) : new D3DShader(name, source);
+			D3DShader* result = new D3DShader(name, source);
 			result->m_FilePath = filepath;
 			return result;
 		}

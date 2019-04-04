@@ -13,7 +13,7 @@ using namespace Lumos;
 class Game : public Application
 {
 public:
-	Game(const WindowProperties& windowProperties) : Application(windowProperties, RenderAPI::VULKAN)
+	explicit Game(const WindowProperties& windowProperties) : Application(windowProperties, RenderAPI::VULKAN)
 	{
 	}
 

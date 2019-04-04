@@ -60,8 +60,6 @@ namespace Lumos
 					{
 						int currZCoord = (z * RAW_LOWSCALE_RANDOM) + lz;
 
-						int t = 0;
-
 						float topL = lowMap[x + 1][z + 1];
 						float topR = lowMap[x][z + 1];
 						float botL = lowMap[x + 1][z];
@@ -81,11 +79,6 @@ namespace Lumos
 							(1.0f - yScaleWeight) * xScaleTemp2;
 
 						lowMapExpand[currXCoord][currZCoord] = temp;
-
-						if (currZCoord == 488) 
-						{
-							t++;
-						}
 					}
 				}
 			}
@@ -139,11 +132,8 @@ namespace Lumos
 			}
 		}
 
-		maths::Vector3* normals = nullptr;
-		maths::Vector3* tangents = nullptr;
-
-		normals = GenerateNormals(numVertices, vertices, indices, numIndices);
-		tangents = GenerateTangents(numVertices, vertices, indices, numIndices, texCoords);
+		maths::Vector3* normals = GenerateNormals(numVertices, vertices, indices, numIndices);
+		maths::Vector3* tangents = GenerateTangents(numVertices, vertices, indices, numIndices, texCoords);
 
 		Vertex* verts = new Vertex[numVertices];
 

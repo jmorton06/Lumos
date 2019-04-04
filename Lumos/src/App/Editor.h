@@ -14,7 +14,10 @@ namespace Lumos
 	public:
 		Editor(Application* app, uint width, uint height);
 		~Editor();
-
+        
+        Editor(Editor const&) = delete;
+        Editor& operator=(Editor const&) = delete;
+        
 		void OnImGui();
 		void DrawConsole();
 		void DrawMenuBar();

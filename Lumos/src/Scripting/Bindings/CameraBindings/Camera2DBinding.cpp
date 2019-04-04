@@ -40,7 +40,7 @@ namespace Lumos
 	Camera2DBinding::Camera2DBinding(lua_State* L) : CameraBinding(L)
 	{
 		int argc = LuaScripting::SGetArgCount(L);
-		float fov = 0.f, n = 0.f, f = 0.f, sr=1.f;
+		float fov = 0.f, n = 0.f, f = 0.f;
 
 		if (argc > 0)
 		{
@@ -51,10 +51,6 @@ namespace Lumos
 				if (argc > 2)
 				{
 					f = LuaScripting::SGetFloat(L, 3);
-					if (argc > 3)
-					{
-						sr = LuaScripting::SGetFloat(L, 4);
-					}
 				}
 			}
 		}

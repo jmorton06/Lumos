@@ -476,7 +476,7 @@ namespace Lumos
 
 				if (StartsWith(name, "sys_"))
 				{
-					((GLShaderUniformBufferDeclaration*)(m_UniformBuffers[type].front()))->PushUniform(declaration);
+					static_cast<GLShaderUniformBufferDeclaration*>(m_UniformBuffers[type].front())->PushUniform(declaration);
 				}
 				else
 				{

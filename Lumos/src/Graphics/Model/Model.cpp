@@ -110,7 +110,7 @@ namespace Lumos
 		}
 	}
 
-	void Model::SetMaterial(std::shared_ptr<Material> material)
+	void Model::SetMaterial(std::shared_ptr<Material>& material)
 	{
 		if(material)
 		{

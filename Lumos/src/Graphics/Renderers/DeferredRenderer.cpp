@@ -224,20 +224,19 @@ namespace Lumos
 
 						auto transform = obj->GetComponent<TransformComponent>()->m_Transform.GetWorldMatrix();
 
-						bool inside = true;
-
-						#if 0
+                    #if 0
+                        bool inside = true;
+                        
 						float maxScaling = 0.0f;
 						maxScaling = maths::Max(transform.GetScaling().GetX(), maxScaling);
 						maxScaling = maths::Max(transform.GetScaling().GetY(), maxScaling);
 						maxScaling = maths::Max(transform.GetScaling().GetZ(), maxScaling);
 
 						inside = GraphicsPipeline::Instance()->GetFrustum().InsideFrustum(transform * mesh->GetBoundingSphere()->Centre(), maxScaling * mesh->GetBoundingSphere()->SphereRadius());
-						#endif
+                        
                         if (inside)
-                        {
+                    #endif
                             SubmitMesh(mesh.get(), transform, textureMatrix);
-                        }
 					}
 				}
 			}
@@ -363,7 +362,6 @@ namespace Lumos
 				memcpy(m_PSSystemUniformBuffer + currentOffset, shadowTransforms, sizeof(maths::Matrix4) * 16);
 				currentOffset += sizeof(maths::Matrix4) * 16;
 				memcpy(m_PSSystemUniformBuffer + currentOffset, uSplitDepth, sizeof(Lumos::maths::Vector4) * 16);
-				currentOffset += sizeof(Lumos::maths::Vector4) * 16;
 			}
 		}
 	}
