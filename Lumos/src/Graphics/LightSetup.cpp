@@ -1,5 +1,6 @@
 #include "LM.h"
 #include "LightSetUp.h"
+#include <imgui/imgui.h>
 
 namespace Lumos
 {
@@ -33,5 +34,22 @@ namespace Lumos
 	{
 		m_Lights.clear();
 		m_DirectionalLight.reset();
+	}
+
+	void LightSetup::OnImGUI()
+	{
+		std::string title = "Light Setup : " + StringFormat::ToString(static_cast<int>(m_Lights.size()) + (m_DirectionalLight ? 1 : 0));
+		if (ImGui::TreeNode(title.c_str()))
+		{
+			for (uint i = 0; i < m_Lights.size(); i++)
+			{
+				m_Lights[i]->OnImGUI();
+			}
+
+			if(m_DirectionalLight)
+				m_DirectionalLight->OnImGUI();
+
+			ImGui::TreePop();
+		}
 	}
 }

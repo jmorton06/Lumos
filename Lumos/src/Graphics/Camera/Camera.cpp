@@ -1,5 +1,6 @@
 #include "LM.h"
 #include "Camera.h"
+#include <imgui/imgui.h>
 
 namespace Lumos
 {
@@ -93,5 +94,37 @@ namespace Lumos
 	maths::Quaternion Camera::GetOrientation() const
 	{
 		return  maths::Quaternion::EulerAnglesToQuaternion(m_Pitch, m_Yaw, 1.0f);
+	}
+
+	void Camera::OnImGUI()
+	{
+		if (ImGui::TreeNode("Camera"))
+		{
+			auto pos = m_Position;
+			auto aspect = m_AspectRatio;
+			auto yaw = m_Yaw;
+			auto pitch = m_Pitch;
+			auto fov = m_Fov;
+			auto lNear = m_Near;
+			auto lFar = m_Far;
+
+			ImGui::DragFloat3("Position", &pos.x);
+			ImGui::DragFloat("Aspect", &aspect);
+			ImGui::DragFloat("Pitch", &pitch);
+			ImGui::DragFloat("Yaw", &yaw);
+			ImGui::DragFloat("Fov", &fov);
+			ImGui::DragFloat("Near", &lNear);
+			ImGui::DragFloat("Far", &lFar);
+
+			m_Position = pos;
+			m_AspectRatio = aspect;
+			m_Yaw = yaw;
+			m_Pitch = pitch;
+			m_Fov = fov;
+			m_Near = lNear;
+			m_Far = lFar;
+
+			ImGui::TreePop();
+		}
 	}
 }
