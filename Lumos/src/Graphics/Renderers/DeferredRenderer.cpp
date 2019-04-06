@@ -188,7 +188,7 @@ namespace Lumos
 		info.shader = m_DeferredShader;
 		m_DeferredDescriptorSet = graphics::api::DescriptorSet::Create(info);
 
-		m_ClearColour = maths::Vector4(0.9f, 0.1f, 0.8f, 1.0f);
+		m_ClearColour = maths::Vector4(0.1f, 0.1f, 0.1f, 1.0f);
 
 		CreateScreenDescriptorSet();
 	}

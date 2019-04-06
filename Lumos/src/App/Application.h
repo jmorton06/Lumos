@@ -19,6 +19,7 @@ namespace Lumos
 	class LayerStack;
 	class Layer;
 	class ISystem;
+	class Scene;
 	enum class RenderAPI;
 
     enum class AppState
@@ -80,6 +81,8 @@ namespace Lumos
 		maths::Vector2 GetWindowSize() const;
 
 		static Application* Instance() { return s_Instance; }
+
+		void OnNewScene(Scene* scene);
 
 	private:
 		bool OnWindowClose(WindowCloseEvent& e);
