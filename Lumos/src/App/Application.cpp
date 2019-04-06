@@ -17,6 +17,7 @@
 #include "System/VFS.h"
 #include "System/JobSystem.h"
 #include "Audio/AudioManager.h"
+#include "Scene.h"
 
 #include <imgui/imgui.h>
 #include "Graphics/Layers/ImGuiLayer.h"
@@ -280,6 +281,11 @@ namespace Lumos
 	{
 		m_LayerStack->PushOverlay(overlay);
 		overlay->OnAttach();
+	}
+
+	void Application::OnNewScene(Scene * scene)
+	{
+		m_Editor->OnNewScene(scene);
 	}
 
 	bool Application::OnWindowClose(WindowCloseEvent& e)

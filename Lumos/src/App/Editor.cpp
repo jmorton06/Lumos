@@ -121,9 +121,7 @@ namespace Lumos
 					m_ImGuizmoOperation = ImGuizmo::SCALE;
 
 				ImGui::NewLine();
-				ImGui::Text("Physics Engine: %s (Press P to toggle)", LumosPhysicsEngine::Instance()->IsPaused() ? "Paused" : "Enabled");
-				ImGui::Text("Number Of Collision Pairs  : %5.2i", LumosPhysicsEngine::Instance()->GetNumberCollisionPairs());
-				ImGui::Text("Number Of Physics Objects  : %5.2i", LumosPhysicsEngine::Instance()->GetNumberPhysicsObjects());
+				LumosPhysicsEngine::Instance()->OnImGUI();
 				ImGui::NewLine();
 				ImGui::Text("FPS : %5.2i", Engine::Instance()->GetFPS());
 				ImGui::Text("UPS : %5.2i", Engine::Instance()->GetUPS());
@@ -192,15 +190,6 @@ namespace Lumos
 		ImGuiWindowFlags window_flags = 0;
 		ImGui::Begin("Engine", NULL, window_flags);
 		{
-	/*		if (ImGui::RadioButton("Translate", m_ImGuizmoOperation == ImGuizmo::TRANSLATE))
-				m_ImGuizmoOperation = ImGuizmo::TRANSLATE;
-			ImGui::SameLine();
-			if (ImGui::RadioButton("Rotate", m_ImGuizmoOperation == ImGuizmo::ROTATE))
-				m_ImGuizmoOperation = ImGuizmo::ROTATE;
-			ImGui::SameLine();
-			if (ImGui::RadioButton("Scale", m_ImGuizmoOperation == ImGuizmo::SCALE))
-				m_ImGuizmoOperation = ImGuizmo::SCALE;*/
-
 			if (ImGui::ImageButton(m_Icons["translate"]->GetHandle(), ImVec2(16, 16), ImVec2(0.0f, m_FlipImGuiImage ? 1.0f : 0.0f), ImVec2(1.0f, m_FlipImGuiImage ? 0.0f : 1.0f)))
 				m_ImGuizmoOperation = ImGuizmo::TRANSLATE;
 			ImGui::SameLine();
@@ -210,10 +199,6 @@ namespace Lumos
 			if (ImGui::ImageButton(m_Icons["scale"]->GetHandle(), ImVec2(16, 16), ImVec2(0.0f, m_FlipImGuiImage ? 1.0f : 0.0f), ImVec2(1.0f, m_FlipImGuiImage ? 0.0f : 1.0f)))
 				m_ImGuizmoOperation = ImGuizmo::SCALE;
 
-			ImGui::NewLine();
-			ImGui::Text("Physics Engine: %s (Press P to toggle)", LumosPhysicsEngine::Instance()->IsPaused() ? "Paused" : "Enabled");
-			ImGui::Text("Number Of Collision Pairs  : %5.2i", LumosPhysicsEngine::Instance()->GetNumberCollisionPairs());
-			ImGui::Text("Number Of Physics Objects  : %5.2i", LumosPhysicsEngine::Instance()->GetNumberPhysicsObjects());
 			ImGui::NewLine();
 			ImGui::Text("FPS : %5.2i", Engine::Instance()->GetFPS());
 			ImGui::Text("UPS : %5.2i", Engine::Instance()->GetUPS());
@@ -374,6 +359,11 @@ namespace Lumos
 		m_Icons["rotate"] = Texture2D::CreateFromFile("rotateIcon", "/CoreTextures/Editor/icons/rotate.png");
 
 
+	}
+
+	void Editor::OnNewScene(Scene * scene)
+	{
+		m_Selected = nullptr;
 	}
 
 	void Editor::DrawConsole()

@@ -148,7 +148,7 @@ namespace Lumos
 
 			if (node.rotation.size() > 0)
 			{
-				//curMatrix = maths::Matrix4::Rotation((float)node.rotation[0],(float)node.rotation[1],(float)node.rotation[2]) * curMatrix;
+				curMatrix = maths::Matrix4::Rotation((float)node.rotation[0],(float)node.rotation[1],(float)node.rotation[2]) * curMatrix;
 			}
 
 			if (node.scale.size() > 0)
@@ -271,25 +271,32 @@ namespace Lumos
 				PBRMataterialTextures textures;
 				MaterialProperties properties;
 
-				if (mat.values.find("baseColorTexture") != mat.values.end()) {
+				if (mat.values.find("baseColorTexture") != mat.values.end())
+				{
 					textures.albedo = loadedTextures[gltfModel.textures[mat.values["baseColorTexture"].TextureIndex()].source];
 				}
-				if (mat.values.find("metallicRoughnessTexture") != mat.values.end()) {
+				if (mat.values.find("metallicRoughnessTexture") != mat.values.end())
+				{
 					textures.metallic = loadedTextures[gltfModel.textures[mat.values["metallicRoughnessTexture"].TextureIndex()].source];
 				}
-				if (mat.values.find("roughnessFactor") != mat.values.end()) {
+				if (mat.values.find("roughnessFactor") != mat.values.end())
+				{
 				 	properties.glossColour = static_cast<float>(mat.values["roughnessFactor"].Factor());
 				}
-				if (mat.values.find("metallicFactor") != mat.values.end()) {
+				if (mat.values.find("metallicFactor") != mat.values.end())
+				{
 					properties.specularColour = maths::Vector4(static_cast<float>(mat.values["metallicFactor"].Factor()));
 				}
-				if (mat.values.find("baseColorFactor") != mat.values.end()) {
+				if (mat.values.find("baseColorFactor") != mat.values.end())
+				{
 				 	properties.albedoColour = maths::Vector4((float)mat.values["baseColorFactor"].ColorFactor()[0],(float)mat.values["baseColorFactor"].ColorFactor()[1],(float)mat.values["baseColorFactor"].ColorFactor()[2],1.0f);
 				}
-				if (mat.additionalValues.find("normalTexture") != mat.additionalValues.end()) {
+				if (mat.additionalValues.find("normalTexture") != mat.additionalValues.end()) 
+				{
 					textures.normal = loadedTextures[gltfModel.textures[mat.additionalValues["normalTexture"].TextureIndex()].source];
 				}
-				if (mat.additionalValues.find("emissiveTexture") != mat.additionalValues.end()) {
+				if (mat.additionalValues.find("emissiveTexture") != mat.additionalValues.end())
+				{
 					//textures.roughness = loadedTextures[gltfModel.textures[mat.additionalValues["emissiveTexture"].TextureIndex()].source];
 				}
 				// if (mat.additionalValues.find("occlusionTexture") != mat.additionalValues.end()) {
@@ -346,6 +353,9 @@ namespace Lumos
 		std::string warn;
 
 		std::string ext = StringFormat::GetFilePathExtension(path);
+
+		loader.SetImageLoader(tinygltf::LoadImageData, nullptr);
+		loader.SetImageWriter(tinygltf::WriteImageData, nullptr);
 
 		bool ret;
 
@@ -459,10 +469,10 @@ namespace Lumos
 				{
 					size_t uvCount = accessor.count;
 					maxNumVerts = maths::Max(maxNumVerts, uvCount);
-					maths::Vector4Simple* uvs = reinterpret_cast<maths::Vector4Simple*>(data.data());
+					maths::Vector4Simple* colours = reinterpret_cast<maths::Vector4Simple*>(data.data());
 					for (auto p = 0; p < uvCount; ++p)
 					{
-						tempvertices[p].Colours = ToVector(uvs[p]);
+						tempvertices[p].Colours = ToVector(colours[p]);
 					}
 				}
 
@@ -480,13 +490,7 @@ namespace Lumos
 				}
 			}
 
-			std::shared_ptr<Material> pbrMaterial = LoadedMaterials[primitive.material];//std::make_shared<Material>();
-
-			// if (!model.materials.empty())
-			// {
-			// 	auto material = model.materials[primitive.material];
-			// 	pbrMaterial->SetTextures(LoadMaterial(material, model));
-			// }
+			std::shared_ptr<Material> pbrMaterial = LoadedMaterials[primitive.material];
 
 			std::shared_ptr<VertexArray> va;
 			va.reset(VertexArray::Create());

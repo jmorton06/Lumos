@@ -75,6 +75,8 @@ namespace Lumos
 		m_CurrentScene->SetScreenHeight(static_cast<uint>(screenSize.GetY()));
 		m_CurrentScene->OnInit();
 
+		Application::Instance()->OnNewScene(m_CurrentScene);
+
 		LUMOS_CORE_INFO("[SceneManager] - Scene switched to : {0}", m_CurrentScene->GetSceneName().c_str());
 	}
 

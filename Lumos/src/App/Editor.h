@@ -7,6 +7,7 @@ namespace Lumos
 	class Entity;
 	class Console;
 	class Texture2D;
+	class Scene;
 
 	class Editor
 	{
@@ -32,6 +33,7 @@ namespace Lumos
 
 		uint GetImGuizmoOperation() const { return m_ImGuizmoOperation; }
 		void OnInit();
+		void OnNewScene(Scene* scene);
 
 	private:
 		Application* m_Application;

@@ -9,6 +9,8 @@
 #include "Entity/Entity.h"
 #include "Utilities/TimeStep.h"
 
+#include <imgui/imgui.h>
+
 namespace Lumos
 {
 
@@ -344,6 +346,7 @@ namespace Lumos
 			}
 		}
 	}
+
 	PhysicsObject3D* LumosPhysicsEngine::FindObjectByName(const String& name)
 	{
 		auto it = std::find_if(m_PhysicsObjects.begin(), m_PhysicsObjects.end(), [name](std::shared_ptr<PhysicsObject3D> o) 
@@ -353,5 +356,39 @@ namespace Lumos
 		});
 
 		return (it == m_PhysicsObjects.end()) ? nullptr : (*it).get();
+	}
+
+	String IntegrationTypeToString(IntegrationType type)
+	{
+		switch (type)
+		{
+		case INTEGRATION_EXPLICIT_EULER : return "EXPLICIT EULER";
+		case INTEGRATION_SEMI_IMPLICIT_EULER : return "SEMI IMPLICIT EULER";
+		case INTEGRATION_RUNGE_KUTTA_2 : return "RUNGE KUTTA 2";
+		case INTEGRATION_RUNGE_KUTTA_4 : return "RUNGE KUTTA 4";
+		default : return "";
+		}
+	}
+
+	void LumosPhysicsEngine::OnImGUI()
+	{
+		ImGui::Text("3D Physics Engine");
+		ImGui::Text("Number Of Collision Pairs  : %5.2i", GetNumberCollisionPairs());
+		ImGui::Text("Number Of Physics Objects  : %5.2i", GetNumberPhysicsObjects());
+		ImGui::Text("Number Of Constraints      : %5.2i", static_cast<int>(m_Constraints.size()));
+
+		ImGui::Checkbox("Paused", &m_IsPaused);
+		ImGui::InputFloat3("Gravity", &m_Gravity.x);
+		ImGui::InputFloat("Damping Factor", &m_DampingFactor);
+		ImGui::Text("Integration Type");
+		ImGui::SameLine();
+		if (ImGui::BeginMenu(IntegrationTypeToString(m_integrationType).c_str()))
+		{
+			if (ImGui::MenuItem("EXPLICIT EULER", "", static_cast<int>(m_integrationType) == 0, true)) { m_integrationType = INTEGRATION_EXPLICIT_EULER; }
+			if (ImGui::MenuItem("SEMI IMPLICIT EULER","", static_cast<int>(m_integrationType) == 1, true)) { m_integrationType = INTEGRATION_SEMI_IMPLICIT_EULER; }
+			if (ImGui::MenuItem("RUNGE KUTTA 2", "", static_cast<int>(m_integrationType) == 2, true)) { m_integrationType = INTEGRATION_RUNGE_KUTTA_2; }
+			if (ImGui::MenuItem("RUNGE KUTTA 4", "", static_cast<int>(m_integrationType) == 3, true)) { m_integrationType = INTEGRATION_RUNGE_KUTTA_4; }
+			ImGui::EndMenu();
+		}
 	}
 }
