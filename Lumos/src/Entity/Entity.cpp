@@ -102,16 +102,21 @@ namespace Lumos
 	{
 		maths::Matrix4 view = m_pScene->GetCamera()->GetViewMatrix();
 		maths::Matrix4 proj = m_pScene->GetCamera()->GetProjectionMatrix();
-
+        
 #ifdef LUMOS_RENDER_API_VULKAN
 		if(graphics::Context::GetRenderAPI() == RenderAPI::VULKAN)
 			proj[5] *= -1.0f;
 #endif
 		ImGuizmo::SetDrawlist();
+        
+        auto pos = ImGui::GetWindowPos();
+        auto size = ImGui::GetWindowSize();
+        ImGuizmo::SetRect(pos.x, pos.y, size.x, size.y);
 
 		maths::Matrix4 model = maths::Matrix4();
 		if (this->GetComponent<TransformComponent>() != nullptr)
 			model = GetComponent<TransformComponent>()->m_Transform.GetWorldMatrix();
+        
 		ImGuizmo::Manipulate(view.values, proj.values, static_cast<ImGuizmo::OPERATION>(mode), ImGuizmo::WORLD, model.values, nullptr, nullptr);
 
 		if (this->GetComponent<TransformComponent>() != nullptr)
@@ -124,7 +129,7 @@ namespace Lumos
 		strcpy(objName, m_Name.c_str());
 
 		ImGuiInputTextFlags inputFlag = ImGuiInputTextFlags_EnterReturnsTrue;
-		if (ImGui::InputText("Name", objName, IM_ARRAYSIZE(objName)))
+		if (ImGui::InputText("Name", objName, IM_ARRAYSIZE(objName), inputFlag))
 			m_Name = objName;
 
         for(auto& component: m_Components)

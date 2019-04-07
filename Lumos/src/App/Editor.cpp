@@ -168,7 +168,7 @@ namespace Lumos
 				auto entities = scene->GetEntities();
 				scene->GetCamera()->OnImGUI();
 				
-				std::string title = "Number of Entities : " + StringFormat::ToString(static_cast<int>(entities.size()));
+				std::string title = "Entities : " + StringFormat::ToString(static_cast<int>(entities.size()));
 
 				if (ImGui::TreeNode(title.c_str()))
 				{
