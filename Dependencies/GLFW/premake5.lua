@@ -54,9 +54,9 @@ project "glfw"
     }
 
   filter "system:win32 or win64 or mingw32"
-    --buildoptions { "-std=c11", "-lgdi32" }
     defines {
-      "_GLFW_WIN32"
+      "_GLFW_WIN32",
+      "_CRT_SECURE_NO_WARNINGS"
     }
 
    	buildoptions { "/MP" }
