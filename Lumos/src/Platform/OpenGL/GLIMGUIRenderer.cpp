@@ -15,7 +15,6 @@ namespace Lumos
 	        m_ClearScreen = clearScreen;
 	        m_Implemented = true;
 	        ImGui_ImplOpenGL3_Init("#version 410");
-	        ImGui_ImplOpenGL3_NewFrame();
         }
 
         GLIMGUIRenderer::~GLIMGUIRenderer()
@@ -30,6 +29,7 @@ namespace Lumos
 
         void GLIMGUIRenderer::NewFrame()
         {
+			ImGui_ImplOpenGL3_NewFrame();
         }
 
         void GLIMGUIRenderer::Render(Lumos::graphics::api::CommandBuffer* commandBuffer)

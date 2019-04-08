@@ -34,6 +34,8 @@ namespace Lumos
 		std::shared_ptr<Texture2D> normal;
 		std::shared_ptr<Texture2D> metallic;
 		std::shared_ptr<Texture2D> roughness;
+		std::shared_ptr<Texture2D> ao;
+		std::shared_ptr<Texture2D> emissive;
 	};
 
 	class LUMOS_EXPORT Material
@@ -85,7 +87,7 @@ namespace Lumos
 		graphics::api::UniformBuffer* 	m_MaterialPropertiesBuffer;
 		MaterialProperties*				m_MaterialProperties;
 		uint							m_MaterialBufferSize;
-        byte*                           m_MaterialBufferData;
+        byte*							m_MaterialBufferData;
 		String							m_Name;
 
 	};
