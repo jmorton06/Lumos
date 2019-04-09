@@ -15,6 +15,7 @@
 #include "imgui/imgui.h"
 #include "imgui/imgui_internal.h"
 #include "Maths/BoundingSphere.h"
+#include "System/Profiler.h"
 
 namespace Lumos
 {
@@ -47,6 +48,8 @@ namespace Lumos
 		DrawConsole();
 		DrawHierarchyWindow();
 		DrawInspectorWindow();
+
+		system::Profiler::OnImGUI();
 		EndDockSpace();
 	}
 

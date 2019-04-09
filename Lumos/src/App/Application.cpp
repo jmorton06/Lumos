@@ -22,6 +22,7 @@
 #include <imgui/imgui.h>
 #include "Graphics/Layers/ImGuiLayer.h"
 #include "Editor.h"
+#include "System/Profiler.h"
 
 namespace Lumos
 {
@@ -38,6 +39,9 @@ namespace Lumos
 #endif
 
 		system::JobSystem::Initialize();
+		system::Profiler::SetEnabled(true);
+		system::Profiler::OnBegin();
+
 		graphics::Context::SetRenderAPI(api);
 
 #ifdef LUMOS_RENDER_API_OPENGL
@@ -116,13 +120,11 @@ namespace Lumos
 		m_Systems.emplace_back(B2PhysicsEngine::Instance());
 
 		m_CurrentState = AppState::Running;
-		//m_PhysicsThread = std::thread(PhysicsUpdate, 1000.0f / 120.0f);
+		system::Profiler::OnEnd();
 	}
 
 	int Application::Quit(bool pause, const std::string &reason)
 	{
-		//m_PhysicsThread.join();
-
 		Engine::Release();
 		LumosPhysicsEngine::Release();
 		B2PhysicsEngine::Release();
@@ -144,16 +146,15 @@ namespace Lumos
 
 	maths::Vector2 Application::GetWindowSize() const
 	{
-//#ifdef LUMOS_EDITOR
-//		return m_SceneViewSize;
-//#else
 		return maths::Vector2(static_cast<float>(m_Window->GetWidth()), static_cast<float>(m_Window->GetHeight()));
-//
 	}
 
 	bool Application::OnFrame()
 	{
 		float now = m_Timer->GetMS(1.0f) * 1000.0f;
+
+		system::Profiler::OnBegin();
+		system::Profiler::OnBeginRange("Main Loop");
 
 #ifdef LUMOS_LIMIT_FRAMERATE
 		if (now - m_UpdateTimer > Engine::Instance()->TargetFrameRate())
@@ -197,11 +198,15 @@ namespace Lumos
 		if (m_EditorState == EditorState::Next)
 			m_EditorState = EditorState::Paused;
 
+		system::Profiler::OnEndRange("Main Loop");
+		system::Profiler::OnEnd();
 		return m_CurrentState != AppState::Closing;
 	}
 
 	void Application::OnRender()
 	{
+
+		system::Profiler::OnBeginRange("Render", true, "Main Loop");
 		if (m_LayerStack->GetCount() > 0)
 		{
 			Renderer::GetRenderer()->Begin();
@@ -210,10 +215,13 @@ namespace Lumos
 
 			Renderer::GetRenderer()->Present();
 		}
+
+		system::Profiler::OnEndRange("Render", true, "Main Loop");
 	}
 
 	void Application::OnUpdate(TimeStep* dt)
 	{
+		system::Profiler::OnBeginRange("Update", true, "Main Loop");
 		const uint sceneIdx = m_SceneManager->GetCurrentSceneIndex();
 		const uint sceneMax = m_SceneManager->SceneCount();
 
@@ -235,13 +243,17 @@ namespace Lumos
 		if (Application::Instance()->GetEditorState() != EditorState::Paused && Application::Instance()->GetEditorState() != EditorState::Preview)
 #endif
 		{
-			m_SceneManager->GetCurrentScene()->OnUpdate(m_TimeStep.get());
+			m_SceneManager->GetCurrentScene()->OnUpdate(m_TimeStep.get()); ;// system::JobSystem::Execute([&] {m_SceneManager->GetCurrentScene()->OnUpdate(m_TimeStep.get()); });
 			
 			for (auto& system : m_Systems)
-				system->OnUpdate(m_TimeStep.get());
+				system->OnUpdate(m_TimeStep.get()); ;// system::JobSystem::Execute([&] { system->OnUpdate(m_TimeStep.get()); });
+			
+			//system::JobSystem::Wait();
 		}
 
 		m_LayerStack->OnUpdate(m_TimeStep.get());
+
+		system::Profiler::OnEndRange("Update", true, "Main Loop");
 	}
 
 	void Application::OnEvent(Event& e)

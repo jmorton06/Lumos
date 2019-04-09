@@ -39,7 +39,7 @@ namespace Lumos
 				{
 					if (ImGui::TreeNode("Mesh"))
 					{
-						if (ImGui::TreeNode("Material : ", "%s", mesh->GetMaterial()->GetName().c_str()))
+                        if (ImGui::TreeNode("Material : ", "%s", mesh->GetMaterial()->GetName().c_str()))
 						{
 							MaterialProperties* prop = mesh->GetMaterial()->GetProperties();
 

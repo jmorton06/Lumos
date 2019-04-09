@@ -43,8 +43,8 @@ namespace Lumos
 			float w;
 #endif
 
-			inline void Normalise();
-			inline Quaternion Normal() const;
+			void Normalise();
+			Quaternion Normal() const;
 
 			Matrix4 ToMatrix4() const;
 			Matrix3 ToMatrix3() const;
