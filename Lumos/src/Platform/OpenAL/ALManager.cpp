@@ -12,6 +12,8 @@ namespace Lumos
 		ALManager::ALManager(int numChannels) : m_Context(nullptr), m_Device(nullptr), m_NumChannels(numChannels)
 		{
 			m_Listener = nullptr;
+            
+            m_DebugName = "OpenAL Audio";
 		}
 
 		ALManager::~ALManager()

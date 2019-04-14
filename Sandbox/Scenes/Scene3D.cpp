@@ -66,9 +66,9 @@ void Scene3D::OnInit()
 	deferredRenderer->SetRenderToGBufferTexture(true);
 	skyboxRenderer->SetRenderToGBufferTexture(true);
 
-	auto shadowLayer = new Layer3D(shadowRenderer);
-	auto deferredLayer = new Layer3D(deferredRenderer);
-	auto skyBoxLayer = new Layer3D(skyboxRenderer);
+	auto shadowLayer = new Layer3D(shadowRenderer, "Shadow");
+	auto deferredLayer = new Layer3D(deferredRenderer, "Deferred");
+	auto skyBoxLayer = new Layer3D(skyboxRenderer, "Skybox");
 	Application::Instance()->PushLayer(shadowLayer);
     Application::Instance()->PushLayer(deferredLayer);
 	Application::Instance()->PushLayer(skyBoxLayer);
