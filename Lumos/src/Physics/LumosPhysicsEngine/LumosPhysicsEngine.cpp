@@ -8,6 +8,7 @@
 #include "Constraint.h"
 #include "Entity/Entity.h"
 #include "Utilities/TimeStep.h"
+#include "System/JobSystem.h"
 
 #include <imgui/imgui.h>
 
@@ -23,6 +24,7 @@ namespace Lumos
 		, m_BroadphaseDetection(nullptr)
 		, m_integrationType(IntegrationType::INTEGRATION_RUNGE_KUTTA_4)
 	{
+        m_DebugName = "Lumos 3D Physics Engine";
 	}
 
 	void LumosPhysicsEngine::SetDefaults()
@@ -146,10 +148,12 @@ namespace Lumos
 
 	void LumosPhysicsEngine::UpdatePhysicsObjects()
 	{
-		for (const auto& obj : m_PhysicsObjects)
-		{
-			UpdatePhysicsObject(obj.get());
-		}
+        system::JobSystem::Dispatch(static_cast<uint32>(m_PhysicsObjects.size()), 16, [&](JobDispatchArgs args)
+        {
+            UpdatePhysicsObject(m_PhysicsObjects[args.jobIndex].get());
+        });
+        
+        system::JobSystem::Wait();
 	}
 
 	void LumosPhysicsEngine::UpdatePhysicsObject(PhysicsObject3D* obj) const

@@ -13,6 +13,7 @@ namespace Lumos
 		, m_UpdateAccum(0.0f)
         , m_B2DWorld(std::make_unique<b2World>(b2Vec2(0.0f,-9.81f)))
 	{
+        m_DebugName = "Box2D Physics Engine";
 	}
 
 	B2PhysicsEngine::~B2PhysicsEngine()

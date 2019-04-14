@@ -1,6 +1,8 @@
 #include "LM.h"
 #include "LayerStack.h"
 
+#include "System/Profiler.h"
+
 namespace Lumos
 {
 
@@ -70,7 +72,10 @@ namespace Lumos
 		for (uint i = 0; i < m_Layers.size(); i++)
 		{
 			Layer* layer = m_Layers[i];
+            
+            system::Profiler::OnBeginRange("Layer : " + layer->GetName(), true, "Render");
 			layer->OnRender(scene);
+            system::Profiler::OnEndRange("Layer : " + layer->GetName(), true, "Render");
 		}
 	}
 

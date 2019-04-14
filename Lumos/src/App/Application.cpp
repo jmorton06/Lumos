@@ -205,15 +205,18 @@ namespace Lumos
 
 	void Application::OnRender()
 	{
-
 		system::Profiler::OnBeginRange("Render", true, "Main Loop");
 		if (m_LayerStack->GetCount() > 0)
 		{
+            system::Profiler::OnBeginRange("Render Begin", true, "Render");
 			Renderer::GetRenderer()->Begin();
+            system::Profiler::OnEndRange("Render Begin", true, "Render");
 
 			m_LayerStack->OnRender(m_SceneManager->GetCurrentScene());
 
+            system::Profiler::OnBeginRange("Render Present", true, "Render");
 			Renderer::GetRenderer()->Present();
+            system::Profiler::OnEndRange("Render Present", true, "Render");
 		}
 
 		system::Profiler::OnEndRange("Render", true, "Main Loop");
@@ -243,12 +246,14 @@ namespace Lumos
 		if (Application::Instance()->GetEditorState() != EditorState::Paused && Application::Instance()->GetEditorState() != EditorState::Preview)
 #endif
 		{
-			m_SceneManager->GetCurrentScene()->OnUpdate(m_TimeStep.get()); ;// system::JobSystem::Execute([&] {m_SceneManager->GetCurrentScene()->OnUpdate(m_TimeStep.get()); });
+			m_SceneManager->GetCurrentScene()->OnUpdate(m_TimeStep.get());
 			
 			for (auto& system : m_Systems)
-				system->OnUpdate(m_TimeStep.get()); ;// system::JobSystem::Execute([&] { system->OnUpdate(m_TimeStep.get()); });
-			
-			//system::JobSystem::Wait();
+            {
+                system::Profiler::OnBeginRange("System : " + system->GetName() , true, "Update");
+                system->OnUpdate(m_TimeStep.get());
+                system::Profiler::OnEndRange("System : " + system->GetName(), true, "Update");
+            }
 		}
 
 		m_LayerStack->OnUpdate(m_TimeStep.get());
