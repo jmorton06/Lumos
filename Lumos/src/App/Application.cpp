@@ -101,7 +101,7 @@ namespace Lumos
 
 		Renderer::Init(screenWidth, screenHeight);
 
-		system::JobSystem::Execute([] { LumosPhysicsEngine::Instance(); LUMOS_CORE_INFO("Initialised JMPhysics"); });
+		system::JobSystem::Execute([] { LumosPhysicsEngine::Instance(); LUMOS_CORE_INFO("Initialised LumosPhysics"); });
 		system::JobSystem::Execute([] { B2PhysicsEngine::Instance(); LUMOS_CORE_INFO("Initialised B2Physics"); });
 		system::JobSystem::Wait();
 
