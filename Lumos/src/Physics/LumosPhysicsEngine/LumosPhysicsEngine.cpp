@@ -9,6 +9,7 @@
 #include "Entity/Entity.h"
 #include "Utilities/TimeStep.h"
 #include "System/JobSystem.h"
+#include "System/Profiler.h"
 
 #include <imgui/imgui.h>
 
@@ -24,7 +25,7 @@ namespace Lumos
 		, m_BroadphaseDetection(nullptr)
 		, m_integrationType(IntegrationType::INTEGRATION_RUNGE_KUTTA_4)
 	{
-        m_DebugName = "Lumos 3D Physics Engine";
+        m_DebugName = "Lumos3DPhysicsEngine";
 	}
 
 	void LumosPhysicsEngine::SetDefaults()
@@ -116,14 +117,23 @@ namespace Lumos
 		m_Manifolds.clear();
 
 		//Check for collisions
+		system::Profiler::OnBeginRange("BroadPhase", true, "Lumos3DPhysicsEngine");
 		BroadPhaseCollisions();
+		system::Profiler::OnEndRange("BroadPhase", true, "Lumos3DPhysicsEngine");
+		
+		system::Profiler::OnBeginRange("NarrowPhase", true, "Lumos3DPhysicsEngine");
 		NarrowPhaseCollisions();
-
+		system::Profiler::OnEndRange("NarrowPhase", true, "Lumos3DPhysicsEngine");
+		
 		//Solve collision constraints
+		system::Profiler::OnBeginRange("SolveConstraints", true, "Lumos3DPhysicsEngine");
 		SolveConstraints();
-
+		system::Profiler::OnEndRange("SolveConstraints", true, "Lumos3DPhysicsEngine");
+		
 		//Update movement
+		system::Profiler::OnBeginRange("UpdatePhysicsObjects", true, "Lumos3DPhysicsEngine");
 		UpdatePhysicsObjects();
+		system::Profiler::OnEndRange("UpdatePhysicsObjects", true, "Lumos3DPhysicsEngine");
 	}
 
 	void LumosPhysicsEngine::DebugRender(uint64 debugFlags)

@@ -154,7 +154,7 @@ namespace Lumos
 		float now = m_Timer->GetMS(1.0f) * 1000.0f;
 
 		system::Profiler::OnBegin();
-		system::Profiler::OnBeginRange("Main Loop");
+		system::Profiler::OnBeginRange("MainLoop");
 
 #ifdef LUMOS_LIMIT_FRAMERATE
 		if (now - m_UpdateTimer > Engine::Instance()->TargetFrameRate())
@@ -198,33 +198,33 @@ namespace Lumos
 		if (m_EditorState == EditorState::Next)
 			m_EditorState = EditorState::Paused;
 
-		system::Profiler::OnEndRange("Main Loop");
+		system::Profiler::OnEndRange("MainLoop");
 		system::Profiler::OnEnd();
 		return m_CurrentState != AppState::Closing;
 	}
 
 	void Application::OnRender()
 	{
-		system::Profiler::OnBeginRange("Render", true, "Main Loop");
+		system::Profiler::OnBeginRange("Render", true, "MainLoop");
 		if (m_LayerStack->GetCount() > 0)
 		{
-            system::Profiler::OnBeginRange("Render Begin", true, "Render");
+            system::Profiler::OnBeginRange("Begin", true, "Render");
 			Renderer::GetRenderer()->Begin();
-            system::Profiler::OnEndRange("Render Begin", true, "Render");
+            system::Profiler::OnEndRange("Begin", true, "Render");
 
 			m_LayerStack->OnRender(m_SceneManager->GetCurrentScene());
 
-            system::Profiler::OnBeginRange("Render Present", true, "Render");
+            system::Profiler::OnBeginRange("Present", true, "Render");
 			Renderer::GetRenderer()->Present();
-            system::Profiler::OnEndRange("Render Present", true, "Render");
+            system::Profiler::OnEndRange("Present", true, "Render");
 		}
 
-		system::Profiler::OnEndRange("Render", true, "Main Loop");
+		system::Profiler::OnEndRange("Render", true, "MainLoop");
 	}
 
 	void Application::OnUpdate(TimeStep* dt)
 	{
-		system::Profiler::OnBeginRange("Update", true, "Main Loop");
+		system::Profiler::OnBeginRange("Update", true, "MainLoop");
 		const uint sceneIdx = m_SceneManager->GetCurrentSceneIndex();
 		const uint sceneMax = m_SceneManager->SceneCount();
 
@@ -250,15 +250,15 @@ namespace Lumos
 			
 			for (auto& system : m_Systems)
             {
-                system::Profiler::OnBeginRange("System : " + system->GetName() , true, "Update");
+                system::Profiler::OnBeginRange(system->GetName() , true, "Update");
                 system->OnUpdate(m_TimeStep.get());
-                system::Profiler::OnEndRange("System : " + system->GetName(), true, "Update");
+                system::Profiler::OnEndRange(system->GetName(), true, "Update");
             }
 		}
 
 		m_LayerStack->OnUpdate(m_TimeStep.get());
 
-		system::Profiler::OnEndRange("Update", true, "Main Loop");
+		system::Profiler::OnEndRange("Update", true, "MainLoop");
 	}
 
 	void Application::OnEvent(Event& e)

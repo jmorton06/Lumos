@@ -163,6 +163,7 @@ namespace Lumos
 			m_Application->m_SceneManager->GetCurrentScene()->OnIMGUI();
 			if (ImGui::TreeNode("Scene"))
 			{
+				ImGui::Indent();
 				auto scene = m_Application->m_SceneManager->GetCurrentScene();
 
 				if(scene->GetLightSetup())
@@ -175,6 +176,7 @@ namespace Lumos
 
 				if (ImGui::TreeNode(title.c_str()))
 				{
+					ImGui::Indent();
 					for (auto& entity : entities)
 					{
 						if (ImGui::Selectable(entity->GetName().c_str(), m_Selected == entity.get()))
