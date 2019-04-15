@@ -18,7 +18,6 @@ namespace Lumos
 
 	void LayerStack::PushLayer(Layer* layer)
 	{
-		//m_LayerInsert = m_Layers.emplace(m_LayerInsert, layer);
 		m_Layers.emplace(m_Layers.begin() + m_LayerCount, layer);
 		m_LayerCount++;
 
@@ -26,24 +25,11 @@ namespace Lumos
 
 	void LayerStack::PushOverlay(Layer* overlay)
 	{
-        //const size_t insertIndex = m_LayerInsert - begin();
-        //
-        //m_Layers.emplace_back(overlay);
-        //// emplace might have invalidated the iterator, reconstruct it
-        //m_LayerInsert = begin() + insertIndex;
-
 		m_Layers.emplace_back(overlay);
 	}
 
 	void LayerStack::PopLayer(Layer* layer)
 	{
-       /* auto it = std::find(m_Layers.begin(), m_Layers.end(), layer);
-        if (it != m_Layers.end())
-        {
-            m_Layers.erase(it);
-            m_LayerInsert--;
-        }*/
-
 		auto it = std::find(m_Layers.begin(), m_Layers.begin() + m_LayerCount, layer);
 		if (it != m_Layers.end())
 		{
@@ -55,10 +41,6 @@ namespace Lumos
 
 	void LayerStack::PopOverlay(Layer* overlay)
 	{
-        /*auto it = std::find(m_Layers.begin(), m_Layers.end(), overlay);
-        if (it != m_Layers.end())
-            m_Layers.erase(it);*/
-
 		auto it = std::find(m_Layers.begin() + m_LayerCount, m_Layers.end(), overlay);
 		if (it != m_Layers.end())
         {
@@ -73,9 +55,9 @@ namespace Lumos
 		{
 			Layer* layer = m_Layers[i];
             
-            system::Profiler::OnBeginRange("Layer : " + layer->GetName(), true, "Render");
+            system::Profiler::OnBeginRange("Layer Render : " + layer->GetName(), true, "Render");
 			layer->OnRender(scene);
-            system::Profiler::OnEndRange("Layer : " + layer->GetName(), true, "Render");
+            system::Profiler::OnEndRange("Layer Render : " + layer->GetName(), true, "Render");
 		}
 	}
 
@@ -84,7 +66,9 @@ namespace Lumos
 		for (uint i = 0; i < m_Layers.size(); i++)
 		{
 			Layer* layer = m_Layers[i];
+            system::Profiler::OnBeginRange("Layer Update : " + layer->GetName(), true, "Update");
 			layer->OnUpdate(timeStep);
+            system::Profiler::OnEndRange("Layer Update : " + layer->GetName(), true, "Update");
 		}
 	}
 
