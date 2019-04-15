@@ -103,22 +103,26 @@ namespace Lumos
 
 		system::JobSystem::Execute([] { LumosPhysicsEngine::Instance(); LUMOS_CORE_INFO("Initialised LumosPhysics"); });
 		system::JobSystem::Execute([] { B2PhysicsEngine::Instance(); LUMOS_CORE_INFO("Initialised B2Physics"); });
-		system::JobSystem::Wait();
 
-		AssetsManager::InitializeMeshes();
+        system::JobSystem::Execute([&]
+        {
+            m_AudioManager = std::unique_ptr<AudioManager>(AudioManager::Create());
+            m_AudioManager->OnInit();
+        });
+        
+        //Graphics Loading on main thread
+        AssetsManager::InitializeMeshes();
+        m_RenderManager = std::make_unique<RenderManager>(screenWidth, screenHeight);
 
-		m_LayerStack = new LayerStack();
-		m_RenderManager = std::make_unique<RenderManager>(screenWidth, screenHeight);
-
-		PushOverLay(new ImGuiLayer(false));
-
-		m_AudioManager = std::unique_ptr<AudioManager>(AudioManager::Create());
-		m_AudioManager->OnInit();
-
+        system::JobSystem::Wait();
+        
+        m_LayerStack = new LayerStack();
+        PushOverLay(new ImGuiLayer(false));
+        
 		m_Systems.emplace_back(m_AudioManager.get());
 		m_Systems.emplace_back(LumosPhysicsEngine::Instance());
 		m_Systems.emplace_back(B2PhysicsEngine::Instance());
-
+        
 		m_CurrentState = AppState::Running;
 		system::Profiler::OnEnd();
 	}
