@@ -37,6 +37,7 @@ namespace Lumos
 					initialized = true;
 
 					Data.reserve(100);
+					previousData.reserve(100);
 				}
 			}
 
@@ -54,9 +55,9 @@ namespace Lumos
 				if (!ENABLED || !initialized)
 					return;
 
-				auto* data = &Data[name];
+				std::unordered_map<String, ProfilerData>::iterator data = Data.find(name);
 
-				if (!data)
+				if (data == Data.end())
 				{
 					ProfilerData newdata;
 					newdata.name = name;
@@ -70,7 +71,7 @@ namespace Lumos
 				}
 				else
 				{
-					data->count++;
+					data->second.count++;
 				}
 
 			}
@@ -80,13 +81,39 @@ namespace Lumos
 				if (!ENABLED || !initialized)
 					return;
 
-				auto* data = &Data[name];
+				std::unordered_map<String, ProfilerData>::iterator data = Data.find(name);
 
-				if (data)
+				if (data != Data.end())
 				{
-					data->time += data->timer.GetTimedMS();
+					data->second.time += data->second.timer.GetTimedMS();
 				}
+				
 			}
+
+			void FindChild(const String& name)
+			{
+				for (auto& data : previousData)
+				{
+					if (data.second.secondary && data.second.parent == name)
+					{
+						ImGui::AlignTextToFramePadding();
+						bool menuOpen = ImGui::TreeNode(data.first.c_str());
+						ImGui::NextColumn();
+						ImGui::PushItemWidth(-1);
+						ImGui::AlignTextToFramePadding();
+						ImGui::Text("%.3f", data.second.time);
+						ImGui::PopItemWidth();
+						ImGui::NextColumn();
+
+						if (menuOpen)
+						{
+							FindChild(data.first);
+							ImGui::TreePop();
+						}
+					}
+
+				}
+			};
 
 			void OnImGUI()
 			{
@@ -94,13 +121,34 @@ namespace Lumos
 					return;
 
 				ImGui::Begin("Profiler");
+				ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(2, 2));
+				ImGui::Columns(2);
+				ImGui::Separator();
 
 				for (auto& data : previousData)
 				{
-					String s = " %.3f ms";
-					ImGui::Text((data.first + s).c_str(), data.second.time);
+					if (!data.second.secondary)
+					{
+						ImGui::AlignTextToFramePadding();
+						bool menuOpen = ImGui::TreeNode(data.first.c_str());
+						ImGui::NextColumn();
+						ImGui::PushItemWidth(-1);
+						ImGui::AlignTextToFramePadding();
+						ImGui::Text("%.3f", data.second.time);
+						ImGui::PopItemWidth();
+						ImGui::NextColumn();
+						
+						if(menuOpen)
+						{
+							FindChild(data.first);
+							ImGui::TreePop();
+						}
+						
+					}
 				}
-
+				ImGui::Columns(1);
+				ImGui::Separator();
+				ImGui::PopStyleVar();
 				ImGui::End();
 			}
 
