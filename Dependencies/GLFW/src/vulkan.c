@@ -2,7 +2,7 @@
 // GLFW 3.3 - www.glfw.org
 //------------------------------------------------------------------------
 // Copyright (c) 2002-2006 Marcus Geelnard
-// Copyright (c) 2006-2016 Camilla Löwy <elmindreda@glfw.org>
+// Copyright (c) 2006-2018 Camilla Löwy <elmindreda@glfw.org>
 //
 // This software is provided 'as-is', without any express or implied
 // warranty. In no event will the authors be held liable for any damages
@@ -56,7 +56,7 @@ GLFWbool _glfwInitVulkan(int mode)
 #elif defined(_GLFW_COCOA)
     _glfw.vk.handle = _glfw_dlopen("libvulkan.1.dylib");
 #else
-    //_glfw.vk.handle = _glfw_dlopen("libvulkan.so.1");
+    _glfw.vk.handle = _glfw_dlopen("libvulkan.so.1");
 #endif
     if (!_glfw.vk.handle)
     {

@@ -5,7 +5,7 @@
 #include "GL.h"
 #include "GLDebug.h"
 #ifndef LUMOS_PLATFORM_MOBILE
-#include "GLFW/glfw3.h"
+#include <GLFW/glfw3.h>
 #endif
 
 #include "Maths/Matrix4.h"

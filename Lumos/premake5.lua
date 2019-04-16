@@ -32,7 +32,7 @@ project "Lumos"
 		"external/spdlog/include",
 		"../Dependencies/",
 		"../Dependencies/lua/src/",
-		"../Dependencies/GLFW/include/",
+		"../Dependencies/glfw/include/",
 		"../Dependencies/glad/include/",
 		"../Dependencies/OpenAL/include/",
 		"../Dependencies/Box2D/",
