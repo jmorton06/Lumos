@@ -289,7 +289,6 @@ namespace Lumos
 	void Renderer2D::Render(Scene* scene)
 	{
 		Begin();
-		BeginScene(scene);
 
 		SetSystemUniforms(m_Shader);
 

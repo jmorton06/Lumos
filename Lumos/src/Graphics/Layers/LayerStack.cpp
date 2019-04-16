@@ -61,13 +61,13 @@ namespace Lumos
 		}
 	}
 
-	void LayerStack::OnUpdate(TimeStep* timeStep)
+	void LayerStack::OnUpdate(TimeStep* timeStep, Scene* scene)
 	{
 		for (uint i = 0; i < m_Layers.size(); i++)
 		{
 			Layer* layer = m_Layers[i];
             system::Profiler::OnBeginRange("Layer Update : " + layer->GetName(), true, "Update");
-			layer->OnUpdate(timeStep);
+			layer->OnUpdate(timeStep, scene);
             system::Profiler::OnEndRange("Layer Update : " + layer->GetName(), true, "Update");
 		}
 	}

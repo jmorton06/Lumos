@@ -8,7 +8,7 @@ namespace Lumos
     std::shared_ptr<spdlog::logger> LMLog::s_CoreLogger;
     std::shared_ptr<spdlog::logger> LMLog::s_ClientLogger;
     
-    void LMLog::Init()
+    void LMLog::OnInit()
     {
         spdlog::set_pattern("%^[%T] %n: %v%$");
         s_CoreLogger = spdlog::stdout_color_mt("LUMOS");
