@@ -1,7 +1,7 @@
 //========================================================================
 // GLFW 3.3 Cocoa - www.glfw.org
 //------------------------------------------------------------------------
-// Copyright (c) 2009-2016 Camilla Löwy <elmindreda@glfw.org>
+// Copyright (c) 2009-2019 Camilla Löwy <elmindreda@glfw.org>
 // Copyright (c) 2012 Torsten Walluhn <tw@mad-cad.net>
 //
 // This software is provided 'as-is', without any express or implied
@@ -127,7 +127,7 @@ static void matchCallback(void* context,
     char guid[33];
     CFIndex i;
     CFTypeRef property;
-    uint32_t external = 0, product = 0, version = 0;
+    uint32_t vendor = 0, product = 0, version = 0;
     _GLFWjoystick* js;
     CFMutableArrayRef axes, buttons, hats;
 
@@ -154,7 +154,7 @@ static void matchCallback(void* context,
 
     property = IOHIDDeviceGetProperty(device, CFSTR(kIOHIDVendorIDKey));
     if (property)
-        CFNumberGetValue(property, kCFNumberSInt32Type, &external);
+        CFNumberGetValue(property, kCFNumberSInt32Type, &vendor);
 
     property = IOHIDDeviceGetProperty(device, CFSTR(kIOHIDProductIDKey));
     if (property)
@@ -165,10 +165,10 @@ static void matchCallback(void* context,
         CFNumberGetValue(property, kCFNumberSInt32Type, &version);
 
     // Generate a joystick GUID that matches the SDL 2.0.5+ one
-    if (external && product)
+    if (vendor && product)
     {
         sprintf(guid, "03000000%02x%02x0000%02x%02x0000%02x%02x0000",
-                (uint8_t) external, (uint8_t) (external >> 8),
+                (uint8_t) vendor, (uint8_t) (vendor >> 8),
                 (uint8_t) product, (uint8_t) (product >> 8),
                 (uint8_t) version, (uint8_t) (version >> 8));
     }
@@ -220,9 +220,31 @@ static void matchCallback(void* context,
                 case kHIDUsage_GD_Hatswitch:
                     target = hats;
                     break;
+                case kHIDUsage_GD_DPadUp:
+                case kHIDUsage_GD_DPadRight:
+                case kHIDUsage_GD_DPadDown:
+                case kHIDUsage_GD_DPadLeft:
+                case kHIDUsage_GD_SystemMainMenu:
+                case kHIDUsage_GD_Select:
+                case kHIDUsage_GD_Start:
+                    target = buttons;
+                    break;
             }
         }
-        else if (page == kHIDPage_Button)
+        else if (page == kHIDPage_Simulation)
+        {
+            switch (usage)
+            {
+                case kHIDUsage_Sim_Accelerator:
+                case kHIDUsage_Sim_Brake:
+                case kHIDUsage_Sim_Throttle:
+                case kHIDUsage_Sim_Rudder:
+                case kHIDUsage_Sim_Steering:
+                    target = axes;
+                    break;
+            }
+        }
+        else if (page == kHIDPage_Button || page == kHIDPage_Consumer)
             target = buttons;
 
         if (target)
@@ -397,12 +419,12 @@ int _glfwPlatformPollJoystick(_GLFWjoystick* js, int mode)
             if (raw > axis->maximum)
                 axis->maximum = raw;
 
-            const long delta = axis->maximum - axis->minimum;
-            if (delta == 0)
+            const long size = axis->maximum - axis->minimum;
+            if (size == 0)
                 _glfwInputJoystickAxis(js, (int) i, 0.f);
             else
             {
-                const float value = (2.f * (raw - axis->minimum) / delta) - 1.f;
+                const float value = (2.f * (raw - axis->minimum) / size) - 1.f;
                 _glfwInputJoystickAxis(js, (int) i, value);
             }
         }
@@ -417,7 +439,8 @@ int _glfwPlatformPollJoystick(_GLFWjoystick* js, int mode)
             _GLFWjoyelementNS* button = (_GLFWjoyelementNS*)
                 CFArrayGetValueAtIndex(js->ns.buttons, i);
             const char value = getElementValue(js, button) - button->minimum;
-            _glfwInputJoystickButton(js, (int) i, value);
+            const int state = (value > 0) ? GLFW_PRESS : GLFW_RELEASE;
+            _glfwInputJoystickButton(js, (int) i, state);
         }
 
         for (i = 0;  i < CFArrayGetCount(js->ns.hats);  i++)
@@ -454,7 +477,7 @@ void _glfwPlatformUpdateGamepadGUID(char* guid)
         (strncmp(guid + 20, "000000000000", 12) == 0))
     {
         char original[33];
-        strcpy(original, guid);
+        strncpy(original, guid, sizeof(original) - 1);
         sprintf(guid, "03000000%.4s0000%.4s000000000000",
                 original, original + 16);
     }

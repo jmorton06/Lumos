@@ -23,7 +23,7 @@ workspace "Lumos"
 		require("Dependencies/lua/premake5")
 		require("Dependencies/volk/premake5")
 		filter "system:not ios"
-			require("Dependencies/GLFW/premake5")
+			require("Dependencies/glfw/premake5")
 			require("Dependencies/glad/premake5")
 		filter()
 	group ""
