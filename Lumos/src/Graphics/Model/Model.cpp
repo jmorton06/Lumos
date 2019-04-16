@@ -29,11 +29,11 @@ namespace Lumos
 	}
 	}
 
-	Model::Model(): m_GammaCorrection(false), m_CleanUpMesh(false), m_NeedFrustumCheck(true), m_RootBone(nullptr)
+	Model::Model() : m_CleanUpMesh(false)
 	{
 	}
 
-	Model::Model(const String& path, bool gamma) : m_GammaCorrection(gamma), m_NeedFrustumCheck(true), m_RootBone(nullptr)
+	Model::Model(const String& path)
 	{
         String filePath;
 #ifdef LUMOS_PLATFORM_MOBILE
@@ -45,7 +45,7 @@ namespace Lumos
 		LoadModel(filePath);
 	}
 
-	Model::Model(const Model& model) : m_GammaCorrection(false), m_CleanUpMesh(false), m_NeedFrustumCheck(true), m_RootBone(nullptr)
+	Model::Model(const Model& model) : m_CleanUpMesh(false)
 	{
 		for (const auto& mesh : model.GetMeshs())
 		{
@@ -53,17 +53,17 @@ namespace Lumos
 		}
 	}
 
-	Model::Model(const Mesh& mesh) : m_GammaCorrection(false), m_CleanUpMesh(false), m_NeedFrustumCheck(true), m_RootBone(nullptr)
+	Model::Model(const Mesh& mesh) :m_CleanUpMesh(false)
 	{
 		m_Meshes.push_back(std::make_shared<Mesh>(mesh));
 	}
 
-	Model::Model(const Mesh* mesh) : m_GammaCorrection(false), m_CleanUpMesh(false), m_NeedFrustumCheck(true), m_RootBone(nullptr)
+	Model::Model(const Mesh* mesh) : m_CleanUpMesh(false)
 	{
 		m_Meshes.push_back(std::make_shared<Mesh>(*mesh));
 	}
 
-	Model::Model(std::shared_ptr<Mesh> mesh) : m_GammaCorrection(false), m_CleanUpMesh(false), m_NeedFrustumCheck(true), m_RootBone(nullptr)
+	Model::Model(std::shared_ptr<Mesh> mesh) : m_CleanUpMesh(false)
 	{
 		m_Meshes.push_back(mesh);
 	}
@@ -83,7 +83,6 @@ namespace Lumos
 
 		m_Directory = resolvedPath.substr(0, resolvedPath.find_last_of('/'));
 
-#ifndef ASSIMP
 		const String fileExtension = StringFormat::GetFilePathExtension(path);
 
 		if (fileExtension == "obj")
@@ -92,9 +91,6 @@ namespace Lumos
 			LoadGLTF(resolvedPath);
 		else
 			LUMOS_CORE_ERROR("Unsupported File Type : {0}", fileExtension);
-#else
-	LoadModelAssimp(resolvedPath);
-#endif
 
 		LUMOS_CORE_INFO("Loaded Model - {0}", resolvedPath);
 	}

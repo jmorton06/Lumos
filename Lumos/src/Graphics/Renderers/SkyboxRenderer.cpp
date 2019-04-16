@@ -59,7 +59,6 @@ namespace Lumos
 			m_CurrentBufferID = Renderer::GetSwapchain()->GetCurrentBufferId();
 
         Begin();
-		BeginScene(scene);
 		SetSystemUniforms(m_Shader);
 		m_Pipeline->SetActive(m_CommandBuffers[m_CurrentBufferID]);
 

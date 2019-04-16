@@ -16,7 +16,7 @@ namespace Lumos
 
 		virtual void OnAttach() override;
 		virtual void OnDetach() override;
-		virtual void OnUpdate(TimeStep* dt) override;
+		virtual void OnUpdate(TimeStep* dt, Scene* scene) override;
 		virtual void OnEvent(Event& event) override;
 		virtual void OnRender(Scene* scene) override;
 

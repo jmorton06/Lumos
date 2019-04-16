@@ -21,8 +21,8 @@ namespace Lumos
 		bool WriteFile(const String& path, byte* buffer);
 		bool WriteTextFile(const String& path, const String& text);
 	public:
-		static void Init();
-		static void Shutdown();
+		static void OnInit();
+		static void OnShutdown();
 
 		inline static VFS* Get() { return s_Instance; }
 	};

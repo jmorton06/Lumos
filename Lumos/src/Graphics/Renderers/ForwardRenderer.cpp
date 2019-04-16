@@ -66,7 +66,6 @@ namespace Lumos
 				m_CurrentBufferID = Renderer::GetSwapchain()->GetCurrentBufferId();
 
 			Begin();
-			BeginScene(scene);
 
 			renderList->RenderOpaqueObjects([&](Entity* obj)
 			{

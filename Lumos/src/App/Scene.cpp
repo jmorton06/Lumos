@@ -218,7 +218,7 @@ namespace Lumos
 			auto modelComponent = entity->GetComponent<ModelComponent>();
 			if(modelComponent)
 			{
-				bool inside = modelComponent->m_Model->GetNeedFrustumCheck() ? frustum.InsideFrustum(entity->GetComponent<TransformComponent>()->m_Transform.GetWorldMatrix().GetPositionVector(), entity->GetBoundingRadius()) : true;
+				bool inside = frustum.InsideFrustum(entity->GetComponent<TransformComponent>()->m_Transform.GetWorldMatrix().GetPositionVector(), entity->GetBoundingRadius());
 
 				if (inside)
 				{

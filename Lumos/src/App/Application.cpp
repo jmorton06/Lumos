@@ -34,19 +34,20 @@ namespace Lumos
 		LUMOS_ASSERT(!s_Instance, "Application already exists!");
 		s_Instance = this;
 
+		system::Profiler::OnBegin();
+		system::Profiler::OnBeginRange("StartUp", false, "", true);
+	
+
 #ifdef  LUMOS_EDITOR
 		m_Editor = new Editor(this, properties.Width, properties.Height);
 #endif
-
-		system::JobSystem::Initialize();
-		system::Profiler::SetEnabled(true);
-		system::Profiler::OnBegin();
-
 		graphics::Context::SetRenderAPI(api);
 
+#ifdef LUMOS_EDITOR
 #ifdef LUMOS_RENDER_API_OPENGL
 		if (api == RenderAPI::OPENGL)
 			m_Editor->m_FlipImGuiImage = true;
+#endif
 #endif
 
 		Engine::Instance();
@@ -124,6 +125,8 @@ namespace Lumos
 		m_Systems.emplace_back(B2PhysicsEngine::Instance());
         
 		m_CurrentState = AppState::Running;
+
+		system::Profiler::OnEndRange("StartUp", false, "", true);
 		system::Profiler::OnEnd();
 	}
 
@@ -260,7 +263,7 @@ namespace Lumos
             }
 		}
 
-		m_LayerStack->OnUpdate(m_TimeStep.get());
+		m_LayerStack->OnUpdate(m_TimeStep.get(), m_SceneManager->GetCurrentScene());
 
 		system::Profiler::OnEndRange("Update", true, "MainLoop");
 	}
@@ -306,7 +309,9 @@ namespace Lumos
 
 	void Application::OnNewScene(Scene * scene)
 	{
+#ifdef LUMOS_EDITOR
 		m_Editor->OnNewScene(scene);
+#endif
 	}
 
 	bool Application::OnWindowClose(WindowCloseEvent& e)
@@ -325,7 +330,9 @@ namespace Lumos
 
 	void Application::OnImGui()
 	{
+#ifdef LUMOS_EDITOR
 		if(m_AppType == AppType::Editor)
 			m_Editor->OnImGui();
+#endif
     }
 }

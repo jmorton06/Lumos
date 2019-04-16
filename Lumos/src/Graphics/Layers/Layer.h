@@ -16,7 +16,7 @@ namespace Lumos
 
 		virtual void OnAttach() {}
 		virtual void OnDetach() {}
-		virtual void OnUpdate(TimeStep* dt) {}
+		virtual void OnUpdate(TimeStep* dt, Scene* scene) {}
 		virtual void OnEvent(Event& event) {}
 		virtual void OnRender(Scene* scene) {}
         virtual void OnNewScene(Scene* scene) {}

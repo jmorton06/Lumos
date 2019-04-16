@@ -198,7 +198,6 @@ namespace Lumos
 		SubmitLightSetup(*scene->GetLightSetup(),scene);
 
 		BeginOffscreen();
-		BeginScene(scene);
 
 		renderList->RenderOpaqueObjects([&](Entity* obj)
 		{

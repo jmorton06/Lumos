@@ -71,7 +71,7 @@ namespace Lumos
             uint64_t currentLabel = 0;
             std::atomic<uint64_t> finishedLabel;
 
-            void Initialize()
+            void OnInit()
             {
                 finishedLabel.store(0);
 
