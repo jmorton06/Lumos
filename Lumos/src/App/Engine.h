@@ -31,7 +31,7 @@ namespace Lumos
 
         uint  m_UpdatesPerSecond;
         uint  m_FramesPerSecond;
-        float m_Frametime;
+        float m_Frametime = 0.1f;
         float m_MaxFramesPerSecond;
     };
 }

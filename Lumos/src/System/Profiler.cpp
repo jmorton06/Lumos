@@ -1,6 +1,7 @@
 #include "LM.h"
 #include "Profiler.h"
 #include "Utilities/Timer.h"
+#include "App/Engine.h"
 
 #include <imgui/imgui.h>
 
@@ -12,7 +13,10 @@ namespace Lumos
 		{
 			bool initialized = false;
 			bool ENABLED = false;
-
+            
+            std::vector<float> m_plot_times;
+            unsigned int m_plot_size = 400;
+            
 			struct ProfilerData
 			{
 				String name;
@@ -40,6 +44,7 @@ namespace Lumos
 					Data.reserve(100);
 					previousData.reserve(100);
 					StartUpData.reserve(100);
+                    m_plot_times.resize(m_plot_size);
 				}
 			}
 
@@ -163,7 +168,6 @@ namespace Lumos
 							FindChild(data.first);
 							ImGui::TreePop();
 						}
-						
 					}
 				}
 
@@ -191,6 +195,13 @@ namespace Lumos
 				ImGui::Columns(1);
 				ImGui::Separator();
 				ImGui::PopStyleVar();
+                
+                
+                m_plot_times.erase(m_plot_times.begin());
+                m_plot_times.emplace_back(1000.0f / Engine::Instance()->GetFrametime());
+                
+                // Plot data
+                ImGui::PlotLines("", m_plot_times.data(), static_cast<int>(m_plot_times.size()), 0, "", FLT_MAX, FLT_MAX, ImVec2(ImGui::GetWindowContentRegionWidth(), 80));
 				ImGui::End();
 			}
 
