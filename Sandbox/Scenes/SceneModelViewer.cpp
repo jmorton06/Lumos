@@ -71,13 +71,9 @@ void SceneModelViewer::OnCleanupScene()
 
 void SceneModelViewer::LoadModels()
 {
-	std::shared_ptr<Entity> TestObject = std::make_shared<Entity>("TestObject", this);
+	std::shared_ptr<Entity> TestObject = ModelLoader::LoadModel("/Meshes/Scene/scene.gltf");
+	//DamagedHelmet/glTF/DamagedHelmet.gltf");//Cube/Cube.gltf");//Scene/scene.gltf");///Meshes/Spyro/ArtisansHub.obj
 	TestObject->SetBoundingRadius(20000.0f);
-
-	TestObject->AddComponent(std::make_unique<TransformComponent>(Matrix4()));//(Matrix4::Translation(maths::Vector3(0.0, 0.0, 0.0f)) * Matrix4::RotationX(-90.0f) * Matrix4::RotationZ(90.0f))));
-	std::shared_ptr<Model> model = std::make_shared<Model>("Meshes/Spyro/ArtisansHub.obj");//DamagedHelmet/glTF/DamagedHelmet.gltf");//Cube/Cube.gltf");//Scene/scene.gltf");// *AssetsManager::DefaultModels()->GetAsset("Cube"));
-	TestObject->AddComponent(std::make_unique<ModelComponent>(model));
-
 	AddEntity(TestObject);
 
 }

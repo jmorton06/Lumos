@@ -36,7 +36,7 @@ public:
 		GetSceneManager()->EnqueueScene(new Scene2D("2D Test"));
 		GetSceneManager()->EnqueueScene(new Scene3D("Physics Scene"));
 		GetSceneManager()->EnqueueScene(new GraphicsScene("Terrain Test"));
-		GetSceneManager()->JumpToScene(4);
+		GetSceneManager()->JumpToScene(2);
 	}
 };
 

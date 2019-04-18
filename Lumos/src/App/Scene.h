@@ -53,7 +53,7 @@ namespace Lumos
 		// Add Entity to the scene list
 		//    - All added Entities are managed by the scene itself, firing
 		//		OnRender and OnUpdate functions automatically
-		void AddEntity(std::shared_ptr<Entity> game_object);
+		void AddEntity(std::shared_ptr<Entity>& game_object);
 
 		// The friendly name associated with this scene instance
 		const String& GetSceneName() const { return m_SceneName; }
@@ -75,7 +75,7 @@ namespace Lumos
 
 		void BuildFrameRenderList();
 
-		std::vector <std::shared_ptr<Entity>>& GetEntities() { return m_Entities; }
+		std::shared_ptr<Entity>& GetRootEntity() { return m_RootEntity; }
 
 		void 				SetCamera(Camera* camera) { m_pCamera = camera; }
 		Camera*				GetCamera()				const { return m_pCamera; }
@@ -112,6 +112,8 @@ namespace Lumos
 		maths::Frustum GetFrustum() const { return m_FrameFrustum; }
 		RenderList* GetRenderList() const { return m_pFrameRenderList.get(); }
 
+		void IterateEntities(const std::function<void(std::shared_ptr<Entity>)>& per_object_func);
+
 	protected:
 
 		String				m_SceneName;
@@ -124,7 +126,7 @@ namespace Lumos
 
 		float m_SceneBoundingRadius;
 
-		std::vector<std::shared_ptr<Entity>> m_Entities;
+		std::shared_ptr<Entity> m_RootEntity;
 
 		bool m_CurrentScene = false;
 		bool m_ReflectSkybox = true;

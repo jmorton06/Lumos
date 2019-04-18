@@ -6,7 +6,7 @@
 #include "Graphics/Light.h"
 #include "Graphics/API/Textures/TextureDepth.h"
 #include "Graphics/API/Textures/TextureCube.h"
-#include "Graphics/Model/Model.h"
+#include "Graphics/ModelLoader/ModelLoader.h"
 #include "Graphics/Mesh.h"
 #include "Graphics/MeshFactory.h"
 #include "Graphics/Material.h"
@@ -203,40 +203,38 @@ namespace Lumos
 		{
 			if (obj != nullptr)
 			{
-				auto* model = obj->GetComponent<ModelComponent>();
+				auto* model = obj->GetComponent<MeshComponent>();
 				if (model && model->m_Model)
 				{
-					for (auto& mesh : model->m_Model->GetMeshs())
+					auto mesh = model->m_Model;
+					if (mesh->GetMaterial())
 					{
-						if (mesh->GetMaterial())
-						{
-							if(mesh->GetMaterial()->GetDescriptorSet() == nullptr || mesh->GetMaterial()->GetPipeline() != m_OffScreenPipeline)
-								mesh->GetMaterial()->CreateDescriptorSet(m_OffScreenPipeline, 1);
-						}
-
-						TextureMatrixComponent* textureMatrixTransform = obj->GetComponent<TextureMatrixComponent>();
-						maths::Matrix4 textureMatrix;
-						if (textureMatrixTransform)
-							textureMatrix = textureMatrixTransform->m_TextureMatrix;
-						else
-							textureMatrix = maths::Matrix4();
-
-						auto transform = obj->GetComponent<TransformComponent>()->m_Transform.GetWorldMatrix();
-
-                    #if 0
-                        bool inside = true;
-                        
-						float maxScaling = 0.0f;
-						maxScaling = maths::Max(transform.GetScaling().GetX(), maxScaling);
-						maxScaling = maths::Max(transform.GetScaling().GetY(), maxScaling);
-						maxScaling = maths::Max(transform.GetScaling().GetZ(), maxScaling);
-
-						inside = GraphicsPipeline::Instance()->GetFrustum().InsideFrustum(transform * mesh->GetBoundingSphere()->Centre(), maxScaling * mesh->GetBoundingSphere()->SphereRadius());
-                        
-                        if (inside)
-                    #endif
-                            SubmitMesh(mesh.get(), transform, textureMatrix);
+						if(mesh->GetMaterial()->GetDescriptorSet() == nullptr || mesh->GetMaterial()->GetPipeline() != m_OffScreenPipeline)
+							mesh->GetMaterial()->CreateDescriptorSet(m_OffScreenPipeline, 1);
 					}
+
+					TextureMatrixComponent* textureMatrixTransform = obj->GetComponent<TextureMatrixComponent>();
+					maths::Matrix4 textureMatrix;
+					if (textureMatrixTransform)
+						textureMatrix = textureMatrixTransform->m_TextureMatrix;
+					else
+						textureMatrix = maths::Matrix4();
+
+					auto transform = obj->GetComponent<TransformComponent>()->m_Transform.GetWorldMatrix();
+
+                #if 0
+                    bool inside = true;
+                        
+					float maxScaling = 0.0f;
+					maxScaling = maths::Max(transform.GetScaling().GetX(), maxScaling);
+					maxScaling = maths::Max(transform.GetScaling().GetY(), maxScaling);
+					maxScaling = maths::Max(transform.GetScaling().GetZ(), maxScaling);
+
+					inside = GraphicsPipeline::Instance()->GetFrustum().InsideFrustum(transform * mesh->GetBoundingSphere()->Centre(), maxScaling * mesh->GetBoundingSphere()->SphereRadius());
+                        
+                    if (inside)
+                #endif
+                        SubmitMesh(mesh.get(), transform, textureMatrix);
 				}
 			}
 		});

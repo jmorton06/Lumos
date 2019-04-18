@@ -1,6 +1,14 @@
 #pragma once
 #include "LM.h"
 
+#define LUMOS_PROFILER
+
+#ifdef LUMOS_PROFILER
+#define LUMOS_PROFILE(x) x
+#else
+#define LUMOS_PROFILE(x)
+#endif
+
 namespace Lumos
 {
 	namespace system

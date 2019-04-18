@@ -6,7 +6,7 @@
 #include "App/Scene.h"
 #include "Graphics/API/Shader.h"
 #include "Maths/Maths.h"
-#include "Graphics/Model/Model.h"
+#include "Graphics/ModelLoader/ModelLoader.h"
 #include "Maths/MathsUtilities.h"
 #include "Graphics/API/Renderer.h"
 #include "Graphics/API/CommandBuffer.h"
@@ -226,11 +226,11 @@ namespace Lumos
 			{
 				if (obj)
 				{
-					const auto model = obj->GetComponent<ModelComponent>();
+					const auto model = obj->GetComponent<MeshComponent>();
 
 					if (model && model->m_Model)
 					{
-						for (auto& mesh : model->m_Model->GetMeshs())
+						auto mesh = model->m_Model;
 						{
 							SubmitMesh(mesh.get(), obj->GetComponent<TransformComponent>()->m_Transform.GetWorldMatrix(), maths::Matrix4());
 						}

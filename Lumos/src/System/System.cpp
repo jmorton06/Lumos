@@ -10,8 +10,8 @@ namespace Lumos
 	{
 	void System::Init()
 	{
-		system::Profiler::SetEnabled(true);
-		system::Profiler::OnInit();
+		LUMOS_PROFILE(system::Profiler::SetEnabled(true));
+		LUMOS_PROFILE(system::Profiler::OnInit());
 
 		LMLog::OnInit();
 		system::JobSystem::OnInit();

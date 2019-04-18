@@ -1,17 +1,41 @@
 #include "LM.h"
-#include "Model.h"
+#include "ModelLoader.h"
+#include "Graphics/Mesh.h"
+#include "Graphics/Material.h"
+#include "Entity/Entity.h"
+#include "Entity/Component/MeshComponent.h"
 #include "Graphics/API/Textures/Texture2D.h"
 #include "Maths/BoundingSphere.h"
-
-#define TINYOBJLOADER_IMPLEMENTATION
-#include "external/tinyobjloader/tiny_obj_loader.h"
-
 #include "Utilities/AssetsManager.h"
 
+#define TINYOBJLOADER_IMPLEMENTATION
+#include <tinyobjloader/tiny_obj_loader.h>
 
 namespace Lumos
 {
-	void Model::LoadOBJ(const String& path)
+	String m_Directory;
+	std::vector<std::shared_ptr<Texture2D>> m_Textures;
+
+	std::shared_ptr<Texture2D> LoadMaterialTextures(const String& typeName, std::vector<std::shared_ptr<Texture2D>>& textures_loaded, const String& name, const String& directory, TextureParameters format)
+	{
+		for (uint j = 0; j < textures_loaded.size(); j++)
+		{
+			if (std::strcmp(textures_loaded[j]->GetFilepath().c_str(), (directory + "/" + name).c_str()) == 0)
+			{
+				return textures_loaded[j];
+			}
+		}
+
+		{   // If texture hasn't been loaded already, load it
+			TextureLoadOptions options(false, true);
+			auto texture = std::shared_ptr<Texture2D>(Texture2D::CreateFromFile(typeName, directory + "/" + name, format, options));
+			textures_loaded.push_back(texture);  // Store it as texture loaded for entire model, to ensure we won't unnecessary load duplicate textures.
+
+			return texture;
+		}
+	}
+
+	std::shared_ptr<Entity> ModelLoader::LoadOBJ(const String& path)
 	{
 		String resolvedPath = path;
 		tinyobj::attrib_t attrib;
@@ -19,6 +43,8 @@ namespace Lumos
 
 		std::vector<tinyobj::shape_t> shapes;
 		std::vector<tinyobj::material_t> materials;
+
+		m_Directory = resolvedPath.substr(0, resolvedPath.find_last_of('/'));
 
 		bool ok = tinyobj::LoadObj(
 			&attrib, &shapes, &materials, &error,
@@ -30,6 +56,8 @@ namespace Lumos
 		{
 			LUMOS_CORE_ERROR(error);
 		}
+
+		auto entity = std::make_shared<Entity>(nullptr);
 
 		for (const auto& shape : shapes)
 		{
@@ -136,8 +164,8 @@ namespace Lumos
 
 				if (mp->ambient_texname.length() > 0)
 				{
-					//std::shared_ptr<Texture2D> texture = LoadMaterialTextures("Metallic", m_Textures, mp->ambient_texname.c_str(), m_Directory, TextureParameters(TextureWrap::CLAMP));
-					//if(texture) TODO: Fix or check if mesh mtl wrong
+					std::shared_ptr<Texture2D> texture = LoadMaterialTextures("Metallic", m_Textures, mp->ambient_texname.c_str(), m_Directory, TextureParameters(TextureWrap::CLAMP));
+					//if(texture)// TODO: Fix or check if mesh mtl wrong
 					//	pbrMaterial->SetGlossMap(texture);
 				}
 
@@ -170,10 +198,18 @@ namespace Lumos
 			std::shared_ptr<IndexBuffer> ib;
 			ib.reset(IndexBuffer::Create(indices, numIndices));// / sizeof(uint));
 
-			m_Meshes.push_back(std::make_shared<Mesh>(va, ib, pbrMaterial,boundingBox));
+			auto meshEntity = std::make_shared<Entity>("Mesh", nullptr);
+            auto mesh = std::make_shared<Mesh>(va, ib, pbrMaterial, boundingBox);
+			meshEntity->AddComponent(std::make_unique<MeshComponent>(mesh));
+			meshEntity->AddComponent(std::make_unique<TransformComponent>(maths::Matrix4()));
+			entity->AddChildObject(meshEntity);
 
 			delete[] vertices;
 			delete[] indices;
 		}
+
+		return entity;
 	}
+
+
 }

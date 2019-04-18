@@ -49,7 +49,7 @@ namespace Lumos
 		DrawHierarchyWindow();
 		DrawInspectorWindow();
 
-		system::Profiler::OnImGUI();
+		LUMOS_PROFILE(system::Profiler::OnImGUI());
 		EndDockSpace();
 	}
 
@@ -105,15 +105,6 @@ namespace Lumos
 		{
 			if (ImGui::TreeNode("Application"))
 			{
-				/*		if (ImGui::RadioButton("Translate", m_ImGuizmoOperation == ImGuizmo::TRANSLATE))
-					m_ImGuizmoOperation = ImGuizmo::TRANSLATE;
-				ImGui::SameLine();
-				if (ImGui::RadioButton("Rotate", m_ImGuizmoOperation == ImGuizmo::ROTATE))
-					m_ImGuizmoOperation = ImGuizmo::ROTATE;
-				ImGui::SameLine();
-				if (ImGui::RadioButton("Scale", m_ImGuizmoOperation == ImGuizmo::SCALE))
-					m_ImGuizmoOperation = ImGuizmo::SCALE;*/
-
 				if (ImGui::ImageButton(m_Icons["translate"]->GetHandle(), ImVec2(16, 16), ImVec2(0.0f, m_FlipImGuiImage ? 1.0f : 0.0f), ImVec2(1.0f, m_FlipImGuiImage ? 0.0f : 1.0f)))
 					m_ImGuizmoOperation = ImGuizmo::TRANSLATE;
 				ImGui::SameLine();
@@ -169,7 +160,7 @@ namespace Lumos
 				if(scene->GetLightSetup())
 					scene->GetLightSetup()->OnImGUI();
 
-				auto entities = scene->GetEntities();
+				/*auto entities = scene->GetEntities();
 				scene->GetCamera()->OnImGUI();
 				
 				std::string title = "Entities : " + StringFormat::ToString(static_cast<int>(entities.size()));
@@ -182,6 +173,15 @@ namespace Lumos
 						if (ImGui::Selectable(entity->GetName().c_str(), m_Selected == entity.get()))
 							m_Selected = entity.get();
 					}
+					ImGui::TreePop();
+				}*/
+				if (ImGui::TreeNode("Entities"))
+				{
+					m_Application->m_SceneManager->GetCurrentScene()->IterateEntities([&](std::shared_ptr<Entity> entity)
+					{
+						if (ImGui::Selectable(entity->GetName().c_str(), m_Selected == entity.get()))
+							m_Selected = entity.get();
+					});
 					ImGui::TreePop();
 				}
 				ImGui::TreePop();
@@ -337,9 +337,7 @@ namespace Lumos
 
 		maths::Vector3 worldMousePos = invProjView * maths::Vector3(pointX, pointY, 0.0f);
 
-		auto entities = m_Application->m_SceneManager->GetCurrentScene()->GetEntities();
-
-		for (auto& entity : entities)
+		m_Application->m_SceneManager->GetCurrentScene()->IterateEntities([&](std::shared_ptr<Entity> entity)
 		{
 			auto boundingBox = entity->GetBoundingRadius();
 			maths::BoundingSphere test(entity->GetTransform()->m_Transform.GetWorldPosition(), boundingBox);
@@ -348,7 +346,7 @@ namespace Lumos
 				m_Selected = entity.get();
 				return;
 			}
-		}
+		});
 	}
 
 	void Editor::OnInit()

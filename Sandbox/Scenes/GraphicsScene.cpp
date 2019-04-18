@@ -98,7 +98,7 @@ void GraphicsScene::LoadModels()
 
 	//std::shared_ptr<Model> waterModel = std::make_shared<Model>(Water(maths::Vector3(20.0f, 2.0f, 20.0f), maths::Vector3(20.0f, 2.0f, 20.0f)));
 	//water->AddComponent(std::make_unique<TextureMatrixComponent>(Matrix4::Scale(maths::Vector3(10.0f, 10.0f, 10.0f))));
-	//water->AddComponent(std::make_unique<ModelComponent>(waterModel));
+	//water->AddComponent(std::make_unique<MeshComponent>(waterModel));
 	//water->SetBoundingRadius(200.0f);
 	//AddEntity(water);
 
@@ -111,7 +111,7 @@ void GraphicsScene::LoadModels()
 	heightmap->AddComponent(std::make_unique<TransformComponent>(Matrix4::Scale(maths::Vector3(1.0f))));
 	heightmap->AddComponent(std::make_unique<TextureMatrixComponent>(Matrix4::Scale(maths::Vector3(1.0f, 1.0f, 1.0f))));
 	heightmap->SetBoundingRadius(2000.0f);
-	std::shared_ptr<Model> terrain = std::make_shared<Model>(*terrainMesh);
+	std::shared_ptr<Mesh> terrain = std::make_shared<Mesh>(*terrainMesh);
 	auto material = std::make_shared<Material>();
 
 	material->LoadMaterial("checkerboard", "/CoreTextures/checkerboard.tga");
@@ -119,7 +119,7 @@ void GraphicsScene::LoadModels()
 
 	//terrain->SetMaterial(std::make_shared<Material>(*m_MaterialManager->GetAsset("Stone").get()));
 	//terrain->SetMaterialFlag(Material::RenderFlags::WIREFRAME);
-	heightmap->AddComponent(std::make_unique<ModelComponent>(terrain));
+	heightmap->AddComponent(std::make_unique<MeshComponent>(terrain));
 
 	AddEntity(heightmap);
 
