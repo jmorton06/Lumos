@@ -45,8 +45,8 @@ namespace Lumos
 		virtual void OnGuizmo(uint mode = 0);
         virtual void Init();
 
-		std::vector<Entity*>& GetChildren() { return m_vpChildren; }
-		void AddChildObject(Entity* child);
+		std::vector<std::shared_ptr<Entity>>& GetChildren() { return m_vpChildren; }
+		void AddChildObject(std::shared_ptr<Entity>& child);
 
 		const String& GetName() const { return m_Name; }
 
@@ -81,7 +81,7 @@ namespace Lumos
 		String					m_Name;
 		Scene*					m_pScene;
 		Entity*					m_pParent;
-		std::vector<Entity*>	m_vpChildren;
+		std::vector<std::shared_ptr<Entity>> m_vpChildren;
 		float					m_BoundingRadius;
 		uint					m_FrustumCullFlags;
 		bool					m_UpdateTransforms;

@@ -9,7 +9,7 @@ namespace Lumos
 
 	enum class ComponentType
 	{
-		Model,
+		Mesh,
         Light,
         AI,
         Particle,

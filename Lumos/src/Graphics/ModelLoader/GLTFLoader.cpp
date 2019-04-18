@@ -1,6 +1,14 @@
 #include "LM.h"
-#include "Model.h"
+#include "ModelLoader.h"
+#include "Graphics/Mesh.h"
+#include "Graphics/Material.h"
 #include "Maths/BoundingSphere.h"
+#include "Entity/Entity.h"
+#include "Entity/Component/MeshComponent.h"
+#include "Graphics/API/Textures/Texture2D.h"
+#include "Utilities/AssetsManager.h"
+#include "Maths/MathsUtilities.h"
+#include "Maths/Matrix4.h"
 
 #define TINYGLTF_IMPLEMENTATION
 #define STB_IMAGE_WRITE_IMPLEMENTATION
@@ -8,12 +16,7 @@
 #ifdef LUMOS_DIST
 #define TINYGLTF_NOEXCEPTION
 #endif
-#include "external/tinygltf/tiny_gltf.h"
-
-#include "Graphics/API/Textures/Texture2D.h"
-#include "Utilities/AssetsManager.h"
-#include "Maths/MathsUtilities.h"
-#include "Maths/Matrix4.h"
+#include <tinygltf/tiny_gltf.h>
 
 namespace Lumos
 {
@@ -345,7 +348,7 @@ namespace Lumos
 			return loadedMaterials;
 		}
 
-	void Model::LoadGLTF(const String & path)
+    std::shared_ptr<Entity> ModelLoader::LoadGLTF(const String& path)
 	{
 		tinygltf::Model model;
 		tinygltf::TinyGLTF loader;
@@ -384,6 +387,9 @@ namespace Lumos
 		}
 
 		auto LoadedMaterials = LoadMaterials(model);
+
+		auto entity = std::make_shared<Entity>(nullptr);
+		entity->AddComponent(std::make_unique<TransformComponent>(maths::Matrix4()));
 
 		for (auto& mesh : model.meshes)
 		{
@@ -547,12 +553,17 @@ namespace Lumos
 			std::shared_ptr<IndexBuffer> ib;
 			ib.reset(IndexBuffer::Create(indicesArray, numVertices));
 
-			m_Meshes.push_back(std::make_shared<Mesh>(va, ib, pbrMaterial, boundingBox));
+			auto meshEntity = std::make_shared<Entity>("Mesh", nullptr);
+            auto lMesh = std::make_shared<Mesh>(va, ib, pbrMaterial, boundingBox);
+			meshEntity->AddComponent(std::make_unique<MeshComponent>(lMesh));
+			meshEntity->AddComponent(std::make_unique<TransformComponent>(maths::Matrix4()));
+			entity->AddChildObject(meshEntity);
 
 			delete[] tempvertices;
 			delete[] indicesArray;
 		}
 
+		return entity;
 	}
 
 }

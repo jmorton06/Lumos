@@ -8,6 +8,8 @@
 #include <imgui/imgui.h>
 #include <imgui/plugins/ImGuizmo.h>
 #include "Graphics/Camera/Camera.h"
+#include "App/Application.h"
+#include "App/SceneManager.h"
 
 namespace Lumos
 {
@@ -58,12 +60,13 @@ namespace Lumos
 		m_UpdateTransforms = false;
 	}
 
-	void Entity::AddChildObject(Entity* child)
+	void Entity::AddChildObject(std::shared_ptr<Entity>& child)
 	{
 		m_vpChildren.push_back(child);
 		child->m_pParent = this;
 		child->m_pScene = this->m_pScene;
 	}
+
 	void Entity::DebugDraw(uint64 debugFlags)
 	{
 		if (debugFlags & DEBUGDRAW_FLAGS_BOUNDING_RADIUS)
@@ -100,8 +103,8 @@ namespace Lumos
 
 	void Entity::OnGuizmo(uint mode)
 	{
-		maths::Matrix4 view = m_pScene->GetCamera()->GetViewMatrix();
-		maths::Matrix4 proj = m_pScene->GetCamera()->GetProjectionMatrix();
+		maths::Matrix4 view = Application::Instance()->GetSceneManager()->GetCurrentScene()->GetCamera()->GetViewMatrix();
+		maths::Matrix4 proj = Application::Instance()->GetSceneManager()->GetCurrentScene()->GetCamera()->GetProjectionMatrix();
         
 #ifdef LUMOS_RENDER_API_VULKAN
 		if(graphics::Context::GetRenderAPI() == RenderAPI::VULKAN)

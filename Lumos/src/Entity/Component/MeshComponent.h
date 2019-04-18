@@ -4,18 +4,18 @@
 
 namespace Lumos
 {
-	class Model;
+	class Mesh;
 
-	class LUMOS_EXPORT ModelComponent : public LumosComponent
+	class LUMOS_EXPORT MeshComponent : public LumosComponent
 	{
 	public:
-		std::shared_ptr<Model> m_Model;
+		std::shared_ptr<Mesh> m_Model;
 	public:
-		explicit ModelComponent(std::shared_ptr<Model>& model);
+		explicit MeshComponent(std::shared_ptr<Mesh>& model);
 
 		static ComponentType GetStaticType()
 		{
-			static ComponentType type(ComponentType::Model);
+			static ComponentType type(ComponentType::Mesh);
 			return type;
 		}
 

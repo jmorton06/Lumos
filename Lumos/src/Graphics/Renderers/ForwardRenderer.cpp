@@ -5,7 +5,7 @@
 #include "Graphics/API/Framebuffer.h"
 #include "Graphics/Light.h"
 #include "Graphics/API/Textures/TextureCube.h"
-#include "Graphics/Model/Model.h"
+#include "Graphics/ModelLoader/ModelLoader.h"
 #include "Graphics/Mesh.h"
 #include "Graphics/Material.h"
 #include "Graphics/API/Renderer.h"
@@ -71,10 +71,10 @@ namespace Lumos
 			{
 				if (obj != nullptr)
 				{
-					auto* model = obj->GetComponent<ModelComponent>();
+					auto* model = obj->GetComponent<MeshComponent>();
 					if (model && model->m_Model)
 					{
-						for (auto& mesh : model->m_Model->GetMeshs())
+						auto mesh = model->m_Model;
 						{
 							if (mesh->GetMaterial())
 							{

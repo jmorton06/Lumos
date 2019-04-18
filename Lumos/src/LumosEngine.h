@@ -24,25 +24,26 @@
 #include "Physics/LumosPhysicsEngine/PhysicsObject3D.h"
 
 //Graphics
-#include "Utilities/AssetsManager.h"
-#include "Graphics/Terrain.h"
 #include "Graphics/API/Textures/TextureCube.h"
 #include "Graphics/API/Textures/Texture2D.h"
 #include "Graphics/API/Textures/TextureDepth.h"
 #include "Graphics/API/Textures/TextureDepthArray.h"
-#include "Graphics/Material.h"
 #include "Graphics/API/Context.h"
 #include "Graphics/API/Framebuffer.h"
+#include "Graphics/API/Shader.h"
+#include "Graphics/API/IMGUIRenderer.h"
 #include "Graphics/Mesh.h"
-#include "Graphics/Model/Model.h"
+#include "Graphics/ModelLoader/ModelLoader.h"
+#include "Graphics/Material.h"
 #include "Graphics/Particle.h"
 #include "Graphics/ParticleEmitter.h"
 #include "Graphics/Renderers/DebugRenderer.h"
 #include "Graphics/Water.h"
 #include "Graphics/Sprite.h"
-#include "Graphics/API/Shader.h"
-#include "Graphics/API/IMGUIRenderer.h"
 #include "Graphics/GBuffer.h"
+#include "Graphics/Terrain.h"
+
+#include "Utilities/AssetsManager.h"
 
 //Entity
 #include "Entity/Entity.h"
