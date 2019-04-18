@@ -87,7 +87,7 @@ namespace Lumos
 
 	protected:
 
-		void SetSystemUniforms(Shader* shader) const;
+		void SetSystemUniforms(Shader* shader);
 
 		TextureDepthArray* m_ShadowTex;
 		uint		    m_ShadowMapNum;

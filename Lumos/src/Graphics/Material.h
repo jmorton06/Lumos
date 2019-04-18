@@ -34,6 +34,8 @@ namespace Lumos
 		std::shared_ptr<Texture2D> normal;
 		std::shared_ptr<Texture2D> metallic;
 		std::shared_ptr<Texture2D> roughness;
+		std::shared_ptr<Texture2D> ao;
+		std::shared_ptr<Texture2D> emissive;
 	};
 
 	class LUMOS_EXPORT Material
@@ -53,6 +55,9 @@ namespace Lumos
 	public:
 		Material(std::shared_ptr<Shader>& shader, const MaterialProperties& properties = MaterialProperties(), const PBRMataterialTextures& textures = PBRMataterialTextures());
 		Material();
+        
+        Material(Material const&) = delete;
+        Material& operator=(Material const&) = delete;
 
 		~Material();
 
@@ -71,6 +76,8 @@ namespace Lumos
 		graphics::api::DescriptorSet* 	GetDescriptorSet() 	const { return m_DescriptorSet; }
 		int								GetRenderFlags()	const { return m_RenderFlags; }
 		graphics::api::Pipeline* 		GetPipeline()		const { return m_Pipeline; }
+		String							GetName()			const { return m_Name; }
+		MaterialProperties*				GetProperties()		const { return m_MaterialProperties; }
 
 	private:
 		PBRMataterialTextures   		m_PBRMaterialTextures;
@@ -80,7 +87,8 @@ namespace Lumos
 		graphics::api::UniformBuffer* 	m_MaterialPropertiesBuffer;
 		MaterialProperties*				m_MaterialProperties;
 		uint							m_MaterialBufferSize;
-        byte*                           m_MaterialBufferData;
+        byte*							m_MaterialBufferData;
+		String							m_Name;
 
 	};
 }

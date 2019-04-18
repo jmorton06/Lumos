@@ -4,11 +4,6 @@
 #include "Events/Event.h"
 #include "Events/ApplicationEvent.h"
 
-#include "Graphics/Layers/LayerStack.h"
-#include "Events/Event.h"
-#include <thread>
-#include "imgui/plugins/ImGuizmo.h"
-
 #define LUMOS_EDITOR //temp
 
 namespace Lumos
@@ -20,6 +15,12 @@ namespace Lumos
 	class RenderManager;
 	class AudioManager;
 	class Entity;
+	class Editor;
+	class LayerStack;
+	class Layer;
+	class ISystem;
+	class Scene;
+	enum class RenderAPI;
 
     enum class AppState
     {
@@ -27,6 +28,14 @@ namespace Lumos
         Loading,
         Closing
     };
+
+	enum class EditorState
+	{
+		Paused,
+		Play,
+		Next,
+		Preview
+	};
 
 	enum class AppType
 	{
@@ -36,9 +45,13 @@ namespace Lumos
 
 	class LUMOS_EXPORT Application
 	{
+		friend class Editor;
 	public:
 		Application(const WindowProperties& properties, const RenderAPI& api);
 		virtual ~Application();
+
+		Application(Application const&) = delete;
+		Application& operator=(Application const&) = delete;
 
 		int Quit(bool pause = false, const std::string &reason = "");
 
@@ -48,11 +61,9 @@ namespace Lumos
 		void OnRender();
 		void OnEvent(Event& e);
 		void OnImGui();
-		void OnGuizmo();
 		void PushLayer(Layer* layer);
 		void PushOverLay(Layer* overlay);
-		void ClearLayers() { m_LayerStack->Clear(); };
-        void SetScene(Scene* scene);
+		void ClearLayers();;
 
 		virtual void Init();
 
@@ -64,15 +75,14 @@ namespace Lumos
         AppState GetState() const { return m_CurrentState; }
         void SetAppState(AppState state) { m_CurrentState = state; }
 
-		maths::Vector2 GetWindowSize() const;
+		EditorState GetEditorState() const { return m_EditorState; }
+		void SetEditorState(EditorState state) { m_EditorState = state; }
 
-		static void PhysicsUpdate(float targetUpdateTime);
+		maths::Vector2 GetWindowSize() const;
 
 		static Application* Instance() { return s_Instance; }
 
-#ifdef LUMOS_EDITOR
-		ImGuizmo::OPERATION GetImGuizmoOperation() const { return m_ImGuizmoOperation; }
-#endif
+		void OnNewScene(Scene* scene);
 
 	private:
 		bool OnWindowClose(WindowCloseEvent& e);
@@ -81,7 +91,6 @@ namespace Lumos
 		float 	  				  	m_UpdateTimer;
 		std::unique_ptr<Timer>	  	m_Timer;
 		std::unique_ptr<TimeStep> 	m_TimeStep;
-		std::thread 				m_PhysicsThread;
 
 		uint m_Frames;
 		uint m_Updates;
@@ -92,20 +101,18 @@ namespace Lumos
 		std::unique_ptr<RenderManager> m_RenderManager;
 		std::unique_ptr<AudioManager> m_AudioManager;
 
+		std::vector<ISystem*> m_Systems;
+
 		LayerStack* m_LayerStack{};
 
         AppState m_CurrentState = AppState::Loading;
+		EditorState m_EditorState = EditorState::Play;
 		AppType m_AppType = AppType::Editor;
 
 		static Application* s_Instance;
 
-		Entity* m_Selected = nullptr;
-
-		bool m_FlipImGuiImage = false;
-
 #ifdef LUMOS_EDITOR
-		maths::Vector2 m_SceneViewSize;
-		ImGuizmo::OPERATION m_ImGuizmoOperation = ImGuizmo::OPERATION::TRANSLATE;
+		Editor* m_Editor = nullptr;
 #endif
 	};
 

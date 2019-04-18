@@ -127,108 +127,108 @@ namespace Lumos
             Vertex* data = new Vertex[24];
 
             data[0].Position  = maths::Vector3(1.0f,  1.0f,  1.0f);
-            data[0].Colours   = maths::Vector4(1.0f);
+            data[0].Colours   = maths::Vector4(0.0f);
             data[0].TexCoords = maths::Vector2(1.0f,  1.0f);
             data[0].Normal    = maths::Vector3(0.0f,  0.0f,  1.0f);
 
             data[1].Position  = maths::Vector3(-1.0f,  1.0f,  1.0f);
-            data[1].Colours   = maths::Vector4(1.0f);
+            data[1].Colours   = maths::Vector4(0.0f);
             data[1].TexCoords = maths::Vector2(1.0f,  0.0f);
             data[1].Normal    = maths::Vector3(0.0f,  0.0f,  1.0f);
 
             data[2].Position  = maths::Vector3(-1.0f,  -1.0f,  1.0f);
-            data[2].Colours   = maths::Vector4(1.0f);
+            data[2].Colours   = maths::Vector4(0.0f);
             data[2].TexCoords = maths::Vector2(0.0f,  0.0f);
             data[2].Normal    = maths::Vector3(0.0f,  0.0f,  1.0f);
 
             data[3].Position  = maths::Vector3(1.0f,  -1.0f,  1.0f);
-            data[3].Colours   = maths::Vector4(1.0f);
+            data[3].Colours   = maths::Vector4(0.0f);
             data[3].TexCoords = maths::Vector2(1.0f,  0.0f);
             data[3].Normal    = maths::Vector3(0.0f,  0.0f,  1.0f);
 
             data[4].Position  = maths::Vector3(1.0f,  1.0f,  1.0f);
-            data[4].Colours   = maths::Vector4(1.0f);
+            data[4].Colours   = maths::Vector4(0.0f);
             data[4].TexCoords = maths::Vector2(1.0f,  1.0f);
             data[4].Normal    = maths::Vector3(1.0f,  0.0f,  0.0f);
 
             data[5].Position  = maths::Vector3(1.0f,  -1.0f,  1.0f);
-            data[5].Colours   = maths::Vector4(1.0f);
+            data[5].Colours   = maths::Vector4(0.0f);
             data[5].TexCoords = maths::Vector2(1.0f,  0.0f);
             data[5].Normal    = maths::Vector3(1.0f,  0.0f,  0.0f);
 
             data[6].Position  = maths::Vector3(1.0f,  -1.0f,  -1.0f);
-            data[6].Colours   = maths::Vector4(1.0f);
+            data[6].Colours   = maths::Vector4(0.0f);
             data[6].TexCoords = maths::Vector2(0.0f,  0.0f);
             data[6].Normal    = maths::Vector3(1.0f,  0.0f,  0.0f);
 
             data[7].Position  = maths::Vector3(1.0f,  1.0f,  -1.0f);
-            data[7].Colours   = maths::Vector4(1.0f);
+            data[7].Colours   = maths::Vector4(0.0f);
             data[7].TexCoords = maths::Vector2(0.0f,  1.0f);
             data[7].Normal    = maths::Vector3(1.0f,  0.0f,  0.0f);
 
             data[8].Position  = maths::Vector3(1.0f,  1.0f,  1.0f);
-            data[8].Colours   = maths::Vector4(1.0f);
+            data[8].Colours   = maths::Vector4(0.0f);
             data[8].Normal    = maths::Vector3(0.0f,  1.0f,  0.0f);
 
             data[9].Position  = maths::Vector3(1.0f, 1.0f,  -1.0f);
-            data[9].Colours   = maths::Vector4(1.0f);
+            data[9].Colours   = maths::Vector4(0.0f);
             data[9].Normal    = maths::Vector3(0.0f,  1.0f,  0.0f);
 
             data[10].Position  = maths::Vector3(-1.0f,  1.0f,  -1.0f);
-            data[10].Colours   = maths::Vector4(1.0f);
+            data[10].Colours   = maths::Vector4(0.0f);
             data[10].TexCoords = maths::Vector2(0.0f,  1.0f);
             data[10].Normal    = maths::Vector3(0.0f,  1.0f,  0.0f);
 
             data[11].Position  = maths::Vector3(-1.0f,  1.0f,  1.0f);
-            data[11].Colours   = maths::Vector4(1.0f);
+            data[11].Colours   = maths::Vector4(0.0f);
             data[11].Normal    = maths::Vector3(0.0f,  1.0f,  0.0f);
 
             data[12].Position  = maths::Vector3(-1.0f,  1.0f,  1.0f);
-            data[12].Colours   = maths::Vector4(1.0f);
+            data[12].Colours   = maths::Vector4(0.0f);
             data[12].Normal    = maths::Vector3(-1.0f,  0.0f,  0.0f);
 
             data[13].Position  = maths::Vector3(-1.0f,  1.0f,  -1.0f);
-            data[13].Colours   = maths::Vector4(1.0f);
+            data[13].Colours   = maths::Vector4(0.0f);
             data[13].Normal    = maths::Vector3(-1.0f,  0.0f,  0.0f);
 
             data[14].Position  = maths::Vector3(-1.0f,  -1.0f,  -1.0f);
-            data[14].Colours   = maths::Vector4(1.0f);
+            data[14].Colours   = maths::Vector4(0.0f);
             data[14].Normal    = maths::Vector3(-1.0f,  0.0f,  0.0f);
 
             data[15].Position  = maths::Vector3(-1.0f,  -1.0f,  1.0f);
-            data[15].Colours   = maths::Vector4(1.0f);
+            data[15].Colours   = maths::Vector4(0.0f);
             data[15].Normal    = maths::Vector3(-1.0f,  0.0f,  0.0f);
 
             data[16].Position  = maths::Vector3(-1.0f,  -1.0f,  -1.0f);
-            data[16].Colours   = maths::Vector4(1.0f);
+            data[16].Colours   = maths::Vector4(0.0f);
             data[16].Normal    = maths::Vector3(0.0f,  -1.0f,  0.0f);
 
             data[17].Position  = maths::Vector3(1.0f,  -1.0f,  -1.0f);
-            data[17].Colours   = maths::Vector4(1.0f);
+            data[17].Colours   = maths::Vector4(0.0f);
             data[17].Normal    = maths::Vector3(0.0f,  -1.0f,  0.0f);
 
             data[18].Position  = maths::Vector3(1.0f,  -1.0f,  1.0f);
-            data[18].Colours   = maths::Vector4(1.0f);
+            data[18].Colours   = maths::Vector4(0.0f);
             data[18].Normal    = maths::Vector3(0.0f,  -1.0f,  0.0f);
 
             data[19].Position  = maths::Vector3(-1.0f,  -1.0f,  1.0f);
-            data[19].Colours   = maths::Vector4(1.0f);
+            data[19].Colours   = maths::Vector4(0.0f);
             data[19].Normal    = maths::Vector3(0.0f,  -1.0f,  0.0f);
 
             data[20].Position  = maths::Vector3(1.0f,  -1.0f,  -1.0f);
-            data[20].Colours   = maths::Vector4(1.0f);
+            data[20].Colours   = maths::Vector4(0.0f);
             data[20].Normal    = maths::Vector3(0.0f,  0.0f,  -1.0f);
 
             data[21].Position  = maths::Vector3(-1.0f,  -1.0f,  -1.0f);
-            data[21].Colours   = maths::Vector4(1.0f);
+            data[21].Colours   = maths::Vector4(0.0f);
             data[21].Normal    = maths::Vector3(0.0f,  0.0f,  -1.0f);
 
             data[22].Position  = maths::Vector3(-1.0f,  1.0f,  -1.0f);
-            data[22].Colours   = maths::Vector4(1.0f);
+            data[22].Colours   = maths::Vector4(0.0f);
             data[22].Normal    = maths::Vector3(0.0f,  0.0f,  -1.0f);
 
             data[23].Position  = maths::Vector3(1.0f,  1.0f,  -1.0f);
-            data[23].Colours   = maths::Vector4(1.0f);
+            data[23].Colours   = maths::Vector4(0.0f);
             data[23].Normal    = maths::Vector3(0.0f,  0.0f,  -1.0f);
 
             std::shared_ptr<VertexArray> va;

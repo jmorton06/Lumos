@@ -24,10 +24,10 @@ namespace Lumos
 				switch (Context::GetRenderAPI())
 				{
 #ifdef LUMOS_RENDER_API_OPENGL
-                    case OPENGL: return new GLIMGUIRenderer(width, height, clearScreen);
+                    case RenderAPI::OPENGL: return new GLIMGUIRenderer(width, height, clearScreen);
 #endif
 #ifdef LUMOS_RENDER_API_VULKAN
-					case VULKAN: return new VKIMGUIRenderer(width, height, clearScreen);
+					case RenderAPI::VULKAN: return new VKIMGUIRenderer(width, height, clearScreen);
 #endif
 				}
 #endif

@@ -13,6 +13,7 @@ namespace Lumos
 		, m_UpdateAccum(0.0f)
         , m_B2DWorld(std::make_unique<b2World>(b2Vec2(0.0f,-9.81f)))
 	{
+        m_DebugName = "Box2D Physics Engine";
 	}
 
 	B2PhysicsEngine::~B2PhysicsEngine()
@@ -25,25 +26,31 @@ namespace Lumos
 		m_UpdateAccum = 0.0f;
 	}
 
-	void B2PhysicsEngine::Update(bool paused, TimeStep* timeStep)
+	void B2PhysicsEngine::OnUpdate(TimeStep* timeStep)
 	{
 		const int max_updates_per_frame = 5;
 
-		if (!paused)
-		{
-			m_UpdateAccum += timeStep->GetSeconds();
-			for (int i = 0; (m_UpdateAccum >= m_UpdateTimestep) && i < max_updates_per_frame; ++i)
+		if (!m_Paused)
+		{	
+			if(m_MultipleUpdates)
 			{
-				m_UpdateAccum -= m_UpdateTimestep;
-				m_B2DWorld->Step(m_UpdateTimestep, 6, 2);
-			}
+				m_UpdateAccum += timeStep->GetSeconds();
+				for (int i = 0; (m_UpdateAccum >= m_UpdateTimestep) && i < max_updates_per_frame; ++i)
+				{
+					m_UpdateAccum -= m_UpdateTimestep;
+					m_B2DWorld->Step(m_UpdateTimestep, 6, 2);
+				}
 
-			if (m_UpdateAccum >= m_UpdateTimestep)
-			{
-				LUMOS_CORE_ERROR("Physics too slow to run in real time!");
-				//Drop Time in the hope that it can continue to run in real-time
-				m_UpdateAccum = 0.0f;
+				if (m_UpdateAccum >= m_UpdateTimestep)
+				{
+					LUMOS_CORE_ERROR("Physics too slow to run in real time!");
+					//Drop Time in the hope that it can continue to run in real-time
+					m_UpdateAccum = 0.0f;
+				}
+
 			}
+			else
+				m_B2DWorld->Step(m_UpdateTimestep, 6, 2);
 		}
 	}
 

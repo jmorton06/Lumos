@@ -1,5 +1,6 @@
 #include "LM.h"
 #include "TransformComponent.h"
+#include "Entity/Entity.h"
 
 #include <imgui/imgui.h>
 
@@ -10,7 +11,16 @@ namespace Lumos
 	{
 
 	}
-    
+
+	void TransformComponent::OnUpdateComponent(float dt)
+	{
+		if(m_Transform.HasUpdated())
+		{
+			m_Transform.SetHasUpdated(false);
+			m_Entity->SetUpdateTransforms(true);
+		}
+	}
+
     void TransformComponent::OnIMGUI()
     {
         if (ImGui::TreeNode("Transform"))
@@ -20,6 +30,10 @@ namespace Lumos
 
 			ImGui::DragFloat3("Position", &pos.x);
 			ImGui::DragFloat3("Scale", &scale.x);
+
+			m_Transform.SetWorldPosition(pos);
+			m_Transform.SetWorldScale(scale);
+
             ImGui::TreePop();
         }
     }

@@ -16,6 +16,7 @@
 #include "Graphics/RenderManager.h"
 #include "Platform/OpenGL/GLDescriptorSet.h"
 #include "Graphics/Renderable2D.h"
+#include "Graphics/Camera/Camera.h"
 
 #define RENDERER_MAX_SPRITES	10000
 #define RENDERER_SPRITE_SIZE	RENDERER2D_VERTEX_SIZE * 4
@@ -288,7 +289,6 @@ namespace Lumos
 	void Renderer2D::Render(Scene* scene)
 	{
 		Begin();
-		BeginScene(scene);
 
 		SetSystemUniforms(m_Shader);
 

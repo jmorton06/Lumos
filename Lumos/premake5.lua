@@ -7,26 +7,6 @@ project "Lumos"
 		"src/**.h",
 		"src/**.c",
 		"src/**.cpp",
-
-		"external/imgui/plugins/**",
-		"external/imgui/imgui.h",
-        "external/imgui/imconfig.h",
-		"external/imgui/imgui.cpp",
-		"external/imgui/imgui_demo.cpp",
-		"external/imgui/imgui_draw.cpp",
-		"external/imgui/imgui_internal.h",
-		"external/imgui/imgui_widgets.cpp",
-		"external/imgui/imstb_rectpack.h",
-		"external/imgui/imstb_textedit.h",
-		"external/imgui/imstb_truetype.h",
-		"external/tinygltf/json.hpp",
-		"external/tinygltf/stb_image_write.h",
-		"external/tinygltf/stb_image.h",
-		"external/tinygltf/tiny_gltf.h",
-		"external/stb/stb_vorbis.c",
-		"external/simplex/**.h",
-		"external/simplex/**.cpp",
-
 		"res/**"
 	}
 
@@ -46,11 +26,13 @@ project "Lumos"
 	sysincludedirs
 	{
 		"external/",
+		"external/jsonhpp/",
 		"external/stb/",
+		"external/imgui/",
 		"external/spdlog/include",
 		"../Dependencies/",
 		"../Dependencies/lua/src/",
-		"../Dependencies/GLFW/include/",
+		"../Dependencies/glfw/include/",
 		"../Dependencies/glad/include/",
 		"../Dependencies/OpenAL/include/",
 		"../Dependencies/Box2D/",
@@ -85,14 +67,6 @@ project "Lumos"
 			"src/Platform/GLFM/*.cpp",
 			"src/Platform/Unix/*.h",
 			"src/Platform/Unix/*.cpp"
-		}
-
-		files
-		{
-			"external/imgui/examples/imgui_impl_vulkan.h",
-			"external/imgui/examples/imgui_impl_vulkan.cpp",
-			"external/imgui/examples/imgui_impl_opengl3.h",
-			"external/imgui/examples/imgui_impl_opengl3.cpp"
 		}
 
 		pchheader "LM.h"
@@ -152,10 +126,6 @@ project "Lumos"
 
 		files
 		{
-			"external/imgui/examples/imgui_impl_vulkan.h",
-			"external/imgui/examples/imgui_impl_vulkan.cpp",
-			"external/imgui/examples/imgui_impl_opengl3.h",
-			"external/imgui/examples/imgui_impl_opengl3.cpp",
 			"src/Platform/Vulkan/MakeMetalView.mm"
 		}
 
@@ -220,12 +190,6 @@ project "Lumos"
 			"src/Platform/OpenGL/**.cpp"
 		}
 
-		files
-		{
-			"external/imgui/examples/imgui_impl_vulkan.h",
-			"external/imgui/examples/imgui_impl_vulkan.cpp"
-		}
-
 		defines
 		{
 			"LUMOS_PLATFORM_IOS",
@@ -271,14 +235,6 @@ project "Lumos"
 			"src/Platform/GLFM/*.cpp",
 			"src/Platform/Windows/*.h",
 			"src/Platform/Windows/*.cpp"
-		}
-
-		files
-		{
-			"external/imgui/examples/imgui_impl_vulkan.h",
-			"external/imgui/examples/imgui_impl_vulkan.cpp",
-			"external/imgui/examples/imgui_impl_opengl3.h",
-			"external/imgui/examples/imgui_impl_opengl3.cpp"
 		}
 
 		defines

@@ -23,8 +23,9 @@ namespace Lumos
 	{
 	}
 
-	void Layer3D::OnUpdate(TimeStep* dt)
+	void Layer3D::OnUpdate(TimeStep* dt, Scene* scene)
 	{
+		m_Renderer->BeginScene(scene);
 	}
 
 	void Layer3D::OnEvent(Event& event)

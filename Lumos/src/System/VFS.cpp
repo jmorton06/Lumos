@@ -9,12 +9,12 @@ namespace Lumos
 
 	VFS* VFS::s_Instance = nullptr;
 
-	void VFS::Init()
+	void VFS::OnInit()
 	{
 		s_Instance = new VFS();
 	}
 
-	void VFS::Shutdown()
+	void VFS::OnShutdown()
 	{
 		delete s_Instance;
 	}

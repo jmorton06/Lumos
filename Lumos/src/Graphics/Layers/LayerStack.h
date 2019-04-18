@@ -24,7 +24,7 @@ namespace Lumos
 		void Clear();
 
 		void OnRender(Scene* scene);
-		void OnUpdate(TimeStep* timeStep);
+		void OnUpdate(TimeStep* timeStep, Scene* scene);
 		void OnEvent(Event& e);
 
 		uint GetCount() const { return (uint)m_Layers.size(); }

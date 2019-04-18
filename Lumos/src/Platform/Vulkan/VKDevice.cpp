@@ -104,6 +104,8 @@ namespace Lumos
             surfaceInfo.pNext = NULL;
             surfaceInfo.pView = makeViewMetalCompatible((void*)glfwGetCocoaWindow(static_cast<GLFWwindow*>(m_VKContext->GetWindowContext())));
 			m_Surface = m_VKContext->GetVKInstance().createMacOSSurfaceMVK(surfaceInfo);
+
+			//glfwCreateWindowSurface(m_VKContext->GetVKInstance(), static_cast<GLFWwindow*>(m_VKContext->GetWindowContext()), nullptr, (VkSurfaceKHR*)&m_Surface);
 #endif
 
 #ifdef LUMOS_PLATFORM_WINDOWS

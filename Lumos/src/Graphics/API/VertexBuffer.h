@@ -11,7 +11,7 @@ namespace Lumos
 		STATIC, DYNAMIC, STREAM
 	};
 
-	class VertexBuffer
+	class LUMOS_EXPORT VertexBuffer
 	{
 	public:
 		virtual ~VertexBuffer() = default;

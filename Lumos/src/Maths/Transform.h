@@ -39,6 +39,9 @@ namespace Lumos
 
 			void UpdateMatrices();
 
+			bool HasUpdated() const { return m_HasUpdated; }
+			void SetHasUpdated(bool set) { m_HasUpdated = set; }
+
 		protected:
 			Matrix4		m_LocalMatrix;
 			Matrix4		m_WorldMatrix;
@@ -46,6 +49,8 @@ namespace Lumos
 			Vector3		m_LocalPosition;
 			Vector3		m_LocalScale;
 			Quaternion	m_Orientation;
+
+			bool m_HasUpdated = false;
 		};
 	}
 }

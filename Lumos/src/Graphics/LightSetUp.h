@@ -24,6 +24,7 @@ namespace Lumos
 		maths::Vector3 GetDirectionalLightPosition() const { return m_DirectionalLight ? m_DirectionalLight->GetPosition() : maths::Vector3(0.0f); }
 		maths::Vector3 GetDirectionalLightDirection() const { return m_DirectionalLight ? m_DirectionalLight->GetDirection() : maths::Vector3(0.0f); }
 
+		void OnImGUI();
 
 	private:
 		std::vector<std::shared_ptr<Light>> m_Lights;

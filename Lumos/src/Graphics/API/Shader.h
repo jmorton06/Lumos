@@ -70,7 +70,7 @@ namespace Lumos
 		virtual const String& GetFilePath() const = 0;
 
 	public:
-		static Shader* CreateFromFile(const String& name, const String& filepath, void* address = nullptr);
+		static Shader* CreateFromFile(const String& name, const String& filepath);
 		static bool TryCompile(const String& source, String& error, const String& name);
 		static bool TryCompileFromFile(const String& filepath, String& error);
 	};

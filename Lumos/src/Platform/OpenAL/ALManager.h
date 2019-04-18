@@ -15,7 +15,7 @@ namespace Lumos
             ~ALManager();
 
             void OnInit() override;
-            void OnUpdate() override;
+            void OnUpdate(TimeStep* dt) override;
 			void UpdateListener();
 
         private:
