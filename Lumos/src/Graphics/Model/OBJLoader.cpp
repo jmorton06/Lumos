@@ -91,7 +91,7 @@ namespace Lumos
 						);
 				}
 
-				maths::Vector4 colour = maths::Vector4(1.0f);
+				maths::Vector4 colour = maths::Vector4(0.0f);
 
 				if (shape.mesh.material_ids[0] >= 0)
 				{

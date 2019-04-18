@@ -75,7 +75,7 @@ namespace Lumos
 		if (m_Sound)
 		{
 			m_TimeLeft = m_Sound->GetLength();
-			alSourcei(m_Source, AL_BUFFER, ((ALSound*)m_Sound)->GetBuffer());
+			alSourcei(m_Source, AL_BUFFER, static_cast<ALSound*>(m_Sound)->GetBuffer());
 			alSourcef(m_Source, AL_MAX_DISTANCE, m_Radius);
 			alSourcef(m_Source, AL_ROLLOFF_FACTOR, 1.0f);
 			alSourcef(m_Source, AL_REFERENCE_DISTANCE, m_ReferenceDistance);

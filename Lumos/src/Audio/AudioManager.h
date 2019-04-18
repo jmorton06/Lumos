@@ -1,19 +1,20 @@
 #pragma once
 #include "LM.h"
+#include "App/ISystem.h"
 
 namespace Lumos
 {
 	class Camera;
 	class SoundNode;
 
-    class LUMOS_EXPORT AudioManager
+    class LUMOS_EXPORT AudioManager : public ISystem
     {
     public:
         static AudioManager* Create();
 
         virtual ~AudioManager() = default;
-        virtual void OnInit() = 0;
-        virtual void OnUpdate() = 0;
+        virtual void OnInit() override = 0;
+        virtual void OnUpdate(TimeStep* dt) override = 0;
 
 		virtual void SetListener(Camera* camera) { m_Listener = camera; }
 		Camera* GetListener() const { return m_Listener; }

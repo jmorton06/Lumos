@@ -174,7 +174,7 @@ const mat4 biasMat = mat4(
 float textureProj(vec4 P, vec2 offset, int cascadeIndex)
 {
 	float shadow = 1.0;
-	float bias = 0.005;
+	float bias = 0.001f; //0.005
 
 	vec4 shadowCoord = P / P.w;
 	if ( shadowCoord.z > -1.0 && shadowCoord.z < 1.0 )
@@ -261,16 +261,17 @@ void main()
 	
 	vec4 shadowCoord = (biasMat * ubo.uShadowTransform[cascadeIndex]) * vec4(wsPos, 1.0);
 
-
 	float shadow = filterPCF(shadowCoord / shadowCoord.w, cascadeIndex);
+	//float shadow = textureProj(shadowCoord / shadowCoord.w, vec2(0.0f), cascadeIndex);
+
     float NdotL = clamp(dot(material.normal, light.direction), 0.0, 1.0)  * shadow;
     diffuse  += NdotL * Diffuse(light, material, eye)  * light.intensity;
     specular += NdotL * Specular(light, material, eye) * light.intensity;
 
     diffuse = max(diffuse, vec4(0.1));
 
-    //finalColour = material.albedo.xyz * diffuse.rgb + specular;
-    finalColour = material.albedo.xyz * diffuse.rgb + (specular + IBL(light, material, eye));
+    finalColour = material.albedo.xyz * diffuse.rgb + specular;
+    //finalColour = material.albedo.xyz * diffuse.rgb + (specular + IBL(light, material, eye));
 
 	finalColour = FinalGamma(finalColour);
 	outColor = vec4(finalColour, 1.0);

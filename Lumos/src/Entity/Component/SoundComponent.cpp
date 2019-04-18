@@ -8,6 +8,7 @@
 #include "App/Application.h"
 #include "Audio/AudioManager.h"
 #include <imgui/imgui.h>
+#include "Physics/LumosPhysicsEngine/PhysicsObject3D.h"
 
 namespace Lumos
 {

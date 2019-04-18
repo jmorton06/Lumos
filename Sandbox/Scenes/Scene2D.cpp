@@ -16,9 +16,7 @@ void Scene2D::OnInit()
 {
 	Scene::OnInit();
 
-	LumosPhysicsEngine::Instance()->SetDampingFactor(0.998f);
-	LumosPhysicsEngine::Instance()->SetIntegrationType(INTEGRATION_RUNGE_KUTTA_4);
-	LumosPhysicsEngine::Instance()->SetBroadphase(new Octree(5, 5, std::make_shared<SortAndSweepBroadphase>()));
+	B2PhysicsEngine::Instance()->SetPaused(true);
 
 	SetDebugDrawFlags(DEBUGDRAW_FLAGS_ENTITY_COMPONENTS | DEBUGDRAW_FLAGS_COLLISIONVOLUMES);
 
@@ -47,12 +45,12 @@ void Scene2D::OnInit()
 		std::shared_ptr<Texture2D>(Texture2D::CreateFromFile("Test3", "/CoreTextures/checkerboard.tga")),
 		std::shared_ptr<Texture2D>(Texture2D::CreateFromFile("Test4", "/CoreTextures/water/waterDUDV.png"))
 	};
-    for (int i = 0; i < 100; i++)
+    for (int i = 0; i < 1000; i++)
     {
         std::shared_ptr<Entity> testSprite = std::make_shared<Entity>("Sprite", this);
 
-		Vector2 pos(RandomNumberGenerator32::Rand(-5.0f, 5.0f), RandomNumberGenerator32::Rand(-5.0f, 5.0f));
-		Vector2 size(RandomNumberGenerator32::Rand(1.0f, 2.0f), RandomNumberGenerator32::Rand(1.0f, 2.0f));
+		Vector2 pos(RandomNumberGenerator32::Rand(-5.0f, 10.0f), RandomNumberGenerator32::Rand(-5.0f, 500.0f));
+		Vector2 size(RandomNumberGenerator32::Rand(1.0f, 3.0f), RandomNumberGenerator32::Rand(1.0f, 3.0f));
 		int textureID = static_cast<int>(RandomNumberGenerator32::Rand(0.0f, 4.0f));
 		auto colour = maths::Vector4(RandomNumberGenerator32::Rand(0.0f, 1.0f), RandomNumberGenerator32::Rand(0.0f, 1.0f), RandomNumberGenerator32::Rand(0.0f, 1.0f), 1.0f);
 		std::shared_ptr<Sprite> sprite = std::make_shared<Sprite>(textures[textureID],pos,size,colour);

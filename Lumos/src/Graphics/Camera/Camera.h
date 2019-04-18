@@ -28,7 +28,7 @@ namespace Lumos
 		void SetYaw(float y) { m_Yaw = y; }
 
 		float GetAspectRatio()   const { return m_AspectRatio; }
-		void SetAspectRatio(float y) { m_AspectRatio = y; };// m_ProjMatrix = maths::Matrix4::Perspective(m_Near, m_Far, m_AspectRatio, m_Fov);}
+		void SetAspectRatio(float y) { m_AspectRatio = y; UpdateProjectionMatrix(m_AspectRatio, 1.0f); };// m_ProjMatrix = maths::Matrix4::Perspective(m_Near, m_Far, m_AspectRatio, m_Fov);}
 
 		float GetPitch() const { return m_Pitch; }
 		void SetPitch(float p) { m_Pitch = p; }
@@ -57,6 +57,7 @@ namespace Lumos
 		maths::Vector3 GetVelocity() const { return m_Velocity; }
 
 		virtual float GetScale() const { return 1.0f; }
+		virtual void OnImGUI();
 
 		friend std::ostream& operator<<(std::ostream& o, const Camera& cam)
 		{

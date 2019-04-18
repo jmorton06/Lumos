@@ -87,7 +87,7 @@ namespace Lumos
 		void CreateScreenDescriptorSet();
 		void SetCubeMap(Texture* cubeMap);
 
-		int GetCommandBufferCount() const { return (int)m_CommandBuffers.size(); }
+		int GetCommandBufferCount() const { return static_cast<int>(m_CommandBuffers.size()); }
 		Lumos::graphics::api::CommandBuffer* GetCommandBuffer(int id) const { return m_CommandBuffers[id]; }
 
 		void SetRenderTarget(Texture* texture) override;

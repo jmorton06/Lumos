@@ -14,6 +14,9 @@
 #include "Graphics/API/Pipeline.h"
 #include "Graphics/API/UniformBuffer.h"
 #include "RenderCommand.h"
+#include "Graphics/Camera/Camera.h"
+
+#include "System/JobSystem.h"
 
 namespace Lumos
 {
@@ -95,7 +98,6 @@ namespace Lumos
 		memset(m_VSSystemUniformBuffer, 0, m_VSSystemUniformBufferSize);
 		m_VSSystemUniformBufferOffsets.resize(VSSystemUniformIndex_Size);
         
-        
         m_PushConstant = new graphics::api::PushConstant();
         m_PushConstant->type = graphics::api::PushConstantDataType::UINT;
         m_PushConstant->size = sizeof(int32);
@@ -134,6 +136,7 @@ namespace Lumos
 
 	void ShadowRenderer::BeginScene(Scene* scene)
 	{
+		UpdateCascades(scene);
 	}
 
 	void ShadowRenderer::EndScene()
@@ -223,7 +226,7 @@ namespace Lumos
 			{
 				if (obj)
 				{
-					ModelComponent* model = obj->GetComponent<ModelComponent>();
+					const auto model = obj->GetComponent<ModelComponent>();
 
 					if (model && model->m_Model)
 					{
@@ -275,8 +278,11 @@ namespace Lumos
         }
 
         float lastSplitDist = 0.0;
-        for (uint32_t i = 0; i < m_ShadowMapNum; i++)
+        //for (uint32_t i = 0; i < m_ShadowMapNum; i++)
+
+		system::JobSystem::Dispatch(static_cast<uint32>(m_ShadowMapNum), 1, [&](JobDispatchArgs args)
         {
+			int i = args.jobIndex;
             float splitDist = cascadeSplits[i];
 
             maths::Vector3 frustumCorners[8] = {
@@ -350,7 +356,10 @@ namespace Lumos
             m_apShadowRenderLists[i]->RemoveExcessObjects(f);
             m_apShadowRenderLists[i]->SortLists();
             scene->InsertToRenderList(m_apShadowRenderLists[i], f);
-        }
+		}
+		);
+
+		system::JobSystem::Wait();
     }
 
 	void ShadowRenderer::CreateFramebuffers()
@@ -484,7 +493,7 @@ namespace Lumos
 		m_Pipeline->GetDescriptorSet()->Update(bufferInfos);
 	}
 
-	void ShadowRenderer::SetSystemUniforms(Shader* shader) const
+	void ShadowRenderer::SetSystemUniforms(Shader* shader)
 	{
         m_UniformBuffer->SetData(sizeof(UniformBufferObject), *&m_VSSystemUniformBuffer);
 
@@ -496,7 +505,7 @@ namespace Lumos
             *modelMat = command.transform;
             index++;
         }
-        m_ModelUniformBuffer->SetDynamicData(static_cast<uint32_t>(MAX_OBJECTS * dynamicAlignment), sizeof(maths::Matrix4), *&uboDataDynamic.model);
+        m_ModelUniformBuffer->SetDynamicData(static_cast<uint32_t>(MAX_OBJECTS * dynamicAlignment), sizeof(maths::Matrix4), &*uboDataDynamic.model);
 	}
 
 	void ShadowRenderer::Submit(const RenderCommand& command)

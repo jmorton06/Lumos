@@ -2,23 +2,22 @@
 #include "LM.h"
 #include "App/Window.h"
 
-enum LUMOS_EXPORT RenderAPI
+namespace Lumos
 {
+	enum class LUMOS_EXPORT RenderAPI
+	{
 #ifdef LUMOS_RENDER_API_OPENGL
-	OPENGL,
+		OPENGL,
 #endif
 
 #ifdef LUMOS_RENDER_API_DIRECT3D
-	DIRECT3D,
+		DIRECT3D,
 #endif
 
 #ifdef LUMOS_RENDER_API_VULKAN
-	VULKAN,
+		VULKAN,
 #endif
-};
-
-namespace Lumos
-{
+	};
 
 	class Material;
 	class Texture2D;

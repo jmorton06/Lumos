@@ -21,10 +21,10 @@ namespace Lumos
 				switch (Context::GetRenderAPI())
 				{
 #ifdef LUMOS_RENDER_API_OPENGL
-					case OPENGL: return new GLPipeline(pipelineInfo);
+					case RenderAPI::OPENGL: return new GLPipeline(pipelineInfo);
 #endif
 #ifdef LUMOS_RENDER_API_VULKAN
-					case VULKAN: return new VKPipeline(pipelineInfo);
+					case RenderAPI::VULKAN: return new VKPipeline(pipelineInfo);
 #endif
 				}
 				return nullptr;

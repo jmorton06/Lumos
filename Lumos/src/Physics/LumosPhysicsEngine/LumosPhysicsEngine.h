@@ -5,6 +5,7 @@
 #include "PhysicsObject3D.h"
 #include "Manifold.h"
 #include "Broadphase.h"
+#include "App/ISystem.h"
 
 namespace Lumos
 {
@@ -22,7 +23,7 @@ namespace Lumos
 	class Constraint;
 	struct TimeStep;
 
-	class LUMOS_EXPORT LumosPhysicsEngine : public TSingleton<LumosPhysicsEngine>
+	class LUMOS_EXPORT LumosPhysicsEngine : public TSingleton<LumosPhysicsEngine> , public ISystem
 	{
 		friend class TSingleton<LumosPhysicsEngine>;
 	public:
@@ -39,8 +40,9 @@ namespace Lumos
 		//Add Constraints
 		void AddConstraint(Constraint* c) { m_Constraints.push_back(c); }
 
+		void OnInit() override {};
 		//Update Physics Engine
-		void Update(TimeStep* timeStep);			//Remember DeltaTime is 'seconds' since last update not milliseconds
+		void OnUpdate(TimeStep* timeStep) override;			//Remember DeltaTime is 'seconds' since last update not milliseconds
 
 		//Debug draw all physics objects, manifolds and constraints
 		void DebugRender(uint64 debugFlags);
@@ -77,6 +79,7 @@ namespace Lumos
 
 		PhysicsObject3D* FindObjectByName(const String& name);
 
+		void OnImGUI();
 	protected:
 
 		//The actual time-independant update function
@@ -111,5 +114,7 @@ namespace Lumos
 
 		Broadphase* m_BroadphaseDetection;
 		IntegrationType m_integrationType;
+
+		bool m_MultipleUpdates = true;
 	};
 }

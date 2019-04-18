@@ -35,8 +35,14 @@ namespace Lumos
 		maths::Vector3		GetPosition() const { return m_Position; }
 		void		SetPosition(const maths::Vector3&  val) { m_Position = val; }
 
-		maths::Vector3		GetDirection() const { return m_Direction; }
-		void		SetDirection(const maths::Vector3&  val) { m_Direction = val; m_Direction.Normalise(); }
+		maths::Vector3 GetDirection() const 
+		{
+			maths::Vector3 test(m_Direction);
+			test.Normalise();
+			return test;
+		}
+
+		void		SetDirection(const maths::Vector3&  val) { m_Direction = val; }
 
 		float		GetRadius() const { return m_Radius; }
 		void		SetRadius(float val) { m_Radius = val; }
@@ -52,6 +58,10 @@ namespace Lumos
 
 		bool		GetIsOn() const { return m_IsOn; }
 		void		SetIsOn(bool on) { m_IsOn = on; }
+
+		void		OnImGUI();
+
+		String		GetName();
 
 	protected:
 

@@ -43,9 +43,14 @@ void SceneModelViewer::OnInit()
 	sun->SetBrightness(4.0f);
 	m_LightSetup->SetDirectionalLight(sun);
 
-	auto deferredLayer = new Layer3D(new ForwardRenderer(m_ScreenWidth, m_ScreenHeight));
-	Application::Instance()->PushLayer(deferredLayer);
-	m_SceneLayers.emplace_back(deferredLayer);
+	auto forwardRenderer = new DeferredRenderer(m_ScreenWidth, m_ScreenHeight);
+	auto forwardLayer = new Layer3D(forwardRenderer);
+	forwardRenderer->SetRenderTarget(Application::Instance()->GetRenderManager()->GetGBuffer()->m_ScreenTex[SCREENTEX_OFFSCREEN0]);
+
+	Application::Instance()->PushLayer(forwardLayer);
+	m_SceneLayers.emplace_back(forwardLayer);
+
+	forwardRenderer->SetRenderToGBufferTexture(true);
 }
 
 void SceneModelViewer::OnUpdate(TimeStep* timeStep)
@@ -70,7 +75,7 @@ void SceneModelViewer::LoadModels()
 	TestObject->SetBoundingRadius(20000.0f);
 
 	TestObject->AddComponent(std::make_unique<TransformComponent>(Matrix4()));//(Matrix4::Translation(maths::Vector3(0.0, 0.0, 0.0f)) * Matrix4::RotationX(-90.0f) * Matrix4::RotationZ(90.0f))));
-	std::shared_ptr<Model> model = std::make_shared<Model>("/Meshes/Spyro/ArtisansHub.obj");//DamagedHelmet/glTF/DamagedHelmet.gltf");//Cube/Cube.gltf");//Scene/scene.gltf");// *AssetsManager::DefaultModels()->GetAsset("Cube"));
+	std::shared_ptr<Model> model = std::make_shared<Model>("Meshes/Spyro/ArtisansHub.obj");//DamagedHelmet/glTF/DamagedHelmet.gltf");//Cube/Cube.gltf");//Scene/scene.gltf");// *AssetsManager::DefaultModels()->GetAsset("Cube"));
 	TestObject->AddComponent(std::make_unique<ModelComponent>(model));
 
 	AddEntity(TestObject);

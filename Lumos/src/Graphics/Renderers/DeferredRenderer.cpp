@@ -24,6 +24,7 @@
 #include "ShadowRenderer.h"
 #include "App/Application.h"
 #include "Graphics/RenderManager.h"
+#include "Graphics/Camera/Camera.h"
 
 #define MAX_LIGHTS 10
 
@@ -187,7 +188,7 @@ namespace Lumos
 		info.shader = m_DeferredShader;
 		m_DeferredDescriptorSet = graphics::api::DescriptorSet::Create(info);
 
-		m_ClearColour = maths::Vector4(0.9f, 0.1f, 0.8f, 1.0f);
+		m_ClearColour = maths::Vector4(0.1f, 0.1f, 0.1f, 1.0f);
 
 		CreateScreenDescriptorSet();
 	}
@@ -197,7 +198,6 @@ namespace Lumos
 		SubmitLightSetup(*scene->GetLightSetup(),scene);
 
 		BeginOffscreen();
-		BeginScene(scene);
 
 		renderList->RenderOpaqueObjects([&](Entity* obj)
 		{
@@ -223,20 +223,19 @@ namespace Lumos
 
 						auto transform = obj->GetComponent<TransformComponent>()->m_Transform.GetWorldMatrix();
 
-						bool inside = true;
-
-						#if 0
+                    #if 0
+                        bool inside = true;
+                        
 						float maxScaling = 0.0f;
 						maxScaling = maths::Max(transform.GetScaling().GetX(), maxScaling);
 						maxScaling = maths::Max(transform.GetScaling().GetY(), maxScaling);
 						maxScaling = maths::Max(transform.GetScaling().GetZ(), maxScaling);
 
 						inside = GraphicsPipeline::Instance()->GetFrustum().InsideFrustum(transform * mesh->GetBoundingSphere()->Centre(), maxScaling * mesh->GetBoundingSphere()->SphereRadius());
-						#endif
+                        
                         if (inside)
-                        {
+                    #endif
                             SubmitMesh(mesh.get(), transform, textureMatrix);
-                        }
 					}
 				}
 			}
@@ -362,7 +361,6 @@ namespace Lumos
 				memcpy(m_PSSystemUniformBuffer + currentOffset, shadowTransforms, sizeof(maths::Matrix4) * 16);
 				currentOffset += sizeof(maths::Matrix4) * 16;
 				memcpy(m_PSSystemUniformBuffer + currentOffset, uSplitDepth, sizeof(Lumos::maths::Vector4) * 16);
-				currentOffset += sizeof(Lumos::maths::Vector4) * 16;
 			}
 		}
 	}

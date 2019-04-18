@@ -145,8 +145,8 @@ namespace Lumos
 		// Set GLFW callbacks
 		glfwSetWindowSizeCallback(m_Handle, [](GLFWwindow* window, int width, int height)
 		{
-			WindowData& data = *(WindowData*)glfwGetWindowUserPointer(window);
-            
+            WindowData& data = *static_cast<WindowData*>((glfwGetWindowUserPointer(window)));
+
 #ifdef LUMOS_PLATFORM_MACOS
             if(data.m_RenderAPI == RenderAPI::OPENGL)
                 glfwGetFramebufferSize(window, &width, &height);
@@ -160,7 +160,7 @@ namespace Lumos
 
 		glfwSetWindowCloseCallback(m_Handle, [](GLFWwindow* window)
 		{
-			WindowData& data = *(WindowData*)glfwGetWindowUserPointer(window);
+            WindowData& data = *static_cast<WindowData*>((glfwGetWindowUserPointer(window)));
 			WindowCloseEvent event;
 			data.EventCallback(event);
 			data.Exit = true;
@@ -173,7 +173,7 @@ namespace Lumos
 
 		glfwSetKeyCallback(m_Handle, [](GLFWwindow* window, int key, int scancode, int action, int mods)
 		{
-			WindowData& data = *(WindowData*)glfwGetWindowUserPointer(window);
+            WindowData& data = *static_cast<WindowData*>((glfwGetWindowUserPointer(window)));
 
 			switch (action)
 			{
@@ -200,7 +200,7 @@ namespace Lumos
 
 		glfwSetMouseButtonCallback(m_Handle, [](GLFWwindow* window, int button, int action, int mods)
 		{
-			WindowData& data = *(WindowData*)glfwGetWindowUserPointer(window);
+            WindowData& data = *static_cast<WindowData*>((glfwGetWindowUserPointer(window)));
 
 			switch (action)
 			{
@@ -221,7 +221,7 @@ namespace Lumos
 
 		glfwSetScrollCallback(m_Handle, [](GLFWwindow* window, double xOffset, double yOffset)
 		{
-			WindowData& data = *(WindowData*)glfwGetWindowUserPointer(window);
+            WindowData& data = *static_cast<WindowData*>((glfwGetWindowUserPointer(window)));
 
 			MouseScrolledEvent event((float)xOffset, (float)yOffset);
 			data.EventCallback(event);
@@ -229,7 +229,7 @@ namespace Lumos
 
 		glfwSetCursorPosCallback(m_Handle, [](GLFWwindow* window, double xPos, double yPos)
 		{
-			WindowData& data = *(WindowData*)glfwGetWindowUserPointer(window);
+            WindowData& data = *static_cast<WindowData*>((glfwGetWindowUserPointer(window)));
 
 			MouseMovedEvent event((float)xPos, (float)yPos);
 			data.EventCallback(event);
@@ -237,7 +237,7 @@ namespace Lumos
 
 		glfwSetCursorEnterCallback(m_Handle, [](GLFWwindow* window, int enter)
 		{
-			WindowData& data = *(WindowData*)glfwGetWindowUserPointer(window);
+            WindowData& data = *static_cast<WindowData*>((glfwGetWindowUserPointer(window)));
 
 			MouseEnterEvent event(enter > 0);
 			data.EventCallback(event);
@@ -245,7 +245,7 @@ namespace Lumos
 
 		glfwSetCharCallback(m_Handle, [](GLFWwindow* window, unsigned int keycode)
  		{
- 			WindowData& data = *(WindowData*)(glfwGetWindowUserPointer(window));
+ 			WindowData& data = *static_cast<WindowData*>((glfwGetWindowUserPointer(window)));
 
   			KeyTypedEvent event(keycode);
  			data.EventCallback(event);

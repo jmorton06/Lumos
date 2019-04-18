@@ -2,6 +2,7 @@
 #include "Matrix4.h"
 #include "Matrix3.h"
 #include "MathsUtilities.h"
+#include "SSEUtilities.h"
 
 namespace Lumos
 {

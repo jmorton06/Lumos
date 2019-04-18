@@ -17,6 +17,7 @@
 #include <cstring>
 #include <utility>
 #include <memory>
+#include <thread>
 
 #include "Core.h"
 #include "System/String.h"

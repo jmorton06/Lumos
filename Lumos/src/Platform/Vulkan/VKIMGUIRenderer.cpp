@@ -88,19 +88,19 @@ namespace Lumos
             wd->Surface = surface;
             wd->ClearEnable = m_ClearScreen;
             
-            for (int i = 0; i < Renderer::GetRenderer()->GetSwapchain()->GetSwapchainBufferCount(); i++)
+            for (int i = 0; i < Renderer::GetSwapchain()->GetSwapchainBufferCount(); i++)
             {
                 VKCommandBuffer* commandBuffer = new VKCommandBuffer();
                 commandBuffer->Init(true);
                 m_CommandBuffers[i] = commandBuffer;
             }
             
-            auto swapChain = ((VKSwapchain*)VKRenderer::GetRenderer()->GetSwapchain());
+            auto swapChain = static_cast<VKSwapchain*>(VKRenderer::GetSwapchain());
             wd->Swapchain = swapChain->GetSwapchain();
             wd->Width = width;
             wd->Height = height;
 
-            wd->BackBufferCount = (uint32_t)swapChain->GetSwapchainBufferCount();
+            wd->BackBufferCount = static_cast<uint32_t>(swapChain->GetSwapchainBufferCount());
             
 			m_Renderpass = new VKRenderpass();
             TextureType textureTypes[1] = { TextureType::COLOUR };
@@ -154,7 +154,7 @@ namespace Lumos
 
             // Setup Vulkan binding
             ImGui_ImplVulkan_InitInfo init_info = {};
-            init_info.Instance = ((VKContext*)VKContext::GetContext())->GetVKInstance();
+            init_info.Instance = static_cast<VKContext*>(VKContext::GetContext())->GetVKInstance();
             init_info.PhysicalDevice = VKDevice::Instance()->GetGPU();
             init_info.Device = VKDevice::Instance()->GetDevice();
             init_info.QueueFamily = VKDevice::Instance()->GetGraphicsQueueFamilyIndex();
@@ -225,7 +225,7 @@ namespace Lumos
         void VKIMGUIRenderer::OnResize(uint width, uint height)
         {
             auto* wd = &g_WindowData;
-            auto swapChain = ((VKSwapchain*)VKRenderer::GetRenderer()->GetSwapchain());
+            auto swapChain = static_cast<VKSwapchain*>(VKRenderer::GetSwapchain());
             wd->Swapchain = swapChain->GetSwapchain();
             for (uint32_t i = 0; i < wd->BackBufferCount; i++)
             {

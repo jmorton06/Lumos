@@ -8,6 +8,10 @@
 #include "Constraint.h"
 #include "Entity/Entity.h"
 #include "Utilities/TimeStep.h"
+#include "System/JobSystem.h"
+#include "System/Profiler.h"
+
+#include <imgui/imgui.h>
 
 namespace Lumos
 {
@@ -21,6 +25,7 @@ namespace Lumos
 		, m_BroadphaseDetection(nullptr)
 		, m_integrationType(IntegrationType::INTEGRATION_RUNGE_KUTTA_4)
 	{
+        m_DebugName = "Lumos3DPhysicsEngine";
 	}
 
 	void LumosPhysicsEngine::SetDefaults()
@@ -72,13 +77,34 @@ namespace Lumos
 		m_PhysicsObjects.clear();
 	}
 
-	void LumosPhysicsEngine::Update(TimeStep* timeStep)
+	void LumosPhysicsEngine::OnUpdate(TimeStep* timeStep)
 	{
 		if (!m_IsPaused)
 		{
-			m_UpdateTimestep = timeStep->GetSeconds();
+			if (m_MultipleUpdates)
+			{
+				const int max_updates_per_frame = 5;
 
-			UpdatePhysics();
+				m_UpdateAccum += timeStep->GetSeconds();
+				for (int i = 0; (m_UpdateAccum >= m_UpdateTimestep) && i < max_updates_per_frame; ++i)
+				{
+					m_UpdateAccum -= m_UpdateTimestep;
+					UpdatePhysics();
+				}
+
+				if (m_UpdateAccum >= m_UpdateTimestep)
+				{
+					LUMOS_CORE_ERROR("Physics too slow to run in real time!");
+					//Drop Time in the hope that it can continue to run in real-time
+					m_UpdateAccum = 0.0f;
+				}
+
+			}
+			else
+			{
+				m_UpdateTimestep = timeStep->GetSeconds();
+				UpdatePhysics();
+			}
 		}
 	}
 
@@ -91,14 +117,23 @@ namespace Lumos
 		m_Manifolds.clear();
 
 		//Check for collisions
+		system::Profiler::OnBeginRange("BroadPhase", true, "Lumos3DPhysicsEngine");
 		BroadPhaseCollisions();
+		system::Profiler::OnEndRange("BroadPhase", true, "Lumos3DPhysicsEngine");
+		
+		system::Profiler::OnBeginRange("NarrowPhase", true, "Lumos3DPhysicsEngine");
 		NarrowPhaseCollisions();
-
+		system::Profiler::OnEndRange("NarrowPhase", true, "Lumos3DPhysicsEngine");
+		
 		//Solve collision constraints
+		system::Profiler::OnBeginRange("SolveConstraints", true, "Lumos3DPhysicsEngine");
 		SolveConstraints();
-
+		system::Profiler::OnEndRange("SolveConstraints", true, "Lumos3DPhysicsEngine");
+		
 		//Update movement
+		system::Profiler::OnBeginRange("UpdatePhysicsObjects", true, "Lumos3DPhysicsEngine");
 		UpdatePhysicsObjects();
+		system::Profiler::OnEndRange("UpdatePhysicsObjects", true, "Lumos3DPhysicsEngine");
 	}
 
 	void LumosPhysicsEngine::DebugRender(uint64 debugFlags)
@@ -123,10 +158,12 @@ namespace Lumos
 
 	void LumosPhysicsEngine::UpdatePhysicsObjects()
 	{
-		for (const auto& obj : m_PhysicsObjects)
-		{
-			UpdatePhysicsObject(obj.get());
-		}
+        system::JobSystem::Dispatch(static_cast<uint32>(m_PhysicsObjects.size()), 16, [&](JobDispatchArgs args)
+        {
+            UpdatePhysicsObject(m_PhysicsObjects[args.jobIndex].get());
+        });
+        
+        system::JobSystem::Wait();
 	}
 
 	void LumosPhysicsEngine::UpdatePhysicsObject(PhysicsObject3D* obj) const
@@ -323,6 +360,7 @@ namespace Lumos
 			}
 		}
 	}
+
 	PhysicsObject3D* LumosPhysicsEngine::FindObjectByName(const String& name)
 	{
 		auto it = std::find_if(m_PhysicsObjects.begin(), m_PhysicsObjects.end(), [name](std::shared_ptr<PhysicsObject3D> o) 
@@ -332,5 +370,39 @@ namespace Lumos
 		});
 
 		return (it == m_PhysicsObjects.end()) ? nullptr : (*it).get();
+	}
+
+	String IntegrationTypeToString(IntegrationType type)
+	{
+		switch (type)
+		{
+		case INTEGRATION_EXPLICIT_EULER : return "EXPLICIT EULER";
+		case INTEGRATION_SEMI_IMPLICIT_EULER : return "SEMI IMPLICIT EULER";
+		case INTEGRATION_RUNGE_KUTTA_2 : return "RUNGE KUTTA 2";
+		case INTEGRATION_RUNGE_KUTTA_4 : return "RUNGE KUTTA 4";
+		default : return "";
+		}
+	}
+
+	void LumosPhysicsEngine::OnImGUI()
+	{
+		ImGui::Text("3D Physics Engine");
+		ImGui::Text("Number Of Collision Pairs  : %5.2i", GetNumberCollisionPairs());
+		ImGui::Text("Number Of Physics Objects  : %5.2i", GetNumberPhysicsObjects());
+		ImGui::Text("Number Of Constraints      : %5.2i", static_cast<int>(m_Constraints.size()));
+
+		ImGui::Checkbox("Paused", &m_IsPaused);
+		ImGui::InputFloat3("Gravity", &m_Gravity.x);
+		ImGui::InputFloat("Damping Factor", &m_DampingFactor);
+		ImGui::Text("Integration Type");
+		ImGui::SameLine();
+		if (ImGui::BeginMenu(IntegrationTypeToString(m_integrationType).c_str()))
+		{
+			if (ImGui::MenuItem("EXPLICIT EULER", "", static_cast<int>(m_integrationType) == 0, true)) { m_integrationType = INTEGRATION_EXPLICIT_EULER; }
+			if (ImGui::MenuItem("SEMI IMPLICIT EULER","", static_cast<int>(m_integrationType) == 1, true)) { m_integrationType = INTEGRATION_SEMI_IMPLICIT_EULER; }
+			if (ImGui::MenuItem("RUNGE KUTTA 2", "", static_cast<int>(m_integrationType) == 2, true)) { m_integrationType = INTEGRATION_RUNGE_KUTTA_2; }
+			if (ImGui::MenuItem("RUNGE KUTTA 4", "", static_cast<int>(m_integrationType) == 3, true)) { m_integrationType = INTEGRATION_RUNGE_KUTTA_4; }
+			ImGui::EndMenu();
+		}
 	}
 }

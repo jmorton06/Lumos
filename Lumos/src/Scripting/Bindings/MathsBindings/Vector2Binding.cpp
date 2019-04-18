@@ -40,7 +40,7 @@ namespace Lumos
 	Vector2Binding::Vector2Binding(lua_State* L)
 	{
 		int argc = LuaScripting::SGetArgCount(L);
-		float x = 0.f, y = 0.f, z = 0.f, w = 0.f;
+		float x = 0.f, y = 0.f;
 
 		if (argc > 0)
 		{
@@ -48,14 +48,6 @@ namespace Lumos
 			if (argc > 1)
 			{
 				y = LuaScripting::SGetFloat(L, 2);
-				if (argc > 2)
-				{
-					z = LuaScripting::SGetFloat(L, 3);
-					if (argc > 3)
-					{
-						w = LuaScripting::SGetFloat(L, 4);
-					}
-				}
 			}
 		}
 		vec2 = maths::Vector2(x, y);

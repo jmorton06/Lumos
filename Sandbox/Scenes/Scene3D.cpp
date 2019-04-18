@@ -4,8 +4,6 @@
 using namespace Lumos;
 using namespace maths;
 
-maths::Vector3 lightDirection;
-
 Scene3D::Scene3D(const std::string& SceneName)
 		: Scene(SceneName)
 {
@@ -56,11 +54,9 @@ void Scene3D::OnInit()
 	sun->SetPosition(maths::Vector3(26.0f, 22.0f, 48.5f) * 100.0f);
 	m_LightSetup->SetDirectionalLight(sun);
 
-	lightDirection = maths::Vector3(26.0f, 22.0f, 48.5f);
-
 	Application::Instance()->GetAudioManager()->SetListener(m_pCamera);
 
-	m_ShadowTexture = std::unique_ptr<TextureDepthArray>(TextureDepthArray::Create(4096, 4096, 4));
+	m_ShadowTexture = std::unique_ptr<TextureDepthArray>(TextureDepthArray::Create(2048, 2048, 4));
 	auto shadowRenderer = new ShadowRenderer();
 	auto deferredRenderer = new DeferredRenderer(m_ScreenWidth, m_ScreenHeight);
 	auto skyboxRenderer = new SkyboxRenderer(m_ScreenWidth, m_ScreenHeight, m_EnvironmentMap);
@@ -70,9 +66,9 @@ void Scene3D::OnInit()
 	deferredRenderer->SetRenderToGBufferTexture(true);
 	skyboxRenderer->SetRenderToGBufferTexture(true);
 
-	auto shadowLayer = new Layer3D(shadowRenderer);
-	auto deferredLayer = new Layer3D(deferredRenderer);
-	auto skyBoxLayer = new Layer3D(skyboxRenderer);
+	auto shadowLayer = new Layer3D(shadowRenderer, "Shadow");
+	auto deferredLayer = new Layer3D(deferredRenderer, "Deferred");
+	auto skyBoxLayer = new Layer3D(skyboxRenderer, "Skybox");
 	Application::Instance()->PushLayer(shadowLayer);
     Application::Instance()->PushLayer(deferredLayer);
 	Application::Instance()->PushLayer(skyBoxLayer);
@@ -290,7 +286,7 @@ void Scene3D::LoadModels()
 	pendulumHolderPhysics->SetIsAtRest(true);
 	pendulumHolderPhysics->SetInverseMass(1.0);
 	pendulumHolderPhysics->SetInverseInertia(pendulumHolderPhysics->GetCollisionShape()->BuildInverseInertia(1.0f));
-	pendulumHolderPhysics->SetIsStatic(true);
+	pendulumHolderPhysics->SetIsStatic(false);
 	pendulumHolderPhysics->SetPosition(maths::Vector3(12.5f, 15.0f, 20.0f));
 	pendulumHolder->AddComponent(std::make_unique<Physics3DComponent>(pendulumHolderPhysics));
 	pendulumHolder->AddComponent(std::make_unique<TransformComponent>(Matrix4::Scale(maths::Vector3(0.5f, 0.5f, 0.5f))));
@@ -318,8 +314,8 @@ void Scene3D::LoadModels()
 
 	AddEntity(pendulum);
 
-	auto pendulumConstraint = new SpringConstraint(pendulumHolder->GetComponent<Physics3DComponent>()->m_PhysicsObject.get(), pendulum->GetComponent<Physics3DComponent>()->m_PhysicsObject.get(), pendulumHolder->GetComponent<Physics3DComponent>()->m_PhysicsObject->GetPosition(), pendulum->GetComponent<Physics3DComponent>()->m_PhysicsObject->GetPosition(), 0.9f, 0.5f);
-	LumosPhysicsEngine::Instance()->AddConstraint(pendulumConstraint);
+	//auto pendulumConstraint = new SpringConstraint(pendulumHolder->GetComponent<Physics3DComponent>()->m_PhysicsObject.get(), pendulum->GetComponent<Physics3DComponent>()->m_PhysicsObject.get(), pendulumHolder->GetComponent<Physics3DComponent>()->m_PhysicsObject->GetPosition(), pendulum->GetComponent<Physics3DComponent>()->m_PhysicsObject->GetPosition(), 0.9f, 0.5f);
+	//LumosPhysicsEngine::Instance()->AddConstraint(pendulumConstraint);
 
 #if 0
 	auto soundFilePath = String("/Sounds/fire.ogg");
@@ -435,22 +431,9 @@ void Scene3D::OnIMGUI()
     if (show_demo_window)
         ImGui::ShowDemoWindow(&show_demo_window);
 
-	//ImGui::Begin(m_SceneName.c_str());
-    
-    ImVec4 test = ImVec4(lightDirection.GetX(),lightDirection.GetY(), lightDirection.GetZ(), 1.0f);
-    
-    ImGui::Text("Light");
-    ImGui::DragFloat4("Direction", &test.x);
-    
-    lightDirection = maths::Vector3(test.x,test.y,test.z);
-    m_LightSetup->GetDirectionalLight()->SetDirection(lightDirection);
-    
  	if(ImGui::Button("<- SceneSelect"))
 	{
 		Application::Instance()->GetSceneManager()->JumpToScene("SceneSelect");
-		//ImGui::End();
 		return;
 	}
-
-    //ImGui::End();
 }

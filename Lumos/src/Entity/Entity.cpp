@@ -3,13 +3,11 @@
 
 #include "Graphics/Renderers/DebugRenderer.h"
 #include "App/Scene.h"
-#include "App/Application.h"
-#include "Graphics/GBuffer.h"
-#include "Graphics/RenderManager.h"
 #include "Graphics/API/Context.h"
 
 #include <imgui/imgui.h>
 #include <imgui/plugins/ImGuizmo.h>
+#include "Graphics/Camera/Camera.h"
 
 namespace Lumos
 {
@@ -56,6 +54,8 @@ namespace Lumos
 			if (m_UpdateTransforms)
 				component.second->OnUpdateTransform(maths::Matrix4());
 		}
+
+		m_UpdateTransforms = false;
 	}
 
 	void Entity::AddChildObject(Entity* child)
@@ -98,21 +98,26 @@ namespace Lumos
 		return m_DefaultTransformComponent;
 	}
 
-	void Entity::OnGuizmo()
+	void Entity::OnGuizmo(uint mode)
 	{
 		maths::Matrix4 view = m_pScene->GetCamera()->GetViewMatrix();
 		maths::Matrix4 proj = m_pScene->GetCamera()->GetProjectionMatrix();
-
+        
 #ifdef LUMOS_RENDER_API_VULKAN
 		if(graphics::Context::GetRenderAPI() == RenderAPI::VULKAN)
 			proj[5] *= -1.0f;
 #endif
 		ImGuizmo::SetDrawlist();
+        
+        auto pos = ImGui::GetWindowPos();
+        auto size = ImGui::GetWindowSize();
+        ImGuizmo::SetRect(pos.x, pos.y, size.x, size.y);
 
 		maths::Matrix4 model = maths::Matrix4();
 		if (this->GetComponent<TransformComponent>() != nullptr)
 			model = GetComponent<TransformComponent>()->m_Transform.GetWorldMatrix();
-		ImGuizmo::Manipulate(view.values, proj.values, Application::Instance()->GetImGuizmoOperation(), ImGuizmo::WORLD, model.values, nullptr, nullptr);
+        
+		ImGuizmo::Manipulate(view.values, proj.values, static_cast<ImGuizmo::OPERATION>(mode), ImGuizmo::WORLD, model.values, nullptr, nullptr);
 
 		if (this->GetComponent<TransformComponent>() != nullptr)
 			GetComponent<TransformComponent>()->SetWorldMatrix(model);
@@ -120,15 +125,16 @@ namespace Lumos
     
     void Entity::OnIMGUI()
     {
-        ImGuiWindowFlags window_flags = 0;
-        ImGui::Begin(m_Name.c_str(), NULL, window_flags);
+		static char objName[INPUT_BUF_SIZE];
+		strcpy(objName, m_Name.c_str());
+
+		ImGuiInputTextFlags inputFlag = ImGuiInputTextFlags_EnterReturnsTrue;
+		if (ImGui::InputText("Name", objName, IM_ARRAYSIZE(objName), inputFlag))
+			m_Name = objName;
 
         for(auto& component: m_Components)
         {
             component.second->OnIMGUI();
         }
-        
-        ImGui::End();
-        
     }
 }

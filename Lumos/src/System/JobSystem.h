@@ -13,7 +13,7 @@ namespace Lumos
     {
         namespace JobSystem
         {
-            void Initialize();
+            void OnInit();
 
             uint32_t GetThreadCount();
 
