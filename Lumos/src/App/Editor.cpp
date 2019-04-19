@@ -98,6 +98,42 @@ namespace Lumos
 			ImGui::EndMainMenuBar();
 		}
 	}
+    
+    void Editor::DrawNode(std::shared_ptr<Entity>& node)
+    {
+        if (node == nullptr)
+            return;
+        
+        if(node->GetChildren().empty())
+        {
+            ImGui::Indent();
+            if(ImGui::Selectable(node->GetName().c_str(), m_Selected == node.get()))
+               m_Selected = node.get();
+            ImGui::Unindent();
+        }
+        else
+        {
+            ImGuiTreeNodeFlags nodeFlags = ((m_Selected == node.get()) ? ImGuiTreeNodeFlags_Selected : 0);
+            
+            nodeFlags |= ImGuiTreeNodeFlags_OpenOnArrow | ImGuiTreeNodeFlags_OpenOnDoubleClick;
+            bool nodeOpen = false;
+            
+            nodeOpen = ImGui::TreeNodeEx((char*)node->GetName().c_str(), nodeFlags, node->GetName().c_str(), 0);
+            if (ImGui::IsItemClicked())
+                m_Selected = node.get();
+            
+            if (nodeOpen == false)
+                return;
+            
+            for (auto child : node->GetChildren())
+            {
+                this->DrawNode(child);
+            }
+            
+            if(nodeOpen)
+                ImGui::TreePop();
+        }
+    }
 
 	void Editor::DrawHierarchyWindow()
 	{
@@ -160,22 +196,7 @@ namespace Lumos
 				if(scene->GetLightSetup())
 					scene->GetLightSetup()->OnImGUI();
 
-                std::function<void(std::shared_ptr<Entity>)> func = [&](std::shared_ptr<Entity> entity)
-                {
-                    if (ImGui::TreeNode(entity->GetName().c_str()))
-                    {
-                        m_Selected = entity.get();
-                        
-                        auto children = entity->GetChildren();
-                        
-                        for(auto child : children)
-                            func(child);
-                        
-                        ImGui::TreePop();
-                    }
-                };
-                
-                func(Application::Instance()->GetSceneManager()->GetCurrentScene()->GetRootEntity());
+            DrawNode(Application::Instance()->GetSceneManager()->GetCurrentScene()->GetRootEntity());
                 
                 ImGui::TreePop();
               }
