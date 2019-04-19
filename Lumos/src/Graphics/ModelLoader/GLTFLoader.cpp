@@ -387,8 +387,12 @@ namespace Lumos
 		}
 
 		auto LoadedMaterials = LoadMaterials(model);
+        
+        String directory = path.substr(0, path.find_last_of('/'));
+        
+        String name = directory.substr(directory.find_last_of('/') + 1);
 
-		auto entity = std::make_shared<Entity>(nullptr);
+		auto entity = std::make_shared<Entity>(name, nullptr);
 		entity->AddComponent(std::make_unique<TransformComponent>(maths::Matrix4()));
 
 		for (auto& mesh : model.meshes)
@@ -552,8 +556,14 @@ namespace Lumos
 
 			std::shared_ptr<IndexBuffer> ib;
 			ib.reset(IndexBuffer::Create(indicesArray, numVertices));
-
-			auto meshEntity = std::make_shared<Entity>("Mesh", nullptr);
+            
+            String name = mesh.name;
+            if(name == "")
+            {
+                name = "mesh" + StringFormat::ToString(static_cast<int>(entity->GetChildren().size()));
+            }
+            
+			auto meshEntity = std::make_shared<Entity>(name, nullptr);
             auto lMesh = std::make_shared<Mesh>(va, ib, pbrMaterial, boundingBox);
 			meshEntity->AddComponent(std::make_unique<MeshComponent>(lMesh));
 			meshEntity->AddComponent(std::make_unique<TransformComponent>(maths::Matrix4()));
