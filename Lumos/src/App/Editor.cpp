@@ -160,32 +160,25 @@ namespace Lumos
 				if(scene->GetLightSetup())
 					scene->GetLightSetup()->OnImGUI();
 
-				/*auto entities = scene->GetEntities();
-				scene->GetCamera()->OnImGUI();
-				
-				std::string title = "Entities : " + StringFormat::ToString(static_cast<int>(entities.size()));
-
-				if (ImGui::TreeNode(title.c_str()))
-				{
-					ImGui::Indent();
-					for (auto& entity : entities)
-					{
-						if (ImGui::Selectable(entity->GetName().c_str(), m_Selected == entity.get()))
-							m_Selected = entity.get();
-					}
-					ImGui::TreePop();
-				}*/
-				if (ImGui::TreeNode("Entities"))
-				{
-					m_Application->m_SceneManager->GetCurrentScene()->IterateEntities([&](std::shared_ptr<Entity> entity)
-					{
-						if (ImGui::Selectable(entity->GetName().c_str(), m_Selected == entity.get()))
-							m_Selected = entity.get();
-					});
-					ImGui::TreePop();
-				}
-				ImGui::TreePop();
-			}
+                std::function<void(std::shared_ptr<Entity>)> func = [&](std::shared_ptr<Entity> entity)
+                {
+                    if (ImGui::TreeNode(entity->GetName().c_str()))
+                    {
+                        m_Selected = entity.get();
+                        
+                        auto children = entity->GetChildren();
+                        
+                        for(auto child : children)
+                            func(child);
+                        
+                        ImGui::TreePop();
+                    }
+                };
+                
+                func(Application::Instance()->GetSceneManager()->GetCurrentScene()->GetRootEntity());
+                
+                ImGui::TreePop();
+              }
 		}
 		ImGui::End();
 	}

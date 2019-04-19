@@ -45,6 +45,8 @@ namespace Lumos
 		std::vector<tinyobj::material_t> materials;
 
 		m_Directory = resolvedPath.substr(0, resolvedPath.find_last_of('/'));
+        
+        String name = m_Directory.substr(m_Directory.find_last_of('/') + 1);
 
 		bool ok = tinyobj::LoadObj(
 			&attrib, &shapes, &materials, &error,
@@ -57,7 +59,7 @@ namespace Lumos
 			LUMOS_CORE_ERROR(error);
 		}
 
-		auto entity = std::make_shared<Entity>(nullptr);
+		auto entity = std::make_shared<Entity>(name, nullptr);
 
 		for (const auto& shape : shapes)
 		{
@@ -198,7 +200,7 @@ namespace Lumos
 			std::shared_ptr<IndexBuffer> ib;
 			ib.reset(IndexBuffer::Create(indices, numIndices));// / sizeof(uint));
 
-			auto meshEntity = std::make_shared<Entity>("Mesh", nullptr);
+			auto meshEntity = std::make_shared<Entity>(shape.name, nullptr);
             auto mesh = std::make_shared<Mesh>(va, ib, pbrMaterial, boundingBox);
 			meshEntity->AddComponent(std::make_unique<MeshComponent>(mesh));
 			meshEntity->AddComponent(std::make_unique<TransformComponent>(maths::Matrix4()));
