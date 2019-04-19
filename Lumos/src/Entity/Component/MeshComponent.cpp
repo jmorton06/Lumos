@@ -29,7 +29,7 @@ namespace Lumos
 
 	void MeshComponent::OnIMGUI()
 	{
-        if (ImGui::TreeNode("Material : ", "%s", m_Model->GetMaterial()->GetName().c_str()))
+        if (ImGui::TreeNode("Material"))
 		{
 			MaterialProperties* prop = m_Model->GetMaterial()->GetProperties();
 
