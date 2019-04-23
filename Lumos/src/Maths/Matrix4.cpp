@@ -1,6 +1,7 @@
 #include "LM.h"
 #include "Matrix4.h"
 #include "Matrix3.h"
+#include "Quaternion.h"
 #include "MathsUtilities.h"
 #include "SSEUtilities.h"
 
@@ -141,6 +142,14 @@ namespace Lumos
 			return Vector3(Lumos::maths::Clamp(angle_x, 0.0f, 360.0f), Lumos::maths::Clamp(angle_y, 0.0f, 360.0f),
 						   Lumos::maths::Clamp(angle_z, 0.0f, 360.0f));
 		}
+        
+        Quaternion Matrix4::ToQuaternion() const
+        {
+            auto quat = Quaternion(GetEulerAngles(*this), 1.0f);
+            quat.GenerateW();
+            
+            return quat;
+        }
 
 		Matrix4 Matrix4::Inverse(const Matrix4 &inM)
 		{
