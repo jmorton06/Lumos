@@ -13,13 +13,13 @@
 
 namespace Lumos
 {
-	Entity::Entity(Scene* scene) : m_Name("Unnamed"), m_pScene(scene), m_pParent(nullptr), m_BoundingRadius(1), m_FrustumCullFlags(0), m_UpdateTransforms(false)
+	Entity::Entity(Scene* scene) : m_Name("Unnamed"), m_pScene(scene), m_pParent(nullptr), m_BoundingRadius(1), m_FrustumCullFlags(0)
 	{
         Init();
 	}
 
 	Entity::Entity(const String& name,Scene* scene) : m_Name(name), m_pScene(scene), m_pParent(nullptr), m_BoundingRadius(1),
-	                                     m_FrustumCullFlags(0), m_UpdateTransforms(false)
+	                                     m_FrustumCullFlags(0)
 	{
         Init();
 	}
@@ -36,6 +36,10 @@ namespace Lumos
 	{
         component->SetEntity(this);
 		component->Init();
+        
+        if(component->GetType() == ComponentType::Transform)
+            m_DefaultTransformComponent = (TransformComponent*)component.get();
+        
 		m_Components[component->GetType()] = std::move(component);
 	}
 
@@ -49,15 +53,34 @@ namespace Lumos
 
 	void Entity::OnUpdateObject(float dt)
 	{
-		for (const auto& component : m_Components)
-		{
-			component.second->OnUpdateComponent(dt);
-
-			if (m_UpdateTransforms)
-				component.second->OnUpdateTransform(maths::Matrix4());
-		}
-
-		m_UpdateTransforms = false;
+        if(m_DefaultTransformComponent && m_DefaultTransformComponent->m_Transform.HasUpdated())
+        {
+            if(!m_pParent)
+                m_DefaultTransformComponent->m_Transform.SetWorldMatrix(maths::Matrix4());
+			else
+			{
+				m_DefaultTransformComponent->m_Transform.SetWorldMatrix(m_pParent->GetTransform()->m_Transform.GetWorldMatrix());
+			}
+				
+            
+            for(auto child : m_vpChildren)
+            {
+                if(child && child->GetTransform())
+                    child->GetTransform()->SetWorldMatrix(m_DefaultTransformComponent->m_Transform.GetWorldMatrix());
+            }
+            
+            for (const auto& component : m_Components)
+            {
+                component.second->OnUpdateComponent(dt);
+                
+                if (m_DefaultTransformComponent->m_Transform.HasUpdated())
+                {
+                    component.second->OnUpdateTransform(m_DefaultTransformComponent->m_Transform.GetWorldMatrix());
+                }
+            }
+            
+            m_DefaultTransformComponent->m_Transform.SetHasUpdated(false);
+        }
 	}
 
 	void Entity::AddChildObject(std::shared_ptr<Entity>& child)
@@ -120,10 +143,16 @@ namespace Lumos
 		if (this->GetComponent<TransformComponent>() != nullptr)
 			model = GetComponent<TransformComponent>()->m_Transform.GetWorldMatrix();
         
-		ImGuizmo::Manipulate(view.values, proj.values, static_cast<ImGuizmo::OPERATION>(mode), ImGuizmo::WORLD, model.values, nullptr, nullptr);
+        auto parentMat = m_pParent ? m_pParent->GetTransform()->m_Transform.GetWorldMatrix() : maths::Matrix4();
 
-		if (this->GetComponent<TransformComponent>() != nullptr)
-			GetComponent<TransformComponent>()->SetWorldMatrix(model);
+        ImGuizmo::Manipulate(view.values, proj.values, static_cast<ImGuizmo::OPERATION>(mode),ImGuizmo::LOCAL, model.values, nullptr, nullptr);
+
+		if (GetTransform() != nullptr)
+        {
+            auto mat = (maths::Matrix4::Inverse(parentMat) * model);
+            mat.Transpose();
+            m_DefaultTransformComponent->m_Transform.SetLocalTransform(mat);
+        }
 	}
     
     void Entity::OnIMGUI()
@@ -134,10 +163,18 @@ namespace Lumos
 		ImGuiInputTextFlags inputFlag = ImGuiInputTextFlags_EnterReturnsTrue;
 		if (ImGui::InputText("Name", objName, IM_ARRAYSIZE(objName), inputFlag))
 			m_Name = objName;
+        
+        ImGui::Text("%s", m_pParent ? m_pParent->GetName().c_str() : "No Parent");
 
         for(auto& component: m_Components)
         {
             component.second->OnIMGUI();
         }
+    }
+    
+    void Entity::SetParent(Entity *parent)
+    {
+        m_pParent = parent;
+        m_DefaultTransformComponent->SetWorldMatrix(m_pParent->GetTransform()->m_Transform.GetWorldMatrix());
     }
 }

@@ -1,6 +1,5 @@
 #pragma once
 #include "LM.h"
-#include "Vector3.h"
 #include "Vector4.h"
 #include "MathsCommon.h"
 
@@ -20,6 +19,7 @@ namespace Lumos
 	{
 		class Vector3;
 		class Matrix3;
+        class Quaternion;
 
 		class LUMOS_EXPORT MEM_ALIGN Matrix4
 		{
@@ -119,6 +119,8 @@ namespace Lumos
 
 			void Transpose();
             Matrix4 GetRotation() const;
+            
+            Quaternion ToQuaternion() const;
 
 			static Vector3 GetEulerAngles(const Matrix4 &mat);
 			static Matrix4 RotationX(float degrees);

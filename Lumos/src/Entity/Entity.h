@@ -61,7 +61,8 @@ namespace Lumos
 		void DebugDraw(uint64 debugFlags);
 
 		TransformComponent* GetTransform();
-		void SetUpdateTransforms(bool set) { m_UpdateTransforms = set; }
+        
+        void SetParent(Entity* parent);
 
 	private:
 
@@ -84,7 +85,6 @@ namespace Lumos
 		std::vector<std::shared_ptr<Entity>> m_vpChildren;
 		float					m_BoundingRadius;
 		uint					m_FrustumCullFlags;
-		bool					m_UpdateTransforms;
 		TransformComponent*		m_DefaultTransformComponent = nullptr;
 	};
 }

@@ -14,32 +14,34 @@ namespace Lumos
 
 	void TransformComponent::OnUpdateComponent(float dt)
 	{
-		if(m_Transform.HasUpdated())
-		{
-			m_Transform.SetHasUpdated(false);
-			m_Entity->SetUpdateTransforms(true);
-		}
 	}
+    
+    void TransformComponent::SetWorldMatrix(const maths::Matrix4 &matrix)
+    {
+        m_Transform.SetHasUpdated(true);
+        m_Transform.SetWorldMatrix(m_Transform.GetLocalMatrix() * matrix);
+    }
 
     void TransformComponent::OnIMGUI()
     {
         if (ImGui::TreeNode("Transform"))
         {
-			auto pos = m_Transform.GetWorldMatrix().GetPositionVector();
-			auto scale = m_Transform.GetWorldMatrix().GetScaling();
-            auto rotation = maths::Matrix4::GetEulerAngles(m_Transform.GetLocalMatrix());
+            auto localMatrix = m_Transform.GetLocalMatrix();
+			auto pos = localMatrix.GetPositionVector();
+			auto scale = localMatrix.GetScaling();
+            auto rotation = maths::Matrix4::GetEulerAngles(localMatrix);
 
 			ImGui::DragFloat3("Position", &pos.x);
 			ImGui::DragFloat3("Scale", &scale.x);
             ImGui::DragFloat3("Rotation", &rotation.x);
-
-			m_Transform.SetWorldPosition(pos);
-			m_Transform.SetWorldScale(scale);
+            
+			m_Transform.SetLocalPosition(pos);
+			m_Transform.SetLocalScale(scale);
             
             auto quat = maths::Quaternion(rotation,1.0f);
             quat.GenerateW();
             
-            m_Transform.SetOrientation(quat);
+            m_Transform.SetLocalOrientation(quat);
 
             ImGui::TreePop();
         }

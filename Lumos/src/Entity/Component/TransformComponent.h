@@ -10,7 +10,7 @@ namespace Lumos
 	public:
 		explicit TransformComponent(const maths::Matrix4& matrix);
 
-		void SetWorldMatrix(const maths::Matrix4& matrix) { m_Transform.SetWorldMatrix(matrix); }
+        void SetWorldMatrix(const maths::Matrix4& matrix);
 		static ComponentType GetStaticType()
 		{
             static ComponentType type(ComponentType::Transform);
