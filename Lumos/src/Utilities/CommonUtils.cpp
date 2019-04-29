@@ -44,6 +44,9 @@ namespace Lumos
 
 		pSphere->AddComponent(std::make_unique<TextureMatrixComponent>(maths::Matrix4::Scale(maths::Vector3(10.0f, 10.0f, 10.0f))));
 		//pSphere->AddComponent(std::make_unique<MeshComponent>(*AssetsManager::DefaultModels()->GetAsset("Sphere").get()));
+        
+        std::shared_ptr<Mesh> sphereModel = std::make_shared<Mesh>(*AssetsManager::DefaultModels()->GetAsset("Sphere"));
+        pSphere->AddComponent(std::make_unique<MeshComponent>(sphereModel));
 
 		std::shared_ptr<Material> matInstance = std::make_shared<Material>();
 		MaterialProperties properties;
@@ -98,6 +101,9 @@ namespace Lumos
 
 		Cube->AddComponent(std::make_unique<TextureMatrixComponent>(maths::Matrix4::Scale(maths::Vector3(10.0f, 10.0f, 10.0f))));
 		//Cube->AddComponent(std::make_unique<MeshComponent>(*AssetsManager::DefaultModels()->GetAsset("Sphere").get()));
+        
+        std::shared_ptr<Mesh> cubeModel = std::make_shared<Mesh>(*AssetsManager::DefaultModels()->GetAsset("Cube"));
+        Cube->AddComponent(std::make_unique<MeshComponent>(cubeModel));
 
 		auto matInstance = std::make_shared<Material>();//std::shared_ptr<Shader>(Shader::CreateFromFile("ForwardRender", "/Shaders/Scene/ForwardRender")));
 		//matInstance->SetUniform("uColour", color);
@@ -155,6 +161,9 @@ namespace Lumos
 
 		Cube->AddComponent(std::make_unique<TextureMatrixComponent>(maths::Matrix4::Scale(maths::Vector3(10.0f, 10.0f, 10.0f))));
 		//Cube->AddComponent(std::make_unique<MeshComponent>(*AssetsManager::DefaultModels()->GetAsset("Sphere").get()));
+        
+        std::shared_ptr<Mesh> pyramidModel = std::make_shared<Mesh>(*AssetsManager::DefaultModels()->GetAsset("Pyramid"));
+        Cube->AddComponent(std::make_unique<MeshComponent>(pyramidModel));
 
 		std::shared_ptr<Material> matInstance = std::make_shared<Material>();// *AssetsManager::s_DefualtPBRMaterial);
 		//matInstance->SetAlbedo(color);
