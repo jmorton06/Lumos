@@ -286,7 +286,7 @@ void Scene3D::LoadModels()
 	pendulumHolderPhysics->SetIsAtRest(true);
 	pendulumHolderPhysics->SetInverseMass(1.0);
 	pendulumHolderPhysics->SetInverseInertia(pendulumHolderPhysics->GetCollisionShape()->BuildInverseInertia(1.0f));
-	pendulumHolderPhysics->SetIsStatic(false);
+	pendulumHolderPhysics->SetIsStatic(true);
 	pendulumHolderPhysics->SetPosition(maths::Vector3(12.5f, 15.0f, 20.0f));
 	pendulumHolder->AddComponent(std::make_unique<Physics3DComponent>(pendulumHolderPhysics));
 	pendulumHolder->AddComponent(std::make_unique<TransformComponent>(Matrix4::Scale(maths::Vector3(0.5f, 0.5f, 0.5f))));
@@ -314,8 +314,8 @@ void Scene3D::LoadModels()
 
 	AddEntity(pendulum);
 
-	//auto pendulumConstraint = new SpringConstraint(pendulumHolder->GetComponent<Physics3DComponent>()->m_PhysicsObject.get(), pendulum->GetComponent<Physics3DComponent>()->m_PhysicsObject.get(), pendulumHolder->GetComponent<Physics3DComponent>()->m_PhysicsObject->GetPosition(), pendulum->GetComponent<Physics3DComponent>()->m_PhysicsObject->GetPosition(), 0.9f, 0.5f);
-	//LumosPhysicsEngine::Instance()->AddConstraint(pendulumConstraint);
+	auto pendulumConstraint = new SpringConstraint(pendulumHolder->GetComponent<Physics3DComponent>()->m_PhysicsObject.get(), pendulum->GetComponent<Physics3DComponent>()->m_PhysicsObject.get(), pendulumHolder->GetComponent<Physics3DComponent>()->m_PhysicsObject->GetPosition(), pendulum->GetComponent<Physics3DComponent>()->m_PhysicsObject->GetPosition(), 0.9f, 0.5f);
+	LumosPhysicsEngine::Instance()->AddConstraint(pendulumConstraint);
 
 #if 0
 	auto soundFilePath = String("/Sounds/fire.ogg");

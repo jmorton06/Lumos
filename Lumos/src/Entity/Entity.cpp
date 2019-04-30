@@ -53,6 +53,11 @@ namespace Lumos
 
 	void Entity::OnUpdateObject(float dt)
 	{
+        for (const auto& component : m_Components)
+        {
+            component.second->OnUpdateComponent(dt);
+        }
+        
         if(m_DefaultTransformComponent && m_DefaultTransformComponent->m_Transform.HasUpdated())
         {
             if(!m_pParent)
@@ -71,12 +76,7 @@ namespace Lumos
             
             for (const auto& component : m_Components)
             {
-                component.second->OnUpdateComponent(dt);
-                
-                if (m_DefaultTransformComponent->m_Transform.HasUpdated())
-                {
-                    component.second->OnUpdateTransform(m_DefaultTransformComponent->m_Transform.GetWorldMatrix());
-                }
+                component.second->OnUpdateTransform(m_DefaultTransformComponent->m_Transform.GetWorldMatrix());
             }
             
             m_DefaultTransformComponent->m_Transform.SetHasUpdated(false);
@@ -150,7 +150,7 @@ namespace Lumos
 		if (GetTransform() != nullptr)
         {
             auto mat = (maths::Matrix4::Inverse(parentMat) * model);
-            mat.Transpose();
+            //mat.Transpose();
             m_DefaultTransformComponent->m_Transform.SetLocalTransform(mat);
         }
 	}
