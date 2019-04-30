@@ -1,10 +1,12 @@
-﻿#include "LM.h"
+#include "LM.h"
 #include "Physics2DComponent.h"
 #include "Physics/B2PhysicsEngine/PhysicsObject2D.h"
+#include "Maths/MathsUtilities.h"
 
 #include <imgui/imgui.h>
 #include "Entity/Entity.h"
-#include "Sandbox/Scenes/SceneLuaTest.h"
+
+#include <math.h>
 
 namespace Lumos
 {
@@ -16,13 +18,12 @@ namespace Lumos
 
 	void Physics2DComponent::OnUpdateComponent(float dt)
 	{
-		//m_Entity->GetTransform()->m_Transform.SetOrientation(maths::Quaternion::EulerAnglesToQuaternion(0.0f, 0.0f, -m_PhysicsObject->GetAngle()));
-		//m_Entity->GetTransform()->m_Transform.SetWorldPosition(maths::Vector3(m_PhysicsObject->GetPosition(),1.0f));
-
-		auto transform = maths::Matrix4::Translation(maths::Vector3(m_PhysicsObject->GetPosition(), 1.0f)) * maths::Matrix4::RotationZ(maths::RadToDeg(-m_PhysicsObject->GetAngle()));
-
-		m_Entity->GetTransform()->SetWorldMatrix(transform * m_Entity->GetTransform()->m_Transform.GetLocalMatrix());
-
+        auto angle = m_PhysicsObject->GetAngle();
+        auto qw = cos(angle/2);
+        auto qz = 1.0f * sin(angle/2);
+        
+        m_Entity->GetTransform()->m_Transform.SetLocalPosition(maths::Vector3(m_PhysicsObject->GetPosition(), 1.0f));
+        m_Entity->GetTransform()->m_Transform.SetLocalOrientation(maths::Quaternion(0.0f, 0.0f, qz, qw));
 	}
 
 	void Physics2DComponent::OnIMGUI()
