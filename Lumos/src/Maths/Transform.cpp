@@ -16,7 +16,9 @@ namespace Lumos
 		{
 			m_LocalMatrix = matrix;
 			m_WorldMatrix = matrix;
-			m_LocalScale = Vector3(1.0f, 1.0f, 1.0f);
+            m_LocalPosition     = m_LocalMatrix.GetPositionVector();
+            m_LocalScale        = m_LocalMatrix.GetScaling();
+            m_LocalOrientation  = m_LocalMatrix.ToQuaternion();
 		}
 
 		Transform::Transform(const Vector3& position) 
