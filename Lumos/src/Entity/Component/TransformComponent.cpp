@@ -31,9 +31,9 @@ namespace Lumos
 			auto scale = localMatrix.GetScaling();
             auto rotation = maths::Matrix4::GetEulerAngles(localMatrix);
 
-			ImGui::DragFloat3("Position", &pos.x);
-			ImGui::DragFloat3("Scale", &scale.x);
-            ImGui::DragFloat3("Rotation", &rotation.x);
+			ImGui::InputFloat3("Position", &pos.x);
+			ImGui::InputFloat3("Scale", &scale.x);
+            ImGui::InputFloat3("Rotation", &rotation.x);
             
 			m_Transform.SetLocalPosition(pos);
 			m_Transform.SetLocalScale(scale);
