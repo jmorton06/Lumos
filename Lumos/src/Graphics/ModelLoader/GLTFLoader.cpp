@@ -273,72 +273,91 @@ namespace Lumos
 				std::shared_ptr<Material> pbrMaterial = std::make_shared<Material>();
 				PBRMataterialTextures textures;
 				MaterialProperties properties;
+                
+                // metallic-roughness workflow:
+                auto baseColorTexture = mat.values.find("baseColorTexture");
+                auto metallicRoughnessTexture = mat.values.find("metallicRoughnessTexture");
+                auto baseColorFactor = mat.values.find("baseColorFactor");
+                auto roughnessFactor = mat.values.find("roughnessFactor");
+                auto metallicFactor = mat.values.find("metallicFactor");
+                
+                // common workflow:
+                auto normalTexture = mat.additionalValues.find("normalTexture");
+                //auto emissiveTexture = mat.additionalValues.find("emissiveTexture");
+                //auto occlusionTexture = mat.additionalValues.find("occlusionTexture");
+                //auto emissiveFactor = mat.additionalValues.find("emissiveFactor");
+                //auto alphaCutoff = mat.additionalValues.find("alphaCutoff");
+                //auto alphaMode = mat.additionalValues.find("alphaMode");
 
-				if (mat.values.find("baseColorTexture") != mat.values.end())
+				if (baseColorTexture != mat.values.end())
 				{
-					textures.albedo = loadedTextures[gltfModel.textures[mat.values["baseColorTexture"].TextureIndex()].source];
+					textures.albedo = loadedTextures[gltfModel.textures[baseColorTexture->second.TextureIndex()].source];
 				}
-				if (mat.values.find("metallicRoughnessTexture") != mat.values.end())
+                
+                if (normalTexture != mat.additionalValues.end())
+                {
+                    textures.normal = loadedTextures[gltfModel.textures[normalTexture->second.TextureIndex()].source];
+                }
+                
+				if (metallicRoughnessTexture != mat.values.end())
 				{
-					textures.metallic = loadedTextures[gltfModel.textures[mat.values["metallicRoughnessTexture"].TextureIndex()].source];
+					textures.metallic = loadedTextures[gltfModel.textures[metallicRoughnessTexture->second.TextureIndex()].source];
 				}
-				if (mat.values.find("roughnessFactor") != mat.values.end())
+                
+				if (roughnessFactor != mat.values.end())
 				{
-				 	properties.glossColour = static_cast<float>(mat.values["roughnessFactor"].Factor());
+				 	properties.glossColour = static_cast<float>(roughnessFactor->second.Factor());
 				}
-				if (mat.values.find("metallicFactor") != mat.values.end())
+                
+				if (metallicFactor != mat.values.end())
 				{
-					properties.specularColour = maths::Vector4(static_cast<float>(mat.values["metallicFactor"].Factor()));
+					properties.specularColour = maths::Vector4(static_cast<float>(metallicFactor->second.Factor()));
 				}
-				if (mat.values.find("baseColorFactor") != mat.values.end())
+                
+				if (baseColorFactor != mat.values.end())
 				{
-				 	properties.albedoColour = maths::Vector4((float)mat.values["baseColorFactor"].ColorFactor()[0],(float)mat.values["baseColorFactor"].ColorFactor()[1],(float)mat.values["baseColorFactor"].ColorFactor()[2],1.0f);
+				 	properties.albedoColour = maths::Vector4((float)baseColorFactor->second.ColorFactor()[0],(float)baseColorFactor->second.ColorFactor()[1],(float)baseColorFactor->second.ColorFactor()[2],1.0f);
 				}
-				if (mat.additionalValues.find("normalTexture") != mat.additionalValues.end()) 
-				{
-					textures.normal = loadedTextures[gltfModel.textures[mat.additionalValues["normalTexture"].TextureIndex()].source];
-				}
-				if (mat.additionalValues.find("emissiveTexture") != mat.additionalValues.end())
-				{
-					//textures.roughness = loadedTextures[gltfModel.textures[mat.additionalValues["emissiveTexture"].TextureIndex()].source];
-				}
-				// if (mat.additionalValues.find("occlusionTexture") != mat.additionalValues.end()) {
-				// 	material.occlusionTexture = &loadedTextures[gltfModel.textures[mat.additionalValues["occlusionTexture"].TextureIndex()].source];
-				// }
-				// if (mat.additionalValues.find("alphaMode") != mat.additionalValues.end()) {
-				// 	tinygltf::Parameter param = mat.additionalValues["alphaMode"];
-				// 	if (param.string_value == "BLEND") {
-				// 		material.alphaMode = Material::ALPHAMODE_BLEND;
-				// 	}
-				// 	if (param.string_value == "MASK") {
-				// 		material.alphaMode = Material::ALPHAMODE_MASK;
-				// 	}
-				// }
-				// if (mat.additionalValues.find("alphaCutoff") != mat.additionalValues.end()) {
-				// 	material.alphaCutoff = static_cast<float>(mat.additionalValues["alphaCutoff"].Factor());
-				// }
-				// if (mat.additionalValues.find("emissiveFactor") != mat.additionalValues.end()) {
-				// 	material.emissiveFactor = glm::vec4(glm::make_vec3(mat.additionalValues["emissiveFactor"].ColorFactor().data()), 1.0);
-				// 	material.emissiveFactor = glm::vec4(0.0f);
-				// }
-
+                
 				// Extensions
-				// if (mat.extPBRValues.size() > 0) {
-				// 	// KHR_materials_pbrSpecularGlossiness
-				// 	if (mat.extPBRValues.find("specularGlossinessTexture") != mat.extPBRValues.end()) {
-				// 		material.extension.specularGlossinessTexture = &textures[gltfModel.textures[mat.extPBRValues["specularGlossinessTexture"].TextureIndex()].source];
-				// 		material.pbrWorkflows.specularGlossiness = true;
-				// 	}
-				// 	if (mat.extPBRValues.find("diffuseTexture") != mat.extPBRValues.end()) {
-				// 		material.extension.diffuseTexture = &textures[gltfModel.textures[mat.extPBRValues["diffuseTexture"].TextureIndex()].source];
-				// 	}
-				// 	if (mat.extPBRValues.find("diffuseFactor") != mat.extPBRValues.end()) {
-				// 		material.extension.diffuseFactor = glm::make_vec4(mat.extPBRValues["diffuseFactor"].ColorFactor().data());
-				// 	}
-				// 	if (mat.extPBRValues.find("specularFactor") != mat.extPBRValues.end()) {
-				// 		material.extension.specularFactor = glm::vec4(glm::make_vec3(mat.extPBRValues["specularFactor"].ColorFactor().data()), 1.0);
-				// 	}
-				// }
+                auto specularGlossinessWorkflow = mat.extensions.find("KHR_materials_pbrSpecularGlossiness");
+                if (specularGlossinessWorkflow != mat.extensions.end())
+                {
+                    if (specularGlossinessWorkflow->second.Has("diffuseTexture"))
+                    {
+                        int index = specularGlossinessWorkflow->second.Get("diffuseTexture").Get("index").Get<int>();
+                        textures.albedo = loadedTextures[gltfModel.textures[index].source];
+
+                    }
+                    
+                    if (specularGlossinessWorkflow->second.Has("specularGlossinessTexture"))
+                    {
+                        int index = specularGlossinessWorkflow->second.Get("specularGlossinessTexture").Get("index").Get<int>();
+                        textures.roughness = loadedTextures[gltfModel.textures[index].source];
+                    }
+                    
+                    if (specularGlossinessWorkflow->second.Has("diffuseFactor"))
+                    {
+                        auto& factor = specularGlossinessWorkflow->second.Get("diffuseFactor");
+                        properties.albedoColour.x = factor.ArrayLen() > 0 ? float(factor.Get(0).IsNumber() ? factor.Get(0).Get<double>() : factor.Get(0).Get<int>()) : 1.0f;
+                        properties.albedoColour.y = factor.ArrayLen() > 1 ? float(factor.Get(1).IsNumber() ? factor.Get(1).Get<double>() : factor.Get(1).Get<int>()) : 1.0f;
+                        properties.albedoColour.z = factor.ArrayLen() > 2 ? float(factor.Get(2).IsNumber() ? factor.Get(2).Get<double>() : factor.Get(2).Get<int>()) : 1.0f;
+                        properties.albedoColour.w = factor.ArrayLen() > 3 ? float(factor.Get(3).IsNumber() ? factor.Get(3).Get<double>() : factor.Get(3).Get<int>()) : 1.0f;
+                    }
+                    if (specularGlossinessWorkflow->second.Has("specularFactor"))
+                    {
+                        auto& factor = specularGlossinessWorkflow->second.Get("specularFactor");
+                        properties.specularColour.x = factor.ArrayLen() > 0 ? float(factor.Get(0).IsNumber() ? factor.Get(0).Get<double>() : factor.Get(0).Get<int>()) : 1.0f;
+                        properties.specularColour.y = factor.ArrayLen() > 0 ? float(factor.Get(1).IsNumber() ? factor.Get(1).Get<double>() : factor.Get(1).Get<int>()) : 1.0f;
+                        properties.specularColour.z = factor.ArrayLen() > 0 ? float(factor.Get(2).IsNumber() ? factor.Get(2).Get<double>() : factor.Get(2).Get<int>()) : 1.0f;
+                        properties.specularColour.w = factor.ArrayLen() > 0 ? float(factor.Get(3).IsNumber() ? factor.Get(3).Get<double>() : factor.Get(3).Get<int>()) : 1.0f;
+                    }
+                    if (specularGlossinessWorkflow->second.Has("glossinessFactor"))
+                    {
+                        auto& factor = specularGlossinessWorkflow->second.Get("glossinessFactor");
+                        properties.glossColour = maths::Vector4(1.0f - float(factor.IsNumber() ? factor.Get<double>() : factor.Get<int>()));
+                    }
+                }
 
 				pbrMaterial->SetTextures(textures);
 				pbrMaterial->SetMaterialProperites(properties);
