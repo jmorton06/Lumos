@@ -43,14 +43,30 @@ void SceneModelViewer::OnInit()
 	sun->SetBrightness(4.0f);
 	m_LightSetup->SetDirectionalLight(sun);
 
-	auto forwardRenderer = new DeferredRenderer(m_ScreenWidth, m_ScreenHeight);
-	auto forwardLayer = new Layer3D(forwardRenderer);
-	forwardRenderer->SetRenderTarget(Application::Instance()->GetRenderManager()->GetGBuffer()->m_ScreenTex[SCREENTEX_OFFSCREEN0]);
-
-	Application::Instance()->PushLayer(forwardLayer);
-	m_SceneLayers.emplace_back(forwardLayer);
-
-	forwardRenderer->SetRenderToGBufferTexture(true);
+    auto shadowTexture = std::unique_ptr<TextureDepthArray>(TextureDepthArray::Create(2048, 2048, 4));
+    auto shadowRenderer = new ShadowRenderer();
+    auto deferredRenderer = new DeferredRenderer(m_ScreenWidth, m_ScreenHeight);
+    auto skyboxRenderer = new SkyboxRenderer(m_ScreenWidth, m_ScreenHeight, m_EnvironmentMap);
+    deferredRenderer->SetRenderTarget(Application::Instance()->GetRenderManager()->GetGBuffer()->m_ScreenTex[SCREENTEX_OFFSCREEN0]);
+    skyboxRenderer->SetRenderTarget(Application::Instance()->GetRenderManager()->GetGBuffer()->m_ScreenTex[SCREENTEX_OFFSCREEN0]);
+    
+    deferredRenderer->SetRenderToGBufferTexture(true);
+    skyboxRenderer->SetRenderToGBufferTexture(true);
+    
+    auto shadowLayer = new Layer3D(shadowRenderer, "Shadow");
+    auto deferredLayer = new Layer3D(deferredRenderer, "Deferred");
+    auto skyBoxLayer = new Layer3D(skyboxRenderer, "Skybox");
+    Application::Instance()->PushLayer(shadowLayer);
+    Application::Instance()->PushLayer(deferredLayer);
+    Application::Instance()->PushLayer(skyBoxLayer);
+    
+    m_SceneLayers.emplace_back(shadowLayer);
+    m_SceneLayers.emplace_back(deferredLayer);
+    m_SceneLayers.emplace_back(skyBoxLayer);
+    //Application::Instance()->PushOverLay(new ImGuiLayer(true));
+    
+    Application::Instance()->GetRenderManager()->SetShadowRenderer(shadowRenderer);
+    Application::Instance()->GetRenderManager()->SetSkyBoxTexture(m_EnvironmentMap);
 }
 
 void SceneModelViewer::OnUpdate(TimeStep* timeStep)

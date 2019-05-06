@@ -558,11 +558,13 @@ namespace Lumos
             {
                 auto lMesh = std::shared_ptr<Mesh>(meshes[node.mesh]);
                 meshEntity->AddComponent(std::make_unique<MeshComponent>(lMesh));
+                meshEntity->SetBoundingRadius(lMesh->GetBoundingSphere()->SphereRadius());
             }
             else
             {
                 auto lMesh = std::shared_ptr<Mesh>(meshes[node.mesh]);
                 meshEntity->AddComponent(std::make_unique<MeshComponent>(lMesh));
+                meshEntity->SetBoundingRadius(lMesh->GetBoundingSphere()->SphereRadius());
             }
         }
         

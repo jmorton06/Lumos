@@ -204,6 +204,7 @@ namespace Lumos
             auto mesh = std::make_shared<Mesh>(va, ib, pbrMaterial, boundingBox);
 			meshEntity->AddComponent(std::make_unique<MeshComponent>(mesh));
 			meshEntity->AddComponent(std::make_unique<TransformComponent>(maths::Matrix4()));
+            meshEntity->SetBoundingRadius(mesh->GetBoundingSphere()->SphereRadius());
 			entity->AddChildObject(meshEntity);
 
 			delete[] vertices;
