@@ -416,181 +416,178 @@ namespace Lumos
 
 		for (auto& mesh : model.meshes)
 		{
-			if (mesh.primitives.size() > 1)
-			{
-				LUMOS_CORE_WARN("UNIMPLEMENTED : glTF model with several primitives {0} {1}", path, mesh.primitives.size());
-			}
-
-			const tinygltf::Primitive &primitive = mesh.primitives[0];
-			const tinygltf::Accessor &indices = model.accessors[primitive.indices];
-			//const tinygltf::BufferView &indexView = model.bufferViews[indices.bufferView];
-
-			const uint numVertices = static_cast<uint>(indices.count);// attrib.vertices.size();// numIndices / 3.0f;
-			Vertex* tempvertices = new Vertex[numVertices];
-			uint* indicesArray = new uint[numVertices];
-
-			size_t maxNumVerts = 0;
-
-			std::shared_ptr<maths::BoundingSphere> boundingBox = std::make_shared<maths::BoundingSphere>();
-
-			for (auto& attribute : primitive.attributes)
-			{
-
-				// Get accessor info
-				auto& accessor = model.accessors.at(attribute.second);
-				auto& bufferView = model.bufferViews.at(accessor.bufferView);
-				auto& buffer = model.buffers.at(bufferView.buffer);
-				int componentLength = GLTF_COMPONENT_LENGTH_LOOKUP.at(accessor.type);
-				int componentTypeByteSize = GLTF_COMPONENT_BYTE_SIZE_LOOKUP.at(accessor.componentType);
-
-				// Extra vertex data from buffer
-				size_t bufferOffset = bufferView.byteOffset + accessor.byteOffset;
-				int bufferLength = static_cast<int>(accessor.count) * componentLength * componentTypeByteSize;
-				auto first = buffer.data.begin() + bufferOffset;
-				auto last = buffer.data.begin() + bufferOffset + bufferLength;
-				std::vector<byte> data = std::vector<byte>(first, last);
-
-				// -------- Position attribute -----------
-
-				if (attribute.first == "POSITION")
-				{
-					size_t positionCount = accessor.count;
-					maxNumVerts = maths::Max(maxNumVerts, positionCount);
-					maths::Vector3Simple* positions = reinterpret_cast<maths::Vector3Simple*>(data.data());
-					for (auto p = 0; p < positionCount; ++p)
-					{
-						//positions[p] = glm::vec3(matrix * glm::vec4(positions[p], 1.0f));
-						tempvertices[p].Position = maths::ToVector(positions[p]);
-
-						boundingBox->ExpandToFit(tempvertices[p].Position);
-					}
-				}
-
-				// -------- Normal attribute -----------
-
-				else if (attribute.first == "NORMAL")
-				{
-					size_t normalCount = accessor.count;
-					maxNumVerts = maths::Max(maxNumVerts, normalCount);
-					maths::Vector3Simple* normals = reinterpret_cast<maths::Vector3Simple*>(data.data());
-					for (auto p = 0; p < normalCount; ++p)
-					{
-						tempvertices[p].Normal = maths::ToVector(normals[p]);
-					}
-				}
-
-				// -------- Texcoord attribute -----------
-
-				else if (attribute.first == "TEXCOORD_0")
-				{
-					size_t uvCount = accessor.count;
-					maxNumVerts = maths::Max(maxNumVerts, uvCount);
-					maths::Vector2Simple* uvs = reinterpret_cast<maths::Vector2Simple*>(data.data());
-					for (auto p = 0; p < uvCount; ++p)
-					{
-						tempvertices[p].TexCoords = ToVector(uvs[p]);
-					}
-				}
-
-				// -------- Colour attribute -----------
-
-				else if (attribute.first == "COLOR_0")
-				{
-					size_t uvCount = accessor.count;
-					maxNumVerts = maths::Max(maxNumVerts, uvCount);
-					maths::Vector4Simple* colours = reinterpret_cast<maths::Vector4Simple*>(data.data());
-					for (auto p = 0; p < uvCount; ++p)
-					{
-						tempvertices[p].Colours = ToVector(colours[p]);
-					}
-				}
-
-				// -------- Tangent attribute -----------
-
-				else if (attribute.first == "TANGENT")
-				{
-					size_t uvCount = accessor.count;
-					maxNumVerts = maths::Max(maxNumVerts, uvCount);
-					maths::Vector3Simple* uvs = reinterpret_cast<maths::Vector3Simple*>(data.data());
-					for (auto p = 0; p < uvCount; ++p)
-					{
-						tempvertices[p].Tangent = ToVector(uvs[p]);
-					}
-				}
-			}
-
-			std::shared_ptr<Material> pbrMaterial = LoadedMaterials[primitive.material];
-
-			std::shared_ptr<VertexArray> va;
-			va.reset(VertexArray::Create());
-
-			VertexBuffer* buffer = VertexBuffer::Create(BufferUsage::STATIC);
-			buffer->SetData(sizeof(Vertex) * numVertices, tempvertices);
-
-			graphics::BufferLayout layout;
-			layout.Push<maths::Vector3>("position");
-			layout.Push<maths::Vector4>("colour");
-			layout.Push<maths::Vector2>("texCoord");
-			layout.Push<maths::Vector3>("normal");
-			layout.Push<maths::Vector3>("tangent");
-			buffer->SetLayout(layout);
-
-			va->PushBuffer(buffer);
-
-			// -------- Indices ----------
-			{
-				// Get accessor info
-				auto indexAccessor = model.accessors.at(primitive.indices);
-				auto indexBufferView = model.bufferViews.at(indexAccessor.bufferView);
-				auto indexBuffer = model.buffers.at(indexBufferView.buffer);
-
-				int componentLength = GLTF_COMPONENT_LENGTH_LOOKUP.at(indexAccessor.type);
-				int componentTypeByteSize = GLTF_COMPONENT_BYTE_SIZE_LOOKUP.at(indexAccessor.componentType);
-
-				// Extra index data
-				size_t bufferOffset = indexBufferView.byteOffset + indexAccessor.byteOffset;
-				int bufferLength = static_cast<int>(indexAccessor.count) * componentLength * componentTypeByteSize;
-				auto first = indexBuffer.data.begin() + bufferOffset;
-				auto last = indexBuffer.data.begin() + bufferOffset + bufferLength;
-				std::vector<byte> data = std::vector<byte>(first, last);
-
-				size_t indicesCount = indexAccessor.count;
-				if (componentTypeByteSize == 2)
-				{
-					uint16_t* in = reinterpret_cast<uint16_t*>(data.data()); //TODO: Test different models to check size - uint32 or 16
-					for (auto iCount = 0; iCount < indicesCount; iCount++)
-					{
-						indicesArray[iCount] = in[iCount];
-					}
-				}
-				else if (componentTypeByteSize == 4)
-				{
-					uint32_t* in = reinterpret_cast<uint32_t*>(data.data());
-					for (auto iCount = 0; iCount < indicesCount; iCount++)
-					{
-						indicesArray[iCount] = in[iCount];
-					}
-				}
-			}
-
-			std::shared_ptr<IndexBuffer> ib;
-			ib.reset(IndexBuffer::Create(indicesArray, numVertices));
-            
-            String name = mesh.name;
-            if(name == "")
+            for (auto& primitive : mesh.primitives)
             {
-                name = "mesh" + StringFormat::ToString(static_cast<int>(entity->GetChildren().size()));
-            }
-            
-			auto meshEntity = std::make_shared<Entity>(name, nullptr);
-            auto lMesh = std::make_shared<Mesh>(va, ib, pbrMaterial, boundingBox);
-			meshEntity->AddComponent(std::make_unique<MeshComponent>(lMesh));
-			meshEntity->AddComponent(std::make_unique<TransformComponent>(maths::Matrix4()));
-			entity->AddChildObject(meshEntity);
+                const tinygltf::Accessor &indices = model.accessors[primitive.indices];
+                //const tinygltf::BufferView &indexView = model.bufferViews[indices.bufferView];
 
-			delete[] tempvertices;
-			delete[] indicesArray;
-		}
+                const uint numVertices = static_cast<uint>(indices.count);// attrib.vertices.size();// numIndices / 3.0f;
+                Vertex* tempvertices = new Vertex[numVertices];
+                uint* indicesArray = new uint[numVertices];
+
+                size_t maxNumVerts = 0;
+
+                std::shared_ptr<maths::BoundingSphere> boundingBox = std::make_shared<maths::BoundingSphere>();
+
+                for (auto& attribute : primitive.attributes)
+                {
+
+                    // Get accessor info
+                    auto& accessor = model.accessors.at(attribute.second);
+                    auto& bufferView = model.bufferViews.at(accessor.bufferView);
+                    auto& buffer = model.buffers.at(bufferView.buffer);
+                    int componentLength = GLTF_COMPONENT_LENGTH_LOOKUP.at(accessor.type);
+                    int componentTypeByteSize = GLTF_COMPONENT_BYTE_SIZE_LOOKUP.at(accessor.componentType);
+
+                    // Extra vertex data from buffer
+                    size_t bufferOffset = bufferView.byteOffset + accessor.byteOffset;
+                    int bufferLength = static_cast<int>(accessor.count) * componentLength * componentTypeByteSize;
+                    auto first = buffer.data.begin() + bufferOffset;
+                    auto last = buffer.data.begin() + bufferOffset + bufferLength;
+                    std::vector<byte> data = std::vector<byte>(first, last);
+
+                    // -------- Position attribute -----------
+
+                    if (attribute.first == "POSITION")
+                    {
+                        size_t positionCount = accessor.count;
+                        maxNumVerts = maths::Max(maxNumVerts, positionCount);
+                        maths::Vector3Simple* positions = reinterpret_cast<maths::Vector3Simple*>(data.data());
+                        for (auto p = 0; p < positionCount; ++p)
+                        {
+                            //positions[p] = glm::vec3(matrix * glm::vec4(positions[p], 1.0f));
+                            tempvertices[p].Position = maths::ToVector(positions[p]);
+
+                            boundingBox->ExpandToFit(tempvertices[p].Position);
+                        }
+                    }
+
+                    // -------- Normal attribute -----------
+
+                    else if (attribute.first == "NORMAL")
+                    {
+                        size_t normalCount = accessor.count;
+                        maxNumVerts = maths::Max(maxNumVerts, normalCount);
+                        maths::Vector3Simple* normals = reinterpret_cast<maths::Vector3Simple*>(data.data());
+                        for (auto p = 0; p < normalCount; ++p)
+                        {
+                            tempvertices[p].Normal = maths::ToVector(normals[p]);
+                        }
+                    }
+
+                    // -------- Texcoord attribute -----------
+
+                    else if (attribute.first == "TEXCOORD_0")
+                    {
+                        size_t uvCount = accessor.count;
+                        maxNumVerts = maths::Max(maxNumVerts, uvCount);
+                        maths::Vector2Simple* uvs = reinterpret_cast<maths::Vector2Simple*>(data.data());
+                        for (auto p = 0; p < uvCount; ++p)
+                        {
+                            tempvertices[p].TexCoords = ToVector(uvs[p]);
+                        }
+                    }
+
+                    // -------- Colour attribute -----------
+
+                    else if (attribute.first == "COLOR_0")
+                    {
+                        size_t uvCount = accessor.count;
+                        maxNumVerts = maths::Max(maxNumVerts, uvCount);
+                        maths::Vector4Simple* colours = reinterpret_cast<maths::Vector4Simple*>(data.data());
+                        for (auto p = 0; p < uvCount; ++p)
+                        {
+                            tempvertices[p].Colours = ToVector(colours[p]);
+                        }
+                    }
+
+                    // -------- Tangent attribute -----------
+
+                    else if (attribute.first == "TANGENT")
+                    {
+                        size_t uvCount = accessor.count;
+                        maxNumVerts = maths::Max(maxNumVerts, uvCount);
+                        maths::Vector3Simple* uvs = reinterpret_cast<maths::Vector3Simple*>(data.data());
+                        for (auto p = 0; p < uvCount; ++p)
+                        {
+                            tempvertices[p].Tangent = ToVector(uvs[p]);
+                        }
+                    }
+                }
+
+                std::shared_ptr<Material> pbrMaterial = LoadedMaterials[primitive.material];
+
+                std::shared_ptr<VertexArray> va;
+                va.reset(VertexArray::Create());
+
+                VertexBuffer* buffer = VertexBuffer::Create(BufferUsage::STATIC);
+                buffer->SetData(sizeof(Vertex) * numVertices, tempvertices);
+
+                graphics::BufferLayout layout;
+                layout.Push<maths::Vector3>("position");
+                layout.Push<maths::Vector4>("colour");
+                layout.Push<maths::Vector2>("texCoord");
+                layout.Push<maths::Vector3>("normal");
+                layout.Push<maths::Vector3>("tangent");
+                buffer->SetLayout(layout);
+
+                va->PushBuffer(buffer);
+
+                // -------- Indices ----------
+                {
+                    // Get accessor info
+                    auto indexAccessor = model.accessors.at(primitive.indices);
+                    auto indexBufferView = model.bufferViews.at(indexAccessor.bufferView);
+                    auto indexBuffer = model.buffers.at(indexBufferView.buffer);
+
+                    int componentLength = GLTF_COMPONENT_LENGTH_LOOKUP.at(indexAccessor.type);
+                    int componentTypeByteSize = GLTF_COMPONENT_BYTE_SIZE_LOOKUP.at(indexAccessor.componentType);
+
+                    // Extra index data
+                    size_t bufferOffset = indexBufferView.byteOffset + indexAccessor.byteOffset;
+                    int bufferLength = static_cast<int>(indexAccessor.count) * componentLength * componentTypeByteSize;
+                    auto first = indexBuffer.data.begin() + bufferOffset;
+                    auto last = indexBuffer.data.begin() + bufferOffset + bufferLength;
+                    std::vector<byte> data = std::vector<byte>(first, last);
+
+                    size_t indicesCount = indexAccessor.count;
+                    if (componentTypeByteSize == 2)
+                    {
+                        uint16_t* in = reinterpret_cast<uint16_t*>(data.data()); //TODO: Test different models to check size - uint32 or 16
+                        for (auto iCount = 0; iCount < indicesCount; iCount++)
+                        {
+                            indicesArray[iCount] = in[iCount];
+                        }
+                    }
+                    else if (componentTypeByteSize == 4)
+                    {
+                        uint32_t* in = reinterpret_cast<uint32_t*>(data.data());
+                        for (auto iCount = 0; iCount < indicesCount; iCount++)
+                        {
+                            indicesArray[iCount] = in[iCount];
+                        }
+                    }
+                }
+
+                std::shared_ptr<IndexBuffer> ib;
+                ib.reset(IndexBuffer::Create(indicesArray, numVertices));
+                
+                String name = mesh.name;
+                if(name == "")
+                {
+                    name = "mesh" + StringFormat::ToString(static_cast<int>(entity->GetChildren().size()));
+                }
+                
+                auto meshEntity = std::make_shared<Entity>(name, nullptr);
+                auto lMesh = std::make_shared<Mesh>(va, ib, pbrMaterial, boundingBox);
+                meshEntity->AddComponent(std::make_unique<MeshComponent>(lMesh));
+                meshEntity->AddComponent(std::make_unique<TransformComponent>(maths::Matrix4()));
+                entity->AddChildObject(meshEntity);
+
+                delete[] tempvertices;
+                delete[] indicesArray;
+            }
+        }
 
 		return entity;
 	}
