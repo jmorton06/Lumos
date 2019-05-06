@@ -278,11 +278,11 @@ namespace Lumos
         }
 
         float lastSplitDist = 0.0;
-        //for (uint32_t i = 0; i < m_ShadowMapNum; i++)
+        for (uint32_t i = 0; i < m_ShadowMapNum; i++)
 
-		system::JobSystem::Dispatch(static_cast<uint32>(m_ShadowMapNum), 1, [&](JobDispatchArgs args)
+		//system::JobSystem::Dispatch(static_cast<uint32>(m_ShadowMapNum), 1, [&](JobDispatchArgs args)
         {
-			int i = args.jobIndex;
+			//int i = args.jobIndex;
             float splitDist = cascadeSplits[i];
 
             maths::Vector3 frustumCorners[8] = {
@@ -357,9 +357,9 @@ namespace Lumos
             m_apShadowRenderLists[i]->SortLists();
             scene->InsertToRenderList(m_apShadowRenderLists[i], f);
 		}
-		);
+		//);
 
-		system::JobSystem::Wait();
+		//system::JobSystem::Wait();
     }
 
 	void ShadowRenderer::CreateFramebuffers()
