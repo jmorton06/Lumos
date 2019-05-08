@@ -17,41 +17,8 @@ namespace Lumos
 		s_DefaultTextures = new AssetManager<Texture2D>();
 
         s_DefaultModels->AddAsset("Cube", std::shared_ptr<Mesh>(MeshFactory::CreateCube(2.0f,nullptr)));
-        
-        auto pEntity = ModelLoader::LoadModel("/CoreMeshes/pyramid.obj");
-        auto sEntity = ModelLoader::LoadModel("/CoreMeshes/sphere.obj");
-        
-        if(!pEntity->GetComponent<MeshComponent>())
-        {
-            for(auto child : pEntity->GetChildren())
-            {
-                if(child->GetComponent<MeshComponent>())
-                {
-                    s_DefaultModels->AddAsset("Pyramid", child->GetComponent<MeshComponent>()->m_Model);
-                    break;
-                }
-            }
-        }
-        else
-        {
-            s_DefaultModels->AddAsset("Pyramid", pEntity->GetComponent<MeshComponent>()->m_Model);
-        }
-        
-        if(!sEntity->GetComponent<MeshComponent>())
-        {
-            for(auto child : sEntity->GetChildren())
-            {
-                if(child->GetComponent<MeshComponent>())
-                {
-                    s_DefaultModels->AddAsset("Sphere", child->GetComponent<MeshComponent>()->m_Model);
-                    break;
-                }
-            }
-        }
-        else
-        {
-            s_DefaultModels->AddAsset("Sphere", sEntity->GetComponent<MeshComponent>()->m_Model);
-        }
+        s_DefaultModels->AddAsset("Pyramid", std::shared_ptr<Mesh>(MeshFactory::CreatePyramid(1.0f,nullptr)));
+        s_DefaultModels->AddAsset("Sphere", std::shared_ptr<Mesh>(MeshFactory::CreateSphere(128,128, nullptr)));
 	}
 
 	void AssetsManager::ReleaseMeshes()
