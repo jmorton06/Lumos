@@ -159,7 +159,7 @@ namespace Lumos
 	{
 		std::shared_ptr<Entity> Cube = std::make_shared<Entity>(name, Application::Instance()->GetSceneManager()->GetCurrentScene());
 
-		Cube->AddComponent(std::make_unique<TextureMatrixComponent>(maths::Matrix4::Scale(maths::Vector3(10.0f, 10.0f, 10.0f))));
+		//Cube->AddComponent(std::make_unique<TextureMatrixComponent>(maths::Matrix4::Scale(maths::Vector3(10.0f, 10.0f, 10.0f))));
 		//Cube->AddComponent(std::make_unique<MeshComponent>(*AssetsManager::DefaultModels()->GetAsset("Sphere").get()));
         
         std::shared_ptr<Mesh> pyramidModel = std::make_shared<Mesh>(*AssetsManager::DefaultModels()->GetAsset("Pyramid"));

@@ -91,6 +91,9 @@ void SceneModelViewer::LoadModels()
 	//DamagedHelmet/glTF/DamagedHelmet.gltf");//Cube/Cube.gltf");//Scene/scene.gltf");///Meshes/Spyro/ArtisansHub.obj
 	TestObject->SetBoundingRadius(20000.0f);
 	AddEntity(TestObject);
+    
+    std::shared_ptr<Entity> TestObject2 = ModelLoader::LoadModel("/CoreMeshes/pyramid.obj");
+    AddEntity(TestObject2);
 
 }
 

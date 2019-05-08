@@ -98,6 +98,7 @@ namespace Lumos
 						attrib.vertices[3 * index.vertex_index + 2]
 					)
 					);
+                
 				boundingBox->ExpandToFit(vertex.Position);
 
 				if (!attrib.normals.empty())
