@@ -18,7 +18,7 @@ namespace Lumos
 
         s_DefaultModels->AddAsset("Cube", std::shared_ptr<Mesh>(MeshFactory::CreateCube(2.0f,nullptr)));
         s_DefaultModels->AddAsset("Pyramid", std::shared_ptr<Mesh>(MeshFactory::CreatePyramid(1.0f,nullptr)));
-        s_DefaultModels->AddAsset("Sphere", std::shared_ptr<Mesh>(MeshFactory::CreateSphere(128,128, nullptr)));
+        s_DefaultModels->AddAsset("Sphere", std::shared_ptr<Mesh>(MeshFactory::CreateSphere(64,64, nullptr)));
 	}
 
 	void AssetsManager::ReleaseMeshes()
