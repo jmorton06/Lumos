@@ -426,20 +426,39 @@ namespace Lumos
             std::shared_ptr<VertexArray> va;
             va.reset(VertexArray::Create());
             
-            for (uint y = 0; y <= ySegments; ++y)
+            float sectorCount = xSegments;
+            float stackCount = ySegments;
+            float sectorStep = 2 * maths::PI / sectorCount;
+            float stackStep = maths::PI / stackCount;
+            float sectorAngle, stackAngle;
+            float radius = 1.0f;
+            float x, y, z, xy;
+            float s, t;
+            
+            for(int i = 0; i <= stackCount; ++i)
             {
-                for (uint x = 0; x <= xSegments; ++x)
+                stackAngle = maths::PI / 2 - i * stackStep;        // starting from pi/2 to -pi/2
+                xy = radius * cos(stackAngle);             // r * cos(u)
+                z = radius * sin(stackAngle);              // r * sin(u)
+                
+                // add (sectorCount+1) vertices per stack
+                // the first and last vertices have same position and normal, but different tex coords
+                for(int j = 0; j <= sectorCount; ++j)
                 {
-                    float xSegment = float(x) / float(xSegments);
-                    float ySegment = float(y) / float(ySegments);
-                    float xPos = std::cos(xSegment * 2.0f * maths::PI) * std::sin(ySegment * maths::PI);
-                    float yPos = std::cos(ySegment * maths::PI);
-                    float zPos = std::sin(xSegment * 2.0f * maths::PI) * std::sin(ySegment * maths::PI);
+                    sectorAngle = j * sectorStep;           // starting from 0 to 2pi
+                    
+                    // vertex position (x, y, z)
+                    x = xy * cosf(sectorAngle);             // r * cos(u) * cos(v)
+                    y = xy * sinf(sectorAngle);             // r * cos(u) * sin(v)
+                    
+                    // vertex tex coord (s, t) range between [0, 1]
+                    s = (float)j / sectorCount;
+                    t = (float)i / stackCount;
                     
                     Vertex vertex;
-                    vertex.Position = maths::Vector3(xPos, yPos, zPos);
-                    vertex.TexCoords = maths::Vector2(xSegment, ySegment);
-                    vertex.Normal = maths::Vector3(xPos, yPos, zPos);
+                    vertex.Position = maths::Vector3(x,y,z);
+                    vertex.TexCoords = maths::Vector2(s,t);
+                    vertex.Normal = maths::Vector3(x,y,z).Normal();
                     
                     data.emplace_back(vertex);
                 }
@@ -460,36 +479,37 @@ namespace Lumos
             va->PushBuffer(buffer);
             
             std::vector<uint> indices;
-            bool oddRow = false;
-            for (int y = 0; y < ySegments; ++y)
+            int k1, k2;
+            for(int i = 0; i < stackCount; ++i)
             {
-                if (!oddRow) // even rows: y == 0, y == 2; and so on
+                k1 = i * (sectorCount + 1);     // beginning of current stack
+                k2 = k1 + sectorCount + 1;      // beginning of next stack
+                
+                for(int j = 0; j < sectorCount; ++j, ++k1, ++k2)
                 {
-                    for (int x = 0; x <= xSegments; ++x)
+                    // 2 triangles per sector excluding first and last stacks
+                    // k1 => k2 => k1+1
+                    if(i != 0)
                     {
-                        indices.push_back(y       * (xSegments + 1) + x);
-                        indices.push_back((y + 1) * (xSegments + 1) + x);
+                        indices.push_back(k1);
+                        indices.push_back(k2);
+                        indices.push_back(k1 + 1);
+                    }
+                    
+                    // k1+1 => k2 => k2+1
+                    if(i != (stackCount-1))
+                    {
+                        indices.push_back(k1 + 1);
+                        indices.push_back(k2);
+                        indices.push_back(k2 + 1);
                     }
                 }
-                else
-                {
-                    for (int x = xSegments; x >= 0; --x)
-                    {
-                        indices.push_back((y + 1) * (xSegments + 1) + x);
-                        indices.push_back(y       * (xSegments + 1) + x);
-                    }
-                }
-                oddRow = !oddRow;
             }
             
             std::shared_ptr<IndexBuffer> ib;
             ib.reset(IndexBuffer::Create(indices.data(), (uint)indices.size()));
             std::shared_ptr<maths::BoundingSphere> boundingSphere = std::make_shared<maths::BoundingSphere>();
-            
-            for(int i = 0; i < 4; i++)
-            {
-                boundingSphere->ExpandToFit(data[i].Position);
-            }
+
             return new Mesh(va, ib, material, boundingSphere);
         }
 
