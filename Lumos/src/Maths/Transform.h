@@ -45,6 +45,8 @@ namespace Lumos
 			bool HasUpdated() const { return m_HasUpdated; }
 			void SetHasUpdated(bool set) { m_HasUpdated = set; }
 
+			void ApplyTransform();
+
 		protected:
 			Matrix4		m_LocalMatrix;
 			Matrix4		m_WorldMatrix;

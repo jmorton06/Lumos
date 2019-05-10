@@ -91,11 +91,6 @@ namespace Lumos
 
 		Matrix4 Matrix4::GetRotation() const
 		{
-			// Matrix4 result(*this);
-			// result.SetPositionVector(Vector3(0.0f, 0.0f, 0.0f));
-			// result.values[3] = result.values[7] = result.values[11] = 0.0f;
-			// result.values[15] = 1.0f;
-			// return result;
 			Matrix4 temp;
             temp.values[0] = values[0];
             temp.values[5] = values[5];

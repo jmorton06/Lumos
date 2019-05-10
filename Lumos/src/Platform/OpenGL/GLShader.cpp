@@ -659,8 +659,8 @@ namespace Lumos
 	GLint GLShader::GetUniformLocation(const String& name) const
 	{
 		GLCall(const GLint result = glGetUniformLocation(m_Handle, name.c_str()));
-		if (result == -1)
-			LUMOS_CORE_WARN("{0} : could not find uniform {1} in shader!",m_Name,name);
+		//if (result == -1)
+		//	LUMOS_CORE_WARN("{0} : could not find uniform {1} in shader!",m_Name,name);
 
 		return result;
 	}

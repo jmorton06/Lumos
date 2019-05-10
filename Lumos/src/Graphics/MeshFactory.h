@@ -21,6 +21,7 @@ namespace Lumos
         LUMOS_EXPORT Mesh* CreateCube(float size, std::shared_ptr<Material> material);
         LUMOS_EXPORT Mesh* CreatePyramid(float size, std::shared_ptr<Material> material);
         LUMOS_EXPORT Mesh* CreateSphere(uint xSegments, uint ySegments, std::shared_ptr<Material> material);
+        LUMOS_EXPORT Mesh* CreateIcoSphere(uint radius, uint subdivision, std::shared_ptr<Material> material);
         LUMOS_EXPORT Mesh* CreatePlane(float width, float height, const maths::Vector3 &normal, std::shared_ptr<Material> material);
     }
 }

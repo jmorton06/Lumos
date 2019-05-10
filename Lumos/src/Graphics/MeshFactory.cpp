@@ -479,13 +479,13 @@ namespace Lumos
             va->PushBuffer(buffer);
             
             std::vector<uint> indices;
-            int k1, k2;
-            for(int i = 0; i < stackCount; ++i)
+            uint k1, k2;
+            for(uint i = 0; i < stackCount; ++i)
             {
                 k1 = i * (sectorCount + 1);     // beginning of current stack
                 k2 = k1 + sectorCount + 1;      // beginning of next stack
                 
-                for(int j = 0; j < sectorCount; ++j, ++k1, ++k2)
+                for(uint j = 0; j < sectorCount; ++j, ++k1, ++k2)
                 {
                     // 2 triangles per sector excluding first and last stacks
                     // k1 => k2 => k1+1
@@ -507,7 +507,7 @@ namespace Lumos
             }
             
             std::shared_ptr<IndexBuffer> ib;
-            ib.reset(IndexBuffer::Create(indices.data(), (uint)indices.size()));
+            ib.reset(IndexBuffer::Create(indices.data(), static_cast<uint>(indices.size())));
             std::shared_ptr<maths::BoundingSphere> boundingSphere = std::make_shared<maths::BoundingSphere>();
 
             return new Mesh(va, ib, material, boundingSphere);
