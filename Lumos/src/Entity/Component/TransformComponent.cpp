@@ -19,7 +19,7 @@ namespace Lumos
     void TransformComponent::SetWorldMatrix(const maths::Matrix4 &matrix)
     {
         m_Transform.SetHasUpdated(true);
-        m_Transform.SetWorldMatrix(m_Transform.GetLocalMatrix() * matrix);
+        m_Transform.SetWorldMatrix(matrix);
     }
 
     void TransformComponent::OnIMGUI()
@@ -42,9 +42,9 @@ namespace Lumos
             quat.GenerateW();
             
             m_Transform.SetLocalOrientation(quat);
+			m_Transform.UpdateMatrices();
 
             ImGui::TreePop();
         }
     }
-
 }

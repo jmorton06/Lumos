@@ -129,7 +129,7 @@ namespace Lumos
 		//
 		// Vertex shader system uniforms
 		//
-		m_VSSystemUniformBufferSize = sizeof(maths::Matrix4);// +sizeof(Matrix4) + sizeof(Matrix4); //+ sizeof(Vector3) ;
+		m_VSSystemUniformBufferSize = sizeof(maths::Matrix4);
 		m_VSSystemUniformBuffer = new byte[m_VSSystemUniformBufferSize];
 		memset(m_VSSystemUniformBuffer, 0, m_VSSystemUniformBufferSize);
 		m_VSSystemUniformBufferOffsets.resize(VSSystemUniformIndex_Size);
@@ -138,7 +138,7 @@ namespace Lumos
         m_VSSystemUniformBufferOffsets[VSSystemUniformIndex_ProjectionMatrix] = 0;
 
         // Pixel/fragment shader system uniforms
-        m_PSSystemUniformBufferSize = sizeof(UniformBufferLight);// sizeof(maths::Vector3) + sizeof(maths::Vector3) + sizeof(maths::Vector3);//sizeof(Light);
+        m_PSSystemUniformBufferSize = sizeof(UniformBufferLight);
         m_PSSystemUniformBuffer = new byte[m_PSSystemUniformBufferSize];
         memset(m_PSSystemUniformBuffer, 0, m_PSSystemUniformBufferSize);
         m_PSSystemUniformBufferOffsets.resize(PSSystemUniformIndex_Size);
@@ -347,7 +347,7 @@ namespace Lumos
 			memcpy(m_PSSystemUniformBuffer + currentOffset, &cameraPos, sizeof(maths::Vector4));
 			currentOffset += sizeof(maths::Vector4);
 
-			auto shadowRenderer = Application::Instance()->GetRenderManager()->GetShadowRenderer();// m_ShadowRenderer.get(); 
+			auto shadowRenderer = Application::Instance()->GetRenderManager()->GetShadowRenderer();
 			if(shadowRenderer)
 			{
 				maths::Matrix4* shadowTransforms = shadowRenderer->GetShadowProjView();

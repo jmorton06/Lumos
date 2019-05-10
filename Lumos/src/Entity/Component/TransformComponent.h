@@ -20,6 +20,7 @@ namespace Lumos
 		inline virtual ComponentType GetType() const override { return GetStaticType(); }
 		void OnUpdateComponent(float dt) override;
         void OnIMGUI() override;
+		
     public:
 		maths::Transform m_Transform;
 	};

@@ -23,12 +23,13 @@ namespace Lumos
 	{
         m_Entity->GetTransform()->m_Transform.SetLocalPosition(m_PhysicsObject->GetPosition());
         m_Entity->GetTransform()->m_Transform.SetLocalOrientation(m_PhysicsObject->GetOrientation());
+		m_Entity->GetTransform()->m_Transform.UpdateMatrices();
 	}
 
 	void Physics3DComponent::OnUpdateTransform(const maths::Matrix4& entityTransform)
 	{
-		m_PhysicsObject->SetPosition(entityTransform.GetPositionVector());
-        m_PhysicsObject->SetOrientation(maths::Quaternion(maths::Matrix4::GetEulerAngles(entityTransform.GetRotation()), 1.0f));
+		//m_PhysicsObject->SetPosition(entityTransform.GetPositionVector());
+        //m_PhysicsObject->SetOrientation(maths::Quaternion(maths::Matrix4::GetEulerAngles(entityTransform.GetRotation()), 1.0f));
 	}
 
 	void Physics3DComponent::DebugDraw(uint64 debugFlags)

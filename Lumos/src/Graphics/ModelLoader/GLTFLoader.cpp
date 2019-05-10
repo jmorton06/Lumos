@@ -90,80 +90,6 @@ namespace Lumos
 		}
 	}
 
-	maths::Matrix4 GetMatrixFromGLTFNode(const tinygltf::Node & node)
-	{
-
-		maths::Matrix4 curMatrix = maths::Matrix4();
-
-		const std::vector<double> &matrix = node.matrix;
-		if (matrix.size() > 0)
-		{
-			// matrix, copy it
-
-			// for (int i = 0; i < 4; i++)
-			// {
-			// 	for (int j = 0; j < 4; j++)
-			// 	{
-			// 		curMatrix[i + j] = (float)matrix.at(4 * i + j); // check
-			// 	}
-			// }
-
-			float values[16];
-			for(int i = 0; i < 16; i++)
-			{
-				values[i] = float(matrix[i]);
-			}
-
-			curMatrix = maths::Matrix4(values);
-		}
-		else
-		{
-			// no matrix, use rotation, scale, translation
-			// if (node.translation.size() > 0)
-			// {
-			// 	curMatrix[3][0] = node.translation[0];
-			// 	curMatrix[3][1] = node.translation[1];
-			// 	curMatrix[3][2] = node.translation[2];
-			// }
-
-			// if (node.rotation.size() > 0)
-			// {
-			// 	maths::Matrix4 R;
-			// 	maths::Quaternion q;
-			// 	q[0] = node.rotation[0];
-			// 	q[1] = node.rotation[1];
-			// 	q[2] = node.rotation[2];
-
-			// 	R = glm::mat4_cast(q);
-			// 	curMatrix = curMatrix * R;
-			// }
-
-			// if (node.scale.size() > 0)
-			// {
-			// 	curMatrix = curMatrix * glm::scale(glm::mat4(1.0f), glm::vec3(node.scale[0], node.scale[1], node.scale[2]));
-			// }
-
-			if (node.translation.size() > 0)
-			{
-				maths::Vector3 translation = maths::Vector3((float)node.translation[0],(float)node.translation[1],(float)node.translation[2]);
-				curMatrix = maths::Matrix4::Translation(translation) * curMatrix;
-			}
-
-			if (node.rotation.size() > 0)
-			{
-				curMatrix = maths::Matrix4::Rotation((float)node.rotation[0],(float)node.rotation[1],(float)node.rotation[2]) * curMatrix;
-			}
-
-			if (node.scale.size() > 0)
-			{
-				maths::Vector3 scale = maths::Vector3((float)node.scale[0],(float)node.scale[1],(float)node.scale[2]);
-				curMatrix = maths::Matrix4::Scale(scale) * curMatrix;
-			}
-		}
-
-		return curMatrix;
-	}
-
 	PBRMataterialTextures LoadMaterial(tinygltf::Material gltfmaterial, tinygltf::Model gltfmodel)
 	{
 		const auto loadTextureFromParameter = [&](const tinygltf::ParameterMap& parameterMap, const String& textureName)
@@ -572,22 +498,24 @@ namespace Lumos
         
         if (!node.scale.empty())
         {
-            transform->m_Transform.SetLocalScale(maths::Vector3((float)node.scale[0], (float)node.scale[1], (float)node.scale[2]));
+            transform->m_Transform.SetLocalScale(maths::Vector3(static_cast<float>(node.scale[0]), static_cast<float>(node.scale[1]), static_cast<float>(node.scale[2])));
         }
         if (!node.rotation.empty())
         {
-            transform->m_Transform.SetLocalOrientation(maths::Quaternion((float)node.rotation[0], (float)node.rotation[1], (float)node.rotation[2], (float)node.rotation[3]));
+            transform->m_Transform.SetLocalOrientation(maths::Quaternion(static_cast<float>(node.rotation[0]), static_cast<float>(node.rotation[1]), static_cast<float>(node.rotation[2]), static_cast<float>(node.rotation[3])));
         }
         if (!node.translation.empty())
         {
-            transform->m_Transform.SetLocalPosition(maths::Vector3((float)node.translation[0], (float)node.translation[1], (float)node.translation[2]));
+            transform->m_Transform.SetLocalPosition(maths::Vector3(static_cast<float>(node.translation[0]), static_cast<float>(node.translation[1]), static_cast<float>(node.translation[2])));
         }
         if (!node.matrix.empty())
         {
-            auto lTransform = maths::Matrix4((float*)node.matrix.data());
+            auto lTransform = maths::Matrix4(reinterpret_cast<float*>(node.matrix.data()));
             transform->m_Transform.SetLocalTransform(lTransform);
-            //transform.ApplyTransform(); // this creates S, R, T vectors from world matrix
+            transform->m_Transform.ApplyTransform(); // this creates S, R, T vectors from local matrix
         }
+
+		transform->m_Transform.UpdateMatrices();
         
         if (!node.children.empty())
         {

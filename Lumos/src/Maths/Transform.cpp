@@ -37,7 +37,7 @@ namespace Lumos
         
         void Transform::SetWorldMatrix(const Matrix4 &mat)
         {
-             m_WorldMatrix = m_LocalMatrix * mat;
+             m_WorldMatrix = mat * m_LocalMatrix;
         }
         
         void Transform::SetLocalTransform(const Matrix4& localMat)
@@ -52,36 +52,38 @@ namespace Lumos
 		void Transform::SetWorldPosition(const Vector3& worldPos) 
 		{
 			m_LocalPosition = worldPos;
-			UpdateMatrices();
 		}
 
 		void Transform::SetLocalPosition(const Vector3& localPos)
 		{
 			m_LocalPosition = localPos;
-			UpdateMatrices();
 		}
 
 		void Transform::SetWorldScale(const Vector3& worldScale) 
 		{
 			m_LocalScale = worldScale;
-			UpdateMatrices();
 		}
 
 		void Transform::SetLocalScale(const Vector3& newScale)
 		{
 			m_LocalScale = newScale;
-			UpdateMatrices();
 		}
 		void Transform::SetLocalOrientation(const Quaternion & quat)
 		{
 			m_LocalOrientation = quat;
-            UpdateMatrices();
 		}
         
         void Transform::SetWorldOrientation(const Quaternion & quat)
         {
             m_LocalOrientation = quat;
-            UpdateMatrices();
         }
+
+
+		void Transform::ApplyTransform()
+		{
+			m_LocalPosition = m_LocalMatrix.GetPositionVector();
+			m_LocalScale = m_LocalMatrix.GetScaling();
+			m_LocalOrientation = m_LocalMatrix.ToQuaternion();
+		}
 	}
 }

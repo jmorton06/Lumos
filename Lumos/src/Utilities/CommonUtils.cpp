@@ -43,8 +43,6 @@ namespace Lumos
 		std::shared_ptr<Entity> pSphere = std::make_shared<Entity>(name, Application::Instance()->GetSceneManager()->GetCurrentScene());
 
 		pSphere->AddComponent(std::make_unique<TextureMatrixComponent>(maths::Matrix4::Scale(maths::Vector3(10.0f, 10.0f, 10.0f))));
-		//pSphere->AddComponent(std::make_unique<MeshComponent>(*AssetsManager::DefaultModels()->GetAsset("Sphere").get()));
-        
         std::shared_ptr<Mesh> sphereModel = std::make_shared<Mesh>(*AssetsManager::DefaultModels()->GetAsset("Sphere"));
         pSphere->AddComponent(std::make_unique<MeshComponent>(sphereModel));
 
@@ -60,7 +58,7 @@ namespace Lumos
 		matInstance->SetMaterialProperites(properties);
 		pSphere->GetComponent<MeshComponent>()->m_Model->SetMaterial(matInstance);
 
-		pSphere->AddComponent(std::make_unique<TransformComponent>(maths::Matrix4::Scale(maths::Vector3(radius, radius, radius))));// *maths::Matrix4::Translation(pos)));
+		pSphere->AddComponent(std::make_unique<TransformComponent>(maths::Matrix4::Scale(maths::Vector3(radius, radius, radius))));
 		pSphere->SetBoundingRadius(radius);
 
 		if (physics_enabled)
@@ -84,6 +82,10 @@ namespace Lumos
 
 			pSphere->AddComponent(std::make_unique<Physics3DComponent>(testPhysics));
 		}
+		else
+		{
+			pSphere->GetTransform()->m_Transform.SetLocalPosition(pos);
+		}
 
 		return pSphere;
 	}
@@ -100,13 +102,10 @@ namespace Lumos
 		std::shared_ptr<Entity> Cube = std::make_shared<Entity>(name, Application::Instance()->GetSceneManager()->GetCurrentScene());
 
 		Cube->AddComponent(std::make_unique<TextureMatrixComponent>(maths::Matrix4::Scale(maths::Vector3(10.0f, 10.0f, 10.0f))));
-		//Cube->AddComponent(std::make_unique<MeshComponent>(*AssetsManager::DefaultModels()->GetAsset("Sphere").get()));
-        
         std::shared_ptr<Mesh> cubeModel = std::make_shared<Mesh>(*AssetsManager::DefaultModels()->GetAsset("Cube"));
         Cube->AddComponent(std::make_unique<MeshComponent>(cubeModel));
 
-		auto matInstance = std::make_shared<Material>();//std::shared_ptr<Shader>(Shader::CreateFromFile("ForwardRender", "/Shaders/Scene/ForwardRender")));
-		//matInstance->SetUniform("uColour", color);
+		auto matInstance = std::make_shared<Material>();
 		MaterialProperties properties;
 		properties.albedoColour = color;
 		properties.glossColour = Vector4(RandomNumberGenerator32::Rand(0.0f, 1.0f));
@@ -117,7 +116,6 @@ namespace Lumos
 		properties.usingSpecularMap = 0.0f;
 		matInstance->SetMaterialProperites(properties);
 		matInstance->SetRenderFlags(0);
-		matInstance->SetRenderFlag(Material::RenderFlags::FORWARDRENDER); //TODO: Temporary;
 		Cube->GetComponent<MeshComponent>()->m_Model->SetMaterial(matInstance);
 
 		Cube->AddComponent(std::make_unique<TransformComponent>(maths::Matrix4::Scale(halfdims)));
@@ -144,6 +142,10 @@ namespace Lumos
 
 			Cube->AddComponent(std::make_unique<Physics3DComponent>(testPhysics));
 		}
+		else
+		{
+			Cube->GetTransform()->m_Transform.SetLocalPosition(pos);
+		}
 
 		return Cube;
 	}
@@ -159,14 +161,12 @@ namespace Lumos
 	{
 		std::shared_ptr<Entity> Cube = std::make_shared<Entity>(name, Application::Instance()->GetSceneManager()->GetCurrentScene());
 
-		//Cube->AddComponent(std::make_unique<TextureMatrixComponent>(maths::Matrix4::Scale(maths::Vector3(10.0f, 10.0f, 10.0f))));
-		//Cube->AddComponent(std::make_unique<MeshComponent>(*AssetsManager::DefaultModels()->GetAsset("Sphere").get()));
-        
-        std::shared_ptr<Mesh> pyramidModel = std::make_shared<Mesh>(*AssetsManager::DefaultModels()->GetAsset("Pyramid"));
-        Cube->AddComponent(std::make_unique<MeshComponent>(pyramidModel));
+		std::shared_ptr<Entity> meshEntity = std::make_shared<Entity>("Mesh", Application::Instance()->GetSceneManager()->GetCurrentScene());
 
-		std::shared_ptr<Material> matInstance = std::make_shared<Material>();// *AssetsManager::s_DefualtPBRMaterial);
-		//matInstance->SetAlbedo(color);
+        std::shared_ptr<Mesh> pyramidModel = std::make_shared<Mesh>(*AssetsManager::DefaultModels()->GetAsset("Pyramid"));
+		meshEntity->AddComponent(std::make_unique<MeshComponent>(pyramidModel));
+
+		std::shared_ptr<Material> matInstance = std::make_shared<Material>();
 		MaterialProperties properties;
 		properties.albedoColour = color;
 		properties.glossColour = Vector4(RandomNumberGenerator32::Rand(0.0f, 1.0f));
@@ -176,10 +176,12 @@ namespace Lumos
 		properties.usingNormalMap   = 0.0f;
 		properties.usingSpecularMap = 0.0f;
 		matInstance->SetMaterialProperites(properties);
-		Cube->GetComponent<MeshComponent>()->m_Model->SetMaterial(matInstance);
+		meshEntity->GetComponent<MeshComponent>()->m_Model->SetMaterial(matInstance);
 
-		Cube->AddComponent(std::make_unique<TransformComponent>(maths::Matrix4::Scale(halfdims) * maths::Matrix4::RotationX(-90.0f)));
-		Cube->SetBoundingRadius(halfdims.Length());
+		meshEntity->AddComponent(std::make_unique<TransformComponent>(maths::Matrix4::Scale(halfdims) * maths::Matrix4::RotationX(-90.0f)));
+		meshEntity->SetBoundingRadius(halfdims.Length());
+		
+		Cube->AddChildObject(meshEntity);
 
 		if (physics_enabled)
 		{
@@ -201,6 +203,10 @@ namespace Lumos
 			}
 
 			Cube->AddComponent(std::make_unique<Physics3DComponent>(testPhysics));
+		}
+		else
+		{
+			Cube->GetTransform()->m_Transform.SetLocalPosition(pos);
 		}
 
 		return Cube;
@@ -274,8 +280,6 @@ namespace Lumos
 		viewRotation = maths::Matrix3::Inverse(viewRotation);
 		const maths::Vector3 forward = viewRotation * maths::Vector3(0.0f, 0.0f, -1.0f);
 		sphere->GetComponent<Physics3DComponent>()->m_PhysicsObject->SetLinearVelocity(forward * 30.0f);
-		sphere->GetComponent<TransformComponent>()->m_Transform.SetWorldMatrix(maths::Matrix4::Scale(maths::Vector3(0.5f, 0.5f, 0.5f))
-																		* maths::Matrix4::Rotation(-89.9f, maths::Vector3(1.0f, 0.0f, 0.0f)));
 
 		scene->AddEntity(sphere);
 	}
