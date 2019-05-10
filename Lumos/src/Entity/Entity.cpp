@@ -142,16 +142,17 @@ namespace Lumos
 		maths::Matrix4 model = maths::Matrix4();
 		if (this->GetComponent<TransformComponent>() != nullptr)
 			model = GetComponent<TransformComponent>()->m_Transform.GetWorldMatrix();
-        
-        auto parentMat = m_pParent ? m_pParent->GetTransform()->m_Transform.GetWorldMatrix() : maths::Matrix4();
 
-        ImGuizmo::Manipulate(view.values, proj.values, static_cast<ImGuizmo::OPERATION>(mode),ImGuizmo::LOCAL, model.values, nullptr, nullptr);
+        float delta[16];
+        ImGuizmo::Manipulate(view.values, proj.values, static_cast<ImGuizmo::OPERATION>(mode),ImGuizmo::LOCAL, model.values, delta, nullptr);
 
 		if (GetTransform() != nullptr)
         {
-            auto mat = (maths::Matrix4::Inverse(parentMat) * model);
+            auto mat = maths::Matrix4(delta) * m_DefaultTransformComponent->m_Transform.GetLocalMatrix();
             //mat.Transpose();
             m_DefaultTransformComponent->m_Transform.SetLocalTransform(mat);
+            m_DefaultTransformComponent->m_Transform.ApplyTransform();
+            
         }
 	}
     
