@@ -24,6 +24,7 @@ namespace Lumos
         
         m_Entity->GetTransform()->m_Transform.SetLocalPosition(maths::Vector3(m_PhysicsObject->GetPosition(), 1.0f));
         m_Entity->GetTransform()->m_Transform.SetLocalOrientation(maths::Quaternion(0.0f, 0.0f, qz, qw));
+		m_Entity->GetTransform()->m_Transform.UpdateMatrices();
 	}
 
 	void Physics2DComponent::OnIMGUI()
