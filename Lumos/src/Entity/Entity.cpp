@@ -11,6 +11,8 @@
 #include "App/Application.h"
 #include "App/SceneManager.h"
 
+#include "Maths/MathsUtilities.h"
+
 namespace Lumos
 {
 	Entity::Entity(Scene* scene) : m_Name("Unnamed"), m_pScene(scene), m_pParent(nullptr), m_BoundingRadius(1), m_FrustumCullFlags(0)
@@ -30,6 +32,7 @@ namespace Lumos
     
     void Entity::Init()
     {
+        m_UUID = maths::GenerateUUID();
     }
 
 	void Entity::AddComponent(std::unique_ptr<LumosComponent> component)

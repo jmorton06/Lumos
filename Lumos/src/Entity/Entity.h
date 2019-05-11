@@ -48,8 +48,6 @@ namespace Lumos
 		std::vector<std::shared_ptr<Entity>>& GetChildren() { return m_vpChildren; }
 		void AddChildObject(std::shared_ptr<Entity>& child);
 
-		const String& GetName() const { return m_Name; }
-
 		void  SetBoundingRadius(float radius) { m_BoundingRadius = radius; }
 		float GetBoundingRadius() const { return m_BoundingRadius; }
 
@@ -63,6 +61,9 @@ namespace Lumos
 		TransformComponent* GetTransform();
         
         void SetParent(Entity* parent);
+        
+        const String& GetName() const { return m_Name; }
+        const String& GetUUID() const { return m_UUID; }
 
 	private:
 
@@ -85,6 +86,7 @@ namespace Lumos
 		std::vector<std::shared_ptr<Entity>> m_vpChildren;
 		float					m_BoundingRadius;
 		uint					m_FrustumCullFlags;
+        String                  m_UUID;
 		TransformComponent*		m_DefaultTransformComponent = nullptr;
 	};
 }
