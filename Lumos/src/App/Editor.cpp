@@ -116,7 +116,7 @@ namespace Lumos
             ImGuiTreeNodeFlags nodeFlags = ((m_Selected == node.get()) ? ImGuiTreeNodeFlags_Selected : 0);
             
             nodeFlags |= ImGuiTreeNodeFlags_OpenOnArrow | ImGuiTreeNodeFlags_OpenOnDoubleClick;
-            bool nodeOpen = ImGui::TreeNodeEx(node->GetName().c_str(), nodeFlags, node->GetName().c_str(), 0);
+            bool nodeOpen = ImGui::TreeNodeEx((node->GetName() + "##" + node->GetUUID()).c_str(), nodeFlags, node->GetName().c_str(), 0);
             if (ImGui::IsItemClicked())
                 m_Selected = node.get();
             
