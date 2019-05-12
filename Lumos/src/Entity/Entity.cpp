@@ -164,11 +164,33 @@ namespace Lumos
 		static char objName[INPUT_BUF_SIZE];
 		strcpy(objName, m_Name.c_str());
 
-		ImGuiInputTextFlags inputFlag = ImGuiInputTextFlags_EnterReturnsTrue;
-		if (ImGui::InputText("Name", objName, IM_ARRAYSIZE(objName), inputFlag))
-			m_Name = objName;
+        ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(2,2));
+        ImGui::Columns(2);
+        ImGui::Separator();
         
+        ImGuiInputTextFlags inputFlag = ImGuiInputTextFlags_EnterReturnsTrue;
+
+        ImGui::AlignTextToFramePadding();
+        ImGui::Text("Name");
+        ImGui::NextColumn();
+        ImGui::PushItemWidth(-1);
+        if (ImGui::InputText("##Name", objName, IM_ARRAYSIZE(objName), inputFlag))
+            m_Name = objName;
+        
+        ImGui::PopItemWidth();
+        ImGui::NextColumn();
+        
+        ImGui::AlignTextToFramePadding();
+        ImGui::Text("%s", "Parent");
+        ImGui::NextColumn();
+        ImGui::PushItemWidth(-1);
         ImGui::Text("%s", m_pParent ? m_pParent->GetName().c_str() : "No Parent");
+        ImGui::PopItemWidth();
+        ImGui::NextColumn();
+        
+        ImGui::Columns(1);
+        ImGui::Separator();
+        ImGui::PopStyleVar();
         
         for(auto& component: m_Components)
         {
