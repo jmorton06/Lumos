@@ -33,16 +33,80 @@ namespace Lumos
 		{
 			MaterialProperties* prop = m_Model->GetMaterial()->GetProperties();
 
-			ImGui::SliderFloat("Use Albedo Map", &prop->usingAlbedoMap, 0.0f, 1.0f);
-			ImGui::SliderFloat("Use Specular Map", &prop->usingSpecularMap, 0.0f, 1.0f);
-			ImGui::SliderFloat("Use Gloss Map", &prop->usingGlossMap, 0.0f, 1.0f);
-			ImGui::SliderFloat("Use Normal Map", &prop->usingNormalMap, 0.0f, 1.0f);
-
-			ImGui::SliderFloat3("Albedo", &prop->albedoColour.x, 0.0f, 1.0f);
-			ImGui::SliderFloat3("Gloss", &prop->glossColour.x, 0.0f, 1.0f);
-			ImGui::SliderFloat3("Specular", &prop->specularColour.x, 0.0f, 1.0f);
+            ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(2,2));
+            ImGui::Columns(2);
+            ImGui::Separator();
+            
+            ImGui::AlignTextToFramePadding();
+            ImGui::Text("Use Albedo Map");
+            ImGui::NextColumn();
+            ImGui::PushItemWidth(-1);
+            ImGui::SliderFloat("##UseAlbedoMap", &prop->usingAlbedoMap, 0.0f, 1.0f);
+            
+            ImGui::PopItemWidth();
+            ImGui::NextColumn();
+            
+            ImGui::AlignTextToFramePadding();
+            ImGui::Text("Use Specular Map");
+            ImGui::NextColumn();
+            ImGui::PushItemWidth(-1);
+            ImGui::SliderFloat("##UseSpecularMap", &prop->usingSpecularMap, 0.0f, 1.0f);
+            
+            ImGui::PopItemWidth();
+            ImGui::NextColumn();
+            
+            ImGui::AlignTextToFramePadding();
+            ImGui::Text("Use Gloss Map");
+            ImGui::NextColumn();
+            ImGui::PushItemWidth(-1);
+            ImGui::SliderFloat("##UseGlossMap", &prop->usingGlossMap, 0.0f, 1.0f);
+            
+            ImGui::PopItemWidth();
+            ImGui::NextColumn();
+            
+            ImGui::AlignTextToFramePadding();
+            ImGui::Text("Use Normal Map");
+            ImGui::NextColumn();
+            ImGui::PushItemWidth(-1);
+            ImGui::SliderFloat("##UseNormalMap", &prop->usingNormalMap, 0.0f, 1.0f);
+            
+            ImGui::PopItemWidth();
+            ImGui::NextColumn();
+            
+            
+            ImGui::AlignTextToFramePadding();
+            ImGui::Text("Albedo");
+            ImGui::NextColumn();
+            ImGui::PushItemWidth(-1);
+            ImGui::SliderFloat3("##Albedo", &prop->albedoColour.x, 0.0f, 1.0f);
+            
+            ImGui::PopItemWidth();
+            ImGui::NextColumn();
+            
+            ImGui::AlignTextToFramePadding();
+            ImGui::Text("Gloss");
+            ImGui::NextColumn();
+            ImGui::PushItemWidth(-1);
+            ImGui::SliderFloat3("##Gloss", &prop->glossColour.x, 0.0f, 1.0f);
+            
+            ImGui::PopItemWidth();
+            ImGui::NextColumn();
+            
+            ImGui::AlignTextToFramePadding();
+            ImGui::Text("Specular");
+            ImGui::NextColumn();
+            ImGui::PushItemWidth(-1);
+            ImGui::SliderFloat3("##Specular", &prop->specularColour.x, 0.0f, 1.0f);
+            
+            ImGui::PopItemWidth();
+            ImGui::NextColumn();
 
 			m_Model->GetMaterial()->SetMaterialProperites(*prop);
+            
+            ImGui::Columns(1);
+            ImGui::Separator();
+            ImGui::PopStyleVar();
+            
 			ImGui::TreePop();
 		}
 	}

@@ -31,13 +31,19 @@ namespace Lumos
 
 	void PhysicsObject2D::SetForce(const maths::Vector2& v) const
 	{
-		//m_B2Body->SetForce(b2Vec2(v.x, v.y));
+        m_B2Body->ApplyForceToCenter(b2Vec2(v.GetX(),v.GetY()), true);
 	}
 
 	void PhysicsObject2D::SetPosition(const maths::Vector2 & pos) const
 	{
-		//m_B2Body->SetPosition(b2Vec2(pos.GetX(), pos.GetY()));
+        m_B2Body->SetTransform(b2Vec2(pos.GetX(), pos.GetY()), m_B2Body->GetAngle());
+
 	}
+    
+    void PhysicsObject2D::SetOrientation(float angle) const
+    {
+        m_B2Body->SetTransform(m_B2Body->GetPosition(), angle);
+    }
 
 	void PhysicsObject2D::Init(const PhysicsObjectParamaters& params)
 	{
