@@ -1,4 +1,4 @@
-﻿#include "LM.h"
+#include "LM.h"
 #include "LightComponent.h"
 #include "Graphics/Light.h"
 #include "Physics3DComponent.h"
@@ -15,11 +15,16 @@
 namespace Lumos
 {
 	LightComponent::LightComponent(std::shared_ptr<Light>& light)
-		: m_Light(light), m_PostionOffset(maths::Vector3(0.0f))
+		: m_Light(light)
 	{
-		m_BoundingShape = std::make_unique<maths::BoundingSphere>(light->GetPosition() + m_PostionOffset, light->GetRadius() * light->GetRadius());
+		m_BoundingShape = std::make_unique<maths::BoundingSphere>(light->GetPosition(), light->GetRadius() * light->GetRadius());
 	}
-
+    
+    LightComponent::~LightComponent()
+    {
+        if(m_Entity->GetScene())
+            m_Entity->GetScene()->GetLightSetup()->Remove(m_Light);
+    }
 
 	void LightComponent::SetRadius(float radius)
 	{
@@ -29,12 +34,9 @@ namespace Lumos
 
 	void LightComponent::OnUpdateComponent(float dt)
 	{
-		Physics3DComponent* physicsComponent = m_Entity->GetComponent<Physics3DComponent>();
-		if (physicsComponent)
-		{
-			m_Light->SetPosition(physicsComponent->m_PhysicsObject->GetPosition() + m_PostionOffset);
-			m_BoundingShape->SetPosition(m_Light->GetPosition() + m_PostionOffset);
-		}
+        m_Light->SetDirection(m_Entity->GetTransform()->m_Transform.GetWorldMatrix().GetPositionVector());
+        m_Light->SetPosition(m_Entity->GetTransform()->m_Transform.GetWorldMatrix().GetPositionVector());
+        m_BoundingShape->SetPosition(m_Light->GetPosition());
 	}
 
 	void LightComponent::Init()
