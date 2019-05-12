@@ -50,7 +50,6 @@ namespace Lumos
             ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(2,2));
             ImGui::Columns(2);
             ImGui::Separator();
-            ImGui::PushItemWidth(-1);
             
             auto pos = m_PhysicsObject->GetPosition();
             auto force = m_PhysicsObject->GetForce();
@@ -67,52 +66,59 @@ namespace Lumos
             ImGui::Text("Position");
             ImGui::NextColumn();
             ImGui::PushItemWidth(-1);
-            ImGui::DragFloat3("##Position", &pos.x);
+            if(ImGui::DragFloat3("##Position", &pos.x))
+                m_PhysicsObject->SetPosition(pos);
+
             ImGui::PopItemWidth();
-			m_PhysicsObject->SetPosition(pos);
             ImGui::NextColumn();
 
             ImGui::AlignTextToFramePadding();
             ImGui::Text("Velocity");
             ImGui::NextColumn();
             ImGui::PushItemWidth(-1);
-            ImGui::DragFloat3("##Velocity", &velocity.x);
+            if(ImGui::DragFloat3("##Velocity", &velocity.x))
+                m_PhysicsObject->SetLinearVelocity(velocity);
+
             ImGui::PopItemWidth();
-            m_PhysicsObject->SetLinearVelocity(velocity);
             ImGui::NextColumn();
 
             ImGui::AlignTextToFramePadding();
             ImGui::Text("Torque");
             ImGui::NextColumn();
             ImGui::PushItemWidth(-1);
-            ImGui::DragFloat3("##Torque", &torque.x);
-            m_PhysicsObject->SetTorque(torque);
+            if(ImGui::DragFloat3("##Torque", &torque.x))
+               m_PhysicsObject->SetTorque(torque);
+               
+            ImGui::PopItemWidth();
             ImGui::NextColumn();
 	
             ImGui::AlignTextToFramePadding();
             ImGui::Text("Orientation");
             ImGui::NextColumn();
             ImGui::PushItemWidth(-1);
-            ImGui::DragFloat3("##Orientation", &orientation.x);
+            if(ImGui::DragFloat3("##Orientation", &orientation.x))
+                m_PhysicsObject->SetOrientation(orientation);
+
             ImGui::PopItemWidth();
-            m_PhysicsObject->SetOrientation(orientation);
             ImGui::NextColumn();
             
             ImGui::AlignTextToFramePadding();
             ImGui::Text("Friction");
             ImGui::NextColumn();
             ImGui::PushItemWidth(-1);
-            ImGui::DragFloat("##Friction", &friction);
+            if(ImGui::DragFloat("##Friction", &friction))
+                m_PhysicsObject->SetFriction(friction);
+
             ImGui::PopItemWidth();
-            m_PhysicsObject->SetFriction(friction);
             ImGui::NextColumn();
 			
             ImGui::AlignTextToFramePadding();
             ImGui::Text("Mass");
             ImGui::NextColumn();
             ImGui::PushItemWidth(-1);
-            ImGui::DragFloat("##Mass", &mass);
-            m_PhysicsObject->SetInverseMass(1.0f / mass);
+            if(ImGui::DragFloat("##Mass", &mass))
+                m_PhysicsObject->SetInverseMass(1.0f / mass);
+            
             ImGui::PopItemWidth();
             ImGui::NextColumn();
 		
@@ -120,8 +126,9 @@ namespace Lumos
             ImGui::Text("Elasticity");
             ImGui::NextColumn();
             ImGui::PushItemWidth(-1);
-            ImGui::DragFloat("##Elasticity", &elasticity);
-            m_PhysicsObject->SetElasticity(elasticity);
+            if(ImGui::DragFloat("##Elasticity", &elasticity))
+                m_PhysicsObject->SetElasticity(elasticity);
+            
             ImGui::PopItemWidth();
             ImGui::NextColumn();
 		
@@ -129,9 +136,10 @@ namespace Lumos
             ImGui::Text("Static");
             ImGui::NextColumn();
             ImGui::PushItemWidth(-1);
-            ImGui::Checkbox("##Static", &isStatic);
+            if(ImGui::Checkbox("##Static", &isStatic))
+                m_PhysicsObject->SetIsStatic(isStatic);
+
             ImGui::PopItemWidth();
-            m_PhysicsObject->SetIsStatic(isStatic);
             ImGui::NextColumn();
 			
 
@@ -139,14 +147,14 @@ namespace Lumos
             ImGui::Text("At Rest");
             ImGui::NextColumn();
             ImGui::PushItemWidth(-1);
-            ImGui::Checkbox("##At Rest", &isRest);
+            if(ImGui::Checkbox("##At Rest", &isRest))
+                m_PhysicsObject->SetIsAtRest(isRest);
+
             ImGui::PopItemWidth();
-            m_PhysicsObject->SetIsAtRest(isRest);
             ImGui::NextColumn();
 
             ImGui::Columns(1);
             ImGui::Separator();
-            ImGui::PopItemWidth();
             ImGui::PopStyleVar();
             
             ImGui::TreePop();
