@@ -169,7 +169,7 @@ namespace Lumos
 			m_Name = objName;
         
         ImGui::Text("%s", m_pParent ? m_pParent->GetName().c_str() : "No Parent");
-
+        
         for(auto& component: m_Components)
         {
             component.second->OnIMGUI();
