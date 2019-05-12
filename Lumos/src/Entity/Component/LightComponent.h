@@ -11,18 +11,15 @@ namespace Lumos
 	class LUMOS_EXPORT LightComponent : public LumosComponent
 	{
 	public:
-		std::shared_ptr<Light> m_Light;
-		maths::Vector3 m_PostionOffset;
-	public:
 		explicit LightComponent(std::shared_ptr<Light>& light);
-
+        ~LightComponent();
+        
 		static ComponentType GetStaticType()
 		{
 			static ComponentType type(ComponentType::Light);
 			return type;
 		}
 
-		void SetPositionOffset(const maths::Vector3& vec) { m_PostionOffset = vec; };
 		void SetRadius(float radius);
 
 		void OnUpdateComponent(float dt) override;
@@ -32,5 +29,8 @@ namespace Lumos
 		inline virtual ComponentType GetType() const override { return GetStaticType(); }
 
 		void OnIMGUI() override;
+        
+    private:
+        std::shared_ptr<Light> m_Light;
 	};
 }

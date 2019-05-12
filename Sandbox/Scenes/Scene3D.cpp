@@ -52,7 +52,11 @@ void Scene3D::OnInit()
 	auto sun = std::make_shared<Light>();
 	sun->SetDirection(maths::Vector3(26.0f, 22.0f, 48.5f));
 	sun->SetPosition(maths::Vector3(26.0f, 22.0f, 48.5f) * 100.0f);
-	m_LightSetup->SetDirectionalLight(sun);
+    
+    auto lightEntity = std::make_shared<Entity>("Directional Light",this);
+    lightEntity->AddComponent(std::make_unique<LightComponent>(sun));
+    lightEntity->AddComponent(std::make_unique<TransformComponent>(Matrix4::Translation(maths::Vector3(26.0f, 22.0f, 48.5f) * 100.0f)));
+    AddEntity(lightEntity);
 
 	Application::Instance()->GetAudioManager()->SetListener(m_pCamera);
 

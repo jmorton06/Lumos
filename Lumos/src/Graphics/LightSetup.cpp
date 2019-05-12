@@ -15,6 +15,9 @@ namespace Lumos
 
 	void LightSetup::Add(std::shared_ptr<Light>& light)
 	{
+        if(light->GetLightType() == LightType::DirectionalLight)
+            m_DirectionalLight = light;
+        
 		m_Lights.push_back(light);
 	}
 
