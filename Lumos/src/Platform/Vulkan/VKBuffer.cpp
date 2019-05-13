@@ -31,8 +31,15 @@ namespace Lumos
 
 		VKBuffer::~VKBuffer()
 		{
-			vkDestroyBuffer(VKDevice::Instance()->GetDevice(), m_Buffer, nullptr);
-			vkFreeMemory(VKDevice::Instance()->GetDevice(), m_Memory, nullptr);
+			if (m_Buffer)
+			{
+				vkDestroyBuffer(VKDevice::Instance()->GetDevice(), m_Buffer, nullptr);
+			}
+
+			if (m_Memory)
+			{
+				vkFreeMemory(VKDevice::Instance()->GetDevice(), m_Memory, nullptr);
+			}
 		}
 
 		void VKBuffer::Init(vk::BufferUsageFlags usage, uint32_t size, const void* data)

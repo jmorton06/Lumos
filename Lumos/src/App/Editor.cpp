@@ -185,19 +185,17 @@ namespace Lumos
 			}
 
 			
-			m_Application->m_SceneManager->GetCurrentScene()->OnIMGUI();
 			if (ImGui::TreeNode("Scene"))
 			{
 				ImGui::Indent();
 				auto scene = m_Application->m_SceneManager->GetCurrentScene();
 
-				if(scene->GetLightSetup())
-					scene->GetLightSetup()->OnImGUI();
-
-            DrawNode(Application::Instance()->GetSceneManager()->GetCurrentScene()->GetRootEntity());
+				DrawNode(Application::Instance()->GetSceneManager()->GetCurrentScene()->GetRootEntity());
                 
                 ImGui::TreePop();
-              }
+            }
+			
+			m_Application->m_SceneManager->GetCurrentScene()->OnIMGUI();
 		}
 		ImGui::End();
 	}

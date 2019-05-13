@@ -42,8 +42,12 @@ void GraphicsScene::OnInit()
 
 	auto sun = std::make_shared<Light>();
 	sun->SetDirection(maths::Vector3(26.0f, 22.0f, 48.5f));
-	sun->SetPosition(maths::Vector3(26.0f, 22.0f, 48.5f) * 10000.0f);
-	m_LightSetup->SetDirectionalLight(sun);
+	sun->SetPosition(maths::Vector3(26.0f, 22.0f, 48.5f) * 100.0f);
+
+	auto lightEntity = std::make_shared<Entity>("Directional Light", this);
+	lightEntity->AddComponent(std::make_unique<LightComponent>(sun));
+	lightEntity->AddComponent(std::make_unique<TransformComponent>(Matrix4::Translation(maths::Vector3(26.0f, 22.0f, 48.5f) * 100.0f)));
+	AddEntity(lightEntity);
 
 	//SoundSystem::Instance()->SetListener(m_pCamera);
 
@@ -53,6 +57,7 @@ void GraphicsScene::OnInit()
 	auto skyboxRenderer = new SkyboxRenderer(m_ScreenWidth, m_ScreenHeight, m_EnvironmentMap);
 	deferredRenderer->SetRenderTarget(Application::Instance()->GetRenderManager()->GetGBuffer()->m_ScreenTex[SCREENTEX_OFFSCREEN0]);
 	skyboxRenderer->SetRenderTarget(Application::Instance()->GetRenderManager()->GetGBuffer()->m_ScreenTex[SCREENTEX_OFFSCREEN0]);
+	shadowRenderer->SetLight(sun);
 
 	deferredRenderer->SetRenderToGBufferTexture(true);
 	skyboxRenderer->SetRenderToGBufferTexture(true);
@@ -135,16 +140,6 @@ void GraphicsScene::OnIMGUI()
 		ImGui::End();
 		return;
 	}
-
-	auto lightDirection = m_LightSetup->GetDirectionalLight()->GetDirection();
-
-	ImVec4 test = ImVec4(lightDirection.GetX(),lightDirection.GetY(), lightDirection.GetZ(), 1.0f);
-
-	ImGui::Text("Light");
-	ImGui::DragFloat4("Direction", &test.x);
-
-	lightDirection = maths::Vector3(test.x,test.y,test.z);
-	m_LightSetup->GetDirectionalLight()->SetDirection(lightDirection);
 
     ImGui::End();
 }

@@ -25,9 +25,7 @@ namespace Lumos
 		  m_ScreenHeight(0),
 		  m_DrawDebugData(false)
 	{
-		m_ParticleManager = nullptr; //  new ParticleManager();
-
-		m_LightSetup = new LightSetup();
+		m_ParticleManager = nullptr;
 
 		m_MaterialManager = new AssetManager<Material>();
 
@@ -44,8 +42,6 @@ namespace Lumos
             delete m_ParticleManager;
             m_ParticleManager = nullptr;
         }
-
-        delete m_LightSetup;
 
         SAFE_DELETE(m_MaterialManager);
     }
@@ -126,7 +122,6 @@ namespace Lumos
 
 	void Scene::OnCleanupScene()
 	{
-		m_LightSetup->Clear();
 		m_MaterialManager->Clear();
 
 		m_pFrameRenderList.reset();
@@ -175,6 +170,7 @@ namespace Lumos
 		}
 
 		BuildFrameRenderList();
+		BuildLightList();
 
 		std::function<void(std::shared_ptr<Entity>)> per_object_func = [&](std::shared_ptr<Entity> obj)
 		{
@@ -256,11 +252,6 @@ namespace Lumos
 		per_object_func(m_RootEntity);
 	}
 
-	void Scene::AddPointLight(std::shared_ptr<Light> light) const
-	{
-		m_LightSetup->Add(light);
-	}
-
 	void Scene::BuildFrameRenderList()
 	{
         if(!m_pCamera)
@@ -276,14 +267,36 @@ namespace Lumos
 		InsertToRenderList(m_pFrameRenderList.get(), m_FrameFrustum);
 	}
 
+	void Scene::BuildLightList()
+	{
+		m_LightList.clear();
+
+		std::function<void(std::shared_ptr<Entity>)> per_object_func = [&](std::shared_ptr<Entity> obj)
+		{
+			auto lightComponent = obj->GetComponent<LightComponent>();
+			if (lightComponent)
+			{
+				m_LightList.emplace_back(lightComponent->GetLight());
+			}
+
+			for (auto child : obj->GetChildren())
+				per_object_func(child);
+		};
+
+		per_object_func(m_RootEntity);
+	}
+
 	void Scene::IterateEntities(const std::function<void(std::shared_ptr<Entity>)>& per_object_func)
 	{
 		std::function<void(std::shared_ptr<Entity>)> per_object_func2 = [&](std::shared_ptr<Entity> obj)
 		{
-			per_object_func(obj);
+			if (obj->IsActive())
+			{
+				per_object_func(obj);
 
-			for (auto child : obj->GetChildren())
-				per_object_func2(child);
+				for (auto child : obj->GetChildren())
+					per_object_func2(child);
+			}
 		};
 
 		per_object_func2(m_RootEntity);

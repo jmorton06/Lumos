@@ -5,7 +5,7 @@
 namespace Lumos
 {
 
-    LightSetup::LightSetup() : m_DirectionalLight(nullptr)
+    LightSetup::LightSetup()
 	{
 	}
 
@@ -15,9 +15,6 @@ namespace Lumos
 
 	void LightSetup::Add(std::shared_ptr<Light>& light)
 	{
-        if(light->GetLightType() == LightType::DirectionalLight)
-            m_DirectionalLight = light;
-        
 		m_Lights.push_back(light);
 	}
 
@@ -36,21 +33,17 @@ namespace Lumos
 	void LightSetup::Clear()
 	{
 		m_Lights.clear();
-		m_DirectionalLight.reset();
 	}
 
 	void LightSetup::OnImGUI()
 	{
-		std::string title = "Light Setup : " + StringFormat::ToString(static_cast<int>(m_Lights.size()) + (m_DirectionalLight ? 1 : 0));
+		std::string title = "Light Setup : " + StringFormat::ToString(static_cast<int>(m_Lights.size()));
 		if (ImGui::TreeNode(title.c_str()))
 		{
 			for (uint i = 0; i < m_Lights.size(); i++)
 			{
 				m_Lights[i]->OnImGUI();
 			}
-
-			if(m_DirectionalLight)
-				m_DirectionalLight->OnImGUI();
 
 			ImGui::TreePop();
 		}

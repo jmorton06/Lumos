@@ -62,6 +62,8 @@ void Scene3D::OnInit()
 
 	m_ShadowTexture = std::unique_ptr<TextureDepthArray>(TextureDepthArray::Create(2048, 2048, 4));
 	auto shadowRenderer = new ShadowRenderer();
+	shadowRenderer->SetLight(sun);
+
 	auto deferredRenderer = new DeferredRenderer(m_ScreenWidth, m_ScreenHeight);
 	auto skyboxRenderer = new SkyboxRenderer(m_ScreenWidth, m_ScreenHeight, m_EnvironmentMap);
 	deferredRenderer->SetRenderTarget(Application::Instance()->GetRenderManager()->GetGBuffer()->m_ScreenTex[SCREENTEX_OFFSCREEN0]);
