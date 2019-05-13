@@ -15,13 +15,13 @@
 
 namespace Lumos
 {
-	Entity::Entity(Scene* scene) : m_Name("Unnamed"), m_pScene(scene), m_pParent(nullptr), m_BoundingRadius(1), m_FrustumCullFlags(0)
+	Entity::Entity(Scene* scene) : m_Name("Unnamed"), m_pScene(scene), m_pParent(nullptr), m_BoundingRadius(1), m_FrustumCullFlags(0), m_Active(true)
 	{
         Init();
 	}
 
 	Entity::Entity(const String& name,Scene* scene) : m_Name(name), m_pScene(scene), m_pParent(nullptr), m_BoundingRadius(1),
-	                                     m_FrustumCullFlags(0)
+	                                     m_FrustumCullFlags(0), m_Active(true)
 	{
         Init();
 	}
@@ -170,15 +170,11 @@ namespace Lumos
         
         ImGuiInputTextFlags inputFlag = ImGuiInputTextFlags_EnterReturnsTrue;
 
-        ImGui::AlignTextToFramePadding();
-        ImGui::Text("Name");
-        ImGui::NextColumn();
+        ImGui::Checkbox("##Active", &m_Active);
+        ImGui::SameLine();
         ImGui::PushItemWidth(-1);
         if (ImGui::InputText("##Name", objName, IM_ARRAYSIZE(objName), inputFlag))
             m_Name = objName;
-        
-        ImGui::PopItemWidth();
-        ImGui::NextColumn();
         
         ImGui::AlignTextToFramePadding();
         ImGui::Text("%s", "Parent");
@@ -203,4 +199,14 @@ namespace Lumos
         m_pParent = parent;
         m_DefaultTransformComponent->SetWorldMatrix(m_pParent->GetTransform()->m_Transform.GetWorldMatrix());
     }
+
+	void Entity::SetActiveRecursive(bool active)
+	{
+		m_Active = active;
+
+		for (auto child : m_vpChildren)
+		{
+			child->SetActive(active);
+		}
+	}
 }

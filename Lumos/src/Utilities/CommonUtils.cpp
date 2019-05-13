@@ -14,6 +14,7 @@
 #include "Graphics/Camera/Camera.h"
 #include "Graphics/Material.h"
 #include "Graphics/Mesh.h"
+#include "Graphics/Light.h"
 
 namespace Lumos
 {

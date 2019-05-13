@@ -29,6 +29,8 @@ namespace Lumos
 		inline virtual ComponentType GetType() const override { return GetStaticType(); }
 
 		void OnIMGUI() override;
+
+		std::shared_ptr<Light> GetLight() const { return m_Light; }
         
     private:
         std::shared_ptr<Light> m_Light;

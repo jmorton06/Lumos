@@ -65,6 +65,10 @@ namespace Lumos
         const String& GetName() const { return m_Name; }
         const String& GetUUID() const { return m_UUID; }
 
+		const bool IsActive() const { return m_Active; }
+		void SetActive(bool active) { m_Active = active; };
+		void SetActiveRecursive(bool active);
+
 	private:
 
 		Entity(Entity const&) = delete;
@@ -87,6 +91,7 @@ namespace Lumos
 		float					m_BoundingRadius;
 		uint					m_FrustumCullFlags;
         String                  m_UUID;
+		bool					m_Active;
 		TransformComponent*		m_DefaultTransformComponent = nullptr;
 	};
 }

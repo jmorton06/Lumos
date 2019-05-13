@@ -73,7 +73,6 @@ namespace Lumos
             ImGui::PopItemWidth();
             ImGui::NextColumn();
             
-            
             ImGui::AlignTextToFramePadding();
             ImGui::Text("Albedo");
             ImGui::NextColumn();

@@ -2,7 +2,6 @@
 #include "LM.h"
 #include "Maths/Frustum.h"
 #include "Graphics/RenderList.h"
-#include "Graphics/LightSetUp.h"
 #include "Utilities/AssetManager.h"
 
 #include "Events/Event.h"
@@ -20,6 +19,7 @@ namespace Lumos
 	class Layer;
 	class Camera;
 	class Entity;
+	struct Light;
 
 	class LUMOS_EXPORT Scene
 	{
@@ -71,16 +71,16 @@ namespace Lumos
 		virtual void BuildWorldMatrices();
 		void DebugRender();
 
-		void AddPointLight(std::shared_ptr<Light> light) const;
-
 		void BuildFrameRenderList();
+		void BuildLightList();
+
+		std::vector<std::shared_ptr<Light>>& GetLightList() { return m_LightList; }
 
 		std::shared_ptr<Entity>& GetRootEntity() { return m_RootEntity; }
 
 		void 				SetCamera(Camera* camera) { m_pCamera = camera; }
 		Camera*				GetCamera()				const { return m_pCamera; }
 		ParticleManager*	GetParticleSystem()		const { return m_ParticleManager; }
-		LightSetup*			GetLightSetup()			const { return m_LightSetup; }
 		TextureCube*		GetEnvironmentMap()		const { return m_EnvironmentMap; }
 
 		bool GetReflectSkybox() const { return m_ReflectSkybox; }
@@ -119,7 +119,6 @@ namespace Lumos
 		String				m_SceneName;
 		Camera*				m_pCamera;
 		ParticleManager*	m_ParticleManager;
-		LightSetup*			m_LightSetup;
 		TextureCube*		m_EnvironmentMap;
 
 		AssetManager<Material>* m_MaterialManager;
@@ -144,6 +143,7 @@ namespace Lumos
 
 		maths::Frustum				m_FrameFrustum;
 		std::unique_ptr<RenderList>	m_pFrameRenderList;
+		std::vector<std::shared_ptr<Light>> m_LightList;
 
 		std::vector<Layer*> m_SceneLayers;
 

@@ -387,22 +387,77 @@ namespace Lumos
 	void LumosPhysicsEngine::OnImGUI()
 	{
 		ImGui::Text("3D Physics Engine");
-		ImGui::Text("Number Of Collision Pairs  : %5.2i", GetNumberCollisionPairs());
-		ImGui::Text("Number Of Physics Objects  : %5.2i", GetNumberPhysicsObjects());
-		ImGui::Text("Number Of Constraints      : %5.2i", static_cast<int>(m_Constraints.size()));
 
-		ImGui::Checkbox("Paused", &m_IsPaused);
-		ImGui::InputFloat3("Gravity", &m_Gravity.x);
-		ImGui::InputFloat("Damping Factor", &m_DampingFactor);
+		ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(2, 2));
+		ImGui::Columns(2);
+		ImGui::Separator();
+
+		ImGui::AlignTextToFramePadding();
+		ImGui::Text("Number Of Collision Pairs");
+		ImGui::NextColumn();
+		ImGui::PushItemWidth(-1);
+		ImGui::Text("%5.2i", GetNumberCollisionPairs());
+		ImGui::PopItemWidth();
+		ImGui::NextColumn();
+
+		ImGui::AlignTextToFramePadding();
+		ImGui::Text("Number Of Physics Objects");
+		ImGui::NextColumn();
+		ImGui::PushItemWidth(-1);
+		ImGui::Text("%5.2i", GetNumberPhysicsObjects());
+		ImGui::PopItemWidth();
+		ImGui::NextColumn();
+
+		ImGui::AlignTextToFramePadding();
+		ImGui::Text("Number Of Constraints");
+		ImGui::NextColumn();
+		ImGui::PushItemWidth(-1);
+		ImGui::Text("%5.2i", static_cast<int>(m_Constraints.size()));
+		ImGui::PopItemWidth();
+		ImGui::NextColumn();
+
+		ImGui::AlignTextToFramePadding();
+		ImGui::Text("Paused");
+		ImGui::NextColumn();
+		ImGui::PushItemWidth(-1);
+		ImGui::Checkbox("##Paused", &m_IsPaused);
+		ImGui::PopItemWidth();
+		ImGui::NextColumn();
+
+		ImGui::AlignTextToFramePadding();
+		ImGui::Text("Gravity");
+		ImGui::NextColumn();
+		ImGui::PushItemWidth(-1);
+		ImGui::InputFloat3("##Gravity", &m_Gravity.x);
+		ImGui::PopItemWidth();
+		ImGui::NextColumn();
+
+		ImGui::AlignTextToFramePadding();
+		ImGui::Text("Damping Factor");
+		ImGui::NextColumn();
+		ImGui::PushItemWidth(-1);
+		ImGui::InputFloat("##Damping Factor", &m_DampingFactor);
+		ImGui::PopItemWidth();
+		ImGui::NextColumn();
+
+		ImGui::AlignTextToFramePadding();
 		ImGui::Text("Integration Type");
-		ImGui::SameLine();
+		ImGui::NextColumn();
+		ImGui::PushItemWidth(-1);
 		if (ImGui::BeginMenu(IntegrationTypeToString(m_integrationType).c_str()))
 		{
 			if (ImGui::MenuItem("EXPLICIT EULER", "", static_cast<int>(m_integrationType) == 0, true)) { m_integrationType = INTEGRATION_EXPLICIT_EULER; }
-			if (ImGui::MenuItem("SEMI IMPLICIT EULER","", static_cast<int>(m_integrationType) == 1, true)) { m_integrationType = INTEGRATION_SEMI_IMPLICIT_EULER; }
+			if (ImGui::MenuItem("SEMI IMPLICIT EULER", "", static_cast<int>(m_integrationType) == 1, true)) { m_integrationType = INTEGRATION_SEMI_IMPLICIT_EULER; }
 			if (ImGui::MenuItem("RUNGE KUTTA 2", "", static_cast<int>(m_integrationType) == 2, true)) { m_integrationType = INTEGRATION_RUNGE_KUTTA_2; }
 			if (ImGui::MenuItem("RUNGE KUTTA 4", "", static_cast<int>(m_integrationType) == 3, true)) { m_integrationType = INTEGRATION_RUNGE_KUTTA_4; }
 			ImGui::EndMenu();
 		}
+
+		ImGui::PopItemWidth();
+		ImGui::NextColumn();
+
+		ImGui::Columns(1);
+		ImGui::Separator();
+		ImGui::PopStyleVar();
 	}
 }
