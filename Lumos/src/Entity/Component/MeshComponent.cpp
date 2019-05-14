@@ -77,7 +77,7 @@ namespace Lumos
             ImGui::Text("Albedo");
             ImGui::NextColumn();
             ImGui::PushItemWidth(-1);
-            ImGui::SliderFloat3("##Albedo", &prop->albedoColour.x, 0.0f, 1.0f);
+            ImGui::ColorEdit4("##Albedo", &prop->albedoColour.x);
             
             ImGui::PopItemWidth();
             ImGui::NextColumn();
