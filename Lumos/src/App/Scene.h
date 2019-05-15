@@ -19,7 +19,10 @@ namespace Lumos
 	class Layer;
 	class Camera;
 	class Entity;
-	struct Light;
+	namespace graphics
+	{
+		struct Light;
+	}
 
 	class LUMOS_EXPORT Scene
 	{
@@ -74,7 +77,7 @@ namespace Lumos
 		void BuildFrameRenderList();
 		void BuildLightList();
 
-		std::vector<std::shared_ptr<Light>>& GetLightList() { return m_LightList; }
+		std::vector<std::shared_ptr<graphics::Light>>& GetLightList() { return m_LightList; }
 
 		std::shared_ptr<Entity>& GetRootEntity() { return m_RootEntity; }
 
@@ -143,7 +146,7 @@ namespace Lumos
 
 		maths::Frustum				m_FrameFrustum;
 		std::unique_ptr<RenderList>	m_pFrameRenderList;
-		std::vector<std::shared_ptr<Light>> m_LightList;
+		std::vector<std::shared_ptr<graphics::Light>> m_LightList;
 
 		std::vector<Layer*> m_SceneLayers;
 

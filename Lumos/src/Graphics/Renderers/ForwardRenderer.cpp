@@ -140,7 +140,7 @@ namespace Lumos
 		m_VSSystemUniformBufferOffsets[VSSystemUniformIndex_TextureMatrix] = m_VSSystemUniformBufferOffsets[VSSystemUniformIndex_ModelMatrix] + sizeof(maths::Matrix4);
 
 		// Pixel/fragment shader system uniforms
-		m_PSSystemUniformBufferSize = sizeof(Light);
+		m_PSSystemUniformBufferSize = sizeof(graphics::Light);
 		m_PSSystemUniformBuffer = new byte[m_PSSystemUniformBufferSize];
 		memset(m_PSSystemUniformBuffer, 0, m_PSSystemUniformBufferSize);
 		m_PSSystemUniformBufferOffsets.resize(PSSystemUniformIndex_Size);

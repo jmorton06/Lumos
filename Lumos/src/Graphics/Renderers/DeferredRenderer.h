@@ -1,5 +1,6 @@
 #pragma once
 #include "Renderer3D.h"
+#include "Graphics/Light.h"
 
 namespace Lumos
 {
@@ -69,8 +70,7 @@ namespace Lumos
 
 		struct UniformBufferLight
 		{
-			Lumos::maths::Vector4 position;
-			Lumos::maths::Vector4 direction;
+			graphics::Light light;
 			Lumos::maths::Vector4 cameraPosition;
 			Lumos::maths::Matrix4 viewMatrix;
 			Lumos::maths::Matrix4 uShadowTransform[16];

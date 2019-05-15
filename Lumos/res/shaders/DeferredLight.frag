@@ -14,10 +14,15 @@ layout(set = 1, binding = 5) uniform samplerCube uEnvironmentMap;
 layout(set = 1, binding = 6) uniform sampler2DArray uShadowMap;
 layout(set = 1, binding = 7) uniform sampler2D uDepthSampler;
 
+struct Light
+{
+	vec4 direction;
+	vec4 position;
+};
+
 layout(set = 0, binding = 0) uniform UniformBufferLight
 {
-	vec4 position;
- 	vec4 direction;
+	Light light;
  	vec4 cameraPosition;
 	mat4 viewMatrix;
 	mat4 uShadowTransform[16];
@@ -26,16 +31,6 @@ layout(set = 0, binding = 0) uniform UniformBufferLight
 
 #define PI 3.1415926535897932384626433832795
 #define GAMMA 2.2
-
-struct Light
-{
-	vec3 position;
-	vec3 colour;
-	vec3 direction;
-	float radius;
-	float intensity;
-	int type;
-};
 
 struct Material
 {
@@ -230,12 +225,6 @@ void main()
 
     vec3 wsPos      = positionTex;
 
-    Light light;
-    light.direction = ubo.direction.xyz;
-    light.position  = ubo.position.xyz;
-    light.colour    = vec3(1.0);
-    light.intensity = 4.0;
-
     vec3 finalColour;
 
     Material material;
@@ -264,9 +253,9 @@ void main()
 	float shadow = filterPCF(shadowCoord / shadowCoord.w, cascadeIndex);
 	//float shadow = textureProj(shadowCoord / shadowCoord.w, vec2(0.0f), cascadeIndex);
 
-    float NdotL = clamp(dot(material.normal, light.direction), 0.0, 1.0)  * shadow;
-    diffuse  += NdotL * Diffuse(light, material, eye)  * light.intensity;
-    specular += NdotL * Specular(light, material, eye) * light.intensity;
+    float NdotL = clamp(dot(material.normal, ubo.light.direction), 0.0, 1.0)  * shadow;
+    diffuse  += NdotL * Diffuse(ubo.light, material, eye)  * ubo.light.intensity;
+    specular += NdotL * Specular(ubo.light, material, eye) * ubo.light.intensity;
 
     diffuse = max(diffuse, vec4(0.1));
 
