@@ -164,17 +164,17 @@ namespace Lumos
 		static char objName[INPUT_BUF_SIZE];
 		strcpy(objName, m_Name.c_str());
 
-        ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(2,2));
-        ImGui::Columns(2);
-        ImGui::Separator();
-        
         ImGuiInputTextFlags inputFlag = ImGuiInputTextFlags_EnterReturnsTrue;
-
+        
         ImGui::Checkbox("##Active", &m_Active);
         ImGui::SameLine();
         ImGui::PushItemWidth(-1);
         if (ImGui::InputText("##Name", objName, IM_ARRAYSIZE(objName), inputFlag))
             m_Name = objName;
+        
+        ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(2,2));
+        ImGui::Columns(2);
+        ImGui::Separator();
         
         ImGui::AlignTextToFramePadding();
         ImGui::Text("%s", "Parent");

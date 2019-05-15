@@ -27,9 +27,9 @@ namespace Lumos
 			class CommandBuffer;
 			class RenderPass;
 		}
+		struct Light;
 	}
 
-	struct Light;
 
 #define SHADOWMAP_MAX 16
 
@@ -87,7 +87,7 @@ namespace Lumos
 		void CreateUniformBuffer();
         void UpdateCascades(Scene* scene);
 
-		void SetLight(std::shared_ptr<Light>& light) { m_Light = light; }
+		void SetLight(std::shared_ptr<graphics::Light>& light) { m_Light = light; }
 
 	protected:
 
@@ -108,7 +108,7 @@ namespace Lumos
 		Lumos::graphics::api::UniformBuffer* m_ModelUniformBuffer;
 		Lumos::graphics::api::CommandBuffer* m_CommandBuffer;
 
-		std::shared_ptr<Light> m_Light;
+		std::shared_ptr<graphics::Light> m_Light;
 
 		uint m_Layer = 0;
 

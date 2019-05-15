@@ -215,9 +215,9 @@ namespace Lumos
 
 	void CommonUtils::AddLightCube(Scene* scene)
 	{
-		maths::Vector3 colour = maths::Vector3(RandomNumberGenerator32::Rand(0.0f, 1.0f),
+		maths::Vector4 colour = maths::Vector4(RandomNumberGenerator32::Rand(0.0f, 1.0f),
 								 RandomNumberGenerator32::Rand(0.0f, 1.0f),
-								 RandomNumberGenerator32::Rand(0.0f, 1.0f));
+								 RandomNumberGenerator32::Rand(0.0f, 1.0f),1.0f);
 
 		std::shared_ptr<Entity> cube = CommonUtils::BuildCuboidObject(
 				"light Cube",
@@ -226,13 +226,13 @@ namespace Lumos
 				true,
 				1.0f,
 				true,
-				maths::Vector4(colour, 1.0f));
+				colour);
 
 		cube->GetComponent<Physics3DComponent>()->m_PhysicsObject->SetIsAtRest(true);
 		const float radius    = RandomNumberGenerator32::Rand(0.0f, 10.0f);
 		const float intensity = RandomNumberGenerator32::Rand(0.0f, 10.0f);
 
-		std::shared_ptr<Light> light = std::make_shared<Light>(scene->GetCamera()->GetPosition(), colour, radius, intensity, LightType::PointLight);
+		std::shared_ptr<graphics::Light> light = std::make_shared<graphics::Light>(scene->GetCamera()->GetPosition(), colour,  intensity, graphics::LightType::PointLight, scene->GetCamera()->GetPosition(), radius);
 		cube->AddComponent(std::make_unique<LightComponent>(light));
 		scene->AddEntity(cube);
 	}

@@ -426,8 +426,8 @@ namespace Lumos
             std::shared_ptr<VertexArray> va;
             va.reset(VertexArray::Create());
             
-            float sectorCount = xSegments;
-            float stackCount = ySegments;
+            float sectorCount = static_cast<float>(xSegments);
+            float stackCount = static_cast<float>(ySegments);
             float sectorStep = 2 * maths::PI / sectorCount;
             float stackStep = maths::PI / stackCount;
             float sectorAngle, stackAngle;
@@ -482,8 +482,8 @@ namespace Lumos
             uint k1, k2;
             for(uint i = 0; i < stackCount; ++i)
             {
-                k1 = i * (sectorCount + 1);     // beginning of current stack
-                k2 = k1 + sectorCount + 1;      // beginning of next stack
+                k1 = i * (static_cast<uint>(sectorCount) + 1U);     // beginning of current stack
+                k2 = k1 + static_cast<uint>(sectorCount) + 1U;      // beginning of next stack
                 
                 for(uint j = 0; j < sectorCount; ++j, ++k1, ++k2)
                 {

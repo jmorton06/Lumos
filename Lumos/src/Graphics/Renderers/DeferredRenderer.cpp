@@ -340,14 +340,21 @@ namespace Lumos
 			return;
 	
 		uint32_t currentOffset = 0;
-		maths::Vector4 lightPos = maths::Vector4(lightList[0]->GetPosition());
-		maths::Vector4 lightDir = maths::Vector4(lightList[0]->GetDirection());
-		maths::Vector4 cameraPos = maths::Vector4(scene->GetCamera()->GetPosition());
+		//maths::Vector4 lightPos = maths::Vector4(lightList[0]->m_Position);
+		//maths::Vector4 lightDir = maths::Vector4(lightList[0]->m_Direction);
+		//lightDir.Normalise();
 
-		memcpy(m_PSSystemUniformBuffer + currentOffset, &lightPos, sizeof(maths::Vector4));
-		currentOffset += sizeof(maths::Vector4);
-		memcpy(m_PSSystemUniformBuffer + currentOffset, &lightDir, sizeof(maths::Vector4));
-		currentOffset += sizeof(maths::Vector4);
+		//memcpy(m_PSSystemUniformBuffer + currentOffset, &lightPos, sizeof(maths::Vector4));
+		//currentOffset += sizeof(maths::Vector4);
+		//memcpy(m_PSSystemUniformBuffer + currentOffset, &lightDir, sizeof(maths::Vector4));
+		//currentOffset += sizeof(maths::Vector4);
+
+		lightList[0]->m_Direction.Normalise();
+
+		memcpy(m_PSSystemUniformBuffer + currentOffset, &lightList[0], sizeof(graphics::Light));
+		currentOffset += sizeof(graphics::Light);
+
+		maths::Vector4 cameraPos = maths::Vector4(scene->GetCamera()->GetPosition());
 		memcpy(m_PSSystemUniformBuffer + currentOffset, &cameraPos, sizeof(maths::Vector4));
 		currentOffset += sizeof(maths::Vector4);
 
