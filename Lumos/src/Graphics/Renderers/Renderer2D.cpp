@@ -3,12 +3,13 @@
 #include "Graphics/API/Shader.h"
 #include "Graphics/RenderList.h"
 #include "Graphics/API/Framebuffer.h"
-#include "Graphics/Model/Model.h"
+#include "Graphics/ModelLoader/ModelLoader.h"
 #include "Graphics/API/Renderer.h"
 #include "Graphics/API/CommandBuffer.h"
 #include "Graphics/API/Swapchain.h"
 #include "Graphics/API/RenderPass.h"
 #include "Graphics/API/Pipeline.h"
+#include "Graphics/API/IndexBuffer.h"
 #include "Graphics/GBuffer.h"
 #include "App/Scene.h"
 #include "Entity/Entity.h"
@@ -292,17 +293,17 @@ namespace Lumos
 
 		SetSystemUniforms(m_Shader);
 
-		for(const auto& entity : scene->GetEntities())
+		scene->IterateEntities([&](std::shared_ptr<Entity> obj)
 		{
-			if (entity != nullptr)
+			if (obj != nullptr)
 			{
-				auto* sprite = entity->GetComponent<SpriteComponent>();
+				auto* sprite = obj->GetComponent<SpriteComponent>();
 				if (sprite)
 				{
-					Submit(reinterpret_cast<Renderable2D*>(sprite->m_Sprite.get()), entity->GetTransform()->m_Transform.GetWorldMatrix());
+					Submit(reinterpret_cast<Renderable2D*>(sprite->m_Sprite.get()), obj->GetTransform()->m_Transform.GetWorldMatrix());
 				}
 			}
-		}
+		});
 
 		Present();
 

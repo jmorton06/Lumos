@@ -28,6 +28,8 @@ namespace Lumos
 		void DrawSceneView();
 		void BeginDockSpace();
 		void EndDockSpace();
+        
+        void DrawNode(std::shared_ptr<Entity>& node);
 
 		void SelectEntity();
 

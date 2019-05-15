@@ -8,16 +8,20 @@
 #include <imgui/imgui.h>
 #include <imgui/plugins/ImGuizmo.h>
 #include "Graphics/Camera/Camera.h"
+#include "App/Application.h"
+#include "App/SceneManager.h"
+
+#include "Maths/MathsUtilities.h"
 
 namespace Lumos
 {
-	Entity::Entity(Scene* scene) : m_Name("Unnamed"), m_pScene(scene), m_pParent(nullptr), m_BoundingRadius(1), m_FrustumCullFlags(0), m_UpdateTransforms(false)
+	Entity::Entity(Scene* scene) : m_Name("Unnamed"), m_pScene(scene), m_pParent(nullptr), m_BoundingRadius(1), m_FrustumCullFlags(0), m_Active(true)
 	{
         Init();
 	}
 
 	Entity::Entity(const String& name,Scene* scene) : m_Name(name), m_pScene(scene), m_pParent(nullptr), m_BoundingRadius(1),
-	                                     m_FrustumCullFlags(0), m_UpdateTransforms(false)
+	                                     m_FrustumCullFlags(0), m_Active(true)
 	{
         Init();
 	}
@@ -28,12 +32,17 @@ namespace Lumos
     
     void Entity::Init()
     {
+        m_UUID = maths::GenerateUUID();
     }
 
 	void Entity::AddComponent(std::unique_ptr<LumosComponent> component)
 	{
         component->SetEntity(this);
 		component->Init();
+        
+        if(component->GetType() == ComponentType::Transform)
+            m_DefaultTransformComponent = (TransformComponent*)component.get();
+        
 		m_Components[component->GetType()] = std::move(component);
 	}
 
@@ -47,23 +56,43 @@ namespace Lumos
 
 	void Entity::OnUpdateObject(float dt)
 	{
-		for (const auto& component : m_Components)
-		{
-			component.second->OnUpdateComponent(dt);
-
-			if (m_UpdateTransforms)
-				component.second->OnUpdateTransform(maths::Matrix4());
-		}
-
-		m_UpdateTransforms = false;
+        for (const auto& component : m_Components)
+        {
+            component.second->OnUpdateComponent(dt);
+        }
+        
+        if(m_DefaultTransformComponent && m_DefaultTransformComponent->m_Transform.HasUpdated())
+        {
+            if(!m_pParent)
+                m_DefaultTransformComponent->m_Transform.SetWorldMatrix(maths::Matrix4());
+			else
+			{
+				m_DefaultTransformComponent->m_Transform.SetWorldMatrix(m_pParent->GetTransform()->m_Transform.GetWorldMatrix());
+			}
+				
+            
+            for(auto child : m_vpChildren)
+            {
+                if(child && child->GetTransform())
+                    child->GetTransform()->SetWorldMatrix(m_DefaultTransformComponent->m_Transform.GetWorldMatrix());
+            }
+            
+            for (const auto& component : m_Components)
+            {
+                component.second->OnUpdateTransform(m_DefaultTransformComponent->m_Transform.GetWorldMatrix());
+            }
+            
+            m_DefaultTransformComponent->m_Transform.SetHasUpdated(false);
+        }
 	}
 
-	void Entity::AddChildObject(Entity* child)
+	void Entity::AddChildObject(std::shared_ptr<Entity>& child)
 	{
 		m_vpChildren.push_back(child);
 		child->m_pParent = this;
 		child->m_pScene = this->m_pScene;
 	}
+
 	void Entity::DebugDraw(uint64 debugFlags)
 	{
 		if (debugFlags & DEBUGDRAW_FLAGS_BOUNDING_RADIUS)
@@ -100,8 +129,8 @@ namespace Lumos
 
 	void Entity::OnGuizmo(uint mode)
 	{
-		maths::Matrix4 view = m_pScene->GetCamera()->GetViewMatrix();
-		maths::Matrix4 proj = m_pScene->GetCamera()->GetProjectionMatrix();
+		maths::Matrix4 view = Application::Instance()->GetSceneManager()->GetCurrentScene()->GetCamera()->GetViewMatrix();
+		maths::Matrix4 proj = Application::Instance()->GetSceneManager()->GetCurrentScene()->GetCamera()->GetProjectionMatrix();
         
 #ifdef LUMOS_RENDER_API_VULKAN
 		if(graphics::Context::GetRenderAPI() == RenderAPI::VULKAN)
@@ -116,11 +145,18 @@ namespace Lumos
 		maths::Matrix4 model = maths::Matrix4();
 		if (this->GetComponent<TransformComponent>() != nullptr)
 			model = GetComponent<TransformComponent>()->m_Transform.GetWorldMatrix();
-        
-		ImGuizmo::Manipulate(view.values, proj.values, static_cast<ImGuizmo::OPERATION>(mode), ImGuizmo::WORLD, model.values, nullptr, nullptr);
 
-		if (this->GetComponent<TransformComponent>() != nullptr)
-			GetComponent<TransformComponent>()->SetWorldMatrix(model);
+        float delta[16];
+        ImGuizmo::Manipulate(view.values, proj.values, static_cast<ImGuizmo::OPERATION>(mode),ImGuizmo::LOCAL, model.values, delta, nullptr);
+
+		if (GetTransform() != nullptr)
+        {
+            auto mat = maths::Matrix4(delta) * m_DefaultTransformComponent->m_Transform.GetLocalMatrix();
+            //mat.Transpose();
+            m_DefaultTransformComponent->m_Transform.SetLocalTransform(mat);
+            m_DefaultTransformComponent->m_Transform.ApplyTransform();
+            
+        }
 	}
     
     void Entity::OnIMGUI()
@@ -128,13 +164,49 @@ namespace Lumos
 		static char objName[INPUT_BUF_SIZE];
 		strcpy(objName, m_Name.c_str());
 
-		ImGuiInputTextFlags inputFlag = ImGuiInputTextFlags_EnterReturnsTrue;
-		if (ImGui::InputText("Name", objName, IM_ARRAYSIZE(objName), inputFlag))
-			m_Name = objName;
+        ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(2,2));
+        ImGui::Columns(2);
+        ImGui::Separator();
+        
+        ImGuiInputTextFlags inputFlag = ImGuiInputTextFlags_EnterReturnsTrue;
 
+        ImGui::Checkbox("##Active", &m_Active);
+        ImGui::SameLine();
+        ImGui::PushItemWidth(-1);
+        if (ImGui::InputText("##Name", objName, IM_ARRAYSIZE(objName), inputFlag))
+            m_Name = objName;
+        
+        ImGui::AlignTextToFramePadding();
+        ImGui::Text("%s", "Parent");
+        ImGui::NextColumn();
+        ImGui::PushItemWidth(-1);
+        ImGui::Text("%s", m_pParent ? m_pParent->GetName().c_str() : "No Parent");
+        ImGui::PopItemWidth();
+        ImGui::NextColumn();
+        
+        ImGui::Columns(1);
+        ImGui::Separator();
+        ImGui::PopStyleVar();
+        
         for(auto& component: m_Components)
         {
             component.second->OnIMGUI();
         }
     }
+    
+    void Entity::SetParent(Entity *parent)
+    {
+        m_pParent = parent;
+        m_DefaultTransformComponent->SetWorldMatrix(m_pParent->GetTransform()->m_Transform.GetWorldMatrix());
+    }
+
+	void Entity::SetActiveRecursive(bool active)
+	{
+		m_Active = active;
+
+		for (auto child : m_vpChildren)
+		{
+			child->SetActive(active);
+		}
+	}
 }

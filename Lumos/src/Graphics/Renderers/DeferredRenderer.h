@@ -44,7 +44,7 @@ namespace Lumos
 		void BeginScene(Scene* scene) override;
 		void Submit(const RenderCommand& command) override;
 		void SubmitMesh(Mesh* mesh, const maths::Matrix4& transform, const maths::Matrix4& textureMatrix) override;
-		void SubmitLightSetup(const LightSetup& lightSetup, Scene* scene);
+		void SubmitLightSetup(Scene* scene);
 		void EndScene() override;
 		void End() override;
 		void Present() override;
@@ -122,6 +122,9 @@ namespace Lumos
 		std::vector<Lumos::graphics::api::CommandBuffer*> m_CommandBuffers;
 
 		Lumos::graphics::api::CommandBuffer* m_DeferredCommandBuffers;
+
+		LightSetup* m_LightSetup;
+
 
 		size_t dynamicAlignment;
 		UniformBufferModel uboDataDynamic;

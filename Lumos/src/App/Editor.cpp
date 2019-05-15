@@ -49,7 +49,7 @@ namespace Lumos
 		DrawHierarchyWindow();
 		DrawInspectorWindow();
 
-		system::Profiler::OnImGUI();
+		LUMOS_PROFILE(system::Profiler::OnImGUI());
 		EndDockSpace();
 	}
 
@@ -98,6 +98,40 @@ namespace Lumos
 			ImGui::EndMainMenuBar();
 		}
 	}
+    
+    void Editor::DrawNode(std::shared_ptr<Entity>& node)
+    {
+        if (node == nullptr)
+            return;
+        
+        if(node->GetChildren().empty())
+        {
+            ImGui::Indent();
+            if(ImGui::Selectable(node->GetName().c_str(), m_Selected == node.get()))
+               m_Selected = node.get();
+            ImGui::Unindent();
+        }
+        else
+        {
+            ImGuiTreeNodeFlags nodeFlags = ((m_Selected == node.get()) ? ImGuiTreeNodeFlags_Selected : 0);
+            
+            nodeFlags |= ImGuiTreeNodeFlags_OpenOnArrow | ImGuiTreeNodeFlags_OpenOnDoubleClick;
+            bool nodeOpen = ImGui::TreeNodeEx((node->GetName() + "##" + node->GetUUID()).c_str(), nodeFlags, node->GetName().c_str(), 0);
+            if (ImGui::IsItemClicked())
+                m_Selected = node.get();
+            
+            if (nodeOpen == false)
+                return;
+            
+            for (auto child : node->GetChildren())
+            {
+                this->DrawNode(child);
+            }
+            
+            if(nodeOpen)
+                ImGui::TreePop();
+        }
+    }
 
 	void Editor::DrawHierarchyWindow()
 	{
@@ -105,15 +139,6 @@ namespace Lumos
 		{
 			if (ImGui::TreeNode("Application"))
 			{
-				/*		if (ImGui::RadioButton("Translate", m_ImGuizmoOperation == ImGuizmo::TRANSLATE))
-					m_ImGuizmoOperation = ImGuizmo::TRANSLATE;
-				ImGui::SameLine();
-				if (ImGui::RadioButton("Rotate", m_ImGuizmoOperation == ImGuizmo::ROTATE))
-					m_ImGuizmoOperation = ImGuizmo::ROTATE;
-				ImGui::SameLine();
-				if (ImGui::RadioButton("Scale", m_ImGuizmoOperation == ImGuizmo::SCALE))
-					m_ImGuizmoOperation = ImGuizmo::SCALE;*/
-
 				if (ImGui::ImageButton(m_Icons["translate"]->GetHandle(), ImVec2(16, 16), ImVec2(0.0f, m_FlipImGuiImage ? 1.0f : 0.0f), ImVec2(1.0f, m_FlipImGuiImage ? 0.0f : 1.0f)))
 					m_ImGuizmoOperation = ImGuizmo::TRANSLATE;
 				ImGui::SameLine();
@@ -160,32 +185,17 @@ namespace Lumos
 			}
 
 			
-			m_Application->m_SceneManager->GetCurrentScene()->OnIMGUI();
 			if (ImGui::TreeNode("Scene"))
 			{
 				ImGui::Indent();
 				auto scene = m_Application->m_SceneManager->GetCurrentScene();
 
-				if(scene->GetLightSetup())
-					scene->GetLightSetup()->OnImGUI();
-
-				auto entities = scene->GetEntities();
-				scene->GetCamera()->OnImGUI();
-				
-				std::string title = "Entities : " + StringFormat::ToString(static_cast<int>(entities.size()));
-
-				if (ImGui::TreeNode(title.c_str()))
-				{
-					ImGui::Indent();
-					for (auto& entity : entities)
-					{
-						if (ImGui::Selectable(entity->GetName().c_str(), m_Selected == entity.get()))
-							m_Selected = entity.get();
-					}
-					ImGui::TreePop();
-				}
-				ImGui::TreePop();
-			}
+				DrawNode(Application::Instance()->GetSceneManager()->GetCurrentScene()->GetRootEntity());
+                
+                ImGui::TreePop();
+            }
+			
+			m_Application->m_SceneManager->GetCurrentScene()->OnIMGUI();
 		}
 		ImGui::End();
 	}
@@ -337,9 +347,7 @@ namespace Lumos
 
 		maths::Vector3 worldMousePos = invProjView * maths::Vector3(pointX, pointY, 0.0f);
 
-		auto entities = m_Application->m_SceneManager->GetCurrentScene()->GetEntities();
-
-		for (auto& entity : entities)
+		m_Application->m_SceneManager->GetCurrentScene()->IterateEntities([&](std::shared_ptr<Entity> entity)
 		{
 			auto boundingBox = entity->GetBoundingRadius();
 			maths::BoundingSphere test(entity->GetTransform()->m_Transform.GetWorldPosition(), boundingBox);
@@ -348,7 +356,7 @@ namespace Lumos
 				m_Selected = entity.get();
 				return;
 			}
-		}
+		});
 	}
 
 	void Editor::OnInit()
