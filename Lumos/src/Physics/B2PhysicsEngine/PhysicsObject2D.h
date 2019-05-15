@@ -26,6 +26,7 @@ namespace Lumos
 		void SetLinearVelocity(const maths::Vector2& v) const;
 		void SetForce(const maths::Vector2& v) const;
 		void SetPosition(const maths::Vector2& pos) const;
+        void SetOrientation(float angle) const;
 
 		void Init(const PhysicsObjectParamaters& params);
         

@@ -17,13 +17,6 @@ namespace Lumos
 
 	void SpriteComponent::OnUpdateComponent(float dt)
 	{
-		Physics2DComponent* physicsComponent = m_Entity->GetComponent<Physics2DComponent>();
-		if (physicsComponent)
-		{
-            //m_Sprite->m_Position = physicsComponent->m_PhysicsObject->GetPosition();
-			//m_Sprite->m_RotationMatrix = maths::Matrix4::Rotation(static_cast<float>(maths::RadToDeg(physicsComponent->m_PhysicsObject->GetAngle())), maths::Vector3::ZAxis());
-		}
-			
 	}
 
 	void SpriteComponent::OnIMGUI()

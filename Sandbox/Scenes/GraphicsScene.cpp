@@ -42,8 +42,12 @@ void GraphicsScene::OnInit()
 
 	auto sun = std::make_shared<Light>();
 	sun->SetDirection(maths::Vector3(26.0f, 22.0f, 48.5f));
-	sun->SetPosition(maths::Vector3(26.0f, 22.0f, 48.5f) * 10000.0f);
-	m_LightSetup->SetDirectionalLight(sun);
+	sun->SetPosition(maths::Vector3(26.0f, 22.0f, 48.5f) * 100.0f);
+
+	auto lightEntity = std::make_shared<Entity>("Directional Light", this);
+	lightEntity->AddComponent(std::make_unique<LightComponent>(sun));
+	lightEntity->AddComponent(std::make_unique<TransformComponent>(Matrix4::Translation(maths::Vector3(26.0f, 22.0f, 48.5f) * 100.0f)));
+	AddEntity(lightEntity);
 
 	//SoundSystem::Instance()->SetListener(m_pCamera);
 
@@ -53,6 +57,7 @@ void GraphicsScene::OnInit()
 	auto skyboxRenderer = new SkyboxRenderer(m_ScreenWidth, m_ScreenHeight, m_EnvironmentMap);
 	deferredRenderer->SetRenderTarget(Application::Instance()->GetRenderManager()->GetGBuffer()->m_ScreenTex[SCREENTEX_OFFSCREEN0]);
 	skyboxRenderer->SetRenderTarget(Application::Instance()->GetRenderManager()->GetGBuffer()->m_ScreenTex[SCREENTEX_OFFSCREEN0]);
+	shadowRenderer->SetLight(sun);
 
 	deferredRenderer->SetRenderToGBufferTexture(true);
 	skyboxRenderer->SetRenderToGBufferTexture(true);
@@ -98,7 +103,7 @@ void GraphicsScene::LoadModels()
 
 	//std::shared_ptr<Model> waterModel = std::make_shared<Model>(Water(maths::Vector3(20.0f, 2.0f, 20.0f), maths::Vector3(20.0f, 2.0f, 20.0f)));
 	//water->AddComponent(std::make_unique<TextureMatrixComponent>(Matrix4::Scale(maths::Vector3(10.0f, 10.0f, 10.0f))));
-	//water->AddComponent(std::make_unique<ModelComponent>(waterModel));
+	//water->AddComponent(std::make_unique<MeshComponent>(waterModel));
 	//water->SetBoundingRadius(200.0f);
 	//AddEntity(water);
 
@@ -111,7 +116,7 @@ void GraphicsScene::LoadModels()
 	heightmap->AddComponent(std::make_unique<TransformComponent>(Matrix4::Scale(maths::Vector3(1.0f))));
 	heightmap->AddComponent(std::make_unique<TextureMatrixComponent>(Matrix4::Scale(maths::Vector3(1.0f, 1.0f, 1.0f))));
 	heightmap->SetBoundingRadius(2000.0f);
-	std::shared_ptr<Model> terrain = std::make_shared<Model>(*terrainMesh);
+	std::shared_ptr<Mesh> terrain = std::make_shared<Mesh>(*terrainMesh);
 	auto material = std::make_shared<Material>();
 
 	material->LoadMaterial("checkerboard", "/CoreTextures/checkerboard.tga");
@@ -119,7 +124,7 @@ void GraphicsScene::LoadModels()
 
 	//terrain->SetMaterial(std::make_shared<Material>(*m_MaterialManager->GetAsset("Stone").get()));
 	//terrain->SetMaterialFlag(Material::RenderFlags::WIREFRAME);
-	heightmap->AddComponent(std::make_unique<ModelComponent>(terrain));
+	heightmap->AddComponent(std::make_unique<MeshComponent>(terrain));
 
 	AddEntity(heightmap);
 
@@ -135,16 +140,6 @@ void GraphicsScene::OnIMGUI()
 		ImGui::End();
 		return;
 	}
-
-	auto lightDirection = m_LightSetup->GetDirectionalLight()->GetDirection();
-
-	ImVec4 test = ImVec4(lightDirection.GetX(),lightDirection.GetY(), lightDirection.GetZ(), 1.0f);
-
-	ImGui::Text("Light");
-	ImGui::DragFloat4("Direction", &test.x);
-
-	lightDirection = maths::Vector3(test.x,test.y,test.z);
-	m_LightSetup->GetDirectionalLight()->SetDirection(lightDirection);
 
     ImGui::End();
 }

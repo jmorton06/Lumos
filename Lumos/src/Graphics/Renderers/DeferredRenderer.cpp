@@ -6,7 +6,7 @@
 #include "Graphics/Light.h"
 #include "Graphics/API/Textures/TextureDepth.h"
 #include "Graphics/API/Textures/TextureCube.h"
-#include "Graphics/Model/Model.h"
+#include "Graphics/ModelLoader/ModelLoader.h"
 #include "Graphics/Mesh.h"
 #include "Graphics/MeshFactory.h"
 #include "Graphics/Material.h"
@@ -72,6 +72,7 @@ namespace Lumos
         delete m_DefaultDescriptorSet;
         delete m_DeferredDescriptorSet;
         delete m_DefaultMaterialDataUniformBuffer;
+		delete m_LightSetup;
 
         delete[] m_VSSystemUniformBuffer;
         delete[] m_PSSystemUniformBuffer;
@@ -125,11 +126,12 @@ namespace Lumos
 		m_ScreenQuad = Lumos::MeshFactory::CreateQuad();
 
 		m_CommandQueue.reserve(1000);
+		m_LightSetup = new LightSetup();
 
 		//
 		// Vertex shader system uniforms
 		//
-		m_VSSystemUniformBufferSize = sizeof(maths::Matrix4);// +sizeof(Matrix4) + sizeof(Matrix4); //+ sizeof(Vector3) ;
+		m_VSSystemUniformBufferSize = sizeof(maths::Matrix4);
 		m_VSSystemUniformBuffer = new byte[m_VSSystemUniformBufferSize];
 		memset(m_VSSystemUniformBuffer, 0, m_VSSystemUniformBufferSize);
 		m_VSSystemUniformBufferOffsets.resize(VSSystemUniformIndex_Size);
@@ -138,7 +140,7 @@ namespace Lumos
         m_VSSystemUniformBufferOffsets[VSSystemUniformIndex_ProjectionMatrix] = 0;
 
         // Pixel/fragment shader system uniforms
-        m_PSSystemUniformBufferSize = sizeof(UniformBufferLight);// sizeof(maths::Vector3) + sizeof(maths::Vector3) + sizeof(maths::Vector3);//sizeof(Light);
+        m_PSSystemUniformBufferSize = sizeof(UniformBufferLight);
         m_PSSystemUniformBuffer = new byte[m_PSSystemUniformBufferSize];
         memset(m_PSSystemUniformBuffer, 0, m_PSSystemUniformBufferSize);
         m_PSSystemUniformBufferOffsets.resize(PSSystemUniformIndex_Size);
@@ -195,7 +197,7 @@ namespace Lumos
 
 	void DeferredRenderer::RenderScene(RenderList* renderList, Scene* scene)
 	{
-		SubmitLightSetup(*scene->GetLightSetup(),scene);
+		SubmitLightSetup(scene);
 
 		BeginOffscreen();
 
@@ -203,40 +205,38 @@ namespace Lumos
 		{
 			if (obj != nullptr)
 			{
-				auto* model = obj->GetComponent<ModelComponent>();
+				auto* model = obj->GetComponent<MeshComponent>();
 				if (model && model->m_Model)
 				{
-					for (auto& mesh : model->m_Model->GetMeshs())
+					auto mesh = model->m_Model;
+					if (mesh->GetMaterial())
 					{
-						if (mesh->GetMaterial())
-						{
-							if(mesh->GetMaterial()->GetDescriptorSet() == nullptr || mesh->GetMaterial()->GetPipeline() != m_OffScreenPipeline)
-								mesh->GetMaterial()->CreateDescriptorSet(m_OffScreenPipeline, 1);
-						}
-
-						TextureMatrixComponent* textureMatrixTransform = obj->GetComponent<TextureMatrixComponent>();
-						maths::Matrix4 textureMatrix;
-						if (textureMatrixTransform)
-							textureMatrix = textureMatrixTransform->m_TextureMatrix;
-						else
-							textureMatrix = maths::Matrix4();
-
-						auto transform = obj->GetComponent<TransformComponent>()->m_Transform.GetWorldMatrix();
-
-                    #if 0
-                        bool inside = true;
-                        
-						float maxScaling = 0.0f;
-						maxScaling = maths::Max(transform.GetScaling().GetX(), maxScaling);
-						maxScaling = maths::Max(transform.GetScaling().GetY(), maxScaling);
-						maxScaling = maths::Max(transform.GetScaling().GetZ(), maxScaling);
-
-						inside = GraphicsPipeline::Instance()->GetFrustum().InsideFrustum(transform * mesh->GetBoundingSphere()->Centre(), maxScaling * mesh->GetBoundingSphere()->SphereRadius());
-                        
-                        if (inside)
-                    #endif
-                            SubmitMesh(mesh.get(), transform, textureMatrix);
+						if(mesh->GetMaterial()->GetDescriptorSet() == nullptr || mesh->GetMaterial()->GetPipeline() != m_OffScreenPipeline)
+							mesh->GetMaterial()->CreateDescriptorSet(m_OffScreenPipeline, 1);
 					}
+
+					TextureMatrixComponent* textureMatrixTransform = obj->GetComponent<TextureMatrixComponent>();
+					maths::Matrix4 textureMatrix;
+					if (textureMatrixTransform)
+						textureMatrix = textureMatrixTransform->m_TextureMatrix;
+					else
+						textureMatrix = maths::Matrix4();
+
+					auto transform = obj->GetComponent<TransformComponent>()->m_Transform.GetWorldMatrix();
+
+                #if 0
+                    bool inside = true;
+                        
+					float maxScaling = 0.0f;
+					maxScaling = maths::Max(transform.GetScaling().GetX(), maxScaling);
+					maxScaling = maths::Max(transform.GetScaling().GetY(), maxScaling);
+					maxScaling = maths::Max(transform.GetScaling().GetZ(), maxScaling);
+
+					inside = GraphicsPipeline::Instance()->GetFrustum().InsideFrustum(transform * mesh->GetBoundingSphere()->Centre(), maxScaling * mesh->GetBoundingSphere()->SphereRadius());
+                        
+                    if (inside)
+                #endif
+                        SubmitMesh(mesh.get(), transform, textureMatrix);
 				}
 			}
 		});
@@ -332,36 +332,37 @@ namespace Lumos
 		Submit(command);
 	}
 
-	void DeferredRenderer::SubmitLightSetup(const LightSetup& lightSetup, Scene* scene)
+	void DeferredRenderer::SubmitLightSetup(Scene* scene)
 	{
-		//One Directional Light
-		if (lightSetup.GetDirectionalLight() != nullptr)
+		auto lightList = scene->GetLightList();
+
+		if (lightList.empty())
+			return;
+	
+		uint32_t currentOffset = 0;
+		maths::Vector4 lightPos = maths::Vector4(lightList[0]->GetPosition());
+		maths::Vector4 lightDir = maths::Vector4(lightList[0]->GetDirection());
+		maths::Vector4 cameraPos = maths::Vector4(scene->GetCamera()->GetPosition());
+
+		memcpy(m_PSSystemUniformBuffer + currentOffset, &lightPos, sizeof(maths::Vector4));
+		currentOffset += sizeof(maths::Vector4);
+		memcpy(m_PSSystemUniformBuffer + currentOffset, &lightDir, sizeof(maths::Vector4));
+		currentOffset += sizeof(maths::Vector4);
+		memcpy(m_PSSystemUniformBuffer + currentOffset, &cameraPos, sizeof(maths::Vector4));
+		currentOffset += sizeof(maths::Vector4);
+
+		auto shadowRenderer = Application::Instance()->GetRenderManager()->GetShadowRenderer();
+		if(shadowRenderer)
 		{
-			uint32_t currentOffset = 0;
-			maths::Vector4 lightPos = maths::Vector4(lightSetup.GetDirectionalLight()->GetPosition());
-			maths::Vector4 lightDir = maths::Vector4(lightSetup.GetDirectionalLight()->GetDirection());
-			maths::Vector4 cameraPos = maths::Vector4(scene->GetCamera()->GetPosition());
+			maths::Matrix4* shadowTransforms = shadowRenderer->GetShadowProjView();
+			auto viewMat = scene->GetCamera()->GetViewMatrix();
+            Lumos::maths::Vector4* uSplitDepth = shadowRenderer->GetSplitDepths();
 
-			memcpy(m_PSSystemUniformBuffer + currentOffset, &lightPos, sizeof(maths::Vector4));
-			currentOffset += sizeof(maths::Vector4);
-			memcpy(m_PSSystemUniformBuffer + currentOffset, &lightDir, sizeof(maths::Vector4));
-			currentOffset += sizeof(maths::Vector4);
-			memcpy(m_PSSystemUniformBuffer + currentOffset, &cameraPos, sizeof(maths::Vector4));
-			currentOffset += sizeof(maths::Vector4);
-
-			auto shadowRenderer = Application::Instance()->GetRenderManager()->GetShadowRenderer();// m_ShadowRenderer.get(); 
-			if(shadowRenderer)
-			{
-				maths::Matrix4* shadowTransforms = shadowRenderer->GetShadowProjView();
-				auto viewMat = scene->GetCamera()->GetViewMatrix();
-                Lumos::maths::Vector4* uSplitDepth = shadowRenderer->GetSplitDepths();
-
-				memcpy(m_PSSystemUniformBuffer + currentOffset, &viewMat, sizeof(maths::Matrix4));
-				currentOffset += sizeof(maths::Matrix4);
-				memcpy(m_PSSystemUniformBuffer + currentOffset, shadowTransforms, sizeof(maths::Matrix4) * 16);
-				currentOffset += sizeof(maths::Matrix4) * 16;
-				memcpy(m_PSSystemUniformBuffer + currentOffset, uSplitDepth, sizeof(Lumos::maths::Vector4) * 16);
-			}
+			memcpy(m_PSSystemUniformBuffer + currentOffset, &viewMat, sizeof(maths::Matrix4));
+			currentOffset += sizeof(maths::Matrix4);
+			memcpy(m_PSSystemUniformBuffer + currentOffset, shadowTransforms, sizeof(maths::Matrix4) * 16);
+			currentOffset += sizeof(maths::Matrix4) * 16;
+			memcpy(m_PSSystemUniformBuffer + currentOffset, uSplitDepth, sizeof(Lumos::maths::Vector4) * 16);
 		}
 	}
 

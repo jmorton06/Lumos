@@ -247,7 +247,6 @@ namespace Lumos
 		{
 			return sqrt(x * x + y * y + z * z + w * w);
 		}
-		//
 
 		Quaternion Quaternion::FromMatrix(const Matrix4& m)
 		{

@@ -55,9 +55,9 @@ namespace Lumos
 		{
 			Layer* layer = m_Layers[i];
             
-            system::Profiler::OnBeginRange("Layer Render : " + layer->GetName(), true, "Render");
+			LUMOS_PROFILE(system::Profiler::OnBeginRange("Layer Render : " + layer->GetName(), true, "Render"));
 			layer->OnRender(scene);
-            system::Profiler::OnEndRange("Layer Render : " + layer->GetName(), true, "Render");
+			LUMOS_PROFILE(system::Profiler::OnEndRange("Layer Render : " + layer->GetName(), true, "Render"));
 		}
 	}
 
@@ -66,9 +66,9 @@ namespace Lumos
 		for (uint i = 0; i < m_Layers.size(); i++)
 		{
 			Layer* layer = m_Layers[i];
-            system::Profiler::OnBeginRange("Layer Update : " + layer->GetName(), true, "Update");
+			LUMOS_PROFILE(system::Profiler::OnBeginRange("Layer Update : " + layer->GetName(), true, "Update"));
 			layer->OnUpdate(timeStep, scene);
-            system::Profiler::OnEndRange("Layer Update : " + layer->GetName(), true, "Update");
+			LUMOS_PROFILE(system::Profiler::OnEndRange("Layer Update : " + layer->GetName(), true, "Update"));
 		}
 	}
 

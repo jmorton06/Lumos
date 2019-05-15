@@ -14,13 +14,16 @@ namespace Lumos
 			Transform(const Vector3& position);
 			~Transform();
 
-			void SetWorldMatrix(const Matrix4& mat) { m_WorldMatrix = mat; }
+            void SetWorldMatrix(const Matrix4& mat);
 			void SetWorldPosition(const Vector3& worldPos);
 			void SetLocalPosition(const Vector3& localPos);
+            
+            void SetLocalTransform(const Matrix4& localMat);
 
 			void SetWorldScale(const Vector3& worldScale);
 			void SetLocalScale(const Vector3& localScale);
-			void SetOrientation(const Quaternion& quat);
+			void SetLocalOrientation(const Quaternion& quat);
+            void SetWorldOrientation(const Quaternion& quat);
 
 			Matrix4 GetWorldMatrix() const
 			{
@@ -42,13 +45,15 @@ namespace Lumos
 			bool HasUpdated() const { return m_HasUpdated; }
 			void SetHasUpdated(bool set) { m_HasUpdated = set; }
 
+			void ApplyTransform();
+
 		protected:
 			Matrix4		m_LocalMatrix;
 			Matrix4		m_WorldMatrix;
 
 			Vector3		m_LocalPosition;
 			Vector3		m_LocalScale;
-			Quaternion	m_Orientation;
+			Quaternion	m_LocalOrientation;
 
 			bool m_HasUpdated = false;
 		};

@@ -8,13 +8,14 @@
 #include "Physics/LumosPhysicsEngine/Octree.h"
 #include "Graphics/Layers/LayerStack.h"
 #include "Graphics/Light.h"
-#include "Graphics/Model/Model.h"
+#include "Graphics/ModelLoader/ModelLoader.h"
 #include "Utilities/TimeStep.h"
 #include "App/Input.h"
 #include "App/Application.h"
 #include "Graphics/RenderManager.h"
 #include "Physics/LumosPhysicsEngine/LumosPhysicsEngine.h"
 #include "Graphics/Camera/Camera.h"
+#include "Entity/Component/TransformComponent.h"
 
 namespace Lumos
 {
@@ -24,11 +25,12 @@ namespace Lumos
 		  m_ScreenHeight(0),
 		  m_DrawDebugData(false)
 	{
-		m_ParticleManager = nullptr; //  new ParticleManager();
-
-		m_LightSetup = new LightSetup();
+		m_ParticleManager = nullptr;
 
 		m_MaterialManager = new AssetManager<Material>();
+
+		m_RootEntity = std::make_shared<Entity>("Root Node", nullptr);
+		m_RootEntity->AddComponent(std::make_unique<TransformComponent>(maths::Matrix4()));
 	}
 
     Scene::~Scene()
@@ -40,8 +42,6 @@ namespace Lumos
             delete m_ParticleManager;
             m_ParticleManager = nullptr;
         }
-
-        delete m_LightSetup;
 
         SAFE_DELETE(m_MaterialManager);
     }
@@ -122,7 +122,6 @@ namespace Lumos
 
 	void Scene::OnCleanupScene()
 	{
-		m_LightSetup->Clear();
 		m_MaterialManager->Clear();
 
 		m_pFrameRenderList.reset();
@@ -145,18 +144,18 @@ namespace Lumos
 		m_CurrentScene = false;
 	};
 
-	void Scene::AddEntity(std::shared_ptr<Entity> game_object)
+	void Scene::AddEntity(std::shared_ptr<Entity>& game_object)
 	{
 		if (game_object->GetComponent<Physics3DComponent>())
 			game_object->GetComponent<Physics3DComponent>()->m_PhysicsObject->AutoResizeBoundingBox();
 
-		m_Entities.emplace_back(game_object);
+		m_RootEntity->AddChildObject(game_object);
 	}
 
 
 	void Scene::DeleteAllGameObjects()
 	{
-		m_Entities.clear();
+		m_RootEntity->GetChildren().clear();
 	}
 
 	void Scene::OnUpdate(TimeStep* timeStep)
@@ -171,11 +170,17 @@ namespace Lumos
 		}
 
 		BuildFrameRenderList();
+		BuildLightList();
 
-		for (const auto& entity : m_Entities)
+		std::function<void(std::shared_ptr<Entity>)> per_object_func = [&](std::shared_ptr<Entity> obj)
 		{
-			entity->OnUpdateObject(timeStep->GetSeconds());
-		}
+			obj->OnUpdateObject(timeStep->GetSeconds());
+
+			for(auto child : obj->GetChildren())
+				per_object_func(child);
+		};
+
+		per_object_func(m_RootEntity);
 
 		if(m_ParticleManager)
 			m_ParticleManager->Update(timeStep->GetSeconds());
@@ -183,58 +188,68 @@ namespace Lumos
 
 	void Scene::BuildWorldMatrices()
 	{
-		for (const auto& entity : m_Entities)
+		std::function<void(std::shared_ptr<Entity>)> per_object_func = [&](std::shared_ptr<Entity> obj)
 		{
-			Physics3DComponent* physicsComponent = entity->GetComponent<Physics3DComponent>();
-			TransformComponent* transformComponent = entity->GetComponent<TransformComponent>();
+			Physics3DComponent* physicsComponent = obj->GetComponent<Physics3DComponent>();
+			TransformComponent* transformComponent = obj->GetComponent<TransformComponent>();
 			if (physicsComponent)
 			{
-				if(transformComponent)
+				if (transformComponent)
 					transformComponent->m_Transform.GetWorldMatrix() = physicsComponent->m_PhysicsObject->GetWorldSpaceTransform() * transformComponent->m_Transform.GetLocalMatrix();
 			}
 			else
-            {
-                if (transformComponent)
-                    transformComponent->m_Transform.GetWorldMatrix() = transformComponent->m_Transform.GetLocalMatrix();
-            }
-		}
+			{
+				if (transformComponent)
+					transformComponent->m_Transform.GetWorldMatrix() = transformComponent->m_Transform.GetLocalMatrix();
+			}
+
+			for (auto child : obj->GetChildren())
+				per_object_func(child);
+		};
+
+		per_object_func(m_RootEntity);
 	}
 
 	void Scene::DebugRender()
 	{
 		if (m_DebugDrawFlags & DEBUGDRAW_FLAGS_ENTITY_COMPONENTS)
 		{
-			for(auto& entity : m_Entities)
+			std::function<void(std::shared_ptr<Entity>)> per_object_func = [&](std::shared_ptr<Entity> obj)
 			{
-				entity->DebugDraw(m_DebugDrawFlags);
-			}
+				obj->DebugDraw(m_DebugDrawFlags);
+
+				for (auto child : obj->GetChildren())
+					per_object_func(child);
+			};
+
+			per_object_func(m_RootEntity);
 		}
 	}
 
 	void Scene::InsertToRenderList(RenderList* list, const maths::Frustum& frustum) const
 	{
-		for (auto entity : m_Entities)
+		std::function<void(std::shared_ptr<Entity>)> per_object_func = [&](std::shared_ptr<Entity> obj)
 		{
-			auto modelComponent = entity->GetComponent<ModelComponent>();
-			if(modelComponent)
+			auto meshComponent = obj->GetComponent<MeshComponent>();
+			if (meshComponent)
 			{
-				bool inside = frustum.InsideFrustum(entity->GetComponent<TransformComponent>()->m_Transform.GetWorldMatrix().GetPositionVector(), entity->GetBoundingRadius());
+				bool inside = frustum.InsideFrustum(obj->GetComponent<TransformComponent>()->m_Transform.GetWorldMatrix().GetPositionVector(), obj->GetBoundingRadius());
 
 				if (inside)
 				{
 					//Check to see if the object is already listed or not
-					if (!(list->BitMask() & entity->GetFrustumCullFlags()))
+					if (!(list->BitMask() & obj->GetFrustumCullFlags()))
 					{
-						list->InsertObject(entity);
+						list->InsertObject(obj);
 					}
 				}
 			}
-		}
-	}
 
-	void Scene::AddPointLight(std::shared_ptr<Light> light) const
-	{
-		m_LightSetup->Add(light);
+			for (auto child : obj->GetChildren())
+				per_object_func(child);
+		};
+
+		per_object_func(m_RootEntity);
 	}
 
 	void Scene::BuildFrameRenderList()
@@ -250,6 +265,41 @@ namespace Lumos
 		m_pFrameRenderList->RemoveExcessObjects(m_FrameFrustum);
 		m_pFrameRenderList->SortLists();
 		InsertToRenderList(m_pFrameRenderList.get(), m_FrameFrustum);
+	}
+
+	void Scene::BuildLightList()
+	{
+		m_LightList.clear();
+
+		std::function<void(std::shared_ptr<Entity>)> per_object_func = [&](std::shared_ptr<Entity> obj)
+		{
+			auto lightComponent = obj->GetComponent<LightComponent>();
+			if (lightComponent)
+			{
+				m_LightList.emplace_back(lightComponent->GetLight());
+			}
+
+			for (auto child : obj->GetChildren())
+				per_object_func(child);
+		};
+
+		per_object_func(m_RootEntity);
+	}
+
+	void Scene::IterateEntities(const std::function<void(std::shared_ptr<Entity>)>& per_object_func)
+	{
+		std::function<void(std::shared_ptr<Entity>)> per_object_func2 = [&](std::shared_ptr<Entity> obj)
+		{
+			if (obj->IsActive())
+			{
+				per_object_func(obj);
+
+				for (auto child : obj->GetChildren())
+					per_object_func2(child);
+			}
+		};
+
+		per_object_func2(m_RootEntity);
 	}
 
 	void Scene::OnEvent(Event& e)

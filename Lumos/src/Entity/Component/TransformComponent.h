@@ -10,7 +10,7 @@ namespace Lumos
 	public:
 		explicit TransformComponent(const maths::Matrix4& matrix);
 
-		void SetWorldMatrix(const maths::Matrix4& matrix) { m_Transform.SetWorldMatrix(matrix); }
+        void SetWorldMatrix(const maths::Matrix4& matrix);
 		static ComponentType GetStaticType()
 		{
             static ComponentType type(ComponentType::Transform);
@@ -20,6 +20,7 @@ namespace Lumos
 		inline virtual ComponentType GetType() const override { return GetStaticType(); }
 		void OnUpdateComponent(float dt) override;
         void OnIMGUI() override;
+		
     public:
 		maths::Transform m_Transform;
 	};

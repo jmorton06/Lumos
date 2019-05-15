@@ -39,18 +39,38 @@ void SceneModelViewer::OnInit()
 
 	auto sun = std::make_shared<Light>();
 	sun->SetDirection(maths::Vector3(26.0f, 22.0f, 48.5f));
-	sun->SetPosition(maths::Vector3(26.0f, 22.0f, 48.5f) * 10000.0f);
-	sun->SetBrightness(4.0f);
-	m_LightSetup->SetDirectionalLight(sun);
+	sun->SetPosition(maths::Vector3(26.0f, 22.0f, 48.5f) * 100.0f);
 
-	auto forwardRenderer = new DeferredRenderer(m_ScreenWidth, m_ScreenHeight);
-	auto forwardLayer = new Layer3D(forwardRenderer);
-	forwardRenderer->SetRenderTarget(Application::Instance()->GetRenderManager()->GetGBuffer()->m_ScreenTex[SCREENTEX_OFFSCREEN0]);
+	auto lightEntity = std::make_shared<Entity>("Directional Light", this);
+	lightEntity->AddComponent(std::make_unique<LightComponent>(sun));
+	lightEntity->AddComponent(std::make_unique<TransformComponent>(Matrix4::Translation(maths::Vector3(26.0f, 22.0f, 48.5f) * 100.0f)));
+	AddEntity(lightEntity);
 
-	Application::Instance()->PushLayer(forwardLayer);
-	m_SceneLayers.emplace_back(forwardLayer);
+    auto shadowTexture = std::unique_ptr<TextureDepthArray>(TextureDepthArray::Create(2048, 2048, 4));
+    auto shadowRenderer = new ShadowRenderer();
+    auto deferredRenderer = new DeferredRenderer(m_ScreenWidth, m_ScreenHeight);
+    auto skyboxRenderer = new SkyboxRenderer(m_ScreenWidth, m_ScreenHeight, m_EnvironmentMap);
+    deferredRenderer->SetRenderTarget(Application::Instance()->GetRenderManager()->GetGBuffer()->m_ScreenTex[SCREENTEX_OFFSCREEN0]);
+    skyboxRenderer->SetRenderTarget(Application::Instance()->GetRenderManager()->GetGBuffer()->m_ScreenTex[SCREENTEX_OFFSCREEN0]);
+	shadowRenderer->SetLight(sun);
 
-	forwardRenderer->SetRenderToGBufferTexture(true);
+    deferredRenderer->SetRenderToGBufferTexture(true);
+    skyboxRenderer->SetRenderToGBufferTexture(true);
+    
+    auto shadowLayer = new Layer3D(shadowRenderer, "Shadow");
+    auto deferredLayer = new Layer3D(deferredRenderer, "Deferred");
+    auto skyBoxLayer = new Layer3D(skyboxRenderer, "Skybox");
+    Application::Instance()->PushLayer(shadowLayer);
+    Application::Instance()->PushLayer(deferredLayer);
+    Application::Instance()->PushLayer(skyBoxLayer);
+    
+    m_SceneLayers.emplace_back(shadowLayer);
+    m_SceneLayers.emplace_back(deferredLayer);
+    m_SceneLayers.emplace_back(skyBoxLayer);
+    //Application::Instance()->PushOverLay(new ImGuiLayer(true));
+    
+    Application::Instance()->GetRenderManager()->SetShadowRenderer(shadowRenderer);
+    Application::Instance()->GetRenderManager()->SetSkyBoxTexture(m_EnvironmentMap);
 }
 
 void SceneModelViewer::OnUpdate(TimeStep* timeStep)
@@ -71,14 +91,13 @@ void SceneModelViewer::OnCleanupScene()
 
 void SceneModelViewer::LoadModels()
 {
-	std::shared_ptr<Entity> TestObject = std::make_shared<Entity>("TestObject", this);
+	std::shared_ptr<Entity> TestObject = ModelLoader::LoadModel("/Meshes/Scene/scene.gltf");
+	//DamagedHelmet/glTF/DamagedHelmet.gltf");//Cube/Cube.gltf");//Scene/scene.gltf");///Meshes/Spyro/ArtisansHub.obj
 	TestObject->SetBoundingRadius(20000.0f);
-
-	TestObject->AddComponent(std::make_unique<TransformComponent>(Matrix4()));//(Matrix4::Translation(maths::Vector3(0.0, 0.0, 0.0f)) * Matrix4::RotationX(-90.0f) * Matrix4::RotationZ(90.0f))));
-	std::shared_ptr<Model> model = std::make_shared<Model>("Meshes/Spyro/ArtisansHub.obj");//DamagedHelmet/glTF/DamagedHelmet.gltf");//Cube/Cube.gltf");//Scene/scene.gltf");// *AssetsManager::DefaultModels()->GetAsset("Cube"));
-	TestObject->AddComponent(std::make_unique<ModelComponent>(model));
-
 	AddEntity(TestObject);
+    
+    std::shared_ptr<Entity> TestObject2 = ModelLoader::LoadModel("/CoreMeshes/pyramid.obj");
+    AddEntity(TestObject2);
 
 }
 

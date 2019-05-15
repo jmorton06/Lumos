@@ -34,8 +34,8 @@ namespace Lumos
 		LUMOS_ASSERT(!s_Instance, "Application already exists!");
 		s_Instance = this;
 
-		system::Profiler::OnBegin();
-		system::Profiler::OnBeginRange("StartUp", false, "", true);
+		LUMOS_PROFILE(system::Profiler::OnBegin());
+		LUMOS_PROFILE(system::Profiler::OnBeginRange("StartUp", false, "", true));
 	
 
 #ifdef  LUMOS_EDITOR
@@ -126,8 +126,8 @@ namespace Lumos
         
 		m_CurrentState = AppState::Running;
 
-		system::Profiler::OnEndRange("StartUp", false, "", true);
-		system::Profiler::OnEnd();
+		LUMOS_PROFILE(system::Profiler::OnEndRange("StartUp", false, "", true));
+		LUMOS_PROFILE(system::Profiler::OnEnd());
 	}
 
 	int Application::Quit(bool pause, const std::string &reason)
@@ -160,8 +160,8 @@ namespace Lumos
 	{
 		float now = m_Timer->GetMS(1.0f) * 1000.0f;
 
-		system::Profiler::OnBegin();
-		system::Profiler::OnBeginRange("MainLoop");
+		LUMOS_PROFILE(system::Profiler::OnBegin());
+		LUMOS_PROFILE(system::Profiler::OnBeginRange("MainLoop"));
 
 #ifdef LUMOS_LIMIT_FRAMERATE
 		if (now - m_UpdateTimer > Engine::Instance()->TargetFrameRate())
@@ -205,33 +205,33 @@ namespace Lumos
 		if (m_EditorState == EditorState::Next)
 			m_EditorState = EditorState::Paused;
 
-		system::Profiler::OnEndRange("MainLoop");
-		system::Profiler::OnEnd();
+		LUMOS_PROFILE(system::Profiler::OnEndRange("MainLoop"));
+		LUMOS_PROFILE(system::Profiler::OnEnd());
 		return m_CurrentState != AppState::Closing;
 	}
 
 	void Application::OnRender()
 	{
-		system::Profiler::OnBeginRange("Render", true, "MainLoop");
+		LUMOS_PROFILE(system::Profiler::OnBeginRange("Render", true, "MainLoop"));
 		if (m_LayerStack->GetCount() > 0)
 		{
-            system::Profiler::OnBeginRange("Begin", true, "Render");
+			LUMOS_PROFILE(system::Profiler::OnBeginRange("Begin", true, "Render"));
 			Renderer::GetRenderer()->Begin();
-            system::Profiler::OnEndRange("Begin", true, "Render");
+			LUMOS_PROFILE(system::Profiler::OnEndRange("Begin", true, "Render"));
 
 			m_LayerStack->OnRender(m_SceneManager->GetCurrentScene());
 
-            system::Profiler::OnBeginRange("Present", true, "Render");
+			LUMOS_PROFILE(system::Profiler::OnBeginRange("Present", true, "Render"));
 			Renderer::GetRenderer()->Present();
-            system::Profiler::OnEndRange("Present", true, "Render");
+			LUMOS_PROFILE(system::Profiler::OnEndRange("Present", true, "Render"));
 		}
 
-		system::Profiler::OnEndRange("Render", true, "MainLoop");
+		LUMOS_PROFILE(system::Profiler::OnEndRange("Render", true, "MainLoop"));
 	}
 
 	void Application::OnUpdate(TimeStep* dt)
 	{
-		system::Profiler::OnBeginRange("Update", true, "MainLoop");
+		LUMOS_PROFILE(system::Profiler::OnBeginRange("Update", true, "MainLoop"));
 		const uint sceneIdx = m_SceneManager->GetCurrentSceneIndex();
 		const uint sceneMax = m_SceneManager->SceneCount();
 
@@ -257,15 +257,15 @@ namespace Lumos
 			
 			for (auto& system : m_Systems)
             {
-                system::Profiler::OnBeginRange(system->GetName() , true, "Update");
+				LUMOS_PROFILE(system::Profiler::OnBeginRange(system->GetName() , true, "Update"));
                 system->OnUpdate(m_TimeStep.get());
-                system::Profiler::OnEndRange(system->GetName(), true, "Update");
+				LUMOS_PROFILE(system::Profiler::OnEndRange(system->GetName(), true, "Update"));
             }
 		}
 
 		m_LayerStack->OnUpdate(m_TimeStep.get(), m_SceneManager->GetCurrentScene());
 
-		system::Profiler::OnEndRange("Update", true, "MainLoop");
+		LUMOS_PROFILE(system::Profiler::OnEndRange("Update", true, "MainLoop"));
 	}
 
 	void Application::OnEvent(Event& e)

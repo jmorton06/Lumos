@@ -45,10 +45,8 @@ namespace Lumos
 		virtual void OnGuizmo(uint mode = 0);
         virtual void Init();
 
-		std::vector<Entity*>& GetChildren() { return m_vpChildren; }
-		void AddChildObject(Entity* child);
-
-		const String& GetName() const { return m_Name; }
+		std::vector<std::shared_ptr<Entity>>& GetChildren() { return m_vpChildren; }
+		void AddChildObject(std::shared_ptr<Entity>& child);
 
 		void  SetBoundingRadius(float radius) { m_BoundingRadius = radius; }
 		float GetBoundingRadius() const { return m_BoundingRadius; }
@@ -61,7 +59,15 @@ namespace Lumos
 		void DebugDraw(uint64 debugFlags);
 
 		TransformComponent* GetTransform();
-		void SetUpdateTransforms(bool set) { m_UpdateTransforms = set; }
+        
+        void SetParent(Entity* parent);
+        
+        const String& GetName() const { return m_Name; }
+        const String& GetUUID() const { return m_UUID; }
+
+		const bool IsActive() const { return m_Active; }
+		void SetActive(bool active) { m_Active = active; };
+		void SetActiveRecursive(bool active);
 
 	private:
 
@@ -81,10 +87,11 @@ namespace Lumos
 		String					m_Name;
 		Scene*					m_pScene;
 		Entity*					m_pParent;
-		std::vector<Entity*>	m_vpChildren;
+		std::vector<std::shared_ptr<Entity>> m_vpChildren;
 		float					m_BoundingRadius;
 		uint					m_FrustumCullFlags;
-		bool					m_UpdateTransforms;
+        String                  m_UUID;
+		bool					m_Active;
 		TransformComponent*		m_DefaultTransformComponent = nullptr;
 	};
 }

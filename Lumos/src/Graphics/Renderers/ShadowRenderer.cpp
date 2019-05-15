@@ -6,7 +6,7 @@
 #include "App/Scene.h"
 #include "Graphics/API/Shader.h"
 #include "Maths/Maths.h"
-#include "Graphics/Model/Model.h"
+#include "Graphics/ModelLoader/ModelLoader.h"
 #include "Maths/MathsUtilities.h"
 #include "Graphics/API/Renderer.h"
 #include "Graphics/API/CommandBuffer.h"
@@ -15,6 +15,7 @@
 #include "Graphics/API/UniformBuffer.h"
 #include "RenderCommand.h"
 #include "Graphics/Camera/Camera.h"
+#include "Graphics/Light.h"
 
 #include "System/JobSystem.h"
 
@@ -226,11 +227,11 @@ namespace Lumos
 			{
 				if (obj)
 				{
-					const auto model = obj->GetComponent<ModelComponent>();
+					const auto model = obj->GetComponent<MeshComponent>();
 
 					if (model && model->m_Model)
 					{
-						for (auto& mesh : model->m_Model->GetMeshs())
+						auto mesh = model->m_Model;
 						{
 							SubmitMesh(mesh.get(), obj->GetComponent<TransformComponent>()->m_Transform.GetWorldMatrix(), maths::Matrix4());
 						}
@@ -256,6 +257,9 @@ namespace Lumos
 
     void ShadowRenderer::UpdateCascades(Scene* scene)
     {
+		if (!m_Light)
+			return;
+
         float cascadeSplits[SHADOWMAP_MAX];
 
         float nearClip = scene->GetCamera()->GetNear();
@@ -278,11 +282,11 @@ namespace Lumos
         }
 
         float lastSplitDist = 0.0;
-        //for (uint32_t i = 0; i < m_ShadowMapNum; i++)
+        for (uint32_t i = 0; i < m_ShadowMapNum; i++)
 
-		system::JobSystem::Dispatch(static_cast<uint32>(m_ShadowMapNum), 1, [&](JobDispatchArgs args)
+		//system::JobSystem::Dispatch(static_cast<uint32>(m_ShadowMapNum), 1, [&](JobDispatchArgs args)
         {
-			int i = args.jobIndex;
+			//int i = args.jobIndex;
             float splitDist = cascadeSplits[i];
 
             maths::Vector3 frustumCorners[8] = {
@@ -337,7 +341,7 @@ namespace Lumos
             maths::Vector3 maxExtents =  maths::Vector3(radius);
             maths::Vector3 minExtents = -maxExtents;
 
-			maths::Vector3 lightDir = scene->GetLightSetup()->GetDirectionalLightDirection();
+			maths::Vector3 lightDir = m_Light->GetDirection();
             maths::Matrix4 lightViewMatrix = maths::Matrix4::BuildViewMatrix( frustumCenter ,frustumCenter + lightDir * -minExtents.z);
 
             //maths::Matrix4 lightOrthoMatrix = maths::Matrix4::Orthographic(minExtents.x, maxExtents.x, minExtents.y, maxExtents.y, 0.0f, maxExtents.z - minExtents.z);
@@ -357,9 +361,9 @@ namespace Lumos
             m_apShadowRenderLists[i]->SortLists();
             scene->InsertToRenderList(m_apShadowRenderLists[i], f);
 		}
-		);
+		//);
 
-		system::JobSystem::Wait();
+		//system::JobSystem::Wait();
     }
 
 	void ShadowRenderer::CreateFramebuffers()
