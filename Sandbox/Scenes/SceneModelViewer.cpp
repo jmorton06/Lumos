@@ -37,11 +37,11 @@ void SceneModelViewer::OnInit()
 
 	m_EnvironmentMap = TextureCube::CreateFromVCross(environmentFiles, 11);
 
-	auto sun = std::make_shared<graphics::Light>(maths::Vector3(26.0f, 22.0f, 48.5f));
+	auto sun = std::make_shared<graphics::Light>(maths::Vector3(26.0f, 22.0f, 48.5f), maths::Vector4(1.0f), 2.0f);
 
 	auto lightEntity = std::make_shared<Entity>("Directional Light", this);
 	lightEntity->AddComponent(std::make_unique<LightComponent>(sun));
-	lightEntity->AddComponent(std::make_unique<TransformComponent>(Matrix4::Translation(maths::Vector3(26.0f, 22.0f, 48.5f) * 100.0f)));
+	lightEntity->AddComponent(std::make_unique<TransformComponent>(Matrix4::Translation(maths::Vector3(26.0f, 22.0f, 48.5f))));
 	AddEntity(lightEntity);
 
     auto shadowTexture = std::unique_ptr<TextureDepthArray>(TextureDepthArray::Create(2048, 2048, 4));
@@ -89,13 +89,19 @@ void SceneModelViewer::OnCleanupScene()
 
 void SceneModelViewer::LoadModels()
 {
-	std::shared_ptr<Entity> TestObject = ModelLoader::LoadModel("/Meshes/Scene/scene.gltf");
-	//DamagedHelmet/glTF/DamagedHelmet.gltf");//Cube/Cube.gltf");//Scene/scene.gltf");///Meshes/Spyro/ArtisansHub.obj
+	std::vector<String> ExampleModelPaths
+	{
+		"/Meshes/KhronosExamples/DamagedHelmet/glTF/DamagedHelmet.gltf",
+		"/Meshes/Scene/scene.gltf",
+		"/Meshes/Spyro/ArtisansHub.obj",
+		"/Meshes/Cube/Cube.gltf",
+		"/Meshes/KhronosExamples/MetalRoughSpheres/glTF/MetalRoughSpheres.gltf",
+		"/Meshes/KhronosExamples/EnvironmentTest/glTF/EnvironmentTest.gltf",
+        "/Meshes/KhronosExamples/Sponza/glTF/Sponza.gltf"
+	};
+	std::shared_ptr<Entity> TestObject = ModelLoader::LoadModel(ExampleModelPaths[0]);
 	TestObject->SetBoundingRadius(20000.0f);
 	AddEntity(TestObject);
-    
-    std::shared_ptr<Entity> TestObject2 = ModelLoader::LoadModel("/CoreMeshes/pyramid.obj");
-    AddEntity(TestObject2);
 
 }
 

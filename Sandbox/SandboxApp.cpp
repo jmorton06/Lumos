@@ -36,13 +36,14 @@ public:
 		GetSceneManager()->EnqueueScene(new Scene2D("2D Test"));
 		GetSceneManager()->EnqueueScene(new Scene3D("Physics Scene"));
 		GetSceneManager()->EnqueueScene(new GraphicsScene("Terrain Test"));
-		GetSceneManager()->JumpToScene(4);
+		GetSceneManager()->JumpToScene(2);
 	}
 };
 
 Lumos::Application* Lumos::CreateApplication()
 {
     System::CFG cfg(ROOT_DIR"/Sandbox/Settings.cfg");
-    const WindowProperties windowProperties(cfg);
+    WindowProperties windowProperties(cfg);
+	windowProperties.ShowConsole = true;
     return new Game(windowProperties);
 }

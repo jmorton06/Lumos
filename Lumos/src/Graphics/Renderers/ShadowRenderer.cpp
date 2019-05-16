@@ -341,7 +341,7 @@ namespace Lumos
             maths::Vector3 maxExtents =  maths::Vector3(radius);
             maths::Vector3 minExtents = -maxExtents;
 
-			maths::Vector3 lightDir = m_Light->m_Direction;
+			maths::Vector3 lightDir = m_Light->m_Direction.ToVector3();
 			lightDir.Normalise();
             maths::Matrix4 lightViewMatrix = maths::Matrix4::BuildViewMatrix( frustumCenter ,frustumCenter + lightDir * -minExtents.z);
 

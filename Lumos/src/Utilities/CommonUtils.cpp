@@ -229,8 +229,8 @@ namespace Lumos
 				colour);
 
 		cube->GetComponent<Physics3DComponent>()->m_PhysicsObject->SetIsAtRest(true);
-		const float radius    = RandomNumberGenerator32::Rand(0.0f, 10.0f);
-		const float intensity = RandomNumberGenerator32::Rand(0.0f, 10.0f);
+		const float radius    = RandomNumberGenerator32::Rand(1.0f, 30.0f);
+		const float intensity = RandomNumberGenerator32::Rand(0.0f, 2.0f);
 
 		std::shared_ptr<graphics::Light> light = std::make_shared<graphics::Light>(scene->GetCamera()->GetPosition(), colour,  intensity, graphics::LightType::PointLight, scene->GetCamera()->GetPosition(), radius);
 		cube->AddComponent(std::make_unique<LightComponent>(light));

@@ -18,12 +18,12 @@ namespace Lumos
 			Light(const maths::Vector3& direction, const maths::Vector4& colour = maths::Vector4(1.0f), float intensity = 1.0f, const LightType& type = LightType::DirectionalLight, const maths::Vector3& position = maths::Vector3(), float radius = 1.0f);
 
 			maths::Vector4   m_Colour;
-			maths::Vector3   m_Position;
-			float			 m_Intensity;
-			maths::Vector3   m_Direction;
-			float			 m_Radius;
-			float			 m_LightType;
-			float			 p0, p1, p2;
+			maths::Vector4   m_Position;
+			maths::Vector4   m_Direction;
+			float m_Intensity;
+			float m_Radius;
+			float m_Type;
+			float p0 = 0.0f;
 		};
 	}
 }
