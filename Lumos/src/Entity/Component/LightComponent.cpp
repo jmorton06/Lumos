@@ -17,7 +17,7 @@ namespace Lumos
 	LightComponent::LightComponent(std::shared_ptr<graphics::Light>& light)
 		: m_Light(light)
 	{
-		m_BoundingShape = std::make_unique<maths::BoundingSphere>(light->m_Position, light->m_Radius * light->m_Radius);
+		m_BoundingShape = std::make_unique<maths::BoundingSphere>(light->m_Position.ToVector3(), light->m_Radius * light->m_Radius);
 	}
     
     LightComponent::~LightComponent()
@@ -32,9 +32,9 @@ namespace Lumos
 
 	void LightComponent::OnUpdateComponent(float dt)
 	{
-      // // m_Light->SetDirection(m_Entity->GetTransform()->m_Transform.GetWorldMatrix().GetPositionVector());
-      //  m_Light->SetPosition(m_Entity->GetTransform()->m_Transform.GetWorldMatrix().GetPositionVector());
-      ///  m_BoundingShape->SetPosition(m_Light->GetPosition());
+		   //m_Light->m_Direction = maths::Vector4(maths::Matrix4::GetEulerAngles(m_Entity->GetTransform()->m_Transform.GetWorldMatrix()), 1.0f);
+           m_Light->m_Position = maths::Vector4(m_Entity->GetTransform()->m_Transform.GetWorldMatrix().GetPositionVector(), 1.0f);
+           m_BoundingShape->SetPosition(m_Light->m_Position.ToVector3());
 	}
 
 	void LightComponent::Init()
@@ -100,20 +100,20 @@ namespace Lumos
 			ImGui::PopItemWidth();
 			ImGui::NextColumn();
 
-			/*ImGui::AlignTextToFramePadding();
+			ImGui::AlignTextToFramePadding();
 			ImGui::Text("Light Type");
 			ImGui::NextColumn();
 			ImGui::PushItemWidth(-1);
-			if (ImGui::BeginMenu(LightTypeToString(m_Light->GetLightType()).c_str()))
+			if (ImGui::BeginMenu(LightTypeToString(graphics::LightType(int(m_Light->m_Type))).c_str()))
 			{
-				if (ImGui::MenuItem("Directional Light", "", static_cast<int>(m_Light->GetLightType()) == 0, true)) { m_Light->SetLightType(LightType::DirectionalLight); }
-				if (ImGui::MenuItem("Spot Light", "", static_cast<int>(m_Light->GetLightType()) == 1, true)) { m_Light->SetLightType(LightType::SpotLight); }
-				if (ImGui::MenuItem("Point Light", "", static_cast<int>(m_Light->GetLightType()) == 2, true)) { m_Light->SetLightType(LightType::PointLight); }
+				if (ImGui::MenuItem("Directional Light", "", static_cast<int>(m_Light->m_Type) == 0, true)) { m_Light->m_Type = float(int(graphics::LightType::DirectionalLight)); }
+				if (ImGui::MenuItem("Spot Light", "", static_cast<int>(m_Light->m_Type) == 1, true)) { m_Light->m_Type = float(int(graphics::LightType::SpotLight)); }
+				if (ImGui::MenuItem("Point Light", "", static_cast<int>(m_Light->m_Type) == 2, true)) { m_Light->m_Type = float(int(graphics::LightType::PointLight)); }
 				ImGui::EndMenu();
 			}
 
 			ImGui::PopItemWidth();
-			ImGui::NextColumn();*/
+			ImGui::NextColumn();
 
 			ImGui::Columns(1);
 			ImGui::Separator();

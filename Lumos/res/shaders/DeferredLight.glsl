@@ -29,14 +29,31 @@ uniform samplerCube uEnvironmentMap;
 uniform sampler2DArrayShadow uShadowMap;
 uniform sampler2D uDepthSampler;
 
+#define MAX_LIGHTS 32
+#define MAX_SHADOWMAPS 16
+
+struct Light
+{
+	vec4 colour;
+	vec4 position;
+	vec4 direction;
+	float intensity;
+	float radius;
+	float type;
+	float p0;
+};
+
 layout (std140) uniform LightData
 {
-	vec4 position;
- 	vec4 direction;
+	Light lights[MAX_LIGHTS];
  	vec4 cameraPosition;
 	mat4 viewMatrix;
-	mat4 uShadowTransform[16];
-    vec4 uSplitDepths[16];
+	mat4 uShadowTransform[MAX_SHADOWMAPS];
+    vec4 uSplitDepths[MAX_SHADOWMAPS];
+	float lightCount;
+	float shadowCount;
+	float p0;
+	float p1;
 } ubo;
 
 #define PI 3.1415926535897932384626433832795
@@ -60,16 +77,6 @@ vec2 poissonDisk[16] = vec2[](
 	vec2(0.19984126, 0.78641367),
 	vec2(0.14383161, -0.14100790)
 	);
-
-struct Light
-{
-	vec3 position;
-	vec3 colour;
-	vec3 direction;
-	float radius;
-	float intensity;
-	int type;
-};
 
 struct Material
 {
@@ -96,10 +103,10 @@ float FresnelSchlick(float f0, float fd90, float view)
 
 float Disney(Light light, Material material, vec3 eye)
 {
-	vec3 halfVector = normalize(light.direction + eye);
+	vec3 halfVector = normalize(light.direction.xyz + eye);
 
-	float NdotL = max(dot(material.normal, light.direction), 0.0);
-	float LdotH = max(dot(light.direction, halfVector), 0.0);
+	float NdotL = max(dot(material.normal, light.direction.xyz), 0.0);
+	float LdotH = max(dot(light.direction.xyz, halfVector), 0.0);
 	float NdotV = max(dot(material.normal, eye), 0.0);
 
 	float energyBias = mix(0.0, 0.5, material.roughness);
@@ -115,7 +122,7 @@ float Disney(Light light, Material material, vec3 eye)
 
 vec3 GGX(Light light, Material material, vec3 eye)
 {
-	vec3 h = normalize(light.direction + eye);
+	vec3 h = normalize(light.direction.xyz + eye);
 	float NdotH = max(dot(material.normal, h), 0.0);
 
 	float rough2 = max(material.roughness * material.roughness, 2.0e-3); // capped so spec highlights doesn't disappear
@@ -127,8 +134,8 @@ vec3 GGX(Light light, Material material, vec3 eye)
 	// Fresnel
 	vec3 reflectivity = material.specular;
 	float fresnel = 1.0;
-	float NdotL = clamp(dot(material.normal, light.direction), 0.0, 1.0);
-	float LdotH = clamp(dot(light.direction, h), 0.0, 1.0);
+	float NdotL = clamp(dot(material.normal, light.direction.xyz), 0.0, 1.0);
+	float LdotH = clamp(dot(light.direction.xyz, h), 0.0, 1.0);
 	float NdotV = clamp(dot(material.normal, eye), 0.0, 1.0);
 	vec3 F = reflectivity + (fresnel - fresnel * reflectivity) * exp2((-5.55473 * LdotH - 6.98316) * LdotH);
 
@@ -265,12 +272,6 @@ void main()
 
     vec3 wsPos      = positionTex;
 
-    Light light;
-    light.direction = ubo.direction.xyz;
-    light.position  = ubo.position.xyz;
-    light.colour    = vec3(1.0);
-    light.intensity = 4.0;
-
     vec3 finalColour;
 
     Material material;
@@ -289,7 +290,7 @@ void main()
 	int cascadeIndex = 0;
 	vec4 viewPos = ubo.viewMatrix * vec4(wsPos, 1.0);
 
-	for(int i = 0; i < NUM_SHADOWMAPS - 1; ++i)
+	for(int i = 0; i < ubo.shadowCount - 1; ++i)
 	{
 		if(viewPos.z < ubo.uSplitDepths[i].x)
 		{
@@ -301,7 +302,7 @@ void main()
 
 	if(shadowMethod == 0)
 	{
-		//for (int layerIdx = 0; layerIdx < NUM_SHADOWMAPS; layerIdx++)
+		//for (int layerIdx = 0; layerIdx < ubo.shadowCount; layerIdx++)
 		{
 			int layerIdx = cascadeIndex;
 			vec4 hcsShadow = ubo.uShadowTransform[layerIdx] * shadowWsPos;
@@ -333,9 +334,34 @@ void main()
 	}
 
 	shadow = max(0.3,shadow);
-    float NdotL = clamp(dot(material.normal, light.direction), 0.0, 1.0)  * shadow;
-    diffuse  += NdotL * Diffuse(light, material, eye)  * light.intensity;
-    specular += NdotL * Specular(light, material, eye) * light.intensity;
+
+    for(int i = 0; i < ubo.lightCount; ++i)
+	{
+		Light light = ubo.lights[i];
+
+		float value = shadow;
+		if(light.type > 0.0)
+		{
+		    // Vector to light
+			vec3 L = light.position.xyz - wsPos;
+			// Distance from light to fragment position
+			float dist = length(L);
+		
+			// Light to fragment
+			L = normalize(L);
+
+			// Attenuation
+			float atten = light.radius / (pow(dist, 2.0) + 1.0);
+			
+			value = atten;
+
+			light.direction = vec4(L,1.0);
+		}
+
+		float NdotL = clamp(dot(material.normal, light.direction.xyz), 0.0, 1.0)  * value;
+		diffuse  += NdotL * Diffuse(light, material, eye) * light.colour * light.intensity;
+		specular += NdotL * Specular(light, material, eye) * light.colour.xyz * light.intensity;
+	}
 
     diffuse = max(diffuse, vec4(0.1));
 

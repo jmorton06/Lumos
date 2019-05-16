@@ -49,11 +49,11 @@ void Scene3D::OnInit()
 
 	m_EnvironmentMap = TextureCube::CreateFromVCross(environmentFiles, 11);
 
-	auto sun = std::make_shared<graphics::Light>(maths::Vector3(26.0f, 22.0f, 48.5f));
+	auto sun = std::make_shared<graphics::Light>(maths::Vector3(26.0f, 22.0f, 48.5f), maths::Vector4(1.0f) , 2.0f);
     
     auto lightEntity = std::make_shared<Entity>("Directional Light",this);
     lightEntity->AddComponent(std::make_unique<LightComponent>(sun));
-    lightEntity->AddComponent(std::make_unique<TransformComponent>(Matrix4::Translation(maths::Vector3(26.0f, 22.0f, 48.5f) * 100.0f)));
+    lightEntity->AddComponent(std::make_unique<TransformComponent>(Matrix4::Translation(maths::Vector3(26.0f, 22.0f, 48.5f))));
     AddEntity(lightEntity);
 
 	Application::Instance()->GetAudioManager()->SetListener(m_pCamera);

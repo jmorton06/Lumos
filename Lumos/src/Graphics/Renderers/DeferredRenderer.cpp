@@ -25,8 +25,10 @@
 #include "App/Application.h"
 #include "Graphics/RenderManager.h"
 #include "Graphics/Camera/Camera.h"
+#include "Graphics/Light.h"
 
-#define MAX_LIGHTS 10
+#define MAX_LIGHTS 32
+#define MAX_SHADOWMAPS 16
 
 namespace Lumos
 {
@@ -44,6 +46,24 @@ namespace Lumos
 	{
 		PSSystemUniformIndex_Lights = 0,
 		PSSystemUniformIndex_Size
+	};
+
+	struct UniformBufferLight
+	{
+		graphics::Light light[MAX_LIGHTS];
+		Lumos::maths::Vector4 cameraPosition;
+		Lumos::maths::Matrix4 viewMatrix;
+		Lumos::maths::Matrix4 uShadowTransform[MAX_SHADOWMAPS];
+		Lumos::maths::Vector4 uSplitDepth[MAX_SHADOWMAPS];
+		float lightCount;
+		float shadowCount;
+		float mode;
+		float p1;
+	};
+
+	struct UniformBufferObject
+	{
+		Lumos::maths::Matrix4 projView;
 	};
 
 	DeferredRenderer::DeferredRenderer(uint width, uint height)
@@ -338,22 +358,16 @@ namespace Lumos
 
 		if (lightList.empty())
 			return;
-	
 		uint32_t currentOffset = 0;
-		//maths::Vector4 lightPos = maths::Vector4(lightList[0]->m_Position);
-		//maths::Vector4 lightDir = maths::Vector4(lightList[0]->m_Direction);
-		//lightDir.Normalise();
 
-		//memcpy(m_PSSystemUniformBuffer + currentOffset, &lightPos, sizeof(maths::Vector4));
-		//currentOffset += sizeof(maths::Vector4);
-		//memcpy(m_PSSystemUniformBuffer + currentOffset, &lightDir, sizeof(maths::Vector4));
-		//currentOffset += sizeof(maths::Vector4);
-
-		lightList[0]->m_Direction.Normalise();
-
-		memcpy(m_PSSystemUniformBuffer + currentOffset, &lightList[0], sizeof(graphics::Light));
-		currentOffset += sizeof(graphics::Light);
-
+		for (int i = 0; i < lightList.size(); i++)
+		{
+			lightList[i]->m_Direction.Normalise();
+			memcpy(m_PSSystemUniformBuffer + currentOffset + sizeof(graphics::Light) * i, &*lightList[i], sizeof(graphics::Light));
+		}
+		
+		currentOffset += sizeof(graphics::Light) * MAX_LIGHTS;
+	
 		maths::Vector4 cameraPos = maths::Vector4(scene->GetCamera()->GetPosition());
 		memcpy(m_PSSystemUniformBuffer + currentOffset, &cameraPos, sizeof(maths::Vector4));
 		currentOffset += sizeof(maths::Vector4);
@@ -367,10 +381,29 @@ namespace Lumos
 
 			memcpy(m_PSSystemUniformBuffer + currentOffset, &viewMat, sizeof(maths::Matrix4));
 			currentOffset += sizeof(maths::Matrix4);
-			memcpy(m_PSSystemUniformBuffer + currentOffset, shadowTransforms, sizeof(maths::Matrix4) * 16);
-			currentOffset += sizeof(maths::Matrix4) * 16;
-			memcpy(m_PSSystemUniformBuffer + currentOffset, uSplitDepth, sizeof(Lumos::maths::Vector4) * 16);
+			memcpy(m_PSSystemUniformBuffer + currentOffset, shadowTransforms, sizeof(maths::Matrix4) * MAX_SHADOWMAPS);
+			currentOffset += sizeof(maths::Matrix4) * MAX_SHADOWMAPS;
+			memcpy(m_PSSystemUniformBuffer + currentOffset, uSplitDepth, sizeof(Lumos::maths::Vector4) * MAX_SHADOWMAPS);
+			currentOffset += sizeof(maths::Vector4) * MAX_SHADOWMAPS;
 		}
+		else
+		{
+			currentOffset += sizeof(maths::Matrix4);
+			currentOffset += sizeof(maths::Matrix4) * MAX_SHADOWMAPS;
+			currentOffset += sizeof(maths::Vector4) * MAX_SHADOWMAPS;
+		}
+
+		float numLights = float(lightList.size());
+		memcpy(m_PSSystemUniformBuffer + currentOffset, &numLights, sizeof(float));
+		currentOffset += sizeof(float);
+
+		float numShadows = shadowRenderer ? shadowRenderer->GetShadowMapNum() : 0.0f;
+		memcpy(m_PSSystemUniformBuffer + currentOffset, &numShadows, sizeof(float));
+		currentOffset += sizeof(float);
+
+		float renderMode = 0.0f;
+		memcpy(m_PSSystemUniformBuffer + currentOffset, &renderMode, sizeof(float));
+		currentOffset += sizeof(float);
 	}
 
 	void DeferredRenderer::EndScene()
@@ -461,6 +494,7 @@ namespace Lumos
             { graphics::api::DescriptorType::IMAGE_SAMPLER, MAX_OBJECTS },
 			{ graphics::api::DescriptorType::IMAGE_SAMPLER, MAX_OBJECTS },
 			{ graphics::api::DescriptorType::IMAGE_SAMPLER, MAX_OBJECTS },
+			{ graphics::api::DescriptorType::IMAGE_SAMPLER, MAX_OBJECTS },
 			{ graphics::api::DescriptorType::IMAGE_SAMPLER, MAX_OBJECTS }
         };
 
@@ -476,7 +510,8 @@ namespace Lumos
 			{ graphics::api::DescriptorType::IMAGE_SAMPLER,graphics::api::ShaderStage::FRAGMENT , 1 },
 			{ graphics::api::DescriptorType::IMAGE_SAMPLER,graphics::api::ShaderStage::FRAGMENT , 2 },
 			{ graphics::api::DescriptorType::IMAGE_SAMPLER,graphics::api::ShaderStage::FRAGMENT , 3 },
-			{ graphics::api::DescriptorType::UNIFORM_BUFFER, graphics::api::ShaderStage::FRAGMENT, 4 },
+			{ graphics::api::DescriptorType::IMAGE_SAMPLER,graphics::api::ShaderStage::FRAGMENT , 4 },
+			{ graphics::api::DescriptorType::UNIFORM_BUFFER, graphics::api::ShaderStage::FRAGMENT, 5 },
         };
 
         auto attributeDescriptions = Vertex::getAttributeDescriptions();
@@ -823,7 +858,7 @@ namespace Lumos
 		bufferInfo.offset = 0;
 		bufferInfo.size = sizeof(MaterialProperties);
 		bufferInfo.type = graphics::api::DescriptorType::UNIFORM_BUFFER;
-		bufferInfo.binding = 4;
+		bufferInfo.binding = 5;
 		bufferInfo.shaderType = ShaderType::FRAGMENT;
 		bufferInfo.name = "UniformMaterialData";
 		bufferInfo.systemUniforms = false;

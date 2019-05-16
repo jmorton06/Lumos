@@ -24,6 +24,7 @@ namespace Lumos
 	String NormalTexName = "normalTexture";
 	String MetallicTexName = "metallicRoughnessTexture";
 	String GlossTexName = "metallicRoughnessTexture";
+	String AOTexName = "occlusionTexture";
 
 	struct GLTFTexture
 	{
@@ -163,6 +164,17 @@ namespace Lumos
 				textures.roughness = std::shared_ptr<Texture2D>(texture);//material->SetGlossMap(texture);
 		}
 
+		GLTFTexture occlusionTex = loadTextureFromParameter(gltfmaterial.values, AOTexName);
+
+		if (occlusionTex.Image)
+		{
+			TextureParameters params = TextureParameters(GetFilter(occlusionTex.Sampler->minFilter), GetWrapMode(occlusionTex.Sampler->wrapS));
+
+			Texture2D* texture = Texture2D::CreateFromSource(occlusionTex.Image->width, occlusionTex.Image->height, occlusionTex.Image->image.data(), params);
+			if (texture)
+				textures.ao = std::shared_ptr<Texture2D>(texture);//material->SetGlossMap(texture);
+		}
+
 		return textures;
 	}
 
@@ -210,7 +222,7 @@ namespace Lumos
             // common workflow:
             auto normalTexture = mat.additionalValues.find("normalTexture");
             //auto emissiveTexture = mat.additionalValues.find("emissiveTexture");
-            //auto occlusionTexture = mat.additionalValues.find("occlusionTexture");
+            auto occlusionTexture = mat.additionalValues.find("occlusionTexture");
             //auto emissiveFactor = mat.additionalValues.find("emissiveFactor");
             //auto alphaCutoff = mat.additionalValues.find("alphaCutoff");
             //auto alphaMode = mat.additionalValues.find("alphaMode");
@@ -229,6 +241,11 @@ namespace Lumos
             {
                 textures.metallic = loadedTextures[gltfModel.textures[metallicRoughnessTexture->second.TextureIndex()].source];
             }
+
+			if (occlusionTexture != mat.additionalValues.end())
+			{
+				textures.ao = loadedTextures[gltfModel.textures[occlusionTexture->second.TextureIndex()].source];
+			}
             
             if (roughnessFactor != mat.values.end())
             {

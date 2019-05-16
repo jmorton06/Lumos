@@ -52,6 +52,7 @@ namespace Lumos
 		m_PBRMaterialTextures.normal    = textures.normal;
 		m_PBRMaterialTextures.roughness = textures.roughness;
 		m_PBRMaterialTextures.metallic  = textures.metallic;
+		m_PBRMaterialTextures.ao		= textures.ao;
 	}
 
 	void Material::LoadPBRMaterial(const String& name, const String& path, const String& extension)
@@ -64,6 +65,7 @@ namespace Lumos
 		m_PBRMaterialTextures.normal    = std::shared_ptr<Texture2D>(Texture2D::CreateFromFile(name, path + "/" + name + "/normal" + extension,params));
 		m_PBRMaterialTextures.roughness = std::shared_ptr<Texture2D>(Texture2D::CreateFromFile(name, path + "/" + name + "/roughness" + extension,params));
 		m_PBRMaterialTextures.metallic  = std::shared_ptr<Texture2D>(Texture2D::CreateFromFile(name, path + "/" + name + "/metallic" + extension,params));
+		m_PBRMaterialTextures.ao		= std::shared_ptr<Texture2D>(Texture2D::CreateFromFile(name, path + "/" + name + "/ao" + extension, params));
 	}
 
 	void Material::LoadMaterial(const String& name, const String& path)
@@ -74,6 +76,7 @@ namespace Lumos
 		m_PBRMaterialTextures.normal    = nullptr;
 		m_PBRMaterialTextures.roughness = nullptr;
 		m_PBRMaterialTextures.metallic  = nullptr;
+		m_PBRMaterialTextures.ao		= nullptr;
 	}
 
     void Material::UpdateMaterialPropertiesData()
@@ -90,10 +93,13 @@ namespace Lumos
         m_MaterialProperties->usingNormalMap    = properties.usingNormalMap;
         m_MaterialProperties->usingSpecularMap  = properties.usingSpecularMap;
         m_MaterialProperties->usingGlossMap     = properties.usingGlossMap;
+		m_MaterialProperties->usingAOMap		= properties.usingAOMap;
+		m_MaterialProperties->usingEmissiveMap  = properties.usingEmissiveMap;
 
         UpdateMaterialPropertiesData();
+
 		if(m_MaterialPropertiesBuffer)
-		m_MaterialPropertiesBuffer->SetData(m_MaterialBufferSize, *&m_MaterialBufferData);
+			m_MaterialPropertiesBuffer->SetData(m_MaterialBufferSize, *&m_MaterialBufferData);
     }
 
 	void Material::CreateDescriptorSet(graphics::api::Pipeline* pipeline, int layoutID, bool pbr)
@@ -165,6 +171,17 @@ namespace Lumos
 		else
 			m_MaterialProperties->usingNormalMap = 0.0f;
 
+		if (m_PBRMaterialTextures.ao != nullptr)
+		{
+			graphics::api::ImageInfo imageInfo5 = {};
+			imageInfo5.texture = { m_PBRMaterialTextures.ao.get() };
+			imageInfo5.binding = 4;
+			imageInfo5.name = "u_AOMap";
+			imageInfos.push_back(imageInfo5);
+		}
+		else
+			m_MaterialProperties->usingAOMap = 0.0f;
+
 		if (pbr)
 		{
 			graphics::api::BufferInfo bufferInfo = {};
@@ -172,7 +189,7 @@ namespace Lumos
 			bufferInfo.offset = 0;
 			bufferInfo.size = sizeof(MaterialProperties);
 			bufferInfo.type = graphics::api::DescriptorType::UNIFORM_BUFFER;
-			bufferInfo.binding = 4;
+			bufferInfo.binding = 5;
 			bufferInfo.shaderType = ShaderType::FRAGMENT;
 			bufferInfo.name = "UniformMaterialData";
 			bufferInfo.systemUniforms = false;

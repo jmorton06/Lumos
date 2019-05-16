@@ -1,6 +1,5 @@
 #pragma once
 #include "Renderer3D.h"
-#include "Graphics/Light.h"
 
 namespace Lumos
 {
@@ -58,24 +57,6 @@ namespace Lumos
 
 		void LightPass();
 
-		struct UniformBufferObject
-		{
-			Lumos::maths::Matrix4 projView;
-		};
-
-		struct UniformBufferModel
-		{
-			Lumos::maths::Matrix4* model;
-		};
-
-		struct UniformBufferLight
-		{
-			graphics::Light light;
-			Lumos::maths::Vector4 cameraPosition;
-			Lumos::maths::Matrix4 viewMatrix;
-			Lumos::maths::Matrix4 uShadowTransform[16];
-    		Lumos::maths::Vector4 uSplitDepth[16];
-		};
 
 		void CreateOffScreenPipeline();
 		void CreateDeferredPipeline();
@@ -127,6 +108,12 @@ namespace Lumos
 
 
 		size_t dynamicAlignment;
+
+		struct UniformBufferModel
+		{
+			Lumos::maths::Matrix4* model;
+		};
+
 		UniformBufferModel uboDataDynamic;
 
 		Lumos::Mesh* m_ScreenQuad = nullptr;

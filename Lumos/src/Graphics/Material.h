@@ -19,13 +19,17 @@ namespace Lumos
 	}
 	struct MaterialProperties
 	{
-		float usingAlbedoMap 	= 1.0f;
-		float usingSpecularMap 	= 1.0f;
-		float usingGlossMap 	= 1.0f;
-		float usingNormalMap 	= 1.0f;
 		Lumos::maths::Vector4  albedoColour    = Lumos::maths::Vector4(1.0f,0.0f,1.0f,1.0f);
 		Lumos::maths::Vector4  glossColour     = Lumos::maths::Vector4(1.0f,0.0f,1.0f,1.0f);
 		Lumos::maths::Vector4  specularColour  = Lumos::maths::Vector4(0.0f,1.0f,0.0f,1.0f);
+		float usingAlbedoMap = 1.0f;
+		float usingSpecularMap = 1.0f;
+		float usingGlossMap = 1.0f;
+		float usingNormalMap = 1.0f;
+		float usingAOMap = 1.0f;
+		float usingEmissiveMap = 1.0f;
+		float p0 = 1.0f;
+		float p1 = 1.0f;
 	};
 
 	struct PBRMataterialTextures

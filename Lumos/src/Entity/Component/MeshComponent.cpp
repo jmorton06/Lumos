@@ -72,6 +72,15 @@ namespace Lumos
             
             ImGui::PopItemWidth();
             ImGui::NextColumn();
+
+			ImGui::AlignTextToFramePadding();
+			ImGui::Text("Use AO Map");
+			ImGui::NextColumn();
+			ImGui::PushItemWidth(-1);
+			ImGui::SliderFloat("##UseAOMap", &prop->usingAOMap, 0.0f, 1.0f);
+
+			ImGui::PopItemWidth();
+			ImGui::NextColumn();
             
             ImGui::AlignTextToFramePadding();
             ImGui::Text("Albedo");
