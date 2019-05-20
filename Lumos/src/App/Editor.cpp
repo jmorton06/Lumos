@@ -107,7 +107,7 @@ namespace Lumos
         if(node->GetChildren().empty())
         {
             ImGui::Indent();
-            if(ImGui::Selectable(node->GetName().c_str(), m_Selected == node.get()))
+            if(ImGui::Selectable((node->GetName() + " ##" + node->GetUUID()).c_str(), m_Selected == node.get()))
                m_Selected = node.get();
             ImGui::Unindent();
         }
@@ -116,7 +116,7 @@ namespace Lumos
             ImGuiTreeNodeFlags nodeFlags = ((m_Selected == node.get()) ? ImGuiTreeNodeFlags_Selected : 0);
             
             nodeFlags |= ImGuiTreeNodeFlags_OpenOnArrow | ImGuiTreeNodeFlags_OpenOnDoubleClick;
-            bool nodeOpen = ImGui::TreeNodeEx((node->GetName() + "##" + node->GetUUID()).c_str(), nodeFlags, node->GetName().c_str(), 0);
+            bool nodeOpen = ImGui::TreeNodeEx(("##" + node->GetUUID()).c_str(), nodeFlags, node->GetName().c_str(), 0);
             if (ImGui::IsItemClicked())
                 m_Selected = node.get();
             
@@ -188,8 +188,7 @@ namespace Lumos
 			if (ImGui::TreeNode("Scene"))
 			{
 				ImGui::Indent();
-				auto scene = m_Application->m_SceneManager->GetCurrentScene();
-
+                
 				DrawNode(Application::Instance()->GetSceneManager()->GetCurrentScene()->GetRootEntity());
                 
                 ImGui::TreePop();
