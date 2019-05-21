@@ -181,6 +181,8 @@ namespace Lumos
 		case TextureFormat::RG8:				return GL_RG8;
 		case TextureFormat::RGB8:				return GL_RGB8;
 		case TextureFormat::RGBA8:				return GL_RGBA8;
+        case TextureFormat::RGB16:              return GL_RGB16F;
+        case TextureFormat::RGBA16:             return GL_RGBA16F;
 		case TextureFormat::LUMINANCE:			return GL_LUMINANCE;
 		case TextureFormat::LUMINANCE_ALPHA:	return GL_LUMINANCE_ALPHA;
 		default: LUMOS_CORE_ERROR("[Texture] Unsupported image bit-depth!");  return 0;
@@ -225,6 +227,8 @@ namespace Lumos
 		case GL_RG8:				return GL_RG;
 		case GL_RGB8:				return GL_RGB;
 		case GL_RGBA8:				return GL_RGBA;
+        case GL_RGB16:              return GL_RGB;
+        case GL_RGBA16:             return GL_RGBA;
 		case GL_LUMINANCE:			return GL_LUMINANCE;
 		case GL_LUMINANCE_ALPHA:	return GL_LUMINANCE_ALPHA;
 		default: LUMOS_CORE_ERROR("[Texture] Unsupported Texture Format");  return 0;
@@ -242,6 +246,7 @@ namespace Lumos
 		{
 		case TextureFormat::RGB8:  Format = GL_RGB8; break;
 		case TextureFormat::RGB16: Format = GL_RGB16F; break;
+        case TextureFormat::RGBA16: Format = GL_RGBA16F; break;
 		case TextureFormat::RGBA:  Format = GL_RGBA; break;
 		case TextureFormat::DEPTH: Format = GL_DEPTH24_STENCIL8; break;
 		default: Format = GL_RGB8; break;
@@ -252,6 +257,7 @@ namespace Lumos
 		{
 		case TextureFormat::RGB8:  Format2 = GL_RGB; break;
 		case TextureFormat::RGB16: Format2 = GL_RGB; break;
+        case TextureFormat::RGBA16: Format2 = GL_RGBA; break;
 		case TextureFormat::RGBA:  Format2 = GL_RGBA; break;
 		case TextureFormat::DEPTH: Format2 = GL_DEPTH_COMPONENT; break;
 		default: Format2 = GL_RGB; break;

@@ -144,11 +144,12 @@ namespace Lumos
 			case TextureFormat::RGB:				return vk::Format::eR8G8B8Unorm;
 			case TextureFormat::R8:				    return vk::Format::eR8Unorm;
 			case TextureFormat::RG8:				return vk::Format::eR8G8Unorm;
-			case TextureFormat::RGB8:				return vk::Format::eR8G8B8Unorm;
-			case TextureFormat::RGBA8:				return vk::Format::eR8G8B8A8Unorm;
-			case TextureFormat::LUMINANCE:			return vk::Format::eR8G8B8A8Unorm;
-			case TextureFormat::LUMINANCE_ALPHA:	return vk::Format::eR8G8B8A8Unorm;
-			case TextureFormat::RGB16: 				return vk::Format::eR16G16B16A16Sfloat;
+			case TextureFormat::RGB8:				return vk::Format::eR8G8B8Srgb;
+            case TextureFormat::RGBA8:				return vk::Format::eR8G8B8A8Srgb;
+            case TextureFormat::RGB16:              return vk::Format::eR16G16B16Sfloat;
+            case TextureFormat::RGBA16:             return vk::Format::eR16G16B16A16Sfloat;
+            case TextureFormat::LUMINANCE:          return vk::Format::eR8G8B8A8Unorm;
+            case TextureFormat::LUMINANCE_ALPHA:    return vk::Format::eR8G8B8A8Unorm;
 			default: LUMOS_CORE_ERROR("[Texture] Unsupported image bit-depth!");  return vk::Format::eR8G8B8A8Unorm;
 			}
 		}
