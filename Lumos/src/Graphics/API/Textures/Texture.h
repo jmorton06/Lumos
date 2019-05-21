@@ -29,13 +29,14 @@ namespace Lumos
 		RG8,
 		RGB8,
 		RGBA8,
+        RGB16,
+        RGBA16,
 		RGB,
 		RGBA,
 		LUMINANCE,
 		LUMINANCE_ALPHA,
-		DEPTH,
-		RGB16
-	};
+		DEPTH
+        };
 
 	enum class LUMOS_EXPORT TextureType
 	{

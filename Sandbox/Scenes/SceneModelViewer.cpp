@@ -99,7 +99,7 @@ void SceneModelViewer::LoadModels()
 		"/Meshes/KhronosExamples/EnvironmentTest/glTF/EnvironmentTest.gltf",
         "/Meshes/KhronosExamples/Sponza/glTF/Sponza.gltf"
 	};
-	std::shared_ptr<Entity> TestObject = ModelLoader::LoadModel(ExampleModelPaths[0]);
+	std::shared_ptr<Entity> TestObject = ModelLoader::LoadModel(ExampleModelPaths[1]);
 	TestObject->SetBoundingRadius(20000.0f);
 	AddEntity(TestObject);
 
