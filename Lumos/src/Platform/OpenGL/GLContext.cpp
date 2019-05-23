@@ -125,11 +125,11 @@ void APIENTRY openglCallbackFunction(GLenum source,
 
 #endif
 
-namespace Lumos
+namespace lumos
 {
 	namespace graphics
 	{
-		GLContext::GLContext(WindowProperties properties, void* deviceContext)
+		GLContext::GLContext(const WindowProperties& properties, void* deviceContext)
 		{
 
 #ifdef LUMOS_PLATFORM_WINDOWS

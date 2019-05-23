@@ -3,7 +3,7 @@
 #include "LM.h"
 #include "AudioData.h"
 
-namespace Lumos
+namespace lumos
 {
 	struct FMTCHUNK
 	{

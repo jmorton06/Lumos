@@ -4,7 +4,7 @@
 #include "Scripting/Luna.h"
 #include "Maths/Vector4.h"
 
-namespace Lumos
+namespace lumos
 {
 	class LUMOS_EXPORT Vector4Binding
 	{

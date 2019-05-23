@@ -2,7 +2,7 @@
 
 #include "VK.h"
 
-namespace Lumos
+namespace lumos
 {
 	namespace graphics
 	{

@@ -7,7 +7,7 @@
 #include "Broadphase.h"
 #include "App/ISystem.h"
 
-namespace Lumos
+namespace lumos
 {
 
 #define SOLVER_ITERATIONS 50

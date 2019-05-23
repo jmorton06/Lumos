@@ -5,12 +5,12 @@
 #include "Graphics/Material.h"
 #include "Maths/MathsUtilities.h"
 
-namespace Lumos
+namespace lumos
 {
 
 	DebugDrawData* GLDebug::s_OrthoDebugData	   = nullptr;
 	DebugDrawData* GLDebug::s_PerspectiveDebugData = nullptr;
-	GLRenderer*    GLDebug::s_DebugDrawingRenderer = nullptr;
+	graphics::GLRenderer*    GLDebug::s_DebugDrawingRenderer = nullptr;
 
 	Material*	   GLDebug::s_DebugDrawShader		= nullptr;
 	bool		   GLDebug::s_DrawnDebugOrtho		= false;

@@ -3,7 +3,7 @@
 #include "GLRenderer.h"
 #include "GL.h"
 
-namespace Lumos
+namespace lumos
 {
 	class Material;
 
@@ -75,7 +75,7 @@ namespace Lumos
 		static bool	s_DrawnDebugOrtho;
 		static bool	s_DrawnDebugPerspective;
 
-		static GLRenderer*	s_DebugDrawingRenderer;
+		static graphics::GLRenderer*	s_DebugDrawingRenderer;
 		static Material*	s_DebugDrawShader;
 	};
 

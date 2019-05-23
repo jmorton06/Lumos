@@ -11,7 +11,7 @@
 #define MAX_KEYS	1024
 #define MAX_BUTTONS	32
 
-namespace Lumos
+namespace lumos
 {
 	class Event;
 

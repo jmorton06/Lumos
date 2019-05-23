@@ -5,7 +5,7 @@
 #include "Platform/OpenAL/ALManager.h"
 #endif
 
-namespace Lumos
+namespace lumos
 {
     AudioManager* AudioManager::Create()
     {

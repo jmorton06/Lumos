@@ -4,7 +4,7 @@
 #include "Events/Event.h"
 #include "Utilities/TimeStep.h"
 
-namespace Lumos
+namespace lumos
 {
 	class Scene;
 

@@ -4,7 +4,7 @@
 #include "GLFramebuffer.h"
 #include "GLDebug.h"
 
-namespace Lumos
+namespace lumos
 {
     namespace graphics
     {
@@ -18,7 +18,7 @@ namespace Lumos
 
         }
 
-        bool GLRenderPass::Init(const api::RenderpassInfo &renderpassCI)
+        bool GLRenderPass::Init(const RenderpassInfo &renderpassCI)
         {
 			m_Clear = renderpassCI.clear;
             return false;
@@ -29,8 +29,8 @@ namespace Lumos
 
         }
 
-        void GLRenderPass::BeginRenderpass(api::CommandBuffer *commandBuffer, const maths::Vector4 &clearColour,
-                                           Framebuffer *frame, api::SubPassContents contents, uint32_t width,
+        void GLRenderPass::BeginRenderpass(CommandBuffer *commandBuffer, const maths::Vector4 &clearColour,
+                                           Framebuffer *frame, SubPassContents contents, uint32_t width,
                                            uint32_t height) const
         {
             if(frame != nullptr)
@@ -50,7 +50,7 @@ namespace Lumos
 				Renderer::Clear(RENDERER_BUFFER_COLOUR | RENDERER_BUFFER_DEPTH | RENDERER_BUFFER_STENCIL);
         }
 
-        void GLRenderPass::EndRenderpass(api::CommandBuffer *commandBuffer)
+        void GLRenderPass::EndRenderpass(CommandBuffer *commandBuffer)
         {
 #ifdef LUMOS_DEBUG
 			GLCall(glBindFramebuffer(GL_FRAMEBUFFER, 0));

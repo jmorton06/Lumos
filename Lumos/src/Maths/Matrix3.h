@@ -4,7 +4,7 @@
 #include "Vector3.h"
 #include "MathsCommon.h"
 
-namespace Lumos
+namespace lumos
 {
 	namespace maths
 	{

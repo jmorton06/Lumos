@@ -2,7 +2,7 @@
 #include "LightSetUp.h"
 #include <imgui/imgui.h>
 
-namespace Lumos
+namespace lumos
 {
 
     LightSetup::LightSetup()

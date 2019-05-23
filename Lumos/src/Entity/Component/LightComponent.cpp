@@ -12,7 +12,7 @@
 
 #include <imgui/imgui.h>
 
-namespace Lumos
+namespace lumos
 {
 	LightComponent::LightComponent(std::shared_ptr<graphics::Light>& light)
 		: m_Light(light)

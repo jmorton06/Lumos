@@ -8,7 +8,7 @@
 #include "graphics/DirectX/DXTypes.h"
 #endif
 
-namespace Lumos
+namespace lumos
 {
 	namespace graphics
 	{
@@ -32,7 +32,7 @@ namespace Lumos
         template<>
         void BufferLayout::Push<uint>(const String& name, uint count, bool normalized)
         {
-            switch (graphics::Context::GetRenderAPI())
+            switch (graphics::GraphicsContext::GetRenderAPI())
             {
 #ifdef LUMOS_RENDER_API_OPENGL
                 case RenderAPI::OPENGL:
@@ -54,7 +54,7 @@ namespace Lumos
         template<>
         void BufferLayout::Push<byte>(const String& name, uint count, bool normalized)
         {
-            switch (graphics::Context::GetRenderAPI())
+            switch (graphics::GraphicsContext::GetRenderAPI())
             {
 #ifdef LUMOS_RENDER_API_OPENGL
                 case RenderAPI::OPENGL:
@@ -76,7 +76,7 @@ namespace Lumos
 		template<>
 		void BufferLayout::Push<float>(const String& name, uint count, bool normalized)
 		{
-			switch (graphics::Context::GetRenderAPI())
+			switch (graphics::GraphicsContext::GetRenderAPI())
 			{
 #ifdef LUMOS_RENDER_API_OPENGL
 			case RenderAPI::OPENGL:
@@ -98,7 +98,7 @@ namespace Lumos
         template<>
         void BufferLayout::Push<maths::Vector2>(const String& name, uint count, bool normalized)
         {
-            switch (graphics::Context::GetRenderAPI())
+            switch (graphics::GraphicsContext::GetRenderAPI())
             {
 #ifdef LUMOS_RENDER_API_OPENGL
                 case RenderAPI::OPENGL:
@@ -120,7 +120,7 @@ namespace Lumos
         template<>
         void BufferLayout::Push<maths::Vector3>(const String& name, uint count, bool normalized)
         {
-            switch (graphics::Context::GetRenderAPI())
+            switch (graphics::GraphicsContext::GetRenderAPI())
             {
 #ifdef LUMOS_RENDER_API_OPENGL
                 case RenderAPI::OPENGL:
@@ -142,7 +142,7 @@ namespace Lumos
         template<>
         void BufferLayout::Push<maths::Vector4>(const String& name, uint count, bool normalized)
         {
-            switch (graphics::Context::GetRenderAPI())
+            switch (graphics::GraphicsContext::GetRenderAPI())
             {
 #ifdef LUMOS_RENDER_API_OPENGL
                 case RenderAPI::OPENGL:

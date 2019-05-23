@@ -1,12 +1,12 @@
 #pragma once
 #include "Graphics/API/Textures/TextureCube.h"
 #include "VK.h"
-#include "Graphics/API/Context.h"
+#include "Graphics/API/GraphicsContext.h"
 #include "VKContext.h"
 
 #define MAX_MIPS 11
 
-namespace Lumos
+namespace lumos
 {
 	namespace graphics
 	{

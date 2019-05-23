@@ -1,6 +1,6 @@
 #include "SceneSelect.h"
 
-using namespace Lumos;
+using namespace lumos;
 using namespace maths;
 
 SceneSelect::SceneSelect(const std::string& SceneName)

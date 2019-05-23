@@ -12,12 +12,12 @@
 #include "System/LMLog.h"
 #include "WindowsWindow.h"
 #include "WindowsKeyCodes.h"
-#include "Graphics/API/Context.h"
+#include "Graphics/API/GraphicsContext.h"
 #include "App/Application.h"
 #include "App/Input.h"
 #include "Maths/MathsUtilities.h"
 
-namespace Lumos
+namespace lumos
 {
 
 	EXTERN_C IMAGE_DOS_HEADER __ImageBase;
@@ -36,7 +36,7 @@ namespace Lumos
 #define HID_USAGE_GENERIC_KEYBOARD ((USHORT)0x06)
 #endif
 
-	WindowsWindow::WindowsWindow(const WindowProperties& properties, const String& title, RenderAPI api): hWnd(nullptr)
+	WindowsWindow::WindowsWindow(const WindowProperties& properties, const String& title, graphics::RenderAPI api) : hWnd(nullptr)
 	{
 		m_Init = false;
 		m_VSync = properties.VSync;
@@ -46,7 +46,7 @@ namespace Lumos
 
 		m_Init = Init(properties, title);
 
-		graphics::Context::Create(properties, hWnd);
+		graphics::GraphicsContext::Create(properties, hWnd);
 	}
 
 	WindowsWindow::~WindowsWindow()

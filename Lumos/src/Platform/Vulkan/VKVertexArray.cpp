@@ -1,7 +1,7 @@
 #include "LM.h"
 #include "VKVertexArray.h"
 
-namespace Lumos
+namespace lumos
 {
 	namespace graphics
 	{

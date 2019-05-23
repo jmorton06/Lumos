@@ -9,21 +9,16 @@
 #include "Mesh.h"
 #include "MeshFactory.h"
 
-namespace Lumos
+namespace lumos
 {
 
 	ParticleManager::ParticleManager()
 	{
-		m_Quad = MeshFactory::CreateQuad();
-		m_VAO = VertexArray::Create();
-
 	}
 
 	ParticleManager::~ParticleManager()
 	{
 		m_Emitters.clear();
-
-        delete m_Quad;
 	}
 
 	void ParticleManager::Add(std::shared_ptr<ParticleEmitter> emitter)
@@ -33,21 +28,6 @@ namespace Lumos
 
 	void ParticleManager::Render(Camera* camera)
 	{
-		m_VAO->Bind();
-
-		Renderer::SetDepthMask(false);
-		Renderer::SetBlend(true);
-		Renderer::SetBlendFunction(RendererBlendFunction::SOURCE_ALPHA, RendererBlendFunction::ONE);
-
-		for (auto emitter : m_Emitters)
-		{
-			emitter->Render(nullptr, camera, m_Quad);
-		}
-
-		Renderer::SetDepthMask(true);
-		Renderer::SetBlend(false);
-
-		m_VAO->Unbind();
 	}
 
 	void ParticleManager::Update(float dt)

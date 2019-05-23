@@ -2,7 +2,7 @@
 #include "Vector2Binding.h"
 #include "Scripting/LuaScript.h"
 
-namespace Lumos
+namespace lumos
 {
 	const char Vector2Binding::className[] = "Vector2";
 

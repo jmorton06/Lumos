@@ -4,7 +4,7 @@
 #include "SpringConstraint.h"
 #include "Graphics/Renderers/DebugRenderer.h"
 
-namespace Lumos
+namespace lumos
 {
 
 	SpringConstraint::SpringConstraint(PhysicsObject3D *obj1, PhysicsObject3D *obj2, const maths::Vector3 &globalOnA, const maths::Vector3 &globalOnB,

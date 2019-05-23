@@ -1,10 +1,10 @@
 #pragma once
 #include "Graphics/API/Textures/Texture2D.h"
 #include "VK.h"
-#include "Graphics/API/Context.h"
+#include "Graphics/API/GraphicsContext.h"
 #include "VKContext.h"
 
-namespace Lumos
+namespace lumos
 {
 	namespace graphics
 	{

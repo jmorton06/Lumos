@@ -1,6 +1,6 @@
 #include "LM.h"
 #include "Pipeline.h"
-#include "Context.h"
+#include "GraphicsContext.h"
 
 #ifdef LUMOS_RENDER_API_VULKAN
 #include "Platform/Vulkan/VKPipeline.h"
@@ -10,25 +10,22 @@
 #include "Platform/OpenGL/GLPipeline.h"
 #endif
 
-namespace Lumos
+namespace lumos
 {
 	namespace graphics
 	{
-		namespace api
+		Pipeline* Pipeline::Create(const PipelineInfo& pipelineInfo)
 		{
-			Pipeline* Pipeline::Create(const PipelineInfo& pipelineInfo)
+			switch (GraphicsContext::GetRenderAPI())
 			{
-				switch (Context::GetRenderAPI())
-				{
 #ifdef LUMOS_RENDER_API_OPENGL
-					case RenderAPI::OPENGL: return new GLPipeline(pipelineInfo);
+				case RenderAPI::OPENGL: return new GLPipeline(pipelineInfo);
 #endif
 #ifdef LUMOS_RENDER_API_VULKAN
-					case RenderAPI::VULKAN: return new VKPipeline(pipelineInfo);
+				case RenderAPI::VULKAN: return new VKPipeline(pipelineInfo);
 #endif
-				}
-				return nullptr;
 			}
+			return nullptr;
 		}
 	}
 }

@@ -7,7 +7,7 @@
 #include <signal.h>
 #endif
 
-namespace Lumos
+namespace lumos
 {
 
 #define MAX_LOG_SIZE		25

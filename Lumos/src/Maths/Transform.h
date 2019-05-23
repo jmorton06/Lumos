@@ -2,7 +2,7 @@
 #include "LM.h"
 #include "Maths/Quaternion.h"
 
-namespace Lumos
+namespace lumos
 {
 	namespace maths
 	{

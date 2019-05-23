@@ -7,7 +7,7 @@ struct JobDispatchArgs
 	uint32_t groupIndex;
 };
 
-namespace Lumos 
+namespace lumos 
 {
     namespace system 
     {

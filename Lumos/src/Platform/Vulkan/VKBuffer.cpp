@@ -3,29 +3,16 @@
 #include "VKDevice.h"
 #include "VKRenderer.h"
 
-namespace Lumos
+namespace lumos
 {
 	namespace graphics
 	{
-		constexpr uint32_t INVALID_MEMORY_INDEX = ~(0u);
-
-		static uint32_t memoryIndexFromPropertyFlags(
-			const vk::PhysicalDeviceMemoryProperties& properties,
-			const vk::MemoryRequirements& requirements, vk::MemoryPropertyFlags flags)
-		{
-			for (uint32_t i = 0; i < properties.memoryTypeCount; ++i)
-				if ((requirements.memoryTypeBits & (1 << i)) &&
-					((properties.memoryTypes[i].propertyFlags & flags) == flags))
-					return i;
-			return INVALID_MEMORY_INDEX;
-		}
-
-		VKBuffer::VKBuffer(vk::BufferUsageFlags usage, uint32_t size, const void* data)
+		VKBuffer::VKBuffer(vk::BufferUsageFlags usage, uint32_t size, const void* data) : m_Size(size)
 		{
 			Init(usage, size, data);
 		}
 
-		VKBuffer::VKBuffer()
+		VKBuffer::VKBuffer() : m_Size(0)
 		{
 		}
 
@@ -44,64 +31,67 @@ namespace Lumos
 
 		void VKBuffer::Init(vk::BufferUsageFlags usage, uint32_t size, const void* data)
 		{
-			vk::BufferCreateInfo buffer_desc{};
-			buffer_desc.size = size;
-			buffer_desc.usage = vk::BufferUsageFlagBits::eTransferSrc;
-			buffer_desc.sharingMode = vk::SharingMode::eExclusive;
+			vk::BufferCreateInfo bufferInfo = {};
+			bufferInfo.size = size;
+			bufferInfo.usage = usage;
+			bufferInfo.sharingMode = vk::SharingMode::eExclusive;
 
-			vk::Buffer upload_buffer = VKDevice::Instance()->GetDevice().createBuffer(buffer_desc);
+			m_Buffer = VKDevice::Instance()->GetDevice().createBuffer(bufferInfo);
 
-			vk::MemoryRequirements memory_requirements = VKDevice::Instance()->GetDevice().getBufferMemoryRequirements(upload_buffer);
-			vk::PhysicalDeviceMemoryProperties memory_properties = VKDevice::Instance()->GetGPU().getMemoryProperties();
+			vk::MemoryRequirements memRequirements = VKDevice::Instance()->GetDevice().getBufferMemoryRequirements(m_Buffer);
 
-			uint32_t memory_index = memoryIndexFromPropertyFlags(memory_properties, 
-				memory_requirements, vk::MemoryPropertyFlagBits::eHostVisible | vk::MemoryPropertyFlagBits::eHostCoherent);
-			if (memory_index == INVALID_MEMORY_INDEX)
-				LUMOS_CORE_ERROR("Invalid memory index");
+			vk::MemoryAllocateInfo allocInfo = {};
+			allocInfo.allocationSize = memRequirements.size;
+			allocInfo.memoryTypeIndex = VKTools::FindMemoryType(memRequirements.memoryTypeBits, vk::MemoryPropertyFlagBits::eHostVisible | vk::MemoryPropertyFlagBits::eHostCoherent);
 
-			vk::MemoryAllocateInfo allocate_info{};
-			allocate_info.allocationSize = memory_requirements.size;
-			allocate_info.memoryTypeIndex = memory_index;
+			vk::Result result = VKDevice::Instance()->GetDevice().allocateMemory(&allocInfo, nullptr, &m_Memory);
+			if (result != vk::Result::eSuccess)
+			{
+				throw std::runtime_error("failed to allocate buffer memory!");
+			}
 
-			vk::DeviceMemory upload_memory = VKDevice::Instance()->GetDevice().allocateMemory(allocate_info);
-			VKDevice::Instance()->GetDevice().bindBufferMemory(upload_buffer, upload_memory, 0);
-
-			void* transfer_data = VKDevice::Instance()->GetDevice().mapMemory(upload_memory, 0, size);
-			memcpy(transfer_data, data, size);
-			VKDevice::Instance()->GetDevice().unmapMemory(upload_memory);
-
-			buffer_desc.usage = vk::BufferUsageFlagBits::eTransferDst | usage;
-			m_Buffer = VKDevice::Instance()->GetDevice().createBuffer(buffer_desc);
-
-			memory_requirements = VKDevice::Instance()->GetDevice().getBufferMemoryRequirements(m_Buffer);
-			memory_index = memoryIndexFromPropertyFlags(memory_properties, memory_requirements, vk::MemoryPropertyFlagBits::eDeviceLocal);
-
-			if (memory_index == INVALID_MEMORY_INDEX)
-				LUMOS_CORE_ERROR("Invalid memory index");
-
-			allocate_info.allocationSize = memory_requirements.size;
-			allocate_info.memoryTypeIndex = memory_index;
-			
-			m_Memory = VKDevice::Instance()->GetDevice().allocateMemory(allocate_info);
 			VKDevice::Instance()->GetDevice().bindBufferMemory(m_Buffer, m_Memory, 0);
 
-			const vk::DeviceSize copy_size = static_cast<vk::DeviceSize>(size);
-			VKTools::CopyBuffer(upload_buffer, m_Buffer, copy_size);
-
-			m_DesciptorBufferInfo.buffer = m_Buffer;
-			m_DesciptorBufferInfo.offset = 0;
-			m_DesciptorBufferInfo.range = size;
-
-			VKDevice::Instance()->GetDevice().freeMemory(upload_memory);
-			VKDevice::Instance()->GetDevice().destroyBuffer(upload_buffer);
+			SetData(size, data);
 		}
 
 		void VKBuffer::SetData(uint32_t size, const void* data)
 		{
-			void* temp;
-            VKDevice::Instance()->GetDevice().mapMemory(m_Memory, 0, size, vk::MemoryMapFlagBits(), &temp);
-			memcpy(temp, data, size);
-            VKDevice::Instance()->GetDevice().unmapMemory(m_Memory);
+			Map(size, 0);
+			memcpy(m_Mapped, data, size);
+			UnMap();
+		}
+		
+		void VKBuffer::Map(VkDeviceSize size, VkDeviceSize offset)
+		{
+			VKDevice::Instance()->GetDevice().mapMemory(m_Memory, offset, size, vk::MemoryMapFlagBits(), &m_Mapped);
+		}
+
+		void VKBuffer::UnMap()
+		{
+			if (m_Mapped)
+			{
+				VKDevice::Instance()->GetDevice().unmapMemory(m_Memory);
+				m_Mapped = nullptr;
+			}
+		}
+
+		void VKBuffer::Flush(VkDeviceSize size, VkDeviceSize offset)
+		{
+			vk::MappedMemoryRange mappedRange = {};
+			mappedRange.memory = m_Memory;
+			mappedRange.offset = offset;
+			mappedRange.size = size;
+			VKDevice::Instance()->GetDevice().flushMappedMemoryRanges(1, &mappedRange);
+		}
+		
+		void VKBuffer::Invalidate(VkDeviceSize size, VkDeviceSize offset)
+		{
+			vk::MappedMemoryRange mappedRange = {};
+			mappedRange.memory = m_Memory;
+			mappedRange.offset = offset;
+			mappedRange.size = size;
+			VKDevice::Instance()->GetDevice().invalidateMappedMemoryRanges(1, &mappedRange);
 		}
 	}
 }

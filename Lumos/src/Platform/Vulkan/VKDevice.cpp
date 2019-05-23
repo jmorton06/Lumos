@@ -27,16 +27,16 @@ extern "C" {
 #endif
 
 #ifdef LUMOS_PLATFORM_IOS
-void* Lumos::graphics::VKDevice::m_IOSView = nullptr;
+void* lumos::graphics::VKDevice::m_IOSView = nullptr;
 #endif
 
-namespace Lumos
+namespace lumos
 {
 	namespace graphics
 	{
 		VKDevice::VKDevice()
 		{
-			m_VKContext = static_cast<VKContext*>(Context::GetContext());
+			m_VKContext = static_cast<VKContext*>(GraphicsContext::GetContext());
 
 			Init();
 

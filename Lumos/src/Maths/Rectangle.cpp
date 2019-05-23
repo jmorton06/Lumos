@@ -2,7 +2,7 @@
 #include "Rectangle.h"
 #include "MathsUtilities.h"
 
-namespace Lumos
+namespace lumos
 {
 	namespace maths
 	{

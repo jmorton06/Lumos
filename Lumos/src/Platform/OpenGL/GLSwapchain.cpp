@@ -1,9 +1,10 @@
 ﻿#include "LM.h"
 #include "GLSwapchain.h"
 #include "Graphics/API/Framebuffer.h"
+#include "Textures/GLTexture2D.h"
 #include "App/Window.h"
 
-namespace Lumos
+namespace lumos
 {
 	namespace graphics
 	{

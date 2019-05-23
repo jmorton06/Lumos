@@ -2,7 +2,7 @@
 #include "LM.h"
 #include "Entity/Entity.h"
 
-namespace Lumos
+namespace lumos
 {
 	class PhysicsObject;
 

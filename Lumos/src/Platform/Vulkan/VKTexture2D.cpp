@@ -9,7 +9,7 @@
 
 #include <cmath>
 
-namespace Lumos
+namespace lumos
 {
 	namespace graphics
 	{
@@ -333,7 +333,7 @@ namespace Lumos
 			byte* pixels;
 
 			if (m_Data == nullptr)
-				pixels = Lumos::LoadImageFromFile(m_FileName, &texWidth, &texHeight, &texChannels);
+				pixels = lumos::LoadImageFromFile(m_FileName, &texWidth, &texHeight, &texChannels);
 			else
 			{
 				texWidth = m_Width;

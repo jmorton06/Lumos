@@ -5,7 +5,7 @@
 #include "Graphics/Camera/Camera.h"
 #include "Utilities/TimeStep.h"
 
-namespace Lumos
+namespace lumos
 {
     namespace Audio
     {

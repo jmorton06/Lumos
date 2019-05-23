@@ -3,7 +3,7 @@
 #include "App/Application.h"
 
 
-namespace Lumos
+namespace lumos
 {
 
 	FPSCamera::FPSCamera(float FOV, float Near, float Far, float aspect)

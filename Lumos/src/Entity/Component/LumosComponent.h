@@ -3,7 +3,7 @@
 #include "LM.h"
 #include "Maths/BoundingShape.h"
 
-namespace Lumos 
+namespace lumos 
 {
 	class Entity;
 

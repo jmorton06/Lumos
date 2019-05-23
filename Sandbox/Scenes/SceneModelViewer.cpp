@@ -1,6 +1,6 @@
 #include "SceneModelViewer.h"
 
-using namespace Lumos;
+using namespace lumos;
 using namespace maths;
 
 SceneModelViewer::SceneModelViewer(const std::string& SceneName)
@@ -35,7 +35,7 @@ void SceneModelViewer::OnInit()
 		"/Textures/cubemap/CubeMap10.tga"
 	};
 
-	m_EnvironmentMap = TextureCube::CreateFromVCross(environmentFiles, 11);
+	m_EnvironmentMap = graphics::TextureCube::CreateFromVCross(environmentFiles, 11);
 
 	auto sun = std::make_shared<graphics::Light>(maths::Vector3(26.0f, 22.0f, 48.5f), maths::Vector4(1.0f), 2.0f);
 
@@ -44,12 +44,12 @@ void SceneModelViewer::OnInit()
 	lightEntity->AddComponent(std::make_unique<TransformComponent>(Matrix4::Translation(maths::Vector3(26.0f, 22.0f, 48.5f))));
 	AddEntity(lightEntity);
 
-    auto shadowTexture = std::unique_ptr<TextureDepthArray>(TextureDepthArray::Create(2048, 2048, 4));
-    auto shadowRenderer = new ShadowRenderer();
-    auto deferredRenderer = new DeferredRenderer(m_ScreenWidth, m_ScreenHeight);
-    auto skyboxRenderer = new SkyboxRenderer(m_ScreenWidth, m_ScreenHeight, m_EnvironmentMap);
-    deferredRenderer->SetRenderTarget(Application::Instance()->GetRenderManager()->GetGBuffer()->m_ScreenTex[SCREENTEX_OFFSCREEN0]);
-    skyboxRenderer->SetRenderTarget(Application::Instance()->GetRenderManager()->GetGBuffer()->m_ScreenTex[SCREENTEX_OFFSCREEN0]);
+    auto shadowTexture = std::unique_ptr<graphics::TextureDepthArray>(graphics::TextureDepthArray::Create(2048, 2048, 4));
+    auto shadowRenderer = new graphics::ShadowRenderer();
+    auto deferredRenderer = new graphics::DeferredRenderer(m_ScreenWidth, m_ScreenHeight);
+    auto skyboxRenderer = new graphics::SkyboxRenderer(m_ScreenWidth, m_ScreenHeight, m_EnvironmentMap);
+    deferredRenderer->SetRenderTarget(Application::Instance()->GetRenderManager()->GetGBuffer()->m_ScreenTex[graphics::SCREENTEX_OFFSCREEN0]);
+    skyboxRenderer->SetRenderTarget(Application::Instance()->GetRenderManager()->GetGBuffer()->m_ScreenTex[graphics::SCREENTEX_OFFSCREEN0]);
 	shadowRenderer->SetLight(sun);
 
     deferredRenderer->SetRenderToGBufferTexture(true);

@@ -3,7 +3,7 @@
 #include "PhysicsObject3D.h"
 #include "Maths/Matrix3.h"
 
-namespace Lumos
+namespace lumos
 {
 
 	std::shared_ptr<Hull> CuboidCollisionShape::m_CubeHull = std::make_shared<Hull>();

@@ -3,11 +3,11 @@
 #include "VKBuffer.h"
 #include "Graphics/API/UniformBuffer.h"
 
-namespace Lumos
+namespace lumos
 {
 	namespace graphics
 	{
-		class VKUniformBuffer : public api::UniformBuffer
+		class VKUniformBuffer : public UniformBuffer
 		{
 		public:
 			VKUniformBuffer(uint32_t size, const void* data);

@@ -2,7 +2,7 @@
 #include "PathNode.h"
 #include "PathEdge.h"
 
-namespace Lumos
+namespace lumos
 {
 
 	PathNode::PathNode(const maths::Vector3 &position)

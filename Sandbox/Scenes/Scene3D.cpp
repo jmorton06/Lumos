@@ -1,7 +1,7 @@
 #include "Scene3D.h"
 #include "Graphics/MeshFactory.h"
 
-using namespace Lumos;
+using namespace lumos;
 using namespace maths;
 
 Scene3D::Scene3D(const std::string& SceneName)
@@ -47,7 +47,7 @@ void Scene3D::OnInit()
 		"/Textures/cubemap/CubeMap10.tga"
 	};
 
-	m_EnvironmentMap = TextureCube::CreateFromVCross(environmentFiles, 11);
+	m_EnvironmentMap = graphics::TextureCube::CreateFromVCross(environmentFiles, 11);
 
 	auto sun = std::make_shared<graphics::Light>(maths::Vector3(26.0f, 22.0f, 48.5f), maths::Vector4(1.0f) , 2.0f);
     
@@ -58,14 +58,14 @@ void Scene3D::OnInit()
 
 	Application::Instance()->GetAudioManager()->SetListener(m_pCamera);
 
-	m_ShadowTexture = std::unique_ptr<TextureDepthArray>(TextureDepthArray::Create(2048, 2048, 4));
-	auto shadowRenderer = new ShadowRenderer();
+	m_ShadowTexture = std::unique_ptr<graphics::TextureDepthArray>(graphics::TextureDepthArray::Create(2048, 2048, 4));
+	auto shadowRenderer = new graphics::ShadowRenderer();
 	shadowRenderer->SetLight(sun);
 
-	auto deferredRenderer = new DeferredRenderer(m_ScreenWidth, m_ScreenHeight);
-	auto skyboxRenderer = new SkyboxRenderer(m_ScreenWidth, m_ScreenHeight, m_EnvironmentMap);
-	deferredRenderer->SetRenderTarget(Application::Instance()->GetRenderManager()->GetGBuffer()->m_ScreenTex[SCREENTEX_OFFSCREEN0]);
-	skyboxRenderer->SetRenderTarget(Application::Instance()->GetRenderManager()->GetGBuffer()->m_ScreenTex[SCREENTEX_OFFSCREEN0]);
+	auto deferredRenderer = new graphics::DeferredRenderer(m_ScreenWidth, m_ScreenHeight);
+	auto skyboxRenderer = new graphics::SkyboxRenderer(m_ScreenWidth, m_ScreenHeight, m_EnvironmentMap);
+	deferredRenderer->SetRenderTarget(Application::Instance()->GetRenderManager()->GetGBuffer()->m_ScreenTex[graphics::SCREENTEX_OFFSCREEN0]);
+	skyboxRenderer->SetRenderTarget(Application::Instance()->GetRenderManager()->GetGBuffer()->m_ScreenTex[graphics::SCREENTEX_OFFSCREEN0]);
 
 	deferredRenderer->SetRenderToGBufferTexture(true);
 	skyboxRenderer->SetRenderToGBufferTexture(true);
@@ -127,7 +127,7 @@ void Scene3D::LoadModels()
 	ground->AddComponent(std::make_unique<TransformComponent>(Matrix4::Scale(maths::Vector3(groundWidth, groundHeight, groundLength))));
 	ground->AddComponent(std::make_unique<Physics3DComponent>(testPhysics));
 
-	std::shared_ptr<Mesh> groundModel = std::make_shared<Mesh>(*AssetsManager::DefaultModels()->GetAsset("Cube"));
+	std::shared_ptr<graphics::Mesh> groundModel = std::make_shared<graphics::Mesh>(*AssetsManager::DefaultModels()->GetAsset("Cube"));
 	ground->AddComponent(std::make_unique<MeshComponent>(groundModel));
 
 	MaterialProperties properties;
@@ -295,7 +295,7 @@ void Scene3D::LoadModels()
 	pendulumHolder->AddComponent(std::make_unique<Physics3DComponent>(pendulumHolderPhysics));
 	pendulumHolder->AddComponent(std::make_unique<TransformComponent>(Matrix4::Scale(maths::Vector3(0.5f, 0.5f, 0.5f))));
 
-	std::shared_ptr<Mesh> pendulumHolderModel = std::make_shared<Mesh>(*AssetsManager::DefaultModels()->GetAsset("Cube"));
+	std::shared_ptr<graphics::Mesh> pendulumHolderModel = std::make_shared<graphics::Mesh>(*AssetsManager::DefaultModels()->GetAsset("Cube"));
 	pendulumHolder->AddComponent(std::make_unique<MeshComponent>(pendulumHolderModel));
 
 	AddEntity(pendulumHolder);
@@ -313,7 +313,7 @@ void Scene3D::LoadModels()
 	pendulum->AddComponent(std::make_unique<Physics3DComponent>(pendulumPhysics));
 	pendulum->AddComponent(std::make_unique<TransformComponent>(Matrix4::Scale(maths::Vector3(0.5f, 0.5f, 0.5f))));
 
-	std::shared_ptr<Mesh> pendulumModel = std::make_shared<Mesh>(*AssetsManager::DefaultModels()->GetAsset("Sphere"));
+	std::shared_ptr<graphics::Mesh> pendulumModel = std::make_shared<graphics::Mesh>(*AssetsManager::DefaultModels()->GetAsset("Sphere"));
 	pendulum->AddComponent(std::make_unique<MeshComponent>(pendulumModel));
 
 	AddEntity(pendulum);
@@ -363,7 +363,7 @@ void Scene3D::LoadModels()
 
 		sphere->AddComponent(std::make_unique<TransformComponent>(Matrix4::Scale(maths::Vector3(0.5f, 0.5f, 0.5f)) * Matrix4::Translation(maths::Vector3(i * 2.0f, 30.0f, 0.0f))));
 		sphere->AddComponent(std::make_unique<TextureMatrixComponent>(Matrix4()));
-		std::shared_ptr<Mesh> sphereModel = std::make_shared<Mesh>(*AssetsManager::DefaultModels()->GetAsset("Sphere"));
+		std::shared_ptr<graphics::Mesh> sphereModel = std::make_shared<graphics::Mesh>(*AssetsManager::DefaultModels()->GetAsset("Sphere"));
 		sphere->AddComponent(std::make_unique<MeshComponent>(sphereModel));
 		sphere->GetComponent<MeshComponent>()->m_Model->SetMaterial(m);
 
@@ -391,7 +391,7 @@ void Scene3D::LoadModels()
 
 		sphere->AddComponent(std::make_unique<TransformComponent>(Matrix4::Scale(maths::Vector3(0.5f, 0.5f, 0.5f)) * Matrix4::Translation(maths::Vector3(i * 2.0f, 30.0f, 3.0f))));
 		sphere->AddComponent(std::make_unique<TextureMatrixComponent>(Matrix4()));
-		std::shared_ptr<Mesh> sphereModel = std::make_shared<Mesh>(*AssetsManager::DefaultModels()->GetAsset("Sphere"));
+		std::shared_ptr<graphics::Mesh> sphereModel = std::make_shared<graphics::Mesh>(*AssetsManager::DefaultModels()->GetAsset("Sphere"));
 		sphere->AddComponent(std::make_unique<MeshComponent>(sphereModel));
 		sphere->GetComponent<MeshComponent>()->m_Model->SetMaterial(m);
 
@@ -420,7 +420,7 @@ void Scene3D::LoadModels()
 
 		cube2->AddComponent(std::make_unique<TransformComponent>(Matrix4::Scale(maths::Vector3(0.5f, 0.5f, 0.5f)) * Matrix4::Translation(maths::Vector3(i * 2.0f, 30.0f, -3.0f))));
 		cube2->AddComponent(std::make_unique<TextureMatrixComponent>(Matrix4()));
-		std::shared_ptr<Mesh> cubeModel1 = std::make_shared<Mesh>(*AssetsManager::DefaultModels()->GetAsset("Cube"));
+		std::shared_ptr<graphics::Mesh> cubeModel1 = std::make_shared<graphics::Mesh>(*AssetsManager::DefaultModels()->GetAsset("Cube"));
 		cube2->AddComponent(std::make_unique<MeshComponent>(cubeModel1));
 		cube2->GetComponent<MeshComponent>()->m_Model->SetMaterial(m);
 

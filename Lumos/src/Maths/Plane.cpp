@@ -1,7 +1,7 @@
 #include "LM.h"
 #include "Plane.h"
 
-namespace Lumos {
+namespace lumos {
 	namespace maths {
 		Plane::Plane(const Vector3 &normal, float distance, bool normalise) {
 			if (normalise) {

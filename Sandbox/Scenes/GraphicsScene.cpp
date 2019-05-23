@@ -1,6 +1,6 @@
 #include "GraphicsScene.h"
 
-using namespace Lumos;
+using namespace lumos;
 using namespace maths;
 
 GraphicsScene::GraphicsScene(const std::string& SceneName) : Scene(SceneName) {}
@@ -38,7 +38,7 @@ void GraphicsScene::OnInit()
 		"/Textures/cubemap/CubeMap10.tga"
 	};
 
-	m_EnvironmentMap = TextureCube::CreateFromVCross(environmentFiles, 11);
+	m_EnvironmentMap = graphics::TextureCube::CreateFromVCross(environmentFiles, 11);
 
 	auto sun = std::make_shared<graphics::Light>(maths::Vector3(26.0f, 22.0f, 48.5f), maths::Vector4(1.0f), 2.0f);
 
@@ -49,12 +49,12 @@ void GraphicsScene::OnInit()
 
 	//SoundSystem::Instance()->SetListener(m_pCamera);
 
-	m_ShadowTexture = std::unique_ptr<TextureDepthArray>(TextureDepthArray::Create(4096, 4096, 4));
-	auto shadowRenderer = new ShadowRenderer();
-	auto deferredRenderer = new DeferredRenderer(m_ScreenWidth, m_ScreenHeight);
-	auto skyboxRenderer = new SkyboxRenderer(m_ScreenWidth, m_ScreenHeight, m_EnvironmentMap);
-	deferredRenderer->SetRenderTarget(Application::Instance()->GetRenderManager()->GetGBuffer()->m_ScreenTex[SCREENTEX_OFFSCREEN0]);
-	skyboxRenderer->SetRenderTarget(Application::Instance()->GetRenderManager()->GetGBuffer()->m_ScreenTex[SCREENTEX_OFFSCREEN0]);
+	m_ShadowTexture = std::unique_ptr<graphics::TextureDepthArray>(graphics::TextureDepthArray::Create(4096, 4096, 4));
+	auto shadowRenderer = new graphics::ShadowRenderer();
+	auto deferredRenderer = new graphics::DeferredRenderer(m_ScreenWidth, m_ScreenHeight);
+	auto skyboxRenderer = new graphics::SkyboxRenderer(m_ScreenWidth, m_ScreenHeight, m_EnvironmentMap);
+	deferredRenderer->SetRenderTarget(Application::Instance()->GetRenderManager()->GetGBuffer()->m_ScreenTex[graphics::SCREENTEX_OFFSCREEN0]);
+	skyboxRenderer->SetRenderTarget(Application::Instance()->GetRenderManager()->GetGBuffer()->m_ScreenTex[graphics::SCREENTEX_OFFSCREEN0]);
 	shadowRenderer->SetLight(sun);
 
 	deferredRenderer->SetRenderToGBufferTexture(true);
@@ -114,7 +114,7 @@ void GraphicsScene::LoadModels()
 	heightmap->AddComponent(std::make_unique<TransformComponent>(Matrix4::Scale(maths::Vector3(1.0f))));
 	heightmap->AddComponent(std::make_unique<TextureMatrixComponent>(Matrix4::Scale(maths::Vector3(1.0f, 1.0f, 1.0f))));
 	heightmap->SetBoundingRadius(2000.0f);
-	std::shared_ptr<Mesh> terrain = std::make_shared<Mesh>(*terrainMesh);
+	std::shared_ptr<graphics::Mesh> terrain = std::make_shared<graphics::Mesh>(*terrainMesh);
 	auto material = std::make_shared<Material>();
 
 	material->LoadMaterial("checkerboard", "/CoreTextures/checkerboard.tga");

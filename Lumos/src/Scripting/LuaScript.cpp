@@ -5,7 +5,7 @@
 #include "Bindings/LuaBindings.h"
 #include <mutex>
 
-namespace Lumos
+namespace lumos
 {
 	LuaScripting* LuaScripting::g_Lua = nullptr;
 
@@ -31,7 +31,7 @@ namespace Lumos
 		{
 			g_Lua = new LuaScripting();
 
-			Lumos::luabindings::BindAll();
+			lumos::luabindings::BindAll();
 		}
 		return g_Lua;
 	}

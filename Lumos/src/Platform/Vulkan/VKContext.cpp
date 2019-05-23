@@ -5,7 +5,7 @@
 #include "VKCommandBuffer.h"
 #include "Maths/Matrix4.h"
 
-namespace Lumos
+namespace lumos
 {
 	namespace graphics
 	{
@@ -65,7 +65,7 @@ namespace Lumos
 			}
 		}
 
-		VKContext::VKContext(WindowProperties properties, void* deviceContext)
+		VKContext::VKContext(const WindowProperties& properties, void* deviceContext)
 		{
 			m_WindowContext = deviceContext;
 			CreateInstance();
@@ -193,7 +193,7 @@ namespace Lumos
 			vk::ApplicationInfo appInfo = {};
 			appInfo.pApplicationName = "Sandbox";
 			appInfo.applicationVersion = VK_MAKE_VERSION(1, 0, 0);
-			appInfo.pEngineName = "Lumos";
+			appInfo.pEngineName = "lumos";
 			appInfo.engineVersion = VK_MAKE_VERSION(1, 0, 0);
 			appInfo.apiVersion = VK_API_VERSION_1_0;
 

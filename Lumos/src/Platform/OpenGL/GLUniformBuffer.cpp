@@ -4,7 +4,7 @@
 #include "GLDebug.h"
 #include "GLShader.h"
 
-namespace Lumos
+namespace lumos
 {
     namespace graphics
     {

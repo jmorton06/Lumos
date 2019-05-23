@@ -2,7 +2,7 @@
 #include "MayaCamera.h"
 #include "App/Application.h"
 
-namespace Lumos
+namespace lumos
 {
 
 	MayaCamera::MayaCamera(float FOV, float Near, float Far, float aspect)

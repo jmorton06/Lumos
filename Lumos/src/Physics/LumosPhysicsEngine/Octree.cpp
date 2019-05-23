@@ -3,7 +3,7 @@
 #include "Octree.h"
 #include "Graphics/Renderers/DebugRenderer.h"
 
-namespace Lumos
+namespace lumos
 {
 
 	Octree::Octree(const size_t maxObjectsPerPartition, const size_t maxPartitionDepth, std::shared_ptr<Broadphase> secondaryBroadphase)

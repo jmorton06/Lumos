@@ -3,7 +3,7 @@
 #include "Graphics/API/Pipeline.h"
 #include "VKDescriptorSet.h"
 
-namespace Lumos
+namespace lumos
 {
 	class Shader;
 
@@ -11,17 +11,17 @@ namespace Lumos
 	{
 		class VKCommandBuffer;
 
-		class VKPipeline : public api::Pipeline
+		class VKPipeline : public Pipeline
 		{
 		public:
 			VKPipeline();
-			VKPipeline(const api::PipelineInfo& pipelineCI);
+			VKPipeline(const PipelineInfo& pipelineCI);
 			~VKPipeline();
 
-			bool Init(const api::PipelineInfo& pipelineCI);
+			bool Init(const PipelineInfo& pipelineCI);
 
 			void Unload() const;
-			void SetActive(graphics::api::CommandBuffer* cmdBuffer) override;
+			void SetActive(graphics::CommandBuffer* cmdBuffer) override;
 
 			vk::DescriptorSetLayout* GetDescriptorLayout(int id) { return &m_DescriptorLayouts[id]; };
 			

@@ -9,7 +9,7 @@
 #include "Maths/MathsUtilities.h"
 #include <cmath>
 
-namespace Lumos
+namespace lumos
 {
 	namespace graphics
 	{
@@ -179,7 +179,7 @@ namespace Lumos
 
 			for (uint m = 0; m < mips; m++)
 			{
-				byte* data = Lumos::LoadImageFromFile(m_Files[m], &srcWidth, &srcHeight, &bits, !m_LoadOptions.flipY);
+				byte* data = lumos::LoadImageFromFile(m_Files[m], &srcWidth, &srcHeight, &bits, !m_LoadOptions.flipY);
 				//m_Parameters.format = VKTexture2D::BitsToTextureFormat(bits);
 				uint stride = bits / 8;
 				

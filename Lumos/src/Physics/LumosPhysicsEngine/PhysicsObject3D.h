@@ -8,7 +8,7 @@
 #include "Maths/BoundingBox.h"
 #include <memory>
 
-namespace Lumos
+namespace lumos
 {
 	class LumosPhysicsEngine;
 	class Entity;

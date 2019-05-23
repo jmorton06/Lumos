@@ -9,27 +9,24 @@
 #include "Platform/OpenGL/GLSwapchain.h"
 #endif
 
-#include "Graphics/API/Context.h"
+#include "Graphics/API/GraphicsContext.h"
 
-namespace Lumos
+namespace lumos
 {
 	namespace graphics
 	{
-		namespace api
+		Swapchain* Swapchain::Create(uint width, uint height)
 		{
-			Swapchain* Swapchain::Create(uint width, uint height)
+			switch (graphics::GraphicsContext::GetRenderAPI())
 			{
-				switch (graphics::Context::GetRenderAPI())
-				{
 #ifdef LUMOS_RENDER_API_OPENGL
-				case RenderAPI::OPENGL:		return new GLSwapchain(width, height);
+			case RenderAPI::OPENGL:		return new GLSwapchain(width, height);
 #endif
 #ifdef LUMOS_RENDER_API_VULKAN
-				case RenderAPI::VULKAN:		return new VKSwapchain(width, height);
+			case RenderAPI::VULKAN:		return new VKSwapchain(width, height);
 #endif
-				}
-				return nullptr;
 			}
+			return nullptr;
 		}
 	}
 }

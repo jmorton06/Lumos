@@ -2,7 +2,7 @@
 #include "ThirdPersonCamera.h"
 #include "App/Application.h"
 
-namespace Lumos
+namespace lumos
 {
 
 	ThirdPersonCamera::ThirdPersonCamera(float FOV, float Near, float Far, float aspect)

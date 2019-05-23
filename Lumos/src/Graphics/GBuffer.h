@@ -2,57 +2,59 @@
 
 #include "LM.h"
 
-namespace Lumos
+namespace lumos
 {
-	class Framebuffer;
-	class Texture2D;
-	class TextureDepth;
-
-	enum LUMOS_EXPORT ScreenTextures
+	namespace graphics
 	{
-		SCREENTEX_DEPTH 		= 0,	//Depth Buffer
-		SCREENTEX_STENCIL 		= 0,	//Stencil Buffer (Same Tex as Depth)
-		SCREENTEX_COLOUR 		= 1,	//Main Render
-		SCREENTEX_POSITION 		= 2,	//Deferred Render - World Space Positions
-		SCREENTEX_NORMALS 		= 3,	//Deferred Render - World Space Normals
-		SCREENTEX_PBR 			= 4,	//Metallic/Roughness/Ao Stored Here
-		SCREENTEX_OFFSCREEN0 	= 5,	//Extra Textures for multipass post processing
-		SCREENTEX_OFFSCREEN1 	= 6,    //Or Displaying scene in editor mode
-		SCREENTEX_MAX
-	};
+		class Framebuffer;
+		class Texture2D;
+		class TextureDepth;
 
-	class LUMOS_EXPORT GBuffer
-	{
-	public:
+		enum LUMOS_EXPORT ScreenTextures
+		{
+			SCREENTEX_DEPTH = 0,	//Depth Buffer
+			SCREENTEX_STENCIL = 0,	//Stencil Buffer (Same Tex as Depth)
+			SCREENTEX_COLOUR = 1,	//Main Render
+			SCREENTEX_POSITION = 2,	//Deferred Render - World Space Positions
+			SCREENTEX_NORMALS = 3,	//Deferred Render - World Space Normals
+			SCREENTEX_PBR = 4,	//Metallic/Roughness/Ao Stored Here
+			SCREENTEX_OFFSCREEN0 = 5,	//Extra Textures for multipass post processing
+			SCREENTEX_OFFSCREEN1 = 6,    //Or Displaying scene in editor mode
+			SCREENTEX_MAX
+		};
 
-		GBuffer(uint width, uint height);
-		~GBuffer();
+		class LUMOS_EXPORT GBuffer
+		{
+		public:
 
-		void BuildTextures();
+			GBuffer(uint width, uint height);
+			~GBuffer();
 
-		void Bind(int32 mode = 0);
-		void UpdateTextureSize(uint width, uint height);
-		void SetReadBuffer(ScreenTextures type);
+			void BuildTextures();
 
-		inline uint GetWidth() const { return m_Width; }
-		inline uint GetHeight() const { return m_Height; }
+			void Bind(int32 mode = 0);
+			void UpdateTextureSize(uint width, uint height);
+			void SetReadBuffer(ScreenTextures type);
 
-		inline Texture2D* GetTexture(uint index) const { return m_ScreenTex[index]; }
+			inline uint GetWidth() const { return m_Width; }
+			inline uint GetHeight() const { return m_Height; }
 
-		const static unsigned int PPtextures = 2;
-		int m_postProcessDrawTo{};
+			inline Texture2D* GetTexture(uint index) const { return m_ScreenTex[index]; }
 
-		void PostProcessDrawn();
+			const static unsigned int PPtextures = 2;
+			int m_postProcessDrawTo{};
 
-		Texture2D* m_ScreenTex[ScreenTextures::SCREENTEX_MAX]{};
-		TextureDepth* m_DepthTexture{};
+			void PostProcessDrawn();
 
-	private:
-		void Init();
+			Texture2D* m_ScreenTex[ScreenTextures::SCREENTEX_MAX]{};
+			TextureDepth* m_DepthTexture{};
 
-	private:
+		private:
+			void Init();
 
-		uint m_Width, m_Height;
-	};
+		private:
 
+			uint m_Width, m_Height;
+		};
+	}
 }

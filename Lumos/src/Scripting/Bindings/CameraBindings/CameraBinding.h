@@ -4,7 +4,7 @@
 #include "Scripting/Luna.h"
 #include "Graphics/Camera/FPSCamera.h"
 
-namespace Lumos
+namespace lumos
 {
 	class LUMOS_EXPORT CameraBinding
 	{

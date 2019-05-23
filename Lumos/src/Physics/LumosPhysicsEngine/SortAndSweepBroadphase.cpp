@@ -6,7 +6,7 @@
 #include <memory>
 #include <vector>
 
-namespace Lumos
+namespace lumos
 {
 
 	SortAndSweepBroadphase::SortAndSweepBroadphase(const maths::Vector3 &axis)

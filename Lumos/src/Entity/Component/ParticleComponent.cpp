@@ -9,7 +9,7 @@
 #include <imgui/imgui.h>
 #include "Physics/LumosPhysicsEngine/PhysicsObject3D.h"
 
-namespace Lumos
+namespace lumos
 {
     ParticleComponent::ParticleComponent(std::shared_ptr<ParticleEmitter>& emitter)
             : m_ParticleEmitter(emitter), m_PositionOffset(maths::Vector3(0.0f,0.0f,0.0f))

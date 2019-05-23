@@ -10,25 +10,27 @@
 #ifdef LUMOS_RENDER_API_DIRECT3D
 #include "graphics/DirectX/DXTextureDepth.h"
 #endif
-#include "Graphics/API/Context.h"
+#include "Graphics/API/GraphicsContext.h"
 
-namespace Lumos
+namespace lumos
 {
-
-	TextureDepth* TextureDepth::Create(uint width, uint height)
+	namespace graphics
 	{
-		switch (graphics::Context::GetRenderAPI())
+		TextureDepth* TextureDepth::Create(uint width, uint height)
 		{
+			switch (graphics::GraphicsContext::GetRenderAPI())
+			{
 #ifdef LUMOS_RENDER_API_OPENGL
-		case RenderAPI::OPENGL:		return new GLTextureDepth(width, height);
+			case RenderAPI::OPENGL:		return new GLTextureDepth(width, height);
 #endif
 #ifdef LUMOS_RENDER_API_VULKAN
-		case RenderAPI::VULKAN:		return new graphics::VKTextureDepth(width, height);
+			case RenderAPI::VULKAN:		return new graphics::VKTextureDepth(width, height);
 #endif
 #ifdef LUMOS_RENDER_API_DIRECT3D
-		case RenderAPI::DIRECT3D:	return new D3DTextureDepth(width, height);
+			case RenderAPI::DIRECT3D:	return new D3DTextureDepth(width, height);
 #endif
+			}
+			return nullptr;
 		}
-		return nullptr;
 	}
 }

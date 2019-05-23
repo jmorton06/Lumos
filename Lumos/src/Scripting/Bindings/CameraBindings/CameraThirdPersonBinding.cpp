@@ -4,7 +4,7 @@
 #include "../MathsBindings/Vector3Binding.h"
 #include "Scripting/Bindings/MathsBindings/Matrix4Binding.h"
 
-namespace Lumos
+namespace lumos
 {
 	const char CameraThirdPersonBinding::className[] = "ThirdPersonCamera";
 

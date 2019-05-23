@@ -1,13 +1,17 @@
 #pragma once
 #include "Maths/Vector2.h"
 
-namespace Lumos
+namespace lumos
 {
 	class Application;
 	class Entity;
 	class Console;
-	class Texture2D;
 	class Scene;
+	
+	namespace graphics 
+	{
+		class Texture2D;
+	}
 
 	class Editor
 	{
@@ -47,6 +51,6 @@ namespace Lumos
 		bool m_FlipImGuiImage = false;
 		Entity* m_Selected = nullptr;
 
-		std::map<String, Texture2D*> m_Icons;
+		std::map<String, graphics::Texture2D*> m_Icons;
 	};
 }

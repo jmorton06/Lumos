@@ -8,7 +8,7 @@
 
 #define CALL_MEMBER_FN(instance, ptrToMemberFn)  ((instance).*(ptrToMemberFn))
 
-namespace Lumos
+namespace lumos
 {
 	struct LUMOS_EXPORT CollisionData
 	{

@@ -2,7 +2,7 @@
 #include "LM.h"
 #include "Maths/Maths.h"
 
-namespace Lumos
+namespace lumos
 {
 	class Material;
 	class Particle;

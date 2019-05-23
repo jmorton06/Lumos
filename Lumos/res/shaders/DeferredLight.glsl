@@ -154,7 +154,7 @@ vec3 RadianceIBLIntegration(float NdotV, float roughness, vec3 specular)
 	return specular * preintegratedFG.r + preintegratedFG.g;
 }
 
-vec3 IBL(Light light, Material material, vec3 eye)
+vec3 IBL(Material material, vec3 eye)
 {
 	float NdotV = max(dot(material.normal, eye), 0.0);
 
@@ -365,8 +365,8 @@ void main()
 
     diffuse = max(diffuse, vec4(0.1));
 
-    finalColour = material.albedo.xyz * diffuse.rgb + specular;
-    //finalColour = material.albedo.xyz * diffuse.rgb + (specular + IBL(light, material, eye));
+    //finalColour = material.albedo.xyz * diffuse.rgb + specular;
+    finalColour = material.albedo.xyz * diffuse.rgb + (specular + IBL(material, eye));
 
 	finalColour = FinalGamma(finalColour);
 	outColor = vec4(finalColour, 1.0);

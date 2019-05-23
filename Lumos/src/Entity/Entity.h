@@ -12,7 +12,7 @@ struct EnumClassHash
     }
 };
 
-namespace Lumos
+namespace lumos
 {
 	class Scene;
 

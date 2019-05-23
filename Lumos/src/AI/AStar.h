@@ -5,7 +5,7 @@
 #include "PathNodePriorityQueue.h"
 #include "QueueablePathNode.h"
 
-namespace Lumos
+namespace lumos
 {
 	class LUMOS_EXPORT AStar
 	{

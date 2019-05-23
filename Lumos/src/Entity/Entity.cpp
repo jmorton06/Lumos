@@ -3,7 +3,7 @@
 
 #include "Graphics/Renderers/DebugRenderer.h"
 #include "App/Scene.h"
-#include "Graphics/API/Context.h"
+#include "Graphics/API/GraphicsContext.h"
 
 #include <imgui/imgui.h>
 #include <imgui/plugins/ImGuizmo.h>
@@ -13,7 +13,7 @@
 
 #include "Maths/MathsUtilities.h"
 
-namespace Lumos
+namespace lumos
 {
 	Entity::Entity(Scene* scene) : m_Name("Unnamed"), m_pScene(scene), m_pParent(nullptr), m_BoundingRadius(1), m_FrustumCullFlags(0), m_Active(true)
 	{
@@ -133,7 +133,7 @@ namespace Lumos
 		maths::Matrix4 proj = Application::Instance()->GetSceneManager()->GetCurrentScene()->GetCamera()->GetProjectionMatrix();
         
 #ifdef LUMOS_RENDER_API_VULKAN
-		if(graphics::Context::GetRenderAPI() == RenderAPI::VULKAN)
+		if(graphics::GraphicsContext::GetRenderAPI() == graphics::RenderAPI::VULKAN)
 			proj[5] *= -1.0f;
 #endif
 		ImGuizmo::SetDrawlist();

@@ -6,7 +6,7 @@
 class Object;
 class b2Body;
 
-namespace Lumos
+namespace lumos
 {
     namespace maths
     {
