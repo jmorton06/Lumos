@@ -6,7 +6,7 @@
 struct HullEdge;
 struct HullFace;
 
-namespace Lumos
+namespace lumos
 {
 
 	struct LUMOS_EXPORT HullVertex

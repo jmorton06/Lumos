@@ -13,7 +13,7 @@
 #include <cstdarg>
 #include <cstdio>
 
-namespace Lumos
+namespace lumos
 {
 	maths::Vector3	DebugRenderer::m_CameraPosition;
 	maths::Matrix4	DebugRenderer::m_ProjMtx;
@@ -435,7 +435,7 @@ namespace Lumos
 
 	void DebugRenderer::DebugDraw(maths::BoundingSphere* sphere, const maths::Vector4 &colour)
 	{
-		Lumos::DebugRenderer::DrawPointNDT(sphere->Centre(), sphere->SphereRadius(), colour);
+		lumos::DebugRenderer::DrawPointNDT(sphere->Centre(), sphere->SphereRadius(), colour);
 	}
 
 	void DebugRenderer::ClearDebugLists()
@@ -600,181 +600,19 @@ namespace Lumos
 
 	void DebugRenderer::DrawDebugLists()
 	{
-		Renderer::SetBlend(true);
-		Renderer::SetBlendFunction(RendererBlendFunction::SOURCE_ALPHA, RendererBlendFunction::ONE_MINUS_SOURCE_ALPHA);
-		//	Renderer::SetCulling(false);
-
-		//Buffer all data into the single buffer object
-		size_t max_size = 0;
-		max_size += m_DrawList._vPoints.size() + m_DrawList._vThickLines.size() + m_DrawList._vHairLines.size() + m_DrawList._vTris.size();
-		max_size += m_DrawListNDT._vPoints.size() + m_DrawListNDT._vThickLines.size() + m_DrawListNDT._vHairLines.size() + m_DrawListNDT._vTris.size();
-		max_size += m_vChars.size();
-		max_size *= sizeof(maths::Vector4);
-
-		size_t buffer_offsets[8];
-		//DT Draw List
-		buffer_offsets[0] = 0;
-		buffer_offsets[1] = m_DrawList._vPoints.size();
-		buffer_offsets[2] = buffer_offsets[1] + m_DrawList._vThickLines.size();
-		buffer_offsets[3] = buffer_offsets[2] + m_DrawList._vHairLines.size();
-
-		//NDT Draw List
-		buffer_offsets[4] = buffer_offsets[3] + m_DrawList._vTris.size();
-		buffer_offsets[5] = buffer_offsets[4] + m_DrawListNDT._vPoints.size();
-		buffer_offsets[6] = buffer_offsets[5] + m_DrawListNDT._vThickLines.size();
-		buffer_offsets[7] = buffer_offsets[6] + m_DrawListNDT._vHairLines.size();
-
-		//Char Offset
-		m_OffsetChars = buffer_offsets[7] + m_DrawListNDT._vTris.size();
-
-		const size_t stride = sizeof(maths::Vector4);
-
-		m_VertexArray->Bind();
-		m_VertexArray->GetBuffer(0)->SetData(static_cast<uint>(max_size), nullptr);
-
-		const auto buffer_drawlist = [&](DebugRenderer::DebugDrawList& list, size_t* offsets)
-		{
-			if (!list._vPoints.empty()) m_VertexArray->GetBuffer(0)->SetDataSub(static_cast<uint>(list._vPoints.size() * stride), &list._vPoints[0], static_cast<uint>(offsets[0] * stride));
-			if (!list._vThickLines.empty()) m_VertexArray->GetBuffer(0)->SetDataSub(static_cast<uint>(list._vThickLines.size() * stride), &list._vThickLines[0], static_cast<uint>(offsets[1] * stride));
-			if (!list._vHairLines.empty()) m_VertexArray->GetBuffer(0)->SetDataSub(static_cast<uint>(list._vHairLines.size() * stride), &list._vHairLines[0], static_cast<uint>(offsets[2] * stride));
-			if (!list._vTris.empty()) m_VertexArray->GetBuffer(0)->SetDataSub(static_cast<uint>(list._vTris.size() * stride), &list._vTris[0], static_cast<uint>(offsets[3] * stride));
-		};
-		buffer_drawlist(m_DrawList, &buffer_offsets[0]);
-		buffer_drawlist(m_DrawListNDT, &buffer_offsets[4]);
-		if (!m_vChars.empty()) m_VertexArray->GetBuffer(0)->SetDataSub(static_cast<uint>(m_vChars.size() * stride), &m_vChars[0], static_cast<uint>(m_OffsetChars * stride));
-
-		//float aspectRatio = (float)(m_Height / m_Width);
-
-		const auto render_drawlist = [&](DebugRenderer::DebugDrawList& list, size_t* offsets, uint OffsetID)
-		{
-			if (m_pShaderPoints && !list._vPoints.empty())
-			{
-			//	m_pShaderPoints->SetUniform("uProjMtx", m_ProjMtx);
-			//	m_pShaderPoints->SetUniform("uViewMtx", m_ViewMtx);
-			//	m_pShaderPoints->Bind();
-
-				Renderer::DrawArrays(DrawType::POINT, static_cast<uint>(offsets[0 + OffsetID]) >> 1, static_cast<uint>(list._vPoints.size()) >> 1);
-
-			//	m_pShaderPoints->Unbind();
-			}
-
-			if (m_pShaderLines && !list._vThickLines.empty())
-			{
-			//	m_pShaderLines->SetUniform("uProjViewMtx", m_ProjViewMtx);
-			//	m_pShaderLines->SetUniform("uAspect", aspectRatio);
-			//	m_pShaderLines->Bind();
-
-				Renderer::DrawArrays(DrawType::LINES, static_cast<int>(offsets[1 + OffsetID]) >> 1, static_cast<int>(list._vThickLines.size()) >> 1);
-
-			//	m_pShaderLines->Unbind();
-			}
-
-			if (m_pShaderHairLines && (list._vHairLines.size() + list._vTris.size()) > 0)
-			{
-			//	m_pShaderHairLines->SetUniform("uProjViewMtx", m_ProjViewMtx);
-			//	m_pShaderHairLines->Bind();
-
-				if (!list._vHairLines.empty()) Renderer::DrawArrays(DrawType::LINES, static_cast<uint>(offsets[2 + OffsetID]) >> 1, static_cast<uint>(list._vHairLines.size()) >> 1);
-				if (!list._vTris.empty()) Renderer::DrawArrays(DrawType::TRIANGLE, static_cast<uint>(offsets[3 + OffsetID]) >> 1, static_cast<uint>(list._vTris.size()) >> 1);
-
-			//	m_pShaderHairLines->Unbind();
-			}
-		};
-
-		m_VertexArray->Bind();
-
-		render_drawlist(m_DrawList, buffer_offsets, 0);
-
-		Renderer::SetDepthTesting(false);
-		render_drawlist(m_DrawListNDT, buffer_offsets, 4);
-		Renderer::SetDepthTesting(true);
-
-		m_VertexArray->Unbind();
 	}
 
 	//This Function has been abstracted from previous set of draw calls as to avoid supersampling the font bitmap.. which is bad enough as it is.
 	void DebugRenderer::DrawDebubHUD()
 	{
-		//All text data already updated in main DebugDrawLists
-		// - we just need to rebind and draw it
 
-		if (m_pShaderText && !m_vChars.empty())
-		{
-			m_VertexArray->Bind();
-			//m_pShaderText->SetTexture("uFontTex", m_FontTex);
-			//m_pShaderText->Bind();
-
-			Renderer::DrawArrays(DrawType::LINES, static_cast<uint>(m_OffsetChars) >> 1, static_cast<uint>(m_vChars.size()) >> 1);
-
-			m_VertexArray->Unbind();
-			//m_pShaderText->Unbind();
-		}
 	}
 
 	void DebugRenderer::Init()
 	{
-		m_pShaderLines = new Material();//std::shared_ptr<Shader>(Shader::CreateFromFile("DebugLine", "/Shaders/DebugDraw/DebugLine")));
-		m_pShaderPoints = new Material();//std::shared_ptr<Shader>(Shader::CreateFromFile("DebugPoint", "/Shaders/DebugDraw/DebugPoint")));
-		m_pShaderHairLines = new Material();//std::shared_ptr<Shader>(Shader::CreateFromFile("DebugHairLine", "/Shaders/DebugDraw/DebugHairLine")));
-		m_pShaderText = new Material();//std::shared_ptr<Shader>(Shader::CreateFromFile("DebugText", "/Shaders/DebugDraw/DebugText")));
-
-		m_VertexArray = VertexArray::Create();
-		m_VertexArray->Bind();
-
-		VertexBuffer* buffer = VertexBuffer::Create(BufferUsage::STATIC);
-		buffer->SetData(0, nullptr);
-
-		graphics::BufferLayout layout;
-		layout.Push<maths::Vector4>("position");
-		layout.Push<maths::Vector4>("colour");
-		buffer->SetLayout(layout);
-
-		m_VertexArray->PushBuffer(buffer);
-
-		//Load Font Texture
-		m_FontTex = Texture2D::CreateFromFile("Debug Font", "/Textures/font512.png", TextureParameters(), TextureLoadOptions());
-		if (!m_FontTex)
-		{
-			LUMOS_CORE_ERROR("JMDebug could not load font texture", "");
-		}
 	}
 
 	void DebugRenderer::Release()
 	{
-		if (m_pShaderPoints)
-		{
-			delete m_pShaderPoints;
-			m_pShaderPoints = nullptr;
-		}
-
-		if (m_pShaderLines)
-		{
-			delete m_pShaderLines;
-			m_pShaderLines = nullptr;
-		}
-
-		if (m_pShaderHairLines)
-		{
-			delete m_pShaderHairLines;
-			m_pShaderHairLines = nullptr;
-		}
-
-		if (m_pShaderText)
-		{
-			delete m_pShaderText;
-			m_pShaderText = nullptr;
-		}
-
-		if (m_FontTex)
-		{
-			delete m_FontTex;
-			m_FontTex = nullptr;
-		}
-
-		if (m_VertexArray)
-		{
-			delete m_VertexArray;
-			m_VertexArray = nullptr;
-		}
 	}
 }

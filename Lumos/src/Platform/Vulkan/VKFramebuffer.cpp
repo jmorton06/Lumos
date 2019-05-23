@@ -5,7 +5,7 @@
 #include "VKTextureDepthArray.h"
 
 
-namespace Lumos
+namespace lumos
 {
 	namespace graphics
 	{

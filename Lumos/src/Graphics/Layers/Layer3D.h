@@ -4,14 +4,17 @@
 #include "Layer.h"
 #include "Events/ApplicationEvent.h"
 
-namespace Lumos
+namespace lumos
 {
-    class Renderer3D;
+	namespace graphics
+	{
+		class Renderer3D;
+	}
 
     class LUMOS_EXPORT Layer3D : public Layer
 	{
 	public:
-		Layer3D(Renderer3D* renderer, const std::string& name = "Layer3D");
+		Layer3D(graphics::Renderer3D* renderer, const std::string& name = "Layer3D");
 		virtual ~Layer3D();
 
 		virtual void OnAttach() override;
@@ -22,7 +25,7 @@ namespace Lumos
 
     protected:
         Scene* m_Scene;
-        Renderer3D* m_Renderer;
+		graphics::Renderer3D* m_Renderer;
 	private:
         bool OnwindowResizeEvent(WindowResizeEvent& e);
 	};

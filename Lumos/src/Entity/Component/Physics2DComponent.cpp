@@ -8,7 +8,7 @@
 
 #include <math.h>
 
-namespace Lumos
+namespace lumos
 {
 	Physics2DComponent::Physics2DComponent(std::shared_ptr<PhysicsObject2D>& physics)
 		: m_PhysicsObject(physics)

@@ -1,16 +1,15 @@
 #pragma once
 #include "LM.h"
-#include "Graphics/API/Context.h"
+#include "Graphics/API/GraphicsContext.h"
 
-namespace Lumos
+namespace lumos
 {
-	class GLDebug;
 	namespace graphics
 	{
-		class LUMOS_EXPORT GLContext : public Context
+		class LUMOS_EXPORT GLContext : public GraphicsContext
 		{
 		public:
-			GLContext(WindowProperties properties, void* deviceContext);
+			GLContext(const WindowProperties& properties, void* deviceContext);
 			~GLContext();
 
 			void Present() override;

@@ -16,7 +16,7 @@
 #include "Graphics/Mesh.h"
 #include "Graphics/Light.h"
 
-namespace Lumos
+namespace lumos
 {
 	using namespace maths;
 
@@ -44,7 +44,7 @@ namespace Lumos
 		std::shared_ptr<Entity> pSphere = std::make_shared<Entity>(name, Application::Instance()->GetSceneManager()->GetCurrentScene());
 
 		pSphere->AddComponent(std::make_unique<TextureMatrixComponent>(maths::Matrix4::Scale(maths::Vector3(10.0f, 10.0f, 10.0f))));
-        std::shared_ptr<Mesh> sphereModel = std::make_shared<Mesh>(*AssetsManager::DefaultModels()->GetAsset("Sphere"));
+        std::shared_ptr<graphics::Mesh> sphereModel = std::make_shared<graphics::Mesh>(*AssetsManager::DefaultModels()->GetAsset("Sphere"));
         pSphere->AddComponent(std::make_unique<MeshComponent>(sphereModel));
 
 		std::shared_ptr<Material> matInstance = std::make_shared<Material>();
@@ -103,7 +103,7 @@ namespace Lumos
 		std::shared_ptr<Entity> Cube = std::make_shared<Entity>(name, Application::Instance()->GetSceneManager()->GetCurrentScene());
 
 		Cube->AddComponent(std::make_unique<TextureMatrixComponent>(maths::Matrix4::Scale(maths::Vector3(10.0f, 10.0f, 10.0f))));
-        std::shared_ptr<Mesh> cubeModel = std::make_shared<Mesh>(*AssetsManager::DefaultModels()->GetAsset("Cube"));
+        std::shared_ptr<graphics::Mesh> cubeModel = std::make_shared<graphics::Mesh>(*AssetsManager::DefaultModels()->GetAsset("Cube"));
         Cube->AddComponent(std::make_unique<MeshComponent>(cubeModel));
 
 		auto matInstance = std::make_shared<Material>();
@@ -164,7 +164,7 @@ namespace Lumos
 
 		std::shared_ptr<Entity> meshEntity = std::make_shared<Entity>("Mesh", Application::Instance()->GetSceneManager()->GetCurrentScene());
 
-        std::shared_ptr<Mesh> pyramidModel = std::make_shared<Mesh>(*AssetsManager::DefaultModels()->GetAsset("Pyramid"));
+        std::shared_ptr<graphics::Mesh> pyramidModel = std::make_shared<graphics::Mesh>(*AssetsManager::DefaultModels()->GetAsset("Pyramid"));
 		meshEntity->AddComponent(std::make_unique<MeshComponent>(pyramidModel));
 
 		std::shared_ptr<Material> matInstance = std::make_shared<Material>();

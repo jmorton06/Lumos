@@ -4,7 +4,7 @@
 #include "Maths/Vector3.h"
 #include "Maths/MathsUtilities.h"
 
-namespace Lumos
+namespace lumos
 {
 	class LUMOS_EXPORT SoundNode
 	{

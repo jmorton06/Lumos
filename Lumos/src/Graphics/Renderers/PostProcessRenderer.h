@@ -5,11 +5,11 @@
 #include "Maths/Matrix4.h"
 #include "Graphics/API/BufferLayout.h"
 
-namespace Lumos
+namespace lumos
 {
 	namespace graphics
 	{
-		namespace api
+		
 		{
 			class RenderPass;
 			class Pipeline;
@@ -47,7 +47,7 @@ namespace Lumos
 
 		struct UniformBufferObject
 		{
-			Lumos::maths::Matrix4 projView;
+			lumos::maths::Matrix4 projView;
 		};
 
 		byte* m_VSSystemUniformBuffer{};
@@ -61,12 +61,12 @@ namespace Lumos
 		std::vector<Renderable2D*> m_Sprites;
 		uint m_ScreenBufferWidth{}, m_ScreenBufferHeight{};
 
-		graphics::api::RenderPass* m_RenderPass{};
-		graphics::api::Pipeline* m_Pipeline{};
-		graphics::api::DescriptorSet* m_DescriptorSet{};
-		graphics::api::UniformBuffer* m_UniformBuffer{};
-		std::vector<graphics::api::CommandBuffer*> m_CommandBuffers;
-		std::vector<graphics::api::CommandBuffer*> m_SecondaryCommandBuffers;
+		graphics::RenderPass* m_RenderPass{};
+		graphics::Pipeline* m_Pipeline{};
+		graphics::DescriptorSet* m_DescriptorSet{};
+		graphics::UniformBuffer* m_UniformBuffer{};
+		std::vector<graphics::CommandBuffer*> m_CommandBuffers;
+		std::vector<graphics::CommandBuffer*> m_SecondaryCommandBuffers;
 
 		uint m_BatchDrawCallIndex = 0;
 

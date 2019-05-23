@@ -1,5 +1,5 @@
 #pragma once
-#include "Graphics/API/Context.h"
+#include "Graphics/API/GraphicsContext.h"
 
 #include "VK.h"
 
@@ -9,7 +9,7 @@ const bool enableValidationLayers = false;
 const bool enableValidationLayers = false;
 #endif
 
-namespace Lumos
+namespace lumos
 {
 	namespace graphics
 	{
@@ -24,10 +24,10 @@ namespace Lumos
 			VK_KHR_SWAPCHAIN_EXTENSION_NAME
 		};
 
-		class VKContext : public Context
+		class VKContext : public GraphicsContext
 		{
 		public:
-			VKContext(WindowProperties properties, void* deviceContext);
+			VKContext(const WindowProperties& properties, void* deviceContext);
 			~VKContext();
 
 			void Init() override;

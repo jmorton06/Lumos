@@ -13,7 +13,7 @@
 
 #include <imgui/imgui.h>
 
-namespace Lumos
+namespace lumos
 {
 
 	LumosPhysicsEngine::LumosPhysicsEngine()

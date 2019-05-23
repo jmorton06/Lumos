@@ -6,7 +6,7 @@
 #include <Box2D/Box2D.h>
 #include <Box2D/Common/b2Math.h>
 
-namespace Lumos
+namespace lumos
 {
 	B2PhysicsEngine::B2PhysicsEngine()
 		: m_UpdateTimestep(1.0f / 60.f)

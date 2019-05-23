@@ -3,9 +3,9 @@
 #include "LM.h"
 
 #include "Maths/Maths.h"
-#include "Context.h"
+#include "GraphicsContext.h"
 
-namespace Lumos
+namespace lumos
 {
 	namespace graphics
 	{

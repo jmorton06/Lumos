@@ -6,7 +6,7 @@
 #include "Utilities/AssetsManager.h"
 #include "MeshFactory.h"
 
-namespace Lumos
+namespace lumos
 {
 	Sprite::Sprite(const maths::Vector2& position, const maths::Vector2& scale, const maths::Vector4& colour)
 	{
@@ -17,7 +17,7 @@ namespace Lumos
 		m_Texture = nullptr;
 	}
 
-	Sprite::Sprite(std::shared_ptr<Texture2D> texture, const maths::Vector2& position, const maths::Vector2& scale, const maths::Vector4& colour)
+	Sprite::Sprite(std::shared_ptr<graphics::Texture2D> texture, const maths::Vector2& position, const maths::Vector2& scale, const maths::Vector4& colour)
 	{
 		m_Texture = texture;
 		m_Position = position;

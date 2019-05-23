@@ -1,14 +1,13 @@
 #include "LM.h"
 #include "VKShader.h"
-
 #include "VKDevice.h"
 #include "System/FileSystem.h"
 
-namespace Lumos
+namespace lumos
 {
 	namespace graphics
 	{
-		ShaderType type = ShaderType::UNKNOWN;
+		static ShaderType type = ShaderType::UNKNOWN;
 
 		VKShader::VKShader(const std::string& shaderName, const std::string& filePath): m_StageCount(0), m_Name(shaderName), m_FilePath(filePath)
 		{

@@ -2,7 +2,7 @@
 #include "Camera.h"
 #include <imgui/imgui.h>
 
-namespace Lumos
+namespace lumos
 {
 
 	Camera::Camera(float FOV, float Near, float Far, float aspect)

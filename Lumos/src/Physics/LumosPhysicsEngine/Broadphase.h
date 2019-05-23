@@ -3,7 +3,7 @@
 #include "LM.h"
 #include "PhysicsObject3D.h"
 
-namespace Lumos
+namespace lumos
 {
 
 	struct LUMOS_EXPORT CollisionPair

@@ -5,7 +5,7 @@
 #include "Matrix4.h"
 #include "MathsCommon.h"
 
-namespace Lumos
+namespace lumos
 {
 	namespace maths
 	{

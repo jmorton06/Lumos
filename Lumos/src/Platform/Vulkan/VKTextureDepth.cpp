@@ -4,7 +4,7 @@
 #include "Utilities/LoadImage.h"
 #include "VKTools.h"
 
-namespace Lumos
+namespace lumos
 {
 	namespace graphics
 	{

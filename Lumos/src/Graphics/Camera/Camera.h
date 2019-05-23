@@ -5,7 +5,7 @@
 
 #include "Maths/Maths.h"
 
-namespace Lumos
+namespace lumos
 {
 	class LUMOS_EXPORT Camera
 	{

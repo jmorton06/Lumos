@@ -5,7 +5,7 @@
 
 #include <imgui/imgui.h>
 
-namespace Lumos
+namespace lumos
 {
 	namespace system
 	{

@@ -9,7 +9,7 @@
 #include "Vector3.h"
 #include "Vector4.h"
 
-namespace Lumos
+namespace lumos
 {
 	namespace maths
 	{

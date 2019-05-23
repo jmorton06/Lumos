@@ -7,7 +7,7 @@
 #include <chrono>
 #endif
 
-namespace Lumos
+namespace lumos
 {
 	RandomNumberGenerator32 RandomNumberGenerator32::Rand = RandomNumberGenerator32(RandomNumberGenerator32::RandSeed());
 	RandomNumberGenerator64 RandomNumberGenerator64::Rand = RandomNumberGenerator64(RandomNumberGenerator64::RandSeed());

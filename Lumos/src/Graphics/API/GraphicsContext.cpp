@@ -1,8 +1,5 @@
 #include "LM.h"
-#include "Context.h"
-#include "VertexArray.h"
-#include "../Material.h"
-#include "Textures/Texture2D.h"
+#include "GraphicsContext.h"
 
 #ifdef LUMOS_RENDER_API_OPENGL
 #include "Platform/OpenGL/GLContext.h"
@@ -14,14 +11,14 @@
 #include "graphics/DirectX/DXContext.h"
 #endif
 
-namespace Lumos
+namespace lumos
 {
 	namespace graphics
 	{
-		Context* Context::s_Context = nullptr;
-		RenderAPI Context::s_RenderAPI;// = RenderAPI::OPENGL;
+		GraphicsContext* GraphicsContext::s_Context = nullptr;
+		RenderAPI GraphicsContext::s_RenderAPI;
 
-		void Context::Create(WindowProperties properties, void* deviceContext)
+		void GraphicsContext::Create(const WindowProperties& properties, void* deviceContext)
 		{
 			switch (GetRenderAPI())
 			{
@@ -37,12 +34,12 @@ namespace Lumos
 			}
 		}
 
-		void Context::Release()
+		void GraphicsContext::Release()
 		{
 			delete s_Context;
 		}
 
-		Context::~Context()
+		GraphicsContext::~GraphicsContext()
 		{
 		}
 	}

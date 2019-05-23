@@ -2,13 +2,13 @@
 #include "LM.h"
 #include "Graphics/API/UniformBuffer.h"
 
-namespace Lumos
+namespace lumos
 {
-	class GLShader;
-
     namespace graphics
     {
-        class GLUniformBuffer : public api::UniformBuffer
+		class GLShader;
+        
+		class GLUniformBuffer : public UniformBuffer
         {
         public:
             GLUniformBuffer();

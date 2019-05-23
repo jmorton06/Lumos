@@ -2,7 +2,7 @@
 #include "PyramidCollisionShape.h"
 #include "PhysicsObject3D.h"
 
-namespace Lumos
+namespace lumos
 {
 
 	Hull* PyramidCollisionShape::m_PyramidHull = new Hull();

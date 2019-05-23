@@ -17,7 +17,7 @@
 #include "Maths/BoundingSphere.h"
 #include "System/Profiler.h"
 
-namespace Lumos
+namespace lumos
 {
 	Editor::Editor(Application* app, uint width, uint height) : m_Application(app)
 	{
@@ -161,22 +161,22 @@ namespace Lumos
 				{
 					if (ImGui::TreeNode("Colour Texture"))
 					{
-						ImGui::Image(m_Application->m_RenderManager->GetGBuffer()->m_ScreenTex[SCREENTEX_COLOUR]->GetHandle(), ImVec2(128, 128), ImVec2(0.0f, m_FlipImGuiImage ? 1.0f : 0.0f), ImVec2(1.0f, m_FlipImGuiImage ? 0.0f : 1.0f));
+						ImGui::Image(m_Application->m_RenderManager->GetGBuffer()->m_ScreenTex[graphics::SCREENTEX_COLOUR]->GetHandle(), ImVec2(128, 128), ImVec2(0.0f, m_FlipImGuiImage ? 1.0f : 0.0f), ImVec2(1.0f, m_FlipImGuiImage ? 0.0f : 1.0f));
 						ImGui::TreePop();
 					}
 					if (ImGui::TreeNode("Normal Texture"))
 					{
-						ImGui::Image(m_Application->m_RenderManager->GetGBuffer()->m_ScreenTex[SCREENTEX_NORMALS]->GetHandle(), ImVec2(128, 128), ImVec2(0.0f, m_FlipImGuiImage ? 1.0f : 0.0f), ImVec2(1.0f, m_FlipImGuiImage ? 0.0f : 1.0f));
+						ImGui::Image(m_Application->m_RenderManager->GetGBuffer()->m_ScreenTex[graphics::SCREENTEX_NORMALS]->GetHandle(), ImVec2(128, 128), ImVec2(0.0f, m_FlipImGuiImage ? 1.0f : 0.0f), ImVec2(1.0f, m_FlipImGuiImage ? 0.0f : 1.0f));
 						ImGui::TreePop();
 					}
 					if (ImGui::TreeNode("PBR Texture"))
 					{
-						ImGui::Image(m_Application->m_RenderManager->GetGBuffer()->m_ScreenTex[SCREENTEX_PBR]->GetHandle(), ImVec2(128, 128), ImVec2(0.0f, m_FlipImGuiImage ? 1.0f : 0.0f), ImVec2(1.0f, m_FlipImGuiImage ? 0.0f : 1.0f));
+						ImGui::Image(m_Application->m_RenderManager->GetGBuffer()->m_ScreenTex[graphics::SCREENTEX_PBR]->GetHandle(), ImVec2(128, 128), ImVec2(0.0f, m_FlipImGuiImage ? 1.0f : 0.0f), ImVec2(1.0f, m_FlipImGuiImage ? 0.0f : 1.0f));
 						ImGui::TreePop();
 					}
 					if (ImGui::TreeNode("Position Texture"))
 					{
-						ImGui::Image(m_Application->m_RenderManager->GetGBuffer()->m_ScreenTex[SCREENTEX_POSITION]->GetHandle(), ImVec2(128, 128), ImVec2(0.0f, m_FlipImGuiImage ? 1.0f : 0.0f), ImVec2(1.0f, m_FlipImGuiImage ? 0.0f : 1.0f));
+						ImGui::Image(m_Application->m_RenderManager->GetGBuffer()->m_ScreenTex[graphics::SCREENTEX_POSITION]->GetHandle(), ImVec2(128, 128), ImVec2(0.0f, m_FlipImGuiImage ? 1.0f : 0.0f), ImVec2(1.0f, m_FlipImGuiImage ? 0.0f : 1.0f));
 						ImGui::TreePop();
 					}
 					ImGui::TreePop();
@@ -251,7 +251,7 @@ namespace Lumos
 		height -= (height % 2 != 0) ? 1 : 0;
 
 		ImGuizmo::SetRect(ImGui::GetWindowPos().x, ImGui::GetWindowPos().y, static_cast<float>(width), static_cast<float>(height));
-		ImGui::Image(m_Application->m_RenderManager->GetGBuffer()->m_ScreenTex[SCREENTEX_OFFSCREEN0]->GetHandle(), ImVec2(static_cast<float>(width), static_cast<float>(height)), ImVec2(0.0f, m_FlipImGuiImage ? 1.0f : 0.0f), ImVec2(1.0f, m_FlipImGuiImage ? 0.0f : 1.0f));
+		ImGui::Image(m_Application->m_RenderManager->GetGBuffer()->m_ScreenTex[graphics::SCREENTEX_OFFSCREEN0]->GetHandle(), ImVec2(static_cast<float>(width), static_cast<float>(height)), ImVec2(0.0f, m_FlipImGuiImage ? 1.0f : 0.0f), ImVec2(1.0f, m_FlipImGuiImage ? 0.0f : 1.0f));
 
 		if (m_Selected)
 		{
@@ -361,13 +361,13 @@ namespace Lumos
 	void Editor::OnInit()
 	{
 		//Load Icons
-		m_Icons["play"] = Texture2D::CreateFromFile("playIcon", "/CoreTextures/Editor/icons/play.png");
-		m_Icons["pause"] = Texture2D::CreateFromFile("pauseIcon", "/CoreTextures/Editor/icons/pause.png");
-		m_Icons["next"] = Texture2D::CreateFromFile("nextIcon", "/CoreTextures/Editor/icons/next.png");
+		m_Icons["play"] = graphics::Texture2D::CreateFromFile("playIcon", "/CoreTextures/Editor/icons/play.png");
+		m_Icons["pause"] = graphics::Texture2D::CreateFromFile("pauseIcon", "/CoreTextures/Editor/icons/pause.png");
+		m_Icons["next"] = graphics::Texture2D::CreateFromFile("nextIcon", "/CoreTextures/Editor/icons/next.png");
 
-		m_Icons["translate"] = Texture2D::CreateFromFile("translateIcon", "/CoreTextures/Editor/icons/translate.png");
-		m_Icons["scale"] = Texture2D::CreateFromFile("scaleIcon", "/CoreTextures/Editor/icons/scale.png");
-		m_Icons["rotate"] = Texture2D::CreateFromFile("rotateIcon", "/CoreTextures/Editor/icons/rotate.png");
+		m_Icons["translate"] = graphics::Texture2D::CreateFromFile("translateIcon", "/CoreTextures/Editor/icons/translate.png");
+		m_Icons["scale"] = graphics::Texture2D::CreateFromFile("scaleIcon", "/CoreTextures/Editor/icons/scale.png");
+		m_Icons["rotate"] = graphics::Texture2D::CreateFromFile("rotateIcon", "/CoreTextures/Editor/icons/rotate.png");
 
 
 	}

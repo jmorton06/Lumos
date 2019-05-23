@@ -2,7 +2,7 @@
 #include "LM.h"
 #include "PathNode.h"
 
-namespace Lumos
+namespace lumos
 {
 
 	class LUMOS_EXPORT PathEdge

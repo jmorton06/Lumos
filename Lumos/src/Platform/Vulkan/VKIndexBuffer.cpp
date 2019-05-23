@@ -2,7 +2,7 @@
 #include "VKIndexBuffer.h"
 #include "VKVertexBuffer.h"
 
-namespace Lumos
+namespace lumos
 {
 	namespace graphics
 	{

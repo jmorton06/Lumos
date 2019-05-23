@@ -7,21 +7,22 @@
 #include "Events/Event.h"
 #include "Events/ApplicationEvent.h"
 
-namespace Lumos
+namespace lumos
 {
 	struct TimeStep;
 	class ParticleManager;
 	class Font;
-	class GBuffer;
-	class TextureCube;
 	class Material;
 	class Event;
 	class Layer;
 	class Camera;
 	class Entity;
+
 	namespace graphics
 	{
 		struct Light;
+		class GBuffer;
+		class TextureCube;
 	}
 
 	class LUMOS_EXPORT Scene
@@ -84,7 +85,7 @@ namespace Lumos
 		void 				SetCamera(Camera* camera) { m_pCamera = camera; }
 		Camera*				GetCamera()				const { return m_pCamera; }
 		ParticleManager*	GetParticleSystem()		const { return m_ParticleManager; }
-		TextureCube*		GetEnvironmentMap()		const { return m_EnvironmentMap; }
+		graphics::TextureCube* GetEnvironmentMap()		const { return m_EnvironmentMap; }
 
 		bool GetReflectSkybox() const { return m_ReflectSkybox; }
 		void SetReflectSkybox(bool reflect) { m_ReflectSkybox = reflect; }
@@ -122,7 +123,7 @@ namespace Lumos
 		String				m_SceneName;
 		Camera*				m_pCamera;
 		ParticleManager*	m_ParticleManager;
-		TextureCube*		m_EnvironmentMap;
+		graphics::TextureCube*		m_EnvironmentMap;
 
 		AssetManager<Material>* m_MaterialManager;
 

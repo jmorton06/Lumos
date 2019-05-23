@@ -1,7 +1,7 @@
 #include "LM.h"
 #include "Light.h"
 
-namespace Lumos
+namespace lumos
 {
 	namespace graphics
 	{

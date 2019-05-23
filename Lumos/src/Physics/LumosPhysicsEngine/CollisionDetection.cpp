@@ -3,7 +3,7 @@
 
 #include "SphereCollisionShape.h"
 
-namespace Lumos
+namespace lumos
 {
 
 	CollisionDetection::CollisionDetection()

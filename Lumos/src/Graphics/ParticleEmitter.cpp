@@ -8,7 +8,7 @@
 #include "Utilities/RandomNumberGenerator.h"
 #include "Maths/BoundingBox.h"
 
-namespace Lumos
+namespace lumos
 {
 
 	ParticleEmitter::ParticleEmitter()
@@ -66,7 +66,7 @@ namespace Lumos
 		{
 			for (uint i = 0; i < m_NumLaunchParticles; ++i)
 			{
-				m_Particles.push_back(std::make_shared<Particle>(m_Position + maths::Vector3(Lumos::RandomNumberGenerator32::Rand(-m_Area.x, m_Area.x),Lumos::RandomNumberGenerator32::Rand(-m_Area.y, m_Area.y),Lumos::RandomNumberGenerator32::Rand(-m_Area.z, m_Area.z)), m_InitialVelocity + maths::Vector3(Lumos::RandomNumberGenerator32::Rand(m_VelocityVarianceX.GetX(),m_VelocityVarianceX.GetY()),Lumos::RandomNumberGenerator32::Rand(m_VelocityVarianceY.GetX(), m_VelocityVarianceY.GetY()),Lumos::RandomNumberGenerator32::Rand(m_VelocityVarianceZ.GetX(), m_VelocityVarianceZ.GetY())), m_GravityEffect, m_ParticleLife * Lumos::RandomNumberGenerator32::Rand(m_LifeLengthVariance,1.0f), m_Scale * Lumos::RandomNumberGenerator32::Rand(m_ScaleVariance,1.0f)));
+				m_Particles.push_back(std::make_shared<Particle>(m_Position + maths::Vector3(lumos::RandomNumberGenerator32::Rand(-m_Area.x, m_Area.x),lumos::RandomNumberGenerator32::Rand(-m_Area.y, m_Area.y),lumos::RandomNumberGenerator32::Rand(-m_Area.z, m_Area.z)), m_InitialVelocity + maths::Vector3(lumos::RandomNumberGenerator32::Rand(m_VelocityVarianceX.GetX(),m_VelocityVarianceX.GetY()),lumos::RandomNumberGenerator32::Rand(m_VelocityVarianceY.GetX(), m_VelocityVarianceY.GetY()),lumos::RandomNumberGenerator32::Rand(m_VelocityVarianceZ.GetX(), m_VelocityVarianceZ.GetY())), m_GravityEffect, m_ParticleLife * lumos::RandomNumberGenerator32::Rand(m_LifeLengthVariance,1.0f), m_Scale * lumos::RandomNumberGenerator32::Rand(m_ScaleVariance,1.0f)));
 			}
 
 			m_NextParticleTime += m_ParticleRate;
@@ -84,20 +84,6 @@ namespace Lumos
 
 	void ParticleEmitter::Render(Material* material, Camera* camera, Mesh* quad)
 	{
-		//material->SetTexture("u_Texture", m_Texture);
-
-		for (const auto& particle : m_Particles)
-		{
-            UpdateModelViewMatrix(camera->GetViewMatrix(), particle.get());
-			//material->SetUniform("mvMatrix", UpdateModelViewMatrix(camera->GetViewMatrix(), particle.get()));
-			//material->SetUniform("projMatrix", camera->GetProjectionMatrix());
-			//material->SetUniform("u_TextureOffset1", particle->GetOffset1());
-			//material->SetUniform("u_TextureOffset2", particle->GetOffset2());
-			//material->SetUniform("u_TexCoordInfo", maths::Vector2(static_cast<float>(m_NumTextureRows), particle->GetBlend()));
-
-			//material->Bind();
-			quad->Draw(false);
-		}
 	}
 
 	maths::Matrix4 ParticleEmitter::UpdateModelViewMatrix(const maths::Matrix4& viewMatrix, Particle* particle)

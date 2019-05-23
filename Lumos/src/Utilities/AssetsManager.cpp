@@ -6,19 +6,19 @@
 #include "Entity/Entity.h"
 #include "Entity/Component/Components.h"
 
-namespace Lumos
+namespace lumos
 {
-	AssetManager<Mesh>*	 AssetsManager::s_DefaultModels   = nullptr;
-	AssetManager<Texture2D>* AssetsManager::s_DefaultTextures = nullptr;
+	AssetManager<graphics::Mesh>*	 AssetsManager::s_DefaultModels   = nullptr;
+	AssetManager<graphics::Texture2D>* AssetsManager::s_DefaultTextures = nullptr;
 
 	void AssetsManager::InitializeMeshes()
 	{
-		s_DefaultModels   = new AssetManager<Mesh>();
-		s_DefaultTextures = new AssetManager<Texture2D>();
+		s_DefaultModels   = new AssetManager<graphics::Mesh>();
+		s_DefaultTextures = new AssetManager<graphics::Texture2D>();
 
-        s_DefaultModels->AddAsset("Cube", std::shared_ptr<Mesh>(MeshFactory::CreateCube(2.0f,nullptr)));
-        s_DefaultModels->AddAsset("Pyramid", std::shared_ptr<Mesh>(MeshFactory::CreatePyramid(1.0f,nullptr)));
-        s_DefaultModels->AddAsset("Sphere", std::shared_ptr<Mesh>(MeshFactory::CreateSphere(64,64, nullptr)));
+        s_DefaultModels->AddAsset("Cube", std::shared_ptr<graphics::Mesh>(graphics::CreateCube(2.0f,nullptr)));
+        s_DefaultModels->AddAsset("Pyramid", std::shared_ptr<graphics::Mesh>(graphics::CreatePyramid(1.0f,nullptr)));
+        s_DefaultModels->AddAsset("Sphere", std::shared_ptr<graphics::Mesh>(graphics::CreateSphere(64,64, nullptr)));
 	}
 
 	void AssetsManager::ReleaseMeshes()

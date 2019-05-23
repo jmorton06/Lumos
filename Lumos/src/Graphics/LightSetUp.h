@@ -3,7 +3,7 @@
 #include "LM.h"
 #include "Light.h"
 
-namespace Lumos
+namespace lumos
 {
 
 	class LUMOS_EXPORT LightSetup

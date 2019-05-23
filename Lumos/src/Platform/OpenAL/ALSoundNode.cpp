@@ -7,7 +7,7 @@
 
 #include "Graphics/Camera/Camera.h"
 
-namespace Lumos
+namespace lumos
 {
 	ALSoundNode::ALSoundNode()
 	{

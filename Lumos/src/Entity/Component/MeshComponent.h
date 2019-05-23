@@ -2,16 +2,19 @@
 #include "LM.h"
 #include "LumosComponent.h"
 
-namespace Lumos
+namespace lumos
 {
-	class Mesh;
+	namespace graphics
+	{
+		class Mesh;
+	}
 
 	class LUMOS_EXPORT MeshComponent : public LumosComponent
 	{
 	public:
-		std::shared_ptr<Mesh> m_Model;
+		std::shared_ptr<graphics::Mesh> m_Model;
 	public:
-		explicit MeshComponent(std::shared_ptr<Mesh>& model);
+		explicit MeshComponent(std::shared_ptr<graphics::Mesh>& model);
 
 		static ComponentType GetStaticType()
 		{

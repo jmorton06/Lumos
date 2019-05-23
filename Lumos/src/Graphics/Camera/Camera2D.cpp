@@ -3,7 +3,7 @@
 #include "App/Application.h"
 #include "Maths/MathsUtilities.h"
 
-namespace Lumos
+namespace lumos
 {
     Camera2D::Camera2D(uint width, uint height, float scale) : Camera(45.0f, 0.0f, 1.0f, 1.0f)
 		, m_Scale(scale)

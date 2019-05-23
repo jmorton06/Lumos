@@ -5,16 +5,16 @@
 #include "GLShader.h"
 #include "GLUniformBuffer.h"
 
-namespace Lumos
+namespace lumos
 {
     namespace graphics
     {
-        GLDescriptorSet::GLDescriptorSet(api::DescriptorInfo& info)
+        GLDescriptorSet::GLDescriptorSet(DescriptorInfo& info)
         {
             m_Shader = info.shader;
         }
 
-        void GLDescriptorSet::Update(std::vector<api::ImageInfo> &imageInfos, std::vector<api::BufferInfo> &bufferInfos)
+        void GLDescriptorSet::Update(std::vector<ImageInfo> &imageInfos, std::vector<BufferInfo> &bufferInfos)
         {
 			m_ImageInfos.clear();
 			m_BufferInfos.clear();
@@ -37,7 +37,7 @@ namespace Lumos
 			}
         }
 
-        void GLDescriptorSet::Update(std::vector<api::ImageInfo>& imageInfos)
+        void GLDescriptorSet::Update(std::vector<ImageInfo>& imageInfos)
         {
 			m_ImageInfos.clear();
 
@@ -55,7 +55,7 @@ namespace Lumos
 
         }
 
-        void GLDescriptorSet::Update(std::vector<api::BufferInfo>& bufferInfos)
+        void GLDescriptorSet::Update(std::vector<BufferInfo>& bufferInfos)
         {
             m_Shader->Bind();
 
@@ -114,7 +114,7 @@ namespace Lumos
 	            dynamic_cast<GLShader*>(m_Shader)->SetUniform1i("PushConstant", static_cast<int32>(pc.data[0])); //TEMP
 		}
 
-        void GLDescriptorSet::SetPushConstants(std::vector<api::PushConstant>& pushConstants)
+        void GLDescriptorSet::SetPushConstants(std::vector<PushConstant>& pushConstants)
 		{
 			m_PushConstants.clear();
 			for (auto& pushConstant : pushConstants)

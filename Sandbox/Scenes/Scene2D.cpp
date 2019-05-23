@@ -1,6 +1,6 @@
 #include "Scene2D.h"
 
-using namespace Lumos;
+using namespace lumos;
 using namespace maths;
 
 Scene2D::Scene2D(const std::string& SceneName)
@@ -31,19 +31,19 @@ void Scene2D::OnInit()
 
 	Application::Instance()->GetAudioManager()->SetListener(m_pCamera);
 
-	auto renderer2D = new Renderer2D(m_ScreenWidth, m_ScreenHeight);
+	auto renderer2D = new graphics::Renderer2D(m_ScreenWidth, m_ScreenHeight);
 	auto layer2D = new Layer2D(renderer2D);
 
 	m_SceneLayers.emplace_back(layer2D);
 	Application::Instance()->PushLayer(layer2D);
 	renderer2D->SetRenderToGBufferTexture(true);
 
-	std::vector<std::shared_ptr<Texture2D>> textures = 
+	std::vector<std::shared_ptr<graphics::Texture2D>> textures =
 	{
-		std::shared_ptr<Texture2D>(Texture2D::CreateFromFile("Test", "/CoreTextures/icon.png")),
-		std::shared_ptr<Texture2D>(Texture2D::CreateFromFile("Test2", "/CoreTextures/noise.png")),
-		std::shared_ptr<Texture2D>(Texture2D::CreateFromFile("Test3", "/CoreTextures/checkerboard.tga")),
-		std::shared_ptr<Texture2D>(Texture2D::CreateFromFile("Test4", "/CoreTextures/water/waterDUDV.png"))
+		std::shared_ptr<graphics::Texture2D>(graphics::Texture2D::CreateFromFile("Test", "/CoreTextures/icon.png")),
+		std::shared_ptr<graphics::Texture2D>(graphics::Texture2D::CreateFromFile("Test2", "/CoreTextures/noise.png")),
+		std::shared_ptr<graphics::Texture2D>(graphics::Texture2D::CreateFromFile("Test3", "/CoreTextures/checkerboard.tga")),
+		std::shared_ptr<graphics::Texture2D>(graphics::Texture2D::CreateFromFile("Test4", "/CoreTextures/water/waterDUDV.png"))
 	};
     for (int i = 0; i < 1000; i++)
     {

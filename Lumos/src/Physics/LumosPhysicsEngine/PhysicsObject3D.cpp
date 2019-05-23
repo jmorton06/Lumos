@@ -5,7 +5,7 @@
 
 #include "Graphics/Renderers/DebugRenderer.h"
 
-namespace Lumos
+namespace lumos
 {
 
 	PhysicsObject3D::PhysicsObject3D() : PhysicsObject()

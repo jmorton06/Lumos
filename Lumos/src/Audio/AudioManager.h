@@ -2,7 +2,7 @@
 #include "LM.h"
 #include "App/ISystem.h"
 
-namespace Lumos
+namespace lumos
 {
 	class Camera;
 	class SoundNode;

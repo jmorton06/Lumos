@@ -8,7 +8,7 @@ class b2Body;
 struct b2BodyDef;
 struct b2FixtureDef;
 
-namespace Lumos
+namespace lumos
 {
 	struct TimeStep;
 

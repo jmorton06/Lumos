@@ -1,6 +1,6 @@
 #include "SceneLuaTest.h"
 
-using namespace Lumos;
+using namespace lumos;
 using namespace maths;
 
 SceneLuaTest::SceneLuaTest(const std::string& SceneName)

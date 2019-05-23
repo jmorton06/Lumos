@@ -5,7 +5,7 @@
 #include "App/SceneManager.h"
 #include "App/Application.h"
 
-namespace Lumos
+namespace lumos
 {
 const char EntityBinding::className[] = "Entity";
 

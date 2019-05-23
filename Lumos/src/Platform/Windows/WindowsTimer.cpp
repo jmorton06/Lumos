@@ -1,7 +1,7 @@
 #include "LM.h"
 #include "Utilities/Timer.h"
 
-namespace Lumos
+namespace lumos
 {
 	static double GetQueryPerformancePeriod()
 	{

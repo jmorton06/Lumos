@@ -2,7 +2,7 @@
 #include "Quaternion.h"
 #include "MathsUtilities.h"
 
-namespace Lumos
+namespace lumos
 {
 	namespace maths
 	{
@@ -567,9 +567,9 @@ namespace Lumos
 namespace std 
 {
 	template<>
-	struct hash<Lumos::maths::Quaternion>
+	struct hash<lumos::maths::Quaternion>
 	{
-		size_t operator()(const Lumos::maths::Quaternion& value) const
+		size_t operator()(const lumos::maths::Quaternion& value) const
 		{
 			return std::hash<float>()(value.x) ^ std::hash<float>()(value.y)
 				^ std::hash<float>()(value.z) ^ std::hash<float>()(value.w);

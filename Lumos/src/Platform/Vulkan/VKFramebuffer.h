@@ -5,7 +5,7 @@
 #include "VKTexture2D.h"
 #include "VKRenderpass.h"
 
-namespace Lumos
+namespace lumos
 {
 	namespace graphics
 	{

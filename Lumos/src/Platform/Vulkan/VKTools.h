@@ -9,24 +9,20 @@
 	VkResult res = (f);																					\
 	if (res != VK_SUCCESS)																				\
 	{																									\
-		LUMOS_CORE_ERROR("[VULKAN] : VkResult is {0} in {1} at line {2}",Lumos::graphics::VKTools::errorString(res) , __FILE__ , __LINE__); \
+		LUMOS_CORE_ERROR("[VULKAN] : VkResult is {0} in {1} at line {2}",lumos::graphics::VKTools::errorString(res) , __FILE__ , __LINE__); \
 		assert(res == VK_SUCCESS);																		\
 	}																									\
 }
 
-namespace Lumos
+namespace lumos
 {
 	namespace graphics
 	{
 		class VKCommandBuffer;
-
-		namespace api
-		{
-			struct VertexInputDescription;
-			enum class CullMode;
-			enum class DescriptorType;
-			enum class ShaderStage;
-		}
+		struct VertexInputDescription;
+		enum class CullMode;
+		enum class DescriptorType;
+		enum class ShaderStage;
 
 		namespace VKTools
 		{
@@ -53,10 +49,10 @@ namespace Lumos
 
 			std::string errorString(VkResult errorCode);
 
-			vk::VertexInputAttributeDescription VertexInputDescriptionToVK(api::VertexInputDescription description);
-			vk::CullModeFlags CullModeToVK(api::CullMode mode);
-			vk::DescriptorType DescriptorTypeToVK(api::DescriptorType type);
-			vk::ShaderStageFlags ShaderStageToVK(api::ShaderStage type);
+			vk::VertexInputAttributeDescription VertexInputDescriptionToVK(VertexInputDescription description);
+			vk::CullModeFlags CullModeToVK(CullMode mode);
+			vk::DescriptorType DescriptorTypeToVK(DescriptorType type);
+			vk::ShaderStageFlags ShaderStageToVK(ShaderStage type);
 
 			void SetImageLayout(
 				vk::CommandBuffer cmdbuffer,

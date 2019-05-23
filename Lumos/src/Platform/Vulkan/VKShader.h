@@ -3,7 +3,7 @@
 #include "VK.h"
 #include "Graphics/API/Shader.h"
 
-namespace Lumos
+namespace lumos
 {
 	namespace graphics
 	{

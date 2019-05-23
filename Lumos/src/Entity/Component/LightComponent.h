@@ -4,7 +4,7 @@
 #include "Maths/Vector3.h"
 
 
-namespace Lumos
+namespace lumos
 {
 	namespace graphics
 	{
