@@ -1,5 +1,6 @@
 #include "LM.h"
 #include "VertexArray.h"
+#include "VertexBuffer.h"
 
 #ifdef LUMOS_RENDER_API_OPENGL
 #include "Platform/OpenGL/GLVertexArray.h"
