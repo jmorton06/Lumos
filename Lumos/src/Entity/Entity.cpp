@@ -15,12 +15,7 @@
 
 namespace lumos
 {
-	Entity::Entity(Scene* scene) : m_Name("Unnamed"), m_pScene(scene), m_pParent(nullptr), m_BoundingRadius(1), m_FrustumCullFlags(0), m_Active(true)
-	{
-        Init();
-	}
-
-	Entity::Entity(const String& name,Scene* scene) : m_Name(name), m_pScene(scene), m_pParent(nullptr), m_BoundingRadius(1),
+	Entity::Entity(const String& name) : m_Name(name),m_pParent(nullptr), m_BoundingRadius(1),
 	                                     m_FrustumCullFlags(0), m_Active(true)
 	{
         Init();
@@ -90,7 +85,6 @@ namespace lumos
 	{
 		m_vpChildren.push_back(child);
 		child->m_pParent = this;
-		child->m_pScene = this->m_pScene;
 	}
 
 	void Entity::DebugDraw(uint64 debugFlags)

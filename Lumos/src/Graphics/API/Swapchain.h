@@ -5,7 +5,6 @@ namespace lumos
 {
 	namespace graphics
 	{
-		class TextureDepth;
 		class Texture;
 		class Framebuffer;
 		class RenderPass;

@@ -1,5 +1,6 @@
 #include "LM.h"
 #include "GLVertexArray.h"
+#include "GLVertexBuffer.h"
 
 #include "GL.h"
 #include "GLDebug.h"

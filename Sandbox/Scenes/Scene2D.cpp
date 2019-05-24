@@ -47,13 +47,13 @@ void Scene2D::OnInit()
 	};
     for (int i = 0; i < 1000; i++)
     {
-        std::shared_ptr<Entity> testSprite = std::make_shared<Entity>("Sprite", this);
+        std::shared_ptr<Entity> testSprite = std::make_shared<Entity>("Sprite");
 
 		Vector2 pos(RandomNumberGenerator32::Rand(-5.0f, 10.0f), RandomNumberGenerator32::Rand(-5.0f, 500.0f));
 		Vector2 size(RandomNumberGenerator32::Rand(1.0f, 3.0f), RandomNumberGenerator32::Rand(1.0f, 3.0f));
 		int textureID = static_cast<int>(RandomNumberGenerator32::Rand(0.0f, 4.0f));
 		auto colour = maths::Vector4(RandomNumberGenerator32::Rand(0.0f, 1.0f), RandomNumberGenerator32::Rand(0.0f, 1.0f), RandomNumberGenerator32::Rand(0.0f, 1.0f), 1.0f);
-		std::shared_ptr<Sprite> sprite = std::make_shared<Sprite>(textures[textureID],pos,size,colour);
+		std::shared_ptr<graphics::Sprite> sprite = std::make_shared<graphics::Sprite>(textures[textureID],pos,size,colour);
 		sprite->SetPosition(size / -2.0f);
     	testSprite->AddComponent(std::make_unique<SpriteComponent>(sprite));
 		//test->SetIsStatic(true);
@@ -68,14 +68,14 @@ void Scene2D::OnInit()
         AddEntity(testSprite);
     }
 
-    std::shared_ptr<Entity> testSprite = std::make_shared<Entity>("Sprite", this);
+    std::shared_ptr<Entity> testSprite = std::make_shared<Entity>("Sprite");
 
-    std::shared_ptr<Sprite> sprite = std::make_shared<Sprite>(maths::Vector2(-1.0f,0.0f), maths::Vector2(1.0f,1.0f), maths::Vector4(0.4f,0.1f,0.6f,1.0f));
+    std::shared_ptr<graphics::Sprite> sprite = std::make_shared<graphics::Sprite>(maths::Vector2(-1.0f,0.0f), maths::Vector2(1.0f,1.0f), maths::Vector4(0.4f,0.1f,0.6f,1.0f));
     testSprite->AddComponent(std::make_unique<SpriteComponent>(sprite));
     AddEntity(testSprite);
 
-	std::shared_ptr<Entity> groundSprite = std::make_shared<Entity>("Sprite", this);
-	std::shared_ptr<Sprite> ground = std::make_shared<Sprite>(maths::Vector2(-25.0f, -5.0f), maths::Vector2(50.0f, 10.0f), maths::Vector4(0.4f, 0.1f, 0.6f, 1.0f));
+	std::shared_ptr<Entity> groundSprite = std::make_shared<Entity>("Sprite");
+	std::shared_ptr<graphics::Sprite> ground = std::make_shared<graphics::Sprite>(maths::Vector2(-25.0f, -5.0f), maths::Vector2(50.0f, 10.0f), maths::Vector4(0.4f, 0.1f, 0.6f, 1.0f));
 	groundSprite->AddComponent(std::make_unique<SpriteComponent>(ground));
 	PhysicsObjectParamaters groundParams;
 	groundParams.position = Vector3(0.0f, -20.0f, 1.0f);

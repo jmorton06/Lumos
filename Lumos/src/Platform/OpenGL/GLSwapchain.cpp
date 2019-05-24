@@ -14,7 +14,6 @@ namespace lumos
 			info.width = width;
 			info.height = height;
 			info.attachments = nullptr;
-			swapChainBuffers.push_back(new GLTexture2D(width,height));
 		}
 
 		GLSwapchain::~GLSwapchain()

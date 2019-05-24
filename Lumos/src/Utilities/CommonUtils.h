@@ -5,10 +5,11 @@
 namespace lumos
 {
 	class PhysicsObject;
+	class Scene;
 
 	namespace CommonUtils
 	{
-		maths::Vector4 GenColour(float scalar, float alpha);
+		maths::Vector4 GenColour(float alpha);
 
 		//Generates a default Sphere object with the parameters specified.
 		std::shared_ptr<Entity> BuildSphereObject(

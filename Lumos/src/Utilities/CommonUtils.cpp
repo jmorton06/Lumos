@@ -20,7 +20,7 @@ namespace lumos
 {
 	using namespace maths;
 
-	maths::Vector4 CommonUtils::GenColour(float scalar, float alpha)
+	maths::Vector4 CommonUtils::GenColour(float alpha)
 	{
 		maths::Vector4 c;
 		c.SetW(alpha);
@@ -41,7 +41,7 @@ namespace lumos
 		bool collidable,
 		const maths::Vector4& color)
 	{
-		std::shared_ptr<Entity> pSphere = std::make_shared<Entity>(name, Application::Instance()->GetSceneManager()->GetCurrentScene());
+		std::shared_ptr<Entity> pSphere = std::make_shared<Entity>(name);
 
 		pSphere->AddComponent(std::make_unique<TextureMatrixComponent>(maths::Matrix4::Scale(maths::Vector3(10.0f, 10.0f, 10.0f))));
         std::shared_ptr<graphics::Mesh> sphereModel = std::make_shared<graphics::Mesh>(*AssetsManager::DefaultModels()->GetAsset("Sphere"));
@@ -100,7 +100,7 @@ namespace lumos
 		bool collidable,
 		const maths::Vector4& color)
 	{
-		std::shared_ptr<Entity> Cube = std::make_shared<Entity>(name, Application::Instance()->GetSceneManager()->GetCurrentScene());
+		std::shared_ptr<Entity> Cube = std::make_shared<Entity>(name);
 
 		Cube->AddComponent(std::make_unique<TextureMatrixComponent>(maths::Matrix4::Scale(maths::Vector3(10.0f, 10.0f, 10.0f))));
         std::shared_ptr<graphics::Mesh> cubeModel = std::make_shared<graphics::Mesh>(*AssetsManager::DefaultModels()->GetAsset("Cube"));
@@ -160,9 +160,9 @@ namespace lumos
 		bool collidable,
 		const maths::Vector4& color)
 	{
-		std::shared_ptr<Entity> Cube = std::make_shared<Entity>(name, Application::Instance()->GetSceneManager()->GetCurrentScene());
+		std::shared_ptr<Entity> Cube = std::make_shared<Entity>(name);
 
-		std::shared_ptr<Entity> meshEntity = std::make_shared<Entity>("Mesh", Application::Instance()->GetSceneManager()->GetCurrentScene());
+		std::shared_ptr<Entity> meshEntity = std::make_shared<Entity>("Mesh");
 
         std::shared_ptr<graphics::Mesh> pyramidModel = std::make_shared<graphics::Mesh>(*AssetsManager::DefaultModels()->GetAsset("Pyramid"));
 		meshEntity->AddComponent(std::make_unique<MeshComponent>(pyramidModel));

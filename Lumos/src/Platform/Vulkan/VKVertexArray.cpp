@@ -1,5 +1,6 @@
 #include "LM.h"
 #include "VKVertexArray.h"
+#include "VKVertexBuffer.h"
 
 namespace lumos
 {

@@ -1,12 +1,13 @@
 #pragma once
 
 #include "LM.h"
-#include "VertexBuffer.h"
 
 namespace lumos
 {
 	namespace graphics
 	{
+		class VertexBuffer;
+
 		class LUMOS_EXPORT VertexArray
 		{
 		public:

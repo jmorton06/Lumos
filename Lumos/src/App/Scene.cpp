@@ -29,7 +29,7 @@ namespace lumos
 
 		m_MaterialManager = new AssetManager<Material>();
 
-		m_RootEntity = std::make_shared<Entity>("Root Node", nullptr);
+		m_RootEntity = std::make_shared<Entity>("Root Node");
 		m_RootEntity->AddComponent(std::make_unique<TransformComponent>(maths::Matrix4()));
 	}
 

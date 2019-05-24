@@ -59,7 +59,7 @@ namespace lumos
 			LUMOS_CORE_ERROR(error);
 		}
 
-		auto entity = std::make_shared<Entity>(name, nullptr);
+		auto entity = std::make_shared<Entity>(name);
 
 		for (const auto& shape : shapes)
 		{
@@ -201,7 +201,7 @@ namespace lumos
 			std::shared_ptr<graphics::IndexBuffer> ib;
 			ib.reset(graphics::IndexBuffer::Create(indices, numIndices));// / sizeof(uint));
 
-			auto meshEntity = std::make_shared<Entity>(shape.name, nullptr);
+			auto meshEntity = std::make_shared<Entity>(shape.name);
             auto mesh = std::make_shared<graphics::Mesh>(va, ib, pbrMaterial, boundingBox);
 			meshEntity->AddComponent(std::make_unique<MeshComponent>(mesh));
 			meshEntity->AddComponent(std::make_unique<TransformComponent>(maths::Matrix4()));
