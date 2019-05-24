@@ -1,26 +1,34 @@
 #include "LM.h"
 #include "Plane.h"
 
-namespace lumos {
-	namespace maths {
-		Plane::Plane(const Vector3 &normal, float distance, bool normalise) {
-			if (normalise) {
+namespace lumos
+{
+	namespace maths 
+	{
+		Plane::Plane(const Vector3 &normal, float distance, bool normalise) 
+		{
+			if (normalise)
+			{
 				const float length = Vector3::Dot(normal, normal);
 
-				this->normal = normal / length;
-				this->distance = distance / length;
-			} else {
-				this->normal = normal;
-				this->distance = distance;
+				m_Normal = normal / length;
+				m_Distance = distance / length;
+			} 
+			else
+			{
+				m_Normal = normal;
+				m_Distance = distance;
 			}
 		}
 
-		bool Plane::SphereInPlane(const Vector3 &position, float radius) const {
-			return Vector3::Dot(position, normal) + distance > -radius;
+		bool Plane::SphereInPlane(const Vector3 &position, float radius) const
+		{
+			return Vector3::Dot(position, m_Normal) + m_Distance > -radius;
 		}
 
-		bool Plane::PointInPlane(const Vector3 &position) const {
-			return Vector3::Dot(position, normal) + distance >= -0.0001f;
+		bool Plane::PointInPlane(const Vector3 &position) const
+		{
+			return Vector3::Dot(position, m_Normal) + m_Distance >= -0.0001f;
 		}
 	}
 }

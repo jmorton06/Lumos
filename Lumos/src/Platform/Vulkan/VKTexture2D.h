@@ -11,11 +11,8 @@ namespace lumos
 		class VKTexture2D : public Texture2D
 		{
 		public:
-			VKTexture2D(uint width, uint height, TextureParameters parameters = TextureParameters(), TextureLoadOptions loadOptions = TextureLoadOptions());
-			VKTexture2D(uint width, uint height, TextureParameters parameters, TextureLoadOptions loadOptions, void* data);
-			VKTexture2D(uint width, uint height, uint color, TextureParameters parameters = TextureParameters(), TextureLoadOptions loadOptions = TextureLoadOptions());
+			VKTexture2D(uint width, uint height, void* data, TextureParameters parameters = TextureParameters(), TextureLoadOptions loadOptions = TextureLoadOptions());
 			VKTexture2D(const String& name, const String& filename, TextureParameters parameters = TextureParameters(), TextureLoadOptions loadOptions = TextureLoadOptions());
-			VKTexture2D(int width, int height, void* pixels);
             VKTexture2D(vk::Image image, vk::ImageView imageView);
 			VKTexture2D();
 			~VKTexture2D();
@@ -25,7 +22,6 @@ namespace lumos
             static vk::Format TextureFormatToVK(TextureFormat);
 
 			virtual void SetData(const void* pixels) override {};
-			virtual void SetData(uint color) override {};
 
 			virtual void* GetHandle() const override { return (void*)&m_Descriptor; }
 

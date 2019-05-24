@@ -513,6 +513,11 @@ namespace lumos
 			return new Mesh(va, ib, material, boundingSphere);
 		}
 
+		Mesh* CreateIcoSphere(uint radius, uint subdivision, std::shared_ptr<Material> material)
+		{
+			return nullptr;
+		}
+
 		Mesh* CreatePlane(float width, float height, const maths::Vector3& normal, std::shared_ptr<Material> material)
 		{
 			maths::Vector3 vec = normal * 90.0f;

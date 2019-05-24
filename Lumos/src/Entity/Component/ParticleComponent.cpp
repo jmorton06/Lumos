@@ -19,7 +19,6 @@ namespace lumos
 
     void ParticleComponent::Init()
     {
-        m_Entity->GetScene()->GetParticleSystem()->Add(m_ParticleEmitter);
     }
 
 	void ParticleComponent::DebugDraw(uint64 debugFlags)

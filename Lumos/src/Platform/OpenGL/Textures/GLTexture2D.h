@@ -16,11 +16,8 @@ namespace lumos
 			TextureParameters m_Parameters;
 			TextureLoadOptions m_LoadOptions;
 		public:
-			GLTexture2D(uint width, uint height, TextureParameters parameters = TextureParameters(), TextureLoadOptions loadOptions = TextureLoadOptions());
-			GLTexture2D(uint width, uint height, TextureParameters parameters, TextureLoadOptions loadOptions, void* data);
-			GLTexture2D(uint width, uint height, uint color, TextureParameters parameters = TextureParameters(), TextureLoadOptions loadOptions = TextureLoadOptions());
+			GLTexture2D(uint width, uint height, void* data, TextureParameters parameters = TextureParameters(), TextureLoadOptions loadOptions = TextureLoadOptions());
 			GLTexture2D(const String& name, const String& filename, TextureParameters parameters = TextureParameters(), TextureLoadOptions loadOptions = TextureLoadOptions());
-			GLTexture2D(int width, int height, const void* pixels);
 			GLTexture2D();
 			~GLTexture2D();
 
@@ -28,7 +25,6 @@ namespace lumos
 			void Unbind(uint slot = 0) const override;
 
 			virtual void SetData(const void* pixels) override;
-			virtual void SetData(uint color) override;
 
 			virtual void* GetHandle() const override { return (void*)(size_t)m_Handle; }
 
@@ -44,7 +40,7 @@ namespace lumos
 			uint  LoadTexture(void* data) const;
 
 		private:
-			uint Load();
+			uint Load(void* data);
 		public:
 			static uint TextureFormatToGL(TextureFormat format);
 			static uint TextureWrapToGL(TextureWrap wrap);

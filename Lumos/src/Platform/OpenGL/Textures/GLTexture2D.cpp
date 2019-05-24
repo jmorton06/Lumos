@@ -15,67 +15,19 @@ namespace lumos
 			glGenTextures(1, &m_Handle);
 		}
 
-		GLTexture2D::GLTexture2D(uint width, uint height, const TextureParameters parameters, const TextureLoadOptions loadOptions)
-			: m_FileName("NULL")
+		GLTexture2D::GLTexture2D(uint width, uint height, void* data, TextureParameters parameters, TextureLoadOptions loadOptions)
+			: m_FileName(""), m_Name(""), m_Parameters(parameters), m_LoadOptions(loadOptions)
 		{
-			m_Width = width;
-			m_Height = height;
+			m_Name = "";
 			m_Parameters = parameters;
 			m_LoadOptions = loadOptions;
-			m_Handle = Load();
-		}
-
-		GLTexture2D::GLTexture2D(uint width, uint height, TextureParameters parameters, TextureLoadOptions loadOptions,
-			void* data)
-			: m_FileName("NULL")
-		{
-			m_Width = width;
-			m_Height = height;
-			m_Parameters = parameters;
-			m_LoadOptions = loadOptions;
-			m_Handle = LoadTexture(data);
-		}
-
-		GLTexture2D::GLTexture2D(uint width, uint height, uint color, const TextureParameters parameters, const TextureLoadOptions loadOptions)
-			: m_FileName("NULL")
-		{
-			m_Width = width;
-			m_Height = height;
-			m_Parameters = parameters;
-			m_LoadOptions = loadOptions;
-			m_Handle = Load();
-
-			GLTexture2D::SetData(color);
+			m_Handle = Load(data);
 		}
 
 		GLTexture2D::GLTexture2D(const String& name, const String& filename, const TextureParameters parameters, const TextureLoadOptions loadOptions)
-			: m_FileName(filename)
+			: m_FileName(filename), m_Name(name), m_Parameters(parameters), m_LoadOptions(loadOptions)
 		{
-			m_Name = name;
-			m_Parameters = parameters;
-			m_LoadOptions = loadOptions;
-			m_Handle = Load();
-		}
-
-		uint CreateTextureAttachment(int width, int height, const void* pixels)
-		{
-			uint texture;
-			glGenTextures(1, &texture);
-			glBindTexture(GL_TEXTURE_2D, texture);
-			glTexImage2D(GL_TEXTURE_2D, 0, GL_RED, width, height,
-				0, GL_RED, GL_UNSIGNED_BYTE, pixels);
-			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-
-			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-
-			return texture;
-		}
-
-		GLTexture2D::GLTexture2D(int width, int height, const void* pixels) : m_Width(0), m_Height(0)
-		{
-			m_Handle = CreateTextureAttachment(width, height, pixels);
+			m_Handle = Load(nullptr);
 		}
 
 		GLTexture2D::~GLTexture2D()
@@ -93,7 +45,9 @@ namespace lumos
 			GLCall(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, TextureWrapToGL(m_Parameters.wrap)));
 			GLCall(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, TextureWrapToGL(m_Parameters.wrap)));
 
-			GLCall(glTexImage2D(GL_TEXTURE_2D, 0, TextureFormatToGL(m_Parameters.format), m_Width, m_Height, 0, TextureFormatToGL(m_Parameters.format), GL_UNSIGNED_BYTE, data ? data : NULL));
+
+			uint format = TextureFormatToGL(m_Parameters.format);
+			GLCall(glTexImage2D(GL_TEXTURE_2D, 0, format, m_Width, m_Height, 0, TextureFormatToInternalFormat(format), GL_UNSIGNED_BYTE, data ? data : NULL));
 			GLCall(glGenerateMipmap(GL_TEXTURE_2D));
 #ifdef LUMOS_DEBUG
 			GLCall(glBindTexture(GL_TEXTURE_2D, 0));
@@ -102,31 +56,23 @@ namespace lumos
 			return handle;
 		}
 
-		uint GLTexture2D::Load()
+		uint GLTexture2D::Load(void* data)
 		{
-			// TODO: Split this up into loading from file vs. generating from data
 			byte* pixels = nullptr;
-			if (m_FileName != "NULL")
+
+			if (data != nullptr)
 			{
-				uint bits;
-				pixels = lumos::LoadImageFromFile(m_FileName.c_str(), &m_Width, &m_Height, &bits, !m_LoadOptions.flipY);
-				m_Parameters.format = BitsToTextureFormat(bits);
+				pixels = reinterpret_cast<byte*>(data);
 			}
-
-			uint handle;
-			GLCall(glGenTextures(1, &handle));
-			GLCall(glBindTexture(GL_TEXTURE_2D, handle));
-			GLCall(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, m_Parameters.filter == TextureFilter::LINEAR ? GL_LINEAR_MIPMAP_LINEAR : GL_NEAREST));
-			GLCall(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, m_Parameters.filter == TextureFilter::LINEAR ? GL_LINEAR : GL_NEAREST));
-			GLCall(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, TextureWrapToGL(m_Parameters.wrap)));
-			GLCall(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, TextureWrapToGL(m_Parameters.wrap)));
-
-			uint format = TextureFormatToGL(m_Parameters.format);
-			GLCall(glTexImage2D(GL_TEXTURE_2D, 0, format, m_Width, m_Height, 0, TextureFormatToInternalFormat(format), GL_UNSIGNED_BYTE, pixels ? pixels : NULL));
-			GLCall(glGenerateMipmap(GL_TEXTURE_2D));
-#ifdef LUMOS_DEBUG
-			GLCall(glBindTexture(GL_TEXTURE_2D, 0));
-#endif
+			else
+			{
+				if (m_FileName != "")
+				{
+					pixels = LoadTextureData();
+				}
+			}
+			
+			uint handle = LoadTexture(pixels);
 
 			if (pixels != nullptr)
 				delete[] pixels;
@@ -139,25 +85,6 @@ namespace lumos
 			GLCall(glBindTexture(GL_TEXTURE_2D, m_Handle));
 			GLCall(glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, m_Width, m_Height, TextureFormatToGL(m_Parameters.format), GL_UNSIGNED_BYTE, pixels));
 			GLCall(glGenerateMipmap(GL_TEXTURE_2D));
-		}
-
-		void GLTexture2D::SetData(uint color)
-		{
-			LUMOS_CORE_ASSERT(false, "Broken");
-			uint stride = m_Parameters.format == TextureFormat::RGB ? 3 : 4;
-			uint size = m_Width * m_Height * stride;
-			byte* data = new byte[size];
-			for (uint i = 0; i < size; i += stride)
-			{
-				data[i + 0] = (color & 0xff);
-				data[i + 1] = (color & 0xff00) >> 8;
-				data[i + 2] = (color & 0xff0000) >> 16;
-				if (stride == 4)
-					data[i + 3] = (color & 0xff000000) >> 24;
-			}
-
-			SetData(data);
-			delete[] data;
 		}
 
 		void GLTexture2D::Bind(uint slot) const

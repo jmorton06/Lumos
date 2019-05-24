@@ -65,7 +65,7 @@ namespace lumos
 		m_PBRMaterialTextures.normal    = std::shared_ptr<graphics::Texture2D>(graphics::Texture2D::CreateFromFile(name, path + "/" + name + "/normal" + extension,params));
 		m_PBRMaterialTextures.roughness = std::shared_ptr<graphics::Texture2D>(graphics::Texture2D::CreateFromFile(name, path + "/" + name + "/roughness" + extension,params));
 		m_PBRMaterialTextures.metallic  = std::shared_ptr<graphics::Texture2D>(graphics::Texture2D::CreateFromFile(name, path + "/" + name + "/metallic" + extension,params));
-		m_PBRMaterialTextures.ao		= std::shared_ptr<graphics::Texture2D>(graphics::Texture2D::CreateFromFile(name, path + "/" + name + "/ao" + extension, params));
+		//m_PBRMaterialTextures.ao		= std::shared_ptr<graphics::Texture2D>(graphics::Texture2D::CreateFromFile(name, path + "/" + name + "/ao" + extension, params));
 	}
 
 	void Material::LoadMaterial(const String& name, const String& path)

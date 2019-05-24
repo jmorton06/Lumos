@@ -13,20 +13,7 @@ namespace lumos
 {
 	namespace graphics
 	{
-		VKTexture2D::VKTexture2D(uint width, uint height, TextureParameters parameters, TextureLoadOptions loadOptions)
-			: m_FileName("NULL"), m_TextureSampler(nullptr), m_TextureImageView(nullptr)
-		{
-			m_Width = width;
-			m_Height = height;
-			m_Parameters = parameters;
-			m_LoadOptions = loadOptions;
-			Load();
-
-			UpdateDescriptor();
-		}
-
-		VKTexture2D::VKTexture2D(uint width, uint height, TextureParameters parameters, TextureLoadOptions loadOptions,
-			void* data)
+		VKTexture2D::VKTexture2D(uint width, uint height, void* data, TextureParameters parameters, TextureLoadOptions loadOptions)
 			: m_FileName("NULL"), m_TextureSampler(nullptr), m_TextureImageView(nullptr)
 		{
 			m_Width = width;
@@ -39,19 +26,6 @@ namespace lumos
 			m_TextureImageView = CreateImageView(m_TextureImage, vk::Format::eR8G8B8A8Unorm,  vk::ImageAspectFlagBits::eColor, m_MipLevels);
 
 			CreateTextureSampler();
-
-			UpdateDescriptor();
-		}
-
-		VKTexture2D::VKTexture2D(uint width, uint height, uint color, TextureParameters parameters,
-			TextureLoadOptions loadOptions)
-			: m_FileName("NULL"), m_TextureSampler(nullptr), m_TextureImageView(nullptr)
-		{
-			m_Width = width;
-			m_Height = height;
-			m_Parameters = parameters;
-			m_LoadOptions = loadOptions;
-			Load();
 
 			UpdateDescriptor();
 		}
@@ -70,23 +44,6 @@ namespace lumos
             m_TextureImageView = CreateImageView(m_TextureImage, vk::Format::eR8G8B8A8Unorm, vk::ImageAspectFlagBits::eColor, m_MipLevels);
 
 			CreateTextureSampler();
-			UpdateDescriptor();
-		}
-
-		VKTexture2D::VKTexture2D(int width, int height, void* pixels)
-			: m_FileName("NULL"), m_TextureSampler(nullptr), m_TextureImageView(nullptr)
-		{
-			m_Width = width;
-			m_Height = height;
-			m_Parameters = TextureParameters();
-			m_LoadOptions = TextureLoadOptions();
-			m_Data = static_cast<byte*>(pixels);
-			Load();
-
-            m_TextureImageView = CreateImageView(m_TextureImage, vk::Format::eR8G8B8A8Unorm, vk::ImageAspectFlagBits::eColor, m_MipLevels);
-
-			CreateTextureSampler();
-
 			UpdateDescriptor();
 		}
 

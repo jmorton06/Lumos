@@ -42,7 +42,7 @@ void GraphicsScene::OnInit()
 
 	auto sun = std::make_shared<graphics::Light>(maths::Vector3(26.0f, 22.0f, 48.5f), maths::Vector4(1.0f), 2.0f);
 
-	auto lightEntity = std::make_shared<Entity>("Directional Light", this);
+	auto lightEntity = std::make_shared<Entity>("Directional Light");
 	lightEntity->AddComponent(std::make_unique<LightComponent>(sun));
 	lightEntity->AddComponent(std::make_unique<TransformComponent>(Matrix4::Translation(maths::Vector3(26.0f, 22.0f, 48.5f))));
 	AddEntity(lightEntity);
@@ -53,8 +53,6 @@ void GraphicsScene::OnInit()
 	auto shadowRenderer = new graphics::ShadowRenderer();
 	auto deferredRenderer = new graphics::DeferredRenderer(m_ScreenWidth, m_ScreenHeight);
 	auto skyboxRenderer = new graphics::SkyboxRenderer(m_ScreenWidth, m_ScreenHeight, m_EnvironmentMap);
-	deferredRenderer->SetRenderTarget(Application::Instance()->GetRenderManager()->GetGBuffer()->m_ScreenTex[graphics::SCREENTEX_OFFSCREEN0]);
-	skyboxRenderer->SetRenderTarget(Application::Instance()->GetRenderManager()->GetGBuffer()->m_ScreenTex[graphics::SCREENTEX_OFFSCREEN0]);
 	shadowRenderer->SetLight(sun);
 
 	deferredRenderer->SetRenderToGBufferTexture(true);
@@ -94,23 +92,10 @@ void GraphicsScene::OnCleanupScene()
 
 void GraphicsScene::LoadModels()
 {
-	//std::shared_ptr<Entity> water = std::make_shared<Entity>("Water",this);
-
-	//water->AddComponent(std::make_unique<TransformComponent>(Matrix4::Translation(maths::Vector3(250.0f, 10.0f, 250.0f)) *
-	//	Matrix4::Scale(maths::Vector3(250.0f, 1.0f, 250.0f)) * Matrix4::Rotation(-90.0f, maths::Vector3(1.0f, 0.0f, 0.0f))));
-
-	//std::shared_ptr<Model> waterModel = std::make_shared<Model>(Water(maths::Vector3(20.0f, 2.0f, 20.0f), maths::Vector3(20.0f, 2.0f, 20.0f)));
-	//water->AddComponent(std::make_unique<TextureMatrixComponent>(Matrix4::Scale(maths::Vector3(10.0f, 10.0f, 10.0f))));
-	//water->AddComponent(std::make_unique<MeshComponent>(waterModel));
-	//water->SetBoundingRadius(200.0f);
-	//AddEntity(water);
-
-	//m_MaterialManager->AddAsset("Stone", std::make_shared<Material>(AssetsManager::s_DefualtPBRMaterial->GetShader()));//, "stone", ".png"));
-
 	Terrain* terrainMesh = new Terrain();
 
 	//HeightMap
-	std::shared_ptr<Entity> heightmap = std::make_shared<Entity>("heightmap",this);
+	std::shared_ptr<Entity> heightmap = std::make_shared<Entity>("heightmap");
 	heightmap->AddComponent(std::make_unique<TransformComponent>(Matrix4::Scale(maths::Vector3(1.0f))));
 	heightmap->AddComponent(std::make_unique<TextureMatrixComponent>(Matrix4::Scale(maths::Vector3(1.0f, 1.0f, 1.0f))));
 	heightmap->SetBoundingRadius(2000.0f);

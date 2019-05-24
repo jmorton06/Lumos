@@ -489,7 +489,7 @@ namespace lumos
         auto name = node.name;
         if(name == "")
             name = "Mesh : " + StringFormat::ToString(nodeIndex);
-        auto meshEntity = std::make_shared<Entity>(name, nullptr);
+        auto meshEntity = std::make_shared<Entity>(name);
         meshEntity->AddComponent(std::make_unique<TransformComponent>(maths::Matrix4()));
         
         if(parent)
@@ -587,7 +587,7 @@ namespace lumos
         
         String name = directory.substr(directory.find_last_of('/') + 1);
 
-		auto entity = std::make_shared<Entity>(name, nullptr);
+		auto entity = std::make_shared<Entity>(name);
 		entity->AddComponent(std::make_unique<TransformComponent>(maths::Matrix4()));
 
         auto meshes = std::vector<graphics::Mesh*>();

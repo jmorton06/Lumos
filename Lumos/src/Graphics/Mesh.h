@@ -63,7 +63,7 @@ namespace lumos
 
 				attributeDescriptions[1].binding = 0;
 				attributeDescriptions[1].location = 1;
-				attributeDescriptions[1].format = graphics::Format::R32G32B32_FLOAT;
+				attributeDescriptions[1].format = graphics::Format::R32G32B32A32_FLOAT;
 				attributeDescriptions[1].offset = offsetof(Vertex, Colours);
 
 				attributeDescriptions[2].binding = 0;
