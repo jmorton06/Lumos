@@ -45,9 +45,7 @@ namespace lumos
 		uint GLQuery::GetResult()
 		{
 			int SamplesPassed = 0;
-#ifndef LUMOS_PLATFORM_MOBILE
 			GLCall(glGetQueryObjectiv(m_Handle, GL_QUERY_RESULT, &SamplesPassed));
-#endif
 			m_InUse = false;
 			return static_cast<uint>(SamplesPassed);
 		}
@@ -55,9 +53,7 @@ namespace lumos
 		bool GLQuery::GetResultReady()
 		{
 			int ResultReady = 0;
-#ifndef LUMOS_PLATFORM_MOBILE
 			GLCall(glGetQueryObjectiv(m_Handle, GL_QUERY_RESULT_AVAILABLE, &ResultReady));
-#endif
 			return ResultReady > 0;
 		}
 	}

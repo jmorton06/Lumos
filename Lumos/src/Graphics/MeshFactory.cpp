@@ -430,22 +430,21 @@ namespace lumos
 			float stackCount = static_cast<float>(ySegments);
 			float sectorStep = 2 * maths::PI / sectorCount;
 			float stackStep = maths::PI / stackCount;
-			float sectorAngle, stackAngle;
 			float radius = 1.0f;
-			float x, y, z, xy;
+			float x, y, z;
 			float s, t;
 
 			for (int i = 0; i <= stackCount; ++i)
 			{
-				stackAngle = maths::PI / 2 - i * stackStep;        // starting from pi/2 to -pi/2
-				xy = radius * cos(stackAngle);             // r * cos(u)
+                float stackAngle = maths::PI / 2 - i * stackStep;        // starting from pi/2 to -pi/2
+				float xy = radius * cos(stackAngle);             // r * cos(u)
 				z = radius * sin(stackAngle);              // r * sin(u)
 
 				// add (sectorCount+1) vertices per stack
 				// the first and last vertices have same position and normal, but different tex coords
 				for (int j = 0; j <= sectorCount; ++j)
 				{
-					sectorAngle = j * sectorStep;           // starting from 0 to 2pi
+                    float sectorAngle = j * sectorStep;           // starting from 0 to 2pi
 
 					// vertex position (x, y, z)
 					x = xy * cosf(sectorAngle);             // r * cos(u) * cos(v)

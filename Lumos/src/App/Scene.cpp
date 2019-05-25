@@ -23,14 +23,10 @@ namespace lumos
 		: m_SceneName(friendly_name), m_pCamera(nullptr), m_EnvironmentMap(nullptr), m_SceneBoundingRadius(0),
 		  m_DebugDrawFlags(0), m_DrawObjects(false), m_ReflectScene(false), m_UseShadow(false), m_ScreenWidth(0),
 		  m_ScreenHeight(0),
-		  m_DrawDebugData(false)
+		  m_DrawDebugData(false),
+          m_RootEntity(std::make_shared<Entity>("Root Node"))
+    
 	{
-		m_ParticleManager = nullptr;
-
-		m_MaterialManager = new AssetManager<Material>();
-
-		m_RootEntity = std::make_shared<Entity>("Root Node");
-		m_RootEntity->AddComponent(std::make_unique<TransformComponent>(maths::Matrix4()));
 	}
 
     Scene::~Scene()
@@ -42,8 +38,6 @@ namespace lumos
             delete m_ParticleManager;
             m_ParticleManager = nullptr;
         }
-
-        SAFE_DELETE(m_MaterialManager);
     }
 
 	void Scene::OnInit()
@@ -122,9 +116,7 @@ namespace lumos
 
 	void Scene::OnCleanupScene()
 	{
-		m_MaterialManager->Clear();
-
-		m_pFrameRenderList.reset();
+        m_pFrameRenderList.reset();
 
 		DeleteAllGameObjects();
 
@@ -181,9 +173,6 @@ namespace lumos
 		};
 
 		per_object_func(m_RootEntity);
-
-		if(m_ParticleManager)
-			m_ParticleManager->Update(timeStep->GetSeconds());
 	}
 
 	void Scene::BuildWorldMatrices()

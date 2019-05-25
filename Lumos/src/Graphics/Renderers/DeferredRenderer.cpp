@@ -405,7 +405,7 @@ namespace lumos
 
 			float renderMode = 0.0f;
 			memcpy(m_PSSystemUniformBuffer + currentOffset, &renderMode, sizeof(float));
-			currentOffset += sizeof(float);
+			//currentOffset += sizeof(float);
 		}
 
 		void DeferredRenderer::EndScene()
