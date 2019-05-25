@@ -1,12 +1,10 @@
 #pragma once
-
 #include "LM.h"
 #include "App/Window.h"
 #include "Graphics/API/GraphicsContext.h"
 
 namespace lumos
 {
-
 	class LUMOS_EXPORT WindowsWindow : public Window
 	{
 	public:
