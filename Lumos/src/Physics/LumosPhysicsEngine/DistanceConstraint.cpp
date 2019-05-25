@@ -4,7 +4,7 @@
 #include "DistanceConstraint.h"
 #include "Graphics/Renderers/DebugRenderer.h"
 
-namespace Lumos
+namespace lumos
 {
 
 	DistanceConstraint::DistanceConstraint(PhysicsObject3D *obj1, PhysicsObject3D *obj2, const maths::Vector3 &globalOnA,

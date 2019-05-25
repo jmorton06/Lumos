@@ -3,7 +3,7 @@
 
 #include "System/Profiler.h"
 
-namespace Lumos
+namespace lumos
 {
 
 	LayerStack::LayerStack()

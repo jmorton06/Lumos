@@ -3,7 +3,7 @@
 
 #include "Graphics/Renderers/DebugRenderer.h"
 
-namespace Lumos
+namespace lumos
 {
 
 	Hull::Hull()

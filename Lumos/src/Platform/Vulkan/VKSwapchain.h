@@ -7,11 +7,11 @@
 #include "VKFramebuffer.h"
 #include "Graphics/API/Swapchain.h"
 
-namespace Lumos
+namespace lumos
 {
 	namespace graphics
 	{
-		class VKSwapchain : public api::Swapchain
+		class VKSwapchain : public Swapchain
 		{
 		public:
 			VKSwapchain(uint width, uint height);
@@ -31,7 +31,7 @@ namespace Lumos
 			VKTexture2D* 		GetTexture(int id) 			const { return m_SwapChainBuffers[id]; }
 			Texture* 			GetCurrentImage() 			override { return (Texture*)m_SwapChainBuffers[m_CurrentBuffer]; };
 			Texture* 			GetImage(uint id) 			override { return (Texture*)m_SwapChainBuffers[id]; };
-			Framebuffer*		CreateFramebuffer(api::RenderPass* renderPass, uint id) override { return nullptr; };
+			Framebuffer*		CreateFramebuffer(RenderPass* renderPass, uint id) override { return nullptr; };
 
 		private:
             vk::SwapchainKHR 			m_SwapChain;

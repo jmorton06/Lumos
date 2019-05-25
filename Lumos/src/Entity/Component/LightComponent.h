@@ -4,14 +4,17 @@
 #include "Maths/Vector3.h"
 
 
-namespace Lumos
+namespace lumos
 {
-	struct Light;
+	namespace graphics
+	{
+		struct Light;
+	}
 
 	class LUMOS_EXPORT LightComponent : public LumosComponent
 	{
 	public:
-		explicit LightComponent(std::shared_ptr<Light>& light);
+		explicit LightComponent(std::shared_ptr<graphics::Light>& light);
         ~LightComponent();
         
 		static ComponentType GetStaticType()
@@ -30,9 +33,9 @@ namespace Lumos
 
 		void OnIMGUI() override;
 
-		std::shared_ptr<Light> GetLight() const { return m_Light; }
+		std::shared_ptr<graphics::Light> GetLight() const { return m_Light; }
         
     private:
-        std::shared_ptr<Light> m_Light;
+        std::shared_ptr<graphics::Light> m_Light;
 	};
 }

@@ -4,7 +4,7 @@
 
 #define GRAVITY -9.8f
 
-namespace Lumos
+namespace lumos
 {
 
 	class LUMOS_EXPORT Particle

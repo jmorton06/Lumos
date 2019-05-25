@@ -1,18 +1,17 @@
 #pragma once
 #include "LM.h"
-#include "Graphics/API/Context.h"
 #include "Events/Event.h"
 #include "Events/ApplicationEvent.h"
+#include "Window.h"
 
-#define LUMOS_EDITOR //temp
+//#define LUMOS_EDITOR //temp
 
-namespace Lumos
+namespace lumos
 {
 	class Timer;
 	struct TimeStep;
 	class Window;
     class SceneManager;
-	class RenderManager;
 	class AudioManager;
 	class Entity;
 	class Editor;
@@ -20,7 +19,12 @@ namespace Lumos
 	class Layer;
 	class ISystem;
 	class Scene;
-	enum class RenderAPI;
+
+	namespace graphics
+	{
+		class RenderManager;
+		enum class RenderAPI;
+	}
 
     enum class AppState
     {
@@ -47,7 +51,7 @@ namespace Lumos
 	{
 		friend class Editor;
 	public:
-		Application(const WindowProperties& properties, const RenderAPI& api);
+		Application(const WindowProperties& properties, const graphics::RenderAPI& api);
 		virtual ~Application();
 
 		Application(Application const&) = delete;
@@ -69,7 +73,7 @@ namespace Lumos
 
 		LayerStack* GetLayerStack() const { return m_LayerStack; }
         SceneManager* GetSceneManager() const { return m_SceneManager.get(); }
-		RenderManager* GetRenderManager() const { return m_RenderManager.get(); }
+		graphics::RenderManager* GetRenderManager() const { return m_RenderManager.get(); }
 		AudioManager* GetAudioManager() const { return m_AudioManager.get(); }
         Window* GetWindow() const { return m_Window.get(); }
         AppState GetState() const { return m_CurrentState; }
@@ -98,7 +102,7 @@ namespace Lumos
 
 		std::unique_ptr<Window> m_Window;
         std::unique_ptr<SceneManager> m_SceneManager;
-		std::unique_ptr<RenderManager> m_RenderManager;
+		std::unique_ptr<graphics::RenderManager> m_RenderManager;
 		std::unique_ptr<AudioManager> m_AudioManager;
 
 		std::vector<ISystem*> m_Systems;

@@ -9,7 +9,7 @@
 #define LUMOS_PROFILE(x)
 #endif
 
-namespace Lumos
+namespace lumos
 {
 	namespace system
 	{

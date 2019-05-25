@@ -4,7 +4,7 @@
 #include "Broadphase.h"
 #include "Maths/Maths.h"
 
-namespace Lumos
+namespace lumos
 {
 
 	class LUMOS_EXPORT SortAndSweepBroadphase : public Broadphase

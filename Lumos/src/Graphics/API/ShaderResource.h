@@ -2,17 +2,19 @@
 
 #include "LM.h"
 
-namespace Lumos
+namespace lumos
 {
-
-	class ShaderResourceDeclaration
+	namespace graphics
 	{
-	public:
-		virtual ~ShaderResourceDeclaration() = default;
-		virtual const String& GetName() const = 0;
-		virtual uint GetRegister() const = 0;
-		virtual uint GetCount() const = 0;
-	};
+		class ShaderResourceDeclaration
+		{
+		public:
+			virtual ~ShaderResourceDeclaration() = default;
+			virtual const String& GetName() const = 0;
+			virtual uint GetRegister() const = 0;
+			virtual uint GetCount() const = 0;
+		};
 
-	typedef std::vector<ShaderResourceDeclaration*> ShaderResourceList;
+		typedef std::vector<ShaderResourceDeclaration*> ShaderResourceList;
+	}
 }

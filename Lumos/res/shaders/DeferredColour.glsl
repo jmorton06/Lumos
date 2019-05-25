@@ -38,6 +38,7 @@ uniform sampler2D u_AlbedoMap;
 uniform sampler2D u_SpecularMap;
 uniform sampler2D u_GlossMap;
 uniform sampler2D u_NormalMap;
+uniform sampler2D u_AOMap;
 
 layout(location = 0) out vec4 outColor;
 layout(location = 1) out vec4 outPosition;
@@ -47,13 +48,17 @@ layout(location = 4) out vec4 outDepth;
 
 layout (std140) uniform UniformMaterialData
 {
+	vec4  albedoColour;
+	vec4  glossColour;
+	vec4  specularColour;
 	float usingAlbedoMap;
 	float usingSpecularMap;
 	float usingGlossMap;
 	float usingNormalMap;
-	vec4  albedoColour;
-	vec4  glossColour;
-	vec4  specularColour;
+	float usingAOMap;
+	float usingEmissiveMap;
+	float p0;
+	float p1;
 } materialProperties;
 
 #define PI 3.1415926535897932384626433832795
@@ -124,7 +129,13 @@ void main()
 	outPosition = position;
 
 	outNormal   = vec4(GetNormalFromMap(),1.0);
-	outPBR      = vec4(specular.x,roughness, 1.0,1.0);
+
+	float ao	= 1.0;
+
+	if(materialProperties.usingAOMap > 0.5)
+		ao = texture(u_AOMap, fragTexCoord).r;
+
+	outPBR      = vec4(specular.x,roughness, ao,1.0);
 	outDepth 	= vec4(position.z,0.0,0.0,1.0);
 }
 #shader end

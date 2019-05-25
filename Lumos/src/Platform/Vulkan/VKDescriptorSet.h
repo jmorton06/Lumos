@@ -2,35 +2,35 @@
 #include "Graphics/API/DescriptorSet.h"
 #include "VK.h"
 
-namespace Lumos
+namespace lumos
 {
 	namespace graphics
 	{
-		class VKDescriptorSet : public api::DescriptorSet
+		class VKDescriptorSet : public DescriptorSet
 		{
 		public:
-			VKDescriptorSet(api::DescriptorInfo info);
+			VKDescriptorSet(DescriptorInfo info);
 			~VKDescriptorSet();
 
 			vk::DescriptorSet GetDescriptorSet() const { return m_DescriptorSet; }
 
-			void Update(std::vector<api::ImageInfo>& imageInfos, std::vector<api::BufferInfo>& bufferInfos) override;
-			void Update(std::vector<api::BufferInfo>& bufferInfos) override;
-			void Update(std::vector<api::ImageInfo>& imageInfos) override;
-			void SetPushConstants(std::vector<api::PushConstant>& pushConstants) override;
+			void Update(std::vector<ImageInfo>& imageInfos, std::vector<BufferInfo>& bufferInfos) override;
+			void Update(std::vector<BufferInfo>& bufferInfos) override;
+			void Update(std::vector<ImageInfo>& imageInfos) override;
+			void SetPushConstants(std::vector<PushConstant>& pushConstants) override;
 			bool GetIsDynamic() const { return m_Dynamic; }
 
-			std::vector<api::PushConstant> GetPushConstants() const { return m_PushConstants; }
+			std::vector<PushConstant> GetPushConstants() const { return m_PushConstants; }
 
-			vk::WriteDescriptorSet ImageInfoToVK(api::ImageInfo& imageInfo);
-			vk::WriteDescriptorSet ImageInfoToVK2(api::ImageInfo& imageInfo,vk::DescriptorImageInfo* imageInfos);
+			vk::WriteDescriptorSet ImageInfoToVK(ImageInfo& imageInfo);
+			vk::WriteDescriptorSet ImageInfoToVK2(ImageInfo& imageInfo,vk::DescriptorImageInfo* imageInfos);
 
 
 		private:
 			vk::DescriptorSet m_DescriptorSet;
 			bool m_Dynamic = false;
 
-			std::vector<api::PushConstant> m_PushConstants;
+			std::vector<PushConstant> m_PushConstants;
 		};
 	}
 }

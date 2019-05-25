@@ -3,7 +3,7 @@
 #include "LM.h"  
 #include "lua.hpp"
 
-namespace Lumos
+namespace lumos
 {
 
 typedef int(*lua_CFunction) (lua_State *L);

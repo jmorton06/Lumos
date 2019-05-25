@@ -2,7 +2,7 @@
 #include "RenderList.h"
 
 
-namespace Lumos
+namespace lumos
 {
 
 	uint RenderList::g_NumRenderLists = 0;

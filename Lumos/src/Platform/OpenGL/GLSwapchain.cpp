@@ -1,9 +1,10 @@
 ﻿#include "LM.h"
 #include "GLSwapchain.h"
 #include "Graphics/API/Framebuffer.h"
+#include "Textures/GLTexture2D.h"
 #include "App/Window.h"
 
-namespace Lumos
+namespace lumos
 {
 	namespace graphics
 	{
@@ -13,7 +14,6 @@ namespace Lumos
 			info.width = width;
 			info.height = height;
 			info.attachments = nullptr;
-			swapChainBuffers.push_back(new GLTexture2D(width,height));
 		}
 
 		GLSwapchain::~GLSwapchain()

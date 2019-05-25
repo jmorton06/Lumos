@@ -2,7 +2,7 @@
 
 #include <LumosEngine.h>
 
-class SceneModelViewer : public Lumos::Scene
+class SceneModelViewer : public lumos::Scene
 {
 public:
 	explicit SceneModelViewer(const String& SceneName);
@@ -10,7 +10,7 @@ public:
 
 	virtual void OnInit() override;
 	virtual void OnCleanupScene() override;
-	virtual void OnUpdate(Lumos::TimeStep* timeStep) override;
+	virtual void OnUpdate(lumos::TimeStep* timeStep) override;
 	virtual void OnIMGUI() override;
 	void LoadModels();
 };

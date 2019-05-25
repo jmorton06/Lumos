@@ -3,7 +3,7 @@
 #include "Scripting/LuaScript.h"
 #include "Scripting/Luna.h"
 
-namespace Lumos
+namespace lumos
 {
 	class Entity;
 

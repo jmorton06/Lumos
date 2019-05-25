@@ -1,7 +1,7 @@
 #include "LM.h"
 #include "GLCommandBuffer.h"
 
-namespace Lumos
+namespace lumos
 {
 	namespace graphics
 	{
@@ -26,7 +26,7 @@ namespace Lumos
 		{
 		}
 
-		void GLCommandBuffer::BeginRecordingSecondary(api::RenderPass* renderPass, Framebuffer* framebuffer)
+		void GLCommandBuffer::BeginRecordingSecondary(RenderPass* renderPass, Framebuffer* framebuffer)
 		{
 		}
 
@@ -34,7 +34,7 @@ namespace Lumos
 		{
 		}
 
-		void GLCommandBuffer::ExecuteSecondary(api::CommandBuffer* primaryCmdBuffer)
+		void GLCommandBuffer::ExecuteSecondary(CommandBuffer* primaryCmdBuffer)
 		{
 		}
 	}

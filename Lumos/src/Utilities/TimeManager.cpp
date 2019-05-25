@@ -1,7 +1,7 @@
 #include "LM.h"
 #include "TimeManager.h"
 
-namespace Lumos
+namespace lumos
 {
 
 	TimeManager::TimeManager()

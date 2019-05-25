@@ -3,7 +3,7 @@
 #include "VKDevice.h"
 #include "VKTools.h"
 
-namespace Lumos
+namespace lumos
 {
 	namespace graphics
 	{

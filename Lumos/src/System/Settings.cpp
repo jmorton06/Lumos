@@ -1,7 +1,7 @@
 #include "LM.h"
 #include "Settings.h"
 
-namespace Lumos
+namespace lumos
 {
 
 	namespace System

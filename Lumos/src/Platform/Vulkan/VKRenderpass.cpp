@@ -5,7 +5,7 @@
 #include "VKRenderer.h"
 
 
-namespace Lumos
+namespace lumos
 {
 	namespace graphics
 	{
@@ -71,7 +71,7 @@ namespace Lumos
 			}
 		}
 
-		bool VKRenderpass::Init(const api::RenderpassInfo& renderpassCI)
+		bool VKRenderpass::Init(const RenderpassInfo& renderpassCI)
 		{
 			vk::SubpassDependency dependency = {};
 			dependency.srcSubpass = VK_SUBPASS_EXTERNAL;
@@ -144,18 +144,18 @@ namespace Lumos
 			VKDevice::Instance()->GetDevice().destroyRenderPass(m_RenderPass);
 		}
 
-		vk::SubpassContents SubPassContentsToVK(api::SubPassContents contents)
+		vk::SubpassContents SubPassContentsToVK(SubPassContents contents)
 		{
 			switch(contents)
 			{
-			case api::INLINE: return vk::SubpassContents::eInline;
-			case api::SECONDARY : return vk::SubpassContents::eSecondaryCommandBuffers;
+			case INLINE: return vk::SubpassContents::eInline;
+			case SECONDARY : return vk::SubpassContents::eSecondaryCommandBuffers;
 			default: return vk::SubpassContents::eInline;
 			}
 		}
 
-		void VKRenderpass::BeginRenderpass(api::CommandBuffer* commandBuffer, const maths::Vector4& clearColour, Framebuffer* frame,
-		                                   api::SubPassContents contents, uint32_t width, uint32_t height) const
+		void VKRenderpass::BeginRenderpass(CommandBuffer* commandBuffer, const maths::Vector4& clearColour, Framebuffer* frame,
+		                                   SubPassContents contents, uint32_t width, uint32_t height) const
 		{
 			if(!m_DepthOnly)
 			{
@@ -188,7 +188,7 @@ namespace Lumos
 			static_cast<VKCommandBuffer*>(commandBuffer)->GetCommandBuffer().beginRenderPass(rpBegin, SubPassContentsToVK(contents));
 		}
 
-		void VKRenderpass::EndRenderpass(api::CommandBuffer* commandBuffer)
+		void VKRenderpass::EndRenderpass(CommandBuffer* commandBuffer)
 		{
 			reinterpret_cast<VKCommandBuffer*>(commandBuffer)->GetCommandBuffer().endRenderPass();
 		}

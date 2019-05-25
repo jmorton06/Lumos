@@ -9,11 +9,11 @@
 #include "VKTextureDepth.h"
 #include "VKTextureDepthArray.h"
 
-namespace Lumos
+namespace lumos
 {
 	namespace graphics
 	{
-		VKDescriptorSet::VKDescriptorSet(api::DescriptorInfo info)
+		VKDescriptorSet::VKDescriptorSet(DescriptorInfo info)
 		{
 			vk::DescriptorSetAllocateInfo descriptorSetAllocateInfo{};
 			descriptorSetAllocateInfo.descriptorPool = static_cast<graphics::VKPipeline*>(info.pipeline)->GetDescriptorPool();
@@ -59,7 +59,7 @@ namespace Lumos
 			return writeDescriptorSet;
 		}
 
-		vk::WriteDescriptorSet VKDescriptorSet::ImageInfoToVK(api::ImageInfo& imageInfo)
+		vk::WriteDescriptorSet VKDescriptorSet::ImageInfoToVK(ImageInfo& imageInfo)
 		{
 			std::vector<vk::DescriptorImageInfo> descriptorInfo;
 			for(int i = 0; i < imageInfo.count; i++)
@@ -84,7 +84,7 @@ namespace Lumos
 			return writeDescriptorSet;
 		}
 
-		vk::WriteDescriptorSet VKDescriptorSet::ImageInfoToVK2(api::ImageInfo& imageInfo,vk::DescriptorImageInfo* imageInfos)
+		vk::WriteDescriptorSet VKDescriptorSet::ImageInfoToVK2(ImageInfo& imageInfo,vk::DescriptorImageInfo* imageInfos)
 		{
 			for (int i = 0; i < imageInfo.count; i++)
 			{
@@ -129,7 +129,7 @@ namespace Lumos
 			return writeDescriptorSet;
 		}
 
-		void VKDescriptorSet::Update(std::vector<api::BufferInfo>& bufferInfos)
+		void VKDescriptorSet::Update(std::vector<BufferInfo>& bufferInfos)
 		{
 			std::vector<vk::WriteDescriptorSet> descriptorWrites;
 			vk::DescriptorBufferInfo* buffersInfo = new vk::DescriptorBufferInfo[bufferInfos.size()];
@@ -154,7 +154,7 @@ namespace Lumos
 				descriptorWrites.emplace_back(writeDescriptorSet);
 				index++;
 
-				if (bufferInfo.type == api::DescriptorType::UNIFORM_BUFFER_DYNAMIC)
+				if (bufferInfo.type == DescriptorType::UNIFORM_BUFFER_DYNAMIC)
 					m_Dynamic = true;
 			}
 
@@ -163,7 +163,7 @@ namespace Lumos
 			delete[] buffersInfo;
 		}
 
-		void VKDescriptorSet::Update(std::vector<api::ImageInfo>& imageInfos)
+		void VKDescriptorSet::Update(std::vector<ImageInfo>& imageInfos)
 		{
 			std::vector<vk::WriteDescriptorSet> descriptorWrites;
             std::vector<vk::DescriptorImageInfo*> allocatedArrays;
@@ -185,7 +185,7 @@ namespace Lumos
             }
         }
 
-		void VKDescriptorSet::Update(std::vector<api::ImageInfo>& imageInfos, std::vector<api::BufferInfo>& bufferInfos)
+		void VKDescriptorSet::Update(std::vector<ImageInfo>& imageInfos, std::vector<BufferInfo>& bufferInfos)
 		{
 			std::vector<vk::WriteDescriptorSet> descriptorWrites;
             std::vector<vk::DescriptorImageInfo*> allocatedArrays;
@@ -206,7 +206,7 @@ namespace Lumos
 				info.offset = bufferInfo.offset;
 				info.range = bufferInfo.size;
 
-				if (bufferInfo.type == api::DescriptorType::UNIFORM_BUFFER_DYNAMIC)
+				if (bufferInfo.type == DescriptorType::UNIFORM_BUFFER_DYNAMIC)
 					m_Dynamic = true;
 
 				descriptorWrites.push_back(GetWriteDescriptorSet(m_DescriptorSet, VKTools::DescriptorTypeToVK(bufferInfo.type), bufferInfo.binding, &info));
@@ -220,7 +220,7 @@ namespace Lumos
             }
         }
 
-		void VKDescriptorSet::SetPushConstants(std::vector<api::PushConstant>& pushConstants)
+		void VKDescriptorSet::SetPushConstants(std::vector<PushConstant>& pushConstants)
 		{
 			m_PushConstants.clear();
 			for (auto& pushConstant : pushConstants)

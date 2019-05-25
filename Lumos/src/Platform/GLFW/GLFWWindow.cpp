@@ -7,7 +7,7 @@
 
 
 #include "GLFWWindow.h"
-#include "Graphics/API/Context.h"
+#include "Graphics/API/GraphicsContext.h"
 #include "Utilities/LoadImage.h"
 
 #include <GLFW/glfw3.h>
@@ -22,7 +22,7 @@
 #include "Events/MouseEvent.h"
 #include "Events/KeyEvent.h"
 
-namespace Lumos
+namespace lumos
 {
 	static bool s_GLFWInitialized = false;
 	static int  s_NumGLFWWindows = 0;
@@ -32,7 +32,7 @@ namespace Lumos
 		LUMOS_CORE_ERROR("GLFW Error - {0} : {1}", error, description);
 	}
 
-	GLFWWindow::GLFWWindow(const WindowProperties& properties, const String& title, RenderAPI api)
+	GLFWWindow::GLFWWindow(const WindowProperties& properties, const String& title, graphics::RenderAPI api)
 	{
 		m_Init = false;
 		m_VSync = properties.VSync;
@@ -42,7 +42,7 @@ namespace Lumos
 
 		m_Init = Init(properties, title);
 
-		graphics::Context::Create(properties, m_Handle);
+		graphics::GraphicsContext::Create(properties, m_Handle);
 	}
 
 	GLFWWindow::~GLFWWindow()
@@ -77,7 +77,7 @@ namespace Lumos
 		}
 
 #ifdef LUMOS_PLATFORM_MACOS
-		if (m_Data.m_RenderAPI == RenderAPI::OPENGL)
+        if (m_Data.m_RenderAPI == graphics::RenderAPI::OPENGL)
 		{
             glfwWindowHint(GLFW_SAMPLES, 1);
             glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
@@ -116,13 +116,13 @@ namespace Lumos
 		m_Data.Exit = false;
 
 #ifdef LUMOS_RENDER_API_VULKAN
-		if(m_Data.m_RenderAPI == RenderAPI::VULKAN)
+		if(m_Data.m_RenderAPI == graphics::RenderAPI::VULKAN)
 			glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
 #endif
 
 		m_Handle = glfwCreateWindow(ScreenWidth, ScreenHeight, title.c_str(), nullptr, nullptr);
 
-        if(m_Data.m_RenderAPI == RenderAPI::OPENGL)
+        if(m_Data.m_RenderAPI == graphics::RenderAPI::OPENGL)
             glfwMakeContextCurrent(m_Handle);
 
 		glfwSetWindowUserPointer(m_Handle, &m_Data);
@@ -130,7 +130,7 @@ namespace Lumos
 		SetIcon("/CoreTextures/icon.png");
         
 #ifdef LUMOS_PLATFORM_MACOS
-        if(m_Data.m_RenderAPI == RenderAPI::OPENGL)
+        if(m_Data.m_RenderAPI == graphics::RenderAPI::OPENGL)
         {
             int width,height;
             glfwGetFramebufferSize(m_Handle, &width, &height);
@@ -148,7 +148,7 @@ namespace Lumos
             WindowData& data = *static_cast<WindowData*>((glfwGetWindowUserPointer(window)));
 
 #ifdef LUMOS_PLATFORM_MACOS
-            if(data.m_RenderAPI == RenderAPI::OPENGL)
+            if(data.m_RenderAPI == graphics::RenderAPI::OPENGL)
                 glfwGetFramebufferSize(window, &width, &height);
 #endif
 			data.Width = width;
@@ -259,7 +259,7 @@ namespace Lumos
 	void GLFWWindow::SetIcon(const String& file)
 	{
 		uint width, height;
-		byte* pixels = Lumos::LoadImageFromFile(file, &width, &height, nullptr, true);
+		byte* pixels = lumos::LoadImageFromFile(file, &width, &height, nullptr, true);
 
 		GLFWimage image;
 		image.height = height;
@@ -304,7 +304,7 @@ namespace Lumos
 
 	void GLFWWindow::OnUpdate()
 	{
-        if(m_Data.m_RenderAPI == RenderAPI::OPENGL)
+        if(m_Data.m_RenderAPI == graphics::RenderAPI::OPENGL)
 			glfwSwapBuffers(m_Handle);
 
 		glfwPollEvents();

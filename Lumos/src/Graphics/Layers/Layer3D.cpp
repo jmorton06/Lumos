@@ -3,9 +3,9 @@
 #include "Graphics/Renderers/Renderer3D.h"
 #include "App/Scene.h"
 
-namespace Lumos
+namespace lumos
 {
-	Layer3D::Layer3D(Renderer3D* renderer, const std::string& debugName)
+	Layer3D::Layer3D(graphics::Renderer3D* renderer, const std::string& debugName)
 		: m_Renderer(renderer), Layer(debugName), m_Scene(nullptr)
 	{
 	}

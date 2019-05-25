@@ -8,7 +8,7 @@
 #include "Graphics/API/DescriptorSet.h"
 
 
-namespace Lumos
+namespace lumos
 {
 	namespace graphics
 	{
@@ -17,7 +17,7 @@ namespace Lumos
 		{
 		}
 
-		VKPipeline::VKPipeline(const api::PipelineInfo& pipelineCI)
+		VKPipeline::VKPipeline(const PipelineInfo& pipelineCI)
 		{
 			Init(pipelineCI);
 		}
@@ -29,7 +29,7 @@ namespace Lumos
             delete descriptorSet;
 		}
 
-		bool VKPipeline::Init(const api::PipelineInfo& pipelineCI)
+		bool VKPipeline::Init(const PipelineInfo& pipelineCI)
 		{
 			m_PipelineName = pipelineCI.pipelineName;
 			m_Shader	   = pipelineCI.shader;
@@ -95,7 +95,7 @@ namespace Lumos
 
 			m_DescriptorPool = VKDevice::Instance()->GetDevice().createDescriptorPool(descriptorPoolInfo);
 
-			api::DescriptorInfo info;
+			DescriptorInfo info;
 			info.pipeline = this;
 			info.layoutIndex = 0;
             info.shader = pipelineCI.shader;
@@ -269,7 +269,7 @@ namespace Lumos
 			VKDevice::Instance()->GetDevice().destroyPipeline(m_Pipeline);
 		}
 
-		void VKPipeline::SetActive(api::CommandBuffer* cmdBuffer)
+		void VKPipeline::SetActive(CommandBuffer* cmdBuffer)
 		{
 			vkCmdBindPipeline(static_cast<VKCommandBuffer*>(cmdBuffer)->GetCommandBuffer(), VK_PIPELINE_BIND_POINT_GRAPHICS, m_Pipeline);
 		}

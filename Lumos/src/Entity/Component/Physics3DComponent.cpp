@@ -6,7 +6,7 @@
 
 #include <imgui/imgui.h>
 
-namespace Lumos
+namespace lumos
 {
 	Physics3DComponent::Physics3DComponent(std::shared_ptr<PhysicsObject3D>& physics)
 		: m_PhysicsObject(physics)

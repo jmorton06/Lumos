@@ -1,6 +1,6 @@
 #include "SceneModelViewer.h"
 
-using namespace Lumos;
+using namespace lumos;
 using namespace maths;
 
 SceneModelViewer::SceneModelViewer(const std::string& SceneName)
@@ -35,23 +35,19 @@ void SceneModelViewer::OnInit()
 		"/Textures/cubemap/CubeMap10.tga"
 	};
 
-	m_EnvironmentMap = TextureCube::CreateFromVCross(environmentFiles, 11);
+	m_EnvironmentMap = graphics::TextureCube::CreateFromVCross(environmentFiles, 11);
 
-	auto sun = std::make_shared<Light>();
-	sun->SetDirection(maths::Vector3(26.0f, 22.0f, 48.5f));
-	sun->SetPosition(maths::Vector3(26.0f, 22.0f, 48.5f) * 100.0f);
+	auto sun = std::make_shared<graphics::Light>(maths::Vector3(26.0f, 22.0f, 48.5f), maths::Vector4(1.0f), 2.0f);
 
-	auto lightEntity = std::make_shared<Entity>("Directional Light", this);
+	auto lightEntity = std::make_shared<Entity>("Directional Light");
 	lightEntity->AddComponent(std::make_unique<LightComponent>(sun));
-	lightEntity->AddComponent(std::make_unique<TransformComponent>(Matrix4::Translation(maths::Vector3(26.0f, 22.0f, 48.5f) * 100.0f)));
+	lightEntity->AddComponent(std::make_unique<TransformComponent>(Matrix4::Translation(maths::Vector3(26.0f, 22.0f, 48.5f))));
 	AddEntity(lightEntity);
 
-    auto shadowTexture = std::unique_ptr<TextureDepthArray>(TextureDepthArray::Create(2048, 2048, 4));
-    auto shadowRenderer = new ShadowRenderer();
-    auto deferredRenderer = new DeferredRenderer(m_ScreenWidth, m_ScreenHeight);
-    auto skyboxRenderer = new SkyboxRenderer(m_ScreenWidth, m_ScreenHeight, m_EnvironmentMap);
-    deferredRenderer->SetRenderTarget(Application::Instance()->GetRenderManager()->GetGBuffer()->m_ScreenTex[SCREENTEX_OFFSCREEN0]);
-    skyboxRenderer->SetRenderTarget(Application::Instance()->GetRenderManager()->GetGBuffer()->m_ScreenTex[SCREENTEX_OFFSCREEN0]);
+    auto shadowTexture = std::unique_ptr<graphics::TextureDepthArray>(graphics::TextureDepthArray::Create(2048, 2048, 4));
+    auto shadowRenderer = new graphics::ShadowRenderer();
+    auto deferredRenderer = new graphics::DeferredRenderer(m_ScreenWidth, m_ScreenHeight);
+    auto skyboxRenderer = new graphics::SkyboxRenderer(m_ScreenWidth, m_ScreenHeight, m_EnvironmentMap);
 	shadowRenderer->SetLight(sun);
 
     deferredRenderer->SetRenderToGBufferTexture(true);
@@ -91,13 +87,19 @@ void SceneModelViewer::OnCleanupScene()
 
 void SceneModelViewer::LoadModels()
 {
-	std::shared_ptr<Entity> TestObject = ModelLoader::LoadModel("/Meshes/Scene/scene.gltf");
-	//DamagedHelmet/glTF/DamagedHelmet.gltf");//Cube/Cube.gltf");//Scene/scene.gltf");///Meshes/Spyro/ArtisansHub.obj
+	std::vector<String> ExampleModelPaths
+	{
+		"/Meshes/KhronosExamples/DamagedHelmet/glTF/DamagedHelmet.gltf",
+		"/Meshes/Scene/scene.gltf",
+		"/Meshes/Spyro/ArtisansHub.obj",
+		"/Meshes/Cube/Cube.gltf",
+		"/Meshes/KhronosExamples/MetalRoughSpheres/glTF/MetalRoughSpheres.gltf",
+		"/Meshes/KhronosExamples/EnvironmentTest/glTF/EnvironmentTest.gltf",
+        "/Meshes/KhronosExamples/Sponza/glTF/Sponza.gltf"
+	};
+	std::shared_ptr<Entity> TestObject = ModelLoader::LoadModel(ExampleModelPaths[1]);
 	TestObject->SetBoundingRadius(20000.0f);
 	AddEntity(TestObject);
-    
-    std::shared_ptr<Entity> TestObject2 = ModelLoader::LoadModel("/CoreMeshes/pyramid.obj");
-    AddEntity(TestObject2);
 
 }
 

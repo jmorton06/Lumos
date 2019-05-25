@@ -2,7 +2,7 @@
 #include "LM.h"
 #include "Constraint.h"
 
-namespace Lumos
+namespace lumos
 {
 	class PhysicsObject3D;
 

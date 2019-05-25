@@ -5,7 +5,7 @@
 #include "App/SceneManager.h"
 #include "App/Application.h"
 
-namespace Lumos
+namespace lumos
 {
 const char EntityBinding::className[] = "Entity";
 
@@ -25,7 +25,7 @@ EntityBinding::EntityBinding(lua_State* L)
 		name = LuaScripting::SGetString(L, 1);
 	else
 		name = "Unknown";
-	entity = std::make_shared<Entity>(name, Application::Instance()->GetSceneManager()->GetCurrentScene());
+	entity = std::make_shared<Entity>(name);
 }
 
 EntityBinding::~EntityBinding()

@@ -1,7 +1,7 @@
 #pragma once
 #include "Camera.h"
 
-namespace Lumos
+namespace lumos
 {
 
 	class LUMOS_EXPORT ThirdPersonCamera : public Camera

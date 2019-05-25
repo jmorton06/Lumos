@@ -5,7 +5,7 @@
 #include "Graphics/Camera/ThirdPersonCamera.h"
 #include "CameraBinding.h"
 
-namespace Lumos
+namespace lumos
 {
 	class LUMOS_EXPORT CameraThirdPersonBinding : public CameraBinding
 	{

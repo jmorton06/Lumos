@@ -4,20 +4,22 @@
 #include "Graphics/Mesh.h"
 #include "Graphics/API/Shader.h"
 
-namespace Lumos
+namespace lumos
 {
-
-	struct LUMOS_EXPORT RendererUniform
+	namespace graphics
 	{
-		String uniform;
-		byte* value;
-	};
+		struct LUMOS_EXPORT RendererUniform
+		{
+			String uniform;
+			byte* value;
+		};
 
-	struct LUMOS_EXPORT RenderCommand
-	{
-		Mesh* mesh;
-		maths::Matrix4 transform;
-		maths::Matrix4 textureMatrix;
-		std::vector<RendererUniform> uniforms;
-	};
+		struct LUMOS_EXPORT RenderCommand
+		{
+			Mesh* mesh;
+			maths::Matrix4 transform;
+			maths::Matrix4 textureMatrix;
+			std::vector<RendererUniform> uniforms;
+		};
+	}
 }

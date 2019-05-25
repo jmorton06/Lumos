@@ -5,7 +5,7 @@
 #include "Maths/Vector4.h"
 #include "Graphics/Renderers/DebugRenderer.h"
 
-namespace Lumos
+namespace lumos
 {
 	class LUMOS_EXPORT PerformanceTimer
 	{

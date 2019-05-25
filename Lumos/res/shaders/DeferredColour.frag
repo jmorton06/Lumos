@@ -8,21 +8,25 @@ layout(location = 2) in vec4 fragPosition;
 layout(location = 3) in vec3 fragNormal;
 layout(location = 4) in vec3 fragTangent;
 
-
 layout(set = 1, binding = 0) uniform sampler2D u_AlbedoMap;
 layout(set = 1, binding = 1) uniform sampler2D u_SpecularMap;
 layout(set = 1, binding = 2) uniform sampler2D u_GlossMap;
 layout(set = 1, binding = 3) uniform sampler2D u_NormalMap;
+layout(set = 1, binding = 4) uniform sampler2D u_AOMap;
 
-layout(set = 1,binding = 4) uniform UniformMaterialData
+layout(set = 1,binding = 5) uniform UniformMaterialData
 {
+	vec4  albedoColour;
+	vec4  glossColour;
+	vec4  specularColour;
 	float usingAlbedoMap;
 	float usingSpecularMap;
 	float usingGlossMap;
 	float usingNormalMap;
-	vec4  albedoColour;
-	vec4  glossColour;
-	vec4  specularColour;
+	float usingAOMap;
+	float usingEmissiveMap;
+	float p0;
+	float p1;
 } materialProperties;
 
 layout(location = 0) out vec4 outColor;
@@ -97,5 +101,10 @@ void main()
 	outPosition = fragPosition;
 
 	outNormal   = vec4(GetNormalFromMap(),1.0);
-	outPBR      = vec4(specular.x,roughness, 1.0,1.0);
+
+	float ao	= 1.0f;
+
+	if(materialProperties.usingAOMap > 0.5)
+		ao = GammaCorrectTextureRGB(texture(u_AOMap, fragTexCoord)).r;
+	outPBR      = vec4(specular.x,roughness, ao,1.0);
 }

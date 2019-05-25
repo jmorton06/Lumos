@@ -5,7 +5,7 @@
 #include "Physics/LumosPhysicsEngine/PhysicsObject3D.h"
 
 
-namespace Lumos
+namespace lumos
 {
 
 	class PathEdge;

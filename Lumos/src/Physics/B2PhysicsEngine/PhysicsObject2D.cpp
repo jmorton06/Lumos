@@ -7,7 +7,7 @@
 #include <Box2D/Box2D.h>
 #include <Box2D/Dynamics/b2World.h>
 
-namespace Lumos
+namespace lumos
 {
 
 	PhysicsObject2D::PhysicsObject2D() : m_B2Body(nullptr)

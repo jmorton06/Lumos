@@ -1,7 +1,7 @@
 #include "LM.h"
 #include "Timer.h"
 
-namespace Lumos
+namespace lumos
 {
 	
 	float Timer::GetTimedMS()

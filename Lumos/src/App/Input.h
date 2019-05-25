@@ -11,7 +11,7 @@
 #define MAX_KEYS	1024
 #define MAX_BUTTONS	32
 
-namespace Lumos
+namespace lumos
 {
 	class Event;
 
@@ -52,8 +52,6 @@ namespace Lumos
 		void Reset();
 		void ResetPressed();
 		void OnEvent(Event& e);
-
-		virtual void Update(void* raw) {}
 
 	protected:
 

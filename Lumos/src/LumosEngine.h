@@ -28,7 +28,7 @@
 #include "Graphics/API/Textures/Texture2D.h"
 #include "Graphics/API/Textures/TextureDepth.h"
 #include "Graphics/API/Textures/TextureDepthArray.h"
-#include "Graphics/API/Context.h"
+#include "Graphics/API/GraphicsContext.h"
 #include "Graphics/API/Framebuffer.h"
 #include "Graphics/API/Shader.h"
 #include "Graphics/API/IMGUIRenderer.h"

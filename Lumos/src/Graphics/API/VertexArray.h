@@ -1,29 +1,32 @@
 #pragma once
 
 #include "LM.h"
-#include "VertexBuffer.h"
 
-namespace Lumos
+namespace lumos
 {
-
-	class LUMOS_EXPORT VertexArray
+	namespace graphics
 	{
-	public:
-		virtual ~VertexArray() = default;
-		virtual VertexBuffer* GetBuffer(uint index = 0) = 0;
-		virtual void PushBuffer(VertexBuffer* buffer) = 0;
+		class VertexBuffer;
 
-		virtual void Bind() const = 0;
-		virtual void Unbind() const = 0;
+		class LUMOS_EXPORT VertexArray
+		{
+		public:
+			virtual ~VertexArray() = default;
+			virtual VertexBuffer* GetBuffer(uint index = 0) = 0;
+			virtual void PushBuffer(VertexBuffer* buffer) = 0;
 
-		void DeleteBuffers();
-		uint GetCount() const { return static_cast<uint>(m_Buffers.size()); }
+			virtual void Bind() const = 0;
+			virtual void Unbind() const = 0;
 
-		virtual void Draw(uint count) const = 0;
-		static VertexArray* Create();
+			void DeleteBuffers();
+			uint GetCount() const { return static_cast<uint>(m_Buffers.size()); }
 
-	protected:
+			virtual void Draw(uint count) const = 0;
+			static VertexArray* Create();
 
-		std::vector<VertexBuffer*> m_Buffers;
-	};
+		protected:
+
+			std::vector<VertexBuffer*> m_Buffers;
+		};
+	}
 }

@@ -2,26 +2,29 @@
 #include "LM.h"
 #include "Utilities/AssetManager.h"
 
-namespace Lumos
+namespace lumos
 {
-	class Texture2D;
-	class TextureCube;
 	class Material;
-	class Mesh;
-	class Shader;
-	class Object3D;
+
+	namespace graphics
+	{
+		class Texture2D;
+		class TextureCube;
+		class Mesh;
+		class Shader;
+	}
 
 	class LUMOS_EXPORT AssetsManager
 	{
 	public:
-		static AssetManager<Mesh>*		DefaultModels()   { return s_DefaultModels; };
-		static AssetManager<Texture2D>* DefaultTextures() { return s_DefaultTextures; };
+		static AssetManager<graphics::Mesh>*		DefaultModels()   { return s_DefaultModels; };
+		static AssetManager<graphics::Texture2D>* DefaultTextures() { return s_DefaultTextures; };
 
 		static void InitializeMeshes();
 		static void ReleaseMeshes();
 
 	protected:
-		static AssetManager<Mesh>*		s_DefaultModels;
-		static AssetManager<Texture2D>* s_DefaultTextures;
+		static AssetManager<graphics::Mesh>*		s_DefaultModels;
+		static AssetManager<graphics::Texture2D>* s_DefaultTextures;
 	};
 }

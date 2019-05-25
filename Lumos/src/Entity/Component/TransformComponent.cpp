@@ -4,7 +4,7 @@
 
 #include <imgui/imgui.h>
 
-namespace Lumos
+namespace lumos
 {
 	TransformComponent::TransformComponent(const maths::Matrix4& matrix)
 		: m_Transform(matrix)

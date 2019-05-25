@@ -5,7 +5,7 @@
 #ifndef LINUX
 #include <Windows.h>
 
-namespace Lumos 
+namespace lumos 
 {
 
 	/*void CALLBACK FileIOCompletionRoutine(DWORD dwErrorCode, DWORD dwNumberOfBytesTransfered, LPOVERLAPPED lpOverlapped)

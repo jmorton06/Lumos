@@ -3,7 +3,7 @@
 #include "VKVertexBuffer.h"
 #include "VKRenderer.h"
 
-namespace Lumos
+namespace lumos
 { 
 	namespace graphics
 	{

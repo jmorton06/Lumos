@@ -1,7 +1,7 @@
 #include "LM.h"
 #include "Frustum.h"
 
-namespace Lumos
+namespace lumos
 {
 	namespace maths
 	{

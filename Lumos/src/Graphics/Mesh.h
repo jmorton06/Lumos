@@ -8,133 +8,136 @@
 
 #include <array>
 
-namespace Lumos
+namespace lumos
 {
-	class Material;
-	class Texture2D;
-	class Shader;
-	class Material;
-
 	namespace maths
 	{
 		class BoundingSphere;
 	}
-
-    struct LUMOS_EXPORT BasicVertex
-    {
-		maths::Vector3 Position;
-		maths::Vector3 color;
-		maths::Vector2 TexCoords;
-    };
-
-	struct LUMOS_EXPORT Vertex
+		
+	class Material;
+	
+	namespace graphics
 	{
-		Vertex()
-			: Position(maths::Vector3(0.0f))
-			, Colours(maths::Vector4(0.0f))
-			, TexCoords(maths::Vector2(0.0f))
-			, Normal(maths::Vector3(0.0f))
-			, Tangent(maths::Vector3(0.0f))
+		class Texture2D;
+		class Shader;
+
+		struct LUMOS_EXPORT BasicVertex
 		{
+			maths::Vector3 Position;
+			maths::Vector3 color;
+			maths::Vector2 TexCoords;
+		};
 
-		}
-
-		maths::Vector3 Position;
-		maths::Vector4 Colours;
-		maths::Vector2 TexCoords;
-		maths::Vector3 Normal;
-		maths::Vector3 Tangent;
-
-		bool operator==(const Vertex& other) const
+		struct LUMOS_EXPORT Vertex
 		{
-			return Position == other.Position  && TexCoords == other.TexCoords && Colours == other.Colours && Normal == other.Normal && Tangent == other.Tangent;
-		}
+			Vertex()
+				: Position(maths::Vector3(0.0f))
+				, Colours(maths::Vector4(0.0f))
+				, TexCoords(maths::Vector2(0.0f))
+				, Normal(maths::Vector3(0.0f))
+				, Tangent(maths::Vector3(0.0f))
+			{
 
-		static std::array<graphics::api::VertexInputDescription, 5> getAttributeDescriptions()
+			}
+
+			maths::Vector3 Position;
+			maths::Vector4 Colours;
+			maths::Vector2 TexCoords;
+			maths::Vector3 Normal;
+			maths::Vector3 Tangent;
+
+			bool operator==(const Vertex& other) const
+			{
+				return Position == other.Position  && TexCoords == other.TexCoords && Colours == other.Colours && Normal == other.Normal && Tangent == other.Tangent;
+			}
+
+			static std::array<graphics::VertexInputDescription, 5> getAttributeDescriptions()
+			{
+				std::array<graphics::VertexInputDescription, 5> attributeDescriptions = {};
+
+				attributeDescriptions[0].binding = 0;
+				attributeDescriptions[0].location = 0;
+				attributeDescriptions[0].format = graphics::Format::R32G32B32_FLOAT;
+				attributeDescriptions[0].offset = offsetof(Vertex, Position);
+
+				attributeDescriptions[1].binding = 0;
+				attributeDescriptions[1].location = 1;
+				attributeDescriptions[1].format = graphics::Format::R32G32B32A32_FLOAT;
+				attributeDescriptions[1].offset = offsetof(Vertex, Colours);
+
+				attributeDescriptions[2].binding = 0;
+				attributeDescriptions[2].location = 2;
+				attributeDescriptions[2].format = graphics::Format::R32G32_FLOAT;
+				attributeDescriptions[2].offset = offsetof(Vertex, TexCoords);
+
+				attributeDescriptions[3].binding = 0;
+				attributeDescriptions[3].location = 3;
+				attributeDescriptions[3].format = graphics::Format::R32G32B32_FLOAT;
+				attributeDescriptions[3].offset = offsetof(Vertex, Normal);
+
+				attributeDescriptions[4].binding = 0;
+				attributeDescriptions[4].location = 4;
+				attributeDescriptions[4].format = graphics::Format::R32G32B32_FLOAT;
+				attributeDescriptions[4].offset = offsetof(Vertex, Tangent);
+
+				return attributeDescriptions;
+			}
+		};
+
+		class LUMOS_EXPORT Mesh
 		{
-			std::array<graphics::api::VertexInputDescription, 5> attributeDescriptions = {};
+		public:
 
-			attributeDescriptions[0].binding = 0;
-			attributeDescriptions[0].location = 0;
-			attributeDescriptions[0].format = graphics::api::Format::R32G32B32_FLOAT;
-			attributeDescriptions[0].offset = offsetof(Vertex, Position);
+			Mesh();
+			Mesh(const Mesh& mesh);
+			Mesh(std::shared_ptr<VertexArray>& vertexArray, std::shared_ptr<IndexBuffer>& indexBuffer, const std::shared_ptr<Material>& material, const std::shared_ptr<maths::BoundingSphere>& boundingSphere);
 
-			attributeDescriptions[1].binding = 0;
-			attributeDescriptions[1].location = 1;
-			attributeDescriptions[1].format = graphics::api::Format::R32G32B32_FLOAT;
-			attributeDescriptions[1].offset = offsetof(Vertex, Colours);
+			virtual ~Mesh();
+			virtual void Draw();
+			virtual void Draw(bool bindMaterial);
 
-			attributeDescriptions[2].binding = 0;
-			attributeDescriptions[2].location = 2;
-			attributeDescriptions[2].format = graphics::api::Format::R32G32_FLOAT;
-			attributeDescriptions[2].offset = offsetof(Vertex, TexCoords);
+			void Init();
+			void SetMaterial(const std::shared_ptr<Material>& material) { m_Material = material; }
+			std::shared_ptr<Material> GetMaterial() const { return m_Material; }
+			std::shared_ptr<VertexArray> GetVertexArray() const { return m_VertexArray; }
+			std::shared_ptr<IndexBuffer> GetIndexBuffer() const { return m_IndexBuffer; }
+			std::shared_ptr<maths::BoundingSphere> GetBoundingSphere() const { return m_BoundingSphere; }
 
-			attributeDescriptions[3].binding = 0;
-			attributeDescriptions[3].location = 3;
-			attributeDescriptions[3].format = graphics::api::Format::R32G32B32_FLOAT;
-			attributeDescriptions[3].offset = offsetof(Vertex, Normal);
+			std::vector<graphics::CommandBuffer*> m_CMDBuffers;
 
-			attributeDescriptions[4].binding = 0;
-			attributeDescriptions[4].location = 4;
-			attributeDescriptions[4].format = graphics::api::Format::R32G32B32_FLOAT;
-			attributeDescriptions[4].offset = offsetof(Vertex, Tangent);
+			graphics::CommandBuffer* GetCommandBuffer(int id) const { return m_CMDBuffers[id]; }
 
-			return attributeDescriptions;
-		}
-	};
+		protected:
 
-	class LUMOS_EXPORT Mesh
-	{
-	public:
+			static maths::Vector3 GenerateTangent(const maths::Vector3 &a, const maths::Vector3 &b, const maths::Vector3 &c, const maths::Vector2 &ta, const maths::Vector2 &tb, const maths::Vector2 &tc);
 
-		Mesh();
-		Mesh(const Mesh& mesh);
-		Mesh(std::shared_ptr<VertexArray>& vertexArray, std::shared_ptr<IndexBuffer>& indexBuffer,const std::shared_ptr<Material>& material, const std::shared_ptr<maths::BoundingSphere>& boundingSphere);
+			static maths::Vector3* GenerateNormals(uint numVertices, maths::Vector3* vertices, uint* indices, uint numIndices);
+			static maths::Vector3* GenerateTangents(uint numVertices, maths::Vector3* vertices, uint* indices, uint numIndices, maths::Vector2* texCoords);
 
-		virtual ~Mesh();
-		virtual void Draw();
-		virtual void Draw(bool bindMaterial);
+			std::shared_ptr<VertexArray> m_VertexArray;
+			std::shared_ptr<IndexBuffer> m_IndexBuffer;
+			std::shared_ptr<Material> m_Material;
 
-		void Init();
-		void SetMaterial(const std::shared_ptr<Material>& material) { m_Material = material; }
-		std::shared_ptr<Material> GetMaterial() const { return m_Material; }
-		std::shared_ptr<VertexArray> GetVertexArray() const { return m_VertexArray; }
-		std::shared_ptr<IndexBuffer> GetIndexBuffer() const { return m_IndexBuffer; }
-		std::shared_ptr<maths::BoundingSphere> GetBoundingSphere() const { return m_BoundingSphere; }
+			std::shared_ptr<maths::BoundingSphere> m_BoundingSphere;
 
-		std::vector<graphics::api::CommandBuffer*> m_CMDBuffers;
-
-		graphics::api::CommandBuffer* GetCommandBuffer(int id) const { return m_CMDBuffers[id]; }
-
-	protected:
-
-		static maths::Vector3 GenerateTangent(const maths::Vector3 &a, const maths::Vector3 &b, const maths::Vector3 &c, const maths::Vector2 &ta, const maths::Vector2 &tb, const maths::Vector2 &tc);
-
-		static maths::Vector3* GenerateNormals(uint numVertices, maths::Vector3* vertices, uint* indices, uint numIndices);
-		static maths::Vector3* GenerateTangents(uint numVertices, maths::Vector3* vertices, uint* indices, uint numIndices, maths::Vector2* texCoords);
-
-		std::shared_ptr<VertexArray> m_VertexArray;
-		std::shared_ptr<IndexBuffer> m_IndexBuffer;
-		std::shared_ptr<Material> m_Material;
-
-		std::shared_ptr<maths::BoundingSphere> m_BoundingSphere;
-
-		bool m_ArrayCleanUp;
-		bool m_TextureCleanUp;
-	};
+			bool m_ArrayCleanUp;
+			bool m_TextureCleanUp;
+		};
+	}
 }
 
 namespace std
 {
-	template<> struct hash<Lumos::Vertex>
+	template<> struct hash<lumos::graphics::Vertex>
 	{
-		size_t operator()(Lumos::Vertex const& vertex) const
+		size_t operator()(lumos::graphics::Vertex const& vertex) const
 		{
-			return ((hash<Lumos::maths::Vector3>()(vertex.Position) ^
-				(hash<Lumos::maths::Vector2>()(vertex.TexCoords) << 1) ^
-				(hash<Lumos::maths::Vector4>()(vertex.Colours) << 1) ^
-				(hash<Lumos::maths::Vector3>()(vertex.Normal) << 1) ^
-				(hash<Lumos::maths::Vector3>()(vertex.Tangent) << 1)));
+			return ((hash<lumos::maths::Vector3>()(vertex.Position) ^
+				(hash<lumos::maths::Vector2>()(vertex.TexCoords) << 1) ^
+				(hash<lumos::maths::Vector4>()(vertex.Colours) << 1) ^
+				(hash<lumos::maths::Vector3>()(vertex.Normal) << 1) ^
+				(hash<lumos::maths::Vector3>()(vertex.Tangent) << 1)));
 		}
 
 	};

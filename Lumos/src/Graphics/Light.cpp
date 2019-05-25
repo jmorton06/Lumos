@@ -1,29 +1,14 @@
 #include "LM.h"
 #include "Light.h"
-#include <imgui/imgui.h>
 
-String Lumos::Light::GetName()
+namespace lumos
 {
-	switch (m_Type)
+	namespace graphics
 	{
-	case LightType::DirectionalLight: return "Directional";
-	case LightType::PointLight: return "Point";
-	case LightType::SpotLight: return "Spot";
-	default: return "Light";
+		Light::Light(const maths::Vector3& direction, const maths::Vector4& colour, float intensity, const LightType& type, const maths::Vector3& position, float radius)
+			: m_Direction(direction), m_Colour(colour), m_Position(position), m_Intensity(intensity), m_Radius(radius), m_Type(float(type))
+		{
+		}
 	}
 }
 
-void Lumos::Light::OnImGUI()
-{
-	if (ImGui::TreeNode(GetName().c_str()))
-	{
-		ImGui::DragFloat3("Position", &m_Position.x);
-		ImGui::DragFloat3("Direction", &m_Direction.x);
-		ImGui::DragFloat3("Colour", &m_Colour.x);
-		ImGui::Checkbox("IsOn", &m_IsOn);
-		ImGui::DragFloat("Brightness", &m_Brightness);
-		ImGui::DragFloat("Radius", &m_Radius);
-
-		ImGui::TreePop();
-	}
-}

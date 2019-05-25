@@ -4,7 +4,7 @@
 #include "Maths/Frustum.h"
 #include "Maths/Maths.h"
 
-namespace Lumos
+namespace lumos
 {
 
 	//Maximum number of elements added to the renderlist per frame

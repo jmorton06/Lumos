@@ -10,7 +10,7 @@
 #include <imgui/imgui.h>
 #include "Physics/LumosPhysicsEngine/PhysicsObject3D.h"
 
-namespace Lumos
+namespace lumos
 {
 	SoundComponent::SoundComponent(std::shared_ptr<SoundNode>& sound)
 		: m_SoundNode(sound)

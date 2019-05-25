@@ -6,11 +6,10 @@
 #include "VKFramebuffer.h"
 #include "VKTools.h"
 
-namespace Lumos
+namespace lumos
 {
 	namespace graphics
 	{
-
 		VKCommandBuffer::VKCommandBuffer(): m_Primary(false)
 		{
 		}
@@ -64,7 +63,7 @@ namespace Lumos
 				LUMOS_CORE_ERROR("WARNING: BeginRecording() called from a secondary command buffer!");
 		}
 
-		void VKCommandBuffer::BeginRecordingSecondary(api::RenderPass* renderPass, Framebuffer* framebuffer)
+		void VKCommandBuffer::BeginRecordingSecondary(RenderPass* renderPass, Framebuffer* framebuffer)
 		{
 			if (!m_Primary)
 			{

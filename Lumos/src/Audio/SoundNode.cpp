@@ -6,7 +6,7 @@
 #include "Platform/OpenAL/ALSoundNode.h"
 #endif
 
-namespace Lumos
+namespace lumos
 {
 	SoundNode* SoundNode::Create()
 	{

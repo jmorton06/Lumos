@@ -2,17 +2,17 @@
 
 #include "LM.h"
 #include "App/Window.h"
-#include "Graphics/API/Context.h"
+#include "Graphics/API/GraphicsContext.h"
 
 struct GLFWwindow;
 
-namespace Lumos
+namespace lumos
 {
 
 	class LUMOS_EXPORT GLFWWindow : public Window
 	{
 	public:
-		GLFWWindow(const WindowProperties& properties, const String& title, RenderAPI api = RenderAPI::OPENGL);
+		GLFWWindow(const WindowProperties& properties, const String& title, graphics::RenderAPI api = graphics::RenderAPI::OPENGL);
 		~GLFWWindow();
 
 		void ToggleVSync() override;
@@ -46,7 +46,7 @@ namespace Lumos
 			uint Width, Height;
 			bool VSync;
 			bool Exit;
-            RenderAPI m_RenderAPI;
+			graphics::RenderAPI m_RenderAPI;
 
 			EventCallbackFn EventCallback;
 		};

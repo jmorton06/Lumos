@@ -1,7 +1,7 @@
 #include "LM.h"
 #include "Scene.h"
 #include "Graphics/ParticleManager.h"
-#include "Graphics/API/Context.h"
+#include "Graphics/API/GraphicsContext.h"
 #include "System/String.h"
 #include "Audio/AudioManager.h"
 #include "Physics/LumosPhysicsEngine/SortAndSweepBroadphase.h"
@@ -17,7 +17,7 @@
 #include "Graphics/Camera/Camera.h"
 #include "Entity/Component/TransformComponent.h"
 
-namespace Lumos
+namespace lumos
 {
 	Scene::Scene(const String& friendly_name)
 		: m_SceneName(friendly_name), m_pCamera(nullptr), m_EnvironmentMap(nullptr), m_SceneBoundingRadius(0),
@@ -29,7 +29,7 @@ namespace Lumos
 
 		m_MaterialManager = new AssetManager<Material>();
 
-		m_RootEntity = std::make_shared<Entity>("Root Node", nullptr);
+		m_RootEntity = std::make_shared<Entity>("Root Node");
 		m_RootEntity->AddComponent(std::make_unique<TransformComponent>(maths::Matrix4()));
 	}
 
@@ -71,17 +71,17 @@ namespace Lumos
 		Platform = "iOS";
 #endif
 
-		switch (graphics::Context::GetRenderAPI())
+		switch (graphics::GraphicsContext::GetRenderAPI())
 		{
 #ifdef LUMOS_RENDER_API_OPENGL
-		case RenderAPI::OPENGL: RenderAPI = "OpenGL"; break;
+		case graphics::RenderAPI::OPENGL: RenderAPI = "OpenGL"; break;
 #endif
 
 #ifdef LUMOS_RENDER_API_VULKAN
 #if defined(LUMOS_PLATFORM_MACOS) || defined(LUMOS_PLATFORM_IOS)
-		case RenderAPI::VULKAN: RenderAPI = "Vulkan ( MoltenVK )"; break;
+		case graphics::RenderAPI::VULKAN: RenderAPI = "Vulkan ( MoltenVK )"; break;
 #else
-		case RenderAPI::VULKAN: RenderAPI = "Vulkan"; break;
+		case graphics::RenderAPI::VULKAN: RenderAPI = "Vulkan"; break;
 #endif
 #endif
 

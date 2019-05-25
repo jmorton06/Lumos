@@ -20,58 +20,61 @@
 #define SHADER_UNIFORM_MODEL_MATRIX_NAME		"sys_ModelMatrix"
 #define SHADER_UNIFORM_TEXTURE_MATRIX_NAME		"sys_TextureMatrix"
 
-namespace Lumos
+namespace lumos
 {
-	enum ShaderType : int
+	namespace graphics
 	{
-		UNKNOWN = -1,
-		VERTEX = 0,
-		GEOMETRY = 1,
-		TESSELLATION_CONTROL = 2,
-		TESSELLATION_EVALUATION = 3,
-		FRAGMENT = 4,
-		COMPUTE = 5
-	};
-
-	struct ShaderEnumClassHash
-	{
-		template <typename T>
-		std::size_t operator()(T t) const
+		enum class ShaderType : int
 		{
-			return static_cast<std::size_t>(t);
-		}
-	};
+			UNKNOWN = -1,
+			VERTEX = 0,
+			GEOMETRY = 1,
+			TESSELLATION_CONTROL = 2,
+			TESSELLATION_EVALUATION = 3,
+			FRAGMENT = 4,
+			COMPUTE = 5
+		};
 
-	template <typename Key>
-	using HashType = typename std::conditional<std::is_enum<Key>::value, ShaderEnumClassHash, std::hash<Key>>::type;
+		struct ShaderEnumClassHash
+		{
+			template <typename T>
+			std::size_t operator()(T t) const
+			{
+				return static_cast<std::size_t>(t);
+			}
+		};
 
-	template <typename Key, typename T>
-	using UnorderedMap = std::unordered_map<Key, T, HashType<Key>>;
+		template <typename Key>
+		using HashType = typename std::conditional<std::is_enum<Key>::value, ShaderEnumClassHash, std::hash<Key>>::type;
 
-	class LUMOS_EXPORT Shader
-	{
-	public:
-		static const Shader* s_CurrentlyBound;
-	public:
-		virtual void Bind() const = 0;
-		virtual void Unbind() const = 0;
+		template <typename Key, typename T>
+		using UnorderedMap = std::unordered_map<Key, T, HashType<Key>>;
 
-		virtual ~Shader() = default;
+		class LUMOS_EXPORT Shader
+		{
+		public:
+			static const Shader* s_CurrentlyBound;
+		public:
+			virtual void Bind() const = 0;
+			virtual void Unbind() const = 0;
 
-		virtual void SetSystemUniformBuffer(ShaderType type, byte* data, uint size, uint slot = 0) = 0;
-		virtual void SetUserUniformBuffer(ShaderType type, byte* data, uint size) = 0;
+			virtual ~Shader() = default;
 
-		virtual const ShaderUniformBufferList GetSystemUniforms(ShaderType type) const = 0;
-		virtual const ShaderUniformBufferDeclaration* GetUserUniformBuffer(ShaderType type) const = 0;
+			virtual void SetSystemUniformBuffer(ShaderType type, byte* data, uint size, uint slot = 0) = 0;
+			virtual void SetUserUniformBuffer(ShaderType type, byte* data, uint size) = 0;
 
-		virtual const std::vector<ShaderType> GetShaderTypes() const = 0;
+			virtual const ShaderUniformBufferList GetSystemUniforms(ShaderType type) const = 0;
+			virtual const ShaderUniformBufferDeclaration* GetUserUniformBuffer(ShaderType type) const = 0;
 
-		virtual const String& GetName() const = 0;
-		virtual const String& GetFilePath() const = 0;
+			virtual const std::vector<ShaderType> GetShaderTypes() const = 0;
 
-	public:
-		static Shader* CreateFromFile(const String& name, const String& filepath);
-		static bool TryCompile(const String& source, String& error, const String& name);
-		static bool TryCompileFromFile(const String& filepath, String& error);
-	};
+			virtual const String& GetName() const = 0;
+			virtual const String& GetFilePath() const = 0;
+
+		public:
+			static Shader* CreateFromFile(const String& name, const String& filepath);
+			static bool TryCompile(const String& source, String& error, const String& name);
+			static bool TryCompileFromFile(const String& filepath, String& error);
+		};
+	}
 }

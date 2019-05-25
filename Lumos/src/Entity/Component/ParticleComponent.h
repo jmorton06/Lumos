@@ -3,7 +3,7 @@
 #include "LumosComponent.h"
 #include "Maths/Vector3.h"
 
-namespace Lumos
+namespace lumos
 {
     class ParticleEmitter;
 

@@ -3,7 +3,7 @@
 #include "MathsUtilities.h"
 #include "BoundingBox.h"
 
-namespace Lumos
+namespace lumos
 {
 	namespace maths
 	{

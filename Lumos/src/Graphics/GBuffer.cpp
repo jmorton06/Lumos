@@ -4,80 +4,82 @@
 #include "API/Textures/TextureDepth.h"
 #include "API/Textures/Texture2D.h"
 
-namespace Lumos
+namespace lumos
 {
-
-	GBuffer::GBuffer(uint width, uint height)
-		: m_Width(width), m_Height(height)
+	namespace graphics
 	{
-		Init();
-	}
-
-	GBuffer::~GBuffer()
-	{
-		for (auto& m_Texture : m_ScreenTex)
+		GBuffer::GBuffer(uint width, uint height)
+			: m_Width(width), m_Height(height)
 		{
-			delete m_Texture;
+			Init();
 		}
 
-        delete m_DepthTexture;
-	}
-
-	void GBuffer::UpdateTextureSize(uint width, uint height)
-	{
-		m_Width = width;
-		m_Height = height;
-
-		BuildTextures();
-	}
-
-	void GBuffer::PostProcessDrawn()
-	{
-		++m_postProcessDrawTo %= PPtextures;
-	}
-
-	void GBuffer::Init()
-	{
-		for (auto& texture : m_ScreenTex)
-		{
-			texture = nullptr;
-		}
-
-		m_DepthTexture = nullptr;
-
-		BuildTextures();
-	}
-
-	void GBuffer::BuildTextures()
-	{
-		if (!m_ScreenTex[0])
+		GBuffer::~GBuffer()
 		{
 			for (auto& m_Texture : m_ScreenTex)
 			{
-				m_Texture = Texture2D::Create();
+				delete m_Texture;
 			}
 
-			m_DepthTexture = TextureDepth::Create(m_Width, m_Height);
+			delete m_DepthTexture;
 		}
 
-		m_ScreenTex[SCREENTEX_COLOUR]->BuildTexture(TextureFormat::RGBA, m_Width, m_Height, false, false);
-		m_ScreenTex[SCREENTEX_POSITION]->BuildTexture(TextureFormat::RGB16, m_Width, m_Height, false, false);
-		m_ScreenTex[SCREENTEX_NORMALS]->BuildTexture(TextureFormat::RGB16, m_Width, m_Height, false, false);
-		m_ScreenTex[SCREENTEX_PBR]->BuildTexture(TextureFormat::RGB16 , m_Width, m_Height, false, false);
-		m_ScreenTex[SCREENTEX_OFFSCREEN0]->BuildTexture(TextureFormat::RGBA, m_Width, m_Height, false, false);
+		void GBuffer::UpdateTextureSize(uint width, uint height)
+		{
+			m_Width = width;
+			m_Height = height;
 
-        m_DepthTexture->Resize(m_Width, m_Height);
+			BuildTextures();
+		}
 
-		//m_ScreenTex[SCREENTEX_DEPTH]->BuildTexture(TextureFormat::DEPTH , m_Width, m_Height, true , false);
-		//m_ScreenTex[SCREENTEX_POSTPROCESS0]->BuildTexture(TextureFormat::RGBA  , m_Width, m_Height, false, false);
-		//m_ScreenTex[SCREENTEX_POSTPROCESS1]->BuildTexture(TextureFormat::RGBA  , m_Width, m_Height, false, false);
-	}
+		void GBuffer::PostProcessDrawn()
+		{
+			++m_postProcessDrawTo %= PPtextures;
+		}
 
-	void GBuffer::Bind(int32 mode)
-	{
-	}
+		void GBuffer::Init()
+		{
+			for (auto& texture : m_ScreenTex)
+			{
+				texture = nullptr;
+			}
 
-	void GBuffer::SetReadBuffer(ScreenTextures type)
-	{
+			m_DepthTexture = nullptr;
+
+			BuildTextures();
+		}
+
+		void GBuffer::BuildTextures()
+		{
+			if (!m_ScreenTex[0])
+			{
+				for (auto& m_Texture : m_ScreenTex)
+				{
+					m_Texture = Texture2D::Create();
+				}
+
+				m_DepthTexture = TextureDepth::Create(m_Width, m_Height);
+			}
+
+			m_ScreenTex[SCREENTEX_COLOUR]->BuildTexture(TextureFormat::RGBA, m_Width, m_Height, false, false);
+			m_ScreenTex[SCREENTEX_POSITION]->BuildTexture(TextureFormat::RGBA16, m_Width, m_Height, false, false);
+			m_ScreenTex[SCREENTEX_NORMALS]->BuildTexture(TextureFormat::RGBA16, m_Width, m_Height, false, false);
+			m_ScreenTex[SCREENTEX_PBR]->BuildTexture(TextureFormat::RGBA16, m_Width, m_Height, false, false);
+			m_ScreenTex[SCREENTEX_OFFSCREEN0]->BuildTexture(TextureFormat::RGBA, m_Width, m_Height, false, false);
+
+			m_DepthTexture->Resize(m_Width, m_Height);
+
+			//m_ScreenTex[SCREENTEX_DEPTH]->BuildTexture(TextureFormat::DEPTH , m_Width, m_Height, true , false);
+			//m_ScreenTex[SCREENTEX_POSTPROCESS0]->BuildTexture(TextureFormat::RGBA  , m_Width, m_Height, false, false);
+			//m_ScreenTex[SCREENTEX_POSTPROCESS1]->BuildTexture(TextureFormat::RGBA  , m_Width, m_Height, false, false);
+		}
+
+		void GBuffer::Bind(int32 mode)
+		{
+		}
+
+		void GBuffer::SetReadBuffer(ScreenTextures type)
+		{
+		}
 	}
 }

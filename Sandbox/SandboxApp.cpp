@@ -7,13 +7,12 @@
 #include "Scenes/SceneSelect.h"
 #include "Scenes/Scene2D.h"
 
-
-using namespace Lumos;
+using namespace lumos;
 
 class Game : public Application
 {
 public:
-	explicit Game(const WindowProperties& windowProperties) : Application(windowProperties, RenderAPI::VULKAN)
+	explicit Game(const WindowProperties& windowProperties) : Application(windowProperties, graphics::RenderAPI::VULKAN)
 	{
 	}
 
@@ -26,9 +25,9 @@ public:
 		Application::Init();
 
 		const String root = ROOT_DIR;
-		Lumos::VFS::Get()->Mount("Meshes", root + "/Sandbox/res/meshes");
-		Lumos::VFS::Get()->Mount("Textures", root + "/Sandbox/res/textures");
-		Lumos::VFS::Get()->Mount("Sounds", root + "/Sandbox/res/sounds");
+		VFS::Get()->Mount("Meshes", root + "/Sandbox/res/meshes");
+		VFS::Get()->Mount("Textures", root + "/Sandbox/res/textures");
+		VFS::Get()->Mount("Sounds", root + "/Sandbox/res/sounds");
 
 		GetSceneManager()->EnqueueScene(new SceneSelect("SceneSelect"));
 		GetSceneManager()->EnqueueScene(new SceneLuaTest("Lua Test Scene"));
@@ -40,9 +39,10 @@ public:
 	}
 };
 
-Lumos::Application* Lumos::CreateApplication()
+lumos::Application* lumos::CreateApplication()
 {
     System::CFG cfg(ROOT_DIR"/Sandbox/Settings.cfg");
-    const WindowProperties windowProperties(cfg);
+    WindowProperties windowProperties(cfg);
+	windowProperties.ShowConsole = true;
     return new Game(windowProperties);
 }

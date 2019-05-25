@@ -5,7 +5,7 @@
 #include "Graphics/Camera/FPSCamera.h"
 #include "CameraBinding.h"
 
-namespace Lumos
+namespace lumos
 {
 	class LUMOS_EXPORT CameraFPSBinding : public CameraBinding
 	{

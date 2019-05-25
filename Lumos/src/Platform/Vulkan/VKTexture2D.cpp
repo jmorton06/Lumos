@@ -9,24 +9,11 @@
 
 #include <cmath>
 
-namespace Lumos
+namespace lumos
 {
 	namespace graphics
 	{
-		VKTexture2D::VKTexture2D(uint width, uint height, TextureParameters parameters, TextureLoadOptions loadOptions)
-			: m_FileName("NULL"), m_TextureSampler(nullptr), m_TextureImageView(nullptr)
-		{
-			m_Width = width;
-			m_Height = height;
-			m_Parameters = parameters;
-			m_LoadOptions = loadOptions;
-			Load();
-
-			UpdateDescriptor();
-		}
-
-		VKTexture2D::VKTexture2D(uint width, uint height, TextureParameters parameters, TextureLoadOptions loadOptions,
-			void* data)
+		VKTexture2D::VKTexture2D(uint width, uint height, void* data, TextureParameters parameters, TextureLoadOptions loadOptions)
 			: m_FileName("NULL"), m_TextureSampler(nullptr), m_TextureImageView(nullptr)
 		{
 			m_Width = width;
@@ -39,19 +26,6 @@ namespace Lumos
 			m_TextureImageView = CreateImageView(m_TextureImage, vk::Format::eR8G8B8A8Unorm,  vk::ImageAspectFlagBits::eColor, m_MipLevels);
 
 			CreateTextureSampler();
-
-			UpdateDescriptor();
-		}
-
-		VKTexture2D::VKTexture2D(uint width, uint height, uint color, TextureParameters parameters,
-			TextureLoadOptions loadOptions)
-			: m_FileName("NULL"), m_TextureSampler(nullptr), m_TextureImageView(nullptr)
-		{
-			m_Width = width;
-			m_Height = height;
-			m_Parameters = parameters;
-			m_LoadOptions = loadOptions;
-			Load();
 
 			UpdateDescriptor();
 		}
@@ -70,23 +44,6 @@ namespace Lumos
             m_TextureImageView = CreateImageView(m_TextureImage, vk::Format::eR8G8B8A8Unorm, vk::ImageAspectFlagBits::eColor, m_MipLevels);
 
 			CreateTextureSampler();
-			UpdateDescriptor();
-		}
-
-		VKTexture2D::VKTexture2D(int width, int height, void* pixels)
-			: m_FileName("NULL"), m_TextureSampler(nullptr), m_TextureImageView(nullptr)
-		{
-			m_Width = width;
-			m_Height = height;
-			m_Parameters = TextureParameters();
-			m_LoadOptions = TextureLoadOptions();
-			m_Data = static_cast<byte*>(pixels);
-			Load();
-
-            m_TextureImageView = CreateImageView(m_TextureImage, vk::Format::eR8G8B8A8Unorm, vk::ImageAspectFlagBits::eColor, m_MipLevels);
-
-			CreateTextureSampler();
-
 			UpdateDescriptor();
 		}
 
@@ -144,11 +101,12 @@ namespace Lumos
 			case TextureFormat::RGB:				return vk::Format::eR8G8B8Unorm;
 			case TextureFormat::R8:				    return vk::Format::eR8Unorm;
 			case TextureFormat::RG8:				return vk::Format::eR8G8Unorm;
-			case TextureFormat::RGB8:				return vk::Format::eR8G8B8Unorm;
-			case TextureFormat::RGBA8:				return vk::Format::eR8G8B8A8Unorm;
-			case TextureFormat::LUMINANCE:			return vk::Format::eR8G8B8A8Unorm;
-			case TextureFormat::LUMINANCE_ALPHA:	return vk::Format::eR8G8B8A8Unorm;
-			case TextureFormat::RGB16: 				return vk::Format::eR16G16B16A16Sfloat;
+			case TextureFormat::RGB8:				return vk::Format::eR8G8B8Srgb;
+            case TextureFormat::RGBA8:				return vk::Format::eR8G8B8A8Srgb;
+            case TextureFormat::RGB16:              return vk::Format::eR16G16B16Sfloat;
+            case TextureFormat::RGBA16:             return vk::Format::eR16G16B16A16Sfloat;
+            case TextureFormat::LUMINANCE:          return vk::Format::eR8G8B8A8Unorm;
+            case TextureFormat::LUMINANCE_ALPHA:    return vk::Format::eR8G8B8A8Unorm;
 			default: LUMOS_CORE_ERROR("[Texture] Unsupported image bit-depth!");  return vk::Format::eR8G8B8A8Unorm;
 			}
 		}
@@ -332,7 +290,7 @@ namespace Lumos
 			byte* pixels;
 
 			if (m_Data == nullptr)
-				pixels = Lumos::LoadImageFromFile(m_FileName, &texWidth, &texHeight, &texChannels);
+				pixels = lumos::LoadImageFromFile(m_FileName, &texWidth, &texHeight, &texChannels);
 			else
 			{
 				texWidth = m_Width;

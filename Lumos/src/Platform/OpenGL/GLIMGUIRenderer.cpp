@@ -6,7 +6,7 @@
 
 #include "GLDebug.h"
 
-namespace Lumos
+namespace lumos
 {
     namespace graphics
     {
@@ -33,7 +33,7 @@ namespace Lumos
 
         }
 
-        void GLIMGUIRenderer::Render(Lumos::graphics::api::CommandBuffer* commandBuffer)
+        void GLIMGUIRenderer::Render(lumos::graphics::CommandBuffer* commandBuffer)
         {
 			if (m_ClearScreen)
 			{

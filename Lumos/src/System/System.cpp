@@ -4,7 +4,7 @@
 #include "JobSystem.h"
 #include "Profiler.h"
 
-namespace Lumos
+namespace lumos
 { 
 	namespace internal 
 	{

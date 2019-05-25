@@ -5,33 +5,35 @@
 #include "GLShaderUniform.h"
 #include "GLDebug.h"
 
-namespace Lumos
+namespace lumos
 {
-
-	class GLShaderResourceDeclaration : public ShaderResourceDeclaration
+	namespace graphics
 	{
-	public:
-		enum class Type
+		class GLShaderResourceDeclaration : public ShaderResourceDeclaration
 		{
-			NONE, TEXTURE2D, TEXTURECUBE, TEXTURESHADOW, TEXTURESHADOWARRAY
+		public:
+			enum class Type
+			{
+				NONE, TEXTURE2D, TEXTURECUBE, TEXTURESHADOW, TEXTURESHADOWARRAY
+			};
+		private:
+			friend class GLShader;
+		private:
+			String m_Name;
+			uint m_Register;
+			uint m_Count;
+			Type m_Type;
+		public:
+			GLShaderResourceDeclaration(Type type, const String& name, uint count);
+
+			inline const String& GetName() const override { return m_Name; }
+			inline uint GetRegister() const override { return m_Register; }
+			inline uint GetCount() const override { return m_Count; }
+
+			inline Type GetType() const { return m_Type; }
+		public:
+			static Type StringToType(const String& type);
+			static String TypeToString(Type type);
 		};
-	private:
-		friend class GLShader;
-	private:
-		String m_Name;
-		uint m_Register;
-		uint m_Count;
-		Type m_Type;
-	public:
-		GLShaderResourceDeclaration(Type type, const String& name, uint count);
-
-		inline const String& GetName() const override { return m_Name; }
-		inline uint GetRegister() const override { return m_Register; }
-		inline uint GetCount() const override { return m_Count; }
-
-		inline Type GetType() const { return m_Type; }
-	public:
-		static Type StringToType(const String& type);
-		static String TypeToString(Type type);
-	};
+	}
 }

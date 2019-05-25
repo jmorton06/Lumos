@@ -12,18 +12,15 @@ struct EnumClassHash
     }
 };
 
-namespace Lumos
+namespace lumos
 {
-	class Scene;
-
 	class LUMOS_EXPORT Entity
 	{
 	protected:
 		std::unordered_map<ComponentType, std::unique_ptr<LumosComponent>, EnumClassHash> m_Components;
 	public:
-		Entity(Scene* scene);
+		explicit Entity(const String& name = "");
 		virtual ~Entity();
-		explicit Entity(const String& name, Scene* scene);
 
 		void AddComponent(std::unique_ptr<LumosComponent> component);
 
@@ -52,9 +49,6 @@ namespace Lumos
 		float GetBoundingRadius() const { return m_BoundingRadius; }
 
 		uint& GetFrustumCullFlags() { return m_FrustumCullFlags; }
-
-		Scene* GetScene() const { return m_pScene; }
-		void SetScene(Scene* scene) { m_pScene = scene; }
 
 		void DebugDraw(uint64 debugFlags);
 
@@ -85,7 +79,6 @@ namespace Lumos
 		}
 
 		String					m_Name;
-		Scene*					m_pScene;
 		Entity*					m_pParent;
 		std::vector<std::shared_ptr<Entity>> m_vpChildren;
 		float					m_BoundingRadius;
