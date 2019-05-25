@@ -1,7 +1,7 @@
 #include "LM.h"
 #include "Transform.h"
 
-namespace Lumos
+namespace lumos
 {
 	namespace maths
 	{

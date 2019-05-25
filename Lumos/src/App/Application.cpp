@@ -9,7 +9,7 @@
 #include "Utilities/AssetsManager.h"
 #include "Graphics/Layers/LayerStack.h"
 #include "Graphics/API/Renderer.h"
-#include "Graphics/API/Context.h"
+#include "Graphics/API/GraphicsContext.h"
 #include "Utilities/CommonUtils.h"
 #include "Engine.h"
 #include "Utilities/TimeStep.h"
@@ -24,11 +24,11 @@
 #include "Editor.h"
 #include "System/Profiler.h"
 
-namespace Lumos
+namespace lumos
 {
 	Application* Application::s_Instance = nullptr;
 
-	Application::Application(const WindowProperties& properties, const RenderAPI& api)
+	Application::Application(const WindowProperties& properties, const graphics::RenderAPI& api)
 		: m_UpdateTimer(0), m_Frames(0), m_Updates(0)
 	{
 		LUMOS_ASSERT(!s_Instance, "Application already exists!");
@@ -41,11 +41,11 @@ namespace Lumos
 #ifdef  LUMOS_EDITOR
 		m_Editor = new Editor(this, properties.Width, properties.Height);
 #endif
-		graphics::Context::SetRenderAPI(api);
+		graphics::GraphicsContext::SetRenderAPI(api);
 
 #ifdef LUMOS_EDITOR
 #ifdef LUMOS_RENDER_API_OPENGL
-		if (api == RenderAPI::OPENGL)
+		if (api == graphics::RenderAPI::OPENGL)
 			m_Editor->m_FlipImGuiImage = true;
 #endif
 #endif
@@ -57,9 +57,9 @@ namespace Lumos
 
 		const String root = ROOT_DIR;
 
-		Lumos::VFS::Get()->Mount("CoreShaders", root + "/Lumos/res/shaders");
-		Lumos::VFS::Get()->Mount("CoreMeshes", root + "/Lumos/res/meshes");
-		Lumos::VFS::Get()->Mount("CoreTextures", root + "/Lumos/res/textures");
+		VFS::Get()->Mount("CoreShaders", root + "/lumos/res/shaders");
+		VFS::Get()->Mount("CoreMeshes", root + "/lumos/res/meshes");
+		VFS::Get()->Mount("CoreTextures", root + "/lumos/res/textures");
 
 		m_Window = std::unique_ptr<Window>(Window::Create("Game Engine", properties));
 		m_Window->SetEventCallback(BIND_EVENT_FN(Application::OnEvent));
@@ -92,15 +92,15 @@ namespace Lumos
 		uint screenWidth = m_Window->GetWidth();
 		uint screenHeight = m_Window->GetHeight();
 
-		Lumos::Input::Create();
+		lumos::Input::Create();
 
-		graphics::Context::GetContext()->Init();
+		graphics::GraphicsContext::GetContext()->Init();
 
 #ifdef  LUMOS_EDITOR
 		m_Editor->OnInit();
 #endif
 
-		Renderer::Init(screenWidth, screenHeight);
+		graphics::Renderer::Init(screenWidth, screenHeight);
 
 		system::JobSystem::Execute([] { LumosPhysicsEngine::Instance(); LUMOS_CORE_INFO("Initialised LumosPhysics"); });
 		system::JobSystem::Execute([] { B2PhysicsEngine::Instance(); LUMOS_CORE_INFO("Initialised B2Physics"); });
@@ -113,7 +113,7 @@ namespace Lumos
         
         //Graphics Loading on main thread
         AssetsManager::InitializeMeshes();
-        m_RenderManager = std::make_unique<RenderManager>(screenWidth, screenHeight);
+        m_RenderManager = std::make_unique<graphics::RenderManager>(screenWidth, screenHeight);
 
         system::JobSystem::Wait();
         
@@ -141,7 +141,7 @@ namespace Lumos
 		m_LayerStack->Clear();
 		m_SceneManager.release();
 
-		Renderer::Release();
+		graphics::Renderer::Release();
 
 		if (pause)
 		{
@@ -216,13 +216,13 @@ namespace Lumos
 		if (m_LayerStack->GetCount() > 0)
 		{
 			LUMOS_PROFILE(system::Profiler::OnBeginRange("Begin", true, "Render"));
-			Renderer::GetRenderer()->Begin();
+			graphics::Renderer::GetRenderer()->Begin();
 			LUMOS_PROFILE(system::Profiler::OnEndRange("Begin", true, "Render"));
 
 			m_LayerStack->OnRender(m_SceneManager->GetCurrentScene());
 
 			LUMOS_PROFILE(system::Profiler::OnBeginRange("Present", true, "Render"));
-			Renderer::GetRenderer()->Present();
+			graphics::Renderer::GetRenderer()->Present();
 			LUMOS_PROFILE(system::Profiler::OnEndRange("Present", true, "Render"));
 		}
 
@@ -324,7 +324,7 @@ namespace Lumos
 	{
         auto windowSize = GetWindowSize();
 		m_RenderManager->OnResize(e.GetWidth(), e.GetHeight());
-		Renderer::GetRenderer()->OnResize(e.GetWidth(), e.GetHeight());
+		graphics::Renderer::GetRenderer()->OnResize(e.GetWidth(), e.GetHeight());
 		return false;
 	}
 

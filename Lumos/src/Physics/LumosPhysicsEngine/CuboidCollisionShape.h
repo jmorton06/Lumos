@@ -3,7 +3,7 @@
 #include "CollisionShape.h"
 #include "Hull.h"
 
-namespace Lumos
+namespace lumos
 {
 	class LUMOS_EXPORT CuboidCollisionShape : public CollisionShape
 	{

@@ -2,7 +2,7 @@
 #include "LM.h"
 #include "BoundingShape.h"
 
-namespace Lumos
+namespace lumos
 {
 	namespace maths
 	{

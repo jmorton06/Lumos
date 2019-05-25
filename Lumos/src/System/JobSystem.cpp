@@ -11,7 +11,7 @@
 #define NOMINMAX
 #include <Windows.h>
 #endif
-namespace Lumos 
+namespace lumos 
 {
     namespace system 
     {

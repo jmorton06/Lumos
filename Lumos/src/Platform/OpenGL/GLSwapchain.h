@@ -1,13 +1,14 @@
 ﻿#pragma once
 #include "LM.h"
 #include "Graphics/API/Swapchain.h"
-#include "Textures/GLTexture2D.h"
 
-namespace Lumos
+namespace lumos
 {
 	namespace graphics
 	{
-		class GLSwapchain : public api::Swapchain
+		class GLTexture2D;
+
+		class GLSwapchain : public Swapchain
 		{
 		public:
 			GLSwapchain(uint width, uint height);
@@ -20,7 +21,7 @@ namespace Lumos
 			uint32_t GetCurrentBufferId() const override;
 			size_t GetSwapchainBufferCount() const override;
 			uint GetFramebufferCount() const override { return 1; }
-			Framebuffer* CreateFramebuffer(api::RenderPass* renderPass, uint id) override { return nullptr; }
+			Framebuffer* CreateFramebuffer(RenderPass* renderPass, uint id) override { return nullptr; }
 		private:
 			std::vector<GLTexture2D*> swapChainBuffers;
 			uint32_t currentBuffer = 0;

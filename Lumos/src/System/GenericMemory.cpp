@@ -2,12 +2,12 @@
 #include "GenericMemory.h"
 #include "Maths/MathsUtilities.h"
 
-namespace Lumos
+namespace lumos
 {
 
 	void* GenericMemory::malloc(uintptr amt, uint32 alignment)
 	{
-		alignment = Lumos::maths::Max(amt >= 16 ? 16u : 8u, alignment);
+		alignment = lumos::maths::Max(amt >= 16 ? 16u : 8u, alignment);
 		void* ptr = ::malloc(amt + alignment + sizeof(void*) + sizeof(uintptr));
 		void* result = align(static_cast<uint8*>(ptr) + sizeof(void*) + sizeof(uintptr), static_cast<uintptr>(alignment));
 		*reinterpret_cast<void**>(static_cast<uint8*>(result) - sizeof(void*)) = ptr;
@@ -17,7 +17,7 @@ namespace Lumos
 
 	void* GenericMemory::realloc(void* ptr, uintptr amt, uint32 alignment)
 	{
-		alignment = Lumos::maths::Max(amt >= 16 ? 16u : 8u, alignment);
+		alignment = lumos::maths::Max(amt >= 16 ? 16u : 8u, alignment);
 		if (ptr == nullptr)
 		{
 			return GenericMemory::malloc(amt, alignment);
@@ -31,7 +31,7 @@ namespace Lumos
 
 		void* result = malloc(amt, alignment);
 		uintptr size = GenericMemory::getAllocSize(ptr);
-		GenericMemory::memcpy(result, ptr, Lumos::maths::Max(size, amt));
+		GenericMemory::memcpy(result, ptr, lumos::maths::Max(size, amt));
 		free(ptr);
 
 		return result;

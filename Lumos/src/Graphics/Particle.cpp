@@ -1,7 +1,7 @@
 #include "LM.h"
 #include "Particle.h"
 
-namespace Lumos
+namespace lumos
 {
 
 	Particle::Particle()

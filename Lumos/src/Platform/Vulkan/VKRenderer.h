@@ -2,7 +2,6 @@
 
 #include "LM.h"
 #include "VK.h"
-
 #include "Maths/Maths.h"
 #include "VKContext.h"
 #include "VKTools.h"
@@ -13,19 +12,13 @@
 #include "Graphics/API/RenderPass.h"
 #include "VKUniformBuffer.h"
 #include "VKDescriptorSet.h"
-
 #include "Graphics/API/Renderer.h"
 
-namespace Lumos
+namespace lumos
 {
 	namespace graphics
 	{
-		class GLContext;
-
-		namespace api
-		{
-			class CommandBuffer;
-		}
+		class CommandBuffer;
 
 		class LUMOS_EXPORT VKRenderer : public Renderer
 		{
@@ -37,7 +30,7 @@ namespace Lumos
 
 			static void Render(IndexBuffer* indexBuffer, VertexArray* vertexBuffer, VKCommandBuffer* commandBuffer, std::vector<vk::DescriptorSet>& descriptorSet, vk::PipelineLayout layout, uint32_t offset, uint numDynamicDescriptorSets);
 
-			api::Swapchain* GetSwapchainInternal() const override { return m_Swapchain; }
+			Swapchain* GetSwapchainInternal() const override { return m_Swapchain; }
 
 			void InitInternal() override;
 			void Begin() override;
@@ -46,7 +39,7 @@ namespace Lumos
 
 			void ClearInternal(uint buffer) override;
 			void PresentInternal() override;
-			void PresentInternal(api::CommandBuffer* cmdBuffer) override;
+			void PresentInternal(CommandBuffer* cmdBuffer) override;
 
 			void ClearSwapchainImage() const;
 
@@ -71,14 +64,14 @@ namespace Lumos
 			void SetPixelPackType(PixelPackType type) override;
 			void SetRenderModeInternal(RenderMode mode) override;
 
-			void RenderMeshInternal(Mesh* mesh, graphics::api::Pipeline* pipeline, graphics::api::CommandBuffer* cmdBuffer, uint dynamicOffset, graphics::api::DescriptorSet* descriptorSet, bool useMaterialDescriptorSet) override;
-			void Render(VertexArray* vertexArray, IndexBuffer* indexBuffer, graphics::api::CommandBuffer* cmdBuffer, std::vector<graphics::api::DescriptorSet*>& descriptorSets, graphics::api::Pipeline* pipeline, uint dynamicOffset) override;
+			void RenderMeshInternal(Mesh* mesh, graphics::Pipeline* pipeline, graphics::CommandBuffer* cmdBuffer, uint dynamicOffset, graphics::DescriptorSet* descriptorSet, bool useMaterialDescriptorSet) override;
+			void Render(VertexArray* vertexArray, IndexBuffer* indexBuffer, graphics::CommandBuffer* cmdBuffer, std::vector<graphics::DescriptorSet*>& descriptorSets, graphics::Pipeline* pipeline, uint dynamicOffset) override;
             void CreateSemaphores();
 
 		private:
-			Lumos::graphics::VKContext* m_Context;
+			lumos::graphics::VKContext* m_Context;
 
-			Lumos::graphics::VKSwapchain* m_Swapchain;
+			lumos::graphics::VKSwapchain* m_Swapchain;
 
 			vk::Semaphore m_ImageAvailableSemaphore[5];
 			uint m_CurrentSemaphoreIndex = 0;

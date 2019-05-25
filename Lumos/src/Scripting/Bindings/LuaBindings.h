@@ -14,7 +14,7 @@
 #include "CameraBindings/CameraMayaBinding.h"
 #include "SceneBinding.h"
 
-namespace Lumos
+namespace lumos
 {
 	namespace luabindings
 	{

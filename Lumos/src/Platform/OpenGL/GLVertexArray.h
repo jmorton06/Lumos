@@ -2,24 +2,26 @@
 #include "LM.h"
 #include "Graphics/API/VertexArray.h"
 
-namespace Lumos
+namespace lumos
 {
-
-	class GLVertexArray : public VertexArray
+	namespace graphics
 	{
-	private:
-		uint m_Handle;
+		class GLVertexArray : public VertexArray
+		{
+		private:
+			uint m_Handle;
 
-	public:
-		GLVertexArray();
-		~GLVertexArray();
+		public:
+			GLVertexArray();
+			~GLVertexArray();
 
-		inline VertexBuffer* GetBuffer(uint index = 0) override;
-		void PushBuffer(VertexBuffer* buffer) override;
+			inline VertexBuffer* GetBuffer(uint index = 0) override;
+			void PushBuffer(VertexBuffer* buffer) override;
 
-		void Bind() const override;
-		void Unbind() const override;
+			void Bind() const override;
+			void Unbind() const override;
 
-		void Draw(uint count) const override;
-	};
+			void Draw(uint count) const override;
+		};
+	}
 }

@@ -3,7 +3,7 @@
 #include "LM.h"
 #include "CollisionShape.h"
 
-namespace Lumos
+namespace lumos
 {
 
 	class LUMOS_EXPORT SphereCollisionShape : public CollisionShape

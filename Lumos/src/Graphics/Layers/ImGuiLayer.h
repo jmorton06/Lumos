@@ -7,14 +7,11 @@
 #include "Events/MouseEvent.h"
 #include "Events/ApplicationEvent.h"
 
-namespace Lumos
+namespace lumos
 {
     namespace graphics
     {
-        namespace api
-        {
-            class IMGUIRenderer;
-        }
+		class IMGUIRenderer;
     }
 
 	class LUMOS_EXPORT ImGuiLayer : public Layer
@@ -44,7 +41,7 @@ namespace Lumos
 		void SetImGuiKeyCodes();
 		void SetImGuiStyle();
 
-        std::unique_ptr<graphics::api::IMGUIRenderer> m_IMGUIRenderer;
+        std::unique_ptr<graphics::IMGUIRenderer> m_IMGUIRenderer;
 		bool m_ClearScreen;
 	};
 

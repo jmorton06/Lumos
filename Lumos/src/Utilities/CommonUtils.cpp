@@ -16,11 +16,11 @@
 #include "Graphics/Mesh.h"
 #include "Graphics/Light.h"
 
-namespace Lumos
+namespace lumos
 {
 	using namespace maths;
 
-	maths::Vector4 CommonUtils::GenColour(float scalar, float alpha)
+	maths::Vector4 CommonUtils::GenColour(float alpha)
 	{
 		maths::Vector4 c;
 		c.SetW(alpha);
@@ -41,10 +41,10 @@ namespace Lumos
 		bool collidable,
 		const maths::Vector4& color)
 	{
-		std::shared_ptr<Entity> pSphere = std::make_shared<Entity>(name, Application::Instance()->GetSceneManager()->GetCurrentScene());
+		std::shared_ptr<Entity> pSphere = std::make_shared<Entity>(name);
 
 		pSphere->AddComponent(std::make_unique<TextureMatrixComponent>(maths::Matrix4::Scale(maths::Vector3(10.0f, 10.0f, 10.0f))));
-        std::shared_ptr<Mesh> sphereModel = std::make_shared<Mesh>(*AssetsManager::DefaultModels()->GetAsset("Sphere"));
+        std::shared_ptr<graphics::Mesh> sphereModel = std::make_shared<graphics::Mesh>(*AssetsManager::DefaultModels()->GetAsset("Sphere"));
         pSphere->AddComponent(std::make_unique<MeshComponent>(sphereModel));
 
 		std::shared_ptr<Material> matInstance = std::make_shared<Material>();
@@ -100,10 +100,10 @@ namespace Lumos
 		bool collidable,
 		const maths::Vector4& color)
 	{
-		std::shared_ptr<Entity> Cube = std::make_shared<Entity>(name, Application::Instance()->GetSceneManager()->GetCurrentScene());
+		std::shared_ptr<Entity> Cube = std::make_shared<Entity>(name);
 
 		Cube->AddComponent(std::make_unique<TextureMatrixComponent>(maths::Matrix4::Scale(maths::Vector3(10.0f, 10.0f, 10.0f))));
-        std::shared_ptr<Mesh> cubeModel = std::make_shared<Mesh>(*AssetsManager::DefaultModels()->GetAsset("Cube"));
+        std::shared_ptr<graphics::Mesh> cubeModel = std::make_shared<graphics::Mesh>(*AssetsManager::DefaultModels()->GetAsset("Cube"));
         Cube->AddComponent(std::make_unique<MeshComponent>(cubeModel));
 
 		auto matInstance = std::make_shared<Material>();
@@ -160,11 +160,11 @@ namespace Lumos
 		bool collidable,
 		const maths::Vector4& color)
 	{
-		std::shared_ptr<Entity> Cube = std::make_shared<Entity>(name, Application::Instance()->GetSceneManager()->GetCurrentScene());
+		std::shared_ptr<Entity> Cube = std::make_shared<Entity>(name);
 
-		std::shared_ptr<Entity> meshEntity = std::make_shared<Entity>("Mesh", Application::Instance()->GetSceneManager()->GetCurrentScene());
+		std::shared_ptr<Entity> meshEntity = std::make_shared<Entity>("Mesh");
 
-        std::shared_ptr<Mesh> pyramidModel = std::make_shared<Mesh>(*AssetsManager::DefaultModels()->GetAsset("Pyramid"));
+        std::shared_ptr<graphics::Mesh> pyramidModel = std::make_shared<graphics::Mesh>(*AssetsManager::DefaultModels()->GetAsset("Pyramid"));
 		meshEntity->AddComponent(std::make_unique<MeshComponent>(pyramidModel));
 
 		std::shared_ptr<Material> matInstance = std::make_shared<Material>();
@@ -215,9 +215,9 @@ namespace Lumos
 
 	void CommonUtils::AddLightCube(Scene* scene)
 	{
-		maths::Vector3 colour = maths::Vector3(RandomNumberGenerator32::Rand(0.0f, 1.0f),
+		maths::Vector4 colour = maths::Vector4(RandomNumberGenerator32::Rand(0.0f, 1.0f),
 								 RandomNumberGenerator32::Rand(0.0f, 1.0f),
-								 RandomNumberGenerator32::Rand(0.0f, 1.0f));
+								 RandomNumberGenerator32::Rand(0.0f, 1.0f),1.0f);
 
 		std::shared_ptr<Entity> cube = CommonUtils::BuildCuboidObject(
 				"light Cube",
@@ -226,13 +226,13 @@ namespace Lumos
 				true,
 				1.0f,
 				true,
-				maths::Vector4(colour, 1.0f));
+				colour);
 
 		cube->GetComponent<Physics3DComponent>()->m_PhysicsObject->SetIsAtRest(true);
-		const float radius    = RandomNumberGenerator32::Rand(0.0f, 10.0f);
-		const float intensity = RandomNumberGenerator32::Rand(0.0f, 10.0f);
+		const float radius    = RandomNumberGenerator32::Rand(1.0f, 30.0f);
+		const float intensity = RandomNumberGenerator32::Rand(0.0f, 2.0f);
 
-		std::shared_ptr<Light> light = std::make_shared<Light>(scene->GetCamera()->GetPosition(), colour, radius, intensity, LightType::PointLight);
+		std::shared_ptr<graphics::Light> light = std::make_shared<graphics::Light>(scene->GetCamera()->GetPosition(), colour,  intensity, graphics::LightType::PointLight, scene->GetCamera()->GetPosition(), radius);
 		cube->AddComponent(std::make_unique<LightComponent>(light));
 		scene->AddEntity(cube);
 	}

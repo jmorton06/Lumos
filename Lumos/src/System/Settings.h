@@ -1,7 +1,7 @@
 #pragma once
 #include "LM.h"
 
-namespace Lumos
+namespace lumos
 {
 
 	namespace System

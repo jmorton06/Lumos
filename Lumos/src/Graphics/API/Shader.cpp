@@ -11,75 +11,77 @@
 #include "Platform/Vulkan/VKShader.h"
 #endif
 
-#include "Graphics/API/Context.h"
+#include "Graphics/API/GraphicsContext.h"
 
-namespace Lumos
+namespace lumos
 {
-
-	const Shader* Shader::s_CurrentlyBound = nullptr;
-
-	Shader* Shader::CreateFromFile(const String& name, const String& filepath)
+	namespace graphics
 	{
-        String filePath;
+		const Shader* Shader::s_CurrentlyBound = nullptr;
+
+		Shader* Shader::CreateFromFile(const String& name, const String& filepath)
+		{
+			String filePath;
 #ifdef LUMOS_PLATFORM_MOBILE
-        filePath = name;
+			filePath = name;
 #else
-        filePath = filepath;
+			filePath = filepath;
 #endif
 
-		switch (graphics::Context::GetRenderAPI())
-		{
+			switch (graphics::GraphicsContext::GetRenderAPI())
+			{
 #ifdef LUMOS_RENDER_API_OPENGL
-		case RenderAPI::OPENGL:
-		{
-			const String source = Lumos::VFS::Get()->ReadTextFile(filePath + name + ".glsl");
-			GLShader* result = new GLShader(name, source);
-			result->m_Path = filePath;
-			return result;
-		}
+			case RenderAPI::OPENGL:
+			{
+				const String source = lumos::VFS::Get()->ReadTextFile(filePath + name + ".glsl");
+				GLShader* result = new GLShader(name, source);
+				result->m_Path = filePath;
+				return result;
+			}
 #endif
 #ifdef LUMOS_RENDER_API_VULKAN
-		case RenderAPI::VULKAN:
-		{
-			std::string physicalPath;
-			Lumos::VFS::Get()->ResolvePhysicalPath(filepath, physicalPath);
-			graphics::VKShader* result = new graphics::VKShader(name, physicalPath);
-			return result;
-		}
+			case RenderAPI::VULKAN:
+			{
+				std::string physicalPath;
+				lumos::VFS::Get()->ResolvePhysicalPath(filepath, physicalPath);
+				graphics::VKShader* result = new graphics::VKShader(name, physicalPath);
+				return result;
+			}
 #endif
 #ifdef LUMOS_RENDER_API_DIRECT3D
-		case RenderAPI::DIRECT3D:
-		{
-			const String source = Lumos::VFS::Get()->ReadTextFile(filepath + ".hlsl");
-			D3DShader* result = new D3DShader(name, source);
-			result->m_FilePath = filepath;
-			return result;
-		}
+			case RenderAPI::DIRECT3D:
+			{
+				const String source = lumos::VFS::Get()->ReadTextFile(filepath + ".hlsl");
+				D3DShader* result = new D3DShader(name, source);
+				result->m_FilePath = filepath;
+				return result;
+			}
 #endif
+			}
+			return nullptr;
 		}
-		return nullptr;
-	}
 
-	bool Shader::TryCompile(const String& source, String& error, const String& name)
-	{
-		switch (graphics::Context::GetRenderAPI())
+		bool Shader::TryCompile(const String& source, String& error, const String& name)
 		{
+			switch (graphics::GraphicsContext::GetRenderAPI())
+			{
 #ifdef LUMOS_RENDER_API_OPENGL
-		case RenderAPI::OPENGL:		return GLShader::TryCompile(source, error);
+			case RenderAPI::OPENGL:		return GLShader::TryCompile(source, error);
 #endif
 #ifdef LUMOS_RENDER_API_DIRECT3D
-		case RenderAPI::DIRECT3D:	return D3DShader::TryCompile(source, error);
+			case RenderAPI::DIRECT3D:	return D3DShader::TryCompile(source, error);
 #endif
 #ifdef LUMOS_RENDER_API_VULKAN
-        case RenderAPI::VULKAN:     return false; //VKShader::TryCompile(source, error);
+			case RenderAPI::VULKAN:     return false; //VKShader::TryCompile(source, error);
 #endif
+			}
+			return false;
 		}
-		return false;
-	}
 
-	bool Shader::TryCompileFromFile(const String& filepath, String& error)
-	{
-		String source = Lumos::VFS::Get()->ReadTextFile(filepath);
-		return TryCompile(source, error, filepath);
+		bool Shader::TryCompileFromFile(const String& filepath, String& error)
+		{
+			String source = lumos::VFS::Get()->ReadTextFile(filepath);
+			return TryCompile(source, error, filepath);
+		}
 	}
 }

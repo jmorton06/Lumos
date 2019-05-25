@@ -3,7 +3,7 @@
 #include "VK.h"
 #include "VKContext.h"
 
-namespace Lumos
+namespace lumos
 {
 	namespace graphics
 	{

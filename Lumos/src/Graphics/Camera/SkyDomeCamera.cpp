@@ -1,7 +1,7 @@
 #include "LM.h"
 #include "SkyDomeCamera.h"
 
-namespace Lumos
+namespace lumos
 {
 
 	SkyDomeCamera::SkyDomeCamera(float Near, float Far)

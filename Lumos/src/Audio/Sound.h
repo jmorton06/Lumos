@@ -3,7 +3,7 @@
 #include "LM.h"
 #include "AudioData.h"
 
-namespace Lumos
+namespace lumos
 {
 	class LUMOS_EXPORT Sound
 	{

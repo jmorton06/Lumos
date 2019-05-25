@@ -3,7 +3,7 @@
 #include "LM.h"
 #include "AudioData.h"
 
-namespace Lumos
+namespace lumos
 {
 	AudioData LoadOgg(const String& fileName);
 }

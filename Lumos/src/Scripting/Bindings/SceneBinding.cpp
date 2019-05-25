@@ -8,7 +8,7 @@
 #include "CameraBindings/Camera2DBinding.h"
 #include "EntityBinding.h"
 
-namespace Lumos
+namespace lumos
 {
     const char SceneBinding::className[] = "Scene";
 

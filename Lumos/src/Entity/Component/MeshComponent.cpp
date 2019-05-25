@@ -10,9 +10,9 @@
 #include <imgui/imgui.h>
 
 
-namespace Lumos
+namespace lumos
 {
-	MeshComponent::MeshComponent(std::shared_ptr<Mesh>& model)
+	MeshComponent::MeshComponent(std::shared_ptr<graphics::Mesh>& model)
 		: m_Model(model)
 	{
 		m_BoundingShape = std::make_unique<maths::BoundingSphere>(maths::Vector3(0.0f),1.0f);
@@ -72,6 +72,15 @@ namespace Lumos
             
             ImGui::PopItemWidth();
             ImGui::NextColumn();
+
+			ImGui::AlignTextToFramePadding();
+			ImGui::Text("Use AO Map");
+			ImGui::NextColumn();
+			ImGui::PushItemWidth(-1);
+			ImGui::SliderFloat("##UseAOMap", &prop->usingAOMap, 0.0f, 1.0f);
+
+			ImGui::PopItemWidth();
+			ImGui::NextColumn();
             
             ImGui::AlignTextToFramePadding();
             ImGui::Text("Albedo");

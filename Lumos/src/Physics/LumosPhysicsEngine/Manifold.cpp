@@ -6,7 +6,7 @@
 #include "Graphics/Renderers/DebugRenderer.h"
 #include "Maths/MathsUtilities.h"
 
-namespace Lumos
+namespace lumos
 {
 
 #define persistentThresholdSq 0.025f

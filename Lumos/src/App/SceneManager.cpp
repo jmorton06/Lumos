@@ -7,7 +7,7 @@
 #include "Scene.h"
 #include "Physics/LumosPhysicsEngine/LumosPhysicsEngine.h"
 
-namespace Lumos
+namespace lumos
 {
 
 	SceneManager::SceneManager()

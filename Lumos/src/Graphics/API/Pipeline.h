@@ -2,67 +2,62 @@
 #include "LM.h"
 #include "DescriptorSet.h"
 
-namespace Lumos
+namespace lumos
 {
-	class Shader;
-
 	namespace graphics
 	{
-		namespace api
+		class Shader;
+		class RenderPass;
+		class CommandBuffer;
+
+		enum class CullMode
 		{
+			FRONT,
+			BACK,
+			FRONTANDBACK,
+			NONE
+		};
 
-			class RenderPass;
-			class CommandBuffer;
+		struct PipelineInfo
+		{
+			Shader* shader;
+			RenderPass* vulkanRenderpass;
+			VertexInputDescription* vertexLayout;
 
-			enum class CullMode
-			{
-				FRONT,
-				BACK,
-				FRONTANDBACK,
-				NONE
-			};
+			uint32_t numVertexLayout;
+			size_t strideSize;
+			DescriptorPoolInfo* typeCounts;
 
-			struct PipelineInfo
-			{
-				Shader* shader;
-				api::RenderPass* vulkanRenderpass;
-				api::VertexInputDescription* vertexLayout;
+			std::vector<DescriptorLayout> descriptorLayouts;
+			uint numLayoutBindings;
 
-				uint32_t numVertexLayout;
-				size_t strideSize;
-				api::DescriptorPoolInfo* typeCounts;
+			CullMode cullMode;
+			String pipelineName;
+			int numColorAttachments;
+			bool wireframeEnabled;
+			bool transparencyEnabled;
+			bool depthBiasEnabled;
+			uint width;
+			uint height;
+			uint maxObjects;
 
-				std::vector<DescriptorLayout> descriptorLayouts;
-				uint numLayoutBindings;
+		};
+		class LUMOS_EXPORT Pipeline
+		{
+		public:
+			static Pipeline* Create(const PipelineInfo& pipelineInfo);
+			virtual ~Pipeline() {};
 
-				api::CullMode cullMode;
-				std::string pipelineName;
-				int numColorAttachments;
-				bool wireframeEnabled;
-				bool transparencyEnabled;
-				bool depthBiasEnabled;
-				uint width;
-				uint height;
-				uint maxObjects;
+			virtual void SetActive(CommandBuffer* cmdBuffer) = 0;
 
-			};
-			class LUMOS_EXPORT Pipeline
-			{
-			public:
-				static Pipeline* Create(const PipelineInfo& pipelineInfo);
-				virtual ~Pipeline() {};
+			DescriptorSet* GetDescriptorSet() const { return descriptorSet; }
+			Shader* GetShader() const { return m_Shader; }
 
-                virtual void SetActive(CommandBuffer* cmdBuffer) = 0;
+		protected:
 
-                DescriptorSet* GetDescriptorSet() const { return descriptorSet; }
-				Shader* GetShader() const { return m_Shader; }
+			DescriptorSet* descriptorSet = nullptr;
+			Shader* m_Shader = nullptr;
 
-            protected:
-
-                DescriptorSet* descriptorSet = nullptr;
-				Shader* m_Shader = nullptr;
-
-			};
-		}
+		};
 	}
 }

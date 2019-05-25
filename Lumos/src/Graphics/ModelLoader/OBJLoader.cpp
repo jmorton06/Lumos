@@ -11,12 +11,12 @@
 #define TINYOBJLOADER_IMPLEMENTATION
 #include <tinyobjloader/tiny_obj_loader.h>
 
-namespace Lumos
+namespace lumos
 {
 	String m_Directory;
-	std::vector<std::shared_ptr<Texture2D>> m_Textures;
+	std::vector<std::shared_ptr<graphics::Texture2D>> m_Textures;
 
-	std::shared_ptr<Texture2D> LoadMaterialTextures(const String& typeName, std::vector<std::shared_ptr<Texture2D>>& textures_loaded, const String& name, const String& directory, TextureParameters format)
+	std::shared_ptr<graphics::Texture2D> LoadMaterialTextures(const String& typeName, std::vector<std::shared_ptr<graphics::Texture2D>>& textures_loaded, const String& name, const String& directory, graphics::TextureParameters format)
 	{
 		for (uint j = 0; j < textures_loaded.size(); j++)
 		{
@@ -27,8 +27,8 @@ namespace Lumos
 		}
 
 		{   // If texture hasn't been loaded already, load it
-			TextureLoadOptions options(false, true);
-			auto texture = std::shared_ptr<Texture2D>(Texture2D::CreateFromFile(typeName, directory + "/" + name, format, options));
+			graphics::TextureLoadOptions options(false, true);
+			auto texture = std::shared_ptr<graphics::Texture2D>(graphics::Texture2D::CreateFromFile(typeName, directory + "/" + name, format, options));
 			textures_loaded.push_back(texture);  // Store it as texture loaded for entire model, to ensure we won't unnecessary load duplicate textures.
 
 			return texture;
@@ -59,24 +59,24 @@ namespace Lumos
 			LUMOS_CORE_ERROR(error);
 		}
 
-		auto entity = std::make_shared<Entity>(name, nullptr);
+		auto entity = std::make_shared<Entity>(name);
 
 		for (const auto& shape : shapes)
 		{
 			uint vertexCount = 0;
 			const uint numIndices = static_cast<uint>(shape.mesh.indices.size());
 			const uint numVertices = numIndices;// attrib.vertices.size();// numIndices / 3.0f;
-			Vertex* vertices = new Vertex[numVertices];
+			graphics::Vertex* vertices = new graphics::Vertex[numVertices];
 			uint* indices = new uint[numIndices];
 
-			std::unordered_map<Vertex, uint32_t> uniqueVertices;
+			std::unordered_map<graphics::Vertex, uint32_t> uniqueVertices;
 
 			std::shared_ptr<maths::BoundingSphere> boundingBox = std::make_shared<maths::BoundingSphere>();
 
 			for (uint i = 0; i < shape.mesh.indices.size(); i++)
 			{
 				auto& index = shape.mesh.indices[i];
-				Vertex vertex;
+				graphics::Vertex vertex;
 
 				if (!attrib.texcoords.empty()) {
 					vertex.TexCoords = (
@@ -153,28 +153,28 @@ namespace Lumos
 
 				if (mp->diffuse_texname.length() > 0)
 				{
-					std::shared_ptr<Texture2D> texture = LoadMaterialTextures("Albedo", m_Textures, mp->diffuse_texname, m_Directory, TextureParameters(TextureFilter::NEAREST, TextureWrap::CLAMP_TO_EDGE));
+					std::shared_ptr<graphics::Texture2D> texture = LoadMaterialTextures("Albedo", m_Textures, mp->diffuse_texname, m_Directory, graphics::TextureParameters(graphics::TextureFilter::NEAREST, graphics::TextureWrap::CLAMP_TO_EDGE));
 					if (texture)
 						textures.albedo = texture;
 				}
 
 				if (mp->bump_texname.length() > 0)
 				{
-					std::shared_ptr<Texture2D> texture = LoadMaterialTextures("Normal", m_Textures, mp->bump_texname, m_Directory, TextureParameters(TextureWrap::CLAMP));
+					std::shared_ptr<graphics::Texture2D> texture = LoadMaterialTextures("Normal", m_Textures, mp->bump_texname, m_Directory, graphics::TextureParameters(graphics::TextureWrap::CLAMP));
 					if (texture)
 						textures.normal = texture;//pbrMaterial->SetNormalMap(texture);
 				}
 
 				if (mp->ambient_texname.length() > 0)
 				{
-					std::shared_ptr<Texture2D> texture = LoadMaterialTextures("Metallic", m_Textures, mp->ambient_texname.c_str(), m_Directory, TextureParameters(TextureWrap::CLAMP));
+					std::shared_ptr<graphics::Texture2D> texture = LoadMaterialTextures("Metallic", m_Textures, mp->ambient_texname.c_str(), m_Directory, graphics::TextureParameters(graphics::TextureWrap::CLAMP));
 					//if(texture)// TODO: Fix or check if mesh mtl wrong
 					//	pbrMaterial->SetGlossMap(texture);
 				}
 
 				if (mp->specular_highlight_texname.length() > 0)
 				{
-					std::shared_ptr<Texture2D> texture = LoadMaterialTextures("Specular", m_Textures, mp->specular_highlight_texname, m_Directory, TextureParameters(TextureWrap::CLAMP));
+					std::shared_ptr<graphics::Texture2D> texture = LoadMaterialTextures("Specular", m_Textures, mp->specular_highlight_texname, m_Directory, graphics::TextureParameters(graphics::TextureWrap::CLAMP));
 					if (texture)
 						textures.roughness = texture;//pbrMaterial->SetSpecularMap(texture);
 				}
@@ -182,11 +182,11 @@ namespace Lumos
 
 			pbrMaterial->SetTextures(textures);
 
-			std::shared_ptr<VertexArray> va;
-			va.reset(VertexArray::Create());
+			std::shared_ptr<graphics::VertexArray> va;
+			va.reset(graphics::VertexArray::Create());
 
-			VertexBuffer* buffer = VertexBuffer::Create(BufferUsage::STATIC);
-			buffer->SetData(sizeof(Vertex) * numVertices, vertices);
+			graphics::VertexBuffer* buffer = graphics::VertexBuffer::Create(graphics::BufferUsage::STATIC);
+			buffer->SetData(sizeof(graphics::Vertex) * numVertices, vertices);
 
 			graphics::BufferLayout layout;
 			layout.Push<maths::Vector3>("position");
@@ -198,11 +198,11 @@ namespace Lumos
 
 			va->PushBuffer(buffer);
 
-			std::shared_ptr<IndexBuffer> ib;
-			ib.reset(IndexBuffer::Create(indices, numIndices));// / sizeof(uint));
+			std::shared_ptr<graphics::IndexBuffer> ib;
+			ib.reset(graphics::IndexBuffer::Create(indices, numIndices));// / sizeof(uint));
 
-			auto meshEntity = std::make_shared<Entity>(shape.name, nullptr);
-            auto mesh = std::make_shared<Mesh>(va, ib, pbrMaterial, boundingBox);
+			auto meshEntity = std::make_shared<Entity>(shape.name);
+            auto mesh = std::make_shared<graphics::Mesh>(va, ib, pbrMaterial, boundingBox);
 			meshEntity->AddComponent(std::make_unique<MeshComponent>(mesh));
 			meshEntity->AddComponent(std::make_unique<TransformComponent>(maths::Matrix4()));
             meshEntity->SetBoundingRadius(mesh->GetBoundingSphere()->SphereRadius());

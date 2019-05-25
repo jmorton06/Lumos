@@ -2,22 +2,24 @@
 #include "LM.h"
 #include "Graphics/API/Query.h"
 
-namespace Lumos
+namespace lumos
 {
-
-	class GLQuery : public Query
+	namespace graphics
 	{
-	public:
-		explicit GLQuery(QueryType type);
-		~GLQuery();
+		class GLQuery : public Query
+		{
+		public:
+			explicit GLQuery(QueryType type);
+			~GLQuery();
 
-		void Begin() override;
-		uint GetResult() override;
-		bool GetResultReady() override;
-		void End() override;
+			void Begin() override;
+			uint GetResult() override;
+			bool GetResultReady() override;
+			void End() override;
 
-	private:
-		uint m_Handle;
-		uint m_QueryType;
-	};
+		private:
+			uint m_Handle;
+			uint m_QueryType;
+		};
+	}
 }

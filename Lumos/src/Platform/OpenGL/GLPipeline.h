@@ -2,27 +2,23 @@
 #include "LM.h"
 #include "Graphics/API/Pipeline.h"
 
-namespace Lumos
+namespace lumos
 {
     namespace graphics
     {
         class GLRenderPass;
+        class CommandBuffer;
 
-        namespace api
-        {
-            class CommandBuffer;
-        }
-
-        class GLPipeline : public api::Pipeline
+        class GLPipeline : public Pipeline
         {
         public:
             GLPipeline();
-            GLPipeline(const api::PipelineInfo& pipelineCI);
+            GLPipeline(const PipelineInfo& pipelineCI);
             ~GLPipeline();
 
-            bool Init(const api::PipelineInfo& pipelineCI);
+            bool Init(const PipelineInfo& pipelineCI);
 
-            void SetActive(graphics::api::CommandBuffer* cmdBuffer) override;
+            void SetActive(graphics::CommandBuffer* cmdBuffer) override;
 
         private:
             GLRenderPass* m_RenderPass;

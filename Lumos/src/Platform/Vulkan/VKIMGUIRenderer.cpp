@@ -20,7 +20,7 @@ static void check_vk_result(VkResult err)
         abort();
 }
 
-namespace Lumos
+namespace lumos
 {
     namespace graphics
     {
@@ -104,7 +104,7 @@ namespace Lumos
             
 			m_Renderpass = new VKRenderpass();
             TextureType textureTypes[1] = { TextureType::COLOUR };
-            graphics::api::RenderpassInfo renderpassCI{};
+            graphics::RenderpassInfo renderpassCI{};
             renderpassCI.attachmentCount = 1;
             renderpassCI.textureType = textureTypes;
             renderpassCI.clear = m_ClearScreen;
@@ -204,7 +204,7 @@ namespace Lumos
 				m_CommandBuffers[wd->FrameIndex]->BeginRecording();
             }
             {
-				m_Renderpass->BeginRenderpass(m_CommandBuffers[wd->FrameIndex], maths::Vector4(0.1f,0.1f,0.1f,1.0f), m_Framebuffers[wd->FrameIndex], graphics::api::SubPassContents::INLINE, wd->Width, wd->Height);
+				m_Renderpass->BeginRenderpass(m_CommandBuffers[wd->FrameIndex], maths::Vector4(0.1f,0.1f,0.1f,1.0f), m_Framebuffers[wd->FrameIndex], graphics::SubPassContents::INLINE, wd->Width, wd->Height);
             }
 
             // Record Imgui Draw Data and draw funcs into command buffer
@@ -217,7 +217,7 @@ namespace Lumos
             VKRenderer::GetRenderer()->Present(m_CommandBuffers[wd->FrameIndex]);
         }
 
-        void VKIMGUIRenderer::Render(Lumos::graphics::api::CommandBuffer* commandBuffer)
+        void VKIMGUIRenderer::Render(lumos::graphics::CommandBuffer* commandBuffer)
         {
             FrameRender(&g_WindowData);
         }

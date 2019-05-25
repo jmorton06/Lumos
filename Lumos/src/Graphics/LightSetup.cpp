@@ -2,7 +2,7 @@
 #include "LightSetUp.h"
 #include <imgui/imgui.h>
 
-namespace Lumos
+namespace lumos
 {
 
     LightSetup::LightSetup()
@@ -13,12 +13,12 @@ namespace Lumos
 	{
 	};
 
-	void LightSetup::Add(std::shared_ptr<Light>& light)
+	void LightSetup::Add(std::shared_ptr<graphics::Light>& light)
 	{
 		m_Lights.push_back(light);
 	}
 
-	void LightSetup::Remove(std::shared_ptr<Light>& light)
+	void LightSetup::Remove(std::shared_ptr<graphics::Light>& light)
 	{
 		for (uint i = 0; i < m_Lights.size(); i++)
 		{
@@ -42,7 +42,6 @@ namespace Lumos
 		{
 			for (uint i = 0; i < m_Lights.size(); i++)
 			{
-				m_Lights[i]->OnImGUI();
 			}
 
 			ImGui::TreePop();

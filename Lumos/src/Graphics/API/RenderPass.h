@@ -2,50 +2,43 @@
 #include "LM.h"
 #include "Textures/Texture.h"
 
-namespace Lumos
+namespace lumos
 {
 	namespace maths
 	{
 		class Vector4;
 	}
 
-	class Framebuffer;
-}
-
-namespace Lumos
-{
 	namespace graphics
 	{
-		namespace api
+		class CommandBuffer;
+		class Framebuffer;
+
+		struct RenderpassInfo
 		{
-			class CommandBuffer;
+			TextureType* textureType;
+			int attachmentCount;
+			bool depthOnly = false;
+			bool clear = true;
+		};
 
-			struct RenderpassInfo
-			{
-				TextureType* textureType;
-				int attachmentCount;
-				bool depthOnly = false;
-                bool clear = true;
-			};
+		enum SubPassContents
+		{
+			INLINE,
+			SECONDARY
+		};
 
-			enum SubPassContents
-			{
-				INLINE,
-				SECONDARY
-			};
+		class LUMOS_EXPORT RenderPass
+		{
+		public:
+			virtual ~RenderPass() = default;
+			static RenderPass* Create();
 
-			class LUMOS_EXPORT RenderPass
-			{
-			public:
-				virtual ~RenderPass() = default;
-				static RenderPass* Create();
-
-				virtual bool Init(const RenderpassInfo& renderpassCI) = 0;
-				virtual void Unload() const = 0;
-				virtual void BeginRenderpass(CommandBuffer* commandBuffer, const maths::Vector4& clearColour, Framebuffer* frame,
-					SubPassContents contents, uint32_t width, uint32_t height) const = 0;
-				virtual void EndRenderpass(CommandBuffer * commandBuffer) = 0;
-			};
-		}
+			virtual bool Init(const RenderpassInfo& renderpassCI) = 0;
+			virtual void Unload() const = 0;
+			virtual void BeginRenderpass(CommandBuffer* commandBuffer, const maths::Vector4& clearColour, Framebuffer* frame,
+				SubPassContents contents, uint32_t width, uint32_t height) const = 0;
+			virtual void EndRenderpass(CommandBuffer * commandBuffer) = 0;
+		};
 	}
 }

@@ -7,7 +7,7 @@
 #include "Utilities/TSingleton.h"
 #include "Events/Event.h"
 
-namespace Lumos
+namespace lumos
 {
 	class Texture2D;
 

@@ -4,7 +4,7 @@
 #include "PhysicsObject3D.h"
 #include "Maths/Maths.h"
 
-namespace Lumos
+namespace lumos
 {
 	/* A contact constraint is actually the summation of a normal distance constraint
 	along with two friction constraints going along the axes perpendicular to the collision

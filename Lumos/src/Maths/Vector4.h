@@ -3,7 +3,7 @@
 #include "Vector3.h" 
 #include "MathsCommon.h"
 
-namespace Lumos
+namespace lumos
 {
 	namespace maths
 	{
@@ -248,9 +248,9 @@ namespace Lumos
 namespace std 
 {
 	template<>
-	struct hash<Lumos::maths::Vector4>
+	struct hash<lumos::maths::Vector4>
 	{
-		size_t operator()(const Lumos::maths::Vector4& x) const
+		size_t operator()(const lumos::maths::Vector4& x) const
 		{
 			return hash<float>()(x.GetX()) ^ (hash<float>()(x.GetY()) * 997u) ^ (hash<float>()(x.GetZ()) * 999983u) ^ (hash<float>()(x.GetW()) * 999999937);
 

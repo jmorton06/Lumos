@@ -3,7 +3,7 @@
 #include "LM.h"
 #include "Constraint.h"
 
-namespace Lumos
+namespace lumos
 {
 	namespace maths
 	{

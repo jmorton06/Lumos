@@ -2,7 +2,7 @@
 #include "LM.h"
 #include "LumosComponent.h"
 
-namespace Lumos
+namespace lumos
 {
 	class PhysicsObject2D;
 

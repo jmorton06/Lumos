@@ -4,7 +4,7 @@
 #include "Maths/BoundingSphere.h"
 #include "external/simplex/simplexnoise.h"
 
-namespace Lumos
+namespace lumos
 {
 	Terrain::Terrain()
 	{
@@ -135,7 +135,7 @@ namespace Lumos
 		maths::Vector3* normals = GenerateNormals(numVertices, vertices, indices, numIndices);
 		maths::Vector3* tangents = GenerateTangents(numVertices, vertices, indices, numIndices, texCoords);
 
-		Vertex* verts = new Vertex[numVertices];
+		graphics::Vertex* verts = new graphics::Vertex[numVertices];
 
 		for (uint i = 0; i < numVertices; i++)
 		{
@@ -148,10 +148,10 @@ namespace Lumos
             m_BoundingSphere->ExpandToFit(verts[i].Position);
 		}
 
-		m_VertexArray = std::shared_ptr<VertexArray>(VertexArray::Create());
+		m_VertexArray = std::shared_ptr<graphics::VertexArray>(graphics::VertexArray::Create());
 
-		VertexBuffer* buffer = VertexBuffer::Create(BufferUsage::STATIC);
-		buffer->SetData(sizeof(Vertex) * numVertices, (void*)verts);
+		graphics::VertexBuffer* buffer = graphics::VertexBuffer::Create(graphics::BufferUsage::STATIC);
+		buffer->SetData(sizeof(graphics::Vertex) * numVertices, (void*)verts);
 
 		graphics::BufferLayout layout;
 		layout.Push<maths::Vector3>("position");
@@ -163,7 +163,7 @@ namespace Lumos
 
 		m_VertexArray->PushBuffer(buffer);
 
-		m_IndexBuffer = std::shared_ptr<IndexBuffer>(IndexBuffer::Create(indices, numIndices));// / sizeof(uint));
+		m_IndexBuffer = std::shared_ptr<graphics::IndexBuffer>(graphics::IndexBuffer::Create(indices, numIndices));// / sizeof(uint));
         
         delete[] normals;
         delete[] tangents;

@@ -1,6 +1,6 @@
 #include "GraphicsScene.h"
 
-using namespace Lumos;
+using namespace lumos;
 using namespace maths;
 
 GraphicsScene::GraphicsScene(const std::string& SceneName) : Scene(SceneName) {}
@@ -38,25 +38,21 @@ void GraphicsScene::OnInit()
 		"/Textures/cubemap/CubeMap10.tga"
 	};
 
-	m_EnvironmentMap = TextureCube::CreateFromVCross(environmentFiles, 11);
+	m_EnvironmentMap = graphics::TextureCube::CreateFromVCross(environmentFiles, 11);
 
-	auto sun = std::make_shared<Light>();
-	sun->SetDirection(maths::Vector3(26.0f, 22.0f, 48.5f));
-	sun->SetPosition(maths::Vector3(26.0f, 22.0f, 48.5f) * 100.0f);
+	auto sun = std::make_shared<graphics::Light>(maths::Vector3(26.0f, 22.0f, 48.5f), maths::Vector4(1.0f), 2.0f);
 
-	auto lightEntity = std::make_shared<Entity>("Directional Light", this);
+	auto lightEntity = std::make_shared<Entity>("Directional Light");
 	lightEntity->AddComponent(std::make_unique<LightComponent>(sun));
-	lightEntity->AddComponent(std::make_unique<TransformComponent>(Matrix4::Translation(maths::Vector3(26.0f, 22.0f, 48.5f) * 100.0f)));
+	lightEntity->AddComponent(std::make_unique<TransformComponent>(Matrix4::Translation(maths::Vector3(26.0f, 22.0f, 48.5f))));
 	AddEntity(lightEntity);
 
 	//SoundSystem::Instance()->SetListener(m_pCamera);
 
-	m_ShadowTexture = std::unique_ptr<TextureDepthArray>(TextureDepthArray::Create(4096, 4096, 4));
-	auto shadowRenderer = new ShadowRenderer();
-	auto deferredRenderer = new DeferredRenderer(m_ScreenWidth, m_ScreenHeight);
-	auto skyboxRenderer = new SkyboxRenderer(m_ScreenWidth, m_ScreenHeight, m_EnvironmentMap);
-	deferredRenderer->SetRenderTarget(Application::Instance()->GetRenderManager()->GetGBuffer()->m_ScreenTex[SCREENTEX_OFFSCREEN0]);
-	skyboxRenderer->SetRenderTarget(Application::Instance()->GetRenderManager()->GetGBuffer()->m_ScreenTex[SCREENTEX_OFFSCREEN0]);
+	m_ShadowTexture = std::unique_ptr<graphics::TextureDepthArray>(graphics::TextureDepthArray::Create(4096, 4096, 4));
+	auto shadowRenderer = new graphics::ShadowRenderer();
+	auto deferredRenderer = new graphics::DeferredRenderer(m_ScreenWidth, m_ScreenHeight);
+	auto skyboxRenderer = new graphics::SkyboxRenderer(m_ScreenWidth, m_ScreenHeight, m_EnvironmentMap);
 	shadowRenderer->SetLight(sun);
 
 	deferredRenderer->SetRenderToGBufferTexture(true);
@@ -96,27 +92,14 @@ void GraphicsScene::OnCleanupScene()
 
 void GraphicsScene::LoadModels()
 {
-	//std::shared_ptr<Entity> water = std::make_shared<Entity>("Water",this);
-
-	//water->AddComponent(std::make_unique<TransformComponent>(Matrix4::Translation(maths::Vector3(250.0f, 10.0f, 250.0f)) *
-	//	Matrix4::Scale(maths::Vector3(250.0f, 1.0f, 250.0f)) * Matrix4::Rotation(-90.0f, maths::Vector3(1.0f, 0.0f, 0.0f))));
-
-	//std::shared_ptr<Model> waterModel = std::make_shared<Model>(Water(maths::Vector3(20.0f, 2.0f, 20.0f), maths::Vector3(20.0f, 2.0f, 20.0f)));
-	//water->AddComponent(std::make_unique<TextureMatrixComponent>(Matrix4::Scale(maths::Vector3(10.0f, 10.0f, 10.0f))));
-	//water->AddComponent(std::make_unique<MeshComponent>(waterModel));
-	//water->SetBoundingRadius(200.0f);
-	//AddEntity(water);
-
-	//m_MaterialManager->AddAsset("Stone", std::make_shared<Material>(AssetsManager::s_DefualtPBRMaterial->GetShader()));//, "stone", ".png"));
-
 	Terrain* terrainMesh = new Terrain();
 
 	//HeightMap
-	std::shared_ptr<Entity> heightmap = std::make_shared<Entity>("heightmap",this);
+	std::shared_ptr<Entity> heightmap = std::make_shared<Entity>("heightmap");
 	heightmap->AddComponent(std::make_unique<TransformComponent>(Matrix4::Scale(maths::Vector3(1.0f))));
 	heightmap->AddComponent(std::make_unique<TextureMatrixComponent>(Matrix4::Scale(maths::Vector3(1.0f, 1.0f, 1.0f))));
 	heightmap->SetBoundingRadius(2000.0f);
-	std::shared_ptr<Mesh> terrain = std::make_shared<Mesh>(*terrainMesh);
+	std::shared_ptr<graphics::Mesh> terrain = std::make_shared<graphics::Mesh>(*terrainMesh);
 	auto material = std::make_shared<Material>();
 
 	material->LoadMaterial("checkerboard", "/CoreTextures/checkerboard.tga");

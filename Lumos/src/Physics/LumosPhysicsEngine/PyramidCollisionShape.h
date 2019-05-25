@@ -4,7 +4,7 @@
 #include "CollisionShape.h"
 #include "Hull.h"
 
-namespace Lumos
+namespace lumos
 {
 
 	class LUMOS_EXPORT PyramidCollisionShape : public CollisionShape

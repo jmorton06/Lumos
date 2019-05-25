@@ -5,7 +5,7 @@
 
 #include "Graphics/Renderers/DebugRenderer.h"
 
-namespace Lumos
+namespace lumos
 {
 
 	WeldConstraint::WeldConstraint(PhysicsObject3D *obj1, PhysicsObject3D *obj2)

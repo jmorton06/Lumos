@@ -3,7 +3,7 @@
 #include "LumosComponent.h"
 #include "Maths/Matrix4.h"
 
-namespace Lumos
+namespace lumos
 {
 	class LUMOS_EXPORT TextureMatrixComponent : public LumosComponent
 	{

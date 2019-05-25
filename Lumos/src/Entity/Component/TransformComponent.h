@@ -3,7 +3,7 @@
 #include "LumosComponent.h"
 #include "Maths/Transform.h"
 
-namespace Lumos
+namespace lumos
 {
 	class LUMOS_EXPORT TransformComponent : public LumosComponent
 	{

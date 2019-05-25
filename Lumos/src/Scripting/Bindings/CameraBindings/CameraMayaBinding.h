@@ -5,7 +5,7 @@
 #include "Graphics/Camera/MayaCamera.h"
 #include "CameraBinding.h"
 
-namespace Lumos
+namespace lumos
 {
 	class LUMOS_EXPORT CameraMayaBinding : public CameraBinding
 	{

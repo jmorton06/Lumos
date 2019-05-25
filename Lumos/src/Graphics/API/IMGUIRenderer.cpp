@@ -1,6 +1,6 @@
 #include "LM.h"
 #include "IMGUIRenderer.h"
-#include "Context.h"
+#include "GraphicsContext.h"
 
 #ifdef LUMOS_IMGUI
 #ifdef LUMOS_RENDER_API_OPENGL
@@ -12,28 +12,25 @@
 #endif
 #endif
 
-namespace Lumos
+namespace lumos
 {
     namespace graphics
     {
-        namespace api
-        {
-            IMGUIRenderer* IMGUIRenderer::Create(uint width, uint height, bool clearScreen)
-			{
+        IMGUIRenderer* IMGUIRenderer::Create(uint width, uint height, bool clearScreen)
+		{
 #ifdef LUMOS_IMGUI
-				switch (Context::GetRenderAPI())
-				{
+			switch (GraphicsContext::GetRenderAPI())
+			{
 #ifdef LUMOS_RENDER_API_OPENGL
-                    case RenderAPI::OPENGL: return new GLIMGUIRenderer(width, height, clearScreen);
+                case RenderAPI::OPENGL: return new GLIMGUIRenderer(width, height, clearScreen);
 #endif
 #ifdef LUMOS_RENDER_API_VULKAN
-					case RenderAPI::VULKAN: return new VKIMGUIRenderer(width, height, clearScreen);
+				case RenderAPI::VULKAN: return new VKIMGUIRenderer(width, height, clearScreen);
 #endif
-				}
+			}
 #endif
 
-				return nullptr;
-			}
-        }
+			return nullptr;
+		}
     }
 }

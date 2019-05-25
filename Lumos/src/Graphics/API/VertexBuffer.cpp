@@ -10,25 +10,27 @@
 #ifdef LUMOS_RENDER_API_DIRECT3D
 #include "graphics/DirectX/DXVertexBuffer.h"
 #endif
-#include "Graphics/API/Context.h"
+#include "Graphics/API/GraphicsContext.h"
 
-namespace Lumos
+namespace lumos
 {
-
-	VertexBuffer* VertexBuffer::Create(const BufferUsage usage)
+	namespace graphics
 	{
-		switch (graphics::Context::GetRenderAPI())
+		VertexBuffer* VertexBuffer::Create(const BufferUsage usage)
 		{
+			switch (graphics::GraphicsContext::GetRenderAPI())
+			{
 #ifdef LUMOS_RENDER_API_OPENGL
-		case RenderAPI::OPENGL:		return new GLVertexBuffer(usage);
+			case RenderAPI::OPENGL:		return new GLVertexBuffer(usage);
 #endif
 #ifdef LUMOS_RENDER_API_DIRECT3D
-		case RenderAPI::DIRECT3D:	return new D3DVertexBuffer(usage);
+			case RenderAPI::DIRECT3D:	return new D3DVertexBuffer(usage);
 #endif
 #ifdef LUMOS_RENDER_API_VULKAN
-		case RenderAPI::VULKAN:	return new graphics::VKVertexBuffer(usage);
+			case RenderAPI::VULKAN:	return new graphics::VKVertexBuffer(usage);
 #endif
+			}
+			return nullptr;
 		}
-		return nullptr;
 	}
 }

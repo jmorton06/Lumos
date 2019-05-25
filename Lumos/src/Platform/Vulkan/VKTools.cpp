@@ -4,7 +4,7 @@
 #include "Graphics/API/Pipeline.h"
 #include "Platform/Vulkan/VKCommandBuffer.h"
 
-namespace Lumos
+namespace lumos
 {
 	namespace graphics
 	{
@@ -22,7 +22,7 @@ namespace Lumos
 					}
 				}
 
-				throw std::runtime_error("failed to find suitable memory type!");
+				throw std::runtime_error("Failed to find suitable memory type!");
 			}
 
 			void CreateBuffer(vk::DeviceSize size, vk::BufferUsageFlags usage, vk::MemoryPropertyFlags properties, vk::Buffer& buffer,
@@ -248,19 +248,19 @@ namespace Lumos
 				}
 			}
 
-			vk::Format FormatToVK(api::Format format)
+			vk::Format FormatToVK(Format format)
 			{
 				switch(format)
 				{
-				case api::R32G32B32A32_FLOAT : return vk::Format::eR32G32B32A32Sfloat;
-				case api::R32G32B32_FLOAT	 : return vk::Format::eR32G32B32Sfloat;
-				case api::R32G32_FLOAT		 : return vk::Format::eR32G32Sfloat;
-                case api::R32_FLOAT          : return vk::Format::eR32Sfloat;
+				case R32G32B32A32_FLOAT : return vk::Format::eR32G32B32A32Sfloat;
+				case R32G32B32_FLOAT	 : return vk::Format::eR32G32B32Sfloat;
+				case R32G32_FLOAT		 : return vk::Format::eR32G32Sfloat;
+                case R32_FLOAT          : return vk::Format::eR32Sfloat;
 				default: return vk::Format::eR32G32B32Sfloat;
 				}
 			}
 
-			vk::VertexInputAttributeDescription VertexInputDescriptionToVK(api::VertexInputDescription description)
+			vk::VertexInputAttributeDescription VertexInputDescriptionToVK(VertexInputDescription description)
 			{
 				vk::VertexInputAttributeDescription vInputAttribDescription{};
 				vInputAttribDescription.location = description.location;
@@ -270,39 +270,39 @@ namespace Lumos
 				return vInputAttribDescription;
 			}
 
-			vk::CullModeFlags CullModeToVK(api::CullMode mode)
+			vk::CullModeFlags CullModeToVK(CullMode mode)
 			{
 				switch(mode)
 				{
-				case api::CullMode::BACK		 : return vk::CullModeFlagBits::eBack;
-				case api::CullMode::FRONT		 : return vk::CullModeFlagBits::eFront;
-				case api::CullMode::FRONTANDBACK : return vk::CullModeFlagBits::eFrontAndBack;
-				case api::CullMode::NONE		 : return vk::CullModeFlagBits::eNone;
+				case CullMode::BACK		 : return vk::CullModeFlagBits::eBack;
+				case CullMode::FRONT		 : return vk::CullModeFlagBits::eFront;
+				case CullMode::FRONTANDBACK : return vk::CullModeFlagBits::eFrontAndBack;
+				case CullMode::NONE		 : return vk::CullModeFlagBits::eNone;
 
 				}
 
 				return vk::CullModeFlagBits::eBack;
 			}
 
-			vk::DescriptorType DescriptorTypeToVK(api::DescriptorType type)
+			vk::DescriptorType DescriptorTypeToVK(DescriptorType type)
 			{
 				switch (type)
 				{
-				case api::DescriptorType::UNIFORM_BUFFER		 : return vk::DescriptorType::eUniformBuffer;
-				case api::DescriptorType::UNIFORM_BUFFER_DYNAMIC : return vk::DescriptorType::eUniformBufferDynamic;
-				case api::DescriptorType::IMAGE_SAMPLER			 : return vk::DescriptorType::eCombinedImageSampler;
+				case DescriptorType::UNIFORM_BUFFER		 : return vk::DescriptorType::eUniformBuffer;
+				case DescriptorType::UNIFORM_BUFFER_DYNAMIC : return vk::DescriptorType::eUniformBufferDynamic;
+				case DescriptorType::IMAGE_SAMPLER			 : return vk::DescriptorType::eCombinedImageSampler;
 				}
 
 				return vk::DescriptorType::eUniformBuffer;
 			}
 
-			vk::ShaderStageFlags ShaderStageToVK(api::ShaderStage type)
+			vk::ShaderStageFlags ShaderStageToVK(ShaderStage type)
 			{
 				switch (type)
 				{
-				case api::ShaderStage::VERTEX   : return vk::ShaderStageFlagBits::eVertex;
-				case api::ShaderStage::FRAGMENT : return vk::ShaderStageFlagBits::eFragment;
-				case api::ShaderStage::GEOMETRY : return vk::ShaderStageFlagBits::eGeometry;
+				case ShaderStage::VERTEX   : return vk::ShaderStageFlagBits::eVertex;
+				case ShaderStage::FRAGMENT : return vk::ShaderStageFlagBits::eFragment;
+				case ShaderStage::GEOMETRY : return vk::ShaderStageFlagBits::eGeometry;
 				}
 
 				return vk::ShaderStageFlagBits::eVertex;

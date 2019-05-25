@@ -2,11 +2,10 @@
 #include "VKCommandPool.h"
 #include "VKDevice.h"
 
-namespace Lumos
+namespace lumos
 {
 	namespace graphics
 	{
-
 		VKCommandPool::VKCommandPool()
 		{
 			Init();

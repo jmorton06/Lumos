@@ -4,7 +4,7 @@
 #include "Matrix4.h"
 #include "BoundingBox.h"
 
-namespace Lumos
+namespace lumos
 {
 	namespace maths
 	{

@@ -6,14 +6,14 @@
 #include "VKCommandBuffer.h"
 
 struct ImGui_ImplVulkanH_WindowData;
-namespace Lumos
+namespace lumos
 {
 	namespace graphics
 	{
 		class VKFramebuffer;
 		class VKRenderpass;
 
-		class VKIMGUIRenderer : public api::IMGUIRenderer
+		class VKIMGUIRenderer : public IMGUIRenderer
 		{
         public:
             VKIMGUIRenderer(uint width, uint height, bool clearScreen);
@@ -21,7 +21,7 @@ namespace Lumos
 
             void Init() override;
             void NewFrame() override;
-            void Render(Lumos::graphics::api::CommandBuffer* commandBuffer) override;
+            void Render(lumos::graphics::CommandBuffer* commandBuffer) override;
             void OnResize(uint width, uint height) override;
 			void Clear() override;
             

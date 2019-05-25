@@ -9,7 +9,7 @@
 #include "Graphics/Material.h"
 #include "System/System.h"
 
-namespace Lumos
+namespace lumos
 {
 	namespace graphics
 	{
@@ -39,7 +39,7 @@ namespace Lumos
             m_Context->Unload();
 		}
 
-		void VKRenderer::PresentInternal(api::CommandBuffer* cmdBuffer)
+		void VKRenderer::PresentInternal(CommandBuffer* cmdBuffer)
 		{
 			dynamic_cast<VKCommandBuffer*>(cmdBuffer)->ExecuteInternal(vk::PipelineStageFlagBits::eColorAttachmentOutput,
 				m_ImageAvailableSemaphore[m_CurrentSemaphoreIndex], m_ImageAvailableSemaphore[m_CurrentSemaphoreIndex + 1], false);
@@ -200,7 +200,7 @@ namespace Lumos
 		{
 		}
 
-		void VKRenderer::RenderMeshInternal(Mesh *mesh, graphics::api::Pipeline *pipeline, graphics::api::CommandBuffer* cmdBuffer, uint dynamicOffset, graphics::api::DescriptorSet* descriptorSet, bool useMaterialDescriptorSet)
+		void VKRenderer::RenderMeshInternal(Mesh *mesh, graphics::Pipeline *pipeline, graphics::CommandBuffer* cmdBuffer, uint dynamicOffset, graphics::DescriptorSet* descriptorSet, bool useMaterialDescriptorSet)
 		{
 			std::vector<vk::DescriptorSet> descriptorSets;
 			uint numDynamicDescriptorSets = 0;
@@ -239,8 +239,8 @@ namespace Lumos
 		}
 
 		void VKRenderer::Render(VertexArray* vertexArray, IndexBuffer* indexBuffer,
-			graphics::api::CommandBuffer* cmdBuffer, std::vector<graphics::api::DescriptorSet*>& descriptorSets,
-			graphics::api::Pipeline* pipeline, uint dynamicOffset)
+			graphics::CommandBuffer* cmdBuffer, std::vector<graphics::DescriptorSet*>& descriptorSets,
+			graphics::Pipeline* pipeline, uint dynamicOffset)
 		{
 			std::vector<vk::DescriptorSet> vkdescriptorSets;
 			uint numDynamicDescriptorSets = 0;

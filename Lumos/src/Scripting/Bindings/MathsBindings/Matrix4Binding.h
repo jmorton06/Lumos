@@ -4,7 +4,7 @@
 #include "Scripting/Luna.h"
 #include "Maths/Matrix4.h"
 
-namespace Lumos
+namespace lumos
 {
 	class LUMOS_EXPORT Matrix4Binding
 	{

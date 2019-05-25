@@ -5,7 +5,7 @@
 #include "Graphics/Camera/Camera2D.h"
 #include "CameraBinding.h"
 
-namespace Lumos
+namespace lumos
 {
 	class LUMOS_EXPORT Camera2DBinding : public CameraBinding
 	{

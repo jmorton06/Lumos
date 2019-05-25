@@ -4,7 +4,7 @@
 #include "Audio/WavLoader.h"
 #include "Audio/OggLoader.h"
 
-namespace Lumos
+namespace lumos
 {
     ALSound::ALSound(const String& fileName, const String& format) : m_Format(0)
 	{

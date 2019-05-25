@@ -18,12 +18,13 @@
 #endif
 #include <tinygltf/tiny_gltf.h>
 
-namespace Lumos
+namespace lumos
 {
 	String AlbedoTexName = "baseColorTexture";
 	String NormalTexName = "normalTexture";
 	String MetallicTexName = "metallicRoughnessTexture";
 	String GlossTexName = "metallicRoughnessTexture";
+	String AOTexName = "occlusionTexture";
 
 	struct GLTFTexture
 	{
@@ -63,30 +64,30 @@ namespace Lumos
 	{ TINYGLTF_COMPONENT_TYPE_FLOAT, 4 }
 	};
 
-	static TextureWrap GetWrapMode(int mode)
+	static graphics::TextureWrap GetWrapMode(int mode)
 	{
 		switch (mode)
 		{
-		case TINYGLTF_TEXTURE_WRAP_REPEAT: return TextureWrap::REPEAT;
-		case TINYGLTF_TEXTURE_WRAP_CLAMP_TO_EDGE: return TextureWrap::CLAMP_TO_EDGE;
-		case TINYGLTF_TEXTURE_WRAP_MIRRORED_REPEAT: return TextureWrap::MIRRORED_REPEAT;
-		default: return TextureWrap::REPEAT;
+		case TINYGLTF_TEXTURE_WRAP_REPEAT: return graphics::TextureWrap::REPEAT;
+		case TINYGLTF_TEXTURE_WRAP_CLAMP_TO_EDGE: return graphics::TextureWrap::CLAMP_TO_EDGE;
+		case TINYGLTF_TEXTURE_WRAP_MIRRORED_REPEAT: return graphics::TextureWrap::MIRRORED_REPEAT;
+		default: return graphics::TextureWrap::REPEAT;
 		}
 	}
 
-	static TextureFilter GetFilter(int value)
+	static graphics::TextureFilter GetFilter(int value)
 	{
 		switch (value)
 		{
 		case TINYGLTF_TEXTURE_FILTER_NEAREST:
 		case TINYGLTF_TEXTURE_FILTER_NEAREST_MIPMAP_NEAREST:
 		case TINYGLTF_TEXTURE_FILTER_NEAREST_MIPMAP_LINEAR:
-			return TextureFilter::NEAREST;
+			return graphics::TextureFilter::NEAREST;
 		case TINYGLTF_TEXTURE_FILTER_LINEAR:
 		case TINYGLTF_TEXTURE_FILTER_LINEAR_MIPMAP_NEAREST:
 		case TINYGLTF_TEXTURE_FILTER_LINEAR_MIPMAP_LINEAR:
-			return TextureFilter::LINEAR;
-		default: return TextureFilter::LINEAR;
+			return graphics::TextureFilter::LINEAR;
+		default: return graphics::TextureFilter::LINEAR;
 		}
 	}
 
@@ -121,11 +122,11 @@ namespace Lumos
 
 		if (albedoTex.Image)
 		{
-			TextureParameters params = TextureParameters(GetFilter(albedoTex.Sampler->minFilter), GetWrapMode(albedoTex.Sampler->wrapS));
+			graphics::TextureParameters params = graphics::TextureParameters(GetFilter(albedoTex.Sampler->minFilter), GetWrapMode(albedoTex.Sampler->wrapS));
 
-			Texture2D* texture = Texture2D::CreateFromSource(albedoTex.Image->width, albedoTex.Image->height, albedoTex.Image->image.data(), params);
+			graphics::Texture2D* texture = graphics::Texture2D::CreateFromSource(albedoTex.Image->width, albedoTex.Image->height, albedoTex.Image->image.data(), params);
 			if (texture)
-				textures.albedo = std::shared_ptr<Texture2D>(texture);//material->SetAlbedoMap(texture);
+				textures.albedo = std::shared_ptr<graphics::Texture2D>(texture);//material->SetAlbedoMap(texture);
 		}
 		else
 			textures.albedo = nullptr;
@@ -134,33 +135,44 @@ namespace Lumos
 
 		if (normalTex.Image)
 		{
-			TextureParameters params = TextureParameters(GetFilter(normalTex.Sampler->minFilter), GetWrapMode(normalTex.Sampler->wrapS));
+			graphics::TextureParameters params = graphics::TextureParameters(GetFilter(normalTex.Sampler->minFilter), GetWrapMode(normalTex.Sampler->wrapS));
 
-			Texture2D* texture = Texture2D::CreateFromSource(normalTex.Image->width, normalTex.Image->height, normalTex.Image->image.data(), params);
+			graphics::Texture2D* texture = graphics::Texture2D::CreateFromSource(normalTex.Image->width, normalTex.Image->height, normalTex.Image->image.data(), params);
 			if (texture)
-				textures.normal = std::shared_ptr<Texture2D>(texture);//material->SetNormalMap(texture);
+				textures.normal = std::shared_ptr<graphics::Texture2D>(texture);//material->SetNormalMap(texture);
 		}
 
 		GLTFTexture specularTex = loadTextureFromParameter(gltfmaterial.values, MetallicTexName);
 
 		if (specularTex.Image)
 		{
-			TextureParameters params = TextureParameters(GetFilter(specularTex.Sampler->minFilter), GetWrapMode(specularTex.Sampler->wrapS));
+			graphics::TextureParameters params = graphics::TextureParameters(GetFilter(specularTex.Sampler->minFilter), GetWrapMode(specularTex.Sampler->wrapS));
 
-			Texture2D* texture = Texture2D::CreateFromSource(specularTex.Image->width, specularTex.Image->height, specularTex.Image->image.data(), params);
+			graphics::Texture2D* texture = graphics::Texture2D::CreateFromSource(specularTex.Image->width, specularTex.Image->height, specularTex.Image->image.data(), params);
 			if (texture)
-				textures.metallic = std::shared_ptr<Texture2D>(texture);//material->SetSpecularMap(texture);
+				textures.metallic = std::shared_ptr<graphics::Texture2D>(texture);//material->SetSpecularMap(texture);
 		}
 
 		GLTFTexture glossTex = loadTextureFromParameter(gltfmaterial.values, GlossTexName);
 
 		if (glossTex.Image)
 		{
-			TextureParameters params = TextureParameters(GetFilter(glossTex.Sampler->minFilter), GetWrapMode(glossTex.Sampler->wrapS));
+			graphics::TextureParameters params = graphics::TextureParameters(GetFilter(glossTex.Sampler->minFilter), GetWrapMode(glossTex.Sampler->wrapS));
 
-			Texture2D* texture = Texture2D::CreateFromSource(glossTex.Image->width, glossTex.Image->height, glossTex.Image->image.data(), params);
+			graphics::Texture2D* texture = graphics::Texture2D::CreateFromSource(glossTex.Image->width, glossTex.Image->height, glossTex.Image->image.data(), params);
 			if (texture)
-				textures.roughness = std::shared_ptr<Texture2D>(texture);//material->SetGlossMap(texture);
+				textures.roughness = std::shared_ptr<graphics::Texture2D>(texture);//material->SetGlossMap(texture);
+		}
+
+		GLTFTexture occlusionTex = loadTextureFromParameter(gltfmaterial.values, AOTexName);
+
+		if (occlusionTex.Image)
+		{
+			graphics::TextureParameters params = graphics::TextureParameters(GetFilter(occlusionTex.Sampler->minFilter), GetWrapMode(occlusionTex.Sampler->wrapS));
+
+			graphics::Texture2D* texture = graphics::Texture2D::CreateFromSource(occlusionTex.Image->width, occlusionTex.Image->height, occlusionTex.Image->image.data(), params);
+			if (texture)
+				textures.ao = std::shared_ptr<graphics::Texture2D>(texture);//material->SetGlossMap(texture);
 		}
 
 		return textures;
@@ -168,7 +180,7 @@ namespace Lumos
 
 	std::vector<std::shared_ptr<Material>> LoadMaterials(tinygltf::Model &gltfModel)
     {
-        std::vector<std::shared_ptr<Texture2D>> loadedTextures;
+        std::vector<std::shared_ptr<graphics::Texture2D>> loadedTextures;
         std::vector<std::shared_ptr<Material>> loadedMaterials;
         for (tinygltf::Texture &gltfTexture : gltfModel.textures)
         {
@@ -186,11 +198,11 @@ namespace Lumos
 
             if (imageAndSampler.Image)
             {
-                TextureParameters params = TextureParameters(GetFilter(imageAndSampler.Sampler->minFilter), GetWrapMode(imageAndSampler.Sampler->wrapS));
+				graphics::TextureParameters params = graphics::TextureParameters(GetFilter(imageAndSampler.Sampler->minFilter), GetWrapMode(imageAndSampler.Sampler->wrapS));
 
-                Texture2D* texture2D = Texture2D::CreateFromSource(imageAndSampler.Image->width, imageAndSampler.Image->height, imageAndSampler.Image->image.data(), params);
+				graphics::Texture2D* texture2D = graphics::Texture2D::CreateFromSource(imageAndSampler.Image->width, imageAndSampler.Image->height, imageAndSampler.Image->image.data(), params);
                 if (texture2D)
-                    loadedTextures.push_back(std::shared_ptr<Texture2D>(texture2D));
+                    loadedTextures.push_back(std::shared_ptr<graphics::Texture2D>(texture2D));
             }
         }
 
@@ -210,7 +222,7 @@ namespace Lumos
             // common workflow:
             auto normalTexture = mat.additionalValues.find("normalTexture");
             //auto emissiveTexture = mat.additionalValues.find("emissiveTexture");
-            //auto occlusionTexture = mat.additionalValues.find("occlusionTexture");
+            auto occlusionTexture = mat.additionalValues.find("occlusionTexture");
             //auto emissiveFactor = mat.additionalValues.find("emissiveFactor");
             //auto alphaCutoff = mat.additionalValues.find("alphaCutoff");
             //auto alphaMode = mat.additionalValues.find("alphaMode");
@@ -229,6 +241,11 @@ namespace Lumos
             {
                 textures.metallic = loadedTextures[gltfModel.textures[metallicRoughnessTexture->second.TextureIndex()].source];
             }
+
+			if (occlusionTexture != mat.additionalValues.end())
+			{
+				textures.ao = loadedTextures[gltfModel.textures[occlusionTexture->second.TextureIndex()].source];
+			}
             
             if (roughnessFactor != mat.values.end())
             {
@@ -293,14 +310,14 @@ namespace Lumos
         return loadedMaterials;
     }
     
-    Mesh* LoadMesh(tinygltf::Model& model, tinygltf::Mesh& mesh, std::vector<std::shared_ptr<Material>>& materials)
+	graphics::Mesh* LoadMesh(tinygltf::Model& model, tinygltf::Mesh& mesh, std::vector<std::shared_ptr<Material>>& materials)
     {
         for (auto& primitive : mesh.primitives)
         {
             const tinygltf::Accessor &indices = model.accessors[primitive.indices];
             
             const uint numVertices = static_cast<uint>(indices.count);
-            Vertex* tempvertices = new Vertex[numVertices];
+			graphics::Vertex* tempvertices = new graphics::Vertex[numVertices];
             uint* indicesArray = new uint[numVertices];
             
             size_t maxNumVerts = 0;
@@ -394,11 +411,11 @@ namespace Lumos
             
             std::shared_ptr<Material> pbrMaterial = materials[primitive.material];
             
-            std::shared_ptr<VertexArray> va;
-            va.reset(VertexArray::Create());
+            std::shared_ptr<graphics::VertexArray> va;
+            va.reset(graphics::VertexArray::Create());
             
-            VertexBuffer* buffer = VertexBuffer::Create(BufferUsage::STATIC);
-            buffer->SetData(sizeof(Vertex) * numVertices, tempvertices);
+			graphics::VertexBuffer* buffer = graphics::VertexBuffer::Create(graphics::BufferUsage::STATIC);
+            buffer->SetData(sizeof(graphics::Vertex) * numVertices, tempvertices);
             
             graphics::BufferLayout layout;
             layout.Push<maths::Vector3>("position");
@@ -446,10 +463,10 @@ namespace Lumos
                 }
             }
             
-            std::shared_ptr<IndexBuffer> ib;
-            ib.reset(IndexBuffer::Create(indicesArray, numVertices));
+            std::shared_ptr<graphics::IndexBuffer> ib;
+            ib.reset(graphics::IndexBuffer::Create(indicesArray, numVertices));
             
-            auto lMesh = new Mesh(va, ib, pbrMaterial, boundingBox);
+            auto lMesh = new graphics::Mesh(va, ib, pbrMaterial, boundingBox);
             
             delete[] tempvertices;
             delete[] indicesArray;
@@ -460,7 +477,7 @@ namespace Lumos
         return nullptr;
     }
     
-    void LoadNode(int nodeIndex, Entity* parent, tinygltf::Model& model, std::vector<std::shared_ptr<Material>>& materials, std::vector<Mesh*> meshes)
+    void LoadNode(int nodeIndex, Entity* parent, tinygltf::Model& model, std::vector<std::shared_ptr<Material>>& materials, std::vector<graphics::Mesh*> meshes)
     {
         if (nodeIndex < 0)
         {
@@ -472,7 +489,7 @@ namespace Lumos
         auto name = node.name;
         if(name == "")
             name = "Mesh : " + StringFormat::ToString(nodeIndex);
-        auto meshEntity = std::make_shared<Entity>(name, nullptr);
+        auto meshEntity = std::make_shared<Entity>(name);
         meshEntity->AddComponent(std::make_unique<TransformComponent>(maths::Matrix4()));
         
         if(parent)
@@ -482,13 +499,13 @@ namespace Lumos
         {
             if (node.skin >= 0)
             {
-                auto lMesh = std::shared_ptr<Mesh>(meshes[node.mesh]);
+                auto lMesh = std::shared_ptr<graphics::Mesh>(meshes[node.mesh]);
                 meshEntity->AddComponent(std::make_unique<MeshComponent>(lMesh));
                 meshEntity->SetBoundingRadius(lMesh->GetBoundingSphere()->SphereRadius());
             }
             else
             {
-                auto lMesh = std::shared_ptr<Mesh>(meshes[node.mesh]);
+                auto lMesh = std::shared_ptr<graphics::Mesh>(meshes[node.mesh]);
                 meshEntity->AddComponent(std::make_unique<MeshComponent>(lMesh));
                 meshEntity->SetBoundingRadius(lMesh->GetBoundingSphere()->SphereRadius());
             }
@@ -570,10 +587,10 @@ namespace Lumos
         
         String name = directory.substr(directory.find_last_of('/') + 1);
 
-		auto entity = std::make_shared<Entity>(name, nullptr);
+		auto entity = std::make_shared<Entity>(name);
 		entity->AddComponent(std::make_unique<TransformComponent>(maths::Matrix4()));
 
-        auto meshes = std::vector<Mesh*>();
+        auto meshes = std::vector<graphics::Mesh*>();
         
         for (auto& mesh : model.meshes)
         {

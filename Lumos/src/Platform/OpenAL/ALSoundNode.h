@@ -8,7 +8,7 @@
 
 #define NUM_STREAM_BUFFERS 3
 
-namespace Lumos
+namespace lumos
 {
 	class ALSoundNode : public SoundNode
 	{

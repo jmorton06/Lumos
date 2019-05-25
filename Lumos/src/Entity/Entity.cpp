@@ -3,7 +3,7 @@
 
 #include "Graphics/Renderers/DebugRenderer.h"
 #include "App/Scene.h"
-#include "Graphics/API/Context.h"
+#include "Graphics/API/GraphicsContext.h"
 
 #include <imgui/imgui.h>
 #include <imgui/plugins/ImGuizmo.h>
@@ -13,14 +13,9 @@
 
 #include "Maths/MathsUtilities.h"
 
-namespace Lumos
+namespace lumos
 {
-	Entity::Entity(Scene* scene) : m_Name("Unnamed"), m_pScene(scene), m_pParent(nullptr), m_BoundingRadius(1), m_FrustumCullFlags(0), m_Active(true)
-	{
-        Init();
-	}
-
-	Entity::Entity(const String& name,Scene* scene) : m_Name(name), m_pScene(scene), m_pParent(nullptr), m_BoundingRadius(1),
+	Entity::Entity(const String& name) : m_Name(name),m_pParent(nullptr), m_BoundingRadius(1),
 	                                     m_FrustumCullFlags(0), m_Active(true)
 	{
         Init();
@@ -90,7 +85,6 @@ namespace Lumos
 	{
 		m_vpChildren.push_back(child);
 		child->m_pParent = this;
-		child->m_pScene = this->m_pScene;
 	}
 
 	void Entity::DebugDraw(uint64 debugFlags)
@@ -133,7 +127,7 @@ namespace Lumos
 		maths::Matrix4 proj = Application::Instance()->GetSceneManager()->GetCurrentScene()->GetCamera()->GetProjectionMatrix();
         
 #ifdef LUMOS_RENDER_API_VULKAN
-		if(graphics::Context::GetRenderAPI() == RenderAPI::VULKAN)
+		if(graphics::GraphicsContext::GetRenderAPI() == graphics::RenderAPI::VULKAN)
 			proj[5] *= -1.0f;
 #endif
 		ImGuizmo::SetDrawlist();
@@ -164,17 +158,17 @@ namespace Lumos
 		static char objName[INPUT_BUF_SIZE];
 		strcpy(objName, m_Name.c_str());
 
-        ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(2,2));
-        ImGui::Columns(2);
-        ImGui::Separator();
-        
         ImGuiInputTextFlags inputFlag = ImGuiInputTextFlags_EnterReturnsTrue;
-
+        
         ImGui::Checkbox("##Active", &m_Active);
         ImGui::SameLine();
         ImGui::PushItemWidth(-1);
         if (ImGui::InputText("##Name", objName, IM_ARRAYSIZE(objName), inputFlag))
             m_Name = objName;
+        
+        ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(2,2));
+        ImGui::Columns(2);
+        ImGui::Separator();
         
         ImGui::AlignTextToFramePadding();
         ImGui::Text("%s", "Parent");

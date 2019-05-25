@@ -13,7 +13,7 @@
 #define CLIP_CONTROL_RH_ZO (CLIP_CONTROL_RH_BIT | CLIP_CONTROL_ZO_BIT)
 #define CLIP_CONTROL_RH_NO (CLIP_CONTROL_RH_BIT | CLIP_CONTROL_NO_BIT)
 
-namespace Lumos
+namespace lumos
 {
 	namespace maths
 	{
