@@ -125,8 +125,6 @@ namespace lumos
 		ParticleManager*	m_ParticleManager;
 		graphics::TextureCube*		m_EnvironmentMap;
 
-		AssetManager<Material>* m_MaterialManager;
-
 		float m_SceneBoundingRadius;
 
 		std::shared_ptr<Entity> m_RootEntity;

@@ -36,7 +36,7 @@ namespace lumos
 		component->Init();
         
         if(component->GetType() == ComponentType::Transform)
-            m_DefaultTransformComponent = (TransformComponent*)component.get();
+            m_DefaultTransformComponent = static_cast<TransformComponent*>(component.get());
         
 		m_Components[component->GetType()] = std::move(component);
 	}

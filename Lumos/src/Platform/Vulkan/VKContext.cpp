@@ -65,7 +65,7 @@ namespace lumos
 			}
 		}
 
-		VKContext::VKContext(const WindowProperties& properties, void* deviceContext)
+        VKContext::VKContext(const WindowProperties& properties, void* deviceContext) : m_CommandPool(nullptr)
 		{
 			m_WindowContext = deviceContext;
 			CreateInstance();
@@ -84,6 +84,9 @@ namespace lumos
 
 		void VKContext::Init()
 		{
+            if(m_CommandPool != nullptr)
+                delete m_CommandPool;
+            
 			m_CommandPool = new VKCommandPool();
 		};
 
