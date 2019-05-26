@@ -79,9 +79,6 @@
 
 //Scripting
 #include "Scripting/LuaScript.h"
-#include "Scripting/LuaGlobals.h"
-#include "Scripting/Luna.h"
-#include "Scripting/Bindings/LuaBindings.h"
 
 //Utilities
 #include "Utilities/LoadImage.h"
