@@ -431,14 +431,12 @@ namespace lumos
 			float sectorStep = 2 * maths::PI / sectorCount;
 			float stackStep = maths::PI / stackCount;
 			float radius = 1.0f;
-			float x, y, z;
-			float s, t;
 
 			for (int i = 0; i <= stackCount; ++i)
 			{
                 float stackAngle = maths::PI / 2 - i * stackStep;        // starting from pi/2 to -pi/2
 				float xy = radius * cos(stackAngle);             // r * cos(u)
-				z = radius * sin(stackAngle);              // r * sin(u)
+				float z = radius * sin(stackAngle);              // r * sin(u)
 
 				// add (sectorCount+1) vertices per stack
 				// the first and last vertices have same position and normal, but different tex coords
@@ -447,12 +445,12 @@ namespace lumos
                     float sectorAngle = j * sectorStep;           // starting from 0 to 2pi
 
 					// vertex position (x, y, z)
-					x = xy * cosf(sectorAngle);             // r * cos(u) * cos(v)
-					y = xy * sinf(sectorAngle);             // r * cos(u) * sin(v)
+					float x = xy * cosf(sectorAngle);             // r * cos(u) * cos(v)
+					float y = xy * sinf(sectorAngle);             // r * cos(u) * sin(v)
 
 					// vertex tex coord (s, t) range between [0, 1]
-					s = (float)j / sectorCount;
-					t = (float)i / stackCount;
+					float s = static_cast<float>(j / sectorCount);
+					float t = static_cast<float>(i / stackCount);
 
 					Vertex vertex;
 					vertex.Position = maths::Vector3(x, y, z);
