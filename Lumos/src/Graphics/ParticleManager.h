@@ -25,8 +25,6 @@ namespace lumos
 
 	private:
 
-		Mesh* m_Quad;
-		VertexArray* m_VAO;
 		std::vector<std::shared_ptr<ParticleEmitter>> m_Emitters;
 	};
 }
