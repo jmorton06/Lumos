@@ -253,8 +253,11 @@ namespace lumos
 			memcpy(data, allData, static_cast<size_t>(size));
 			VKDevice::Instance()->GetDevice().unmapMemory(stagingBufferMemory);
 
-			if (m_Data == nullptr)
+            if (m_Data == nullptr)
+            {
 				delete[] allData;
+                allData = nullptr;
+            }
 
 			CreateImage(faceWidths[0], faceHeights[0], m_NumMips, vk::Format::eR8G8B8A8Unorm, vk::ImageTiling::eOptimal, /*vk::ImageUsageFlagBits::eTransferSrc|*/ vk::ImageUsageFlagBits::eTransferDst | vk::ImageUsageFlagBits::eSampled, vk::MemoryPropertyFlagBits::eDeviceLocal, m_TextureImage, m_TextureImageMemory);
 
@@ -328,6 +331,11 @@ namespace lumos
 			delete[] cubeTextureData;
 			delete[] faceHeights;
 			delete[] faceWidths;
+            
+            if(allData)
+            {
+                delete[] allData;
+            }
 		}
 	}
 }
