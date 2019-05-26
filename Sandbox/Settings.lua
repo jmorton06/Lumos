@@ -5,5 +5,4 @@ height              =   720
 fullscreen          =   false
 borderless		    =   false
 vsync			    =   true
-numsupersamples		=   1
-loadingtexturefilepath =  /Textures/LoadingTexture.png
+title               = "Sandbox"
