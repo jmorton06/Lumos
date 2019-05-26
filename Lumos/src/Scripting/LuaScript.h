@@ -1,7 +1,11 @@
 #pragma once
 #include "LM.h"
 #include "Utilities/TSingleton.h"
-#include <sol/sol.hpp>
+
+namespace sol
+{
+    class state;
+}
 
 namespace lumos
 {
