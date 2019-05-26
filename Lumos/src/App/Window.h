@@ -3,7 +3,6 @@
 #include "LM.h"
 #include "Utilities/Timer.h"
 #include "Maths/Vector2.h"
-#include "System/Settings.h"
 #include "Utilities/TSingleton.h"
 #include "Events/Event.h"
 
@@ -13,28 +12,8 @@ namespace lumos
 
 	struct LUMOS_EXPORT WindowProperties
 	{
-		WindowProperties(System::CFG& cfg)
+		WindowProperties(uint width = 1280, uint height = 720, String title = "lumos", bool fullscreen = false, bool vSync = true, bool borderless = false) : Width(width), Height(height), Title(title), Fullscreen(fullscreen), VSync(vSync), Borderless(borderless)
 		{
-			if (!cfg.FindUInt("width", Width))
-				Width = 1280;
-			if (!cfg.FindUInt("height", Height))
-				Height = 720;
-			if (!cfg.FindBool("fullscreen", Fullscreen))
-				Fullscreen = false;
-			if (!cfg.FindBool("vsync", VSync))
-				VSync = true;
-			if (!cfg.FindBool("borderless", Borderless))
-				Borderless = false;
-		}
-
-		WindowProperties()
-		{
-			Width = 1280;
-			Height = 720;
-			Fullscreen = false;
-			VSync = true;
-			Borderless = false;
-			Title = "Game Engine";
 		}
 
 		uint Width, Height;
