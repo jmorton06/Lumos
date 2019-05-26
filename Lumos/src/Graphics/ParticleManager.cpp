@@ -18,7 +18,6 @@ namespace lumos
 
 	ParticleManager::~ParticleManager()
 	{
-		m_Emitters.clear();
 	}
 
 	void ParticleManager::Add(std::shared_ptr<ParticleEmitter> emitter)
