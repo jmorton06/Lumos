@@ -21,7 +21,7 @@ namespace lumos
 {
 	Scene::Scene(const String& friendly_name)
 		: m_SceneName(friendly_name), m_pCamera(nullptr), m_EnvironmentMap(nullptr), m_SceneBoundingRadius(0),
-		  m_DebugDrawFlags(0), m_DrawObjects(false), m_ReflectScene(false), m_UseShadow(false), m_ScreenWidth(0),
+		  m_DebugDrawFlags(0), m_ScreenWidth(0),
 		  m_ScreenHeight(0),
 		  m_DrawDebugData(false),
           m_RootEntity(std::make_shared<Entity>("Root Node"))
@@ -100,11 +100,6 @@ namespace lumos
 			| DEBUGDRAW_FLAGS_CONSTRAINT
 		);
 		m_SceneBoundingRadius = 400.0f; //Default scene radius of 400m
-
-		m_BackgroundColour = maths::Vector3(0.8f, 0.8f, 0.8f);
-		m_UseShadow    = true;
-		m_DrawObjects  = true;
-		m_ReflectScene = false;
 
 		m_pFrameRenderList = std::make_unique<RenderList>();
 

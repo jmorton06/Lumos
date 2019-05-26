@@ -96,17 +96,6 @@ namespace lumos
 		uint64_t GetDebugDrawFlags() const { return m_DebugDrawFlags; }
 		void SetDebugDrawFlags(uint64_t flags) { m_DebugDrawFlags = flags; }
 
-		bool GetUseShadow() const { return m_UseShadow; }
-		void SetUseShadow(bool set) { m_UseShadow = set; }
-
-		void SetDrawObjects(bool set) { m_DrawObjects = set; }
-		bool GetDrawObjects() const { return m_DrawObjects; }
-
-		void ToggleDrawObjects() { m_DrawObjects = !m_DrawObjects; }
-		bool GetReflectingScene() const { return m_ReflectScene; }
-		const maths::Vector3& GetBackgroundColor() const   { return m_BackgroundColour; }
-		void SetBackgroundColor(const maths::Vector3& col) { m_BackgroundColour = col; }
-
 		void SetScreenWidth(uint width)   { m_ScreenWidth = width; }
 		void SetScreenHeight(uint height) { m_ScreenHeight = height; }
         
@@ -123,7 +112,7 @@ namespace lumos
 		String				m_SceneName;
 		Camera*				m_pCamera;
 		ParticleManager*	m_ParticleManager;
-		graphics::TextureCube*		m_EnvironmentMap;
+		graphics::TextureCube* m_EnvironmentMap;
 
 		float m_SceneBoundingRadius;
 
@@ -133,17 +122,12 @@ namespace lumos
 		bool m_ReflectSkybox = true;
 
 		bool	m_DrawDebugData{};
-		uint64	m_DebugDrawFlags{};
-
-		bool m_DrawObjects;
-		bool m_ReflectScene;
-		bool m_UseShadow;
-		maths::Vector3	m_BackgroundColour;
+        uint64	m_DebugDrawFlags{};
 
 		uint m_ScreenWidth;
 		uint m_ScreenHeight;
 
-		maths::Frustum				m_FrameFrustum;
+		maths::Frustum m_FrameFrustum;
 		std::unique_ptr<RenderList>	m_pFrameRenderList;
 		std::vector<std::shared_ptr<graphics::Light>> m_LightList;
 

@@ -20,11 +20,7 @@ void Scene2D::OnInit()
 
 	SetDebugDrawFlags(DEBUGDRAW_FLAGS_ENTITY_COMPONENTS | DEBUGDRAW_FLAGS_COLLISIONVOLUMES);
 
-	SetDrawObjects(true);
-	SetUseShadow(true);
-
 	m_pCamera = new Camera2D(16, 9 , 1.0f);
-	//m_pCamera->SetPosition(maths::Vector3(-15.0f, 6.0f,0.25f));
 
 
 	m_SceneBoundingRadius = 20.0f;

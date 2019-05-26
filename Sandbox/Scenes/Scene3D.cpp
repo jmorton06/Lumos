@@ -23,9 +23,6 @@ void Scene3D::OnInit()
 
 	SetDebugDrawFlags( DEBUGDRAW_FLAGS_ENTITY_COMPONENTS | DEBUGDRAW_FLAGS_COLLISIONVOLUMES  );
 
-	SetDrawObjects(true);
-	SetUseShadow(true);
-
 	LoadModels();
 
 	m_pCamera = new ThirdPersonCamera(-20.0f, -40.0f, maths::Vector3(-3.0f, 10.0f, 15.0f), 60.0f, 0.1f, 1000.0f, (float) m_ScreenWidth / (float) m_ScreenHeight);
