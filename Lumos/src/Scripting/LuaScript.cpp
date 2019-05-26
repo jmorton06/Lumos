@@ -1,5 +1,6 @@
 #include "LM.h"
 #include "LuaScript.h"
+#include <sol/sol.hpp>
 
 namespace lumos
 {
