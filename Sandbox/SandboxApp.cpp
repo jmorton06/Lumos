@@ -11,7 +11,7 @@ using namespace lumos;
 class Game : public Application
 {
 public:
-	explicit Game(const WindowProperties& windowProperties) : Application(windowProperties, graphics::RenderAPI::VULKAN)
+	explicit Game(const WindowProperties& windowProperties) : Application(windowProperties)
 	{
 	}
 

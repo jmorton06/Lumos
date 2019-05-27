@@ -51,7 +51,7 @@ namespace lumos
 	{
 		friend class Editor;
 	public:
-		Application(const WindowProperties& properties, const graphics::RenderAPI& api);
+		Application(const WindowProperties& properties);
 		virtual ~Application();
 
 		Application(Application const&) = delete;
