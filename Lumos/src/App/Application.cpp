@@ -28,7 +28,7 @@ namespace lumos
 {
 	Application* Application::s_Instance = nullptr;
 
-	Application::Application(const WindowProperties& properties, const graphics::RenderAPI& api)
+	Application::Application(const WindowProperties& properties)
 		: m_UpdateTimer(0), m_Frames(0), m_Updates(0)
 	{
 		LUMOS_ASSERT(!s_Instance, "Application already exists!");
@@ -41,7 +41,7 @@ namespace lumos
 #ifdef  LUMOS_EDITOR
 		m_Editor = new Editor(this, properties.Width, properties.Height);
 #endif
-		graphics::GraphicsContext::SetRenderAPI(api);
+		graphics::GraphicsContext::SetRenderAPI(static_cast<graphics::RenderAPI>(properties.RenderAPI));
 
 		Engine::Instance();
 

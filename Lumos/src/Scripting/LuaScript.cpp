@@ -30,6 +30,7 @@ namespace lumos
         windowProperties->Title = m_State->get<std::string>("title");
         windowProperties->Width = m_State->get<int>("width");
         windowProperties->Height = m_State->get<int>("height");
+        windowProperties->RenderAPI = m_State->get<int>("renderAPI");
         
         return windowProperties;
     }

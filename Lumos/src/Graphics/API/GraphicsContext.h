@@ -7,18 +7,18 @@ namespace lumos
 	namespace graphics
 	{
 
-		enum class LUMOS_EXPORT RenderAPI
+        enum class LUMOS_EXPORT RenderAPI : int
 		{
 		#ifdef LUMOS_RENDER_API_OPENGL
-			OPENGL,
+			OPENGL = 0,
 		#endif
 
 		#ifdef LUMOS_RENDER_API_DIRECT3D
-			DIRECT3D,
+			DIRECT3D = 1,
 		#endif
 
 		#ifdef LUMOS_RENDER_API_VULKAN
-			VULKAN,
+			VULKAN = 2,
 		#endif
 		};
 
