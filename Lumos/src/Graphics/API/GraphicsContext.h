@@ -39,7 +39,8 @@ namespace lumos
 			virtual size_t GetMinUniformBufferOffsetAlignment() const = 0;
 
 			static GraphicsContext* GetContext() { return s_Context; }
-
+            virtual bool FlipImGUITexture() const = 0;
+            
 		protected:
 			
 			static GraphicsContext* s_Context;

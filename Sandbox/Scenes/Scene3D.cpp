@@ -62,8 +62,8 @@ void Scene3D::OnInit()
 	auto deferredRenderer = new graphics::DeferredRenderer(m_ScreenWidth, m_ScreenHeight);
 	auto skyboxRenderer = new graphics::SkyboxRenderer(m_ScreenWidth, m_ScreenHeight, m_EnvironmentMap);
 
-	//deferredRenderer->SetRenderToGBufferTexture(true);
-	//skyboxRenderer->SetRenderToGBufferTexture(true);
+	deferredRenderer->SetRenderToGBufferTexture(true);
+	skyboxRenderer->SetRenderToGBufferTexture(true);
 
 	auto shadowLayer = new Layer3D(shadowRenderer, "Shadow");
 	auto deferredLayer = new Layer3D(deferredRenderer, "Deferred");
@@ -429,10 +429,4 @@ void Scene3D::OnIMGUI()
 {
     if (show_demo_window)
         ImGui::ShowDemoWindow(&show_demo_window);
-
- 	if(ImGui::Button("<- SceneSelect"))
-	{
-		Application::Instance()->GetSceneManager()->JumpToScene("SceneSelect");
-		return;
-	}
 }

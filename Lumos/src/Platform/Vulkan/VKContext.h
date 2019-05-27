@@ -57,6 +57,8 @@ namespace lumos
 			size_t GetMinUniformBufferOffsetAlignment() const override;
 
 			void* GetWindowContext() const { return m_WindowContext; }
+            
+            bool FlipImGUITexture() const override { return false; }
 
 		protected:
 
