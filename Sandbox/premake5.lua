@@ -58,11 +58,6 @@ project "Sandbox"
 			"_DISABLE_EXTENDED_ALIGNED_STORAGE"
 		}
 
-		links
-		{
-			"lua"
-		}
-
 		buildoptions
 		{
 			"/MP"

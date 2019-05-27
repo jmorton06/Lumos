@@ -38,16 +38,12 @@ public:
 };
 
 lumos::Application* lumos::CreateApplication()
-{
-    sol::state* state = LuaScript::Instance()->GetState();
-  
-    WindowProperties windowProperties;
+{  
+    WindowProperties* windowProperties = LuaScript::Instance()->LoadConfigFile(ROOT_DIR"/Sandbox/Settings.lua");
     
-    state->script_file(ROOT_DIR"/Sandbox/Settings.lua");
-    windowProperties.Title = state->get<std::string>("title");
-    windowProperties.Width = state->get<int>("width");
-    windowProperties.Height = state->get<int>("height");
+	windowProperties->ShowConsole = true;
+    auto game = new Game(*windowProperties);
     
-	windowProperties.ShowConsole = true;
-    return new Game(windowProperties);
+    delete windowProperties;
+    return game;
 }

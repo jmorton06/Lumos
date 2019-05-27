@@ -78,7 +78,6 @@
 
 //Scripting
 #include "Scripting/LuaScript.h"
-#include <sol/sol.hpp>
 
 //Utilities
 #include "Utilities/LoadImage.h"

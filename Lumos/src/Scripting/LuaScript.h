@@ -9,6 +9,8 @@ namespace sol
 
 namespace lumos
 {
+    struct WindowProperties;
+    
     class LUMOS_EXPORT LuaScript : public TSingleton<LuaScript>
     {
         friend class TSingleton<LuaScript>;
@@ -19,6 +21,8 @@ namespace lumos
         void OnInit();
         
         sol::state* GetState() const { return m_State; }
+        
+        WindowProperties* LoadConfigFile(const String& file);
         
     private:
         sol::state* m_State;
