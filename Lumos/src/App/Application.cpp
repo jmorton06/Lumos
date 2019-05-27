@@ -43,13 +43,6 @@ namespace lumos
 #endif
 		graphics::GraphicsContext::SetRenderAPI(api);
 
-#ifdef LUMOS_EDITOR
-#ifdef LUMOS_RENDER_API_OPENGL
-		if (api == graphics::RenderAPI::OPENGL)
-			m_Editor->m_FlipImGuiImage = true;
-#endif
-#endif
-
 		Engine::Instance();
 
 		m_TimeStep = std::make_unique<TimeStep>(0.0f);

@@ -4,7 +4,7 @@
 #include "Events/ApplicationEvent.h"
 #include "Window.h"
 
-//#define LUMOS_EDITOR //temp
+#define LUMOS_EDITOR //temp
 
 namespace lumos
 {

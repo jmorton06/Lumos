@@ -48,7 +48,6 @@ namespace lumos
 		maths::Vector2 m_SceneViewSize;
 		maths::Vector2 m_SceneViewPosition;
 		uint m_ImGuizmoOperation = 0;
-		bool m_FlipImGuiImage = false;
 		Entity* m_Selected = nullptr;
 
 		std::map<String, graphics::Texture2D*> m_Icons;
