@@ -46,7 +46,7 @@ void Scene3D::OnInit()
 
 	m_EnvironmentMap = graphics::TextureCube::CreateFromVCross(environmentFiles, 11);
 
-	auto sun = std::make_shared<graphics::Light>(maths::Vector3(26.0f, 22.0f, 48.5f), maths::Vector4(1.0f) , 2.0f);
+	auto sun = std::make_shared<graphics::Light>(maths::Vector3(26.0f, 22.0f, 48.5f), maths::Vector4(1.0f) , 0.9f);
     
     auto lightEntity = std::make_shared<Entity>("Directional Light");
     lightEntity->AddComponent(std::make_unique<LightComponent>(sun));
@@ -335,17 +335,18 @@ void Scene3D::LoadModels()
 	}
 #endif
 
+    //plastics
     int numSpheres = 0;
 	for (int i = 0; i < 10; i++)
 	{
 		float roughness = i / 10.0f;
-		maths::Vector4 spec(0.1f,0.1f,0.1f,1.0f);
-		Vector4 diffuse(1.0f, 0.0f, 0.0f, 1.0f);
+		maths::Vector4 spec(0.04f);
+		Vector4 diffuse(0.9f);
 
 		std::shared_ptr<Material> m = std::make_shared<Material>();
 		MaterialProperties properties;
 		properties.albedoColour = diffuse;
-		properties.glossColour = Vector4(1.0f - roughness);
+		properties.glossColour = Vector4(roughness);
 		properties.specularColour = spec;
 		properties.usingAlbedoMap   = 0.0f;
 		properties.usingGlossMap    = 0.0f;
@@ -364,16 +365,17 @@ void Scene3D::LoadModels()
 		AddEntity(sphere);
 	}
 
+    //metals
 	for (int i = 0; i < 10; i++)
 	{
-		float roughness = i / 10.0f;
-		Vector4 spec(0.9f);
-		Vector4 diffuse(0.0f, 0.0f, 0.0f, 1.0f);
+        float roughness = i / 10.0f;
+        Vector4 spec(1.0f);
+        Vector4 diffuse(0.0f,0.0f,0.0f,1.0f);
 
 		std::shared_ptr<Material> m = std::make_shared<Material>();
 		MaterialProperties properties;
 		properties.albedoColour = diffuse;
-		properties.glossColour = Vector4(1.0f - roughness);
+		properties.glossColour = Vector4(roughness);
 		properties.specularColour = spec;
 		properties.usingAlbedoMap   = 0.0f;
 		properties.usingGlossMap    = 0.0f;
@@ -383,42 +385,13 @@ void Scene3D::LoadModels()
 
 		std::shared_ptr<Entity> sphere = std::make_shared<Entity>("Sphere" + StringFormat::ToString(numSpheres++));
 
-		sphere->AddComponent(std::make_unique<TransformComponent>(Matrix4::Scale(maths::Vector3(0.5f, 0.5f, 0.5f)) * Matrix4::Translation(maths::Vector3(i * 2.0f, 30.0f, 3.0f))));
+		sphere->AddComponent(std::make_unique<TransformComponent>(Matrix4::Scale(maths::Vector3(0.5f, 0.5f, 0.5f)) * Matrix4::Translation(maths::Vector3(i * 2.0f, 33.0f, 0.0f))));
 		sphere->AddComponent(std::make_unique<TextureMatrixComponent>(Matrix4()));
 		std::shared_ptr<graphics::Mesh> sphereModel = std::make_shared<graphics::Mesh>(*AssetsManager::DefaultModels()->GetAsset("Sphere"));
 		sphere->AddComponent(std::make_unique<MeshComponent>(sphereModel));
 		sphere->GetComponent<MeshComponent>()->m_Model->SetMaterial(m);
 
 		AddEntity(sphere);
-	}
-
-    int numCubes = 0;
-	for (int i = 0; i < 10; i++)
-	{
-		float roughness = i / 10.0f;
-		Vector4 spec(i / 10.0f,i / 10.0f,i / 10.0f,1.0f);
-		Vector4 diffuse(1.0f, 0.0f, 0.0f, 1.0f);
-
-		std::shared_ptr<Material> m = std::make_shared<Material>();
-		MaterialProperties properties;
-		properties.albedoColour = diffuse;
-		properties.glossColour = Vector4(1.0f - roughness);
-		properties.specularColour = spec;
-		properties.usingAlbedoMap   = 0.0f;
-		properties.usingGlossMap    = 0.0f;
-		properties.usingNormalMap   = 0.0f;
-		properties.usingSpecularMap = 0.0f;
-		m->SetMaterialProperites(properties);
-
-		std::shared_ptr<Entity> cube2 = std::make_shared<Entity>("Cube" + StringFormat::ToString(numCubes++));
-
-		cube2->AddComponent(std::make_unique<TransformComponent>(Matrix4::Scale(maths::Vector3(0.5f, 0.5f, 0.5f)) * Matrix4::Translation(maths::Vector3(i * 2.0f, 30.0f, -3.0f))));
-		cube2->AddComponent(std::make_unique<TextureMatrixComponent>(Matrix4()));
-		std::shared_ptr<graphics::Mesh> cubeModel1 = std::make_shared<graphics::Mesh>(*AssetsManager::DefaultModels()->GetAsset("Cube"));
-		cube2->AddComponent(std::make_unique<MeshComponent>(cubeModel1));
-		cube2->GetComponent<MeshComponent>()->m_Model->SetMaterial(m);
-
-		AddEntity(cube2);
 	}
 }
 
