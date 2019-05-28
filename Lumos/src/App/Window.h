@@ -31,9 +31,9 @@ namespace lumos
 	public:
 		using EventCallbackFn = std::function<void(Event&)>; 
 
-		static Window* Create(const std::string& title, const WindowProperties& properties);
+		static Window* Create(const WindowProperties& properties);
 		virtual ~Window() {};
-		bool Initialise(const String& title, const WindowProperties& properties);
+		bool Initialise(const WindowProperties& properties);
 
 		inline Timer* GetWindowTimer() const { return m_Timer; }
 
@@ -58,6 +58,7 @@ namespace lumos
 		virtual void SetMousePosition(const maths::Vector2& pos) {};
 		virtual void SetEventCallback(const EventCallbackFn& callback) = 0;
 
+		virtual String GetTitle() const = 0;
 		virtual uint GetWidth()  const = 0;
 		virtual uint GetHeight() const = 0;
 

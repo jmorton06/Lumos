@@ -42,15 +42,15 @@ namespace lumos
 #define HID_USAGE_GENERIC_KEYBOARD ((USHORT)0x06)
 #endif
 
-	WindowsWindow::WindowsWindow(const WindowProperties& properties, const String& title, graphics::RenderAPI api) : hWnd(nullptr)
+	WindowsWindow::WindowsWindow(const WindowProperties& properties) : hWnd(nullptr)
 	{
 		m_Init = false;
 		m_VSync = properties.VSync;
 		m_Timer = new Timer();
 		SetHasResized(true);
-		m_Data.m_RenderAPI = api;
+		m_Data.m_RenderAPI = static_cast<graphics::RenderAPI>(properties.RenderAPI);
 
-		m_Init = Init(properties, title);
+		m_Init = Init(properties);
 
 		graphics::GraphicsContext::Create(properties, hWnd);
 	}
@@ -79,9 +79,9 @@ namespace lumos
 		return result;
 	}
 
-	bool WindowsWindow::Init(const WindowProperties& properties, const String& title)
+	bool WindowsWindow::Init(const WindowProperties& properties)
 	{
-		m_Data.Title = title;
+		m_Data.Title = properties.Title;
 		m_Data.Width = properties.Width;
 		m_Data.Height = properties.Height;
 		m_Data.Exit = false;
@@ -92,7 +92,7 @@ namespace lumos
 		winClass.hInstance = hInstance; // GetModuleHandle(0);
 		winClass.style = CS_HREDRAW | CS_VREDRAW | CS_OWNDC;
 		winClass.lpfnWndProc = static_cast<WNDPROC>(WndProc);
-		winClass.lpszClassName = title.c_str();
+		winClass.lpszClassName = properties.Title.c_str();
 		winClass.hCursor = LoadCursor(NULL, IDC_ARROW);
 		winClass.hIcon = LoadIcon(NULL, IDI_WINLOGO);
 
@@ -106,7 +106,7 @@ namespace lumos
 		AdjustWindowRectEx(&size, WS_OVERLAPPEDWINDOW | WS_CLIPSIBLINGS | WS_CLIPCHILDREN, false, WS_EX_APPWINDOW | WS_EX_WINDOWEDGE);
 
 		hWnd = CreateWindowExA(WS_EX_APPWINDOW | WS_EX_WINDOWEDGE,
-			winClass.lpszClassName, title.c_str(),
+			winClass.lpszClassName, properties.Title.c_str(),
 			WS_OVERLAPPEDWINDOW | WS_CLIPSIBLINGS | WS_CLIPCHILDREN,
 			GetSystemMetrics(SM_CXSCREEN) / 2 - properties.Width / 2,
 			GetSystemMetrics(SM_CYSCREEN) / 2 - properties.Height / 2,
@@ -140,7 +140,7 @@ namespace lumos
 
 		ShowWindow(hWnd, SW_SHOW);
 		SetFocus(hWnd);
-		SetWindowTitle(title);
+		SetWindowTitle(properties.Title);
 
 		if(!properties.ShowConsole)
 		{
@@ -198,6 +198,7 @@ namespace lumos
 
 	void WindowsWindow::SetWindowTitle(const String& title)
 	{
+		m_Data.Title = title;
 		SetWindowText(hWnd, title.c_str());
 	}
 

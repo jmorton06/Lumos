@@ -4,6 +4,7 @@
 #include "Graphics/RenderList.h"
 #include "Graphics/API/Framebuffer.h"
 #include "Graphics/ModelLoader/ModelLoader.h"
+#include "Graphics/API/UniformBuffer.h"
 #include "Graphics/API/Renderer.h"
 #include "Graphics/API/CommandBuffer.h"
 #include "Graphics/API/Swapchain.h"
@@ -78,7 +79,11 @@ namespace lumos
 			m_RenderPass = graphics::RenderPass::Create();
 			m_UniformBuffer = graphics::UniformBuffer::Create();
 
-			TextureType textureTypes[2] = { TextureType::COLOUR };
+			AttachmentInfo textureTypes[2] =
+			{
+				{ TextureType::COLOUR, TextureFormat::RGBA8 }
+			};
+
 			graphics::RenderpassInfo renderpassCI{};
 			renderpassCI.attachmentCount = 1;
 			renderpassCI.textureType = textureTypes;
@@ -355,7 +360,7 @@ namespace lumos
 			m_Framebuffers.clear();
 
 			if (m_RenderToGBufferTexture)
-				m_RenderTexture = Application::Instance()->GetRenderManager()->GetGBuffer()->m_ScreenTex[SCREENTEX_OFFSCREEN0];
+				m_RenderTexture = Application::Instance()->GetRenderManager()->GetGBuffer()->GetTexture(SCREENTEX_OFFSCREEN0);
 
 			SetScreenBufferSize(width, height);
 
@@ -534,7 +539,7 @@ namespace lumos
 		void Renderer2D::SetRenderToGBufferTexture(bool set)
 		{
 			m_RenderToGBufferTexture = true;
-			m_RenderTexture = Application::Instance()->GetRenderManager()->GetGBuffer()->m_ScreenTex[SCREENTEX_OFFSCREEN0];
+			m_RenderTexture = Application::Instance()->GetRenderManager()->GetGBuffer()->GetTexture(SCREENTEX_OFFSCREEN0);
 
 			for (auto fbo : m_Framebuffers)
 				delete fbo;

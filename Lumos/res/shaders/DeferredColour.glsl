@@ -18,8 +18,8 @@ out vec3 tangent;
 
 void main() 
 {
-    gl_Position 	= sys_projView * modelMatrix * vec4(inPosition, 1.0);
 	position 		= modelMatrix * vec4(inPosition, 1.0);
+    gl_Position 	= sys_projView * position;
     fragColor 		= inColor;
 	fragTexCoord 	= inTexCoord;
 	normal 			= transpose(inverse(mat3(modelMatrix))) * normalize(inNormal);

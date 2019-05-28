@@ -6,6 +6,7 @@
 #include "Graphics/Light.h"
 #include "Graphics/API/Textures/Texture2D.h"
 #include "Graphics/API/Textures/TextureCube.h"
+#include "Graphics/API/UniformBuffer.h"
 #include "Graphics/ModelLoader/ModelLoader.h"
 #include "Graphics/Mesh.h"
 #include "Graphics/Material.h"
@@ -14,6 +15,7 @@
 #include "Graphics/API/Swapchain.h"
 #include "Graphics/API/RenderPass.h"
 #include "Graphics/API/Pipeline.h"
+#include "Graphics/API/GraphicsContext.h"
 #include "Graphics/GBuffer.h"
 #include "App/Scene.h"
 #include "Entity/Entity.h"
@@ -154,7 +156,12 @@ namespace lumos
 			m_UniformBuffer = graphics::UniformBuffer::Create();
 			m_ModelUniformBuffer = graphics::UniformBuffer::Create();
 
-			TextureType textureTypes[2] = { TextureType::COLOUR , TextureType::DEPTH };
+			AttachmentInfo textureTypes[2] =
+			{
+				{ TextureType::COLOUR, TextureFormat::RGBA8 },
+				{ TextureType::DEPTH , TextureFormat::DEPTH }
+			};
+
 			graphics::RenderpassInfo renderpassCI{};
 			renderpassCI.attachmentCount = 2;
 			renderpassCI.textureType = textureTypes;
@@ -337,7 +344,7 @@ namespace lumos
 		void ForwardRenderer::SetRenderToGBufferTexture(bool set)
 		{
 			m_RenderToGBufferTexture = true;
-			m_RenderTexture = Application::Instance()->GetRenderManager()->GetGBuffer()->m_ScreenTex[SCREENTEX_OFFSCREEN0];
+			m_RenderTexture = Application::Instance()->GetRenderManager()->GetGBuffer()->GetTexture(SCREENTEX_OFFSCREEN0);
 
 			for (auto fbo : m_Framebuffers)
 				delete fbo;
@@ -361,11 +368,16 @@ namespace lumos
 			m_Framebuffers.clear();
 
 			if (m_RenderToGBufferTexture)
-				m_RenderTexture = Application::Instance()->GetRenderManager()->GetGBuffer()->m_ScreenTex[SCREENTEX_OFFSCREEN0];
+				m_RenderTexture = Application::Instance()->GetRenderManager()->GetGBuffer()->GetTexture(SCREENTEX_OFFSCREEN0);
 
 			m_RenderPass = graphics::RenderPass::Create();
 
-			TextureType textureTypes[2] = { TextureType::COLOUR , TextureType::DEPTH };
+			AttachmentInfo textureTypes[2] =
+			{
+				{ TextureType::COLOUR, TextureFormat::RGBA8 },
+				{ TextureType::DEPTH , TextureFormat::DEPTH }
+			};
+
 			graphics::RenderpassInfo renderpassCI{};
 			renderpassCI.attachmentCount = 2;
 			renderpassCI.textureType = textureTypes;
@@ -476,7 +488,7 @@ namespace lumos
 			attachmentTypes[1] = TextureType::DEPTH;
 
 			Texture* attachments[2];
-			attachments[1] = reinterpret_cast<Texture*>(Application::Instance()->GetRenderManager()->GetGBuffer()->m_DepthTexture);
+			attachments[1] = reinterpret_cast<Texture*>(Application::Instance()->GetRenderManager()->GetGBuffer()->GetDepthTexture());
 			FramebufferInfo bufferInfo{};
 			bufferInfo.width = m_ScreenBufferWidth;
 			bufferInfo.height = m_ScreenBufferHeight;

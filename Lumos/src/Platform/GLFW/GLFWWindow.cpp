@@ -32,15 +32,15 @@ namespace lumos
 		LUMOS_CORE_ERROR("GLFW Error - {0} : {1}", error, description);
 	}
 
-	GLFWWindow::GLFWWindow(const WindowProperties& properties, const String& title, graphics::RenderAPI api)
+	GLFWWindow::GLFWWindow(const WindowProperties& properties)
 	{
 		m_Init = false;
 		m_VSync = properties.VSync;
 		m_Timer = new Timer();
         SetHasResized(true);
-		m_Data.m_RenderAPI = api;
+		m_Data.m_RenderAPI = static_cast<graphics::RenderAPI>(properties.RenderAPI);
 
-		m_Init = Init(properties, title);
+		m_Init = Init(properties);
 
 		graphics::GraphicsContext::Create(properties, m_Handle);
 	}
@@ -62,9 +62,9 @@ namespace lumos
 		}
 	}
 
-	bool GLFWWindow::Init(const WindowProperties& properties, const String& title)
+	bool GLFWWindow::Init(const WindowProperties& properties)
 	{
-		LUMOS_CORE_INFO("Creating window - Title : {0}, Width : {1}, Height : {2}", title, properties.Width, properties.Height);
+		LUMOS_CORE_INFO("Creating window - Title : {0}, Width : {1}, Height : {2}", properties.Title, properties.Width, properties.Height);
 
 		if (!s_GLFWInitialized)
 		{
@@ -110,7 +110,7 @@ namespace lumos
 			ScreenHeight = properties.Height;
 		}
 
-		m_Data.Title = title;
+		m_Data.Title = properties.Title;
 		m_Data.Width = ScreenWidth;
 		m_Data.Height = ScreenHeight;
 		m_Data.Exit = false;
@@ -120,7 +120,7 @@ namespace lumos
 			glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
 #endif
 
-		m_Handle = glfwCreateWindow(ScreenWidth, ScreenHeight, title.c_str(), nullptr, nullptr);
+		m_Handle = glfwCreateWindow(ScreenWidth, ScreenHeight, properties.Title.c_str(), nullptr, nullptr);
 
         if(m_Data.m_RenderAPI == graphics::RenderAPI::OPENGL)
             glfwMakeContextCurrent(m_Handle);
@@ -273,6 +273,7 @@ namespace lumos
 
 	void GLFWWindow::SetWindowTitle(const String& title)
 	{
+		m_Data.Title = title;
 		glfwSetWindowTitle(m_Handle, title.c_str());
 	}
 

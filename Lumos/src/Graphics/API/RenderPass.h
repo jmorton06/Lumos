@@ -1,6 +1,5 @@
 #pragma once
 #include "LM.h"
-#include "Textures/Texture.h"
 
 namespace lumos
 {
@@ -13,12 +12,19 @@ namespace lumos
 	{
 		class CommandBuffer;
 		class Framebuffer;
+		enum class TextureType : int;
+		enum class TextureFormat;
+
+		struct AttachmentInfo
+		{
+			TextureType textureType;
+			TextureFormat format;
+		};
 
 		struct RenderpassInfo
 		{
-			TextureType* textureType;
+			AttachmentInfo* textureType;
 			int attachmentCount;
-			bool depthOnly = false;
 			bool clear = true;
 		};
 

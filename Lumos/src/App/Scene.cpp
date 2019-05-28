@@ -85,7 +85,7 @@ namespace lumos
 		}
 
 		std::stringstream Title;
-		Title << Platform << dash << RenderAPI << dash << Configuration << dash << m_SceneName;
+		Title << Platform << dash << RenderAPI << dash << Configuration << dash << m_SceneName << dash << Application::Instance()->GetWindow()->GetTitle();
 
 		Application::Instance()->GetWindow()->SetWindowTitle(Title.str());
 

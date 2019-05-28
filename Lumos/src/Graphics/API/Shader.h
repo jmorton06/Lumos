@@ -2,9 +2,6 @@
 
 #include "LM.h"
 
-#include "Maths/Maths.h"
-#include "System/VFS.h"
-
 #include "ShaderUniform.h"
 #include "ShaderResource.h"
 

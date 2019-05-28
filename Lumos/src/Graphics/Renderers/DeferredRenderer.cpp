@@ -12,11 +12,13 @@
 #include "Graphics/MeshFactory.h"
 #include "Graphics/Material.h"
 #include "Graphics/LightSetUp.h"
+#include "Graphics/API/UniformBuffer.h"
 #include "Graphics/API/Renderer.h"
 #include "Graphics/API/CommandBuffer.h"
 #include "Graphics/API/Swapchain.h"
 #include "Graphics/API/RenderPass.h"
 #include "Graphics/API/Pipeline.h"
+#include "Graphics/API/GraphicsContext.h"
 #include "Graphics/GBuffer.h"
 #include "App/Scene.h"
 #include "Entity/Entity.h"
@@ -48,24 +50,6 @@ namespace lumos
 		{
 			PSSystemUniformIndex_Lights = 0,
 			PSSystemUniformIndex_Size
-		};
-
-		struct UniformBufferLight
-		{
-			graphics::Light light[MAX_LIGHTS];
-			lumos::maths::Vector4 cameraPosition;
-			lumos::maths::Matrix4 viewMatrix;
-			lumos::maths::Matrix4 uShadowTransform[MAX_SHADOWMAPS];
-			lumos::maths::Vector4 uSplitDepth[MAX_SHADOWMAPS];
-			float lightCount;
-			float shadowCount;
-			float mode;
-			float p1;
-		};
-
-		struct UniformBufferObject
-		{
-			lumos::maths::Matrix4 projView;
 		};
 
 		DeferredRenderer::DeferredRenderer(uint width, uint height)
@@ -162,7 +146,7 @@ namespace lumos
 			m_VSSystemUniformBufferOffsets[VSSystemUniformIndex_ProjectionMatrix] = 0;
 
 			// Pixel/fragment shader system uniforms
-			m_PSSystemUniformBufferSize = sizeof(UniformBufferLight);
+			m_PSSystemUniformBufferSize = sizeof(Light) * MAX_LIGHTS + sizeof(maths::Vector4) + sizeof(maths::Matrix4) + (sizeof(maths::Matrix4) + sizeof(maths::Vector4))* MAX_SHADOWMAPS + sizeof(float) * 4;
 			m_PSSystemUniformBuffer = new byte[m_PSSystemUniformBufferSize];
 			memset(m_PSSystemUniformBuffer, 0, m_PSSystemUniformBufferSize);
 			m_PSSystemUniformBufferOffsets.resize(PSSystemUniformIndex_Size);
@@ -173,14 +157,26 @@ namespace lumos
 			m_OffScreenRenderpass = graphics::RenderPass::Create();
 			m_DeferredRenderpass = graphics::RenderPass::Create();
 
-			TextureType textureTypes[2] = { TextureType::COLOUR, TextureType::DEPTH };
+			AttachmentInfo textureTypes[2] = 
+			{ 
+				{ TextureType::COLOUR, TextureFormat::RGBA8 },
+				{ TextureType::DEPTH , TextureFormat::DEPTH }
+			};
 			graphics::RenderpassInfo renderpassCI{};
 			renderpassCI.attachmentCount = 2;
 			renderpassCI.textureType = textureTypes;
 
 			m_DeferredRenderpass->Init(renderpassCI);
 
-			TextureType textureTypesOffScreen[5] = { TextureType::COLOUR , TextureType::COLOUR ,TextureType::COLOUR ,TextureType::COLOUR ,TextureType::DEPTH };
+			AttachmentInfo textureTypesOffScreen[5] = 
+			{
+				{ TextureType::COLOUR, Application::Instance()->GetRenderManager()->GetGBuffer()->GetTextureFormat(SCREENTEX_COLOUR) },
+				{ TextureType::COLOUR, Application::Instance()->GetRenderManager()->GetGBuffer()->GetTextureFormat(SCREENTEX_POSITION) },
+				{ TextureType::COLOUR, Application::Instance()->GetRenderManager()->GetGBuffer()->GetTextureFormat(SCREENTEX_NORMALS) },
+				{ TextureType::COLOUR, Application::Instance()->GetRenderManager()->GetGBuffer()->GetTextureFormat(SCREENTEX_PBR) },
+				{ TextureType::DEPTH, TextureFormat::DEPTH }
+			};
+
 			graphics::RenderpassInfo renderpassCIOffScreen{};
 			renderpassCIOffScreen.attachmentCount = 5;
 			renderpassCIOffScreen.textureType = textureTypesOffScreen;
@@ -430,7 +426,7 @@ namespace lumos
 
 		void DeferredRenderer::SetSystemUniforms(Shader* shader) const
 		{
-			m_UniformBuffer->SetData(sizeof(UniformBufferObject), *&m_VSSystemUniformBuffer);
+			m_UniformBuffer->SetData(m_VSSystemUniformBufferSize, *&m_VSSystemUniformBuffer);
 
 			int index = 0;
 
@@ -442,7 +438,7 @@ namespace lumos
 			}
 			m_ModelUniformBuffer->SetDynamicData(static_cast<uint32_t>(MAX_OBJECTS * dynamicAlignment), sizeof(maths::Matrix4), &*uboDataDynamic.model);
 
-			m_LightUniformBuffer->SetData(sizeof(UniformBufferLight), *&m_PSSystemUniformBuffer);
+			m_LightUniformBuffer->SetData(m_PSSystemUniformBufferSize, *&m_PSSystemUniformBuffer);
 		}
 
 		void DeferredRenderer::Present()
@@ -631,7 +627,7 @@ namespace lumos
 			{
 				m_UniformBuffer = graphics::UniformBuffer::Create();
 
-				uint32_t bufferSize = static_cast<uint32_t>(sizeof(UniformBufferObject));
+				uint32_t bufferSize = m_VSSystemUniformBufferSize;
 				m_UniformBuffer->Init(bufferSize, nullptr);
 			}
 
@@ -658,7 +654,7 @@ namespace lumos
 			graphics::BufferInfo bufferInfo = {};
 			bufferInfo.buffer = m_UniformBuffer;
 			bufferInfo.offset = 0;
-			bufferInfo.size = sizeof(UniformBufferObject);
+			bufferInfo.size = m_VSSystemUniformBufferSize;
 			bufferInfo.type = graphics::DescriptorType::UNIFORM_BUFFER;
 			bufferInfo.binding = 0;
 			bufferInfo.shaderType = ShaderType::VERTEX;
@@ -697,11 +693,11 @@ namespace lumos
 			bufferInfo.attachmentTypes = attachmentTypes;
 
 			Texture* attachments[attachmentCount];
-			attachments[0] = Application::Instance()->GetRenderManager()->GetGBuffer()->m_ScreenTex[SCREENTEX_COLOUR];
-			attachments[1] = Application::Instance()->GetRenderManager()->GetGBuffer()->m_ScreenTex[SCREENTEX_POSITION];
-			attachments[2] = Application::Instance()->GetRenderManager()->GetGBuffer()->m_ScreenTex[SCREENTEX_NORMALS];
-			attachments[3] = Application::Instance()->GetRenderManager()->GetGBuffer()->m_ScreenTex[SCREENTEX_PBR];
-			attachments[4] = Application::Instance()->GetRenderManager()->GetGBuffer()->m_DepthTexture;
+			attachments[0] = Application::Instance()->GetRenderManager()->GetGBuffer()->GetTexture(SCREENTEX_COLOUR);
+			attachments[1] = Application::Instance()->GetRenderManager()->GetGBuffer()->GetTexture(SCREENTEX_POSITION);
+			attachments[2] = Application::Instance()->GetRenderManager()->GetGBuffer()->GetTexture(SCREENTEX_NORMALS);
+			attachments[3] = Application::Instance()->GetRenderManager()->GetGBuffer()->GetTexture(SCREENTEX_PBR);
+			attachments[4] = Application::Instance()->GetRenderManager()->GetGBuffer()->GetDepthTexture();
 			bufferInfo.attachments = attachments;
 
 			m_FBO = Framebuffer::Create(bufferInfo);
@@ -721,7 +717,7 @@ namespace lumos
 		void DeferredRenderer::SetRenderToGBufferTexture(bool set)
 		{
 			m_RenderToGBufferTexture = true;
-			m_RenderTexture = Application::Instance()->GetRenderManager()->GetGBuffer()->m_ScreenTex[SCREENTEX_OFFSCREEN0];
+			m_RenderTexture = Application::Instance()->GetRenderManager()->GetGBuffer()->GetTexture(SCREENTEX_OFFSCREEN0);
 
 			for (auto fbo : m_Framebuffers)
 				delete fbo;
@@ -737,7 +733,7 @@ namespace lumos
 			attachmentTypes[1] = TextureType::DEPTH;
 
 			Texture* attachments[2];
-			attachments[1] = reinterpret_cast<Texture*>(Application::Instance()->GetRenderManager()->GetGBuffer()->m_DepthTexture);
+			attachments[1] = reinterpret_cast<Texture*>(Application::Instance()->GetRenderManager()->GetGBuffer()->GetDepthTexture());
 			FramebufferInfo bufferInfo{};
 			bufferInfo.width = m_ScreenBufferWidth;
 			bufferInfo.height = m_ScreenBufferHeight;
@@ -771,7 +767,7 @@ namespace lumos
 			{
 				m_LightUniformBuffer = graphics::UniformBuffer::Create();
 
-				uint32_t bufferSize = static_cast<uint32_t>(sizeof(UniformBufferLight));
+				uint32_t bufferSize = m_PSSystemUniformBufferSize;
 				m_LightUniformBuffer->Init(bufferSize, nullptr);
 			}
 
@@ -781,7 +777,7 @@ namespace lumos
 			bufferInfo.name = "LightData";
 			bufferInfo.buffer = m_LightUniformBuffer;
 			bufferInfo.offset = 0;
-			bufferInfo.size = sizeof(UniformBufferLight);
+			bufferInfo.size = m_PSSystemUniformBufferSize;
 			bufferInfo.type = graphics::DescriptorType::UNIFORM_BUFFER;
 			bufferInfo.binding = 0;
 			bufferInfo.shaderType = ShaderType::FRAGMENT;
@@ -803,7 +799,7 @@ namespace lumos
 			m_Framebuffers.clear();
 
 			if (m_RenderToGBufferTexture)
-				m_RenderTexture = Application::Instance()->GetRenderManager()->GetGBuffer()->m_ScreenTex[SCREENTEX_OFFSCREEN0];
+				m_RenderTexture = Application::Instance()->GetRenderManager()->GetGBuffer()->GetTexture(SCREENTEX_OFFSCREEN0);
 
 			DeferredRenderer::SetScreenBufferSize(width, height);
 
@@ -875,22 +871,22 @@ namespace lumos
 			std::vector<graphics::ImageInfo> bufferInfos;
 
 			graphics::ImageInfo imageInfo = {};
-			imageInfo.texture = { Application::Instance()->GetRenderManager()->GetGBuffer()->m_ScreenTex[SCREENTEX_COLOUR] };
+			imageInfo.texture = { Application::Instance()->GetRenderManager()->GetGBuffer()->GetTexture(SCREENTEX_COLOUR) };
 			imageInfo.binding = 0;
 			imageInfo.name = "uColourSampler";
 
 			graphics::ImageInfo imageInfo2 = {};
-			imageInfo2.texture = { Application::Instance()->GetRenderManager()->GetGBuffer()->m_ScreenTex[SCREENTEX_POSITION] };
+			imageInfo2.texture = { Application::Instance()->GetRenderManager()->GetGBuffer()->GetTexture(SCREENTEX_POSITION) };
 			imageInfo2.binding = 1;
 			imageInfo2.name = "uPositionSampler";
 
 			graphics::ImageInfo imageInfo3 = {};
-			imageInfo3.texture = { Application::Instance()->GetRenderManager()->GetGBuffer()->m_ScreenTex[SCREENTEX_NORMALS] };
+			imageInfo3.texture = { Application::Instance()->GetRenderManager()->GetGBuffer()->GetTexture(SCREENTEX_NORMALS) };
 			imageInfo3.binding = 2;
 			imageInfo3.name = "uNormalSampler";
 
 			graphics::ImageInfo imageInfo4 = {};
-			imageInfo4.texture = { Application::Instance()->GetRenderManager()->GetGBuffer()->m_ScreenTex[SCREENTEX_PBR] };
+			imageInfo4.texture = { Application::Instance()->GetRenderManager()->GetGBuffer()->GetTexture(SCREENTEX_PBR) };
 			imageInfo4.binding = 3;
 			imageInfo4.name = "uPBRSampler";
 
@@ -916,7 +912,7 @@ namespace lumos
 			}
 
 			graphics::ImageInfo imageInfo8 = {};
-			imageInfo8.texture = { Application::Instance()->GetRenderManager()->GetGBuffer()->m_DepthTexture };
+			imageInfo8.texture = { Application::Instance()->GetRenderManager()->GetGBuffer()->GetDepthTexture() };
 			imageInfo8.binding = 7;
 			imageInfo8.type = TextureType::DEPTH;
 			imageInfo8.name = "uDepthSampler";

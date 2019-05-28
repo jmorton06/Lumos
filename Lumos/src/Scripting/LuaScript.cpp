@@ -22,15 +22,15 @@ namespace lumos
         delete m_State;
 	}
     
-    WindowProperties* LuaScript::LoadConfigFile(const String& file)
+    WindowProperties LuaScript::LoadConfigFile(const String& file)
     {
-        WindowProperties* windowProperties = new WindowProperties();
+        WindowProperties windowProperties;
         
         m_State->script_file(ROOT_DIR"/Sandbox/Settings.lua");
-        windowProperties->Title = m_State->get<std::string>("title");
-        windowProperties->Width = m_State->get<int>("width");
-        windowProperties->Height = m_State->get<int>("height");
-        windowProperties->RenderAPI = m_State->get<int>("renderAPI");
+        windowProperties.Title = m_State->get<std::string>("title");
+        windowProperties.Width = m_State->get<int>("width");
+        windowProperties.Height = m_State->get<int>("height");
+        windowProperties.RenderAPI = m_State->get<int>("renderAPI");
         
         return windowProperties;
     }

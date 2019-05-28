@@ -1,6 +1,5 @@
 #pragma once
-#include "UniformBuffer.h"
-#include "Textures/Texture.h"
+#include "LM.h"
 
 namespace lumos
 {
@@ -9,6 +8,8 @@ namespace lumos
 		class Pipeline;
 		class Shader;
 		class Texture;
+		class UniformBuffer;
+		enum class TextureType : int;
 		enum class ShaderType : int;
 
 		enum class DescriptorType
@@ -101,7 +102,7 @@ namespace lumos
 			int count = 1;
 			int binding;
 			String name;
-			TextureType type = TextureType::COLOUR;
+			TextureType type;
 		};
 
 		class DescriptorSet
@@ -121,8 +122,6 @@ namespace lumos
 		protected:
 			uint m_DynamicOffset = 0;
             Shader* m_Shader = nullptr;
-
-
 		};
 	}
 }

@@ -111,8 +111,6 @@ namespace lumos
 			case TextureFormat::RGBA8:				return GL_RGBA8;
 			case TextureFormat::RGB16:              return GL_RGB16F;
 			case TextureFormat::RGBA16:             return GL_RGBA16F;
-			case TextureFormat::LUMINANCE:			return GL_LUMINANCE;
-			case TextureFormat::LUMINANCE_ALPHA:	return GL_LUMINANCE_ALPHA;
 			default: LUMOS_CORE_ERROR("[Texture] Unsupported image bit-depth!");  return 0;
 			}
 		}

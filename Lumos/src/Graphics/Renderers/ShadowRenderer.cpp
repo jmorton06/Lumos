@@ -1,22 +1,25 @@
 #include "LM.h"
 #include "ShadowRenderer.h"
-#include "Graphics/RenderList.h"
+
 #include "Graphics/API/Textures/TextureDepthArray.h"
 #include "Graphics/API/Framebuffer.h"
-#include "App/Scene.h"
-#include "Graphics/API/Shader.h"
-#include "Maths/Maths.h"
-#include "Graphics/ModelLoader/ModelLoader.h"
-#include "Maths/MathsUtilities.h"
 #include "Graphics/API/Renderer.h"
 #include "Graphics/API/CommandBuffer.h"
 #include "Graphics/API/RenderPass.h"
 #include "Graphics/API/Pipeline.h"
 #include "Graphics/API/UniformBuffer.h"
-#include "RenderCommand.h"
+#include "Graphics/API/GraphicsContext.h"
+#include "Graphics/API/Shader.h"
+
+#include "Graphics/ModelLoader/ModelLoader.h"
 #include "Graphics/Camera/Camera.h"
 #include "Graphics/Light.h"
+#include "Graphics/RenderList.h"
 
+#include "Maths/MathsUtilities.h"
+#include "App/Scene.h"
+#include "Maths/Maths.h"
+#include "RenderCommand.h"
 #include "System/JobSystem.h"
 
 namespace lumos
@@ -110,11 +113,14 @@ namespace lumos
 			m_VSSystemUniformBufferOffsets[VSSystemUniformIndex_ProjectionViewMatrix] = 0;
 
 			m_RenderPass = graphics::RenderPass::Create();
-			TextureType textureTypes[1] = { TextureType::DEPTHARRAY };
+			AttachmentInfo textureTypes[2] =
+			{
+				{ TextureType::DEPTHARRAY, TextureFormat::DEPTH }
+			};
+
 			graphics::RenderpassInfo renderpassCI{};
 			renderpassCI.attachmentCount = 1;
 			renderpassCI.textureType = textureTypes;
-			renderpassCI.depthOnly = false;
 
 			m_RenderPass->Init(renderpassCI);
 

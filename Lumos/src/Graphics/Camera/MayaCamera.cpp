@@ -1,6 +1,7 @@
 #include "LM.h"
 #include "MayaCamera.h"
 #include "App/Application.h"
+#include "App/Input.h"
 
 namespace lumos
 {

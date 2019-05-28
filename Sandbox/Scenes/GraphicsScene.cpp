@@ -116,13 +116,4 @@ void GraphicsScene::LoadModels()
 
 void GraphicsScene::OnIMGUI()
 {
-	ImGui::Begin(m_SceneName.c_str());
- 	if(ImGui::Button("<- Back"))
-	{
-		Application::Instance()->GetSceneManager()->JumpToScene("SceneSelect");
-		ImGui::End();
-		return;
-	}
-
-    ImGui::End();
 }

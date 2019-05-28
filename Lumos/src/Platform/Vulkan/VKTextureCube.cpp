@@ -69,23 +69,6 @@ namespace lumos
 		{
 		}
 
-		vk::Format VKTextureCube::TextureFormatToVK(const TextureFormat format)
-		{
-			switch (format)
-			{
-			case TextureFormat::RGBA:				return vk::Format::eR8G8B8A8Unorm;
-			case TextureFormat::RGB:				return vk::Format::eR8G8B8Unorm;
-			case TextureFormat::R8:				    return vk::Format::eR8Unorm;
-			case TextureFormat::RG8:				return vk::Format::eR8G8Unorm;
-			case TextureFormat::RGB8:				return vk::Format::eR8G8B8Unorm;
-			case TextureFormat::RGBA8:				return vk::Format::eR8G8B8A8Unorm;
-			case TextureFormat::LUMINANCE:			return vk::Format::eR8G8B8A8Unorm;
-			case TextureFormat::LUMINANCE_ALPHA:	return vk::Format::eR8G8B8A8Unorm;
-			case TextureFormat::RGB16: 				return vk::Format::eR16G16B16A16Sfloat;
-			default: LUMOS_CORE_ERROR("[Texture] Unsupported image bit-depth!");  return vk::Format::eR8G8B8A8Unorm;
-			}
-		}
-
 		void VKTextureCube::CreateTextureSampler()
 		{
 			vk::SamplerCreateInfo samplerInfo = {};
