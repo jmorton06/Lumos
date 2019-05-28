@@ -1,6 +1,8 @@
 #include "LM.h"
 #include "BufferLayout.h"
 
+#include "GraphicsContext.h"
+
 #ifdef LUMOS_RENDER_API_OPENGL
 #include "Platform/OpenGL/GLTypes.h"
 #endif

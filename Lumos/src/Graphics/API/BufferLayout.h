@@ -3,7 +3,6 @@
 #include "LM.h"
 
 #include "Maths/Maths.h"
-#include "GraphicsContext.h"
 
 namespace lumos
 {

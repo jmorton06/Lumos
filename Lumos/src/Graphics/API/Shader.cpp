@@ -12,6 +12,7 @@
 #endif
 
 #include "Graphics/API/GraphicsContext.h"
+#include "System/VFS.h"
 
 namespace lumos
 {

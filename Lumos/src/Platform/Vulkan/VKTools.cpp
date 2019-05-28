@@ -1,5 +1,8 @@
 #include "LM.h"
 #include "VKTools.h"
+#include "VKDevice.h"
+#include "VKCommandPool.h"
+#include "Graphics/API/Textures/Texture.h"
 #include "Graphics/API/DescriptorSet.h"
 #include "Graphics/API/Pipeline.h"
 #include "Platform/Vulkan/VKCommandBuffer.h"
@@ -214,7 +217,7 @@ namespace lumos
 				);
 			}
 
-			std::string errorString(VkResult errorCode)
+			std::string ErrorString(VkResult errorCode)
 			{
 				switch (errorCode)
 				{
@@ -439,6 +442,22 @@ namespace lumos
 				subresourceRange.levelCount = 1;
 				subresourceRange.layerCount = 1;
 				SetImageLayout(cmdbuffer, image, oldImageLayout, newImageLayout, subresourceRange, srcStageMask, dstStageMask);
+			}
+
+			vk::Format TextureFormatToVK(const TextureFormat format)
+			{
+				switch (format)
+				{
+				case TextureFormat::RGBA:				return vk::Format::eR8G8B8A8Unorm;
+				case TextureFormat::RGB:				return vk::Format::eR8G8B8Unorm;
+				case TextureFormat::R8:				    return vk::Format::eR8Unorm;
+				case TextureFormat::RG8:				return vk::Format::eR8G8Unorm;
+				case TextureFormat::RGB8:				return vk::Format::eR8G8B8Unorm;
+				case TextureFormat::RGBA8:				return vk::Format::eR8G8B8A8Unorm;
+				case TextureFormat::RGB16:              return vk::Format::eR16G16B16Sfloat;
+				case TextureFormat::RGBA16:             return vk::Format::eR16G16B16A16Sfloat;
+				default: LUMOS_CORE_ERROR("[Texture] Unsupported image bit-depth!");  return vk::Format::eR8G8B8A8Unorm;
+				}
 			}
 		}
 	}

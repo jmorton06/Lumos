@@ -1,6 +1,7 @@
 #include "LM.h"
 #include "Editor.h"
 #include "App/Application.h"
+#include "App/Input.h"
 #include <imgui/plugins/ImGuizmo.h>
 #include "Entity/Entity.h"
 #include "Graphics/GBuffer.h"
@@ -164,12 +165,12 @@ namespace lumos
 				{
 					if (ImGui::TreeNode("Colour Texture"))
 					{
-						ImGui::Image(m_Application->m_RenderManager->GetGBuffer()->m_ScreenTex[graphics::SCREENTEX_COLOUR]->GetHandle(), ImVec2(128, 128), ImVec2(0.0f, flipImage ? 1.0f : 0.0f), ImVec2(1.0f, flipImage ? 0.0f : 1.0f));
+						ImGui::Image(m_Application->m_RenderManager->GetGBuffer()->GetTexture(graphics::SCREENTEX_COLOUR)->GetHandle(), ImVec2(128, 128), ImVec2(0.0f, flipImage ? 1.0f : 0.0f), ImVec2(1.0f, flipImage ? 0.0f : 1.0f));
                         
                         if (ImGui::IsItemHovered())
                         {
                             ImGui::BeginTooltip();
-                            ImGui::Image(m_Application->m_RenderManager->GetGBuffer()->m_ScreenTex[graphics::SCREENTEX_COLOUR]->GetHandle(), ImVec2(256, 256), ImVec2(0.0f, flipImage ? 1.0f : 0.0f), ImVec2(1.0f, flipImage ? 0.0f : 1.0f));
+                            ImGui::Image(m_Application->m_RenderManager->GetGBuffer()->GetTexture(graphics::SCREENTEX_COLOUR)->GetHandle(), ImVec2(256, 256), ImVec2(0.0f, flipImage ? 1.0f : 0.0f), ImVec2(1.0f, flipImage ? 0.0f : 1.0f));
                             ImGui::EndTooltip();
                         }
                         
@@ -177,12 +178,12 @@ namespace lumos
 					}
 					if (ImGui::TreeNode("Normal Texture"))
 					{
-						ImGui::Image(m_Application->m_RenderManager->GetGBuffer()->m_ScreenTex[graphics::SCREENTEX_NORMALS]->GetHandle(), ImVec2(128, 128), ImVec2(0.0f, flipImage ? 1.0f : 0.0f), ImVec2(1.0f, flipImage ? 0.0f : 1.0f));
+						ImGui::Image(m_Application->m_RenderManager->GetGBuffer()->GetTexture(graphics::SCREENTEX_NORMALS)->GetHandle(), ImVec2(128, 128), ImVec2(0.0f, flipImage ? 1.0f : 0.0f), ImVec2(1.0f, flipImage ? 0.0f : 1.0f));
                         
                         if (ImGui::IsItemHovered())
                         {
                             ImGui::BeginTooltip();
-                            ImGui::Image(m_Application->m_RenderManager->GetGBuffer()->m_ScreenTex[graphics::SCREENTEX_NORMALS]->GetHandle(), ImVec2(256, 256), ImVec2(0.0f, flipImage ? 1.0f : 0.0f), ImVec2(1.0f, flipImage ? 0.0f : 1.0f));
+                            ImGui::Image(m_Application->m_RenderManager->GetGBuffer()->GetTexture(graphics::SCREENTEX_NORMALS)->GetHandle(), ImVec2(256, 256), ImVec2(0.0f, flipImage ? 1.0f : 0.0f), ImVec2(1.0f, flipImage ? 0.0f : 1.0f));
                             ImGui::EndTooltip();
                         }
                         
@@ -190,12 +191,12 @@ namespace lumos
 					}
 					if (ImGui::TreeNode("PBR Texture"))
 					{
-						ImGui::Image(m_Application->m_RenderManager->GetGBuffer()->m_ScreenTex[graphics::SCREENTEX_PBR]->GetHandle(), ImVec2(128, 128), ImVec2(0.0f, flipImage ? 1.0f : 0.0f), ImVec2(1.0f, flipImage ? 0.0f : 1.0f));
+						ImGui::Image(m_Application->m_RenderManager->GetGBuffer()->GetTexture(graphics::SCREENTEX_PBR)->GetHandle(), ImVec2(128, 128), ImVec2(0.0f, flipImage ? 1.0f : 0.0f), ImVec2(1.0f, flipImage ? 0.0f : 1.0f));
                         
                         if (ImGui::IsItemHovered())
                         {
                             ImGui::BeginTooltip();
-                            ImGui::Image(m_Application->m_RenderManager->GetGBuffer()->m_ScreenTex[graphics::SCREENTEX_PBR]->GetHandle(), ImVec2(256, 256), ImVec2(0.0f, flipImage ? 1.0f : 0.0f), ImVec2(1.0f, flipImage ? 0.0f : 1.0f));
+                            ImGui::Image(m_Application->m_RenderManager->GetGBuffer()->GetTexture(graphics::SCREENTEX_PBR)->GetHandle(), ImVec2(256, 256), ImVec2(0.0f, flipImage ? 1.0f : 0.0f), ImVec2(1.0f, flipImage ? 0.0f : 1.0f));
                             ImGui::EndTooltip();
                         }
                         
@@ -203,12 +204,12 @@ namespace lumos
 					}
 					if (ImGui::TreeNode("Position Texture"))
 					{
-						ImGui::Image(m_Application->m_RenderManager->GetGBuffer()->m_ScreenTex[graphics::SCREENTEX_POSITION]->GetHandle(), ImVec2(128, 128), ImVec2(0.0f, flipImage ? 1.0f : 0.0f), ImVec2(1.0f, flipImage ? 0.0f : 1.0f));
+						ImGui::Image(m_Application->m_RenderManager->GetGBuffer()->GetTexture(graphics::SCREENTEX_POSITION)->GetHandle(), ImVec2(128, 128), ImVec2(0.0f, flipImage ? 1.0f : 0.0f), ImVec2(1.0f, flipImage ? 0.0f : 1.0f));
                         
                         if (ImGui::IsItemHovered())
                         {
                             ImGui::BeginTooltip();
-                            ImGui::Image(m_Application->m_RenderManager->GetGBuffer()->m_ScreenTex[graphics::SCREENTEX_POSITION]->GetHandle(), ImVec2(256, 256), ImVec2(0.0f, flipImage ? 1.0f : 0.0f), ImVec2(1.0f, flipImage ? 0.0f : 1.0f));
+                            ImGui::Image(m_Application->m_RenderManager->GetGBuffer()->GetTexture(graphics::SCREENTEX_POSITION)->GetHandle(), ImVec2(256, 256), ImVec2(0.0f, flipImage ? 1.0f : 0.0f), ImVec2(1.0f, flipImage ? 0.0f : 1.0f));
                             ImGui::EndTooltip();
                         }
                         
@@ -290,7 +291,7 @@ namespace lumos
         bool flipImage = graphics::GraphicsContext::GetContext()->FlipImGUITexture();
         
 		ImGuizmo::SetRect(ImGui::GetWindowPos().x, ImGui::GetWindowPos().y, static_cast<float>(width), static_cast<float>(height));
-		ImGui::Image(m_Application->m_RenderManager->GetGBuffer()->m_ScreenTex[graphics::SCREENTEX_OFFSCREEN0]->GetHandle(), ImVec2(static_cast<float>(width), static_cast<float>(height)), ImVec2(0.0f, flipImage ? 1.0f : 0.0f), ImVec2(1.0f, flipImage ? 0.0f : 1.0f));
+		ImGui::Image(m_Application->m_RenderManager->GetGBuffer()->GetTexture(graphics::SCREENTEX_OFFSCREEN0)->GetHandle(), ImVec2(static_cast<float>(width), static_cast<float>(height)), ImVec2(0.0f, flipImage ? 1.0f : 0.0f), ImVec2(1.0f, flipImage ? 0.0f : 1.0f));
 
 		if (m_Selected)
 		{

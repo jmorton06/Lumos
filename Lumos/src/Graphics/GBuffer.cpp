@@ -32,11 +32,6 @@ namespace lumos
 			BuildTextures();
 		}
 
-		void GBuffer::PostProcessDrawn()
-		{
-			++m_postProcessDrawTo %= PPtextures;
-		}
-
 		void GBuffer::Init()
 		{
 			for (auto& texture : m_ScreenTex)
@@ -61,17 +56,19 @@ namespace lumos
 				m_DepthTexture = TextureDepth::Create(m_Width, m_Height);
 			}
 
-			m_ScreenTex[SCREENTEX_COLOUR]->BuildTexture(TextureFormat::RGBA, m_Width, m_Height, false, false);
-			m_ScreenTex[SCREENTEX_POSITION]->BuildTexture(TextureFormat::RGBA16, m_Width, m_Height, false, false);
-			m_ScreenTex[SCREENTEX_NORMALS]->BuildTexture(TextureFormat::RGBA16, m_Width, m_Height, false, false);
-			m_ScreenTex[SCREENTEX_PBR]->BuildTexture(TextureFormat::RGBA16, m_Width, m_Height, false, false);
-			m_ScreenTex[SCREENTEX_OFFSCREEN0]->BuildTexture(TextureFormat::RGBA, m_Width, m_Height, false, false);
+			m_Formats[0] = TextureFormat::RGBA;
+			m_Formats[1] = TextureFormat::RGBA16;
+			m_Formats[2] = TextureFormat::RGBA16;
+			m_Formats[3] = TextureFormat::RGBA16;
+			m_Formats[4] = TextureFormat::RGBA;
+
+			m_ScreenTex[SCREENTEX_COLOUR]->BuildTexture(m_Formats[0], m_Width, m_Height, false, false);
+			m_ScreenTex[SCREENTEX_POSITION]->BuildTexture(m_Formats[1], m_Width, m_Height, false, false);
+			m_ScreenTex[SCREENTEX_NORMALS]->BuildTexture(m_Formats[2], m_Width, m_Height, false, false);
+			m_ScreenTex[SCREENTEX_PBR]->BuildTexture(m_Formats[3], m_Width, m_Height, false, false);
+			m_ScreenTex[SCREENTEX_OFFSCREEN0]->BuildTexture(m_Formats[4], m_Width, m_Height, false, false);
 
 			m_DepthTexture->Resize(m_Width, m_Height);
-
-			//m_ScreenTex[SCREENTEX_DEPTH]->BuildTexture(TextureFormat::DEPTH , m_Width, m_Height, true , false);
-			//m_ScreenTex[SCREENTEX_POSTPROCESS0]->BuildTexture(TextureFormat::RGBA  , m_Width, m_Height, false, false);
-			//m_ScreenTex[SCREENTEX_POSTPROCESS1]->BuildTexture(TextureFormat::RGBA  , m_Width, m_Height, false, false);
 		}
 
 		void GBuffer::Bind(int32 mode)

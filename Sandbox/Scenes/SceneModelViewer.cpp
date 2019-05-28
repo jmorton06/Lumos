@@ -98,20 +98,11 @@ void SceneModelViewer::LoadModels()
         "/Meshes/KhronosExamples/Sponza/glTF/Sponza.gltf"
 	};
 	std::shared_ptr<Entity> TestObject = ModelLoader::LoadModel(ExampleModelPaths[1]);
-	TestObject->SetBoundingRadius(20000.0f);
+	TestObject->SetBoundingRadius(1000.0f);
 	AddEntity(TestObject);
 
 }
 
 void SceneModelViewer::OnIMGUI()
 {
-	ImGui::Begin(m_SceneName.c_str());
- 	if(ImGui::Button("<- Back"))
-	{
-		Application::Instance()->GetSceneManager()->JumpToScene("SceneSelect");
-		ImGui::End();
-		return;
-	}
-
-    ImGui::End();
 }

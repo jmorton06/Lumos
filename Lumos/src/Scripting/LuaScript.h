@@ -22,7 +22,7 @@ namespace lumos
         
         sol::state* GetState() const { return m_State; }
         
-        WindowProperties* LoadConfigFile(const String& file);
+        WindowProperties LoadConfigFile(const String& file);
         
     private:
         sol::state* m_State;

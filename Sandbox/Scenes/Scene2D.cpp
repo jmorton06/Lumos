@@ -103,9 +103,4 @@ void Scene2D::OnCleanupScene()
 
 void Scene2D::OnIMGUI()
 {
-	if (ImGui::Button("<- SceneSelect"))
-	{
-		Application::Instance()->GetSceneManager()->JumpToScene("SceneSelect");
-		return;
-	}
 }

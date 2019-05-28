@@ -1,6 +1,7 @@
 #include "LM.h"
 #include "Camera2D.h"
 #include "App/Application.h"
+#include "App/Input.h"
 #include "Maths/MathsUtilities.h"
 
 namespace lumos

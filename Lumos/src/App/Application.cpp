@@ -1,28 +1,31 @@
 #include "LM.h"
 #include "Application.h"
-#include "Graphics/API/Textures/Texture2D.h"
-#include "Graphics/RenderManager.h"
-#include "Physics/B2PhysicsEngine/B2PhysicsEngine.h"
-#include "Physics/LumosPhysicsEngine/LumosPhysicsEngine.h"
-#include "App/Scene.h"
-#include "App/SceneManager.h"
-#include "Utilities/AssetsManager.h"
-#include "Graphics/Layers/LayerStack.h"
+
+#include "Scene.h"
+#include "SceneManager.h"
+#include "Editor.h"
+#include "Input.h"
+#include "Engine.h"
+
 #include "Graphics/API/Renderer.h"
 #include "Graphics/API/GraphicsContext.h"
+#include "Graphics/API/Textures/Texture2D.h"
+#include "Graphics/RenderManager.h"
+#include "Graphics/Layers/LayerStack.h"
+#include "Graphics/Layers/ImGuiLayer.h"
+
 #include "Utilities/CommonUtils.h"
-#include "Engine.h"
 #include "Utilities/TimeStep.h"
-#include "App/Input.h"
+#include "Utilities/AssetsManager.h"
 #include "System/VFS.h"
 #include "System/JobSystem.h"
+#include "System/Profiler.h"
+
 #include "Audio/AudioManager.h"
-#include "Scene.h"
+#include "Physics/B2PhysicsEngine/B2PhysicsEngine.h"
+#include "Physics/LumosPhysicsEngine/LumosPhysicsEngine.h"
 
 #include <imgui/imgui.h>
-#include "Graphics/Layers/ImGuiLayer.h"
-#include "Editor.h"
-#include "System/Profiler.h"
 
 namespace lumos
 {
@@ -54,7 +57,7 @@ namespace lumos
 		VFS::Get()->Mount("CoreMeshes", root + "/lumos/res/meshes");
 		VFS::Get()->Mount("CoreTextures", root + "/lumos/res/textures");
 
-		m_Window = std::unique_ptr<Window>(Window::Create("Game Engine", properties));
+		m_Window = std::unique_ptr<Window>(Window::Create(properties));
 		m_Window->SetEventCallback(BIND_EVENT_FN(Application::OnEvent));
 
 		m_SceneManager = std::make_unique<SceneManager>();

@@ -1,7 +1,5 @@
 #pragma once
 #include "LM.h"
-#include "App/Window.h"
-#include "App/Input.h"
 
 #include "Maths/Maths.h"
 
@@ -28,7 +26,7 @@ namespace lumos
 		void SetYaw(float y) { m_Yaw = y; }
 
 		float GetAspectRatio()   const { return m_AspectRatio; }
-		void SetAspectRatio(float y) { m_AspectRatio = y; UpdateProjectionMatrix(m_AspectRatio, 1.0f); };// m_ProjMatrix = maths::Matrix4::Perspective(m_Near, m_Far, m_AspectRatio, m_Fov);}
+		void SetAspectRatio(float y) { m_AspectRatio = y; UpdateProjectionMatrix(m_AspectRatio, 1.0f); };
 
 		float GetPitch() const { return m_Pitch; }
 		void SetPitch(float p) { m_Pitch = p; }

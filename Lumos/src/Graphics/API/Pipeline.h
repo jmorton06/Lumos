@@ -1,6 +1,5 @@
 #pragma once
 #include "LM.h"
-#include "DescriptorSet.h"
 
 namespace lumos
 {
@@ -9,6 +8,10 @@ namespace lumos
 		class Shader;
 		class RenderPass;
 		class CommandBuffer;
+		class DescriptorSet;
+		struct VertexInputDescription;
+		struct DescriptorLayout;
+		struct DescriptorPoolInfo;
 
 		enum class CullMode
 		{

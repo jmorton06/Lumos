@@ -1,11 +1,12 @@
 #pragma once
 #include "LM.h"
-#include "Entity/Entity.h"
+#include "Maths/Vector4.h"
 
 namespace lumos
 {
 	class PhysicsObject;
 	class Scene;
+	class Entity;
 
 	namespace CommonUtils
 	{

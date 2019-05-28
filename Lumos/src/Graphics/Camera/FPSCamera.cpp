@@ -1,7 +1,7 @@
 #include "LM.h"
 #include "FPSCamera.h"
 #include "App/Application.h"
-
+#include "App/Input.h"
 
 namespace lumos
 {
