@@ -12,12 +12,12 @@ namespace lumos
 
 #define SOLVER_ITERATIONS 50
 
-	enum LUMOS_EXPORT IntegrationType
+	enum class LUMOS_EXPORT IntegrationType
 	{
-		INTEGRATION_EXPLICIT_EULER,
-		INTEGRATION_SEMI_IMPLICIT_EULER,
-		INTEGRATION_RUNGE_KUTTA_2,
-		INTEGRATION_RUNGE_KUTTA_4
+		EXPLICIT_EULER = 0,
+		SEMI_IMPLICIT_EULER,
+		RUNGE_KUTTA_2,
+		RUNGE_KUTTA_4
 	};
 
 	class Constraint;
@@ -74,8 +74,8 @@ namespace lumos
 		int GetNumberCollisionPairs() const { return static_cast<int>(m_BroadphaseCollisionPairs.size()); }
 		int GetNumberPhysicsObjects() const { return static_cast<int>(m_PhysicsObjects.size()); }
 
-		IntegrationType GetIntegrationType() const { return m_integrationType; }
-		void SetIntegrationType(const IntegrationType& type){ m_integrationType = type; }
+		IntegrationType GetIntegrationType() const { return m_IntegrationType; }
+		void SetIntegrationType(const IntegrationType& type){ m_IntegrationType = type; }
 
 		PhysicsObject3D* FindObjectByName(const String& name);
 
@@ -113,7 +113,7 @@ namespace lumos
 		std::mutex					m_ManifoldsMutex;
 
 		Broadphase* m_BroadphaseDetection;
-		IntegrationType m_integrationType;
+		IntegrationType m_IntegrationType;
 
 		bool m_MultipleUpdates = true;
 	};

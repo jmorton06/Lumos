@@ -17,72 +17,71 @@ namespace lumos
 		class Shader;
 		class ShadowRenderer;
 		class Framebuffer;
-		class DeferredOffScreenRenderer;
 
-		class LUMOS_EXPORT DeferredRenderer : public Renderer3D
+		class LUMOS_EXPORT DeferredOffScreenRenderer : public Renderer3D
 		{
 		public:
-			DeferredRenderer(uint width, uint height);
-			~DeferredRenderer() override;
+			DeferredOffScreenRenderer(uint width, uint height);
+			~DeferredOffScreenRenderer() override;
 
 			void RenderScene(RenderList* renderList, Scene* scene) override;
 
 			void Init() override;
-			void Begin() override { };
-			void Begin(int commandBufferID);
+			void Begin() override;
 			void BeginScene(Scene* scene) override;
 			void Submit(const RenderCommand& command) override;
 			void SubmitMesh(Mesh* mesh, const maths::Matrix4& transform, const maths::Matrix4& textureMatrix) override;
-			void SubmitLightSetup(Scene* scene);
 			void EndScene() override;
 			void End() override;
 			void Present() override;
 			void OnResize(uint width, uint height) override;
 			void PresentToScreen();
 
-			void CreateDeferredPipeline();
-			void CreateLightBuffer();
-			void CreateFramebuffers();
-			void CreateScreenDescriptorSet();
-			void SetCubeMap(Texture* cubeMap);
+			void CreatePipeline();
+			void CreateBuffer();
+			void CreateFBO();
+
+			void CreateDefaultDescriptorSet();
 
 			int GetCommandBufferCount() const { return static_cast<int>(m_CommandBuffers.size()); }
 			CommandBuffer* GetCommandBuffer(int id) const { return m_CommandBuffers[id]; }
 
-			void SetRenderTarget(Texture* texture) override;
-			void SetRenderToGBufferTexture(bool set) override;
-
 		private:
-
-			DeferredOffScreenRenderer* m_OffScreenRenderer;
 
 			void SetSystemUniforms(Shader* shader) const;
 
+			byte* m_VSSystemUniformBuffer;
+			uint m_VSSystemUniformBufferSize;
 			byte* m_PSSystemUniformBuffer;
 			uint m_PSSystemUniformBufferSize;
 
+			std::vector<uint> m_VSSystemUniformBufferOffsets;
 			std::vector<uint> m_PSSystemUniformBufferOffsets;
 
 			maths::Vector4 m_ClearColour;
 
+			DescriptorSet* m_DefaultDescriptorSet;
+
+			Texture2D* m_DefaultTexture;
+
 			UniformBuffer* m_UniformBuffer;
-			UniformBuffer* m_LightUniformBuffer;
+			UniformBuffer* m_ModelUniformBuffer;
 			UniformBuffer* m_DefaultMaterialDataUniformBuffer;
 
-			std::vector<Framebuffer*> m_Framebuffers;
 			std::vector<CommandBuffer*> m_CommandBuffers;
 
 			CommandBuffer* m_DeferredCommandBuffers;
 
-			LightSetup* m_LightSetup;
+			size_t dynamicAlignment;
 
-			Mesh* m_ScreenQuad = nullptr;
+			struct UniformBufferModel
+			{
+				maths::Matrix4* model;
+			};
 
-			std::unique_ptr<Texture2D> m_PreintegratedFG;
+			UniformBufferModel uboDataDynamic;
 
 			int m_CommandBufferIndex = 0;
-
-			Texture* m_CubeMap = nullptr;
 		};
 	}
 }

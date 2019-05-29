@@ -31,7 +31,7 @@ namespace lumos
 
 	void MeshComponent::OnIMGUI()
 	{
-        if (ImGui::CollapsingHeader("Material"))
+        if (m_Model->GetMaterial() && ImGui::CollapsingHeader("Material"))
 		{
             bool flipImage = graphics::GraphicsContext::GetContext()->FlipImGUITexture();
             
