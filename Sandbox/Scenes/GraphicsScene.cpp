@@ -11,7 +11,7 @@ void GraphicsScene::OnInit()
 {
 	Scene::OnInit();
 	LumosPhysicsEngine::Instance()->SetDampingFactor(0.998f);
-	LumosPhysicsEngine::Instance()->SetIntegrationType(IntegrationType::INTEGRATION_RUNGE_KUTTA_4);
+	LumosPhysicsEngine::Instance()->SetIntegrationType(IntegrationType::RUNGE_KUTTA_4);
 	LumosPhysicsEngine::Instance()->SetBroadphase(new Octree(5, 3, std::make_shared<BruteForceBroadphase>()));
 
 	LoadModels();

@@ -91,7 +91,7 @@ namespace lumos
 
 		//Default physics setup
 		LumosPhysicsEngine::Instance()->SetDampingFactor(0.998f);
-		LumosPhysicsEngine::Instance()->SetIntegrationType(INTEGRATION_RUNGE_KUTTA_4);
+		LumosPhysicsEngine::Instance()->SetIntegrationType(IntegrationType::RUNGE_KUTTA_4);
 		LumosPhysicsEngine::Instance()->SetBroadphase(new Octree(5, 5, std::make_shared<SortAndSweepBroadphase>()));
 		SetDebugDrawFlags(DEBUGDRAW_FLAGS_COLLISIONVOLUMES
 			| DEBUGDRAW_FLAGS_AABB

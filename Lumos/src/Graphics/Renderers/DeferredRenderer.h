@@ -17,6 +17,7 @@ namespace lumos
 		class Shader;
 		class ShadowRenderer;
 		class Framebuffer;
+		class DeferredOffScreenRenderer;
 
 		class LUMOS_EXPORT DeferredRenderer : public Renderer3D
 		{
@@ -25,14 +26,6 @@ namespace lumos
 			~DeferredRenderer() override;
 
 			void RenderScene(RenderList* renderList, Scene* scene) override;
-
-			byte* m_VSSystemUniformBuffer;
-			uint m_VSSystemUniformBufferSize;
-			byte* m_PSSystemUniformBuffer;
-			uint m_PSSystemUniformBufferSize;
-
-			std::vector<uint> m_VSSystemUniformBufferOffsets;
-			std::vector<uint> m_PSSystemUniformBufferOffsets;
 
 			void Init() override;
 			void Begin() override { };
@@ -47,20 +40,9 @@ namespace lumos
 			void OnResize(uint width, uint height) override;
 			void PresentToScreen();
 
-			void BeginOffscreen();
-			void PresentOffScreen();
-			void EndOffScreen();
-
-			void LightPass();
-
-
-			void CreateOffScreenPipeline();
 			void CreateDeferredPipeline();
-			void CreateOffScreenBuffer();
-			void CreateOffScreenFBO();
 			void CreateLightBuffer();
 			void CreateFramebuffers();
-			void CreateDefaultDescriptorSet();
 			void CreateScreenDescriptorSet();
 			void SetCubeMap(Texture* cubeMap);
 
@@ -72,26 +54,18 @@ namespace lumos
 
 		private:
 
+			DeferredOffScreenRenderer* m_OffScreenRenderer;
+
 			void SetSystemUniforms(Shader* shader) const;
+
+			byte* m_PSSystemUniformBuffer;
+			uint m_PSSystemUniformBufferSize;
+
+			std::vector<uint> m_PSSystemUniformBufferOffsets;
 
 			maths::Vector4 m_ClearColour;
 
-			DescriptorSet* m_DefaultDescriptorSet;
-			DescriptorSet* m_DeferredDescriptorSet;
-
-			Pipeline* m_OffScreenPipeline;
-			Pipeline* m_DeferredPipeline;
-
-			Texture2D* m_DefaultTexture;
-
-			Shader* m_OffScreenShader;
-			Shader* m_DeferredShader;
-
-			RenderPass* m_DeferredRenderpass;
-			RenderPass* m_OffScreenRenderpass;
-
 			UniformBuffer* m_UniformBuffer;
-			UniformBuffer* m_ModelUniformBuffer;
 			UniformBuffer* m_LightUniformBuffer;
 			UniformBuffer* m_DefaultMaterialDataUniformBuffer;
 
@@ -101,16 +75,6 @@ namespace lumos
 			CommandBuffer* m_DeferredCommandBuffers;
 
 			LightSetup* m_LightSetup;
-
-
-			size_t dynamicAlignment;
-
-			struct UniformBufferModel
-			{
-				maths::Matrix4* model;
-			};
-
-			UniformBufferModel uboDataDynamic;
 
 			Mesh* m_ScreenQuad = nullptr;
 

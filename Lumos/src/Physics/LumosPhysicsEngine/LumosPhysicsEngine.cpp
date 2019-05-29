@@ -23,7 +23,7 @@ namespace lumos
 		, m_Gravity(maths::Vector3(0.0f, -9.81f, 0.0f))
 		, m_DampingFactor(0.999f)
 		, m_BroadphaseDetection(nullptr)
-		, m_integrationType(IntegrationType::INTEGRATION_RUNGE_KUTTA_4)
+		, m_IntegrationType(IntegrationType::RUNGE_KUTTA_4)
 	{
         m_DebugName = "Lumos3DPhysicsEngine";
 	}
@@ -35,7 +35,7 @@ namespace lumos
 		m_UpdateAccum = 0.0f;
 		m_Gravity = maths::Vector3(0.0f, -9.81f, 0.0f);
 		m_DampingFactor = 0.999f;
-		m_integrationType = IntegrationType::INTEGRATION_RUNGE_KUTTA_4;
+		m_IntegrationType = IntegrationType::RUNGE_KUTTA_4;
 	}
 
 	LumosPhysicsEngine::~LumosPhysicsEngine()
@@ -176,9 +176,9 @@ namespace lumos
 			if (obj->m_InvMass > 0.0f)
 				obj->m_LinearVelocity += m_Gravity * m_UpdateTimestep;
 
-			switch (m_integrationType)
+			switch (m_IntegrationType)
 			{
-			case INTEGRATION_EXPLICIT_EULER:
+			case IntegrationType::EXPLICIT_EULER:
 			{
 				// Update position
 				obj->m_Position += obj->m_LinearVelocity * m_UpdateTimestep;
@@ -203,7 +203,7 @@ namespace lumos
 			}
 
 			default:
-			case INTEGRATION_SEMI_IMPLICIT_EULER:
+			case IntegrationType::SEMI_IMPLICIT_EULER:
 			{
 				// Update linear velocity (v = u + at)
 				obj->m_LinearVelocity += obj->m_LinearVelocity * obj->m_InvMass * m_UpdateTimestep;
@@ -227,7 +227,7 @@ namespace lumos
 				break;
 			}
 
-			case INTEGRATION_RUNGE_KUTTA_2:
+			case IntegrationType::RUNGE_KUTTA_2:
 			{
 				// RK2 integration for linear motion
 				Integration::State state = { obj->m_Position, obj->m_LinearVelocity, obj->m_Force * obj->m_InvMass };
@@ -251,7 +251,7 @@ namespace lumos
 				break;
 			}
 
-			case INTEGRATION_RUNGE_KUTTA_4:
+			case IntegrationType::RUNGE_KUTTA_4:
 			{
 				// RK4 integration for linear motion
 				Integration::State state = { obj->m_Position, obj->m_LinearVelocity, obj->m_Force * obj->m_InvMass };
@@ -376,10 +376,10 @@ namespace lumos
 	{
 		switch (type)
 		{
-		case INTEGRATION_EXPLICIT_EULER : return "EXPLICIT EULER";
-		case INTEGRATION_SEMI_IMPLICIT_EULER : return "SEMI IMPLICIT EULER";
-		case INTEGRATION_RUNGE_KUTTA_2 : return "RUNGE KUTTA 2";
-		case INTEGRATION_RUNGE_KUTTA_4 : return "RUNGE KUTTA 4";
+		case  IntegrationType::EXPLICIT_EULER : return "EXPLICIT EULER";
+		case  IntegrationType::SEMI_IMPLICIT_EULER : return "SEMI IMPLICIT EULER";
+		case  IntegrationType::RUNGE_KUTTA_2 : return "RUNGE KUTTA 2";
+		case  IntegrationType::RUNGE_KUTTA_4 : return "RUNGE KUTTA 4";
 		default : return "";
 		}
 	}
@@ -444,12 +444,12 @@ namespace lumos
 		ImGui::Text("Integration Type");
 		ImGui::NextColumn();
 		ImGui::PushItemWidth(-1);
-		if (ImGui::BeginMenu(IntegrationTypeToString(m_integrationType).c_str()))
+		if (ImGui::BeginMenu(IntegrationTypeToString(m_IntegrationType).c_str()))
 		{
-			if (ImGui::MenuItem("EXPLICIT EULER", "", static_cast<int>(m_integrationType) == 0, true)) { m_integrationType = INTEGRATION_EXPLICIT_EULER; }
-			if (ImGui::MenuItem("SEMI IMPLICIT EULER", "", static_cast<int>(m_integrationType) == 1, true)) { m_integrationType = INTEGRATION_SEMI_IMPLICIT_EULER; }
-			if (ImGui::MenuItem("RUNGE KUTTA 2", "", static_cast<int>(m_integrationType) == 2, true)) { m_integrationType = INTEGRATION_RUNGE_KUTTA_2; }
-			if (ImGui::MenuItem("RUNGE KUTTA 4", "", static_cast<int>(m_integrationType) == 3, true)) { m_integrationType = INTEGRATION_RUNGE_KUTTA_4; }
+			if (ImGui::MenuItem("EXPLICIT EULER", "", static_cast<int>(m_IntegrationType) == 0, true)) { m_IntegrationType = IntegrationType::EXPLICIT_EULER; }
+			if (ImGui::MenuItem("SEMI IMPLICIT EULER", "", static_cast<int>(m_IntegrationType) == 1, true)) { m_IntegrationType = IntegrationType::SEMI_IMPLICIT_EULER; }
+			if (ImGui::MenuItem("RUNGE KUTTA 2", "", static_cast<int>(m_IntegrationType) == 2, true)) { m_IntegrationType = IntegrationType::RUNGE_KUTTA_2; }
+			if (ImGui::MenuItem("RUNGE KUTTA 4", "", static_cast<int>(m_IntegrationType) == 3, true)) { m_IntegrationType = IntegrationType::RUNGE_KUTTA_4; }
 			ImGui::EndMenu();
 		}
 
