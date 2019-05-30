@@ -37,7 +37,7 @@ layout(std140, binding = 0) uniform UniformBufferLight
     vec4 uSplitDepths[MAX_SHADOWMAPS];
 	float lightCount;
 	float shadowCount;
-	float mode;
+	int mode;
 	float p1;
 } ubo;
 
@@ -184,8 +184,6 @@ const mat4 biasMat = mat4(
 	0.5, 0.5, 0.0, 1.0
 );
 
-#define ambient 0.3
-
 float textureProj(vec4 P, vec2 offset, int cascadeIndex)
 {
 	float shadow = 1.0;
@@ -197,7 +195,7 @@ float textureProj(vec4 P, vec2 offset, int cascadeIndex)
 		float dist = texture(uShadowMap, vec3(shadowCoord.st + offset, cascadeIndex)).x;//, shadowCoord.z));
 		if (shadowCoord.w > 0 && dist < shadowCoord.z - bias)
 		{
-			shadow = ambient;
+			shadow = 0.1f;
 		}
 	}
 	return shadow;
@@ -224,6 +222,30 @@ float filterPCF(vec4 sc, int cascadeIndex)
 	return shadowFactor / count;
 }
 
+// values out of <-8388608;8388608> are stored as min/max values
+vec3 floatTovec3(in float val) 
+{
+    val += 8388608.; // this makes values signed
+
+    if(val < 0.) 
+	{
+        return vec3(0.);
+    }
+
+    if(val > 16777216.)
+	{
+        return vec3(1.);
+    }
+
+    vec3 c = vec3(0.);
+    c.b = mod(val, 256.);
+    val = floor(val/256.);
+    c.g = mod(val, 256.);
+    val = floor(val/256.);
+    c.r = mod(val, 256.);
+    return c/255.;
+}
+
 layout(location = 0) out vec4 outColor;
 
 const float NORMAL_BIAS = 0.002f;
@@ -240,8 +262,9 @@ void main()
     vec3 normal      = normalize(texture(uNormalSampler, fragTexCoord).rgb);
 
     vec3  spec      = vec3(pbrTex.x);
-	float roughness = pbrTex.y;
 
+	float roughness = pbrTex.y;
+	vec3 emissive	= vec3(pbrTex.w);
     vec3 wsPos      = positionTex;
 
     vec3 finalColour;
@@ -270,8 +293,8 @@ void main()
 	
 	vec4 shadowCoord = (biasMat * ubo.uShadowTransform[cascadeIndex]) * vec4(wsPos, 1.0);
 
-	float shadow = filterPCF(shadowCoord / shadowCoord.w, cascadeIndex);
-	//float shadow = textureProj(shadowCoord / shadowCoord.w, vec2(0.0f), cascadeIndex);
+	//float shadow = filterPCF(shadowCoord / shadowCoord.w, cascadeIndex);
+	float shadow = textureProj(shadowCoord / shadowCoord.w, vec2(0.0f), cascadeIndex);
 
 	for(int i = 0; i < ubo.lightCount; ++i)
 	{
@@ -301,40 +324,35 @@ void main()
 		specular += NdotL * Specular(light, material, eye) * light.colour.xyz * light.intensity;
 	}
   
-
-    diffuse = max(diffuse, vec4(0.1));
-
     //finalColour = material.albedo.xyz * diffuse.rgb + specular;
     finalColour = material.albedo.xyz * diffuse.rgb + (specular + IBL(material, eye));
 
+	finalColour += emissive;
 	finalColour = FinalGamma(finalColour);
 	outColor = vec4(finalColour, 1.0);
 
-	if(ubo.mode > 0.5)
+	if(ubo.mode > 0)
 	{
-		if(ubo.mode == 1.0)
+		switch(ubo.mode)
 		{
-			outColor = colourTex;
-		}
-
-		else if(ubo.mode == 2.0)
-		{
-			outColor = vec4(pbrTex.x);
-		}
-
-		else if(ubo.mode == 3.0)
-		{
-			outColor = vec4(pbrTex.y);
-		}
-
-		else if(ubo.mode == 4.0)
-		{
-			outColor = vec4(pbrTex.z);
-		}
-	
-		else if(ubo.mode == 5.0)
-		{
-			outColor = vec4(normal,1.0);
+			case 1:
+				outColor = colourTex;
+				break;
+			case 2:
+				outColor = vec4(material.specular, 1.0);
+				break;
+			case 3:
+				outColor = vec4(material.roughness, material.roughness, material.roughness,1.0);
+				break;
+			case 4:
+				outColor = vec4(material.ao, material.ao, material.ao, 1.0);
+				break;
+			case 5:
+				outColor = vec4(emissive, 1.0);
+				break;
+			case 6:
+				outColor = vec4(normal,1.0);
+				break;
 		}
 	}
 }

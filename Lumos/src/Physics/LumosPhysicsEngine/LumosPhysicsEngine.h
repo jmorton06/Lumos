@@ -79,7 +79,7 @@ namespace lumos
 
 		PhysicsObject3D* FindObjectByName(const String& name);
 
-		void OnImGUI();
+		void OnIMGUI() override;
 	protected:
 
 		//The actual time-independant update function

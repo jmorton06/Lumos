@@ -39,6 +39,11 @@ namespace lumos
 		m_Renderer->RenderScene(scene->GetRenderList(), scene);
 	}
 
+	void Layer3D::OnIMGUI()
+	{
+		m_Renderer->OnIMGUI();
+	}
+
     bool Layer3D::OnwindowResizeEvent(WindowResizeEvent & e)
     {
         m_Renderer->OnResize(e.GetWidth(), e.GetHeight());

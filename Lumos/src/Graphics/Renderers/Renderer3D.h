@@ -45,6 +45,8 @@ namespace lumos
 
 			virtual void SetRenderTarget(graphics::Texture* texture) { m_RenderTexture = texture; }
 			virtual void SetRenderToGBufferTexture(bool set) { m_RenderToGBufferTexture = set; }
+			virtual void OnIMGUI() {};
+
 		protected:
 			Framebuffer* m_FBO;
 			Shader* m_Shader;

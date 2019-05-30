@@ -129,7 +129,7 @@ namespace lumos
                 ImGui::Separator();
                 
                 ImGui::AlignTextToFramePadding();
-                auto tex = m_Model->GetMaterial()->GetTextures().roughness;
+                auto tex = m_Model->GetMaterial()->GetTextures().specular;
                 ImGui::Image(tex ? tex->GetHandle() : nullptr, ImVec2(64, 64), ImVec2(0.0f, flipImage ? 1.0f : 0.0f), ImVec2(1.0f, flipImage ? 0.0f : 1.0f));
                 
                 if (ImGui::IsItemHovered() && tex)
@@ -169,14 +169,14 @@ namespace lumos
                 ImGui::PopStyleVar();
             }
             
-            if (ImGui::CollapsingHeader("Gloss"))
+            if (ImGui::CollapsingHeader("Roughness"))
             {
                 ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(2,2));
                 ImGui::Columns(2);
                 ImGui::Separator();
                 
                 ImGui::AlignTextToFramePadding();
-                auto tex = m_Model->GetMaterial()->GetTextures().metallic;
+                auto tex = m_Model->GetMaterial()->GetTextures().roughness;
                 ImGui::Image(tex ? tex->GetHandle() : nullptr, ImVec2(64, 64), ImVec2(0.0f, flipImage ? 1.0f : 0.0f), ImVec2(1.0f, flipImage ? 0.0f : 1.0f));
                 
                 if (ImGui::IsItemHovered() && tex)
@@ -194,19 +194,19 @@ namespace lumos
                 ImGui::NextColumn();
            
                 ImGui::AlignTextToFramePadding();
-                ImGui::Text("Use Gloss Map");
+                ImGui::Text("Use Roughness Map");
                 ImGui::NextColumn();
                 ImGui::PushItemWidth(-1);
-                ImGui::SliderFloat("##UseGlossMap", &prop->usingGlossMap, 0.0f, 1.0f);
+                ImGui::SliderFloat("##UseRoughnessMap", &prop->usingRoughnessMap, 0.0f, 1.0f);
                 
                 ImGui::PopItemWidth();
                 ImGui::NextColumn();
                 
                 ImGui::AlignTextToFramePadding();
-                ImGui::Text("Gloss");
+                ImGui::Text("Roughness");
                 ImGui::NextColumn();
                 ImGui::PushItemWidth(-1);
-                ImGui::SliderFloat3("##Gloss", &prop->glossColour.x, 0.0f, 1.0f);
+                ImGui::SliderFloat3("##Roughness", &prop->roughnessColour.x, 0.0f, 1.0f);
                 
                 ImGui::PopItemWidth();
                 ImGui::NextColumn();
@@ -253,6 +253,44 @@ namespace lumos
                 ImGui::Separator();
                 ImGui::PopStyleVar();
             }
+
+			if (ImGui::CollapsingHeader("Emissive"))
+			{
+				ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(2, 2));
+				ImGui::Columns(2);
+				ImGui::Separator();
+
+				ImGui::AlignTextToFramePadding();
+				auto tex = m_Model->GetMaterial()->GetTextures().emissive;
+				ImGui::Image(tex ? tex->GetHandle() : nullptr, ImVec2(64, 64), ImVec2(0.0f, flipImage ? 1.0f : 0.0f), ImVec2(1.0f, flipImage ? 0.0f : 1.0f));
+
+				if (ImGui::IsItemHovered() && tex)
+				{
+					ImGui::BeginTooltip();
+					ImGui::Image(tex ? tex->GetHandle() : nullptr, ImVec2(256, 256), ImVec2(0.0f, flipImage ? 1.0f : 0.0f), ImVec2(1.0f, flipImage ? 0.0f : 1.0f));
+					ImGui::EndTooltip();
+				}
+
+				ImGui::NextColumn();
+				ImGui::PushItemWidth(-1);
+				ImGui::Text("%s", tex ? tex->GetFilepath().c_str() : "No Texture");
+
+				ImGui::PopItemWidth();
+				ImGui::NextColumn();
+
+				ImGui::AlignTextToFramePadding();
+				ImGui::Text("Use Emissive Map");
+				ImGui::NextColumn();
+				ImGui::PushItemWidth(-1);
+				ImGui::SliderFloat("##UseEmissiveMap", &prop->usingEmissiveMap, 0.0f, 1.0f);
+
+				ImGui::PopItemWidth();
+				ImGui::NextColumn();
+
+				ImGui::Columns(1);
+				ImGui::Separator();
+				ImGui::PopStyleVar();
+			}
             
             m_Model->GetMaterial()->SetMaterialProperites(*prop);
 		}

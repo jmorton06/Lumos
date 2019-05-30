@@ -384,7 +384,7 @@ namespace lumos
 		}
 	}
 
-	void LumosPhysicsEngine::OnImGUI()
+	void LumosPhysicsEngine::OnIMGUI()
 	{
 		ImGui::Text("3D Physics Engine");
 

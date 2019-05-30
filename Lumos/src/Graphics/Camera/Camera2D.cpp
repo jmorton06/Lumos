@@ -3,6 +3,7 @@
 #include "App/Application.h"
 #include "App/Input.h"
 #include "Maths/MathsUtilities.h"
+#include "App/Window.h"
 
 namespace lumos
 {

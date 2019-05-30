@@ -89,7 +89,7 @@ void SceneModelViewer::LoadModels()
 {
 	std::vector<String> ExampleModelPaths
 	{
-		"/Meshes/KhronosExamples/DamagedHelmet/glTF/DamagedHelmet.gltf",
+		"/Meshes/DamagedHelmet/glTF/DamagedHelmet.gltf",
 		"/Meshes/Scene/scene.gltf",
 		"/Meshes/Spyro/ArtisansHub.obj",
 		"/Meshes/Cube/Cube.gltf",
@@ -97,8 +97,10 @@ void SceneModelViewer::LoadModels()
 		"/Meshes/KhronosExamples/EnvironmentTest/glTF/EnvironmentTest.gltf",
         "/Meshes/KhronosExamples/Sponza/glTF/Sponza.gltf"
 	};
-	std::shared_ptr<Entity> TestObject = ModelLoader::LoadModel(ExampleModelPaths[1]);
+
+	std::shared_ptr<Entity> TestObject = ModelLoader::LoadModel(ExampleModelPaths[0]);
 	TestObject->SetBoundingRadius(1000.0f);
+	TestObject->AddComponent(std::make_unique<TransformComponent>(maths::Matrix4::Scale(maths::Vector3(10.0f, 10.0f, 10.0f))));
 	AddEntity(TestObject);
 
 }

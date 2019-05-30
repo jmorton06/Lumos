@@ -1,6 +1,7 @@
 #include "LM.h"
 #include "ImGuiLayer.h"
 #include "App/Input.h"
+#include "App/Window.h"
 #include "App/Application.h"
 #include "Graphics/API/IMGUIRenderer.h"
 #include "System/VFS.h"

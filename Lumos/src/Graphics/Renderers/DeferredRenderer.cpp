@@ -33,6 +33,8 @@
 #include "Graphics/API/Pipeline.h"
 #include "Graphics/API/GraphicsContext.h"
 
+#include <imgui/imgui.h>
+
 #define MAX_LIGHTS 32
 #define MAX_SHADOWMAPS 16
 
@@ -69,7 +71,6 @@ namespace lumos
 			delete m_Pipeline;
 			delete m_ScreenQuad;
 			delete m_DescriptorSet;
-			delete m_DefaultMaterialDataUniformBuffer;
 			delete m_LightSetup;
 
 			delete[] m_PSSystemUniformBuffer;
@@ -101,20 +102,6 @@ namespace lumos
 			m_LightUniformBuffer = nullptr;
 			m_UniformBuffer = nullptr;
 
-			m_DefaultMaterialDataUniformBuffer = graphics::UniformBuffer::Create();
-
-			MaterialProperties properties;
-			properties.glossColour = 1.0f;
-			properties.specularColour = maths::Vector4(0.0f, 1.0f, 0.0f, 1.0f);
-			properties.usingAlbedoMap = 1.0f;
-			properties.usingGlossMap = 0.0f;
-			properties.usingNormalMap = 0.0f;
-			properties.usingSpecularMap = 0.0f;
-
-			uint32_t bufferSize = static_cast<uint32_t>(sizeof(MaterialProperties));
-			m_DefaultMaterialDataUniformBuffer->Init(bufferSize, nullptr);
-			m_DefaultMaterialDataUniformBuffer->SetData(bufferSize, &properties);
-
 			m_ScreenQuad = graphics::CreateQuad();
 
 			m_DescriptorSet = nullptr;
@@ -122,7 +109,7 @@ namespace lumos
 			m_LightSetup = new LightSetup();
 			
 			// Pixel/fragment shader system uniforms
-			m_PSSystemUniformBufferSize = sizeof(Light) * MAX_LIGHTS + sizeof(maths::Vector4) + sizeof(maths::Matrix4) + (sizeof(maths::Matrix4) + sizeof(maths::Vector4))* MAX_SHADOWMAPS + sizeof(float) * 4;
+			m_PSSystemUniformBufferSize = sizeof(Light) * MAX_LIGHTS + sizeof(maths::Vector4) + sizeof(maths::Matrix4) + (sizeof(maths::Matrix4) + sizeof(maths::Vector4))* MAX_SHADOWMAPS + sizeof(float) * 3 + sizeof(int);
 			m_PSSystemUniformBuffer = new byte[m_PSSystemUniformBufferSize];
 			memset(m_PSSystemUniformBuffer, 0, m_PSSystemUniformBufferSize);
 			m_PSSystemUniformBufferOffsets.resize(PSSystemUniformIndex_Size);
@@ -279,11 +266,10 @@ namespace lumos
             
             float numLights = float(lightList.size());
             float numShadows = shadowRenderer ? shadowRenderer->GetShadowMapNum() : 0.0f;
-            float renderMode = 0.0f;
             
             memcpy(m_PSSystemUniformBuffer + m_PSSystemUniformBufferOffsets[PSSystemUniformIndex_LightCount], &numLights, sizeof(float));
             memcpy(m_PSSystemUniformBuffer + m_PSSystemUniformBufferOffsets[PSSystemUniformIndex_ShadowCount], &numShadows, sizeof(float));
-            memcpy(m_PSSystemUniformBuffer + m_PSSystemUniformBufferOffsets[PSSystemUniformIndex_RenderMode], &renderMode, sizeof(float));
+            memcpy(m_PSSystemUniformBuffer + m_PSSystemUniformBufferOffsets[PSSystemUniformIndex_RenderMode], &m_RenderMode, sizeof(int));
 		}
 
 		void DeferredRenderer::EndScene()
@@ -411,6 +397,61 @@ namespace lumos
 			m_Framebuffers.clear();
 
 			CreateFramebuffers();
+		}
+
+		String RenderModeToString(int mode)
+		{
+			switch (mode)
+			{
+			case 0 : return "Lighting";
+			case 1 : return "Colour";
+			case 2 : return "Specular";
+			case 3 : return "Roughness";
+			case 4 : return "AO";
+			case 5 : return "Emissive";
+			case 6 : return "Normal";
+			default: return "Lighting";
+			}
+		}
+
+		void DeferredRenderer::OnIMGUI()
+		{
+			ImGui::Text("Deferred Renderer");
+
+			ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(2, 2));
+			ImGui::Columns(2);
+			ImGui::Separator();
+
+			ImGui::AlignTextToFramePadding();
+			ImGui::Text("Number Of Renderables");
+			ImGui::NextColumn();
+			ImGui::PushItemWidth(-1);
+			ImGui::Text("%5.2i", m_CommandQueue.size());
+			ImGui::PopItemWidth();
+			ImGui::NextColumn();
+
+			ImGui::AlignTextToFramePadding();
+			ImGui::Text("RenderMode");
+			ImGui::NextColumn();
+			ImGui::PushItemWidth(-1);
+			if (ImGui::BeginMenu(RenderModeToString(m_RenderMode).c_str()))
+			{
+				if (ImGui::MenuItem(RenderModeToString(0).c_str(), "", m_RenderMode == 0, true)) { m_RenderMode = 0; }
+				if (ImGui::MenuItem(RenderModeToString(1).c_str(), "", m_RenderMode == 1, true)) { m_RenderMode = 1; }
+				if (ImGui::MenuItem(RenderModeToString(2).c_str(), "", m_RenderMode == 2, true)) { m_RenderMode = 2; }
+				if (ImGui::MenuItem(RenderModeToString(3).c_str(), "", m_RenderMode == 3, true)) { m_RenderMode = 3; }
+				if (ImGui::MenuItem(RenderModeToString(4).c_str(), "", m_RenderMode == 4, true)) { m_RenderMode = 4; }
+				if (ImGui::MenuItem(RenderModeToString(5).c_str(), "", m_RenderMode == 5, true)) { m_RenderMode = 5; }
+				if (ImGui::MenuItem(RenderModeToString(6).c_str(), "", m_RenderMode == 6, true)) { m_RenderMode = 6; }
+
+				ImGui::EndMenu();
+			}
+			ImGui::PopItemWidth();
+			ImGui::NextColumn();
+
+			ImGui::Columns(1);
+			ImGui::Separator();
+			ImGui::PopStyleVar();
 		}
 
 		void DeferredRenderer::CreateFramebuffers()

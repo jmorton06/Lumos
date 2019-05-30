@@ -1,8 +1,5 @@
 #pragma once
 #include "LM.h"
-#include "Events/Event.h"
-#include "Events/ApplicationEvent.h"
-#include "Window.h"
 
 #define LUMOS_EDITOR //temp
 
@@ -11,6 +8,7 @@ namespace lumos
 	class Timer;
 	struct TimeStep;
 	class Window;
+	struct WindowProperties;
     class SceneManager;
 	class AudioManager;
 	class Entity;
@@ -19,11 +17,19 @@ namespace lumos
 	class Layer;
 	class ISystem;
 	class Scene;
+	class Event;
+	class WindowCloseEvent;
+	class WindowResizeEvent;
 
 	namespace graphics
 	{
 		class RenderManager;
 		enum class RenderAPI;
+	}
+
+	namespace maths
+	{
+		class Vector2;
 	}
 
     enum class AppState
@@ -81,6 +87,8 @@ namespace lumos
 
 		EditorState GetEditorState() const { return m_EditorState; }
 		void SetEditorState(EditorState state) { m_EditorState = state; }
+
+		const std::vector<ISystem*>& GetSystems() const { return m_Systems; }
 
 		maths::Vector2 GetWindowSize() const;
 

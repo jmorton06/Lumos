@@ -52,6 +52,8 @@ namespace lumos
 			void SetRenderTarget(Texture* texture) override;
 			void SetRenderToGBufferTexture(bool set) override;
 
+			void OnIMGUI() override;
+
 		private:
 
 			DeferredOffScreenRenderer* m_OffScreenRenderer;
@@ -67,7 +69,6 @@ namespace lumos
 
 			UniformBuffer* m_UniformBuffer;
 			UniformBuffer* m_LightUniformBuffer;
-			UniformBuffer* m_DefaultMaterialDataUniformBuffer;
 
 			std::vector<Framebuffer*> m_Framebuffers;
 			std::vector<CommandBuffer*> m_CommandBuffers;
@@ -81,6 +82,7 @@ namespace lumos
 			std::unique_ptr<Texture2D> m_PreintegratedFG;
 
 			int m_CommandBufferIndex = 0;
+			int m_RenderMode = 0;
 
 			Texture* m_CubeMap = nullptr;
 		};

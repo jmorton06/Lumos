@@ -83,6 +83,15 @@ namespace lumos
 				break;
 		}
 	}
+
+	void LayerStack::OnIMGUI()
+	{
+		for (uint i = 0; i < m_Layers.size(); i++)
+		{
+			Layer* layer = m_Layers[i];
+			layer->OnIMGUI();
+		}
+	}
     
     void LayerStack::Clear()
     {

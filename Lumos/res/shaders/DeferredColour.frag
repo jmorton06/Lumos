@@ -10,22 +10,23 @@ layout(location = 4) in vec3 fragTangent;
 
 layout(set = 1, binding = 0) uniform sampler2D u_AlbedoMap;
 layout(set = 1, binding = 1) uniform sampler2D u_SpecularMap;
-layout(set = 1, binding = 2) uniform sampler2D u_GlossMap;
+layout(set = 1, binding = 2) uniform sampler2D u_RoughnessMap;
 layout(set = 1, binding = 3) uniform sampler2D u_NormalMap;
 layout(set = 1, binding = 4) uniform sampler2D u_AOMap;
+layout(set = 1, binding = 5) uniform sampler2D u_EmissiveMap;
 
-layout(set = 1,binding = 5) uniform UniformMaterialData
+layout(set = 1,binding = 6) uniform UniformMaterialData
 {
 	vec4  albedoColour;
-	vec4  glossColour;
+	vec4  RoughnessColour;
 	vec4  specularColour;
 	float usingAlbedoMap;
 	float usingSpecularMap;
-	float usingGlossMap;
+	float usingRoughnessMap;
 	float usingNormalMap;
 	float usingAOMap;
 	float usingEmissiveMap;
-	float p0;
+	int workflow;
 	float p1;
 } materialProperties;
 
@@ -34,6 +35,10 @@ layout(location = 1) out vec4 outPosition;
 layout(location = 2) out vec4 outNormal;
 layout(location = 3) out vec4 outPBR;
 layout(location = 4) out vec4 outDepth;
+
+const float PBR_WORKFLOW_SEPARATE_TEXTURES = 0.0;
+const float PBR_WORKFLOW_METALLIC_ROUGHNESS = 1.0;
+const float PBR_WORKFLOW_SPECULAR_GLOSINESS = 2.0;
 
 #define PI 3.1415926535897932384626433832795
 #define GAMMA 2.2
@@ -55,17 +60,22 @@ vec4 GetAlbedo()
 
 vec3 GetSpecular()
 {
-	return (1.0 - materialProperties.usingSpecularMap) * materialProperties.specularColour.xyz + materialProperties.usingSpecularMap * GammaCorrectTextureRGB(texture(u_SpecularMap, fragTexCoord));
-}
-
-float GetGloss()
-{
-	return (1.0 - materialProperties.usingGlossMap) *  materialProperties.glossColour.r +  materialProperties.usingGlossMap * GammaCorrectTextureRGB(texture(u_GlossMap, fragTexCoord)).r;
+	return (1.0 - materialProperties.usingSpecularMap) * materialProperties.specularColour.rgb + materialProperties.usingSpecularMap * GammaCorrectTextureRGB(texture(u_SpecularMap, fragTexCoord)).rgb;
 }
 
 float GetRoughness()
 {
-	return 1.0 - GetGloss();
+	return (1.0 - materialProperties.usingRoughnessMap) *  materialProperties.RoughnessColour.r +  materialProperties.usingRoughnessMap * GammaCorrectTextureRGB(texture(u_RoughnessMap, fragTexCoord)).r;
+}
+
+float GetAO()
+{
+	return (1.0 - materialProperties.usingAOMap) +  materialProperties.usingAOMap * GammaCorrectTextureRGB(texture(u_AOMap, fragTexCoord)).r;
+}
+
+vec3 GetEmissive()
+{
+	return materialProperties.usingEmissiveMap * GammaCorrectTextureRGB(texture(u_EmissiveMap, fragTexCoord));
 }
 
 vec3 GetNormalFromMap()
@@ -88,23 +98,45 @@ vec3 GetNormalFromMap()
 	return normalize(TBN * tangentNormal);
 }
 
+float vec3Tofloat(in vec3 c) 
+{
+    c *= 255.;
+    c = floor(c); // without this value could be shifted for some intervals
+    return c.r*256.*256. + c.g*256. + c.b - 8388608.;
+}
+
 void main()
 {
 	vec4 texColour = GetAlbedo();
 	if(texColour.w < 0.4)
 		discard;
 
-	vec3 specular   = GetSpecular();
-	float roughness = GetGloss();
+	float specular;
+	float roughness;
+
+	if(materialProperties.workflow == PBR_WORKFLOW_SEPARATE_TEXTURES)
+	{
+		specular  = GetSpecular().x;
+		roughness = GetRoughness();
+	}
+	else if( materialProperties.workflow == PBR_WORKFLOW_METALLIC_ROUGHNESS)
+	{
+		vec3 tex = GammaCorrectTextureRGB(texture(u_SpecularMap, fragTexCoord));
+		specular = tex.b;
+		roughness = tex.g;
+	}
+	else if( materialProperties.workflow == PBR_WORKFLOW_SPECULAR_GLOSINESS)
+	{
+		vec3 tex = GammaCorrectTextureRGB(texture(u_SpecularMap, fragTexCoord));
+		specular = tex.b;
+		roughness = tex.g;
+	}
+	
+	vec3 emissive   = GetEmissive();
+	float ao		= GetAO();
 
     outColor    = texColour;
 	outPosition = fragPosition;
-
 	outNormal   = vec4(GetNormalFromMap(),1.0);
-
-	float ao	= 1.0f;
-
-	if(materialProperties.usingAOMap > 0.5)
-		ao = GammaCorrectTextureRGB(texture(u_AOMap, fragTexCoord)).r;
-	outPBR      = vec4(specular.x,roughness, ao,1.0);
+	outPBR      = vec4(specular,roughness, ao, emissive.r);
 }
