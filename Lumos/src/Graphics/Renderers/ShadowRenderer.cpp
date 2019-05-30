@@ -22,6 +22,8 @@
 #include "RenderCommand.h"
 #include "System/JobSystem.h"
 
+//#define THREAD_CASCADE_GEN
+
 namespace lumos
 {
 	namespace graphics
@@ -290,11 +292,16 @@ namespace lumos
 			}
 
 			float lastSplitDist = 0.0;
-			for (uint32_t i = 0; i < m_ShadowMapNum; i++)
 
-				//system::JobSystem::Dispatch(static_cast<uint32>(m_ShadowMapNum), 1, [&](JobDispatchArgs args)
+#ifdef THREAD_CASCADE_GEN
+			system::JobSystem::Dispatch(static_cast<uint32>(m_ShadowMapNum), 1, [&](JobDispatchArgs args)
+#else
+			for (uint32_t i = 0; i < m_ShadowMapNum; i++)
+#endif
 			{
-				//int i = args.jobIndex;
+#ifdef THREAD_CASCADE_GEN
+				int i = args.jobIndex;
+#endif
 				float splitDist = cascadeSplits[i];
 
 				maths::Vector3 frustumCorners[8] = {
@@ -342,9 +349,9 @@ namespace lumos
 					radius = maths::Max(radius, distance);
 				}
 				radius = std::ceil(radius * 16.0f) / 16.0f;
-				//float sceneBoundingRadius = scene->GetWorldRadius();
+				float sceneBoundingRadius = scene->GetWorldRadius();
 				//Extend the Z depths to catch shadow casters outside view frustum
-				//radius = maths::Max(radius, sceneBoundingRadius);
+				radius = maths::Max(radius, sceneBoundingRadius);
 
 				maths::Vector3 maxExtents = maths::Vector3(radius);
 				maths::Vector3 minExtents = -maxExtents;
@@ -370,9 +377,10 @@ namespace lumos
 				m_apShadowRenderLists[i]->SortLists();
 				scene->InsertToRenderList(m_apShadowRenderLists[i], f);
 			}
-			//);
-
-			//system::JobSystem::Wait();
+#ifdef THREAD_CASCADE_GEN
+			);
+			system::JobSystem::Wait();
+#endif
 		}
 
 		void ShadowRenderer::CreateFramebuffers()

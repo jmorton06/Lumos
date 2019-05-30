@@ -1,17 +1,21 @@
 #include "LM.h"
 #include "DeferredOffScreenRenderer.h"
-#include "Graphics/API/Shader.h"
+#include "App/Scene.h"
+#include "App/Application.h"
+#include "Entity/Entity.h"
+#include "Maths/Maths.h"
+
+#include "Graphics/RenderManager.h"
+#include "Graphics/Camera/Camera.h"
 #include "Graphics/RenderList.h"
+#include "Graphics/Mesh.h"
+#include "Graphics/Material.h"
+#include "Graphics/GBuffer.h"
+
+#include "Graphics/API/Shader.h"
 #include "Graphics/API/Framebuffer.h"
-#include "Graphics/Light.h"
 #include "Graphics/API/Textures/Texture2D.h"
 #include "Graphics/API/Textures/TextureDepth.h"
-#include "Graphics/API/Textures/TextureCube.h"
-#include "Graphics/ModelLoader/ModelLoader.h"
-#include "Graphics/Mesh.h"
-#include "Graphics/MeshFactory.h"
-#include "Graphics/Material.h"
-#include "Graphics/LightSetUp.h"
 #include "Graphics/API/UniformBuffer.h"
 #include "Graphics/API/Renderer.h"
 #include "Graphics/API/CommandBuffer.h"
@@ -19,16 +23,6 @@
 #include "Graphics/API/RenderPass.h"
 #include "Graphics/API/Pipeline.h"
 #include "Graphics/API/GraphicsContext.h"
-#include "Graphics/GBuffer.h"
-#include "App/Scene.h"
-#include "Entity/Entity.h"
-#include "SkyboxRenderer.h"
-#include "Maths/Maths.h"
-#include "ShadowRenderer.h"
-#include "App/Application.h"
-#include "Graphics/RenderManager.h"
-#include "Graphics/Camera/Camera.h"
-#include "Graphics/Light.h"
 
 #define MAX_LIGHTS 32
 #define MAX_SHADOWMAPS 16
@@ -62,16 +56,16 @@ namespace lumos
 			delete m_DefaultTexture;
 			delete m_UniformBuffer;
 
-			AlignedFree(uboDataDynamic.model);
-
 			delete m_ModelUniformBuffer;
 			delete m_RenderPass;
 			delete m_Pipeline;
 			delete m_DefaultDescriptorSet;
 			delete m_DefaultMaterialDataUniformBuffer;
+			delete m_DeferredCommandBuffers;
 
 			delete[] m_VSSystemUniformBuffer;
 			delete[] m_PSSystemUniformBuffer;
+
 			for (auto& commandBuffer : m_CommandBuffers)
 			{
 				delete commandBuffer;
@@ -79,7 +73,7 @@ namespace lumos
 
 			m_CommandBuffers.clear();
 
-			delete m_DeferredCommandBuffers;
+			AlignedFree(uboDataDynamic.model);
 		}
 
 		void DeferredOffScreenRenderer::Init()
@@ -96,10 +90,10 @@ namespace lumos
 			m_DefaultMaterialDataUniformBuffer = graphics::UniformBuffer::Create();
 
 			MaterialProperties properties;
-			properties.glossColour = 1.0f;
+			properties.roughnessColour = 1.0f;
 			properties.specularColour = maths::Vector4(0.0f, 1.0f, 0.0f, 1.0f);
 			properties.usingAlbedoMap = 1.0f;
-			properties.usingGlossMap = 0.0f;
+			properties.usingRoughnessMap = 0.0f;
 			properties.usingNormalMap = 0.0f;
 			properties.usingSpecularMap = 0.0f;
 
@@ -311,6 +305,7 @@ namespace lumos
 				{ graphics::DescriptorType::IMAGE_SAMPLER, MAX_OBJECTS },
 				{ graphics::DescriptorType::IMAGE_SAMPLER, MAX_OBJECTS },
 				{ graphics::DescriptorType::IMAGE_SAMPLER, MAX_OBJECTS },
+				{ graphics::DescriptorType::IMAGE_SAMPLER, MAX_OBJECTS },
 				{ graphics::DescriptorType::IMAGE_SAMPLER, MAX_OBJECTS }
 			};
 
@@ -327,7 +322,8 @@ namespace lumos
 				{ graphics::DescriptorType::IMAGE_SAMPLER,graphics::ShaderStage::FRAGMENT , 2 },
 				{ graphics::DescriptorType::IMAGE_SAMPLER,graphics::ShaderStage::FRAGMENT , 3 },
 				{ graphics::DescriptorType::IMAGE_SAMPLER,graphics::ShaderStage::FRAGMENT , 4 },
-				{ graphics::DescriptorType::UNIFORM_BUFFER, graphics::ShaderStage::FRAGMENT, 5 },
+				{ graphics::DescriptorType::IMAGE_SAMPLER,graphics::ShaderStage::FRAGMENT , 5 },
+				{ graphics::DescriptorType::UNIFORM_BUFFER, graphics::ShaderStage::FRAGMENT, 6 },
 			};
 
 			auto attributeDescriptions = Vertex::getAttributeDescriptions();
@@ -356,7 +352,7 @@ namespace lumos
 			pipelineCI.numLayoutBindings = static_cast<uint>(poolInfo.size());
 			pipelineCI.typeCounts = poolInfo.data();
 			pipelineCI.strideSize = sizeof(Vertex);
-			pipelineCI.numColorAttachments = 5;
+			pipelineCI.numColorAttachments = 6;
 			pipelineCI.wireframeEnabled = false;
 			pipelineCI.cullMode = graphics::CullMode::BACK;
 			pipelineCI.transparencyEnabled = false;
@@ -495,7 +491,7 @@ namespace lumos
 			bufferInfo.offset = 0;
 			bufferInfo.size = sizeof(MaterialProperties);
 			bufferInfo.type = graphics::DescriptorType::UNIFORM_BUFFER;
-			bufferInfo.binding = 5;
+			bufferInfo.binding = 6;
 			bufferInfo.shaderType = ShaderType::FRAGMENT;
 			bufferInfo.name = "UniformMaterialData";
 			bufferInfo.systemUniforms = false;

@@ -23,6 +23,7 @@ namespace lumos
 
 		void OnUpdate(TimeStep* timeStep) override;
 		void OnInit() override {};
+		void OnIMGUI() override;
 
 		b2World* GetB2World() const { return m_B2DWorld.get(); }
 		b2Body* CreateB2Body(b2BodyDef* bodyDef) const;

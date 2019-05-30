@@ -51,8 +51,9 @@ namespace lumos
 		m_PBRMaterialTextures.albedo    = textures.albedo;
 		m_PBRMaterialTextures.normal    = textures.normal;
 		m_PBRMaterialTextures.roughness = textures.roughness;
-		m_PBRMaterialTextures.metallic  = textures.metallic;
+		m_PBRMaterialTextures.specular = textures.specular;
 		m_PBRMaterialTextures.ao		= textures.ao;
+		m_PBRMaterialTextures.emissive  = textures.emissive;
 	}
 
 	void Material::LoadPBRMaterial(const String& name, const String& path, const String& extension)
@@ -64,7 +65,7 @@ namespace lumos
         m_PBRMaterialTextures.albedo    = std::shared_ptr<graphics::Texture2D>(graphics::Texture2D::CreateFromFile(name, path + "/" + name + "/albedo" + extension,params));
 		m_PBRMaterialTextures.normal    = std::shared_ptr<graphics::Texture2D>(graphics::Texture2D::CreateFromFile(name, path + "/" + name + "/normal" + extension,params));
 		m_PBRMaterialTextures.roughness = std::shared_ptr<graphics::Texture2D>(graphics::Texture2D::CreateFromFile(name, path + "/" + name + "/roughness" + extension,params));
-		m_PBRMaterialTextures.metallic  = std::shared_ptr<graphics::Texture2D>(graphics::Texture2D::CreateFromFile(name, path + "/" + name + "/metallic" + extension,params));
+		m_PBRMaterialTextures.specular = std::shared_ptr<graphics::Texture2D>(graphics::Texture2D::CreateFromFile(name, path + "/" + name + "/metallic" + extension,params));
 		//m_PBRMaterialTextures.ao		= std::shared_ptr<graphics::Texture2D>(graphics::Texture2D::CreateFromFile(name, path + "/" + name + "/ao" + extension, params));
 	}
 
@@ -75,8 +76,9 @@ namespace lumos
 		m_PBRMaterialTextures.albedo    = std::shared_ptr<graphics::Texture2D>(graphics::Texture2D::CreateFromFile(name, path));
 		m_PBRMaterialTextures.normal    = nullptr;
 		m_PBRMaterialTextures.roughness = nullptr;
-		m_PBRMaterialTextures.metallic  = nullptr;
+		m_PBRMaterialTextures.specular  = nullptr;
 		m_PBRMaterialTextures.ao		= nullptr;
+		m_PBRMaterialTextures.emissive  = nullptr;
 	}
 
     void Material::UpdateMaterialPropertiesData()
@@ -88,13 +90,14 @@ namespace lumos
     {
         m_MaterialProperties->albedoColour      = properties.albedoColour;
         m_MaterialProperties->specularColour    = properties.specularColour;
-        m_MaterialProperties->glossColour       = properties.glossColour;
+        m_MaterialProperties->roughnessColour   = properties.roughnessColour;
         m_MaterialProperties->usingAlbedoMap    = properties.usingAlbedoMap;
         m_MaterialProperties->usingNormalMap    = properties.usingNormalMap;
         m_MaterialProperties->usingSpecularMap  = properties.usingSpecularMap;
-        m_MaterialProperties->usingGlossMap     = properties.usingGlossMap;
+        m_MaterialProperties->usingRoughnessMap = properties.usingRoughnessMap;
 		m_MaterialProperties->usingAOMap		= properties.usingAOMap;
 		m_MaterialProperties->usingEmissiveMap  = properties.usingEmissiveMap;
+		m_MaterialProperties->workflow			= properties.workflow;
 
         UpdateMaterialPropertiesData();
 
@@ -138,10 +141,10 @@ namespace lumos
 		else
 			m_MaterialProperties->usingAlbedoMap = 0.0f;
 
-		if(m_PBRMaterialTextures.metallic != nullptr)
+		if(m_PBRMaterialTextures.specular != nullptr)
 		{
 			graphics::ImageInfo imageInfo2 = {};
-			imageInfo2.texture ={ m_PBRMaterialTextures.metallic.get() };
+			imageInfo2.texture ={ m_PBRMaterialTextures.specular.get() };
 			imageInfo2.binding = 1;
 			imageInfo2.name = "u_SpecularMap";
 			imageInfos.push_back(imageInfo2);
@@ -154,11 +157,11 @@ namespace lumos
 			graphics::ImageInfo imageInfo3 = {};
             imageInfo3.texture = { m_PBRMaterialTextures.roughness.get() };
 			imageInfo3.binding = 2;
-			imageInfo3.name = "u_GlossMap";
+			imageInfo3.name = "u_RoughnessMap";
 			imageInfos.push_back(imageInfo3);
 		}
 		else
-			m_MaterialProperties->usingGlossMap = 0.0f;
+			m_MaterialProperties->usingRoughnessMap = 0.0f;
 
 		if(m_PBRMaterialTextures.normal != nullptr)
 		{
@@ -182,6 +185,17 @@ namespace lumos
 		else
 			m_MaterialProperties->usingAOMap = 0.0f;
 
+		if (m_PBRMaterialTextures.emissive != nullptr)
+		{
+			graphics::ImageInfo imageInfo6 = {};
+			imageInfo6.texture = { m_PBRMaterialTextures.emissive.get() };
+			imageInfo6.binding = 5;
+			imageInfo6.name = "u_EmissiveMap";
+			imageInfos.push_back(imageInfo6);
+		}
+		else
+			m_MaterialProperties->usingEmissiveMap = 0.0f;
+
 		if (pbr)
 		{
 			graphics::BufferInfo bufferInfo = {};
@@ -189,7 +203,7 @@ namespace lumos
 			bufferInfo.offset = 0;
 			bufferInfo.size = sizeof(MaterialProperties);
 			bufferInfo.type = graphics::DescriptorType::UNIFORM_BUFFER;
-			bufferInfo.binding = 5;
+			bufferInfo.binding = 6;
 			bufferInfo.shaderType = graphics::ShaderType::FRAGMENT;
 			bufferInfo.name = "UniformMaterialData";
 			bufferInfo.systemUniforms = false;

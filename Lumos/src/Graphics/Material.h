@@ -14,18 +14,22 @@ namespace lumos
 		class UniformBuffer;
 	}
 
+	const int PBR_WORKFLOW_SEPARATE_TEXTURES  = 0;
+	const int PBR_WORKFLOW_METALLIC_ROUGHNESS = 1;
+	const int PBR_WORKFLOW_SPECULAR_GLOSINESS = 2;
+
 	struct MaterialProperties
 	{
 		lumos::maths::Vector4  albedoColour    = lumos::maths::Vector4(1.0f,0.0f,1.0f,1.0f);
-		lumos::maths::Vector4  glossColour     = lumos::maths::Vector4(1.0f,0.0f,1.0f,1.0f);
+		lumos::maths::Vector4  roughnessColour     = lumos::maths::Vector4(1.0f,0.0f,1.0f,1.0f);
 		lumos::maths::Vector4  specularColour  = lumos::maths::Vector4(0.0f,1.0f,0.0f,1.0f);
 		float usingAlbedoMap = 1.0f;
 		float usingSpecularMap = 1.0f;
-		float usingGlossMap = 1.0f;
+		float usingRoughnessMap = 1.0f;
 		float usingNormalMap = 1.0f;
 		float usingAOMap = 1.0f;
 		float usingEmissiveMap = 1.0f;
-		float p0 = 1.0f;
+		int workflow = PBR_WORKFLOW_SEPARATE_TEXTURES;
 		float p1 = 1.0f;
 	};
 
@@ -33,7 +37,7 @@ namespace lumos
 	{
 		std::shared_ptr<graphics::Texture2D> albedo;
 		std::shared_ptr<graphics::Texture2D> normal;
-		std::shared_ptr<graphics::Texture2D> metallic;
+		std::shared_ptr<graphics::Texture2D> specular;
 		std::shared_ptr<graphics::Texture2D> roughness;
 		std::shared_ptr<graphics::Texture2D> ao;
 		std::shared_ptr<graphics::Texture2D> emissive;

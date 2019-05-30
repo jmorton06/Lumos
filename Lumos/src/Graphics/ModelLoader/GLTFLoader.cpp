@@ -25,6 +25,7 @@ namespace lumos
 	String MetallicTexName = "metallicRoughnessTexture";
 	String GlossTexName = "metallicRoughnessTexture";
 	String AOTexName = "occlusionTexture";
+	String EmissiveTexName = "emissiveTexture";
 
 	struct GLTFTexture
 	{
@@ -91,93 +92,6 @@ namespace lumos
 		}
 	}
 
-	PBRMataterialTextures LoadMaterial(tinygltf::Material gltfmaterial, tinygltf::Model gltfmodel)
-	{
-		const auto loadTextureFromParameter = [&](const tinygltf::ParameterMap& parameterMap, const String& textureName)
-		{
-			GLTFTexture texture{};
-
-			const auto& textureIt = parameterMap.find(textureName);
-			if (textureIt != std::end(parameterMap))
-			{
-				const int textureIndex = static_cast<int>(textureIt->second.json_double_value.at("index"));
-				const tinygltf::Texture& gltfTexture = gltfmodel.textures.at(textureIndex);
-				if (gltfTexture.source != -1)
-				{
-					texture.Image = &gltfmodel.images.at(gltfTexture.source);
-				}
-
-				if (gltfTexture.sampler != -1)
-				{
-					texture.Sampler = &gltfmodel.samplers.at(gltfTexture.sampler);
-				}
-			}
-
-			return texture;
-		};
-
-		PBRMataterialTextures textures;
-
-		GLTFTexture albedoTex = loadTextureFromParameter(gltfmaterial.values, AlbedoTexName);
-
-		if (albedoTex.Image)
-		{
-			graphics::TextureParameters params = graphics::TextureParameters(GetFilter(albedoTex.Sampler->minFilter), GetWrapMode(albedoTex.Sampler->wrapS));
-
-			graphics::Texture2D* texture = graphics::Texture2D::CreateFromSource(albedoTex.Image->width, albedoTex.Image->height, albedoTex.Image->image.data(), params);
-			if (texture)
-				textures.albedo = std::shared_ptr<graphics::Texture2D>(texture);//material->SetAlbedoMap(texture);
-		}
-		else
-			textures.albedo = nullptr;
-
-		GLTFTexture normalTex = loadTextureFromParameter(gltfmaterial.values, NormalTexName);
-
-		if (normalTex.Image)
-		{
-			graphics::TextureParameters params = graphics::TextureParameters(GetFilter(normalTex.Sampler->minFilter), GetWrapMode(normalTex.Sampler->wrapS));
-
-			graphics::Texture2D* texture = graphics::Texture2D::CreateFromSource(normalTex.Image->width, normalTex.Image->height, normalTex.Image->image.data(), params);
-			if (texture)
-				textures.normal = std::shared_ptr<graphics::Texture2D>(texture);//material->SetNormalMap(texture);
-		}
-
-		GLTFTexture specularTex = loadTextureFromParameter(gltfmaterial.values, MetallicTexName);
-
-		if (specularTex.Image)
-		{
-			graphics::TextureParameters params = graphics::TextureParameters(GetFilter(specularTex.Sampler->minFilter), GetWrapMode(specularTex.Sampler->wrapS));
-
-			graphics::Texture2D* texture = graphics::Texture2D::CreateFromSource(specularTex.Image->width, specularTex.Image->height, specularTex.Image->image.data(), params);
-			if (texture)
-				textures.metallic = std::shared_ptr<graphics::Texture2D>(texture);//material->SetSpecularMap(texture);
-		}
-
-		GLTFTexture glossTex = loadTextureFromParameter(gltfmaterial.values, GlossTexName);
-
-		if (glossTex.Image)
-		{
-			graphics::TextureParameters params = graphics::TextureParameters(GetFilter(glossTex.Sampler->minFilter), GetWrapMode(glossTex.Sampler->wrapS));
-
-			graphics::Texture2D* texture = graphics::Texture2D::CreateFromSource(glossTex.Image->width, glossTex.Image->height, glossTex.Image->image.data(), params);
-			if (texture)
-				textures.roughness = std::shared_ptr<graphics::Texture2D>(texture);//material->SetGlossMap(texture);
-		}
-
-		GLTFTexture occlusionTex = loadTextureFromParameter(gltfmaterial.values, AOTexName);
-
-		if (occlusionTex.Image)
-		{
-			graphics::TextureParameters params = graphics::TextureParameters(GetFilter(occlusionTex.Sampler->minFilter), GetWrapMode(occlusionTex.Sampler->wrapS));
-
-			graphics::Texture2D* texture = graphics::Texture2D::CreateFromSource(occlusionTex.Image->width, occlusionTex.Image->height, occlusionTex.Image->image.data(), params);
-			if (texture)
-				textures.ao = std::shared_ptr<graphics::Texture2D>(texture);//material->SetGlossMap(texture);
-		}
-
-		return textures;
-	}
-
 	std::vector<std::shared_ptr<Material>> LoadMaterials(tinygltf::Model &gltfModel)
     {
         std::vector<std::shared_ptr<graphics::Texture2D>> loadedTextures;
@@ -221,9 +135,9 @@ namespace lumos
             
             // common workflow:
             auto normalTexture = mat.additionalValues.find("normalTexture");
-            //auto emissiveTexture = mat.additionalValues.find("emissiveTexture");
+            auto emissiveTexture = mat.additionalValues.find("emissiveTexture");
             auto occlusionTexture = mat.additionalValues.find("occlusionTexture");
-            //auto emissiveFactor = mat.additionalValues.find("emissiveFactor");
+            auto emissiveFactor = mat.additionalValues.find("emissiveFactor");
             //auto alphaCutoff = mat.additionalValues.find("alphaCutoff");
             //auto alphaMode = mat.additionalValues.find("alphaMode");
 
@@ -236,10 +150,16 @@ namespace lumos
             {
                 textures.normal = loadedTextures[gltfModel.textures[normalTexture->second.TextureIndex()].source];
             }
+
+			if (emissiveTexture != mat.additionalValues.end())
+			{
+				textures.emissive = loadedTextures[gltfModel.textures[emissiveTexture->second.TextureIndex()].source];
+			}
             
             if (metallicRoughnessTexture != mat.values.end())
             {
-                textures.metallic = loadedTextures[gltfModel.textures[metallicRoughnessTexture->second.TextureIndex()].source];
+                textures.specular = loadedTextures[gltfModel.textures[metallicRoughnessTexture->second.TextureIndex()].source];
+				properties.workflow = PBR_WORKFLOW_METALLIC_ROUGHNESS;
             }
 
 			if (occlusionTexture != mat.additionalValues.end())
@@ -249,7 +169,7 @@ namespace lumos
             
             if (roughnessFactor != mat.values.end())
             {
-                properties.glossColour = static_cast<float>(roughnessFactor->second.Factor());
+                properties.roughnessColour = static_cast<float>(roughnessFactor->second.Factor());
             }
             
             if (metallicFactor != mat.values.end())
@@ -298,7 +218,7 @@ namespace lumos
                 if (specularGlossinessWorkflow->second.Has("glossinessFactor"))
                 {
                     auto& factor = specularGlossinessWorkflow->second.Get("glossinessFactor");
-                    properties.glossColour = maths::Vector4(1.0f - float(factor.IsNumber() ? factor.Get<double>() : factor.Get<int>()));
+                    properties.roughnessColour = maths::Vector4(1.0f - float(factor.IsNumber() ? factor.Get<double>() : factor.Get<int>()));
                 }
             }
 
@@ -323,7 +243,7 @@ namespace lumos
             size_t maxNumVerts = 0;
             
             std::shared_ptr<maths::BoundingSphere> boundingBox = std::make_shared<maths::BoundingSphere>();
-            
+           
             for (auto& attribute : primitive.attributes)
             {
                 // Get accessor info
@@ -408,7 +328,7 @@ namespace lumos
                     }
                 }
             }
-            
+
             std::shared_ptr<Material> pbrMaterial = materials[primitive.material];
             
             std::shared_ptr<graphics::VertexArray> va;

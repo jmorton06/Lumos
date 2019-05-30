@@ -20,6 +20,7 @@ namespace lumos
 		virtual void OnEvent(Event& event) {}
 		virtual void OnRender(Scene* scene) {}
         virtual void OnNewScene(Scene* scene) {}
+		virtual void OnIMGUI() {}
 
 		inline const std::string& GetName() const { return m_DebugName; }
 	protected:

@@ -6,6 +6,7 @@
 #include "Editor.h"
 #include "Input.h"
 #include "Engine.h"
+#include "Window.h"
 
 #include "Graphics/API/Renderer.h"
 #include "Graphics/API/GraphicsContext.h"
@@ -21,6 +22,7 @@
 #include "System/JobSystem.h"
 #include "System/Profiler.h"
 
+#include "Events/ApplicationEvent.h"
 #include "Audio/AudioManager.h"
 #include "Physics/B2PhysicsEngine/B2PhysicsEngine.h"
 #include "Physics/LumosPhysicsEngine/LumosPhysicsEngine.h"

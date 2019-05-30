@@ -1,23 +1,27 @@
 #include "LM.h"
 #include "Editor.h"
-#include "App/Application.h"
-#include "App/Input.h"
-#include <imgui/plugins/ImGuizmo.h>
-#include "Entity/Entity.h"
-#include "Graphics/GBuffer.h"
-#include "Graphics/Camera/Camera.h"
-#include "App/Engine.h"
-#include "Physics/LumosPhysicsEngine/LumosPhysicsEngine.h"
-#include "App/SceneManager.h"
-#include "App/Scene.h"
-#include "Graphics/RenderManager.h"
-#include "Graphics/API/Textures/Texture2D.h"
+#include "Application.h"
 #include "Console.h"
-#include "imgui/imgui.h"
-#include "imgui/imgui_internal.h"
+#include "Input.h"
+#include "Engine.h"
+#include "Scene.h"
+#include "SceneManager.h"
+
 #include "Maths/BoundingSphere.h"
 #include "System/Profiler.h"
+#include "Entity/Entity.h"
+#include "Physics/LumosPhysicsEngine/LumosPhysicsEngine.h"
+
+#include "Graphics/GBuffer.h"
+#include "Graphics/Camera/Camera.h"
+#include "Graphics/RenderManager.h"
+#include "Graphics/Layers/LayerStack.h"
 #include "Graphics/API/GraphicsContext.h"
+#include "Graphics/API/Textures/Texture2D.h"
+
+#include <imgui/imgui.h>
+#include <imgui/imgui_internal.h>
+#include <imgui/plugins/ImGuizmo.h>
 
 namespace lumos
 {
@@ -29,7 +33,6 @@ namespace lumos
 
 		m_SceneViewSize = maths::Vector2(static_cast<float>(width), static_cast<float>(height));
 	}
-
 
 	Editor::~Editor()
 	{
@@ -153,7 +156,24 @@ namespace lumos
 					m_ImGuizmoOperation = ImGuizmo::SCALE;
 
 				ImGui::NewLine();
-				LumosPhysicsEngine::Instance()->OnImGUI();
+				auto systems = Application::Instance()->GetSystems();
+
+				if (ImGui::TreeNode("Systems"))
+				{
+					for (auto system : systems)
+					{
+						system->OnIMGUI();
+					}
+					ImGui::TreePop();
+				}
+
+				auto layerStack = Application::Instance()->GetLayerStack();
+				if (ImGui::TreeNode("Layers"))
+				{
+					layerStack->OnIMGUI();
+					ImGui::TreePop();
+				}
+
 				ImGui::NewLine();
 				ImGui::Text("FPS : %5.2i", Engine::Instance()->GetFPS());
 				ImGui::Text("UPS : %5.2i", Engine::Instance()->GetUPS());

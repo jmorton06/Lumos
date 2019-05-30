@@ -126,10 +126,10 @@ void Scene3D::LoadModels()
 
 	MaterialProperties properties;
 	properties.albedoColour = Vector4(0.6f,0.1f,0.1f,1.0f);
-	properties.glossColour = Vector4(0.8f);
+	properties.roughnessColour = Vector4(0.8f);
 	properties.specularColour = Vector4(0.8f);
 	properties.usingAlbedoMap   = 0.5f;
-	properties.usingGlossMap    = 0.0f;
+	properties.usingRoughnessMap    = 0.0f;
 	properties.usingNormalMap   = 0.0f;
 	properties.usingSpecularMap = 0.0f;
 	testMaterial->SetMaterialProperites(properties);
@@ -137,28 +137,28 @@ void Scene3D::LoadModels()
 
 	AddEntity(ground);
 
-	#if 0
+	#if 1
 
 	auto grassMaterial = std::make_shared<Material>();
-	grassMaterial->LoadPBRMaterial("grass", "/Textures");
+	grassMaterial->LoadPBRMaterial("grass", "/Textures/pbr");
 
 	auto stonewallMaterial = std::make_shared<Material>();
-	stonewallMaterial->LoadPBRMaterial("stonewall", "/Textures");
+	stonewallMaterial->LoadPBRMaterial("stonewall", "/Textures/pbr");
 
 	auto castIronMaterial = std::make_shared<Material>();
-	castIronMaterial->LoadPBRMaterial("CastIron", "/Textures",".tga");
+	castIronMaterial->LoadPBRMaterial("CastIron", "/Textures/pbr",".tga");
 
 	auto GunMetalMaterial = std::make_shared<Material>();
-	GunMetalMaterial->LoadPBRMaterial("GunMetal", "/Textures",".tga");
+	GunMetalMaterial->LoadPBRMaterial("GunMetal", "/Textures/pbr",".tga");
 
 	auto WornWoodMaterial = std::make_shared<Material>();
-	WornWoodMaterial->LoadPBRMaterial("WornWood", "/Textures",".tga");
+	WornWoodMaterial->LoadPBRMaterial("WornWood", "/Textures/pbr",".tga");
 
 	auto marbleMaterial = std::make_shared<Material>();
-	marbleMaterial->LoadPBRMaterial("marble", "/Textures");
+	marbleMaterial->LoadPBRMaterial("marble", "/Textures/pbr");
 
 	auto stoneMaterial = std::make_shared<Material>();
-	stoneMaterial->LoadPBRMaterial("stone", "/Textures");
+	stoneMaterial->LoadPBRMaterial("stone", "/Textures/pbr");
 
 	//Create a Rest Cube
 	std::shared_ptr<Entity> cube = std::make_shared<Entity>("cube");
@@ -346,10 +346,10 @@ void Scene3D::LoadModels()
 		std::shared_ptr<Material> m = std::make_shared<Material>();
 		MaterialProperties properties;
 		properties.albedoColour = diffuse;
-		properties.glossColour = Vector4(roughness);
+		properties.roughnessColour = Vector4(roughness);
 		properties.specularColour = spec;
 		properties.usingAlbedoMap   = 0.0f;
-		properties.usingGlossMap    = 0.0f;
+		properties.usingRoughnessMap = 0.0f;
 		properties.usingNormalMap   = 0.0f;
 		properties.usingSpecularMap = 0.0f;
 		m->SetMaterialProperites(properties);
@@ -375,10 +375,10 @@ void Scene3D::LoadModels()
 		std::shared_ptr<Material> m = std::make_shared<Material>();
 		MaterialProperties properties;
 		properties.albedoColour = diffuse;
-		properties.glossColour = Vector4(roughness);
+		properties.roughnessColour = Vector4(roughness);
 		properties.specularColour = spec;
 		properties.usingAlbedoMap   = 0.0f;
-		properties.usingGlossMap    = 0.0f;
+		properties.usingRoughnessMap    = 0.0f;
 		properties.usingNormalMap   = 0.0f;
 		properties.usingSpecularMap = 0.0f;
 		m->SetMaterialProperites(properties);
