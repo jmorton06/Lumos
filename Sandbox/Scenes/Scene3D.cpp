@@ -141,7 +141,7 @@ void Scene3D::LoadModels()
 
 	AddEntity(ground);
 
-	#if 0
+	#if 1
 
 	auto grassMaterial = std::make_shared<Material>();
 	grassMaterial->LoadPBRMaterial("grass", "/Textures/pbr");
