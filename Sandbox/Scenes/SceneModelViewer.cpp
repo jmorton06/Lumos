@@ -18,7 +18,7 @@ void SceneModelViewer::OnInit()
 
 	LoadModels();
 
-	m_pCamera = new ThirdPersonCamera(-20.0f, -40.0f, maths::Vector3(-10.0f, 10.0f, 20.0f), 45.0f, 0.1f, 1000.0f, (float) m_ScreenWidth / (float) m_ScreenHeight);
+	m_pCamera = new MayaCamera(-20.0f, -40.0f, maths::Vector3(-1.0f, 1.0f, 2.0f), 45.0f, 0.1f, 1000.0f, (float) m_ScreenWidth / (float) m_ScreenHeight);
 
 	String environmentFiles[11] =
 	{
@@ -40,8 +40,8 @@ void SceneModelViewer::OnInit()
 	auto sun = std::make_shared<graphics::Light>(maths::Vector3(26.0f, 22.0f, 48.5f), maths::Vector4(1.0f), 2.0f);
 
 	auto lightEntity = std::make_shared<Entity>("Directional Light");
-	lightEntity->AddComponent(std::make_unique<LightComponent>(sun));
-	lightEntity->AddComponent(std::make_unique<TransformComponent>(Matrix4::Translation(maths::Vector3(26.0f, 22.0f, 48.5f))));
+	lightEntity->AddComponent<LightComponent>(sun);
+	lightEntity->AddComponent<TransformComponent>(Matrix4::Translation(maths::Vector3(26.0f, 22.0f, 48.5f)));
 	AddEntity(lightEntity);
 
     auto shadowTexture = std::unique_ptr<graphics::TextureDepthArray>(graphics::TextureDepthArray::Create(2048, 2048, 4));
@@ -63,7 +63,6 @@ void SceneModelViewer::OnInit()
     m_SceneLayers.emplace_back(shadowLayer);
     m_SceneLayers.emplace_back(deferredLayer);
     m_SceneLayers.emplace_back(skyBoxLayer);
-    //Application::Instance()->PushOverLay(new ImGuiLayer(true));
     
     Application::Instance()->GetRenderManager()->SetShadowRenderer(shadowRenderer);
     Application::Instance()->GetRenderManager()->SetSkyBoxTexture(m_EnvironmentMap);
@@ -100,7 +99,7 @@ void SceneModelViewer::LoadModels()
 
 	std::shared_ptr<Entity> TestObject = ModelLoader::LoadModel(ExampleModelPaths[0]);
 	TestObject->SetBoundingRadius(1000.0f);
-	TestObject->AddComponent(std::make_unique<TransformComponent>(maths::Matrix4::Scale(maths::Vector3(10.0f, 10.0f, 10.0f))));
+	TestObject->AddComponent<TransformComponent>(maths::Matrix4::Scale(maths::Vector3(1.0f, 1.0f, 1.0f)));
 	AddEntity(TestObject);
 
 }

@@ -7,6 +7,8 @@
 #include "Graphics/API/UniformBuffer.h"
 #include "Graphics/API/Shader.h"
 
+#include "System/VFS.h"
+
 namespace lumos
 {
 
@@ -56,17 +58,51 @@ namespace lumos
 		m_PBRMaterialTextures.emissive  = textures.emissive;
 	}
 
+	bool FileExists(const String& path)
+	{
+		std::string physicalPath;
+		if (!VFS::Get()->ResolvePhysicalPath(path, physicalPath))
+			return false;
+
+		return true;
+	}
+
 	void Material::LoadPBRMaterial(const String& name, const String& path, const String& extension)
 	{
 		m_Name = name;
 		m_PBRMaterialTextures = PBRMataterialTextures();
         auto params = graphics::TextureParameters(graphics::TextureFormat::RGBA, graphics::TextureFilter::LINEAR, graphics::TextureWrap::CLAMP_TO_EDGE);
 
-        m_PBRMaterialTextures.albedo    = std::shared_ptr<graphics::Texture2D>(graphics::Texture2D::CreateFromFile(name, path + "/" + name + "/albedo" + extension,params));
+		auto filePath = path + "/" + name + "/albedo" + extension;
+
+		if(FileExists(filePath))
+			m_PBRMaterialTextures.albedo    = std::shared_ptr<graphics::Texture2D>(graphics::Texture2D::CreateFromFile(name, path + "/" + name + "/albedo" + extension,params));
+
+		filePath = path + "/" + name + "/normal" + extension;
+
+		if (FileExists(filePath))
 		m_PBRMaterialTextures.normal    = std::shared_ptr<graphics::Texture2D>(graphics::Texture2D::CreateFromFile(name, path + "/" + name + "/normal" + extension,params));
+
+		filePath = path + "/" + name + "/roughness" + extension;
+
+		if (FileExists(filePath))
 		m_PBRMaterialTextures.roughness = std::shared_ptr<graphics::Texture2D>(graphics::Texture2D::CreateFromFile(name, path + "/" + name + "/roughness" + extension,params));
+
+		filePath = path + "/" + name + "/metallic" + extension;
+
+		if (FileExists(filePath))
 		m_PBRMaterialTextures.specular = std::shared_ptr<graphics::Texture2D>(graphics::Texture2D::CreateFromFile(name, path + "/" + name + "/metallic" + extension,params));
-		//m_PBRMaterialTextures.ao		= std::shared_ptr<graphics::Texture2D>(graphics::Texture2D::CreateFromFile(name, path + "/" + name + "/ao" + extension, params));
+
+		filePath = path + "/" + name + "/ao" + extension;
+
+		if (FileExists(filePath))
+		m_PBRMaterialTextures.ao		= std::shared_ptr<graphics::Texture2D>(graphics::Texture2D::CreateFromFile(name, path + "/" + name + "/ao" + extension, params));
+
+		filePath = path + "/" + name + "/emissive" + extension;
+
+		if (FileExists(filePath))
+			m_PBRMaterialTextures.emissive = std::shared_ptr<graphics::Texture2D>(graphics::Texture2D::CreateFromFile(name, path + "/" + name + "/emissive" + extension, params));
+
 	}
 
 	void Material::LoadMaterial(const String& name, const String& path)

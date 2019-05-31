@@ -15,6 +15,7 @@ namespace lumos
 		std::shared_ptr<graphics::Mesh> m_Model;
 	public:
 		explicit MeshComponent(std::shared_ptr<graphics::Mesh>& model);
+		explicit MeshComponent(graphics::Mesh* mesh);
 
 		static ComponentType GetStaticType()
 		{

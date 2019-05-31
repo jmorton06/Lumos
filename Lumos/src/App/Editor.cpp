@@ -146,13 +146,13 @@ namespace lumos
 			if (ImGui::TreeNode("Application"))
 			{
                 bool flipImage = graphics::GraphicsContext::GetContext()->FlipImGUITexture();
-				if (ImGui::ImageButton(m_Icons["translate"]->GetHandle(), ImVec2(16, 16), ImVec2(0.0f, flipImage ? 1.0f : 0.0f), ImVec2(1.0f, flipImage ? 0.0f : 1.0f)))
+				if (ImGui::ImageButton(m_Icons["translate"]->GetHandle(), ImVec2(24, 24), ImVec2(0.0f, flipImage ? 1.0f : 0.0f), ImVec2(1.0f, flipImage ? 0.0f : 1.0f)))
 					m_ImGuizmoOperation = ImGuizmo::TRANSLATE;
 				ImGui::SameLine();
-				if (ImGui::ImageButton(m_Icons["rotate"]->GetHandle(), ImVec2(16, 16), ImVec2(0.0f, flipImage ? 1.0f : 0.0f), ImVec2(1.0f, flipImage ? 0.0f : 1.0f)))
+				if (ImGui::ImageButton(m_Icons["rotate"]->GetHandle(), ImVec2(24, 24), ImVec2(0.0f, flipImage ? 1.0f : 0.0f), ImVec2(1.0f, flipImage ? 0.0f : 1.0f)))
 					m_ImGuizmoOperation = ImGuizmo::ROTATE;
 				ImGui::SameLine();
-				if (ImGui::ImageButton(m_Icons["scale"]->GetHandle(), ImVec2(16, 16), ImVec2(0.0f, flipImage ? 1.0f : 0.0f), ImVec2(1.0f, flipImage ? 0.0f : 1.0f)))
+				if (ImGui::ImageButton(m_Icons["scale"]->GetHandle(), ImVec2(24, 24), ImVec2(0.0f, flipImage ? 1.0f : 0.0f), ImVec2(1.0f, flipImage ? 0.0f : 1.0f)))
 					m_ImGuizmoOperation = ImGuizmo::SCALE;
 
 				ImGui::NewLine();
@@ -409,7 +409,7 @@ namespace lumos
 		m_Application->m_SceneManager->GetCurrentScene()->IterateEntities([&](std::shared_ptr<Entity> entity)
 		{
 			auto boundingBox = entity->GetBoundingRadius();
-			maths::BoundingSphere test(entity->GetTransform()->m_Transform.GetWorldPosition(), boundingBox);
+			maths::BoundingSphere test(entity->GetTransformComponent()->GetTransform().GetWorldPosition(), boundingBox);
 			if (test.Intersects(worldMousePos))
 			{
 				m_Selected = entity.get();

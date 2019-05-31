@@ -27,7 +27,7 @@ namespace lumos
 			case RenderAPI::OPENGL:		return new GLTexture2D();
 #endif
 #ifdef LUMOS_RENDER_API_VULKAN
-			case RenderAPI::VULKAN:	return new graphics::VKTexture2D();
+			case RenderAPI::VULKAN:		return new VKTexture2D();
 #endif
 			}
 			return nullptr;
@@ -41,7 +41,7 @@ namespace lumos
 			case RenderAPI::OPENGL:		return new GLTexture2D(width, height, data, parameters, loadOptions);
 #endif
 #ifdef LUMOS_RENDER_API_VULKAN
-			case RenderAPI::VULKAN:	return new graphics::VKTexture2D(width, height, data, parameters, loadOptions);
+			case RenderAPI::VULKAN:		return new VKTexture2D(width, height, data, parameters, loadOptions);
 #endif
 			}
 			return nullptr;

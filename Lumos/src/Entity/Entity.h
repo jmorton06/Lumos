@@ -22,7 +22,8 @@ namespace lumos
 		explicit Entity(const String& name = "");
 		virtual ~Entity();
 
-		void AddComponent(std::unique_ptr<LumosComponent> component);
+		template<typename T, typename... Args>
+		void AddComponent(Args&&... args);
 
 		template <typename T>
 		/*const */T* GetComponent() const
@@ -38,9 +39,9 @@ namespace lumos
 
 		void OnRenderObject();
 		virtual void OnUpdateObject(float dt);
-        virtual void OnIMGUI();
+		virtual void OnIMGUI();
 		virtual void OnGuizmo(uint mode = 0);
-        virtual void Init();
+		virtual void Init();
 
 		std::vector<std::shared_ptr<Entity>>& GetChildren() { return m_vpChildren; }
 		void AddChildObject(std::shared_ptr<Entity>& child);
@@ -52,12 +53,12 @@ namespace lumos
 
 		void DebugDraw(uint64 debugFlags);
 
-		TransformComponent* GetTransform();
-        
-        void SetParent(Entity* parent);
-        
-        const String& GetName() const { return m_Name; }
-        const String& GetUUID() const { return m_UUID; }
+		TransformComponent* GetTransformComponent();
+
+		void SetParent(Entity* parent);
+
+		const String& GetName() const { return m_Name; }
+		const String& GetUUID() const { return m_UUID; }
 
 		const bool IsActive() const { return m_Active; }
 		void SetActive(bool active) { m_Active = active; };
@@ -67,6 +68,8 @@ namespace lumos
 
 		Entity(Entity const&) = delete;
 		Entity& operator=(Entity const&) = delete;
+
+		void AddComponent(std::unique_ptr<LumosComponent> component);
 
 		template <typename T>
 		T* GetComponentInternal() const
@@ -83,8 +86,15 @@ namespace lumos
 		std::vector<std::shared_ptr<Entity>> m_vpChildren;
 		float					m_BoundingRadius;
 		uint					m_FrustumCullFlags;
-        String                  m_UUID;
+		String                  m_UUID;
 		bool					m_Active;
 		TransformComponent*		m_DefaultTransformComponent = nullptr;
 	};
+
+	template<typename T, typename ... Args>
+	inline void Entity::AddComponent(Args && ...args)
+	{
+		std::unique_ptr<T> component(new T(std::forward<Args>(args) ...));
+		AddComponent(std::move(component));
+	}
 }

@@ -98,33 +98,73 @@ namespace lumos
 
 	void Camera::OnImGUI()
 	{
-		if (ImGui::TreeNode("Camera"))
-		{
-			auto pos = m_Position;
-			auto aspect = m_AspectRatio;
-			auto yaw = m_Yaw;
-			auto pitch = m_Pitch;
-			auto fov = m_Fov;
-			auto lNear = m_Near;
-			auto lFar = m_Far;
+			if (ImGui::TreeNode("Camera"))
+			{
+				ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(2, 2));
+				ImGui::Columns(2);
+				ImGui::Separator();
 
-			ImGui::DragFloat3("Position", &pos.x);
-			ImGui::DragFloat("Aspect", &aspect);
-			ImGui::DragFloat("Pitch", &pitch);
-			ImGui::DragFloat("Yaw", &yaw);
-			ImGui::DragFloat("Fov", &fov);
-			ImGui::DragFloat("Near", &lNear);
-			ImGui::DragFloat("Far", &lFar);
+				ImGui::AlignTextToFramePadding();
+				ImGui::Text("Position");
+				ImGui::NextColumn();
+				ImGui::PushItemWidth(-1);
+				ImGui::DragFloat3("##Position", &m_Position.x);
+				ImGui::PopItemWidth();
+				ImGui::NextColumn();
 
-			m_Position = pos;
-			m_AspectRatio = aspect;
-			m_Yaw = yaw;
-			m_Pitch = pitch;
-			m_Fov = fov;
-			m_Near = lNear;
-			m_Far = lFar;
+				ImGui::AlignTextToFramePadding();
+				ImGui::Text("Aspect");
+				ImGui::NextColumn();
+				ImGui::PushItemWidth(-1);
+				ImGui::DragFloat("##Aspect", &m_AspectRatio);
+				ImGui::PopItemWidth();
+				ImGui::NextColumn();
 
-			ImGui::TreePop();
+				ImGui::AlignTextToFramePadding();
+				ImGui::Text("Pitch");
+				ImGui::NextColumn();
+				ImGui::PushItemWidth(-1);
+				ImGui::DragFloat("##Pitch", &m_Pitch);
+				ImGui::PopItemWidth();
+				ImGui::NextColumn();
+
+				ImGui::AlignTextToFramePadding();
+				ImGui::Text("Yaw");
+				ImGui::NextColumn();
+				ImGui::PushItemWidth(-1);
+				ImGui::DragFloat3("##Yaw", &m_Yaw);
+				ImGui::PopItemWidth();
+				ImGui::NextColumn();
+
+				ImGui::AlignTextToFramePadding();
+				ImGui::Text("Fov");
+				ImGui::NextColumn();
+				ImGui::PushItemWidth(-1);
+				ImGui::DragFloat("##Fov", &m_Fov);
+				ImGui::PopItemWidth();
+				ImGui::NextColumn();
+
+				ImGui::AlignTextToFramePadding();
+				ImGui::Text("Near");
+				ImGui::NextColumn();
+				ImGui::PushItemWidth(-1);
+				ImGui::DragFloat("##Near", &m_Near);
+				ImGui::PopItemWidth();
+				ImGui::NextColumn();
+
+				ImGui::AlignTextToFramePadding();
+				ImGui::Text("Far");
+				ImGui::NextColumn();
+				ImGui::PushItemWidth(-1);
+				ImGui::DragFloat("##Far", &m_Far);
+				ImGui::PopItemWidth();
+				ImGui::NextColumn();
+
+				ImGui::Columns(1);
+				ImGui::Separator();
+				ImGui::PopStyleVar();
+
+				ImGui::TreePop();
 		}
 	}
 }

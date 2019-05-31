@@ -21,7 +21,9 @@ namespace lumos
 		void OnUpdateComponent(float dt) override;
         void OnIMGUI() override;
 		
-    public:
+		maths::Transform& GetTransform() { return m_Transform; }
+
+    private:
 		maths::Transform m_Transform;
 	};
 }

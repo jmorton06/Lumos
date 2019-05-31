@@ -32,8 +32,8 @@ namespace lumos
 
 	void LightComponent::OnUpdateComponent(float dt)
 	{
-		   //m_Light->m_Direction = maths::Vector4(maths::Matrix4::GetEulerAngles(m_Entity->GetTransform()->m_Transform.GetWorldMatrix()), 1.0f);
-           m_Light->m_Position = maths::Vector4(m_Entity->GetTransform()->m_Transform.GetWorldMatrix().GetPositionVector(), 1.0f);
+		   //m_Light->m_Direction = maths::Vector4(maths::Matrix4::GetEulerAngles(m_Entity->GetTransformComponent()->GetTransform().GetWorldMatrix()), 1.0f);
+           m_Light->m_Position = maths::Vector4(m_Entity->GetTransformComponent()->GetTransform().GetWorldMatrix().GetPositionVector(), 1.0f);
            m_BoundingShape->SetPosition(m_Light->m_Position.ToVector3());
 	}
 

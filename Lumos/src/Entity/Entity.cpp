@@ -2,16 +2,15 @@
 #include "Entity.h"
 
 #include "Graphics/Renderers/DebugRenderer.h"
-#include "App/Scene.h"
 #include "Graphics/API/GraphicsContext.h"
+#include "Graphics/Camera/Camera.h"
+#include "App/Application.h"
+#include "App/Scene.h"
+#include "App/SceneManager.h"
+#include "Maths/MathsUtilities.h"
 
 #include <imgui/imgui.h>
 #include <imgui/plugins/ImGuizmo.h>
-#include "Graphics/Camera/Camera.h"
-#include "App/Application.h"
-#include "App/SceneManager.h"
-
-#include "Maths/MathsUtilities.h"
 
 namespace lumos
 {
@@ -36,7 +35,7 @@ namespace lumos
 		component->Init();
         
         if(component->GetType() == ComponentType::Transform)
-            m_DefaultTransformComponent = static_cast<TransformComponent*>(component.get());
+            m_DefaultTransformComponent = reinterpret_cast<TransformComponent*>(component.get());
         
 		m_Components[component->GetType()] = std::move(component);
 	}
@@ -56,28 +55,28 @@ namespace lumos
             component.second->OnUpdateComponent(dt);
         }
         
-        if(m_DefaultTransformComponent && m_DefaultTransformComponent->m_Transform.HasUpdated())
+        if(m_DefaultTransformComponent && m_DefaultTransformComponent->GetTransform().HasUpdated())
         {
             if(!m_pParent)
-                m_DefaultTransformComponent->m_Transform.SetWorldMatrix(maths::Matrix4());
+                m_DefaultTransformComponent->GetTransform().SetWorldMatrix(maths::Matrix4());
 			else
 			{
-				m_DefaultTransformComponent->m_Transform.SetWorldMatrix(m_pParent->GetTransform()->m_Transform.GetWorldMatrix());
+				m_DefaultTransformComponent->GetTransform().SetWorldMatrix(m_pParent->GetTransformComponent()->GetTransform().GetWorldMatrix());
 			}
 				
             
             for(auto child : m_vpChildren)
             {
-                if(child && child->GetTransform())
-                    child->GetTransform()->SetWorldMatrix(m_DefaultTransformComponent->m_Transform.GetWorldMatrix());
+                if(child && child->GetTransformComponent())
+                    child->GetTransformComponent()->SetWorldMatrix(m_DefaultTransformComponent->GetTransform().GetWorldMatrix());
             }
             
             for (const auto& component : m_Components)
             {
-                component.second->OnUpdateTransform(m_DefaultTransformComponent->m_Transform.GetWorldMatrix());
+                component.second->OnUpdateTransform(m_DefaultTransformComponent->GetTransform().GetWorldMatrix());
             }
             
-            m_DefaultTransformComponent->m_Transform.SetHasUpdated(false);
+            m_DefaultTransformComponent->GetTransform().SetHasUpdated(false);
         }
 	}
 
@@ -94,7 +93,7 @@ namespace lumos
 			maths::Vector4 boundRadiusCol(0.3f, 0.6f, 0.4f, 0.8f);
 			boundRadiusCol.SetW(0.2f);
 			if (GetComponent<TransformComponent>())
-				DebugRenderer::DrawPointNDT(GetComponent<TransformComponent>()->m_Transform.GetWorldMatrix().GetPositionVector(), m_BoundingRadius, boundRadiusCol);
+				DebugRenderer::DrawPointNDT(GetComponent<TransformComponent>()->GetTransform().GetWorldMatrix().GetPositionVector(), m_BoundingRadius, boundRadiusCol);
 		}
 		
 		for(auto& component: m_Components)
@@ -103,7 +102,7 @@ namespace lumos
 		}
 	}
 
-	TransformComponent* Entity::GetTransform()
+	TransformComponent* Entity::GetTransformComponent()
 	{
 		auto transform = m_DefaultTransformComponent;
 
@@ -112,7 +111,7 @@ namespace lumos
 			transform = GetComponent<TransformComponent>();
 
 			if(!transform)
-				AddComponent(std::make_unique<TransformComponent>(maths::Matrix4()));
+				AddComponent<TransformComponent>(maths::Matrix4());
 
 			if (!m_DefaultTransformComponent)
 				m_DefaultTransformComponent = GetComponent<TransformComponent>();
@@ -138,17 +137,17 @@ namespace lumos
 
 		maths::Matrix4 model = maths::Matrix4();
 		if (this->GetComponent<TransformComponent>() != nullptr)
-			model = GetComponent<TransformComponent>()->m_Transform.GetWorldMatrix();
+			model = GetComponent<TransformComponent>()->GetTransform().GetWorldMatrix();
 
         float delta[16];
         ImGuizmo::Manipulate(view.values, proj.values, static_cast<ImGuizmo::OPERATION>(mode),ImGuizmo::LOCAL, model.values, delta, nullptr);
 
-		if (GetTransform() != nullptr)
+		if (GetTransformComponent() != nullptr)
         {
-            auto mat = maths::Matrix4(delta) * m_DefaultTransformComponent->m_Transform.GetLocalMatrix();
+            auto mat = maths::Matrix4(delta) * m_DefaultTransformComponent->GetTransform().GetLocalMatrix();
             //mat.Transpose();
-            m_DefaultTransformComponent->m_Transform.SetLocalTransform(mat);
-            m_DefaultTransformComponent->m_Transform.ApplyTransform();
+            m_DefaultTransformComponent->GetTransform().SetLocalTransform(mat);
+            m_DefaultTransformComponent->GetTransform().ApplyTransform();
             
         }
 	}
@@ -191,7 +190,7 @@ namespace lumos
     void Entity::SetParent(Entity *parent)
     {
         m_pParent = parent;
-        m_DefaultTransformComponent->SetWorldMatrix(m_pParent->GetTransform()->m_Transform.GetWorldMatrix());
+        m_DefaultTransformComponent->SetWorldMatrix(m_pParent->GetTransformComponent()->GetTransform().GetWorldMatrix());
     }
 
 	void Entity::SetActiveRecursive(bool active)

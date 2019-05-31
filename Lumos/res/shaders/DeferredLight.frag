@@ -156,34 +156,6 @@ float Attentuate( vec3 lightData, float dist )
 	return max(att * damping, 0.0);
 }
 
-float DoShadowTest(vec3 tsShadow, int tsLayer, vec2 pix)
-{
-	vec4 tCoord;
-	tCoord.xyw = tsShadow;
-	tCoord.z = float(tsLayer);
-
-	if (tsLayer > 0)
-	{
-		return 0.0f;//texture(uShadowMap, tCoord);
-	}
-	else
-	{
-		float shadow = 0.0f;
-		for (float y = -1.5f; y <= 1.5f; y += 1.0f)
-			for (float x = -1.5f; x <= 1.5f; x += 1.0f)
-				//shadow += texture(uShadowMap, tCoord + vec4(pix.x * x, pix.y * y, 0, 0));
-
-		return shadow / 16.0f;
-	}
-}
-
-const mat4 biasMat = mat4(
-	0.5, 0.0, 0.0, 0.0,
-	0.0, 0.5, 0.0, 0.0,
-	0.0, 0.0, 1.0, 0.0,
-	0.5, 0.5, 0.0, 1.0
-);
-
 float textureProj(vec4 P, vec2 offset, int cascadeIndex)
 {
 	float shadow = 1.0;
@@ -225,7 +197,7 @@ float filterPCF(vec4 sc, int cascadeIndex)
 // values out of <-8388608;8388608> are stored as min/max values
 vec3 floatTovec3(in float val) 
 {
-    val += 8388608.; // this makes values signed
+   // val += 8388608.; // this makes values signed
 
     if(val < 0.) 
 	{
@@ -246,9 +218,14 @@ vec3 floatTovec3(in float val)
     return c/255.;
 }
 
-layout(location = 0) out vec4 outColor;
+vec4 EncodeFloatRGBA( float v ) {
+  vec4 enc = vec4(1.0, 255.0, 65025.0, 16581375.0) * v;
+  enc = floor(enc);
+  enc -= enc.yzww * vec4(1.0/255.0,1.0/255.0,1.0/255.0,0.0);
+  return enc;
+}
 
-const float NORMAL_BIAS = 0.002f;
+layout(location = 0) out vec4 outColor;
 
 void main()
 {
@@ -264,7 +241,7 @@ void main()
     vec3  spec      = vec3(pbrTex.x);
 
 	float roughness = pbrTex.y;
-	vec3 emissive	= vec3(pbrTex.w);
+	vec3 emissive	= EncodeFloatRGBA(pbrTex.w).xyz;
     vec3 wsPos      = positionTex;
 
     vec3 finalColour;
@@ -319,7 +296,7 @@ void main()
 			light.direction = vec4(L,1.0);
 		}
 
-		float NdotL = clamp(dot(material.normal, light.direction.xyz), 0.0, 1.0)  * value;
+		float NdotL = clamp(dot(material.normal, light.direction.xyz), 0.0, 1.0)  * value  * material.ao;
 		diffuse  += NdotL * Diffuse(light, material, eye) * light.colour * light.intensity;
 		specular += NdotL * Specular(light, material, eye) * light.colour.xyz * light.intensity;
 	}

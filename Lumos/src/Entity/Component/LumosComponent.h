@@ -19,6 +19,7 @@ namespace lumos
         Sprite,
         TextureMatrix,
         Transform,
+		Camera,
         Error
 	};
 

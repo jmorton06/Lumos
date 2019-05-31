@@ -1,21 +1,22 @@
 #include "LM.h"
 #include "Scene.h"
+#include "Input.h"
+#include "Application.h"
+
 #include "Graphics/ParticleManager.h"
 #include "Graphics/API/GraphicsContext.h"
-#include "System/String.h"
-#include "Audio/AudioManager.h"
-#include "Physics/LumosPhysicsEngine/SortAndSweepBroadphase.h"
-#include "Physics/LumosPhysicsEngine/Octree.h"
 #include "Graphics/Layers/LayerStack.h"
 #include "Graphics/Light.h"
 #include "Graphics/ModelLoader/ModelLoader.h"
-#include "Utilities/TimeStep.h"
-#include "App/Input.h"
-#include "App/Application.h"
 #include "Graphics/RenderManager.h"
-#include "Physics/LumosPhysicsEngine/LumosPhysicsEngine.h"
 #include "Graphics/Camera/Camera.h"
+#include "Utilities/TimeStep.h"
 #include "Entity/Component/TransformComponent.h"
+#include "Audio/AudioManager.h"
+#include "Physics/LumosPhysicsEngine/SortAndSweepBroadphase.h"
+#include "Physics/LumosPhysicsEngine/Octree.h"
+#include "Physics/LumosPhysicsEngine/LumosPhysicsEngine.h"
+#include "Maths/MathsUtilities.h"
 
 namespace lumos
 {
@@ -25,19 +26,12 @@ namespace lumos
 		  m_ScreenHeight(0),
 		  m_DrawDebugData(false),
           m_RootEntity(std::make_shared<Entity>("Root Node"))
-    
 	{
 	}
 
     Scene::~Scene()
     {
         DeleteAllGameObjects();
-
-        if (m_ParticleManager)
-        {
-            delete m_ParticleManager;
-            m_ParticleManager = nullptr;
-        }
     }
 
 	void Scene::OnInit()
@@ -179,12 +173,12 @@ namespace lumos
 			if (physicsComponent)
 			{
 				if (transformComponent)
-					transformComponent->m_Transform.GetWorldMatrix() = physicsComponent->m_PhysicsObject->GetWorldSpaceTransform() * transformComponent->m_Transform.GetLocalMatrix();
+					transformComponent->GetTransform().GetWorldMatrix() = physicsComponent->m_PhysicsObject->GetWorldSpaceTransform() * transformComponent->GetTransform().GetLocalMatrix();
 			}
 			else
 			{
 				if (transformComponent)
-					transformComponent->m_Transform.GetWorldMatrix() = transformComponent->m_Transform.GetLocalMatrix();
+					transformComponent->GetTransform().GetWorldMatrix() = transformComponent->GetTransform().GetLocalMatrix();
 			}
 
 			for (auto child : obj->GetChildren())
@@ -217,7 +211,14 @@ namespace lumos
 			auto meshComponent = obj->GetComponent<MeshComponent>();
 			if (meshComponent)
 			{
-				bool inside = frustum.InsideFrustum(obj->GetComponent<TransformComponent>()->m_Transform.GetWorldMatrix().GetPositionVector(), obj->GetBoundingRadius());
+				auto transform = obj->GetComponent<TransformComponent>()->GetTransform();
+
+				float maxScaling = 0.0f;
+				maxScaling = maths::Max(transform.GetWorldMatrix().GetScaling().GetX(), maxScaling);
+				maxScaling = maths::Max(transform.GetWorldMatrix().GetScaling().GetY(), maxScaling);
+				maxScaling = maths::Max(transform.GetWorldMatrix().GetScaling().GetZ(), maxScaling);
+
+				bool inside = frustum.InsideFrustum(transform.GetWorldMatrix().GetPositionVector(), maxScaling * obj->GetBoundingRadius());
 
 				if (inside)
 				{
