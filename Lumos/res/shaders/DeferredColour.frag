@@ -102,7 +102,17 @@ float vec3Tofloat(in vec3 c)
 {
     c *= 255.;
     c = floor(c); // without this value could be shifted for some intervals
-    return c.r*256.*256. + c.g*256. + c.b - 8388608.;
+    return c.r*256.*256. + c.g*256. + c.b;// - 8388608.;
+}
+
+vec4 EncodeFloatRGBA( float v ) {
+  vec4 enc = vec4(1.0, 255.0, 65025.0, 16581375.0) * v;
+  enc = fract(enc);
+  enc -= enc.yzww * vec4(1.0/255.0,1.0/255.0,1.0/255.0,0.0);
+  return enc;
+}
+float DecodeFloatRGBA( vec4 rgba ) {
+  return dot( rgba, vec4(1.0, 1/255.0, 1/65025.0, 1/16581375.0) );
 }
 
 void main()
@@ -138,5 +148,5 @@ void main()
     outColor    = texColour;
 	outPosition = fragPosition;
 	outNormal   = vec4(GetNormalFromMap(),1.0);
-	outPBR      = vec4(specular,roughness, ao, emissive.r);
+	outPBR      = vec4(specular,roughness, ao, DecodeFloatRGBA(vec4(emissive,1.0)));
 }

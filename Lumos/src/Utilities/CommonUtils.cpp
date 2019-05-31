@@ -44,9 +44,9 @@ namespace lumos
 	{
 		std::shared_ptr<Entity> pSphere = std::make_shared<Entity>(name);
 
-		pSphere->AddComponent(std::make_unique<TextureMatrixComponent>(maths::Matrix4::Scale(maths::Vector3(10.0f, 10.0f, 10.0f))));
+		pSphere->AddComponent<TextureMatrixComponent>(maths::Matrix4::Scale(maths::Vector3(10.0f, 10.0f, 10.0f)));
         std::shared_ptr<graphics::Mesh> sphereModel = std::make_shared<graphics::Mesh>(*AssetsManager::DefaultModels()->GetAsset("Sphere"));
-        pSphere->AddComponent(std::make_unique<MeshComponent>(sphereModel));
+        pSphere->AddComponent<MeshComponent>(sphereModel);
 
 		std::shared_ptr<Material> matInstance = std::make_shared<Material>();
 		MaterialProperties properties;
@@ -60,7 +60,7 @@ namespace lumos
 		matInstance->SetMaterialProperites(properties);
 		pSphere->GetComponent<MeshComponent>()->m_Model->SetMaterial(matInstance);
 
-		pSphere->AddComponent(std::make_unique<TransformComponent>(maths::Matrix4::Scale(maths::Vector3(radius, radius, radius))));
+		pSphere->AddComponent<TransformComponent>(maths::Matrix4::Scale(maths::Vector3(radius, radius, radius)));
 		pSphere->SetBoundingRadius(radius);
 
 		if (physics_enabled)
@@ -82,11 +82,11 @@ namespace lumos
 				testPhysics->SetInverseInertia(testPhysics->GetCollisionShape()->BuildInverseInertia(inverse_mass));
 			}
 
-			pSphere->AddComponent(std::make_unique<Physics3DComponent>(testPhysics));
+			pSphere->AddComponent<Physics3DComponent>(testPhysics);
 		}
 		else
 		{
-			pSphere->GetTransform()->m_Transform.SetLocalPosition(pos);
+			pSphere->GetTransformComponent()->GetTransform().SetLocalPosition(pos);
 		}
 
 		return pSphere;
@@ -103,9 +103,9 @@ namespace lumos
 	{
 		std::shared_ptr<Entity> Cube = std::make_shared<Entity>(name);
 
-		Cube->AddComponent(std::make_unique<TextureMatrixComponent>(maths::Matrix4::Scale(maths::Vector3(10.0f, 10.0f, 10.0f))));
+		Cube->AddComponent<TextureMatrixComponent>(maths::Matrix4::Scale(maths::Vector3(10.0f, 10.0f, 10.0f)));
         std::shared_ptr<graphics::Mesh> cubeModel = std::make_shared<graphics::Mesh>(*AssetsManager::DefaultModels()->GetAsset("Cube"));
-        Cube->AddComponent(std::make_unique<MeshComponent>(cubeModel));
+        Cube->AddComponent<MeshComponent>(cubeModel);
 
 		auto matInstance = std::make_shared<Material>();
 		MaterialProperties properties;
@@ -120,7 +120,7 @@ namespace lumos
 		matInstance->SetRenderFlags(0);
 		Cube->GetComponent<MeshComponent>()->m_Model->SetMaterial(matInstance);
 
-		Cube->AddComponent(std::make_unique<TransformComponent>(maths::Matrix4::Scale(halfdims)));
+		Cube->AddComponent<TransformComponent>(maths::Matrix4::Scale(halfdims));
 		Cube->SetBoundingRadius(halfdims.Length());
 
 		if (physics_enabled)
@@ -142,11 +142,11 @@ namespace lumos
 				testPhysics->SetInverseInertia(testPhysics->GetCollisionShape()->BuildInverseInertia(inverse_mass));
 			}
 
-			Cube->AddComponent(std::make_unique<Physics3DComponent>(testPhysics));
+			Cube->AddComponent<Physics3DComponent>(testPhysics);
 		}
 		else
 		{
-			Cube->GetTransform()->m_Transform.SetLocalPosition(pos);
+			Cube->GetTransformComponent()->GetTransform().SetLocalPosition(pos);
 		}
 
 		return Cube;
@@ -166,7 +166,7 @@ namespace lumos
 		std::shared_ptr<Entity> meshEntity = std::make_shared<Entity>("Mesh");
 
         std::shared_ptr<graphics::Mesh> pyramidModel = std::make_shared<graphics::Mesh>(*AssetsManager::DefaultModels()->GetAsset("Pyramid"));
-		meshEntity->AddComponent(std::make_unique<MeshComponent>(pyramidModel));
+		meshEntity->AddComponent<MeshComponent>(pyramidModel);
 
 		std::shared_ptr<Material> matInstance = std::make_shared<Material>();
 		MaterialProperties properties;
@@ -180,7 +180,7 @@ namespace lumos
 		matInstance->SetMaterialProperites(properties);
 		meshEntity->GetComponent<MeshComponent>()->m_Model->SetMaterial(matInstance);
 
-		meshEntity->AddComponent(std::make_unique<TransformComponent>(maths::Matrix4::Scale(halfdims) * maths::Matrix4::RotationX(-90.0f)));
+		meshEntity->AddComponent<TransformComponent>(maths::Matrix4::Scale(halfdims) * maths::Matrix4::RotationX(-90.0f));
 		meshEntity->SetBoundingRadius(halfdims.Length());
 		
 		Cube->AddChildObject(meshEntity);
@@ -204,11 +204,11 @@ namespace lumos
 				testPhysics->SetInverseInertia(testPhysics->GetCollisionShape()->BuildInverseInertia(inverse_mass));
 			}
 
-			Cube->AddComponent(std::make_unique<Physics3DComponent>(testPhysics));
+			Cube->AddComponent<Physics3DComponent>(testPhysics);
 		}
 		else
 		{
-			Cube->GetTransform()->m_Transform.SetLocalPosition(pos);
+			Cube->GetTransformComponent()->GetTransform().SetLocalPosition(pos);
 		}
 
 		return Cube;
@@ -234,7 +234,7 @@ namespace lumos
 		const float intensity = RandomNumberGenerator32::Rand(0.0f, 2.0f);
 
 		std::shared_ptr<graphics::Light> light = std::make_shared<graphics::Light>(scene->GetCamera()->GetPosition(), colour,  intensity, graphics::LightType::PointLight, scene->GetCamera()->GetPosition(), radius);
-		cube->AddComponent(std::make_unique<LightComponent>(light));
+		cube->AddComponent<LightComponent>(light);
 		scene->AddEntity(cube);
 	}
 

@@ -243,7 +243,7 @@ namespace lumos
 						{
 							auto mesh = model->m_Model;
 							{
-								SubmitMesh(mesh.get(), obj->GetComponent<TransformComponent>()->m_Transform.GetWorldMatrix(), maths::Matrix4());
+								SubmitMesh(mesh.get(), obj->GetComponent<TransformComponent>()->GetTransform().GetWorldMatrix(), maths::Matrix4());
 							}
 						}
 					}

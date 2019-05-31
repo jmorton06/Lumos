@@ -203,8 +203,8 @@ namespace lumos
 
 			auto meshEntity = std::make_shared<Entity>(shape.name);
             auto mesh = std::make_shared<graphics::Mesh>(va, ib, pbrMaterial, boundingBox);
-			meshEntity->AddComponent(std::make_unique<MeshComponent>(mesh));
-			meshEntity->AddComponent(std::make_unique<TransformComponent>(maths::Matrix4()));
+			meshEntity->AddComponent<MeshComponent>(mesh);
+			meshEntity->AddComponent<TransformComponent>(maths::Matrix4());
             meshEntity->SetBoundingRadius(mesh->GetBoundingSphere()->SphereRadius());
 			entity->AddChildObject(meshEntity);
 

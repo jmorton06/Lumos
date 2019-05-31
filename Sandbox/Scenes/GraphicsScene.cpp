@@ -43,8 +43,8 @@ void GraphicsScene::OnInit()
 	auto sun = std::make_shared<graphics::Light>(maths::Vector3(26.0f, 22.0f, 48.5f), maths::Vector4(1.0f), 2.0f);
 
 	auto lightEntity = std::make_shared<Entity>("Directional Light");
-	lightEntity->AddComponent(std::make_unique<LightComponent>(sun));
-	lightEntity->AddComponent(std::make_unique<TransformComponent>(Matrix4::Translation(maths::Vector3(26.0f, 22.0f, 48.5f))));
+	lightEntity->AddComponent<LightComponent>(sun);
+	lightEntity->AddComponent<TransformComponent>(Matrix4::Translation(maths::Vector3(26.0f, 22.0f, 48.5f)));
 	AddEntity(lightEntity);
 
 	//SoundSystem::Instance()->SetListener(m_pCamera);
@@ -96,8 +96,8 @@ void GraphicsScene::LoadModels()
 
 	//HeightMap
 	std::shared_ptr<Entity> heightmap = std::make_shared<Entity>("heightmap");
-	heightmap->AddComponent(std::make_unique<TransformComponent>(Matrix4::Scale(maths::Vector3(1.0f))));
-	heightmap->AddComponent(std::make_unique<TextureMatrixComponent>(Matrix4::Scale(maths::Vector3(1.0f, 1.0f, 1.0f))));
+	heightmap->AddComponent<TransformComponent>(Matrix4::Scale(maths::Vector3(1.0f)));
+	heightmap->AddComponent<TextureMatrixComponent>(Matrix4::Scale(maths::Vector3(1.0f, 1.0f, 1.0f)));
 	heightmap->SetBoundingRadius(2000.0f);
 	std::shared_ptr<graphics::Mesh> terrain = std::make_shared<graphics::Mesh>(*terrainMesh);
 	auto material = std::make_shared<Material>();
@@ -107,7 +107,7 @@ void GraphicsScene::LoadModels()
 
 	//terrain->SetMaterial(std::make_shared<Material>(*m_MaterialManager->GetAsset("Stone").get()));
 	//terrain->SetMaterialFlag(Material::RenderFlags::WIREFRAME);
-	heightmap->AddComponent(std::make_unique<MeshComponent>(terrain));
+	heightmap->AddComponent<MeshComponent>(terrain);
 
 	AddEntity(heightmap);
 

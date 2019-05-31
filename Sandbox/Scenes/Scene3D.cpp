@@ -49,9 +49,13 @@ void Scene3D::OnInit()
 	auto sun = std::make_shared<graphics::Light>(maths::Vector3(26.0f, 22.0f, 48.5f), maths::Vector4(1.0f) , 0.9f);
     
     auto lightEntity = std::make_shared<Entity>("Directional Light");
-    lightEntity->AddComponent(std::make_unique<LightComponent>(sun));
-    lightEntity->AddComponent(std::make_unique<TransformComponent>(Matrix4::Translation(maths::Vector3(26.0f, 22.0f, 48.5f))));
+    lightEntity->AddComponent<LightComponent>(sun);
+    lightEntity->AddComponent<TransformComponent>(Matrix4::Translation(maths::Vector3(26.0f, 22.0f, 48.5f)));
     AddEntity(lightEntity);
+
+	auto cameraEntity = std::make_shared<Entity>("Camera");
+	cameraEntity->AddComponent<CameraComponent>(m_pCamera);
+	AddEntity(cameraEntity);
 
 	Application::Instance()->GetAudioManager()->SetListener(m_pCamera);
 
@@ -118,11 +122,11 @@ void Scene3D::LoadModels()
 	testPhysics->SetIsAtRest(true);
 	testPhysics->SetIsStatic(true);
 
-	ground->AddComponent(std::make_unique<TransformComponent>(Matrix4::Scale(maths::Vector3(groundWidth, groundHeight, groundLength))));
-	ground->AddComponent(std::make_unique<Physics3DComponent>(testPhysics));
+	ground->AddComponent<TransformComponent>(Matrix4::Scale(maths::Vector3(groundWidth, groundHeight, groundLength)));
+	ground->AddComponent<Physics3DComponent>(testPhysics);
 
 	std::shared_ptr<graphics::Mesh> groundModel = std::make_shared<graphics::Mesh>(*AssetsManager::DefaultModels()->GetAsset("Cube"));
-	ground->AddComponent(std::make_unique<MeshComponent>(groundModel));
+	ground->AddComponent<MeshComponent>(groundModel);
 
 	MaterialProperties properties;
 	properties.albedoColour = Vector4(0.6f,0.1f,0.1f,1.0f);
@@ -137,7 +141,7 @@ void Scene3D::LoadModels()
 
 	AddEntity(ground);
 
-	#if 1
+	#if 0
 
 	auto grassMaterial = std::make_shared<Material>();
 	grassMaterial->LoadPBRMaterial("grass", "/Textures/pbr");
@@ -170,11 +174,11 @@ void Scene3D::LoadModels()
 	cubePhysics->SetInverseInertia(cubePhysics->GetCollisionShape()->BuildInverseInertia(1.0f));
 	cubePhysics->SetIsStatic(false);
 	cubePhysics->SetPosition(maths::Vector3(12.5f, 10.0f, 0.0f));
-	cube->AddComponent(std::make_unique<Physics3DComponent>(cubePhysics));
-	cube->AddComponent(std::make_unique<TransformComponent>(Matrix4::Scale(maths::Vector3(0.5f, 0.5f, 0.5f))));
+	cube->AddComponent<Physics3DComponent>(cubePhysics);
+	cube->AddComponent<TransformComponent>(Matrix4::Scale(maths::Vector3(0.5f, 0.5f, 0.5f)));
 
 	std::shared_ptr<graphics::Mesh> cubeModel = std::make_shared<graphics::Mesh>(*AssetsManager::DefaultModels()->GetAsset("Cube"));
-	cube->AddComponent(std::make_unique<MeshComponent>(cubeModel));
+	cube->AddComponent<MeshComponent>(cubeModel);
 
 	cube->GetComponent<MeshComponent>()->m_Model->SetMaterial(marbleMaterial);
 
@@ -190,11 +194,11 @@ void Scene3D::LoadModels()
 	restspherePhysics->SetInverseInertia(restspherePhysics->GetCollisionShape()->BuildInverseInertia(1.0f));
 	restspherePhysics->SetIsStatic(false);
 	restspherePhysics->SetPosition(maths::Vector3(12.5f, 10.0f, 5.0f));
-	restsphere->AddComponent(std::make_unique<Physics3DComponent>(restspherePhysics));
-	restsphere->AddComponent(std::make_unique<TransformComponent>(Matrix4::Scale(maths::Vector3(0.5f, 0.5f, 0.5f))));
+	restsphere->AddComponent<Physics3DComponent>(restspherePhysics);
+	restsphere->AddComponent<TransformComponent>(Matrix4::Scale(maths::Vector3(0.5f, 0.5f, 0.5f)));
 
 	std::shared_ptr<graphics::Mesh> restsphereModel = std::make_shared<graphics::Mesh>(*AssetsManager::DefaultModels()->GetAsset("Cube"));
-	restsphere->AddComponent(std::make_unique<MeshComponent>(restsphereModel));
+	restsphere->AddComponent<MeshComponent>(restsphereModel);
 	restsphere->GetComponent<MeshComponent>()->m_Model->SetMaterial(castIronMaterial);
 
 	AddEntity(restsphere);
@@ -209,11 +213,11 @@ void Scene3D::LoadModels()
 	pyramidPhysics->SetInverseInertia(pyramidPhysics->GetCollisionShape()->BuildInverseInertia(1.0f));
 	pyramidPhysics->SetIsStatic(false);
 	pyramidPhysics->SetPosition(maths::Vector3(12.5f, 10.0f, 8.0f));
-	pyramid->AddComponent(std::make_unique<Physics3DComponent>(pyramidPhysics));
-	pyramid->AddComponent(std::make_unique<TransformComponent>(Matrix4::Scale(maths::Vector3(0.5f, 0.5f, 0.5f))));
+	pyramid->AddComponent<Physics3DComponent>(pyramidPhysics);
+	pyramid->AddComponent<TransformComponent>(Matrix4::Scale(maths::Vector3(0.5f, 0.5f, 0.5f)));
 
 	std::shared_ptr<graphics::Mesh> pyramidModel = std::make_shared<graphics::Mesh>(*AssetsManager::DefaultModels()->GetAsset("Pyramid"));
-	pyramid->AddComponent(std::make_unique<MeshComponent>(pyramidModel));
+	pyramid->AddComponent<MeshComponent>(pyramidModel);
 	pyramid->GetComponent<MeshComponent>()->m_Model->SetMaterial(marbleMaterial);
 
 	AddEntity(pyramid);
@@ -228,11 +232,11 @@ void Scene3D::LoadModels()
 	grassSpherePhysics->SetInverseInertia(grassSpherePhysics->GetCollisionShape()->BuildInverseInertia(1.0f));
 	grassSpherePhysics->SetIsStatic(false);
 	grassSpherePhysics->SetPosition(maths::Vector3(12.5f, 10.0f, 13.0f));
-	grassSphere->AddComponent(std::make_unique<Physics3DComponent>(grassSpherePhysics));
-	grassSphere->AddComponent(std::make_unique<TransformComponent>(Matrix4::Scale(maths::Vector3(0.5f, 0.5f, 0.5f))));
+	grassSphere->AddComponent<Physics3DComponent>(grassSpherePhysics);
+	grassSphere->AddComponent<TransformComponent>(Matrix4::Scale(maths::Vector3(0.5f, 0.5f, 0.5f)));
 
 	std::shared_ptr<graphics::Mesh> grassSphereModel = std::make_shared<graphics::Mesh>(*AssetsManager::DefaultModels()->GetAsset("Sphere"));
-	grassSphere->AddComponent(std::make_unique<MeshComponent>(grassSphereModel));
+	grassSphere->AddComponent<MeshComponent>(grassSphereModel);
 	grassSphere->GetComponent<MeshComponent>()->m_Model->SetMaterial(grassMaterial);
 
 	AddEntity(grassSphere);
@@ -247,11 +251,11 @@ void Scene3D::LoadModels()
 	marbleSpherePhysics->SetInverseInertia(marbleSpherePhysics->GetCollisionShape()->BuildInverseInertia(1.0f));
 	marbleSpherePhysics->SetIsStatic(false);
 	marbleSpherePhysics->SetPosition(maths::Vector3(12.5f, 10.0f, 15.0f));
-	marbleSphere->AddComponent(std::make_unique<Physics3DComponent>(marbleSpherePhysics));
-	marbleSphere->AddComponent(std::make_unique<TransformComponent>(Matrix4::Scale(maths::Vector3(0.5f, 0.5f, 0.5f))));
+	marbleSphere->AddComponent<Physics3DComponent>(marbleSpherePhysics);
+	marbleSphere->AddComponent<TransformComponent>(Matrix4::Scale(maths::Vector3(0.5f, 0.5f, 0.5f)));
 
 	std::shared_ptr<graphics::Mesh> marbleSphereModel = std::make_shared<graphics::Mesh>(*AssetsManager::DefaultModels()->GetAsset("Sphere"));
-	marbleSphere->AddComponent(std::make_unique<MeshComponent>(marbleSphereModel));
+	marbleSphere->AddComponent<MeshComponent>(marbleSphereModel);
 	marbleSphere->GetComponent<MeshComponent>()->m_Model->SetMaterial(marbleMaterial);
 
 	AddEntity(marbleSphere);
@@ -266,11 +270,11 @@ void Scene3D::LoadModels()
 	stoneSpherePhysics->SetInverseInertia(stoneSpherePhysics->GetCollisionShape()->BuildInverseInertia(1.0f));
 	stoneSpherePhysics->SetIsStatic(false);
 	stoneSpherePhysics->SetPosition(maths::Vector3(12.5f, 10.0f, 17.0f));
-	stoneSphere->AddComponent(std::make_unique<Physics3DComponent>(stoneSpherePhysics));
-	stoneSphere->AddComponent(std::make_unique<TransformComponent>(Matrix4::Scale(maths::Vector3(0.5f, 0.5f, 0.5f))));
+	stoneSphere->AddComponent<Physics3DComponent>(stoneSpherePhysics);
+	stoneSphere->AddComponent<TransformComponent>(Matrix4::Scale(maths::Vector3(0.5f, 0.5f, 0.5f)));
 
 	std::shared_ptr<graphics::Mesh> stoneSphereModel = std::make_shared<graphics::Mesh>(*AssetsManager::DefaultModels()->GetAsset("Sphere"));
-	stoneSphere->AddComponent(std::make_unique<MeshComponent>(stoneSphereModel));
+	stoneSphere->AddComponent<MeshComponent>(stoneSphereModel);
 	stoneSphere->GetComponent<MeshComponent>()->m_Model->SetMaterial(stoneMaterial);
 
 	AddEntity(stoneSphere);
@@ -286,11 +290,11 @@ void Scene3D::LoadModels()
 	pendulumHolderPhysics->SetInverseInertia(pendulumHolderPhysics->GetCollisionShape()->BuildInverseInertia(1.0f));
 	pendulumHolderPhysics->SetIsStatic(true);
 	pendulumHolderPhysics->SetPosition(maths::Vector3(12.5f, 15.0f, 20.0f));
-	pendulumHolder->AddComponent(std::make_unique<Physics3DComponent>(pendulumHolderPhysics));
-	pendulumHolder->AddComponent(std::make_unique<TransformComponent>(Matrix4::Scale(maths::Vector3(0.5f, 0.5f, 0.5f))));
+	pendulumHolder->AddComponent<Physics3DComponent>(pendulumHolderPhysics);
+	pendulumHolder->AddComponent<TransformComponent>(Matrix4::Scale(maths::Vector3(0.5f, 0.5f, 0.5f)));
 
 	std::shared_ptr<graphics::Mesh> pendulumHolderModel = std::make_shared<graphics::Mesh>(*AssetsManager::DefaultModels()->GetAsset("Cube"));
-	pendulumHolder->AddComponent(std::make_unique<MeshComponent>(pendulumHolderModel));
+	pendulumHolder->AddComponent<MeshComponent>(pendulumHolderModel);
 
 	AddEntity(pendulumHolder);
 
@@ -304,11 +308,11 @@ void Scene3D::LoadModels()
 	pendulumPhysics->SetInverseInertia(pendulumPhysics->GetCollisionShape()->BuildInverseInertia(1.0f));
 	pendulumPhysics->SetIsStatic(false);
 	pendulumPhysics->SetPosition(maths::Vector3(12.5f, 10.0f, 20.0f));
-	pendulum->AddComponent(std::make_unique<Physics3DComponent>(pendulumPhysics));
-	pendulum->AddComponent(std::make_unique<TransformComponent>(Matrix4::Scale(maths::Vector3(0.5f, 0.5f, 0.5f))));
+	pendulum->AddComponent<Physics3DComponent>(pendulumPhysics);
+	pendulum->AddComponent<TransformComponent>(Matrix4::Scale(maths::Vector3(0.5f, 0.5f, 0.5f)));
 
 	std::shared_ptr<graphics::Mesh> pendulumModel = std::make_shared<graphics::Mesh>(*AssetsManager::DefaultModels()->GetAsset("Sphere"));
-	pendulum->AddComponent(std::make_unique<MeshComponent>(pendulumModel));
+	pendulum->AddComponent<MeshComponent>(pendulumModel);
 
 	AddEntity(pendulum);
 
@@ -331,7 +335,7 @@ void Scene3D::LoadModels()
 		soundNode->SetReferenceDistance(1.0f);
 		soundNode->SetRadius(30.0f);
 
-		pendulum->AddComponent(std::make_unique<SoundComponent>(soundNode));
+		pendulum->AddComponent<SoundComponent>(soundNode);
 	}
 #endif
 
@@ -356,10 +360,10 @@ void Scene3D::LoadModels()
 
         std::shared_ptr<Entity> sphere = std::make_shared<Entity>("Sphere" + StringFormat::ToString(numSpheres++));
 
-		sphere->AddComponent(std::make_unique<TransformComponent>(Matrix4::Scale(maths::Vector3(0.5f, 0.5f, 0.5f)) * Matrix4::Translation(maths::Vector3(i * 2.0f, 30.0f, 0.0f))));
-		sphere->AddComponent(std::make_unique<TextureMatrixComponent>(Matrix4()));
+		sphere->AddComponent<TransformComponent>(Matrix4::Scale(maths::Vector3(0.5f, 0.5f, 0.5f)) * Matrix4::Translation(maths::Vector3(i * 2.0f, 30.0f, 0.0f)));
+		sphere->AddComponent<TextureMatrixComponent>(Matrix4());
 		std::shared_ptr<graphics::Mesh> sphereModel = std::make_shared<graphics::Mesh>(*AssetsManager::DefaultModels()->GetAsset("Sphere"));
-		sphere->AddComponent(std::make_unique<MeshComponent>(sphereModel));
+		sphere->AddComponent<MeshComponent>(sphereModel);
 		sphere->GetComponent<MeshComponent>()->m_Model->SetMaterial(m);
 
 		AddEntity(sphere);
@@ -385,10 +389,10 @@ void Scene3D::LoadModels()
 
 		std::shared_ptr<Entity> sphere = std::make_shared<Entity>("Sphere" + StringFormat::ToString(numSpheres++));
 
-		sphere->AddComponent(std::make_unique<TransformComponent>(Matrix4::Scale(maths::Vector3(0.5f, 0.5f, 0.5f)) * Matrix4::Translation(maths::Vector3(i * 2.0f, 33.0f, 0.0f))));
-		sphere->AddComponent(std::make_unique<TextureMatrixComponent>(Matrix4()));
+		sphere->AddComponent<TransformComponent>(Matrix4::Scale(maths::Vector3(0.5f, 0.5f, 0.5f)) * Matrix4::Translation(maths::Vector3(i * 2.0f, 33.0f, 0.0f)));
+		sphere->AddComponent<TextureMatrixComponent>(Matrix4());
 		std::shared_ptr<graphics::Mesh> sphereModel = std::make_shared<graphics::Mesh>(*AssetsManager::DefaultModels()->GetAsset("Sphere"));
-		sphere->AddComponent(std::make_unique<MeshComponent>(sphereModel));
+		sphere->AddComponent<MeshComponent>(sphereModel);
 		sphere->GetComponent<MeshComponent>()->m_Model->SetMaterial(m);
 
 		AddEntity(sphere);

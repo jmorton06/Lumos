@@ -397,7 +397,7 @@ namespace lumos
         return nullptr;
     }
     
-    void LoadNode(int nodeIndex, Entity* parent, tinygltf::Model& model, std::vector<std::shared_ptr<Material>>& materials, std::vector<graphics::Mesh*> meshes)
+    void LoadNode(int nodeIndex, Entity* parent, tinygltf::Model& model, std::vector<std::shared_ptr<Material>>& materials, std::vector<graphics::Mesh*>& meshes)
     {
         if (nodeIndex < 0)
         {
@@ -410,7 +410,7 @@ namespace lumos
         if(name == "")
             name = "Mesh : " + StringFormat::ToString(nodeIndex);
         auto meshEntity = std::make_shared<Entity>(name);
-        meshEntity->AddComponent(std::make_unique<TransformComponent>(maths::Matrix4()));
+        meshEntity->AddComponent<TransformComponent>(maths::Matrix4());
         
         if(parent)
             parent->AddChildObject(meshEntity);
@@ -420,39 +420,39 @@ namespace lumos
             if (node.skin >= 0)
             {
                 auto lMesh = std::shared_ptr<graphics::Mesh>(meshes[node.mesh]);
-                meshEntity->AddComponent(std::make_unique<MeshComponent>(lMesh));
+                meshEntity->AddComponent<MeshComponent>(lMesh);
                 meshEntity->SetBoundingRadius(lMesh->GetBoundingSphere()->SphereRadius());
             }
             else
             {
                 auto lMesh = std::shared_ptr<graphics::Mesh>(meshes[node.mesh]);
-                meshEntity->AddComponent(std::make_unique<MeshComponent>(lMesh));
+                meshEntity->AddComponent<MeshComponent>(lMesh);
                 meshEntity->SetBoundingRadius(lMesh->GetBoundingSphere()->SphereRadius());
             }
         }
         
-        TransformComponent* transform = meshEntity->GetTransform();
+        TransformComponent* transform = meshEntity->GetTransformComponent();
         
         if (!node.scale.empty())
         {
-            transform->m_Transform.SetLocalScale(maths::Vector3(static_cast<float>(node.scale[0]), static_cast<float>(node.scale[1]), static_cast<float>(node.scale[2])));
+            transform->GetTransform().SetLocalScale(maths::Vector3(static_cast<float>(node.scale[0]), static_cast<float>(node.scale[1]), static_cast<float>(node.scale[2])));
         }
         if (!node.rotation.empty())
         {
-            transform->m_Transform.SetLocalOrientation(maths::Quaternion(static_cast<float>(node.rotation[0]), static_cast<float>(node.rotation[1]), static_cast<float>(node.rotation[2]), static_cast<float>(node.rotation[3])));
+            transform->GetTransform().SetLocalOrientation(maths::Quaternion(static_cast<float>(node.rotation[0]), static_cast<float>(node.rotation[1]), static_cast<float>(node.rotation[2]), static_cast<float>(node.rotation[3])));
         }
         if (!node.translation.empty())
         {
-            transform->m_Transform.SetLocalPosition(maths::Vector3(static_cast<float>(node.translation[0]), static_cast<float>(node.translation[1]), static_cast<float>(node.translation[2])));
+            transform->GetTransform().SetLocalPosition(maths::Vector3(static_cast<float>(node.translation[0]), static_cast<float>(node.translation[1]), static_cast<float>(node.translation[2])));
         }
         if (!node.matrix.empty())
         {
             auto lTransform = maths::Matrix4(reinterpret_cast<float*>(node.matrix.data()));
-            transform->m_Transform.SetLocalTransform(lTransform);
-            transform->m_Transform.ApplyTransform(); // this creates S, R, T vectors from local matrix
+            transform->GetTransform().SetLocalTransform(lTransform);
+            transform->GetTransform().ApplyTransform(); // this creates S, R, T vectors from local matrix
         }
 
-		transform->m_Transform.UpdateMatrices();
+		transform->GetTransform().UpdateMatrices();
         
         if (!node.children.empty())
         {
@@ -508,7 +508,7 @@ namespace lumos
         String name = directory.substr(directory.find_last_of('/') + 1);
 
 		auto entity = std::make_shared<Entity>(name);
-		entity->AddComponent(std::make_unique<TransformComponent>(maths::Matrix4()));
+		entity->AddComponent<TransformComponent>(maths::Matrix4());
 
         auto meshes = std::vector<graphics::Mesh*>();
         

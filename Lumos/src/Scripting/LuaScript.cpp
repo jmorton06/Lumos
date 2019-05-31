@@ -26,7 +26,7 @@ namespace lumos
     {
         WindowProperties windowProperties;
         
-        m_State->script_file(ROOT_DIR"/Sandbox/Settings.lua");
+        m_State->script_file(file);
         windowProperties.Title = m_State->get<std::string>("title");
         windowProperties.Width = m_State->get<int>("width");
         windowProperties.Height = m_State->get<int>("height");

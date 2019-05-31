@@ -21,9 +21,9 @@ namespace lumos
 
 	void Physics3DComponent::OnUpdateComponent(float dt)
 	{
-        m_Entity->GetTransform()->m_Transform.SetLocalPosition(m_PhysicsObject->GetPosition());
-        m_Entity->GetTransform()->m_Transform.SetLocalOrientation(m_PhysicsObject->GetOrientation());
-		m_Entity->GetTransform()->m_Transform.UpdateMatrices();
+        m_Entity->GetTransformComponent()->GetTransform().SetLocalPosition(m_PhysicsObject->GetPosition());
+        m_Entity->GetTransformComponent()->GetTransform().SetLocalOrientation(m_PhysicsObject->GetOrientation());
+		m_Entity->GetTransformComponent()->GetTransform().UpdateMatrices();
 	}
 
 	void Physics3DComponent::OnUpdateTransform(const maths::Matrix4& entityTransform)

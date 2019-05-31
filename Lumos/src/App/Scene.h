@@ -10,7 +10,6 @@
 namespace lumos
 {
 	struct TimeStep;
-	class ParticleManager;
 	class Font;
 	class Material;
 	class Event;
@@ -84,7 +83,6 @@ namespace lumos
 
 		void 				SetCamera(Camera* camera) { m_pCamera = camera; }
 		Camera*				GetCamera()				const { return m_pCamera; }
-		ParticleManager*	GetParticleSystem()		const { return m_ParticleManager; }
 		graphics::TextureCube* GetEnvironmentMap()		const { return m_EnvironmentMap; }
 
 		bool GetReflectSkybox() const { return m_ReflectSkybox; }
@@ -109,9 +107,8 @@ namespace lumos
 
 	protected:
 
-		String				m_SceneName;
-		Camera*				m_pCamera;
-		ParticleManager*	m_ParticleManager;
+		String m_SceneName;
+		Camera* m_pCamera; 
 		graphics::TextureCube* m_EnvironmentMap;
 
 		float m_SceneBoundingRadius;

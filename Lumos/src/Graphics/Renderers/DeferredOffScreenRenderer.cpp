@@ -178,21 +178,9 @@ namespace lumos
 						else
 							textureMatrix = maths::Matrix4();
 
-						auto transform = obj->GetComponent<TransformComponent>()->m_Transform.GetWorldMatrix();
+						auto transform = obj->GetComponent<TransformComponent>()->GetTransform().GetWorldMatrix();
 
-#if 0
-						bool inside = true;
-
-						float maxScaling = 0.0f;
-						maxScaling = maths::Max(transform.GetScaling().GetX(), maxScaling);
-						maxScaling = maths::Max(transform.GetScaling().GetY(), maxScaling);
-						maxScaling = maths::Max(transform.GetScaling().GetZ(), maxScaling);
-
-						inside = GraphicsPipeline::Instance()->GetFrustum().InsideFrustum(transform * mesh->GetBoundingSphere()->Centre(), maxScaling * mesh->GetBoundingSphere()->SphereRadius());
-
-						if (inside)
-#endif
-							SubmitMesh(mesh.get(), transform, textureMatrix);
+						SubmitMesh(mesh.get(), transform, textureMatrix);
 					}
 				}
 			});

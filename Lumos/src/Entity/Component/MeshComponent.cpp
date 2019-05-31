@@ -20,6 +20,12 @@ namespace lumos
 		m_BoundingShape = std::make_unique<maths::BoundingSphere>(maths::Vector3(0.0f),1.0f);
 	}
 
+	MeshComponent::MeshComponent(graphics::Mesh* mesh)
+	{
+		m_Model = std::shared_ptr<graphics::Mesh>(mesh);
+		m_BoundingShape = std::make_unique<maths::BoundingSphere>(maths::Vector3(0.0f), 1.0f);
+	}
+
 	void MeshComponent::OnUpdateComponent(float dt)
 	{
 		Physics3DComponent* physicsComponent = m_Entity->GetComponent<Physics3DComponent>();
