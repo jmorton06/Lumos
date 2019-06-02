@@ -8,6 +8,8 @@
 #include "Graphics/API/Shader.h"
 
 #include "System/VFS.h"
+#include "System/FileSystem.h"
+
 
 namespace lumos
 {
@@ -53,18 +55,17 @@ namespace lumos
 		m_PBRMaterialTextures.albedo    = textures.albedo;
 		m_PBRMaterialTextures.normal    = textures.normal;
 		m_PBRMaterialTextures.roughness = textures.roughness;
-		m_PBRMaterialTextures.specular = textures.specular;
+		m_PBRMaterialTextures.specular  = textures.specular;
 		m_PBRMaterialTextures.ao		= textures.ao;
 		m_PBRMaterialTextures.emissive  = textures.emissive;
 	}
 
 	bool FileExists(const String& path)
 	{
-		std::string physicalPath;
-		if (!VFS::Get()->ResolvePhysicalPath(path, physicalPath))
-			return false;
-
-		return true;
+        String physicalPath;
+        
+        VFS::Get()->ResolvePhysicalPath(path,physicalPath);
+		return FileSystem::FileExists(physicalPath);
 	}
 
 	void Material::LoadPBRMaterial(const String& name, const String& path, const String& extension)
