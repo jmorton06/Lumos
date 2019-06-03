@@ -9,9 +9,9 @@
 #include "Vector3.h"
 #include "Vector4.h"
 
-namespace lumos
+namespace Lumos
 {
-	namespace maths
+	namespace Maths
 	{
 		struct Vector2Simple
 		{

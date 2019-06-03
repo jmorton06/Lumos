@@ -2,7 +2,7 @@
 #include "LM.h"
 #include "LumosComponent.h"
 
-namespace lumos
+namespace Lumos
 {
 	class Camera;
 
@@ -20,6 +20,7 @@ namespace lumos
 		inline virtual ComponentType GetType() const override { return GetStaticType(); }
 		void OnUpdateComponent(float dt) override;
         void OnIMGUI() override;
+		void SetAsMainCamera();
 		
 		Camera* GetCamera() const { return m_Camera; }
 

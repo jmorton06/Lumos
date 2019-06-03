@@ -3,7 +3,7 @@
 
 #include "SphereCollisionShape.h"
 
-namespace lumos
+namespace Lumos
 {
 
 	CollisionDetection::CollisionDetection()
@@ -31,7 +31,7 @@ namespace lumos
 		//const SphereCollisionShape* sphere2 = reinterpret_cast<const SphereCollisionShape*>(shape2);
 
 		CollisionData colData;
-		maths::Vector3 axis = obj2->GetPosition() - obj1->GetPosition();
+		Maths::Vector3 axis = obj2->GetPosition() - obj1->GetPosition();
 		axis.Normalise();
 		if (!CheckCollisionAxis(axis, obj1, obj2, shape1, shape2, &colData))
 			return false;
@@ -42,7 +42,7 @@ namespace lumos
 		return true;
 	}
 
-	void AddPossibleCollisionAxis(maths::Vector3& axis, std::vector<maths::Vector3>* possible_collision_axes)
+	void AddPossibleCollisionAxis(Maths::Vector3& axis, std::vector<Maths::Vector3>* possible_collision_axes)
 	{
 		const float epsilon = 0.0001f;
 
@@ -51,9 +51,9 @@ namespace lumos
 
 		axis.Normalise();
 
-		for (const maths::Vector3& p_axis : *possible_collision_axes)
+		for (const Maths::Vector3& p_axis : *possible_collision_axes)
 		{
-			if (abs(maths::Vector3::Dot(axis,p_axis)) >= (1.0f - epsilon))
+			if (abs(Maths::Vector3::Dot(axis,p_axis)) >= (1.0f - epsilon))
 				return;
 		}
 
@@ -84,20 +84,20 @@ namespace lumos
 		CollisionData best_colData;
 		best_colData.penetration = -FLT_MAX;
 
-		std::vector<maths::Vector3> possibleCollisionAxes;
+		std::vector<Maths::Vector3> possibleCollisionAxes;
 		complexShape->GetCollisionAxes(complexObj, &possibleCollisionAxes);
 
 		std::vector<CollisionEdge> complex_shape_edges;
 
 		complexShape->GetEdges(complexObj, &complex_shape_edges);
 
-		maths::Vector3 p = GetClosestPointOnEdges(sphereObj->GetPosition(), complex_shape_edges);
+		Maths::Vector3 p = GetClosestPointOnEdges(sphereObj->GetPosition(), complex_shape_edges);
 		//NCLDebug::DrawPoint(p, 0.1f);
-		maths::Vector3 p_t = sphereObj->GetPosition() - p;
+		Maths::Vector3 p_t = sphereObj->GetPosition() - p;
 		p_t.Normalise();
 		AddPossibleCollisionAxis(p_t, &possibleCollisionAxes);
 
-		for (const maths::Vector3& axis : possibleCollisionAxes)
+		for (const Maths::Vector3& axis : possibleCollisionAxes)
 		{
 			if (!CheckCollisionAxis(axis, obj1, obj2, shape1, shape2, &cur_colData))
 				return false;
@@ -118,11 +118,11 @@ namespace lumos
 		CollisionData best_colData;
 		best_colData.penetration = -FLT_MAX;
 
-		std::vector<maths::Vector3> possibleCollisionAxes;
-		std::vector<maths::Vector3> tempPossibleCollisionAxes;
+		std::vector<Maths::Vector3> possibleCollisionAxes;
+		std::vector<Maths::Vector3> tempPossibleCollisionAxes;
 		shape1->GetCollisionAxes(obj1, &possibleCollisionAxes);
 		shape2->GetCollisionAxes(obj2, &tempPossibleCollisionAxes);
-		for (maths::Vector3& temp : tempPossibleCollisionAxes)
+		for (Maths::Vector3& temp : tempPossibleCollisionAxes)
 			AddPossibleCollisionAxis(temp, &possibleCollisionAxes);
 
 		std::vector<CollisionEdge> shape1_edges;
@@ -135,17 +135,17 @@ namespace lumos
 		{
 			for (const CollisionEdge& edge2 : shape2_edges) 
 			{
-				maths::Vector3 e1 = edge1.posB - edge1.posA;
-				maths::Vector3 e2 = edge2.posB - edge2.posA;
+				Maths::Vector3 e1 = edge1.posB - edge1.posA;
+				Maths::Vector3 e2 = edge2.posB - edge2.posA;
 				e1.Normalise();
 				e2.Normalise();
 
-				maths::Vector3 temp = e1.Cross(e2);
+				Maths::Vector3 temp = e1.Cross(e2);
 				AddPossibleCollisionAxis(temp, &possibleCollisionAxes);
 			}
 		}
 
-		for (const maths::Vector3& axis : possibleCollisionAxes)
+		for (const Maths::Vector3& axis : possibleCollisionAxes)
 		{
 			if (!CheckCollisionAxis(axis, obj1, obj2, shape1, shape2, &cur_colData))
 				return false;
@@ -160,9 +160,9 @@ namespace lumos
 		return true;
 	}
 
-	bool CollisionDetection::CheckCollisionAxis(const maths::Vector3& axis, const PhysicsObject3D* obj1, const PhysicsObject3D* obj2, const CollisionShape* shape1, const CollisionShape* shape2, CollisionData* out_coldata)
+	bool CollisionDetection::CheckCollisionAxis(const Maths::Vector3& axis, const PhysicsObject3D* obj1, const PhysicsObject3D* obj2, const CollisionShape* shape1, const CollisionShape* shape2, CollisionData* out_coldata)
 	{
-		maths::Vector3 min1, min2, max1, max2;
+		Maths::Vector3 min1, min2, max1, max2;
 
 		shape1->GetMinMaxVertexOnAxis(obj1, axis, &min1, &max1);
 		shape2->GetMinMaxVertexOnAxis(obj2, axis, &min2, &max2);
@@ -203,9 +203,9 @@ namespace lumos
 		if (!manifold)
 			return false;
 
-		std::list<maths::Vector3> polygon1, polygon2;
-		maths::Vector3 normal1, normal2;
-		std::vector<maths::Plane> adjPlanes1, adjPlanes2;
+		std::list<Maths::Vector3> polygon1, polygon2;
+		Maths::Vector3 normal1, normal2;
+		std::vector<Maths::Plane> adjPlanes1, adjPlanes2;
 
 		shape1->GetIncidentReferencePolygon(obj1, coldata.normal, &polygon1, &normal1, &adjPlanes1);
 		shape2->GetIncidentReferencePolygon(obj2, -coldata.normal, &polygon2, &normal2, &adjPlanes2);
@@ -219,14 +219,14 @@ namespace lumos
 		else 
 		{
 			bool flipped;
-			std::list<maths::Vector3>* incPolygon;
-			std::vector<maths::Plane>* refAdjPlanes;
-			maths::Plane refPlane;
+			std::list<Maths::Vector3>* incPolygon;
+			std::vector<Maths::Plane>* refAdjPlanes;
+			Maths::Plane refPlane;
 
 			if (fabs(coldata.normal.Dot(normal1)) > fabs(coldata.normal.Dot(normal2))) 
 			{
 				float planeDist = -(polygon1.front().Dot(-normal1));
-				refPlane = maths::Plane(-normal1, planeDist);
+				refPlane = Maths::Plane(-normal1, planeDist);
 				refAdjPlanes = &adjPlanes1;
 
 				incPolygon = &polygon2;
@@ -236,7 +236,7 @@ namespace lumos
 			else 
 			{
 				float planeDist = -(polygon2.front().Dot(-normal2));
-				refPlane = maths::Plane(-normal2, planeDist);
+				refPlane = Maths::Plane(-normal2, planeDist);
 				refAdjPlanes = &adjPlanes2;
 
 				incPolygon = &polygon1;
@@ -248,10 +248,10 @@ namespace lumos
 
 			SutherlandHodgesonClipping(*incPolygon, 1, &refPlane, incPolygon, true);
 
-			for (const maths::Vector3& endPoint : *incPolygon)
+			for (const Maths::Vector3& endPoint : *incPolygon)
 			{
 				float contact_penetration;
-				maths::Vector3 globalOnA, globalOnB;
+				Maths::Vector3 globalOnA, globalOnB;
 
 				if (flipped) 
 				{
@@ -276,15 +276,15 @@ namespace lumos
 		return true;
 	}
 
-	maths::Vector3 CollisionDetection::GetClosestPointOnEdges(const maths::Vector3& target, const std::vector<CollisionEdge>& edges)
+	Maths::Vector3 CollisionDetection::GetClosestPointOnEdges(const Maths::Vector3& target, const std::vector<CollisionEdge>& edges)
 	{
-		maths::Vector3 closest_point, temp_closest_point;
+		Maths::Vector3 closest_point, temp_closest_point;
 		float closest_distsq = FLT_MAX;
 
 		for (const CollisionEdge& edge : edges) 
 		{
-			maths::Vector3 a_t = target - edge.posA;
-			maths::Vector3 a_b = edge.posB - edge.posA;
+			Maths::Vector3 a_t = target - edge.posA;
+			Maths::Vector3 a_b = edge.posB - edge.posA;
 
 			float magnitudeAB = a_b.Dot(a_b);   //Magnitude of AB vector (it's length squared)
 			float ABAPproduct = a_t.Dot(a_b);   //The DOT product of a_to_t and a_to_b
@@ -298,7 +298,7 @@ namespace lumos
 			else
 				temp_closest_point = edge.posA + a_b * distance;
 
-			maths::Vector3 c_t = target - temp_closest_point;
+			Maths::Vector3 c_t = target - temp_closest_point;
 			float temp_distsq = c_t.Dot(c_t);
 
 			if (temp_distsq < closest_distsq)
@@ -311,19 +311,19 @@ namespace lumos
 		return closest_point;
 	}
 
-	maths::Vector3 CollisionDetection::PlaneEdgeIntersection(const maths::Plane& plane, const maths::Vector3& start, const maths::Vector3& end) const
+	Maths::Vector3 CollisionDetection::PlaneEdgeIntersection(const Maths::Plane& plane, const Maths::Vector3& start, const Maths::Vector3& end) const
 	{
 		//float start_dist = start.Dot(plane.GetNormal()) + plane.GetDistance();
 		//float end_dist = end.Dot(plane.GetNormal()) + plane.GetDistance();
 
-		maths::Vector3 ab = end - start;
+		Maths::Vector3 ab = end - start;
 
 		float ab_p = plane.GetNormal().Dot(ab);
 
 		if (fabs(ab_p) > 0.0001f) {
-			maths::Vector3 p_co = plane.GetNormal() * (-plane.GetDistance());
+			Maths::Vector3 p_co = plane.GetNormal() * (-plane.GetDistance());
 
-			maths::Vector3 w = start - p_co;
+			Maths::Vector3 w = start - p_co;
 			float fac = -(plane.GetNormal().Dot(w)) / ab_p;
 			ab = ab * fac;
 
@@ -333,13 +333,13 @@ namespace lumos
 		return start;
 	}
 
-	void CollisionDetection::SutherlandHodgesonClipping(const std::list<maths::Vector3>& input_polygon, int num_clip_planes, const maths::Plane* clip_planes, std::list<maths::Vector3>* out_polygon, bool removePoints) const
+	void CollisionDetection::SutherlandHodgesonClipping(const std::list<Maths::Vector3>& input_polygon, int num_clip_planes, const Maths::Plane* clip_planes, std::list<Maths::Vector3>* out_polygon, bool removePoints) const
 	{
 		if (!out_polygon)
 			return;
 
-		std::list<maths::Vector3> ppPolygon1, ppPolygon2;
-		std::list<maths::Vector3>* input = &ppPolygon1, *output = &ppPolygon2;
+		std::list<Maths::Vector3> ppPolygon1, ppPolygon2;
+		std::list<Maths::Vector3>* input = &ppPolygon1, *output = &ppPolygon2;
 
 		*output = input_polygon;
 		for (int iterations = 0; iterations < num_clip_planes; ++iterations)
@@ -347,13 +347,13 @@ namespace lumos
 			if (output->empty())
 				break;
 
-			const maths::Plane& plane = clip_planes[iterations];
+			const Maths::Plane& plane = clip_planes[iterations];
 
 			std::swap(input, output);
 			output->clear();
 
-			maths::Vector3 startPoint = input->back();
-			for (const maths::Vector3& endPoint : *input)
+			Maths::Vector3 startPoint = input->back();
+			for (const Maths::Vector3& endPoint : *input)
 			{
 				bool startInPlane = plane.PointInPlane(startPoint);
 				bool endInPlane = plane.PointInPlane(endPoint);

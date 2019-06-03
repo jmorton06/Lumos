@@ -11,9 +11,9 @@
 #define NOMINMAX
 #include <Windows.h>
 #endif
-namespace lumos 
+namespace Lumos 
 {
-    namespace system 
+    namespace System 
     {
         // Fixed size very simple thread safe ring buffer
         template <typename T, size_t capacity>
@@ -75,11 +75,11 @@ namespace lumos
             {
                 finishedLabel.store(0);
 
-                // Retrieve the number of hardware threads in this system:
+                // Retrieve the number of hardware threads in this System:
                 auto numCores = std::thread::hardware_concurrency();
 
                 // Calculate the actual number of worker threads we want:
-                numThreads = maths::Max(1U, numCores);
+                numThreads = Maths::Max(1U, numCores);
 
                 for (uint32_t threadID = 0; threadID < numThreads; ++threadID)
                 {
@@ -125,7 +125,7 @@ namespace lumos
                 LUMOS_CORE_INFO("Initialised JobSystem with [{0} cores] [{1} threads]" ,numCores, numThreads);
             }
 
-            // This little function will not let the system to be deadlocked while the main thread is waiting for something
+            // This little function will not let the System to be deadlocked while the main thread is waiting for something
             inline void poll()
             {
                 wakeCondition.notify_one(); // wake one worker thread
@@ -168,7 +168,7 @@ namespace lumos
 
                         // Calculate the current group's offset into the jobs:
                         const uint32_t groupJobOffset = groupIndex * groupSize;
-                        const uint32_t groupJobEnd = maths::Min(groupJobOffset + groupSize, jobCount);
+                        const uint32_t groupJobEnd = Maths::Min(groupJobOffset + groupSize, jobCount);
 
                         JobDispatchArgs args;
                         args.groupIndex = groupIndex;

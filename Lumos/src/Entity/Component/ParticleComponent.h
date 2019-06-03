@@ -3,7 +3,7 @@
 #include "LumosComponent.h"
 #include "Maths/Vector3.h"
 
-namespace lumos
+namespace Lumos
 {
     class ParticleEmitter;
 
@@ -11,7 +11,7 @@ namespace lumos
     {
     public:
         std::shared_ptr<ParticleEmitter> m_ParticleEmitter;
-        maths::Vector3 m_PositionOffset;
+        Maths::Vector3 m_PositionOffset;
     public:
         explicit ParticleComponent(std::shared_ptr<ParticleEmitter>& emitter);
 

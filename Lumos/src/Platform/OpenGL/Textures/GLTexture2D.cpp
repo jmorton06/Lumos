@@ -6,9 +6,9 @@
 #include "Utilities/LoadImage.h"
 #include "Platform/OpenGL/GLShader.h"
 
-namespace lumos
+namespace Lumos
 {
-	namespace graphics
+	namespace Graphics
 	{
 		GLTexture2D::GLTexture2D() : m_Width(0), m_Height(0)
 		{
@@ -218,7 +218,7 @@ namespace lumos
 			if (m_FileName != "NULL")
 			{
 				uint bits;
-				pixels = lumos::LoadImageFromFile(m_FileName.c_str(), &m_Width, &m_Height, &bits, !m_LoadOptions.flipY);
+				pixels = Lumos::LoadImageFromFile(m_FileName.c_str(), &m_Width, &m_Height, &bits, !m_LoadOptions.flipY);
 				m_Parameters.format = BitsToTextureFormat(bits);
 			}
 			return pixels;

@@ -8,7 +8,7 @@
 
 #include <imgui/imgui.h>
 
-namespace lumos
+namespace Lumos
 {
 	B2PhysicsEngine::B2PhysicsEngine()
 		: m_UpdateTimestep(1.0f / 60.f)

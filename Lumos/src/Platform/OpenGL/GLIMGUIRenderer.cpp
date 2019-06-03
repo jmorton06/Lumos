@@ -6,14 +6,13 @@
 
 #include "GLDebug.h"
 
-namespace lumos
+namespace Lumos
 {
-    namespace graphics
+    namespace Graphics
     {
         GLIMGUIRenderer::GLIMGUIRenderer(uint width, uint height, bool clearScreen): m_WindowHandle(nullptr)
         {
 	        m_ClearScreen = clearScreen;
-	        m_Implemented = true;
 	        ImGui_ImplOpenGL3_Init("#version 410");
             ImGui_ImplOpenGL3_NewFrame();
         }
@@ -33,7 +32,7 @@ namespace lumos
 
         }
 
-        void GLIMGUIRenderer::Render(lumos::graphics::CommandBuffer* commandBuffer)
+        void GLIMGUIRenderer::Render(Lumos::Graphics::CommandBuffer* commandBuffer)
         {
 			if (m_ClearScreen)
 			{

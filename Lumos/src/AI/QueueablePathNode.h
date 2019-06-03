@@ -5,7 +5,7 @@
 
 #undef max
 
-namespace lumos
+namespace Lumos
 {
 
 	class LUMOS_EXPORT QueueablePathNode

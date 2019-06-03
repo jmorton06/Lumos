@@ -3,9 +3,9 @@
 #include "VKBuffer.h"
 #include "Graphics/API/VertexBuffer.h"
 
-namespace lumos
+namespace Lumos
 {
-	namespace graphics
+	namespace Graphics
 	{
 		class VKVertexBuffer : public VertexBuffer, public VKBuffer
 		{
@@ -14,7 +14,7 @@ namespace lumos
 			~VKVertexBuffer();
 
 			void Resize(uint size) override;
-			void SetLayout(const graphics::BufferLayout& layout) override;
+			void SetLayout(const Graphics::BufferLayout& layout) override;
 			void SetData(uint size, const void* data) override;
 			void SetDataSub(uint size, const void* data, uint offset) override;
 
@@ -29,7 +29,7 @@ namespace lumos
 
 			BufferUsage m_Usage;
 			uint m_Size;
-			graphics::BufferLayout m_Layout;
+			Graphics::BufferLayout m_Layout;
 		};
 
 	}

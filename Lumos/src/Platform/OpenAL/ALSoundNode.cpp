@@ -7,7 +7,7 @@
 
 #include "Graphics/Camera/Camera.h"
 
-namespace lumos
+namespace Lumos
 {
 	ALSoundNode::ALSoundNode()
 	{
@@ -26,8 +26,8 @@ namespace lumos
 		alSourcef(m_Source, AL_MAX_DISTANCE, m_Radius);
 		alSourcef(m_Source, AL_REFERENCE_DISTANCE, m_ReferenceDistance);
 
-		maths::Vector3 position;
-		maths::Vector3 velocity;
+		Maths::Vector3 position;
+		Maths::Vector3 velocity;
 
 		if (m_IsGlobal)
 		{
@@ -40,7 +40,7 @@ namespace lumos
 
 		if (m_Stationary)
 		{
-			velocity = maths::Vector3(0.0f);
+			velocity = Maths::Vector3(0.0f);
 		}
 		else
 		{

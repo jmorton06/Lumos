@@ -9,9 +9,9 @@ const bool enableValidationLayers = false;
 const bool enableValidationLayers = false;
 #endif
 
-namespace lumos
+namespace Lumos
 {
-	namespace graphics
+	namespace Graphics
 	{
 		class VKCommandPool;
 

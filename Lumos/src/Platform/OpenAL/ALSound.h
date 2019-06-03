@@ -6,7 +6,7 @@
 
 #include <AL/al.h>
 
-namespace lumos
+namespace Lumos
 {
 	class ALSound : public Sound
 	{

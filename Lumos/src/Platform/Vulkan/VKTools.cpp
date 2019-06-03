@@ -7,9 +7,9 @@
 #include "Graphics/API/Pipeline.h"
 #include "Platform/Vulkan/VKCommandBuffer.h"
 
-namespace lumos
+namespace Lumos
 {
-	namespace graphics
+	namespace Graphics
 	{
 		namespace VKTools
 		{

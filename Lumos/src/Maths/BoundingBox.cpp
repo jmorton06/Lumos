@@ -2,9 +2,9 @@
 #include "BoundingBox.h"
 #include "MathsUtilities.h"
 
-namespace lumos
+namespace Lumos
 {
-	namespace maths
+	namespace Maths
 	{
 		BoundingBox::BoundingBox()
 		{
@@ -69,11 +69,11 @@ namespace lumos
 		float BoundingBox::SphereRadius() const
 		{
 			Vector3 dims = m_Upper - m_Lower;
-			float x = maths::Abs(dims.GetX());
-			float y = maths::Abs(dims.GetY());
-			float z = maths::Abs(dims.GetZ());
+			float x = Maths::Abs(dims.GetX());
+			float y = Maths::Abs(dims.GetY());
+			float z = Maths::Abs(dims.GetZ());
 
-			float radius = maths::Max(x ,maths::Max(y, z)) * 0.5f;
+			float radius = Maths::Max(x ,Maths::Max(y, z)) * 0.5f;
 			return radius;
 		}
 

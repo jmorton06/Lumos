@@ -7,31 +7,31 @@
 #include "Maths/Maths.h"
 #include "Maths/MathsUtilities.h"
 
-namespace lumos
+namespace Lumos
 {
-	namespace graphics
+	namespace Graphics
 	{
 		Mesh* CreateQuad(float x, float y, float width, float height, std::shared_ptr<Material> material)
 		{
 			struct QuadVertex
 			{
-				maths::Vector3 position;
-				maths::Vector2 uv;
+				Maths::Vector3 position;
+				Maths::Vector2 uv;
 			};
 
 			QuadVertex* data = new QuadVertex[4];
 
-			data[0].position = maths::Vector3(x, y, 0.0f);
-			data[0].uv = maths::Vector2(0.0f, 1.0f);
+			data[0].position = Maths::Vector3(x, y, 0.0f);
+			data[0].uv = Maths::Vector2(0.0f, 1.0f);
 
-			data[1].position = maths::Vector3(x + width, y, 0.0f);
-			data[1].uv = maths::Vector2(0, 0);
+			data[1].position = Maths::Vector3(x + width, y, 0.0f);
+			data[1].uv = Maths::Vector2(0, 0);
 
-			data[2].position = maths::Vector3(x + width, y + height, 0.0f);
-			data[2].uv = maths::Vector2(1, 0);
+			data[2].position = Maths::Vector3(x + width, y + height, 0.0f);
+			data[2].uv = Maths::Vector2(1, 0);
 
-			data[3].position = maths::Vector3(x, y + height, 0.0f);
-			data[3].uv = maths::Vector2(1, 1);
+			data[3].position = Maths::Vector3(x, y + height, 0.0f);
+			data[3].uv = Maths::Vector2(1, 1);
 
 			std::shared_ptr<VertexArray> va;
 			va.reset(VertexArray::Create());
@@ -41,9 +41,9 @@ namespace lumos
 
 			delete[] data;
 
-			graphics::BufferLayout layout;
-			layout.Push<maths::Vector3>("position");
-			layout.Push<maths::Vector2>("texCoord");
+			Graphics::BufferLayout layout;
+			layout.Push<Maths::Vector3>("position");
+			layout.Push<Maths::Vector2>("texCoord");
 			buffer->SetLayout(layout);
 
 			va->PushBuffer(buffer);
@@ -51,7 +51,7 @@ namespace lumos
 			std::shared_ptr<IndexBuffer> ib;
 			ib.reset(IndexBuffer::Create(indices, 6));
 
-			std::shared_ptr<maths::BoundingSphere> boundingBox = std::make_shared<maths::BoundingSphere>();
+			std::shared_ptr<Maths::BoundingSphere> boundingBox = std::make_shared<Maths::BoundingSphere>();
 			for (int i = 0; i < 4; i++)
 			{
 				boundingBox->ExpandToFit(data[i].position);
@@ -59,7 +59,7 @@ namespace lumos
 			return new Mesh(va, ib, material, boundingBox);
 		}
 
-		Mesh* CreateQuad(const maths::Vector2& position, const maths::Vector2& size, std::shared_ptr<Material>  material)
+		Mesh* CreateQuad(const Maths::Vector2& position, const Maths::Vector2& size, std::shared_ptr<Material>  material)
 		{
 			return CreateQuad(position.GetX(), position.GetY(), size.GetX(), size.GetY(), std::move(material));
 		}
@@ -68,21 +68,21 @@ namespace lumos
 		{
 			Vertex* data = new Vertex[4];
 
-			data[0].Position = maths::Vector3(-1.0f, -1.0f, 0.0f);
-			data[0].TexCoords = maths::Vector2(0.0f, 0.0f);
-			data[0].Colours = lumos::maths::Vector4(0.0f);
+			data[0].Position = Maths::Vector3(-1.0f, -1.0f, 0.0f);
+			data[0].TexCoords = Maths::Vector2(0.0f, 0.0f);
+			data[0].Colours = Lumos::Maths::Vector4(0.0f);
 
-			data[1].Position = maths::Vector3(1.0f, -1.0f, 0.0f);
-			data[1].Colours = lumos::maths::Vector4(0.0f);
-			data[1].TexCoords = maths::Vector2(1.0f, 0.0f);
+			data[1].Position = Maths::Vector3(1.0f, -1.0f, 0.0f);
+			data[1].Colours = Lumos::Maths::Vector4(0.0f);
+			data[1].TexCoords = Maths::Vector2(1.0f, 0.0f);
 
-			data[2].Position = maths::Vector3(1.0f, 1.0f, 0.0f);
-			data[2].Colours = lumos::maths::Vector4(0.0f);
-			data[2].TexCoords = maths::Vector2(1.0f, 1.0f);
+			data[2].Position = Maths::Vector3(1.0f, 1.0f, 0.0f);
+			data[2].Colours = Lumos::Maths::Vector4(0.0f);
+			data[2].TexCoords = Maths::Vector2(1.0f, 1.0f);
 
-			data[3].Position = maths::Vector3(-1.0f, 1.0f, 0.0f);
-			data[3].Colours = lumos::maths::Vector4(0.0f);
-			data[3].TexCoords = maths::Vector2(0.0f, 1.0f);
+			data[3].Position = Maths::Vector3(-1.0f, 1.0f, 0.0f);
+			data[3].Colours = Lumos::Maths::Vector4(0.0f);
+			data[3].TexCoords = Maths::Vector2(0.0f, 1.0f);
 
 			std::shared_ptr<VertexArray> va;
 			va.reset(VertexArray::Create());
@@ -92,12 +92,12 @@ namespace lumos
 
 			delete[] data;
 
-			graphics::BufferLayout layout;
-			layout.Push<maths::Vector3>("position");
-			layout.Push<maths::Vector4>("colour");
-			layout.Push<maths::Vector2>("texCoord");
-			layout.Push<maths::Vector3>("normal");
-			layout.Push<maths::Vector3>("tangent");
+			Graphics::BufferLayout layout;
+			layout.Push<Maths::Vector3>("position");
+			layout.Push<Maths::Vector4>("colour");
+			layout.Push<Maths::Vector2>("texCoord");
+			layout.Push<Maths::Vector3>("normal");
+			layout.Push<Maths::Vector3>("tangent");
 			buffer->SetLayout(layout);
 
 			va->PushBuffer(buffer);
@@ -106,7 +106,7 @@ namespace lumos
 			ib.reset(IndexBuffer::Create(indices, 6));
 
 			std::shared_ptr<Material> empty;
-			std::shared_ptr<maths::BoundingSphere> boundingSphere = std::make_shared<maths::BoundingSphere>();
+			std::shared_ptr<Maths::BoundingSphere> boundingSphere = std::make_shared<Maths::BoundingSphere>();
 			for (int i = 0; i < 4; i++)
 			{
 				boundingSphere->ExpandToFit(data[i].Position);
@@ -127,120 +127,120 @@ namespace lumos
 
 			Vertex* data = new Vertex[24];
 
-			data[0].Position = maths::Vector3(1.0f, 1.0f, 1.0f);
-			data[0].Colours = maths::Vector4(0.0f);
-			data[0].TexCoords = maths::Vector2(1.0f, 1.0f);
-			data[0].Normal = maths::Vector3(0.0f, 0.0f, 1.0f);
+			data[0].Position = Maths::Vector3(1.0f, 1.0f, 1.0f);
+			data[0].Colours = Maths::Vector4(0.0f);
+			data[0].TexCoords = Maths::Vector2(1.0f, 1.0f);
+			data[0].Normal = Maths::Vector3(0.0f, 0.0f, 1.0f);
 
-			data[1].Position = maths::Vector3(-1.0f, 1.0f, 1.0f);
-			data[1].Colours = maths::Vector4(0.0f);
-			data[1].TexCoords = maths::Vector2(1.0f, 0.0f);
-			data[1].Normal = maths::Vector3(0.0f, 0.0f, 1.0f);
+			data[1].Position = Maths::Vector3(-1.0f, 1.0f, 1.0f);
+			data[1].Colours = Maths::Vector4(0.0f);
+			data[1].TexCoords = Maths::Vector2(1.0f, 0.0f);
+			data[1].Normal = Maths::Vector3(0.0f, 0.0f, 1.0f);
 
-			data[2].Position = maths::Vector3(-1.0f, -1.0f, 1.0f);
-			data[2].Colours = maths::Vector4(0.0f);
-			data[2].TexCoords = maths::Vector2(0.0f, 0.0f);
-			data[2].Normal = maths::Vector3(0.0f, 0.0f, 1.0f);
+			data[2].Position = Maths::Vector3(-1.0f, -1.0f, 1.0f);
+			data[2].Colours = Maths::Vector4(0.0f);
+			data[2].TexCoords = Maths::Vector2(0.0f, 0.0f);
+			data[2].Normal = Maths::Vector3(0.0f, 0.0f, 1.0f);
 
-			data[3].Position = maths::Vector3(1.0f, -1.0f, 1.0f);
-			data[3].Colours = maths::Vector4(0.0f);
-			data[3].TexCoords = maths::Vector2(1.0f, 0.0f);
-			data[3].Normal = maths::Vector3(0.0f, 0.0f, 1.0f);
+			data[3].Position = Maths::Vector3(1.0f, -1.0f, 1.0f);
+			data[3].Colours = Maths::Vector4(0.0f);
+			data[3].TexCoords = Maths::Vector2(1.0f, 0.0f);
+			data[3].Normal = Maths::Vector3(0.0f, 0.0f, 1.0f);
 
-			data[4].Position = maths::Vector3(1.0f, 1.0f, 1.0f);
-			data[4].Colours = maths::Vector4(0.0f);
-			data[4].TexCoords = maths::Vector2(1.0f, 1.0f);
-			data[4].Normal = maths::Vector3(1.0f, 0.0f, 0.0f);
+			data[4].Position = Maths::Vector3(1.0f, 1.0f, 1.0f);
+			data[4].Colours = Maths::Vector4(0.0f);
+			data[4].TexCoords = Maths::Vector2(1.0f, 1.0f);
+			data[4].Normal = Maths::Vector3(1.0f, 0.0f, 0.0f);
 
-			data[5].Position = maths::Vector3(1.0f, -1.0f, 1.0f);
-			data[5].Colours = maths::Vector4(0.0f);
-			data[5].TexCoords = maths::Vector2(1.0f, 0.0f);
-			data[5].Normal = maths::Vector3(1.0f, 0.0f, 0.0f);
+			data[5].Position = Maths::Vector3(1.0f, -1.0f, 1.0f);
+			data[5].Colours = Maths::Vector4(0.0f);
+			data[5].TexCoords = Maths::Vector2(1.0f, 0.0f);
+			data[5].Normal = Maths::Vector3(1.0f, 0.0f, 0.0f);
 
-			data[6].Position = maths::Vector3(1.0f, -1.0f, -1.0f);
-			data[6].Colours = maths::Vector4(0.0f);
-			data[6].TexCoords = maths::Vector2(0.0f, 0.0f);
-			data[6].Normal = maths::Vector3(1.0f, 0.0f, 0.0f);
+			data[6].Position = Maths::Vector3(1.0f, -1.0f, -1.0f);
+			data[6].Colours = Maths::Vector4(0.0f);
+			data[6].TexCoords = Maths::Vector2(0.0f, 0.0f);
+			data[6].Normal = Maths::Vector3(1.0f, 0.0f, 0.0f);
 
-			data[7].Position = maths::Vector3(1.0f, 1.0f, -1.0f);
-			data[7].Colours = maths::Vector4(0.0f);
-			data[7].TexCoords = maths::Vector2(0.0f, 1.0f);
-			data[7].Normal = maths::Vector3(1.0f, 0.0f, 0.0f);
+			data[7].Position = Maths::Vector3(1.0f, 1.0f, -1.0f);
+			data[7].Colours = Maths::Vector4(0.0f);
+			data[7].TexCoords = Maths::Vector2(0.0f, 1.0f);
+			data[7].Normal = Maths::Vector3(1.0f, 0.0f, 0.0f);
 
-			data[8].Position = maths::Vector3(1.0f, 1.0f, 1.0f);
-			data[8].Colours = maths::Vector4(0.0f);
-			data[8].Normal = maths::Vector3(0.0f, 1.0f, 0.0f);
+			data[8].Position = Maths::Vector3(1.0f, 1.0f, 1.0f);
+			data[8].Colours = Maths::Vector4(0.0f);
+			data[8].Normal = Maths::Vector3(0.0f, 1.0f, 0.0f);
 
-			data[9].Position = maths::Vector3(1.0f, 1.0f, -1.0f);
-			data[9].Colours = maths::Vector4(0.0f);
-			data[9].Normal = maths::Vector3(0.0f, 1.0f, 0.0f);
+			data[9].Position = Maths::Vector3(1.0f, 1.0f, -1.0f);
+			data[9].Colours = Maths::Vector4(0.0f);
+			data[9].Normal = Maths::Vector3(0.0f, 1.0f, 0.0f);
 
-			data[10].Position = maths::Vector3(-1.0f, 1.0f, -1.0f);
-			data[10].Colours = maths::Vector4(0.0f);
-			data[10].TexCoords = maths::Vector2(0.0f, 1.0f);
-			data[10].Normal = maths::Vector3(0.0f, 1.0f, 0.0f);
+			data[10].Position = Maths::Vector3(-1.0f, 1.0f, -1.0f);
+			data[10].Colours = Maths::Vector4(0.0f);
+			data[10].TexCoords = Maths::Vector2(0.0f, 1.0f);
+			data[10].Normal = Maths::Vector3(0.0f, 1.0f, 0.0f);
 
-			data[11].Position = maths::Vector3(-1.0f, 1.0f, 1.0f);
-			data[11].Colours = maths::Vector4(0.0f);
-			data[11].Normal = maths::Vector3(0.0f, 1.0f, 0.0f);
+			data[11].Position = Maths::Vector3(-1.0f, 1.0f, 1.0f);
+			data[11].Colours = Maths::Vector4(0.0f);
+			data[11].Normal = Maths::Vector3(0.0f, 1.0f, 0.0f);
 
-			data[12].Position = maths::Vector3(-1.0f, 1.0f, 1.0f);
-			data[12].Colours = maths::Vector4(0.0f);
-			data[12].Normal = maths::Vector3(-1.0f, 0.0f, 0.0f);
+			data[12].Position = Maths::Vector3(-1.0f, 1.0f, 1.0f);
+			data[12].Colours = Maths::Vector4(0.0f);
+			data[12].Normal = Maths::Vector3(-1.0f, 0.0f, 0.0f);
 
-			data[13].Position = maths::Vector3(-1.0f, 1.0f, -1.0f);
-			data[13].Colours = maths::Vector4(0.0f);
-			data[13].Normal = maths::Vector3(-1.0f, 0.0f, 0.0f);
+			data[13].Position = Maths::Vector3(-1.0f, 1.0f, -1.0f);
+			data[13].Colours = Maths::Vector4(0.0f);
+			data[13].Normal = Maths::Vector3(-1.0f, 0.0f, 0.0f);
 
-			data[14].Position = maths::Vector3(-1.0f, -1.0f, -1.0f);
-			data[14].Colours = maths::Vector4(0.0f);
-			data[14].Normal = maths::Vector3(-1.0f, 0.0f, 0.0f);
+			data[14].Position = Maths::Vector3(-1.0f, -1.0f, -1.0f);
+			data[14].Colours = Maths::Vector4(0.0f);
+			data[14].Normal = Maths::Vector3(-1.0f, 0.0f, 0.0f);
 
-			data[15].Position = maths::Vector3(-1.0f, -1.0f, 1.0f);
-			data[15].Colours = maths::Vector4(0.0f);
-			data[15].Normal = maths::Vector3(-1.0f, 0.0f, 0.0f);
+			data[15].Position = Maths::Vector3(-1.0f, -1.0f, 1.0f);
+			data[15].Colours = Maths::Vector4(0.0f);
+			data[15].Normal = Maths::Vector3(-1.0f, 0.0f, 0.0f);
 
-			data[16].Position = maths::Vector3(-1.0f, -1.0f, -1.0f);
-			data[16].Colours = maths::Vector4(0.0f);
-			data[16].Normal = maths::Vector3(0.0f, -1.0f, 0.0f);
+			data[16].Position = Maths::Vector3(-1.0f, -1.0f, -1.0f);
+			data[16].Colours = Maths::Vector4(0.0f);
+			data[16].Normal = Maths::Vector3(0.0f, -1.0f, 0.0f);
 
-			data[17].Position = maths::Vector3(1.0f, -1.0f, -1.0f);
-			data[17].Colours = maths::Vector4(0.0f);
-			data[17].Normal = maths::Vector3(0.0f, -1.0f, 0.0f);
+			data[17].Position = Maths::Vector3(1.0f, -1.0f, -1.0f);
+			data[17].Colours = Maths::Vector4(0.0f);
+			data[17].Normal = Maths::Vector3(0.0f, -1.0f, 0.0f);
 
-			data[18].Position = maths::Vector3(1.0f, -1.0f, 1.0f);
-			data[18].Colours = maths::Vector4(0.0f);
-			data[18].Normal = maths::Vector3(0.0f, -1.0f, 0.0f);
+			data[18].Position = Maths::Vector3(1.0f, -1.0f, 1.0f);
+			data[18].Colours = Maths::Vector4(0.0f);
+			data[18].Normal = Maths::Vector3(0.0f, -1.0f, 0.0f);
 
-			data[19].Position = maths::Vector3(-1.0f, -1.0f, 1.0f);
-			data[19].Colours = maths::Vector4(0.0f);
-			data[19].Normal = maths::Vector3(0.0f, -1.0f, 0.0f);
+			data[19].Position = Maths::Vector3(-1.0f, -1.0f, 1.0f);
+			data[19].Colours = Maths::Vector4(0.0f);
+			data[19].Normal = Maths::Vector3(0.0f, -1.0f, 0.0f);
 
-			data[20].Position = maths::Vector3(1.0f, -1.0f, -1.0f);
-			data[20].Colours = maths::Vector4(0.0f);
-			data[20].Normal = maths::Vector3(0.0f, 0.0f, -1.0f);
+			data[20].Position = Maths::Vector3(1.0f, -1.0f, -1.0f);
+			data[20].Colours = Maths::Vector4(0.0f);
+			data[20].Normal = Maths::Vector3(0.0f, 0.0f, -1.0f);
 
-			data[21].Position = maths::Vector3(-1.0f, -1.0f, -1.0f);
-			data[21].Colours = maths::Vector4(0.0f);
-			data[21].Normal = maths::Vector3(0.0f, 0.0f, -1.0f);
+			data[21].Position = Maths::Vector3(-1.0f, -1.0f, -1.0f);
+			data[21].Colours = Maths::Vector4(0.0f);
+			data[21].Normal = Maths::Vector3(0.0f, 0.0f, -1.0f);
 
-			data[22].Position = maths::Vector3(-1.0f, 1.0f, -1.0f);
-			data[22].Colours = maths::Vector4(0.0f);
-			data[22].Normal = maths::Vector3(0.0f, 0.0f, -1.0f);
+			data[22].Position = Maths::Vector3(-1.0f, 1.0f, -1.0f);
+			data[22].Colours = Maths::Vector4(0.0f);
+			data[22].Normal = Maths::Vector3(0.0f, 0.0f, -1.0f);
 
-			data[23].Position = maths::Vector3(1.0f, 1.0f, -1.0f);
-			data[23].Colours = maths::Vector4(0.0f);
-			data[23].Normal = maths::Vector3(0.0f, 0.0f, -1.0f);
+			data[23].Position = Maths::Vector3(1.0f, 1.0f, -1.0f);
+			data[23].Colours = Maths::Vector4(0.0f);
+			data[23].Normal = Maths::Vector3(0.0f, 0.0f, -1.0f);
 
 			std::shared_ptr<VertexArray> va;
 			va.reset(VertexArray::Create());
 
 			for (int i = 0; i < 6; i++)
 			{
-				data[i * 4 + 0].TexCoords = maths::Vector2(0.0f, 0.0f);
-				data[i * 4 + 1].TexCoords = maths::Vector2(1.0f, 0.0f);
-				data[i * 4 + 2].TexCoords = maths::Vector2(1.0f, 1.0f);
-				data[i * 4 + 3].TexCoords = maths::Vector2(0.0f, 1.0f);
+				data[i * 4 + 0].TexCoords = Maths::Vector2(0.0f, 0.0f);
+				data[i * 4 + 1].TexCoords = Maths::Vector2(1.0f, 0.0f);
+				data[i * 4 + 2].TexCoords = Maths::Vector2(1.0f, 1.0f);
+				data[i * 4 + 3].TexCoords = Maths::Vector2(0.0f, 1.0f);
 
 			}
 
@@ -249,12 +249,12 @@ namespace lumos
 
 			delete[] data;
 
-			graphics::BufferLayout layout;
-			layout.Push<maths::Vector3>("position");
-			layout.Push<maths::Vector4>("colour");
-			layout.Push<maths::Vector2>("texCoord");
-			layout.Push<maths::Vector3>("normal");
-			layout.Push<maths::Vector3>("tangent");
+			Graphics::BufferLayout layout;
+			layout.Push<Maths::Vector3>("position");
+			layout.Push<Maths::Vector4>("colour");
+			layout.Push<Maths::Vector2>("texCoord");
+			layout.Push<Maths::Vector3>("normal");
+			layout.Push<Maths::Vector3>("tangent");
 			buffer->SetLayout(layout);
 
 			va->Bind();
@@ -278,7 +278,7 @@ namespace lumos
 
 			std::shared_ptr<IndexBuffer> ib;
 			ib.reset(IndexBuffer::Create(indices, 36));
-			std::shared_ptr<maths::BoundingSphere> boundingSphere = std::make_shared<maths::BoundingSphere>();
+			std::shared_ptr<Maths::BoundingSphere> boundingSphere = std::make_shared<Maths::BoundingSphere>();
 			for (int i = 0; i < 4; i++)
 			{
 				boundingSphere->ExpandToFit(data[i].Position);
@@ -290,95 +290,95 @@ namespace lumos
 		{
 			Vertex* data = new Vertex[18];
 
-			data[0].Position = maths::Vector3(1.0f, 1.0f, -1.0f);
-			data[0].Colours = maths::Vector4(0.0f);
-			data[0].TexCoords = maths::Vector2(0.24f, 0.20f);
-			data[0].Normal = maths::Vector3(0.0f, 0.8948f, 0.4464f);
+			data[0].Position = Maths::Vector3(1.0f, 1.0f, -1.0f);
+			data[0].Colours = Maths::Vector4(0.0f);
+			data[0].TexCoords = Maths::Vector2(0.24f, 0.20f);
+			data[0].Normal = Maths::Vector3(0.0f, 0.8948f, 0.4464f);
 
-			data[1].Position = maths::Vector3(-1.0f, 1.0f, -1.0f);
-			data[1].Colours = maths::Vector4(0.0f);
-			data[1].TexCoords = maths::Vector2(0.24f, 0.81f);
-			data[1].Normal = maths::Vector3(0.0f, 0.8948f, 0.4464f);
+			data[1].Position = Maths::Vector3(-1.0f, 1.0f, -1.0f);
+			data[1].Colours = Maths::Vector4(0.0f);
+			data[1].TexCoords = Maths::Vector2(0.24f, 0.81f);
+			data[1].Normal = Maths::Vector3(0.0f, 0.8948f, 0.4464f);
 
-			data[2].Position = maths::Vector3(0.0f, 0.0f, 1.0f);
-			data[2].Colours = maths::Vector4(0.0f);
-			data[2].TexCoords = maths::Vector2(0.95f, 0.50f);
-			data[2].Normal = maths::Vector3(0.0f, 0.8948f, 0.4464f);
+			data[2].Position = Maths::Vector3(0.0f, 0.0f, 1.0f);
+			data[2].Colours = Maths::Vector4(0.0f);
+			data[2].TexCoords = Maths::Vector2(0.95f, 0.50f);
+			data[2].Normal = Maths::Vector3(0.0f, 0.8948f, 0.4464f);
 
-			data[3].Position = maths::Vector3(-1.0f, 1.0f, -1.0f);
-			data[3].Colours = maths::Vector4(0.0f);
-			data[3].TexCoords = maths::Vector2(0.24f, 0.21f);
-			data[3].Normal = maths::Vector3(-0.8948f, 0.0f, 0.4464f);
+			data[3].Position = Maths::Vector3(-1.0f, 1.0f, -1.0f);
+			data[3].Colours = Maths::Vector4(0.0f);
+			data[3].TexCoords = Maths::Vector2(0.24f, 0.21f);
+			data[3].Normal = Maths::Vector3(-0.8948f, 0.0f, 0.4464f);
 
-			data[4].Position = maths::Vector3(-1.0f, -1.0f, -1.0f);
-			data[4].Colours = maths::Vector4(0.0f);
-			data[4].TexCoords = maths::Vector2(0.24f, 0.81f);
-			data[4].Normal = maths::Vector3(-0.8948f, 0.0f, 0.4464f);
+			data[4].Position = Maths::Vector3(-1.0f, -1.0f, -1.0f);
+			data[4].Colours = Maths::Vector4(0.0f);
+			data[4].TexCoords = Maths::Vector2(0.24f, 0.81f);
+			data[4].Normal = Maths::Vector3(-0.8948f, 0.0f, 0.4464f);
 
-			data[5].Position = maths::Vector3(0.0f, 0.0f, 1.0f);
-			data[5].Colours = maths::Vector4(0.0f);
-			data[5].TexCoords = maths::Vector2(0.95f, 0.50f);
-			data[5].Normal = maths::Vector3(-0.8948f, 0.0f, 0.4464f);
+			data[5].Position = Maths::Vector3(0.0f, 0.0f, 1.0f);
+			data[5].Colours = Maths::Vector4(0.0f);
+			data[5].TexCoords = Maths::Vector2(0.95f, 0.50f);
+			data[5].Normal = Maths::Vector3(-0.8948f, 0.0f, 0.4464f);
 
-			data[6].Position = maths::Vector3(1.0f, 1.0f, -1.0f);
-			data[6].Colours = maths::Vector4(0.0f);
-			data[6].TexCoords = maths::Vector2(0.24f, 0.81f);
-			data[6].Normal = maths::Vector3(0.8948f, 0.0f, 0.4475f);
+			data[6].Position = Maths::Vector3(1.0f, 1.0f, -1.0f);
+			data[6].Colours = Maths::Vector4(0.0f);
+			data[6].TexCoords = Maths::Vector2(0.24f, 0.81f);
+			data[6].Normal = Maths::Vector3(0.8948f, 0.0f, 0.4475f);
 
-			data[7].Position = maths::Vector3(0.0f, 0.0f, 1.0f);
-			data[7].Colours = maths::Vector4(0.0f);
-			data[7].TexCoords = maths::Vector2(0.95f, 0.50f);
-			data[7].Normal = maths::Vector3(0.8948f, 0.0f, 0.4475f);
+			data[7].Position = Maths::Vector3(0.0f, 0.0f, 1.0f);
+			data[7].Colours = Maths::Vector4(0.0f);
+			data[7].TexCoords = Maths::Vector2(0.95f, 0.50f);
+			data[7].Normal = Maths::Vector3(0.8948f, 0.0f, 0.4475f);
 
-			data[8].Position = maths::Vector3(1.0f, -1.0f, -1.0f);
-			data[8].Colours = maths::Vector4(0.0f);
-			data[8].TexCoords = maths::Vector2(0.24f, 0.21f);
-			data[8].Normal = maths::Vector3(0.8948f, 0.0f, 0.4475f);
+			data[8].Position = Maths::Vector3(1.0f, -1.0f, -1.0f);
+			data[8].Colours = Maths::Vector4(0.0f);
+			data[8].TexCoords = Maths::Vector2(0.24f, 0.21f);
+			data[8].Normal = Maths::Vector3(0.8948f, 0.0f, 0.4475f);
 
-			data[9].Position = maths::Vector3(-1.0f, -1.0f, -1.0f);
-			data[9].Colours = maths::Vector4(0.0f);
-			data[9].TexCoords = maths::Vector2(0.24f, 0.21f);
-			data[9].Normal = maths::Vector3(0.0f, -0.8948f, 0.448f);
+			data[9].Position = Maths::Vector3(-1.0f, -1.0f, -1.0f);
+			data[9].Colours = Maths::Vector4(0.0f);
+			data[9].TexCoords = Maths::Vector2(0.24f, 0.21f);
+			data[9].Normal = Maths::Vector3(0.0f, -0.8948f, 0.448f);
 
-			data[10].Position = maths::Vector3(1.0f, -1.0f, -1.0f);
-			data[10].Colours = maths::Vector4(0.0f);
-			data[10].TexCoords = maths::Vector2(0.24f, 0.81f);
-			data[10].Normal = maths::Vector3(0.0f, -0.8948f, 0.448f);
+			data[10].Position = Maths::Vector3(1.0f, -1.0f, -1.0f);
+			data[10].Colours = Maths::Vector4(0.0f);
+			data[10].TexCoords = Maths::Vector2(0.24f, 0.81f);
+			data[10].Normal = Maths::Vector3(0.0f, -0.8948f, 0.448f);
 
-			data[11].Position = maths::Vector3(0.0f, 0.0f, 1.0f);
-			data[11].Colours = maths::Vector4(0.0f);
-			data[11].TexCoords = maths::Vector2(0.95f, 0.50f);
-			data[11].Normal = maths::Vector3(0.0f, -0.8948f, 0.448f);
+			data[11].Position = Maths::Vector3(0.0f, 0.0f, 1.0f);
+			data[11].Colours = Maths::Vector4(0.0f);
+			data[11].TexCoords = Maths::Vector2(0.95f, 0.50f);
+			data[11].Normal = Maths::Vector3(0.0f, -0.8948f, 0.448f);
 
-			data[12].Position = maths::Vector3(-1.0f, 1.0f, -1.0f);
-			data[12].Colours = maths::Vector4(0.0f);
-			data[12].TexCoords = maths::Vector2(0.0f, 0.0f);
-			data[12].Normal = maths::Vector3(0.0f, 0.0f, -1.0f);
+			data[12].Position = Maths::Vector3(-1.0f, 1.0f, -1.0f);
+			data[12].Colours = Maths::Vector4(0.0f);
+			data[12].TexCoords = Maths::Vector2(0.0f, 0.0f);
+			data[12].Normal = Maths::Vector3(0.0f, 0.0f, -1.0f);
 
-			data[13].Position = maths::Vector3(1.0f, 1.0f, -1.0f);
-			data[13].Colours = maths::Vector4(0.0f);
-			data[13].TexCoords = maths::Vector2(0.0f, 1.0f);
-			data[13].Normal = maths::Vector3(0.0f, 0.0f, -1.0f);
+			data[13].Position = Maths::Vector3(1.0f, 1.0f, -1.0f);
+			data[13].Colours = Maths::Vector4(0.0f);
+			data[13].TexCoords = Maths::Vector2(0.0f, 1.0f);
+			data[13].Normal = Maths::Vector3(0.0f, 0.0f, -1.0f);
 
-			data[14].Position = maths::Vector3(1.0f, -1.0f, -1.0f);
-			data[14].Colours = maths::Vector4(0.0f);
-			data[14].TexCoords = maths::Vector2(1.0f, 1.0f);
-			data[14].Normal = maths::Vector3(0.0f, 0.0f, -1.0f);
+			data[14].Position = Maths::Vector3(1.0f, -1.0f, -1.0f);
+			data[14].Colours = Maths::Vector4(0.0f);
+			data[14].TexCoords = Maths::Vector2(1.0f, 1.0f);
+			data[14].Normal = Maths::Vector3(0.0f, 0.0f, -1.0f);
 
-			data[15].Position = maths::Vector3(-1.0f, -1.0f, -1.0f);
-			data[15].Colours = maths::Vector4(0.0f);
-			data[15].TexCoords = maths::Vector2(0.96f, 0.0f);
-			data[15].Normal = maths::Vector3(0.0f, 0.0f, -1.0f);
+			data[15].Position = Maths::Vector3(-1.0f, -1.0f, -1.0f);
+			data[15].Colours = Maths::Vector4(0.0f);
+			data[15].TexCoords = Maths::Vector2(0.96f, 0.0f);
+			data[15].Normal = Maths::Vector3(0.0f, 0.0f, -1.0f);
 
-			data[16].Position = maths::Vector3(0.0f, 0.0f, 0.0f);
-			data[16].Colours = maths::Vector4(0.0f);
-			data[16].TexCoords = maths::Vector2(0.0f, 0.0f);
-			data[16].Normal = maths::Vector3(0.0f, 0.0f, 0.0f);
+			data[16].Position = Maths::Vector3(0.0f, 0.0f, 0.0f);
+			data[16].Colours = Maths::Vector4(0.0f);
+			data[16].TexCoords = Maths::Vector2(0.0f, 0.0f);
+			data[16].Normal = Maths::Vector3(0.0f, 0.0f, 0.0f);
 
-			data[17].Position = maths::Vector3(0.0f, 0.0f, 0.0f);
-			data[17].Colours = maths::Vector4(0.0f);
-			data[17].TexCoords = maths::Vector2(0.0f, 0.0f);
-			data[17].Normal = maths::Vector3(0.0f, 0.0f, 0.0f);
+			data[17].Position = Maths::Vector3(0.0f, 0.0f, 0.0f);
+			data[17].Colours = Maths::Vector4(0.0f);
+			data[17].TexCoords = Maths::Vector2(0.0f, 0.0f);
+			data[17].Normal = Maths::Vector3(0.0f, 0.0f, 0.0f);
 
 			std::shared_ptr<VertexArray> va;
 			va.reset(VertexArray::Create());
@@ -388,12 +388,12 @@ namespace lumos
 
 			delete[] data;
 
-			graphics::BufferLayout layout;
-			layout.Push<maths::Vector3>("position");
-			layout.Push<maths::Vector4>("colour");
-			layout.Push<maths::Vector2>("texCoord");
-			layout.Push<maths::Vector3>("normal");
-			layout.Push<maths::Vector3>("tangent");
+			Graphics::BufferLayout layout;
+			layout.Push<Maths::Vector3>("position");
+			layout.Push<Maths::Vector4>("colour");
+			layout.Push<Maths::Vector2>("texCoord");
+			layout.Push<Maths::Vector3>("normal");
+			layout.Push<Maths::Vector3>("tangent");
 			buffer->SetLayout(layout);
 
 			va->Bind();
@@ -411,7 +411,7 @@ namespace lumos
 
 			std::shared_ptr<IndexBuffer> ib;
 			ib.reset(IndexBuffer::Create(indices, 18));
-			std::shared_ptr<maths::BoundingSphere> boundingSphere = std::make_shared<maths::BoundingSphere>();
+			std::shared_ptr<Maths::BoundingSphere> boundingSphere = std::make_shared<Maths::BoundingSphere>();
 			for (int i = 0; i < 4; i++)
 			{
 				boundingSphere->ExpandToFit(data[i].Position);
@@ -428,13 +428,13 @@ namespace lumos
 
 			float sectorCount = static_cast<float>(xSegments);
 			float stackCount = static_cast<float>(ySegments);
-			float sectorStep = 2 * maths::PI / sectorCount;
-			float stackStep = maths::PI / stackCount;
+			float sectorStep = 2 * Maths::PI / sectorCount;
+			float stackStep = Maths::PI / stackCount;
 			float radius = 1.0f;
 
 			for (int i = 0; i <= stackCount; ++i)
 			{
-                float stackAngle = maths::PI / 2 - i * stackStep;        // starting from pi/2 to -pi/2
+                float stackAngle = Maths::PI / 2 - i * stackStep;        // starting from pi/2 to -pi/2
 				float xy = radius * cos(stackAngle);             // r * cos(u)
 				float z = radius * sin(stackAngle);              // r * sin(u)
 
@@ -453,9 +453,9 @@ namespace lumos
 					float t = static_cast<float>(i / stackCount);
 
 					Vertex vertex;
-					vertex.Position = maths::Vector3(x, y, z);
-					vertex.TexCoords = maths::Vector2(s, t);
-					vertex.Normal = maths::Vector3(x, y, z).Normal();
+					vertex.Position = Maths::Vector3(x, y, z);
+					vertex.TexCoords = Maths::Vector2(s, t);
+					vertex.Normal = Maths::Vector3(x, y, z).Normal();
 
 					data.emplace_back(vertex);
 				}
@@ -464,12 +464,12 @@ namespace lumos
 			VertexBuffer* buffer = VertexBuffer::Create(BufferUsage::STATIC);
 			buffer->SetData(int(data.size()) * sizeof(Vertex), data.data());
 
-			graphics::BufferLayout layout;
-			layout.Push<maths::Vector3>("position");
-			layout.Push<maths::Vector4>("colour");
-			layout.Push<maths::Vector2>("texCoord");
-			layout.Push<maths::Vector3>("normal");
-			layout.Push<maths::Vector3>("tangent");
+			Graphics::BufferLayout layout;
+			layout.Push<Maths::Vector3>("position");
+			layout.Push<Maths::Vector4>("colour");
+			layout.Push<Maths::Vector2>("texCoord");
+			layout.Push<Maths::Vector3>("normal");
+			layout.Push<Maths::Vector3>("tangent");
 			buffer->SetLayout(layout);
 
 			va->Bind();
@@ -505,7 +505,7 @@ namespace lumos
 
 			std::shared_ptr<IndexBuffer> ib;
 			ib.reset(IndexBuffer::Create(indices.data(), static_cast<uint>(indices.size())));
-			std::shared_ptr<maths::BoundingSphere> boundingSphere = std::make_shared<maths::BoundingSphere>();
+			std::shared_ptr<Maths::BoundingSphere> boundingSphere = std::make_shared<Maths::BoundingSphere>();
 
 			return new Mesh(va, ib, material, boundingSphere);
 		}
@@ -515,45 +515,45 @@ namespace lumos
 			return nullptr;
 		}
 
-		Mesh* CreatePlane(float width, float height, const maths::Vector3& normal, std::shared_ptr<Material> material)
+		Mesh* CreatePlane(float width, float height, const Maths::Vector3& normal, std::shared_ptr<Material> material)
 		{
-			maths::Vector3 vec = normal * 90.0f;
-			maths::Matrix4 rotation = maths::Matrix4::Rotation(vec.z, maths::Vector3(1.0f, 0.0f, 0.0f)) * maths::Matrix4::Rotation(vec.y, maths::Vector3(0.0f, 1.0f, 0.0f)) * maths::Matrix4::Rotation(vec.x, maths::Vector3(0.0f, 0.0f, 1.0f));
+			Maths::Vector3 vec = normal * 90.0f;
+			Maths::Matrix4 rotation = Maths::Matrix4::Rotation(vec.z, Maths::Vector3(1.0f, 0.0f, 0.0f)) * Maths::Matrix4::Rotation(vec.y, Maths::Vector3(0.0f, 1.0f, 0.0f)) * Maths::Matrix4::Rotation(vec.x, Maths::Vector3(0.0f, 0.0f, 1.0f));
 
 			Vertex data[4];
 			memset(data, 0, 4 * sizeof(Vertex));
 
-			data[0].Position = rotation * maths::Vector3(-width / 2.0f, 0.0f, -height / 2.0f);
+			data[0].Position = rotation * Maths::Vector3(-width / 2.0f, 0.0f, -height / 2.0f);
 			data[0].Normal = normal;
-			data[0].TexCoords = maths::Vector2(0.0f, 0.0f);
-			data[0].Tangent = maths::Matrix4::Rotation(90.0f, maths::Vector3(0.0f, 0.0f, 1.0f)) * normal;
+			data[0].TexCoords = Maths::Vector2(0.0f, 0.0f);
+			data[0].Tangent = Maths::Matrix4::Rotation(90.0f, Maths::Vector3(0.0f, 0.0f, 1.0f)) * normal;
 
-			data[1].Position = rotation * maths::Vector3(-width / 2.0f, 0.0f, height / 2.0f);
+			data[1].Position = rotation * Maths::Vector3(-width / 2.0f, 0.0f, height / 2.0f);
 			data[1].Normal = normal;
-			data[1].TexCoords = maths::Vector2(0.0f, 1.0f);
-			data[1].Tangent = maths::Matrix4::Rotation(90.0f, maths::Vector3(0, 0, 1)) * normal;
+			data[1].TexCoords = Maths::Vector2(0.0f, 1.0f);
+			data[1].Tangent = Maths::Matrix4::Rotation(90.0f, Maths::Vector3(0, 0, 1)) * normal;
 
-			data[2].Position = rotation * maths::Vector3(width / 2.0f, 0.0f, height / 2.0f);
+			data[2].Position = rotation * Maths::Vector3(width / 2.0f, 0.0f, height / 2.0f);
 			data[2].Normal = normal;
-			data[2].TexCoords = maths::Vector2(1.0f, 1.0f);
-			data[2].Tangent = maths::Matrix4::Rotation(90.0f, maths::Vector3(0.0f, 0.0f, 1.0f)) * normal;
+			data[2].TexCoords = Maths::Vector2(1.0f, 1.0f);
+			data[2].Tangent = Maths::Matrix4::Rotation(90.0f, Maths::Vector3(0.0f, 0.0f, 1.0f)) * normal;
 
-			data[3].Position = rotation * maths::Vector3(width / 2.0f, 0.0f, -height / 2.0f);
+			data[3].Position = rotation * Maths::Vector3(width / 2.0f, 0.0f, -height / 2.0f);
 			data[3].Normal = normal;
-			data[3].TexCoords = maths::Vector2(1.0f, 0.0f);
-			data[3].Tangent = maths::Matrix4::Rotation(90.0f, maths::Vector3(0.0f, 0.0f, 1.0f)) * normal;
+			data[3].TexCoords = Maths::Vector2(1.0f, 0.0f);
+			data[3].Tangent = Maths::Matrix4::Rotation(90.0f, Maths::Vector3(0.0f, 0.0f, 1.0f)) * normal;
 
 			VertexBuffer* buffer = VertexBuffer::Create(BufferUsage::STATIC);
 			buffer->SetData(8 * sizeof(Vertex), data);
 
 			//delete[] data;
 
-			graphics::BufferLayout layout;
-			layout.Push<maths::Vector3>("postion");
-			layout.Push<maths::Vector4>("colours");
-			layout.Push<maths::Vector2>("texCoord");
-			layout.Push<maths::Vector3>("normal");
-			layout.Push<maths::Vector3>("tangent");
+			Graphics::BufferLayout layout;
+			layout.Push<Maths::Vector3>("postion");
+			layout.Push<Maths::Vector4>("colours");
+			layout.Push<Maths::Vector2>("texCoord");
+			layout.Push<Maths::Vector3>("normal");
+			layout.Push<Maths::Vector3>("tangent");
 			buffer->SetLayout(layout);
 
 			std::shared_ptr<VertexArray> va;
@@ -568,7 +568,7 @@ namespace lumos
 
 			std::shared_ptr<IndexBuffer> ib;
 			ib.reset(IndexBuffer::Create(indices, 6));
-			std::shared_ptr<maths::BoundingSphere> boundingBox = std::make_shared<maths::BoundingSphere>();
+			std::shared_ptr<Maths::BoundingSphere> boundingBox = std::make_shared<Maths::BoundingSphere>();
 			for (int i = 0; i < 4; i++)
 			{
 				boundingBox->ExpandToFit(data[i].Position);

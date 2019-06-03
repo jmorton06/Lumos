@@ -2,7 +2,7 @@
 #include "LM.h"
 #include "Camera.h"
 
-namespace lumos
+namespace Lumos
 {
 
 	class LUMOS_EXPORT Camera2D : public Camera

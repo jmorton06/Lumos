@@ -1,9 +1,9 @@
 #pragma once
 #include "LM.h"
 
-namespace lumos
+namespace Lumos
 {
-	namespace graphics
+	namespace Graphics
 	{
 		enum class LUMOS_EXPORT TextureWrap
 		{

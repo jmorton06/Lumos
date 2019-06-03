@@ -2,9 +2,9 @@
 #include "LM.h"
 #include "App/Window.h"
 
-namespace lumos
+namespace Lumos
 {
-	namespace graphics
+	namespace Graphics
 	{
 
         enum class LUMOS_EXPORT RenderAPI : int
@@ -13,12 +13,20 @@ namespace lumos
 			OPENGL = 0,
 		#endif
 
-		#ifdef LUMOS_RENDER_API_DIRECT3D
-			DIRECT3D = 1,
+		#ifdef LUMOS_RENDER_API_VULKAN
+			VULKAN = 1,
 		#endif
 
-		#ifdef LUMOS_RENDER_API_VULKAN
-			VULKAN = 2,
+		#ifdef LUMOS_RENDER_API_DIRECT3D
+			DIRECT3D = 2, //Unsupported
+		#endif
+
+		#ifdef LUMOS_RENDER_API_NONE
+			METAL = 3, //Unsupported
+		#endif
+
+		#ifdef LUMOS_RENDER_API_NONE
+			NONE = 4, //Unsupported
 		#endif
 		};
 

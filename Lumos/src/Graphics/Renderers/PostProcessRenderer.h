@@ -5,9 +5,9 @@
 #include "Maths/Matrix4.h"
 #include "Graphics/API/BufferLayout.h"
 
-namespace lumos
+namespace Lumos
 {
-	namespace graphics
+	namespace Graphics
 	{
 		
 		{
@@ -47,7 +47,7 @@ namespace lumos
 
 		struct UniformBufferObject
 		{
-			lumos::maths::Matrix4 projView;
+			Lumos::Maths::Matrix4 projView;
 		};
 
 		byte* m_VSSystemUniformBuffer{};
@@ -61,12 +61,12 @@ namespace lumos
 		std::vector<Renderable2D*> m_Sprites;
 		uint m_ScreenBufferWidth{}, m_ScreenBufferHeight{};
 
-		graphics::RenderPass* m_RenderPass{};
-		graphics::Pipeline* m_Pipeline{};
-		graphics::DescriptorSet* m_DescriptorSet{};
-		graphics::UniformBuffer* m_UniformBuffer{};
-		std::vector<graphics::CommandBuffer*> m_CommandBuffers;
-		std::vector<graphics::CommandBuffer*> m_SecondaryCommandBuffers;
+		Graphics::RenderPass* m_RenderPass{};
+		Graphics::Pipeline* m_Pipeline{};
+		Graphics::DescriptorSet* m_DescriptorSet{};
+		Graphics::UniformBuffer* m_UniformBuffer{};
+		std::vector<Graphics::CommandBuffer*> m_CommandBuffers;
+		std::vector<Graphics::CommandBuffer*> m_SecondaryCommandBuffers;
 
 		uint m_BatchDrawCallIndex = 0;
 
@@ -80,15 +80,15 @@ namespace lumos
 
 		VertexData* m_Buffer{};
 
-		std::vector<maths::Matrix4> m_TransformationStack;
-		const maths::Matrix4* m_TransformationBack{};
+		std::vector<Maths::Matrix4> m_TransformationStack;
+		const Maths::Matrix4* m_TransformationBack{};
 
 		std::vector<Texture*> m_Textures;
 
 		Texture* m_RenderTexture;
 		bool m_RenderToGBufferTexture = false;
 		uint m_CurrentBufferID = 0;
-		maths::Vector4 m_ClearColour;
+		Maths::Vector4 m_ClearColour;
 
 	};
 }

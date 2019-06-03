@@ -12,7 +12,7 @@ struct EnumClassHash
     }
 };
 
-namespace lumos
+namespace Lumos
 {
 	class LUMOS_EXPORT Entity
 	{
@@ -60,7 +60,8 @@ namespace lumos
 		const String& GetName() const { return m_Name; }
 		const String& GetUUID() const { return m_UUID; }
 
-		const bool IsActive() const { return m_Active; }
+		const bool Active() const { return m_Active; }
+		const bool ActiveInHierarchy() const;
 		void SetActive(bool active) { m_Active = active; };
 		void SetActiveRecursive(bool active);
 

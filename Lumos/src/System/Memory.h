@@ -3,7 +3,7 @@
 #include "LM.h"
 
 #include "GenericMemory.h"
-typedef lumos::GenericMemory PlatformMemory;
+typedef Lumos::GenericMemory PlatformMemory;
 
 struct Memory
 {

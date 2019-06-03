@@ -5,9 +5,9 @@
 #include "VKTextureDepthArray.h"
 
 
-namespace lumos
+namespace Lumos
 {
-	namespace graphics
+	namespace Graphics
 	{
 		VKFramebuffer::VKFramebuffer(FramebufferInfo frameBufferInfo)
 		{

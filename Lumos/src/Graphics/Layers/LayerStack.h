@@ -5,7 +5,7 @@
 
 #include <deque>
 
-namespace lumos
+namespace Lumos
 {
 	struct TimeStep;
 	class Scene;

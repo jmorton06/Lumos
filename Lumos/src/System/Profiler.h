@@ -9,9 +9,9 @@
 #define LUMOS_PROFILE(x)
 #endif
 
-namespace lumos
+namespace Lumos
 {
-	namespace system
+	namespace System
 	{
 		namespace Profiler
 		{

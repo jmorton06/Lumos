@@ -174,6 +174,13 @@ float textureProj(vec4 P, vec2 offset, int cascadeIndex)
 
 }
 
+const mat4 biasMat = mat4(
+	0.5, 0.0, 0.0, 0.0,
+	0.0, 0.5, 0.0, 0.0,
+	0.0, 0.0, 1.0, 0.0,
+	0.5, 0.5, 0.0, 1.0
+);
+
 float filterPCF(vec4 sc, int cascadeIndex)
 {
 	ivec2 texDim = textureSize(uShadowMap, 0).xy;
@@ -194,56 +201,25 @@ float filterPCF(vec4 sc, int cascadeIndex)
 	return shadowFactor / count;
 }
 
-// values out of <-8388608;8388608> are stored as min/max values
-vec3 floatTovec3(in float val) 
-{
-   // val += 8388608.; // this makes values signed
-
-    if(val < 0.) 
-	{
-        return vec3(0.);
-    }
-
-    if(val > 16777216.)
-	{
-        return vec3(1.);
-    }
-
-    vec3 c = vec3(0.);
-    c.b = mod(val, 256.);
-    val = floor(val/256.);
-    c.g = mod(val, 256.);
-    val = floor(val/256.);
-    c.r = mod(val, 256.);
-    return c/255.;
-}
-
-vec4 EncodeFloatRGBA( float v ) {
-  vec4 enc = vec4(1.0, 255.0, 65025.0, 16581375.0) * v;
-  enc = floor(enc);
-  enc -= enc.yzww * vec4(1.0/255.0,1.0/255.0,1.0/255.0,0.0);
-  return enc;
-}
-
 layout(location = 0) out vec4 outColor;
 
 void main()
 {
 	vec4 colourTex   = texture(uColourSampler   , fragTexCoord);
 
-    if(colourTex.w < 0.1)
+	 if(colourTex.w < 0.1)
         discard;
 
-    vec3 positionTex = texture(uPositionSampler , fragTexCoord).rgb;
-    vec4 pbrTex		 = texture(uPBRSampler   , fragTexCoord);
-    vec3 normal      = normalize(texture(uNormalSampler, fragTexCoord).rgb);
+    vec4 positionTex = texture(uPositionSampler , fragTexCoord);
+    vec4 pbrTex		 = texture(uPBRSampler      , fragTexCoord);
+    vec4 normalTex   = texture(uNormalSampler   , fragTexCoord);
 
     vec3  spec      = vec3(pbrTex.x);
 
 	float roughness = pbrTex.y;
-	vec3 emissive	= EncodeFloatRGBA(pbrTex.w).xyz;
-    vec3 wsPos      = positionTex;
-
+	vec3 emissive	= vec3(positionTex.w, normalTex.w, pbrTex.w);// EncodeFloatRGBA(pbrTex.w).xyz;
+    vec3 wsPos      = positionTex.xyz;
+	vec3 normal		= normalize(normalTex.xyz);
     vec3 finalColour;
 
     Material material;

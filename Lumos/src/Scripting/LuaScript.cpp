@@ -3,7 +3,7 @@
 #include "App/Window.h"
 #include <sol/sol.hpp>
 
-namespace lumos
+namespace Lumos
 {
 	LuaScript::LuaScript()
 	{

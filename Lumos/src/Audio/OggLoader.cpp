@@ -3,7 +3,7 @@
 
 #include <stb/stb_vorbis.h>
 
-namespace lumos
+namespace Lumos
 {
 	AudioData LoadOgg(const String& fileName)
 	{

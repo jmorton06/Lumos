@@ -2,9 +2,9 @@
 #include "VKVertexArray.h"
 #include "VKVertexBuffer.h"
 
-namespace lumos
+namespace Lumos
 {
-	namespace graphics
+	namespace Graphics
 	{
 		VKVertexArray::VKVertexArray()
 		{

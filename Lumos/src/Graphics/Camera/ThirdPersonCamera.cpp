@@ -4,22 +4,22 @@
 #include "App/Input.h"
 #include "App/Window.h"
 
-namespace lumos
+namespace Lumos
 {
 
 	ThirdPersonCamera::ThirdPersonCamera(float FOV, float Near, float Far, float aspect)
 		: Camera(FOV, Near, Far, aspect), m_Free(false)
 	{
 		Application::Instance()->GetWindow()->HideMouse(false);
-		m_ProjMatrix = maths::Matrix4::Perspective(m_Near, m_Far, aspect, FOV);
+		m_ProjMatrix = Maths::Matrix4::Perspective(m_Near, m_Far, aspect, FOV);
 		m_RotateDampeningFactor = 0.0f;
 	}
 
-	ThirdPersonCamera::ThirdPersonCamera(float pitch, float yaw, const maths::Vector3& position, float FOV, float Near, float Far, float aspect)
+	ThirdPersonCamera::ThirdPersonCamera(float pitch, float yaw, const Maths::Vector3& position, float FOV, float Near, float Far, float aspect)
 		: Camera(pitch, yaw, position, FOV, Near, Far, aspect), m_Free(false)
 	{
 		Application::Instance()->GetWindow()->HideMouse(false);
-		m_ProjMatrix = maths::Matrix4::Perspective(m_Near, m_Far, aspect, FOV);
+		m_ProjMatrix = Maths::Matrix4::Perspective(m_Near, m_Far, aspect, FOV);
 		m_RotateDampeningFactor = 0.0f;
 	}
 
@@ -34,7 +34,7 @@ namespace lumos
 			//if (!Input::GetInput().firstUpdate)
 			if (Input::GetInput().GetMouseHeld(LUMOS_MOUSE_RIGHT))
 			{
-				m_RotateVelocity = m_RotateVelocity + maths::Vector2((xpos - m_PreviousCurserPos.GetX()), (ypos - m_PreviousCurserPos.GetY())) *  m_MouseSensitivity;
+				m_RotateVelocity = m_RotateVelocity + Maths::Vector2((xpos - m_PreviousCurserPos.GetX()), (ypos - m_PreviousCurserPos.GetY())) *  m_MouseSensitivity;
 				m_Pitch -= m_RotateVelocity.GetY();
 				m_Yaw -= m_RotateVelocity.GetX();
 
@@ -55,7 +55,7 @@ namespace lumos
 			Input::GetInput().firstUpdate = false;
 			}*/
 
-			m_PreviousCurserPos = maths::Vector2(xpos, ypos);
+			m_PreviousCurserPos = Maths::Vector2(xpos, ypos);
 		}
 
 		m_RotateVelocity = m_RotateVelocity * pow(m_RotateDampeningFactor, dt);

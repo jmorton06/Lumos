@@ -2,7 +2,7 @@
 #include "RenderList.h"
 
 
-namespace lumos
+namespace Lumos
 {
 
 	uint RenderList::g_NumRenderLists = 0;
@@ -54,7 +54,7 @@ namespace lumos
 		}
 	}
 
-	void RenderList::UpdateCameraWorldPos(const maths::Vector3& cameraPos)
+	void RenderList::UpdateCameraWorldPos(const Maths::Vector3& cameraPos)
 	{
 		m_NumElementsChanged = 0;
 		m_CameraPos = cameraPos;
@@ -110,7 +110,7 @@ namespace lumos
 			sort_list(m_vRenderListTransparent);
 	}
 
-	void RenderList::RemoveExcessObjects(const maths::Frustum& frustum)
+	void RenderList::RemoveExcessObjects(const Maths::Frustum& frustum)
 	{
 		auto mark_objects_for_removal = [&](std::vector<RenderList_Object>& list)
 		{
@@ -195,7 +195,7 @@ namespace lumos
 				//If the object is transparent, add it to the transparent render list
 				target_list = &m_vRenderListTransparent;
 
-				//To cheat the sorting system to always use the same sorting opperand, we just invert all transparent distances so negative far is less than neg near.
+				//To cheat the sorting System to always use the same sorting opperand, we just invert all transparent distances so negative far is less than neg near.
 				carry_obj.cam_dist_sq = -carry_obj.cam_dist_sq;
 			}
 

@@ -6,9 +6,9 @@
 #include "VKCommandBuffer.h"
 
 struct ImGui_ImplVulkanH_WindowData;
-namespace lumos
+namespace Lumos
 {
-	namespace graphics
+	namespace Graphics
 	{
 		class VKFramebuffer;
 		class VKRenderpass;
@@ -21,13 +21,13 @@ namespace lumos
 
             void Init() override;
             void NewFrame() override;
-            void Render(lumos::graphics::CommandBuffer* commandBuffer) override;
+            void Render(Lumos::Graphics::CommandBuffer* commandBuffer) override;
             void OnResize(uint width, uint height) override;
 			void Clear() override;
             
             void FrameRender(ImGui_ImplVulkanH_WindowData* wd);
             void SetupVulkanWindowData(ImGui_ImplVulkanH_WindowData* wd, VkSurfaceKHR surface, int width, int height);
-
+			bool Implemented() const override { return true; }
 
         private:
 			void* m_WindowHandle;

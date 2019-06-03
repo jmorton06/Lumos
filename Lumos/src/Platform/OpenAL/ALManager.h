@@ -4,7 +4,7 @@
 #include <AL/al.h>
 #include <AL/alc.h>
 
-namespace lumos
+namespace Lumos
 {
     namespace Audio
     {

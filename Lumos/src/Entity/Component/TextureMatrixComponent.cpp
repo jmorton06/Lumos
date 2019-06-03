@@ -2,9 +2,9 @@
 #include "TextureMatrixComponent.h"
 #include <imgui/imgui.h>
 
-namespace lumos
+namespace Lumos
 {
-	TextureMatrixComponent::TextureMatrixComponent(const maths::Matrix4& matrix)
+	TextureMatrixComponent::TextureMatrixComponent(const Maths::Matrix4& matrix)
 		: m_TextureMatrix(matrix)
 	{
 

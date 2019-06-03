@@ -7,7 +7,7 @@
 #include <Box2D/Box2D.h>
 #include <Box2D/Dynamics/b2World.h>
 
-namespace lumos
+namespace Lumos
 {
 
 	PhysicsObject2D::PhysicsObject2D() : m_B2Body(nullptr)
@@ -24,17 +24,17 @@ namespace lumos
 		B2PhysicsEngine::Instance()->GetB2World()->DestroyBody(m_B2Body);
 	}
 
-	void PhysicsObject2D::SetLinearVelocity(const maths::Vector2& v) const
+	void PhysicsObject2D::SetLinearVelocity(const Maths::Vector2& v) const
 	{
 		m_B2Body->SetLinearVelocity(b2Vec2(v.GetX(), v.GetY()));
 	}
 
-	void PhysicsObject2D::SetForce(const maths::Vector2& v) const
+	void PhysicsObject2D::SetForce(const Maths::Vector2& v) const
 	{
         m_B2Body->ApplyForceToCenter(b2Vec2(v.GetX(),v.GetY()), true);
 	}
 
-	void PhysicsObject2D::SetPosition(const maths::Vector2 & pos) const
+	void PhysicsObject2D::SetPosition(const Maths::Vector2 & pos) const
 	{
         m_B2Body->SetTransform(b2Vec2(pos.GetX(), pos.GetY()), m_B2Body->GetAngle());
 
@@ -111,10 +111,10 @@ namespace lumos
 		}
 	}
     
-    maths::Vector2 PhysicsObject2D::GetPosition() const
+    Maths::Vector2 PhysicsObject2D::GetPosition() const
     {
         b2Vec2 pos = m_B2Body->GetPosition();
-        return maths::Vector2(pos.x,pos.y);
+        return Maths::Vector2(pos.x,pos.y);
     }
     
     float PhysicsObject2D::GetAngle() const

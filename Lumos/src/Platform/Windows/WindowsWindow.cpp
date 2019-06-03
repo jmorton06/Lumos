@@ -24,7 +24,7 @@ extern "C"
     __declspec(dllexport) int AmdPowerXpressRequestHighPerformance = 1;
 }
 
-namespace lumos
+namespace Lumos
 {
 
 	EXTERN_C IMAGE_DOS_HEADER __ImageBase;
@@ -49,11 +49,11 @@ namespace lumos
 		m_VSync = properties.VSync;
 		m_Timer = new Timer();
 		SetHasResized(true);
-		m_Data.m_RenderAPI = static_cast<graphics::RenderAPI>(properties.RenderAPI);
+		m_Data.m_RenderAPI = static_cast<Graphics::RenderAPI>(properties.RenderAPI);
 
 		m_Init = Init(properties);
 
-		graphics::GraphicsContext::Create(properties, hWnd);
+		Graphics::GraphicsContext::Create(properties, hWnd);
 	}
 
 	WindowsWindow::~WindowsWindow()

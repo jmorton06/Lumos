@@ -2,9 +2,9 @@
 #include "LM.h"
 #include "Maths/Maths.h"
 
-namespace lumos
+namespace Lumos
 {
-	namespace graphics
+	namespace Graphics
 	{
 		class Pipeline;
 		class CommandBuffer;
@@ -94,13 +94,13 @@ namespace lumos
 			static Renderer* s_Instance;
 			inline static Renderer* GetRenderer() { return s_Instance; }
 
-			virtual void Render(VertexArray* vertexArray, IndexBuffer* indexBuffer, graphics::CommandBuffer* cmdBuffer, std::vector<graphics::DescriptorSet*>& descriptorSets, graphics::Pipeline* pipeline, uint dynamicOffset = 0) = 0;
+			virtual void Render(VertexArray* vertexArray, IndexBuffer* indexBuffer, Graphics::CommandBuffer* cmdBuffer, std::vector<Graphics::DescriptorSet*>& descriptorSets, Graphics::Pipeline* pipeline, uint dynamicOffset = 0) = 0;
 
 			bool init;
 
 			virtual void ClearInternal(uint buffer) = 0;
 			virtual void PresentInternal() = 0;
-			virtual void PresentInternal(graphics::CommandBuffer* cmdBuffer) = 0;
+			virtual void PresentInternal(Graphics::CommandBuffer* cmdBuffer) = 0;
 
 			virtual void SetColourMaskInternal(bool r, bool g, bool b, bool a) = 0;
 			virtual void SetDepthTestingInternal(bool enabled) = 0;
@@ -122,13 +122,13 @@ namespace lumos
 			virtual void SetRenderTargets(uint numTargets) = 0;
 			virtual void SetPixelPackType(PixelPackType type) = 0;
 			virtual void SetRenderModeInternal(RenderMode mode) = 0;
-			virtual void RenderMeshInternal(Mesh* mesh, graphics::Pipeline* pipeline, graphics::CommandBuffer* cmdBuffer, uint dynamicOffset, graphics::DescriptorSet* descriptorSet, bool useMaterialDescriptorSet) = 0;
-			virtual graphics::Swapchain* GetSwapchainInternal() const = 0;
+			virtual void RenderMeshInternal(Mesh* mesh, Graphics::Pipeline* pipeline, Graphics::CommandBuffer* cmdBuffer, uint dynamicOffset, Graphics::DescriptorSet* descriptorSet, bool useMaterialDescriptorSet) = 0;
+			virtual Graphics::Swapchain* GetSwapchainInternal() const = 0;
 
 			inline static void Clear(uint buffer) { s_Instance->ClearInternal(buffer); }
 			inline static void BindScreenFBO() { s_Instance->BindScreenFBOInternal(); }
 			inline static void Present() { s_Instance->PresentInternal(); }
-			inline static void Present(graphics::CommandBuffer* cmdBuffer) { s_Instance->PresentInternal(cmdBuffer); }
+			inline static void Present(Graphics::CommandBuffer* cmdBuffer) { s_Instance->PresentInternal(cmdBuffer); }
 			inline static void Draw(DrawType type, uint count, DataType datayType = DataType::UNSIGNED_INT, void* indices = nullptr) { s_Instance->DrawInternal(type, count, datayType, indices); }
 			inline static void DrawArrays(DrawType type, uint numIndices) { s_Instance->DrawArraysInternal(type, numIndices); }
 			inline static void DrawArrays(DrawType type, uint start, uint numIndices) { s_Instance->DrawArraysInternal(type, start, numIndices); }
@@ -144,7 +144,7 @@ namespace lumos
 			inline static void SetBlendEquation(RendererBlendFunction blendEquation) { s_Instance->SetBlendEquationInternal(blendEquation); }
 			inline static void SetStencilFunction(StencilType type, uint ref, uint mask) { s_Instance->SetStencilFunctionInternal(type, ref, mask); }
 			inline static void SetStencilOp(StencilType fail, StencilType zfail, StencilType zpass) { s_Instance->SetStencilOpInternal(fail, zfail, zpass); }
-			inline static void RenderMesh(Mesh* mesh, graphics::Pipeline* pipeline, graphics::CommandBuffer* cmdBuffer, uint dynamicOffset, graphics::DescriptorSet* descriptorSet, bool useMaterialDescriptorSet = true) { s_Instance->RenderMeshInternal(mesh, pipeline, cmdBuffer, dynamicOffset, descriptorSet, useMaterialDescriptorSet); }
+			inline static void RenderMesh(Mesh* mesh, Graphics::Pipeline* pipeline, Graphics::CommandBuffer* cmdBuffer, uint dynamicOffset, Graphics::DescriptorSet* descriptorSet, bool useMaterialDescriptorSet = true) { s_Instance->RenderMeshInternal(mesh, pipeline, cmdBuffer, dynamicOffset, descriptorSet, useMaterialDescriptorSet); }
 			inline static const String& GetTitle() { return s_Instance->GetTitleInternal(); }
 
 			inline static Swapchain* GetSwapchain() { return s_Instance->GetSwapchainInternal(); }

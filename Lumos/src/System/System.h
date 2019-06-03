@@ -2,12 +2,12 @@
 
 #include "LM.h"
 
-namespace lumos
+namespace Lumos
 { 
-	namespace internal 
+	namespace Internal 
 	{
-	// Low-level system operations
-	class LUMOS_EXPORT System
+	// Low-level System operations
+	class LUMOS_EXPORT CoreSystem
 	{
 	public:
 		static void Init();

@@ -9,7 +9,7 @@
 #include "Mesh.h"
 #include "MeshFactory.h"
 
-namespace lumos
+namespace Lumos
 {
 
 	ParticleManager::ParticleManager()

@@ -6,7 +6,7 @@
 
 #include <imgui/imgui.h>
 
-namespace lumos
+namespace Lumos
 {
 	Physics3DComponent::Physics3DComponent(std::shared_ptr<PhysicsObject3D>& physics)
 		: m_PhysicsObject(physics)
@@ -26,10 +26,10 @@ namespace lumos
 		m_Entity->GetTransformComponent()->GetTransform().UpdateMatrices();
 	}
 
-	void Physics3DComponent::OnUpdateTransform(const maths::Matrix4& entityTransform)
+	void Physics3DComponent::OnUpdateTransform(const Maths::Matrix4& entityTransform)
 	{
 		//m_PhysicsObject->SetPosition(entityTransform.GetPositionVector());
-        //m_PhysicsObject->SetOrientation(maths::Quaternion(maths::Matrix4::GetEulerAngles(entityTransform.GetRotation()), 1.0f));
+        //m_PhysicsObject->SetOrientation(Maths::Quaternion(Maths::Matrix4::GetEulerAngles(entityTransform.GetRotation()), 1.0f));
 	}
 
 	void Physics3DComponent::DebugDraw(uint64 debugFlags)

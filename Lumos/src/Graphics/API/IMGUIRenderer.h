@@ -1,9 +1,9 @@
 #pragma once
 #include "LM.h"
 
-namespace lumos
+namespace Lumos
 {
-    namespace graphics
+    namespace Graphics
     {
         class CommandBuffer;
 
@@ -18,11 +18,7 @@ namespace lumos
             virtual void Render(CommandBuffer* commandBuffer) = 0;
             virtual void OnResize(uint width, uint height) = 0;
 			virtual void Clear() {}
-
-            bool Implemented() const { return m_Implemented; }
-
-        protected:
-            bool m_Implemented = false;
+			virtual bool Implemented() const = 0;
         };
     }
 }

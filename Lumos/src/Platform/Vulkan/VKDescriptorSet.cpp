@@ -9,18 +9,18 @@
 #include "VKTextureDepth.h"
 #include "VKTextureDepthArray.h"
 
-namespace lumos
+namespace Lumos
 {
-	namespace graphics
+	namespace Graphics
 	{
 		VKDescriptorSet::VKDescriptorSet(DescriptorInfo info)
 		{
 			vk::DescriptorSetAllocateInfo descriptorSetAllocateInfo{};
-			descriptorSetAllocateInfo.descriptorPool = static_cast<graphics::VKPipeline*>(info.pipeline)->GetDescriptorPool();
-			descriptorSetAllocateInfo.pSetLayouts = static_cast<graphics::VKPipeline*>(info.pipeline)->GetDescriptorLayout(info.layoutIndex);
+			descriptorSetAllocateInfo.descriptorPool = static_cast<Graphics::VKPipeline*>(info.pipeline)->GetDescriptorPool();
+			descriptorSetAllocateInfo.pSetLayouts = static_cast<Graphics::VKPipeline*>(info.pipeline)->GetDescriptorLayout(info.layoutIndex);
 			descriptorSetAllocateInfo.descriptorSetCount = info.count;
 
-			graphics::VKDevice::Instance()->GetDevice().allocateDescriptorSets(&descriptorSetAllocateInfo, &m_DescriptorSet);
+			Graphics::VKDevice::Instance()->GetDevice().allocateDescriptorSets(&descriptorSetAllocateInfo, &m_DescriptorSet);
 		}
 
 		VKDescriptorSet::~VKDescriptorSet()

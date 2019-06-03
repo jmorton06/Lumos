@@ -2,7 +2,7 @@
 #include "LM.h"
 #include "App/KeyCodes.h"
 
-namespace lumos
+namespace Lumos
 {
 	namespace WindowsKeyCodes
 	{

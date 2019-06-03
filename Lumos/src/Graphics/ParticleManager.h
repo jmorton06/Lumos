@@ -2,7 +2,7 @@
 #include "LM.h"
 #include "Maths/Maths.h"
 
-namespace lumos
+namespace Lumos
 {
 	class ParticleEmitter;
 	class Camera;

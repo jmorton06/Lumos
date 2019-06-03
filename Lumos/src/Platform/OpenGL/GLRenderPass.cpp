@@ -4,9 +4,9 @@
 #include "GLFramebuffer.h"
 #include "GLDebug.h"
 
-namespace lumos
+namespace Lumos
 {
-    namespace graphics
+    namespace Graphics
     {
         GLRenderPass::GLRenderPass()
         {
@@ -29,7 +29,7 @@ namespace lumos
 
         }
 
-        void GLRenderPass::BeginRenderpass(CommandBuffer *commandBuffer, const maths::Vector4 &clearColour,
+        void GLRenderPass::BeginRenderpass(CommandBuffer *commandBuffer, const Maths::Vector4 &clearColour,
                                            Framebuffer *frame, SubPassContents contents, uint32_t width,
                                            uint32_t height) const
         {

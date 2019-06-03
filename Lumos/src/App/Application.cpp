@@ -14,6 +14,7 @@
 #include "Graphics/RenderManager.h"
 #include "Graphics/Layers/LayerStack.h"
 #include "Graphics/Layers/ImGuiLayer.h"
+#include "Graphics/Camera/Camera.h"
 
 #include "Utilities/CommonUtils.h"
 #include "Utilities/TimeStep.h"
@@ -29,7 +30,7 @@
 
 #include <imgui/imgui.h>
 
-namespace lumos
+namespace Lumos
 {
 	Application* Application::s_Instance = nullptr;
 
@@ -39,14 +40,14 @@ namespace lumos
 		LUMOS_ASSERT(!s_Instance, "Application already exists!");
 		s_Instance = this;
 
-		LUMOS_PROFILE(system::Profiler::OnBegin());
-		LUMOS_PROFILE(system::Profiler::OnBeginRange("StartUp", false, "", true));
+		LUMOS_PROFILE(System::Profiler::OnBegin());
+		LUMOS_PROFILE(System::Profiler::OnBeginRange("StartUp", false, "", true));
 	
 
 #ifdef  LUMOS_EDITOR
 		m_Editor = new Editor(this, properties.Width, properties.Height);
 #endif
-		graphics::GraphicsContext::SetRenderAPI(static_cast<graphics::RenderAPI>(properties.RenderAPI));
+		Graphics::GraphicsContext::SetRenderAPI(static_cast<Graphics::RenderAPI>(properties.RenderAPI));
 
 		Engine::Instance();
 
@@ -90,20 +91,20 @@ namespace lumos
 		uint screenWidth = m_Window->GetWidth();
 		uint screenHeight = m_Window->GetHeight();
 
-		lumos::Input::Create();
+		Lumos::Input::Create();
 
-		graphics::GraphicsContext::GetContext()->Init();
+		Graphics::GraphicsContext::GetContext()->Init();
 
 #ifdef  LUMOS_EDITOR
 		m_Editor->OnInit();
 #endif
 
-		graphics::Renderer::Init(screenWidth, screenHeight);
+		Graphics::Renderer::Init(screenWidth, screenHeight);
 
-		system::JobSystem::Execute([] { LumosPhysicsEngine::Instance(); LUMOS_CORE_INFO("Initialised LumosPhysics"); });
-		system::JobSystem::Execute([] { B2PhysicsEngine::Instance(); LUMOS_CORE_INFO("Initialised B2Physics"); });
+		System::JobSystem::Execute([] { LumosPhysicsEngine::Instance(); LUMOS_CORE_INFO("Initialised LumosPhysics"); });
+		System::JobSystem::Execute([] { B2PhysicsEngine::Instance(); LUMOS_CORE_INFO("Initialised B2Physics"); });
 
-        system::JobSystem::Execute([&]
+        System::JobSystem::Execute([&]
         {
             m_AudioManager = std::unique_ptr<AudioManager>(AudioManager::Create());
             m_AudioManager->OnInit();
@@ -111,9 +112,9 @@ namespace lumos
         
         //Graphics Loading on main thread
         AssetsManager::InitializeMeshes();
-        m_RenderManager = std::make_unique<graphics::RenderManager>(screenWidth, screenHeight);
+        m_RenderManager = std::make_unique<Graphics::RenderManager>(screenWidth, screenHeight);
 
-        system::JobSystem::Wait();
+        System::JobSystem::Wait();
         
         m_LayerStack = new LayerStack();
         PushOverLay(new ImGuiLayer(false));
@@ -124,8 +125,8 @@ namespace lumos
         
 		m_CurrentState = AppState::Running;
 
-		LUMOS_PROFILE(system::Profiler::OnEndRange("StartUp", false, "", true));
-		LUMOS_PROFILE(system::Profiler::OnEnd());
+		LUMOS_PROFILE(System::Profiler::OnEndRange("StartUp", false, "", true));
+		LUMOS_PROFILE(System::Profiler::OnEnd());
 	}
 
 	int Application::Quit(bool pause, const std::string &reason)
@@ -139,7 +140,7 @@ namespace lumos
 		m_LayerStack->Clear();
 		m_SceneManager.release();
 
-		graphics::Renderer::Release();
+		Graphics::Renderer::Release();
 
 		if (pause)
 		{
@@ -149,17 +150,23 @@ namespace lumos
 		return 0;
 	}
 
-	maths::Vector2 Application::GetWindowSize() const
+	void Application::SetActiveCamera(Camera* camera) 
+	{ 
+		m_ActiveCamera = camera; 
+		m_AudioManager->SetListener(camera);
+	}
+
+	Maths::Vector2 Application::GetWindowSize() const
 	{
-		return maths::Vector2(static_cast<float>(m_Window->GetWidth()), static_cast<float>(m_Window->GetHeight()));
+		return Maths::Vector2(static_cast<float>(m_Window->GetWidth()), static_cast<float>(m_Window->GetHeight()));
 	}
 
 	bool Application::OnFrame()
 	{
 		float now = m_Timer->GetMS(1.0f) * 1000.0f;
 
-		LUMOS_PROFILE(system::Profiler::OnBegin());
-		LUMOS_PROFILE(system::Profiler::OnBeginRange("MainLoop"));
+		LUMOS_PROFILE(System::Profiler::OnBegin());
+		LUMOS_PROFILE(System::Profiler::OnBeginRange("MainLoop"));
 
 #ifdef LUMOS_LIMIT_FRAMERATE
 		if (now - m_UpdateTimer > Engine::Instance()->TargetFrameRate())
@@ -203,33 +210,33 @@ namespace lumos
 		if (m_EditorState == EditorState::Next)
 			m_EditorState = EditorState::Paused;
 
-		LUMOS_PROFILE(system::Profiler::OnEndRange("MainLoop"));
-		LUMOS_PROFILE(system::Profiler::OnEnd());
+		LUMOS_PROFILE(System::Profiler::OnEndRange("MainLoop"));
+		LUMOS_PROFILE(System::Profiler::OnEnd());
 		return m_CurrentState != AppState::Closing;
 	}
 
 	void Application::OnRender()
 	{
-		LUMOS_PROFILE(system::Profiler::OnBeginRange("Render", true, "MainLoop"));
+		LUMOS_PROFILE(System::Profiler::OnBeginRange("Render", true, "MainLoop"));
 		if (m_LayerStack->GetCount() > 0)
 		{
-			LUMOS_PROFILE(system::Profiler::OnBeginRange("Begin", true, "Render"));
-			graphics::Renderer::GetRenderer()->Begin();
-			LUMOS_PROFILE(system::Profiler::OnEndRange("Begin", true, "Render"));
+			LUMOS_PROFILE(System::Profiler::OnBeginRange("Begin", true, "Render"));
+			Graphics::Renderer::GetRenderer()->Begin();
+			LUMOS_PROFILE(System::Profiler::OnEndRange("Begin", true, "Render"));
 
 			m_LayerStack->OnRender(m_SceneManager->GetCurrentScene());
 
-			LUMOS_PROFILE(system::Profiler::OnBeginRange("Present", true, "Render"));
-			graphics::Renderer::GetRenderer()->Present();
-			LUMOS_PROFILE(system::Profiler::OnEndRange("Present", true, "Render"));
+			LUMOS_PROFILE(System::Profiler::OnBeginRange("Present", true, "Render"));
+			Graphics::Renderer::GetRenderer()->Present();
+			LUMOS_PROFILE(System::Profiler::OnEndRange("Present", true, "Render"));
 		}
 
-		LUMOS_PROFILE(system::Profiler::OnEndRange("Render", true, "MainLoop"));
+		LUMOS_PROFILE(System::Profiler::OnEndRange("Render", true, "MainLoop"));
 	}
 
 	void Application::OnUpdate(TimeStep* dt)
 	{
-		LUMOS_PROFILE(system::Profiler::OnBeginRange("Update", true, "MainLoop"));
+		LUMOS_PROFILE(System::Profiler::OnBeginRange("Update", true, "MainLoop"));
 		const uint sceneIdx = m_SceneManager->GetCurrentSceneIndex();
 		const uint sceneMax = m_SceneManager->SceneCount();
 
@@ -251,17 +258,17 @@ namespace lumos
 		{
 			m_SceneManager->GetCurrentScene()->OnUpdate(m_TimeStep.get());
 			
-			for (auto& system : m_Systems)
+			for (auto& System : m_Systems)
             {
-				LUMOS_PROFILE(system::Profiler::OnBeginRange(system->GetName() , true, "Update"));
-                system->OnUpdate(m_TimeStep.get());
-				LUMOS_PROFILE(system::Profiler::OnEndRange(system->GetName(), true, "Update"));
+				LUMOS_PROFILE(System::Profiler::OnBeginRange(System->GetName() , true, "Update"));
+                System->OnUpdate(m_TimeStep.get());
+				LUMOS_PROFILE(System::Profiler::OnEndRange(System->GetName(), true, "Update"));
             }
 		}
 
 		m_LayerStack->OnUpdate(m_TimeStep.get(), m_SceneManager->GetCurrentScene());
 
-		LUMOS_PROFILE(system::Profiler::OnEndRange("Update", true, "MainLoop"));
+		LUMOS_PROFILE(System::Profiler::OnEndRange("Update", true, "MainLoop"));
 	}
 
 	void Application::OnEvent(Event& e)
@@ -319,8 +326,15 @@ namespace lumos
 	bool Application::OnWindowResize(WindowResizeEvent &e)
 	{
         auto windowSize = GetWindowSize();
-		m_RenderManager->OnResize(e.GetWidth(), e.GetHeight());
-		graphics::Renderer::GetRenderer()->OnResize(e.GetWidth(), e.GetHeight());
+
+		uint width = 1;
+		uint height = 1;
+
+		if (e.GetWidth() != 0) width = e.GetWidth();
+		if (e.GetHeight() != 0) height = e.GetHeight();
+
+		m_RenderManager->OnResize(width, height);
+		Graphics::Renderer::GetRenderer()->OnResize(width, height);
 		return false;
 	}
 

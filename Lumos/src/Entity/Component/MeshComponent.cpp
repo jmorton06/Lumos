@@ -12,34 +12,29 @@
 #include <imgui/imgui.h>
 
 
-namespace lumos
+namespace Lumos
 {
-	MeshComponent::MeshComponent(std::shared_ptr<graphics::Mesh>& model)
+	MeshComponent::MeshComponent(std::shared_ptr<Graphics::Mesh>& model)
 		: m_Model(model)
 	{
-		m_BoundingShape = std::make_unique<maths::BoundingSphere>(maths::Vector3(0.0f),1.0f);
+		m_BoundingShape = std::make_unique<Maths::BoundingSphere>(Maths::Vector3(0.0f),1.0f);
 	}
 
-	MeshComponent::MeshComponent(graphics::Mesh* mesh)
+	MeshComponent::MeshComponent(Graphics::Mesh* mesh)
 	{
-		m_Model = std::shared_ptr<graphics::Mesh>(mesh);
-		m_BoundingShape = std::make_unique<maths::BoundingSphere>(maths::Vector3(0.0f), 1.0f);
+		m_Model = std::shared_ptr<Graphics::Mesh>(mesh);
+		m_BoundingShape = std::make_unique<Maths::BoundingSphere>(Maths::Vector3(0.0f), 1.0f);
 	}
 
 	void MeshComponent::OnUpdateComponent(float dt)
 	{
-		Physics3DComponent* physicsComponent = m_Entity->GetComponent<Physics3DComponent>();
-		if (physicsComponent)
-		{
-			m_BoundingShape->SetPosition(physicsComponent->m_PhysicsObject->GetPosition());
-		}
 	}
 
 	void MeshComponent::OnIMGUI()
 	{
         if (m_Model->GetMaterial() && ImGui::CollapsingHeader("Material"))
 		{
-            bool flipImage = graphics::GraphicsContext::GetContext()->FlipImGUITexture();
+            bool flipImage = Graphics::GraphicsContext::GetContext()->FlipImGUITexture();
             
 			MaterialProperties* prop = m_Model->GetMaterial()->GetProperties();
 

@@ -3,9 +3,9 @@
 #include "Vector3.h" 
 #include "MathsCommon.h"
 
-namespace lumos
+namespace Lumos
 {
-	namespace maths
+	namespace Maths
 	{
 		class LUMOS_EXPORT MEM_ALIGN Vector4
 		{
@@ -248,9 +248,9 @@ namespace lumos
 namespace std 
 {
 	template<>
-	struct hash<lumos::maths::Vector4>
+	struct hash<Lumos::Maths::Vector4>
 	{
-		size_t operator()(const lumos::maths::Vector4& x) const
+		size_t operator()(const Lumos::Maths::Vector4& x) const
 		{
 			return hash<float>()(x.GetX()) ^ (hash<float>()(x.GetY()) * 997u) ^ (hash<float>()(x.GetZ()) * 999983u) ^ (hash<float>()(x.GetW()) * 999999937);
 

@@ -12,7 +12,7 @@
 #include <imgui/imgui.h>
 #include <imgui/plugins/ImGuizmo.h>
 
-namespace lumos
+namespace Lumos
 {
 	Entity::Entity(const String& name) : m_Name(name),m_pParent(nullptr), m_BoundingRadius(1),
 	                                     m_FrustumCullFlags(0), m_Active(true)
@@ -26,7 +26,7 @@ namespace lumos
     
     void Entity::Init()
     {
-        m_UUID = maths::GenerateUUID();
+        m_UUID = Maths::GenerateUUID();
     }
 
 	void Entity::AddComponent(std::unique_ptr<LumosComponent> component)
@@ -58,7 +58,7 @@ namespace lumos
         if(m_DefaultTransformComponent && m_DefaultTransformComponent->GetTransform().HasUpdated())
         {
             if(!m_pParent)
-                m_DefaultTransformComponent->GetTransform().SetWorldMatrix(maths::Matrix4());
+                m_DefaultTransformComponent->GetTransform().SetWorldMatrix(Maths::Matrix4());
 			else
 			{
 				m_DefaultTransformComponent->GetTransform().SetWorldMatrix(m_pParent->GetTransformComponent()->GetTransform().GetWorldMatrix());
@@ -90,7 +90,7 @@ namespace lumos
 	{
 		if (debugFlags & DEBUGDRAW_FLAGS_BOUNDING_RADIUS)
 		{
-			maths::Vector4 boundRadiusCol(0.3f, 0.6f, 0.4f, 0.8f);
+			Maths::Vector4 boundRadiusCol(0.3f, 0.6f, 0.4f, 0.8f);
 			boundRadiusCol.SetW(0.2f);
 			if (GetComponent<TransformComponent>())
 				DebugRenderer::DrawPointNDT(GetComponent<TransformComponent>()->GetTransform().GetWorldMatrix().GetPositionVector(), m_BoundingRadius, boundRadiusCol);
@@ -111,7 +111,7 @@ namespace lumos
 			transform = GetComponent<TransformComponent>();
 
 			if(!transform)
-				AddComponent<TransformComponent>(maths::Matrix4());
+				AddComponent<TransformComponent>();
 
 			if (!m_DefaultTransformComponent)
 				m_DefaultTransformComponent = GetComponent<TransformComponent>();
@@ -122,11 +122,11 @@ namespace lumos
 
 	void Entity::OnGuizmo(uint mode)
 	{
-		maths::Matrix4 view = Application::Instance()->GetSceneManager()->GetCurrentScene()->GetCamera()->GetViewMatrix();
-		maths::Matrix4 proj = Application::Instance()->GetSceneManager()->GetCurrentScene()->GetCamera()->GetProjectionMatrix();
+		Maths::Matrix4 view = Application::Instance()->GetSceneManager()->GetCurrentScene()->GetCamera()->GetViewMatrix();
+		Maths::Matrix4 proj = Application::Instance()->GetSceneManager()->GetCurrentScene()->GetCamera()->GetProjectionMatrix();
         
 #ifdef LUMOS_RENDER_API_VULKAN
-		if(graphics::GraphicsContext::GetRenderAPI() == graphics::RenderAPI::VULKAN)
+		if(Graphics::GraphicsContext::GetRenderAPI() == Graphics::RenderAPI::VULKAN)
 			proj[5] *= -1.0f;
 #endif
 		ImGuizmo::SetDrawlist();
@@ -135,17 +135,16 @@ namespace lumos
         auto size = ImGui::GetWindowSize();
         ImGuizmo::SetRect(pos.x, pos.y, size.x, size.y);
 
-		maths::Matrix4 model = maths::Matrix4();
+		Maths::Matrix4 model = Maths::Matrix4();
 		if (this->GetComponent<TransformComponent>() != nullptr)
 			model = GetComponent<TransformComponent>()->GetTransform().GetWorldMatrix();
 
         float delta[16];
         ImGuizmo::Manipulate(view.values, proj.values, static_cast<ImGuizmo::OPERATION>(mode),ImGuizmo::LOCAL, model.values, delta, nullptr);
 
-		if (GetTransformComponent() != nullptr)
+		if (GetTransformComponent() != nullptr && ImGuizmo::IsUsing())
         {
-            auto mat = maths::Matrix4(delta) * m_DefaultTransformComponent->GetTransform().GetLocalMatrix();
-            //mat.Transpose();
+            auto mat = Maths::Matrix4(delta) * m_DefaultTransformComponent->GetTransform().GetLocalMatrix();
             m_DefaultTransformComponent->GetTransform().SetLocalTransform(mat);
             m_DefaultTransformComponent->GetTransform().ApplyTransform();
             
@@ -192,6 +191,17 @@ namespace lumos
         m_pParent = parent;
         m_DefaultTransformComponent->SetWorldMatrix(m_pParent->GetTransformComponent()->GetTransform().GetWorldMatrix());
     }
+
+	const bool Entity::ActiveInHierarchy() const
+	{
+		if (!Active())
+			return false;
+
+		if (m_pParent)
+			return m_pParent->ActiveInHierarchy();
+		else
+			return true;
+	}
 
 	void Entity::SetActiveRecursive(bool active)
 	{

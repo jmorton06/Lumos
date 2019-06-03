@@ -5,7 +5,7 @@
 #include "Scenes/SceneModelViewer.h"
 #include "Scenes/Scene2D.h"
 
-using namespace lumos;
+using namespace Lumos;
 
 class Game : public Application
 {
@@ -35,7 +35,7 @@ public:
 	}
 };
 
-lumos::Application* lumos::CreateApplication()
+Lumos::Application* Lumos::CreateApplication()
 {  
     WindowProperties windowProperties = LuaScript::Instance()->LoadConfigFile(ROOT_DIR"/Sandbox/Settings.lua");
 	windowProperties.ShowConsole = true;

@@ -3,7 +3,7 @@
 
 #define LUMOS_EDITOR //temp
 
-namespace lumos
+namespace Lumos
 {
 	class Timer;
 	struct TimeStep;
@@ -18,16 +18,17 @@ namespace lumos
 	class ISystem;
 	class Scene;
 	class Event;
+	class Camera;
 	class WindowCloseEvent;
 	class WindowResizeEvent;
 
-	namespace graphics
+	namespace Graphics
 	{
 		class RenderManager;
 		enum class RenderAPI;
 	}
 
-	namespace maths
+	namespace Maths
 	{
 		class Vector2;
 	}
@@ -80,17 +81,19 @@ namespace lumos
 
 		LayerStack*						GetLayerStack()		const { return m_LayerStack; }
         SceneManager*					GetSceneManager()	const { return m_SceneManager.get(); }
-		graphics::RenderManager*		GetRenderManager()	const { return m_RenderManager.get(); }
+		Graphics::RenderManager*		GetRenderManager()	const { return m_RenderManager.get(); }
 		AudioManager*					GetAudioManager()	const { return m_AudioManager.get(); }
         Window*							GetWindow()			const { return m_Window.get(); }
         AppState						GetState()			const { return m_CurrentState; }
 		EditorState						GetEditorState()	const { return m_EditorState; }
+		Camera*							GetActiveCamera()	const { return m_ActiveCamera; }
 		const std::vector<ISystem*>&	GetSystems()		const { return m_Systems; }
 
         void SetAppState(AppState state)		{ m_CurrentState = state; }
 		void SetEditorState(EditorState state)	{ m_EditorState = state; }
+		void SetActiveCamera(Camera* camera);
 
-		maths::Vector2 GetWindowSize() const;
+		Maths::Vector2 GetWindowSize() const;
 
 		static Application* Instance() { return s_Instance; }
 
@@ -109,7 +112,9 @@ namespace lumos
 		std::unique_ptr<Window> m_Window;
         std::unique_ptr<SceneManager> m_SceneManager;
 		std::unique_ptr<AudioManager> m_AudioManager;
-		std::unique_ptr<graphics::RenderManager> m_RenderManager;
+		std::unique_ptr<Graphics::RenderManager> m_RenderManager;
+
+		Camera* m_ActiveCamera = nullptr;
 
 		std::vector<ISystem*> m_Systems;
 

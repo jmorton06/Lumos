@@ -4,9 +4,9 @@
 #include "Platform/OpenGL/GL.h"
 #include "Textures/GLTexture2D.h"
 
-namespace lumos
+namespace Lumos
 {
-	namespace graphics
+	namespace Graphics
 	{
 		class LUMOS_EXPORT GLFramebuffer : public Framebuffer
 		{
@@ -27,7 +27,7 @@ namespace lumos
 			uint GetWidth() const override { return m_Width; }
 			uint GetHeight() const override { return m_Height; }
 
-			inline void SetClearColour(const maths::Vector4& colour) override { m_ClearColour = colour; }
+			inline void SetClearColour(const Maths::Vector4& colour) override { m_ClearColour = colour; }
 
 			void AddTextureAttachment(Attachment attachmentType, Texture* texture) override;
 			void AddCubeTextureAttachment(Attachment attachmentType, CubeFace face, TextureCube* texture) override;
@@ -41,7 +41,7 @@ namespace lumos
 
 			uint m_Handle;
 			uint m_Width, m_Height, m_AttachmentCount, m_ColourAttachmentCount;
-			maths::Vector4 m_ClearColour;
+			Maths::Vector4 m_ClearColour;
 		};
 	}
 }

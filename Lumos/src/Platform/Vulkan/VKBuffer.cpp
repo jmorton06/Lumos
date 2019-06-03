@@ -3,9 +3,9 @@
 #include "VKDevice.h"
 #include "VKRenderer.h"
 
-namespace lumos
+namespace Lumos
 {
-	namespace graphics
+	namespace Graphics
 	{
 		VKBuffer::VKBuffer(vk::BufferUsageFlags usage, uint32_t size, const void* data) : m_Size(size)
 		{

@@ -12,7 +12,7 @@
 #endif
 
 
-namespace lumos
+namespace Lumos
 {
 	byte* LoadImageFromFile(const char* filename, uint* width, uint* height, uint* bits, bool flipY)
 	{

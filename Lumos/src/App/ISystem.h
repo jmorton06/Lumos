@@ -1,7 +1,7 @@
 #pragma once
 #include "LM.h"
 
-namespace lumos
+namespace Lumos
 {
 	struct TimeStep;
 

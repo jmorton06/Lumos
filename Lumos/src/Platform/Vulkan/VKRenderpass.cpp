@@ -5,9 +5,9 @@
 #include "VKRenderer.h"
 
 
-namespace lumos
+namespace Lumos
 {
-	namespace graphics
+	namespace Graphics
 	{
 
 		VKRenderpass::VKRenderpass(): m_ClearCount(0), m_DepthOnly(false)
@@ -156,7 +156,7 @@ namespace lumos
 			}
 		}
 
-		void VKRenderpass::BeginRenderpass(CommandBuffer* commandBuffer, const maths::Vector4& clearColour, Framebuffer* frame,
+		void VKRenderpass::BeginRenderpass(CommandBuffer* commandBuffer, const Maths::Vector4& clearColour, Framebuffer* frame,
 		                                   SubPassContents contents, uint32_t width, uint32_t height) const
 		{
 			if(!m_DepthOnly)

@@ -4,9 +4,9 @@
 #include "Textures/GLTexture2D.h"
 #include "App/Window.h"
 
-namespace lumos
+namespace Lumos
 {
-	namespace graphics
+	namespace Graphics
 	{
 		GLSwapchain::GLSwapchain(uint width, uint height)
 		{

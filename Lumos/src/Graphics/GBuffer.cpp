@@ -4,9 +4,9 @@
 #include "API/Textures/TextureDepth.h"
 #include "API/Textures/Texture2D.h"
 
-namespace lumos
+namespace Lumos
 {
-	namespace graphics
+	namespace Graphics
 	{
 		GBuffer::GBuffer(uint width, uint height)
 			: m_Width(width), m_Height(height)

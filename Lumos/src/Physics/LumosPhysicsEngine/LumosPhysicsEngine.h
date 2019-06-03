@@ -7,7 +7,7 @@
 #include "Broadphase.h"
 #include "App/ISystem.h"
 
-namespace lumos
+namespace Lumos
 {
 
 #define SOLVER_ITERATIONS 50
@@ -54,8 +54,8 @@ namespace lumos
 		void SetUpdateTimestep(float updateTimestep) { m_UpdateTimestep = updateTimestep; }
 		float GetUpdateTimestep() const { return m_UpdateTimestep; }
 
-		const maths::Vector3& GetGravity() const { return m_Gravity; }
-		void SetGravity(const maths::Vector3& g) { m_Gravity = g; }
+		const Maths::Vector3& GetGravity() const { return m_Gravity; }
+		void SetGravity(const Maths::Vector3& g) { m_Gravity = g; }
 
 		float GetDampingFactor() const { return m_DampingFactor; }
 		void  SetDampingFactor(float d) { m_DampingFactor = d; }
@@ -102,7 +102,7 @@ namespace lumos
 		bool		m_IsPaused;
 		float		m_UpdateTimestep, m_UpdateAccum;
 
-		maths::Vector3 m_Gravity;
+		Maths::Vector3 m_Gravity;
 		float		m_DampingFactor;
 
 		std::vector<std::shared_ptr<PhysicsObject3D>> m_PhysicsObjects;

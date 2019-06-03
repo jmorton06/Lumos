@@ -5,9 +5,9 @@
 #include "GLShaderUniform.h"
 #include "GLShaderResource.h"
 
-namespace lumos
+namespace Lumos
 {
-	namespace graphics
+	namespace Graphics
 	{
 		struct GLShaderErrorInfo
 		{
@@ -90,21 +90,21 @@ namespace lumos
 			void SetUniform1fv(const String& name, float* value, int32 count) const;
 			void SetUniform1i(const String& name, int32 value) const;
 			void SetUniform1iv(const String& name, int32* value, int32 count) const;
-			void SetUniform2f(const String& name, const maths::Vector2& vector) const;
-			void SetUniform3f(const String& name, const maths::Vector3& vector) const;
-			void SetUniform4f(const String& name, const maths::Vector4& vector) const;
-			void SetUniformMat4(const String& name, const maths::Matrix4& matrix) const;
+			void SetUniform2f(const String& name, const Maths::Vector2& vector) const;
+			void SetUniform3f(const String& name, const Maths::Vector3& vector) const;
+			void SetUniform4f(const String& name, const Maths::Vector4& vector) const;
+			void SetUniformMat4(const String& name, const Maths::Matrix4& matrix) const;
 
 			static void SetUniform1f(uint location, float value);
 			static void SetUniform1fv(uint location, float* value, int32 count);
 			static void SetUniform1i(uint location, int32 value);
 			static void SetUniform1iv(uint location, int32* value, int32 count);
-			static void SetUniform2f(uint location, const maths::Vector2& vector);
-			static void SetUniform3f(uint location, const maths::Vector3& vector);
-			static void SetUniform4f(uint location, const maths::Vector4& vector);
-			static void SetUniformMat3(uint location, const maths::Matrix3& matrix);
-			static void SetUniformMat4(uint location, const maths::Matrix4& matrix);
-			static void SetUniformMat4Array(uint location, uint count, const maths::Matrix4& matrix);
+			static void SetUniform2f(uint location, const Maths::Vector2& vector);
+			static void SetUniform3f(uint location, const Maths::Vector3& vector);
+			static void SetUniform4f(uint location, const Maths::Vector4& vector);
+			static void SetUniformMat3(uint location, const Maths::Matrix3& matrix);
+			static void SetUniformMat4(uint location, const Maths::Matrix4& matrix);
+			static void SetUniformMat4Array(uint location, uint count, const Maths::Matrix4& matrix);
 
 		public:
 			static bool TryCompile(const String& source, String& error);

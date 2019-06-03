@@ -3,12 +3,12 @@
 #include "LM.h"
 #include "Broadphase.h"
 
-namespace lumos
+namespace Lumos
 {
 	class PhysicsObject3D;
 	struct CollisionPair;
 
-	namespace maths
+	namespace Maths
 	{
 		class BoundingBox;
 	}
@@ -30,7 +30,7 @@ namespace lumos
 
 			std::vector<std::shared_ptr<PhysicsObject3D>> physicsObjects;
 			std::vector<std::shared_ptr<OctreeNode>>	  childNodes;
-			maths::BoundingBox							  boundingBox;
+			Maths::BoundingBox							  boundingBox;
 		};
 
 		void FindPotentialCollisionPairs(std::vector<std::shared_ptr<PhysicsObject3D>> objects, std::vector<CollisionPair> &collisionPairs) override;

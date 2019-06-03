@@ -1,23 +1,23 @@
 #include "LM.h"
 #include "Particle.h"
 
-namespace lumos
+namespace Lumos
 {
 
 	Particle::Particle()
-		: m_Position(maths::Vector3(0.0f))
-		  , m_Velocity(maths::Vector3(10.0f))
+		: m_Position(Maths::Vector3(0.0f))
+		  , m_Velocity(Maths::Vector3(10.0f))
 		  , m_GravityEffect(1.0f)
 		  , m_LifeLength(5.0f)
 		  , m_Rotation(0.0f)
 		  , m_Scale(1.0f)
 		  , m_ElapsedTime(0.0f)
-		  , m_TextureOffset1(maths::Vector2(0.0f))
-		  , m_TextureOffset2(maths::Vector2(0.0f)), m_Blend(0)
+		  , m_TextureOffset1(Maths::Vector2(0.0f))
+		  , m_TextureOffset2(Maths::Vector2(0.0f)), m_Blend(0)
 	{
 	}
 
-	Particle::Particle(const maths::Vector3& position, const maths::Vector3& velocity, float gravityEffect, float lifeLength, float scale)
+	Particle::Particle(const Maths::Vector3& position, const Maths::Vector3& velocity, float gravityEffect, float lifeLength, float scale)
 		: m_Position(position)
 		  , m_Velocity(velocity)
 		  , m_GravityEffect(gravityEffect)
@@ -56,7 +56,7 @@ namespace lumos
 		SetTextureOffset(m_TextureOffset2, index2, textureRows);
 	}
 
-	void Particle::SetTextureOffset(maths::Vector2& offset, int index, uint textureRows) const
+	void Particle::SetTextureOffset(Maths::Vector2& offset, int index, uint textureRows) const
 	{
 		int column = static_cast<int>(fmod(index, textureRows));
 		int row = index / textureRows;

@@ -3,9 +3,9 @@
 #include "GL.h"
 #include "GLDebug.h"
 
-namespace lumos
+namespace Lumos
 {
-	namespace graphics
+	namespace Graphics
 	{
 		uint QueryTypeToGL(const QueryType type)
 		{

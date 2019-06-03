@@ -5,9 +5,9 @@
 
 #include <imgui/imgui.h>
 
-namespace lumos
+namespace Lumos
 {
-	namespace system
+	namespace System
 	{
 		namespace Profiler
 		{

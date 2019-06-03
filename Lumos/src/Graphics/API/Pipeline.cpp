@@ -10,9 +10,9 @@
 #include "Platform/OpenGL/GLPipeline.h"
 #endif
 
-namespace lumos
+namespace Lumos
 {
-	namespace graphics
+	namespace Graphics
 	{
 		Pipeline* Pipeline::Create(const PipelineInfo& pipelineInfo)
 		{

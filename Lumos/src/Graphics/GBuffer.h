@@ -2,9 +2,9 @@
 
 #include "LM.h"
 
-namespace lumos
+namespace Lumos
 {
-	namespace graphics
+	namespace Graphics
 	{
 		class Framebuffer;
 		class Texture2D;

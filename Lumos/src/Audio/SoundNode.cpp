@@ -6,7 +6,7 @@
 #include "Platform/OpenAL/ALSoundNode.h"
 #endif
 
-namespace lumos
+namespace Lumos
 {
 	SoundNode* SoundNode::Create()
 	{
@@ -41,7 +41,7 @@ namespace lumos
 		m_IsGlobal = false;
 		m_Stationary = false;
 		m_ReferenceDistance = 0.0f;
-		m_Velocity = maths::Vector3(0.0f);
+		m_Velocity = Maths::Vector3(0.0f);
 	}
 
 	SoundNode::~SoundNode()

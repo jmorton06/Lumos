@@ -38,9 +38,9 @@
 #define MAX_LIGHTS 32
 #define MAX_SHADOWMAPS 16
 
-namespace lumos
+namespace Lumos
 {
-	namespace graphics
+	namespace Graphics
 	{
 		enum PSSystemUniformIndices : int32
 		{
@@ -102,14 +102,14 @@ namespace lumos
 			m_LightUniformBuffer = nullptr;
 			m_UniformBuffer = nullptr;
 
-			m_ScreenQuad = graphics::CreateQuad();
+			m_ScreenQuad = Graphics::CreateQuad();
 
 			m_DescriptorSet = nullptr;
 
 			m_LightSetup = new LightSetup();
 			
-			// Pixel/fragment shader system uniforms
-			m_PSSystemUniformBufferSize = sizeof(Light) * MAX_LIGHTS + sizeof(maths::Vector4) + sizeof(maths::Matrix4) + (sizeof(maths::Matrix4) + sizeof(maths::Vector4))* MAX_SHADOWMAPS + sizeof(float) * 3 + sizeof(int);
+			// Pixel/fragment shader System uniforms
+			m_PSSystemUniformBufferSize = sizeof(Light) * MAX_LIGHTS + sizeof(Maths::Vector4) + sizeof(Maths::Matrix4) + (sizeof(Maths::Matrix4) + sizeof(Maths::Vector4))* MAX_SHADOWMAPS + sizeof(float) * 3 + sizeof(int);
 			m_PSSystemUniformBuffer = new byte[m_PSSystemUniformBufferSize];
 			memset(m_PSSystemUniformBuffer, 0, m_PSSystemUniformBufferSize);
 			m_PSSystemUniformBufferOffsets.resize(PSSystemUniformIndex_Size);
@@ -117,21 +117,21 @@ namespace lumos
 			// Per Scene System Uniforms
 			m_PSSystemUniformBufferOffsets[PSSystemUniformIndex_Lights]				= 0;
 			m_PSSystemUniformBufferOffsets[PSSystemUniformIndex_CameraPosition]		= m_PSSystemUniformBufferOffsets[PSSystemUniformIndex_Lights] + sizeof(Light) * MAX_LIGHTS;
-			m_PSSystemUniformBufferOffsets[PSSystemUniformIndex_ViewMatrix]			= m_PSSystemUniformBufferOffsets[PSSystemUniformIndex_CameraPosition] + sizeof(maths::Vector4);
-			m_PSSystemUniformBufferOffsets[PSSystemUniformIndex_ShadowTransforms]	= m_PSSystemUniformBufferOffsets[PSSystemUniformIndex_ViewMatrix] + sizeof(maths::Matrix4);
-			m_PSSystemUniformBufferOffsets[PSSystemUniformIndex_ShadowSplitDepths]	= m_PSSystemUniformBufferOffsets[PSSystemUniformIndex_ShadowTransforms] + sizeof(maths::Matrix4) * MAX_SHADOWMAPS;
-			m_PSSystemUniformBufferOffsets[PSSystemUniformIndex_LightCount]			= m_PSSystemUniformBufferOffsets[PSSystemUniformIndex_ShadowSplitDepths] + sizeof(maths::Vector4) * MAX_SHADOWMAPS;
+			m_PSSystemUniformBufferOffsets[PSSystemUniformIndex_ViewMatrix]			= m_PSSystemUniformBufferOffsets[PSSystemUniformIndex_CameraPosition] + sizeof(Maths::Vector4);
+			m_PSSystemUniformBufferOffsets[PSSystemUniformIndex_ShadowTransforms]	= m_PSSystemUniformBufferOffsets[PSSystemUniformIndex_ViewMatrix] + sizeof(Maths::Matrix4);
+			m_PSSystemUniformBufferOffsets[PSSystemUniformIndex_ShadowSplitDepths]	= m_PSSystemUniformBufferOffsets[PSSystemUniformIndex_ShadowTransforms] + sizeof(Maths::Matrix4) * MAX_SHADOWMAPS;
+			m_PSSystemUniformBufferOffsets[PSSystemUniformIndex_LightCount]			= m_PSSystemUniformBufferOffsets[PSSystemUniformIndex_ShadowSplitDepths] + sizeof(Maths::Vector4) * MAX_SHADOWMAPS;
 			m_PSSystemUniformBufferOffsets[PSSystemUniformIndex_ShadowCount]		= m_PSSystemUniformBufferOffsets[PSSystemUniformIndex_LightCount] + sizeof(float);
 			m_PSSystemUniformBufferOffsets[PSSystemUniformIndex_RenderMode]			= m_PSSystemUniformBufferOffsets[PSSystemUniformIndex_ShadowCount] + sizeof(float);
 
-			m_RenderPass = graphics::RenderPass::Create();
+			m_RenderPass = Graphics::RenderPass::Create();
 
 			AttachmentInfo textureTypes[2] = 
 			{ 
 				{ TextureType::COLOUR, TextureFormat::RGBA8 },
 				{ TextureType::DEPTH , TextureFormat::DEPTH }
 			};
-			graphics::RenderpassInfo renderpassCI{};
+			Graphics::RenderpassInfo renderpassCI{};
 			renderpassCI.attachmentCount = 2;
 			renderpassCI.textureType = textureTypes;
 
@@ -141,24 +141,24 @@ namespace lumos
 
 			for (auto& commandBuffer : m_CommandBuffers)
 			{
-				commandBuffer = graphics::CommandBuffer::Create();
+				commandBuffer = Graphics::CommandBuffer::Create();
 				commandBuffer->Init(true);
 			}
 
-			m_DeferredCommandBuffers = graphics::CommandBuffer::Create();
+			m_DeferredCommandBuffers = Graphics::CommandBuffer::Create();
 			m_DeferredCommandBuffers->Init(true);
 
 			CreateDeferredPipeline();
 			CreateFramebuffers();
 			CreateLightBuffer();
 
-			graphics::DescriptorInfo info{};
+			Graphics::DescriptorInfo info{};
 			info.pipeline = m_Pipeline;
 			info.layoutIndex = 1; //?
 			info.shader = m_Shader;
-			m_DescriptorSet = graphics::DescriptorSet::Create(info);
+			m_DescriptorSet = Graphics::DescriptorSet::Create(info);
 
-			m_ClearColour = maths::Vector4(0.1f, 0.1f, 0.1f, 1.0f);
+			m_ClearColour = Maths::Vector4(0.1f, 0.1f, 0.1f, 1.0f);
 
 			CreateScreenDescriptorSet();
 		}
@@ -199,7 +199,7 @@ namespace lumos
 
 			m_CommandBuffers[m_CommandBufferIndex]->BeginRecording();
 
-			m_RenderPass->BeginRenderpass(m_CommandBuffers[m_CommandBufferIndex], m_ClearColour, m_Framebuffers[m_CommandBufferIndex], graphics::SECONDARY, m_ScreenBufferWidth, m_ScreenBufferHeight);
+			m_RenderPass->BeginRenderpass(m_CommandBuffers[m_CommandBufferIndex], m_ClearColour, m_Framebuffers[m_CommandBufferIndex], Graphics::SECONDARY, m_ScreenBufferWidth, m_ScreenBufferHeight);
 		}
 
 		void DeferredRenderer::BeginScene(Scene* scene)
@@ -227,7 +227,7 @@ namespace lumos
 			m_CommandQueue.push_back(command);
 		}
 
-		void DeferredRenderer::SubmitMesh(Mesh* mesh, const maths::Matrix4& transform, const maths::Matrix4& textureMatrix)
+		void DeferredRenderer::SubmitMesh(Mesh* mesh, const Maths::Matrix4& transform, const Maths::Matrix4& textureMatrix)
 		{
 			RenderCommand command;
 			command.mesh = mesh;
@@ -246,22 +246,22 @@ namespace lumos
             for (int i = 0; i < lightList.size(); i++)
             {
                 lightList[i]->m_Direction.Normalise();
-                memcpy(m_PSSystemUniformBuffer + m_PSSystemUniformBufferOffsets[PSSystemUniformIndex_Lights] + sizeof(graphics::Light) * i, &*lightList[i], sizeof(graphics::Light));
+                memcpy(m_PSSystemUniformBuffer + m_PSSystemUniformBufferOffsets[PSSystemUniformIndex_Lights] + sizeof(Graphics::Light) * i, &*lightList[i], sizeof(Graphics::Light));
             }
             
-            maths::Vector4 cameraPos = maths::Vector4(scene->GetCamera()->GetPosition());
-            memcpy(m_PSSystemUniformBuffer + m_PSSystemUniformBufferOffsets[PSSystemUniformIndex_CameraPosition], &cameraPos, sizeof(maths::Vector4));
+            Maths::Vector4 cameraPos = Maths::Vector4(scene->GetCamera()->GetPosition());
+            memcpy(m_PSSystemUniformBuffer + m_PSSystemUniformBufferOffsets[PSSystemUniformIndex_CameraPosition], &cameraPos, sizeof(Maths::Vector4));
             
             auto shadowRenderer = Application::Instance()->GetRenderManager()->GetShadowRenderer();
             if (shadowRenderer)
             {
-                maths::Matrix4* shadowTransforms = shadowRenderer->GetShadowProjView();
+                Maths::Matrix4* shadowTransforms = shadowRenderer->GetShadowProjView();
                 auto viewMat = scene->GetCamera()->GetViewMatrix();
-                lumos::maths::Vector4* uSplitDepth = shadowRenderer->GetSplitDepths();
+                Lumos::Maths::Vector4* uSplitDepth = shadowRenderer->GetSplitDepths();
                 
-                memcpy(m_PSSystemUniformBuffer + m_PSSystemUniformBufferOffsets[PSSystemUniformIndex_ViewMatrix], &viewMat, sizeof(maths::Matrix4));
-                memcpy(m_PSSystemUniformBuffer + m_PSSystemUniformBufferOffsets[PSSystemUniformIndex_ShadowTransforms], shadowTransforms, sizeof(maths::Matrix4) * MAX_SHADOWMAPS);
-                memcpy(m_PSSystemUniformBuffer + m_PSSystemUniformBufferOffsets[PSSystemUniformIndex_ShadowSplitDepths], uSplitDepth, sizeof(maths::Vector4) * MAX_SHADOWMAPS);
+                memcpy(m_PSSystemUniformBuffer + m_PSSystemUniformBufferOffsets[PSSystemUniformIndex_ViewMatrix], &viewMat, sizeof(Maths::Matrix4));
+                memcpy(m_PSSystemUniformBuffer + m_PSSystemUniformBufferOffsets[PSSystemUniformIndex_ShadowTransforms], shadowTransforms, sizeof(Maths::Matrix4) * MAX_SHADOWMAPS);
+                memcpy(m_PSSystemUniformBuffer + m_PSSystemUniformBufferOffsets[PSSystemUniformIndex_ShadowSplitDepths], uSplitDepth, sizeof(Maths::Vector4) * MAX_SHADOWMAPS);
             }
             
             float numLights = float(lightList.size());
@@ -292,7 +292,7 @@ namespace lumos
 
 		void DeferredRenderer::Present()
 		{
-			graphics::CommandBuffer* currentCMDBuffer = (m_ScreenQuad->GetCommandBuffer(static_cast<int>(m_CommandBufferIndex)));
+			Graphics::CommandBuffer* currentCMDBuffer = (m_ScreenQuad->GetCommandBuffer(static_cast<int>(m_CommandBufferIndex)));
 
 			currentCMDBuffer->BeginRecordingSecondary(m_RenderPass, m_Framebuffers[m_CommandBufferIndex]);
 			currentCMDBuffer->UpdateViewport(m_ScreenBufferWidth, m_ScreenBufferHeight);
@@ -307,54 +307,54 @@ namespace lumos
 
 		void DeferredRenderer::CreateDeferredPipeline()
 		{
-			std::vector<graphics::DescriptorPoolInfo> poolInfo =
+			std::vector<Graphics::DescriptorPoolInfo> poolInfo =
 			{
-				{ graphics::DescriptorType::IMAGE_SAMPLER , 1 },
-				{ graphics::DescriptorType::IMAGE_SAMPLER , 1 },
-				{ graphics::DescriptorType::IMAGE_SAMPLER , 1 },
-				{ graphics::DescriptorType::IMAGE_SAMPLER , 1 },
-				{ graphics::DescriptorType::IMAGE_SAMPLER , 1 },
-				{ graphics::DescriptorType::IMAGE_SAMPLER , 1 },
-				{ graphics::DescriptorType::IMAGE_SAMPLER , 1 },
-				{ graphics::DescriptorType::IMAGE_SAMPLER , 1 },
-				{ graphics::DescriptorType::UNIFORM_BUFFER, 1 }
+				{ Graphics::DescriptorType::IMAGE_SAMPLER , 1 },
+				{ Graphics::DescriptorType::IMAGE_SAMPLER , 1 },
+				{ Graphics::DescriptorType::IMAGE_SAMPLER , 1 },
+				{ Graphics::DescriptorType::IMAGE_SAMPLER , 1 },
+				{ Graphics::DescriptorType::IMAGE_SAMPLER , 1 },
+				{ Graphics::DescriptorType::IMAGE_SAMPLER , 1 },
+				{ Graphics::DescriptorType::IMAGE_SAMPLER , 1 },
+				{ Graphics::DescriptorType::IMAGE_SAMPLER , 1 },
+				{ Graphics::DescriptorType::UNIFORM_BUFFER, 1 }
 			};
 
-			std::vector<graphics::DescriptorLayoutInfo> layoutInfo =
+			std::vector<Graphics::DescriptorLayoutInfo> layoutInfo =
 			{
-				{ graphics::DescriptorType::UNIFORM_BUFFER, graphics::ShaderStage::FRAGMENT, 0 },
+				{ Graphics::DescriptorType::UNIFORM_BUFFER, Graphics::ShaderStage::FRAGMENT, 0 },
 
 			};
 
-			std::vector<graphics::DescriptorLayoutInfo> layoutInfoMesh =
+			std::vector<Graphics::DescriptorLayoutInfo> layoutInfoMesh =
 			{
-				 { graphics::DescriptorType::IMAGE_SAMPLER,graphics::ShaderStage::FRAGMENT , 0 },
-				 { graphics::DescriptorType::IMAGE_SAMPLER,graphics::ShaderStage::FRAGMENT , 1 },
-				 { graphics::DescriptorType::IMAGE_SAMPLER,graphics::ShaderStage::FRAGMENT , 2 },
-				 { graphics::DescriptorType::IMAGE_SAMPLER,graphics::ShaderStage::FRAGMENT , 3 },
-				 { graphics::DescriptorType::IMAGE_SAMPLER,graphics::ShaderStage::FRAGMENT , 4 },
-				 { graphics::DescriptorType::IMAGE_SAMPLER,graphics::ShaderStage::FRAGMENT , 5 },
-				 { graphics::DescriptorType::IMAGE_SAMPLER,graphics::ShaderStage::FRAGMENT , 6 },
-				 { graphics::DescriptorType::IMAGE_SAMPLER,graphics::ShaderStage::FRAGMENT , 7 }
+				 { Graphics::DescriptorType::IMAGE_SAMPLER,Graphics::ShaderStage::FRAGMENT , 0 },
+				 { Graphics::DescriptorType::IMAGE_SAMPLER,Graphics::ShaderStage::FRAGMENT , 1 },
+				 { Graphics::DescriptorType::IMAGE_SAMPLER,Graphics::ShaderStage::FRAGMENT , 2 },
+				 { Graphics::DescriptorType::IMAGE_SAMPLER,Graphics::ShaderStage::FRAGMENT , 3 },
+				 { Graphics::DescriptorType::IMAGE_SAMPLER,Graphics::ShaderStage::FRAGMENT , 4 },
+				 { Graphics::DescriptorType::IMAGE_SAMPLER,Graphics::ShaderStage::FRAGMENT , 5 },
+				 { Graphics::DescriptorType::IMAGE_SAMPLER,Graphics::ShaderStage::FRAGMENT , 6 },
+				 { Graphics::DescriptorType::IMAGE_SAMPLER,Graphics::ShaderStage::FRAGMENT , 7 }
 			};
 
 			auto attributeDescriptions = Vertex::getAttributeDescriptions();
 
-			std::vector<graphics::DescriptorLayout> descriptorLayouts;
+			std::vector<Graphics::DescriptorLayout> descriptorLayouts;
 
-			graphics::DescriptorLayout sceneDescriptorLayout{};
+			Graphics::DescriptorLayout sceneDescriptorLayout{};
 			sceneDescriptorLayout.count = static_cast<uint>(layoutInfo.size());
 			sceneDescriptorLayout.layoutInfo = layoutInfo.data();
 
 			descriptorLayouts.push_back(sceneDescriptorLayout);
 
-			graphics::DescriptorLayout meshDescriptorLayout{};
+			Graphics::DescriptorLayout meshDescriptorLayout{};
 			meshDescriptorLayout.count = static_cast<uint>(layoutInfoMesh.size());
 			meshDescriptorLayout.layoutInfo = layoutInfoMesh.data();
 
 			descriptorLayouts.push_back(meshDescriptorLayout);
 
-			graphics::PipelineInfo pipelineCI{};
+			Graphics::PipelineInfo pipelineCI{};
 			pipelineCI.pipelineName = "Deferred";
 			pipelineCI.shader = m_Shader;
 			pipelineCI.vulkanRenderpass = m_RenderPass;
@@ -366,14 +366,14 @@ namespace lumos
 			pipelineCI.strideSize = sizeof(Vertex);
 			pipelineCI.numColorAttachments = 1;
 			pipelineCI.wireframeEnabled = false;
-			pipelineCI.cullMode = graphics::CullMode::NONE;
+			pipelineCI.cullMode = Graphics::CullMode::NONE;
 			pipelineCI.transparencyEnabled = false;
 			pipelineCI.depthBiasEnabled = false;
 			pipelineCI.width = m_ScreenBufferWidth;
 			pipelineCI.height = m_ScreenBufferHeight;
 			pipelineCI.maxObjects = 10;
 
-			m_Pipeline = graphics::Pipeline::Create(pipelineCI);
+			m_Pipeline = Graphics::Pipeline::Create(pipelineCI);
 		}
 
 		void DeferredRenderer::SetRenderTarget(Texture* texture)
@@ -493,20 +493,20 @@ namespace lumos
 		{
 			if (m_LightUniformBuffer == nullptr)
 			{
-				m_LightUniformBuffer = graphics::UniformBuffer::Create();
+				m_LightUniformBuffer = Graphics::UniformBuffer::Create();
 
 				uint32_t bufferSize = m_PSSystemUniformBufferSize;
 				m_LightUniformBuffer->Init(bufferSize, nullptr);
 			}
 
-			std::vector<graphics::BufferInfo> bufferInfos;
+			std::vector<Graphics::BufferInfo> bufferInfos;
 
-			graphics::BufferInfo bufferInfo = {};
+			Graphics::BufferInfo bufferInfo = {};
 			bufferInfo.name = "LightData";
 			bufferInfo.buffer = m_LightUniformBuffer;
 			bufferInfo.offset = 0;
 			bufferInfo.size = m_PSSystemUniformBufferSize;
-			bufferInfo.type = graphics::DescriptorType::UNIFORM_BUFFER;
+			bufferInfo.type = Graphics::DescriptorType::UNIFORM_BUFFER;
 			bufferInfo.binding = 0;
 			bufferInfo.shaderType = ShaderType::FRAGMENT;
 			bufferInfo.systemUniforms = false;
@@ -533,19 +533,19 @@ namespace lumos
 			CreateFramebuffers();
 			CreateLightBuffer();
 
-			graphics::DescriptorInfo info{};
+			Graphics::DescriptorInfo info{};
 			info.pipeline = m_Pipeline;
 			info.layoutIndex = 1; //?
 			info.shader = m_Shader;
 			if (m_DescriptorSet)
 				delete m_DescriptorSet;
-			m_DescriptorSet = graphics::DescriptorSet::Create(info);
+			m_DescriptorSet = Graphics::DescriptorSet::Create(info);
 
 			m_OffScreenRenderer->OnResize(width, height);
 
 			m_CubeMap = nullptr;
 
-			m_ClearColour = maths::Vector4(0.8f, 0.8f, 0.8f, 1.0f);
+			m_ClearColour = Maths::Vector4(0.8f, 0.8f, 0.8f, 1.0f);
 		}
 
 		void DeferredRenderer::SetCubeMap(Texture* cubeMap)
@@ -555,40 +555,40 @@ namespace lumos
 
 		void DeferredRenderer::CreateScreenDescriptorSet()
 		{
-			std::vector<graphics::ImageInfo> bufferInfos;
+			std::vector<Graphics::ImageInfo> bufferInfos;
 
-			graphics::ImageInfo imageInfo = {};
+			Graphics::ImageInfo imageInfo = {};
 			imageInfo.texture = { Application::Instance()->GetRenderManager()->GetGBuffer()->GetTexture(SCREENTEX_COLOUR) };
 			imageInfo.binding = 0;
 			imageInfo.name = "uColourSampler";
 
-			graphics::ImageInfo imageInfo2 = {};
+			Graphics::ImageInfo imageInfo2 = {};
 			imageInfo2.texture = { Application::Instance()->GetRenderManager()->GetGBuffer()->GetTexture(SCREENTEX_POSITION) };
 			imageInfo2.binding = 1;
 			imageInfo2.name = "uPositionSampler";
 
-			graphics::ImageInfo imageInfo3 = {};
+			Graphics::ImageInfo imageInfo3 = {};
 			imageInfo3.texture = { Application::Instance()->GetRenderManager()->GetGBuffer()->GetTexture(SCREENTEX_NORMALS) };
 			imageInfo3.binding = 2;
 			imageInfo3.name = "uNormalSampler";
 
-			graphics::ImageInfo imageInfo4 = {};
+			Graphics::ImageInfo imageInfo4 = {};
 			imageInfo4.texture = { Application::Instance()->GetRenderManager()->GetGBuffer()->GetTexture(SCREENTEX_PBR) };
 			imageInfo4.binding = 3;
 			imageInfo4.name = "uPBRSampler";
 
-			graphics::ImageInfo imageInfo5 = {};
+			Graphics::ImageInfo imageInfo5 = {};
 			imageInfo5.texture = { m_PreintegratedFG.get() };
 			imageInfo5.binding = 4;
 			imageInfo5.name = "uPreintegratedFG";
 
-			graphics::ImageInfo imageInfo6 = {};
+			Graphics::ImageInfo imageInfo6 = {};
 			imageInfo6.texture = { m_CubeMap };
 			imageInfo6.binding = 5;
 			imageInfo6.type = TextureType::CUBE;
 			imageInfo6.name = "uEnvironmentMap";
 
-			graphics::ImageInfo imageInfo7 = {};
+			Graphics::ImageInfo imageInfo7 = {};
 			auto shadowRenderer = Application::Instance()->GetRenderManager()->GetShadowRenderer();
 			if (shadowRenderer)
 			{
@@ -598,7 +598,7 @@ namespace lumos
 				imageInfo7.name = "uShadowMap";
 			}
 
-			graphics::ImageInfo imageInfo8 = {};
+			Graphics::ImageInfo imageInfo8 = {};
 			imageInfo8.texture = { Application::Instance()->GetRenderManager()->GetGBuffer()->GetDepthTexture() };
 			imageInfo8.binding = 7;
 			imageInfo8.type = TextureType::DEPTH;

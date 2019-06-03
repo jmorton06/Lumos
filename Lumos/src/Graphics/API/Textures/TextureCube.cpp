@@ -8,18 +8,18 @@
 #include "Platform/Vulkan/VKTextureCube.h"
 #endif
 #ifdef LUMOS_RENDER_API_DIRECT3D
-#include "graphics/directx/DXTextureCube.h"
+#include "Graphics/directx/DXTextureCube.h"
 #endif
 
 #include "Graphics/API/GraphicsContext.h"
 
-namespace lumos
+namespace Lumos
 {
-	namespace graphics
+	namespace Graphics
 	{
 		TextureCube* TextureCube::Create(uint size)
 		{
-			switch (graphics::GraphicsContext::GetRenderAPI())
+			switch (Graphics::GraphicsContext::GetRenderAPI())
 			{
 #ifdef LUMOS_RENDER_API_OPENGL
 			case RenderAPI::OPENGL:		return new GLTextureCube(size);
@@ -28,7 +28,7 @@ namespace lumos
 			case RenderAPI::DIRECT3D:	return new D3DTextureCube(size);
 #endif
 #ifdef LUMOS_RENDER_API_VULKAN
-			case RenderAPI::VULKAN:	return new graphics::VKTextureCube(size);
+			case RenderAPI::VULKAN:	return new Graphics::VKTextureCube(size);
 #endif
 			}
 			return nullptr;
@@ -36,7 +36,7 @@ namespace lumos
 
 		TextureCube* TextureCube::CreateFromFile(const String& filepath)
 		{
-			switch (graphics::GraphicsContext::GetRenderAPI())
+			switch (Graphics::GraphicsContext::GetRenderAPI())
 			{
 #ifdef LUMOS_RENDER_API_OPENGL
 			case RenderAPI::OPENGL:		return new GLTextureCube(filepath, filepath);
@@ -45,7 +45,7 @@ namespace lumos
 			case RenderAPI::DIRECT3D:	return new D3DTextureCube(filepath, filepath);
 #endif
 #ifdef LUMOS_RENDER_API_VULKAN
-			case RenderAPI::VULKAN:	return new graphics::VKTextureCube(filepath, filepath);
+			case RenderAPI::VULKAN:	return new Graphics::VKTextureCube(filepath, filepath);
 #endif
 			}
 			return nullptr;
@@ -53,7 +53,7 @@ namespace lumos
 
 		TextureCube* TextureCube::CreateFromFiles(const String* files)
 		{
-			switch (graphics::GraphicsContext::GetRenderAPI())
+			switch (Graphics::GraphicsContext::GetRenderAPI())
 			{
 #ifdef LUMOS_RENDER_API_OPENGL
 			case RenderAPI::OPENGL:		return new GLTextureCube(files[0], files);
@@ -62,7 +62,7 @@ namespace lumos
 			case RenderAPI::DIRECT3D:	return new D3DTextureCube(files[0], files);
 #endif
 #ifdef LUMOS_RENDER_API_VULKAN
-			case RenderAPI::VULKAN:	return new graphics::VKTextureCube(files[0], files);
+			case RenderAPI::VULKAN:	return new Graphics::VKTextureCube(files[0], files);
 #endif
 			}
 			return nullptr;
@@ -70,7 +70,7 @@ namespace lumos
 
 		TextureCube* TextureCube::CreateFromVCross(const String* files, int32 mips)
 		{
-			switch (graphics::GraphicsContext::GetRenderAPI())
+			switch (Graphics::GraphicsContext::GetRenderAPI())
 			{
 #ifdef LUMOS_RENDER_API_OPENGL
 			case RenderAPI::OPENGL:		return new GLTextureCube(files[0], files, mips, InputFormat::VERTICAL_CROSS);
@@ -79,7 +79,7 @@ namespace lumos
 			case RenderAPI::DIRECT3D:	return new D3DTextureCube(files[0], files, mips, InputFormat::VERTICAL_CROSS);
 #endif
 #ifdef LUMOS_RENDER_API_VULKAN
-			case RenderAPI::VULKAN:	return new graphics::VKTextureCube(files[0], files, mips, InputFormat::VERTICAL_CROSS);
+			case RenderAPI::VULKAN:	return new Graphics::VKTextureCube(files[0], files, mips, InputFormat::VERTICAL_CROSS);
 #endif
 			}
 			return nullptr;

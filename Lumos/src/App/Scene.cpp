@@ -18,7 +18,7 @@
 #include "Physics/LumosPhysicsEngine/LumosPhysicsEngine.h"
 #include "Maths/MathsUtilities.h"
 
-namespace lumos
+namespace Lumos
 {
 	Scene::Scene(const String& friendly_name)
 		: m_SceneName(friendly_name), m_pCamera(nullptr), m_EnvironmentMap(nullptr), m_SceneBoundingRadius(0),
@@ -59,17 +59,17 @@ namespace lumos
 		Platform = "iOS";
 #endif
 
-		switch (graphics::GraphicsContext::GetRenderAPI())
+		switch (Graphics::GraphicsContext::GetRenderAPI())
 		{
 #ifdef LUMOS_RENDER_API_OPENGL
-		case graphics::RenderAPI::OPENGL: RenderAPI = "OpenGL"; break;
+		case Graphics::RenderAPI::OPENGL: RenderAPI = "OpenGL"; break;
 #endif
 
 #ifdef LUMOS_RENDER_API_VULKAN
 #if defined(LUMOS_PLATFORM_MACOS) || defined(LUMOS_PLATFORM_IOS)
-		case graphics::RenderAPI::VULKAN: RenderAPI = "Vulkan ( MoltenVK )"; break;
+		case Graphics::RenderAPI::VULKAN: RenderAPI = "Vulkan ( MoltenVK )"; break;
 #else
-		case graphics::RenderAPI::VULKAN: RenderAPI = "Vulkan"; break;
+		case Graphics::RenderAPI::VULKAN: RenderAPI = "Vulkan"; break;
 #endif
 #endif
 
@@ -141,7 +141,7 @@ namespace lumos
 
 	void Scene::OnUpdate(TimeStep* timeStep)
 	{
-		const maths::Vector2 mousePos = Input::GetInput().GetMousePosition();
+		const Maths::Vector2 mousePos = Input::GetInput().GetMousePosition();
 
 		if(m_pCamera)
 		{
@@ -204,34 +204,37 @@ namespace lumos
 		}
 	}
 
-	void Scene::InsertToRenderList(RenderList* list, const maths::Frustum& frustum) const
+	void Scene::InsertToRenderList(RenderList* list, const Maths::Frustum& frustum) const
 	{
 		std::function<void(std::shared_ptr<Entity>)> per_object_func = [&](std::shared_ptr<Entity> obj)
 		{
-			auto meshComponent = obj->GetComponent<MeshComponent>();
-			if (meshComponent)
+			if (obj->ActiveInHierarchy())
 			{
-				auto transform = obj->GetComponent<TransformComponent>()->GetTransform();
-
-				float maxScaling = 0.0f;
-				maxScaling = maths::Max(transform.GetWorldMatrix().GetScaling().GetX(), maxScaling);
-				maxScaling = maths::Max(transform.GetWorldMatrix().GetScaling().GetY(), maxScaling);
-				maxScaling = maths::Max(transform.GetWorldMatrix().GetScaling().GetZ(), maxScaling);
-
-				bool inside = frustum.InsideFrustum(transform.GetWorldMatrix().GetPositionVector(), maxScaling * obj->GetBoundingRadius());
-
-				if (inside)
+				auto meshComponent = obj->GetComponent<MeshComponent>();
+				if (meshComponent)
 				{
-					//Check to see if the object is already listed or not
-					if (!(list->BitMask() & obj->GetFrustumCullFlags()))
+					auto transform = obj->GetComponent<TransformComponent>()->GetTransform();
+
+					float maxScaling = 0.0f;
+					maxScaling = Maths::Max(transform.GetWorldMatrix().GetScaling().GetX(), maxScaling);
+					maxScaling = Maths::Max(transform.GetWorldMatrix().GetScaling().GetY(), maxScaling);
+					maxScaling = Maths::Max(transform.GetWorldMatrix().GetScaling().GetZ(), maxScaling);
+
+					bool inside = frustum.InsideFrustum(transform.GetWorldMatrix().GetPositionVector(), maxScaling * obj->GetBoundingRadius());
+
+					if (inside)
 					{
-						list->InsertObject(obj);
+						//Check to see if the object is already listed or not
+						if (!(list->BitMask() & obj->GetFrustumCullFlags()))
+						{
+							list->InsertObject(obj);
+						}
 					}
 				}
-			}
 
-			for (auto child : obj->GetChildren())
-				per_object_func(child);
+				for (auto child : obj->GetChildren())
+					per_object_func(child);
+			}
 		};
 
 		per_object_func(m_RootEntity);
@@ -258,14 +261,17 @@ namespace lumos
 
 		std::function<void(std::shared_ptr<Entity>)> per_object_func = [&](std::shared_ptr<Entity> obj)
 		{
-			auto lightComponent = obj->GetComponent<LightComponent>();
-			if (lightComponent)
+			if (obj->ActiveInHierarchy())
 			{
-				m_LightList.emplace_back(lightComponent->GetLight());
-			}
+				auto lightComponent = obj->GetComponent<LightComponent>();
+				if (lightComponent)
+				{
+					m_LightList.emplace_back(lightComponent->GetLight());
+				}
 
-			for (auto child : obj->GetChildren())
-				per_object_func(child);
+				for (auto child : obj->GetChildren())
+					per_object_func(child);
+			}
 		};
 
 		per_object_func(m_RootEntity);
@@ -275,7 +281,7 @@ namespace lumos
 	{
 		std::function<void(std::shared_ptr<Entity>)> per_object_func2 = [&](std::shared_ptr<Entity> obj)
 		{
-			if (obj->IsActive())
+			if (obj->ActiveInHierarchy())
 			{
 				per_object_func(obj);
 

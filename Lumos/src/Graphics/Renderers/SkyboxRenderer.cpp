@@ -20,9 +20,9 @@
 #include "App/Application.h"
 #include "Graphics/Camera/Camera.h"
 
-namespace lumos
+namespace Lumos
 {
-	namespace graphics
+	namespace Graphics
 	{
 		SkyboxRenderer::SkyboxRenderer(uint width, uint height, Texture* cubeMap) : m_UniformBuffer(nullptr), m_CubeMap(nullptr)
 		{
@@ -83,10 +83,10 @@ namespace lumos
 		void SkyboxRenderer::Init()
 		{
 			m_Shader = Shader::CreateFromFile("Skybox", "/CoreShaders/");
-			m_Skybox = graphics::CreateQuad();
+			m_Skybox = Graphics::CreateQuad();
 
-			// Vertex shader system uniforms
-			m_VSSystemUniformBufferSize = sizeof(maths::Matrix4);
+			// Vertex shader System uniforms
+			m_VSSystemUniformBufferSize = sizeof(Maths::Matrix4);
 			m_VSSystemUniformBuffer = new byte[m_VSSystemUniformBufferSize];
 			memset(m_VSSystemUniformBuffer, 0, m_VSSystemUniformBufferSize);
 			m_VSSystemUniformBufferOffsets.resize(VSSystemUniformIndex_Size);
@@ -98,18 +98,18 @@ namespace lumos
 
 			for (auto& commandBuffer : m_CommandBuffers)
 			{
-				commandBuffer = graphics::CommandBuffer::Create();
+				commandBuffer = Graphics::CommandBuffer::Create();
 				commandBuffer->Init(true);
 			}
 
-			m_RenderPass = graphics::RenderPass::Create();
+			m_RenderPass = Graphics::RenderPass::Create();
 			AttachmentInfo textureTypes[2] =
 			{
 				{ TextureType::COLOUR, TextureFormat::RGBA8 },
 				{ TextureType::DEPTH , TextureFormat::DEPTH }
 			};
 
-			graphics::RenderpassInfo renderpassCI{};
+			Graphics::RenderpassInfo renderpassCI{};
 			renderpassCI.attachmentCount = 2;
 			renderpassCI.textureType = textureTypes;
 			renderpassCI.clear = false;
@@ -125,7 +125,7 @@ namespace lumos
 		{
 			m_CommandBuffers[m_CurrentBufferID]->BeginRecording();
 
-			m_RenderPass->BeginRenderpass(m_CommandBuffers[m_CurrentBufferID], maths::Vector4(0.0f), m_Framebuffers[m_CurrentBufferID], graphics::INLINE, m_ScreenBufferWidth, m_ScreenBufferHeight);
+			m_RenderPass->BeginRenderpass(m_CommandBuffers[m_CurrentBufferID], Maths::Vector4(0.0f), m_Framebuffers[m_CurrentBufferID], Graphics::INLINE, m_ScreenBufferWidth, m_ScreenBufferHeight);
 		}
 
 		void SkyboxRenderer::BeginScene(Scene* scene)
@@ -133,8 +133,8 @@ namespace lumos
 			auto camera = scene->GetCamera();
 			auto proj = camera->GetProjectionMatrix();
 
-			auto invViewProj = maths::Matrix4::Inverse(proj * camera->GetViewMatrix());
-			memcpy(m_VSSystemUniformBuffer + m_VSSystemUniformBufferOffsets[VSSystemUniformIndex_InverseProjectionViewMatrix], &invViewProj, sizeof(maths::Matrix4));
+			auto invViewProj = Maths::Matrix4::Inverse(proj * camera->GetViewMatrix());
+			memcpy(m_VSSystemUniformBuffer + m_VSSystemUniformBufferOffsets[VSSystemUniformIndex_InverseProjectionViewMatrix], &invViewProj, sizeof(Maths::Matrix4));
 		}
 
 		void SkyboxRenderer::End()
@@ -184,29 +184,29 @@ namespace lumos
 
 		void SkyboxRenderer::CreateGraphicsPipeline()
 		{
-			std::vector<graphics::DescriptorPoolInfo> poolInfo =
+			std::vector<Graphics::DescriptorPoolInfo> poolInfo =
 			{
-				{ graphics::DescriptorType::UNIFORM_BUFFER, 1 },
-				{ graphics::DescriptorType::IMAGE_SAMPLER, 1 }
+				{ Graphics::DescriptorType::UNIFORM_BUFFER, 1 },
+				{ Graphics::DescriptorType::IMAGE_SAMPLER, 1 }
 			};
 
-			std::vector<graphics::DescriptorLayoutInfo> layoutInfo =
+			std::vector<Graphics::DescriptorLayoutInfo> layoutInfo =
 			{
-				{ graphics::DescriptorType::UNIFORM_BUFFER, graphics::ShaderStage::VERTEX, 0 },
-				{ graphics::DescriptorType::IMAGE_SAMPLER,graphics::ShaderStage::FRAGMENT , 1 }
+				{ Graphics::DescriptorType::UNIFORM_BUFFER, Graphics::ShaderStage::VERTEX, 0 },
+				{ Graphics::DescriptorType::IMAGE_SAMPLER,Graphics::ShaderStage::FRAGMENT , 1 }
 			};
 
 			auto attributeDescriptions = Vertex::getAttributeDescriptions();
 
-			std::vector<graphics::DescriptorLayout> descriptorLayouts;
+			std::vector<Graphics::DescriptorLayout> descriptorLayouts;
 
-			graphics::DescriptorLayout sceneDescriptorLayout{};
+			Graphics::DescriptorLayout sceneDescriptorLayout{};
 			sceneDescriptorLayout.count = static_cast<uint>(layoutInfo.size());
 			sceneDescriptorLayout.layoutInfo = layoutInfo.data();
 
 			descriptorLayouts.push_back(sceneDescriptorLayout);
 
-			graphics::PipelineInfo pipelineCI{};
+			Graphics::PipelineInfo pipelineCI{};
 			pipelineCI.pipelineName = "SkyRenderer";
 			pipelineCI.shader = m_Shader;
 			pipelineCI.vulkanRenderpass = m_RenderPass;
@@ -218,44 +218,44 @@ namespace lumos
 			pipelineCI.strideSize = sizeof(Vertex);
 			pipelineCI.numColorAttachments = 1;
 			pipelineCI.wireframeEnabled = false;
-			pipelineCI.cullMode = graphics::CullMode::NONE;
+			pipelineCI.cullMode = Graphics::CullMode::NONE;
 			pipelineCI.transparencyEnabled = false;
 			pipelineCI.depthBiasEnabled = false;
 			pipelineCI.width = m_ScreenBufferWidth;
 			pipelineCI.height = m_ScreenBufferHeight;
 			pipelineCI.maxObjects = 1;
 
-			m_Pipeline = graphics::Pipeline::Create(pipelineCI);
+			m_Pipeline = Graphics::Pipeline::Create(pipelineCI);
 		}
 
 		void SkyboxRenderer::UpdateUniformBuffer()
 		{
 			if (m_UniformBuffer == nullptr)
 			{
-				m_UniformBuffer = graphics::UniformBuffer::Create();
+				m_UniformBuffer = Graphics::UniformBuffer::Create();
 				uint32_t bufferSize = static_cast<uint32_t>(sizeof(UniformBufferObject));
 				m_UniformBuffer->Init(bufferSize, nullptr);
 			}
 
-			std::vector<graphics::BufferInfo> bufferInfos;
+			std::vector<Graphics::BufferInfo> bufferInfos;
 
-			graphics::BufferInfo bufferInfo = {};
+			Graphics::BufferInfo bufferInfo = {};
 			bufferInfo.buffer = m_UniformBuffer;
 			bufferInfo.offset = 0;
 			bufferInfo.size = sizeof(UniformBufferObject);
-			bufferInfo.type = graphics::DescriptorType::UNIFORM_BUFFER;
+			bufferInfo.type = Graphics::DescriptorType::UNIFORM_BUFFER;
 			bufferInfo.binding = 0;
 			bufferInfo.shaderType = ShaderType::VERTEX;
 			bufferInfo.systemUniforms = true;
 
 			bufferInfos.push_back(bufferInfo);
 
-			std::vector<graphics::ImageInfo> imageInfos;
+			std::vector<Graphics::ImageInfo> imageInfos;
 
 
 			if (m_CubeMap)
 			{
-				graphics::ImageInfo imageInfo = {};
+				Graphics::ImageInfo imageInfo = {};
 				imageInfo.texture = { m_CubeMap };
 				imageInfo.name = "u_CubeMap";
 				imageInfo.binding = 1;

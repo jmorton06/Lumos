@@ -3,9 +3,9 @@
 #include "VKDevice.h"
 #include "VKTools.h"
 
-namespace lumos
+namespace Lumos
 {
-	namespace graphics
+	namespace Graphics
 	{
 		VKUniformBuffer::VKUniformBuffer(uint32_t size, const void* data)
 		{

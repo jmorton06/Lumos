@@ -1,11 +1,11 @@
 #pragma once
 #include "Renderer3D.h"
 
-namespace lumos
+namespace Lumos
 {
 	class LightSetup;
 
-	namespace graphics
+	namespace Graphics
 	{
 		class Pipeline;
 		class DescriptorSet;
@@ -30,7 +30,7 @@ namespace lumos
 			void Begin() override;
 			void BeginScene(Scene* scene) override;
 			void Submit(const RenderCommand& command) override;
-			void SubmitMesh(Mesh* mesh, const maths::Matrix4& transform, const maths::Matrix4& textureMatrix) override;
+			void SubmitMesh(Mesh* mesh, const Maths::Matrix4& transform, const Maths::Matrix4& textureMatrix) override;
 			void EndScene() override;
 			void End() override;
 			void Present() override;
@@ -58,7 +58,7 @@ namespace lumos
 			std::vector<uint> m_VSSystemUniformBufferOffsets;
 			std::vector<uint> m_PSSystemUniformBufferOffsets;
 
-			maths::Vector4 m_ClearColour;
+			Maths::Vector4 m_ClearColour;
 
 			DescriptorSet* m_DefaultDescriptorSet;
 
@@ -76,7 +76,7 @@ namespace lumos
 
 			struct UniformBufferModel
 			{
-				maths::Matrix4* model;
+				Maths::Matrix4* model;
 			};
 
 			UniformBufferModel uboDataDynamic;
