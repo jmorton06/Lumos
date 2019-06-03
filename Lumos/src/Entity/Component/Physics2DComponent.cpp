@@ -8,7 +8,7 @@
 
 #include <math.h>
 
-namespace lumos
+namespace Lumos
 {
 	Physics2DComponent::Physics2DComponent(std::shared_ptr<PhysicsObject2D>& physics)
 		: m_PhysicsObject(physics)
@@ -22,8 +22,8 @@ namespace lumos
         auto qw = cos(angle/2);
         auto qz = 1.0f * sin(angle/2);
         
-        m_Entity->GetTransformComponent()->GetTransform().SetLocalPosition(maths::Vector3(m_PhysicsObject->GetPosition(), 1.0f));
-        m_Entity->GetTransformComponent()->GetTransform().SetLocalOrientation(maths::Quaternion(0.0f, 0.0f, qz, qw));
+        m_Entity->GetTransformComponent()->GetTransform().SetLocalPosition(Maths::Vector3(m_PhysicsObject->GetPosition(), 1.0f));
+        m_Entity->GetTransformComponent()->GetTransform().SetLocalOrientation(Maths::Quaternion(0.0f, 0.0f, qz, qw));
 		m_Entity->GetTransformComponent()->GetTransform().UpdateMatrices();
 	}
 

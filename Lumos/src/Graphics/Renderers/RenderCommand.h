@@ -4,9 +4,9 @@
 #include "Graphics/Mesh.h"
 #include "Graphics/API/Shader.h"
 
-namespace lumos
+namespace Lumos
 {
-	namespace graphics
+	namespace Graphics
 	{
 		struct LUMOS_EXPORT RendererUniform
 		{
@@ -17,8 +17,8 @@ namespace lumos
 		struct LUMOS_EXPORT RenderCommand
 		{
 			Mesh* mesh;
-			maths::Matrix4 transform;
-			maths::Matrix4 textureMatrix;
+			Maths::Matrix4 transform;
+			Maths::Matrix4 textureMatrix;
 			std::vector<RendererUniform> uniforms;
 		};
 	}

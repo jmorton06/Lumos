@@ -3,9 +3,9 @@
 #include "Graphics/API/Textures/TextureDepth.h"
 #include "../GLDebug.h"
 
-namespace lumos
+namespace Lumos
 {
-	namespace graphics
+	namespace Graphics
 	{
 		class GLTextureDepth : public TextureDepth
 		{

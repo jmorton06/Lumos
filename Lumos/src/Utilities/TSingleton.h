@@ -2,7 +2,7 @@
 #include "LM.h"
 #include <mutex>
 
-namespace lumos
+namespace Lumos
 {
 	template <class T>
 	class TSingleton

@@ -9,21 +9,21 @@
 #include "Platform/OpenGL/GLFramebuffer.h"
 #endif
 #ifdef LUMOS_RENDER_API_DIRECT3D
-#include "graphics/DirectX/DXFrameBuffer2D.h"
+#include "Graphics/DirectX/DXFrameBuffer2D.h"
 #endif
-namespace lumos
+namespace Lumos
 {
-	namespace graphics
+	namespace Graphics
 	{
 		Framebuffer* Framebuffer::Create(const FramebufferInfo& framebufferInfo)
 		{
-			switch (graphics::GraphicsContext::GetRenderAPI())
+			switch (Graphics::GraphicsContext::GetRenderAPI())
 			{
 #ifdef LUMOS_RENDER_API_OPENGL
 			case RenderAPI::OPENGL: return framebufferInfo.screenFBO ? nullptr : new GLFramebuffer(framebufferInfo); //TODO: REMOVE
 #endif
 #ifdef LUMOS_RENDER_API_VULKAN
-			case RenderAPI::VULKAN:	return new graphics::VKFramebuffer(framebufferInfo);
+			case RenderAPI::VULKAN:	return new Graphics::VKFramebuffer(framebufferInfo);
 #endif
 #ifdef LUMOS_RENDER_API_DIRECT3D
 			case RenderAPI::DIRECT3D: return new D3DFrameBuffer2D();

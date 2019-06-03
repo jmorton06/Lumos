@@ -13,9 +13,9 @@
 #define CLIP_CONTROL_RH_ZO (CLIP_CONTROL_RH_BIT | CLIP_CONTROL_ZO_BIT)
 #define CLIP_CONTROL_RH_NO (CLIP_CONTROL_RH_BIT | CLIP_CONTROL_NO_BIT)
 
-namespace lumos
+namespace Lumos
 {
-	namespace maths
+	namespace Maths
 	{
 		class Vector3;
 		class Matrix3;
@@ -55,6 +55,11 @@ namespace lumos
 #endif
             void ToZero();
             void ToIdentity();
+
+			inline float Get(unsigned int row, unsigned int column) const
+			{
+				return values[row + column * 4];
+			}
 
 			inline Vector4 GetRow(unsigned int row) const
 			{

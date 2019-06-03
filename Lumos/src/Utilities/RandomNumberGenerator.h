@@ -4,7 +4,7 @@
 #include <random>
 #include <cstdint>
 
-namespace lumos
+namespace Lumos
 {
 
 	class LUMOS_EXPORT RandomNumberGenerator32

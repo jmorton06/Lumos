@@ -9,9 +9,9 @@
 
 #include <cmath>
 
-namespace lumos
+namespace Lumos
 {
-	namespace graphics
+	namespace Graphics
 	{
 		VKTexture2D::VKTexture2D(uint width, uint height, void* data, TextureParameters parameters, TextureLoadOptions loadOptions)
 			: m_FileName("NULL"), m_TextureSampler(nullptr), m_TextureImageView(nullptr)
@@ -272,7 +272,7 @@ namespace lumos
 			byte* pixels;
 
 			if (m_Data == nullptr)
-				pixels = lumos::LoadImageFromFile(m_FileName, &texWidth, &texHeight, &texChannels);
+				pixels = Lumos::LoadImageFromFile(m_FileName, &texWidth, &texHeight, &texChannels);
 			else
 			{
 				texWidth = m_Width;
@@ -291,7 +291,7 @@ namespace lumos
                 LUMOS_CORE_ERROR("failed to load texture image!");
 			}
 
-			m_MipLevels = static_cast<uint32_t>(std::floor(std::log2(maths::Max(texWidth, texHeight)))) + 1;
+			m_MipLevels = static_cast<uint32_t>(std::floor(std::log2(Maths::Max(texWidth, texHeight)))) + 1;
 
 
 			vk::Buffer stagingBuffer;

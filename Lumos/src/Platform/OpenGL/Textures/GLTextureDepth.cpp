@@ -4,9 +4,9 @@
 #include "Platform/OpenGL/GL.h"
 
 
-namespace lumos
+namespace Lumos
 {
-	namespace graphics
+	namespace Graphics
 	{
 		GLTextureDepth::GLTextureDepth(uint width, uint height)
 			: m_Width(width), m_Height(height)

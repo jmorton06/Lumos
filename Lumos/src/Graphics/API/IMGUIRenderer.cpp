@@ -12,9 +12,9 @@
 #endif
 #endif
 
-namespace lumos
+namespace Lumos
 {
-    namespace graphics
+    namespace Graphics
     {
         IMGUIRenderer* IMGUIRenderer::Create(uint width, uint height, bool clearScreen)
 		{

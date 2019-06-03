@@ -4,9 +4,9 @@
 
 #include "MathsUtilities.h"
 
-namespace lumos
+namespace Lumos
 {
-	namespace maths
+	namespace Maths
 	{
 		const float Matrix3::EMPTY_DATA[9] =
 				{
@@ -75,8 +75,8 @@ namespace lumos
 			Vector3 axisNorm = axis;
 			axisNorm.Normalise();
 
-			float c = cos(lumos::maths::DegToRad(degrees));
-			float s = sin(lumos::maths::DegToRad(degrees));
+			float c = cos(Lumos::Maths::DegreesToRadians(degrees));
+			float s = sin(Lumos::Maths::DegreesToRadians(degrees));
 
 #ifdef LUMOS_SSEMAT3
 			__m128 normXYZW = _mm_set_ps(0, axisNorm.GetZ(), axisNorm.GetY(), axisNorm.GetX());
@@ -113,7 +113,7 @@ namespace lumos
 		Matrix3 Matrix3::Rotation(float degreesX, float degreesY, float degreesZ)
 		{
 			// Building this matrix directly is faster than multiplying three matrices for X, Y and Z
-			float phi = lumos::maths::DegToRad(degreesX), theta = lumos::maths::DegToRad(degreesY), psi = lumos::maths::DegToRad(
+			float phi = Lumos::Maths::DegreesToRadians(degreesX), theta = Lumos::Maths::DegreesToRadians(degreesY), psi = Lumos::Maths::DegreesToRadians(
 					degreesZ);
 			float sinTh = sin(theta), cosTh = cos(theta),
 					sinPh = sin(phi), cosPh = cos(phi),
@@ -135,7 +135,7 @@ namespace lumos
 		Matrix3 Matrix3::RotationX(float degrees) 
 		{
 			Matrix3 m;
-			float rad = lumos::maths::DegToRad(degrees);
+			float rad = Lumos::Maths::DegreesToRadians(degrees);
 			float c = cos(rad);
 			float s = sin(rad);
 
@@ -151,7 +151,7 @@ namespace lumos
 		Matrix3 Matrix3::RotationY(float degrees) 
 		{
 			Matrix4 m;
-			float rad = lumos::maths::DegToRad(degrees);
+			float rad = Lumos::Maths::DegreesToRadians(degrees);
 			float c = cos(rad);
 			float s = sin(rad);
 
@@ -167,7 +167,7 @@ namespace lumos
 		Matrix3 Matrix3::RotationZ(float degrees) 
 		{
 			Matrix4 m;
-			float rad = lumos::maths::DegToRad(degrees);
+			float rad = Lumos::Maths::DegreesToRadians(degrees);
 			float c = cos(rad);
 			float s = sin(rad);
 

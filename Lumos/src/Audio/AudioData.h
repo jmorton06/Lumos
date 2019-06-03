@@ -1,6 +1,6 @@
 #pragma once
 
-namespace lumos
+namespace Lumos
 {
 	struct AudioData
 	{

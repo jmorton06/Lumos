@@ -3,23 +3,23 @@
 #include "CollisionShape.h"
 #include "Hull.h"
 
-namespace lumos
+namespace Lumos
 {
 	class LUMOS_EXPORT CuboidCollisionShape : public CollisionShape
 	{
 	public:
 		CuboidCollisionShape();
-		explicit CuboidCollisionShape(const maths::Vector3& halfdims);
+		explicit CuboidCollisionShape(const Maths::Vector3& halfdims);
 		~CuboidCollisionShape();
 
 		//Collision Shape Functionality
-		virtual maths::Matrix3 BuildInverseInertia(float invMass) const override;
+		virtual Maths::Matrix3 BuildInverseInertia(float invMass) const override;
 
-		virtual void GetCollisionAxes(const PhysicsObject3D* currentObject, std::vector<maths::Vector3>* out_axes) const override;
+		virtual void GetCollisionAxes(const PhysicsObject3D* currentObject, std::vector<Maths::Vector3>* out_axes) const override;
 		virtual void GetEdges(const PhysicsObject3D* currentObject, std::vector<CollisionEdge>* out_edges) const override;
 
-		virtual void GetMinMaxVertexOnAxis(const PhysicsObject3D* currentObject, const maths::Vector3& axis, maths::Vector3* out_min, maths::Vector3* out_max) const override;
-		virtual void GetIncidentReferencePolygon(const PhysicsObject3D* currentObject, const maths::Vector3& axis, std::list<maths::Vector3>* out_face, maths::Vector3* out_normal, std::vector<maths::Plane>* out_adjacent_planes) const override;
+		virtual void GetMinMaxVertexOnAxis(const PhysicsObject3D* currentObject, const Maths::Vector3& axis, Maths::Vector3* out_min, Maths::Vector3* out_max) const override;
+		virtual void GetIncidentReferencePolygon(const PhysicsObject3D* currentObject, const Maths::Vector3& axis, std::list<Maths::Vector3>* out_face, Maths::Vector3* out_normal, std::vector<Maths::Plane>* out_adjacent_planes) const override;
 
 		virtual void DebugDraw(const PhysicsObject3D* currentObject) const override;
 
@@ -40,7 +40,7 @@ namespace lumos
 		static void ConstructCubeHull();
 
 	protected:
-		maths::Vector3 m_CuboidHalfDimensions;
+		Maths::Vector3 m_CuboidHalfDimensions;
 
 		static std::shared_ptr<Hull> m_CubeHull;
 	};

@@ -2,9 +2,9 @@
 #include "LM.h"
 #include "Graphics/API/DescriptorSet.h"
 
-namespace lumos
+namespace Lumos
 {
-    namespace graphics
+    namespace Graphics
     {
         class GLDescriptorSet : public DescriptorSet
         {
@@ -20,7 +20,13 @@ namespace lumos
 
 			void Bind(uint offset = 0);
 
+			void SetDynamicOffset(uint offset) override { m_DynamicOffset = offset; }
+			uint GetDynamicOffset() const override { return m_DynamicOffset; }
+
         private:
+			uint m_DynamicOffset = 0;
+			Shader* m_Shader = nullptr;
+
 			std::vector<ImageInfo> m_ImageInfos;
 			std::vector <BufferInfo> m_BufferInfos;
             std::vector<PushConstant> m_PushConstants;

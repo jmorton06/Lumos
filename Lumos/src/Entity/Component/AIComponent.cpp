@@ -3,7 +3,7 @@
 
 #include <imgui/imgui.h>
 
-namespace lumos
+namespace Lumos
 {
 	AIComponent::AIComponent(std::shared_ptr<AINode>& aiNode)
 		: m_AINode(aiNode)

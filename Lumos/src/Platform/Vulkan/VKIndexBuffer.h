@@ -3,16 +3,16 @@
 #include "VKBuffer.h"
 #include "Graphics/API/IndexBuffer.h"
 
-namespace lumos
+namespace Lumos
 {
-	namespace graphics
+	namespace Graphics
 	{
 		class VKIndexBuffer : public IndexBuffer, public VKBuffer
 		{
 			BufferUsage m_Usage;
 			uint m_Count;
 			uint m_Size;
-			graphics::BufferLayout m_Layout;
+			Graphics::BufferLayout m_Layout;
 		public:
 			VKIndexBuffer(uint16* data, uint count, BufferUsage bufferUsage);
 			VKIndexBuffer(uint* data, uint count, BufferUsage bufferUsage);

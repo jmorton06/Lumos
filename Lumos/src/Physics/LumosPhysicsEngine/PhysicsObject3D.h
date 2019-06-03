@@ -8,7 +8,7 @@
 #include "Maths/BoundingBox.h"
 #include <memory>
 
-namespace lumos
+namespace Lumos
 {
 	class LumosPhysicsEngine;
 	class Entity;
@@ -33,24 +33,24 @@ namespace lumos
 		virtual ~PhysicsObject3D();
 
 		//<--------- GETTERS ------------->
-		const maths::Vector3&	 GetPosition()			  const { return m_Position; }
-		const maths::Vector3&	 GetLinearVelocity()	  const { return m_LinearVelocity; }
-		const maths::Vector3&	 GetForce()				  const { return m_Force; }
+		const Maths::Vector3&	 GetPosition()			  const { return m_Position; }
+		const Maths::Vector3&	 GetLinearVelocity()	  const { return m_LinearVelocity; }
+		const Maths::Vector3&	 GetForce()				  const { return m_Force; }
 		float					 GetInverseMass()		  const { return m_InvMass; }
-		const maths::Quaternion& GetOrientation()	      const { return m_Orientation; }
-		const maths::Vector3&	 GetAngularVelocity()	  const { return m_AngularVelocity; }
-		const maths::Vector3&	 GetTorque()			  const { return m_Torque; }
-		const maths::Matrix3&	 GetInverseInertia()	  const { return m_InvInertia; }
+		const Maths::Quaternion& GetOrientation()	      const { return m_Orientation; }
+		const Maths::Vector3&	 GetAngularVelocity()	  const { return m_AngularVelocity; }
+		const Maths::Vector3&	 GetTorque()			  const { return m_Torque; }
+		const Maths::Matrix3&	 GetInverseInertia()	  const { return m_InvInertia; }
 		CollisionShape*			 GetCollisionShape()	  const { return m_CollisionShape.get(); }
 		Entity*					 GetAssociatedObject()	  const { return m_pParent; }
-		const maths::Matrix4&	 GetWorldSpaceTransform() const;	//Built from scratch or returned from cached value
+		const Maths::Matrix4&	 GetWorldSpaceTransform() const;	//Built from scratch or returned from cached value
 
-		maths::BoundingBox GetWorldSpaceAABB() const;
+		Maths::BoundingBox GetWorldSpaceAABB() const;
 
 		void WakeUp() override;
 		void SetIsAtRest(const bool isAtRest) override;
 
-		maths::BoundingBox GetLocalBoundingBox() const
+		Maths::BoundingBox GetLocalBoundingBox() const
 		{
 			return m_localBoundingBox;
 		}
@@ -63,7 +63,7 @@ namespace lumos
 				m_RestVelocityThresholdSquared = vel * vel;
 		}
 
-		void SetLocalBoundingBox(const maths::BoundingBox &bb)
+		void SetLocalBoundingBox(const Maths::BoundingBox &bb)
 		{
 			m_localBoundingBox = bb;
 			m_wsAabbInvalidated = true;
@@ -71,7 +71,7 @@ namespace lumos
 
 		//<--------- SETTERS ------------->
 
-		void SetPosition(const maths::Vector3& v)
+		void SetPosition(const Maths::Vector3& v)
 		{
 			m_Position = v;
 			m_wsTransformInvalidated = true;
@@ -79,20 +79,20 @@ namespace lumos
 			//m_AtRest = false;
 		}
 
-        void SetLinearVelocity(const maths::Vector3& v) { if(m_Static) return; m_LinearVelocity = v; }
-		void SetForce(const maths::Vector3& v) { if(m_Static) return; m_Force = v; }
+        void SetLinearVelocity(const Maths::Vector3& v) { if(m_Static) return; m_LinearVelocity = v; }
+		void SetForce(const Maths::Vector3& v) { if(m_Static) return; m_Force = v; }
 		void SetInverseMass(const float& v) { m_InvMass = v; }
 
-		void SetOrientation(const maths::Quaternion& v)
+		void SetOrientation(const Maths::Quaternion& v)
 		{
 			m_Orientation = v;
 			m_wsTransformInvalidated = true;
 			//m_AtRest = false;
 		}
 
-		void SetAngularVelocity(const maths::Vector3& v) { if(m_Static) return; m_AngularVelocity = v; }
-		void SetTorque(const maths::Vector3& v) {if(m_Static) return;  m_Torque = v; }
-		void SetInverseInertia(const maths::Matrix3& v) { m_InvInertia = v; }
+		void SetAngularVelocity(const Maths::Vector3& v) { if(m_Static) return; m_AngularVelocity = v; }
+		void SetTorque(const Maths::Vector3& v) {if(m_Static) return;  m_Torque = v; }
+		void SetInverseInertia(const Maths::Matrix3& v) { m_InvInertia = v; }
 
 		void SetCollisionShape(std::unique_ptr<CollisionShape> colShape) { m_CollisionShape = std::move(colShape); }
 
@@ -139,22 +139,22 @@ namespace lumos
 		float				m_RestVelocityThresholdSquared;
 		float				m_AverageSummedVelocity;
 
-		mutable maths::Matrix4 	   m_wsTransform;
-		maths::BoundingBox		   m_localBoundingBox;   //!< Model orientated bounding box in model space
+		mutable Maths::Matrix4 	   m_wsTransform;
+		Maths::BoundingBox		   m_localBoundingBox;   //!< Model orientated bounding box in model space
 		mutable bool			   m_wsAabbInvalidated;  //!< Flag indicating if the cached world space transoformed AABB is invalid
-		mutable maths::BoundingBox m_wsAabb;			 //!< Axis aligned bounding box of this object in world space
+		mutable Maths::BoundingBox m_wsAabb;			 //!< Axis aligned bounding box of this object in world space
 
 		//<---------LINEAR-------------->
-		maths::Vector3		m_Position;
-		maths::Vector3		m_LinearVelocity;
-		maths::Vector3		m_Force;
+		Maths::Vector3		m_Position;
+		Maths::Vector3		m_LinearVelocity;
+		Maths::Vector3		m_Force;
 		float		m_InvMass;
 
 		//<----------ANGULAR-------------->
-		maths::Quaternion  m_Orientation;
-		maths::Vector3	   m_AngularVelocity;
-		maths::Vector3	   m_Torque;
-		maths::Matrix3	   m_InvInertia;
+		Maths::Quaternion  m_Orientation;
+		Maths::Vector3	   m_AngularVelocity;
+		Maths::Vector3	   m_Torque;
+		Maths::Matrix3	   m_InvInertia;
 
 		//<----------COLLISION------------>
 		std::unique_ptr<CollisionShape> m_CollisionShape;

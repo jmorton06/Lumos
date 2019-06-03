@@ -1,14 +1,14 @@
 #pragma once
 #include "LM.h"
 
-namespace lumos
+namespace Lumos
 {
-	namespace maths
+	namespace Maths
 	{
 		class Vector4;
 	}
 
-	namespace graphics
+	namespace Graphics
 	{
 		class CommandBuffer;
 		class Framebuffer;
@@ -42,7 +42,7 @@ namespace lumos
 
 			virtual bool Init(const RenderpassInfo& renderpassCI) = 0;
 			virtual void Unload() const = 0;
-			virtual void BeginRenderpass(CommandBuffer* commandBuffer, const maths::Vector4& clearColour, Framebuffer* frame,
+			virtual void BeginRenderpass(CommandBuffer* commandBuffer, const Maths::Vector4& clearColour, Framebuffer* frame,
 				SubPassContents contents, uint32_t width, uint32_t height) const = 0;
 			virtual void EndRenderpass(CommandBuffer * commandBuffer) = 0;
 		};

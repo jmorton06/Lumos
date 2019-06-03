@@ -2,9 +2,9 @@
 #include "RenderManager.h"
 #include "GBuffer.h"
 
-namespace lumos
+namespace Lumos
 {
-	namespace graphics
+	namespace Graphics
 	{
 		RenderManager::RenderManager(uint width, uint height)
 		{

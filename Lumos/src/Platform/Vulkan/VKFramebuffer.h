@@ -5,9 +5,9 @@
 #include "VKTexture2D.h"
 #include "VKRenderpass.h"
 
-namespace lumos
+namespace Lumos
 {
-	namespace graphics
+	namespace Graphics
 	{
 		class LUMOS_EXPORT VKFramebuffer : public Framebuffer
 		{
@@ -18,7 +18,7 @@ namespace lumos
 
 			inline vk::Framebuffer GetFramebuffer() const { return m_Framebuffer; }
 
-			void SetClearColour(const maths::Vector4& colour) override {};
+			void SetClearColour(const Maths::Vector4& colour) override {};
 
 			uint GetWidth() const override { return m_Width; }
 			uint GetHeight() const override { return m_Height; }

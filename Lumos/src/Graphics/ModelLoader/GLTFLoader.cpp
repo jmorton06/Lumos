@@ -18,7 +18,7 @@
 #endif
 #include <tinygltf/tiny_gltf.h>
 
-namespace lumos
+namespace Lumos
 {
 	String AlbedoTexName = "baseColorTexture";
 	String NormalTexName = "normalTexture";
@@ -65,36 +65,36 @@ namespace lumos
 	{ TINYGLTF_COMPONENT_TYPE_FLOAT, 4 }
 	};
 
-	static graphics::TextureWrap GetWrapMode(int mode)
+	static Graphics::TextureWrap GetWrapMode(int mode)
 	{
 		switch (mode)
 		{
-		case TINYGLTF_TEXTURE_WRAP_REPEAT: return graphics::TextureWrap::REPEAT;
-		case TINYGLTF_TEXTURE_WRAP_CLAMP_TO_EDGE: return graphics::TextureWrap::CLAMP_TO_EDGE;
-		case TINYGLTF_TEXTURE_WRAP_MIRRORED_REPEAT: return graphics::TextureWrap::MIRRORED_REPEAT;
-		default: return graphics::TextureWrap::REPEAT;
+		case TINYGLTF_TEXTURE_WRAP_REPEAT: return Graphics::TextureWrap::REPEAT;
+		case TINYGLTF_TEXTURE_WRAP_CLAMP_TO_EDGE: return Graphics::TextureWrap::CLAMP_TO_EDGE;
+		case TINYGLTF_TEXTURE_WRAP_MIRRORED_REPEAT: return Graphics::TextureWrap::MIRRORED_REPEAT;
+		default: return Graphics::TextureWrap::REPEAT;
 		}
 	}
 
-	static graphics::TextureFilter GetFilter(int value)
+	static Graphics::TextureFilter GetFilter(int value)
 	{
 		switch (value)
 		{
 		case TINYGLTF_TEXTURE_FILTER_NEAREST:
 		case TINYGLTF_TEXTURE_FILTER_NEAREST_MIPMAP_NEAREST:
 		case TINYGLTF_TEXTURE_FILTER_NEAREST_MIPMAP_LINEAR:
-			return graphics::TextureFilter::NEAREST;
+			return Graphics::TextureFilter::NEAREST;
 		case TINYGLTF_TEXTURE_FILTER_LINEAR:
 		case TINYGLTF_TEXTURE_FILTER_LINEAR_MIPMAP_NEAREST:
 		case TINYGLTF_TEXTURE_FILTER_LINEAR_MIPMAP_LINEAR:
-			return graphics::TextureFilter::LINEAR;
-		default: return graphics::TextureFilter::LINEAR;
+			return Graphics::TextureFilter::LINEAR;
+		default: return Graphics::TextureFilter::LINEAR;
 		}
 	}
 
 	std::vector<std::shared_ptr<Material>> LoadMaterials(tinygltf::Model &gltfModel)
     {
-        std::vector<std::shared_ptr<graphics::Texture2D>> loadedTextures;
+        std::vector<std::shared_ptr<Graphics::Texture2D>> loadedTextures;
         std::vector<std::shared_ptr<Material>> loadedMaterials;
         for (tinygltf::Texture &gltfTexture : gltfModel.textures)
         {
@@ -112,11 +112,11 @@ namespace lumos
 
             if (imageAndSampler.Image)
             {
-				graphics::TextureParameters params = graphics::TextureParameters(GetFilter(imageAndSampler.Sampler->minFilter), GetWrapMode(imageAndSampler.Sampler->wrapS));
+				Graphics::TextureParameters params = Graphics::TextureParameters(GetFilter(imageAndSampler.Sampler->minFilter), GetWrapMode(imageAndSampler.Sampler->wrapS));
 
-				graphics::Texture2D* texture2D = graphics::Texture2D::CreateFromSource(imageAndSampler.Image->width, imageAndSampler.Image->height, imageAndSampler.Image->image.data(), params);
+				Graphics::Texture2D* texture2D = Graphics::Texture2D::CreateFromSource(imageAndSampler.Image->width, imageAndSampler.Image->height, imageAndSampler.Image->image.data(), params);
                 if (texture2D)
-                    loadedTextures.push_back(std::shared_ptr<graphics::Texture2D>(texture2D));
+                    loadedTextures.push_back(std::shared_ptr<Graphics::Texture2D>(texture2D));
             }
         }
 
@@ -174,12 +174,12 @@ namespace lumos
             
             if (metallicFactor != mat.values.end())
             {
-                properties.specularColour = maths::Vector4(static_cast<float>(metallicFactor->second.Factor()));
+                properties.specularColour = Maths::Vector4(static_cast<float>(metallicFactor->second.Factor()));
             }
             
             if (baseColorFactor != mat.values.end())
             {
-                properties.albedoColour = maths::Vector4((float)baseColorFactor->second.ColorFactor()[0],(float)baseColorFactor->second.ColorFactor()[1],(float)baseColorFactor->second.ColorFactor()[2],1.0f);
+                properties.albedoColour = Maths::Vector4((float)baseColorFactor->second.ColorFactor()[0],(float)baseColorFactor->second.ColorFactor()[1],(float)baseColorFactor->second.ColorFactor()[2],1.0f);
             }
             
             // Extensions
@@ -218,7 +218,7 @@ namespace lumos
                 if (specularGlossinessWorkflow->second.Has("glossinessFactor"))
                 {
                     auto& factor = specularGlossinessWorkflow->second.Get("glossinessFactor");
-                    properties.roughnessColour = maths::Vector4(1.0f - float(factor.IsNumber() ? factor.Get<double>() : factor.Get<int>()));
+                    properties.roughnessColour = Maths::Vector4(1.0f - float(factor.IsNumber() ? factor.Get<double>() : factor.Get<int>()));
                 }
             }
 
@@ -230,19 +230,19 @@ namespace lumos
         return loadedMaterials;
     }
     
-	graphics::Mesh* LoadMesh(tinygltf::Model& model, tinygltf::Mesh& mesh, std::vector<std::shared_ptr<Material>>& materials)
+	Graphics::Mesh* LoadMesh(tinygltf::Model& model, tinygltf::Mesh& mesh, std::vector<std::shared_ptr<Material>>& materials)
     {
         for (auto& primitive : mesh.primitives)
         {
             const tinygltf::Accessor &indices = model.accessors[primitive.indices];
             
             const uint numVertices = static_cast<uint>(indices.count);
-			graphics::Vertex* tempvertices = new graphics::Vertex[numVertices];
+			Graphics::Vertex* tempvertices = new Graphics::Vertex[numVertices];
             uint* indicesArray = new uint[numVertices];
             
             size_t maxNumVerts = 0;
             
-            std::shared_ptr<maths::BoundingSphere> boundingBox = std::make_shared<maths::BoundingSphere>();
+            std::shared_ptr<Maths::BoundingSphere> boundingBox = std::make_shared<Maths::BoundingSphere>();
            
             for (auto& attribute : primitive.attributes)
             {
@@ -265,12 +265,12 @@ namespace lumos
                 if (attribute.first == "POSITION")
                 {
                     size_t positionCount = accessor.count;
-                    maxNumVerts = maths::Max(maxNumVerts, positionCount);
-                    maths::Vector3Simple* positions = reinterpret_cast<maths::Vector3Simple*>(data.data());
+                    maxNumVerts = Maths::Max(maxNumVerts, positionCount);
+                    Maths::Vector3Simple* positions = reinterpret_cast<Maths::Vector3Simple*>(data.data());
                     for (auto p = 0; p < positionCount; ++p)
                     {
                         //positions[p] = glm::vec3(matrix * glm::vec4(positions[p], 1.0f));
-                        tempvertices[p].Position = maths::ToVector(positions[p]);
+                        tempvertices[p].Position = Maths::ToVector(positions[p]);
                         
                         boundingBox->ExpandToFit(tempvertices[p].Position);
                     }
@@ -281,11 +281,11 @@ namespace lumos
                 else if (attribute.first == "NORMAL")
                 {
                     size_t normalCount = accessor.count;
-                    maxNumVerts = maths::Max(maxNumVerts, normalCount);
-                    maths::Vector3Simple* normals = reinterpret_cast<maths::Vector3Simple*>(data.data());
+                    maxNumVerts = Maths::Max(maxNumVerts, normalCount);
+                    Maths::Vector3Simple* normals = reinterpret_cast<Maths::Vector3Simple*>(data.data());
                     for (auto p = 0; p < normalCount; ++p)
                     {
-                        tempvertices[p].Normal = maths::ToVector(normals[p]);
+                        tempvertices[p].Normal = Maths::ToVector(normals[p]);
                     }
                 }
                 
@@ -294,8 +294,8 @@ namespace lumos
                 else if (attribute.first == "TEXCOORD_0")
                 {
                     size_t uvCount = accessor.count;
-                    maxNumVerts = maths::Max(maxNumVerts, uvCount);
-                    maths::Vector2Simple* uvs = reinterpret_cast<maths::Vector2Simple*>(data.data());
+                    maxNumVerts = Maths::Max(maxNumVerts, uvCount);
+                    Maths::Vector2Simple* uvs = reinterpret_cast<Maths::Vector2Simple*>(data.data());
                     for (auto p = 0; p < uvCount; ++p)
                     {
                         tempvertices[p].TexCoords = ToVector(uvs[p]);
@@ -307,8 +307,8 @@ namespace lumos
                 else if (attribute.first == "COLOR_0")
                 {
                     size_t uvCount = accessor.count;
-                    maxNumVerts = maths::Max(maxNumVerts, uvCount);
-                    maths::Vector4Simple* colours = reinterpret_cast<maths::Vector4Simple*>(data.data());
+                    maxNumVerts = Maths::Max(maxNumVerts, uvCount);
+                    Maths::Vector4Simple* colours = reinterpret_cast<Maths::Vector4Simple*>(data.data());
                     for (auto p = 0; p < uvCount; ++p)
                     {
                         tempvertices[p].Colours = ToVector(colours[p]);
@@ -320,8 +320,8 @@ namespace lumos
                 else if (attribute.first == "TANGENT")
                 {
                     size_t uvCount = accessor.count;
-                    maxNumVerts = maths::Max(maxNumVerts, uvCount);
-                    maths::Vector3Simple* uvs = reinterpret_cast<maths::Vector3Simple*>(data.data());
+                    maxNumVerts = Maths::Max(maxNumVerts, uvCount);
+                    Maths::Vector3Simple* uvs = reinterpret_cast<Maths::Vector3Simple*>(data.data());
                     for (auto p = 0; p < uvCount; ++p)
                     {
                         tempvertices[p].Tangent = ToVector(uvs[p]);
@@ -331,18 +331,18 @@ namespace lumos
 
             std::shared_ptr<Material> pbrMaterial = materials[primitive.material];
             
-            std::shared_ptr<graphics::VertexArray> va;
-            va.reset(graphics::VertexArray::Create());
+            std::shared_ptr<Graphics::VertexArray> va;
+            va.reset(Graphics::VertexArray::Create());
             
-			graphics::VertexBuffer* buffer = graphics::VertexBuffer::Create(graphics::BufferUsage::STATIC);
-            buffer->SetData(sizeof(graphics::Vertex) * numVertices, tempvertices);
+			Graphics::VertexBuffer* buffer = Graphics::VertexBuffer::Create(Graphics::BufferUsage::STATIC);
+            buffer->SetData(sizeof(Graphics::Vertex) * numVertices, tempvertices);
             
-            graphics::BufferLayout layout;
-            layout.Push<maths::Vector3>("position");
-            layout.Push<maths::Vector4>("colour");
-            layout.Push<maths::Vector2>("texCoord");
-            layout.Push<maths::Vector3>("normal");
-            layout.Push<maths::Vector3>("tangent");
+            Graphics::BufferLayout layout;
+            layout.Push<Maths::Vector3>("position");
+            layout.Push<Maths::Vector4>("colour");
+            layout.Push<Maths::Vector2>("texCoord");
+            layout.Push<Maths::Vector3>("normal");
+            layout.Push<Maths::Vector3>("tangent");
             buffer->SetLayout(layout);
             
             va->PushBuffer(buffer);
@@ -383,10 +383,10 @@ namespace lumos
                 }
             }
             
-            std::shared_ptr<graphics::IndexBuffer> ib;
-            ib.reset(graphics::IndexBuffer::Create(indicesArray, numVertices));
+            std::shared_ptr<Graphics::IndexBuffer> ib;
+            ib.reset(Graphics::IndexBuffer::Create(indicesArray, numVertices));
             
-            auto lMesh = new graphics::Mesh(va, ib, pbrMaterial, boundingBox);
+            auto lMesh = new Graphics::Mesh(va, ib, pbrMaterial, boundingBox);
             
             delete[] tempvertices;
             delete[] indicesArray;
@@ -397,7 +397,7 @@ namespace lumos
         return nullptr;
     }
     
-    void LoadNode(int nodeIndex, Entity* parent, tinygltf::Model& model, std::vector<std::shared_ptr<Material>>& materials, std::vector<graphics::Mesh*>& meshes)
+    void LoadNode(int nodeIndex, Entity* parent, tinygltf::Model& model, std::vector<std::shared_ptr<Material>>& materials, std::vector<Graphics::Mesh*>& meshes)
     {
         if (nodeIndex < 0)
         {
@@ -410,7 +410,7 @@ namespace lumos
         if(name == "")
             name = "Mesh : " + StringFormat::ToString(nodeIndex);
         auto meshEntity = std::make_shared<Entity>(name);
-        meshEntity->AddComponent<TransformComponent>(maths::Matrix4());
+        meshEntity->AddComponent<TransformComponent>();
         
         if(parent)
             parent->AddChildObject(meshEntity);
@@ -419,15 +419,13 @@ namespace lumos
         {
             if (node.skin >= 0)
             {
-                auto lMesh = std::shared_ptr<graphics::Mesh>(meshes[node.mesh]);
+                auto lMesh = std::shared_ptr<Graphics::Mesh>(meshes[node.mesh]);
                 meshEntity->AddComponent<MeshComponent>(lMesh);
-                meshEntity->SetBoundingRadius(lMesh->GetBoundingSphere()->SphereRadius());
             }
             else
             {
-                auto lMesh = std::shared_ptr<graphics::Mesh>(meshes[node.mesh]);
+                auto lMesh = std::shared_ptr<Graphics::Mesh>(meshes[node.mesh]);
                 meshEntity->AddComponent<MeshComponent>(lMesh);
-                meshEntity->SetBoundingRadius(lMesh->GetBoundingSphere()->SphereRadius());
             }
         }
         
@@ -435,19 +433,19 @@ namespace lumos
         
         if (!node.scale.empty())
         {
-            transform->GetTransform().SetLocalScale(maths::Vector3(static_cast<float>(node.scale[0]), static_cast<float>(node.scale[1]), static_cast<float>(node.scale[2])));
+            transform->GetTransform().SetLocalScale(Maths::Vector3(static_cast<float>(node.scale[0]), static_cast<float>(node.scale[1]), static_cast<float>(node.scale[2])));
         }
         if (!node.rotation.empty())
         {
-            transform->GetTransform().SetLocalOrientation(maths::Quaternion(static_cast<float>(node.rotation[0]), static_cast<float>(node.rotation[1]), static_cast<float>(node.rotation[2]), static_cast<float>(node.rotation[3])));
+            transform->GetTransform().SetLocalOrientation(Maths::Quaternion(static_cast<float>(node.rotation[0]), static_cast<float>(node.rotation[1]), static_cast<float>(node.rotation[2]), static_cast<float>(node.rotation[3])));
         }
         if (!node.translation.empty())
         {
-            transform->GetTransform().SetLocalPosition(maths::Vector3(static_cast<float>(node.translation[0]), static_cast<float>(node.translation[1]), static_cast<float>(node.translation[2])));
+            transform->GetTransform().SetLocalPosition(Maths::Vector3(static_cast<float>(node.translation[0]), static_cast<float>(node.translation[1]), static_cast<float>(node.translation[2])));
         }
         if (!node.matrix.empty())
         {
-            auto lTransform = maths::Matrix4(reinterpret_cast<float*>(node.matrix.data()));
+            auto lTransform = Maths::Matrix4(reinterpret_cast<float*>(node.matrix.data()));
             transform->GetTransform().SetLocalTransform(lTransform);
             transform->GetTransform().ApplyTransform(); // this creates S, R, T vectors from local matrix
         }
@@ -508,16 +506,16 @@ namespace lumos
         String name = directory.substr(directory.find_last_of('/') + 1);
 
 		auto entity = std::make_shared<Entity>(name);
-		entity->AddComponent<TransformComponent>(maths::Matrix4());
+		entity->AddComponent<TransformComponent>();
 
-        auto meshes = std::vector<graphics::Mesh*>();
+        auto meshes = std::vector<Graphics::Mesh*>();
         
         for (auto& mesh : model.meshes)
         {
             meshes.emplace_back(LoadMesh(model,mesh,LoadedMaterials));
         }
         
-        const tinygltf::Scene &gltfScene = model.scenes[maths::Max(0, model.defaultScene)];
+        const tinygltf::Scene &gltfScene = model.scenes[Maths::Max(0, model.defaultScene)];
         for (size_t i = 0; i < gltfScene.nodes.size(); i++)
         {
             LoadNode(gltfScene.nodes[i], entity.get(), model, LoadedMaterials, meshes);

@@ -1,9 +1,9 @@
 #pragma once
 #include "LM.h"
 
-namespace lumos
+namespace Lumos
 {
-	namespace maths
+	namespace Maths
 	{
 		template <class T> const T& Max(const T& a, const T& b)
 		{
@@ -39,23 +39,23 @@ namespace lumos
 		static constexpr  float		PI_OVER_360 = PI / 360.0f;
 
 		//Radians to degrees
-		static constexpr  double RadToDeg(const double deg)
+		static constexpr  double RadiansToDegrees(const double deg)
 		{
 			return deg * 180.0 / PI;
 		};
 
-		static constexpr  float RadToDeg(const float deg)
+		static constexpr  float RadiansToDegrees(const float deg)
 		{
 			return deg * 180.0f / PI;
 		};
 
 		//Degrees to radians
-		static constexpr double DegToRad(const double rad)
+		static constexpr double DegreesToRadians(const double rad)
 		{
 			return rad * PI / 180.0;
 		};
 
-		static constexpr  float DegToRad(const float rad)
+		static constexpr  float DegreesToRadians(const float rad)
 		{
 			return rad * PI / 180.0f;
 		};

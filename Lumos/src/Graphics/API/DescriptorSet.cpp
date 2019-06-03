@@ -10,13 +10,13 @@
 #include "Platform/OpenGL/GLDescriptorSet.h"
 #endif
 
-namespace lumos
+namespace Lumos
 {
-	namespace graphics
+	namespace Graphics
 	{
 		DescriptorSet* DescriptorSet::Create(DescriptorInfo info)
 		{
-			switch (graphics::GraphicsContext::GetRenderAPI())
+			switch (Graphics::GraphicsContext::GetRenderAPI())
 			{
 #ifdef LUMOS_RENDER_API_OPENGL
 			case RenderAPI::OPENGL:	return new GLDescriptorSet(info);

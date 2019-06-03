@@ -7,9 +7,9 @@
 #include "Events/MouseEvent.h"
 #include "Events/ApplicationEvent.h"
 
-namespace lumos
+namespace Lumos
 {
-    namespace graphics
+    namespace Graphics
     {
 		class IMGUIRenderer;
     }
@@ -41,7 +41,7 @@ namespace lumos
 		void SetImGuiKeyCodes();
 		void SetImGuiStyle();
 
-        std::unique_ptr<graphics::IMGUIRenderer> m_IMGUIRenderer;
+        std::unique_ptr<Graphics::IMGUIRenderer> m_IMGUIRenderer;
 		bool m_ClearScreen;
 	};
 

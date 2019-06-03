@@ -2,7 +2,7 @@
 #include "LM.h"
 #include "Maths/Maths.h"
 
-namespace lumos
+namespace Lumos
 {
 	class Material;
 	class Particle;
@@ -10,7 +10,7 @@ namespace lumos
 	class Mesh;
 	class VertexArray;
 	class Texture2D;
-	namespace maths
+	namespace Maths
 	{
 		class BoundingBox;
 	}
@@ -21,9 +21,9 @@ namespace lumos
 
 		ParticleEmitter();
 		~ParticleEmitter();
-		maths::BoundingBox* CalculateBoundingBox() const;
+		Maths::BoundingBox* CalculateBoundingBox() const;
 
-		static maths::Matrix4 UpdateModelViewMatrix(const maths::Matrix4& viewMatrix, Particle* particle);
+		static Maths::Matrix4 UpdateModelViewMatrix(const Maths::Matrix4& viewMatrix, Particle* particle);
 
 		void Update(float dt);
 		void Render(Material* material, Camera* camera, Mesh* quad);
@@ -40,14 +40,14 @@ namespace lumos
 		uint GetNumLaunchParticles() const;
 		void SetNumLaunchParticles(uint numLaunchParticles);
 
-		maths::Vector3 GetArea() const;
-		void SetArea(const maths::Vector3& area);
+		Maths::Vector3 GetArea() const;
+		void SetArea(const Maths::Vector3& area);
 
-		maths::Vector3 GetPosition() const;
-		void SetPosition(const maths::Vector3& position);
+		Maths::Vector3 GetPosition() const;
+		void SetPosition(const Maths::Vector3& position);
 
-		maths::Vector3 GetInitialVelocity() const;
-		void SetInitialVelocity(const maths::Vector3& initialVelocity);
+		Maths::Vector3 GetInitialVelocity() const;
+		void SetInitialVelocity(const Maths::Vector3& initialVelocity);
 
 		float GetParticleLife() const;
 		void SetParticleLife(float particleLife);
@@ -73,71 +73,71 @@ namespace lumos
 		float m_NextParticleTime;
 		float m_ParticleRate;
 		uint m_NumLaunchParticles;
-		maths::Vector3 m_Area;
-		maths::Vector3 m_Position;
-		maths::Vector3 m_InitialVelocity;
+		Maths::Vector3 m_Area;
+		Maths::Vector3 m_Position;
+		Maths::Vector3 m_InitialVelocity;
 		float m_ParticleLife;
 		float m_GravityEffect;
 		float m_Scale;
-		maths::Vector2 m_PositionVarianceX;
+		Maths::Vector2 m_PositionVarianceX;
 
 	public:
-		maths::Vector2 GetPositionVarianceX() const
+		Maths::Vector2 GetPositionVarianceX() const
 		{
 			return m_PositionVarianceX;
 		}
 
-		void SetPositionVarianceX(const maths::Vector2& vector2)
+		void SetPositionVarianceX(const Maths::Vector2& vector2)
 		{
 			m_PositionVarianceX = vector2;
 		}
 
-		maths::Vector2 GetPositionVarianceY() const
+		Maths::Vector2 GetPositionVarianceY() const
 		{
 			return m_PositionVarianceY;
 		}
 
-		void SetPositionVarianceY(const maths::Vector2& vector2)
+		void SetPositionVarianceY(const Maths::Vector2& vector2)
 		{
 			m_PositionVarianceY = vector2;
 		}
 
-		maths::Vector2 GetPositionVarianceZ() const
+		Maths::Vector2 GetPositionVarianceZ() const
 		{
 			return m_PositionVarianceZ;
 		}
 
-		void SetPositionVarianceZ(const maths::Vector2& vector2)
+		void SetPositionVarianceZ(const Maths::Vector2& vector2)
 		{
 			m_PositionVarianceZ = vector2;
 		}
 
-		maths::Vector2 GetVelocityVarianceX() const
+		Maths::Vector2 GetVelocityVarianceX() const
 		{
 			return m_VelocityVarianceX;
 		}
 
-		void SetVelocityVarianceX(const maths::Vector2& vector2)
+		void SetVelocityVarianceX(const Maths::Vector2& vector2)
 		{
 			m_VelocityVarianceX = vector2;
 		}
 
-		maths::Vector2 GetVelocityVarianceY() const
+		Maths::Vector2 GetVelocityVarianceY() const
 		{
 			return m_VelocityVarianceY;
 		}
 
-		void SetVelocityVarianceY(const maths::Vector2& vector2)
+		void SetVelocityVarianceY(const Maths::Vector2& vector2)
 		{
 			m_VelocityVarianceY = vector2;
 		}
 
-		maths::Vector2 GetVelocityVarianceZ() const
+		Maths::Vector2 GetVelocityVarianceZ() const
 		{
 			return m_VelocityVarianceZ;
 		}
 
-		void SetVelocityVarianceZ(const maths::Vector2& vector2)
+		void SetVelocityVarianceZ(const Maths::Vector2& vector2)
 		{
 			m_VelocityVarianceZ = vector2;
 		}
@@ -163,11 +163,11 @@ namespace lumos
 		}
 
 	private:
-		maths::Vector2 m_PositionVarianceY;
-		maths::Vector2 m_PositionVarianceZ;
-		maths::Vector2 m_VelocityVarianceX;
-		maths::Vector2 m_VelocityVarianceY;
-		maths::Vector2 m_VelocityVarianceZ;
+		Maths::Vector2 m_PositionVarianceY;
+		Maths::Vector2 m_PositionVarianceZ;
+		Maths::Vector2 m_VelocityVarianceX;
+		Maths::Vector2 m_VelocityVarianceY;
+		Maths::Vector2 m_VelocityVarianceZ;
 		float m_ScaleVariance;
 		float m_LifeLengthVariance;
 

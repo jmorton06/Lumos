@@ -3,7 +3,7 @@
 
 #include "System/Profiler.h"
 
-namespace lumos
+namespace Lumos
 {
 
 	LayerStack::LayerStack()
@@ -55,9 +55,9 @@ namespace lumos
 		{
 			Layer* layer = m_Layers[i];
             
-			LUMOS_PROFILE(system::Profiler::OnBeginRange("Layer Render : " + layer->GetName(), true, "Render"));
+			LUMOS_PROFILE(System::Profiler::OnBeginRange("Layer Render : " + layer->GetName(), true, "Render"));
 			layer->OnRender(scene);
-			LUMOS_PROFILE(system::Profiler::OnEndRange("Layer Render : " + layer->GetName(), true, "Render"));
+			LUMOS_PROFILE(System::Profiler::OnEndRange("Layer Render : " + layer->GetName(), true, "Render"));
 		}
 	}
 
@@ -66,9 +66,9 @@ namespace lumos
 		for (uint i = 0; i < m_Layers.size(); i++)
 		{
 			Layer* layer = m_Layers[i];
-			LUMOS_PROFILE(system::Profiler::OnBeginRange("Layer Update : " + layer->GetName(), true, "Update"));
+			LUMOS_PROFILE(System::Profiler::OnBeginRange("Layer Update : " + layer->GetName(), true, "Update"));
 			layer->OnUpdate(timeStep, scene);
-			LUMOS_PROFILE(system::Profiler::OnEndRange("Layer Update : " + layer->GetName(), true, "Update"));
+			LUMOS_PROFILE(System::Profiler::OnEndRange("Layer Update : " + layer->GetName(), true, "Update"));
 		}
 	}
 

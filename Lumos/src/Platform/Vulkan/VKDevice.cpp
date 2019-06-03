@@ -27,12 +27,12 @@ extern "C" {
 #endif
 
 #ifdef LUMOS_PLATFORM_IOS
-void* lumos::graphics::VKDevice::m_IOSView = nullptr;
+void* Lumos::Graphics::VKDevice::m_IOSView = nullptr;
 #endif
 
-namespace lumos
+namespace Lumos
 {
-	namespace graphics
+	namespace Graphics
 	{
 		VKDevice::VKDevice()
 		{
@@ -146,7 +146,7 @@ namespace lumos
 
 			if (m_GraphicsQueueFamilyIndex == UINT32_MAX)
 			{
-				LUMOS_CORE_ERROR("ERROR : Couldn't find a graphics queue family index!");
+				LUMOS_CORE_ERROR("ERROR : Couldn't find a Graphics queue family index!");
 				return false;
 			}
 

@@ -4,9 +4,9 @@
 #include "Platform/OpenGL/GL.h"
 #include "System/VFS.h"
 
-namespace lumos
+namespace Lumos
 {
-	namespace graphics
+	namespace Graphics
 	{
 		bool IGNORE_LINES = false;
 		static ShaderType type = ShaderType::UNKNOWN;
@@ -774,22 +774,22 @@ namespace lumos
 				SetUniform1i(uniform->GetLocation(), *reinterpret_cast<int*>(&data[offset]));
 				break;
 			case GLShaderUniformDeclaration::Type::VEC2:
-				SetUniform2f(uniform->GetLocation(), *reinterpret_cast<maths::Vector2*>(&data[offset]));
+				SetUniform2f(uniform->GetLocation(), *reinterpret_cast<Maths::Vector2*>(&data[offset]));
 				break;
 			case GLShaderUniformDeclaration::Type::VEC3:
-				SetUniform3f(uniform->GetLocation(), *reinterpret_cast<maths::Vector3*>(&data[offset]));
+				SetUniform3f(uniform->GetLocation(), *reinterpret_cast<Maths::Vector3*>(&data[offset]));
 				break;
 			case GLShaderUniformDeclaration::Type::VEC4:
-				SetUniform4f(uniform->GetLocation(), *reinterpret_cast<maths::Vector4*>(&data[offset]));
+				SetUniform4f(uniform->GetLocation(), *reinterpret_cast<Maths::Vector4*>(&data[offset]));
 				break;
 			case GLShaderUniformDeclaration::Type::MAT3:
-				SetUniformMat3(uniform->GetLocation(), *reinterpret_cast<maths::Matrix3*>(&data[offset]));
+				SetUniformMat3(uniform->GetLocation(), *reinterpret_cast<Maths::Matrix3*>(&data[offset]));
 				break;
 			case GLShaderUniformDeclaration::Type::MAT4:
-				SetUniformMat4(uniform->GetLocation(), *reinterpret_cast<maths::Matrix4*>(&data[offset]));
+				SetUniformMat4(uniform->GetLocation(), *reinterpret_cast<Maths::Matrix4*>(&data[offset]));
 				break;
 			case GLShaderUniformDeclaration::Type::MAT4ARRAY:
-				SetUniformMat4Array(uniform->GetLocation(), count, *reinterpret_cast<maths::Matrix4*>(&data[offset]));
+				SetUniformMat4Array(uniform->GetLocation(), count, *reinterpret_cast<Maths::Matrix4*>(&data[offset]));
 				break;
 			case GLShaderUniformDeclaration::Type::STRUCT:
 				SetUniformStruct(uniform, data, offset);
@@ -823,22 +823,22 @@ namespace lumos
 				SetUniform1i(field.GetLocation(), *reinterpret_cast<int32*>(&data[offset]));
 				break;
 			case GLShaderUniformDeclaration::Type::VEC2:
-				SetUniform2f(field.GetLocation(), *reinterpret_cast<maths::Vector2*>(&data[offset]));
+				SetUniform2f(field.GetLocation(), *reinterpret_cast<Maths::Vector2*>(&data[offset]));
 				break;
 			case GLShaderUniformDeclaration::Type::VEC3:
-				SetUniform3f(field.GetLocation(), *reinterpret_cast<maths::Vector3*>(&data[offset]));
+				SetUniform3f(field.GetLocation(), *reinterpret_cast<Maths::Vector3*>(&data[offset]));
 				break;
 			case GLShaderUniformDeclaration::Type::VEC4:
-				SetUniform4f(field.GetLocation(), *reinterpret_cast<maths::Vector4*>(&data[offset]));
+				SetUniform4f(field.GetLocation(), *reinterpret_cast<Maths::Vector4*>(&data[offset]));
 				break;
 			case GLShaderUniformDeclaration::Type::MAT3:
-				SetUniformMat3(field.GetLocation(), *reinterpret_cast<maths::Matrix3*>(&data[offset]));
+				SetUniformMat3(field.GetLocation(), *reinterpret_cast<Maths::Matrix3*>(&data[offset]));
 				break;
 			case GLShaderUniformDeclaration::Type::MAT4:
-				SetUniformMat4(field.GetLocation(), *reinterpret_cast<maths::Matrix4*>(&data[offset]));
+				SetUniformMat4(field.GetLocation(), *reinterpret_cast<Maths::Matrix4*>(&data[offset]));
 				break;
 			case GLShaderUniformDeclaration::Type::MAT4ARRAY:
-				SetUniformMat4Array(field.GetLocation(), count, *reinterpret_cast<maths::Matrix4*>(&data[offset]));
+				SetUniformMat4Array(field.GetLocation(), count, *reinterpret_cast<Maths::Matrix4*>(&data[offset]));
 				break;
 			default:
 				LUMOS_CORE_ASSERT(false, "Unknown type!");
@@ -865,22 +865,22 @@ namespace lumos
 			SetUniform1iv(GetUniformLocation(name), value, count);
 		}
 
-		void GLShader::SetUniform2f(const String& name, const maths::Vector2& vector) const
+		void GLShader::SetUniform2f(const String& name, const Maths::Vector2& vector) const
 		{
 			SetUniform2f(GetUniformLocation(name), vector);
 		}
 
-		void GLShader::SetUniform3f(const String& name, const maths::Vector3& vector) const
+		void GLShader::SetUniform3f(const String& name, const Maths::Vector3& vector) const
 		{
 			SetUniform3f(GetUniformLocation(name), vector);
 		}
 
-		void GLShader::SetUniform4f(const String& name, const maths::Vector4& vector) const
+		void GLShader::SetUniform4f(const String& name, const Maths::Vector4& vector) const
 		{
 			SetUniform4f(GetUniformLocation(name), vector);
 		}
 
-		void GLShader::SetUniformMat4(const String& name, const maths::Matrix4& matrix) const
+		void GLShader::SetUniformMat4(const String& name, const Maths::Matrix4& matrix) const
 		{
 			SetUniformMat4(GetUniformLocation(name), matrix);
 		}
@@ -905,32 +905,32 @@ namespace lumos
 			GLCall(glUniform1iv(location, count, value));
 		}
 
-		void GLShader::SetUniform2f(uint location, const maths::Vector2& vector)
+		void GLShader::SetUniform2f(uint location, const Maths::Vector2& vector)
 		{
 			GLCall(glUniform2f(location, vector.GetX(), vector.GetY()));
 		}
 
-		void GLShader::SetUniform3f(uint location, const maths::Vector3& vector)
+		void GLShader::SetUniform3f(uint location, const Maths::Vector3& vector)
 		{
 			GLCall(glUniform3f(location, vector.GetX(), vector.GetY(), vector.GetZ()));
 		}
 
-		void GLShader::SetUniform4f(uint location, const maths::Vector4& vector)
+		void GLShader::SetUniform4f(uint location, const Maths::Vector4& vector)
 		{
 			GLCall(glUniform4f(location, vector.GetX(), vector.GetY(), vector.GetZ(), vector.GetW()));
 		}
 
-		void GLShader::SetUniformMat3(uint location, const maths::Matrix3& matrix)
+		void GLShader::SetUniformMat3(uint location, const Maths::Matrix3& matrix)
 		{
 			GLCall(glUniformMatrix3fv(location, 1, GL_FALSE /*GLTRUE*/, &matrix.values[0]));
 		}
 
-		void GLShader::SetUniformMat4(uint location, const maths::Matrix4& matrix)
+		void GLShader::SetUniformMat4(uint location, const Maths::Matrix4& matrix)
 		{
 			GLCall(glUniformMatrix4fv(location, 1, GL_FALSE /*GLTRUE*/, &matrix.values[0]));
 		}
 
-		void GLShader::SetUniformMat4Array(uint location, uint count, const maths::Matrix4& matrix)
+		void GLShader::SetUniformMat4Array(uint location, uint count, const Maths::Matrix4& matrix)
 		{
 			GLCall(glUniformMatrix4fv(location, count, GL_FALSE /*GLTRUE*/, &matrix.values[0]));
 		}

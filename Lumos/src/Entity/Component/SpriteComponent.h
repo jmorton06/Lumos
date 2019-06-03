@@ -2,9 +2,9 @@
 #include "LM.h"
 #include "LumosComponent.h"
 
-namespace lumos
+namespace Lumos
 {
-	namespace graphics
+	namespace Graphics
 	{
 		class Sprite;
 	}
@@ -12,9 +12,9 @@ namespace lumos
 	class LUMOS_EXPORT SpriteComponent : public LumosComponent
 	{
 	public:
-		std::shared_ptr<graphics::Sprite> m_Sprite;
+		std::shared_ptr<Graphics::Sprite> m_Sprite;
 	public:
-		explicit SpriteComponent(std::shared_ptr<graphics::Sprite>& sprite);
+		explicit SpriteComponent(std::shared_ptr<Graphics::Sprite>& sprite);
 
 		static ComponentType GetStaticType()
 		{

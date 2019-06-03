@@ -11,19 +11,19 @@
 #include "Platform/OpenGL/GLUniformBuffer.h"
 #endif
 
-namespace lumos
+namespace Lumos
 {
-	namespace graphics
+	namespace Graphics
 	{
 		UniformBuffer* UniformBuffer::Create()
 		{
-			switch (graphics::GraphicsContext::GetRenderAPI())
+			switch (Graphics::GraphicsContext::GetRenderAPI())
 			{
 #ifdef LUMOS_RENDER_API_OPENGL
 			case RenderAPI::OPENGL:	return new GLUniformBuffer();
 #endif
 #ifdef LUMOS_RENDER_API_VULKAN
-			case RenderAPI::VULKAN:	return new graphics::VKUniformBuffer();
+			case RenderAPI::VULKAN:	return new Graphics::VKUniformBuffer();
 #endif
 #ifdef LUMOS_RENDER_API_DIRECT3D
 			case RenderAPI::DIRECT3D: return nullptr;
@@ -34,13 +34,13 @@ namespace lumos
 
 		UniformBuffer* UniformBuffer::Create(uint32_t size, const void* data)
 		{
-			switch (graphics::GraphicsContext::GetRenderAPI())
+			switch (Graphics::GraphicsContext::GetRenderAPI())
 			{
 #ifdef LUMOS_RENDER_API_OPENGL
 			case RenderAPI::OPENGL:	return new GLUniformBuffer();
 #endif
 #ifdef LUMOS_RENDER_API_VULKAN
-			case RenderAPI::VULKAN:	return new graphics::VKUniformBuffer(size, data);
+			case RenderAPI::VULKAN:	return new Graphics::VKUniformBuffer(size, data);
 #endif
 #ifdef LUMOS_RENDER_API_DIRECT3D
 			case RenderAPI::DIRECT3D: return nullptr;

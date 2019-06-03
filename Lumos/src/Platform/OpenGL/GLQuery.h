@@ -2,9 +2,9 @@
 #include "LM.h"
 #include "Graphics/API/Query.h"
 
-namespace lumos
+namespace Lumos
 {
-	namespace graphics
+	namespace Graphics
 	{
 		class GLQuery : public Query
 		{

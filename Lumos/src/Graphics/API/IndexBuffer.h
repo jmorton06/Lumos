@@ -4,9 +4,9 @@
 
 #include "Graphics/API/VertexBuffer.h"
 
-namespace lumos
+namespace Lumos
 {
-	namespace graphics
+	namespace Graphics
 	{
 		class LUMOS_EXPORT IndexBuffer
 		{

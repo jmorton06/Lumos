@@ -7,7 +7,7 @@ namespace sol
     class state;
 }
 
-namespace lumos
+namespace Lumos
 {
     struct WindowProperties;
     

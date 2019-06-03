@@ -1,14 +1,14 @@
 #pragma once
 #include "Maths/Vector2.h"
 
-namespace lumos
+namespace Lumos
 {
 	class Application;
 	class Entity;
 	class Console;
 	class Scene;
 	
-	namespace graphics 
+	namespace Graphics 
 	{
 		class Texture2D;
 	}
@@ -45,11 +45,11 @@ namespace lumos
 		Application* m_Application;
 		Console* m_Console;
 
-		maths::Vector2 m_SceneViewSize;
-		maths::Vector2 m_SceneViewPosition;
+		Maths::Vector2 m_SceneViewSize;
+		Maths::Vector2 m_SceneViewPosition;
 		uint m_ImGuizmoOperation = 0;
 		Entity* m_Selected = nullptr;
 
-		std::map<String, graphics::Texture2D*> m_Icons;
+		std::map<String, Graphics::Texture2D*> m_Icons;
 	};
 }

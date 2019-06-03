@@ -3,9 +3,9 @@
 
 #include "GL.h"
 
-namespace lumos
+namespace Lumos
 {
-	namespace graphics
+	namespace Graphics
 	{
 		static uint BufferUsageToOpenGL(const BufferUsage usage)
 		{
@@ -37,13 +37,13 @@ namespace lumos
 			GLCall(glBufferData(GL_ARRAY_BUFFER, size, NULL, BufferUsageToOpenGL(m_Usage)));
 		}
 
-		void GLVertexBuffer::SetLayout(const graphics::BufferLayout& bufferLayout)
+		void GLVertexBuffer::SetLayout(const Graphics::BufferLayout& bufferLayout)
 		{
 			m_Layout = bufferLayout;
-			const std::vector<graphics::BufferElement>& layout = bufferLayout.GetLayout();
+			const std::vector<Graphics::BufferElement>& layout = bufferLayout.GetLayout();
 			for (uint i = 0; i < layout.size(); i++)
 			{
-				const graphics::BufferElement& element = layout[i];
+				const Graphics::BufferElement& element = layout[i];
 				GLCall(glEnableVertexAttribArray(i));
 				size_t offset = static_cast<size_t>(element.offset);
 				GLCall(glVertexAttribPointer(i, element.count, element.type, element.normalized, bufferLayout.GetStride(), reinterpret_cast<const void*>(offset)));

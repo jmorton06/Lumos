@@ -6,13 +6,13 @@
 #include "Utilities/TSingleton.h"
 #include "Events/Event.h"
 
-namespace lumos
+namespace Lumos
 {
 	class Texture2D;
 
 	struct LUMOS_EXPORT WindowProperties
 	{
-        WindowProperties(uint width = 1280, uint height = 720, int renderAPI = 0, String title = "lumos", bool fullscreen = false, bool vSync = true, bool borderless = false) : Width(width), Height(height), Title(title), Fullscreen(fullscreen), VSync(vSync), Borderless(borderless), RenderAPI(renderAPI)
+        WindowProperties(uint width = 1280, uint height = 720, int renderAPI = 0, String title = "Lumos", bool fullscreen = false, bool vSync = true, bool borderless = false) : Width(width), Height(height), Title(title), Fullscreen(fullscreen), VSync(vSync), Borderless(borderless), RenderAPI(renderAPI)
 		{
 		}
 
@@ -45,7 +45,7 @@ namespace lumos
 		inline void SetHasResized(bool resized){ m_HasResized = resized; }
 		inline bool GetHasResized() const { return m_HasResized; }
 
-		inline maths::Vector2 GetScreenSize() const { return m_ScreenSize; };
+		inline Maths::Vector2 GetScreenSize() const { return m_ScreenSize; };
 
 		virtual void ToggleVSync() = 0;
 		virtual void SetVSync(bool set) = 0;
@@ -55,7 +55,7 @@ namespace lumos
 		virtual void* GetHandle() { return nullptr; };
 		virtual float GetScreenRatio() const = 0;
 		virtual void HideMouse(bool hide) {};
-		virtual void SetMousePosition(const maths::Vector2& pos) {};
+		virtual void SetMousePosition(const Maths::Vector2& pos) {};
 		virtual void SetEventCallback(const EventCallbackFn& callback) = 0;
 
 		virtual String GetTitle() const = 0;
@@ -65,8 +65,8 @@ namespace lumos
 	protected:
 
 		bool				m_Init;
-		maths::Vector2		m_Position;
-		maths::Vector2		m_ScreenSize;
+		Maths::Vector2		m_Position;
+		Maths::Vector2		m_ScreenSize;
 		Timer*				m_Timer;
 		bool				m_VSync;
 		bool				m_HasResized;

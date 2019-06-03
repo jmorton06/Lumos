@@ -7,9 +7,9 @@
 #include "VKFramebuffer.h"
 #include "Graphics/API/Swapchain.h"
 
-namespace lumos
+namespace Lumos
 {
-	namespace graphics
+	namespace Graphics
 	{
 		class VKSwapchain : public Swapchain
 		{

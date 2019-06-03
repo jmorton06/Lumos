@@ -3,7 +3,7 @@
 #include "LM.h"
 
 #define GENERIC_MEMORY_SMALL_MEMSWAP_MAX 16
-namespace lumos
+namespace Lumos
 {
 
 	struct GenericMemory

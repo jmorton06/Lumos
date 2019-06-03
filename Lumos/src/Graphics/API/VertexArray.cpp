@@ -6,16 +6,16 @@
 #include "Platform/OpenGL/GLVertexArray.h"
 #endif
 #ifdef LUMOS_RENDER_API_DIRECT3D
-#include "graphics/DirectX/DXVertexArray.h"
+#include "Graphics/DirectX/DXVertexArray.h"
 #endif
 #include "Graphics/API/GraphicsContext.h"
 #ifdef LUMOS_RENDER_API_VULKAN
 #include "Platform/Vulkan/VKVertexArray.h"
 #endif
 
-namespace lumos
+namespace Lumos
 {
-	namespace graphics
+	namespace Graphics
 	{
 		VertexArray* VertexArray::Create()
 		{

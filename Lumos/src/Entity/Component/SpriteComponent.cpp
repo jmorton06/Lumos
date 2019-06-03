@@ -7,9 +7,9 @@
 #include "Maths/MathsUtilities.h"
 #include <imgui/imgui.h>
 
-namespace lumos
+namespace Lumos
 {
-	SpriteComponent::SpriteComponent(std::shared_ptr<graphics::Sprite>& sprite)
+	SpriteComponent::SpriteComponent(std::shared_ptr<Graphics::Sprite>& sprite)
 		: m_Sprite(sprite)
 	{
 

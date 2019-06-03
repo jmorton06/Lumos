@@ -2,9 +2,9 @@
 #include "LM.h"
 #include "Mesh.h"
 
-namespace lumos
+namespace Lumos
 {
-	class LUMOS_EXPORT Water : public graphics::Mesh
+	class LUMOS_EXPORT Water : public Graphics::Mesh
 	{
 	public:
 		Water();

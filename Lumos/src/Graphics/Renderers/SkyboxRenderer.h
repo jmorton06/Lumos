@@ -2,11 +2,11 @@
 #include "LM.h"
 #include "Renderer3D.h"
 
-namespace lumos
+namespace Lumos
 {
 	class LightSetup;
 	
-	namespace graphics
+	namespace Graphics
 	{
 		class TextureDepth;
 		class Texture;
@@ -17,7 +17,7 @@ namespace lumos
 		public:
 			SkyboxRenderer(uint width, uint height, Texture* cubeMap);
 			~SkyboxRenderer();
-			//void Render(graphics::CommandBuffer* commandBuffer, Scene* scene, int framebufferId);
+			//void Render(Graphics::CommandBuffer* commandBuffer, Scene* scene, int framebufferId);
 
 			void Init() override;
 			void BeginScene(Scene* scene) override;
@@ -25,11 +25,11 @@ namespace lumos
 			void CreateGraphicsPipeline();
 			void SetCubeMap(Texture* cubeMap);
 			void UpdateUniformBuffer();
-			//void SetRenderInfo(graphics::RenderPass* renderPass) { m_RenderPass = renderPass; }
+			//void SetRenderInfo(Graphics::RenderPass* renderPass) { m_RenderPass = renderPass; }
 
 			void Begin() override;
 			void Submit(const RenderCommand& command) override {};
-			void SubmitMesh(Mesh* mesh, const maths::Matrix4& transform, const maths::Matrix4& textureMatrix) override {};
+			void SubmitMesh(Mesh* mesh, const Maths::Matrix4& transform, const Maths::Matrix4& textureMatrix) override {};
 			void EndScene() override {};
 			void End() override;
 			void Present() override {};
@@ -39,7 +39,7 @@ namespace lumos
 
 			struct UniformBufferObject
 			{
-				lumos::maths::Matrix4 invprojview;
+				Lumos::Maths::Matrix4 invprojview;
 			};
 
 			void SetRenderTarget(Texture* texture) override;
@@ -57,8 +57,8 @@ namespace lumos
 			std::vector<uint> m_VSSystemUniformBufferOffsets;
 			std::vector<uint> m_PSSystemUniformBufferOffsets;
 
-			lumos::graphics::UniformBuffer* m_UniformBuffer;
-			std::vector<lumos::graphics::CommandBuffer*> m_CommandBuffers;
+			Lumos::Graphics::UniformBuffer* m_UniformBuffer;
+			std::vector<Lumos::Graphics::CommandBuffer*> m_CommandBuffers;
 			std::vector<Framebuffer*> m_Framebuffers;
 
 			uint m_CurrentBufferID = 0;

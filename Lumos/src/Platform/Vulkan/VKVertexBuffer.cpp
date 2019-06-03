@@ -3,9 +3,9 @@
 #include "VKVertexBuffer.h"
 #include "VKRenderer.h"
 
-namespace lumos
+namespace Lumos
 { 
-	namespace graphics
+	namespace Graphics
 	{
 		VKVertexBuffer::VKVertexBuffer(BufferUsage usage)
 			: VKBuffer(), m_Usage(usage), m_Size(0)
@@ -24,7 +24,7 @@ namespace lumos
 
 		}
 
-		void VKVertexBuffer::SetLayout(const graphics::BufferLayout& bufferLayout)
+		void VKVertexBuffer::SetLayout(const Graphics::BufferLayout& bufferLayout)
 		{
 			m_Layout = bufferLayout;
 		}

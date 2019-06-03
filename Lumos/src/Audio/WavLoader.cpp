@@ -1,7 +1,7 @@
 #include "LM.h"
 #include "WavLoader.h"
 
-namespace lumos
+namespace Lumos
 {
 	AudioData LoadWav(const String& fileName)
 	{

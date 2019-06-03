@@ -2,7 +2,7 @@
 #include "LM.h"
 #include "QueueablePathNode.h"
 
-namespace lumos
+namespace Lumos
 {
 
 	//template <typename T> struct greater_ptr : std::binary_function<bool, const T *, const T *>

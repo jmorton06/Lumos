@@ -2,9 +2,9 @@
 #include "LM.h"
 #include "Maths/Quaternion.h"
 
-namespace lumos
+namespace Lumos
 {
-	namespace maths
+	namespace Maths
 	{
 		class LUMOS_EXPORT Transform
 		{
@@ -39,6 +39,10 @@ namespace lumos
 			{
 				return m_WorldMatrix.GetPositionVector();
 			}
+
+			const Vector3& GetLocalPosition() { return m_LocalPosition; }
+			const Vector3& GetLocalScale() { return m_LocalScale; }
+			const Quaternion& GetLocalOrientation() { return m_LocalOrientation; }
 
 			void UpdateMatrices();
 

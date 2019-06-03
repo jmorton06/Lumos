@@ -1,7 +1,7 @@
 #include "LM.h"
 #include "Integration.h"
 
-namespace lumos
+namespace Lumos
 {
 
 	void Integration::RK2(State &state,float t, float dt)
@@ -11,8 +11,8 @@ namespace lumos
 		const Derivative a = Evaluate(state,t, 0.0f, Derivative());
 		const Derivative b = Evaluate(state,t, dt * 0.5f, a);
 
-		const maths::Vector3 dxdt = (a.velocity + b.velocity) * 0.5f;
-		const maths::Vector3 dvdt = (a.acceleration + b.acceleration) * 0.5f;
+		const Maths::Vector3 dxdt = (a.velocity + b.velocity) * 0.5f;
+		const Maths::Vector3 dvdt = (a.acceleration + b.acceleration) * 0.5f;
 
 		state.position += dxdt * dt;
 		state.velocity += dvdt * dt;
@@ -28,8 +28,8 @@ namespace lumos
 		//const Vector3 dxdt = (a.velocity + (b.velocity + c.velocity) * 2.0f + d.velocity) * 1.0f / 6.0f;
 		//const Vector3 dvdt = (a.acceleration + (b.acceleration + c.acceleration) * 2.0f + d.acceleration) * 1.0f / 6.0f;
 
-		const maths::Vector3 dxdt = (a.velocity + (b.velocity + c.velocity) * 2.0f + d.velocity) * 1.0f/6.0f;
-		const maths::Vector3 dvdt = (a.acceleration + (b.acceleration + c.acceleration) * 2.0f + d.acceleration) * 1.0f / 6.0f;
+		const Maths::Vector3 dxdt = (a.velocity + (b.velocity + c.velocity) * 2.0f + d.velocity) * 1.0f/6.0f;
+		const Maths::Vector3 dvdt = (a.acceleration + (b.acceleration + c.acceleration) * 2.0f + d.acceleration) * 1.0f / 6.0f;
 
 		state.position += dxdt * dt;
 		state.velocity += dvdt * dt;

@@ -13,14 +13,14 @@
 
 #include <imgui/imgui.h>
 
-namespace lumos
+namespace Lumos
 {
 
 	LumosPhysicsEngine::LumosPhysicsEngine()
 		: m_IsPaused(true)
 		, m_UpdateTimestep(1.0f / 60.f)
 		, m_UpdateAccum(0.0f)
-		, m_Gravity(maths::Vector3(0.0f, -9.81f, 0.0f))
+		, m_Gravity(Maths::Vector3(0.0f, -9.81f, 0.0f))
 		, m_DampingFactor(0.999f)
 		, m_BroadphaseDetection(nullptr)
 		, m_IntegrationType(IntegrationType::RUNGE_KUTTA_4)
@@ -33,7 +33,7 @@ namespace lumos
 		m_IsPaused = true;
 		m_UpdateTimestep = 1.0f / 60.f;
 		m_UpdateAccum = 0.0f;
-		m_Gravity = maths::Vector3(0.0f, -9.81f, 0.0f);
+		m_Gravity = Maths::Vector3(0.0f, -9.81f, 0.0f);
 		m_DampingFactor = 0.999f;
 		m_IntegrationType = IntegrationType::RUNGE_KUTTA_4;
 	}
@@ -117,23 +117,23 @@ namespace lumos
 		m_Manifolds.clear();
 
 		//Check for collisions
-		LUMOS_PROFILE(system::Profiler::OnBeginRange("BroadPhase", true, "Lumos3DPhysicsEngine"));
+		LUMOS_PROFILE(System::Profiler::OnBeginRange("BroadPhase", true, "Lumos3DPhysicsEngine"));
 		BroadPhaseCollisions();
-		LUMOS_PROFILE(system::Profiler::OnEndRange("BroadPhase", true, "Lumos3DPhysicsEngine"));
+		LUMOS_PROFILE(System::Profiler::OnEndRange("BroadPhase", true, "Lumos3DPhysicsEngine"));
 		
-		LUMOS_PROFILE(system::Profiler::OnBeginRange("NarrowPhase", true, "Lumos3DPhysicsEngine"));
+		LUMOS_PROFILE(System::Profiler::OnBeginRange("NarrowPhase", true, "Lumos3DPhysicsEngine"));
 		NarrowPhaseCollisions();
-		LUMOS_PROFILE(system::Profiler::OnEndRange("NarrowPhase", true, "Lumos3DPhysicsEngine"));
+		LUMOS_PROFILE(System::Profiler::OnEndRange("NarrowPhase", true, "Lumos3DPhysicsEngine"));
 		
 		//Solve collision constraints
-		LUMOS_PROFILE(system::Profiler::OnBeginRange("SolveConstraints", true, "Lumos3DPhysicsEngine"));
+		LUMOS_PROFILE(System::Profiler::OnBeginRange("SolveConstraints", true, "Lumos3DPhysicsEngine"));
 		SolveConstraints();
-		LUMOS_PROFILE(system::Profiler::OnEndRange("SolveConstraints", true, "Lumos3DPhysicsEngine"));
+		LUMOS_PROFILE(System::Profiler::OnEndRange("SolveConstraints", true, "Lumos3DPhysicsEngine"));
 		
 		//Update movement
-		LUMOS_PROFILE(system::Profiler::OnBeginRange("UpdatePhysicsObjects", true, "Lumos3DPhysicsEngine"));
+		LUMOS_PROFILE(System::Profiler::OnBeginRange("UpdatePhysicsObjects", true, "Lumos3DPhysicsEngine"));
 		UpdatePhysicsObjects();
-		LUMOS_PROFILE(system::Profiler::OnEndRange("UpdatePhysicsObjects", true, "Lumos3DPhysicsEngine"));
+		LUMOS_PROFILE(System::Profiler::OnEndRange("UpdatePhysicsObjects", true, "Lumos3DPhysicsEngine"));
 	}
 
 	void LumosPhysicsEngine::DebugRender(uint64 debugFlags)
@@ -158,12 +158,12 @@ namespace lumos
 
 	void LumosPhysicsEngine::UpdatePhysicsObjects()
 	{
-        system::JobSystem::Dispatch(static_cast<uint32>(m_PhysicsObjects.size()), 16, [&](JobDispatchArgs args)
+        System::JobSystem::Dispatch(static_cast<uint32>(m_PhysicsObjects.size()), 16, [&](JobDispatchArgs args)
         {
             UpdatePhysicsObject(m_PhysicsObjects[args.jobIndex].get());
         });
         
-        system::JobSystem::Wait();
+        System::JobSystem::Wait();
 	}
 
 	void LumosPhysicsEngine::UpdatePhysicsObject(PhysicsObject3D* obj) const

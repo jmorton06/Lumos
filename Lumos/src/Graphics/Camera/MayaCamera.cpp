@@ -4,7 +4,7 @@
 #include "App/Input.h"
 #include "App/Window.h"
 
-namespace lumos
+namespace Lumos
 {
 
 	MayaCamera::MayaCamera(float FOV, float Near, float Far, float aspect)
@@ -16,17 +16,17 @@ namespace lumos
 		m_RotationSpeed = 1.2f;
 		m_ZoomSpeed = 0.6f;
 
-		m_Position = maths::Vector3(-3.0f, 10.0f, 15.0f);
+		m_Position = Maths::Vector3(-3.0f, 10.0f, 15.0f);
 
-		m_FocalPoint = maths::Vector3::Zero();
-		maths::Vector3 distance = (m_Position - m_FocalPoint);
+		m_FocalPoint = Maths::Vector3::Zero();
+		Maths::Vector3 distance = (m_Position - m_FocalPoint);
 		m_Distance = distance.Length();// m_Position.Distance(m_FocalPoint);
 
-		m_ProjMatrix = maths::Matrix4::Perspective(m_Near, m_Far, aspect, FOV);
+		m_ProjMatrix = Maths::Matrix4::Perspective(m_Near, m_Far, aspect, FOV);
 		m_RotateDampeningFactor = 0.00001f;
 	}
 
-	MayaCamera::MayaCamera(float pitch, float yaw, const maths::Vector3& position, float FOV, float Near, float Far, float aspect)
+	MayaCamera::MayaCamera(float pitch, float yaw, const Maths::Vector3& position, float FOV, float Near, float Far, float aspect)
 		: Camera(pitch, yaw, position, FOV, Near, Far, aspect), m_Free(false)
 	{
 		Application::Instance()->GetWindow()->HideMouse(false);
@@ -35,11 +35,11 @@ namespace lumos
 		m_RotationSpeed = 1.2f;
 		m_ZoomSpeed = 0.6f;
 
-		m_FocalPoint = maths::Vector3::Zero();
-		maths::Vector3 distance = (m_Position - m_FocalPoint);
+		m_FocalPoint = Maths::Vector3::Zero();
+		Maths::Vector3 distance = (m_Position - m_FocalPoint);
 		m_Distance = distance.Length();// m_Position.Distance(m_FocalPoint);
 
-		m_ProjMatrix = maths::Matrix4::Perspective(m_Near, m_Far, aspect, FOV);
+		m_ProjMatrix = Maths::Matrix4::Perspective(m_Near, m_Far, aspect, FOV);
 		m_RotateDampeningFactor = 0.00001f;
 	}
 
@@ -49,7 +49,7 @@ namespace lumos
 
 	void MayaCamera::HandleMouse(float dt, float xpos, float ypos)
 	{
-		const maths::Vector2 delta = (maths::Vector2(xpos, ypos) - m_PreviousCurserPos);
+		const Maths::Vector2 delta = (Maths::Vector2(xpos, ypos) - m_PreviousCurserPos);
 
 		if (Input::GetInput().GetMouseHeld(LUMOS_MOUSE_MIDDLE))
 			MousePan(delta);
@@ -74,7 +74,7 @@ namespace lumos
 		if (m_Yaw > 360.0f)
 			m_Yaw -= 360.0f;
 
-		m_PreviousCurserPos = maths::Vector2(xpos, ypos);
+		m_PreviousCurserPos = Maths::Vector2(xpos, ypos);
 		m_Position = CalculatePosition();
 	}
 
@@ -83,13 +83,13 @@ namespace lumos
 		//	Camera::HandleKeyboard(dt);
 	}
 
-	void MayaCamera::MousePan(const maths::Vector2& delta)
+	void MayaCamera::MousePan(const Maths::Vector2& delta)
 	{
 		m_FocalPoint -= -GetRightDirection() * delta.GetX() * m_PanSpeed * m_Distance;
 		m_FocalPoint -= GetUpDirection() * delta.GetY() * m_PanSpeed * m_Distance;
 	}
 
-	void MayaCamera::MouseRotate(const maths::Vector2& delta, const float dt)
+	void MayaCamera::MouseRotate(const Maths::Vector2& delta, const float dt)
 	{
 		m_RotateVelocity = m_RotateVelocity + delta *  m_RotationSpeed;
 	}

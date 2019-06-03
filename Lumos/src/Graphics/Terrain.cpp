@@ -4,7 +4,7 @@
 #include "Maths/BoundingSphere.h"
 #include "external/simplex/simplexnoise.h"
 
-namespace lumos
+namespace Lumos
 {
 	Terrain::Terrain()
 	{
@@ -12,10 +12,10 @@ namespace lumos
 		int zCoord = 0;
 		uint numVertices = RAW_WIDTH_RANDOM  * RAW_HEIGHT_RANDOM;
 		uint numIndices = (RAW_WIDTH_RANDOM - 1) * (RAW_HEIGHT_RANDOM - 1) * 6;
-		maths::Vector3* vertices = new maths::Vector3[numVertices];
-		maths::Vector2* texCoords = new maths::Vector2[numVertices];
+		Maths::Vector3* vertices = new Maths::Vector3[numVertices];
+		Maths::Vector2* texCoords = new Maths::Vector2[numVertices];
 		uint* indices = new uint[numIndices];
-        m_BoundingSphere = std::make_shared<maths::BoundingSphere>();
+        m_BoundingSphere = std::make_shared<Maths::BoundingSphere>();
 
 		float** lowMap = new float*[RAW_LOWSIDE_RANDOM + 1];
 
@@ -101,13 +101,13 @@ namespace lumos
 					static_cast<float>(z) + (static_cast<float>(zCoord) * RAW_WIDTH_RANDOM)) / 2.0f) + 0.5f) * normWeight)
 					);
 
-				vertices[offset] = maths::Vector3(
+				vertices[offset] = Maths::Vector3(
 					(static_cast<float>(x) + (static_cast<float>(xCoord) * RAW_WIDTH_RANDOM)) * HEIGHTMAP_X_RANDOM,
 					(dataVal * dataVal * dataVal) * HEIGHTMAP_Y_RANDOM,
 					(static_cast<float>(z) + static_cast<float>(zCoord * RAW_WIDTH_RANDOM)) * HEIGHTMAP_Z_RANDOM
 					);
 
-				texCoords[offset] = maths::Vector2(x * HEIGHTMAP_TEX_X_RANDOM, z * HEIGHTMAP_TEX_Z_RANDOM);
+				texCoords[offset] = Maths::Vector2(x * HEIGHTMAP_TEX_X_RANDOM, z * HEIGHTMAP_TEX_Z_RANDOM);
 			}
 		}
 
@@ -132,15 +132,15 @@ namespace lumos
 			}
 		}
 
-		maths::Vector3* normals = GenerateNormals(numVertices, vertices, indices, numIndices);
-		maths::Vector3* tangents = GenerateTangents(numVertices, vertices, indices, numIndices, texCoords);
+		Maths::Vector3* normals = GenerateNormals(numVertices, vertices, indices, numIndices);
+		Maths::Vector3* tangents = GenerateTangents(numVertices, vertices, indices, numIndices, texCoords);
 
-		graphics::Vertex* verts = new graphics::Vertex[numVertices];
+		Graphics::Vertex* verts = new Graphics::Vertex[numVertices];
 
 		for (uint i = 0; i < numVertices; i++)
 		{
 			verts[i].Position = vertices[i];
-			verts[i].Colours = maths::Vector4(0.0f);
+			verts[i].Colours = Maths::Vector4(0.0f);
 			verts[i].Normal = normals[i];
 			verts[i].TexCoords = texCoords[i];
 			verts[i].Tangent = tangents[i];
@@ -148,22 +148,22 @@ namespace lumos
             m_BoundingSphere->ExpandToFit(verts[i].Position);
 		}
 
-		m_VertexArray = std::shared_ptr<graphics::VertexArray>(graphics::VertexArray::Create());
+		m_VertexArray = std::shared_ptr<Graphics::VertexArray>(Graphics::VertexArray::Create());
 
-		graphics::VertexBuffer* buffer = graphics::VertexBuffer::Create(graphics::BufferUsage::STATIC);
-		buffer->SetData(sizeof(graphics::Vertex) * numVertices, (void*)verts);
+		Graphics::VertexBuffer* buffer = Graphics::VertexBuffer::Create(Graphics::BufferUsage::STATIC);
+		buffer->SetData(sizeof(Graphics::Vertex) * numVertices, (void*)verts);
 
-		graphics::BufferLayout layout;
-		layout.Push<maths::Vector3>("position");
-		layout.Push<maths::Vector4>("colour");
-		layout.Push<maths::Vector2>("texCoord");
-		layout.Push<maths::Vector3>("normal");
-		layout.Push<maths::Vector3>("tangent");
+		Graphics::BufferLayout layout;
+		layout.Push<Maths::Vector3>("position");
+		layout.Push<Maths::Vector4>("colour");
+		layout.Push<Maths::Vector2>("texCoord");
+		layout.Push<Maths::Vector3>("normal");
+		layout.Push<Maths::Vector3>("tangent");
 		buffer->SetLayout(layout);
 
 		m_VertexArray->PushBuffer(buffer);
 
-		m_IndexBuffer = std::shared_ptr<graphics::IndexBuffer>(graphics::IndexBuffer::Create(indices, numIndices));// / sizeof(uint));
+		m_IndexBuffer = std::shared_ptr<Graphics::IndexBuffer>(Graphics::IndexBuffer::Create(indices, numIndices));// / sizeof(uint));
         
         delete[] normals;
         delete[] tangents;

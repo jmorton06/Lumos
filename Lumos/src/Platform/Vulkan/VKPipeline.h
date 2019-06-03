@@ -3,11 +3,11 @@
 #include "Graphics/API/Pipeline.h"
 #include "VKDescriptorSet.h"
 
-namespace lumos
+namespace Lumos
 {
 	class Shader;
 
-	namespace graphics
+	namespace Graphics
 	{
 		class VKCommandBuffer;
 
@@ -21,7 +21,8 @@ namespace lumos
 			bool Init(const PipelineInfo& pipelineCI);
 
 			void Unload() const;
-			void SetActive(graphics::CommandBuffer* cmdBuffer) override;
+			void SetActive(Graphics::CommandBuffer* cmdBuffer) override;
+			vk::DescriptorSet CreateDescriptorSet();
 
 			vk::DescriptorSetLayout* GetDescriptorLayout(int id) { return &m_DescriptorLayouts[id]; };
 			
@@ -29,18 +30,20 @@ namespace lumos
 			vk::PipelineLayout  GetPipelineLayout() const { return m_PipelineLayout; };
 			std::string 		GetPipelineName() 	const { return m_PipelineName; };
 			vk::Pipeline 		GetPipeline() 		const { return m_Pipeline; }
-
-			vk::DescriptorSet CreateDescriptorSet();
+			DescriptorSet*		GetDescriptorSet()	const override { return m_DescriptorSet; }
+			Shader*				GetShader()			const override { return m_Shader; }
 
 		private:
+		
 			vk::VertexInputBindingDescription 	m_VertexBindingDescription;
 			vk::PipelineLayout 					m_PipelineLayout;
 			vk::DescriptorPool 					m_DescriptorPool;
-			vk::Pipeline 							m_Pipeline;
-
-			std::vector<vk::DescriptorSetLayout> 	m_DescriptorLayouts;
-
+			vk::Pipeline 						m_Pipeline;
+			std::vector<vk::DescriptorSetLayout>m_DescriptorLayouts;
 			std::string 						m_PipelineName;
+			DescriptorSet*						m_DescriptorSet = nullptr;
+			Shader*								m_Shader = nullptr;
+
 		};
 	}
 }

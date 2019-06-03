@@ -3,24 +3,24 @@
 #include "Maths/Vector2.h"
 #include "Renderable2D.h"
 
-namespace lumos
+namespace Lumos
 {
-	namespace maths 
+	namespace Maths 
 	{
 		class Vector4;
 	}
 
-	namespace graphics
+	namespace Graphics
 	{
 		class Texture2D;
 
 		class LUMOS_EXPORT Sprite : public Renderable2D
 		{
 		public:
-			Sprite(const maths::Vector2& position, const maths::Vector2& scale, const maths::Vector4& colour);
-			Sprite(std::shared_ptr<Texture2D> texture, const maths::Vector2& position, const maths::Vector2& scale, const maths::Vector4& colour);
+			Sprite(const Maths::Vector2& position, const Maths::Vector2& scale, const Maths::Vector4& colour);
+			Sprite(std::shared_ptr<Texture2D> texture, const Maths::Vector2& position, const Maths::Vector2& scale, const Maths::Vector4& colour);
 			virtual ~Sprite();
-			void SetPosition(const maths::Vector2& vector2) { m_Position = vector2; };
+			void SetPosition(const Maths::Vector2& vector2) { m_Position = vector2; };
 		};
 	}
 }

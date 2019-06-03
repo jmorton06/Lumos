@@ -1,7 +1,7 @@
 #include "LM.h"
 #include "Water.h"
 
-namespace lumos
+namespace Lumos
 {
 
 	Water::Water()

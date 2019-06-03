@@ -1,9 +1,9 @@
 #include "LM.h"
 #include "Transform.h"
 
-namespace lumos
+namespace Lumos
 {
-	namespace maths
+	namespace Maths
 	{
 		Transform::Transform()
 		{

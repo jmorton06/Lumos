@@ -8,9 +8,9 @@
 #include "Graphics/API/DescriptorSet.h"
 
 
-namespace lumos
+namespace Lumos
 {
-	namespace graphics
+	namespace Graphics
 	{
 
 		VKPipeline::VKPipeline()
@@ -26,7 +26,7 @@ namespace lumos
 		{
 			Unload();
 
-            delete descriptorSet;
+            delete m_DescriptorSet;
 		}
 
 		bool VKPipeline::Init(const PipelineInfo& pipelineCI)
@@ -100,7 +100,7 @@ namespace lumos
 			info.layoutIndex = 0;
             info.shader = pipelineCI.shader;
 
-			descriptorSet = new VKDescriptorSet(info);
+			m_DescriptorSet = new VKDescriptorSet(info);
 
 			// Pipeline
 			vk::DynamicState dynamicStateEnables[VK_DYNAMIC_STATE_RANGE_SIZE];

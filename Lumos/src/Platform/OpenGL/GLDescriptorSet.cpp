@@ -5,9 +5,9 @@
 #include "GLShader.h"
 #include "GLUniformBuffer.h"
 
-namespace lumos
+namespace Lumos
 {
-    namespace graphics
+    namespace Graphics
     {
         GLDescriptorSet::GLDescriptorSet(DescriptorInfo& info)
         {

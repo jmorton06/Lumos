@@ -5,9 +5,9 @@
 #include "Matrix4.h"
 #include "MathsCommon.h"
 
-namespace lumos
+namespace Lumos
 {
-	namespace maths
+	namespace Maths
 	{
 
 		class Matrix4;
@@ -54,6 +54,7 @@ namespace lumos
 			float Magnitude() const;
 
 			void GenerateW();	//builds 4th component when loading in shortened, 3 component quaternions
+			Vector3 ToEuler() const;
 
 			static const Quaternion EMPTY;
 			static const Quaternion IDENTITY;

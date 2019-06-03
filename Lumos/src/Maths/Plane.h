@@ -2,9 +2,9 @@
 #include "LM.h"
 #include "Vector3.h"
 
-namespace lumos
+namespace Lumos
 {
-	namespace maths 
+	namespace Maths 
 	{
 		class LUMOS_EXPORT Plane 
 		{

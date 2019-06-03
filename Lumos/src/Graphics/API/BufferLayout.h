@@ -4,9 +4,9 @@
 
 #include "Maths/Maths.h"
 
-namespace lumos
+namespace Lumos
 {
-	namespace graphics
+	namespace Graphics
 	{
 		struct LUMOS_EXPORT BufferElement
 		{
@@ -47,11 +47,11 @@ namespace lumos
 		template<>
 		void LUMOS_EXPORT BufferLayout::Push<byte>(const String& name, uint count , bool normalized );
 		template<>
-		void LUMOS_EXPORT BufferLayout::Push<maths::Vector2>(const String& name, uint count , bool normalized );
+		void LUMOS_EXPORT BufferLayout::Push<Maths::Vector2>(const String& name, uint count , bool normalized );
 		template<>
-		void LUMOS_EXPORT BufferLayout::Push<maths::Vector3>(const String& name, uint count , bool normalized );
+		void LUMOS_EXPORT BufferLayout::Push<Maths::Vector3>(const String& name, uint count , bool normalized );
 		template<>
-		void LUMOS_EXPORT BufferLayout::Push<maths::Vector4>(const String& name, uint count , bool normalized );
+		void LUMOS_EXPORT BufferLayout::Push<Maths::Vector4>(const String& name, uint count , bool normalized );
 
 	}
 }

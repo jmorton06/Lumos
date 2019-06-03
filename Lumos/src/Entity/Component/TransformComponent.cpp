@@ -3,11 +3,18 @@
 #include "Entity/Entity.h"
 
 #include <imgui/imgui.h>
+#include <imgui/plugins/ImGuizmo.h>
 
-namespace lumos
+namespace Lumos
 {
-	TransformComponent::TransformComponent(const maths::Matrix4& matrix)
+	TransformComponent::TransformComponent(const Maths::Matrix4& matrix)
 		: m_Transform(matrix)
+	{
+
+	}
+
+	TransformComponent::TransformComponent()
+		: m_Transform()
 	{
 
 	}
@@ -16,7 +23,7 @@ namespace lumos
 	{
 	}
     
-    void TransformComponent::SetWorldMatrix(const maths::Matrix4 &matrix)
+    void TransformComponent::SetWorldMatrix(const Maths::Matrix4 &matrix)
     {
         m_Transform.SetHasUpdated(true);
         m_Transform.SetWorldMatrix(matrix);
@@ -26,10 +33,9 @@ namespace lumos
     {
         if (ImGui::TreeNode("Transform"))
         {
-            auto localMatrix = m_Transform.GetLocalMatrix();
-			auto pos = localMatrix.GetPositionVector();
-			auto scale = localMatrix.GetScaling();
-            auto rotation = maths::Matrix4::GetEulerAngles(localMatrix);
+			auto pos = m_Transform.GetLocalPosition();
+			auto scale = m_Transform.GetLocalScale();
+            auto rotation = m_Transform.GetLocalOrientation().ToEuler();
             
             bool update = false;
 
@@ -56,10 +62,7 @@ namespace lumos
             ImGui::PushItemWidth(-1);
             if(ImGui::InputFloat3("##Rotation", &rotation.x))
             {
-                auto quat = maths::Quaternion(rotation,1.0f);
-                quat.GenerateW();
-                
-                m_Transform.SetLocalOrientation(quat);
+                m_Transform.SetLocalOrientation(Maths::Quaternion::EulerAnglesToQuaternion(rotation.GetX(), rotation.GetY(), rotation.GetZ()));
                 update = true;
             }
             

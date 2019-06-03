@@ -4,9 +4,9 @@
 #include "Graphics/API/GraphicsContext.h"
 #include "VKContext.h"
 
-namespace lumos
+namespace Lumos
 {
-	namespace graphics
+	namespace Graphics
 	{
 		class VKTextureDepthArray : public TextureDepthArray
 		{

@@ -2,9 +2,9 @@
 #include "Graphics/API/DescriptorSet.h"
 #include "VK.h"
 
-namespace lumos
+namespace Lumos
 {
-	namespace graphics
+	namespace Graphics
 	{
 		class VKDescriptorSet : public DescriptorSet
 		{
@@ -25,11 +25,14 @@ namespace lumos
 			vk::WriteDescriptorSet ImageInfoToVK(ImageInfo& imageInfo);
 			vk::WriteDescriptorSet ImageInfoToVK2(ImageInfo& imageInfo,vk::DescriptorImageInfo* imageInfos);
 
+			void SetDynamicOffset(uint offset) override { m_DynamicOffset = offset; }
+			uint GetDynamicOffset() const override { return m_DynamicOffset; }
 
 		private:
 			vk::DescriptorSet m_DescriptorSet;
+			uint m_DynamicOffset = 0;
+			Shader* m_Shader = nullptr;
 			bool m_Dynamic = false;
-
 			std::vector<PushConstant> m_PushConstants;
 		};
 	}

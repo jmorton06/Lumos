@@ -4,18 +4,18 @@
 
 #include "System/System.h"
 
-extern lumos::Application* lumos::CreateApplication();
+extern Lumos::Application* Lumos::CreateApplication();
 
 int main(int argc, char** argv)
 {
-	lumos::internal::System::Init();
+	Lumos::Internal::CoreSystem::Init();
 
-	auto app = lumos::CreateApplication();
+	auto app = Lumos::CreateApplication();
     app->Init();
 	app->Run();
 	delete app;
 
-	lumos::internal::System::Shutdown();
+	Lumos::Internal::CoreSystem::Shutdown();
 }
 
 #elif defined(LUMOS_PLATFORM_IOS)
@@ -28,25 +28,25 @@ int main(int argc, char** argv)
 #include "Platform/Vulkan/VKDevice.h"
 #endif
 
-extern lumos::Application* lumos::CreateApplication();
+extern Lumos::Application* Lumos::CreateApplication();
 
 namespace iosApp
 {
-	static lumos::Application* app = nullptr;
+	static Lumos::Application* app = nullptr;
 
     const std::string getAssetPath();
 
 	static void Init()
 	{
-		lumos::internal::System::Init();
+		Lumos::internal::System::Init();
 
-		app = lumos::CreateApplication();
+		app = Lumos::CreateApplication();
 		app->Init();
         
         String root = getAssetPath();
-        lumos::VFS::Get()->Mount("CoreShaders", root + "/lumos/res/shaders");
-        lumos::VFS::Get()->Mount("CoreMeshes", root + "/lumos/res/meshes");
-        lumos::VFS::Get()->Mount("CoreTextures", root + "/lumos/res/textures");
+        Lumos::VFS::Get()->Mount("CoreShaders", root + "/Lumos/res/shaders");
+        Lumos::VFS::Get()->Mount("CoreMeshes", root + "/Lumos/res/meshes");
+        Lumos::VFS::Get()->Mount("CoreTextures", root + "/Lumos/res/textures");
 	}
 
 	static void OnKeyPressed()
@@ -57,7 +57,7 @@ namespace iosApp
 
 	static void SetIOSView(void* view)
 	{
-        lumos::graphics::VKDevice::m_IOSView = view;
+        Lumos::Graphics::VKDevice::m_IOSView = view;
 	}
 	#endif
 
@@ -70,7 +70,7 @@ namespace iosApp
 	{
 		delete app;
 
-		lumos::internal::System::Shutdown();
+		Lumos::internal::System::Shutdown();
 	}
 }
 

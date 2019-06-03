@@ -5,9 +5,9 @@
 
 struct GLFWwindow;
 
-namespace lumos
+namespace Lumos
 {
-	namespace graphics
+	namespace Graphics
 	{
 		enum class RenderAPI : int;
 	}
@@ -24,7 +24,7 @@ namespace lumos
 		void SetBorderlessWindow(bool borderless) override;
 		void OnUpdate() override;
 		void HideMouse(bool hide) override;
-		void SetMousePosition(const maths::Vector2& pos) override;
+		void SetMousePosition(const Maths::Vector2& pos) override;
 
 		bool Init(const WindowProperties& properties);
 
@@ -50,7 +50,7 @@ namespace lumos
 			uint Width, Height;
 			bool VSync;
 			bool Exit;
-			graphics::RenderAPI m_RenderAPI;
+			Graphics::RenderAPI m_RenderAPI;
 
 			EventCallbackFn EventCallback;
 		};

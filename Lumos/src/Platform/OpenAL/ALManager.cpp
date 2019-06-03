@@ -7,7 +7,7 @@
 
 #include <imgui/imgui.h>
 
-namespace lumos
+namespace Lumos
 {
     namespace Audio
     {
@@ -55,8 +55,8 @@ namespace lumos
 		{
 			if (m_Listener)
 			{
-				maths::Vector3 worldPos = m_Listener->GetPosition();
-				maths::Vector3 velocity = m_Listener->GetVelocity();
+				Maths::Vector3 worldPos = m_Listener->GetPosition();
+				Maths::Vector3 velocity = m_Listener->GetVelocity();
                 
                 ALfloat direction[6];
                 

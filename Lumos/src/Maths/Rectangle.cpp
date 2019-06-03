@@ -2,9 +2,9 @@
 #include "Rectangle.h"
 #include "MathsUtilities.h"
 
-namespace lumos
+namespace Lumos
 {
-	namespace maths
+	namespace Maths
 	{
 		Rectangle::Rectangle() :
 			x(0), y(0), width(0), height(0)

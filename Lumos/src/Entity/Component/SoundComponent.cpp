@@ -10,12 +10,12 @@
 #include <imgui/imgui.h>
 #include "Physics/LumosPhysicsEngine/PhysicsObject3D.h"
 
-namespace lumos
+namespace Lumos
 {
 	SoundComponent::SoundComponent(std::shared_ptr<SoundNode>& sound)
 		: m_SoundNode(sound)
 	{
-		m_BoundingShape = std::make_unique<maths::BoundingSphere>(sound->GetPosition(),sound->GetRadius());
+		m_BoundingShape = std::make_unique<Maths::BoundingSphere>(sound->GetPosition(),sound->GetRadius());
 	}
 
 	void SoundComponent::OnUpdateComponent(float dt)
@@ -31,7 +31,7 @@ namespace lumos
 
 	void SoundComponent::DebugDraw(uint64 debugFlags)
 	{
-		DebugRenderer::DebugDraw(static_cast<maths::BoundingSphere*>(m_BoundingShape.get()), maths::Vector4(0.7f,0.2f,0.4f, 0.2f));
+		DebugRenderer::DebugDraw(static_cast<Maths::BoundingSphere*>(m_BoundingShape.get()), Maths::Vector4(0.7f,0.2f,0.4f, 0.2f));
 	}
 
 	void SoundComponent::Init()

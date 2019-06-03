@@ -3,7 +3,7 @@
 #include "LM.h"
 #include "Maths/BoundingShape.h"
 
-namespace lumos 
+namespace Lumos 
 {
 	class Entity;
 
@@ -38,15 +38,15 @@ namespace lumos
 		void SetEntity(Entity* entity) { m_Entity = entity; }
 
 		virtual void UpdateBoundingShape() { };
-		virtual void OnUpdateTransform(const maths::Matrix4& entityTransform) {};
+		virtual void OnUpdateTransform(const Maths::Matrix4& entityTransform) {};
 
-		maths::BoundingShape* GetBoundingShape() const { return m_BoundingShape.get(); }
+		Maths::BoundingShape* GetBoundingShape() const { return m_BoundingShape.get(); }
 
 		virtual void DebugDraw(uint64 debugFlags) {};
 
 	protected:
 		Entity* m_Entity = nullptr;
-		std::unique_ptr<maths::BoundingShape> m_BoundingShape;
+		std::unique_ptr<Maths::BoundingShape> m_BoundingShape;
 	};
 
 }

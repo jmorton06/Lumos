@@ -1,11 +1,11 @@
 #pragma once
 #include "Renderer3D.h"
 
-namespace lumos
+namespace Lumos
 {
 	class LightSetup;
 
-	namespace graphics
+	namespace Graphics
 	{
 		class Pipeline;
 		class DescriptorSet;
@@ -32,7 +32,7 @@ namespace lumos
 			void Begin(int commandBufferID);
 			void BeginScene(Scene* scene) override;
 			void Submit(const RenderCommand& command) override;
-			void SubmitMesh(Mesh* mesh, const maths::Matrix4& transform, const maths::Matrix4& textureMatrix) override;
+			void SubmitMesh(Mesh* mesh, const Maths::Matrix4& transform, const Maths::Matrix4& textureMatrix) override;
 			void SubmitLightSetup(Scene* scene);
 			void EndScene() override;
 			void End() override;
@@ -65,7 +65,7 @@ namespace lumos
 
 			std::vector<uint> m_PSSystemUniformBufferOffsets;
 
-			maths::Vector4 m_ClearColour;
+			Maths::Vector4 m_ClearColour;
 
 			UniformBuffer* m_UniformBuffer;
 			UniformBuffer* m_LightUniformBuffer;

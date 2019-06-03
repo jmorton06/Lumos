@@ -6,9 +6,9 @@
 #include "VKFramebuffer.h"
 #include "VKTools.h"
 
-namespace lumos
+namespace Lumos
 {
-	namespace graphics
+	namespace Graphics
 	{
 		VKCommandBuffer::VKCommandBuffer(): m_Primary(false)
 		{

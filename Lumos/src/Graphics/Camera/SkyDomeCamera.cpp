@@ -1,13 +1,13 @@
 #include "LM.h"
 #include "SkyDomeCamera.h"
 
-namespace lumos
+namespace Lumos
 {
 
 	SkyDomeCamera::SkyDomeCamera(float Near, float Far)
 		: Camera(90.0f, Near, Far, 1.0f)
 	{
-		m_ProjMatrix = maths::Matrix4::Perspective(m_Near, m_Far, 1.0f, 90.0f);
+		m_ProjMatrix = Maths::Matrix4::Perspective(m_Near, m_Far, 1.0f, 90.0f);
 	}
 
 	SkyDomeCamera::~SkyDomeCamera()

@@ -1,9 +1,9 @@
 #include "LM.h"
 #include "Texture.h"
 
-namespace lumos
+namespace Lumos
 {
-	namespace graphics
+	namespace Graphics
 	{
 		TextureWrap Texture::s_WrapMode = TextureWrap::REPEAT;
 		TextureFilter Texture::s_FilterMode = TextureFilter::LINEAR;

@@ -4,9 +4,9 @@
 #include "Layer.h"
 #include "Events/ApplicationEvent.h"
 
-namespace lumos
+namespace Lumos
 {
-	namespace graphics
+	namespace Graphics
 	{
 		class Renderer2D;
 	}
@@ -14,7 +14,7 @@ namespace lumos
     class LUMOS_EXPORT Layer2D : public Layer
 	{
 	public:
-		Layer2D(graphics::Renderer2D* renderer, const std::string& name = "Layer2D");
+		Layer2D(Graphics::Renderer2D* renderer, const std::string& name = "Layer2D");
 		virtual ~Layer2D();
 
 		virtual void OnAttach() override;
@@ -25,7 +25,7 @@ namespace lumos
 
     protected:
         Scene* m_Scene;
-        graphics::Renderer2D* m_Renderer;
+        Graphics::Renderer2D* m_Renderer;
 	private:
         bool OnwindowResizeEvent(WindowResizeEvent& e);
 	};

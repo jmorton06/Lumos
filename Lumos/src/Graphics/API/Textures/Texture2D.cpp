@@ -7,7 +7,7 @@
 #endif
 
 #ifdef LUMOS_RENDER_API_DIRECT3D
-#include "graphics/directx/DXTexture2D.h"
+#include "Graphics/directx/DXTexture2D.h"
 #endif
 
 #include "Graphics/API/GraphicsContext.h"
@@ -15,13 +15,13 @@
 #include "Platform/Vulkan/VKTexture2D.h"
 #endif
 
-namespace lumos
+namespace Lumos
 {
-	namespace graphics
+	namespace Graphics
 	{
 		Texture2D* Texture2D::Create()
 		{
-			switch (graphics::GraphicsContext::GetRenderAPI())
+			switch (Graphics::GraphicsContext::GetRenderAPI())
 			{
 #ifdef LUMOS_RENDER_API_OPENGL
 			case RenderAPI::OPENGL:		return new GLTexture2D();
@@ -35,7 +35,7 @@ namespace lumos
 
 		Texture2D* Texture2D::CreateFromSource(uint width, uint height, void* data, TextureParameters parameters, TextureLoadOptions loadOptions)
 		{
-			switch (graphics::GraphicsContext::GetRenderAPI())
+			switch (Graphics::GraphicsContext::GetRenderAPI())
 			{
 #ifdef LUMOS_RENDER_API_OPENGL
 			case RenderAPI::OPENGL:		return new GLTexture2D(width, height, data, parameters, loadOptions);
@@ -49,7 +49,7 @@ namespace lumos
 
 		Texture2D* Texture2D::CreateFromFile(const String& name, const String& filepath, TextureParameters parameters, TextureLoadOptions loadOptions)
 		{
-			switch (graphics::GraphicsContext::GetRenderAPI())
+			switch (Graphics::GraphicsContext::GetRenderAPI())
 			{
 #ifdef LUMOS_RENDER_API_OPENGL
 			case RenderAPI::OPENGL	:	return new GLTexture2D(name, filepath, parameters, loadOptions);

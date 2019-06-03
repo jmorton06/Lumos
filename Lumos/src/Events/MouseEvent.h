@@ -1,7 +1,7 @@
 #pragma once
 #include "Event.h"
 
-namespace lumos
+namespace Lumos
 {
 
 	class LUMOS_EXPORT MouseMovedEvent : public Event

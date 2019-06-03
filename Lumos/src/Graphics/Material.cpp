@@ -11,10 +11,10 @@
 #include "System/FileSystem.h"
 
 
-namespace lumos
+namespace Lumos
 {
 
-	Material::Material(std::shared_ptr<graphics::Shader>& shader, const MaterialProperties& properties, const PBRMataterialTextures& textures) : m_PBRMaterialTextures(textures), m_Shader(shader)
+	Material::Material(std::shared_ptr<Graphics::Shader>& shader, const MaterialProperties& properties, const PBRMataterialTextures& textures) : m_PBRMaterialTextures(textures), m_Shader(shader)
 	{
 		m_RenderFlags = 0;
 		SetRenderFlag(RenderFlags::DEFERREDRENDER);
@@ -72,37 +72,37 @@ namespace lumos
 	{
 		m_Name = name;
 		m_PBRMaterialTextures = PBRMataterialTextures();
-        auto params = graphics::TextureParameters(graphics::TextureFormat::RGBA, graphics::TextureFilter::LINEAR, graphics::TextureWrap::CLAMP_TO_EDGE);
+        auto params = Graphics::TextureParameters(Graphics::TextureFormat::RGBA, Graphics::TextureFilter::LINEAR, Graphics::TextureWrap::CLAMP_TO_EDGE);
 
 		auto filePath = path + "/" + name + "/albedo" + extension;
 
 		if(FileExists(filePath))
-			m_PBRMaterialTextures.albedo    = std::shared_ptr<graphics::Texture2D>(graphics::Texture2D::CreateFromFile(name, path + "/" + name + "/albedo" + extension,params));
+			m_PBRMaterialTextures.albedo    = std::shared_ptr<Graphics::Texture2D>(Graphics::Texture2D::CreateFromFile(name, path + "/" + name + "/albedo" + extension,params));
 
 		filePath = path + "/" + name + "/normal" + extension;
 
 		if (FileExists(filePath))
-		m_PBRMaterialTextures.normal    = std::shared_ptr<graphics::Texture2D>(graphics::Texture2D::CreateFromFile(name, path + "/" + name + "/normal" + extension,params));
+		m_PBRMaterialTextures.normal    = std::shared_ptr<Graphics::Texture2D>(Graphics::Texture2D::CreateFromFile(name, path + "/" + name + "/normal" + extension,params));
 
 		filePath = path + "/" + name + "/roughness" + extension;
 
 		if (FileExists(filePath))
-		m_PBRMaterialTextures.roughness = std::shared_ptr<graphics::Texture2D>(graphics::Texture2D::CreateFromFile(name, path + "/" + name + "/roughness" + extension,params));
+		m_PBRMaterialTextures.roughness = std::shared_ptr<Graphics::Texture2D>(Graphics::Texture2D::CreateFromFile(name, path + "/" + name + "/roughness" + extension,params));
 
 		filePath = path + "/" + name + "/metallic" + extension;
 
 		if (FileExists(filePath))
-		m_PBRMaterialTextures.specular = std::shared_ptr<graphics::Texture2D>(graphics::Texture2D::CreateFromFile(name, path + "/" + name + "/metallic" + extension,params));
+		m_PBRMaterialTextures.specular = std::shared_ptr<Graphics::Texture2D>(Graphics::Texture2D::CreateFromFile(name, path + "/" + name + "/metallic" + extension,params));
 
 		filePath = path + "/" + name + "/ao" + extension;
 
 		if (FileExists(filePath))
-		m_PBRMaterialTextures.ao		= std::shared_ptr<graphics::Texture2D>(graphics::Texture2D::CreateFromFile(name, path + "/" + name + "/ao" + extension, params));
+		m_PBRMaterialTextures.ao		= std::shared_ptr<Graphics::Texture2D>(Graphics::Texture2D::CreateFromFile(name, path + "/" + name + "/ao" + extension, params));
 
 		filePath = path + "/" + name + "/emissive" + extension;
 
 		if (FileExists(filePath))
-			m_PBRMaterialTextures.emissive = std::shared_ptr<graphics::Texture2D>(graphics::Texture2D::CreateFromFile(name, path + "/" + name + "/emissive" + extension, params));
+			m_PBRMaterialTextures.emissive = std::shared_ptr<Graphics::Texture2D>(Graphics::Texture2D::CreateFromFile(name, path + "/" + name + "/emissive" + extension, params));
 
 	}
 
@@ -110,7 +110,7 @@ namespace lumos
 	{
 		m_Name = name;
 		m_PBRMaterialTextures = PBRMataterialTextures();
-		m_PBRMaterialTextures.albedo    = std::shared_ptr<graphics::Texture2D>(graphics::Texture2D::CreateFromFile(name, path));
+		m_PBRMaterialTextures.albedo    = std::shared_ptr<Graphics::Texture2D>(Graphics::Texture2D::CreateFromFile(name, path));
 		m_PBRMaterialTextures.normal    = nullptr;
 		m_PBRMaterialTextures.roughness = nullptr;
 		m_PBRMaterialTextures.specular  = nullptr;
@@ -142,34 +142,34 @@ namespace lumos
 			m_MaterialPropertiesBuffer->SetData(m_MaterialBufferSize, *&m_MaterialBufferData);
     }
 
-	void Material::CreateDescriptorSet(graphics::Pipeline* pipeline, int layoutID, bool pbr)
+	void Material::CreateDescriptorSet(Graphics::Pipeline* pipeline, int layoutID, bool pbr)
 	{
         if(m_DescriptorSet)
             delete m_DescriptorSet;
 
 		m_Pipeline = pipeline;
 
-		graphics::DescriptorInfo info;
+		Graphics::DescriptorInfo info;
 		info.pipeline = pipeline;
 		info.layoutIndex = layoutID;
 		info.shader = pipeline->GetShader();
 
 		if(m_MaterialPropertiesBuffer == nullptr && pbr)
 		{
-			m_MaterialPropertiesBuffer = graphics::UniformBuffer::Create();
+			m_MaterialPropertiesBuffer = Graphics::UniformBuffer::Create();
 
 			m_MaterialBufferSize = static_cast<uint32_t>(sizeof(MaterialProperties));
 			m_MaterialPropertiesBuffer->Init(m_MaterialBufferSize, nullptr);
 		}
 
-		m_DescriptorSet = graphics::DescriptorSet::Create(info);
+		m_DescriptorSet = Graphics::DescriptorSet::Create(info);
 
-		std::vector<graphics::ImageInfo> imageInfos;
-		std::vector<graphics::BufferInfo> bufferInfos;
+		std::vector<Graphics::ImageInfo> imageInfos;
+		std::vector<Graphics::BufferInfo> bufferInfos;
 
 		if(m_PBRMaterialTextures.albedo != nullptr)
 		{
-			graphics::ImageInfo imageInfo1 = {};
+			Graphics::ImageInfo imageInfo1 = {};
 			imageInfo1.texture = { m_PBRMaterialTextures.albedo.get() };
 			imageInfo1.binding = 0;
 			imageInfo1.name = "u_AlbedoMap";
@@ -180,7 +180,7 @@ namespace lumos
 
 		if(m_PBRMaterialTextures.specular != nullptr)
 		{
-			graphics::ImageInfo imageInfo2 = {};
+			Graphics::ImageInfo imageInfo2 = {};
 			imageInfo2.texture ={ m_PBRMaterialTextures.specular.get() };
 			imageInfo2.binding = 1;
 			imageInfo2.name = "u_SpecularMap";
@@ -191,7 +191,7 @@ namespace lumos
 
 		if(m_PBRMaterialTextures.roughness != nullptr)
 		{
-			graphics::ImageInfo imageInfo3 = {};
+			Graphics::ImageInfo imageInfo3 = {};
             imageInfo3.texture = { m_PBRMaterialTextures.roughness.get() };
 			imageInfo3.binding = 2;
 			imageInfo3.name = "u_RoughnessMap";
@@ -202,7 +202,7 @@ namespace lumos
 
 		if(m_PBRMaterialTextures.normal != nullptr)
 		{
-			graphics::ImageInfo imageInfo4 = {};
+			Graphics::ImageInfo imageInfo4 = {};
 			imageInfo4.texture = { m_PBRMaterialTextures.normal.get() };
 			imageInfo4.binding = 3;
 			imageInfo4.name = "u_NormalMap";
@@ -213,7 +213,7 @@ namespace lumos
 
 		if (m_PBRMaterialTextures.ao != nullptr)
 		{
-			graphics::ImageInfo imageInfo5 = {};
+			Graphics::ImageInfo imageInfo5 = {};
 			imageInfo5.texture = { m_PBRMaterialTextures.ao.get() };
 			imageInfo5.binding = 4;
 			imageInfo5.name = "u_AOMap";
@@ -224,7 +224,7 @@ namespace lumos
 
 		if (m_PBRMaterialTextures.emissive != nullptr)
 		{
-			graphics::ImageInfo imageInfo6 = {};
+			Graphics::ImageInfo imageInfo6 = {};
 			imageInfo6.texture = { m_PBRMaterialTextures.emissive.get() };
 			imageInfo6.binding = 5;
 			imageInfo6.name = "u_EmissiveMap";
@@ -235,13 +235,13 @@ namespace lumos
 
 		if (pbr)
 		{
-			graphics::BufferInfo bufferInfo = {};
+			Graphics::BufferInfo bufferInfo = {};
 			bufferInfo.buffer = m_MaterialPropertiesBuffer;
 			bufferInfo.offset = 0;
 			bufferInfo.size = sizeof(MaterialProperties);
-			bufferInfo.type = graphics::DescriptorType::UNIFORM_BUFFER;
+			bufferInfo.type = Graphics::DescriptorType::UNIFORM_BUFFER;
 			bufferInfo.binding = 6;
-			bufferInfo.shaderType = graphics::ShaderType::FRAGMENT;
+			bufferInfo.shaderType = Graphics::ShaderType::FRAGMENT;
 			bufferInfo.name = "UniformMaterialData";
 			bufferInfo.systemUniforms = false;
 

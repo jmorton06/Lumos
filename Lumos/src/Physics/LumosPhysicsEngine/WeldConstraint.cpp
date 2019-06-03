@@ -5,7 +5,7 @@
 
 #include "Graphics/Renderers/DebugRenderer.h"
 
-namespace lumos
+namespace Lumos
 {
 
 	WeldConstraint::WeldConstraint(PhysicsObject3D *obj1, PhysicsObject3D *obj2)
@@ -19,8 +19,8 @@ namespace lumos
 	void WeldConstraint::ApplyImpulse()
 	{
 		// Position
-		maths::Vector3 pos(m_positionOffset);
-		maths::Quaternion::RotatePointByQuaternion(m_pObj1->GetOrientation(), pos);
+		Maths::Vector3 pos(m_positionOffset);
+		Maths::Quaternion::RotatePointByQuaternion(m_pObj1->GetOrientation(), pos);
 		pos += m_pObj1->GetPosition();
 		m_pObj2->SetPosition(pos);
 
@@ -30,11 +30,11 @@ namespace lumos
 
 	void WeldConstraint::DebugDraw() const
 	{
-		maths::Vector3 posA = m_pObj1->GetPosition();
-		maths::Vector3 posB = m_pObj2->GetPosition();
+		Maths::Vector3 posA = m_pObj1->GetPosition();
+		Maths::Vector3 posB = m_pObj2->GetPosition();
 
-		DebugRenderer::DrawThickLine(posA, posB, 0.02f, maths::Vector4(0.0f, 0.0f, 0.0f, 1.0f));
-		DebugRenderer::DrawPointNDT(posA, 0.05f, maths::Vector4(1.0f, 0.8f, 1.0f, 1.0f));
-		DebugRenderer::DrawPointNDT(posB, 0.05f, maths::Vector4(1.0f, 0.8f, 1.0f, 1.0f));
+		DebugRenderer::DrawThickLine(posA, posB, 0.02f, Maths::Vector4(0.0f, 0.0f, 0.0f, 1.0f));
+		DebugRenderer::DrawPointNDT(posA, 0.05f, Maths::Vector4(1.0f, 0.8f, 1.0f, 1.0f));
+		DebugRenderer::DrawPointNDT(posB, 0.05f, Maths::Vector4(1.0f, 0.8f, 1.0f, 1.0f));
 	}
 }

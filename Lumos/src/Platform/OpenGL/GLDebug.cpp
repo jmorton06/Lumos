@@ -5,12 +5,12 @@
 #include "Graphics/Material.h"
 #include "Maths/MathsUtilities.h"
 
-namespace lumos
+namespace Lumos
 {
 
 	DebugDrawData* GLDebug::s_OrthoDebugData	   = nullptr;
 	DebugDrawData* GLDebug::s_PerspectiveDebugData = nullptr;
-	graphics::GLRenderer*    GLDebug::s_DebugDrawingRenderer = nullptr;
+	Graphics::GLRenderer*    GLDebug::s_DebugDrawingRenderer = nullptr;
 
 	Material*	   GLDebug::s_DebugDrawShader		= nullptr;
 	bool		   GLDebug::s_DrawnDebugOrtho		= false;
@@ -47,7 +47,7 @@ namespace lumos
 		}
 	}
 
-	void GLDebug::DrawDebugPerspective(maths::Matrix4* matrix)
+	void GLDebug::DrawDebugPerspective(Maths::Matrix4* matrix)
 	{
 		if (matrix)
 		{
@@ -56,7 +56,7 @@ namespace lumos
 		}
 		else
 		{
-            maths::Matrix4 temp;// = projMatrix*viewMatrix;
+            Maths::Matrix4 temp;// = projMatrix*viewMatrix;
 			//s_DebugDrawShader->SetUniform("viewProjMatrix", temp);
 			//glUniformMatrix4fv(glGetUniformLocation(debugDrawShader->GetProgram(), "viewProjMatrix"), 1, false, (float*)&temp);
 		}
@@ -67,7 +67,7 @@ namespace lumos
 		s_DrawnDebugPerspective = true;
 	}
 
-	void GLDebug::DrawDebugOrtho(maths::Matrix4*matrix)
+	void GLDebug::DrawDebugOrtho(Maths::Matrix4*matrix)
 	{
 		if (matrix)
 		{
@@ -76,7 +76,7 @@ namespace lumos
 		}
 		else 
 		{
-			//static maths::Matrix4 ortho = maths::Matrix4::Orthographic(-1.0f, 1.0f, 1.0f, 0.0f, 1.0f, 0.0f);
+			//static Maths::Matrix4 ortho = Maths::Matrix4::Orthographic(-1.0f, 1.0f, 1.0f, 0.0f, 1.0f, 0.0f);
 			//s_DebugDrawShader->SetUniform("viewProjMatrix", ortho);
 			//glUniformMatrix4fv(glGetUniformLocation(debugDrawShader->GetProgram(), "viewProjMatrix"), 1, false, (float*)&ortho);
 		}
@@ -88,42 +88,42 @@ namespace lumos
 		s_DrawnDebugOrtho = true;
 	}
 
-	void GLDebug::DrawDebugLine(const DebugDrawMode mode, const maths::Vector3 &from, const maths::Vector3 &to, const maths::Vector3 &fromColour, const maths::Vector3 &toColour)
+	void GLDebug::DrawDebugLine(const DebugDrawMode mode, const Maths::Vector3 &from, const Maths::Vector3 &to, const Maths::Vector3 &fromColour, const Maths::Vector3 &toColour)
 	{
 		DebugDrawData*target = (mode == DEBUGDRAW_ORTHO ? target = s_OrthoDebugData : target = s_PerspectiveDebugData);
 
 		target->AddLine(from, to, fromColour, toColour);
 	}
 
-	void GLDebug::DrawDebugBox(const DebugDrawMode mode, const maths::Vector3 &at, const maths::Vector3 &scale, const maths::Vector3 &colour)
+	void GLDebug::DrawDebugBox(const DebugDrawMode mode, const Maths::Vector3 &at, const Maths::Vector3 &scale, const Maths::Vector3 &colour)
 	{
 		DebugDrawData*target = (mode == DEBUGDRAW_ORTHO ? target = s_OrthoDebugData : target = s_PerspectiveDebugData);
 
-		target->AddLine(at + maths::Vector3(-scale.GetX()  * 0.5f, scale.GetY() * 0.5f, 0),
-			at + maths::Vector3(-scale.GetX() * 0.5f, -scale.GetY() * 0.5f, 0), colour, colour);
+		target->AddLine(at + Maths::Vector3(-scale.GetX()  * 0.5f, scale.GetY() * 0.5f, 0),
+			at + Maths::Vector3(-scale.GetX() * 0.5f, -scale.GetY() * 0.5f, 0), colour, colour);
 
-		target->AddLine(at + maths::Vector3(-scale.GetX() * 0.5f, -scale.GetY() * 0.5f, 0),
-			at + maths::Vector3(scale.GetX() * 0.5f, -scale.GetY() * 0.5f, 0), colour, colour);
+		target->AddLine(at + Maths::Vector3(-scale.GetX() * 0.5f, -scale.GetY() * 0.5f, 0),
+			at + Maths::Vector3(scale.GetX() * 0.5f, -scale.GetY() * 0.5f, 0), colour, colour);
 
-		target->AddLine(at + maths::Vector3(scale.GetX() * 0.5f, -scale.GetY() * 0.5f, 0),
-			at + maths::Vector3(scale.GetX() * 0.5f, scale.GetY() * 0.5f, 0), colour, colour);
+		target->AddLine(at + Maths::Vector3(scale.GetX() * 0.5f, -scale.GetY() * 0.5f, 0),
+			at + Maths::Vector3(scale.GetX() * 0.5f, scale.GetY() * 0.5f, 0), colour, colour);
 
-		target->AddLine(at + maths::Vector3(scale.GetX() * 0.5f, scale.GetY() * 0.5f, 0),
-			at + maths::Vector3(-scale.GetX() * 0.5f, scale.GetY() * 0.5f, 0), colour, colour);
+		target->AddLine(at + Maths::Vector3(scale.GetX() * 0.5f, scale.GetY() * 0.5f, 0),
+			at + Maths::Vector3(-scale.GetX() * 0.5f, scale.GetY() * 0.5f, 0), colour, colour);
 	}
 
-	void GLDebug::DrawDebugCross(const DebugDrawMode mode, const maths::Vector3 &at, const maths::Vector3 &scale, const maths::Vector3 &colour)
+	void GLDebug::DrawDebugCross(const DebugDrawMode mode, const Maths::Vector3 &at, const Maths::Vector3 &scale, const Maths::Vector3 &colour)
 	{
 		DebugDrawData*target = (mode == DEBUGDRAW_ORTHO ? target = s_OrthoDebugData : target = s_PerspectiveDebugData);
 
-		target->AddLine(at + maths::Vector3(-scale.GetX() * 0.5f, -scale.GetY() * 0.5f, 0),
-			at + maths::Vector3(scale.GetX() * 0.5f, scale.GetY() * 0.5f, 0), colour, colour);
+		target->AddLine(at + Maths::Vector3(-scale.GetX() * 0.5f, -scale.GetY() * 0.5f, 0),
+			at + Maths::Vector3(scale.GetX() * 0.5f, scale.GetY() * 0.5f, 0), colour, colour);
 
-		target->AddLine(at + maths::Vector3(scale.GetX() * 0.5f, -scale.GetY() * 0.5f, 0),
-			at + maths::Vector3(-scale.GetX() * 0.5f, scale.GetY() * 0.5f, 0), colour, colour);
+		target->AddLine(at + Maths::Vector3(scale.GetX() * 0.5f, -scale.GetY() * 0.5f, 0),
+			at + Maths::Vector3(-scale.GetX() * 0.5f, scale.GetY() * 0.5f, 0), colour, colour);
 	}
 
-	void GLDebug::DrawDebugCircle(const DebugDrawMode mode, const maths::Vector3 &at, const float radius, const maths::Vector3 &colour)
+	void GLDebug::DrawDebugCircle(const DebugDrawMode mode, const Maths::Vector3 &at, const float radius, const Maths::Vector3 &colour)
 	{
 		DebugDrawData*target = (mode == DEBUGDRAW_ORTHO ? target = s_OrthoDebugData : target = s_PerspectiveDebugData);
 
@@ -132,14 +132,14 @@ namespace lumos
 
 		for (int i = 0; i < stepCount; ++i)
 		{
-			const float startx = radius * static_cast<float>(cos(maths::DegToRad(i * divisor))) + at.GetX();
-			const float endx = radius * static_cast<float>(cos(maths::DegToRad((i + 1) * divisor))) + at.GetX();
+			const float startx = radius * static_cast<float>(cos(Maths::DegreesToRadians(i * divisor))) + at.GetX();
+			const float endx = radius * static_cast<float>(cos(Maths::DegreesToRadians((i + 1) * divisor))) + at.GetX();
 
-			const float starty = radius * static_cast<float>(sin(maths::DegToRad(i * divisor))) + at.GetY();
-			const float endy = radius * static_cast<float>(sin(maths::DegToRad((i + 1) * divisor))) + at.GetY();
+			const float starty = radius * static_cast<float>(sin(Maths::DegreesToRadians(i * divisor))) + at.GetY();
+			const float endy = radius * static_cast<float>(sin(Maths::DegreesToRadians((i + 1) * divisor))) + at.GetY();
 
-			target->AddLine(maths::Vector3(startx, starty, at.GetZ()),
-                            maths::Vector3(endx, endy, at.GetZ()), colour, colour);
+			target->AddLine(Maths::Vector3(startx, starty, at.GetZ()),
+                            Maths::Vector3(endx, endy, at.GetZ()), colour, colour);
 		}
 	}
 
@@ -159,12 +159,12 @@ namespace lumos
 		glGenBuffers(2, buffers);
 
 		glBindBuffer(GL_ARRAY_BUFFER, buffers[0]);
-		glBufferData(GL_ARRAY_BUFFER, lines.size() * sizeof(maths::Vector3), &lines[0], GL_DYNAMIC_DRAW);
+		glBufferData(GL_ARRAY_BUFFER, lines.size() * sizeof(Maths::Vector3), &lines[0], GL_DYNAMIC_DRAW);
 		glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, nullptr);
 		glEnableVertexAttribArray(0);
 
 		glBindBuffer(GL_ARRAY_BUFFER, buffers[1]);
-		glBufferData(GL_ARRAY_BUFFER, colours.size() * sizeof(maths::Vector3), &colours[0], GL_DYNAMIC_DRAW);
+		glBufferData(GL_ARRAY_BUFFER, colours.size() * sizeof(Maths::Vector3), &colours[0], GL_DYNAMIC_DRAW);
 		glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 0, nullptr);
 		glEnableVertexAttribArray(1);
 

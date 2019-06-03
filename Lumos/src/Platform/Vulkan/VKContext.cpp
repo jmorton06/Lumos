@@ -5,9 +5,9 @@
 #include "VKCommandBuffer.h"
 #include "Maths/Matrix4.h"
 
-namespace lumos
+namespace Lumos
 {
-	namespace graphics
+	namespace Graphics
 	{
 		std::vector<const char*> GetRequiredExtensions()
 		{
@@ -71,7 +71,7 @@ namespace lumos
 			CreateInstance();
 			SetupDebugCallback();
 
-			maths::Matrix4::SetUpCoordSystem(false, true);
+			Maths::Matrix4::SetUpCoordSystem(false, true);
 		}
 
 		VKContext::~VKContext()
@@ -173,7 +173,7 @@ namespace lumos
 
 		size_t VKContext::GetMinUniformBufferOffsetAlignment() const
 		{
-			return graphics::VKDevice::Instance()->GetGPUProperties().limits.minUniformBufferOffsetAlignment;
+			return Graphics::VKDevice::Instance()->GetGPUProperties().limits.minUniformBufferOffsetAlignment;
 		}
 
 		void VKContext::CreateInstance()
@@ -196,7 +196,7 @@ namespace lumos
 			vk::ApplicationInfo appInfo = {};
 			appInfo.pApplicationName = "Sandbox";
 			appInfo.applicationVersion = VK_MAKE_VERSION(1, 0, 0);
-			appInfo.pEngineName = "lumos";
+			appInfo.pEngineName = "Lumos";
 			appInfo.engineVersion = VK_MAKE_VERSION(1, 0, 0);
 			appInfo.apiVersion = VK_API_VERSION_1_0;
 
