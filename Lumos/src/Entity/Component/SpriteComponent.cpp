@@ -12,7 +12,7 @@ namespace Lumos
 	SpriteComponent::SpriteComponent(std::shared_ptr<Graphics::Sprite>& sprite)
 		: m_Sprite(sprite)
 	{
-
+		m_Name = "Sprite";
 	}
 
 	void SpriteComponent::OnUpdateComponent(float dt)
@@ -21,10 +21,7 @@ namespace Lumos
 
 	void SpriteComponent::OnIMGUI()
 	{
-		if (ImGui::TreeNode("Sprite"))
-		{
-			ImGui::TreePop();
-		}
+
 	}
 
 }

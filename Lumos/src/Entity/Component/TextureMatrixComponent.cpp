@@ -7,15 +7,11 @@ namespace Lumos
 	TextureMatrixComponent::TextureMatrixComponent(const Maths::Matrix4& matrix)
 		: m_TextureMatrix(matrix)
 	{
-
+		m_Name = "TextureMatrix";
 	}
 
 	void TextureMatrixComponent::OnIMGUI()
 	{
-		if (ImGui::TreeNode("TextureMatrix"))
-		{
-			ImGui::TreePop();
-		}
 	}
 
 }

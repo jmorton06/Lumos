@@ -42,6 +42,8 @@ void SceneModelViewer::OnInit()
 	auto lightEntity = std::make_shared<Entity>("Directional Light");
 	lightEntity->AddComponent<LightComponent>(sun);
 	lightEntity->AddComponent<TransformComponent>(Matrix4::Translation(Maths::Vector3(26.0f, 22.0f, 48.5f)));
+	lightEntity->GetTransformComponent()->GetTransform().SetLocalOrientation(Maths::Quaternion::LookAt(Maths::Vector3(26.0f, 22.0f, 48.5f), Maths::Vector3::Zero()));
+	lightEntity->GetTransformComponent()->GetTransform().ApplyTransform();
 	AddEntity(lightEntity);
 
     auto shadowTexture = std::unique_ptr<Graphics::TextureDepthArray>(Graphics::TextureDepthArray::Create(2048, 2048, 4));

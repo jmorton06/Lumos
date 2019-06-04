@@ -11,7 +11,7 @@ namespace Lumos
 	CameraComponent::CameraComponent(Camera* camera)
 		: m_Camera(camera)
 	{
-
+		m_Name = "Camera";
 	}
 
 	void CameraComponent::OnUpdateComponent(float dt)
@@ -20,14 +20,10 @@ namespace Lumos
 
     void CameraComponent::OnIMGUI()
     {
-        if (ImGui::TreeNode("CameraComponent"))
-        {
-			if (ImGui::Button("Set Active"))
-				SetAsMainCamera();
+		if (ImGui::Button("Set Active"))
+			SetAsMainCamera();
 
-			m_Camera->OnImGUI();
-			ImGui::TreePop();
-        }
+		m_Camera->OnImGUI();
     }
 
 	void CameraComponent::SetAsMainCamera()

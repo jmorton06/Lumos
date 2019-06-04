@@ -9,7 +9,6 @@
 #include "Entity/Entity.h"
 #include "Utilities/TimeStep.h"
 #include "System/JobSystem.h"
-#include "System/Profiler.h"
 
 #include <imgui/imgui.h>
 
@@ -117,23 +116,14 @@ namespace Lumos
 		m_Manifolds.clear();
 
 		//Check for collisions
-		LUMOS_PROFILE(System::Profiler::OnBeginRange("BroadPhase", true, "Lumos3DPhysicsEngine"));
 		BroadPhaseCollisions();
-		LUMOS_PROFILE(System::Profiler::OnEndRange("BroadPhase", true, "Lumos3DPhysicsEngine"));
-		
-		LUMOS_PROFILE(System::Profiler::OnBeginRange("NarrowPhase", true, "Lumos3DPhysicsEngine"));
 		NarrowPhaseCollisions();
-		LUMOS_PROFILE(System::Profiler::OnEndRange("NarrowPhase", true, "Lumos3DPhysicsEngine"));
 		
 		//Solve collision constraints
-		LUMOS_PROFILE(System::Profiler::OnBeginRange("SolveConstraints", true, "Lumos3DPhysicsEngine"));
 		SolveConstraints();
-		LUMOS_PROFILE(System::Profiler::OnEndRange("SolveConstraints", true, "Lumos3DPhysicsEngine"));
 		
 		//Update movement
-		LUMOS_PROFILE(System::Profiler::OnBeginRange("UpdatePhysicsObjects", true, "Lumos3DPhysicsEngine"));
 		UpdatePhysicsObjects();
-		LUMOS_PROFILE(System::Profiler::OnEndRange("UpdatePhysicsObjects", true, "Lumos3DPhysicsEngine"));
 	}
 
 	void LumosPhysicsEngine::DebugRender(uint64 debugFlags)

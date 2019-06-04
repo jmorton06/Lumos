@@ -182,7 +182,18 @@ namespace Lumos
         
         for(auto& component: m_Components)
         {
-            component.second->OnIMGUI();
+			ImGui::Separator();
+			if(ImGui::TreeNode(component.second->GetName().c_str()))
+			{
+				if (component.second->GetCanDisable())
+				{
+					ImGui::Checkbox("Active", &component.second->GetActive());
+				}
+				component.second->OnIMGUI();
+
+				ImGui::TreePop();
+			}
+      
         }
     }
     

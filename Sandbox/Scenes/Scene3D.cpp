@@ -50,7 +50,7 @@ void Scene3D::OnInit()
     
     auto lightEntity = std::make_shared<Entity>("Directional Light");
     lightEntity->AddComponent<LightComponent>(sun);
-    lightEntity->AddComponent<TransformComponent>(Matrix4::Translation(Maths::Vector3(26.0f, 22.0f, 48.5f)));
+    lightEntity->AddComponent<TransformComponent>(Matrix4::Translation(Maths::Vector3(26.0f, 22.0f, 48.5f)) * Maths::Quaternion::LookAt(Maths::Vector3(26.0f, 22.0f, 48.5f), Maths::Vector3::Zero()).ToMatrix4());
     AddEntity(lightEntity);
 
 	auto cameraEntity = std::make_shared<Entity>("Camera");

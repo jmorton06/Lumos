@@ -22,7 +22,7 @@
 #include "RenderCommand.h"
 #include "System/JobSystem.h"
 
-//#define THREAD_CASCADE_GEN
+#define THREAD_CASCADE_GEN
 
 namespace Lumos
 {
@@ -221,8 +221,6 @@ namespace Lumos
 			}
 		}
 
-//#define THREAD_CASCADE_GEN
-
 		void ShadowRenderer::RenderScene(RenderList* renderList, Scene* scene)
 		{
 			//SortRenderLists(scene);
@@ -293,8 +291,6 @@ namespace Lumos
 				cascadeSplits[i] = (d - nearClip) / clipRange;
 			}
 
-			float lastSplitDist = 0.0;
-
 #ifdef THREAD_CASCADE_GEN
 			System::JobSystem::Dispatch(static_cast<uint32>(m_ShadowMapNum), 1, [&](JobDispatchArgs args)
 #else
@@ -305,6 +301,7 @@ namespace Lumos
 				int i = args.jobIndex;
 #endif
 				float splitDist = cascadeSplits[i];
+				float lastSplitDist = i == 0 ? 0.0f : cascadeSplits[i - 1];
 
 				Maths::Vector3 frustumCorners[8] = {
 					Maths::Vector3(-1.0f,  1.0f, -1.0f),
@@ -368,8 +365,6 @@ namespace Lumos
 				// Store split distance and matrix in cascade
 				m_SplitDepth[i] = Maths::Vector4((scene->GetCamera()->GetNear() + splitDist * clipRange) * -1.0f);
 				m_ShadowProjView[i] = lightOrthoMatrix * lightViewMatrix;
-
-				lastSplitDist = cascadeSplits[i];
 
 				const Maths::Vector3 top_mid = frustumCenter + lightViewMatrix * Maths::Vector3(0.0f, 0.0f, maxExtents.GetZ());
 				Maths::Frustum f;
@@ -533,7 +528,7 @@ namespace Lumos
 
 		void ShadowRenderer::Submit(const RenderCommand& command)
 		{
-			m_CommandQueue.push_back(command);
+			m_CommandQueue.emplace_back(command);
 		}
 
 		void ShadowRenderer::SubmitMesh(Mesh* mesh, const Maths::Matrix4& transform, const Maths::Matrix4& textureMatrix)

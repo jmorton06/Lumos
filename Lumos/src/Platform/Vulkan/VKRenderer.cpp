@@ -69,7 +69,7 @@ namespace Lumos
 		void VKRenderer::PresentInternal()
         {
 			m_Swapchain->Present(m_ImageAvailableSemaphore[m_CurrentSemaphoreIndex]);
-			VKDevice::Instance()->GetPresentQueue().waitIdle();
+			//VKDevice::Instance()->GetPresentQueue().waitIdle();
         }
 
 		void VKRenderer::OnResize(uint width, uint height)

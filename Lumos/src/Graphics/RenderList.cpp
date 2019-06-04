@@ -1,7 +1,6 @@
 #include "LM.h"
 #include "RenderList.h"
 
-
 namespace Lumos
 {
 
@@ -35,6 +34,8 @@ namespace Lumos
 		RemoveAllObjects();
 		g_NumRenderLists--;
 	}
+
+
 
 	void RenderList::RenderOpaqueObjects(const std::function<void(Entity*)>& per_object_func)
 	{
@@ -125,7 +126,7 @@ namespace Lumos
 
 				Entity* entity = list[i].target_obj.lock().get();
 
-				if (!frustum.InsideFrustum(entity->GetComponent<TransformComponent>()->GetTransform().GetWorldMatrix().GetPositionVector(), entity->GetBoundingRadius()))
+				if (!entity->ActiveInHierarchy() || !frustum.InsideFrustum(entity->GetComponent<TransformComponent>()->GetTransform().GetWorldMatrix().GetPositionVector(), entity->GetBoundingRadius()))
 				{
 					entity->GetFrustumCullFlags() &= ~m_BitMask;
 				}
