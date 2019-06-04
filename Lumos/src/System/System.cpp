@@ -2,7 +2,6 @@
 #include "System.h"
 #include "VFS.h"
 #include "JobSystem.h"
-#include "Profiler.h"
 #include "Scripting/LuaScript.h"
 
 namespace Lumos
@@ -11,9 +10,6 @@ namespace Lumos
 	{
 	void CoreSystem::Init()
 	{
-		LUMOS_PROFILE(System::Profiler::SetEnabled(true));
-		LUMOS_PROFILE(System::Profiler::OnInit());
-
 		LMLog::OnInit();
 		System::JobSystem::OnInit();
 		LUMOS_CORE_INFO("Initializing System");

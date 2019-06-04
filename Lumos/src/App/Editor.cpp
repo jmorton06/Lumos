@@ -8,7 +8,6 @@
 #include "SceneManager.h"
 
 #include "Maths/BoundingSphere.h"
-#include "System/Profiler.h"
 #include "Entity/Entity.h"
 #include "Physics/LumosPhysicsEngine/LumosPhysicsEngine.h"
 
@@ -54,7 +53,6 @@ namespace Lumos
 		DrawHierarchyWindow();
 		DrawInspectorWindow();
 
-		LUMOS_PROFILE(System::Profiler::OnImGUI());
 		EndDockSpace();
 	}
 

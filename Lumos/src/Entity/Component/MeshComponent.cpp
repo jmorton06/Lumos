@@ -17,6 +17,7 @@ namespace Lumos
 	MeshComponent::MeshComponent(std::shared_ptr<Graphics::Mesh>& model)
 		: m_Model(model)
 	{
+		m_Name = "Mesh";
 		m_BoundingShape = std::make_unique<Maths::BoundingSphere>(Maths::Vector3(0.0f),1.0f);
 	}
 
@@ -32,13 +33,15 @@ namespace Lumos
 
 	void MeshComponent::OnIMGUI()
 	{
-        if (m_Model->GetMaterial() && ImGui::CollapsingHeader("Material"))
+		ImGui::Separator();
+
+        if (m_Model->GetMaterial() && ImGui::TreeNode("Material"))
 		{
             bool flipImage = Graphics::GraphicsContext::GetContext()->FlipImGUITexture();
             
 			MaterialProperties* prop = m_Model->GetMaterial()->GetProperties();
 
-            if (ImGui::CollapsingHeader("Albedo"))
+            if (ImGui::TreeNode("Albedo"))
             {
                 ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(2,2));
                 ImGui::Columns(2);
@@ -83,9 +86,13 @@ namespace Lumos
                 ImGui::Columns(1);
                 ImGui::Separator();
                 ImGui::PopStyleVar();
+
+				ImGui::TreePop();
             }
             
-            if (ImGui::CollapsingHeader("Normal"))
+			ImGui::Separator();
+
+            if (ImGui::TreeNode("Normal"))
             {
                 ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(2,2));
                 ImGui::Columns(2);
@@ -121,9 +128,12 @@ namespace Lumos
                 ImGui::Columns(1);
                 ImGui::Separator();
                 ImGui::PopStyleVar();
+				ImGui::TreePop();
             }
             
-            if (ImGui::CollapsingHeader("Specular"))
+			ImGui::Separator();
+
+            if (ImGui::TreeNode("Specular"))
             {
                 ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(2,2));
                 ImGui::Columns(2);
@@ -168,9 +178,12 @@ namespace Lumos
                 ImGui::Columns(1);
                 ImGui::Separator();
                 ImGui::PopStyleVar();
+				ImGui::TreePop();
             }
             
-            if (ImGui::CollapsingHeader("Roughness"))
+			ImGui::Separator();
+
+            if (ImGui::TreeNode("Roughness"))
             {
                 ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(2,2));
                 ImGui::Columns(2);
@@ -215,9 +228,12 @@ namespace Lumos
                 ImGui::Columns(1);
                 ImGui::Separator();
                 ImGui::PopStyleVar();
+				ImGui::TreePop();
             }
             
-            if (ImGui::CollapsingHeader("Ao"))
+			ImGui::Separator();
+
+            if (ImGui::TreeNode("Ao"))
             {
                 ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(2,2));
                 ImGui::Columns(2);
@@ -253,9 +269,12 @@ namespace Lumos
                 ImGui::Columns(1);
                 ImGui::Separator();
                 ImGui::PopStyleVar();
+				ImGui::TreePop();
             }
 
-			if (ImGui::CollapsingHeader("Emissive"))
+			ImGui::Separator();
+
+			if (ImGui::TreeNode("Emissive"))
 			{
 				ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(2, 2));
 				ImGui::Columns(2);
@@ -291,9 +310,14 @@ namespace Lumos
 				ImGui::Columns(1);
 				ImGui::Separator();
 				ImGui::PopStyleVar();
+				ImGui::TreePop();
 			}
             
+			ImGui::Separator();
+
             m_Model->GetMaterial()->SetMaterialProperites(*prop);
+
+			ImGui::TreePop();
 		}
 	}
 

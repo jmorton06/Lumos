@@ -166,7 +166,7 @@ namespace Lumos
 
 	void Scene::BuildWorldMatrices()
 	{
-		std::function<void(std::shared_ptr<Entity>)> per_object_func = [&](std::shared_ptr<Entity> obj)
+		/*std::function<void(std::shared_ptr<Entity>)> per_object_func = [&](std::shared_ptr<Entity> obj)
 		{
 			Physics3DComponent* physicsComponent = obj->GetComponent<Physics3DComponent>();
 			TransformComponent* transformComponent = obj->GetComponent<TransformComponent>();
@@ -185,7 +185,7 @@ namespace Lumos
 				per_object_func(child);
 		};
 
-		per_object_func(m_RootEntity);
+		per_object_func(m_RootEntity);*/
 	}
 
 	void Scene::DebugRender()
@@ -211,7 +211,7 @@ namespace Lumos
 			if (obj->ActiveInHierarchy())
 			{
 				auto meshComponent = obj->GetComponent<MeshComponent>();
-				if (meshComponent)
+				if (meshComponent && meshComponent->GetActive())
 				{
 					auto transform = obj->GetComponent<TransformComponent>()->GetTransform();
 
@@ -247,7 +247,7 @@ namespace Lumos
 		m_pCamera->BuildViewMatrix();
 		m_FrameFrustum.FromMatrix(m_pCamera->GetProjectionMatrix() * m_pCamera->GetViewMatrix());
 
-		BuildWorldMatrices();
+		//BuildWorldMatrices();
 
 		m_pFrameRenderList->UpdateCameraWorldPos(m_pCamera->GetPosition());
 		m_pFrameRenderList->RemoveExcessObjects(m_FrameFrustum);
@@ -264,7 +264,7 @@ namespace Lumos
 			if (obj->ActiveInHierarchy())
 			{
 				auto lightComponent = obj->GetComponent<LightComponent>();
-				if (lightComponent)
+				if (lightComponent && lightComponent->GetActive())
 				{
 					m_LightList.emplace_back(lightComponent->GetLight());
 				}

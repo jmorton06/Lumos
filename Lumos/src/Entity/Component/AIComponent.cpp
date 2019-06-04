@@ -8,15 +8,11 @@ namespace Lumos
 	AIComponent::AIComponent(std::shared_ptr<AINode>& aiNode)
 		: m_AINode(aiNode)
 	{
-		
+		m_Name = "AI";
 	}
 
 	void AIComponent::OnIMGUI()
 	{
-		if (ImGui::TreeNode("AI"))
-		{
-			ImGui::TreePop();
-		}
 	}
 
 }

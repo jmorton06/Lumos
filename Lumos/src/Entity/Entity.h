@@ -26,7 +26,7 @@ namespace Lumos
 		void AddComponent(Args&&... args);
 
 		template <typename T>
-		/*const */T* GetComponent() const
+		T* GetComponent() const
 		{
 			return GetComponentInternal<T>();
 		}
@@ -84,12 +84,13 @@ namespace Lumos
 
 		String					m_Name;
 		Entity*					m_pParent;
-		std::vector<std::shared_ptr<Entity>> m_vpChildren;
 		float					m_BoundingRadius;
 		uint					m_FrustumCullFlags;
 		String                  m_UUID;
 		bool					m_Active;
 		TransformComponent*		m_DefaultTransformComponent = nullptr;
+		
+		std::vector<std::shared_ptr<Entity>> m_vpChildren;
 	};
 
 	template<typename T, typename ... Args>

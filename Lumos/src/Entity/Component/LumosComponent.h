@@ -44,8 +44,16 @@ namespace Lumos
 
 		virtual void DebugDraw(uint64 debugFlags) {};
 
+		const String& GetName() const { return m_Name; }
+		bool& GetActive() { return m_Active; }
+		const bool GetCanDisable() const { return m_CanDisable; }
+		void SetActive(bool active) { m_Active = active; }
+
 	protected:
 		Entity* m_Entity = nullptr;
+		String m_Name;
+		bool m_Active = true;
+		bool m_CanDisable = true;
 		std::unique_ptr<Maths::BoundingShape> m_BoundingShape;
 	};
 
