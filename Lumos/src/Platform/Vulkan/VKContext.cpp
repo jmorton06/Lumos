@@ -13,7 +13,7 @@ namespace Lumos
 		{
 			std::vector<const char*> extensions;
 
-			if (enableValidationLayers)
+			if (EnableValidationLayers)
 			{
 				extensions.push_back("VK_EXT_debug_report");
 				extensions.push_back(VK_EXT_DEBUG_UTILS_EXTENSION_NAME);
@@ -37,7 +37,7 @@ namespace Lumos
 			 extensions.push_back(VK_MVK_MACOS_SURFACE_EXTENSION_NAME);
 	#endif
 
-        return extensions;
+			return extensions;
 		}
 
 		VkResult CreateDebugReportCallbackEXT(VkInstance instance, const VkDebugReportCallbackCreateInfoEXT* pCreateInfo, const VkAllocationCallbacks* pAllocator, VkDebugReportCallbackEXT* pCallback)
@@ -141,7 +141,7 @@ namespace Lumos
 			return VK_FALSE;
 		}
 
-		bool checkValidationLayerSupport()
+		bool CheckValidationLayerSupport()
 		{
 			uint32_t layerCount;
 			vkEnumerateInstanceLayerProperties(&layerCount, nullptr);
@@ -188,7 +188,7 @@ namespace Lumos
 				LUMOS_CORE_ERROR("Could not find loader");
 			}
 
-			if (enableValidationLayers && !checkValidationLayerSupport())
+			if (EnableValidationLayers && !CheckValidationLayerSupport())
 			{
 				throw std::runtime_error("validation layers requested, but not available!");
 			}
@@ -207,7 +207,7 @@ namespace Lumos
 			createInfo.enabledExtensionCount = static_cast<uint32_t>(extensions.size());
 			createInfo.ppEnabledExtensionNames = extensions.data();
 
-			if (enableValidationLayers)
+			if (EnableValidationLayers)
 			{
 				createInfo.enabledLayerCount = static_cast<uint32_t>(validationLayers.size());
 				createInfo.ppEnabledLayerNames = validationLayers.data();
@@ -228,11 +228,11 @@ namespace Lumos
 
 		void VKContext::SetupDebugCallback()
 		{
-			if (!enableValidationLayers) return;
+			if (!EnableValidationLayers) return;
 
 			vk::DebugReportCallbackCreateInfoEXT createInfo = {};
 			createInfo.flags =	vk::DebugReportFlagBitsEXT::eError | vk::DebugReportFlagBitsEXT::eWarning |
-								vk::DebugReportFlagBitsEXT::eInformation | vk::DebugReportFlagBitsEXT::eDebug;
+								vk::DebugReportFlagBitsEXT::eInformation | vk::DebugReportFlagBitsEXT::eDebug | vk::DebugReportFlagBitsEXT::ePerformanceWarning;
 
 			createInfo.pfnCallback = reinterpret_cast<PFN_vkDebugReportCallbackEXT>(DebugCallback);
 

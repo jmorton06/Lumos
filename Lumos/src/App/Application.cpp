@@ -129,7 +129,8 @@ namespace Lumos
 		Input::Release();
 		AssetsManager::ReleaseMeshes();
 
-		m_LayerStack->Clear();
+		delete m_LayerStack;
+
 		m_SceneManager.release();
 
 		Graphics::Renderer::Release();
