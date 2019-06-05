@@ -2,10 +2,10 @@
 #include "PathNode.h"
 #include "PathEdge.h"
 
-namespace lumos
+namespace Lumos
 {
 
-	PathNode::PathNode(const maths::Vector3 &position)
+	PathNode::PathNode(const Maths::Vector3 &position)
 		: PhysicsObject3D()
 	{
 		SetPosition(position);

@@ -2,7 +2,7 @@
 
 #include "Event.h"
 
-namespace lumos
+namespace Lumos
 {
 	class LUMOS_EXPORT WindowResizeEvent : public Event
 	{

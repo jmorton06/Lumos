@@ -2,9 +2,9 @@
 #include "LM.h"
 #include "Graphics/API/GraphicsContext.h"
 
-namespace lumos
+namespace Lumos
 {
-	namespace graphics
+	namespace Graphics
 	{
 		class LUMOS_EXPORT GLContext : public GraphicsContext
 		{
@@ -18,6 +18,8 @@ namespace lumos
 			inline static GLContext* Get() { return static_cast<GLContext*>(s_Context); }
 
 			size_t GetMinUniformBufferOffsetAlignment() const override { return 1; }
+
+            bool FlipImGUITexture() const override { return true; }
 
 		};
 	}

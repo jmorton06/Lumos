@@ -4,9 +4,9 @@
 #include "GL.h"
 
 
-namespace lumos
+namespace Lumos
 {
-	namespace graphics
+	namespace Graphics
 	{
 		static uint BufferUsageToOpenGL(const BufferUsage usage)
 		{

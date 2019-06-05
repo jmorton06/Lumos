@@ -2,7 +2,7 @@
 
 #include "LM.h"
 
-namespace lumos
+namespace Lumos
  {
 	enum class EventType
 	{

@@ -3,11 +3,11 @@
 #include "Renderer3D.h"
 #include "SkyboxRenderer.h"
 
-namespace lumos
+namespace Lumos
 {
 	class LightSetup;
 
-	namespace graphics
+	namespace Graphics
 	{
 		class DescriptorSet;
 		class TextureDepth;
@@ -32,7 +32,7 @@ namespace lumos
 			void Begin() override;
 			void BeginScene(Scene* scene) override;
 			void Submit(const RenderCommand& command) override;
-			void SubmitMesh(Mesh* mesh, const maths::Matrix4& transform, const maths::Matrix4& textureMatrix) override;
+			void SubmitMesh(Mesh* mesh, const Maths::Matrix4& transform, const Maths::Matrix4& textureMatrix) override;
 			void EndScene() override;
 			void End() override;
 			void Present() override;
@@ -43,13 +43,13 @@ namespace lumos
 
 			struct UniformBufferObject
 			{
-				lumos::maths::Matrix4 proj;
-				lumos::maths::Matrix4 view;
+				Lumos::Maths::Matrix4 proj;
+				Lumos::Maths::Matrix4 view;
 			};
 
 			struct UniformBufferModel
 			{
-				lumos::maths::Matrix4* model;
+				Lumos::Maths::Matrix4* model;
 			};
 
 			void SetRenderTarget(Texture* texture) override;
@@ -58,7 +58,7 @@ namespace lumos
 
 			void SetSystemUniforms(Shader* shader) const;
 
-			maths::Vector4 m_ClearColour;
+			Maths::Vector4 m_ClearColour;
 
 			DescriptorSet* m_DefaultDescriptorSet;
 			Pipeline* m_GraphicsPipeline;
@@ -68,7 +68,7 @@ namespace lumos
 			UniformBuffer* m_UniformBuffer;
 			UniformBuffer* m_ModelUniformBuffer;
 
-			std::vector<lumos::graphics::CommandBuffer*> commandBuffers;
+			std::vector<Lumos::Graphics::CommandBuffer*> commandBuffers;
 			std::vector<Framebuffer*> m_Framebuffers;
 
 			size_t dynamicAlignment;

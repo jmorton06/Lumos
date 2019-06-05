@@ -3,9 +3,9 @@
 #include "LM.h"
 #include "Constraint.h"
 
-namespace lumos
+namespace Lumos
 {
-	namespace maths
+	namespace Maths
 	{
 		class Vector3;
 	}
@@ -15,7 +15,7 @@ namespace lumos
 	class LUMOS_EXPORT DistanceConstraint : public Constraint
 	{
 	public:
-		DistanceConstraint(PhysicsObject3D *obj1, PhysicsObject3D *obj2, const maths::Vector3 &globalOnA, const maths::Vector3 &globalOnB);
+		DistanceConstraint(PhysicsObject3D *obj1, PhysicsObject3D *obj2, const Maths::Vector3 &globalOnA, const Maths::Vector3 &globalOnB);
 
 		virtual void ApplyImpulse() override;
 		virtual void DebugDraw() const override;
@@ -26,7 +26,7 @@ namespace lumos
 
 		float m_Distance;
 
-		maths::Vector3 m_LocalOnA;
-		maths::Vector3 m_LocalOnB;
+		Maths::Vector3 m_LocalOnA;
+		Maths::Vector3 m_LocalOnB;
 	};
 }

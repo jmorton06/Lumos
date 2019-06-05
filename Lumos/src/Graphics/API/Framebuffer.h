@@ -2,9 +2,9 @@
 #include "LM.h"
 #include "Maths/Maths.h"
 
-namespace lumos
+namespace Lumos
 {
-	namespace graphics
+	namespace Graphics
 	{
 		enum class LUMOS_EXPORT Attachment
 		{
@@ -44,7 +44,7 @@ namespace lumos
 			bool screenFBO = false;
 			Texture** attachments;
 			TextureType* attachmentTypes;
-			graphics::RenderPass* renderPass;
+			Graphics::RenderPass* renderPass;
 		};
 
 		class LUMOS_EXPORT Framebuffer
@@ -68,7 +68,7 @@ namespace lumos
 
 			virtual uint GetWidth() const = 0;
 			virtual uint GetHeight() const = 0;
-			virtual void SetClearColour(const maths::Vector4& colour) = 0;
+			virtual void SetClearColour(const Maths::Vector4& colour) = 0;
 		};
 	}
 }

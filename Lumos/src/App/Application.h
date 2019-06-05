@@ -1,16 +1,14 @@
 #pragma once
 #include "LM.h"
-#include "Events/Event.h"
-#include "Events/ApplicationEvent.h"
-#include "Window.h"
 
-//#define LUMOS_EDITOR //temp
+#define LUMOS_EDITOR //temp
 
-namespace lumos
+namespace Lumos
 {
 	class Timer;
 	struct TimeStep;
 	class Window;
+	struct WindowProperties;
     class SceneManager;
 	class AudioManager;
 	class Entity;
@@ -19,11 +17,20 @@ namespace lumos
 	class Layer;
 	class ISystem;
 	class Scene;
+	class Event;
+	class Camera;
+	class WindowCloseEvent;
+	class WindowResizeEvent;
 
-	namespace graphics
+	namespace Graphics
 	{
 		class RenderManager;
 		enum class RenderAPI;
+	}
+
+	namespace Maths
+	{
+		class Vector2;
 	}
 
     enum class AppState
@@ -51,7 +58,7 @@ namespace lumos
 	{
 		friend class Editor;
 	public:
-		Application(const WindowProperties& properties, const graphics::RenderAPI& api);
+		Application(const WindowProperties& properties);
 		virtual ~Application();
 
 		Application(Application const&) = delete;
@@ -65,28 +72,30 @@ namespace lumos
 		void OnRender();
 		void OnEvent(Event& e);
 		void OnImGui();
+		void OnNewScene(Scene* scene);
 		void PushLayer(Layer* layer);
 		void PushOverLay(Layer* overlay);
 		void ClearLayers();;
 
 		virtual void Init();
 
-		LayerStack* GetLayerStack() const { return m_LayerStack; }
-        SceneManager* GetSceneManager() const { return m_SceneManager.get(); }
-		graphics::RenderManager* GetRenderManager() const { return m_RenderManager.get(); }
-		AudioManager* GetAudioManager() const { return m_AudioManager.get(); }
-        Window* GetWindow() const { return m_Window.get(); }
-        AppState GetState() const { return m_CurrentState; }
-        void SetAppState(AppState state) { m_CurrentState = state; }
+		LayerStack*						GetLayerStack()		const { return m_LayerStack; }
+        SceneManager*					GetSceneManager()	const { return m_SceneManager.get(); }
+		Graphics::RenderManager*		GetRenderManager()	const { return m_RenderManager.get(); }
+		AudioManager*					GetAudioManager()	const { return m_AudioManager.get(); }
+        Window*							GetWindow()			const { return m_Window.get(); }
+        AppState						GetState()			const { return m_CurrentState; }
+		EditorState						GetEditorState()	const { return m_EditorState; }
+		Camera*							GetActiveCamera()	const { return m_ActiveCamera; }
+		const std::vector<ISystem*>&	GetSystems()		const { return m_Systems; }
 
-		EditorState GetEditorState() const { return m_EditorState; }
-		void SetEditorState(EditorState state) { m_EditorState = state; }
+        void SetAppState(AppState state)		{ m_CurrentState = state; }
+		void SetEditorState(EditorState state)	{ m_EditorState = state; }
+		void SetActiveCamera(Camera* camera);
 
-		maths::Vector2 GetWindowSize() const;
+		Maths::Vector2 GetWindowSize() const;
 
 		static Application* Instance() { return s_Instance; }
-
-		void OnNewScene(Scene* scene);
 
 	private:
 		bool OnWindowClose(WindowCloseEvent& e);
@@ -102,16 +111,18 @@ namespace lumos
 
 		std::unique_ptr<Window> m_Window;
         std::unique_ptr<SceneManager> m_SceneManager;
-		std::unique_ptr<graphics::RenderManager> m_RenderManager;
 		std::unique_ptr<AudioManager> m_AudioManager;
+		std::unique_ptr<Graphics::RenderManager> m_RenderManager;
+
+		Camera* m_ActiveCamera = nullptr;
 
 		std::vector<ISystem*> m_Systems;
 
 		LayerStack* m_LayerStack{};
 
-        AppState m_CurrentState = AppState::Loading;
-		EditorState m_EditorState = EditorState::Play;
-		AppType m_AppType = AppType::Editor;
+        AppState m_CurrentState		= AppState::Loading;
+		EditorState m_EditorState	= EditorState::Play;
+		AppType m_AppType			= AppType::Editor;
 
 		static Application* s_Instance;
 

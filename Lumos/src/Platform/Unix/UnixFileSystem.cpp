@@ -7,7 +7,7 @@
 #include <fcntl.h>
 #include <unistd.h>
 
-namespace lumos
+namespace Lumos
 {
     static bool ReadFileInternal(FILE* file, void* buffer, int64 size, bool readbytemode)
     {

@@ -9,7 +9,7 @@ typedef LARGE_INTEGER TimeStamp;
 typedef std::chrono::time_point<std::chrono::high_resolution_clock> TimeStamp;
 #endif
 
-namespace lumos
+namespace Lumos
 {
 
 	class LUMOS_EXPORT Timer

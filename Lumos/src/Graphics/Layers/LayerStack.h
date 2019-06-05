@@ -5,7 +5,7 @@
 
 #include <deque>
 
-namespace lumos
+namespace Lumos
 {
 	struct TimeStep;
 	class Scene;
@@ -26,6 +26,7 @@ namespace lumos
 		void OnRender(Scene* scene);
 		void OnUpdate(TimeStep* timeStep, Scene* scene);
 		void OnEvent(Event& e);
+		void OnIMGUI();
 
 		uint GetCount() const { return (uint)m_Layers.size(); }
         

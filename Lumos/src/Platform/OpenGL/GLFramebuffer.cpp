@@ -4,9 +4,9 @@
 #include "Platform/OpenGL/GLDebug.h"
 #include "Graphics/API/Textures/TextureCube.h"
 
-namespace lumos
+namespace Lumos
 {
-	namespace graphics
+	namespace Graphics
 	{
 		Attachment GetColourAttachment(int index)
 		{

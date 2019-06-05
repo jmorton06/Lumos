@@ -1,9 +1,11 @@
-# Sandbox Config File
+-- Sandbox Config File
 
 width               =   1280
 height              =   720
 fullscreen          =   false
 borderless		    =   false
 vsync			    =   true
-numsupersamples		=   1
-loadingtexturefilepath =  /Textures/LoadingTexture.png
+title               =   "Sandbox"
+renderAPI           =   1
+
+-- OpenGL = 0, Vulkan = 1, Direct3D = 2

@@ -1,9 +1,9 @@
 #include "LM.h"
 #include "GLCommandBuffer.h"
 
-namespace lumos
+namespace Lumos
 {
-	namespace graphics
+	namespace Graphics
 	{
 		GLCommandBuffer::GLCommandBuffer(): primary(false)
 		{

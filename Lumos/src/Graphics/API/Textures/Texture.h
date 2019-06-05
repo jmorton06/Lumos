@@ -1,9 +1,9 @@
 #pragma once
 #include "LM.h"
 
-namespace lumos
+namespace Lumos
 {
-	namespace graphics
+	namespace Graphics
 	{
 		enum class LUMOS_EXPORT TextureWrap
 		{
@@ -33,15 +33,13 @@ namespace lumos
 			RGBA16,
 			RGB,
 			RGBA,
-			LUMINANCE,
-			LUMINANCE_ALPHA,
 			DEPTH
 		};
 
-		enum class LUMOS_EXPORT TextureType
+		enum class LUMOS_EXPORT TextureType : int
 		{
+			COLOUR = 0,
 			DEPTH,
-			COLOUR,
 			DEPTHARRAY,
 			CUBE,
 			OTHER

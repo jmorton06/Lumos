@@ -3,9 +3,9 @@
 #include "Graphics/Renderers/Renderer2D.h"
 #include "App/Scene.h"
 
-namespace lumos
+namespace Lumos
 {
-	Layer2D::Layer2D(graphics::Renderer2D* renderer, const std::string& debugName)
+	Layer2D::Layer2D(Graphics::Renderer2D* renderer, const std::string& debugName)
 		: Layer(debugName), m_Scene(nullptr), m_Renderer(renderer)
 	{
 	}

@@ -7,10 +7,9 @@
 #include "Events/Event.h"
 #include "Events/ApplicationEvent.h"
 
-namespace lumos
+namespace Lumos
 {
 	struct TimeStep;
-	class ParticleManager;
 	class Font;
 	class Material;
 	class Event;
@@ -18,7 +17,7 @@ namespace lumos
 	class Camera;
 	class Entity;
 
-	namespace graphics
+	namespace Graphics
 	{
 		struct Light;
 		class GBuffer;
@@ -69,7 +68,7 @@ namespace lumos
 		float GetWorldRadius() const { return m_SceneBoundingRadius; }
 
 		// Adds all visible objects to given RenderList
-		void InsertToRenderList(RenderList* list, const maths::Frustum& frustum) const;
+		void InsertToRenderList(RenderList* list, const Maths::Frustum& frustum) const;
 
 		// Updates all world transforms in the Scene Tree
 		virtual void BuildWorldMatrices();
@@ -78,14 +77,13 @@ namespace lumos
 		void BuildFrameRenderList();
 		void BuildLightList();
 
-		std::vector<std::shared_ptr<graphics::Light>>& GetLightList() { return m_LightList; }
+		std::vector<std::shared_ptr<Graphics::Light>>& GetLightList() { return m_LightList; }
 
 		std::shared_ptr<Entity>& GetRootEntity() { return m_RootEntity; }
 
 		void 				SetCamera(Camera* camera) { m_pCamera = camera; }
 		Camera*				GetCamera()				const { return m_pCamera; }
-		ParticleManager*	GetParticleSystem()		const { return m_ParticleManager; }
-		graphics::TextureCube* GetEnvironmentMap()		const { return m_EnvironmentMap; }
+		Graphics::TextureCube* GetEnvironmentMap()		const { return m_EnvironmentMap; }
 
 		bool GetReflectSkybox() const { return m_ReflectSkybox; }
 		void SetReflectSkybox(bool reflect) { m_ReflectSkybox = reflect; }
@@ -96,36 +94,22 @@ namespace lumos
 		uint64_t GetDebugDrawFlags() const { return m_DebugDrawFlags; }
 		void SetDebugDrawFlags(uint64_t flags) { m_DebugDrawFlags = flags; }
 
-		bool GetUseShadow() const { return m_UseShadow; }
-		void SetUseShadow(bool set) { m_UseShadow = set; }
-
-		void SetDrawObjects(bool set) { m_DrawObjects = set; }
-		bool GetDrawObjects() const { return m_DrawObjects; }
-
-		void ToggleDrawObjects() { m_DrawObjects = !m_DrawObjects; }
-		bool GetReflectingScene() const { return m_ReflectScene; }
-		const maths::Vector3& GetBackgroundColor() const   { return m_BackgroundColour; }
-		void SetBackgroundColor(const maths::Vector3& col) { m_BackgroundColour = col; }
-
 		void SetScreenWidth(uint width)   { m_ScreenWidth = width; }
 		void SetScreenHeight(uint height) { m_ScreenHeight = height; }
         
         uint GetScreenWidth() const { return m_ScreenWidth; }
         uint GetScreenHeight() const { return m_ScreenHeight; }
 
-		maths::Frustum GetFrustum() const { return m_FrameFrustum; }
+		Maths::Frustum GetFrustum() const { return m_FrameFrustum; }
 		RenderList* GetRenderList() const { return m_pFrameRenderList.get(); }
 
 		void IterateEntities(const std::function<void(std::shared_ptr<Entity>)>& per_object_func);
 
 	protected:
 
-		String				m_SceneName;
-		Camera*				m_pCamera;
-		ParticleManager*	m_ParticleManager;
-		graphics::TextureCube*		m_EnvironmentMap;
-
-		AssetManager<Material>* m_MaterialManager;
+		String m_SceneName;
+		Camera* m_pCamera; 
+		Graphics::TextureCube* m_EnvironmentMap;
 
 		float m_SceneBoundingRadius;
 
@@ -135,19 +119,14 @@ namespace lumos
 		bool m_ReflectSkybox = true;
 
 		bool	m_DrawDebugData{};
-		uint64	m_DebugDrawFlags{};
-
-		bool m_DrawObjects;
-		bool m_ReflectScene;
-		bool m_UseShadow;
-		maths::Vector3	m_BackgroundColour;
+        uint64	m_DebugDrawFlags{};
 
 		uint m_ScreenWidth;
 		uint m_ScreenHeight;
 
-		maths::Frustum				m_FrameFrustum;
+		Maths::Frustum m_FrameFrustum;
 		std::unique_ptr<RenderList>	m_pFrameRenderList;
-		std::vector<std::shared_ptr<graphics::Light>> m_LightList;
+		std::vector<std::shared_ptr<Graphics::Light>> m_LightList;
 
 		std::vector<Layer*> m_SceneLayers;
 

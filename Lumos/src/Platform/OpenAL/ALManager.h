@@ -4,7 +4,7 @@
 #include <AL/al.h>
 #include <AL/alc.h>
 
-namespace lumos
+namespace Lumos
 {
     namespace Audio
     {
@@ -17,6 +17,7 @@ namespace lumos
             void OnInit() override;
             void OnUpdate(TimeStep* dt) override;
 			void UpdateListener();
+			void OnIMGUI() override;
 
         private:
             ALCcontext* m_Context;

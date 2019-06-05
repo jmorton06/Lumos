@@ -7,7 +7,7 @@
 #include "Scene.h"
 #include "Physics/LumosPhysicsEngine/LumosPhysicsEngine.h"
 
-namespace lumos
+namespace Lumos
 {
 
 	SceneManager::SceneManager()
@@ -35,10 +35,6 @@ namespace lumos
 		auto screenSize = Application::Instance()->GetWindowSize();
 		scene->SetScreenWidth(static_cast<uint>(screenSize.GetX()));
 		scene->SetScreenHeight(static_cast<uint>(screenSize.GetY()));
-
-		//If this was the first scene, activate it immediately
-		// if (m_vpAllScenes.size() == 1)
-		// 	JumpToScene(0);
 	}
 
 	void SceneManager::JumpToScene()

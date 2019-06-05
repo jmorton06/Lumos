@@ -3,9 +3,9 @@
 #include "VKBuffer.h"
 #include "Graphics/API/UniformBuffer.h"
 
-namespace lumos
+namespace Lumos
 {
-	namespace graphics
+	namespace Graphics
 	{
 		class VKUniformBuffer : public UniformBuffer
 		{

@@ -3,7 +3,7 @@
 #include "LM.h"
 #include "Maths/BoundingShape.h"
 
-namespace lumos 
+namespace Lumos 
 {
 	class Entity;
 
@@ -19,6 +19,7 @@ namespace lumos
         Sprite,
         TextureMatrix,
         Transform,
+		Camera,
         Error
 	};
 
@@ -37,15 +38,23 @@ namespace lumos
 		void SetEntity(Entity* entity) { m_Entity = entity; }
 
 		virtual void UpdateBoundingShape() { };
-		virtual void OnUpdateTransform(const maths::Matrix4& entityTransform) {};
+		virtual void OnUpdateTransform(const Maths::Matrix4& entityTransform) {};
 
-		maths::BoundingShape* GetBoundingShape() const { return m_BoundingShape.get(); }
+		Maths::BoundingShape* GetBoundingShape() const { return m_BoundingShape.get(); }
 
 		virtual void DebugDraw(uint64 debugFlags) {};
 
+		const String& GetName() const { return m_Name; }
+		bool& GetActive() { return m_Active; }
+		const bool GetCanDisable() const { return m_CanDisable; }
+		void SetActive(bool active) { m_Active = active; }
+
 	protected:
 		Entity* m_Entity = nullptr;
-		std::unique_ptr<maths::BoundingShape> m_BoundingShape;
+		String m_Name;
+		bool m_Active = true;
+		bool m_CanDisable = true;
+		std::unique_ptr<Maths::BoundingShape> m_BoundingShape;
 	};
 
 }

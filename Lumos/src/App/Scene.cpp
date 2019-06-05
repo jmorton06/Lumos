@@ -1,49 +1,37 @@
 #include "LM.h"
 #include "Scene.h"
+#include "Input.h"
+#include "Application.h"
+
 #include "Graphics/ParticleManager.h"
 #include "Graphics/API/GraphicsContext.h"
-#include "System/String.h"
-#include "Audio/AudioManager.h"
-#include "Physics/LumosPhysicsEngine/SortAndSweepBroadphase.h"
-#include "Physics/LumosPhysicsEngine/Octree.h"
 #include "Graphics/Layers/LayerStack.h"
 #include "Graphics/Light.h"
 #include "Graphics/ModelLoader/ModelLoader.h"
-#include "Utilities/TimeStep.h"
-#include "App/Input.h"
-#include "App/Application.h"
 #include "Graphics/RenderManager.h"
-#include "Physics/LumosPhysicsEngine/LumosPhysicsEngine.h"
 #include "Graphics/Camera/Camera.h"
+#include "Utilities/TimeStep.h"
 #include "Entity/Component/TransformComponent.h"
+#include "Audio/AudioManager.h"
+#include "Physics/LumosPhysicsEngine/SortAndSweepBroadphase.h"
+#include "Physics/LumosPhysicsEngine/Octree.h"
+#include "Physics/LumosPhysicsEngine/LumosPhysicsEngine.h"
+#include "Maths/MathsUtilities.h"
 
-namespace lumos
+namespace Lumos
 {
 	Scene::Scene(const String& friendly_name)
 		: m_SceneName(friendly_name), m_pCamera(nullptr), m_EnvironmentMap(nullptr), m_SceneBoundingRadius(0),
-		  m_DebugDrawFlags(0), m_DrawObjects(false), m_ReflectScene(false), m_UseShadow(false), m_ScreenWidth(0),
+		  m_DebugDrawFlags(0), m_ScreenWidth(0),
 		  m_ScreenHeight(0),
-		  m_DrawDebugData(false)
+		  m_DrawDebugData(false),
+          m_RootEntity(std::make_shared<Entity>("Root Node"))
 	{
-		m_ParticleManager = nullptr;
-
-		m_MaterialManager = new AssetManager<Material>();
-
-		m_RootEntity = std::make_shared<Entity>("Root Node");
-		m_RootEntity->AddComponent(std::make_unique<TransformComponent>(maths::Matrix4()));
 	}
 
     Scene::~Scene()
     {
         DeleteAllGameObjects();
-
-        if (m_ParticleManager)
-        {
-            delete m_ParticleManager;
-            m_ParticleManager = nullptr;
-        }
-
-        SAFE_DELETE(m_MaterialManager);
     }
 
 	void Scene::OnInit()
@@ -71,17 +59,17 @@ namespace lumos
 		Platform = "iOS";
 #endif
 
-		switch (graphics::GraphicsContext::GetRenderAPI())
+		switch (Graphics::GraphicsContext::GetRenderAPI())
 		{
 #ifdef LUMOS_RENDER_API_OPENGL
-		case graphics::RenderAPI::OPENGL: RenderAPI = "OpenGL"; break;
+		case Graphics::RenderAPI::OPENGL: RenderAPI = "OpenGL"; break;
 #endif
 
 #ifdef LUMOS_RENDER_API_VULKAN
 #if defined(LUMOS_PLATFORM_MACOS) || defined(LUMOS_PLATFORM_IOS)
-		case graphics::RenderAPI::VULKAN: RenderAPI = "Vulkan ( MoltenVK )"; break;
+		case Graphics::RenderAPI::VULKAN: RenderAPI = "Vulkan ( MoltenVK )"; break;
 #else
-		case graphics::RenderAPI::VULKAN: RenderAPI = "Vulkan"; break;
+		case Graphics::RenderAPI::VULKAN: RenderAPI = "Vulkan"; break;
 #endif
 #endif
 
@@ -91,13 +79,13 @@ namespace lumos
 		}
 
 		std::stringstream Title;
-		Title << Platform << dash << RenderAPI << dash << Configuration << dash << m_SceneName;
+		Title << Platform << dash << RenderAPI << dash << Configuration << dash << m_SceneName << dash << Application::Instance()->GetWindow()->GetTitle();
 
 		Application::Instance()->GetWindow()->SetWindowTitle(Title.str());
 
 		//Default physics setup
 		LumosPhysicsEngine::Instance()->SetDampingFactor(0.998f);
-		LumosPhysicsEngine::Instance()->SetIntegrationType(INTEGRATION_RUNGE_KUTTA_4);
+		LumosPhysicsEngine::Instance()->SetIntegrationType(IntegrationType::RUNGE_KUTTA_4);
 		LumosPhysicsEngine::Instance()->SetBroadphase(new Octree(5, 5, std::make_shared<SortAndSweepBroadphase>()));
 		SetDebugDrawFlags(DEBUGDRAW_FLAGS_COLLISIONVOLUMES
 			| DEBUGDRAW_FLAGS_AABB
@@ -106,11 +94,6 @@ namespace lumos
 			| DEBUGDRAW_FLAGS_CONSTRAINT
 		);
 		m_SceneBoundingRadius = 400.0f; //Default scene radius of 400m
-
-		m_BackgroundColour = maths::Vector3(0.8f, 0.8f, 0.8f);
-		m_UseShadow    = true;
-		m_DrawObjects  = true;
-		m_ReflectScene = false;
 
 		m_pFrameRenderList = std::make_unique<RenderList>();
 
@@ -122,9 +105,7 @@ namespace lumos
 
 	void Scene::OnCleanupScene()
 	{
-		m_MaterialManager->Clear();
-
-		m_pFrameRenderList.reset();
+        m_pFrameRenderList.reset();
 
 		DeleteAllGameObjects();
 
@@ -160,7 +141,7 @@ namespace lumos
 
 	void Scene::OnUpdate(TimeStep* timeStep)
 	{
-		const maths::Vector2 mousePos = Input::GetInput().GetMousePosition();
+		const Maths::Vector2 mousePos = Input::GetInput().GetMousePosition();
 
 		if(m_pCamera)
 		{
@@ -181,33 +162,30 @@ namespace lumos
 		};
 
 		per_object_func(m_RootEntity);
-
-		if(m_ParticleManager)
-			m_ParticleManager->Update(timeStep->GetSeconds());
 	}
 
 	void Scene::BuildWorldMatrices()
 	{
-		std::function<void(std::shared_ptr<Entity>)> per_object_func = [&](std::shared_ptr<Entity> obj)
+		/*std::function<void(std::shared_ptr<Entity>)> per_object_func = [&](std::shared_ptr<Entity> obj)
 		{
 			Physics3DComponent* physicsComponent = obj->GetComponent<Physics3DComponent>();
 			TransformComponent* transformComponent = obj->GetComponent<TransformComponent>();
 			if (physicsComponent)
 			{
 				if (transformComponent)
-					transformComponent->m_Transform.GetWorldMatrix() = physicsComponent->m_PhysicsObject->GetWorldSpaceTransform() * transformComponent->m_Transform.GetLocalMatrix();
+					transformComponent->GetTransform().GetWorldMatrix() = physicsComponent->m_PhysicsObject->GetWorldSpaceTransform() * transformComponent->GetTransform().GetLocalMatrix();
 			}
 			else
 			{
 				if (transformComponent)
-					transformComponent->m_Transform.GetWorldMatrix() = transformComponent->m_Transform.GetLocalMatrix();
+					transformComponent->GetTransform().GetWorldMatrix() = transformComponent->GetTransform().GetLocalMatrix();
 			}
 
 			for (auto child : obj->GetChildren())
 				per_object_func(child);
 		};
 
-		per_object_func(m_RootEntity);
+		per_object_func(m_RootEntity);*/
 	}
 
 	void Scene::DebugRender()
@@ -226,27 +204,37 @@ namespace lumos
 		}
 	}
 
-	void Scene::InsertToRenderList(RenderList* list, const maths::Frustum& frustum) const
+	void Scene::InsertToRenderList(RenderList* list, const Maths::Frustum& frustum) const
 	{
 		std::function<void(std::shared_ptr<Entity>)> per_object_func = [&](std::shared_ptr<Entity> obj)
 		{
-			auto meshComponent = obj->GetComponent<MeshComponent>();
-			if (meshComponent)
+			if (obj->ActiveInHierarchy())
 			{
-				bool inside = frustum.InsideFrustum(obj->GetComponent<TransformComponent>()->m_Transform.GetWorldMatrix().GetPositionVector(), obj->GetBoundingRadius());
-
-				if (inside)
+				auto meshComponent = obj->GetComponent<MeshComponent>();
+				if (meshComponent && meshComponent->GetActive())
 				{
-					//Check to see if the object is already listed or not
-					if (!(list->BitMask() & obj->GetFrustumCullFlags()))
+					auto transform = obj->GetComponent<TransformComponent>()->GetTransform();
+
+					float maxScaling = 0.0f;
+					maxScaling = Maths::Max(transform.GetWorldMatrix().GetScaling().GetX(), maxScaling);
+					maxScaling = Maths::Max(transform.GetWorldMatrix().GetScaling().GetY(), maxScaling);
+					maxScaling = Maths::Max(transform.GetWorldMatrix().GetScaling().GetZ(), maxScaling);
+
+					bool inside = frustum.InsideFrustum(transform.GetWorldMatrix().GetPositionVector(), maxScaling * obj->GetBoundingRadius());
+
+					if (inside)
 					{
-						list->InsertObject(obj);
+						//Check to see if the object is already listed or not
+						if (!(list->BitMask() & obj->GetFrustumCullFlags()))
+						{
+							list->InsertObject(obj);
+						}
 					}
 				}
-			}
 
-			for (auto child : obj->GetChildren())
-				per_object_func(child);
+				for (auto child : obj->GetChildren())
+					per_object_func(child);
+			}
 		};
 
 		per_object_func(m_RootEntity);
@@ -259,7 +247,7 @@ namespace lumos
 		m_pCamera->BuildViewMatrix();
 		m_FrameFrustum.FromMatrix(m_pCamera->GetProjectionMatrix() * m_pCamera->GetViewMatrix());
 
-		BuildWorldMatrices();
+		//BuildWorldMatrices();
 
 		m_pFrameRenderList->UpdateCameraWorldPos(m_pCamera->GetPosition());
 		m_pFrameRenderList->RemoveExcessObjects(m_FrameFrustum);
@@ -273,14 +261,17 @@ namespace lumos
 
 		std::function<void(std::shared_ptr<Entity>)> per_object_func = [&](std::shared_ptr<Entity> obj)
 		{
-			auto lightComponent = obj->GetComponent<LightComponent>();
-			if (lightComponent)
+			if (obj->ActiveInHierarchy())
 			{
-				m_LightList.emplace_back(lightComponent->GetLight());
-			}
+				auto lightComponent = obj->GetComponent<LightComponent>();
+				if (lightComponent && lightComponent->GetActive())
+				{
+					m_LightList.emplace_back(lightComponent->GetLight());
+				}
 
-			for (auto child : obj->GetChildren())
-				per_object_func(child);
+				for (auto child : obj->GetChildren())
+					per_object_func(child);
+			}
 		};
 
 		per_object_func(m_RootEntity);
@@ -290,7 +281,7 @@ namespace lumos
 	{
 		std::function<void(std::shared_ptr<Entity>)> per_object_func2 = [&](std::shared_ptr<Entity> obj)
 		{
-			if (obj->IsActive())
+			if (obj->ActiveInHierarchy())
 			{
 				per_object_func(obj);
 

@@ -1,7 +1,7 @@
 #pragma once
 #include "LM.h"
 
-namespace lumos
+namespace Lumos
 {
 	template <class T>
 	class AssetManager

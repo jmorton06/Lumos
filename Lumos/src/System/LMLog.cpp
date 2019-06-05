@@ -3,7 +3,7 @@
 
 #include "spdlog/sinks/stdout_color_sinks.h"
 
-namespace lumos
+namespace Lumos
 {
     std::shared_ptr<spdlog::logger> LMLog::s_CoreLogger;
     std::shared_ptr<spdlog::logger> LMLog::s_ClientLogger;

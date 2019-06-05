@@ -2,7 +2,7 @@
 #include "AStar.h"
 #include "PathEdge.h"
 
-namespace lumos
+namespace Lumos
 {
 
 	AStar::AStar(const std::vector<PathNode *> &nodes)

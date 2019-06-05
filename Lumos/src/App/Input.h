@@ -11,7 +11,7 @@
 #define MAX_KEYS	1024
 #define MAX_BUTTONS	32
 
-namespace lumos
+namespace Lumos
 {
 	class Event;
 
@@ -40,8 +40,8 @@ namespace lumos
 		void SetMouseOnScreen(bool onScreen){ m_MouseOnScreen = onScreen; }
 		bool GetMouseOnScreen() const { return m_MouseOnScreen; }
 
-		void StoreMousePosition(int xpos, int ypos){ m_MousePosition = maths::Vector2(float(xpos), float(ypos)); }
-		maths::Vector2 GetMousePosition() const { return m_MousePosition; }
+		void StoreMousePosition(int xpos, int ypos){ m_MousePosition = Maths::Vector2(float(xpos), float(ypos)); }
+		Maths::Vector2 GetMousePosition() const { return m_MousePosition; }
 
 		void SetWindowFocus(bool focus)		{ m_WindowFocus = focus; }
 		bool GetWindowFocus() const { return m_WindowFocus; }
@@ -75,6 +75,6 @@ namespace lumos
 		bool m_MouseOnScreen;
 		bool m_WindowFocus;
 
-		maths::Vector2 m_MousePosition;
+		Maths::Vector2 m_MousePosition;
 	};
 }

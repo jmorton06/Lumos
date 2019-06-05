@@ -52,7 +52,7 @@ layout (std140) uniform LightData
     vec4 uSplitDepths[MAX_SHADOWMAPS];
 	float lightCount;
 	float shadowCount;
-	float p0;
+	int mode;
 	float p1;
 } ubo;
 
@@ -84,6 +84,7 @@ struct Material
 	vec3 specular;
 	float roughness;
 	vec3 normal;
+	float ao;
 };
 
 vec3 FinalGamma(vec3 color)
@@ -269,7 +270,7 @@ void main()
 
     vec3  spec      = vec3(pbrTex.x);
 	float roughness = pbrTex.y;
-
+	vec3 emissive	= vec3(pbrTex.w);
     vec3 wsPos      = positionTex;
 
     vec3 finalColour;
@@ -279,6 +280,7 @@ void main()
     material.specular  = spec;
     material.roughness = roughness;
     material.normal    = normal;
+	material.ao		   = pbrTex.z;
 
     vec3 eye      = normalize(ubo.cameraPosition.xyz - wsPos);
     vec4 diffuse  = vec4(0.0);
@@ -358,7 +360,7 @@ void main()
 			light.direction = vec4(L,1.0);
 		}
 
-		float NdotL = clamp(dot(material.normal, light.direction.xyz), 0.0, 1.0)  * value;
+		float NdotL = clamp(dot(material.normal, light.direction.xyz), 0.0, 1.0)  * value * material.ao;
 		diffuse  += NdotL * Diffuse(light, material, eye) * light.colour * light.intensity;
 		specular += NdotL * Specular(light, material, eye) * light.colour.xyz * light.intensity;
 	}
@@ -367,8 +369,33 @@ void main()
 
     //finalColour = material.albedo.xyz * diffuse.rgb + specular;
     finalColour = material.albedo.xyz * diffuse.rgb + (specular + IBL(material, eye));
-
+	finalColour += emissive;
 	finalColour = FinalGamma(finalColour);
 	outColor = vec4(finalColour, 1.0);
+
+	if(ubo.mode > 0)
+	{
+		switch(ubo.mode)
+		{
+			case 1:
+				outColor = colourTex;
+				break;
+			case 2:
+				outColor = vec4(material.specular, 1.0);
+				break;
+			case 3:
+				outColor = vec4(material.roughness, material.roughness, material.roughness,1.0);
+				break;
+			case 4:
+				outColor = vec4(material.ao, material.ao, material.ao, 1.0);
+				break;
+			case 5:
+				outColor = vec4(emissive, 1.0);
+				break;
+			case 6:
+				outColor = vec4(normal,1.0);
+				break;
+		}
+	}
 }
 #shader end

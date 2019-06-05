@@ -3,13 +3,13 @@
 #include "GLDescriptorSet.h"
 #include "GLShader.h"
 
-namespace lumos
+namespace Lumos
 {
-    namespace graphics
+    namespace Graphics
     {
         GLPipeline::GLPipeline() : m_RenderPass(nullptr)
         {
-	        descriptorSet = nullptr;
+			m_DescriptorSet = nullptr;
         }
 
         GLPipeline::GLPipeline(const PipelineInfo &pipelineCI) : m_RenderPass(nullptr)
@@ -19,7 +19,7 @@ namespace lumos
 
         GLPipeline::~GLPipeline()
         {
-            delete descriptorSet;
+            delete m_DescriptorSet;
         }
 
         bool GLPipeline::Init(const PipelineInfo &pipelineCI)
@@ -28,14 +28,14 @@ namespace lumos
             info.pipeline = this;
             info.layoutIndex = 0;
             info.shader = pipelineCI.shader;
-            descriptorSet = new GLDescriptorSet(info);
+			m_DescriptorSet = new GLDescriptorSet(info);
 
 			m_Shader = info.shader;
 
             return true;
         }
 
-        void GLPipeline::SetActive(graphics::CommandBuffer* cmdBuffer)
+        void GLPipeline::SetActive(Graphics::CommandBuffer* cmdBuffer)
         {
             m_Shader->Bind();
         }

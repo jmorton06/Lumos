@@ -3,9 +3,9 @@
 #include "VK.h"
 #include "VKContext.h"
 
-namespace lumos
+namespace Lumos
 {
-	namespace graphics
+	namespace Graphics
 	{
 		struct QueueFamilyIndices
 		{

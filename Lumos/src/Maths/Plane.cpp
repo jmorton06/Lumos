@@ -1,9 +1,9 @@
 #include "LM.h"
 #include "Plane.h"
 
-namespace lumos
+namespace Lumos
 {
-	namespace maths 
+	namespace Maths 
 	{
 		Plane::Plane(const Vector3 &normal, float distance, bool normalise) 
 		{

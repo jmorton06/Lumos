@@ -1,7 +1,7 @@
 #include "LM.h"
 #include "String.h"
 
-namespace lumos
+namespace Lumos
 {
 	char* StringFormat::s_Buffer = new char[STRINGFORMAT_BUFFER_SIZE];
 

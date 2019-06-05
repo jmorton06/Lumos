@@ -3,7 +3,7 @@
 #include "Octree.h"
 #include "Graphics/Renderers/DebugRenderer.h"
 
-namespace lumos
+namespace Lumos
 {
 
 	Octree::Octree(const size_t maxObjectsPerPartition, const size_t maxPartitionDepth, std::shared_ptr<Broadphase> secondaryBroadphase)
@@ -66,7 +66,7 @@ namespace lumos
 			return;
 		}
 
-		maths::Vector3 divisionPoints[] = { division->boundingBox.Lower(), division->boundingBox.Centre(), division->boundingBox.Upper() };
+		Maths::Vector3 divisionPoints[] = { division->boundingBox.Lower(), division->boundingBox.Centre(), division->boundingBox.Upper() };
 
 		static const size_t NUM_DIVISIONS = 8;
 		static const size_t DIVISION_POINT_INDICES[NUM_DIVISIONS][6] = 
@@ -87,14 +87,14 @@ namespace lumos
 			newNode->physicsObjects.reserve(m_MaxObjectsPerPartition);
 			newNode->childNodes.reserve(8);
 
-			const maths::Vector3 lower(divisionPoints[DIVISION_POINT_INDICES[i][0]].GetX(),
+			const Maths::Vector3 lower(divisionPoints[DIVISION_POINT_INDICES[i][0]].GetX(),
 				divisionPoints[DIVISION_POINT_INDICES[i][1]].GetY(),
 				divisionPoints[DIVISION_POINT_INDICES[i][2]].GetZ());
-			const maths::Vector3 upper(divisionPoints[DIVISION_POINT_INDICES[i][3]].GetX(),
+			const Maths::Vector3 upper(divisionPoints[DIVISION_POINT_INDICES[i][3]].GetX(),
 				divisionPoints[DIVISION_POINT_INDICES[i][4]].GetY(),
 				divisionPoints[DIVISION_POINT_INDICES[i][5]].GetZ());
 
-			newNode->boundingBox = maths::BoundingBox(lower, upper);
+			newNode->boundingBox = Maths::BoundingBox(lower, upper);
 
 			// Add objects inside division
 			for (auto &physicsObject : division->physicsObjects)
@@ -117,7 +117,7 @@ namespace lumos
 		if (node)
 		{
 			//node->boundingBox.DebugDraw(Matrix4(), Vector4(1.0f, 0.8f, 0.8f, 0.2f), Vector4(0.8f, 0.2f, 0.4f, 1.0f), 0.1f);
-			DebugRenderer::DebugDraw(&node->boundingBox, maths::Vector4(0.8f, 0.2f, 0.4f, 1.0f), 0.1f);
+			DebugRenderer::DebugDraw(&node->boundingBox, Maths::Vector4(0.8f, 0.2f, 0.4f, 1.0f), 0.1f);
 
 			// Draw sub divisions
 			for (auto &childNode : node->childNodes)

@@ -2,9 +2,9 @@
 #include "LM.h"
 #include "Graphics/API/Pipeline.h"
 
-namespace lumos
+namespace Lumos
 {
-    namespace graphics
+    namespace Graphics
     {
         class GLRenderPass;
         class CommandBuffer;
@@ -18,9 +18,14 @@ namespace lumos
 
             bool Init(const PipelineInfo& pipelineCI);
 
-            void SetActive(graphics::CommandBuffer* cmdBuffer) override;
+            void SetActive(Graphics::CommandBuffer* cmdBuffer) override;
+			
+			DescriptorSet* GetDescriptorSet() const override { return m_DescriptorSet; }
+			Shader* GetShader() const override { return m_Shader; }
 
         private:
+			DescriptorSet* m_DescriptorSet = nullptr;
+			Shader* m_Shader = nullptr;
             GLRenderPass* m_RenderPass;
             std::string pipelineName;
         };

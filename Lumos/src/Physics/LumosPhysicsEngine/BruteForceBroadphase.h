@@ -3,7 +3,7 @@
 #include "LM.h"
 #include "Broadphase.h"
 
-namespace lumos
+namespace Lumos
 {
 
 	class LUMOS_EXPORT BruteForceBroadphase : public Broadphase

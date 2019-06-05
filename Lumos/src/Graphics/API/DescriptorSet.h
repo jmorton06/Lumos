@@ -1,14 +1,15 @@
 #pragma once
-#include "UniformBuffer.h"
-#include "Textures/Texture.h"
+#include "LM.h"
 
-namespace lumos
+namespace Lumos
 {
-	namespace graphics
+	namespace Graphics
 	{
 		class Pipeline;
 		class Shader;
 		class Texture;
+		class UniformBuffer;
+		enum class TextureType : int;
 		enum class ShaderType : int;
 
 		enum class DescriptorType
@@ -101,7 +102,7 @@ namespace lumos
 			int count = 1;
 			int binding;
 			String name;
-			TextureType type = TextureType::COLOUR;
+			TextureType type;
 		};
 
 		class DescriptorSet
@@ -114,15 +115,8 @@ namespace lumos
 			virtual void Update(std::vector<ImageInfo>& imageInfos) = 0;
 			virtual void Update(std::vector<BufferInfo>& bufferInfos) = 0;
 			virtual void SetPushConstants(std::vector<PushConstant>& pushConstants) = 0;
-
-			void SetDynamicOffset(uint offset) { m_DynamicOffset = offset; }
-			uint GetDynamicOffset() const { return m_DynamicOffset; }
-
-		protected:
-			uint m_DynamicOffset = 0;
-            Shader* m_Shader = nullptr;
-
-
+			virtual void SetDynamicOffset(uint offset) = 0;
+			virtual uint GetDynamicOffset() const = 0;
 		};
 	}
 }

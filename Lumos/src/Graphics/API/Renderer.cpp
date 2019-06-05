@@ -16,22 +16,22 @@
 
 #include "../Camera/Camera.h"
 
-namespace lumos
+namespace Lumos
 {
-	namespace graphics
+	namespace Graphics
 	{
 		Renderer* Renderer::s_Instance = nullptr;
 
 		void Renderer::Init(uint width, uint height)
 		{
-			switch (graphics::GraphicsContext::GetRenderAPI())
+			switch (Graphics::GraphicsContext::GetRenderAPI())
 			{
 #ifdef LUMOS_RENDER_API_OPENGL
 			case RenderAPI::OPENGL:	s_Instance = new GLRenderer(width, height); break;
 #endif
 
 #ifdef LUMOS_RENDER_API_VULKAN
-			case RenderAPI::VULKAN: s_Instance = new graphics::VKRenderer(width, height); break;
+			case RenderAPI::VULKAN: s_Instance = new Graphics::VKRenderer(width, height); break;
 #endif
 #ifdef LUMOS_RENDER_API_DIRECT3D
 			case RenderAPI::DIRECT3D: s_Instance = new D3DRenderer(width, height); break;

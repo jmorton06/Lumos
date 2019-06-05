@@ -1,7 +1,7 @@
 #pragma once
 #include <LumosEngine.h>
 
-class GraphicsScene : public lumos::Scene
+class GraphicsScene : public Lumos::Scene
 {
 public:
 	GraphicsScene(const std::string& SceneName);
@@ -9,10 +9,10 @@ public:
 
 	virtual void OnInit() override;
 	virtual void OnCleanupScene() override;
-	virtual void OnUpdate(lumos::TimeStep* timeStep) override;
+	virtual void OnUpdate(Lumos::TimeStep* timeStep) override;
 	virtual void OnIMGUI() override;
 
 	void LoadModels();
 private:
-	std::unique_ptr<lumos::graphics::TextureDepthArray> m_ShadowTexture;
+	std::unique_ptr<Lumos::Graphics::TextureDepthArray> m_ShadowTexture;
 };

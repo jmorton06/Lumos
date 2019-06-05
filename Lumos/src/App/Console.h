@@ -5,7 +5,7 @@
 #include <imgui/imgui.h>
 #include <spdlog/sinks/sink.h>
 
-namespace lumos
+namespace Lumos
 {
 	class Console 
 	{

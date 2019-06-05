@@ -4,7 +4,7 @@
 #include "PhysicsObject3D.h"
 #include "Maths/Maths.h"
 
-namespace lumos
+namespace Lumos
 {
 	/* A contact constraint is actually the summation of a normal distance constraint
 	along with two friction constraints going along the axes perpendicular to the collision
@@ -17,9 +17,9 @@ namespace lumos
 		float	elatisity_term;
 		float	collisionPenetration;
 
-		maths::Vector3 collisionNormal;
-		maths::Vector3 relPosA;			//Position relative to objectA
-		maths::Vector3 relPosB;			//Position relative to objectB
+		Maths::Vector3 collisionNormal;
+		Maths::Vector3 relPosA;			//Position relative to objectA
+		Maths::Vector3 relPosB;			//Position relative to objectB
 	};
 
 	class LUMOS_EXPORT Manifold
@@ -32,7 +32,7 @@ namespace lumos
 		void Initiate(PhysicsObject3D* nodeA, PhysicsObject3D* nodeB);
 
 		//Called whenever a new collision contact between A & B are found
-		void AddContact(const maths::Vector3& globalOnA, const maths::Vector3& globalOnB, const maths::Vector3& _normal, const float& _penetration);
+		void AddContact(const Maths::Vector3& globalOnA, const Maths::Vector3& globalOnB, const Maths::Vector3& _normal, const float& _penetration);
 
 		//Sequentially solves each contact constraint
 		void ApplyImpulse();

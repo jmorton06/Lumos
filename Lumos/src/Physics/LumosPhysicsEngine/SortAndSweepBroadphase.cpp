@@ -6,10 +6,10 @@
 #include <memory>
 #include <vector>
 
-namespace lumos
+namespace Lumos
 {
 
-	SortAndSweepBroadphase::SortAndSweepBroadphase(const maths::Vector3 &axis)
+	SortAndSweepBroadphase::SortAndSweepBroadphase(const Maths::Vector3 &axis)
 		: Broadphase()
 	{
 		SetAxis(axis);
@@ -19,7 +19,7 @@ namespace lumos
 	{
 	}
 
-	void SortAndSweepBroadphase::SetAxis(const maths::Vector3 &axis)
+	void SortAndSweepBroadphase::SetAxis(const Maths::Vector3 &axis)
 	{
 		// Determine axis
 		m_axis = axis;
@@ -80,7 +80,7 @@ namespace lumos
 
 	void SortAndSweepBroadphase::DebugDraw()
 	{
-		DebugRenderer::DrawPointNDT(maths::Vector3(0.0f, 0.0f, 0.0f), 0.05f, maths::Vector4(0.0f, 0.0f, 1.0f, 1.0f));
-		DebugRenderer::DrawThickLine(maths::Vector3(0.0f, 0.0f, 0.0f), m_axis, 0.02f, maths::Vector4(0.0f, 0.0f, 1.0f, 1.0f));
+		DebugRenderer::DrawPointNDT(Maths::Vector3(0.0f, 0.0f, 0.0f), 0.05f, Maths::Vector4(0.0f, 0.0f, 1.0f, 1.0f));
+		DebugRenderer::DrawThickLine(Maths::Vector3(0.0f, 0.0f, 0.0f), m_axis, 0.02f, Maths::Vector4(0.0f, 0.0f, 1.0f, 1.0f));
 	}
 }

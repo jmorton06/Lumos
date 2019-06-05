@@ -4,7 +4,7 @@
 #include "Maths/Vector3.h"
 #include "Maths/MathsUtilities.h"
 
-namespace lumos
+namespace Lumos
 {
 	class LUMOS_EXPORT SoundNode
 	{
@@ -18,13 +18,13 @@ namespace lumos
 
 		Sound*			GetSound() const { return m_Sound; }
 
-		void			SetVelocity(const maths::Vector3& vel) { m_Velocity = vel; }
-		maths::Vector3	GetVelocity() const { return m_Velocity; }
+		void			SetVelocity(const Maths::Vector3& vel) { m_Velocity = vel; }
+		Maths::Vector3	GetVelocity() const { return m_Velocity; }
 
-		void			SetPosition(const maths::Vector3& pos) { m_Position = pos; }
-		maths::Vector3	GetPosition() const { return m_Position; }
+		void			SetPosition(const Maths::Vector3& pos) { m_Position = pos; }
+		Maths::Vector3	GetPosition() const { return m_Position; }
 
-		void			SetVolume(float volume) { m_Volume = maths::Min(1.0f, maths::Max(0.0f, volume)); }
+		void			SetVolume(float volume) { m_Volume = Maths::Min(1.0f, Maths::Max(0.0f, volume)); }
 		float			GetVolume() const { return m_Volume; }
 
 		void			SetLooping(bool state) { m_IsLooping = state; }
@@ -33,7 +33,7 @@ namespace lumos
 		void			SetPaused(bool state) { m_Paused = state; }
 		bool			GetPaused() const { return m_Paused; }
 
-		void			SetRadius(float value) { m_Radius = maths::Max(0.0f, value); }
+		void			SetRadius(float value) { m_Radius = Maths::Max(0.0f, value); }
 		float			GetRadius() const { return m_Radius; }
 
 		float			GetPitch() const { return m_Pitch; }
@@ -59,8 +59,8 @@ namespace lumos
 	protected:
 
 		Sound*			m_Sound;
-		maths::Vector3	m_Position;
-		maths::Vector3	m_Velocity;
+		Maths::Vector3	m_Position;
+		Maths::Vector3	m_Velocity;
 		float			m_Volume;
 		float			m_Radius;
 		float			m_Pitch;

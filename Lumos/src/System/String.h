@@ -13,7 +13,7 @@ template < typename T > std::string to_string( const T& n )
     }
 #endif
 
-namespace lumos 
+namespace Lumos 
 {
 
 #define STRINGFORMAT_BUFFER_SIZE 10 * 1024

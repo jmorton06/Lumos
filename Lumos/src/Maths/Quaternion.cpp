@@ -2,9 +2,9 @@
 #include "Quaternion.h"
 #include "MathsUtilities.h"
 
-namespace lumos
+namespace Lumos
 {
-	namespace maths
+	namespace Maths
 	{
 #ifdef LUMOS_SSEQUAT
 		const Quaternion Quaternion::EMPTY = Quaternion(_mm_setzero_ps());
@@ -183,9 +183,9 @@ namespace lumos
 
 		Quaternion Quaternion::EulerAnglesToQuaternion(float pitch, float yaw, float roll)
 		{
-			float y2 = DegToRad(yaw / 2.0f);
-			float p2 = DegToRad(pitch / 2.0f);
-			float r2 = DegToRad(roll / 2.0f);
+			float y2 = DegreesToRadians(yaw   * 0.5f);
+			float p2 = DegreesToRadians(pitch * 0.5f);
+			float r2 = DegreesToRadians(roll  * 0.5f);
 
 			float cosy = cos(y2);
 			float cosp = cos(p2);
@@ -207,7 +207,7 @@ namespace lumos
 
 		Quaternion Quaternion::AxisAngleToQuaterion(const Vector3& vector, float degrees)
 		{
-			float theta = DegToRad(degrees);
+			float theta = DegreesToRadians(degrees);
 			float result = sin(theta * 0.5f);
 
 			return Quaternion(static_cast<float>(vector.GetX() * result), static_cast<float>(vector.GetY() * result), static_cast<float>(vector.GetZ() * result), static_cast<float>(cos(theta * 0.5f)));
@@ -220,6 +220,40 @@ namespace lumos
 				w = 0.0f;
 			else
 				w = -sqrtf(w);
+		}
+
+		Vector3 Quaternion::ToEuler() const
+		{
+			Vector3 euler;
+
+			float t = x * y + z * w;
+
+			if (t > 0.4999)
+			{
+				euler.z = RadiansToDegrees(PI / 2.0f);
+				euler.y = RadiansToDegrees(2.0f * atan2(x, w));
+				euler.x = 0.0f;
+
+				return euler;
+			}
+
+			if (t < -0.4999) 
+			{
+				euler.z = -RadiansToDegrees(PI / 2.0f);
+				euler.y = -RadiansToDegrees(2.0f * atan2(x, w));
+				euler.x = 0.0f;
+				return euler;
+			}
+
+			float sqx = x * x;
+			float sqy = y * y;
+			float sqz = z * z;
+
+			euler.z = RadiansToDegrees(asin(2 * t));
+			euler.y = RadiansToDegrees(atan2(2 * y*w - 2 * x*z, 1.0f - 2 * sqy - 2 * sqz));
+			euler.x = RadiansToDegrees(atan2(2 * x*w - 2 * y*z, 1.0f - 2 * sqx - 2.0f*sqz));
+
+			return euler;
 		}
 
 		Quaternion Quaternion::Conjugate() const
@@ -312,13 +346,13 @@ namespace lumos
 			return _mm_add_ps(_mm_mul_ps(_mm_set1_ps(sclp), pStart.mmvalue), _mm_mul_ps(_mm_set1_ps(sclq), end.mmvalue));
 #else
 			// Clamp interpolation between start and end
-			pFactor = maths::Min(maths::Max(pFactor, 0.0f), 1.0f);
+			pFactor = Maths::Min(Maths::Max(pFactor, 0.0f), 1.0f);
 
 			// Calc cos theta (Dot product)
 			float cos_theta = Quaternion::Dot(pStart, pEnd);
 
 			// Quaternions can describe any rotation positively or negatively, however to interpolate
-			// correctly we need /both/ quaternions to use the same coordinate system
+			// correctly we need /both/ quaternions to use the same coordinate System
 			Quaternion real_end = pEnd;
 			if (cos_theta < 0.0f)
 			{
@@ -407,7 +441,7 @@ namespace lumos
 			Vector3 rotAxis = Vector3::Cross(from_dir, to_dir);
 			rotAxis.Normalise();
 
-			return Quaternion::AxisAngleToQuaterion(rotAxis, static_cast<float>(RadToDeg(theta)));
+			return Quaternion::AxisAngleToQuaterion(rotAxis, static_cast<float>(RadiansToDegrees(theta)));
 		}
 
 		Vector3 Quaternion::Transform(const Vector3& point) const
@@ -470,7 +504,7 @@ namespace lumos
 			float cos_theta = Quaternion::Dot(start, end);
 
 			// Quaternions can describe any rotation positively or negatively (e.g -90degrees is the same as 270degrees), however to interpolate
-			// correctly we need /both/ quaternions to use the same coordinate system
+			// correctly we need /both/ quaternions to use the same coordinate System
 			Quaternion real_end = end;
 			if (cos_theta < 0.0f)
 			{
@@ -567,9 +601,9 @@ namespace lumos
 namespace std 
 {
 	template<>
-	struct hash<lumos::maths::Quaternion>
+	struct hash<Lumos::Maths::Quaternion>
 	{
-		size_t operator()(const lumos::maths::Quaternion& value) const
+		size_t operator()(const Lumos::Maths::Quaternion& value) const
 		{
 			return std::hash<float>()(value.x) ^ std::hash<float>()(value.y)
 				^ std::hash<float>()(value.z) ^ std::hash<float>()(value.w);

@@ -3,7 +3,7 @@
 #include "GLRenderer.h"
 #include "GL.h"
 
-namespace lumos
+namespace Lumos
 {
 	class Material;
 
@@ -14,7 +14,7 @@ namespace lumos
 		0.0, 0.0, 0.5, 0.0,
 		0.5, 0.5, 0.5, 1.0
 	};
-	static const maths::Matrix4 biasMatrix(const_cast<float*>(biasValues));
+	static const Maths::Matrix4 biasMatrix(const_cast<float*>(biasValues));
 
 	enum DebugDrawMode
 	{
@@ -24,8 +24,8 @@ namespace lumos
 
 	struct DebugDrawData
 	{
-		std::vector<maths::Vector3> lines;
-		std::vector<maths::Vector3> colours;
+		std::vector<Maths::Vector3> lines;
+		std::vector<Maths::Vector3> colours;
 
 		uint array;
 		uint buffers[2];
@@ -45,7 +45,7 @@ namespace lumos
 			colours.clear();
 		}
 
-		inline void AddLine(const maths::Vector3 &from, const maths::Vector3 &to, const maths::Vector3 &fromColour, const maths::Vector3 &toColour)
+		inline void AddLine(const Maths::Vector3 &from, const Maths::Vector3 &to, const Maths::Vector3 &fromColour, const Maths::Vector3 &toColour)
 		{
 			lines.push_back(from);
 			lines.push_back(to);
@@ -62,20 +62,20 @@ namespace lumos
 		~GLDebug();
 
 		static void SwapBuffers();
-		static void	DrawDebugLine(DebugDrawMode mode, const maths::Vector3 &from, const maths::Vector3 &to, const maths::Vector3 &fromColour = maths::Vector3(1, 1, 1), const maths::Vector3 &toColour = maths::Vector3(1, 1, 1));
-		static void	DrawDebugBox(DebugDrawMode mode, const maths::Vector3 &at, const maths::Vector3 &scale, const maths::Vector3 &colour = maths::Vector3(1, 1, 1));
-		static void	DrawDebugCross(DebugDrawMode mode, const maths::Vector3 &at, const maths::Vector3 &scale, const maths::Vector3 &colour = maths::Vector3(1, 1, 1));
-		static void	DrawDebugCircle(DebugDrawMode mode, const maths::Vector3 &at, const float radius, const maths::Vector3 &colour = maths::Vector3(1, 1, 1));
+		static void	DrawDebugLine(DebugDrawMode mode, const Maths::Vector3 &from, const Maths::Vector3 &to, const Maths::Vector3 &fromColour = Maths::Vector3(1, 1, 1), const Maths::Vector3 &toColour = Maths::Vector3(1, 1, 1));
+		static void	DrawDebugBox(DebugDrawMode mode, const Maths::Vector3 &at, const Maths::Vector3 &scale, const Maths::Vector3 &colour = Maths::Vector3(1, 1, 1));
+		static void	DrawDebugCross(DebugDrawMode mode, const Maths::Vector3 &at, const Maths::Vector3 &scale, const Maths::Vector3 &colour = Maths::Vector3(1, 1, 1));
+		static void	DrawDebugCircle(DebugDrawMode mode, const Maths::Vector3 &at, const float radius, const Maths::Vector3 &colour = Maths::Vector3(1, 1, 1));
 
-		static void DrawDebugPerspective(maths::Matrix4* matrix = nullptr);
-		static void DrawDebugOrtho(maths::Matrix4* matrix = nullptr);
+		static void DrawDebugPerspective(Maths::Matrix4* matrix = nullptr);
+		static void DrawDebugOrtho(Maths::Matrix4* matrix = nullptr);
 
 		static DebugDrawData* s_OrthoDebugData;
 		static DebugDrawData* s_PerspectiveDebugData;
 		static bool	s_DrawnDebugOrtho;
 		static bool	s_DrawnDebugPerspective;
 
-		static graphics::GLRenderer*	s_DebugDrawingRenderer;
+		static Graphics::GLRenderer*	s_DebugDrawingRenderer;
 		static Material*	s_DebugDrawShader;
 	};
 

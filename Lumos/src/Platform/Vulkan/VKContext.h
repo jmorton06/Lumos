@@ -9,9 +9,9 @@ const bool enableValidationLayers = false;
 const bool enableValidationLayers = false;
 #endif
 
-namespace lumos
+namespace Lumos
 {
-	namespace graphics
+	namespace Graphics
 	{
 		class VKCommandPool;
 
@@ -57,6 +57,8 @@ namespace lumos
 			size_t GetMinUniformBufferOffsetAlignment() const override;
 
 			void* GetWindowContext() const { return m_WindowContext; }
+            
+            bool FlipImGUITexture() const override { return false; }
 
 		protected:
 

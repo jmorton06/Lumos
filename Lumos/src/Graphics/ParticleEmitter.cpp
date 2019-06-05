@@ -8,7 +8,7 @@
 #include "Utilities/RandomNumberGenerator.h"
 #include "Maths/BoundingBox.h"
 
-namespace lumos
+namespace Lumos
 {
 
 	ParticleEmitter::ParticleEmitter()
@@ -16,18 +16,18 @@ namespace lumos
 	, m_NextParticleTime(0.0f)
 	, m_ParticleRate(0.04f)
 	, m_NumLaunchParticles(5)
-	, m_Area(maths::Vector3(0.0f))
-	, m_Position(maths::Vector3(0.0))
-	, m_InitialVelocity(maths::Vector3(0.0f, 4.0f, 0.0f))
+	, m_Area(Maths::Vector3(0.0f))
+	, m_Position(Maths::Vector3(0.0))
+	, m_InitialVelocity(Maths::Vector3(0.0f, 4.0f, 0.0f))
 	, m_ParticleLife(3.0f)
 	, m_GravityEffect(0.0f)
 	, m_Scale(2.0f)
-	, m_PositionVarianceX(maths::Vector2(0.0f, 0.0f))
-	, m_PositionVarianceY(maths::Vector2(0.0f, 0.0f))
-	, m_PositionVarianceZ(maths::Vector2(0.0f, 0.0f))
-	, m_VelocityVarianceX(maths::Vector2(0.0f, 0.0f))
-	, m_VelocityVarianceY(maths::Vector2(0.0f, 0.0f))
-	, m_VelocityVarianceZ(maths::Vector2(0.0f, 0.0f))
+	, m_PositionVarianceX(Maths::Vector2(0.0f, 0.0f))
+	, m_PositionVarianceY(Maths::Vector2(0.0f, 0.0f))
+	, m_PositionVarianceZ(Maths::Vector2(0.0f, 0.0f))
+	, m_VelocityVarianceX(Maths::Vector2(0.0f, 0.0f))
+	, m_VelocityVarianceY(Maths::Vector2(0.0f, 0.0f))
+	, m_VelocityVarianceZ(Maths::Vector2(0.0f, 0.0f))
 	, m_ScaleVariance(1)
 	, m_LifeLengthVariance(1.0f)
 	, m_NumTextureRows(1)
@@ -37,21 +37,21 @@ namespace lumos
 
 	ParticleEmitter::~ParticleEmitter() = default;
 
-	maths::BoundingBox* ParticleEmitter::CalculateBoundingBox() const
+	Maths::BoundingBox* ParticleEmitter::CalculateBoundingBox() const
 	{
-		maths::BoundingBox* box = new maths::BoundingBox();
+		Maths::BoundingBox* box = new Maths::BoundingBox();
 
-		maths::Vector3 vel = m_InitialVelocity + maths::Vector3(m_VelocityVarianceX.GetY(), m_VelocityVarianceY.GetY(), m_VelocityVarianceZ.GetY());
-		maths::Vector3 pos = m_Position + maths::Vector3(m_PositionVarianceX.GetY(), m_PositionVarianceY.GetY(), m_PositionVarianceZ.GetY());
-
-		box->ExpandToFit(pos + vel * m_ParticleLife);
-
-		vel = m_InitialVelocity + maths::Vector3(m_VelocityVarianceX.GetX(), m_VelocityVarianceY.GetX(), m_VelocityVarianceZ.GetX());
-		pos = m_Position + maths::Vector3(m_PositionVarianceX.GetX(), m_PositionVarianceY.GetX(), m_PositionVarianceZ.GetX());
+		Maths::Vector3 vel = m_InitialVelocity + Maths::Vector3(m_VelocityVarianceX.GetY(), m_VelocityVarianceY.GetY(), m_VelocityVarianceZ.GetY());
+		Maths::Vector3 pos = m_Position + Maths::Vector3(m_PositionVarianceX.GetY(), m_PositionVarianceY.GetY(), m_PositionVarianceZ.GetY());
 
 		box->ExpandToFit(pos + vel * m_ParticleLife);
 
-		box->ExpandToFit(maths::Vector3(0.0f));
+		vel = m_InitialVelocity + Maths::Vector3(m_VelocityVarianceX.GetX(), m_VelocityVarianceY.GetX(), m_VelocityVarianceZ.GetX());
+		pos = m_Position + Maths::Vector3(m_PositionVarianceX.GetX(), m_PositionVarianceY.GetX(), m_PositionVarianceZ.GetX());
+
+		box->ExpandToFit(pos + vel * m_ParticleLife);
+
+		box->ExpandToFit(Maths::Vector3(0.0f));
 
 		//TODO: More Accurate box;
 
@@ -66,7 +66,7 @@ namespace lumos
 		{
 			for (uint i = 0; i < m_NumLaunchParticles; ++i)
 			{
-				m_Particles.push_back(std::make_shared<Particle>(m_Position + maths::Vector3(lumos::RandomNumberGenerator32::Rand(-m_Area.x, m_Area.x),lumos::RandomNumberGenerator32::Rand(-m_Area.y, m_Area.y),lumos::RandomNumberGenerator32::Rand(-m_Area.z, m_Area.z)), m_InitialVelocity + maths::Vector3(lumos::RandomNumberGenerator32::Rand(m_VelocityVarianceX.GetX(),m_VelocityVarianceX.GetY()),lumos::RandomNumberGenerator32::Rand(m_VelocityVarianceY.GetX(), m_VelocityVarianceY.GetY()),lumos::RandomNumberGenerator32::Rand(m_VelocityVarianceZ.GetX(), m_VelocityVarianceZ.GetY())), m_GravityEffect, m_ParticleLife * lumos::RandomNumberGenerator32::Rand(m_LifeLengthVariance,1.0f), m_Scale * lumos::RandomNumberGenerator32::Rand(m_ScaleVariance,1.0f)));
+				m_Particles.push_back(std::make_shared<Particle>(m_Position + Maths::Vector3(Lumos::RandomNumberGenerator32::Rand(-m_Area.x, m_Area.x),Lumos::RandomNumberGenerator32::Rand(-m_Area.y, m_Area.y),Lumos::RandomNumberGenerator32::Rand(-m_Area.z, m_Area.z)), m_InitialVelocity + Maths::Vector3(Lumos::RandomNumberGenerator32::Rand(m_VelocityVarianceX.GetX(),m_VelocityVarianceX.GetY()),Lumos::RandomNumberGenerator32::Rand(m_VelocityVarianceY.GetX(), m_VelocityVarianceY.GetY()),Lumos::RandomNumberGenerator32::Rand(m_VelocityVarianceZ.GetX(), m_VelocityVarianceZ.GetY())), m_GravityEffect, m_ParticleLife * Lumos::RandomNumberGenerator32::Rand(m_LifeLengthVariance,1.0f), m_Scale * Lumos::RandomNumberGenerator32::Rand(m_ScaleVariance,1.0f)));
 			}
 
 			m_NextParticleTime += m_ParticleRate;
@@ -86,12 +86,12 @@ namespace lumos
 	{
 	}
 
-	maths::Matrix4 ParticleEmitter::UpdateModelViewMatrix(const maths::Matrix4& viewMatrix, Particle* particle)
+	Maths::Matrix4 ParticleEmitter::UpdateModelViewMatrix(const Maths::Matrix4& viewMatrix, Particle* particle)
 	{
-		maths::Matrix4 mvMatrix;
+		Maths::Matrix4 mvMatrix;
 		mvMatrix.ToIdentity();
 
-		mvMatrix = maths::Matrix4::Translation(particle->GetPosition());
+		mvMatrix = Maths::Matrix4::Translation(particle->GetPosition());
 		mvMatrix[0] = viewMatrix[0];
 		mvMatrix[1] = viewMatrix[4];
 		mvMatrix[2] = viewMatrix[8];
@@ -101,7 +101,7 @@ namespace lumos
 		mvMatrix[8] = viewMatrix[2];
 		mvMatrix[9] = viewMatrix[6];
 		mvMatrix[10] = viewMatrix[10];
-		mvMatrix = mvMatrix * maths::Matrix4::Rotation(particle->GetRotation(), maths::Vector3(0.0f, 0.0f, 1.0f)) * maths::Matrix4::Scale(maths::Vector3(particle->GetScale()));
+		mvMatrix = mvMatrix * Maths::Matrix4::Rotation(particle->GetRotation(), Maths::Vector3(0.0f, 0.0f, 1.0f)) * Maths::Matrix4::Scale(Maths::Vector3(particle->GetScale()));
 		mvMatrix = viewMatrix * mvMatrix;
 
 		return mvMatrix;
@@ -147,32 +147,32 @@ namespace lumos
         ParticleEmitter::m_NumLaunchParticles = numLaunchParticles;
     }
 
-	maths::Vector3 ParticleEmitter::GetArea() const
+	Maths::Vector3 ParticleEmitter::GetArea() const
     {
         return m_Area;
     }
 
-    void ParticleEmitter::SetArea(const maths::Vector3 &area)
+    void ParticleEmitter::SetArea(const Maths::Vector3 &area)
     {
         ParticleEmitter::m_Area = area;
     }
 
-	maths::Vector3 ParticleEmitter::GetPosition() const
+	Maths::Vector3 ParticleEmitter::GetPosition() const
     {
         return m_Position;
     }
 
-    void ParticleEmitter::SetPosition(const maths::Vector3 &position)
+    void ParticleEmitter::SetPosition(const Maths::Vector3 &position)
     {
         ParticleEmitter::m_Position = position;
     }
 
-	maths::Vector3 ParticleEmitter::GetInitialVelocity() const
+	Maths::Vector3 ParticleEmitter::GetInitialVelocity() const
     {
         return m_InitialVelocity;
     }
 
-    void ParticleEmitter::SetInitialVelocity(const maths::Vector3& initialVelocity)
+    void ParticleEmitter::SetInitialVelocity(const Maths::Vector3& initialVelocity)
     {
         ParticleEmitter::m_InitialVelocity = initialVelocity;
     }

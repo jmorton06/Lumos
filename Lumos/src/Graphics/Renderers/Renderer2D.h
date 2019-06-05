@@ -4,11 +4,11 @@
 #include "Maths/Matrix4.h"
 #include "Graphics/API/BufferLayout.h"
 
-namespace lumos
+namespace Lumos
 {
 	class Scene;
 	
-	namespace graphics
+	namespace Graphics
 	{
 		class RenderPass;
 		class Pipeline;
@@ -29,7 +29,7 @@ namespace lumos
 			virtual ~Renderer2D();
 
 			virtual void Init();
-			virtual void Submit(Renderable2D* renderable, const maths::Matrix4& transform);
+			virtual void Submit(Renderable2D* renderable, const Maths::Matrix4& transform);
 			virtual void Begin();
 			virtual void BeginScene(Scene* scene);
 			virtual void Present();
@@ -46,7 +46,7 @@ namespace lumos
 
 			struct UniformBufferObject
 			{
-				maths::Matrix4 projView;
+				Maths::Matrix4 projView;
 			};
 
 			byte* m_VSSystemUniformBuffer{};
@@ -79,15 +79,15 @@ namespace lumos
 
 			VertexData* m_Buffer{};
 
-			std::vector<maths::Matrix4> m_TransformationStack;
-			const maths::Matrix4* m_TransformationBack{};
+			std::vector<Maths::Matrix4> m_TransformationStack;
+			const Maths::Matrix4* m_TransformationBack{};
 
 			std::vector<Texture*> m_Textures;
 
 			Texture* m_RenderTexture;
 			bool m_RenderToGBufferTexture = false;
 			uint m_CurrentBufferID = 0;
-			maths::Vector4 m_ClearColour;
+			Maths::Vector4 m_ClearColour;
 
 		};
 	}

@@ -139,7 +139,7 @@ typedef unsigned long long uintptr;
 		crash();  															\
 	}																		\
 
-namespace lumos
+namespace Lumos
 {
 	static void* AlignedAlloc(size_t size, size_t alignment)
 	{

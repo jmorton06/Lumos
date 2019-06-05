@@ -6,7 +6,7 @@
 #include "Platform/OpenAL/ALSound.h"
 #endif
 
-namespace lumos
+namespace Lumos
 {
 	std::map<String, Sound*>* Sound::m_Sounds = new std::map<String, Sound*>();
 	Sound::Sound(): m_Streaming(false), m_Data(AudioData())
@@ -39,7 +39,7 @@ namespace lumos
 		if (!s)
 		{
 			String physicalPath;
-			if (!lumos::VFS::Get()->ResolvePhysicalPath(fileName, physicalPath))
+			if (!Lumos::VFS::Get()->ResolvePhysicalPath(fileName, physicalPath))
 			{
 				LUMOS_CORE_ERROR("Could not load Audio File : ", fileName);
 			}

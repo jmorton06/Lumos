@@ -9,9 +9,9 @@
 
 #include <cmath>
 
-namespace lumos
+namespace Lumos
 {
-	namespace graphics
+	namespace Graphics
 	{
 		VKTexture2D::VKTexture2D(uint width, uint height, void* data, TextureParameters parameters, TextureLoadOptions loadOptions)
 			: m_FileName("NULL"), m_TextureSampler(nullptr), m_TextureImageView(nullptr)
@@ -93,24 +93,6 @@ namespace lumos
 		{
 		}
 
-        vk::Format VKTexture2D::TextureFormatToVK(const TextureFormat format)
-		{
-			switch (format)
-			{
-            case TextureFormat::RGBA:				return vk::Format::eR8G8B8A8Unorm;
-			case TextureFormat::RGB:				return vk::Format::eR8G8B8Unorm;
-			case TextureFormat::R8:				    return vk::Format::eR8Unorm;
-			case TextureFormat::RG8:				return vk::Format::eR8G8Unorm;
-			case TextureFormat::RGB8:				return vk::Format::eR8G8B8Srgb;
-            case TextureFormat::RGBA8:				return vk::Format::eR8G8B8A8Srgb;
-            case TextureFormat::RGB16:              return vk::Format::eR16G16B16Sfloat;
-            case TextureFormat::RGBA16:             return vk::Format::eR16G16B16A16Sfloat;
-            case TextureFormat::LUMINANCE:          return vk::Format::eR8G8B8A8Unorm;
-            case TextureFormat::LUMINANCE_ALPHA:    return vk::Format::eR8G8B8A8Unorm;
-			default: LUMOS_CORE_ERROR("[Texture] Unsupported image bit-depth!");  return vk::Format::eR8G8B8A8Unorm;
-			}
-		}
-
         vk::SamplerAddressMode TextureWrapToVK(const TextureWrap wrap)
 		{
 			switch (wrap)
@@ -131,10 +113,10 @@ namespace lumos
 			m_Handle = 0;
 			m_DeleteImage = true;
 			m_MipLevels = 1;
-			CreateImage(m_Width, m_Height, m_MipLevels, TextureFormatToVK(internalformat), vk::ImageTiling::eOptimal, vk::ImageUsageFlagBits::eColorAttachment | vk::ImageUsageFlagBits::eSampled, vk::MemoryPropertyFlagBits::eDeviceLocal, m_TextureImage,
+			CreateImage(m_Width, m_Height, m_MipLevels, VKTools::TextureFormatToVK(internalformat), vk::ImageTiling::eOptimal, vk::ImageUsageFlagBits::eColorAttachment | vk::ImageUsageFlagBits::eSampled, vk::MemoryPropertyFlagBits::eDeviceLocal, m_TextureImage,
 				m_TextureImageMemory);
 
-			m_TextureImageView = CreateImageView(m_TextureImage, TextureFormatToVK(internalformat), vk::ImageAspectFlagBits::eColor, m_MipLevels);
+			m_TextureImageView = CreateImageView(m_TextureImage, VKTools::TextureFormatToVK(internalformat), vk::ImageAspectFlagBits::eColor, m_MipLevels);
 
 			UpdateDescriptor();
 		}
@@ -290,7 +272,7 @@ namespace lumos
 			byte* pixels;
 
 			if (m_Data == nullptr)
-				pixels = lumos::LoadImageFromFile(m_FileName, &texWidth, &texHeight, &texChannels);
+				pixels = Lumos::LoadImageFromFile(m_FileName, &texWidth, &texHeight, &texChannels);
 			else
 			{
 				texWidth = m_Width;
@@ -309,7 +291,7 @@ namespace lumos
                 LUMOS_CORE_ERROR("failed to load texture image!");
 			}
 
-			m_MipLevels = static_cast<uint32_t>(std::floor(std::log2(maths::Max(texWidth, texHeight)))) + 1;
+			m_MipLevels = static_cast<uint32_t>(std::floor(std::log2(Maths::Max(texWidth, texHeight)))) + 1;
 
 
 			vk::Buffer stagingBuffer;

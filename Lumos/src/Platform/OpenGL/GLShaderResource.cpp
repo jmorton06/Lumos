@@ -1,9 +1,9 @@
 #include "LM.h"
 #include "GLShaderResource.h"
 
-namespace lumos
+namespace Lumos
 {
-	namespace graphics
+	namespace Graphics
 	{
 		GLShaderResourceDeclaration::GLShaderResourceDeclaration(Type type, const String& name, uint count)
 			: m_Name(name), m_Register(0), m_Count(count), m_Type(type)

@@ -3,7 +3,7 @@
 #include "LM.h"
 #include "Maths/Maths.h"
 
-namespace lumos
+namespace Lumos
 {
 
 	class LUMOS_EXPORT Integration
@@ -12,15 +12,15 @@ namespace lumos
 
 		struct State
 		{
-			maths::Vector3 position;
-			maths::Vector3 velocity;
-			maths::Vector3 acceleration;
+			Maths::Vector3 position;
+			Maths::Vector3 velocity;
+			Maths::Vector3 acceleration;
 		};
 
 		struct Derivative
 		{
-			maths::Vector3 acceleration;
-			maths::Vector3 velocity;
+			Maths::Vector3 acceleration;
+			Maths::Vector3 velocity;
 		};
 
 	public:

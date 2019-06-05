@@ -2,13 +2,13 @@
 #include "LM.h"
 #include "RenderCommand.h"
 
-namespace lumos
+namespace Lumos
 {
 	class RenderList;
 	class Scene;
 	class Camera;
 
-	namespace graphics
+	namespace Graphics
 	{
 		class Pipeline;
 		class DescriptorSet;
@@ -34,7 +34,7 @@ namespace lumos
 			virtual void Begin() = 0;
 			virtual void BeginScene(Scene* scene) = 0;
 			virtual void Submit(const RenderCommand& command) = 0;
-			virtual void SubmitMesh(Mesh* mesh, const maths::Matrix4& transform, const maths::Matrix4& textureMatrix) = 0;
+			virtual void SubmitMesh(Mesh* mesh, const Maths::Matrix4& transform, const Maths::Matrix4& textureMatrix) = 0;
 			virtual void EndScene() = 0;
 			virtual void End() = 0;
 			virtual void Present() = 0;
@@ -43,15 +43,17 @@ namespace lumos
 
 			virtual void SetScreenBufferSize(uint width, uint height) { if (width == 0) width = 1; if (height == 0) height = 1; m_ScreenBufferWidth = width; m_ScreenBufferHeight = height; }
 
-			virtual void SetRenderTarget(graphics::Texture* texture) { m_RenderTexture = texture; }
+			virtual void SetRenderTarget(Graphics::Texture* texture) { m_RenderTexture = texture; }
 			virtual void SetRenderToGBufferTexture(bool set) { m_RenderToGBufferTexture = set; }
+			virtual void OnIMGUI() {};
+
 		protected:
 			Framebuffer* m_FBO;
 			Shader* m_Shader;
 
-			lumos::graphics::RenderPass* m_RenderPass;
-			lumos::graphics::Pipeline* m_Pipeline;
-			graphics::DescriptorSet* m_DescriptorSet;
+			Lumos::Graphics::RenderPass* m_RenderPass;
+			Lumos::Graphics::Pipeline* m_Pipeline;
+			Graphics::DescriptorSet* m_DescriptorSet;
 
 			uint m_ScreenBufferWidth, m_ScreenBufferHeight;
 			CommandQueue m_CommandQueue;

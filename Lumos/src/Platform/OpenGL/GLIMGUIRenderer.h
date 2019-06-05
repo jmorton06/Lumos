@@ -3,9 +3,9 @@
 #include "LM.h"
 #include "Graphics/API/IMGUIRenderer.h"
 
-namespace lumos
+namespace Lumos
 {
-	namespace graphics
+	namespace Graphics
 	{
 		class GLIMGUIRenderer : public IMGUIRenderer
 		{
@@ -15,8 +15,9 @@ namespace lumos
 
             void Init() override;
             void NewFrame() override;
-            void Render(lumos::graphics::CommandBuffer* commandBuffer) override;
+            void Render(Lumos::Graphics::CommandBuffer* commandBuffer) override;
             void OnResize(uint width, uint height) override;
+			bool Implemented() const override { return true; }
 
 		private:
 			void* m_WindowHandle;

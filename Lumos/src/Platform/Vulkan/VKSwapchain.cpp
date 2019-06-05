@@ -3,9 +3,9 @@
 #include "VKTools.h"
 
 
-namespace lumos
+namespace Lumos
 {
-	namespace graphics
+	namespace Graphics
 	{
 
 		VKSwapchain::VKSwapchain(uint width, uint height)
@@ -107,7 +107,7 @@ namespace lumos
 			delete[] pSwapChainImages;
 			delete[] pPresentModes;
 
-			graphics::VKDevice::Instance()->m_SwapChainSize = static_cast<uint>(GetSwapchainBufferCount());
+			Graphics::VKDevice::Instance()->m_SwapChainSize = static_cast<uint>(GetSwapchainBufferCount());
 
 			return true;
 		}

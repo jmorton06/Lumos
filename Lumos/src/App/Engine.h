@@ -5,7 +5,7 @@
 
 //#define LUMOS_LIMIT_FRAMERATE
 
-namespace lumos
+namespace Lumos
 {
     class Timer;
 

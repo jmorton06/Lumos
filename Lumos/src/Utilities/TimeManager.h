@@ -4,7 +4,7 @@
 #include "Maths/Maths.h"
 #include "Utilities/Timer.h"
 
-namespace lumos
+namespace Lumos
 {
 
 	class LUMOS_EXPORT TimeManager

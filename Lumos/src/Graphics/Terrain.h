@@ -3,7 +3,7 @@
 #include "LM.h"
 #include "Mesh.h"
 
-namespace lumos
+namespace Lumos
 {
 
 #define RAW_WIDTH_RANDOM     500
@@ -17,7 +17,7 @@ namespace lumos
 #define HEIGHTMAP_TEX_X_RANDOM   1.0f / 16.0f
 #define HEIGHTMAP_TEX_Z_RANDOM   1.0f / 16.0f
 
-	class LUMOS_EXPORT Terrain : public graphics::Mesh
+	class LUMOS_EXPORT Terrain : public Graphics::Mesh
 	{
 	public:
 		Terrain();

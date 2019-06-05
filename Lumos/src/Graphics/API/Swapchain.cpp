@@ -11,13 +11,13 @@
 
 #include "Graphics/API/GraphicsContext.h"
 
-namespace lumos
+namespace Lumos
 {
-	namespace graphics
+	namespace Graphics
 	{
 		Swapchain* Swapchain::Create(uint width, uint height)
 		{
-			switch (graphics::GraphicsContext::GetRenderAPI())
+			switch (Graphics::GraphicsContext::GetRenderAPI())
 			{
 #ifdef LUMOS_RENDER_API_OPENGL
 			case RenderAPI::OPENGL:		return new GLSwapchain(width, height);

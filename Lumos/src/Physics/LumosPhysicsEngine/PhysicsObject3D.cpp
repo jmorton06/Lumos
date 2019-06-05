@@ -5,7 +5,7 @@
 
 #include "Graphics/Renderers/DebugRenderer.h"
 
-namespace lumos
+namespace Lumos
 {
 
 	PhysicsObject3D::PhysicsObject3D() : PhysicsObject()
@@ -21,17 +21,17 @@ namespace lumos
 		, m_Orientation(0.0f, 0.0f, 0.0f, 1.0f)
 		, m_AngularVelocity(0.0f, 0.0f, 0.0f)
 		, m_Torque(0.0f, 0.0f, 0.0f)
-		, m_InvInertia(maths::Matrix3::ZeroMatrix)
+		, m_InvInertia(Maths::Matrix3::ZeroMatrix)
 		, m_OnCollisionCallback(nullptr)
 	{
-		m_localBoundingBox.SetHalfDimensions(maths::Vector3(0.5f, 0.5f, 0.5f));
+		m_localBoundingBox.SetHalfDimensions(Maths::Vector3(0.5f, 0.5f, 0.5f));
 	}
 
 	PhysicsObject3D::~PhysicsObject3D()
 	{
 	}
 
-	maths::BoundingBox PhysicsObject3D::GetWorldSpaceAABB() const
+	Maths::BoundingBox PhysicsObject3D::GetWorldSpaceAABB() const
 	{
 		if (m_wsAabbInvalidated)
 		{
@@ -52,7 +52,7 @@ namespace lumos
 		m_AtRest = isAtRest;
 	}
 
-	const maths::Matrix4& PhysicsObject3D::GetWorldSpaceTransform() const
+	const Maths::Matrix4& PhysicsObject3D::GetWorldSpaceTransform() const
 	{
 		if (m_wsTransformInvalidated)
 		{
@@ -69,11 +69,11 @@ namespace lumos
 	{
 		m_localBoundingBox.Reset();
 
-		const maths::Vector3 xAxis(1.0f, 0.0f, 0.0f);
-		const maths::Vector3 yAxis(0.0f, 1.0f, 0.0f);
-		const maths::Vector3 zAxis(0.0f, 0.0f, 1.0f);
+		const Maths::Vector3 xAxis(1.0f, 0.0f, 0.0f);
+		const Maths::Vector3 yAxis(0.0f, 1.0f, 0.0f);
+		const Maths::Vector3 zAxis(0.0f, 0.0f, 1.0f);
 
-		maths::Vector3 lower, upper;
+		Maths::Vector3 lower, upper;
 
 		if(m_CollisionShape)
 		{
@@ -89,10 +89,6 @@ namespace lumos
 			m_localBoundingBox.ExpandToFit(lower);
 			m_localBoundingBox.ExpandToFit(upper);
 		}
-		
-		// Set bounding radius of parent
-		if (m_pParent != nullptr)
-			m_pParent->SetBoundingRadius(m_localBoundingBox.SphereRadius() * 2.0f);
 
 		m_wsAabbInvalidated = true;
 	}
@@ -116,33 +112,25 @@ namespace lumos
 
 	void PhysicsObject3D::DebugDraw(uint64_t flags) const
 	{
-		maths::Vector4 colour(0.2f, 0.8f, 1.0f, 1.0f);
+		Maths::Vector4 colour(0.2f, 0.8f, 1.0f, 1.0f);
 
 		if (flags & DEBUGDRAW_FLAGS_AABB)
 		{
 			if (!IsAwake())
-				colour = maths::Vector4(0.0f, 1.0f, 0.0f, 1.0f);
+				colour = Maths::Vector4(0.0f, 1.0f, 0.0f, 1.0f);
 
 			// AABB
 			//GetWorldSpaceAABB().DebugDraw(Matrix4(), Vector4(0.8f, 1.0f, 1.0f, 0.25f), colour);
-			maths::BoundingBox box = GetWorldSpaceAABB();
+			Maths::BoundingBox box = GetWorldSpaceAABB();
 			DebugRenderer::DebugDraw(&box, colour);
-		}
-
-		// Object bounding radius
-		if (m_pParent != nullptr && flags & DEBUGDRAW_FLAGS_BOUNDING_RADIUS)
-		{
-			maths::Vector4 boundRadiusCol(colour);
-			boundRadiusCol.SetW(0.2f);
-			DebugRenderer::DrawPointNDT(GetWorldSpaceTransform().GetPositionVector(), m_pParent->GetBoundingRadius(), boundRadiusCol);
 		}
 
 		if (flags & DEBUGDRAW_FLAGS_LINEARVELOCITY)
 			DebugRenderer::DrawThickLineNDT(m_wsTransform.GetPositionVector(), m_wsTransform * m_LinearVelocity, 0.02f,
-											maths::Vector4(0.0f, 1.0f, 0.0f, 1.0f));
+											Maths::Vector4(0.0f, 1.0f, 0.0f, 1.0f));
 
 		if (flags & DEBUGDRAW_FLAGS_LINEARFORCE)
 			DebugRenderer::DrawThickLineNDT(m_wsTransform.GetPositionVector(), m_wsTransform * m_Force, 0.02f,
-											maths::Vector4(0.0f, 0.0f, 1.0f, 1.0f));
+											Maths::Vector4(0.0f, 0.0f, 1.0f, 1.0f));
 	}
 }

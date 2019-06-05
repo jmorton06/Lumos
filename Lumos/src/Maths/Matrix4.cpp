@@ -5,9 +5,9 @@
 #include "MathsUtilities.h"
 #include "SSEUtilities.h"
 
-namespace lumos
+namespace Lumos
 {
-	namespace maths
+	namespace Maths
 	{
 		int Matrix4::CONFIG_CLIP_CONTROL = CLIP_CONTROL_RH_NO;
 
@@ -111,7 +111,7 @@ namespace lumos
 			float angle_z = 0.0f;
 
 			float c = cos(angle_y);
-			angle_y = lumos::maths::RadToDeg(angle_y);
+			angle_y = Lumos::Maths::RadiansToDegrees(angle_y);
 
 			if (fabs(c) > 0.005)
 			{
@@ -119,12 +119,12 @@ namespace lumos
 				float tr_x = mat.values[10] * c;
 				float tr_y = -mat.values[9] * c;
 
-				angle_x = lumos::maths::RadToDeg(atan2(tr_y, tr_x));
+				angle_x = Lumos::Maths::RadiansToDegrees(atan2(tr_y, tr_x));
 
 				tr_x = mat.values[0] * c;
 				tr_y = -mat.values[4] * c;
 
-				angle_z = lumos::maths::RadToDeg(atan2(tr_y, tr_x));
+				angle_z = Lumos::Maths::RadiansToDegrees(atan2(tr_y, tr_x));
 			}
 			else
 			{
@@ -134,15 +134,14 @@ namespace lumos
 				angle_z = atan2(tr_y, tr_x);
 			}
 
-			return Vector3(lumos::maths::Clamp(angle_x, 0.0f, 360.0f), lumos::maths::Clamp(angle_y, 0.0f, 360.0f),
-						   lumos::maths::Clamp(angle_z, 0.0f, 360.0f));
+			return Vector3(Lumos::Maths::Clamp(angle_x, 0.0f, 360.0f), Lumos::Maths::Clamp(angle_y, 0.0f, 360.0f),
+						   Lumos::Maths::Clamp(angle_z, 0.0f, 360.0f));
 		}
         
         Quaternion Matrix4::ToQuaternion() const
         {
-            auto quat = Quaternion(GetEulerAngles(*this), 1.0f);
-            quat.GenerateW();
-            
+			auto euler = GetEulerAngles(*this);
+            auto quat = Quaternion::EulerAnglesToQuaternion(euler.GetX(), euler.GetY(), euler.GetZ());
             return quat;
         }
 
@@ -362,7 +361,7 @@ namespace lumos
 		Matrix4 PerspectiveRH_ZO(float znear, float zfar, float aspect, float fov)
 		{
 			Matrix4 m;
-			const float h = 1.0f / tan(fov * lumos::maths::PI_OVER_360);
+			const float h = 1.0f / tan(fov * Lumos::Maths::PI_OVER_360);
 			float neg_depth_r = 1.0f / (znear - zfar);
 
 			m.values[0] = h / aspect;
@@ -378,7 +377,7 @@ namespace lumos
 		Matrix4 PerspectiveRH_NO(float znear, float zfar, float aspect, float fov)
 		{
 			Matrix4 m;
-			const float h = 1.0f / tan(fov * lumos::maths::PI_OVER_360);
+			const float h = 1.0f / tan(fov * Lumos::Maths::PI_OVER_360);
 			float neg_depth_r = 1.0f / (znear - zfar);
 
 			m.values[0] = h / aspect;
@@ -394,7 +393,7 @@ namespace lumos
 		Matrix4 PerspectiveLH_ZO(float znear, float zfar, float aspect, float fov)
 		{
 			Matrix4 m;
-			const float h = 1.0f / tan(fov * lumos::maths::PI_OVER_360);
+			const float h = 1.0f / tan(fov * Lumos::Maths::PI_OVER_360);
 			float neg_depth_r = 1.0f / (znear - zfar);
 
 			m.values[0] = h / aspect;
@@ -410,7 +409,7 @@ namespace lumos
 		Matrix4 PerspectiveLH_NO(float znear, float zfar, float aspect, float fov)
 		{
 			Matrix4 m;
-			const float h = 1.0f / tan(fov * lumos::maths::PI_OVER_360);
+			const float h = 1.0f / tan(fov * Lumos::Maths::PI_OVER_360);
 			float neg_depth_r = 1.0f / (znear - zfar);
 
 			m.values[0] = h / aspect;
@@ -561,7 +560,7 @@ namespace lumos
 		Matrix4 Matrix4::RotationX(float degrees)
 		{
 			Matrix4 m;
-			float rad = lumos::maths::DegToRad(degrees);
+			float rad = Lumos::Maths::DegreesToRadians(degrees);
 			float c = cos(rad);
 			float s = sin(rad);
 
@@ -577,7 +576,7 @@ namespace lumos
 		Matrix4 Matrix4::RotationY(float degrees)
 		{
 			Matrix4 m;
-			float rad = lumos::maths::DegToRad(degrees);
+			float rad = Lumos::Maths::DegreesToRadians(degrees);
 			float c = cos(rad);
 			float s = sin(rad);
 
@@ -593,7 +592,7 @@ namespace lumos
 		Matrix4 Matrix4::RotationZ(float degrees)
 		{
 			Matrix4 m;
-			float rad = lumos::maths::DegToRad(degrees);
+			float rad = Lumos::Maths::DegreesToRadians(degrees);
 			float c = cos(rad);
 			float s = sin(rad);
 
@@ -612,7 +611,7 @@ namespace lumos
 			Vector3 axisNorm = axis;
 			axisNorm.Normalise();
 
-			float rad = lumos::maths::DegToRad(degrees);
+			float rad = Lumos::Maths::DegreesToRadians(degrees);
 			float c = cos(rad);
 			float s = sin(rad);
 
@@ -641,8 +640,8 @@ namespace lumos
             Vector3 axisNorm = axis;
 			axisNorm.Normalise();
 
-            float c = cos(static_cast<float>(maths::DegToRad(degrees)));
-            float s = sin(static_cast<float>(maths::DegToRad(degrees)));
+            float c = cos(static_cast<float>(Maths::DegreesToRadians(degrees)));
+            float s = sin(static_cast<float>(Maths::DegreesToRadians(degrees)));
 
             m.values[0] = (axisNorm.GetX() * axisNorm.GetX()) * (1.0f - c) + c;
             m.values[1] = (axisNorm.GetY() * axisNorm.GetX()) * (1.0f - c) + (axisNorm.GetZ() * s);
@@ -663,7 +662,7 @@ namespace lumos
 		Matrix4 Matrix4::Rotation(float degreesX, float degreesY, float degreesZ)
 		{
 			// Building this matrix directly is faster than multiplying three matrices for X, Y and Z
-			float phi = lumos::maths::DegToRad(degreesX), theta = lumos::maths::DegToRad(degreesY), psi = lumos::maths::DegToRad(
+			float phi = Lumos::Maths::DegreesToRadians(degreesX), theta = Lumos::Maths::DegreesToRadians(degreesY), psi = Lumos::Maths::DegreesToRadians(
 					degreesZ);
 			float sinTh = sin(theta), cosTh = cos(theta),
 					sinPh = sin(phi), cosPh = cos(phi),
@@ -808,12 +807,12 @@ namespace lumos
 namespace std
 {
 	template<>
-	struct hash<lumos::maths::Matrix4>
+	struct hash<Lumos::Maths::Matrix4>
 	{
-		size_t operator()(const lumos::maths::Matrix4& value) const
+		size_t operator()(const Lumos::Maths::Matrix4& value) const
 		{
-			return std::hash<lumos::maths::Vector4>()(lumos::maths::Vector4(value.values[0], value.values[1], value.values[2], value.values[3])) ^ std::hash<lumos::maths::Vector4>()(lumos::maths::Vector4(value.values[4], value.values[5], value.values[6], value.values[7]))
-				^ std::hash<lumos::maths::Vector4>()(lumos::maths::Vector4(value.values[8], value.values[9], value.values[10], value.values[11])) ^ std::hash<lumos::maths::Vector4>()(lumos::maths::Vector4(value.values[12], value.values[13], value.values[14], value.values[15]));
+			return std::hash<Lumos::Maths::Vector4>()(Lumos::Maths::Vector4(value.values[0], value.values[1], value.values[2], value.values[3])) ^ std::hash<Lumos::Maths::Vector4>()(Lumos::Maths::Vector4(value.values[4], value.values[5], value.values[6], value.values[7]))
+				^ std::hash<Lumos::Maths::Vector4>()(Lumos::Maths::Vector4(value.values[8], value.values[9], value.values[10], value.values[11])) ^ std::hash<Lumos::Maths::Vector4>()(Lumos::Maths::Vector4(value.values[12], value.values[13], value.values[14], value.values[15]));
 		}
 	};
 }
