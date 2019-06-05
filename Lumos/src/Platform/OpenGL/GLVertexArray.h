@@ -2,9 +2,9 @@
 #include "LM.h"
 #include "Graphics/API/VertexArray.h"
 
-namespace lumos
+namespace Lumos
 {
-	namespace graphics
+	namespace Graphics
 	{
 		class GLVertexArray : public VertexArray
 		{

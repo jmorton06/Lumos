@@ -2,17 +2,20 @@
 
 #include "LM.h"
 #include "App/Window.h"
-#include "Graphics/API/GraphicsContext.h"
 
 struct GLFWwindow;
 
-namespace lumos
+namespace Lumos
 {
+	namespace Graphics
+	{
+		enum class RenderAPI : int;
+	}
 
 	class LUMOS_EXPORT GLFWWindow : public Window
 	{
 	public:
-		GLFWWindow(const WindowProperties& properties, const String& title, graphics::RenderAPI api = graphics::RenderAPI::OPENGL);
+		GLFWWindow(const WindowProperties& properties);
 		~GLFWWindow();
 
 		void ToggleVSync() override;
@@ -21,12 +24,13 @@ namespace lumos
 		void SetBorderlessWindow(bool borderless) override;
 		void OnUpdate() override;
 		void HideMouse(bool hide) override;
-		void SetMousePosition(const maths::Vector2& pos) override;
+		void SetMousePosition(const Maths::Vector2& pos) override;
 
-		bool Init(const WindowProperties& properties, const String& title);
+		bool Init(const WindowProperties& properties);
 
 		inline void* GetHandle() override { return m_Handle; }
 
+		inline String GetTitle() const override { return m_Data.Title; }
 		inline uint GetWidth()  const override { return m_Data.Width; }
 		inline uint GetHeight() const override { return m_Data.Height; }
 		inline float GetScreenRatio() const override { return (float)m_Data.Width / (float)m_Data.Height; }
@@ -46,7 +50,7 @@ namespace lumos
 			uint Width, Height;
 			bool VSync;
 			bool Exit;
-			graphics::RenderAPI m_RenderAPI;
+			Graphics::RenderAPI m_RenderAPI;
 
 			EventCallbackFn EventCallback;
 		};

@@ -1,7 +1,7 @@
 #include "LM.h"
 #include "Console.h"
 
-namespace lumos 
+namespace Lumos 
 {
 	Console::Console()
 	{

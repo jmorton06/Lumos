@@ -5,9 +5,9 @@
 #include "Platform/OpenGL/GLDebug.h"
 #include "Utilities/LoadImage.h"
 
-namespace lumos
+namespace Lumos
 {
-	namespace graphics
+	namespace Graphics
 	{
 		GLTextureCube::GLTextureCube(uint size)
 			: m_Size(size), m_Bits(0), m_NumMips(0), m_Format()
@@ -93,12 +93,12 @@ namespace lumos
 			m_Parameters.format = TextureFormat::RGBA;
 
 			uint width, height, bits;
-			byte* xp = lumos::LoadImageFromFile(xpos, &width, &height, &bits, true);
-			byte* xn = lumos::LoadImageFromFile(xneg, &width, &height, &bits, true);
-			byte* yp = lumos::LoadImageFromFile(ypos, &width, &height, &bits, true);
-			byte* yn = lumos::LoadImageFromFile(yneg, &width, &height, &bits, true);
-			byte* zp = lumos::LoadImageFromFile(zpos, &width, &height, &bits, true);
-			byte* zn = lumos::LoadImageFromFile(zneg, &width, &height, &bits, true);
+			byte* xp = Lumos::LoadImageFromFile(xpos, &width, &height, &bits, true);
+			byte* xn = Lumos::LoadImageFromFile(xneg, &width, &height, &bits, true);
+			byte* yp = Lumos::LoadImageFromFile(ypos, &width, &height, &bits, true);
+			byte* yn = Lumos::LoadImageFromFile(yneg, &width, &height, &bits, true);
+			byte* zp = Lumos::LoadImageFromFile(zpos, &width, &height, &bits, true);
+			byte* zn = Lumos::LoadImageFromFile(zneg, &width, &height, &bits, true);
 
 			uint result;
 			GLCall(glGenTextures(1, &result));
@@ -144,7 +144,7 @@ namespace lumos
 
 			for (uint m = 0; m < mips; m++)
 			{
-				byte* data = lumos::LoadImageFromFile(m_Files[m], &srcWidth, &srcHeight, &bits, !m_LoadOptions.flipY);
+				byte* data = Lumos::LoadImageFromFile(m_Files[m], &srcWidth, &srcHeight, &bits, !m_LoadOptions.flipY);
 				m_Parameters.format = GLTexture2D::BitsToTextureFormat(bits);
 				uint stride = bits / 8;
 

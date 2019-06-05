@@ -3,14 +3,15 @@
 #include "LumosComponent.h"
 #include "Maths/Transform.h"
 
-namespace lumos
+namespace Lumos
 {
 	class LUMOS_EXPORT TransformComponent : public LumosComponent
 	{
 	public:
-		explicit TransformComponent(const maths::Matrix4& matrix);
+		explicit TransformComponent();
+		explicit TransformComponent(const Maths::Matrix4& matrix);
 
-        void SetWorldMatrix(const maths::Matrix4& matrix);
+        void SetWorldMatrix(const Maths::Matrix4& matrix);
 		static ComponentType GetStaticType()
 		{
             static ComponentType type(ComponentType::Transform);
@@ -21,7 +22,9 @@ namespace lumos
 		void OnUpdateComponent(float dt) override;
         void OnIMGUI() override;
 		
-    public:
-		maths::Transform m_Transform;
+		Maths::Transform& GetTransform() { return m_Transform; }
+
+    private:
+		Maths::Transform m_Transform;
 	};
 }

@@ -2,14 +2,14 @@
 #include "LM.h"
 #include "Constraint.h"
 
-namespace lumos
+namespace Lumos
 {
 	class PhysicsObject3D;
 
 	class LUMOS_EXPORT SpringConstraint : public Constraint
 	{
 	public:
-		SpringConstraint(PhysicsObject3D *obj1, PhysicsObject3D *obj2, const maths::Vector3 &globalOnA, const maths::Vector3 &globalOnB,
+		SpringConstraint(PhysicsObject3D *obj1, PhysicsObject3D *obj2, const Maths::Vector3 &globalOnA, const Maths::Vector3 &globalOnB,
 			float springConstant, float dampingFactor);
 
 		virtual void ApplyImpulse() override;
@@ -24,7 +24,7 @@ namespace lumos
 		float m_springConstant;
 		float m_dampingFactor;
 
-		maths::Vector3 m_LocalOnA;
-		maths::Vector3 m_LocalOnB;
+		Maths::Vector3 m_LocalOnA;
+		Maths::Vector3 m_LocalOnB;
 	};
 }

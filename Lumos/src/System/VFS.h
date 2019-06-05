@@ -2,7 +2,7 @@
 
 #include "LM.h"
 
-namespace lumos
+namespace Lumos
 {
 	class LUMOS_EXPORT VFS
 	{

@@ -1,12 +1,15 @@
 #include "LM.h"
 #include "VKTools.h"
+#include "VKDevice.h"
+#include "VKCommandPool.h"
+#include "Graphics/API/Textures/Texture.h"
 #include "Graphics/API/DescriptorSet.h"
 #include "Graphics/API/Pipeline.h"
 #include "Platform/Vulkan/VKCommandBuffer.h"
 
-namespace lumos
+namespace Lumos
 {
-	namespace graphics
+	namespace Graphics
 	{
 		namespace VKTools
 		{
@@ -214,7 +217,7 @@ namespace lumos
 				);
 			}
 
-			std::string errorString(VkResult errorCode)
+			std::string ErrorString(VkResult errorCode)
 			{
 				switch (errorCode)
 				{
@@ -441,48 +444,20 @@ namespace lumos
 				SetImageLayout(cmdbuffer, image, oldImageLayout, newImageLayout, subresourceRange, srcStageMask, dstStageMask);
 			}
 
-			VkShaderModule LoadShader(const char *fileName, VkDevice device)
+			vk::Format TextureFormatToVK(const TextureFormat format)
 			{
-				std::ifstream is(fileName, std::ios::binary | std::ios::in | std::ios::ate);
-
-				if (is.is_open())
+				switch (format)
 				{
-					size_t size = is.tellg();
-					is.seekg(0, std::ios::beg);
-					char* shaderCode = new char[size];
-					is.read(shaderCode, size);
-					is.close();
-
-					assert(size > 0);
-
-					VkShaderModule shaderModule;
-					VkShaderModuleCreateInfo moduleCreateInfo{};
-					moduleCreateInfo.sType = VK_STRUCTURE_TYPE_SHADER_MODULE_CREATE_INFO;
-					moduleCreateInfo.codeSize = size;
-					moduleCreateInfo.pCode = (uint32_t*)shaderCode;
-
-					vkCreateShaderModule(device, &moduleCreateInfo, NULL, &shaderModule);
-
-					delete[] shaderCode;
-
-					return shaderModule;
+				case TextureFormat::RGBA:				return vk::Format::eR8G8B8A8Unorm;
+				case TextureFormat::RGB:				return vk::Format::eR8G8B8Unorm;
+				case TextureFormat::R8:				    return vk::Format::eR8Unorm;
+				case TextureFormat::RG8:				return vk::Format::eR8G8Unorm;
+				case TextureFormat::RGB8:				return vk::Format::eR8G8B8Unorm;
+				case TextureFormat::RGBA8:				return vk::Format::eR8G8B8A8Unorm;
+				case TextureFormat::RGB16:              return vk::Format::eR16G16B16Sfloat;
+				case TextureFormat::RGBA16:             return vk::Format::eR16G16B16A16Sfloat;
+				default: LUMOS_CORE_ERROR("[Texture] Unsupported image bit-depth!");  return vk::Format::eR8G8B8A8Unorm;
 				}
-				else
-				{
-					std::cerr << "Error: Could not open shader file \"" << fileName << "\"" << std::endl;
-					return VK_NULL_HANDLE;
-				}
-			}
-			VkPipelineShaderStageCreateInfo loadShader(std::string fileName, VkShaderStageFlagBits stage)
-			{
-				VkPipelineShaderStageCreateInfo shaderStage = {};
-				shaderStage.sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO;
-				shaderStage.stage = stage;
-				shaderStage.module = LoadShader(fileName.c_str(), VKDevice::Instance()->GetDevice());
-				shaderStage.pName = "main"; // todo : make param
-				assert(shaderStage.module != VK_NULL_HANDLE);
-
-				return shaderStage;
 			}
 		}
 	}

@@ -5,9 +5,9 @@
 #include "Platform/Vulkan/VKDevice.h"
 #include "Maths/BoundingSphere.h"
 
-namespace lumos
+namespace Lumos
 {
-	namespace graphics
+	namespace Graphics
 	{
 		Mesh::Mesh() : m_VertexArray(nullptr), m_IndexBuffer(nullptr), m_Material(nullptr), m_ArrayCleanUp(false), m_TextureCleanUp(false), m_BoundingSphere(nullptr)
 		{
@@ -20,7 +20,7 @@ namespace lumos
 			Init();
 		}
 
-		Mesh::Mesh(std::shared_ptr<VertexArray>& vertexArray, std::shared_ptr<IndexBuffer>& indexBuffer, const std::shared_ptr<Material>& material, const std::shared_ptr<maths::BoundingSphere>& boundingSphere)
+		Mesh::Mesh(std::shared_ptr<VertexArray>& vertexArray, std::shared_ptr<IndexBuffer>& indexBuffer, const std::shared_ptr<Material>& material, const std::shared_ptr<Maths::BoundingSphere>& boundingSphere)
 			: m_VertexArray(vertexArray), m_IndexBuffer(indexBuffer), m_Material(material), m_ArrayCleanUp(true), m_TextureCleanUp(false), m_BoundingSphere(boundingSphere)
 		{
 			Init();
@@ -59,37 +59,37 @@ namespace lumos
 			for (auto& cmdBuffer : m_CMDBuffers)
 				delete cmdBuffer;
 
-			m_CMDBuffers.resize(2);// graphics::VKDevice::Instance()->m_SwapChainSize);
+			m_CMDBuffers.resize(2);// Graphics::VKDevice::Instance()->m_SwapChainSize);
 
 			for (auto& m_CMDBuffer : m_CMDBuffers)
 			{
-				m_CMDBuffer = graphics::CommandBuffer::Create();
+				m_CMDBuffer = Graphics::CommandBuffer::Create();
 				m_CMDBuffer->Init(false);
 			}
 		}
 
-		maths::Vector3 Mesh::GenerateTangent(const maths::Vector3 &a, const maths::Vector3 &b, const maths::Vector3 &c, const maths::Vector2 &ta, const maths::Vector2 &tb, const maths::Vector2 &tc)
+		Maths::Vector3 Mesh::GenerateTangent(const Maths::Vector3 &a, const Maths::Vector3 &b, const Maths::Vector3 &c, const Maths::Vector2 &ta, const Maths::Vector2 &tb, const Maths::Vector2 &tc)
 		{
-			const maths::Vector2 coord1 = tb - ta;
-			const maths::Vector2 coord2 = tc - ta;
+			const Maths::Vector2 coord1 = tb - ta;
+			const Maths::Vector2 coord2 = tc - ta;
 
-			const maths::Vector3 vertex1 = b - a;
-			const maths::Vector3 vertex2 = c - a;
+			const Maths::Vector3 vertex1 = b - a;
+			const Maths::Vector3 vertex2 = c - a;
 
-			const maths::Vector3 axis = maths::Vector3(vertex1*coord2.GetY() - vertex2 * coord1.GetY());
+			const Maths::Vector3 axis = Maths::Vector3(vertex1*coord2.GetY() - vertex2 * coord1.GetY());
 
 			const float factor = 1.0f / (coord1.GetX() * coord2.GetY() - coord2.GetX() * coord1.GetY());
 
 			return axis * factor;
 		}
 
-		maths::Vector3* Mesh::GenerateNormals(uint numVertices, maths::Vector3* vertices, uint* indices, uint numIndices)
+		Maths::Vector3* Mesh::GenerateNormals(uint numVertices, Maths::Vector3* vertices, uint* indices, uint numIndices)
 		{
-			maths::Vector3* normals = new maths::Vector3[numVertices];
+			Maths::Vector3* normals = new Maths::Vector3[numVertices];
 
 			for (uint i = 0; i < numVertices; ++i)
 			{
-				normals[i] = maths::Vector3();
+				normals[i] = Maths::Vector3();
 			}
 
 			if (indices)
@@ -101,7 +101,7 @@ namespace lumos
 					const int b = indices[i + 1];
 					const int c = indices[i + 2];
 
-					const maths::Vector3 _normal = maths::Vector3::Cross((vertices[b] - vertices[a]), (vertices[c] - vertices[a]));
+					const Maths::Vector3 _normal = Maths::Vector3::Cross((vertices[b] - vertices[a]), (vertices[c] - vertices[a]));
 
 					normals[a] += _normal;
 					normals[b] += _normal;
@@ -115,11 +115,11 @@ namespace lumos
 				// It's just a list of triangles, so generate face normals
 				for (uint i = 0; i < numVertices; i += 3)
 				{
-					maths::Vector3 &a = vertices[i];
-					maths::Vector3 &b = vertices[i + 1];
-					maths::Vector3 &c = vertices[i + 2];
+					Maths::Vector3 &a = vertices[i];
+					Maths::Vector3 &b = vertices[i + 1];
+					Maths::Vector3 &c = vertices[i + 2];
 
-					const maths::Vector3 _normal = maths::Vector3::Cross(b - a, c - a);
+					const Maths::Vector3 _normal = Maths::Vector3::Cross(b - a, c - a);
 
 					normals[i] = _normal;
 					normals[i + 1] = _normal;
@@ -135,18 +135,18 @@ namespace lumos
 			return normals;
 		}
 
-		maths::Vector3* Mesh::GenerateTangents(uint numVertices, maths::Vector3* vertices, uint* indices, uint numIndices, maths::Vector2* texCoords)
+		Maths::Vector3* Mesh::GenerateTangents(uint numVertices, Maths::Vector3* vertices, uint* indices, uint numIndices, Maths::Vector2* texCoords)
 		{
 			if (!texCoords)
 			{
 				return nullptr;
 			}
 
-			maths::Vector3* tangents = new maths::Vector3[numVertices];
+			Maths::Vector3* tangents = new Maths::Vector3[numVertices];
 
 			for (uint i = 0; i < numVertices; ++i)
 			{
-				tangents[i] = maths::Vector3();
+				tangents[i] = Maths::Vector3();
 			}
 
 			if (indices)
@@ -157,7 +157,7 @@ namespace lumos
 					int b = indices[i + 1];
 					int c = indices[i + 2];
 
-					const maths::Vector3 tangent =
+					const Maths::Vector3 tangent =
 						GenerateTangent(vertices[a], vertices[b], vertices[c], texCoords[a], texCoords[b], texCoords[c]);
 
 					tangents[a] += tangent;
@@ -169,7 +169,7 @@ namespace lumos
 			{
 				for (uint i = 0; i < numVertices; i += 3)
 				{
-					const maths::Vector3 tangent = GenerateTangent(vertices[i], vertices[i + 1], vertices[i + 2], texCoords[i], texCoords[i + 1],
+					const Maths::Vector3 tangent = GenerateTangent(vertices[i], vertices[i + 1], vertices[i + 2], texCoords[i], texCoords[i + 1],
 						texCoords[i + 2]);
 
 					tangents[i] += tangent;

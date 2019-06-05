@@ -4,9 +4,9 @@
 #include "Utilities/LoadImage.h"
 #include "VKTools.h"
 
-namespace lumos
+namespace Lumos
 {
-	namespace graphics
+	namespace Graphics
 	{
 		VKTextureDepth::VKTextureDepth(uint width, uint height)
 			: m_Width(width), m_Height(height), m_TextureSampler(nullptr), m_TextureImageView(nullptr)

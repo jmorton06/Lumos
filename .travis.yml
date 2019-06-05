@@ -11,6 +11,7 @@ matrix:
       env: BUILD_TYPE=native
       language: c++
       compiler: clang
+      osx_image: xcode10.2
     # - os: osx
     #   env: BUILD_TYPE=IOS
     #   language: c++

@@ -6,9 +6,9 @@
 class Object;
 class b2Body;
 
-namespace lumos
+namespace Lumos
 {
-    namespace maths
+    namespace Maths
     {
         class Vector2;
     }
@@ -23,14 +23,14 @@ namespace lumos
 
 		b2Body* GetB2Body() const { return m_B2Body; }
 
-		void SetLinearVelocity(const maths::Vector2& v) const;
-		void SetForce(const maths::Vector2& v) const;
-		void SetPosition(const maths::Vector2& pos) const;
+		void SetLinearVelocity(const Maths::Vector2& v) const;
+		void SetForce(const Maths::Vector2& v) const;
+		void SetPosition(const Maths::Vector2& pos) const;
         void SetOrientation(float angle) const;
 
 		void Init(const PhysicsObjectParamaters& params);
         
-        maths::Vector2 GetPosition() const;
+        Maths::Vector2 GetPosition() const;
         float GetAngle() const;
 
 	protected:

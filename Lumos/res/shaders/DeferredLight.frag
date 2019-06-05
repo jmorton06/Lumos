@@ -37,7 +37,7 @@ layout(std140, binding = 0) uniform UniformBufferLight
     vec4 uSplitDepths[MAX_SHADOWMAPS];
 	float lightCount;
 	float shadowCount;
-	float mode;
+	int mode;
 	float p1;
 } ubo;
 
@@ -121,7 +121,7 @@ vec3 RadianceIBLIntegration(float NdotV, float roughness, vec3 specular)
 	return specular * preintegratedFG.r + preintegratedFG.g;
 }
 
-vec3 IBL(Light light, Material material, vec3 eye)
+vec3 IBL(Material material, vec3 eye)
 {
 	float NdotV = max(dot(material.normal, eye), 0.0);
 
@@ -156,36 +156,6 @@ float Attentuate( vec3 lightData, float dist )
 	return max(att * damping, 0.0);
 }
 
-float DoShadowTest(vec3 tsShadow, int tsLayer, vec2 pix)
-{
-	vec4 tCoord;
-	tCoord.xyw = tsShadow;
-	tCoord.z = float(tsLayer);
-
-	if (tsLayer > 0)
-	{
-		return 0.0f;//texture(uShadowMap, tCoord);
-	}
-	else
-	{
-		float shadow = 0.0f;
-		for (float y = -1.5f; y <= 1.5f; y += 1.0f)
-			for (float x = -1.5f; x <= 1.5f; x += 1.0f)
-				//shadow += texture(uShadowMap, tCoord + vec4(pix.x * x, pix.y * y, 0, 0));
-
-		return shadow / 16.0f;
-	}
-}
-
-const mat4 biasMat = mat4(
-	0.5, 0.0, 0.0, 0.0,
-	0.0, 0.5, 0.0, 0.0,
-	0.0, 0.0, 1.0, 0.0,
-	0.5, 0.5, 0.0, 1.0
-);
-
-#define ambient 0.3
-
 float textureProj(vec4 P, vec2 offset, int cascadeIndex)
 {
 	float shadow = 1.0;
@@ -197,12 +167,19 @@ float textureProj(vec4 P, vec2 offset, int cascadeIndex)
 		float dist = texture(uShadowMap, vec3(shadowCoord.st + offset, cascadeIndex)).x;//, shadowCoord.z));
 		if (shadowCoord.w > 0 && dist < shadowCoord.z - bias)
 		{
-			shadow = ambient;
+			shadow = 0.1f;
 		}
 	}
 	return shadow;
 
 }
+
+const mat4 biasMat = mat4(
+	0.5, 0.0, 0.0, 0.0,
+	0.0, 0.5, 0.0, 0.0,
+	0.0, 0.0, 1.0, 0.0,
+	0.5, 0.5, 0.0, 1.0
+);
 
 float filterPCF(vec4 sc, int cascadeIndex)
 {
@@ -226,24 +203,23 @@ float filterPCF(vec4 sc, int cascadeIndex)
 
 layout(location = 0) out vec4 outColor;
 
-const float NORMAL_BIAS = 0.002f;
-
 void main()
 {
 	vec4 colourTex   = texture(uColourSampler   , fragTexCoord);
 
-    if(colourTex.w < 0.1)
+	 if(colourTex.w < 0.1)
         discard;
 
-    vec3 positionTex = texture(uPositionSampler , fragTexCoord).rgb;
-    vec4 pbrTex		 = texture(uPBRSampler   , fragTexCoord);
-    vec3 normal      = normalize(texture(uNormalSampler, fragTexCoord).rgb);
+    vec4 positionTex = texture(uPositionSampler , fragTexCoord);
+    vec4 pbrTex		 = texture(uPBRSampler      , fragTexCoord);
+    vec4 normalTex   = texture(uNormalSampler   , fragTexCoord);
 
     vec3  spec      = vec3(pbrTex.x);
+
 	float roughness = pbrTex.y;
-
-    vec3 wsPos      = positionTex;
-
+	vec3 emissive	= vec3(positionTex.w, normalTex.w, pbrTex.w);// EncodeFloatRGBA(pbrTex.w).xyz;
+    vec3 wsPos      = positionTex.xyz;
+	vec3 normal		= normalize(normalTex.xyz);
     vec3 finalColour;
 
     Material material;
@@ -270,8 +246,8 @@ void main()
 	
 	vec4 shadowCoord = (biasMat * ubo.uShadowTransform[cascadeIndex]) * vec4(wsPos, 1.0);
 
-	float shadow = filterPCF(shadowCoord / shadowCoord.w, cascadeIndex);
-	//float shadow = textureProj(shadowCoord / shadowCoord.w, vec2(0.0f), cascadeIndex);
+	//float shadow = filterPCF(shadowCoord / shadowCoord.w, cascadeIndex);
+	float shadow = textureProj(shadowCoord / shadowCoord.w, vec2(0.0f), cascadeIndex);
 
 	for(int i = 0; i < ubo.lightCount; ++i)
 	{
@@ -296,45 +272,40 @@ void main()
 			light.direction = vec4(L,1.0);
 		}
 
-		float NdotL = clamp(dot(material.normal, light.direction.xyz), 0.0, 1.0)  * value;
+		float NdotL = clamp(dot(material.normal, light.direction.xyz), 0.0, 1.0)  * value  * material.ao;
 		diffuse  += NdotL * Diffuse(light, material, eye) * light.colour * light.intensity;
 		specular += NdotL * Specular(light, material, eye) * light.colour.xyz * light.intensity;
 	}
   
+    //finalColour = material.albedo.xyz * diffuse.rgb + specular;
+    finalColour = material.albedo.xyz * diffuse.rgb + (specular + IBL(material, eye));
 
-    diffuse = max(diffuse, vec4(0.1));
-
-    finalColour = (material.albedo.xyz * diffuse.rgb + specular) * material.ao;
-    //finalColour = material.albedo.xyz * diffuse.rgb + (specular + IBL(light, material, eye));
-
+	finalColour += emissive;
 	finalColour = FinalGamma(finalColour);
 	outColor = vec4(finalColour, 1.0);
 
-	if(ubo.mode > 0.5)
+	if(ubo.mode > 0)
 	{
-		if(ubo.mode == 1.0)
+		switch(ubo.mode)
 		{
-			outColor = colourTex;
-		}
-
-		else if(ubo.mode == 2.0)
-		{
-			outColor = vec4(pbrTex.x);
-		}
-
-		else if(ubo.mode == 3.0)
-		{
-			outColor = vec4(pbrTex.y);
-		}
-
-		else if(ubo.mode == 4.0)
-		{
-			outColor = vec4(pbrTex.z);
-		}
-	
-		else if(ubo.mode == 5.0)
-		{
-			outColor = vec4(normal,1.0);
+			case 1:
+				outColor = colourTex;
+				break;
+			case 2:
+				outColor = vec4(material.specular, 1.0);
+				break;
+			case 3:
+				outColor = vec4(material.roughness, material.roughness, material.roughness,1.0);
+				break;
+			case 4:
+				outColor = vec4(material.ao, material.ao, material.ao, 1.0);
+				break;
+			case 5:
+				outColor = vec4(emissive, 1.0);
+				break;
+			case 6:
+				outColor = vec4(normal,1.0);
+				break;
 		}
 	}
 }

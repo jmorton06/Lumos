@@ -6,9 +6,9 @@
 #include "Utilities/LoadImage.h"
 #include "Platform/OpenGL/GLShader.h"
 
-namespace lumos
+namespace Lumos
 {
-	namespace graphics
+	namespace Graphics
 	{
 		GLTexture2D::GLTexture2D() : m_Width(0), m_Height(0)
 		{
@@ -111,8 +111,6 @@ namespace lumos
 			case TextureFormat::RGBA8:				return GL_RGBA8;
 			case TextureFormat::RGB16:              return GL_RGB16F;
 			case TextureFormat::RGBA16:             return GL_RGBA16F;
-			case TextureFormat::LUMINANCE:			return GL_LUMINANCE;
-			case TextureFormat::LUMINANCE_ALPHA:	return GL_LUMINANCE_ALPHA;
 			default: LUMOS_CORE_ERROR("[Texture] Unsupported image bit-depth!");  return 0;
 			}
 		}
@@ -220,7 +218,7 @@ namespace lumos
 			if (m_FileName != "NULL")
 			{
 				uint bits;
-				pixels = lumos::LoadImageFromFile(m_FileName.c_str(), &m_Width, &m_Height, &bits, !m_LoadOptions.flipY);
+				pixels = Lumos::LoadImageFromFile(m_FileName.c_str(), &m_Width, &m_Height, &bits, !m_LoadOptions.flipY);
 				m_Parameters.format = BitsToTextureFormat(bits);
 			}
 			return pixels;

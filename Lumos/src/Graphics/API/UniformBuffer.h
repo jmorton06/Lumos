@@ -1,8 +1,8 @@
 #pragma once
 
-namespace lumos
+namespace Lumos
 {
-	namespace graphics
+	namespace Graphics
 	{
 		class UniformBuffer
 		{

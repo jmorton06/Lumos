@@ -1,6 +1,7 @@
 #include "LM.h"
 #include "ImGuiLayer.h"
 #include "App/Input.h"
+#include "App/Window.h"
 #include "App/Application.h"
 #include "Graphics/API/IMGUIRenderer.h"
 #include "System/VFS.h"
@@ -9,7 +10,7 @@
 #include <imgui/imgui.h>
 #include <imgui/plugins/ImGuizmo.h>
 
-namespace lumos
+namespace Lumos
 {
 	ImGuiLayer::ImGuiLayer(bool clearScreen, const std::string& debugName)
 		: Layer(debugName)
@@ -33,7 +34,7 @@ namespace lumos
 		SetImGuiKeyCodes();
 		SetImGuiStyle();
 
-		m_IMGUIRenderer = std::unique_ptr<graphics::IMGUIRenderer>(graphics::IMGUIRenderer::Create(app->GetWindow()->GetWidth(),app->GetWindow()->GetHeight(), m_ClearScreen));
+		m_IMGUIRenderer = std::unique_ptr<Graphics::IMGUIRenderer>(Graphics::IMGUIRenderer::Create(app->GetWindow()->GetWidth(),app->GetWindow()->GetHeight(), m_ClearScreen));
 
         if(m_IMGUIRenderer)
             m_IMGUIRenderer->Init();

@@ -14,9 +14,9 @@
 #include "VKDescriptorSet.h"
 #include "Graphics/API/Renderer.h"
 
-namespace lumos
+namespace Lumos
 {
-	namespace graphics
+	namespace Graphics
 	{
 		class CommandBuffer;
 
@@ -64,14 +64,14 @@ namespace lumos
 			void SetPixelPackType(PixelPackType type) override;
 			void SetRenderModeInternal(RenderMode mode) override;
 
-			void RenderMeshInternal(Mesh* mesh, graphics::Pipeline* pipeline, graphics::CommandBuffer* cmdBuffer, uint dynamicOffset, graphics::DescriptorSet* descriptorSet, bool useMaterialDescriptorSet) override;
-			void Render(VertexArray* vertexArray, IndexBuffer* indexBuffer, graphics::CommandBuffer* cmdBuffer, std::vector<graphics::DescriptorSet*>& descriptorSets, graphics::Pipeline* pipeline, uint dynamicOffset) override;
+			void RenderMeshInternal(Mesh* mesh, Graphics::Pipeline* pipeline, Graphics::CommandBuffer* cmdBuffer, uint dynamicOffset, Graphics::DescriptorSet* descriptorSet, bool useMaterialDescriptorSet) override;
+			void Render(VertexArray* vertexArray, IndexBuffer* indexBuffer, Graphics::CommandBuffer* cmdBuffer, std::vector<Graphics::DescriptorSet*>& descriptorSets, Graphics::Pipeline* pipeline, uint dynamicOffset) override;
             void CreateSemaphores();
 
 		private:
-			lumos::graphics::VKContext* m_Context;
+			Lumos::Graphics::VKContext* m_Context;
 
-			lumos::graphics::VKSwapchain* m_Swapchain;
+			Lumos::Graphics::VKSwapchain* m_Swapchain;
 
 			vk::Semaphore m_ImageAvailableSemaphore[5];
 			uint m_CurrentSemaphoreIndex = 0;

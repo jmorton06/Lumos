@@ -4,7 +4,7 @@
 #include "FileSystem.h"
 
 
-namespace lumos 
+namespace Lumos 
 {
 
 	VFS* VFS::s_Instance = nullptr;

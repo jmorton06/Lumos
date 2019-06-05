@@ -8,12 +8,12 @@
 #include "Platform/Vulkan/VKContext.h"
 #endif
 #ifdef LUMOS_RENDER_API_DIRECT3D
-#include "graphics/DirectX/DXContext.h"
+#include "Graphics/DirectX/DXContext.h"
 #endif
 
-namespace lumos
+namespace Lumos
 {
-	namespace graphics
+	namespace Graphics
 	{
 		GraphicsContext* GraphicsContext::s_Context = nullptr;
 		RenderAPI GraphicsContext::s_RenderAPI;

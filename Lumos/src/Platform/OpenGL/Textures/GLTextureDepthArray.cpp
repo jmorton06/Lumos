@@ -4,9 +4,9 @@
 #include "../GL.h"
 
 
-namespace lumos
+namespace Lumos
 {
-	namespace graphics
+	namespace Graphics
 	{
 		GLTextureDepthArray::GLTextureDepthArray(uint width, uint height, uint count)
 			: m_Width(width), m_Height(height), m_Count(count)

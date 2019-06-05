@@ -3,9 +3,9 @@
 #include "VK.h"
 #include "Graphics/API/Shader.h"
 
-namespace lumos
+namespace Lumos
 {
-	namespace graphics
+	namespace Graphics
 	{
 		class VKShader : public Shader
 		{

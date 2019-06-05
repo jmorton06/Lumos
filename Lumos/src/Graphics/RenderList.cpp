@@ -1,8 +1,7 @@
 #include "LM.h"
 #include "RenderList.h"
 
-
-namespace lumos
+namespace Lumos
 {
 
 	uint RenderList::g_NumRenderLists = 0;
@@ -36,6 +35,8 @@ namespace lumos
 		g_NumRenderLists--;
 	}
 
+
+
 	void RenderList::RenderOpaqueObjects(const std::function<void(Entity*)>& per_object_func)
 	{
 		for (const auto& node : m_vRenderListOpaque)
@@ -54,7 +55,7 @@ namespace lumos
 		}
 	}
 
-	void RenderList::UpdateCameraWorldPos(const maths::Vector3& cameraPos)
+	void RenderList::UpdateCameraWorldPos(const Maths::Vector3& cameraPos)
 	{
 		m_NumElementsChanged = 0;
 		m_CameraPos = cameraPos;
@@ -68,7 +69,7 @@ namespace lumos
 #pragma omp parallel for
 			for (auto &i : list)
 			{
-				i.cam_dist_sq = (i.target_obj.lock()->GetComponent<TransformComponent>()->m_Transform.GetWorldMatrix().GetPositionVector() - m_CameraPos).LengthSquared() * mul;
+				i.cam_dist_sq = (i.target_obj.lock()->GetComponent<TransformComponent>()->GetTransform().GetWorldMatrix().GetPositionVector() - m_CameraPos).LengthSquared() * mul;
 			}
 		};
 
@@ -110,7 +111,7 @@ namespace lumos
 			sort_list(m_vRenderListTransparent);
 	}
 
-	void RenderList::RemoveExcessObjects(const maths::Frustum& frustum)
+	void RenderList::RemoveExcessObjects(const Maths::Frustum& frustum)
 	{
 		auto mark_objects_for_removal = [&](std::vector<RenderList_Object>& list)
 		{
@@ -125,7 +126,7 @@ namespace lumos
 
 				Entity* entity = list[i].target_obj.lock().get();
 
-				if (!frustum.InsideFrustum(entity->GetComponent<TransformComponent>()->m_Transform.GetWorldMatrix().GetPositionVector(), entity->GetBoundingRadius()))
+				if (!entity->ActiveInHierarchy() || !frustum.InsideFrustum(entity->GetComponent<TransformComponent>()->GetTransform().GetWorldMatrix().GetPositionVector(), entity->GetBoundingRadius()))
 				{
 					entity->GetFrustumCullFlags() &= ~m_BitMask;
 				}
@@ -188,14 +189,14 @@ namespace lumos
 		if (!isOpaque)
 		{
 #endif
-			carry_obj.cam_dist_sq = (obj->GetComponent<TransformComponent>()->m_Transform.GetWorldMatrix().GetPositionVector() - m_CameraPos).LengthSquared();
+			carry_obj.cam_dist_sq = (obj->GetComponent<TransformComponent>()->GetTransform().GetWorldMatrix().GetPositionVector() - m_CameraPos).LengthSquared();
 
 			if (!isOpaque)
 			{
 				//If the object is transparent, add it to the transparent render list
 				target_list = &m_vRenderListTransparent;
 
-				//To cheat the sorting system to always use the same sorting opperand, we just invert all transparent distances so negative far is less than neg near.
+				//To cheat the sorting System to always use the same sorting opperand, we just invert all transparent distances so negative far is less than neg near.
 				carry_obj.cam_dist_sq = -carry_obj.cam_dist_sq;
 			}
 

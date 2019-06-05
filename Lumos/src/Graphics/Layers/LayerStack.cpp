@@ -1,9 +1,7 @@
 #include "LM.h"
 #include "LayerStack.h"
 
-#include "System/Profiler.h"
-
-namespace lumos
+namespace Lumos
 {
 
 	LayerStack::LayerStack()
@@ -54,10 +52,7 @@ namespace lumos
 		for (uint i = 0; i < m_Layers.size(); i++)
 		{
 			Layer* layer = m_Layers[i];
-            
-			LUMOS_PROFILE(system::Profiler::OnBeginRange("Layer Render : " + layer->GetName(), true, "Render"));
 			layer->OnRender(scene);
-			LUMOS_PROFILE(system::Profiler::OnEndRange("Layer Render : " + layer->GetName(), true, "Render"));
 		}
 	}
 
@@ -66,9 +61,7 @@ namespace lumos
 		for (uint i = 0; i < m_Layers.size(); i++)
 		{
 			Layer* layer = m_Layers[i];
-			LUMOS_PROFILE(system::Profiler::OnBeginRange("Layer Update : " + layer->GetName(), true, "Update"));
 			layer->OnUpdate(timeStep, scene);
-			LUMOS_PROFILE(system::Profiler::OnEndRange("Layer Update : " + layer->GetName(), true, "Update"));
 		}
 	}
 
@@ -81,6 +74,15 @@ namespace lumos
 
 			if (e.Handled())
 				break;
+		}
+	}
+
+	void LayerStack::OnIMGUI()
+	{
+		for (uint i = 0; i < m_Layers.size(); i++)
+		{
+			Layer* layer = m_Layers[i];
+			layer->OnIMGUI();
 		}
 	}
     

@@ -2,7 +2,7 @@
 
     #ifdef LUMOS_SSE
 
-    namespace lumos
+    namespace Lumos
     {
     //https://lxjk.github.io/2017/09/03/Fast-4x4-Matrix-Inverse-with-SSE-SIMD-Explained.html
 

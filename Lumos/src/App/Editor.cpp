@@ -1,23 +1,28 @@
 #include "LM.h"
 #include "Editor.h"
-#include "App/Application.h"
-#include <imgui/plugins/ImGuizmo.h>
+#include "Application.h"
+#include "Console.h"
+#include "Input.h"
+#include "Engine.h"
+#include "Scene.h"
+#include "SceneManager.h"
+
+#include "Maths/BoundingSphere.h"
 #include "Entity/Entity.h"
+#include "Physics/LumosPhysicsEngine/LumosPhysicsEngine.h"
+
 #include "Graphics/GBuffer.h"
 #include "Graphics/Camera/Camera.h"
-#include "App/Engine.h"
-#include "Physics/LumosPhysicsEngine/LumosPhysicsEngine.h"
-#include "App/SceneManager.h"
-#include "App/Scene.h"
 #include "Graphics/RenderManager.h"
+#include "Graphics/Layers/LayerStack.h"
+#include "Graphics/API/GraphicsContext.h"
 #include "Graphics/API/Textures/Texture2D.h"
-#include "Console.h"
-#include "imgui/imgui.h"
-#include "imgui/imgui_internal.h"
-#include "Maths/BoundingSphere.h"
-#include "System/Profiler.h"
 
-namespace lumos
+#include <imgui/imgui.h>
+#include <imgui/imgui_internal.h>
+#include <imgui/plugins/ImGuizmo.h>
+
+namespace Lumos
 {
 	Editor::Editor(Application* app, uint width, uint height) : m_Application(app)
 	{
@@ -25,9 +30,8 @@ namespace lumos
 		LMLog::GetCoreLogger()->sinks().emplace_back(std::make_shared<ConsoleSink>(*m_Console));
 		LMLog::GetClientLogger()->sinks().emplace_back(std::make_shared<ConsoleSink>(*m_Console));
 
-		m_SceneViewSize = maths::Vector2(static_cast<float>(width), static_cast<float>(height));
+		m_SceneViewSize = Maths::Vector2(static_cast<float>(width), static_cast<float>(height));
 	}
-
 
 	Editor::~Editor()
 	{
@@ -49,7 +53,6 @@ namespace lumos
 		DrawHierarchyWindow();
 		DrawInspectorWindow();
 
-		LUMOS_PROFILE(system::Profiler::OnImGUI());
 		EndDockSpace();
 	}
 
@@ -82,14 +85,15 @@ namespace lumos
 				ImGui::EndMenu();
 			}
 
+            bool flipImage = Graphics::GraphicsContext::GetContext()->FlipImGUITexture();
 			ImGui::SameLine(ImGui::GetWindowContentRegionMax().x / 2.0f);
-			if (ImGui::ImageButton(m_Icons["play"]->GetHandle(), ImVec2(16, 16), ImVec2(0.0f, m_FlipImGuiImage ? 1.0f : 0.0f), ImVec2(1.0f, m_FlipImGuiImage ? 0.0f : 1.0f)))
+			if (ImGui::ImageButton(m_Icons["play"]->GetHandle(), ImVec2(16, 16), ImVec2(0.0f, flipImage ? 1.0f : 0.0f), ImVec2(1.0f, flipImage ? 0.0f : 1.0f)))
 				m_Application->SetEditorState(EditorState::Play);
 			
-			if (ImGui::ImageButton(m_Icons["pause"]->GetHandle(), ImVec2(16, 16), ImVec2(0.0f, m_FlipImGuiImage ? 1.0f : 0.0f), ImVec2(1.0f, m_FlipImGuiImage ? 0.0f : 1.0f)))
+			if (ImGui::ImageButton(m_Icons["pause"]->GetHandle(), ImVec2(16, 16), ImVec2(0.0f, flipImage ? 1.0f : 0.0f), ImVec2(1.0f, flipImage ? 0.0f : 1.0f)))
 				m_Application->SetEditorState(EditorState::Paused);
 
-			if (ImGui::ImageButton(m_Icons["next"]->GetHandle(), ImVec2(16, 16), ImVec2(0.0f, m_FlipImGuiImage ? 1.0f : 0.0f), ImVec2(1.0f, m_FlipImGuiImage ? 0.0f : 1.0f)))
+			if (ImGui::ImageButton(m_Icons["next"]->GetHandle(), ImVec2(16, 16), ImVec2(0.0f, flipImage ? 1.0f : 0.0f), ImVec2(1.0f, flipImage ? 0.0f : 1.0f)))
 				m_Application->SetEditorState(EditorState::Next);
 
 			ImGui::SameLine(ImGui::GetWindowContentRegionMax().x - 330.0f);
@@ -139,17 +143,35 @@ namespace lumos
 		{
 			if (ImGui::TreeNode("Application"))
 			{
-				if (ImGui::ImageButton(m_Icons["translate"]->GetHandle(), ImVec2(16, 16), ImVec2(0.0f, m_FlipImGuiImage ? 1.0f : 0.0f), ImVec2(1.0f, m_FlipImGuiImage ? 0.0f : 1.0f)))
+                bool flipImage = Graphics::GraphicsContext::GetContext()->FlipImGUITexture();
+				if (ImGui::ImageButton(m_Icons["translate"]->GetHandle(), ImVec2(24, 24), ImVec2(0.0f, flipImage ? 1.0f : 0.0f), ImVec2(1.0f, flipImage ? 0.0f : 1.0f)))
 					m_ImGuizmoOperation = ImGuizmo::TRANSLATE;
 				ImGui::SameLine();
-				if (ImGui::ImageButton(m_Icons["rotate"]->GetHandle(), ImVec2(16, 16), ImVec2(0.0f, m_FlipImGuiImage ? 1.0f : 0.0f), ImVec2(1.0f, m_FlipImGuiImage ? 0.0f : 1.0f)))
+				if (ImGui::ImageButton(m_Icons["rotate"]->GetHandle(), ImVec2(24, 24), ImVec2(0.0f, flipImage ? 1.0f : 0.0f), ImVec2(1.0f, flipImage ? 0.0f : 1.0f)))
 					m_ImGuizmoOperation = ImGuizmo::ROTATE;
 				ImGui::SameLine();
-				if (ImGui::ImageButton(m_Icons["scale"]->GetHandle(), ImVec2(16, 16), ImVec2(0.0f, m_FlipImGuiImage ? 1.0f : 0.0f), ImVec2(1.0f, m_FlipImGuiImage ? 0.0f : 1.0f)))
+				if (ImGui::ImageButton(m_Icons["scale"]->GetHandle(), ImVec2(24, 24), ImVec2(0.0f, flipImage ? 1.0f : 0.0f), ImVec2(1.0f, flipImage ? 0.0f : 1.0f)))
 					m_ImGuizmoOperation = ImGuizmo::SCALE;
 
 				ImGui::NewLine();
-				LumosPhysicsEngine::Instance()->OnImGUI();
+				auto systems = Application::Instance()->GetSystems();
+
+				if (ImGui::TreeNode("Systems"))
+				{
+					for (auto System : systems)
+					{
+						System->OnIMGUI();
+					}
+					ImGui::TreePop();
+				}
+
+				auto layerStack = Application::Instance()->GetLayerStack();
+				if (ImGui::TreeNode("Layers"))
+				{
+					layerStack->OnIMGUI();
+					ImGui::TreePop();
+				}
+
 				ImGui::NewLine();
 				ImGui::Text("FPS : %5.2i", Engine::Instance()->GetFPS());
 				ImGui::Text("UPS : %5.2i", Engine::Instance()->GetUPS());
@@ -161,22 +183,54 @@ namespace lumos
 				{
 					if (ImGui::TreeNode("Colour Texture"))
 					{
-						ImGui::Image(m_Application->m_RenderManager->GetGBuffer()->m_ScreenTex[graphics::SCREENTEX_COLOUR]->GetHandle(), ImVec2(128, 128), ImVec2(0.0f, m_FlipImGuiImage ? 1.0f : 0.0f), ImVec2(1.0f, m_FlipImGuiImage ? 0.0f : 1.0f));
+						ImGui::Image(m_Application->m_RenderManager->GetGBuffer()->GetTexture(Graphics::SCREENTEX_COLOUR)->GetHandle(), ImVec2(128, 128), ImVec2(0.0f, flipImage ? 1.0f : 0.0f), ImVec2(1.0f, flipImage ? 0.0f : 1.0f));
+                        
+                        if (ImGui::IsItemHovered())
+                        {
+                            ImGui::BeginTooltip();
+                            ImGui::Image(m_Application->m_RenderManager->GetGBuffer()->GetTexture(Graphics::SCREENTEX_COLOUR)->GetHandle(), ImVec2(256, 256), ImVec2(0.0f, flipImage ? 1.0f : 0.0f), ImVec2(1.0f, flipImage ? 0.0f : 1.0f));
+                            ImGui::EndTooltip();
+                        }
+                        
 						ImGui::TreePop();
 					}
 					if (ImGui::TreeNode("Normal Texture"))
 					{
-						ImGui::Image(m_Application->m_RenderManager->GetGBuffer()->m_ScreenTex[graphics::SCREENTEX_NORMALS]->GetHandle(), ImVec2(128, 128), ImVec2(0.0f, m_FlipImGuiImage ? 1.0f : 0.0f), ImVec2(1.0f, m_FlipImGuiImage ? 0.0f : 1.0f));
+						ImGui::Image(m_Application->m_RenderManager->GetGBuffer()->GetTexture(Graphics::SCREENTEX_NORMALS)->GetHandle(), ImVec2(128, 128), ImVec2(0.0f, flipImage ? 1.0f : 0.0f), ImVec2(1.0f, flipImage ? 0.0f : 1.0f));
+                        
+                        if (ImGui::IsItemHovered())
+                        {
+                            ImGui::BeginTooltip();
+                            ImGui::Image(m_Application->m_RenderManager->GetGBuffer()->GetTexture(Graphics::SCREENTEX_NORMALS)->GetHandle(), ImVec2(256, 256), ImVec2(0.0f, flipImage ? 1.0f : 0.0f), ImVec2(1.0f, flipImage ? 0.0f : 1.0f));
+                            ImGui::EndTooltip();
+                        }
+                        
 						ImGui::TreePop();
 					}
 					if (ImGui::TreeNode("PBR Texture"))
 					{
-						ImGui::Image(m_Application->m_RenderManager->GetGBuffer()->m_ScreenTex[graphics::SCREENTEX_PBR]->GetHandle(), ImVec2(128, 128), ImVec2(0.0f, m_FlipImGuiImage ? 1.0f : 0.0f), ImVec2(1.0f, m_FlipImGuiImage ? 0.0f : 1.0f));
+						ImGui::Image(m_Application->m_RenderManager->GetGBuffer()->GetTexture(Graphics::SCREENTEX_PBR)->GetHandle(), ImVec2(128, 128), ImVec2(0.0f, flipImage ? 1.0f : 0.0f), ImVec2(1.0f, flipImage ? 0.0f : 1.0f));
+                        
+                        if (ImGui::IsItemHovered())
+                        {
+                            ImGui::BeginTooltip();
+                            ImGui::Image(m_Application->m_RenderManager->GetGBuffer()->GetTexture(Graphics::SCREENTEX_PBR)->GetHandle(), ImVec2(256, 256), ImVec2(0.0f, flipImage ? 1.0f : 0.0f), ImVec2(1.0f, flipImage ? 0.0f : 1.0f));
+                            ImGui::EndTooltip();
+                        }
+                        
 						ImGui::TreePop();
 					}
 					if (ImGui::TreeNode("Position Texture"))
 					{
-						ImGui::Image(m_Application->m_RenderManager->GetGBuffer()->m_ScreenTex[graphics::SCREENTEX_POSITION]->GetHandle(), ImVec2(128, 128), ImVec2(0.0f, m_FlipImGuiImage ? 1.0f : 0.0f), ImVec2(1.0f, m_FlipImGuiImage ? 0.0f : 1.0f));
+						ImGui::Image(m_Application->m_RenderManager->GetGBuffer()->GetTexture(Graphics::SCREENTEX_POSITION)->GetHandle(), ImVec2(128, 128), ImVec2(0.0f, flipImage ? 1.0f : 0.0f), ImVec2(1.0f, flipImage ? 0.0f : 1.0f));
+                        
+                        if (ImGui::IsItemHovered())
+                        {
+                            ImGui::BeginTooltip();
+                            ImGui::Image(m_Application->m_RenderManager->GetGBuffer()->GetTexture(Graphics::SCREENTEX_POSITION)->GetHandle(), ImVec2(256, 256), ImVec2(0.0f, flipImage ? 1.0f : 0.0f), ImVec2(1.0f, flipImage ? 0.0f : 1.0f));
+                            ImGui::EndTooltip();
+                        }
+                        
 						ImGui::TreePop();
 					}
 					ImGui::TreePop();
@@ -204,13 +258,15 @@ namespace lumos
 		ImGuiWindowFlags window_flags = 0;
 		ImGui::Begin("Engine", NULL, window_flags);
 		{
-			if (ImGui::ImageButton(m_Icons["translate"]->GetHandle(), ImVec2(16, 16), ImVec2(0.0f, m_FlipImGuiImage ? 1.0f : 0.0f), ImVec2(1.0f, m_FlipImGuiImage ? 0.0f : 1.0f)))
+            bool flipImage = Graphics::GraphicsContext::GetContext()->FlipImGUITexture();
+            
+			if (ImGui::ImageButton(m_Icons["translate"]->GetHandle(), ImVec2(16, 16), ImVec2(0.0f, flipImage ? 1.0f : 0.0f), ImVec2(1.0f, flipImage ? 0.0f : 1.0f)))
 				m_ImGuizmoOperation = ImGuizmo::TRANSLATE;
 			ImGui::SameLine();
-			if (ImGui::ImageButton(m_Icons["rotate"]->GetHandle(), ImVec2(16, 16), ImVec2(0.0f, m_FlipImGuiImage ? 1.0f : 0.0f), ImVec2(1.0f, m_FlipImGuiImage ? 0.0f : 1.0f)))
+			if (ImGui::ImageButton(m_Icons["rotate"]->GetHandle(), ImVec2(16, 16), ImVec2(0.0f, flipImage ? 1.0f : 0.0f), ImVec2(1.0f, flipImage ? 0.0f : 1.0f)))
 				m_ImGuizmoOperation = ImGuizmo::ROTATE;
 			ImGui::SameLine();
-			if (ImGui::ImageButton(m_Icons["scale"]->GetHandle(), ImVec2(16, 16), ImVec2(0.0f, m_FlipImGuiImage ? 1.0f : 0.0f), ImVec2(1.0f, m_FlipImGuiImage ? 0.0f : 1.0f)))
+			if (ImGui::ImageButton(m_Icons["scale"]->GetHandle(), ImVec2(16, 16), ImVec2(0.0f, flipImage ? 1.0f : 0.0f), ImVec2(1.0f, flipImage ? 0.0f : 1.0f)))
 				m_ImGuizmoOperation = ImGuizmo::SCALE;
 
 			ImGui::NewLine();
@@ -238,8 +294,8 @@ namespace lumos
 		ImGui::Begin("Scene", nullptr, windowFlags);
 		
 		ImGuizmo::SetDrawlist();
-		m_SceneViewSize = maths::Vector2(ImGui::GetWindowSize().x, ImGui::GetWindowSize().y);
-		maths::Vector2 m_SceneViewPosition = maths::Vector2(ImGui::GetWindowPos().x, ImGui::GetWindowPos().y);
+		m_SceneViewSize = Maths::Vector2(ImGui::GetWindowSize().x, ImGui::GetWindowSize().y);
+		Maths::Vector2 m_SceneViewPosition = Maths::Vector2(ImGui::GetWindowPos().x, ImGui::GetWindowPos().y);
 
 		m_Application->m_SceneManager->GetCurrentScene()->GetCamera()->SetAspectRatio(static_cast<float>(ImGui::GetWindowSize().x) / static_cast<float>(ImGui::GetWindowSize().y));
 
@@ -250,8 +306,10 @@ namespace lumos
 		width -= (width % 2 != 0) ? 1 : 0;
 		height -= (height % 2 != 0) ? 1 : 0;
 
+        bool flipImage = Graphics::GraphicsContext::GetContext()->FlipImGUITexture();
+        
 		ImGuizmo::SetRect(ImGui::GetWindowPos().x, ImGui::GetWindowPos().y, static_cast<float>(width), static_cast<float>(height));
-		ImGui::Image(m_Application->m_RenderManager->GetGBuffer()->m_ScreenTex[graphics::SCREENTEX_OFFSCREEN0]->GetHandle(), ImVec2(static_cast<float>(width), static_cast<float>(height)), ImVec2(0.0f, m_FlipImGuiImage ? 1.0f : 0.0f), ImVec2(1.0f, m_FlipImGuiImage ? 0.0f : 1.0f));
+		ImGui::Image(m_Application->m_RenderManager->GetGBuffer()->GetTexture(Graphics::SCREENTEX_OFFSCREEN0)->GetHandle(), ImVec2(static_cast<float>(width), static_cast<float>(height)), ImVec2(0.0f, flipImage ? 1.0f : 0.0f), ImVec2(1.0f, flipImage ? 0.0f : 1.0f));
 
 		if (m_Selected)
 		{
@@ -335,21 +393,21 @@ namespace lumos
 		if (bCheck)
 			return;
 
-		maths::Vector2 relativeMousePos = Input::GetInput().GetMousePosition() - m_SceneViewPosition;
+		Maths::Vector2 relativeMousePos = Input::GetInput().GetMousePosition() - m_SceneViewPosition;
 
 		float pointX = +2.0f * relativeMousePos.x / m_SceneViewSize.x - 1.0f;
 		float pointY = -2.0f * relativeMousePos.y / m_SceneViewSize.y + 1.0f;
 
-		maths::Matrix4 view = m_Application->GetSceneManager()->GetCurrentScene()->GetCamera()->GetViewMatrix();
-		maths::Matrix4 proj = m_Application->GetSceneManager()->GetCurrentScene()->GetCamera()->GetProjectionMatrix();
-		maths::Matrix4 invProjView = maths::Matrix4::Inverse(view * proj);
+		Maths::Matrix4 view = m_Application->GetSceneManager()->GetCurrentScene()->GetCamera()->GetViewMatrix();
+		Maths::Matrix4 proj = m_Application->GetSceneManager()->GetCurrentScene()->GetCamera()->GetProjectionMatrix();
+		Maths::Matrix4 invProjView = Maths::Matrix4::Inverse(view * proj);
 
-		maths::Vector3 worldMousePos = invProjView * maths::Vector3(pointX, pointY, 0.0f);
+		Maths::Vector3 worldMousePos = invProjView * Maths::Vector3(pointX, pointY, 0.0f);
 
 		m_Application->m_SceneManager->GetCurrentScene()->IterateEntities([&](std::shared_ptr<Entity> entity)
 		{
 			auto boundingBox = entity->GetBoundingRadius();
-			maths::BoundingSphere test(entity->GetTransform()->m_Transform.GetWorldPosition(), boundingBox);
+			Maths::BoundingSphere test(entity->GetTransformComponent()->GetTransform().GetWorldPosition(), boundingBox);
 			if (test.Intersects(worldMousePos))
 			{
 				m_Selected = entity.get();
@@ -361,13 +419,13 @@ namespace lumos
 	void Editor::OnInit()
 	{
 		//Load Icons
-		m_Icons["play"] = graphics::Texture2D::CreateFromFile("playIcon", "/CoreTextures/Editor/icons/play.png");
-		m_Icons["pause"] = graphics::Texture2D::CreateFromFile("pauseIcon", "/CoreTextures/Editor/icons/pause.png");
-		m_Icons["next"] = graphics::Texture2D::CreateFromFile("nextIcon", "/CoreTextures/Editor/icons/next.png");
+		m_Icons["play"] = Graphics::Texture2D::CreateFromFile("playIcon", "/CoreTextures/Editor/icons/play.png");
+		m_Icons["pause"] = Graphics::Texture2D::CreateFromFile("pauseIcon", "/CoreTextures/Editor/icons/pause.png");
+		m_Icons["next"] = Graphics::Texture2D::CreateFromFile("nextIcon", "/CoreTextures/Editor/icons/next.png");
 
-		m_Icons["translate"] = graphics::Texture2D::CreateFromFile("translateIcon", "/CoreTextures/Editor/icons/translate.png");
-		m_Icons["scale"] = graphics::Texture2D::CreateFromFile("scaleIcon", "/CoreTextures/Editor/icons/scale.png");
-		m_Icons["rotate"] = graphics::Texture2D::CreateFromFile("rotateIcon", "/CoreTextures/Editor/icons/rotate.png");
+		m_Icons["translate"] = Graphics::Texture2D::CreateFromFile("translateIcon", "/CoreTextures/Editor/icons/translate.png");
+		m_Icons["scale"] = Graphics::Texture2D::CreateFromFile("scaleIcon", "/CoreTextures/Editor/icons/scale.png");
+		m_Icons["rotate"] = Graphics::Texture2D::CreateFromFile("rotateIcon", "/CoreTextures/Editor/icons/rotate.png");
 
 
 	}

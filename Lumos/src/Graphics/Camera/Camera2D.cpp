@@ -1,17 +1,19 @@
 #include "LM.h"
 #include "Camera2D.h"
 #include "App/Application.h"
+#include "App/Input.h"
 #include "Maths/MathsUtilities.h"
+#include "App/Window.h"
 
-namespace lumos
+namespace Lumos
 {
     Camera2D::Camera2D(uint width, uint height, float scale) : Camera(45.0f, 0.0f, 1.0f, 1.0f)
 		, m_Scale(scale)
 	{
 		Application::Instance()->GetWindow()->HideMouse(false);
-		m_ProjMatrix = maths::Matrix4::Orthographic(-1.0f, 1.0f, static_cast<float>(width), 0.0f, static_cast<float>(height), 0.0f);
-		m_Position = maths::Vector3(0.0f);
-		m_Velocity = maths::Vector3(0.0f);
+		m_ProjMatrix = Maths::Matrix4::Orthographic(-1.0f, 1.0f, static_cast<float>(width), 0.0f, static_cast<float>(height), 0.0f);
+		m_Position = Maths::Vector3(0.0f);
+		m_Velocity = Maths::Vector3(0.0f);
 
         BuildViewMatrix();
 	}
@@ -26,7 +28,7 @@ namespace lumos
 
 	void Camera2D::HandleKeyboard(float dt)
 	{
-		maths::Vector3 up = maths::Vector3(0, 1, 0), right = maths::Vector3(1, 0, 0);
+		Maths::Vector3 up = Maths::Vector3(0, 1, 0), right = Maths::Vector3(1, 0, 0);
 
 		m_CameraSpeed = 100.0f * dt;// *m_Scale;
 
@@ -59,13 +61,13 @@ namespace lumos
 
 	void Camera2D::UpdateProjectionMatrix(float width, float height)
 	{
-		//m_ProjMatrix = maths::Matrix4::Orthographic(-1.0f, 1.0f, width, 0.0f, height, 0.0f);
+		//m_ProjMatrix = Maths::Matrix4::Orthographic(-1.0f, 1.0f, width, 0.0f, height, 0.0f);
 	}
 
 	void Camera2D::BuildViewMatrix()
 	{
-		m_ViewMatrix = maths::Matrix4::Scale(maths::Vector3(m_Scale)) *
-				maths::Matrix4::Translation(-m_Position);
+		m_ViewMatrix = Maths::Matrix4::Scale(Maths::Vector3(m_Scale)) *
+				Maths::Matrix4::Translation(-m_Position);
 	}
 
 	float Camera2D::GetScale() const
@@ -86,7 +88,7 @@ namespace lumos
         }
         
         m_Scale += m_ZoomVelocity;
-        m_Scale = maths::Max(m_Scale, 0.0f);
+        m_Scale = Maths::Max(m_Scale, 0.0f);
         m_ZoomVelocity = m_ZoomVelocity * pow(m_ZoomDampeningFactor, dt);
     }
 }

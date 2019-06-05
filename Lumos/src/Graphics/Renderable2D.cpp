@@ -1,9 +1,9 @@
 #include "LM.h"
 #include "Renderable2D.h"
 
-namespace lumos
+namespace Lumos
 {
-	namespace graphics
+	namespace Graphics
 	{
 		Renderable2D::Renderable2D()
 		{
@@ -14,15 +14,15 @@ namespace lumos
 
 		}
 
-		const std::vector<maths::Vector2>& Renderable2D::GetDefaultUVs()
+		const std::vector<Maths::Vector2>& Renderable2D::GetDefaultUVs()
 		{
-			static std::vector<maths::Vector2> results;
+			static std::vector<Maths::Vector2> results;
 			if (!results.size())
 			{
-				results.push_back(maths::Vector2(0, 1));
-				results.push_back(maths::Vector2(1, 1));
-				results.push_back(maths::Vector2(1, 0));
-				results.push_back(maths::Vector2(0, 0));
+				results.push_back(Maths::Vector2(0, 1));
+				results.push_back(Maths::Vector2(1, 1));
+				results.push_back(Maths::Vector2(1, 0));
+				results.push_back(Maths::Vector2(0, 0));
 			}
 			return results;
 		}

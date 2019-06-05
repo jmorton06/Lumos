@@ -1,9 +1,9 @@
 #include "LM.h"
 #include "Frustum.h"
 
-namespace lumos
+namespace Lumos
 {
-	namespace maths
+	namespace Maths
 	{
 		void Frustum::FromMatrix(const Matrix4 &mat)
 		{

@@ -1,7 +1,7 @@
 #include "LM.h"
 #include "PathEdge.h"
 
-namespace lumos
+namespace Lumos
 {
 
 	PathEdge::PathEdge(PathNode* a, PathNode* b)

@@ -20,15 +20,14 @@ static void check_vk_result(VkResult err)
         abort();
 }
 
-namespace lumos
+namespace Lumos
 {
-    namespace graphics
+    namespace Graphics
     {
         VKIMGUIRenderer::VKIMGUIRenderer(uint width, uint height, bool clearScreen): m_CommandBuffers{},
                                                                                      m_Framebuffers{},
                                                                                      m_Renderpass(nullptr)
         {
-	        m_Implemented = true;
 	        m_WindowHandle = nullptr;
 	        m_Width = width;
 	        m_Height = height;
@@ -103,8 +102,12 @@ namespace lumos
             wd->BackBufferCount = static_cast<uint32_t>(swapChain->GetSwapchainBufferCount());
             
 			m_Renderpass = new VKRenderpass();
-            TextureType textureTypes[1] = { TextureType::COLOUR };
-            graphics::RenderpassInfo renderpassCI{};
+			AttachmentInfo textureTypes[2] =
+			{
+				{ TextureType::COLOUR, TextureFormat::RGBA8 }
+			};
+
+            Graphics::RenderpassInfo renderpassCI{};
             renderpassCI.attachmentCount = 1;
             renderpassCI.textureType = textureTypes;
             renderpassCI.clear = m_ClearScreen;
@@ -204,7 +207,7 @@ namespace lumos
 				m_CommandBuffers[wd->FrameIndex]->BeginRecording();
             }
             {
-				m_Renderpass->BeginRenderpass(m_CommandBuffers[wd->FrameIndex], maths::Vector4(0.1f,0.1f,0.1f,1.0f), m_Framebuffers[wd->FrameIndex], graphics::SubPassContents::INLINE, wd->Width, wd->Height);
+				m_Renderpass->BeginRenderpass(m_CommandBuffers[wd->FrameIndex], Maths::Vector4(0.1f,0.1f,0.1f,1.0f), m_Framebuffers[wd->FrameIndex], Graphics::SubPassContents::INLINE, wd->Width, wd->Height);
             }
 
             // Record Imgui Draw Data and draw funcs into command buffer
@@ -217,7 +220,7 @@ namespace lumos
             VKRenderer::GetRenderer()->Present(m_CommandBuffers[wd->FrameIndex]);
         }
 
-        void VKIMGUIRenderer::Render(lumos::graphics::CommandBuffer* commandBuffer)
+        void VKIMGUIRenderer::Render(Lumos::Graphics::CommandBuffer* commandBuffer)
         {
             FrameRender(&g_WindowData);
         }

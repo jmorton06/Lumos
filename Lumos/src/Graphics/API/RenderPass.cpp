@@ -10,13 +10,13 @@
 #include "Platform/OpenGL/GLRenderPass.h"
 #endif
 
-namespace lumos
+namespace Lumos
 {
-	namespace graphics
+	namespace Graphics
 	{
 		RenderPass* RenderPass::Create()
 		{
-			switch (graphics::GraphicsContext::GetRenderAPI())
+			switch (Graphics::GraphicsContext::GetRenderAPI())
 			{
 #ifdef LUMOS_RENDER_API_OPENGL
 			case RenderAPI::OPENGL:		return new GLRenderPass();

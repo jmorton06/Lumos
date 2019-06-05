@@ -2,9 +2,9 @@
 #include "GLShaderUniform.h"
 #include "Graphics/API/Shader.h"
 
-namespace lumos
+namespace Lumos
 {
-	namespace graphics
+	namespace Graphics
 	{
 		GLShaderUniformDeclaration::GLShaderUniformDeclaration(Type type, const String& name, uint count)
 			: m_Offset(0), m_Type(type), m_Struct(nullptr), m_Location(0)
@@ -37,12 +37,12 @@ namespace lumos
 			case GLShaderUniformDeclaration::Type::INT:					return 4;
 			case GLShaderUniformDeclaration::Type::INT32:				return 4;
 			case GLShaderUniformDeclaration::Type::FLOAT32:				return 4;
-			case GLShaderUniformDeclaration::Type::VEC2:				return sizeof(maths::Vector2);// 4 * 2;
-			case GLShaderUniformDeclaration::Type::VEC3:				return sizeof(maths::Vector3);//4 * 3;
-			case GLShaderUniformDeclaration::Type::VEC4:				return sizeof(maths::Vector4);//4 * 4;
-			case GLShaderUniformDeclaration::Type::MAT3:				return sizeof(maths::Matrix3);//4 * 3 * 3;
-			case GLShaderUniformDeclaration::Type::MAT4:				return sizeof(maths::Matrix4);//4 * 4 * 4;
-			case GLShaderUniformDeclaration::Type::MAT4ARRAY:			return sizeof(maths::Matrix4);//4 * 4 * 4;
+			case GLShaderUniformDeclaration::Type::VEC2:				return sizeof(Maths::Vector2);// 4 * 2;
+			case GLShaderUniformDeclaration::Type::VEC3:				return sizeof(Maths::Vector3);//4 * 3;
+			case GLShaderUniformDeclaration::Type::VEC4:				return sizeof(Maths::Vector4);//4 * 4;
+			case GLShaderUniformDeclaration::Type::MAT3:				return sizeof(Maths::Matrix3);//4 * 3 * 3;
+			case GLShaderUniformDeclaration::Type::MAT4:				return sizeof(Maths::Matrix4);//4 * 4 * 4;
+			case GLShaderUniformDeclaration::Type::MAT4ARRAY:			return sizeof(Maths::Matrix4);//4 * 4 * 4;
 			default: return 0;
 			}
 		}

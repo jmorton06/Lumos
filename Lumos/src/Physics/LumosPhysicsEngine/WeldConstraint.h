@@ -2,9 +2,9 @@
 
 #include "Constraint.h"
 
-namespace lumos
+namespace Lumos
 {
-	namespace maths
+	namespace Maths
 	{
 		class Vector3;
 	}
@@ -25,7 +25,7 @@ namespace lumos
 		PhysicsObject3D *m_pObj1;
 		PhysicsObject3D *m_pObj2;
 
-		maths::Vector3	  m_positionOffset;
-		maths::Quaternion m_orientation;
+		Maths::Vector3	  m_positionOffset;
+		Maths::Quaternion m_orientation;
 	};
 }

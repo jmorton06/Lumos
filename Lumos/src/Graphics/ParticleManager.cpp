@@ -9,7 +9,7 @@
 #include "Mesh.h"
 #include "MeshFactory.h"
 
-namespace lumos
+namespace Lumos
 {
 
 	ParticleManager::ParticleManager()
@@ -18,7 +18,6 @@ namespace lumos
 
 	ParticleManager::~ParticleManager()
 	{
-		m_Emitters.clear();
 	}
 
 	void ParticleManager::Add(std::shared_ptr<ParticleEmitter> emitter)

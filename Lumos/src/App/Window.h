@@ -3,38 +3,17 @@
 #include "LM.h"
 #include "Utilities/Timer.h"
 #include "Maths/Vector2.h"
-#include "System/Settings.h"
 #include "Utilities/TSingleton.h"
 #include "Events/Event.h"
 
-namespace lumos
+namespace Lumos
 {
 	class Texture2D;
 
 	struct LUMOS_EXPORT WindowProperties
 	{
-		WindowProperties(System::CFG& cfg)
+        WindowProperties(uint width = 1280, uint height = 720, int renderAPI = 0, String title = "Lumos", bool fullscreen = false, bool vSync = true, bool borderless = false) : Width(width), Height(height), Title(title), Fullscreen(fullscreen), VSync(vSync), Borderless(borderless), RenderAPI(renderAPI)
 		{
-			if (!cfg.FindUInt("width", Width))
-				Width = 1280;
-			if (!cfg.FindUInt("height", Height))
-				Height = 720;
-			if (!cfg.FindBool("fullscreen", Fullscreen))
-				Fullscreen = false;
-			if (!cfg.FindBool("vsync", VSync))
-				VSync = true;
-			if (!cfg.FindBool("borderless", Borderless))
-				Borderless = false;
-		}
-
-		WindowProperties()
-		{
-			Width = 1280;
-			Height = 720;
-			Fullscreen = false;
-			VSync = true;
-			Borderless = false;
-			Title = "Game Engine";
 		}
 
 		uint Width, Height;
@@ -43,6 +22,7 @@ namespace lumos
 		bool Borderless;
 		bool ShowConsole = false;
 		String Title;
+        int RenderAPI;
 
 	};
 
@@ -51,9 +31,9 @@ namespace lumos
 	public:
 		using EventCallbackFn = std::function<void(Event&)>; 
 
-		static Window* Create(const std::string& title, const WindowProperties& properties);
+		static Window* Create(const WindowProperties& properties);
 		virtual ~Window() {};
-		bool Initialise(const String& title, const WindowProperties& properties);
+		bool Initialise(const WindowProperties& properties);
 
 		inline Timer* GetWindowTimer() const { return m_Timer; }
 
@@ -65,7 +45,7 @@ namespace lumos
 		inline void SetHasResized(bool resized){ m_HasResized = resized; }
 		inline bool GetHasResized() const { return m_HasResized; }
 
-		inline maths::Vector2 GetScreenSize() const { return m_ScreenSize; };
+		inline Maths::Vector2 GetScreenSize() const { return m_ScreenSize; };
 
 		virtual void ToggleVSync() = 0;
 		virtual void SetVSync(bool set) = 0;
@@ -75,17 +55,18 @@ namespace lumos
 		virtual void* GetHandle() { return nullptr; };
 		virtual float GetScreenRatio() const = 0;
 		virtual void HideMouse(bool hide) {};
-		virtual void SetMousePosition(const maths::Vector2& pos) {};
+		virtual void SetMousePosition(const Maths::Vector2& pos) {};
 		virtual void SetEventCallback(const EventCallbackFn& callback) = 0;
 
+		virtual String GetTitle() const = 0;
 		virtual uint GetWidth()  const = 0;
 		virtual uint GetHeight() const = 0;
 
 	protected:
 
 		bool				m_Init;
-		maths::Vector2		m_Position;
-		maths::Vector2		m_ScreenSize;
+		Maths::Vector2		m_Position;
+		Maths::Vector2		m_ScreenSize;
 		Timer*				m_Timer;
 		bool				m_VSync;
 		bool				m_HasResized;

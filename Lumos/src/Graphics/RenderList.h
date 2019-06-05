@@ -4,7 +4,7 @@
 #include "Maths/Frustum.h"
 #include "Maths/Maths.h"
 
-namespace lumos
+namespace Lumos
 {
 
 	//Maximum number of elements added to the renderlist per frame
@@ -34,14 +34,14 @@ namespace lumos
 		static bool AllocateNewRenderList(RenderList* renderlist, bool supportsTransparency);
 
 		//Updates all current objects 'distance' to camera
-		void UpdateCameraWorldPos(const maths::Vector3& cameraPos);
+		void UpdateCameraWorldPos(const Maths::Vector3& cameraPos);
 
 		//Sort lists based on camera position using insertion sort. With frame coherency,
 		// the list should be 'almost' sorted each frame and only a few elements need to be swapped in this function.
 		void SortLists();
 
 		//Removes all objects no longer inside the frustum
-		void RemoveExcessObjects(const maths::Frustum& frustum);
+		void RemoveExcessObjects(const Maths::Frustum& frustum);
 
 		//Called when object moves inside the frustum (Inserts via insertion sort)
 		void InsertObject(std::shared_ptr<Entity>& obj);
@@ -77,7 +77,7 @@ namespace lumos
 		bool m_SupportsTransparancy;
 
 		//Last provided camera position for sorting/inserting new objects
-		maths::Vector3 m_CameraPos;
+		Maths::Vector3 m_CameraPos;
 
 		//Sorted renderlists of visible objects
 		std::vector<RenderList_Object> m_vRenderListOpaque;

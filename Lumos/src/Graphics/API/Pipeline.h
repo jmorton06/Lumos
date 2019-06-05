@@ -1,14 +1,17 @@
 #pragma once
 #include "LM.h"
-#include "DescriptorSet.h"
 
-namespace lumos
+namespace Lumos
 {
-	namespace graphics
+	namespace Graphics
 	{
 		class Shader;
 		class RenderPass;
 		class CommandBuffer;
+		class DescriptorSet;
+		struct VertexInputDescription;
+		struct DescriptorLayout;
+		struct DescriptorPoolInfo;
 
 		enum class CullMode
 		{
@@ -50,14 +53,8 @@ namespace lumos
 
 			virtual void SetActive(CommandBuffer* cmdBuffer) = 0;
 
-			DescriptorSet* GetDescriptorSet() const { return descriptorSet; }
-			Shader* GetShader() const { return m_Shader; }
-
-		protected:
-
-			DescriptorSet* descriptorSet = nullptr;
-			Shader* m_Shader = nullptr;
-
+			virtual DescriptorSet* GetDescriptorSet() const = 0;
+			virtual Shader* GetShader() const = 0;
 		};
 	}
 }

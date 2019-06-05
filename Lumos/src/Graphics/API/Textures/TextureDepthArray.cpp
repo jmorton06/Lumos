@@ -5,20 +5,20 @@
 #include "Platform/OpenGL/Textures/GLTextureDepthArray.h"
 #endif
 #ifdef LUMOS_RENDER_API_DIRECT3D
-#include "graphics/DirectX/DXTextureDepthArray.h"
+#include "Graphics/DirectX/DXTextureDepthArray.h"
 #endif
 #ifdef LUMOS_RENDER_API_VULKAN
 #include "Platform/Vulkan/VKTextureDepthArray.h"
 #endif
 #include "Graphics/API/GraphicsContext.h"
 
-namespace lumos
+namespace Lumos
 {
-	namespace graphics
+	namespace Graphics
 	{
 		TextureDepthArray* TextureDepthArray::Create(uint width, uint height, uint count)
 		{
-			switch (graphics::GraphicsContext::GetRenderAPI())
+			switch (Graphics::GraphicsContext::GetRenderAPI())
 			{
 #ifdef LUMOS_RENDER_API_OPENGL
 			case RenderAPI::OPENGL:		return new GLTextureDepthArray(width, height, count);
@@ -27,7 +27,7 @@ namespace lumos
 			case RenderAPI::DIRECT3D:	return new D3DTextureDepthArray(width, height, count);
 #endif
 #ifdef LUMOS_RENDER_API_VULKAN
-			case RenderAPI::VULKAN:     return new graphics::VKTextureDepthArray(width, height, count);
+			case RenderAPI::VULKAN:     return new Graphics::VKTextureDepthArray(width, height, count);
 #endif
 			}
 			return nullptr;

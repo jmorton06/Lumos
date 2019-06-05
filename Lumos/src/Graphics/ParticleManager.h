@@ -2,14 +2,10 @@
 #include "LM.h"
 #include "Maths/Maths.h"
 
-namespace lumos
+namespace Lumos
 {
-	class Material;
-	class Particle;
-	class Camera;
-	class Mesh;
-	class VertexArray;
 	class ParticleEmitter;
+	class Camera;
 
 	class LUMOS_EXPORT ParticleManager
 	{
@@ -25,8 +21,6 @@ namespace lumos
 
 	private:
 
-		Mesh* m_Quad;
-		VertexArray* m_VAO;
 		std::vector<std::shared_ptr<ParticleEmitter>> m_Emitters;
 	};
 }

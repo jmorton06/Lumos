@@ -2,9 +2,9 @@
 #include "LM.h"
 #include "Maths/Maths.h"
 
-namespace lumos
+namespace Lumos
 {
-	namespace graphics
+	namespace Graphics
 	{
 		enum class LUMOS_EXPORT LightType
 		{
@@ -15,11 +15,11 @@ namespace lumos
 
 		struct LUMOS_EXPORT MEM_ALIGN Light
 		{
-			Light(const maths::Vector3& direction, const maths::Vector4& colour = maths::Vector4(1.0f), float intensity = 1.0f, const LightType& type = LightType::DirectionalLight, const maths::Vector3& position = maths::Vector3(), float radius = 1.0f);
+			Light(const Maths::Vector3& direction, const Maths::Vector4& colour = Maths::Vector4(1.0f), float intensity = 1.0f, const LightType& type = LightType::DirectionalLight, const Maths::Vector3& position = Maths::Vector3(), float radius = 1.0f);
 
-			maths::Vector4   m_Colour;
-			maths::Vector4   m_Position;
-			maths::Vector4   m_Direction;
+			Maths::Vector4   m_Colour;
+			Maths::Vector4   m_Position;
+			Maths::Vector4   m_Direction;
 			float m_Intensity;
 			float m_Radius;
 			float m_Type;

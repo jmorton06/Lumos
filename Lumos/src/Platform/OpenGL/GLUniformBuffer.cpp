@@ -4,9 +4,9 @@
 #include "GLDebug.h"
 #include "GLShader.h"
 
-namespace lumos
+namespace Lumos
 {
-    namespace graphics
+    namespace Graphics
     {
 		GLUniformBuffer::GLUniformBuffer()
 		{	

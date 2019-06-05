@@ -2,7 +2,7 @@
 #include "LightSetUp.h"
 #include <imgui/imgui.h>
 
-namespace lumos
+namespace Lumos
 {
 
     LightSetup::LightSetup()
@@ -13,12 +13,12 @@ namespace lumos
 	{
 	};
 
-	void LightSetup::Add(std::shared_ptr<graphics::Light>& light)
+	void LightSetup::Add(std::shared_ptr<Graphics::Light>& light)
 	{
 		m_Lights.push_back(light);
 	}
 
-	void LightSetup::Remove(std::shared_ptr<graphics::Light>& light)
+	void LightSetup::Remove(std::shared_ptr<Graphics::Light>& light)
 	{
 		for (uint i = 0; i < m_Lights.size(); i++)
 		{

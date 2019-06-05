@@ -9,12 +9,13 @@
 #include <imgui/imgui.h>
 #include "Physics/LumosPhysicsEngine/PhysicsObject3D.h"
 
-namespace lumos
+namespace Lumos
 {
     ParticleComponent::ParticleComponent(std::shared_ptr<ParticleEmitter>& emitter)
-            : m_ParticleEmitter(emitter), m_PositionOffset(maths::Vector3(0.0f,0.0f,0.0f))
+            : m_ParticleEmitter(emitter), m_PositionOffset(Maths::Vector3(0.0f,0.0f,0.0f))
     {
-		m_BoundingShape = std::unique_ptr<maths::BoundingBox>(emitter->CalculateBoundingBox());
+		m_Name = "Particle";
+		m_BoundingShape = std::unique_ptr<Maths::BoundingBox>(emitter->CalculateBoundingBox());
     }
 
     void ParticleComponent::Init()
@@ -23,7 +24,7 @@ namespace lumos
 
 	void ParticleComponent::DebugDraw(uint64 debugFlags)
 	{
-		DebugRenderer::DebugDraw(static_cast<maths::BoundingBox*>(m_BoundingShape.get()), maths::Vector4(0.2f, 0.0f, 0.8f, 0.2f));
+		DebugRenderer::DebugDraw(static_cast<Maths::BoundingBox*>(m_BoundingShape.get()), Maths::Vector4(0.2f, 0.0f, 0.8f, 0.2f));
 	}
 
 	void ParticleComponent::OnUpdateComponent(float dt)
@@ -37,9 +38,5 @@ namespace lumos
 
 	void ParticleComponent::OnIMGUI()
 	{
-		if (ImGui::TreeNode("Particle"))
-		{
-			ImGui::TreePop();
-		}
 	}
 }

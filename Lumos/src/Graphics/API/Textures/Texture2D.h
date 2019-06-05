@@ -2,9 +2,9 @@
 #include "LM.h"
 #include "Texture.h"
 
-namespace lumos
+namespace Lumos
 {
-	namespace graphics
+	namespace Graphics
 	{
 		class LUMOS_EXPORT Texture2D : public Texture
 		{

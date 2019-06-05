@@ -8,12 +8,12 @@
 #include "../API/Shader.h"
 #include "Utilities/AssetsManager.h"
 
-namespace lumos
+namespace Lumos
 {
 	std::shared_ptr<Entity> ModelLoader::LoadModel(const String& path)
 	{
 		std::string physicalPath;
-		lumos::VFS::Get()->ResolvePhysicalPath(path, physicalPath);
+		Lumos::VFS::Get()->ResolvePhysicalPath(path, physicalPath);
 
 		String resolvedPath = physicalPath;
 

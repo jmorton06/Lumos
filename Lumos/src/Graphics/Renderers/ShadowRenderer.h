@@ -5,14 +5,14 @@
 
 #define SHADOWMAP_MAX 16
 
-namespace lumos
+namespace Lumos
 {
 	class RenderList;
 	class Scene;
 	class Camera;
 	class Mesh;
 
-	namespace graphics
+	namespace Graphics
 	{
 		struct Light;
 		struct RenderCommand;
@@ -45,14 +45,14 @@ namespace lumos
 
 			void Begin() override;
 			void Submit(const RenderCommand& command) override;
-			void SubmitMesh(Mesh* mesh, const maths::Matrix4& transform, const maths::Matrix4& textureMatrix) override;
+			void SubmitMesh(Mesh* mesh, const Maths::Matrix4& transform, const Maths::Matrix4& textureMatrix) override;
 			void EndScene() override;
 			void End() override;
 			void Present() override;
 			void RenderScene(RenderList* renderList, Scene* scene) override;
 
-			maths::Vector4* GetSplitDepths() { return m_SplitDepth; }
-			maths::Matrix4* GetShadowProjView() { return m_ShadowProjView; }
+			Maths::Vector4* GetSplitDepths() { return m_SplitDepth; }
+			Maths::Matrix4* GetShadowProjView() { return m_ShadowProjView; }
 
 			inline uint GetShadowMapSize() const { return m_ShadowMapSize; }
 			inline uint GetShadowMapNum()  const { return m_ShadowMapNum; }
@@ -68,20 +68,20 @@ namespace lumos
 
 			struct UniformBufferObject
 			{
-				lumos::maths::Matrix4 projView[SHADOWMAP_MAX];
+				Lumos::Maths::Matrix4 projView[SHADOWMAP_MAX];
 			};
 
 			struct UniformBufferModel
 			{
-				lumos::maths::Matrix4* model;
+				Lumos::Maths::Matrix4* model;
 			};
 
-			void CreateGraphicsPipeline(graphics::RenderPass* renderPass);
+			void CreateGraphicsPipeline(Graphics::RenderPass* renderPass);
 			void CreateFramebuffers();
 			void CreateUniformBuffer();
 			void UpdateCascades(Scene* scene);
 
-			void SetLight(std::shared_ptr<graphics::Light>& light) { m_Light = light; }
+			void SetLight(std::shared_ptr<Graphics::Light>& light) { m_Light = light; }
 
 		protected:
 
@@ -92,17 +92,17 @@ namespace lumos
 			uint		    m_ShadowMapSize;
 			bool		    m_ShadowMapsInvalidated;
 			Framebuffer*    m_ShadowFramebuffer[SHADOWMAP_MAX];
-			maths::Matrix4	m_ShadowProjView[SHADOWMAP_MAX];
-			maths::Vector4  m_SplitDepth[SHADOWMAP_MAX];
+			Maths::Matrix4	m_ShadowProjView[SHADOWMAP_MAX];
+			Maths::Vector4  m_SplitDepth[SHADOWMAP_MAX];
 			RenderList**	m_apShadowRenderLists;
-			graphics::PushConstant* m_PushConstant = nullptr;
+			Graphics::PushConstant* m_PushConstant = nullptr;
 			bool			m_DeleteTexture = false;
 
-			lumos::graphics::UniformBuffer* m_UniformBuffer;
-			lumos::graphics::UniformBuffer* m_ModelUniformBuffer;
-			lumos::graphics::CommandBuffer* m_CommandBuffer;
+			Lumos::Graphics::UniformBuffer* m_UniformBuffer;
+			Lumos::Graphics::UniformBuffer* m_ModelUniformBuffer;
+			Lumos::Graphics::CommandBuffer* m_CommandBuffer;
 
-			std::shared_ptr<graphics::Light> m_Light;
+			std::shared_ptr<Graphics::Light> m_Light;
 
 			uint m_Layer = 0;
 

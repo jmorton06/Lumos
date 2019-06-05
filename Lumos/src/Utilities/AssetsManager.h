@@ -2,11 +2,11 @@
 #include "LM.h"
 #include "Utilities/AssetManager.h"
 
-namespace lumos
+namespace Lumos
 {
 	class Material;
 
-	namespace graphics
+	namespace Graphics
 	{
 		class Texture2D;
 		class TextureCube;
@@ -17,14 +17,14 @@ namespace lumos
 	class LUMOS_EXPORT AssetsManager
 	{
 	public:
-		static AssetManager<graphics::Mesh>*		DefaultModels()   { return s_DefaultModels; };
-		static AssetManager<graphics::Texture2D>* DefaultTextures() { return s_DefaultTextures; };
+		static AssetManager<Graphics::Mesh>*		DefaultModels()   { return s_DefaultModels; };
+		static AssetManager<Graphics::Texture2D>* DefaultTextures() { return s_DefaultTextures; };
 
 		static void InitializeMeshes();
 		static void ReleaseMeshes();
 
 	protected:
-		static AssetManager<graphics::Mesh>*		s_DefaultModels;
-		static AssetManager<graphics::Texture2D>* s_DefaultTextures;
+		static AssetManager<Graphics::Mesh>*		s_DefaultModels;
+		static AssetManager<Graphics::Texture2D>* s_DefaultTextures;
 	};
 }

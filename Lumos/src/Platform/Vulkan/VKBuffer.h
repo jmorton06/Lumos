@@ -2,9 +2,9 @@
 
 #include "VK.h"
 
-namespace lumos
+namespace Lumos
 {
-	namespace graphics
+	namespace Graphics
 	{
 		class VKBuffer
 		{

@@ -4,9 +4,9 @@
 #include "Matrix4.h"
 #include "BoundingBox.h"
 
-namespace lumos
+namespace Lumos
 {
-	namespace maths
+	namespace Maths
 	{
 		class LUMOS_EXPORT Frustum
 		{

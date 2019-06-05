@@ -2,7 +2,7 @@
 #include "LM.h"
 #include "Maths/Maths.h"
 
-namespace lumos
+namespace Lumos
 {
 
 	enum class LUMOS_EXPORT Shape
@@ -18,14 +18,14 @@ namespace lumos
 		{
 			mass = 1.0f;
 			shape = Shape::Square;
-			position = maths::Vector3(0.0f);
-			scale = maths::Vector3(1.0f);
+			position = Maths::Vector3(0.0f);
+			scale = Maths::Vector3(1.0f);
 			isStatic = false;
 		}
 
 		float mass;
-		maths::Vector3 position;
-		maths::Vector3 scale;
+		Maths::Vector3 position;
+		Maths::Vector3 scale;
 		bool isStatic;
 		Shape shape;
 	};

@@ -5,7 +5,7 @@
 #include "Platform/OpenGL/GLIndexBuffer.h"
 #endif
 #ifdef LUMOS_RENDER_API_DIRECT3D
-#include "graphics/DirectX/DXIndexBuffer.h"
+#include "Graphics/DirectX/DXIndexBuffer.h"
 #endif
 
 #ifdef LUMOS_RENDER_API_VULKAN
@@ -14,13 +14,13 @@
 
 #include "Graphics/API/GraphicsContext.h"
 
-namespace lumos
+namespace Lumos
 {
-	namespace graphics
+	namespace Graphics
 	{
 		IndexBuffer* IndexBuffer::Create(uint16* data, uint count, BufferUsage bufferUsage)
 		{
-			switch (graphics::GraphicsContext::GetRenderAPI())
+			switch (Graphics::GraphicsContext::GetRenderAPI())
 			{
 #ifdef LUMOS_RENDER_API_OPENGL
 			case RenderAPI::OPENGL:		return new GLIndexBuffer(data, count, bufferUsage);
@@ -29,7 +29,7 @@ namespace lumos
 			case RenderAPI::DIRECT3D:	return new D3DIndexBuffer(data, count);
 #endif
 #ifdef LUMOS_RENDER_API_VULKAN
-			case RenderAPI::VULKAN:		return new graphics::VKIndexBuffer(data, count, bufferUsage);
+			case RenderAPI::VULKAN:		return new Graphics::VKIndexBuffer(data, count, bufferUsage);
 #endif
 			}
 			return nullptr;
@@ -37,7 +37,7 @@ namespace lumos
 
 		IndexBuffer* IndexBuffer::Create(uint* data, uint count, BufferUsage bufferUsage)
 		{
-			switch (graphics::GraphicsContext::GetRenderAPI())
+			switch (Graphics::GraphicsContext::GetRenderAPI())
 			{
 #ifdef LUMOS_RENDER_API_OPENGL
 			case RenderAPI::OPENGL:		return new GLIndexBuffer(data, count, bufferUsage);
@@ -46,7 +46,7 @@ namespace lumos
 			case RenderAPI::DIRECT3D:	return new D3DIndexBuffer(data, count);
 #endif
 #ifdef LUMOS_RENDER_API_VULKAN
-			case RenderAPI::VULKAN:		return new graphics::VKIndexBuffer(data, count, bufferUsage);
+			case RenderAPI::VULKAN:		return new Graphics::VKIndexBuffer(data, count, bufferUsage);
 #endif
 			}
 			return nullptr;

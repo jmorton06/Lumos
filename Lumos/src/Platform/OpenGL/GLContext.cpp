@@ -71,7 +71,7 @@ static std::string GetStringForSource(GLenum source)
 	case GL_DEBUG_SOURCE_API:
 		return "API";
 	case GL_DEBUG_SOURCE_WINDOW_SYSTEM:
-		return "Window system";
+		return "Window System";
 	case GL_DEBUG_SOURCE_SHADER_COMPILER:
 		return "Shader compiler";
 	case GL_DEBUG_SOURCE_THIRD_PARTY:
@@ -125,9 +125,9 @@ void APIENTRY openglCallbackFunction(GLenum source,
 
 #endif
 
-namespace lumos
+namespace Lumos
 {
-	namespace graphics
+	namespace Graphics
 	{
 		GLContext::GLContext(const WindowProperties& properties, void* deviceContext)
 		{
@@ -206,7 +206,7 @@ namespace lumos
 			LUMOS_CORE_INFO(OPENGLLOG"glDebugMessageCallback not available");
 #endif
 #endif
-			maths::Matrix4::SetUpCoordSystem(false, false);
+			Maths::Matrix4::SetUpCoordSystem(false, false);
 		}
 
 		GLContext::~GLContext() = default;

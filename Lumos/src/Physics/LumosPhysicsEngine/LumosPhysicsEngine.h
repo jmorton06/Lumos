@@ -7,17 +7,17 @@
 #include "Broadphase.h"
 #include "App/ISystem.h"
 
-namespace lumos
+namespace Lumos
 {
 
 #define SOLVER_ITERATIONS 50
 
-	enum LUMOS_EXPORT IntegrationType
+	enum class LUMOS_EXPORT IntegrationType
 	{
-		INTEGRATION_EXPLICIT_EULER,
-		INTEGRATION_SEMI_IMPLICIT_EULER,
-		INTEGRATION_RUNGE_KUTTA_2,
-		INTEGRATION_RUNGE_KUTTA_4
+		EXPLICIT_EULER = 0,
+		SEMI_IMPLICIT_EULER,
+		RUNGE_KUTTA_2,
+		RUNGE_KUTTA_4
 	};
 
 	class Constraint;
@@ -54,8 +54,8 @@ namespace lumos
 		void SetUpdateTimestep(float updateTimestep) { m_UpdateTimestep = updateTimestep; }
 		float GetUpdateTimestep() const { return m_UpdateTimestep; }
 
-		const maths::Vector3& GetGravity() const { return m_Gravity; }
-		void SetGravity(const maths::Vector3& g) { m_Gravity = g; }
+		const Maths::Vector3& GetGravity() const { return m_Gravity; }
+		void SetGravity(const Maths::Vector3& g) { m_Gravity = g; }
 
 		float GetDampingFactor() const { return m_DampingFactor; }
 		void  SetDampingFactor(float d) { m_DampingFactor = d; }
@@ -74,12 +74,12 @@ namespace lumos
 		int GetNumberCollisionPairs() const { return static_cast<int>(m_BroadphaseCollisionPairs.size()); }
 		int GetNumberPhysicsObjects() const { return static_cast<int>(m_PhysicsObjects.size()); }
 
-		IntegrationType GetIntegrationType() const { return m_integrationType; }
-		void SetIntegrationType(const IntegrationType& type){ m_integrationType = type; }
+		IntegrationType GetIntegrationType() const { return m_IntegrationType; }
+		void SetIntegrationType(const IntegrationType& type){ m_IntegrationType = type; }
 
 		PhysicsObject3D* FindObjectByName(const String& name);
 
-		void OnImGUI();
+		void OnIMGUI() override;
 	protected:
 
 		//The actual time-independant update function
@@ -102,7 +102,7 @@ namespace lumos
 		bool		m_IsPaused;
 		float		m_UpdateTimestep, m_UpdateAccum;
 
-		maths::Vector3 m_Gravity;
+		Maths::Vector3 m_Gravity;
 		float		m_DampingFactor;
 
 		std::vector<std::shared_ptr<PhysicsObject3D>> m_PhysicsObjects;
@@ -113,7 +113,7 @@ namespace lumos
 		std::mutex					m_ManifoldsMutex;
 
 		Broadphase* m_BroadphaseDetection;
-		IntegrationType m_integrationType;
+		IntegrationType m_IntegrationType;
 
 		bool m_MultipleUpdates = true;
 	};

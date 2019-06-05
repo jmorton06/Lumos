@@ -4,9 +4,9 @@
 #include "Vector3.h"
 #include "MathsCommon.h"
 
-namespace lumos
+namespace Lumos
 {
-	namespace maths
+	namespace Maths
 	{
 
 		class Matrix4;

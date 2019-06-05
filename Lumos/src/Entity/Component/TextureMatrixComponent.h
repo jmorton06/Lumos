@@ -3,14 +3,14 @@
 #include "LumosComponent.h"
 #include "Maths/Matrix4.h"
 
-namespace lumos
+namespace Lumos
 {
 	class LUMOS_EXPORT TextureMatrixComponent : public LumosComponent
 	{
 	public:
-		maths::Matrix4 m_TextureMatrix;
+		Maths::Matrix4 m_TextureMatrix;
 	public:
-		explicit TextureMatrixComponent(const maths::Matrix4& matrix);
+		explicit TextureMatrixComponent(const Maths::Matrix4& matrix);
 
 		static ComponentType GetStaticType()
 		{

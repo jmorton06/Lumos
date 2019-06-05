@@ -3,9 +3,9 @@
 #include "Graphics/API/Textures/TextureCube.h"
 
 #define MAX_MIPS 11
-namespace lumos
+namespace Lumos
 {
-	namespace graphics
+	namespace Graphics
 	{
 		class GLTextureCube : public TextureCube
 		{

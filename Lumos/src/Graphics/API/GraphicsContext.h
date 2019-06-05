@@ -2,23 +2,31 @@
 #include "LM.h"
 #include "App/Window.h"
 
-namespace lumos
+namespace Lumos
 {
-	namespace graphics
+	namespace Graphics
 	{
 
-		enum class LUMOS_EXPORT RenderAPI
+        enum class LUMOS_EXPORT RenderAPI : int
 		{
 		#ifdef LUMOS_RENDER_API_OPENGL
-			OPENGL,
-		#endif
-
-		#ifdef LUMOS_RENDER_API_DIRECT3D
-			DIRECT3D,
+			OPENGL = 0,
 		#endif
 
 		#ifdef LUMOS_RENDER_API_VULKAN
-			VULKAN,
+			VULKAN = 1,
+		#endif
+
+		#ifdef LUMOS_RENDER_API_DIRECT3D
+			DIRECT3D = 2, //Unsupported
+		#endif
+
+		#ifdef LUMOS_RENDER_API_NONE
+			METAL = 3, //Unsupported
+		#endif
+
+		#ifdef LUMOS_RENDER_API_NONE
+			NONE = 4, //Unsupported
 		#endif
 		};
 
@@ -39,7 +47,8 @@ namespace lumos
 			virtual size_t GetMinUniformBufferOffsetAlignment() const = 0;
 
 			static GraphicsContext* GetContext() { return s_Context; }
-
+            virtual bool FlipImGUITexture() const = 0;
+            
 		protected:
 			
 			static GraphicsContext* s_Context;

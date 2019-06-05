@@ -2,10 +2,11 @@
 #include "VKShader.h"
 #include "VKDevice.h"
 #include "System/FileSystem.h"
+#include "System/VFS.h"
 
-namespace lumos
+namespace Lumos
 {
-	namespace graphics
+	namespace Graphics
 	{
 		static ShaderType type = ShaderType::UNKNOWN;
 

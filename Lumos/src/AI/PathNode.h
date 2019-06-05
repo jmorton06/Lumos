@@ -5,7 +5,7 @@
 #include "Physics/LumosPhysicsEngine/PhysicsObject3D.h"
 
 
-namespace lumos
+namespace Lumos
 {
 
 	class PathEdge;
@@ -13,7 +13,7 @@ namespace lumos
 	class LUMOS_EXPORT PathNode : public PhysicsObject3D
 	{
 	public:
-		explicit PathNode(const maths::Vector3& position = maths::Vector3());
+		explicit PathNode(const Maths::Vector3& position = Maths::Vector3());
 		virtual ~PathNode();
 
 		inline size_t NumConnections() const

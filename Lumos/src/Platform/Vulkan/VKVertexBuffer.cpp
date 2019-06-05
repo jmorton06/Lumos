@@ -3,21 +3,10 @@
 #include "VKVertexBuffer.h"
 #include "VKRenderer.h"
 
-namespace lumos
+namespace Lumos
 { 
-	namespace graphics
+	namespace Graphics
 	{
-		static uint BufferUsageToOpenVK(const BufferUsage usage)
-		{
-			switch (usage)
-			{
-			case BufferUsage::STATIC:  return 0;
-			case BufferUsage::DYNAMIC: return 0;
-			case BufferUsage::STREAM:  return 0;
-			}
-			return 0;
-		}
-
 		VKVertexBuffer::VKVertexBuffer(BufferUsage usage)
 			: VKBuffer(), m_Usage(usage), m_Size(0)
 		{
@@ -35,7 +24,7 @@ namespace lumos
 
 		}
 
-		void VKVertexBuffer::SetLayout(const graphics::BufferLayout& bufferLayout)
+		void VKVertexBuffer::SetLayout(const Graphics::BufferLayout& bufferLayout)
 		{
 			m_Layout = bufferLayout;
 		}

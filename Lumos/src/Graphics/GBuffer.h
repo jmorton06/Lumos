@@ -2,13 +2,14 @@
 
 #include "LM.h"
 
-namespace lumos
+namespace Lumos
 {
-	namespace graphics
+	namespace Graphics
 	{
 		class Framebuffer;
 		class Texture2D;
 		class TextureDepth;
+		enum class TextureFormat;
 
 		enum LUMOS_EXPORT ScreenTextures
 		{
@@ -40,20 +41,17 @@ namespace lumos
 			inline uint GetHeight() const { return m_Height; }
 
 			inline Texture2D* GetTexture(uint index) const { return m_ScreenTex[index]; }
-
-			const static unsigned int PPtextures = 2;
-			int m_postProcessDrawTo{};
-
-			void PostProcessDrawn();
-
-			Texture2D* m_ScreenTex[ScreenTextures::SCREENTEX_MAX]{};
-			TextureDepth* m_DepthTexture{};
+			inline TextureDepth* GetDepthTexture() const { return m_DepthTexture; };
+			inline TextureFormat GetTextureFormat(uint index) const { return m_Formats[index]; };
 
 		private:
 			void Init();
 
 		private:
 
+			Texture2D* m_ScreenTex[ScreenTextures::SCREENTEX_MAX]{};
+			TextureDepth* m_DepthTexture{};
+			TextureFormat m_Formats[ScreenTextures::SCREENTEX_MAX];
 			uint m_Width, m_Height;
 		};
 	}

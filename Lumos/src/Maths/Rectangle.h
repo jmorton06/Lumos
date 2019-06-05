@@ -1,9 +1,9 @@
 #pragma once
 #include "LM.h"
 
-namespace lumos
+namespace Lumos
 {
-	namespace maths
+	namespace Maths
 	{
 		class LUMOS_EXPORT Rectangle
 		{

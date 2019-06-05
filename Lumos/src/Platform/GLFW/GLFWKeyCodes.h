@@ -4,7 +4,7 @@
 
 #include <GLFW/glfw3.h>
 
-namespace lumos
+namespace Lumos
 {
 	namespace GLFWKeyCodes
 	{

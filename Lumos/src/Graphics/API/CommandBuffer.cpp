@@ -10,13 +10,13 @@
 #include "Platform/OpenGL/GLCommandBuffer.h"
 #endif
 
-namespace lumos
+namespace Lumos
 {
-	namespace graphics
+	namespace Graphics
 	{
 		CommandBuffer* CommandBuffer::Create()
 		{
-			switch (graphics::GraphicsContext::GetRenderAPI())
+			switch (Graphics::GraphicsContext::GetRenderAPI())
 			{
 #ifdef LUMOS_RENDER_API_OPENGL
 			case RenderAPI::OPENGL:		return new GLCommandBuffer();

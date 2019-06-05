@@ -9,9 +9,9 @@
 #include "GLDescriptorSet.h"
 #include "Graphics/Material.h"
 
-namespace lumos
+namespace Lumos
 {
-	namespace graphics
+	namespace Graphics
 	{
 		const GLenum drawbuffers_1[1] = { GL_COLOR_ATTACHMENT0 };
 		const GLenum drawbuffers_2[2] = { GL_COLOR_ATTACHMENT0, GL_COLOR_ATTACHMENT1 };
@@ -23,7 +23,7 @@ namespace lumos
 		{
 			init = false;
 
-			m_Swapchain = new graphics::GLSwapchain(width, height);
+			m_Swapchain = new Graphics::GLSwapchain(width, height);
 
 			m_RendererTitle = "OPENGL";
 		}
@@ -68,7 +68,7 @@ namespace lumos
 		{
 		}
 
-		void GLRenderer::PresentInternal(graphics::CommandBuffer* cmdBuffer)
+		void GLRenderer::PresentInternal(Graphics::CommandBuffer* cmdBuffer)
 		{
 		}
 
@@ -290,25 +290,25 @@ namespace lumos
 			glColorMask(r, g, b, a);
 		}
 
-		void GLRenderer::RenderMeshInternal(Mesh *mesh, graphics::Pipeline *pipeline, graphics::CommandBuffer* cmdBuffer, uint dynamicOffset, graphics::DescriptorSet* descriptorSet, bool useMaterialDescriptorSet)
+		void GLRenderer::RenderMeshInternal(Mesh *mesh, Graphics::Pipeline *pipeline, Graphics::CommandBuffer* cmdBuffer, uint dynamicOffset, Graphics::DescriptorSet* descriptorSet, bool useMaterialDescriptorSet)
 		{
-			static_cast<graphics::GLDescriptorSet*>(pipeline->GetDescriptorSet())->Bind(dynamicOffset);
+			static_cast<Graphics::GLDescriptorSet*>(pipeline->GetDescriptorSet())->Bind(dynamicOffset);
 			if (useMaterialDescriptorSet)
 			{
 				if (mesh->GetMaterial() && mesh->GetMaterial()->GetDescriptorSet())
-					static_cast<graphics::GLDescriptorSet*>(mesh->GetMaterial()->GetDescriptorSet())->Bind(dynamicOffset);
-				else if (static_cast<graphics::GLDescriptorSet*>(descriptorSet))
-					static_cast<graphics::GLDescriptorSet*>(descriptorSet)->Bind(dynamicOffset);
+					static_cast<Graphics::GLDescriptorSet*>(mesh->GetMaterial()->GetDescriptorSet())->Bind(dynamicOffset);
+				else if (static_cast<Graphics::GLDescriptorSet*>(descriptorSet))
+					static_cast<Graphics::GLDescriptorSet*>(descriptorSet)->Bind(dynamicOffset);
 			}
 			mesh->Draw();
 		}
 
-		void GLRenderer::Render(VertexArray* vertexArray, IndexBuffer* indexBuffer, graphics::CommandBuffer* cmdBuffer,
-			std::vector<graphics::DescriptorSet*>& descriptorSets, graphics::Pipeline* pipeline, uint dynamicOffset)
+		void GLRenderer::Render(VertexArray* vertexArray, IndexBuffer* indexBuffer, Graphics::CommandBuffer* cmdBuffer,
+			std::vector<Graphics::DescriptorSet*>& descriptorSets, Graphics::Pipeline* pipeline, uint dynamicOffset)
 		{
 			for (auto descriptor : descriptorSets)
 			{
-				static_cast<graphics::GLDescriptorSet*>(descriptor)->Bind(dynamicOffset);
+				static_cast<Graphics::GLDescriptorSet*>(descriptor)->Bind(dynamicOffset);
 			}
 
 			vertexArray->Bind();

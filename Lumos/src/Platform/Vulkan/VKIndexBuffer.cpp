@@ -2,9 +2,9 @@
 #include "VKIndexBuffer.h"
 #include "VKVertexBuffer.h"
 
-namespace lumos
+namespace Lumos
 {
-	namespace graphics
+	namespace Graphics
 	{
 		VKIndexBuffer::VKIndexBuffer(uint16* data, uint count, BufferUsage bufferUsage) : VKBuffer(vk::BufferUsageFlagBits::eIndexBuffer, count * sizeof(uint16), data), m_Size(count * sizeof(uint16)), m_Count(count), m_Usage(bufferUsage)
 		{

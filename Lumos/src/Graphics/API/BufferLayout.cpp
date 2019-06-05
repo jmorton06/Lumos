@@ -1,16 +1,18 @@
 #include "LM.h"
 #include "BufferLayout.h"
 
+#include "GraphicsContext.h"
+
 #ifdef LUMOS_RENDER_API_OPENGL
 #include "Platform/OpenGL/GLTypes.h"
 #endif
 #ifdef LUMOS_RENDER_API_DIRECT3D
-#include "graphics/DirectX/DXTypes.h"
+#include "Graphics/DirectX/DXTypes.h"
 #endif
 
-namespace lumos
+namespace Lumos
 {
-	namespace graphics
+	namespace Graphics
 	{
 		BufferLayout::BufferLayout()
 			: m_Size(0)
@@ -32,7 +34,7 @@ namespace lumos
         template<>
         void BufferLayout::Push<uint>(const String& name, uint count, bool normalized)
         {
-            switch (graphics::GraphicsContext::GetRenderAPI())
+            switch (Graphics::GraphicsContext::GetRenderAPI())
             {
 #ifdef LUMOS_RENDER_API_OPENGL
                 case RenderAPI::OPENGL:
@@ -54,7 +56,7 @@ namespace lumos
         template<>
         void BufferLayout::Push<byte>(const String& name, uint count, bool normalized)
         {
-            switch (graphics::GraphicsContext::GetRenderAPI())
+            switch (Graphics::GraphicsContext::GetRenderAPI())
             {
 #ifdef LUMOS_RENDER_API_OPENGL
                 case RenderAPI::OPENGL:
@@ -76,7 +78,7 @@ namespace lumos
 		template<>
 		void BufferLayout::Push<float>(const String& name, uint count, bool normalized)
 		{
-			switch (graphics::GraphicsContext::GetRenderAPI())
+			switch (Graphics::GraphicsContext::GetRenderAPI())
 			{
 #ifdef LUMOS_RENDER_API_OPENGL
 			case RenderAPI::OPENGL:
@@ -96,18 +98,18 @@ namespace lumos
 		}
 
         template<>
-        void BufferLayout::Push<maths::Vector2>(const String& name, uint count, bool normalized)
+        void BufferLayout::Push<Maths::Vector2>(const String& name, uint count, bool normalized)
         {
-            switch (graphics::GraphicsContext::GetRenderAPI())
+            switch (Graphics::GraphicsContext::GetRenderAPI())
             {
 #ifdef LUMOS_RENDER_API_OPENGL
                 case RenderAPI::OPENGL:
-                    Push(name, GL_FLOAT, sizeof(float), 2, normalized, sizeof(maths::Vector2));
+                    Push(name, GL_FLOAT, sizeof(float), 2, normalized, sizeof(Maths::Vector2));
                     break;
 #endif
 #ifdef LUMOS_RENDER_API_DIRECT3D
                 case RenderAPI::DIRECT3D:
-					Push(name, DX_TYPE_R32G32_FLOAT, sizeof(maths::Vector2), count, normalized);
+					Push(name, DX_TYPE_R32G32_FLOAT, sizeof(Maths::Vector2), count, normalized);
 					break;
 #endif
 #ifdef LUMOS_RENDER_API_VULKAN
@@ -118,18 +120,18 @@ namespace lumos
         }
 
         template<>
-        void BufferLayout::Push<maths::Vector3>(const String& name, uint count, bool normalized)
+        void BufferLayout::Push<Maths::Vector3>(const String& name, uint count, bool normalized)
         {
-            switch (graphics::GraphicsContext::GetRenderAPI())
+            switch (Graphics::GraphicsContext::GetRenderAPI())
             {
 #ifdef LUMOS_RENDER_API_OPENGL
                 case RenderAPI::OPENGL:
-                    Push(name, GL_FLOAT, sizeof(float), 3, normalized, sizeof(maths::Vector3));
+                    Push(name, GL_FLOAT, sizeof(float), 3, normalized, sizeof(Maths::Vector3));
                     break;
 #endif
 #ifdef LUMOS_RENDER_API_DIRECT3D
                 case RenderAPI::DIRECT3D:
-					Push(name, DX_TYPE_R32G32B32_FLOAT, sizeof(maths::Vector3), count, normalized);
+					Push(name, DX_TYPE_R32G32B32_FLOAT, sizeof(Maths::Vector3), count, normalized);
 					break;
 #endif
 #ifdef LUMOS_RENDER_API_VULKAN
@@ -140,18 +142,18 @@ namespace lumos
         }
 
         template<>
-        void BufferLayout::Push<maths::Vector4>(const String& name, uint count, bool normalized)
+        void BufferLayout::Push<Maths::Vector4>(const String& name, uint count, bool normalized)
         {
-            switch (graphics::GraphicsContext::GetRenderAPI())
+            switch (Graphics::GraphicsContext::GetRenderAPI())
             {
 #ifdef LUMOS_RENDER_API_OPENGL
                 case RenderAPI::OPENGL:
-                    Push(name, GL_FLOAT, sizeof(float), 4, normalized, sizeof(maths::Vector4));
+                    Push(name, GL_FLOAT, sizeof(float), 4, normalized, sizeof(Maths::Vector4));
                     break;
 #endif
 #ifdef LUMOS_RENDER_API_DIRECT3D
                 case RenderAPI::DIRECT3D:
-					Push(name, DX_TYPE_R32G32B32A32_FLOAT, sizeof(maths::Vector4), count, normalized);
+					Push(name, DX_TYPE_R32G32B32A32_FLOAT, sizeof(Maths::Vector4), count, normalized);
 					break;
 #endif
 #ifdef LUMOS_RENDER_API_VULKAN

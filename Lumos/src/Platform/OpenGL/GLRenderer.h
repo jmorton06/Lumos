@@ -6,9 +6,9 @@
 #include "Graphics/API/Renderer.h"
 #include "GLSwapchain.h"
 
-namespace lumos
+namespace Lumos
 {
-	namespace graphics
+	namespace Graphics
 	{
 		class GLContext;
 		class CommandBuffer;
@@ -34,7 +34,7 @@ namespace lumos
 			void OnResize(uint width, uint height) override;
 			void ClearInternal(uint buffer) override;
 			void PresentInternal() override;
-			void PresentInternal(graphics::CommandBuffer* cmdBuffer) override;
+			void PresentInternal(Graphics::CommandBuffer* cmdBuffer) override;
 			void SetDepthTestingInternal(bool enabled) override;
 			void SetBlendInternal(bool enabled) override;
 			void SetStencilTestInternal(bool enabled) override;
@@ -50,8 +50,8 @@ namespace lumos
 			void SetStencilFunctionInternal(StencilType type, uint ref, uint mask) override;
 			void SetStencilOpInternal(StencilType fail, StencilType zfail, StencilType zpass) override;
 
-			void RenderMeshInternal(Mesh* mesh, graphics::Pipeline* pipeline, graphics::CommandBuffer* cmdBuffer, uint dynamicOffset, graphics::DescriptorSet* descriptorSet, bool useMaterialDescriptorSet) override;
-			void Render(VertexArray* vertexArray, IndexBuffer* indexBuffer, graphics::CommandBuffer* cmdBuffer, std::vector<graphics::DescriptorSet*>& descriptorSets, graphics::Pipeline* pipeline, uint dynamicOffset) override;
+			void RenderMeshInternal(Mesh* mesh, Graphics::Pipeline* pipeline, Graphics::CommandBuffer* cmdBuffer, uint dynamicOffset, Graphics::DescriptorSet* descriptorSet, bool useMaterialDescriptorSet) override;
+			void Render(VertexArray* vertexArray, IndexBuffer* indexBuffer, Graphics::CommandBuffer* cmdBuffer, std::vector<Graphics::DescriptorSet*>& descriptorSets, Graphics::Pipeline* pipeline, uint dynamicOffset) override;
 
 			Swapchain* GetSwapchainInternal() const override { return m_Swapchain; }
 
@@ -65,8 +65,8 @@ namespace lumos
 		protected:
 
 			String m_RendererTitle;
-			graphics::GLContext* m_Context;
-			graphics::GLSwapchain* m_Swapchain;
+			Graphics::GLContext* m_Context;
+			Graphics::GLSwapchain* m_Swapchain;
 
 		};
 	}

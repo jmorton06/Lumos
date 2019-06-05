@@ -2,7 +2,7 @@
 #include "LM.h"
 #include "LumosComponent.h"
 
-namespace lumos
+namespace Lumos
 {
 	class PhysicsObject3D;
 
@@ -21,7 +21,7 @@ namespace lumos
 
 		void Init() override;
 		void OnUpdateComponent(float dt) override;
-		void OnUpdateTransform(const maths::Matrix4& entityTransform) override;
+		void OnUpdateTransform(const Maths::Matrix4& entityTransform) override;
 		void DebugDraw(uint64 debugFlags) override;
 
 		inline virtual ComponentType GetType() const override { return GetStaticType(); }

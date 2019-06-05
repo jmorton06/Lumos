@@ -22,7 +22,7 @@
 #include "Events/MouseEvent.h"
 #include "Events/KeyEvent.h"
 
-namespace lumos
+namespace Lumos
 {
 	static bool s_GLFWInitialized = false;
 	static int  s_NumGLFWWindows = 0;
@@ -32,17 +32,17 @@ namespace lumos
 		LUMOS_CORE_ERROR("GLFW Error - {0} : {1}", error, description);
 	}
 
-	GLFWWindow::GLFWWindow(const WindowProperties& properties, const String& title, graphics::RenderAPI api)
+	GLFWWindow::GLFWWindow(const WindowProperties& properties)
 	{
 		m_Init = false;
 		m_VSync = properties.VSync;
 		m_Timer = new Timer();
         SetHasResized(true);
-		m_Data.m_RenderAPI = api;
+		m_Data.m_RenderAPI = static_cast<Graphics::RenderAPI>(properties.RenderAPI);
 
-		m_Init = Init(properties, title);
+		m_Init = Init(properties);
 
-		graphics::GraphicsContext::Create(properties, m_Handle);
+		Graphics::GraphicsContext::Create(properties, m_Handle);
 	}
 
 	GLFWWindow::~GLFWWindow()
@@ -62,9 +62,9 @@ namespace lumos
 		}
 	}
 
-	bool GLFWWindow::Init(const WindowProperties& properties, const String& title)
+	bool GLFWWindow::Init(const WindowProperties& properties)
 	{
-		LUMOS_CORE_INFO("Creating window - Title : {0}, Width : {1}, Height : {2}", title, properties.Width, properties.Height);
+		LUMOS_CORE_INFO("Creating window - Title : {0}, Width : {1}, Height : {2}", properties.Title, properties.Width, properties.Height);
 
 		if (!s_GLFWInitialized)
 		{
@@ -77,7 +77,7 @@ namespace lumos
 		}
 
 #ifdef LUMOS_PLATFORM_MACOS
-        if (m_Data.m_RenderAPI == graphics::RenderAPI::OPENGL)
+        if (m_Data.m_RenderAPI == Graphics::RenderAPI::OPENGL)
 		{
             glfwWindowHint(GLFW_SAMPLES, 1);
             glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
@@ -110,19 +110,19 @@ namespace lumos
 			ScreenHeight = properties.Height;
 		}
 
-		m_Data.Title = title;
+		m_Data.Title = properties.Title;
 		m_Data.Width = ScreenWidth;
 		m_Data.Height = ScreenHeight;
 		m_Data.Exit = false;
 
 #ifdef LUMOS_RENDER_API_VULKAN
-		if(m_Data.m_RenderAPI == graphics::RenderAPI::VULKAN)
+		if(m_Data.m_RenderAPI == Graphics::RenderAPI::VULKAN)
 			glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
 #endif
 
-		m_Handle = glfwCreateWindow(ScreenWidth, ScreenHeight, title.c_str(), nullptr, nullptr);
+		m_Handle = glfwCreateWindow(ScreenWidth, ScreenHeight, properties.Title.c_str(), nullptr, nullptr);
 
-        if(m_Data.m_RenderAPI == graphics::RenderAPI::OPENGL)
+        if(m_Data.m_RenderAPI == Graphics::RenderAPI::OPENGL)
             glfwMakeContextCurrent(m_Handle);
 
 		glfwSetWindowUserPointer(m_Handle, &m_Data);
@@ -130,7 +130,7 @@ namespace lumos
 		SetIcon("/CoreTextures/icon.png");
         
 #ifdef LUMOS_PLATFORM_MACOS
-        if(m_Data.m_RenderAPI == graphics::RenderAPI::OPENGL)
+        if(m_Data.m_RenderAPI == Graphics::RenderAPI::OPENGL)
         {
             int width,height;
             glfwGetFramebufferSize(m_Handle, &width, &height);
@@ -148,7 +148,7 @@ namespace lumos
             WindowData& data = *static_cast<WindowData*>((glfwGetWindowUserPointer(window)));
 
 #ifdef LUMOS_PLATFORM_MACOS
-            if(data.m_RenderAPI == graphics::RenderAPI::OPENGL)
+            if(data.m_RenderAPI == Graphics::RenderAPI::OPENGL)
                 glfwGetFramebufferSize(window, &width, &height);
 #endif
 			data.Width = width;
@@ -259,7 +259,7 @@ namespace lumos
 	void GLFWWindow::SetIcon(const String& file)
 	{
 		uint width, height;
-		byte* pixels = lumos::LoadImageFromFile(file, &width, &height, nullptr, true);
+		byte* pixels = Lumos::LoadImageFromFile(file, &width, &height, nullptr, true);
 
 		GLFWimage image;
 		image.height = height;
@@ -273,6 +273,7 @@ namespace lumos
 
 	void GLFWWindow::SetWindowTitle(const String& title)
 	{
+		m_Data.Title = title;
 		glfwSetWindowTitle(m_Handle, title.c_str());
 	}
 
@@ -304,7 +305,7 @@ namespace lumos
 
 	void GLFWWindow::OnUpdate()
 	{
-        if(m_Data.m_RenderAPI == graphics::RenderAPI::OPENGL)
+        if(m_Data.m_RenderAPI == Graphics::RenderAPI::OPENGL)
 			glfwSwapBuffers(m_Handle);
 
 		glfwPollEvents();
@@ -334,7 +335,7 @@ namespace lumos
 		}
 	}
 
-	void GLFWWindow::SetMousePosition(const maths::Vector2& pos)
+	void GLFWWindow::SetMousePosition(const Maths::Vector2& pos)
 	{
 		glfwSetCursorPos(m_Handle, pos.GetX(), pos.GetY());
 	}

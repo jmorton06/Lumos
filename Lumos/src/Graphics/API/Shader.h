@@ -2,9 +2,6 @@
 
 #include "LM.h"
 
-#include "Maths/Maths.h"
-#include "System/VFS.h"
-
 #include "ShaderUniform.h"
 #include "ShaderResource.h"
 
@@ -20,9 +17,9 @@
 #define SHADER_UNIFORM_MODEL_MATRIX_NAME		"sys_ModelMatrix"
 #define SHADER_UNIFORM_TEXTURE_MATRIX_NAME		"sys_TextureMatrix"
 
-namespace lumos
+namespace Lumos
 {
-	namespace graphics
+	namespace Graphics
 	{
 		enum class ShaderType : int
 		{

@@ -2,9 +2,9 @@
 #include "LM.h"
 #include "Graphics/API/BufferLayout.h"
 
-namespace lumos
+namespace Lumos
 {
-	namespace graphics
+	namespace Graphics
 	{
 		enum class BufferUsage
 		{
@@ -16,7 +16,7 @@ namespace lumos
 		public:
 			virtual ~VertexBuffer() = default;
 			virtual void Resize(uint size) = 0;
-			virtual void SetLayout(const graphics::BufferLayout& layout) = 0;
+			virtual void SetLayout(const Graphics::BufferLayout& layout) = 0;
 			virtual void SetData(uint size, const void* data) = 0;
 			virtual void SetDataSub(uint size, const void* data, uint offset) = 0;
 

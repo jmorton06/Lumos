@@ -6,27 +6,27 @@
 #endif
 
 #ifdef LUMOS_RENDER_API_DIRECT3D
-#include "graphics/directx/DXQuery.h"
+#include "Graphics/directx/DXQuery.h"
 #endif
 
 #include "Graphics/API/GraphicsContext.h"
 
-namespace lumos
+namespace Lumos
 {
-	namespace graphics
+	namespace Graphics
 	{
 		Query* Query::Create(QueryType type)
 		{
-			switch (graphics::GraphicsContext::GetRenderAPI())
+			switch (Graphics::GraphicsContext::GetRenderAPI())
 			{
 #ifdef LUMOS_RENDER_API_OPENGL
-			case graphics::RenderAPI::OPENGL:		return new GLQuery(type);
+			case Graphics::RenderAPI::OPENGL:		return new GLQuery(type);
 #endif
 #ifdef LUMOS_RENDER_API_DIRECT3D
-			case graphics::RenderAPI::DIRECT3D:	return new DXQuery(type);
+			case Graphics::RenderAPI::DIRECT3D:	return new DXQuery(type);
 #endif
 #ifdef LUMOS_RENDER_API_VULKAN
-			case graphics::RenderAPI::VULKAN: UNIMPLEMENTED; return nullptr;
+			case Graphics::RenderAPI::VULKAN: UNIMPLEMENTED; return nullptr;
 #endif
 			}
 			return nullptr;

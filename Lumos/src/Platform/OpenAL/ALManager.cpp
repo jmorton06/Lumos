@@ -5,7 +5,9 @@
 #include "Graphics/Camera/Camera.h"
 #include "Utilities/TimeStep.h"
 
-namespace lumos
+#include <imgui/imgui.h>
+
+namespace Lumos
 {
     namespace Audio
     {
@@ -53,8 +55,8 @@ namespace lumos
 		{
 			if (m_Listener)
 			{
-				maths::Vector3 worldPos = m_Listener->GetPosition();
-				maths::Vector3 velocity = m_Listener->GetVelocity();
+				Maths::Vector3 worldPos = m_Listener->GetPosition();
+				Maths::Vector3 velocity = m_Listener->GetVelocity();
                 
                 ALfloat direction[6];
                 
@@ -77,6 +79,35 @@ namespace lumos
 				alListenerfv(AL_VELOCITY, reinterpret_cast<float*>(&velocity));
                 alListenerfv(AL_ORIENTATION,direction);// reinterpret_cast<float*>(&dirup));
 			}
+		}
+
+		void ALManager::OnIMGUI()
+		{
+			ImGui::Text("OpenAL Audio");
+
+			ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(2, 2));
+			ImGui::Columns(2);
+			ImGui::Separator();
+
+			ImGui::AlignTextToFramePadding();
+			ImGui::Text("Number Of Audio Sources");
+			ImGui::NextColumn();
+			ImGui::PushItemWidth(-1);
+			ImGui::Text("%5.2i", m_SoundNodes.size());
+			ImGui::PopItemWidth();
+			ImGui::NextColumn();
+
+			ImGui::AlignTextToFramePadding();
+			ImGui::Text("Number Of Channels");
+			ImGui::NextColumn();
+			ImGui::PushItemWidth(-1);
+			ImGui::Text("%5.2i", m_NumChannels);
+			ImGui::PopItemWidth();
+			ImGui::NextColumn();
+
+			ImGui::Columns(1);
+			ImGui::Separator();
+			ImGui::PopStyleVar();
 		}
     }
 }

@@ -9,9 +9,9 @@
 #include "Maths/MathsUtilities.h"
 #include <cmath>
 
-namespace lumos
+namespace Lumos
 {
-	namespace graphics
+	namespace Graphics
 	{
 		VKTextureCube::VKTextureCube(uint size)
 		{
@@ -67,23 +67,6 @@ namespace lumos
 
 		void VKTextureCube::Unbind(uint slot) const
 		{
-		}
-
-		vk::Format VKTextureCube::TextureFormatToVK(const TextureFormat format)
-		{
-			switch (format)
-			{
-			case TextureFormat::RGBA:				return vk::Format::eR8G8B8A8Unorm;
-			case TextureFormat::RGB:				return vk::Format::eR8G8B8Unorm;
-			case TextureFormat::R8:				    return vk::Format::eR8Unorm;
-			case TextureFormat::RG8:				return vk::Format::eR8G8Unorm;
-			case TextureFormat::RGB8:				return vk::Format::eR8G8B8Unorm;
-			case TextureFormat::RGBA8:				return vk::Format::eR8G8B8A8Unorm;
-			case TextureFormat::LUMINANCE:			return vk::Format::eR8G8B8A8Unorm;
-			case TextureFormat::LUMINANCE_ALPHA:	return vk::Format::eR8G8B8A8Unorm;
-			case TextureFormat::RGB16: 				return vk::Format::eR16G16B16A16Sfloat;
-			default: LUMOS_CORE_ERROR("[Texture] Unsupported image bit-depth!");  return vk::Format::eR8G8B8A8Unorm;
-			}
 		}
 
 		void VKTextureCube::CreateTextureSampler()
@@ -179,7 +162,7 @@ namespace lumos
 
 			for (uint m = 0; m < mips; m++)
 			{
-				byte* data = lumos::LoadImageFromFile(m_Files[m], &srcWidth, &srcHeight, &bits, !m_LoadOptions.flipY);
+				byte* data = Lumos::LoadImageFromFile(m_Files[m], &srcWidth, &srcHeight, &bits, !m_LoadOptions.flipY);
 				//m_Parameters.format = VKTexture2D::BitsToTextureFormat(bits);
 				uint stride = bits / 8;
 				
@@ -253,8 +236,11 @@ namespace lumos
 			memcpy(data, allData, static_cast<size_t>(size));
 			VKDevice::Instance()->GetDevice().unmapMemory(stagingBufferMemory);
 
-			if (m_Data == nullptr)
+            if (m_Data == nullptr)
+            {
 				delete[] allData;
+                allData = nullptr;
+            }
 
 			CreateImage(faceWidths[0], faceHeights[0], m_NumMips, vk::Format::eR8G8B8A8Unorm, vk::ImageTiling::eOptimal, /*vk::ImageUsageFlagBits::eTransferSrc|*/ vk::ImageUsageFlagBits::eTransferDst | vk::ImageUsageFlagBits::eSampled, vk::MemoryPropertyFlagBits::eDeviceLocal, m_TextureImage, m_TextureImageMemory);
 
@@ -328,6 +314,11 @@ namespace lumos
 			delete[] cubeTextureData;
 			delete[] faceHeights;
 			delete[] faceWidths;
+            
+            if(allData)
+            {
+                delete[] allData;
+            }
 		}
 	}
 }

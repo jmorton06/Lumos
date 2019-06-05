@@ -3,9 +3,9 @@
 #include "MathsUtilities.h"
 #include "BoundingBox.h"
 
-namespace lumos
+namespace Lumos
 {
-	namespace maths
+	namespace Maths
 	{
 		BoundingSphere::BoundingSphere()
 		{
@@ -30,14 +30,14 @@ namespace lumos
 		{
 			Vector3 vec = point - m_Position;
 			float dist = vec.Length();
-			m_Radius = maths::Max(dist, m_Radius);
+			m_Radius = Maths::Max(dist, m_Radius);
 		}
 
 		void BoundingSphere::ExpandToFit(const BoundingSphere &otherBox)
 		{
 			Vector3 vec = otherBox.Centre() - m_Position;
 			float dist = vec.Length();
-			m_Radius = maths::Max(dist, m_Radius);
+			m_Radius = Maths::Max(dist, m_Radius);
 		}
 
 		void BoundingSphere::Transform(const Matrix4 &transformation) const
