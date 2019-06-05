@@ -76,7 +76,7 @@ namespace Lumos
 
 				m_ShaderStages[currentShaderStage].module = VKDevice::Instance()->GetDevice().createShaderModule(vertexShaderCI);
 
-                delete source;
+                delete[] source;
 
 				if (result != VK_SUCCESS)
                 {

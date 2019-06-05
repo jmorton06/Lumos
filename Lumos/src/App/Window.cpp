@@ -1,6 +1,5 @@
 #include "LM.h"
 #include "Window.h"
-#include "Graphics/API/GraphicsContext.h"
 
 #ifdef LUMOS_PLATFORM_MOBILE
 #include "Platform/GLFM/GLFMWindow.h"
@@ -17,36 +16,16 @@ namespace Lumos
 {
 	Window* Window::Create(const WindowProperties& properties)
 	{
-		switch (Graphics::GraphicsContext::GetRenderAPI())
-		{
-#ifdef LUMOS_PLATFORM_MOBILE
-#ifdef LUMOS_RENDER_API_OPENGL 
-		case Graphics::RenderAPI::OPENGL:		return new GLFMWindow(properties);
-#endif
-#ifdef LUMOS_RENDER_API_VULKAN
-        case Graphics::RenderAPI::VULKAN:		return new GLFMWindow(properties);
-#endif
-#endif
 
 #ifdef LUMOS_PLATFORM_WINDOWS
-#ifdef LUMOS_RENDER_API_OPENGL
-		case Graphics::RenderAPI::OPENGL:		return new WindowsWindow(properties);
-#endif
-#ifdef LUMOS_RENDER_API_VULKAN
-		case Graphics::RenderAPI::VULKAN:		return new WindowsWindow(properties);
-#endif
-#endif
-
-#if((defined LUMOS_PLATFORM_MACOS || defined LUMOS_PLATFORM_LINUX ))
-#ifdef LUMOS_RENDER_API_OPENGL
-		case Graphics::RenderAPI::OPENGL:		return new GLFWWindow(properties);
-#endif
-#ifdef LUMOS_RENDER_API_VULKAN
-		case Graphics::RenderAPI::VULKAN:		return new GLFWWindow(properties);
-#endif
-#endif
-		}
+		return new WindowsWindow(properties);
+#elif((defined LUMOS_PLATFORM_MACOS || defined LUMOS_PLATFORM_LINUX ))
+		return new GLFWWindow(properties);
+#elif LUMOS_PLATFORM_MOBILE
+		return new GLFMWindow(properties);
+#else
 		return nullptr;
+#endif
 	}
 
 	bool Window::Initialise(const WindowProperties& properties)

@@ -1,6 +1,5 @@
 #pragma once
 #include "LM.h"
-
 #define LUMOS_EDITOR //temp
 
 namespace Lumos
