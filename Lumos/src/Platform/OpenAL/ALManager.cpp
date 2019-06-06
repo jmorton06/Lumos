@@ -93,7 +93,7 @@ namespace Lumos
 			ImGui::Text("Number Of Audio Sources");
 			ImGui::NextColumn();
 			ImGui::PushItemWidth(-1);
-			ImGui::Text("%5.2i", m_SoundNodes.size());
+            ImGui::Text("%5.2lu", m_SoundNodes.size());
 			ImGui::PopItemWidth();
 			ImGui::NextColumn();
 
