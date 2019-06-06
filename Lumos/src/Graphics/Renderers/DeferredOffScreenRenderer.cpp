@@ -64,7 +64,6 @@ namespace Lumos
 			delete m_DeferredCommandBuffers;
 
 			delete[] m_VSSystemUniformBuffer;
-			delete[] m_PSSystemUniformBuffer;
 
 			for (auto& commandBuffer : m_CommandBuffers)
 			{

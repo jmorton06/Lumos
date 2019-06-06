@@ -137,7 +137,7 @@ namespace Lumos
             auto normalTexture = mat.additionalValues.find("normalTexture");
             auto emissiveTexture = mat.additionalValues.find("emissiveTexture");
             auto occlusionTexture = mat.additionalValues.find("occlusionTexture");
-            auto emissiveFactor = mat.additionalValues.find("emissiveFactor");
+            //auto emissiveFactor = mat.additionalValues.find("emissiveFactor");
             //auto alphaCutoff = mat.additionalValues.find("alphaCutoff");
             //auto alphaMode = mat.additionalValues.find("alphaMode");
 

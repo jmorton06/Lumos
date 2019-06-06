@@ -72,6 +72,7 @@ namespace Lumos
 			delete m_ScreenQuad;
 			delete m_DescriptorSet;
 			delete m_LightSetup;
+            delete m_OffScreenRenderer;
 
 			delete[] m_PSSystemUniformBuffer;
 			for (auto& commandBuffer : m_CommandBuffers)
@@ -426,7 +427,7 @@ namespace Lumos
 			ImGui::Text("Number Of Renderables");
 			ImGui::NextColumn();
 			ImGui::PushItemWidth(-1);
-			ImGui::Text("%5.2i", m_CommandQueue.size());
+			ImGui::Text("%5.2lu", m_CommandQueue.size());
 			ImGui::PopItemWidth();
 			ImGui::NextColumn();
 
