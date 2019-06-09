@@ -110,7 +110,6 @@ namespace Lumos
 			// Error that may result in undefined behaviour
 
 			LUMOS_CORE_WARN("[VULKAN] : [{0}] Code {1}  : {2}", layerPrefix, code, msg);
-			return false;
 
 			if (flags & vk::DebugReportFlagBitsEXT::eError)
 			{

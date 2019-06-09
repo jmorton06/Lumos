@@ -4,6 +4,7 @@
 #include "App/Application.h"
 #include "Entity/Entity.h"
 #include "Maths/Maths.h"
+#include "System/Memory.h"
 
 #include "Graphics/RenderManager.h"
 #include "Graphics/Camera/Camera.h"
@@ -72,7 +73,7 @@ namespace Lumos
 
 			m_CommandBuffers.clear();
 
-			AlignedFree(uboDataDynamic.model);
+            Memory::AlignedFree(uboDataDynamic.model);
 		}
 
 		void DeferredOffScreenRenderer::Init()
@@ -374,7 +375,7 @@ namespace Lumos
 
 				uint32_t bufferSize2 = static_cast<uint32_t>(MAX_OBJECTS * dynamicAlignment);
 
-				uboDataDynamic.model = static_cast<Maths::Matrix4*>(AlignedAlloc(bufferSize2, dynamicAlignment));
+                uboDataDynamic.model = static_cast<Maths::Matrix4*>(Memory::AlignedAlloc(bufferSize2, dynamicAlignment));
 
 				m_ModelUniformBuffer->Init(bufferSize2, nullptr);
 			}
