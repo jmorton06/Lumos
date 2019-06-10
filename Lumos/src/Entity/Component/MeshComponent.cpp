@@ -49,14 +49,23 @@ namespace Lumos
                 
                 ImGui::AlignTextToFramePadding();
                 auto tex = m_Model->GetMaterial()->GetTextures().albedo;
-                ImGui::Image(tex ? tex->GetHandle() : nullptr, ImVec2(64, 64), ImVec2(0.0f, flipImage ? 1.0f : 0.0f), ImVec2(1.0f, flipImage ? 0.0f : 1.0f));
                 
-                if (ImGui::IsItemHovered() && tex)
+                if(tex)
                 {
-                    ImGui::BeginTooltip();
-                    ImGui::Image(tex ? tex->GetHandle() : nullptr, ImVec2(256, 256), ImVec2(0.0f, flipImage ? 1.0f : 0.0f), ImVec2(1.0f, flipImage ? 0.0f : 1.0f));
-                    ImGui::EndTooltip();
+                    ImGui::Image(tex->GetHandle(), ImVec2(64, 64), ImVec2(0.0f, flipImage ? 1.0f : 0.0f), ImVec2(1.0f, flipImage ? 0.0f : 1.0f));
+                    
+                    if (ImGui::IsItemHovered() && tex)
+                    {
+                        ImGui::BeginTooltip();
+                        ImGui::Image(tex ? tex->GetHandle() : nullptr, ImVec2(256, 256), ImVec2(0.0f, flipImage ? 1.0f : 0.0f), ImVec2(1.0f, flipImage ? 0.0f : 1.0f));
+                        ImGui::EndTooltip();
+                    }
                 }
+                else
+                {
+                    ImGui::Button("Empty", ImVec2(64,64));
+                }
+                
                 
                 ImGui::NextColumn();
                 ImGui::PushItemWidth(-1);
@@ -100,13 +109,21 @@ namespace Lumos
                 
                 ImGui::AlignTextToFramePadding();
                 auto tex = m_Model->GetMaterial()->GetTextures().normal;
-                ImGui::Image(tex ? tex->GetHandle() : nullptr, ImVec2(64, 64), ImVec2(0.0f, flipImage ? 1.0f : 0.0f), ImVec2(1.0f, flipImage ? 0.0f : 1.0f));
                 
-                if (ImGui::IsItemHovered() && tex)
+                if(tex)
                 {
-                    ImGui::BeginTooltip();
-                    ImGui::Image(tex ? tex->GetHandle() : nullptr, ImVec2(256, 256), ImVec2(0.0f, flipImage ? 1.0f : 0.0f), ImVec2(1.0f, flipImage ? 0.0f : 1.0f));
-                    ImGui::EndTooltip();
+                    ImGui::Image(tex ? tex->GetHandle() : nullptr, ImVec2(64, 64), ImVec2(0.0f, flipImage ? 1.0f : 0.0f), ImVec2(1.0f, flipImage ? 0.0f : 1.0f));
+                    
+                    if (ImGui::IsItemHovered() && tex)
+                    {
+                        ImGui::BeginTooltip();
+                        ImGui::Image(tex ? tex->GetHandle() : nullptr, ImVec2(256, 256), ImVec2(0.0f, flipImage ? 1.0f : 0.0f), ImVec2(1.0f, flipImage ? 0.0f : 1.0f));
+                        ImGui::EndTooltip();
+                    }
+                }
+                else
+                {
+                    ImGui::Button("Empty", ImVec2(64,64));
                 }
                 
                 ImGui::NextColumn();
@@ -141,13 +158,21 @@ namespace Lumos
                 
                 ImGui::AlignTextToFramePadding();
                 auto tex = m_Model->GetMaterial()->GetTextures().specular;
-                ImGui::Image(tex ? tex->GetHandle() : nullptr, ImVec2(64, 64), ImVec2(0.0f, flipImage ? 1.0f : 0.0f), ImVec2(1.0f, flipImage ? 0.0f : 1.0f));
                 
-                if (ImGui::IsItemHovered() && tex)
+                if(tex)
                 {
-                    ImGui::BeginTooltip();
-                    ImGui::Image(tex ? tex->GetHandle() : nullptr, ImVec2(256, 256), ImVec2(0.0f, flipImage ? 1.0f : 0.0f), ImVec2(1.0f, flipImage ? 0.0f : 1.0f));
-                    ImGui::EndTooltip();
+                    ImGui::Image(tex ? tex->GetHandle() : nullptr, ImVec2(64, 64), ImVec2(0.0f, flipImage ? 1.0f : 0.0f), ImVec2(1.0f, flipImage ? 0.0f : 1.0f));
+                    
+                    if (ImGui::IsItemHovered() && tex)
+                    {
+                        ImGui::BeginTooltip();
+                        ImGui::Image(tex ? tex->GetHandle() : nullptr, ImVec2(256, 256), ImVec2(0.0f, flipImage ? 1.0f : 0.0f), ImVec2(1.0f, flipImage ? 0.0f : 1.0f));
+                        ImGui::EndTooltip();
+                    }
+                }
+                else
+                {
+                    ImGui::Button("Empty", ImVec2(64,64));
                 }
                 
                 ImGui::NextColumn();
@@ -191,13 +216,20 @@ namespace Lumos
                 
                 ImGui::AlignTextToFramePadding();
                 auto tex = m_Model->GetMaterial()->GetTextures().roughness;
-                ImGui::Image(tex ? tex->GetHandle() : nullptr, ImVec2(64, 64), ImVec2(0.0f, flipImage ? 1.0f : 0.0f), ImVec2(1.0f, flipImage ? 0.0f : 1.0f));
-                
-                if (ImGui::IsItemHovered() && tex)
+                if(tex)
                 {
-                    ImGui::BeginTooltip();
-                    ImGui::Image(tex ? tex->GetHandle() : nullptr, ImVec2(256, 256), ImVec2(0.0f, flipImage ? 1.0f : 0.0f), ImVec2(1.0f, flipImage ? 0.0f : 1.0f));
-                    ImGui::EndTooltip();
+                    ImGui::Image(tex ? tex->GetHandle() : nullptr, ImVec2(64, 64), ImVec2(0.0f, flipImage ? 1.0f : 0.0f), ImVec2(1.0f, flipImage ? 0.0f : 1.0f));
+                    
+                    if (ImGui::IsItemHovered() && tex)
+                    {
+                        ImGui::BeginTooltip();
+                        ImGui::Image(tex ? tex->GetHandle() : nullptr, ImVec2(256, 256), ImVec2(0.0f, flipImage ? 1.0f : 0.0f), ImVec2(1.0f, flipImage ? 0.0f : 1.0f));
+                        ImGui::EndTooltip();
+                    }
+                }
+                else
+                {
+                    ImGui::Button("Empty", ImVec2(64,64));
                 }
                 
                 ImGui::NextColumn();
@@ -241,13 +273,20 @@ namespace Lumos
                 
                 ImGui::AlignTextToFramePadding();
                 auto tex = m_Model->GetMaterial()->GetTextures().ao;
-                ImGui::Image(tex ? tex->GetHandle() : nullptr, ImVec2(64, 64), ImVec2(0.0f, flipImage ? 1.0f : 0.0f), ImVec2(1.0f, flipImage ? 0.0f : 1.0f));
-                
-                if (ImGui::IsItemHovered() && tex)
+                if(tex)
                 {
-                    ImGui::BeginTooltip();
-                    ImGui::Image(tex ? tex->GetHandle() : nullptr, ImVec2(256, 256), ImVec2(0.0f, flipImage ? 1.0f : 0.0f), ImVec2(1.0f, flipImage ? 0.0f : 1.0f));
-                    ImGui::EndTooltip();
+                    ImGui::Image(tex ? tex->GetHandle() : nullptr, ImVec2(64, 64), ImVec2(0.0f, flipImage ? 1.0f : 0.0f), ImVec2(1.0f, flipImage ? 0.0f : 1.0f));
+                    
+                    if (ImGui::IsItemHovered() && tex)
+                    {
+                        ImGui::BeginTooltip();
+                        ImGui::Image(tex ? tex->GetHandle() : nullptr, ImVec2(256, 256), ImVec2(0.0f, flipImage ? 1.0f : 0.0f), ImVec2(1.0f, flipImage ? 0.0f : 1.0f));
+                        ImGui::EndTooltip();
+                    }
+                }
+                else
+                {
+                    ImGui::Button("Empty", ImVec2(64,64));
                 }
                 
                 ImGui::NextColumn();
@@ -282,14 +321,21 @@ namespace Lumos
 
 				ImGui::AlignTextToFramePadding();
 				auto tex = m_Model->GetMaterial()->GetTextures().emissive;
-				ImGui::Image(tex ? tex->GetHandle() : nullptr, ImVec2(64, 64), ImVec2(0.0f, flipImage ? 1.0f : 0.0f), ImVec2(1.0f, flipImage ? 0.0f : 1.0f));
+                if(tex)
+                {
+                    ImGui::Image(tex ? tex->GetHandle() : nullptr, ImVec2(64, 64), ImVec2(0.0f, flipImage ? 1.0f : 0.0f), ImVec2(1.0f, flipImage ? 0.0f : 1.0f));
 
-				if (ImGui::IsItemHovered() && tex)
-				{
-					ImGui::BeginTooltip();
-					ImGui::Image(tex ? tex->GetHandle() : nullptr, ImVec2(256, 256), ImVec2(0.0f, flipImage ? 1.0f : 0.0f), ImVec2(1.0f, flipImage ? 0.0f : 1.0f));
-					ImGui::EndTooltip();
-				}
+                    if (ImGui::IsItemHovered() && tex)
+                    {
+                        ImGui::BeginTooltip();
+                        ImGui::Image(tex ? tex->GetHandle() : nullptr, ImVec2(256, 256), ImVec2(0.0f, flipImage ? 1.0f : 0.0f), ImVec2(1.0f, flipImage ? 0.0f : 1.0f));
+                        ImGui::EndTooltip();
+                    }
+                }
+                else
+                {
+                    ImGui::Button("Empty", ImVec2(64,64));
+                }
 
 				ImGui::NextColumn();
 				ImGui::PushItemWidth(-1);
