@@ -65,7 +65,7 @@ namespace Lumos
 			}
 		}
 
-        VKContext::VKContext(const WindowProperties& properties, void* deviceContext) : m_CommandPool(nullptr)
+        VKContext::VKContext(const WindowProperties& properties, void* deviceContext) : m_VkInstance(nullptr), m_CommandPool(nullptr)
 		{
 			m_WindowContext = deviceContext;
 			CreateInstance();
@@ -78,7 +78,7 @@ namespace Lumos
 		{
 			delete m_CommandPool;
             
-			DestroyDebugReportCallbackEXT(m_VkInstance, callback, nullptr);
+			DestroyDebugReportCallbackEXT(m_VkInstance, m_DebugCallback, nullptr);
 			vkDestroyInstance(m_VkInstance, nullptr);
 		}
 
@@ -235,8 +235,8 @@ namespace Lumos
 
 			createInfo.pfnCallback = reinterpret_cast<PFN_vkDebugReportCallbackEXT>(DebugCallback);
 
-			callback = m_VkInstance.createDebugReportCallbackEXT(createInfo);
-			if (!callback)
+			m_DebugCallback = m_VkInstance.createDebugReportCallbackEXT(createInfo);
+			if (!m_DebugCallback)
 			{
 				throw std::runtime_error("failed to set up debug callback!");
 			}

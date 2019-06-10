@@ -32,7 +32,7 @@ namespace Lumos
 		//if (Input::GetInput().m_UpdateCamera)
 		{
 			//if (!Input::GetInput().firstUpdate)
-			if (Input::GetInput().GetMouseHeld(LUMOS_MOUSE_RIGHT))
+            if (Input::GetInput().GetMouseHeld(InputCode::MouseKey::ButtonRight))
 			{
 				m_RotateVelocity = m_RotateVelocity + Maths::Vector2((xpos - m_PreviousCurserPos.GetX()), (ypos - m_PreviousCurserPos.GetY())) *  m_MouseSensitivity;
 				m_Pitch -= m_RotateVelocity.GetY();
@@ -67,32 +67,32 @@ namespace Lumos
 	{
 		m_CameraSpeed = 1000.0f * dt;
 
-		if (Input::GetInput().GetKeyHeld(LUMOS_KEY_W))
+        if (Input::GetInput().GetKeyHeld(InputCode::Key::W))
 		{
 			m_Velocity += GetForwardDirection() * m_CameraSpeed;
 		}
 
-		if (Input::GetInput().GetKeyHeld(LUMOS_KEY_S))
+        if (Input::GetInput().GetKeyHeld(InputCode::Key::S))
 		{
 			m_Velocity -= GetForwardDirection() * m_CameraSpeed;
 		}
 
-		if (Input::GetInput().GetKeyHeld(LUMOS_KEY_A))
+        if (Input::GetInput().GetKeyHeld(InputCode::Key::A))
 		{
 			m_Velocity -= GetRightDirection() * m_CameraSpeed;
 		}
 
-		if (Input::GetInput().GetKeyHeld(LUMOS_KEY_D))
+        if (Input::GetInput().GetKeyHeld(InputCode::Key::D))
 		{
 			m_Velocity += GetRightDirection() * m_CameraSpeed;
 		}
 
-		if (Input::GetInput().GetKeyHeld(LUMOS_KEY_SPACE))
+        if (Input::GetInput().GetKeyHeld(InputCode::Key::Space))
 		{
 			m_Velocity -= GetUpDirection() * m_CameraSpeed;
 		}
 
-		if (Input::GetInput().GetKeyHeld(LUMOS_KEY_LEFT_SHIFT))
+        if (Input::GetInput().GetKeyHeld(InputCode::Key::LeftShift))
 		{
 			m_Velocity += GetUpDirection() * m_CameraSpeed;
 		}
