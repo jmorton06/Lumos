@@ -220,17 +220,17 @@ namespace Lumos
 		const uint sceneIdx = m_SceneManager->GetCurrentSceneIndex();
 		const uint sceneMax = m_SceneManager->SceneCount();
 
-		if (Input::GetInput().GetKeyPressed(LUMOS_KEY_P)) LumosPhysicsEngine::Instance()->SetPaused(!LumosPhysicsEngine::Instance()->IsPaused());
-		if (Input::GetInput().GetKeyPressed(LUMOS_KEY_P)) B2PhysicsEngine::Instance()->SetPaused(!B2PhysicsEngine::Instance()->IsPaused());
+        if (Input::GetInput().GetKeyPressed(InputCode::Key::P)) LumosPhysicsEngine::Instance()->SetPaused(!LumosPhysicsEngine::Instance()->IsPaused());
+		if (Input::GetInput().GetKeyPressed(InputCode::Key::P)) B2PhysicsEngine::Instance()->SetPaused(!B2PhysicsEngine::Instance()->IsPaused());
 
-		if (Input::GetInput().GetKeyPressed(LUMOS_KEY_J)) CommonUtils::AddSphere(m_SceneManager->GetCurrentScene());
-		if (Input::GetInput().GetKeyPressed(LUMOS_KEY_K)) CommonUtils::AddPyramid(m_SceneManager->GetCurrentScene());
-		if (Input::GetInput().GetKeyPressed(LUMOS_KEY_L)) CommonUtils::AddLightCube(m_SceneManager->GetCurrentScene());
+		if (Input::GetInput().GetKeyPressed(InputCode::Key::J)) CommonUtils::AddSphere(m_SceneManager->GetCurrentScene());
+		if (Input::GetInput().GetKeyPressed(InputCode::Key::K)) CommonUtils::AddPyramid(m_SceneManager->GetCurrentScene());
+		if (Input::GetInput().GetKeyPressed(InputCode::Key::L)) CommonUtils::AddLightCube(m_SceneManager->GetCurrentScene());
 
-		if (Input::GetInput().GetKeyPressed(LUMOS_KEY_E)) m_SceneManager->JumpToScene((sceneIdx + 1) % sceneMax);
-		if (Input::GetInput().GetKeyPressed(LUMOS_KEY_Q)) m_SceneManager->JumpToScene((sceneIdx == 0 ? sceneMax : sceneIdx) - 1);
-		if (Input::GetInput().GetKeyPressed(LUMOS_KEY_R)) m_SceneManager->JumpToScene(sceneIdx);
-		if (Input::GetInput().GetKeyPressed(LUMOS_KEY_V)) m_Window->ToggleVSync();
+		if (Input::GetInput().GetKeyPressed(InputCode::Key::E)) m_SceneManager->JumpToScene((sceneIdx + 1) % sceneMax);
+		if (Input::GetInput().GetKeyPressed(InputCode::Key::Q)) m_SceneManager->JumpToScene((sceneIdx == 0 ? sceneMax : sceneIdx) - 1);
+		if (Input::GetInput().GetKeyPressed(InputCode::Key::R)) m_SceneManager->JumpToScene(sceneIdx);
+		if (Input::GetInput().GetKeyPressed(InputCode::Key::V)) m_Window->ToggleVSync();
 
 #ifdef LUMOS_EDITOR
 		if (Application::Instance()->GetEditorState() != EditorState::Paused && Application::Instance()->GetEditorState() != EditorState::Preview)

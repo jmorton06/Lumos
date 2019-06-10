@@ -84,20 +84,18 @@ namespace Lumos
 
 			delete[] m_apShadowRenderLists;
 			delete[] m_VSSystemUniformBuffer;
-
 			delete[] m_PushConstant->data;
+            
 			delete m_PushConstant;
-
 			delete m_DescriptorSet;
 			delete m_Pipeline;
 			delete m_UniformBuffer;
-
-            Memory::AlignedFree(uboDataDynamic.model);
-
 			delete m_ModelUniformBuffer;
 			delete m_CommandBuffer;
 			delete m_RenderPass;
 			delete m_Shader;
+            
+            Memory::AlignedFree(uboDataDynamic.model);
 		}
 
 		void ShadowRenderer::Init()

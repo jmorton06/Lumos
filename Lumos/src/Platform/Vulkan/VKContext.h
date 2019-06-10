@@ -67,8 +67,8 @@ namespace Lumos
 
 		private:
 
-			vk::Instance m_VkInstance{};
-			vk::DebugReportCallbackEXT callback{};
+			vk::Instance m_VkInstance;
+			vk::DebugReportCallbackEXT m_DebugCallback;
 
 			std::vector<const char*> m_InstanceLayers;
 			std::vector<const char*> m_InstanceExtensions;
