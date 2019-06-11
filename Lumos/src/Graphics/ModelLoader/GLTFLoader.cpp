@@ -329,7 +329,7 @@ namespace Lumos
                 }
             }
 
-            std::shared_ptr<Material> pbrMaterial = materials[primitive.material];
+            std::shared_ptr<Material> pbrMaterial = primitive.material >= 0 ? materials[primitive.material] : nullptr;
             
             std::shared_ptr<Graphics::VertexArray> va;
             va.reset(Graphics::VertexArray::Create());
