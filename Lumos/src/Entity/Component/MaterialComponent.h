@@ -22,6 +22,8 @@ namespace Lumos
         inline virtual ComponentType GetType() const override { return GetStaticType(); }
         
         void OnIMGUI() override;
+        
+        const std::shared_ptr<Material>& GetMaterial() const { return m_Material; }
     private:
         std::shared_ptr<Material> m_Material;
     };
