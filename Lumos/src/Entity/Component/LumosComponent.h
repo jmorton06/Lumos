@@ -20,6 +20,7 @@ namespace Lumos
         TextureMatrix,
         Transform,
 		Camera,
+        Material,
         Error
 	};
 

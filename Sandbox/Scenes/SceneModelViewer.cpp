@@ -100,7 +100,7 @@ void SceneModelViewer::LoadModels()
         "/Meshes/capsule.glb"
 	};
 
-	std::shared_ptr<Entity> TestObject = ModelLoader::LoadModel(ExampleModelPaths[7]);
+	std::shared_ptr<Entity> TestObject = ModelLoader::LoadModel(ExampleModelPaths[0]);
 	TestObject->AddComponent<TransformComponent>(Maths::Matrix4::Scale(Maths::Vector3(1.0f, 1.0f, 1.0f)));
 	AddEntity(TestObject);
 
