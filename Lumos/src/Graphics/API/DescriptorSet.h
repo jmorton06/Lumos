@@ -19,14 +19,7 @@ namespace Lumos
 			IMAGE_SAMPLER
 		};
 
-		enum class ShaderStage
-		{
-			VERTEX,
-			FRAGMENT,
-			GEOMETRY
-		};
-
-		enum Format
+		enum class Format
 		{
 			R32G32B32A32_FLOAT,
 			R32G32B32_FLOAT,
@@ -51,7 +44,7 @@ namespace Lumos
 		struct DescriptorLayoutInfo
 		{
 			DescriptorType type;
-			ShaderStage stage;
+			ShaderType stage;
 			uint size;
 			uint count = 1;
 		};
@@ -94,6 +87,7 @@ namespace Lumos
 			uint size;
 			PushConstantDataType type;
 			byte* data;
+            ShaderType shaderStage;
 		};
 
 		struct ImageInfo
