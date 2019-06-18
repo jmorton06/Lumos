@@ -23,13 +23,13 @@ namespace Lumos
 	{
 		enum class ShaderType : int
 		{
-			UNKNOWN = -1,
-			VERTEX = 0,
-			GEOMETRY = 1,
-			TESSELLATION_CONTROL = 2,
-			TESSELLATION_EVALUATION = 3,
-			FRAGMENT = 4,
-			COMPUTE = 5
+			VERTEX,
+            FRAGMENT,
+			GEOMETRY,
+			TESSELLATION_CONTROL,
+			TESSELLATION_EVALUATION,
+			COMPUTE,
+            UNKNOWN
 		};
 
 		struct ShaderEnumClassHash

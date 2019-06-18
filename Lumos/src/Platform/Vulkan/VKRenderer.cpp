@@ -227,9 +227,7 @@ namespace Lumos
 
 			uint index = 0;
 			for(auto pc : dynamic_cast<Graphics::VKDescriptorSet*>(pipeline->GetDescriptorSet())->GetPushConstants())
-			{
-				//TODO : Shader Stage;
-				dynamic_cast<Graphics::VKCommandBuffer*>(cmdBuffer)->GetCommandBuffer().pushConstants(dynamic_cast<Graphics::VKPipeline*>(pipeline)->GetPipelineLayout(), vk::ShaderStageFlagBits::eVertex, index, pc.size, pc.data);
+			{				dynamic_cast<Graphics::VKCommandBuffer*>(cmdBuffer)->GetCommandBuffer().pushConstants(dynamic_cast<Graphics::VKPipeline*>(pipeline)->GetPipelineLayout(), VKTools::ShaderTypeToVK(pc.shaderStage) , index, pc.size, pc.data);
 			}
 
 

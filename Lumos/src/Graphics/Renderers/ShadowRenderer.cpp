@@ -109,6 +109,7 @@ namespace Lumos
 			m_PushConstant->type = Graphics::PushConstantDataType::UINT;
 			m_PushConstant->size = sizeof(int32);
 			m_PushConstant->data = new byte[sizeof(int32)];
+            m_PushConstant->shaderStage = ShaderType::VERTEX;
 
 			// Per Scene System Uniforms
 			m_VSSystemUniformBufferOffsets[VSSystemUniformIndex_ProjectionViewMatrix] = 0;
@@ -419,8 +420,8 @@ namespace Lumos
 
 			std::vector<Graphics::DescriptorLayoutInfo> layoutInfo =
 			{
-				{ Graphics::DescriptorType::UNIFORM_BUFFER, Graphics::ShaderStage::VERTEX, 0 },
-				{ Graphics::DescriptorType::UNIFORM_BUFFER_DYNAMIC,Graphics::ShaderStage::VERTEX , 1 },
+				{ Graphics::DescriptorType::UNIFORM_BUFFER, Graphics::ShaderType::VERTEX, 0 },
+				{ Graphics::DescriptorType::UNIFORM_BUFFER_DYNAMIC,Graphics::ShaderType::VERTEX , 1 },
 			};
 
 			auto attributeDescriptions = Vertex::getAttributeDescriptions();

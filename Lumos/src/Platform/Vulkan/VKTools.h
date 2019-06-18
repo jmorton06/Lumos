@@ -18,8 +18,9 @@ namespace Lumos
 		struct VertexInputDescription;
 		enum class CullMode;
 		enum class DescriptorType;
-		enum class ShaderStage;
+        enum class ShaderType : int;
 		enum class TextureFormat;
+        enum class Format;
 
 		namespace VKTools
 		{
@@ -45,8 +46,9 @@ namespace Lumos
 			vk::VertexInputAttributeDescription VertexInputDescriptionToVK(VertexInputDescription description);
 			vk::CullModeFlags CullModeToVK(CullMode mode);
 			vk::DescriptorType DescriptorTypeToVK(DescriptorType type);
-			vk::ShaderStageFlags ShaderStageToVK(ShaderStage type);
 			vk::Format TextureFormatToVK(const TextureFormat format);
+            vk::ShaderStageFlagBits ShaderTypeToVK(const ShaderType& shaderName);
+            vk::Format FormatToVK(Format format);
 
 			void SetImageLayout(
 				vk::CommandBuffer cmdbuffer,
