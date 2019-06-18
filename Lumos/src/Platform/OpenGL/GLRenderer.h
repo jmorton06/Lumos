@@ -21,6 +21,8 @@ namespace Lumos
 			friend class Window;
 			GLRenderer(uint width, uint height);
 			~GLRenderer();
+            
+            static GLRenderer* Instance() { return static_cast<GLRenderer*>(s_Instance); }
 
 			void Begin() override;
 			void BindScreenFBOInternal() override;
