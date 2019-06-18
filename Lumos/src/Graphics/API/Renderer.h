@@ -91,7 +91,6 @@ namespace Lumos
 			virtual void Begin() = 0;
 			virtual void BindScreenFBOInternal() = 0;
 			virtual void OnResize(uint width, uint height) = 0;
-			static Renderer* s_Instance;
 			inline static Renderer* GetRenderer() { return s_Instance; }
 
 			virtual void Render(VertexArray* vertexArray, IndexBuffer* indexBuffer, Graphics::CommandBuffer* cmdBuffer, std::vector<Graphics::DescriptorSet*>& descriptorSets, Graphics::Pipeline* pipeline, uint dynamicOffset = 0) = 0;
@@ -146,6 +145,9 @@ namespace Lumos
 			inline static const String& GetTitle() { return s_Instance->GetTitleInternal(); }
 
 			inline static Swapchain* GetSwapchain() { return s_Instance->GetSwapchainInternal(); }
+            
+        protected:
+            static Renderer* s_Instance;
 		};
 	}
 }
