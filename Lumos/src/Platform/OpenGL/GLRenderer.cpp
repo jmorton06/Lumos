@@ -21,8 +21,6 @@ namespace Lumos
 
 		GLRenderer::GLRenderer(uint width, uint height) : m_Context(nullptr)
 		{
-			init = false;
-
 			m_Swapchain = new Graphics::GLSwapchain(width, height);
 
 			m_RendererTitle = "OPENGL";

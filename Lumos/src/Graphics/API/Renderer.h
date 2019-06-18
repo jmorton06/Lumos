@@ -79,7 +79,7 @@ namespace Lumos
 		class LUMOS_EXPORT Renderer
 		{
 		public:
-			Renderer() : init(false)
+			Renderer()
 			{
 			}
 
@@ -95,8 +95,6 @@ namespace Lumos
 			inline static Renderer* GetRenderer() { return s_Instance; }
 
 			virtual void Render(VertexArray* vertexArray, IndexBuffer* indexBuffer, Graphics::CommandBuffer* cmdBuffer, std::vector<Graphics::DescriptorSet*>& descriptorSets, Graphics::Pipeline* pipeline, uint dynamicOffset = 0) = 0;
-
-			bool init;
 
 			virtual void ClearInternal(uint buffer) = 0;
 			virtual void PresentInternal() = 0;
