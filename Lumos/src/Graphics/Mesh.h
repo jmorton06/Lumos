@@ -92,7 +92,6 @@ namespace Lumos
 
 			virtual ~Mesh();
 			virtual void Draw();
-			virtual void Draw(bool bindMaterial);
 
 			void Init();
 			std::shared_ptr<VertexArray> GetVertexArray() const { return m_VertexArray; }

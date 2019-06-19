@@ -34,19 +34,6 @@ namespace Lumos
 
 		void Mesh::Draw()
 		{
-			//if (m_Material)
-			//	m_Material->Bind();
-			m_VertexArray->Bind();
-			m_IndexBuffer->Bind();
-			Renderer::Draw(DrawType::TRIANGLE, m_IndexBuffer->GetCount());
-			m_IndexBuffer->Unbind();
-			m_VertexArray->Unbind();
-			//if (m_Material)
-			//	m_Material->Unbind();
-		}
-
-		void Mesh::Draw(bool bindMaterial)
-		{
 			m_VertexArray->Bind();
 			m_IndexBuffer->Bind();
 			Renderer::Draw(DrawType::TRIANGLE, m_IndexBuffer->GetCount());
