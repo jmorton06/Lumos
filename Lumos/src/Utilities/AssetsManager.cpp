@@ -16,9 +16,9 @@ namespace Lumos
 		s_DefaultModels   = new AssetManager<Graphics::Mesh>();
 		s_DefaultTextures = new AssetManager<Graphics::Texture2D>();
 
-        s_DefaultModels->AddAsset("Cube", std::shared_ptr<Graphics::Mesh>(Graphics::CreateCube(2.0f,nullptr)));
-        s_DefaultModels->AddAsset("Pyramid", std::shared_ptr<Graphics::Mesh>(Graphics::CreatePyramid(1.0f,nullptr)));
-        s_DefaultModels->AddAsset("Sphere", std::shared_ptr<Graphics::Mesh>(Graphics::CreateSphere(64,64, nullptr)));
+        s_DefaultModels->AddAsset("Cube", std::shared_ptr<Graphics::Mesh>(Graphics::CreateCube(2.0f)));
+        s_DefaultModels->AddAsset("Pyramid", std::shared_ptr<Graphics::Mesh>(Graphics::CreatePyramid(1.0f)));
+        s_DefaultModels->AddAsset("Sphere", std::shared_ptr<Graphics::Mesh>(Graphics::CreateSphere(64,64)));
 	}
 
 	void AssetsManager::ReleaseMeshes()

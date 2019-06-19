@@ -200,38 +200,27 @@ namespace Lumos
 		{
 		}
 
-		void VKRenderer::RenderMeshInternal(Mesh *mesh, Graphics::Pipeline *pipeline, Graphics::CommandBuffer* cmdBuffer, uint dynamicOffset, Graphics::DescriptorSet* descriptorSet, bool useMaterialDescriptorSet)
+		void VKRenderer::RenderMeshInternal(Mesh *mesh, Graphics::Pipeline *pipeline, Graphics::CommandBuffer* cmdBuffer, uint dynamicOffset, std::vector<Graphics::DescriptorSet*>& descriptorSets)
 		{
-			std::vector<vk::DescriptorSet> descriptorSets;
+			std::vector<vk::DescriptorSet> vkdescriptorSets;
 			uint numDynamicDescriptorSets = 0;
 
-			if (dynamic_cast<Graphics::VKDescriptorSet*>(pipeline->GetDescriptorSet())->GetIsDynamic())
-				numDynamicDescriptorSets++;
-
-			descriptorSets.push_back(dynamic_cast<Graphics::VKDescriptorSet*>(pipeline->GetDescriptorSet())->GetDescriptorSet());
-			if(useMaterialDescriptorSet)
+			for (auto descriptorSet : descriptorSets)
 			{
-				if (mesh->GetMaterial() && mesh->GetMaterial()->GetDescriptorSet())
+				auto vkDescriptorSet = dynamic_cast<Graphics::VKDescriptorSet*>(descriptorSet);
+				if (vkDescriptorSet->GetIsDynamic())
+					numDynamicDescriptorSets++;
+
+				vkdescriptorSets.push_back(vkDescriptorSet->GetDescriptorSet());
+
+				uint index = 0;
+				for (auto pc : vkDescriptorSet->GetPushConstants())
 				{
-					descriptorSets.push_back(dynamic_cast<Graphics::VKDescriptorSet*>(mesh->GetMaterial()->GetDescriptorSet())->GetDescriptorSet());
-					if (dynamic_cast<Graphics::VKDescriptorSet*>(mesh->GetMaterial()->GetDescriptorSet())->GetIsDynamic())
-						numDynamicDescriptorSets++;
-				}
-				else if(descriptorSet)
-				{
-					descriptorSets.push_back(dynamic_cast<Graphics::VKDescriptorSet*>(descriptorSet)->GetDescriptorSet());
-					if (dynamic_cast<Graphics::VKDescriptorSet*>(descriptorSet)->GetIsDynamic())
-						numDynamicDescriptorSets++;
+					dynamic_cast<Graphics::VKCommandBuffer*>(cmdBuffer)->GetCommandBuffer().pushConstants(dynamic_cast<Graphics::VKPipeline*>(pipeline)->GetPipelineLayout(), VKTools::ShaderTypeToVK(pc.shaderStage), index, pc.size, pc.data);
 				}
 			}
 
-			uint index = 0;
-			for(auto pc : dynamic_cast<Graphics::VKDescriptorSet*>(pipeline->GetDescriptorSet())->GetPushConstants())
-			{				dynamic_cast<Graphics::VKCommandBuffer*>(cmdBuffer)->GetCommandBuffer().pushConstants(dynamic_cast<Graphics::VKPipeline*>(pipeline)->GetPipelineLayout(), VKTools::ShaderTypeToVK(pc.shaderStage) , index, pc.size, pc.data);
-			}
-
-
-			Graphics::VKRenderer::Render(mesh->GetIndexBuffer().get(), mesh->GetVertexArray().get(), dynamic_cast<Graphics::VKCommandBuffer*>(cmdBuffer), descriptorSets,
+			Graphics::VKRenderer::Render(mesh->GetIndexBuffer().get(), mesh->GetVertexArray().get(), dynamic_cast<Graphics::VKCommandBuffer*>(cmdBuffer), vkdescriptorSets,
 			                             dynamic_cast<Graphics::VKPipeline*>(pipeline)->GetPipelineLayout(), dynamicOffset, numDynamicDescriptorSets);
 
 		}
@@ -252,12 +241,12 @@ namespace Lumos
 
 				uint index = 0;
 				for (auto pc : dynamic_cast<Graphics::VKDescriptorSet*>(descriptorSet)->GetPushConstants())
-				{					dynamic_cast<Graphics::VKCommandBuffer*>(cmdBuffer)->GetCommandBuffer().pushConstants(dynamic_cast<Graphics::VKPipeline*>(pipeline)->GetPipelineLayout(), VKTools::ShaderTypeToVK(pc.shaderStage), index, pc.size, pc.data);
+				{
+					dynamic_cast<Graphics::VKCommandBuffer*>(cmdBuffer)->GetCommandBuffer().pushConstants(dynamic_cast<Graphics::VKPipeline*>(pipeline)->GetPipelineLayout(), VKTools::ShaderTypeToVK(pc.shaderStage), index, pc.size, pc.data);
 				}
 			}
 
-			Render(indexBuffer, vertexArray, dynamic_cast<Graphics::VKCommandBuffer*>(cmdBuffer), vkdescriptorSets,
-			       dynamic_cast<Graphics::VKPipeline*>(pipeline)->GetPipelineLayout(), dynamicOffset, numDynamicDescriptorSets);
+			Render(indexBuffer, vertexArray, dynamic_cast<Graphics::VKCommandBuffer*>(cmdBuffer), vkdescriptorSets, dynamic_cast<Graphics::VKPipeline*>(pipeline)->GetPipelineLayout(), dynamicOffset, numDynamicDescriptorSets);
 
 		}
 	}

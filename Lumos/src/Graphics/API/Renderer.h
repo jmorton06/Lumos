@@ -119,7 +119,7 @@ namespace Lumos
 			virtual void SetRenderTargets(uint numTargets) = 0;
 			virtual void SetPixelPackType(PixelPackType type) = 0;
 			virtual void SetRenderModeInternal(RenderMode mode) = 0;
-			virtual void RenderMeshInternal(Mesh* mesh, Graphics::Pipeline* pipeline, Graphics::CommandBuffer* cmdBuffer, uint dynamicOffset, Graphics::DescriptorSet* descriptorSet, bool useMaterialDescriptorSet) = 0;
+			virtual void RenderMeshInternal(Mesh* mesh, Graphics::Pipeline* pipeline, Graphics::CommandBuffer* cmdBuffer, uint dynamicOffset, std::vector<Graphics::DescriptorSet*>& descriptorSets) = 0;
 			virtual Graphics::Swapchain* GetSwapchainInternal() const = 0;
 
 			inline static void Clear(uint buffer) { s_Instance->ClearInternal(buffer); }
@@ -141,7 +141,7 @@ namespace Lumos
 			inline static void SetBlendEquation(RendererBlendFunction blendEquation) { s_Instance->SetBlendEquationInternal(blendEquation); }
 			inline static void SetStencilFunction(StencilType type, uint ref, uint mask) { s_Instance->SetStencilFunctionInternal(type, ref, mask); }
 			inline static void SetStencilOp(StencilType fail, StencilType zfail, StencilType zpass) { s_Instance->SetStencilOpInternal(fail, zfail, zpass); }
-			inline static void RenderMesh(Mesh* mesh, Graphics::Pipeline* pipeline, Graphics::CommandBuffer* cmdBuffer, uint dynamicOffset, Graphics::DescriptorSet* descriptorSet, bool useMaterialDescriptorSet = true) { s_Instance->RenderMeshInternal(mesh, pipeline, cmdBuffer, dynamicOffset, descriptorSet, useMaterialDescriptorSet); }
+			inline static void RenderMesh(Mesh* mesh, Graphics::Pipeline* pipeline, Graphics::CommandBuffer* cmdBuffer, uint dynamicOffset, std::vector<Graphics::DescriptorSet*>& descriptorSets) { s_Instance->RenderMeshInternal(mesh, pipeline, cmdBuffer, dynamicOffset, descriptorSets); }
 			inline static const String& GetTitle() { return s_Instance->GetTitleInternal(); }
 
 			inline static Swapchain* GetSwapchain() { return s_Instance->GetSwapchainInternal(); }

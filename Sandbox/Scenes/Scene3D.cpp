@@ -131,13 +131,13 @@ void Scene3D::LoadModels()
 	MaterialProperties properties;
 	properties.albedoColour = Vector4(0.6f,0.1f,0.1f,1.0f);
 	properties.roughnessColour = Vector4(0.8f);
-	properties.specularColour = Vector4(0.8f);
-	properties.usingAlbedoMap   = 0.5f;
-	properties.usingRoughnessMap    = 0.0f;
-	properties.usingNormalMap   = 0.0f;
-	properties.usingSpecularMap = 0.0f;
+	properties.specularColour = Vector4(0.94f);
+	properties.usingAlbedoMap     = 0.5f;
+	properties.usingRoughnessMap  = 0.0f;
+	properties.usingNormalMap     = 0.0f;
+	properties.usingSpecularMap   = 0.0f;
 	testMaterial->SetMaterialProperites(properties);
-	groundModel->SetMaterial(testMaterial);
+	ground->AddComponent<MaterialComponent>(testMaterial);
 
 	AddEntity(ground);
 
@@ -364,7 +364,7 @@ void Scene3D::LoadModels()
 		sphere->AddComponent<TextureMatrixComponent>(Matrix4());
 		std::shared_ptr<Graphics::Mesh> sphereModel = std::make_shared<Graphics::Mesh>(*AssetsManager::DefaultModels()->GetAsset("Sphere"));
 		sphere->AddComponent<MeshComponent>(sphereModel);
-		sphere->GetComponent<MeshComponent>()->m_Model->SetMaterial(m);
+		sphere->AddComponent<MaterialComponent>(m);
 
 		AddEntity(sphere);
 	}
@@ -393,7 +393,7 @@ void Scene3D::LoadModels()
 		sphere->AddComponent<TextureMatrixComponent>(Matrix4());
 		std::shared_ptr<Graphics::Mesh> sphereModel = std::make_shared<Graphics::Mesh>(*AssetsManager::DefaultModels()->GetAsset("Sphere"));
 		sphere->AddComponent<MeshComponent>(sphereModel);
-		sphere->GetComponent<MeshComponent>()->m_Model->SetMaterial(m);
+		sphere->AddComponent<MaterialComponent>(m);
 
 		AddEntity(sphere);
 	}

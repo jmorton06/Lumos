@@ -66,7 +66,10 @@ namespace Lumos
 			SetSystemUniforms(m_Shader);
 			m_Pipeline->SetActive(m_CommandBuffers[m_CurrentBufferID]);
 
-			Renderer::RenderMesh(m_Skybox, m_Pipeline, m_CommandBuffers[m_CurrentBufferID], 0, nullptr);
+			std::vector<Graphics::DescriptorSet*> descriptorSets;
+			descriptorSets.emplace_back(m_Pipeline->GetDescriptorSet());
+
+			Renderer::RenderMesh(m_Skybox, m_Pipeline, m_CommandBuffers[m_CurrentBufferID], 0, descriptorSets);
 
 			End();
 

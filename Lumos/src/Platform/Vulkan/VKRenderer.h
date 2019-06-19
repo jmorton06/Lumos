@@ -64,7 +64,7 @@ namespace Lumos
 			void SetPixelPackType(PixelPackType type) override;
 			void SetRenderModeInternal(RenderMode mode) override;
 
-			void RenderMeshInternal(Mesh* mesh, Graphics::Pipeline* pipeline, Graphics::CommandBuffer* cmdBuffer, uint dynamicOffset, Graphics::DescriptorSet* descriptorSet, bool useMaterialDescriptorSet) override;
+			void RenderMeshInternal(Mesh* mesh, Graphics::Pipeline* pipeline, Graphics::CommandBuffer* cmdBuffer, uint dynamicOffset, std::vector<Graphics::DescriptorSet*>& descriptorSets) override;
 			void Render(VertexArray* vertexArray, IndexBuffer* indexBuffer, Graphics::CommandBuffer* cmdBuffer, std::vector<Graphics::DescriptorSet*>& descriptorSets, Graphics::Pipeline* pipeline, uint dynamicOffset) override;
             void CreateSemaphores();
 

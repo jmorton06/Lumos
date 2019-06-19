@@ -58,7 +58,7 @@ namespace Lumos
 		properties.usingNormalMap   = 0.0f;
 		properties.usingSpecularMap = 0.0f;
 		matInstance->SetMaterialProperites(properties);
-		pSphere->GetComponent<MeshComponent>()->m_Model->SetMaterial(matInstance);
+		pSphere->AddComponent<MaterialComponent>(matInstance);
 
 		pSphere->AddComponent<TransformComponent>(Maths::Matrix4::Scale(Maths::Vector3(radius, radius, radius)));
 		pSphere->SetBoundingRadius(radius);
@@ -118,7 +118,7 @@ namespace Lumos
 		properties.usingSpecularMap = 0.0f;
 		matInstance->SetMaterialProperites(properties);
 		matInstance->SetRenderFlags(0);
-		Cube->GetComponent<MeshComponent>()->m_Model->SetMaterial(matInstance);
+		Cube->AddComponent<MaterialComponent>(matInstance);
 
 		Cube->AddComponent<TransformComponent>(Maths::Matrix4::Scale(halfdims));
 		Cube->SetBoundingRadius(halfdims.Length());
@@ -178,7 +178,7 @@ namespace Lumos
 		properties.usingNormalMap   = 0.0f;
 		properties.usingSpecularMap = 0.0f;
 		matInstance->SetMaterialProperites(properties);
-		meshEntity->GetComponent<MeshComponent>()->m_Model->SetMaterial(matInstance);
+		meshEntity->AddComponent<MaterialComponent>(matInstance);
 
 		meshEntity->AddComponent<TransformComponent>(Maths::Matrix4::Scale(halfdims) * Maths::Matrix4::RotationX(-90.0f));
 		meshEntity->SetBoundingRadius(halfdims.Length());

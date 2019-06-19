@@ -288,16 +288,13 @@ namespace Lumos
 			glColorMask(r, g, b, a);
 		}
 
-		void GLRenderer::RenderMeshInternal(Mesh *mesh, Graphics::Pipeline *pipeline, Graphics::CommandBuffer* cmdBuffer, uint dynamicOffset, Graphics::DescriptorSet* descriptorSet, bool useMaterialDescriptorSet)
+		void GLRenderer::RenderMeshInternal(Mesh *mesh, Graphics::Pipeline *pipeline, Graphics::CommandBuffer* cmdBuffer, uint dynamicOffset, std::vector<Graphics::DescriptorSet*>& descriptorSets)
 		{
-			static_cast<Graphics::GLDescriptorSet*>(pipeline->GetDescriptorSet())->Bind(dynamicOffset);
-			if (useMaterialDescriptorSet)
+			for (auto desc : descriptorSets)
 			{
-				if (mesh->GetMaterial() && mesh->GetMaterial()->GetDescriptorSet())
-					static_cast<Graphics::GLDescriptorSet*>(mesh->GetMaterial()->GetDescriptorSet())->Bind(dynamicOffset);
-				else if (static_cast<Graphics::GLDescriptorSet*>(descriptorSet))
-					static_cast<Graphics::GLDescriptorSet*>(descriptorSet)->Bind(dynamicOffset);
+				static_cast<Graphics::GLDescriptorSet*>(desc)->Bind(dynamicOffset);
 			}
+
 			mesh->Draw();
 		}
 

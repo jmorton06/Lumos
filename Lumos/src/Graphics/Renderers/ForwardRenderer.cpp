@@ -22,7 +22,6 @@
 #include "App/Application.h"
 #include "Graphics/RenderManager.h"
 #include "Graphics/Camera/Camera.h"
-#include "System/Memory.h"
 
 namespace Lumos
 {
@@ -81,10 +80,12 @@ namespace Lumos
 						{
 							auto mesh = model->m_Model;
 							{
-								if (mesh->GetMaterial())
+								auto materialComponent = obj->GetComponent<MaterialComponent>();
+
+								if (materialComponent && materialComponent->GetMaterial())
 								{
-									if (mesh->GetMaterial()->GetDescriptorSet() == nullptr || mesh->GetMaterial()->GetPipeline() != m_GraphicsPipeline)
-										mesh->GetMaterial()->CreateDescriptorSet(m_GraphicsPipeline, 1, false);
+									if (materialComponent->GetMaterial()->GetDescriptorSet() == nullptr || materialComponent->GetMaterial()->GetPipeline() != m_GraphicsPipeline)
+										materialComponent->GetMaterial()->CreateDescriptorSet(m_GraphicsPipeline, 1, false);
 								}
 
 								TextureMatrixComponent* textureMatrixTransform = obj->GetComponent<TextureMatrixComponent>();
@@ -93,7 +94,7 @@ namespace Lumos
 									textureMatrix = textureMatrixTransform->m_TextureMatrix;
 								else
 									textureMatrix = Maths::Matrix4();
-								SubmitMesh(mesh.get(), obj->GetComponent<TransformComponent>()->GetTransform().GetWorldMatrix(), textureMatrix);
+								SubmitMesh(mesh.get(), materialComponent->GetMaterial().get(), obj->GetComponent<TransformComponent>()->GetTransform().GetWorldMatrix(), textureMatrix);
 							}
 						}
 					}
@@ -267,12 +268,13 @@ namespace Lumos
 			m_CommandQueue.push_back(command);
 		}
 
-		void ForwardRenderer::SubmitMesh(Mesh* mesh, const Maths::Matrix4& transform, const Maths::Matrix4& textureMatrix)
+		void ForwardRenderer::SubmitMesh(Mesh* mesh, Material* material, const Maths::Matrix4& transform, const Maths::Matrix4& textureMatrix)
 		{
 			RenderCommand command;
 			command.mesh = mesh;
 			command.transform = transform;
 			command.textureMatrix = textureMatrix;
+			command.material = material;
 			Submit(command);
 		}
 
@@ -333,7 +335,11 @@ namespace Lumos
 
 				m_Shader->SetUserUniformBuffer(ShaderType::VERTEX, reinterpret_cast<byte*>(m_ModelUniformBuffer->GetBuffer()) + dynamicOffset, sizeof(Maths::Matrix4));
 
-				Renderer::RenderMesh(mesh, m_GraphicsPipeline, currentCMDBuffer, dynamicOffset, m_DefaultDescriptorSet);
+				std::vector<Graphics::DescriptorSet*> descriptorSets;
+				descriptorSets.emplace_back(m_Pipeline->GetDescriptorSet());
+				descriptorSets.emplace_back(m_DescriptorSet);
+
+				Renderer::RenderMesh(mesh, m_GraphicsPipeline, currentCMDBuffer, dynamicOffset, descriptorSets);
 
 				currentCMDBuffer->EndRecording();
 				currentCMDBuffer->ExecuteSecondary(commandBuffers[m_CurrentBufferID]);

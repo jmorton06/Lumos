@@ -21,7 +21,6 @@
 #include "Maths/Maths.h"
 #include "RenderCommand.h"
 #include "System/JobSystem.h"
-#include "System/Memory.h"
 
 #define THREAD_CASCADE_GEN
 
@@ -174,7 +173,10 @@ namespace Lumos
 
 				uint32_t dynamicOffset = index * static_cast<uint32_t>(dynamicAlignment);
 
-				Renderer::RenderMesh(mesh, m_Pipeline, m_CommandBuffer, dynamicOffset, nullptr, false);
+				std::vector<Graphics::DescriptorSet*> descriptorSets;
+				descriptorSets.emplace_back(m_Pipeline->GetDescriptorSet());
+
+				Renderer::RenderMesh(mesh, m_Pipeline, m_CommandBuffer, dynamicOffset, descriptorSets);
 
 				index++;
 			}
@@ -243,7 +245,7 @@ namespace Lumos
 						{
 							auto mesh = model->m_Model;
 							{
-								SubmitMesh(mesh.get(), obj->GetComponent<TransformComponent>()->GetTransform().GetWorldMatrix(), Maths::Matrix4());
+								SubmitMesh(mesh.get(), nullptr, obj->GetComponent<TransformComponent>()->GetTransform().GetWorldMatrix(), Maths::Matrix4());
 							}
 						}
 					}
@@ -531,11 +533,12 @@ namespace Lumos
 			m_CommandQueue.emplace_back(command);
 		}
 
-		void ShadowRenderer::SubmitMesh(Mesh* mesh, const Maths::Matrix4& transform, const Maths::Matrix4& textureMatrix)
+		void ShadowRenderer::SubmitMesh(Mesh* mesh, Material* material, const Maths::Matrix4& transform, const Maths::Matrix4& textureMatrix)
 		{
 			RenderCommand command;
 			command.mesh = mesh;
 			command.transform = transform;
+			command.material = material;
 			Submit(command);
 		}
 	}
