@@ -22,6 +22,7 @@
 #include "Core.h"
 #include "System/String.h"
 #include "System/LMLog.h"
+#include "System/Memory.h"
 #endif
 
 #include <stdio.h>

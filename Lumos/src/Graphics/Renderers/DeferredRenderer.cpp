@@ -228,12 +228,13 @@ namespace Lumos
 			m_CommandQueue.push_back(command);
 		}
 
-		void DeferredRenderer::SubmitMesh(Mesh* mesh, const Maths::Matrix4& transform, const Maths::Matrix4& textureMatrix)
+		void DeferredRenderer::SubmitMesh(Mesh* mesh, Material* material, const Maths::Matrix4& transform, const Maths::Matrix4& textureMatrix)
 		{
 			RenderCommand command;
 			command.mesh = mesh;
 			command.transform = transform;
 			command.textureMatrix = textureMatrix;
+			command.material = material;
 			Submit(command);
 		}
 
@@ -300,7 +301,11 @@ namespace Lumos
 
 			m_Pipeline->SetActive(currentCMDBuffer);
 
-			Renderer::RenderMesh(m_ScreenQuad, m_Pipeline, currentCMDBuffer, 0, m_DescriptorSet);
+			std::vector<Graphics::DescriptorSet*> descriptorSets;
+			descriptorSets.emplace_back(m_Pipeline->GetDescriptorSet());
+			descriptorSets.emplace_back(m_DescriptorSet);
+
+			Renderer::RenderMesh(m_ScreenQuad, m_Pipeline, currentCMDBuffer, 0, descriptorSets);
 
 			currentCMDBuffer->EndRecording();
 			currentCMDBuffer->ExecuteSecondary(m_CommandBuffers[m_CommandBufferIndex]);

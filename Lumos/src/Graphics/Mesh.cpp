@@ -9,19 +9,19 @@ namespace Lumos
 {
 	namespace Graphics
 	{
-		Mesh::Mesh() : m_VertexArray(nullptr), m_IndexBuffer(nullptr), m_Material(nullptr), m_ArrayCleanUp(false), m_TextureCleanUp(false), m_BoundingSphere(nullptr)
+		Mesh::Mesh() : m_VertexArray(nullptr), m_IndexBuffer(nullptr), m_ArrayCleanUp(false), m_TextureCleanUp(false), m_BoundingSphere(nullptr)
 		{
 			Init();
 		}
 
 		Mesh::Mesh(const Mesh& mesh)
-			: m_VertexArray(mesh.m_VertexArray), m_IndexBuffer(mesh.m_IndexBuffer), m_Material(mesh.m_Material), m_ArrayCleanUp(false), m_TextureCleanUp(false), m_BoundingSphere(mesh.m_BoundingSphere)
+			: m_VertexArray(mesh.m_VertexArray), m_IndexBuffer(mesh.m_IndexBuffer), m_ArrayCleanUp(false), m_TextureCleanUp(false), m_BoundingSphere(mesh.m_BoundingSphere)
 		{
 			Init();
 		}
 
-		Mesh::Mesh(std::shared_ptr<VertexArray>& vertexArray, std::shared_ptr<IndexBuffer>& indexBuffer, const std::shared_ptr<Material>& material, const std::shared_ptr<Maths::BoundingSphere>& boundingSphere)
-			: m_VertexArray(vertexArray), m_IndexBuffer(indexBuffer), m_Material(material), m_ArrayCleanUp(true), m_TextureCleanUp(false), m_BoundingSphere(boundingSphere)
+		Mesh::Mesh(std::shared_ptr<VertexArray>& vertexArray, std::shared_ptr<IndexBuffer>& indexBuffer, const std::shared_ptr<Maths::BoundingSphere>& boundingSphere)
+			: m_VertexArray(vertexArray), m_IndexBuffer(indexBuffer), m_ArrayCleanUp(true), m_TextureCleanUp(false), m_BoundingSphere(boundingSphere)
 		{
 			Init();
 		}

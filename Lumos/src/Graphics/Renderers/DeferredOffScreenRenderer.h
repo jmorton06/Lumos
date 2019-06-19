@@ -4,6 +4,7 @@
 namespace Lumos
 {
 	class LightSetup;
+	class Material;
 
 	namespace Graphics
 	{
@@ -30,7 +31,7 @@ namespace Lumos
 			void Begin() override;
 			void BeginScene(Scene* scene) override;
 			void Submit(const RenderCommand& command) override;
-			void SubmitMesh(Mesh* mesh, const Maths::Matrix4& transform, const Maths::Matrix4& textureMatrix) override;
+			void SubmitMesh(Mesh* mesh, Material* material, const Maths::Matrix4& transform, const Maths::Matrix4& textureMatrix) override;
 			void EndScene() override;
 			void End() override;
 			void Present() override;
@@ -40,8 +41,6 @@ namespace Lumos
 			void CreatePipeline();
 			void CreateBuffer();
 			void CreateFBO();
-
-			void CreateDefaultDescriptorSet();
 
 			int GetCommandBufferCount() const { return static_cast<int>(m_CommandBuffers.size()); }
 			CommandBuffer* GetCommandBuffer(int id) const { return m_CommandBuffers[id]; }
@@ -60,27 +59,23 @@ namespace Lumos
 
 			Maths::Vector4 m_ClearColour;
 
-			DescriptorSet* m_DefaultDescriptorSet;
-
-			Texture2D* m_DefaultTexture;
+			Material* m_DefaultMaterial;
 
 			UniformBuffer* m_UniformBuffer;
 			UniformBuffer* m_ModelUniformBuffer;
-			UniformBuffer* m_DefaultMaterialDataUniformBuffer;
 
 			std::vector<CommandBuffer*> m_CommandBuffers;
 
 			CommandBuffer* m_DeferredCommandBuffers;
-
-			size_t dynamicAlignment;
 
 			struct UniformBufferModel
 			{
 				Maths::Matrix4* model;
 			};
 
-			UniformBufferModel uboDataDynamic;
+			UniformBufferModel m_UBODataDynamic;
 
+			size_t m_DynamicAlignment;
 			int m_CommandBufferIndex = 0;
 		};
 	}

@@ -11,7 +11,7 @@ namespace Lumos
 {
 	namespace Graphics
 	{
-		Mesh* CreateQuad(float x, float y, float width, float height, std::shared_ptr<Material> material)
+		Mesh* CreateQuad(float x, float y, float width, float height)
 		{
 			struct QuadVertex
 			{
@@ -56,12 +56,12 @@ namespace Lumos
 			{
 				boundingBox->ExpandToFit(data[i].position);
 			}
-			return new Mesh(va, ib, material, boundingBox);
+			return new Mesh(va, ib, boundingBox);
 		}
 
-		Mesh* CreateQuad(const Maths::Vector2& position, const Maths::Vector2& size, std::shared_ptr<Material>  material)
+		Mesh* CreateQuad(const Maths::Vector2& position, const Maths::Vector2& size)
 		{
-			return CreateQuad(position.GetX(), position.GetY(), size.GetX(), size.GetY(), std::move(material));
+			return CreateQuad(position.GetX(), position.GetY(), size.GetX(), size.GetY());
 		}
 
 		Mesh* CreateQuad()
@@ -111,12 +111,11 @@ namespace Lumos
 			{
 				boundingSphere->ExpandToFit(data[i].Position);
 			}
-			return new Mesh(va, ib, empty, boundingSphere);
+			return new Mesh(va, ib, boundingSphere);
 		}
 
-		Mesh* CreateCube(float size, std::shared_ptr<Material> material)
+		Mesh* CreateCube(float size)
 		{
-
 			//    v6----- v5
 			//   /|      /|
 			//  v1------v0|
@@ -283,10 +282,10 @@ namespace Lumos
 			{
 				boundingSphere->ExpandToFit(data[i].Position);
 			}
-			return new Mesh(va, ib, material, boundingSphere);
+			return new Mesh(va, ib, boundingSphere);
 		}
 
-		Mesh* CreatePyramid(float size, std::shared_ptr<Material> material)
+		Mesh* CreatePyramid(float size)
 		{
 			Vertex* data = new Vertex[18];
 
@@ -416,10 +415,10 @@ namespace Lumos
 			{
 				boundingSphere->ExpandToFit(data[i].Position);
 			}
-			return new Mesh(va, ib, material, boundingSphere);
+			return new Mesh(va, ib, boundingSphere);
 		}
 
-		Mesh* CreateSphere(uint xSegments, uint ySegments, std::shared_ptr<Material> material)
+		Mesh* CreateSphere(uint xSegments, uint ySegments)
 		{
 			auto data = std::vector<Vertex>();
 
@@ -507,7 +506,7 @@ namespace Lumos
 			ib.reset(IndexBuffer::Create(indices.data(), static_cast<uint>(indices.size())));
 			std::shared_ptr<Maths::BoundingSphere> boundingSphere = std::make_shared<Maths::BoundingSphere>();
 
-			return new Mesh(va, ib, material, boundingSphere);
+			return new Mesh(va, ib, boundingSphere);
 		}
 
 		Mesh* CreateIcoSphere(uint radius, uint subdivision, std::shared_ptr<Material> material)
@@ -515,7 +514,7 @@ namespace Lumos
 			return nullptr;
 		}
 
-		Mesh* CreatePlane(float width, float height, const Maths::Vector3& normal, std::shared_ptr<Material> material)
+		Mesh* CreatePlane(float width, float height, const Maths::Vector3& normal)
 		{
 			Maths::Vector3 vec = normal * 90.0f;
 			Maths::Matrix4 rotation = Maths::Matrix4::Rotation(vec.z, Maths::Vector3(1.0f, 0.0f, 0.0f)) * Maths::Matrix4::Rotation(vec.y, Maths::Vector3(0.0f, 1.0f, 0.0f)) * Maths::Matrix4::Rotation(vec.x, Maths::Vector3(0.0f, 0.0f, 1.0f));
@@ -573,7 +572,7 @@ namespace Lumos
 			{
 				boundingBox->ExpandToFit(data[i].Position);
 			}
-			return new Mesh(va, ib, material, boundingBox);
+			return new Mesh(va, ib, boundingBox);
 		}
 	}
 }

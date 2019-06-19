@@ -329,8 +329,6 @@ namespace Lumos
                 }
             }
 
-            std::shared_ptr<Material> pbrMaterial = primitive.material >= 0 ? materials[primitive.material] : nullptr;
-            
             std::shared_ptr<Graphics::VertexArray> va;
             va.reset(Graphics::VertexArray::Create());
             
@@ -385,8 +383,8 @@ namespace Lumos
             
             std::shared_ptr<Graphics::IndexBuffer> ib;
             ib.reset(Graphics::IndexBuffer::Create(indicesArray, numVertices));
-            
-            auto lMesh = new Graphics::Mesh(va, ib, pbrMaterial, boundingBox);
+
+            auto lMesh = new Graphics::Mesh(va, ib, boundingBox);
             
             delete[] tempvertices;
             delete[] indicesArray;
@@ -417,16 +415,17 @@ namespace Lumos
         
         if(node.mesh >= 0)
         {
-            if (node.skin >= 0)
-            {
-                auto lMesh = std::shared_ptr<Graphics::Mesh>(meshes[node.mesh]);
-                meshEntity->AddComponent<MeshComponent>(lMesh);
-            }
-            else
-            {
-                auto lMesh = std::shared_ptr<Graphics::Mesh>(meshes[node.mesh]);
-                meshEntity->AddComponent<MeshComponent>(lMesh);
-            }
+           
+            auto lMesh = std::shared_ptr<Graphics::Mesh>(meshes[node.mesh]);
+            meshEntity->AddComponent<MeshComponent>(lMesh);
+
+			int materialIndex = model.meshes[node.mesh].primitives[0].material;
+			if(materialIndex >= 0)
+				meshEntity->AddComponent<MaterialComponent>(materials[materialIndex]);
+
+			/*if (node.skin >= 0)
+			{
+            }*/
         }
         
         TransformComponent* transform = meshEntity->GetTransformComponent();

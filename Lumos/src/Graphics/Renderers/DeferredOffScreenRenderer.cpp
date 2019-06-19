@@ -4,7 +4,6 @@
 #include "App/Application.h"
 #include "Entity/Entity.h"
 #include "Maths/Maths.h"
-#include "System/Memory.h"
 
 #include "Graphics/RenderManager.h"
 #include "Graphics/Camera/Camera.h"
@@ -54,15 +53,13 @@ namespace Lumos
 		{
 			delete m_Shader;
 			delete m_FBO;
-			delete m_DefaultTexture;
 			delete m_UniformBuffer;
 
 			delete m_ModelUniformBuffer;
 			delete m_RenderPass;
 			delete m_Pipeline;
-			delete m_DefaultDescriptorSet;
-			delete m_DefaultMaterialDataUniformBuffer;
 			delete m_DeferredCommandBuffers;
+			delete m_DefaultMaterial;
 
 			delete[] m_VSSystemUniformBuffer;
 
@@ -73,33 +70,26 @@ namespace Lumos
 
 			m_CommandBuffers.clear();
 
-            Memory::AlignedFree(uboDataDynamic.model);
+            Memory::AlignedFree(m_UBODataDynamic.model);
 		}
 
 		void DeferredOffScreenRenderer::Init()
 		{
 			m_Shader = Shader::CreateFromFile("DeferredColour", "/CoreShaders/");
-
-			m_DefaultTexture = Texture2D::CreateFromFile("Test", "/CoreTextures/checkerboard.tga");
-
-			m_DefaultDescriptorSet = nullptr;
-
-			m_UniformBuffer = nullptr;
-			m_ModelUniformBuffer = nullptr;
-
-			m_DefaultMaterialDataUniformBuffer = Graphics::UniformBuffer::Create();
+			m_DefaultMaterial = new Material();
 
 			MaterialProperties properties;
-			properties.roughnessColour = 1.0f;
-			properties.specularColour = Maths::Vector4(0.0f, 1.0f, 0.0f, 1.0f);
-			properties.usingAlbedoMap = 1.0f;
+			properties.albedoColour = Maths::Vector4(1.0f);
+			properties.roughnessColour = Maths::Vector4(0.5f);
+			properties.specularColour = Maths::Vector4(0.5f);
+			properties.usingAlbedoMap = 0.0f;
 			properties.usingRoughnessMap = 0.0f;
 			properties.usingNormalMap = 0.0f;
 			properties.usingSpecularMap = 0.0f;
+			m_DefaultMaterial->SetMaterialProperites(properties);
 
-			uint32_t bufferSize = static_cast<uint32_t>(sizeof(MaterialProperties));
-			m_DefaultMaterialDataUniformBuffer->Init(bufferSize, nullptr);
-			m_DefaultMaterialDataUniformBuffer->SetData(bufferSize, &properties);
+			m_UniformBuffer = nullptr;
+			m_ModelUniformBuffer = nullptr;
 
 			m_CommandQueue.reserve(1000);
 
@@ -146,7 +136,8 @@ namespace Lumos
 			CreatePipeline();
 			CreateBuffer();
 			CreateFBO();
-			CreateDefaultDescriptorSet();
+
+			m_DefaultMaterial->CreateDescriptorSet(m_Pipeline, 1);
 
 			m_ClearColour = Maths::Vector4(0.1f, 0.1f, 0.1f, 1.0f);
 		}
@@ -165,10 +156,14 @@ namespace Lumos
 					if (model && model->m_Model)
 					{
 						auto mesh = model->m_Model;
-						if (mesh->GetMaterial())
+						auto materialComponent = obj->GetComponent<MaterialComponent>();
+						Material* material = nullptr;
+						if (materialComponent && materialComponent->GetActive() && materialComponent->GetMaterial())
 						{
-							if (mesh->GetMaterial()->GetDescriptorSet() == nullptr || mesh->GetMaterial()->GetPipeline() != m_Pipeline)
-								mesh->GetMaterial()->CreateDescriptorSet(m_Pipeline, 1);
+							material = materialComponent->GetMaterial().get();
+
+							if (materialComponent->GetMaterial()->GetDescriptorSet() == nullptr || materialComponent->GetMaterial()->GetPipeline() != m_Pipeline)
+								materialComponent->GetMaterial()->CreateDescriptorSet(m_Pipeline, 1);
 						}
 
 						TextureMatrixComponent* textureMatrixTransform = obj->GetComponent<TextureMatrixComponent>();
@@ -180,7 +175,7 @@ namespace Lumos
 
 						auto transform = obj->GetComponent<TransformComponent>()->GetTransform().GetWorldMatrix();
 
-						SubmitMesh(mesh.get(), transform, textureMatrix);
+						SubmitMesh(mesh.get(), material, transform, textureMatrix);
 					}
 				}
 			});
@@ -221,10 +216,11 @@ namespace Lumos
 			m_CommandQueue.push_back(command);
 		}
 
-		void DeferredOffScreenRenderer::SubmitMesh(Mesh* mesh, const Maths::Matrix4& transform, const Maths::Matrix4& textureMatrix)
+		void DeferredOffScreenRenderer::SubmitMesh(Mesh* mesh, Material* material, const Maths::Matrix4& transform, const Maths::Matrix4& textureMatrix)
 		{
 			RenderCommand command;
 			command.mesh = mesh;
+			command.material = material;
 			command.transform = transform;
 			command.textureMatrix = textureMatrix;
 			Submit(command);
@@ -249,11 +245,11 @@ namespace Lumos
 
 			for (auto& command : m_CommandQueue)
 			{
-				Maths::Matrix4* modelMat = reinterpret_cast<Maths::Matrix4*>((reinterpret_cast<uint64_t>(uboDataDynamic.model) + (index * dynamicAlignment)));
+				Maths::Matrix4* modelMat = reinterpret_cast<Maths::Matrix4*>((reinterpret_cast<uint64_t>(m_UBODataDynamic.model) + (index * m_DynamicAlignment)));
 				*modelMat = command.transform;
 				index++;
 			}
-			m_ModelUniformBuffer->SetDynamicData(static_cast<uint32_t>(MAX_OBJECTS * dynamicAlignment), sizeof(Maths::Matrix4), &*uboDataDynamic.model);
+			m_ModelUniformBuffer->SetDynamicData(static_cast<uint32_t>(MAX_OBJECTS * m_DynamicAlignment), sizeof(Maths::Matrix4), &*m_UBODataDynamic.model);
 		}
 
 		void DeferredOffScreenRenderer::Present()
@@ -271,9 +267,13 @@ namespace Lumos
 
 				m_Pipeline->SetActive(currentCMDBuffer);
 
-				uint32_t dynamicOffset = index * static_cast<uint32_t>(dynamicAlignment);
+				uint32_t dynamicOffset = index * static_cast<uint32_t>(m_DynamicAlignment);
 
-				Renderer::RenderMesh(mesh, m_Pipeline, currentCMDBuffer, dynamicOffset, m_DefaultDescriptorSet);
+				std::vector<Graphics::DescriptorSet*> descriptorSets;
+				descriptorSets.emplace_back(m_Pipeline->GetDescriptorSet());
+				descriptorSets.emplace_back(command.material ? command.material->GetDescriptorSet() : m_DefaultMaterial->GetDescriptorSet());
+
+				Renderer::RenderMesh(mesh, m_Pipeline, currentCMDBuffer, dynamicOffset, descriptorSets);
 
 				currentCMDBuffer->EndRecording();
 				currentCMDBuffer->ExecuteSecondary(m_DeferredCommandBuffers);
@@ -367,15 +367,15 @@ namespace Lumos
 				m_ModelUniformBuffer = Graphics::UniformBuffer::Create();
 				const size_t minUboAlignment = Graphics::GraphicsContext::GetContext()->GetMinUniformBufferOffsetAlignment();
 
-				dynamicAlignment = sizeof(Lumos::Maths::Matrix4);
+				m_DynamicAlignment = sizeof(Lumos::Maths::Matrix4);
 				if (minUboAlignment > 0)
 				{
-					dynamicAlignment = (dynamicAlignment + minUboAlignment - 1) & ~(minUboAlignment - 1);
+					m_DynamicAlignment = (m_DynamicAlignment + minUboAlignment - 1) & ~(minUboAlignment - 1);
 				}
 
-				uint32_t bufferSize2 = static_cast<uint32_t>(MAX_OBJECTS * dynamicAlignment);
+				uint32_t bufferSize2 = static_cast<uint32_t>(MAX_OBJECTS * m_DynamicAlignment);
 
-                uboDataDynamic.model = static_cast<Maths::Matrix4*>(Memory::AlignedAlloc(bufferSize2, dynamicAlignment));
+                m_UBODataDynamic.model = static_cast<Maths::Matrix4*>(Memory::AlignedAlloc(bufferSize2, m_DynamicAlignment));
 
 				m_ModelUniformBuffer->Init(bufferSize2, nullptr);
 			}
@@ -447,46 +447,10 @@ namespace Lumos
 			CreatePipeline();
 			CreateBuffer();
 			CreateFBO();
-			CreateDefaultDescriptorSet();
+
+			m_DefaultMaterial->CreateDescriptorSet(m_Pipeline, 1);
 
 			m_ClearColour = Maths::Vector4(0.8f, 0.8f, 0.8f, 1.0f);
-		}
-
-		void DeferredOffScreenRenderer::CreateDefaultDescriptorSet()
-		{
-			if (m_DefaultDescriptorSet)
-				delete m_DefaultDescriptorSet;
-
-			Graphics::DescriptorInfo info{};
-			info.pipeline = m_Pipeline;
-			info.layoutIndex = 1;
-			info.shader = m_Shader;
-			m_DefaultDescriptorSet = Graphics::DescriptorSet::Create(info);
-
-			std::vector<Graphics::ImageInfo> imageInfos;
-
-			Graphics::ImageInfo imageInfo = {};
-			imageInfo.texture = { m_DefaultTexture };
-			imageInfo.binding = 0;
-			imageInfo.name = "u_AlbedoMap";
-
-			imageInfos.push_back(imageInfo);
-
-			std::vector<Graphics::BufferInfo> bufferInfos;
-
-			Graphics::BufferInfo bufferInfo = {};
-			bufferInfo.buffer = m_DefaultMaterialDataUniformBuffer;
-			bufferInfo.offset = 0;
-			bufferInfo.size = sizeof(MaterialProperties);
-			bufferInfo.type = Graphics::DescriptorType::UNIFORM_BUFFER;
-			bufferInfo.binding = 6;
-			bufferInfo.shaderType = ShaderType::FRAGMENT;
-			bufferInfo.name = "UniformMaterialData";
-			bufferInfo.systemUniforms = false;
-
-			bufferInfos.push_back(bufferInfo);
-
-			m_DefaultDescriptorSet->Update(imageInfos, bufferInfos);
 		}
 	}
 }

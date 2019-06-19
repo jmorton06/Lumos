@@ -261,17 +261,19 @@ void main()
 {
 	vec4 colourTex   = texture(uColourSampler   , fragTexCoord);
 
-    if(colourTex.w < 0.1)
+	 if(colourTex.w < 0.1)
         discard;
 
-    vec3 positionTex = texture(uPositionSampler , fragTexCoord).rgb;
-    vec4 pbrTex		 = texture(uPBRSampler   , fragTexCoord);
-    vec3 normal      = normalize(texture(uNormalSampler, fragTexCoord).rgb);
+    vec4 positionTex = texture(uPositionSampler , fragTexCoord);
+    vec4 pbrTex		 = texture(uPBRSampler      , fragTexCoord);
+    vec4 normalTex   = texture(uNormalSampler   , fragTexCoord);
 
     vec3  spec      = vec3(pbrTex.x);
+
 	float roughness = pbrTex.y;
-	vec3 emissive	= vec3(pbrTex.w);
-    vec3 wsPos      = positionTex;
+	vec3 emissive	= vec3(positionTex.w, normalTex.w, pbrTex.w);// EncodeFloatRGBA(pbrTex.w).xyz;
+    vec3 wsPos      = positionTex.xyz;
+	vec3 normal		= normalize(normalTex.xyz);
 
     vec3 finalColour;
 

@@ -21,7 +21,7 @@ namespace Lumos
 			friend class Window;
 			GLRenderer(uint width, uint height);
 			~GLRenderer();
-            
+
             static GLRenderer* Instance() { return static_cast<GLRenderer*>(s_Instance); }
 
 			void Begin() override;
@@ -52,7 +52,7 @@ namespace Lumos
 			void SetStencilFunctionInternal(StencilType type, uint ref, uint mask) override;
 			void SetStencilOpInternal(StencilType fail, StencilType zfail, StencilType zpass) override;
 
-			void RenderMeshInternal(Mesh* mesh, Graphics::Pipeline* pipeline, Graphics::CommandBuffer* cmdBuffer, uint dynamicOffset, Graphics::DescriptorSet* descriptorSet, bool useMaterialDescriptorSet) override;
+			void RenderMeshInternal(Mesh* mesh, Graphics::Pipeline* pipeline, Graphics::CommandBuffer* cmdBuffer, uint dynamicOffset, std::vector<Graphics::DescriptorSet*>& descriptorSets) override;
 			void Render(VertexArray* vertexArray, IndexBuffer* indexBuffer, Graphics::CommandBuffer* cmdBuffer, std::vector<Graphics::DescriptorSet*>& descriptorSets, Graphics::Pipeline* pipeline, uint dynamicOffset) override;
 
 			Swapchain* GetSwapchainInternal() const override { return m_Swapchain; }

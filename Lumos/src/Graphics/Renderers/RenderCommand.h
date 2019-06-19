@@ -6,6 +6,8 @@
 
 namespace Lumos
 {
+	class Material;
+
 	namespace Graphics
 	{
 		struct LUMOS_EXPORT RendererUniform
@@ -17,6 +19,7 @@ namespace Lumos
 		struct LUMOS_EXPORT RenderCommand
 		{
 			Mesh* mesh;
+			Material* material;
 			Maths::Matrix4 transform;
 			Maths::Matrix4 textureMatrix;
 			std::vector<RendererUniform> uniforms;

@@ -14,13 +14,10 @@ namespace Lumos
 	{
 		class BoundingSphere;
 	}
-		
-	class Material;
 	
 	namespace Graphics
 	{
 		class Texture2D;
-		class Shader;
 
 		struct LUMOS_EXPORT BasicVertex
 		{
@@ -91,15 +88,13 @@ namespace Lumos
 
 			Mesh();
 			Mesh(const Mesh& mesh);
-			Mesh(std::shared_ptr<VertexArray>& vertexArray, std::shared_ptr<IndexBuffer>& indexBuffer, const std::shared_ptr<Material>& material, const std::shared_ptr<Maths::BoundingSphere>& boundingSphere);
+			Mesh(std::shared_ptr<VertexArray>& vertexArray, std::shared_ptr<IndexBuffer>& indexBuffer, const std::shared_ptr<Maths::BoundingSphere>& boundingSphere);
 
 			virtual ~Mesh();
 			virtual void Draw();
 			virtual void Draw(bool bindMaterial);
 
 			void Init();
-			void SetMaterial(const std::shared_ptr<Material>& material) { m_Material = material; }
-			std::shared_ptr<Material> GetMaterial() const { return m_Material; }
 			std::shared_ptr<VertexArray> GetVertexArray() const { return m_VertexArray; }
 			std::shared_ptr<IndexBuffer> GetIndexBuffer() const { return m_IndexBuffer; }
 			std::shared_ptr<Maths::BoundingSphere> GetBoundingSphere() const { return m_BoundingSphere; }
@@ -117,7 +112,6 @@ namespace Lumos
 
 			std::shared_ptr<VertexArray> m_VertexArray;
 			std::shared_ptr<IndexBuffer> m_IndexBuffer;
-			std::shared_ptr<Material> m_Material;
 
 			std::shared_ptr<Maths::BoundingSphere> m_BoundingSphere;
 
