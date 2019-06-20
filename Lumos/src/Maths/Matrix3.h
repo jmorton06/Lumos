@@ -115,7 +115,12 @@ namespace Lumos
 			}
 
 			inline Vector3 GetScalingVector() const { return Vector3(_11, _22, _33); }
-			inline void	SetScalingVector(const Vector3& in) { _11 = in.GetX(), _22 = in.GetY(), _33 = in.GetZ(); }
+			inline void	SetScalingVector(const Vector3& in)
+            {
+                _11 = in.GetX();
+                _22 = in.GetY();
+                _33 = in.GetZ();
+            }
 
 			inline void Transpose()
 			{

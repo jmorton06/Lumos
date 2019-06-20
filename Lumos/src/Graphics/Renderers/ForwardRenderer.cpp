@@ -40,7 +40,7 @@ namespace Lumos
 			delete m_DefaultTexture;
 			delete m_UniformBuffer;
 
-			AlignedFree(uboDataDynamic.model);
+            Memory::AlignedFree(uboDataDynamic.model);
 
 			delete m_ModelUniformBuffer;
 			delete m_RenderPass;
@@ -80,10 +80,12 @@ namespace Lumos
 						{
 							auto mesh = model->m_Model;
 							{
-								if (mesh->GetMaterial())
+								auto materialComponent = obj->GetComponent<MaterialComponent>();
+
+								if (materialComponent && materialComponent->GetMaterial())
 								{
-									if (mesh->GetMaterial()->GetDescriptorSet() == nullptr || mesh->GetMaterial()->GetPipeline() != m_GraphicsPipeline)
-										mesh->GetMaterial()->CreateDescriptorSet(m_GraphicsPipeline, 1, false);
+									if (materialComponent->GetMaterial()->GetDescriptorSet() == nullptr || materialComponent->GetMaterial()->GetPipeline() != m_GraphicsPipeline)
+										materialComponent->GetMaterial()->CreateDescriptorSet(m_GraphicsPipeline, 1, false);
 								}
 
 								TextureMatrixComponent* textureMatrixTransform = obj->GetComponent<TextureMatrixComponent>();
@@ -92,7 +94,7 @@ namespace Lumos
 									textureMatrix = textureMatrixTransform->m_TextureMatrix;
 								else
 									textureMatrix = Maths::Matrix4();
-								SubmitMesh(mesh.get(), obj->GetComponent<TransformComponent>()->GetTransform().GetWorldMatrix(), textureMatrix);
+								SubmitMesh(mesh.get(), materialComponent->GetMaterial().get(), obj->GetComponent<TransformComponent>()->GetTransform().GetWorldMatrix(), textureMatrix);
 							}
 						}
 					}
@@ -195,7 +197,7 @@ namespace Lumos
 
 			uint32_t bufferSize2 = static_cast<uint32_t>(MAX_OBJECTS * dynamicAlignment);
 
-			uboDataDynamic.model = static_cast<Maths::Matrix4*>(AlignedAlloc(bufferSize2, dynamicAlignment));
+            uboDataDynamic.model = static_cast<Maths::Matrix4*>(Memory::AlignedAlloc(bufferSize2, dynamicAlignment));
 
 			m_ModelUniformBuffer->Init(bufferSize2, nullptr);
 
@@ -266,12 +268,13 @@ namespace Lumos
 			m_CommandQueue.push_back(command);
 		}
 
-		void ForwardRenderer::SubmitMesh(Mesh* mesh, const Maths::Matrix4& transform, const Maths::Matrix4& textureMatrix)
+		void ForwardRenderer::SubmitMesh(Mesh* mesh, Material* material, const Maths::Matrix4& transform, const Maths::Matrix4& textureMatrix)
 		{
 			RenderCommand command;
 			command.mesh = mesh;
 			command.transform = transform;
 			command.textureMatrix = textureMatrix;
+			command.material = material;
 			Submit(command);
 		}
 
@@ -332,7 +335,11 @@ namespace Lumos
 
 				m_Shader->SetUserUniformBuffer(ShaderType::VERTEX, reinterpret_cast<byte*>(m_ModelUniformBuffer->GetBuffer()) + dynamicOffset, sizeof(Maths::Matrix4));
 
-				Renderer::RenderMesh(mesh, m_GraphicsPipeline, currentCMDBuffer, dynamicOffset, m_DefaultDescriptorSet);
+				std::vector<Graphics::DescriptorSet*> descriptorSets;
+				descriptorSets.emplace_back(m_Pipeline->GetDescriptorSet());
+				descriptorSets.emplace_back(m_DescriptorSet);
+
+				Renderer::RenderMesh(mesh, m_GraphicsPipeline, currentCMDBuffer, dynamicOffset, descriptorSets);
 
 				currentCMDBuffer->EndRecording();
 				currentCMDBuffer->ExecuteSecondary(commandBuffers[m_CurrentBufferID]);
@@ -423,13 +430,13 @@ namespace Lumos
 
 			std::vector<Graphics::DescriptorLayoutInfo> layoutInfo =
 			{
-				{ Graphics::DescriptorType::UNIFORM_BUFFER, Graphics::ShaderStage::VERTEX, 0 },
-				{ Graphics::DescriptorType::UNIFORM_BUFFER_DYNAMIC,Graphics::ShaderStage::VERTEX , 1 },
+				{ Graphics::DescriptorType::UNIFORM_BUFFER, Graphics::ShaderType::VERTEX, 0 },
+				{ Graphics::DescriptorType::UNIFORM_BUFFER_DYNAMIC,Graphics::ShaderType::VERTEX , 1 },
 			};
 
 			std::vector<Graphics::DescriptorLayoutInfo> layoutInfoMesh =
 			{
-				 { Graphics::DescriptorType::IMAGE_SAMPLER,Graphics::ShaderStage::FRAGMENT , 0 }
+				 { Graphics::DescriptorType::IMAGE_SAMPLER,Graphics::ShaderType::FRAGMENT , 0 }
 			};
 
 			auto attributeDescriptions = Vertex::getAttributeDescriptions();

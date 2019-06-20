@@ -7,6 +7,7 @@ namespace Lumos
 	class RenderList;
 	class Scene;
 	class Camera;
+	class Material;
 
 	namespace Graphics
 	{
@@ -34,7 +35,7 @@ namespace Lumos
 			virtual void Begin() = 0;
 			virtual void BeginScene(Scene* scene) = 0;
 			virtual void Submit(const RenderCommand& command) = 0;
-			virtual void SubmitMesh(Mesh* mesh, const Maths::Matrix4& transform, const Maths::Matrix4& textureMatrix) = 0;
+			virtual void SubmitMesh(Mesh* mesh, Material* material, const Maths::Matrix4& transform, const Maths::Matrix4& textureMatrix) = 0;
 			virtual void EndScene() = 0;
 			virtual void End() = 0;
 			virtual void Present() = 0;

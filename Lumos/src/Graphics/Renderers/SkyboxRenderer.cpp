@@ -66,7 +66,10 @@ namespace Lumos
 			SetSystemUniforms(m_Shader);
 			m_Pipeline->SetActive(m_CommandBuffers[m_CurrentBufferID]);
 
-			Renderer::RenderMesh(m_Skybox, m_Pipeline, m_CommandBuffers[m_CurrentBufferID], 0, nullptr);
+			std::vector<Graphics::DescriptorSet*> descriptorSets;
+			descriptorSets.emplace_back(m_Pipeline->GetDescriptorSet());
+
+			Renderer::RenderMesh(m_Skybox, m_Pipeline, m_CommandBuffers[m_CurrentBufferID], 0, descriptorSets);
 
 			End();
 
@@ -192,8 +195,8 @@ namespace Lumos
 
 			std::vector<Graphics::DescriptorLayoutInfo> layoutInfo =
 			{
-				{ Graphics::DescriptorType::UNIFORM_BUFFER, Graphics::ShaderStage::VERTEX, 0 },
-				{ Graphics::DescriptorType::IMAGE_SAMPLER,Graphics::ShaderStage::FRAGMENT , 1 }
+				{ Graphics::DescriptorType::UNIFORM_BUFFER, Graphics::ShaderType::VERTEX, 0 },
+				{ Graphics::DescriptorType::IMAGE_SAMPLER,Graphics::ShaderType::FRAGMENT , 1 }
 			};
 
 			auto attributeDescriptions = Vertex::getAttributeDescriptions();

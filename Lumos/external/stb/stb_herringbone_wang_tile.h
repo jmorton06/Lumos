@@ -1,4 +1,4 @@
-/* stbhw - v0.6 -  http://nothings.org/gamedev/herringbone
+/* stbhw - v0.7 -  http://nothings.org/gamedev/herringbone
    Herringbone Wang Tile Generator - Sean Barrett 2014 - public domain
 
 == LICENSE ==============================
@@ -140,6 +140,7 @@ int main(int argc, char **argv)
 
 == VERSION HISTORY ===================
 
+   0.7   2019-03-04   - fix warnings
 	0.6   2014-08-17   - fix broken map-maker
 	0.5   2014-07-07   - initial release 
 
@@ -166,7 +167,7 @@ int main(int argc, char **argv)
 typedef struct stbhw_tileset stbhw_tileset;
 
 // returns description of last error produced by any function (not thread-safe)
-STBHW_EXTERN char *stbhw_get_last_error(void);
+STBHW_EXTERN const char *stbhw_get_last_error(void);
 
 // build a tileset from an image that conforms to a template created by this
 // library. (you allocate storage for stbhw_tileset and function fills it out;
@@ -345,10 +346,10 @@ static signed char c_color[STB_HBWANG_MAX_Y+6][STB_HBWANG_MAX_X+6];
 static signed char v_color[STB_HBWANG_MAX_Y+6][STB_HBWANG_MAX_X+5];
 static signed char h_color[STB_HBWANG_MAX_Y+5][STB_HBWANG_MAX_X+6];
 
-static char *stbhw_error;
-STBHW_EXTERN char *stbhw_get_last_error(void)
+static const char *stbhw_error;
+STBHW_EXTERN const char *stbhw_get_last_error(void)
 {
-   char *temp = stbhw_error;
+   const char *temp = stbhw_error;
    stbhw_error = 0;
    return temp;
 }
@@ -717,7 +718,7 @@ STBHW_EXTERN int stbhw_generate_image(stbhw_tileset *ts, int **weighting, unsign
       // to avoid really obvious repetition (which happens easily with extreme weights)
       for (j=0; j < ymax-3; ++j) {
          for (i=0; i < xmax-3; ++i) {
-            int p = (i-j+1) & 3; // corner type
+            //int p = (i-j+1) & 3; // corner type   // unused, not sure what the intent was so commenting it out
             STB_HBWANG_ASSERT(i+3 < STB_HBWANG_MAX_X+6);
             STB_HBWANG_ASSERT(j+3 < STB_HBWANG_MAX_Y+6);
             if (stbhw__match(i,j) && stbhw__match(i,j+1) && stbhw__match(i,j+2)
@@ -747,7 +748,7 @@ STBHW_EXTERN int stbhw_generate_image(stbhw_tileset *ts, int **weighting, unsign
          } else {
             i = phase-4;
          }
-         for (i;; i += 4) {
+         for (;; i += 4) {
             int xpos = i * sidelen;
             if (xpos >= w)
                break;
@@ -798,7 +799,7 @@ STBHW_EXTERN int stbhw_generate_image(stbhw_tileset *ts, int **weighting, unsign
          } else {
             i = phase-4;
          }
-         for (i;; i += 4) {
+         for (;; i += 4) {
             int xpos = i * sidelen;
             if (xpos >= w)
                break;

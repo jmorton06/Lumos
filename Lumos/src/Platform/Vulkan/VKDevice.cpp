@@ -104,8 +104,6 @@ namespace Lumos
             surfaceInfo.pNext = NULL;
             surfaceInfo.pView = makeViewMetalCompatible((void*)glfwGetCocoaWindow(static_cast<GLFWwindow*>(m_VKContext->GetWindowContext())));
 			m_Surface = m_VKContext->GetVKInstance().createMacOSSurfaceMVK(surfaceInfo);
-
-			//glfwCreateWindowSurface(m_VKContext->GetVKInstance(), static_cast<GLFWwindow*>(m_VKContext->GetWindowContext()), nullptr, (VkSurfaceKHR*)&m_Surface);
 #endif
 
 #ifdef LUMOS_PLATFORM_WINDOWS
@@ -187,7 +185,7 @@ namespace Lumos
 			deviceCI.ppEnabledExtensionNames = deviceExtensions.data();
 			deviceCI.pEnabledFeatures = &deviceFeatures;
 
-			if (enableValidationLayers)
+			if (EnableValidationLayers)
 			{
 				deviceCI.enabledLayerCount = static_cast<uint32_t>(validationLayers.size());
 				deviceCI.ppEnabledLayerNames = validationLayers.data();

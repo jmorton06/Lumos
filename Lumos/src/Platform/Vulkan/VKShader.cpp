@@ -1,6 +1,7 @@
 #include "LM.h"
 #include "VKShader.h"
 #include "VKDevice.h"
+#include "VKTools.h"
 #include "System/FileSystem.h"
 #include "System/VFS.h"
 
@@ -24,21 +25,6 @@ namespace Lumos
 			Unload();
             delete[] m_ShaderStages;
 			m_ShaderStages = nullptr;
-		}
-
-		vk::ShaderStageFlagBits ShaderTypeToVK(const ShaderType& shaderName)
-		{
-			switch (shaderName)
-			{
-			case ShaderType::VERTEX: return vk::ShaderStageFlagBits::eVertex;
-			case ShaderType::GEOMETRY: return vk::ShaderStageFlagBits::eGeometry;
-			case ShaderType::FRAGMENT: return vk::ShaderStageFlagBits::eFragment;
-			case ShaderType::TESSELLATION_CONTROL: return vk::ShaderStageFlagBits::eTessellationControl;
-			case ShaderType::TESSELLATION_EVALUATION: return vk::ShaderStageFlagBits::eTessellationEvaluation;
-			case ShaderType::COMPUTE: return vk::ShaderStageFlagBits::eCompute;
-			case ShaderType::UNKNOWN: return vk::ShaderStageFlagBits::eVertex;
-			default: return vk::ShaderStageFlagBits::eVertex;
-			}
 		}
 
 		bool VKShader::Init()
@@ -70,13 +56,13 @@ namespace Lumos
 				vertexShaderCI.pCode = reinterpret_cast<uint32_t*>(source);
 				vertexShaderCI.pNext = VK_NULL_HANDLE;
 
-				m_ShaderStages[currentShaderStage].stage = ShaderTypeToVK(file.first);
+                m_ShaderStages[currentShaderStage].stage = VKTools::ShaderTypeToVK(file.first);
 				m_ShaderStages[currentShaderStage].pName = "main";
 				m_ShaderStages[currentShaderStage].pNext = VK_NULL_HANDLE;
 
 				m_ShaderStages[currentShaderStage].module = VKDevice::Instance()->GetDevice().createShaderModule(vertexShaderCI);
 
-                delete source;
+                delete[] source;
 
 				if (result != VK_SUCCESS)
                 {
