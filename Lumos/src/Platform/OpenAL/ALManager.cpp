@@ -20,7 +20,6 @@ namespace Lumos
 
 		ALManager::~ALManager()
         {
-            alcMakeContextCurrent(nullptr);
             alcDestroyContext(m_Context);
             alcCloseDevice(m_Device);
         }

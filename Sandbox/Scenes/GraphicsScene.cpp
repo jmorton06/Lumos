@@ -104,6 +104,7 @@ void GraphicsScene::LoadModels()
 	material->LoadMaterial("checkerboard", "/CoreTextures/checkerboard.tga");
 
 	heightmap->AddComponent<MaterialComponent>(material);
+    heightmap->SetBoundingRadius(800.0f);
 
 	//terrain->SetMaterial(std::make_shared<Material>(*m_MaterialManager->GetAsset("Stone").get()));
 	//terrain->SetMaterialFlag(Material::RenderFlags::WIREFRAME);
