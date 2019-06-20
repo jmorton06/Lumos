@@ -22,7 +22,7 @@ namespace Lumos
     {
 		ImGui::Separator();
 
-		if (m_Material && ImGui::TreeNode("Material"))
+		if (m_Material)
 		{
 			bool flipImage = Graphics::GraphicsContext::GetContext()->FlipImGUITexture();
 
@@ -349,8 +349,6 @@ namespace Lumos
 			ImGui::Separator();
 
 			m_Material->SetMaterialProperites(*prop);
-
-			ImGui::TreePop();
 		}
     }
 }
