@@ -134,5 +134,7 @@ namespace Lumos
         
         std::unique_ptr<T> newComponent(new T(std::forward<Args>(args) ...));
         AddComponent(std::move(newComponent));
+        
+        return newComponent.get();
     }
 }
