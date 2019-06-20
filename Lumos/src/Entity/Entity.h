@@ -24,6 +24,9 @@ namespace Lumos
 
 		template<typename T, typename... Args>
 		void AddComponent(Args&&... args);
+        
+        template <typename T, typename... Args>
+        T* GetOrAddComponent(Args&&... args);
 
 		template <typename T>
 		T* GetComponent() const
@@ -36,6 +39,27 @@ namespace Lumos
 		{
 			return static_cast<T*>(GetComponentInternal<T>());
 		}
+        
+        template <typename T>
+        bool HasComponent()
+        {
+            ComponentType type = T::GetStaticType();
+            auto it = m_Components.find(type);
+            if (it == m_Components.end())
+                return false;
+            
+            return true;
+        }
+        
+        template <typename T>
+        void RemoveComponent()
+        {
+            ComponentType type = T::GetStaticType();
+            auto it = m_Components.find(type);
+            if (it == m_Components.end())
+                return;
+            m_Components.erase(it);
+        }
 
 		void OnRenderObject();
 		virtual void OnUpdateObject(float dt);
@@ -99,4 +123,16 @@ namespace Lumos
 		std::unique_ptr<T> component(new T(std::forward<Args>(args) ...));
 		AddComponent(std::move(component));
 	}
+    
+    template<typename T, typename ... Args>
+    inline T* Entity::GetOrAddComponent(Args && ...args)
+    {
+        auto component = GetComponent<T>();
+        
+        if(component != nullptr)
+            return component;
+        
+        std::unique_ptr<T> newComponent(new T(std::forward<Args>(args) ...));
+        AddComponent(std::move(newComponent));
+    }
 }
