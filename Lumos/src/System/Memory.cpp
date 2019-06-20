@@ -2,36 +2,44 @@
 #include "Memory.h"
 #include <new>
 
-static void* newFunc(std::size_t size)
+#ifdef LUMOS_LEAK_CHECK
+#define STB_LEAKCHECK_IMPLEMENTATION
+#include <stb/stb_leakcheck.h>
+
+static void* newFunc(std::size_t size, const char *file, int line)
 {
-	void* p = nullptr;
-	while ((p = Memory::malloc(size)) == nullptr) 
-	{
-		void(*l_handler)() = std::set_new_handler(nullptr);
-		std::set_new_handler(l_handler);
-		if (l_handler == nullptr) 
-		{
-			return nullptr;
-
-		}
-
-		l_handler();
-	}
+	void* p = stb_leakcheck_malloc(size, file, line);
 	return p;
 }
 
 static void deleteFunc(void* p)
 {
-	if (p == nullptr)
-	{
-		return;
-	}
-	Memory::free(p);
+	stb_leakcheck_free(p);
 }
 
 void* operator new(std::size_t size)
 {
-	void* result = newFunc(size);
+	void* result = newFunc(size, __FILE__, __LINE__);
+	if (result == nullptr)
+	{
+		throw std::bad_alloc();
+	}
+	return result;
+}
+
+void* operator new(std::size_t size, const char *file, int line)
+{
+	void* result = newFunc(size, file, line);
+	if (result == nullptr)
+	{
+		throw std::bad_alloc();
+	}
+	return result;
+}
+
+void* operator new[](std::size_t size, const char *file, int line)
+{
+	void* result = newFunc(size, file, line);
 	if (result == nullptr)
 	{
 		throw std::bad_alloc();
@@ -41,7 +49,7 @@ void* operator new(std::size_t size)
 
 void* operator new (std::size_t size, const std::nothrow_t& nothrow_value) noexcept
 {
-	return newFunc(size);
+	return newFunc(size, __FILE__, __LINE__);
 }
 
 void operator delete(void * p) throw()
@@ -51,7 +59,7 @@ void operator delete(void * p) throw()
 
 void* operator new[](std::size_t size)
 {
-	void* result = newFunc(size);
+	void* result = newFunc(size, __FILE__, __LINE__);
 	if (result == nullptr)
 	{
 		throw std::bad_alloc();
@@ -63,3 +71,5 @@ void operator delete[](void *p) throw()
 {
 	deleteFunc(p);
 }
+
+#endif

@@ -102,7 +102,8 @@ void GraphicsScene::LoadModels()
 	auto material = std::make_shared<Material>();
 
 	material->LoadMaterial("checkerboard", "/CoreTextures/checkerboard.tga");
-	terrain->SetMaterial(material);
+
+	heightmap->AddComponent<MaterialComponent>(material);
 
 	//terrain->SetMaterial(std::make_shared<Material>(*m_MaterialManager->GetAsset("Stone").get()));
 	//terrain->SetMaterialFlag(Material::RenderFlags::WIREFRAME);

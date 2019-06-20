@@ -1,8 +1,9 @@
-// stb_divide.h - v0.91 - public domain - Sean Barrett, Feb 2010
+// stb_divide.h - v0.92 - public domain - Sean Barrett, Feb 2010
 // Three kinds of divide/modulus of signed integers.
 //
 // HISTORY
 //
+//   v0.92  2019-02-25  Fix warning
 //   v0.91  2010-02-27  Fix euclidean division by INT_MIN for non-truncating C
 //                      Check result with 64-bit math to catch such cases
 //   v0.90  2010-02-24  First public release
@@ -163,20 +164,21 @@ int stb_div_floor(int v1, int v2)
    #ifdef C_INTEGER_DIVISION_FLOORS
    return v1/v2;
    #else
-   if (v1 >= 0 && v2 < 0)
+   if (v1 >= 0 && v2 < 0) {
       if ((-v1)+v2+1 < 0) // check if increasing v1's magnitude overflows
          return -stb__div(-v1+v2+1,v2); // nope, so just compute it
       else
          return -stb__div(-v1,v2) + ((-v1)%v2 ? -1 : 0);
-   if (v1 < 0 && v2 >= 0)
-      if (v1 != INT_MIN)
+   }
+   if (v1 < 0 && v2 >= 0) {
+      if (v1 != INT_MIN) {
          if (v1-v2+1 < 0) // check if increasing v1's magnitude overflows
             return -stb__div(v1-v2+1,-v2); // nope, so just compute it
          else
             return -stb__div(-v1,v2) + (stb__mod(v1,-v2) ? -1 : 0);
-      else // it must be possible to compute -(v1+v2) without overflowing
+      } else // it must be possible to compute -(v1+v2) without overflowing
          return -stb__div(-(v1+v2),v2) + (stb__mod(-(v1+v2),v2) ? -2 : -1);
-   else
+   } else
       return v1/v2;           // same sign, so expect truncation
    #endif
 }

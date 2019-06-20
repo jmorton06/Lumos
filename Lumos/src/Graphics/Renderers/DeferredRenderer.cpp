@@ -72,6 +72,7 @@ namespace Lumos
 			delete m_ScreenQuad;
 			delete m_DescriptorSet;
 			delete m_LightSetup;
+            delete m_OffScreenRenderer;
 
 			delete[] m_PSSystemUniformBuffer;
 			for (auto& commandBuffer : m_CommandBuffers)
@@ -227,12 +228,13 @@ namespace Lumos
 			m_CommandQueue.push_back(command);
 		}
 
-		void DeferredRenderer::SubmitMesh(Mesh* mesh, const Maths::Matrix4& transform, const Maths::Matrix4& textureMatrix)
+		void DeferredRenderer::SubmitMesh(Mesh* mesh, Material* material, const Maths::Matrix4& transform, const Maths::Matrix4& textureMatrix)
 		{
 			RenderCommand command;
 			command.mesh = mesh;
 			command.transform = transform;
 			command.textureMatrix = textureMatrix;
+			command.material = material;
 			Submit(command);
 		}
 
@@ -299,7 +301,11 @@ namespace Lumos
 
 			m_Pipeline->SetActive(currentCMDBuffer);
 
-			Renderer::RenderMesh(m_ScreenQuad, m_Pipeline, currentCMDBuffer, 0, m_DescriptorSet);
+			std::vector<Graphics::DescriptorSet*> descriptorSets;
+			descriptorSets.emplace_back(m_Pipeline->GetDescriptorSet());
+			descriptorSets.emplace_back(m_DescriptorSet);
+
+			Renderer::RenderMesh(m_ScreenQuad, m_Pipeline, currentCMDBuffer, 0, descriptorSets);
 
 			currentCMDBuffer->EndRecording();
 			currentCMDBuffer->ExecuteSecondary(m_CommandBuffers[m_CommandBufferIndex]);
@@ -322,20 +328,20 @@ namespace Lumos
 
 			std::vector<Graphics::DescriptorLayoutInfo> layoutInfo =
 			{
-				{ Graphics::DescriptorType::UNIFORM_BUFFER, Graphics::ShaderStage::FRAGMENT, 0 },
+				{ Graphics::DescriptorType::UNIFORM_BUFFER, Graphics::ShaderType::FRAGMENT, 0 },
 
 			};
 
 			std::vector<Graphics::DescriptorLayoutInfo> layoutInfoMesh =
 			{
-				 { Graphics::DescriptorType::IMAGE_SAMPLER,Graphics::ShaderStage::FRAGMENT , 0 },
-				 { Graphics::DescriptorType::IMAGE_SAMPLER,Graphics::ShaderStage::FRAGMENT , 1 },
-				 { Graphics::DescriptorType::IMAGE_SAMPLER,Graphics::ShaderStage::FRAGMENT , 2 },
-				 { Graphics::DescriptorType::IMAGE_SAMPLER,Graphics::ShaderStage::FRAGMENT , 3 },
-				 { Graphics::DescriptorType::IMAGE_SAMPLER,Graphics::ShaderStage::FRAGMENT , 4 },
-				 { Graphics::DescriptorType::IMAGE_SAMPLER,Graphics::ShaderStage::FRAGMENT , 5 },
-				 { Graphics::DescriptorType::IMAGE_SAMPLER,Graphics::ShaderStage::FRAGMENT , 6 },
-				 { Graphics::DescriptorType::IMAGE_SAMPLER,Graphics::ShaderStage::FRAGMENT , 7 }
+				 { Graphics::DescriptorType::IMAGE_SAMPLER,Graphics::ShaderType::FRAGMENT , 0 },
+				 { Graphics::DescriptorType::IMAGE_SAMPLER,Graphics::ShaderType::FRAGMENT , 1 },
+				 { Graphics::DescriptorType::IMAGE_SAMPLER,Graphics::ShaderType::FRAGMENT , 2 },
+				 { Graphics::DescriptorType::IMAGE_SAMPLER,Graphics::ShaderType::FRAGMENT , 3 },
+				 { Graphics::DescriptorType::IMAGE_SAMPLER,Graphics::ShaderType::FRAGMENT , 4 },
+				 { Graphics::DescriptorType::IMAGE_SAMPLER,Graphics::ShaderType::FRAGMENT , 5 },
+				 { Graphics::DescriptorType::IMAGE_SAMPLER,Graphics::ShaderType::FRAGMENT , 6 },
+				 { Graphics::DescriptorType::IMAGE_SAMPLER,Graphics::ShaderType::FRAGMENT , 7 }
 			};
 
 			auto attributeDescriptions = Vertex::getAttributeDescriptions();
@@ -426,7 +432,7 @@ namespace Lumos
 			ImGui::Text("Number Of Renderables");
 			ImGui::NextColumn();
 			ImGui::PushItemWidth(-1);
-			ImGui::Text("%5.2i", m_CommandQueue.size());
+			ImGui::Text("%5.2lu", m_CommandQueue.size());
 			ImGui::PopItemWidth();
 			ImGui::NextColumn();
 

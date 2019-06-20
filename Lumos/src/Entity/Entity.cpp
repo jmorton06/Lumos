@@ -58,10 +58,10 @@ namespace Lumos
         if(m_DefaultTransformComponent && m_DefaultTransformComponent->GetTransform().HasUpdated())
         {
             if(!m_pParent)
-                m_DefaultTransformComponent->GetTransform().SetWorldMatrix(Maths::Matrix4());
+                m_DefaultTransformComponent->SetWorldMatrix(Maths::Matrix4());
 			else
 			{
-				m_DefaultTransformComponent->GetTransform().SetWorldMatrix(m_pParent->GetTransformComponent()->GetTransform().GetWorldMatrix());
+				m_DefaultTransformComponent->SetWorldMatrix(m_pParent->GetTransformComponent()->GetTransform().GetWorldMatrix());
 			}
 				
             
@@ -104,17 +104,12 @@ namespace Lumos
 
 	TransformComponent* Entity::GetTransformComponent()
 	{
-		auto transform = m_DefaultTransformComponent;
-
-		if (!transform)
+		if (!m_DefaultTransformComponent)
 		{
-			transform = GetComponent<TransformComponent>();
+			m_DefaultTransformComponent = GetComponent<TransformComponent>();
 
-			if(!transform)
+			if(!m_DefaultTransformComponent)
 				AddComponent<TransformComponent>();
-
-			if (!m_DefaultTransformComponent)
-				m_DefaultTransformComponent = GetComponent<TransformComponent>();
 		}
 
 		return m_DefaultTransformComponent;
@@ -193,7 +188,6 @@ namespace Lumos
 
 				ImGui::TreePop();
 			}
-      
         }
     }
     

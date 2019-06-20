@@ -429,12 +429,12 @@ namespace Lumos
 
 			std::vector<Graphics::DescriptorLayoutInfo> layoutInfo =
 			{
-				{ Graphics::DescriptorType::UNIFORM_BUFFER, Graphics::ShaderStage::VERTEX, 0 }
+				{ Graphics::DescriptorType::UNIFORM_BUFFER, Graphics::ShaderType::VERTEX, 0 }
 			};
 
 			std::vector<Graphics::DescriptorLayoutInfo> layoutInfoMesh =
 			{
-				 { Graphics::DescriptorType::IMAGE_SAMPLER,Graphics::ShaderStage::FRAGMENT , 0, RENDERER_MAX_TEXTURES }
+				 { Graphics::DescriptorType::IMAGE_SAMPLER,Graphics::ShaderType::FRAGMENT , 0, RENDERER_MAX_TEXTURES }
 			};
 
 			auto attributeDescriptions = VertexData::getAttributeDescriptions();

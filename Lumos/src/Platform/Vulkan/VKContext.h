@@ -4,9 +4,9 @@
 #include "VK.h"
 
 #ifdef LUMOS_DEBUG
-const bool enableValidationLayers = false;
+const bool EnableValidationLayers = false;
 #else
-const bool enableValidationLayers = false;
+const bool EnableValidationLayers = false;
 #endif
 
 namespace Lumos
@@ -44,12 +44,12 @@ namespace Lumos
 
 			void AddInstanceLayer(const char* instanceLayerName)
 			{
-				instanceLayers.push_back(instanceLayerName);
+				m_InstanceLayers.push_back(instanceLayerName);
 			}
 
 			void AddInstanceExtension(const char* instanceExtensionName)
 			{
-				instanceExtensions.push_back(instanceExtensionName);
+				m_InstanceExtensions.push_back(instanceExtensionName);
 			}
 
 			VKCommandPool* GetCommandPool() const { return m_CommandPool; }
@@ -67,11 +67,11 @@ namespace Lumos
 
 		private:
 
-			vk::Instance m_VkInstance{};
-			vk::DebugReportCallbackEXT callback{};
+			vk::Instance m_VkInstance;
+			vk::DebugReportCallbackEXT m_DebugCallback;
 
-			std::vector<const char*> instanceLayers;
-			std::vector<const char*> instanceExtensions;
+			std::vector<const char*> m_InstanceLayers;
+			std::vector<const char*> m_InstanceExtensions;
 
 			VKCommandPool* m_CommandPool;
 			void* m_WindowContext;

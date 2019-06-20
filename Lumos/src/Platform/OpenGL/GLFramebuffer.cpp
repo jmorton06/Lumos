@@ -50,8 +50,8 @@ namespace Lumos
 				}
 			}
 
-			if (GLRenderer::s_Instance != nullptr)
-				GLRenderer::s_Instance->SetRenderTargets(m_ColourAttachmentCount);
+			if (GLRenderer::Instance() != nullptr)
+				GLRenderer::Instance()->SetRenderTargets(m_ColourAttachmentCount);
 		}
 
 		GLFramebuffer::~GLFramebuffer()
@@ -76,8 +76,8 @@ namespace Lumos
 			GLCall(glBindFramebuffer(GL_DRAW_FRAMEBUFFER, m_Handle));
 			GLCall(glViewport(0, 0, width, height));
 
-			if (GLRenderer::s_Instance != nullptr)
-				GLRenderer::s_Instance->SetRenderTargets(m_ColourAttachmentCount);
+			if (GLRenderer::Instance() != nullptr)
+				GLRenderer::Instance()->SetRenderTargets(m_ColourAttachmentCount);
 		}
 
 		void GLFramebuffer::Bind() const

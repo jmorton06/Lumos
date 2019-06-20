@@ -83,20 +83,18 @@ namespace Lumos
 
 			delete[] m_apShadowRenderLists;
 			delete[] m_VSSystemUniformBuffer;
-
 			delete[] m_PushConstant->data;
+            
 			delete m_PushConstant;
-
 			delete m_DescriptorSet;
 			delete m_Pipeline;
 			delete m_UniformBuffer;
-
-			AlignedFree(uboDataDynamic.model);
-
 			delete m_ModelUniformBuffer;
 			delete m_CommandBuffer;
 			delete m_RenderPass;
 			delete m_Shader;
+            
+            Memory::AlignedFree(uboDataDynamic.model);
 		}
 
 		void ShadowRenderer::Init()
@@ -110,6 +108,7 @@ namespace Lumos
 			m_PushConstant->type = Graphics::PushConstantDataType::UINT;
 			m_PushConstant->size = sizeof(int32);
 			m_PushConstant->data = new byte[sizeof(int32)];
+            m_PushConstant->shaderStage = ShaderType::VERTEX;
 
 			// Per Scene System Uniforms
 			m_VSSystemUniformBufferOffsets[VSSystemUniformIndex_ProjectionViewMatrix] = 0;
@@ -174,7 +173,10 @@ namespace Lumos
 
 				uint32_t dynamicOffset = index * static_cast<uint32_t>(dynamicAlignment);
 
-				Renderer::RenderMesh(mesh, m_Pipeline, m_CommandBuffer, dynamicOffset, nullptr, false);
+				std::vector<Graphics::DescriptorSet*> descriptorSets;
+				descriptorSets.emplace_back(m_Pipeline->GetDescriptorSet());
+
+				Renderer::RenderMesh(mesh, m_Pipeline, m_CommandBuffer, dynamicOffset, descriptorSets);
 
 				index++;
 			}
@@ -243,7 +245,7 @@ namespace Lumos
 						{
 							auto mesh = model->m_Model;
 							{
-								SubmitMesh(mesh.get(), obj->GetComponent<TransformComponent>()->GetTransform().GetWorldMatrix(), Maths::Matrix4());
+								SubmitMesh(mesh.get(), nullptr, obj->GetComponent<TransformComponent>()->GetTransform().GetWorldMatrix(), Maths::Matrix4());
 							}
 						}
 					}
@@ -420,8 +422,8 @@ namespace Lumos
 
 			std::vector<Graphics::DescriptorLayoutInfo> layoutInfo =
 			{
-				{ Graphics::DescriptorType::UNIFORM_BUFFER, Graphics::ShaderStage::VERTEX, 0 },
-				{ Graphics::DescriptorType::UNIFORM_BUFFER_DYNAMIC,Graphics::ShaderStage::VERTEX , 1 },
+				{ Graphics::DescriptorType::UNIFORM_BUFFER, Graphics::ShaderType::VERTEX, 0 },
+				{ Graphics::DescriptorType::UNIFORM_BUFFER_DYNAMIC,Graphics::ShaderType::VERTEX , 1 },
 			};
 
 			auto attributeDescriptions = Vertex::getAttributeDescriptions();
@@ -479,7 +481,7 @@ namespace Lumos
 
 				uint32_t bufferSize2 = static_cast<uint32_t>(MAX_OBJECTS * dynamicAlignment);
 
-				uboDataDynamic.model = static_cast<Maths::Matrix4*>(AlignedAlloc(bufferSize2, dynamicAlignment));
+				uboDataDynamic.model = static_cast<Maths::Matrix4*>(Memory::AlignedAlloc(bufferSize2, dynamicAlignment));
 
 				m_ModelUniformBuffer->Init(bufferSize2, nullptr);
 			}
@@ -531,11 +533,12 @@ namespace Lumos
 			m_CommandQueue.emplace_back(command);
 		}
 
-		void ShadowRenderer::SubmitMesh(Mesh* mesh, const Maths::Matrix4& transform, const Maths::Matrix4& textureMatrix)
+		void ShadowRenderer::SubmitMesh(Mesh* mesh, Material* material, const Maths::Matrix4& transform, const Maths::Matrix4& textureMatrix)
 		{
 			RenderCommand command;
 			command.mesh = mesh;
 			command.transform = transform;
+			command.material = material;
 			Submit(command);
 		}
 	}

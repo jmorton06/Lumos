@@ -17,7 +17,8 @@ namespace Lumos
 	TransformComponent::TransformComponent()
 		: m_Transform()
 	{
-
+		m_Name = "Transform";
+		m_CanDisable = false;
 	}
 
 	void TransformComponent::OnUpdateComponent(float dt)

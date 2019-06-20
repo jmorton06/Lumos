@@ -202,8 +202,9 @@ namespace Lumos
 			ib.reset(Graphics::IndexBuffer::Create(indices, numIndices));// / sizeof(uint));
 
 			auto meshEntity = std::make_shared<Entity>(shape.name);
-            auto mesh = std::make_shared<Graphics::Mesh>(va, ib, pbrMaterial, boundingBox);
+            auto mesh = std::make_shared<Graphics::Mesh>(va, ib, boundingBox);
 			meshEntity->AddComponent<MeshComponent>(mesh);
+			meshEntity->AddComponent<MaterialComponent>(pbrMaterial);
 			meshEntity->AddComponent<TransformComponent>();
 			entity->AddChildObject(meshEntity);
 

@@ -154,9 +154,13 @@ void main()
 	vec3 emissive   = GetEmissive();
 	float ao		= GetAO();
 
-    outColor    = texColour;
+	outColor    = texColour;
 	outPosition = fragPosition;
 	outNormal   = vec4(GetNormalFromMap(),1.0);
-	outPBR      = vec4(specular,roughness, ao, emissive.r);
+	outPBR      = vec4(specular,roughness, ao, 1.0);
+
+	outPosition.w = emissive.x;
+	outNormal.w   = emissive.y;
+	outPBR.w      = emissive.z;
 }
 #shader end

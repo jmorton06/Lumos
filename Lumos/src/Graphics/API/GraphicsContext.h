@@ -48,9 +48,9 @@ namespace Lumos
 
 			static GraphicsContext* GetContext() { return s_Context; }
             virtual bool FlipImGUITexture() const = 0;
-            
+
 		protected:
-			
+
 			static GraphicsContext* s_Context;
 			static RenderAPI s_RenderAPI;
 
