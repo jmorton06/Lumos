@@ -52,7 +52,7 @@ namespace Lumos
 			PSSystemUniformIndex_LightCount,
 			PSSystemUniformIndex_ShadowCount,
 			PSSystemUniformIndex_RenderMode,
-			PSSystemUniformIndex_Padding,
+			PSSystemUniformIndex_ShadowMode,
 			PSSystemUniformIndex_Size
 		};
 
@@ -110,7 +110,7 @@ namespace Lumos
 			m_LightSetup = new LightSetup();
 			
 			// Pixel/fragment shader System uniforms
-			m_PSSystemUniformBufferSize = sizeof(Light) * MAX_LIGHTS + sizeof(Maths::Vector4) + sizeof(Maths::Matrix4) + (sizeof(Maths::Matrix4) + sizeof(Maths::Vector4))* MAX_SHADOWMAPS + sizeof(float) * 3 + sizeof(int);
+			m_PSSystemUniformBufferSize = sizeof(Light) * MAX_LIGHTS + sizeof(Maths::Vector4) + sizeof(Maths::Matrix4) + (sizeof(Maths::Matrix4) + sizeof(Maths::Vector4))* MAX_SHADOWMAPS + sizeof(float) * 2 + sizeof(int) * 2;
 			m_PSSystemUniformBuffer = new byte[m_PSSystemUniformBufferSize];
 			memset(m_PSSystemUniformBuffer, 0, m_PSSystemUniformBufferSize);
 			m_PSSystemUniformBufferOffsets.resize(PSSystemUniformIndex_Size);
@@ -124,6 +124,7 @@ namespace Lumos
 			m_PSSystemUniformBufferOffsets[PSSystemUniformIndex_LightCount]			= m_PSSystemUniformBufferOffsets[PSSystemUniformIndex_ShadowSplitDepths] + sizeof(Maths::Vector4) * MAX_SHADOWMAPS;
 			m_PSSystemUniformBufferOffsets[PSSystemUniformIndex_ShadowCount]		= m_PSSystemUniformBufferOffsets[PSSystemUniformIndex_LightCount] + sizeof(float);
 			m_PSSystemUniformBufferOffsets[PSSystemUniformIndex_RenderMode]			= m_PSSystemUniformBufferOffsets[PSSystemUniformIndex_ShadowCount] + sizeof(float);
+            m_PSSystemUniformBufferOffsets[PSSystemUniformIndex_ShadowMode]         = m_PSSystemUniformBufferOffsets[PSSystemUniformIndex_RenderMode] + sizeof(int);
 
 			m_RenderPass = Graphics::RenderPass::Create();
 
@@ -272,6 +273,7 @@ namespace Lumos
             memcpy(m_PSSystemUniformBuffer + m_PSSystemUniformBufferOffsets[PSSystemUniformIndex_LightCount], &numLights, sizeof(float));
             memcpy(m_PSSystemUniformBuffer + m_PSSystemUniformBufferOffsets[PSSystemUniformIndex_ShadowCount], &numShadows, sizeof(float));
             memcpy(m_PSSystemUniformBuffer + m_PSSystemUniformBufferOffsets[PSSystemUniformIndex_RenderMode], &m_RenderMode, sizeof(int));
+            memcpy(m_PSSystemUniformBuffer + m_PSSystemUniformBufferOffsets[PSSystemUniformIndex_ShadowMode], &m_ShadowMode, sizeof(int));
 		}
 
 		void DeferredRenderer::EndScene()
@@ -416,9 +418,20 @@ namespace Lumos
 			case 4 : return "AO";
 			case 5 : return "Emissive";
 			case 6 : return "Normal";
+            case 7 : return "Shadow Cascades";
 			default: return "Lighting";
 			}
 		}
+        
+        String ShadowModeToString(int mode)
+        {
+            switch (mode)
+            {
+                case 0 : return "Normal";
+                case 1 : return "PCF";
+                default: return "Normal";
+            }
+        }
 
 		void DeferredRenderer::OnIMGUI()
 		{
@@ -437,23 +450,35 @@ namespace Lumos
 			ImGui::NextColumn();
 
 			ImGui::AlignTextToFramePadding();
-			ImGui::Text("RenderMode");
+			ImGui::Text("Render Mode");
 			ImGui::NextColumn();
 			ImGui::PushItemWidth(-1);
 			if (ImGui::BeginMenu(RenderModeToString(m_RenderMode).c_str()))
 			{
-				if (ImGui::MenuItem(RenderModeToString(0).c_str(), "", m_RenderMode == 0, true)) { m_RenderMode = 0; }
-				if (ImGui::MenuItem(RenderModeToString(1).c_str(), "", m_RenderMode == 1, true)) { m_RenderMode = 1; }
-				if (ImGui::MenuItem(RenderModeToString(2).c_str(), "", m_RenderMode == 2, true)) { m_RenderMode = 2; }
-				if (ImGui::MenuItem(RenderModeToString(3).c_str(), "", m_RenderMode == 3, true)) { m_RenderMode = 3; }
-				if (ImGui::MenuItem(RenderModeToString(4).c_str(), "", m_RenderMode == 4, true)) { m_RenderMode = 4; }
-				if (ImGui::MenuItem(RenderModeToString(5).c_str(), "", m_RenderMode == 5, true)) { m_RenderMode = 5; }
-				if (ImGui::MenuItem(RenderModeToString(6).c_str(), "", m_RenderMode == 6, true)) { m_RenderMode = 6; }
-
+                const int numRenderModes = 8;
+                
+                for(int i = 0; i < numRenderModes; i++)
+                {
+                        if (ImGui::MenuItem(RenderModeToString(i).c_str(), "", m_RenderMode == i, true)) { m_RenderMode = i; }
+                }
 				ImGui::EndMenu();
 			}
 			ImGui::PopItemWidth();
 			ImGui::NextColumn();
+            
+            ImGui::AlignTextToFramePadding();
+            ImGui::Text("Shadow Mode");
+            ImGui::NextColumn();
+            ImGui::PushItemWidth(-1);
+            if (ImGui::BeginMenu(ShadowModeToString(m_ShadowMode).c_str()))
+            {
+                if (ImGui::MenuItem(ShadowModeToString(0).c_str(), "", m_ShadowMode == 0, true)) { m_ShadowMode = 0; }
+                if (ImGui::MenuItem(ShadowModeToString(1).c_str(), "", m_ShadowMode == 1, true)) { m_ShadowMode = 1; }
+                
+                ImGui::EndMenu();
+            }
+            ImGui::PopItemWidth();
+            ImGui::NextColumn();
 
 			ImGui::Columns(1);
 			ImGui::Separator();
