@@ -38,7 +38,7 @@ layout(std140, binding = 0) uniform UniformBufferLight
 	float lightCount;
 	float shadowCount;
 	int mode;
-	float p1;
+	int shadowMode;
 } ubo;
 
 #define PI 3.1415926535897932384626433832795
@@ -246,8 +246,12 @@ void main()
 	
 	vec4 shadowCoord = (biasMat * ubo.uShadowTransform[cascadeIndex]) * vec4(wsPos, 1.0);
 
-	//float shadow = filterPCF(shadowCoord / shadowCoord.w, cascadeIndex);
-	float shadow = textureProj(shadowCoord / shadowCoord.w, vec2(0.0f), cascadeIndex);
+    float shadow = 0;
+    
+    if(ubo.shadowMode == 0)
+        shadow = textureProj(shadowCoord / shadowCoord.w, vec2(0.0f), cascadeIndex);
+    else
+        shadow = filterPCF(shadowCoord / shadowCoord.w, cascadeIndex);
 
 	for(int i = 0; i < ubo.lightCount; ++i)
 	{
@@ -306,6 +310,15 @@ void main()
 			case 6:
 				outColor = vec4(normal,1.0);
 				break;
+            case 7:
+                switch(cascadeIndex)
+                {
+                    case 0 : outColor = outColor * vec4(0.8,0.2,0.2,1.0); break;
+                    case 1 : outColor = outColor * vec4(0.2,0.8,0.2,1.0); break;
+                    case 2 : outColor = outColor * vec4(0.2,0.2,0.8,1.0); break;
+                    case 3 : outColor = outColor * vec4(0.8,0.8,0.2,1.0); break;
+                }
+                break;
 		}
 	}
 }
