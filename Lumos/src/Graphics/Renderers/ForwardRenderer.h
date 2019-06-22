@@ -60,19 +60,16 @@ namespace Lumos
 
 			Maths::Vector4 m_ClearColour;
 
-			DescriptorSet* m_DefaultDescriptorSet;
-			Pipeline* m_GraphicsPipeline;
-
 			Texture2D* m_DefaultTexture;
 
 			UniformBuffer* m_UniformBuffer;
 			UniformBuffer* m_ModelUniformBuffer;
 
-			std::vector<Lumos::Graphics::CommandBuffer*> commandBuffers;
+			std::vector<Lumos::Graphics::CommandBuffer*> m_CommandBuffers;
 			std::vector<Framebuffer*> m_Framebuffers;
 
-			size_t dynamicAlignment;
-			UniformBufferModel uboDataDynamic;
+			size_t m_DynamicAlignment;
+			UniformBufferModel m_UBODataDynamic;
 
 			uint m_CurrentBufferID = 0;
 
