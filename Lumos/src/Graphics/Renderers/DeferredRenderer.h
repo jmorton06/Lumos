@@ -22,7 +22,7 @@ namespace Lumos
 		class LUMOS_EXPORT DeferredRenderer : public Renderer3D
 		{
 		public:
-			DeferredRenderer(uint width, uint height);
+			DeferredRenderer(uint width, uint height, bool renderToGBuffer = false);
 			~DeferredRenderer() override;
 
 			void RenderScene(RenderList* renderList, Scene* scene) override;

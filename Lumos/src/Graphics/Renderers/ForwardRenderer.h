@@ -15,7 +15,7 @@ namespace Lumos
 		class LUMOS_EXPORT ForwardRenderer : public Renderer3D
 		{
 		public:
-			ForwardRenderer(uint width, uint height);
+			ForwardRenderer(uint width, uint height, bool renderToGBuffer = false);
 			~ForwardRenderer() override;
 			void RenderScene(RenderList* renderList, Scene* scene) override;
 

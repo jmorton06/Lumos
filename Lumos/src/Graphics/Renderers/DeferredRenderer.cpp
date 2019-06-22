@@ -56,10 +56,11 @@ namespace Lumos
 			PSSystemUniformIndex_Size
 		};
 
-		DeferredRenderer::DeferredRenderer(uint width, uint height)
+		DeferredRenderer::DeferredRenderer(uint width, uint height, bool renderToGBuffer)
 		{
 			DeferredRenderer::SetScreenBufferSize(width, height);
 			DeferredRenderer::Init();
+            SetRenderToGBufferTexture(renderToGBuffer);
 		}
 
 		DeferredRenderer::~DeferredRenderer()
@@ -397,14 +398,17 @@ namespace Lumos
 
 		void DeferredRenderer::SetRenderToGBufferTexture(bool set)
 		{
-			m_RenderToGBufferTexture = true;
-			m_RenderTexture = Application::Instance()->GetRenderManager()->GetGBuffer()->GetTexture(SCREENTEX_OFFSCREEN0);
-
-			for (auto fbo : m_Framebuffers)
-				delete fbo;
-			m_Framebuffers.clear();
-
-			CreateFramebuffers();
+            if(set)
+            {
+                m_RenderToGBufferTexture = true;
+                m_RenderTexture = Application::Instance()->GetRenderManager()->GetGBuffer()->GetTexture(SCREENTEX_OFFSCREEN0);
+                
+                for (auto fbo : m_Framebuffers)
+                    delete fbo;
+                m_Framebuffers.clear();
+                
+                CreateFramebuffers();
+            }
 		}
 
 		String RenderModeToString(int mode)

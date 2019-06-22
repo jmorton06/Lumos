@@ -27,10 +27,11 @@ namespace Lumos
 {
 	namespace Graphics
 	{
-		ForwardRenderer::ForwardRenderer(uint width, uint height)
+		ForwardRenderer::ForwardRenderer(uint width, uint height, bool renderToGBuffer)
 		{
 			SetScreenBufferSize(width, height);
 			ForwardRenderer::Init();
+            SetRenderToGBufferTexture(renderToGBuffer);
 		}
 
 		ForwardRenderer::~ForwardRenderer()
@@ -353,14 +354,17 @@ namespace Lumos
 
 		void ForwardRenderer::SetRenderToGBufferTexture(bool set)
 		{
-			m_RenderToGBufferTexture = true;
-			m_RenderTexture = Application::Instance()->GetRenderManager()->GetGBuffer()->GetTexture(SCREENTEX_OFFSCREEN0);
+            if(set)
+            {
+                m_RenderToGBufferTexture = true;
+                m_RenderTexture = Application::Instance()->GetRenderManager()->GetGBuffer()->GetTexture(SCREENTEX_OFFSCREEN0);
 
-			for (auto fbo : m_Framebuffers)
-				delete fbo;
-			m_Framebuffers.clear();
+                for (auto fbo : m_Framebuffers)
+                    delete fbo;
+                m_Framebuffers.clear();
 
-			CreateFramebuffers();
+                CreateFramebuffers();
+            }
 		}
 
 		void ForwardRenderer::OnResize(uint width, uint height)
