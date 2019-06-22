@@ -25,7 +25,7 @@ namespace Lumos
 		class LUMOS_EXPORT Renderer2D
 		{
 		public:
-			Renderer2D(uint width, uint height);
+			Renderer2D(uint width, uint height, bool renderToGBuffer = false);
 			virtual ~Renderer2D();
 
 			virtual void Init();

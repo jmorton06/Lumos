@@ -24,13 +24,15 @@ namespace Lumos
 {
 	namespace Graphics
 	{
-		SkyboxRenderer::SkyboxRenderer(uint width, uint height, Texture* cubeMap) : m_UniformBuffer(nullptr), m_CubeMap(nullptr)
+		SkyboxRenderer::SkyboxRenderer(uint width, uint height, Texture* cubeMap, bool renderToGBuffer) : m_UniformBuffer(nullptr), m_CubeMap(nullptr)
 		{
 			m_Pipeline = nullptr;
 			m_CubeMap = cubeMap;
 
 			SetScreenBufferSize(width, height);
 			Init();
+            
+            SetRenderToGBufferTexture(renderToGBuffer);
 		}
 
 		SkyboxRenderer::~SkyboxRenderer()
@@ -157,14 +159,17 @@ namespace Lumos
 
 		void SkyboxRenderer::SetRenderToGBufferTexture(bool set)
 		{
-			m_RenderToGBufferTexture = true;
-			m_RenderTexture = Application::Instance()->GetRenderManager()->GetGBuffer()->GetTexture(SCREENTEX_OFFSCREEN0);
-
-			for (auto fbo : m_Framebuffers)
-				delete fbo;
-			m_Framebuffers.clear();
-
-			CreateFramebuffers();
+            if(set)
+            {
+                m_RenderToGBufferTexture = true;
+                m_RenderTexture = Application::Instance()->GetRenderManager()->GetGBuffer()->GetTexture(SCREENTEX_OFFSCREEN0);
+                
+                for (auto fbo : m_Framebuffers)
+                    delete fbo;
+                m_Framebuffers.clear();
+                
+                CreateFramebuffers();
+            }
 		}
 
 		void SkyboxRenderer::OnResize(uint width, uint height)

@@ -15,7 +15,7 @@ namespace Lumos
 		class LUMOS_EXPORT SkyboxRenderer : public Renderer3D
 		{
 		public:
-			SkyboxRenderer(uint width, uint height, Texture* cubeMap);
+			SkyboxRenderer(uint width, uint height, Texture* cubeMap, bool renderToGBuffer = false);
 			~SkyboxRenderer();
 			//void Render(Graphics::CommandBuffer* commandBuffer, Scene* scene, int framebufferId);
 

@@ -33,11 +33,13 @@ namespace Lumos
 {
 	namespace Graphics
 	{
-		Renderer2D::Renderer2D(uint width, uint height) : m_IndexCount(0), m_RenderTexture(nullptr), m_Buffer(nullptr)
+		Renderer2D::Renderer2D(uint width, uint height, bool renderToGBuffer) : m_IndexCount(0), m_RenderTexture(nullptr), m_Buffer(nullptr)
 		{
 			SetScreenBufferSize(width, height);
 
 			Init();
+            
+            SetRenderToGBufferTexture(renderToGBuffer);
 		}
 
 		Renderer2D::~Renderer2D()
@@ -538,14 +540,17 @@ namespace Lumos
 
 		void Renderer2D::SetRenderToGBufferTexture(bool set)
 		{
-			m_RenderToGBufferTexture = true;
-			m_RenderTexture = Application::Instance()->GetRenderManager()->GetGBuffer()->GetTexture(SCREENTEX_OFFSCREEN0);
-
-			for (auto fbo : m_Framebuffers)
-				delete fbo;
-			m_Framebuffers.clear();
-
-			CreateFramebuffers();
+            if(set)
+            {
+                m_RenderToGBufferTexture = true;
+                m_RenderTexture = Application::Instance()->GetRenderManager()->GetGBuffer()->GetTexture(SCREENTEX_OFFSCREEN0);
+                
+                for (auto fbo : m_Framebuffers)
+                    delete fbo;
+                m_Framebuffers.clear();
+                
+                CreateFramebuffers();
+            }
 		}
 	}
 }
