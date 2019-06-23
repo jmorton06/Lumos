@@ -352,13 +352,14 @@ namespace Lumos
 			ImGui::DockBuilderRemoveNode(dockspace_id);
 			ImGui::DockBuilderAddNode(dockspace_id);
 
-			ImGuiID dock_main_id = dockspace_id; 
-			ImGuiID dock_id_bottom = ImGui::DockBuilderSplitNode(dock_main_id, ImGuiDir_Down, 0.2f, nullptr, &dock_main_id);
-			ImGuiID dock_id_left = ImGui::DockBuilderSplitNode(dock_main_id, ImGuiDir_Left, 0.2f, nullptr, &dock_main_id);
-			ImGuiID dock_id_right = ImGui::DockBuilderSplitNode(dock_main_id, ImGuiDir_Right, 0.3f, nullptr, &dock_main_id);
+			ImGuiID dock_main_id    = dockspace_id;
+			ImGuiID dock_id_bottom  = ImGui::DockBuilderSplitNode(dock_main_id, ImGuiDir_Down, 0.2f, nullptr, &dock_main_id);
+			ImGuiID dock_id_left    = ImGui::DockBuilderSplitNode(dock_main_id, ImGuiDir_Left, 0.2f, nullptr, &dock_main_id);
+            ImGuiID dock_id_right  = ImGui::DockBuilderSplitNode(dock_main_id, ImGuiDir_Right, 0.3f, nullptr, &dock_main_id);
+			ImGuiID dock_id_middle   = ImGui::DockBuilderSplitNode(dock_main_id, ImGuiDir_Right, 0.8f, nullptr, &dock_main_id);
 
-			ImGui::DockBuilderDockWindow("Scene", dock_id_right);
-			ImGui::DockBuilderDockWindow("Inspector", dock_id_left);
+			ImGui::DockBuilderDockWindow("Scene", dock_id_middle);
+			ImGui::DockBuilderDockWindow("Inspector", dock_id_right);
 			ImGui::DockBuilderDockWindow("Hierarchy", dock_id_left);
 			ImGui::DockBuilderDockWindow("Console", dock_id_bottom);
 			ImGui::DockBuilderDockWindow("Engine", dock_id_left);
