@@ -4,6 +4,7 @@
 #include "App/Application.h"
 #include "Entity/Entity.h"
 #include "Maths/Maths.h"
+#include "System/JobSystem.h"
 
 #include "Graphics/RenderManager.h"
 #include "Graphics/Camera/Camera.h"
@@ -26,6 +27,7 @@
 
 #define MAX_LIGHTS 32
 #define MAX_SHADOWMAPS 16
+//#define THREAD_RENDER_SUBMIT
 
 namespace Lumos
 {
@@ -256,8 +258,16 @@ namespace Lumos
 		{
 			int index = 0;
 
-			for (auto& command : m_CommandQueue)
-			{
+#ifdef THREAD_RENDER_SUBMIT
+            System::JobSystem::Dispatch(static_cast<uint32>(m_CommandQueue.size()), 16, [&](JobDispatchArgs args)
+#else
+            for (uint i = 0; i < static_cast<uint32>(m_CommandQueue.size()); i++)
+#endif
+            {
+#ifdef THREAD_RENDER_SUBMIT
+                int i = args.jobIndex;
+#endif
+                auto command = m_CommandQueue[i];
 				Mesh* mesh = command.mesh;
 
 				Graphics::CommandBuffer* currentCMDBuffer = mesh->GetCommandBuffer(0);
@@ -279,8 +289,12 @@ namespace Lumos
 				currentCMDBuffer->ExecuteSecondary(m_DeferredCommandBuffers);
 
 				index++;
-			}
 		}
+#ifdef THREAD_RENDER_SUBMIT
+            );
+            System::JobSystem::Wait();
+#endif
+        }
 
 		void DeferredOffScreenRenderer::CreatePipeline()
 		{

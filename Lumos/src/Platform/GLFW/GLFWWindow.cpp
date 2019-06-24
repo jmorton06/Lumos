@@ -58,6 +58,7 @@ namespace Lumos
 
 		if(s_NumGLFWWindows < 1)
 		{
+            s_GLFWInitialized = false;
 			glfwTerminate();
 		}
 	}
@@ -73,8 +74,9 @@ namespace Lumos
 			glfwSetErrorCallback(GLFWErrorCallback);
 
 			s_GLFWInitialized = true;
-			s_NumGLFWWindows++;
 		}
+        
+        s_NumGLFWWindows++;
 
 #ifdef LUMOS_PLATFORM_MACOS
         if (m_Data.m_RenderAPI == Graphics::RenderAPI::OPENGL)
