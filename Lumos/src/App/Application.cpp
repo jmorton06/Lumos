@@ -160,7 +160,7 @@ namespace Lumos
 		{
 			m_UpdateTimer += Engine::Instance()->TargetFrameRate();
 #endif
-
+            
 			m_TimeStep->Update(now);
 
 			{
@@ -175,6 +175,8 @@ namespace Lumos
 
 			Input::GetInput().ResetPressed();
 			m_Window->OnUpdate();
+            
+            m_SceneManager->ApplySceneSwitch();
 
 			if (Input::GetInput().GetKeyPressed(LUMOS_KEY_ESCAPE))
 				m_CurrentState = AppState::Closing;
@@ -224,9 +226,9 @@ namespace Lumos
 		if (Input::GetInput().GetKeyPressed(InputCode::Key::K)) CommonUtils::AddPyramid(m_SceneManager->GetCurrentScene());
 		if (Input::GetInput().GetKeyPressed(InputCode::Key::L)) CommonUtils::AddLightCube(m_SceneManager->GetCurrentScene());
 
-		if (Input::GetInput().GetKeyPressed(InputCode::Key::E)) m_SceneManager->JumpToScene((sceneIdx + 1) % sceneMax);
-		if (Input::GetInput().GetKeyPressed(InputCode::Key::Q)) m_SceneManager->JumpToScene((sceneIdx == 0 ? sceneMax : sceneIdx) - 1);
-		if (Input::GetInput().GetKeyPressed(InputCode::Key::R)) m_SceneManager->JumpToScene(sceneIdx);
+		if (Input::GetInput().GetKeyPressed(InputCode::Key::E)) m_SceneManager->SwitchScene((sceneIdx + 1) % sceneMax);
+		if (Input::GetInput().GetKeyPressed(InputCode::Key::Q)) m_SceneManager->SwitchScene((sceneIdx == 0 ? sceneMax : sceneIdx) - 1);
+		if (Input::GetInput().GetKeyPressed(InputCode::Key::R)) m_SceneManager->SwitchScene(sceneIdx);
 		if (Input::GetInput().GetKeyPressed(InputCode::Key::V)) m_Window->ToggleVSync();
 
 #ifdef LUMOS_EDITOR

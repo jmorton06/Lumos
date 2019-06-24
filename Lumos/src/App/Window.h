@@ -8,8 +8,6 @@
 
 namespace Lumos
 {
-	class Texture2D;
-
 	struct LUMOS_EXPORT WindowProperties
 	{
         WindowProperties(uint width = 1280, uint height = 720, int renderAPI = 0, String title = "Lumos", bool fullscreen = false, bool vSync = true, bool borderless = false) : Width(width), Height(height), Title(title), Fullscreen(fullscreen), VSync(vSync), Borderless(borderless), RenderAPI(renderAPI)

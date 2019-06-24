@@ -84,6 +84,21 @@ namespace Lumos
 				if (ImGui::MenuItem("Inspector", "")) {}
 				ImGui::EndMenu();
 			}
+            
+            if (ImGui::BeginMenu("Scenes"))
+            {
+                auto scenes = Application::Instance()->GetSceneManager()->GetSceneNames();
+                
+                for(size_t i = 0; i < scenes.size(); i++)
+                {
+                    auto name = scenes[i];
+                    if (ImGui::MenuItem(name.c_str()))
+                    {
+                        Application::Instance()->GetSceneManager()->SwitchScene(name);
+                    }
+                }
+                ImGui::EndMenu();
+            }
 
             bool flipImage = Graphics::GraphicsContext::GetContext()->FlipImGUITexture();
 			ImGui::SameLine(ImGui::GetWindowContentRegionMax().x / 2.0f);
