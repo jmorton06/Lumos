@@ -1,5 +1,7 @@
 #include "LM.h"
 
+#include "App/Application.h"
+
 #if defined(LUMOS_PLATFORM_MACOS)
 #ifndef VK_USE_PLATFORM_MACOS_MVK
 #define VK_USE_PLATFORM_MACOS_MVK
