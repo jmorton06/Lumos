@@ -123,33 +123,31 @@ namespace Lumos
         if (node == nullptr)
             return;
         
-        if(node->GetChildren().empty())
+        bool noChildren = node->GetChildren().empty();
+        
+        ImGuiTreeNodeFlags nodeFlags = ((m_Selected == node.get()) ? ImGuiTreeNodeFlags_Selected : 0);
+        
+        nodeFlags |= ImGuiTreeNodeFlags_OpenOnArrow | ImGuiTreeNodeFlags_OpenOnDoubleClick;
+        
+        if(noChildren)
         {
-            ImGui::Indent();
-            if(ImGui::Selectable((node->GetName() + " ##" + node->GetUUID()).c_str(), m_Selected == node.get()))
-               m_Selected = node.get();
-            ImGui::Unindent();
+            nodeFlags |= ImGuiTreeNodeFlags_Leaf;
         }
-        else
+        
+        bool nodeOpen = ImGui::TreeNodeEx(("##" + node->GetUUID()).c_str(), nodeFlags, node->GetName().c_str(), 0);
+        if (ImGui::IsItemClicked())
+            m_Selected = node.get();
+        
+        if (nodeOpen == false)
+            return;
+        
+        for (auto child : node->GetChildren())
         {
-            ImGuiTreeNodeFlags nodeFlags = ((m_Selected == node.get()) ? ImGuiTreeNodeFlags_Selected : 0);
-            
-            nodeFlags |= ImGuiTreeNodeFlags_OpenOnArrow | ImGuiTreeNodeFlags_OpenOnDoubleClick;
-            bool nodeOpen = ImGui::TreeNodeEx(("##" + node->GetUUID()).c_str(), nodeFlags, node->GetName().c_str(), 0);
-            if (ImGui::IsItemClicked())
-                m_Selected = node.get();
-            
-            if (nodeOpen == false)
-                return;
-            
-            for (auto child : node->GetChildren())
-            {
-                this->DrawNode(child);
-            }
-            
-            if(nodeOpen)
-                ImGui::TreePop();
+            this->DrawNode(child);
         }
+        
+        if(nodeOpen)
+            ImGui::TreePop();
     }
 
 	void Editor::DrawHierarchyWindow()
