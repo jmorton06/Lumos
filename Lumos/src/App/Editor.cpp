@@ -125,6 +125,24 @@ namespace Lumos
         
         bool noChildren = node->GetChildren().empty();
         
+        if (ImGui::BeginDragDropSource(ImGuiDragDropFlags_None))
+        {
+            ImGui::SetDragDropPayload("Entity", node.get(), sizeof(Entity*));
+            ImGui::Text("Moving %s", node->GetName().c_str());
+            ImGui::EndDragDropSource();
+        }
+        
+        if (ImGui::BeginDragDropTarget())
+        {
+            if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("Entity"))
+            {
+                auto entity = static_cast<Entity*>(payload->Data);
+                node->SetParent(entity);
+                entity->AddChildObject(node); //TODO : fix this
+            }
+            ImGui::EndDragDropTarget();
+        }
+        
         ImGuiTreeNodeFlags nodeFlags = ((m_Selected == node.get()) ? ImGuiTreeNodeFlags_Selected : 0);
         
         nodeFlags |= ImGuiTreeNodeFlags_OpenOnArrow | ImGuiTreeNodeFlags_OpenOnDoubleClick;
