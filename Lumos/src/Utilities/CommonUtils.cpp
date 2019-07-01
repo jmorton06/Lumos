@@ -183,7 +183,7 @@ namespace Lumos
 		meshEntity->AddComponent<TransformComponent>(Maths::Matrix4::Scale(halfdims) * Maths::Matrix4::RotationX(-90.0f));
 		meshEntity->SetBoundingRadius(halfdims.Length());
 		
-		Cube->AddChildObject(meshEntity);
+		Cube->AddChild(meshEntity);
 
 		if (physics_enabled)
 		{

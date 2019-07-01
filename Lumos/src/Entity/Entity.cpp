@@ -14,7 +14,7 @@
 
 namespace Lumos
 {
-	Entity::Entity(const String& name) : m_Name(name),m_pParent(nullptr), m_BoundingRadius(1),
+	Entity::Entity(const String& name) : m_Name(name),m_Parent(nullptr), m_BoundingRadius(1),
 	                                     m_FrustumCullFlags(0), m_Active(true)
 	{
         Init();
@@ -57,15 +57,15 @@ namespace Lumos
         
         if(m_DefaultTransformComponent && m_DefaultTransformComponent->GetTransform().HasUpdated())
         {
-            if(!m_pParent)
+            if(!m_Parent)
                 m_DefaultTransformComponent->SetWorldMatrix(Maths::Matrix4());
 			else
 			{
-				m_DefaultTransformComponent->SetWorldMatrix(m_pParent->GetTransformComponent()->GetTransform().GetWorldMatrix());
+				m_DefaultTransformComponent->SetWorldMatrix(m_Parent->GetTransformComponent()->GetTransform().GetWorldMatrix());
 			}
 				
             
-            for(auto child : m_vpChildren)
+            for(auto child : m_Children)
             {
                 if(child && child->GetTransformComponent())
                     child->GetTransformComponent()->SetWorldMatrix(m_DefaultTransformComponent->GetTransform().GetWorldMatrix());
@@ -80,10 +80,26 @@ namespace Lumos
         }
 	}
 
-	void Entity::AddChildObject(std::shared_ptr<Entity>& child)
+	void Entity::AddChild(std::shared_ptr<Entity>& child)
 	{
-		m_vpChildren.push_back(child);
-		child->m_pParent = this;
+		if (child->m_Parent)
+			child->m_Parent->RemoveChild(this);
+
+		child->GetTransformComponent()->GetTransform().SetHasUpdated(true);
+
+		child->m_Parent = this;
+		m_Children.push_back(child);
+	}
+
+	void Entity::RemoveChild(Entity* child)
+	{
+		for (size_t i = 0; i < m_Children.size(); i++)
+		{
+			if (m_Children[i].get() == child)
+			{
+				m_Children.erase(m_Children.begin() + i);
+			}
+		}
 	}
 
 	void Entity::DebugDraw(uint64 debugFlags)
@@ -167,7 +183,7 @@ namespace Lumos
         ImGui::Text("%s", "Parent");
         ImGui::NextColumn();
         ImGui::PushItemWidth(-1);
-        ImGui::Text("%s", m_pParent ? m_pParent->GetName().c_str() : "No Parent");
+        ImGui::Text("%s", m_Parent ? m_Parent->GetName().c_str() : "No Parent");
         ImGui::PopItemWidth();
         ImGui::NextColumn();
         
@@ -178,7 +194,17 @@ namespace Lumos
         for(auto& component: m_Components)
         {
 			ImGui::Separator();
-			if(ImGui::TreeNode(component.second->GetName().c_str()))
+			bool open = ImGui::TreeNode(component.second->GetName().c_str());
+
+			static float value = 0.5f;
+			if (ImGui::BeginPopupContextItem("item context menu", 3)) 
+			{
+				if (ImGui::Selectable("Copy")) value = 0.0f;
+				if (ImGui::Selectable("Paste")) value = 3.1415f;
+				ImGui::EndPopup();
+			}
+
+			if(open)
 			{
 				if (component.second->GetCanDisable())
 				{
@@ -193,8 +219,11 @@ namespace Lumos
     
     void Entity::SetParent(Entity *parent)
     {
-        m_pParent = parent;
-        m_DefaultTransformComponent->SetWorldMatrix(m_pParent->GetTransformComponent()->GetTransform().GetWorldMatrix());
+		if (m_Parent != nullptr)
+			m_Parent->RemoveChild(this);
+
+        m_Parent = parent;
+        m_DefaultTransformComponent->SetWorldMatrix(m_Parent->GetTransformComponent()->GetTransform().GetWorldMatrix());
     }
 
 	const bool Entity::ActiveInHierarchy() const
@@ -202,8 +231,8 @@ namespace Lumos
 		if (!Active())
 			return false;
 
-		if (m_pParent)
-			return m_pParent->ActiveInHierarchy();
+		if (m_Parent)
+			return m_Parent->ActiveInHierarchy();
 		else
 			return true;
 	}
@@ -212,7 +241,7 @@ namespace Lumos
 	{
 		m_Active = active;
 
-		for (auto child : m_vpChildren)
+		for (auto child : m_Children)
 		{
 			child->SetActive(active);
 		}

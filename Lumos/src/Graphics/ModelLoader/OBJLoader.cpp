@@ -206,7 +206,7 @@ namespace Lumos
 			meshEntity->AddComponent<MeshComponent>(mesh);
 			meshEntity->AddComponent<MaterialComponent>(pbrMaterial);
 			meshEntity->AddComponent<TransformComponent>();
-			entity->AddChildObject(meshEntity);
+			entity->AddChild(meshEntity);
 
 			delete[] vertices;
 			delete[] indices;

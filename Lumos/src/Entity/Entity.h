@@ -67,8 +67,9 @@ namespace Lumos
 		virtual void OnGuizmo(uint mode = 0);
 		virtual void Init();
 
-		std::vector<std::shared_ptr<Entity>>& GetChildren() { return m_vpChildren; }
-		void AddChildObject(std::shared_ptr<Entity>& child);
+		std::vector<std::shared_ptr<Entity>>& GetChildren() { return m_Children; }
+		void AddChild(std::shared_ptr<Entity>& child);
+		void RemoveChild(Entity* child);
 
 		void  SetBoundingRadius(float radius) { m_BoundingRadius = radius; }
 		float GetBoundingRadius() const { return m_BoundingRadius; }
@@ -107,14 +108,14 @@ namespace Lumos
 		}
 
 		String					m_Name;
-		Entity*					m_pParent;
 		float					m_BoundingRadius;
 		uint					m_FrustumCullFlags;
 		String                  m_UUID;
 		bool					m_Active;
 		TransformComponent*		m_DefaultTransformComponent = nullptr;
 		
-		std::vector<std::shared_ptr<Entity>> m_vpChildren;
+		Entity* m_Parent;
+		std::vector<std::shared_ptr<Entity>> m_Children;
 	};
 
 	template<typename T, typename ... Args>
