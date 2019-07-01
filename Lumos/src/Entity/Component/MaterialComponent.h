@@ -2,6 +2,11 @@
 #include "LM.h"
 #include "LumosComponent.h"
 
+namespace ImGui
+{
+    class FileBrowser;
+}
+
 namespace Lumos
 {
     class Material;
@@ -10,6 +15,7 @@ namespace Lumos
     {
     public:
         explicit MaterialComponent(std::shared_ptr<Material>& material);
+        virtual ~MaterialComponent();
         
         static ComponentType GetStaticType()
         {
@@ -26,5 +32,6 @@ namespace Lumos
         const std::shared_ptr<Material>& GetMaterial() const { return m_Material; }
     private:
         std::shared_ptr<Material> m_Material;
+        ImGui::FileBrowser* m_FileDialog;
     };
 }
