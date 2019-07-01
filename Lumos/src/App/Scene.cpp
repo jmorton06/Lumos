@@ -130,7 +130,7 @@ namespace Lumos
 		if (game_object->GetComponent<Physics3DComponent>())
 			game_object->GetComponent<Physics3DComponent>()->m_PhysicsObject->AutoResizeBoundingBox();
 
-		m_RootEntity->AddChildObject(game_object);
+		m_RootEntity->AddChild(game_object);
 	}
 
 

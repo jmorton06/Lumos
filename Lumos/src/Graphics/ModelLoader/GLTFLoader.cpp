@@ -411,7 +411,7 @@ namespace Lumos
         meshEntity->AddComponent<TransformComponent>();
         
         if(parent)
-            parent->AddChildObject(meshEntity);
+            parent->AddChild(meshEntity);
         
         if(node.mesh >= 0)
         {
