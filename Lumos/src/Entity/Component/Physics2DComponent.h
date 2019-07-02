@@ -13,14 +13,6 @@ namespace Lumos
 	public:
 		explicit Physics2DComponent(std::shared_ptr<PhysicsObject2D>& physics);
 
-		static ComponentType GetStaticType()
-		{
-			static ComponentType type(ComponentType::Physics2D);
-			return type;
-		}
-
-		inline virtual ComponentType GetType() const override { return GetStaticType(); }
-
 		void OnUpdateComponent(float dt) override;
 		void OnIMGUI() override;
 	};

@@ -304,7 +304,7 @@ namespace Lumos
 
 			SetSystemUniforms(m_Shader);
 
-			scene->IterateEntities([&](std::shared_ptr<Entity> obj)
+			scene->IterateEntities([&](Entity* obj)
 			{
 				if (obj != nullptr)
 				{

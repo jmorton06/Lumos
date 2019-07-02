@@ -19,7 +19,7 @@ namespace Lumos
 	struct LUMOS_EXPORT RenderList_Object
 	{
 		float cam_dist_sq;
-		std::weak_ptr<Entity> target_obj;
+		Entity* target_obj;
 	};
 
 	class LUMOS_EXPORT RenderList
@@ -44,10 +44,10 @@ namespace Lumos
 		void RemoveExcessObjects(const Maths::Frustum& frustum);
 
 		//Called when object moves inside the frustum (Inserts via insertion sort)
-		void InsertObject(std::shared_ptr<Entity>& obj);
+		void InsertObject(Entity* obj);
 
 		//Misc. Removes a single object from the list, in general just call 'RemoveExcessObjects' and let it remove the object automatically
-		void RemoveObject(std::shared_ptr<Entity>& obj);
+		void RemoveObject(Entity* obj);
 
 		//Clears the entire list
 		void RemoveAllObjects();

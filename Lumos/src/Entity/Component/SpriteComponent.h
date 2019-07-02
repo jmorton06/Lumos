@@ -16,15 +16,7 @@ namespace Lumos
 	public:
 		explicit SpriteComponent(std::shared_ptr<Graphics::Sprite>& sprite);
 
-		static ComponentType GetStaticType()
-		{
-			static ComponentType type(ComponentType::Sprite);
-			return type;
-		}
-
 		void OnUpdateComponent(float dt) override;
-
-		inline virtual ComponentType GetType() const override { return GetStaticType(); }
 
 		void OnIMGUI() override;
 	};

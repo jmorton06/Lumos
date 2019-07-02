@@ -2,6 +2,7 @@
 
 #include "LM.h"
 #include "Component/Components.h"
+#include "ComponentManager.h"
 
 struct EnumClassHash
 {
@@ -16,12 +17,10 @@ namespace Lumos
 {
 	class LUMOS_EXPORT Entity
 	{
+		friend class EntityManager;
 	protected:
 		std::unordered_map<ComponentType, std::unique_ptr<LumosComponent>, EnumClassHash> m_Components;
 	public:
-		explicit Entity(const String& name = "");
-		virtual ~Entity();
-
 		template<typename T, typename... Args>
 		void AddComponent(Args&&... args);
         
@@ -43,7 +42,7 @@ namespace Lumos
         template <typename T>
         bool HasComponent()
         {
-            ComponentType type = T::GetStaticType();
+            ComponentType type = ComponentManager::Instance()->GetComponentType<T>();//T::GetStaticType();
             auto it = m_Components.find(type);
             if (it == m_Components.end())
                 return false;
@@ -54,7 +53,7 @@ namespace Lumos
         template <typename T>
         void RemoveComponent()
         {
-            ComponentType type = T::GetStaticType();
+			ComponentType type = ComponentManager::Instance()->GetComponentType<T>();//T::GetStaticType();
             auto it = m_Components.find(type);
             if (it == m_Components.end())
                 return;
@@ -67,8 +66,8 @@ namespace Lumos
 		virtual void OnGuizmo(uint mode = 0);
 		virtual void Init();
 
-		std::vector<std::shared_ptr<Entity>>& GetChildren() { return m_Children; }
-		void AddChild(std::shared_ptr<Entity>& child);
+		std::vector<Entity*>& GetChildren() { return m_Children; }
+		void AddChild(Entity* child);
 		void RemoveChild(Entity* child);
 
 		void  SetBoundingRadius(float radius) { m_BoundingRadius = radius; }
@@ -90,17 +89,20 @@ namespace Lumos
 		void SetActive(bool active) { m_Active = active; };
 		void SetActiveRecursive(bool active);
 
+	protected:
+		explicit Entity(const String& name = "");
+		virtual ~Entity();
 	private:
 
 		Entity(Entity const&) = delete;
 		Entity& operator=(Entity const&) = delete;
 
-		void AddComponent(std::unique_ptr<LumosComponent> component);
+		void AddComponent(std::unique_ptr<LumosComponent> component, ComponentType type);
 
 		template <typename T>
 		T* GetComponentInternal() const
 		{
-			ComponentType type = T::GetStaticType();
+			ComponentType type = ComponentManager::Instance()->GetComponentType<T>();
 			auto it = m_Components.find(type);
 			if (it == m_Components.end())
 				return nullptr;
@@ -115,14 +117,14 @@ namespace Lumos
 		TransformComponent*		m_DefaultTransformComponent = nullptr;
 		
 		Entity* m_Parent;
-		std::vector<std::shared_ptr<Entity>> m_Children;
+		std::vector<Entity*> m_Children;
 	};
 
 	template<typename T, typename ... Args>
 	inline void Entity::AddComponent(Args && ...args)
 	{
 		std::unique_ptr<T> component(new T(std::forward<Args>(args) ...));
-		AddComponent(std::move(component));
+		AddComponent(std::move(component), ComponentManager::Instance()->GetComponentType<T>());
 	}
     
     template<typename T, typename ... Args>
@@ -134,7 +136,7 @@ namespace Lumos
             return component;
         
         std::unique_ptr<T> newComponent(new T(std::forward<Args>(args) ...));
-        AddComponent(std::move(newComponent));
+        AddComponent(std::move(newComponent), ComponentManager::Instance()->GetComponentType<T>());
         
         return newComponent.get();
     }

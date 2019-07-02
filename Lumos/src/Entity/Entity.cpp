@@ -29,15 +29,15 @@ namespace Lumos
         m_UUID = Maths::GenerateUUID();
     }
 
-	void Entity::AddComponent(std::unique_ptr<LumosComponent> component)
+	void Entity::AddComponent(std::unique_ptr<LumosComponent> component, ComponentType type)
 	{
         component->SetEntity(this);
 		component->Init();
         
-        if(component->GetType() == ComponentType::Transform)
+        if(type == ComponentManager::Instance()->GetComponentType<TransformComponent>())// == ComponentType::Transform)
             m_DefaultTransformComponent = reinterpret_cast<TransformComponent*>(component.get());
         
-		m_Components[component->GetType()] = std::move(component);
+		m_Components[type] = std::move(component);
 	}
 
 	void Entity::OnRenderObject()
@@ -80,10 +80,10 @@ namespace Lumos
         }
 	}
 
-	void Entity::AddChild(std::shared_ptr<Entity>& child)
+	void Entity::AddChild(Entity* child)
 	{
 		if (child->m_Parent)
-			child->m_Parent->RemoveChild(this);
+			child->m_Parent->RemoveChild(child);
 
 		child->GetTransformComponent()->GetTransform().SetHasUpdated(true);
 
@@ -95,7 +95,7 @@ namespace Lumos
 	{
 		for (size_t i = 0; i < m_Children.size(); i++)
 		{
-			if (m_Children[i].get() == child)
+			if (m_Children[i] == child)
 			{
 				m_Children.erase(m_Children.begin() + i);
 			}

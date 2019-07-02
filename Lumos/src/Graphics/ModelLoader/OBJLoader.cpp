@@ -3,6 +3,7 @@
 #include "Graphics/Mesh.h"
 #include "Graphics/Material.h"
 #include "Entity/Entity.h"
+#include "Entity/EntityManager.h"
 #include "Entity/Component/MeshComponent.h"
 #include "Graphics/API/Textures/Texture2D.h"
 #include "Maths/BoundingSphere.h"
@@ -35,7 +36,7 @@ namespace Lumos
 		}
 	}
 
-	std::shared_ptr<Entity> ModelLoader::LoadOBJ(const String& path)
+	Entity* ModelLoader::LoadOBJ(const String& path)
 	{
 		String resolvedPath = path;
 		tinyobj::attrib_t attrib;
@@ -59,7 +60,7 @@ namespace Lumos
 			LUMOS_CORE_ERROR(error);
 		}
 
-		auto entity = std::make_shared<Entity>(name);
+		auto entity = EntityManager::Instance()->CreateEntity(name);
 
 		for (const auto& shape : shapes)
 		{
@@ -201,7 +202,7 @@ namespace Lumos
 			std::shared_ptr<Graphics::IndexBuffer> ib;
 			ib.reset(Graphics::IndexBuffer::Create(indices, numIndices));// / sizeof(uint));
 
-			auto meshEntity = std::make_shared<Entity>(shape.name);
+			auto meshEntity = EntityManager::Instance()->CreateEntity(shape.name);
             auto mesh = std::make_shared<Graphics::Mesh>(va, ib, boundingBox);
 			meshEntity->AddComponent<MeshComponent>(mesh);
 			meshEntity->AddComponent<MaterialComponent>(pbrMaterial);

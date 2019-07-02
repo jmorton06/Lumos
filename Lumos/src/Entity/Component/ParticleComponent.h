@@ -15,17 +15,9 @@ namespace Lumos
     public:
         explicit ParticleComponent(std::shared_ptr<ParticleEmitter>& emitter);
 
-        static ComponentType GetStaticType()
-        {
-            static ComponentType type(ComponentType::Particle);
-            return type;
-        }
-
         void Init() override;
 		void DebugDraw(uint64 debugFlags) override;
         void OnUpdateComponent(float dt) override;
-
-        inline virtual ComponentType GetType() const override { return GetStaticType(); }
 
 		void OnIMGUI() override;
     };
