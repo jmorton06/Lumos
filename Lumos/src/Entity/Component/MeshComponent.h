@@ -17,15 +17,7 @@ namespace Lumos
 		explicit MeshComponent(std::shared_ptr<Graphics::Mesh>& model);
 		explicit MeshComponent(Graphics::Mesh* mesh);
 
-		static ComponentType GetStaticType()
-		{
-			static ComponentType type(ComponentType::Mesh);
-			return type;
-		}
-
 		void OnUpdateComponent(float dt) override;
-
-		inline virtual ComponentType GetType() const override { return GetStaticType(); }
 
 		void OnIMGUI() override;
 	};

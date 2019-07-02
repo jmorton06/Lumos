@@ -6,30 +6,13 @@
 namespace Lumos 
 {
 	class Entity;
-
-	enum class ComponentType
-	{
-		Mesh,
-        Light,
-        AI,
-        Particle,
-        Physics2D,
-        Physics3D,
-        Sound,
-        Sprite,
-        TextureMatrix,
-        Transform,
-		Camera,
-        Material,
-        Error
-	};
+	using ComponentType = std::uint8_t;
 
 	class LUMOS_EXPORT LumosComponent
 	{
 	public:
 		virtual ~LumosComponent() = default;
 		virtual Entity* GetEntity() { return m_Entity; }
-        virtual ComponentType GetType() const { return ComponentType::Error; }
 
 		virtual void Init() {}; //Called After entity is set
 		virtual void OnRenderComponent() {};

@@ -41,7 +41,7 @@ namespace Lumos
 	{
 		for (const auto& node : m_vRenderListOpaque)
 		{
-			per_object_func(node.target_obj.lock().get());
+			per_object_func(node.target_obj);
 		}
 	}
 
@@ -50,7 +50,7 @@ namespace Lumos
 		if (m_SupportsTransparancy)
 		{
 			for (const auto& node : m_vRenderListTransparent) {
-				per_object_func(node.target_obj.lock().get());
+				per_object_func(node.target_obj);
 			}
 		}
 	}
@@ -69,7 +69,7 @@ namespace Lumos
 #pragma omp parallel for
 			for (auto &i : list)
 			{
-				i.cam_dist_sq = (i.target_obj.lock()->GetComponent<TransformComponent>()->GetTransform().GetWorldMatrix().GetPositionVector() - m_CameraPos).LengthSquared() * mul;
+				i.cam_dist_sq = (i.target_obj->GetComponent<TransformComponent>()->GetTransform().GetWorldMatrix().GetPositionVector() - m_CameraPos).LengthSquared() * mul;
 			}
 		};
 
@@ -121,10 +121,7 @@ namespace Lumos
 #pragma omp parallel for
 			for (int i = 0; i < size; ++i)
 			{
-				if (list[i].target_obj.expired())
-					break;
-
-				Entity* entity = list[i].target_obj.lock().get();
+				Entity* entity = list[i].target_obj;
 
 				if (!entity->ActiveInHierarchy() || !frustum.InsideFrustum(entity->GetComponent<TransformComponent>()->GetTransform().GetWorldMatrix().GetPositionVector(), entity->GetBoundingRadius()))
 				{
@@ -136,7 +133,7 @@ namespace Lumos
 			int n_removed = 0;
 			for (int i = 0; i < size; ++i)
 			{
-				if (list[i].target_obj.expired() || !(list[i].target_obj.lock()->GetFrustumCullFlags() & m_BitMask))
+				if (!(list[i].target_obj->GetFrustumCullFlags() & m_BitMask))
 				{
 					n_removed++;
 				}
@@ -162,7 +159,7 @@ namespace Lumos
 			mark_objects_for_removal(m_vRenderListTransparent);
 	}
 
-	void RenderList::InsertObject(std::shared_ptr<Entity>& obj)
+	void RenderList::InsertObject(Entity* obj)
 	{
 		const bool isOpaque = true;// obj->IsOpaque();	TODO:
 		if (!m_SupportsTransparancy && !isOpaque)
@@ -221,7 +218,7 @@ namespace Lumos
 #endif
 	}
 
-	void RenderList::RemoveObject(std::shared_ptr<Entity>& obj)
+	void RenderList::RemoveObject(Entity* obj)
 	{
 		const bool isOpaque = true;// obj->IsOpaque(); TODO:
 		if (!m_SupportsTransparancy && !isOpaque)
@@ -237,7 +234,7 @@ namespace Lumos
 		uint idx = 0;
 		for (uint i = 0; !found && i < new_size; ++i)
 		{
-			if ((*target_list)[i].target_obj.lock().get() == obj.get())
+			if ((*target_list)[i].target_obj == obj)
 			{
 				found = true;
 				idx = i;
@@ -269,9 +266,9 @@ namespace Lumos
 #pragma omp parallel for
 			for (int i = 0; i < size; ++i)
 			{
-				if (!list[i].target_obj.expired())
+				if (!list[i].target_obj)
 				{
-					Entity* obj = list[i].target_obj.lock().get();
+					Entity* obj = list[i].target_obj;
 					obj->GetFrustumCullFlags() &= ~m_BitMask;
 				}
 			}

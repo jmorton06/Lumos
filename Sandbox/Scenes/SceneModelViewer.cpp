@@ -19,6 +19,7 @@ void SceneModelViewer::OnInit()
 	LoadModels();
 
 	m_pCamera = new MayaCamera(-20.0f, -40.0f, Maths::Vector3(-1.0f, 1.0f, 2.0f), 45.0f, 0.1f, 1000.0f, (float) m_ScreenWidth / (float) m_ScreenHeight);
+	Application::Instance()->GetAudioManager()->SetListener(m_pCamera);
 
 	String environmentFiles[11] =
 	{
@@ -39,7 +40,7 @@ void SceneModelViewer::OnInit()
 
 	auto sun = std::make_shared<Graphics::Light>(Maths::Vector3(26.0f, 22.0f, 48.5f), Maths::Vector4(1.0f), 2.0f);
 
-	auto lightEntity = std::make_shared<Entity>("Directional Light");
+	auto lightEntity = EntityManager::Instance()->CreateEntity("Directional Light");
 	lightEntity->AddComponent<LightComponent>(sun);
 	lightEntity->AddComponent<TransformComponent>(Matrix4::Translation(Maths::Vector3(26.0f, 22.0f, 48.5f)));
 	lightEntity->GetTransformComponent()->GetTransform().SetLocalOrientation(Maths::Quaternion::LookAt(Maths::Vector3(26.0f, 22.0f, 48.5f), Maths::Vector3::Zero()));
@@ -100,7 +101,7 @@ void SceneModelViewer::LoadModels()
         "/Meshes/capsule.glb"
 	};
 
-	std::shared_ptr<Entity> TestObject = ModelLoader::LoadModel(ExampleModelPaths[0]);
+	auto TestObject = ModelLoader::LoadModel(ExampleModelPaths[0]);
 	TestObject->AddComponent<TransformComponent>(Maths::Matrix4::Scale(Maths::Vector3(1.0f, 1.0f, 1.0f)));
 	AddEntity(TestObject);
 

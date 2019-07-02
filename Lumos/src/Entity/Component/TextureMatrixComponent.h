@@ -12,14 +12,6 @@ namespace Lumos
 	public:
 		explicit TextureMatrixComponent(const Maths::Matrix4& matrix);
 
-		static ComponentType GetStaticType()
-		{
-			static ComponentType type(ComponentType::TextureMatrix);
-			return type;
-		}
-
-		inline virtual ComponentType GetType() const override { return GetStaticType(); }
-
 		void OnIMGUI() override;
 	};
 }

@@ -13,14 +13,6 @@ namespace Lumos
 	public:
 		explicit AIComponent(std::shared_ptr<AINode>& aiNode);
 
-		static ComponentType GetStaticType()
-		{
-			static ComponentType type(ComponentType::AI);
-			return type;
-		}
-
-		inline virtual ComponentType GetType() const override { return GetStaticType(); }
-
 		void OnIMGUI() override;
 	};
 }

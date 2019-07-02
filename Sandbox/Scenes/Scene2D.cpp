@@ -43,7 +43,7 @@ void Scene2D::OnInit()
 	};
     for (int i = 0; i < 1000; i++)
     {
-        std::shared_ptr<Entity> testSprite = std::make_shared<Entity>("Sprite");
+        auto testSprite = EntityManager::Instance()->CreateEntity("Sprite");
 
 		Vector2 pos(RandomNumberGenerator32::Rand(-5.0f, 10.0f), RandomNumberGenerator32::Rand(-5.0f, 500.0f));
 		Vector2 size(RandomNumberGenerator32::Rand(1.0f, 3.0f), RandomNumberGenerator32::Rand(1.0f, 3.0f));
@@ -64,13 +64,13 @@ void Scene2D::OnInit()
         AddEntity(testSprite);
     }
 
-    std::shared_ptr<Entity> testSprite = std::make_shared<Entity>("Sprite");
+    auto testSprite = EntityManager::Instance()->CreateEntity("Sprite");
 
     std::shared_ptr<Graphics::Sprite> sprite = std::make_shared<Graphics::Sprite>(Maths::Vector2(-1.0f,0.0f), Maths::Vector2(1.0f,1.0f), Maths::Vector4(0.4f,0.1f,0.6f,1.0f));
     testSprite->AddComponent<SpriteComponent>(sprite);
     AddEntity(testSprite);
 
-	std::shared_ptr<Entity> groundSprite = std::make_shared<Entity>("Sprite");
+	auto groundSprite = EntityManager::Instance()->CreateEntity("Sprite");
 	std::shared_ptr<Graphics::Sprite> ground = std::make_shared<Graphics::Sprite>(Maths::Vector2(-25.0f, -5.0f), Maths::Vector2(50.0f, 10.0f), Maths::Vector4(0.4f, 0.1f, 0.6f, 1.0f));
 	groundSprite->AddComponent<SpriteComponent>(ground);
 	PhysicsObjectParamaters groundParams;

@@ -16,6 +16,9 @@
 #include "Graphics/Layers/ImGuiLayer.h"
 #include "Graphics/Camera/Camera.h"
 
+#include "Entity/EntityManager.h"
+#include "Entity/ComponentManager.h"
+
 #include "Utilities/CommonUtils.h"
 #include "Utilities/TimeStep.h"
 #include "Utilities/AssetsManager.h"
@@ -54,6 +57,7 @@ namespace Lumos
 		VFS::Get()->Mount("CoreShaders", root + "/lumos/res/shaders");
 		VFS::Get()->Mount("CoreMeshes", root + "/lumos/res/meshes");
 		VFS::Get()->Mount("CoreTextures", root + "/lumos/res/textures");
+		VFS::Get()->Mount("CoreFonts", root + "/lumos/res/fonts");
 
 		m_Window = std::unique_ptr<Window>(Window::Create(properties));
 		m_Window->SetEventCallback(BIND_EVENT_FN(Application::OnEvent));
@@ -176,8 +180,6 @@ namespace Lumos
 			Input::GetInput().ResetPressed();
 			m_Window->OnUpdate();
             
-            m_SceneManager->ApplySceneSwitch();
-
 			if (Input::GetInput().GetKeyPressed(LUMOS_KEY_ESCAPE))
 				m_CurrentState = AppState::Closing;
 #ifdef LUMOS_LIMIT_FRAMERATE
@@ -198,6 +200,9 @@ namespace Lumos
 
 		if (m_EditorState == EditorState::Next)
 			m_EditorState = EditorState::Paused;
+
+
+		m_SceneManager->ApplySceneSwitch();
 
 		return m_CurrentState != AppState::Closing;
 	}

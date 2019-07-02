@@ -83,7 +83,7 @@ namespace Lumos
 
 			int m_CommandBufferIndex = 0;
 			int m_RenderMode = 0;
-            int m_ShadowMode = 0;
+            int m_ShadowMode = 1;
 
 			Texture* m_CubeMap = nullptr;
 		};

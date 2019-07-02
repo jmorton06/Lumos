@@ -47,7 +47,9 @@
 
 //Entity
 #include "Entity/Entity.h"
+#include "Entity/EntityManager.h"
 #include "Entity/Component/Components.h"
+#include "Entity/ComponentManager.h"
 
 //Cameras
 #include "Graphics/Camera/ThirdPersonCamera.h"
