@@ -10,11 +10,11 @@ namespace Lumos
 	{
 		int xCoord = 0;
 		int zCoord = 0;
-		uint numVertices = RAW_WIDTH_RANDOM  * RAW_HEIGHT_RANDOM;
-		uint numIndices = (RAW_WIDTH_RANDOM - 1) * (RAW_HEIGHT_RANDOM - 1) * 6;
+		u32 numVertices = RAW_WIDTH_RANDOM  * RAW_HEIGHT_RANDOM;
+		u32 numIndices = (RAW_WIDTH_RANDOM - 1) * (RAW_HEIGHT_RANDOM - 1) * 6;
 		Maths::Vector3* vertices = new Maths::Vector3[numVertices];
 		Maths::Vector2* texCoords = new Maths::Vector2[numVertices];
-		uint* indices = new uint[numIndices];
+		u32* indices = new u32[numIndices];
         m_BoundingSphere = std::make_shared<Maths::BoundingSphere>();
 
 		float** lowMap = new float*[RAW_LOWSIDE_RANDOM + 1];
@@ -137,7 +137,7 @@ namespace Lumos
 
 		Graphics::Vertex* verts = new Graphics::Vertex[numVertices];
 
-		for (uint i = 0; i < numVertices; i++)
+		for (u32 i = 0; i < numVertices; i++)
 		{
 			verts[i].Position = vertices[i];
 			verts[i].Colours = Maths::Vector4(0.0f);
@@ -163,7 +163,7 @@ namespace Lumos
 
 		m_VertexArray->PushBuffer(buffer);
 
-		m_IndexBuffer = std::shared_ptr<Graphics::IndexBuffer>(Graphics::IndexBuffer::Create(indices, numIndices));// / sizeof(uint));
+		m_IndexBuffer = std::shared_ptr<Graphics::IndexBuffer>(Graphics::IndexBuffer::Create(indices, numIndices));// / sizeof(u32));
         
         delete[] normals;
         delete[] tangents;

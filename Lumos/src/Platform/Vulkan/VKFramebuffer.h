@@ -20,25 +20,25 @@ namespace Lumos
 
 			void SetClearColour(const Maths::Vector4& colour) override {};
 
-			uint GetWidth() const override { return m_Width; }
-			uint GetHeight() const override { return m_Height; }
+			u32 GetWidth() const override { return m_Width; }
+			u32 GetHeight() const override { return m_Height; }
 
-			void Bind(uint width, uint height) const override {};
+			void Bind(u32 width, u32 height) const override {};
 			void Bind() const override {};
 			void UnBind() const override {};
 			void Clear() override {};
 
-			void AddTextureAttachment(Attachment attachmentType, Texture* texture) override {};
-			void AddCubeTextureAttachment(Attachment attachmentType, CubeFace face, TextureCube* texture) override {};
+			void AddTextureAttachment(TextureFormat format, Texture* texture) override {};
+			void AddCubeTextureAttachment(TextureFormat format, CubeFace face, TextureCube* texture) override {};
 			void AddShadowAttachment(Texture* texture) override {};
 			void AddTextureLayer(int index, Texture* texture) override {};
 			void GenerateFramebuffer() override {};
 
 		private:
 
-			uint m_Width;
-			uint m_Height;
-			uint m_AttachmentCount;
+			u32 m_Width;
+			u32 m_Height;
+			u32 m_AttachmentCount;
 			vk::Framebuffer m_Framebuffer;
 		};
 	}

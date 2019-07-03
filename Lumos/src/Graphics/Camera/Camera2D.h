@@ -8,7 +8,7 @@ namespace Lumos
 	class LUMOS_EXPORT Camera2D : public Camera
 	{
 	public:
-		Camera2D(uint width, uint height, float scale);
+		Camera2D(u32 width, u32 height, float scale);
 		virtual ~Camera2D() override;
 
 		virtual void HandleMouse(float dt, float xpos, float ypos) override;

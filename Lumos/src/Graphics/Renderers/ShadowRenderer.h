@@ -30,7 +30,7 @@ namespace Lumos
 		class LUMOS_EXPORT ShadowRenderer : public Renderer3D
 		{
 		public:
-			ShadowRenderer(TextureDepthArray* texture = nullptr, uint shadowMapSize = 2048, uint numMaps = 4);
+			ShadowRenderer(TextureDepthArray* texture = nullptr, u32 shadowMapSize = 2048, u32 numMaps = 4);
 			~ShadowRenderer();
 
 			ShadowRenderer(ShadowRenderer const&) = delete;
@@ -38,10 +38,10 @@ namespace Lumos
 
 			void Init() override;
 			void BeginScene(Scene* scene) override;
-			void OnResize(uint width, uint height) override;
+			void OnResize(u32 width, u32 height) override;
 
-			void SetShadowMapNum(uint num);
-			void SetShadowMapSize(uint size);
+			void SetShadowMapNum(u32 num);
+			void SetShadowMapSize(u32 size);
 
 			void Begin() override;
 			void Submit(const RenderCommand& command) override;
@@ -54,17 +54,17 @@ namespace Lumos
 			Maths::Vector4* GetSplitDepths() { return m_SplitDepth; }
 			Maths::Matrix4* GetShadowProjView() { return m_ShadowProjView; }
 
-			inline uint GetShadowMapSize() const { return m_ShadowMapSize; }
-			inline uint GetShadowMapNum()  const { return m_ShadowMapNum; }
+			inline u32 GetShadowMapSize() const { return m_ShadowMapSize; }
+			inline u32 GetShadowMapNum()  const { return m_ShadowMapNum; }
 			inline void SetShadowInvalid() { m_ShadowMapsInvalidated = true; }
 
 			inline TextureDepthArray* GetTexture() const { return m_ShadowTex; }
 			void ClearRenderLists();
 
 			byte* m_VSSystemUniformBuffer;
-			uint m_VSSystemUniformBufferSize;
+			u32 m_VSSystemUniformBufferSize;
 
-			std::vector<uint> m_VSSystemUniformBufferOffsets;
+			std::vector<u32> m_VSSystemUniformBufferOffsets;
 
 			struct UniformBufferObject
 			{
@@ -88,8 +88,8 @@ namespace Lumos
 			void SetSystemUniforms(Shader* shader);
 
 			TextureDepthArray* m_ShadowTex;
-			uint		    m_ShadowMapNum;
-			uint		    m_ShadowMapSize;
+			u32		    m_ShadowMapNum;
+			u32		    m_ShadowMapSize;
 			bool		    m_ShadowMapsInvalidated;
 			Framebuffer*    m_ShadowFramebuffer[SHADOWMAP_MAX];
 			Maths::Matrix4	m_ShadowProjView[SHADOWMAP_MAX];
@@ -104,7 +104,7 @@ namespace Lumos
 
 			std::shared_ptr<Graphics::Light> m_Light;
 
-			uint m_Layer = 0;
+			u32 m_Layer = 0;
 
 			size_t dynamicAlignment;
 			UniformBufferModel uboDataDynamic;

@@ -10,19 +10,19 @@ namespace Lumos
 		class VKIndexBuffer : public IndexBuffer, public VKBuffer
 		{
 			BufferUsage m_Usage;
-			uint m_Count;
-			uint m_Size;
+			u32 m_Count;
+			u32 m_Size;
 			Graphics::BufferLayout m_Layout;
 		public:
-			VKIndexBuffer(uint16* data, uint count, BufferUsage bufferUsage);
-			VKIndexBuffer(uint* data, uint count, BufferUsage bufferUsage);
+			VKIndexBuffer(uint16* data, u32 count, BufferUsage bufferUsage);
+			VKIndexBuffer(u32* data, u32 count, BufferUsage bufferUsage);
 			~VKIndexBuffer();
 
 			void Bind() const override;
 			void Unbind() const override;
-			uint GetCount() const override;
-			uint GetSize() const override;
-			void SetCount(uint m_index_count) override { m_Count = m_index_count; };
+			u32 GetCount() const override;
+			u32 GetSize() const override;
+			void SetCount(u32 m_index_count) override { m_Count = m_index_count; };
 		};
 	}
 }

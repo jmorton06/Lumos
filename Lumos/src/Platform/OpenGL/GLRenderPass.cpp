@@ -47,7 +47,7 @@ namespace Lumos
             }
 
 			if(m_Clear)
-				Renderer::Clear(RENDERER_BUFFER_COLOUR | RENDERER_BUFFER_DEPTH | RENDERER_BUFFER_STENCIL);
+				GLRenderer::ClearInternal(RENDERER_BUFFER_COLOUR | RENDERER_BUFFER_DEPTH | RENDERER_BUFFER_STENCIL);
         }
 
         void GLRenderPass::EndRenderpass(CommandBuffer *commandBuffer)

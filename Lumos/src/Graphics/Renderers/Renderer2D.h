@@ -25,7 +25,7 @@ namespace Lumos
 		class LUMOS_EXPORT Renderer2D
 		{
 		public:
-			Renderer2D(uint width, uint height, bool renderToGBuffer = false);
+			Renderer2D(u32 width, u32 height, bool renderToGBuffer = false);
 			virtual ~Renderer2D();
 
 			virtual void Init();
@@ -35,9 +35,9 @@ namespace Lumos
 			virtual void Present();
 			virtual void End();
 			virtual void Render(Scene* scene);
-			virtual void OnResize(uint width, uint height);
+			virtual void OnResize(u32 width, u32 height);
 			virtual void PresentToScreen();
-			virtual void SetScreenBufferSize(uint width, uint height);
+			virtual void SetScreenBufferSize(u32 width, u32 height);
 			virtual void SetRenderTarget(Texture* texture);
 			virtual void SetRenderToGBufferTexture(bool set);
 
@@ -50,7 +50,7 @@ namespace Lumos
 			};
 
 			byte* m_VSSystemUniformBuffer{};
-			uint m_VSSystemUniformBufferSize{};
+			u32 m_VSSystemUniformBufferSize{};
 
 			void CreateGraphicsPipeline();
 			void CreateFramebuffers();
@@ -58,7 +58,7 @@ namespace Lumos
 
 		private:
 			std::vector<Renderable2D*> m_Sprites;
-			uint m_ScreenBufferWidth{}, m_ScreenBufferHeight{};
+			u32 m_ScreenBufferWidth{}, m_ScreenBufferHeight{};
 
 			RenderPass* m_RenderPass{};
 			Pipeline* m_Pipeline{};
@@ -67,7 +67,7 @@ namespace Lumos
 			std::vector<CommandBuffer*> m_CommandBuffers;
 			std::vector<CommandBuffer*> m_SecondaryCommandBuffers;
 
-			uint m_BatchDrawCallIndex = 0;
+			u32 m_BatchDrawCallIndex = 0;
 
 			std::vector<Framebuffer*> m_Framebuffers;
 
@@ -75,7 +75,7 @@ namespace Lumos
 
 			std::vector<VertexArray*> m_VertexArrays;
 			IndexBuffer* m_IndexBuffer{};
-			uint m_IndexCount;
+			u32 m_IndexCount;
 
 			VertexData* m_Buffer{};
 
@@ -86,7 +86,7 @@ namespace Lumos
 
 			Texture* m_RenderTexture;
 			bool m_RenderToGBufferTexture = false;
-			uint m_CurrentBufferID = 0;
+			u32 m_CurrentBufferID = 0;
 			Maths::Vector4 m_ClearColour;
 
 		};

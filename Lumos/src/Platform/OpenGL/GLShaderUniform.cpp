@@ -6,7 +6,7 @@ namespace Lumos
 {
 	namespace Graphics
 	{
-		GLShaderUniformDeclaration::GLShaderUniformDeclaration(Type type, const String& name, uint count)
+		GLShaderUniformDeclaration::GLShaderUniformDeclaration(Type type, const String& name, u32 count)
 			: m_Offset(0), m_Type(type), m_Struct(nullptr), m_Location(0)
 		{
 			m_Name = name;
@@ -14,7 +14,7 @@ namespace Lumos
 			m_Size = SizeOfUniformType(type) * count;
 		}
 
-		GLShaderUniformDeclaration::GLShaderUniformDeclaration(ShaderStruct* uniformStruct, const String& name, uint count)
+		GLShaderUniformDeclaration::GLShaderUniformDeclaration(ShaderStruct* uniformStruct, const String& name, u32 count)
 			: m_Offset(0), m_Type(GLShaderUniformDeclaration::Type::STRUCT), m_Struct(uniformStruct), m_Location(0)
 		{
 			m_Name = name;
@@ -22,7 +22,7 @@ namespace Lumos
 			m_Size = m_Struct->GetSize() * count;
 		}
 
-		void GLShaderUniformDeclaration::SetOffset(uint offset)
+		void GLShaderUniformDeclaration::SetOffset(u32 offset)
 		{
 			if (m_Type == GLShaderUniformDeclaration::Type::STRUCT)
 				m_Struct->SetOffset(offset);
@@ -30,7 +30,7 @@ namespace Lumos
 			m_Offset = offset;
 		}
 
-		uint GLShaderUniformDeclaration::SizeOfUniformType(Type type)
+		u32 GLShaderUniformDeclaration::SizeOfUniformType(Type type)
 		{
 			switch (type)
 			{
@@ -47,7 +47,7 @@ namespace Lumos
 			}
 		}
 
-		GLShaderUniformDeclaration::Type GLShaderUniformDeclaration::StringToType(const String& type, uint count)
+		GLShaderUniformDeclaration::Type GLShaderUniformDeclaration::StringToType(const String& type, u32 count)
 		{
 			if (type == "int32")	return Type::INT32;
 			if (type == "int")		return Type::INT32;
@@ -79,14 +79,14 @@ namespace Lumos
 			}
 		}
 
-		GLShaderUniformBufferDeclaration::GLShaderUniformBufferDeclaration(const String& name, uint shaderType)
+		GLShaderUniformBufferDeclaration::GLShaderUniformBufferDeclaration(const String& name, u32 shaderType)
 			: m_Name(name), m_Register(0), m_Size(0), m_ShaderType(shaderType)
 		{
 		}
 
 		void GLShaderUniformBufferDeclaration::PushUniform(GLShaderUniformDeclaration* uniform)
 		{
-			uint offset = 0;
+			u32 offset = 0;
 			if (!m_Uniforms.empty())
 			{
 				GLShaderUniformDeclaration* previous = static_cast<GLShaderUniformDeclaration*>(m_Uniforms.back());

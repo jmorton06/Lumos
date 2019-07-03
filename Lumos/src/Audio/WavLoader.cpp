@@ -16,7 +16,7 @@ namespace Lumos
 		}
 
 		std::string	 chunkName;
-		uint chunkSize = 0;
+		u32 chunkSize = 0;
 
 		while (!file.eof())
 		{
@@ -32,9 +32,9 @@ namespace Lumos
 
 				file.read(reinterpret_cast<char*>(&fmt), sizeof(FMTCHUNK));
 
-				data.BitRate = static_cast<uint>(fmt.samp);
+				data.BitRate = static_cast<u32>(fmt.samp);
 				data.FreqRate = static_cast<float>(fmt.srate);
-				data.Channels = static_cast<uint>(fmt.channels);
+				data.Channels = static_cast<u32>(fmt.channels);
 			}
 			else if (chunkName == "data")
 			{

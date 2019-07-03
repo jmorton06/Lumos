@@ -104,8 +104,8 @@ namespace Lumos
 		std::unique_ptr<Timer>	  	m_Timer;
 		std::unique_ptr<TimeStep> 	m_TimeStep;
 
-		uint m_Frames;
-		uint m_Updates;
+		u32 m_Frames;
+		u32 m_Updates;
 		float m_SecondTimer = 0.0f;
 
 		std::unique_ptr<Window> m_Window;

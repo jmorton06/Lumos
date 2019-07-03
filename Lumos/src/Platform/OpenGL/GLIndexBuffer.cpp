@@ -8,7 +8,7 @@ namespace Lumos
 {
 	namespace Graphics
 	{
-		static uint BufferUsageToOpenGL(const BufferUsage usage)
+		static u32 BufferUsageToOpenGL(const BufferUsage usage)
 		{
 			switch (usage)
 			{
@@ -19,7 +19,7 @@ namespace Lumos
 			return 0;
 		}
 
-		GLIndexBuffer::GLIndexBuffer(uint16* data, uint count, BufferUsage bufferUsage)
+		GLIndexBuffer::GLIndexBuffer(uint16* data, u32 count, BufferUsage bufferUsage)
 			: m_Count(count), m_Usage(bufferUsage)
 		{
 			GLCall(glGenBuffers(1, &m_Handle));
@@ -27,12 +27,12 @@ namespace Lumos
 			GLCall(glBufferData(GL_ELEMENT_ARRAY_BUFFER, count * sizeof(uint16), data, BufferUsageToOpenGL(m_Usage)));
 		}
 
-		GLIndexBuffer::GLIndexBuffer(uint* data, uint count, BufferUsage bufferUsage)
+		GLIndexBuffer::GLIndexBuffer(u32* data, u32 count, BufferUsage bufferUsage)
 			: m_Count(count), m_Usage(bufferUsage)
 		{
 			GLCall(glGenBuffers(1, &m_Handle));
 			GLCall(glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_Handle));
-			GLCall(glBufferData(GL_ELEMENT_ARRAY_BUFFER, count * sizeof(uint), data, BufferUsageToOpenGL(m_Usage)));
+			GLCall(glBufferData(GL_ELEMENT_ARRAY_BUFFER, count * sizeof(u32), data, BufferUsageToOpenGL(m_Usage)));
 		}
 
 		GLIndexBuffer::~GLIndexBuffer()
@@ -53,7 +53,7 @@ namespace Lumos
 #endif
 		}
 
-		uint GLIndexBuffer::GetCount() const
+		u32 GLIndexBuffer::GetCount() const
 		{
 			return m_Count;
 		}

@@ -32,15 +32,15 @@ namespace Lumos
 		}
 
 		template<typename T>
-		static String Hex(const T* input, uint size)
+		static String Hex(const T* input, u32 size)
 		{
 			memset(s_Buffer, 0, STRINGFORMAT_BUFFER_SIZE);
-			for (uint i = 0; i < size; i++)
+			for (u32 i = 0; i < size; i++)
 				sprintf(s_Buffer + i * 3, "%02x ", input[i]);
 			return String(s_Buffer);
 		}
 
-		static String Float(const float input, uint places = 2)
+		static String Float(const float input, u32 places = 2)
 		{
 			memset(s_Buffer, 0, STRINGFORMAT_BUFFER_SIZE);
 			sprintf(s_Buffer, "%.2f", input);
@@ -72,12 +72,12 @@ namespace Lumos
 
 	const char* FindToken(const char* str, const String& token);
 	const char* FindToken(const String& string, const String& token);
-	int32 FindStringPosition(const String& string, const String& search, uint offset = 0);
-	String StringRange(const String& string, uint start, uint length);
-	String RemoveStringRange(const String& string, uint start, uint length);
+	int32 FindStringPosition(const String& string, const String& search, u32 offset = 0);
+	String StringRange(const String& string, u32 start, u32 length);
+	String RemoveStringRange(const String& string, u32 start, u32 length);
 
 	String GetBlock(const char* str, const char** outPosition = nullptr);
-	String GetBlock(const String& string, uint offset = 0);
+	String GetBlock(const String& string, u32 offset = 0);
 
 	String GetStatement(const char* str, const char** outPosition = nullptr);
 

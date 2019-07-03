@@ -101,7 +101,7 @@ namespace Lumos
 
 		void VKShader::ReadShaderFile(std::vector<String> lines, std::map<ShaderType, String>* shaders)
 		{
-			for (uint i = 0; i < lines.size(); i++)
+			for (u32 i = 0; i < lines.size(); i++)
 			{
 				String str = String(lines[i]);
 				str = StringReplace(str, '\t');

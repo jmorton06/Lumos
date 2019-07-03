@@ -27,7 +27,7 @@ namespace Lumos
 {
 	namespace Graphics
 	{
-		ForwardRenderer::ForwardRenderer(uint width, uint height, bool renderToGBuffer)
+		ForwardRenderer::ForwardRenderer(u32 width, u32 height, bool renderToGBuffer)
 		{
 			SetScreenBufferSize(width, height);
 			ForwardRenderer::Init();
@@ -367,10 +367,10 @@ namespace Lumos
             }
 		}
 
-		void ForwardRenderer::OnResize(uint width, uint height)
+		void ForwardRenderer::OnResize(u32 width, u32 height)
 		{
-			m_ScreenBufferWidth = static_cast<uint>(width);
-			m_ScreenBufferHeight = static_cast<uint>(height);
+			m_ScreenBufferWidth = static_cast<u32>(width);
+			m_ScreenBufferHeight = static_cast<u32>(height);
 
 			delete m_Pipeline;
 			delete m_RenderPass;
@@ -451,13 +451,13 @@ namespace Lumos
 			std::vector<Graphics::DescriptorLayout> descriptorLayouts;
 
 			Graphics::DescriptorLayout sceneDescriptorLayout{};
-			sceneDescriptorLayout.count = static_cast<uint>(layoutInfo.size());
+			sceneDescriptorLayout.count = static_cast<u32>(layoutInfo.size());
 			sceneDescriptorLayout.layoutInfo = layoutInfo.data();
 
 			descriptorLayouts.push_back(sceneDescriptorLayout);
 
 			Graphics::DescriptorLayout meshDescriptorLayout{};
-			meshDescriptorLayout.count = static_cast<uint>(layoutInfoMesh.size());
+			meshDescriptorLayout.count = static_cast<u32>(layoutInfoMesh.size());
 			meshDescriptorLayout.layoutInfo = layoutInfoMesh.data();
 
 			descriptorLayouts.push_back(meshDescriptorLayout);
@@ -466,10 +466,10 @@ namespace Lumos
 			pipelineCI.pipelineName = "ForwardRenderer";
 			pipelineCI.shader = m_Shader;
 			pipelineCI.vulkanRenderpass = m_RenderPass;
-			pipelineCI.numVertexLayout = static_cast<uint>(attributeDescriptions.size());
+			pipelineCI.numVertexLayout = static_cast<u32>(attributeDescriptions.size());
 			pipelineCI.descriptorLayouts = descriptorLayouts;
 			pipelineCI.vertexLayout = attributeDescriptions.data();
-			pipelineCI.numLayoutBindings = static_cast<uint>(poolInfo.size());
+			pipelineCI.numLayoutBindings = static_cast<u32>(poolInfo.size());
 			pipelineCI.typeCounts = poolInfo.data();
 			pipelineCI.strideSize = sizeof(Vertex);
 			pipelineCI.numColorAttachments = 1;

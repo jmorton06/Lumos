@@ -133,8 +133,8 @@ namespace Lumos
 		static float m_MaxStatusEntryWidth;
 		static std::vector<LogEntry> m_vLogEntries;
 		static int m_LogEntriesOffset;
-		static uint m_Width;
-		static uint m_Height;
+		static u32 m_Width;
+		static u32 m_Height;
 
 		static std::vector<Maths::Vector4> m_vChars;
 		struct DebugDrawList

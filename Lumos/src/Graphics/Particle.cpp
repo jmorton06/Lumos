@@ -33,7 +33,7 @@ namespace Lumos
 
 	}
 
-	bool Particle::Update(float dt, uint numTextureRows)
+	bool Particle::Update(float dt, u32 numTextureRows)
 	{
 		UpdateTextureCoord(numTextureRows);
 
@@ -44,7 +44,7 @@ namespace Lumos
 		return m_ElapsedTime < m_LifeLength;
 	}
 
-	void Particle::UpdateTextureCoord(uint textureRows)
+	void Particle::UpdateTextureCoord(u32 textureRows)
 	{
 		float lifeFactor = m_ElapsedTime / m_LifeLength;
 		int stageCount = textureRows * textureRows;
@@ -56,7 +56,7 @@ namespace Lumos
 		SetTextureOffset(m_TextureOffset2, index2, textureRows);
 	}
 
-	void Particle::SetTextureOffset(Maths::Vector2& offset, int index, uint textureRows) const
+	void Particle::SetTextureOffset(Maths::Vector2& offset, int index, u32 textureRows) const
 	{
 		int column = static_cast<int>(fmod(index, textureRows));
 		int row = index / textureRows;

@@ -18,7 +18,7 @@ namespace Lumos
 			}
 		}
 
-		VertexBuffer* VKVertexArray::GetBuffer(uint index)
+		VertexBuffer* VKVertexArray::GetBuffer(u32 index)
 		{
 			return m_Buffers[index];
 		}
@@ -42,7 +42,7 @@ namespace Lumos
 #endif
 		}
 
-		void VKVertexArray::Draw(uint count) const
+		void VKVertexArray::Draw(u32 count) const
 		{
 		}
 	}

@@ -22,7 +22,7 @@ namespace Lumos
 		alDeleteBuffers(1, &m_Buffer);
 	}
 
-	ALenum ALSound::GetOALFormat(uint bitRate, uint channels)
+	ALenum ALSound::GetOALFormat(u32 bitRate, u32 channels)
 	{
 		if (bitRate == 16)
 		{

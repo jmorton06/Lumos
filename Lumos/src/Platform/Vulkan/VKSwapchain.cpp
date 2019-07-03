@@ -8,7 +8,7 @@ namespace Lumos
 	namespace Graphics
 	{
 
-		VKSwapchain::VKSwapchain(uint width, uint height)
+		VKSwapchain::VKSwapchain(u32 width, u32 height)
 		{
 			m_Width = width;
 			m_Height = height;
@@ -107,7 +107,7 @@ namespace Lumos
 			delete[] pSwapChainImages;
 			delete[] pPresentModes;
 
-			Graphics::VKDevice::Instance()->m_SwapChainSize = static_cast<uint>(GetSwapchainBufferCount());
+			Graphics::VKDevice::Instance()->m_SwapChainSize = static_cast<u32>(GetSwapchainBufferCount());
 
 			return true;
 		}

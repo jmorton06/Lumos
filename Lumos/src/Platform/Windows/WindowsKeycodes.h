@@ -7,7 +7,7 @@ namespace Lumos
 	namespace WindowsKeyCodes
 	{
 		// http://msdn.microsoft.com/en-us/library/ms645540(VS.85).aspx
-		enum KeyboardKeys : uint
+		enum KeyboardKeys : u32
 		{
 			KEYBOARD_LBUTTON = 0x01,    // Left mouse button
 			KEYBOARD_RBUTTON = 0x02,    // Right mouse button
@@ -155,9 +155,9 @@ namespace Lumos
 			KEYBOARD_MAX = 0xFF
 		};
 
-		inline uint WindowsKeyToLumos(uint key)
+		inline u32 WindowsKeyToLumos(u32 key)
 		{
-			static std::map<uint, uint> keyMap = 
+			static std::map<u32, u32> keyMap = 
 			{
 			{ KEYBOARD_A, LUMOS_KEY_A},
 			{ KEYBOARD_B, LUMOS_KEY_B},

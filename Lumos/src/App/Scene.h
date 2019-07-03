@@ -94,11 +94,11 @@ namespace Lumos
 		uint64_t GetDebugDrawFlags() const { return m_DebugDrawFlags; }
 		void SetDebugDrawFlags(uint64_t flags) { m_DebugDrawFlags = flags; }
 
-		void SetScreenWidth(uint width)   { m_ScreenWidth = width; }
-		void SetScreenHeight(uint height) { m_ScreenHeight = height; }
+		void SetScreenWidth(u32 width)   { m_ScreenWidth = width; }
+		void SetScreenHeight(u32 height) { m_ScreenHeight = height; }
         
-        uint GetScreenWidth() const { return m_ScreenWidth; }
-        uint GetScreenHeight() const { return m_ScreenHeight; }
+        u32 GetScreenWidth() const { return m_ScreenWidth; }
+        u32 GetScreenHeight() const { return m_ScreenHeight; }
 
 		Maths::Frustum GetFrustum() const { return m_FrameFrustum; }
 		RenderList* GetRenderList() const { return m_pFrameRenderList.get(); }
@@ -121,8 +121,8 @@ namespace Lumos
 		bool	m_DrawDebugData{};
         uint64	m_DebugDrawFlags{};
 
-		uint m_ScreenWidth;
-		uint m_ScreenHeight;
+		u32 m_ScreenWidth;
+		u32 m_ScreenHeight;
 
 		Maths::Frustum m_FrameFrustum;
 		std::unique_ptr<RenderList>	m_pFrameRenderList;

@@ -16,13 +16,13 @@ namespace Lumos
 		class VKIMGUIRenderer : public IMGUIRenderer
 		{
         public:
-            VKIMGUIRenderer(uint width, uint height, bool clearScreen);
+            VKIMGUIRenderer(u32 width, u32 height, bool clearScreen);
             ~VKIMGUIRenderer();
 
             void Init() override;
             void NewFrame() override;
             void Render(Lumos::Graphics::CommandBuffer* commandBuffer) override;
-            void OnResize(uint width, uint height) override;
+            void OnResize(u32 width, u32 height) override;
 			void Clear() override;
             
             void FrameRender(ImGui_ImplVulkanH_WindowData* wd);
@@ -31,8 +31,8 @@ namespace Lumos
 
         private:
 			void* m_WindowHandle;
-			uint m_Width;
-			uint m_Height;
+			u32 m_Width;
+			u32 m_Height;
             VKCommandBuffer* m_CommandBuffers[3];
 			VKFramebuffer* m_Framebuffers[3];
 			VKRenderpass* m_Renderpass;

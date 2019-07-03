@@ -9,9 +9,9 @@ namespace Lumos
 		class LUMOS_EXPORT TextureDepth : public Texture
 		{
 		public:
-			static TextureDepth* Create(uint width, uint height);
+			static TextureDepth* Create(u32 width, u32 height);
 
-			virtual void Resize(uint width, uint height) = 0;
+			virtual void Resize(u32 width, u32 height) = 0;
 		};
 	}
 }

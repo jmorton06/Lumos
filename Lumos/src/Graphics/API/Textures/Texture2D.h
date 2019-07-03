@@ -11,14 +11,14 @@ namespace Lumos
 		public:
 			virtual void SetData(const void* pixels) = 0;
 
-			virtual uint GetWidth() const = 0;
-			virtual uint GetHeight() const = 0;
+			virtual u32 GetWidth() const = 0;
+			virtual u32 GetHeight() const = 0;
 		public:
 			static Texture2D* Create();
-			static Texture2D* CreateFromSource(uint width, uint height, void* data, TextureParameters parameters = TextureParameters(), TextureLoadOptions loadOptions = TextureLoadOptions());
+			static Texture2D* CreateFromSource(u32 width, u32 height, void* data, TextureParameters parameters = TextureParameters(), TextureLoadOptions loadOptions = TextureLoadOptions());
 			static Texture2D* CreateFromFile(const String& name, const String& filepath, TextureParameters parameters = TextureParameters(), TextureLoadOptions loadOptions = TextureLoadOptions());
 
-			virtual void BuildTexture(TextureFormat internalformat, uint width, uint height, bool depth, bool samplerShadow) = 0;
+			virtual void BuildTexture(TextureFormat internalformat, u32 width, u32 height, bool depth, bool samplerShadow) = 0;
 		};
 	}
 }

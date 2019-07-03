@@ -64,7 +64,7 @@ namespace Lumos
 
 		if (m_NextParticleTime <= 0.0f)
 		{
-			for (uint i = 0; i < m_NumLaunchParticles; ++i)
+			for (u32 i = 0; i < m_NumLaunchParticles; ++i)
 			{
 				m_Particles.push_back(std::make_shared<Particle>(m_Position + Maths::Vector3(Lumos::RandomNumberGenerator32::Rand(-m_Area.x, m_Area.x),Lumos::RandomNumberGenerator32::Rand(-m_Area.y, m_Area.y),Lumos::RandomNumberGenerator32::Rand(-m_Area.z, m_Area.z)), m_InitialVelocity + Maths::Vector3(Lumos::RandomNumberGenerator32::Rand(m_VelocityVarianceX.GetX(),m_VelocityVarianceX.GetY()),Lumos::RandomNumberGenerator32::Rand(m_VelocityVarianceY.GetX(), m_VelocityVarianceY.GetY()),Lumos::RandomNumberGenerator32::Rand(m_VelocityVarianceZ.GetX(), m_VelocityVarianceZ.GetY())), m_GravityEffect, m_ParticleLife * Lumos::RandomNumberGenerator32::Rand(m_LifeLengthVariance,1.0f), m_Scale * Lumos::RandomNumberGenerator32::Rand(m_ScaleVariance,1.0f)));
 			}
@@ -137,12 +137,12 @@ namespace Lumos
         ParticleEmitter::m_ParticleRate = particleRate;
     }
 
-    uint ParticleEmitter::GetNumLaunchParticles() const
+    u32 ParticleEmitter::GetNumLaunchParticles() const
     {
         return m_NumLaunchParticles;
     }
 
-    void ParticleEmitter::SetNumLaunchParticles(uint numLaunchParticles)
+    void ParticleEmitter::SetNumLaunchParticles(u32 numLaunchParticles)
     {
         ParticleEmitter::m_NumLaunchParticles = numLaunchParticles;
     }
@@ -207,12 +207,12 @@ namespace Lumos
         ParticleEmitter::m_Scale = scale;
     }
 
-    uint ParticleEmitter::GetNumTextureRows() const
+    u32 ParticleEmitter::GetNumTextureRows() const
     {
         return m_NumTextureRows;
     }
 
-    void ParticleEmitter::SetNumTextureRows(uint numTextureRows)
+    void ParticleEmitter::SetNumTextureRows(u32 numTextureRows)
     {
         ParticleEmitter::m_NumTextureRows = numTextureRows;
     }

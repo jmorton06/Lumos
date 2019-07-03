@@ -17,7 +17,7 @@ namespace Lumos
 {
 	namespace Graphics
 	{
-		TextureCube* TextureCube::Create(uint size)
+		TextureCube* TextureCube::Create(u32 size)
 		{
 			switch (Graphics::GraphicsContext::GetRenderAPI())
 			{

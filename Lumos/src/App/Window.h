@@ -10,11 +10,11 @@ namespace Lumos
 {
 	struct LUMOS_EXPORT WindowProperties
 	{
-        WindowProperties(uint width = 1280, uint height = 720, int renderAPI = 0, String title = "Lumos", bool fullscreen = false, bool vSync = true, bool borderless = false) : Width(width), Height(height), Title(title), Fullscreen(fullscreen), VSync(vSync), Borderless(borderless), RenderAPI(renderAPI)
+        WindowProperties(u32 width = 1280, u32 height = 720, int renderAPI = 0, String title = "Lumos", bool fullscreen = false, bool vSync = true, bool borderless = false) : Width(width), Height(height), Title(title), Fullscreen(fullscreen), VSync(vSync), Borderless(borderless), RenderAPI(renderAPI)
 		{
 		}
 
-		uint Width, Height;
+		u32 Width, Height;
 		bool Fullscreen;
 		bool VSync;
 		bool Borderless;
@@ -57,8 +57,8 @@ namespace Lumos
 		virtual void SetEventCallback(const EventCallbackFn& callback) = 0;
 
 		virtual String GetTitle() const = 0;
-		virtual uint GetWidth()  const = 0;
-		virtual uint GetHeight() const = 0;
+		virtual u32 GetWidth()  const = 0;
+		virtual u32 GetHeight() const = 0;
 
 	protected:
 

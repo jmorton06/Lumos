@@ -23,7 +23,7 @@ namespace Lumos
 			}
 		}
 
-		VertexBuffer* GLVertexArray::GetBuffer(uint index)
+		VertexBuffer* GLVertexArray::GetBuffer(u32 index)
 		{
 			return m_Buffers[index];
 		}
@@ -49,7 +49,7 @@ namespace Lumos
 #endif
 		}
 
-		void GLVertexArray::Draw(uint count) const
+		void GLVertexArray::Draw(u32 count) const
 		{
 			GLCall(glDrawElements(GL_TRIANGLES, count, GL_UNSIGNED_INT, NULL));
 		}

@@ -7,7 +7,7 @@ namespace Lumos
 {
 	namespace Graphics
 	{
-		static uint BufferUsageToOpenGL(const BufferUsage usage)
+		static u32 BufferUsageToOpenGL(const BufferUsage usage)
 		{
 			switch (usage)
 			{
@@ -29,7 +29,7 @@ namespace Lumos
 			GLCall(glDeleteBuffers(1, &m_Handle));
 		}
 
-		void GLVertexBuffer::Resize(uint size)
+		void GLVertexBuffer::Resize(u32 size)
 		{
 			m_Size = size;
 
@@ -41,7 +41,7 @@ namespace Lumos
 		{
 			m_Layout = bufferLayout;
 			const std::vector<Graphics::BufferElement>& layout = bufferLayout.GetLayout();
-			for (uint i = 0; i < layout.size(); i++)
+			for (u32 i = 0; i < layout.size(); i++)
 			{
 				const Graphics::BufferElement& element = layout[i];
 				GLCall(glEnableVertexAttribArray(i));
@@ -50,14 +50,14 @@ namespace Lumos
 			}
 		}
 
-		void GLVertexBuffer::SetData(uint size, const void* data)
+		void GLVertexBuffer::SetData(u32 size, const void* data)
 		{
 			GLCall(glBindBuffer(GL_ARRAY_BUFFER, m_Handle));
 			GLCall(glBufferData(GL_ARRAY_BUFFER, size, data, BufferUsageToOpenGL(m_Usage)));
 		}
 
 
-		void GLVertexBuffer::SetDataSub(uint size, const void* data, uint offset)
+		void GLVertexBuffer::SetDataSub(u32 size, const void* data, u32 offset)
 		{
 			GLCall(glBindBuffer(GL_ARRAY_BUFFER, m_Handle));
 			GLCall(glBufferSubData(GL_ARRAY_BUFFER, offset, size, data));

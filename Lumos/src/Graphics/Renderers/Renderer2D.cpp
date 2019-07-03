@@ -33,7 +33,7 @@ namespace Lumos
 {
 	namespace Graphics
 	{
-		Renderer2D::Renderer2D(uint width, uint height, bool renderToGBuffer) : m_IndexCount(0), m_RenderTexture(nullptr), m_Buffer(nullptr)
+		Renderer2D::Renderer2D(u32 width, u32 height, bool renderToGBuffer) : m_IndexCount(0), m_RenderTexture(nullptr), m_Buffer(nullptr)
 		{
 			SetScreenBufferSize(width, height);
 
@@ -158,7 +158,7 @@ namespace Lumos
 				vertexArray->PushBuffer(buffer);
 			}
 
-			uint* indices = new uint[RENDERER_INDICES_SIZE];
+			u32* indices = new u32[RENDERER_INDICES_SIZE];
 
 			int32 offset = 0;
 			for (int32 i = 0; i < RENDERER_INDICES_SIZE; i += 6)
@@ -325,7 +325,7 @@ namespace Lumos
 		{
 			float result = 0.0f;
 			bool found = false;
-			for (uint i = 0; i < m_Textures.size(); i++)
+			for (u32 i = 0; i < m_Textures.size(); i++)
 			{
 				if (m_Textures[i] == texture) //Temp
 				{
@@ -353,7 +353,7 @@ namespace Lumos
 			return result;
 		}
 
-		void Renderer2D::OnResize(uint width, uint height)
+		void Renderer2D::OnResize(u32 width, u32 height)
 		{
 			delete m_Pipeline;
 
@@ -405,7 +405,7 @@ namespace Lumos
 			Renderer::Present((m_CommandBuffers[Renderer::GetSwapchain()->GetCurrentBufferId()]));
 		}
 
-		void Renderer2D::SetScreenBufferSize(uint width, uint height)
+		void Renderer2D::SetScreenBufferSize(u32 width, u32 height)
 		{
 			if (width == 0)
 			{
@@ -444,13 +444,13 @@ namespace Lumos
 			std::vector<Graphics::DescriptorLayout> descriptorLayouts;
 
 			Graphics::DescriptorLayout sceneDescriptorLayout{};
-			sceneDescriptorLayout.count = static_cast<uint>(layoutInfo.size());
+			sceneDescriptorLayout.count = static_cast<u32>(layoutInfo.size());
 			sceneDescriptorLayout.layoutInfo = layoutInfo.data();
 
 			descriptorLayouts.push_back(sceneDescriptorLayout);
 
 			Graphics::DescriptorLayout meshDescriptorLayout{};
-			meshDescriptorLayout.count = static_cast<uint>(layoutInfoMesh.size());
+			meshDescriptorLayout.count = static_cast<u32>(layoutInfoMesh.size());
 			meshDescriptorLayout.layoutInfo = layoutInfoMesh.data();
 
 			descriptorLayouts.push_back(meshDescriptorLayout);
@@ -459,10 +459,10 @@ namespace Lumos
 			pipelineCI.pipelineName = "Batch2DRenderer";
 			pipelineCI.shader = m_Shader;
 			pipelineCI.vulkanRenderpass = m_RenderPass;
-			pipelineCI.numVertexLayout = static_cast<uint>(attributeDescriptions.size());
+			pipelineCI.numVertexLayout = static_cast<u32>(attributeDescriptions.size());
 			pipelineCI.descriptorLayouts = descriptorLayouts;
 			pipelineCI.vertexLayout = attributeDescriptions.data();
-			pipelineCI.numLayoutBindings = static_cast<uint>(poolInfo.size());
+			pipelineCI.numLayoutBindings = static_cast<u32>(poolInfo.size());
 			pipelineCI.typeCounts = poolInfo.data();
 			pipelineCI.strideSize = sizeof(VertexData);
 			pipelineCI.numColorAttachments = 1;

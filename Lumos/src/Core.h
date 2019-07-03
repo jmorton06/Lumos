@@ -64,7 +64,7 @@ typedef uint8_t		uint8;
 typedef uint16_t	uint16;
 typedef uint32_t	uint32;
 typedef uint64_t	uint64;
-typedef uint32		uint;
+typedef uint32		u32;
 typedef uint8		byte;
 typedef long long	intptr;
 typedef unsigned long long uintptr;

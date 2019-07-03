@@ -65,7 +65,7 @@ namespace Lumos
 	{
 		const HANDLE file = OpenFileForReading(path);
 		const int64 size = GetFileSizeInternal(file);
-		byte* buffer = new byte[static_cast<uint>(size)];
+		byte* buffer = new byte[static_cast<u32>(size)];
 		const bool result = ReadFileInternal(file, buffer, size);
 		CloseHandle(file);
 		if (!result)
@@ -77,7 +77,7 @@ namespace Lumos
 	{
 		const HANDLE file = OpenFileForReading(path);
 		const int64 size = GetFileSizeInternal(file);
-		String result(static_cast<uint>(size), 0);
+		String result(static_cast<u32>(size), 0);
 		const bool success = ReadFileInternal(file, &result[0], size);
 		CloseHandle(file);
 		if (success)

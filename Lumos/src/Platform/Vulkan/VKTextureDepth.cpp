@@ -8,7 +8,7 @@ namespace Lumos
 {
 	namespace Graphics
 	{
-		VKTextureDepth::VKTextureDepth(uint width, uint height)
+		VKTextureDepth::VKTextureDepth(u32 width, u32 height)
 			: m_Width(width), m_Height(height), m_TextureSampler(nullptr), m_TextureImageView(nullptr)
 		{
 			Init();
@@ -24,11 +24,11 @@ namespace Lumos
 			VKDevice::Instance()->GetDevice().freeMemory(m_TextureImageMemory);
 		}
 
-		void VKTextureDepth::Bind(uint slot) const
+		void VKTextureDepth::Bind(u32 slot) const
 		{
 		}
 
-		void VKTextureDepth::Unbind(uint slot) const
+		void VKTextureDepth::Unbind(u32 slot) const
 		{
 		}
 
@@ -130,7 +130,7 @@ namespace Lumos
 			m_Descriptor.imageLayout = vk::ImageLayout::eShaderReadOnlyOptimal;
 		}
 
-		void VKTextureDepth::Resize(uint width, uint height)
+		void VKTextureDepth::Resize(u32 width, u32 height)
 		{
 			m_Width = width;
 			m_Height = height;

@@ -6,19 +6,6 @@ namespace Lumos
 {
 	namespace Graphics
 	{
-		enum class LUMOS_EXPORT Attachment
-		{
-			Colour0,
-			Colour1,
-			Colour2,
-			Colour3,
-			Colour4,
-			Colour5,
-			Depth,
-			DepthArray,
-			Stencil
-		};
-
 		enum class CubeFace
 		{
 			PositiveX,
@@ -33,14 +20,15 @@ namespace Lumos
 		class Texture2D;
 		class TextureCube;
 		enum class TextureType;
+		enum class TextureFormat;
 		class RenderPass;
 
 		struct FramebufferInfo
 		{
-			uint width;
-			uint height;
-			uint layer = 0;
-			uint attachmentCount;
+			u32 width;
+			u32 height;
+			u32 layer = 0;
+			u32 attachmentCount;
 			bool screenFBO = false;
 			Texture** attachments;
 			TextureType* attachmentTypes;
@@ -55,19 +43,19 @@ namespace Lumos
 
 			virtual ~Framebuffer(){};
 
-			virtual void Bind(uint width, uint height) const = 0;
+			virtual void Bind(u32 width, u32 height) const = 0;
 			virtual void Bind() const = 0;
 			virtual void UnBind() const = 0;
 			virtual void Clear() = 0;
 			virtual void Validate() {};
-			virtual void AddTextureAttachment(Attachment attachmentType, Texture* texture) = 0;
-			virtual void AddCubeTextureAttachment(Attachment attachmentType, CubeFace face, TextureCube* texture) = 0;
+			virtual void AddTextureAttachment(TextureFormat format, Texture* texture) = 0;
+			virtual void AddCubeTextureAttachment(TextureFormat format, CubeFace face, TextureCube* texture) = 0;
 			virtual void AddShadowAttachment(Texture* texture) = 0;
 			virtual void AddTextureLayer(int index, Texture* texture) = 0;
 			virtual void GenerateFramebuffer() = 0;
 
-			virtual uint GetWidth() const = 0;
-			virtual uint GetHeight() const = 0;
+			virtual u32 GetWidth() const = 0;
+			virtual u32 GetHeight() const = 0;
 			virtual void SetClearColour(const Maths::Vector4& colour) = 0;
 		};
 	}
