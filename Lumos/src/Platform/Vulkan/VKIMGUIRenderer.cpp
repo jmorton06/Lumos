@@ -24,7 +24,7 @@ namespace Lumos
 {
     namespace Graphics
     {
-        VKIMGUIRenderer::VKIMGUIRenderer(uint width, uint height, bool clearScreen): m_CommandBuffers{},
+        VKIMGUIRenderer::VKIMGUIRenderer(u32 width, u32 height, bool clearScreen): m_CommandBuffers{},
                                                                                      m_Framebuffers{},
                                                                                      m_Renderpass(nullptr)
         {
@@ -225,7 +225,7 @@ namespace Lumos
             FrameRender(&g_WindowData);
         }
 
-        void VKIMGUIRenderer::OnResize(uint width, uint height)
+        void VKIMGUIRenderer::OnResize(u32 width, u32 height)
         {
             auto* wd = &g_WindowData;
             auto swapChain = static_cast<VKSwapchain*>(VKRenderer::GetSwapchain());

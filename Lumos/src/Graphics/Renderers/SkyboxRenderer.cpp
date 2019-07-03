@@ -24,7 +24,7 @@ namespace Lumos
 {
 	namespace Graphics
 	{
-		SkyboxRenderer::SkyboxRenderer(uint width, uint height, Texture* cubeMap, bool renderToGBuffer) : m_UniformBuffer(nullptr), m_CubeMap(nullptr)
+		SkyboxRenderer::SkyboxRenderer(u32 width, u32 height, Texture* cubeMap, bool renderToGBuffer) : m_UniformBuffer(nullptr), m_CubeMap(nullptr)
 		{
 			m_Pipeline = nullptr;
 			m_CubeMap = cubeMap;
@@ -172,7 +172,7 @@ namespace Lumos
             }
 		}
 
-		void SkyboxRenderer::OnResize(uint width, uint height)
+		void SkyboxRenderer::OnResize(u32 width, u32 height)
 		{
 			delete m_Pipeline;
 
@@ -209,7 +209,7 @@ namespace Lumos
 			std::vector<Graphics::DescriptorLayout> descriptorLayouts;
 
 			Graphics::DescriptorLayout sceneDescriptorLayout{};
-			sceneDescriptorLayout.count = static_cast<uint>(layoutInfo.size());
+			sceneDescriptorLayout.count = static_cast<u32>(layoutInfo.size());
 			sceneDescriptorLayout.layoutInfo = layoutInfo.data();
 
 			descriptorLayouts.push_back(sceneDescriptorLayout);
@@ -218,10 +218,10 @@ namespace Lumos
 			pipelineCI.pipelineName = "SkyRenderer";
 			pipelineCI.shader = m_Shader;
 			pipelineCI.vulkanRenderpass = m_RenderPass;
-			pipelineCI.numVertexLayout = static_cast<uint>(attributeDescriptions.size());
+			pipelineCI.numVertexLayout = static_cast<u32>(attributeDescriptions.size());
 			pipelineCI.descriptorLayouts = descriptorLayouts;
 			pipelineCI.vertexLayout = attributeDescriptions.data();
-			pipelineCI.numLayoutBindings = static_cast<uint>(poolInfo.size());
+			pipelineCI.numLayoutBindings = static_cast<u32>(poolInfo.size());
 			pipelineCI.typeCounts = poolInfo.data();
 			pipelineCI.strideSize = sizeof(Vertex);
 			pipelineCI.numColorAttachments = 1;

@@ -19,31 +19,31 @@ namespace Lumos
 		{
 		}
 
-		void BufferLayout::Push(const String& name, uint type, uint size, uint count, bool normalized)
+		void BufferLayout::Push(const String& name, u32 type, u32 size, u32 count, bool normalized)
 		{
 			m_Layout.push_back({ name, type, size, count, m_Size, normalized });
 			m_Size += size * count;
 		}
 
-		void BufferLayout::Push(const String& name, uint type, uint size, uint count, bool normalized, uint offset)
+		void BufferLayout::Push(const String& name, u32 type, u32 size, u32 count, bool normalized, u32 offset)
 		{
 			m_Layout.push_back({ name, type, size, count, m_Size, normalized });
 			m_Size += offset;// size * count;
 		}
 
         template<>
-        void BufferLayout::Push<uint>(const String& name, uint count, bool normalized)
+        void BufferLayout::Push<u32>(const String& name, u32 count, bool normalized)
         {
             switch (Graphics::GraphicsContext::GetRenderAPI())
             {
 #ifdef LUMOS_RENDER_API_OPENGL
                 case RenderAPI::OPENGL:
-                    Push(name, GL_UNSIGNED_INT, sizeof(uint), count, normalized);
+                    Push(name, GL_UNSIGNED_INT, sizeof(u32), count, normalized);
                     break;
 #endif
 #ifdef LUMOS_RENDER_API_DIRECT3D
                 case RenderAPI::DIRECT3D:
-					Push(name, DX_TYPE_R32_UINT, sizeof(uint), count, normalized);
+					Push(name, DX_TYPE_R32_UINT, sizeof(u32), count, normalized);
 					break;
 #endif
 #ifdef LUMOS_RENDER_API_VULKAN
@@ -54,7 +54,7 @@ namespace Lumos
         }
 
         template<>
-        void BufferLayout::Push<byte>(const String& name, uint count, bool normalized)
+        void BufferLayout::Push<byte>(const String& name, u32 count, bool normalized)
         {
             switch (Graphics::GraphicsContext::GetRenderAPI())
             {
@@ -76,7 +76,7 @@ namespace Lumos
         }
 
 		template<>
-		void BufferLayout::Push<float>(const String& name, uint count, bool normalized)
+		void BufferLayout::Push<float>(const String& name, u32 count, bool normalized)
 		{
 			switch (Graphics::GraphicsContext::GetRenderAPI())
 			{
@@ -98,7 +98,7 @@ namespace Lumos
 		}
 
         template<>
-        void BufferLayout::Push<Maths::Vector2>(const String& name, uint count, bool normalized)
+        void BufferLayout::Push<Maths::Vector2>(const String& name, u32 count, bool normalized)
         {
             switch (Graphics::GraphicsContext::GetRenderAPI())
             {
@@ -120,7 +120,7 @@ namespace Lumos
         }
 
         template<>
-        void BufferLayout::Push<Maths::Vector3>(const String& name, uint count, bool normalized)
+        void BufferLayout::Push<Maths::Vector3>(const String& name, u32 count, bool normalized)
         {
             switch (Graphics::GraphicsContext::GetRenderAPI())
             {
@@ -142,7 +142,7 @@ namespace Lumos
         }
 
         template<>
-        void BufferLayout::Push<Maths::Vector4>(const String& name, uint count, bool normalized)
+        void BufferLayout::Push<Maths::Vector4>(const String& name, u32 count, bool normalized)
         {
             switch (Graphics::GraphicsContext::GetRenderAPI())
             {

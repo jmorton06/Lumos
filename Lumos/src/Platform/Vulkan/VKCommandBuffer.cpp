@@ -135,7 +135,7 @@ namespace Lumos
 				LUMOS_CORE_ERROR("WARNING: Used ExecuteSecondary on primary command buffer!");
 		}
 
-		void VKCommandBuffer::UpdateViewport(uint width, uint height)
+		void VKCommandBuffer::UpdateViewport(u32 width, u32 height)
 		{
 			vk::Viewport viewport = {};
 			viewport.x = 0.0f;

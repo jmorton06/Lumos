@@ -14,7 +14,7 @@
 
 namespace Lumos
 {
-	byte* LoadImageFromFile(const char* filename, uint* width, uint* height, uint* bits, bool flipY)
+	byte* LoadImageFromFile(const char* filename, u32* width, u32* height, u32* bits, bool flipY)
 	{
         String filePath = String(filename);
 #ifdef LUMOS_PLATFORM_MOBILE
@@ -46,9 +46,9 @@ namespace Lumos
 		FreeImage_Unload(dib);
 
 		byte* pixels = FreeImage_GetBits(bitmap);
-		uint w = FreeImage_GetWidth(bitmap);
-		uint h = FreeImage_GetHeight(bitmap);
-		uint b = FreeImage_GetBPP(bitmap);
+		u32 w = FreeImage_GetWidth(bitmap);
+		u32 h = FreeImage_GetHeight(bitmap);
+		u32 b = FreeImage_GetBPP(bitmap);
 
 		if (flipY)
 			FreeImage_FlipVertical(bitmap);
@@ -89,7 +89,7 @@ namespace Lumos
 		return result;
 	}
 
-	byte* LoadImageFromFile(const String& filename, uint* width, uint* height, uint* bits, bool flipY)
+	byte* LoadImageFromFile(const String& filename, u32* width, u32* height, u32* bits, bool flipY)
 	{
 		return LoadImageFromFile(filename.c_str(), width, height, bits, flipY);
 	}

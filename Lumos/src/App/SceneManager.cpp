@@ -33,8 +33,8 @@ namespace Lumos
 		m_vpAllScenes.push_back(std::unique_ptr<Scene>(scene));
 
 		auto screenSize = Application::Instance()->GetWindowSize();
-		scene->SetScreenWidth(static_cast<uint>(screenSize.GetX()));
-		scene->SetScreenHeight(static_cast<uint>(screenSize.GetY()));
+		scene->SetScreenWidth(static_cast<u32>(screenSize.GetX()));
+		scene->SetScreenHeight(static_cast<u32>(screenSize.GetY()));
 	}
 
 	void SceneManager::SwitchScene()
@@ -52,8 +52,8 @@ namespace Lumos
 	{
 		bool found = false;
         m_SwitchingScenes = true;
-		uint idx = 0;
-		for (uint i = 0; !found && i < m_vpAllScenes.size(); ++i)
+		u32 idx = 0;
+		for (u32 i = 0; !found && i < m_vpAllScenes.size(); ++i)
 		{
 			if (m_vpAllScenes[i]->GetSceneName() == name)
 			{
@@ -101,8 +101,8 @@ namespace Lumos
         B2PhysicsEngine::Instance()->SetDefaults();
         
         auto screenSize = Application::Instance()->GetWindowSize();
-        m_CurrentScene->SetScreenWidth(static_cast<uint>(screenSize.GetX()));
-        m_CurrentScene->SetScreenHeight(static_cast<uint>(screenSize.GetY()));
+        m_CurrentScene->SetScreenWidth(static_cast<u32>(screenSize.GetX()));
+        m_CurrentScene->SetScreenHeight(static_cast<u32>(screenSize.GetY()));
         m_CurrentScene->OnInit();
         
         Application::Instance()->OnNewScene(m_CurrentScene);

@@ -63,7 +63,7 @@ namespace Lumos
 		void OnRenderObject();
 		virtual void OnUpdateObject(float dt);
 		virtual void OnIMGUI();
-		virtual void OnGuizmo(uint mode = 0);
+		virtual void OnGuizmo(u32 mode = 0);
 		virtual void Init();
 
 		std::vector<Entity*>& GetChildren() { return m_Children; }
@@ -73,7 +73,7 @@ namespace Lumos
 		void  SetBoundingRadius(float radius) { m_BoundingRadius = radius; }
 		float GetBoundingRadius() const { return m_BoundingRadius; }
 
-		uint& GetFrustumCullFlags() { return m_FrustumCullFlags; }
+		u32& GetFrustumCullFlags() { return m_FrustumCullFlags; }
 
 		void DebugDraw(uint64 debugFlags);
 
@@ -111,7 +111,7 @@ namespace Lumos
 
 		String					m_Name;
 		float					m_BoundingRadius;
-		uint					m_FrustumCullFlags;
+		u32						m_FrustumCullFlags;
 		String                  m_UUID;
 		bool					m_Active;
 		TransformComponent*		m_DefaultTransformComponent = nullptr;
@@ -125,6 +125,7 @@ namespace Lumos
 	{
 		std::unique_ptr<T> component(new T(std::forward<Args>(args) ...));
 		AddComponent(std::move(component), ComponentManager::Instance()->GetComponentType<T>());
+		ComponentManager::Instance()->AddComponent<T>(this, component.get());
 	}
     
     template<typename T, typename ... Args>
@@ -137,7 +138,8 @@ namespace Lumos
         
         std::unique_ptr<T> newComponent(new T(std::forward<Args>(args) ...));
         AddComponent(std::move(newComponent), ComponentManager::Instance()->GetComponentType<T>());
-        
+
+		ComponentManager::Instance()->AddComponent<T>(this, newComponent.get());
         return newComponent.get();
     }
 }

@@ -43,7 +43,7 @@ namespace Lumos
 
 			VKContext* GetVKContext() 						const { return m_VKContext; }
 
-			uint m_SwapChainSize = 0;
+			u32 m_SwapChainSize = 0;
             
 #ifdef LUMOS_PLATFORM_IOS
             static void* m_IOSView;

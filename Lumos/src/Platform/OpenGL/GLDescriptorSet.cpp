@@ -65,7 +65,7 @@ namespace Lumos
 			}
         }
 
-		void GLDescriptorSet::Bind(uint offset)
+		void GLDescriptorSet::Bind(u32 offset)
 		{
 			for (auto& imageInfo : m_ImageInfos)
 			{
@@ -82,7 +82,7 @@ namespace Lumos
 				auto* buffer = dynamic_cast<GLUniformBuffer*>(bufferInfo.buffer);
 
                 byte* data;
-                uint size;
+                u32 size;
 
                 if(buffer->GetDynamic())
                 {

@@ -8,7 +8,7 @@ namespace Lumos
 {
 	namespace Graphics
 	{
-		GLSwapchain::GLSwapchain(uint width, uint height)
+		GLSwapchain::GLSwapchain(u32 width, u32 height)
 		{
 			FramebufferInfo info{};
 			info.width = width;

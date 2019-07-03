@@ -34,7 +34,7 @@ namespace Lumos
 			VSSystemUniformIndex_Size
 		};
 
-		ShadowRenderer::ShadowRenderer(TextureDepthArray* texture, uint shadowMapSize, uint numMaps)
+		ShadowRenderer::ShadowRenderer(TextureDepthArray* texture, u32 shadowMapSize, u32 numMaps)
 			: m_ShadowTex(nullptr)
 			, m_ShadowMapNum(numMaps)
 			, m_ShadowMapSize(shadowMapSize)
@@ -45,7 +45,7 @@ namespace Lumos
 			m_apShadowRenderLists = new RenderList*[SHADOWMAP_MAX];
 
 			//Initialize the shadow render lists
-			for (uint i = 0; i < m_ShadowMapNum; ++i)
+			for (u32 i = 0; i < m_ShadowMapNum; ++i)
 			{
 				m_apShadowRenderLists[i] = new RenderList();
 				if (!RenderList::AllocateNewRenderList(m_apShadowRenderLists[i], true))
@@ -73,7 +73,7 @@ namespace Lumos
 			if (m_DeleteTexture)
 				delete m_ShadowTex;
 
-			for (uint i = 0; i < m_ShadowMapNum; ++i)
+			for (u32 i = 0; i < m_ShadowMapNum; ++i)
 			{
 				if (m_apShadowRenderLists)
 					delete m_apShadowRenderLists[i];
@@ -133,7 +133,7 @@ namespace Lumos
 			CreateFramebuffers();
 		}
 
-		void ShadowRenderer::OnResize(uint width, uint height)
+		void ShadowRenderer::OnResize(u32 width, u32 height)
 		{
 		}
 
@@ -184,7 +184,7 @@ namespace Lumos
 			m_RenderPass->EndRenderpass(m_CommandBuffer);
 		}
 
-		void ShadowRenderer::SetShadowMapNum(uint num)
+		void ShadowRenderer::SetShadowMapNum(u32 num)
 		{
 			if (m_ShadowMapNum != num && num <= SHADOWMAP_MAX)
 			{
@@ -196,7 +196,7 @@ namespace Lumos
 						m_apShadowRenderLists[i] = nullptr;
 					}
 				}
-				for (uint i = m_ShadowMapNum; i < num; i++)
+				for (u32 i = m_ShadowMapNum; i < num; i++)
 				{
 					m_apShadowRenderLists[i] = new RenderList();
 					RenderList::AllocateNewRenderList(m_apShadowRenderLists[i], true);
@@ -206,7 +206,7 @@ namespace Lumos
 			}
 		}
 
-		void ShadowRenderer::SetShadowMapSize(uint size)
+		void ShadowRenderer::SetShadowMapSize(u32 size)
 		{
 			if (!m_ShadowMapsInvalidated)
 				m_ShadowMapsInvalidated = (size != m_ShadowMapSize);
@@ -216,7 +216,7 @@ namespace Lumos
 
 		void ShadowRenderer::ClearRenderLists()
 		{
-			for (uint i = 0; i < m_ShadowMapNum; ++i)
+			for (u32 i = 0; i < m_ShadowMapNum; ++i)
 			{
 				if (m_apShadowRenderLists[i])
 					m_apShadowRenderLists[i]->Clear();
@@ -231,7 +231,7 @@ namespace Lumos
 			memcpy(m_VSSystemUniformBuffer + m_VSSystemUniformBufferOffsets[VSSystemUniformIndex_ProjectionViewMatrix], m_ShadowProjView, sizeof(Maths::Matrix4) * 16);
 
 			Begin();
-			for (uint i = 0; i < m_ShadowMapNum; ++i)
+			for (u32 i = 0; i < m_ShadowMapNum; ++i)
 			{
 				m_Layer = i;
 
@@ -387,9 +387,9 @@ namespace Lumos
 			{
 				m_ShadowMapsInvalidated = false;
 
-				for (uint i = 0; i < m_ShadowMapNum; ++i)
+				for (u32 i = 0; i < m_ShadowMapNum; ++i)
 				{
-					const uint attachmentCount = 1;
+					const u32 attachmentCount = 1;
 					TextureType attachmentTypes[attachmentCount];
 					attachmentTypes[0] = TextureType::DEPTHARRAY;
 
@@ -430,7 +430,7 @@ namespace Lumos
 			std::vector<Graphics::DescriptorLayout> descriptorLayouts;
 
 			Graphics::DescriptorLayout sceneDescriptorLayout{};
-			sceneDescriptorLayout.count = static_cast<uint>(layoutInfo.size());
+			sceneDescriptorLayout.count = static_cast<u32>(layoutInfo.size());
 			sceneDescriptorLayout.layoutInfo = layoutInfo.data();
 
 			descriptorLayouts.push_back(sceneDescriptorLayout);
@@ -439,10 +439,10 @@ namespace Lumos
 			pipelineCI.pipelineName = "ShadowRenderer";
 			pipelineCI.shader = m_Shader;
 			pipelineCI.vulkanRenderpass = renderPass;
-			pipelineCI.numVertexLayout = static_cast<uint>(attributeDescriptions.size());
+			pipelineCI.numVertexLayout = static_cast<u32>(attributeDescriptions.size());
 			pipelineCI.descriptorLayouts = descriptorLayouts;
 			pipelineCI.vertexLayout = attributeDescriptions.data();
-			pipelineCI.numLayoutBindings = static_cast<uint>(poolInfo.size());
+			pipelineCI.numLayoutBindings = static_cast<u32>(poolInfo.size());
 			pipelineCI.typeCounts = poolInfo.data();
 			pipelineCI.strideSize = sizeof(Vertex);
 			pipelineCI.numColorAttachments = 0;

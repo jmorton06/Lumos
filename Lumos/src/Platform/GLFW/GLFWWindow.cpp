@@ -98,8 +98,8 @@ namespace Lumos
 
 		const GLFWvidmode* mode = glfwGetVideoMode(glfwGetPrimaryMonitor());
 
-		uint ScreenWidth = 0;
-		uint ScreenHeight = 0;
+		u32 ScreenWidth = 0;
+		u32 ScreenHeight = 0;
 
 		if (properties.Fullscreen)
 		{
@@ -260,7 +260,7 @@ namespace Lumos
 
 	void GLFWWindow::SetIcon(const String& file)
 	{
-		uint width, height;
+		u32 width, height;
 		byte* pixels = Lumos::LoadImageFromFile(file, &width, &height, nullptr, true);
 
 		GLFWimage image;

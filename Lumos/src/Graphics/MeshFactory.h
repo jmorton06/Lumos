@@ -21,8 +21,8 @@ namespace Lumos
 		LUMOS_EXPORT Mesh* CreateQuad(const Maths::Vector2 &position, const Maths::Vector2 &size);
 		LUMOS_EXPORT Mesh* CreateCube(float size);
 		LUMOS_EXPORT Mesh* CreatePyramid(float size);
-		LUMOS_EXPORT Mesh* CreateSphere(uint xSegments, uint ySegments);
-		LUMOS_EXPORT Mesh* CreateIcoSphere(uint radius, uint subdivision);
+		LUMOS_EXPORT Mesh* CreateSphere(u32 xSegments, u32 ySegments);
+		LUMOS_EXPORT Mesh* CreateIcoSphere(u32 radius, u32 subdivision);
 		LUMOS_EXPORT Mesh* CreatePlane(float width, float height, const Maths::Vector3 &normal);
 	}
 }

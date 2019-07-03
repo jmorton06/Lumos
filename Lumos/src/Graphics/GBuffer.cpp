@@ -8,7 +8,7 @@ namespace Lumos
 {
 	namespace Graphics
 	{
-		GBuffer::GBuffer(uint width, uint height)
+		GBuffer::GBuffer(u32 width, u32 height)
 			: m_Width(width), m_Height(height)
 		{
 			Init();
@@ -24,7 +24,7 @@ namespace Lumos
 			delete m_DepthTexture;
 		}
 
-		void GBuffer::UpdateTextureSize(uint width, uint height)
+		void GBuffer::UpdateTextureSize(u32 width, u32 height)
 		{
 			m_Width = width;
 			m_Height = height;
@@ -57,9 +57,9 @@ namespace Lumos
 			}
 
 			m_Formats[0] = TextureFormat::RGBA;
-			m_Formats[1] = TextureFormat::RGBA16;
-			m_Formats[2] = TextureFormat::RGBA16;
-			m_Formats[3] = TextureFormat::RGBA16;
+			m_Formats[1] = TextureFormat::RGBA32;
+			m_Formats[2] = TextureFormat::RGBA32;
+			m_Formats[3] = TextureFormat::RGBA32;
 			m_Formats[4] = TextureFormat::RGBA;
 
 			m_ScreenTex[SCREENTEX_COLOUR]->BuildTexture(m_Formats[0], m_Width, m_Height, false, false);

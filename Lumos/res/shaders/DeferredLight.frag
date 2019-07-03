@@ -35,8 +35,8 @@ layout(std140, binding = 0) uniform UniformBufferLight
 	mat4 viewMatrix;
 	mat4 uShadowTransform[MAX_SHADOWMAPS];
     vec4 uSplitDepths[MAX_SHADOWMAPS];
-	float lightCount;
-	float shadowCount;
+	int lightCount;
+	int shadowCount;
 	int mode;
 	int shadowMode;
 } ubo;

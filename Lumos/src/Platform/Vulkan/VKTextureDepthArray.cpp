@@ -8,7 +8,7 @@ namespace Lumos
 {
 	namespace Graphics
 	{
-		VKTextureDepthArray::VKTextureDepthArray(uint width, uint height,uint count)
+		VKTextureDepthArray::VKTextureDepthArray(u32 width, u32 height,u32 count)
 			: m_Width(width), m_Height(height), m_Count(count)
 		{
 			Init();
@@ -27,11 +27,11 @@ namespace Lumos
             }
 		}
 
-		void VKTextureDepthArray::Bind(uint slot) const
+		void VKTextureDepthArray::Bind(u32 slot) const
 		{
 		}
 
-		void VKTextureDepthArray::Unbind(uint slot) const
+		void VKTextureDepthArray::Unbind(u32 slot) const
 		{
 		}
 
@@ -142,7 +142,7 @@ namespace Lumos
 			m_Descriptor.imageLayout = vk::ImageLayout::eShaderReadOnlyOptimal;
 		}
 
-		void VKTextureDepthArray::Resize(uint width, uint height, uint count)
+		void VKTextureDepthArray::Resize(u32 width, u32 height, u32 count)
 		{
 			m_Width = width;
 			m_Height = height;

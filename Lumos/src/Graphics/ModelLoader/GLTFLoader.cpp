@@ -237,9 +237,9 @@ namespace Lumos
         {
             const tinygltf::Accessor &indices = model.accessors[primitive.indices];
             
-            const uint numVertices = static_cast<uint>(indices.count);
+            const u32 numVertices = static_cast<u32>(indices.count);
 			Graphics::Vertex* tempvertices = new Graphics::Vertex[numVertices];
-            uint* indicesArray = new uint[numVertices];
+            u32* indicesArray = new u32[numVertices];
             
             size_t maxNumVerts = 0;
             

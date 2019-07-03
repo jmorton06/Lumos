@@ -39,8 +39,8 @@ namespace Lumos
 
 	Texture2D* DebugRenderer::m_FontTex = nullptr;
 
-	uint DebugRenderer::m_Width = 0;
-	uint DebugRenderer::m_Height = 0;
+	u32 DebugRenderer::m_Width = 0;
+	u32 DebugRenderer::m_Height = 0;
 
 #ifdef LUMOS_PLATFORM_WINDOWS
 #define VSNPRINTF( _DstBuf, _DstSize, _MaxCount, _Format, _ArgList ) vsnprintf_s( _DstBuf, _DstSize, _MaxCount, _Format, _ArgList )

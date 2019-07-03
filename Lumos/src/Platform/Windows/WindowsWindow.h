@@ -27,8 +27,8 @@ namespace Lumos
 		bool Init(const WindowProperties& properties);
 
 		inline String GetTitle() const override { return m_Data.Title; }
-		inline uint GetWidth()  const override { return m_Data.Width; }
-		inline uint GetHeight() const override { return m_Data.Height; }
+		inline u32 GetWidth()  const override { return m_Data.Width; }
+		inline u32 GetHeight() const override { return m_Data.Height; }
 		inline float GetScreenRatio() const override { return (float)m_Data.Width / (float)m_Data.Height; }
 		inline bool GetExit() const override { return m_Data.Exit; }
 		inline void SetExit(bool exit) override { m_Data.Exit = exit; }
@@ -39,7 +39,7 @@ namespace Lumos
 		struct WindowData
 		{
 			std::string Title;
-			uint Width, Height;
+			u32 Width, Height;
 			bool VSync;
 			bool Exit;
 			Graphics::RenderAPI m_RenderAPI;

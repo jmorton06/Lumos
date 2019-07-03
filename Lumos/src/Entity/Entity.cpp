@@ -22,6 +22,7 @@ namespace Lumos
 
 	Entity::~Entity()
 	{
+		ComponentManager::Instance()->EntityDestroyed(this);
 	}
     
     void Entity::Init()
@@ -33,7 +34,7 @@ namespace Lumos
 	{
         component->SetEntity(this);
 		component->Init();
-        
+
         if(type == ComponentManager::Instance()->GetComponentType<TransformComponent>())// == ComponentType::Transform)
             m_DefaultTransformComponent = reinterpret_cast<TransformComponent*>(component.get());
         
@@ -131,7 +132,7 @@ namespace Lumos
 		return m_DefaultTransformComponent;
 	}
 
-	void Entity::OnGuizmo(uint mode)
+	void Entity::OnGuizmo(u32 mode)
 	{
 		Maths::Matrix4 view = Application::Instance()->GetSceneManager()->GetCurrentScene()->GetCamera()->GetViewMatrix();
 		Maths::Matrix4 proj = Application::Instance()->GetSceneManager()->GetCurrentScene()->GetCamera()->GetProjectionMatrix();

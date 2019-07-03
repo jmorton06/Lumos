@@ -33,7 +33,7 @@ namespace Lumos
 			return nullptr;
 		}
 
-		Texture2D* Texture2D::CreateFromSource(uint width, uint height, void* data, TextureParameters parameters, TextureLoadOptions loadOptions)
+		Texture2D* Texture2D::CreateFromSource(u32 width, u32 height, void* data, TextureParameters parameters, TextureLoadOptions loadOptions)
 		{
 			switch (Graphics::GraphicsContext::GetRenderAPI())
 			{

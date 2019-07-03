@@ -7,8 +7,8 @@ namespace Lumos
 		unsigned char*	Data;
 		float	FreqRate = 0.0f;
 		double	Length = 0.0;
-		uint	BitRate = 0;
-		uint	Size = 0;
-		uint	Channels = 0;
+		u32	BitRate = 0;
+		u32	Size = 0;
+		u32	Channels = 0;
 	};
 }

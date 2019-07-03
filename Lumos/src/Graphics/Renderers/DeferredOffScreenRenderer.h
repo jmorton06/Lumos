@@ -22,7 +22,7 @@ namespace Lumos
 		class LUMOS_EXPORT DeferredOffScreenRenderer : public Renderer3D
 		{
 		public:
-			DeferredOffScreenRenderer(uint width, uint height);
+			DeferredOffScreenRenderer(u32 width, u32 height);
 			~DeferredOffScreenRenderer() override;
 
 			void RenderScene(RenderList* renderList, Scene* scene) override;
@@ -35,7 +35,7 @@ namespace Lumos
 			void EndScene() override;
 			void End() override;
 			void Present() override;
-			void OnResize(uint width, uint height) override;
+			void OnResize(u32 width, u32 height) override;
 			void PresentToScreen();
 
 			void CreatePipeline();
@@ -50,12 +50,12 @@ namespace Lumos
 			void SetSystemUniforms(Shader* shader) const;
 
 			byte* m_VSSystemUniformBuffer;
-			uint m_VSSystemUniformBufferSize;
+			u32 m_VSSystemUniformBufferSize;
 			byte* m_PSSystemUniformBuffer;
-			uint m_PSSystemUniformBufferSize;
+			u32 m_PSSystemUniformBufferSize;
 
-			std::vector<uint> m_VSSystemUniformBufferOffsets;
-			std::vector<uint> m_PSSystemUniformBufferOffsets;
+			std::vector<u32> m_VSSystemUniformBufferOffsets;
+			std::vector<u32> m_PSSystemUniformBufferOffsets;
 
 			Maths::Vector4 m_ClearColour;
 

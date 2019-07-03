@@ -15,17 +15,17 @@ namespace Lumos
 		class LUMOS_EXPORT ForwardRenderer : public Renderer3D
 		{
 		public:
-			ForwardRenderer(uint width, uint height, bool renderToGBuffer = false);
+			ForwardRenderer(u32 width, u32 height, bool renderToGBuffer = false);
 			~ForwardRenderer() override;
 			void RenderScene(RenderList* renderList, Scene* scene) override;
 
 			byte* m_VSSystemUniformBuffer{};
-			uint m_VSSystemUniformBufferSize{};
+			u32 m_VSSystemUniformBufferSize{};
 			byte* m_PSSystemUniformBuffer{};
-			uint m_PSSystemUniformBufferSize{};
+			u32 m_PSSystemUniformBufferSize{};
 
-			std::vector<uint> m_VSSystemUniformBufferOffsets;
-			std::vector<uint> m_PSSystemUniformBufferOffsets;
+			std::vector<u32> m_VSSystemUniformBufferOffsets;
+			std::vector<u32> m_PSSystemUniformBufferOffsets;
 
 			void Init() override;
 			void InitScene(Scene* scene);
@@ -36,7 +36,7 @@ namespace Lumos
 			void EndScene() override;
 			void End() override;
 			void Present() override;
-			void OnResize(uint width, uint height) override;
+			void OnResize(u32 width, u32 height) override;
 
 			void CreateGraphicsPipeline();
 			void CreateFramebuffers();
@@ -71,7 +71,7 @@ namespace Lumos
 			size_t m_DynamicAlignment;
 			UniformBufferModel m_UBODataDynamic;
 
-			uint m_CurrentBufferID = 0;
+			u32 m_CurrentBufferID = 0;
 
 		};
 	}

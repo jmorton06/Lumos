@@ -13,15 +13,15 @@ namespace Lumos
 		{
 		public:
 			virtual ~Swapchain() = default;
-			static Swapchain* Create(uint width, uint height);
+			static Swapchain* Create(u32 width, u32 height);
 
 			virtual bool Init() = 0;
 			virtual Texture* GetCurrentImage() = 0;
-			virtual Texture* GetImage(uint id) = 0;
+			virtual Texture* GetImage(u32 id) = 0;
 			virtual uint32_t GetCurrentBufferId() const = 0;
 			virtual size_t GetSwapchainBufferCount() const = 0;
-			virtual uint GetFramebufferCount() const = 0;
-			virtual Framebuffer* CreateFramebuffer(RenderPass* renderPass, uint id) = 0;
+			virtual u32 GetFramebufferCount() const = 0;
+			virtual Framebuffer* CreateFramebuffer(RenderPass* renderPass, u32 id) = 0;
 		};
 	}
 }

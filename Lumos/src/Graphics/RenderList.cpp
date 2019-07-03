@@ -4,7 +4,7 @@
 namespace Lumos
 {
 
-	uint RenderList::g_NumRenderLists = 0;
+	u32 RenderList::g_NumRenderLists = 0;
 
 	bool RenderList::AllocateNewRenderList(RenderList* renderlist, bool supportsTransparency)
 	{
@@ -34,8 +34,6 @@ namespace Lumos
 		RemoveAllObjects();
 		g_NumRenderLists--;
 	}
-
-
 
 	void RenderList::RenderOpaqueObjects(const std::function<void(Entity*)>& per_object_func)
 	{
@@ -228,11 +226,11 @@ namespace Lumos
 		}
 
 		auto target_list = isOpaque ? &m_vRenderListOpaque : &m_vRenderListTransparent;
-		uint new_size = static_cast<uint>(target_list->size());
+		u32 new_size = static_cast<u32>(target_list->size());
 
 		bool found = false;
-		uint idx = 0;
-		for (uint i = 0; !found && i < new_size; ++i)
+		u32 idx = 0;
+		for (u32 i = 0; !found && i < new_size; ++i)
 		{
 			if ((*target_list)[i].target_obj == obj)
 			{
@@ -247,7 +245,7 @@ namespace Lumos
 			new_size--; //As we want to remove an object from the end of the list
 
 			//Move all elements after the 'to be deleted element' forward, so we can safely pop the last element without losing anyone
-			for (uint i = idx; i < new_size; ++i)
+			for (u32 i = idx; i < new_size; ++i)
 			{
 				(*target_list)[i] = (*target_list)[i + 1];
 			}

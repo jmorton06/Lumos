@@ -11,12 +11,12 @@ namespace Lumos
 		class VKTextureDepth : public TextureDepth
 		{
 		public:
-			VKTextureDepth(uint width, uint height);
+			VKTextureDepth(u32 width, u32 height);
 			~VKTextureDepth();
 
-			void Bind(uint slot = 0) const override;
-			void Unbind(uint slot = 0) const override;
-			void Resize(uint width, uint height) override;
+			void Bind(u32 slot = 0) const override;
+			void Unbind(u32 slot = 0) const override;
+			void Resize(u32 width, u32 height) override;
 
 			virtual void* GetHandle() const override { return (void*)m_TextureImageView; }
 
@@ -40,8 +40,8 @@ namespace Lumos
 
 		private:
 			String m_Name;
-			uint m_Handle;
-			uint m_Width, m_Height;
+			u32 m_Handle;
+			u32 m_Width, m_Height;
 
 			vk::Image m_TextureImage;
 			vk::DeviceMemory m_TextureImageMemory;

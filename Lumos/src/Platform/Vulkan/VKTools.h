@@ -48,7 +48,7 @@ namespace Lumos
 			vk::DescriptorType DescriptorTypeToVK(DescriptorType type);
 			vk::Format TextureFormatToVK(const TextureFormat format);
             vk::ShaderStageFlagBits ShaderTypeToVK(const ShaderType& shaderName);
-            vk::Format FormatToVK(Format format);
+            vk::Format FormatToVK(Lumos::Graphics::Format format);
 
 			void SetImageLayout(
 				vk::CommandBuffer cmdbuffer,

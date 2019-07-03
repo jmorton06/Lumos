@@ -10,18 +10,18 @@ namespace Lumos
 		class GLVertexBuffer : public VertexBuffer
 		{
 		private:
-			uint m_Handle{};
+			u32 m_Handle{};
 			BufferUsage m_Usage;
-			uint m_Size;
+			u32 m_Size;
 			BufferLayout m_Layout;
 		public:
 			explicit GLVertexBuffer(BufferUsage usage);
 			~GLVertexBuffer();
 
-			void Resize(uint size) override;
+			void Resize(u32 size) override;
 			void SetLayout(const BufferLayout& layout) override;
-			void SetData(uint size, const void* data) override;
-			void SetDataSub(uint size, const void* data, uint offset) override;
+			void SetData(u32 size, const void* data) override;
+			void SetDataSub(u32 size, const void* data, u32 offset) override;
 
 			void ReleasePointer() override;
 

@@ -17,20 +17,20 @@ namespace Lumos
         Engine();
         ~Engine();
 
-        uint  GetFPS() const { return m_FramesPerSecond;  }
-        uint  GetUPS() const { return m_UpdatesPerSecond; }
+        u32  GetFPS() const { return m_FramesPerSecond;  }
+        u32  GetUPS() const { return m_UpdatesPerSecond; }
         float GetFrametime() const { return m_Frametime;  }
         float TargetFrameRate() const { return m_MaxFramesPerSecond; }
 
-        void SetFPS(uint fps) { m_FramesPerSecond = fps;  }
-        void SetUPS(uint ups) { m_UpdatesPerSecond = ups; }
+        void SetFPS(u32 fps) { m_FramesPerSecond = fps;  }
+        void SetUPS(u32 ups) { m_UpdatesPerSecond = ups; }
         void SetFrametime(float frameTime) { m_Frametime = frameTime;  }
         void SetTargetFrameRate(float targetFPS) { m_MaxFramesPerSecond = targetFPS; }
 
     private:
 
-        uint  m_UpdatesPerSecond;
-        uint  m_FramesPerSecond;
+        u32  m_UpdatesPerSecond;
+        u32  m_FramesPerSecond;
         float m_Frametime = 0.1f;
         float m_MaxFramesPerSecond;
     };

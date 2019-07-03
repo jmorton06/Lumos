@@ -83,65 +83,33 @@ namespace Lumos
 			{
 			}
 
-			virtual ~Renderer() {};
+			virtual ~Renderer() = default;
 
-			static void Init(uint width, uint height);
+			static void Init(u32 width, u32 height);
 			static void Release();
 			virtual void InitInternal() = 0;
 			virtual void Begin() = 0;
 			virtual void BindScreenFBOInternal() = 0;
-			virtual void OnResize(uint width, uint height) = 0;
+			virtual void OnResize(u32 width, u32 height) = 0;
 			inline static Renderer* GetRenderer() { return s_Instance; }
 
-			virtual void Render(VertexArray* vertexArray, IndexBuffer* indexBuffer, Graphics::CommandBuffer* cmdBuffer, std::vector<Graphics::DescriptorSet*>& descriptorSets, Graphics::Pipeline* pipeline, uint dynamicOffset = 0) = 0;
+			virtual void Render(VertexArray* vertexArray, IndexBuffer* indexBuffer, Graphics::CommandBuffer* cmdBuffer, std::vector<Graphics::DescriptorSet*>& descriptorSets, Graphics::Pipeline* pipeline, u32 dynamicOffset = 0) = 0;
 
-			virtual void ClearInternal(uint buffer) = 0;
 			virtual void PresentInternal() = 0;
 			virtual void PresentInternal(Graphics::CommandBuffer* cmdBuffer) = 0;
 
-			virtual void SetColourMaskInternal(bool r, bool g, bool b, bool a) = 0;
-			virtual void SetDepthTestingInternal(bool enabled) = 0;
-			virtual void SetStencilTestInternal(bool enabled) = 0;
-			virtual void SetCullingInternal(bool enabled, bool front) = 0;
-			virtual void SetBlendInternal(bool enabled) = 0;
-			virtual void SetDepthMaskInternal(bool enabled) = 0;
-			virtual void SetViewportInternal(uint x, uint y, uint width, uint height) = 0;
-
-			virtual void SetBlendFunctionInternal(RendererBlendFunction source, RendererBlendFunction destination) = 0;
-			virtual void SetBlendEquationInternal(RendererBlendFunction blendEquation) = 0;
-			virtual void SetStencilFunctionInternal(StencilType type, uint ref, uint mask) = 0;
-			virtual void SetStencilOpInternal(StencilType fail, StencilType zfail, StencilType zpass) = 0;
-
 			virtual const String& GetTitleInternal() const = 0;
-			virtual void DrawArraysInternal(DrawType type, uint numIndices) const = 0;
-			virtual void DrawArraysInternal(DrawType type, uint start, uint numIndices) const = 0;
-			virtual void DrawInternal(DrawType type, uint count, DataType datayType, void* indices) const = 0;
-			virtual void SetRenderTargets(uint numTargets) = 0;
-			virtual void SetPixelPackType(PixelPackType type) = 0;
-			virtual void SetRenderModeInternal(RenderMode mode) = 0;
-			virtual void RenderMeshInternal(Mesh* mesh, Graphics::Pipeline* pipeline, Graphics::CommandBuffer* cmdBuffer, uint dynamicOffset, std::vector<Graphics::DescriptorSet*>& descriptorSets) = 0;
+			virtual void DrawArraysInternal(DrawType type, u32 numIndices, u32 start) const = 0;
+			virtual void DrawInternal(DrawType type, u32 count, DataType datayType, void* indices) const = 0;
+			virtual void RenderMeshInternal(Mesh* mesh, Graphics::Pipeline* pipeline, Graphics::CommandBuffer* cmdBuffer, u32 dynamicOffset, std::vector<Graphics::DescriptorSet*>& descriptorSets) = 0;
 			virtual Graphics::Swapchain* GetSwapchainInternal() const = 0;
 
-			inline static void Clear(uint buffer) { s_Instance->ClearInternal(buffer); }
 			inline static void BindScreenFBO() { s_Instance->BindScreenFBOInternal(); }
 			inline static void Present() { s_Instance->PresentInternal(); }
 			inline static void Present(Graphics::CommandBuffer* cmdBuffer) { s_Instance->PresentInternal(cmdBuffer); }
-			inline static void Draw(DrawType type, uint count, DataType datayType = DataType::UNSIGNED_INT, void* indices = nullptr) { s_Instance->DrawInternal(type, count, datayType, indices); }
-			inline static void DrawArrays(DrawType type, uint numIndices) { s_Instance->DrawArraysInternal(type, numIndices); }
-			inline static void DrawArrays(DrawType type, uint start, uint numIndices) { s_Instance->DrawArraysInternal(type, start, numIndices); }
-			inline static void SetDepthTesting(bool enabled) { s_Instance->SetDepthTestingInternal(enabled); }
-			inline static void SetCulling(bool enabled, bool front = false) { s_Instance->SetCullingInternal(enabled, front); }
-			inline static void SetDepthMask(bool enabled) { s_Instance->SetDepthMaskInternal(enabled); }
-			inline static void SetBlend(bool enabled) { s_Instance->SetBlendInternal(enabled); }
-			inline static void SetStencilTest(bool enabled) { s_Instance->SetStencilTestInternal(enabled); }
-			inline static void SetViewport(uint x, uint y, uint width, uint height) { s_Instance->SetViewportInternal(x, y, width, height); }
-			inline static void SetColourMask(bool r, bool g, bool b, bool a) { s_Instance->SetColourMaskInternal(r, g, b, a); }
-			inline static void SetRenderMode(RenderMode mode) { s_Instance->SetRenderModeInternal(mode); }
-			inline static void SetBlendFunction(RendererBlendFunction source, RendererBlendFunction destination) { s_Instance->SetBlendFunctionInternal(source, destination); }
-			inline static void SetBlendEquation(RendererBlendFunction blendEquation) { s_Instance->SetBlendEquationInternal(blendEquation); }
-			inline static void SetStencilFunction(StencilType type, uint ref, uint mask) { s_Instance->SetStencilFunctionInternal(type, ref, mask); }
-			inline static void SetStencilOp(StencilType fail, StencilType zfail, StencilType zpass) { s_Instance->SetStencilOpInternal(fail, zfail, zpass); }
-			inline static void RenderMesh(Mesh* mesh, Graphics::Pipeline* pipeline, Graphics::CommandBuffer* cmdBuffer, uint dynamicOffset, std::vector<Graphics::DescriptorSet*>& descriptorSets) { s_Instance->RenderMeshInternal(mesh, pipeline, cmdBuffer, dynamicOffset, descriptorSets); }
+			inline static void Draw(DrawType type, u32 count, DataType datayType = DataType::UNSIGNED_INT, void* indices = nullptr) { s_Instance->DrawInternal(type, count, datayType, indices); }
+			inline static void DrawArrays(DrawType type, u32 numIndices, u32 start = 0) { s_Instance->DrawArraysInternal(type, numIndices, start); }
+			inline static void RenderMesh(Mesh* mesh, Graphics::Pipeline* pipeline, Graphics::CommandBuffer* cmdBuffer, u32 dynamicOffset, std::vector<Graphics::DescriptorSet*>& descriptorSets) { s_Instance->RenderMeshInternal(mesh, pipeline, cmdBuffer, dynamicOffset, descriptorSets); }
 			inline static const String& GetTitle() { return s_Instance->GetTitleInternal(); }
 
 			inline static Swapchain* GetSwapchain() { return s_Instance->GetSwapchainInternal(); }

@@ -13,7 +13,7 @@ namespace Lumos
 {
 	namespace Graphics
 	{
-		VKTexture2D::VKTexture2D(uint width, uint height, void* data, TextureParameters parameters, TextureLoadOptions loadOptions)
+		VKTexture2D::VKTexture2D(u32 width, u32 height, void* data, TextureParameters parameters, TextureLoadOptions loadOptions)
 			: m_FileName("NULL"), m_TextureSampler(nullptr), m_TextureImageView(nullptr)
 		{
 			m_Width = width;
@@ -85,11 +85,11 @@ namespace Lumos
 			}
 		}
 
-		void VKTexture2D::Bind(uint slot) const
+		void VKTexture2D::Bind(u32 slot) const
 		{
 		}
 
-		void VKTexture2D::Unbind(uint slot) const
+		void VKTexture2D::Unbind(u32 slot) const
 		{
 		}
 
@@ -106,7 +106,7 @@ namespace Lumos
 			}
 		}
 
-		void VKTexture2D::BuildTexture(TextureFormat internalformat, uint width, uint height, bool depth, bool samplerShadow)
+		void VKTexture2D::BuildTexture(TextureFormat internalformat, u32 width, u32 height, bool depth, bool samplerShadow)
 		{
 			m_Width = width;
 			m_Height = height;
@@ -268,7 +268,7 @@ namespace Lumos
 
 		bool VKTexture2D::Load()
 		{
-			uint texWidth, texHeight, texChannels;
+			u32 texWidth, texHeight, texChannels;
 			byte* pixels;
 
 			if (m_Data == nullptr)

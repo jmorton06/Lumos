@@ -45,7 +45,7 @@ namespace Lumos
 			PSSystemUniformIndex_Size
 		};
 
-		DeferredOffScreenRenderer::DeferredOffScreenRenderer(uint width, uint height)
+		DeferredOffScreenRenderer::DeferredOffScreenRenderer(u32 width, u32 height)
 		{
 			DeferredOffScreenRenderer::SetScreenBufferSize(width, height);
 			DeferredOffScreenRenderer::Init();
@@ -256,17 +256,8 @@ namespace Lumos
 
 		void DeferredOffScreenRenderer::Present()
 		{
-			int index = 0;
-
-#ifdef THREAD_RENDER_SUBMIT
-            System::JobSystem::Dispatch(static_cast<uint32>(m_CommandQueue.size()), 16, [&](JobDispatchArgs args)
-#else
-            for (uint i = 0; i < static_cast<uint32>(m_CommandQueue.size()); i++)
-#endif
+            for (u32 i = 0; i < static_cast<uint32>(m_CommandQueue.size()); i++)
             {
-#ifdef THREAD_RENDER_SUBMIT
-                int i = args.jobIndex;
-#endif
                 auto command = m_CommandQueue[i];
 				Mesh* mesh = command.mesh;
 
@@ -277,7 +268,7 @@ namespace Lumos
 
 				m_Pipeline->SetActive(currentCMDBuffer);
 
-				uint32_t dynamicOffset = index * static_cast<uint32_t>(m_DynamicAlignment);
+				uint32_t dynamicOffset = i * static_cast<uint32_t>(m_DynamicAlignment);
 
 				std::vector<Graphics::DescriptorSet*> descriptorSets;
 				descriptorSets.emplace_back(m_Pipeline->GetDescriptorSet());
@@ -287,13 +278,7 @@ namespace Lumos
 
 				currentCMDBuffer->EndRecording();
 				currentCMDBuffer->ExecuteSecondary(m_DeferredCommandBuffers);
-
-				index++;
-		}
-#ifdef THREAD_RENDER_SUBMIT
-            );
-            System::JobSystem::Wait();
-#endif
+			}
         }
 
 		void DeferredOffScreenRenderer::CreatePipeline()
@@ -333,13 +318,13 @@ namespace Lumos
 			std::vector<Graphics::DescriptorLayout> descriptorLayouts;
 
 			Graphics::DescriptorLayout sceneDescriptorLayout{};
-			sceneDescriptorLayout.count = static_cast<uint>(layoutInfo.size());
+			sceneDescriptorLayout.count = static_cast<u32>(layoutInfo.size());
 			sceneDescriptorLayout.layoutInfo = layoutInfo.data();
 
 			descriptorLayouts.push_back(sceneDescriptorLayout);
 
 			Graphics::DescriptorLayout meshDescriptorLayout{};
-			meshDescriptorLayout.count = static_cast<uint>(layoutInfoMesh.size());
+			meshDescriptorLayout.count = static_cast<u32>(layoutInfoMesh.size());
 			meshDescriptorLayout.layoutInfo = layoutInfoMesh.data();
 
 			descriptorLayouts.push_back(meshDescriptorLayout);
@@ -348,10 +333,10 @@ namespace Lumos
 			pipelineCI.pipelineName = "OffScreenRenderer";
 			pipelineCI.shader = m_Shader;
 			pipelineCI.vulkanRenderpass = m_RenderPass;
-			pipelineCI.numVertexLayout = static_cast<uint>(attributeDescriptions.size());
+			pipelineCI.numVertexLayout = static_cast<u32>(attributeDescriptions.size());
 			pipelineCI.descriptorLayouts = descriptorLayouts;
 			pipelineCI.vertexLayout = attributeDescriptions.data();
-			pipelineCI.numLayoutBindings = static_cast<uint>(poolInfo.size());
+			pipelineCI.numLayoutBindings = static_cast<u32>(poolInfo.size());
 			pipelineCI.typeCounts = poolInfo.data();
 			pipelineCI.strideSize = sizeof(Vertex);
 			pipelineCI.numColorAttachments = 6;
@@ -422,7 +407,7 @@ namespace Lumos
 
 		void DeferredOffScreenRenderer::CreateFBO()
 		{
-			const uint attachmentCount = 5;
+			const u32 attachmentCount = 5;
 			TextureType attachmentTypes[attachmentCount];
 			attachmentTypes[0] = TextureType::COLOUR;
 			attachmentTypes[1] = TextureType::COLOUR;
@@ -448,7 +433,7 @@ namespace Lumos
 			m_FBO = Framebuffer::Create(bufferInfo);
 		}
 
-		void DeferredOffScreenRenderer::OnResize(uint width, uint height)
+		void DeferredOffScreenRenderer::OnResize(u32 width, u32 height)
 		{
 			delete m_Pipeline;
 			delete m_FBO;

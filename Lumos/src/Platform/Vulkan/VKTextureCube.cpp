@@ -13,14 +13,14 @@ namespace Lumos
 {
 	namespace Graphics
 	{
-		VKTextureCube::VKTextureCube(uint size)
+		VKTextureCube::VKTextureCube(u32 size)
 		{
 		}
 
 		VKTextureCube::VKTextureCube(const String& name, const String* files)
 		{
 			m_Name = name;
-			for (uint i = 0; i < 6; i++)
+			for (u32 i = 0; i < 6; i++)
 				m_Files[i] = files[i];
 
 			Load(1);
@@ -28,11 +28,11 @@ namespace Lumos
 			UpdateDescriptor();
 		}
 
-		VKTextureCube::VKTextureCube(const String& name, const String* files, uint mips, const InputFormat format)
+		VKTextureCube::VKTextureCube(const String& name, const String* files, u32 mips, const InputFormat format)
 		{
 			m_Name = name;
 			m_NumMips = mips;
-			for (uint i = 0; i < mips; i++)
+			for (u32 i = 0; i < mips; i++)
 				m_Files[i] = files[i];
 
 			Load(mips);
@@ -61,11 +61,11 @@ namespace Lumos
 			}
 		}
 
-		void VKTextureCube::Bind(uint slot) const
+		void VKTextureCube::Bind(u32 slot) const
 		{
 		}
 
-		void VKTextureCube::Unbind(uint slot) const
+		void VKTextureCube::Unbind(u32 slot) const
 		{
 		}
 
@@ -149,31 +149,31 @@ namespace Lumos
 			m_Descriptor.imageLayout = vk::ImageLayout::eShaderReadOnlyOptimal;
 		}
 
-		void VKTextureCube::Load(uint mips)
+		void VKTextureCube::Load(u32 mips)
 		{
-			uint srcWidth, srcHeight, bits;
+			u32 srcWidth, srcHeight, bits;
 			byte*** cubeTextureData = new byte**[mips];
-			for (uint i = 0; i < mips; i++)
+			for (u32 i = 0; i < mips; i++)
 				cubeTextureData[i] = new byte*[6];
 
-			uint* faceWidths = new uint[mips];
-			uint* faceHeights = new uint[mips];
-			uint size = 0;
+			u32* faceWidths = new u32[mips];
+			u32* faceHeights = new u32[mips];
+			u32 size = 0;
 
-			for (uint m = 0; m < mips; m++)
+			for (u32 m = 0; m < mips; m++)
 			{
 				byte* data = Lumos::LoadImageFromFile(m_Files[m], &srcWidth, &srcHeight, &bits, !m_LoadOptions.flipY);
 				//m_Parameters.format = VKTexture2D::BitsToTextureFormat(bits);
-				uint stride = bits / 8;
+				u32 stride = bits / 8;
 				
-				uint face = 0;
-				uint faceWidth = srcWidth / 3;
-				uint faceHeight = srcHeight / 4;
+				u32 face = 0;
+				u32 faceWidth = srcWidth / 3;
+				u32 faceHeight = srcHeight / 4;
 				faceWidths[m] = faceWidth;
 				faceHeights[m] = faceHeight;
-				for (uint cy = 0; cy < 4; cy++)
+				for (u32 cy = 0; cy < 4; cy++)
 				{
-					for (uint cx = 0; cx < 3; cx++)
+					for (u32 cx = 0; cx < 3; cx++)
 					{
 						if (cy == 0 || cy == 2 || cy == 3)
 						{
@@ -185,18 +185,18 @@ namespace Lumos
 
 						size += stride * srcHeight * srcWidth;
 
-						for (uint y = 0; y < faceHeight; y++)
+						for (u32 y = 0; y < faceHeight; y++)
 						{
-							uint offset = y;
+							u32 offset = y;
 							if (face == 5)
 								offset = faceHeight - (y + 1);
-							uint yp = cy * faceHeight + offset;
-							for (uint x = 0; x < faceWidth; x++)
+							u32 yp = cy * faceHeight + offset;
+							for (u32 x = 0; x < faceWidth; x++)
 							{
 								offset = x;
 								if (face == 5)
 									offset = faceWidth - (x + 1);
-								uint xp = cx * faceWidth + offset;
+								u32 xp = cx * faceWidth + offset;
 								cubeTextureData[m][face][(x + y * faceWidth) * stride + 0] = data[(xp + yp * srcWidth) * stride + 0];
 								cubeTextureData[m][face][(x + y * faceWidth) * stride + 1] = data[(xp + yp * srcWidth) * stride + 1];
 								cubeTextureData[m][face][(x + y * faceWidth) * stride + 2] = data[(xp + yp * srcWidth) * stride + 2];
@@ -211,15 +211,15 @@ namespace Lumos
 			}
 
 			byte* allData = new byte[size];
-			uint pointeroffset = 0;
+			u32 pointeroffset = 0;
 
-			uint faceOrder[6] = { 3, 1, 0, 4, 2, 5 };
+			u32 faceOrder[6] = { 3, 1, 0, 4, 2, 5 };
 
-			for( uint face = 0; face < 6; face++)
+			for( u32 face = 0; face < 6; face++)
 			{
-				for(uint mip = 0; mip < m_NumMips; mip++)
+				for(u32 mip = 0; mip < m_NumMips; mip++)
 				{
-					uint currentSize = faceWidths[mip] * faceHeights[mip] * bits / 8;
+					u32 currentSize = faceWidths[mip] * faceHeights[mip] * bits / 8;
 					memcpy(allData + pointeroffset, cubeTextureData[mip][faceOrder[face]], currentSize);
 					pointeroffset += currentSize;
 				}
@@ -303,9 +303,9 @@ namespace Lumos
 			CreateTextureSampler();
 			m_TextureImageView =  CreateImageView(m_TextureImage, vk::Format::eR8G8B8A8Unorm, m_NumMips);
 
-			for (uint m = 0; m < mips; m++)
+			for (u32 m = 0; m < mips; m++)
 			{
-				for (uint f = 0; f < 6; f++)
+				for (u32 f = 0; f < 6; f++)
 				{
 					delete[] cubeTextureData[m][f];
 				}

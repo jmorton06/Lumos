@@ -91,7 +91,7 @@ namespace Lumos
 		Graphics::DescriptorSet* 			m_DescriptorSet;
 		Graphics::UniformBuffer* 			m_MaterialPropertiesBuffer;
 		MaterialProperties*					m_MaterialProperties;
-		uint								m_MaterialBufferSize;
+		u32								m_MaterialBufferSize;
         byte*								m_MaterialBufferData;
 		String								m_Name;
 

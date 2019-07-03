@@ -17,7 +17,7 @@ namespace Lumos
 	{
 		friend class Application;
 	public:
-		Editor(Application* app, uint width, uint height);
+		Editor(Application* app, u32 width, u32 height);
 		~Editor();
         
         Editor(Editor const&) = delete;
@@ -36,7 +36,7 @@ namespace Lumos
 
 		void SelectEntity();
 
-		uint GetImGuizmoOperation() const { return m_ImGuizmoOperation; }
+		u32 GetImGuizmoOperation() const { return m_ImGuizmoOperation; }
 		void OnInit();
 		void OnNewScene(Scene* scene);
 
@@ -46,7 +46,7 @@ namespace Lumos
 
 		Maths::Vector2 m_SceneViewSize;
 		Maths::Vector2 m_SceneViewPosition;
-		uint m_ImGuizmoOperation = 0;
+		u32 m_ImGuizmoOperation = 0;
 		Entity* m_Selected = nullptr;
 
 		bool m_ShowGrid = false;

@@ -20,15 +20,15 @@ namespace Lumos
 			friend class GLShader;
 		private:
 			String m_Name;
-			uint m_Register;
-			uint m_Count;
+			u32 m_Register;
+			u32 m_Count;
 			Type m_Type;
 		public:
-			GLShaderResourceDeclaration(Type type, const String& name, uint count);
+			GLShaderResourceDeclaration(Type type, const String& name, u32 count);
 
 			inline const String& GetName() const override { return m_Name; }
-			inline uint GetRegister() const override { return m_Register; }
-			inline uint GetCount() const override { return m_Count; }
+			inline u32 GetRegister() const override { return m_Register; }
+			inline u32 GetCount() const override { return m_Count; }
 
 			inline Type GetType() const { return m_Type; }
 		public:

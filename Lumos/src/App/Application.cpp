@@ -87,8 +87,8 @@ namespace Lumos
 		if (!m_Window->HasInitialised())
 			Quit(true, "Window failed to initialise!");
 
-		uint screenWidth = m_Window->GetWidth();
-		uint screenHeight = m_Window->GetHeight();
+		u32 screenWidth = m_Window->GetWidth();
+		u32 screenHeight = m_Window->GetHeight();
 
 		Lumos::Input::Create();
 
@@ -164,7 +164,7 @@ namespace Lumos
 		{
 			m_UpdateTimer += Engine::Instance()->TargetFrameRate();
 #endif
-            
+
 			m_TimeStep->Update(now);
 
 			{
@@ -221,8 +221,8 @@ namespace Lumos
 
 	void Application::OnUpdate(TimeStep* dt)
 	{
-		const uint sceneIdx = m_SceneManager->GetCurrentSceneIndex();
-		const uint sceneMax = m_SceneManager->SceneCount();
+		const u32 sceneIdx = m_SceneManager->GetCurrentSceneIndex();
+		const u32 sceneMax = m_SceneManager->SceneCount();
 
         if (Input::GetInput().GetKeyPressed(InputCode::Key::P)) LumosPhysicsEngine::Instance()->SetPaused(!LumosPhysicsEngine::Instance()->IsPaused());
 		if (Input::GetInput().GetKeyPressed(InputCode::Key::P)) B2PhysicsEngine::Instance()->SetPaused(!B2PhysicsEngine::Instance()->IsPaused());
@@ -307,8 +307,8 @@ namespace Lumos
 	{
         auto windowSize = GetWindowSize();
 
-		uint width = 1;
-		uint height = 1;
+		u32 width = 1;
+		u32 height = 1;
 
 		if (e.GetWidth() != 0) width = e.GetWidth();
 		if (e.GetHeight() != 0) height = e.GetHeight();

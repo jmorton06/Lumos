@@ -16,7 +16,7 @@ namespace Lumos
 {
 	namespace Graphics
 	{
-		TextureDepthArray* TextureDepthArray::Create(uint width, uint height, uint count)
+		TextureDepthArray* TextureDepthArray::Create(u32 width, u32 height, u32 count)
 		{
 			switch (Graphics::GraphicsContext::GetRenderAPI())
 			{
