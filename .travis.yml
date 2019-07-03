@@ -19,14 +19,14 @@ matrix:
     - os: linux
       language: c++
       compiler: gcc
-      env: BUILD_TYPE=native COMPILER_NAME=gcc CXX=g++-7 CC=gcc-7
+      env: BUILD_TYPE=native COMPILER_NAME=gcc CXX=g++-8 CC=gcc-8
       after_success: bash <(curl -s https://codecov.io/bash)
       addons:
         apt:
           sources:
             - ubuntu-toolchain-r-test
           packages:
-            - g++-7
+            - g++-8
             - libxrandr-dev
             - libxinerama-dev
             - libxcursor-dev
@@ -49,8 +49,8 @@ matrix:
             - libxi-dev
             - libc++-dev
             - clang-6.0
-            - gcc-7
-            - g++-7
+            - gcc-8
+            - g++-8
             - libopenal-dev
 before_install:
   - chmod +x ./Scripts/travis-build.sh
@@ -58,7 +58,7 @@ before_install:
   - chmod +x ./Tools/linux/premake5
 
 install:
-  - if [ "$CXX" = "g++" ] && [ $TRAVIS_OS_NAME == linux ]; then export CXX="g++-7" CC="gcc-7"; fi
+  - if [ "$CXX" = "g++" ] && [ $TRAVIS_OS_NAME == linux ]; then export CXX="g++-8" CC="gcc-8"; fi
   - if [ "$CXX" = "clang++" ] && [ $TRAVIS_OS_NAME == linux ]; then export CXX="clang++-6.0" CC="clang-6.0"; fi
 before_script:
 
