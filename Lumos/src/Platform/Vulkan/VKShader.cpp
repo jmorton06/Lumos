@@ -50,7 +50,7 @@ namespace Lumos
 			for (auto& file : *files)
 			{
 				auto fileSize = FileSystem::GetFileSize(m_FilePath + file.second); //TODO: once process
-				byte* source = FileSystem::ReadFile(m_FilePath + file.second);
+				u8* source = FileSystem::ReadFile(m_FilePath + file.second);
 				vk::ShaderModuleCreateInfo vertexShaderCI{};
 				vertexShaderCI.codeSize = fileSize;
 				vertexShaderCI.pCode = reinterpret_cast<uint32_t*>(source);

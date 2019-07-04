@@ -36,7 +36,6 @@ namespace Lumos
 	{
 		m_Init = false;
 		m_VSync = properties.VSync;
-		m_Timer = new Timer();
         SetHasResized(true);
 		m_Data.m_RenderAPI = static_cast<Graphics::RenderAPI>(properties.RenderAPI);
 
@@ -47,12 +46,6 @@ namespace Lumos
 
 	GLFWWindow::~GLFWWindow()
 	{
-		if (m_Timer != nullptr)
-		{
-			delete m_Timer;
-			m_Timer = nullptr;
-		}
-
 		glfwDestroyWindow(m_Handle);
 		s_NumGLFWWindows--;
 
@@ -261,7 +254,7 @@ namespace Lumos
 	void GLFWWindow::SetIcon(const String& file)
 	{
 		u32 width, height;
-		byte* pixels = Lumos::LoadImageFromFile(file, &width, &height, nullptr, true);
+		u8* pixels = Lumos::LoadImageFromFile(file, &width, &height, nullptr, true);
 
 		GLFWimage image;
 		image.height = height;

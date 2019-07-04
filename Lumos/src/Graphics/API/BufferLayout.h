@@ -45,7 +45,7 @@ namespace Lumos
 		template<>
 		void LUMOS_EXPORT BufferLayout::Push<u32>(const String& name, u32 count , bool normalized );
 		template<>
-		void LUMOS_EXPORT BufferLayout::Push<byte>(const String& name, u32 count , bool normalized );
+		void LUMOS_EXPORT BufferLayout::Push<u8>(const String& name, u32 count , bool normalized );
 		template<>
 		void LUMOS_EXPORT BufferLayout::Push<Maths::Vector2>(const String& name, u32 count , bool normalized );
 		template<>

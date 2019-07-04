@@ -20,7 +20,7 @@ namespace Lumos
 		
 		void GLUniformBuffer::Init(uint32_t size, const void * data)
 		{ 
-			m_Data = (byte*)data; 
+			m_Data = (u8*)data; 
 			m_Size = size;
 			glBindBuffer(GL_UNIFORM_BUFFER, m_Handle);
 			glBufferData(GL_UNIFORM_BUFFER, m_Size, m_Data, GL_DYNAMIC_DRAW);
@@ -28,7 +28,7 @@ namespace Lumos
 
 		void GLUniformBuffer::SetData(uint32_t size, const void * data) 
 		{
-			m_Data = (byte*)data; 
+			m_Data = (u8*)data; 
 			m_Size = size;
 
 			glBindBuffer(GL_UNIFORM_BUFFER, m_Handle);
@@ -39,7 +39,7 @@ namespace Lumos
 
 		void GLUniformBuffer::SetDynamicData(uint32_t size, uint32_t typeSize, const void * data) 
 		{ 
-			m_Data = (byte*)data; 
+			m_Data = (u8*)data; 
 			m_Size = size; 
 			m_Dynamic = true; 
 			m_DynamicTypeSize = typeSize;

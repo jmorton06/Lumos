@@ -61,7 +61,7 @@ namespace Lumos
 		return false;
 	}
 
-	byte* VFS::ReadFile(const String& path)
+	u8* VFS::ReadFile(const String& path)
 	{
 		LUMOS_CORE_ASSERT(s_Instance,"");
 		String physicalPath;
@@ -75,7 +75,7 @@ namespace Lumos
 		return ResolvePhysicalPath(path, physicalPath) ? FileSystem::ReadTextFile(physicalPath) : nullptr;
 	}
 
-	bool VFS::WriteFile(const String& path, byte* buffer)
+	bool VFS::WriteFile(const String& path, u8* buffer)
 	{
 		LUMOS_CORE_ASSERT(s_Instance,"");
 		String physicalPath;

@@ -1,7 +1,6 @@
 #include "LM.h"
 #include "Maths/BoundingBox.h"
 #include "Octree.h"
-#include "Graphics/Renderers/DebugRenderer.h"
 
 namespace Lumos
 {
@@ -113,15 +112,5 @@ namespace Lumos
 
 	void Octree::DebugDrawOctreeNode(OctreeNode* node)
 	{
-		// Draw bounding box
-		if (node)
-		{
-			//node->boundingBox.DebugDraw(Matrix4(), Vector4(1.0f, 0.8f, 0.8f, 0.2f), Vector4(0.8f, 0.2f, 0.4f, 1.0f), 0.1f);
-			DebugRenderer::DebugDraw(&node->boundingBox, Maths::Vector4(0.8f, 0.2f, 0.4f, 1.0f), 0.1f);
-
-			// Draw sub divisions
-			for (auto &childNode : node->childNodes)
-				DebugDrawOctreeNode(childNode.get());
-		}
 	}
 }

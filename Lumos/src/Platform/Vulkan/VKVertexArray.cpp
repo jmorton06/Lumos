@@ -25,7 +25,9 @@ namespace Lumos
 
 		void VKVertexArray::PushBuffer(VertexBuffer* buffer)
 		{
-			m_Buffers.push_back(buffer);
+			m_Buffers.emplace_back(buffer);
+			m_VKBuffers.emplace_back(dynamic_cast<VKVertexBuffer*>(buffer)->GetBuffer());
+			m_Offsets.emplace_back(dynamic_cast<VKVertexBuffer*>(buffer)->GetLayout().GetStride());
 		}
 
 		void VKVertexArray::Bind() const

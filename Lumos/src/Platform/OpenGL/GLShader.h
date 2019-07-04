@@ -46,11 +46,11 @@ namespace Lumos
 			void Bind() const override;
 			void Unbind() const override;
 
-			void SetSystemUniformBuffer(ShaderType type, byte* data, u32 size, u32 slot) override;
-			void SetUserUniformBuffer(ShaderType type, byte* data, u32 size) override;
+			void SetSystemUniformBuffer(ShaderType type, u8* data, u32 size, u32 slot) override;
+			void SetUserUniformBuffer(ShaderType type, u8* data, u32 size) override;
 
-			void SetUniform(const String& name, byte* data);
-			void ResolveAndSetUniformField(const GLShaderUniformDeclaration& field, byte* data, int32 offset, u32 count) const;
+			void SetUniform(const String& name, u8* data);
+			void ResolveAndSetUniformField(const GLShaderUniformDeclaration& field, u8* data, int32 offset, u32 count) const;
 
 			inline const String& GetName() const override { return m_Name; }
 			inline const String& GetFilePath() const override { return m_Path; }
@@ -81,10 +81,10 @@ namespace Lumos
 			static ShaderUniformDeclaration* FindUniformDeclaration(const String& name, const ShaderUniformBufferDeclaration* buffer);
 			ShaderUniformDeclaration* FindUniformDeclaration(const String& name);
 
-			void ResolveAndSetUniforms(ShaderUniformBufferDeclaration* buffer, byte* data, u32 size) const;
-			void ResolveAndSetUniform(GLShaderUniformDeclaration* uniform, byte* data, u32 size, u32 count) const;
+			void ResolveAndSetUniforms(ShaderUniformBufferDeclaration* buffer, u8* data, u32 size) const;
+			void ResolveAndSetUniform(GLShaderUniformDeclaration* uniform, u8* data, u32 size, u32 count) const;
 
-			void SetUniformStruct(GLShaderUniformDeclaration* uniform, byte* data, int32 offset) const;
+			void SetUniformStruct(GLShaderUniformDeclaration* uniform, u8* data, int32 offset) const;
 
 			void SetUniform1f(const String& name, float value) const;
 			void SetUniform1fv(const String& name, float* value, int32 count) const;

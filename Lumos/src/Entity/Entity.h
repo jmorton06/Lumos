@@ -18,8 +18,6 @@ namespace Lumos
 	class LUMOS_EXPORT Entity
 	{
 		friend class EntityManager;
-	protected:
-		std::unordered_map<ComponentType, std::unique_ptr<LumosComponent>, EnumClassHash> m_Components;
 	public:
 		template<typename T, typename... Args>
 		void AddComponent(Args&&... args);
@@ -28,36 +26,26 @@ namespace Lumos
         T* GetOrAddComponent(Args&&... args);
 
 		template <typename T>
-		T* GetComponent() const
-		{
-			return GetComponentInternal<T>();
-		}
-
-		template <typename T>
 		T* GetComponent()
 		{
-			return static_cast<T*>(GetComponentInternal<T>());
+			return ComponentManager::Instance()->GetComponent<T>(this);
 		}
         
-        template <typename T>
+       /* template <typename T>
         bool HasComponent()
         {
-            ComponentType type = ComponentManager::Instance()->GetComponentType<T>();//T::GetStaticType();
+            ComponentType type = ComponentManager::Instance()->GetComponentType<T>();
             auto it = m_Components.find(type);
             if (it == m_Components.end())
                 return false;
             
             return true;
         }
-        
+        */
         template <typename T>
         void RemoveComponent()
         {
-			ComponentType type = ComponentManager::Instance()->GetComponentType<T>();//T::GetStaticType();
-            auto it = m_Components.find(type);
-            if (it == m_Components.end())
-                return;
-            m_Components.erase(it);
+			ComponentManager::Instance()->RemoveComponent<T>(this);
         }
 
 		void OnRenderObject();
@@ -89,6 +77,8 @@ namespace Lumos
 		void SetActive(bool active) { m_Active = active; };
 		void SetActiveRecursive(bool active);
 
+		std::vector<LumosComponent*> GetAllComponents();
+
 	protected:
 		explicit Entity(const String& name = "");
 		virtual ~Entity();
@@ -98,16 +88,6 @@ namespace Lumos
 		Entity& operator=(Entity const&) = delete;
 
 		void AddComponent(std::unique_ptr<LumosComponent> component, ComponentType type);
-
-		template <typename T>
-		T* GetComponentInternal() const
-		{
-			ComponentType type = ComponentManager::Instance()->GetComponentType<T>();
-			auto it = m_Components.find(type);
-			if (it == m_Components.end())
-				return nullptr;
-			return static_cast<T*>(it->second.get());
-		}
 
 		String					m_Name;
 		float					m_BoundingRadius;
@@ -123,23 +103,37 @@ namespace Lumos
 	template<typename T, typename ... Args>
 	inline void Entity::AddComponent(Args && ...args)
 	{
-		std::unique_ptr<T> component(new T(std::forward<Args>(args) ...));
-		AddComponent(std::move(component), ComponentManager::Instance()->GetComponentType<T>());
-		ComponentManager::Instance()->AddComponent<T>(this, component.get());
+		auto component = new T(std::forward<Args>(args) ...);
+		component->SetEntity(this);
+		component->Init();
+
+		if (ComponentManager::Instance()->GetComponentType<T>() == ComponentManager::Instance()->GetComponentType<TransformComponent>())
+			m_DefaultTransformComponent = reinterpret_cast<TransformComponent*>(component);
+		
+		ComponentManager::Instance()->AddComponent<T>(this, component);
 	}
     
     template<typename T, typename ... Args>
     inline T* Entity::GetOrAddComponent(Args && ...args)
     {
-        auto component = GetComponent<T>();
+        T* component = GetComponent<T>();
         
         if(component != nullptr)
             return component;
-        
-        std::unique_ptr<T> newComponent(new T(std::forward<Args>(args) ...));
-        AddComponent(std::move(newComponent), ComponentManager::Instance()->GetComponentType<T>());
+		else
+		{
+			component = new T(std::forward<Args>(args) ...);
+			component->SetEntity(this);
+			component->Init();
 
-		ComponentManager::Instance()->AddComponent<T>(this, newComponent.get());
-        return newComponent.get();
+			if (ComponentManager::Instance()->GetComponentType<T>() == ComponentManager::Instance()->GetComponentType<TransformComponent>())
+				m_DefaultTransformComponent = reinterpret_cast<TransformComponent*>(component);
+
+			ComponentManager::Instance()->AddComponent<T>(this, component);
+
+			return component;
+		}
+        
+		
     }
 }

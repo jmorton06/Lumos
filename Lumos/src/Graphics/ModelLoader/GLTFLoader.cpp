@@ -259,7 +259,7 @@ namespace Lumos
                 int bufferLength = static_cast<int>(accessor.count) * componentLength * componentTypeByteSize;
                 auto first = buffer.data.begin() + bufferOffset;
                 auto last = buffer.data.begin() + bufferOffset + bufferLength;
-                std::vector<byte> data = std::vector<byte>(first, last);
+                std::vector<u8> data = std::vector<u8>(first, last);
                 
                 // -------- Position attribute -----------
                 
@@ -361,7 +361,7 @@ namespace Lumos
                 int bufferLength = static_cast<int>(indexAccessor.count) * componentLength * componentTypeByteSize;
                 auto first = indexBuffer.data.begin() + bufferOffset;
                 auto last = indexBuffer.data.begin() + bufferOffset + bufferLength;
-                std::vector<byte> data = std::vector<byte>(first, last);
+                std::vector<u8> data = std::vector<u8>(first, last);
                 
                 size_t indicesCount = indexAccessor.count;
                 if (componentTypeByteSize == 2)

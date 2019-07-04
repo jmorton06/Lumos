@@ -13,7 +13,7 @@ namespace Lumos
     {
         int64 read_size;
         if(readbytemode)
-            read_size = fread(buffer, sizeof(byte), size, file);
+            read_size = fread(buffer, sizeof(u8), size, file);
         else
             read_size = fread(buffer, sizeof(char), size, file);
 
@@ -48,7 +48,7 @@ namespace Lumos
             return false;
         if(size < 0)
             size = GetFileSize(path);
-        buffer = new byte[size + 1];
+        buffer = new u8[size + 1];
         FILE* file = fopen(path.c_str(), "r");
         bool result = false;
         if(file)
@@ -64,13 +64,13 @@ namespace Lumos
         return result;
     }
 
-    byte* FileSystem::ReadFile(const String& path)
+    u8* FileSystem::ReadFile(const String& path)
     {
         if(!FileExists(path))
             return nullptr;
         int64 size = GetFileSize(path);
         FILE* file = fopen(path.c_str(), "rb");
-        byte* buffer = new byte[size];
+        u8* buffer = new u8[size];
         bool result = ReadFileInternal(file, buffer, size, true);
         fclose(file);
         if (!result && buffer)
@@ -95,7 +95,7 @@ namespace Lumos
         return success ? result : String();
     }
 
-    bool FileSystem::WriteFile(const String& path, byte* buffer)
+    bool FileSystem::WriteFile(const String& path, u8* buffer)
     {
         FILE* file = fopen(path.c_str(), "wb");
         size_t size = fwrite(buffer, 1, sizeof(buffer), file);

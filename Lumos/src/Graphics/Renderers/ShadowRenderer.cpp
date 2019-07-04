@@ -100,14 +100,14 @@ namespace Lumos
 		void ShadowRenderer::Init()
 		{
 			m_VSSystemUniformBufferSize = sizeof(Maths::Matrix4) * 16;
-			m_VSSystemUniformBuffer = new byte[m_VSSystemUniformBufferSize];
+			m_VSSystemUniformBuffer = new u8[m_VSSystemUniformBufferSize];
 			memset(m_VSSystemUniformBuffer, 0, m_VSSystemUniformBufferSize);
 			m_VSSystemUniformBufferOffsets.resize(VSSystemUniformIndex_Size);
 
 			m_PushConstant = new Graphics::PushConstant();
 			m_PushConstant->type = Graphics::PushConstantDataType::UINT;
 			m_PushConstant->size = sizeof(int32);
-			m_PushConstant->data = new byte[sizeof(int32)];
+			m_PushConstant->data = new u8[sizeof(int32)];
             m_PushConstant->shaderStage = ShaderType::VERTEX;
 
 			// Per Scene System Uniforms
@@ -241,11 +241,11 @@ namespace Lumos
 					{
 						const auto model = obj->GetComponent<MeshComponent>();
 
-						if (model && model->m_Model)
+						if (model && model->GetMesh())
 						{
-							auto mesh = model->m_Model;
+							auto mesh = model->GetMesh();
 							{
-								SubmitMesh(mesh.get(), nullptr, obj->GetComponent<TransformComponent>()->GetTransform().GetWorldMatrix(), Maths::Matrix4());
+								SubmitMesh(mesh, nullptr, obj->GetComponent<TransformComponent>()->GetTransform().GetWorldMatrix(), Maths::Matrix4());
 							}
 						}
 					}

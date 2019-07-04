@@ -21,7 +21,7 @@ namespace Lumos
         SetMaterialProperites(properties);
         m_MaterialPropertiesBuffer = nullptr;
         m_MaterialBufferSize = sizeof(MaterialProperties);
-        m_MaterialBufferData = new byte[m_MaterialBufferSize];
+        m_MaterialBufferData = new u8[m_MaterialBufferSize];
         m_Pipeline = nullptr;
     }
 
@@ -35,7 +35,7 @@ namespace Lumos
         m_PBRMaterialTextures.albedo = nullptr;
 
         m_MaterialBufferSize = sizeof(MaterialProperties);
-        m_MaterialBufferData = new byte[m_MaterialBufferSize];
+        m_MaterialBufferData = new u8[m_MaterialBufferSize];
 
         m_Pipeline = nullptr;
     }

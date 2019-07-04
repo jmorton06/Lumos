@@ -3,8 +3,6 @@
 #include "Audio/SoundNode.h"
 #include "App/Scene.h"
 #include "Maths/BoundingSphere.h"
-#include "Graphics/Renderers/DebugRenderer.h"
-
 #include "App/Application.h"
 #include "Audio/AudioManager.h"
 #include <imgui/imgui.h>
@@ -32,7 +30,6 @@ namespace Lumos
 
 	void SoundComponent::DebugDraw(uint64 debugFlags)
 	{
-		DebugRenderer::DebugDraw(static_cast<Maths::BoundingSphere*>(m_BoundingShape.get()), Maths::Vector4(0.7f,0.2f,0.4f, 0.2f));
 	}
 
 	void SoundComponent::Init()

@@ -4,10 +4,8 @@
 #include "Entity/Entity.h"
 #include "App/Scene.h"
 #include "Graphics/ParticleManager.h"
-#include "Maths/BoundingSphere.h"
-#include "Graphics/Renderers/DebugRenderer.h"
-#include <imgui/imgui.h>
 #include "Physics/LumosPhysicsEngine/PhysicsObject3D.h"
+#include <imgui/imgui.h>
 
 namespace Lumos
 {
@@ -24,7 +22,6 @@ namespace Lumos
 
 	void ParticleComponent::DebugDraw(uint64 debugFlags)
 	{
-		DebugRenderer::DebugDraw(static_cast<Maths::BoundingBox*>(m_BoundingShape.get()), Maths::Vector4(0.2f, 0.0f, 0.8f, 0.2f));
 	}
 
 	void ParticleComponent::OnUpdateComponent(float dt)

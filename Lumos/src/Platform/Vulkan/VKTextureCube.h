@@ -53,7 +53,7 @@ namespace Lumos
 			u32 m_Handle;
 			u32 m_Width, m_Height, m_Size;
 			u32 m_NumMips;
-			byte* m_Data = nullptr;
+			u8* m_Data = nullptr;
 
 			TextureParameters m_Parameters;
 			TextureLoadOptions m_LoadOptions;

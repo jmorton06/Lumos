@@ -20,7 +20,7 @@ namespace Lumos
 			m_Height = height;
 			m_Parameters = parameters;
 			m_LoadOptions = loadOptions;
-			m_Data = static_cast<byte*>(data);
+			m_Data = static_cast<u8*>(data);
 			Load();
 
 			m_TextureImageView = CreateImageView(m_TextureImage, vk::Format::eR8G8B8A8Unorm,  vk::ImageAspectFlagBits::eColor, m_MipLevels);
@@ -269,7 +269,7 @@ namespace Lumos
 		bool VKTexture2D::Load()
 		{
 			u32 texWidth, texHeight, texChannels;
-			byte* pixels;
+			u8* pixels;
 
 			if (m_Data == nullptr)
 				pixels = Lumos::LoadImageFromFile(m_FileName, &texWidth, &texHeight, &texChannels);

@@ -16,6 +16,8 @@ int main(int argc, char** argv)
 	delete app;
 
 	Lumos::Internal::CoreSystem::Shutdown();
+
+	Lumos::Memory::LogMemoryInformation();
 }
 
 #elif defined(LUMOS_PLATFORM_IOS)

@@ -20,9 +20,9 @@
 	inline void operator delete		(void* p) { _aligned_free(p); } \
 	inline void operator delete[]	(void* p) { _aligned_free(p); }
 
-#define MEM_ALIGN_NEW_DELETE \
-	MEM_ALIGN_NEW \
-	MEM_ALIGN_DELETE
+#define MEM_ALIGN_NEW_DELETE //\
+//	MEM_ALIGN_NEW \
+//	MEM_ALIGN_DELETE
 
 #else
 
@@ -65,7 +65,8 @@ typedef uint16_t	uint16;
 typedef uint32_t	uint32;
 typedef uint64_t	uint64;
 typedef uint32		u32;
-typedef uint8		byte;
+typedef uint64		u64;
+typedef uint8		u8;
 typedef long long	intptr;
 typedef unsigned long long uintptr;
 

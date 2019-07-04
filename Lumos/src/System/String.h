@@ -15,38 +15,9 @@ template < typename T > std::string to_string( const T& n )
 
 namespace Lumos 
 {
-
-#define STRINGFORMAT_BUFFER_SIZE 10 * 1024
-
 	class LUMOS_EXPORT StringFormat
 	{
-	private:
-		static char* s_Buffer;
 	public:
-		template<typename T>
-		static String Hex(const T& input)
-		{
-			memset(s_Buffer, 0, STRINGFORMAT_BUFFER_SIZE);
-			sprintf(s_Buffer, "%02x", input);
-			return String(s_Buffer);
-		}
-
-		template<typename T>
-		static String Hex(const T* input, u32 size)
-		{
-			memset(s_Buffer, 0, STRINGFORMAT_BUFFER_SIZE);
-			for (u32 i = 0; i < size; i++)
-				sprintf(s_Buffer + i * 3, "%02x ", input[i]);
-			return String(s_Buffer);
-		}
-
-		static String Float(const float input, u32 places = 2)
-		{
-			memset(s_Buffer, 0, STRINGFORMAT_BUFFER_SIZE);
-			sprintf(s_Buffer, "%.2f", input);
-			return String(s_Buffer);
-		}
-
 		template<typename T>
 		static String ToString(const T& input)
 		{

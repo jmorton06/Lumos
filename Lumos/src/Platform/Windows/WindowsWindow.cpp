@@ -47,7 +47,6 @@ namespace Lumos
 	{
 		m_Init = false;
 		m_VSync = properties.VSync;
-		m_Timer = new Timer();
 		SetHasResized(true);
 		m_Data.m_RenderAPI = static_cast<Graphics::RenderAPI>(properties.RenderAPI);
 
@@ -58,11 +57,6 @@ namespace Lumos
 
 	WindowsWindow::~WindowsWindow()
 	{
-		if (m_Timer != nullptr)
-		{
-			delete m_Timer;
-			m_Timer = nullptr;
-		}
 	}
 
 	static PIXELFORMATDESCRIPTOR GetPixelFormat()

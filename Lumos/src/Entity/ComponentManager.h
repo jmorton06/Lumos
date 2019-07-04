@@ -3,7 +3,7 @@
 #include "Utilities/TSingleton.h"
 #include "Entity/Component/LumosComponent.h"
 
-#define MAX_ENTITIES 500
+#define MAX_ENTITIES 5000
 
 namespace Lumos
 {
@@ -12,6 +12,7 @@ namespace Lumos
 	public:
 		virtual ~IComponentArray() = default;
 		virtual void EntityDestroyed(Entity* entity) = 0;
+		virtual void OnUpdate(float dt) = 0;
 	};
 
 	template<typename T>
@@ -50,15 +51,27 @@ namespace Lumos
 			m_Size--;
 		}
 
-		T& GetData(Entity* entity)
+		T* GetData(Entity* entity)
 		{
-			assert(m_EntityToIndexMap.find(entity) != m_EntityToIndexMap.end() && "Retrieving non-existent component.");
+			if (m_EntityToIndexMap.find(entity) == m_EntityToIndexMap.end())
+				return nullptr;
 
 			// Return a reference to the entity's component
 			return m_ComponentArray[m_EntityToIndexMap[entity]];
 		}
 
-		std::array<T*, MAX_ENTITIES>& GetArray() const
+		void OnUpdate(float dt) override 
+		{
+			for (auto& component : m_ComponentArray)
+			{
+				if (!component)
+					return;
+
+				component->OnUpdateComponent(dt);
+			}
+		}
+
+		std::array<T*, MAX_ENTITIES> GetArray() const
 		{
 			return m_ComponentArray;
 		}
@@ -97,6 +110,8 @@ namespace Lumos
 	public:
 		ComponentManager();
 		~ComponentManager();
+
+		void OnUpdate(float dt);
 
 		template<typename T>
 		void RegisterComponent()
@@ -138,7 +153,7 @@ namespace Lumos
 		}
 
 		template<typename T>
-		T& GetComponent(Entity* entity)
+		T* GetComponent(Entity* entity)
 		{
 			return GetComponentArray<T>()->GetData(entity);
 		}
@@ -164,6 +179,8 @@ namespace Lumos
 
 			return std::static_pointer_cast<ComponentArray<T>>(m_ComponentArrays[typeName]);
 		}
+
+		std::vector<LumosComponent*> GetAllComponents(Entity* entity);
 
 	private:
 		std::unordered_map<size_t, ComponentType> m_ComponentTypes;

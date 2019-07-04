@@ -93,12 +93,12 @@ namespace Lumos
 			m_Parameters.format = TextureFormat::RGBA;
 
 			u32 width, height, bits;
-			byte* xp = Lumos::LoadImageFromFile(xpos, &width, &height, &bits, true);
-			byte* xn = Lumos::LoadImageFromFile(xneg, &width, &height, &bits, true);
-			byte* yp = Lumos::LoadImageFromFile(ypos, &width, &height, &bits, true);
-			byte* yn = Lumos::LoadImageFromFile(yneg, &width, &height, &bits, true);
-			byte* zp = Lumos::LoadImageFromFile(zpos, &width, &height, &bits, true);
-			byte* zn = Lumos::LoadImageFromFile(zneg, &width, &height, &bits, true);
+			u8* xp = Lumos::LoadImageFromFile(xpos, &width, &height, &bits, true);
+			u8* xn = Lumos::LoadImageFromFile(xneg, &width, &height, &bits, true);
+			u8* yp = Lumos::LoadImageFromFile(ypos, &width, &height, &bits, true);
+			u8* yn = Lumos::LoadImageFromFile(yneg, &width, &height, &bits, true);
+			u8* zp = Lumos::LoadImageFromFile(zpos, &width, &height, &bits, true);
+			u8* zn = Lumos::LoadImageFromFile(zneg, &width, &height, &bits, true);
 
 			u32 result;
 			GLCall(glGenTextures(1, &result));
@@ -135,16 +135,16 @@ namespace Lumos
 		u32 GLTextureCube::LoadFromVCross(u32 mips)
 		{
 			u32 srcWidth, srcHeight, bits;
-			byte*** cubeTextureData = new byte**[mips];
+			u8*** cubeTextureData = new u8**[mips];
 			for (u32 i = 0; i < mips; i++)
-				cubeTextureData[i] = new byte*[6];
+				cubeTextureData[i] = new u8*[6];
 
 			u32* faceWidths = new u32[mips];
 			u32* faceHeights = new u32[mips];
 
 			for (u32 m = 0; m < mips; m++)
 			{
-				byte* data = Lumos::LoadImageFromFile(m_Files[m], &srcWidth, &srcHeight, &bits, !m_LoadOptions.flipY);
+				u8* data = Lumos::LoadImageFromFile(m_Files[m], &srcWidth, &srcHeight, &bits, !m_LoadOptions.flipY);
 				m_Parameters.format = GLTools::BitsToTextureFormat(bits);
 				u32 stride = bits / 8;
 
@@ -163,7 +163,7 @@ namespace Lumos
 								continue;
 						}
 
-						cubeTextureData[m][face] = new byte[faceWidth * faceHeight * stride];
+						cubeTextureData[m][face] = new u8[faceWidth * faceHeight * stride];
 
 						for (u32 y = 0; y < faceHeight; y++)
 						{

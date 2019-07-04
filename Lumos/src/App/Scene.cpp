@@ -129,9 +129,6 @@ namespace Lumos
 
 	void Scene::AddEntity(Entity* game_object)
 	{
-		if (game_object->GetComponent<Physics3DComponent>())
-			game_object->GetComponent<Physics3DComponent>()->m_PhysicsObject->AutoResizeBoundingBox();
-
 		m_RootEntity->AddChild(game_object);
 	}
 
@@ -164,6 +161,8 @@ namespace Lumos
 		};
 
 		per_object_func(m_RootEntity);
+
+		ComponentManager::Instance()->OnUpdate(timeStep->GetSeconds());
 	}
 
 	void Scene::BuildWorldMatrices()
@@ -215,7 +214,7 @@ namespace Lumos
 				auto meshComponent = obj->GetComponent<MeshComponent>();
 				if (meshComponent && meshComponent->GetActive())
 				{
-					auto transform = obj->GetComponent<TransformComponent>()->GetTransform();
+					auto& transform = obj->GetComponent<TransformComponent>()->GetTransform();
 
 					float maxScaling = 0.0f;
 					maxScaling = Maths::Max(transform.GetWorldMatrix().GetScaling().GetX(), maxScaling);

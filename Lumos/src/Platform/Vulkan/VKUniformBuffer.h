@@ -23,7 +23,7 @@ namespace Lumos
 			vk::DescriptorBufferInfo GetBufferInfo() const { return m_DesciptorBufferInfo; };
 			vk::DeviceMemory* GetMemory() { return &m_Memory; }
 
-			byte* GetBuffer() const override { return nullptr; };
+			u8* GetBuffer() const override { return nullptr; };
 
 		protected:
 			vk::Buffer m_Buffer{};

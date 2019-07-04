@@ -57,11 +57,11 @@ namespace Lumos
 
 		u32 GLTexture2D::Load(void* data)
 		{
-			byte* pixels = nullptr;
+			u8* pixels = nullptr;
 
 			if (data != nullptr)
 			{
-				pixels = reinterpret_cast<byte*>(data);
+				pixels = reinterpret_cast<u8*>(data);
 			}
 			else
 			{
@@ -73,8 +73,8 @@ namespace Lumos
 			
 			u32 handle = LoadTexture(pixels);
 
-			if (pixels != nullptr)
-				delete[] pixels;
+			/*if (pixels != nullptr)
+				delete[] pixels;*/
 
 			return handle;
 		}
@@ -123,9 +123,9 @@ namespace Lumos
 			glTexImage2D(GL_TEXTURE_2D, 0, Format, width, height, 0, Format2, depth ? GL_UNSIGNED_BYTE : GL_FLOAT, nullptr);
 		}
 
-		byte* GLTexture2D::LoadTextureData()
+		u8* GLTexture2D::LoadTextureData()
 		{
-			byte* pixels = nullptr;
+			u8* pixels = nullptr;
 			if (m_FileName != "NULL")
 			{
 				u32 bits;

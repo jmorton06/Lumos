@@ -152,9 +152,9 @@ namespace Lumos
 		void VKTextureCube::Load(u32 mips)
 		{
 			u32 srcWidth, srcHeight, bits;
-			byte*** cubeTextureData = new byte**[mips];
+			u8*** cubeTextureData = new u8**[mips];
 			for (u32 i = 0; i < mips; i++)
-				cubeTextureData[i] = new byte*[6];
+				cubeTextureData[i] = new u8*[6];
 
 			u32* faceWidths = new u32[mips];
 			u32* faceHeights = new u32[mips];
@@ -162,7 +162,7 @@ namespace Lumos
 
 			for (u32 m = 0; m < mips; m++)
 			{
-				byte* data = Lumos::LoadImageFromFile(m_Files[m], &srcWidth, &srcHeight, &bits, !m_LoadOptions.flipY);
+				u8* data = Lumos::LoadImageFromFile(m_Files[m], &srcWidth, &srcHeight, &bits, !m_LoadOptions.flipY);
 				//m_Parameters.format = VKTexture2D::BitsToTextureFormat(bits);
 				u32 stride = bits / 8;
 				
@@ -181,7 +181,7 @@ namespace Lumos
 								continue;
 						}
 
-						cubeTextureData[m][face] = new byte[faceWidth * faceHeight * stride];
+						cubeTextureData[m][face] = new u8[faceWidth * faceHeight * stride];
 
 						size += stride * srcHeight * srcWidth;
 
@@ -210,7 +210,7 @@ namespace Lumos
 				delete[] data;
 			}
 
-			byte* allData = new byte[size];
+			u8* allData = new u8[size];
 			u32 pointeroffset = 0;
 
 			u32 faceOrder[6] = { 3, 1, 0, 4, 2, 5 };

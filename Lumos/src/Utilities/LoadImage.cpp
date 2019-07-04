@@ -14,7 +14,7 @@
 
 namespace Lumos
 {
-	byte* LoadImageFromFile(const char* filename, u32* width, u32* height, u32* bits, bool flipY)
+	u8* LoadImageFromFile(const char* filename, u32* width, u32* height, u32* bits, bool flipY)
 	{
         String filePath = String(filename);
 #ifdef LUMOS_PLATFORM_MOBILE
@@ -45,7 +45,7 @@ namespace Lumos
 		FIBITMAP* bitmap = FreeImage_ConvertTo32Bits(dib);
 		FreeImage_Unload(dib);
 
-		byte* pixels = FreeImage_GetBits(bitmap);
+		u8* pixels = FreeImage_GetBits(bitmap);
 		u32 w = FreeImage_GetWidth(bitmap);
 		u32 h = FreeImage_GetHeight(bitmap);
 		u32 b = FreeImage_GetBPP(bitmap);
@@ -64,7 +64,7 @@ namespace Lumos
 			*bits = b;
 
 		int32 size = w * h * (b / 8);
-		byte* result = new byte[size];
+		u8* result = new u8[size];
 		memcpy(result, pixels, size);
 		FreeImage_Unload(bitmap);
 #else
@@ -81,7 +81,7 @@ namespace Lumos
 			*bits = 32;// texChannels * 8;// texChannels;	  //32 bits for 4 bytes r g b a 
 
 		const int32 size = texWidth * texHeight * 4;// (b / 8);
-		byte* result = new byte[size];
+		u8* result = new u8[size];
 		memcpy(result, pixels, size);
 
 		stbi_image_free(pixels);
@@ -89,7 +89,7 @@ namespace Lumos
 		return result;
 	}
 
-	byte* LoadImageFromFile(const String& filename, u32* width, u32* height, u32* bits, bool flipY)
+	u8* LoadImageFromFile(const String& filename, u32* width, u32* height, u32* bits, bool flipY)
 	{
 		return LoadImageFromFile(filename.c_str(), width, height, bits, flipY);
 	}

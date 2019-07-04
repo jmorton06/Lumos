@@ -54,18 +54,18 @@ namespace Lumos
         }
 
         template<>
-        void BufferLayout::Push<byte>(const String& name, u32 count, bool normalized)
+        void BufferLayout::Push<u8>(const String& name, u32 count, bool normalized)
         {
             switch (Graphics::GraphicsContext::GetRenderAPI())
             {
 #ifdef LUMOS_RENDER_API_OPENGL
                 case RenderAPI::OPENGL:
-                    Push(name, GL_UNSIGNED_BYTE, sizeof(byte), count, normalized);
+                    Push(name, GL_UNSIGNED_BYTE, sizeof(u8), count, normalized);
                     break;
 #endif
 #ifdef LUMOS_RENDER_API_DIRECT3D
                 case RenderAPI::DIRECT3D:
-					Push(name, DX_TYPE_R8G8B8A8_UNORM, sizeof(byte) * 4, 1, normalized);
+					Push(name, DX_TYPE_R8G8B8A8_UNORM, sizeof(u8) * 4, 1, normalized);
 					break;
 #endif
 #ifdef LUMOS_RENDER_API_VULKAN

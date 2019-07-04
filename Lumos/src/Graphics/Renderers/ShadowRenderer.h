@@ -61,7 +61,7 @@ namespace Lumos
 			inline TextureDepthArray* GetTexture() const { return m_ShadowTex; }
 			void ClearRenderLists();
 
-			byte* m_VSSystemUniformBuffer;
+			u8* m_VSSystemUniformBuffer;
 			u32 m_VSSystemUniformBufferSize;
 
 			std::vector<u32> m_VSSystemUniformBufferOffsets;

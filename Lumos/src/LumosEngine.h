@@ -36,8 +36,6 @@
 #include "Graphics/ModelLoader/ModelLoader.h"
 #include "Graphics/Material.h"
 #include "Graphics/Particle.h"
-#include "Graphics/ParticleEmitter.h"
-#include "Graphics/Renderers/DebugRenderer.h"
 #include "Graphics/Water.h"
 #include "Graphics/Sprite.h"
 #include "Graphics/GBuffer.h"
@@ -100,3 +98,8 @@
 
 //External
 #include <imgui/imgui.h>
+
+#ifdef LUMOS_LEAK_CHECK
+static const char* __file__ = "unknown";
+static size_t __line__ = 0;
+#endif

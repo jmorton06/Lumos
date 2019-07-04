@@ -99,7 +99,7 @@ namespace Lumos
 			// Vertex shader System uniforms
 			//
 			m_VSSystemUniformBufferSize = sizeof(Maths::Matrix4);
-			m_VSSystemUniformBuffer = new byte[m_VSSystemUniformBufferSize];
+			m_VSSystemUniformBuffer = new u8[m_VSSystemUniformBufferSize];
 			memset(m_VSSystemUniformBuffer, 0, m_VSSystemUniformBufferSize);
 			m_VSSystemUniformBufferOffsets.resize(VSSystemUniformIndex_Size);
 
@@ -155,9 +155,9 @@ namespace Lumos
 				if (obj != nullptr)
 				{
 					auto* model = obj->GetComponent<MeshComponent>();
-					if (model && model->m_Model)
+					if (model && model->GetMesh())
 					{
-						auto mesh = model->m_Model;
+						auto mesh = model->GetMesh();
 						auto materialComponent = obj->GetComponent<MaterialComponent>();
 						Material* material = nullptr;
 						if (materialComponent && materialComponent->GetActive() && materialComponent->GetMaterial())
@@ -177,7 +177,7 @@ namespace Lumos
 
 						auto transform = obj->GetComponent<TransformComponent>()->GetTransform().GetWorldMatrix();
 
-						SubmitMesh(mesh.get(), material, transform, textureMatrix);
+						SubmitMesh(mesh, material, transform, textureMatrix);
 					}
 				}
 			});
