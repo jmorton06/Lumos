@@ -36,7 +36,7 @@ namespace Lumos
 
 			void BuildTexture(TextureFormat internalformat, u32 width, u32 height, bool depth, bool samplerShadow) override;
 
-			byte* LoadTextureData();
+			u8* LoadTextureData();
 			u32  LoadTexture(void* data) const;
 
 		private:

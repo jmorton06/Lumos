@@ -33,8 +33,6 @@ namespace Lumos
 		virtual ~Window() {};
 		bool Initialise(const WindowProperties& properties);
 
-		inline Timer* GetWindowTimer() const { return m_Timer; }
-
 		bool HasInitialised() const { return m_Init; };
 
 		virtual bool GetExit() const = 0;
@@ -65,7 +63,6 @@ namespace Lumos
 		bool				m_Init;
 		Maths::Vector2		m_Position;
 		Maths::Vector2		m_ScreenSize;
-		Timer*				m_Timer;
 		bool				m_VSync;
 		bool				m_HasResized;
 	};

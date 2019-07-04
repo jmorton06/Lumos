@@ -2695,7 +2695,7 @@ void vmaCreateLostAllocation(
 /** \brief Maps memory represented by given allocation and returns pointer to it.
 
 Maps memory represented by given allocation to make it accessible to CPU code.
-When succeeded, `*ppData` contains pointer to first byte of this memory.
+When succeeded, `*ppData` contains pointer to first u8 of this memory.
 If the allocation is part of bigger `VkDeviceMemory` block, the pointer is
 correctly offseted to the beginning of region assigned to this particular
 allocation.

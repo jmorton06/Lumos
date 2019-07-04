@@ -30,11 +30,6 @@ namespace Lumos
 	DebugRenderer::DebugDrawList DebugRenderer::m_DrawList;
 	DebugRenderer::DebugDrawList DebugRenderer::m_DrawListNDT;
 
-	Material* DebugRenderer::m_pShaderPoints = nullptr;
-	Material* DebugRenderer::m_pShaderLines = nullptr;
-	Material* DebugRenderer::m_pShaderHairLines = nullptr;
-	Material* DebugRenderer::m_pShaderText = nullptr;
-
 	VertexArray* DebugRenderer::m_VertexArray = nullptr;
 
 	Texture2D* DebugRenderer::m_FontTex = nullptr;

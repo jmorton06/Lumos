@@ -349,12 +349,12 @@ void Scene3D::LoadModels()
 
 #if 0
 	auto soundFilePath = String("/Sounds/fire.ogg");
-	bool loadedSound = Sound::AddSound("Background", soundFilePath);
+	bool loadedSound = SoundManager::Instance()->AddSound("Background", soundFilePath);
 
 	if(loadedSound)
 	{
 		auto soundNode = std::shared_ptr<SoundNode>(SoundNode::Create());
-		soundNode->SetSound(Sound::GetSound("Background"));
+		soundNode->SetSound(SoundManager::Instance()->GetSound("Background"));
 		soundNode->SetVolume(1.0f);
 		soundNode->SetPosition(Maths::Vector3(0.1f, 10.0f, 10.0f));
 		soundNode->SetLooping(true);

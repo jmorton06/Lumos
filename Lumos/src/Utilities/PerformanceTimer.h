@@ -3,7 +3,7 @@
 #include "LM.h"
 #include "Timer.h"
 #include "Maths/Vector4.h"
-#include "Graphics/Renderers/DebugRenderer.h"
+#include "Maths/MathsUtilities.h"
 
 namespace Lumos
 {
@@ -44,8 +44,8 @@ namespace Lumos
 			}
 			else
 			{
-				m_CurrentData._max = max(m_CurrentData._max, elapsed);
-				m_CurrentData._min = min(m_CurrentData._min, elapsed);
+				m_CurrentData._max = Maths::Max(m_CurrentData._max, elapsed);
+				m_CurrentData._min = Maths::Min(m_CurrentData._min, elapsed);
 			}
 
 			m_CurrentData._num++;
@@ -61,11 +61,6 @@ namespace Lumos
 				m_PreviousData = m_CurrentData;
 				memset(&m_CurrentData, 0, sizeof(PerfTimer_Data));
 			}
-		}
-
-		void PrintOutputToStatusEntry(const Vector4& colour, const std::string& name) const
-		{
-			DebugRenderer::AddStatusEntry(colour, "%s%5.2fms [max:%5.2fms, min:%5.2fms]", name.c_str(), GetAvg(), GetHigh(), GetLow());
 		}
 
 	protected:

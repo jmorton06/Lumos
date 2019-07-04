@@ -13,7 +13,7 @@ namespace Lumos
 		struct LUMOS_EXPORT RendererUniform
 		{
 			String uniform;
-			byte* value;
+			u8* value;
 		};
 
 		struct LUMOS_EXPORT RenderCommand

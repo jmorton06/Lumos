@@ -25,4 +25,24 @@ namespace Lumos
 	ComponentManager::~ComponentManager()
 	{
 	}
+
+	void ComponentManager::OnUpdate(float dt)
+	{
+		for (auto& componentArray : m_ComponentArrays)
+			componentArray.second->OnUpdate(dt);
+	}
+
+	std::vector<LumosComponent*> ComponentManager::GetAllComponents(Entity* entity)
+	{
+		std::vector<LumosComponent*> components;
+
+		for (auto& componentArray : m_ComponentArrays)
+		{
+			auto component = static_cast<ComponentArray<LumosComponent>*>(componentArray.second.get())->GetData(entity);
+			if (component != nullptr)
+				components.emplace_back(component);
+		}
+
+		return components;
+	}
 }

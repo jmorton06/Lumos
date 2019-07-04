@@ -49,9 +49,9 @@ namespace Lumos
 
 			void SetSystemUniforms(Shader* shader) const;
 
-			byte* m_VSSystemUniformBuffer{};
+			u8* m_VSSystemUniformBuffer{};
 			u32 m_VSSystemUniformBufferSize{};
-			byte* m_PSSystemUniformBuffer{};
+			u8* m_PSSystemUniformBuffer{};
 			u32 m_PSSystemUniformBufferSize{};
 
 			std::vector<u32> m_VSSystemUniformBufferOffsets;

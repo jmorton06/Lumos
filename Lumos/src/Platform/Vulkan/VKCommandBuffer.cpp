@@ -120,8 +120,12 @@ namespace Lumos
 					VKDevice::Instance()->GetDevice().waitForFences(m_Fence, VK_TRUE, UINT64_MAX);
 					VKDevice::Instance()->GetDevice().resetFences(m_Fence);
 				}
-				else
+				else 
+				{
 					VKDevice::Instance()->GetGraphicsQueue().submit(submitInfo, nullptr);
+					VKDevice::Instance()->GetGraphicsQueue().waitIdle();
+				}
+					
 			}
 			else
 				LUMOS_CORE_ERROR("WARNING: Used Execute on secondary command buffer!");

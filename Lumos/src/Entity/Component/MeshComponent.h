@@ -12,13 +12,16 @@ namespace Lumos
 	class LUMOS_EXPORT MeshComponent : public LumosComponent
 	{
 	public:
-		std::shared_ptr<Graphics::Mesh> m_Model;
-	public:
-		explicit MeshComponent(std::shared_ptr<Graphics::Mesh>& model);
+		explicit MeshComponent(std::shared_ptr<Graphics::Mesh>& mesh);
 		explicit MeshComponent(Graphics::Mesh* mesh);
+		~MeshComponent() = default;
 
 		void OnUpdateComponent(float dt) override;
 
 		void OnIMGUI() override;
+
+		Graphics::Mesh* GetMesh() const { return m_Mesh.get(); }
+	private:
+		std::shared_ptr<Graphics::Mesh> m_Mesh;
 	};
 }

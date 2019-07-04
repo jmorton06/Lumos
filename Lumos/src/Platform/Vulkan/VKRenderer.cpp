@@ -4,6 +4,7 @@
 #include "VKShader.h"
 #include "VKVertexBuffer.h"
 #include "VKIndexBuffer.h"
+#include "VKVertexArray.h"
 #include "VKDescriptorSet.h"
 #include "Graphics/Mesh.h"
 #include "Graphics/Material.h"
@@ -101,22 +102,12 @@ namespace Lumos
 			VKCommandBuffer* commandBuffer, std::vector<vk::DescriptorSet>& descriptorSet, vk::PipelineLayout layout, uint32_t offset, u32 numDynamicDescriptorSets)
 		{
 			u32 vertexArraySize = vertexArray->GetCount();
-			vk::Buffer* vertexBuffers = new vk::Buffer[vertexArraySize];
-			vk::DeviceSize* offsets = new vk::DeviceSize[vertexArraySize];
-			for (u32 i = 0; i < vertexArraySize; i++)
-			{
-				auto* buffer = dynamic_cast<VKVertexBuffer*>(vertexArray->GetBuffer(i));
-				vertexBuffers[i] = buffer->GetBuffer();
-				offsets[i] = static_cast<vk::DeviceSize>(buffer->GetLayout().GetStride());
-			}
+			auto vkVertexArray = dynamic_cast<VKVertexArray*>(vertexArray);
 
 			commandBuffer->GetCommandBuffer().bindDescriptorSets(vk::PipelineBindPoint::eGraphics, layout, 0, static_cast<uint32_t>(descriptorSet.size()), descriptorSet.data(), numDynamicDescriptorSets, &offset);
-			commandBuffer->GetCommandBuffer().bindVertexBuffers(0,1, vertexBuffers, offsets);
+			commandBuffer->GetCommandBuffer().bindVertexBuffers(0,1, vkVertexArray->GetVKBuffers().data(), vkVertexArray->GetOffsets().data());
 			commandBuffer->GetCommandBuffer().bindIndexBuffer(dynamic_cast<VKIndexBuffer*>(indexBuffer)->GetBuffer(), 0, vk::IndexType::eUint32);
 			commandBuffer->GetCommandBuffer().drawIndexed(static_cast<uint32_t>(indexBuffer->GetCount()), 1, 0, 0, 0);
-
-			delete[] vertexBuffers;
-			delete[] offsets;
 		}
 
 		void VKRenderer::Begin()
@@ -134,7 +125,7 @@ namespace Lumos
 				throw std::runtime_error("failed to acquire swap chain image!");
 			}
 
-			ClearSwapchainImage();
+			//ClearSwapchainImage();
 		}
 		void VKRenderer::BindScreenFBOInternal()
 		{

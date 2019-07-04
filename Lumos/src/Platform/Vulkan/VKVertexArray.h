@@ -2,6 +2,11 @@
 
 #include "Graphics/API/VertexArray.h"
 
+namespace vk
+{
+	class Buffer;
+}
+
 namespace Lumos
 {
 	namespace Graphics
@@ -20,6 +25,13 @@ namespace Lumos
 			void Unbind() const override;
 
 			void Draw(u32 count) const override;
+
+			const std::vector<vk::Buffer>& GetVKBuffers() const { return m_VKBuffers; }
+			const std::vector<uint64_t>& GetOffsets() const { return m_Offsets; }
+
+		private:
+			std::vector<vk::Buffer> m_VKBuffers;
+			std::vector<uint64_t> m_Offsets;
 		};
 	}
 }

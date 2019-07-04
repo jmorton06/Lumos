@@ -61,11 +61,11 @@ namespace Lumos
 		return result;
 	}
 
-	byte* FileSystem::ReadFile(const String& path)
+	u8* FileSystem::ReadFile(const String& path)
 	{
 		const HANDLE file = OpenFileForReading(path);
 		const int64 size = GetFileSizeInternal(file);
-		byte* buffer = new byte[static_cast<u32>(size)];
+		u8* buffer = new u8[static_cast<u32>(size)];
 		const bool result = ReadFileInternal(file, buffer, size);
 		CloseHandle(file);
 		if (!result)
@@ -88,7 +88,7 @@ namespace Lumos
 		return success ? result : String();
 	}
 
-	bool FileSystem::WriteFile(const String& path, byte* buffer)
+	bool FileSystem::WriteFile(const String& path, u8* buffer)
 	{
 		const HANDLE file = CreateFile(path.c_str(), GENERIC_WRITE, NULL, nullptr, CREATE_NEW | OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, nullptr);
 		if (file == INVALID_HANDLE_VALUE)
@@ -103,7 +103,7 @@ namespace Lumos
 
 	bool FileSystem::WriteTextFile(const String& path, const String& text)
 	{
-		return WriteFile(path, (byte*)&text[0]);
+		return WriteFile(path, (u8*)&text[0]);
 	}
 }
 

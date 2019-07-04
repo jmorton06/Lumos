@@ -24,9 +24,11 @@
 #include "Utilities/AssetsManager.h"
 #include "System/VFS.h"
 #include "System/JobSystem.h"
+#include "Scripting/LuaScript.h"
 
 #include "Events/ApplicationEvent.h"
 #include "Audio/AudioManager.h"
+#include "Audio/Sound.h"
 #include "Physics/B2PhysicsEngine/B2PhysicsEngine.h"
 #include "Physics/LumosPhysicsEngine/LumosPhysicsEngine.h"
 
@@ -129,12 +131,18 @@ namespace Lumos
 		B2PhysicsEngine::Release();
 		Input::Release();
 		AssetsManager::ReleaseMeshes();
+		EntityManager::Release();
+		ComponentManager::Release();
+		SoundManager::Release();
+		LuaScript::Release();
 
 		delete m_LayerStack;
 
 		m_SceneManager.release();
 
+		m_RenderManager.reset();
 		Graphics::Renderer::Release();
+		Graphics::GraphicsContext::Release();
 
 		if (pause)
 		{

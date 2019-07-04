@@ -77,9 +77,9 @@ namespace Lumos
 					if (obj != nullptr)
 					{
 						auto* model = obj->GetComponent<MeshComponent>();
-						if (model && model->m_Model)
+						if (model && model->GetMesh())
 						{
-							auto mesh = model->m_Model;
+							auto mesh = model->GetMesh();
 							{
 								auto materialComponent = obj->GetComponent<MaterialComponent>();
 
@@ -98,7 +98,7 @@ namespace Lumos
 									textureMatrix = textureMatrixTransform->m_TextureMatrix;
 								else
 									textureMatrix = Maths::Matrix4();
-								SubmitMesh(mesh.get(), material, obj->GetComponent<TransformComponent>()->GetTransform().GetWorldMatrix(), textureMatrix);
+								SubmitMesh(mesh, material, obj->GetComponent<TransformComponent>()->GetTransform().GetWorldMatrix(), textureMatrix);
 							}
 						}
 					}
@@ -139,7 +139,7 @@ namespace Lumos
 			// Vertex shader System uniforms
 			//
 			m_VSSystemUniformBufferSize = sizeof(Maths::Matrix4) + sizeof(Maths::Matrix4) + sizeof(Maths::Matrix4) + sizeof(Maths::Matrix4);
-			m_VSSystemUniformBuffer = new byte[m_VSSystemUniformBufferSize];
+			m_VSSystemUniformBuffer = new u8[m_VSSystemUniformBufferSize];
 			memset(m_VSSystemUniformBuffer, 0, m_VSSystemUniformBufferSize);
 			m_VSSystemUniformBufferOffsets.resize(VSSystemUniformIndex_Size);
 
@@ -151,7 +151,7 @@ namespace Lumos
 
 			// Pixel/fragment shader System uniforms
 			m_PSSystemUniformBufferSize = sizeof(Graphics::Light);
-			m_PSSystemUniformBuffer = new byte[m_PSSystemUniformBufferSize];
+			m_PSSystemUniformBuffer = new u8[m_PSSystemUniformBufferSize];
 			memset(m_PSSystemUniformBuffer, 0, m_PSSystemUniformBufferSize);
 			m_PSSystemUniformBufferOffsets.resize(PSSystemUniformIndex_Size);
 
@@ -337,7 +337,7 @@ namespace Lumos
 
 				uint32_t dynamicOffset = index * static_cast<uint32_t>(m_DynamicAlignment);
 
-				m_Shader->SetUserUniformBuffer(ShaderType::VERTEX, reinterpret_cast<byte*>(m_ModelUniformBuffer->GetBuffer()) + dynamicOffset, sizeof(Maths::Matrix4));
+				m_Shader->SetUserUniformBuffer(ShaderType::VERTEX, reinterpret_cast<u8*>(m_ModelUniformBuffer->GetBuffer()) + dynamicOffset, sizeof(Maths::Matrix4));
 
 				std::vector<Graphics::DescriptorSet*> descriptorSets;
 				descriptorSets.emplace_back(m_Pipeline->GetDescriptorSet());

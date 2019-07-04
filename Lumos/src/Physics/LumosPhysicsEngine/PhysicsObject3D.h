@@ -94,7 +94,7 @@ namespace Lumos
 		void SetTorque(const Maths::Vector3& v) {if(m_Static) return;  m_Torque = v; }
 		void SetInverseInertia(const Maths::Matrix3& v) { m_InvInertia = v; }
 
-		void SetCollisionShape(std::unique_ptr<CollisionShape> colShape) { m_CollisionShape = std::move(colShape); }
+		void SetCollisionShape(std::unique_ptr<CollisionShape> colShape) { m_CollisionShape = std::move(colShape); AutoResizeBoundingBox(); }
 
 		//Called automatically when PhysicsObject3D is created through Object3D::CreatePhysicsNode()
 		void SetAssociatedObject(Entity* obj) { m_pParent = obj; }

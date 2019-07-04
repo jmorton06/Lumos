@@ -1,7 +1,6 @@
 #include "LM.h"
 #include "Entity.h"
 
-#include "Graphics/Renderers/DebugRenderer.h"
 #include "Graphics/API/GraphicsContext.h"
 #include "Graphics/Camera/Camera.h"
 #include "App/Application.h"
@@ -32,30 +31,19 @@ namespace Lumos
 
 	void Entity::AddComponent(std::unique_ptr<LumosComponent> component, ComponentType type)
 	{
-        component->SetEntity(this);
-		component->Init();
 
-        if(type == ComponentManager::Instance()->GetComponentType<TransformComponent>())// == ComponentType::Transform)
-            m_DefaultTransformComponent = reinterpret_cast<TransformComponent*>(component.get());
-        
-		m_Components[type] = std::move(component);
 	}
 
 	void Entity::OnRenderObject()
 	{
-		for(const auto& component : m_Components)
+		/*for(const auto& component : m_Components)
 		{
 			component.second->OnRenderComponent();
-		}
+		}*/
 	}
 
 	void Entity::OnUpdateObject(float dt)
 	{
-        for (const auto& component : m_Components)
-        {
-            component.second->OnUpdateComponent(dt);
-        }
-        
         if(m_DefaultTransformComponent && m_DefaultTransformComponent->GetTransform().HasUpdated())
         {
             if(!m_Parent)
@@ -71,12 +59,7 @@ namespace Lumos
                 if(child && child->GetTransformComponent())
                     child->GetTransformComponent()->SetWorldMatrix(m_DefaultTransformComponent->GetTransform().GetWorldMatrix());
             }
-            
-            for (const auto& component : m_Components)
-            {
-                component.second->OnUpdateTransform(m_DefaultTransformComponent->GetTransform().GetWorldMatrix());
-            }
-            
+
             m_DefaultTransformComponent->GetTransform().SetHasUpdated(false);
         }
 	}
@@ -105,18 +88,6 @@ namespace Lumos
 
 	void Entity::DebugDraw(uint64 debugFlags)
 	{
-		if (debugFlags & DEBUGDRAW_FLAGS_BOUNDING_RADIUS)
-		{
-			Maths::Vector4 boundRadiusCol(0.3f, 0.6f, 0.4f, 0.8f);
-			boundRadiusCol.SetW(0.2f);
-			if (GetComponent<TransformComponent>())
-				DebugRenderer::DrawPointNDT(GetComponent<TransformComponent>()->GetTransform().GetWorldMatrix().GetPositionVector(), m_BoundingRadius, boundRadiusCol);
-		}
-		
-		for(auto& component: m_Components)
-		{
-			component.second->DebugDraw(debugFlags);
-		}
 	}
 
 	TransformComponent* Entity::GetTransformComponent()
@@ -192,10 +163,11 @@ namespace Lumos
         ImGui::Separator();
         ImGui::PopStyleVar();
         
-        for(auto& component: m_Components)
+		auto components = GetAllComponents();
+        for(auto& component: components)
         {
 			ImGui::Separator();
-			bool open = ImGui::TreeNode(component.second->GetName().c_str());
+			bool open = ImGui::TreeNode(component->GetName().c_str());
 
 			static float value = 0.5f;
 			if (ImGui::BeginPopupContextItem("item context menu", 3)) 
@@ -207,11 +179,11 @@ namespace Lumos
 
 			if(open)
 			{
-				if (component.second->GetCanDisable())
+				if (component->GetCanDisable())
 				{
-					ImGui::Checkbox("Active", &component.second->GetActive());
+					ImGui::Checkbox("Active", &component->GetActive());
 				}
-				component.second->OnIMGUI();
+				component->OnIMGUI();
 
 				ImGui::TreePop();
 			}
@@ -247,4 +219,6 @@ namespace Lumos
 			child->SetActive(active);
 		}
 	}
+
+	std::vector<LumosComponent*> Entity::GetAllComponents() { return ComponentManager::Instance()->GetAllComponents(this); }
 }

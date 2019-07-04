@@ -49,7 +49,7 @@ namespace Lumos
 				Maths::Matrix4 projView;
 			};
 
-			byte* m_VSSystemUniformBuffer{};
+			u8* m_VSSystemUniformBuffer{};
 			u32 m_VSSystemUniformBufferSize{};
 
 			void CreateGraphicsPipeline();

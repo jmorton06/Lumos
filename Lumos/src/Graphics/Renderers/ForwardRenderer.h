@@ -19,9 +19,9 @@ namespace Lumos
 			~ForwardRenderer() override;
 			void RenderScene(RenderList* renderList, Scene* scene) override;
 
-			byte* m_VSSystemUniformBuffer{};
+			u8* m_VSSystemUniformBuffer{};
 			u32 m_VSSystemUniformBufferSize{};
-			byte* m_PSSystemUniformBuffer{};
+			u8* m_PSSystemUniformBuffer{};
 			u32 m_PSSystemUniformBufferSize{};
 
 			std::vector<u32> m_VSSystemUniformBufferOffsets;

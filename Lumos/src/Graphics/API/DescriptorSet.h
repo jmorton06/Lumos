@@ -86,7 +86,7 @@ namespace Lumos
 		{
 			u32 size;
 			PushConstantDataType type;
-			byte* data;
+			u8* data;
             ShaderType shaderStage;
 		};
 

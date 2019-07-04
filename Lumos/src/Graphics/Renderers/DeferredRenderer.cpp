@@ -112,7 +112,7 @@ namespace Lumos
 			
 			// Pixel/fragment shader System uniforms
 			m_PSSystemUniformBufferSize = sizeof(Light) * MAX_LIGHTS + sizeof(Maths::Vector4) + sizeof(Maths::Matrix4) + (sizeof(Maths::Matrix4) + sizeof(Maths::Vector4))* MAX_SHADOWMAPS + sizeof(int) * 4;
-			m_PSSystemUniformBuffer = new byte[m_PSSystemUniformBufferSize];
+			m_PSSystemUniformBuffer = new u8[m_PSSystemUniformBufferSize];
 			memset(m_PSSystemUniformBuffer, 0, m_PSSystemUniformBufferSize);
 			m_PSSystemUniformBufferOffsets.resize(PSSystemUniformIndex_Size);
 
@@ -242,7 +242,7 @@ namespace Lumos
 
 		void DeferredRenderer::SubmitLightSetup(Scene* scene)
 		{
-			auto lightList = scene->GetLightList();
+			auto lightList = ComponentManager::Instance()->GetComponentArray<LightComponent>()->GetArray();// scene->GetLightList();
 
 			if (lightList.empty())
 				return;
@@ -254,8 +254,8 @@ namespace Lumos
 				if (!lightList[i])
 					continue;
 
-                lightList[i]->m_Direction.Normalise();
-                memcpy(m_PSSystemUniformBuffer + m_PSSystemUniformBufferOffsets[PSSystemUniformIndex_Lights] + sizeof(Graphics::Light) * i, &*lightList[i], sizeof(Graphics::Light));
+                lightList[i]->GetLight()->m_Direction.Normalise();
+                memcpy(m_PSSystemUniformBuffer + m_PSSystemUniformBufferOffsets[PSSystemUniformIndex_Lights] + sizeof(Graphics::Light) * i, &*lightList[i]->GetLight(), sizeof(Graphics::Light));
 				numLights++;
             }
             

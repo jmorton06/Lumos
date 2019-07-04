@@ -11,7 +11,7 @@ namespace Lumos
 		friend class Entity;
 	public:
 		EntityManager() = default;
-		~EntityManager() = default;
+		~EntityManager() { Clear(); }
 
 		void Clear();
 		Entity* CreateEntity(const String& name = "");

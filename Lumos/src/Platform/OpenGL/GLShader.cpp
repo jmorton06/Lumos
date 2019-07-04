@@ -668,7 +668,7 @@ namespace Lumos
 			return result;
 		}
 
-		void GLShader::SetUniformStruct(GLShaderUniformDeclaration* uniform, byte* data, int32 offset) const
+		void GLShader::SetUniformStruct(GLShaderUniformDeclaration* uniform, u8* data, int32 offset) const
 		{
 			const ShaderStruct& s = uniform->GetShaderUniformStruct();
 			const auto& fields = s.GetFields();
@@ -715,7 +715,7 @@ namespace Lumos
 			return result;
 		}
 
-		void GLShader::SetSystemUniformBuffer(ShaderType type, byte* data, u32 size, u32 slot)
+		void GLShader::SetSystemUniformBuffer(ShaderType type, u8* data, u32 size, u32 slot)
 		{
 			Bind();
 			LUMOS_CORE_ASSERT(m_UniformBuffers[type].size() > slot, "");
@@ -727,7 +727,7 @@ namespace Lumos
 			}
 		}
 
-		void GLShader::SetUserUniformBuffer(ShaderType type, byte* data, u32 size)
+		void GLShader::SetUserUniformBuffer(ShaderType type, u8* data, u32 size)
 		{
 			ResolveAndSetUniforms(m_UserUniformBuffers[type], data, size);
 		}
@@ -742,7 +742,7 @@ namespace Lumos
 			return nullptr;
 		}
 
-		void GLShader::ResolveAndSetUniforms(ShaderUniformBufferDeclaration* buffer, byte* data, u32 size) const
+		void GLShader::ResolveAndSetUniforms(ShaderUniformBufferDeclaration* buffer, u8* data, u32 size) const
 		{
 			const ShaderUniformList& uniforms = buffer->GetUniformDeclarations();
 			for (u32 i = 0; i < uniforms.size(); i++)
@@ -753,7 +753,7 @@ namespace Lumos
 			}
 		}
 
-		void GLShader::ResolveAndSetUniform(GLShaderUniformDeclaration* uniform, byte* data, u32 size, u32 count) const
+		void GLShader::ResolveAndSetUniform(GLShaderUniformDeclaration* uniform, u8* data, u32 size, u32 count) const
 		{
 			if (uniform->GetLocation() == -1)
 			{
@@ -799,7 +799,7 @@ namespace Lumos
 			}
 		}
 
-		void GLShader::SetUniform(const String& name, byte* data)
+		void GLShader::SetUniform(const String& name, u8* data)
 		{
 			ShaderUniformDeclaration* uniform = FindUniformDeclaration(name);
 			if (!uniform)
@@ -810,7 +810,7 @@ namespace Lumos
 			ResolveAndSetUniform(static_cast<GLShaderUniformDeclaration*>(uniform), data, 0, uniform->GetCount());
 		}
 
-		void GLShader::ResolveAndSetUniformField(const GLShaderUniformDeclaration& field, byte* data, int32 offset, u32 count) const
+		void GLShader::ResolveAndSetUniformField(const GLShaderUniformDeclaration& field, u8* data, int32 offset, u32 count) const
 		{
 			//LUMOS_CORE_ASSERT(field.GetLocation() < 0, "Couldnt Find Uniform In Shader: " + field.GetName());
 

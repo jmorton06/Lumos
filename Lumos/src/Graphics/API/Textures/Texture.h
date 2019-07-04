@@ -144,7 +144,7 @@ namespace Lumos
 			inline static void SetWrap(const TextureWrap mode) { s_WrapMode = mode; }
 			inline static void SetFilter(const TextureFilter mode) { s_FilterMode = mode; }
 		public:
-			static byte GetStrideFromFormat(TextureFormat format);
+			static u8 GetStrideFromFormat(TextureFormat format);
 		};
 	}
 }
