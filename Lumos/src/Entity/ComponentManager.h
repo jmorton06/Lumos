@@ -62,12 +62,9 @@ namespace Lumos
 
 		void OnUpdate(float dt) override 
 		{
-			for (auto& component : m_ComponentArray)
-			{
-				if (!component)
-					return;
-
-				component->OnUpdateComponent(dt);
+            for (int i = 0; i < m_Size; i++)
+            {
+				m_ComponentArray[i]->OnUpdateComponent(dt);
 			}
 		}
 
