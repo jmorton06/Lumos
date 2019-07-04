@@ -38,6 +38,7 @@ namespace Lumos
 			// Copy element at end into deleted element's place to maintain density
 			size_t indexOfRemovedEntity = m_EntityToIndexMap[entity];
 			size_t indexOfLastElement = m_Size - 1;
+            delete m_ComponentArray[indexOfRemovedEntity];
 			m_ComponentArray[indexOfRemovedEntity] = m_ComponentArray[indexOfLastElement];
 
 			// Update map to point to moved spot
