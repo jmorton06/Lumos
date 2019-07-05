@@ -41,6 +41,7 @@ namespace Lumos
 		{
 			m_Layout = bufferLayout;
 			const std::vector<Graphics::BufferElement>& layout = bufferLayout.GetLayout();
+                        
 			for (u32 i = 0; i < layout.size(); i++)
 			{
 				const Graphics::BufferElement& element = layout[i];
