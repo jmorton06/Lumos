@@ -15,7 +15,7 @@ namespace Lumos
 		}
 
 		GLTexture2D::GLTexture2D(u32 width, u32 height, void* data, TextureParameters parameters, TextureLoadOptions loadOptions)
-			: m_FileName(""), m_Name(""), m_Parameters(parameters), m_LoadOptions(loadOptions)
+			: m_FileName(""), m_Name(""), m_Parameters(parameters), m_LoadOptions(loadOptions), m_Width(width), m_Height(height)
 		{
 			m_Name = "";
 			m_Parameters = parameters;

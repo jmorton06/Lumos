@@ -34,7 +34,8 @@ namespace Lumos
 			GLCall(glEnable(GL_CULL_FACE));
 			GLCall(glEnable(GL_BLEND));
 			GLCall(glDepthFunc(GL_LEQUAL));
-			GLCall(glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA));
+			GLCall(glBlendFunc(GL_ONE, GL_ONE_MINUS_SRC_ALPHA));
+			GLCall(glBlendEquation(GL_FUNC_ADD));
 #ifndef LUMOS_PLATFORM_MOBILE
 			GLCall(glEnable(GL_DEPTH_CLAMP));
 			GLCall(glEnable(GL_TEXTURE_CUBE_MAP_SEAMLESS));
