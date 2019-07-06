@@ -13,6 +13,11 @@
 
 namespace Lumos
 {
+    LightComponent::LightComponent()
+    {
+        m_Light = std::make_shared<Graphics::Light>();
+    }
+    
 	LightComponent::LightComponent(std::shared_ptr<Graphics::Light>& light)
 		: m_Light(light)
 	{

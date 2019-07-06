@@ -32,6 +32,8 @@ namespace Lumos
 		bool& GetActive() { return m_Active; }
 		const bool GetCanDisable() const { return m_CanDisable; }
 		void SetActive(bool active) { m_Active = active; }
+        
+        void SetName(const String& name) { m_Name = name; }
 
 	protected:
 		Entity* m_Entity = nullptr;

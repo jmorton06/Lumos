@@ -9,6 +9,7 @@ namespace Lumos
 	class LUMOS_EXPORT CameraComponent : public LumosComponent
 	{
 	public:
+        CameraComponent();
 		explicit CameraComponent(Camera* camera);
 
 		void OnUpdateComponent(float dt) override;

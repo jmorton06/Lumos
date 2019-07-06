@@ -229,7 +229,7 @@ namespace Lumos
 				true,
 				colour);
 
-		cube->GetComponent<Physics3DComponent>()->m_PhysicsObject->SetIsAtRest(true);
+		cube->GetComponent<Physics3DComponent>()->GetPhysicsObject()->SetIsAtRest(true);
 		const float radius    = RandomNumberGenerator32::Rand(1.0f, 30.0f);
 		const float intensity = RandomNumberGenerator32::Rand(0.0f, 2.0f);
 
@@ -257,7 +257,7 @@ namespace Lumos
 		Maths::Matrix3 viewRotation = Maths::Matrix3(temp);
 		viewRotation = Maths::Matrix3::Inverse(viewRotation);
 		const Maths::Vector3 forward = viewRotation * Maths::Vector3(0.0f, 0.0f, -1.0f);
-		sphere->GetComponent<Physics3DComponent>()->m_PhysicsObject->SetLinearVelocity(forward * 30.0f);
+		sphere->GetComponent<Physics3DComponent>()->GetPhysicsObject()->SetLinearVelocity(forward * 30.0f);
 
 		scene->AddEntity(sphere);
 	}
@@ -281,7 +281,7 @@ namespace Lumos
 		Maths::Matrix3 viewRotation = Maths::Matrix3(temp);
 		viewRotation = Maths::Matrix3::Inverse(viewRotation);
 		const Maths::Vector3 forward = viewRotation * Maths::Vector3(0.0f, 0.0f, -1.0f);
-		sphere->GetComponent<Physics3DComponent>()->m_PhysicsObject->SetLinearVelocity(forward * 30.0f);
+		sphere->GetComponent<Physics3DComponent>()->GetPhysicsObject()->SetLinearVelocity(forward * 30.0f);
 
 		scene->AddEntity(sphere);
 	}

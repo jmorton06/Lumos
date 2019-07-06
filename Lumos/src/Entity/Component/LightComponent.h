@@ -14,6 +14,7 @@ namespace Lumos
 	class LUMOS_EXPORT LightComponent : public LumosComponent
 	{
 	public:
+        LightComponent();
 		explicit LightComponent(std::shared_ptr<Graphics::Light>& light);
         ~LightComponent();
 

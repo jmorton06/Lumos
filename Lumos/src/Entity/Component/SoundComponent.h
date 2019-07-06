@@ -9,8 +9,7 @@ namespace Lumos
 	class LUMOS_EXPORT SoundComponent : public LumosComponent
 	{
 	public:
-		std::shared_ptr<SoundNode> m_SoundNode;
-	public:
+        SoundComponent();
 		explicit SoundComponent(std::shared_ptr<SoundNode>& sound);
 
 		void OnUpdateComponent(float dt) override;
@@ -18,5 +17,10 @@ namespace Lumos
 		void Init() override;
 
 		void OnIMGUI() override;
+        
+        SoundNode* GetSoundNode() const { return m_SoundNode.get(); }
+        
+    private:
+        std::shared_ptr<SoundNode> m_SoundNode;
 	};
 }

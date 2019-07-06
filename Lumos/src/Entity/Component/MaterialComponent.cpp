@@ -9,10 +9,15 @@
 
 namespace Lumos
 {
+    MaterialComponent::MaterialComponent()
+    {
+        m_Name = "Material";
+        m_Material = std::make_shared<Material>();
+    }
+    
     MaterialComponent::MaterialComponent(std::shared_ptr<Material>& material)
     : m_Material(material)
     {
-        m_Name = "Material";
         ImGuiFileBrowserFlags flags = ImGuiFileBrowserFlags_CreateNewDir | ImGuiFileBrowserFlags_SelectDirectory;
         m_FileDialog = new ImGui::FileBrowser(flags);
     }

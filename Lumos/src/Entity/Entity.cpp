@@ -11,6 +11,9 @@
 #include <imgui/imgui.h>
 #include <imgui/plugins/ImGuizmo.h>
 
+#include <IconFontCppHeaders/IconsFontAwesome5.h>
+
+
 namespace Lumos
 {
 	Entity::Entity(const String& name) : m_Name(name),m_Parent(nullptr), m_BoundingRadius(1),
@@ -143,6 +146,9 @@ namespace Lumos
         
         ImGui::Checkbox("##Active", &m_Active);
         ImGui::SameLine();
+        ImGui::Button(ICON_FA_PLUS);
+        ImGui::SameLine();
+
         ImGui::PushItemWidth(-1);
         if (ImGui::InputText("##Name", objName, IM_ARRAYSIZE(objName), inputFlag))
             m_Name = objName;
@@ -157,6 +163,7 @@ namespace Lumos
         ImGui::PushItemWidth(-1);
         ImGui::Text("%s", m_Parent ? m_Parent->GetName().c_str() : "No Parent");
         ImGui::PopItemWidth();
+    
         ImGui::NextColumn();
         
         ImGui::Columns(1);
@@ -168,14 +175,6 @@ namespace Lumos
         {
 			ImGui::Separator();
 			bool open = ImGui::TreeNode(component->GetName().c_str());
-
-			static float value = 0.5f;
-			if (ImGui::BeginPopupContextItem("item context menu", 3)) 
-			{
-				if (ImGui::Selectable("Copy")) value = 0.0f;
-				if (ImGui::Selectable("Paste")) value = 3.1415f;
-				ImGui::EndPopup();
-			}
 
 			if(open)
 			{

@@ -14,6 +14,7 @@ namespace Lumos
     class LUMOS_EXPORT MaterialComponent : public LumosComponent
     {
     public:
+        MaterialComponent();
         explicit MaterialComponent(std::shared_ptr<Material>& material);
         virtual ~MaterialComponent();
         

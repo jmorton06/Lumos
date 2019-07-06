@@ -8,6 +8,12 @@
 
 namespace Lumos
 {
+    MeshComponent::MeshComponent()
+    {
+        m_Name = "Mesh";
+        m_BoundingShape = std::make_unique<Maths::BoundingSphere>(Maths::Vector3(0.0f),1.0f);
+    }
+    
 	MeshComponent::MeshComponent(std::shared_ptr<Graphics::Mesh>& model)
 		: m_Mesh(model)
 	{

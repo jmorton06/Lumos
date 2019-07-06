@@ -9,8 +9,7 @@ namespace Lumos
 	class LUMOS_EXPORT Physics3DComponent : public LumosComponent
 	{
 	public:
-		std::shared_ptr<PhysicsObject3D> m_PhysicsObject;
-	public:
+        Physics3DComponent();
 		explicit Physics3DComponent(std::shared_ptr<PhysicsObject3D>& physics);
 
 		void Init() override;
@@ -19,5 +18,9 @@ namespace Lumos
 		void DebugDraw(uint64 debugFlags) override;
         
         void OnIMGUI() override;
+        
+        PhysicsObject3D* GetPhysicsObject() const { return m_PhysicsObject.get(); }
+    private:
+        std::shared_ptr<PhysicsObject3D> m_PhysicsObject;
 	};
 }
