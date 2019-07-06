@@ -19,7 +19,7 @@ namespace Lumos
 
 		void OnIMGUI() override;
         
-        Graphics::Sprite* GetSprite() const { m_Sprite.get(); }
+        Graphics::Sprite* GetSprite() const { return m_Sprite.get(); }
         
     private:
         std::shared_ptr<Graphics::Sprite> m_Sprite;
