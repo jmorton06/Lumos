@@ -9,6 +9,12 @@
 
 namespace Lumos
 {
+    ParticleComponent::ParticleComponent()
+    {
+        m_Name = "Particle";
+        m_BoundingShape = std::unique_ptr<Maths::BoundingBox>();
+    }
+    
     ParticleComponent::ParticleComponent(std::shared_ptr<ParticleEmitter>& emitter)
             : m_ParticleEmitter(emitter), m_PositionOffset(Maths::Vector3(0.0f,0.0f,0.0f))
     {
@@ -28,7 +34,7 @@ namespace Lumos
     {
         Physics3DComponent* physicsComponent = m_Entity->GetComponent<Physics3DComponent>();
         if (physicsComponent)
-            m_ParticleEmitter->SetPosition(physicsComponent->m_PhysicsObject->GetPosition() + m_PositionOffset);
+            m_ParticleEmitter->SetPosition(physicsComponent->GetPhysicsObject()->GetPosition() + m_PositionOffset);
 
 	
     }

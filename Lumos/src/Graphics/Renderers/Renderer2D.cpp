@@ -311,7 +311,7 @@ namespace Lumos
 					auto* sprite = obj->GetComponent<SpriteComponent>();
 					if (sprite)
 					{
-						Submit(reinterpret_cast<Renderable2D*>(sprite->m_Sprite.get()), obj->GetTransformComponent()->GetTransform().GetWorldMatrix());
+						Submit(reinterpret_cast<Renderable2D*>(sprite->GetSprite()), obj->GetTransformComponent()->GetTransform().GetWorldMatrix());
 					}
 				}
 			});

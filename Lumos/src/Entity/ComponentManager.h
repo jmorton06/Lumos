@@ -82,6 +82,13 @@ namespace Lumos
 				RemoveData(entity);
 			}
 		}
+        
+        T* CreateComponent(Entity* entity)
+        {
+            auto component = new T();
+            InsertData(entity, component);
+            return component;
+        }
 
 	private:
 		// The packed array of components (of generic type T),

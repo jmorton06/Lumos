@@ -12,6 +12,7 @@ namespace Lumos
 	class LUMOS_EXPORT MeshComponent : public LumosComponent
 	{
 	public:
+        MeshComponent();
 		explicit MeshComponent(std::shared_ptr<Graphics::Mesh>& mesh);
 		explicit MeshComponent(Graphics::Mesh* mesh);
 		~MeshComponent() = default;

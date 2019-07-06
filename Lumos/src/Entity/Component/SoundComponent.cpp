@@ -10,6 +10,13 @@
 
 namespace Lumos
 {
+    SoundComponent::SoundComponent()
+    {
+        m_SoundNode = std::shared_ptr<SoundNode>(SoundNode::Create());
+        m_Name = "Sound";
+        m_BoundingShape = std::make_unique<Maths::BoundingSphere>(m_SoundNode->GetPosition(),m_SoundNode->GetRadius());
+    }
+    
 	SoundComponent::SoundComponent(std::shared_ptr<SoundNode>& sound)
 		: m_SoundNode(sound)
 	{
@@ -22,8 +29,8 @@ namespace Lumos
 		Physics3DComponent* physicsComponent = m_Entity->GetComponent<Physics3DComponent>();
 		if (physicsComponent)
 		{
-			m_SoundNode->SetPosition(physicsComponent->m_PhysicsObject->GetPosition()); //TODO : Get From Entity Transform
-			m_SoundNode->SetVelocity(physicsComponent->m_PhysicsObject->GetLinearVelocity());
+			m_SoundNode->SetPosition(physicsComponent->GetPhysicsObject()->GetPosition()); //TODO : Get From Entity Transform
+			m_SoundNode->SetVelocity(physicsComponent->GetPhysicsObject()->GetLinearVelocity());
 			m_BoundingShape->SetPosition(m_SoundNode->GetPosition());
 		}
 	}
