@@ -205,7 +205,7 @@ namespace Lumos
 
 	void Editor::DrawHierarchyWindow()
 	{
-		ImGui::Begin(ICON_FA_INDENT " Hierarchy", nullptr, 0);
+		ImGui::Begin("Hierarchy", nullptr, 0);
 		{
 			if (ImGui::TreeNode("Application"))
 			{
@@ -353,8 +353,12 @@ namespace Lumos
 	void Editor::DrawInspectorWindow()
 	{
 		ImGui::Begin(ICON_FA_INFO " Inspector", NULL, 0);
+        
 		if (m_Selected)
-			m_Selected->OnIMGUI();
+        {
+            m_Selected->OnIMGUI();
+        }
+
 		ImGui::End();
 	}
 
@@ -362,7 +366,7 @@ namespace Lumos
 	{
 		ImGuiWindowFlags windowFlags = 0;
 		ImGui::SetNextWindowBgAlpha(0.0f);
-		ImGui::Begin(ICON_FA_GAMEPAD " Scene", nullptr, windowFlags);
+		ImGui::Begin("Scene", nullptr, windowFlags);
 		
 		ImGuizmo::SetDrawlist();
 		m_SceneViewSize = Maths::Vector2(ImGui::GetWindowSize().x, ImGui::GetWindowSize().y);
@@ -504,16 +508,6 @@ namespace Lumos
 
 	void Editor::OnInit()
 	{
-		//Load Icons
-		/*m_Icons["play"] = Graphics::Texture2D::CreateFromFile("playIcon", "/CoreTextures/Editor/icons/play.png");
-		m_Icons["pause"] = Graphics::Texture2D::CreateFromFile("pauseIcon", "/CoreTextures/Editor/icons/pause.png");
-		m_Icons["next"] = Graphics::Texture2D::CreateFromFile("nextIcon", "/CoreTextures/Editor/icons/next.png");
-
-		m_Icons["translate"] = Graphics::Texture2D::CreateFromFile("translateIcon", "/CoreTextures/Editor/icons/translate.png");
-		m_Icons["scale"] = Graphics::Texture2D::CreateFromFile("scaleIcon", "/CoreTextures/Editor/icons/scale.png");
-		m_Icons["rotate"] = Graphics::Texture2D::CreateFromFile("rotateIcon", "/CoreTextures/Editor/icons/rotate.png");*/
-
-
 	}
 
 	void Editor::OnNewScene(Scene * scene)
@@ -523,6 +517,6 @@ namespace Lumos
 
 	void Editor::DrawConsole()
 	{
-		m_Console->Draw(ICON_FA_LIST_ALT " Console");
+		m_Console->Draw("Console");
 	}
 }
