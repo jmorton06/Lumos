@@ -31,24 +31,12 @@ namespace Lumos
 			return ComponentManager::Instance()->GetComponent<T>(this);
 		}
         
-       /* template <typename T>
-        bool HasComponent()
-        {
-            ComponentType type = ComponentManager::Instance()->GetComponentType<T>();
-            auto it = m_Components.find(type);
-            if (it == m_Components.end())
-                return false;
-            
-            return true;
-        }
-        */
         template <typename T>
         void RemoveComponent()
         {
 			ComponentManager::Instance()->RemoveComponent<T>(this);
         }
 
-		void OnRenderObject();
 		virtual void OnUpdateObject(float dt);
 		virtual void OnIMGUI();
 		virtual void OnGuizmo(u32 mode = 0);
@@ -86,8 +74,6 @@ namespace Lumos
 
 		Entity(Entity const&) = delete;
 		Entity& operator=(Entity const&) = delete;
-
-		void AddComponent(std::unique_ptr<LumosComponent> component, ComponentType type);
 
 		String					m_Name;
 		float					m_BoundingRadius;

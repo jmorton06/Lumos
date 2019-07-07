@@ -32,19 +32,6 @@ namespace Lumos
         m_UUID = Maths::GenerateUUID();
     }
 
-	void Entity::AddComponent(std::unique_ptr<LumosComponent> component, ComponentType type)
-	{
-
-	}
-
-	void Entity::OnRenderObject()
-	{
-		/*for(const auto& component : m_Components)
-		{
-			component.second->OnRenderComponent();
-		}*/
-	}
-
 	void Entity::OnUpdateObject(float dt)
 	{
         if(m_DefaultTransformComponent && m_DefaultTransformComponent->GetTransform().HasUpdated())
@@ -146,7 +133,16 @@ namespace Lumos
         
         ImGui::Checkbox("##Active", &m_Active);
         ImGui::SameLine();
-        ImGui::Button(ICON_FA_PLUS);
+        if(ImGui::Button(ICON_FA_PLUS))
+        {
+            static float value = 0.5f;
+            if (ImGui::BeginPopup("item context menu", 3))
+            {
+                if (ImGui::Selectable("Copy")) value = 0.0f;
+                if (ImGui::Selectable("Paste")) value = 3.1415f;
+                ImGui::EndPopup();
+            }
+        }
         ImGui::SameLine();
 
         ImGui::PushItemWidth(-1);
@@ -169,7 +165,7 @@ namespace Lumos
         ImGui::Columns(1);
         ImGui::Separator();
         ImGui::PopStyleVar();
-        
+
 		auto components = GetAllComponents();
         for(auto& component: components)
         {

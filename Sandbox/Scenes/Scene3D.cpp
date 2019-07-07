@@ -425,10 +425,10 @@ void Scene3D::LoadModels()
 	}
 }
 
-//bool show_demo_window = true;
+bool show_demo_window = true;
 
 void Scene3D::OnIMGUI()
 {
-   // if (show_demo_window)
-   //    ImGui::ShowDemoWindow(&show_demo_window);
+    if (show_demo_window)
+       ImGui::ShowDemoWindow(&show_demo_window);
 }
