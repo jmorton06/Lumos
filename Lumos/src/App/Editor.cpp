@@ -352,7 +352,7 @@ namespace Lumos
 
 	void Editor::DrawInspectorWindow()
 	{
-		ImGui::Begin(ICON_FA_INFO " Inspector", NULL, 0);
+		ImGui::Begin("Inspector", NULL, 0);
         
 		if (m_Selected)
         {

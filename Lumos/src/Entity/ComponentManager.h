@@ -21,7 +21,7 @@ namespace Lumos
 	public:
 		void InsertData(Entity* entity, T* component)
 		{
-			assert(m_EntityToIndexMap.find(entity) == m_EntityToIndexMap.end() && "Component added to same entity more than once.");
+			LUMOS_CORE_ASSERT(m_EntityToIndexMap.find(entity) == m_EntityToIndexMap.end(), "Component added to same entity more than once.");
 
 			// Put new entry at end and update the maps
 			size_t newIndex = m_Size;
@@ -33,7 +33,7 @@ namespace Lumos
 
 		void RemoveData(Entity* entity)
 		{
-			assert(m_EntityToIndexMap.find(entity) != m_EntityToIndexMap.end() && "Removing non-existent component.");
+			LUMOS_CORE_ASSERT(m_EntityToIndexMap.find(entity) != m_EntityToIndexMap.end(), "Removing non-existent component.");
 
 			// Copy element at end into deleted element's place to maintain density
 			size_t indexOfRemovedEntity = m_EntityToIndexMap[entity];
