@@ -16,7 +16,7 @@
 #include "Graphics/Layers/ImGuiLayer.h"
 #include "Graphics/Camera/Camera.h"
 
-#include "Entity/EntityManager.h"
+#include "Entity/ECS.h"
 #include "Entity/ComponentManager.h"
 
 #include "Utilities/CommonUtils.h"
@@ -108,6 +108,8 @@ namespace Lumos
         m_AudioManager = std::unique_ptr<AudioManager>(AudioManager::Create());
         m_AudioManager->OnInit();
         
+        ECS::Instance()->Init();
+        
         //Graphics Loading on main thread
         AssetsManager::InitializeMeshes();
         m_RenderManager = std::make_unique<Graphics::RenderManager>(screenWidth, screenHeight);
@@ -131,7 +133,7 @@ namespace Lumos
 		B2PhysicsEngine::Release();
 		Input::Release();
 		AssetsManager::ReleaseMeshes();
-		EntityManager::Release();
+		ECS::Release();
 		ComponentManager::Release();
 		SoundManager::Release();
 		LuaScript::Release();

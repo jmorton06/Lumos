@@ -42,7 +42,7 @@ void GraphicsScene::OnInit()
 
 	auto sun = std::make_shared<Graphics::Light>(Maths::Vector3(26.0f, 22.0f, 48.5f), Maths::Vector4(1.0f), 2.0f);
 
-	auto lightEntity = EntityManager::Instance()->CreateEntity("Directional Light");
+	auto lightEntity = ECS::Instance()->CreateEntity("Directional Light");
 	lightEntity->AddComponent<LightComponent>(sun);
 	lightEntity->AddComponent<TransformComponent>(Matrix4::Translation(Maths::Vector3(26.0f, 22.0f, 48.5f)));
 	AddEntity(lightEntity);
@@ -95,7 +95,7 @@ void GraphicsScene::LoadModels()
 	Terrain* terrainMesh = new Terrain();
 
 	//HeightMap
-	auto heightmap = EntityManager::Instance()->CreateEntity("heightmap");
+	auto heightmap = ECS::Instance()->CreateEntity("heightmap");
 	heightmap->AddComponent<TransformComponent>(Matrix4::Scale(Maths::Vector3(1.0f)));
 	heightmap->AddComponent<TextureMatrixComponent>(Matrix4::Scale(Maths::Vector3(1.0f, 1.0f, 1.0f)));
 	std::shared_ptr<Graphics::Mesh> terrain = std::make_shared<Graphics::Mesh>(*terrainMesh);

@@ -4,7 +4,7 @@
 #include "Graphics/Material.h"
 #include "Maths/BoundingSphere.h"
 #include "Entity/Entity.h"
-#include "Entity/EntityManager.h"
+#include "Entity/ECS.h"
 #include "Entity/Component/MeshComponent.h"
 #include "Graphics/API/Textures/Texture2D.h"
 #include "Utilities/AssetsManager.h"
@@ -408,7 +408,7 @@ namespace Lumos
         auto name = node.name;
         if(name == "")
             name = "Mesh : " + StringFormat::ToString(nodeIndex);
-        auto meshEntity = EntityManager::Instance()->CreateEntity(name);
+        auto meshEntity = ECS::Instance()->CreateEntity(name);
         meshEntity->AddComponent<TransformComponent>();
         
         if(parent)
@@ -505,7 +505,7 @@ namespace Lumos
         
         String name = directory.substr(directory.find_last_of('/') + 1);
 
-		auto entity = EntityManager::Instance()->CreateEntity(name);
+		auto entity = ECS::Instance()->CreateEntity(name);
 		entity->AddComponent<TransformComponent>();
 
         auto meshes = std::vector<Graphics::Mesh*>();

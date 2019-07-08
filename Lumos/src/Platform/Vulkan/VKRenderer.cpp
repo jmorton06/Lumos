@@ -101,7 +101,6 @@ namespace Lumos
 		void VKRenderer::Render(IndexBuffer* indexBuffer, VertexArray* vertexArray,
 			VKCommandBuffer* commandBuffer, std::vector<vk::DescriptorSet>& descriptorSet, vk::PipelineLayout layout, uint32_t offset, u32 numDynamicDescriptorSets)
 		{
-			u32 vertexArraySize = vertexArray->GetCount();
 			auto vkVertexArray = dynamic_cast<VKVertexArray*>(vertexArray);
 
 			commandBuffer->GetCommandBuffer().bindDescriptorSets(vk::PipelineBindPoint::eGraphics, layout, 0, static_cast<uint32_t>(descriptorSet.size()), descriptorSet.data(), numDynamicDescriptorSets, &offset);

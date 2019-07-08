@@ -40,7 +40,7 @@ void SceneModelViewer::OnInit()
 
 	auto sun = std::make_shared<Graphics::Light>(Maths::Vector3(26.0f, 22.0f, 48.5f), Maths::Vector4(1.0f), 2.0f);
 
-	auto lightEntity = EntityManager::Instance()->CreateEntity("Directional Light");
+	auto lightEntity = ECS::Instance()->CreateEntity("Directional Light");
 	lightEntity->AddComponent<LightComponent>(sun);
 	lightEntity->AddComponent<TransformComponent>(Matrix4::Translation(Maths::Vector3(26.0f, 22.0f, 48.5f)));
 	lightEntity->GetTransformComponent()->GetTransform().SetLocalOrientation(Maths::Quaternion::LookAt(Maths::Vector3(26.0f, 22.0f, 48.5f), Maths::Vector3::Zero()));

@@ -11,7 +11,7 @@
 #include "Graphics/RenderManager.h"
 #include "Graphics/Camera/Camera.h"
 #include "Utilities/TimeStep.h"
-#include "Entity/EntityManager.h"
+#include "Entity/ECS.h"
 #include "Entity/Component/TransformComponent.h"
 #include "Audio/AudioManager.h"
 #include "Physics/LumosPhysicsEngine/SortAndSweepBroadphase.h"
@@ -102,7 +102,7 @@ namespace Lumos
 			LUMOS_CORE_ERROR("Unable to allocate scene render list! - Try using less shadow maps");
 		}
 
-		m_RootEntity = EntityManager::Instance()->CreateEntity("Root");
+		m_RootEntity = ECS::Instance()->CreateEntity("Root");
 	}
 
 	void Scene::OnCleanupScene()
@@ -135,7 +135,7 @@ namespace Lumos
 
 	void Scene::DeleteAllGameObjects()
 	{
-		EntityManager::Instance()->Clear();
+		ECS::Instance()->Clear();
 	}
 
 	void Scene::OnUpdate(TimeStep* timeStep)
