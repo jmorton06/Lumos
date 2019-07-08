@@ -8,7 +8,7 @@ namespace Lumos
 	struct TimeStep;
     class Entity;
     
-    constexpr u8 MAX_COMPONENTS = 1000;
+    constexpr int MAX_COMPONENTS = 1000;
     // A simple type alias
     using Signature = std::bitset<MAX_COMPONENTS>;
 
