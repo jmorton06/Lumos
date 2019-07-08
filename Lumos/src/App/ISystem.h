@@ -2,6 +2,7 @@
 #include "LM.h"
 #include "Entity/Entity.h"
 #include <set>
+#include <bitset>
 
 namespace Lumos
 {
