@@ -1,13 +1,12 @@
 #include "LM.h"
-#include "Utilities/TSingleton.h"
+#include "App/ISystem.h"
 
 namespace Lumos
 {
 	class Entity;
 
-	class LUMOS_EXPORT EntityManager : public TSingleton<EntityManager>
+	class LUMOS_EXPORT EntityManager
 	{
-		friend class TSingleton<EntityManager>;
 		friend class Entity;
 	public:
 		EntityManager() = default;
@@ -15,11 +14,22 @@ namespace Lumos
 
 		void Clear();
 		Entity* CreateEntity(const String& name = "");
-		void DeleteEntity(Entity* entity);
+		void DestroyEntity(Entity* entity);
 
 		const std::vector<Entity*>& GetEntities() const { return m_Entities; }
 
+        void SetSignature(Entity* entity, Signature signature)
+        {
+            m_Signatures[entity] = signature;
+        }
+        
+        Signature GetSignature(Entity* entity)
+        {
+            return m_Signatures[entity];
+        }
+        
 	private:
 		std::vector<Entity*> m_Entities;
+        std::unordered_map<Entity*, Signature> m_Signatures{};
 	};
 }
