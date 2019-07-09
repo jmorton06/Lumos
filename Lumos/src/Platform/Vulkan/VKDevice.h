@@ -2,6 +2,7 @@
 #include "Utilities/TSingleton.h"
 #include "VK.h"
 #include "VKContext.h"
+#include "vk_mem_alloc.h"
 
 namespace Lumos
 {
@@ -65,6 +66,8 @@ namespace Lumos
 			vk::DescriptorPool m_DescriptorPool;
 
 			VKContext* m_VKContext;
+            
+            VmaAllocator m_Allocator;
 		};
 	}
 }
