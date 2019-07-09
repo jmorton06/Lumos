@@ -19,6 +19,11 @@
 #include "Graphics/GBuffer.h"
 #include "App/Scene.h"
 #include "Entity/Entity.h"
+#include "Entity/Component/MaterialComponent.h"
+#include "Entity/Component/MeshComponent.h"
+#include "Entity/Component/TransformComponent.h"
+#include "Entity/Component/TextureMatrixComponent.h"
+
 #include "App/Application.h"
 #include "Graphics/RenderManager.h"
 #include "Graphics/Camera/Camera.h"

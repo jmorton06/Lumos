@@ -2,11 +2,10 @@
 #include "Physics2DComponent.h"
 #include "Physics/B2PhysicsEngine/PhysicsObject2D.h"
 #include "Maths/MathsUtilities.h"
+#include "Entity/Entity.h"
+#include "Entity/Component/TransformComponent.h"
 
 #include <imgui/imgui.h>
-#include "Entity/Entity.h"
-
-#include <math.h>
 
 namespace Lumos
 {

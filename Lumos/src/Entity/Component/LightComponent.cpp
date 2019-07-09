@@ -8,6 +8,7 @@
 #include "Graphics/LightSetUp.h"
 #include "Maths/Vector3.h"
 #include "Maths/BoundingSphere.h"
+#include "TransformComponent.h"
 
 #include <imgui/imgui.h>
 

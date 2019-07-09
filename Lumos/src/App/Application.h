@@ -1,5 +1,7 @@
 #pragma once
 #include "LM.h"
+#include "Entity/SystemManager.h"
+
 #define LUMOS_EDITOR //temp
 
 namespace Lumos
@@ -10,6 +12,7 @@ namespace Lumos
 	struct WindowProperties;
     class SceneManager;
 	class AudioManager;
+	class SystemManager;
 	class Entity;
 	class Editor;
 	class LayerStack;
@@ -81,12 +84,11 @@ namespace Lumos
 		LayerStack*						GetLayerStack()		const { return m_LayerStack; }
         SceneManager*					GetSceneManager()	const { return m_SceneManager.get(); }
 		Graphics::RenderManager*		GetRenderManager()	const { return m_RenderManager.get(); }
-		AudioManager*					GetAudioManager()	const { return m_AudioManager.get(); }
         Window*							GetWindow()			const { return m_Window.get(); }
         AppState						GetState()			const { return m_CurrentState; }
 		EditorState						GetEditorState()	const { return m_EditorState; }
 		Camera*							GetActiveCamera()	const { return m_ActiveCamera; }
-		const std::vector<ISystem*>&	GetSystems()		const { return m_Systems; }
+		SystemManager*					GetSystemManager()	const { return m_SystemManager.get(); }
 
         void SetAppState(AppState state)		{ m_CurrentState = state; }
 		void SetEditorState(EditorState state)	{ m_EditorState = state; }
@@ -95,6 +97,12 @@ namespace Lumos
 		Maths::Vector2 GetWindowSize() const;
 
 		static Application* Instance() { return s_Instance; }
+
+		template<typename T>
+		T* GetSystem()
+		{
+			return m_SystemManager->GetSystem<T>();
+		}
 
 	private:
 		bool OnWindowClose(WindowCloseEvent& e);
@@ -110,12 +118,10 @@ namespace Lumos
 
 		std::unique_ptr<Window> m_Window;
         std::unique_ptr<SceneManager> m_SceneManager;
-		std::unique_ptr<AudioManager> m_AudioManager;
+		std::unique_ptr<SystemManager> m_SystemManager;
 		std::unique_ptr<Graphics::RenderManager> m_RenderManager;
 
 		Camera* m_ActiveCamera = nullptr;
-
-		std::vector<ISystem*> m_Systems;
 
 		LayerStack* m_LayerStack{};
 

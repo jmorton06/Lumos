@@ -32,11 +32,6 @@ namespace Lumos
 
 	void ParticleComponent::OnUpdateComponent(float dt)
     {
-        Physics3DComponent* physicsComponent = m_Entity->GetComponent<Physics3DComponent>();
-        if (physicsComponent)
-            m_ParticleEmitter->SetPosition(physicsComponent->GetPhysicsObject()->GetPosition() + m_PositionOffset);
-
-	
     }
 
 	void ParticleComponent::OnIMGUI()

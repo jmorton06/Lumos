@@ -38,7 +38,7 @@ namespace Lumos
 			// Copy element at end into deleted element's place to maintain density
 			size_t indexOfRemovedEntity = m_EntityToIndexMap[entity];
 			size_t indexOfLastElement = m_Size - 1;
-            delete m_ComponentArray[indexOfRemovedEntity];
+			delete m_ComponentArray[indexOfRemovedEntity];
 			m_ComponentArray[indexOfRemovedEntity] = m_ComponentArray[indexOfLastElement];
 
 			// Update map to point to moved spot
@@ -61,10 +61,10 @@ namespace Lumos
 			return m_ComponentArray[m_EntityToIndexMap[entity]];
 		}
 
-		void OnUpdate(float dt) override 
+		void OnUpdate(float dt) override
 		{
-            for (int i = 0; i < m_Size; i++)
-            {
+			for (int i = 0; i < m_Size; i++)
+			{
 				m_ComponentArray[i]->OnUpdateComponent(dt);
 			}
 		}
@@ -82,13 +82,13 @@ namespace Lumos
 				RemoveData(entity);
 			}
 		}
-        
-        T* CreateComponent(Entity* entity)
-        {
-            auto component = new T();
-            InsertData(entity, component);
-            return component;
-        }
+
+		T* CreateComponent(Entity* entity)
+		{
+			auto component = new T();
+			InsertData(entity, component);
+			return component;
+		}
 
 	private:
 		// The packed array of components (of generic type T),
@@ -109,8 +109,8 @@ namespace Lumos
 
 	class LUMOS_EXPORT ComponentManager : public TSingleton<ComponentManager>
 	{
-	friend class TSingleton<ComponentManager>;
-	friend class LumosComponent;
+		friend class TSingleton<ComponentManager>;
+		friend class LumosComponent;
 
 	public:
 		ComponentManager();
@@ -193,5 +193,4 @@ namespace Lumos
 		ComponentType m_NextComponentType;
 	};
 }
-
 

@@ -3,6 +3,7 @@
 #include "Physics/LumosPhysicsEngine/PhysicsObject3D.h"
 #include "Physics/LumosPhysicsEngine/LumosPhysicsEngine.h"
 #include "Entity/Entity.h"
+#include "TransformComponent.h"
 
 #include <imgui/imgui.h>
 

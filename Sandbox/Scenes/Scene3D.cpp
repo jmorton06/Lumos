@@ -81,16 +81,16 @@ void Scene3D::OnInit()
 
 	auto sun = std::make_shared<Graphics::Light>(Maths::Vector3(26.0f, 22.0f, 48.5f), Maths::Vector4(1.0f) , 0.9f);
     
-    auto lightEntity = ECS::Instance()->CreateEntity("Directional Light");
+    auto lightEntity = EntityManager::Instance()->CreateEntity("Directional Light");
     lightEntity->AddComponent<LightComponent>(sun);
     lightEntity->AddComponent<TransformComponent>(Matrix4::Translation(Maths::Vector3(26.0f, 22.0f, 48.5f)) * Maths::Quaternion::LookAt(Maths::Vector3(26.0f, 22.0f, 48.5f), Maths::Vector3::Zero()).ToMatrix4());
     AddEntity(lightEntity);
 
-	auto cameraEntity = ECS::Instance()->CreateEntity("Camera");
+	auto cameraEntity = EntityManager::Instance()->CreateEntity("Camera");
 	cameraEntity->AddComponent<CameraComponent>(m_pCamera);
 	AddEntity(cameraEntity);
 
-	Application::Instance()->GetAudioManager()->SetListener(m_pCamera);
+	Application::Instance()->GetSystem<AudioManager>()->SetListener(m_pCamera);
 
 	m_ShadowTexture = std::unique_ptr<Graphics::TextureDepthArray>(Graphics::TextureDepthArray::Create(2048, 2048, 4));
 	auto shadowRenderer = new Graphics::ShadowRenderer();
@@ -141,7 +141,7 @@ void Scene3D::LoadModels()
 	auto testMaterial = std::make_shared<Material>();
 	testMaterial->LoadMaterial("checkerboard", "/CoreTextures/checkerboard.tga");
 
-	auto ground = ECS::Instance()->CreateEntity("Ground");
+	auto ground = EntityManager::Instance()->CreateEntity("Ground");
 	std::shared_ptr<PhysicsObject3D> testPhysics = std::make_shared<PhysicsObject3D>();
 	testPhysics->SetRestVelocityThreshold(-1.0f);
 	testPhysics->SetCollisionShape(std::make_unique<CuboidCollisionShape>(Maths::Vector3(groundWidth, groundHeight, groundLength)));
@@ -309,7 +309,7 @@ void Scene3D::LoadModels()
 #endif
 
 	//Create a pendulum
-	auto pendulumHolder = ECS::Instance()->CreateEntity("pendulumHolder");
+	auto pendulumHolder = EntityManager::Instance()->CreateEntity("pendulumHolder");
 	std::shared_ptr<PhysicsObject3D> pendulumHolderPhysics = std::make_shared<PhysicsObject3D>();
 	pendulumHolderPhysics->SetCollisionShape(std::make_unique<CuboidCollisionShape>(Maths::Vector3(0.5f, 0.5f, 0.5f)));
 	pendulumHolderPhysics->SetFriction(0.8f);
@@ -327,7 +327,7 @@ void Scene3D::LoadModels()
 	AddEntity(pendulumHolder);
 
 	//Grass
-	auto pendulum = ECS::Instance()->CreateEntity("pendulum");
+	auto pendulum = EntityManager::Instance()->CreateEntity("pendulum");
 	std::shared_ptr<PhysicsObject3D> pendulumPhysics = std::make_shared<PhysicsObject3D>();
 	pendulumPhysics->SetCollisionShape(std::make_unique<SphereCollisionShape>(0.5f));
 	pendulumPhysics->SetFriction(0.8f);
@@ -386,7 +386,7 @@ void Scene3D::LoadModels()
 		properties.usingSpecularMap = 0.0f;
 		m->SetMaterialProperites(properties);
 
-		auto sphere = ECS::Instance()->CreateEntity("Sphere" + StringFormat::ToString(numSpheres++));
+		auto sphere = EntityManager::Instance()->CreateEntity("Sphere" + StringFormat::ToString(numSpheres++));
 
 		sphere->AddComponent<TransformComponent>(Matrix4::Scale(Maths::Vector3(0.5f, 0.5f, 0.5f)) * Matrix4::Translation(Maths::Vector3(i * 2.0f, 30.0f, 0.0f)));
 		std::shared_ptr<Graphics::Mesh> sphereModel = std::make_shared<Graphics::Mesh>(*AssetsManager::DefaultModels()->GetAsset("Sphere"));
@@ -414,7 +414,7 @@ void Scene3D::LoadModels()
 		properties.usingSpecularMap = 0.0f;
 		m->SetMaterialProperites(properties);
 
-		auto sphere = ECS::Instance()->CreateEntity("Sphere" + StringFormat::ToString(numSpheres++));
+		auto sphere = EntityManager::Instance()->CreateEntity("Sphere" + StringFormat::ToString(numSpheres++));
 
 		sphere->AddComponent<TransformComponent>(Matrix4::Scale(Maths::Vector3(0.5f, 0.5f, 0.5f)) * Matrix4::Translation(Maths::Vector3(i * 2.0f, 33.0f, 0.0f)));
 		std::shared_ptr<Graphics::Mesh> sphereModel = std::make_shared<Graphics::Mesh>(*AssetsManager::DefaultModels()->GetAsset("Sphere"));
