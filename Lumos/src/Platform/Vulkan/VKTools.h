@@ -1,5 +1,6 @@
 #pragma once
 #include "VK.h"
+#include "vk_mem_alloc.h"
 
 #define VK_CHECK_RESULT(f)																				\
 {																										\
@@ -21,11 +22,11 @@ namespace Lumos
         enum class ShaderType : int;
 		enum class TextureFormat;
         enum class Format;
-
+        
 		namespace VKTools
 		{
 			void CreateBuffer(vk::DeviceSize size, vk::BufferUsageFlags usage, vk::MemoryPropertyFlags properties, vk::Buffer& buffer,
-				vk::DeviceMemory& bufferMemory);
+				vk::DeviceMemory& bufferMemory, VmaAllocator allocator = nullptr, VmaAllocation allocation = nullptr);
 
 			vk::CommandBuffer BeginSingleTimeCommands();
 			void EndSingleTimeCommands(vk::CommandBuffer commandBuffer);

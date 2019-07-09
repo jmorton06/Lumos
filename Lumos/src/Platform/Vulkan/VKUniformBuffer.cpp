@@ -9,9 +9,15 @@ namespace Lumos
 	{
 		VKUniformBuffer::VKUniformBuffer(uint32_t size, const void* data)
 		{
-			VKTools::CreateBuffer(size, vk::BufferUsageFlagBits::eUniformBuffer,
-			vk::MemoryPropertyFlagBits::eHostVisible | vk::MemoryPropertyFlagBits::eHostCoherent, m_Buffer,
-			m_Memory);
+#ifdef USE_VMA_ALLOCATOR
+            VKTools::CreateBuffer(size, vk::BufferUsageFlagBits::eUniformBuffer,
+                                  vk::MemoryPropertyFlagBits::eHostVisible | vk::MemoryPropertyFlagBits::eHostCoherent, m_Buffer, m_Memory, VKDevice::Instance()->GetAllocator(), m_Allocation
+                                  );
+#else
+            VKTools::CreateBuffer(size, vk::BufferUsageFlagBits::eUniformBuffer,
+                                  vk::MemoryPropertyFlagBits::eHostVisible | vk::MemoryPropertyFlagBits::eHostCoherent, m_Buffer, m_Memory
+                                  );
+#endif
 		}
 
 		VKUniformBuffer::VKUniformBuffer()
@@ -20,13 +26,32 @@ namespace Lumos
 
 		VKUniformBuffer::~VKUniformBuffer()
 		{
+            if (m_Buffer)
+            {
+#ifdef USE_VMA_ALLOCATOR
+              //  vmaDestroyBuffer(VKDevice::Instance()->GetAllocator(), m_Buffer, m_Allocation);
+#else
+              //  vkDestroyBuffer(VKDevice::Instance()->GetDevice(), m_Buffer, nullptr);
+#endif
+            }
+            
+            if (m_Memory)
+            {
+               // vkFreeMemory(VKDevice::Instance()->GetDevice(), m_Memory, nullptr);
+            }
 		}
 
 		void VKUniformBuffer::Init(uint32_t size, const void* data)
 		{
-			VKTools::CreateBuffer(size, vk::BufferUsageFlagBits::eUniformBuffer,
-				vk::MemoryPropertyFlagBits::eHostVisible | vk::MemoryPropertyFlagBits::eHostCoherent, m_Buffer, m_Memory
-			);
+#ifdef USE_VMA_ALLOCATOR
+            VKTools::CreateBuffer(size, vk::BufferUsageFlagBits::eUniformBuffer,
+                                  vk::MemoryPropertyFlagBits::eHostVisible | vk::MemoryPropertyFlagBits::eHostCoherent, m_Buffer, m_Memory, VKDevice::Instance()->GetAllocator(), m_Allocation
+                                  );
+#else
+            VKTools::CreateBuffer(size, vk::BufferUsageFlagBits::eUniformBuffer,
+                                  vk::MemoryPropertyFlagBits::eHostVisible | vk::MemoryPropertyFlagBits::eHostCoherent, m_Buffer, m_Memory
+                                  );
+#endif
 		}
 
 		void VKUniformBuffer::SetData(uint32_t size, const void* data)

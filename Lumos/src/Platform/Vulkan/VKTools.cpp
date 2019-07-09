@@ -28,15 +28,27 @@ namespace Lumos
         }
 
         void VKTools::CreateBuffer(vk::DeviceSize size, vk::BufferUsageFlags usage, vk::MemoryPropertyFlags properties, vk::Buffer& buffer,
-                          vk::DeviceMemory& bufferMemory)
+                          vk::DeviceMemory& bufferMemory, VmaAllocator allocator, VmaAllocation allocation)
         {
             vk::BufferCreateInfo bufferInfo = {};
             bufferInfo.size = size;
             bufferInfo.usage = usage;
             bufferInfo.sharingMode = vk::SharingMode::eExclusive;
 
+#ifdef USE_VMA_ALLOCATOR
+            if(allocator)
+            {
+                VmaAllocationCreateInfo vmaAllocInfo = {};
+                vmaAllocInfo.usage = VMA_MEMORY_USAGE_GPU_ONLY;
+                vmaCreateBuffer(allocator, (VkBufferCreateInfo*)&bufferInfo, &vmaAllocInfo, (VkBuffer*)&buffer, &allocation, nullptr);
+            }
+            else
+            {
+                buffer = VKDevice::Instance()->GetDevice().createBuffer(bufferInfo);
+            }
+#else
             buffer = VKDevice::Instance()->GetDevice().createBuffer(bufferInfo);
-
+#endif
             vk::MemoryRequirements memRequirements = VKDevice::Instance()->GetDevice().getBufferMemoryRequirements(buffer);
 
             vk::MemoryAllocateInfo allocInfo = {};
