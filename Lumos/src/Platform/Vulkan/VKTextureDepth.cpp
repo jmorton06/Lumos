@@ -20,7 +20,11 @@ namespace Lumos
 				VKDevice::Instance()->GetDevice().destroySampler(m_TextureSampler);
 	
 			VKDevice::Instance()->GetDevice().destroyImageView(m_TextureImageView);
-			VKDevice::Instance()->GetDevice().destroyImage(m_TextureImage);
+#ifdef USE_VMA_ALLOCATOR
+            vmaDestroyImage(VKDevice::Instance()->GetAllocator(), m_TextureImage, m_Allocation);
+#else
+            VKDevice::Instance()->GetDevice().destroyImage(m_TextureImage);
+#endif
 			VKDevice::Instance()->GetDevice().freeMemory(m_TextureImageMemory);
 		}
 
@@ -93,7 +97,19 @@ namespace Lumos
 			imageInfo.samples = vk::SampleCountFlagBits::e1;
 			imageInfo.sharingMode = vk::SharingMode::eExclusive;
 
-			image = VKDevice::Instance()->GetDevice().createImage(imageInfo);
+#ifdef USE_VMA_ALLOCATOR
+            VmaAllocationCreateInfo allocInfovma;
+            allocInfovma.flags = 0;
+            allocInfovma.usage = VMA_MEMORY_USAGE_GPU_ONLY;
+            allocInfovma.requiredFlags = 0;
+            allocInfovma.preferredFlags = 0;
+            allocInfovma.memoryTypeBits = 0;
+            allocInfovma.pool = nullptr;
+            allocInfovma.pUserData = nullptr;
+            vmaCreateImage(VKDevice::Instance()->GetAllocator(), reinterpret_cast<VkImageCreateInfo*>(&imageInfo), &allocInfovma, reinterpret_cast<VkImage*>(&image), &m_Allocation, nullptr);
+#else
+            image = VKDevice::Instance()->GetDevice().createImage(imageInfo);
+#endif
 
 			vk::MemoryRequirements memRequirements;
 			VKDevice::Instance()->GetDevice().getImageMemoryRequirements(image, &memRequirements);

@@ -20,7 +20,11 @@ namespace Lumos
 		{
 			if (m_Buffer)
 			{
-				vkDestroyBuffer(VKDevice::Instance()->GetDevice(), m_Buffer, nullptr);
+#ifdef USE_VMA_ALLOCATOR
+                vmaDestroyBuffer(VKDevice::Instance()->GetAllocator(), m_Buffer, m_Allocation);
+#else
+                vkDestroyBuffer(VKDevice::Instance()->GetDevice(), m_Buffer, nullptr);
+#endif
 			}
 
 			if (m_Memory)
@@ -36,7 +40,14 @@ namespace Lumos
 			bufferInfo.usage = usage;
 			bufferInfo.sharingMode = vk::SharingMode::eExclusive;
 
+            
+#ifdef USE_VMA_ALLOCATOR
+            VmaAllocationCreateInfo vmaAllocInfo = {};
+            vmaAllocInfo.usage = VMA_MEMORY_USAGE_GPU_ONLY;
+            vmaCreateBuffer(VKDevice::Instance()->GetAllocator(), (VkBufferCreateInfo*)&bufferInfo, &vmaAllocInfo, (VkBuffer*)&m_Buffer, &m_Allocation, nullptr);
+#else
 			m_Buffer = VKDevice::Instance()->GetDevice().createBuffer(bufferInfo);
+#endif
 
 			vk::MemoryRequirements memRequirements = VKDevice::Instance()->GetDevice().getBufferMemoryRequirements(m_Buffer);
 

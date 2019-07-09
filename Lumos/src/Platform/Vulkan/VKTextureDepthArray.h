@@ -4,6 +4,10 @@
 #include "Graphics/API/GraphicsContext.h"
 #include "VKContext.h"
 
+#ifdef USE_VMA_ALLOCATOR
+#include "vk_mem_alloc.h"
+#endif
+
 namespace Lumos
 {
 	namespace Graphics
@@ -53,6 +57,10 @@ namespace Lumos
 			vk::DescriptorImageInfo m_Descriptor;
 
 			std::vector<vk::ImageView> m_IndividualImageViews;
+            
+#ifdef USE_VMA_ALLOCATOR
+            VmaAllocation m_Allocation;
+#endif
 		};
 	}
 }
