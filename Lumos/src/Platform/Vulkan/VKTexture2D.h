@@ -4,6 +4,10 @@
 #include "Graphics/API/GraphicsContext.h"
 #include "VKContext.h"
 
+#ifdef USE_VMA_ALLOCATOR
+#include "vk_mem_alloc.h"
+#endif
+
 namespace Lumos
 {
 	namespace Graphics
@@ -67,6 +71,10 @@ namespace Lumos
             vk::ImageView m_TextureImageView;// = nullptr;
             vk::Sampler m_TextureSampler;// = nullptr;
             vk::DescriptorImageInfo m_Descriptor;
+            
+#ifdef USE_VMA_ALLOCATOR
+            VmaAllocation m_Allocation;
+#endif
             
             bool m_DeleteImage = true;
 		};

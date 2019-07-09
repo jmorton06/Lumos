@@ -206,6 +206,8 @@ namespace Lumos
 			m_GraphicsQueue = m_Device.getQueue(m_GraphicsQueueFamilyIndex, 0);
 			m_PresentQueue = m_Device.getQueue(m_GraphicsQueueFamilyIndex, 0);
             
+            
+#ifdef USE_VMA_ALLOCATOR
             VmaAllocatorCreateInfo allocatorInfo = {};
             allocatorInfo.physicalDevice = m_PhysicalDevice;
             allocatorInfo.device = m_Device;
@@ -232,11 +234,11 @@ namespace Lumos
             fn.vkGetImageMemoryRequirements2KHR    = 0;  //(PFN_vkGetImageMemoryRequirements2KHR)vkGetImageMemoryRequirements2KHR;
             allocatorInfo.pVulkanFunctions = &fn;
 
-            
             if (vmaCreateAllocator(&allocatorInfo, &m_Allocator) != VK_SUCCESS)
             {
                 LUMOS_CORE_ERROR("Failed to create VMA allocator");
             }
+#endif
             
 
 			return VK_SUCCESS;

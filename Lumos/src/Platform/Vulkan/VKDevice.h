@@ -2,7 +2,10 @@
 #include "Utilities/TSingleton.h"
 #include "VK.h"
 #include "VKContext.h"
+
+#ifdef USE_VMA_ALLOCATOR
 #include "vk_mem_alloc.h"
+#endif
 
 namespace Lumos
 {
@@ -43,7 +46,11 @@ namespace Lumos
 			vk::PipelineCache GetPipelineCache() 			const { return m_PipelineCache; }
 
 			VKContext* GetVKContext() 						const { return m_VKContext; }
-
+            
+#ifdef USE_VMA_ALLOCATOR
+            VmaAllocator GetAllocator()                     const { return m_Allocator; }
+#endif
+            
 			u32 m_SwapChainSize = 0;
             
 #ifdef LUMOS_PLATFORM_IOS
@@ -67,7 +74,9 @@ namespace Lumos
 
 			VKContext* m_VKContext;
             
+#ifdef USE_VMA_ALLOCATOR
             VmaAllocator m_Allocator;
+#endif
 		};
 	}
 }
