@@ -5,7 +5,6 @@
 #include "Graphics/API/Textures/Texture2D.h"
 
 #include <imgui/imgui.h>
-#include <imgui/plugins/imfilebrowser.h>
 
 namespace Lumos
 {
@@ -18,13 +17,10 @@ namespace Lumos
     MaterialComponent::MaterialComponent(std::shared_ptr<Material>& material)
     : m_Material(material)
     {
-        ImGuiFileBrowserFlags flags = ImGuiFileBrowserFlags_CreateNewDir | ImGuiFileBrowserFlags_SelectDirectory;
-        m_FileDialog = new ImGui::FileBrowser(flags);
     }
     
     MaterialComponent::~MaterialComponent()
     {
-        delete m_FileDialog;
     }
     
     void MaterialComponent::OnUpdateComponent(float dt)
@@ -63,18 +59,7 @@ namespace Lumos
 				}
 				else
 				{
-					if(ImGui::Button("Empty", ImVec2(64, 64)))
-                    {
-                        m_FileDialog->Open();
-                    }
-                    
-                    m_FileDialog->Display();
-                    
-                    if(m_FileDialog->HasSelected())
-                    {
-                        LUMOS_CORE_INFO("Selected filename {0}", m_FileDialog->GetSelected().string().c_str());
-                        m_FileDialog->ClearSelected();
-                    }
+                    ImGui::Button("Empty", ImVec2(64, 64));
 				}
 
 
