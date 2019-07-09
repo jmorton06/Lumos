@@ -19,9 +19,14 @@ namespace Lumos
 		void VKVertexBuffer::Resize(u32 size)
 		{
 			m_Size = size;
-			VKTools::CreateBuffer(size, vk::BufferUsageFlagBits::eVertexBuffer,
-				vk::MemoryPropertyFlagBits::eHostVisible | vk::MemoryPropertyFlagBits::eHostCoherent, m_Buffer, m_Memory);
-
+#ifdef USE_VMA_ALLOCATOR
+            VKTools::CreateBuffer(size, vk::BufferUsageFlagBits::eVertexBuffer,
+                                  vk::MemoryPropertyFlagBits::eHostVisible | vk::MemoryPropertyFlagBits::eHostCoherent, m_Buffer, m_Memory, VKDevice::Instance()->GetAllocator(), m_Allocation
+                                  );
+#else
+            VKTools::CreateBuffer(size, vk::BufferUsageFlagBits::eVertexBuffer,
+                                  vk::MemoryPropertyFlagBits::eHostVisible | vk::MemoryPropertyFlagBits::eHostCoherent, m_Buffer, m_Memory);
+#endif
 		}
 
 		void VKVertexBuffer::SetLayout(const Graphics::BufferLayout& bufferLayout)

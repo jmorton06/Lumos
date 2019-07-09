@@ -3,6 +3,10 @@
 #include "VKBuffer.h"
 #include "Graphics/API/UniformBuffer.h"
 
+#ifdef USE_VMA_ALLOCATOR
+#include "vk_mem_alloc.h"
+#endif
+
 namespace Lumos
 {
 	namespace Graphics
@@ -29,6 +33,10 @@ namespace Lumos
 			vk::Buffer m_Buffer{};
 			vk::DeviceMemory m_Memory{};
 			vk::DescriptorBufferInfo m_DesciptorBufferInfo;
+            
+#ifdef USE_VMA_ALLOCATOR
+            VmaAllocation m_Allocation;
+#endif
 		};
 	}
 }
