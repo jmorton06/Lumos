@@ -16,7 +16,8 @@
 #include "Graphics/Mesh.h"
 #include "Graphics/Light.h"
 #include "Entity/Entity.h"
-#include "Entity/ECS.h"
+#include "Entity/Component/Components.h"
+#include "Entity/EntityManager.h"
 
 namespace Lumos
 {
@@ -43,7 +44,7 @@ namespace Lumos
 		bool collidable,
 		const Maths::Vector4& color)
 	{
-		Entity* pSphere = ECS::Instance()->CreateEntity(name);
+		Entity* pSphere = EntityManager::Instance()->CreateEntity(name);
 
 		pSphere->AddComponent<TextureMatrixComponent>(Maths::Matrix4::Scale(Maths::Vector3(10.0f, 10.0f, 10.0f)));
         std::shared_ptr<Graphics::Mesh> sphereModel = std::make_shared<Graphics::Mesh>(*AssetsManager::DefaultModels()->GetAsset("Sphere"));
@@ -102,7 +103,7 @@ namespace Lumos
 		bool collidable,
 		const Maths::Vector4& color)
 	{
-		Entity* Cube = ECS::Instance()->CreateEntity(name);
+		Entity* Cube = EntityManager::Instance()->CreateEntity(name);
 
 		Cube->AddComponent<TextureMatrixComponent>(Maths::Matrix4::Scale(Maths::Vector3(10.0f, 10.0f, 10.0f)));
         std::shared_ptr<Graphics::Mesh> cubeModel = std::make_shared<Graphics::Mesh>(*AssetsManager::DefaultModels()->GetAsset("Cube"));
@@ -162,8 +163,8 @@ namespace Lumos
 		bool collidable,
 		const Maths::Vector4& color)
 	{
-		Entity* Cube = ECS::Instance()->CreateEntity(name);
-		Entity* meshEntity = ECS::Instance()->CreateEntity("Mesh");
+		Entity* Cube = EntityManager::Instance()->CreateEntity(name);
+		Entity* meshEntity = EntityManager::Instance()->CreateEntity("Mesh");
 
         std::shared_ptr<Graphics::Mesh> pyramidModel = std::make_shared<Graphics::Mesh>(*AssetsManager::DefaultModels()->GetAsset("Pyramid"));
 		meshEntity->AddComponent<MeshComponent>(pyramidModel);

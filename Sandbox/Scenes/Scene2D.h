@@ -11,4 +11,6 @@ public:
 	virtual void OnCleanupScene() override;
 	virtual void OnUpdate(Lumos::TimeStep* timeStep) override;
 	virtual void OnIMGUI() override;
+
+	void LoadSprites();
 };

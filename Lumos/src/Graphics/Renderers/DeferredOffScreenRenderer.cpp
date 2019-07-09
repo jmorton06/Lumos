@@ -3,6 +3,12 @@
 #include "App/Scene.h"
 #include "App/Application.h"
 #include "Entity/Entity.h"
+#include "Entity/Component/MaterialComponent.h"
+#include "Entity/Component/MeshComponent.h"
+#include "Entity/Component/TransformComponent.h"
+#include "Entity/Component/TextureMatrixComponent.h"
+
+
 #include "Maths/Maths.h"
 #include "System/JobSystem.h"
 

@@ -26,13 +26,13 @@ namespace Lumos
 
 	void SoundComponent::OnUpdateComponent(float dt)
 	{
-		Physics3DComponent* physicsComponent = m_Entity->GetComponent<Physics3DComponent>();
-		if (physicsComponent)
-		{
-			m_SoundNode->SetPosition(physicsComponent->GetPhysicsObject()->GetPosition()); //TODO : Get From Entity Transform
-			m_SoundNode->SetVelocity(physicsComponent->GetPhysicsObject()->GetLinearVelocity());
-			m_BoundingShape->SetPosition(m_SoundNode->GetPosition());
-		}
+	//	Physics3DComponent* physicsComponent = m_Entity->GetComponent<Physics3DComponent>();
+	//	if (physicsComponent)
+	//	{
+	//		m_SoundNode->SetPosition(physicsComponent->GetPhysicsObject()->GetPosition()); //TODO : Get From Entity Transform
+	//		////m_SoundNode->SetVelocity(physicsComponent->GetPhysicsObject()->GetLinearVelocity());
+	//		m_BoundingShape->SetPosition(m_SoundNode->GetPosition());
+	//	}
 	}
 
 	void SoundComponent::DebugDraw(uint64 debugFlags)
@@ -41,7 +41,7 @@ namespace Lumos
 
 	void SoundComponent::Init()
 	{
-		Application::Instance()->GetAudioManager()->AddSoundNode(m_SoundNode.get());
+		Application::Instance()->GetSystem<AudioManager>()->AddSoundNode(m_SoundNode.get());
 	}
 
 	void SoundComponent::OnIMGUI()

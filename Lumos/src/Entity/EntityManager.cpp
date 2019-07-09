@@ -17,13 +17,12 @@ Lumos::Entity* Lumos::EntityManager::CreateEntity(const String& name)
 	return entity;
 }
 
-void Lumos::EntityManager::DestroyEntity(Entity* entity)
+void Lumos::EntityManager::DeleteEntity(Entity* entity)
 {
 	for (int i = 0; i < m_Entities.size(); i++)
 	{
 		if (m_Entities[i] == entity)
 		{
-            m_Signatures[entity].reset();
 			delete entity;
 			m_Entities.erase(m_Entities.begin() + i);
 		}

@@ -1,5 +1,6 @@
 #include "LM.h"
 #include "RenderList.h"
+#include "Entity/Component/TransformComponent.h"
 
 namespace Lumos
 {

@@ -9,6 +9,8 @@
 
 #include "Maths/BoundingSphere.h"
 #include "Entity/Entity.h"
+#include "Entity/Component/Components.h"
+#include "Entity/SystemManager.h"
 #include "Physics/LumosPhysicsEngine/LumosPhysicsEngine.h"
 
 #include "Graphics/GBuffer.h"
@@ -251,14 +253,11 @@ namespace Lumos
 
 				ImGui::NewLine();
 				
-				auto systems = Application::Instance()->GetSystems();
+				auto systems = Application::Instance()->GetSystemManager();
 
 				if (ImGui::TreeNode("Systems"))
 				{
-					for (auto System : systems)
-					{
-						System->OnIMGUI();
-					}
+					systems->OnImGUI();
 					ImGui::TreePop();
 				}
 

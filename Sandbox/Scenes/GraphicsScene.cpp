@@ -42,12 +42,12 @@ void GraphicsScene::OnInit()
 
 	auto sun = std::make_shared<Graphics::Light>(Maths::Vector3(26.0f, 22.0f, 48.5f), Maths::Vector4(1.0f), 2.0f);
 
-	auto lightEntity = ECS::Instance()->CreateEntity("Directional Light");
+	auto lightEntity = EntityManager::Instance()->CreateEntity("Directional Light");
 	lightEntity->AddComponent<LightComponent>(sun);
 	lightEntity->AddComponent<TransformComponent>(Matrix4::Translation(Maths::Vector3(26.0f, 22.0f, 48.5f)));
 	AddEntity(lightEntity);
 
-	Application::Instance()->GetAudioManager()->SetListener(m_pCamera);
+	Application::Instance()->GetSystem<AudioManager>()->SetListener(m_pCamera);
 
 	m_ShadowTexture = std::unique_ptr<Graphics::TextureDepthArray>(Graphics::TextureDepthArray::Create(4096, 4096, 4));
 	auto shadowRenderer = new Graphics::ShadowRenderer();
@@ -95,7 +95,7 @@ void GraphicsScene::LoadModels()
 	Terrain* terrainMesh = new Terrain();
 
 	//HeightMap
-	auto heightmap = ECS::Instance()->CreateEntity("heightmap");
+	auto heightmap = EntityManager::Instance()->CreateEntity("heightmap");
 	heightmap->AddComponent<TransformComponent>(Matrix4::Scale(Maths::Vector3(1.0f)));
 	heightmap->AddComponent<TextureMatrixComponent>(Matrix4::Scale(Maths::Vector3(1.0f, 1.0f, 1.0f)));
 	std::shared_ptr<Graphics::Mesh> terrain = std::make_shared<Graphics::Mesh>(*terrainMesh);

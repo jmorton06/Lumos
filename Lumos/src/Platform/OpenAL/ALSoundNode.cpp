@@ -31,7 +31,7 @@ namespace Lumos
 
 		if (m_IsGlobal)
 		{
-			position = Application::Instance()->GetAudioManager()->GetListener()->GetPosition();
+			position = Application::Instance()->GetSystem<AudioManager>()->GetListener()->GetPosition();
 		}
 		else
 		{

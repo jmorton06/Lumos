@@ -7,6 +7,9 @@
 #include "App/Scene.h"
 #include "App/Application.h"
 #include "Entity/Entity.h"
+#include "Entity/Component/MaterialComponent.h"
+#include "Entity/Component/LightComponent.h"
+#include "Entity/Component/TransformComponent.h"
 #include "Maths/Maths.h"
 
 #include "Graphics/RenderManager.h"

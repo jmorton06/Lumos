@@ -45,7 +45,7 @@
 
 //Entity
 #include "Entity/Entity.h"
-#include "Entity/ECS.h"
+#include "Entity/EntityManager.h"
 #include "Entity/Component/Components.h"
 #include "Entity/ComponentManager.h"
 

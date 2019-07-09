@@ -4,15 +4,6 @@
 #include "Component/Components.h"
 #include "ComponentManager.h"
 
-struct EnumClassHash
-{
-    template <typename T>
-    std::size_t operator()(T t) const
-    {
-        return static_cast<std::size_t>(t);
-    }
-};
-
 namespace Lumos
 {
 	class LUMOS_EXPORT Entity
@@ -21,21 +12,21 @@ namespace Lumos
 	public:
 		template<typename T, typename... Args>
 		void AddComponent(Args&&... args);
-        
-        template <typename T, typename... Args>
-        T* GetOrAddComponent(Args&&... args);
+
+		template <typename T, typename... Args>
+		T* GetOrAddComponent(Args&&... args);
 
 		template <typename T>
 		T* GetComponent()
 		{
 			return ComponentManager::Instance()->GetComponent<T>(this);
 		}
-        
-        template <typename T>
-        void RemoveComponent()
-        {
+
+		template <typename T>
+		void RemoveComponent()
+		{
 			ComponentManager::Instance()->RemoveComponent<T>(this);
-        }
+		}
 
 		virtual void OnUpdateObject(float dt);
 		virtual void OnIMGUI();
@@ -81,7 +72,7 @@ namespace Lumos
 		String                  m_UUID;
 		bool					m_Active;
 		TransformComponent*		m_DefaultTransformComponent = nullptr;
-		
+
 		Entity* m_Parent;
 		std::vector<Entity*> m_Children;
 	};
@@ -95,17 +86,17 @@ namespace Lumos
 
 		if (ComponentManager::Instance()->GetComponentType<T>() == ComponentManager::Instance()->GetComponentType<TransformComponent>())
 			m_DefaultTransformComponent = reinterpret_cast<TransformComponent*>(component);
-		
+
 		ComponentManager::Instance()->AddComponent<T>(this, component);
 	}
-    
-    template<typename T, typename ... Args>
-    inline T* Entity::GetOrAddComponent(Args && ...args)
-    {
-        T* component = GetComponent<T>();
-        
-        if(component != nullptr)
-            return component;
+
+	template<typename T, typename ... Args>
+	inline T* Entity::GetOrAddComponent(Args && ...args)
+	{
+		T* component = GetComponent<T>();
+
+		if (component != nullptr)
+			return component;
 		else
 		{
 			component = new T(std::forward<Args>(args) ...);
@@ -119,7 +110,7 @@ namespace Lumos
 
 			return component;
 		}
-        
-		
-    }
+
+
+	}
 }
