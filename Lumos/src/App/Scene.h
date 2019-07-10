@@ -128,8 +128,6 @@ namespace Lumos
 		std::unique_ptr<RenderList>	m_pFrameRenderList;
 		std::vector<std::shared_ptr<Graphics::Light>> m_LightList;
 
-		std::vector<Layer*> m_SceneLayers;
-
     private:
         Scene(Scene const&) = delete;
         Scene& operator=(Scene const&) = delete;

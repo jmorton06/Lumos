@@ -36,9 +36,14 @@ namespace Lumos
 
 			inline static VKContext* Get() { return static_cast<VKContext*>(s_Context); }
 
-			static VKAPI_ATTR vk::Bool32 VKAPI_CALL DebugCallback(vk::DebugReportFlagsEXT flags, vk::DebugReportObjectTypeEXT objType,
-			                                                    uint64_t obj, size_t location, int32_t code,
-			                                                    const char* layerPrefix, const char* msg, void* userData);
+			static VKAPI_ATTR vk::Bool32 VKAPI_CALL DebugCallback(VkDebugReportFlagsEXT flags,
+				VkDebugReportObjectTypeEXT objType,
+				uint64_t sourceObj,
+				size_t location,
+				int32_t msgCode,
+				const char* pLayerPrefix,
+				const char* pMsg,
+				void* userData);
 
 			vk::Instance GetVKInstance() const { return m_VkInstance; }
 

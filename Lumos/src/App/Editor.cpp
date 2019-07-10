@@ -446,10 +446,10 @@ namespace Lumos
             ImGuiID dock_id_right  = ImGui::DockBuilderSplitNode(dock_main_id, ImGuiDir_Right, 0.3f, nullptr, &dock_main_id);
 			ImGuiID dock_id_middle   = ImGui::DockBuilderSplitNode(dock_main_id, ImGuiDir_Right, 0.8f, nullptr, &dock_main_id);
 
-			ImGui::DockBuilderDockWindow(ICON_FA_GAMEPAD " Scene", dock_id_middle);
-			ImGui::DockBuilderDockWindow(ICON_FA_INFO " Inspector", dock_id_right);
-			ImGui::DockBuilderDockWindow(ICON_FA_INDENT " Hierarchy", dock_id_left);
-			ImGui::DockBuilderDockWindow(ICON_FA_LIST_ALT " Console", dock_id_bottom);
+			ImGui::DockBuilderDockWindow("Scene", dock_id_middle);
+			ImGui::DockBuilderDockWindow("Inspector", dock_id_right);
+			ImGui::DockBuilderDockWindow("Hierarchy", dock_id_left);
+			ImGui::DockBuilderDockWindow("Console", dock_id_bottom);
 			ImGui::DockBuilderDockWindow("Engine", dock_id_left);
 			ImGui::DockBuilderDockWindow("Scene Information", dock_id_left);
 			ImGui::DockBuilderDockWindow("ImGui Demo", dock_id_left);

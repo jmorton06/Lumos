@@ -11,7 +11,7 @@ namespace Lumos
 {
 	namespace Graphics
 	{
-		class VKUniformBuffer : public UniformBuffer
+		class VKUniformBuffer : public UniformBuffer, public VKBuffer
 		{
 		public:
 			VKUniformBuffer(uint32_t size, const void* data);
@@ -28,11 +28,6 @@ namespace Lumos
 			vk::DeviceMemory* GetMemory() { return &m_Memory; }
 
 			u8* GetBuffer() const override { return nullptr; };
-
-		protected:
-			vk::Buffer m_Buffer{};
-			vk::DeviceMemory m_Memory{};
-			vk::DescriptorBufferInfo m_DesciptorBufferInfo;
             
 #ifdef USE_VMA_ALLOCATOR
             VmaAllocation m_Allocation;

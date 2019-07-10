@@ -157,7 +157,7 @@ namespace Lumos
 			}
 
 			if (formats.size() == 1 && formats[0].format == vk::Format::eUndefined)
-				m_Format = vk::Format::eB8G8R8A8Unorm;// VK_FORMAT_B8G8R8A8_UNORM;
+				m_Format = vk::Format::eB8G8R8A8Unorm;
 			else
 				m_Format = formats[0].format;
 
@@ -246,7 +246,9 @@ namespace Lumos
 
 		void VKDevice::Unload()
 		{
+#ifdef USE_VMA_ALLOCATOR
             vmaDestroyAllocator(m_Allocator);
+#endif
 			VKDevice::Instance()->GetDevice().destroyPipelineCache(m_PipelineCache);
 			m_Device.destroy();
 			m_VKContext->GetVKInstance().destroySurfaceKHR(m_Surface);

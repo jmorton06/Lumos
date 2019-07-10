@@ -49,7 +49,6 @@ void GraphicsScene::OnInit()
 
 	Application::Instance()->GetSystem<AudioManager>()->SetListener(m_pCamera);
 
-	m_ShadowTexture = std::unique_ptr<Graphics::TextureDepthArray>(Graphics::TextureDepthArray::Create(4096, 4096, 4));
 	auto shadowRenderer = new Graphics::ShadowRenderer();
 	auto deferredRenderer = new Graphics::DeferredRenderer(m_ScreenWidth, m_ScreenHeight);
 	auto skyboxRenderer = new Graphics::SkyboxRenderer(m_ScreenWidth, m_ScreenHeight, m_EnvironmentMap);
@@ -65,10 +64,6 @@ void GraphicsScene::OnInit()
 	Application::Instance()->PushLayer(deferredLayer);
 	Application::Instance()->PushLayer(skyBoxLayer);
 
-	m_SceneLayers.emplace_back(shadowLayer);
-	m_SceneLayers.emplace_back(deferredLayer);
-	m_SceneLayers.emplace_back(skyBoxLayer);
-
 	Application::Instance()->GetRenderManager()->SetShadowRenderer(shadowRenderer);
 	Application::Instance()->GetRenderManager()->SetSkyBoxTexture(m_EnvironmentMap);
 }
@@ -82,7 +77,6 @@ void GraphicsScene::OnCleanupScene()
 {
 	if (m_CurrentScene)
 	{
-		m_ShadowTexture.reset();
 		SAFE_DELETE(m_pCamera)
         SAFE_DELETE(m_EnvironmentMap);
 	}

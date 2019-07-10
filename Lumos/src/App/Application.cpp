@@ -50,6 +50,8 @@ namespace Lumos
 		Graphics::GraphicsContext::SetRenderAPI(static_cast<Graphics::RenderAPI>(properties.RenderAPI));
 
 		Engine::Instance();
+		EntityManager::Instance();
+		ComponentManager::Instance();
 
 		m_TimeStep = std::make_unique<TimeStep>(0.0f);
 		m_Timer = std::make_unique<Timer>();
@@ -112,7 +114,7 @@ namespace Lumos
 		System::JobSystem::Wait();
 
 		m_LayerStack = new LayerStack();
-		PushOverLay(new ImGuiLayer(false));
+		PushLayerInternal(new ImGuiLayer(false),true,false);
 
 		m_SystemManager = std::make_unique<SystemManager>();
 		m_SystemManager->RegisterSystem<AudioManager>(AudioManager::Create());
@@ -134,10 +136,11 @@ namespace Lumos
 		SoundManager::Release();
 		LuaScript::Release();
 
-		delete m_LayerStack;
-
 		m_SceneManager.reset();
 		m_RenderManager.reset();
+		m_SystemManager.reset();
+
+		delete m_LayerStack;
 
 		Graphics::Renderer::Release();
 		Graphics::GraphicsContext::Release();
@@ -279,23 +282,44 @@ namespace Lumos
 		Quit();
 	}
 
-	void Application::PushLayer(Layer* layer)
-	{
-		m_LayerStack->PushLayer(layer);
-		layer->OnAttach();
-	}
-
-	void Application::PushOverLay(Layer* overlay)
-	{
-		m_LayerStack->PushOverlay(overlay);
-		overlay->OnAttach();
-	}
-
 	void Application::OnNewScene(Scene * scene)
 	{
 #ifdef LUMOS_EDITOR
 		m_Editor->OnNewScene(scene);
 #endif
+	}
+
+	void Application::OnExitScene()
+	{
+		for (auto& layer : m_CurrentSceneLayers)
+		{
+			m_LayerStack->PopLayer(layer);
+		}
+
+		m_CurrentSceneLayers.clear();
+	}
+
+	void Application::PushLayerInternal(Layer* layer, bool overlay, bool sceneAdded)
+	{
+		if(overlay)
+			m_LayerStack->PushOverlay(layer);
+		else
+			m_LayerStack->PushLayer(layer);
+
+		layer->OnAttach();
+
+		if (sceneAdded)
+			m_CurrentSceneLayers.emplace_back(layer);
+	}
+
+	void Application::PushLayer(Layer* layer)
+	{
+		PushLayerInternal(layer, false, true);
+	}
+
+	void Application::PushOverLay(Layer* overlay)
+	{
+		PushLayerInternal(overlay, true, true);
 	}
 
 	bool Application::OnWindowClose(WindowCloseEvent& e)
