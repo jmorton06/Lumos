@@ -120,7 +120,7 @@ namespace Lumos
 
 			vk::SubpassDescription subpass{};
 			subpass.pipelineBindPoint = vk::PipelineBindPoint::eGraphics;
-			subpass.colorAttachmentCount = static_cast<uint>(colourAttachmentReferences.size());
+			subpass.colorAttachmentCount = static_cast<u32>(colourAttachmentReferences.size());
 			subpass.pColorAttachments = colourAttachmentReferences.data();
 			subpass.pDepthStencilAttachment = depthAttachmentReferences.data();
 

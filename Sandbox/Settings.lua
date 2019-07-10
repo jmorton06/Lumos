@@ -1,7 +1,7 @@
 -- Sandbox Config File
 
 width               =   1280
-height              =   720
+height              =   800
 fullscreen          =   false
 borderless		    =   false
 vsync			    =   true

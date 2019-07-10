@@ -3,8 +3,6 @@
 #include "Audio/SoundNode.h"
 #include "App/Scene.h"
 #include "Maths/BoundingSphere.h"
-#include "Graphics/Renderers/DebugRenderer.h"
-
 #include "App/Application.h"
 #include "Audio/AudioManager.h"
 #include <imgui/imgui.h>
@@ -12,6 +10,13 @@
 
 namespace Lumos
 {
+    SoundComponent::SoundComponent()
+    {
+        m_SoundNode = std::shared_ptr<SoundNode>(SoundNode::Create());
+        m_Name = "Sound";
+        m_BoundingShape = std::make_unique<Maths::BoundingSphere>(m_SoundNode->GetPosition(),m_SoundNode->GetRadius());
+    }
+    
 	SoundComponent::SoundComponent(std::shared_ptr<SoundNode>& sound)
 		: m_SoundNode(sound)
 	{
@@ -21,23 +26,22 @@ namespace Lumos
 
 	void SoundComponent::OnUpdateComponent(float dt)
 	{
-		Physics3DComponent* physicsComponent = m_Entity->GetComponent<Physics3DComponent>();
-		if (physicsComponent)
-		{
-			m_SoundNode->SetPosition(physicsComponent->m_PhysicsObject->GetPosition()); //TODO : Get From Entity Transform
-			m_SoundNode->SetVelocity(physicsComponent->m_PhysicsObject->GetLinearVelocity());
-			m_BoundingShape->SetPosition(m_SoundNode->GetPosition());
-		}
+	//	Physics3DComponent* physicsComponent = m_Entity->GetComponent<Physics3DComponent>();
+	//	if (physicsComponent)
+	//	{
+	//		m_SoundNode->SetPosition(physicsComponent->GetPhysicsObject()->GetPosition()); //TODO : Get From Entity Transform
+	//		////m_SoundNode->SetVelocity(physicsComponent->GetPhysicsObject()->GetLinearVelocity());
+	//		m_BoundingShape->SetPosition(m_SoundNode->GetPosition());
+	//	}
 	}
 
 	void SoundComponent::DebugDraw(uint64 debugFlags)
 	{
-		DebugRenderer::DebugDraw(static_cast<Maths::BoundingSphere*>(m_BoundingShape.get()), Maths::Vector4(0.7f,0.2f,0.4f, 0.2f));
 	}
 
 	void SoundComponent::Init()
 	{
-		Application::Instance()->GetAudioManager()->AddSoundNode(m_SoundNode.get());
+		Application::Instance()->GetSystem<AudioManager>()->AddSoundNode(m_SoundNode.get());
 	}
 
 	void SoundComponent::OnIMGUI()

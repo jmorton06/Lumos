@@ -87,8 +87,8 @@ namespace Lumos
 		float m_DampeningFactor = 0.00001f;
 		float m_RotateDampeningFactor = 0.00001f;
 
-		uint m_ScreenWidth;
-		uint m_ScreenHeight;
+		u32 m_ScreenWidth;
+		u32 m_ScreenHeight;
 	};
 
 }

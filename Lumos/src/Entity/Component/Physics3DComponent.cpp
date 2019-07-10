@@ -3,11 +3,19 @@
 #include "Physics/LumosPhysicsEngine/PhysicsObject3D.h"
 #include "Physics/LumosPhysicsEngine/LumosPhysicsEngine.h"
 #include "Entity/Entity.h"
+#include "TransformComponent.h"
 
 #include <imgui/imgui.h>
 
 namespace Lumos
 {
+    Physics3DComponent::Physics3DComponent()
+    {
+        m_PhysicsObject = std::make_shared<PhysicsObject3D>();
+        m_Name = "Physics3D";
+        LumosPhysicsEngine::Instance()->AddPhysicsObject(m_PhysicsObject);
+    }
+    
 	Physics3DComponent::Physics3DComponent(std::shared_ptr<PhysicsObject3D>& physics)
 		: m_PhysicsObject(physics)
 	{

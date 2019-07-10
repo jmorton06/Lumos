@@ -15,7 +15,7 @@ namespace Lumos
 {
 	namespace Graphics
 	{
-		Swapchain* Swapchain::Create(uint width, uint height)
+		Swapchain* Swapchain::Create(u32 width, u32 height)
 		{
 			switch (Graphics::GraphicsContext::GetRenderAPI())
 			{

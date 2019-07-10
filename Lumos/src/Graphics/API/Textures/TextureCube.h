@@ -15,7 +15,7 @@ namespace Lumos
 				HORIZONTAL_CROSS
 			};
 		public:
-			static TextureCube* Create(uint size);
+			static TextureCube* Create(u32 size);
 			static TextureCube* CreateFromFile(const String& filepath);
 			static TextureCube* CreateFromFiles(const String* files);
 			static TextureCube* CreateFromVCross(const String* files, int32 mips);

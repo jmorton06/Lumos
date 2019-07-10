@@ -120,8 +120,12 @@ namespace Lumos
 					VKDevice::Instance()->GetDevice().waitForFences(m_Fence, VK_TRUE, UINT64_MAX);
 					VKDevice::Instance()->GetDevice().resetFences(m_Fence);
 				}
-				else
+				else 
+				{
 					VKDevice::Instance()->GetGraphicsQueue().submit(submitInfo, nullptr);
+					VKDevice::Instance()->GetGraphicsQueue().waitIdle();
+				}
+					
 			}
 			else
 				LUMOS_CORE_ERROR("WARNING: Used Execute on secondary command buffer!");
@@ -135,7 +139,7 @@ namespace Lumos
 				LUMOS_CORE_ERROR("WARNING: Used ExecuteSecondary on primary command buffer!");
 		}
 
-		void VKCommandBuffer::UpdateViewport(uint width, uint height)
+		void VKCommandBuffer::UpdateViewport(u32 width, u32 height)
 		{
 			vk::Viewport viewport = {};
 			viewport.x = 0.0f;

@@ -12,21 +12,17 @@ namespace Lumos
 	class LUMOS_EXPORT MeshComponent : public LumosComponent
 	{
 	public:
-		std::shared_ptr<Graphics::Mesh> m_Model;
-	public:
-		explicit MeshComponent(std::shared_ptr<Graphics::Mesh>& model);
+        MeshComponent();
+		explicit MeshComponent(std::shared_ptr<Graphics::Mesh>& mesh);
 		explicit MeshComponent(Graphics::Mesh* mesh);
-
-		static ComponentType GetStaticType()
-		{
-			static ComponentType type(ComponentType::Mesh);
-			return type;
-		}
+		~MeshComponent() = default;
 
 		void OnUpdateComponent(float dt) override;
 
-		inline virtual ComponentType GetType() const override { return GetStaticType(); }
-
 		void OnIMGUI() override;
+
+		Graphics::Mesh* GetMesh() const { return m_Mesh.get(); }
+	private:
+		std::shared_ptr<Graphics::Mesh> m_Mesh;
 	};
 }

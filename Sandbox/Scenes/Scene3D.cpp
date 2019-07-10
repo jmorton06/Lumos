@@ -4,9 +4,42 @@
 using namespace Lumos;
 using namespace Maths;
 
+class TestComponent : public LumosComponent
+{
+public:
+	TestComponent() 
+	{
+		m_Name = "Test";
+	};
+
+	void Init() override {};
+
+	void OnIMGUI() override 
+	{
+		ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(2, 2));
+		ImGui::Columns(2);
+		ImGui::Separator();
+
+		ImGui::AlignTextToFramePadding();
+		ImGui::Text("Test");
+		ImGui::NextColumn();
+		ImGui::PushItemWidth(-1);
+		static bool test = false;
+		ImGui::Checkbox("##Test", &test);
+
+		ImGui::PopItemWidth();
+		ImGui::NextColumn();
+
+		ImGui::Columns(1);
+		ImGui::Separator();
+		ImGui::PopStyleVar();
+	};
+};
+
 Scene3D::Scene3D(const std::string& SceneName)
 		: Scene(SceneName)
 {
+	ComponentManager::Instance()->RegisterComponent<TestComponent>();
 }
 
 Scene3D::~Scene3D()
@@ -48,37 +81,26 @@ void Scene3D::OnInit()
 
 	auto sun = std::make_shared<Graphics::Light>(Maths::Vector3(26.0f, 22.0f, 48.5f), Maths::Vector4(1.0f) , 0.9f);
     
-    auto lightEntity = std::make_shared<Entity>("Directional Light");
+    auto lightEntity = EntityManager::Instance()->CreateEntity("Directional Light");
     lightEntity->AddComponent<LightComponent>(sun);
     lightEntity->AddComponent<TransformComponent>(Matrix4::Translation(Maths::Vector3(26.0f, 22.0f, 48.5f)) * Maths::Quaternion::LookAt(Maths::Vector3(26.0f, 22.0f, 48.5f), Maths::Vector3::Zero()).ToMatrix4());
     AddEntity(lightEntity);
 
-	auto cameraEntity = std::make_shared<Entity>("Camera");
+	auto cameraEntity = EntityManager::Instance()->CreateEntity("Camera");
 	cameraEntity->AddComponent<CameraComponent>(m_pCamera);
 	AddEntity(cameraEntity);
 
-	Application::Instance()->GetAudioManager()->SetListener(m_pCamera);
+	Application::Instance()->GetSystem<AudioManager>()->SetListener(m_pCamera);
 
-	m_ShadowTexture = std::unique_ptr<Graphics::TextureDepthArray>(Graphics::TextureDepthArray::Create(2048, 2048, 4));
 	auto shadowRenderer = new Graphics::ShadowRenderer();
 	shadowRenderer->SetLight(sun);
 
-	auto deferredRenderer = new Graphics::DeferredRenderer(m_ScreenWidth, m_ScreenHeight);
-	auto skyboxRenderer = new Graphics::SkyboxRenderer(m_ScreenWidth, m_ScreenHeight, m_EnvironmentMap);
-
-	deferredRenderer->SetRenderToGBufferTexture(true);
-	skyboxRenderer->SetRenderToGBufferTexture(true);
-
 	auto shadowLayer = new Layer3D(shadowRenderer, "Shadow");
-	auto deferredLayer = new Layer3D(deferredRenderer, "Deferred");
-	auto skyBoxLayer = new Layer3D(skyboxRenderer, "Skybox");
+	auto deferredLayer = new Layer3D(new Graphics::DeferredRenderer(m_ScreenWidth, m_ScreenHeight, true), "Deferred");
+	auto skyBoxLayer = new Layer3D(new Graphics::SkyboxRenderer(m_ScreenWidth, m_ScreenHeight, m_EnvironmentMap, true), "Skybox");
 	Application::Instance()->PushLayer(shadowLayer);
     Application::Instance()->PushLayer(deferredLayer);
 	Application::Instance()->PushLayer(skyBoxLayer);
-
-	m_SceneLayers.emplace_back(shadowLayer);
-	m_SceneLayers.emplace_back(deferredLayer);
-	m_SceneLayers.emplace_back(skyBoxLayer);
 
 	Application::Instance()->GetRenderManager()->SetShadowRenderer(shadowRenderer);
     Application::Instance()->GetRenderManager()->SetSkyBoxTexture(m_EnvironmentMap);
@@ -99,7 +121,6 @@ void Scene3D::OnCleanupScene()
 	{
 		SAFE_DELETE(m_pCamera)
         SAFE_DELETE(m_EnvironmentMap);
-		m_ShadowTexture.reset();
 	}
 
 	Scene::OnCleanupScene();
@@ -114,7 +135,7 @@ void Scene3D::LoadModels()
 	auto testMaterial = std::make_shared<Material>();
 	testMaterial->LoadMaterial("checkerboard", "/CoreTextures/checkerboard.tga");
 
-	std::shared_ptr<Entity> ground = std::make_shared<Entity>("Ground");
+	auto ground = EntityManager::Instance()->CreateEntity("Ground");
 	std::shared_ptr<PhysicsObject3D> testPhysics = std::make_shared<PhysicsObject3D>();
 	testPhysics->SetRestVelocityThreshold(-1.0f);
 	testPhysics->SetCollisionShape(std::make_unique<CuboidCollisionShape>(Maths::Vector3(groundWidth, groundHeight, groundLength)));
@@ -124,6 +145,7 @@ void Scene3D::LoadModels()
 
 	ground->AddComponent<TransformComponent>(Matrix4::Scale(Maths::Vector3(groundWidth, groundHeight, groundLength)));
 	ground->AddComponent<Physics3DComponent>(testPhysics);
+	ground->AddComponent<TestComponent>();
 
 	std::shared_ptr<Graphics::Mesh> groundModel = std::make_shared<Graphics::Mesh>(*AssetsManager::DefaultModels()->GetAsset("Cube"));
 	ground->AddComponent<MeshComponent>(groundModel);
@@ -165,7 +187,7 @@ void Scene3D::LoadModels()
 	stoneMaterial->LoadPBRMaterial("stone", "/Textures/pbr");
 
 	//Create a Rest Cube
-	std::shared_ptr<Entity> cube = std::make_shared<Entity>("cube");
+	auto cube = EntityManager::Instance()->CreateEntity("cube");
 	std::shared_ptr<PhysicsObject3D> cubePhysics = std::make_shared<PhysicsObject3D>();
 	cubePhysics->SetCollisionShape(std::make_unique<CuboidCollisionShape>(Maths::Vector3(0.5f, 0.5f, 0.5f)));
 	cubePhysics->SetFriction(0.8f);
@@ -180,12 +202,12 @@ void Scene3D::LoadModels()
 	std::shared_ptr<Graphics::Mesh> cubeModel = std::make_shared<Graphics::Mesh>(*AssetsManager::DefaultModels()->GetAsset("Cube"));
 	cube->AddComponent<MeshComponent>(cubeModel);
 
-	cube->GetComponent<MeshComponent>()->m_Model->SetMaterial(marbleMaterial);
+	cube->AddComponent<MaterialComponent>(marbleMaterial);
 
 	AddEntity(cube);
 
 	//Create a Rest Sphere
-	std::shared_ptr<Entity> restsphere = std::make_shared<Entity>("Sphere");
+	auto restsphere = EntityManager::Instance()->CreateEntity("Sphere");
 	std::shared_ptr<PhysicsObject3D> restspherePhysics = std::make_shared<PhysicsObject3D>();
 	restspherePhysics->SetCollisionShape(std::make_unique<CuboidCollisionShape>(Maths::Vector3(0.5f)));
 	restspherePhysics->SetFriction(0.8f);
@@ -199,12 +221,12 @@ void Scene3D::LoadModels()
 
 	std::shared_ptr<Graphics::Mesh> restsphereModel = std::make_shared<Graphics::Mesh>(*AssetsManager::DefaultModels()->GetAsset("Cube"));
 	restsphere->AddComponent<MeshComponent>(restsphereModel);
-	restsphere->GetComponent<MeshComponent>()->m_Model->SetMaterial(castIronMaterial);
+	restsphere->AddComponent<MaterialComponent>(castIronMaterial);
 
 	AddEntity(restsphere);
 
 	//Create a Rest Pyramid
-	std::shared_ptr<Entity> pyramid = std::make_shared<Entity>("Pyramid");
+	auto pyramid = EntityManager::Instance()->CreateEntity("Pyramid");
 	std::shared_ptr<PhysicsObject3D> pyramidPhysics = std::make_shared<PhysicsObject3D>();
 	pyramidPhysics->SetCollisionShape(std::make_unique<PyramidCollisionShape>(Maths::Vector3(0.5f)));
 	pyramidPhysics->SetFriction(0.8f);
@@ -218,12 +240,12 @@ void Scene3D::LoadModels()
 
 	std::shared_ptr<Graphics::Mesh> pyramidModel = std::make_shared<Graphics::Mesh>(*AssetsManager::DefaultModels()->GetAsset("Pyramid"));
 	pyramid->AddComponent<MeshComponent>(pyramidModel);
-	pyramid->GetComponent<MeshComponent>()->m_Model->SetMaterial(marbleMaterial);
+	pyramid->AddComponent<MaterialComponent>(marbleMaterial);
 
 	AddEntity(pyramid);
 
 	//Grass
-	std::shared_ptr<Entity> grassSphere = std::make_shared<Entity>("grassSphere");
+	auto grassSphere = EntityManager::Instance()->CreateEntity("grassSphere");
 	std::shared_ptr<PhysicsObject3D> grassSpherePhysics = std::make_shared<PhysicsObject3D>();
 	grassSpherePhysics->SetCollisionShape(std::make_unique<SphereCollisionShape>(0.5f));
 	grassSpherePhysics->SetFriction(0.8f);
@@ -237,12 +259,12 @@ void Scene3D::LoadModels()
 
 	std::shared_ptr<Graphics::Mesh> grassSphereModel = std::make_shared<Graphics::Mesh>(*AssetsManager::DefaultModels()->GetAsset("Sphere"));
 	grassSphere->AddComponent<MeshComponent>(grassSphereModel);
-	grassSphere->GetComponent<MeshComponent>()->m_Model->SetMaterial(grassMaterial);
+	grassSphere->AddComponent<MaterialComponent>(grassMaterial);
 
 	AddEntity(grassSphere);
 
 	//Marble
-	std::shared_ptr<Entity> marbleSphere = std::make_shared<Entity>("marbleSphere");
+	auto marbleSphere = EntityManager::Instance()->CreateEntity("marbleSphere");
 	std::shared_ptr<PhysicsObject3D> marbleSpherePhysics = std::make_shared<PhysicsObject3D>();
 	marbleSpherePhysics->SetCollisionShape(std::make_unique<SphereCollisionShape>(0.5f));
 	marbleSpherePhysics->SetFriction(0.8f);
@@ -256,12 +278,12 @@ void Scene3D::LoadModels()
 
 	std::shared_ptr<Graphics::Mesh> marbleSphereModel = std::make_shared<Graphics::Mesh>(*AssetsManager::DefaultModels()->GetAsset("Sphere"));
 	marbleSphere->AddComponent<MeshComponent>(marbleSphereModel);
-	marbleSphere->GetComponent<MeshComponent>()->m_Model->SetMaterial(marbleMaterial);
+	marbleSphere->AddComponent<MaterialComponent>(marbleMaterial);
 
 	AddEntity(marbleSphere);
 
 	//stone
-	std::shared_ptr<Entity> stoneSphere = std::make_shared<Entity>("stoneSphere");
+	auto stoneSphere = EntityManager::Instance()->CreateEntity("stoneSphere");
 	std::shared_ptr<PhysicsObject3D> stoneSpherePhysics = std::make_shared<PhysicsObject3D>();
 	stoneSpherePhysics->SetCollisionShape(std::make_unique<SphereCollisionShape>(0.5f));
 	stoneSpherePhysics->SetFriction(0.8f);
@@ -275,13 +297,13 @@ void Scene3D::LoadModels()
 
 	std::shared_ptr<Graphics::Mesh> stoneSphereModel = std::make_shared<Graphics::Mesh>(*AssetsManager::DefaultModels()->GetAsset("Sphere"));
 	stoneSphere->AddComponent<MeshComponent>(stoneSphereModel);
-	stoneSphere->GetComponent<MeshComponent>()->m_Model->SetMaterial(stoneMaterial);
+	stoneSphere->AddComponent<MaterialComponent>(stoneMaterial);
 
 	AddEntity(stoneSphere);
 #endif
 
 	//Create a pendulum
-	std::shared_ptr<Entity> pendulumHolder = std::make_shared<Entity>("pendulumHolder");
+	auto pendulumHolder = EntityManager::Instance()->CreateEntity("pendulumHolder");
 	std::shared_ptr<PhysicsObject3D> pendulumHolderPhysics = std::make_shared<PhysicsObject3D>();
 	pendulumHolderPhysics->SetCollisionShape(std::make_unique<CuboidCollisionShape>(Maths::Vector3(0.5f, 0.5f, 0.5f)));
 	pendulumHolderPhysics->SetFriction(0.8f);
@@ -299,7 +321,7 @@ void Scene3D::LoadModels()
 	AddEntity(pendulumHolder);
 
 	//Grass
-	std::shared_ptr<Entity> pendulum = std::make_shared<Entity>("pendulum");
+	auto pendulum = EntityManager::Instance()->CreateEntity("pendulum");
 	std::shared_ptr<PhysicsObject3D> pendulumPhysics = std::make_shared<PhysicsObject3D>();
 	pendulumPhysics->SetCollisionShape(std::make_unique<SphereCollisionShape>(0.5f));
 	pendulumPhysics->SetFriction(0.8f);
@@ -316,17 +338,17 @@ void Scene3D::LoadModels()
 
 	AddEntity(pendulum);
 
-	auto pendulumConstraint = new SpringConstraint(pendulumHolder->GetComponent<Physics3DComponent>()->m_PhysicsObject.get(), pendulum->GetComponent<Physics3DComponent>()->m_PhysicsObject.get(), pendulumHolder->GetComponent<Physics3DComponent>()->m_PhysicsObject->GetPosition(), pendulum->GetComponent<Physics3DComponent>()->m_PhysicsObject->GetPosition(), 0.9f, 0.5f);
+	auto pendulumConstraint = new SpringConstraint(pendulumHolder->GetComponent<Physics3DComponent>()->GetPhysicsObject(), pendulum->GetComponent<Physics3DComponent>()->GetPhysicsObject(), pendulumHolder->GetComponent<Physics3DComponent>()->GetPhysicsObject()->GetPosition(), pendulum->GetComponent<Physics3DComponent>()->GetPhysicsObject()->GetPosition(), 0.9f, 0.5f);
 	LumosPhysicsEngine::Instance()->AddConstraint(pendulumConstraint);
 
 #if 0
 	auto soundFilePath = String("/Sounds/fire.ogg");
-	bool loadedSound = Sound::AddSound("Background", soundFilePath);
+	bool loadedSound = SoundManager::Instance()->AddSound("Background", soundFilePath);
 
 	if(loadedSound)
 	{
 		auto soundNode = std::shared_ptr<SoundNode>(SoundNode::Create());
-		soundNode->SetSound(Sound::GetSound("Background"));
+		soundNode->SetSound(SoundManager::Instance()->GetSound("Background"));
 		soundNode->SetVolume(1.0f);
 		soundNode->SetPosition(Maths::Vector3(0.1f, 10.0f, 10.0f));
 		soundNode->SetLooping(true);
@@ -358,10 +380,9 @@ void Scene3D::LoadModels()
 		properties.usingSpecularMap = 0.0f;
 		m->SetMaterialProperites(properties);
 
-        std::shared_ptr<Entity> sphere = std::make_shared<Entity>("Sphere" + StringFormat::ToString(numSpheres++));
+		auto sphere = EntityManager::Instance()->CreateEntity("Sphere" + StringFormat::ToString(numSpheres++));
 
 		sphere->AddComponent<TransformComponent>(Matrix4::Scale(Maths::Vector3(0.5f, 0.5f, 0.5f)) * Matrix4::Translation(Maths::Vector3(i * 2.0f, 30.0f, 0.0f)));
-		sphere->AddComponent<TextureMatrixComponent>(Matrix4());
 		std::shared_ptr<Graphics::Mesh> sphereModel = std::make_shared<Graphics::Mesh>(*AssetsManager::DefaultModels()->GetAsset("Sphere"));
 		sphere->AddComponent<MeshComponent>(sphereModel);
 		sphere->AddComponent<MaterialComponent>(m);
@@ -387,10 +408,9 @@ void Scene3D::LoadModels()
 		properties.usingSpecularMap = 0.0f;
 		m->SetMaterialProperites(properties);
 
-		std::shared_ptr<Entity> sphere = std::make_shared<Entity>("Sphere" + StringFormat::ToString(numSpheres++));
+		auto sphere = EntityManager::Instance()->CreateEntity("Sphere" + StringFormat::ToString(numSpheres++));
 
 		sphere->AddComponent<TransformComponent>(Matrix4::Scale(Maths::Vector3(0.5f, 0.5f, 0.5f)) * Matrix4::Translation(Maths::Vector3(i * 2.0f, 33.0f, 0.0f)));
-		sphere->AddComponent<TextureMatrixComponent>(Matrix4());
 		std::shared_ptr<Graphics::Mesh> sphereModel = std::make_shared<Graphics::Mesh>(*AssetsManager::DefaultModels()->GetAsset("Sphere"));
 		sphere->AddComponent<MeshComponent>(sphereModel);
 		sphere->AddComponent<MaterialComponent>(m);
@@ -404,5 +424,5 @@ bool show_demo_window = true;
 void Scene3D::OnIMGUI()
 {
     if (show_demo_window)
-        ImGui::ShowDemoWindow(&show_demo_window);
+       ImGui::ShowDemoWindow(&show_demo_window);
 }

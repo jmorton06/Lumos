@@ -16,7 +16,7 @@ namespace Lumos
 {
     namespace Graphics
     {
-        IMGUIRenderer* IMGUIRenderer::Create(uint width, uint height, bool clearScreen)
+        IMGUIRenderer* IMGUIRenderer::Create(u32 width, u32 height, bool clearScreen)
 		{
 #ifdef LUMOS_IMGUI
 			switch (GraphicsContext::GetRenderAPI())

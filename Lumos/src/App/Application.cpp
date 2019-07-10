@@ -16,14 +16,19 @@
 #include "Graphics/Layers/ImGuiLayer.h"
 #include "Graphics/Camera/Camera.h"
 
+#include "Entity/EntityManager.h"
+#include "Entity/ComponentManager.h"
+
 #include "Utilities/CommonUtils.h"
 #include "Utilities/TimeStep.h"
 #include "Utilities/AssetsManager.h"
 #include "System/VFS.h"
 #include "System/JobSystem.h"
+#include "Scripting/LuaScript.h"
 
 #include "Events/ApplicationEvent.h"
 #include "Audio/AudioManager.h"
+#include "Audio/Sound.h"
 #include "Physics/B2PhysicsEngine/B2PhysicsEngine.h"
 #include "Physics/LumosPhysicsEngine/LumosPhysicsEngine.h"
 
@@ -45,6 +50,8 @@ namespace Lumos
 		Graphics::GraphicsContext::SetRenderAPI(static_cast<Graphics::RenderAPI>(properties.RenderAPI));
 
 		Engine::Instance();
+		EntityManager::Instance();
+		ComponentManager::Instance();
 
 		m_TimeStep = std::make_unique<TimeStep>(0.0f);
 		m_Timer = std::make_unique<Timer>();
@@ -54,6 +61,7 @@ namespace Lumos
 		VFS::Get()->Mount("CoreShaders", root + "/lumos/res/shaders");
 		VFS::Get()->Mount("CoreMeshes", root + "/lumos/res/meshes");
 		VFS::Get()->Mount("CoreTextures", root + "/lumos/res/textures");
+		VFS::Get()->Mount("CoreFonts", root + "/lumos/res/fonts");
 
 		m_Window = std::unique_ptr<Window>(Window::Create(properties));
 		m_Window->SetEventCallback(BIND_EVENT_FN(Application::OnEvent));
@@ -83,8 +91,8 @@ namespace Lumos
 		if (!m_Window->HasInitialised())
 			Quit(true, "Window failed to initialise!");
 
-		uint screenWidth = m_Window->GetWidth();
-		uint screenHeight = m_Window->GetHeight();
+		u32 screenWidth = m_Window->GetWidth();
+		u32 screenHeight = m_Window->GetHeight();
 
 		Lumos::Input::Create();
 
@@ -99,38 +107,43 @@ namespace Lumos
 		System::JobSystem::Execute([] { LumosPhysicsEngine::Instance(); LUMOS_CORE_INFO("Initialised LumosPhysics"); });
 		System::JobSystem::Execute([] { B2PhysicsEngine::Instance(); LUMOS_CORE_INFO("Initialised B2Physics"); });
 
-        m_AudioManager = std::unique_ptr<AudioManager>(AudioManager::Create());
-        m_AudioManager->OnInit();
-        
-        //Graphics Loading on main thread
-        AssetsManager::InitializeMeshes();
-        m_RenderManager = std::make_unique<Graphics::RenderManager>(screenWidth, screenHeight);
+		//Graphics Loading on main thread
+		AssetsManager::InitializeMeshes();
+		m_RenderManager = std::make_unique<Graphics::RenderManager>(screenWidth, screenHeight);
 
-        System::JobSystem::Wait();
-        
-        m_LayerStack = new LayerStack();
-        PushOverLay(new ImGuiLayer(false));
-        
-		m_Systems.emplace_back(m_AudioManager.get());
-		m_Systems.emplace_back(LumosPhysicsEngine::Instance());
-		m_Systems.emplace_back(B2PhysicsEngine::Instance());
-        
+		System::JobSystem::Wait();
+
+		m_LayerStack = new LayerStack();
+		PushLayerInternal(new ImGuiLayer(false),true,false);
+
+		m_SystemManager = std::make_unique<SystemManager>();
+		m_SystemManager->RegisterSystem<AudioManager>(AudioManager::Create());
+		m_SystemManager->RegisterSystem<LumosPhysicsEngine>(LumosPhysicsEngine::Instance());
+		m_SystemManager->RegisterSystem<B2PhysicsEngine>(B2PhysicsEngine::Instance());
+
+		m_SystemManager->GetSystem<AudioManager>()->OnInit();
+
 		m_CurrentState = AppState::Running;
 	}
 
 	int Application::Quit(bool pause, const std::string &reason)
 	{
 		Engine::Release();
-		LumosPhysicsEngine::Release();
-		B2PhysicsEngine::Release();
 		Input::Release();
 		AssetsManager::ReleaseMeshes();
+		EntityManager::Release();
+		ComponentManager::Release();
+		SoundManager::Release();
+		LuaScript::Release();
+
+		m_SceneManager.reset();
+		m_RenderManager.reset();
+		m_SystemManager.reset();
 
 		delete m_LayerStack;
 
-		m_SceneManager.release();
-
 		Graphics::Renderer::Release();
+		Graphics::GraphicsContext::Release();
 
 		if (pause)
 		{
@@ -140,10 +153,9 @@ namespace Lumos
 		return 0;
 	}
 
-	void Application::SetActiveCamera(Camera* camera) 
-	{ 
-		m_ActiveCamera = camera; 
-		m_AudioManager->SetListener(camera);
+	void Application::SetActiveCamera(Camera* camera)
+	{
+		m_ActiveCamera = camera;
 	}
 
 	Maths::Vector2 Application::GetWindowSize() const
@@ -197,6 +209,9 @@ namespace Lumos
 		if (m_EditorState == EditorState::Next)
 			m_EditorState = EditorState::Paused;
 
+
+		m_SceneManager->ApplySceneSwitch();
+
 		return m_CurrentState != AppState::Closing;
 	}
 
@@ -214,19 +229,19 @@ namespace Lumos
 
 	void Application::OnUpdate(TimeStep* dt)
 	{
-		const uint sceneIdx = m_SceneManager->GetCurrentSceneIndex();
-		const uint sceneMax = m_SceneManager->SceneCount();
+		const u32 sceneIdx = m_SceneManager->GetCurrentSceneIndex();
+		const u32 sceneMax = m_SceneManager->SceneCount();
 
-        if (Input::GetInput().GetKeyPressed(InputCode::Key::P)) LumosPhysicsEngine::Instance()->SetPaused(!LumosPhysicsEngine::Instance()->IsPaused());
+		if (Input::GetInput().GetKeyPressed(InputCode::Key::P)) LumosPhysicsEngine::Instance()->SetPaused(!LumosPhysicsEngine::Instance()->IsPaused());
 		if (Input::GetInput().GetKeyPressed(InputCode::Key::P)) B2PhysicsEngine::Instance()->SetPaused(!B2PhysicsEngine::Instance()->IsPaused());
 
 		if (Input::GetInput().GetKeyPressed(InputCode::Key::J)) CommonUtils::AddSphere(m_SceneManager->GetCurrentScene());
 		if (Input::GetInput().GetKeyPressed(InputCode::Key::K)) CommonUtils::AddPyramid(m_SceneManager->GetCurrentScene());
 		if (Input::GetInput().GetKeyPressed(InputCode::Key::L)) CommonUtils::AddLightCube(m_SceneManager->GetCurrentScene());
 
-		if (Input::GetInput().GetKeyPressed(InputCode::Key::E)) m_SceneManager->JumpToScene((sceneIdx + 1) % sceneMax);
-		if (Input::GetInput().GetKeyPressed(InputCode::Key::Q)) m_SceneManager->JumpToScene((sceneIdx == 0 ? sceneMax : sceneIdx) - 1);
-		if (Input::GetInput().GetKeyPressed(InputCode::Key::R)) m_SceneManager->JumpToScene(sceneIdx);
+		if (Input::GetInput().GetKeyPressed(InputCode::Key::E)) m_SceneManager->SwitchScene((sceneIdx + 1) % sceneMax);
+		if (Input::GetInput().GetKeyPressed(InputCode::Key::Q)) m_SceneManager->SwitchScene((sceneIdx == 0 ? sceneMax : sceneIdx) - 1);
+		if (Input::GetInput().GetKeyPressed(InputCode::Key::R)) m_SceneManager->SwitchScene(sceneIdx);
 		if (Input::GetInput().GetKeyPressed(InputCode::Key::V)) m_Window->ToggleVSync();
 
 #ifdef LUMOS_EDITOR
@@ -234,11 +249,7 @@ namespace Lumos
 #endif
 		{
 			m_SceneManager->GetCurrentScene()->OnUpdate(m_TimeStep.get());
-			
-			for (auto& System : m_Systems)
-            {
-                System->OnUpdate(m_TimeStep.get());
-            }
+			m_SystemManager->OnUpdate(m_TimeStep.get());
 		}
 
 		m_LayerStack->OnUpdate(m_TimeStep.get(), m_SceneManager->GetCurrentScene());
@@ -271,23 +282,44 @@ namespace Lumos
 		Quit();
 	}
 
-	void Application::PushLayer(Layer* layer)
-	{
-		m_LayerStack->PushLayer(layer);
-		layer->OnAttach();
-	}
-
-	void Application::PushOverLay(Layer* overlay)
-	{
-		m_LayerStack->PushOverlay(overlay);
-		overlay->OnAttach();
-	}
-
 	void Application::OnNewScene(Scene * scene)
 	{
 #ifdef LUMOS_EDITOR
 		m_Editor->OnNewScene(scene);
 #endif
+	}
+
+	void Application::OnExitScene()
+	{
+		for (auto& layer : m_CurrentSceneLayers)
+		{
+			m_LayerStack->PopLayer(layer);
+		}
+
+		m_CurrentSceneLayers.clear();
+	}
+
+	void Application::PushLayerInternal(Layer* layer, bool overlay, bool sceneAdded)
+	{
+		if(overlay)
+			m_LayerStack->PushOverlay(layer);
+		else
+			m_LayerStack->PushLayer(layer);
+
+		layer->OnAttach();
+
+		if (sceneAdded)
+			m_CurrentSceneLayers.emplace_back(layer);
+	}
+
+	void Application::PushLayer(Layer* layer)
+	{
+		PushLayerInternal(layer, false, true);
+	}
+
+	void Application::PushOverLay(Layer* overlay)
+	{
+		PushLayerInternal(overlay, true, true);
 	}
 
 	bool Application::OnWindowClose(WindowCloseEvent& e)
@@ -298,10 +330,10 @@ namespace Lumos
 
 	bool Application::OnWindowResize(WindowResizeEvent &e)
 	{
-        auto windowSize = GetWindowSize();
+		auto windowSize = GetWindowSize();
 
-		uint width = 1;
-		uint height = 1;
+		u32 width = 1;
+		u32 height = 1;
 
 		if (e.GetWidth() != 0) width = e.GetWidth();
 		if (e.GetHeight() != 0) height = e.GetHeight();
@@ -314,8 +346,8 @@ namespace Lumos
 	void Application::OnImGui()
 	{
 #ifdef LUMOS_EDITOR
-		if(m_AppType == AppType::Editor)
+		if (m_AppType == AppType::Editor)
 			m_Editor->OnImGui();
 #endif
-    }
+	}
 }

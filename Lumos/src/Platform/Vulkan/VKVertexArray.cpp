@@ -18,14 +18,16 @@ namespace Lumos
 			}
 		}
 
-		VertexBuffer* VKVertexArray::GetBuffer(uint index)
+		VertexBuffer* VKVertexArray::GetBuffer(u32 index)
 		{
 			return m_Buffers[index];
 		}
 
 		void VKVertexArray::PushBuffer(VertexBuffer* buffer)
 		{
-			m_Buffers.push_back(buffer);
+			m_Buffers.emplace_back(buffer);
+			m_VKBuffers.emplace_back(dynamic_cast<VKVertexBuffer*>(buffer)->GetBuffer());
+			m_Offsets.emplace_back(dynamic_cast<VKVertexBuffer*>(buffer)->GetLayout().GetStride());
 		}
 
 		void VKVertexArray::Bind() const
@@ -42,7 +44,7 @@ namespace Lumos
 #endif
 		}
 
-		void VKVertexArray::Draw(uint count) const
+		void VKVertexArray::Draw(u32 count) const
 		{
 		}
 	}

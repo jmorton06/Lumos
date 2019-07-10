@@ -13,7 +13,7 @@ namespace Lumos
 		Maths::Vector4 GenColour(float alpha);
 
 		//Generates a default Sphere object with the parameters specified.
-		std::shared_ptr<Entity> BuildSphereObject(
+		Entity* BuildSphereObject(
 			const std::string& name,
 			const Maths::Vector3& pos,
 			float radius,
@@ -23,7 +23,7 @@ namespace Lumos
 			const Maths::Vector4& color = Maths::Vector4(1.0f, 1.0f, 1.0f, 1.0f));
 
 		//Generates a default Cuboid object with the parameters specified
-		std::shared_ptr<Entity> BuildCuboidObject(
+		Entity* BuildCuboidObject(
 			const std::string& name,
 			const Maths::Vector3& pos,
 			const Maths::Vector3& scale,
@@ -33,7 +33,7 @@ namespace Lumos
 			const Maths::Vector4& color = Maths::Vector4(1.0f, 1.0f, 1.0f, 1.0f));
 
 		//Generates a default Cuboid object with the parameters specified
-		std::shared_ptr<Entity> BuildPyramidObject(
+		Entity* BuildPyramidObject(
 			const std::string& name,
 			const Maths::Vector3& pos,
 			const Maths::Vector3& scale,

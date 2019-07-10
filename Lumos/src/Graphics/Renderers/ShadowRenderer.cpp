@@ -16,6 +16,9 @@
 #include "Graphics/Light.h"
 #include "Graphics/RenderList.h"
 
+#include "Entity/Component/TransformComponent.h"
+#include "Entity/Component/MeshComponent.h"
+
 #include "Maths/MathsUtilities.h"
 #include "App/Scene.h"
 #include "Maths/Maths.h"
@@ -34,7 +37,7 @@ namespace Lumos
 			VSSystemUniformIndex_Size
 		};
 
-		ShadowRenderer::ShadowRenderer(TextureDepthArray* texture, uint shadowMapSize, uint numMaps)
+		ShadowRenderer::ShadowRenderer(TextureDepthArray* texture, u32 shadowMapSize, u32 numMaps)
 			: m_ShadowTex(nullptr)
 			, m_ShadowMapNum(numMaps)
 			, m_ShadowMapSize(shadowMapSize)
@@ -45,7 +48,7 @@ namespace Lumos
 			m_apShadowRenderLists = new RenderList*[SHADOWMAP_MAX];
 
 			//Initialize the shadow render lists
-			for (uint i = 0; i < m_ShadowMapNum; ++i)
+			for (u32 i = 0; i < m_ShadowMapNum; ++i)
 			{
 				m_apShadowRenderLists[i] = new RenderList();
 				if (!RenderList::AllocateNewRenderList(m_apShadowRenderLists[i], true))
@@ -73,7 +76,7 @@ namespace Lumos
 			if (m_DeleteTexture)
 				delete m_ShadowTex;
 
-			for (uint i = 0; i < m_ShadowMapNum; ++i)
+			for (u32 i = 0; i < m_ShadowMapNum; ++i)
 			{
 				if (m_apShadowRenderLists)
 					delete m_apShadowRenderLists[i];
@@ -100,14 +103,14 @@ namespace Lumos
 		void ShadowRenderer::Init()
 		{
 			m_VSSystemUniformBufferSize = sizeof(Maths::Matrix4) * 16;
-			m_VSSystemUniformBuffer = new byte[m_VSSystemUniformBufferSize];
+			m_VSSystemUniformBuffer = new u8[m_VSSystemUniformBufferSize];
 			memset(m_VSSystemUniformBuffer, 0, m_VSSystemUniformBufferSize);
 			m_VSSystemUniformBufferOffsets.resize(VSSystemUniformIndex_Size);
 
 			m_PushConstant = new Graphics::PushConstant();
 			m_PushConstant->type = Graphics::PushConstantDataType::UINT;
 			m_PushConstant->size = sizeof(int32);
-			m_PushConstant->data = new byte[sizeof(int32)];
+			m_PushConstant->data = new u8[sizeof(int32)];
             m_PushConstant->shaderStage = ShaderType::VERTEX;
 
 			// Per Scene System Uniforms
@@ -133,7 +136,7 @@ namespace Lumos
 			CreateFramebuffers();
 		}
 
-		void ShadowRenderer::OnResize(uint width, uint height)
+		void ShadowRenderer::OnResize(u32 width, u32 height)
 		{
 		}
 
@@ -184,7 +187,7 @@ namespace Lumos
 			m_RenderPass->EndRenderpass(m_CommandBuffer);
 		}
 
-		void ShadowRenderer::SetShadowMapNum(uint num)
+		void ShadowRenderer::SetShadowMapNum(u32 num)
 		{
 			if (m_ShadowMapNum != num && num <= SHADOWMAP_MAX)
 			{
@@ -196,7 +199,7 @@ namespace Lumos
 						m_apShadowRenderLists[i] = nullptr;
 					}
 				}
-				for (uint i = m_ShadowMapNum; i < num; i++)
+				for (u32 i = m_ShadowMapNum; i < num; i++)
 				{
 					m_apShadowRenderLists[i] = new RenderList();
 					RenderList::AllocateNewRenderList(m_apShadowRenderLists[i], true);
@@ -206,7 +209,7 @@ namespace Lumos
 			}
 		}
 
-		void ShadowRenderer::SetShadowMapSize(uint size)
+		void ShadowRenderer::SetShadowMapSize(u32 size)
 		{
 			if (!m_ShadowMapsInvalidated)
 				m_ShadowMapsInvalidated = (size != m_ShadowMapSize);
@@ -216,7 +219,7 @@ namespace Lumos
 
 		void ShadowRenderer::ClearRenderLists()
 		{
-			for (uint i = 0; i < m_ShadowMapNum; ++i)
+			for (u32 i = 0; i < m_ShadowMapNum; ++i)
 			{
 				if (m_apShadowRenderLists[i])
 					m_apShadowRenderLists[i]->Clear();
@@ -231,7 +234,7 @@ namespace Lumos
 			memcpy(m_VSSystemUniformBuffer + m_VSSystemUniformBufferOffsets[VSSystemUniformIndex_ProjectionViewMatrix], m_ShadowProjView, sizeof(Maths::Matrix4) * 16);
 
 			Begin();
-			for (uint i = 0; i < m_ShadowMapNum; ++i)
+			for (u32 i = 0; i < m_ShadowMapNum; ++i)
 			{
 				m_Layer = i;
 
@@ -241,11 +244,11 @@ namespace Lumos
 					{
 						const auto model = obj->GetComponent<MeshComponent>();
 
-						if (model && model->m_Model)
+						if (model && model->GetMesh())
 						{
-							auto mesh = model->m_Model;
+							auto mesh = model->GetMesh();
 							{
-								SubmitMesh(mesh.get(), nullptr, obj->GetComponent<TransformComponent>()->GetTransform().GetWorldMatrix(), Maths::Matrix4());
+								SubmitMesh(mesh, nullptr, obj->GetComponent<TransformComponent>()->GetTransform().GetWorldMatrix(), Maths::Matrix4());
 							}
 						}
 					}
@@ -357,12 +360,11 @@ namespace Lumos
 				Maths::Vector3 maxExtents = Maths::Vector3(radius);
 				Maths::Vector3 minExtents = -maxExtents;
 
-				Maths::Vector3 lightDir = m_Light->m_Direction.ToVector3();
+				Maths::Vector3 lightDir = -m_Light->m_Direction.ToVector3();
 				lightDir.Normalise();
-				Maths::Matrix4 lightViewMatrix = Maths::Matrix4::BuildViewMatrix(frustumCenter, frustumCenter + lightDir * -minExtents.z);
+				Maths::Matrix4 lightViewMatrix = Maths::Matrix4::BuildViewMatrix(frustumCenter - lightDir * -minExtents.z, frustumCenter);
 
-				//Maths::Matrix4 lightOrthoMatrix = Maths::Matrix4::Orthographic(minExtents.x, maxExtents.x, minExtents.y, maxExtents.y, 0.0f, maxExtents.z - minExtents.z);
-				Maths::Matrix4 lightOrthoMatrix = Maths::Matrix4::Orthographic(maxExtents.z - minExtents.z, -(maxExtents.z - minExtents.z), maxExtents.x, minExtents.x, maxExtents.y, minExtents.y);
+				Maths::Matrix4 lightOrthoMatrix = Maths::Matrix4::Orthographic(-(maxExtents.z - minExtents.z), maxExtents.z - minExtents.z, maxExtents.x, minExtents.x, maxExtents.y, minExtents.y);
 
 				// Store split distance and matrix in cascade
 				m_SplitDepth[i] = Maths::Vector4((scene->GetCamera()->GetNear() + splitDist * clipRange) * -1.0f);
@@ -388,9 +390,9 @@ namespace Lumos
 			{
 				m_ShadowMapsInvalidated = false;
 
-				for (uint i = 0; i < m_ShadowMapNum; ++i)
+				for (u32 i = 0; i < m_ShadowMapNum; ++i)
 				{
-					const uint attachmentCount = 1;
+					const u32 attachmentCount = 1;
 					TextureType attachmentTypes[attachmentCount];
 					attachmentTypes[0] = TextureType::DEPTHARRAY;
 
@@ -431,7 +433,7 @@ namespace Lumos
 			std::vector<Graphics::DescriptorLayout> descriptorLayouts;
 
 			Graphics::DescriptorLayout sceneDescriptorLayout{};
-			sceneDescriptorLayout.count = static_cast<uint>(layoutInfo.size());
+			sceneDescriptorLayout.count = static_cast<u32>(layoutInfo.size());
 			sceneDescriptorLayout.layoutInfo = layoutInfo.data();
 
 			descriptorLayouts.push_back(sceneDescriptorLayout);
@@ -440,10 +442,10 @@ namespace Lumos
 			pipelineCI.pipelineName = "ShadowRenderer";
 			pipelineCI.shader = m_Shader;
 			pipelineCI.vulkanRenderpass = renderPass;
-			pipelineCI.numVertexLayout = static_cast<uint>(attributeDescriptions.size());
+			pipelineCI.numVertexLayout = static_cast<u32>(attributeDescriptions.size());
 			pipelineCI.descriptorLayouts = descriptorLayouts;
 			pipelineCI.vertexLayout = attributeDescriptions.data();
-			pipelineCI.numLayoutBindings = static_cast<uint>(poolInfo.size());
+			pipelineCI.numLayoutBindings = static_cast<u32>(poolInfo.size());
 			pipelineCI.typeCounts = poolInfo.data();
 			pipelineCI.strideSize = sizeof(Vertex);
 			pipelineCI.numColorAttachments = 0;

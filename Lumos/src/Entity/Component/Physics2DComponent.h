@@ -9,19 +9,15 @@ namespace Lumos
 	class LUMOS_EXPORT Physics2DComponent : public LumosComponent
 	{
 	public:
-		std::shared_ptr<PhysicsObject2D> m_PhysicsObject;
-	public:
+        Physics2DComponent();
 		explicit Physics2DComponent(std::shared_ptr<PhysicsObject2D>& physics);
-
-		static ComponentType GetStaticType()
-		{
-			static ComponentType type(ComponentType::Physics2D);
-			return type;
-		}
-
-		inline virtual ComponentType GetType() const override { return GetStaticType(); }
 
 		void OnUpdateComponent(float dt) override;
 		void OnIMGUI() override;
+        
+        PhysicsObject2D* GetPhysicsObject() const { return m_PhysicsObject.get(); }
+        
+    private:
+        std::shared_ptr<PhysicsObject2D> m_PhysicsObject;
 	};
 }

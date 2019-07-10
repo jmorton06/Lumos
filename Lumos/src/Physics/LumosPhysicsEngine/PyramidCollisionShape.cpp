@@ -5,7 +5,7 @@
 namespace Lumos
 {
 
-	Hull* PyramidCollisionShape::m_PyramidHull = new Hull();
+	std::unique_ptr<Hull> PyramidCollisionShape::m_PyramidHull  = std::make_unique<Hull>();
 
 	PyramidCollisionShape::PyramidCollisionShape()
 	{
@@ -25,11 +25,6 @@ namespace Lumos
 
 		m_LocalTransform = Maths::Matrix4::Scale(m_PyramidHalfDimensions);
 		m_Type = CollisionShapeType::CollisionPyramid;
-
-		if (!m_PyramidHull)
-		{
-			m_PyramidHull = new Hull();
-		}
 
 		Maths::Vector3 m_Points[5] = {
 			m_LocalTransform * Maths::Vector3(-1.0f, -1.0f, -1.0f),
@@ -53,11 +48,6 @@ namespace Lumos
 
 	PyramidCollisionShape::~PyramidCollisionShape()
 	{
-		if (m_PyramidHull != nullptr)
-		{
-			delete m_PyramidHull;
-			m_PyramidHull = nullptr;
-		}
 	}
 
 	Maths::Matrix3 PyramidCollisionShape::BuildInverseInertia(float invMass) const

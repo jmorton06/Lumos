@@ -8,7 +8,7 @@ namespace Lumos
 {
 	namespace Graphics
 	{
-		VKTextureDepthArray::VKTextureDepthArray(uint width, uint height,uint count)
+		VKTextureDepthArray::VKTextureDepthArray(u32 width, u32 height,u32 count)
 			: m_Width(width), m_Height(height), m_Count(count)
 		{
 			Init();
@@ -17,8 +17,13 @@ namespace Lumos
 		VKTextureDepthArray::~VKTextureDepthArray()
 		{
 			vkDestroyImageView(VKDevice::Instance()->GetDevice(), m_TextureImageView, nullptr);
-			vkDestroyImage(VKDevice::Instance()->GetDevice(), m_TextureImage, nullptr);
-			vkFreeMemory(VKDevice::Instance()->GetDevice(), m_TextureImageMemory, nullptr);
+            
+//#ifdef USE_VMA_ALLOCATOR
+ //           vmaDestroyImage(VKDevice::Instance()->GetAllocator(), m_TextureImage, m_Allocation);
+//#else
+            VKDevice::Instance()->GetDevice().destroyImage(m_TextureImage);
+//#endif
+            vkFreeMemory(VKDevice::Instance()->GetDevice(), m_TextureImageMemory, nullptr);
             vkDestroySampler(VKDevice::Instance()->GetDevice(), m_TextureSampler, nullptr);
             
             for (uint32_t i = 0; i < m_Count; i++)
@@ -27,11 +32,11 @@ namespace Lumos
             }
 		}
 
-		void VKTextureDepthArray::Bind(uint slot) const
+		void VKTextureDepthArray::Bind(u32 slot) const
 		{
 		}
 
-		void VKTextureDepthArray::Unbind(uint slot) const
+		void VKTextureDepthArray::Unbind(u32 slot) const
 		{
 		}
 
@@ -90,9 +95,20 @@ namespace Lumos
 			imageInfo.usage = usage;
 			imageInfo.samples = vk::SampleCountFlagBits::e1;
 			imageInfo.sharingMode = vk::SharingMode::eExclusive;
-
-			image = VKDevice::Instance()->GetDevice().createImage(imageInfo);
-
+//
+//#ifdef USE_VMA_ALLOCATOR
+//            VmaAllocationCreateInfo allocInfovma;
+//            allocInfovma.flags = 0;
+//            allocInfovma.usage = VMA_MEMORY_USAGE_GPU_ONLY;
+//            allocInfovma.requiredFlags = 0;
+//            allocInfovma.preferredFlags = 0;
+//            allocInfovma.memoryTypeBits = 0;
+//            allocInfovma.pool = nullptr;
+//            allocInfovma.pUserData = nullptr;
+//            vmaCreateImage(VKDevice::Instance()->GetAllocator(), reinterpret_cast<VkImageCreateInfo*>(&imageInfo), &allocInfovma, reinterpret_cast<VkImage*>(&image), &m_Allocation, nullptr);
+//#else
+            image = VKDevice::Instance()->GetDevice().createImage(imageInfo);
+//#endif
 			vk::MemoryRequirements memRequirements;
 			VKDevice::Instance()->GetDevice().getImageMemoryRequirements(image, &memRequirements);
 
@@ -142,7 +158,7 @@ namespace Lumos
 			m_Descriptor.imageLayout = vk::ImageLayout::eShaderReadOnlyOptimal;
 		}
 
-		void VKTextureDepthArray::Resize(uint width, uint height, uint count)
+		void VKTextureDepthArray::Resize(u32 width, u32 height, u32 count)
 		{
 			m_Width = width;
 			m_Height = height;

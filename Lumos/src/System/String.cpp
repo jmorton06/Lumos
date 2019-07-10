@@ -3,8 +3,6 @@
 
 namespace Lumos
 {
-	char* StringFormat::s_Buffer = new char[STRINGFORMAT_BUFFER_SIZE];
-
 	std::vector<String> SplitString(const String& string, const String& delimiters)
 	{
 		size_t start = 0;
@@ -63,7 +61,7 @@ namespace Lumos
 		return FindToken(string.c_str(), token);
 	}
 
-	int32 FindStringPosition(const String& string, const String& search, uint offset)
+	int32 FindStringPosition(const String& string, const String& search, u32 offset)
 	{
 		const char* str = string.c_str() + offset;
 		const char* found = strstr(str, search.c_str());
@@ -72,12 +70,12 @@ namespace Lumos
 		return (int32)(found - str) + offset;
 	}
 
-	String StringRange(const String& string, uint start, uint length)
+	String StringRange(const String& string, u32 start, u32 length)
 	{
 		return string.substr(start, length);
 	}
 
-	String RemoveStringRange(const String& string, uint start, uint length)
+	String RemoveStringRange(const String& string, u32 start, u32 length)
 	{
 		String result = string;
 		return result.erase(start, length);
@@ -91,11 +89,11 @@ namespace Lumos
 
 		if (outPosition)
 			*outPosition = end;
-		const uint length = static_cast<uint>(end - str + 1);
+		const u32 length = static_cast<u32>(end - str + 1);
 		return String(str, length);
 	}
 
-	String GetBlock(const String& string, uint offset)
+	String GetBlock(const String& string, u32 offset)
 	{
 		const char* str = string.c_str() + offset;
 		return GetBlock(str);
@@ -109,7 +107,7 @@ namespace Lumos
 
 		if (outPosition)
 			*outPosition = end;
-		const uint length = static_cast<uint>(end - str + 1);
+		const u32 length = static_cast<u32>(end - str + 1);
 		return String(str, length);
 	}
 
@@ -125,7 +123,7 @@ namespace Lumos
 
 	int32 NextInt(const String& string)
 	{
-		for (uint i = 0; i < string.size(); i++)
+		for (u32 i = 0; i < string.size(); i++)
 		{
 			if (isdigit(string[i]))
 				return atoi(&string[i]);

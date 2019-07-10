@@ -22,7 +22,7 @@ namespace Lumos
 		class LUMOS_EXPORT DeferredRenderer : public Renderer3D
 		{
 		public:
-			DeferredRenderer(uint width, uint height);
+			DeferredRenderer(u32 width, u32 height, bool renderToGBuffer = false);
 			~DeferredRenderer() override;
 
 			void RenderScene(RenderList* renderList, Scene* scene) override;
@@ -37,7 +37,7 @@ namespace Lumos
 			void EndScene() override;
 			void End() override;
 			void Present() override;
-			void OnResize(uint width, uint height) override;
+			void OnResize(u32 width, u32 height) override;
 			void PresentToScreen();
 
 			void CreateDeferredPipeline();
@@ -60,10 +60,10 @@ namespace Lumos
 
 			void SetSystemUniforms(Shader* shader) const;
 
-			byte* m_PSSystemUniformBuffer;
-			uint m_PSSystemUniformBufferSize;
+			u8* m_PSSystemUniformBuffer;
+			u32 m_PSSystemUniformBufferSize;
 
-			std::vector<uint> m_PSSystemUniformBufferOffsets;
+			std::vector<u32> m_PSSystemUniformBufferOffsets;
 
 			Maths::Vector4 m_ClearColour;
 
@@ -83,6 +83,7 @@ namespace Lumos
 
 			int m_CommandBufferIndex = 0;
 			int m_RenderMode = 0;
+            int m_ShadowMode = 1;
 
 			Texture* m_CubeMap = nullptr;
 		};

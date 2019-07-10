@@ -15,34 +15,38 @@ namespace Lumos
 		void EnqueueScene(Scene* scene);
 
 		//Jump to the next scene in the list or first scene if at the end
-		void JumpToScene();
+		void SwitchScene();
 
 		//Jump to scene index (stored in order they were originally added starting at zero)
-		void JumpToScene(int idx);
+		void SwitchScene(int idx);
 
 		//Jump to scene name
-		void JumpToScene(const std::string& friendly_name);
-
+		void SwitchScene(const std::string& name);
+        
+        void ApplySceneSwitch();
+        
 		//Get currently active scene (returns NULL if no scenes yet added)
 		inline Scene* GetCurrentScene() const { return m_CurrentScene; }
 
 		//Get currently active scene's index (return 0 if no scenes yet added)
-		inline uint   GetCurrentSceneIndex() const { return m_SceneIdx; }
+		inline u32   GetCurrentSceneIndex() const { return m_SceneIdx; }
 
 		//Get total number of enqueued scenes
-		inline uint   SceneCount() const { return static_cast<uint>(m_vpAllScenes.size()); }
+		inline u32   SceneCount() const { return static_cast<u32>(m_vpAllScenes.size()); }
 
 		std::vector<String> GetSceneNames();
+        const std::vector<std::unique_ptr<Scene>>& GetScenes() const { return m_vpAllScenes; }
         
         void SetSwitchScene(bool switching) { m_SwitchingScenes = switching; }
         bool GetSwitchingScene() const { return m_SwitchingScenes; }
 
 	protected:
-		uint								m_SceneIdx;
+		u32								m_SceneIdx;
 		Scene*								m_CurrentScene;
 		std::vector<std::unique_ptr<Scene>> m_vpAllScenes;
     private:
         bool m_SwitchingScenes = false;
+        int m_QueuedSceneIndex = -1;
         SceneManager(SceneManager const&) = delete;
         SceneManager& operator=(SceneManager const&) = delete;
 	};

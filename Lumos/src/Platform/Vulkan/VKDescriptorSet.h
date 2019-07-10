@@ -25,12 +25,12 @@ namespace Lumos
 			vk::WriteDescriptorSet ImageInfoToVK(ImageInfo& imageInfo);
 			vk::WriteDescriptorSet ImageInfoToVK2(ImageInfo& imageInfo,vk::DescriptorImageInfo* imageInfos);
 
-			void SetDynamicOffset(uint offset) override { m_DynamicOffset = offset; }
-			uint GetDynamicOffset() const override { return m_DynamicOffset; }
+			void SetDynamicOffset(u32 offset) override { m_DynamicOffset = offset; }
+			u32 GetDynamicOffset() const override { return m_DynamicOffset; }
 
 		private:
 			vk::DescriptorSet m_DescriptorSet;
-			uint m_DynamicOffset = 0;
+			u32 m_DynamicOffset = 0;
 			Shader* m_Shader = nullptr;
 			bool m_Dynamic = false;
 			std::vector<PushConstant> m_PushConstants;

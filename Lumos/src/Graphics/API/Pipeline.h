@@ -32,7 +32,7 @@ namespace Lumos
 			DescriptorPoolInfo* typeCounts;
 
 			std::vector<DescriptorLayout> descriptorLayouts;
-			uint numLayoutBindings;
+			u32 numLayoutBindings;
 
 			CullMode cullMode;
 			String pipelineName;
@@ -40,9 +40,9 @@ namespace Lumos
 			bool wireframeEnabled;
 			bool transparencyEnabled;
 			bool depthBiasEnabled;
-			uint width;
-			uint height;
-			uint maxObjects;
+			u32 width;
+			u32 height;
+			u32 maxObjects;
 
 		};
 		class LUMOS_EXPORT Pipeline

@@ -2,6 +2,10 @@
 
 #include "VK.h"
 
+#ifdef USE_VMA_ALLOCATOR
+#include "vk_mem_alloc.h"
+#endif
+
 namespace Lumos
 {
 	namespace Graphics
@@ -32,6 +36,11 @@ namespace Lumos
 			VkDeviceSize m_Size = 0;
 			VkDeviceSize m_Alignment = 0;
 			void* m_Mapped = nullptr;
+            
+#ifdef USE_VMA_ALLOCATOR
+            VmaAllocation m_Allocation;
+			VmaAllocation m_MappedAllocation;
+#endif
 		};
 	}
 }

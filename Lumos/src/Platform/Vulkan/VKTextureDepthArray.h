@@ -4,6 +4,10 @@
 #include "Graphics/API/GraphicsContext.h"
 #include "VKContext.h"
 
+#ifdef USE_VMA_ALLOCATOR
+#include "vk_mem_alloc.h"
+#endif
+
 namespace Lumos
 {
 	namespace Graphics
@@ -11,12 +15,12 @@ namespace Lumos
 		class VKTextureDepthArray : public TextureDepthArray
 		{
 		public:
-			VKTextureDepthArray(uint width, uint height, uint count);
+			VKTextureDepthArray(u32 width, u32 height, u32 count);
 			~VKTextureDepthArray();
 
-			void Bind(uint slot = 0) const override;
-			void Unbind(uint slot = 0) const override;
-			void Resize(uint width, uint height, uint count) override;
+			void Bind(u32 slot = 0) const override;
+			void Unbind(u32 slot = 0) const override;
+			void Resize(u32 width, u32 height, u32 count) override;
 
 			virtual void* GetHandle() const override { return (void*)m_TextureImageView; }
 
@@ -42,9 +46,9 @@ namespace Lumos
 
 		private:
 			String m_Name;
-			uint m_Handle;
-			uint m_Width, m_Height;
-			uint m_Count;
+			u32 m_Handle;
+			u32 m_Width, m_Height;
+			u32 m_Count;
 
 			vk::Image m_TextureImage;
 			vk::DeviceMemory m_TextureImageMemory;
@@ -53,6 +57,10 @@ namespace Lumos
 			vk::DescriptorImageInfo m_Descriptor;
 
 			std::vector<vk::ImageView> m_IndividualImageViews;
+            
+#ifdef USE_VMA_ALLOCATOR
+            VmaAllocation m_Allocation;
+#endif
 		};
 	}
 }

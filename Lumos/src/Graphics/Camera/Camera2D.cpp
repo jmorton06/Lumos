@@ -7,7 +7,7 @@
 
 namespace Lumos
 {
-    Camera2D::Camera2D(uint width, uint height, float scale) : Camera(45.0f, 0.0f, 1.0f, 1.0f)
+    Camera2D::Camera2D(u32 width, u32 height, float scale) : Camera(45.0f, 0.0f, 1.0f, 1.0f)
 		, m_Scale(scale)
 	{
 		Application::Instance()->GetWindow()->HideMouse(false);

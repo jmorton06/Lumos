@@ -113,7 +113,7 @@ namespace Lumos
 			float c = cos(angle_y);
 			angle_y = Lumos::Maths::RadiansToDegrees(angle_y);
 
-			if (fabs(c) > 0.005)
+			if (fabs(c) > 0.005f)
 			{
 				c = 1.0f / c;
 				float tr_x = mat.values[10] * c;

@@ -12,20 +12,16 @@ namespace Lumos
 	class LUMOS_EXPORT SpriteComponent : public LumosComponent
 	{
 	public:
-		std::shared_ptr<Graphics::Sprite> m_Sprite;
-	public:
+        SpriteComponent();
 		explicit SpriteComponent(std::shared_ptr<Graphics::Sprite>& sprite);
-
-		static ComponentType GetStaticType()
-		{
-			static ComponentType type(ComponentType::Sprite);
-			return type;
-		}
 
 		void OnUpdateComponent(float dt) override;
 
-		inline virtual ComponentType GetType() const override { return GetStaticType(); }
-
 		void OnIMGUI() override;
+        
+        Graphics::Sprite* GetSprite() const { return m_Sprite.get(); }
+        
+    private:
+        std::shared_ptr<Graphics::Sprite> m_Sprite;
 	};
 }

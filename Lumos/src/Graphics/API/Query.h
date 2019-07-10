@@ -18,7 +18,7 @@ namespace Lumos
 			static Query* Create(QueryType type);
 
 			virtual void Begin() = 0;
-			virtual uint GetResult() = 0;
+			virtual u32 GetResult() = 0;
 			virtual bool GetResultReady() = 0;
 			virtual void End() = 0;
 

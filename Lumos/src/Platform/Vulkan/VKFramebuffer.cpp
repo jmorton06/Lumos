@@ -18,7 +18,7 @@ namespace Lumos
 
 			std::vector<vk::ImageView> attachments;
 
-			for(uint i = 0; i < m_AttachmentCount; i++)
+			for(u32 i = 0; i < m_AttachmentCount; i++)
 			{
 				switch (frameBufferInfo.attachmentTypes[i])
 				{

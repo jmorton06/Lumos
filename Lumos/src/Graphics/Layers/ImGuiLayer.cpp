@@ -9,6 +9,7 @@
 #define IMGUI_DISABLE_OBSOLETE_FUNCTIONS
 #include <imgui/imgui.h>
 #include <imgui/plugins/ImGuizmo.h>
+#include <IconFontCppHeaders/IconsFontAwesome5.h>
 
 namespace Lumos
 {
@@ -51,7 +52,7 @@ namespace Lumos
 
 		ImGui::NewFrame();
 		ImGuizmo::BeginFrame();
-        
+
 		Application::Instance()->OnImGui();
         
 		ImGui::Render();
@@ -189,17 +190,32 @@ namespace Lumos
 
 	void ImGuiLayer::SetImGuiStyle()
 	{
+		ImGuiIO& io = ImGui::GetIO();
+		std::string physicalPath;
+
 #if 0
 		std::string filePath = "/CoreTextures/Roboto-Medium.ttf";
-		std::string physicalPath;
+		
 		if (!VFS::Get()->ResolvePhysicalPath(filePath, physicalPath))
 			LUMOS_CORE_ERROR("Failed to Load font {0}", filePath);
 
 		filePath = physicalPath;
-        ImGuiIO& io = ImGui::GetIO();
-		io.Fonts->AddFontFromFileTTF(filePath.c_str(), 15.0f);
+		io.Fonts->AddFontFromFileTTF(filePath.c_str(), 16.0f);
 		io.IniFilename = nullptr;
+
+#else
+		io.Fonts->AddFontDefault();
 #endif
+
+		physicalPath = "";
+		VFS::Get()->ResolvePhysicalPath("/CoreFonts/fa-solid-900.ttf", physicalPath);
+
+		// merge in icons from Font Awesome
+		static const ImWchar icons_ranges[] = { ICON_MIN_FA, ICON_MAX_FA, 0 };
+		ImFontConfig icons_config;
+		icons_config.MergeMode = true;
+		icons_config.PixelSnapH = true;
+		io.Fonts->AddFontFromFileTTF(physicalPath.c_str(), 16.0f, &icons_config, icons_ranges);
 
 		ImGuiStyle& style = ImGui::GetStyle();
 

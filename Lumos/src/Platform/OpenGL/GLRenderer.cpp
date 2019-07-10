@@ -5,6 +5,7 @@
 #include "GLDebug.h"
 
 #include "GL.h"
+#include "GLTools.h"
 #include "Graphics/Mesh.h"
 #include "GLDescriptorSet.h"
 #include "Graphics/Material.h"
@@ -13,13 +14,8 @@ namespace Lumos
 {
 	namespace Graphics
 	{
-		const GLenum drawbuffers_1[1] = { GL_COLOR_ATTACHMENT0 };
-		const GLenum drawbuffers_2[2] = { GL_COLOR_ATTACHMENT0, GL_COLOR_ATTACHMENT1 };
-		const GLenum drawbuffers_3[3] = { GL_COLOR_ATTACHMENT0, GL_COLOR_ATTACHMENT1, GL_COLOR_ATTACHMENT2 };
-		const GLenum drawbuffers_4[4] = { GL_COLOR_ATTACHMENT0, GL_COLOR_ATTACHMENT1, GL_COLOR_ATTACHMENT2, GL_COLOR_ATTACHMENT3 };
-		const GLenum drawbuffers_5[5] = { GL_COLOR_ATTACHMENT0, GL_COLOR_ATTACHMENT1, GL_COLOR_ATTACHMENT2, GL_COLOR_ATTACHMENT3, GL_COLOR_ATTACHMENT4 };
 
-		GLRenderer::GLRenderer(uint width, uint height) : m_Context(nullptr)
+		GLRenderer::GLRenderer(u32 width, u32 height) : m_Context(nullptr)
 		{
 			m_Swapchain = new Graphics::GLSwapchain(width, height);
 
@@ -38,7 +34,8 @@ namespace Lumos
 			GLCall(glEnable(GL_CULL_FACE));
 			GLCall(glEnable(GL_BLEND));
 			GLCall(glDepthFunc(GL_LEQUAL));
-			GLCall(glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA));
+			GLCall(glBlendFunc(GL_ONE, GL_ONE_MINUS_SRC_ALPHA));
+			GLCall(glBlendEquation(GL_FUNC_ADD));
 #ifndef LUMOS_PLATFORM_MOBILE
 			GLCall(glEnable(GL_DEPTH_CLAMP));
 			GLCall(glEnable(GL_TEXTURE_CUBE_MAP_SEAMLESS));
@@ -57,9 +54,9 @@ namespace Lumos
 			GLCall(glBindFramebuffer(GL_FRAMEBUFFER, 0));
 		}
 
-		void GLRenderer::ClearInternal(uint buffer)
+		void GLRenderer::ClearInternal(u32 buffer)
 		{
-			GLCall(glClear(RendererBufferToGL(buffer)));
+			GLCall(glClear(GLTools::RendererBufferToGL(buffer)));
 		}
 
 		void GLRenderer::PresentInternal()
@@ -117,7 +114,7 @@ namespace Lumos
 
 		void GLRenderer::SetBlendFunctionInternal(RendererBlendFunction source, RendererBlendFunction destination)
 		{
-			GLCall(glBlendFunc(RendererBlendFunctionToGL(source), RendererBlendFunctionToGL(destination)));
+			GLCall(glBlendFunc(GLTools::RendererBlendFunctionToGL(source), GLTools::RendererBlendFunctionToGL(destination)));
 		}
 
 		void GLRenderer::SetBlendEquationInternal(RendererBlendFunction blendEquation)
@@ -125,7 +122,7 @@ namespace Lumos
 			LUMOS_CORE_ASSERT(false, "Not implemented");
 		}
 
-		void GLRenderer::SetViewportInternal(uint x, uint y, uint width, uint height)
+		void GLRenderer::SetViewportInternal(u32 x, u32 y, u32 width, u32 height)
 		{
 			GLCall(glViewport(x, y, width, height));
 		}
@@ -135,67 +132,14 @@ namespace Lumos
 			return m_RendererTitle;
 		}
 
-		uint GLRenderer::RendererBufferToGL(uint buffer)
+		void GLRenderer::DrawInternal(const DrawType type, u32 count, DataType dataType, void* indices) const
 		{
-			uint result = 0;
-			if (buffer & RENDERER_BUFFER_COLOUR)
-				result |= GL_COLOR_BUFFER_BIT;
-			if (buffer & RENDERER_BUFFER_DEPTH)
-				result |= GL_DEPTH_BUFFER_BIT;
-			if (buffer & RENDERER_BUFFER_STENCIL)
-				result |= GL_STENCIL_BUFFER_BIT;
-			return result;
+			GLCall(glDrawElements(GLTools::DrawTypeToGL(type), count, GLTools::DataTypeToGL(dataType), indices));
 		}
 
-		uint GLRenderer::RendererBlendFunctionToGL(RendererBlendFunction function)
+		void GLRenderer::DrawArraysInternal(const DrawType type, u32 start, u32 numIndices) const
 		{
-			switch (function)
-			{
-			case RendererBlendFunction::ZERO:						return GL_ZERO;
-			case RendererBlendFunction::ONE:						return GL_ONE;
-			case RendererBlendFunction::SOURCE_ALPHA:				return GL_SRC_ALPHA;
-			case RendererBlendFunction::DESTINATION_ALPHA:			return GL_DST_ALPHA;
-			case RendererBlendFunction::ONE_MINUS_SOURCE_ALPHA:		return GL_ONE_MINUS_SRC_ALPHA;
-			default: return 0;
-			}
-		}
-
-		uint GLRenderer::DataTypeToGL(DataType dataType)
-		{
-			switch (dataType)
-			{
-			case DataType::FLOAT: return GL_FLOAT;
-			case DataType::UNSIGNED_INT: return GL_UNSIGNED_INT;
-			case DataType::UNSIGNED_BYTE: return GL_UNSIGNED_BYTE;
-			default: LUMOS_CORE_ERROR("Unsupported DataType"); break;
-			}
-			return 0;
-		}
-
-		uint GLRenderer::DrawTypeToGL(DrawType drawType)
-		{
-			switch (drawType)
-			{
-			case DrawType::POINT:    return GL_POINTS;
-			case DrawType::LINES:    return GL_LINES;
-			case DrawType::TRIANGLE: return GL_TRIANGLES;
-			default: LUMOS_CORE_ERROR("Unsupported DrawType"); break;
-			}
-			return 0;
-		}
-
-		void GLRenderer::DrawInternal(const DrawType type, uint count, DataType dataType, void* indices) const
-		{
-			GLCall(glDrawElements(DrawTypeToGL(type), count, DataTypeToGL(dataType), indices));
-		}
-
-		void GLRenderer::DrawArraysInternal(const DrawType type, uint numIndices) const
-		{
-			GLCall(glDrawArrays(DrawTypeToGL(type), 0, numIndices));
-		}
-		void GLRenderer::DrawArraysInternal(const DrawType type, uint start, uint numIndices) const
-		{
-			GLCall(glDrawArrays(DrawTypeToGL(type), start, numIndices));
+			GLCall(glDrawArrays(GLTools::DrawTypeToGL(type), start, numIndices));
 		}
 
 		void GLRenderer::SetRenderModeInternal(RenderMode mode)
@@ -209,24 +153,9 @@ namespace Lumos
 #endif
 		}
 
-		void GLRenderer::OnResize(uint width, uint height)
+		void GLRenderer::OnResize(u32 width, u32 height)
 		{
 		}
-
-		void GLRenderer::SetRenderTargets(uint numTargets)
-		{
-			switch (numTargets)
-			{
-			case 0: GLCall(glDrawBuffers(0, GL_NONE)); break;
-			case 1: GLCall(glDrawBuffers(1, drawbuffers_1)); break;
-			case 2: GLCall(glDrawBuffers(2, drawbuffers_2)); break;
-			case 3: GLCall(glDrawBuffers(3, drawbuffers_3)); break;
-			case 4: GLCall(glDrawBuffers(4, drawbuffers_4)); break;
-			case 5: GLCall(glDrawBuffers(5, drawbuffers_5)); break;
-			default: LUMOS_CORE_ERROR("Unsupported amount of render targets"); break;
-			}
-		}
-
 		void GLRenderer::SetCullingInternal(bool enabled, bool front)
 		{
 			if (enabled)
@@ -260,27 +189,14 @@ namespace Lumos
 			}
 		}
 
-		uint StencilTypeToGL(const StencilType type)
+		void GLRenderer::SetStencilFunctionInternal(const StencilType type, u32 ref, u32 mask)
 		{
-			switch (type)
-			{
-			case StencilType::EQUAL:	return GL_EQUAL;
-			case StencilType::NOTEQUAL:	return GL_NOTEQUAL;
-			case StencilType::KEEP:		return GL_KEEP;
-			case StencilType::REPLACE:	return GL_REPLACE;
-			case StencilType::ZERO:		return GL_ZERO;
-			case StencilType::ALWAYS:	return GL_ALWAYS;
-			}
-			return 0;
-		}
-		void GLRenderer::SetStencilFunctionInternal(const StencilType type, uint ref, uint mask)
-		{
-			glStencilFunc(StencilTypeToGL(type), ref, mask);
+			glStencilFunc(GLTools::StencilTypeToGL(type), ref, mask);
 		}
 
 		void GLRenderer::SetStencilOpInternal(const StencilType fail, const StencilType zfail, const StencilType zpass)
 		{
-			glStencilOp(StencilTypeToGL(fail), StencilTypeToGL(zfail), StencilTypeToGL(zpass));
+			glStencilOp(GLTools::StencilTypeToGL(fail), GLTools::StencilTypeToGL(zfail), GLTools::StencilTypeToGL(zpass));
 		}
 
 		void GLRenderer::SetColourMaskInternal(bool r, bool g, bool b, bool a)
@@ -288,7 +204,7 @@ namespace Lumos
 			glColorMask(r, g, b, a);
 		}
 
-		void GLRenderer::RenderMeshInternal(Mesh *mesh, Graphics::Pipeline *pipeline, Graphics::CommandBuffer* cmdBuffer, uint dynamicOffset, std::vector<Graphics::DescriptorSet*>& descriptorSets)
+		void GLRenderer::RenderMeshInternal(Mesh *mesh, Graphics::Pipeline *pipeline, Graphics::CommandBuffer* cmdBuffer, u32 dynamicOffset, std::vector<Graphics::DescriptorSet*>& descriptorSets)
 		{
 			for (auto desc : descriptorSets)
 			{
@@ -299,7 +215,7 @@ namespace Lumos
 		}
 
 		void GLRenderer::Render(VertexArray* vertexArray, IndexBuffer* indexBuffer, Graphics::CommandBuffer* cmdBuffer,
-			std::vector<Graphics::DescriptorSet*>& descriptorSets, Graphics::Pipeline* pipeline, uint dynamicOffset)
+			std::vector<Graphics::DescriptorSet*>& descriptorSets, Graphics::Pipeline* pipeline, u32 dynamicOffset)
 		{
 			for (auto descriptor : descriptorSets)
 			{

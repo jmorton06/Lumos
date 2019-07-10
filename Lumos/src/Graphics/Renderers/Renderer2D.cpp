@@ -16,6 +16,9 @@
 #include "Graphics/GBuffer.h"
 #include "App/Scene.h"
 #include "Entity/Entity.h"
+#include "Entity/Component/MaterialComponent.h"
+#include "Entity/Component/SpriteComponent.h"
+#include "Entity/Component/TransformComponent.h"
 #include "App/Application.h"
 #include "Graphics/RenderManager.h"
 #include "Platform/OpenGL/GLDescriptorSet.h"
@@ -33,11 +36,13 @@ namespace Lumos
 {
 	namespace Graphics
 	{
-		Renderer2D::Renderer2D(uint width, uint height) : m_IndexCount(0), m_RenderTexture(nullptr), m_Buffer(nullptr)
+		Renderer2D::Renderer2D(u32 width, u32 height, bool renderToGBuffer) : m_IndexCount(0), m_RenderTexture(nullptr), m_Buffer(nullptr)
 		{
 			SetScreenBufferSize(width, height);
 
 			Init();
+            
+            SetRenderToGBufferTexture(renderToGBuffer);
 		}
 
 		Renderer2D::~Renderer2D()
@@ -74,7 +79,7 @@ namespace Lumos
 			m_TransformationBack = &m_TransformationStack.back();
 
 			m_VSSystemUniformBufferSize = sizeof(Maths::Matrix4);
-			m_VSSystemUniformBuffer = new byte[m_VSSystemUniformBufferSize];
+			m_VSSystemUniformBuffer = new u8[m_VSSystemUniformBufferSize];
 
 			m_RenderPass = Graphics::RenderPass::Create();
 			m_UniformBuffer = Graphics::UniformBuffer::Create();
@@ -156,7 +161,7 @@ namespace Lumos
 				vertexArray->PushBuffer(buffer);
 			}
 
-			uint* indices = new uint[RENDERER_INDICES_SIZE];
+			u32* indices = new u32[RENDERER_INDICES_SIZE];
 
 			int32 offset = 0;
 			for (int32 i = 0; i < RENDERER_INDICES_SIZE; i += 6)
@@ -302,14 +307,14 @@ namespace Lumos
 
 			SetSystemUniforms(m_Shader);
 
-			scene->IterateEntities([&](std::shared_ptr<Entity> obj)
+			scene->IterateEntities([&](Entity* obj)
 			{
 				if (obj != nullptr)
 				{
 					auto* sprite = obj->GetComponent<SpriteComponent>();
 					if (sprite)
 					{
-						Submit(reinterpret_cast<Renderable2D*>(sprite->m_Sprite.get()), obj->GetTransformComponent()->GetTransform().GetWorldMatrix());
+						Submit(reinterpret_cast<Renderable2D*>(sprite->GetSprite()), obj->GetTransformComponent()->GetTransform().GetWorldMatrix());
 					}
 				}
 			});
@@ -323,7 +328,7 @@ namespace Lumos
 		{
 			float result = 0.0f;
 			bool found = false;
-			for (uint i = 0; i < m_Textures.size(); i++)
+			for (u32 i = 0; i < m_Textures.size(); i++)
 			{
 				if (m_Textures[i] == texture) //Temp
 				{
@@ -351,7 +356,7 @@ namespace Lumos
 			return result;
 		}
 
-		void Renderer2D::OnResize(uint width, uint height)
+		void Renderer2D::OnResize(u32 width, u32 height)
 		{
 			delete m_Pipeline;
 
@@ -403,7 +408,7 @@ namespace Lumos
 			Renderer::Present((m_CommandBuffers[Renderer::GetSwapchain()->GetCurrentBufferId()]));
 		}
 
-		void Renderer2D::SetScreenBufferSize(uint width, uint height)
+		void Renderer2D::SetScreenBufferSize(u32 width, u32 height)
 		{
 			if (width == 0)
 			{
@@ -442,13 +447,13 @@ namespace Lumos
 			std::vector<Graphics::DescriptorLayout> descriptorLayouts;
 
 			Graphics::DescriptorLayout sceneDescriptorLayout{};
-			sceneDescriptorLayout.count = static_cast<uint>(layoutInfo.size());
+			sceneDescriptorLayout.count = static_cast<u32>(layoutInfo.size());
 			sceneDescriptorLayout.layoutInfo = layoutInfo.data();
 
 			descriptorLayouts.push_back(sceneDescriptorLayout);
 
 			Graphics::DescriptorLayout meshDescriptorLayout{};
-			meshDescriptorLayout.count = static_cast<uint>(layoutInfoMesh.size());
+			meshDescriptorLayout.count = static_cast<u32>(layoutInfoMesh.size());
 			meshDescriptorLayout.layoutInfo = layoutInfoMesh.data();
 
 			descriptorLayouts.push_back(meshDescriptorLayout);
@@ -457,10 +462,10 @@ namespace Lumos
 			pipelineCI.pipelineName = "Batch2DRenderer";
 			pipelineCI.shader = m_Shader;
 			pipelineCI.vulkanRenderpass = m_RenderPass;
-			pipelineCI.numVertexLayout = static_cast<uint>(attributeDescriptions.size());
+			pipelineCI.numVertexLayout = static_cast<u32>(attributeDescriptions.size());
 			pipelineCI.descriptorLayouts = descriptorLayouts;
 			pipelineCI.vertexLayout = attributeDescriptions.data();
-			pipelineCI.numLayoutBindings = static_cast<uint>(poolInfo.size());
+			pipelineCI.numLayoutBindings = static_cast<u32>(poolInfo.size());
 			pipelineCI.typeCounts = poolInfo.data();
 			pipelineCI.strideSize = sizeof(VertexData);
 			pipelineCI.numColorAttachments = 1;
@@ -538,14 +543,17 @@ namespace Lumos
 
 		void Renderer2D::SetRenderToGBufferTexture(bool set)
 		{
-			m_RenderToGBufferTexture = true;
-			m_RenderTexture = Application::Instance()->GetRenderManager()->GetGBuffer()->GetTexture(SCREENTEX_OFFSCREEN0);
-
-			for (auto fbo : m_Framebuffers)
-				delete fbo;
-			m_Framebuffers.clear();
-
-			CreateFramebuffers();
+            if(set)
+            {
+                m_RenderToGBufferTexture = true;
+                m_RenderTexture = Application::Instance()->GetRenderManager()->GetGBuffer()->GetTexture(SCREENTEX_OFFSCREEN0);
+                
+                for (auto fbo : m_Framebuffers)
+                    delete fbo;
+                m_Framebuffers.clear();
+                
+                CreateFramebuffers();
+            }
 		}
 	}
 }

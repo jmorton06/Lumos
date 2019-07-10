@@ -18,13 +18,13 @@ namespace Lumos
             void Update(std::vector <BufferInfo> &bufferInfos) override;
             void SetPushConstants(std::vector<PushConstant>& pushConstants) override;
 
-			void Bind(uint offset = 0);
+			void Bind(u32 offset = 0);
 
-			void SetDynamicOffset(uint offset) override { m_DynamicOffset = offset; }
-			uint GetDynamicOffset() const override { return m_DynamicOffset; }
+			void SetDynamicOffset(u32 offset) override { m_DynamicOffset = offset; }
+			u32 GetDynamicOffset() const override { return m_DynamicOffset; }
 
         private:
-			uint m_DynamicOffset = 0;
+			u32 m_DynamicOffset = 0;
 			Shader* m_Shader = nullptr;
 
 			std::vector<ImageInfo> m_ImageInfos;

@@ -9,17 +9,11 @@ namespace Lumos
     class LUMOS_EXPORT MaterialComponent : public LumosComponent
     {
     public:
+        MaterialComponent();
         explicit MaterialComponent(std::shared_ptr<Material>& material);
-        
-        static ComponentType GetStaticType()
-        {
-            static ComponentType type(ComponentType::Material);
-            return type;
-        }
+        virtual ~MaterialComponent();
         
         void OnUpdateComponent(float dt) override;
-        
-        inline virtual ComponentType GetType() const override { return GetStaticType(); }
         
         void OnIMGUI() override;
         

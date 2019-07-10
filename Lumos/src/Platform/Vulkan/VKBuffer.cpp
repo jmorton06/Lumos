@@ -20,7 +20,11 @@ namespace Lumos
 		{
 			if (m_Buffer)
 			{
-				vkDestroyBuffer(VKDevice::Instance()->GetDevice(), m_Buffer, nullptr);
+#ifdef USE_VMA_ALLOCATOR
+                vmaDestroyBuffer(VKDevice::Instance()->GetAllocator(), m_Buffer, m_Allocation);
+#else
+                vkDestroyBuffer(VKDevice::Instance()->GetDevice(), m_Buffer, nullptr);
+#endif
 			}
 
 			if (m_Memory)
@@ -36,7 +40,14 @@ namespace Lumos
 			bufferInfo.usage = usage;
 			bufferInfo.sharingMode = vk::SharingMode::eExclusive;
 
+            
+#ifdef USE_VMA_ALLOCATOR
+            VmaAllocationCreateInfo vmaAllocInfo = {};
+            vmaAllocInfo.usage = VMA_MEMORY_USAGE_CPU_TO_GPU;
+            vmaCreateBuffer(VKDevice::Instance()->GetAllocator(), (VkBufferCreateInfo*)&bufferInfo, &vmaAllocInfo, (VkBuffer*)&m_Buffer, &m_Allocation, nullptr);
+#else
 			m_Buffer = VKDevice::Instance()->GetDevice().createBuffer(bufferInfo);
+#endif
 
 			vk::MemoryRequirements memRequirements = VKDevice::Instance()->GetDevice().getBufferMemoryRequirements(m_Buffer);
 
@@ -47,12 +58,13 @@ namespace Lumos
 			vk::Result result = VKDevice::Instance()->GetDevice().allocateMemory(&allocInfo, nullptr, &m_Memory);
 			if (result != vk::Result::eSuccess)
 			{
-				throw std::runtime_error("failed to allocate buffer memory!");
+				LUMOS_CORE_ERROR("[VULKAN] Failed to allocate buffer memory!");
 			}
 
 			VKDevice::Instance()->GetDevice().bindBufferMemory(m_Buffer, m_Memory, 0);
 
-			SetData(size, data);
+			if(data != nullptr)
+				SetData(size, data);
 		}
 
 		void VKBuffer::SetData(uint32_t size, const void* data)

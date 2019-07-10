@@ -47,7 +47,7 @@ namespace Lumos
 			buffer->SetLayout(layout);
 
 			va->PushBuffer(buffer);
-			uint indices[6] = { 0, 1, 2, 2, 3, 0, };
+			u32 indices[6] = { 0, 1, 2, 2, 3, 0, };
 			std::shared_ptr<IndexBuffer> ib;
 			ib.reset(IndexBuffer::Create(indices, 6));
 
@@ -259,7 +259,7 @@ namespace Lumos
 			va->Bind();
 			va->PushBuffer(buffer);
 
-			uint indices[36]
+			u32 indices[36]
 			{
 				0,1,2,
 				0,2,3,
@@ -398,7 +398,7 @@ namespace Lumos
 			va->Bind();
 			va->PushBuffer(buffer);
 
-			uint indices[18]
+			u32 indices[18]
 			{
 				0,1,2,
 				3,4,5,
@@ -418,7 +418,7 @@ namespace Lumos
 			return new Mesh(va, ib, boundingSphere);
 		}
 
-		Mesh* CreateSphere(uint xSegments, uint ySegments)
+		Mesh* CreateSphere(u32 xSegments, u32 ySegments)
 		{
 			auto data = std::vector<Vertex>();
 
@@ -474,14 +474,14 @@ namespace Lumos
 			va->Bind();
 			va->PushBuffer(buffer);
 
-			std::vector<uint> indices;
-			uint k1, k2;
-			for (uint i = 0; i < stackCount; ++i)
+			std::vector<u32> indices;
+			u32 k1, k2;
+			for (u32 i = 0; i < stackCount; ++i)
 			{
-				k1 = i * (static_cast<uint>(sectorCount) + 1U);     // beginning of current stack
-				k2 = k1 + static_cast<uint>(sectorCount) + 1U;      // beginning of next stack
+				k1 = i * (static_cast<u32>(sectorCount) + 1U);     // beginning of current stack
+				k2 = k1 + static_cast<u32>(sectorCount) + 1U;      // beginning of next stack
 
-				for (uint j = 0; j < sectorCount; ++j, ++k1, ++k2)
+				for (u32 j = 0; j < sectorCount; ++j, ++k1, ++k2)
 				{
 					// 2 triangles per sector excluding first and last stacks
 					// k1 => k2 => k1+1
@@ -503,13 +503,13 @@ namespace Lumos
 			}
 
 			std::shared_ptr<IndexBuffer> ib;
-			ib.reset(IndexBuffer::Create(indices.data(), static_cast<uint>(indices.size())));
+			ib.reset(IndexBuffer::Create(indices.data(), static_cast<u32>(indices.size())));
 			std::shared_ptr<Maths::BoundingSphere> boundingSphere = std::make_shared<Maths::BoundingSphere>();
 
 			return new Mesh(va, ib, boundingSphere);
 		}
 
-		Mesh* CreateIcoSphere(uint radius, uint subdivision, std::shared_ptr<Material> material)
+		Mesh* CreateIcoSphere(u32 radius, u32 subdivision, std::shared_ptr<Material> material)
 		{
 			return nullptr;
 		}
@@ -559,7 +559,7 @@ namespace Lumos
 			va.reset(VertexArray::Create());
 			va->PushBuffer(buffer);
 
-			uint indices[6]
+			u32 indices[6]
 			{
 					0, 1, 2,
 					2, 3, 0

@@ -4,6 +4,10 @@
 #include "Graphics/API/GraphicsContext.h"
 #include "VKContext.h"
 
+#ifdef USE_VMA_ALLOCATOR
+#include "vk_mem_alloc.h"
+#endif
+
 namespace Lumos
 {
 	namespace Graphics
@@ -11,27 +15,27 @@ namespace Lumos
 		class VKTexture2D : public Texture2D
 		{
 		public:
-			VKTexture2D(uint width, uint height, void* data, TextureParameters parameters = TextureParameters(), TextureLoadOptions loadOptions = TextureLoadOptions());
+			VKTexture2D(u32 width, u32 height, void* data, TextureParameters parameters = TextureParameters(), TextureLoadOptions loadOptions = TextureLoadOptions());
 			VKTexture2D(const String& name, const String& filename, TextureParameters parameters = TextureParameters(), TextureLoadOptions loadOptions = TextureLoadOptions());
             VKTexture2D(vk::Image image, vk::ImageView imageView);
 			VKTexture2D();
 			~VKTexture2D();
 
-			void Bind(uint slot = 0) const override;
-			void Unbind(uint slot = 0) const override;
+			void Bind(u32 slot = 0) const override;
+			void Unbind(u32 slot = 0) const override;
             static vk::Format TextureFormatToVK(TextureFormat);
 
 			virtual void SetData(const void* pixels) override {};
 
 			virtual void* GetHandle() const override { return (void*)&m_Descriptor; }
 
-			inline uint GetWidth() const override { return m_Width; }
-			inline uint GetHeight() const override { return m_Height; }
+			inline u32 GetWidth() const override { return m_Width; }
+			inline u32 GetHeight() const override { return m_Height; }
 
 			inline const String& GetName() const override { return m_Name; }
 			inline const String& GetFilepath() const override { return m_FileName; }
 
-			void BuildTexture(TextureFormat internalformat, uint width, uint height, bool depth, bool samplerShadow) override;
+			void BuildTexture(TextureFormat internalformat, u32 width, u32 height, bool depth, bool samplerShadow) override;
 
 			void CreateTextureSampler();
             void CreateImage(uint32_t width, uint32_t height,uint32_t mipLevels, vk::Format format, vk::ImageTiling tiling,
@@ -53,10 +57,10 @@ namespace Lumos
         private:
             String m_Name;
             String m_FileName;
-            uint m_Handle;
-            uint m_Width, m_Height;
-            uint m_MipLevels = 1;
-            byte* m_Data = nullptr;
+            u32 m_Handle;
+            u32 m_Width, m_Height;
+            u32 m_MipLevels = 1;
+            u8* m_Data = nullptr;
             
             TextureParameters m_Parameters;
             TextureLoadOptions m_LoadOptions;
@@ -67,6 +71,10 @@ namespace Lumos
             vk::ImageView m_TextureImageView;// = nullptr;
             vk::Sampler m_TextureSampler;// = nullptr;
             vk::DescriptorImageInfo m_Descriptor;
+            
+#ifdef USE_VMA_ALLOCATOR
+            VmaAllocation m_Allocation;
+#endif
             
             bool m_DeleteImage = true;
 		};

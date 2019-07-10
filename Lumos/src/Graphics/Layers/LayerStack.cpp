@@ -49,7 +49,7 @@ namespace Lumos
 
 	void LayerStack::OnRender(Scene * scene)
 	{
-		for (uint i = 0; i < m_Layers.size(); i++)
+		for (u32 i = 0; i < m_Layers.size(); i++)
 		{
 			Layer* layer = m_Layers[i];
 			layer->OnRender(scene);
@@ -58,7 +58,7 @@ namespace Lumos
 
 	void LayerStack::OnUpdate(TimeStep* timeStep, Scene* scene)
 	{
-		for (uint i = 0; i < m_Layers.size(); i++)
+		for (u32 i = 0; i < m_Layers.size(); i++)
 		{
 			Layer* layer = m_Layers[i];
 			layer->OnUpdate(timeStep, scene);
@@ -67,7 +67,7 @@ namespace Lumos
 
 	void LayerStack::OnEvent(Event& e)
 	{
-        for (uint i = 0; i < m_Layers.size(); i++)
+        for (u32 i = 0; i < m_Layers.size(); i++)
 		{
 			Layer* layer = m_Layers[i];
 			layer->OnEvent(e);
@@ -79,7 +79,7 @@ namespace Lumos
 
 	void LayerStack::OnIMGUI()
 	{
-		for (uint i = 0; i < m_Layers.size(); i++)
+		for (u32 i = 0; i < m_Layers.size(); i++)
 		{
 			Layer* layer = m_Layers[i];
 			layer->OnIMGUI();

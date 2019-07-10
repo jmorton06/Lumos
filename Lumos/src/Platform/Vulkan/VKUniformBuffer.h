@@ -3,11 +3,15 @@
 #include "VKBuffer.h"
 #include "Graphics/API/UniformBuffer.h"
 
+#ifdef USE_VMA_ALLOCATOR
+#include "vk_mem_alloc.h"
+#endif
+
 namespace Lumos
 {
 	namespace Graphics
 	{
-		class VKUniformBuffer : public UniformBuffer
+		class VKUniformBuffer : public UniformBuffer, public VKBuffer
 		{
 		public:
 			VKUniformBuffer(uint32_t size, const void* data);
@@ -23,12 +27,11 @@ namespace Lumos
 			vk::DescriptorBufferInfo GetBufferInfo() const { return m_DesciptorBufferInfo; };
 			vk::DeviceMemory* GetMemory() { return &m_Memory; }
 
-			byte* GetBuffer() const override { return nullptr; };
-
-		protected:
-			vk::Buffer m_Buffer{};
-			vk::DeviceMemory m_Memory{};
-			vk::DescriptorBufferInfo m_DesciptorBufferInfo;
+			u8* GetBuffer() const override { return nullptr; };
+            
+#ifdef USE_VMA_ALLOCATOR
+            VmaAllocation m_Allocation;
+#endif
 		};
 	}
 }

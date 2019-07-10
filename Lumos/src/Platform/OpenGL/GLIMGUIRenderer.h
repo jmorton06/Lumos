@@ -10,13 +10,13 @@ namespace Lumos
 		class GLIMGUIRenderer : public IMGUIRenderer
 		{
         public:
-            GLIMGUIRenderer(uint width, uint height, bool clearScreen);
+            GLIMGUIRenderer(u32 width, u32 height, bool clearScreen);
             ~GLIMGUIRenderer();
 
             void Init() override;
             void NewFrame() override;
             void Render(Lumos::Graphics::CommandBuffer* commandBuffer) override;
-            void OnResize(uint width, uint height) override;
+            void OnResize(u32 width, u32 height) override;
 			bool Implemented() const override { return true; }
 
 		private:

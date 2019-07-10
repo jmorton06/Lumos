@@ -7,7 +7,7 @@ namespace Lumos
 {
 	namespace Graphics
 	{
-		uint QueryTypeToGL(const QueryType type)
+		u32 QueryTypeToGL(const QueryType type)
 		{
 			switch (type)
 			{
@@ -42,12 +42,12 @@ namespace Lumos
 			glEndQuery(m_QueryType);
 		}
 
-		uint GLQuery::GetResult()
+		u32 GLQuery::GetResult()
 		{
 			int SamplesPassed = 0;
 			GLCall(glGetQueryObjectiv(m_Handle, GL_QUERY_RESULT, &SamplesPassed));
 			m_InUse = false;
-			return static_cast<uint>(SamplesPassed);
+			return static_cast<u32>(SamplesPassed);
 		}
 
 		bool GLQuery::GetResultReady()

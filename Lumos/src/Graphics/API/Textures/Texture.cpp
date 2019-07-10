@@ -8,7 +8,7 @@ namespace Lumos
 		TextureWrap Texture::s_WrapMode = TextureWrap::REPEAT;
 		TextureFilter Texture::s_FilterMode = TextureFilter::LINEAR;
 
-		byte Texture::GetStrideFromFormat(const TextureFormat format)
+		u8 Texture::GetStrideFromFormat(const TextureFormat format)
 		{
 			switch (format)
 			{

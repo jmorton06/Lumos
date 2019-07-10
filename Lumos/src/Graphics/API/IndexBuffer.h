@@ -15,12 +15,12 @@ namespace Lumos
 			virtual void Bind() const = 0;
 			virtual void Unbind() const = 0;
 
-			virtual uint GetCount() const = 0;
-			virtual uint GetSize() const { return 0; }
-			virtual void SetCount(uint m_index_count) = 0;
+			virtual u32 GetCount() const = 0;
+			virtual u32 GetSize() const { return 0; }
+			virtual void SetCount(u32 m_index_count) = 0;
 		public:
-			static IndexBuffer* Create(uint16* data, uint count, BufferUsage bufferUsage = BufferUsage::STATIC);
-			static IndexBuffer* Create(uint* data, uint count, BufferUsage bufferUsage = BufferUsage::STATIC);
+			static IndexBuffer* Create(uint16* data, u32 count, BufferUsage bufferUsage = BufferUsage::STATIC);
+			static IndexBuffer* Create(u32* data, u32 count, BufferUsage bufferUsage = BufferUsage::STATIC);
 		};
 	}
 }

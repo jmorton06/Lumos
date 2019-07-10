@@ -4,7 +4,11 @@
 #include "Graphics/Material.h"
 #include "Maths/BoundingSphere.h"
 #include "Entity/Entity.h"
+#include "Entity/EntityManager.h"
 #include "Entity/Component/MeshComponent.h"
+#include "Entity/Component/MaterialComponent.h"
+#include "Entity/Component/TransformComponent.h"
+
 #include "Graphics/API/Textures/Texture2D.h"
 #include "Utilities/AssetsManager.h"
 #include "Maths/MathsUtilities.h"
@@ -236,9 +240,9 @@ namespace Lumos
         {
             const tinygltf::Accessor &indices = model.accessors[primitive.indices];
             
-            const uint numVertices = static_cast<uint>(indices.count);
+            const u32 numVertices = static_cast<u32>(indices.count);
 			Graphics::Vertex* tempvertices = new Graphics::Vertex[numVertices];
-            uint* indicesArray = new uint[numVertices];
+            u32* indicesArray = new u32[numVertices];
             
             size_t maxNumVerts = 0;
             
@@ -258,7 +262,7 @@ namespace Lumos
                 int bufferLength = static_cast<int>(accessor.count) * componentLength * componentTypeByteSize;
                 auto first = buffer.data.begin() + bufferOffset;
                 auto last = buffer.data.begin() + bufferOffset + bufferLength;
-                std::vector<byte> data = std::vector<byte>(first, last);
+                std::vector<u8> data = std::vector<u8>(first, last);
                 
                 // -------- Position attribute -----------
                 
@@ -360,7 +364,7 @@ namespace Lumos
                 int bufferLength = static_cast<int>(indexAccessor.count) * componentLength * componentTypeByteSize;
                 auto first = indexBuffer.data.begin() + bufferOffset;
                 auto last = indexBuffer.data.begin() + bufferOffset + bufferLength;
-                std::vector<byte> data = std::vector<byte>(first, last);
+                std::vector<u8> data = std::vector<u8>(first, last);
                 
                 size_t indicesCount = indexAccessor.count;
                 if (componentTypeByteSize == 2)
@@ -407,11 +411,11 @@ namespace Lumos
         auto name = node.name;
         if(name == "")
             name = "Mesh : " + StringFormat::ToString(nodeIndex);
-        auto meshEntity = std::make_shared<Entity>(name);
+        auto meshEntity = EntityManager::Instance()->CreateEntity(name);
         meshEntity->AddComponent<TransformComponent>();
         
         if(parent)
-            parent->AddChildObject(meshEntity);
+            parent->AddChild(meshEntity);
         
         if(node.mesh >= 0)
         {
@@ -455,12 +459,12 @@ namespace Lumos
         {
             for (int child : node.children)
             {
-                LoadNode(child, meshEntity.get(), model, materials, meshes);
+                LoadNode(child, meshEntity, model, materials, meshes);
             }
         }
     }
 
-    std::shared_ptr<Entity> ModelLoader::LoadGLTF(const String& path)
+    Entity* ModelLoader::LoadGLTF(const String& path)
 	{
 		tinygltf::Model model;
 		tinygltf::TinyGLTF loader;
@@ -504,7 +508,7 @@ namespace Lumos
         
         String name = directory.substr(directory.find_last_of('/') + 1);
 
-		auto entity = std::make_shared<Entity>(name);
+		auto entity = EntityManager::Instance()->CreateEntity(name);
 		entity->AddComponent<TransformComponent>();
 
         auto meshes = std::vector<Graphics::Mesh*>();
@@ -517,7 +521,7 @@ namespace Lumos
         const tinygltf::Scene &gltfScene = model.scenes[Maths::Max(0, model.defaultScene)];
         for (size_t i = 0; i < gltfScene.nodes.size(); i++)
         {
-            LoadNode(gltfScene.nodes[i], entity.get(), model, LoadedMaterials, meshes);
+            LoadNode(gltfScene.nodes[i], entity, model, LoadedMaterials, meshes);
         }
         
 		return entity;

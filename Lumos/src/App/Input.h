@@ -27,15 +27,15 @@ namespace Lumos
 		Input();
 		virtual ~Input() {}
 
-		bool GetKeyPressed(uint key)   const { return m_KeyPressed[key]; }
-		bool GetKeyHeld(uint key)      const { return m_KeyHeld[key]; }
-		bool GetMouseClicked(uint key) const { return m_MouseClicked[key]; }
-		bool GetMouseHeld(uint key)    const { return m_MouseHeld[key]; }
+		bool GetKeyPressed(u32 key)   const { return m_KeyPressed[key]; }
+		bool GetKeyHeld(u32 key)      const { return m_KeyHeld[key]; }
+		bool GetMouseClicked(u32 key) const { return m_MouseClicked[key]; }
+		bool GetMouseHeld(u32 key)    const { return m_MouseHeld[key]; }
 
-		void SetKeyPressed(uint key, bool a)   { m_KeyPressed[key] = a; }
-		void SetKeyHeld(uint key, bool a)	   { m_KeyHeld[key] = a; }
-		void SetMouseClicked(uint key, bool a) { m_MouseClicked[key] = a; }
-		void SetMouseHeld(uint key, bool a)    { m_MouseHeld[key] = a; }
+		void SetKeyPressed(u32 key, bool a)   { m_KeyPressed[key] = a; }
+		void SetKeyHeld(u32 key, bool a)	   { m_KeyHeld[key] = a; }
+		void SetMouseClicked(u32 key, bool a) { m_MouseClicked[key] = a; }
+		void SetMouseHeld(u32 key, bool a)    { m_MouseHeld[key] = a; }
 
 		void SetMouseOnScreen(bool onScreen){ m_MouseOnScreen = onScreen; }
 		bool GetMouseOnScreen() const { return m_MouseOnScreen; }

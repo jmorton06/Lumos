@@ -10,7 +10,7 @@ namespace Lumos
 {
     namespace Graphics
     {
-        GLIMGUIRenderer::GLIMGUIRenderer(uint width, uint height, bool clearScreen): m_WindowHandle(nullptr)
+        GLIMGUIRenderer::GLIMGUIRenderer(u32 width, u32 height, bool clearScreen): m_WindowHandle(nullptr)
         {
 	        m_ClearScreen = clearScreen;
 	        ImGui_ImplOpenGL3_Init("#version 410");
@@ -41,7 +41,7 @@ namespace Lumos
             ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
         }
 
-        void GLIMGUIRenderer::OnResize(uint width, uint height)
+        void GLIMGUIRenderer::OnResize(u32 width, u32 height)
         {
             
         }

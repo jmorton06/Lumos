@@ -19,7 +19,7 @@ namespace Lumos
 	struct LUMOS_EXPORT RenderList_Object
 	{
 		float cam_dist_sq;
-		std::weak_ptr<Entity> target_obj;
+		Entity* target_obj;
 	};
 
 	class LUMOS_EXPORT RenderList
@@ -44,10 +44,10 @@ namespace Lumos
 		void RemoveExcessObjects(const Maths::Frustum& frustum);
 
 		//Called when object moves inside the frustum (Inserts via insertion sort)
-		void InsertObject(std::shared_ptr<Entity>& obj);
+		void InsertObject(Entity* obj);
 
 		//Misc. Removes a single object from the list, in general just call 'RemoveExcessObjects' and let it remove the object automatically
-		void RemoveObject(std::shared_ptr<Entity>& obj);
+		void RemoveObject(Entity* obj);
 
 		//Clears the entire list
 		void RemoveAllObjects();
@@ -59,19 +59,19 @@ namespace Lumos
 		void RenderTransparentObjects(const std::function<void(Entity*)>& per_object_func);
 
 		//Get the bitmask set per Object in the list
-		uint BitMask() const { return m_BitMask; }
+		u32 BitMask() const { return m_BitMask; }
 
 		int GetOpaqueListSize() const { return static_cast<int>(m_vRenderListOpaque.size()); }
 		int GetTransparentListSize() const { return static_cast<int>(m_vRenderListTransparent.size()); }
 
 	protected:
 		//Keeps a list of the number of unique render lists as to enforce and maintain the hard limit on 32 renderlists.
-		static uint g_NumRenderLists;
+		static u32 g_NumRenderLists;
 
-		uint m_NumElementsChanged;
+		u32 m_NumElementsChanged;
 
-		//Bit mask for renderlist, uint leads to 32 booleans (1's or 0's) thus there is a hardlimit of 31 shadow maps along with the main camera render list.
-		uint m_BitMask;
+		//Bit mask for renderlist, u32 leads to 32 booleans (1's or 0's) thus there is a hardlimit of 31 shadow maps along with the main camera render list.
+		u32 m_BitMask;
 
 		//If false - all transparent objects will be ignored (maybe shadow render passes?)
 		bool m_SupportsTransparancy;

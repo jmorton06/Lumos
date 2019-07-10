@@ -9,6 +9,8 @@
 
 #include "Maths/BoundingSphere.h"
 #include "Entity/Entity.h"
+#include "Entity/Component/Components.h"
+#include "Entity/SystemManager.h"
 #include "Physics/LumosPhysicsEngine/LumosPhysicsEngine.h"
 
 #include "Graphics/GBuffer.h"
@@ -21,10 +23,11 @@
 #include <imgui/imgui.h>
 #include <imgui/imgui_internal.h>
 #include <imgui/plugins/ImGuizmo.h>
+#include <IconFontCppHeaders/IconsFontAwesome5.h>
 
 namespace Lumos
 {
-	Editor::Editor(Application* app, uint width, uint height) : m_Application(app)
+	Editor::Editor(Application* app, u32 width, u32 height) : m_Application(app)
 	{
 		m_Console = new Console();
 		LMLog::GetCoreLogger()->sinks().emplace_back(std::make_shared<ConsoleSink>(*m_Console));
@@ -84,17 +87,60 @@ namespace Lumos
 				if (ImGui::MenuItem("Inspector", "")) {}
 				ImGui::EndMenu();
 			}
+            
+            if (ImGui::BeginMenu("Scenes"))
+            {
+                auto scenes = Application::Instance()->GetSceneManager()->GetSceneNames();
+                
+                for(size_t i = 0; i < scenes.size(); i++)
+                {
+                    auto name = scenes[i];
+                    if (ImGui::MenuItem(name.c_str()))
+                    {
+                        Application::Instance()->GetSceneManager()->SwitchScene(name);
+                    }
+                }
+                ImGui::EndMenu();
+            }
 
-            bool flipImage = Graphics::GraphicsContext::GetContext()->FlipImGUITexture();
 			ImGui::SameLine(ImGui::GetWindowContentRegionMax().x / 2.0f);
-			if (ImGui::ImageButton(m_Icons["play"]->GetHandle(), ImVec2(16, 16), ImVec2(0.0f, flipImage ? 1.0f : 0.0f), ImVec2(1.0f, flipImage ? 0.0f : 1.0f)))
-				m_Application->SetEditorState(EditorState::Play);
-			
-			if (ImGui::ImageButton(m_Icons["pause"]->GetHandle(), ImVec2(16, 16), ImVec2(0.0f, flipImage ? 1.0f : 0.0f), ImVec2(1.0f, flipImage ? 0.0f : 1.0f)))
-				m_Application->SetEditorState(EditorState::Paused);
 
-			if (ImGui::ImageButton(m_Icons["next"]->GetHandle(), ImVec2(16, 16), ImVec2(0.0f, flipImage ? 1.0f : 0.0f), ImVec2(1.0f, flipImage ? 0.0f : 1.0f)))
-				m_Application->SetEditorState(EditorState::Next);
+			bool selected = false;
+			{
+				selected = m_Application->GetEditorState() == EditorState::Play;
+				if (selected)
+					ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.1f, 0.2f, 0.7f, 1.0f));
+
+				if (ImGui::Button(ICON_FA_PLAY, ImVec2(28.0f, 28.0f)))
+					m_Application->SetEditorState(EditorState::Play);
+
+				if (selected)
+					ImGui::PopStyleColor();
+			}
+
+			{
+				selected = m_Application->GetEditorState() == EditorState::Paused;
+				if (selected)
+					ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.1f, 0.2f, 0.7f, 1.0f));
+
+				if (ImGui::Button(ICON_FA_PAUSE, ImVec2(28.0f, 28.0f)))
+					m_Application->SetEditorState(EditorState::Paused);
+
+				if (selected)
+					ImGui::PopStyleColor();
+			}
+
+			{
+				selected = m_Application->GetEditorState() == EditorState::Next;
+				if (selected)
+					ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.1f, 0.2f, 0.7f, 1.0f));
+
+				if (ImGui::Button(ICON_FA_STEP_FORWARD, ImVec2(28.0f, 28.0f)))
+					m_Application->SetEditorState(EditorState::Next);
+
+				if (selected)
+					ImGui::PopStyleColor();
+			}
 
 			ImGui::SameLine(ImGui::GetWindowContentRegionMax().x - 330.0f);
 			ImGui::Text("Application average %.3f ms/frame (%i FPS)", 1000.0f / (float)Engine::Instance()->GetFPS(), Engine::Instance()->GetFPS());
@@ -103,38 +149,60 @@ namespace Lumos
 		}
 	}
     
-    void Editor::DrawNode(std::shared_ptr<Entity>& node)
+    void Editor::DrawNode(Entity* node)
     {
         if (node == nullptr)
             return;
         
-        if(node->GetChildren().empty())
+        bool noChildren = node->GetChildren().empty();
+        
+        ImGuiTreeNodeFlags nodeFlags = ((m_Selected == node) ? ImGuiTreeNodeFlags_Selected : 0);
+        
+        nodeFlags |= ImGuiTreeNodeFlags_OpenOnArrow | ImGuiTreeNodeFlags_OpenOnDoubleClick;
+        
+        if(noChildren)
         {
-            ImGui::Indent();
-            if(ImGui::Selectable((node->GetName() + " ##" + node->GetUUID()).c_str(), m_Selected == node.get()))
-               m_Selected = node.get();
-            ImGui::Unindent();
+            nodeFlags |= ImGuiTreeNodeFlags_Leaf;
         }
-        else
+        
+		String icon(ICON_FA_CUBE);
+        bool nodeOpen = ImGui::TreeNodeEx(("##" + node->GetUUID()).c_str(), nodeFlags, (icon + " " + node->GetName()).c_str(), 0);
+
+		if (ImGui::BeginDragDropSource(ImGuiDragDropFlags_None))
+		{
+			auto ptr = node;
+			ImGui::SetDragDropPayload("Drag_Entity", &ptr, sizeof(Entity**));
+			ImGui::Text("Moving %s", node->GetName().c_str());
+			ImGui::EndDragDropSource();
+		}
+
+		if (ImGui::BeginDragDropTarget())
+		{
+			if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("Drag_Entity"))
+			{
+				LUMOS_ASSERT(payload->DataSize == sizeof(Entity**), "Error ImGUI drag entity");
+				auto entity = *reinterpret_cast<Entity**>(payload->Data);
+				node->AddChild(entity);
+
+				if (m_Selected == entity)
+					m_Selected = nullptr;
+			}
+			ImGui::EndDragDropTarget();
+		}
+
+        if (ImGui::IsItemClicked())
+            m_Selected = node;
+        
+        if (nodeOpen == false)
+            return;
+        
+        for (auto child : node->GetChildren())
         {
-            ImGuiTreeNodeFlags nodeFlags = ((m_Selected == node.get()) ? ImGuiTreeNodeFlags_Selected : 0);
-            
-            nodeFlags |= ImGuiTreeNodeFlags_OpenOnArrow | ImGuiTreeNodeFlags_OpenOnDoubleClick;
-            bool nodeOpen = ImGui::TreeNodeEx(("##" + node->GetUUID()).c_str(), nodeFlags, node->GetName().c_str(), 0);
-            if (ImGui::IsItemClicked())
-                m_Selected = node.get();
-            
-            if (nodeOpen == false)
-                return;
-            
-            for (auto child : node->GetChildren())
-            {
-                this->DrawNode(child);
-            }
-            
-            if(nodeOpen)
-                ImGui::TreePop();
+            this->DrawNode(child);
         }
+        
+        if(nodeOpen)
+            ImGui::TreePop();
     }
 
 	void Editor::DrawHierarchyWindow()
@@ -144,24 +212,52 @@ namespace Lumos
 			if (ImGui::TreeNode("Application"))
 			{
                 bool flipImage = Graphics::GraphicsContext::GetContext()->FlipImGUITexture();
-				if (ImGui::ImageButton(m_Icons["translate"]->GetHandle(), ImVec2(24, 24), ImVec2(0.0f, flipImage ? 1.0f : 0.0f), ImVec2(1.0f, flipImage ? 0.0f : 1.0f)))
-					m_ImGuizmoOperation = ImGuizmo::TRANSLATE;
-				ImGui::SameLine();
-				if (ImGui::ImageButton(m_Icons["rotate"]->GetHandle(), ImVec2(24, 24), ImVec2(0.0f, flipImage ? 1.0f : 0.0f), ImVec2(1.0f, flipImage ? 0.0f : 1.0f)))
-					m_ImGuizmoOperation = ImGuizmo::ROTATE;
-				ImGui::SameLine();
-				if (ImGui::ImageButton(m_Icons["scale"]->GetHandle(), ImVec2(24, 24), ImVec2(0.0f, flipImage ? 1.0f : 0.0f), ImVec2(1.0f, flipImage ? 0.0f : 1.0f)))
-					m_ImGuizmoOperation = ImGuizmo::SCALE;
+				bool selected = false;
+				{
+					selected = m_ImGuizmoOperation == ImGuizmo::TRANSLATE;
+					if (selected)
+						ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.7f, 0.7f, 0.7f, 1.0f));
+
+					if (ImGui::Button(ICON_FA_ARROWS_ALT, ImVec2(28.0f, 28.0f)))
+						m_ImGuizmoOperation = ImGuizmo::TRANSLATE;
+
+					if (selected)
+						ImGui::PopStyleColor();
+				}
+
+				{
+					selected = m_ImGuizmoOperation == ImGuizmo::ROTATE;
+					if (selected)
+						ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.7f, 0.7f, 0.7f, 1.0f));
+
+					ImGui::SameLine();
+					if (ImGui::Button(ICON_FA_SYNC, ImVec2(28.0f, 28.0f)))
+						m_ImGuizmoOperation = ImGuizmo::ROTATE;
+
+					if (selected)
+						ImGui::PopStyleColor();
+				}
+
+				{
+					selected = m_ImGuizmoOperation == ImGuizmo::SCALE;
+					if (selected)
+						ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.7f, 0.7f, 0.7f, 1.0f));
+
+					ImGui::SameLine();
+					if (ImGui::Button(ICON_FA_EXPAND_ARROWS_ALT, ImVec2(28.0f, 28.0f)))
+						m_ImGuizmoOperation = ImGuizmo::SCALE;
+
+					if (selected)
+						ImGui::PopStyleColor();
+				}
 
 				ImGui::NewLine();
-				auto systems = Application::Instance()->GetSystems();
+				
+				auto systems = Application::Instance()->GetSystemManager();
 
 				if (ImGui::TreeNode("Systems"))
 				{
-					for (auto System : systems)
-					{
-						System->OnIMGUI();
-					}
+					systems->OnImGUI();
 					ImGui::TreePop();
 				}
 
@@ -253,37 +349,15 @@ namespace Lumos
 		ImGui::End();
 	}
 
-	void Editor::DrawEngineInfoWindow()
-	{
-		ImGuiWindowFlags window_flags = 0;
-		ImGui::Begin("Engine", NULL, window_flags);
-		{
-            bool flipImage = Graphics::GraphicsContext::GetContext()->FlipImGUITexture();
-            
-			if (ImGui::ImageButton(m_Icons["translate"]->GetHandle(), ImVec2(16, 16), ImVec2(0.0f, flipImage ? 1.0f : 0.0f), ImVec2(1.0f, flipImage ? 0.0f : 1.0f)))
-				m_ImGuizmoOperation = ImGuizmo::TRANSLATE;
-			ImGui::SameLine();
-			if (ImGui::ImageButton(m_Icons["rotate"]->GetHandle(), ImVec2(16, 16), ImVec2(0.0f, flipImage ? 1.0f : 0.0f), ImVec2(1.0f, flipImage ? 0.0f : 1.0f)))
-				m_ImGuizmoOperation = ImGuizmo::ROTATE;
-			ImGui::SameLine();
-			if (ImGui::ImageButton(m_Icons["scale"]->GetHandle(), ImVec2(16, 16), ImVec2(0.0f, flipImage ? 1.0f : 0.0f), ImVec2(1.0f, flipImage ? 0.0f : 1.0f)))
-				m_ImGuizmoOperation = ImGuizmo::SCALE;
-
-			ImGui::NewLine();
-			ImGui::Text("FPS : %5.2i", Engine::Instance()->GetFPS());
-			ImGui::Text("UPS : %5.2i", Engine::Instance()->GetUPS());
-			ImGui::Text("Frame Time : %5.2f ms", Engine::Instance()->GetFrametime());
-			ImGui::NewLine();
-			ImGui::Text("Scene : %s", m_Application->m_SceneManager->GetCurrentScene()->GetSceneName().c_str());
-		}
-		ImGui::End();
-	}
-
 	void Editor::DrawInspectorWindow()
 	{
 		ImGui::Begin("Inspector", NULL, 0);
+        
 		if (m_Selected)
-			m_Selected->OnIMGUI();
+        {
+            m_Selected->OnIMGUI();
+        }
+
 		ImGui::End();
 	}
 
@@ -310,6 +384,20 @@ namespace Lumos
         
 		ImGuizmo::SetRect(ImGui::GetWindowPos().x, ImGui::GetWindowPos().y, static_cast<float>(width), static_cast<float>(height));
 		ImGui::Image(m_Application->m_RenderManager->GetGBuffer()->GetTexture(Graphics::SCREENTEX_OFFSCREEN0)->GetHandle(), ImVec2(static_cast<float>(width), static_cast<float>(height)), ImVec2(0.0f, flipImage ? 1.0f : 0.0f), ImVec2(1.0f, flipImage ? 0.0f : 1.0f));
+
+		if (m_ShowGrid)
+		{
+			Maths::Matrix4 view = Application::Instance()->GetSceneManager()->GetCurrentScene()->GetCamera()->GetViewMatrix();
+			Maths::Matrix4 proj = Application::Instance()->GetSceneManager()->GetCurrentScene()->GetCamera()->GetProjectionMatrix();
+			Maths::Matrix4 identityMatrix;
+
+#ifdef LUMOS_RENDER_API_VULKAN
+			if (Graphics::GraphicsContext::GetRenderAPI() == Graphics::RenderAPI::VULKAN)
+				proj[5] *= -1.0f;
+#endif
+
+			ImGuizmo::DrawGrid(view.values, proj.values, identityMatrix.values, m_GridSize);
+		}	
 
 		if (m_Selected)
 		{
@@ -352,13 +440,14 @@ namespace Lumos
 			ImGui::DockBuilderRemoveNode(dockspace_id);
 			ImGui::DockBuilderAddNode(dockspace_id);
 
-			ImGuiID dock_main_id = dockspace_id; 
-			ImGuiID dock_id_bottom = ImGui::DockBuilderSplitNode(dock_main_id, ImGuiDir_Down, 0.2f, nullptr, &dock_main_id);
-			ImGuiID dock_id_left = ImGui::DockBuilderSplitNode(dock_main_id, ImGuiDir_Left, 0.2f, nullptr, &dock_main_id);
-			ImGuiID dock_id_right = ImGui::DockBuilderSplitNode(dock_main_id, ImGuiDir_Right, 0.3f, nullptr, &dock_main_id);
+			ImGuiID dock_main_id    = dockspace_id;
+			ImGuiID dock_id_bottom  = ImGui::DockBuilderSplitNode(dock_main_id, ImGuiDir_Down, 0.2f, nullptr, &dock_main_id);
+			ImGuiID dock_id_left    = ImGui::DockBuilderSplitNode(dock_main_id, ImGuiDir_Left, 0.2f, nullptr, &dock_main_id);
+            ImGuiID dock_id_right  = ImGui::DockBuilderSplitNode(dock_main_id, ImGuiDir_Right, 0.3f, nullptr, &dock_main_id);
+			ImGuiID dock_id_middle   = ImGui::DockBuilderSplitNode(dock_main_id, ImGuiDir_Right, 0.8f, nullptr, &dock_main_id);
 
-			ImGui::DockBuilderDockWindow("Scene", dock_id_right);
-			ImGui::DockBuilderDockWindow("Inspector", dock_id_left);
+			ImGui::DockBuilderDockWindow("Scene", dock_id_middle);
+			ImGui::DockBuilderDockWindow("Inspector", dock_id_right);
 			ImGui::DockBuilderDockWindow("Hierarchy", dock_id_left);
 			ImGui::DockBuilderDockWindow("Console", dock_id_bottom);
 			ImGui::DockBuilderDockWindow("Engine", dock_id_left);
@@ -404,13 +493,13 @@ namespace Lumos
 
 		Maths::Vector3 worldMousePos = invProjView * Maths::Vector3(pointX, pointY, 0.0f);
 
-		m_Application->m_SceneManager->GetCurrentScene()->IterateEntities([&](std::shared_ptr<Entity> entity)
+		m_Application->m_SceneManager->GetCurrentScene()->IterateEntities([&](Entity* entity)
 		{
 			auto boundingBox = entity->GetBoundingRadius();
 			Maths::BoundingSphere test(entity->GetTransformComponent()->GetTransform().GetWorldPosition(), boundingBox);
 			if (test.Intersects(worldMousePos))
 			{
-				m_Selected = entity.get();
+				m_Selected = entity;
 				return;
 			}
 		});
@@ -418,16 +507,6 @@ namespace Lumos
 
 	void Editor::OnInit()
 	{
-		//Load Icons
-		m_Icons["play"] = Graphics::Texture2D::CreateFromFile("playIcon", "/CoreTextures/Editor/icons/play.png");
-		m_Icons["pause"] = Graphics::Texture2D::CreateFromFile("pauseIcon", "/CoreTextures/Editor/icons/pause.png");
-		m_Icons["next"] = Graphics::Texture2D::CreateFromFile("nextIcon", "/CoreTextures/Editor/icons/next.png");
-
-		m_Icons["translate"] = Graphics::Texture2D::CreateFromFile("translateIcon", "/CoreTextures/Editor/icons/translate.png");
-		m_Icons["scale"] = Graphics::Texture2D::CreateFromFile("scaleIcon", "/CoreTextures/Editor/icons/scale.png");
-		m_Icons["rotate"] = Graphics::Texture2D::CreateFromFile("rotateIcon", "/CoreTextures/Editor/icons/rotate.png");
-
-
 	}
 
 	void Editor::OnNewScene(Scene * scene)

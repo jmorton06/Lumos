@@ -3,7 +3,9 @@
 #include "Graphics/Mesh.h"
 #include "Graphics/Material.h"
 #include "Entity/Entity.h"
+#include "Entity/EntityManager.h"
 #include "Entity/Component/MeshComponent.h"
+#include "Entity/Component/MaterialComponent.h"
 #include "Graphics/API/Textures/Texture2D.h"
 #include "Maths/BoundingSphere.h"
 #include "Utilities/AssetsManager.h"
@@ -18,7 +20,7 @@ namespace Lumos
 
 	std::shared_ptr<Graphics::Texture2D> LoadMaterialTextures(const String& typeName, std::vector<std::shared_ptr<Graphics::Texture2D>>& textures_loaded, const String& name, const String& directory, Graphics::TextureParameters format)
 	{
-		for (uint j = 0; j < textures_loaded.size(); j++)
+		for (u32 j = 0; j < textures_loaded.size(); j++)
 		{
 			if (std::strcmp(textures_loaded[j]->GetFilepath().c_str(), (directory + "/" + name).c_str()) == 0)
 			{
@@ -35,7 +37,7 @@ namespace Lumos
 		}
 	}
 
-	std::shared_ptr<Entity> ModelLoader::LoadOBJ(const String& path)
+	Entity* ModelLoader::LoadOBJ(const String& path)
 	{
 		String resolvedPath = path;
 		tinyobj::attrib_t attrib;
@@ -59,21 +61,21 @@ namespace Lumos
 			LUMOS_CORE_ERROR(error);
 		}
 
-		auto entity = std::make_shared<Entity>(name);
+		auto entity = EntityManager::Instance()->CreateEntity(name);
 
 		for (const auto& shape : shapes)
 		{
-			uint vertexCount = 0;
-			const uint numIndices = static_cast<uint>(shape.mesh.indices.size());
-			const uint numVertices = numIndices;// attrib.vertices.size();// numIndices / 3.0f;
+			u32 vertexCount = 0;
+			const u32 numIndices = static_cast<u32>(shape.mesh.indices.size());
+			const u32 numVertices = numIndices;// attrib.vertices.size();// numIndices / 3.0f;
 			Graphics::Vertex* vertices = new Graphics::Vertex[numVertices];
-			uint* indices = new uint[numIndices];
+			u32* indices = new u32[numIndices];
 
 			std::unordered_map<Graphics::Vertex, uint32_t> uniqueVertices;
 
 			std::shared_ptr<Maths::BoundingSphere> boundingBox = std::make_shared<Maths::BoundingSphere>();
 
-			for (uint i = 0; i < shape.mesh.indices.size(); i++)
+			for (u32 i = 0; i < shape.mesh.indices.size(); i++)
 			{
 				auto& index = shape.mesh.indices[i];
 				Graphics::Vertex vertex;
@@ -199,14 +201,14 @@ namespace Lumos
 			va->PushBuffer(buffer);
 
 			std::shared_ptr<Graphics::IndexBuffer> ib;
-			ib.reset(Graphics::IndexBuffer::Create(indices, numIndices));// / sizeof(uint));
+			ib.reset(Graphics::IndexBuffer::Create(indices, numIndices));// / sizeof(u32));
 
-			auto meshEntity = std::make_shared<Entity>(shape.name);
+			auto meshEntity = EntityManager::Instance()->CreateEntity(shape.name);
             auto mesh = std::make_shared<Graphics::Mesh>(va, ib, boundingBox);
 			meshEntity->AddComponent<MeshComponent>(mesh);
 			meshEntity->AddComponent<MaterialComponent>(pbrMaterial);
 			meshEntity->AddComponent<TransformComponent>();
-			entity->AddChildObject(meshEntity);
+			entity->AddChild(meshEntity);
 
 			delete[] vertices;
 			delete[] indices;

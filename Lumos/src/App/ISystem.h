@@ -16,6 +16,7 @@ namespace Lumos
 		virtual void OnIMGUI() = 0;
         
         inline const String& GetName() const { return m_DebugName; }
+
     protected:
         String m_DebugName;
 	};

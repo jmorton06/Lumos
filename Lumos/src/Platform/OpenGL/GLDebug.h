@@ -27,8 +27,8 @@ namespace Lumos
 		std::vector<Maths::Vector3> lines;
 		std::vector<Maths::Vector3> colours;
 
-		uint array;
-		uint buffers[2];
+		u32 array;
+		u32 buffers[2];
 
 		DebugDrawData();
 		void Draw();

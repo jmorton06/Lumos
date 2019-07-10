@@ -14,9 +14,9 @@ namespace Lumos
 		Particle(const Maths::Vector3& position, const Maths::Vector3& velocity, float gravityEffect, float lifeLength, float scale = 1.0f);
 		~Particle();
 
-		bool Update(float dt, uint numTextureRows);
-		void UpdateTextureCoord(uint textureRows);
-		void SetTextureOffset(Maths::Vector2& offset, int index, uint textureRows) const;
+		bool Update(float dt, u32 numTextureRows);
+		void UpdateTextureCoord(u32 textureRows);
+		void SetTextureOffset(Maths::Vector2& offset, int index, u32 textureRows) const;
 
 		inline Maths::Vector3 GetPosition() const { return m_Position; }
 		inline Maths::Vector3 GetVelocity() const { return m_Velocity; }

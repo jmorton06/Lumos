@@ -28,15 +28,27 @@ namespace Lumos
         }
 
         void VKTools::CreateBuffer(vk::DeviceSize size, vk::BufferUsageFlags usage, vk::MemoryPropertyFlags properties, vk::Buffer& buffer,
-                          vk::DeviceMemory& bufferMemory)
+                          vk::DeviceMemory& bufferMemory, VmaAllocator allocator, VmaAllocation allocation)
         {
             vk::BufferCreateInfo bufferInfo = {};
             bufferInfo.size = size;
             bufferInfo.usage = usage;
             bufferInfo.sharingMode = vk::SharingMode::eExclusive;
 
+#ifdef USE_VMA_ALLOCATOR
+            if(allocator != nullptr)
+            {
+                VmaAllocationCreateInfo vmaAllocInfo = {};
+                vmaAllocInfo.usage = VMA_MEMORY_USAGE_GPU_ONLY;
+                vmaCreateBuffer(allocator, (VkBufferCreateInfo*)&bufferInfo, &vmaAllocInfo, (VkBuffer*)&buffer, &allocation, nullptr);
+            }
+            else
+            {
+                buffer = VKDevice::Instance()->GetDevice().createBuffer(bufferInfo);
+            }
+#else
             buffer = VKDevice::Instance()->GetDevice().createBuffer(bufferInfo);
-
+#endif
             vk::MemoryRequirements memRequirements = VKDevice::Instance()->GetDevice().getBufferMemoryRequirements(buffer);
 
             vk::MemoryAllocateInfo allocInfo = {};
@@ -122,6 +134,7 @@ namespace Lumos
         void VKTools::TransitionImageLayout(vk::Image image, vk::Format format, vk::ImageLayout oldLayout, vk::ImageLayout newLayout,
             uint32_t mipLevels)
         {
+			return;
             vk::CommandBuffer commandBuffer = BeginSingleTimeCommands();
 
             vk::ImageMemoryBarrier barrier = {};
@@ -250,14 +263,14 @@ namespace Lumos
             }
         }
 
-        vk::Format VKTools::FormatToVK(Format format)
+        vk::Format VKTools::FormatToVK(Lumos::Graphics::Format format)
         {
             switch(format)
             {
-                case Format::R32G32B32A32_FLOAT :   return vk::Format::eR32G32B32A32Sfloat;
-                case Format::R32G32B32_FLOAT :      return vk::Format::eR32G32B32Sfloat;
-                case Format::R32G32_FLOAT :         return vk::Format::eR32G32Sfloat;
-                case Format::R32_FLOAT :            return vk::Format::eR32Sfloat;
+                case Lumos::Graphics::Format::R32G32B32A32_FLOAT :   return vk::Format::eR32G32B32A32Sfloat;
+                case Lumos::Graphics::Format::R32G32B32_FLOAT :      return vk::Format::eR32G32B32Sfloat;
+                case Lumos::Graphics::Format::R32G32_FLOAT :         return vk::Format::eR32G32Sfloat;
+                case Lumos::Graphics::Format::R32_FLOAT :            return vk::Format::eR32Sfloat;
                 default:                            return vk::Format::eR32G32B32Sfloat;
             }
         }
@@ -442,6 +455,8 @@ namespace Lumos
                 case TextureFormat::RGBA8:				return vk::Format::eR8G8B8A8Unorm;
                 case TextureFormat::RGB16:              return vk::Format::eR16G16B16Sfloat;
                 case TextureFormat::RGBA16:             return vk::Format::eR16G16B16A16Sfloat;
+				case TextureFormat::RGB32:              return vk::Format::eR32G32B32Sfloat;
+				case TextureFormat::RGBA32:             return vk::Format::eR32G32B32A32Sfloat;
                 default: LUMOS_CORE_ERROR("[Texture] Unsupported image bit-depth!");  return vk::Format::eR8G8B8A8Unorm;
             }
         }
