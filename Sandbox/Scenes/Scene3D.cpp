@@ -92,7 +92,6 @@ void Scene3D::OnInit()
 
 	Application::Instance()->GetSystem<AudioManager>()->SetListener(m_pCamera);
 
-	m_ShadowTexture = std::unique_ptr<Graphics::TextureDepthArray>(Graphics::TextureDepthArray::Create(2048, 2048, 4));
 	auto shadowRenderer = new Graphics::ShadowRenderer();
 	shadowRenderer->SetLight(sun);
 
@@ -102,10 +101,6 @@ void Scene3D::OnInit()
 	Application::Instance()->PushLayer(shadowLayer);
     Application::Instance()->PushLayer(deferredLayer);
 	Application::Instance()->PushLayer(skyBoxLayer);
-
-	m_SceneLayers.emplace_back(shadowLayer);
-	m_SceneLayers.emplace_back(deferredLayer);
-	m_SceneLayers.emplace_back(skyBoxLayer);
 
 	Application::Instance()->GetRenderManager()->SetShadowRenderer(shadowRenderer);
     Application::Instance()->GetRenderManager()->SetSkyBoxTexture(m_EnvironmentMap);
@@ -126,7 +121,6 @@ void Scene3D::OnCleanupScene()
 	{
 		SAFE_DELETE(m_pCamera)
         SAFE_DELETE(m_EnvironmentMap);
-		m_ShadowTexture.reset();
 	}
 
 	Scene::OnCleanupScene();

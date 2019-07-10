@@ -75,6 +75,7 @@ namespace Lumos
 		void OnEvent(Event& e);
 		void OnImGui();
 		void OnNewScene(Scene* scene);
+		void OnExitScene();
 		void PushLayer(Layer* layer);
 		void PushOverLay(Layer* overlay);
 		void ClearLayers();;
@@ -105,6 +106,9 @@ namespace Lumos
 		}
 
 	private:
+
+		void PushLayerInternal(Layer* layer, bool overlay, bool sceneAdded);
+
 		bool OnWindowClose(WindowCloseEvent& e);
         bool OnWindowResize(WindowResizeEvent& e);
 
@@ -124,6 +128,7 @@ namespace Lumos
 		Camera* m_ActiveCamera = nullptr;
 
 		LayerStack* m_LayerStack{};
+		std::vector<Layer*> m_CurrentSceneLayers;
 
         AppState m_CurrentState		= AppState::Loading;
 		EditorState m_EditorState	= EditorState::Play;

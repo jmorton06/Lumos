@@ -32,12 +32,7 @@ void Scene2D::OnInit()
 
 	LoadSprites();
 
-	auto renderer2D = new Graphics::Renderer2D(m_ScreenWidth, m_ScreenHeight);
-	auto layer2D = new Layer2D(renderer2D);
-
-	m_SceneLayers.emplace_back(layer2D);
-	Application::Instance()->PushLayer(layer2D);
-	renderer2D->SetRenderToGBufferTexture(true);
+	Application::Instance()->PushLayer(new Layer2D(new Graphics::Renderer2D(m_ScreenWidth, m_ScreenHeight, true)));
 }
 
 

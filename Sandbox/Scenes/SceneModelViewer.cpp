@@ -64,10 +64,6 @@ void SceneModelViewer::OnInit()
     Application::Instance()->PushLayer(deferredLayer);
     Application::Instance()->PushLayer(skyBoxLayer);
     
-    m_SceneLayers.emplace_back(shadowLayer);
-    m_SceneLayers.emplace_back(deferredLayer);
-    m_SceneLayers.emplace_back(skyBoxLayer);
-    
     Application::Instance()->GetRenderManager()->SetShadowRenderer(shadowRenderer);
     Application::Instance()->GetRenderManager()->SetSkyBoxTexture(m_EnvironmentMap);
 }

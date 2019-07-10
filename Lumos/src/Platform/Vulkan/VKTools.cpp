@@ -36,7 +36,7 @@ namespace Lumos
             bufferInfo.sharingMode = vk::SharingMode::eExclusive;
 
 #ifdef USE_VMA_ALLOCATOR
-            if(allocator)
+            if(allocator != nullptr)
             {
                 VmaAllocationCreateInfo vmaAllocInfo = {};
                 vmaAllocInfo.usage = VMA_MEMORY_USAGE_GPU_ONLY;
@@ -134,6 +134,7 @@ namespace Lumos
         void VKTools::TransitionImageLayout(vk::Image image, vk::Format format, vk::ImageLayout oldLayout, vk::ImageLayout newLayout,
             uint32_t mipLevels)
         {
+			return;
             vk::CommandBuffer commandBuffer = BeginSingleTimeCommands();
 
             vk::ImageMemoryBarrier barrier = {};

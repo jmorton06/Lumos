@@ -39,6 +39,7 @@ namespace Lumos
             
 #ifdef USE_VMA_ALLOCATOR
             VmaAllocation m_Allocation;
+			VmaAllocation m_MappedAllocation;
 #endif
 		};
 	}

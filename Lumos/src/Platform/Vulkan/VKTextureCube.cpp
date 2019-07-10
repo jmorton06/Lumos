@@ -241,17 +241,8 @@ namespace Lumos
 					pointeroffset += currentSize;
 				}
 			}
-			vk::Buffer stagingBuffer;
-			vk::DeviceMemory stagingBufferMemory;
-			VKTools::CreateBuffer(size, vk::BufferUsageFlagBits::eTransferSrc,
-				vk::MemoryPropertyFlagBits::eHostVisible | vk::MemoryPropertyFlagBits::eHostCoherent, stagingBuffer,
-				 stagingBufferMemory);
 
-
-			void* data;
-			VKDevice::Instance()->GetDevice().mapMemory(stagingBufferMemory, vk::DeviceSize(0), size, vk::MemoryMapFlagBits(), &data);
-			memcpy(data, allData, static_cast<size_t>(size));
-			VKDevice::Instance()->GetDevice().unmapMemory(stagingBufferMemory);
+			VKBuffer* stagingBuffer = new VKBuffer(vk::BufferUsageFlagBits::eTransferSrc, static_cast<u32>(size), allData);
 
             if (m_Data == nullptr)
             {
@@ -304,7 +295,7 @@ namespace Lumos
 				subresourceRange);
 
 			// Copy the cube map faces from the staging buffer to the optimal tiled image
-			cmdBuffer.copyBufferToImage(stagingBuffer, m_TextureImage, vk::ImageLayout::eTransferDstOptimal, bufferCopyRegions);
+			cmdBuffer.copyBufferToImage(stagingBuffer->GetBuffer(), m_TextureImage, vk::ImageLayout::eTransferDstOptimal, bufferCopyRegions);
 			// Change texture image layout to shader read after all faces have been copied
 			m_ImageLayout = vk::ImageLayout::eShaderReadOnlyOptimal;
 			
@@ -319,6 +310,8 @@ namespace Lumos
 
 			CreateTextureSampler();
 			m_TextureImageView =  CreateImageView(m_TextureImage, vk::Format::eR8G8B8A8Unorm, m_NumMips);
+
+			delete stagingBuffer;
 
 			for (u32 m = 0; m < mips; m++)
 			{

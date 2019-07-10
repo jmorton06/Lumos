@@ -18,6 +18,13 @@ namespace Lumos
 	SceneManager::~SceneManager()
 	{
 		m_SceneIdx = 0;
+
+		if (m_CurrentScene)
+		{
+			LUMOS_CORE_INFO("[SceneManager] - Exiting scene : {0}", m_CurrentScene->GetSceneName());
+			m_CurrentScene->OnCleanupScene();
+		}
+
 		m_vpAllScenes.clear();
 	}
 
@@ -30,7 +37,7 @@ namespace Lumos
 		}
 
         LUMOS_CORE_INFO("[SceneManager] - Enqueued scene : {0}", scene->GetSceneName().c_str());
-		m_vpAllScenes.push_back(std::unique_ptr<Scene>(scene));
+		m_vpAllScenes.emplace_back(std::unique_ptr<Scene>(scene));
 
 		auto screenSize = Application::Instance()->GetWindowSize();
 		scene->SetScreenWidth(static_cast<u32>(screenSize.GetX()));
@@ -91,6 +98,7 @@ namespace Lumos
             LumosPhysicsEngine::Instance()->RemoveAllPhysicsObjects();
             LumosPhysicsEngine::Instance()->SetPaused(true);
             m_CurrentScene->OnCleanupScene();
+			Application::Instance()->OnExitScene();
         }
         
         m_SceneIdx = m_QueuedSceneIndex;

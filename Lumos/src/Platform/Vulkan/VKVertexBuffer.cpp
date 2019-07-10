@@ -19,14 +19,8 @@ namespace Lumos
 		void VKVertexBuffer::Resize(u32 size)
 		{
 			m_Size = size;
-#ifdef USE_VMA_ALLOCATOR
-            VKTools::CreateBuffer(size, vk::BufferUsageFlagBits::eVertexBuffer,
-                                  vk::MemoryPropertyFlagBits::eHostVisible | vk::MemoryPropertyFlagBits::eHostCoherent, m_Buffer, m_Memory, VKDevice::Instance()->GetAllocator(), m_Allocation
-                                  );
-#else
-            VKTools::CreateBuffer(size, vk::BufferUsageFlagBits::eVertexBuffer,
-                                  vk::MemoryPropertyFlagBits::eHostVisible | vk::MemoryPropertyFlagBits::eHostCoherent, m_Buffer, m_Memory);
-#endif
+
+			VKBuffer::Init(vk::BufferUsageFlagBits::eVertexBuffer, size, nullptr);
 		}
 
 		void VKVertexBuffer::SetLayout(const Graphics::BufferLayout& bufferLayout)
@@ -48,9 +42,8 @@ namespace Lumos
 
 		void* VKVertexBuffer::GetPointerInternal()
 		{
-			void* temp;
-			VKDevice::Instance()->GetDevice().mapMemory(m_Memory, 0, m_Size, vk::MemoryMapFlagBits(), &temp);
-			return temp;
+			VKBuffer::Map();
+			return m_Mapped;
 		}
 
 		void VKVertexBuffer::ReleasePointer()
@@ -59,7 +52,8 @@ namespace Lumos
 			memoryRange.memory = m_Memory;
 			memoryRange.size = m_Size;
 			VKDevice::Instance()->GetDevice().flushMappedMemoryRanges(1, &memoryRange);
-			VKDevice::Instance()->GetDevice().unmapMemory(m_Memory);
+
+			VKBuffer::UnMap();
 		}
 
 		void VKVertexBuffer::Bind()

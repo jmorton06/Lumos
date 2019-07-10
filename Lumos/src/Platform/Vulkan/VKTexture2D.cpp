@@ -4,6 +4,7 @@
 #include "Utilities/LoadImage.h"
 #include "VKTools.h"
 #include "VKCommandBuffer.h"
+#include "VKBuffer.h"
 
 #include "Maths/MathsUtilities.h"
 
@@ -309,29 +310,17 @@ namespace Lumos
 
 			m_MipLevels = static_cast<uint32_t>(std::floor(std::log2(Maths::Max(texWidth, texHeight)))) + 1;
 
-
-			vk::Buffer stagingBuffer;
-			vk::DeviceMemory stagingBufferMemory;
-			VKTools::CreateBuffer(imageSize, vk::BufferUsageFlagBits::eTransferSrc,
-				vk::MemoryPropertyFlagBits::eHostVisible | vk::MemoryPropertyFlagBits::eHostCoherent, stagingBuffer,
-				stagingBufferMemory);
-
-			void* data;
-			VKDevice::Instance()->GetDevice().mapMemory(stagingBufferMemory, vk::DeviceSize(0), imageSize, vk::MemoryMapFlagBits(), &data);
-			memcpy(data, pixels, static_cast<size_t>(imageSize));
-			VKDevice::Instance()->GetDevice().unmapMemory(stagingBufferMemory);
+			VKBuffer* stagingBuffer = new VKBuffer(vk::BufferUsageFlagBits::eTransferSrc, static_cast<u32>(imageSize), pixels);
 
 			if (m_Data == nullptr)
 				delete[] pixels;
 
             CreateImage(texWidth, texHeight, m_MipLevels, vk::Format::eR8G8B8A8Unorm, vk::ImageTiling::eOptimal,  vk::ImageUsageFlagBits::eTransferSrc | vk::ImageUsageFlagBits::eTransferDst | vk::ImageUsageFlagBits::eSampled, vk::MemoryPropertyFlagBits::eDeviceLocal, m_TextureImage, m_TextureImageMemory);
 
-			VKTools::TransitionImageLayout(m_TextureImage, vk::Format::eR8G8B8A8Unorm, vk::ImageLayout::eUndefined,
-				vk::ImageLayout::eTransferDstOptimal, m_MipLevels);
-			VKTools::CopyBufferToImage(stagingBuffer, m_TextureImage, static_cast<uint32_t>(texWidth), static_cast<uint32_t>(texHeight));
-			
-			VKDevice::Instance()->GetDevice().destroyBuffer(stagingBuffer);
-			VKDevice::Instance()->GetDevice().freeMemory(stagingBufferMemory);
+			VKTools::TransitionImageLayout(m_TextureImage, vk::Format::eR8G8B8A8Unorm, vk::ImageLayout::eUndefined, vk::ImageLayout::eTransferDstOptimal, m_MipLevels);
+			VKTools::CopyBufferToImage(stagingBuffer->GetBuffer(), m_TextureImage, static_cast<uint32_t>(texWidth), static_cast<uint32_t>(texHeight));
+
+			delete stagingBuffer;
 
 			GenerateMipmaps(m_TextureImage, texWidth, texHeight, m_MipLevels);
 
