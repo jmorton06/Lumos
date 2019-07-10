@@ -20,7 +20,7 @@ namespace Lumos
 			void Execute(bool waitFence) override {};
 			void ExecuteSecondary(CommandBuffer* primaryCmdBuffer) override;
 
-			void UpdateViewport(uint width, uint height) override {};
+			void UpdateViewport(u32 width, u32 height) override {};
 
 		private:
 			bool primary;

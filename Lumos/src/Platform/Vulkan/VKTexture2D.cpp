@@ -4,6 +4,7 @@
 #include "Utilities/LoadImage.h"
 #include "VKTools.h"
 #include "VKCommandBuffer.h"
+#include "VKBuffer.h"
 
 #include "Maths/MathsUtilities.h"
 
@@ -13,14 +14,14 @@ namespace Lumos
 {
 	namespace Graphics
 	{
-		VKTexture2D::VKTexture2D(uint width, uint height, void* data, TextureParameters parameters, TextureLoadOptions loadOptions)
+		VKTexture2D::VKTexture2D(u32 width, u32 height, void* data, TextureParameters parameters, TextureLoadOptions loadOptions)
 			: m_FileName("NULL"), m_TextureSampler(nullptr), m_TextureImageView(nullptr)
 		{
 			m_Width = width;
 			m_Height = height;
 			m_Parameters = parameters;
 			m_LoadOptions = loadOptions;
-			m_Data = static_cast<byte*>(data);
+			m_Data = static_cast<u8*>(data);
 			Load();
 
 			m_TextureImageView = CreateImageView(m_TextureImage, vk::Format::eR8G8B8A8Unorm,  vk::ImageAspectFlagBits::eColor, m_MipLevels);
@@ -77,7 +78,12 @@ namespace Lumos
 
 			if (m_DeleteImage)
 			{
-				VKDevice::Instance()->GetDevice().destroyImage(m_TextureImage);
+#ifdef USE_VMA_ALLOCATOR
+                vmaDestroyImage(VKDevice::Instance()->GetAllocator(), m_TextureImage, m_Allocation);
+#else
+                VKDevice::Instance()->GetDevice().destroyImage(m_TextureImage);
+#endif
+
 				if (m_TextureImageMemory)
 				{
 					VKDevice::Instance()->GetDevice().freeMemory(m_TextureImageMemory);
@@ -85,11 +91,11 @@ namespace Lumos
 			}
 		}
 
-		void VKTexture2D::Bind(uint slot) const
+		void VKTexture2D::Bind(u32 slot) const
 		{
 		}
 
-		void VKTexture2D::Unbind(uint slot) const
+		void VKTexture2D::Unbind(u32 slot) const
 		{
 		}
 
@@ -106,7 +112,7 @@ namespace Lumos
 			}
 		}
 
-		void VKTexture2D::BuildTexture(TextureFormat internalformat, uint width, uint height, bool depth, bool samplerShadow)
+		void VKTexture2D::BuildTexture(TextureFormat internalformat, u32 width, u32 height, bool depth, bool samplerShadow)
 		{
 			m_Width = width;
 			m_Height = height;
@@ -164,8 +170,19 @@ namespace Lumos
             imageInfo.samples = vk::SampleCountFlagBits::e1;
             imageInfo.sharingMode = vk::SharingMode::eExclusive;
 
-			image = VKDevice::Instance()->GetDevice().createImage(imageInfo);
-
+#ifdef USE_VMA_ALLOCATOR
+            VmaAllocationCreateInfo allocInfovma;
+            allocInfovma.flags = 0;
+            allocInfovma.usage = VMA_MEMORY_USAGE_GPU_ONLY;
+            allocInfovma.requiredFlags = 0;
+            allocInfovma.preferredFlags = 0;
+            allocInfovma.memoryTypeBits = 0;
+            allocInfovma.pool = nullptr;
+            allocInfovma.pUserData = nullptr;
+            vmaCreateImage(VKDevice::Instance()->GetAllocator(), reinterpret_cast<VkImageCreateInfo*>(&imageInfo), &allocInfovma, reinterpret_cast<VkImage*>(&image), &m_Allocation, nullptr);
+#else
+            image = VKDevice::Instance()->GetDevice().createImage(imageInfo);
+#endif
             vk::MemoryRequirements memRequirements;
             VKDevice::Instance()->GetDevice().getImageMemoryRequirements(image, &memRequirements);
 
@@ -268,8 +285,8 @@ namespace Lumos
 
 		bool VKTexture2D::Load()
 		{
-			uint texWidth, texHeight, texChannels;
-			byte* pixels;
+			u32 texWidth, texHeight, texChannels;
+			u8* pixels;
 
 			if (m_Data == nullptr)
 				pixels = Lumos::LoadImageFromFile(m_FileName, &texWidth, &texHeight, &texChannels);
@@ -293,29 +310,17 @@ namespace Lumos
 
 			m_MipLevels = static_cast<uint32_t>(std::floor(std::log2(Maths::Max(texWidth, texHeight)))) + 1;
 
-
-			vk::Buffer stagingBuffer;
-			vk::DeviceMemory stagingBufferMemory;
-			VKTools::CreateBuffer(imageSize, vk::BufferUsageFlagBits::eTransferSrc,
-				vk::MemoryPropertyFlagBits::eHostVisible | vk::MemoryPropertyFlagBits::eHostCoherent, stagingBuffer,
-				stagingBufferMemory);
-
-			void* data;
-			VKDevice::Instance()->GetDevice().mapMemory(stagingBufferMemory, vk::DeviceSize(0), imageSize, vk::MemoryMapFlagBits(), &data);
-			memcpy(data, pixels, static_cast<size_t>(imageSize));
-			VKDevice::Instance()->GetDevice().unmapMemory(stagingBufferMemory);
+			VKBuffer* stagingBuffer = new VKBuffer(vk::BufferUsageFlagBits::eTransferSrc, static_cast<u32>(imageSize), pixels);
 
 			if (m_Data == nullptr)
 				delete[] pixels;
 
             CreateImage(texWidth, texHeight, m_MipLevels, vk::Format::eR8G8B8A8Unorm, vk::ImageTiling::eOptimal,  vk::ImageUsageFlagBits::eTransferSrc | vk::ImageUsageFlagBits::eTransferDst | vk::ImageUsageFlagBits::eSampled, vk::MemoryPropertyFlagBits::eDeviceLocal, m_TextureImage, m_TextureImageMemory);
 
-			VKTools::TransitionImageLayout(m_TextureImage, vk::Format::eR8G8B8A8Unorm, vk::ImageLayout::eUndefined,
-				vk::ImageLayout::eTransferDstOptimal, m_MipLevels);
-			VKTools::CopyBufferToImage(stagingBuffer, m_TextureImage, static_cast<uint32_t>(texWidth), static_cast<uint32_t>(texHeight));
-			
-			VKDevice::Instance()->GetDevice().destroyBuffer(stagingBuffer);
-			VKDevice::Instance()->GetDevice().freeMemory(stagingBufferMemory);
+			VKTools::TransitionImageLayout(m_TextureImage, vk::Format::eR8G8B8A8Unorm, vk::ImageLayout::eUndefined, vk::ImageLayout::eTransferDstOptimal, m_MipLevels);
+			VKTools::CopyBufferToImage(stagingBuffer->GetBuffer(), m_TextureImage, static_cast<uint32_t>(texWidth), static_cast<uint32_t>(texHeight));
+
+			delete stagingBuffer;
 
 			GenerateMipmaps(m_TextureImage, texWidth, texHeight, m_MipLevels);
 

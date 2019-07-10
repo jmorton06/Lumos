@@ -36,7 +36,6 @@ namespace Lumos
 	{
 		m_Init = false;
 		m_VSync = properties.VSync;
-		m_Timer = new Timer();
         SetHasResized(true);
 		m_Data.m_RenderAPI = static_cast<Graphics::RenderAPI>(properties.RenderAPI);
 
@@ -47,17 +46,12 @@ namespace Lumos
 
 	GLFWWindow::~GLFWWindow()
 	{
-		if (m_Timer != nullptr)
-		{
-			delete m_Timer;
-			m_Timer = nullptr;
-		}
-
 		glfwDestroyWindow(m_Handle);
 		s_NumGLFWWindows--;
 
 		if(s_NumGLFWWindows < 1)
 		{
+            s_GLFWInitialized = false;
 			glfwTerminate();
 		}
 	}
@@ -73,8 +67,9 @@ namespace Lumos
 			glfwSetErrorCallback(GLFWErrorCallback);
 
 			s_GLFWInitialized = true;
-			s_NumGLFWWindows++;
 		}
+        
+        s_NumGLFWWindows++;
 
 #ifdef LUMOS_PLATFORM_MACOS
         if (m_Data.m_RenderAPI == Graphics::RenderAPI::OPENGL)
@@ -96,8 +91,8 @@ namespace Lumos
 
 		const GLFWvidmode* mode = glfwGetVideoMode(glfwGetPrimaryMonitor());
 
-		uint ScreenWidth = 0;
-		uint ScreenHeight = 0;
+		u32 ScreenWidth = 0;
+		u32 ScreenHeight = 0;
 
 		if (properties.Fullscreen)
 		{
@@ -258,8 +253,8 @@ namespace Lumos
 
 	void GLFWWindow::SetIcon(const String& file)
 	{
-		uint width, height;
-		byte* pixels = Lumos::LoadImageFromFile(file, &width, &height, nullptr, true);
+		u32 width, height;
+		u8* pixels = Lumos::LoadImageFromFile(file, &width, &height, nullptr, true);
 
 		GLFWimage image;
 		image.height = height;

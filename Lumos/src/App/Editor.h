@@ -17,7 +17,7 @@ namespace Lumos
 	{
 		friend class Application;
 	public:
-		Editor(Application* app, uint width, uint height);
+		Editor(Application* app, u32 width, u32 height);
 		~Editor();
         
         Editor(Editor const&) = delete;
@@ -27,17 +27,16 @@ namespace Lumos
 		void DrawConsole();
 		void DrawMenuBar();
 		void DrawHierarchyWindow();
-		void DrawEngineInfoWindow();
 		void DrawInspectorWindow();
 		void DrawSceneView();
 		void BeginDockSpace();
 		void EndDockSpace();
         
-        void DrawNode(std::shared_ptr<Entity>& node);
+        void DrawNode(Entity* node);
 
 		void SelectEntity();
 
-		uint GetImGuizmoOperation() const { return m_ImGuizmoOperation; }
+		u32 GetImGuizmoOperation() const { return m_ImGuizmoOperation; }
 		void OnInit();
 		void OnNewScene(Scene* scene);
 
@@ -47,8 +46,11 @@ namespace Lumos
 
 		Maths::Vector2 m_SceneViewSize;
 		Maths::Vector2 m_SceneViewPosition;
-		uint m_ImGuizmoOperation = 0;
+		u32 m_ImGuizmoOperation = 0;
 		Entity* m_Selected = nullptr;
+
+		bool m_ShowGrid = false;
+		float m_GridSize = 10.0f;
 
 		std::map<String, Graphics::Texture2D*> m_Icons;
 	};

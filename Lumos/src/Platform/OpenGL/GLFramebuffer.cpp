@@ -8,24 +8,11 @@ namespace Lumos
 {
 	namespace Graphics
 	{
-		Attachment GetColourAttachment(int index)
-		{
-			switch (index)
-			{
-			case 0: return Attachment::Colour0; break;
-			case 1: return Attachment::Colour1; break;
-			case 2: return Attachment::Colour2; break;
-			case 3: return Attachment::Colour3; break;
-			case 4: return Attachment::Colour4; break;
-			case 5: return Attachment::Colour5; break;
-			default: return Attachment::Colour0; break;
-			}
-		}
-
 		GLFramebuffer::GLFramebuffer() : m_Width(0), m_Height(0)
 		{
 			GLCall(glGenFramebuffers(1, &m_Handle));
 			GLCall(glBindFramebuffer(GL_FRAMEBUFFER, m_Handle));
+			m_ColourAttachmentCount = 0;
 		}
 
 		GLFramebuffer::GLFramebuffer(FramebufferInfo bufferInfo)
@@ -35,23 +22,23 @@ namespace Lumos
 
 			m_Width = bufferInfo.width;
 			m_Height = bufferInfo.height;
-
-			m_AttachmentCount = bufferInfo.attachmentCount;
 			m_ColourAttachmentCount = 0;
-			for (uint i = 0; i < m_AttachmentCount; i++)
+
+			for (u32 i = 0; i < bufferInfo.attachmentCount; i++)
 			{
 				switch (bufferInfo.attachmentTypes[i])
 				{
-				case TextureType::COLOUR: AddTextureAttachment(GetColourAttachment(m_ColourAttachmentCount), bufferInfo.attachments[i]); m_ColourAttachmentCount++;  break;
-				case TextureType::DEPTH: AddTextureAttachment(Attachment::Depth, bufferInfo.attachments[i]); break;
-				case TextureType::DEPTHARRAY: AddTextureLayer(bufferInfo.layer, bufferInfo.attachments[i]); break;
-				case TextureType::OTHER: AddTextureAttachment(GetColourAttachment(m_ColourAttachmentCount), bufferInfo.attachments[i]); m_ColourAttachmentCount++;  break;
-				case TextureType::CUBE: UNIMPLEMENTED; break;
+				case TextureType::COLOUR		: AddTextureAttachment(TextureFormat::RGBA32, bufferInfo.attachments[i]); break;
+				case TextureType::DEPTH			: AddTextureAttachment(TextureFormat::DEPTH, bufferInfo.attachments[i]); break;
+				case TextureType::DEPTHARRAY	: AddTextureLayer(bufferInfo.layer, bufferInfo.attachments[i]); break;
+				case TextureType::OTHER			: UNIMPLEMENTED; break;
+				case TextureType::CUBE			: UNIMPLEMENTED; break;
 				}
 			}
 
-			if (GLRenderer::Instance() != nullptr)
-				GLRenderer::Instance()->SetRenderTargets(m_ColourAttachmentCount);
+			GLCall(glDrawBuffers(static_cast<GLsizei>(m_AttachmentData.size()), m_AttachmentData.data()));
+
+			Validate();
 		}
 
 		GLFramebuffer::~GLFramebuffer()
@@ -71,13 +58,34 @@ namespace Lumos
 #endif
 		}
 
-		void GLFramebuffer::Bind(uint width, uint height) const
+		void GLFramebuffer::Bind(u32 width, u32 height) const
 		{
 			GLCall(glBindFramebuffer(GL_DRAW_FRAMEBUFFER, m_Handle));
 			GLCall(glViewport(0, 0, width, height));
 
-			if (GLRenderer::Instance() != nullptr)
-				GLRenderer::Instance()->SetRenderTargets(m_ColourAttachmentCount);
+			GLCall(glDrawBuffers(static_cast<GLsizei>(m_AttachmentData.size()), m_AttachmentData.data()));
+		}
+
+		GLenum GLFramebuffer::GetAttachmentPoint(Graphics::TextureFormat format)
+		{
+			if (Graphics::Texture::IsDepthStencilFormat(format))
+			{
+				return GL_DEPTH_STENCIL_ATTACHMENT;
+			}
+
+			if (Graphics::Texture::IsStencilFormat(format))
+			{
+				return GL_STENCIL_ATTACHMENT;
+			}
+
+			if (Graphics::Texture::IsDepthFormat(format))
+			{
+				return GL_DEPTH_ATTACHMENT;
+			}
+
+			GLenum value = GL_COLOR_ATTACHMENT0 + m_ColourAttachmentCount;
+			m_ColourAttachmentCount++;
+			return value;
 		}
 
 		void GLFramebuffer::Bind() const
@@ -85,42 +93,25 @@ namespace Lumos
 			GLCall(glBindFramebuffer(GL_FRAMEBUFFER, m_Handle));
 		}
 
-		void GLFramebuffer::AddTextureAttachment(const Attachment attachmentType, Texture* texture)
+		void GLFramebuffer::AddTextureAttachment(const Graphics::TextureFormat format, Texture* texture)
 		{
-			uint attachment;
-			switch (attachmentType)
-			{
-			case Attachment::Colour0: attachment = GL_COLOR_ATTACHMENT0; break;
-			case Attachment::Colour1: attachment = GL_COLOR_ATTACHMENT1; break;
-			case Attachment::Colour2: attachment = GL_COLOR_ATTACHMENT2; break;
-			case Attachment::Colour3: attachment = GL_COLOR_ATTACHMENT3; break;
-			case Attachment::Colour4: attachment = GL_COLOR_ATTACHMENT4; break;
-			case Attachment::Colour5: attachment = GL_COLOR_ATTACHMENT5; break;
-			case Attachment::Depth: attachment = GL_DEPTH_ATTACHMENT; break;
-			case Attachment::DepthArray: attachment = GL_DEPTH_ATTACHMENT; break;
-			case Attachment::Stencil: attachment = GL_STENCIL_ATTACHMENT; break;
+			GLenum attachment = GetAttachmentPoint(format);
 
-			default: attachment = 0;
+			if (attachment != GL_DEPTH_ATTACHMENT && attachment != GL_STENCIL_ATTACHMENT && attachment != GL_DEPTH_STENCIL_ATTACHMENT)
+			{
+				m_AttachmentData.emplace_back(attachment);
 			}
 			GLCall(glFramebufferTexture2D(GL_DRAW_FRAMEBUFFER, attachment, GL_TEXTURE_2D, (GLuint)(size_t)texture->GetHandle(), 0));
 		}
 
-		void GLFramebuffer::AddCubeTextureAttachment(const Attachment attachmentType, const CubeFace face, TextureCube* texture)
+		void GLFramebuffer::AddCubeTextureAttachment(const Graphics::TextureFormat format, const CubeFace face, TextureCube* texture)
 		{
-			uint attachment;
-			uint faceID = 0;
+			u32 faceID = 0;
 
-			switch (attachmentType)
+			GLenum attachment = GetAttachmentPoint(format);
+			if (attachment != GL_DEPTH_ATTACHMENT && attachment != GL_STENCIL_ATTACHMENT && attachment != GL_DEPTH_STENCIL_ATTACHMENT)
 			{
-			case Attachment::Colour0: attachment = GL_COLOR_ATTACHMENT0; break;
-			case Attachment::Colour1: attachment = GL_COLOR_ATTACHMENT1; break;
-			case Attachment::Colour2: attachment = GL_COLOR_ATTACHMENT2; break;
-			case Attachment::Colour3: attachment = GL_COLOR_ATTACHMENT3; break;
-			case Attachment::Colour4: attachment = GL_COLOR_ATTACHMENT4; break;
-			case Attachment::Depth:   attachment = GL_DEPTH_ATTACHMENT; break;
-			case Attachment::Stencil: attachment = GL_STENCIL_ATTACHMENT; break;
-
-			default: attachment = 0;
+				m_AttachmentData.emplace_back(attachment);
 			}
 
 			switch (face)
@@ -158,10 +149,10 @@ namespace Lumos
 
 		void GLFramebuffer::Validate()
 		{
-			uint status = glCheckFramebufferStatus(GL_FRAMEBUFFER);
+			u32 status = glCheckFramebufferStatus(GL_FRAMEBUFFER);
 			if (status != GL_FRAMEBUFFER_COMPLETE)
 			{
-				LUMOS_CORE_ERROR("Unable to create Screen Framebuffer! StatusCode: {0}", status);
+				LUMOS_CORE_ERROR("Unable to create Framebuffer! StatusCode: {0}", status);
 			}
 		}
 	}

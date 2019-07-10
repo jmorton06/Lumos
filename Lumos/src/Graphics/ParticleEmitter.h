@@ -37,8 +37,8 @@ namespace Lumos
 		float GetParticleRate() const;
 		void SetParticleRate(float particleRate);
 
-		uint GetNumLaunchParticles() const;
-		void SetNumLaunchParticles(uint numLaunchParticles);
+		u32 GetNumLaunchParticles() const;
+		void SetNumLaunchParticles(u32 numLaunchParticles);
 
 		Maths::Vector3 GetArea() const;
 		void SetArea(const Maths::Vector3& area);
@@ -58,8 +58,8 @@ namespace Lumos
 		float GetScale() const;
 		void SetScale(float scale);
 
-		uint GetNumTextureRows() const;
-		void SetNumTextureRows(uint numTextureRows);
+		u32 GetNumTextureRows() const;
+		void SetNumTextureRows(u32 numTextureRows);
 
 		Texture2D* GetTexture() const;
 		void SetTexture(Texture2D *m_Texture);
@@ -72,7 +72,7 @@ namespace Lumos
 		float m_EmitterLifeTime;
 		float m_NextParticleTime;
 		float m_ParticleRate;
-		uint m_NumLaunchParticles;
+		u32 m_NumLaunchParticles;
 		Maths::Vector3 m_Area;
 		Maths::Vector3 m_Position;
 		Maths::Vector3 m_InitialVelocity;
@@ -171,7 +171,7 @@ namespace Lumos
 		float m_ScaleVariance;
 		float m_LifeLengthVariance;
 
-		uint m_NumTextureRows;
+		u32 m_NumTextureRows;
 
 		Texture2D* m_Texture;
 		std::vector<std::shared_ptr<Particle>> m_Particles;

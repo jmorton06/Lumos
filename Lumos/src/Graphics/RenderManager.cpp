@@ -6,7 +6,7 @@ namespace Lumos
 {
 	namespace Graphics
 	{
-		RenderManager::RenderManager(uint width, uint height)
+		RenderManager::RenderManager(u32 width, u32 height)
 		{
 			SetScreenBufferSize(width, height);
 
@@ -15,7 +15,7 @@ namespace Lumos
 		}
 		RenderManager::~RenderManager() { delete m_GBuffer; }
 
-		void RenderManager::OnResize(uint width, uint height)
+		void RenderManager::OnResize(u32 width, u32 height)
 		{
 			SetScreenBufferSize(width, height);
 

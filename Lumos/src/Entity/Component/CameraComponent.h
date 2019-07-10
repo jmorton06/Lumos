@@ -9,15 +9,9 @@ namespace Lumos
 	class LUMOS_EXPORT CameraComponent : public LumosComponent
 	{
 	public:
+        CameraComponent();
 		explicit CameraComponent(Camera* camera);
 
-		static ComponentType GetStaticType()
-		{
-            static ComponentType type(ComponentType::Camera);
-			return type;
-		}
-
-		inline virtual ComponentType GetType() const override { return GetStaticType(); }
 		void OnUpdateComponent(float dt) override;
         void OnIMGUI() override;
 		void SetAsMainCamera();

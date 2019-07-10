@@ -181,30 +181,6 @@ namespace Lumos
 			return mat;
 		}
 
-		Quaternion Quaternion::EulerAnglesToQuaternion(float pitch, float yaw, float roll)
-		{
-			float y2 = DegreesToRadians(yaw   * 0.5f);
-			float p2 = DegreesToRadians(pitch * 0.5f);
-			float r2 = DegreesToRadians(roll  * 0.5f);
-
-			float cosy = cos(y2);
-			float cosp = cos(p2);
-			float cosr = cos(r2);
-
-			float siny = sin(y2);
-			float sinp = sin(p2);
-			float sinr = sin(r2);
-
-			Quaternion q;
-
-			q.x = sinr * cosp * siny + cosr * sinp * cosy;
-			q.y = cosr * cosp * siny - sinr * sinp * cosy;
-			q.z = sinr * cosp * cosy - cosr * sinp * siny;
-			q.w = cosr * cosp * cosy + sinr * sinp * siny;
-
-			return q;
-		};
-
 		Quaternion Quaternion::AxisAngleToQuaterion(const Vector3& vector, float degrees)
 		{
 			float theta = DegreesToRadians(degrees);
@@ -228,10 +204,10 @@ namespace Lumos
 
 			float t = x * y + z * w;
 
-			if (t > 0.4999)
+			if (t > 0.4999) 
 			{
-				euler.z = RadiansToDegrees(PI / 2.0f);
-				euler.y = RadiansToDegrees(2.0f * atan2(x, w));
+				euler.z = Maths::RadiansToDegrees(Maths::PI / 2.0f);
+				euler.y = Maths::RadiansToDegrees(2.0f * atan2(x, w));
 				euler.x = 0.0f;
 
 				return euler;
@@ -239,8 +215,8 @@ namespace Lumos
 
 			if (t < -0.4999) 
 			{
-				euler.z = -RadiansToDegrees(PI / 2.0f);
-				euler.y = -RadiansToDegrees(2.0f * atan2(x, w));
+				euler.z = -Maths::RadiansToDegrees(Maths::PI / 2.0f);
+				euler.y = -Maths::RadiansToDegrees(2.0f * atan2(x, w));
 				euler.x = 0.0f;
 				return euler;
 			}
@@ -249,12 +225,32 @@ namespace Lumos
 			float sqy = y * y;
 			float sqz = z * z;
 
-			euler.z = RadiansToDegrees(asin(2 * t));
-			euler.y = RadiansToDegrees(atan2(2 * y*w - 2 * x*z, 1.0f - 2 * sqy - 2 * sqz));
-			euler.x = RadiansToDegrees(atan2(2 * x*w - 2 * y*z, 1.0f - 2 * sqx - 2.0f*sqz));
+			euler.z = Maths::RadiansToDegrees(asin(2 * t));
+			euler.y = Maths::RadiansToDegrees(atan2(2 * y*w - 2 * x*z, 1.0f - 2 * sqy - 2 * sqz));
+			euler.x = Maths::RadiansToDegrees(atan2(2 * x*w - 2 * y*z, 1.0f - 2 * sqx - 2.0f*sqz));
 
 			return euler;
 		}
+
+		Quaternion Quaternion::EulerAnglesToQuaternion(float roll, float yaw, float pitch)
+		{
+			float cos1 = cos(Maths::DegreesToRadians(yaw   * 0.5f));
+			float cos2 = cos(Maths::DegreesToRadians(pitch * 0.5f));
+			float cos3 = cos(Maths::DegreesToRadians(roll  * 0.5f));
+
+			float sin1 = sin(Maths::DegreesToRadians(yaw   * 0.5f));
+			float sin2 = sin(Maths::DegreesToRadians(pitch * 0.5f));
+			float sin3 = sin(Maths::DegreesToRadians(roll  * 0.5f));
+
+			Quaternion q;
+
+			q.x = (sin1 * sin2 * cos3) + (cos1 * cos2 * sin3);
+			q.y = (sin1 * cos2 * cos3) + (cos1 * sin2 * sin3);
+			q.z = (cos1 * sin2 * cos3) - (sin1 * cos2 * sin3);
+			q.w = (cos1 * cos2 * cos3) - (sin1 * sin2 * sin3);
+
+			return q;
+		};
 
 		Quaternion Quaternion::Conjugate() const
 		{
@@ -291,9 +287,9 @@ namespace Lumos
 			q.y = sqrt(std::max(0.0f, (1.0f - m.values[0] + m.values[5] - m.values[10]))) * 0.5f;
 			q.z = sqrt(std::max(0.0f, (1.0f - m.values[0] - m.values[5] + m.values[10]))) * 0.5f;
 
-			q.x = static_cast<float>(copysign(q.x, m.values[9] - m.values[6]));
-			q.y = static_cast<float>(copysign(q.y, m.values[2] - m.values[8]));
-			q.z = static_cast<float>(copysign(q.z, m.values[4] - m.values[1]));
+			q.x = copysign(q.x, m.values[9] - m.values[6]);
+			q.y = copysign(q.y, m.values[2] - m.values[8]);
+			q.z = copysign(q.z, m.values[4] - m.values[1]);
 
 			return q;
 		}

@@ -11,23 +11,23 @@ namespace Lumos
 		class GLSwapchain : public Swapchain
 		{
 		public:
-			GLSwapchain(uint width, uint height);
+			GLSwapchain(u32 width, u32 height);
 			~GLSwapchain();
 
 			bool Init() override;
 
 			Texture* GetCurrentImage() override;
-			Texture* GetImage(uint id) override { return nullptr; };
+			Texture* GetImage(u32 id) override { return nullptr; };
 			uint32_t GetCurrentBufferId() const override;
 			size_t GetSwapchainBufferCount() const override;
-			uint GetFramebufferCount() const override { return 1; }
-			Framebuffer* CreateFramebuffer(RenderPass* renderPass, uint id) override { return nullptr; }
+			u32 GetFramebufferCount() const override { return 1; }
+			Framebuffer* CreateFramebuffer(RenderPass* renderPass, u32 id) override { return nullptr; }
 		private:
 			std::vector<GLTexture2D*> swapChainBuffers;
 			uint32_t currentBuffer = 0;
 
-			uint m_Width;
-			uint m_Height;
+			u32 m_Width;
+			u32 m_Height;
 		};
 	}
 }

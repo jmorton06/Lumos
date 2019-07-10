@@ -100,6 +100,8 @@ static std::string GetStringForSeverity(GLenum severity)
 		return "Low";
 	case GL_DEBUG_SEVERITY_NOTIFICATION:
 		return "Notification";
+	case GL_DEBUG_SOURCE_API:
+		return "Source API";
 	default:
 		return("");
 	}

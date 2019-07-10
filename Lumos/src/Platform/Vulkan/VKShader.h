@@ -22,8 +22,8 @@ namespace Lumos
 			void Bind() const {};
 			void Unbind() const {};
 
-			void SetSystemUniformBuffer(ShaderType type, byte* data, uint size, uint slot = 0) {};
-			void SetUserUniformBuffer(ShaderType type, byte* data, uint size) {};
+			void SetSystemUniformBuffer(ShaderType type, u8* data, u32 size, u32 slot = 0) {};
+			void SetUserUniformBuffer(ShaderType type, u8* data, u32 size) {};
 
 			const ShaderUniformBufferList GetSystemUniforms(ShaderType type) const { return ShaderUniformBufferList(); };
 			const ShaderUniformBufferDeclaration* GetUserUniformBuffer(ShaderType type) const { return nullptr; };

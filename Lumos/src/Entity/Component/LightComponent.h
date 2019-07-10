@@ -14,22 +14,15 @@ namespace Lumos
 	class LUMOS_EXPORT LightComponent : public LumosComponent
 	{
 	public:
+        LightComponent();
 		explicit LightComponent(std::shared_ptr<Graphics::Light>& light);
         ~LightComponent();
-        
-		static ComponentType GetStaticType()
-		{
-			static ComponentType type(ComponentType::Light);
-			return type;
-		}
 
 		void SetRadius(float radius);
 
 		void OnUpdateComponent(float dt) override;
 		void Init() override;
 		void DebugDraw(uint64 debugFlags) override;
-
-		inline virtual ComponentType GetType() const override { return GetStaticType(); }
 
 		void OnIMGUI() override;
 

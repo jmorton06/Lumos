@@ -106,8 +106,8 @@ namespace Lumos
 
 			static Maths::Vector3 GenerateTangent(const Maths::Vector3 &a, const Maths::Vector3 &b, const Maths::Vector3 &c, const Maths::Vector2 &ta, const Maths::Vector2 &tb, const Maths::Vector2 &tc);
 
-			static Maths::Vector3* GenerateNormals(uint numVertices, Maths::Vector3* vertices, uint* indices, uint numIndices);
-			static Maths::Vector3* GenerateTangents(uint numVertices, Maths::Vector3* vertices, uint* indices, uint numIndices, Maths::Vector2* texCoords);
+			static Maths::Vector3* GenerateNormals(u32 numVertices, Maths::Vector3* vertices, u32* indices, u32 numIndices);
+			static Maths::Vector3* GenerateTangents(u32 numVertices, Maths::Vector3* vertices, u32* indices, u32 numIndices, Maths::Vector2* texCoords);
 
 			std::shared_ptr<VertexArray> m_VertexArray;
 			std::shared_ptr<IndexBuffer> m_IndexBuffer;

@@ -11,15 +11,15 @@ namespace Lumos
 		{
 		private:
 			String m_Name;
-			uint m_Handle;
-			uint m_Width, m_Height;
+			u32 m_Handle;
+			u32 m_Width, m_Height;
 		public:
-			GLTextureDepth(uint width, uint height);
+			GLTextureDepth(u32 width, u32 height);
 			~GLTextureDepth();
 
-			void Bind(uint slot = 0) const override;
-			void Unbind(uint slot = 0) const override;
-			void Resize(uint width, uint height) override;
+			void Bind(u32 slot = 0) const override;
+			void Unbind(u32 slot = 0) const override;
+			void Resize(u32 width, u32 height) override;
 
 			inline void* GetHandle() const override { return (void*)(size_t)m_Handle; }
 

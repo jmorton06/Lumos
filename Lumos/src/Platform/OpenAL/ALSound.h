@@ -16,7 +16,7 @@ namespace Lumos
 
 		unsigned int GetBuffer() const { return m_Buffer; }
 	private:
-		static ALenum GetOALFormat(uint bitRate, uint channels);
+		static ALenum GetOALFormat(u32 bitRate, u32 channels);
 		unsigned int m_Buffer;
 		int	    m_Format;
 	};

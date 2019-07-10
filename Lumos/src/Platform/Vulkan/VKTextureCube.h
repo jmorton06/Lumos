@@ -4,6 +4,10 @@
 #include "Graphics/API/GraphicsContext.h"
 #include "VKContext.h"
 
+#ifdef USE_VMA_ALLOCATOR
+#include "vk_mem_alloc.h"
+#endif
+
 #define MAX_MIPS 11
 
 namespace Lumos
@@ -13,20 +17,20 @@ namespace Lumos
 		class VKTextureCube : public TextureCube
 		{
 		public:
-			VKTextureCube(uint size);
+			VKTextureCube(u32 size);
 			VKTextureCube(const String& name, const String& filepath);
 			VKTextureCube(const String& name, const String* files);
-			VKTextureCube(const String& name, const String* files, uint mips, InputFormat format);
+			VKTextureCube(const String& name, const String* files, u32 mips, InputFormat format);
 			~VKTextureCube();
 
 			static vk::Format TextureFormatToVK(TextureFormat);
 
 			virtual void* GetHandle() const override { return (void*)m_TextureImageView; }
 
-			void Bind(uint slot = 0) const override;
-			void Unbind(uint slot = 0) const override;
+			void Bind(u32 slot = 0) const override;
+			void Unbind(u32 slot = 0) const override;
 
-			inline uint GetSize() const override { return m_Size; }
+			inline u32 GetSize() const override { return m_Size; }
 			inline const String& GetName() const override { return m_Name; }
 			inline const String& GetFilepath() const override { return m_Files[0]; }
 
@@ -40,7 +44,7 @@ namespace Lumos
 
 			void UpdateDescriptor();
 
-			void Load(uint mips);
+			void Load(u32 mips);
 
 			vk::Image GetImage() const { return m_TextureImage; };
 			vk::DeviceMemory GetDeviceMemory() const { return m_TextureImageMemory; }
@@ -50,10 +54,10 @@ namespace Lumos
 		private:
 			String m_Name;
 			String m_Files[MAX_MIPS];
-			uint m_Handle;
-			uint m_Width, m_Height, m_Size;
-			uint m_NumMips;
-			byte* m_Data = nullptr;
+			u32 m_Handle;
+			u32 m_Width, m_Height, m_Size;
+			u32 m_NumMips;
+			u8* m_Data = nullptr;
 
 			TextureParameters m_Parameters;
 			TextureLoadOptions m_LoadOptions;
@@ -65,6 +69,10 @@ namespace Lumos
 			vk::Sampler m_TextureSampler;// = nullptr;
 			vk::DescriptorImageInfo m_Descriptor;
 
+#ifdef USE_VMA_ALLOCATOR
+            VmaAllocation m_Allocation;
+#endif
+            
 			bool m_DeleteImage = true;
 		};
 	}

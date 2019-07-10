@@ -15,10 +15,10 @@ namespace Lumos
 		void Unmount(const String& path);
 		bool ResolvePhysicalPath(const String& path, String& outPhysicalPath);
 
-		byte* ReadFile(const String& path);
+		u8* ReadFile(const String& path);
 		String ReadTextFile(const String& path);
 
-		bool WriteFile(const String& path, byte* buffer);
+		bool WriteFile(const String& path, u8* buffer);
 		bool WriteTextFile(const String& path, const String& text);
 	public:
 		static void OnInit();

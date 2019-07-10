@@ -3,7 +3,14 @@
 #include "App/Scene.h"
 #include "App/Application.h"
 #include "Entity/Entity.h"
+#include "Entity/Component/MaterialComponent.h"
+#include "Entity/Component/MeshComponent.h"
+#include "Entity/Component/TransformComponent.h"
+#include "Entity/Component/TextureMatrixComponent.h"
+
+
 #include "Maths/Maths.h"
+#include "System/JobSystem.h"
 
 #include "Graphics/RenderManager.h"
 #include "Graphics/Camera/Camera.h"
@@ -26,6 +33,7 @@
 
 #define MAX_LIGHTS 32
 #define MAX_SHADOWMAPS 16
+//#define THREAD_RENDER_SUBMIT
 
 namespace Lumos
 {
@@ -43,7 +51,7 @@ namespace Lumos
 			PSSystemUniformIndex_Size
 		};
 
-		DeferredOffScreenRenderer::DeferredOffScreenRenderer(uint width, uint height)
+		DeferredOffScreenRenderer::DeferredOffScreenRenderer(u32 width, u32 height)
 		{
 			DeferredOffScreenRenderer::SetScreenBufferSize(width, height);
 			DeferredOffScreenRenderer::Init();
@@ -97,7 +105,7 @@ namespace Lumos
 			// Vertex shader System uniforms
 			//
 			m_VSSystemUniformBufferSize = sizeof(Maths::Matrix4);
-			m_VSSystemUniformBuffer = new byte[m_VSSystemUniformBufferSize];
+			m_VSSystemUniformBuffer = new u8[m_VSSystemUniformBufferSize];
 			memset(m_VSSystemUniformBuffer, 0, m_VSSystemUniformBufferSize);
 			m_VSSystemUniformBufferOffsets.resize(VSSystemUniformIndex_Size);
 
@@ -153,9 +161,9 @@ namespace Lumos
 				if (obj != nullptr)
 				{
 					auto* model = obj->GetComponent<MeshComponent>();
-					if (model && model->m_Model)
+					if (model && model->GetMesh())
 					{
-						auto mesh = model->m_Model;
+						auto mesh = model->GetMesh();
 						auto materialComponent = obj->GetComponent<MaterialComponent>();
 						Material* material = nullptr;
 						if (materialComponent && materialComponent->GetActive() && materialComponent->GetMaterial())
@@ -169,13 +177,13 @@ namespace Lumos
 						TextureMatrixComponent* textureMatrixTransform = obj->GetComponent<TextureMatrixComponent>();
 						Maths::Matrix4 textureMatrix;
 						if (textureMatrixTransform)
-							textureMatrix = textureMatrixTransform->m_TextureMatrix;
+							textureMatrix = textureMatrixTransform->GetMatrix();
 						else
 							textureMatrix = Maths::Matrix4();
 
 						auto transform = obj->GetComponent<TransformComponent>()->GetTransform().GetWorldMatrix();
 
-						SubmitMesh(mesh.get(), material, transform, textureMatrix);
+						SubmitMesh(mesh, material, transform, textureMatrix);
 					}
 				}
 			});
@@ -254,10 +262,9 @@ namespace Lumos
 
 		void DeferredOffScreenRenderer::Present()
 		{
-			int index = 0;
-
-			for (auto& command : m_CommandQueue)
-			{
+            for (u32 i = 0; i < static_cast<uint32>(m_CommandQueue.size()); i++)
+            {
+                auto command = m_CommandQueue[i];
 				Mesh* mesh = command.mesh;
 
 				Graphics::CommandBuffer* currentCMDBuffer = mesh->GetCommandBuffer(0);
@@ -267,7 +274,7 @@ namespace Lumos
 
 				m_Pipeline->SetActive(currentCMDBuffer);
 
-				uint32_t dynamicOffset = index * static_cast<uint32_t>(m_DynamicAlignment);
+				uint32_t dynamicOffset = i * static_cast<uint32_t>(m_DynamicAlignment);
 
 				std::vector<Graphics::DescriptorSet*> descriptorSets;
 				descriptorSets.emplace_back(m_Pipeline->GetDescriptorSet());
@@ -277,10 +284,8 @@ namespace Lumos
 
 				currentCMDBuffer->EndRecording();
 				currentCMDBuffer->ExecuteSecondary(m_DeferredCommandBuffers);
-
-				index++;
 			}
-		}
+        }
 
 		void DeferredOffScreenRenderer::CreatePipeline()
 		{
@@ -319,13 +324,13 @@ namespace Lumos
 			std::vector<Graphics::DescriptorLayout> descriptorLayouts;
 
 			Graphics::DescriptorLayout sceneDescriptorLayout{};
-			sceneDescriptorLayout.count = static_cast<uint>(layoutInfo.size());
+			sceneDescriptorLayout.count = static_cast<u32>(layoutInfo.size());
 			sceneDescriptorLayout.layoutInfo = layoutInfo.data();
 
 			descriptorLayouts.push_back(sceneDescriptorLayout);
 
 			Graphics::DescriptorLayout meshDescriptorLayout{};
-			meshDescriptorLayout.count = static_cast<uint>(layoutInfoMesh.size());
+			meshDescriptorLayout.count = static_cast<u32>(layoutInfoMesh.size());
 			meshDescriptorLayout.layoutInfo = layoutInfoMesh.data();
 
 			descriptorLayouts.push_back(meshDescriptorLayout);
@@ -334,10 +339,10 @@ namespace Lumos
 			pipelineCI.pipelineName = "OffScreenRenderer";
 			pipelineCI.shader = m_Shader;
 			pipelineCI.vulkanRenderpass = m_RenderPass;
-			pipelineCI.numVertexLayout = static_cast<uint>(attributeDescriptions.size());
+			pipelineCI.numVertexLayout = static_cast<u32>(attributeDescriptions.size());
 			pipelineCI.descriptorLayouts = descriptorLayouts;
 			pipelineCI.vertexLayout = attributeDescriptions.data();
-			pipelineCI.numLayoutBindings = static_cast<uint>(poolInfo.size());
+			pipelineCI.numLayoutBindings = static_cast<u32>(poolInfo.size());
 			pipelineCI.typeCounts = poolInfo.data();
 			pipelineCI.strideSize = sizeof(Vertex);
 			pipelineCI.numColorAttachments = 6;
@@ -408,7 +413,7 @@ namespace Lumos
 
 		void DeferredOffScreenRenderer::CreateFBO()
 		{
-			const uint attachmentCount = 5;
+			const u32 attachmentCount = 5;
 			TextureType attachmentTypes[attachmentCount];
 			attachmentTypes[0] = TextureType::COLOUR;
 			attachmentTypes[1] = TextureType::COLOUR;
@@ -434,7 +439,7 @@ namespace Lumos
 			m_FBO = Framebuffer::Create(bufferInfo);
 		}
 
-		void DeferredOffScreenRenderer::OnResize(uint width, uint height)
+		void DeferredOffScreenRenderer::OnResize(u32 width, u32 height)
 		{
 			delete m_Pipeline;
 			delete m_FBO;

@@ -50,7 +50,7 @@ namespace Lumos
 			for (auto& file : *files)
 			{
 				auto fileSize = FileSystem::GetFileSize(m_FilePath + file.second); //TODO: once process
-				byte* source = FileSystem::ReadFile(m_FilePath + file.second);
+				u8* source = FileSystem::ReadFile(m_FilePath + file.second);
 				vk::ShaderModuleCreateInfo vertexShaderCI{};
 				vertexShaderCI.codeSize = fileSize;
 				vertexShaderCI.pCode = reinterpret_cast<uint32_t*>(source);
@@ -101,7 +101,7 @@ namespace Lumos
 
 		void VKShader::ReadShaderFile(std::vector<String> lines, std::map<ShaderType, String>* shaders)
 		{
-			for (uint i = 0; i < lines.size(); i++)
+			for (u32 i = 0; i < lines.size(); i++)
 			{
 				String str = String(lines[i]);
 				str = StringReplace(str, '\t');

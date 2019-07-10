@@ -12,17 +12,17 @@ layout(location = 4) in vec3 inTangent;
 
 out vec3 fragColor;
 out vec2 fragTexCoord;
-out vec4 position;
-out vec3 normal;
-out vec3 tangent;
+out vec4 fragPosition;
+out vec3 fragNormal;
+out vec3 fragTangent;
 
 void main() 
 {
-	position 		= modelMatrix * vec4(inPosition, 1.0);
-    gl_Position 	= sys_projView * position;
+	fragPosition 	= modelMatrix * vec4(inPosition, 1.0);
+    gl_Position 	= sys_projView * fragPosition;
     fragColor 		= inColor;
 	fragTexCoord 	= inTexCoord;
-	normal 			= transpose(inverse(mat3(modelMatrix))) * normalize(inNormal);
+	fragNormal 		= transpose(inverse(mat3(modelMatrix))) * normalize(inNormal);
 }
 #shader end
 

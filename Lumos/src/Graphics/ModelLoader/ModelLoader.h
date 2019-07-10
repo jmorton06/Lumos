@@ -8,8 +8,8 @@ namespace Lumos
 
 	namespace ModelLoader
 	{
-		LUMOS_EXPORT std::shared_ptr<Entity> LoadModel(const String& path);
-		std::shared_ptr<Entity> LoadOBJ(const String& path);
-		std::shared_ptr<Entity> LoadGLTF(const String& path);
+		LUMOS_EXPORT Entity* LoadModel(const String& path);
+		Entity* LoadOBJ(const String& path);
+		Entity* LoadGLTF(const String& path);
 	};
 }

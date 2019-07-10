@@ -8,7 +8,7 @@ namespace Lumos
 {
 	namespace Graphics
 	{
-		GLTextureDepth::GLTextureDepth(uint width, uint height)
+		GLTextureDepth::GLTextureDepth(u32 width, u32 height)
 			: m_Width(width), m_Height(height)
 		{
 			GLCall(glGenTextures(1, &m_Handle));
@@ -21,13 +21,13 @@ namespace Lumos
 			GLCall(glDeleteTextures(1, &m_Handle));
 		}
 
-		void GLTextureDepth::Bind(uint slot) const
+		void GLTextureDepth::Bind(u32 slot) const
 		{
 			GLCall(glActiveTexture(GL_TEXTURE0 + slot));
 			GLCall(glBindTexture(GL_TEXTURE_2D, m_Handle));
 		}
 
-		void GLTextureDepth::Unbind(uint slot) const
+		void GLTextureDepth::Unbind(u32 slot) const
 		{
 			GLCall(glActiveTexture(GL_TEXTURE0 + slot));
 			GLCall(glBindTexture(GL_TEXTURE_2D, 0));
@@ -49,7 +49,7 @@ namespace Lumos
 			GLCall(glBindTexture(GL_TEXTURE_2D, 0));
 		}
 
-		void GLTextureDepth::Resize(uint width, uint height)
+		void GLTextureDepth::Resize(u32 width, u32 height)
 		{
 			m_Width = width;
 			m_Height = height;

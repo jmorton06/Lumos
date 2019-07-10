@@ -30,17 +30,12 @@ namespace Lumos
 	DebugRenderer::DebugDrawList DebugRenderer::m_DrawList;
 	DebugRenderer::DebugDrawList DebugRenderer::m_DrawListNDT;
 
-	Material* DebugRenderer::m_pShaderPoints = nullptr;
-	Material* DebugRenderer::m_pShaderLines = nullptr;
-	Material* DebugRenderer::m_pShaderHairLines = nullptr;
-	Material* DebugRenderer::m_pShaderText = nullptr;
-
 	VertexArray* DebugRenderer::m_VertexArray = nullptr;
 
 	Texture2D* DebugRenderer::m_FontTex = nullptr;
 
-	uint DebugRenderer::m_Width = 0;
-	uint DebugRenderer::m_Height = 0;
+	u32 DebugRenderer::m_Width = 0;
+	u32 DebugRenderer::m_Height = 0;
 
 #ifdef LUMOS_PLATFORM_WINDOWS
 #define VSNPRINTF( _DstBuf, _DstSize, _MaxCount, _Format, _ArgList ) vsnprintf_s( _DstBuf, _DstSize, _MaxCount, _Format, _ArgList )

@@ -2,54 +2,45 @@
 
 #include "LM.h"
 #include "Component/Components.h"
-
-struct EnumClassHash
-{
-    template <typename T>
-    std::size_t operator()(T t) const
-    {
-        return static_cast<std::size_t>(t);
-    }
-};
+#include "ComponentManager.h"
 
 namespace Lumos
 {
 	class LUMOS_EXPORT Entity
 	{
-	protected:
-		std::unordered_map<ComponentType, std::unique_ptr<LumosComponent>, EnumClassHash> m_Components;
+		friend class EntityManager;
 	public:
-		explicit Entity(const String& name = "");
-		virtual ~Entity();
-
 		template<typename T, typename... Args>
 		void AddComponent(Args&&... args);
 
-		template <typename T>
-		T* GetComponent() const
-		{
-			return GetComponentInternal<T>();
-		}
+		template <typename T, typename... Args>
+		T* GetOrAddComponent(Args&&... args);
 
 		template <typename T>
 		T* GetComponent()
 		{
-			return static_cast<T*>(GetComponentInternal<T>());
+			return ComponentManager::Instance()->GetComponent<T>(this);
 		}
 
-		void OnRenderObject();
+		template <typename T>
+		void RemoveComponent()
+		{
+			ComponentManager::Instance()->RemoveComponent<T>(this);
+		}
+
 		virtual void OnUpdateObject(float dt);
 		virtual void OnIMGUI();
-		virtual void OnGuizmo(uint mode = 0);
+		virtual void OnGuizmo(u32 mode = 0);
 		virtual void Init();
 
-		std::vector<std::shared_ptr<Entity>>& GetChildren() { return m_vpChildren; }
-		void AddChildObject(std::shared_ptr<Entity>& child);
+		std::vector<Entity*>& GetChildren() { return m_Children; }
+		void AddChild(Entity* child);
+		void RemoveChild(Entity* child);
 
 		void  SetBoundingRadius(float radius) { m_BoundingRadius = radius; }
 		float GetBoundingRadius() const { return m_BoundingRadius; }
 
-		uint& GetFrustumCullFlags() { return m_FrustumCullFlags; }
+		u32& GetFrustumCullFlags() { return m_FrustumCullFlags; }
 
 		void DebugDraw(uint64 debugFlags);
 
@@ -65,38 +56,61 @@ namespace Lumos
 		void SetActive(bool active) { m_Active = active; };
 		void SetActiveRecursive(bool active);
 
+		std::vector<LumosComponent*> GetAllComponents();
+
+	protected:
+		explicit Entity(const String& name = "");
+		virtual ~Entity();
 	private:
 
 		Entity(Entity const&) = delete;
 		Entity& operator=(Entity const&) = delete;
 
-		void AddComponent(std::unique_ptr<LumosComponent> component);
-
-		template <typename T>
-		T* GetComponentInternal() const
-		{
-			ComponentType type = T::GetStaticType();
-			auto it = m_Components.find(type);
-			if (it == m_Components.end())
-				return nullptr;
-			return static_cast<T*>(it->second.get());
-		}
-
 		String					m_Name;
-		Entity*					m_pParent;
 		float					m_BoundingRadius;
-		uint					m_FrustumCullFlags;
+		u32						m_FrustumCullFlags;
 		String                  m_UUID;
 		bool					m_Active;
 		TransformComponent*		m_DefaultTransformComponent = nullptr;
-		
-		std::vector<std::shared_ptr<Entity>> m_vpChildren;
+
+		Entity* m_Parent;
+		std::vector<Entity*> m_Children;
 	};
 
 	template<typename T, typename ... Args>
 	inline void Entity::AddComponent(Args && ...args)
 	{
-		std::unique_ptr<T> component(new T(std::forward<Args>(args) ...));
-		AddComponent(std::move(component));
+		auto component = new T(std::forward<Args>(args) ...);
+		component->SetEntity(this);
+		component->Init();
+
+		if (ComponentManager::Instance()->GetComponentType<T>() == ComponentManager::Instance()->GetComponentType<TransformComponent>())
+			m_DefaultTransformComponent = reinterpret_cast<TransformComponent*>(component);
+
+		ComponentManager::Instance()->AddComponent<T>(this, component);
+	}
+
+	template<typename T, typename ... Args>
+	inline T* Entity::GetOrAddComponent(Args && ...args)
+	{
+		T* component = GetComponent<T>();
+
+		if (component != nullptr)
+			return component;
+		else
+		{
+			component = new T(std::forward<Args>(args) ...);
+			component->SetEntity(this);
+			component->Init();
+
+			if (ComponentManager::Instance()->GetComponentType<T>() == ComponentManager::Instance()->GetComponentType<TransformComponent>())
+				m_DefaultTransformComponent = reinterpret_cast<TransformComponent*>(component);
+
+			ComponentManager::Instance()->AddComponent<T>(this, component);
+
+			return component;
+		}
+
+
 	}
 }

@@ -43,7 +43,8 @@ namespace Lumos
 
 	protected:
 		Maths::Vector3		m_PyramidHalfDimensions;
-		static Hull*		m_PyramidHull;
 		Maths::Vector3		m_Normals[5];
+		
+		static std::unique_ptr<Hull> m_PyramidHull;
 	};
 }

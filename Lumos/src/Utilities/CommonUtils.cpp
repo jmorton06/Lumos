@@ -16,6 +16,8 @@
 #include "Graphics/Mesh.h"
 #include "Graphics/Light.h"
 #include "Entity/Entity.h"
+#include "Entity/Component/Components.h"
+#include "Entity/EntityManager.h"
 
 namespace Lumos
 {
@@ -33,7 +35,7 @@ namespace Lumos
 		return c;
 	}
 
-	std::shared_ptr<Entity> CommonUtils::BuildSphereObject(
+	Entity* CommonUtils::BuildSphereObject(
 		const std::string& name,
 		const Maths::Vector3& pos,
 		float radius,
@@ -42,7 +44,7 @@ namespace Lumos
 		bool collidable,
 		const Maths::Vector4& color)
 	{
-		std::shared_ptr<Entity> pSphere = std::make_shared<Entity>(name);
+		Entity* pSphere = EntityManager::Instance()->CreateEntity(name);
 
 		pSphere->AddComponent<TextureMatrixComponent>(Maths::Matrix4::Scale(Maths::Vector3(10.0f, 10.0f, 10.0f)));
         std::shared_ptr<Graphics::Mesh> sphereModel = std::make_shared<Graphics::Mesh>(*AssetsManager::DefaultModels()->GetAsset("Sphere"));
@@ -92,7 +94,7 @@ namespace Lumos
 		return pSphere;
 	}
 
-	std::shared_ptr<Entity> CommonUtils::BuildCuboidObject(
+	Entity* CommonUtils::BuildCuboidObject(
 		const std::string& name,
 		const Maths::Vector3& pos,
 		const Maths::Vector3& halfdims,
@@ -101,7 +103,7 @@ namespace Lumos
 		bool collidable,
 		const Maths::Vector4& color)
 	{
-		std::shared_ptr<Entity> Cube = std::make_shared<Entity>(name);
+		Entity* Cube = EntityManager::Instance()->CreateEntity(name);
 
 		Cube->AddComponent<TextureMatrixComponent>(Maths::Matrix4::Scale(Maths::Vector3(10.0f, 10.0f, 10.0f)));
         std::shared_ptr<Graphics::Mesh> cubeModel = std::make_shared<Graphics::Mesh>(*AssetsManager::DefaultModels()->GetAsset("Cube"));
@@ -152,7 +154,7 @@ namespace Lumos
 		return Cube;
 	}
 
-	std::shared_ptr<Entity> CommonUtils::BuildPyramidObject(
+	Entity* CommonUtils::BuildPyramidObject(
 		const std::string& name,
 		const Maths::Vector3& pos,
 		const Maths::Vector3& halfdims,
@@ -161,9 +163,8 @@ namespace Lumos
 		bool collidable,
 		const Maths::Vector4& color)
 	{
-		std::shared_ptr<Entity> Cube = std::make_shared<Entity>(name);
-
-		std::shared_ptr<Entity> meshEntity = std::make_shared<Entity>("Mesh");
+		Entity* Cube = EntityManager::Instance()->CreateEntity(name);
+		Entity* meshEntity = EntityManager::Instance()->CreateEntity("Mesh");
 
         std::shared_ptr<Graphics::Mesh> pyramidModel = std::make_shared<Graphics::Mesh>(*AssetsManager::DefaultModels()->GetAsset("Pyramid"));
 		meshEntity->AddComponent<MeshComponent>(pyramidModel);
@@ -183,7 +184,7 @@ namespace Lumos
 		meshEntity->AddComponent<TransformComponent>(Maths::Matrix4::Scale(halfdims) * Maths::Matrix4::RotationX(-90.0f));
 		meshEntity->SetBoundingRadius(halfdims.Length());
 		
-		Cube->AddChildObject(meshEntity);
+		Cube->AddChild(meshEntity);
 
 		if (physics_enabled)
 		{
@@ -220,7 +221,7 @@ namespace Lumos
 								 RandomNumberGenerator32::Rand(0.0f, 1.0f),
 								 RandomNumberGenerator32::Rand(0.0f, 1.0f),1.0f);
 
-		std::shared_ptr<Entity> cube = CommonUtils::BuildCuboidObject(
+		Entity* cube = CommonUtils::BuildCuboidObject(
 				"light Cube",
 				scene->GetCamera()->GetPosition(),
 				Maths::Vector3(0.5f, 0.5f, 0.5f),
@@ -229,7 +230,7 @@ namespace Lumos
 				true,
 				colour);
 
-		cube->GetComponent<Physics3DComponent>()->m_PhysicsObject->SetIsAtRest(true);
+		cube->GetComponent<Physics3DComponent>()->GetPhysicsObject()->SetIsAtRest(true);
 		const float radius    = RandomNumberGenerator32::Rand(1.0f, 30.0f);
 		const float intensity = RandomNumberGenerator32::Rand(0.0f, 2.0f);
 
@@ -240,7 +241,7 @@ namespace Lumos
 
 	void CommonUtils::AddSphere(Scene* scene)
 	{
-		std::shared_ptr<Entity> sphere = CommonUtils::BuildSphereObject(
+		Entity* sphere = CommonUtils::BuildSphereObject(
 				"Sphere",
 				scene->GetCamera()->GetPosition(),
 				0.5f,
@@ -257,14 +258,14 @@ namespace Lumos
 		Maths::Matrix3 viewRotation = Maths::Matrix3(temp);
 		viewRotation = Maths::Matrix3::Inverse(viewRotation);
 		const Maths::Vector3 forward = viewRotation * Maths::Vector3(0.0f, 0.0f, -1.0f);
-		sphere->GetComponent<Physics3DComponent>()->m_PhysicsObject->SetLinearVelocity(forward * 30.0f);
+		sphere->GetComponent<Physics3DComponent>()->GetPhysicsObject()->SetLinearVelocity(forward * 30.0f);
 
 		scene->AddEntity(sphere);
 	}
 
 	void CommonUtils::AddPyramid(Scene* scene)
 	{
-		std::shared_ptr<Entity> sphere = CommonUtils::BuildPyramidObject(
+		Entity* sphere = CommonUtils::BuildPyramidObject(
 				"Pyramid",
 				scene->GetCamera()->GetPosition(),
 				Maths::Vector3(0.5f),
@@ -281,7 +282,7 @@ namespace Lumos
 		Maths::Matrix3 viewRotation = Maths::Matrix3(temp);
 		viewRotation = Maths::Matrix3::Inverse(viewRotation);
 		const Maths::Vector3 forward = viewRotation * Maths::Vector3(0.0f, 0.0f, -1.0f);
-		sphere->GetComponent<Physics3DComponent>()->m_PhysicsObject->SetLinearVelocity(forward * 30.0f);
+		sphere->GetComponent<Physics3DComponent>()->GetPhysicsObject()->SetLinearVelocity(forward * 30.0f);
 
 		scene->AddEntity(sphere);
 	}

@@ -2,14 +2,19 @@
 #include "Physics2DComponent.h"
 #include "Physics/B2PhysicsEngine/PhysicsObject2D.h"
 #include "Maths/MathsUtilities.h"
+#include "Entity/Entity.h"
+#include "Entity/Component/TransformComponent.h"
 
 #include <imgui/imgui.h>
-#include "Entity/Entity.h"
-
-#include <math.h>
 
 namespace Lumos
 {
+    Physics2DComponent::Physics2DComponent()
+    {
+        m_Name = "Physics2D";
+        m_PhysicsObject = std::make_shared<PhysicsObject2D>();
+    }
+    
 	Physics2DComponent::Physics2DComponent(std::shared_ptr<PhysicsObject2D>& physics)
 		: m_PhysicsObject(physics)
 	{

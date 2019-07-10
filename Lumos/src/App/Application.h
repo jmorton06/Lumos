@@ -1,5 +1,7 @@
 #pragma once
 #include "LM.h"
+#include "Entity/SystemManager.h"
+
 #define LUMOS_EDITOR //temp
 
 namespace Lumos
@@ -10,6 +12,7 @@ namespace Lumos
 	struct WindowProperties;
     class SceneManager;
 	class AudioManager;
+	class SystemManager;
 	class Entity;
 	class Editor;
 	class LayerStack;
@@ -72,6 +75,7 @@ namespace Lumos
 		void OnEvent(Event& e);
 		void OnImGui();
 		void OnNewScene(Scene* scene);
+		void OnExitScene();
 		void PushLayer(Layer* layer);
 		void PushOverLay(Layer* overlay);
 		void ClearLayers();;
@@ -81,12 +85,11 @@ namespace Lumos
 		LayerStack*						GetLayerStack()		const { return m_LayerStack; }
         SceneManager*					GetSceneManager()	const { return m_SceneManager.get(); }
 		Graphics::RenderManager*		GetRenderManager()	const { return m_RenderManager.get(); }
-		AudioManager*					GetAudioManager()	const { return m_AudioManager.get(); }
         Window*							GetWindow()			const { return m_Window.get(); }
         AppState						GetState()			const { return m_CurrentState; }
 		EditorState						GetEditorState()	const { return m_EditorState; }
 		Camera*							GetActiveCamera()	const { return m_ActiveCamera; }
-		const std::vector<ISystem*>&	GetSystems()		const { return m_Systems; }
+		SystemManager*					GetSystemManager()	const { return m_SystemManager.get(); }
 
         void SetAppState(AppState state)		{ m_CurrentState = state; }
 		void SetEditorState(EditorState state)	{ m_EditorState = state; }
@@ -96,7 +99,16 @@ namespace Lumos
 
 		static Application* Instance() { return s_Instance; }
 
+		template<typename T>
+		T* GetSystem()
+		{
+			return m_SystemManager->GetSystem<T>();
+		}
+
 	private:
+
+		void PushLayerInternal(Layer* layer, bool overlay, bool sceneAdded);
+
 		bool OnWindowClose(WindowCloseEvent& e);
         bool OnWindowResize(WindowResizeEvent& e);
 
@@ -104,20 +116,19 @@ namespace Lumos
 		std::unique_ptr<Timer>	  	m_Timer;
 		std::unique_ptr<TimeStep> 	m_TimeStep;
 
-		uint m_Frames;
-		uint m_Updates;
+		u32 m_Frames;
+		u32 m_Updates;
 		float m_SecondTimer = 0.0f;
 
 		std::unique_ptr<Window> m_Window;
         std::unique_ptr<SceneManager> m_SceneManager;
-		std::unique_ptr<AudioManager> m_AudioManager;
+		std::unique_ptr<SystemManager> m_SystemManager;
 		std::unique_ptr<Graphics::RenderManager> m_RenderManager;
 
 		Camera* m_ActiveCamera = nullptr;
 
-		std::vector<ISystem*> m_Systems;
-
 		LayerStack* m_LayerStack{};
+		std::vector<Layer*> m_CurrentSceneLayers;
 
         AppState m_CurrentState		= AppState::Loading;
 		EditorState m_EditorState	= EditorState::Play;

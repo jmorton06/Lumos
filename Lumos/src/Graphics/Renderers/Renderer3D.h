@@ -40,9 +40,9 @@ namespace Lumos
 			virtual void End() = 0;
 			virtual void Present() = 0;
 
-			virtual void OnResize(uint width, uint height) = 0;
+			virtual void OnResize(u32 width, u32 height) = 0;
 
-			virtual void SetScreenBufferSize(uint width, uint height) { if (width == 0) width = 1; if (height == 0) height = 1; m_ScreenBufferWidth = width; m_ScreenBufferHeight = height; }
+			virtual void SetScreenBufferSize(u32 width, u32 height) { if (width == 0) width = 1; if (height == 0) height = 1; m_ScreenBufferWidth = width; m_ScreenBufferHeight = height; }
 
 			virtual void SetRenderTarget(Graphics::Texture* texture) { m_RenderTexture = texture; }
 			virtual void SetRenderToGBufferTexture(bool set) { m_RenderToGBufferTexture = set; }
@@ -56,7 +56,7 @@ namespace Lumos
 			Lumos::Graphics::Pipeline* m_Pipeline;
 			Graphics::DescriptorSet* m_DescriptorSet;
 
-			uint m_ScreenBufferWidth, m_ScreenBufferHeight;
+			u32 m_ScreenBufferWidth, m_ScreenBufferHeight;
 			CommandQueue m_CommandQueue;
 			SystemUniformList m_SystemUniforms;
 			Texture* m_RenderTexture = nullptr;

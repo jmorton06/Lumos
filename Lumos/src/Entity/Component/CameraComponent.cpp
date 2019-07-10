@@ -8,6 +8,11 @@
 
 namespace Lumos
 {
+    CameraComponent::CameraComponent()
+    {
+        m_Camera = nullptr;
+    }
+    
 	CameraComponent::CameraComponent(Camera* camera)
 		: m_Camera(camera)
 	{

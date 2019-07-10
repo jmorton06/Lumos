@@ -101,40 +101,48 @@ namespace Lumos
 			m_CommandPool = nullptr;
 		}
 
-		VkBool32 VKContext::DebugCallback(vk::DebugReportFlagsEXT flags, vk::DebugReportObjectTypeEXT objType, uint64_t obj,
-		                                  size_t location, int32_t code, const char* layerPrefix, const char* msg,
-		                                  void* userData)
+		VkBool32 VKContext::DebugCallback(VkDebugReportFlagsEXT flags,
+			VkDebugReportObjectTypeEXT objType,
+			uint64_t sourceObj,
+			size_t location,
+			int32_t msgCode,
+			const char* pLayerPrefix,
+			const char* pMsg,
+			void* userData)
 		{
 			// Select prefix depending on flags passed to the callback
 			// Note that multiple flags may be set for a single validation message
 			// Error that may result in undefined behaviour
 
-			LUMOS_CORE_WARN("[VULKAN] : [{0}] Code {1}  : {2}", layerPrefix, code, msg);
+			LUMOS_CORE_WARN("[VULKAN] : [{0}] Code {1}  : {2}", pLayerPrefix, msgCode, pMsg);
 
-			if (flags & vk::DebugReportFlagBitsEXT::eError)
+			if(!flags)
+				return VK_FALSE;
+
+			if (flags & VK_DEBUG_REPORT_ERROR_BIT_EXT)
 			{
-				LUMOS_CORE_WARN("[VULKAN] - ERROR : [{0}] Code {1}  : {2}", layerPrefix, code, msg);
+				LUMOS_CORE_WARN("[VULKAN] - ERROR : [{0}] Code {1}  : {2}", pLayerPrefix, msgCode, pMsg);
 			};
 			// Warnings may hint at unexpected / non-spec API usage
-			if (flags & vk::DebugReportFlagBitsEXT::eWarning)
+			if (flags & VK_DEBUG_REPORT_WARNING_BIT_EXT)
 			{
-				LUMOS_CORE_WARN("[VULKAN] - WARNING : [{0}] Code {1}  : {2}", layerPrefix, code, msg);
+				LUMOS_CORE_WARN("[VULKAN] - WARNING : [{0}] Code {1}  : {2}", pLayerPrefix, msgCode, pMsg);
 			};
 			// May indicate sub-optimal usage of the API
-			if (flags & vk::DebugReportFlagBitsEXT::ePerformanceWarning)
+			if (flags & VK_DEBUG_REPORT_PERFORMANCE_WARNING_BIT_EXT)
 			{
-				LUMOS_CORE_INFO("[VULKAN] - PERFORMANCE : [{0}] Code {1}  : {2}", layerPrefix, code, msg);
+				LUMOS_CORE_INFO("[VULKAN] - PERFORMANCE : [{0}] Code {1}  : {2}", pLayerPrefix, msgCode, pMsg);
 			};
 			// Informal messages that may become handy during debugging
-			if (flags & vk::DebugReportFlagBitsEXT::eInformation)
+			if (flags & VK_DEBUG_REPORT_INFORMATION_BIT_EXT)
 			{
-				LUMOS_CORE_INFO("[VULKAN] - INFO : [{0}] Code {1}  : {2}", layerPrefix, code, msg);
+				LUMOS_CORE_INFO("[VULKAN] - INFO : [{0}] Code {1}  : {2}", pLayerPrefix, msgCode, pMsg);
 			}
 			// Diagnostic info from the Vulkan loader and layers
 			// Usually not helpful in terms of API usage, but may help to debug layer and loader problems 
-			if (flags & vk::DebugReportFlagBitsEXT::eDebug)
+			if (flags & VK_DEBUG_REPORT_DEBUG_BIT_EXT)
 			{
-				LUMOS_CORE_INFO("[VULKAN] - DEBUG : [{0}] Code {1}  : {2}", layerPrefix, code, msg);
+				LUMOS_CORE_INFO("[VULKAN] - DEBUG : [{0}] Code {1}  : {2}", pLayerPrefix, msgCode, pMsg);
 			}
 
 			return VK_FALSE;

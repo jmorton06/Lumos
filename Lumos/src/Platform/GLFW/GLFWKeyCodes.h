@@ -8,9 +8,9 @@ namespace Lumos
 {
 	namespace GLFWKeyCodes
 	{
-		static uint GLFWToLumosKeyboardKey(uint glfwKey)
+		static u32 GLFWToLumosKeyboardKey(u32 glfwKey)
 		{
-			static std::map<uint, uint> keyMap =
+			static std::map<u32, u32> keyMap =
 			{
 			{GLFW_KEY_A, LUMOS_KEY_A},
 			{GLFW_KEY_B, LUMOS_KEY_B},
@@ -69,10 +69,10 @@ namespace Lumos
 		}
 	
 
-		static uint GLFWToLumosMouseKey(uint glfwKey)
+		static u32 GLFWToLumosMouseKey(u32 glfwKey)
 		{
 
-			static std::map<uint, uint> keyMap =
+			static std::map<u32, u32> keyMap =
 			{
 			{GLFW_MOUSE_BUTTON_LEFT, LUMOS_MOUSE_LEFT},
 			{GLFW_MOUSE_BUTTON_RIGHT, LUMOS_MOUSE_RIGHT},

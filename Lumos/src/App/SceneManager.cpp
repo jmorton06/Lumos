@@ -18,6 +18,13 @@ namespace Lumos
 	SceneManager::~SceneManager()
 	{
 		m_SceneIdx = 0;
+
+		if (m_CurrentScene)
+		{
+			LUMOS_CORE_INFO("[SceneManager] - Exiting scene : {0}", m_CurrentScene->GetSceneName());
+			m_CurrentScene->OnCleanupScene();
+		}
+
 		m_vpAllScenes.clear();
 	}
 
@@ -30,60 +37,32 @@ namespace Lumos
 		}
 
         LUMOS_CORE_INFO("[SceneManager] - Enqueued scene : {0}", scene->GetSceneName().c_str());
-		m_vpAllScenes.push_back(std::unique_ptr<Scene>(scene));
+		m_vpAllScenes.emplace_back(std::unique_ptr<Scene>(scene));
 
 		auto screenSize = Application::Instance()->GetWindowSize();
-		scene->SetScreenWidth(static_cast<uint>(screenSize.GetX()));
-		scene->SetScreenHeight(static_cast<uint>(screenSize.GetY()));
+		scene->SetScreenWidth(static_cast<u32>(screenSize.GetX()));
+		scene->SetScreenHeight(static_cast<u32>(screenSize.GetY()));
 	}
 
-	void SceneManager::JumpToScene()
+	void SceneManager::SwitchScene()
 	{
-		JumpToScene((m_SceneIdx + 1) % m_vpAllScenes.size());
+		SwitchScene((m_SceneIdx + 1) % m_vpAllScenes.size());
 	}
 
-	void SceneManager::JumpToScene(int idx)
+	void SceneManager::SwitchScene(int idx)
 	{
-		if (idx < 0 || idx >= static_cast<int>(m_vpAllScenes.size()))
-		{
-			LUMOS_CORE_ERROR("[SceneManager] - Invalid Scene Index : {0}", idx);
-			return;
-		}
-
-		//Clear up old scene
-		if (m_CurrentScene)
-		{
-            LUMOS_CORE_INFO("[SceneManager] - Exiting scene : {0}" , m_CurrentScene->GetSceneName());
-			LumosPhysicsEngine::Instance()->RemoveAllPhysicsObjects();
-            LumosPhysicsEngine::Instance()->SetPaused(true);
-			m_CurrentScene->OnCleanupScene();
-		}
-
-		m_SceneIdx = idx;
-		m_CurrentScene = m_vpAllScenes[idx].get();
-
-		//Initialize new scene
-		LumosPhysicsEngine::Instance()->SetDefaults();
-		B2PhysicsEngine::Instance()->SetDefaults();
-
-		auto screenSize = Application::Instance()->GetWindowSize();
-		m_CurrentScene->SetScreenWidth(static_cast<uint>(screenSize.GetX()));
-		m_CurrentScene->SetScreenHeight(static_cast<uint>(screenSize.GetY()));
-		m_CurrentScene->OnInit();
-
-		Application::Instance()->OnNewScene(m_CurrentScene);
-
-		LUMOS_CORE_INFO("[SceneManager] - Scene switched to : {0}", m_CurrentScene->GetSceneName().c_str());
+        m_QueuedSceneIndex = idx;
+        m_SwitchingScenes = true;
 	}
 
-	void SceneManager::JumpToScene(const std::string& friendly_name)
+	void SceneManager::SwitchScene(const std::string& name)
 	{
 		bool found = false;
         m_SwitchingScenes = true;
-		uint idx = 0;
-		for (uint i = 0; !found && i < m_vpAllScenes.size(); ++i)
+		u32 idx = 0;
+		for (u32 i = 0; !found && i < m_vpAllScenes.size(); ++i)
 		{
-			if (m_vpAllScenes[i]->GetSceneName() == friendly_name)
+			if (m_vpAllScenes[i]->GetSceneName() == name)
 			{
 				found = true;
 				idx = i;
@@ -93,23 +72,63 @@ namespace Lumos
 
 		if (found)
 		{
-			JumpToScene(idx);
+			SwitchScene(idx);
 		}
 		else
 		{
-			LUMOS_CORE_ERROR("[SceneManager] - Unknown Scene Alias : {0}", friendly_name.c_str());
+			LUMOS_CORE_ERROR("[SceneManager] - Unknown Scene Alias : {0}", name.c_str());
 		}
 	}
-
-	std::vector<String> SceneManager::GetSceneNames()
-	{
-		std::vector<String> names;
-
-		for(auto& scene : m_vpAllScenes)
-		{
-			names.push_back(scene->GetSceneName());
-		}
-
-		return names;
-	}
+    
+    void SceneManager::ApplySceneSwitch()
+    {
+        if(m_SwitchingScenes == false)
+            return;
+        
+        if (m_QueuedSceneIndex < 0 || m_QueuedSceneIndex >= static_cast<int>(m_vpAllScenes.size()))
+        {
+            LUMOS_CORE_ERROR("[SceneManager] - Invalid Scene Index : {0}", m_QueuedSceneIndex);
+            return;
+        }
+        
+        //Clear up old scene
+        if (m_CurrentScene)
+        {
+            LUMOS_CORE_INFO("[SceneManager] - Exiting scene : {0}" , m_CurrentScene->GetSceneName());
+            LumosPhysicsEngine::Instance()->RemoveAllPhysicsObjects();
+            LumosPhysicsEngine::Instance()->SetPaused(true);
+            m_CurrentScene->OnCleanupScene();
+			Application::Instance()->OnExitScene();
+        }
+        
+        m_SceneIdx = m_QueuedSceneIndex;
+        m_CurrentScene = m_vpAllScenes[m_QueuedSceneIndex].get();
+        
+        //Initialize new scene
+        LumosPhysicsEngine::Instance()->SetDefaults();
+        B2PhysicsEngine::Instance()->SetDefaults();
+        
+        auto screenSize = Application::Instance()->GetWindowSize();
+        m_CurrentScene->SetScreenWidth(static_cast<u32>(screenSize.GetX()));
+        m_CurrentScene->SetScreenHeight(static_cast<u32>(screenSize.GetY()));
+        m_CurrentScene->OnInit();
+        
+        Application::Instance()->OnNewScene(m_CurrentScene);
+        
+        LUMOS_CORE_INFO("[SceneManager] - Scene switched to : {0}", m_CurrentScene->GetSceneName().c_str());
+        
+        m_SwitchingScenes = false;
+    }
+    
+    std::vector<String> SceneManager::GetSceneNames()
+    {
+        std::vector<String> names;
+        
+        for(auto& scene : m_vpAllScenes)
+        {
+            names.push_back(scene->GetSceneName());
+        }
+        
+        return names;
+    }
 }

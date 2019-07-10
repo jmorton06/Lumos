@@ -36,8 +36,6 @@
 #include "Graphics/ModelLoader/ModelLoader.h"
 #include "Graphics/Material.h"
 #include "Graphics/Particle.h"
-#include "Graphics/ParticleEmitter.h"
-#include "Graphics/Renderers/DebugRenderer.h"
 #include "Graphics/Water.h"
 #include "Graphics/Sprite.h"
 #include "Graphics/GBuffer.h"
@@ -47,7 +45,9 @@
 
 //Entity
 #include "Entity/Entity.h"
+#include "Entity/EntityManager.h"
 #include "Entity/Component/Components.h"
+#include "Entity/ComponentManager.h"
 
 //Cameras
 #include "Graphics/Camera/ThirdPersonCamera.h"
@@ -64,10 +64,8 @@
 
 //Audio
 #include "Audio/AudioManager.h"
-//#include "Audio/OggSound.h"
 #include "Audio/Sound.h"
 #include "Audio/SoundNode.h"
-//#include "Audio/SoundSystem.h"
 
 //System
 #include "System/VFS.h"
@@ -98,3 +96,8 @@
 
 //External
 #include <imgui/imgui.h>
+
+#ifdef LUMOS_LEAK_CHECK
+static const char* __file__ = "unknown";
+static size_t __line__ = 0;
+#endif

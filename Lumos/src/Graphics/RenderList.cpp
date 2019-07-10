@@ -1,10 +1,11 @@
 #include "LM.h"
 #include "RenderList.h"
+#include "Entity/Component/TransformComponent.h"
 
 namespace Lumos
 {
 
-	uint RenderList::g_NumRenderLists = 0;
+	u32 RenderList::g_NumRenderLists = 0;
 
 	bool RenderList::AllocateNewRenderList(RenderList* renderlist, bool supportsTransparency)
 	{
@@ -35,13 +36,11 @@ namespace Lumos
 		g_NumRenderLists--;
 	}
 
-
-
 	void RenderList::RenderOpaqueObjects(const std::function<void(Entity*)>& per_object_func)
 	{
 		for (const auto& node : m_vRenderListOpaque)
 		{
-			per_object_func(node.target_obj.lock().get());
+			per_object_func(node.target_obj);
 		}
 	}
 
@@ -50,7 +49,7 @@ namespace Lumos
 		if (m_SupportsTransparancy)
 		{
 			for (const auto& node : m_vRenderListTransparent) {
-				per_object_func(node.target_obj.lock().get());
+				per_object_func(node.target_obj);
 			}
 		}
 	}
@@ -69,7 +68,7 @@ namespace Lumos
 #pragma omp parallel for
 			for (auto &i : list)
 			{
-				i.cam_dist_sq = (i.target_obj.lock()->GetComponent<TransformComponent>()->GetTransform().GetWorldMatrix().GetPositionVector() - m_CameraPos).LengthSquared() * mul;
+				i.cam_dist_sq = (i.target_obj->GetComponent<TransformComponent>()->GetTransform().GetWorldMatrix().GetPositionVector() - m_CameraPos).LengthSquared() * mul;
 			}
 		};
 
@@ -121,10 +120,7 @@ namespace Lumos
 #pragma omp parallel for
 			for (int i = 0; i < size; ++i)
 			{
-				if (list[i].target_obj.expired())
-					break;
-
-				Entity* entity = list[i].target_obj.lock().get();
+				Entity* entity = list[i].target_obj;
 
 				if (!entity->ActiveInHierarchy() || !frustum.InsideFrustum(entity->GetComponent<TransformComponent>()->GetTransform().GetWorldMatrix().GetPositionVector(), entity->GetBoundingRadius()))
 				{
@@ -136,7 +132,7 @@ namespace Lumos
 			int n_removed = 0;
 			for (int i = 0; i < size; ++i)
 			{
-				if (list[i].target_obj.expired() || !(list[i].target_obj.lock()->GetFrustumCullFlags() & m_BitMask))
+				if (!(list[i].target_obj->GetFrustumCullFlags() & m_BitMask))
 				{
 					n_removed++;
 				}
@@ -162,7 +158,7 @@ namespace Lumos
 			mark_objects_for_removal(m_vRenderListTransparent);
 	}
 
-	void RenderList::InsertObject(std::shared_ptr<Entity>& obj)
+	void RenderList::InsertObject(Entity* obj)
 	{
 		const bool isOpaque = true;// obj->IsOpaque();	TODO:
 		if (!m_SupportsTransparancy && !isOpaque)
@@ -221,7 +217,7 @@ namespace Lumos
 #endif
 	}
 
-	void RenderList::RemoveObject(std::shared_ptr<Entity>& obj)
+	void RenderList::RemoveObject(Entity* obj)
 	{
 		const bool isOpaque = true;// obj->IsOpaque(); TODO:
 		if (!m_SupportsTransparancy && !isOpaque)
@@ -231,13 +227,13 @@ namespace Lumos
 		}
 
 		auto target_list = isOpaque ? &m_vRenderListOpaque : &m_vRenderListTransparent;
-		uint new_size = static_cast<uint>(target_list->size());
+		u32 new_size = static_cast<u32>(target_list->size());
 
 		bool found = false;
-		uint idx = 0;
-		for (uint i = 0; !found && i < new_size; ++i)
+		u32 idx = 0;
+		for (u32 i = 0; !found && i < new_size; ++i)
 		{
-			if ((*target_list)[i].target_obj.lock().get() == obj.get())
+			if ((*target_list)[i].target_obj == obj)
 			{
 				found = true;
 				idx = i;
@@ -250,7 +246,7 @@ namespace Lumos
 			new_size--; //As we want to remove an object from the end of the list
 
 			//Move all elements after the 'to be deleted element' forward, so we can safely pop the last element without losing anyone
-			for (uint i = idx; i < new_size; ++i)
+			for (u32 i = idx; i < new_size; ++i)
 			{
 				(*target_list)[i] = (*target_list)[i + 1];
 			}
@@ -269,9 +265,9 @@ namespace Lumos
 #pragma omp parallel for
 			for (int i = 0; i < size; ++i)
 			{
-				if (!list[i].target_obj.expired())
+				if (!list[i].target_obj)
 				{
-					Entity* obj = list[i].target_obj.lock().get();
+					Entity* obj = list[i].target_obj;
 					obj->GetFrustumCullFlags() &= ~m_BitMask;
 				}
 			}

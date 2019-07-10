@@ -6,10 +6,10 @@ namespace Lumos
 	class LUMOS_EXPORT AINode
 	{
 	public:
-		AINode();
+        AINode();
 		virtual ~AINode();
 
-		virtual void Update(float dt) = 0;
+        void Update(float dt) {};
 		
 		
 	};

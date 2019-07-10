@@ -16,12 +16,11 @@ namespace Lumos
 		{
 		}
 
-		void VKVertexBuffer::Resize(uint size)
+		void VKVertexBuffer::Resize(u32 size)
 		{
 			m_Size = size;
-			VKTools::CreateBuffer(size, vk::BufferUsageFlagBits::eVertexBuffer,
-				vk::MemoryPropertyFlagBits::eHostVisible | vk::MemoryPropertyFlagBits::eHostCoherent, m_Buffer, m_Memory);
 
+			VKBuffer::Init(vk::BufferUsageFlagBits::eVertexBuffer, size, nullptr);
 		}
 
 		void VKVertexBuffer::SetLayout(const Graphics::BufferLayout& bufferLayout)
@@ -29,13 +28,13 @@ namespace Lumos
 			m_Layout = bufferLayout;
 		}
 
-		void VKVertexBuffer::SetData(uint size, const void* data)
+		void VKVertexBuffer::SetData(u32 size, const void* data)
 		{
 			VKBuffer::Init(vk::BufferUsageFlagBits::eVertexBuffer, size, data);
 		}
 
 
-		void VKVertexBuffer::SetDataSub(uint size, const void* data, uint offset)
+		void VKVertexBuffer::SetDataSub(u32 size, const void* data, u32 offset)
 		{
 			VKBuffer::Init(vk::BufferUsageFlagBits::eVertexBuffer, size, data);
 		}
@@ -43,9 +42,8 @@ namespace Lumos
 
 		void* VKVertexBuffer::GetPointerInternal()
 		{
-			void* temp;
-			VKDevice::Instance()->GetDevice().mapMemory(m_Memory, 0, m_Size, vk::MemoryMapFlagBits(), &temp);
-			return temp;
+			VKBuffer::Map();
+			return m_Mapped;
 		}
 
 		void VKVertexBuffer::ReleasePointer()
@@ -54,7 +52,8 @@ namespace Lumos
 			memoryRange.memory = m_Memory;
 			memoryRange.size = m_Size;
 			VKDevice::Instance()->GetDevice().flushMappedMemoryRanges(1, &memoryRange);
-			VKDevice::Instance()->GetDevice().unmapMemory(m_Memory);
+
+			VKBuffer::UnMap();
 		}
 
 		void VKVertexBuffer::Bind()

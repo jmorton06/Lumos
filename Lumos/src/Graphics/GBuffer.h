@@ -28,21 +28,21 @@ namespace Lumos
 		{
 		public:
 
-			GBuffer(uint width, uint height);
+			GBuffer(u32 width, u32 height);
 			~GBuffer();
 
 			void BuildTextures();
 
 			void Bind(int32 mode = 0);
-			void UpdateTextureSize(uint width, uint height);
+			void UpdateTextureSize(u32 width, u32 height);
 			void SetReadBuffer(ScreenTextures type);
 
-			inline uint GetWidth() const { return m_Width; }
-			inline uint GetHeight() const { return m_Height; }
+			inline u32 GetWidth() const { return m_Width; }
+			inline u32 GetHeight() const { return m_Height; }
 
-			inline Texture2D* GetTexture(uint index) const { return m_ScreenTex[index]; }
+			inline Texture2D* GetTexture(u32 index) const { return m_ScreenTex[index]; }
 			inline TextureDepth* GetDepthTexture() const { return m_DepthTexture; };
-			inline TextureFormat GetTextureFormat(uint index) const { return m_Formats[index]; };
+			inline TextureFormat GetTextureFormat(u32 index) const { return m_Formats[index]; };
 
 		private:
 			void Init();
@@ -52,7 +52,7 @@ namespace Lumos
 			Texture2D* m_ScreenTex[ScreenTextures::SCREENTEX_MAX]{};
 			TextureDepth* m_DepthTexture{};
 			TextureFormat m_Formats[ScreenTextures::SCREENTEX_MAX];
-			uint m_Width, m_Height;
+			u32 m_Width, m_Height;
 		};
 	}
 }

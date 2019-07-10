@@ -11,22 +11,22 @@ namespace Lumos
 		{
 		private:
 			String m_Name;
-			uint m_Handle;
-			uint m_Width, m_Height, m_Count;
+			u32 m_Handle;
+			u32 m_Width, m_Height, m_Count;
 		public:
-			GLTextureDepthArray(uint width, uint height, uint count);
+			GLTextureDepthArray(u32 width, u32 height, u32 count);
 			~GLTextureDepthArray();
 
-			void Bind(uint slot = 0) const override;
-			void Unbind(uint slot = 0) const override;
-			void Resize(uint width, uint height, uint count) override;
+			void Bind(u32 slot = 0) const override;
+			void Unbind(u32 slot = 0) const override;
+			void Resize(u32 width, u32 height, u32 count) override;
 
 			inline void* GetHandle() const override { return (void*)(size_t)m_Handle; }
 
 			inline const String& GetName() const override { return m_Name; }
 			inline const String& GetFilepath() const override { return m_Name; }
 
-			inline void SetCount(uint count) { m_Count = count; }
+			inline void SetCount(u32 count) { m_Count = count; }
 
 			void Init() override;
 		};

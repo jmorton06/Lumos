@@ -28,7 +28,7 @@ namespace Lumos
 		void OnEvent(Event& e);
 		void OnIMGUI();
 
-		uint GetCount() const { return (uint)m_Layers.size(); }
+		u32 GetCount() const { return (u32)m_Layers.size(); }
         
         std::vector<Layer*>::iterator begin() { return m_Layers.begin(); }
         std::vector<Layer*>::iterator end() { return m_Layers.end(); }

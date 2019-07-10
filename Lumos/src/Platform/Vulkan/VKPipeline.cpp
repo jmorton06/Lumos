@@ -46,7 +46,7 @@ namespace Lumos
 
 				setLayoutBindings.reserve(descriptorLayout.count);
 
-				for (uint i = 0; i < descriptorLayout.count; i++)
+				for (u32 i = 0; i < descriptorLayout.count; i++)
 				{
 					auto info = descriptorLayout.layoutInfo[i];
 
@@ -61,7 +61,7 @@ namespace Lumos
 
 				// Pipeline layout
 				vk::DescriptorSetLayoutCreateInfo descriptorLayoutCI{};
-				descriptorLayoutCI.bindingCount = static_cast<uint>(setLayoutBindings.size());
+				descriptorLayoutCI.bindingCount = static_cast<u32>(setLayoutBindings.size());
 				descriptorLayoutCI.pBindings = setLayoutBindings.data();
 
 				vk::DescriptorSetLayout layout = VKDevice::Instance()->GetDevice().createDescriptorSetLayout(descriptorLayoutCI);
@@ -78,7 +78,7 @@ namespace Lumos
 			std::vector<vk::DescriptorPoolSize> poolSizes;
 			poolSizes.reserve(pipelineCI.numLayoutBindings);
 
-			for (uint i = 0; i < pipelineCI.numLayoutBindings; i++)
+			for (u32 i = 0; i < pipelineCI.numLayoutBindings; i++)
 			{
 				auto info = pipelineCI.typeCounts[i];
 				vk::DescriptorPoolSize descriptorPoolSize{};
@@ -113,7 +113,7 @@ namespace Lumos
 			std::vector<vk::VertexInputAttributeDescription> vertexInputDescription;
 
 			vertexInputDescription.reserve(pipelineCI.numVertexLayout);
-			for(uint i = 0; i < pipelineCI.numVertexLayout; i++)
+			for(u32 i = 0; i < pipelineCI.numVertexLayout; i++)
 			{
 				vertexInputDescription.push_back(VKTools::VertexInputDescriptionToVK(pipelineCI.vertexLayout[i]));
 			}

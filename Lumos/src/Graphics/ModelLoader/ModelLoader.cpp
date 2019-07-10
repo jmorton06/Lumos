@@ -10,7 +10,7 @@
 
 namespace Lumos
 {
-	std::shared_ptr<Entity> ModelLoader::LoadModel(const String& path)
+	Entity* ModelLoader::LoadModel(const String& path)
 	{
 		std::string physicalPath;
 		Lumos::VFS::Get()->ResolvePhysicalPath(path, physicalPath);

@@ -22,7 +22,7 @@ namespace Lumos
 			void ExecuteInternal(vk::PipelineStageFlags flags, vk::Semaphore waitSemaphore, vk::Semaphore signalSemaphore, bool waitFence);
 
 			void ExecuteSecondary(CommandBuffer* primaryCmdBuffer) override;
-            void UpdateViewport(uint width, uint height) override;
+            void UpdateViewport(u32 width, u32 height) override;
 
 			vk::CommandBuffer GetCommandBuffer() const { return m_CommandBuffer[0]; };
 			vk::Fence GetFence() const { return m_Fence; };

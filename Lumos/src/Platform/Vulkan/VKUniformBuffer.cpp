@@ -9,9 +9,7 @@ namespace Lumos
 	{
 		VKUniformBuffer::VKUniformBuffer(uint32_t size, const void* data)
 		{
-			VKTools::CreateBuffer(size, vk::BufferUsageFlagBits::eUniformBuffer,
-			vk::MemoryPropertyFlagBits::eHostVisible | vk::MemoryPropertyFlagBits::eHostCoherent, m_Buffer,
-			m_Memory);
+			VKBuffer::Init(vk::BufferUsageFlagBits::eUniformBuffer, size, data);
 		}
 
 		VKUniformBuffer::VKUniformBuffer()
@@ -24,29 +22,27 @@ namespace Lumos
 
 		void VKUniformBuffer::Init(uint32_t size, const void* data)
 		{
-			VKTools::CreateBuffer(size, vk::BufferUsageFlagBits::eUniformBuffer,
-				vk::MemoryPropertyFlagBits::eHostVisible | vk::MemoryPropertyFlagBits::eHostCoherent, m_Buffer, m_Memory
-			);
+			VKBuffer::Init(vk::BufferUsageFlagBits::eUniformBuffer, size, data);
 		}
 
 		void VKUniformBuffer::SetData(uint32_t size, const void* data)
 		{
-			void* temp;
-			VKDevice::Instance()->GetDevice().mapMemory(m_Memory, vk::DeviceSize(0), size, vk::MemoryMapFlagBits(), &temp);
-			memcpy(temp, data, static_cast<size_t>(size));
-			VKDevice::Instance()->GetDevice().unmapMemory(m_Memory);
+			VKBuffer::Map();
+			memcpy(m_Mapped, data, static_cast<size_t>(size));
+			VKBuffer::UnMap();
 		}
 
 		void VKUniformBuffer::SetDynamicData(uint32_t size, uint32_t typeSize, const void* data)
 		{
-			void* temp;
-			VKDevice::Instance()->GetDevice().mapMemory(m_Memory, vk::DeviceSize(0), size, vk::MemoryMapFlagBits(), &temp);
-			memcpy(temp, data, size);
+			VKBuffer::Map();
+			memcpy(m_Mapped, data, size);
+
 			vk::MappedMemoryRange memoryRange;
 			memoryRange.memory = m_Memory;
 			memoryRange.size = size;
 			VKDevice::Instance()->GetDevice().flushMappedMemoryRanges(1, &memoryRange);
-			VKDevice::Instance()->GetDevice().unmapMemory(m_Memory);
+
+			VKBuffer::UnMap();
 		}
 	}
 }

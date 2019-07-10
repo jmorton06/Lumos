@@ -22,7 +22,7 @@ namespace Lumos
 	{
 		Renderer* Renderer::s_Instance = nullptr;
 
-		void Renderer::Init(uint width, uint height)
+		void Renderer::Init(u32 width, u32 height)
 		{
 			switch (Graphics::GraphicsContext::GetRenderAPI())
 			{

@@ -70,11 +70,11 @@ namespace Lumos
 			return axis * factor;
 		}
 
-		Maths::Vector3* Mesh::GenerateNormals(uint numVertices, Maths::Vector3* vertices, uint* indices, uint numIndices)
+		Maths::Vector3* Mesh::GenerateNormals(u32 numVertices, Maths::Vector3* vertices, u32* indices, u32 numIndices)
 		{
 			Maths::Vector3* normals = new Maths::Vector3[numVertices];
 
-			for (uint i = 0; i < numVertices; ++i)
+			for (u32 i = 0; i < numVertices; ++i)
 			{
 				normals[i] = Maths::Vector3();
 			}
@@ -82,7 +82,7 @@ namespace Lumos
 			if (indices)
 			{
 				int test = 0;
-				for (uint i = 0; i < numIndices; i += 3)
+				for (u32 i = 0; i < numIndices; i += 3)
 				{
 					const int a = indices[i];
 					const int b = indices[i + 1];
@@ -100,7 +100,7 @@ namespace Lumos
 			else
 			{
 				// It's just a list of triangles, so generate face normals
-				for (uint i = 0; i < numVertices; i += 3)
+				for (u32 i = 0; i < numVertices; i += 3)
 				{
 					Maths::Vector3 &a = vertices[i];
 					Maths::Vector3 &b = vertices[i + 1];
@@ -114,7 +114,7 @@ namespace Lumos
 				}
 			}
 
-			for (uint i = 0; i < numVertices; ++i)
+			for (u32 i = 0; i < numVertices; ++i)
 			{
 				normals[i].Normalise();
 			}
@@ -122,7 +122,7 @@ namespace Lumos
 			return normals;
 		}
 
-		Maths::Vector3* Mesh::GenerateTangents(uint numVertices, Maths::Vector3* vertices, uint* indices, uint numIndices, Maths::Vector2* texCoords)
+		Maths::Vector3* Mesh::GenerateTangents(u32 numVertices, Maths::Vector3* vertices, u32* indices, u32 numIndices, Maths::Vector2* texCoords)
 		{
 			if (!texCoords)
 			{
@@ -131,14 +131,14 @@ namespace Lumos
 
 			Maths::Vector3* tangents = new Maths::Vector3[numVertices];
 
-			for (uint i = 0; i < numVertices; ++i)
+			for (u32 i = 0; i < numVertices; ++i)
 			{
 				tangents[i] = Maths::Vector3();
 			}
 
 			if (indices)
 			{
-				for (uint i = 0; i < numIndices; i += 3)
+				for (u32 i = 0; i < numIndices; i += 3)
 				{
 					int a = indices[i];
 					int b = indices[i + 1];
@@ -154,7 +154,7 @@ namespace Lumos
 			}
 			else
 			{
-				for (uint i = 0; i < numVertices; i += 3)
+				for (u32 i = 0; i < numVertices; i += 3)
 				{
 					const Maths::Vector3 tangent = GenerateTangent(vertices[i], vertices[i + 1], vertices[i + 2], texCoords[i], texCoords[i + 1],
 						texCoords[i + 2]);
@@ -164,7 +164,7 @@ namespace Lumos
 					tangents[i + 2] += tangent;
 				}
 			}
-			for (uint i = 0; i < numVertices; ++i)
+			for (u32 i = 0; i < numVertices; ++i)
 			{
 				tangents[i].Normalise();
 			}

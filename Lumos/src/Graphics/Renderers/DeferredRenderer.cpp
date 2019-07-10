@@ -7,6 +7,9 @@
 #include "App/Scene.h"
 #include "App/Application.h"
 #include "Entity/Entity.h"
+#include "Entity/Component/MaterialComponent.h"
+#include "Entity/Component/LightComponent.h"
+#include "Entity/Component/TransformComponent.h"
 #include "Maths/Maths.h"
 
 #include "Graphics/RenderManager.h"
@@ -52,14 +55,15 @@ namespace Lumos
 			PSSystemUniformIndex_LightCount,
 			PSSystemUniformIndex_ShadowCount,
 			PSSystemUniformIndex_RenderMode,
-			PSSystemUniformIndex_Padding,
+			PSSystemUniformIndex_ShadowMode,
 			PSSystemUniformIndex_Size
 		};
 
-		DeferredRenderer::DeferredRenderer(uint width, uint height)
+		DeferredRenderer::DeferredRenderer(u32 width, u32 height, bool renderToGBuffer)
 		{
 			DeferredRenderer::SetScreenBufferSize(width, height);
 			DeferredRenderer::Init();
+            SetRenderToGBufferTexture(renderToGBuffer);
 		}
 
 		DeferredRenderer::~DeferredRenderer()
@@ -110,8 +114,8 @@ namespace Lumos
 			m_LightSetup = new LightSetup();
 			
 			// Pixel/fragment shader System uniforms
-			m_PSSystemUniformBufferSize = sizeof(Light) * MAX_LIGHTS + sizeof(Maths::Vector4) + sizeof(Maths::Matrix4) + (sizeof(Maths::Matrix4) + sizeof(Maths::Vector4))* MAX_SHADOWMAPS + sizeof(float) * 3 + sizeof(int);
-			m_PSSystemUniformBuffer = new byte[m_PSSystemUniformBufferSize];
+			m_PSSystemUniformBufferSize = sizeof(Light) * MAX_LIGHTS + sizeof(Maths::Vector4) + sizeof(Maths::Matrix4) + (sizeof(Maths::Matrix4) + sizeof(Maths::Vector4))* MAX_SHADOWMAPS + sizeof(int) * 4;
+			m_PSSystemUniformBuffer = new u8[m_PSSystemUniformBufferSize];
 			memset(m_PSSystemUniformBuffer, 0, m_PSSystemUniformBufferSize);
 			m_PSSystemUniformBufferOffsets.resize(PSSystemUniformIndex_Size);
 
@@ -122,8 +126,9 @@ namespace Lumos
 			m_PSSystemUniformBufferOffsets[PSSystemUniformIndex_ShadowTransforms]	= m_PSSystemUniformBufferOffsets[PSSystemUniformIndex_ViewMatrix] + sizeof(Maths::Matrix4);
 			m_PSSystemUniformBufferOffsets[PSSystemUniformIndex_ShadowSplitDepths]	= m_PSSystemUniformBufferOffsets[PSSystemUniformIndex_ShadowTransforms] + sizeof(Maths::Matrix4) * MAX_SHADOWMAPS;
 			m_PSSystemUniformBufferOffsets[PSSystemUniformIndex_LightCount]			= m_PSSystemUniformBufferOffsets[PSSystemUniformIndex_ShadowSplitDepths] + sizeof(Maths::Vector4) * MAX_SHADOWMAPS;
-			m_PSSystemUniformBufferOffsets[PSSystemUniformIndex_ShadowCount]		= m_PSSystemUniformBufferOffsets[PSSystemUniformIndex_LightCount] + sizeof(float);
-			m_PSSystemUniformBufferOffsets[PSSystemUniformIndex_RenderMode]			= m_PSSystemUniformBufferOffsets[PSSystemUniformIndex_ShadowCount] + sizeof(float);
+			m_PSSystemUniformBufferOffsets[PSSystemUniformIndex_ShadowCount]		= m_PSSystemUniformBufferOffsets[PSSystemUniformIndex_LightCount] + sizeof(int);
+			m_PSSystemUniformBufferOffsets[PSSystemUniformIndex_RenderMode]			= m_PSSystemUniformBufferOffsets[PSSystemUniformIndex_ShadowCount] + sizeof(int);
+            m_PSSystemUniformBufferOffsets[PSSystemUniformIndex_ShadowMode]         = m_PSSystemUniformBufferOffsets[PSSystemUniformIndex_RenderMode] + sizeof(int);
 
 			m_RenderPass = Graphics::RenderPass::Create();
 
@@ -240,15 +245,21 @@ namespace Lumos
 
 		void DeferredRenderer::SubmitLightSetup(Scene* scene)
 		{
-			auto lightList = scene->GetLightList();
+			auto lightList = ComponentManager::Instance()->GetComponentArray<LightComponent>()->GetArray();// scene->GetLightList();
 
 			if (lightList.empty())
 				return;
 
+			u32 numLights = 0;
+
             for (int i = 0; i < lightList.size(); i++)
             {
-                lightList[i]->m_Direction.Normalise();
-                memcpy(m_PSSystemUniformBuffer + m_PSSystemUniformBufferOffsets[PSSystemUniformIndex_Lights] + sizeof(Graphics::Light) * i, &*lightList[i], sizeof(Graphics::Light));
+				if (!lightList[i])
+					continue;
+
+                lightList[i]->GetLight()->m_Direction.Normalise();
+                memcpy(m_PSSystemUniformBuffer + m_PSSystemUniformBufferOffsets[PSSystemUniformIndex_Lights] + sizeof(Graphics::Light) * i, &*lightList[i]->GetLight(), sizeof(Graphics::Light));
+				numLights++;
             }
             
             Maths::Vector4 cameraPos = Maths::Vector4(scene->GetCamera()->GetPosition());
@@ -266,12 +277,12 @@ namespace Lumos
                 memcpy(m_PSSystemUniformBuffer + m_PSSystemUniformBufferOffsets[PSSystemUniformIndex_ShadowSplitDepths], uSplitDepth, sizeof(Maths::Vector4) * MAX_SHADOWMAPS);
             }
             
-            float numLights = float(lightList.size());
-            float numShadows = shadowRenderer ? shadowRenderer->GetShadowMapNum() : 0.0f;
+            u32 numShadows = shadowRenderer ? shadowRenderer->GetShadowMapNum() : 0;
             
-            memcpy(m_PSSystemUniformBuffer + m_PSSystemUniformBufferOffsets[PSSystemUniformIndex_LightCount], &numLights, sizeof(float));
-            memcpy(m_PSSystemUniformBuffer + m_PSSystemUniformBufferOffsets[PSSystemUniformIndex_ShadowCount], &numShadows, sizeof(float));
+            memcpy(m_PSSystemUniformBuffer + m_PSSystemUniformBufferOffsets[PSSystemUniformIndex_LightCount], &numLights, sizeof(int));
+            memcpy(m_PSSystemUniformBuffer + m_PSSystemUniformBufferOffsets[PSSystemUniformIndex_ShadowCount], &numShadows, sizeof(int));
             memcpy(m_PSSystemUniformBuffer + m_PSSystemUniformBufferOffsets[PSSystemUniformIndex_RenderMode], &m_RenderMode, sizeof(int));
+            memcpy(m_PSSystemUniformBuffer + m_PSSystemUniformBufferOffsets[PSSystemUniformIndex_ShadowMode], &m_ShadowMode, sizeof(int));
 		}
 
 		void DeferredRenderer::EndScene()
@@ -349,13 +360,13 @@ namespace Lumos
 			std::vector<Graphics::DescriptorLayout> descriptorLayouts;
 
 			Graphics::DescriptorLayout sceneDescriptorLayout{};
-			sceneDescriptorLayout.count = static_cast<uint>(layoutInfo.size());
+			sceneDescriptorLayout.count = static_cast<u32>(layoutInfo.size());
 			sceneDescriptorLayout.layoutInfo = layoutInfo.data();
 
 			descriptorLayouts.push_back(sceneDescriptorLayout);
 
 			Graphics::DescriptorLayout meshDescriptorLayout{};
-			meshDescriptorLayout.count = static_cast<uint>(layoutInfoMesh.size());
+			meshDescriptorLayout.count = static_cast<u32>(layoutInfoMesh.size());
 			meshDescriptorLayout.layoutInfo = layoutInfoMesh.data();
 
 			descriptorLayouts.push_back(meshDescriptorLayout);
@@ -364,10 +375,10 @@ namespace Lumos
 			pipelineCI.pipelineName = "Deferred";
 			pipelineCI.shader = m_Shader;
 			pipelineCI.vulkanRenderpass = m_RenderPass;
-			pipelineCI.numVertexLayout = static_cast<uint>(attributeDescriptions.size());
+			pipelineCI.numVertexLayout = static_cast<u32>(attributeDescriptions.size());
 			pipelineCI.descriptorLayouts = descriptorLayouts;
 			pipelineCI.vertexLayout = attributeDescriptions.data();
-			pipelineCI.numLayoutBindings = static_cast<uint>(poolInfo.size());
+			pipelineCI.numLayoutBindings = static_cast<u32>(poolInfo.size());
 			pipelineCI.typeCounts = poolInfo.data();
 			pipelineCI.strideSize = sizeof(Vertex);
 			pipelineCI.numColorAttachments = 1;
@@ -395,14 +406,17 @@ namespace Lumos
 
 		void DeferredRenderer::SetRenderToGBufferTexture(bool set)
 		{
-			m_RenderToGBufferTexture = true;
-			m_RenderTexture = Application::Instance()->GetRenderManager()->GetGBuffer()->GetTexture(SCREENTEX_OFFSCREEN0);
-
-			for (auto fbo : m_Framebuffers)
-				delete fbo;
-			m_Framebuffers.clear();
-
-			CreateFramebuffers();
+            if(set)
+            {
+                m_RenderToGBufferTexture = true;
+                m_RenderTexture = Application::Instance()->GetRenderManager()->GetGBuffer()->GetTexture(SCREENTEX_OFFSCREEN0);
+                
+                for (auto fbo : m_Framebuffers)
+                    delete fbo;
+                m_Framebuffers.clear();
+                
+                CreateFramebuffers();
+            }
 		}
 
 		String RenderModeToString(int mode)
@@ -416,9 +430,20 @@ namespace Lumos
 			case 4 : return "AO";
 			case 5 : return "Emissive";
 			case 6 : return "Normal";
+            case 7 : return "Shadow Cascades";
 			default: return "Lighting";
 			}
 		}
+        
+        String ShadowModeToString(int mode)
+        {
+            switch (mode)
+            {
+                case 0 : return "Normal";
+                case 1 : return "PCF";
+                default: return "Normal";
+            }
+        }
 
 		void DeferredRenderer::OnIMGUI()
 		{
@@ -437,23 +462,35 @@ namespace Lumos
 			ImGui::NextColumn();
 
 			ImGui::AlignTextToFramePadding();
-			ImGui::Text("RenderMode");
+			ImGui::Text("Render Mode");
 			ImGui::NextColumn();
 			ImGui::PushItemWidth(-1);
 			if (ImGui::BeginMenu(RenderModeToString(m_RenderMode).c_str()))
 			{
-				if (ImGui::MenuItem(RenderModeToString(0).c_str(), "", m_RenderMode == 0, true)) { m_RenderMode = 0; }
-				if (ImGui::MenuItem(RenderModeToString(1).c_str(), "", m_RenderMode == 1, true)) { m_RenderMode = 1; }
-				if (ImGui::MenuItem(RenderModeToString(2).c_str(), "", m_RenderMode == 2, true)) { m_RenderMode = 2; }
-				if (ImGui::MenuItem(RenderModeToString(3).c_str(), "", m_RenderMode == 3, true)) { m_RenderMode = 3; }
-				if (ImGui::MenuItem(RenderModeToString(4).c_str(), "", m_RenderMode == 4, true)) { m_RenderMode = 4; }
-				if (ImGui::MenuItem(RenderModeToString(5).c_str(), "", m_RenderMode == 5, true)) { m_RenderMode = 5; }
-				if (ImGui::MenuItem(RenderModeToString(6).c_str(), "", m_RenderMode == 6, true)) { m_RenderMode = 6; }
-
+                const int numRenderModes = 8;
+                
+                for(int i = 0; i < numRenderModes; i++)
+                {
+                        if (ImGui::MenuItem(RenderModeToString(i).c_str(), "", m_RenderMode == i, true)) { m_RenderMode = i; }
+                }
 				ImGui::EndMenu();
 			}
 			ImGui::PopItemWidth();
 			ImGui::NextColumn();
+            
+            ImGui::AlignTextToFramePadding();
+            ImGui::Text("Shadow Mode");
+            ImGui::NextColumn();
+            ImGui::PushItemWidth(-1);
+            if (ImGui::BeginMenu(ShadowModeToString(m_ShadowMode).c_str()))
+            {
+                if (ImGui::MenuItem(ShadowModeToString(0).c_str(), "", m_ShadowMode == 0, true)) { m_ShadowMode = 0; }
+                if (ImGui::MenuItem(ShadowModeToString(1).c_str(), "", m_ShadowMode == 1, true)) { m_ShadowMode = 1; }
+                
+                ImGui::EndMenu();
+            }
+            ImGui::PopItemWidth();
+            ImGui::NextColumn();
 
 			ImGui::Columns(1);
 			ImGui::Separator();
@@ -522,7 +559,7 @@ namespace Lumos
 			m_Pipeline->GetDescriptorSet()->Update(bufferInfos);
 		}
 
-		void DeferredRenderer::OnResize(uint width, uint height)
+		void DeferredRenderer::OnResize(u32 width, u32 height)
 		{
 			delete m_Pipeline;
 

@@ -8,10 +8,19 @@
 
 namespace Lumos
 {
+    MaterialComponent::MaterialComponent()
+    {
+        m_Name = "Material";
+        m_Material = std::make_shared<Material>();
+    }
+    
     MaterialComponent::MaterialComponent(std::shared_ptr<Material>& material)
     : m_Material(material)
     {
-        m_Name = "Material";
+    }
+    
+    MaterialComponent::~MaterialComponent()
+    {
     }
     
     void MaterialComponent::OnUpdateComponent(float dt)
@@ -22,7 +31,7 @@ namespace Lumos
     {
 		ImGui::Separator();
 
-		if (m_Material && ImGui::TreeNode("Material"))
+		if (m_Material)
 		{
 			bool flipImage = Graphics::GraphicsContext::GetContext()->FlipImGUITexture();
 
@@ -50,7 +59,7 @@ namespace Lumos
 				}
 				else
 				{
-					ImGui::Button("Empty", ImVec2(64, 64));
+                    ImGui::Button("Empty", ImVec2(64, 64));
 				}
 
 
@@ -349,8 +358,6 @@ namespace Lumos
 			ImGui::Separator();
 
 			m_Material->SetMaterialProperites(*prop);
-
-			ImGui::TreePop();
 		}
     }
 }

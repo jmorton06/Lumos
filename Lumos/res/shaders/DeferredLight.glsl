@@ -50,10 +50,10 @@ layout (std140) uniform LightData
 	mat4 viewMatrix;
 	mat4 uShadowTransform[MAX_SHADOWMAPS];
     vec4 uSplitDepths[MAX_SHADOWMAPS];
-	float lightCount;
-	float shadowCount;
+	int lightCount;
+	int shadowCount;
 	int mode;
-	float p1;
+	int shadowMode;
 } ubo;
 
 #define PI 3.1415926535897932384626433832795

@@ -65,7 +65,7 @@ namespace Lumos
 			}
         }
 
-		void GLDescriptorSet::Bind(uint offset)
+		void GLDescriptorSet::Bind(u32 offset)
 		{
 			for (auto& imageInfo : m_ImageInfos)
 			{
@@ -81,12 +81,12 @@ namespace Lumos
 			{
 				auto* buffer = dynamic_cast<GLUniformBuffer*>(bufferInfo.buffer);
 
-                byte* data;
-                uint size;
+                u8* data;
+                u32 size;
 
                 if(buffer->GetDynamic())
                 {
-                    data = reinterpret_cast<byte*>(buffer->GetBuffer()) + offset;
+                    data = reinterpret_cast<u8*>(buffer->GetBuffer()) + offset;
                     size = buffer->GetTypeSize();
                 }
                 else
@@ -110,7 +110,7 @@ namespace Lumos
 			}
 
             for(auto pc : m_PushConstants)
-                //((GLShader*)m_Shader)->SetUniform("PushConstant", (byte*)pc.data);
+                //((GLShader*)m_Shader)->SetUniform("PushConstant", (u8*)pc.data);
 	            dynamic_cast<GLShader*>(m_Shader)->SetUniform1i("PushConstant", static_cast<int32>(pc.data[0])); //TEMP
 		}
 

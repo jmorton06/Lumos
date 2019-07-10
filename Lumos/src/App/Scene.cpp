@@ -11,7 +11,8 @@
 #include "Graphics/RenderManager.h"
 #include "Graphics/Camera/Camera.h"
 #include "Utilities/TimeStep.h"
-#include "Entity/Component/TransformComponent.h"
+#include "Entity/EntityManager.h"
+#include "Entity/Component/Components.h"
 #include "Audio/AudioManager.h"
 #include "Physics/LumosPhysicsEngine/SortAndSweepBroadphase.h"
 #include "Physics/LumosPhysicsEngine/Octree.h"
@@ -24,8 +25,7 @@ namespace Lumos
 		: m_SceneName(friendly_name), m_pCamera(nullptr), m_EnvironmentMap(nullptr), m_SceneBoundingRadius(0),
 		  m_DebugDrawFlags(0), m_ScreenWidth(0),
 		  m_ScreenHeight(0),
-		  m_DrawDebugData(false),
-          m_RootEntity(std::make_shared<Entity>("Root Node"))
+		  m_DrawDebugData(false)
 	{
 	}
 
@@ -101,6 +101,8 @@ namespace Lumos
 		{
 			LUMOS_CORE_ERROR("Unable to allocate scene render list! - Try using less shadow maps");
 		}
+
+		m_RootEntity = EntityManager::Instance()->CreateEntity("Root");
 	}
 
 	void Scene::OnCleanupScene()
@@ -109,34 +111,23 @@ namespace Lumos
 
 		DeleteAllGameObjects();
 
-		auto layerStack = Application::Instance()->GetLayerStack();
-		for(auto& layer : m_SceneLayers)
-		{
-			layerStack->PopLayer(layer);
-		}
-
-		m_SceneLayers.clear();
-
 		Input::GetInput().Reset();
 
 		Application::Instance()->GetRenderManager()->Reset();
-		Application::Instance()->GetAudioManager()->ClearNodes();
+		Application::Instance()->GetSystem<AudioManager>()->ClearNodes();
 
 		m_CurrentScene = false;
 	};
 
-	void Scene::AddEntity(std::shared_ptr<Entity>& game_object)
+	void Scene::AddEntity(Entity* game_object)
 	{
-		if (game_object->GetComponent<Physics3DComponent>())
-			game_object->GetComponent<Physics3DComponent>()->m_PhysicsObject->AutoResizeBoundingBox();
-
-		m_RootEntity->AddChildObject(game_object);
+		m_RootEntity->AddChild(game_object);
 	}
 
 
 	void Scene::DeleteAllGameObjects()
 	{
-		m_RootEntity->GetChildren().clear();
+		EntityManager::Instance()->Clear();
 	}
 
 	void Scene::OnUpdate(TimeStep* timeStep)
@@ -153,7 +144,7 @@ namespace Lumos
 		BuildFrameRenderList();
 		BuildLightList();
 
-		std::function<void(std::shared_ptr<Entity>)> per_object_func = [&](std::shared_ptr<Entity> obj)
+		std::function<void(Entity*)> per_object_func = [&](Entity* obj)
 		{
 			obj->OnUpdateObject(timeStep->GetSeconds());
 
@@ -162,6 +153,8 @@ namespace Lumos
 		};
 
 		per_object_func(m_RootEntity);
+
+		ComponentManager::Instance()->OnUpdate(timeStep->GetSeconds());
 	}
 
 	void Scene::BuildWorldMatrices()
@@ -192,7 +185,7 @@ namespace Lumos
 	{
 		if (m_DebugDrawFlags & DEBUGDRAW_FLAGS_ENTITY_COMPONENTS)
 		{
-			std::function<void(std::shared_ptr<Entity>)> per_object_func = [&](std::shared_ptr<Entity> obj)
+			std::function<void(Entity*)> per_object_func = [&](Entity* obj)
 			{
 				obj->DebugDraw(m_DebugDrawFlags);
 
@@ -206,14 +199,14 @@ namespace Lumos
 
 	void Scene::InsertToRenderList(RenderList* list, const Maths::Frustum& frustum) const
 	{
-		std::function<void(std::shared_ptr<Entity>)> per_object_func = [&](std::shared_ptr<Entity> obj)
+		std::function<void(Entity*)> per_object_func = [&](Entity* obj)
 		{
 			if (obj->ActiveInHierarchy())
 			{
 				auto meshComponent = obj->GetComponent<MeshComponent>();
 				if (meshComponent && meshComponent->GetActive())
 				{
-					auto transform = obj->GetComponent<TransformComponent>()->GetTransform();
+					auto& transform = obj->GetComponent<TransformComponent>()->GetTransform();
 
 					float maxScaling = 0.0f;
 					maxScaling = Maths::Max(transform.GetWorldMatrix().GetScaling().GetX(), maxScaling);
@@ -259,7 +252,7 @@ namespace Lumos
 	{
 		m_LightList.clear();
 
-		std::function<void(std::shared_ptr<Entity>)> per_object_func = [&](std::shared_ptr<Entity> obj)
+		std::function<void(Entity*)> per_object_func = [&](Entity* obj)
 		{
 			if (obj->ActiveInHierarchy())
 			{
@@ -277,9 +270,9 @@ namespace Lumos
 		per_object_func(m_RootEntity);
 	}
 
-	void Scene::IterateEntities(const std::function<void(std::shared_ptr<Entity>)>& per_object_func)
+	void Scene::IterateEntities(const std::function<void(Entity*)>& per_object_func)
 	{
-		std::function<void(std::shared_ptr<Entity>)> per_object_func2 = [&](std::shared_ptr<Entity> obj)
+		std::function<void(Entity*)> per_object_func2 = [&](Entity* obj)
 		{
 			if (obj->ActiveInHierarchy())
 			{

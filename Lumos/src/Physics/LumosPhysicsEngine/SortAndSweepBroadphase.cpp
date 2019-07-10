@@ -2,10 +2,6 @@
 #include "LM.h"
 #include "SortAndSweepBroadphase.h"
 
-#include "Graphics/Renderers/DebugRenderer.h"
-#include <memory>
-#include <vector>
-
 namespace Lumos
 {
 
@@ -80,7 +76,5 @@ namespace Lumos
 
 	void SortAndSweepBroadphase::DebugDraw()
 	{
-		DebugRenderer::DrawPointNDT(Maths::Vector3(0.0f, 0.0f, 0.0f), 0.05f, Maths::Vector4(0.0f, 0.0f, 1.0f, 1.0f));
-		DebugRenderer::DrawThickLine(Maths::Vector3(0.0f, 0.0f, 0.0f), m_axis, 0.02f, Maths::Vector4(0.0f, 0.0f, 1.0f, 1.0f));
 	}
 }

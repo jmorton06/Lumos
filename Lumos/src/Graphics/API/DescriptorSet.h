@@ -29,45 +29,45 @@ namespace Lumos
 
 		struct VertexInputDescription
 		{
-			uint binding;
-			uint location;
+			u32 binding;
+			u32 location;
 			Format format;
-			uint offset;
+			u32 offset;
 		};
 
 		struct DescriptorPoolInfo
 		{
 			DescriptorType type;
-			uint size;
+			u32 size;
 		};
 
 		struct DescriptorLayoutInfo
 		{
 			DescriptorType type;
 			ShaderType stage;
-			uint size;
-			uint count = 1;
+			u32 size;
+			u32 count = 1;
 		};
 
 		struct DescriptorLayout
 		{
-			uint count;
+			u32 count;
 			DescriptorLayoutInfo* layoutInfo;
 		};
 
 		struct DescriptorInfo
 		{
 			Pipeline* pipeline;
-			uint layoutIndex;
+			u32 layoutIndex;
             Shader* shader;
-			uint count = 1;
+			u32 count = 1;
 		};
 
 		struct BufferInfo
 		{
 			UniformBuffer* buffer;
-			uint offset;
-			uint size;
+			u32 offset;
+			u32 size;
 			int binding;
 			String name = "";
 			DescriptorType type;
@@ -84,9 +84,9 @@ namespace Lumos
 
 		struct PushConstant
 		{
-			uint size;
+			u32 size;
 			PushConstantDataType type;
-			byte* data;
+			u8* data;
             ShaderType shaderStage;
 		};
 
@@ -109,8 +109,8 @@ namespace Lumos
 			virtual void Update(std::vector<ImageInfo>& imageInfos) = 0;
 			virtual void Update(std::vector<BufferInfo>& bufferInfos) = 0;
 			virtual void SetPushConstants(std::vector<PushConstant>& pushConstants) = 0;
-			virtual void SetDynamicOffset(uint offset) = 0;
-			virtual uint GetDynamicOffset() const = 0;
+			virtual void SetDynamicOffset(u32 offset) = 0;
+			virtual u32 GetDynamicOffset() const = 0;
 		};
 	}
 }

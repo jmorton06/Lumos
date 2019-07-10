@@ -13,10 +13,10 @@ namespace Lumos
 			explicit VKVertexBuffer(BufferUsage usage);
 			~VKVertexBuffer();
 
-			void Resize(uint size) override;
+			void Resize(u32 size) override;
 			void SetLayout(const Graphics::BufferLayout& layout) override;
-			void SetData(uint size, const void* data) override;
-			void SetDataSub(uint size, const void* data, uint offset) override;
+			void SetData(u32 size, const void* data) override;
+			void SetDataSub(u32 size, const void* data, u32 offset) override;
 
 			BufferLayout GetLayout() const { return m_Layout; }
 
@@ -28,7 +28,7 @@ namespace Lumos
 			void* GetPointerInternal() override;
 
 			BufferUsage m_Usage;
-			uint m_Size;
+			u32 m_Size;
 			Graphics::BufferLayout m_Layout;
 		};
 

@@ -3,7 +3,6 @@
 #include "LumosPhysicsEngine.h"
 #include "Entity/Entity.h"
 
-#include "Graphics/Renderers/DebugRenderer.h"
 
 namespace Lumos
 {
@@ -112,25 +111,5 @@ namespace Lumos
 
 	void PhysicsObject3D::DebugDraw(uint64_t flags) const
 	{
-		Maths::Vector4 colour(0.2f, 0.8f, 1.0f, 1.0f);
-
-		if (flags & DEBUGDRAW_FLAGS_AABB)
-		{
-			if (!IsAwake())
-				colour = Maths::Vector4(0.0f, 1.0f, 0.0f, 1.0f);
-
-			// AABB
-			//GetWorldSpaceAABB().DebugDraw(Matrix4(), Vector4(0.8f, 1.0f, 1.0f, 0.25f), colour);
-			Maths::BoundingBox box = GetWorldSpaceAABB();
-			DebugRenderer::DebugDraw(&box, colour);
-		}
-
-		if (flags & DEBUGDRAW_FLAGS_LINEARVELOCITY)
-			DebugRenderer::DrawThickLineNDT(m_wsTransform.GetPositionVector(), m_wsTransform * m_LinearVelocity, 0.02f,
-											Maths::Vector4(0.0f, 1.0f, 0.0f, 1.0f));
-
-		if (flags & DEBUGDRAW_FLAGS_LINEARFORCE)
-			DebugRenderer::DrawThickLineNDT(m_wsTransform.GetPositionVector(), m_wsTransform * m_Force, 0.02f,
-											Maths::Vector4(0.0f, 0.0f, 1.0f, 1.0f));
 	}
 }

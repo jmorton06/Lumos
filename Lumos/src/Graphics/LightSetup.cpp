@@ -20,7 +20,7 @@ namespace Lumos
 
 	void LightSetup::Remove(std::shared_ptr<Graphics::Light>& light)
 	{
-		for (uint i = 0; i < m_Lights.size(); i++)
+		for (u32 i = 0; i < m_Lights.size(); i++)
 		{
 			if (m_Lights[i] == light)
 			{
@@ -40,7 +40,7 @@ namespace Lumos
 		std::string title = "Light Setup : " + StringFormat::ToString(static_cast<int>(m_Lights.size()));
 		if (ImGui::TreeNode(title.c_str()))
 		{
-			for (uint i = 0; i < m_Lights.size(); i++)
+			for (u32 i = 0; i < m_Lights.size(); i++)
 			{
 			}
 

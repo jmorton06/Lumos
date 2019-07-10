@@ -3,7 +3,6 @@
 #include "Maths/Matrix3.h"
 
 #include "LumosPhysicsEngine.h"
-#include "Graphics/Renderers/DebugRenderer.h"
 #include "Maths/MathsUtilities.h"
 
 namespace Lumos
@@ -250,24 +249,5 @@ namespace Lumos
 
 	void Manifold::DebugDraw() const
 	{
-		if (m_vContacts.size() > 0)
-		{
-			//Loop around all contact points and draw them all as a line-fan
-			Maths::Vector3 globalOnA1 = m_pNodeA->GetPosition() + m_vContacts.back().relPosA;
-			for (const ContactPoint& contact : m_vContacts)
-			{
-				Maths::Vector3 globalOnA2 = m_pNodeA->GetPosition() + contact.relPosA;
-				Maths::Vector3 globalOnB = m_pNodeB->GetPosition() + contact.relPosB;
-
-				//Draw line to form area given by all contact points
-				DebugRenderer::DrawThickLineNDT(globalOnA1, globalOnA2, 0.02f, Maths::Vector4(0.0f, 1.0f, 0.0f, 1.0f));
-
-				//Draw descriptors for indivdual contact point
-				DebugRenderer::DrawPointNDT(globalOnA2, 0.05f, Maths::Vector4(0.0f, 0.5f, 0.0f, 1.0f));
-				DebugRenderer::DrawThickLineNDT(globalOnB, globalOnA2, 0.01f, Maths::Vector4(1.0f, 0.0f, 1.0f, 1.0f));
-
-				globalOnA1 = globalOnA2;
-			}
-		}
 	}
 }
