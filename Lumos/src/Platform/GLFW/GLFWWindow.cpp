@@ -268,7 +268,6 @@ namespace Lumos
 
 	void GLFWWindow::SetWindowTitle(const String& title)
 	{
-		m_Data.Title = title;
 		glfwSetWindowTitle(m_Handle, title.c_str());
 	}
 

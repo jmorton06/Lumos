@@ -107,11 +107,15 @@ namespace Lumos
 #endif
 
 #ifdef LUMOS_PLATFORM_WINDOWS
+#ifdef LUMOS_USE_GLFW_WINDOWS
+			glfwCreateWindowSurface(m_VKContext->GetVKInstance(), static_cast<GLFWwindow*>(m_VKContext->GetWindowContext()), nullptr, (VkSurfaceKHR*)&m_Surface);
+#else
 			vk::Win32SurfaceCreateInfoKHR surfaceInfo;
 			surfaceInfo.pNext = NULL;
 			surfaceInfo.hwnd = (HWND)VKContext::Get()->GetWindowContext();
 			surfaceInfo.hinstance = ((WindowsWindow*)Application::Instance()->GetWindow())->GetHInstance();
 			m_Surface = m_VKContext->GetVKInstance().createWin32SurfaceKHR(surfaceInfo);
+#endif
 #endif
 
 #ifdef LUMOS_PLATFORM_LINUX
@@ -246,12 +250,15 @@ namespace Lumos
 
 		void VKDevice::Unload()
 		{
-#ifdef USE_VMA_ALLOCATOR
-            vmaDestroyAllocator(m_Allocator);
-#endif
 			VKDevice::Instance()->GetDevice().destroyPipelineCache(m_PipelineCache);
+
+#ifdef USE_VMA_ALLOCATOR
+			vmaDestroyAllocator(m_Allocator);
+#endif
+
 			m_Device.destroy();
 			m_VKContext->GetVKInstance().destroySurfaceKHR(m_Surface);
+
 		}
 
 		bool VKDevice::MemoryTypeFromProperties(uint32_t typeBits, vk::MemoryPropertyFlags reqMask, uint32_t * typeIndex)
