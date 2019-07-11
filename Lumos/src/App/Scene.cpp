@@ -157,46 +157,6 @@ namespace Lumos
 		ComponentManager::Instance()->OnUpdate(timeStep->GetSeconds());
 	}
 
-	void Scene::BuildWorldMatrices()
-	{
-		/*std::function<void(std::shared_ptr<Entity>)> per_object_func = [&](std::shared_ptr<Entity> obj)
-		{
-			Physics3DComponent* physicsComponent = obj->GetComponent<Physics3DComponent>();
-			TransformComponent* transformComponent = obj->GetComponent<TransformComponent>();
-			if (physicsComponent)
-			{
-				if (transformComponent)
-					transformComponent->GetTransform().GetWorldMatrix() = physicsComponent->m_PhysicsObject->GetWorldSpaceTransform() * transformComponent->GetTransform().GetLocalMatrix();
-			}
-			else
-			{
-				if (transformComponent)
-					transformComponent->GetTransform().GetWorldMatrix() = transformComponent->GetTransform().GetLocalMatrix();
-			}
-
-			for (auto child : obj->GetChildren())
-				per_object_func(child);
-		};
-
-		per_object_func(m_RootEntity);*/
-	}
-
-	void Scene::DebugRender()
-	{
-		if (m_DebugDrawFlags & DEBUGDRAW_FLAGS_ENTITY_COMPONENTS)
-		{
-			std::function<void(Entity*)> per_object_func = [&](Entity* obj)
-			{
-				obj->DebugDraw(m_DebugDrawFlags);
-
-				for (auto child : obj->GetChildren())
-					per_object_func(child);
-			};
-
-			per_object_func(m_RootEntity);
-		}
-	}
-
 	void Scene::InsertToRenderList(RenderList* list, const Maths::Frustum& frustum) const
 	{
 		std::function<void(Entity*)> per_object_func = [&](Entity* obj)

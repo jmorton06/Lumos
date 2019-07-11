@@ -134,7 +134,7 @@ namespace Lumos
 		GLContext::GLContext(const WindowProperties& properties, void* deviceContext)
 		{
 
-#ifdef LUMOS_PLATFORM_WINDOWS
+#if defined(LUMOS_PLATFORM_WINDOWS) && !defined(LUMOS_USE_GLFW_WINDOWS)
 			HDC hDc = GetDC(static_cast<HWND>(deviceContext));
 
 			HGLRC tempContext = wglCreateContext(hDc);

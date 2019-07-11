@@ -95,13 +95,13 @@ namespace Lumos
 		// set to a specified maximum amount, matching the maximum number
 		// of entities allowed to exist simultaneously, so that each entity
 		// has a unique spot.
-		std::array<T*, MAX_ENTITIES> m_ComponentArray;
+		std::array<T*, MAX_ENTITIES> m_ComponentArray{};
 
 		// Map from an entity ID to an array index.
-		std::unordered_map<Entity*, size_t> m_EntityToIndexMap;
+		std::unordered_map<Entity*, size_t> m_EntityToIndexMap{};
 
 		// Map from an array index to an entity ID.
-		std::unordered_map<size_t, Entity*> m_IndexToEntityMap;
+		std::unordered_map<size_t, Entity*> m_IndexToEntityMap{};
 
 		// Total size of valid entries in the array.
 		size_t m_Size;
