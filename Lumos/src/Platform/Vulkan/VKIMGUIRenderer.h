@@ -12,6 +12,7 @@ namespace Lumos
 	{
 		class VKFramebuffer;
 		class VKRenderpass;
+		class VKTexture2D;
 
 		class VKIMGUIRenderer : public IMGUIRenderer
 		{
@@ -36,6 +37,8 @@ namespace Lumos
             VKCommandBuffer* m_CommandBuffers[3];
 			VKFramebuffer* m_Framebuffers[3];
 			VKRenderpass* m_Renderpass;
+			VKTexture2D* m_FontTexture;
+
 			bool m_ClearScreen;
             
         };

@@ -49,8 +49,7 @@ namespace Lumos
                 
 			m_TextureImageView = CreateImageView(m_TextureImage, depthFormat, vk::ImageAspectFlagBits::eDepth);
 
-			VKTools::TransitionImageLayout(m_TextureImage, depthFormat, vk::ImageLayout::eUndefined,
-				vk::ImageLayout::eDepthStencilAttachmentOptimal);
+			//VKTools::TransitionImageLayout(m_TextureImage, depthFormat, vk::ImageLayout::eUndefined, vk::ImageLayout::eDepthStencilAttachmentOptimal);
 
 			CreateTextureSampler();
 

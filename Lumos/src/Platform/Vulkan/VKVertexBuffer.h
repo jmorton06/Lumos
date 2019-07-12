@@ -27,6 +27,8 @@ namespace Lumos
 		protected:
 			void* GetPointerInternal() override;
 
+			bool m_MappedBuffer = false;
+
 			BufferUsage m_Usage;
 			u32 m_Size;
 			Graphics::BufferLayout m_Layout;
