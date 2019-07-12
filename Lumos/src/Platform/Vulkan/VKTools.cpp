@@ -134,7 +134,6 @@ namespace Lumos
         void VKTools::TransitionImageLayout(vk::Image image, vk::Format format, vk::ImageLayout oldLayout, vk::ImageLayout newLayout,
             uint32_t mipLevels)
         {
-			return;
             vk::CommandBuffer commandBuffer = BeginSingleTimeCommands();
 
             vk::ImageMemoryBarrier barrier = {};

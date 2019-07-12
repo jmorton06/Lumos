@@ -43,6 +43,7 @@ namespace Lumos
 			}
                
 			delete m_Renderpass;
+			delete m_FontTexture;
 
             for (int i = 0; i < Renderer::GetRenderer()->GetSwapchain()->GetSwapchainBufferCount(); i++)
             {
@@ -175,16 +176,16 @@ namespace Lumos
 				int width, height;
 				io.Fonts->GetTexDataAsRGBA32(&pixels, &width, &height);
 
-				auto fontTex = new VKTexture2D(width, height, pixels);
+				m_FontTexture = new VKTexture2D(width, height, pixels);
 
 				 vk::WriteDescriptorSet write_desc[1] = {};
 				 write_desc[0].dstSet = ImGui_ImplVulkanH_GetFontDescriptor();
 				 write_desc[0].descriptorCount = 1;
 				 write_desc[0].descriptorType = vk::DescriptorType::eCombinedImageSampler;
-				 write_desc[0].pImageInfo = fontTex->GetDescriptor();
+				 write_desc[0].pImageInfo = m_FontTexture->GetDescriptor();
 				 VKDevice::Instance()->GetDevice().updateDescriptorSets(1, write_desc, 0, nullptr);
 
-				io.Fonts->TexID = (ImTextureID)fontTex->GetHandle();// GetImage();
+				io.Fonts->TexID = (ImTextureID)m_FontTexture->GetHandle();// GetImage();
 
 				ImGui_ImplVulkan_AddTexture(io.Fonts->TexID, ImGui_ImplVulkanH_GetFontDescriptor());
 
