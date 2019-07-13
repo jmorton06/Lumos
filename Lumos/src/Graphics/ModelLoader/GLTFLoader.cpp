@@ -116,7 +116,9 @@ namespace Lumos
 
             if (imageAndSampler.Image)
             {
-				Graphics::TextureParameters params = Graphics::TextureParameters(GetFilter(imageAndSampler.Sampler->minFilter), GetWrapMode(imageAndSampler.Sampler->wrapS));
+                Graphics::TextureParameters params;
+                if(gltfTexture.sampler != -1)
+                    params = Graphics::TextureParameters(GetFilter(imageAndSampler.Sampler->minFilter), GetWrapMode(imageAndSampler.Sampler->wrapS));
 
 				Graphics::Texture2D* texture2D = Graphics::Texture2D::CreateFromSource(imageAndSampler.Image->width, imageAndSampler.Image->height, imageAndSampler.Image->image.data(), params);
                 if (texture2D)

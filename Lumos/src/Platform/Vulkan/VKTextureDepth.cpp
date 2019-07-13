@@ -24,8 +24,8 @@ namespace Lumos
             vmaDestroyImage(VKDevice::Instance()->GetAllocator(), m_TextureImage, m_Allocation);
 #else
             VKDevice::Instance()->GetDevice().destroyImage(m_TextureImage);
+            VKDevice::Instance()->GetDevice().freeMemory(m_TextureImageMemory);
 #endif
-			VKDevice::Instance()->GetDevice().freeMemory(m_TextureImageMemory);
 		}
 
 		void VKTextureDepth::Bind(u32 slot) const
@@ -43,9 +43,6 @@ namespace Lumos
 			CreateImage(m_Width, m_Height, depthFormat, vk::ImageTiling::eOptimal,
 				vk::ImageUsageFlagBits::eDepthStencilAttachment, vk::MemoryPropertyFlagBits::eDeviceLocal, m_TextureImage,
 				m_TextureImageMemory);
-            
-            if(m_TextureImageView)
-				VKDevice::Instance()->GetDevice().destroyImageView(m_TextureImageView);
                 
 			m_TextureImageView = CreateImageView(m_TextureImage, depthFormat, vk::ImageAspectFlagBits::eDepth);
 
@@ -58,9 +55,6 @@ namespace Lumos
 
 		void VKTextureDepth::CreateTextureSampler()
 		{
-			if (m_TextureSampler)
-				VKDevice::Instance()->GetDevice().destroySampler(m_TextureSampler);
-
 			vk::SamplerCreateInfo samplerInfo = {};
 			samplerInfo.magFilter = vk::Filter::eLinear;
 			samplerInfo.minFilter = vk::Filter::eLinear;
@@ -150,6 +144,17 @@ namespace Lumos
 			m_Width = width;
 			m_Height = height;
 
+            if (m_TextureSampler)
+                VKDevice::Instance()->GetDevice().destroySampler(m_TextureSampler);
+            
+            VKDevice::Instance()->GetDevice().destroyImageView(m_TextureImageView);
+#ifdef USE_VMA_ALLOCATOR
+            vmaDestroyImage(VKDevice::Instance()->GetAllocator(), m_TextureImage, m_Allocation);
+#else
+            VKDevice::Instance()->GetDevice().destroyImage(m_TextureImage);
+            VKDevice::Instance()->GetDevice().freeMemory(m_TextureImageMemory);
+#endif
+            
 			Init();
 		}
 	}
