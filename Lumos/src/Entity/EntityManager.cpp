@@ -23,7 +23,8 @@ void Lumos::EntityManager::DeleteEntity(Entity* entity)
 	{
 		if (m_Entities[i] == entity)
 		{
-			delete entity;
+            if(entity != nullptr)
+                delete entity;
 			m_Entities.erase(m_Entities.begin() + i);
 		}
 	}
