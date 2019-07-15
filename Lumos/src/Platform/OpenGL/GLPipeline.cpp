@@ -29,6 +29,7 @@ namespace Lumos
             info.layoutIndex = 0;
             info.shader = pipelineCI.shader;
 			m_DescriptorSet = new GLDescriptorSet(info);
+            m_TransparencyEnabled = pipelineCI.transparencyEnabled;
 
 			m_Shader = info.shader;
 
@@ -37,6 +38,11 @@ namespace Lumos
 
         void GLPipeline::SetActive(Graphics::CommandBuffer* cmdBuffer)
         {
+            if(m_TransparencyEnabled)
+                glEnable(GL_BLEND);
+            else
+                glDisable(GL_BLEND);
+            
             m_Shader->Bind();
         }
     }
