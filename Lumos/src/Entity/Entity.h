@@ -110,7 +110,5 @@ namespace Lumos
 
 			return component;
 		}
-
-
 	}
 }

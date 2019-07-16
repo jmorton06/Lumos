@@ -28,6 +28,7 @@ namespace Lumos
 			Shader* m_Shader = nullptr;
             GLRenderPass* m_RenderPass;
             std::string pipelineName;
+            bool m_TransparencyEnabled = false;
         };
     }
 }

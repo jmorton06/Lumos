@@ -20,12 +20,12 @@ namespace Lumos
 				VKDevice::Instance()->GetDevice().destroySampler(m_TextureSampler);
 	
 			VKDevice::Instance()->GetDevice().destroyImageView(m_TextureImageView);
-//#ifdef USE_VMA_ALLOCATOR
- //           vmaDestroyImage(VKDevice::Instance()->GetAllocator(), m_TextureImage, m_Allocation);
-//#else
+#ifdef USE_VMA_ALLOCATOR
+            vmaDestroyImage(VKDevice::Instance()->GetAllocator(), m_TextureImage, m_Allocation);
+#else
             VKDevice::Instance()->GetDevice().destroyImage(m_TextureImage);
-//#endif
-			VKDevice::Instance()->GetDevice().freeMemory(m_TextureImageMemory);
+            VKDevice::Instance()->GetDevice().freeMemory(m_TextureImageMemory);
+#endif
 		}
 
 		void VKTextureDepth::Bind(u32 slot) const
@@ -43,14 +43,10 @@ namespace Lumos
 			CreateImage(m_Width, m_Height, depthFormat, vk::ImageTiling::eOptimal,
 				vk::ImageUsageFlagBits::eDepthStencilAttachment, vk::MemoryPropertyFlagBits::eDeviceLocal, m_TextureImage,
 				m_TextureImageMemory);
-            
-            if(m_TextureImageView)
-				VKDevice::Instance()->GetDevice().destroyImageView(m_TextureImageView);
                 
 			m_TextureImageView = CreateImageView(m_TextureImage, depthFormat, vk::ImageAspectFlagBits::eDepth);
 
-			VKTools::TransitionImageLayout(m_TextureImage, depthFormat, vk::ImageLayout::eUndefined,
-				vk::ImageLayout::eDepthStencilAttachmentOptimal);
+			//VKTools::TransitionImageLayout(m_TextureImage, depthFormat, vk::ImageLayout::eUndefined, vk::ImageLayout::eDepthStencilAttachmentOptimal);
 
 			CreateTextureSampler();
 
@@ -59,9 +55,6 @@ namespace Lumos
 
 		void VKTextureDepth::CreateTextureSampler()
 		{
-			if (m_TextureSampler)
-				VKDevice::Instance()->GetDevice().destroySampler(m_TextureSampler);
-
 			vk::SamplerCreateInfo samplerInfo = {};
 			samplerInfo.magFilter = vk::Filter::eLinear;
 			samplerInfo.minFilter = vk::Filter::eLinear;
@@ -97,19 +90,18 @@ namespace Lumos
 			imageInfo.samples = vk::SampleCountFlagBits::e1;
 			imageInfo.sharingMode = vk::SharingMode::eExclusive;
 
-//#ifdef USE_VMA_ALLOCATOR
-//            VmaAllocationCreateInfo allocInfovma;
-//            allocInfovma.flags = 0;
-//            allocInfovma.usage = VMA_MEMORY_USAGE_GPU_ONLY;
-//            allocInfovma.requiredFlags = 0;
-//            allocInfovma.preferredFlags = 0;
-//            allocInfovma.memoryTypeBits = 0;
-//            allocInfovma.pool = nullptr;
-//            allocInfovma.pUserData = nullptr;
-//            vmaCreateImage(VKDevice::Instance()->GetAllocator(), reinterpret_cast<VkImageCreateInfo*>(&imageInfo), &allocInfovma, reinterpret_cast<VkImage*>(&image), &m_Allocation, nullptr);
-//#else
+#ifdef USE_VMA_ALLOCATOR
+            VmaAllocationCreateInfo allocInfovma;
+            allocInfovma.flags = 0;
+            allocInfovma.usage = VMA_MEMORY_USAGE_GPU_ONLY;
+            allocInfovma.requiredFlags = 0;
+            allocInfovma.preferredFlags = 0;
+            allocInfovma.memoryTypeBits = 0;
+            allocInfovma.pool = nullptr;
+            allocInfovma.pUserData = nullptr;
+            vmaCreateImage(VKDevice::Instance()->GetAllocator(), reinterpret_cast<VkImageCreateInfo*>(&imageInfo), &allocInfovma, reinterpret_cast<VkImage*>(&image), &m_Allocation, nullptr);
+#else
             image = VKDevice::Instance()->GetDevice().createImage(imageInfo);
-//#endif
 
 			vk::MemoryRequirements memRequirements;
 			VKDevice::Instance()->GetDevice().getImageMemoryRequirements(image, &memRequirements);
@@ -120,6 +112,7 @@ namespace Lumos
 
 			imageMemory = VKDevice::Instance()->GetDevice().allocateMemory(allocInfo);
 			VKDevice::Instance()->GetDevice().bindImageMemory(image, imageMemory, 0);
+#endif
 		}
 
 		vk::ImageView VKTextureDepth::CreateImageView(vk::Image image, vk::Format format, vk::ImageAspectFlags aspectFlags)
@@ -151,6 +144,17 @@ namespace Lumos
 			m_Width = width;
 			m_Height = height;
 
+            if (m_TextureSampler)
+                VKDevice::Instance()->GetDevice().destroySampler(m_TextureSampler);
+            
+            VKDevice::Instance()->GetDevice().destroyImageView(m_TextureImageView);
+#ifdef USE_VMA_ALLOCATOR
+            vmaDestroyImage(VKDevice::Instance()->GetAllocator(), m_TextureImage, m_Allocation);
+#else
+            VKDevice::Instance()->GetDevice().destroyImage(m_TextureImage);
+            VKDevice::Instance()->GetDevice().freeMemory(m_TextureImageMemory);
+#endif
+            
 			Init();
 		}
 	}

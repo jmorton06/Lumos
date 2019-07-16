@@ -38,6 +38,8 @@ namespace Lumos
 			}
             
             m_Context->Unload();
+
+			VKDevice::Release();
 		}
 
 		void VKRenderer::PresentInternal(CommandBuffer* cmdBuffer)

@@ -40,14 +40,13 @@ namespace Lumos
 			bufferInfo.usage = usage;
 			bufferInfo.sharingMode = vk::SharingMode::eExclusive;
 
-            
 #ifdef USE_VMA_ALLOCATOR
             VmaAllocationCreateInfo vmaAllocInfo = {};
             vmaAllocInfo.usage = VMA_MEMORY_USAGE_CPU_TO_GPU;
+			//vmaAllocInfo.flags = VMA_ALLOCATION_CREATE_MAPPED_BIT;
             vmaCreateBuffer(VKDevice::Instance()->GetAllocator(), (VkBufferCreateInfo*)&bufferInfo, &vmaAllocInfo, (VkBuffer*)&m_Buffer, &m_Allocation, nullptr);
 #else
 			m_Buffer = VKDevice::Instance()->GetDevice().createBuffer(bufferInfo);
-#endif
 
 			vk::MemoryRequirements memRequirements = VKDevice::Instance()->GetDevice().getBufferMemoryRequirements(m_Buffer);
 
@@ -56,12 +55,14 @@ namespace Lumos
 			allocInfo.memoryTypeIndex = VKTools::FindMemoryType(memRequirements.memoryTypeBits, vk::MemoryPropertyFlagBits::eHostVisible | vk::MemoryPropertyFlagBits::eHostCoherent);
 
 			vk::Result result = VKDevice::Instance()->GetDevice().allocateMemory(&allocInfo, nullptr, &m_Memory);
+
 			if (result != vk::Result::eSuccess)
 			{
 				LUMOS_CORE_ERROR("[VULKAN] Failed to allocate buffer memory!");
 			}
 
 			VKDevice::Instance()->GetDevice().bindBufferMemory(m_Buffer, m_Memory, 0);
+#endif
 
 			if(data != nullptr)
 				SetData(size, data);
@@ -76,34 +77,52 @@ namespace Lumos
 		
 		void VKBuffer::Map(VkDeviceSize size, VkDeviceSize offset)
 		{
-			VKDevice::Instance()->GetDevice().mapMemory(m_Memory, offset, size, vk::MemoryMapFlagBits(), &m_Mapped);
+#ifdef USE_VMA_ALLOCATOR
+			vk::Result res = static_cast<vk::Result>(vmaMapMemory(VKDevice::Instance()->GetAllocator(), m_Allocation, &m_Mapped));
+#else
+			vk::Result res = VKDevice::Instance()->GetDevice().mapMemory(m_Memory, offset, size, vk::MemoryMapFlagBits(), &m_Mapped);
+#endif
+			if (res != vk::Result::eSuccess)
+				LUMOS_CORE_ERROR("[VULKAN] Failed to map buffer");
 		}
 
 		void VKBuffer::UnMap()
 		{
 			if (m_Mapped)
 			{
+#ifdef USE_VMA_ALLOCATOR
+				vmaUnmapMemory(VKDevice::Instance()->GetAllocator(), m_Allocation);
+#else
 				VKDevice::Instance()->GetDevice().unmapMemory(m_Memory);
-				m_Mapped = nullptr;
+#endif
+				m_Memory = nullptr;
 			}
 		}
 
 		void VKBuffer::Flush(VkDeviceSize size, VkDeviceSize offset)
 		{
+#ifdef USE_VMA_ALLOCATOR
+			vmaFlushAllocation(VKDevice::Instance()->GetAllocator(), m_Allocation, offset, size);
+#else
 			vk::MappedMemoryRange mappedRange = {};
 			mappedRange.memory = m_Memory;
 			mappedRange.offset = offset;
 			mappedRange.size = size;
 			VKDevice::Instance()->GetDevice().flushMappedMemoryRanges(1, &mappedRange);
+#endif
 		}
 		
 		void VKBuffer::Invalidate(VkDeviceSize size, VkDeviceSize offset)
 		{
+#ifdef USE_VMA_ALLOCATOR
+			vmaInvalidateAllocation(VKDevice::Instance()->GetAllocator(), m_Allocation, offset, size);
+#else
 			vk::MappedMemoryRange mappedRange = {};
 			mappedRange.memory = m_Memory;
 			mappedRange.offset = offset;
 			mappedRange.size = size;
 			VKDevice::Instance()->GetDevice().invalidateMappedMemoryRanges(1, &mappedRange);
+#endif
 		}
 	}
 }

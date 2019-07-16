@@ -60,9 +60,9 @@ namespace Lumos
                 vmaDestroyImage(VKDevice::Instance()->GetAllocator(), m_TextureImage, m_Allocation);
 #else
                 VKDevice::Instance()->GetDevice().destroyImage(m_TextureImage);
-#endif
-                
 				VKDevice::Instance()->GetDevice().freeMemory(m_TextureImageMemory);
+#endif
+
 			}
 		}
 
@@ -127,7 +127,6 @@ namespace Lumos
             vmaCreateImage(VKDevice::Instance()->GetAllocator(), reinterpret_cast<VkImageCreateInfo*>(&imageInfo), &allocInfovma, reinterpret_cast<VkImage*>(&image), &m_Allocation, nullptr);
 #else
             image = VKDevice::Instance()->GetDevice().createImage(imageInfo);
-#endif
 
 			vk::MemoryRequirements memRequirements;
 			VKDevice::Instance()->GetDevice().getImageMemoryRequirements(image, &memRequirements);
@@ -138,6 +137,9 @@ namespace Lumos
 
 			imageMemory = VKDevice::Instance()->GetDevice().allocateMemory(allocInfo);
 			VKDevice::Instance()->GetDevice().bindImageMemory(image, imageMemory, 0);
+#endif
+
+		
 		}
 
 		vk::ImageView VKTextureCube::CreateImageView(vk::Image image, vk::Format format, uint32_t mipLevels)
