@@ -141,14 +141,11 @@ namespace Lumos
 			info.shader = m_Shader;
 			m_DescriptorSet = Graphics::DescriptorSet::Create(info);
 
-
-
 			Graphics::BufferLayout layout;
 			layout.Push<Maths::Vector3>("POSITION"); // Position
 			layout.Push<Maths::Vector2>("TEXCOORD"); // UV
 			layout.Push<Maths::Vector2>("ID"); // Texture Index
-			layout.Push<Maths::Vector4>("COLOUR"); // Color
-
+			layout.Push<Maths::Vector4>("COLOUR"); // Colour
 
 			m_VertexArrays.resize(MAX_BATCH_DRAW_CALLS);
 
