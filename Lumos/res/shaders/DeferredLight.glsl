@@ -254,8 +254,8 @@ float filterPCF(vec4 sc, int cascadeIndex)
 layout(location = 0) out vec4 outColor;
 
 //const float BIAS = 0.4f;
-const float NORMAL_BIAS = 0.002f;
-const float RAW_BIAS 	= 0.00025f;
+const float NORMAL_BIAS = 0.02f;
+const float RAW_BIAS 	= 0.025f;
 const int NUM_SHADOWMAPS = 4; //TODO : uniform
 void main()
 {

@@ -23,7 +23,6 @@ namespace Lumos
 
 			void Bind(u32 slot = 0) const override;
 			void Unbind(u32 slot = 0) const override;
-            static vk::Format TextureFormatToVK(TextureFormat);
 
 			virtual void SetData(const void* pixels) override {};
 

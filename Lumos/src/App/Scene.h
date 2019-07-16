@@ -70,10 +70,6 @@ namespace Lumos
 		// Adds all visible objects to given RenderList
 		void InsertToRenderList(RenderList* list, const Maths::Frustum& frustum) const;
 
-		// Updates all world transforms in the Scene Tree
-		virtual void BuildWorldMatrices();
-		void DebugRender();
-
 		void BuildFrameRenderList();
 		void BuildLightList();
 
@@ -81,9 +77,9 @@ namespace Lumos
 
 		Entity* GetRootEntity() { return m_RootEntity; }
 
-		void 				SetCamera(Camera* camera) { m_pCamera = camera; }
-		Camera*				GetCamera()				const { return m_pCamera; }
-		Graphics::TextureCube* GetEnvironmentMap()		const { return m_EnvironmentMap; }
+		void SetCamera(Camera* camera) { m_pCamera = camera; }
+		Camera* GetCamera()	const { return m_pCamera; }
+		Graphics::TextureCube* GetEnvironmentMap() const { return m_EnvironmentMap; }
 
 		bool GetReflectSkybox() const { return m_ReflectSkybox; }
 		void SetReflectSkybox(bool reflect) { m_ReflectSkybox = reflect; }

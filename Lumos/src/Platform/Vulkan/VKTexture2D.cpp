@@ -82,12 +82,12 @@ namespace Lumos
                 vmaDestroyImage(VKDevice::Instance()->GetAllocator(), m_TextureImage, m_Allocation);
 #else
                 VKDevice::Instance()->GetDevice().destroyImage(m_TextureImage);
-#endif
 
 				if (m_TextureImageMemory)
 				{
 					VKDevice::Instance()->GetDevice().freeMemory(m_TextureImageMemory);
 				}
+#endif
 			}
 		}
 
@@ -182,16 +182,17 @@ namespace Lumos
             vmaCreateImage(VKDevice::Instance()->GetAllocator(), reinterpret_cast<VkImageCreateInfo*>(&imageInfo), &allocInfovma, reinterpret_cast<VkImage*>(&image), &m_Allocation, nullptr);
 #else
             image = VKDevice::Instance()->GetDevice().createImage(imageInfo);
-#endif
-            vk::MemoryRequirements memRequirements;
-            VKDevice::Instance()->GetDevice().getImageMemoryRequirements(image, &memRequirements);
 
-            vk::MemoryAllocateInfo allocInfo = {};
+			vk::MemoryRequirements memRequirements;
+			VKDevice::Instance()->GetDevice().getImageMemoryRequirements(image, &memRequirements);
+
+			vk::MemoryAllocateInfo allocInfo = {};
 			allocInfo.allocationSize = memRequirements.size;
 			allocInfo.memoryTypeIndex = VKTools::FindMemoryType(memRequirements.memoryTypeBits, properties);
 
 			imageMemory = VKDevice::Instance()->GetDevice().allocateMemory(allocInfo);
 			VKDevice::Instance()->GetDevice().bindImageMemory(image, imageMemory, 0);
+#endif
 		}
 
         vk::ImageView VKTexture2D::CreateImageView(vk::Image image, vk::Format format, vk::ImageAspectFlags aspectFlags, uint32_t mipLevels)

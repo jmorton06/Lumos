@@ -18,7 +18,12 @@ namespace Lumos
 	{
 
 #ifdef LUMOS_PLATFORM_WINDOWS
+#ifdef LUMOS_USE_GLFW_WINDOWS
+		return new GLFWWindow(properties);
+#else
 		return new WindowsWindow(properties);
+
+#endif
 #elif((defined LUMOS_PLATFORM_MACOS || defined LUMOS_PLATFORM_LINUX ))
 		return new GLFWWindow(properties);
 #elif LUMOS_PLATFORM_MOBILE

@@ -22,5 +22,6 @@ namespace Lumos
 		LUMOS_CORE_INFO("Shutting down System");
         LuaScript::Release();
 		VFS::OnShutdown();
+		Lumos::Memory::LogMemoryInformation();
     }
 } }

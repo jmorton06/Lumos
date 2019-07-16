@@ -4,6 +4,10 @@
 #include "VKContext.h"
 
 #ifdef USE_VMA_ALLOCATOR
+#ifdef LUMOS_DEBUG
+#define VMA_DEBUG_MARGIN 16
+#define VMA_DEBUG_DETECT_CORRUPTION 1
+#endif
 #include "vk_mem_alloc.h"
 #endif
 

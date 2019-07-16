@@ -14,6 +14,12 @@ namespace Lumos
 
 		VKVertexBuffer::~VKVertexBuffer()
 		{
+			if (m_MappedBuffer)
+			{
+				VKBuffer::Flush(m_Size);
+				VKBuffer::UnMap();
+				m_MappedBuffer = false;
+			}
 		}
 
 		void VKVertexBuffer::Resize(u32 size)
@@ -42,18 +48,23 @@ namespace Lumos
 
 		void* VKVertexBuffer::GetPointerInternal()
 		{
-			VKBuffer::Map();
+			if (!m_MappedBuffer)
+			{
+				VKBuffer::Map();
+				m_MappedBuffer = true;
+			}
+			
 			return m_Mapped;
 		}
 
 		void VKVertexBuffer::ReleasePointer()
 		{
-			vk::MappedMemoryRange memoryRange;
-			memoryRange.memory = m_Memory;
-			memoryRange.size = m_Size;
-			VKDevice::Instance()->GetDevice().flushMappedMemoryRanges(1, &memoryRange);
-
-			VKBuffer::UnMap();
+			if (m_MappedBuffer)
+			{
+				VKBuffer::Flush(m_Size);
+				VKBuffer::UnMap();
+				m_MappedBuffer = false;
+			}
 		}
 
 		void VKVertexBuffer::Bind()

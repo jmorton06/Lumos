@@ -21,17 +21,13 @@ namespace Lumos
 
 		bool VKCommandBuffer::Init(bool primary)
 		{
-			vk::CommandBufferAllocateInfo cmdBufferCI{};
-
 			m_Primary = primary;
+
+			vk::CommandBufferAllocateInfo cmdBufferCI{};
 
 			cmdBufferCI.commandPool = VKDevice::Instance()->GetVKContext()->GetCommandPool()->GetCommandPool();
 			cmdBufferCI.commandBufferCount = 1;
-
-			if (primary)
-				cmdBufferCI.level = vk::CommandBufferLevel::ePrimary;
-			else
-				cmdBufferCI.level = vk::CommandBufferLevel::eSecondary;
+			cmdBufferCI.level = primary ? vk::CommandBufferLevel::ePrimary : vk::CommandBufferLevel::eSecondary;
 
 			m_CommandBuffer = VKDevice::Instance()->GetDevice().allocateCommandBuffers(cmdBufferCI);
 

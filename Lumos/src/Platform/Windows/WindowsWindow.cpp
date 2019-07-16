@@ -193,7 +193,6 @@ namespace Lumos
 
 	void WindowsWindow::SetWindowTitle(const String& title)
 	{
-		m_Data.Title = title;
 		SetWindowText(hWnd, title.c_str());
 	}
 

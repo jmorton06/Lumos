@@ -38,12 +38,12 @@ namespace Lumos
 		}
 
 		void GLVertexBuffer::SetLayout(const Graphics::BufferLayout& bufferLayout)
-		{
+        {
 			m_Layout = bufferLayout;
 			const std::vector<Graphics::BufferElement>& layout = bufferLayout.GetLayout();
                         
 			for (u32 i = 0; i < layout.size(); i++)
-			{
+            {
 				const Graphics::BufferElement& element = layout[i];
 				GLCall(glEnableVertexAttribArray(i));
 				size_t offset = static_cast<size_t>(element.offset);

@@ -36,12 +36,7 @@ namespace Lumos
 		{
 			VKBuffer::Map();
 			memcpy(m_Mapped, data, size);
-
-			vk::MappedMemoryRange memoryRange;
-			memoryRange.memory = m_Memory;
-			memoryRange.size = size;
-			VKDevice::Instance()->GetDevice().flushMappedMemoryRanges(1, &memoryRange);
-
+			VKBuffer::Flush(size);
 			VKBuffer::UnMap();
 		}
 	}

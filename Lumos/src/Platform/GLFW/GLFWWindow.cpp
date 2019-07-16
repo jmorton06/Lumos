@@ -75,8 +75,8 @@ namespace Lumos
         if (m_Data.m_RenderAPI == Graphics::RenderAPI::OPENGL)
 		{
             glfwWindowHint(GLFW_SAMPLES, 1);
-            glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
-            glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
+            glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
+            glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 1);
             glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
             glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
             glfwWindowHint(GLFW_TRANSPARENT_FRAMEBUFFER, GLFW_TRUE);
@@ -268,7 +268,6 @@ namespace Lumos
 
 	void GLFWWindow::SetWindowTitle(const String& title)
 	{
-		m_Data.Title = title;
 		glfwSetWindowTitle(m_Handle, title.c_str());
 	}
 
