@@ -9,7 +9,7 @@ namespace Lumos
 	class LUMOS_EXPORT GLFMWindow : public Window
 	{
 	public:
-		GLFMWindow(const WindowProperties& properties, const String& title);
+		GLFMWindow(const WindowProperties& properties);
 		~GLFMWindow();
 
 		void ToggleVSync() override;
@@ -31,6 +31,8 @@ namespace Lumos
         float GetScreenRatio() const override { return 1.0f; }
         
         void SetEventCallback(const EventCallbackFn& callback) override { };
+        
+        String GetTitle() const override { return "Mobile"; }
 
 	protected:
 

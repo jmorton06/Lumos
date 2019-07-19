@@ -38,7 +38,7 @@ namespace iosApp
 
 	static void Init()
 	{
-		Lumos::internal::System::Init();
+		Lumos::Internal::CoreSystem::Init();
 
 		app = Lumos::CreateApplication();
 		app->Init();
@@ -70,7 +70,7 @@ namespace iosApp
 	{
 		delete app;
 
-		Lumos::internal::System::Shutdown();
+        Lumos::Internal::CoreSystem::Shutdown();
 	}
 }
 

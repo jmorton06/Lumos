@@ -96,7 +96,7 @@ namespace Lumos
 			vk::IOSSurfaceCreateInfoMVK surfaceCreateInfo = {};
 			surfaceCreateInfo.pNext = NULL;
 			surfaceCreateInfo.pView = m_IOSView;
-			m_Surface = m_VKContext->GetVKInstance().createIOSSurfaceMVK(surfaceInfo);
+			m_Surface = m_VKContext->GetVKInstance().createIOSSurfaceMVK(surfaceCreateInfo);
 #endif
 
 #ifdef LUMOS_PLATFORM_MACOS

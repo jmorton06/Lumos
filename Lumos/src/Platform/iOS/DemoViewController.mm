@@ -111,7 +111,7 @@ const std::string iosApp::getAssetPath() {
 @implementation DemoView
 
 /** Returns a Metal-compatible layer. */
-+(Class) layerClass { return [CAMetalLayer class]; }
+//+(Class) layerClass { return [CAMetalLayer class]; }
 
 @end
 
