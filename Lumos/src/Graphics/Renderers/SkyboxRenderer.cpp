@@ -217,7 +217,7 @@ namespace Lumos
 			Graphics::PipelineInfo pipelineCI{};
 			pipelineCI.pipelineName = "SkyRenderer";
 			pipelineCI.shader = m_Shader;
-			pipelineCI.vulkanRenderpass = m_RenderPass;
+			pipelineCI.renderpass = m_RenderPass;
 			pipelineCI.numVertexLayout = static_cast<u32>(attributeDescriptions.size());
 			pipelineCI.descriptorLayouts = descriptorLayouts;
 			pipelineCI.vertexLayout = attributeDescriptions.data();

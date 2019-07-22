@@ -53,9 +53,7 @@ namespace Lumos
 
 		void GLFramebuffer::UnBind() const
 		{
-#ifdef LUMOS_DEBUG
 			GLCall(glBindFramebuffer(GL_FRAMEBUFFER, 0));
-#endif
 		}
 
 		void GLFramebuffer::Bind(u32 width, u32 height) const

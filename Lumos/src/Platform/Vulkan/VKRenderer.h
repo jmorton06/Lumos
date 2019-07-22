@@ -43,8 +43,8 @@ namespace Lumos
 			void ClearSwapchainImage() const;
 
 			const String& GetTitleInternal() const override;
-			void DrawArraysInternal(DrawType type, u32 numIndices, u32 start) const override;
-			void DrawInternal(DrawType type, u32 count, DataType datayType, void* indices) const override;
+			void DrawArraysInternal(CommandBuffer* commandBuffer, DrawType type, u32 numIndices, u32 start) const override;
+			void DrawInternal(CommandBuffer* commandBuffer, DrawType type, u32 count, DataType datayType, void* indices) const override;
 
 			void RenderMeshInternal(Mesh* mesh, Graphics::Pipeline* pipeline, Graphics::CommandBuffer* cmdBuffer, u32 dynamicOffset, std::vector<Graphics::DescriptorSet*>& descriptorSets) override;
 			void Render(VertexArray* vertexArray, IndexBuffer* indexBuffer, Graphics::CommandBuffer* cmdBuffer, std::vector<Graphics::DescriptorSet*>& descriptorSets, Graphics::Pipeline* pipeline, u32 dynamicOffset) override;

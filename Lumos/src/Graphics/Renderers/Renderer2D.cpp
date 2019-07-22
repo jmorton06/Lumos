@@ -238,7 +238,7 @@ namespace Lumos
 			m_Textures.clear();
 			m_Sprites.clear();
 
-			m_VertexArrays[m_BatchDrawCallIndex]->Bind();
+			m_VertexArrays[m_BatchDrawCallIndex]->Bind(m_CommandBuffers[m_CurrentBufferID]);
 			m_Buffer = m_VertexArrays[m_BatchDrawCallIndex]->GetBuffer()->GetPointer<VertexData>();
 		}
 
@@ -458,7 +458,7 @@ namespace Lumos
 			Graphics::PipelineInfo pipelineCI{};
 			pipelineCI.pipelineName = "Batch2DRenderer";
 			pipelineCI.shader = m_Shader;
-			pipelineCI.vulkanRenderpass = m_RenderPass;
+			pipelineCI.renderpass = m_RenderPass;
 			pipelineCI.numVertexLayout = static_cast<u32>(attributeDescriptions.size());
 			pipelineCI.descriptorLayouts = descriptorLayouts;
 			pipelineCI.vertexLayout = attributeDescriptions.data();

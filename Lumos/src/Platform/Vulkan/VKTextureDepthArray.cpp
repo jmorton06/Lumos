@@ -22,8 +22,9 @@ namespace Lumos
             vmaDestroyImage(VKDevice::Instance()->GetAllocator(), m_TextureImage, m_Allocation);
 #else
             VKDevice::Instance()->GetDevice().destroyImage(m_TextureImage);
+			vkFreeMemory(VKDevice::Instance()->GetDevice(), m_TextureImageMemory, nullptr);
 #endif
-            vkFreeMemory(VKDevice::Instance()->GetDevice(), m_TextureImageMemory, nullptr);
+         
             vkDestroySampler(VKDevice::Instance()->GetDevice(), m_TextureSampler, nullptr);
             
             for (uint32_t i = 0; i < m_Count; i++)
@@ -164,6 +165,19 @@ namespace Lumos
 			m_Width = width;
 			m_Height = height;
 			m_Count = count;
+
+
+			if (m_TextureSampler)
+				VKDevice::Instance()->GetDevice().destroySampler(m_TextureSampler);
+
+			VKDevice::Instance()->GetDevice().destroyImageView(m_TextureImageView);
+#ifdef USE_VMA_ALLOCATOR
+			vmaDestroyImage(VKDevice::Instance()->GetAllocator(), m_TextureImage, m_Allocation);
+#else
+			VKDevice::Instance()->GetDevice().destroyImage(m_TextureImage);
+			VKDevice::Instance()->GetDevice().freeMemory(m_TextureImageMemory);
+#endif
+
 			Init();
 		}
 	}

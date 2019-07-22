@@ -28,8 +28,8 @@ namespace Lumos
 			void BindScreenFBOInternal() override;
 			void InitInternal() override;
 
-			void DrawInternal(DrawType type, u32 count, DataType dataType = DataType::UNSIGNED_INT, void* indices = nullptr) const override;
-			void DrawArraysInternal(DrawType type, u32 numIndices, u32 start)	const override;
+			void DrawInternal(CommandBuffer* commandBuffer, DrawType type, u32 count, DataType dataType = DataType::UNSIGNED_INT, void* indices = nullptr) const override;
+			void DrawArraysInternal(CommandBuffer* commandBuffer, DrawType type, u32 numIndices, u32 start)	const override;
 			void SetRenderModeInternal(RenderMode mode);
 			void OnResize(u32 width, u32 height) override;
 			void PresentInternal() override;

@@ -1,6 +1,7 @@
 #include "LM.h"
 #include "VKIndexBuffer.h"
 #include "VKVertexBuffer.h"
+#include "VKCommandBuffer.h"
 
 namespace Lumos
 {
@@ -19,8 +20,9 @@ namespace Lumos
 			
 		}
 
-		void VKIndexBuffer::Bind() const 
+		void VKIndexBuffer::Bind(CommandBuffer* commandBuffer) const
 		{
+			static_cast<VKCommandBuffer*>(commandBuffer)->GetCommandBuffer().bindIndexBuffer(m_Buffer, 0, vk::IndexType::eUint32);
 		}
 
 		void VKIndexBuffer::Unbind() const

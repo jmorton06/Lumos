@@ -8,11 +8,13 @@ namespace Lumos
 {
 	namespace Graphics
 	{
+		class CommandBuffer;
+
 		class LUMOS_EXPORT IndexBuffer
 		{
 		public:
 			virtual ~IndexBuffer() = default;
-			virtual void Bind() const = 0;
+			virtual void Bind(CommandBuffer* commandBuffer = nullptr) const = 0;
 			virtual void Unbind() const = 0;
 
 			virtual u32 GetCount() const = 0;
