@@ -256,7 +256,6 @@ namespace Lumos
 			layout.Push<Maths::Vector3>("tangent");
 			buffer->SetLayout(layout);
 
-			va->Bind();
 			va->PushBuffer(buffer);
 
 			u32 indices[36]
@@ -395,7 +394,6 @@ namespace Lumos
 			layout.Push<Maths::Vector3>("tangent");
 			buffer->SetLayout(layout);
 
-			va->Bind();
 			va->PushBuffer(buffer);
 
 			u32 indices[18]
@@ -471,7 +469,6 @@ namespace Lumos
 			layout.Push<Maths::Vector3>("tangent");
 			buffer->SetLayout(layout);
 
-			va->Bind();
 			va->PushBuffer(buffer);
 
 			std::vector<u32> indices;

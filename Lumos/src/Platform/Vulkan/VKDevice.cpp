@@ -148,7 +148,7 @@ namespace Lumos
 
 			if (m_GraphicsQueueFamilyIndex == UINT32_MAX)
 			{
-				LUMOS_CORE_ERROR("ERROR : Couldn't find a Graphics queue family index!");
+				LUMOS_CORE_ERROR("[VULKAN] Couldn't find a Graphics queue family index!");
 				return false;
 			}
 
@@ -156,7 +156,7 @@ namespace Lumos
 
 			if (formats.empty())
 			{
-				LUMOS_CORE_ERROR("ERROR : Couldn't get surface formats!");
+				LUMOS_CORE_ERROR("[VULKAN] Couldn't get surface formats!");
 				return false;
 			}
 

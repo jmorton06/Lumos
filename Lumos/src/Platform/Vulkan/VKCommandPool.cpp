@@ -13,10 +13,10 @@ namespace Lumos
 
 		VKCommandPool::~VKCommandPool()
 		{
-			Unload();
+			vkDestroyCommandPool(VKDevice::Instance()->GetDevice(), m_CommandPool, VK_NULL_HANDLE);
 		}
 
-		bool VKCommandPool::Init()
+		void VKCommandPool::Init()
 		{
 			vk::CommandPoolCreateInfo cmdPoolCI{};
 
@@ -24,18 +24,6 @@ namespace Lumos
 			cmdPoolCI.flags = vk::CommandPoolCreateFlagBits::eResetCommandBuffer;
 
 			m_CommandPool = VKDevice::Instance()->GetDevice().createCommandPool(cmdPoolCI);
-
-			return true;
-		}
-
-		void VKCommandPool::Unload() const
-		{
-			vkDestroyCommandPool(VKDevice::Instance()->GetDevice(), m_CommandPool, VK_NULL_HANDLE);
-		}
-
-		vk::CommandPool VKCommandPool::GetCommandPool() const
-		{
-			return m_CommandPool;
 		}
 	}
 }

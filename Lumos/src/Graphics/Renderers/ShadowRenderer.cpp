@@ -441,7 +441,7 @@ namespace Lumos
 			Graphics::PipelineInfo pipelineCI{};
 			pipelineCI.pipelineName = "ShadowRenderer";
 			pipelineCI.shader = m_Shader;
-			pipelineCI.vulkanRenderpass = renderPass;
+			pipelineCI.renderpass = renderPass;
 			pipelineCI.numVertexLayout = static_cast<u32>(attributeDescriptions.size());
 			pipelineCI.descriptorLayouts = descriptorLayouts;
 			pipelineCI.vertexLayout = attributeDescriptions.data();

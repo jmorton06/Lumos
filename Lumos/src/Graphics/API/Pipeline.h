@@ -24,7 +24,7 @@ namespace Lumos
 		struct PipelineInfo
 		{
 			Shader* shader;
-			RenderPass* vulkanRenderpass;
+			RenderPass* renderpass;
 			VertexInputDescription* vertexLayout;
 
 			uint32_t numVertexLayout;

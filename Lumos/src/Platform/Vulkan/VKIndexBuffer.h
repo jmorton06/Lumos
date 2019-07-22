@@ -14,7 +14,7 @@ namespace Lumos
 			VKIndexBuffer(u32* data, u32 count, BufferUsage bufferUsage);
 			~VKIndexBuffer();
 
-			void Bind() const override;
+			void Bind(CommandBuffer* commandBuffer) const override;
 			void Unbind() const override;
 			u32 GetCount() const override;
 			u32 GetSize() const override;

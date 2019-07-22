@@ -8,7 +8,6 @@
 #include "Entity/Component/TransformComponent.h"
 #include "Entity/Component/TextureMatrixComponent.h"
 
-
 #include "Maths/Maths.h"
 #include "System/JobSystem.h"
 
@@ -33,7 +32,6 @@
 
 #define MAX_LIGHTS 32
 #define MAX_SHADOWMAPS 16
-//#define THREAD_RENDER_SUBMIT
 
 namespace Lumos
 {
@@ -338,7 +336,7 @@ namespace Lumos
 			Graphics::PipelineInfo pipelineCI{};
 			pipelineCI.pipelineName = "OffScreenRenderer";
 			pipelineCI.shader = m_Shader;
-			pipelineCI.vulkanRenderpass = m_RenderPass;
+			pipelineCI.renderpass = m_RenderPass;
 			pipelineCI.numVertexLayout = static_cast<u32>(attributeDescriptions.size());
 			pipelineCI.descriptorLayouts = descriptorLayouts;
 			pipelineCI.vertexLayout = attributeDescriptions.data();

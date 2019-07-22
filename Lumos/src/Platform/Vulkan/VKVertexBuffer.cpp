@@ -69,6 +69,7 @@ namespace Lumos
 
 		void VKVertexBuffer::Bind()
 		{
+			
 		}
 
 		void VKVertexBuffer::Unbind()

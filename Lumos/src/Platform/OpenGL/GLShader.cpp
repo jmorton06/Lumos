@@ -346,11 +346,8 @@ namespace Lumos
 
 		void GLShader::Unbind() const
 		{
-
-#ifdef LUMOS_DEBUG
 			GLCall(glUseProgram(0));
 			s_CurrentlyBound = nullptr;
-#endif
 		}
 
 		void GLShader::Parse(std::map<ShaderType, String>* sources)

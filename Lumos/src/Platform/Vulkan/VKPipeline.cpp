@@ -249,7 +249,7 @@ namespace Lumos
 			graphicsPipelineCI.pDepthStencilState = &ds;
 			graphicsPipelineCI.pStages = static_cast<VKShader*>(pipelineCI.shader)->GetShaderStages();
 			graphicsPipelineCI.stageCount = static_cast<VKShader*>(pipelineCI.shader)->GetStageCount();
-			graphicsPipelineCI.renderPass = static_cast<VKRenderpass*>(pipelineCI.vulkanRenderpass)->GetRenderpass();
+			graphicsPipelineCI.renderPass = static_cast<VKRenderpass*>(pipelineCI.renderpass)->GetRenderpass();
 			graphicsPipelineCI.subpass = 0;
 
 			m_Pipeline = VKDevice::Instance()->GetDevice().createGraphicsPipelines(VKDevice::Instance()->GetPipelineCache(), graphicsPipelineCI)[0];

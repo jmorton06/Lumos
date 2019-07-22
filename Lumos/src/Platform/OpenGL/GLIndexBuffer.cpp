@@ -40,17 +40,14 @@ namespace Lumos
 			GLCall(glDeleteBuffers(1, &m_Handle));
 		}
 
-		void GLIndexBuffer::Bind() const
+		void GLIndexBuffer::Bind(CommandBuffer* commandBuffer) const
 		{
 			GLCall(glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_Handle));
 		}
 
 		void GLIndexBuffer::Unbind() const
 		{
-
-#ifdef LUMOS_DEBUG
 			GLCall(glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0));
-#endif
 		}
 
 		u32 GLIndexBuffer::GetCount() const
