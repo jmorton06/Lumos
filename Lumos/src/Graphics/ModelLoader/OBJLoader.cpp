@@ -6,7 +6,7 @@
 #include "Entity/EntityManager.h"
 #include "Entity/Component/MeshComponent.h"
 #include "Entity/Component/MaterialComponent.h"
-#include "Graphics/API/Textures/Texture2D.h"
+#include "Graphics/API/Texture.h"
 #include "Maths/BoundingSphere.h"
 #include "Utilities/AssetsManager.h"
 

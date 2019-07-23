@@ -49,11 +49,6 @@ namespace Lumos
 			GLCall(glClear(GL_COLOR_BUFFER_BIT));
 		}
 
-		void GLRenderer::BindScreenFBOInternal()
-		{
-			GLCall(glBindFramebuffer(GL_FRAMEBUFFER, 0));
-		}
-
 		void GLRenderer::ClearInternal(u32 buffer)
 		{
 			GLCall(glClear(GLTools::RendererBufferToGL(buffer)));
@@ -185,34 +180,18 @@ namespace Lumos
 			GLCall(glDrawElements(GLTools::DrawTypeToGL(type), count, GLTools::DataTypeToGL(dataType), indices));
 		}
 
-		void GLRenderer::DrawArraysInternal(CommandBuffer* commandBuffer, const DrawType type, u32 start, u32 numIndices) const
+		void GLRenderer::DrawIndexedInternal(CommandBuffer* commandBuffer, const DrawType type, u32 count, u32 start) const
 		{
-			GLCall(glDrawArrays(GLTools::DrawTypeToGL(type), start, numIndices));
+			GLCall(glDrawElements(GLTools::DrawTypeToGL(type), count, GLTools::DataTypeToGL(DataType::UNSIGNED_INT), nullptr));
+			//GLCall(glDrawArrays(GLTools::DrawTypeToGL(type), start, count));
 		}
 
-		void GLRenderer::RenderMeshInternal(Mesh *mesh, Graphics::Pipeline *pipeline, Graphics::CommandBuffer* cmdBuffer, u32 dynamicOffset, std::vector<Graphics::DescriptorSet*>& descriptorSets)
-		{
-			for (auto desc : descriptorSets)
-			{
-				static_cast<Graphics::GLDescriptorSet*>(desc)->Bind(dynamicOffset);
-			}
-
-			mesh->Draw();
-		}
-
-		void GLRenderer::Render(VertexArray* vertexArray, IndexBuffer* indexBuffer, Graphics::CommandBuffer* cmdBuffer,
-			std::vector<Graphics::DescriptorSet*>& descriptorSets, Graphics::Pipeline* pipeline, u32 dynamicOffset)
+		void GLRenderer::BindDescriptorSetsInternal(Graphics::Pipeline* pipeline, Graphics::CommandBuffer* cmdBuffer, u32 dynamicOffset, std::vector<Graphics::DescriptorSet*>& descriptorSets)
 		{
 			for (auto descriptor : descriptorSets)
 			{
 				static_cast<Graphics::GLDescriptorSet*>(descriptor)->Bind(dynamicOffset);
 			}
-
-			vertexArray->Bind();
-			indexBuffer->Bind();
-			Renderer::Draw(cmdBuffer, DrawType::TRIANGLE, indexBuffer->GetCount());
-			indexBuffer->Unbind();
-			vertexArray->Unbind();
 		}
 	}
 }

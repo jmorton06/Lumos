@@ -115,49 +115,18 @@ namespace Lumos
 				LUMOS_CORE_ERROR("[VULKAN] Failed to acquire swap chain image!");
 			}
 		}
-		void VKRenderer::BindScreenFBOInternal()
-		{
-		}
 
 		const String & VKRenderer::GetTitleInternal() const
 		{
 			return m_RendererTitle;
 		}
 
-		void VKRenderer::DrawArraysInternal(CommandBuffer* commandBuffer, DrawType type, u32 numIndices, u32 start) const
-		{
-			static_cast<VKCommandBuffer*>(commandBuffer)->GetCommandBuffer().drawIndexed(numIndices, 1, 0, 0, 0);
-		}
-
-		void VKRenderer::DrawInternal(CommandBuffer* commandBuffer, DrawType type, u32 count, DataType datayType, void * indices) const
-		{
-		}
-
-
-		void VKRenderer::Render(IndexBuffer* indexBuffer, VertexArray* vertexArray,
-			VKCommandBuffer* commandBuffer, std::vector<vk::DescriptorSet>& descriptorSet, vk::PipelineLayout layout, uint32_t offset, u32 numDynamicDescriptorSets)
-		{
-			commandBuffer->GetCommandBuffer().bindDescriptorSets(vk::PipelineBindPoint::eGraphics, layout, 0, static_cast<uint32_t>(descriptorSet.size()), descriptorSet.data(), numDynamicDescriptorSets, &offset);
-
-			vertexArray->Bind(commandBuffer);
-			indexBuffer->Bind(commandBuffer);
-
-			VKRenderer::s_Instance->DrawArraysInternal(commandBuffer, DrawType::TRIANGLE, indexBuffer->GetCount(), 0);
-		}
-
-		void VKRenderer::RenderMeshInternal(Mesh *mesh, Graphics::Pipeline *pipeline, Graphics::CommandBuffer* cmdBuffer, u32 dynamicOffset, std::vector<Graphics::DescriptorSet*>& descriptorSets)
-		{
-			VKRenderer::Render(mesh->GetVertexArray().get(), mesh->GetIndexBuffer().get(), cmdBuffer, descriptorSets, pipeline, dynamicOffset);
-		}
-
-		void VKRenderer::Render(VertexArray* vertexArray, IndexBuffer* indexBuffer,
-			Graphics::CommandBuffer* cmdBuffer, std::vector<Graphics::DescriptorSet*>& descriptorSets,
-			Graphics::Pipeline* pipeline, u32 dynamicOffset)
+		void VKRenderer::BindDescriptorSetsInternal(Graphics::Pipeline* pipeline, Graphics::CommandBuffer* cmdBuffer, u32 dynamicOffset, std::vector<Graphics::DescriptorSet*>& descriptorSets)
 		{
 			std::vector<vk::DescriptorSet> vkdescriptorSets;
 			u32 numDynamicDescriptorSets = 0;
 
-			for(auto descriptorSet : descriptorSets)
+			for (auto descriptorSet : descriptorSets)
 			{
 				if (dynamic_cast<Graphics::VKDescriptorSet*>(descriptorSet)->GetIsDynamic())
 					numDynamicDescriptorSets++;
@@ -171,8 +140,17 @@ namespace Lumos
 				}
 			}
 
-			Render(indexBuffer, vertexArray, dynamic_cast<Graphics::VKCommandBuffer*>(cmdBuffer), vkdescriptorSets, dynamic_cast<Graphics::VKPipeline*>(pipeline)->GetPipelineLayout(), dynamicOffset, numDynamicDescriptorSets);
+			dynamic_cast<Graphics::VKCommandBuffer*>(cmdBuffer)->GetCommandBuffer().bindDescriptorSets(vk::PipelineBindPoint::eGraphics, dynamic_cast<Graphics::VKPipeline*>(pipeline)->GetPipelineLayout(), 0, static_cast<uint32_t>(vkdescriptorSets.size()), vkdescriptorSets.data(), numDynamicDescriptorSets, &dynamicOffset);
+		}
 
+		void VKRenderer::DrawIndexedInternal(CommandBuffer* commandBuffer, DrawType type, u32 count, u32 start) const
+		{
+			static_cast<VKCommandBuffer*>(commandBuffer)->GetCommandBuffer().drawIndexed(count, 1, 0, 0, 0);
+		}
+
+		void VKRenderer::DrawInternal(CommandBuffer* commandBuffer, DrawType type, u32 count, DataType datayType, void* indices) const
+		{
+			static_cast<VKCommandBuffer*>(commandBuffer)->GetCommandBuffer().draw(count, 1, 0, 0);
 		}
 	}
 }

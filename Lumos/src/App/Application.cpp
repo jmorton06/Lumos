@@ -10,7 +10,7 @@
 
 #include "Graphics/API/Renderer.h"
 #include "Graphics/API/GraphicsContext.h"
-#include "Graphics/API/Textures/Texture2D.h"
+#include "Graphics/API/Texture.h"
 #include "Graphics/RenderManager.h"
 #include "Graphics/Layers/LayerStack.h"
 #include "Graphics/Layers/ImGuiLayer.h"

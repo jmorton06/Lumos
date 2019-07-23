@@ -9,7 +9,7 @@
 #include "Entity/Component/MaterialComponent.h"
 #include "Entity/Component/TransformComponent.h"
 
-#include "Graphics/API/Textures/Texture2D.h"
+#include "Graphics/API/Texture.h"
 #include "Utilities/AssetsManager.h"
 #include "Maths/MathsUtilities.h"
 #include "Maths/Matrix4.h"

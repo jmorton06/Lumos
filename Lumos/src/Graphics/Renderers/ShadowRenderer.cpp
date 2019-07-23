@@ -1,7 +1,7 @@
 #include "LM.h"
 #include "ShadowRenderer.h"
 
-#include "Graphics/API/Textures/TextureDepthArray.h"
+#include "Graphics/API/Texture.h"
 #include "Graphics/API/Framebuffer.h"
 #include "Graphics/API/Renderer.h"
 #include "Graphics/API/CommandBuffer.h"
@@ -179,7 +179,14 @@ namespace Lumos
 				std::vector<Graphics::DescriptorSet*> descriptorSets;
 				descriptorSets.emplace_back(m_Pipeline->GetDescriptorSet());
 
-				Renderer::RenderMesh(mesh, m_Pipeline, m_CommandBuffer, dynamicOffset, descriptorSets);
+				mesh->GetVertexArray()->Bind(m_CommandBuffer);
+				mesh->GetIndexBuffer()->Bind(m_CommandBuffer);
+
+				Renderer::BindDescriptorSets(m_Pipeline, m_CommandBuffer, dynamicOffset, descriptorSets);
+				Renderer::DrawIndexed(m_CommandBuffer, DrawType::TRIANGLE, mesh->GetIndexBuffer()->GetCount());
+
+				mesh->GetVertexArray()->Unbind();
+				mesh->GetIndexBuffer()->Unbind();
 
 				index++;
 			}

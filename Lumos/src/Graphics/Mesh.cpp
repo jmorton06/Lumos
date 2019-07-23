@@ -36,7 +36,7 @@ namespace Lumos
 		{
 			m_VertexArray->Bind();
 			m_IndexBuffer->Bind();
-			Renderer::Draw(nullptr, DrawType::TRIANGLE, m_IndexBuffer->GetCount());
+			Renderer::DrawIndexed(nullptr, DrawType::TRIANGLE, m_IndexBuffer->GetCount());
 			m_IndexBuffer->Unbind();
 			m_VertexArray->Unbind();
 		}

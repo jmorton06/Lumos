@@ -2,7 +2,7 @@
 #include "LM.h"
 #include "Graphics/API/Framebuffer.h"
 #include "VK.h"
-#include "VKTexture2D.h"
+#include "VKTexture.h"
 #include "VKRenderpass.h"
 
 namespace Lumos

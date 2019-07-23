@@ -24,10 +24,7 @@
 #include "Physics/LumosPhysicsEngine/PhysicsObject3D.h"
 
 //Graphics
-#include "Graphics/API/Textures/TextureCube.h"
-#include "Graphics/API/Textures/Texture2D.h"
-#include "Graphics/API/Textures/TextureDepth.h"
-#include "Graphics/API/Textures/TextureDepthArray.h"
+#include "Graphics/API/Texture.h"
 #include "Graphics/API/GraphicsContext.h"
 #include "Graphics/API/Framebuffer.h"
 #include "Graphics/API/Shader.h"

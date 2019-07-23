@@ -25,9 +25,7 @@
 
 #include "Graphics/API/Shader.h"
 #include "Graphics/API/Framebuffer.h"
-#include "Graphics/API/Textures/Texture2D.h"
-#include "Graphics/API/Textures/TextureDepth.h"
-#include "Graphics/API/Textures/TextureCube.h"
+#include "Graphics/API/Texture.h"
 #include "Graphics/API/UniformBuffer.h"
 #include "Graphics/API/Renderer.h"
 #include "Graphics/API/CommandBuffer.h"
@@ -316,7 +314,14 @@ namespace Lumos
 			descriptorSets.emplace_back(m_Pipeline->GetDescriptorSet());
 			descriptorSets.emplace_back(m_DescriptorSet);
 
-			Renderer::RenderMesh(m_ScreenQuad, m_Pipeline, currentCMDBuffer, 0, descriptorSets);
+			m_ScreenQuad->GetVertexArray()->Bind(currentCMDBuffer);
+			m_ScreenQuad->GetIndexBuffer()->Bind(currentCMDBuffer);
+
+			Renderer::BindDescriptorSets(m_Pipeline, currentCMDBuffer, 0, descriptorSets);
+			Renderer::DrawIndexed(currentCMDBuffer, DrawType::TRIANGLE, m_ScreenQuad->GetIndexBuffer()->GetCount());
+
+			m_ScreenQuad->GetVertexArray()->Unbind();
+			m_ScreenQuad->GetIndexBuffer()->Unbind();
 
 			currentCMDBuffer->EndRecording();
 			currentCMDBuffer->ExecuteSecondary(m_CommandBuffers[m_CommandBufferIndex]);

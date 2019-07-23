@@ -3,7 +3,7 @@
 #include "VKDevice.h"
 #include "VKShader.h"
 #include "VKCommandPool.h"
-#include "Graphics/API/Textures/Texture.h"
+#include "Graphics/API/Texture.h"
 #include "Graphics/API/DescriptorSet.h"
 #include "Graphics/API/Pipeline.h"
 #include "Platform/Vulkan/VKCommandBuffer.h"

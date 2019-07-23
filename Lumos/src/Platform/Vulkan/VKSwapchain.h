@@ -3,7 +3,7 @@
 #include "VKDevice.h"
 #include "VKCommandBuffer.h"
 #include "VKRenderpass.h"
-#include "VKTexture2D.h"
+#include "VKTexture.h"
 #include "VKFramebuffer.h"
 #include "Graphics/API/Swapchain.h"
 
