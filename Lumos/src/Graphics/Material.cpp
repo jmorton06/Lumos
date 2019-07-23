@@ -4,7 +4,7 @@
 #include "Graphics/API/Pipeline.h"
 #include "Graphics/API/Shader.h"
 #include "Graphics/API/ShaderResource.h"
-#include "Graphics/API/Textures/Texture2D.h"
+#include "Graphics/API/Texture.h"
 #include "Graphics/API/UniformBuffer.h"
 #include "System/FileSystem.h"
 #include "System/VFS.h"

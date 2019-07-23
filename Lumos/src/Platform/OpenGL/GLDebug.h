@@ -79,7 +79,7 @@ namespace Lumos
 		static Material*	s_DebugDrawShader;
 	};
 
-#ifdef LUMOS_DEBUG
+#ifdef LUMOS_DEBUG1
 #ifdef glDebugMessageCallback1
 #define GL_DEBUD_CALLBACK 1
 #else

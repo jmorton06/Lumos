@@ -2,7 +2,7 @@
 #include "MaterialComponent.h"
 #include "Graphics/Material.h"
 #include "Graphics/API/GraphicsContext.h"
-#include "Graphics/API/Textures/Texture2D.h"
+#include "Graphics/API/Texture.h"
 
 #include <imgui/imgui.h>
 

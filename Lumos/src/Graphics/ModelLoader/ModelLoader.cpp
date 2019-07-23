@@ -1,12 +1,6 @@
 #include "LM.h"
 #include "ModelLoader.h"
-#include "Graphics/API/Textures/Texture2D.h"
 #include "System/VFS.h"
-#include "../Material.h"
-#include "App/SceneManager.h"
-#include "../Mesh.h"
-#include "../API/Shader.h"
-#include "Utilities/AssetsManager.h"
 
 namespace Lumos
 {

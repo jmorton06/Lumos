@@ -4,7 +4,7 @@
 #include "Particle.h"
 #include "Camera/Camera.h"
 #include "Mesh.h"
-#include "API/Textures/Texture2D.h"
+#include "API/Texture.h"
 #include "Utilities/RandomNumberGenerator.h"
 #include "Maths/BoundingBox.h"
 

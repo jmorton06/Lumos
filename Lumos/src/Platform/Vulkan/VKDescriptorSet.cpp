@@ -3,11 +3,8 @@
 #include "VKPipeline.h"
 #include "VKTools.h"
 #include "VKUniformBuffer.h"
-#include "VKTexture2D.h"
+#include "VKTexture.h"
 #include "VKDevice.h"
-#include "VKTextureCube.h"
-#include "VKTextureDepth.h"
-#include "VKTextureDepthArray.h"
 
 namespace Lumos
 {

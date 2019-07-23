@@ -1,14 +1,137 @@
 #include "LM.h"
-#include "GLTextureCube.h"
+#include "GLTexture.h"
 #include "Platform/OpenGL/GL.h"
 #include "Platform/OpenGL/GLTools.h"
-#include "Platform/OpenGL/GLDebug.h"
+#include "Platform/OpenGL/GLShader.h"
 #include "Utilities/LoadImage.h"
 
 namespace Lumos
 {
 	namespace Graphics
 	{
+		GLTexture2D::GLTexture2D() : m_Width(0), m_Height(0)
+		{
+			glGenTextures(1, &m_Handle);
+		}
+
+		GLTexture2D::GLTexture2D(u32 width, u32 height, void* data, TextureParameters parameters, TextureLoadOptions loadOptions)
+			: m_FileName(""), m_Name(""), m_Parameters(parameters), m_LoadOptions(loadOptions), m_Width(width), m_Height(height)
+		{
+			m_Name = "";
+			m_Parameters = parameters;
+			m_LoadOptions = loadOptions;
+			m_Handle = Load(data);
+		}
+
+		GLTexture2D::GLTexture2D(const String& name, const String& filename, const TextureParameters parameters, const TextureLoadOptions loadOptions)
+			: m_FileName(filename), m_Name(name), m_Parameters(parameters), m_LoadOptions(loadOptions)
+		{
+			m_Handle = Load(nullptr);
+		}
+
+		GLTexture2D::~GLTexture2D()
+		{
+			GLCall(glDeleteTextures(1, &m_Handle));
+		}
+
+		u32 GLTexture2D::LoadTexture(void* data) const
+		{
+			u32 handle;
+			GLCall(glGenTextures(1, &handle));
+			GLCall(glBindTexture(GL_TEXTURE_2D, handle));
+			GLCall(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, m_Parameters.filter == TextureFilter::LINEAR ? GL_LINEAR_MIPMAP_LINEAR : GL_NEAREST));
+			GLCall(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, m_Parameters.filter == TextureFilter::LINEAR ? GL_LINEAR : GL_NEAREST));
+			GLCall(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GLTools::TextureWrapToGL(m_Parameters.wrap)));
+			GLCall(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GLTools::TextureWrapToGL(m_Parameters.wrap)));
+
+
+			u32 format = GLTools::TextureFormatToGL(m_Parameters.format);
+			GLCall(glTexImage2D(GL_TEXTURE_2D, 0, format, m_Width, m_Height, 0, GLTools::TextureFormatToInternalFormat(format), GL_UNSIGNED_BYTE, data ? data : NULL));
+			GLCall(glGenerateMipmap(GL_TEXTURE_2D));
+#ifdef LUMOS_DEBUG
+			GLCall(glBindTexture(GL_TEXTURE_2D, 0));
+#endif
+
+			return handle;
+		}
+
+		u32 GLTexture2D::Load(void* data)
+		{
+			u8* pixels = nullptr;
+
+			if (data != nullptr)
+			{
+				pixels = reinterpret_cast<u8*>(data);
+			}
+			else
+			{
+				if (m_FileName != "")
+				{
+					pixels = LoadTextureData();
+				}
+			}
+			
+			u32 handle = LoadTexture(pixels);
+
+			return handle;
+		}
+
+		void GLTexture2D::SetData(const void* pixels)
+		{
+			GLCall(glBindTexture(GL_TEXTURE_2D, m_Handle));
+			GLCall(glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, m_Width, m_Height, GLTools::TextureFormatToGL(m_Parameters.format), GL_UNSIGNED_BYTE, pixels));
+			GLCall(glGenerateMipmap(GL_TEXTURE_2D));
+		}
+
+		void GLTexture2D::Bind(u32 slot) const
+		{
+			GLCall(glActiveTexture(GL_TEXTURE0 + slot));
+			GLCall(glBindTexture(GL_TEXTURE_2D, m_Handle));
+		}
+
+		void GLTexture2D::Unbind(u32 slot) const
+		{
+			GLCall(glActiveTexture(GL_TEXTURE0 + slot));
+			GLCall(glBindTexture(GL_TEXTURE_2D, 0));
+		}
+
+		void GLTexture2D::BuildTexture(const TextureFormat internalformat, u32 width, u32 height, bool depth, bool samplerShadow)
+		{
+			m_Width = width;
+			m_Height = height;
+			m_Name = "Texture Attachment";
+
+			u32 Format = GLTools::TextureFormatToGL(internalformat);
+			u32 Format2 = GLTools::TextureFormatToInternalFormat(Format);
+
+			glBindTexture(GL_TEXTURE_2D, m_Handle);
+			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+
+			if (samplerShadow)
+			{
+				glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_COMPARE_FUNC, GL_LEQUAL);
+#ifndef LUMOS_PLATFORM_MOBILE
+				glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_COMPARE_MODE, GL_COMPARE_R_TO_TEXTURE);
+				glTexParameteri(GL_TEXTURE_2D, GL_DEPTH_TEXTURE_MODE, GL_INTENSITY);
+#endif
+			}
+
+			glTexImage2D(GL_TEXTURE_2D, 0, Format, width, height, 0, Format2, depth ? GL_UNSIGNED_BYTE : GL_FLOAT, nullptr);
+		}
+
+		u8* GLTexture2D::LoadTextureData()
+		{
+			u8* pixels = nullptr;
+			if (m_FileName != "NULL")
+			{
+				u32 bits;
+				pixels = Lumos::LoadImageFromFile(m_FileName.c_str(), &m_Width, &m_Height, &bits, !m_LoadOptions.flipY);
+				m_Parameters.format = GLTools::BitsToTextureFormat(bits);
+			}
+			return pixels;
+		};
+
 		GLTextureCube::GLTextureCube(u32 size)
 			: m_Size(size), m_Bits(0), m_NumMips(0), m_Format()
 		{
@@ -198,8 +321,6 @@ namespace Lumos
 			GLCall(glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE));
 			GLCall(glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE));
 			GLCall(glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE));
-			//GLCall(glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MAX_LOD,   mips - 1));
-			//GLCall(glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MAX_LEVEL, mips - 1));
 
 			u32 internalFormat = GLTools::TextureFormatToGL(m_Parameters.format);
 			u32 format = GLTools::TextureFormatToInternalFormat(internalFormat);
@@ -229,6 +350,118 @@ namespace Lumos
 			delete[] faceWidths;
 
 			return result;
+		}
+
+		GLTextureDepth::GLTextureDepth(u32 width, u32 height)
+			: m_Width(width), m_Height(height)
+		{
+			GLCall(glGenTextures(1, &m_Handle));
+
+			Init();
+		}
+
+		GLTextureDepth::~GLTextureDepth()
+		{
+			GLCall(glDeleteTextures(1, &m_Handle));
+		}
+
+		void GLTextureDepth::Bind(u32 slot) const
+		{
+			GLCall(glActiveTexture(GL_TEXTURE0 + slot));
+			GLCall(glBindTexture(GL_TEXTURE_2D, m_Handle));
+		}
+
+		void GLTextureDepth::Unbind(u32 slot) const
+		{
+			GLCall(glActiveTexture(GL_TEXTURE0 + slot));
+			GLCall(glBindTexture(GL_TEXTURE_2D, 0));
+		}
+
+		void GLTextureDepth::Init()
+		{
+			GLCall(glBindTexture(GL_TEXTURE_2D, m_Handle));
+
+			GLCall(glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT32F, m_Width, m_Height, 0, GL_DEPTH_COMPONENT, GL_FLOAT, NULL));
+			GLCall(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR));
+			GLCall(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR));
+			GLCall(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE));
+			GLCall(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE));
+			GLCall(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_COMPARE_FUNC, GL_LEQUAL));
+#ifndef LUMOS_PLATFORM_MOBILE
+			GLCall(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_COMPARE_MODE, GL_NONE));
+#endif
+			GLCall(glBindTexture(GL_TEXTURE_2D, 0));
+		}
+
+		void GLTextureDepth::Resize(u32 width, u32 height)
+		{
+			m_Width = width;
+			m_Height = height;
+
+			Init();
+		}
+
+		GLTextureDepthArray::GLTextureDepthArray(u32 width, u32 height, u32 count)
+			: m_Width(width), m_Height(height), m_Count(count)
+		{
+			GLTextureDepthArray::Init();
+		}
+
+		GLTextureDepthArray::~GLTextureDepthArray()
+		{
+			GLCall(glDeleteTextures(1, &m_Handle));
+		}
+
+		void GLTextureDepthArray::Bind(u32 slot) const
+		{
+			GLCall(glActiveTexture(GL_TEXTURE0 + slot));
+			GLCall(glBindTexture(GL_TEXTURE_2D_ARRAY, m_Handle));
+		}
+
+		void GLTextureDepthArray::Unbind(u32 slot) const
+		{
+			GLCall(glActiveTexture(GL_TEXTURE0 + slot));
+			GLCall(glBindTexture(GL_TEXTURE_2D_ARRAY, 0));
+		}
+
+		void GLTextureDepthArray::Init()
+		{
+			GLCall(glGenTextures(1, &m_Handle));
+			GLCall(glBindTexture(GL_TEXTURE_2D_ARRAY, m_Handle));
+
+			GLCall(glTexImage3D(GL_TEXTURE_2D_ARRAY, 0, GL_DEPTH_COMPONENT, m_Width, m_Height, m_Count, 0, GL_DEPTH_COMPONENT, GL_FLOAT, nullptr));
+
+			GLCall(glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_WRAP_S, GL_REPEAT));
+			GLCall(glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_WRAP_T, GL_REPEAT));
+			GLCall(glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_MIN_FILTER, GL_NEAREST));
+			GLCall(glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_MAG_FILTER, GL_NEAREST));
+#ifndef LUMOS_PLATFORM_MOBILE
+			GLCall(glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_COMPARE_MODE, GL_COMPARE_R_TO_TEXTURE));
+			// GLCall(glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_DEPTH_TEXTURE_MODE, GL_INTENSITY));
+#endif
+			GLCall(glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_COMPARE_FUNC, GL_LEQUAL));
+			GLCall(glBindTexture(GL_TEXTURE_2D_ARRAY, 0));
+
+		}
+
+		void GLTextureDepthArray::Resize(u32 width, u32 height, u32 count)
+		{
+			m_Width = width;
+			m_Height = height;
+			m_Count = count;
+
+			GLCall(glTexImage3D(GL_TEXTURE_2D_ARRAY, 0, GL_DEPTH_COMPONENT, m_Width, m_Height, m_Count, 0, GL_DEPTH_COMPONENT, GL_FLOAT, nullptr));
+
+			GLCall(glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_WRAP_S, GL_REPEAT));
+			GLCall(glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_WRAP_T, GL_REPEAT));
+			GLCall(glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_MIN_FILTER, GL_NEAREST));
+			GLCall(glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_MAG_FILTER, GL_NEAREST));
+#ifndef LUMOS_PLATFORM_MOBILE
+			GLCall(glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_COMPARE_MODE, GL_COMPARE_R_TO_TEXTURE));
+			//GLCall(glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_DEPTH_TEXTURE_MODE, GL_INTENSITY));
+#endif
+			GLCall(glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_COMPARE_FUNC, GL_LEQUAL));
+			GLCall(glBindTexture(GL_TEXTURE_2D_ARRAY, 0));
 		}
 	}
 }

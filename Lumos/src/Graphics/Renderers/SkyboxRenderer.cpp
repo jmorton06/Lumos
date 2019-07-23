@@ -3,9 +3,7 @@
 #include "Graphics/API/Shader.h"
 #include "Graphics/RenderList.h"
 #include "Graphics/API/Framebuffer.h"
-#include "Graphics/API/Textures/TextureDepth.h"
-#include "Graphics/API/Textures/TextureCube.h"
-#include "Graphics/API/Textures/Texture2D.h"
+#include "Graphics/API/Texture.h"
 #include "Graphics/API/UniformBuffer.h"
 #include "Graphics/API/Renderer.h"
 #include "Graphics/API/CommandBuffer.h"
@@ -71,7 +69,14 @@ namespace Lumos
 			std::vector<Graphics::DescriptorSet*> descriptorSets;
 			descriptorSets.emplace_back(m_Pipeline->GetDescriptorSet());
 
-			Renderer::RenderMesh(m_Skybox, m_Pipeline, m_CommandBuffers[m_CurrentBufferID], 0, descriptorSets);
+			m_Skybox->GetVertexArray()->Bind(m_CommandBuffers[m_CurrentBufferID]);
+			m_Skybox->GetIndexBuffer()->Bind(m_CommandBuffers[m_CurrentBufferID]);
+
+			Renderer::BindDescriptorSets(m_Pipeline, m_CommandBuffers[m_CurrentBufferID], 0, descriptorSets);
+			Renderer::DrawIndexed(m_CommandBuffers[m_CurrentBufferID], DrawType::TRIANGLE, m_Skybox->GetIndexBuffer()->GetCount());
+
+			m_Skybox->GetVertexArray()->Unbind();
+			m_Skybox->GetIndexBuffer()->Unbind();
 
 			End();
 

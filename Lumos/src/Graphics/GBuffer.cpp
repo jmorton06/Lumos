@@ -1,8 +1,7 @@
 #include "LM.h"
 #include "GBuffer.h"
 #include "API/Framebuffer.h"
-#include "API/Textures/TextureDepth.h"
-#include "API/Textures/Texture2D.h"
+#include "API/Texture.h"
 
 namespace Lumos
 {

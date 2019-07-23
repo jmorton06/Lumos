@@ -12,7 +12,7 @@
 #include "Graphics/API/Pipeline.h"
 #include "Graphics/API/IndexBuffer.h"
 #include "Graphics/API/VertexArray.h"
-#include "Graphics/API/Textures/Texture2D.h"
+#include "Graphics/API/Texture.h"
 #include "Graphics/GBuffer.h"
 #include "App/Scene.h"
 #include "Entity/Entity.h"
@@ -274,7 +274,14 @@ namespace Lumos
 
 			std::vector<Graphics::DescriptorSet*> descriptors = { m_Pipeline->GetDescriptorSet(), m_DescriptorSet };
 
-			Renderer::GetRenderer()->Render(m_VertexArrays[m_BatchDrawCallIndex], m_IndexBuffer, currentCMDBuffer, descriptors, m_Pipeline, 0);
+			m_VertexArrays[m_BatchDrawCallIndex]->Bind(currentCMDBuffer);
+			m_IndexBuffer->Bind(currentCMDBuffer);
+
+			Renderer::BindDescriptorSets(m_Pipeline, currentCMDBuffer, 0, descriptors);
+			Renderer::DrawIndexed(currentCMDBuffer, DrawType::TRIANGLE, m_IndexCount);
+
+			m_VertexArrays[m_BatchDrawCallIndex]->Unbind();
+			m_IndexBuffer->Unbind();
 
 			m_IndexCount = 0;
 

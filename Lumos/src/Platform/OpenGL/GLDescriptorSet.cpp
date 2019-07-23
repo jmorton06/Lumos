@@ -1,7 +1,7 @@
 #include "LM.h"
 #include "GLDescriptorSet.h"
 #include "GLShader.h"
-#include "Textures/GLTexture2D.h"
+#include "GLTexture.h"
 #include "GLShader.h"
 #include "GLUniformBuffer.h"
 

@@ -18,7 +18,7 @@
 #include "Graphics/RenderManager.h"
 #include "Graphics/Layers/LayerStack.h"
 #include "Graphics/API/GraphicsContext.h"
-#include "Graphics/API/Textures/Texture2D.h"
+#include "Graphics/API/Texture.h"
 
 #include <imgui/imgui.h>
 #include <imgui/imgui_internal.h>

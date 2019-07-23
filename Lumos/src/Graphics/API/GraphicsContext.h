@@ -7,7 +7,7 @@ namespace Lumos
 	namespace Graphics
 	{
 
-        enum class LUMOS_EXPORT RenderAPI : int
+        enum class LUMOS_EXPORT RenderAPI
 		{
 		#ifdef LUMOS_RENDER_API_OPENGL
 			OPENGL = 0,
