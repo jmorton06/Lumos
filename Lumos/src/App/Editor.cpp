@@ -19,6 +19,7 @@
 #include "Graphics/Layers/LayerStack.h"
 #include "Graphics/API/GraphicsContext.h"
 #include "Graphics/API/Texture.h"
+#include "Graphics/API/GraphicsContext.h"
 
 #include <imgui/imgui.h>
 #include <imgui/imgui_internal.h>
@@ -55,7 +56,7 @@ namespace Lumos
 		DrawConsole();
 		DrawHierarchyWindow();
 		DrawInspectorWindow();
-
+        DrawGraphicsInfoWindow();
 		EndDockSpace();
 	}
 
@@ -453,6 +454,7 @@ namespace Lumos
 			ImGui::DockBuilderDockWindow("Engine", dock_id_left);
 			ImGui::DockBuilderDockWindow("Scene Information", dock_id_left);
 			ImGui::DockBuilderDockWindow("ImGui Demo", dock_id_left);
+            ImGui::DockBuilderDockWindow("GraphicsInfo", dock_id_left);
 
 			ImGui::DockBuilderFinish(dockspace_id);
 		}
@@ -518,4 +520,13 @@ namespace Lumos
 	{
 		m_Console->Draw("Console");
 	}
+    
+    void Editor::DrawGraphicsInfoWindow()
+    {
+        ImGui::Begin("GraphicsInfo", nullptr, 0);
+        {
+            Graphics::GraphicsContext::GetContext()->OnImGUI();
+        }
+        ImGui::End();
+    }
 }
