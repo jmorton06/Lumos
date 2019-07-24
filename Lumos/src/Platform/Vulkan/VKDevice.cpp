@@ -181,6 +181,15 @@ namespace Lumos
 			deviceFeatures.fillModeNonSolid = VK_TRUE;
 			deviceFeatures.samplerAnisotropy = VK_TRUE;
 
+			//auto extensions = m_VKContext->GetExtensionNames();
+			auto layers		= m_VKContext->GetLayerNames();
+
+			const std::vector<const char*> deviceExtensions = 
+			{
+				VK_KHR_SWAPCHAIN_EXTENSION_NAME
+			};
+
+
 			// Device
 			vk::DeviceCreateInfo deviceCI{};
 			deviceCI.queueCreateInfoCount = 1;
@@ -191,8 +200,8 @@ namespace Lumos
 
 			if (EnableValidationLayers)
 			{
-				deviceCI.enabledLayerCount = static_cast<uint32_t>(validationLayers.size());
-				deviceCI.ppEnabledLayerNames = validationLayers.data();
+				deviceCI.enabledLayerCount = static_cast<uint32_t>(layers.size());
+				deviceCI.ppEnabledLayerNames = layers.data();
 			}
 			else
 			{

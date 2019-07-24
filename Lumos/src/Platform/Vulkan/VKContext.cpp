@@ -5,17 +5,23 @@
 #include "VKCommandBuffer.h"
 #include "Maths/Matrix4.h"
 
+#include <imgui/imgui.h>
+
+#define VK_LAYER_LUNARG_STANDARD_VALIDATION_NAME "VK_LAYER_LUNARG_standard_validation"
+#define VK_LAYER_LUNARG_ASSISTENT_LAYER_NAME "VK_LAYER_LUNARG_assistant_layer"
+#define VK_LAYER_RENDERDOC_CAPTURE_NAME "VK_LAYER_RENDERDOC_Capture"
+
 namespace Lumos
 {
 	namespace Graphics
 	{
-		std::vector<const char*> GetRequiredExtensions()
+		std::vector<const char*> VKContext::GetRequiredExtensions()
 		{
 			std::vector<const char*> extensions;
 
 			if (EnableValidationLayers)
 			{
-				extensions.push_back("VK_EXT_debug_report");
+				extensions.push_back(VK_EXT_DEBUG_REPORT_EXTENSION_NAME);
 				extensions.push_back(VK_EXT_DEBUG_UTILS_EXTENSION_NAME);
 			}
 
@@ -38,6 +44,22 @@ namespace Lumos
 	#endif
 
 			return extensions;
+		}
+
+		std::vector<const char*> VKContext::GetRequiredLayers()
+		{
+			std::vector<const char*> layers;
+
+			if(m_StandardValidationLayer)
+				layers.emplace_back(VK_LAYER_LUNARG_STANDARD_VALIDATION_NAME);
+
+			if (m_RenderDocLayer)
+				layers.emplace_back(VK_LAYER_RENDERDOC_CAPTURE_NAME);
+
+			if (m_AssistanceLayer)
+				layers.emplace_back(VK_LAYER_LUNARG_ASSISTENT_LAYER_NAME);
+			
+			return layers;
 		}
 
 		VkResult CreateDebugReportCallbackEXT(VkInstance instance, const VkDebugReportCallbackCreateInfoEXT* pCreateInfo, const VkAllocationCallbacks* pAllocator, VkDebugReportCallbackEXT* pCallback)
@@ -148,19 +170,19 @@ namespace Lumos
 			return VK_FALSE;
 		}
 
-		bool CheckValidationLayerSupport()
+		bool VKContext::CheckValidationLayerSupport(const std::vector<const char*> validationLayers)
 		{
 			uint32_t layerCount;
-			vkEnumerateInstanceLayerProperties(&layerCount, nullptr);
+			vk::enumerateInstanceLayerProperties(&layerCount, nullptr);
 
-			std::vector<vk::LayerProperties> availableLayers(layerCount);
-			vk::enumerateInstanceLayerProperties(&layerCount, availableLayers.data());
+			m_InstanceLayers.resize(layerCount);
+			vk::enumerateInstanceLayerProperties(&layerCount, m_InstanceLayers.data());
 
 			for (const char* layerName : validationLayers)
 			{
 				bool layerFound = false;
 
-				for (const auto& layerProperties : availableLayers)
+				for (const auto& layerProperties : m_InstanceLayers)
 				{
 					if (strcmp(layerName, layerProperties.layerName) == 0)
 					{
@@ -177,6 +199,37 @@ namespace Lumos
 
 			return true;
 		}
+
+		bool VKContext::CheckExtensionSupport(const std::vector<const char*> extensions)
+		{
+			uint32_t extensionCount;
+			vk::enumerateInstanceExtensionProperties(nullptr, &extensionCount, nullptr);
+
+			m_InstanceExtensions.resize(extensionCount);
+			vk::enumerateInstanceExtensionProperties(nullptr, &extensionCount, m_InstanceExtensions.data());
+
+			for (const char* extensionName : extensions)
+			{
+				bool layerFound = false;
+
+				for (const auto& layerProperties : m_InstanceExtensions)
+				{
+					if (strcmp(extensionName, layerProperties.extensionName) == 0)
+					{
+						layerFound = true;
+						break;
+					}
+				}
+
+				if (!layerFound)
+				{
+					return false;
+				}
+			}
+
+			return true;
+		}
+
 
 		size_t VKContext::GetMinUniformBufferOffsetAlignment() const
 		{
@@ -195,11 +248,6 @@ namespace Lumos
 				LUMOS_CORE_ERROR("Could not find loader");
 			}
 
-			if (EnableValidationLayers && !CheckValidationLayerSupport())
-			{
-				throw std::runtime_error("validation layers requested, but not available!");
-			}
-
 			vk::ApplicationInfo appInfo = {};
 			appInfo.pApplicationName = "Sandbox";
 			appInfo.applicationVersion = VK_MAKE_VERSION(1, 0, 0);
@@ -210,24 +258,29 @@ namespace Lumos
 			vk::InstanceCreateInfo createInfo = {};
 			createInfo.pApplicationInfo = &appInfo;
 
-			auto extensions = GetRequiredExtensions();
-			createInfo.enabledExtensionCount = static_cast<uint32_t>(extensions.size());
-			createInfo.ppEnabledExtensionNames = extensions.data();
+			m_InstanceLayerNames = GetRequiredLayers();
+			m_InstanceExtensionNames = GetRequiredExtensions();
 
-			if (EnableValidationLayers)
+			if (EnableValidationLayers && !CheckValidationLayerSupport(m_InstanceLayerNames))
 			{
-				createInfo.enabledLayerCount = static_cast<uint32_t>(validationLayers.size());
-				createInfo.ppEnabledLayerNames = validationLayers.data();
+				 LUMOS_CORE_ERROR("[VULKAN] Validation layers requested, but not available!");
 			}
-			else
+
+			if (!CheckExtensionSupport(m_InstanceExtensionNames))
 			{
-				createInfo.enabledLayerCount = 0;
+				LUMOS_CORE_ERROR("[VULKAN] Extensions requested are not available!");
 			}
+
+			createInfo.enabledExtensionCount = static_cast<uint32_t>(m_InstanceExtensionNames.size());
+			createInfo.ppEnabledExtensionNames = m_InstanceExtensionNames.data();
+
+			createInfo.enabledLayerCount = static_cast<uint32_t>(m_InstanceLayerNames.size());
+			createInfo.ppEnabledLayerNames = m_InstanceLayerNames.data();
 
 			m_VkInstance = vk::createInstance(createInfo, nullptr);
 			if (!m_VkInstance)
 			{
-				LUMOS_CORE_ERROR("failed to create instance!");
+				LUMOS_CORE_ERROR("[VULKAN] Failed to create instance!");
 			}
 
 			volkLoadInstance(m_VkInstance);
@@ -246,7 +299,25 @@ namespace Lumos
 			m_DebugCallback = m_VkInstance.createDebugReportCallbackEXT(createInfo);
 			if (!m_DebugCallback)
 			{
-				throw std::runtime_error("failed to set up debug callback!");
+				LUMOS_CORE_ERROR("[VULKAN] Failed to set up debug callback!");
+			}
+		}
+
+		void VKContext::OnImGUI()
+		{
+			ImGui::BeginTabBar("#Vulkaninfo");
+
+			if (ImGui::BeginTabItem("Instance")) 
+			{
+
+				ImGui::Text("Extensions:");
+
+				auto globalExtensions = m_InstanceExtensions;
+				for (auto const& extension : globalExtensions)
+					ImGui::BulletText("%s (%d)", extension,
+						VK_VERSION_PATCH(extension.specVersion));
+
+				ImGui::EndTabItem();
 			}
 		}
 	}
