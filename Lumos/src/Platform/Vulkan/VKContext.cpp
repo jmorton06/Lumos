@@ -4,6 +4,7 @@
 #include "VKCommandPool.h"
 #include "VKCommandBuffer.h"
 #include "Maths/Matrix4.h"
+#include "Core/Version.h"
 
 #include <imgui/imgui.h>
 
@@ -170,7 +171,7 @@ namespace Lumos
 			return VK_FALSE;
 		}
 
-		bool VKContext::CheckValidationLayerSupport(const std::vector<const char*> validationLayers)
+		bool VKContext::CheckValidationLayerSupport(const std::vector<const char*>& validationLayers)
 		{
 			uint32_t layerCount;
 			vk::enumerateInstanceLayerProperties(&layerCount, nullptr);
@@ -200,7 +201,7 @@ namespace Lumos
 			return true;
 		}
 
-		bool VKContext::CheckExtensionSupport(const std::vector<const char*> extensions)
+		bool VKContext::CheckExtensionSupport(const std::vector<const char*>& extensions)
 		{
 			uint32_t extensionCount;
 			vk::enumerateInstanceExtensionProperties(nullptr, &extensionCount, nullptr);
@@ -230,7 +231,6 @@ namespace Lumos
 			return true;
 		}
 
-
 		size_t VKContext::GetMinUniformBufferOffsetAlignment() const
 		{
 			return Graphics::VKDevice::Instance()->GetGPUProperties().limits.minUniformBufferOffsetAlignment;
@@ -252,7 +252,7 @@ namespace Lumos
 			appInfo.pApplicationName = "Sandbox";
 			appInfo.applicationVersion = VK_MAKE_VERSION(1, 0, 0);
 			appInfo.pEngineName = "Lumos";
-			appInfo.engineVersion = VK_MAKE_VERSION(1, 0, 0);
+			appInfo.engineVersion = VK_MAKE_VERSION(LumosVersion.major, LumosVersion.minor, LumosVersion.patch);
 			appInfo.apiVersion = VK_API_VERSION_1_0;
 
 			vk::InstanceCreateInfo createInfo = {};
@@ -303,22 +303,223 @@ namespace Lumos
 			}
 		}
 
+        static auto const readOnlyFlag = ImGuiInputTextFlags_ReadOnly;
+
 		void VKContext::OnImGUI()
 		{
-			ImGui::BeginTabBar("#Vulkaninfo");
+			ImGui::Text("Vulkan Info");
 
-			if (ImGui::BeginTabItem("Instance")) 
+			if (ImGui::TreeNode("Instance"))
 			{
 
 				ImGui::Text("Extensions:");
 
 				auto globalExtensions = m_InstanceExtensions;
 				for (auto const& extension : globalExtensions)
-					ImGui::BulletText("%s (%d)", extension,
+					ImGui::BulletText("%s (%d)", extension.extensionName,
 						VK_VERSION_PATCH(extension.specVersion));
 
-				ImGui::EndTabItem();
+				ImGui::TreePop();
 			}
+
+			if (ImGui::TreeNode("Layers"))
+            {
+				auto layerProperties = m_InstanceLayers;
+                
+                if(layerProperties.empty())
+                    ImGui::Text("No Layers");
+                
+				for (auto const& layer : layerProperties)
+                {
+					if (ImGui::TreeNode(layer.layerName))
+                    {
+						ImGui::BulletText("Description: %s", layer.description);
+                        ImGui::BulletText("Version: %u/%d", layer.specVersion,
+							layer.implementationVersion);
+                        
+                        ImGui::TreePop();
+					}
+				}
+
+				ImGui::TreePop();
+			}
+            
+			if (ImGui::TreeNode("Physical Devices"))
+			{
+                auto physicalDevice = VKDevice::Instance()->GetGPU();
+                auto const& properties = physicalDevice.getProperties();
+
+                if (ImGui::TreeNode(properties.deviceName))
+                {
+
+                    ImGui::BulletText("API Version: %u - Driver Version: %u",
+                        properties.apiVersion,
+                        properties.driverVersion);
+                    ImGui::BulletText("VendorID: %u - DeviceID: %u", properties.vendorID,
+                        properties.deviceID);
+
+                    auto const& extensionProperties =
+                        physicalDevice.enumerateDeviceExtensionProperties();
+
+                    if (ImGui::TreeNode(&extensionProperties, "Extension Properties (%lu)",
+                        extensionProperties.size()))
+                    {
+
+                        for (auto const& extensionProperty : extensionProperties)
+                            ImGui::BulletText("%s (%d)", extensionProperty.extensionName,
+                                VK_VERSION_PATCH(extensionProperty.specVersion));
+
+                        ImGui::TreePop();
+                    }
+                    ImGui::TreePop();
+                }
+				
+
+				ImGui::TreePop();
+			}
+            
+            ImGui::NewLine();
+            
+#ifdef USE_VMA_ALLOCATOR
+            VmaAllocator allocator = VKDevice::Instance()->GetAllocator();
+            
+            VmaStats stats;
+            vmaCalculateStats(allocator, &stats);
+            
+            if (ImGui::CollapsingHeader("Total"))
+            {
+                DebugDrawVmaMemory(stats.total);
+            }
+            
+            VkPhysicalDeviceMemoryProperties const* memoryProperties = nullptr;
+            vmaGetMemoryProperties(allocator, &memoryProperties);
+            
+            for (auto heapIndex = 0u; heapIndex < memoryProperties->memoryHeapCount; ++heapIndex)
+            {
+                if (stats.memoryHeap[heapIndex].blockCount == 0)
+                    continue;
+                
+                String heapName = fmt::format("Heap {} | Size: {}", heapIndex, memoryProperties->memoryHeaps[heapIndex].size);
+                
+                if ((memoryProperties->memoryHeaps[heapIndex].flags & VK_MEMORY_HEAP_DEVICE_LOCAL_BIT) != 0)
+                {
+                    heapName += " | DEVICE_LOCAL";
+                }
+                
+                if (ImGui::CollapsingHeader(heapName.c_str()))
+                {
+                    DebugDrawVmaMemory(stats.memoryHeap[heapIndex]);
+                }
+                
+                for (auto typeIndex = 0u; typeIndex < memoryProperties->memoryTypeCount; ++typeIndex)
+                {
+                    if (memoryProperties->memoryTypes[typeIndex].heapIndex != heapIndex)
+                        continue;
+                    
+                    if (stats.memoryType[typeIndex].blockCount == 0)
+                        continue;
+                    
+                    String typeName = fmt::format("Type {}", typeIndex);
+                    
+                    VkMemoryPropertyFlags propertyFlags = memoryProperties->memoryTypes[typeIndex].propertyFlags;
+                    
+                    String flags;
+                    
+                    if ((propertyFlags & VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT) != 0)
+                    {
+                        flags += "DEVICE_LOCAL ";
+                    }
+                    if ((propertyFlags & VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT) != 0)
+                    {
+                        flags += "HOST_VISIBLE ";
+                    }
+                    if ((propertyFlags & VK_MEMORY_PROPERTY_HOST_COHERENT_BIT) != 0)
+                    {
+                        flags += "HOST_COHERENT ";
+                    }
+                    if ((propertyFlags & VK_MEMORY_PROPERTY_HOST_CACHED_BIT) != 0)
+                    {
+                        flags += "HOST_CACHED ";
+                    }
+                    if ((propertyFlags & VK_MEMORY_PROPERTY_LAZILY_ALLOCATED_BIT) != 0)
+                    {
+                        flags += "LAZILY_ALLOCATED ";
+                    }
+                    
+                    if (!flags.empty())
+                        typeName += " | " + flags;
+                    
+                    if (ImGui::CollapsingHeader(typeName.c_str()))
+                    {
+                        DebugDrawVmaMemory(stats.memoryType[typeIndex]);
+                    }
+                }
+            }
+#endif
 		}
+        
+#ifdef USE_VMA_ALLOCATOR
+        void VKContext::DebugDrawVmaMemory(VmaStatInfo& info, bool indent)
+        {
+            if (indent)
+                ImGui::Indent();
+            
+            float bytesProgress = static_cast<float>(info.usedBytes) / static_cast<float>((info.unusedBytes + info.usedBytes));
+            ImGui::ProgressBar(bytesProgress, ImVec2(0.0f, 0.0f));
+            ImGui::SameLine(0.0f, ImGui::GetStyle().ItemInnerSpacing.x);
+            ImGui::Text("Used");
+            
+            ImGui::InputScalar("Blocks", ImGuiDataType_U32,
+                               (void*)&info.blockCount,
+                               nullptr, nullptr, "%u", readOnlyFlag);
+            
+            ImGui::InputScalar("Allocations", ImGuiDataType_U32,
+                               (void*)&info.allocationCount,
+                               nullptr, nullptr, "%u", readOnlyFlag);
+            
+            ImGui::InputScalar("UnusedRanges", ImGuiDataType_U32,
+                               (void*)&info.unusedRangeCount,
+                               nullptr, nullptr, "%u", readOnlyFlag);
+            
+            ImGui::InputScalar("UsedBytes", ImGuiDataType_U32,
+                               (void*)&info.usedBytes,
+                               nullptr, nullptr, "%u", readOnlyFlag);
+            
+            ImGui::InputScalar("UnusedBytes", ImGuiDataType_U32,
+                               (void*)&info.unusedBytes,
+                               nullptr, nullptr, "%u", readOnlyFlag);
+            
+            ImGui::Text("AllocationSize");
+            
+            ImGui::InputScalar("Min", ImGuiDataType_U32,
+                               (void*)&info.allocationSizeMin,
+                               nullptr, nullptr, "%u", readOnlyFlag);
+            
+            ImGui::InputScalar("Avg", ImGuiDataType_U32,
+                               (void*)&info.allocationSizeAvg,
+                               nullptr, nullptr, "%u", readOnlyFlag);
+            
+            ImGui::InputScalar("Max", ImGuiDataType_U32,
+                               (void*)&info.allocationSizeMax,
+                               nullptr, nullptr, "%u", readOnlyFlag);
+            
+            ImGui::Text("UnusedRangeSize");
+            
+            ImGui::InputScalar("Min", ImGuiDataType_U32,
+                               (void*)&info.unusedRangeSizeMin,
+                               nullptr, nullptr, "%u", readOnlyFlag);
+            
+            ImGui::InputScalar("Avg", ImGuiDataType_U32,
+                               (void*)&info.unusedRangeSizeAvg,
+                               nullptr, nullptr, "%u", readOnlyFlag);
+            
+            ImGui::InputScalar("Max", ImGuiDataType_U32,
+                               (void*)&info.unusedRangeSizeMax,
+                               nullptr, nullptr, "%u", readOnlyFlag);
+            
+            if (indent)
+                ImGui::Unindent();
+        }
+#endif
 	}
 }
