@@ -5,7 +5,7 @@
 #include "VKContext.h"
 
 #ifdef USE_VMA_ALLOCATOR
-#include "vk_mem_alloc.h"
+#include <vulkan/vk_mem_alloc.h>
 #endif
 
 namespace Lumos

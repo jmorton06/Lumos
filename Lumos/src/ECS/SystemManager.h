@@ -1,6 +1,6 @@
 #pragma once
 
-#include "App/ISystem.h"
+#include "ECS/ISystem.h"
 
 namespace Lumos
 {

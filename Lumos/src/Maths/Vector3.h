@@ -281,8 +281,6 @@ namespace Lumos
 			{
 				return a * (1.0f - t) + b * t;
 			}
-
-			MEM_ALIGN_NEW_DELETE
 		};
 	}
 }

@@ -41,10 +41,10 @@
 #include "Utilities/AssetsManager.h"
 
 //Entity
-#include "Entity/Entity.h"
-#include "Entity/EntityManager.h"
-#include "Entity/Component/Components.h"
-#include "Entity/ComponentManager.h"
+#include "ECS/Entity.h"
+#include "ECS/EntityManager.h"
+#include "ECS/Component/Components.h"
+#include "ECS/ComponentManager.h"
 
 //Cameras
 #include "Graphics/Camera/ThirdPersonCamera.h"
@@ -68,7 +68,7 @@
 #include "System/VFS.h"
 #include "System/FileSystem.h"
 #include "System/String.h"
-#include "System/System.h"
+#include "System/CoreSystem.h"
 #include "System/LMLog.h"
 
 //Scripting

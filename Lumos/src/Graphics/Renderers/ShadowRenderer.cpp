@@ -16,8 +16,8 @@
 #include "Graphics/Light.h"
 #include "Graphics/RenderList.h"
 
-#include "Entity/Component/TransformComponent.h"
-#include "Entity/Component/MeshComponent.h"
+#include "ECS/Component/TransformComponent.h"
+#include "ECS/Component/MeshComponent.h"
 
 #include "Maths/MathsUtilities.h"
 #include "App/Scene.h"

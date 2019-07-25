@@ -1,6 +1,6 @@
 #pragma once
 #include "LM.h"
-#include "Entity/SystemManager.h"
+#include "ECS/SystemManager.h"
 
 #define LUMOS_EDITOR //temp
 

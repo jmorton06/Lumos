@@ -13,7 +13,7 @@ namespace Lumos
 
 		VKCommandPool::~VKCommandPool()
 		{
-			vkDestroyCommandPool(VKDevice::Instance()->GetDevice(), m_CommandPool, VK_NULL_HANDLE);
+			VKDevice::Instance()->GetDevice().destroyCommandPool(m_CommandPool);
 		}
 
 		void VKCommandPool::Init()

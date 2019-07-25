@@ -8,9 +8,9 @@
 #include "SceneManager.h"
 
 #include "Maths/BoundingSphere.h"
-#include "Entity/Entity.h"
-#include "Entity/Component/Components.h"
-#include "Entity/SystemManager.h"
+#include "ECS/Entity.h"
+#include "ECS/Component/Components.h"
+#include "ECS/SystemManager.h"
 #include "Physics/LumosPhysicsEngine/LumosPhysicsEngine.h"
 
 #include "Graphics/GBuffer.h"

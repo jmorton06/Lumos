@@ -5,7 +5,7 @@
 #include "PhysicsObject3D.h"
 #include "Manifold.h"
 #include "Broadphase.h"
-#include "App/ISystem.h"
+#include "ECS/ISystem.h"
 
 namespace Lumos
 {

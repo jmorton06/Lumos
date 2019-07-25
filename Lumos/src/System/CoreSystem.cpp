@@ -1,5 +1,5 @@
 #include "LM.h"
-#include "System.h"
+#include "CoreSystem.h"
 #include "VFS.h"
 #include "JobSystem.h"
 #include "Scripting/LuaScript.h"

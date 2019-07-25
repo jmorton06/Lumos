@@ -226,9 +226,6 @@ namespace Lumos
 			inline bool operator==(const Vector4 &v) const { return x == v.x && y == v.y && z == v.z && w == v.w; }
 			inline bool operator!=(const Vector4 &v) const { return (v.x == x && v.y == y && v.z == z && v.w == w) ? false : true;; }
 #endif
-
-			MEM_ALIGN_NEW_DELETE;
-
 			friend std::ostream &operator<<(std::ostream &o, const Vector4 &v) { return o << "Vector4(" << v.x << ", " << v.y << ", " << v.z << ", " << v.w << ")"; }
 		};
 

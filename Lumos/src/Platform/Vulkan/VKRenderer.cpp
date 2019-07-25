@@ -6,9 +6,6 @@
 #include "VKIndexBuffer.h"
 #include "VKVertexArray.h"
 #include "VKDescriptorSet.h"
-#include "Graphics/Mesh.h"
-#include "Graphics/Material.h"
-#include "System/System.h"
 
 namespace Lumos
 {

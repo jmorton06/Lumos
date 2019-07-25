@@ -2,7 +2,7 @@
 
 #if defined(LUMOS_PLATFORM_MACOS) || defined(LUMOS_PLATFORM_LINUX) || defined(LUMOS_PLATFORM_WINDOWS)
 
-#include "System/System.h"
+#include "System/CoreSystem.h"
 
 extern Lumos::Application* Lumos::CreateApplication();
 
@@ -21,7 +21,7 @@ int main(int argc, char** argv)
 #elif defined(LUMOS_PLATFORM_IOS)
 
 #include "Application.h"
-#include "System/System.h"
+#include "System/CoreSystem.h"
 #include "System/VFS.h"
 
 #ifdef LUMOS_RENDER_API_VULKAN
