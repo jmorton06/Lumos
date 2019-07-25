@@ -1,6 +1,6 @@
 #include "LM.h"
 #include "ComponentManager.h"
-#include "Entity/Component/Components.h"
+#include "ECS/Component/Components.h"
 
 namespace Lumos
 {

@@ -2,8 +2,8 @@
 #include "Physics2DComponent.h"
 #include "Physics/B2PhysicsEngine/PhysicsObject2D.h"
 #include "Maths/MathsUtilities.h"
-#include "Entity/Entity.h"
-#include "Entity/Component/TransformComponent.h"
+#include "ECS/Entity.h"
+#include "ECS/Component/TransformComponent.h"
 
 #include <imgui/imgui.h>
 

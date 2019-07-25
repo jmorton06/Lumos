@@ -16,8 +16,8 @@
 #include "Graphics/Layers/ImGuiLayer.h"
 #include "Graphics/Camera/Camera.h"
 
-#include "Entity/EntityManager.h"
-#include "Entity/ComponentManager.h"
+#include "ECS/EntityManager.h"
+#include "ECS/ComponentManager.h"
 
 #include "Utilities/CommonUtils.h"
 #include "Utilities/TimeStep.h"

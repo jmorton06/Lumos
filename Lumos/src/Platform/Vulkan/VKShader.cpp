@@ -29,7 +29,6 @@ namespace Lumos
 
 		bool VKShader::Init()
 		{
-			VkResult result = VK_SUCCESS;
 			uint32_t currentShaderStage = 0;
 			m_StageCount = 0;
 
@@ -59,16 +58,10 @@ namespace Lumos
                 m_ShaderStages[currentShaderStage].stage = VKTools::ShaderTypeToVK(file.first);
 				m_ShaderStages[currentShaderStage].pName = "main";
 				m_ShaderStages[currentShaderStage].pNext = VK_NULL_HANDLE;
-
 				m_ShaderStages[currentShaderStage].module = VKDevice::Instance()->GetDevice().createShaderModule(vertexShaderCI);
 
                 delete[] source;
 
-				if (result != VK_SUCCESS)
-                {
-                    delete files;
-                    return false;
-                }
 				currentShaderStage++;
 			}
 
@@ -79,7 +72,7 @@ namespace Lumos
 		void VKShader::Unload() const
 		{
 			for (uint32_t i = 0; i < m_StageCount; i++)
-				vkDestroyShaderModule(VKDevice::Instance()->GetDevice(), m_ShaderStages[i].module, VK_NULL_HANDLE);
+				VKDevice::Instance()->GetDevice().destroyShaderModule(m_ShaderStages[i].module);
 		}
 
 		vk::PipelineShaderStageCreateInfo* VKShader::GetShaderStages() const

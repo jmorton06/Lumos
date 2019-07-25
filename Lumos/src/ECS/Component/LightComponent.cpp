@@ -3,7 +3,7 @@
 #include "Graphics/Light.h"
 #include "Physics3DComponent.h"
 #include "Physics/LumosPhysicsEngine/PhysicsObject3D.h"
-#include "Entity/Entity.h"
+#include "ECS/Entity.h"
 #include "App/Scene.h"
 #include "Graphics/LightSetUp.h"
 #include "Maths/Vector3.h"

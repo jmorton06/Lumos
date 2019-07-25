@@ -124,7 +124,7 @@ To do it properly:
 
 \code
 #define VMA_IMPLEMENTATION
-#include "vk_mem_alloc.h"
+#include <vulkan/vk_mem_alloc.h>
 \endcode
 
 It may be a good idea to create dedicated CPP file just for this purpose.
@@ -1204,7 +1204,7 @@ To do it, define macro `VMA_DEBUG_INITIALIZE_ALLOCATIONS` to 1.
 
 \code
 #define VMA_DEBUG_INITIALIZE_ALLOCATIONS 1
-#include "vk_mem_alloc.h"
+#include <vulkan/vk_mem_alloc.h>
 \endcode
 
 It makes memory of all new allocations initialized to bit pattern `0xDCDCDCDC`.
@@ -1231,7 +1231,7 @@ number of bytes as a margin before and after every allocation.
 
 \code
 #define VMA_DEBUG_MARGIN 16
-#include "vk_mem_alloc.h"
+#include <vulkan/vk_mem_alloc.h>
 \endcode
 
 ![Allocations with margin](../gfx/Margins_2.png)
@@ -1265,7 +1265,7 @@ of contents of the margins.
 \code
 #define VMA_DEBUG_MARGIN 16
 #define VMA_DEBUG_DETECT_CORRUPTION 1
-#include "vk_mem_alloc.h"
+#include <vulkan/vk_mem_alloc.h>
 \endcode
 
 When this feature is enabled, number of bytes specified as `VMA_DEBUG_MARGIN`

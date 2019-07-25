@@ -132,7 +132,7 @@ namespace Lumos
         m_MaterialProperties->usingRoughnessMap = properties.usingRoughnessMap;
         m_MaterialProperties->usingAOMap        = properties.usingAOMap;
         m_MaterialProperties->usingEmissiveMap  = properties.usingEmissiveMap;
-        m_MaterialProperties->workflow            = properties.workflow;
+        m_MaterialProperties->workflow          = properties.workflow;
 
         UpdateMaterialPropertiesData();
 

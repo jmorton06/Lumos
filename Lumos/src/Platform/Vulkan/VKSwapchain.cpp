@@ -107,8 +107,6 @@ namespace Lumos
 			delete[] pSwapChainImages;
 			delete[] pPresentModes;
 
-			Graphics::VKDevice::Instance()->m_SwapChainSize = static_cast<u32>(GetSwapchainBufferCount());
-
 			return true;
 		}
 

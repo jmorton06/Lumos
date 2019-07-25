@@ -69,7 +69,7 @@ namespace Lumos
 			vkEnumeratePhysicalDevices(m_VKContext->GetVKInstance(), &numGPUs, VK_NULL_HANDLE);
 			if (numGPUs == 0)
 			{
-				LUMOS_CORE_ERROR("ERROR : No GPUs found!");
+				LUMOS_CORE_ERROR("[VULKAN] No GPUs found!");
 				return false;
 			}
 
@@ -89,7 +89,7 @@ namespace Lumos
 			m_QueueFamiliyProperties = m_PhysicalDevice.getQueueFamilyProperties();
 			if (m_QueueFamiliyProperties.size() == 0)
 			{
-				LUMOS_CORE_ERROR("ERROR : No Queue Families were found!");
+				LUMOS_CORE_ERROR("[VULKAN] No Queue Families were found!");
 				return false;
 			}
 
@@ -125,7 +125,7 @@ namespace Lumos
 #endif
 			if(!m_Surface)
 			{
-				LUMOS_CORE_ERROR("Failed to create window surface!");
+				LUMOS_CORE_ERROR("[VULKAN] Failed to create window surface!");
 			}
 
 			VkBool32 * supportsPresent = new VkBool32[m_QueueFamiliyProperties.size()];
@@ -177,7 +177,7 @@ namespace Lumos
 			vk::PhysicalDeviceFeatures deviceFeatures{};
 			deviceFeatures.shaderClipDistance = VK_TRUE;
 			deviceFeatures.shaderCullDistance = VK_TRUE;
-			deviceFeatures.geometryShader = VK_TRUE;
+			deviceFeatures.geometryShader = VK_FALSE;
 			deviceFeatures.shaderTessellationAndGeometryPointSize = VK_TRUE;
 			deviceFeatures.fillModeNonSolid = VK_TRUE;
 			deviceFeatures.samplerAnisotropy = VK_TRUE;
@@ -213,7 +213,7 @@ namespace Lumos
 
 			if (!m_Device)
 			{
-				LUMOS_CORE_ERROR("ERROR : vkCreateDevice() failed!");
+				LUMOS_CORE_ERROR("[VULKAN] vkCreateDevice() failed!");
 				return false;
 			}
 
@@ -250,10 +250,9 @@ namespace Lumos
 
             if (vmaCreateAllocator(&allocatorInfo, &m_Allocator) != VK_SUCCESS)
             {
-                LUMOS_CORE_ERROR("Failed to create VMA allocator");
+                LUMOS_CORE_ERROR("[VULKAN] Failed to create VMA allocator");
             }
 #endif
-            
 
 			return VK_SUCCESS;
 		}

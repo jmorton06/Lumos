@@ -141,8 +141,6 @@ namespace Lumos
 			static Matrix4 BuildViewMatrix(const Vector3 &from, const Vector3 &lookingAt,
 										   const Vector3 &up = Vector3(0.0f, 1.0f, 0.0f));
 
-			MEM_ALIGN_NEW_DELETE
-
 			friend std::ostream &operator<<(std::ostream &o, const Matrix4 &m);
 
 			inline float operator[](const int index) const

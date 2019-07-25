@@ -1,7 +1,7 @@
 #pragma once
 #include "LM.h"
 #include "Utilities/TSingleton.h"
-#include "Entity/Component/LumosComponent.h"
+#include "ECS/Component/LumosComponent.h"
 
 #define MAX_ENTITIES 5000
 

@@ -61,11 +61,6 @@ namespace Lumos
 			inline Vector2 operator*(const float a) const { return Vector2(x * a, y * a); }
 			inline Vector2 operator/(const float v) const { return Vector2(x / v, y / v); };
 			inline bool operator==(const Vector2 &A) const { return (A.x == x && A.y == y) ? true : false; };
-
-#ifdef LUMOS_SSEVEC2
-			MEM_ALIGN_NEW_DELETE;
-#endif
-
 		};
 	}
 }

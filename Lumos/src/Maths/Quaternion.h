@@ -101,8 +101,6 @@ namespace Lumos
 			Quaternion operator*(const Quaternion& q) const;
 			Quaternion operator*(const Vector3& v) const;
 			Quaternion operator+(const Quaternion& a) const;
-		
-			MEM_ALIGN_NEW_DELETE
 				
 			friend std::ostream& operator<<(std::ostream& o, const Quaternion& q) 
 			{

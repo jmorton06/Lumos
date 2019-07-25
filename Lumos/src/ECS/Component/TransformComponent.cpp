@@ -1,6 +1,6 @@
 #include "LM.h"
 #include "TransformComponent.h"
-#include "Entity/Entity.h"
+#include "ECS/Entity.h"
 
 #include <imgui/imgui.h>
 #include <imgui/plugins/ImGuizmo.h>

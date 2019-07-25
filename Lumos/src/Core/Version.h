@@ -9,7 +9,7 @@ namespace Lumos
         int patch = 1;
     };
 
-    constexpr InternalVersion const LumosVersion = {};
+    constexpr InternalVersion const LumosVersion = InternalVersion();
 
     struct Version 
     {
@@ -28,5 +28,5 @@ namespace Lumos
         int rev = 2;
     };
 
-constexpr Version const version = Version();
+	constexpr Version const version = Version();
 }

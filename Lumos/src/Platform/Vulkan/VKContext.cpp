@@ -312,7 +312,7 @@ namespace Lumos
 			if (ImGui::TreeNode("Instance"))
 			{
 
-				ImGui::Text("Extensions:");
+				ImGui::Text("Extensions :");
 
 				auto globalExtensions = m_InstanceExtensions;
 				for (auto const& extension : globalExtensions)
@@ -333,8 +333,8 @@ namespace Lumos
                 {
 					if (ImGui::TreeNode(layer.layerName))
                     {
-						ImGui::BulletText("Description: %s", layer.description);
-                        ImGui::BulletText("Version: %u/%d", layer.specVersion,
+						ImGui::BulletText("Description : %s", layer.description);
+                        ImGui::BulletText("Version : %u/%d", layer.specVersion,
 							layer.implementationVersion);
                         
                         ImGui::TreePop();
@@ -352,10 +352,10 @@ namespace Lumos
                 if (ImGui::TreeNode(properties.deviceName))
                 {
 
-                    ImGui::BulletText("API Version: %u - Driver Version: %u",
+                    ImGui::BulletText("API Version : %u - Driver Version : %u",
                         properties.apiVersion,
                         properties.driverVersion);
-                    ImGui::BulletText("VendorID: %u - DeviceID: %u", properties.vendorID,
+                    ImGui::BulletText("VendorID : %u - DeviceID : %u", properties.vendorID,
                         properties.deviceID);
 
                     auto const& extensionProperties =
