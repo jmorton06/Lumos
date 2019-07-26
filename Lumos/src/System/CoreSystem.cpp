@@ -3,6 +3,7 @@
 #include "VFS.h"
 #include "JobSystem.h"
 #include "Scripting/LuaScript.h"
+#include "Core/Version.h"
 
 namespace Lumos
 { 
@@ -11,6 +12,9 @@ namespace Lumos
 	void CoreSystem::Init()
 	{
 		LMLog::OnInit();
+
+		LUMOS_CORE_INFO("Lumos Engine - Version {0}.{1}.{2}", LumosVersion.major, LumosVersion.minor, LumosVersion.patch);
+
 		System::JobSystem::OnInit();
 		LUMOS_CORE_INFO("Initializing System");
 		VFS::OnInit();
