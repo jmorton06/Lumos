@@ -806,20 +806,19 @@ namespace Lumos
 
 		VKTextureDepthArray::~VKTextureDepthArray()
 		{
-			vkDestroyImageView(VKDevice::Instance()->GetDevice(), m_TextureImageView, nullptr);
+            VKDevice::Instance()->GetDevice().destroyImageView(m_TextureImageView);
 
 #ifdef USE_VMA_ALLOCATOR
 			vmaDestroyImage(VKDevice::Instance()->GetAllocator(), m_TextureImage, m_Allocation);
 #else
 			VKDevice::Instance()->GetDevice().destroyImage(m_TextureImage);
-			vkFreeMemory(VKDevice::Instance()->GetDevice(), m_TextureImageMemory, nullptr);
+            VKDevice::Instance()->GetDevice().freeMemory(m_TextureImageMemory);
 #endif
-
-			vkDestroySampler(VKDevice::Instance()->GetDevice(), m_TextureSampler, nullptr);
+            VKDevice::Instance()->GetDevice().destroySampler(m_TextureSampler);
 
 			for (uint32_t i = 0; i < m_Count; i++)
 			{
-				vkDestroyImageView(VKDevice::Instance()->GetDevice(), m_IndividualImageViews[i], nullptr);
+                VKDevice::Instance()->GetDevice().destroyImageView(m_IndividualImageViews[i]);
 			}
 		}
 
