@@ -36,9 +36,9 @@ namespace Lumos
 		}
 	};
 
-	std::vector<String> SplitString(const String& string, const String& delimiters);
-	std::vector<String> SplitString(const String& string, const char delimiter);
-	std::vector<String> Tokenize(const String& string);
+	std::vector<String> LUMOS_EXPORT SplitString(const String& string, const String& delimiters);
+	std::vector<String> LUMOS_EXPORT SplitString(const String& string, const char delimiter);
+	std::vector<String> LUMOS_EXPORT Tokenize(const String& string);
 	std::vector<String> GetLines(const String& string);
 
 	const char* FindToken(const char* str, const String& token);
