@@ -1,6 +1,7 @@
 #pragma once
 
 #include "ECS/ISystem.h"
+#include "Core/Typename.h"
 
 namespace Lumos
 {
@@ -11,7 +12,7 @@ namespace Lumos
         template<typename T>
         std::shared_ptr<T> RegisterSystem()
         {
-			size_t typeName = typeid(T).hash_code();
+			String typeName = LUMOS_TYPENAME(T);
             
             LUMOS_CORE_ASSERT(m_Systems.find(typeName) == m_Systems.end(), "Registering system more than once.");
             
@@ -24,7 +25,7 @@ namespace Lumos
 		template<typename T>
 		std::shared_ptr<T> RegisterSystem(T* t)
 		{
-			size_t typeName = typeid(T).hash_code();
+			String typeName = LUMOS_TYPENAME(T);
 
 			LUMOS_CORE_ASSERT(m_Systems.find(typeName) == m_Systems.end(), "Registering system more than once.");
 
@@ -37,7 +38,7 @@ namespace Lumos
 		template<typename T>
 		void RemoveSystem()
 		{
-			size_t typeName = typeid(T).hash_code();
+			String typeName = LUMOS_TYPENAME(T);
 
 			if (m_Systems.find(typeName) != m_Systems.end())
 			{
@@ -48,7 +49,7 @@ namespace Lumos
 		template<typename T>
 		T* GetSystem()
 		{
-			size_t typeName = typeid(T).hash_code();
+			String typeName = LUMOS_TYPENAME(T);
 
 			if (m_Systems.find(typeName) != m_Systems.end())
 			{
@@ -61,7 +62,7 @@ namespace Lumos
 		template<typename T>
 		T* HasSystem()
 		{
-			size_t typeName = typeid(T).hash_code();
+			String typeName = LUMOS_TYPENAME(T);
 
 			return m_Systems.find(typeName) != m_Systems.end();
 		}
@@ -80,6 +81,6 @@ namespace Lumos
 
     private:
         // Map from system type string pointer to a system pointer
-        std::unordered_map<size_t, std::shared_ptr<ISystem>> m_Systems;
+        std::unordered_map<String, std::shared_ptr<ISystem>> m_Systems;
     };
 }
