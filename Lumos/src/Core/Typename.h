@@ -10,7 +10,7 @@ namespace Lumos
     template<typename T>
     String GetTypename()
     {
-        std::vector<std::string> vec = StringFormat::SplitString(typeid(T).name(), ' ');
+        std::vector<std::string> vec = SplitString(typeid(T).name(), ' ');
         if (vec.size() < 2)
         {
             LUMOS_CORE_WARN("Failed to GetTypename. Returning empty string!");
