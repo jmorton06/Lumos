@@ -17,8 +17,17 @@ namespace Lumos
 		
 		Maths::Transform& GetTransform() { return m_Transform; }
 
-		nlohmann::json Serialise() override { return nullptr; };
-		void Deserialise(nlohmann::json& data) override {};
+		nlohmann::json Serialise() override
+        {
+            nlohmann::json output;
+            output["transform"] = m_Transform.Serialise();
+            return output;
+            
+        };
+		void Deserialise(nlohmann::json& data) override
+        {
+            m_Transform.Deserialise(data["transform"]);
+        };
 
     private:
 		Maths::Transform m_Transform;

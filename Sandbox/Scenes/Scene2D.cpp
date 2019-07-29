@@ -18,8 +18,6 @@ void Scene2D::OnInit()
 
 	B2PhysicsEngine::Instance()->SetPaused(true);
 
-	SetDebugDrawFlags(DEBUGDRAW_FLAGS_ENTITY_COMPONENTS | DEBUGDRAW_FLAGS_COLLISIONVOLUMES);
-
 	m_pCamera = new Camera2D(16, 9, 0.4f);
     m_pCamera->SetPosition({-16.0f,5.0f,0.0f});
 

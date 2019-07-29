@@ -22,10 +22,7 @@
 namespace Lumos
 {
 	Scene::Scene(const String& friendly_name)
-		: m_SceneName(friendly_name), m_pCamera(nullptr), m_EnvironmentMap(nullptr), m_SceneBoundingRadius(0),
-		  m_DebugDrawFlags(0), m_ScreenWidth(0),
-		  m_ScreenHeight(0),
-		  m_DrawDebugData(false)
+		: m_SceneName(friendly_name), m_pCamera(nullptr), m_EnvironmentMap(nullptr),m_SceneBoundingRadius(0), m_ScreenWidth(0), m_ScreenHeight(0)
 	{
 	}
 
@@ -87,12 +84,7 @@ namespace Lumos
 		LumosPhysicsEngine::Instance()->SetDampingFactor(0.998f);
 		LumosPhysicsEngine::Instance()->SetIntegrationType(IntegrationType::RUNGE_KUTTA_4);
 		LumosPhysicsEngine::Instance()->SetBroadphase(new Octree(5, 5, std::make_shared<SortAndSweepBroadphase>()));
-		SetDebugDrawFlags(DEBUGDRAW_FLAGS_COLLISIONVOLUMES
-			| DEBUGDRAW_FLAGS_AABB
-			| DEBUGDRAW_FLAGS_COLLISIONNORMALS
-			| DEBUGDRAW_FLAGS_BROADPHASE
-			| DEBUGDRAW_FLAGS_CONSTRAINT
-		);
+
 		m_SceneBoundingRadius = 400.0f; //Default scene radius of 400m
 
 		m_pFrameRenderList = std::make_unique<RenderList>();
@@ -259,4 +251,35 @@ namespace Lumos
 
 		return false;
 	}
+    
+    nlohmann::json Scene::Serialise()
+    {
+        nlohmann::json output;
+        output["typeID"] = LUMOS_TYPENAME(Scene);
+        output["name"] = m_SceneName;
+    
+        auto& entities = EntityManager::Instance()->GetEntities();
+        
+        nlohmann::json serialisedEntities = nlohmann::json::array_t();
+        
+        for (int i = 0; i < entities.size(); ++i)
+            serialisedEntities.push_back(entities[i]->Serialise());
+        
+        output["entities"] = serialisedEntities;
+        
+        return output;
+    }
+    
+    void Scene::Deserialise(nlohmann::json& data)
+    {
+        m_SceneName = data["name"];
+        
+        nlohmann::json::array_t entities = data["entities"];
+        
+        for (int i = 0; i < entities.size(); i++)
+        {
+            auto entity = EntityManager::Instance()->CreateEntity();
+            entity->Deserialise(entities[i]);
+        }
+    }
 }
