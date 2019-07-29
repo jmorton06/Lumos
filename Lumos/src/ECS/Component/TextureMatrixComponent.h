@@ -14,8 +14,17 @@ namespace Lumos
         
         const Maths::Matrix4& GetMatrix() const { return m_TextureMatrix; }
 
-		nlohmann::json Serialise() override { return nullptr; };
-		void Deserialise(nlohmann::json& data) override {};
+        nlohmann::json Serialise() override
+        {
+            nlohmann::json output;
+            output["textureMatrix"] = m_TextureMatrix.Serialise();
+            return output;
+            
+        };
+        void Deserialise(nlohmann::json& data) override
+        {
+            m_TextureMatrix.Deserialise(data["textureMatrix"]);
+        };
 
     private:
         Maths::Matrix4 m_TextureMatrix;
