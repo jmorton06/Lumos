@@ -1,6 +1,7 @@
 #pragma once
 #include "LM.h"
 #include "Vector3.h"
+#include "Core/Serialisable.h"
 
 namespace Lumos
 {
@@ -34,6 +35,22 @@ namespace Lumos
 
 			//Performs a simple sphere / point test
 			bool PointInPlane(const Vector3 &position) const;
+
+			nlohmann::json Serialise()
+			{
+				nlohmann::json output;
+				output["typeID"] = LUMOS_TYPENAME(Plane);
+				output["normal"] = m_Normal.Serialise();
+				output["distance"] = m_Distance;
+
+				return output;
+			};
+
+			void Deserialise(nlohmann::json& data)
+			{
+				m_Normal.Deserialise(data["normal"]);
+				m_Distance = data["distance"];
+			};
 
 		protected:
 			//Unit-length plane normal

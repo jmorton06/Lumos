@@ -51,10 +51,6 @@ namespace Lumos
 	{
 	}
 
-	void LightComponent::DebugDraw(uint64 debugFlags)
-	{
-	}
-
 	String LightTypeToString(Graphics::LightType type)
 	{
 		switch (type)

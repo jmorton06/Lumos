@@ -13,7 +13,6 @@
 
 #include <IconFontCppHeaders/IconsFontAwesome5.h>
 
-
 namespace Lumos
 {
 	Entity::Entity(const String& name) : m_Name(name), m_Parent(nullptr), m_BoundingRadius(1),
@@ -74,10 +73,6 @@ namespace Lumos
 				m_Children.erase(m_Children.begin() + i);
 			}
 		}
-	}
-
-	void Entity::DebugDraw(uint64 debugFlags)
-	{
 	}
 
 	TransformComponent* Entity::GetTransformComponent()
@@ -215,5 +210,53 @@ namespace Lumos
 		}
 	}
 
-	std::vector<LumosComponent*> Entity::GetAllComponents() { return ComponentManager::Instance()->GetAllComponents(this); }
+	std::vector<LumosComponent*> Entity::GetAllComponents() 
+	{ 
+		return ComponentManager::Instance()->GetAllComponents(this);
+	}
+
+	nlohmann::json Entity::Serialise()
+	{
+		nlohmann::json output;
+		output["typeID"] = LUMOS_TYPENAME(Entity);
+		output["instanceID"] = m_UUID;
+		output["active"] = m_Active;
+		output["name"] = m_Name;
+		output["parentID"] = m_Parent ? m_Parent->GetUUID() : "";
+		output["prefabFilePath"] = m_PrefabFileLocation;
+
+		nlohmann::json childrenIDs = nlohmann::json::array_t();
+		for (int i = 0; i < m_Children.size(); i++)
+			childrenIDs.push_back(m_Children[i]->GetUUID());
+
+		output["children"] = childrenIDs;
+
+		nlohmann::json serializedComponents = nlohmann::json::array_t();
+		auto components = GetAllComponents();
+
+		for (int i = 0; i < components.size(); ++i)
+			serializedComponents.push_back(components[i]->Serialise());
+
+		output["components"] = serializedComponents;
+
+		return output;
+	}
+
+	void Entity::Deserialise(nlohmann::json& data)
+	{
+		m_Active = data["active"];
+		m_UUID = data["instanceID"];
+		m_Name = data["name"];
+		m_PrefabFileLocation = data["prefabFilePath"];
+
+		auto parentID = data["parentID"];
+		nlohmann::json::array_t children = data["children"];
+		nlohmann::json::array_t components = data["components"];
+
+		for (int i = 0; i < components.size(); i++)
+		{
+			auto type = components[i]["typeID"];
+			//auto component = new <typeID to class>();
+		}
+	}
 }

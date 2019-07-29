@@ -21,7 +21,7 @@ namespace Lumos
 			virtual u32 GetSize() const { return 0; }
 			virtual void SetCount(u32 m_index_count) = 0;
 		public:
-			static IndexBuffer* Create(uint16* data, u32 count, BufferUsage bufferUsage = BufferUsage::STATIC);
+			static IndexBuffer* Create(u16* data, u32 count, BufferUsage bufferUsage = BufferUsage::STATIC);
 			static IndexBuffer* Create(u32* data, u32 count, BufferUsage bufferUsage = BufferUsage::STATIC);
 		};
 	}

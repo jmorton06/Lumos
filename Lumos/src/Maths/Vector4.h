@@ -181,6 +181,26 @@ namespace Lumos
 #endif
 			}
 
+			nlohmann::json Serialise()
+			{
+				nlohmann::json output;
+				output["typeID"] = LUMOS_TYPENAME(Vector4);
+				output["x"] = x;
+				output["y"] = y;
+				output["z"] = z;
+				output["w"] = w;
+
+				return output;
+			};
+
+			void Deserialise(nlohmann::json& data)
+			{
+				x = data["x"];
+				y = data["y"];
+				z = data["z"];
+				w = data["w"];
+			};
+
 #ifdef LUMOS_SSEVEC4
 			inline Vector4 operator+(float v) const { return _mm_add_ps(m_Value, _mm_set1_ps(v)); }
 			inline Vector4 operator-(float v) const { return _mm_sub_ps(m_Value, _mm_set1_ps(v)); }

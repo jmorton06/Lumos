@@ -79,7 +79,7 @@ namespace Lumos
 			m_DepthTexture->Resize(m_Width, m_Height);
 		}
 
-		void GBuffer::Bind(int32 mode)
+		void GBuffer::Bind(i32 mode)
 		{
 		}
 

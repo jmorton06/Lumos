@@ -34,6 +34,9 @@ public:
 		ImGui::Separator();
 		ImGui::PopStyleVar();
 	};
+
+	nlohmann::json Serialise() override { return nullptr; };
+	void Deserialise(nlohmann::json& data) override {};
 };
 
 Scene3D::Scene3D(const std::string& SceneName)

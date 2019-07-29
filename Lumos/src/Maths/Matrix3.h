@@ -3,6 +3,7 @@
 #include "LM.h"
 #include "Vector3.h"
 #include "MathsCommon.h"
+#include "Core/Serialisable.h"
 
 namespace Lumos
 {
@@ -185,6 +186,33 @@ namespace Lumos
 
 			//Creates a scaling matrix (puts the 'scale' vector down the diagonal)
 			static Matrix3 Scale(const Vector3 &scale);
+
+			nlohmann::json Serialise()
+			{
+				nlohmann::json output;
+				output["typeID"] = LUMOS_TYPENAME(Matrix3);
+
+				nlohmann::json data = nlohmann::json::array_t();
+
+				for (int i = 0; i < 9; i++)
+				{
+					data.push_back(values[i]);
+				}
+
+				output["values"] = data;
+
+				return output;
+			};
+
+			void Deserialise(nlohmann::json& data)
+			{
+				nlohmann::json::array_t dataArray = data["values"];
+
+				for (int i = 0; i < 9; i++)
+				{
+					values[i] = dataArray[i];
+				}
+			};
 
 			friend std::ostream &operator<<(std::ostream &o, const Matrix3 &m);
 

@@ -63,7 +63,7 @@ namespace Lumos
 		if (bits)
 			*bits = b;
 
-		int32 size = w * h * (b / 8);
+		i32 size = w * h * (b / 8);
 		u8* result = new u8[size];
 		memcpy(result, pixels, size);
 		FreeImage_Unload(bitmap);
@@ -80,7 +80,7 @@ namespace Lumos
 		if (bits)
 			*bits = 32;// texChannels * 8;// texChannels;	  //32 bits for 4 bytes r g b a 
 
-		const int32 size = texWidth * texHeight * 4;// (b / 8);
+		const i32 size = texWidth * texHeight * 4;// (b / 8);
 		u8* result = new u8[size];
 		memcpy(result, pixels, size);
 

@@ -13,12 +13,14 @@ namespace Lumos
 		explicit SoundComponent(std::shared_ptr<SoundNode>& sound);
 
 		void OnUpdateComponent(float dt) override;
-		void DebugDraw(uint64 debugFlags) override;
 		void Init() override;
 
 		void OnIMGUI() override;
         
         SoundNode* GetSoundNode() const { return m_SoundNode.get(); }
+
+		nlohmann::json Serialise() override { return nullptr; };
+		void Deserialise(nlohmann::json& data) override {};
         
     private:
         std::shared_ptr<SoundNode> m_SoundNode;

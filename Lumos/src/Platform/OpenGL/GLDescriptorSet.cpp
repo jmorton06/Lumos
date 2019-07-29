@@ -111,7 +111,7 @@ namespace Lumos
 
             for(auto pc : m_PushConstants)
                 //((GLShader*)m_Shader)->SetUniform("PushConstant", (u8*)pc.data);
-	            dynamic_cast<GLShader*>(m_Shader)->SetUniform1i("PushConstant", static_cast<int32>(pc.data[0])); //TEMP
+	            dynamic_cast<GLShader*>(m_Shader)->SetUniform1i("PushConstant", static_cast<i32>(pc.data[0])); //TEMP
 		}
 
         void GLDescriptorSet::SetPushConstants(std::vector<PushConstant>& pushConstants)

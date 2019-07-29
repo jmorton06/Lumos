@@ -17,6 +17,8 @@ namespace Lumos
 		void SetAsMainCamera();
 		
 		Camera* GetCamera() const { return m_Camera; }
+		nlohmann::json Serialise() override { return nullptr; };
+		void Deserialise(nlohmann::json& data) override {};
 
     private:
 		Camera* m_Camera;

@@ -15,11 +15,13 @@ namespace Lumos
 		void Init() override;
 		void OnUpdateComponent(float dt) override;
 		void OnUpdateTransform(const Maths::Matrix4& entityTransform) override;
-		void DebugDraw(uint64 debugFlags) override;
         
         void OnIMGUI() override;
         
         PhysicsObject3D* GetPhysicsObject() const { return m_PhysicsObject.get(); }
+
+		nlohmann::json Serialise() override { return nullptr; };
+		void Deserialise(nlohmann::json& data) override {};
     private:
         std::shared_ptr<PhysicsObject3D> m_PhysicsObject;
 	};

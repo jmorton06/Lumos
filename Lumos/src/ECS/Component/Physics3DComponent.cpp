@@ -40,17 +40,6 @@ namespace Lumos
 		//m_PhysicsObject->SetPosition(entityTransform.GetPositionVector());
         //m_PhysicsObject->SetOrientation(Maths::Quaternion(Maths::Matrix4::GetEulerAngles(entityTransform.GetRotation()), 1.0f));
 	}
-
-	void Physics3DComponent::DebugDraw(uint64 debugFlags)
-	{
-		m_PhysicsObject->DebugDraw(debugFlags);
-
-		if (debugFlags & DEBUGDRAW_FLAGS_COLLISIONVOLUMES)
-		{
-			if (m_PhysicsObject->GetCollisionShape())
-				m_PhysicsObject->GetCollisionShape()->DebugDraw(m_PhysicsObject.get());
-		}
-	}
     
     void Physics3DComponent::OnIMGUI()
     {

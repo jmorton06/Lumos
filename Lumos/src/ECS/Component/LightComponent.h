@@ -22,11 +22,12 @@ namespace Lumos
 
 		void OnUpdateComponent(float dt) override;
 		void Init() override;
-		void DebugDraw(uint64 debugFlags) override;
 
 		void OnIMGUI() override;
 
 		std::shared_ptr<Graphics::Light> GetLight() const { return m_Light; }
+		nlohmann::json Serialise() override { return nullptr; };
+		void Deserialise(nlohmann::json& data) override {};
         
     private:
         std::shared_ptr<Graphics::Light> m_Light;

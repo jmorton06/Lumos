@@ -43,7 +43,7 @@ namespace Lumos
 {
 	namespace Graphics
 	{
-		enum PSSystemUniformIndices : int32
+		enum PSSystemUniformIndices : i32
 		{
 			PSSystemUniformIndex_Lights = 0,
 			PSSystemUniformIndex_CameraPosition,

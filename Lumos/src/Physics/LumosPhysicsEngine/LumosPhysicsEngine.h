@@ -45,7 +45,7 @@ namespace Lumos
 		void OnUpdate(TimeStep* timeStep) override;			//Remember DeltaTime is 'seconds' since last update not milliseconds
 
 		//Debug draw all physics objects, manifolds and constraints
-		void DebugRender(uint64 debugFlags);
+		void DebugRender(u64 debugFlags);
 
 		//Getters / Setters
 		bool IsPaused() const { return m_IsPaused; }

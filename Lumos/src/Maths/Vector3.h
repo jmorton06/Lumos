@@ -3,6 +3,8 @@
 #include "Vector2.h"
 #include "MathsCommon.h"
 
+#include "Core/Serialisable.h"
+
 namespace Lumos 
 {
 	namespace Maths 
@@ -196,6 +198,24 @@ namespace Lumos
 				o << "Vector3(" << v.GetX() << "," << v.GetY() << "," << v.GetZ() << ")" << std::endl;
 				return o;
 			}
+
+			nlohmann::json Serialise()
+			{
+				nlohmann::json output;
+				output["typeID"] = LUMOS_TYPENAME(Vector3);
+				output["x"] = x;
+				output["y"] = y;
+				output["z"] = z;
+
+				return output;
+			};
+
+			void Deserialise(nlohmann::json& data)
+			{
+				x = data["x"];
+				y = data["y"];
+				z = data["z"];
+			};
 
 #ifdef LUMOS_SSEVEC3
 			inline Vector3 operator+(float v) const { return _mm_add_ps(m_Value, _mm_set1_ps(v)); }

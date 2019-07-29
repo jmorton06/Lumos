@@ -118,7 +118,7 @@ namespace Lumos
 
 		hDc = GetDC(hWnd);
 		PIXELFORMATDESCRIPTOR pfd = GetPixelFormat();
-		int32 pixelFormat = ChoosePixelFormat(hDc, &pfd);
+		i32 pixelFormat = ChoosePixelFormat(hDc, &pfd);
 		if (pixelFormat)
 		{
 			if (!SetPixelFormat(hDc, pixelFormat, &pfd))
@@ -156,7 +156,7 @@ namespace Lumos
 		return true;
 	}
 
-	void ResizeCallback(Window* window, int32 width, int32 height)
+	void ResizeCallback(Window* window, i32 width, i32 height)
 	{
 		WindowsWindow::WindowData data = static_cast<WindowsWindow*>(window)->m_Data;
 
@@ -215,7 +215,7 @@ namespace Lumos
 
 	}
 
-	void MouseButtonCallback(Window* window, int32 button, int32 x, int32 y)
+	void MouseButtonCallback(Window* window, i32 button, i32 x, i32 y)
 	{
 		WindowsWindow::WindowData data = static_cast<WindowsWindow*>(window)->m_Data;
 		HWND hWnd = static_cast<WindowsWindow*>(window)->GetHWND();
@@ -276,14 +276,14 @@ namespace Lumos
 		data.EventCallback(event);
 	}
 
-	void MouseMoveCallback(Window* window, int32 x, int32 y)
+	void MouseMoveCallback(Window* window, i32 x, i32 y)
 	{
 		WindowsWindow::WindowData data = static_cast<WindowsWindow*>(window)->m_Data;
 		MouseMovedEvent event(static_cast<float>(x), static_cast<float>(y));
 		data.EventCallback(event);
 	}
 
-	void CharCallback(Window* window, int32 key, int32 flags, UINT message)
+	void CharCallback(Window* window, i32 key, i32 flags, UINT message)
 	{
 		WindowsWindow::WindowData data = static_cast<WindowsWindow*>(window)->m_Data;
 
@@ -291,7 +291,7 @@ namespace Lumos
 		data.EventCallback(event);
 	}
 
-	void KeyCallback(Window* window, int32 key, int32 flags, UINT message)
+	void KeyCallback(Window* window, i32 key, i32 flags, UINT message)
 	{
 		bool pressed = message == WM_KEYDOWN || message == WM_SYSKEYDOWN;
 		bool repeat = (flags >> 30) & 1;
@@ -356,7 +356,7 @@ namespace Lumos
 		case WM_KEYUP:
 		case WM_SYSKEYDOWN:
 		case WM_SYSKEYUP:
-			KeyCallback(window, int32(wParam), int32(lParam), message);
+			KeyCallback(window, i32(wParam), i32(lParam), message);
 			break;
 		case WM_LBUTTONDOWN:
 		case WM_LBUTTONUP:
@@ -378,7 +378,7 @@ namespace Lumos
 		case WM_CHAR:
 		case WM_SYSCHAR:
 		case WM_UNICHAR:
-			CharCallback(window, int32(wParam), int32(lParam), message);
+			CharCallback(window, i32(wParam), i32(lParam), message);
 		default:
 			result = DefWindowProc(hWnd, message, wParam, lParam);
 		}

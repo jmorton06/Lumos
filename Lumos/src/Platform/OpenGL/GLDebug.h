@@ -89,7 +89,7 @@ namespace Lumos
 
 #define OPENGLLOG "[OPENGL] - "
 
-	static bool GLLogCall(const char* function, const char* file, const int32 line)
+	static bool GLLogCall(const char* function, const char* file, const i32 line)
 	{
 		GLenum err(glGetError());
 		bool Error = true;

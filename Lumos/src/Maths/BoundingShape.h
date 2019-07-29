@@ -2,6 +2,8 @@
 #include "LM.h"
 #include "Maths.h"
 
+#include "Core/Serialisable.h"
+
 namespace Lumos
 {
 	namespace Maths
@@ -22,6 +24,10 @@ namespace Lumos
 
 			virtual bool Intersects(const Vector3 &point) const = 0;
 			virtual void SetRadius(float radius) {};
+
+
+			virtual nlohmann::json Serialise() = 0;
+			virtual void Deserialise(nlohmann::json& data) = 0;
 		};
 	}
 }

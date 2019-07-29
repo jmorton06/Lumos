@@ -10,19 +10,39 @@ namespace Lumos
     template<typename T>
     String GetTypename()
     {
-        std::vector<std::string> vec = SplitString(typeid(T).name(), ' ');
-        if (vec.size() < 2)
+		String delimiters = String(1, ' ');
+		size_t start = 0;
+		String string = typeid(T).name();
+		size_t end = string.find_first_of(delimiters);
+
+		std::vector<String> result;
+
+		while (end <= String::npos)
+		{
+			String token = string.substr(start, end - start);
+			if (!token.empty())
+				result.push_back(token);
+
+			if (end == String::npos)
+				break;
+
+			start = end + 1;
+			end = string.find_first_of(delimiters, start);
+		}
+
+        if (result.size() < 2)
         {
             LUMOS_CORE_WARN("Failed to GetTypename. Returning empty string!");
             return "";
         }
         
-        String result = "";
-        for (size_t i = 1; i < vec.size(); i++)
+        String name = "";
+        for (size_t i = 1; i < result.size(); i++)
         {
-            result += vec[i];
+			name += result[i];
         }
-        return result;
+
+        return name;
     }
 }
     

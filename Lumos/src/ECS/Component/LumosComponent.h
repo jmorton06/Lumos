@@ -3,12 +3,14 @@
 #include "LM.h"
 #include "Maths/BoundingShape.h"
 
+#include "Core/Serialisable.h"
+
 namespace Lumos 
 {
 	class Entity;
 	using ComponentType = std::uint8_t;
 
-	class LUMOS_EXPORT LumosComponent
+	class LUMOS_EXPORT LumosComponent : public Serialisable
 	{
 	public:
 		virtual ~LumosComponent() = default;
@@ -25,8 +27,6 @@ namespace Lumos
 		virtual void OnUpdateTransform(const Maths::Matrix4& entityTransform) {};
 
 		Maths::BoundingShape* GetBoundingShape() const { return m_BoundingShape.get(); }
-
-		virtual void DebugDraw(uint64 debugFlags) {};
 
 		const String& GetName() const { return m_Name; }
 		bool& GetActive() { return m_Active; }

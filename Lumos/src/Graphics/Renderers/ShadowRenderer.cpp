@@ -31,7 +31,7 @@ namespace Lumos
 {
 	namespace Graphics
 	{
-		enum VSSystemUniformIndices : int32
+		enum VSSystemUniformIndices : i32
 		{
 			VSSystemUniformIndex_ProjectionViewMatrix = 0,
 			VSSystemUniformIndex_Size
@@ -109,8 +109,8 @@ namespace Lumos
 
 			m_PushConstant = new Graphics::PushConstant();
 			m_PushConstant->type = Graphics::PushConstantDataType::UINT;
-			m_PushConstant->size = sizeof(int32);
-			m_PushConstant->data = new u8[sizeof(int32)];
+			m_PushConstant->size = sizeof(i32);
+			m_PushConstant->data = new u8[sizeof(i32)];
             m_PushConstant->shaderStage = ShaderType::VERTEX;
 
 			// Per Scene System Uniforms
@@ -263,8 +263,8 @@ namespace Lumos
 
 				SetSystemUniforms(m_Shader);
 
-				int32 layer = static_cast<int32>(m_Layer);
-				memcpy(m_PushConstant->data, &layer, sizeof(int32));
+				i32 layer = static_cast<i32>(m_Layer);
+				memcpy(m_PushConstant->data, &layer, sizeof(i32));
 				std::vector<Graphics::PushConstant> pcVector;
 				pcVector.push_back(*m_PushConstant);
 				m_Pipeline->GetDescriptorSet()->SetPushConstants(pcVector);
@@ -304,7 +304,7 @@ namespace Lumos
 			}
 
 #ifdef THREAD_CASCADE_GEN
-			System::JobSystem::Dispatch(static_cast<uint32>(m_ShadowMapNum), 1, [&](JobDispatchArgs args)
+			System::JobSystem::Dispatch(static_cast<u32>(m_ShadowMapNum), 1, [&](JobDispatchArgs args)
 #else
 			for (uint32_t i = 0; i < m_ShadowMapNum; i++)
 #endif

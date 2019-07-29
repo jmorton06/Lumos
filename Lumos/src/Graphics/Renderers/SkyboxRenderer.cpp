@@ -84,7 +84,7 @@ namespace Lumos
 				Renderer::Present((m_CommandBuffers[Renderer::GetSwapchain()->GetCurrentBufferId()]));
 		}
 
-		enum VSSystemUniformIndices : int32
+		enum VSSystemUniformIndices : i32
 		{
 			VSSystemUniformIndex_InverseProjectionViewMatrix = 0,
 			VSSystemUniformIndex_Size

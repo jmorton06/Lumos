@@ -14,7 +14,7 @@ namespace Lumos
 			u32 m_Count;
 			BufferUsage m_Usage;
 		public:
-			GLIndexBuffer(uint16* data, u32 count, BufferUsage bufferUsage);
+			GLIndexBuffer(u16* data, u32 count, BufferUsage bufferUsage);
 			GLIndexBuffer(u32* data, u32 count, BufferUsage bufferUsage);
 			~GLIndexBuffer();
 

@@ -50,7 +50,7 @@ namespace Lumos
 			void SetUserUniformBuffer(ShaderType type, u8* data, u32 size) override;
 
 			void SetUniform(const String& name, u8* data);
-			void ResolveAndSetUniformField(const GLShaderUniformDeclaration& field, u8* data, int32 offset, u32 count) const;
+			void ResolveAndSetUniformField(const GLShaderUniformDeclaration& field, u8* data, i32 offset, u32 count) const;
 
 			inline const String& GetName() const override { return m_Name; }
 			inline const String& GetFilePath() const override { return m_Path; }
@@ -76,7 +76,7 @@ namespace Lumos
 			void ResolveUniforms();
 			static void ValidateUniforms();
 			static bool IsSystemUniform(ShaderUniformDeclaration* uniform);
-			int32 GetUniformLocation(const String& name) const;
+			i32 GetUniformLocation(const String& name) const;
 			u32 GetHandle() const { return m_Handle; }
 			static ShaderUniformDeclaration* FindUniformDeclaration(const String& name, const ShaderUniformBufferDeclaration* buffer);
 			ShaderUniformDeclaration* FindUniformDeclaration(const String& name);
@@ -84,21 +84,21 @@ namespace Lumos
 			void ResolveAndSetUniforms(ShaderUniformBufferDeclaration* buffer, u8* data, u32 size) const;
 			void ResolveAndSetUniform(GLShaderUniformDeclaration* uniform, u8* data, u32 size, u32 count) const;
 
-			void SetUniformStruct(GLShaderUniformDeclaration* uniform, u8* data, int32 offset) const;
+			void SetUniformStruct(GLShaderUniformDeclaration* uniform, u8* data, i32 offset) const;
 
 			void SetUniform1f(const String& name, float value) const;
-			void SetUniform1fv(const String& name, float* value, int32 count) const;
-			void SetUniform1i(const String& name, int32 value) const;
-			void SetUniform1iv(const String& name, int32* value, int32 count) const;
+			void SetUniform1fv(const String& name, float* value, i32 count) const;
+			void SetUniform1i(const String& name, i32 value) const;
+			void SetUniform1iv(const String& name, i32* value, i32 count) const;
 			void SetUniform2f(const String& name, const Maths::Vector2& vector) const;
 			void SetUniform3f(const String& name, const Maths::Vector3& vector) const;
 			void SetUniform4f(const String& name, const Maths::Vector4& vector) const;
 			void SetUniformMat4(const String& name, const Maths::Matrix4& matrix) const;
 
 			static void SetUniform1f(u32 location, float value);
-			static void SetUniform1fv(u32 location, float* value, int32 count);
-			static void SetUniform1i(u32 location, int32 value);
-			static void SetUniform1iv(u32 location, int32* value, int32 count);
+			static void SetUniform1fv(u32 location, float* value, i32 count);
+			static void SetUniform1i(u32 location, i32 value);
+			static void SetUniform1iv(u32 location, i32* value, i32 count);
 			static void SetUniform2f(u32 location, const Maths::Vector2& vector);
 			static void SetUniform3f(u32 location, const Maths::Vector3& vector);
 			static void SetUniform4f(u32 location, const Maths::Vector4& vector);

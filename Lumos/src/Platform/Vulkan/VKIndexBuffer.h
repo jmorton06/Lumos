@@ -10,7 +10,7 @@ namespace Lumos
 		class VKIndexBuffer : public IndexBuffer, public VKBuffer
 		{
 		public:
-			VKIndexBuffer(uint16* data, u32 count, BufferUsage bufferUsage);
+			VKIndexBuffer(u16* data, u32 count, BufferUsage bufferUsage);
 			VKIndexBuffer(u32* data, u32 count, BufferUsage bufferUsage);
 			~VKIndexBuffer();
 

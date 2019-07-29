@@ -123,7 +123,7 @@ namespace Lumos
 		template<typename T>
 		void RegisterComponent()
 		{
-			String typeName = LUMOS_TYPENAME(T);
+			auto typeName = typeid(T).hash_code();
 
 			LUMOS_CORE_ASSERT(m_ComponentTypes.find(typeName) == m_ComponentTypes.end(), "Registering component type more than once.");
 
@@ -140,7 +140,7 @@ namespace Lumos
 		template<typename T>
 		ComponentType GetComponentType()
 		{
-			String typeName = LUMOS_TYPENAME(T);
+			auto typeName = typeid(T).hash_code();
 
 			LUMOS_CORE_ASSERT(m_ComponentTypes.find(typeName) != m_ComponentTypes.end(), "Component not registered before use.");
 
@@ -180,7 +180,7 @@ namespace Lumos
 		template<typename T>
 		std::shared_ptr<ComponentArray<T>> GetComponentArray()
 		{
-			String typeName = LUMOS_TYPENAME(T);
+			auto typeName = typeid(T).hash_code();
 
 			LUMOS_CORE_ASSERT(m_ComponentArrays.find(typeName) != m_ComponentArrays.end(), "Component not registered before use.");
 
@@ -190,8 +190,8 @@ namespace Lumos
 		std::vector<LumosComponent*> GetAllComponents(Entity* entity);
 
 	private:
-		std::unordered_map<String, ComponentType> m_ComponentTypes;
-		std::unordered_map<String, std::shared_ptr<IComponentArray>> m_ComponentArrays;
+		std::unordered_map<size_t, ComponentType> m_ComponentTypes;
+		std::unordered_map<size_t, std::shared_ptr<IComponentArray>> m_ComponentArrays;
 		ComponentType m_NextComponentType;
 	};
 }

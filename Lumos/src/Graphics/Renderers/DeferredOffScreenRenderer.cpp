@@ -36,13 +36,13 @@ namespace Lumos
 {
 	namespace Graphics
 	{
-		enum VSSystemUniformIndices : int32
+		enum VSSystemUniformIndices : i32
 		{
 			VSSystemUniformIndex_ProjectionViewMatrix = 0,
 			VSSystemUniformIndex_Size
 		};
 
-		enum PSSystemUniformIndices : int32
+		enum PSSystemUniformIndices : i32
 		{
 			PSSystemUniformIndex_Lights = 0,
 			PSSystemUniformIndex_Size
@@ -259,7 +259,7 @@ namespace Lumos
 
 		void DeferredOffScreenRenderer::Present()
 		{
-            for (u32 i = 0; i < static_cast<uint32>(m_CommandQueue.size()); i++)
+            for (u32 i = 0; i < static_cast<u32>(m_CommandQueue.size()); i++)
             {
                 auto command = m_CommandQueue[i];
 				Mesh* mesh = command.mesh;

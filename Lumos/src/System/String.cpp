@@ -61,13 +61,13 @@ namespace Lumos
 		return FindToken(string.c_str(), token);
 	}
 
-	int32 FindStringPosition(const String& string, const String& search, u32 offset)
+	i32 FindStringPosition(const String& string, const String& search, u32 offset)
 	{
 		const char* str = string.c_str() + offset;
 		const char* found = strstr(str, search.c_str());
 		if (found == nullptr)
 			return -1;
-		return (int32)(found - str) + offset;
+		return (i32)(found - str) + offset;
 	}
 
 	String StringRange(const String& string, u32 start, u32 length)
@@ -121,7 +121,7 @@ namespace Lumos
 		return string.find(start) == 0;
 	}
 
-	int32 NextInt(const String& string)
+	i32 NextInt(const String& string)
 	{
 		for (u32 i = 0; i < string.size(); i++)
 		{

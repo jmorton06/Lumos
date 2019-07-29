@@ -115,7 +115,7 @@ namespace Lumos
 		bool m_ReflectSkybox = true;
 
 		bool	m_DrawDebugData{};
-        uint64	m_DebugDrawFlags{};
+        u64	m_DebugDrawFlags{};
 
 		u32 m_ScreenWidth;
 		u32 m_ScreenHeight;

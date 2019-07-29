@@ -29,8 +29,8 @@ namespace Lumos
 		data.BitRate = 16;
 		data.FreqRate = static_cast<float>(m_VorbisInfo.sample_rate);
 
-		const uint32 dataSize = stb_vorbis_stream_length_in_samples(m_StreamHandle) *  m_VorbisInfo.channels * sizeof(int16);
-		auto* buffer = static_cast<int16*>(malloc(dataSize * sizeof(uint16)));
+		const u32 dataSize = stb_vorbis_stream_length_in_samples(m_StreamHandle) *  m_VorbisInfo.channels * sizeof(i16);
+		auto* buffer = static_cast<i16*>(malloc(dataSize * sizeof(u16)));
 		stb_vorbis_get_samples_short_interleaved(m_StreamHandle, m_VorbisInfo.channels, static_cast<short *>(buffer), dataSize);
 		data.Data = reinterpret_cast<unsigned char*>(buffer);
 		data.Size = dataSize;

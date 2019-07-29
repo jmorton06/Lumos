@@ -18,7 +18,7 @@ namespace Lumos
 {
 	namespace Graphics
 	{
-		IndexBuffer* IndexBuffer::Create(uint16* data, u32 count, BufferUsage bufferUsage)
+		IndexBuffer* IndexBuffer::Create(u16* data, u32 count, BufferUsage bufferUsage)
 		{
 			switch (Graphics::GraphicsContext::GetRenderAPI())
 			{
