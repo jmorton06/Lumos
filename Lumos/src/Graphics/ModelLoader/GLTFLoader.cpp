@@ -371,7 +371,7 @@ namespace Lumos
                 size_t indicesCount = indexAccessor.count;
                 if (componentTypeByteSize == 2)
                 {
-                    uint16_t* in = reinterpret_cast<uint16_t*>(data.data()); //TODO: Test different models to check size - uint32 or 16
+                    uint16_t* in = reinterpret_cast<uint16_t*>(data.data()); //TODO: Test different models to check size - u32 or 16
                     for (auto iCount = 0; iCount < indicesCount; iCount++)
                     {
                         indicesArray[iCount] = in[iCount];

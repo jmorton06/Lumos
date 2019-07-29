@@ -36,14 +36,14 @@ namespace Lumos
 		}
 	};
 
-	std::vector<String> SplitString(const String& string, const String& delimiters);
-	std::vector<String> SplitString(const String& string, const char delimiter);
-	std::vector<String> Tokenize(const String& string);
+	std::vector<String> LUMOS_EXPORT SplitString(const String& string, const String& delimiters);
+	std::vector<String> LUMOS_EXPORT SplitString(const String& string, const char delimiter);
+	std::vector<String> LUMOS_EXPORT Tokenize(const String& string);
 	std::vector<String> GetLines(const String& string);
 
 	const char* FindToken(const char* str, const String& token);
 	const char* FindToken(const String& string, const String& token);
-	int32 FindStringPosition(const String& string, const String& search, u32 offset = 0);
+	i32 FindStringPosition(const String& string, const String& search, u32 offset = 0);
 	String StringRange(const String& string, u32 start, u32 length);
 	String RemoveStringRange(const String& string, u32 start, u32 length);
 
@@ -54,7 +54,7 @@ namespace Lumos
 
 	bool StringContains(const String& string, const String& chars);
 	bool StartsWith(const String& string, const String& start);
-	int32 NextInt(const String& string);
+	i32 NextInt(const String& string);
 
 	bool StringEquals(const String& string1, const String& string2);
 	String StringReplace(String str, char ch1, char ch2);

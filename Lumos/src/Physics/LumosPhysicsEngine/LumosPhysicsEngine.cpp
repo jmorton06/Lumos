@@ -126,7 +126,7 @@ namespace Lumos
 		UpdatePhysicsObjects();
 	}
 
-	void LumosPhysicsEngine::DebugRender(uint64 debugFlags)
+	void LumosPhysicsEngine::DebugRender(u64 debugFlags)
 	{
 		// Draw all collision manifolds
 		if (debugFlags & DEBUGDRAW_FLAGS_MANIFOLD)
@@ -148,7 +148,7 @@ namespace Lumos
 
 	void LumosPhysicsEngine::UpdatePhysicsObjects()
 	{
-        System::JobSystem::Dispatch(static_cast<uint32>(m_PhysicsObjects.size()), 16, [&](JobDispatchArgs args)
+        System::JobSystem::Dispatch(static_cast<u32>(m_PhysicsObjects.size()), 16, [&](JobDispatchArgs args)
         {
             UpdatePhysicsObject(m_PhysicsObjects[args.jobIndex].get());
         });

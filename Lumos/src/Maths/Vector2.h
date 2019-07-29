@@ -2,6 +2,8 @@
 #include "LM.h"
 #include "MathsCommon.h"
 
+#include "Core/Serialisable.h"
+
 namespace Lumos
 {
 	namespace Maths
@@ -55,6 +57,22 @@ namespace Lumos
 				o << "Vector2(" << v.x << "," << v.y << ")" << std::endl;
 				return o;
 			}
+
+			nlohmann::json Serialise()
+			{
+				nlohmann::json output;
+				output["typeID"] = LUMOS_TYPENAME(Vector2);
+				output["x"] = x;
+				output["y"] = y;
+
+				return output;
+			};
+
+			void Deserialise(nlohmann::json& data)
+			{
+				x = data["x"];
+				y = data["y"];
+			};
 
 			inline Vector2 operator-(const Vector2 &a) const { return Vector2(x - a.x, y - a.y); }
 			inline Vector2 operator+(const Vector2 &a) const { return Vector2(x + a.x, y + a.y); }

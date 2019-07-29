@@ -1,6 +1,7 @@
 #pragma once
 #include "LM.h"
 #include "Maths/Quaternion.h"
+#include "Core/Serialisable.h"
 
 namespace Lumos
 {
@@ -50,6 +51,28 @@ namespace Lumos
 			void SetHasUpdated(bool set) { m_HasUpdated = set; }
 
 			void ApplyTransform();
+
+			nlohmann::json Serialise()
+			{
+				nlohmann::json output;
+				output["typeID"] = LUMOS_TYPENAME(Transform);
+				output["localMatrix"]		= m_LocalMatrix.Serialise();
+				output["worldMatrix"]		= m_WorldMatrix.Serialise();
+				output["localPosition"]		= m_LocalPosition.Serialise();
+				output["localScale"]		= m_LocalScale.Serialise();
+				output["localOrientation"]	= m_LocalOrientation.Serialise();
+
+				return output;
+			};
+
+			void Deserialise(nlohmann::json& data)
+			{
+				m_LocalMatrix.Deserialise(data["localMatrix"]);
+				m_WorldMatrix.Deserialise(data["worldMatrix"]);
+				m_LocalPosition.Deserialise(data["localPosition"]);
+				m_LocalScale.Deserialise(data["localScale"]);
+				m_LocalOrientation.Deserialise(data["localOrientation"]);
+			};
 
 		protected:
 			Matrix4		m_LocalMatrix;

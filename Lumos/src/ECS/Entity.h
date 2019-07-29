@@ -4,9 +4,11 @@
 #include "Component/Components.h"
 #include "ComponentManager.h"
 
+#include "Core/Serialisable.h"
+
 namespace Lumos
 {
-	class LUMOS_EXPORT Entity
+	class LUMOS_EXPORT Entity : public Serialisable
 	{
 		friend class EntityManager;
 	public:
@@ -42,8 +44,6 @@ namespace Lumos
 
 		u32& GetFrustumCullFlags() { return m_FrustumCullFlags; }
 
-		void DebugDraw(uint64 debugFlags);
-
 		TransformComponent* GetTransformComponent();
 
 		void SetParent(Entity* parent);
@@ -58,6 +58,9 @@ namespace Lumos
 
 		std::vector<LumosComponent*> GetAllComponents();
 
+		nlohmann::json Serialise() override;
+		void Deserialise(nlohmann::json& data) override;
+
 	protected:
 		explicit Entity(const String& name = "");
 		virtual ~Entity();
@@ -69,7 +72,8 @@ namespace Lumos
 		String					m_Name;
 		float					m_BoundingRadius;
 		u32						m_FrustumCullFlags;
-		String                  m_UUID;
+		String					m_UUID;
+		String					m_PrefabFileLocation;
 		bool					m_Active;
 		TransformComponent*		m_DefaultTransformComponent = nullptr;
 

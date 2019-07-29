@@ -101,7 +101,7 @@ namespace Lumos
 			buffer->SetLayout(layout);
 
 			va->PushBuffer(buffer);
-			uint32 indices[6] = { 0, 1, 2, 2, 3, 0, };
+			u32 indices[6] = { 0, 1, 2, 2, 3, 0, };
 			std::shared_ptr<IndexBuffer> ib;
 			ib.reset(IndexBuffer::Create(indices, 6));
 

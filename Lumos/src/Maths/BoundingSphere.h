@@ -1,6 +1,7 @@
 #pragma once
 #include "LM.h"
 #include "BoundingShape.h"
+#include "Core/Serialisable.h"
 
 namespace Lumos
 {
@@ -33,6 +34,22 @@ namespace Lumos
 
 			void SetPosition(const Vector3& pos) override { m_Position = pos; }
 			void SetRadius(float radius) override { m_Radius = radius; }
+
+			nlohmann::json Serialise() override
+			{
+				nlohmann::json output;
+				output["typeID"] = LUMOS_TYPENAME(BoundingSphere);
+				output["position"] = m_Position.Serialise();
+				output["radius"] = m_Radius;
+
+				return output;
+			};
+
+			void Deserialise(nlohmann::json& data) override
+			{
+				m_Position.Deserialise(data["position"]);
+				m_Radius = data["radius"];
+			};
 
 		protected:
 

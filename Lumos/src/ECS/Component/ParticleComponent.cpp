@@ -26,10 +26,6 @@ namespace Lumos
     {
     }
 
-	void ParticleComponent::DebugDraw(uint64 debugFlags)
-	{
-	}
-
 	void ParticleComponent::OnUpdateComponent(float dt)
     {
     }

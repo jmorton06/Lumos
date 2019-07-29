@@ -35,10 +35,6 @@ namespace Lumos
 	//	}
 	}
 
-	void SoundComponent::DebugDraw(uint64 debugFlags)
-	{
-	}
-
 	void SoundComponent::Init()
 	{
 		Application::Instance()->GetSystem<AudioManager>()->AddSoundNode(m_SoundNode.get());

@@ -20,6 +20,9 @@ namespace Lumos
 		void OnIMGUI() override;
         
         Graphics::Sprite* GetSprite() const { return m_Sprite.get(); }
+
+		nlohmann::json Serialise() override { return nullptr; };
+		void Deserialise(nlohmann::json& data) override {};
         
     private:
         std::shared_ptr<Graphics::Sprite> m_Sprite;

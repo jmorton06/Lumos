@@ -33,7 +33,7 @@ namespace Lumos
 
 			void BuildTextures();
 
-			void Bind(int32 mode = 0);
+			void Bind(i32 mode = 0);
 			void UpdateTextureSize(u32 width, u32 height);
 			void SetReadBuffer(ScreenTextures type);
 

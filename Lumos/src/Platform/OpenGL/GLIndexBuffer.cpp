@@ -19,12 +19,12 @@ namespace Lumos
 			return 0;
 		}
 
-		GLIndexBuffer::GLIndexBuffer(uint16* data, u32 count, BufferUsage bufferUsage)
+		GLIndexBuffer::GLIndexBuffer(u16* data, u32 count, BufferUsage bufferUsage)
 			: m_Count(count), m_Usage(bufferUsage)
 		{
 			GLCall(glGenBuffers(1, &m_Handle));
 			GLCall(glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_Handle));
-			GLCall(glBufferData(GL_ELEMENT_ARRAY_BUFFER, count * sizeof(uint16), data, BufferUsageToOpenGL(m_Usage)));
+			GLCall(glBufferData(GL_ELEMENT_ARRAY_BUFFER, count * sizeof(u16), data, BufferUsageToOpenGL(m_Usage)));
 		}
 
 		GLIndexBuffer::GLIndexBuffer(u32* data, u32 count, BufferUsage bufferUsage)

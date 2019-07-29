@@ -9,9 +9,9 @@
 
 namespace Lumos
 {
-    static bool ReadFileInternal(FILE* file, void* buffer, int64 size, bool readbytemode)
+    static bool ReadFileInternal(FILE* file, void* buffer, i64 size, bool readbytemode)
     {
-        int64 read_size;
+        i64 read_size;
         if(readbytemode)
             read_size = fread(buffer, sizeof(u8), size, file);
         else
@@ -33,7 +33,7 @@ namespace Lumos
         return (stat (path.c_str(), &buffer) == 0);
     }
 
-    int64 FileSystem::GetFileSize(const String& path)
+    i64 FileSystem::GetFileSize(const String& path)
     {
         if (!FileExists(path))
             return -1;
@@ -42,7 +42,7 @@ namespace Lumos
         return buffer.st_size;
     }
 
-    bool FileSystem::ReadFile(const String& path, void* buffer, int64 size)
+    bool FileSystem::ReadFile(const String& path, void* buffer, i64 size)
     {
         if(!FileExists(path))
             return false;
@@ -68,7 +68,7 @@ namespace Lumos
     {
         if(!FileExists(path))
             return nullptr;
-        int64 size = GetFileSize(path);
+        i64 size = GetFileSize(path);
         FILE* file = fopen(path.c_str(), "rb");
         u8* buffer = new u8[size];
         bool result = ReadFileInternal(file, buffer, size, true);
@@ -82,7 +82,7 @@ namespace Lumos
     {
         if(!FileExists(path))
             return String();
-        int64 size = GetFileSize(path);
+        i64 size = GetFileSize(path);
         FILE* file = fopen(path.c_str(), "r");
         String result(size, 0);
         bool success = ReadFileInternal(file, &result[0], size, false);

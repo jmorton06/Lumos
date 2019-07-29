@@ -12,7 +12,7 @@ namespace Lumos
         template<typename T>
         std::shared_ptr<T> RegisterSystem()
         {
-			String typeName = LUMOS_TYPENAME(T);
+			auto typeName = typeid(T).hash_code();
             
             LUMOS_CORE_ASSERT(m_Systems.find(typeName) == m_Systems.end(), "Registering system more than once.");
             
@@ -25,7 +25,7 @@ namespace Lumos
 		template<typename T>
 		std::shared_ptr<T> RegisterSystem(T* t)
 		{
-			String typeName = LUMOS_TYPENAME(T);
+			auto typeName = typeid(T).hash_code();
 
 			LUMOS_CORE_ASSERT(m_Systems.find(typeName) == m_Systems.end(), "Registering system more than once.");
 
@@ -38,7 +38,7 @@ namespace Lumos
 		template<typename T>
 		void RemoveSystem()
 		{
-			String typeName = LUMOS_TYPENAME(T);
+			auto typeName = typeid(T).hash_code();
 
 			if (m_Systems.find(typeName) != m_Systems.end())
 			{
@@ -49,7 +49,7 @@ namespace Lumos
 		template<typename T>
 		T* GetSystem()
 		{
-			String typeName = LUMOS_TYPENAME(T);
+			auto typeName = typeid(T).hash_code();
 
 			if (m_Systems.find(typeName) != m_Systems.end())
 			{
@@ -62,7 +62,7 @@ namespace Lumos
 		template<typename T>
 		T* HasSystem()
 		{
-			String typeName = LUMOS_TYPENAME(T);
+			auto typeName = typeid(T).hash_code();
 
 			return m_Systems.find(typeName) != m_Systems.end();
 		}
@@ -81,6 +81,6 @@ namespace Lumos
 
     private:
         // Map from system type string pointer to a system pointer
-        std::unordered_map<String, std::shared_ptr<ISystem>> m_Systems;
+        std::unordered_map<size_t, std::shared_ptr<ISystem>> m_Systems;
     };
 }

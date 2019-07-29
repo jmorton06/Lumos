@@ -160,8 +160,8 @@ namespace Lumos
 
 			u32* indices = new u32[RENDERER_INDICES_SIZE];
 
-			int32 offset = 0;
-			for (int32 i = 0; i < RENDERER_INDICES_SIZE; i += 6)
+			i32 offset = 0;
+			for (i32 i = 0; i < RENDERER_INDICES_SIZE; i += 6)
 			{
 				indices[i] = offset + 0;
 				indices[i + 1] = offset + 1;

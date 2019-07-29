@@ -2,6 +2,7 @@
 #include "LM.h"
 #include "Vector4.h"
 #include "MathsCommon.h"
+#include "Core/Serialisable.h"
 
 #define CLIP_CONTROL_ZO_BIT		(1 << 0) // ZERO_TO_ONE
 #define CLIP_CONTROL_NO_BIT		(1 << 1) // NEGATIVE_ONE_TO_ONE
@@ -140,6 +141,33 @@ namespace Lumos
 			static Matrix4 Orthographic(float znear, float zfar, float right, float left, float top, float bottom);
 			static Matrix4 BuildViewMatrix(const Vector3 &from, const Vector3 &lookingAt,
 										   const Vector3 &up = Vector3(0.0f, 1.0f, 0.0f));
+
+			nlohmann::json Serialise()
+			{
+				nlohmann::json output;
+				output["typeID"] = LUMOS_TYPENAME(Matrix4);
+
+				nlohmann::json data = nlohmann::json::array_t();
+
+				for (int i = 0; i < 16; i++)
+				{
+					data.push_back(values[i]);
+				}
+
+				output["values"] = data;
+
+				return output;
+			};
+
+			void Deserialise(nlohmann::json& data)
+			{
+				nlohmann::json::array_t dataArray = data["values"];
+
+				for (int i = 0; i < 16; i++)
+				{
+					values[i] = dataArray[i];
+				}
+			};
 
 			friend std::ostream &operator<<(std::ostream &o, const Matrix4 &m);
 

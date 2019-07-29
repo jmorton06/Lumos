@@ -129,7 +129,7 @@ namespace Lumos
 			return nullptr;
 		}
 
-		TextureCube* TextureCube::CreateFromVCross(const String* files, int32 mips)
+		TextureCube* TextureCube::CreateFromVCross(const String* files, u32 mips)
 		{
 			switch (Graphics::GraphicsContext::GetRenderAPI())
 			{

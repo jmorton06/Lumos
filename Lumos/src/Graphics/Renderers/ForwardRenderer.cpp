@@ -120,7 +120,7 @@ namespace Lumos
 				Renderer::Present((m_CommandBuffers[Renderer::GetSwapchain()->GetCurrentBufferId()]));
 		}
 
-		enum VSSystemUniformIndices : int32
+		enum VSSystemUniformIndices : i32
 		{
 			VSSystemUniformIndex_ProjectionMatrix = 0,
 			VSSystemUniformIndex_ViewMatrix = 1,
@@ -129,7 +129,7 @@ namespace Lumos
 			VSSystemUniformIndex_Size
 		};
 
-		enum PSSystemUniformIndices : int32
+		enum PSSystemUniformIndices : i32
 		{
 			PSSystemUniformIndex_Lights = 0,
 			PSSystemUniformIndex_Size

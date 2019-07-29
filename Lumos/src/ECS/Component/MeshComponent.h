@@ -22,6 +22,9 @@ namespace Lumos
 		void OnIMGUI() override;
 
 		Graphics::Mesh* GetMesh() const { return m_Mesh.get(); }
+
+		nlohmann::json Serialise() override { return nullptr; };
+		void Deserialise(nlohmann::json& data) override {};
 	private:
 		std::shared_ptr<Graphics::Mesh> m_Mesh;
 	};

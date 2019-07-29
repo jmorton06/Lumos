@@ -72,9 +72,9 @@
 #define ROOT_DIR STRINGIZE(LUMOS_ROOT_DIR)
 
 #if LUMOS_PLATFORM_WINDOWS
-#define crash() __debugbreak(); 
+#define LUMOS_BREAK() __debugbreak(); 
 #else
-#define crash() raise(SIGTRAP);
+#define LUMOS_BREAK() raise(SIGTRAP);
 #endif
 
 #ifdef LUMOS_DEBUG
@@ -86,16 +86,16 @@
 	{                                                       		\
 		if (!(x))                                           		\
 		{                                                   		\
-			LUMOS_CORE_ERROR("Assertion failed: {0}", __VA_ARGS__); 	\
-			crash();                                 				\
+			LUMOS_CORE_ERROR("Assertion failed: {0}", __VA_ARGS__); \
+			LUMOS_BREAK();                                 			\
 		}                                                   		\
 	}
-	#define LUMOS_CORE_ASSERT(x, ...)                               	\
+	#define LUMOS_CORE_ASSERT(x, ...)                               \
 	{                                                            	\
 		if (!(x))                                                	\
 		{                                                        	\
-			LUMOS_CORE_ERROR("Assertion failed: {0}", __VA_ARGS__);    \
-			crash();                                     		 	\
+			LUMOS_CORE_ERROR("Assertion failed: {0}", __VA_ARGS__); \
+			LUMOS_BREAK();                                     		\
 		}                                                        	\
 	}
 #else
@@ -106,5 +106,5 @@
 #define UNIMPLEMENTED	 													\
 	{																		\
 		LUMOS_CORE_ERROR("Unimplemented : {0} : {1}", __FILE__, __LINE__); 	\
-		crash();  															\
+		LUMOS_BREAK();  													\
 	}																		\

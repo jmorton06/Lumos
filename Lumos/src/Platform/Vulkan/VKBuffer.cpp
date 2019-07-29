@@ -23,11 +23,11 @@ namespace Lumos
 #ifdef USE_VMA_ALLOCATOR
                 vmaDestroyBuffer(VKDevice::Instance()->GetAllocator(), m_Buffer, m_Allocation);
 #else
-                vkDestroyBuffer(VKDevice::Instance()->GetDevice(), m_Buffer, nullptr);
+				VKDevice::Instance()->GetDevice().destroyBuffer(m_Buffer);
 
 				if (m_Memory)
 				{
-					vkFreeMemory(VKDevice::Instance()->GetDevice(), m_Memory, nullptr);
+					VKDevice::Instance()->GetDevice().freeMemory(m_Memory);
 				}
 #endif
 			}
