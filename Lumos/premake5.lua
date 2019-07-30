@@ -126,7 +126,7 @@ project "Lumos"
 
 		files
 		{
-			"src/Platform/Vulkan/MakeMetalView.mm"
+			"src/Platform/macOS/*.mm"
 		}
 
 		defines
