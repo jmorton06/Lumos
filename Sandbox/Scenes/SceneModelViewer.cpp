@@ -3,7 +3,7 @@
 using namespace Lumos;
 using namespace Maths;
 
-SceneModelViewer::SceneModelViewer(const String& SceneName)
+SceneModelViewer::SceneModelViewer(const std::string& SceneName)
 	: Scene(SceneName)
 {
 }

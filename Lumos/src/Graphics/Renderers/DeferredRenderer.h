@@ -75,8 +75,6 @@ namespace Lumos
 
 			CommandBuffer* m_DeferredCommandBuffers;
 
-			LightSetup* m_LightSetup;
-
 			Mesh* m_ScreenQuad = nullptr;
 
 			std::unique_ptr<Texture2D> m_PreintegratedFG;

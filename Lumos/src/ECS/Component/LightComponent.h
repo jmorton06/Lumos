@@ -26,8 +26,9 @@ namespace Lumos
 		void OnIMGUI() override;
 
 		std::shared_ptr<Graphics::Light> GetLight() const { return m_Light; }
-		nlohmann::json Serialise() override { return nullptr; };
-		void Deserialise(nlohmann::json& data) override {};
+
+		nlohmann::json Serialise() override;;
+		void Deserialise(nlohmann::json& data) override;;
         
     private:
         std::shared_ptr<Graphics::Light> m_Light;

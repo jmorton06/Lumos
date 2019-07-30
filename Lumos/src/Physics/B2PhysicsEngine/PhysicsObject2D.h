@@ -33,6 +33,9 @@ namespace Lumos
         Maths::Vector2 GetPosition() const;
         float GetAngle() const;
 
+		nlohmann::json Serialise() override;
+		void Deserialise(nlohmann::json& data) override;
+
 	protected:
 
 		b2Body* m_B2Body;

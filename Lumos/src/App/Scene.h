@@ -26,7 +26,7 @@ namespace Lumos
 		class TextureCube;
 	}
 
-    class LUMOS_EXPORT Scene : public Serialisable
+	class LUMOS_EXPORT Scene : public Serialisable
 	{
 	public:
 		explicit Scene(const String& SceneName); //Called once at program start - all scene initialization should be done in 'OnInitialize'
@@ -96,9 +96,10 @@ namespace Lumos
 		RenderList* GetRenderList() const { return m_pFrameRenderList.get(); }
 
 		void IterateEntities(const std::function<void(Entity*)>& per_object_func);
-        
-        nlohmann::json Serialise() override;
-        void Deserialise(nlohmann::json& data) override;
+
+		// Inherited via Serialisable
+		nlohmann::json Serialise() override;
+		void Deserialise(nlohmann::json & data) override;
 
 	protected:
 
@@ -125,5 +126,5 @@ namespace Lumos
         Scene& operator=(Scene const&) = delete;
 
 		bool OnWindowResize(WindowResizeEvent& e);
-	};
+};
 }

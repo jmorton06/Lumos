@@ -5,7 +5,6 @@
 #include "Physics/LumosPhysicsEngine/PhysicsObject3D.h"
 #include "ECS/Entity.h"
 #include "App/Scene.h"
-#include "Graphics/LightSetUp.h"
 #include "Maths/Vector3.h"
 #include "Maths/BoundingSphere.h"
 #include "TransformComponent.h"
@@ -133,5 +132,31 @@ namespace Lumos
 		ImGui::Columns(1);
 		ImGui::Separator();
 		ImGui::PopStyleVar();
+	}
+
+	nlohmann::json LightComponent::Serialise() 
+	{
+		nlohmann::json output;
+		output["typeID"]	= LUMOS_TYPENAME(LightComponent);
+		output["active"]	= m_Active;
+		output["position"]	= m_Light->m_Position.Serialise();
+		output["direction"] = m_Light->m_Direction.Serialise();
+		output["colour"]	= m_Light->m_Colour.Serialise();
+		output["intensity"] = m_Light->m_Intensity;
+		output["radius"]	= m_Light->m_Radius;
+		output["type"]		= m_Light->m_Type;
+
+		return output;
+	}
+
+	void LightComponent::Deserialise(nlohmann::json & data)
+	{
+		m_Light->m_Position.Deserialise(data["position"]);
+		m_Light->m_Direction.Deserialise(data["direction"]);
+		m_Light->m_Colour.Deserialise(data["colour"]);
+		m_Light->m_Intensity	= data["intensity"];
+		m_Light->m_Radius		= data["radius"];
+		m_Light->m_Type			= data["type"];
+		m_Active				= data["active"];
 	}
 }

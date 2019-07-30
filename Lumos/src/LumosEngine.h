@@ -37,6 +37,7 @@
 #include "Graphics/Sprite.h"
 #include "Graphics/GBuffer.h"
 #include "Graphics/Terrain.h"
+#include "Graphics/Light.h"
 
 #include "Utilities/AssetsManager.h"
 
@@ -53,7 +54,6 @@
 #include "Graphics/Camera/Camera2D.h"
 
 //Managers
-#include "Graphics/LightSetUp.h"
 #include "Graphics/ParticleManager.h"
 
 //Maths
