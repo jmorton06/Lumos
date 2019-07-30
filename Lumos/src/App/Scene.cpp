@@ -21,8 +21,13 @@
 
 namespace Lumos
 {
-	Scene::Scene(const String& friendly_name)
-		: m_SceneName(friendly_name), m_pCamera(nullptr), m_EnvironmentMap(nullptr),m_SceneBoundingRadius(0), m_ScreenWidth(0), m_ScreenHeight(0)
+	Scene::Scene(const String& friendly_name) :
+		m_SceneName(friendly_name),
+		m_pCamera(nullptr), 
+		m_EnvironmentMap(nullptr), 
+		m_SceneBoundingRadius(0),
+		m_ScreenWidth(0),
+		m_ScreenHeight(0)
 	{
 	}
 
@@ -251,35 +256,33 @@ namespace Lumos
 
 		return false;
 	}
-    
-    nlohmann::json Scene::Serialise()
-    {
-        nlohmann::json output;
-        output["typeID"] = LUMOS_TYPENAME(Scene);
-        output["name"] = m_SceneName;
-    
-        auto& entities = EntityManager::Instance()->GetEntities();
-        
-        nlohmann::json serialisedEntities = nlohmann::json::array_t();
-        
-        for (int i = 0; i < entities.size(); ++i)
-            serialisedEntities.push_back(entities[i]->Serialise());
-        
-        output["entities"] = serialisedEntities;
-        
-        return output;
-    }
-    
-    void Scene::Deserialise(nlohmann::json& data)
-    {
-        m_SceneName = data["name"];
-        
-        nlohmann::json::array_t entities = data["entities"];
-        
-        for (int i = 0; i < entities.size(); i++)
-        {
-            auto entity = EntityManager::Instance()->CreateEntity();
-            entity->Deserialise(entities[i]);
-        }
-    }
+	nlohmann::json Scene::Serialise()
+	{
+		nlohmann::json output;
+		output["typeID"] = LUMOS_TYPENAME(Scene);
+		output["name"] = m_SceneName;
+
+		nlohmann::json serialisedEntities = nlohmann::json::array_t();
+		auto& entities = EntityManager::Instance()->GetEntities();
+
+		for (int i = 0; i < entities.size(); ++i)
+			serialisedEntities.push_back(entities[i]->Serialise());
+
+		output["entities"] = serialisedEntities;
+
+		return output;
+	}
+
+	void Scene::Deserialise(nlohmann::json & data)
+	{
+		m_SceneName = data["name"];
+
+		nlohmann::json::array_t entities = data["entities"];
+
+		for (int i = 0; i < entities.size(); i++)
+		{
+			auto entity = EntityManager::Instance()->CreateEntity();
+			entity->Deserialise(entities[i]);
+		}
+	}
 }

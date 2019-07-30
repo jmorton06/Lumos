@@ -126,26 +126,6 @@ namespace Lumos
 		UpdatePhysicsObjects();
 	}
 
-	void LumosPhysicsEngine::DebugRender(u64 debugFlags)
-	{
-		// Draw all collision manifolds
-		if (debugFlags & DEBUGDRAW_FLAGS_MANIFOLD)
-		{
-			for (Manifold *m : m_Manifolds)
-				m->DebugDraw();
-		}
-
-		// Draw all constraints
-		if (debugFlags & DEBUGDRAW_FLAGS_CONSTRAINT)
-		{
-			for (Constraint *c : m_Constraints)
-				c->DebugDraw();
-		}
-
-		if (m_BroadphaseDetection && (debugFlags & DEBUGDRAW_FLAGS_BROADPHASE))
-			m_BroadphaseDetection->DebugDraw();
-	}
-
 	void LumosPhysicsEngine::UpdatePhysicsObjects()
 	{
         System::JobSystem::Dispatch(static_cast<u32>(m_PhysicsObjects.size()), 16, [&](JobDispatchArgs args)

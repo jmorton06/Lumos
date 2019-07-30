@@ -112,4 +112,37 @@ namespace Lumos
 	void PhysicsObject3D::DebugDraw(uint64_t flags) const
 	{
 	}
+
+	nlohmann::json PhysicsObject3D::Serialise()
+	{
+		nlohmann::json output;
+		output["typeID"] = LUMOS_TYPENAME(PhysicsObject3D);
+		output["position"] = m_Position.Serialise();
+		output["velocity"] = m_LinearVelocity.Serialise();
+		output["force"] = m_Force.Serialise();
+		output["invMass"] = m_InvMass;
+		output["orientation"] = m_Orientation.Serialise();
+		output["angularVelocity"] = m_AngularVelocity.Serialise();
+		output["torque"] = m_Torque.Serialise();
+		output["invInertia"] = m_InvInertia.Serialise();
+
+		//output["collisionShape"]	= m_CollisionShape;
+
+		return output;
+	}
+
+	void PhysicsObject3D::Deserialise(nlohmann::json& data)
+	{
+		m_Position.Deserialise(data["position"]);
+		m_LinearVelocity.Deserialise(data["velocity"]);
+		m_Force.Deserialise(data["force"]);
+		m_InvMass = data["invMass"];
+
+		m_Orientation.Deserialise(data["orientation"]);
+		m_AngularVelocity.Deserialise(data["angularVelocity"]);
+		m_Torque.Deserialise(data["torque"]);
+		m_InvInertia.Deserialise(data["invInertia"]);
+
+		//m_CollisionShape.Deserialise(data["collisionShape"]);
+	}
 }

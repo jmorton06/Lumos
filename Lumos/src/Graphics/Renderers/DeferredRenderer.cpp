@@ -21,7 +21,6 @@
 #include "Graphics/Material.h"
 #include "Graphics/GBuffer.h"
 #include "Graphics/Light.h"
-#include "Graphics/LightSetUp.h"
 
 #include "Graphics/API/Shader.h"
 #include "Graphics/API/Framebuffer.h"
@@ -73,7 +72,6 @@ namespace Lumos
 			delete m_Pipeline;
 			delete m_ScreenQuad;
 			delete m_DescriptorSet;
-			delete m_LightSetup;
             delete m_OffScreenRenderer;
 
 			delete[] m_PSSystemUniformBuffer;
@@ -108,8 +106,6 @@ namespace Lumos
 			m_ScreenQuad = Graphics::CreateQuad();
 
 			m_DescriptorSet = nullptr;
-
-			m_LightSetup = new LightSetup();
 			
 			// Pixel/fragment shader System uniforms
 			m_PSSystemUniformBufferSize = sizeof(Light) * MAX_LIGHTS + sizeof(Maths::Vector4) + sizeof(Maths::Matrix4) + (sizeof(Maths::Matrix4) + sizeof(Maths::Vector4))* MAX_SHADOWMAPS + sizeof(int) * 4;

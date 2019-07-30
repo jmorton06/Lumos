@@ -102,7 +102,7 @@ namespace Lumos
 			delete m_CommandPool;
             
 			DestroyDebugReportCallbackEXT(m_VkInstance, m_DebugCallback, nullptr);
-			vkDestroyInstance(m_VkInstance, nullptr);
+			m_VkInstance.destroy();
 		}
 
 		void VKContext::Init()

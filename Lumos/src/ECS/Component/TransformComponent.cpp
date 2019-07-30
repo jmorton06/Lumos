@@ -89,4 +89,20 @@ namespace Lumos
         ImGui::Separator();
         ImGui::PopStyleVar();
     }
+
+	nlohmann::json TransformComponent::Serialise()
+	{
+		nlohmann::json output;
+		output["typeID"] = LUMOS_TYPENAME(TransformComponent);
+		output["transform"] = m_Transform.Serialise();
+		output["active"] = m_Active;
+
+		return output;
+	}
+
+	void TransformComponent::Deserialise(nlohmann::json & data)
+	{
+		m_Transform.Deserialise(data["transform"]);
+		m_Active = data["active"];
+	}
 }
