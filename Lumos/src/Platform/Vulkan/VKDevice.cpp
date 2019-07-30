@@ -22,8 +22,9 @@
 #endif
 
 #ifdef LUMOS_PLATFORM_MACOS
-extern "C" {
-    void* makeViewMetalCompatible(void* handle);
+extern "C"
+{
+    void* MakeViewMetalCompatible(void* handle);
 }
 #endif
 
@@ -101,7 +102,7 @@ namespace Lumos
 #ifdef LUMOS_PLATFORM_MACOS
             vk::MacOSSurfaceCreateInfoMVK surfaceInfo;
             surfaceInfo.pNext = NULL;
-            surfaceInfo.pView = makeViewMetalCompatible((void*)glfwGetCocoaWindow(static_cast<GLFWwindow*>(m_VKContext->GetWindowContext())));
+            surfaceInfo.pView = MakeViewMetalCompatible((void*)glfwGetCocoaWindow(static_cast<GLFWwindow*>(m_VKContext->GetWindowContext())));
 			m_Surface = m_VKContext->GetVKInstance().createMacOSSurfaceMVK(surfaceInfo);
 #endif
 
