@@ -55,9 +55,6 @@ namespace Lumos
             VmaAllocator GetAllocator()                     const { return m_Allocator; }
 #endif
 
-#ifdef LUMOS_PLATFORM_IOS
-            static void* m_IOSView; //move to iosOS
-#endif
 			vk::SurfaceKHR CreatePlatformSurface(vk::Instance vkInstance, Window* window);
 
 		private:

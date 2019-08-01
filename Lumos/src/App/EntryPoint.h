@@ -24,6 +24,8 @@ int main(int argc, char** argv)
 #include "System/CoreSystem.h"
 #include "System/VFS.h"
 
+#include "Platform/iOS/iOSOS.h"
+
 #ifdef LUMOS_RENDER_API_VULKAN
 #include "Platform/Vulkan/VKDevice.h"
 #endif
@@ -57,7 +59,7 @@ namespace iosApp
 
 	static void SetIOSView(void* view)
 	{
-        Lumos::Graphics::VKDevice::m_IOSView = view;
+        static_cast<Lumos::iOSOS*>(Lumos::OS::Instance())->SetIOSView(view);
 	}
 	#endif
 

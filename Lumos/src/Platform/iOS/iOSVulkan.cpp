@@ -2,6 +2,7 @@
 
 #include "Platform/Vulkan/VKDevice.h"
 #include "App/Application.h"
+#include "iOSOS.h"
 
 namespace Lumos
 {
@@ -9,11 +10,11 @@ namespace Lumos
 	{
 		vk::SurfaceKHR surface;
 
-        //auto iosView = iOSOS::Instance()->GetView();
+        auto iosView = static_cast<iOSOS*>(OS::Instance())->GetIOSView();
 
         vk::IOSSurfaceCreateInfoMVK surfaceCreateInfo = {};
         surfaceCreateInfo.pNext = NULL;
-        surfaceCreateInfo.pView = m_IOSView;
+        surfaceCreateInfo.pView = iosView;
         surface = vkInstance.createIOSSurfaceMVK(surfaceCreateInfo);
 
 		return surface;
