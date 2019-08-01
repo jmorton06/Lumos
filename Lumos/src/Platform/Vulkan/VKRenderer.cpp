@@ -19,7 +19,7 @@ namespace Lumos
 
             VKDevice::Instance();
             
-            m_Swapchain = new VKSwapchain(m_Width, m_Height);
+            m_Swapchain = lmnew VKSwapchain(m_Width, m_Height);
             m_Swapchain->Init();
             
             CreateSemaphores();
@@ -79,7 +79,7 @@ namespace Lumos
 			m_Height = height;
 
 			delete m_Swapchain;
-			m_Swapchain = new VKSwapchain(width, height);
+			m_Swapchain = lmnew VKSwapchain(width, height);
 			m_Swapchain->Init();
 		}
 

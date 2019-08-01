@@ -7,30 +7,9 @@
 #ifndef VK_USE_PLATFORM_MACOS_MVK
 #define VK_USE_PLATFORM_MACOS_MVK
 #endif
-#define GLFW_EXPOSE_NATIVE_COCOA
 #endif
 
 #include "VKDevice.h"
-
-#ifndef LUMOS_PLATFORM_IOS
-#include <GLFW/glfw3.h>
-#include <GLFW/glfw3native.h>
-#endif
-
-#ifdef LUMOS_PLATFORM_WINDOWS
-#include "Platform/Windows/WindowsWindow.h"
-#endif
-
-#ifdef LUMOS_PLATFORM_MACOS
-extern "C"
-{
-    void* MakeViewMetalCompatible(void* handle);
-}
-#endif
-
-#ifdef LUMOS_PLATFORM_IOS
-void* Lumos::Graphics::VKDevice::m_IOSView = nullptr;
-#endif
 
 namespace Lumos
 {
@@ -92,42 +71,14 @@ namespace Lumos
 				return false;
 			}
 
-#ifdef LUMOS_PLATFORM_IOS
-			vk::IOSSurfaceCreateInfoMVK surfaceCreateInfo = {};
-			surfaceCreateInfo.pNext = NULL;
-			surfaceCreateInfo.pView = m_IOSView;
-			m_Surface = m_VKContext->GetVKInstance().createIOSSurfaceMVK(surfaceCreateInfo);
-#endif
+			m_Surface = CreatePlatformSurface(m_VKContext->GetVKInstance(), Application::Instance()->GetWindow());
 
-#ifdef LUMOS_PLATFORM_MACOS
-            vk::MacOSSurfaceCreateInfoMVK surfaceInfo;
-            surfaceInfo.pNext = NULL;
-            surfaceInfo.pView = MakeViewMetalCompatible((void*)glfwGetCocoaWindow(static_cast<GLFWwindow*>(m_VKContext->GetWindowContext())));
-			m_Surface = m_VKContext->GetVKInstance().createMacOSSurfaceMVK(surfaceInfo);
-#endif
-
-#ifdef LUMOS_PLATFORM_WINDOWS
-#ifdef LUMOS_USE_GLFW_WINDOWS
-			glfwCreateWindowSurface(m_VKContext->GetVKInstance(), static_cast<GLFWwindow*>(m_VKContext->GetWindowContext()), nullptr, (VkSurfaceKHR*)&m_Surface);
-#else
-			vk::Win32SurfaceCreateInfoKHR surfaceInfo;
-			surfaceInfo.pNext = NULL;
-			surfaceInfo.hwnd = (HWND)VKContext::Get()->GetWindowContext();
-			surfaceInfo.hinstance = ((WindowsWindow*)Application::Instance()->GetWindow())->GetHInstance();
-			m_Surface = m_VKContext->GetVKInstance().createWin32SurfaceKHR(surfaceInfo);
-#endif
-#endif
-
-#ifdef LUMOS_PLATFORM_LINUX
-			glfwCreateWindowSurface(m_VKContext->GetVKInstance(), static_cast<GLFWwindow*>(m_VKContext->GetWindowContext()), nullptr, (VkSurfaceKHR*)&m_Surface);
-
-#endif
 			if(!m_Surface)
 			{
 				LUMOS_CORE_ERROR("[VULKAN] Failed to create window surface!");
 			}
 
-			VkBool32* supportsPresent = new VkBool32[m_QueueFamiliyProperties.size()];
+			VkBool32* supportsPresent = lmnew VkBool32[m_QueueFamiliyProperties.size()];
 			for (uint32_t i = 0; i < m_QueueFamiliyProperties.size(); i++)
 				supportsPresent[i] = m_PhysicalDevice.getSurfaceSupportKHR(i, m_Surface);
 
@@ -188,7 +139,6 @@ namespace Lumos
 			{
 				VK_KHR_SWAPCHAIN_EXTENSION_NAME
 			};
-
 
 			// Device
 			vk::DeviceCreateInfo deviceCI{};

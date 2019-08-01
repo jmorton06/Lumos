@@ -28,7 +28,7 @@ namespace Lumos
 			uint32_t numPresentModes;
 			VKDevice::Instance()->GetGPU().getSurfacePresentModesKHR(VKDevice::Instance()->GetSurface(), &numPresentModes, VK_NULL_HANDLE);
 
-            vk::PresentModeKHR * pPresentModes = new vk::PresentModeKHR[numPresentModes];
+            vk::PresentModeKHR * pPresentModes = lmnew vk::PresentModeKHR[numPresentModes];
             VKDevice::Instance()->GetGPU().getSurfacePresentModesKHR(VKDevice::Instance()->GetSurface(), &numPresentModes, pPresentModes);
 
             vk::Extent2D swapChainExtent;
@@ -79,7 +79,7 @@ namespace Lumos
 			uint32_t swapChainImageCount;
             VKDevice::Instance()->GetDevice().getSwapchainImagesKHR(m_SwapChain, &swapChainImageCount, nullptr);
 
-            vk::Image * pSwapChainImages = new vk::Image[swapChainImageCount];
+            vk::Image * pSwapChainImages = lmnew vk::Image[swapChainImageCount];
             VKDevice::Instance()->GetDevice().getSwapchainImagesKHR(m_SwapChain, &swapChainImageCount, pSwapChainImages);
 
 			for (uint32_t i = 0; i < swapChainImageCount; i++)
@@ -99,7 +99,7 @@ namespace Lumos
 				viewCI.image = pSwapChainImages[i];
 
                 vk::ImageView imageView = VKDevice::Instance()->GetDevice().createImageView(viewCI);
-				VKTexture2D* swapChainBuffer = new VKTexture2D(pSwapChainImages[i], imageView);
+				VKTexture2D* swapChainBuffer = lmnew VKTexture2D(pSwapChainImages[i], imageView);
 
 				m_SwapChainBuffers.push_back(swapChainBuffer);
 			}

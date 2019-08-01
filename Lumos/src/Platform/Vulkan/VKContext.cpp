@@ -110,7 +110,7 @@ namespace Lumos
             if(m_CommandPool != nullptr)
                 delete m_CommandPool;
             
-			m_CommandPool = new VKCommandPool();
+			m_CommandPool = lmnew VKCommandPool();
 		};
 
 		void VKContext::Present()

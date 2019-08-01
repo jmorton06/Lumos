@@ -23,13 +23,13 @@ namespace Lumos
 			switch (GetRenderAPI())
 			{
 #ifdef LUMOS_RENDER_API_OPENGL
-			case RenderAPI::OPENGL:	s_Context = new GLContext(properties, deviceContext); break;
+			case RenderAPI::OPENGL:	s_Context = lmnew GLContext(properties, deviceContext); break;
 #endif
 #ifdef LUMOS_RENDER_API_VULKAN
-			case RenderAPI::VULKAN: s_Context = new VKContext(properties, deviceContext); break;
+			case RenderAPI::VULKAN: s_Context = lmnew VKContext(properties, deviceContext); break;
 #endif
 #ifdef LUMOS_RENDER_API_DIRECT3D
-			case RenderAPI::DIRECT3D: s_Context = new D3DContext(properties, deviceContext); break;
+			case RenderAPI::DIRECT3D: s_Context = lmnew D3DContext(properties, deviceContext); break;
 #endif
 			}
 		}

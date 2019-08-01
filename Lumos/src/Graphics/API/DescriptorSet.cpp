@@ -19,10 +19,10 @@ namespace Lumos
 			switch (Graphics::GraphicsContext::GetRenderAPI())
 			{
 #ifdef LUMOS_RENDER_API_OPENGL
-			case RenderAPI::OPENGL:	return new GLDescriptorSet(info);
+			case RenderAPI::OPENGL:	return lmnew GLDescriptorSet(info);
 #endif
 #ifdef LUMOS_RENDER_API_VULKAN
-			case RenderAPI::VULKAN:	return new VKDescriptorSet(info);
+			case RenderAPI::VULKAN:	return lmnew VKDescriptorSet(info);
 #endif
 #ifdef LUMOS_RENDER_API_DIRECT3D
 			case RenderAPI::DIRECT3D: return nullptr;

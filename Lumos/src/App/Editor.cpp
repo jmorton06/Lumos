@@ -30,7 +30,7 @@ namespace Lumos
 {
 	Editor::Editor(Application* app, u32 width, u32 height) : m_Application(app)
 	{
-		m_Console = new Console();
+		m_Console = lmnew Console();
 		LMLog::GetCoreLogger()->sinks().emplace_back(std::make_shared<ConsoleSink>(*m_Console));
 		LMLog::GetClientLogger()->sinks().emplace_back(std::make_shared<ConsoleSink>(*m_Console));
 

@@ -12,7 +12,7 @@ project "Lumos"
 
 	removefiles
 	{
-		"src/Platform/iOS/**"
+		"src/Platform/**"
 	}
 
 	includedirs
@@ -61,14 +61,6 @@ project "Lumos"
 		staticruntime "Off"
 		systemversion "latest"
 
-		removefiles
-		{
-			"src/Platform/GLFM/*.h",
-			"src/Platform/GLFM/*.cpp",
-			"src/Platform/Unix/*.h",
-			"src/Platform/Unix/*.cpp"
-		}
-
 		pchheader "LM.h"
 		pchsource "src/LM.cpp"
 
@@ -85,6 +77,24 @@ project "Lumos"
 			"_SILENCE_CXX17_OLD_ALLOCATOR_MEMBERS_DEPRECATION_WARNING",
 			"LUMOS_IMGUI",
 			"LUMOS_OPENAL"
+		}
+
+		files
+		{
+			"src/Platform/Windows/*.h",
+			"src/Platform/Windows/*.cpp",
+
+			"src/Platform/GLFW/*.h",
+			"src/Platform/GLFW/*.cpp",
+
+			"src/Platform/OpenAL/*.h",
+			"src/Platform/OpenAL/*.cpp",
+
+			"src/Platform/OpenGL/*.h",
+			"src/Platform/OpenGL/*.cpp",
+
+			"src/Platform/Vulkan/*.h",
+			"src/Platform/Vulkan/*.cpp"
 		}
 
 		links
@@ -116,17 +126,26 @@ project "Lumos"
 		cppdialect "C++17"
 		systemversion "latest"
 
-		removefiles
-		{
-			"src/Platform/GLFM/*.h",
-			"src/Platform/GLFM/*.cpp",
-			"src/Platform/Windows/*.h",
-			"src/Platform/Windows/*.cpp"
-		}
-
 		files
 		{
-			"src/Platform/macOS/*.mm"
+			"src/Platform/macOS/*.mm",
+			"src/Platform/macOS/*.h",
+			"src/Platform/macOS/*.cpp",
+
+			"src/Platform/Unix/*.h",
+			"src/Platform/Unix/*.cpp",
+
+			"src/Platform/GLFW/*.h",
+			"src/Platform/GLFW/*.cpp",
+
+			"src/Platform/OpenAL/*.h",
+			"src/Platform/OpenAL/*.cpp",
+
+			"src/Platform/OpenGL/*.h",
+			"src/Platform/OpenGL/*.cpp",
+
+			"src/Platform/Vulkan/*.h",
+			"src/Platform/Vulkan/*.cpp"
 		}
 
 		defines
@@ -180,16 +199,6 @@ project "Lumos"
 		systemversion "latest"
 		kind "StaticLib"
 
-		removefiles
-		{
-			"src/Platform/GLFW/*.h",
-			"src/Platform/GLFW/*.cpp",
-			"src/Platform/Windows/*.h",
-			"src/Platform/Windows/*.cpp",
-			"src/Platform/OpenGL/**.h",
-			"src/Platform/OpenGL/**.cpp"
-		}
-
 		defines
 		{
 			"LUMOS_PLATFORM_IOS",
@@ -199,6 +208,25 @@ project "Lumos"
 			"VK_USE_PLATFORM_IOS_MVK",
 			"LUMOS_IMGUI",
 			"LUMOS_OPENAL"
+		}
+
+		files
+		{
+			"src/Platform/iOS/*.mm",
+			"src/Platform/iOS/*.h",
+			"src/Platform/iOS/*.cpp",
+
+			"src/Platform/GLFM/*.h",
+			"src/Platform/GLFM/*.cpp",
+
+			"src/Platform/OpenAL/*.h",
+			"src/Platform/OpenAL/*.cpp",
+
+			"src/Platform/Unix/*.h",
+			"src/Platform/Unix/*.cpp",
+
+			"src/Platform/Vulkan/*.h",
+			"src/Platform/Vulkan/*.cpp"
 		}
 
 		links
@@ -229,14 +257,6 @@ project "Lumos"
 		cppdialect "C++17"
 		systemversion "latest"
 
-		removefiles
-		{
-			"src/Platform/GLFM/*.h",
-			"src/Platform/GLFM/*.cpp",
-			"src/Platform/Windows/*.h",
-			"src/Platform/Windows/*.cpp"
-		}
-
 		defines
 		{
 			"LUMOS_PLATFORM_LINUX",
@@ -245,6 +265,24 @@ project "Lumos"
 			"LUMOS_RENDER_API_VULKAN",
 			"VK_USE_PLATFORM_XCB_KHR",
 			"LUMOS_IMGUI"
+		}
+
+		files
+		{
+			"src/Platform/Unix/*.h",
+			"src/Platform/Unix/*.cpp",
+
+			"src/Platform/GLFW/*.h",
+			"src/Platform/GLFW/*.cpp",
+
+			"src/Platform/OpenAL/*.h",
+			"src/Platform/OpenAL/*.cpp",
+
+			"src/Platform/OpenGL/*.h",
+			"src/Platform/OpenGL/*.cpp",
+
+			"src/Platform/Vulkan/*.h",
+			"src/Platform/Vulkan/*.cpp"
 		}
 
 		links

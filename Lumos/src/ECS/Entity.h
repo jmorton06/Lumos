@@ -84,7 +84,7 @@ namespace Lumos
 	template<typename T, typename ... Args>
 	inline void Entity::AddComponent(Args && ...args)
 	{
-		auto component = new T(std::forward<Args>(args) ...);
+		auto component = lmnew T(std::forward<Args>(args) ...);
 		component->SetEntity(this);
 		component->Init();
 
@@ -103,7 +103,7 @@ namespace Lumos
 			return component;
 		else
 		{
-			component = new T(std::forward<Args>(args) ...);
+			component = lmnew T(std::forward<Args>(args) ...);
 			component->SetEntity(this);
 			component->Init();
 

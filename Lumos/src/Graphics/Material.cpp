@@ -17,11 +17,11 @@ namespace Lumos
         m_RenderFlags = 0;
         SetRenderFlag(RenderFlags::DEFERREDRENDER);
         m_DescriptorSet = nullptr;
-        m_MaterialProperties = new MaterialProperties();
+        m_MaterialProperties = lmnew MaterialProperties();
         SetMaterialProperites(properties);
         m_MaterialPropertiesBuffer = nullptr;
         m_MaterialBufferSize = sizeof(MaterialProperties);
-        m_MaterialBufferData = new u8[m_MaterialBufferSize];
+        m_MaterialBufferData = lmnew u8[m_MaterialBufferSize];
         m_Pipeline = nullptr;
     }
 
@@ -31,11 +31,11 @@ namespace Lumos
         SetRenderFlag(RenderFlags::DEFERREDRENDER);
         m_DescriptorSet = nullptr;
         m_MaterialPropertiesBuffer = nullptr;
-        m_MaterialProperties = new MaterialProperties();
+        m_MaterialProperties = lmnew MaterialProperties();
         m_PBRMaterialTextures.albedo = nullptr;
 
         m_MaterialBufferSize = sizeof(MaterialProperties);
-        m_MaterialBufferData = new u8[m_MaterialBufferSize];
+        m_MaterialBufferData = lmnew u8[m_MaterialBufferSize];
 
         m_Pipeline = nullptr;
     }

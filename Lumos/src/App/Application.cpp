@@ -45,7 +45,7 @@ namespace Lumos
 		s_Instance = this;
 
 #ifdef  LUMOS_EDITOR
-		m_Editor = new Editor(this, properties.Width, properties.Height);
+		m_Editor = lmnew Editor(this, properties.Width, properties.Height);
 #endif
 		Graphics::GraphicsContext::SetRenderAPI(static_cast<Graphics::RenderAPI>(properties.RenderAPI));
 
@@ -113,8 +113,8 @@ namespace Lumos
 
 		System::JobSystem::Wait();
 
-		m_LayerStack = new LayerStack();
-		PushLayerInternal(new ImGuiLayer(false),true,false);
+		m_LayerStack = lmnew LayerStack();
+		PushLayerInternal(lmnew ImGuiLayer(false),true,false);
 
 		m_SystemManager = std::make_unique<SystemManager>();
 		m_SystemManager->RegisterSystem<AudioManager>(AudioManager::Create());

@@ -87,7 +87,7 @@ namespace Lumos
 
 		T* CreateComponent(Entity* entity)
 		{
-			auto component = new T();
+			auto component = lmnew T();
 			InsertData(entity, component);
 			return component;
 		}

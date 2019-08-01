@@ -19,15 +19,15 @@ namespace Lumos
 
 #ifdef LUMOS_PLATFORM_WINDOWS
 #ifdef LUMOS_USE_GLFW_WINDOWS
-		return new GLFWWindow(properties);
+		return lmnew GLFWWindow(properties);
 #else
-		return new WindowsWindow(properties);
+		return lmnew WindowsWindow(properties);
 
 #endif
 #elif((defined LUMOS_PLATFORM_MACOS || defined LUMOS_PLATFORM_LINUX ))
-		return new GLFWWindow(properties);
+		return lmnew GLFWWindow(properties);
 #elif LUMOS_PLATFORM_MOBILE
-		return new GLFMWindow(properties);
+		return lmnew GLFMWindow(properties);
 #else
 		return nullptr;
 #endif

@@ -8,7 +8,7 @@ namespace Lumos
 
 	void Input::Create()
 	{
-		s_Input = new Input();
+		s_Input = lmnew Input();
 	}
 
 	Input::Input()

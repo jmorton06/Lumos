@@ -136,7 +136,7 @@ namespace Lumos
 			if (!m_RenderPass)
 				return false;
 
-			m_ClearValue = new vk::ClearValue[renderpassCI.attachmentCount];
+			m_ClearValue = lmnew vk::ClearValue[renderpassCI.attachmentCount];
 			m_ClearCount = renderpassCI.attachmentCount;
 			return true;
 		}

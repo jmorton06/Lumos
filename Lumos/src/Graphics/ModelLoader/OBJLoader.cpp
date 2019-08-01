@@ -68,8 +68,8 @@ namespace Lumos
 			u32 vertexCount = 0;
 			const u32 numIndices = static_cast<u32>(shape.mesh.indices.size());
 			const u32 numVertices = numIndices;// attrib.vertices.size();// numIndices / 3.0f;
-			Graphics::Vertex* vertices = new Graphics::Vertex[numVertices];
-			u32* indices = new u32[numIndices];
+			Graphics::Vertex* vertices = lmnew Graphics::Vertex[numVertices];
+			u32* indices = lmnew u32[numIndices];
 
 			std::unordered_map<Graphics::Vertex, uint32_t> uniqueVertices;
 

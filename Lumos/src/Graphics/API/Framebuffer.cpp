@@ -20,13 +20,13 @@ namespace Lumos
 			switch (Graphics::GraphicsContext::GetRenderAPI())
 			{
 #ifdef LUMOS_RENDER_API_OPENGL
-			case RenderAPI::OPENGL: return framebufferInfo.screenFBO ? nullptr : new GLFramebuffer(framebufferInfo); //TODO: REMOVE
+			case RenderAPI::OPENGL: return framebufferInfo.screenFBO ? nullptr : lmnew GLFramebuffer(framebufferInfo); //TODO: REMOVE
 #endif
 #ifdef LUMOS_RENDER_API_VULKAN
-			case RenderAPI::VULKAN:	return new Graphics::VKFramebuffer(framebufferInfo);
+			case RenderAPI::VULKAN:	return lmnew Graphics::VKFramebuffer(framebufferInfo);
 #endif
 #ifdef LUMOS_RENDER_API_DIRECT3D
-			case RenderAPI::DIRECT3D: return new D3DFrameBuffer2D();
+			case RenderAPI::DIRECT3D: return lmnew D3DFrameBuffer2D();
 #endif
 			}
 			return nullptr;

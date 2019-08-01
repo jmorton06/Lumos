@@ -45,12 +45,12 @@ namespace Lumos
 			, m_UniformBuffer(nullptr)
 			, m_ModelUniformBuffer(nullptr)
 		{
-			m_apShadowRenderLists = new RenderList*[SHADOWMAP_MAX];
+			m_apShadowRenderLists = lmnew RenderList*[SHADOWMAP_MAX];
 
 			//Initialize the shadow render lists
 			for (u32 i = 0; i < m_ShadowMapNum; ++i)
 			{
-				m_apShadowRenderLists[i] = new RenderList();
+				m_apShadowRenderLists[i] = lmnew RenderList();
 				if (!RenderList::AllocateNewRenderList(m_apShadowRenderLists[i], true))
 				{
 					LUMOS_CORE_ERROR("Unable to allocate shadow render list {0} - Try using less shadow maps", i);
@@ -103,14 +103,14 @@ namespace Lumos
 		void ShadowRenderer::Init()
 		{
 			m_VSSystemUniformBufferSize = sizeof(Maths::Matrix4) * 16;
-			m_VSSystemUniformBuffer = new u8[m_VSSystemUniformBufferSize];
+			m_VSSystemUniformBuffer = lmnew u8[m_VSSystemUniformBufferSize];
 			memset(m_VSSystemUniformBuffer, 0, m_VSSystemUniformBufferSize);
 			m_VSSystemUniformBufferOffsets.resize(VSSystemUniformIndex_Size);
 
-			m_PushConstant = new Graphics::PushConstant();
+			m_PushConstant = lmnew Graphics::PushConstant();
 			m_PushConstant->type = Graphics::PushConstantDataType::UINT;
 			m_PushConstant->size = sizeof(i32);
-			m_PushConstant->data = new u8[sizeof(i32)];
+			m_PushConstant->data = lmnew u8[sizeof(i32)];
             m_PushConstant->shaderStage = ShaderType::VERTEX;
 
 			// Per Scene System Uniforms
@@ -208,7 +208,7 @@ namespace Lumos
 				}
 				for (u32 i = m_ShadowMapNum; i < num; i++)
 				{
-					m_apShadowRenderLists[i] = new RenderList();
+					m_apShadowRenderLists[i] = lmnew RenderList();
 					RenderList::AllocateNewRenderList(m_apShadowRenderLists[i], true);
 				}
 				m_ShadowMapNum = num;

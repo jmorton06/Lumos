@@ -20,10 +20,10 @@ namespace Lumos
 			switch (Graphics::GraphicsContext::GetRenderAPI())
 			{
 #ifdef LUMOS_RENDER_API_OPENGL
-			case RenderAPI::OPENGL:		return new GLSwapchain(width, height);
+			case RenderAPI::OPENGL:		return lmnew GLSwapchain(width, height);
 #endif
 #ifdef LUMOS_RENDER_API_VULKAN
-			case RenderAPI::VULKAN:		return new VKSwapchain(width, height);
+			case RenderAPI::VULKAN:		return lmnew VKSwapchain(width, height);
 #endif
 			}
 			return nullptr;

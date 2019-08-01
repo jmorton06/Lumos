@@ -32,7 +32,7 @@ namespace Lumos
 			uint32_t currentShaderStage = 0;
 			m_StageCount = 0;
 
-			std::map<ShaderType, String>* files = new std::map<ShaderType, String>();
+			std::map<ShaderType, String>* files = lmnew std::map<ShaderType, String>();
 			PreProcess(m_Source, files);
 
 			for (auto& source : *files)
@@ -41,7 +41,7 @@ namespace Lumos
 				m_StageCount++;
 			}
 
-			m_ShaderStages = new vk::PipelineShaderStageCreateInfo[m_StageCount];
+			m_ShaderStages = lmnew vk::PipelineShaderStageCreateInfo[m_StageCount];
 
 			for (uint32_t i = 0; i < m_StageCount; i++)
                 m_ShaderStages[i] = vk::PipelineShaderStageCreateInfo();

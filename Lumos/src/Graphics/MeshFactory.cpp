@@ -19,7 +19,7 @@ namespace Lumos
 				Maths::Vector2 uv;
 			};
 
-			QuadVertex* data = new QuadVertex[4];
+			QuadVertex* data = lmnew QuadVertex[4];
 
 			data[0].position = Maths::Vector3(x, y, 0.0f);
 			data[0].uv = Maths::Vector2(0.0f, 1.0f);
@@ -56,7 +56,7 @@ namespace Lumos
 			{
 				boundingBox->ExpandToFit(data[i].position);
 			}
-			return new Mesh(va, ib, boundingBox);
+			return lmnew Mesh(va, ib, boundingBox);
 		}
 
 		Mesh* CreateQuad(const Maths::Vector2& position, const Maths::Vector2& size)
@@ -66,7 +66,7 @@ namespace Lumos
 
 		Mesh* CreateQuad()
 		{
-			Vertex* data = new Vertex[4];
+			Vertex* data = lmnew Vertex[4];
 
 			data[0].Position = Maths::Vector3(-1.0f, -1.0f, 0.0f);
 			data[0].TexCoords = Maths::Vector2(0.0f, 0.0f);
@@ -111,7 +111,7 @@ namespace Lumos
 			{
 				boundingSphere->ExpandToFit(data[i].Position);
 			}
-			return new Mesh(va, ib, boundingSphere);
+			return lmnew Mesh(va, ib, boundingSphere);
 		}
 
 		Mesh* CreateCube(float size)
@@ -124,7 +124,7 @@ namespace Lumos
 			//  |/      |/
 			//  v2------v3
 
-			Vertex* data = new Vertex[24];
+			Vertex* data = lmnew Vertex[24];
 
 			data[0].Position = Maths::Vector3(1.0f, 1.0f, 1.0f);
 			data[0].Colours = Maths::Vector4(0.0f);
@@ -281,12 +281,12 @@ namespace Lumos
 			{
 				boundingSphere->ExpandToFit(data[i].Position);
 			}
-			return new Mesh(va, ib, boundingSphere);
+			return lmnew Mesh(va, ib, boundingSphere);
 		}
 
 		Mesh* CreatePyramid(float size)
 		{
-			Vertex* data = new Vertex[18];
+			Vertex* data = lmnew Vertex[18];
 
 			data[0].Position = Maths::Vector3(1.0f, 1.0f, -1.0f);
 			data[0].Colours = Maths::Vector4(0.0f);
@@ -413,7 +413,7 @@ namespace Lumos
 			{
 				boundingSphere->ExpandToFit(data[i].Position);
 			}
-			return new Mesh(va, ib, boundingSphere);
+			return lmnew Mesh(va, ib, boundingSphere);
 		}
 
 		Mesh* CreateSphere(u32 xSegments, u32 ySegments)
@@ -503,7 +503,7 @@ namespace Lumos
 			ib.reset(IndexBuffer::Create(indices.data(), static_cast<u32>(indices.size())));
 			std::shared_ptr<Maths::BoundingSphere> boundingSphere = std::make_shared<Maths::BoundingSphere>();
 
-			return new Mesh(va, ib, boundingSphere);
+			return lmnew Mesh(va, ib, boundingSphere);
 		}
 
 		Mesh* CreateIcoSphere(u32 radius, u32 subdivision, std::shared_ptr<Material> material)
@@ -569,7 +569,7 @@ namespace Lumos
 			{
 				boundingBox->ExpandToFit(data[i].Position);
 			}
-			return new Mesh(va, ib, boundingBox);
+			return lmnew Mesh(va, ib, boundingBox);
 		}
 	}
 }
