@@ -3,7 +3,6 @@
 #import <Cocoa/Cocoa.h>
 #include <QuartzCore/CAMetalLayer.h>
 
-
 #include "Platform/Vulkan/VKDevice.h"
 #include "App/Application.h"
 

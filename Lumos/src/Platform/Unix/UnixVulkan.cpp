@@ -1,4 +1,4 @@
-#if defined(LUMOS_RENDER_API_VULKAN) && !defined(LUMOS_PLATFORM_MACOS)
+#if defined(LUMOS_RENDER_API_VULKAN) && !defined(LUMOS_PLATFORM_MACOS) && !defined(LUMOS_PLATFORM_IOS)
 
 #include "Platform/Vulkan/VKDevice.h"
 #include "App/Application.h"
