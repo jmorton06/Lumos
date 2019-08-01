@@ -243,8 +243,8 @@ namespace Lumos
             const tinygltf::Accessor &indices = model.accessors[primitive.indices];
             
             const u32 numVertices = static_cast<u32>(indices.count);
-			Graphics::Vertex* tempvertices = new Graphics::Vertex[numVertices];
-            u32* indicesArray = new u32[numVertices];
+			Graphics::Vertex* tempvertices = lmnew Graphics::Vertex[numVertices];
+            u32* indicesArray = lmnew u32[numVertices];
             
             size_t maxNumVerts = 0;
             
@@ -390,7 +390,7 @@ namespace Lumos
             std::shared_ptr<Graphics::IndexBuffer> ib;
             ib.reset(Graphics::IndexBuffer::Create(indicesArray, numVertices));
 
-            auto lMesh = new Graphics::Mesh(va, ib, boundingBox);
+            auto lMesh = lmnew Graphics::Mesh(va, ib, boundingBox);
             
             delete[] tempvertices;
             delete[] indicesArray;

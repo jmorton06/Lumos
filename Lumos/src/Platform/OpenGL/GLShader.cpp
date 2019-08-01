@@ -13,7 +13,7 @@ namespace Lumos
 
 		bool GLShader::TryCompile(const String& source, String& error)
 		{
-			std::map<ShaderType, String>* sources = new std::map<ShaderType, String>();
+			std::map<ShaderType, String>* sources = lmnew std::map<ShaderType, String>();
 			GLShader::PreProcess(source, sources);
 
 			GLShaderErrorInfo info;
@@ -68,7 +68,7 @@ namespace Lumos
 
 		void GLShader::Init()
 		{
-			std::map<ShaderType, String>* sources = new std::map<ShaderType, String>();
+			std::map<ShaderType, String>* sources = lmnew std::map<ShaderType, String>();
 			PreProcess(m_Source, sources);
 			Parse(sources);
 
@@ -354,7 +354,7 @@ namespace Lumos
 		{
 			for (auto& source : *sources)
 			{
-				m_UniformBuffers[source.first].push_back(new GLShaderUniformBufferDeclaration("Global", static_cast<u32>(source.first)));
+				m_UniformBuffers[source.first].push_back(lmnew GLShaderUniformBufferDeclaration("Global", static_cast<u32>(source.first)));
 
 				const char* token;
 				const char* str;
@@ -395,7 +395,7 @@ namespace Lumos
 
 			if (IsTypeStringResource(typeString))
 			{
-				ShaderResourceDeclaration* declaration = new GLShaderResourceDeclaration(GLShaderResourceDeclaration::StringToType(typeString), name, count);
+				ShaderResourceDeclaration* declaration = lmnew GLShaderResourceDeclaration(GLShaderResourceDeclaration::StringToType(typeString), name, count);
 				m_Resources.push_back(declaration);
 			}
 			else
@@ -415,13 +415,13 @@ namespace Lumos
 						{
 							ShaderStruct* s = FindStruct(typeString);
 							LUMOS_CORE_ASSERT(s, "");
-							declaration = new GLShaderUniformDeclaration(s, name, count);
+							declaration = lmnew GLShaderUniformDeclaration(s, name, count);
 
 							ISStruct = true;
 						}
 						else
 						{
-							declaration = new GLShaderUniformDeclaration(t, name, count);
+							declaration = lmnew GLShaderUniformDeclaration(t, name, count);
 						}
 
 						if (StartsWith(name, "sys_"))
@@ -432,15 +432,15 @@ namespace Lumos
 						{
 
 							if (m_UserUniformBuffers[type] == nullptr)
-								m_UserUniformBuffers[type] = new GLShaderUniformBufferDeclaration("", 0);
+								m_UserUniformBuffers[type] = lmnew GLShaderUniformBufferDeclaration("", 0);
 
 							if (ISStruct)
 							{
 								for (u32 id = 0; id < static_cast<u32>(count); id++)
 								{
-									GLShaderUniformDeclaration*	test = new GLShaderUniformDeclaration(*declaration);
+									GLShaderUniformDeclaration*	test = lmnew GLShaderUniformDeclaration(*declaration);
 									test->SetName(name + "[" + StringFormat::ToString(id) + "]");
-									test->m_Struct = new ShaderStruct(*declaration->m_Struct);
+									test->m_Struct = lmnew ShaderStruct(*declaration->m_Struct);
 									m_UserUniformBuffers[type]->PushUniform(test);
 								}
 
@@ -466,12 +466,12 @@ namespace Lumos
 					{
 						//ShaderStruct* s = FindStruct(typeString);
 						//LUMOS_CORE_ASSERT(s, "");
-						//declaration = new GLShaderUniformDeclaration(s, name, count);
+						//declaration = lmnew GLShaderUniformDeclaration(s, name, count);
 						return;
 					}
 					else
 					{
-						declaration = new GLShaderUniformDeclaration(t, name, count);
+						declaration = lmnew GLShaderUniformDeclaration(t, name, count);
 					}
 
 					if (StartsWith(name, "sys_"))
@@ -495,7 +495,7 @@ namespace Lumos
 			u32 index = 0;
 			index++; // struct
 			String name = tokens[index++];
-			ShaderStruct* uniformStruct = new ShaderStruct(name);
+			ShaderStruct* uniformStruct = lmnew ShaderStruct(name);
 			index++; // {
 			while (index < tokens.size())
 			{
@@ -520,7 +520,7 @@ namespace Lumos
 					count = atoi(c.c_str());
 				}
 
-				ShaderUniformDeclaration* field = new GLShaderUniformDeclaration(GLShaderUniformDeclaration::StringToType(type, count), name, count);
+				ShaderUniformDeclaration* field = lmnew GLShaderUniformDeclaration(GLShaderUniformDeclaration::StringToType(type, count), name, count);
 				uniformStruct->AddField(field);
 			}
 			m_Structs.push_back(uniformStruct);
@@ -636,7 +636,7 @@ namespace Lumos
 				{
 					resource->m_Register = 0;
 					u32 count = resource->GetCount();
-					i32* samplers = new i32[count];
+					i32* samplers = lmnew i32[count];
 					for (u32 s = 0; s < count; s++)
 						samplers[s] = s;
 					SetUniform1iv(resource->GetName(), samplers, count);

@@ -12,7 +12,7 @@ void Lumos::EntityManager::Clear()
 
 Lumos::Entity* Lumos::EntityManager::CreateEntity(const String& name)
 {
-	auto entity = new Entity(name);
+	auto entity = lmnew Entity(name);
 	m_Entities.emplace_back(entity);
 	return entity;
 }

@@ -39,7 +39,7 @@ namespace Lumos
 
 	Maths::BoundingBox* ParticleEmitter::CalculateBoundingBox() const
 	{
-		Maths::BoundingBox* box = new Maths::BoundingBox();
+		Maths::BoundingBox* box = lmnew Maths::BoundingBox();
 
 		Maths::Vector3 vel = m_InitialVelocity + Maths::Vector3(m_VelocityVarianceX.GetY(), m_VelocityVarianceY.GetY(), m_VelocityVarianceZ.GetY());
 		Maths::Vector3 pos = m_Position + Maths::Vector3(m_PositionVarianceX.GetY(), m_PositionVarianceY.GetY(), m_PositionVarianceZ.GetY());

@@ -79,7 +79,7 @@ namespace Lumos
 			m_TransformationBack = &m_TransformationStack.back();
 
 			m_VSSystemUniformBufferSize = sizeof(Maths::Matrix4);
-			m_VSSystemUniformBuffer = new u8[m_VSSystemUniformBufferSize];
+			m_VSSystemUniformBuffer = lmnew u8[m_VSSystemUniformBufferSize];
 
 			m_RenderPass = Graphics::RenderPass::Create();
 			m_UniformBuffer = Graphics::UniformBuffer::Create();
@@ -158,7 +158,7 @@ namespace Lumos
 				vertexArray->PushBuffer(buffer);
 			}
 
-			u32* indices = new u32[RENDERER_INDICES_SIZE];
+			u32* indices = lmnew u32[RENDERER_INDICES_SIZE];
 
 			i32 offset = 0;
 			for (i32 i = 0; i < RENDERER_INDICES_SIZE; i += 6)

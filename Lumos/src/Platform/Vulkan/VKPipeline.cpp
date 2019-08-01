@@ -100,7 +100,7 @@ namespace Lumos
 			info.layoutIndex = 0;
             info.shader = pipelineCI.shader;
 
-			m_DescriptorSet = new VKDescriptorSet(info);
+			m_DescriptorSet = lmnew VKDescriptorSet(info);
 
 			// Pipeline
 			vk::DynamicState dynamicStateEnables[VK_DYNAMIC_STATE_RANGE_SIZE];

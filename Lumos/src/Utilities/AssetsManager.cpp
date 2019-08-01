@@ -13,8 +13,8 @@ namespace Lumos
 
 	void AssetsManager::InitializeMeshes()
 	{
-		s_DefaultModels   = new AssetManager<Graphics::Mesh>();
-		s_DefaultTextures = new AssetManager<Graphics::Texture2D>();
+		s_DefaultModels   = lmnew AssetManager<Graphics::Mesh>();
+		s_DefaultTextures = lmnew AssetManager<Graphics::Texture2D>();
 
         s_DefaultModels->AddAsset("Cube", std::shared_ptr<Graphics::Mesh>(Graphics::CreateCube(2.0f)));
         s_DefaultModels->AddAsset("Pyramid", std::shared_ptr<Graphics::Mesh>(Graphics::CreatePyramid(1.0f)));

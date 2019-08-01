@@ -41,10 +41,10 @@ namespace Lumos
 			switch (Graphics::GraphicsContext::GetRenderAPI())
 			{
 #ifdef LUMOS_RENDER_API_OPENGL
-			case RenderAPI::OPENGL:		return new GLTexture2D();
+			case RenderAPI::OPENGL:		return lmnew GLTexture2D();
 #endif
 #ifdef LUMOS_RENDER_API_VULKAN
-			case RenderAPI::VULKAN:		return new VKTexture2D();
+			case RenderAPI::VULKAN:		return lmnew VKTexture2D();
 #endif
 			}
 			return nullptr;
@@ -55,10 +55,10 @@ namespace Lumos
 			switch (Graphics::GraphicsContext::GetRenderAPI())
 			{
 #ifdef LUMOS_RENDER_API_OPENGL
-			case RenderAPI::OPENGL:		return new GLTexture2D(width, height, data, parameters, loadOptions);
+			case RenderAPI::OPENGL:		return lmnew GLTexture2D(width, height, data, parameters, loadOptions);
 #endif
 #ifdef LUMOS_RENDER_API_VULKAN
-			case RenderAPI::VULKAN:		return new VKTexture2D(width, height, data, parameters, loadOptions);
+			case RenderAPI::VULKAN:		return lmnew VKTexture2D(width, height, data, parameters, loadOptions);
 #endif
 			}
 			return nullptr;
@@ -69,10 +69,10 @@ namespace Lumos
 			switch (Graphics::GraphicsContext::GetRenderAPI())
 			{
 #ifdef LUMOS_RENDER_API_OPENGL
-			case RenderAPI::OPENGL:	return new GLTexture2D(name, filepath, parameters, loadOptions);
+			case RenderAPI::OPENGL:	return lmnew GLTexture2D(name, filepath, parameters, loadOptions);
 #endif 
 #ifdef LUMOS_RENDER_API_VULKAN
-			case RenderAPI::VULKAN:	return new VKTexture2D(name, filepath, parameters, loadOptions);
+			case RenderAPI::VULKAN:	return lmnew VKTexture2D(name, filepath, parameters, loadOptions);
 #endif
 			}
 			return nullptr;
@@ -83,13 +83,13 @@ namespace Lumos
 			switch (Graphics::GraphicsContext::GetRenderAPI())
 			{
 #ifdef LUMOS_RENDER_API_OPENGL
-			case RenderAPI::OPENGL:		return new GLTextureCube(size);
+			case RenderAPI::OPENGL:		return lmnew GLTextureCube(size);
 #endif
 #ifdef LUMOS_RENDER_API_DIRECT3D
-			case RenderAPI::DIRECT3D:	return new D3DTextureCube(size);
+			case RenderAPI::DIRECT3D:	return lmnew D3DTextureCube(size);
 #endif
 #ifdef LUMOS_RENDER_API_VULKAN
-			case RenderAPI::VULKAN:		return new VKTextureCube(size);
+			case RenderAPI::VULKAN:		return lmnew VKTextureCube(size);
 #endif
 			}
 			return nullptr;
@@ -100,13 +100,13 @@ namespace Lumos
 			switch (Graphics::GraphicsContext::GetRenderAPI())
 			{
 #ifdef LUMOS_RENDER_API_OPENGL
-			case RenderAPI::OPENGL:		return new GLTextureCube(filepath, filepath);
+			case RenderAPI::OPENGL:		return lmnew GLTextureCube(filepath, filepath);
 #endif
 #ifdef LUMOS_RENDER_API_DIRECT3D
-			case RenderAPI::DIRECT3D:	return new D3DTextureCube(filepath, filepath);
+			case RenderAPI::DIRECT3D:	return lmnew D3DTextureCube(filepath, filepath);
 #endif
 #ifdef LUMOS_RENDER_API_VULKAN
-			case RenderAPI::VULKAN:		return new VKTextureCube(filepath, filepath);
+			case RenderAPI::VULKAN:		return lmnew VKTextureCube(filepath, filepath);
 #endif
 			}
 			return nullptr;
@@ -117,13 +117,13 @@ namespace Lumos
 			switch (Graphics::GraphicsContext::GetRenderAPI())
 			{
 #ifdef LUMOS_RENDER_API_OPENGL
-			case RenderAPI::OPENGL:		return new GLTextureCube(files[0], files);
+			case RenderAPI::OPENGL:		return lmnew GLTextureCube(files[0], files);
 #endif
 #ifdef LUMOS_RENDER_API_DIRECT3D
-			case RenderAPI::DIRECT3D:	return new D3DTextureCube(files[0], files);
+			case RenderAPI::DIRECT3D:	return lmnew D3DTextureCube(files[0], files);
 #endif
 #ifdef LUMOS_RENDER_API_VULKAN
-			case RenderAPI::VULKAN:		return new VKTextureCube(files[0], files);
+			case RenderAPI::VULKAN:		return lmnew VKTextureCube(files[0], files);
 #endif
 			}
 			return nullptr;
@@ -134,13 +134,13 @@ namespace Lumos
 			switch (Graphics::GraphicsContext::GetRenderAPI())
 			{
 #ifdef LUMOS_RENDER_API_OPENGL
-			case RenderAPI::OPENGL:		return new GLTextureCube(files[0], files, mips, InputFormat::VERTICAL_CROSS);
+			case RenderAPI::OPENGL:		return lmnew GLTextureCube(files[0], files, mips, InputFormat::VERTICAL_CROSS);
 #endif
 #ifdef LUMOS_RENDER_API_DIRECT3D
-			case RenderAPI::DIRECT3D:	return new D3DTextureCube(files[0], files, mips, InputFormat::VERTICAL_CROSS);
+			case RenderAPI::DIRECT3D:	return lmnew D3DTextureCube(files[0], files, mips, InputFormat::VERTICAL_CROSS);
 #endif
 #ifdef LUMOS_RENDER_API_VULKAN
-			case RenderAPI::VULKAN:		return new VKTextureCube(files[0], files, mips, InputFormat::VERTICAL_CROSS);
+			case RenderAPI::VULKAN:		return lmnew VKTextureCube(files[0], files, mips, InputFormat::VERTICAL_CROSS);
 #endif
 			}
 			return nullptr;
@@ -151,13 +151,13 @@ namespace Lumos
 			switch (Graphics::GraphicsContext::GetRenderAPI())
 			{
 #ifdef LUMOS_RENDER_API_OPENGL
-			case RenderAPI::OPENGL:		return new GLTextureDepth(width, height);
+			case RenderAPI::OPENGL:		return lmnew GLTextureDepth(width, height);
 #endif
 #ifdef LUMOS_RENDER_API_VULKAN
-			case RenderAPI::VULKAN:		return new VKTextureDepth(width, height);
+			case RenderAPI::VULKAN:		return lmnew VKTextureDepth(width, height);
 #endif
 #ifdef LUMOS_RENDER_API_DIRECT3D
-			case RenderAPI::DIRECT3D:	return new D3DTextureDepth(width, height);
+			case RenderAPI::DIRECT3D:	return lmnew D3DTextureDepth(width, height);
 #endif
 			}
 			return nullptr;
@@ -168,13 +168,13 @@ namespace Lumos
 			switch (Graphics::GraphicsContext::GetRenderAPI())
 			{
 #ifdef LUMOS_RENDER_API_OPENGL
-			case RenderAPI::OPENGL:		return new GLTextureDepthArray(width, height, count);
+			case RenderAPI::OPENGL:		return lmnew GLTextureDepthArray(width, height, count);
 #endif
 #ifdef LUMOS_RENDER_API_DIRECT3D
-			case RenderAPI::DIRECT3D:	return new D3DTextureDepthArray(width, height, count);
+			case RenderAPI::DIRECT3D:	return lmnew D3DTextureDepthArray(width, height, count);
 #endif
 #ifdef LUMOS_RENDER_API_VULKAN
-			case RenderAPI::VULKAN:     return new VKTextureDepthArray(width, height, count);
+			case RenderAPI::VULKAN:     return lmnew VKTextureDepthArray(width, height, count);
 #endif
 			}
 			return nullptr;

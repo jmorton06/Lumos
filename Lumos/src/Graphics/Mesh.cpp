@@ -72,7 +72,7 @@ namespace Lumos
 
 		Maths::Vector3* Mesh::GenerateNormals(u32 numVertices, Maths::Vector3* vertices, u32* indices, u32 numIndices)
 		{
-			Maths::Vector3* normals = new Maths::Vector3[numVertices];
+			Maths::Vector3* normals = lmnew Maths::Vector3[numVertices];
 
 			for (u32 i = 0; i < numVertices; ++i)
 			{
@@ -129,7 +129,7 @@ namespace Lumos
 				return nullptr;
 			}
 
-			Maths::Vector3* tangents = new Maths::Vector3[numVertices];
+			Maths::Vector3* tangents = lmnew Maths::Vector3[numVertices];
 
 			for (u32 i = 0; i < numVertices; ++i)
 			{

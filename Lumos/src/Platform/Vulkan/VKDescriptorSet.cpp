@@ -129,7 +129,7 @@ namespace Lumos
 		void VKDescriptorSet::Update(std::vector<BufferInfo>& bufferInfos)
 		{
 			std::vector<vk::WriteDescriptorSet> descriptorWrites;
-			vk::DescriptorBufferInfo* buffersInfo = new vk::DescriptorBufferInfo[bufferInfos.size()];
+			vk::DescriptorBufferInfo* buffersInfo = lmnew vk::DescriptorBufferInfo[bufferInfos.size()];
 
 			m_Dynamic = false;
 
@@ -169,7 +169,7 @@ namespace Lumos
 
 			for (auto& imageInfo : imageInfos)
 			{
-                vk::DescriptorImageInfo* imageInfos = new vk::DescriptorImageInfo[imageInfo.count];
+                vk::DescriptorImageInfo* imageInfos = lmnew vk::DescriptorImageInfo[imageInfo.count];
                 allocatedArrays.emplace_back(imageInfos);
 				descriptorWrites.push_back(ImageInfoToVK2(imageInfo,imageInfos));
 			}
@@ -191,7 +191,7 @@ namespace Lumos
 
 			for (auto& imageInfo : imageInfos)
 			{
-                vk::DescriptorImageInfo* imageInfos = new vk::DescriptorImageInfo[imageInfo.count];
+                vk::DescriptorImageInfo* imageInfos = lmnew vk::DescriptorImageInfo[imageInfo.count];
                 allocatedArrays.emplace_back(imageInfos);
 				descriptorWrites.push_back(ImageInfoToVK2(imageInfo,imageInfos));
 			}

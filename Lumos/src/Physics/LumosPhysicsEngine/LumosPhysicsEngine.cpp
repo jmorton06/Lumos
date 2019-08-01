@@ -289,7 +289,7 @@ namespace Lumos
 					{
 						// Build full collision manifold that will also handle the collision
 						// response between the two objects in the solver stage
-						Manifold* manifold = new Manifold();
+						Manifold* manifold = lmnew Manifold();
 						manifold->Initiate(cp.pObjectA, cp.pObjectB);
 
 						// Construct contact points that form the perimeter of the collision manifold

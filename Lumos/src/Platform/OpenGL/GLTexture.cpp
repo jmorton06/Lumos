@@ -258,12 +258,12 @@ namespace Lumos
 		u32 GLTextureCube::LoadFromVCross(u32 mips)
 		{
 			u32 srcWidth, srcHeight, bits;
-			u8*** cubeTextureData = new u8**[mips];
+			u8*** cubeTextureData = lmnew u8**[mips];
 			for (u32 i = 0; i < mips; i++)
-				cubeTextureData[i] = new u8*[6];
+				cubeTextureData[i] = lmnew u8*[6];
 
-			u32* faceWidths = new u32[mips];
-			u32* faceHeights = new u32[mips];
+			u32* faceWidths = lmnew u32[mips];
+			u32* faceHeights = lmnew u32[mips];
 
 			for (u32 m = 0; m < mips; m++)
 			{
@@ -286,7 +286,7 @@ namespace Lumos
 								continue;
 						}
 
-						cubeTextureData[m][face] = new u8[faceWidth * faceHeight * stride];
+						cubeTextureData[m][face] = lmnew u8[faceWidth * faceHeight * stride];
 
 						for (u32 y = 0; y < faceHeight; y++)
 						{

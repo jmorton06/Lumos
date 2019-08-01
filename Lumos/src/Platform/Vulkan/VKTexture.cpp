@@ -311,7 +311,7 @@ namespace Lumos
 
 			m_MipLevels = static_cast<uint32_t>(std::floor(std::log2(Maths::Max(texWidth, texHeight)))) + 1;
 
-			VKBuffer* stagingBuffer = new VKBuffer(vk::BufferUsageFlagBits::eTransferSrc, static_cast<u32>(imageSize), pixels);
+			VKBuffer* stagingBuffer = lmnew VKBuffer(vk::BufferUsageFlagBits::eTransferSrc, static_cast<u32>(imageSize), pixels);
 
 			if (m_Data == nullptr)
 				delete[] pixels;
@@ -486,12 +486,12 @@ namespace Lumos
 		void VKTextureCube::Load(u32 mips)
 		{
 			u32 srcWidth, srcHeight, bits;
-			u8*** cubeTextureData = new u8**[mips];
+			u8*** cubeTextureData = lmnew u8**[mips];
 			for (u32 i = 0; i < mips; i++)
-				cubeTextureData[i] = new u8*[6];
+				cubeTextureData[i] = lmnew u8*[6];
 
-			u32* faceWidths = new u32[mips];
-			u32* faceHeights = new u32[mips];
+			u32* faceWidths = lmnew u32[mips];
+			u32* faceHeights = lmnew u32[mips];
 			u32 size = 0;
 
 			for (u32 m = 0; m < mips; m++)
@@ -515,7 +515,7 @@ namespace Lumos
 								continue;
 						}
 
-						cubeTextureData[m][face] = new u8[faceWidth * faceHeight * stride];
+						cubeTextureData[m][face] = lmnew u8[faceWidth * faceHeight * stride];
 
 						size += stride * srcHeight * srcWidth;
 
@@ -544,7 +544,7 @@ namespace Lumos
 				delete[] data;
 			}
 
-			u8* allData = new u8[size];
+			u8* allData = lmnew u8[size];
 			u32 pointeroffset = 0;
 
 			u32 faceOrder[6] = { 3, 1, 0, 4, 2, 5 };
@@ -559,7 +559,7 @@ namespace Lumos
 				}
 			}
 
-			VKBuffer* stagingBuffer = new VKBuffer(vk::BufferUsageFlagBits::eTransferSrc, static_cast<u32>(size), allData);
+			VKBuffer* stagingBuffer = lmnew VKBuffer(vk::BufferUsageFlagBits::eTransferSrc, static_cast<u32>(size), allData);
 
 			if (m_Data == nullptr)
 			{

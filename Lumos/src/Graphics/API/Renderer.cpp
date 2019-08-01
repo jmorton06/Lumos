@@ -27,14 +27,14 @@ namespace Lumos
 			switch (Graphics::GraphicsContext::GetRenderAPI())
 			{
 #ifdef LUMOS_RENDER_API_OPENGL
-			case RenderAPI::OPENGL:	s_Instance = new GLRenderer(width, height); break;
+			case RenderAPI::OPENGL:	s_Instance = lmnew GLRenderer(width, height); break;
 #endif
 
 #ifdef LUMOS_RENDER_API_VULKAN
-			case RenderAPI::VULKAN: s_Instance = new Graphics::VKRenderer(width, height); break;
+			case RenderAPI::VULKAN: s_Instance = lmnew Graphics::VKRenderer(width, height); break;
 #endif
 #ifdef LUMOS_RENDER_API_DIRECT3D
-			case RenderAPI::DIRECT3D: s_Instance = new D3DRenderer(width, height); break;
+			case RenderAPI::DIRECT3D: s_Instance = lmnew D3DRenderer(width, height); break;
 #endif
 			}
 			s_Instance->InitInternal();

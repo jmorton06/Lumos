@@ -6,7 +6,7 @@ namespace Lumos
 
 	TimeManager::TimeManager()
 	{
-		timer = new Timer();
+		timer = lmnew Timer();
 		m_milliSeconds = 0.0f;
 		m_seconds = 0.0f;
 		m_minutes = 0;

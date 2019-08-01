@@ -81,7 +81,7 @@ namespace Lumos
 		void DeferredOffScreenRenderer::Init()
 		{
 			m_Shader = Shader::CreateFromFile("DeferredColour", "/CoreShaders/");
-			m_DefaultMaterial = new Material();
+			m_DefaultMaterial = lmnew Material();
 
 			MaterialProperties properties;
 			properties.albedoColour = Maths::Vector4(1.0f);
@@ -102,7 +102,7 @@ namespace Lumos
 			// Vertex shader System uniforms
 			//
 			m_VSSystemUniformBufferSize = sizeof(Maths::Matrix4);
-			m_VSSystemUniformBuffer = new u8[m_VSSystemUniformBufferSize];
+			m_VSSystemUniformBuffer = lmnew u8[m_VSSystemUniformBufferSize];
 			memset(m_VSSystemUniformBuffer, 0, m_VSSystemUniformBufferSize);
 			m_VSSystemUniformBufferOffsets.resize(VSSystemUniformIndex_Size);
 

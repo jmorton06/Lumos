@@ -22,13 +22,13 @@ namespace Lumos
 			switch (GraphicsContext::GetRenderAPI())
 			{
 #ifdef LUMOS_RENDER_API_OPENGL
-			case RenderAPI::OPENGL:		return new GLVertexArray();
+			case RenderAPI::OPENGL:		return lmnew GLVertexArray();
 #endif
 #ifdef LUMOS_RENDER_API_VULKAN
-			case RenderAPI::VULKAN:		return new VKVertexArray();
+			case RenderAPI::VULKAN:		return lmnew VKVertexArray();
 #endif
 #ifdef LUMOS_RENDER_API_DIRECT3D
-			case RenderAPI::DIRECT3D:	return new D3DVertexArray();
+			case RenderAPI::DIRECT3D:	return lmnew D3DVertexArray();
 #endif
 			}
 			return nullptr;

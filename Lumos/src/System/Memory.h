@@ -25,15 +25,79 @@ namespace Lumos::Memory
 #endif
 	}
 
-	void* NewFunc(std::size_t size, const char *file, int line);
-	void DeleteFunc(void* p);
+	LUMOS_EXPORT void* NewFunc(std::size_t size, const char *file, int line);
+	LUMOS_EXPORT void DeleteFunc(void* p);
 	LUMOS_EXPORT void LogMemoryInformation();
 }
 
-//#define LUMOS_LEAK_CHECK
+#define lmnew		new(__FILE__, __LINE__)
+#define lmdel		delete
 
-#ifdef LUMOS_LEAK_CHECK
-extern const char* __file__;
-extern size_t __line__;
-#define new (__file__=__FILE__,__line__=__LINE__) && 0 ? NULL : new
-#endif
+#pragma warning(disable : 4595)
+
+inline void* operator new(std::size_t size)
+{
+	void* result = Lumos::Memory::NewFunc(size, __FILE__, __LINE__);
+	if (result == nullptr)
+	{
+		throw std::bad_alloc();
+	}
+	return result;
+}
+
+inline void* operator new(std::size_t size, const char *file, int line)
+{
+	void* result = Lumos::Memory::NewFunc(size, file, line);
+	if (result == nullptr)
+	{
+		throw std::bad_alloc();
+	}
+	return result;
+}
+
+inline void* operator new[](std::size_t size, const char *file, int line)
+{
+	void* result = Lumos::Memory::NewFunc(size, file, line);
+	if (result == nullptr)
+	{
+		throw std::bad_alloc();
+	}
+	return result;
+}
+
+inline void* operator new (std::size_t size, const std::nothrow_t& nothrow_value) noexcept
+{
+	return Lumos::Memory::NewFunc(size, __FILE__, __LINE__);
+}
+
+inline void operator delete(void * p) throw()
+{
+	Lumos::Memory::DeleteFunc(p);
+}
+
+inline void* operator new[](std::size_t size)
+{
+	void* result = Lumos::Memory::NewFunc(size, __FILE__, __LINE__);
+	if (result == nullptr)
+	{
+		throw std::bad_alloc();
+	}
+	return result;
+}
+
+inline void operator delete[](void *p) throw()
+{
+	Lumos::Memory::DeleteFunc(p);
+}
+
+inline void operator delete(void* block, const char* file, int line)
+{
+	Lumos::Memory::DeleteFunc(block);
+}
+
+inline void operator delete[](void* block, const char* file, int line)
+{
+	Lumos::Memory::DeleteFunc(block);
+}
+
+#pragma warning(default : 4595)

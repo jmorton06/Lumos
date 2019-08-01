@@ -72,7 +72,7 @@ namespace Lumos
 			delete m_Pipeline;
 			delete m_ScreenQuad;
 			delete m_DescriptorSet;
-            delete m_OffScreenRenderer;
+			lmdel m_OffScreenRenderer;
 
 			delete[] m_PSSystemUniformBuffer;
 			for (auto& commandBuffer : m_CommandBuffers)
@@ -90,7 +90,7 @@ namespace Lumos
 
 		void DeferredRenderer::Init()
 		{
-			m_OffScreenRenderer = new DeferredOffScreenRenderer(m_ScreenBufferWidth, m_ScreenBufferHeight);
+			m_OffScreenRenderer = lmnew DeferredOffScreenRenderer(m_ScreenBufferWidth, m_ScreenBufferHeight);
 
 			m_Shader = Shader::CreateFromFile("DeferredLight", "/CoreShaders/");
 
@@ -109,7 +109,7 @@ namespace Lumos
 			
 			// Pixel/fragment shader System uniforms
 			m_PSSystemUniformBufferSize = sizeof(Light) * MAX_LIGHTS + sizeof(Maths::Vector4) + sizeof(Maths::Matrix4) + (sizeof(Maths::Matrix4) + sizeof(Maths::Vector4))* MAX_SHADOWMAPS + sizeof(int) * 4;
-			m_PSSystemUniformBuffer = new u8[m_PSSystemUniformBufferSize];
+			m_PSSystemUniformBuffer = lmnew u8[m_PSSystemUniformBufferSize];
 			memset(m_PSSystemUniformBuffer, 0, m_PSSystemUniformBufferSize);
 			m_PSSystemUniformBufferOffsets.resize(PSSystemUniformIndex_Size);
 
