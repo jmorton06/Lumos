@@ -64,4 +64,4 @@ namespace Lumos
     }
 }
 #define LUMOS_TYPENAME(T) GetTypename<T>()
-#endif()
+#endif
