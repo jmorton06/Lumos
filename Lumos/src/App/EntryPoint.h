@@ -1,6 +1,6 @@
 #pragma once
 
-#if defined(LUMOS_PLATFORM_MACOS) || defined(LUMOS_PLATFORM_LINUX) || defined(LUMOS_PLATFORM_WINDOWS)
+#if defined(LUMOS_PLATFORM_LINUX) || defined(LUMOS_PLATFORM_WINDOWS)
 
 #include "System/CoreSystem.h"
 
@@ -16,6 +16,23 @@ int main(int argc, char** argv)
 	delete app;
 
 	Lumos::Internal::CoreSystem::Shutdown();
+}
+
+#elif defined(LUMOS_PLATFORM_MACOS)
+
+#include "Core/OS.h"
+
+int main(int argc, char** argv)
+{
+    Lumos::Internal::CoreSystem::Init();
+    
+    Lumos::CreateApplication();
+    
+    Lumos::OS::Create();
+    Lumos::OS::Instance()->Run();
+    Lumos::OS::Release();
+    
+    Lumos::Internal::CoreSystem::Shutdown();
 }
 
 #elif defined(LUMOS_PLATFORM_IOS)

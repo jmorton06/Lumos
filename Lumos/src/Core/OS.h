@@ -7,7 +7,7 @@ namespace Lumos
     {
     public:
         OS() {}
-        ~OS() {}
+        virtual ~OS() {}
 
         virtual void Run() = 0;
     
