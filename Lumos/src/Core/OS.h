@@ -3,6 +3,15 @@
 
 namespace Lumos
 {
+    enum PowerState
+    {
+        POWERSTATE_UNKNOWN,
+        POWERSTATE_ON_BATTERY,
+        POWERSTATE_NO_BATTERY,
+        POWERSTATE_CHARGING,
+        POWERSTATE_CHARGED
+    };
+    
     class LUMOS_EXPORT OS
     {
     public:
@@ -15,6 +24,7 @@ namespace Lumos
         static void Release();
 
         static OS* Instance() { return s_Instance; }
+        static String PowerStateToString(PowerState state);
 
     private:
 

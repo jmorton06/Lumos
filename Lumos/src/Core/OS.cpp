@@ -34,4 +34,29 @@ namespace Lumos
     {
         lmdel s_Instance;
     }
+    
+    String OS::PowerStateToString(PowerState state)
+    {
+        switch (state)
+        {
+            case POWERSTATE_UNKNOWN:
+                return String("Unknown");
+                break;
+            case POWERSTATE_NO_BATTERY:
+                return String("No Battery");
+                break;
+            case POWERSTATE_CHARGED:
+                return String("Charged");
+                break;
+            case POWERSTATE_CHARGING:
+                return String("Charging");
+                break;
+            case POWERSTATE_ON_BATTERY:
+                return String("On Battery");
+                break;
+            default:
+                return String("Error");
+                break;
+        }
+    }
 }
