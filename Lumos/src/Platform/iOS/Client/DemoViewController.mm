@@ -7,16 +7,12 @@
 
 #import "DemoViewController.h"
 
-#include "../Lumos/src/App/EntryPoint.h"
-
-
-const std::string iosApp::getAssetPath() {
-    return [NSBundle.mainBundle.resourcePath stringByAppendingString: @"/"].UTF8String;
-}
-
+#include "../iOSOS.h"
 
 #pragma mark -
 #pragma mark DemoViewController
+
+static Lumos::iOSOS* os;
 
 @implementation DemoViewController {
     CADisplayLink* _displayLink;
@@ -29,8 +25,8 @@ const std::string iosApp::getAssetPath() {
 
     self.view.contentScaleFactor = UIScreen.mainScreen.nativeScale;
 
-    iosApp::Init();
-    iosApp::SetIOSView(self.view);
+    os = new Lumos::iOSOS();
+    os->SetIOSView(self.view);
 
     uint32_t fps = 60;
     _displayLink = [CADisplayLink displayLinkWithTarget: self selector: @selector(renderFrame)];
@@ -55,11 +51,12 @@ const std::string iosApp::getAssetPath() {
 -(BOOL) canBecomeFirstResponder { return _viewHasAppeared; }
 
 -(void) renderFrame {
-    iosApp::OnFrame();
+    os->OnFrame();
 }
 
 -(void) dealloc {
-    iosApp::Quit();
+    os->OnQuit();
+    delete os;
     [super dealloc];
 }
 
@@ -81,7 +78,7 @@ const std::string iosApp::getAssetPath() {
 
 // Handle keyboard input
 -(void) handleKeyboardInput: (unichar) keycode {
-    iosApp::OnKeyPressed();
+    os->OnKeyPressed((u32)keycode);
 }
 
 
