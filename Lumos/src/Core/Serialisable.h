@@ -19,5 +19,4 @@ namespace Lumos
 	{
 		return Serialise()["typeID"] == LUMOS_TYPENAME(T);
 	}
-	
 }

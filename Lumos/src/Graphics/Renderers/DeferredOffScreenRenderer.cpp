@@ -109,7 +109,6 @@ namespace Lumos
 			// Per Scene System Uniforms
 			m_VSSystemUniformBufferOffsets[VSSystemUniformIndex_ProjectionViewMatrix] = 0;
 
-
 			m_RenderPass = Graphics::RenderPass::Create();
 
 			AttachmentInfo textureTypesOffScreen[5] = 
