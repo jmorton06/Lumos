@@ -24,11 +24,11 @@ namespace Lumos
 #define LUMOS_CORE_INFO(...)     ::Lumos::LMLog::GetCoreLogger()->info(__VA_ARGS__)
 #define LUMOS_CORE_WARN(...)     ::Lumos::LMLog::GetCoreLogger()->warn(__VA_ARGS__)
 #define LUMOS_CORE_ERROR(...)    ::Lumos::LMLog::GetCoreLogger()->error(__VA_ARGS__)
-#define LUMOS_CORE_FATAL(...)    ::Lumos::LMLog::GetCoreLogger()->fatal(__VA_ARGS__)
+#define LUMOS_CORE_CRITICAL(...) ::Lumos::LMLog::GetCoreLogger()->critical(__VA_ARGS__)
 
 // Client log macros
 #define LUMOS_TRACE(...)         ::Lumos::LMLog::GetClientLogger()->trace(__VA_ARGS__)
 #define LUMOS_INFO(...)          ::Lumos::LMLog::GetClientLogger()->info(__VA_ARGS__)
 #define LUMOS_WARN(...)          ::Lumos::LMLog::GetClientLogger()->warn(__VA_ARGS__)
 #define LUMOS_ERROR(...)         ::Lumos::LMLog::GetClientLogger()->error(__VA_ARGS__)
-#define LUMOS_FATAL(...)         ::Lumos::LMLog::GetClientLogger()->fatal(__VA_ARGS__)
+#define LUMOS_CRITICAL(...)      ::Lumos::LMLog::GetClientLogger()->critical(__VA_ARGS__)
