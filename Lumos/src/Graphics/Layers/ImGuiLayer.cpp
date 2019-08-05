@@ -193,14 +193,26 @@ namespace Lumos
 		ImGuiIO& io = ImGui::GetIO();
 		std::string physicalPath;
 
-#if 0
+#if 1
 		std::string filePath = "/CoreTextures/Roboto-Medium.ttf";
 		
 		if (!VFS::Get()->ResolvePhysicalPath(filePath, physicalPath))
 			LUMOS_CORE_ERROR("Failed to Load font {0}", filePath);
 
 		filePath = physicalPath;
-		io.Fonts->AddFontFromFileTTF(filePath.c_str(), 16.0f);
+        
+        static const ImWchar icons_ranges[] = { ICON_MIN_FA, ICON_MAX_FA, 0 };
+        ImFontConfig icons_config;
+        icons_config.MergeMode = false;
+        icons_config.PixelSnapH = true;
+        icons_config.OversampleH = 2;
+        icons_config.OversampleV = 1;
+        icons_config.GlyphOffset.y -= 1.0f;      // Move everything by 1 pixels up
+        icons_config.GlyphExtraSpacing.x = 1.0f; // Increase spacing between characters
+        icons_config.OversampleH = icons_config.OversampleV = 1;
+        icons_config.PixelSnapH = true;
+        
+        io.Fonts->AddFontFromFileTTF(filePath.c_str(), 16.0f, &icons_config);// icons_ranges);
 		io.IniFilename = nullptr;
 
 #else
@@ -211,10 +223,19 @@ namespace Lumos
 		VFS::Get()->ResolvePhysicalPath("/CoreFonts/fa-solid-900.ttf", physicalPath);
 
 		// merge in icons from Font Awesome
-		static const ImWchar icons_ranges[] = { ICON_MIN_FA, ICON_MAX_FA, 0 };
-		ImFontConfig icons_config;
 		icons_config.MergeMode = true;
 		icons_config.PixelSnapH = true;
+      	icons_config.OversampleH = 2;
+      	icons_config.OversampleV = 1;
+      	icons_config.GlyphOffset.y -= 1.0f;      // Move everything by 1 pixels up
+      	icons_config.GlyphExtraSpacing.x = 1.0f; // Increase spacing between characters
+        icons_config.OversampleH = icons_config.OversampleV = 1;
+        icons_config.PixelSnapH = true;
+        //if (icons_config.SizePixels <= 0.0f)
+            icons_config.SizePixels = 13.0f * 1.0f;
+     
+       // const ImWchar* glyph_ranges = font_cfg.GlyphRanges != NULL ? font_cfg.GlyphRanges : GetGlyphRangesDefault();
+        
 		io.Fonts->AddFontFromFileTTF(physicalPath.c_str(), 16.0f, &icons_config, icons_ranges);
 
         ImGuiStyle & style = ImGui::GetStyle();
