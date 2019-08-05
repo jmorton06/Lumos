@@ -21,10 +21,8 @@ namespace Lumos
 			inline VertexBuffer* GetBuffer(u32 index = 0) override;
 			void PushBuffer(VertexBuffer* buffer) override;
 
-			void Bind() const override;
+			void Bind(CommandBuffer* commandBuffer) const override;
 			void Unbind() const override;
-
-			void Draw(u32 count) const override;
 
 			const std::vector<vk::Buffer>& GetVKBuffers() const { return m_VKBuffers; }
 			const std::vector<uint64_t>& GetOffsets() const { return m_Offsets; }

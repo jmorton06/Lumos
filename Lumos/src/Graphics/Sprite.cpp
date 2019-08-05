@@ -1,7 +1,7 @@
 #include "LM.h"
 #include "Sprite.h"
 #include "Graphics/Material.h"
-#include "Graphics/API/Textures/Texture2D.h"
+#include "Graphics/API/Texture.h"
 #include "Mesh.h"
 #include "Utilities/AssetsManager.h"
 #include "MeshFactory.h"

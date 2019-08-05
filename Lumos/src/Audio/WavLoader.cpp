@@ -39,7 +39,7 @@ namespace Lumos
 			else if (chunkName == "data")
 			{
 				data.Size = chunkSize;
-				data.Data = new unsigned char[data.Size];
+				data.Data = lmnew unsigned char[data.Size];
 				file.read(reinterpret_cast<char*>(data.Data), chunkSize);
 				break;
 				/*

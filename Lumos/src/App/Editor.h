@@ -29,6 +29,7 @@ namespace Lumos
 		void DrawHierarchyWindow();
 		void DrawInspectorWindow();
 		void DrawSceneView();
+        void DrawGraphicsInfoWindow();
 		void BeginDockSpace();
 		void EndDockSpace();
         

@@ -11,6 +11,8 @@ namespace Lumos
 			STATIC, DYNAMIC, STREAM
 		};
 
+		class CommandBuffer;
+
 		class LUMOS_EXPORT VertexBuffer
 		{
 		public:

@@ -6,10 +6,10 @@
 
 #include "App/Scene.h"
 #include "App/Application.h"
-#include "Entity/Entity.h"
-#include "Entity/Component/MaterialComponent.h"
-#include "Entity/Component/LightComponent.h"
-#include "Entity/Component/TransformComponent.h"
+#include "ECS/Entity.h"
+#include "ECS/Component/MaterialComponent.h"
+#include "ECS/Component/LightComponent.h"
+#include "ECS/Component/TransformComponent.h"
 #include "Maths/Maths.h"
 
 #include "Graphics/RenderManager.h"
@@ -21,13 +21,10 @@
 #include "Graphics/Material.h"
 #include "Graphics/GBuffer.h"
 #include "Graphics/Light.h"
-#include "Graphics/LightSetUp.h"
 
 #include "Graphics/API/Shader.h"
 #include "Graphics/API/Framebuffer.h"
-#include "Graphics/API/Textures/Texture2D.h"
-#include "Graphics/API/Textures/TextureDepth.h"
-#include "Graphics/API/Textures/TextureCube.h"
+#include "Graphics/API/Texture.h"
 #include "Graphics/API/UniformBuffer.h"
 #include "Graphics/API/Renderer.h"
 #include "Graphics/API/CommandBuffer.h"
@@ -45,7 +42,7 @@ namespace Lumos
 {
 	namespace Graphics
 	{
-		enum PSSystemUniformIndices : int32
+		enum PSSystemUniformIndices : i32
 		{
 			PSSystemUniformIndex_Lights = 0,
 			PSSystemUniformIndex_CameraPosition,
@@ -75,8 +72,7 @@ namespace Lumos
 			delete m_Pipeline;
 			delete m_ScreenQuad;
 			delete m_DescriptorSet;
-			delete m_LightSetup;
-            delete m_OffScreenRenderer;
+			lmdel m_OffScreenRenderer;
 
 			delete[] m_PSSystemUniformBuffer;
 			for (auto& commandBuffer : m_CommandBuffers)
@@ -94,7 +90,7 @@ namespace Lumos
 
 		void DeferredRenderer::Init()
 		{
-			m_OffScreenRenderer = new DeferredOffScreenRenderer(m_ScreenBufferWidth, m_ScreenBufferHeight);
+			m_OffScreenRenderer = lmnew DeferredOffScreenRenderer(m_ScreenBufferWidth, m_ScreenBufferHeight);
 
 			m_Shader = Shader::CreateFromFile("DeferredLight", "/CoreShaders/");
 
@@ -110,12 +106,10 @@ namespace Lumos
 			m_ScreenQuad = Graphics::CreateQuad();
 
 			m_DescriptorSet = nullptr;
-
-			m_LightSetup = new LightSetup();
 			
 			// Pixel/fragment shader System uniforms
 			m_PSSystemUniformBufferSize = sizeof(Light) * MAX_LIGHTS + sizeof(Maths::Vector4) + sizeof(Maths::Matrix4) + (sizeof(Maths::Matrix4) + sizeof(Maths::Vector4))* MAX_SHADOWMAPS + sizeof(int) * 4;
-			m_PSSystemUniformBuffer = new u8[m_PSSystemUniformBufferSize];
+			m_PSSystemUniformBuffer = lmnew u8[m_PSSystemUniformBufferSize];
 			memset(m_PSSystemUniformBuffer, 0, m_PSSystemUniformBufferSize);
 			m_PSSystemUniformBufferOffsets.resize(PSSystemUniformIndex_Size);
 
@@ -316,7 +310,14 @@ namespace Lumos
 			descriptorSets.emplace_back(m_Pipeline->GetDescriptorSet());
 			descriptorSets.emplace_back(m_DescriptorSet);
 
-			Renderer::RenderMesh(m_ScreenQuad, m_Pipeline, currentCMDBuffer, 0, descriptorSets);
+			m_ScreenQuad->GetVertexArray()->Bind(currentCMDBuffer);
+			m_ScreenQuad->GetIndexBuffer()->Bind(currentCMDBuffer);
+
+			Renderer::BindDescriptorSets(m_Pipeline, currentCMDBuffer, 0, descriptorSets);
+			Renderer::DrawIndexed(currentCMDBuffer, DrawType::TRIANGLE, m_ScreenQuad->GetIndexBuffer()->GetCount());
+
+			m_ScreenQuad->GetVertexArray()->Unbind();
+			m_ScreenQuad->GetIndexBuffer()->Unbind();
 
 			currentCMDBuffer->EndRecording();
 			currentCMDBuffer->ExecuteSecondary(m_CommandBuffers[m_CommandBufferIndex]);
@@ -374,7 +375,7 @@ namespace Lumos
 			Graphics::PipelineInfo pipelineCI{};
 			pipelineCI.pipelineName = "Deferred";
 			pipelineCI.shader = m_Shader;
-			pipelineCI.vulkanRenderpass = m_RenderPass;
+			pipelineCI.renderpass = m_RenderPass;
 			pipelineCI.numVertexLayout = static_cast<u32>(attributeDescriptions.size());
 			pipelineCI.descriptorLayouts = descriptorLayouts;
 			pipelineCI.vertexLayout = attributeDescriptions.data();

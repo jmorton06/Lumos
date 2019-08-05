@@ -4,8 +4,7 @@
 #include "Graphics/RenderList.h"
 #include "Graphics/API/Framebuffer.h"
 #include "Graphics/Light.h"
-#include "Graphics/API/Textures/Texture2D.h"
-#include "Graphics/API/Textures/TextureCube.h"
+#include "Graphics/API/Texture.h"
 #include "Graphics/API/UniformBuffer.h"
 #include "Graphics/ModelLoader/ModelLoader.h"
 #include "Graphics/Mesh.h"
@@ -18,11 +17,11 @@
 #include "Graphics/API/GraphicsContext.h"
 #include "Graphics/GBuffer.h"
 #include "App/Scene.h"
-#include "Entity/Entity.h"
-#include "Entity/Component/MaterialComponent.h"
-#include "Entity/Component/MeshComponent.h"
-#include "Entity/Component/TransformComponent.h"
-#include "Entity/Component/TextureMatrixComponent.h"
+#include "ECS/Entity.h"
+#include "ECS/Component/MaterialComponent.h"
+#include "ECS/Component/MeshComponent.h"
+#include "ECS/Component/TransformComponent.h"
+#include "ECS/Component/TextureMatrixComponent.h"
 
 #include "App/Application.h"
 #include "Graphics/RenderManager.h"
@@ -121,7 +120,7 @@ namespace Lumos
 				Renderer::Present((m_CommandBuffers[Renderer::GetSwapchain()->GetCurrentBufferId()]));
 		}
 
-		enum VSSystemUniformIndices : int32
+		enum VSSystemUniformIndices : i32
 		{
 			VSSystemUniformIndex_ProjectionMatrix = 0,
 			VSSystemUniformIndex_ViewMatrix = 1,
@@ -130,7 +129,7 @@ namespace Lumos
 			VSSystemUniformIndex_Size
 		};
 
-		enum PSSystemUniformIndices : int32
+		enum PSSystemUniformIndices : i32
 		{
 			PSSystemUniformIndex_Lights = 0,
 			PSSystemUniformIndex_Size
@@ -144,7 +143,7 @@ namespace Lumos
 			// Vertex shader System uniforms
 			//
 			m_VSSystemUniformBufferSize = sizeof(Maths::Matrix4) + sizeof(Maths::Matrix4) + sizeof(Maths::Matrix4) + sizeof(Maths::Matrix4);
-			m_VSSystemUniformBuffer = new u8[m_VSSystemUniformBufferSize];
+			m_VSSystemUniformBuffer = lmnew u8[m_VSSystemUniformBufferSize];
 			memset(m_VSSystemUniformBuffer, 0, m_VSSystemUniformBufferSize);
 			m_VSSystemUniformBufferOffsets.resize(VSSystemUniformIndex_Size);
 
@@ -156,7 +155,7 @@ namespace Lumos
 
 			// Pixel/fragment shader System uniforms
 			m_PSSystemUniformBufferSize = sizeof(Graphics::Light);
-			m_PSSystemUniformBuffer = new u8[m_PSSystemUniformBufferSize];
+			m_PSSystemUniformBuffer = lmnew u8[m_PSSystemUniformBufferSize];
 			memset(m_PSSystemUniformBuffer, 0, m_PSSystemUniformBufferSize);
 			m_PSSystemUniformBufferOffsets.resize(PSSystemUniformIndex_Size);
 
@@ -348,7 +347,14 @@ namespace Lumos
 				descriptorSets.emplace_back(m_Pipeline->GetDescriptorSet());
 				descriptorSets.emplace_back(m_DescriptorSet);
 
-				Renderer::RenderMesh(mesh, m_Pipeline, currentCMDBuffer, dynamicOffset, descriptorSets);
+				mesh->GetVertexArray()->Bind(currentCMDBuffer);
+				mesh->GetIndexBuffer()->Bind(currentCMDBuffer);
+
+				Renderer::BindDescriptorSets(m_Pipeline, currentCMDBuffer, dynamicOffset, descriptorSets);
+				Renderer::DrawIndexed(currentCMDBuffer, DrawType::TRIANGLE, mesh->GetIndexBuffer()->GetCount());
+
+				mesh->GetVertexArray()->Unbind();
+				mesh->GetIndexBuffer()->Unbind();
 
 				currentCMDBuffer->EndRecording();
 				currentCMDBuffer->ExecuteSecondary(m_CommandBuffers[m_CurrentBufferID]);
@@ -470,7 +476,7 @@ namespace Lumos
 			Graphics::PipelineInfo pipelineCI{};
 			pipelineCI.pipelineName = "ForwardRenderer";
 			pipelineCI.shader = m_Shader;
-			pipelineCI.vulkanRenderpass = m_RenderPass;
+			pipelineCI.renderpass = m_RenderPass;
 			pipelineCI.numVertexLayout = static_cast<u32>(attributeDescriptions.size());
 			pipelineCI.descriptorLayouts = descriptorLayouts;
 			pipelineCI.vertexLayout = attributeDescriptions.data();

@@ -20,7 +20,7 @@ namespace Lumos
 	Sound* Sound::Create(const String& fileName, const String& format)
 	{
 #ifdef LUMOS_OPENAL
-		return new ALSound(fileName, format);
+		return lmnew ALSound(fileName, format);
 #else
 		return nullptr;
 #endif

@@ -45,7 +45,6 @@ namespace Lumos
 			VKBuffer::Init(vk::BufferUsageFlagBits::eVertexBuffer, size, data);
 		}
 
-
 		void* VKVertexBuffer::GetPointerInternal()
 		{
 			if (!m_MappedBuffer)
@@ -69,6 +68,7 @@ namespace Lumos
 
 		void VKVertexBuffer::Bind()
 		{
+			
 		}
 
 		void VKVertexBuffer::Unbind()

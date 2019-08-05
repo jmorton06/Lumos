@@ -121,4 +121,26 @@ namespace Lumos
     {
         return m_B2Body->GetAngle();
     }
+
+	nlohmann::json PhysicsObject2D::Serialise()
+	{
+		nlohmann::json output;
+		output["typeID"] = LUMOS_TYPENAME(PhysicsObject2D);
+		output["position"] = GetPosition().Serialise();
+		output["orientation"] = GetAngle();
+		output["type"] = m_B2Body->GetType();
+		//output["shape"] = m_B2Body->Getshape();
+
+		return output;
+	}
+
+	void PhysicsObject2D::Deserialise(nlohmann::json& data)
+	{
+		PhysicsObjectParamaters params;
+		params.position.Deserialise(data["position"]);
+
+		Init(params);
+
+		m_B2Body->SetType(data["type"]);
+	}
 }

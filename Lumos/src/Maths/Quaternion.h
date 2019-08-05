@@ -4,6 +4,7 @@
 #include "Matrix3.h"
 #include "Matrix4.h"
 #include "MathsCommon.h"
+#include "Core/Serialisable.h"
 
 namespace Lumos
 {
@@ -101,8 +102,26 @@ namespace Lumos
 			Quaternion operator*(const Quaternion& q) const;
 			Quaternion operator*(const Vector3& v) const;
 			Quaternion operator+(const Quaternion& a) const;
-		
-			MEM_ALIGN_NEW_DELETE
+
+			nlohmann::json Serialise()
+			{
+				nlohmann::json output;
+				output["typeID"] = LUMOS_TYPENAME(Quaternion);
+				output["x"] = x;
+				output["y"] = y;
+				output["z"] = z;
+				output["w"] = w;
+
+				return output;
+			};
+
+			void Deserialise(nlohmann::json& data)
+			{
+				x = data["x"];
+				y = data["y"];
+				z = data["z"];
+				w = data["w"];
+			};
 				
 			friend std::ostream& operator<<(std::ostream& o, const Quaternion& q) 
 			{

@@ -6,7 +6,7 @@
 
 #include "Integration.h"
 #include "Constraint.h"
-#include "Entity/Entity.h"
+#include "ECS/Entity.h"
 #include "Utilities/TimeStep.h"
 #include "System/JobSystem.h"
 
@@ -126,29 +126,9 @@ namespace Lumos
 		UpdatePhysicsObjects();
 	}
 
-	void LumosPhysicsEngine::DebugRender(uint64 debugFlags)
-	{
-		// Draw all collision manifolds
-		if (debugFlags & DEBUGDRAW_FLAGS_MANIFOLD)
-		{
-			for (Manifold *m : m_Manifolds)
-				m->DebugDraw();
-		}
-
-		// Draw all constraints
-		if (debugFlags & DEBUGDRAW_FLAGS_CONSTRAINT)
-		{
-			for (Constraint *c : m_Constraints)
-				c->DebugDraw();
-		}
-
-		if (m_BroadphaseDetection && (debugFlags & DEBUGDRAW_FLAGS_BROADPHASE))
-			m_BroadphaseDetection->DebugDraw();
-	}
-
 	void LumosPhysicsEngine::UpdatePhysicsObjects()
 	{
-        System::JobSystem::Dispatch(static_cast<uint32>(m_PhysicsObjects.size()), 16, [&](JobDispatchArgs args)
+        System::JobSystem::Dispatch(static_cast<u32>(m_PhysicsObjects.size()), 16, [&](JobDispatchArgs args)
         {
             UpdatePhysicsObject(m_PhysicsObjects[args.jobIndex].get());
         });
@@ -309,7 +289,7 @@ namespace Lumos
 					{
 						// Build full collision manifold that will also handle the collision
 						// response between the two objects in the solver stage
-						Manifold* manifold = new Manifold();
+						Manifold* manifold = lmnew Manifold();
 						manifold->Initiate(cp.pObjectA, cp.pObjectB);
 
 						// Construct contact points that form the perimeter of the collision manifold

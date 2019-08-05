@@ -1,34 +1,15 @@
 #include "LM.h"
 
 #include "App/Application.h"
+#include "Core/Version.h"
 
 #if defined(LUMOS_PLATFORM_MACOS)
 #ifndef VK_USE_PLATFORM_MACOS_MVK
 #define VK_USE_PLATFORM_MACOS_MVK
 #endif
-#define GLFW_EXPOSE_NATIVE_COCOA
 #endif
 
 #include "VKDevice.h"
-
-#ifndef LUMOS_PLATFORM_IOS
-#include <GLFW/glfw3.h>
-#include <GLFW/glfw3native.h>
-#endif
-
-#ifdef LUMOS_PLATFORM_WINDOWS
-#include "Platform/Windows/WindowsWindow.h"
-#endif
-
-#ifdef LUMOS_PLATFORM_MACOS
-extern "C" {
-    void* makeViewMetalCompatible(void* handle);
-}
-#endif
-
-#ifdef LUMOS_PLATFORM_IOS
-void* Lumos::Graphics::VKDevice::m_IOSView = nullptr;
-#endif
 
 namespace Lumos
 {
@@ -64,16 +45,14 @@ namespace Lumos
 		bool VKDevice::Init()
 		{
 			// GPU
-			uint32_t numGPUs = 0;
-			vkEnumeratePhysicalDevices(m_VKContext->GetVKInstance(), &numGPUs, VK_NULL_HANDLE);
-			if (numGPUs == 0)
+			std::vector<vk::PhysicalDevice> pGPUs = m_VKContext->GetVKInstance().enumeratePhysicalDevices();
+
+			if (pGPUs.empty())
 			{
-				LUMOS_CORE_ERROR("ERROR : No GPUs found!");
+				LUMOS_CORE_ERROR("[VULKAN] No GPUs found!");
 				return false;
 			}
 
-			std::vector<vk::PhysicalDevice> pGPUs(numGPUs);
-			m_VKContext->GetVKInstance().enumeratePhysicalDevices(&numGPUs, pGPUs.data());
 			m_PhysicalDevice = pGPUs[0];
 			m_PhysicalDeviceProperties = m_PhysicalDevice.getProperties();
 			m_MemoryProperties = m_PhysicalDevice.getMemoryProperties();
@@ -88,46 +67,18 @@ namespace Lumos
 			m_QueueFamiliyProperties = m_PhysicalDevice.getQueueFamilyProperties();
 			if (m_QueueFamiliyProperties.size() == 0)
 			{
-				LUMOS_CORE_ERROR("ERROR : No Queue Families were found!");
+				LUMOS_CORE_ERROR("[VULKAN] No Queue Families were found!");
 				return false;
 			}
 
-#ifdef LUMOS_PLATFORM_IOS
-			vk::IOSSurfaceCreateInfoMVK surfaceCreateInfo = {};
-			surfaceCreateInfo.pNext = NULL;
-			surfaceCreateInfo.pView = m_IOSView;
-			m_Surface = m_VKContext->GetVKInstance().createIOSSurfaceMVK(surfaceInfo);
-#endif
+			m_Surface = CreatePlatformSurface(m_VKContext->GetVKInstance(), Application::Instance()->GetWindow());
 
-#ifdef LUMOS_PLATFORM_MACOS
-            vk::MacOSSurfaceCreateInfoMVK surfaceInfo;
-            surfaceInfo.pNext = NULL;
-            surfaceInfo.pView = makeViewMetalCompatible((void*)glfwGetCocoaWindow(static_cast<GLFWwindow*>(m_VKContext->GetWindowContext())));
-			m_Surface = m_VKContext->GetVKInstance().createMacOSSurfaceMVK(surfaceInfo);
-#endif
-
-#ifdef LUMOS_PLATFORM_WINDOWS
-#ifdef LUMOS_USE_GLFW_WINDOWS
-			glfwCreateWindowSurface(m_VKContext->GetVKInstance(), static_cast<GLFWwindow*>(m_VKContext->GetWindowContext()), nullptr, (VkSurfaceKHR*)&m_Surface);
-#else
-			vk::Win32SurfaceCreateInfoKHR surfaceInfo;
-			surfaceInfo.pNext = NULL;
-			surfaceInfo.hwnd = (HWND)VKContext::Get()->GetWindowContext();
-			surfaceInfo.hinstance = ((WindowsWindow*)Application::Instance()->GetWindow())->GetHInstance();
-			m_Surface = m_VKContext->GetVKInstance().createWin32SurfaceKHR(surfaceInfo);
-#endif
-#endif
-
-#ifdef LUMOS_PLATFORM_LINUX
-			glfwCreateWindowSurface(m_VKContext->GetVKInstance(), static_cast<GLFWwindow*>(m_VKContext->GetWindowContext()), nullptr, (VkSurfaceKHR*)&m_Surface);
-
-#endif
 			if(!m_Surface)
 			{
-				LUMOS_CORE_ERROR("Failed to create window surface!");
+				LUMOS_CORE_ERROR("[VULKAN] Failed to create window surface!");
 			}
 
-			VkBool32 * supportsPresent = new VkBool32[m_QueueFamiliyProperties.size()];
+			VkBool32* supportsPresent = lmnew VkBool32[m_QueueFamiliyProperties.size()];
 			for (uint32_t i = 0; i < m_QueueFamiliyProperties.size(); i++)
 				supportsPresent[i] = m_PhysicalDevice.getSurfaceSupportKHR(i, m_Surface);
 
@@ -148,7 +99,7 @@ namespace Lumos
 
 			if (m_GraphicsQueueFamilyIndex == UINT32_MAX)
 			{
-				LUMOS_CORE_ERROR("ERROR : Couldn't find a Graphics queue family index!");
+				LUMOS_CORE_ERROR("[VULKAN] Couldn't find a Graphics queue family index!");
 				return false;
 			}
 
@@ -156,7 +107,7 @@ namespace Lumos
 
 			if (formats.empty())
 			{
-				LUMOS_CORE_ERROR("ERROR : Couldn't get surface formats!");
+				LUMOS_CORE_ERROR("[VULKAN] Couldn't get surface formats!");
 				return false;
 			}
 
@@ -176,10 +127,18 @@ namespace Lumos
 			vk::PhysicalDeviceFeatures deviceFeatures{};
 			deviceFeatures.shaderClipDistance = VK_TRUE;
 			deviceFeatures.shaderCullDistance = VK_TRUE;
-			deviceFeatures.geometryShader = VK_TRUE;
+			deviceFeatures.geometryShader = VK_FALSE;
 			deviceFeatures.shaderTessellationAndGeometryPointSize = VK_TRUE;
 			deviceFeatures.fillModeNonSolid = VK_TRUE;
 			deviceFeatures.samplerAnisotropy = VK_TRUE;
+
+			//auto extensions = m_VKContext->GetExtensionNames();
+			auto layers		= m_VKContext->GetLayerNames();
+
+			const std::vector<const char*> deviceExtensions = 
+			{
+				VK_KHR_SWAPCHAIN_EXTENSION_NAME
+			};
 
 			// Device
 			vk::DeviceCreateInfo deviceCI{};
@@ -191,8 +150,8 @@ namespace Lumos
 
 			if (EnableValidationLayers)
 			{
-				deviceCI.enabledLayerCount = static_cast<uint32_t>(validationLayers.size());
-				deviceCI.ppEnabledLayerNames = validationLayers.data();
+				deviceCI.enabledLayerCount = static_cast<uint32_t>(layers.size());
+				deviceCI.ppEnabledLayerNames = layers.data();
 			}
 			else
 			{
@@ -203,7 +162,7 @@ namespace Lumos
 
 			if (!m_Device)
 			{
-				LUMOS_CORE_ERROR("ERROR : vkCreateDevice() failed!");
+				LUMOS_CORE_ERROR("[VULKAN] vkCreateDevice() failed!");
 				return false;
 			}
 
@@ -240,10 +199,9 @@ namespace Lumos
 
             if (vmaCreateAllocator(&allocatorInfo, &m_Allocator) != VK_SUCCESS)
             {
-                LUMOS_CORE_ERROR("Failed to create VMA allocator");
+                LUMOS_CORE_ERROR("[VULKAN] Failed to create VMA allocator");
             }
 #endif
-            
 
 			return VK_SUCCESS;
 		}

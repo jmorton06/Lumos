@@ -2,12 +2,11 @@
 #include "DeferredOffScreenRenderer.h"
 #include "App/Scene.h"
 #include "App/Application.h"
-#include "Entity/Entity.h"
-#include "Entity/Component/MaterialComponent.h"
-#include "Entity/Component/MeshComponent.h"
-#include "Entity/Component/TransformComponent.h"
-#include "Entity/Component/TextureMatrixComponent.h"
-
+#include "ECS/Entity.h"
+#include "ECS/Component/MaterialComponent.h"
+#include "ECS/Component/MeshComponent.h"
+#include "ECS/Component/TransformComponent.h"
+#include "ECS/Component/TextureMatrixComponent.h"
 
 #include "Maths/Maths.h"
 #include "System/JobSystem.h"
@@ -21,8 +20,7 @@
 
 #include "Graphics/API/Shader.h"
 #include "Graphics/API/Framebuffer.h"
-#include "Graphics/API/Textures/Texture2D.h"
-#include "Graphics/API/Textures/TextureDepth.h"
+#include "Graphics/API/Texture.h"
 #include "Graphics/API/UniformBuffer.h"
 #include "Graphics/API/Renderer.h"
 #include "Graphics/API/CommandBuffer.h"
@@ -33,19 +31,18 @@
 
 #define MAX_LIGHTS 32
 #define MAX_SHADOWMAPS 16
-//#define THREAD_RENDER_SUBMIT
 
 namespace Lumos
 {
 	namespace Graphics
 	{
-		enum VSSystemUniformIndices : int32
+		enum VSSystemUniformIndices : i32
 		{
 			VSSystemUniformIndex_ProjectionViewMatrix = 0,
 			VSSystemUniformIndex_Size
 		};
 
-		enum PSSystemUniformIndices : int32
+		enum PSSystemUniformIndices : i32
 		{
 			PSSystemUniformIndex_Lights = 0,
 			PSSystemUniformIndex_Size
@@ -84,7 +81,7 @@ namespace Lumos
 		void DeferredOffScreenRenderer::Init()
 		{
 			m_Shader = Shader::CreateFromFile("DeferredColour", "/CoreShaders/");
-			m_DefaultMaterial = new Material();
+			m_DefaultMaterial = lmnew Material();
 
 			MaterialProperties properties;
 			properties.albedoColour = Maths::Vector4(1.0f);
@@ -105,13 +102,12 @@ namespace Lumos
 			// Vertex shader System uniforms
 			//
 			m_VSSystemUniformBufferSize = sizeof(Maths::Matrix4);
-			m_VSSystemUniformBuffer = new u8[m_VSSystemUniformBufferSize];
+			m_VSSystemUniformBuffer = lmnew u8[m_VSSystemUniformBufferSize];
 			memset(m_VSSystemUniformBuffer, 0, m_VSSystemUniformBufferSize);
 			m_VSSystemUniformBufferOffsets.resize(VSSystemUniformIndex_Size);
 
 			// Per Scene System Uniforms
 			m_VSSystemUniformBufferOffsets[VSSystemUniformIndex_ProjectionViewMatrix] = 0;
-
 
 			m_RenderPass = Graphics::RenderPass::Create();
 
@@ -262,7 +258,7 @@ namespace Lumos
 
 		void DeferredOffScreenRenderer::Present()
 		{
-            for (u32 i = 0; i < static_cast<uint32>(m_CommandQueue.size()); i++)
+            for (u32 i = 0; i < static_cast<u32>(m_CommandQueue.size()); i++)
             {
                 auto command = m_CommandQueue[i];
 				Mesh* mesh = command.mesh;
@@ -280,7 +276,14 @@ namespace Lumos
 				descriptorSets.emplace_back(m_Pipeline->GetDescriptorSet());
 				descriptorSets.emplace_back(command.material ? command.material->GetDescriptorSet() : m_DefaultMaterial->GetDescriptorSet());
 
-				Renderer::RenderMesh(mesh, m_Pipeline, currentCMDBuffer, dynamicOffset, descriptorSets);
+				mesh->GetVertexArray()->Bind(currentCMDBuffer);
+				mesh->GetIndexBuffer()->Bind(currentCMDBuffer);
+
+				Renderer::BindDescriptorSets(m_Pipeline, currentCMDBuffer, dynamicOffset, descriptorSets);
+				Renderer::DrawIndexed(currentCMDBuffer, DrawType::TRIANGLE, mesh->GetIndexBuffer()->GetCount());
+
+				mesh->GetVertexArray()->Unbind();
+				mesh->GetIndexBuffer()->Unbind();
 
 				currentCMDBuffer->EndRecording();
 				currentCMDBuffer->ExecuteSecondary(m_DeferredCommandBuffers);
@@ -338,7 +341,7 @@ namespace Lumos
 			Graphics::PipelineInfo pipelineCI{};
 			pipelineCI.pipelineName = "OffScreenRenderer";
 			pipelineCI.shader = m_Shader;
-			pipelineCI.vulkanRenderpass = m_RenderPass;
+			pipelineCI.renderpass = m_RenderPass;
 			pipelineCI.numVertexLayout = static_cast<u32>(attributeDescriptions.size());
 			pipelineCI.descriptorLayouts = descriptorLayouts;
 			pipelineCI.vertexLayout = attributeDescriptions.data();

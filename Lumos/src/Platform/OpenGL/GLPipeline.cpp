@@ -28,7 +28,7 @@ namespace Lumos
             info.pipeline = this;
             info.layoutIndex = 0;
             info.shader = pipelineCI.shader;
-			m_DescriptorSet = new GLDescriptorSet(info);
+			m_DescriptorSet = lmnew GLDescriptorSet(info);
             m_TransparencyEnabled = pipelineCI.transparencyEnabled;
 
 			m_Shader = info.shader;

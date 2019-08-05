@@ -1,8 +1,7 @@
 #include "LM.h"
 #include "GBuffer.h"
 #include "API/Framebuffer.h"
-#include "API/Textures/TextureDepth.h"
-#include "API/Textures/Texture2D.h"
+#include "API/Texture.h"
 
 namespace Lumos
 {
@@ -80,7 +79,7 @@ namespace Lumos
 			m_DepthTexture->Resize(m_Width, m_Height);
 		}
 
-		void GBuffer::Bind(int32 mode)
+		void GBuffer::Bind(i32 mode)
 		{
 		}
 

@@ -1,12 +1,13 @@
 #include "LM.h"
 #include "VKIndexBuffer.h"
 #include "VKVertexBuffer.h"
+#include "VKCommandBuffer.h"
 
 namespace Lumos
 {
 	namespace Graphics
 	{
-		VKIndexBuffer::VKIndexBuffer(uint16* data, u32 count, BufferUsage bufferUsage) : VKBuffer(vk::BufferUsageFlagBits::eIndexBuffer, count * sizeof(uint16), data), m_Size(count * sizeof(uint16)), m_Count(count), m_Usage(bufferUsage)
+		VKIndexBuffer::VKIndexBuffer(u16* data, u32 count, BufferUsage bufferUsage) : VKBuffer(vk::BufferUsageFlagBits::eIndexBuffer, count * sizeof(u16), data), m_Size(count * sizeof(u16)), m_Count(count), m_Usage(bufferUsage)
 		{
 		}
 
@@ -19,8 +20,9 @@ namespace Lumos
 			
 		}
 
-		void VKIndexBuffer::Bind() const 
+		void VKIndexBuffer::Bind(CommandBuffer* commandBuffer) const
 		{
+			static_cast<VKCommandBuffer*>(commandBuffer)->GetCommandBuffer().bindIndexBuffer(m_Buffer, 0, vk::IndexType::eUint32);
 		}
 
 		void VKIndexBuffer::Unbind() const

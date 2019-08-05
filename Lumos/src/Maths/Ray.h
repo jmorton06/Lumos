@@ -1,6 +1,7 @@
 #pragma once
 #include "LM.h"
 #include "Vector3.h"
+#include "Core/Serialisable.h"
 
 namespace Lumos
 {	
@@ -48,6 +49,22 @@ namespace Lumos
 				Vector3 reDir(x, y, z);
 				return Ray(position, reDir);
 			}
+
+			nlohmann::json Serialise()
+			{
+				nlohmann::json output;
+				output["typeID"] = LUMOS_TYPENAME(Ray);
+				output["position"] = position.Serialise();
+				output["direction"] = direction.Serialise();
+
+				return output;
+			};
+
+			void Deserialise(nlohmann::json& data)
+			{
+				position.Deserialise(data["x"]);
+				direction.Deserialise(data["y"]);
+			};
 
 		protected:
 			Vector3 position;

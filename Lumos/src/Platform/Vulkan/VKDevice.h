@@ -8,7 +8,7 @@
 #define VMA_DEBUG_MARGIN 16
 #define VMA_DEBUG_DETECT_CORRUPTION 1
 #endif
-#include "vk_mem_alloc.h"
+#include <vulkan/vk_mem_alloc.h>
 #endif
 
 namespace Lumos
@@ -54,12 +54,8 @@ namespace Lumos
 #ifdef USE_VMA_ALLOCATOR
             VmaAllocator GetAllocator()                     const { return m_Allocator; }
 #endif
-            
-			u32 m_SwapChainSize = 0;
-            
-#ifdef LUMOS_PLATFORM_IOS
-            static void* m_IOSView;
-#endif
+
+			vk::SurfaceKHR CreatePlatformSurface(vk::Instance vkInstance, Window* window);
 
 		private:
 

@@ -2,7 +2,7 @@
 #include "GLTools.h"
 #include "GL.h"
 #include "GLRenderer.h"
-#include "Textures/GLTexture2D.h"
+#include "GLTexture.h"
 
 namespace Lumos
 {

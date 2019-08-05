@@ -24,10 +24,7 @@
 #include "Physics/LumosPhysicsEngine/PhysicsObject3D.h"
 
 //Graphics
-#include "Graphics/API/Textures/TextureCube.h"
-#include "Graphics/API/Textures/Texture2D.h"
-#include "Graphics/API/Textures/TextureDepth.h"
-#include "Graphics/API/Textures/TextureDepthArray.h"
+#include "Graphics/API/Texture.h"
 #include "Graphics/API/GraphicsContext.h"
 #include "Graphics/API/Framebuffer.h"
 #include "Graphics/API/Shader.h"
@@ -40,14 +37,15 @@
 #include "Graphics/Sprite.h"
 #include "Graphics/GBuffer.h"
 #include "Graphics/Terrain.h"
+#include "Graphics/Light.h"
 
 #include "Utilities/AssetsManager.h"
 
 //Entity
-#include "Entity/Entity.h"
-#include "Entity/EntityManager.h"
-#include "Entity/Component/Components.h"
-#include "Entity/ComponentManager.h"
+#include "ECS/Entity.h"
+#include "ECS/EntityManager.h"
+#include "ECS/Component/Components.h"
+#include "ECS/ComponentManager.h"
 
 //Cameras
 #include "Graphics/Camera/ThirdPersonCamera.h"
@@ -56,7 +54,6 @@
 #include "Graphics/Camera/Camera2D.h"
 
 //Managers
-#include "Graphics/LightSetUp.h"
 #include "Graphics/ParticleManager.h"
 
 //Maths
@@ -71,7 +68,7 @@
 #include "System/VFS.h"
 #include "System/FileSystem.h"
 #include "System/String.h"
-#include "System/System.h"
+#include "System/CoreSystem.h"
 #include "System/LMLog.h"
 
 //Scripting

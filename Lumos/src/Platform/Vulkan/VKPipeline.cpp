@@ -100,7 +100,7 @@ namespace Lumos
 			info.layoutIndex = 0;
             info.shader = pipelineCI.shader;
 
-			m_DescriptorSet = new VKDescriptorSet(info);
+			m_DescriptorSet = lmnew VKDescriptorSet(info);
 
 			// Pipeline
 			vk::DynamicState dynamicStateEnables[VK_DYNAMIC_STATE_RANGE_SIZE];
@@ -152,16 +152,17 @@ namespace Lumos
 
 			for (unsigned int i = 0; i < blendAttachState.size(); i++)
 			{
+				blendAttachState[i] = vk::PipelineColorBlendAttachmentState();
+				blendAttachState[i].colorWriteMask = vk::ColorComponentFlagBits::eR |
+					vk::ColorComponentFlagBits::eG |
+					vk::ColorComponentFlagBits::eB |
+					vk::ColorComponentFlagBits::eA;
+				blendAttachState[i].alphaBlendOp = vk::BlendOp::eAdd;
+				blendAttachState[i].colorBlendOp = vk::BlendOp::eAdd;
+
 				if (pipelineCI.transparencyEnabled)
 				{
-                    blendAttachState[i] = vk::PipelineColorBlendAttachmentState();
-					blendAttachState[i].colorWriteMask = vk::ColorComponentFlagBits::eR |
-														 vk::ColorComponentFlagBits::eG |
-														 vk::ColorComponentFlagBits::eB |
-														 vk::ColorComponentFlagBits::eA;
 					blendAttachState[i].blendEnable = VK_TRUE;
-					blendAttachState[i].alphaBlendOp = vk::BlendOp::eAdd;
-					blendAttachState[i].colorBlendOp = vk::BlendOp::eAdd;
 					blendAttachState[i].srcColorBlendFactor = vk::BlendFactor::eSrcAlpha;
 					blendAttachState[i].dstColorBlendFactor = vk::BlendFactor::eOneMinusSrcAlpha;
 					blendAttachState[i].srcAlphaBlendFactor = vk::BlendFactor::eOne;
@@ -169,14 +170,7 @@ namespace Lumos
 				}
 				else
 				{
-					blendAttachState[i] = vk::PipelineColorBlendAttachmentState();
-					blendAttachState[i].colorWriteMask = vk::ColorComponentFlagBits::eR |
-														 vk::ColorComponentFlagBits::eG |
-														 vk::ColorComponentFlagBits::eB |
-														 vk::ColorComponentFlagBits::eA;
 					blendAttachState[i].blendEnable = VK_FALSE;
-					blendAttachState[i].alphaBlendOp = vk::BlendOp::eAdd;
-					blendAttachState[i].colorBlendOp = vk::BlendOp::eAdd;
 					blendAttachState[i].srcColorBlendFactor = vk::BlendFactor::eZero;
 					blendAttachState[i].dstColorBlendFactor = vk::BlendFactor::eZero;
 					blendAttachState[i].srcAlphaBlendFactor = vk::BlendFactor::eZero;
@@ -249,7 +243,7 @@ namespace Lumos
 			graphicsPipelineCI.pDepthStencilState = &ds;
 			graphicsPipelineCI.pStages = static_cast<VKShader*>(pipelineCI.shader)->GetShaderStages();
 			graphicsPipelineCI.stageCount = static_cast<VKShader*>(pipelineCI.shader)->GetStageCount();
-			graphicsPipelineCI.renderPass = static_cast<VKRenderpass*>(pipelineCI.vulkanRenderpass)->GetRenderpass();
+			graphicsPipelineCI.renderPass = static_cast<VKRenderpass*>(pipelineCI.renderpass)->GetRenderpass();
 			graphicsPipelineCI.subpass = 0;
 
 			m_Pipeline = VKDevice::Instance()->GetDevice().createGraphicsPipelines(VKDevice::Instance()->GetPipelineCache(), graphicsPipelineCI)[0];
@@ -271,7 +265,7 @@ namespace Lumos
 
 		void VKPipeline::SetActive(CommandBuffer* cmdBuffer)
 		{
-			vkCmdBindPipeline(static_cast<VKCommandBuffer*>(cmdBuffer)->GetCommandBuffer(), VK_PIPELINE_BIND_POINT_GRAPHICS, m_Pipeline);
+			static_cast<VKCommandBuffer*>(cmdBuffer)->GetCommandBuffer().bindPipeline(vk::PipelineBindPoint::eGraphics, m_Pipeline);
 		}
 
 		vk::DescriptorSet VKPipeline::CreateDescriptorSet()

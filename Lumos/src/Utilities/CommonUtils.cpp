@@ -15,9 +15,9 @@
 #include "Graphics/Material.h"
 #include "Graphics/Mesh.h"
 #include "Graphics/Light.h"
-#include "Entity/Entity.h"
-#include "Entity/Component/Components.h"
-#include "Entity/EntityManager.h"
+#include "ECS/Entity.h"
+#include "ECS/Component/Components.h"
+#include "ECS/EntityManager.h"
 
 namespace Lumos
 {

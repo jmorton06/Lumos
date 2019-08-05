@@ -23,13 +23,13 @@ namespace Lumos
 #ifdef USE_VMA_ALLOCATOR
                 vmaDestroyBuffer(VKDevice::Instance()->GetAllocator(), m_Buffer, m_Allocation);
 #else
-                vkDestroyBuffer(VKDevice::Instance()->GetDevice(), m_Buffer, nullptr);
-#endif
-			}
+				VKDevice::Instance()->GetDevice().destroyBuffer(m_Buffer);
 
-			if (m_Memory)
-			{
-				vkFreeMemory(VKDevice::Instance()->GetDevice(), m_Memory, nullptr);
+				if (m_Memory)
+				{
+					VKDevice::Instance()->GetDevice().freeMemory(m_Memory);
+				}
+#endif
 			}
 		}
 
@@ -43,7 +43,6 @@ namespace Lumos
 #ifdef USE_VMA_ALLOCATOR
             VmaAllocationCreateInfo vmaAllocInfo = {};
             vmaAllocInfo.usage = VMA_MEMORY_USAGE_CPU_TO_GPU;
-			//vmaAllocInfo.flags = VMA_ALLOCATION_CREATE_MAPPED_BIT;
             vmaCreateBuffer(VKDevice::Instance()->GetAllocator(), (VkBufferCreateInfo*)&bufferInfo, &vmaAllocInfo, (VkBuffer*)&m_Buffer, &m_Allocation, nullptr);
 #else
 			m_Buffer = VKDevice::Instance()->GetDevice().createBuffer(bufferInfo);

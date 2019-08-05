@@ -35,7 +35,7 @@ namespace Lumos
 			case RenderAPI::OPENGL:
 			{
 				const String source = Lumos::VFS::Get()->ReadTextFile(filePath + name + ".glsl");
-				GLShader* result = new GLShader(name, source);
+				GLShader* result = lmnew GLShader(name, source);
 				result->m_Path = filePath;
 				return result;
 			}
@@ -45,7 +45,7 @@ namespace Lumos
 			{
 				std::string physicalPath;
 				Lumos::VFS::Get()->ResolvePhysicalPath(filepath, physicalPath);
-				Graphics::VKShader* result = new Graphics::VKShader(name, physicalPath);
+				Graphics::VKShader* result = lmnew Graphics::VKShader(name, physicalPath);
 				return result;
 			}
 #endif
@@ -53,7 +53,7 @@ namespace Lumos
 			case RenderAPI::DIRECT3D:
 			{
 				const String source = Lumos::VFS::Get()->ReadTextFile(filepath + ".hlsl");
-				D3DShader* result = new D3DShader(name, source);
+				D3DShader* result = lmnew D3DShader(name, source);
 				result->m_FilePath = filepath;
 				return result;
 			}
