@@ -30,6 +30,8 @@ namespace Lumos::Memory
 	LUMOS_EXPORT void LogMemoryInformation();
 }
 
+#ifdef CUSTOM_MEMORY_ALLOCATOR
+
 #define lmnew		new(__FILE__, __LINE__)
 #define lmdel		delete
 
@@ -101,3 +103,8 @@ inline void operator delete[](void* block, const char* file, int line)
 }
 
 #pragma warning(default : 4595)
+
+#else
+#define lmnew new
+#define lmdel delete
+#endif
