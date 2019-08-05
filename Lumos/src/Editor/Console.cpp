@@ -173,8 +173,8 @@ namespace Lumos
 			case Console::Message::Level::Debug   : return Console::Message::Level::Info;
 			case Console::Message::Level::Info    :
 			case Console::Message::Level::Trace   : return Console::Message::Level::Trace;
+            default: return Console::Message::Level::Invalid;
 		}
-		return Console::Message::Level::Invalid;
 	}
 
 	Console::Message::Level Console::Message::GetHigherLevel(Level level)
@@ -188,8 +188,8 @@ namespace Lumos
             case Console::Message::Level::Error   : return Console::Message::Level::Critical;
 			case Console::Message::Level::Critical:
             case Console::Message::Level::Off     : return Console::Message::Level::Off;
+            default: return Console::Message::Level::Invalid;
 		}
-		return Console::Message::Level::Invalid;
 	}
 
 
@@ -204,8 +204,8 @@ namespace Lumos
 			case Console::Message::Level::Error   : return "Error";
 			case Console::Message::Level::Critical: return "Critical";
 			case Console::Message::Level::Off     : return "None";
-		}
-		return "Unknown name";
+            default: return "Unknown name";
+        }
 	}
 
 	Console::Message::Color Console::Message::GetRenderColor(Level level)
@@ -218,7 +218,7 @@ namespace Lumos
 			case Console::Message::Level::Warn    : return { 1.00f, 1.00f, 0.00f, 1.00f }; // Yellow
 			case Console::Message::Level::Error   : return { 1.00f, 0.00f, 0.00f, 1.00f }; // Red
 			case Console::Message::Level::Critical: return { 1.00f, 1.00f, 1.00f, 1.00f }; // White-white
+            default: return { 1.00f, 1.00f, 1.00f, 1.00f };
 		}
-		return { 1.00f, 1.00f, 1.00f, 1.00f };
 	}
 }
