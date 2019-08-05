@@ -2,6 +2,7 @@
 #include "Editor.h"
 #include "Application.h"
 #include "Console.h"
+#include "ImGUIConsoleSink.h"
 #include "Input.h"
 #include "Engine.h"
 #include "Scene.h"
@@ -31,8 +32,8 @@ namespace Lumos
 	Editor::Editor(Application* app, u32 width, u32 height) : m_Application(app)
 	{
 		m_Console = lmnew Console();
-		LMLog::GetCoreLogger()->sinks().emplace_back(std::make_shared<ConsoleSink>(*m_Console));
-		LMLog::GetClientLogger()->sinks().emplace_back(std::make_shared<ConsoleSink>(*m_Console));
+		LMLog::GetCoreLogger()->sinks().emplace_back(std::make_shared<ImGuiConsoleSink>(*m_Console));
+		LMLog::GetClientLogger()->sinks().emplace_back(std::make_shared<ImGuiConsoleSink>(*m_Console));
 
 		m_SceneViewSize = Maths::Vector2(static_cast<float>(width), static_cast<float>(height));
 	}
@@ -518,7 +519,8 @@ namespace Lumos
 
 	void Editor::DrawConsole()
 	{
-		m_Console->Draw("Console");
+        bool show = true;
+		m_Console->OnImGuiRender(&show);
 	}
     
     void Editor::DrawGraphicsInfoWindow()
