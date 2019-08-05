@@ -23,19 +23,19 @@ namespace Lumos
         /* This API should exist back to Win95. */
         if (!GetSystemPowerStatus(&status)) {
             /* !!! FIXME: push GetLastError() into GetError() */
-            m_PowerState = OS::POWERSTATE_UNKNOWN;
+            m_PowerState = POWERSTATE_UNKNOWN;
         } else if (status.BatteryFlag == 0xFF) { /* unknown state */
-            m_PowerState = OS::POWERSTATE_UNKNOWN;
+            m_PowerState = POWERSTATE_UNKNOWN;
         } else if (status.BatteryFlag & (1 << 7)) { /* no battery */
-            m_PowerState = OS::POWERSTATE_NO_BATTERY;
+            m_PowerState = POWERSTATE_NO_BATTERY;
         } else if (status.BatteryFlag & (1 << 3)) { /* charging */
-            m_PowerState = OS::POWERSTATE_CHARGING;
+            m_PowerState = POWERSTATE_CHARGING;
             needDetails = TRUE;
         } else if (status.ACLineStatus == 1) {
-            m_PowerState = OS::POWERSTATE_CHARGED; /* on AC, not charging. */
+            m_PowerState = POWERSTATE_CHARGED; /* on AC, not charging. */
             needDetails = TRUE;
         } else {
-            m_PowerState = OS::POWERSTATE_ON_BATTERY; /* not on AC. */
+            m_PowerState = POWERSTATE_ON_BATTERY; /* not on AC. */
             needDetails = TRUE;
         }
 
