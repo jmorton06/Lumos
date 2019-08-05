@@ -3,10 +3,10 @@
 
 #include "Scene.h"
 #include "SceneManager.h"
-#include "Editor.h"
 #include "Input.h"
 #include "Engine.h"
 #include "Window.h"
+#include "Editor/Editor.h"
 
 #include "Graphics/API/Renderer.h"
 #include "Graphics/API/GraphicsContext.h"
