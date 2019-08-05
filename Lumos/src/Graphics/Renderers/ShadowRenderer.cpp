@@ -1,7 +1,7 @@
 #include "LM.h"
 #include "ShadowRenderer.h"
 
-#include "Graphics/API/Textures/TextureDepthArray.h"
+#include "Graphics/API/Texture.h"
 #include "Graphics/API/Framebuffer.h"
 #include "Graphics/API/Renderer.h"
 #include "Graphics/API/CommandBuffer.h"
@@ -16,8 +16,8 @@
 #include "Graphics/Light.h"
 #include "Graphics/RenderList.h"
 
-#include "Entity/Component/TransformComponent.h"
-#include "Entity/Component/MeshComponent.h"
+#include "ECS/Component/TransformComponent.h"
+#include "ECS/Component/MeshComponent.h"
 
 #include "Maths/MathsUtilities.h"
 #include "App/Scene.h"
@@ -31,7 +31,7 @@ namespace Lumos
 {
 	namespace Graphics
 	{
-		enum VSSystemUniformIndices : int32
+		enum VSSystemUniformIndices : i32
 		{
 			VSSystemUniformIndex_ProjectionViewMatrix = 0,
 			VSSystemUniformIndex_Size
@@ -45,12 +45,12 @@ namespace Lumos
 			, m_UniformBuffer(nullptr)
 			, m_ModelUniformBuffer(nullptr)
 		{
-			m_apShadowRenderLists = new RenderList*[SHADOWMAP_MAX];
+			m_apShadowRenderLists = lmnew RenderList*[SHADOWMAP_MAX];
 
 			//Initialize the shadow render lists
 			for (u32 i = 0; i < m_ShadowMapNum; ++i)
 			{
-				m_apShadowRenderLists[i] = new RenderList();
+				m_apShadowRenderLists[i] = lmnew RenderList();
 				if (!RenderList::AllocateNewRenderList(m_apShadowRenderLists[i], true))
 				{
 					LUMOS_CORE_ERROR("Unable to allocate shadow render list {0} - Try using less shadow maps", i);
@@ -103,14 +103,14 @@ namespace Lumos
 		void ShadowRenderer::Init()
 		{
 			m_VSSystemUniformBufferSize = sizeof(Maths::Matrix4) * 16;
-			m_VSSystemUniformBuffer = new u8[m_VSSystemUniformBufferSize];
+			m_VSSystemUniformBuffer = lmnew u8[m_VSSystemUniformBufferSize];
 			memset(m_VSSystemUniformBuffer, 0, m_VSSystemUniformBufferSize);
 			m_VSSystemUniformBufferOffsets.resize(VSSystemUniformIndex_Size);
 
-			m_PushConstant = new Graphics::PushConstant();
+			m_PushConstant = lmnew Graphics::PushConstant();
 			m_PushConstant->type = Graphics::PushConstantDataType::UINT;
-			m_PushConstant->size = sizeof(int32);
-			m_PushConstant->data = new u8[sizeof(int32)];
+			m_PushConstant->size = sizeof(i32);
+			m_PushConstant->data = lmnew u8[sizeof(i32)];
             m_PushConstant->shaderStage = ShaderType::VERTEX;
 
 			// Per Scene System Uniforms
@@ -179,7 +179,14 @@ namespace Lumos
 				std::vector<Graphics::DescriptorSet*> descriptorSets;
 				descriptorSets.emplace_back(m_Pipeline->GetDescriptorSet());
 
-				Renderer::RenderMesh(mesh, m_Pipeline, m_CommandBuffer, dynamicOffset, descriptorSets);
+				mesh->GetVertexArray()->Bind(m_CommandBuffer);
+				mesh->GetIndexBuffer()->Bind(m_CommandBuffer);
+
+				Renderer::BindDescriptorSets(m_Pipeline, m_CommandBuffer, dynamicOffset, descriptorSets);
+				Renderer::DrawIndexed(m_CommandBuffer, DrawType::TRIANGLE, mesh->GetIndexBuffer()->GetCount());
+
+				mesh->GetVertexArray()->Unbind();
+				mesh->GetIndexBuffer()->Unbind();
 
 				index++;
 			}
@@ -201,7 +208,7 @@ namespace Lumos
 				}
 				for (u32 i = m_ShadowMapNum; i < num; i++)
 				{
-					m_apShadowRenderLists[i] = new RenderList();
+					m_apShadowRenderLists[i] = lmnew RenderList();
 					RenderList::AllocateNewRenderList(m_apShadowRenderLists[i], true);
 				}
 				m_ShadowMapNum = num;
@@ -256,8 +263,8 @@ namespace Lumos
 
 				SetSystemUniforms(m_Shader);
 
-				int32 layer = static_cast<int32>(m_Layer);
-				memcpy(m_PushConstant->data, &layer, sizeof(int32));
+				i32 layer = static_cast<i32>(m_Layer);
+				memcpy(m_PushConstant->data, &layer, sizeof(i32));
 				std::vector<Graphics::PushConstant> pcVector;
 				pcVector.push_back(*m_PushConstant);
 				m_Pipeline->GetDescriptorSet()->SetPushConstants(pcVector);
@@ -297,7 +304,7 @@ namespace Lumos
 			}
 
 #ifdef THREAD_CASCADE_GEN
-			System::JobSystem::Dispatch(static_cast<uint32>(m_ShadowMapNum), 1, [&](JobDispatchArgs args)
+			System::JobSystem::Dispatch(static_cast<u32>(m_ShadowMapNum), 1, [&](JobDispatchArgs args)
 #else
 			for (uint32_t i = 0; i < m_ShadowMapNum; i++)
 #endif
@@ -441,7 +448,7 @@ namespace Lumos
 			Graphics::PipelineInfo pipelineCI{};
 			pipelineCI.pipelineName = "ShadowRenderer";
 			pipelineCI.shader = m_Shader;
-			pipelineCI.vulkanRenderpass = renderPass;
+			pipelineCI.renderpass = renderPass;
 			pipelineCI.numVertexLayout = static_cast<u32>(attributeDescriptions.size());
 			pipelineCI.descriptorLayouts = descriptorLayouts;
 			pipelineCI.vertexLayout = attributeDescriptions.data();

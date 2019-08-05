@@ -52,9 +52,7 @@ namespace Lumos
 
         void GLRenderPass::EndRenderpass(CommandBuffer *commandBuffer)
         {
-#ifdef LUMOS_DEBUG
 			GLCall(glBindFramebuffer(GL_FRAMEBUFFER, 0));
-#endif
         }
     }
 }

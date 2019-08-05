@@ -14,7 +14,7 @@ namespace Lumos
         s_CoreLogger = spdlog::stdout_color_mt("LUMOS");
         s_CoreLogger->set_level(spdlog::level::trace);
         
-        s_ClientLogger = spdlog::stdout_color_mt("APP");
+        s_ClientLogger = spdlog::stdout_color_mt("APP   ");
         s_ClientLogger->set_level(spdlog::level::trace);
     }
 }

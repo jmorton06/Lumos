@@ -90,7 +90,7 @@ namespace Lumos
             
             for (int i = 0; i < Renderer::GetSwapchain()->GetSwapchainBufferCount(); i++)
             {
-                VKCommandBuffer* commandBuffer = new VKCommandBuffer();
+                VKCommandBuffer* commandBuffer = lmnew VKCommandBuffer();
                 commandBuffer->Init(true);
                 m_CommandBuffers[i] = commandBuffer;
             }
@@ -102,7 +102,7 @@ namespace Lumos
 
             wd->BackBufferCount = static_cast<uint32_t>(swapChain->GetSwapchainBufferCount());
             
-			m_Renderpass = new VKRenderpass();
+			m_Renderpass = lmnew VKRenderpass();
 			AttachmentInfo textureTypes[2] =
 			{
 				{ TextureType::COLOUR, TextureFormat::RGBA8 }
@@ -142,7 +142,7 @@ namespace Lumos
 				attachments[0] = Renderer::GetRenderer()->GetSwapchain()->GetImage(i);
 				bufferInfo.attachments = attachments;
 
-				m_Framebuffers[i] = new VKFramebuffer(bufferInfo);
+				m_Framebuffers[i] = lmnew VKFramebuffer(bufferInfo);
 				wd->Framebuffer[i] = m_Framebuffers[i]->GetFramebuffer();
 			}
         }
@@ -176,7 +176,7 @@ namespace Lumos
 				int width, height;
 				io.Fonts->GetTexDataAsRGBA32(&pixels, &width, &height);
 
-				m_FontTexture = new VKTexture2D(width, height, pixels);
+				m_FontTexture = lmnew VKTexture2D(width, height, pixels);
 
 				 vk::WriteDescriptorSet write_desc[1] = {};
 				 write_desc[0].dstSet = ImGui_ImplVulkanH_GetFontDescriptor();
@@ -263,7 +263,7 @@ namespace Lumos
 				attachments[0] = Renderer::GetRenderer()->GetSwapchain()->GetImage(i);
 				bufferInfo.attachments = attachments;
 
-				m_Framebuffers[i] = new VKFramebuffer(bufferInfo);
+				m_Framebuffers[i] = lmnew VKFramebuffer(bufferInfo);
 				wd->Framebuffer[i] = m_Framebuffers[i]->GetFramebuffer();
 			}
         }

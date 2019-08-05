@@ -133,6 +133,9 @@ namespace Lumos
 
 		void SetEntity(Entity* entity){ m_pParent = entity; }
 
+		nlohmann::json Serialise() override;
+		void Deserialise(nlohmann::json& data) override;
+
 	protected:
 		Entity*				m_pParent;			//Optional: Attached GameObject or NULL if none set
 		mutable bool		m_wsTransformInvalidated;

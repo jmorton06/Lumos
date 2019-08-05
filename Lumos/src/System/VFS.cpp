@@ -11,7 +11,7 @@ namespace Lumos
 
 	void VFS::OnInit()
 	{
-		s_Instance = new VFS();
+		s_Instance = lmnew VFS();
 	}
 
 	void VFS::OnShutdown()

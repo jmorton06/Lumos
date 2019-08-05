@@ -147,13 +147,13 @@ project "Sandbox"
 			["SUPPORTED_PLATFORMS"] = "iphonesimulator iphoneos",
 			["CODE_SIGN_IDENTITY[sdk=iphoneos*]"] = "iPhone Developer",
 			['IPHONEOS_DEPLOYMENT_TARGET'] = '12.1',
-			['PRODUCT_BUNDLE_IDENTIFIER'] = "com.jmorton06"
-			--['INFOPLIST_FILE'] = "../Lumos/src/Platform/iOS/Info.plist",
+			['PRODUCT_BUNDLE_IDENTIFIER'] = "com.jmorton06",
+			['INFOPLIST_FILE'] = "../Lumos/src/Platform/iOS/Client/Info.plist"
 		}
 
 		files
 		{
-			"../Lumos/src/Platform/iOS/**",
+			"../Lumos/src/Platform/iOS/Client/**",
 			"res/**"
 		}
 

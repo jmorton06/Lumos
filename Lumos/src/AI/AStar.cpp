@@ -9,7 +9,7 @@ namespace Lumos
 	{
 		// Create node data
 		for (auto it = nodes.begin(); it != nodes.end(); ++it)
-			m_NodeData[*it] = new QueueablePathNode(*it);
+			m_NodeData[*it] = lmnew QueueablePathNode(*it);
 	}
 
 	AStar::~AStar()

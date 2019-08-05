@@ -4,6 +4,17 @@
 #include "Maths/BoundingSphere.h"
 #include "external/simplex/simplexnoise.h"
 
+#define RAW_WIDTH_RANDOM     500
+#define RAW_HEIGHT_RANDOM     500
+#define RAW_LOWSIDE_RANDOM    50
+#define RAW_LOWSCALE_RANDOM   10
+
+#define HEIGHTMAP_X_RANDOM    1.0f
+#define HEIGHTMAP_Z_RANDOM    1.0f
+#define HEIGHTMAP_Y_RANDOM    150.0f
+#define HEIGHTMAP_TEX_X_RANDOM   1.0f / 16.0f
+#define HEIGHTMAP_TEX_Z_RANDOM   1.0f / 16.0f
+
 namespace Lumos
 {
 	Terrain::Terrain()
@@ -12,23 +23,23 @@ namespace Lumos
 		int zCoord = 0;
 		u32 numVertices = RAW_WIDTH_RANDOM  * RAW_HEIGHT_RANDOM;
 		u32 numIndices = (RAW_WIDTH_RANDOM - 1) * (RAW_HEIGHT_RANDOM - 1) * 6;
-		Maths::Vector3* vertices = new Maths::Vector3[numVertices];
-		Maths::Vector2* texCoords = new Maths::Vector2[numVertices];
-		u32* indices = new u32[numIndices];
+		Maths::Vector3* vertices = lmnew Maths::Vector3[numVertices];
+		Maths::Vector2* texCoords = lmnew Maths::Vector2[numVertices];
+		u32* indices = lmnew u32[numIndices];
         m_BoundingSphere = std::make_shared<Maths::BoundingSphere>();
 
-		float** lowMap = new float*[RAW_LOWSIDE_RANDOM + 1];
+		float** lowMap = lmnew float*[RAW_LOWSIDE_RANDOM + 1];
 
 		for (int x = 0; x < RAW_LOWSIDE_RANDOM + 1; ++x)
 		{
-			lowMap[x] = new float[RAW_LOWSIDE_RANDOM + 1];
+			lowMap[x] = lmnew float[RAW_LOWSIDE_RANDOM + 1];
 		}
 
-		float** lowMapExpand = new float*[RAW_WIDTH_RANDOM];
+		float** lowMapExpand = lmnew float*[RAW_WIDTH_RANDOM];
 
 		for (int x = 0; x < RAW_WIDTH_RANDOM; ++x)
 		{
-			lowMapExpand[x] = new float[RAW_HEIGHT_RANDOM];
+			lowMapExpand[x] = lmnew float[RAW_HEIGHT_RANDOM];
 		}
 
 
@@ -135,7 +146,7 @@ namespace Lumos
 		Maths::Vector3* normals = GenerateNormals(numVertices, vertices, indices, numIndices);
 		Maths::Vector3* tangents = GenerateTangents(numVertices, vertices, indices, numIndices, texCoords);
 
-		Graphics::Vertex* verts = new Graphics::Vertex[numVertices];
+		Graphics::Vertex* verts = lmnew Graphics::Vertex[numVertices];
 
 		for (u32 i = 0; i < numVertices; i++)
 		{

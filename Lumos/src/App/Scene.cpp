@@ -11,8 +11,8 @@
 #include "Graphics/RenderManager.h"
 #include "Graphics/Camera/Camera.h"
 #include "Utilities/TimeStep.h"
-#include "Entity/EntityManager.h"
-#include "Entity/Component/Components.h"
+#include "ECS/EntityManager.h"
+#include "ECS/Component/Components.h"
 #include "Audio/AudioManager.h"
 #include "Physics/LumosPhysicsEngine/SortAndSweepBroadphase.h"
 #include "Physics/LumosPhysicsEngine/Octree.h"
@@ -21,11 +21,13 @@
 
 namespace Lumos
 {
-	Scene::Scene(const String& friendly_name)
-		: m_SceneName(friendly_name), m_pCamera(nullptr), m_EnvironmentMap(nullptr), m_SceneBoundingRadius(0),
-		  m_DebugDrawFlags(0), m_ScreenWidth(0),
-		  m_ScreenHeight(0),
-		  m_DrawDebugData(false)
+	Scene::Scene(const String& friendly_name) :
+		m_SceneName(friendly_name),
+		m_pCamera(nullptr), 
+		m_EnvironmentMap(nullptr), 
+		m_SceneBoundingRadius(0),
+		m_ScreenWidth(0),
+		m_ScreenHeight(0)
 	{
 	}
 
@@ -86,13 +88,8 @@ namespace Lumos
 		//Default physics setup
 		LumosPhysicsEngine::Instance()->SetDampingFactor(0.998f);
 		LumosPhysicsEngine::Instance()->SetIntegrationType(IntegrationType::RUNGE_KUTTA_4);
-		LumosPhysicsEngine::Instance()->SetBroadphase(new Octree(5, 5, std::make_shared<SortAndSweepBroadphase>()));
-		SetDebugDrawFlags(DEBUGDRAW_FLAGS_COLLISIONVOLUMES
-			| DEBUGDRAW_FLAGS_AABB
-			| DEBUGDRAW_FLAGS_COLLISIONNORMALS
-			| DEBUGDRAW_FLAGS_BROADPHASE
-			| DEBUGDRAW_FLAGS_CONSTRAINT
-		);
+		LumosPhysicsEngine::Instance()->SetBroadphase(lmnew Octree(5, 5, std::make_shared<SortAndSweepBroadphase>()));
+
 		m_SceneBoundingRadius = 400.0f; //Default scene radius of 400m
 
 		m_pFrameRenderList = std::make_unique<RenderList>();
@@ -258,5 +255,34 @@ namespace Lumos
 			m_pCamera->UpdateProjectionMatrix(static_cast<float>(e.GetWidth()), static_cast<float>(e.GetHeight()));
 
 		return false;
+	}
+	nlohmann::json Scene::Serialise()
+	{
+		nlohmann::json output;
+		output["typeID"] = LUMOS_TYPENAME(Scene);
+		output["name"] = m_SceneName;
+
+		nlohmann::json serialisedEntities = nlohmann::json::array_t();
+		auto& entities = EntityManager::Instance()->GetEntities();
+
+		for (int i = 0; i < entities.size(); ++i)
+			serialisedEntities.push_back(entities[i]->Serialise());
+
+		output["entities"] = serialisedEntities;
+
+		return output;
+	}
+
+	void Scene::Deserialise(nlohmann::json & data)
+	{
+		m_SceneName = data["name"];
+
+		nlohmann::json::array_t entities = data["entities"];
+
+		for (int i = 0; i < entities.size(); i++)
+		{
+			auto entity = EntityManager::Instance()->CreateEntity();
+			entity->Deserialise(entities[i]);
+		}
 	}
 }

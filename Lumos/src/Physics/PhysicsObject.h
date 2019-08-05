@@ -1,6 +1,7 @@
 #pragma once
 #include "LM.h"
 #include "Maths/Maths.h"
+#include "Core/Serialisable.h"
 
 namespace Lumos
 {
@@ -30,7 +31,7 @@ namespace Lumos
 		Shape shape;
 	};
 
-	class LUMOS_EXPORT PhysicsObject
+	class LUMOS_EXPORT PhysicsObject : public Serialisable
 	{
 
 	public:

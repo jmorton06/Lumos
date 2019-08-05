@@ -1,6 +1,7 @@
 #include "LM.h"
 #include "VKVertexArray.h"
 #include "VKVertexBuffer.h"
+#include "VKCommandBuffer.h"
 
 namespace Lumos
 {
@@ -30,22 +31,14 @@ namespace Lumos
 			m_Offsets.emplace_back(dynamic_cast<VKVertexBuffer*>(buffer)->GetLayout().GetStride());
 		}
 
-		void VKVertexArray::Bind() const
+		void VKVertexArray::Bind(CommandBuffer* commandBuffer) const
 		{
-			if (!m_Buffers.empty())
-				m_Buffers.front()->Bind();
+			static_cast<VKCommandBuffer*>(commandBuffer)->GetCommandBuffer().bindVertexBuffers(0, 1, m_VKBuffers.data(), m_Offsets.data());
 		}
 
 		void VKVertexArray::Unbind() const
 		{
-#ifdef LUMOS_DEBUG
-			if (!m_Buffers.empty())
-				m_Buffers.front()->Unbind();
-#endif
-		}
 
-		void VKVertexArray::Draw(u32 count) const
-		{
 		}
 	}
 	

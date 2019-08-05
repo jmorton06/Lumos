@@ -5,7 +5,7 @@
 #include "PhysicsObject3D.h"
 #include "Manifold.h"
 #include "Broadphase.h"
-#include "App/ISystem.h"
+#include "ECS/ISystem.h"
 
 namespace Lumos
 {
@@ -43,9 +43,6 @@ namespace Lumos
 		void OnInit() override {};
 		//Update Physics Engine
 		void OnUpdate(TimeStep* timeStep) override;			//Remember DeltaTime is 'seconds' since last update not milliseconds
-
-		//Debug draw all physics objects, manifolds and constraints
-		void DebugRender(uint64 debugFlags);
 
 		//Getters / Setters
 		bool IsPaused() const { return m_IsPaused; }

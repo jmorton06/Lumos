@@ -3,9 +3,7 @@
 #include "Graphics/API/Shader.h"
 #include "Graphics/RenderList.h"
 #include "Graphics/API/Framebuffer.h"
-#include "Graphics/API/Textures/TextureDepth.h"
-#include "Graphics/API/Textures/TextureCube.h"
-#include "Graphics/API/Textures/Texture2D.h"
+#include "Graphics/API/Texture.h"
 #include "Graphics/API/UniformBuffer.h"
 #include "Graphics/API/Renderer.h"
 #include "Graphics/API/CommandBuffer.h"
@@ -71,7 +69,14 @@ namespace Lumos
 			std::vector<Graphics::DescriptorSet*> descriptorSets;
 			descriptorSets.emplace_back(m_Pipeline->GetDescriptorSet());
 
-			Renderer::RenderMesh(m_Skybox, m_Pipeline, m_CommandBuffers[m_CurrentBufferID], 0, descriptorSets);
+			m_Skybox->GetVertexArray()->Bind(m_CommandBuffers[m_CurrentBufferID]);
+			m_Skybox->GetIndexBuffer()->Bind(m_CommandBuffers[m_CurrentBufferID]);
+
+			Renderer::BindDescriptorSets(m_Pipeline, m_CommandBuffers[m_CurrentBufferID], 0, descriptorSets);
+			Renderer::DrawIndexed(m_CommandBuffers[m_CurrentBufferID], DrawType::TRIANGLE, m_Skybox->GetIndexBuffer()->GetCount());
+
+			m_Skybox->GetVertexArray()->Unbind();
+			m_Skybox->GetIndexBuffer()->Unbind();
 
 			End();
 
@@ -79,7 +84,7 @@ namespace Lumos
 				Renderer::Present((m_CommandBuffers[Renderer::GetSwapchain()->GetCurrentBufferId()]));
 		}
 
-		enum VSSystemUniformIndices : int32
+		enum VSSystemUniformIndices : i32
 		{
 			VSSystemUniformIndex_InverseProjectionViewMatrix = 0,
 			VSSystemUniformIndex_Size
@@ -92,7 +97,7 @@ namespace Lumos
 
 			// Vertex shader System uniforms
 			m_VSSystemUniformBufferSize = sizeof(Maths::Matrix4);
-			m_VSSystemUniformBuffer = new u8[m_VSSystemUniformBufferSize];
+			m_VSSystemUniformBuffer = lmnew u8[m_VSSystemUniformBufferSize];
 			memset(m_VSSystemUniformBuffer, 0, m_VSSystemUniformBufferSize);
 			m_VSSystemUniformBufferOffsets.resize(VSSystemUniformIndex_Size);
 
@@ -217,7 +222,7 @@ namespace Lumos
 			Graphics::PipelineInfo pipelineCI{};
 			pipelineCI.pipelineName = "SkyRenderer";
 			pipelineCI.shader = m_Shader;
-			pipelineCI.vulkanRenderpass = m_RenderPass;
+			pipelineCI.renderpass = m_RenderPass;
 			pipelineCI.numVertexLayout = static_cast<u32>(attributeDescriptions.size());
 			pipelineCI.descriptorLayouts = descriptorLayouts;
 			pipelineCI.vertexLayout = attributeDescriptions.data();

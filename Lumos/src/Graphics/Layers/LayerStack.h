@@ -1,9 +1,7 @@
 #pragma once
 
-#include "Core.h"
+#include "Core/Core.h"
 #include "Layer.h"
-
-#include <deque>
 
 namespace Lumos
 {

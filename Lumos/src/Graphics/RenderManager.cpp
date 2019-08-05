@@ -10,7 +10,7 @@ namespace Lumos
 		{
 			SetScreenBufferSize(width, height);
 
-			m_GBuffer = new GBuffer(width, height);
+			m_GBuffer = lmnew GBuffer(width, height);
 			Reset();
 		}
 		RenderManager::~RenderManager() { delete m_GBuffer; }
@@ -20,7 +20,7 @@ namespace Lumos
 			SetScreenBufferSize(width, height);
 
 			delete m_GBuffer;
-			m_GBuffer = new GBuffer(width, height);
+			m_GBuffer = lmnew GBuffer(width, height);
 		}
 
 		void RenderManager::Reset()

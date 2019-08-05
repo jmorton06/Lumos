@@ -11,7 +11,7 @@ namespace Lumos
 	SoundNode* SoundNode::Create()
 	{
 #ifdef LUMOS_OPENAL
-		return new ALSoundNode();
+		return lmnew ALSoundNode();
 #else
 		return nullptr;
 #endif

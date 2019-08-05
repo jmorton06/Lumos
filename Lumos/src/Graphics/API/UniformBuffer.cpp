@@ -20,10 +20,10 @@ namespace Lumos
 			switch (Graphics::GraphicsContext::GetRenderAPI())
 			{
 #ifdef LUMOS_RENDER_API_OPENGL
-			case RenderAPI::OPENGL:	return new GLUniformBuffer();
+			case RenderAPI::OPENGL:	return lmnew GLUniformBuffer();
 #endif
 #ifdef LUMOS_RENDER_API_VULKAN
-			case RenderAPI::VULKAN:	return new Graphics::VKUniformBuffer();
+			case RenderAPI::VULKAN:	return lmnew Graphics::VKUniformBuffer();
 #endif
 #ifdef LUMOS_RENDER_API_DIRECT3D
 			case RenderAPI::DIRECT3D: return nullptr;
@@ -37,10 +37,10 @@ namespace Lumos
 			switch (Graphics::GraphicsContext::GetRenderAPI())
 			{
 #ifdef LUMOS_RENDER_API_OPENGL
-			case RenderAPI::OPENGL:	return new GLUniformBuffer();
+			case RenderAPI::OPENGL:	return lmnew GLUniformBuffer();
 #endif
 #ifdef LUMOS_RENDER_API_VULKAN
-			case RenderAPI::VULKAN:	return new Graphics::VKUniformBuffer(size, data);
+			case RenderAPI::VULKAN:	return lmnew Graphics::VKUniformBuffer(size, data);
 #endif
 #ifdef LUMOS_RENDER_API_DIRECT3D
 			case RenderAPI::DIRECT3D: return nullptr;

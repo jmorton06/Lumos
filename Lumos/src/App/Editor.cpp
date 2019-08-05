@@ -8,9 +8,9 @@
 #include "SceneManager.h"
 
 #include "Maths/BoundingSphere.h"
-#include "Entity/Entity.h"
-#include "Entity/Component/Components.h"
-#include "Entity/SystemManager.h"
+#include "ECS/Entity.h"
+#include "ECS/Component/Components.h"
+#include "ECS/SystemManager.h"
 #include "Physics/LumosPhysicsEngine/LumosPhysicsEngine.h"
 
 #include "Graphics/GBuffer.h"
@@ -18,7 +18,8 @@
 #include "Graphics/RenderManager.h"
 #include "Graphics/Layers/LayerStack.h"
 #include "Graphics/API/GraphicsContext.h"
-#include "Graphics/API/Textures/Texture2D.h"
+#include "Graphics/API/Texture.h"
+#include "Graphics/API/GraphicsContext.h"
 
 #include <imgui/imgui.h>
 #include <imgui/imgui_internal.h>
@@ -29,7 +30,7 @@ namespace Lumos
 {
 	Editor::Editor(Application* app, u32 width, u32 height) : m_Application(app)
 	{
-		m_Console = new Console();
+		m_Console = lmnew Console();
 		LMLog::GetCoreLogger()->sinks().emplace_back(std::make_shared<ConsoleSink>(*m_Console));
 		LMLog::GetClientLogger()->sinks().emplace_back(std::make_shared<ConsoleSink>(*m_Console));
 
@@ -55,7 +56,7 @@ namespace Lumos
 		DrawConsole();
 		DrawHierarchyWindow();
 		DrawInspectorWindow();
-
+        DrawGraphicsInfoWindow();
 		EndDockSpace();
 	}
 
@@ -453,6 +454,7 @@ namespace Lumos
 			ImGui::DockBuilderDockWindow("Engine", dock_id_left);
 			ImGui::DockBuilderDockWindow("Scene Information", dock_id_left);
 			ImGui::DockBuilderDockWindow("ImGui Demo", dock_id_left);
+            ImGui::DockBuilderDockWindow("GraphicsInfo", dock_id_left);
 
 			ImGui::DockBuilderFinish(dockspace_id);
 		}
@@ -518,4 +520,13 @@ namespace Lumos
 	{
 		m_Console->Draw("Console");
 	}
+    
+    void Editor::DrawGraphicsInfoWindow()
+    {
+        ImGui::Begin("GraphicsInfo", nullptr, 0);
+        {
+            Graphics::GraphicsContext::GetContext()->OnImGUI();
+        }
+        ImGui::End();
+    }
 }

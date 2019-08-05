@@ -11,6 +11,8 @@ namespace Lumos
 		class DescriptorSet;
 		class Swapchain;
 		class IndexBuffer;
+		class VertexArray;
+		class Mesh;
 
 		enum LUMOS_EXPORT RendererBufferType
 		{
@@ -73,9 +75,6 @@ namespace Lumos
 			UNSIGNED_BYTE
 		};
 
-		class Mesh;
-		class VertexArray;
-
 		class LUMOS_EXPORT Renderer
 		{
 		public:
@@ -89,27 +88,23 @@ namespace Lumos
 			static void Release();
 			virtual void InitInternal() = 0;
 			virtual void Begin() = 0;
-			virtual void BindScreenFBOInternal() = 0;
 			virtual void OnResize(u32 width, u32 height) = 0;
 			inline static Renderer* GetRenderer() { return s_Instance; }
 
-			virtual void Render(VertexArray* vertexArray, IndexBuffer* indexBuffer, Graphics::CommandBuffer* cmdBuffer, std::vector<Graphics::DescriptorSet*>& descriptorSets, Graphics::Pipeline* pipeline, u32 dynamicOffset = 0) = 0;
-
 			virtual void PresentInternal() = 0;
 			virtual void PresentInternal(Graphics::CommandBuffer* cmdBuffer) = 0;
+			virtual void BindDescriptorSetsInternal(Graphics::Pipeline* pipeline, Graphics::CommandBuffer* cmdBuffer, u32 dynamicOffset, std::vector<Graphics::DescriptorSet*>& descriptorSets) = 0;
 
 			virtual const String& GetTitleInternal() const = 0;
-			virtual void DrawArraysInternal(DrawType type, u32 numIndices, u32 start) const = 0;
-			virtual void DrawInternal(DrawType type, u32 count, DataType datayType, void* indices) const = 0;
-			virtual void RenderMeshInternal(Mesh* mesh, Graphics::Pipeline* pipeline, Graphics::CommandBuffer* cmdBuffer, u32 dynamicOffset, std::vector<Graphics::DescriptorSet*>& descriptorSets) = 0;
+			virtual void DrawIndexedInternal(CommandBuffer* commandBuffer, DrawType type, u32 count, u32 start) const = 0;
+			virtual void DrawInternal(CommandBuffer* commandBuffer, DrawType type, u32 count, DataType datayType, void* indices) const = 0;
 			virtual Graphics::Swapchain* GetSwapchainInternal() const = 0;
 
-			inline static void BindScreenFBO() { s_Instance->BindScreenFBOInternal(); }
 			inline static void Present() { s_Instance->PresentInternal(); }
 			inline static void Present(Graphics::CommandBuffer* cmdBuffer) { s_Instance->PresentInternal(cmdBuffer); }
-			inline static void Draw(DrawType type, u32 count, DataType datayType = DataType::UNSIGNED_INT, void* indices = nullptr) { s_Instance->DrawInternal(type, count, datayType, indices); }
-			inline static void DrawArrays(DrawType type, u32 numIndices, u32 start = 0) { s_Instance->DrawArraysInternal(type, numIndices, start); }
-			inline static void RenderMesh(Mesh* mesh, Graphics::Pipeline* pipeline, Graphics::CommandBuffer* cmdBuffer, u32 dynamicOffset, std::vector<Graphics::DescriptorSet*>& descriptorSets) { s_Instance->RenderMeshInternal(mesh, pipeline, cmdBuffer, dynamicOffset, descriptorSets); }
+			inline static void BindDescriptorSets(Graphics::Pipeline* pipeline, Graphics::CommandBuffer* cmdBuffer, u32 dynamicOffset, std::vector<Graphics::DescriptorSet*>& descriptorSets) { s_Instance->BindDescriptorSetsInternal(pipeline, cmdBuffer, dynamicOffset, descriptorSets); }
+			inline static void Draw(CommandBuffer* commandBuffer, DrawType type, u32 count, DataType datayType = DataType::UNSIGNED_INT, void* indices = nullptr) { s_Instance->DrawInternal(commandBuffer, type, count, datayType, indices); }
+			inline static void DrawIndexed(CommandBuffer* commandBuffer, DrawType type, u32 count, u32 start = 0) { s_Instance->DrawIndexedInternal(commandBuffer, type, count, start); }
 			inline static const String& GetTitle() { return s_Instance->GetTitleInternal(); }
 
 			inline static Swapchain* GetSwapchain() { return s_Instance->GetSwapchainInternal(); }

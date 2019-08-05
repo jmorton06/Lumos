@@ -10,14 +10,14 @@
 
 #include "Graphics/API/Renderer.h"
 #include "Graphics/API/GraphicsContext.h"
-#include "Graphics/API/Textures/Texture2D.h"
+#include "Graphics/API/Texture.h"
 #include "Graphics/RenderManager.h"
 #include "Graphics/Layers/LayerStack.h"
 #include "Graphics/Layers/ImGuiLayer.h"
 #include "Graphics/Camera/Camera.h"
 
-#include "Entity/EntityManager.h"
-#include "Entity/ComponentManager.h"
+#include "ECS/EntityManager.h"
+#include "ECS/ComponentManager.h"
 
 #include "Utilities/CommonUtils.h"
 #include "Utilities/TimeStep.h"
@@ -45,7 +45,7 @@ namespace Lumos
 		s_Instance = this;
 
 #ifdef  LUMOS_EDITOR
-		m_Editor = new Editor(this, properties.Width, properties.Height);
+		m_Editor = lmnew Editor(this, properties.Width, properties.Height);
 #endif
 		Graphics::GraphicsContext::SetRenderAPI(static_cast<Graphics::RenderAPI>(properties.RenderAPI));
 
@@ -113,8 +113,8 @@ namespace Lumos
 
 		System::JobSystem::Wait();
 
-		m_LayerStack = new LayerStack();
-		PushLayerInternal(new ImGuiLayer(false),true,false);
+		m_LayerStack = lmnew LayerStack();
+		PushLayerInternal(lmnew ImGuiLayer(false),true,false);
 
 		m_SystemManager = std::make_unique<SystemManager>();
 		m_SystemManager->RegisterSystem<AudioManager>(AudioManager::Create());

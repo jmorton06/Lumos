@@ -1,6 +1,7 @@
 #pragma once
 #include "LM.h"
 #include "BoundingShape.h"
+#include "Core/Serialisable.h"
 
 namespace Lumos
 {
@@ -36,6 +37,22 @@ namespace Lumos
 
 			bool Intersects(const Vector3 &point) const override;
 			bool Intersects(const BoundingBox &otherBox) const;
+
+			nlohmann::json Serialise() override
+			{
+				nlohmann::json output;
+				output["typeID"] = LUMOS_TYPENAME(BoundingBox);
+				output["upper"] = m_Upper.Serialise();
+				output["lower"] = m_Lower.Serialise();
+
+				return output;
+			};
+
+			void Deserialise(nlohmann::json& data) override
+			{
+				m_Lower.Deserialise(data["lower"]);
+				m_Upper.Deserialise(data["upper"]);
+			};
 
 		protected:
 

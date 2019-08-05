@@ -2,6 +2,8 @@
 #include "LM.h"
 #include "MathsCommon.h"
 
+#include "Core/Serialisable.h"
+
 namespace Lumos
 {
 	namespace Maths
@@ -56,16 +58,27 @@ namespace Lumos
 				return o;
 			}
 
+			nlohmann::json Serialise()
+			{
+				nlohmann::json output;
+				output["typeID"] = LUMOS_TYPENAME(Vector2);
+				output["x"] = x;
+				output["y"] = y;
+
+				return output;
+			};
+
+			void Deserialise(nlohmann::json& data)
+			{
+				x = data["x"];
+				y = data["y"];
+			};
+
 			inline Vector2 operator-(const Vector2 &a) const { return Vector2(x - a.x, y - a.y); }
 			inline Vector2 operator+(const Vector2 &a) const { return Vector2(x + a.x, y + a.y); }
 			inline Vector2 operator*(const float a) const { return Vector2(x * a, y * a); }
 			inline Vector2 operator/(const float v) const { return Vector2(x / v, y / v); };
 			inline bool operator==(const Vector2 &A) const { return (A.x == x && A.y == y) ? true : false; };
-
-#ifdef LUMOS_SSEVEC2
-			MEM_ALIGN_NEW_DELETE;
-#endif
-
 		};
 	}
 }

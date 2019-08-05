@@ -25,11 +25,11 @@ namespace Lumos
             static GLRenderer* Instance() { return static_cast<GLRenderer*>(s_Instance); }
 
 			void Begin() override;
-			void BindScreenFBOInternal() override;
 			void InitInternal() override;
 
-			void DrawInternal(DrawType type, u32 count, DataType dataType = DataType::UNSIGNED_INT, void* indices = nullptr) const override;
-			void DrawArraysInternal(DrawType type, u32 numIndices, u32 start)	const override;
+			void BindDescriptorSetsInternal(Graphics::Pipeline* pipeline, Graphics::CommandBuffer* cmdBuffer, u32 dynamicOffset, std::vector<Graphics::DescriptorSet*>& descriptorSets) override;
+			void DrawInternal(CommandBuffer* commandBuffer, DrawType type, u32 count, DataType dataType, void* indices) const override;
+			void DrawIndexedInternal(CommandBuffer* commandBuffer, DrawType type, u32 count, u32 start) const override;
 			void SetRenderModeInternal(RenderMode mode);
 			void OnResize(u32 width, u32 height) override;
 			void PresentInternal() override;
@@ -48,9 +48,6 @@ namespace Lumos
 			void SetBlendEquationInternal(RendererBlendFunction blendEquation);
 			void SetStencilFunctionInternal(StencilType type, u32 ref, u32 mask);
 			void SetStencilOpInternal(StencilType fail, StencilType zfail, StencilType zpass);
-
-			void RenderMeshInternal(Mesh* mesh, Graphics::Pipeline* pipeline, Graphics::CommandBuffer* cmdBuffer, u32 dynamicOffset, std::vector<Graphics::DescriptorSet*>& descriptorSets) override;
-			void Render(VertexArray* vertexArray, IndexBuffer* indexBuffer, Graphics::CommandBuffer* cmdBuffer, std::vector<Graphics::DescriptorSet*>& descriptorSets, Graphics::Pipeline* pipeline, u32 dynamicOffset) override;
 
 			static void ClearInternal(u32 buffer);
 

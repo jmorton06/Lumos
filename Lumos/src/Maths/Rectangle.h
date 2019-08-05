@@ -1,5 +1,6 @@
 #pragma once
 #include "LM.h"
+#include "Core/Serialisable.h"
 
 namespace Lumos
 {
@@ -35,6 +36,26 @@ namespace Lumos
 
 			bool operator==(const Rectangle& right) const;
 			bool operator!=(const Rectangle& right);
+
+			nlohmann::json Serialise()
+			{
+				nlohmann::json output;
+				output["typeID"] = LUMOS_TYPENAME(Rectangle);
+				output["x"] = x;
+				output["y"] = y;
+				output["width"] = width;
+				output["height"] = height;
+
+				return output;
+			};
+
+			void Deserialise(nlohmann::json& data)
+			{
+				x = data["x"];
+				y = data["y"];
+				width = data["width"];
+				height = data["height"];
+			};
 
 			friend std::ostream& operator<<(std::ostream& os, const Rectangle& rectangle);
 		};

@@ -34,6 +34,9 @@ public:
 		ImGui::Separator();
 		ImGui::PopStyleVar();
 	};
+
+	nlohmann::json Serialise() override { return nullptr; };
+	void Deserialise(nlohmann::json& data) override {};
 };
 
 Scene3D::Scene3D(const std::string& SceneName)
@@ -53,8 +56,6 @@ void Scene3D::OnInit()
 	LumosPhysicsEngine::Instance()->SetDampingFactor(0.998f);
 	LumosPhysicsEngine::Instance()->SetIntegrationType(IntegrationType::RUNGE_KUTTA_4);
 	LumosPhysicsEngine::Instance()->SetBroadphase(new Octree(5, 5, std::make_shared<SortAndSweepBroadphase>()));
-
-	SetDebugDrawFlags( DEBUGDRAW_FLAGS_ENTITY_COMPONENTS | DEBUGDRAW_FLAGS_COLLISIONVOLUMES  );
 
 	LoadModels();
 

@@ -1,0 +1,27 @@
+#pragma once
+#include "LM.h"
+#include "LumosComponent.h"
+
+namespace Lumos
+{
+    class Material;
+    
+    class LUMOS_EXPORT MaterialComponent : public LumosComponent
+    {
+    public:
+        MaterialComponent();
+        explicit MaterialComponent(std::shared_ptr<Material>& material);
+        virtual ~MaterialComponent();
+        
+        void OnUpdateComponent(float dt) override;
+        
+        void OnIMGUI() override;
+        
+        const std::shared_ptr<Material>& GetMaterial() const { return m_Material; }
+
+		nlohmann::json Serialise() override { return nullptr; };
+		void Deserialise(nlohmann::json& data) override {};
+    private:
+        std::shared_ptr<Material> m_Material;
+    };
+}

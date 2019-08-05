@@ -3,7 +3,7 @@
 #define LUMOS_MOUSE_LEFT	      0x00
 #define LUMOS_MOUSE_RIGHT		  0x01
 #define LUMOS_MOUSE_MIDDLE        0x02
-#define LUMOS_NO_CURSOR		      NULL
+#define LUMOS_NO_CURSOR		      0x03
 #define LUMOS_KEY_TAB			  0x09
 
 #define LUMOS_KEY_0			  	  0x30

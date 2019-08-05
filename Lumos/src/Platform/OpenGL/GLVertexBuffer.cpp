@@ -85,9 +85,7 @@ namespace Lumos
 
 		void GLVertexBuffer::Unbind()
 		{
-#ifdef LUMOS_DEBUG
 			GLCall(glBindBuffer(GL_ARRAY_BUFFER, 0));
-#endif
 		}
 	}
 }

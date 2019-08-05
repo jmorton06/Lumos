@@ -49,7 +49,7 @@ namespace Lumos
 
 		GLShaderUniformDeclaration::Type GLShaderUniformDeclaration::StringToType(const String& type, u32 count)
 		{
-			if (type == "int32")	return Type::INT32;
+			if (type == "i32")	return Type::INT32;
 			if (type == "int")		return Type::INT32;
 			if (type == "float")	return Type::FLOAT32;
 			if (type == "vec2")		return Type::VEC2;
@@ -66,7 +66,7 @@ namespace Lumos
 		{
 			switch (type)
 			{
-			case GLShaderUniformDeclaration::Type::INT32:		return "int32";
+			case GLShaderUniformDeclaration::Type::INT32:		return "i32";
 			case GLShaderUniformDeclaration::Type::FLOAT32:		return "float";
 			case GLShaderUniformDeclaration::Type::VEC2:		return "vec2";
 			case GLShaderUniformDeclaration::Type::VEC3:		return "vec3";

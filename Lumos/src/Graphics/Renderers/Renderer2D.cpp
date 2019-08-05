@@ -12,13 +12,13 @@
 #include "Graphics/API/Pipeline.h"
 #include "Graphics/API/IndexBuffer.h"
 #include "Graphics/API/VertexArray.h"
-#include "Graphics/API/Textures/Texture2D.h"
+#include "Graphics/API/Texture.h"
 #include "Graphics/GBuffer.h"
 #include "App/Scene.h"
-#include "Entity/Entity.h"
-#include "Entity/Component/MaterialComponent.h"
-#include "Entity/Component/SpriteComponent.h"
-#include "Entity/Component/TransformComponent.h"
+#include "ECS/Entity.h"
+#include "ECS/Component/MaterialComponent.h"
+#include "ECS/Component/SpriteComponent.h"
+#include "ECS/Component/TransformComponent.h"
 #include "App/Application.h"
 #include "Graphics/RenderManager.h"
 #include "Platform/OpenGL/GLDescriptorSet.h"
@@ -79,7 +79,7 @@ namespace Lumos
 			m_TransformationBack = &m_TransformationStack.back();
 
 			m_VSSystemUniformBufferSize = sizeof(Maths::Matrix4);
-			m_VSSystemUniformBuffer = new u8[m_VSSystemUniformBufferSize];
+			m_VSSystemUniformBuffer = lmnew u8[m_VSSystemUniformBufferSize];
 
 			m_RenderPass = Graphics::RenderPass::Create();
 			m_UniformBuffer = Graphics::UniformBuffer::Create();
@@ -158,10 +158,10 @@ namespace Lumos
 				vertexArray->PushBuffer(buffer);
 			}
 
-			u32* indices = new u32[RENDERER_INDICES_SIZE];
+			u32* indices = lmnew u32[RENDERER_INDICES_SIZE];
 
-			int32 offset = 0;
-			for (int32 i = 0; i < RENDERER_INDICES_SIZE; i += 6)
+			i32 offset = 0;
+			for (i32 i = 0; i < RENDERER_INDICES_SIZE; i += 6)
 			{
 				indices[i] = offset + 0;
 				indices[i + 1] = offset + 1;
@@ -238,7 +238,7 @@ namespace Lumos
 			m_Textures.clear();
 			m_Sprites.clear();
 
-			m_VertexArrays[m_BatchDrawCallIndex]->Bind();
+			m_VertexArrays[m_BatchDrawCallIndex]->Bind(m_CommandBuffers[m_CurrentBufferID]);
 			m_Buffer = m_VertexArrays[m_BatchDrawCallIndex]->GetBuffer()->GetPointer<VertexData>();
 		}
 
@@ -274,7 +274,14 @@ namespace Lumos
 
 			std::vector<Graphics::DescriptorSet*> descriptors = { m_Pipeline->GetDescriptorSet(), m_DescriptorSet };
 
-			Renderer::GetRenderer()->Render(m_VertexArrays[m_BatchDrawCallIndex], m_IndexBuffer, currentCMDBuffer, descriptors, m_Pipeline, 0);
+			m_VertexArrays[m_BatchDrawCallIndex]->Bind(currentCMDBuffer);
+			m_IndexBuffer->Bind(currentCMDBuffer);
+
+			Renderer::BindDescriptorSets(m_Pipeline, currentCMDBuffer, 0, descriptors);
+			Renderer::DrawIndexed(currentCMDBuffer, DrawType::TRIANGLE, m_IndexCount);
+
+			m_VertexArrays[m_BatchDrawCallIndex]->Unbind();
+			m_IndexBuffer->Unbind();
 
 			m_IndexCount = 0;
 
@@ -458,7 +465,7 @@ namespace Lumos
 			Graphics::PipelineInfo pipelineCI{};
 			pipelineCI.pipelineName = "Batch2DRenderer";
 			pipelineCI.shader = m_Shader;
-			pipelineCI.vulkanRenderpass = m_RenderPass;
+			pipelineCI.renderpass = m_RenderPass;
 			pipelineCI.numVertexLayout = static_cast<u32>(attributeDescriptions.size());
 			pipelineCI.descriptorLayouts = descriptorLayouts;
 			pipelineCI.vertexLayout = attributeDescriptions.data();

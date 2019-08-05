@@ -1,6 +1,6 @@
 #include "LM.h"
 #include "DebugRenderer.h"
-#include "Graphics/API/Textures/Texture2D.h"
+#include "Graphics/API/Texture.h"
 #include "App/Window.h"
 #include "Graphics/API/Renderer.h"
 #include "Graphics/Material.h"

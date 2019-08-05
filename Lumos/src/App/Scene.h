@@ -7,6 +7,8 @@
 #include "Events/Event.h"
 #include "Events/ApplicationEvent.h"
 
+#include "Core/Serialisable.h"
+
 namespace Lumos
 {
 	struct TimeStep;
@@ -24,7 +26,7 @@ namespace Lumos
 		class TextureCube;
 	}
 
-	class LUMOS_EXPORT Scene
+	class LUMOS_EXPORT Scene : public Serialisable
 	{
 	public:
 		explicit Scene(const String& SceneName); //Called once at program start - all scene initialization should be done in 'OnInitialize'
@@ -84,12 +86,6 @@ namespace Lumos
 		bool GetReflectSkybox() const { return m_ReflectSkybox; }
 		void SetReflectSkybox(bool reflect) { m_ReflectSkybox = reflect; }
 
-		bool GetDrawDebugData() const { return m_DrawDebugData; }
-		void SetDrawDebugData(bool draw) { m_DrawDebugData = draw; }
-
-		uint64_t GetDebugDrawFlags() const { return m_DebugDrawFlags; }
-		void SetDebugDrawFlags(uint64_t flags) { m_DebugDrawFlags = flags; }
-
 		void SetScreenWidth(u32 width)   { m_ScreenWidth = width; }
 		void SetScreenHeight(u32 height) { m_ScreenHeight = height; }
         
@@ -100,6 +96,10 @@ namespace Lumos
 		RenderList* GetRenderList() const { return m_pFrameRenderList.get(); }
 
 		void IterateEntities(const std::function<void(Entity*)>& per_object_func);
+
+		// Inherited via Serialisable
+		nlohmann::json Serialise() override;
+		void Deserialise(nlohmann::json & data) override;
 
 	protected:
 
@@ -114,9 +114,6 @@ namespace Lumos
 		bool m_CurrentScene = false;
 		bool m_ReflectSkybox = true;
 
-		bool	m_DrawDebugData{};
-        uint64	m_DebugDrawFlags{};
-
 		u32 m_ScreenWidth;
 		u32 m_ScreenHeight;
 
@@ -129,5 +126,5 @@ namespace Lumos
         Scene& operator=(Scene const&) = delete;
 
 		bool OnWindowResize(WindowResizeEvent& e);
-	};
+};
 }

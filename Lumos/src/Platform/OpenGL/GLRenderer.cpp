@@ -17,7 +17,7 @@ namespace Lumos
 
 		GLRenderer::GLRenderer(u32 width, u32 height) : m_Context(nullptr)
 		{
-			m_Swapchain = new Graphics::GLSwapchain(width, height);
+			m_Swapchain = lmnew Graphics::GLSwapchain(width, height);
 
 			m_RendererTitle = "OPENGL";
 		}
@@ -49,11 +49,6 @@ namespace Lumos
 			GLCall(glClear(GL_COLOR_BUFFER_BIT));
 		}
 
-		void GLRenderer::BindScreenFBOInternal()
-		{
-			GLCall(glBindFramebuffer(GL_FRAMEBUFFER, 0));
-		}
-
 		void GLRenderer::ClearInternal(u32 buffer)
 		{
 			GLCall(glClear(GLTools::RendererBufferToGL(buffer)));
@@ -81,14 +76,7 @@ namespace Lumos
 
 		void GLRenderer::SetDepthMaskInternal(bool enabled)
 		{
-			if (enabled)
-			{
-				GLCall(glDepthMask(GL_TRUE));
-			}
-			else
-			{
-				GLCall(glDepthMask(GL_FALSE));
-			}
+			GLCall(glDepthMask(enabled ? GL_TRUE : GL_FALSE));
 		}
 
 		void GLRenderer::SetPixelPackType(const PixelPackType type)
@@ -132,16 +120,6 @@ namespace Lumos
 			return m_RendererTitle;
 		}
 
-		void GLRenderer::DrawInternal(const DrawType type, u32 count, DataType dataType, void* indices) const
-		{
-			GLCall(glDrawElements(GLTools::DrawTypeToGL(type), count, GLTools::DataTypeToGL(dataType), indices));
-		}
-
-		void GLRenderer::DrawArraysInternal(const DrawType type, u32 start, u32 numIndices) const
-		{
-			GLCall(glDrawArrays(GLTools::DrawTypeToGL(type), start, numIndices));
-		}
-
 		void GLRenderer::SetRenderModeInternal(RenderMode mode)
 		{
 #ifndef LUMOS_PLATFORM_MOBILE
@@ -156,20 +134,13 @@ namespace Lumos
 		void GLRenderer::OnResize(u32 width, u32 height)
 		{
 		}
+
 		void GLRenderer::SetCullingInternal(bool enabled, bool front)
 		{
 			if (enabled)
 			{
 				GLCall(glEnable(GL_CULL_FACE));
-				if (front)
-				{
-					GLCall(glCullFace(GL_FRONT));
-				}
-				else
-				{
-					GLCall(glCullFace(GL_BACK));
-				}
-
+				GLCall(glCullFace(front ? GL_FRONT : GL_BACK));
 			}
 			else
 			{
@@ -204,29 +175,23 @@ namespace Lumos
 			glColorMask(r, g, b, a);
 		}
 
-		void GLRenderer::RenderMeshInternal(Mesh *mesh, Graphics::Pipeline *pipeline, Graphics::CommandBuffer* cmdBuffer, u32 dynamicOffset, std::vector<Graphics::DescriptorSet*>& descriptorSets)
+		void GLRenderer::DrawInternal(CommandBuffer* commandBuffer, const DrawType type, u32 count, DataType dataType, void* indices) const
 		{
-			for (auto desc : descriptorSets)
-			{
-				static_cast<Graphics::GLDescriptorSet*>(desc)->Bind(dynamicOffset);
-			}
-
-			mesh->Draw();
+			GLCall(glDrawElements(GLTools::DrawTypeToGL(type), count, GLTools::DataTypeToGL(dataType), indices));
 		}
 
-		void GLRenderer::Render(VertexArray* vertexArray, IndexBuffer* indexBuffer, Graphics::CommandBuffer* cmdBuffer,
-			std::vector<Graphics::DescriptorSet*>& descriptorSets, Graphics::Pipeline* pipeline, u32 dynamicOffset)
+		void GLRenderer::DrawIndexedInternal(CommandBuffer* commandBuffer, const DrawType type, u32 count, u32 start) const
+		{
+			GLCall(glDrawElements(GLTools::DrawTypeToGL(type), count, GLTools::DataTypeToGL(DataType::UNSIGNED_INT), nullptr));
+			//GLCall(glDrawArrays(GLTools::DrawTypeToGL(type), start, count));
+		}
+
+		void GLRenderer::BindDescriptorSetsInternal(Graphics::Pipeline* pipeline, Graphics::CommandBuffer* cmdBuffer, u32 dynamicOffset, std::vector<Graphics::DescriptorSet*>& descriptorSets)
 		{
 			for (auto descriptor : descriptorSets)
 			{
 				static_cast<Graphics::GLDescriptorSet*>(descriptor)->Bind(dynamicOffset);
 			}
-
-			vertexArray->Bind();
-			indexBuffer->Bind();
-			Renderer::Draw(DrawType::TRIANGLE, indexBuffer->GetCount());
-			indexBuffer->Unbind();
-			vertexArray->Unbind();
 		}
 	}
 }

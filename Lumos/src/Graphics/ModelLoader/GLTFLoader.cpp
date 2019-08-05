@@ -3,13 +3,13 @@
 #include "Graphics/Mesh.h"
 #include "Graphics/Material.h"
 #include "Maths/BoundingSphere.h"
-#include "Entity/Entity.h"
-#include "Entity/EntityManager.h"
-#include "Entity/Component/MeshComponent.h"
-#include "Entity/Component/MaterialComponent.h"
-#include "Entity/Component/TransformComponent.h"
+#include "ECS/Entity.h"
+#include "ECS/EntityManager.h"
+#include "ECS/Component/MeshComponent.h"
+#include "ECS/Component/MaterialComponent.h"
+#include "ECS/Component/TransformComponent.h"
 
-#include "Graphics/API/Textures/Texture2D.h"
+#include "Graphics/API/Texture.h"
 #include "Utilities/AssetsManager.h"
 #include "Maths/MathsUtilities.h"
 #include "Maths/Matrix4.h"
@@ -243,8 +243,8 @@ namespace Lumos
             const tinygltf::Accessor &indices = model.accessors[primitive.indices];
             
             const u32 numVertices = static_cast<u32>(indices.count);
-			Graphics::Vertex* tempvertices = new Graphics::Vertex[numVertices];
-            u32* indicesArray = new u32[numVertices];
+			Graphics::Vertex* tempvertices = lmnew Graphics::Vertex[numVertices];
+            u32* indicesArray = lmnew u32[numVertices];
             
             size_t maxNumVerts = 0;
             
@@ -371,7 +371,7 @@ namespace Lumos
                 size_t indicesCount = indexAccessor.count;
                 if (componentTypeByteSize == 2)
                 {
-                    uint16_t* in = reinterpret_cast<uint16_t*>(data.data()); //TODO: Test different models to check size - uint32 or 16
+                    uint16_t* in = reinterpret_cast<uint16_t*>(data.data()); //TODO: Test different models to check size - u32 or 16
                     for (auto iCount = 0; iCount < indicesCount; iCount++)
                     {
                         indicesArray[iCount] = in[iCount];
@@ -390,7 +390,7 @@ namespace Lumos
             std::shared_ptr<Graphics::IndexBuffer> ib;
             ib.reset(Graphics::IndexBuffer::Create(indicesArray, numVertices));
 
-            auto lMesh = new Graphics::Mesh(va, ib, boundingBox);
+            auto lMesh = lmnew Graphics::Mesh(va, ib, boundingBox);
             
             delete[] tempvertices;
             delete[] indicesArray;

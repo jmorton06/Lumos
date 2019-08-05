@@ -33,7 +33,7 @@ namespace Lumos
 			m_Buffers.push_back(buffer);
 		}
 
-		void GLVertexArray::Bind() const
+		void GLVertexArray::Bind(CommandBuffer* commandBuffer) const
 		{
 			GLCall(glBindVertexArray(m_Handle));
 			if (!m_Buffers.empty())
@@ -42,16 +42,9 @@ namespace Lumos
 
 		void GLVertexArray::Unbind() const
 		{
-#ifdef LUMOS_DEBUG
 			if (!m_Buffers.empty())
 				m_Buffers.front()->Unbind();
 			GLCall(glBindVertexArray(0));
-#endif
-		}
-
-		void GLVertexArray::Draw(u32 count) const
-		{
-			GLCall(glDrawElements(GL_TRIANGLES, count, GL_UNSIGNED_INT, NULL));
 		}
 	}
 }

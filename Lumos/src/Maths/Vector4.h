@@ -181,6 +181,26 @@ namespace Lumos
 #endif
 			}
 
+			nlohmann::json Serialise()
+			{
+				nlohmann::json output;
+				output["typeID"] = LUMOS_TYPENAME(Vector4);
+				output["x"] = x;
+				output["y"] = y;
+				output["z"] = z;
+				output["w"] = w;
+
+				return output;
+			};
+
+			void Deserialise(nlohmann::json& data)
+			{
+				x = data["x"];
+				y = data["y"];
+				z = data["z"];
+				w = data["w"];
+			};
+
 #ifdef LUMOS_SSEVEC4
 			inline Vector4 operator+(float v) const { return _mm_add_ps(m_Value, _mm_set1_ps(v)); }
 			inline Vector4 operator-(float v) const { return _mm_sub_ps(m_Value, _mm_set1_ps(v)); }
@@ -226,9 +246,6 @@ namespace Lumos
 			inline bool operator==(const Vector4 &v) const { return x == v.x && y == v.y && z == v.z && w == v.w; }
 			inline bool operator!=(const Vector4 &v) const { return (v.x == x && v.y == y && v.z == z && v.w == w) ? false : true;; }
 #endif
-
-			MEM_ALIGN_NEW_DELETE;
-
 			friend std::ostream &operator<<(std::ostream &o, const Vector4 &v) { return o << "Vector4(" << v.x << ", " << v.y << ", " << v.z << ", " << v.w << ")"; }
 		};
 

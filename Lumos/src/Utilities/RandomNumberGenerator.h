@@ -13,13 +13,13 @@ namespace Lumos
 
 		std::mt19937 engine;
 
-		uint64 generationCount;
+		u64 generationCount;
 
 	public:
 
 		inline RandomNumberGenerator32() : generationCount(0) {}
-		inline RandomNumberGenerator32(uint32 seed) : engine(seed), generationCount(0) {}
-		inline RandomNumberGenerator32(uint32 seed, uint64 skip) : engine(seed), generationCount(skip)
+		inline RandomNumberGenerator32(u32 seed) : engine(seed), generationCount(0) {}
+		inline RandomNumberGenerator32(u32 seed, u64 skip) : engine(seed), generationCount(skip)
 		{
 			engine.discard(skip);
 		}
@@ -31,17 +31,17 @@ namespace Lumos
 			return realDist(engine);
 		}
 
-		inline int32 operator()(int32 min, int32 max)
+		inline i32 operator()(i32 min, i32 max)
 		{
 			++generationCount;
-			std::uniform_int_distribution<int32> intDist(min, max);
+			std::uniform_int_distribution<i32> intDist(min, max);
 			return intDist(engine);
 		}
 
-		inline uint32 operator()(uint32 min, uint32 max)
+		inline u32 operator()(u32 min, u32 max)
 		{
 			++generationCount;
-			std::uniform_int_distribution<uint32> uintDist(min, max);
+			std::uniform_int_distribution<u32> uintDist(min, max);
 			return uintDist(engine);
 		}
 
@@ -64,13 +64,13 @@ namespace Lumos
 	{
 	private:
 		std::mt19937_64 engine;
-		uint64 generationCount;
+		u64 generationCount;
 
 	public:
 
 		RandomNumberGenerator64() : generationCount(0) {}
-		RandomNumberGenerator64(uint64 seed) : engine(seed), generationCount(0) {}
-		RandomNumberGenerator64(uint64 seed, uint64 skip) : engine(seed), generationCount(skip)
+		RandomNumberGenerator64(u64 seed) : engine(seed), generationCount(0) {}
+		RandomNumberGenerator64(u64 seed, u64 skip) : engine(seed), generationCount(skip)
 		{
 			engine.discard(skip);
 		}
@@ -82,17 +82,17 @@ namespace Lumos
 			return realDist(engine);
 		}
 
-		inline int64_t operator()(int64 min, int64 max)
+		inline int64_t operator()(i64 min, i64 max)
 		{
 			++generationCount;
-			std::uniform_int_distribution<int64> intDist(min, max);
+			std::uniform_int_distribution<i64> intDist(min, max);
 			return intDist(engine);
 		}
 
-		inline uint64 operator()(uint64 min, uint64 max)
+		inline u64 operator()(u64 min, u64 max)
 		{
 			++generationCount;
-			std::uniform_int_distribution<uint64> uintDist(min, max);
+			std::uniform_int_distribution<u64> uintDist(min, max);
 			return uintDist(engine);
 		}
 
@@ -101,13 +101,13 @@ namespace Lumos
 			return generationCount;
 		}
 
-		inline void Discard(uint64 steps)
+		inline void Discard(u64 steps)
 		{
 			engine.discard(steps);
 			generationCount += steps;
 		}
 
-		static uint64 RandSeed();
+		static u64 RandSeed();
 		static RandomNumberGenerator64 Rand;
 	};
 }

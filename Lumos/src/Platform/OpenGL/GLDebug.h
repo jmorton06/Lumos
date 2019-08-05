@@ -79,7 +79,7 @@ namespace Lumos
 		static Material*	s_DebugDrawShader;
 	};
 
-#ifdef LUMOS_DEBUG
+#ifdef LUMOS_DEBUG1
 #ifdef glDebugMessageCallback1
 #define GL_DEBUD_CALLBACK 1
 #else
@@ -89,7 +89,7 @@ namespace Lumos
 
 #define OPENGLLOG "[OPENGL] - "
 
-	static bool GLLogCall(const char* function, const char* file, const int32 line)
+	static bool GLLogCall(const char* function, const char* file, const i32 line)
 	{
 		GLenum err(glGetError());
 		bool Error = true;

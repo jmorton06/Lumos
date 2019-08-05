@@ -1,8 +1,7 @@
 #include "LM.h"
 #include "VKFramebuffer.h"
 #include "VKDevice.h"
-#include "VKTextureDepth.h"
-#include "VKTextureDepthArray.h"
+#include "VKTexture.h"
 
 
 namespace Lumos

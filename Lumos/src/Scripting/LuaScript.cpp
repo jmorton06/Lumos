@@ -11,7 +11,7 @@ namespace Lumos
     
     void LuaScript::OnInit()
     {
-        m_State = new sol::state();
+        m_State = lmnew sol::state();
         m_State->open_libraries(sol::lib::base, sol::lib::package);
         
         m_State->script("print('[LUA] - Initialised Lua!')");

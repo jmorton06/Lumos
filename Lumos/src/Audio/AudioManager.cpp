@@ -10,7 +10,7 @@ namespace Lumos
     AudioManager* AudioManager::Create()
     {
         #ifdef LUMOS_OPENAL
-        return new Audio::ALManager();
+        return lmnew Audio::ALManager();
         #else
         return nullptr;
         #endif

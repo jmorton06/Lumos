@@ -27,7 +27,7 @@ namespace Lumos
 
 			Type m_Type;
 			ShaderStruct* m_Struct;
-			mutable int32 m_Location;
+			mutable i32 m_Location;
 		public:
 			GLShaderUniformDeclaration(Type type, const String& name, u32 count = 1);
 			GLShaderUniformDeclaration(ShaderStruct* uniformStruct, const String& name, u32 count = 1);
@@ -39,7 +39,7 @@ namespace Lumos
 			inline u32 GetOffset() const override { return m_Offset; }
 			inline u32 GetAbsoluteOffset() const { return m_Struct ? m_Struct->GetOffset() + m_Offset : m_Offset; }
 
-			int32 GetLocation() const { return m_Location; }
+			i32 GetLocation() const { return m_Location; }
 			inline Type GetType() const { return m_Type; }
 			inline const ShaderStruct& GetShaderUniformStruct() const { LUMOS_CORE_ASSERT(m_Struct, "");  return *m_Struct; }
 
@@ -57,7 +57,7 @@ namespace Lumos
 			String name;
 			u32 count;
 			mutable u32 size;
-			mutable int32 location;
+			mutable i32 location;
 		};
 
 		// TODO: Eventually support OpenGL uniform buffers. This is more platform-side.
