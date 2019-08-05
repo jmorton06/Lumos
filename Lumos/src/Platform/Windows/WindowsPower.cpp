@@ -59,7 +59,7 @@ namespace Lumos
 
     bool WindowsPower::UpdatePowerInfo()
     {
-        if (GetPowerInfo_MacOSX())
+        if (GetPowerInfo_Windows())
         {
             return true;
         }
