@@ -50,13 +50,19 @@ namespace Lumos
 		DrawMenuBar();
 		BeginDockSpace();
 		//SelectEntity();
-		DrawSceneView();
-		DrawConsole();
-		DrawHierarchyWindow();
-		DrawInspectorWindow();
-        DrawGraphicsInfoWindow();
+        if(m_ShowSceneView)
+            DrawSceneView();
+        if(m_ShowConsole)
+            DrawConsole();
+        if(m_ShowHierarchy)
+            DrawHierarchyWindow();
+        if(m_ShowInspector)
+            DrawInspectorWindow();
+        if(m_ShowGraphicsInfo)
+            DrawGraphicsInfoWindow();
 
-		ImGui::ShowDemoWindow(&m_ShowImGuiDemo);
+        if(m_ShowImGuiDemo)
+            ImGui::ShowDemoWindow(&m_ShowImGuiDemo);
 
 		EndDockSpace();
 	}
