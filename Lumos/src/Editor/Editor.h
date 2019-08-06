@@ -50,13 +50,12 @@ namespace Lumos
 		Entity* m_Selected = nullptr;
         float m_GridSize = 10.0f;
 
-        bool m_ShowGrid = false;
-        
-        static bool m_ShowConsole;
-        static bool m_ShowHierarchy;
-        static bool m_ShowSceneView;
-        static bool m_ShowGraphicsInfo;
-        static bool m_ShowInspector;
-        static bool m_ShowImGuiDemo;
+		bool m_ShowGrid = false;
+        bool m_ShowConsole = true;
+        bool m_ShowHierarchy = true;
+        bool m_ShowSceneView = true;
+        bool m_ShowGraphicsInfo = true;
+        bool m_ShowInspector = true;
+        bool m_ShowImGuiDemo = true;
 	};
 }
