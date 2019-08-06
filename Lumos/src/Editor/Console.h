@@ -1,10 +1,14 @@
 #pragma once
 #include "LM.h"
+#include "Utilities/TSingleton.h"
+
+#include <imgui/imgui.h>
 
 namespace Lumos
 {
-	class Console 
+	class Console : public TSingleton<Console>
 	{
+		friend class TSingleton<Console>;
 	public:
 		class Message
 		{
@@ -21,19 +25,21 @@ namespace Lumos
 				Off = 6, // Display nothing
 			};
 		private:
-			struct Color { float r, g, b, a; };
+			struct Colour { float r, g, b, a; };
 		public:
-			Message(const std::string message = "", Level level = Level::Invalid);
+			Message(const std::string message = "", Level level = Level::Invalid, const String& source = "", int threadID = 0);
 			void OnImGUIRender();
 
 			static Level GetLowerLevel(Level level);
 			static Level GetHigherLevel(Level level);
 			static const char* GetLevelName(Level level);
 		private:
-			static Color GetRenderColor(Level level);
+			static Colour GetRenderColour(Level level);
 		public:
 			const std::string m_Message;
 			const Level m_Level;
+			const String m_Source;
+			const int m_ThreadID;
 			static std::vector<Level> s_Levels;
 		};
 
@@ -54,5 +60,6 @@ namespace Lumos
 		bool m_AllowScrollingToBottom;
 		bool m_RequestScrollToBottom;
 		static Message::Level s_MessageBufferRenderFilter;
+		ImGuiTextFilter Filter;
 	};
 }

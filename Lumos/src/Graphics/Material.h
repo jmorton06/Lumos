@@ -84,6 +84,8 @@ namespace Lumos
 		String							GetName()			const { return m_Name; }
 		MaterialProperties*				GetProperties()		const { return m_MaterialProperties; }
 
+		void OnImGui();
+
 	private:
 		PBRMataterialTextures   			m_PBRMaterialTextures;
 		std::shared_ptr<Graphics::Shader>	m_Shader;

@@ -153,7 +153,7 @@ void Scene3D::LoadModels()
 
 	MaterialProperties properties;
 	properties.albedoColour = Vector4(0.6f,0.1f,0.1f,1.0f);
-	properties.roughnessColour = Vector4(0.8f);
+	properties.roughnessColour = Vector4(0.6f);
 	properties.specularColour = Vector4(0.94f);
 	properties.usingAlbedoMap     = 0.5f;
 	properties.usingRoughnessMap  = 0.0f;
@@ -420,10 +420,6 @@ void Scene3D::LoadModels()
 	}
 }
 
-bool show_demo_window = true;
-
 void Scene3D::OnIMGUI()
 {
-    if (show_demo_window)
-       ImGui::ShowDemoWindow(&show_demo_window);
 }

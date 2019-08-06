@@ -240,17 +240,14 @@ namespace Lumos
 		void DeferredRenderer::SubmitLightSetup(Scene* scene)
 		{
 			auto lightList = ComponentManager::Instance()->GetComponentArray<LightComponent>()->GetArray();// scene->GetLightList();
-
+			auto size = ComponentManager::Instance()->GetComponentArray<LightComponent>()->GetSize();
 			if (lightList.empty())
 				return;
 
 			u32 numLights = 0;
 
-            for (int i = 0; i < lightList.size(); i++)
+            for (int i = 0; i < size; i++)
             {
-				if (!lightList[i])
-					continue;
-
                 lightList[i]->GetLight()->m_Direction.Normalise();
                 memcpy(m_PSSystemUniformBuffer + m_PSSystemUniformBufferOffsets[PSSystemUniformIndex_Lights] + sizeof(Graphics::Light) * i, &*lightList[i]->GetLight(), sizeof(Graphics::Light));
 				numLights++;
@@ -448,6 +445,8 @@ namespace Lumos
 
 		void DeferredRenderer::OnIMGUI()
 		{
+			m_OffScreenRenderer->OnIMGUI();
+
 			ImGui::Text("Deferred Renderer");
 
 			ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(2, 2));
