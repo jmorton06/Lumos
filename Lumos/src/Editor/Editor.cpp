@@ -29,13 +29,6 @@
 
 namespace Lumos
 {
-    bool Editor::m_ShowConsole = true;
-    bool Editor::m_ShowHierarchy = true;
-    bool Editor::m_ShowSceneView = true;
-    bool Editor::m_ShowGraphicsInfo = true;
-    bool Editor::m_ShowInspector = true;
-    bool Editor::m_ShowImGuiDemo = true;
-    
 	Editor::Editor(Application* app, u32 width, u32 height) : m_Application(app)
 	{
 		m_SceneViewSize = Maths::Vector2(static_cast<float>(width), static_cast<float>(height));
