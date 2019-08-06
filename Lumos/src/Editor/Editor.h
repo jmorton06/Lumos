@@ -43,7 +43,6 @@ namespace Lumos
 
 	private:
 		Application* m_Application;
-		Console* m_Console;
 
 		Maths::Vector2 m_SceneViewSize;
 		Maths::Vector2 m_SceneViewPosition;
@@ -52,7 +51,6 @@ namespace Lumos
 
 		bool m_ShowGrid = false;
 		float m_GridSize = 10.0f;
-
-		std::map<String, Graphics::Texture2D*> m_Icons;
+		bool m_IsOpen[10];
 	};
 }

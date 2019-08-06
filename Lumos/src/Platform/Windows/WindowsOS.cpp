@@ -15,7 +15,9 @@ namespace Lumos
         auto secondsLeft = power.GetPowerSecondsLeft();
         auto state = power.GetPowerState();
         
-        LUMOS_CORE_INFO("Battery Info - Percentage : {0} , Time Left {1}s , State : {2}", percentage, secondsLeft, PowerStateToString(state));
+		if (state != PowerState::POWERSTATE_NO_BATTERY)
+			LUMOS_CORE_INFO("Battery Info - Percentage : {0} , Time Left {1}s , State : {2}", percentage, secondsLeft, PowerStateToString(state));
+
         auto app = Lumos::Application::Instance();
         app->Init();
         app->Run();

@@ -1,8 +1,6 @@
 #include "LM.h"
 #include "Console.h"
 
-#include <imgui/imgui.h>
-
 namespace Lumos 
 {
 	Console::Message::Level Console::s_MessageBufferRenderFilter = Console::Message::Level::Trace;
@@ -113,6 +111,9 @@ namespace Lumos
 			ImGui::EndPopup();
 		}
 
+		ImGui::SameLine();
+		Filter.Draw("Filter", -100.0f);
+
 	}
 
 	void Console::ImGuiRenderMessages()
@@ -121,12 +122,37 @@ namespace Lumos
 		{
 			auto messageStart = m_MessageBuffer.begin() + m_MessageBufferBegin;
 			if (*messageStart) // If contains old message here
+			{
 				for (auto message = messageStart; message != m_MessageBuffer.end(); message++)
-					(*message)->OnImGUIRender();
+				{
+					if (Filter.IsActive())
+					{
+						if(Filter.PassFilter((*message)->m_Message.c_str()))
+							(*message)->OnImGUIRender();
+					}
+					else
+					{
+						(*message)->OnImGUIRender();
+					}
+				}
+			}
+					
 			if (m_MessageBufferBegin != 0) // Skipped first messages in vector
+			{
 				for (auto message = m_MessageBuffer.begin(); message != messageStart; message++)
-					(*message)->OnImGUIRender();
-
+				{
+					if (Filter.IsActive())
+					{
+						if (Filter.PassFilter((*message)->m_Message.c_str()))
+							(*message)->OnImGUIRender();
+					}
+					else
+					{
+						(*message)->OnImGUIRender();
+					}
+				}
+			}
+					
 			if (m_RequestScrollToBottom && ImGui::GetScrollMaxY() > 0)
 			{
 				ImGui::SetScrollY(ImGui::GetScrollMaxY());
@@ -146,8 +172,8 @@ namespace Lumos
 		Console::Message::Level::Off
 	};
 
-	Console::Message::Message(const std::string message, Level level)
-		: m_Message(message), m_Level(level)
+	Console::Message::Message(const std::string message, Level level, const String& source, int threadID)
+		: m_Message(message), m_Level(level), m_Source(source), m_ThreadID(threadID)
 	{
 	}
 
@@ -155,9 +181,15 @@ namespace Lumos
 	{
 		if (m_Level != Level::Invalid && m_Level >= s_MessageBufferRenderFilter)
 		{
-			Color color = GetRenderColor(m_Level);
-			ImGui::PushStyleColor(ImGuiCol_Text, { color.r, color.g, color.b, color.a });
+			Colour colour = GetRenderColour(m_Level);
+			ImGui::PushStyleColor(ImGuiCol_Text, { colour.r, colour.g, colour.b, colour.a });
 			ImGui::TextUnformatted(m_Message.c_str());
+			if (ImGui::IsItemHovered())
+			{
+				ImGui::BeginTooltip();
+				ImGui::TextUnformatted(m_Source.c_str());
+				ImGui::EndTooltip();
+			}
 			ImGui::PopStyleColor();
 		}
 	}
@@ -208,7 +240,7 @@ namespace Lumos
         }
 	}
 
-	Console::Message::Color Console::Message::GetRenderColor(Level level)
+	Console::Message::Colour Console::Message::GetRenderColour(Level level)
 	{
 		switch (level)
 		{

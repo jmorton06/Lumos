@@ -29,6 +29,8 @@
 #include "Graphics/API/Pipeline.h"
 #include "Graphics/API/GraphicsContext.h"
 
+#include <imgui/imgui.h>
+
 #define MAX_LIGHTS 32
 #define MAX_SHADOWMAPS 16
 
@@ -459,6 +461,17 @@ namespace Lumos
 			m_DefaultMaterial->CreateDescriptorSet(m_Pipeline, 1);
 
 			m_ClearColour = Maths::Vector4(0.8f, 0.8f, 0.8f, 1.0f);
+		}
+
+		void DeferredOffScreenRenderer::OnIMGUI()
+		{
+			ImGui::Text("Deferred Offscreen Renderer");
+
+			if (ImGui::TreeNode("Default Material"))
+			{
+				m_DefaultMaterial->OnImGui();
+				ImGui::TreePop();
+			}
 		}
 	}
 }

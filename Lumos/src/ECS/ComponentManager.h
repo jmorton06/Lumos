@@ -76,6 +76,11 @@ namespace Lumos
 			return m_ComponentArray;
 		}
 
+		size_t GetSize() const
+		{
+			return m_Size;
+		}
+
 		void EntityDestroyed(Entity* entity) override
 		{
 			if (m_EntityToIndexMap.find(entity) != m_EntityToIndexMap.end())

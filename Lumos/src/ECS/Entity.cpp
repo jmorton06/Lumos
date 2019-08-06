@@ -99,10 +99,6 @@ namespace Lumos
 #endif
 		ImGuizmo::SetDrawlist();
 
-		auto pos = ImGui::GetWindowPos();
-		auto size = ImGui::GetWindowSize();
-		ImGuizmo::SetRect(pos.x, pos.y, size.x, size.y);
-
 		Maths::Matrix4 model = Maths::Matrix4();
 		if (this->GetComponent<TransformComponent>() != nullptr)
 			model = GetComponent<TransformComponent>()->GetTransform().GetWorldMatrix();

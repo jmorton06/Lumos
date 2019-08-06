@@ -207,8 +207,8 @@ namespace Lumos
         icons_config.PixelSnapH = true;
         icons_config.OversampleH = 2;
         icons_config.OversampleV = 1;
-        icons_config.GlyphOffset.y -= 1.0f;      // Move everything by 1 pixels up
-        icons_config.GlyphExtraSpacing.x = 1.0f; // Increase spacing between characters
+      //  icons_config.GlyphOffset.y -= 1.0f;      // Move everything by 1 pixels up
+      // icons_config.GlyphExtraSpacing.x = 1.0f; // Increase spacing between characters
         icons_config.OversampleH = icons_config.OversampleV = 1;
         icons_config.PixelSnapH = true;
         
@@ -227,12 +227,13 @@ namespace Lumos
 		icons_config.PixelSnapH = true;
       	icons_config.OversampleH = 2;
       	icons_config.OversampleV = 1;
-      	icons_config.GlyphOffset.y -= 1.0f;      // Move everything by 1 pixels up
-      	icons_config.GlyphExtraSpacing.x = 1.0f; // Increase spacing between characters
+      	icons_config.GlyphOffset.y += 1.0f;      // Move everything by 1 pixels down
+		icons_config.GlyphOffset.x -= 1.0f;      // Move everything by 1 pixels left
+      	//icons_config.GlyphExtraSpacing.x = 1.0f; // Increase spacing between characters
         icons_config.OversampleH = icons_config.OversampleV = 1;
         icons_config.PixelSnapH = true;
         //if (icons_config.SizePixels <= 0.0f)
-            icons_config.SizePixels = 13.0f * 1.0f;
+        icons_config.SizePixels = 13.0f * 1.0f;
      
        // const ImWchar* glyph_ranges = font_cfg.GlyphRanges != NULL ? font_cfg.GlyphRanges : GetGlyphRangesDefault();
         
@@ -290,7 +291,8 @@ namespace Lumos
         colors[ImGuiCol_NavWindowingDimBg]      = ImVec4(0.80f, 0.80f, 0.80f, 0.20f);
         
         style.PopupRounding     = 3;
-        style.FramePadding      = ImVec2(4, 2);
+		style.WindowPadding		= ImVec2(2, 2);
+        style.FramePadding      = ImVec2(2, 2);
         style.ItemSpacing       = ImVec2(6, 2);
         style.ItemInnerSpacing  = ImVec2(6, 4);
         style.IndentSpacing     = 6.0f;
@@ -300,7 +302,7 @@ namespace Lumos
         style.WindowBorderSize = 1;
         style.ChildBorderSize  = 1;
         style.PopupBorderSize  = 1;
-        style.FrameBorderSize  = is3D;
+        style.FrameBorderSize  = static_cast<float>(is3D);
         
         style.WindowRounding    = 3;
         style.ChildRounding     = 3;
@@ -309,7 +311,7 @@ namespace Lumos
         style.GrabRounding      = 3;
         
 #ifdef IMGUI_HAS_DOCK
-        style.TabBorderSize = is3D;
+        style.TabBorderSize = static_cast<float>(is3D);
         style.TabRounding   = 3;
         
         colors[ImGuiCol_DockingEmptyBg]     = ImVec4(0.38f, 0.38f, 0.38f, 1.00f);
