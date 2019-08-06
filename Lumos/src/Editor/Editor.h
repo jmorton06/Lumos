@@ -48,9 +48,15 @@ namespace Lumos
 		Maths::Vector2 m_SceneViewPosition;
 		u32 m_ImGuizmoOperation = 0;
 		Entity* m_Selected = nullptr;
+        float m_GridSize = 10.0f;
 
-		bool m_ShowGrid = false;
-		float m_GridSize = 10.0f;
-		bool m_IsOpen[10];
+        bool m_ShowGrid = false;
+        
+        static bool m_ShowConsole;
+        static bool m_ShowHierarchy;
+        static bool m_ShowSceneView;
+        static bool m_ShowGraphicsInfo;
+        static bool m_ShowInspector;
+        static bool m_ShowImGuiDemo;
 	};
 }

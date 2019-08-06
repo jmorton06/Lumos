@@ -29,12 +29,16 @@
 
 namespace Lumos
 {
+    bool Editor::m_ShowConsole = true;
+    bool Editor::m_ShowHierarchy = true;
+    bool Editor::m_ShowSceneView = true;
+    bool Editor::m_ShowGraphicsInfo = true;
+    bool Editor::m_ShowInspector = true;
+    bool Editor::m_ShowImGuiDemo = true;
+    
 	Editor::Editor(Application* app, u32 width, u32 height) : m_Application(app)
 	{
 		m_SceneViewSize = Maths::Vector2(static_cast<float>(width), static_cast<float>(height));
-
-		for (int i = 0; i < 10; i++)
-			m_IsOpen[i] = true;
 	}
 
 	Editor::~Editor()
@@ -52,7 +56,7 @@ namespace Lumos
 		DrawInspectorWindow();
         DrawGraphicsInfoWindow();
 
-		ImGui::ShowDemoWindow(&m_IsOpen[5]);
+		ImGui::ShowDemoWindow(&m_ShowImGuiDemo);
 
 		EndDockSpace();
 	}
@@ -79,12 +83,12 @@ namespace Lumos
 
 			if (ImGui::BeginMenu("Windows"))
 			{
-				if (ImGui::MenuItem("Console", "", &m_IsOpen[0], true)) { m_IsOpen[0] = true;  }
-				if (ImGui::MenuItem("Hierarchy", "", &m_IsOpen[1], true)) { m_IsOpen[1] = true; }
-				if (ImGui::MenuItem("Scene", "", &m_IsOpen[2], true)) { m_IsOpen[2] = true; }
-				if (ImGui::MenuItem("Inspector", "", &m_IsOpen[3], true)) { m_IsOpen[3] = true; }
-				if (ImGui::MenuItem("GraphicsInfo", "", &m_IsOpen[4], true)) { m_IsOpen[4] = true; }
-				if (ImGui::MenuItem("ImGuiExample", "", &m_IsOpen[5], true)) { m_IsOpen[5] = true; }	
+				if (ImGui::MenuItem("Console", "", &m_ShowConsole, true)) { m_ShowConsole = true;  }
+				if (ImGui::MenuItem("Hierarchy", "", &m_ShowHierarchy, true)) { m_ShowHierarchy = true; }
+				if (ImGui::MenuItem("Scene", "", &m_ShowSceneView, true)) { m_ShowSceneView = true; }
+				if (ImGui::MenuItem("Inspector", "", &m_ShowInspector, true)) { m_ShowInspector = true; }
+				if (ImGui::MenuItem("GraphicsInfo", "", &m_ShowGraphicsInfo, true)) { m_ShowGraphicsInfo = true; }
+				if (ImGui::MenuItem("ImGuiExample", "", &m_ShowImGuiDemo, true)) { m_ShowImGuiDemo = true; }
 				ImGui::EndMenu();
 			}
             
@@ -207,7 +211,7 @@ namespace Lumos
 
 	void Editor::DrawHierarchyWindow()
 	{
-		ImGui::Begin("Hierarchy", &m_IsOpen[1], 0);
+		ImGui::Begin("Hierarchy", &m_ShowHierarchy, 0);
 		{
 			if (ImGui::TreeNode("Application"))
 			{
@@ -351,7 +355,7 @@ namespace Lumos
 
 	void Editor::DrawInspectorWindow()
 	{
-		ImGui::Begin("Inspector", &m_IsOpen[3], 0);
+		ImGui::Begin("Inspector", &m_ShowInspector, 0);
         
 		if (m_Selected)
         {
@@ -365,7 +369,7 @@ namespace Lumos
 	{
 		ImGuiWindowFlags windowFlags = 0;
 		ImGui::SetNextWindowBgAlpha(0.0f);
-		ImGui::Begin("Scene",  &m_IsOpen[2], windowFlags);
+		ImGui::Begin("Scene",  &m_ShowSceneView, windowFlags);
 		
 		ImGuizmo::SetDrawlist();
 		m_SceneViewSize = Maths::Vector2(ImGui::GetWindowSize().x, ImGui::GetWindowSize().y);
@@ -519,12 +523,12 @@ namespace Lumos
 
 	void Editor::DrawConsole()
 	{
-		Console::Instance()->OnImGuiRender(&m_IsOpen[0]);
+		Console::Instance()->OnImGuiRender(&m_ShowConsole);
 	}
     
     void Editor::DrawGraphicsInfoWindow()
     {
-        ImGui::Begin("GraphicsInfo", &m_IsOpen[4], 0);
+        ImGui::Begin("GraphicsInfo", &m_ShowGraphicsInfo, 0);
         {
             Graphics::GraphicsContext::GetContext()->OnImGUI();
         }
