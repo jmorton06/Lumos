@@ -27,7 +27,7 @@ namespace Lumos
 		private:
 			struct Colour { float r, g, b, a; };
 		public:
-			Message(const std::string message = "", Level level = Level::Invalid, const String& source = "", int threadID = 0);
+			Message(const String& message = "", Level level = Level::Invalid, const String& source = "", int threadID = 0);
 			void OnImGUIRender();
 
 			static Level GetLowerLevel(Level level);

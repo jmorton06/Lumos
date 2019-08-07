@@ -172,7 +172,7 @@ namespace Lumos
 		Console::Message::Level::Off
 	};
 
-	Console::Message::Message(const std::string message, Level level, const String& source, int threadID)
+	Console::Message::Message(const String& message, Level level, const String& source, int threadID)
 		: m_Message(message), m_Level(level), m_Source(source), m_ThreadID(threadID)
 	{
 	}
