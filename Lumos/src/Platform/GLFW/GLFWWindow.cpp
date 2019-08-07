@@ -124,16 +124,6 @@ namespace Lumos
 
 		SetIcon("/CoreTextures/icon.png");
         
-#ifdef LUMOS_PLATFORM_MACOS
-        if(m_Data.m_RenderAPI == Graphics::RenderAPI::OPENGL)
-        {
-            int width,height;
-            glfwGetFramebufferSize(m_Handle, &width, &height);
-            m_Data.Width = width;
-            m_Data.Height = height;
-        }
-#endif
-
 		glfwSetWindowPos(m_Handle, mode->width / 2 - ScreenWidth / 2, mode->height / 2 - ScreenHeight / 2);
 		glfwSetInputMode(m_Handle, GLFW_STICKY_KEYS, GL_TRUE);
 
@@ -142,10 +132,6 @@ namespace Lumos
 		{
             WindowData& data = *static_cast<WindowData*>((glfwGetWindowUserPointer(window)));
 
-#ifdef LUMOS_PLATFORM_MACOS
-            if(data.m_RenderAPI == Graphics::RenderAPI::OPENGL)
-                glfwGetFramebufferSize(window, &width, &height);
-#endif
 			data.Width = width;
 			data.Height = height;
 
