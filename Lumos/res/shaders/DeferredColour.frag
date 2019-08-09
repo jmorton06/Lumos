@@ -104,8 +104,8 @@ void main()
 	if(texColour.w < 0.4)
 		discard;
 
-	float specular;
-	float roughness;
+	float specular = 0.0;
+	float roughness = 0.0;;
 
 	if(materialProperties.workflow == PBR_WORKFLOW_SEPARATE_TEXTURES)
 	{
