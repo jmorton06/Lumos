@@ -14,8 +14,8 @@
 
 namespace Lumos
 {
-    Entity::Entity(const String& name) : m_Name(name), m_Parent(nullptr), m_BoundingRadius(1),
-    m_FrustumCullFlags(0), m_Active(true)
+    Entity::Entity(EntityManager* manager, const String& name) : m_Name(name), m_Parent(nullptr), m_BoundingRadius(1),
+    m_FrustumCullFlags(0), m_Active(true), m_Manager(manager)
     {
         Init();
     }
@@ -266,7 +266,7 @@ void Lumos::EntityManager::Clear()
 
 Lumos::Entity* Lumos::EntityManager::CreateEntity(const String& name)
 {
-	auto entity = lmnew Entity(name);
+	auto entity = lmnew Entity(this, name);
 	m_Entities.emplace_back(entity);
 	return entity;
 }
