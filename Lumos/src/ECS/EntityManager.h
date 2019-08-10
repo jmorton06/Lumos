@@ -2,6 +2,7 @@
 
 #include "LM.h"
 #include "ECS.h"
+#include "ECSDefines.h"
 #include "Utilities/TSingleton.h"
 #include "Component/Components.h"
 #include "ComponentManager.h"
