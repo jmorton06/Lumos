@@ -6,7 +6,7 @@
 
 #include "Integration.h"
 #include "Constraint.h"
-#include "ECS/Entity.h"
+#include "ECS/EntityManager.h"
 #include "Utilities/TimeStep.h"
 #include "System/JobSystem.h"
 

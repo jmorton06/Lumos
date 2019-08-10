@@ -2,7 +2,7 @@
 #include "Physics3DComponent.h"
 #include "Physics/LumosPhysicsEngine/PhysicsObject3D.h"
 #include "Physics/LumosPhysicsEngine/LumosPhysicsEngine.h"
-#include "ECS/Entity.h"
+#include "ECS/EntityManager.h"
 #include "TransformComponent.h"
 
 #include <imgui/imgui.h>
