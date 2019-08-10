@@ -11,7 +11,7 @@
 
 namespace Lumos
 {
-	struct TimeStep;
+	class TimeStep;
 	class Font;
 	class Material;
 	class Event;

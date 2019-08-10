@@ -21,7 +21,7 @@ namespace Lumos
 	};
 
 	class Constraint;
-	struct TimeStep;
+	class TimeStep;
 
 	class LUMOS_EXPORT LumosPhysicsEngine : public TSingleton<LumosPhysicsEngine> , public ISystem
 	{

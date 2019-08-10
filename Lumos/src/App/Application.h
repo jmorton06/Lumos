@@ -7,7 +7,6 @@
 namespace Lumos
 {
 	class Timer;
-	struct TimeStep;
 	class Window;
 	struct WindowProperties;
     class SceneManager;
@@ -114,7 +113,6 @@ namespace Lumos
 
 		float 	  				  	m_UpdateTimer;
 		std::unique_ptr<Timer>	  	m_Timer;
-		std::unique_ptr<TimeStep> 	m_TimeStep;
 
 		u32 m_Frames;
 		u32 m_Updates;
