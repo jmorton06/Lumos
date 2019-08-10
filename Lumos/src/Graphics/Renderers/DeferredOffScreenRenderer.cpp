@@ -2,7 +2,7 @@
 #include "DeferredOffScreenRenderer.h"
 #include "App/Scene.h"
 #include "App/Application.h"
-#include "ECS/Entity.h"
+#include "ECS/EntityManager.h"
 #include "ECS/Component/MaterialComponent.h"
 #include "ECS/Component/MeshComponent.h"
 #include "ECS/Component/TransformComponent.h"

@@ -1,7 +1,7 @@
 #include "LM.h"
 #include "PhysicsObject3D.h"
 #include "LumosPhysicsEngine.h"
-#include "ECS/Entity.h"
+#include "ECS/EntityManager.h"
 
 
 namespace Lumos

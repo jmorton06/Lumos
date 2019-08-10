@@ -42,7 +42,6 @@
 #include "Utilities/AssetsManager.h"
 
 //Entity
-#include "ECS/Entity.h"
 #include "ECS/EntityManager.h"
 #include "ECS/Component/Components.h"
 #include "ECS/ComponentManager.h"
@@ -93,8 +92,3 @@
 
 //External
 #include <imgui/imgui.h>
-
-#ifdef LUMOS_LEAK_CHECK
-static const char* __file__ = "unknown";
-static size_t __line__ = 0;
-#endif

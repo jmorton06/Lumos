@@ -2,7 +2,6 @@
 #include "ModelLoader.h"
 #include "Graphics/Mesh.h"
 #include "Graphics/Material.h"
-#include "ECS/Entity.h"
 #include "ECS/EntityManager.h"
 #include "ECS/Component/MeshComponent.h"
 #include "ECS/Component/MaterialComponent.h"

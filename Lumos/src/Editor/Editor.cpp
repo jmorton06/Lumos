@@ -9,7 +9,7 @@
 #include "App/SceneManager.h"
 
 #include "Maths/BoundingSphere.h"
-#include "ECS/Entity.h"
+#include "ECS/EntityManager.h"
 #include "ECS/Component/Components.h"
 #include "ECS/SystemManager.h"
 #include "Physics/LumosPhysicsEngine/LumosPhysicsEngine.h"
