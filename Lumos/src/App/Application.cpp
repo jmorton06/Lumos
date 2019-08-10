@@ -20,7 +20,6 @@
 #include "ECS/ComponentManager.h"
 
 #include "Utilities/CommonUtils.h"
-#include "Utilities/TimeStep.h"
 #include "Utilities/AssetsManager.h"
 #include "System/VFS.h"
 #include "System/JobSystem.h"
@@ -53,7 +52,6 @@ namespace Lumos
 		EntityManager::Instance();
 		ComponentManager::Instance();
 
-		m_TimeStep = std::make_unique<TimeStep>(0.0f);
 		m_Timer = std::make_unique<Timer>();
 
 		const String root = ROOT_DIR;
@@ -173,10 +171,10 @@ namespace Lumos
 			m_UpdateTimer += Engine::Instance()->TargetFrameRate();
 #endif
 
-			m_TimeStep->Update(now);
+            Engine::GetTimeStep()->Update(now);
 
 			{
-				OnUpdate(m_TimeStep.get());
+				OnUpdate(Engine::GetTimeStep());
 				m_Updates++;
 			}
 
@@ -248,11 +246,11 @@ namespace Lumos
 		if (Application::Instance()->GetEditorState() != EditorState::Paused && Application::Instance()->GetEditorState() != EditorState::Preview)
 #endif
 		{
-			m_SceneManager->GetCurrentScene()->OnUpdate(m_TimeStep.get());
-			m_SystemManager->OnUpdate(m_TimeStep.get());
+			m_SceneManager->GetCurrentScene()->OnUpdate(Engine::GetTimeStep());
+			m_SystemManager->OnUpdate(Engine::GetTimeStep());
 		}
 
-		m_LayerStack->OnUpdate(m_TimeStep.get(), m_SceneManager->GetCurrentScene());
+		m_LayerStack->OnUpdate(Engine::GetTimeStep(), m_SceneManager->GetCurrentScene());
 	}
 
 	void Application::OnEvent(Event& e)

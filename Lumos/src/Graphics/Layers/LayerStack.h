@@ -5,7 +5,7 @@
 
 namespace Lumos
 {
-	struct TimeStep;
+	class TimeStep;
 	class Scene;
 	class Event;
 
