@@ -10,6 +10,7 @@
 
 namespace Lumos
 {
+    class EntityManager;
     class LUMOS_EXPORT Entity : public Serialisable
     {
         friend class EntityManager;
@@ -57,7 +58,7 @@ namespace Lumos
         void Deserialise(nlohmann::json& data) override;
         
     protected:
-        explicit Entity(const String& name = "");
+        explicit Entity(EntityManager* manager, const String& name = "");
         virtual ~Entity();
     private:
         
@@ -73,6 +74,7 @@ namespace Lumos
         TransformComponent*        m_DefaultTransformComponent = nullptr;
         
         Entity* m_Parent;
+        EntityManager* m_Manager;
         std::vector<Entity*> m_Children;
     };
 
