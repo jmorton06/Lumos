@@ -1,4 +1,7 @@
+#pragma once
+
 #include "LM.h"
+#include "ECS.h"
 #include "Utilities/TSingleton.h"
 
 namespace Lumos

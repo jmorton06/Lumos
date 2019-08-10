@@ -1,11 +1,10 @@
 #pragma once
 #include "LM.h"
+#include "ECS.h"
 #include "Utilities/TSingleton.h"
 #include "ECS/Component/LumosComponent.h"
 
 #include "Core/Typename.h"
-
-#define MAX_ENTITIES 5000
 
 namespace Lumos
 {
@@ -75,6 +74,11 @@ namespace Lumos
 		{
 			return m_ComponentArray;
 		}
+        
+        T** GetRawData() const
+        {
+            return m_ComponentArray.data();
+        }
 
 		size_t GetSize() const
 		{
