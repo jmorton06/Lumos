@@ -1,5 +1,6 @@
 #pragma once
 #include "ECS.h"
+#include "ECSDefines.h"
 #include "ECS/ISystem.h"
 #include "Core/Typename.h"
 

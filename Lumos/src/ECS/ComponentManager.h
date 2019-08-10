@@ -1,6 +1,7 @@
 #pragma once
 #include "LM.h"
 #include "ECS.h"
+#include "ECSDefines.h"
 #include "Utilities/TSingleton.h"
 #include "ECS/Component/LumosComponent.h"
 
