@@ -24,24 +24,60 @@ namespace Lumos
     };
     
     template<class T>
-    class Reference
+    class Reference : ReferenceBase
     {
+    public:
+        Reference(T* ptr)
+        {
+            m_Ptr = ptr;
+            reference();
+        }
+        
+        ~Reference()
+        {
+            if(unreference())
+                delete m_Ptr;
+        }
         
     private:
         T* m_Ptr;
     };
     
     template<class T>
-    class WeakReference
+    class WeakReference : ReferenceBase
     {
+    public:
+        WeakReference(T* ptr)
+        {
+            m_Ptr = ptr;
+            reference();
+        }
+        
+        ~WeakReference()
+        {
+            if(unreference())
+                delete m_Ptr;
+        }
         
     private:
         T* m_Ptr;
     };
     
     template<class T>
-    class Owned
+    class Owned : ReferenceBase
     {
+    public:
+        Owned(T* ptr)
+        {
+            m_Ptr = ptr;
+            reference();
+        }
+        
+        ~Owned()
+        {
+            if(unreference())
+                delete m_Ptr;
+        }
         
     private:
         T* m_Ptr;
