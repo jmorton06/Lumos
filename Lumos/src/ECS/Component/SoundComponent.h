@@ -10,7 +10,7 @@ namespace Lumos
 	{
 	public:
         SoundComponent();
-		explicit SoundComponent(std::shared_ptr<SoundNode>& sound);
+		explicit SoundComponent(Ref<SoundNode>& sound);
 
 		void OnUpdateComponent(float dt) override;
 		void Init() override;
@@ -23,6 +23,6 @@ namespace Lumos
 		void Deserialise(nlohmann::json& data) override {};
         
     private:
-        std::shared_ptr<SoundNode> m_SoundNode;
+        Ref<SoundNode> m_SoundNode;
 	};
 }

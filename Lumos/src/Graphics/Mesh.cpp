@@ -20,7 +20,7 @@ namespace Lumos
 			Init();
 		}
 
-		Mesh::Mesh(std::shared_ptr<VertexArray>& vertexArray, std::shared_ptr<IndexBuffer>& indexBuffer, const std::shared_ptr<Maths::BoundingSphere>& boundingSphere)
+		Mesh::Mesh(Ref<VertexArray>& vertexArray, Ref<IndexBuffer>& indexBuffer, const Ref<Maths::BoundingSphere>& boundingSphere)
 			: m_VertexArray(vertexArray), m_IndexBuffer(indexBuffer), m_ArrayCleanUp(true), m_TextureCleanUp(false), m_BoundingSphere(boundingSphere)
 		{
 			Init();

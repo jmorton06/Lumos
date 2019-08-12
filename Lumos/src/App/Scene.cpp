@@ -88,7 +88,7 @@ namespace Lumos
 		//Default physics setup
 		LumosPhysicsEngine::Instance()->SetDampingFactor(0.998f);
 		LumosPhysicsEngine::Instance()->SetIntegrationType(IntegrationType::RUNGE_KUTTA_4);
-		LumosPhysicsEngine::Instance()->SetBroadphase(lmnew Octree(5, 5, std::make_shared<SortAndSweepBroadphase>()));
+		LumosPhysicsEngine::Instance()->SetBroadphase(lmnew Octree(5, 5, CreateRef<SortAndSweepBroadphase>()));
 
 		m_SceneBoundingRadius = 400.0f; //Default scene radius of 400m
 

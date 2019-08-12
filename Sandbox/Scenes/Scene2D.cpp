@@ -57,12 +57,12 @@ void Scene2D::OnIMGUI()
 
 void Scene2D::LoadSprites()
 {
-	std::vector<std::shared_ptr<Graphics::Texture2D>> textures =
+	std::vector<Lumos::Ref<Graphics::Texture2D>> textures =
 	{
-		std::shared_ptr<Graphics::Texture2D>(Graphics::Texture2D::CreateFromFile("Test", "/CoreTextures/icon.png")),
-		std::shared_ptr<Graphics::Texture2D>(Graphics::Texture2D::CreateFromFile("Test2", "/CoreTextures/noise.png")),
-		std::shared_ptr<Graphics::Texture2D>(Graphics::Texture2D::CreateFromFile("Test3", "/CoreTextures/checkerboard.tga")),
-		std::shared_ptr<Graphics::Texture2D>(Graphics::Texture2D::CreateFromFile("Test4", "/CoreTextures/water/waterDUDV.png"))
+		Lumos::Ref<Graphics::Texture2D>(Graphics::Texture2D::CreateFromFile("Test", "/CoreTextures/icon.png")),
+		Lumos::Ref<Graphics::Texture2D>(Graphics::Texture2D::CreateFromFile("Test2", "/CoreTextures/noise.png")),
+		Lumos::Ref<Graphics::Texture2D>(Graphics::Texture2D::CreateFromFile("Test3", "/CoreTextures/checkerboard.tga")),
+		Lumos::Ref<Graphics::Texture2D>(Graphics::Texture2D::CreateFromFile("Test4", "/CoreTextures/water/waterDUDV.png"))
 	};
 
 	for (int i = 0; i < 1000; i++)
@@ -73,7 +73,7 @@ void Scene2D::LoadSprites()
 		Vector2 size(RandomNumberGenerator32::Rand(1.0f, 3.0f), RandomNumberGenerator32::Rand(1.0f, 3.0f));
 		int textureID = static_cast<int>(RandomNumberGenerator32::Rand(0.0f, 4.0f));
 		auto colour = Maths::Vector4(RandomNumberGenerator32::Rand(0.0f, 1.0f), RandomNumberGenerator32::Rand(0.0f, 1.0f), RandomNumberGenerator32::Rand(0.0f, 1.0f), 1.0f);
-		std::shared_ptr<Graphics::Sprite> sprite = std::make_shared<Graphics::Sprite>(textures[textureID], pos, size, colour);
+		Lumos::Ref<Graphics::Sprite> sprite = Lumos::CreateRef<Graphics::Sprite>(textures[textureID], pos, size, colour);
 		sprite->SetPosition(size / -2.0f);
 
 		//test->SetIsStatic(true);
@@ -82,7 +82,7 @@ void Scene2D::LoadSprites()
 		params.scale = Vector3(size / 2.0f, 1.0f);
 		params.shape = Shape::Square;
 		params.isStatic = false;
-		std::shared_ptr<PhysicsObject2D> blockPhysics = std::make_shared<PhysicsObject2D>();
+		Lumos::Ref<PhysicsObject2D> blockPhysics = Lumos::CreateRef<PhysicsObject2D>();
 		blockPhysics->Init(params);
 
 		testSprite->AddComponent<SpriteComponent>(sprite);
@@ -93,21 +93,21 @@ void Scene2D::LoadSprites()
 
 	auto testSprite = EntityManager::Instance()->CreateEntity("SpriteTest");
 
-	std::shared_ptr<Graphics::Sprite> sprite = std::make_shared<Graphics::Sprite>(Maths::Vector2(-1.0f, 0.0f), Maths::Vector2(1.0f, 1.0f), Maths::Vector4(0.4f, 0.1f, 0.6f, 1.0f));
+	Lumos::Ref<Graphics::Sprite> sprite = Lumos::CreateRef<Graphics::Sprite>(Maths::Vector2(-1.0f, 0.0f), Maths::Vector2(1.0f, 1.0f), Maths::Vector4(0.4f, 0.1f, 0.6f, 1.0f));
 	testSprite->AddComponent<SpriteComponent>(sprite);
 	testSprite->AddComponent<TransformComponent>();
 
 	AddEntity(testSprite);
 
 	auto groundSprite = EntityManager::Instance()->CreateEntity("Ground");
-	std::shared_ptr<Graphics::Sprite> ground = std::make_shared<Graphics::Sprite>(Maths::Vector2(-25.0f, -5.0f), Maths::Vector2(50.0f, 10.0f), Maths::Vector4(0.4f, 0.1f, 0.6f, 1.0f));
+	Lumos::Ref<Graphics::Sprite> ground = Lumos::CreateRef<Graphics::Sprite>(Maths::Vector2(-25.0f, -5.0f), Maths::Vector2(50.0f, 10.0f), Maths::Vector4(0.4f, 0.1f, 0.6f, 1.0f));
 	groundSprite->AddComponent<SpriteComponent>(ground);
 	PhysicsObjectParamaters groundParams;
 	groundParams.position = Vector3(0.0f, -20.0f, 1.0f);
 	groundParams.scale = Vector3(25.0f, 5.0f, 1.0f);
 	groundParams.shape = Shape::Square;
 	groundParams.isStatic = true;
-	std::shared_ptr<PhysicsObject2D> groundPhysics = std::make_shared<PhysicsObject2D>();
+	Lumos::Ref<PhysicsObject2D> groundPhysics = Lumos::CreateRef<PhysicsObject2D>();
 	groundPhysics->Init(groundParams);
 	groundSprite->AddComponent<Physics2DComponent>(groundPhysics);
 	groundSprite->AddComponent<TransformComponent>();

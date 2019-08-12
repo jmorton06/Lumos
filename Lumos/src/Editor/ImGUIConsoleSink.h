@@ -24,7 +24,7 @@ namespace Lumos
 			fmt::memory_buffer formatted;
             spdlog::sinks::sink::formatter_->format(msg, formatted);
 			String source = fmt::format("File : {0} | Function : {1} | Line : {2}", msg.source.filename, msg.source.funcname, msg.source.line);
-            Console::Instance()->AddMessage(std::make_shared<Console::Message>(fmt::to_string(formatted), GetMessageLevel(msg.level), source, static_cast<int>(msg.thread_id)));
+            Console::Instance()->AddMessage(CreateRef<Console::Message>(fmt::to_string(formatted), GetMessageLevel(msg.level), source, static_cast<int>(msg.thread_id)));
 		}
 
         static Console::Message::Level GetMessageLevel(const spdlog::level::level_enum level)

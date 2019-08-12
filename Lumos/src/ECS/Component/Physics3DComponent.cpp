@@ -11,12 +11,12 @@ namespace Lumos
 {
     Physics3DComponent::Physics3DComponent()
     {
-        m_PhysicsObject = std::make_shared<PhysicsObject3D>();
+        m_PhysicsObject = CreateRef<PhysicsObject3D>();
         m_Name = "Physics3D";
         LumosPhysicsEngine::Instance()->AddPhysicsObject(m_PhysicsObject);
     }
     
-	Physics3DComponent::Physics3DComponent(std::shared_ptr<PhysicsObject3D>& physics)
+	Physics3DComponent::Physics3DComponent(Ref<PhysicsObject3D>& physics)
 		: m_PhysicsObject(physics)
 	{
 		m_Name = "Physics3D";

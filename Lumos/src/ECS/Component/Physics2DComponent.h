@@ -10,7 +10,7 @@ namespace Lumos
 	{
 	public:
         Physics2DComponent();
-		explicit Physics2DComponent(std::shared_ptr<PhysicsObject2D>& physics);
+		explicit Physics2DComponent(Ref<PhysicsObject2D>& physics);
 
 		void OnUpdateComponent(float dt) override;
 		void OnIMGUI() override;
@@ -20,6 +20,6 @@ namespace Lumos
 		void Deserialise(nlohmann::json& data) override {};
         
     private:
-        std::shared_ptr<PhysicsObject2D> m_PhysicsObject;
+        Ref<PhysicsObject2D> m_PhysicsObject;
 	};
 }

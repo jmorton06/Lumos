@@ -141,7 +141,7 @@ namespace Lumos
 			m_ComponentTypes.insert({ typeName, m_NextComponentType });
 
 			// Create a ComponentArray pointer and add it to the component arrays map
-			m_ComponentArrays.insert({ typeName, std::make_shared<ComponentArray<T>>() });
+			m_ComponentArrays.insert({ typeName, CreateRef<ComponentArray<T>>() });
 
 			// Increment the value so that the next component registered will be different
 			m_NextComponentType++;
@@ -188,7 +188,7 @@ namespace Lumos
 		}
 
 		template<typename T>
-		std::shared_ptr<ComponentArray<T>> GetComponentArray()
+		Ref<ComponentArray<T>> GetComponentArray()
 		{
 			auto typeName = typeid(T).hash_code();
 
@@ -201,7 +201,7 @@ namespace Lumos
 
 	private:
 		std::unordered_map<size_t, ComponentType> m_ComponentTypes;
-		std::unordered_map<size_t, std::shared_ptr<IComponentArray>> m_ComponentArrays;
+		std::unordered_map<size_t, Ref<IComponentArray>> m_ComponentArrays;
 		ComponentType m_NextComponentType;
 	};
 }

@@ -20,6 +20,7 @@
 #include <thread>
 
 #include "Core/Core.h"
+#include "Core/Reference.h"
 #include "Core/Types.h"
 #include "System/String.h"
 #include "System/LMLog.h"

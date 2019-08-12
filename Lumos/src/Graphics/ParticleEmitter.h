@@ -64,8 +64,8 @@ namespace Lumos
 		Texture2D* GetTexture() const;
 		void SetTexture(Texture2D *m_Texture);
 
-		const std::vector<std::shared_ptr<Particle>>& GetParticles() const;
-		void SetParticles(const std::vector<std::shared_ptr<Particle>>& particles);
+		const std::vector<Ref<Particle>>& GetParticles() const;
+		void SetParticles(const std::vector<Ref<Particle>>& particles);
 
 	private:
 
@@ -174,7 +174,7 @@ namespace Lumos
 		u32 m_NumTextureRows;
 
 		Texture2D* m_Texture;
-		std::vector<std::shared_ptr<Particle>> m_Particles;
+		std::vector<Ref<Particle>> m_Particles;
 
 
 	};

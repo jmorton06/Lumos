@@ -15,7 +15,7 @@ namespace Lumos
         m_BoundingShape = std::unique_ptr<Maths::BoundingBox>();
     }
     
-    ParticleComponent::ParticleComponent(std::shared_ptr<ParticleEmitter>& emitter)
+    ParticleComponent::ParticleComponent(Ref<ParticleEmitter>& emitter)
             : m_ParticleEmitter(emitter), m_PositionOffset(Maths::Vector3(0.0f,0.0f,0.0f))
     {
 		m_Name = "Particle";

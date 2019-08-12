@@ -8,10 +8,10 @@ namespace Lumos
 {
     AIComponent::AIComponent()
     {
-        m_AINode = std::make_shared<AINode>();
+        m_AINode = CreateRef<AINode>();
     }
     
-	AIComponent::AIComponent(std::shared_ptr<AINode>& aiNode)
+	AIComponent::AIComponent(Ref<AINode>& aiNode)
 		: m_AINode(aiNode)
 	{
 		m_Name = "AI";

@@ -16,7 +16,7 @@ namespace Lumos
 	class LUMOS_EXPORT Octree : public Broadphase
 	{
 	public:
-		Octree(size_t maxObjectsPerPartition, size_t maxPartitionDepth, std::shared_ptr<Broadphase> secondaryBroadphase);
+		Octree(size_t maxObjectsPerPartition, size_t maxPartitionDepth, Ref<Broadphase> secondaryBroadphase);
 		virtual ~Octree();
 
 		struct OctreeNode
@@ -28,22 +28,22 @@ namespace Lumos
 			{
 			}
 
-			std::vector<std::shared_ptr<PhysicsObject3D>> physicsObjects;
-			std::vector<std::shared_ptr<OctreeNode>>	  childNodes;
+			std::vector<Ref<PhysicsObject3D>> physicsObjects;
+			std::vector<Ref<OctreeNode>>	  childNodes;
 			Maths::BoundingBox							  boundingBox;
 		};
 
-		void FindPotentialCollisionPairs(std::vector<std::shared_ptr<PhysicsObject3D>> objects, std::vector<CollisionPair> &collisionPairs) override;
+		void FindPotentialCollisionPairs(std::vector<Ref<PhysicsObject3D>> objects, std::vector<CollisionPair> &collisionPairs) override;
 		void DebugDraw() override;
-		void Divide(const std::shared_ptr<OctreeNode>& node, size_t iteration);
+		void Divide(const Ref<OctreeNode>& node, size_t iteration);
 		static void DebugDrawOctreeNode(OctreeNode* node);
 
 	private:
 		size_t m_MaxObjectsPerPartition;
 		size_t m_MaxPartitionDepth;
 
-		std::shared_ptr<Broadphase> m_SecondaryBroadphase; //Broadphase stage used to determine collision pairs within subdivisions
-		std::shared_ptr<OctreeNode> m_RootNode;
-		std::vector<std::shared_ptr<OctreeNode>> m_LeafNodes;
+		Ref<Broadphase> m_SecondaryBroadphase; //Broadphase stage used to determine collision pairs within subdivisions
+		Ref<OctreeNode> m_RootNode;
+		std::vector<Ref<OctreeNode>> m_LeafNodes;
 	};
 }

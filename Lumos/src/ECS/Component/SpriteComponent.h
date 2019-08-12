@@ -13,7 +13,7 @@ namespace Lumos
 	{
 	public:
         SpriteComponent();
-		explicit SpriteComponent(std::shared_ptr<Graphics::Sprite>& sprite);
+		explicit SpriteComponent(Ref<Graphics::Sprite>& sprite);
 
 		void OnUpdateComponent(float dt) override;
 
@@ -25,6 +25,6 @@ namespace Lumos
 		void Deserialise(nlohmann::json& data) override {};
         
     private:
-        std::shared_ptr<Graphics::Sprite> m_Sprite;
+        Ref<Graphics::Sprite> m_Sprite;
 	};
 }

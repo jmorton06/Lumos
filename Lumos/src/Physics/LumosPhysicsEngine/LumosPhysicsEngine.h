@@ -33,8 +33,8 @@ namespace Lumos
 		void SetDefaults();
 
 		//Add/Remove Physics Objects
-		void AddPhysicsObject(std::shared_ptr<PhysicsObject3D> obj);
-		void RemovePhysicsObject(std::shared_ptr<PhysicsObject3D> obj);
+		void AddPhysicsObject(Ref<PhysicsObject3D> obj);
+		void RemovePhysicsObject(Ref<PhysicsObject3D> obj);
 		void RemoveAllPhysicsObjects(); //Delete all physics entities etc and reset-physics environment for new scene to be initialized
 
 		//Add Constraints
@@ -102,7 +102,7 @@ namespace Lumos
 		Maths::Vector3 m_Gravity;
 		float		m_DampingFactor;
 
-		std::vector<std::shared_ptr<PhysicsObject3D>> m_PhysicsObjects;
+		std::vector<Ref<PhysicsObject3D>> m_PhysicsObjects;
 		std::vector<CollisionPair>  m_BroadphaseCollisionPairs;
 
 		std::vector<Constraint*>	m_Constraints;			// Misc constraints between pairs of objects

@@ -11,10 +11,10 @@ namespace Lumos
     MaterialComponent::MaterialComponent()
     {
         m_Name = "Material";
-        m_Material = std::make_shared<Material>();
+        m_Material = CreateRef<Material>();
     }
     
-    MaterialComponent::MaterialComponent(std::shared_ptr<Material>& material)
+    MaterialComponent::MaterialComponent(Ref<Material>& material)
     : m_Material(material)
     {
 		m_Name = "Material";

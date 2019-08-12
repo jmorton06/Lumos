@@ -20,7 +20,7 @@ namespace Lumos
 	{
 	}
 
-	void ParticleManager::Add(std::shared_ptr<ParticleEmitter> emitter)
+	void ParticleManager::Add(Ref<ParticleEmitter> emitter)
 	{
 		m_Emitters.push_back(emitter);
 	}

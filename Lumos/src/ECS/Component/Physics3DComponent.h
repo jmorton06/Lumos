@@ -10,7 +10,7 @@ namespace Lumos
 	{
 	public:
         Physics3DComponent();
-		explicit Physics3DComponent(std::shared_ptr<PhysicsObject3D>& physics);
+		explicit Physics3DComponent(Ref<PhysicsObject3D>& physics);
 
 		void Init() override;
 		void OnUpdateComponent(float dt) override;
@@ -23,6 +23,6 @@ namespace Lumos
 		nlohmann::json Serialise() override { return nullptr; };
 		void Deserialise(nlohmann::json& data) override {};
     private:
-        std::shared_ptr<PhysicsObject3D> m_PhysicsObject;
+        Ref<PhysicsObject3D> m_PhysicsObject;
 	};
 }

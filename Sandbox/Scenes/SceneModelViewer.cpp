@@ -39,7 +39,7 @@ void SceneModelViewer::OnInit()
 
 	m_EnvironmentMap = Graphics::TextureCube::CreateFromVCross(environmentFiles, 11);
 
-	auto sun = std::make_shared<Graphics::Light>(Maths::Vector3(26.0f, 22.0f, 48.5f), Maths::Vector4(1.0f), 2.0f);
+	auto sun = Lumos::CreateRef<Graphics::Light>(Maths::Vector3(26.0f, 22.0f, 48.5f), Maths::Vector4(1.0f), 2.0f);
 
 	auto lightEntity = EntityManager::Instance()->CreateEntity("Directional Light");
 	lightEntity->AddComponent<LightComponent>(sun);

@@ -15,7 +15,7 @@ namespace Lumos
 	{
 	public:
         LightComponent();
-		explicit LightComponent(std::shared_ptr<Graphics::Light>& light);
+		explicit LightComponent(const Ref<Graphics::Light>& light);
         ~LightComponent();
 
 		void SetRadius(float radius);
@@ -25,12 +25,12 @@ namespace Lumos
 
 		void OnIMGUI() override;
 
-		std::shared_ptr<Graphics::Light> GetLight() const { return m_Light; }
+		Ref<Graphics::Light> GetLight() const { return m_Light; }
 
 		nlohmann::json Serialise() override;;
 		void Deserialise(nlohmann::json& data) override;;
         
     private:
-        std::shared_ptr<Graphics::Light> m_Light;
+        Ref<Graphics::Light> m_Light;
 	};
 }
