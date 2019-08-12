@@ -39,6 +39,66 @@ namespace Lumos
                 delete m_Ptr;
         }
         
+        inline T* get() const
+        {
+            return m_Ptr;
+        }
+        
+        inline bool operator==(const T *p_ptr) const
+        {
+            return m_Ptr == p_ptr;
+        }
+        
+        inline bool operator!=(const T *p_ptr) const
+        {
+            return m_Ptr != p_ptr;
+        }
+        
+        inline bool operator<(const Reference<T> &p_r) const
+        {
+            return m_Ptr < p_r.m_Ptr;
+        }
+            
+        inline bool operator==(const Reference<T> &p_r) const
+        {
+            return m_Ptr == p_r.m_Ptr;
+        }
+            
+        inline bool operator!=(const Reference<T> &p_r) const
+        {
+            return m_Ptr != p_r.m_Ptr;
+        }
+            
+        inline T *operator->()
+        {
+            return m_Ptr;
+        }
+            
+        inline T *operator*()
+        {
+            return m_Ptr;
+        }
+            
+        inline const T *operator->() const
+        {
+            return m_Ptr;
+        }
+            
+        inline const T *ptr() const
+        {
+            return m_Ptr;
+        }
+            
+        inline T *ptr()
+        {
+            return m_Ptr;
+        }
+            
+        inline const T *operator*() const
+        {
+            return m_Ptr;
+        }
+        
     private:
         T* m_Ptr;
     };
