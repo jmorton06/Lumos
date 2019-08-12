@@ -12,12 +12,12 @@ namespace Lumos
 {
     SoundComponent::SoundComponent()
     {
-        m_SoundNode = std::shared_ptr<SoundNode>(SoundNode::Create());
+        m_SoundNode = Ref<SoundNode>(SoundNode::Create());
         m_Name = "Sound";
         m_BoundingShape = std::make_unique<Maths::BoundingSphere>(m_SoundNode->GetPosition(),m_SoundNode->GetRadius());
     }
     
-	SoundComponent::SoundComponent(std::shared_ptr<SoundNode>& sound)
+	SoundComponent::SoundComponent(Ref<SoundNode>& sound)
 		: m_SoundNode(sound)
 	{
 		m_Name = "Sound";

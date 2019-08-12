@@ -66,7 +66,7 @@ namespace Lumos
 		{
 			for (u32 i = 0; i < m_NumLaunchParticles; ++i)
 			{
-				m_Particles.push_back(std::make_shared<Particle>(m_Position + Maths::Vector3(Lumos::RandomNumberGenerator32::Rand(-m_Area.x, m_Area.x),Lumos::RandomNumberGenerator32::Rand(-m_Area.y, m_Area.y),Lumos::RandomNumberGenerator32::Rand(-m_Area.z, m_Area.z)), m_InitialVelocity + Maths::Vector3(Lumos::RandomNumberGenerator32::Rand(m_VelocityVarianceX.GetX(),m_VelocityVarianceX.GetY()),Lumos::RandomNumberGenerator32::Rand(m_VelocityVarianceY.GetX(), m_VelocityVarianceY.GetY()),Lumos::RandomNumberGenerator32::Rand(m_VelocityVarianceZ.GetX(), m_VelocityVarianceZ.GetY())), m_GravityEffect, m_ParticleLife * Lumos::RandomNumberGenerator32::Rand(m_LifeLengthVariance,1.0f), m_Scale * Lumos::RandomNumberGenerator32::Rand(m_ScaleVariance,1.0f)));
+//				m_Particles.push_back(CreateRef<Particle>(m_Position + Maths::Vector3(Lumos::RandomNumberGenerator32::Rand(-m_Area.x, m_Area.x),Lumos::RandomNumberGenerator32::Rand(-m_Area.y, m_Area.y),Lumos::RandomNumberGenerator32::Rand(-m_Area.z, m_Area.z)), m_InitialVelocity + Maths::Vector3(Lumos::RandomNumberGenerator32::Rand(m_VelocityVarianceX.GetX(),m_VelocityVarianceX.GetY()),Lumos::RandomNumberGenerator32::Rand(m_VelocityVarianceY.GetX(), m_VelocityVarianceY.GetY()),Lumos::RandomNumberGenerator32::Rand(m_VelocityVarianceZ.GetX(), m_VelocityVarianceZ.GetY())), m_GravityEffect, m_ParticleLife * Lumos::RandomNumberGenerator32::Rand(m_LifeLengthVariance,1.0f), m_Scale * Lumos::RandomNumberGenerator32::Rand(m_ScaleVariance,1.0f)));
 			}
 
 			m_NextParticleTime += m_ParticleRate;
@@ -227,12 +227,12 @@ namespace Lumos
         ParticleEmitter::m_Texture = texture;
     }
 
-    const std::vector<std::shared_ptr<Particle>> &ParticleEmitter::GetParticles() const
+    const std::vector<Ref<Particle>> &ParticleEmitter::GetParticles() const
     {
         return m_Particles;
     }
 
-    void ParticleEmitter::SetParticles(const std::vector<std::shared_ptr<Particle>> &particles)
+    void ParticleEmitter::SetParticles(const std::vector<Ref<Particle>> &particles)
     {
         ParticleEmitter::m_Particles = particles;
     }

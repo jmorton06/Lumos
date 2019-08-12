@@ -19,7 +19,7 @@ namespace Lumos
 			m_Texture = nullptr;
 		}
 
-		Sprite::Sprite(std::shared_ptr<Texture2D> texture, const Maths::Vector2& position, const Maths::Vector2& scale, const Maths::Vector4& colour)
+		Sprite::Sprite(Ref<Texture2D> texture, const Maths::Vector2& position, const Maths::Vector2& scale, const Maths::Vector4& colour)
 		{
 			m_Texture = texture;
 			m_Position = position;

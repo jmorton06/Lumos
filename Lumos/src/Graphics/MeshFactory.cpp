@@ -33,7 +33,7 @@ namespace Lumos
 			data[3].position = Maths::Vector3(x, y + height, 0.0f);
 			data[3].uv = Maths::Vector2(1, 1);
 
-			std::shared_ptr<VertexArray> va;
+			Ref<VertexArray> va;
 			va.reset(VertexArray::Create());
 
 			VertexBuffer* buffer = VertexBuffer::Create(BufferUsage::STATIC);
@@ -48,10 +48,10 @@ namespace Lumos
 
 			va->PushBuffer(buffer);
 			u32 indices[6] = { 0, 1, 2, 2, 3, 0, };
-			std::shared_ptr<IndexBuffer> ib;
+			Ref<IndexBuffer> ib;
 			ib.reset(IndexBuffer::Create(indices, 6));
 
-			std::shared_ptr<Maths::BoundingSphere> boundingBox = std::make_shared<Maths::BoundingSphere>();
+			Ref<Maths::BoundingSphere> boundingBox = CreateRef<Maths::BoundingSphere>();
 			for (int i = 0; i < 4; i++)
 			{
 				boundingBox->ExpandToFit(data[i].position);
@@ -84,7 +84,7 @@ namespace Lumos
 			data[3].Colours = Lumos::Maths::Vector4(0.0f);
 			data[3].TexCoords = Maths::Vector2(0.0f, 1.0f);
 
-			std::shared_ptr<VertexArray> va;
+			Ref<VertexArray> va;
 			va.reset(VertexArray::Create());
 
 			VertexBuffer* buffer = VertexBuffer::Create(BufferUsage::STATIC);
@@ -102,11 +102,11 @@ namespace Lumos
 
 			va->PushBuffer(buffer);
 			u32 indices[6] = { 0, 1, 2, 2, 3, 0, };
-			std::shared_ptr<IndexBuffer> ib;
+			Ref<IndexBuffer> ib;
 			ib.reset(IndexBuffer::Create(indices, 6));
 
-			std::shared_ptr<Material> empty;
-			std::shared_ptr<Maths::BoundingSphere> boundingSphere = std::make_shared<Maths::BoundingSphere>();
+			Ref<Material> empty;
+			Ref<Maths::BoundingSphere> boundingSphere = CreateRef<Maths::BoundingSphere>();
 			for (int i = 0; i < 4; i++)
 			{
 				boundingSphere->ExpandToFit(data[i].Position);
@@ -231,7 +231,7 @@ namespace Lumos
 			data[23].Colours = Maths::Vector4(0.0f);
 			data[23].Normal = Maths::Vector3(0.0f, 0.0f, -1.0f);
 
-			std::shared_ptr<VertexArray> va;
+			Ref<VertexArray> va;
 			va.reset(VertexArray::Create());
 
 			for (int i = 0; i < 6; i++)
@@ -274,9 +274,9 @@ namespace Lumos
 				20,22,23
 			};
 
-			std::shared_ptr<IndexBuffer> ib;
+			Ref<IndexBuffer> ib;
 			ib.reset(IndexBuffer::Create(indices, 36));
-			std::shared_ptr<Maths::BoundingSphere> boundingSphere = std::make_shared<Maths::BoundingSphere>();
+			Ref<Maths::BoundingSphere> boundingSphere = CreateRef<Maths::BoundingSphere>();
 			for (int i = 0; i < 4; i++)
 			{
 				boundingSphere->ExpandToFit(data[i].Position);
@@ -378,7 +378,7 @@ namespace Lumos
 			data[17].TexCoords = Maths::Vector2(0.0f, 0.0f);
 			data[17].Normal = Maths::Vector3(0.0f, 0.0f, 0.0f);
 
-			std::shared_ptr<VertexArray> va;
+			Ref<VertexArray> va;
 			va.reset(VertexArray::Create());
 
 			VertexBuffer* buffer = VertexBuffer::Create(BufferUsage::STATIC);
@@ -406,9 +406,9 @@ namespace Lumos
 				15,12,14
 			};
 
-			std::shared_ptr<IndexBuffer> ib;
+			Ref<IndexBuffer> ib;
 			ib.reset(IndexBuffer::Create(indices, 18));
-			std::shared_ptr<Maths::BoundingSphere> boundingSphere = std::make_shared<Maths::BoundingSphere>();
+			Ref<Maths::BoundingSphere> boundingSphere = CreateRef<Maths::BoundingSphere>();
 			for (int i = 0; i < 4; i++)
 			{
 				boundingSphere->ExpandToFit(data[i].Position);
@@ -420,7 +420,7 @@ namespace Lumos
 		{
 			auto data = std::vector<Vertex>();
 
-			std::shared_ptr<VertexArray> va;
+			Ref<VertexArray> va;
 			va.reset(VertexArray::Create());
 
 			float sectorCount = static_cast<float>(xSegments);
@@ -499,14 +499,14 @@ namespace Lumos
 				}
 			}
 
-			std::shared_ptr<IndexBuffer> ib;
+			Ref<IndexBuffer> ib;
 			ib.reset(IndexBuffer::Create(indices.data(), static_cast<u32>(indices.size())));
-			std::shared_ptr<Maths::BoundingSphere> boundingSphere = std::make_shared<Maths::BoundingSphere>();
+			Ref<Maths::BoundingSphere> boundingSphere = CreateRef<Maths::BoundingSphere>();
 
 			return lmnew Mesh(va, ib, boundingSphere);
 		}
 
-		Mesh* CreateIcoSphere(u32 radius, u32 subdivision, std::shared_ptr<Material> material)
+		Mesh* CreateIcoSphere(u32 radius, u32 subdivision, Ref<Material> material)
 		{
 			return nullptr;
 		}
@@ -552,7 +552,7 @@ namespace Lumos
 			layout.Push<Maths::Vector3>("tangent");
 			buffer->SetLayout(layout);
 
-			std::shared_ptr<VertexArray> va;
+			Ref<VertexArray> va;
 			va.reset(VertexArray::Create());
 			va->PushBuffer(buffer);
 
@@ -562,9 +562,9 @@ namespace Lumos
 					2, 3, 0
 			};
 
-			std::shared_ptr<IndexBuffer> ib;
+			Ref<IndexBuffer> ib;
 			ib.reset(IndexBuffer::Create(indices, 6));
-			std::shared_ptr<Maths::BoundingSphere> boundingBox = std::make_shared<Maths::BoundingSphere>();
+			Ref<Maths::BoundingSphere> boundingBox = CreateRef<Maths::BoundingSphere>();
 			for (int i = 0; i < 4; i++)
 			{
 				boundingBox->ExpandToFit(data[i].Position);

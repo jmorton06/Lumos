@@ -81,7 +81,7 @@ namespace Lumos
 			void CreateUniformBuffer();
 			void UpdateCascades(Scene* scene);
 
-			void SetLight(std::shared_ptr<Graphics::Light>& light) { m_Light = light; }
+			void SetLight(Ref<Graphics::Light>& light) { m_Light = light; }
 
 		protected:
 
@@ -102,7 +102,7 @@ namespace Lumos
 			Lumos::Graphics::UniformBuffer* m_ModelUniformBuffer;
 			Lumos::Graphics::CommandBuffer* m_CommandBuffer;
 
-			std::shared_ptr<Graphics::Light> m_Light;
+			Ref<Graphics::Light> m_Light;
 
 			u32 m_Layer = 0;
 

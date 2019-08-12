@@ -75,7 +75,7 @@ namespace Lumos
 		void BuildFrameRenderList();
 		void BuildLightList();
 
-		std::vector<std::shared_ptr<Graphics::Light>>& GetLightList() { return m_LightList; }
+		std::vector<Ref<Graphics::Light>>& GetLightList() { return m_LightList; }
 
 		Entity* GetRootEntity() { return m_RootEntity; }
 
@@ -119,7 +119,7 @@ namespace Lumos
 
 		Maths::Frustum m_FrameFrustum;
 		std::unique_ptr<RenderList>	m_pFrameRenderList;
-		std::vector<std::shared_ptr<Graphics::Light>> m_LightList;
+		std::vector<Ref<Graphics::Light>> m_LightList;
 
     private:
         Scene(Scene const&) = delete;

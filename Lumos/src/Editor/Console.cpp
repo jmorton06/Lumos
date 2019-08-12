@@ -15,7 +15,7 @@ namespace Lumos
 		m_RequestScrollToBottom = false;
 	}
 
-	void Console::AddMessage(std::shared_ptr<Message> message)
+	void Console::AddMessage(Ref<Message> message)
 	{
 		if (message->m_Level == Message::Level::Invalid)
 			return;
@@ -33,7 +33,7 @@ namespace Lumos
 	void Console::Flush()
 	{
 		for (auto message = m_MessageBuffer.begin(); message != m_MessageBuffer.end(); message++)
-			(*message) = std::make_shared<Message>();
+			(*message) = CreateRef<Message>();
 		m_MessageBufferBegin = 0;
 	}
 

@@ -13,7 +13,7 @@ namespace Lumos
 	{
 	public:
         MeshComponent();
-		explicit MeshComponent(std::shared_ptr<Graphics::Mesh>& mesh);
+		explicit MeshComponent(const Ref<Graphics::Mesh>& mesh);
 		explicit MeshComponent(Graphics::Mesh* mesh);
 		~MeshComponent() = default;
 
@@ -26,6 +26,6 @@ namespace Lumos
 		nlohmann::json Serialise() override { return nullptr; };
 		void Deserialise(nlohmann::json& data) override {};
 	private:
-		std::shared_ptr<Graphics::Mesh> m_Mesh;
+		Ref<Graphics::Mesh> m_Mesh;
 	};
 }

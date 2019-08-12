@@ -14,7 +14,7 @@ namespace Lumos
         m_BoundingShape = std::make_unique<Maths::BoundingSphere>(Maths::Vector3(0.0f),1.0f);
     }
     
-	MeshComponent::MeshComponent(std::shared_ptr<Graphics::Mesh>& model)
+	MeshComponent::MeshComponent(const Ref<Graphics::Mesh>& model)
 		: m_Mesh(model)
 	{
 		m_Name = "Mesh";
@@ -23,7 +23,7 @@ namespace Lumos
 
 	MeshComponent::MeshComponent(Graphics::Mesh* mesh)
 	{
-		m_Mesh = std::shared_ptr<Graphics::Mesh>(mesh);
+        m_Mesh = Lumos::Ref<Graphics::Mesh>(mesh);
 		m_BoundingShape = std::make_unique<Maths::BoundingSphere>(Maths::Vector3(0.0f), 1.0f);
 	}
 

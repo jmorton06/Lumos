@@ -95,10 +95,10 @@ namespace Lumos
 		}
 	}
 
-	std::vector<std::shared_ptr<Material>> LoadMaterials(tinygltf::Model &gltfModel)
+	std::vector<Ref<Material>> LoadMaterials(tinygltf::Model &gltfModel)
     {
-        std::vector<std::shared_ptr<Graphics::Texture2D>> loadedTextures;
-        std::vector<std::shared_ptr<Material>> loadedMaterials;
+        std::vector<Ref<Graphics::Texture2D>> loadedTextures;
+        std::vector<Ref<Material>> loadedMaterials;
         for (tinygltf::Texture &gltfTexture : gltfModel.textures)
         {
             GLTFTexture imageAndSampler{};
@@ -121,13 +121,13 @@ namespace Lumos
 
 				Graphics::Texture2D* texture2D = Graphics::Texture2D::CreateFromSource(imageAndSampler.Image->width, imageAndSampler.Image->height, imageAndSampler.Image->image.data(), params);
                 if (texture2D)
-                    loadedTextures.push_back(std::shared_ptr<Graphics::Texture2D>(texture2D));
+                    loadedTextures.push_back(Ref<Graphics::Texture2D>(texture2D));
             }
         }
 
         for (tinygltf::Material &mat : gltfModel.materials)
         {
-            std::shared_ptr<Material> pbrMaterial = std::make_shared<Material>();
+            Ref<Material> pbrMaterial = CreateRef<Material>();
             PBRMataterialTextures textures;
             MaterialProperties properties;
             
@@ -235,7 +235,7 @@ namespace Lumos
         return loadedMaterials;
     }
     
-	Graphics::Mesh* LoadMesh(tinygltf::Model& model, tinygltf::Mesh& mesh, std::vector<std::shared_ptr<Material>>& materials)
+	Graphics::Mesh* LoadMesh(tinygltf::Model& model, tinygltf::Mesh& mesh, std::vector<Ref<Material>>& materials)
     {
         for (auto& primitive : mesh.primitives)
         {
@@ -247,7 +247,7 @@ namespace Lumos
             
             size_t maxNumVerts = 0;
             
-            std::shared_ptr<Maths::BoundingSphere> boundingBox = std::make_shared<Maths::BoundingSphere>();
+            Ref<Maths::BoundingSphere> boundingBox = CreateRef<Maths::BoundingSphere>();
            
             for (auto& attribute : primitive.attributes)
             {
@@ -334,7 +334,7 @@ namespace Lumos
                 }
             }
 
-            std::shared_ptr<Graphics::VertexArray> va;
+            Ref<Graphics::VertexArray> va;
             va.reset(Graphics::VertexArray::Create());
             
 			Graphics::VertexBuffer* buffer = Graphics::VertexBuffer::Create(Graphics::BufferUsage::STATIC);
@@ -386,7 +386,7 @@ namespace Lumos
                 }
             }
             
-            std::shared_ptr<Graphics::IndexBuffer> ib;
+            Ref<Graphics::IndexBuffer> ib;
             ib.reset(Graphics::IndexBuffer::Create(indicesArray, numVertices));
 
             auto lMesh = lmnew Graphics::Mesh(va, ib, boundingBox);
@@ -400,7 +400,7 @@ namespace Lumos
         return nullptr;
     }
     
-    void LoadNode(int nodeIndex, Entity* parent, tinygltf::Model& model, std::vector<std::shared_ptr<Material>>& materials, std::vector<Graphics::Mesh*>& meshes)
+    void LoadNode(int nodeIndex, Entity* parent, tinygltf::Model& model, std::vector<Ref<Material>>& materials, std::vector<Graphics::Mesh*>& meshes)
     {
         if (nodeIndex < 0)
         {
@@ -421,7 +421,7 @@ namespace Lumos
         if(node.mesh >= 0)
         {
            
-            auto lMesh = std::shared_ptr<Graphics::Mesh>(meshes[node.mesh]);
+            auto lMesh = Ref<Graphics::Mesh>(meshes[node.mesh]);
             meshEntity->AddComponent<MeshComponent>(lMesh);
 
 			int materialIndex = model.meshes[node.mesh].primitives[0].material;

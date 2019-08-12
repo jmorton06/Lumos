@@ -46,10 +46,10 @@ namespace Lumos
 		Entity* pSphere = EntityManager::Instance()->CreateEntity(name);
 
 		pSphere->AddComponent<TextureMatrixComponent>(Maths::Matrix4::Scale(Maths::Vector3(10.0f, 10.0f, 10.0f)));
-        std::shared_ptr<Graphics::Mesh> sphereModel = std::make_shared<Graphics::Mesh>(*AssetsManager::DefaultModels()->GetAsset("Sphere"));
+        Ref<Graphics::Mesh> sphereModel = CreateRef<Graphics::Mesh>(*AssetsManager::DefaultModels()->GetAsset("Sphere"));
         pSphere->AddComponent<MeshComponent>(sphereModel);
 
-		std::shared_ptr<Material> matInstance = std::make_shared<Material>();
+		Ref<Material> matInstance = CreateRef<Material>();
 		MaterialProperties properties;
 		properties.albedoColour = color;
 		properties.roughnessColour = Vector4(RandomNumberGenerator32::Rand(0.0f, 1.0f));
@@ -67,7 +67,7 @@ namespace Lumos
 		if (physics_enabled)
 		{
 			//Otherwise create a physics object, and set it's position etc
-			std::shared_ptr<PhysicsObject3D> testPhysics = std::make_shared<PhysicsObject3D>();
+			Ref<PhysicsObject3D> testPhysics = CreateRef<PhysicsObject3D>();
 
 			testPhysics->SetPosition(pos);
 			testPhysics->SetInverseMass(inverse_mass);
@@ -105,10 +105,10 @@ namespace Lumos
 		Entity* Cube = EntityManager::Instance()->CreateEntity(name);
 
 		Cube->AddComponent<TextureMatrixComponent>(Maths::Matrix4::Scale(Maths::Vector3(10.0f, 10.0f, 10.0f)));
-        std::shared_ptr<Graphics::Mesh> cubeModel = std::make_shared<Graphics::Mesh>(*AssetsManager::DefaultModels()->GetAsset("Cube"));
+        Ref<Graphics::Mesh> cubeModel = CreateRef<Graphics::Mesh>(*AssetsManager::DefaultModels()->GetAsset("Cube"));
         Cube->AddComponent<MeshComponent>(cubeModel);
 
-		auto matInstance = std::make_shared<Material>();
+		auto matInstance = CreateRef<Material>();
 		MaterialProperties properties;
 		properties.albedoColour = color;
 		properties.roughnessColour = Vector4(RandomNumberGenerator32::Rand(0.0f, 1.0f));
@@ -127,7 +127,7 @@ namespace Lumos
 		if (physics_enabled)
 		{
 			//Otherwise create a physics object, and set it's position etc
-			std::shared_ptr<PhysicsObject3D> testPhysics = std::make_shared<PhysicsObject3D>();
+			Ref<PhysicsObject3D> testPhysics = CreateRef<PhysicsObject3D>();
 
 			testPhysics->SetPosition(pos);
 			testPhysics->SetInverseMass(inverse_mass);
@@ -165,10 +165,10 @@ namespace Lumos
 		Entity* Cube = EntityManager::Instance()->CreateEntity(name);
 		Entity* meshEntity = EntityManager::Instance()->CreateEntity("Mesh");
 
-        std::shared_ptr<Graphics::Mesh> pyramidModel = std::make_shared<Graphics::Mesh>(*AssetsManager::DefaultModels()->GetAsset("Pyramid"));
+        Ref<Graphics::Mesh> pyramidModel = CreateRef<Graphics::Mesh>(*AssetsManager::DefaultModels()->GetAsset("Pyramid"));
 		meshEntity->AddComponent<MeshComponent>(pyramidModel);
 
-		std::shared_ptr<Material> matInstance = std::make_shared<Material>();
+		Ref<Material> matInstance = CreateRef<Material>();
 		MaterialProperties properties;
 		properties.albedoColour = color;
 		properties.roughnessColour = Vector4(RandomNumberGenerator32::Rand(0.0f, 1.0f));
@@ -188,7 +188,7 @@ namespace Lumos
 		if (physics_enabled)
 		{
 			//Otherwise create a physics object, and set it's position etc
-			std::shared_ptr<PhysicsObject3D> testPhysics = std::make_shared<PhysicsObject3D>();
+			Ref<PhysicsObject3D> testPhysics = CreateRef<PhysicsObject3D>();
 
 			testPhysics->SetPosition(pos);
 			testPhysics->SetInverseMass(inverse_mass);
@@ -233,7 +233,7 @@ namespace Lumos
 		const float radius    = RandomNumberGenerator32::Rand(1.0f, 30.0f);
 		const float intensity = RandomNumberGenerator32::Rand(0.0f, 2.0f);
 
-		std::shared_ptr<Graphics::Light> light = std::make_shared<Graphics::Light>(scene->GetCamera()->GetPosition(), colour,  intensity, Graphics::LightType::PointLight, scene->GetCamera()->GetPosition(), radius);
+		Ref<Graphics::Light> light = CreateRef<Graphics::Light>(scene->GetCamera()->GetPosition(), colour,  intensity, Graphics::LightType::PointLight, scene->GetCamera()->GetPosition(), radius);
 		cube->AddComponent<LightComponent>(light);
 		scene->AddEntity(cube);
 	}

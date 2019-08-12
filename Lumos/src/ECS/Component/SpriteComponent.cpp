@@ -11,11 +11,11 @@ namespace Lumos
 {
     SpriteComponent::SpriteComponent()
     {
-        m_Sprite = std::shared_ptr<Graphics::Sprite>();
+        m_Sprite = Ref<Graphics::Sprite>();
         m_Name = "Sprite";
     }
     
-	SpriteComponent::SpriteComponent(std::shared_ptr<Graphics::Sprite>& sprite)
+	SpriteComponent::SpriteComponent(Ref<Graphics::Sprite>& sprite)
 		: m_Sprite(sprite)
 	{
 		m_Name = "Sprite";

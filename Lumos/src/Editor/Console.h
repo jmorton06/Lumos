@@ -45,7 +45,7 @@ namespace Lumos
 
         Console();
 		~Console() = default;
-		void AddMessage(std::shared_ptr<Message> message);
+		void AddMessage(Ref<Message> message);
 		void Flush();
 		void OnImGuiRender(bool* show);
 
@@ -56,7 +56,7 @@ namespace Lumos
 		uint16_t m_MessageBufferCapacity;
 		uint16_t m_MessageBufferSize;
 		uint16_t m_MessageBufferBegin;
-		std::vector<std::shared_ptr<Message>> m_MessageBuffer;
+		std::vector<Ref<Message>> m_MessageBuffer;
 		bool m_AllowScrollingToBottom;
 		bool m_RequestScrollToBottom;
 		static Message::Level s_MessageBufferRenderFilter;

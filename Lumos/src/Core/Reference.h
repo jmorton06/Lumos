@@ -1,8 +1,10 @@
 #pragma once
 
+#include <memory>
+
 namespace Lumos
 {
-    template<T>
+    template<class T>
     class Reference
     {
         
@@ -10,7 +12,7 @@ namespace Lumos
         T* m_Ptr;
     };
     
-    template<T>
+    template<class T>
     class WeakReference
     {
         
@@ -18,7 +20,7 @@ namespace Lumos
         T* m_Ptr;
     };
     
-    template<T>
+    template<class T>
     class Owned
     {
         
@@ -26,4 +28,19 @@ namespace Lumos
         T* m_Ptr;
 
     };
+    
+    template<class T>
+    using Ref = std::shared_ptr<T>;
+    
+    template <typename T, typename ... Args>
+    Ref<T> CreateRef(Args&& ...args)
+    {
+        return std::make_shared<T>(args ...);
+    }
+    
+    template <typename T>
+    Ref<T> CreateRef(T* t)
+    {
+        return std::shared_ptr<T>(t);
+    }
 }

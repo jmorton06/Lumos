@@ -69,7 +69,7 @@ namespace Lumos
 			static const std::vector<Maths::Vector2>& GetDefaultUVs();
 
 		protected:
-			std::shared_ptr<Texture2D> m_Texture;
+			Ref<Texture2D> m_Texture;
 			Maths::Vector2 m_Position;
 			Maths::Vector2 m_Scale;
 			Maths::Vector4 m_Colour;

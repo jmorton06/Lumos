@@ -14,13 +14,13 @@ namespace Lumos
 		ParticleManager();
 		~ParticleManager();
 
-        void Add(std::shared_ptr<ParticleEmitter> emitter);
+        void Add(Ref<ParticleEmitter> emitter);
 		void Render(Camera* camera);
 
 		void Update(float dt);
 
 	private:
 
-		std::vector<std::shared_ptr<ParticleEmitter>> m_Emitters;
+		std::vector<Ref<ParticleEmitter>> m_Emitters;
 	};
 }

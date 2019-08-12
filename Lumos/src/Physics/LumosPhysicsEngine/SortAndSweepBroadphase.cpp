@@ -29,11 +29,11 @@ namespace Lumos
 			m_axisIndex = 2;
 	}
 
-	void SortAndSweepBroadphase::FindPotentialCollisionPairs(std::vector<std::shared_ptr<PhysicsObject3D>> objects,
+	void SortAndSweepBroadphase::FindPotentialCollisionPairs(std::vector<Ref<PhysicsObject3D>> objects,
 	                                                         std::vector<CollisionPair> &collisionPairs)
 	{
 		// Sort entities along axis
-		std::sort(objects.begin(), objects.end(), [this](std::shared_ptr<PhysicsObject3D> a, std::shared_ptr<PhysicsObject3D> b) -> bool
+		std::sort(objects.begin(), objects.end(), [this](Ref<PhysicsObject3D> a, Ref<PhysicsObject3D> b) -> bool
 		{
 			return a->GetWorldSpaceAABB().Lower()[this->m_axisIndex] < b->GetWorldSpaceAABB().Lower()[this->m_axisIndex];
 		});

@@ -47,12 +47,12 @@ namespace Lumos
 			delete m_BroadphaseDetection;
 	}
 
-	void LumosPhysicsEngine::AddPhysicsObject(std::shared_ptr<PhysicsObject3D> obj)
+	void LumosPhysicsEngine::AddPhysicsObject(Ref<PhysicsObject3D> obj)
 	{
 		m_PhysicsObjects.push_back(obj);
 	}
 
-	void LumosPhysicsEngine::RemovePhysicsObject(std::shared_ptr<PhysicsObject3D> obj)
+	void LumosPhysicsEngine::RemovePhysicsObject(Ref<PhysicsObject3D> obj)
 	{
 		//// Lookup the object in question
 		const auto it = std::find(m_PhysicsObjects.begin(), m_PhysicsObjects.end(), obj);
@@ -333,7 +333,7 @@ namespace Lumos
 
 	PhysicsObject3D* LumosPhysicsEngine::FindObjectByName(const String& name)
 	{
-		auto it = std::find_if(m_PhysicsObjects.begin(), m_PhysicsObjects.end(), [name](std::shared_ptr<PhysicsObject3D> o) 
+		auto it = std::find_if(m_PhysicsObjects.begin(), m_PhysicsObjects.end(), [name](Ref<PhysicsObject3D> o) 
 		{
 			Entity *po = o->GetAssociatedObject();
 			return (po != nullptr && po->GetName() == name);

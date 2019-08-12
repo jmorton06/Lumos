@@ -12,7 +12,7 @@ void GraphicsScene::OnInit()
 	Scene::OnInit();
 	LumosPhysicsEngine::Instance()->SetDampingFactor(0.998f);
 	LumosPhysicsEngine::Instance()->SetIntegrationType(IntegrationType::RUNGE_KUTTA_4);
-	LumosPhysicsEngine::Instance()->SetBroadphase(new Octree(5, 3, std::make_shared<BruteForceBroadphase>()));
+	LumosPhysicsEngine::Instance()->SetBroadphase(new Octree(5, 3, Lumos::CreateRef<BruteForceBroadphase>()));
 
 	LoadModels();
 
@@ -40,7 +40,7 @@ void GraphicsScene::OnInit()
 
 	m_EnvironmentMap = Graphics::TextureCube::CreateFromVCross(environmentFiles, 11);
 
-	auto sun = std::make_shared<Graphics::Light>(Maths::Vector3(26.0f, 22.0f, 48.5f), Maths::Vector4(1.0f), 2.0f);
+	auto sun = Lumos::CreateRef<Graphics::Light>(Maths::Vector3(26.0f, 22.0f, 48.5f), Maths::Vector4(1.0f), 2.0f);
 
 	auto lightEntity = EntityManager::Instance()->CreateEntity("Directional Light");
 	lightEntity->AddComponent<LightComponent>(sun);
@@ -92,15 +92,15 @@ void GraphicsScene::LoadModels()
 	auto heightmap = EntityManager::Instance()->CreateEntity("heightmap");
 	heightmap->AddComponent<TransformComponent>(Matrix4::Scale(Maths::Vector3(1.0f)));
 	heightmap->AddComponent<TextureMatrixComponent>(Matrix4::Scale(Maths::Vector3(1.0f, 1.0f, 1.0f)));
-	std::shared_ptr<Graphics::Mesh> terrain = std::make_shared<Graphics::Mesh>(*terrainMesh);
-	auto material = std::make_shared<Material>();
+	Lumos::Ref<Graphics::Mesh> terrain = Lumos::CreateRef<Graphics::Mesh>(*terrainMesh);
+	auto material = Lumos::CreateRef<Material>();
 
 	material->LoadMaterial("checkerboard", "/CoreTextures/checkerboard.tga");
 
 	heightmap->AddComponent<MaterialComponent>(material);
     heightmap->SetBoundingRadius(800.0f);
 
-	//terrain->SetMaterial(std::make_shared<Material>(*m_MaterialManager->GetAsset("Stone").get()));
+	//terrain->SetMaterial(Lumos::CreateRef<Material>(*m_MaterialManager->GetAsset("Stone").get()));
 	//terrain->SetMaterialFlag(Material::RenderFlags::WIREFRAME);
 	heightmap->AddComponent<MeshComponent>(terrain);
 

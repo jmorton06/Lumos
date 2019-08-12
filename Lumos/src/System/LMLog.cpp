@@ -15,13 +15,13 @@ namespace Lumos
     {
 		Console::Instance();
 		std::vector<spdlog::sink_ptr> sinks;
-		sinks.emplace_back(std::make_shared<spdlog::sinks::stdout_color_sink_mt>()); // debug console
+        sinks.emplace_back(std::make_shared<spdlog::sinks::stdout_color_sink_mt>()); // debug console
 		sinks.emplace_back(std::make_shared<ImGuiConsoleSink_mt>()); // ImGuiConsole
 
 		// create the loggers
-		s_CoreLogger = std::make_shared<spdlog::logger>("LUMOS", begin(sinks), end(sinks));
+		s_CoreLogger = CreateRef<spdlog::logger>("LUMOS", begin(sinks), end(sinks));
 		spdlog::register_logger(s_CoreLogger);
-		s_ClientLogger = std::make_shared<spdlog::logger>("APP", begin(sinks), end(sinks));
+		s_ClientLogger = CreateRef<spdlog::logger>("APP", begin(sinks), end(sinks));
 		spdlog::register_logger(s_ClientLogger);
 
 		// configure the loggers

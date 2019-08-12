@@ -13,7 +13,7 @@ namespace Lumos
 	{
 	}
 
-	void BruteForceBroadphase::FindPotentialCollisionPairs(std::vector<std::shared_ptr<PhysicsObject3D>> objects,
+	void BruteForceBroadphase::FindPotentialCollisionPairs(std::vector<Ref<PhysicsObject3D>> objects,
 	                                                       std::vector<CollisionPair> &collisionPairs)
 	{
 		if (objects.empty())

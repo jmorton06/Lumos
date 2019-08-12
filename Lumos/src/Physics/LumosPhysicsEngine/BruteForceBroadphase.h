@@ -12,7 +12,7 @@ namespace Lumos
 		BruteForceBroadphase();
 		virtual ~BruteForceBroadphase();
 
-		void FindPotentialCollisionPairs(std::vector<std::shared_ptr<PhysicsObject3D>> objects, std::vector<CollisionPair> &collisionPairs) override;
+		void FindPotentialCollisionPairs(std::vector<Ref<PhysicsObject3D>> objects, std::vector<CollisionPair> &collisionPairs) override;
 		void DebugDraw() override;
 	};
 }
