@@ -9,6 +9,12 @@
 
 namespace Lumos
 {
+    template <class T>
+    using hasInit = decltype(std::declval<T>().Init());
+    
+    template <class T>
+    using hasUpdate = decltype(std::declval<T>().Update());
+
 	class IComponentArray
 	{
 	public:
@@ -30,6 +36,12 @@ namespace Lumos
 			m_EntityToIndexMap[entity] = newIndex;
 			m_IndexToEntityMap[newIndex] = entity;
 			m_ComponentArray[newIndex] = component;
+            m_ComponentArray[newIndex]->SetEntity(entity);
+            
+            if constexpr(is_detected_v<hasInit, T>)
+            {
+                m_ComponentArray[newIndex]->Init();
+            }
 			m_Size++;
 		}
 
