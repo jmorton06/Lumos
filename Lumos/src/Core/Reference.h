@@ -23,20 +23,38 @@ namespace Lumos
         ReferenceCounter m_RefcountInit;
     };
     
-    template<class T>
-    class Reference : ReferenceBase
+    template<class T, typename ...Args>
+    class Reference
     {
     public:
+        Reference(Args&& ...args)
+        {
+            m_Ptr = new T(args ...);
+            m_Test = new ReferenceBase();
+            m_Test->reference();
+        }
+        
         Reference(T* ptr)
         {
             m_Ptr = ptr;
-            reference();
+            m_Test = new ReferenceBase();
+            m_Test->reference();
+        }
+        
+        Reference(const Reference& other)
+        {
+            m_Ptr = other.m_Ptr;
+            m_Test = other.m_Test;
+            m_Test->reference();
         }
         
         ~Reference()
         {
-            if(unreference())
+            if(m_Test->unreference())
+            {
+                delete m_Test;
                 delete m_Ptr;
+            }
         }
         
         inline T* get() const
@@ -100,6 +118,7 @@ namespace Lumos
         }
         
     private:
+        ReferenceBase* m_Test = nullptr;
         T* m_Ptr;
     };
     
