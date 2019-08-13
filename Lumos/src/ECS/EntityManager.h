@@ -83,8 +83,6 @@ namespace Lumos
     inline void Entity::AddComponent(Args && ...args)
     {
         auto component = lmnew T(std::forward<Args>(args) ...);
-        component->SetEntity(this);
-        component->Init();
         
         if (ComponentManager::Instance()->GetComponentType<T>() == ComponentManager::Instance()->GetComponentType<TransformComponent>())
             m_DefaultTransformComponent = reinterpret_cast<TransformComponent*>(component);
@@ -102,9 +100,7 @@ namespace Lumos
         else
         {
             component = lmnew T(std::forward<Args>(args) ...);
-            component->SetEntity(this);
-            component->Init();
-            
+  
             if (ComponentManager::Instance()->GetComponentType<T>() == ComponentManager::Instance()->GetComponentType<TransformComponent>())
                 m_DefaultTransformComponent = reinterpret_cast<TransformComponent*>(component);
             
