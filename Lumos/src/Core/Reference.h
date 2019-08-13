@@ -1,5 +1,6 @@
 #pragma once
 
+#include "LM.h"
 #include "ReferenceCounter.h"
 #include <memory>
 
@@ -27,9 +28,16 @@ namespace Lumos
     class Reference
     {
     public:
-        Reference(Args&& ...args)
+        static Reference<T> CreateRef(Args&& ...args)
         {
-            m_Ptr = new T(args ...);
+            auto ptr = new T(args ...);
+            
+            return Reference<T>(ptr);
+        }
+        
+        Reference()
+        {
+            m_Ptr = nullptr;
             m_Test = new ReferenceBase();
             m_Test->InitRef();
         }
@@ -116,6 +124,11 @@ namespace Lumos
         {
             return m_Ptr;
         }
+            
+        inline operator bool() const
+        {
+            return m_Ptr != nullptr;
+        }
         
     private:
         ReferenceBase* m_Test = nullptr;
@@ -162,19 +175,37 @@ namespace Lumos
         T* m_Ptr;
 
     };
+            
+#ifdef CUSTOM_SMART_PTR
     
     template<class T>
-    using Ref = std::shared_ptr<T>; // Reference<T>;//
+    using Ref = Reference<T>;
     
     template <typename T, typename ... Args>
     Ref<T> CreateRef(Args&& ...args)
     {
-        return std::make_shared<T>(args ...);//Reference<T>(args ...);
+        return Reference::CreateRef<T>(args ...);
     }
     
     template <typename T>
     Ref<T> CreateRef(T* t)
     {
-        return std::shared_ptr<T>(t); //Reference<T>(t); 
+        return Reference<T>(t);
     }
+#else
+    template<class T>
+    using Ref = std::shared_ptr<T>;
+    
+    template <typename T, typename ... Args>
+    Ref<T> CreateRef(Args&& ...args)
+    {
+        return std::make_shared<T>(args ...);
+    }
+    
+    template <typename T>
+    Ref<T> CreateRef(T* t)
+    {
+        return std::shared_ptr<T>(t);
+    }
+#endif
 }
