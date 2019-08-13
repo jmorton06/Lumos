@@ -3,7 +3,7 @@
 
 #include "Editor/Console.h"
 #include "Editor/ImGUIConsoleSink.h"
-
+#include <spdlog/sinks/rotating_file_sink.h>
 #include <spdlog/sinks/stdout_color_sinks.h>
 
 namespace Lumos
@@ -17,6 +17,9 @@ namespace Lumos
 		std::vector<spdlog::sink_ptr> sinks;
         sinks.emplace_back(std::make_shared<spdlog::sinks::stdout_color_sink_mt>()); // debug console
 		sinks.emplace_back(std::make_shared<ImGuiConsoleSink_mt>()); // ImGuiConsole
+        
+        auto logFileSink = std::make_shared<spdlog::sinks::rotating_file_sink_mt>("LumosLog.txt", 1048576 * 5, 3);
+        sinks.emplace_back(logFileSink); // Log file
 
 		// create the loggers
 		s_CoreLogger = CreateRef<spdlog::logger>("LUMOS", begin(sinks), end(sinks));
