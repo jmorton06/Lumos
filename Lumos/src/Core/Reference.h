@@ -31,14 +31,14 @@ namespace Lumos
         {
             m_Ptr = new T(args ...);
             m_Test = new ReferenceBase();
-            m_Test->reference();
+            m_Test->InitRef();
         }
         
         Reference(T* ptr)
         {
             m_Ptr = ptr;
             m_Test = new ReferenceBase();
-            m_Test->reference();
+            m_Test->InitRef();
         }
         
         Reference(const Reference& other)
@@ -164,17 +164,17 @@ namespace Lumos
     };
     
     template<class T>
-    using Ref = std::shared_ptr<T>;
+    using Ref = std::shared_ptr<T>; // Reference<T>;//
     
     template <typename T, typename ... Args>
     Ref<T> CreateRef(Args&& ...args)
     {
-        return std::make_shared<T>(args ...);
+        return std::make_shared<T>(args ...);//Reference<T>(args ...);
     }
     
     template <typename T>
     Ref<T> CreateRef(T* t)
     {
-        return std::shared_ptr<T>(t);
+        return std::shared_ptr<T>(t); //Reference<T>(t); 
     }
 }
