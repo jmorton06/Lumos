@@ -59,16 +59,12 @@ namespace Lumos
             }
         }
         
-        inline T* get() const
-        {
-            return m_Ptr;
-        }
-        
         inline T* release() noexcept
         {
             T* tmp = nullptr;
             delete m_Counter;
             std::swap(tmp, m_Ptr);
+            m_Ptr = nullptr;
             return tmp;
         }
         
@@ -86,17 +82,13 @@ namespace Lumos
             m_Counter->InitRef();
         }
         
-        void swap(Reference& src) noexcept
-        {
-            std::swap(m_Ptr, src.m_Ptr);
-        }
-        
         template<typename U>
         Reference(Reference<U>&& moving)
         {
             Reference<T> tmp(moving.release());
             tmp.swap(*this);
         }
+        
         template<typename U>
         Reference& operator=(Reference<U>&& moving)
         {
@@ -130,40 +122,18 @@ namespace Lumos
             return m_Ptr != p_r.m_Ptr;
         }
             
-        inline T* operator->()
+        void swap(Reference& other) noexcept
         {
-            return m_Ptr;
+            std::swap(m_Ptr,  other.m_Ptr);
+            std::swap(m_Counter, other.m_Counter);
         }
-            
-        inline T* operator*()
-        {
-            return m_Ptr;
-        }
-            
-        inline const T* operator->() const
-        {
-            return m_Ptr;
-        }
-            
-        inline const T* ptr() const
-        {
-            return m_Ptr;
-        }
-            
-        inline T* ptr()
-        {
-            return m_Ptr;
-        }
-            
-        inline const T* operator*() const
-        {
-            return m_Ptr;
-        }
-            
-        inline operator bool() const
-        {
-            return m_Ptr != nullptr;
-        }
+        // Const correct access owned object
+        T* operator->() const {return m_Ptr;}
+        T& operator*()  const {return *m_Ptr;}
+        
+        // Access to smart pointer state
+        T* get()                 const {return m_Ptr;}
+        explicit operator bool() const {return m_Ptr;}
         
     private:
         ReferenceBase* m_Counter = nullptr;
@@ -211,7 +181,7 @@ namespace Lumos
 
     };
            
-//#define CUSTOM_SMART_PTR
+#define CUSTOM_SMART_PTR
 #ifdef CUSTOM_SMART_PTR
     
     template<class T>
