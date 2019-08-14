@@ -19,7 +19,7 @@ namespace Lumos
             
             // Create a pointer to the system and return it so it can be used externally
             Ref<T> system = CreateRef<T>();
-            m_Systems.insert({typeName, system});
+            m_Systems.insert({typeName, std::move( system) });
             return system;
         }
 
@@ -32,7 +32,7 @@ namespace Lumos
 
 			// Create a pointer to the system and return it so it can be used externally
             Ref<T> system = Ref<T>(t);
-			m_Systems.insert({ typeName, system });
+            m_Systems.insert({ typeName,std::move( system) });
 			return system;
 		}
 
