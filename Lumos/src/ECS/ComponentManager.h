@@ -191,22 +191,22 @@ namespace Lumos
 		{
 			// Notify each component array that an entity has been destroyed
 			// If it has a component for that entity, it will remove it
-			for (auto const& pair : m_ComponentArrays)
+			for (auto& pair : m_ComponentArrays)
 			{
-				auto const& component = pair.second;
+				auto& component = pair.second;
 
 				component->EntityDestroyed(entity);
 			}
 		}
 
 		template<typename T>
-		Ref<ComponentArray<T>> GetComponentArray()
+		ComponentArray<T>* GetComponentArray()
 		{
 			auto typeName = typeid(T).hash_code();
 
 			LUMOS_CORE_ASSERT(m_ComponentArrays.find(typeName) != m_ComponentArrays.end(), "Component not registered before use.");
 
-			return std::static_pointer_cast<ComponentArray<T>>(m_ComponentArrays[typeName]);
+			return static_cast<ComponentArray<T>*>(m_ComponentArrays[typeName].get());
 		}
 
 		std::vector<LumosComponent*> GetAllComponents(Entity* entity);

@@ -5,7 +5,7 @@
 namespace Lumos
 {
 
-	SortAndSweepBroadphase::SortAndSweepBroadphase(const Maths::Vector3 &axis)
+    SortAndSweepBroadphase::SortAndSweepBroadphase(const Maths::Vector3 &axis)
 		: Broadphase()
 	{
 		SetAxis(axis);

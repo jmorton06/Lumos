@@ -16,7 +16,7 @@ namespace Lumos
 	class LUMOS_EXPORT Octree : public Broadphase
 	{
 	public:
-		Octree(size_t maxObjectsPerPartition, size_t maxPartitionDepth, Ref<Broadphase> secondaryBroadphase);
+		Octree(size_t maxObjectsPerPartition, size_t maxPartitionDepth, const Ref<Broadphase>& secondaryBroadphase);
 		virtual ~Octree();
 
 		struct OctreeNode

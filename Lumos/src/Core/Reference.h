@@ -24,50 +24,85 @@ namespace Lumos
         ReferenceCounter m_RefcountInit;
     };
     
-    template<class T, typename ...Args>
+    template<class T>
     class Reference
     {
     public:
-        static Reference<T> CreateRef(Args&& ...args)
-        {
-            auto ptr = new T(args ...);
-            
-            return Reference<T>(ptr);
-        }
-        
-        Reference()
+        Reference(std::nullptr_t)
         {
             m_Ptr = nullptr;
-            m_Test = new ReferenceBase();
-            m_Test->InitRef();
+            m_Counter = new ReferenceBase();
+            m_Counter->InitRef();
         }
         
-        Reference(T* ptr)
+        Reference(T* ptr = nullptr)
         {
             m_Ptr = ptr;
-            m_Test = new ReferenceBase();
-            m_Test->InitRef();
+            m_Counter = new ReferenceBase();
+            m_Counter->InitRef();
         }
         
         Reference(const Reference& other)
         {
             m_Ptr = other.m_Ptr;
-            m_Test = other.m_Test;
-            m_Test->reference();
+            m_Counter = other.m_Counter;
+            m_Counter->reference();
         }
         
         ~Reference()
         {
-            if(m_Test->unreference())
+            if(m_Counter->unreference())
             {
-                delete m_Test;
-                delete m_Ptr;
+                delete m_Counter;
+                if(m_Ptr)
+                    delete m_Ptr;
             }
         }
         
         inline T* get() const
         {
             return m_Ptr;
+        }
+        
+        inline T* release() noexcept
+        {
+            T* tmp = nullptr;
+            delete m_Counter;
+            std::swap(tmp, m_Ptr);
+            return tmp;
+        }
+        
+        inline void reset(T *p_ptr = nullptr)
+        {
+            if(m_Counter->unreference())
+            {
+                delete m_Ptr;
+            }
+            
+            delete m_Counter;
+            
+            m_Ptr = p_ptr;
+            m_Counter = new ReferenceBase();
+            m_Counter->InitRef();
+        }
+        
+        void swap(Reference& src) noexcept
+        {
+            std::swap(m_Ptr, src.m_Ptr);
+        }
+        
+        template<typename U>
+        Reference(Reference<U>&& moving)
+        {
+            Reference<T> tmp(moving.release());
+            tmp.swap(*this);
+        }
+        template<typename U>
+        Reference& operator=(Reference<U>&& moving)
+        {
+            Reference<T> tmp(moving.release());
+            tmp.swap(*this);
+            return *this;
         }
         
         inline bool operator==(const T *p_ptr) const
@@ -95,32 +130,32 @@ namespace Lumos
             return m_Ptr != p_r.m_Ptr;
         }
             
-        inline T *operator->()
+        inline T* operator->()
         {
             return m_Ptr;
         }
             
-        inline T *operator*()
+        inline T* operator*()
         {
             return m_Ptr;
         }
             
-        inline const T *operator->() const
+        inline const T* operator->() const
         {
             return m_Ptr;
         }
             
-        inline const T *ptr() const
+        inline const T* ptr() const
         {
             return m_Ptr;
         }
             
-        inline T *ptr()
+        inline T* ptr()
         {
             return m_Ptr;
         }
             
-        inline const T *operator*() const
+        inline const T* operator*() const
         {
             return m_Ptr;
         }
@@ -131,7 +166,7 @@ namespace Lumos
         }
         
     private:
-        ReferenceBase* m_Test = nullptr;
+        ReferenceBase* m_Counter = nullptr;
         T* m_Ptr;
     };
     
@@ -175,7 +210,8 @@ namespace Lumos
         T* m_Ptr;
 
     };
-            
+           
+//#define CUSTOM_SMART_PTR
 #ifdef CUSTOM_SMART_PTR
     
     template<class T>
@@ -184,7 +220,9 @@ namespace Lumos
     template <typename T, typename ... Args>
     Ref<T> CreateRef(Args&& ...args)
     {
-        return Reference::CreateRef<T>(args ...);
+        auto ptr = new T(args ...);
+        
+        return Reference<T>(ptr);
     }
     
     template <typename T>

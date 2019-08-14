@@ -18,7 +18,7 @@ namespace Lumos
             LUMOS_CORE_ASSERT(m_Systems.find(typeName) == m_Systems.end(), "Registering system more than once.");
             
             // Create a pointer to the system and return it so it can be used externally
-            auto system = CreateRef<T>();
+            Ref<T> system = CreateRef<T>();
             m_Systems.insert({typeName, system});
             return system;
         }
@@ -31,7 +31,7 @@ namespace Lumos
 			LUMOS_CORE_ASSERT(m_Systems.find(typeName) == m_Systems.end(), "Registering system more than once.");
 
 			// Create a pointer to the system and return it so it can be used externally
-			auto system = Ref<T>(t);
+            Ref<T> system = Ref<T>(t);
 			m_Systems.insert({ typeName, system });
 			return system;
 		}
