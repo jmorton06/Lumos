@@ -168,8 +168,8 @@ namespace Lumos
 						{
 							material = materialComponent->GetMaterial().get();
 
-							if (materialComponent->GetMaterial()->GetDescriptorSet() == nullptr || materialComponent->GetMaterial()->GetPipeline() != m_Pipeline)
-								materialComponent->GetMaterial()->CreateDescriptorSet(m_Pipeline, 1);
+                            if (material->GetDescriptorSet() == nullptr || material->GetPipeline() != m_Pipeline)
+								material->CreateDescriptorSet(m_Pipeline, 1);
 						}
 
 						TextureMatrixComponent* textureMatrixTransform = obj->GetComponent<TextureMatrixComponent>();

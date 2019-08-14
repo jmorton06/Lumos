@@ -22,9 +22,9 @@ namespace Lumos
         sinks.emplace_back(logFileSink); // Log file
 
 		// create the loggers
-		s_CoreLogger = CreateRef<spdlog::logger>("LUMOS", begin(sinks), end(sinks));
+        s_CoreLogger = std::make_shared<spdlog::logger>("LUMOS", begin(sinks), end(sinks));
 		spdlog::register_logger(s_CoreLogger);
-		s_ClientLogger = CreateRef<spdlog::logger>("APP", begin(sinks), end(sinks));
+		s_ClientLogger = std::make_shared<spdlog::logger>("APP", begin(sinks), end(sinks));
 		spdlog::register_logger(s_ClientLogger);
 
 		// configure the loggers

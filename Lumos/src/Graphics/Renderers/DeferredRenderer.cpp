@@ -249,7 +249,7 @@ namespace Lumos
             for (int i = 0; i < size; i++)
             {
                 lightList[i]->GetLight()->m_Direction.Normalise();
-                memcpy(m_PSSystemUniformBuffer + m_PSSystemUniformBufferOffsets[PSSystemUniformIndex_Lights] + sizeof(Graphics::Light) * i, &*lightList[i]->GetLight(), sizeof(Graphics::Light));
+                memcpy(m_PSSystemUniformBuffer + m_PSSystemUniformBufferOffsets[PSSystemUniformIndex_Lights] + sizeof(Graphics::Light) * i, &*lightList[i]->GetLight().get(), sizeof(Graphics::Light));
 				numLights++;
             }
             

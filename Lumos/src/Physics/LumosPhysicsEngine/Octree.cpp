@@ -5,7 +5,7 @@
 namespace Lumos
 {
 
-	Octree::Octree(const size_t maxObjectsPerPartition, const size_t maxPartitionDepth, Ref<Broadphase> secondaryBroadphase)
+	Octree::Octree(const size_t maxObjectsPerPartition, const size_t maxPartitionDepth,const Ref<Broadphase>& secondaryBroadphase)
 		: m_MaxObjectsPerPartition(maxObjectsPerPartition)
 		, m_MaxPartitionDepth(maxPartitionDepth)
 		, m_SecondaryBroadphase(secondaryBroadphase)
@@ -103,7 +103,7 @@ namespace Lumos
 			}
 
 			// Add to parent division
-			division->childNodes.push_back(newNode);
+			division->childNodes.emplace_back(newNode);
 
 			// Do further subdivisioning
 			Divide(newNode, iteration + 1);
