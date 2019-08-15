@@ -52,7 +52,7 @@ namespace Lumos
 		EntityManager::Instance();
 		ComponentManager::Instance();
 
-		m_Timer = std::make_unique<Timer>();
+		m_Timer = CreateScope<Timer>();
 
 		const String root = ROOT_DIR;
 
@@ -61,10 +61,10 @@ namespace Lumos
 		VFS::Get()->Mount("CoreTextures", root + "/lumos/res/textures");
 		VFS::Get()->Mount("CoreFonts", root + "/lumos/res/fonts");
 
-		m_Window = std::unique_ptr<Window>(Window::Create(properties));
+		m_Window = Scope<Window>(Window::Create(properties));
 		m_Window->SetEventCallback(BIND_EVENT_FN(Application::OnEvent));
 
-		m_SceneManager = std::make_unique<SceneManager>();
+		m_SceneManager = CreateScope<SceneManager>();
 
 		ImGui::CreateContext();
 		ImGui::StyleColorsDark();
@@ -107,14 +107,14 @@ namespace Lumos
 
 		//Graphics Loading on main thread
 		AssetsManager::InitializeMeshes();
-		m_RenderManager = std::make_unique<Graphics::RenderManager>(screenWidth, screenHeight);
+		m_RenderManager = CreateScope<Graphics::RenderManager>(screenWidth, screenHeight);
 
 		System::JobSystem::Wait();
 
 		m_LayerStack = lmnew LayerStack();
 		PushLayerInternal(lmnew ImGuiLayer(false),true,false);
 
-		m_SystemManager = std::make_unique<SystemManager>();
+		m_SystemManager = CreateScope<SystemManager>();
 		m_SystemManager->RegisterSystem<AudioManager>(AudioManager::Create());
 		m_SystemManager->RegisterSystem<LumosPhysicsEngine>(LumosPhysicsEngine::Instance());
 		m_SystemManager->RegisterSystem<B2PhysicsEngine>(B2PhysicsEngine::Instance());

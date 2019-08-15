@@ -98,7 +98,7 @@ namespace Lumos
 			param.filter = TextureFilter::LINEAR;
 			param.format = TextureFormat::RGBA;
 			param.wrap = TextureWrap::CLAMP_TO_EDGE;
-			m_PreintegratedFG = std::unique_ptr<Texture2D>(Texture2D::CreateFromFile("PreintegratedFG", "/CoreTextures/PreintegratedFG.png", param));
+			m_PreintegratedFG = Scope<Texture2D>(Texture2D::CreateFromFile("PreintegratedFG", "/CoreTextures/PreintegratedFG.png", param));
 
 			m_LightUniformBuffer = nullptr;
 			m_UniformBuffer = nullptr;

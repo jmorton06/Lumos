@@ -35,7 +35,7 @@ namespace Lumos
 		inline u32   SceneCount() const { return static_cast<u32>(m_vpAllScenes.size()); }
 
 		std::vector<String> GetSceneNames();
-        const std::vector<std::unique_ptr<Scene>>& GetScenes() const { return m_vpAllScenes; }
+        const std::vector<Scope<Scene>>& GetScenes() const { return m_vpAllScenes; }
         
         void SetSwitchScene(bool switching) { m_SwitchingScenes = switching; }
         bool GetSwitchingScene() const { return m_SwitchingScenes; }
@@ -43,7 +43,7 @@ namespace Lumos
 	protected:
 		u32								m_SceneIdx;
 		Scene*								m_CurrentScene;
-		std::vector<std::unique_ptr<Scene>> m_vpAllScenes;
+		std::vector<Scope<Scene>> m_vpAllScenes;
     private:
         bool m_SwitchingScenes = false;
         int m_QueuedSceneIndex = -1;

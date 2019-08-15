@@ -12,8 +12,8 @@ namespace Lumos
         ~EntityComponentSystem() = default;
         
     private:
-        std::unique_ptr<SystemManager> m_SystemManager;
-        std::unique_ptr<EntityManager> m_EntityManager;
-        std::unique_ptr<ComponentManager> m_ComponentManager;
+        Scope<SystemManager> m_SystemManager;
+        Scope<EntityManager> m_EntityManager;
+        Scope<ComponentManager> m_ComponentManager;
     };
 }

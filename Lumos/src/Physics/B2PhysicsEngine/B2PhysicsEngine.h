@@ -34,7 +34,7 @@ namespace Lumos
 		bool IsPaused() const { return m_Paused; }
 	private:
 
-		std::unique_ptr<b2World> m_B2DWorld;
+		Scope<b2World> m_B2DWorld;
 
 		float m_UpdateTimestep, m_UpdateAccum;
 		bool m_Paused = true;

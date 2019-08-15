@@ -14,14 +14,14 @@ namespace Lumos
     {
         m_SoundNode = Ref<SoundNode>(SoundNode::Create());
         m_Name = "Sound";
-        m_BoundingShape = std::make_unique<Maths::BoundingSphere>(m_SoundNode->GetPosition(),m_SoundNode->GetRadius());
+        m_BoundingShape = CreateScope<Maths::BoundingSphere>(m_SoundNode->GetPosition(),m_SoundNode->GetRadius());
     }
     
 	SoundComponent::SoundComponent(Ref<SoundNode>& sound)
 		: m_SoundNode(sound)
 	{
 		m_Name = "Sound";
-		m_BoundingShape = std::make_unique<Maths::BoundingSphere>(sound->GetPosition(),sound->GetRadius());
+		m_BoundingShape = CreateScope<Maths::BoundingSphere>(sound->GetPosition(),sound->GetRadius());
 	}
 
 	void SoundComponent::OnUpdateComponent(float dt)

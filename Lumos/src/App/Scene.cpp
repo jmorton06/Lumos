@@ -92,7 +92,7 @@ namespace Lumos
 
 		m_SceneBoundingRadius = 400.0f; //Default scene radius of 400m
 
-		m_pFrameRenderList = std::make_unique<RenderList>();
+		m_pFrameRenderList = CreateScope<RenderList>();
 
 		if (!RenderList::AllocateNewRenderList(m_pFrameRenderList.get(), true))
 		{
