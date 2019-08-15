@@ -51,18 +51,44 @@ namespace Lumos
         
         ~Reference()
         {
-            if(m_Counter->unreference())
+            if(m_Counter)
             {
-                delete m_Counter;
-                if(m_Ptr)
-                    delete m_Ptr;
+                if(m_Counter->unreference())
+                {
+                    delete m_Counter;
+                    if(m_Ptr)
+                        delete m_Ptr;
+                }
+            }
+        }
+        
+        void operator=(Reference const& rhs)
+        {
+            // Keep a copy of the old data
+            T*   oldData  = m_Ptr;
+            ReferenceBase* oldCount = m_Counter;
+            
+            // now we do an exception safe transfer;
+            m_Ptr  = rhs.m_Ptr;
+            m_Counter = rhs.m_Counter;
+            
+            // Update the counters
+            m_Counter->reference();
+            
+            // Finally delete the old pointer if required.
+            if(oldData)
+            {
+                if (oldCount->unreference())
+                {
+                    delete oldData;
+                }
             }
         }
         
         inline T* release() noexcept
         {
             T* tmp = nullptr;
-            delete m_Counter;
+            m_Counter->unreference();
             std::swap(tmp, m_Ptr);
             m_Ptr = nullptr;
             return tmp;
@@ -181,7 +207,7 @@ namespace Lumos
 
     };
            
-//#define CUSTOM_SMART_PTR
+#define CUSTOM_SMART_PTR
 #ifdef CUSTOM_SMART_PTR
     
     template<class T>
