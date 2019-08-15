@@ -35,7 +35,7 @@ namespace Lumos
 		SetImGuiKeyCodes();
 		SetImGuiStyle();
 
-		m_IMGUIRenderer = std::unique_ptr<Graphics::IMGUIRenderer>(Graphics::IMGUIRenderer::Create(app->GetWindow()->GetWidth(),app->GetWindow()->GetHeight(), m_ClearScreen));
+		m_IMGUIRenderer = Scope<Graphics::IMGUIRenderer>(Graphics::IMGUIRenderer::Create(app->GetWindow()->GetWidth(),app->GetWindow()->GetHeight(), m_ClearScreen));
 
         if(m_IMGUIRenderer)
             m_IMGUIRenderer->Init();

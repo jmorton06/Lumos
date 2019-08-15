@@ -118,7 +118,7 @@ namespace Lumos
 		u32 m_ScreenHeight;
 
 		Maths::Frustum m_FrameFrustum;
-		std::unique_ptr<RenderList>	m_pFrameRenderList;
+		Scope<RenderList>	m_pFrameRenderList;
 		std::vector<Ref<Graphics::Light>> m_LightList;
 
     private:

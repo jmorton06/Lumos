@@ -22,7 +22,7 @@ namespace Lumos
 		: m_Light(light)
 	{
 		m_Name = "Light";
-		m_BoundingShape = std::make_unique<Maths::BoundingSphere>(light->m_Position.ToVector3(), light->m_Radius * light->m_Radius);
+		m_BoundingShape = CreateScope<Maths::BoundingSphere>(light->m_Position.ToVector3(), light->m_Radius * light->m_Radius);
 	}
     
     LightComponent::~LightComponent()

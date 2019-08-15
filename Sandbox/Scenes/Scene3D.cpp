@@ -139,7 +139,7 @@ void Scene3D::LoadModels()
 	auto ground = EntityManager::Instance()->CreateEntity("Ground");
 	Ref<PhysicsObject3D> testPhysics = CreateRef<PhysicsObject3D>();
 	testPhysics->SetRestVelocityThreshold(-1.0f);
-	testPhysics->SetCollisionShape(std::make_unique<CuboidCollisionShape>(Maths::Vector3(groundWidth, groundHeight, groundLength)));
+	testPhysics->SetCollisionShape(CreateScope<CuboidCollisionShape>(Maths::Vector3(groundWidth, groundHeight, groundLength)));
 	testPhysics->SetFriction(0.8f);
 	testPhysics->SetIsAtRest(true);
 	testPhysics->SetIsStatic(true);
@@ -190,7 +190,7 @@ void Scene3D::LoadModels()
 	//Create a Rest Cube
 	auto cube = EntityManager::Instance()->CreateEntity("cube");
 	Ref<PhysicsObject3D> cubePhysics = CreateRef<PhysicsObject3D>();
-	cubePhysics->SetCollisionShape(std::make_unique<CuboidCollisionShape>(Maths::Vector3(0.5f, 0.5f, 0.5f)));
+	cubePhysics->SetCollisionShape(CreateScope<CuboidCollisionShape>(Maths::Vector3(0.5f, 0.5f, 0.5f)));
 	cubePhysics->SetFriction(0.8f);
 	cubePhysics->SetIsAtRest(true);
 	cubePhysics->SetInverseMass(1.0);
@@ -210,7 +210,7 @@ void Scene3D::LoadModels()
 	//Create a Rest Sphere
 	auto restsphere = EntityManager::Instance()->CreateEntity("Sphere");
 	Ref<PhysicsObject3D> restspherePhysics = CreateRef<PhysicsObject3D>();
-	restspherePhysics->SetCollisionShape(std::make_unique<CuboidCollisionShape>(Maths::Vector3(0.5f)));
+	restspherePhysics->SetCollisionShape(CreateScope<CuboidCollisionShape>(Maths::Vector3(0.5f)));
 	restspherePhysics->SetFriction(0.8f);
 	restspherePhysics->SetIsAtRest(true);
 	restspherePhysics->SetInverseMass(1.0);
@@ -229,7 +229,7 @@ void Scene3D::LoadModels()
 	//Create a Rest Pyramid
 	auto pyramid = EntityManager::Instance()->CreateEntity("Pyramid");
 	Ref<PhysicsObject3D> pyramidPhysics = CreateRef<PhysicsObject3D>();
-	pyramidPhysics->SetCollisionShape(std::make_unique<PyramidCollisionShape>(Maths::Vector3(0.5f)));
+	pyramidPhysics->SetCollisionShape(CreateScope<PyramidCollisionShape>(Maths::Vector3(0.5f)));
 	pyramidPhysics->SetFriction(0.8f);
 	pyramidPhysics->SetIsAtRest(true);
 	pyramidPhysics->SetInverseMass(1.0);
@@ -248,7 +248,7 @@ void Scene3D::LoadModels()
 	//Grass
 	auto grassSphere = EntityManager::Instance()->CreateEntity("grassSphere");
 	Ref<PhysicsObject3D> grassSpherePhysics = CreateRef<PhysicsObject3D>();
-	grassSpherePhysics->SetCollisionShape(std::make_unique<SphereCollisionShape>(0.5f));
+	grassSpherePhysics->SetCollisionShape(CreateScope<SphereCollisionShape>(0.5f));
 	grassSpherePhysics->SetFriction(0.8f);
 	grassSpherePhysics->SetIsAtRest(true);
 	grassSpherePhysics->SetInverseMass(1.0);
@@ -267,7 +267,7 @@ void Scene3D::LoadModels()
 	//Marble
 	auto marbleSphere = EntityManager::Instance()->CreateEntity("marbleSphere");
 	Ref<PhysicsObject3D> marbleSpherePhysics = CreateRef<PhysicsObject3D>();
-	marbleSpherePhysics->SetCollisionShape(std::make_unique<SphereCollisionShape>(0.5f));
+	marbleSpherePhysics->SetCollisionShape(CreateScope<SphereCollisionShape>(0.5f));
 	marbleSpherePhysics->SetFriction(0.8f);
 	marbleSpherePhysics->SetIsAtRest(true);
 	marbleSpherePhysics->SetInverseMass(1.0);
@@ -286,7 +286,7 @@ void Scene3D::LoadModels()
 	//stone
 	auto stoneSphere = EntityManager::Instance()->CreateEntity("stoneSphere");
 	Ref<PhysicsObject3D> stoneSpherePhysics = CreateRef<PhysicsObject3D>();
-	stoneSpherePhysics->SetCollisionShape(std::make_unique<SphereCollisionShape>(0.5f));
+	stoneSpherePhysics->SetCollisionShape(CreateScope<SphereCollisionShape>(0.5f));
 	stoneSpherePhysics->SetFriction(0.8f);
 	stoneSpherePhysics->SetIsAtRest(true);
 	stoneSpherePhysics->SetInverseMass(1.0);
@@ -306,7 +306,7 @@ void Scene3D::LoadModels()
 	//Create a pendulum
 	auto pendulumHolder = EntityManager::Instance()->CreateEntity("pendulumHolder");
 	Ref<PhysicsObject3D> pendulumHolderPhysics = CreateRef<PhysicsObject3D>();
-	pendulumHolderPhysics->SetCollisionShape(std::make_unique<CuboidCollisionShape>(Maths::Vector3(0.5f, 0.5f, 0.5f)));
+	pendulumHolderPhysics->SetCollisionShape(CreateScope<CuboidCollisionShape>(Maths::Vector3(0.5f, 0.5f, 0.5f)));
 	pendulumHolderPhysics->SetFriction(0.8f);
 	pendulumHolderPhysics->SetIsAtRest(true);
 	pendulumHolderPhysics->SetInverseMass(1.0);
@@ -324,7 +324,7 @@ void Scene3D::LoadModels()
 	//Grass
 	auto pendulum = EntityManager::Instance()->CreateEntity("pendulum");
 	Ref<PhysicsObject3D> pendulumPhysics = CreateRef<PhysicsObject3D>();
-	pendulumPhysics->SetCollisionShape(std::make_unique<SphereCollisionShape>(0.5f));
+	pendulumPhysics->SetCollisionShape(CreateScope<SphereCollisionShape>(0.5f));
 	pendulumPhysics->SetFriction(0.8f);
 	pendulumPhysics->SetIsAtRest(true);
 	pendulumPhysics->SetInverseMass(1.0);

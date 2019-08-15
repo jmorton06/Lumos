@@ -48,7 +48,7 @@ void SceneModelViewer::OnInit()
 	lightEntity->GetTransformComponent()->GetTransform().ApplyTransform();
 	AddEntity(lightEntity);
 
-    auto shadowTexture = std::unique_ptr<Graphics::TextureDepthArray>(Graphics::TextureDepthArray::Create(2048, 2048, 4));
+    auto shadowTexture = Scope<Graphics::TextureDepthArray>(Graphics::TextureDepthArray::Create(2048, 2048, 4));
     auto shadowRenderer = new Graphics::ShadowRenderer();
     auto deferredRenderer = new Graphics::DeferredRenderer(m_ScreenWidth, m_ScreenHeight);
     auto skyboxRenderer = new Graphics::SkyboxRenderer(m_ScreenWidth, m_ScreenHeight, m_EnvironmentMap);

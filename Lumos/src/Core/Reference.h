@@ -6,7 +6,7 @@
 
 namespace Lumos
 {
-    class ReferenceBase
+    class LUMOS_EXPORT ReferenceBase
     {
     public:
         ReferenceBase();
@@ -25,7 +25,7 @@ namespace Lumos
     };
     
     template<class T>
-    class Reference
+    class LUMOS_EXPORT Reference
     {
     public:
         Reference(std::nullptr_t)
@@ -141,7 +141,7 @@ namespace Lumos
     };
     
     template<class T>
-    class WeakReference : ReferenceBase
+    class LUMOS_EXPORT WeakReference : ReferenceBase
     {
     public:
         WeakReference(T* ptr)
@@ -161,7 +161,7 @@ namespace Lumos
     };
     
     template<class T>
-    class Owned : ReferenceBase
+    class LUMOS_EXPORT Owned : ReferenceBase
     {
     public:
         Owned(T* ptr)
@@ -181,7 +181,7 @@ namespace Lumos
 
     };
            
-#define CUSTOM_SMART_PTR
+//#define CUSTOM_SMART_PTR
 #ifdef CUSTOM_SMART_PTR
     
     template<class T>
@@ -200,6 +200,21 @@ namespace Lumos
     {
         return Reference<T>(t);
     }
+            
+    template<class T>
+    using Scope = std::unique_ptr<T>;
+    
+    template <typename T, typename ... Args>
+    Scope<T> CreateScope(Args&& ...args)
+    {
+        return std::make_unique<T>(args ...);
+    }
+    
+    template <typename T>
+    Scope<T> CreateScope(T* t)
+    {
+        return std::unique_ptr<T>(t);
+    }
 #else
     template<class T>
     using Ref = std::shared_ptr<T>;
@@ -214,6 +229,24 @@ namespace Lumos
     Ref<T> CreateRef(T* t)
     {
         return std::shared_ptr<T>(t);
+    }
+            
+    template<class T>
+    using WeakRef = std::weak_ptr<T>;
+
+    template<class T>
+    using Scope = std::unique_ptr<T>;
+    
+    template <typename T, typename ... Args>
+    Scope<T> CreateScope(Args&& ...args)
+    {
+        return std::make_unique<T>(args ...);
+    }
+    
+    template <typename T>
+    Scope<T> CreateScope(T* t)
+    {
+        return std::unique_ptr<T>(t);
     }
 #endif
 }
