@@ -21,8 +21,8 @@ namespace Lumos
 	private:
 		std::map<String, Ref<T>> m_Assets;
 
-		AssetManager(AssetManager const&) {}
-		AssetManager& operator=(AssetManager const&) { return {}; }
+        AssetManager(AssetManager const&) = delete;
+        AssetManager& operator=(AssetManager const&) = delete;
 
 		typedef typename std::map<String, Ref<T>>::const_iterator const_iterator;
 		const_iterator begin() const { return m_Assets.begin(); }
