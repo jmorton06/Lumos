@@ -33,7 +33,7 @@ namespace Lumos
 			Maths::BoundingBox							  boundingBox;
 		};
 
-		void FindPotentialCollisionPairs(std::vector<Ref<PhysicsObject3D>> objects, std::vector<CollisionPair> &collisionPairs) override;
+		void FindPotentialCollisionPairs(std::vector<Ref<PhysicsObject3D>>& objects, std::vector<CollisionPair> &collisionPairs) override;
 		void DebugDraw() override;
 		void Divide(const Ref<OctreeNode>& node, size_t iteration);
 		static void DebugDrawOctreeNode(OctreeNode* node);

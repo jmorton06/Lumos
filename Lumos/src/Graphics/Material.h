@@ -2,13 +2,13 @@
 
 #include "LM.h"
 #include "Maths/Maths.h"
+#include "Graphics/API/Shader.h"
+#include "Graphics/API/Texture.h"
 
 namespace Lumos
 {
 	namespace Graphics
 	{
-		class Texture2D;
-		class Shader;
 		class Pipeline;
 		class DescriptorSet;
 		class UniformBuffer;
@@ -88,7 +88,7 @@ namespace Lumos
 
 	private:
 		PBRMataterialTextures   			m_PBRMaterialTextures;
-		Ref<Graphics::Shader>	m_Shader;
+		Ref<Graphics::Shader>				m_Shader;
 		Graphics::Pipeline* 				m_Pipeline;
 		Graphics::DescriptorSet* 			m_DescriptorSet;
 		Graphics::UniformBuffer* 			m_MaterialPropertiesBuffer;

@@ -1,11 +1,10 @@
 #pragma once
 #include "LM.h"
 #include "LumosComponent.h"
+#include "AI/AINode.h"
 
 namespace Lumos
 {
-	class AINode;
-
 	class LUMOS_EXPORT AIComponent : public LumosComponent
 	{
 	public:

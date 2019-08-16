@@ -1,6 +1,5 @@
 #include "LM.h"
 #include "MeshComponent.h"
-#include "Graphics/Mesh.h"
 #include "Maths/BoundingSphere.h"
 #include "Physics3DComponent.h"
 

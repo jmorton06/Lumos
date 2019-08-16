@@ -5,16 +5,12 @@
 #include "API/VertexArray.h"
 #include "Graphics/API/CommandBuffer.h"
 #include "Graphics/API/DescriptorSet.h"
+#include "Maths/BoundingSphere.h"
 
 #include <array>
 
 namespace Lumos
 {
-	namespace Maths
-	{
-		class BoundingSphere;
-	}
-	
 	namespace Graphics
 	{
 		class Texture2D;

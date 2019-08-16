@@ -1,11 +1,10 @@
 #pragma once
 #include "LM.h"
 #include "LumosComponent.h"
+#include "Graphics/Material.h"
 
 namespace Lumos
 {
-    class Material;
-    
     class LUMOS_EXPORT MaterialComponent : public LumosComponent
     {
     public:

@@ -17,8 +17,6 @@ namespace Lumos
         bool reference(); // returns false if refcount is at zero and didn't get increased
         bool unreference();
         int GetReferenceCount() const;
-    protected:
-        static void _bind_methods();
     private:
         ReferenceCounter m_Refcount;
         ReferenceCounter m_RefcountInit;
@@ -62,28 +60,9 @@ namespace Lumos
             }
         }
         
-        void operator=(Reference const& rhs)
-        {
-            // Keep a copy of the old data
-            T*   oldData  = m_Ptr;
-            ReferenceBase* oldCount = m_Counter;
-            
-            // now we do an exception safe transfer;
-            m_Ptr  = rhs.m_Ptr;
-            m_Counter = rhs.m_Counter;
-            
-            // Update the counters
-            m_Counter->reference();
-            
-            // Finally delete the old pointer if required.
-            if(oldData)
-            {
-                if (oldCount->unreference())
-                {
-                    delete oldData;
-                }
-            }
-        }
+		// Access to smart pointer state
+		T* get()                 const { return m_Ptr; }
+		explicit operator bool() const { return m_Ptr; }
         
         inline T* release() noexcept
         {
@@ -107,6 +86,45 @@ namespace Lumos
             m_Counter = new ReferenceBase();
             m_Counter->InitRef();
         }
+
+		void ref(const Reference &p_from) {
+
+			if (p_from.m_Ptr == m_Ptr)
+				return;
+
+			if (m_Counter->unreference())
+			{
+				delete m_Ptr;
+			}
+
+			m_Ptr = p_from.m_Ptr;
+			if (m_Ptr)
+				m_Counter->reference();
+		}
+
+		void operator=(Reference const& rhs)
+		{
+			// Keep a copy of the old data
+			//T*   oldData = m_Ptr;
+			//ReferenceBase* oldCount = m_Counter;
+
+			//// now we do an exception safe transfer;
+			//m_Ptr = rhs.m_Ptr;
+			//m_Counter = rhs.m_Counter;
+
+			//// Update the counters
+			//m_Counter->reference();
+
+			//// Finally delete the old pointer if required.
+			//if (oldData)
+			//{
+			//	if (oldCount->unreference())
+			//	{
+			//		delete oldData;
+			//	}
+			//}
+			ref(rhs);
+		}
         
         template<typename U>
         Reference(Reference<U>&& moving)
@@ -123,30 +141,12 @@ namespace Lumos
             return *this;
         }
         
-        inline bool operator==(const T *p_ptr) const
-        {
-            return m_Ptr == p_ptr;
-        }
-        
-        inline bool operator!=(const T *p_ptr) const
-        {
-            return m_Ptr != p_ptr;
-        }
-        
-        inline bool operator<(const Reference<T> &p_r) const
-        {
-            return m_Ptr < p_r.m_Ptr;
-        }
-            
-        inline bool operator==(const Reference<T> &p_r) const
-        {
-            return m_Ptr == p_r.m_Ptr;
-        }
-            
-        inline bool operator!=(const Reference<T> &p_r) const
-        {
-            return m_Ptr != p_r.m_Ptr;
-        }
+        inline bool operator==(const T *p_ptr)			const { return m_Ptr == p_ptr; }
+        inline bool operator!=(const T *p_ptr)			const { return m_Ptr != p_ptr; }
+        inline bool operator<(const Reference<T> &p_r)	const { return m_Ptr < p_r.m_Ptr; }
+        inline bool operator==(const Reference<T> &p_r)	const { return m_Ptr == p_r.m_Ptr; }
+        inline bool operator!=(const Reference<T> &p_r)	const { return m_Ptr != p_r.m_Ptr; }
+		inline T* operator*() { return m_Ptr; }
             
         void swap(Reference& other) noexcept
         {
@@ -154,13 +154,9 @@ namespace Lumos
             std::swap(m_Counter, other.m_Counter);
         }
         // Const correct access owned object
-        T* operator->() const {return m_Ptr;}
-        T& operator*()  const {return *m_Ptr;}
-        
-        // Access to smart pointer state
-        T* get()                 const {return m_Ptr;}
-        explicit operator bool() const {return m_Ptr;}
-        
+		inline T* operator->() const { return &*m_Ptr; }
+		inline T& operator*()  const { return *m_Ptr; }
+
     private:
         ReferenceBase* m_Counter = nullptr;
         T* m_Ptr;
@@ -207,14 +203,14 @@ namespace Lumos
 
     };
            
-#define CUSTOM_SMART_PTR
+//#define CUSTOM_SMART_PTR
 #ifdef CUSTOM_SMART_PTR
     
     template<class T>
     using Ref = Reference<T>;
     
     template <typename T, typename ... Args>
-    LUMOS_EXPORT Ref<T> CreateRef(Args&& ...args)
+    Ref<T> CreateRef(Args&& ...args)
     {
         auto ptr = new T(args ...);
         
@@ -222,7 +218,7 @@ namespace Lumos
     }
     
     template <typename T>
-    LUMOS_EXPORT Ref<T> CreateRef(T* t)
+    Ref<T> CreateRef(T* t)
     {
         return Reference<T>(t);
     }
@@ -231,13 +227,13 @@ namespace Lumos
     using Scope = std::unique_ptr<T>;
     
     template <typename T, typename ... Args>
-    LUMOS_EXPORT Scope<T> CreateScope(Args&& ...args)
+    Scope<T> CreateScope(Args&& ...args)
     {
         return std::make_unique<T>(args ...);
     }
     
     template <typename T>
-    LUMOS_EXPORT Scope<T> CreateScope(T* t)
+    Scope<T> CreateScope(T* t)
     {
         return std::unique_ptr<T>(t);
     }
@@ -246,13 +242,13 @@ namespace Lumos
     using Ref = std::shared_ptr<T>;
     
     template <typename T, typename ... Args>
-    LUMOS_EXPORT Ref<T> CreateRef(Args&& ...args)
+    Ref<T> CreateRef(Args&& ...args)
     {
         return std::make_shared<T>(args ...);
     }
     
     template <typename T>
-    LUMOS_EXPORT Ref<T> CreateRef(T* t)
+    Ref<T> CreateRef(T* t)
     {
         return std::shared_ptr<T>(t);
     }
@@ -264,13 +260,13 @@ namespace Lumos
     using Scope = std::unique_ptr<T>;
     
     template <typename T, typename ... Args>
-    LUMOS_EXPORT Scope<T> CreateScope(Args&& ...args)
+    Scope<T> CreateScope(Args&& ...args)
     {
         return std::make_unique<T>(args ...);
     }
     
     template <typename T>
-    LUMOS_EXPORT Scope<T> CreateScope(T* t)
+    Scope<T> CreateScope(T* t)
     {
         return std::unique_ptr<T>(t);
     }

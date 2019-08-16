@@ -138,7 +138,7 @@ namespace Lumos
 #error Must provide atomic functions for this platform or compiler!
 #endif
     
-    struct ReferenceCounter
+    struct LUMOS_EXPORT ReferenceCounter
     {
         uint32_t count;
         

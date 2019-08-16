@@ -2,11 +2,10 @@
 #include "LM.h"
 #include "LumosComponent.h"
 #include "Maths/Vector3.h"
+#include "Graphics/ParticleEmitter.h"
 
 namespace Lumos
 {
-    class ParticleEmitter;
-
     class LUMOS_EXPORT ParticleComponent : public LumosComponent
     {
     public:

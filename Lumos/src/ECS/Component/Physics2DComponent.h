@@ -1,11 +1,10 @@
 #pragma once
 #include "LM.h"
 #include "LumosComponent.h"
+#include "Physics/B2PhysicsEngine/PhysicsObject2D.h"
 
 namespace Lumos
 {
-	class PhysicsObject2D;
-
 	class LUMOS_EXPORT Physics2DComponent : public LumosComponent
 	{
 	public:

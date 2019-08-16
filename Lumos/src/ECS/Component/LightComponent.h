@@ -2,15 +2,10 @@
 #include "LM.h"
 #include "LumosComponent.h"
 #include "Maths/Vector3.h"
-
+#include "Graphics/Light.h"
 
 namespace Lumos
 {
-	namespace Graphics
-	{
-		struct Light;
-	}
-
 	class LUMOS_EXPORT LightComponent : public LumosComponent
 	{
 	public:

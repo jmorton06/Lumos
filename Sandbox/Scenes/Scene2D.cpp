@@ -74,7 +74,7 @@ void Scene2D::LoadSprites()
 		int textureID = static_cast<int>(RandomNumberGenerator32::Rand(0.0f, 4.0f));
 		auto colour = Maths::Vector4(RandomNumberGenerator32::Rand(0.0f, 1.0f), RandomNumberGenerator32::Rand(0.0f, 1.0f), RandomNumberGenerator32::Rand(0.0f, 1.0f), 1.0f);
 		Lumos::Ref<Graphics::Sprite> sprite = Lumos::CreateRef<Graphics::Sprite>(textures[textureID], pos, size, colour);
-		sprite->SetPosition(size / -2.0f);
+		sprite.get()->SetPosition(size / -2.0f);
 
 		//test->SetIsStatic(true);
 		PhysicsObjectParamaters params;

@@ -42,7 +42,7 @@ public:
 Scene3D::Scene3D(const std::string& SceneName)
 		: Scene(SceneName)
 {
-	ComponentManager::Instance()->RegisterComponent<TestComponent>();
+	//ComponentManager::Instance()->RegisterComponent<TestComponent>();
 }
 
 Scene3D::~Scene3D()
@@ -146,7 +146,7 @@ void Scene3D::LoadModels()
 
 	ground->AddComponent<TransformComponent>(Matrix4::Scale(Maths::Vector3(groundWidth, groundHeight, groundLength)));
 	ground->AddComponent<Physics3DComponent>(testPhysics);
-	ground->AddComponent<TestComponent>();
+	//ground->AddComponent<TestComponent>();
 
 	Ref<Graphics::Mesh> groundModel = CreateRef<Graphics::Mesh>(*AssetsManager::DefaultModels()->GetAsset("Cube"));
 	ground->AddComponent<MeshComponent>(groundModel);
