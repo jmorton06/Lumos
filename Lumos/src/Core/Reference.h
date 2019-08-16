@@ -214,7 +214,7 @@ namespace Lumos
     using Ref = Reference<T>;
     
     template <typename T, typename ... Args>
-    Ref<T> LUMOS_EXPORT CreateRef(Args&& ...args)
+    LUMOS_EXPORT Ref<T> CreateRef(Args&& ...args)
     {
         auto ptr = new T(args ...);
         
@@ -222,7 +222,7 @@ namespace Lumos
     }
     
     template <typename T>
-    Ref<T> LUMOS_EXPORT CreateRef(T* t)
+    LUMOS_EXPORT Ref<T> CreateRef(T* t)
     {
         return Reference<T>(t);
     }
@@ -231,13 +231,13 @@ namespace Lumos
     using Scope = std::unique_ptr<T>;
     
     template <typename T, typename ... Args>
-    Scope<T> LUMOS_EXPORT CreateScope(Args&& ...args)
+    LUMOS_EXPORT Scope<T> CreateScope(Args&& ...args)
     {
         return std::make_unique<T>(args ...);
     }
     
     template <typename T>
-    Scope<T> LUMOS_EXPORT CreateScope(T* t)
+    LUMOS_EXPORT Scope<T> CreateScope(T* t)
     {
         return std::unique_ptr<T>(t);
     }
@@ -246,13 +246,13 @@ namespace Lumos
     using Ref = std::shared_ptr<T>;
     
     template <typename T, typename ... Args>
-    Ref<T> LUMOS_EXPORT CreateRef(Args&& ...args)
+    LUMOS_EXPORT Ref<T> CreateRef(Args&& ...args)
     {
         return std::make_shared<T>(args ...);
     }
     
     template <typename T>
-    Ref<T> LUMOS_EXPORT CreateRef(T* t)
+    LUMOS_EXPORT Ref<T> CreateRef(T* t)
     {
         return std::shared_ptr<T>(t);
     }
@@ -264,13 +264,13 @@ namespace Lumos
     using Scope = std::unique_ptr<T>;
     
     template <typename T, typename ... Args>
-    Scope<T> LUMOS_EXPORT CreateScope(Args&& ...args)
+    LUMOS_EXPORT Scope<T> CreateScope(Args&& ...args)
     {
         return std::make_unique<T>(args ...);
     }
     
     template <typename T>
-    Scope<T> LUMOS_EXPORT CreateScope(T* t)
+    LUMOS_EXPORT Scope<T> CreateScope(T* t)
     {
         return std::unique_ptr<T>(t);
     }
