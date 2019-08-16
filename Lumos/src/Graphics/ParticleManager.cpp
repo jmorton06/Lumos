@@ -2,7 +2,6 @@
 #include "ParticleManager.h"
 #include "Material.h"
 #include "Particle.h"
-#include "ParticleEmitter.h"
 #include "API/Shader.h"
 #include "Camera/Camera.h"
 #include "API/Renderer.h"

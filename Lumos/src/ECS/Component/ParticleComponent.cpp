@@ -1,6 +1,5 @@
 #include "LM.h"
 #include "ParticleComponent.h"
-#include "Graphics/ParticleEmitter.h"
 #include "ECS/EntityManager.h"
 #include "App/Scene.h"
 #include "Graphics/ParticleManager.h"

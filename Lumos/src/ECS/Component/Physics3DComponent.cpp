@@ -1,6 +1,5 @@
 #include "LM.h"
 #include "Physics3DComponent.h"
-#include "Physics/LumosPhysicsEngine/PhysicsObject3D.h"
 #include "Physics/LumosPhysicsEngine/LumosPhysicsEngine.h"
 #include "ECS/EntityManager.h"
 #include "TransformComponent.h"

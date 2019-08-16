@@ -1,11 +1,10 @@
 #pragma once
 #include "LM.h"
 #include "LumosComponent.h"
+#include "Audio/SoundNode.h"
 
 namespace Lumos
 {
-	class SoundNode;
-
 	class LUMOS_EXPORT SoundComponent : public LumosComponent
 	{
 	public:

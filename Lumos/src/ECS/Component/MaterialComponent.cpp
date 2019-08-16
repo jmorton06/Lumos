@@ -1,6 +1,5 @@
 #include "LM.h"
 #include "MaterialComponent.h"
-#include "Graphics/Material.h"
 #include "Graphics/API/GraphicsContext.h"
 #include "Graphics/API/Texture.h"
 

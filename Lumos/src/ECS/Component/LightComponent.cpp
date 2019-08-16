@@ -1,6 +1,5 @@
 #include "LM.h"
 #include "LightComponent.h"
-#include "Graphics/Light.h"
 #include "Physics3DComponent.h"
 #include "Physics/LumosPhysicsEngine/PhysicsObject3D.h"
 #include "ECS/EntityManager.h"

@@ -1,11 +1,11 @@
 #pragma once
 #include "LM.h"
 #include "Maths/Maths.h"
+#include "Particle.h"
 
 namespace Lumos
 {
 	class Material;
-	class Particle;
 	class Camera;
 	class Mesh;
 	class VertexArray;

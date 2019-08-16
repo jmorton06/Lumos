@@ -1,7 +1,6 @@
 #include "LM.h"
 #include "ParticleEmitter.h"
 #include "Material.h"
-#include "Particle.h"
 #include "Camera/Camera.h"
 #include "Mesh.h"
 #include "API/Texture.h"

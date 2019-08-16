@@ -1,6 +1,5 @@
 #include "LM.h"
 #include "SoundComponent.h"
-#include "Audio/SoundNode.h"
 #include "App/Scene.h"
 #include "Maths/BoundingSphere.h"
 #include "App/Application.h"

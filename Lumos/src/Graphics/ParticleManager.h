@@ -1,10 +1,10 @@
 #pragma once
 #include "LM.h"
 #include "Maths/Maths.h"
+#include "ParticleEmitter.h"
 
 namespace Lumos
 {
-	class ParticleEmitter;
 	class Camera;
 
 	class LUMOS_EXPORT ParticleManager

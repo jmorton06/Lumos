@@ -3,7 +3,6 @@
 #include "Material.h"
 #include "API/Renderer.h"
 #include "Platform/Vulkan/VKDevice.h"
-#include "Maths/BoundingSphere.h"
 
 namespace Lumos
 {

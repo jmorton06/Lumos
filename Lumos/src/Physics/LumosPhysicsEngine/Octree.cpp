@@ -18,7 +18,7 @@ namespace Lumos
 		m_LeafNodes.clear();
 	}
 
-	void Octree::FindPotentialCollisionPairs(std::vector<Ref<PhysicsObject3D>> objects,
+	void Octree::FindPotentialCollisionPairs(std::vector<Ref<PhysicsObject3D>>& objects,
 	                                         std::vector<CollisionPair>& collisionPairs)
 	{
 		m_LeafNodes.clear();

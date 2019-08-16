@@ -141,14 +141,17 @@ namespace Lumos
 			{
 				for (auto message = m_MessageBuffer.begin(); message != messageStart; message++)
 				{
-					if (Filter.IsActive())
+					if (*message)
 					{
-						if (Filter.PassFilter((*message)->m_Message.c_str()))
+						if (Filter.IsActive())
+						{
+							if (Filter.PassFilter((*message)->m_Message.c_str()))
+								(*message)->OnImGUIRender();
+						}
+						else
+						{
 							(*message)->OnImGUIRender();
-					}
-					else
-					{
-						(*message)->OnImGUIRender();
+						}
 					}
 				}
 			}
