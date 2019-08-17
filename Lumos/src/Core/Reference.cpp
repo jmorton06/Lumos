@@ -3,17 +3,17 @@
 
 namespace Lumos
 {
-    ReferenceBase::ReferenceBase()
+    RefCount::RefCount()
     {
         m_Refcount.init();
         m_RefcountInit.init();
     }
     
-    ReferenceBase::~ReferenceBase()
+    RefCount::~RefCount()
     {
     }
     
-    bool ReferenceBase::InitRef()
+    bool RefCount::InitRef()
     {
         if (reference())
         {
@@ -37,19 +37,19 @@ namespace Lumos
         }
     }
     
-    int ReferenceBase::GetReferenceCount() const
+    int RefCount::GetReferenceCount() const
     {
         return m_Refcount.get();
     }
     
-    bool ReferenceBase::reference()
+    bool RefCount::reference()
     {
         bool success = m_Refcount.ref();
         
         return success;
     }
     
-    bool ReferenceBase::unreference()
+    bool RefCount::unreference()
     {
         bool die = m_Refcount.unref();
         
