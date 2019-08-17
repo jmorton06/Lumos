@@ -6,11 +6,11 @@
 
 namespace Lumos
 {
-    class LUMOS_EXPORT ReferenceBase
+    class LUMOS_EXPORT RefCount
     {
     public:
-        ReferenceBase();
-        ~ReferenceBase();
+        RefCount();
+        ~RefCount();
         
         inline bool IsReferenced() const { return m_RefcountInit.get() < 1; }
         bool InitRef();
@@ -29,14 +29,14 @@ namespace Lumos
         Reference(std::nullptr_t)
         {
             m_Ptr = nullptr;
-            m_Counter = new ReferenceBase();
+            m_Counter = new RefCount();
             m_Counter->InitRef();
         }
         
         Reference(T* ptr = nullptr)
         {
             m_Ptr = ptr;
-            m_Counter = new ReferenceBase();
+            m_Counter = new RefCount();
             m_Counter->InitRef();
         }
         
@@ -83,7 +83,7 @@ namespace Lumos
             delete m_Counter;
             
             m_Ptr = p_ptr;
-            m_Counter = new ReferenceBase();
+            m_Counter = new RefCount();
             m_Counter->InitRef();
         }
 
@@ -106,7 +106,7 @@ namespace Lumos
 		{
 			// Keep a copy of the old data
 			//T*   oldData = m_Ptr;
-			//ReferenceBase* oldCount = m_Counter;
+			//RefCount* oldCount = m_Counter;
 
 			//// now we do an exception safe transfer;
 			//m_Ptr = rhs.m_Ptr;
@@ -158,24 +158,21 @@ namespace Lumos
 		inline T& operator*()  const { return *m_Ptr; }
 
     private:
-        ReferenceBase* m_Counter = nullptr;
+        RefCount* m_Counter = nullptr;
         T* m_Ptr;
     };
     
     template<class T>
-    class LUMOS_EXPORT WeakReference : ReferenceBase
+    class LUMOS_EXPORT WeakReference
     {
     public:
         WeakReference(T* ptr)
         {
             m_Ptr = ptr;
-            reference();
         }
         
         ~WeakReference()
         {
-            if(unreference())
-                delete m_Ptr;
         }
         
     private:
@@ -183,19 +180,17 @@ namespace Lumos
     };
     
     template<class T>
-    class LUMOS_EXPORT Owned : ReferenceBase
+    class LUMOS_EXPORT Owned
     {
     public:
         Owned(T* ptr)
         {
             m_Ptr = ptr;
-            reference();
         }
         
         ~Owned()
         {
-            if(unreference())
-                delete m_Ptr;
+            delete m_Ptr;
         }
         
     private:
