@@ -64,11 +64,11 @@
 #include "Audio/SoundNode.h"
 
 //System
-#include "System/VFS.h"
-#include "System/FileSystem.h"
-#include "System/String.h"
-#include "System/CoreSystem.h"
-#include "System/LMLog.h"
+#include "Core/VFS.h"
+#include "Core/FileSystem.h"
+#include "Core/String.h"
+#include "Core/CoreSystem.h"
+#include "Core/LMLog.h"
 
 //Scripting
 #include "Scripting/LuaScript.h"

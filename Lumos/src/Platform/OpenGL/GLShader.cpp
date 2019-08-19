@@ -2,7 +2,7 @@
 #include "GLShader.h"
 
 #include "Platform/OpenGL/GL.h"
-#include "System/VFS.h"
+#include "Core/VFS.h"
 
 namespace Lumos
 {
