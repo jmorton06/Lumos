@@ -2,7 +2,7 @@
 
 #if defined(LUMOS_PLATFORM_WINDOWS)
 
-#include "System/CoreSystem.h"
+#include "Core/CoreSystem.h"
 #include "Core/OS.h"
 
 extern Lumos::Application* Lumos::CreateApplication();
@@ -22,7 +22,7 @@ int main(int argc, char** argv)
 
 #elif defined(LUMOS_PLATFORM_LINUX)
 
-#include "System/CoreSystem.h"
+#include "Core/CoreSystem.h"
 
 extern Lumos::Application* Lumos::CreateApplication();
 

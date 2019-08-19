@@ -1,6 +1,6 @@
 #pragma once
 #include "LM.h"
-#include "System/String.h"
+#include "Core/String.h"
 #include "Graphics/Mesh.h"
 #include "Graphics/API/Shader.h"
 

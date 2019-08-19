@@ -22,9 +22,9 @@
 #include "Core/Core.h"
 #include "Core/Reference.h"
 #include "Core/Types.h"
-#include "System/String.h"
-#include "System/LMLog.h"
-#include "System/Memory.h"
+#include "Core/String.h"
+#include "Core/LMLog.h"
+#include "Core/Memory.h"
 #endif
 
 #include <stdio.h>

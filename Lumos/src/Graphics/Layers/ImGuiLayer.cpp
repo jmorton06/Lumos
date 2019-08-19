@@ -4,7 +4,7 @@
 #include "App/Window.h"
 #include "App/Application.h"
 #include "Graphics/API/IMGUIRenderer.h"
-#include "System/VFS.h"
+#include "Core/VFS.h"
 
 #define IMGUI_DISABLE_OBSOLETE_FUNCTIONS
 #include <imgui/imgui.h>

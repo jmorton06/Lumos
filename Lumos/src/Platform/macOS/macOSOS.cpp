@@ -1,7 +1,7 @@
 #include "LM.h"
 #include "macOSOS.h"
 #include "macOSPower.h"
-#include "System/CoreSystem.h"
+#include "Core/CoreSystem.h"
 #include "App/Application.h"
 
 extern Lumos::Application* Lumos::CreateApplication();

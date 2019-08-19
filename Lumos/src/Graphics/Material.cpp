@@ -5,8 +5,8 @@
 #include "Graphics/API/ShaderResource.h"
 #include "Graphics/API/UniformBuffer.h"
 #include "Graphics/API/GraphicsContext.h"
-#include "System/FileSystem.h"
-#include "System/VFS.h"
+#include "Core/FileSystem.h"
+#include "Core/VFS.h"
 
 #include <imgui/imgui.h>
 

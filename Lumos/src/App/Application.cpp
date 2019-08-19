@@ -21,8 +21,8 @@
 
 #include "Utilities/CommonUtils.h"
 #include "Utilities/AssetsManager.h"
-#include "System/VFS.h"
-#include "System/JobSystem.h"
+#include "Core/VFS.h"
+#include "Core/JobSystem.h"
 #include "Scripting/LuaScript.h"
 
 #include "Events/ApplicationEvent.h"
