@@ -1,7 +1,7 @@
 #include "LM.h"
 #include "WindowsOS.h"
 #include "WindowsPower.h"
-#include "System/CoreSystem.h"
+#include "Core/CoreSystem.h"
 #include "App/Application.h"
 
 extern Lumos::Application* Lumos::CreateApplication();
