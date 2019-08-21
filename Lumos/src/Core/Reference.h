@@ -95,6 +95,10 @@ namespace Lumos
 			if (m_Counter->unreference())
 			{
 				delete m_Ptr;
+                delete m_Counter;
+                
+                m_Counter = new RefCount();
+                m_Counter->InitRef();
 			}
 
 			m_Ptr = p_from.m_Ptr;
@@ -104,25 +108,6 @@ namespace Lumos
 
 		_FORCE_INLINE_ void operator=(Reference const& rhs)
 		{
-			// Keep a copy of the old data
-			//T*   oldData = m_Ptr;
-			//RefCount* oldCount = m_Counter;
-
-			//// now we do an exception safe transfer;
-			//m_Ptr = rhs.m_Ptr;
-			//m_Counter = rhs.m_Counter;
-
-			//// Update the counters
-			//m_Counter->reference();
-
-			//// Finally delete the old pointer if required.
-			//if (oldData)
-			//{
-			//	if (oldCount->unreference())
-			//	{
-			//		delete oldData;
-			//	}
-			//}
 			ref(rhs);
 		}
         
