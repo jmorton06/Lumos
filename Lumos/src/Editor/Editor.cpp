@@ -45,8 +45,8 @@ namespace Lumos
 		//SelectEntity();
         if(m_ShowSceneView)
             DrawSceneView();
-        if(m_ShowConsole)
-            DrawConsole();
+       // if(m_ShowConsole)
+       //j     DrawConsole();
         if(m_ShowHierarchy)
             DrawHierarchyWindow();
         if(m_ShowInspector)

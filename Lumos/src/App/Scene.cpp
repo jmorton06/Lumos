@@ -139,7 +139,6 @@ namespace Lumos
 		}
 
 		BuildFrameRenderList();
-		BuildLightList();
 
 		std::function<void(Entity*)> per_object_func = [&](Entity* obj)
 		{
@@ -203,28 +202,6 @@ namespace Lumos
 		m_pFrameRenderList->RemoveExcessObjects(m_FrameFrustum);
 		m_pFrameRenderList->SortLists();
 		InsertToRenderList(m_pFrameRenderList.get(), m_FrameFrustum);
-	}
-
-	void Scene::BuildLightList()
-	{
-		m_LightList.clear();
-
-		std::function<void(Entity*)> per_object_func = [&](Entity* obj)
-		{
-			if (obj->ActiveInHierarchy())
-			{
-				auto lightComponent = obj->GetComponent<LightComponent>();
-				if (lightComponent && lightComponent->GetActive())
-				{
-					m_LightList.emplace_back(lightComponent->GetLight());
-				}
-
-				for (auto child : obj->GetChildren())
-					per_object_func(child);
-			}
-		};
-
-		per_object_func(m_RootEntity);
 	}
 
 	void Scene::IterateEntities(const std::function<void(Entity*)>& per_object_func)
