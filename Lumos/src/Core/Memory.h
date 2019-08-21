@@ -38,7 +38,7 @@ namespace Lumos::Memory
 
 #pragma warning(disable : 4595)
 
-inline void* operator new(std::size_t size)
+_FORCE_INLINE_ void* operator new(std::size_t size)
 {
 	void* result = Lumos::Memory::NewFunc(size, __FILE__, __LINE__);
 	if (result == nullptr)
@@ -48,7 +48,7 @@ inline void* operator new(std::size_t size)
 	return result;
 }
 
-inline void* operator new(std::size_t size, const char *file, int line)
+_FORCE_INLINE_ void* operator new(std::size_t size, const char *file, int line)
 {
 	void* result = Lumos::Memory::NewFunc(size, file, line);
 	if (result == nullptr)
@@ -58,7 +58,7 @@ inline void* operator new(std::size_t size, const char *file, int line)
 	return result;
 }
 
-inline void* operator new[](std::size_t size, const char *file, int line)
+_FORCE_INLINE_ void* operator new[](std::size_t size, const char *file, int line)
 {
 	void* result = Lumos::Memory::NewFunc(size, file, line);
 	if (result == nullptr)
@@ -68,17 +68,17 @@ inline void* operator new[](std::size_t size, const char *file, int line)
 	return result;
 }
 
-inline void* operator new (std::size_t size, const std::nothrow_t& nothrow_value) noexcept
+_FORCE_INLINE_ void* operator new (std::size_t size, const std::nothrow_t& nothrow_value) noexcept
 {
 	return Lumos::Memory::NewFunc(size, __FILE__, __LINE__);
 }
 
-inline void operator delete(void * p) throw()
+_FORCE_INLINE_ void operator delete(void * p) throw()
 {
 	Lumos::Memory::DeleteFunc(p);
 }
 
-inline void* operator new[](std::size_t size)
+_FORCE_INLINE_ void* operator new[](std::size_t size)
 {
 	void* result = Lumos::Memory::NewFunc(size, __FILE__, __LINE__);
 	if (result == nullptr)
@@ -88,17 +88,17 @@ inline void* operator new[](std::size_t size)
 	return result;
 }
 
-inline void operator delete[](void *p) throw()
+_FORCE_INLINE_ void operator delete[](void *p) throw()
 {
 	Lumos::Memory::DeleteFunc(p);
 }
 
-inline void operator delete(void* block, const char* file, int line)
+_FORCE_INLINE_ void operator delete(void* block, const char* file, int line)
 {
 	Lumos::Memory::DeleteFunc(block);
 }
 
-inline void operator delete[](void* block, const char* file, int line)
+_FORCE_INLINE_ void operator delete[](void* block, const char* file, int line)
 {
 	Lumos::Memory::DeleteFunc(block);
 }

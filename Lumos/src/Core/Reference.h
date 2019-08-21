@@ -61,10 +61,10 @@ namespace Lumos
         }
         
 		// Access to smart pointer state
-		T* get()                 const { return m_Ptr; }
-		explicit operator bool() const { return m_Ptr; }
+		_FORCE_INLINE_ T* get()                 const { return m_Ptr; }
+		_FORCE_INLINE_ explicit operator bool() const { return m_Ptr; }
         
-        inline T* release() noexcept
+        _FORCE_INLINE_ T* release() noexcept
         {
             T* tmp = nullptr;
             m_Counter->unreference();
@@ -102,7 +102,7 @@ namespace Lumos
 				m_Counter->reference();
 		}
 
-		void operator=(Reference const& rhs)
+		_FORCE_INLINE_ void operator=(Reference const& rhs)
 		{
 			// Keep a copy of the old data
 			//T*   oldData = m_Ptr;
@@ -127,34 +127,34 @@ namespace Lumos
 		}
         
         template<typename U>
-        Reference(Reference<U>&& moving)
+        _FORCE_INLINE_ Reference(Reference<U>&& moving)
         {
             Reference<T> tmp(moving.release());
             tmp.swap(*this);
         }
         
         template<typename U>
-        Reference& operator=(Reference<U>&& moving)
+        _FORCE_INLINE_ Reference& operator=(Reference<U>&& moving)
         {
             Reference<T> tmp(moving.release());
             tmp.swap(*this);
             return *this;
         }
         
-        inline bool operator==(const T *p_ptr)			const { return m_Ptr == p_ptr; }
-        inline bool operator!=(const T *p_ptr)			const { return m_Ptr != p_ptr; }
-        inline bool operator<(const Reference<T> &p_r)	const { return m_Ptr < p_r.m_Ptr; }
-        inline bool operator==(const Reference<T> &p_r)	const { return m_Ptr == p_r.m_Ptr; }
-        inline bool operator!=(const Reference<T> &p_r)	const { return m_Ptr != p_r.m_Ptr; }
+        _FORCE_INLINE_ bool operator==(const T *p_ptr)			const { return m_Ptr == p_ptr; }
+        _FORCE_INLINE_ bool operator!=(const T *p_ptr)			const { return m_Ptr != p_ptr; }
+        _FORCE_INLINE_ bool operator<(const Reference<T> &p_r)	const { return m_Ptr < p_r.m_Ptr; }
+        _FORCE_INLINE_ bool operator==(const Reference<T> &p_r)	const { return m_Ptr == p_r.m_Ptr; }
+        _FORCE_INLINE_ bool operator!=(const Reference<T> &p_r)	const { return m_Ptr != p_r.m_Ptr; }
 
-        void swap(Reference& other) noexcept
+        _FORCE_INLINE_ void swap(Reference& other) noexcept
         {
             std::swap(m_Ptr,  other.m_Ptr);
             std::swap(m_Counter, other.m_Counter);
         }
         // Const correct access owned object
-		inline T* operator->() const { return &*m_Ptr; }
-		inline T& operator*()  const { return *m_Ptr; }
+		_FORCE_INLINE_ T* operator->() const { return &*m_Ptr; }
+		_FORCE_INLINE_ T& operator*()  const { return *m_Ptr; }
 
     private:
         RefCount* m_Counter = nullptr;
@@ -193,8 +193,8 @@ namespace Lumos
         }
         
         // Const correct access owned object
-        inline T* operator->() const { return &*m_Ptr; }
-        inline T& operator*()  const { return *m_Ptr; }
+        _FORCE_INLINE_ T* operator->() const { return &*m_Ptr; }
+        _FORCE_INLINE_ T& operator*()  const { return *m_Ptr; }
         
     private:
         T* m_Ptr;
