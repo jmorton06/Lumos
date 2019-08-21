@@ -146,8 +146,7 @@ namespace Lumos
         inline bool operator<(const Reference<T> &p_r)	const { return m_Ptr < p_r.m_Ptr; }
         inline bool operator==(const Reference<T> &p_r)	const { return m_Ptr == p_r.m_Ptr; }
         inline bool operator!=(const Reference<T> &p_r)	const { return m_Ptr != p_r.m_Ptr; }
-		inline T* operator*() { return m_Ptr; }
-            
+
         void swap(Reference& other) noexcept
         {
             std::swap(m_Ptr,  other.m_Ptr);
@@ -193,12 +192,16 @@ namespace Lumos
             delete m_Ptr;
         }
         
+        // Const correct access owned object
+        inline T* operator->() const { return &*m_Ptr; }
+        inline T& operator*()  const { return *m_Ptr; }
+        
     private:
         T* m_Ptr;
 
     };
            
-//#define CUSTOM_SMART_PTR
+#define CUSTOM_SMART_PTR
 #ifdef CUSTOM_SMART_PTR
     
     template<class T>

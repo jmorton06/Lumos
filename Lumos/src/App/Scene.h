@@ -73,9 +73,6 @@ namespace Lumos
 		void InsertToRenderList(RenderList* list, const Maths::Frustum& frustum) const;
 
 		void BuildFrameRenderList();
-		void BuildLightList();
-
-		std::vector<Ref<Graphics::Light>>& GetLightList() { return m_LightList; }
 
 		Entity* GetRootEntity() { return m_RootEntity; }
 
@@ -119,7 +116,6 @@ namespace Lumos
 
 		Maths::Frustum m_FrameFrustum;
 		Scope<RenderList>	m_pFrameRenderList;
-		std::vector<Ref<Graphics::Light>> m_LightList;
 
     private:
         Scene(Scene const&) = delete;
