@@ -30,7 +30,7 @@ namespace Lumos::Memory
 	LUMOS_EXPORT void LogMemoryInformation();
 }
 
-#define CUSTOM_MEMORY_ALLOCATOR
+//#define CUSTOM_MEMORY_ALLOCATOR
 #ifdef CUSTOM_MEMORY_ALLOCATOR
 
 #define lmnew		new(__FILE__, __LINE__)

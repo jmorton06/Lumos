@@ -2,15 +2,25 @@
 #include "Mutex.h"
 #include <stddef.h>
 
+#ifdef LUMOS_PLATFORM_UNIX
+#include "Platform/Unix/UnixMutex.h"
+#endif
+
+#ifdef LUMOS_PLATFORM_WINDOWS
+#include "Platform/Windows/WindowsMutex.h"
+#endif
+
 namespace Lumos
-{
-    Mutex *(*Mutex::create_func)(bool) = 0;
-    
+{    
     Mutex *Mutex::Create(bool p_recursive)
     {
-        LUMOS_CORE_ASSERT(!create_func, 0);
-        
-        return create_func(p_recursive);
+#ifdef LUMOS_PLATFORM_UNIX
+        return new UnixMutex(p_recursive);
+#elif LUMOS_PLATFORM_WINDOWS
+        return new WindowsMutex(p_recursive);
+#else
+        return nullptr;
+#endif
     }
     
     Mutex::~Mutex()
