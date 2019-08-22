@@ -4,9 +4,6 @@ namespace Lumos
 {
     class Mutex
     {
-    protected:
-        static Mutex *(*create_func)(bool);
-        
     public:
         virtual void Lock() = 0; ///< Lock the mutex, block if locked by someone else
         virtual void Unlock() = 0; ///< Unlock the mutex, let other threads continue
