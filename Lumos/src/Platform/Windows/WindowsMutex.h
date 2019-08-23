@@ -7,12 +7,13 @@ namespace Lumos
     class WindowsMutex : public Mutex
     {
     public:
+        WindowsMutex();
+        ~WindowsMutex();
+
         virtual void Lock();
         virtual void Unlock();
         virtual bool TryLock();
 
-        WindowsMutex();
-        ~WindowsMutex();
     private:
 
     #ifdef WINDOWS_USE_MUTEX

@@ -67,9 +67,11 @@ namespace Lumos
         _FORCE_INLINE_ T* release() noexcept
         {
             T* tmp = nullptr;
-            m_Counter->unreference();
+            delete m_Counter;
             std::swap(tmp, m_Ptr);
             m_Ptr = nullptr;
+            
+            
             return tmp;
         }
         
@@ -110,6 +112,13 @@ namespace Lumos
 		{
 			ref(rhs);
 		}
+        
+        _FORCE_INLINE_ Reference& operator=(T* newData)
+        {
+            Reference tmp(newData);
+            tmp.swap(*this);
+            return *this;
+        }
         
         template<typename U>
         _FORCE_INLINE_ Reference(Reference<U>&& moving)
@@ -177,16 +186,31 @@ namespace Lumos
             delete m_Ptr;
         }
         
+        Owned(Owned const&)            = delete;
+        Owned& operator=(Owned const&) = delete;
+        
         // Const correct access owned object
-        _FORCE_INLINE_ T* operator->() const { return &*m_Ptr; }
-        _FORCE_INLINE_ T& operator*()  const { return *m_Ptr; }
+        T* operator->() const {return m_Ptr;}
+        T& operator*()  const {return *m_Ptr;}
+        
+        // Access to smart pointer state
+        T* get()                 const {return m_Ptr;}
+        explicit operator bool() const {return m_Ptr;}
+        
+        // Modify object state
+        T* release()
+        {
+            T* result = nullptr;
+            std::swap(result, m_Ptr);
+            return result;
+        }
         
     private:
         T* m_Ptr;
 
     };
            
-//#define CUSTOM_SMART_PTR
+#define CUSTOM_SMART_PTR
 #ifdef CUSTOM_SMART_PTR
     
     template<class T>
