@@ -34,7 +34,7 @@ namespace Lumos
     #endif
     }
 
-    WindowsMutex::WindowsMutex()
+    WindowsMutex::WindowsMutex(bool p_recursive)
     {
     #ifdef WINDOWS_USE_MUTEX
         mutex = CreateMutex(NULL, FALSE, NULL);

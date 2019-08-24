@@ -7,7 +7,7 @@ namespace Lumos
     class WindowsMutex : public Mutex
     {
     public:
-        WindowsMutex();
+        WindowsMutex(bool p_recursive);
         ~WindowsMutex();
 
         virtual void Lock();
