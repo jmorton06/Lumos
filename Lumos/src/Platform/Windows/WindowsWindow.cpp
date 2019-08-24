@@ -9,7 +9,6 @@
 #define GET_WHEEL_DELTA_WPARAM(wParam)  ((short)HIWORD(wParam))
 #endif
 
-#include "System/LMLog.h"
 #include "WindowsWindow.h"
 #include "WindowsKeyCodes.h"
 #include "Graphics/API/GraphicsContext.h"
