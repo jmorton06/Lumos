@@ -86,13 +86,11 @@ void GraphicsScene::OnCleanupScene()
 
 void GraphicsScene::LoadModels()
 {
-	Terrain* terrainMesh = new Terrain();
-
 	//HeightMap
 	auto heightmap = EntityManager::Instance()->CreateEntity("heightmap");
 	heightmap->AddComponent<TransformComponent>(Matrix4::Scale(Maths::Vector3(1.0f)));
 	heightmap->AddComponent<TextureMatrixComponent>(Matrix4::Scale(Maths::Vector3(1.0f, 1.0f, 1.0f)));
-	Lumos::Ref<Graphics::Mesh> terrain = Lumos::CreateRef<Graphics::Mesh>(*terrainMesh);
+	Lumos::Ref<Graphics::Mesh> terrain = Lumos::CreateRef<Terrain>();
 	auto material = Lumos::CreateRef<Material>();
 
 	material->LoadMaterial("checkerboard", "/CoreTextures/checkerboard.tga");
@@ -105,8 +103,6 @@ void GraphicsScene::LoadModels()
 	heightmap->AddComponent<MeshComponent>(terrain);
 
 	AddEntity(heightmap);
-
-	delete terrainMesh;
 }
 
 void GraphicsScene::OnIMGUI()

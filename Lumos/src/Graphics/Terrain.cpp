@@ -195,7 +195,5 @@ namespace Lumos
 
 		delete[] lowMap;
 		delete[] lowMapExpand;
-
-		Init();
 	}
 }
