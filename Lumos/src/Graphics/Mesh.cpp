@@ -45,12 +45,10 @@ namespace Lumos
 			for (auto& cmdBuffer : m_CMDBuffers)
 				delete cmdBuffer;
 
-			m_CMDBuffers.resize(2);// Graphics::VKDevice::Instance()->m_SwapChainSize);
-
-			for (auto cmdBuffer : m_CMDBuffers)
+            for (int i = 0; i < 2; i++)
 			{
-				cmdBuffer = Graphics::CommandBuffer::Create();
-				cmdBuffer->Init(false);
+				m_CMDBuffers.emplace_back(Graphics::CommandBuffer::Create());
+				m_CMDBuffers[i]->Init(false);
 			}
 		}
 
