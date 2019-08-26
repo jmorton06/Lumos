@@ -62,6 +62,7 @@ namespace Lumos
     }
 }
 
+#ifdef CUSTOM_MEMORY_ALLOCATOR
 void* operator new(std::size_t size)
 {
     void* result = Lumos::Memory::NewFunc(size, __FILE__, __LINE__);
@@ -126,4 +127,4 @@ void operator delete[](void* block, const char* file, int line)
 {
     Lumos::Memory::DeleteFunc(block);
 }
-
+#endif

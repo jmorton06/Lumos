@@ -210,7 +210,7 @@ namespace Lumos
 
     };
            
-#define CUSTOM_SMART_PTR
+//#define CUSTOM_SMART_PTR
 #ifdef CUSTOM_SMART_PTR
     
     template<class T>
