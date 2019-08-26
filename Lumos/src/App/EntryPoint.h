@@ -1,5 +1,3 @@
-#pragma once
-
 #if defined(LUMOS_PLATFORM_WINDOWS)
 
 #include "Core/CoreSystem.h"
@@ -43,16 +41,23 @@ int main(int argc, char** argv)
 
 #include "Core/OS.h"
 
+struct testStruct
+{
+    int id;
+    String name;
+    float power;
+};
+
 int main(int argc, char** argv)
 {
     Lumos::Internal::CoreSystem::Init();
-    
+
     Lumos::CreateApplication();
-    
+
     Lumos::OS::Create();
     Lumos::OS::Instance()->Run();
     Lumos::OS::Release();
-    
+
     Lumos::Internal::CoreSystem::Shutdown();
 }
 
