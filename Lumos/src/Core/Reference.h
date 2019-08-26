@@ -49,7 +49,7 @@ namespace Lumos
         
         ~Reference()
         {
-            if(m_Counter)
+            if(m_Counter != nullptr)
             {
                 if(m_Counter->unreference())
                 {
@@ -71,6 +71,7 @@ namespace Lumos
             if(m_Counter->unreference())
             {
                 delete m_Counter;
+                m_Counter = nullptr;
             }
             
             std::swap(tmp, m_Ptr);
@@ -213,7 +214,7 @@ namespace Lumos
 
     };
            
-//#define CUSTOM_SMART_PTR
+#define CUSTOM_SMART_PTR
 #ifdef CUSTOM_SMART_PTR
     
     template<class T>

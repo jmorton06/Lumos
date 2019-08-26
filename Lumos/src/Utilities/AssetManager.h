@@ -10,7 +10,7 @@ namespace Lumos
 		AssetManager() {};
 		~AssetManager() {};
 
-		void AddAsset(const String& name, Ref<T> asset);
+		void AddAsset(const String& name, const Ref<T>& asset);
 		Ref<T> GetAsset(const String& name);
 
 		void Clear()
@@ -30,7 +30,7 @@ namespace Lumos
 	};
 
 	template <class T>
-	void AssetManager<T>::AddAsset(const String& name, Ref<T> asset)
+	void AssetManager<T>::AddAsset(const String& name, const Ref<T>& asset)
 	{
 		m_Assets.insert(make_pair(name, asset));
 	}

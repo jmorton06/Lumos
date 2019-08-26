@@ -150,10 +150,10 @@ namespace Lumos
 			LUMOS_CORE_ASSERT(m_ComponentTypes.find(typeName) == m_ComponentTypes.end(), "Registering component type more than once.");
 
 			// Add this component type to the component type map
-			m_ComponentTypes.insert({ typeName, m_NextComponentType });
+            m_ComponentTypes[typeName] = m_NextComponentType;
 
 			// Create a ComponentArray pointer and add it to the component arrays map
-			m_ComponentArrays.insert({ typeName, CreateRef<ComponentArray<T>>() });
+			m_ComponentArrays[typeName] = CreateRef<ComponentArray<T>>();
 
 			// Increment the value so that the next component registered will be different
 			m_NextComponentType++;
