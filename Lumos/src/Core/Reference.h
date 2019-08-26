@@ -127,9 +127,12 @@ namespace Lumos
                     }
                 }
                 
-                m_Ptr = moving.get();
-                m_Counter = moving.GetCounter();
-                m_Counter->reference();
+                if(moving.GetCounter() && moving.get())
+                {
+                    m_Ptr = moving.get();
+                    m_Counter = moving.GetCounter();
+                    m_Counter->reference();
+                }
             }
             else
             {
@@ -155,9 +158,12 @@ namespace Lumos
                     }
                 }
                 
-                m_Ptr = moving.get();
-                m_Counter = moving.GetCounter();
-                m_Counter->reference();
+                if(moving.GetCounter() && moving.get())
+                {
+                    m_Ptr = moving.get();
+                    m_Counter = moving.GetCounter();
+                    m_Counter->reference();
+                }
             }
             else
             {
@@ -198,9 +204,12 @@ namespace Lumos
                 }
             }
             
-            m_Ptr = p_from.m_Ptr;
-            m_Counter = p_from.m_Counter;
-            m_Counter->reference();
+            if(p_from.GetCounter() && p_from.get())
+            {
+                m_Ptr = p_from.get();
+                m_Counter = p_from.GetCounter();
+                m_Counter->reference();
+            }
         }
             
         _FORCE_INLINE_ void refPointer(T* ptr)
