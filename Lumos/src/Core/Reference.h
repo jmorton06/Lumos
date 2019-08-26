@@ -67,7 +67,12 @@ namespace Lumos
         _FORCE_INLINE_ T* release() noexcept
         {
             T* tmp = nullptr;
-            delete m_Counter;
+            
+            if(m_Counter->unreference())
+            {
+                delete m_Counter;
+            }
+            
             std::swap(tmp, m_Ptr);
             m_Ptr = nullptr;
             
@@ -210,7 +215,7 @@ namespace Lumos
 
     };
            
-//#define CUSTOM_SMART_PTR
+#define CUSTOM_SMART_PTR
 #ifdef CUSTOM_SMART_PTR
     
     template<class T>
