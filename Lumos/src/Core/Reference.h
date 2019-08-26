@@ -1,6 +1,7 @@
 #pragma once
 
 #include "LM.h"
+#include "LMLog.h"
 #include "ReferenceCounter.h"
 #include <memory>
 
@@ -29,22 +30,18 @@ namespace Lumos
         Reference(std::nullptr_t)
         {
             m_Ptr = nullptr;
-            m_Counter = new RefCount();
-            m_Counter->InitRef();
+            m_Counter = nullptr;
         }
         
         Reference(T* ptr = nullptr)
         {
-            m_Ptr = ptr;
-            m_Counter = new RefCount();
-            m_Counter->InitRef();
+            if(ptr)
+                refPointer(ptr);
         }
         
         Reference(const Reference& other)
         {
-            m_Ptr = other.m_Ptr;
-            m_Counter = other.m_Counter;
-            m_Counter->reference();
+            ref(other);
         }
         
         ~Reference()
@@ -63,7 +60,8 @@ namespace Lumos
 		// Access to smart pointer state
 		_FORCE_INLINE_ T* get()                 const { return m_Ptr; }
 		_FORCE_INLINE_ explicit operator bool() const { return m_Ptr; }
-        
+        _FORCE_INLINE_ RefCount* GetCounter()   const { return m_Counter; }
+
         _FORCE_INLINE_ T* release() noexcept
         {
             T* tmp = nullptr;
@@ -82,35 +80,19 @@ namespace Lumos
         
         _FORCE_INLINE_ void reset(T *p_ptr = nullptr)
         {
-            if(m_Counter->unreference())
+            if(m_Counter != nullptr)
             {
-                delete m_Ptr;
-                delete m_Counter;
+                if(m_Counter->unreference())
+                {
+                    delete m_Ptr;
+                    delete m_Counter;
+                }
             }
             
             m_Ptr = p_ptr;
             m_Counter = new RefCount();
             m_Counter->InitRef();
         }
-
-		_FORCE_INLINE_ void ref(const Reference &p_from)
-        {
-			if (p_from.m_Ptr == m_Ptr)
-				return;
-
-			if (m_Counter->unreference())
-			{
-				delete m_Ptr;
-                delete m_Counter;
-                
-                m_Counter = new RefCount();
-                m_Counter->InitRef();
-			}
-
-			m_Ptr = p_from.m_Ptr;
-			if (m_Ptr)
-				m_Counter->reference();
-		}
 
 		_FORCE_INLINE_ void operator=(Reference const& rhs)
 		{
@@ -119,23 +101,69 @@ namespace Lumos
         
         _FORCE_INLINE_ Reference& operator=(T* newData)
         {
-            Reference tmp(newData);
-            tmp.swap(*this);
+            if(newData != nullptr)
+                refPointer(newData);
             return *this;
         }
         
         template<typename U>
-        _FORCE_INLINE_ Reference(Reference<U>&& moving)
+        _FORCE_INLINE_ Reference(const Reference<U>& moving)
         {
-            Reference<T> tmp(moving.release());
-            tmp.swap(*this);
+            U* movingPtr = moving.get();
+            
+            T* castPointer = static_cast<T*>(movingPtr);
+            
+            if(castPointer != nullptr)
+            {
+                if (moving.get() == m_Ptr)
+                    return;
+                
+                if(m_Counter != nullptr)
+                {
+                    if (m_Counter->unreference())
+                    {
+                        delete m_Ptr;
+                        delete m_Counter;
+                    }
+                }
+                
+                m_Ptr = moving.get();
+                m_Counter = moving.GetCounter();
+                m_Counter->reference();
+            }
+            else
+            {
+                LUMOS_CORE_ERROR("Failed to cast Reference");
+            }
         }
         
         template<typename U>
-        _FORCE_INLINE_ Reference& operator=(Reference<U>&& moving)
+        _FORCE_INLINE_ Reference& operator=(const Reference<U>& moving)
         {
-            Reference<T> tmp(moving.release());
-            tmp.swap(*this);
+            U* movingPtr = moving.get();
+            
+            T* castPointer = dynamic_cast<T*>(movingPtr);
+            
+            if(castPointer != nullptr)
+            {
+                if(m_Counter != nullptr)
+                {
+                    if (m_Counter->unreference())
+                    {
+                        delete m_Ptr;
+                        delete m_Counter;
+                    }
+                }
+                
+                m_Ptr = moving.get();
+                m_Counter = moving.GetCounter();
+                m_Counter->reference();
+            }
+            else
+            {
+                LUMOS_CORE_ERROR("Failed to cast Reference");
+            }
+            
             return *this;
         }
         
@@ -155,6 +183,35 @@ namespace Lumos
 		_FORCE_INLINE_ T& operator*()  const { return *m_Ptr; }
 
     private:
+            
+        _FORCE_INLINE_ void ref(const Reference &p_from)
+        {
+            if (p_from.m_Ptr == m_Ptr)
+                return;
+            
+            if(m_Counter != nullptr)
+            {
+                if (m_Counter->unreference())
+                {
+                    delete m_Ptr;
+                    delete m_Counter;
+                }
+            }
+            
+            m_Ptr = p_from.m_Ptr;
+            m_Counter = p_from.m_Counter;
+            m_Counter->reference();
+        }
+            
+        _FORCE_INLINE_ void refPointer(T* ptr)
+        {
+            LUMOS_CORE_ASSERT(ptr, "Creating shared ptr with nullptr");
+            
+            m_Ptr = ptr;
+            m_Counter = new RefCount();
+            m_Counter->InitRef();
+        }
+            
         RefCount* m_Counter = nullptr;
         T* m_Ptr;
     };

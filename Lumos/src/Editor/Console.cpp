@@ -15,7 +15,7 @@ namespace Lumos
 		m_RequestScrollToBottom = false;
 	}
 
-	void Console::AddMessage(Ref<Message> message)
+	void Console::AddMessage(const Ref<Message>& message)
 	{
 		if (message->m_Level == Message::Level::Invalid)
 			return;
