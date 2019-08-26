@@ -45,7 +45,7 @@ namespace Lumos
 
         Console();
 		~Console() = default;
-		void AddMessage(Ref<Message> message);
+		void AddMessage(const Ref<Message>& message);
 		void Flush();
 		void OnImGuiRender(bool* show);
 
