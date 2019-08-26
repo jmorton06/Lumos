@@ -522,7 +522,7 @@ namespace Lumos
 
 	void Editor::DrawConsole()
 	{
-		//Console::Instance()->OnImGuiRender(&m_ShowConsole);
+		Console::Instance()->OnImGuiRender(&m_ShowConsole);
 	}
     
     void Editor::DrawGraphicsInfoWindow()
