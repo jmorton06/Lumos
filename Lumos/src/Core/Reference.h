@@ -76,25 +76,23 @@ namespace Lumos
             std::swap(tmp, m_Ptr);
             m_Ptr = nullptr;
             
-            
             return tmp;
         }
         
-        inline void reset(T *p_ptr = nullptr)
+        _FORCE_INLINE_ void reset(T *p_ptr = nullptr)
         {
             if(m_Counter->unreference())
             {
                 delete m_Ptr;
+                delete m_Counter;
             }
-            
-            delete m_Counter;
             
             m_Ptr = p_ptr;
             m_Counter = new RefCount();
             m_Counter->InitRef();
         }
 
-		void ref(const Reference &p_from)
+		_FORCE_INLINE_ void ref(const Reference &p_from)
         {
 			if (p_from.m_Ptr == m_Ptr)
 				return;
