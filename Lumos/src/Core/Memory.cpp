@@ -12,6 +12,28 @@
 
 namespace Lumos
 {
+    void* Memory::AlignedAlloc(size_t size, size_t alignment)
+    {
+        void *data = nullptr;
+#if defined(LUMOS_PLATFORM_WINDOWS)
+        data = _aligned_malloc(size, alignment);
+#else
+        int res = posix_memalign(&data, alignment, size);
+        if (res != 0)
+            data = nullptr;
+#endif
+        return data;
+    }
+    
+    void Memory::AlignedFree(void* data)
+    {
+#if defined(LUMOS_PLATFORM_WINDOWS)
+        _aligned_free(data);
+#else
+        free(data);
+#endif
+    }
+    
     void* Memory::NewFunc(std::size_t size, const char *file, int line)
     {
 #ifdef USE_STB_LEAKCHECK
