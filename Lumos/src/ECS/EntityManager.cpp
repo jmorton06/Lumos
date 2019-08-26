@@ -256,6 +256,11 @@ namespace Lumos
     }
 }
 
+Lumos::EntityManager::~EntityManager()
+{
+    Clear();
+}
+
 void Lumos::EntityManager::Clear()
 {
 	for (auto entity : m_Entities)

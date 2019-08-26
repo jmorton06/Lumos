@@ -90,6 +90,12 @@ namespace Lumos
 			VertexBuffer* buffer = VertexBuffer::Create(BufferUsage::STATIC);
 			buffer->SetData(sizeof(Vertex) * 4, data);
 
+            Ref<Maths::BoundingSphere> boundingSphere = CreateRef<Maths::BoundingSphere>();
+            for (int i = 0; i < 4; i++)
+            {
+                boundingSphere->ExpandToFit(data[i].Position);
+            }
+
 			delete[] data;
 
 			Graphics::BufferLayout layout;
@@ -106,12 +112,8 @@ namespace Lumos
 			ib.reset(IndexBuffer::Create(indices, 6));
 
 			Ref<Material> empty;
-			Ref<Maths::BoundingSphere> boundingSphere = CreateRef<Maths::BoundingSphere>();
-			for (int i = 0; i < 4; i++)
-			{
-				boundingSphere->ExpandToFit(data[i].Position);
-			}
-			return lmnew Mesh(va, ib, boundingSphere);
+
+            return lmnew Mesh(va, ib, boundingSphere);
 		}
 
 		Mesh* CreateCube(float size)
@@ -246,6 +248,12 @@ namespace Lumos
 			VertexBuffer* buffer = VertexBuffer::Create(BufferUsage::STATIC);
 			buffer->SetData(24 * sizeof(Vertex), data);
 
+            Ref<Maths::BoundingSphere> boundingSphere = CreateRef<Maths::BoundingSphere>();
+            for (int i = 0; i < 4; i++)
+            {
+                boundingSphere->ExpandToFit(data[i].Position);
+            }
+            
 			delete[] data;
 
 			Graphics::BufferLayout layout;
@@ -276,11 +284,7 @@ namespace Lumos
 
 			Ref<IndexBuffer> ib;
 			ib.reset(IndexBuffer::Create(indices, 36));
-			Ref<Maths::BoundingSphere> boundingSphere = CreateRef<Maths::BoundingSphere>();
-			for (int i = 0; i < 4; i++)
-			{
-				boundingSphere->ExpandToFit(data[i].Position);
-			}
+			
 			return lmnew Mesh(va, ib, boundingSphere);
 		}
 
@@ -384,6 +388,12 @@ namespace Lumos
 			VertexBuffer* buffer = VertexBuffer::Create(BufferUsage::STATIC);
 			buffer->SetData(18 * sizeof(Vertex), data);
 
+            Ref<Maths::BoundingSphere> boundingSphere = CreateRef<Maths::BoundingSphere>();
+            for (int i = 0; i < 4; i++)
+            {
+                boundingSphere->ExpandToFit(data[i].Position);
+            }
+            
 			delete[] data;
 
 			Graphics::BufferLayout layout;
@@ -408,11 +418,7 @@ namespace Lumos
 
 			Ref<IndexBuffer> ib;
 			ib.reset(IndexBuffer::Create(indices, 18));
-			Ref<Maths::BoundingSphere> boundingSphere = CreateRef<Maths::BoundingSphere>();
-			for (int i = 0; i < 4; i++)
-			{
-				boundingSphere->ExpandToFit(data[i].Position);
-			}
+			
 			return lmnew Mesh(va, ib, boundingSphere);
 		}
 
@@ -542,7 +548,11 @@ namespace Lumos
 			VertexBuffer* buffer = VertexBuffer::Create(BufferUsage::STATIC);
 			buffer->SetData(8 * sizeof(Vertex), data);
 
-			//delete[] data;
+            Ref<Maths::BoundingSphere> boundingBox = CreateRef<Maths::BoundingSphere>();
+            for (int i = 0; i < 4; i++)
+            {
+                boundingBox->ExpandToFit(data[i].Position);
+            }
 
 			Graphics::BufferLayout layout;
 			layout.Push<Maths::Vector3>("postion");
@@ -564,11 +574,7 @@ namespace Lumos
 
 			Ref<IndexBuffer> ib;
 			ib.reset(IndexBuffer::Create(indices, 6));
-			Ref<Maths::BoundingSphere> boundingBox = CreateRef<Maths::BoundingSphere>();
-			for (int i = 0; i < 4; i++)
-			{
-				boundingBox->ExpandToFit(data[i].Position);
-			}
+			
 			return lmnew Mesh(va, ib, boundingBox);
 		}
 	}

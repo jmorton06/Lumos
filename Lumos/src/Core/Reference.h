@@ -213,7 +213,7 @@ namespace Lumos
 
     };
            
-#define CUSTOM_SMART_PTR
+//#define CUSTOM_SMART_PTR
 #ifdef CUSTOM_SMART_PTR
     
     template<class T>
@@ -225,12 +225,6 @@ namespace Lumos
         auto ptr = new T(args ...);
         
         return Reference<T>(ptr);
-    }
-    
-    template <typename T>
-    Ref<T> CreateRef(T* t)
-    {
-        return Reference<T>(t);
     }
             
     template<class T>
@@ -255,12 +249,6 @@ namespace Lumos
     Ref<T> CreateRef(Args&& ...args)
     {
         return std::make_shared<T>(args ...);
-    }
-    
-    template <typename T>
-    Ref<T> CreateRef(T* t)
-    {
-        return std::shared_ptr<T>(t);
     }
             
     template<class T>

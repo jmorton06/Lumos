@@ -129,7 +129,7 @@ namespace Lumos
 		friend class Entity;
 	public:
 		EntityManager() = default;
-		~EntityManager() { Clear(); }
+        ~EntityManager();
 
 		void Clear();
 		Entity* CreateEntity(const String& name = "");
