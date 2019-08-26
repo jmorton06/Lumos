@@ -108,8 +108,6 @@ namespace Lumos
 
 		DeleteAllGameObjects();
 
-		Input::GetInput().Reset();
-
 		Application::Instance()->GetRenderManager()->Reset();
 		Application::Instance()->GetSystem<AudioManager>()->ClearNodes();
 
