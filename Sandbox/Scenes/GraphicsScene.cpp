@@ -90,7 +90,7 @@ void GraphicsScene::LoadModels()
 	auto heightmap = EntityManager::Instance()->CreateEntity("heightmap");
 	heightmap->AddComponent<TransformComponent>(Matrix4::Scale(Maths::Vector3(1.0f)));
 	heightmap->AddComponent<TextureMatrixComponent>(Matrix4::Scale(Maths::Vector3(1.0f, 1.0f, 1.0f)));
-	Lumos::Ref<Graphics::Mesh> terrain = Lumos::CreateRef<Terrain>();
+    Lumos::Ref<Graphics::Mesh> terrain = Lumos::Ref<Graphics::Mesh>(new Terrain());
 	auto material = Lumos::CreateRef<Material>();
 
 	material->LoadMaterial("checkerboard", "/CoreTextures/checkerboard.tga");
