@@ -3,7 +3,7 @@
 #include "LM.h"
 #include "LMLog.h"
 #include "ReferenceCounter.h"
-#include <memory>
+#include "Memory.h"
 
 namespace Lumos
 {
@@ -35,6 +35,9 @@ namespace Lumos
         
         Reference(T* ptr = nullptr)
         {
+			m_Ptr = nullptr;
+			m_Counter = nullptr;
+
             if(ptr)
                 refPointer(ptr);
         }
@@ -46,15 +49,7 @@ namespace Lumos
         
         ~Reference()
         {
-            if(m_Counter != nullptr)
-            {
-                if(m_Counter->unreference())
-                {
-                    delete m_Counter;
-                    if(m_Ptr)
-                        delete m_Ptr;
-                }
-            }
+			unref();
         }
         
 		// Access to smart pointer state
@@ -68,7 +63,7 @@ namespace Lumos
             
             if(m_Counter->unreference())
             {
-                delete m_Counter;
+                lmdel m_Counter;
                 m_Counter = nullptr;
             }
             
@@ -80,27 +75,24 @@ namespace Lumos
         
         _FORCE_INLINE_ void reset(T *p_ptr = nullptr)
         {
-            if(m_Counter != nullptr)
-            {
-                if(m_Counter->unreference())
-                {
-                    delete m_Ptr;
-                    delete m_Counter;
-                }
-            }
+			unref();
             
             m_Ptr = p_ptr;
-            m_Counter = new RefCount();
+            m_Counter = lmnew RefCount();
             m_Counter->InitRef();
         }
 
 		_FORCE_INLINE_ void operator=(Reference const& rhs)
 		{
+			unref();
+
 			ref(rhs);
 		}
         
         _FORCE_INLINE_ Reference& operator=(T* newData)
         {
+			unref();
+
             if(newData != nullptr)
                 refPointer(newData);
             return *this;
@@ -113,19 +105,12 @@ namespace Lumos
             
             T* castPointer = static_cast<T*>(movingPtr);
             
+			unref();
+
             if(castPointer != nullptr)
             {
                 if (moving.get() == m_Ptr)
                     return;
-                
-                if(m_Counter != nullptr)
-                {
-                    if (m_Counter->unreference())
-                    {
-                        delete m_Ptr;
-                        delete m_Counter;
-                    }
-                }
                 
                 if(moving.GetCounter() && moving.get())
                 {
@@ -147,17 +132,10 @@ namespace Lumos
             
             T* castPointer = dynamic_cast<T*>(movingPtr);
             
+			unref();
+
             if(castPointer != nullptr)
             {
-                if(m_Counter != nullptr)
-                {
-                    if (m_Counter->unreference())
-                    {
-                        delete m_Ptr;
-                        delete m_Counter;
-                    }
-                }
-                
                 if(moving.GetCounter() && moving.get())
                 {
                     m_Ptr = moving.get();
@@ -195,14 +173,7 @@ namespace Lumos
             if (p_from.m_Ptr == m_Ptr)
                 return;
             
-            if(m_Counter != nullptr)
-            {
-                if (m_Counter->unreference())
-                {
-                    delete m_Ptr;
-                    delete m_Counter;
-                }
-            }
+			unref();
             
             if(p_from.GetCounter() && p_from.get())
             {
@@ -217,9 +188,24 @@ namespace Lumos
             LUMOS_CORE_ASSERT(ptr, "Creating shared ptr with nullptr");
             
             m_Ptr = ptr;
-            m_Counter = new RefCount();
+            m_Counter = lmnew RefCount();
             m_Counter->InitRef();
         }
+
+		_FORCE_INLINE_ void unref()
+		{
+			if (m_Counter != nullptr)
+			{
+				if (m_Counter->unreference())
+				{
+					lmdel m_Ptr;
+					lmdel m_Counter;
+
+					m_Ptr = nullptr;
+					m_Counter = nullptr;
+				}
+			}
+		}
             
         RefCount* m_Counter = nullptr;
         T* m_Ptr;
@@ -253,7 +239,7 @@ namespace Lumos
         
         ~Owned()
         {
-            delete m_Ptr;
+            lmdel m_Ptr;
         }
         
         Owned(Owned const&)            = delete;
@@ -289,7 +275,7 @@ namespace Lumos
     template <typename T, typename ... Args>
     Ref<T> CreateRef(Args&& ...args)
     {
-        auto ptr = new T(args ...);
+        auto ptr = lmnew T(args ...);
         
         return Reference<T>(ptr);
     }
