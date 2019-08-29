@@ -151,7 +151,7 @@ namespace Lumos
 		Maths::Vector3		m_Position;
 		Maths::Vector3		m_LinearVelocity;
 		Maths::Vector3		m_Force;
-		float		m_InvMass;
+		float m_InvMass;
 
 		//<----------ANGULAR-------------->
 		Maths::Quaternion  m_Orientation;
@@ -160,8 +160,8 @@ namespace Lumos
 		Maths::Matrix3	   m_InvInertia;
 
 		//<----------COLLISION------------>
-		std::unique_ptr<CollisionShape> m_CollisionShape;
-		PhysicsCollisionCallback	    m_OnCollisionCallback;
+		Scope<CollisionShape> m_CollisionShape;
+		PhysicsCollisionCallback m_OnCollisionCallback;
 		std::vector<OnCollisionManifoldCallback> m_onCollisionManifoldCallbacks; //!< Collision callbacks post manifold generation
 
 	};
