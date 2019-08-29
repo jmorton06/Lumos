@@ -16,7 +16,7 @@ void Scene2D::OnInit()
 {
 	Scene::OnInit();
 
-	B2PhysicsEngine::Instance()->SetPaused(true);
+	Application::Instance()->GetSystem<LumosPhysicsEngine>()->SetPaused(true);
 
 	m_pCamera = new Camera2D(16, 9, 0.4f);
     m_pCamera->SetPosition({-16.0f,5.0f,0.0f});

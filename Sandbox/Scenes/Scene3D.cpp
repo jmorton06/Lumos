@@ -53,9 +53,9 @@ void Scene3D::OnInit()
 {
 	Scene::OnInit();
 
-	LumosPhysicsEngine::Instance()->SetDampingFactor(0.998f);
-	LumosPhysicsEngine::Instance()->SetIntegrationType(IntegrationType::RUNGE_KUTTA_4);
-	LumosPhysicsEngine::Instance()->SetBroadphase(new Octree(5, 5, CreateRef<SortAndSweepBroadphase>()));
+    Application::Instance()->GetSystem<LumosPhysicsEngine>()->SetDampingFactor(0.998f);
+    Application::Instance()->GetSystem<LumosPhysicsEngine>()->SetIntegrationType(IntegrationType::RUNGE_KUTTA_4);
+    Application::Instance()->GetSystem<LumosPhysicsEngine>()->SetBroadphase(new Octree(5, 3, Lumos::CreateRef<SortAndSweepBroadphase>()));
 
 	LoadModels();
 
@@ -340,7 +340,7 @@ void Scene3D::LoadModels()
 	AddEntity(pendulum);
 
 	auto pendulumConstraint = new SpringConstraint(pendulumHolder->GetComponent<Physics3DComponent>()->GetPhysicsObject(), pendulum->GetComponent<Physics3DComponent>()->GetPhysicsObject(), pendulumHolder->GetComponent<Physics3DComponent>()->GetPhysicsObject()->GetPosition(), pendulum->GetComponent<Physics3DComponent>()->GetPhysicsObject()->GetPosition(), 0.9f, 0.5f);
-	LumosPhysicsEngine::Instance()->AddConstraint(pendulumConstraint);
+	Application::Instance()->GetSystem<LumosPhysicsEngine>()->AddConstraint(pendulumConstraint);
 
 #if 0
 	auto soundFilePath = String("/Sounds/fire.ogg");

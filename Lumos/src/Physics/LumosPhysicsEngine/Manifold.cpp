@@ -75,7 +75,7 @@ namespace Lumos
 
 				float penetrationSlop = Maths::Min(c.collisionPenetration + baumgarteSlop, 0.0f);
 
-				b = -(baumgarteScalar / LumosPhysicsEngine::Instance()->GetDeltaTime()) * penetrationSlop;
+                b = -(baumgarteScalar / LumosPhysicsEngine::GetDeltaTime()) * penetrationSlop;
 			}
 
 			float b_real = Maths::Max(b, c.elatisity_term + b * 0.2f);
