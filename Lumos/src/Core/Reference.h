@@ -323,3 +323,16 @@ namespace Lumos
     }
 #endif
 }
+#ifdef CUSTOM_SMART_PTR
+namespace std
+{
+    template<typename T>
+    struct hash<Lumos::Reference<T>>
+    {
+        size_t operator()(const Lumos::Reference<T>& x) const
+        {
+            return hash<T*>()(x.get());
+        }
+    };
+}
+#endif
