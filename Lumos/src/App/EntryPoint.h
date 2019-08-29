@@ -41,13 +41,6 @@ int main(int argc, char** argv)
 
 #include "Core/OS.h"
 
-struct testStruct
-{
-    int id;
-    String name;
-    float power;
-};
-
 int main(int argc, char** argv)
 {
     Lumos::Internal::CoreSystem::Init();
