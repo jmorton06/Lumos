@@ -102,22 +102,17 @@ namespace Lumos
 
 		Graphics::Renderer::Init(screenWidth, screenHeight);
 
-		System::JobSystem::Execute([] { LumosPhysicsEngine::Instance(); LUMOS_CORE_INFO("Initialised LumosPhysics"); });
-		System::JobSystem::Execute([] { B2PhysicsEngine::Instance(); LUMOS_CORE_INFO("Initialised B2Physics"); });
-
 		//Graphics Loading on main thread
 		AssetsManager::InitializeMeshes();
 		m_RenderManager = CreateScope<Graphics::RenderManager>(screenWidth, screenHeight);
-
-		System::JobSystem::Wait();
 
 		m_LayerStack = lmnew LayerStack();
 		PushLayerInternal(lmnew ImGuiLayer(false),true,false);
 
 		m_SystemManager = CreateScope<SystemManager>();
 		m_SystemManager->RegisterSystem<AudioManager>(AudioManager::Create());
-		m_SystemManager->RegisterSystem<LumosPhysicsEngine>(LumosPhysicsEngine::Instance());
-		m_SystemManager->RegisterSystem<B2PhysicsEngine>(B2PhysicsEngine::Instance());
+		m_SystemManager->RegisterSystem<LumosPhysicsEngine>();
+		m_SystemManager->RegisterSystem<B2PhysicsEngine>();
 
 		m_SystemManager->GetSystem<AudioManager>()->OnInit();
 
@@ -230,8 +225,8 @@ namespace Lumos
 		const u32 sceneIdx = m_SceneManager->GetCurrentSceneIndex();
 		const u32 sceneMax = m_SceneManager->SceneCount();
 
-		if (Input::GetInput().GetKeyPressed(InputCode::Key::P)) LumosPhysicsEngine::Instance()->SetPaused(!LumosPhysicsEngine::Instance()->IsPaused());
-		if (Input::GetInput().GetKeyPressed(InputCode::Key::P)) B2PhysicsEngine::Instance()->SetPaused(!B2PhysicsEngine::Instance()->IsPaused());
+		if (Input::GetInput().GetKeyPressed(InputCode::Key::P)) Application::Instance()->GetSystem<LumosPhysicsEngine>()->SetPaused(!Application::Instance()->GetSystem<LumosPhysicsEngine>()->IsPaused());
+		if (Input::GetInput().GetKeyPressed(InputCode::Key::P)) Application::Instance()->GetSystem<B2PhysicsEngine>()->SetPaused(!Application::Instance()->GetSystem<B2PhysicsEngine>()->IsPaused());
 
 		if (Input::GetInput().GetKeyPressed(InputCode::Key::J)) CommonUtils::AddSphere(m_SceneManager->GetCurrentScene());
 		if (Input::GetInput().GetKeyPressed(InputCode::Key::K)) CommonUtils::AddPyramid(m_SceneManager->GetCurrentScene());

@@ -86,9 +86,9 @@ namespace Lumos
 		Application::Instance()->GetWindow()->SetWindowTitle(Title.str());
 
 		//Default physics setup
-		LumosPhysicsEngine::Instance()->SetDampingFactor(0.998f);
-		LumosPhysicsEngine::Instance()->SetIntegrationType(IntegrationType::RUNGE_KUTTA_4);
-		LumosPhysicsEngine::Instance()->SetBroadphase(lmnew Octree(5, 5, CreateRef<SortAndSweepBroadphase>()));
+		Application::Instance()->GetSystem<LumosPhysicsEngine>()->SetDampingFactor(0.998f);
+		Application::Instance()->GetSystem<LumosPhysicsEngine>()->SetIntegrationType(IntegrationType::RUNGE_KUTTA_4);
+		Application::Instance()->GetSystem<LumosPhysicsEngine>()->SetBroadphase(lmnew Octree(5, 5, CreateRef<SortAndSweepBroadphase>()));
 
 		m_SceneBoundingRadius = 400.0f; //Default scene radius of 400m
 

@@ -15,9 +15,10 @@
 namespace Lumos
 {
 
+    float LumosPhysicsEngine::s_UpdateTimestep = 1.0f/60.0f;
+    
 	LumosPhysicsEngine::LumosPhysicsEngine()
 		: m_IsPaused(true)
-		, m_UpdateTimestep(1.0f / 60.f)
 		, m_UpdateAccum(0.0f)
 		, m_Gravity(Maths::Vector3(0.0f, -9.81f, 0.0f))
 		, m_DampingFactor(0.999f)
@@ -30,7 +31,7 @@ namespace Lumos
 	void LumosPhysicsEngine::SetDefaults()
 	{
 		m_IsPaused = true;
-		m_UpdateTimestep = 1.0f / 60.f;
+		s_UpdateTimestep = 1.0f / 60.f;
 		m_UpdateAccum = 0.0f;
 		m_Gravity = Maths::Vector3(0.0f, -9.81f, 0.0f);
 		m_DampingFactor = 0.999f;
@@ -47,12 +48,12 @@ namespace Lumos
 			delete m_BroadphaseDetection;
 	}
 
-	void LumosPhysicsEngine::AddPhysicsObject(Ref<PhysicsObject3D> obj)
+	void LumosPhysicsEngine::AddPhysicsObject(const Ref<PhysicsObject3D>& obj)
 	{
 		m_PhysicsObjects.push_back(obj);
 	}
 
-	void LumosPhysicsEngine::RemovePhysicsObject(Ref<PhysicsObject3D> obj)
+	void LumosPhysicsEngine::RemovePhysicsObject(const Ref<PhysicsObject3D>& obj)
 	{
 		//// Lookup the object in question
 		const auto it = std::find(m_PhysicsObjects.begin(), m_PhysicsObjects.end(), obj);
@@ -85,13 +86,13 @@ namespace Lumos
 				const int max_updates_per_frame = 5;
 
 				m_UpdateAccum += timeStep->GetSeconds();
-				for (int i = 0; (m_UpdateAccum >= m_UpdateTimestep) && i < max_updates_per_frame; ++i)
+				for (int i = 0; (m_UpdateAccum >= s_UpdateTimestep) && i < max_updates_per_frame; ++i)
 				{
-					m_UpdateAccum -= m_UpdateTimestep;
+					m_UpdateAccum -= s_UpdateTimestep;
 					UpdatePhysics();
 				}
 
-				if (m_UpdateAccum >= m_UpdateTimestep)
+				if (m_UpdateAccum >= s_UpdateTimestep)
 				{
 					LUMOS_CORE_ERROR("Physics too slow to run in real time!");
 					//Drop Time in the hope that it can continue to run in real-time
@@ -101,7 +102,7 @@ namespace Lumos
 			}
 			else
 			{
-				m_UpdateTimestep = timeStep->GetSeconds();
+				s_UpdateTimestep = timeStep->GetSeconds();
 				UpdatePhysics();
 			}
 		}
@@ -144,27 +145,27 @@ namespace Lumos
 
 			// Apply gravity
 			if (obj->m_InvMass > 0.0f)
-				obj->m_LinearVelocity += m_Gravity * m_UpdateTimestep;
+				obj->m_LinearVelocity += m_Gravity * s_UpdateTimestep;
 
 			switch (m_IntegrationType)
 			{
 			case IntegrationType::EXPLICIT_EULER:
 			{
 				// Update position
-				obj->m_Position += obj->m_LinearVelocity * m_UpdateTimestep;
+				obj->m_Position += obj->m_LinearVelocity * s_UpdateTimestep;
 
 				// Update linear velocity (v = u + at)
-				obj->m_LinearVelocity += obj->m_Force * obj->m_InvMass * m_UpdateTimestep;
+				obj->m_LinearVelocity += obj->m_Force * obj->m_InvMass * s_UpdateTimestep;
 
 				// Linear velocity damping
 				obj->m_LinearVelocity = obj->m_LinearVelocity * damping;
 
 				// Update orientation
-				obj->m_Orientation = obj->m_Orientation + (obj->m_Orientation * (obj->m_AngularVelocity * m_UpdateTimestep * 0.5f));
+				obj->m_Orientation = obj->m_Orientation + (obj->m_Orientation * (obj->m_AngularVelocity * s_UpdateTimestep * 0.5f));
 				obj->m_Orientation.Normalise();
 
 				// Update angular velocity
-				obj->m_AngularVelocity += obj->m_InvInertia * obj->m_Torque * m_UpdateTimestep;
+				obj->m_AngularVelocity += obj->m_InvInertia * obj->m_Torque * s_UpdateTimestep;
 
 				// Angular velocity damping
 				obj->m_AngularVelocity = obj->m_AngularVelocity * damping;
@@ -176,22 +177,22 @@ namespace Lumos
 			case IntegrationType::SEMI_IMPLICIT_EULER:
 			{
 				// Update linear velocity (v = u + at)
-				obj->m_LinearVelocity += obj->m_LinearVelocity * obj->m_InvMass * m_UpdateTimestep;
+				obj->m_LinearVelocity += obj->m_LinearVelocity * obj->m_InvMass * s_UpdateTimestep;
 
 				// Linear velocity damping
 				obj->m_LinearVelocity = obj->m_LinearVelocity * damping;
 
 				// Update position
-				obj->m_Position += obj->m_LinearVelocity * m_UpdateTimestep;
+				obj->m_Position += obj->m_LinearVelocity * s_UpdateTimestep;
 
 				// Update angular velocity
-				obj->m_AngularVelocity += obj->m_InvInertia * obj->m_Torque * m_UpdateTimestep;
+				obj->m_AngularVelocity += obj->m_InvInertia * obj->m_Torque * s_UpdateTimestep;
 
 				// Angular velocity damping
 				obj->m_AngularVelocity = obj->m_AngularVelocity * damping;
 
 				// Update orientation
-				obj->m_Orientation = obj->m_Orientation + (obj->m_Orientation * (obj->m_AngularVelocity * m_UpdateTimestep * 0.5f));
+				obj->m_Orientation = obj->m_Orientation + (obj->m_Orientation * (obj->m_AngularVelocity * s_UpdateTimestep * 0.5f));
 				obj->m_Orientation.Normalise();
 
 				break;
@@ -201,7 +202,7 @@ namespace Lumos
 			{
 				// RK2 integration for linear motion
 				Integration::State state = { obj->m_Position, obj->m_LinearVelocity, obj->m_Force * obj->m_InvMass };
-				Integration::RK2(state,0.0f, m_UpdateTimestep);
+                Integration::RK2(state,0.0f, s_UpdateTimestep);
 				obj->m_Position = state.position;
 				obj->m_LinearVelocity = state.velocity;
 
@@ -209,13 +210,13 @@ namespace Lumos
 				obj->m_LinearVelocity = obj->m_LinearVelocity * damping;
 
 				// Update angular velocity
-				obj->m_AngularVelocity += obj->m_InvInertia * obj->m_Torque * m_UpdateTimestep;
+				obj->m_AngularVelocity += obj->m_InvInertia * obj->m_Torque * s_UpdateTimestep;
 
 				// Angular velocity damping
 				obj->m_AngularVelocity = obj->m_AngularVelocity * damping;
 
 				// Update orientation
-				obj->m_Orientation = obj->m_Orientation + (obj->m_Orientation * (obj->m_AngularVelocity * m_UpdateTimestep * 0.5f));
+				obj->m_Orientation = obj->m_Orientation + (obj->m_Orientation * (obj->m_AngularVelocity * s_UpdateTimestep * 0.5f));
 				obj->m_Orientation.Normalise();
 
 				break;
@@ -225,7 +226,7 @@ namespace Lumos
 			{
 				// RK4 integration for linear motion
 				Integration::State state = { obj->m_Position, obj->m_LinearVelocity, obj->m_Force * obj->m_InvMass };
-				Integration::RK4(state, 0.0f, m_UpdateTimestep);
+				Integration::RK4(state, 0.0f, s_UpdateTimestep);
 				obj->m_Position = state.position;
 				obj->m_LinearVelocity = state.velocity;
 
@@ -233,13 +234,13 @@ namespace Lumos
 				obj->m_LinearVelocity = obj->m_LinearVelocity * damping;
 
 				// Update angular velocity
-				obj->m_AngularVelocity += obj->m_InvInertia * obj->m_Torque * m_UpdateTimestep;
+				obj->m_AngularVelocity += obj->m_InvInertia * obj->m_Torque * s_UpdateTimestep;
 
 				// Angular velocity damping
 				obj->m_AngularVelocity = obj->m_AngularVelocity * damping;
 
 				// Update orientation
-				obj->m_Orientation = obj->m_Orientation + (obj->m_Orientation * (obj->m_AngularVelocity * m_UpdateTimestep * 0.5f));
+				obj->m_Orientation = obj->m_Orientation + (obj->m_Orientation * (obj->m_AngularVelocity * s_UpdateTimestep * 0.5f));
 				obj->m_Orientation.Normalise();
 
 				break;
@@ -314,8 +315,8 @@ namespace Lumos
 
 	void LumosPhysicsEngine::SolveConstraints()
 	{
-		for (Manifold* m : m_Manifolds)		m->PreSolverStep(m_UpdateTimestep);
-		for (Constraint* c : m_Constraints)	c->PreSolverStep(m_UpdateTimestep);
+		for (Manifold* m : m_Manifolds)		m->PreSolverStep(s_UpdateTimestep);
+		for (Constraint* c : m_Constraints)	c->PreSolverStep(s_UpdateTimestep);
 
 		for (size_t i = 0; i < SOLVER_ITERATIONS; ++i)
 		{

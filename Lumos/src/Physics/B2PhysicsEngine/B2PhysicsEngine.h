@@ -12,7 +12,7 @@ namespace Lumos
 {
 	class TimeStep;
 
-	class LUMOS_EXPORT B2PhysicsEngine : public TSingleton<B2PhysicsEngine>, public ISystem
+	class LUMOS_EXPORT B2PhysicsEngine : public ISystem
 	{
 		friend class TSingleton<B2PhysicsEngine>;
 

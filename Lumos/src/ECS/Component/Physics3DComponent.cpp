@@ -1,5 +1,6 @@
 #include "LM.h"
 #include "Physics3DComponent.h"
+#include "App/Application.h"
 #include "Physics/LumosPhysicsEngine/LumosPhysicsEngine.h"
 #include "ECS/EntityManager.h"
 #include "TransformComponent.h"
@@ -12,14 +13,14 @@ namespace Lumos
     {
         m_PhysicsObject = CreateRef<PhysicsObject3D>();
         m_Name = "Physics3D";
-        LumosPhysicsEngine::Instance()->AddPhysicsObject(m_PhysicsObject);
+        Application::Instance()->GetSystem<LumosPhysicsEngine>()->AddPhysicsObject(m_PhysicsObject);
     }
     
 	Physics3DComponent::Physics3DComponent(Ref<PhysicsObject3D>& physics)
 		: m_PhysicsObject(physics)
 	{
 		m_Name = "Physics3D";
-		LumosPhysicsEngine::Instance()->AddPhysicsObject(physics);
+		Application::Instance()->GetSystem<LumosPhysicsEngine>()->AddPhysicsObject(physics);
 	}
 
 	void Physics3DComponent::Init()

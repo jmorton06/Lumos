@@ -10,9 +10,9 @@ GraphicsScene::~GraphicsScene() = default;
 void GraphicsScene::OnInit()
 {
 	Scene::OnInit();
-	LumosPhysicsEngine::Instance()->SetDampingFactor(0.998f);
-	LumosPhysicsEngine::Instance()->SetIntegrationType(IntegrationType::RUNGE_KUTTA_4);
-	LumosPhysicsEngine::Instance()->SetBroadphase(new Octree(5, 3, Lumos::CreateRef<SortAndSweepBroadphase>()));
+	Application::Instance()->GetSystem<LumosPhysicsEngine>()->SetDampingFactor(0.998f);
+	Application::Instance()->GetSystem<LumosPhysicsEngine>()->SetIntegrationType(IntegrationType::RUNGE_KUTTA_4);
+	Application::Instance()->GetSystem<LumosPhysicsEngine>()->SetBroadphase(new Octree(5, 3, Lumos::CreateRef<SortAndSweepBroadphase>()));
 
 	LoadModels();
 
