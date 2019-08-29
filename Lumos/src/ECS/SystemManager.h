@@ -10,15 +10,15 @@ namespace Lumos
     {
     public:
 
-        template<typename T>
-        Ref<T> RegisterSystem()
+        template <typename T, typename ... Args>
+        Ref<T> RegisterSystem(Args&& ...args)
         {
 			auto typeName = typeid(T).hash_code();
             
             LUMOS_CORE_ASSERT(m_Systems.find(typeName) == m_Systems.end(), "Registering system more than once.");
             
             // Create a pointer to the system and return it so it can be used externally
-            Ref<T> system = CreateRef<T>();
+            Ref<T> system = CreateRef<T>(args ...);
             m_Systems.insert({typeName, std::move( system) });
             return system;
         }
