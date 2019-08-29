@@ -208,7 +208,7 @@ namespace Lumos
 		}
             
         RefCount* m_Counter = nullptr;
-        T* m_Ptr;
+        T* m_Ptr = nullptr;
     };
     
     template<class T>
