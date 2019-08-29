@@ -54,7 +54,7 @@ namespace Lumos
 
 			if (m_Systems.find(typeName) != m_Systems.end())
 			{
-				return (T*)m_Systems[typeName].get();
+				return dynamic_cast<T*>(m_Systems[typeName].get());
 			}
 
 			return nullptr;
