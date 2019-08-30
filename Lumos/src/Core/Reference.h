@@ -3,7 +3,7 @@
 #include "LM.h"
 #include "LMLog.h"
 #include "ReferenceCounter.h"
-#include "Memory.h"
+#include "OS/Memory.h"
 
 namespace Lumos
 {
@@ -54,7 +54,7 @@ namespace Lumos
         
 		// Access to smart pointer state
 		_FORCE_INLINE_ T* get()                 const { return m_Ptr; }
-		_FORCE_INLINE_ explicit operator bool() const { return m_Ptr; }
+		_FORCE_INLINE_ explicit operator bool() const { return m_Ptr != nullptr; }
         _FORCE_INLINE_ RefCount* GetCounter()   const { return m_Counter; }
 
         _FORCE_INLINE_ T* release() noexcept
