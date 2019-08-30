@@ -1,6 +1,6 @@
 #pragma once
 
-#include "Core/Mutex.h"
+#include "Core/OS/Mutex.h"
 
 #include <pthread.h>
 
@@ -17,7 +17,7 @@ namespace Lumos
         ~UnixMutex();
 
     private:
-            pthread_mutexattr_t attr;
-            pthread_mutex_t mutex;
+        pthread_mutexattr_t attr;
+        pthread_mutex_t mutex;
     };
 }

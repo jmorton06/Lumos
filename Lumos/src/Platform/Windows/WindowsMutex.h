@@ -1,5 +1,5 @@
 #pragma once
-#include "Core/Mutex.h"
+#include "Core/OS/Mutex.h"
 #include <windows.h>
 
 namespace Lumos

@@ -24,7 +24,7 @@
 #include "Core/Types.h"
 #include "Core/String.h"
 #include "Core/LMLog.h"
-#include "Core/Memory.h"
+#include "Core/OS/Memory.h"
 #endif
 
 #include <stdio.h>

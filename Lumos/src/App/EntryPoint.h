@@ -1,7 +1,7 @@
 #if defined(LUMOS_PLATFORM_WINDOWS)
 
 #include "Core/CoreSystem.h"
-#include "Core/OS.h"
+#include "Core/OS/OS.h"
 
 extern Lumos::Application* Lumos::CreateApplication();
 
@@ -39,7 +39,7 @@ int main(int argc, char** argv)
 
 #elif defined(LUMOS_PLATFORM_MACOS)
 
-#include "Core/OS.h"
+#include "Core/OS/OS.h"
 
 int main(int argc, char** argv)
 {

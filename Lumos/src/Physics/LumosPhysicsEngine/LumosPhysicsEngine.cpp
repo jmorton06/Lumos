@@ -50,7 +50,7 @@ namespace Lumos
 
 	void LumosPhysicsEngine::AddPhysicsObject(const Ref<PhysicsObject3D>& obj)
 	{
-		m_PhysicsObjects.push_back(obj);
+		m_PhysicsObjects.emplace_back(obj);
 	}
 
 	void LumosPhysicsEngine::RemovePhysicsObject(const Ref<PhysicsObject3D>& obj)
