@@ -31,9 +31,9 @@ namespace Lumos
 		m_RootNode->physicsObjects.reserve(m_MaxObjectsPerPartition);
 		m_RootNode->childNodes.reserve(8);
 
-		for (const auto& physicsObject : objects)
+		for (auto& physicsObject : objects)
 		{
-			if (physicsObject->GetCollisionShape())
+            if (physicsObject && physicsObject->GetCollisionShape())
 			{
 				m_RootNode->boundingBox.ExpandToFit(physicsObject->GetWorldSpaceAABB());
 				m_RootNode->physicsObjects.push_back(physicsObject);

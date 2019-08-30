@@ -272,14 +272,14 @@ namespace Lumos
 			for (size_t i = 0; i < m_BroadphaseCollisionPairs.size(); ++i)
 			{
 				CollisionPair &cp = m_BroadphaseCollisionPairs[i];
-				CollisionShape* shapeA = cp.pObjectA->GetCollisionShape();
-				CollisionShape* shapeB = cp.pObjectB->GetCollisionShape();
+				auto shapeA = cp.pObjectA->GetCollisionShape();
+				auto shapeB = cp.pObjectB->GetCollisionShape();
 
 				if (!shapeA || !shapeB)
 					continue;
 
 				// Detects if the objects are colliding - Seperating Axis Theorem
-				if (CollisionDetection::Instance()->CheckCollision(cp.pObjectA, cp.pObjectB, shapeA, shapeB, &colData))
+				if (CollisionDetection::Instance()->CheckCollision(cp.pObjectA, cp.pObjectB, shapeA.get(), shapeB.get(), &colData))
 				{
 					// Check to see if any of the objects have collision callbacks that dont
 					// want the objects to physically collide
@@ -294,7 +294,7 @@ namespace Lumos
 						manifold->Initiate(cp.pObjectA, cp.pObjectB);
 
 						// Construct contact points that form the perimeter of the collision manifold
-						if (CollisionDetection::Instance()->BuildCollisionManifold(cp.pObjectA, cp.pObjectB, shapeA, shapeB, colData, manifold))
+						if (CollisionDetection::Instance()->BuildCollisionManifold(cp.pObjectA, cp.pObjectB, shapeA.get(), shapeB.get(), colData, manifold))
 						{
 							// Fire callback
 							cp.pObjectA->FireOnCollisionManifoldCallback(cp.pObjectA, cp.pObjectB, manifold);
