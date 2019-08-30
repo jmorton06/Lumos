@@ -30,7 +30,7 @@ namespace Lumos
         return m_ID;
     }
 
-    DWORD WINAPI WindowsThread::ThreadCallback(LPVOID userdata);
+    DWORD WindowsThread::ThreadCallback(LPVOID userdata);
     {
         WindowsThread *t = reinterpret_cast<WindowsThread *>(userdata);
        
@@ -38,7 +38,7 @@ namespace Lumos
         t->m_Callback(t->m_User);
         SetEvent(t->m_Handle);
 
-        return NULL;
+        return 0;
     }
 
     Thread::ID WindowsThread::GetThreadIDFuncWindows()
