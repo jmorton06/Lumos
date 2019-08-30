@@ -11,7 +11,7 @@ namespace Lumos
     {
         m_Callback = p_callback;
         m_User = p_user;
-        tr->m_Handle = CreateEvent(NULL, TRUE, FALSE, NULL);
+        m_Handle = CreateEvent(NULL, TRUE, FALSE, NULL);
 
 	    QueueUserWorkItem(ThreadCallback, tr, WT_EXECUTELONGFUNCTION);
     }   
@@ -55,8 +55,7 @@ namespace Lumos
 
     void WindowsThread::MakeDefault() 
     {
-        get_thread_id_func = GetThreadIDFuncUnix;
-        wait_to_finish_func = WaitToFinishFuncUnix;
-        set_name_func = SetNameFuncUnix;
+        get_thread_id_func = GetThreadIDFuncWindows;
+        wait_to_finish_func = WaitToFinishFuncWindows;
     }
 }
