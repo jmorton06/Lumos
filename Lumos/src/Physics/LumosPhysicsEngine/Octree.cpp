@@ -32,7 +32,7 @@ namespace Lumos
 		m_RootNode->childNodes.reserve(8);
 
 		for (auto& physicsObject : objects)
-		{	 
+        {
             if (physicsObject && physicsObject->GetCollisionShape())
 			{
 				m_RootNode->boundingBox.ExpandToFit(physicsObject->GetWorldSpaceAABB());
