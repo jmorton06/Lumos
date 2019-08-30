@@ -79,7 +79,7 @@ namespace Lumos
 			}
 			else
 			{
-				testPhysics->SetCollisionShape(CreateScope<SphereCollisionShape>(radius));
+				testPhysics->SetCollisionShape(CreateRef<SphereCollisionShape>(radius));
 				testPhysics->SetInverseInertia(testPhysics->GetCollisionShape()->BuildInverseInertia(inverse_mass));
 			}
 
@@ -139,7 +139,7 @@ namespace Lumos
 			}
 			else
 			{
-				testPhysics->SetCollisionShape(CreateScope<CuboidCollisionShape>(halfdims));
+				testPhysics->SetCollisionShape(CreateRef<CuboidCollisionShape>(halfdims));
 				testPhysics->SetInverseInertia(testPhysics->GetCollisionShape()->BuildInverseInertia(inverse_mass));
 			}
 
@@ -200,7 +200,7 @@ namespace Lumos
 			}
 			else
 			{
-				testPhysics->SetCollisionShape(CreateScope<PyramidCollisionShape>(halfdims));
+				testPhysics->SetCollisionShape(CreateRef<PyramidCollisionShape>(halfdims));
 				testPhysics->SetInverseInertia(testPhysics->GetCollisionShape()->BuildInverseInertia(inverse_mass));
 			}
 
