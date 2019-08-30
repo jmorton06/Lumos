@@ -1,6 +1,6 @@
 #pragma once
 #include "LM.h"
-#include "Error.h"
+#include "Core/Error.h"
 
 namespace Lumos
 {
