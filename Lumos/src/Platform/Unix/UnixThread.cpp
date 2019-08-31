@@ -98,9 +98,8 @@ namespace Lumos
         int err = pthread_setname_np(p_name.c_str());
 
     #else
-
-    #ifdef PTHREAD_BSD_SET_NAME
         pthread_t running_thread = pthread_self();
+    #ifdef PTHREAD_BSD_SET_NAME
         pthread_set_name_np(running_thread, p_name.c_str());
         int err = 0; // Open/FreeBSD ignore errors in this function
     #else
