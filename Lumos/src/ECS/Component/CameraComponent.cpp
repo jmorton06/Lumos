@@ -11,12 +11,14 @@ namespace Lumos
     CameraComponent::CameraComponent()
     {
         m_Camera = nullptr;
+        m_BoundingShape = nullptr;
     }
     
 	CameraComponent::CameraComponent(Camera* camera)
 		: m_Camera(camera)
 	{
 		m_Name = "Camera";
+        m_BoundingShape = nullptr;
 	}
 
 	void CameraComponent::OnUpdateComponent(float dt)
