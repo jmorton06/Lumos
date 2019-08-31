@@ -27,5 +27,7 @@ namespace Lumos
         LuaScript::Release();
 		VFS::OnShutdown();
 		Lumos::Memory::LogMemoryInformation();
+
+		LMLog::OnRelease();
     }
 } }

@@ -23,7 +23,7 @@
 #include "App/Scene.h"
 #include "Maths/Maths.h"
 #include "RenderCommand.h"
-#include "System/JobSystem.h"
+#include "Core/JobSystem.h"
 
 #define THREAD_CASCADE_GEN
 

@@ -24,8 +24,8 @@ namespace Lumos
 #else
 		vk::Win32SurfaceCreateInfoKHR surfaceInfo;
 		surfaceInfo.pNext = NULL;
-		surfaceInfo.hwnd = (HWND)window->GetHandle();
-		surfaceInfo.hinstance = ((WindowsWindow*)window)->GetHInstance();
+		surfaceInfo.hwnd = static_cast<HWND>(window->GetHandle());
+		surfaceInfo.hinstance = static_cast<WindowsWindow*>(window)->GetHInstance();
 		surface = m_VKContext->GetVKInstance().createWin32SurfaceKHR(surfaceInfo);
 #endif
 

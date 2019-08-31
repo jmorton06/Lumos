@@ -15,7 +15,7 @@
 #include "Graphics/API/Texture.h"
 #include "Graphics/GBuffer.h"
 #include "App/Scene.h"
-#include "ECS/Entity.h"
+#include "ECS/EntityManager.h"
 #include "ECS/Component/MaterialComponent.h"
 #include "ECS/Component/SpriteComponent.h"
 #include "ECS/Component/TransformComponent.h"

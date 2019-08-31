@@ -21,7 +21,6 @@ namespace Lumos
 		RegisterComponent<MaterialComponent>();
 	}
 
-
 	ComponentManager::~ComponentManager()
 	{
 	}

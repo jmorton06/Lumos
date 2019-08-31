@@ -1,6 +1,6 @@
 #include "LM.h"
 #include "ModelLoader.h"
-#include "System/VFS.h"
+#include "Core/VFS.h"
 
 namespace Lumos
 {

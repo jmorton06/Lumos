@@ -1,6 +1,5 @@
 #include "LM.h"
 #include "SoundComponent.h"
-#include "Audio/SoundNode.h"
 #include "App/Scene.h"
 #include "Maths/BoundingSphere.h"
 #include "App/Application.h"
@@ -12,16 +11,16 @@ namespace Lumos
 {
     SoundComponent::SoundComponent()
     {
-        m_SoundNode = std::shared_ptr<SoundNode>(SoundNode::Create());
+        m_SoundNode = Ref<SoundNode>(SoundNode::Create());
         m_Name = "Sound";
-        m_BoundingShape = std::make_unique<Maths::BoundingSphere>(m_SoundNode->GetPosition(),m_SoundNode->GetRadius());
+        m_BoundingShape = CreateScope<Maths::BoundingSphere>(m_SoundNode->GetPosition(),m_SoundNode->GetRadius());
     }
     
-	SoundComponent::SoundComponent(std::shared_ptr<SoundNode>& sound)
+	SoundComponent::SoundComponent(Ref<SoundNode>& sound)
 		: m_SoundNode(sound)
 	{
 		m_Name = "Sound";
-		m_BoundingShape = std::make_unique<Maths::BoundingSphere>(sound->GetPosition(),sound->GetRadius());
+		m_BoundingShape = CreateScope<Maths::BoundingSphere>(sound->GetPosition(),sound->GetRadius());
 	}
 
 	void SoundComponent::OnUpdateComponent(float dt)

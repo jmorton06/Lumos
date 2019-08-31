@@ -37,7 +37,7 @@ namespace Lumos
 		}
 
         LUMOS_CORE_INFO("[SceneManager] - Enqueued scene : {0}", scene->GetSceneName().c_str());
-		m_vpAllScenes.emplace_back(std::unique_ptr<Scene>(scene));
+		m_vpAllScenes.emplace_back(Scope<Scene>(scene));
 
 		auto screenSize = Application::Instance()->GetWindowSize();
 		scene->SetScreenWidth(static_cast<u32>(screenSize.GetX()));
@@ -95,8 +95,8 @@ namespace Lumos
         if (m_CurrentScene)
         {
             LUMOS_CORE_INFO("[SceneManager] - Exiting scene : {0}" , m_CurrentScene->GetSceneName());
-            LumosPhysicsEngine::Instance()->RemoveAllPhysicsObjects();
-            LumosPhysicsEngine::Instance()->SetPaused(true);
+            Application::Instance()->GetSystem<LumosPhysicsEngine>()->RemoveAllPhysicsObjects();
+            Application::Instance()->GetSystem<LumosPhysicsEngine>()->SetPaused(true);
             m_CurrentScene->OnCleanupScene();
 			Application::Instance()->OnExitScene();
         }
@@ -105,8 +105,8 @@ namespace Lumos
         m_CurrentScene = m_vpAllScenes[m_QueuedSceneIndex].get();
         
         //Initialize new scene
-        LumosPhysicsEngine::Instance()->SetDefaults();
-        B2PhysicsEngine::Instance()->SetDefaults();
+        Application::Instance()->GetSystem<LumosPhysicsEngine>()->SetDefaults();
+        Application::Instance()->GetSystem<B2PhysicsEngine>()->SetDefaults();
         
         auto screenSize = Application::Instance()->GetWindowSize();
         m_CurrentScene->SetScreenWidth(static_cast<u32>(screenSize.GetX()));

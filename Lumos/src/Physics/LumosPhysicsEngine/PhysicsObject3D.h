@@ -41,7 +41,7 @@ namespace Lumos
 		const Maths::Vector3&	 GetAngularVelocity()	  const { return m_AngularVelocity; }
 		const Maths::Vector3&	 GetTorque()			  const { return m_Torque; }
 		const Maths::Matrix3&	 GetInverseInertia()	  const { return m_InvInertia; }
-		CollisionShape*			 GetCollisionShape()	  const { return m_CollisionShape.get(); }
+		const Ref<CollisionShape>&	GetCollisionShape()	  const { return m_CollisionShape; }
 		Entity*					 GetAssociatedObject()	  const { return m_pParent; }
 		const Maths::Matrix4&	 GetWorldSpaceTransform() const;	//Built from scratch or returned from cached value
 
@@ -94,7 +94,7 @@ namespace Lumos
 		void SetTorque(const Maths::Vector3& v) {if(m_Static) return;  m_Torque = v; }
 		void SetInverseInertia(const Maths::Matrix3& v) { m_InvInertia = v; }
 
-		void SetCollisionShape(std::unique_ptr<CollisionShape> colShape) { m_CollisionShape = std::move(colShape); AutoResizeBoundingBox(); }
+		void SetCollisionShape(const Ref<CollisionShape>& colShape) { m_CollisionShape = colShape; AutoResizeBoundingBox(); }
 
 		//Called automatically when PhysicsObject3D is created through Object3D::CreatePhysicsNode()
 		void SetAssociatedObject(Entity* obj) { m_pParent = obj; }
@@ -151,7 +151,7 @@ namespace Lumos
 		Maths::Vector3		m_Position;
 		Maths::Vector3		m_LinearVelocity;
 		Maths::Vector3		m_Force;
-		float		m_InvMass;
+		float m_InvMass;
 
 		//<----------ANGULAR-------------->
 		Maths::Quaternion  m_Orientation;
@@ -160,8 +160,8 @@ namespace Lumos
 		Maths::Matrix3	   m_InvInertia;
 
 		//<----------COLLISION------------>
-		std::unique_ptr<CollisionShape> m_CollisionShape;
-		PhysicsCollisionCallback	    m_OnCollisionCallback;
+		Ref<CollisionShape> m_CollisionShape;
+		PhysicsCollisionCallback m_OnCollisionCallback;
 		std::vector<OnCollisionManifoldCallback> m_onCollisionManifoldCallbacks; //!< Collision callbacks post manifold generation
 
 	};

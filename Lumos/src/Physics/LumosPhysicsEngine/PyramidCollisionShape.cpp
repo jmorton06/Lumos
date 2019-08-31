@@ -5,7 +5,7 @@
 namespace Lumos
 {
 
-	std::unique_ptr<Hull> PyramidCollisionShape::m_PyramidHull  = std::make_unique<Hull>();
+	Scope<Hull> PyramidCollisionShape::m_PyramidHull  = CreateScope<Hull>();
 
 	PyramidCollisionShape::PyramidCollisionShape()
 	{

@@ -45,6 +45,8 @@ namespace Lumos
 			int GetCommandBufferCount() const { return static_cast<int>(m_CommandBuffers.size()); }
 			CommandBuffer* GetCommandBuffer(int id) const { return m_CommandBuffers[id]; }
 
+			void OnIMGUI() override;
+
 		private:
 
 			void SetSystemUniforms(Shader* shader) const;

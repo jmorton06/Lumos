@@ -1,14 +1,15 @@
 #include "LM.h"
 #include "Editor.h"
-#include "Application.h"
 #include "Console.h"
-#include "Input.h"
-#include "Engine.h"
-#include "Scene.h"
-#include "SceneManager.h"
+#include "ImGUIConsoleSink.h"
+#include "App/Application.h"
+#include "App/Input.h"
+#include "App/Engine.h"
+#include "App/Scene.h"
+#include "App/SceneManager.h"
 
 #include "Maths/BoundingSphere.h"
-#include "ECS/Entity.h"
+#include "ECS/EntityManager.h"
 #include "ECS/Component/Components.h"
 #include "ECS/SystemManager.h"
 #include "Physics/LumosPhysicsEngine/LumosPhysicsEngine.h"
@@ -30,21 +31,11 @@ namespace Lumos
 {
 	Editor::Editor(Application* app, u32 width, u32 height) : m_Application(app)
 	{
-		m_Console = lmnew Console();
-		LMLog::GetCoreLogger()->sinks().emplace_back(std::make_shared<ConsoleSink>(*m_Console));
-		LMLog::GetClientLogger()->sinks().emplace_back(std::make_shared<ConsoleSink>(*m_Console));
-
 		m_SceneViewSize = Maths::Vector2(static_cast<float>(width), static_cast<float>(height));
 	}
 
 	Editor::~Editor()
 	{
-		LMLog::GetCoreLogger()->sinks().pop_back();
-		LMLog::GetClientLogger()->sinks().pop_back();
-		delete m_Console;
-
-		for (auto texture : m_Icons)
-			delete texture.second;
 	}
 
 	void Editor::OnImGui()
@@ -52,11 +43,20 @@ namespace Lumos
 		DrawMenuBar();
 		BeginDockSpace();
 		//SelectEntity();
-		DrawSceneView();
-		DrawConsole();
-		DrawHierarchyWindow();
-		DrawInspectorWindow();
-        DrawGraphicsInfoWindow();
+        if(m_ShowSceneView)
+            DrawSceneView();
+        if(m_ShowConsole)
+            DrawConsole();
+        if(m_ShowHierarchy)
+            DrawHierarchyWindow();
+        if(m_ShowInspector)
+            DrawInspectorWindow();
+        if(m_ShowGraphicsInfo)
+            DrawGraphicsInfoWindow();
+
+        if(m_ShowImGuiDemo)
+            ImGui::ShowDemoWindow(&m_ShowImGuiDemo);
+
 		EndDockSpace();
 	}
 
@@ -82,10 +82,12 @@ namespace Lumos
 
 			if (ImGui::BeginMenu("Windows"))
 			{
-				if (ImGui::MenuItem("Console")) {}
-				if (ImGui::MenuItem("Hierarchy", "", true, true)) {}
-				if (ImGui::MenuItem("Scene", "")) {}
-				if (ImGui::MenuItem("Inspector", "")) {}
+				if (ImGui::MenuItem("Console", "", &m_ShowConsole, true)) { m_ShowConsole = true;  }
+				if (ImGui::MenuItem("Hierarchy", "", &m_ShowHierarchy, true)) { m_ShowHierarchy = true; }
+				if (ImGui::MenuItem("Scene", "", &m_ShowSceneView, true)) { m_ShowSceneView = true; }
+				if (ImGui::MenuItem("Inspector", "", &m_ShowInspector, true)) { m_ShowInspector = true; }
+				if (ImGui::MenuItem("GraphicsInfo", "", &m_ShowGraphicsInfo, true)) { m_ShowGraphicsInfo = true; }
+				if (ImGui::MenuItem("ImGuiExample", "", &m_ShowImGuiDemo, true)) { m_ShowImGuiDemo = true; }
 				ImGui::EndMenu();
 			}
             
@@ -112,7 +114,7 @@ namespace Lumos
 				if (selected)
 					ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.1f, 0.2f, 0.7f, 1.0f));
 
-				if (ImGui::Button(ICON_FA_PLAY, ImVec2(28.0f, 28.0f)))
+				if (ImGui::Button(ICON_FA_PLAY, ImVec2(19.0f, 19.0f)))
 					m_Application->SetEditorState(EditorState::Play);
 
 				if (selected)
@@ -124,7 +126,7 @@ namespace Lumos
 				if (selected)
 					ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.1f, 0.2f, 0.7f, 1.0f));
 
-				if (ImGui::Button(ICON_FA_PAUSE, ImVec2(28.0f, 28.0f)))
+				if (ImGui::Button(ICON_FA_PAUSE, ImVec2(19.0f, 19.0f)))
 					m_Application->SetEditorState(EditorState::Paused);
 
 				if (selected)
@@ -136,7 +138,7 @@ namespace Lumos
 				if (selected)
 					ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.1f, 0.2f, 0.7f, 1.0f));
 
-				if (ImGui::Button(ICON_FA_STEP_FORWARD, ImVec2(28.0f, 28.0f)))
+				if (ImGui::Button(ICON_FA_STEP_FORWARD, ImVec2(19.0f, 19.0f)))
 					m_Application->SetEditorState(EditorState::Next);
 
 				if (selected)
@@ -208,7 +210,7 @@ namespace Lumos
 
 	void Editor::DrawHierarchyWindow()
 	{
-		ImGui::Begin("Hierarchy", nullptr, 0);
+		ImGui::Begin("Hierarchy", &m_ShowHierarchy, 0);
 		{
 			if (ImGui::TreeNode("Application"))
 			{
@@ -352,7 +354,7 @@ namespace Lumos
 
 	void Editor::DrawInspectorWindow()
 	{
-		ImGui::Begin("Inspector", NULL, 0);
+		ImGui::Begin("Inspector", &m_ShowInspector, 0);
         
 		if (m_Selected)
         {
@@ -366,7 +368,7 @@ namespace Lumos
 	{
 		ImGuiWindowFlags windowFlags = 0;
 		ImGui::SetNextWindowBgAlpha(0.0f);
-		ImGui::Begin("Scene", nullptr, windowFlags);
+		ImGui::Begin("Scene",  &m_ShowSceneView, windowFlags);
 		
 		ImGuizmo::SetDrawlist();
 		m_SceneViewSize = Maths::Vector2(ImGui::GetWindowSize().x, ImGui::GetWindowSize().y);
@@ -375,13 +377,15 @@ namespace Lumos
 		m_Application->m_SceneManager->GetCurrentScene()->GetCamera()->SetAspectRatio(static_cast<float>(ImGui::GetWindowSize().x) / static_cast<float>(ImGui::GetWindowSize().y));
 
 		auto width = static_cast<unsigned int>(ImGui::GetWindowContentRegionMax().x - ImGui::GetWindowContentRegionMin().x);
-		auto height = static_cast<unsigned int>(ImGui::GetWindowContentRegionMax().y - ImGui::GetWindowContentRegionMin().y);
+		auto height = static_cast<unsigned int>(ImGui::GetWindowContentRegionMax().y - ImGui::GetWindowContentRegionMin().y + 20);
 
 		// Make pixel perfect
 		width -= (width % 2 != 0) ? 1 : 0;
 		height -= (height % 2 != 0) ? 1 : 0;
 
         bool flipImage = Graphics::GraphicsContext::GetContext()->FlipImGUITexture();
+
+		ImGui::SetCursorPos({ 0,0 });
         
 		ImGuizmo::SetRect(ImGui::GetWindowPos().x, ImGui::GetWindowPos().y, static_cast<float>(width), static_cast<float>(height));
 		ImGui::Image(m_Application->m_RenderManager->GetGBuffer()->GetTexture(Graphics::SCREENTEX_OFFSCREEN0)->GetHandle(), ImVec2(static_cast<float>(width), static_cast<float>(height)), ImVec2(0.0f, flipImage ? 1.0f : 0.0f), ImVec2(1.0f, flipImage ? 0.0f : 1.0f));
@@ -518,12 +522,12 @@ namespace Lumos
 
 	void Editor::DrawConsole()
 	{
-		m_Console->Draw("Console");
+		Console::Instance()->OnImGuiRender(&m_ShowConsole);
 	}
     
     void Editor::DrawGraphicsInfoWindow()
     {
-        ImGui::Begin("GraphicsInfo", nullptr, 0);
+        ImGui::Begin("GraphicsInfo", &m_ShowGraphicsInfo, 0);
         {
             Graphics::GraphicsContext::GetContext()->OnImGUI();
         }

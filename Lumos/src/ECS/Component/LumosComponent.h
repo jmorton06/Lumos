@@ -40,7 +40,7 @@ namespace Lumos
 		String m_Name;
 		bool m_Active = true;
 		bool m_CanDisable = true;
-		std::unique_ptr<Maths::BoundingShape> m_BoundingShape;
+		Scope<Maths::BoundingShape> m_BoundingShape;
 	};
 
 }

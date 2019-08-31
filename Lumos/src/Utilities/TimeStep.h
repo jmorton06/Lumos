@@ -3,7 +3,7 @@
 
 namespace Lumos
 {
-    struct LUMOS_EXPORT TimeStep
+    class LUMOS_EXPORT TimeStep
     {
     public:
         inline TimeStep(float initialTime)

@@ -21,9 +21,9 @@ namespace Lumos
 	};
 
 	class Constraint;
-	struct TimeStep;
+	class TimeStep;
 
-	class LUMOS_EXPORT LumosPhysicsEngine : public TSingleton<LumosPhysicsEngine> , public ISystem
+	class LUMOS_EXPORT LumosPhysicsEngine : public ISystem
 	{
 		friend class TSingleton<LumosPhysicsEngine>;
 	public:
@@ -33,8 +33,8 @@ namespace Lumos
 		void SetDefaults();
 
 		//Add/Remove Physics Objects
-		void AddPhysicsObject(std::shared_ptr<PhysicsObject3D> obj);
-		void RemovePhysicsObject(std::shared_ptr<PhysicsObject3D> obj);
+		void AddPhysicsObject(const Ref<PhysicsObject3D>& obj);
+		void RemovePhysicsObject(const Ref<PhysicsObject3D>& obj);
 		void RemoveAllPhysicsObjects(); //Delete all physics entities etc and reset-physics environment for new scene to be initialized
 
 		//Add Constraints
@@ -48,16 +48,13 @@ namespace Lumos
 		bool IsPaused() const { return m_IsPaused; }
 		void SetPaused(bool paused) { m_IsPaused = paused; }
 
-		void SetUpdateTimestep(float updateTimestep) { m_UpdateTimestep = updateTimestep; }
-		float GetUpdateTimestep() const { return m_UpdateTimestep; }
-
 		const Maths::Vector3& GetGravity() const { return m_Gravity; }
 		void SetGravity(const Maths::Vector3& g) { m_Gravity = g; }
 
 		float GetDampingFactor() const { return m_DampingFactor; }
 		void  SetDampingFactor(float d) { m_DampingFactor = d; }
 
-		float GetDeltaTime() const { return m_UpdateTimestep; }
+        static float GetDeltaTime() { return s_UpdateTimestep; }
 
 		Broadphase* GetBroadphase() const { return m_BroadphaseDetection; }
 		inline void SetBroadphase(Broadphase* bp)
@@ -97,12 +94,11 @@ namespace Lumos
 
 	protected:
 		bool		m_IsPaused;
-		float		m_UpdateTimestep, m_UpdateAccum;
-
+		float		m_UpdateAccum;
 		Maths::Vector3 m_Gravity;
 		float		m_DampingFactor;
 
-		std::vector<std::shared_ptr<PhysicsObject3D>> m_PhysicsObjects;
+		std::vector<Ref<PhysicsObject3D>> m_PhysicsObjects;
 		std::vector<CollisionPair>  m_BroadphaseCollisionPairs;
 
 		std::vector<Constraint*>	m_Constraints;			// Misc constraints between pairs of objects
@@ -113,5 +109,6 @@ namespace Lumos
 		IntegrationType m_IntegrationType;
 
 		bool m_MultipleUpdates = true;
+        static float s_UpdateTimestep;
 	};
 }

@@ -3,10 +3,10 @@
 
 #include "Scene.h"
 #include "SceneManager.h"
-#include "Editor.h"
 #include "Input.h"
 #include "Engine.h"
 #include "Window.h"
+#include "Editor/Editor.h"
 
 #include "Graphics/API/Renderer.h"
 #include "Graphics/API/GraphicsContext.h"
@@ -20,10 +20,9 @@
 #include "ECS/ComponentManager.h"
 
 #include "Utilities/CommonUtils.h"
-#include "Utilities/TimeStep.h"
 #include "Utilities/AssetsManager.h"
-#include "System/VFS.h"
-#include "System/JobSystem.h"
+#include "Core/VFS.h"
+#include "Core/JobSystem.h"
 #include "Scripting/LuaScript.h"
 
 #include "Events/ApplicationEvent.h"
@@ -53,8 +52,7 @@ namespace Lumos
 		EntityManager::Instance();
 		ComponentManager::Instance();
 
-		m_TimeStep = std::make_unique<TimeStep>(0.0f);
-		m_Timer = std::make_unique<Timer>();
+		m_Timer = CreateScope<Timer>();
 
 		const String root = ROOT_DIR;
 
@@ -63,10 +61,10 @@ namespace Lumos
 		VFS::Get()->Mount("CoreTextures", root + "/lumos/res/textures");
 		VFS::Get()->Mount("CoreFonts", root + "/lumos/res/fonts");
 
-		m_Window = std::unique_ptr<Window>(Window::Create(properties));
+		m_Window = Scope<Window>(Window::Create(properties));
 		m_Window->SetEventCallback(BIND_EVENT_FN(Application::OnEvent));
 
-		m_SceneManager = std::make_unique<SceneManager>();
+		m_SceneManager = CreateScope<SceneManager>();
 
 		ImGui::CreateContext();
 		ImGui::StyleColorsDark();
@@ -104,22 +102,17 @@ namespace Lumos
 
 		Graphics::Renderer::Init(screenWidth, screenHeight);
 
-		System::JobSystem::Execute([] { LumosPhysicsEngine::Instance(); LUMOS_CORE_INFO("Initialised LumosPhysics"); });
-		System::JobSystem::Execute([] { B2PhysicsEngine::Instance(); LUMOS_CORE_INFO("Initialised B2Physics"); });
-
 		//Graphics Loading on main thread
 		AssetsManager::InitializeMeshes();
-		m_RenderManager = std::make_unique<Graphics::RenderManager>(screenWidth, screenHeight);
-
-		System::JobSystem::Wait();
+		m_RenderManager = CreateScope<Graphics::RenderManager>(screenWidth, screenHeight);
 
 		m_LayerStack = lmnew LayerStack();
 		PushLayerInternal(lmnew ImGuiLayer(false),true,false);
 
-		m_SystemManager = std::make_unique<SystemManager>();
+		m_SystemManager = CreateScope<SystemManager>();
 		m_SystemManager->RegisterSystem<AudioManager>(AudioManager::Create());
-		m_SystemManager->RegisterSystem<LumosPhysicsEngine>(LumosPhysicsEngine::Instance());
-		m_SystemManager->RegisterSystem<B2PhysicsEngine>(B2PhysicsEngine::Instance());
+		m_SystemManager->RegisterSystem<LumosPhysicsEngine>();
+		m_SystemManager->RegisterSystem<B2PhysicsEngine>();
 
 		m_SystemManager->GetSystem<AudioManager>()->OnInit();
 
@@ -173,10 +166,10 @@ namespace Lumos
 			m_UpdateTimer += Engine::Instance()->TargetFrameRate();
 #endif
 
-			m_TimeStep->Update(now);
+            Engine::GetTimeStep()->Update(now);
 
 			{
-				OnUpdate(m_TimeStep.get());
+				OnUpdate(Engine::GetTimeStep());
 				m_Updates++;
 			}
 
@@ -232,8 +225,8 @@ namespace Lumos
 		const u32 sceneIdx = m_SceneManager->GetCurrentSceneIndex();
 		const u32 sceneMax = m_SceneManager->SceneCount();
 
-		if (Input::GetInput().GetKeyPressed(InputCode::Key::P)) LumosPhysicsEngine::Instance()->SetPaused(!LumosPhysicsEngine::Instance()->IsPaused());
-		if (Input::GetInput().GetKeyPressed(InputCode::Key::P)) B2PhysicsEngine::Instance()->SetPaused(!B2PhysicsEngine::Instance()->IsPaused());
+		if (Input::GetInput().GetKeyPressed(InputCode::Key::P)) Application::Instance()->GetSystem<LumosPhysicsEngine>()->SetPaused(!Application::Instance()->GetSystem<LumosPhysicsEngine>()->IsPaused());
+		if (Input::GetInput().GetKeyPressed(InputCode::Key::P)) Application::Instance()->GetSystem<B2PhysicsEngine>()->SetPaused(!Application::Instance()->GetSystem<B2PhysicsEngine>()->IsPaused());
 
 		if (Input::GetInput().GetKeyPressed(InputCode::Key::J)) CommonUtils::AddSphere(m_SceneManager->GetCurrentScene());
 		if (Input::GetInput().GetKeyPressed(InputCode::Key::K)) CommonUtils::AddPyramid(m_SceneManager->GetCurrentScene());
@@ -248,11 +241,11 @@ namespace Lumos
 		if (Application::Instance()->GetEditorState() != EditorState::Paused && Application::Instance()->GetEditorState() != EditorState::Preview)
 #endif
 		{
-			m_SceneManager->GetCurrentScene()->OnUpdate(m_TimeStep.get());
-			m_SystemManager->OnUpdate(m_TimeStep.get());
+			m_SceneManager->GetCurrentScene()->OnUpdate(Engine::GetTimeStep());
+			m_SystemManager->OnUpdate(Engine::GetTimeStep());
 		}
 
-		m_LayerStack->OnUpdate(m_TimeStep.get(), m_SceneManager->GetCurrentScene());
+		m_LayerStack->OnUpdate(Engine::GetTimeStep(), m_SceneManager->GetCurrentScene());
 	}
 
 	void Application::OnEvent(Event& e)

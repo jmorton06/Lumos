@@ -5,7 +5,7 @@
 namespace Lumos
 {
 
-	Octree::Octree(const size_t maxObjectsPerPartition, const size_t maxPartitionDepth, std::shared_ptr<Broadphase> secondaryBroadphase)
+	Octree::Octree(const size_t maxObjectsPerPartition, const size_t maxPartitionDepth,const Ref<Broadphase>& secondaryBroadphase)
 		: m_MaxObjectsPerPartition(maxObjectsPerPartition)
 		, m_MaxPartitionDepth(maxPartitionDepth)
 		, m_SecondaryBroadphase(secondaryBroadphase)
@@ -18,7 +18,7 @@ namespace Lumos
 		m_LeafNodes.clear();
 	}
 
-	void Octree::FindPotentialCollisionPairs(std::vector<std::shared_ptr<PhysicsObject3D>> objects,
+	void Octree::FindPotentialCollisionPairs(std::vector<Ref<PhysicsObject3D>>& objects,
 	                                         std::vector<CollisionPair>& collisionPairs)
 	{
 		m_LeafNodes.clear();
@@ -27,16 +27,16 @@ namespace Lumos
 
 		// Init root world space
 		m_RootNode.reset();
-		m_RootNode = std::make_shared<OctreeNode>();
+		m_RootNode = CreateRef<OctreeNode>();
 		m_RootNode->physicsObjects.reserve(m_MaxObjectsPerPartition);
 		m_RootNode->childNodes.reserve(8);
 
 		for (const auto& physicsObject : objects)
-		{
-			if (physicsObject->GetCollisionShape())
+        {
+            if (physicsObject && physicsObject->GetCollisionShape())
 			{
 				m_RootNode->boundingBox.ExpandToFit(physicsObject->GetWorldSpaceAABB());
-				m_RootNode->physicsObjects.push_back(physicsObject);
+				m_RootNode->physicsObjects.emplace_back(physicsObject);
 			}
 		}
 
@@ -53,7 +53,7 @@ namespace Lumos
 		DebugDrawOctreeNode(m_RootNode.get());
 	}
 
-	void Octree::Divide(const std::shared_ptr<OctreeNode>& division, const size_t iteration)
+	void Octree::Divide(const Ref<OctreeNode>& division, const size_t iteration)
 	{
 		// Exit conditions (partition depth limit or target object count reached)
 		if (iteration > m_MaxPartitionDepth || division->physicsObjects.size() <= m_MaxObjectsPerPartition)
@@ -82,7 +82,7 @@ namespace Lumos
 
 		for (size_t i = 0; i < NUM_DIVISIONS; i++)
 		{
-			std::shared_ptr<OctreeNode> newNode = std::make_shared<OctreeNode>();
+			Ref<OctreeNode> newNode = CreateRef<OctreeNode>();
 			newNode->physicsObjects.reserve(m_MaxObjectsPerPartition);
 			newNode->childNodes.reserve(8);
 
@@ -103,7 +103,7 @@ namespace Lumos
 			}
 
 			// Add to parent division
-			division->childNodes.push_back(newNode);
+			division->childNodes.emplace_back(newNode);
 
 			// Do further subdivisioning
 			Divide(newNode, iteration + 1);

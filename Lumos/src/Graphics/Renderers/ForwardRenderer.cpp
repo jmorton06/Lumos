@@ -17,7 +17,7 @@
 #include "Graphics/API/GraphicsContext.h"
 #include "Graphics/GBuffer.h"
 #include "App/Scene.h"
-#include "ECS/Entity.h"
+#include "ECS/EntityManager.h"
 #include "ECS/Component/MaterialComponent.h"
 #include "ECS/Component/MeshComponent.h"
 #include "ECS/Component/TransformComponent.h"
@@ -92,8 +92,8 @@ namespace Lumos
 								if (materialComponent && materialComponent->GetMaterial())
 								{
                                     material = materialComponent->GetMaterial().get();
-									if (materialComponent->GetMaterial()->GetDescriptorSet() == nullptr || materialComponent->GetMaterial()->GetPipeline() != m_Pipeline)
-										materialComponent->GetMaterial()->CreateDescriptorSet(m_Pipeline, 1, false);
+									if (material->GetDescriptorSet() == nullptr || material->GetPipeline() != m_Pipeline)
+										material->CreateDescriptorSet(m_Pipeline, 1, false);
 								}
 
 								TextureMatrixComponent* textureMatrixTransform = obj->GetComponent<TextureMatrixComponent>();

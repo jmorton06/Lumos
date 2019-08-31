@@ -1,5 +1,6 @@
 #pragma once
-
+#include "ECS.h"
+#include "ECSDefines.h"
 #include "ECS/ISystem.h"
 #include "Core/Typename.h"
 
@@ -9,29 +10,29 @@ namespace Lumos
     {
     public:
 
-        template<typename T>
-        std::shared_ptr<T> RegisterSystem()
+        template <typename T, typename ... Args>
+        Ref<T> RegisterSystem(Args&& ...args)
         {
 			auto typeName = typeid(T).hash_code();
             
             LUMOS_CORE_ASSERT(m_Systems.find(typeName) == m_Systems.end(), "Registering system more than once.");
             
             // Create a pointer to the system and return it so it can be used externally
-            auto system = std::make_shared<T>();
-            m_Systems.insert({typeName, system});
+            Ref<T> system = CreateRef<T>(args ...);
+            m_Systems.insert({typeName, std::move( system) });
             return system;
         }
 
 		template<typename T>
-		std::shared_ptr<T> RegisterSystem(T* t)
+		Ref<T> RegisterSystem(T* t)
 		{
 			auto typeName = typeid(T).hash_code();
 
 			LUMOS_CORE_ASSERT(m_Systems.find(typeName) == m_Systems.end(), "Registering system more than once.");
 
 			// Create a pointer to the system and return it so it can be used externally
-			auto system = std::shared_ptr<T>(t);
-			m_Systems.insert({ typeName, system });
+            Ref<T> system = Ref<T>(t);
+            m_Systems.insert({ typeName,std::move( system) });
 			return system;
 		}
 
@@ -53,7 +54,7 @@ namespace Lumos
 
 			if (m_Systems.find(typeName) != m_Systems.end())
 			{
-				return (T*)m_Systems[typeName].get();
+				return dynamic_cast<T*>(m_Systems[typeName].get());
 			}
 
 			return nullptr;
@@ -81,6 +82,6 @@ namespace Lumos
 
     private:
         // Map from system type string pointer to a system pointer
-        std::unordered_map<size_t, std::shared_ptr<ISystem>> m_Systems;
+        std::unordered_map<size_t, Ref<ISystem>> m_Systems;
     };
 }

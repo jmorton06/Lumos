@@ -5,6 +5,7 @@
 #include "Maths/Vector4.h"
 
 #include "Graphics/API/DescriptorSet.h"
+#include "Graphics/API/Texture.h"
 
 #define RENDERER2D_VERTEX_SIZE	sizeof(VertexData)
 
@@ -12,8 +13,6 @@ namespace Lumos
 {
 	namespace Graphics
 	{
-		class Texture2D;
-
 		struct LUMOS_EXPORT VertexData
 		{
 			Maths::Vector3 vertex;
@@ -69,7 +68,7 @@ namespace Lumos
 			static const std::vector<Maths::Vector2>& GetDefaultUVs();
 
 		protected:
-			std::shared_ptr<Texture2D> m_Texture;
+			Ref<Texture2D> m_Texture;
 			Maths::Vector2 m_Position;
 			Maths::Vector2 m_Scale;
 			Maths::Vector4 m_Colour;

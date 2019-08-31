@@ -1,14 +1,20 @@
 #pragma once
 #include "LM.h"
+#include "ECS.h"
+#include "ECSDefines.h"
 #include "Utilities/TSingleton.h"
 #include "ECS/Component/LumosComponent.h"
 
 #include "Core/Typename.h"
 
-#define MAX_ENTITIES 5000
-
 namespace Lumos
 {
+    template <class T>
+    using hasInit = decltype(std::declval<T>().Init());
+    
+    template <class T>
+    using hasUpdate = decltype(std::declval<T>().Update());
+
 	class IComponentArray
 	{
 	public:
@@ -30,6 +36,12 @@ namespace Lumos
 			m_EntityToIndexMap[entity] = newIndex;
 			m_IndexToEntityMap[newIndex] = entity;
 			m_ComponentArray[newIndex] = component;
+            m_ComponentArray[newIndex]->SetEntity(entity);
+            
+            if constexpr(is_detected_v<hasInit, T>)
+            {
+                m_ComponentArray[newIndex]->Init();
+            }
 			m_Size++;
 		}
 
@@ -74,6 +86,16 @@ namespace Lumos
 		std::array<T*, MAX_ENTITIES> GetArray() const
 		{
 			return m_ComponentArray;
+		}
+        
+        T** GetRawData() const
+        {
+            return m_ComponentArray.data();
+        }
+
+		size_t GetSize() const
+		{
+			return m_Size;
 		}
 
 		void EntityDestroyed(Entity* entity) override
@@ -128,10 +150,10 @@ namespace Lumos
 			LUMOS_CORE_ASSERT(m_ComponentTypes.find(typeName) == m_ComponentTypes.end(), "Registering component type more than once.");
 
 			// Add this component type to the component type map
-			m_ComponentTypes.insert({ typeName, m_NextComponentType });
+            m_ComponentTypes[typeName] = m_NextComponentType;
 
 			// Create a ComponentArray pointer and add it to the component arrays map
-			m_ComponentArrays.insert({ typeName, std::make_shared<ComponentArray<T>>() });
+			m_ComponentArrays[typeName] = CreateRef<ComponentArray<T>>();
 
 			// Increment the value so that the next component registered will be different
 			m_NextComponentType++;
@@ -169,29 +191,29 @@ namespace Lumos
 		{
 			// Notify each component array that an entity has been destroyed
 			// If it has a component for that entity, it will remove it
-			for (auto const& pair : m_ComponentArrays)
+			for (auto& pair : m_ComponentArrays)
 			{
-				auto const& component = pair.second;
+				auto& component = pair.second;
 
 				component->EntityDestroyed(entity);
 			}
 		}
 
 		template<typename T>
-		std::shared_ptr<ComponentArray<T>> GetComponentArray()
+		ComponentArray<T>* GetComponentArray()
 		{
 			auto typeName = typeid(T).hash_code();
 
 			LUMOS_CORE_ASSERT(m_ComponentArrays.find(typeName) != m_ComponentArrays.end(), "Component not registered before use.");
 
-			return std::static_pointer_cast<ComponentArray<T>>(m_ComponentArrays[typeName]);
+			return static_cast<ComponentArray<T>*>(m_ComponentArrays[typeName].get());
 		}
 
 		std::vector<LumosComponent*> GetAllComponents(Entity* entity);
 
 	private:
 		std::unordered_map<size_t, ComponentType> m_ComponentTypes;
-		std::unordered_map<size_t, std::shared_ptr<IComponentArray>> m_ComponentArrays;
+		std::unordered_map<size_t, Ref<IComponentArray>> m_ComponentArrays;
 		ComponentType m_NextComponentType;
 	};
 }

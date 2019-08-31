@@ -2,17 +2,18 @@
 #include "Material.h"
 #include "Graphics/API/DescriptorSet.h"
 #include "Graphics/API/Pipeline.h"
-#include "Graphics/API/Shader.h"
 #include "Graphics/API/ShaderResource.h"
-#include "Graphics/API/Texture.h"
 #include "Graphics/API/UniformBuffer.h"
-#include "System/FileSystem.h"
-#include "System/VFS.h"
+#include "Graphics/API/GraphicsContext.h"
+#include "Core/OS/FileSystem.h"
+#include "Core/VFS.h"
+
+#include <imgui/imgui.h>
 
 namespace Lumos
 {
 
-    Material::Material(std::shared_ptr<Graphics::Shader>& shader, const MaterialProperties& properties, const PBRMataterialTextures& textures) : m_PBRMaterialTextures(textures), m_Shader(shader)
+    Material::Material(Ref<Graphics::Shader>& shader, const MaterialProperties& properties, const PBRMataterialTextures& textures) : m_PBRMaterialTextures(textures), m_Shader(shader)
     {
         m_RenderFlags = 0;
         SetRenderFlag(RenderFlags::DEFERREDRENDER);
@@ -75,32 +76,32 @@ namespace Lumos
         auto filePath = path + "/" + name + "/albedo" + extension;
 
         if(FileExists(filePath))
-            m_PBRMaterialTextures.albedo    = std::shared_ptr<Graphics::Texture2D>(Graphics::Texture2D::CreateFromFile(name, path + "/" + name + "/albedo" + extension,params));
+            m_PBRMaterialTextures.albedo    = Ref<Graphics::Texture2D>(Graphics::Texture2D::CreateFromFile(name, path + "/" + name + "/albedo" + extension,params));
 
         filePath = path + "/" + name + "/normal" + extension;
 
         if (FileExists(filePath))
-        m_PBRMaterialTextures.normal    = std::shared_ptr<Graphics::Texture2D>(Graphics::Texture2D::CreateFromFile(name, path + "/" + name + "/normal" + extension,params));
+        m_PBRMaterialTextures.normal    = Ref<Graphics::Texture2D>(Graphics::Texture2D::CreateFromFile(name, path + "/" + name + "/normal" + extension,params));
 
         filePath = path + "/" + name + "/roughness" + extension;
 
         if (FileExists(filePath))
-        m_PBRMaterialTextures.roughness = std::shared_ptr<Graphics::Texture2D>(Graphics::Texture2D::CreateFromFile(name, path + "/" + name + "/roughness" + extension,params));
+        m_PBRMaterialTextures.roughness = Ref<Graphics::Texture2D>(Graphics::Texture2D::CreateFromFile(name, path + "/" + name + "/roughness" + extension,params));
 
         filePath = path + "/" + name + "/metallic" + extension;
 
         if (FileExists(filePath))
-        m_PBRMaterialTextures.specular = std::shared_ptr<Graphics::Texture2D>(Graphics::Texture2D::CreateFromFile(name, path + "/" + name + "/metallic" + extension,params));
+        m_PBRMaterialTextures.specular = Ref<Graphics::Texture2D>(Graphics::Texture2D::CreateFromFile(name, path + "/" + name + "/metallic" + extension,params));
 
         filePath = path + "/" + name + "/ao" + extension;
 
         if (FileExists(filePath))
-        m_PBRMaterialTextures.ao        = std::shared_ptr<Graphics::Texture2D>(Graphics::Texture2D::CreateFromFile(name, path + "/" + name + "/ao" + extension, params));
+        m_PBRMaterialTextures.ao        = Ref<Graphics::Texture2D>(Graphics::Texture2D::CreateFromFile(name, path + "/" + name + "/ao" + extension, params));
 
         filePath = path + "/" + name + "/emissive" + extension;
 
         if (FileExists(filePath))
-            m_PBRMaterialTextures.emissive = std::shared_ptr<Graphics::Texture2D>(Graphics::Texture2D::CreateFromFile(name, path + "/" + name + "/emissive" + extension, params));
+            m_PBRMaterialTextures.emissive = Ref<Graphics::Texture2D>(Graphics::Texture2D::CreateFromFile(name, path + "/" + name + "/emissive" + extension, params));
 
     }
 
@@ -108,7 +109,7 @@ namespace Lumos
     {
         m_Name = name;
         m_PBRMaterialTextures = PBRMataterialTextures();
-        m_PBRMaterialTextures.albedo    = std::shared_ptr<Graphics::Texture2D>(Graphics::Texture2D::CreateFromFile(name, path));
+        m_PBRMaterialTextures.albedo    = Ref<Graphics::Texture2D>(Graphics::Texture2D::CreateFromFile(name, path));
         m_PBRMaterialTextures.normal    = nullptr;
         m_PBRMaterialTextures.roughness = nullptr;
         m_PBRMaterialTextures.specular  = nullptr;
@@ -120,6 +121,335 @@ namespace Lumos
     {
         memcpy(m_MaterialBufferData, m_MaterialProperties, sizeof(MaterialProperties));
     }
+
+	void Material::OnImGui()
+	{
+		bool flipImage = Graphics::GraphicsContext::GetContext()->FlipImGUITexture();
+
+		MaterialProperties* prop = GetProperties();
+
+		if (ImGui::TreeNode("Albedo"))
+		{
+			ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(2, 2));
+			ImGui::Columns(2);
+			ImGui::Separator();
+
+			ImGui::AlignTextToFramePadding();
+			auto tex = GetTextures().albedo;
+
+			if (tex)
+			{
+				ImGui::Image(tex->GetHandle(), ImVec2(64, 64), ImVec2(0.0f, flipImage ? 1.0f : 0.0f), ImVec2(1.0f, flipImage ? 0.0f : 1.0f));
+
+				if (ImGui::IsItemHovered() && tex)
+				{
+					ImGui::BeginTooltip();
+					ImGui::Image(tex ? tex->GetHandle() : nullptr, ImVec2(256, 256), ImVec2(0.0f, flipImage ? 1.0f : 0.0f), ImVec2(1.0f, flipImage ? 0.0f : 1.0f));
+					ImGui::EndTooltip();
+				}
+			}
+			else
+			{
+				ImGui::Button("Empty", ImVec2(64, 64));
+			}
+
+
+			ImGui::NextColumn();
+			ImGui::PushItemWidth(-1);
+			ImGui::Text("%s", tex ? tex->GetFilepath().c_str() : "No Texture");
+
+			ImGui::PopItemWidth();
+			ImGui::NextColumn();
+
+			ImGui::AlignTextToFramePadding();
+			ImGui::Text("Use Albedo Map");
+			ImGui::NextColumn();
+			ImGui::PushItemWidth(-1);
+			ImGui::SliderFloat("##UseAlbedoMap", &prop->usingAlbedoMap, 0.0f, 1.0f);
+
+			ImGui::PopItemWidth();
+			ImGui::NextColumn();
+
+			ImGui::AlignTextToFramePadding();
+			ImGui::Text("Albedo");
+			ImGui::NextColumn();
+			ImGui::PushItemWidth(-1);
+			ImGui::ColorEdit4("##Albedo", &prop->albedoColour.x);
+
+			ImGui::PopItemWidth();
+			ImGui::NextColumn();
+
+			ImGui::Columns(1);
+			ImGui::Separator();
+			ImGui::PopStyleVar();
+
+			ImGui::TreePop();
+		}
+
+		ImGui::Separator();
+
+		if (ImGui::TreeNode("Normal"))
+		{
+			ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(2, 2));
+			ImGui::Columns(2);
+			ImGui::Separator();
+
+			ImGui::AlignTextToFramePadding();
+			auto tex = GetTextures().normal;
+
+			if (tex)
+			{
+				ImGui::Image(tex ? tex->GetHandle() : nullptr, ImVec2(64, 64), ImVec2(0.0f, flipImage ? 1.0f : 0.0f), ImVec2(1.0f, flipImage ? 0.0f : 1.0f));
+
+				if (ImGui::IsItemHovered() && tex)
+				{
+					ImGui::BeginTooltip();
+					ImGui::Image(tex ? tex->GetHandle() : nullptr, ImVec2(256, 256), ImVec2(0.0f, flipImage ? 1.0f : 0.0f), ImVec2(1.0f, flipImage ? 0.0f : 1.0f));
+					ImGui::EndTooltip();
+				}
+			}
+			else
+			{
+				ImGui::Button("Empty", ImVec2(64, 64));
+			}
+
+			ImGui::NextColumn();
+			ImGui::PushItemWidth(-1);
+			ImGui::Text("%s", tex ? tex->GetFilepath().c_str() : "No Texture");
+
+			ImGui::PopItemWidth();
+			ImGui::NextColumn();
+
+			ImGui::AlignTextToFramePadding();
+			ImGui::Text("Use Normal Map");
+			ImGui::NextColumn();
+			ImGui::PushItemWidth(-1);
+			ImGui::SliderFloat("##UseNormalMap", &prop->usingNormalMap, 0.0f, 1.0f);
+
+			ImGui::PopItemWidth();
+			ImGui::NextColumn();
+
+			ImGui::Columns(1);
+			ImGui::Separator();
+			ImGui::PopStyleVar();
+			ImGui::TreePop();
+		}
+
+		ImGui::Separator();
+
+		if (ImGui::TreeNode("Specular"))
+		{
+			ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(2, 2));
+			ImGui::Columns(2);
+			ImGui::Separator();
+
+			ImGui::AlignTextToFramePadding();
+			auto tex = GetTextures().specular;
+
+			if (tex)
+			{
+				ImGui::Image(tex ? tex->GetHandle() : nullptr, ImVec2(64, 64), ImVec2(0.0f, flipImage ? 1.0f : 0.0f), ImVec2(1.0f, flipImage ? 0.0f : 1.0f));
+
+				if (ImGui::IsItemHovered() && tex)
+				{
+					ImGui::BeginTooltip();
+					ImGui::Image(tex ? tex->GetHandle() : nullptr, ImVec2(256, 256), ImVec2(0.0f, flipImage ? 1.0f : 0.0f), ImVec2(1.0f, flipImage ? 0.0f : 1.0f));
+					ImGui::EndTooltip();
+				}
+			}
+			else
+			{
+				ImGui::Button("Empty", ImVec2(64, 64));
+			}
+
+			ImGui::NextColumn();
+			ImGui::PushItemWidth(-1);
+			ImGui::Text("%s", tex ? tex->GetFilepath().c_str() : "No Texture");
+
+			ImGui::PopItemWidth();
+			ImGui::NextColumn();
+
+			ImGui::AlignTextToFramePadding();
+			ImGui::Text("Use Specular Map");
+			ImGui::NextColumn();
+			ImGui::PushItemWidth(-1);
+			ImGui::SliderFloat("##UseSpecularMap", &prop->usingSpecularMap, 0.0f, 1.0f);
+
+			ImGui::PopItemWidth();
+			ImGui::NextColumn();
+
+			ImGui::AlignTextToFramePadding();
+			ImGui::Text("Specular");
+			ImGui::NextColumn();
+			ImGui::PushItemWidth(-1);
+			ImGui::SliderFloat3("##Specular", &prop->specularColour.x, 0.0f, 1.0f);
+
+			ImGui::PopItemWidth();
+			ImGui::NextColumn();
+
+			ImGui::Columns(1);
+			ImGui::Separator();
+			ImGui::PopStyleVar();
+			ImGui::TreePop();
+		}
+
+		ImGui::Separator();
+
+		if (ImGui::TreeNode("Roughness"))
+		{
+			ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(2, 2));
+			ImGui::Columns(2);
+			ImGui::Separator();
+
+			ImGui::AlignTextToFramePadding();
+			auto tex = GetTextures().roughness;
+			if (tex)
+			{
+				ImGui::Image(tex ? tex->GetHandle() : nullptr, ImVec2(64, 64), ImVec2(0.0f, flipImage ? 1.0f : 0.0f), ImVec2(1.0f, flipImage ? 0.0f : 1.0f));
+
+				if (ImGui::IsItemHovered() && tex)
+				{
+					ImGui::BeginTooltip();
+					ImGui::Image(tex ? tex->GetHandle() : nullptr, ImVec2(256, 256), ImVec2(0.0f, flipImage ? 1.0f : 0.0f), ImVec2(1.0f, flipImage ? 0.0f : 1.0f));
+					ImGui::EndTooltip();
+				}
+			}
+			else
+			{
+				ImGui::Button("Empty", ImVec2(64, 64));
+			}
+
+			ImGui::NextColumn();
+			ImGui::PushItemWidth(-1);
+			ImGui::Text("%s", tex ? tex->GetFilepath().c_str() : "No Texture");
+
+			ImGui::PopItemWidth();
+			ImGui::NextColumn();
+
+			ImGui::AlignTextToFramePadding();
+			ImGui::Text("Use Roughness Map");
+			ImGui::NextColumn();
+			ImGui::PushItemWidth(-1);
+			ImGui::SliderFloat("##UseRoughnessMap", &prop->usingRoughnessMap, 0.0f, 1.0f);
+
+			ImGui::PopItemWidth();
+			ImGui::NextColumn();
+
+			ImGui::AlignTextToFramePadding();
+			ImGui::Text("Roughness");
+			ImGui::NextColumn();
+			ImGui::PushItemWidth(-1);
+			ImGui::SliderFloat3("##Roughness", &prop->roughnessColour.x, 0.0f, 1.0f);
+
+			ImGui::PopItemWidth();
+			ImGui::NextColumn();
+
+			ImGui::Columns(1);
+			ImGui::Separator();
+			ImGui::PopStyleVar();
+			ImGui::TreePop();
+		}
+
+		ImGui::Separator();
+
+		if (ImGui::TreeNode("Ao"))
+		{
+			ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(2, 2));
+			ImGui::Columns(2);
+			ImGui::Separator();
+
+			ImGui::AlignTextToFramePadding();
+			auto tex = GetTextures().ao;
+			if (tex)
+			{
+				ImGui::Image(tex ? tex->GetHandle() : nullptr, ImVec2(64, 64), ImVec2(0.0f, flipImage ? 1.0f : 0.0f), ImVec2(1.0f, flipImage ? 0.0f : 1.0f));
+
+				if (ImGui::IsItemHovered() && tex)
+				{
+					ImGui::BeginTooltip();
+					ImGui::Image(tex ? tex->GetHandle() : nullptr, ImVec2(256, 256), ImVec2(0.0f, flipImage ? 1.0f : 0.0f), ImVec2(1.0f, flipImage ? 0.0f : 1.0f));
+					ImGui::EndTooltip();
+				}
+			}
+			else
+			{
+				ImGui::Button("Empty", ImVec2(64, 64));
+			}
+
+			ImGui::NextColumn();
+			ImGui::PushItemWidth(-1);
+			ImGui::Text("%s", tex ? tex->GetFilepath().c_str() : "No Texture");
+
+			ImGui::PopItemWidth();
+			ImGui::NextColumn();
+
+			ImGui::AlignTextToFramePadding();
+			ImGui::Text("Use AO Map");
+			ImGui::NextColumn();
+			ImGui::PushItemWidth(-1);
+			ImGui::SliderFloat("##UseAOMap", &prop->usingAOMap, 0.0f, 1.0f);
+
+			ImGui::PopItemWidth();
+			ImGui::NextColumn();
+
+			ImGui::Columns(1);
+			ImGui::Separator();
+			ImGui::PopStyleVar();
+			ImGui::TreePop();
+		}
+
+		ImGui::Separator();
+
+		if (ImGui::TreeNode("Emissive"))
+		{
+			ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(2, 2));
+			ImGui::Columns(2);
+			ImGui::Separator();
+
+			ImGui::AlignTextToFramePadding();
+			auto tex = GetTextures().emissive;
+			if (tex)
+			{
+				ImGui::Image(tex ? tex->GetHandle() : nullptr, ImVec2(64, 64), ImVec2(0.0f, flipImage ? 1.0f : 0.0f), ImVec2(1.0f, flipImage ? 0.0f : 1.0f));
+
+				if (ImGui::IsItemHovered() && tex)
+				{
+					ImGui::BeginTooltip();
+					ImGui::Image(tex ? tex->GetHandle() : nullptr, ImVec2(256, 256), ImVec2(0.0f, flipImage ? 1.0f : 0.0f), ImVec2(1.0f, flipImage ? 0.0f : 1.0f));
+					ImGui::EndTooltip();
+				}
+			}
+			else
+			{
+				ImGui::Button("Empty", ImVec2(64, 64));
+			}
+
+			ImGui::NextColumn();
+			ImGui::PushItemWidth(-1);
+			ImGui::Text("%s", tex ? tex->GetFilepath().c_str() : "No Texture");
+
+			ImGui::PopItemWidth();
+			ImGui::NextColumn();
+
+			ImGui::AlignTextToFramePadding();
+			ImGui::Text("Use Emissive Map");
+			ImGui::NextColumn();
+			ImGui::PushItemWidth(-1);
+			ImGui::SliderFloat("##UseEmissiveMap", &prop->usingEmissiveMap, 0.0f, 1.0f);
+
+			ImGui::PopItemWidth();
+			ImGui::NextColumn();
+
+			ImGui::Columns(1);
+			ImGui::Separator();
+			ImGui::PopStyleVar();
+			ImGui::TreePop();
+		}
+
+		ImGui::Separator();
+
+		SetMaterialProperites(*prop);
+	}
 
     void Material::SetMaterialProperites(const MaterialProperties &properties)
     {

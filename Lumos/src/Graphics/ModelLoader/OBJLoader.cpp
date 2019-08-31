@@ -2,7 +2,6 @@
 #include "ModelLoader.h"
 #include "Graphics/Mesh.h"
 #include "Graphics/Material.h"
-#include "ECS/Entity.h"
 #include "ECS/EntityManager.h"
 #include "ECS/Component/MeshComponent.h"
 #include "ECS/Component/MaterialComponent.h"
@@ -16,9 +15,9 @@
 namespace Lumos
 {
 	String m_Directory;
-	std::vector<std::shared_ptr<Graphics::Texture2D>> m_Textures;
+	std::vector<Ref<Graphics::Texture2D>> m_Textures;
 
-	std::shared_ptr<Graphics::Texture2D> LoadMaterialTextures(const String& typeName, std::vector<std::shared_ptr<Graphics::Texture2D>>& textures_loaded, const String& name, const String& directory, Graphics::TextureParameters format)
+	Ref<Graphics::Texture2D> LoadMaterialTextures(const String& typeName, std::vector<Ref<Graphics::Texture2D>>& textures_loaded, const String& name, const String& directory, Graphics::TextureParameters format)
 	{
 		for (u32 j = 0; j < textures_loaded.size(); j++)
 		{
@@ -30,7 +29,7 @@ namespace Lumos
 
 		{   // If texture hasn't been loaded already, load it
 			Graphics::TextureLoadOptions options(false, true);
-			auto texture = std::shared_ptr<Graphics::Texture2D>(Graphics::Texture2D::CreateFromFile(typeName, directory + "/" + name, format, options));
+			auto texture = Ref<Graphics::Texture2D>(Graphics::Texture2D::CreateFromFile(typeName, directory + "/" + name, format, options));
 			textures_loaded.push_back(texture);  // Store it as texture loaded for entire model, to ensure we won't unnecessary load duplicate textures.
 
 			return texture;
@@ -73,7 +72,7 @@ namespace Lumos
 
 			std::unordered_map<Graphics::Vertex, uint32_t> uniqueVertices;
 
-			std::shared_ptr<Maths::BoundingSphere> boundingBox = std::make_shared<Maths::BoundingSphere>();
+			Ref<Maths::BoundingSphere> boundingBox = CreateRef<Maths::BoundingSphere>();
 
 			for (u32 i = 0; i < shape.mesh.indices.size(); i++)
 			{
@@ -145,7 +144,7 @@ namespace Lumos
 				vertexCount++;
 			}
 
-			std::shared_ptr<Material> pbrMaterial = std::make_shared<Material>();
+			Ref<Material> pbrMaterial = CreateRef<Material>();
 
 			PBRMataterialTextures textures;
 
@@ -155,28 +154,28 @@ namespace Lumos
 
 				if (mp->diffuse_texname.length() > 0)
 				{
-					std::shared_ptr<Graphics::Texture2D> texture = LoadMaterialTextures("Albedo", m_Textures, mp->diffuse_texname, m_Directory, Graphics::TextureParameters(Graphics::TextureFilter::NEAREST, Graphics::TextureWrap::CLAMP_TO_EDGE));
+					Ref<Graphics::Texture2D> texture = LoadMaterialTextures("Albedo", m_Textures, mp->diffuse_texname, m_Directory, Graphics::TextureParameters(Graphics::TextureFilter::NEAREST, Graphics::TextureWrap::CLAMP_TO_EDGE));
 					if (texture)
 						textures.albedo = texture;
 				}
 
 				if (mp->bump_texname.length() > 0)
 				{
-					std::shared_ptr<Graphics::Texture2D> texture = LoadMaterialTextures("Normal", m_Textures, mp->bump_texname, m_Directory, Graphics::TextureParameters(Graphics::TextureWrap::CLAMP));
+					Ref<Graphics::Texture2D> texture = LoadMaterialTextures("Normal", m_Textures, mp->bump_texname, m_Directory, Graphics::TextureParameters(Graphics::TextureWrap::CLAMP));
 					if (texture)
 						textures.normal = texture;//pbrMaterial->SetNormalMap(texture);
 				}
 
 				if (mp->ambient_texname.length() > 0)
 				{
-					std::shared_ptr<Graphics::Texture2D> texture = LoadMaterialTextures("Metallic", m_Textures, mp->ambient_texname.c_str(), m_Directory, Graphics::TextureParameters(Graphics::TextureWrap::CLAMP));
+					Ref<Graphics::Texture2D> texture = LoadMaterialTextures("Metallic", m_Textures, mp->ambient_texname.c_str(), m_Directory, Graphics::TextureParameters(Graphics::TextureWrap::CLAMP));
 					//if(texture)// TODO: Fix or check if mesh mtl wrong
 					//	pbrMaterial->SetGlossMap(texture);
 				}
 
 				if (mp->specular_highlight_texname.length() > 0)
 				{
-					std::shared_ptr<Graphics::Texture2D> texture = LoadMaterialTextures("Specular", m_Textures, mp->specular_highlight_texname, m_Directory, Graphics::TextureParameters(Graphics::TextureWrap::CLAMP));
+					Ref<Graphics::Texture2D> texture = LoadMaterialTextures("Specular", m_Textures, mp->specular_highlight_texname, m_Directory, Graphics::TextureParameters(Graphics::TextureWrap::CLAMP));
 					if (texture)
 						textures.roughness = texture;//pbrMaterial->SetSpecularMap(texture);
 				}
@@ -184,7 +183,7 @@ namespace Lumos
 
 			pbrMaterial->SetTextures(textures);
 
-			std::shared_ptr<Graphics::VertexArray> va;
+			Ref<Graphics::VertexArray> va;
 			va.reset(Graphics::VertexArray::Create());
 
 			Graphics::VertexBuffer* buffer = Graphics::VertexBuffer::Create(Graphics::BufferUsage::STATIC);
@@ -200,11 +199,11 @@ namespace Lumos
 
 			va->PushBuffer(buffer);
 
-			std::shared_ptr<Graphics::IndexBuffer> ib;
+			Ref<Graphics::IndexBuffer> ib;
 			ib.reset(Graphics::IndexBuffer::Create(indices, numIndices));// / sizeof(u32));
 
 			auto meshEntity = EntityManager::Instance()->CreateEntity(shape.name);
-            auto mesh = std::make_shared<Graphics::Mesh>(va, ib, boundingBox);
+            auto mesh = CreateRef<Graphics::Mesh>(va, ib, boundingBox);
 			meshEntity->AddComponent<MeshComponent>(mesh);
 			meshEntity->AddComponent<MaterialComponent>(pbrMaterial);
 			meshEntity->AddComponent<TransformComponent>();

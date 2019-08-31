@@ -5,16 +5,12 @@
 #include "API/VertexArray.h"
 #include "Graphics/API/CommandBuffer.h"
 #include "Graphics/API/DescriptorSet.h"
+#include "Maths/BoundingSphere.h"
 
 #include <array>
 
 namespace Lumos
 {
-	namespace Maths
-	{
-		class BoundingSphere;
-	}
-	
 	namespace Graphics
 	{
 		class Texture2D;
@@ -88,15 +84,15 @@ namespace Lumos
 
 			Mesh();
 			Mesh(const Mesh& mesh);
-			Mesh(std::shared_ptr<VertexArray>& vertexArray, std::shared_ptr<IndexBuffer>& indexBuffer, const std::shared_ptr<Maths::BoundingSphere>& boundingSphere);
+			Mesh(Ref<VertexArray>& vertexArray, Ref<IndexBuffer>& indexBuffer, const Ref<Maths::BoundingSphere>& boundingSphere);
 
 			virtual ~Mesh();
 			virtual void Draw();
 
 			void Init();
-			std::shared_ptr<VertexArray> GetVertexArray() const { return m_VertexArray; }
-			std::shared_ptr<IndexBuffer> GetIndexBuffer() const { return m_IndexBuffer; }
-			std::shared_ptr<Maths::BoundingSphere> GetBoundingSphere() const { return m_BoundingSphere; }
+			Ref<VertexArray> GetVertexArray() const { return m_VertexArray; }
+			Ref<IndexBuffer> GetIndexBuffer() const { return m_IndexBuffer; }
+			Ref<Maths::BoundingSphere> GetBoundingSphere() const { return m_BoundingSphere; }
 
 			std::vector<Graphics::CommandBuffer*> m_CMDBuffers;
 
@@ -109,10 +105,10 @@ namespace Lumos
 			static Maths::Vector3* GenerateNormals(u32 numVertices, Maths::Vector3* vertices, u32* indices, u32 numIndices);
 			static Maths::Vector3* GenerateTangents(u32 numVertices, Maths::Vector3* vertices, u32* indices, u32 numIndices, Maths::Vector2* texCoords);
 
-			std::shared_ptr<VertexArray> m_VertexArray;
-			std::shared_ptr<IndexBuffer> m_IndexBuffer;
+			Ref<VertexArray> m_VertexArray;
+			Ref<IndexBuffer> m_IndexBuffer;
 
-			std::shared_ptr<Maths::BoundingSphere> m_BoundingSphere;
+			Ref<Maths::BoundingSphere> m_BoundingSphere;
 
 			bool m_ArrayCleanUp;
 			bool m_TextureCleanUp;

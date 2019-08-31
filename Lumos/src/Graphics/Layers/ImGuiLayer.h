@@ -41,7 +41,7 @@ namespace Lumos
 		void SetImGuiKeyCodes();
 		void SetImGuiStyle();
 
-        std::unique_ptr<Graphics::IMGUIRenderer> m_IMGUIRenderer;
+        Scope<Graphics::IMGUIRenderer> m_IMGUIRenderer;
 		bool m_ClearScreen;
 	};
 

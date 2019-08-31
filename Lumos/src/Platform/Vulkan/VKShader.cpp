@@ -2,8 +2,8 @@
 #include "VKShader.h"
 #include "VKDevice.h"
 #include "VKTools.h"
-#include "System/FileSystem.h"
-#include "System/VFS.h"
+#include "Core/OS/FileSystem.h"
+#include "Core/VFS.h"
 
 namespace Lumos
 {

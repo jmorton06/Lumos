@@ -29,7 +29,7 @@ namespace Lumos
 			std::lock_guard<std::mutex> lock(m_mConstructed);
 			if (m_pInstance)
 			{
-				delete m_pInstance;
+				lmdel m_pInstance;
 				m_pInstance = nullptr;
 			}
 		}

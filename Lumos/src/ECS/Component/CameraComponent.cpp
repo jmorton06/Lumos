@@ -1,6 +1,6 @@
 #include "LM.h"
 #include "CameraComponent.h"
-#include "ECS/Entity.h"
+#include "ECS/EntityManager.h"
 #include "Graphics/Camera/Camera.h"
 #include "App/Application.h"
 
