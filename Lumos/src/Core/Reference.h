@@ -226,7 +226,12 @@ namespace Lumos
     class LUMOS_EXPORT Owned
     {
     public:
-        Owned(T* ptr)
+        Owned(std::nullptr_t)
+        {
+            m_Ptr = nullptr;
+        }
+        
+        Owned(T* ptr = nullptr)
         {
             m_Ptr = ptr;
         }
@@ -240,12 +245,18 @@ namespace Lumos
         Owned& operator=(Owned const&) = delete;
         
         // Const correct access owned object
-        T* operator->() const {return m_Ptr;}
-        T& operator*()  const {return *m_Ptr;}
+        T* operator->() const { return m_Ptr; }
+        T& operator*()  const { return *m_Ptr; }
         
         // Access to smart pointer state
-        T* get()                 const {return m_Ptr;}
-        explicit operator bool() const {return m_Ptr;}
+        T* get()                 const { return m_Ptr; }
+        explicit operator bool() const { return m_Ptr; }
+        
+        _FORCE_INLINE_ bool operator==(const T *p_ptr)            const { return m_Ptr == p_ptr; }
+        _FORCE_INLINE_ bool operator!=(const T *p_ptr)            const { return m_Ptr != p_ptr; }
+        _FORCE_INLINE_ bool operator<(const Owned<T> &p_r)        const { return m_Ptr < p_r.m_Ptr; }
+        _FORCE_INLINE_ bool operator==(const Owned<T> &p_r)       const { return m_Ptr == p_r.m_Ptr; }
+        _FORCE_INLINE_ bool operator!=(const Owned<T> &p_r)       const { return m_Ptr != p_r.m_Ptr; }
         
         // Modify object state
         T* release()
@@ -255,9 +266,14 @@ namespace Lumos
             return result;
         }
         
+        void reset()
+        {
+            lmdel m_Ptr;
+            m_Ptr = nullptr;
+        }
+        
     private:
         T* m_Ptr;
-
     };
            
 #define CUSTOM_SMART_PTR
@@ -269,10 +285,26 @@ namespace Lumos
     template <typename T, typename ... Args>
     Ref<T> CreateRef(Args&& ...args)
     {
-        auto ptr = lmnew T(args ...);
+        auto ptr = lmnew T(std::forward<Args>(args) ...);
         
         return Reference<T>(ptr);
     }
+            
+//    template<class T>
+//    using Scope = Owned<T>;
+//
+//    template <typename T, typename ... Args>
+//    Scope<T> CreateScope(Args&& ...args)
+//    {
+//        auto ptr = lmnew T(std::forward<Args>(args) ...);
+//        return Owned<T>(ptr);
+//    }
+//
+//    template <typename T>
+//    Scope<T> CreateScope(T* t)
+//    {
+//        return Owned<T>(t);
+//    }
             
     template<class T>
     using Scope = std::unique_ptr<T>;
@@ -280,7 +312,7 @@ namespace Lumos
     template <typename T, typename ... Args>
     Scope<T> CreateScope(Args&& ...args)
     {
-        return std::make_unique<T>(args ...);
+        return std::make_unique<T>(std::forward<Args>(args) ...);
     }
     
     template <typename T>
@@ -295,7 +327,7 @@ namespace Lumos
     template <typename T, typename ... Args>
     Ref<T> CreateRef(Args&& ...args)
     {
-        return std::make_shared<T>(args ...);
+        return std::make_shared<T>(std::forward<Args>(args) ...);
     }
             
     template<class T>
@@ -307,7 +339,7 @@ namespace Lumos
     template <typename T, typename ... Args>
     Scope<T> CreateScope(Args&& ...args)
     {
-        return std::make_unique<T>(args ...);
+        return std::make_unique<T>(std::forward<Args>(args) ...);
     }
     
     template <typename T>
