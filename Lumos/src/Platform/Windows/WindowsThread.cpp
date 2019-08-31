@@ -13,7 +13,7 @@ namespace Lumos
         m_User = p_user;
         m_Handle = CreateEvent(NULL, TRUE, FALSE, NULL);
 
-	    QueueUserWorkItem(ThreadCallback, tr, WT_EXECUTELONGFUNCTION);
+	    QueueUserWorkItem(ThreadCallback, this, WT_EXECUTELONGFUNCTION);
     }   
 
     WindowsThread::~WindowsThread() 
@@ -30,7 +30,7 @@ namespace Lumos
         return m_ID;
     }
 
-    DWORD WindowsThread::ThreadCallback(LPVOID userdata);
+    DWORD WindowsThread::ThreadCallback(LPVOID userdata)
     {
         WindowsThread *t = reinterpret_cast<WindowsThread *>(userdata);
        
@@ -45,6 +45,7 @@ namespace Lumos
     {
         return (ID)GetCurrentThreadId();
     }
+
     void WindowsThread::WaitToFinishFuncWindows(Thread *p_thread)
     {
         WindowsThread *tp = static_cast<WindowsThread *>(p_thread);
