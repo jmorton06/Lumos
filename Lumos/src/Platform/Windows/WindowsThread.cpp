@@ -34,7 +34,7 @@ namespace Lumos
     {
         WindowsThread *t = reinterpret_cast<WindowsThread *>(userdata);
        
-        m_ID = (ID)GetCurrentThreadId(); // must implement
+        t->m_ID = (ID)GetCurrentThreadId(); // must implement
         t->m_Callback(t->m_User);
         SetEvent(t->m_Handle);
 
