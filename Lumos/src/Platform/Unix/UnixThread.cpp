@@ -1,6 +1,14 @@
 #include "LM.h"
 #include "UnixThread.h"
 
+#if defined(__FreeBSD__) || defined(__OpenBSD__)
+#include <stdlib.h>
+#define PTHREAD_BSD_SET_NAME
+#endif
+#ifdef __APPLE__
+#define PTHREAD_RENAME_SELF
+#endif
+
 #ifdef PTHREAD_BSD_SET_NAME
 #include <pthread_np.h>
 #endif
@@ -96,7 +104,7 @@ namespace Lumos
         pthread_set_name_np(running_thread, p_name.c_str());
         int err = 0; // Open/FreeBSD ignore errors in this function
     #else
-        int err = pthread_setname_np(p_name.c_str());
+        int err = pthread_setname_np(running_thread, p_name.c_str());
     #endif // PTHREAD_BSD_SET_NAME
 
     #endif // PTHREAD_RENAME_SELF
