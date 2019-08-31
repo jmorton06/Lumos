@@ -1,8 +1,8 @@
 #include "LM.h"
 #include "Physics3DComponent.h"
-#include "Physics/LumosPhysicsEngine/PhysicsObject3D.h"
+#include "App/Application.h"
 #include "Physics/LumosPhysicsEngine/LumosPhysicsEngine.h"
-#include "ECS/Entity.h"
+#include "ECS/EntityManager.h"
 #include "TransformComponent.h"
 
 #include <imgui/imgui.h>
@@ -11,16 +11,16 @@ namespace Lumos
 {
     Physics3DComponent::Physics3DComponent()
     {
-        m_PhysicsObject = std::make_shared<PhysicsObject3D>();
         m_Name = "Physics3D";
-        LumosPhysicsEngine::Instance()->AddPhysicsObject(m_PhysicsObject);
+        m_PhysicsObject = CreateRef<PhysicsObject3D>();
+        Application::Instance()->GetSystem<LumosPhysicsEngine>()->AddPhysicsObject(m_PhysicsObject);
     }
     
-	Physics3DComponent::Physics3DComponent(std::shared_ptr<PhysicsObject3D>& physics)
-		: m_PhysicsObject(physics)
+	Physics3DComponent::Physics3DComponent(Ref<PhysicsObject3D>& physics)
 	{
 		m_Name = "Physics3D";
-		LumosPhysicsEngine::Instance()->AddPhysicsObject(physics);
+        m_PhysicsObject = physics;
+		Application::Instance()->GetSystem<LumosPhysicsEngine>()->AddPhysicsObject(m_PhysicsObject);
 	}
 
 	void Physics3DComponent::Init()

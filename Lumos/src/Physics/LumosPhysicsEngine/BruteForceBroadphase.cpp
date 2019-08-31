@@ -4,8 +4,8 @@
 namespace Lumos
 {
 
-	BruteForceBroadphase::BruteForceBroadphase()
-		: Broadphase()
+	BruteForceBroadphase::BruteForceBroadphase(const Maths::Vector3& axis)
+		: Broadphase(), m_axis(axis)
 	{
 	}
 
@@ -13,7 +13,7 @@ namespace Lumos
 	{
 	}
 
-	void BruteForceBroadphase::FindPotentialCollisionPairs(std::vector<std::shared_ptr<PhysicsObject3D>> objects,
+	void BruteForceBroadphase::FindPotentialCollisionPairs(std::vector<Ref<PhysicsObject3D>>& objects,
 	                                                       std::vector<CollisionPair> &collisionPairs)
 	{
 		if (objects.empty())

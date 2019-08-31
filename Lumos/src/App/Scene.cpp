@@ -86,13 +86,13 @@ namespace Lumos
 		Application::Instance()->GetWindow()->SetWindowTitle(Title.str());
 
 		//Default physics setup
-		LumosPhysicsEngine::Instance()->SetDampingFactor(0.998f);
-		LumosPhysicsEngine::Instance()->SetIntegrationType(IntegrationType::RUNGE_KUTTA_4);
-		LumosPhysicsEngine::Instance()->SetBroadphase(lmnew Octree(5, 5, std::make_shared<SortAndSweepBroadphase>()));
+		Application::Instance()->GetSystem<LumosPhysicsEngine>()->SetDampingFactor(0.998f);
+		Application::Instance()->GetSystem<LumosPhysicsEngine>()->SetIntegrationType(IntegrationType::RUNGE_KUTTA_4);
+		Application::Instance()->GetSystem<LumosPhysicsEngine>()->SetBroadphase(lmnew Octree(5, 5, CreateRef<SortAndSweepBroadphase>()));
 
 		m_SceneBoundingRadius = 400.0f; //Default scene radius of 400m
 
-		m_pFrameRenderList = std::make_unique<RenderList>();
+		m_pFrameRenderList = CreateScope<RenderList>();
 
 		if (!RenderList::AllocateNewRenderList(m_pFrameRenderList.get(), true))
 		{
@@ -107,8 +107,6 @@ namespace Lumos
         m_pFrameRenderList.reset();
 
 		DeleteAllGameObjects();
-
-		Input::GetInput().Reset();
 
 		Application::Instance()->GetRenderManager()->Reset();
 		Application::Instance()->GetSystem<AudioManager>()->ClearNodes();
@@ -139,7 +137,6 @@ namespace Lumos
 		}
 
 		BuildFrameRenderList();
-		BuildLightList();
 
 		std::function<void(Entity*)> per_object_func = [&](Entity* obj)
 		{
@@ -203,28 +200,6 @@ namespace Lumos
 		m_pFrameRenderList->RemoveExcessObjects(m_FrameFrustum);
 		m_pFrameRenderList->SortLists();
 		InsertToRenderList(m_pFrameRenderList.get(), m_FrameFrustum);
-	}
-
-	void Scene::BuildLightList()
-	{
-		m_LightList.clear();
-
-		std::function<void(Entity*)> per_object_func = [&](Entity* obj)
-		{
-			if (obj->ActiveInHierarchy())
-			{
-				auto lightComponent = obj->GetComponent<LightComponent>();
-				if (lightComponent && lightComponent->GetActive())
-				{
-					m_LightList.emplace_back(lightComponent->GetLight());
-				}
-
-				for (auto child : obj->GetChildren())
-					per_object_func(child);
-			}
-		};
-
-		per_object_func(m_RootEntity);
 	}
 
 	void Scene::IterateEntities(const std::function<void(Entity*)>& per_object_func)

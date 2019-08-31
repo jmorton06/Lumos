@@ -43,16 +43,19 @@ namespace Lumos
 
 	private:
 		Application* m_Application;
-		Console* m_Console;
 
 		Maths::Vector2 m_SceneViewSize;
 		Maths::Vector2 m_SceneViewPosition;
 		u32 m_ImGuizmoOperation = 0;
 		Entity* m_Selected = nullptr;
+        float m_GridSize = 10.0f;
 
 		bool m_ShowGrid = false;
-		float m_GridSize = 10.0f;
-
-		std::map<String, Graphics::Texture2D*> m_Icons;
+        bool m_ShowConsole = true;
+        bool m_ShowHierarchy = true;
+        bool m_ShowSceneView = true;
+        bool m_ShowGraphicsInfo = true;
+        bool m_ShowInspector = true;
+        bool m_ShowImGuiDemo = true;
 	};
 }

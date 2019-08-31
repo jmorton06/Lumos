@@ -39,7 +39,7 @@ void SceneModelViewer::OnInit()
 
 	m_EnvironmentMap = Graphics::TextureCube::CreateFromVCross(environmentFiles, 11);
 
-	auto sun = std::make_shared<Graphics::Light>(Maths::Vector3(26.0f, 22.0f, 48.5f), Maths::Vector4(1.0f), 2.0f);
+	auto sun = Lumos::CreateRef<Graphics::Light>(Maths::Vector3(26.0f, 22.0f, 48.5f), Maths::Vector4(1.0f), 2.0f);
 
 	auto lightEntity = EntityManager::Instance()->CreateEntity("Directional Light");
 	lightEntity->AddComponent<LightComponent>(sun);
@@ -48,7 +48,7 @@ void SceneModelViewer::OnInit()
 	lightEntity->GetTransformComponent()->GetTransform().ApplyTransform();
 	AddEntity(lightEntity);
 
-    auto shadowTexture = std::unique_ptr<Graphics::TextureDepthArray>(Graphics::TextureDepthArray::Create(2048, 2048, 4));
+    auto shadowTexture = Scope<Graphics::TextureDepthArray>(Graphics::TextureDepthArray::Create(2048, 2048, 4));
     auto shadowRenderer = new Graphics::ShadowRenderer();
     auto deferredRenderer = new Graphics::DeferredRenderer(m_ScreenWidth, m_ScreenHeight);
     auto skyboxRenderer = new Graphics::SkyboxRenderer(m_ScreenWidth, m_ScreenHeight, m_EnvironmentMap);

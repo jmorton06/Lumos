@@ -11,7 +11,7 @@
 
 namespace Lumos
 {
-	struct TimeStep;
+	class TimeStep;
 	class Font;
 	class Material;
 	class Event;
@@ -73,9 +73,6 @@ namespace Lumos
 		void InsertToRenderList(RenderList* list, const Maths::Frustum& frustum) const;
 
 		void BuildFrameRenderList();
-		void BuildLightList();
-
-		std::vector<std::shared_ptr<Graphics::Light>>& GetLightList() { return m_LightList; }
 
 		Entity* GetRootEntity() { return m_RootEntity; }
 
@@ -118,8 +115,7 @@ namespace Lumos
 		u32 m_ScreenHeight;
 
 		Maths::Frustum m_FrameFrustum;
-		std::unique_ptr<RenderList>	m_pFrameRenderList;
-		std::vector<std::shared_ptr<Graphics::Light>> m_LightList;
+		Scope<RenderList>	m_pFrameRenderList;
 
     private:
         Scene(Scene const&) = delete;

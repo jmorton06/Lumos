@@ -3,7 +3,6 @@
 #include "Material.h"
 #include "API/Renderer.h"
 #include "Platform/Vulkan/VKDevice.h"
-#include "Maths/BoundingSphere.h"
 
 namespace Lumos
 {
@@ -20,7 +19,7 @@ namespace Lumos
 			Init();
 		}
 
-		Mesh::Mesh(std::shared_ptr<VertexArray>& vertexArray, std::shared_ptr<IndexBuffer>& indexBuffer, const std::shared_ptr<Maths::BoundingSphere>& boundingSphere)
+		Mesh::Mesh(Ref<VertexArray>& vertexArray, Ref<IndexBuffer>& indexBuffer, const Ref<Maths::BoundingSphere>& boundingSphere)
 			: m_VertexArray(vertexArray), m_IndexBuffer(indexBuffer), m_ArrayCleanUp(true), m_TextureCleanUp(false), m_BoundingSphere(boundingSphere)
 		{
 			Init();
@@ -46,12 +45,10 @@ namespace Lumos
 			for (auto& cmdBuffer : m_CMDBuffers)
 				delete cmdBuffer;
 
-			m_CMDBuffers.resize(2);// Graphics::VKDevice::Instance()->m_SwapChainSize);
-
-			for (auto& m_CMDBuffer : m_CMDBuffers)
+            for (int i = 0; i < 2; i++)
 			{
-				m_CMDBuffer = Graphics::CommandBuffer::Create();
-				m_CMDBuffer->Init(false);
+				m_CMDBuffers.emplace_back(Graphics::CommandBuffer::Create());
+				m_CMDBuffers[i]->Init(false);
 			}
 		}
 

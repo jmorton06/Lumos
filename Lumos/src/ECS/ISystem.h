@@ -3,7 +3,7 @@
 
 namespace Lumos
 {
-	struct TimeStep;
+	class TimeStep;
 
 	class LUMOS_EXPORT ISystem
 	{

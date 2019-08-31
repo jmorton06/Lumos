@@ -7,7 +7,6 @@
 namespace Lumos
 {
 	class Timer;
-	struct TimeStep;
 	class Window;
 	struct WindowProperties;
     class SceneManager;
@@ -113,17 +112,16 @@ namespace Lumos
         bool OnWindowResize(WindowResizeEvent& e);
 
 		float 	  				  	m_UpdateTimer;
-		std::unique_ptr<Timer>	  	m_Timer;
-		std::unique_ptr<TimeStep> 	m_TimeStep;
+		Scope<Timer>	  	m_Timer;
 
 		u32 m_Frames;
 		u32 m_Updates;
 		float m_SecondTimer = 0.0f;
 
-		std::unique_ptr<Window> m_Window;
-        std::unique_ptr<SceneManager> m_SceneManager;
-		std::unique_ptr<SystemManager> m_SystemManager;
-		std::unique_ptr<Graphics::RenderManager> m_RenderManager;
+		Scope<Window> m_Window;
+        Scope<SceneManager> m_SceneManager;
+		Scope<SystemManager> m_SystemManager;
+		Scope<Graphics::RenderManager> m_RenderManager;
 
 		Camera* m_ActiveCamera = nullptr;
 

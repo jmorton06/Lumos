@@ -77,7 +77,7 @@ namespace Lumos
 
 			Mesh* m_ScreenQuad = nullptr;
 
-			std::unique_ptr<Texture2D> m_PreintegratedFG;
+			Scope<Texture2D> m_PreintegratedFG;
 
 			int m_CommandBufferIndex = 0;
 			int m_RenderMode = 0;

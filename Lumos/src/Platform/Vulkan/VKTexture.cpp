@@ -563,7 +563,7 @@ namespace Lumos
 
 			if (m_Data == nullptr)
 			{
-				delete[] allData;
+				lmdel[] allData;
 				allData = nullptr;
 			}
 

@@ -1,10 +1,10 @@
 #pragma once
 #include "LM.h"
 #include "Maths/Maths.h"
+#include "ParticleEmitter.h"
 
 namespace Lumos
 {
-	class ParticleEmitter;
 	class Camera;
 
 	class LUMOS_EXPORT ParticleManager
@@ -14,13 +14,13 @@ namespace Lumos
 		ParticleManager();
 		~ParticleManager();
 
-        void Add(std::shared_ptr<ParticleEmitter> emitter);
+        void Add(Ref<ParticleEmitter> emitter);
 		void Render(Camera* camera);
 
 		void Update(float dt);
 
 	private:
 
-		std::vector<std::shared_ptr<ParticleEmitter>> m_Emitters;
+		std::vector<Ref<ParticleEmitter>> m_Emitters;
 	};
 }

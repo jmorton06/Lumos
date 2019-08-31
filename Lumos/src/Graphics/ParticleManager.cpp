@@ -2,7 +2,6 @@
 #include "ParticleManager.h"
 #include "Material.h"
 #include "Particle.h"
-#include "ParticleEmitter.h"
 #include "API/Shader.h"
 #include "Camera/Camera.h"
 #include "API/Renderer.h"
@@ -20,7 +19,7 @@ namespace Lumos
 	{
 	}
 
-	void ParticleManager::Add(std::shared_ptr<ParticleEmitter> emitter)
+	void ParticleManager::Add(Ref<ParticleEmitter> emitter)
 	{
 		m_Emitters.push_back(emitter);
 	}

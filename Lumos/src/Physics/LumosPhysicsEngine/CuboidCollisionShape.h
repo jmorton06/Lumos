@@ -42,7 +42,7 @@ namespace Lumos
 	protected:
 		Maths::Vector3 m_CuboidHalfDimensions;
 
-		static std::shared_ptr<Hull> m_CubeHull;
+		static Ref<Hull> m_CubeHull;
 	};
 
 }

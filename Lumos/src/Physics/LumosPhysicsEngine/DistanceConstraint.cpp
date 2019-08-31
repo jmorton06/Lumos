@@ -45,7 +45,7 @@ namespace Lumos
 		{
 			float distanceOffset = ab.Length() - m_Distance;
 			float baumgarteScalar = 0.1f;
-			b = -(baumgarteScalar / LumosPhysicsEngine::Instance()->GetDeltaTime()) * distanceOffset;
+            b = -(baumgarteScalar / LumosPhysicsEngine::GetDeltaTime()) * distanceOffset;
 		}
 
 		float jn = -(Maths::Vector3::Dot(v0 - v1, abn) + b) / constraintMass;

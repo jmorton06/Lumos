@@ -1,7 +1,6 @@
 #include "LM.h"
 #include "Hull.h"
 
-
 namespace Lumos
 {
 

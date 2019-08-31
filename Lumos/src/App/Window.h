@@ -41,8 +41,6 @@ namespace Lumos
 		inline void SetHasResized(bool resized){ m_HasResized = resized; }
 		inline bool GetHasResized() const { return m_HasResized; }
 
-		inline Maths::Vector2 GetScreenSize() const { return m_ScreenSize; };
-
 		virtual void ToggleVSync() = 0;
 		virtual void SetVSync(bool set) = 0;
 		virtual void SetWindowTitle(const String& title)  = 0;
@@ -62,7 +60,6 @@ namespace Lumos
 
 		bool				m_Init;
 		Maths::Vector2		m_Position;
-		Maths::Vector2		m_ScreenSize;
 		bool				m_VSync;
 		bool				m_HasResized;
 	};

@@ -2,13 +2,13 @@
 
 #include "LM.h"
 #include "Maths/Maths.h"
+#include "Graphics/API/Shader.h"
+#include "Graphics/API/Texture.h"
 
 namespace Lumos
 {
 	namespace Graphics
 	{
-		class Texture2D;
-		class Shader;
 		class Pipeline;
 		class DescriptorSet;
 		class UniformBuffer;
@@ -35,12 +35,12 @@ namespace Lumos
 
 	struct PBRMataterialTextures
 	{
-		std::shared_ptr<Graphics::Texture2D> albedo;
-		std::shared_ptr<Graphics::Texture2D> normal;
-		std::shared_ptr<Graphics::Texture2D> specular;
-		std::shared_ptr<Graphics::Texture2D> roughness;
-		std::shared_ptr<Graphics::Texture2D> ao;
-		std::shared_ptr<Graphics::Texture2D> emissive;
+		Ref<Graphics::Texture2D> albedo;
+		Ref<Graphics::Texture2D> normal;
+		Ref<Graphics::Texture2D> specular;
+		Ref<Graphics::Texture2D> roughness;
+		Ref<Graphics::Texture2D> ao;
+		Ref<Graphics::Texture2D> emissive;
 	};
 
 	class LUMOS_EXPORT Material
@@ -58,7 +58,7 @@ namespace Lumos
 	protected:
 		int m_RenderFlags;
 	public:
-		Material(std::shared_ptr<Graphics::Shader>& shader, const MaterialProperties& properties = MaterialProperties(), const PBRMataterialTextures& textures = PBRMataterialTextures());
+		Material(Ref<Graphics::Shader>& shader, const MaterialProperties& properties = MaterialProperties(), const PBRMataterialTextures& textures = PBRMataterialTextures());
 		Material();
         
         Material(Material const&) = delete;
@@ -84,9 +84,11 @@ namespace Lumos
 		String							GetName()			const { return m_Name; }
 		MaterialProperties*				GetProperties()		const { return m_MaterialProperties; }
 
+		void OnImGui();
+
 	private:
 		PBRMataterialTextures   			m_PBRMaterialTextures;
-		std::shared_ptr<Graphics::Shader>	m_Shader;
+		Ref<Graphics::Shader>				m_Shader;
 		Graphics::Pipeline* 				m_Pipeline;
 		Graphics::DescriptorSet* 			m_DescriptorSet;
 		Graphics::UniformBuffer* 			m_MaterialPropertiesBuffer;

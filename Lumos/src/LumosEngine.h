@@ -42,7 +42,6 @@
 #include "Utilities/AssetsManager.h"
 
 //Entity
-#include "ECS/Entity.h"
 #include "ECS/EntityManager.h"
 #include "ECS/Component/Components.h"
 #include "ECS/ComponentManager.h"
@@ -65,11 +64,11 @@
 #include "Audio/SoundNode.h"
 
 //System
-#include "System/VFS.h"
-#include "System/FileSystem.h"
-#include "System/String.h"
-#include "System/CoreSystem.h"
-#include "System/LMLog.h"
+#include "Core/VFS.h"
+#include "Core/OS/FileSystem.h"
+#include "Core/String.h"
+#include "Core/CoreSystem.h"
+#include "Core/LMLog.h"
 
 //Scripting
 #include "Scripting/LuaScript.h"
@@ -93,8 +92,3 @@
 
 //External
 #include <imgui/imgui.h>
-
-#ifdef LUMOS_LEAK_CHECK
-static const char* __file__ = "unknown";
-static size_t __line__ = 0;
-#endif

@@ -36,9 +36,9 @@ layout(location = 2) out vec4 outNormal;
 layout(location = 3) out vec4 outPBR;
 layout(location = 4) out vec4 outDepth;
 
-const float PBR_WORKFLOW_SEPARATE_TEXTURES = 0.0;
-const float PBR_WORKFLOW_METALLIC_ROUGHNESS = 1.0;
-const float PBR_WORKFLOW_SPECULAR_GLOSINESS = 2.0;
+const int PBR_WORKFLOW_SEPARATE_TEXTURES = 0;
+const int PBR_WORKFLOW_METALLIC_ROUGHNESS = 1;
+const int PBR_WORKFLOW_SPECULAR_GLOSINESS = 2;
 
 #define PI 3.1415926535897932384626433832795
 #define GAMMA 2.2
@@ -104,8 +104,8 @@ void main()
 	if(texColour.w < 0.4)
 		discard;
 
-	float specular;
-	float roughness;
+	float specular = 0.0;
+	float roughness = 0.0;;
 
 	if(materialProperties.workflow == PBR_WORKFLOW_SEPARATE_TEXTURES)
 	{

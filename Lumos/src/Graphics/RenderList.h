@@ -1,6 +1,6 @@
 #pragma once
 #include "LM.h"
-#include "ECS/Entity.h"
+#include "ECS/EntityManager.h"
 #include "Maths/Frustum.h"
 #include "Maths/Maths.h"
 

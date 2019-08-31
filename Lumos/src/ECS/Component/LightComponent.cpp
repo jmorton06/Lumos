@@ -1,9 +1,8 @@
 #include "LM.h"
 #include "LightComponent.h"
-#include "Graphics/Light.h"
 #include "Physics3DComponent.h"
 #include "Physics/LumosPhysicsEngine/PhysicsObject3D.h"
-#include "ECS/Entity.h"
+#include "ECS/EntityManager.h"
 #include "App/Scene.h"
 #include "Maths/Vector3.h"
 #include "Maths/BoundingSphere.h"
@@ -15,14 +14,14 @@ namespace Lumos
 {
     LightComponent::LightComponent()
     {
-        m_Light = std::make_shared<Graphics::Light>();
+        m_Light = CreateRef<Graphics::Light>();
     }
     
-	LightComponent::LightComponent(std::shared_ptr<Graphics::Light>& light)
+	LightComponent::LightComponent(const Ref<Graphics::Light>& light)
 		: m_Light(light)
 	{
 		m_Name = "Light";
-		m_BoundingShape = std::make_unique<Maths::BoundingSphere>(light->m_Position.ToVector3(), light->m_Radius * light->m_Radius);
+		m_BoundingShape = CreateScope<Maths::BoundingSphere>(light->m_Position.ToVector3(), light->m_Radius * light->m_Radius);
 	}
     
     LightComponent::~LightComponent()

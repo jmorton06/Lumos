@@ -26,7 +26,7 @@ namespace Lumos
 		Maths::Vector3* vertices = lmnew Maths::Vector3[numVertices];
 		Maths::Vector2* texCoords = lmnew Maths::Vector2[numVertices];
 		u32* indices = lmnew u32[numIndices];
-        m_BoundingSphere = std::make_shared<Maths::BoundingSphere>();
+        m_BoundingSphere = CreateRef<Maths::BoundingSphere>();
 
 		float** lowMap = lmnew float*[RAW_LOWSIDE_RANDOM + 1];
 
@@ -159,7 +159,7 @@ namespace Lumos
             m_BoundingSphere->ExpandToFit(verts[i].Position);
 		}
 
-		m_VertexArray = std::shared_ptr<Graphics::VertexArray>(Graphics::VertexArray::Create());
+		m_VertexArray = Ref<Graphics::VertexArray>(Graphics::VertexArray::Create());
 
 		Graphics::VertexBuffer* buffer = Graphics::VertexBuffer::Create(Graphics::BufferUsage::STATIC);
 		buffer->SetData(sizeof(Graphics::Vertex) * numVertices, (void*)verts);
@@ -174,7 +174,7 @@ namespace Lumos
 
 		m_VertexArray->PushBuffer(buffer);
 
-		m_IndexBuffer = std::shared_ptr<Graphics::IndexBuffer>(Graphics::IndexBuffer::Create(indices, numIndices));// / sizeof(u32));
+		m_IndexBuffer = Ref<Graphics::IndexBuffer>(Graphics::IndexBuffer::Create(indices, numIndices));// / sizeof(u32));
         
         delete[] normals;
         delete[] tangents;
@@ -195,7 +195,5 @@ namespace Lumos
 
 		delete[] lowMap;
 		delete[] lowMapExpand;
-
-		Init();
 	}
 }

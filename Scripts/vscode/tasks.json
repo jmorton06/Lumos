@@ -14,7 +14,7 @@
 			"label": "Generate build files (GCC)",
 			"group": "none",
 			"type": "shell",
-			"command": "Tools/premake5 gmake"
+			"command": "Tools/premake5 gmake2"
 		},
 		// ## VS2017
 		{

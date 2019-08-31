@@ -2,14 +2,14 @@
 #include "DeferredOffScreenRenderer.h"
 #include "App/Scene.h"
 #include "App/Application.h"
-#include "ECS/Entity.h"
+#include "ECS/EntityManager.h"
 #include "ECS/Component/MaterialComponent.h"
 #include "ECS/Component/MeshComponent.h"
 #include "ECS/Component/TransformComponent.h"
 #include "ECS/Component/TextureMatrixComponent.h"
 
 #include "Maths/Maths.h"
-#include "System/JobSystem.h"
+#include "Core/JobSystem.h"
 
 #include "Graphics/RenderManager.h"
 #include "Graphics/Camera/Camera.h"
@@ -28,6 +28,8 @@
 #include "Graphics/API/RenderPass.h"
 #include "Graphics/API/Pipeline.h"
 #include "Graphics/API/GraphicsContext.h"
+
+#include <imgui/imgui.h>
 
 #define MAX_LIGHTS 32
 #define MAX_SHADOWMAPS 16
@@ -166,8 +168,8 @@ namespace Lumos
 						{
 							material = materialComponent->GetMaterial().get();
 
-							if (materialComponent->GetMaterial()->GetDescriptorSet() == nullptr || materialComponent->GetMaterial()->GetPipeline() != m_Pipeline)
-								materialComponent->GetMaterial()->CreateDescriptorSet(m_Pipeline, 1);
+                            if (material->GetDescriptorSet() == nullptr || material->GetPipeline() != m_Pipeline)
+								material->CreateDescriptorSet(m_Pipeline, 1);
 						}
 
 						TextureMatrixComponent* textureMatrixTransform = obj->GetComponent<TextureMatrixComponent>();
@@ -459,6 +461,17 @@ namespace Lumos
 			m_DefaultMaterial->CreateDescriptorSet(m_Pipeline, 1);
 
 			m_ClearColour = Maths::Vector4(0.8f, 0.8f, 0.8f, 1.0f);
+		}
+
+		void DeferredOffScreenRenderer::OnIMGUI()
+		{
+			ImGui::Text("Deferred Offscreen Renderer");
+
+			if (ImGui::TreeNode("Default Material"))
+			{
+				m_DefaultMaterial->OnImGui();
+				ImGui::TreePop();
+			}
 		}
 	}
 }

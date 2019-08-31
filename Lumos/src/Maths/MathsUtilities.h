@@ -70,7 +70,7 @@ namespace Lumos
         inline String GenerateUUID()
         {
             String uuid = std::string(36,' ');
-            int rnd = 0;
+            u32 rnd = 0;
             
             uuid[8] = '-';
             uuid[13] = '-';

@@ -1,7 +1,7 @@
 #include "LM.h"
 #include "LoadImage.h"
 
-#include "System/VFS.h"
+#include "Core/VFS.h"
 
 #ifdef FREEIMAGE
 #include <FreeImage.h>
