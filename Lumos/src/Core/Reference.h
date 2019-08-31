@@ -84,15 +84,11 @@ namespace Lumos
 
 		_FORCE_INLINE_ void operator=(Reference const& rhs)
 		{
-			unref();
-
 			ref(rhs);
 		}
         
         _FORCE_INLINE_ Reference& operator=(T* newData)
         {
-			unref();
-
             if(newData != nullptr)
                 refPointer(newData);
             return *this;
@@ -105,8 +101,6 @@ namespace Lumos
             
             T* castPointer = static_cast<T*>(movingPtr);
             
-			unref();
-
             if(castPointer != nullptr)
             {
                 if (moving.get() == m_Ptr)

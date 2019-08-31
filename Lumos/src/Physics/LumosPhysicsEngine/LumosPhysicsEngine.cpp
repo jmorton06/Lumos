@@ -55,10 +55,10 @@ namespace Lumos
 
 	void LumosPhysicsEngine::RemovePhysicsObject(const Ref<PhysicsObject3D>& obj)
 	{
-		//// Lookup the object in question
+		/// Lookup the object in question
 		const auto it = std::find(m_PhysicsObjects.begin(), m_PhysicsObjects.end(), obj);
 
-		// If found, remove it from the list
+		/// If found, remove it from the list
 		if (it != m_PhysicsObjects.end())
 			m_PhysicsObjects.erase(it);
 	}
