@@ -11,16 +11,14 @@
 #endif
 
 namespace Lumos
-{    
+{
+    Mutex*(*Mutex::CreateFunc)(bool) = 0;
+    
     Mutex *Mutex::Create(bool p_recursive)
     {
-#ifdef LUMOS_PLATFORM_UNIX
-        return new UnixMutex(p_recursive);
-#elif LUMOS_PLATFORM_WINDOWS
-        return new WindowsMutex(p_recursive);
-#else
-        return nullptr;
-#endif
+        LUMOS_CORE_ASSERT(CreateFunc, "No Mutex Create Function");
+        
+        return CreateFunc(p_recursive);
     }
     
     Mutex::~Mutex()

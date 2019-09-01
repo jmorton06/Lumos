@@ -14,6 +14,9 @@ namespace Lumos
         virtual void Unlock();
         virtual bool TryLock();
 
+        static void MakeDefault();
+    protected:
+            static Mutex* CreateFuncWindows(bool p_recursive);
     private:
 
     #ifdef WINDOWS_USE_MUTEX

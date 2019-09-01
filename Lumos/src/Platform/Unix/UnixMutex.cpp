@@ -30,4 +30,14 @@ namespace Lumos
     {
         pthread_mutex_destroy(&mutex);
     }
+    
+    Mutex* UnixMutex::CreateFuncUnix(bool p_recursive)
+    {
+        return lmnew UnixMutex(p_recursive);
+    }
+    
+    void UnixMutex::MakeDefault()
+    {
+        CreateFunc = CreateFuncUnix;
+    }
 }
