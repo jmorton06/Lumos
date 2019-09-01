@@ -16,16 +16,16 @@ namespace Lumos::Memory
 #define lmnew		new(__FILE__, __LINE__)
 #define lmdel		delete
 
-LUMOS_EXPORT void* operator new(std::size_t size);
-LUMOS_EXPORT void* operator new(std::size_t size, const char *file, int line);
-LUMOS_EXPORT void* operator new[](std::size_t size, const char *file, int line);
-LUMOS_EXPORT void* operator new (std::size_t size, const std::nothrow_t& nothrow_value) noexcept;
-LUMOS_EXPORT void* operator new[](std::size_t size);
+void* operator new(std::size_t size);
+void* operator new(std::size_t size, const char *file, int line);
+void* operator new[](std::size_t size, const char *file, int line);
+void* operator new (std::size_t size, const std::nothrow_t& nothrow_value) noexcept;
+void* operator new[](std::size_t size);
 
-LUMOS_EXPORT void operator delete(void * p) throw();
-LUMOS_EXPORT void operator delete[](void *p) throw();
-LUMOS_EXPORT void operator delete(void* block, const char* file, int line);
-LUMOS_EXPORT void operator delete[](void* block, const char* file, int line);
+void operator delete(void * p) throw();
+void operator delete[](void *p) throw();
+void operator delete(void* block, const char* file, int line);
+void operator delete[](void* block, const char* file, int line);
 
 #else
 #define lmnew new
