@@ -6,8 +6,7 @@ project "Lumos"
 	{
 		"src/**.h",
 		"src/**.c",
-		"src/**.cpp",
-		"res/**"
+		"src/**.cpp"
 	}
 
 	removefiles
