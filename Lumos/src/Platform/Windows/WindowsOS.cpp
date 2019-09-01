@@ -1,6 +1,8 @@
 #include "LM.h"
 #include "WindowsOS.h"
 #include "WindowsPower.h"
+#include "WindowsMutex.h"
+#include "WindowsThread.h"
 #include "Core/CoreSystem.h"
 #include "App/Application.h"
 
@@ -22,5 +24,11 @@ namespace Lumos
         app->Init();
         app->Run();
         delete app;
+    }
+
+    void WindowsOS::Init()
+    {
+        WindowsThread::MakeDefault();
+        WindowsMutex::MakeDefault();
     }
 }

@@ -9,6 +9,7 @@ namespace Lumos
         WindowsOS() = default;
         ~WindowsOS() = default;
 
+        void Init();
         void Run() override;
 	};
 }
