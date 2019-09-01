@@ -3,7 +3,7 @@
 
 namespace Lumos
 {
-    class WindowsOS : public OS
+    class LUMOS_EXPORT WindowsOS : public OS
     {
 	public:
         WindowsOS() = default;
