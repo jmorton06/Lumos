@@ -30,6 +30,7 @@ namespace Lumos
         void* m_User;
         ID m_ID;
 
+        static Thread* CreateFuncUnix(ThreadCreateCallback p_callback, void *p_user, const Settings &);
         static void *ThreadCallback(void *userdata);
 
         static ID GetThreadIDFuncUnix();

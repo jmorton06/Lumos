@@ -24,7 +24,7 @@ namespace Lumos
 
         typedef uint64_t ID;
 
-        virtual ~Thread();
+        virtual ~Thread() = default;
 
         virtual ID GetID() const = 0;
 
@@ -35,13 +35,13 @@ namespace Lumos
         static Thread* Create(ThreadCreateCallback p_callback, void *p_user, const Settings &p_settings = Settings()); 
 
     protected:
+        static Thread *(*CreateFunc)(ThreadCreateCallback, void*, const Settings &);
         
-        Thread();
+        Thread() = default;
         static ID (*get_thread_id_func)();
 	    static void (*wait_to_finish_func)(Thread *);
 	    static Error (*set_name_func)(const String &);
         
-        //static Thread *Create(ThreadCreateCallback p_callback, void *, const Settings &); ///< Create a mutex
         static ID s_MainThreadID;
 
     };

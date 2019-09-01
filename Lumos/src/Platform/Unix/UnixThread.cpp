@@ -112,11 +112,17 @@ namespace Lumos
 
     #endif // PTHREAD_NO_RENAME
     };
+    
+    Thread* UnixThread::CreateFuncUnix(ThreadCreateCallback p_callback, void *p_user, const Settings & p_settings)
+    {
+        return lmnew UnixThread(p_callback, p_user, p_settings);
+    }
 
     void UnixThread::MakeDefault() 
     {
         get_thread_id_func = GetThreadIDFuncUnix;
         wait_to_finish_func = WaitToFinishFuncUnix;
         set_name_func = SetNameFuncUnix;
+        CreateFunc = CreateFuncUnix;
     }
 }

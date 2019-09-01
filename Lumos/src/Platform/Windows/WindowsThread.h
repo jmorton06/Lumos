@@ -29,5 +29,6 @@ namespace Lumos
 
         static ID GetThreadIDFuncWindows();
         static void WaitToFinishFuncWindows(Thread *p_thread);
+        static Thread* CreateFuncWindows(ThreadCreateCallback p_callback, void *p_user, const Settings &);
     };
 }

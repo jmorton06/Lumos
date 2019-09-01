@@ -58,5 +58,11 @@ namespace Lumos
     {
         get_thread_id_func = GetThreadIDFuncWindows;
         wait_to_finish_func = WaitToFinishFuncWindows;
+        CreateFunc = CreateFuncWindows;
+    }
+
+    Thread* WindowsThread::CreateFuncWindows(ThreadCreateCallback p_callback, void *p_user, const Settings & p_settings)
+    {
+        return lmnew WindowsThread(p_callback, p_user, p_settings);
     }
 }
