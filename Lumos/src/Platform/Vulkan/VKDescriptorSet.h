@@ -22,8 +22,7 @@ namespace Lumos
 
 			std::vector<PushConstant> GetPushConstants() const { return m_PushConstants; }
 
-			vk::WriteDescriptorSet ImageInfoToVK(ImageInfo& imageInfo);
-			vk::WriteDescriptorSet ImageInfoToVK2(ImageInfo& imageInfo,vk::DescriptorImageInfo* imageInfos);
+			vk::WriteDescriptorSet ImageInfoToVK(ImageInfo& imageInfo,vk::DescriptorImageInfo* imageInfos);
 
 			void SetDynamicOffset(u32 offset) override { m_DynamicOffset = offset; }
 			u32 GetDynamicOffset() const override { return m_DynamicOffset; }

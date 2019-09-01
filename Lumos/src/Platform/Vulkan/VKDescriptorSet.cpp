@@ -56,32 +56,7 @@ namespace Lumos
 			return writeDescriptorSet;
 		}
 
-		vk::WriteDescriptorSet VKDescriptorSet::ImageInfoToVK(ImageInfo& imageInfo)
-		{
-			std::vector<vk::DescriptorImageInfo> descriptorInfo;
-			for(int i = 0; i < imageInfo.count; i++)
-			{
-				switch (imageInfo.type)
-				{
-				case TextureType::COLOUR: descriptorInfo.push_back(*static_cast<VKTexture2D*>(imageInfo.texture[i])->GetDescriptor()); break;
-				case TextureType::DEPTH: descriptorInfo.push_back(*static_cast<VKTextureDepth*>(imageInfo.texture[i])->GetDescriptor()); break;
-				case TextureType::DEPTHARRAY: descriptorInfo.push_back(*static_cast<VKTextureDepthArray*>(imageInfo.texture[i])->GetDescriptor()); break;
-				case TextureType::CUBE: descriptorInfo.push_back(*static_cast<VKTextureCube*>(imageInfo.texture[i])->GetDescriptor()); break;
-				default: LUMOS_CORE_ERROR("Unsupported Texture Type"); break;
-				}
-			}
-
-			vk::WriteDescriptorSet writeDescriptorSet{};
-			writeDescriptorSet.dstSet = m_DescriptorSet;
-			writeDescriptorSet.descriptorType = vk::DescriptorType::eCombinedImageSampler;
-			writeDescriptorSet.dstBinding = imageInfo.binding;
-			writeDescriptorSet.pImageInfo = descriptorInfo.data();
-			writeDescriptorSet.descriptorCount = imageInfo.count;
-
-			return writeDescriptorSet;
-		}
-
-		vk::WriteDescriptorSet VKDescriptorSet::ImageInfoToVK2(ImageInfo& imageInfo,vk::DescriptorImageInfo* imageInfos)
+		vk::WriteDescriptorSet VKDescriptorSet::ImageInfoToVK(ImageInfo& imageInfo,vk::DescriptorImageInfo* imageInfos)
 		{
 			for (int i = 0; i < imageInfo.count; i++)
 			{
@@ -171,7 +146,7 @@ namespace Lumos
 			{
                 vk::DescriptorImageInfo* imageInfos = lmnew vk::DescriptorImageInfo[imageInfo.count];
                 allocatedArrays.emplace_back(imageInfos);
-				descriptorWrites.push_back(ImageInfoToVK2(imageInfo,imageInfos));
+				descriptorWrites.push_back(ImageInfoToVK(imageInfo,imageInfos));
 			}
             
 			VKDevice::Instance()->GetDevice().updateDescriptorSets(static_cast<uint32_t>(descriptorWrites.size()), descriptorWrites.data(), 0, nullptr);
@@ -193,7 +168,7 @@ namespace Lumos
 			{
                 vk::DescriptorImageInfo* imageInfos = lmnew vk::DescriptorImageInfo[imageInfo.count];
                 allocatedArrays.emplace_back(imageInfos);
-				descriptorWrites.push_back(ImageInfoToVK2(imageInfo,imageInfos));
+				descriptorWrites.push_back(ImageInfoToVK(imageInfo,imageInfos));
 			}
 
 			for (auto& bufferInfo : bufferInfos)
