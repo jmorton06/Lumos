@@ -24,7 +24,8 @@ namespace Lumos
 
 			static VertexArray* Create();
 
-		protected:
+        protected:
+            static VertexArray* (*CreateFunc)();
 
 			std::vector<VertexBuffer*> m_Buffers;
 		};

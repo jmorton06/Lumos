@@ -22,6 +22,18 @@ namespace Lumos
 {
 	namespace Graphics
 	{
+        Texture2D* (*Texture2D::CreateFunc)() = nullptr;
+        Texture2D* (*Texture2D::CreateFromSourceFunc)(u32, u32, void*, TextureParameters, TextureLoadOptions) = nullptr;
+        Texture2D* (*Texture2D::CreateFromFileFunc)(const String&, const String&, TextureParameters, TextureLoadOptions) = nullptr;
+        
+        TextureDepth* (*TextureDepth::CreateFunc)(u32, u32) = nullptr;
+        TextureDepthArray* (*TextureDepthArray::CreateFunc)(u32, u32, u32) = nullptr;
+        
+        TextureCube* (*TextureCube::CreateFunc)(u32) = nullptr;
+        TextureCube* (*TextureCube::CreateFromFileFunc)(const String&) = nullptr;
+        TextureCube* (*TextureCube::CreateFromFilesFunc)(const String*) = nullptr;
+        TextureCube* (*TextureCube::CreateFromVCrossFunc)(const String*, u32) = nullptr;
+
 		u8 Texture::GetStrideFromFormat(const TextureFormat format)
 		{
 			switch (format)
@@ -38,146 +50,65 @@ namespace Lumos
 
 		Texture2D* Texture2D::Create()
 		{
-			switch (Graphics::GraphicsContext::GetRenderAPI())
-			{
-#ifdef LUMOS_RENDER_API_OPENGL
-			case RenderAPI::OPENGL:		return lmnew GLTexture2D();
-#endif
-#ifdef LUMOS_RENDER_API_VULKAN
-			case RenderAPI::VULKAN:		return lmnew VKTexture2D();
-#endif
-			}
-			return nullptr;
+            LUMOS_CORE_ASSERT(CreateFunc, "No Texture2D Create Function");
+            
+            return CreateFunc();
 		}
 
 		Texture2D* Texture2D::CreateFromSource(u32 width, u32 height, void* data, TextureParameters parameters, TextureLoadOptions loadOptions)
 		{
-			switch (Graphics::GraphicsContext::GetRenderAPI())
-			{
-#ifdef LUMOS_RENDER_API_OPENGL
-			case RenderAPI::OPENGL:		return lmnew GLTexture2D(width, height, data, parameters, loadOptions);
-#endif
-#ifdef LUMOS_RENDER_API_VULKAN
-			case RenderAPI::VULKAN:		return lmnew VKTexture2D(width, height, data, parameters, loadOptions);
-#endif
-			}
-			return nullptr;
+            LUMOS_CORE_ASSERT(CreateFromSourceFunc, "No Texture2D Create Function");
+            
+            return CreateFromSourceFunc(width, height, data, parameters, loadOptions);
 		}
 
 		Texture2D* Texture2D::CreateFromFile(const String& name, const String& filepath, TextureParameters parameters, TextureLoadOptions loadOptions)
 		{
-			switch (Graphics::GraphicsContext::GetRenderAPI())
-			{
-#ifdef LUMOS_RENDER_API_OPENGL
-			case RenderAPI::OPENGL:	return lmnew GLTexture2D(name, filepath, parameters, loadOptions);
-#endif 
-#ifdef LUMOS_RENDER_API_VULKAN
-			case RenderAPI::VULKAN:	return lmnew VKTexture2D(name, filepath, parameters, loadOptions);
-#endif
-			}
-			return nullptr;
+            LUMOS_CORE_ASSERT(CreateFromFileFunc, "No Texture2D Create Function");
+            
+            return CreateFromFileFunc(name, filepath, parameters, loadOptions);
 		}
 
 		TextureCube* TextureCube::Create(u32 size)
 		{
-			switch (Graphics::GraphicsContext::GetRenderAPI())
-			{
-#ifdef LUMOS_RENDER_API_OPENGL
-			case RenderAPI::OPENGL:		return lmnew GLTextureCube(size);
-#endif
-#ifdef LUMOS_RENDER_API_DIRECT3D
-			case RenderAPI::DIRECT3D:	return lmnew D3DTextureCube(size);
-#endif
-#ifdef LUMOS_RENDER_API_VULKAN
-			case RenderAPI::VULKAN:		return lmnew VKTextureCube(size);
-#endif
-			}
-			return nullptr;
+            LUMOS_CORE_ASSERT(CreateFunc, "No TextureCube Create Function");
+            
+            return CreateFunc(size);
 		}
 
 		TextureCube* TextureCube::CreateFromFile(const String& filepath)
 		{
-			switch (Graphics::GraphicsContext::GetRenderAPI())
-			{
-#ifdef LUMOS_RENDER_API_OPENGL
-			case RenderAPI::OPENGL:		return lmnew GLTextureCube(filepath, filepath);
-#endif
-#ifdef LUMOS_RENDER_API_DIRECT3D
-			case RenderAPI::DIRECT3D:	return lmnew D3DTextureCube(filepath, filepath);
-#endif
-#ifdef LUMOS_RENDER_API_VULKAN
-			case RenderAPI::VULKAN:		return lmnew VKTextureCube(filepath, filepath);
-#endif
-			}
-			return nullptr;
+            LUMOS_CORE_ASSERT(CreateFromFileFunc, "No TextureCube Create Function");
+            
+            return CreateFromFileFunc(filepath);
 		}
 
 		TextureCube* TextureCube::CreateFromFiles(const String* files)
 		{
-			switch (Graphics::GraphicsContext::GetRenderAPI())
-			{
-#ifdef LUMOS_RENDER_API_OPENGL
-			case RenderAPI::OPENGL:		return lmnew GLTextureCube(files[0], files);
-#endif
-#ifdef LUMOS_RENDER_API_DIRECT3D
-			case RenderAPI::DIRECT3D:	return lmnew D3DTextureCube(files[0], files);
-#endif
-#ifdef LUMOS_RENDER_API_VULKAN
-			case RenderAPI::VULKAN:		return lmnew VKTextureCube(files[0], files);
-#endif
-			}
-			return nullptr;
+            LUMOS_CORE_ASSERT(CreateFromFilesFunc, "No TextureCube Create Function");
+            
+            return CreateFromFilesFunc(files);
 		}
 
 		TextureCube* TextureCube::CreateFromVCross(const String* files, u32 mips)
 		{
-			switch (Graphics::GraphicsContext::GetRenderAPI())
-			{
-#ifdef LUMOS_RENDER_API_OPENGL
-			case RenderAPI::OPENGL:		return lmnew GLTextureCube(files[0], files, mips, InputFormat::VERTICAL_CROSS);
-#endif
-#ifdef LUMOS_RENDER_API_DIRECT3D
-			case RenderAPI::DIRECT3D:	return lmnew D3DTextureCube(files[0], files, mips, InputFormat::VERTICAL_CROSS);
-#endif
-#ifdef LUMOS_RENDER_API_VULKAN
-			case RenderAPI::VULKAN:		return lmnew VKTextureCube(files[0], files, mips, InputFormat::VERTICAL_CROSS);
-#endif
-			}
-			return nullptr;
+            LUMOS_CORE_ASSERT(CreateFromVCrossFunc, "No TextureCube Create Function");
+            
+            return CreateFromVCrossFunc(files, mips);
 		}
 
 		TextureDepth* TextureDepth::Create(u32 width, u32 height)
 		{
-			switch (Graphics::GraphicsContext::GetRenderAPI())
-			{
-#ifdef LUMOS_RENDER_API_OPENGL
-			case RenderAPI::OPENGL:		return lmnew GLTextureDepth(width, height);
-#endif
-#ifdef LUMOS_RENDER_API_VULKAN
-			case RenderAPI::VULKAN:		return lmnew VKTextureDepth(width, height);
-#endif
-#ifdef LUMOS_RENDER_API_DIRECT3D
-			case RenderAPI::DIRECT3D:	return lmnew D3DTextureDepth(width, height);
-#endif
-			}
-			return nullptr;
+            LUMOS_CORE_ASSERT(CreateFunc, "No TextureDepth Create Function");
+            
+            return CreateFunc(width, height);
 		}
 
 		TextureDepthArray* TextureDepthArray::Create(u32 width, u32 height, u32 count)
 		{
-			switch (Graphics::GraphicsContext::GetRenderAPI())
-			{
-#ifdef LUMOS_RENDER_API_OPENGL
-			case RenderAPI::OPENGL:		return lmnew GLTextureDepthArray(width, height, count);
-#endif
-#ifdef LUMOS_RENDER_API_DIRECT3D
-			case RenderAPI::DIRECT3D:	return lmnew D3DTextureDepthArray(width, height, count);
-#endif
-#ifdef LUMOS_RENDER_API_VULKAN
-			case RenderAPI::VULKAN:     return lmnew VKTextureDepthArray(width, height, count);
-#endif
-			}
-			return nullptr;
+            LUMOS_CORE_ASSERT(CreateFunc, "No TextureDepthArray Create Function");
+            
+            return CreateFunc(width,height,count);
 		}
 	}
 }

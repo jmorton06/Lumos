@@ -110,6 +110,8 @@ namespace Lumos
 			inline static Swapchain* GetSwapchain() { return s_Instance->GetSwapchainInternal(); }
             
         protected:
+            static Renderer* (*CreateFunc)(u32, u32);
+            
             static Renderer* s_Instance;
 		};
 	}

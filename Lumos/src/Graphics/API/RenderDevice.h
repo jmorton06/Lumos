@@ -15,6 +15,9 @@ namespace Lumos
             static void Create();
             static void Release();
             
+        protected:
+            static RenderDevice* (*CreateFunc)();
+            
         private:
             static RenderDevice* s_Instance;
         };

@@ -31,6 +31,10 @@ namespace Lumos
 
 			u8* LoadTextureData();
 			u32  LoadTexture(void* data) const;
+            
+            static void MakeDefault();
+        protected:
+            static CommandBuffer* CreateFuncGL();
 
 		private:
 			u32 Load(void* data);
@@ -60,6 +64,11 @@ namespace Lumos
 			inline u32 GetSize() const override { return m_Size; }
 			inline const String& GetName() const override { return m_Name; }
 			inline const String& GetFilepath() const override { return m_Files[0]; }
+            
+            static void MakeDefault();
+        protected:
+            static CommandBuffer* CreateFuncGL();
+            
 		private:
 			static u32 LoadFromSingleFile();
 			u32 LoadFromMultipleFiles();

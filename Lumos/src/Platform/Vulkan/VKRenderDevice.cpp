@@ -7,4 +7,14 @@ namespace Lumos::Graphics
     {
         
     }
+    
+    void VKCommandBuffer::MakeDefault()
+    {
+        CreateFunc = CreateFuncVulkan;
+    }
+    
+    CommandBuffer* VKCommandBuffer::CreateFuncVulkan()
+    {
+        return lmnew VKCommandBuffer();
+    }
 }

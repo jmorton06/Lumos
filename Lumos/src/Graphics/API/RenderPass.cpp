@@ -14,18 +14,13 @@ namespace Lumos
 {
 	namespace Graphics
 	{
+        RenderPass*(*RenderPass::CreateFunc)() = nullptr;
+
 		RenderPass* RenderPass::Create()
 		{
-			switch (Graphics::GraphicsContext::GetRenderAPI())
-			{
-#ifdef LUMOS_RENDER_API_OPENGL
-			case RenderAPI::OPENGL:		return lmnew GLRenderPass();
-#endif
-#ifdef LUMOS_RENDER_API_VULKAN
-			case RenderAPI::VULKAN:		return lmnew VKRenderpass();
-#endif
-			}
-			return nullptr;
+            LUMOS_CORE_ASSERT(CreateFunc, "No RenderPass Create Function");
+            
+            return CreateFunc();
 		}
 	}
 }

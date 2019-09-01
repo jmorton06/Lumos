@@ -458,6 +458,16 @@ namespace Lumos
 #endif
 		}
         
+        void VKCommandBuffer::MakeDefault()
+        {
+            CreateFunc = CreateFuncVulkan;
+        }
+        
+        CommandBuffer* VKCommandBuffer::CreateFuncVulkan()
+        {
+            return lmnew VKCommandBuffer();
+        }
+        
 #ifdef USE_VMA_ALLOCATOR
         void VKContext::DebugDrawVmaMemory(VmaStatInfo& info, bool indent)
         {

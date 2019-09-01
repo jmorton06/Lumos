@@ -15,21 +15,13 @@ namespace Lumos
 {
 	namespace Graphics
 	{
+        Framebuffer*(*Framebuffer::CreateFunc)(const FramebufferInfo&) = nullptr;
+
 		Framebuffer* Framebuffer::Create(const FramebufferInfo& framebufferInfo)
 		{
-			switch (Graphics::GraphicsContext::GetRenderAPI())
-			{
-#ifdef LUMOS_RENDER_API_OPENGL
-			case RenderAPI::OPENGL: return framebufferInfo.screenFBO ? nullptr : lmnew GLFramebuffer(framebufferInfo); //TODO: REMOVE
-#endif
-#ifdef LUMOS_RENDER_API_VULKAN
-			case RenderAPI::VULKAN:	return lmnew Graphics::VKFramebuffer(framebufferInfo);
-#endif
-#ifdef LUMOS_RENDER_API_DIRECT3D
-			case RenderAPI::DIRECT3D: return lmnew D3DFrameBuffer2D();
-#endif
-			}
-			return nullptr;
+            LUMOS_CORE_ASSERT(CreateFunc, "No Framebuffer Create Function");
+            
+            return CreateFunc(framebufferInfo);
 		}
 	}
 }

@@ -40,6 +40,15 @@ namespace Lumos
 		{
 
 		}
+        
+        void VKVertexArray::MakeDefault()
+        {
+            CreateFunc = CreateFuncVulkan;
+        }
+        
+        VertexArray* VKVertexArray::CreateFuncVulkan()
+        {
+            return lmnew VKVertexArray();
+        }
 	}
-	
 }

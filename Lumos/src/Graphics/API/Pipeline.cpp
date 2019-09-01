@@ -14,18 +14,13 @@ namespace Lumos
 {
 	namespace Graphics
 	{
+        Pipeline*(*Pipeline::CreateFunc)(const PipelineInfo&) = nullptr;
+
 		Pipeline* Pipeline::Create(const PipelineInfo& pipelineInfo)
 		{
-			switch (GraphicsContext::GetRenderAPI())
-			{
-#ifdef LUMOS_RENDER_API_OPENGL
-				case RenderAPI::OPENGL: return lmnew GLPipeline(pipelineInfo);
-#endif
-#ifdef LUMOS_RENDER_API_VULKAN
-				case RenderAPI::VULKAN: return lmnew VKPipeline(pipelineInfo);
-#endif
-			}
-			return nullptr;
+            LUMOS_CORE_ASSERT(CreateFunc, "No Pipeline Create Function");
+            
+            return CreateFunc(pipelineInfo);
 		}
 	}
 }

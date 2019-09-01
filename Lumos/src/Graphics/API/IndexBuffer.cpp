@@ -18,38 +18,21 @@ namespace Lumos
 {
 	namespace Graphics
 	{
+        IndexBuffer*(*IndexBuffer::Create16Func)(u16*, u32, BufferUsage) = nullptr;
+        IndexBuffer*(*IndexBuffer::CreateFunc)(u32*, u32, BufferUsage) = nullptr;
+
 		IndexBuffer* IndexBuffer::Create(u16* data, u32 count, BufferUsage bufferUsage)
 		{
-			switch (Graphics::GraphicsContext::GetRenderAPI())
-			{
-#ifdef LUMOS_RENDER_API_OPENGL
-			case RenderAPI::OPENGL:		return lmnew GLIndexBuffer(data, count, bufferUsage);
-#endif
-#ifdef LUMOS_RENDER_API_DIRECT3D
-			case RenderAPI::DIRECT3D:	return lmnew D3DIndexBuffer(data, count);
-#endif
-#ifdef LUMOS_RENDER_API_VULKAN
-			case RenderAPI::VULKAN:		return lmnew Graphics::VKIndexBuffer(data, count, bufferUsage);
-#endif
-			}
-			return nullptr;
+            LUMOS_CORE_ASSERT(CreateFunc, "No IndexBuffer Create Function");
+            
+            return Create16Func(data,count, bufferUsage);
 		}
 
 		IndexBuffer* IndexBuffer::Create(u32* data, u32 count, BufferUsage bufferUsage)
 		{
-			switch (Graphics::GraphicsContext::GetRenderAPI())
-			{
-#ifdef LUMOS_RENDER_API_OPENGL
-			case RenderAPI::OPENGL:		return lmnew GLIndexBuffer(data, count, bufferUsage);
-#endif
-#ifdef LUMOS_RENDER_API_DIRECT3D
-			case RenderAPI::DIRECT3D:	return lmnew D3DIndexBuffer(data, count);
-#endif
-#ifdef LUMOS_RENDER_API_VULKAN
-			case RenderAPI::VULKAN:		return lmnew Graphics::VKIndexBuffer(data, count, bufferUsage);
-#endif
-			}
-			return nullptr;
+            LUMOS_CORE_ASSERT(CreateFunc, "No IndexBuffer Create Function");
+            
+            return CreateFunc(data, count, bufferUsage);
 		}
 	}
 }

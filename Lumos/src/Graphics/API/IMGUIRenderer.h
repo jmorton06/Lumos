@@ -19,6 +19,9 @@ namespace Lumos
             virtual void OnResize(u32 width, u32 height) = 0;
 			virtual void Clear() {}
 			virtual bool Implemented() const = 0;
+            
+        protected:
+            static IMGUIRenderer* (*CreateFunc)(u32, u32, bool);
         };
     }
 }

@@ -16,7 +16,10 @@ namespace Lumos
 			u32 GetResult() override;
 			bool GetResultReady() override;
 			void End() override;
-
+            
+            static void MakeDefault();
+        protected:
+            static CommandBuffer* CreateFuncGL();
 		private:
 			u32 m_Handle;
 			u32 m_QueryType;

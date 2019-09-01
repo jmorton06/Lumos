@@ -57,6 +57,9 @@ namespace Lumos
 			virtual u32 GetWidth() const = 0;
 			virtual u32 GetHeight() const = 0;
 			virtual void SetClearColour(const Maths::Vector4& colour) = 0;
+            
+        protected:
+            static Framebuffer* (*CreateFunc)(const FramebufferInfo&);
 		};
 	}
 }

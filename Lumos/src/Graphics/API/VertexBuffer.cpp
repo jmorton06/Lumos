@@ -16,21 +16,13 @@ namespace Lumos
 {
 	namespace Graphics
 	{
-		VertexBuffer* VertexBuffer::Create(const BufferUsage usage)
+        VertexBuffer*(*VertexBuffer::CreateFunc)(const BufferUsage&) = nullptr;
+
+		VertexBuffer* VertexBuffer::Create(const BufferUsage& usage)
 		{
-			switch (Graphics::GraphicsContext::GetRenderAPI())
-			{
-#ifdef LUMOS_RENDER_API_OPENGL
-			case RenderAPI::OPENGL:		return new GLVertexBuffer(usage);
-#endif
-#ifdef LUMOS_RENDER_API_DIRECT3D
-			case RenderAPI::DIRECT3D:	return new D3DVertexBuffer(usage);
-#endif
-#ifdef LUMOS_RENDER_API_VULKAN
-			case RenderAPI::VULKAN:	return new Graphics::VKVertexBuffer(usage);
-#endif
-			}
-			return nullptr;
+            LUMOS_CORE_ASSERT(CreateFunc, "No VertexBuffer Create Function");
+            
+            return CreateFunc(usage);
 		}
 	}
 }

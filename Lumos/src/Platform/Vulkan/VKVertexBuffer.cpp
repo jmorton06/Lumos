@@ -74,5 +74,15 @@ namespace Lumos
 		void VKVertexBuffer::Unbind()
 		{
 		}
+        
+        void VKVertexBuffer::MakeDefault()
+        {
+            CreateFunc = CreateFuncVulkan;
+        }
+        
+        VertexBuffer* VKVertexBuffer::CreateFuncVulkan(BufferUsage usage)
+        {
+            return lmnew VKVertexBuffer(usage);
+        }
 	}
 }

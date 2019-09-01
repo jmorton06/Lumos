@@ -34,6 +34,10 @@ namespace Lumos
 		public:
 			static Type StringToType(const String& type);
 			static String TypeToString(Type type);
+            
+            static void MakeDefault();
+        protected:
+            static CommandBuffer* CreateFuncGL();
 		};
 	}
 }

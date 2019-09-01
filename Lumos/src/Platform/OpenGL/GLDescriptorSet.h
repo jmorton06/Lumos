@@ -22,7 +22,9 @@ namespace Lumos
 
 			void SetDynamicOffset(u32 offset) override { m_DynamicOffset = offset; }
 			u32 GetDynamicOffset() const override { return m_DynamicOffset; }
-
+            static void MakeDefault();
+        protected:
+            static CommandBuffer* CreateFuncGL();
         private:
 			u32 m_DynamicOffset = 0;
 			Shader* m_Shader = nullptr;

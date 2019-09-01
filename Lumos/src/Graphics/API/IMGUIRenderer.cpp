@@ -16,21 +16,13 @@ namespace Lumos
 {
     namespace Graphics
     {
+        IMGUIRenderer*(*IMGUIRenderer::CreateFunc)(u32, u32, bool) = nullptr;
+        
         IMGUIRenderer* IMGUIRenderer::Create(u32 width, u32 height, bool clearScreen)
 		{
-#ifdef LUMOS_IMGUI
-			switch (GraphicsContext::GetRenderAPI())
-			{
-#ifdef LUMOS_RENDER_API_OPENGL
-                case RenderAPI::OPENGL: return lmnew GLIMGUIRenderer(width, height, clearScreen);
-#endif
-#ifdef LUMOS_RENDER_API_VULKAN
-				case RenderAPI::VULKAN: return lmnew VKIMGUIRenderer(width, height, clearScreen);
-#endif
-			}
-#endif
-
-			return nullptr;
+            LUMOS_CORE_ASSERT(CreateFunc, "No IMGUIRenderer Create Function");
+            
+            return CreateFunc(width, height, clearScreen);
 		}
     }
 }

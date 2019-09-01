@@ -18,7 +18,10 @@ namespace Lumos
             void Render(Lumos::Graphics::CommandBuffer* commandBuffer) override;
             void OnResize(u32 width, u32 height) override;
 			bool Implemented() const override { return true; }
-
+            
+            static void MakeDefault();
+        protected:
+            static CommandBuffer* CreateFuncGL();
 		private:
 			void* m_WindowHandle;
 			bool m_ClearScreen;

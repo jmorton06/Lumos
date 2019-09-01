@@ -26,7 +26,11 @@ namespace Lumos
 
 			void SetDynamicOffset(u32 offset) override { m_DynamicOffset = offset; }
 			u32 GetDynamicOffset() const override { return m_DynamicOffset; }
-
+            
+            static void MakeDefault();
+        protected:
+            static DescriptorSet* CreateFuncVulkan();
+            
 		private:
 			vk::DescriptorSet m_DescriptorSet;
 			u32 m_DynamicOffset = 0;

@@ -27,6 +27,9 @@ namespace Lumos
 			vk::CommandBuffer GetCommandBuffer() const { return m_CommandBuffer[0]; };
 			vk::Fence GetFence() const { return m_Fence; };
 
+            static void MakeDefault();
+        protected:
+            static CommandBuffer* CreateFuncVulkan();
 		private:
 			std::vector<vk::CommandBuffer> m_CommandBuffer;
 			vk::Fence m_Fence;

@@ -15,23 +15,16 @@ namespace Lumos
 {
 	namespace Graphics
 	{
+        GraphicsContext*(*GraphicsContext::CreateFunc)(const WindowProperties&, void*) = nullptr;
+
 		GraphicsContext* GraphicsContext::s_Context = nullptr;
 		RenderAPI GraphicsContext::s_RenderAPI;
 
 		void GraphicsContext::Create(const WindowProperties& properties, void* deviceContext)
 		{
-			switch (GetRenderAPI())
-			{
-#ifdef LUMOS_RENDER_API_OPENGL
-			case RenderAPI::OPENGL:	s_Context = lmnew GLContext(properties, deviceContext); break;
-#endif
-#ifdef LUMOS_RENDER_API_VULKAN
-			case RenderAPI::VULKAN: s_Context = lmnew VKContext(properties, deviceContext); break;
-#endif
-#ifdef LUMOS_RENDER_API_DIRECT3D
-			case RenderAPI::DIRECT3D: s_Context = lmnew D3DContext(properties, deviceContext); break;
-#endif
-			}
+            LUMOS_CORE_ASSERT(CreateFunc, "No GraphicsContext Create Function");
+            
+            return CreateFunc(properties, deviceContext);
 		}
 
 		void GraphicsContext::Release()

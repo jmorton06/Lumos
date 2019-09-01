@@ -33,7 +33,10 @@ namespace Lumos
 			void AddShadowAttachment(Texture* texture) override {};
 			void AddTextureLayer(int index, Texture* texture) override {};
 			void GenerateFramebuffer() override {};
-
+            
+            static void MakeDefault();
+        protected:
+            static Framebuffer* CreateFuncVulkan();
 		private:
 
 			u32 m_Width;

@@ -55,7 +55,9 @@ namespace Lumos
 
 			const String& GetTitleInternal() const override;
 
-		protected:
+            static void MakeDefault();
+        protected:
+            static CommandBuffer* CreateFuncGL();
 
 			String m_RendererTitle;
 			Graphics::GLContext* m_Context;

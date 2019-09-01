@@ -26,6 +26,10 @@ namespace Lumos
             uint32_t GetTypeSize()  const { return m_DynamicTypeSize; }
             bool GetDynamic()       const { return m_Dynamic; }
 
+            static void MakeDefault();
+        protected:
+            static CommandBuffer* CreateFuncGL();
+            
         private:
 			u8* m_Data = nullptr;
             uint32_t m_Size = 0;

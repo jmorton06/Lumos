@@ -51,7 +51,8 @@ namespace Lumos
 
 			virtual void OnImGUI() = 0;
 
-		protected:
+        protected:
+            static GraphicsContext* (*CreateFunc)(const WindowProperties&, void*);
 
 			static GraphicsContext* s_Context;
 			static RenderAPI s_RenderAPI;

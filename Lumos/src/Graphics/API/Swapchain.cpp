@@ -15,18 +15,13 @@ namespace Lumos
 {
 	namespace Graphics
 	{
+        Swapchain*(*Swapchain::CreateFunc)(u32, u32) = nullptr;
+
 		Swapchain* Swapchain::Create(u32 width, u32 height)
 		{
-			switch (Graphics::GraphicsContext::GetRenderAPI())
-			{
-#ifdef LUMOS_RENDER_API_OPENGL
-			case RenderAPI::OPENGL:		return lmnew GLSwapchain(width, height);
-#endif
-#ifdef LUMOS_RENDER_API_VULKAN
-			case RenderAPI::VULKAN:		return lmnew VKSwapchain(width, height);
-#endif
-			}
-			return nullptr;
+            LUMOS_CORE_ASSERT(CreateFunc, "No Swapchain Create Function");
+            
+            return CreateFunc(width, height);
 		}
 	}
 }

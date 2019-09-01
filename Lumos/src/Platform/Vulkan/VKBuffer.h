@@ -36,7 +36,7 @@ namespace Lumos
 			VkDeviceSize m_Size = 0;
 			VkDeviceSize m_Alignment = 0;
 			void* m_Mapped = nullptr;
-            
+                        
 #ifdef USE_VMA_ALLOCATOR
             VmaAllocation m_Allocation;
 			VmaAllocation m_MappedAllocation;

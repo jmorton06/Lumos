@@ -49,6 +49,10 @@ namespace Lumos
 			static u32 SizeOfUniformType(Type type);
 			static Type StringToType(const String& type, u32 count);
 			static String TypeToString(Type type);
+            
+            static void MakeDefault();
+        protected:
+            static CommandBuffer* CreateFuncGL();
 		};
 
 		struct LUMOS_EXPORT GLShaderUniformField
@@ -84,6 +88,10 @@ namespace Lumos
 
 			ShaderUniformDeclaration* FindUniform(const String& name) override;
 			~GLShaderUniformBufferDeclaration() override;
+            
+            static void MakeDefault();
+        protected:
+            static CommandBuffer* CreateFuncGL();
 		};
 	}
 }
