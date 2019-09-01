@@ -1,7 +1,7 @@
 #if defined(LUMOS_PLATFORM_WINDOWS)
 
 #include "Core/CoreSystem.h"
-#include "Core/OS/OS.h"
+#include "Platform/Windows/WindowsOS.h"
 
 extern Lumos::Application* Lumos::CreateApplication();
 
@@ -9,11 +9,13 @@ int main(int argc, char** argv)
 {
 	Lumos::Internal::CoreSystem::Init();
 
-	Lumos::CreateApplication();
+    auto windowsOS = new Lumos::WindowsOS();
+    windowsOS->Init();
+    
+    Lumos::CreateApplication();
 
-	Lumos::OS::Create();
-	Lumos::OS::Instance()->Run();
-	Lumos::OS::Release();
+    windowsOS->Run();
+    delete windowsOS;
 
 	Lumos::Internal::CoreSystem::Shutdown();
 }
@@ -21,17 +23,21 @@ int main(int argc, char** argv)
 #elif defined(LUMOS_PLATFORM_LINUX)
 
 #include "Core/CoreSystem.h"
+#include "Platform/Unix/UnixOS.h"
 
 extern Lumos::Application* Lumos::CreateApplication();
 
 int main(int argc, char** argv)
 {
 	Lumos::Internal::CoreSystem::Init();
+    
+    auto unixOS = new Lumos::UnixOS();
+    unixOS->Init();
+    
+    Lumos::CreateApplication();
 
-	auto app = Lumos::CreateApplication();
-	app->Init();
-	app->Run();
-	delete app;
+    unixOS->Run();
+    delete unixOS;
 
 	Lumos::Internal::CoreSystem::Shutdown();
 }
@@ -39,17 +45,19 @@ int main(int argc, char** argv)
 
 #elif defined(LUMOS_PLATFORM_MACOS)
 
-#include "Core/OS/OS.h"
+#include "Platform/macOS/macOSOS.h"
 
 int main(int argc, char** argv)
 {
     Lumos::Internal::CoreSystem::Init();
 
+    auto macOSOS = new Lumos::macOSOS();
+    macOSOS->Init();
+    
     Lumos::CreateApplication();
 
-    Lumos::OS::Create();
-    Lumos::OS::Instance()->Run();
-    Lumos::OS::Release();
+    macOSOS->Run();
+    delete macOSOS;
 
     Lumos::Internal::CoreSystem::Shutdown();
 }

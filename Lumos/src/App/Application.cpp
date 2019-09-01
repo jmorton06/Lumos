@@ -23,6 +23,7 @@
 #include "Utilities/AssetsManager.h"
 #include "Core/VFS.h"
 #include "Core/JobSystem.h"
+#include "Core/OS/Thread.h"
 #include "Scripting/LuaScript.h"
 
 #include "Events/ApplicationEvent.h"
@@ -68,6 +69,9 @@ namespace Lumos
 
 		ImGui::CreateContext();
 		ImGui::StyleColorsDark();
+
+        Thread* thread = Thread::Create(nullptr, this);
+        delete thread;
 	}
 
 	Application::~Application()

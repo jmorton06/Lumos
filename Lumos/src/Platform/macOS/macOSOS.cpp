@@ -1,6 +1,8 @@
 #include "LM.h"
 #include "macOSOS.h"
 #include "macOSPower.h"
+#include "Platform/Unix/UnixThread.h"
+#include "Platform/Unix/UnixMutex.h"
 #include "Core/CoreSystem.h"
 #include "App/Application.h"
 
@@ -20,5 +22,11 @@ namespace Lumos
         app->Init();
         app->Run();
         delete app;
+    }
+    
+    void macOSOS::Init()
+    {
+        UnixThread::MakeDefault();
+        UnixMutex::MakeDefault();
     }
 }

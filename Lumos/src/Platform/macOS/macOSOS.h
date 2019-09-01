@@ -9,6 +9,7 @@ namespace Lumos
         macOSOS() {}
         ~macOSOS() {}
 
+        void Init();
         void Run() override;
 	};
 }
