@@ -10,9 +10,8 @@ namespace Lumos::Memory
 	LUMOS_EXPORT void DeleteFunc(void* p);
 	LUMOS_EXPORT void LogMemoryInformation();
 }
-
-//#define CUSTOM_MEMORY_ALLOCATOR
-#ifdef CUSTOM_MEMORY_ALLOCATOR
+#define CUSTOM_MEMORY_ALLOCATOR
+#if  defined(CUSTOM_MEMORY_ALLOCATOR) && defined(LUMOS_ENGINE)
 
 #define lmnew		new(__FILE__, __LINE__)
 #define lmdel		delete
