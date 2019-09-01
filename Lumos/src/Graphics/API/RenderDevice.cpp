@@ -14,19 +14,15 @@ namespace Lumos
 {
     namespace Graphics
     {
+        RenderDevice*(*RenderDevice::CreateFunc)() = nullptr;
+
         RenderDevice* RenderDevice::s_Instance = nullptr;
         
         void RenderDevice::Create()
         {
-            switch (Graphics::GraphicsContext::GetRenderAPI())
-            {
-#ifdef LUMOS_RENDER_API_OPENGL
-                case RenderAPI::OPENGL : s_Instance = lmnew GLRenderDevice();
-#endif
-#ifdef LUMOS_RENDER_API_VULKAN
-                case RenderAPI::VULKAN : s_Instance = lmnew VKRenderDevice();
-#endif
-            }
+            LUMOS_CORE_ASSERT(CreateFunc, "No RenderDevice Create Function");
+            
+            return CreateFunc();
         }
         
         void RenderDevice::Release()

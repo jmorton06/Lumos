@@ -53,6 +53,10 @@ namespace Lumos
             vk::ImageView GetImageView() const { return  m_TextureImageView; }
             vk::Sampler GetSampler() const { return m_TextureSampler; }
             
+            static void MakeDefault();
+        protected:
+            static Texture2D* CreateFuncVulkan();
+            
         private:
             String m_Name;
             String m_FileName;
@@ -113,6 +117,10 @@ namespace Lumos
 			vk::ImageView GetImageView() const { return  m_TextureImageView; }
 			vk::Sampler GetSampler() const { return m_TextureSampler; }
 
+            static void MakeDefault();
+        protected:
+            static TextureCube* CreateFuncVulkan();
+            
 		private:
 			String m_Name;
 			String m_Files[MAX_MIPS];
@@ -165,7 +173,9 @@ namespace Lumos
 			vk::DescriptorImageInfo* GetDescriptor() { return &m_Descriptor; }
 			void UpdateDescriptor();
 
-		protected:
+            static void MakeDefault();
+        protected:
+            static TextureDepth* CreateFuncVulkan();
 			void Init();
 
 		private:
@@ -213,7 +223,9 @@ namespace Lumos
 			vk::DescriptorImageInfo* GetDescriptor() { return &m_Descriptor; }
 			void UpdateDescriptor();
 
-		protected:
+            static void MakeDefault();
+        protected:
+            static TextureDepthArray* CreateFuncVulkan();
 			void Init() override;
 
 		private:

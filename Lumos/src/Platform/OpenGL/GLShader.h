@@ -106,6 +106,10 @@ namespace Lumos
 			static void SetUniformMat4(u32 location, const Maths::Matrix4& matrix);
 			static void SetUniformMat4Array(u32 location, u32 count, const Maths::Matrix4& matrix);
 
+            static void MakeDefault();
+        protected:
+            static CommandBuffer* CreateFuncGL();
+            
 		public:
 			static bool TryCompile(const String& source, String& error);
 			static bool TryCompileFromFile(const String& filepath, String& error);

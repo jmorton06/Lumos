@@ -21,7 +21,9 @@ namespace Lumos
 			void ExecuteSecondary(CommandBuffer* primaryCmdBuffer) override;
 
 			void UpdateViewport(u32 width, u32 height) override {};
-
+            static void MakeDefault();
+        protected:
+            static CommandBuffer* CreateFuncGL();
 		private:
 			bool primary;
 		};

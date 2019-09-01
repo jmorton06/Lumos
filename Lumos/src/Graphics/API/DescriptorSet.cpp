@@ -14,21 +14,13 @@ namespace Lumos
 {
 	namespace Graphics
 	{
+        DescriptorSet*(*DescriptorSet::CreateFunc)(DescriptorInfo) = nullptr;
+
 		DescriptorSet* DescriptorSet::Create(DescriptorInfo info)
 		{
-			switch (Graphics::GraphicsContext::GetRenderAPI())
-			{
-#ifdef LUMOS_RENDER_API_OPENGL
-			case RenderAPI::OPENGL:	return lmnew GLDescriptorSet(info);
-#endif
-#ifdef LUMOS_RENDER_API_VULKAN
-			case RenderAPI::VULKAN:	return lmnew VKDescriptorSet(info);
-#endif
-#ifdef LUMOS_RENDER_API_DIRECT3D
-			case RenderAPI::DIRECT3D: return nullptr;
-#endif
-			}
-			return nullptr;
+            LUMOS_CORE_ASSERT(CreateFunc, "No DescriptorSet Create Function");
+            
+            return CreateFunc(info);
 		}
 	}
 }

@@ -32,10 +32,11 @@ namespace Lumos
 			{
 				return static_cast<T*>(GetPointerInternal());
 			}
-		protected:
+        protected:
+            static VertexBuffer* (*CreateFunc)(const BufferUsage&);
 			virtual void* GetPointerInternal() = 0;
 		public:
-			static VertexBuffer* Create(BufferUsage usage = BufferUsage::STATIC);
+			static VertexBuffer* Create(const BufferUsage& usage = BufferUsage::STATIC);
 		};
 	}
 }

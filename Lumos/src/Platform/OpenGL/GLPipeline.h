@@ -22,7 +22,9 @@ namespace Lumos
 			
 			DescriptorSet* GetDescriptorSet() const override { return m_DescriptorSet; }
 			Shader* GetShader() const override { return m_Shader; }
-
+            static void MakeDefault();
+        protected:
+            static CommandBuffer* CreateFuncGL();
         private:
 			DescriptorSet* m_DescriptorSet = nullptr;
 			Shader* m_Shader = nullptr;

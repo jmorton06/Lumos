@@ -40,7 +40,10 @@ namespace Lumos
 			void AddTextureLayer(int index, Texture*  texture) override;
 
 			void Validate() override;
-
+            
+            static void MakeDefault();
+        protected:
+            static CommandBuffer* CreateFuncGL();
 		private:
 
 			u32 m_Handle;

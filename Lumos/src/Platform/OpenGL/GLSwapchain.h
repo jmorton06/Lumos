@@ -1,4 +1,4 @@
-﻿#pragma once
+#pragma once
 #include "LM.h"
 #include "Graphics/API/Swapchain.h"
 
@@ -22,6 +22,11 @@ namespace Lumos
 			size_t GetSwapchainBufferCount() const override;
 			u32 GetFramebufferCount() const override { return 1; }
 			Framebuffer* CreateFramebuffer(RenderPass* renderPass, u32 id) override { return nullptr; }
+            
+            static void MakeDefault();
+        protected:
+            static CommandBuffer* CreateFuncGL();
+            
 		private:
 			std::vector<GLTexture2D*> swapChainBuffers;
 			uint32_t currentBuffer = 0;

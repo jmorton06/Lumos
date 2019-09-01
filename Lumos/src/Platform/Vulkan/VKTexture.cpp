@@ -969,5 +969,15 @@ namespace Lumos
 
 			Init();
 		}
+        
+        void VKCommandBuffer::MakeDefault()
+        {
+            CreateFunc = CreateFuncVulkan;
+        }
+        
+        CommandBuffer* VKCommandBuffer::CreateFuncVulkan()
+        {
+            return lmnew VKCommandBuffer();
+        }
 	}
 }

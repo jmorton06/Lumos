@@ -39,5 +39,21 @@ namespace Lumos
 			VKBuffer::Flush(size);
 			VKBuffer::UnMap();
 		}
+        
+        void VKUniformBuffer::MakeDefault()
+        {
+            CreateFunc = CreateFuncVulkan;
+            CreateDataFunc = CreateDataFuncVulkan;
+        }
+        
+        UniformBuffer* VKUniformBuffer::CreateDataFuncVulkan(uint32_t size, const void* data)
+        {
+            return lmnew VKUniformBuffer(size, data);
+        }
+        
+        UniformBuffer* VKUniformBuffer::CreateFuncVulkan()
+        {
+            return lmnew VKUniformBuffer();
+        }
 	}
 }

@@ -24,7 +24,10 @@ namespace Lumos
 
 			void Bind() override;
 			void Unbind() override;
-		protected:
+            
+            static void MakeDefault();
+        protected:
+            static VertexBuffer* CreateFuncVulkan(BufferUsage usage);
 			void* GetPointerInternal() override;
 
 			bool m_MappedBuffer = false;

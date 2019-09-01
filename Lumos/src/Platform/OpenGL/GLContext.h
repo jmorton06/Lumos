@@ -22,6 +22,9 @@ namespace Lumos
             bool FlipImGUITexture() const override { return true; }
 
 			void OnImGUI() override;
+            static void MakeDefault();
+        protected:
+            static CommandBuffer* CreateFuncGL();
 		};
 	}
 }

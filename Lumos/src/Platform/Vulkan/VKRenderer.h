@@ -46,7 +46,10 @@ namespace Lumos
 			void DrawInternal(CommandBuffer* commandBuffer, DrawType type, u32 count, DataType datayType, void* indices) const override;
 
             void CreateSemaphores();
-
+            
+            static void MakeDefault();
+        protected:
+            static Renderer* CreateFuncVulkan();
 		private:
 			Lumos::Graphics::VKContext* m_Context;
 

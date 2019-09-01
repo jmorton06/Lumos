@@ -279,5 +279,15 @@ namespace Lumos
 			VKDevice::Instance()->GetDevice().allocateDescriptorSets(descSetAllocInfo, &set);
 			return set;
 		}
+        
+        void VKCommandBuffer::MakeDefault()
+        {
+            CreateFunc = CreateFuncVulkan;
+        }
+        
+        CommandBuffer* VKCommandBuffer::CreateFuncVulkan()
+        {
+            return lmnew VKCommandBuffer();
+        }
 	}
 }

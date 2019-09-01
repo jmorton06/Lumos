@@ -17,6 +17,7 @@ namespace Lumos
         ~UnixMutex();
         
         static void MakeDefault();
+    protected:
         static Mutex* CreateFuncUnix(bool p_recursive);
 
     private:

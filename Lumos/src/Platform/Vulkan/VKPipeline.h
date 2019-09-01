@@ -33,6 +33,10 @@ namespace Lumos
 			DescriptorSet*		GetDescriptorSet()	const override { return m_DescriptorSet; }
 			Shader*				GetShader()			const override { return m_Shader; }
 
+            static void MakeDefault();
+        protected:
+            static Pipeline* CreateFuncVulkan();
+            
 		private:
 		
 			vk::VertexInputBindingDescription 	m_VertexBindingDescription;

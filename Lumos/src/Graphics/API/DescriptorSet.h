@@ -111,6 +111,9 @@ namespace Lumos
 			virtual void SetPushConstants(std::vector<PushConstant>& pushConstants) = 0;
 			virtual void SetDynamicOffset(u32 offset) = 0;
 			virtual u32 GetDynamicOffset() const = 0;
+           
+        protected:
+            static DescriptorSet* (*CreateFunc)(DescriptorInfo);
 		};
 	}
 }

@@ -272,5 +272,15 @@ namespace Lumos
         {
 			//ImGui_ImplVulkan_ClearDescriptors();
         }
+        
+        void VKCommandBuffer::MakeDefault()
+        {
+            CreateFunc = CreateFuncVulkan;
+        }
+        
+        CommandBuffer* VKCommandBuffer::CreateFuncVulkan()
+        {
+            return lmnew VKCommandBuffer();
+        }
     }
 }

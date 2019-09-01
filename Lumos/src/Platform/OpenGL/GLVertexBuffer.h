@@ -27,6 +27,11 @@ namespace Lumos
 
 			void Bind() override;
 			void Unbind() override;
+            
+            static void MakeDefault();
+        protected:
+            static CommandBuffer* CreateFuncGL();
+            
 		protected:
 			void* GetPointerInternal() override;
 		};

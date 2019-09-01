@@ -52,7 +52,9 @@ namespace Lumos
 			const std::vector<const char*>& GetLayerNames()			const { return m_InstanceLayerNames; }
 			const std::vector<const char*>& GetExtensionNames()		const { return m_InstanceExtensionNames; }
 
-		protected:
+            static void MakeDefault();
+        protected:
+            static GraphicsContext* CreateFuncVulkan();
 
 			void CreateInstance();
 			void SetupDebugCallback();

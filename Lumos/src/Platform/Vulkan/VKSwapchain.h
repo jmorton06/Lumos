@@ -33,6 +33,10 @@ namespace Lumos
 			Texture* 			GetImage(u32 id) 			override { return (Texture*)m_SwapChainBuffers[id]; };
 			Framebuffer*		CreateFramebuffer(RenderPass* renderPass, u32 id) override { return nullptr; };
 
+            static void MakeDefault();
+        protected:
+            static Swapchain* CreateFuncVulkan();
+            
 		private:
             vk::SwapchainKHR 			m_SwapChain;
 			std::vector<VKTexture2D*> 	m_SwapChainBuffers;

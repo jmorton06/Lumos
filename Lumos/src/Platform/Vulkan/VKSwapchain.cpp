@@ -136,5 +136,15 @@ namespace Lumos
 			present.pResults = VK_NULL_HANDLE;
             VKDevice::Instance()->GetPresentQueue().presentKHR(present);
 		}
+        
+        void VKCommandBuffer::MakeDefault()
+        {
+            CreateFunc = CreateFuncVulkan;
+        }
+        
+        CommandBuffer* VKCommandBuffer::CreateFuncVulkan()
+        {
+            return lmnew VKCommandBuffer();
+        }
 	}
 }

@@ -22,7 +22,10 @@ namespace Lumos
 			void Unbind() const override;
 			u32 GetCount() const override;
 			void SetCount(u32 m_index_count) override { m_Count = m_index_count; };
-
+            
+            static void MakeDefault();
+        protected:
+            static CommandBuffer* CreateFuncGL();
 		};
 	}
 }

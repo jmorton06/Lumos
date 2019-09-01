@@ -57,8 +57,9 @@ namespace Lumos
 
 			vk::SurfaceKHR CreatePlatformSurface(vk::Instance vkInstance, Window* window);
 
+            static void MakeDefault();
+            
 		private:
-
 			vk::Device m_Device;
 			vk::PhysicalDevice m_PhysicalDevice;
 			vk::PhysicalDeviceProperties m_PhysicalDeviceProperties;

@@ -20,6 +20,10 @@ namespace Lumos
 
 			void Bind(CommandBuffer* commandBuffer) const override;
 			void Unbind() const override;
+            
+            static void MakeDefault();
+        protected:
+            static CommandBuffer* CreateFuncGL();
 		};
 	}
 }

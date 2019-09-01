@@ -150,5 +150,15 @@ namespace Lumos
 			m_CommandBuffer[0].setViewport(0, 1, &viewport);
 			m_CommandBuffer[0].setScissor(0, 1, &scissor);
 		}
+        
+        void VKCommandBuffer::MakeDefault()
+        {
+            CreateFunc = CreateFuncVulkan;
+        }
+        
+        CommandBuffer* VKCommandBuffer::CreateFuncVulkan()
+        {
+            return lmnew VKCommandBuffer();
+        }
 	}
 }

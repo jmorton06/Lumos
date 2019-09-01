@@ -14,22 +14,14 @@
 namespace Lumos
 {
 	namespace Graphics
-	{
+    {
+        Query*(*Query::CreateFunc)(QueryType) = nullptr;
+
 		Query* Query::Create(QueryType type)
 		{
-			switch (Graphics::GraphicsContext::GetRenderAPI())
-			{
-#ifdef LUMOS_RENDER_API_OPENGL
-			case Graphics::RenderAPI::OPENGL:		return lmnew GLQuery(type);
-#endif
-#ifdef LUMOS_RENDER_API_DIRECT3D
-			case Graphics::RenderAPI::DIRECT3D:	return lmnew DXQuery(type);
-#endif
-#ifdef LUMOS_RENDER_API_VULKAN
-			case Graphics::RenderAPI::VULKAN: UNIMPLEMENTED; return nullptr;
-#endif
-			}
-			return nullptr;
+            LUMOS_CORE_ASSERT(CreateFunc, "No Query Create Function");
+            
+            return CreateFunc(type);
 		}
 	}
 }
