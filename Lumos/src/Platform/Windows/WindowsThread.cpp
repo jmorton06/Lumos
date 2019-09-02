@@ -56,8 +56,8 @@ namespace Lumos
 
     void WindowsThread::MakeDefault() 
     {
-        get_thread_id_func = GetThreadIDFuncWindows;
-        wait_to_finish_func = WaitToFinishFuncWindows;
+        GetThreadIDFunc = GetThreadIDFuncWindows;
+        WaitToFinishFunc = WaitToFinishFuncWindows;
         CreateFunc = CreateFuncWindows;
     }
 

@@ -38,9 +38,9 @@ namespace Lumos
         static Thread *(*CreateFunc)(ThreadCreateCallback, void*, const Settings &);
         
         Thread() = default;
-        static ID (*get_thread_id_func)();
-	    static void (*wait_to_finish_func)(Thread *);
-	    static Error (*set_name_func)(const String &);
+        static ID (*GetThreadIDFunc)();
+	    static void (*WaitToFinishFunc)(Thread *);
+	    static Error (*SetNameFunc)(const String &);
         
         static ID s_MainThreadID;
 

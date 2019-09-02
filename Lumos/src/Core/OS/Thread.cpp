@@ -11,9 +11,9 @@
 
 namespace Lumos
 {    
-    Thread::ID (*Thread::get_thread_id_func)() = NULL;
-    void (*Thread::wait_to_finish_func)(Thread *) = NULL;
-    Error (*Thread::set_name_func)(const String &) = NULL;
+    Thread::ID (*Thread::GetThreadIDFunc)() = NULL;
+    void (*Thread::WaitToFinishFunc)(Thread *) = NULL;
+    Error (*Thread::SetNameFunc)(const String &) = NULL;
     
     Thread *(*Thread::CreateFunc)(ThreadCreateCallback, void*, const Settings&) = NULL;
 
@@ -28,22 +28,22 @@ namespace Lumos
     
     Thread::ID Thread::GetCallerID() 
     {
-        if (get_thread_id_func)
-            return get_thread_id_func();
+        if (GetThreadIDFunc)
+            return GetThreadIDFunc();
 
             return 0;
     }
         
     void Thread::WaitToFinish(Thread *p_thread) 
     {
-        if (wait_to_finish_func)
-            wait_to_finish_func(p_thread);
+        if (WaitToFinishFunc)
+            WaitToFinishFunc(p_thread);
     }
 
     Error Thread::SetName(const String &p_name) 
     {
-        if (set_name_func)
-            return set_name_func(p_name);
+        if (SetNameFunc)
+            return SetNameFunc(p_name);
 
         return ERR_UNAVAILABLE;
     };

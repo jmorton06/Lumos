@@ -120,9 +120,9 @@ namespace Lumos
 
     void UnixThread::MakeDefault() 
     {
-        get_thread_id_func = GetThreadIDFuncUnix;
-        wait_to_finish_func = WaitToFinishFuncUnix;
-        set_name_func = SetNameFuncUnix;
+        GetThreadIDFunc = GetThreadIDFuncUnix;
+        WaitToFinishFunc = WaitToFinishFuncUnix;
+        SetNameFunc = SetNameFuncUnix;
         CreateFunc = CreateFuncUnix;
     }
 }
