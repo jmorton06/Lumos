@@ -182,7 +182,7 @@ namespace Lumos
 				 write_desc[0].dstSet = ImGui_ImplVulkanH_GetFontDescriptor();
 				 write_desc[0].descriptorCount = 1;
 				 write_desc[0].descriptorType = vk::DescriptorType::eCombinedImageSampler;
-				 write_desc[0].pImageInfo = m_FontTexture->GetDescriptor();
+				 write_desc[0].pImageInfo = &m_FontTexture->GetDescriptor();
 				 VKDevice::Instance()->GetDevice().updateDescriptorSets(1, write_desc, 0, nullptr);
 
 				io.Fonts->TexID = (ImTextureID)m_FontTexture->GetHandle();// GetImage();

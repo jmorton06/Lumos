@@ -22,7 +22,7 @@ namespace Lumos
 
 			std::vector<PushConstant> GetPushConstants() const { return m_PushConstants; }
 
-			vk::WriteDescriptorSet ImageInfoToVK(ImageInfo& imageInfo,vk::DescriptorImageInfo* imageInfos);
+			vk::WriteDescriptorSet ImageInfoToVK(ImageInfo& imageInfo);
 
 			void SetDynamicOffset(u32 offset) override { m_DynamicOffset = offset; }
 			u32 GetDynamicOffset() const override { return m_DynamicOffset; }
@@ -30,6 +30,8 @@ namespace Lumos
             static void MakeDefault();
         protected:
             static DescriptorSet* CreateFuncVulkan(DescriptorInfo);
+            
+            void UpdateInternal(std::vector<ImageInfo>& imageInfos, std::vector<BufferInfo>& bufferInfos);
             
 		private:
 			vk::DescriptorSet m_DescriptorSet;
