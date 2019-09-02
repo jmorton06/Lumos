@@ -46,5 +46,15 @@ namespace Lumos
 				m_Buffers.front()->Unbind();
 			GLCall(glBindVertexArray(0));
 		}
+
+		void GLVertexArray::MakeDefault()
+		{
+			CreateFunc = CreateFuncGL;
+		}
+
+		VertexArray* GLVertexArray::CreateFuncGL()
+		{
+			return lmnew GLVertexArray();
+		}
 	}
 }

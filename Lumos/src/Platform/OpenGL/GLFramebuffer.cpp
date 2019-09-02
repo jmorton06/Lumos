@@ -15,7 +15,7 @@ namespace Lumos
 			m_ColourAttachmentCount = 0;
 		}
 
-		GLFramebuffer::GLFramebuffer(FramebufferInfo bufferInfo)
+		GLFramebuffer::GLFramebuffer(const FramebufferInfo& bufferInfo)
 		{
 			GLCall(glGenFramebuffers(1, &m_Handle));
 			GLCall(glBindFramebuffer(GL_FRAMEBUFFER, m_Handle));
@@ -152,6 +152,16 @@ namespace Lumos
 			{
 				LUMOS_CORE_ERROR("Unable to create Framebuffer! StatusCode: {0}", status);
 			}
+		}
+
+		void GLFramebuffer::MakeDefault()
+		{
+			CreateFunc = CreateFuncGL;
+		}
+
+		Framebuffer* GLFramebuffer::CreateFuncGL(const FramebufferInfo & bufferInfo)
+		{
+			return lmnew GLFramebuffer(bufferInfo);
 		}
 	}
 }

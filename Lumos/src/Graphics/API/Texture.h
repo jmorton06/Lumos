@@ -175,13 +175,13 @@ namespace Lumos
 			static TextureCube* Create(u32 size);
 			static TextureCube* CreateFromFile(const String& filepath);
 			static TextureCube* CreateFromFiles(const String* files);
-			static TextureCube* CreateFromVCross(const String* files, u32 mips);
+			static TextureCube* CreateFromVCross(const String* files, u32 mips, InputFormat = InputFormat::VERTICAL_CROSS);
             
         protected:
             static TextureCube* (*CreateFunc)(u32);
             static TextureCube* (*CreateFromFileFunc)(const String&);
             static TextureCube* (*CreateFromFilesFunc)(const String*);
-            static TextureCube* (*CreateFromVCrossFunc)(const String*, u32);
+            static TextureCube* (*CreateFromVCrossFunc)(const String*, u32, InputFormat);
 		};
 
 		class LUMOS_EXPORT TextureDepth : public Texture

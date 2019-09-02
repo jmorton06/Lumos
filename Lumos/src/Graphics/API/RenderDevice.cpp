@@ -22,7 +22,7 @@ namespace Lumos
         {
             LUMOS_CORE_ASSERT(CreateFunc, "No RenderDevice Create Function");
             
-            return CreateFunc();
+			s_Instance = CreateFunc();
         }
         
         void RenderDevice::Release()

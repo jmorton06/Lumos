@@ -32,7 +32,7 @@ namespace Lumos
             
             static void MakeDefault();
         protected:
-            static IMGUIRenderer* CreateFuncVulkan();
+            static IMGUIRenderer* CreateFuncVulkan(u32 width, u32 height, bool clearScreen);
         private:
 			void* m_WindowHandle;
 			u32 m_Width;

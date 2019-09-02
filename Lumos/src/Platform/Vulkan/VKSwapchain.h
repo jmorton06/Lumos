@@ -35,7 +35,7 @@ namespace Lumos
 
             static void MakeDefault();
         protected:
-            static Swapchain* CreateFuncVulkan();
+            static Swapchain* CreateFuncVulkan(u32 width, u32 height);
             
 		private:
             vk::SwapchainKHR 			m_SwapChain;

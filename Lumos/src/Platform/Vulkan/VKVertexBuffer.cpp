@@ -7,7 +7,7 @@ namespace Lumos
 { 
 	namespace Graphics
 	{
-		VKVertexBuffer::VKVertexBuffer(BufferUsage usage)
+		VKVertexBuffer::VKVertexBuffer(const BufferUsage& usage)
 			: VKBuffer(), m_Usage(usage), m_Size(0)
 		{
 		}
@@ -80,7 +80,7 @@ namespace Lumos
             CreateFunc = CreateFuncVulkan;
         }
         
-        VertexBuffer* VKVertexBuffer::CreateFuncVulkan(BufferUsage usage)
+        VertexBuffer* VKVertexBuffer::CreateFuncVulkan(const BufferUsage& usage)
         {
             return lmnew VKVertexBuffer(usage);
         }

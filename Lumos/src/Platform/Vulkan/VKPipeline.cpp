@@ -12,11 +12,6 @@ namespace Lumos
 {
 	namespace Graphics
 	{
-
-		VKPipeline::VKPipeline()
-		{
-		}
-
 		VKPipeline::VKPipeline(const PipelineInfo& pipelineCI)
 		{
 			Init(pipelineCI);
@@ -280,14 +275,14 @@ namespace Lumos
 			return set;
 		}
         
-        void VKCommandBuffer::MakeDefault()
+        void VKPipeline::MakeDefault()
         {
             CreateFunc = CreateFuncVulkan;
         }
-        
-        CommandBuffer* VKCommandBuffer::CreateFuncVulkan()
+
+		Pipeline* VKPipeline::CreateFuncVulkan(const PipelineInfo& pipelineCI)
         {
-            return lmnew VKCommandBuffer();
+            return lmnew VKPipeline(pipelineCI);
         }
 	}
 }

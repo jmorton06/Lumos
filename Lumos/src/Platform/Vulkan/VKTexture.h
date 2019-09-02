@@ -56,6 +56,8 @@ namespace Lumos
             static void MakeDefault();
         protected:
             static Texture2D* CreateFuncVulkan();
+			static Texture2D* CreateFromSourceFuncVulkan(u32, u32, void*, TextureParameters, TextureLoadOptions);
+			static Texture2D* CreateFromFileFuncVulkan(const String&, const String&, TextureParameters, TextureLoadOptions);
             
         private:
             String m_Name;
@@ -86,9 +88,9 @@ namespace Lumos
 		{
 		public:
 			VKTextureCube(u32 size);
-			VKTextureCube(const String& name, const String& filepath);
-			VKTextureCube(const String& name, const String* files);
-			VKTextureCube(const String& name, const String* files, u32 mips, InputFormat format);
+			VKTextureCube(const String& filepath);
+			VKTextureCube(const String* files);
+			VKTextureCube(const String* files, u32 mips, InputFormat format);
 			~VKTextureCube();
 
 			virtual void* GetHandle() const override { return (void*)m_TextureImageView; }
@@ -119,7 +121,10 @@ namespace Lumos
 
             static void MakeDefault();
         protected:
-            static TextureCube* CreateFuncVulkan();
+			static TextureCube* CreateFuncVulkan(u32);
+			static TextureCube* CreateFromFileFuncVulkan(const String& filepath);
+			static TextureCube* CreateFromFilesFuncVulkan(const String* files);
+			static TextureCube* CreateFromVCrossFuncVulkan(const String* files, u32 mips, InputFormat format);
             
 		private:
 			String m_Name;
@@ -175,7 +180,7 @@ namespace Lumos
 
             static void MakeDefault();
         protected:
-            static TextureDepth* CreateFuncVulkan();
+            static TextureDepth* CreateFuncVulkan(u32, u32);
 			void Init();
 
 		private:
@@ -225,7 +230,7 @@ namespace Lumos
 
             static void MakeDefault();
         protected:
-            static TextureDepthArray* CreateFuncVulkan();
+            static TextureDepthArray* CreateFuncVulkan(u32, u32, u32);
 			void Init() override;
 
 		private:

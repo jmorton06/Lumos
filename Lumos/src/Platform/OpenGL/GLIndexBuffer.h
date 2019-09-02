@@ -25,7 +25,8 @@ namespace Lumos
             
             static void MakeDefault();
         protected:
-            static CommandBuffer* CreateFuncGL();
+			static IndexBuffer* CreateFuncGL(u32* data, u32 count, BufferUsage bufferUsage);
+			static IndexBuffer* CreateFunc16GL(u16* data, u32 count, BufferUsage bufferUsage);
 		};
 	}
 }

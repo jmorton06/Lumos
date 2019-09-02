@@ -117,8 +117,10 @@ namespace Lumos
 
 		m_Handle = glfwCreateWindow(ScreenWidth, ScreenHeight, properties.Title.c_str(), nullptr, nullptr);
 
+#ifdef LUMOS_RENDER_API_OPENGL
         if(m_Data.m_RenderAPI == Graphics::RenderAPI::OPENGL)
             glfwMakeContextCurrent(m_Handle);
+#endif
 
 		glfwSetWindowUserPointer(m_Handle, &m_Data);
 
@@ -285,8 +287,10 @@ namespace Lumos
 
 	void GLFWWindow::OnUpdate()
 	{
+#ifdef LUMOS_RENDER_API_OPENGL
         if(m_Data.m_RenderAPI == Graphics::RenderAPI::OPENGL)
 			glfwSwapBuffers(m_Handle);
+#endif
 
 		glfwPollEvents();
 	}

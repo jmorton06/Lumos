@@ -34,7 +34,9 @@ namespace Lumos
             
             static void MakeDefault();
         protected:
-            static CommandBuffer* CreateFuncGL();
+			static Texture2D* CreateFuncGL();
+			static Texture2D* CreateFromSourceFuncGL(u32, u32, void*, TextureParameters, TextureLoadOptions);
+			static Texture2D* CreateFromFileFuncGL(const String&, const String&, TextureParameters, TextureLoadOptions);
 
 		private:
 			u32 Load(void* data);
@@ -51,9 +53,9 @@ namespace Lumos
 		{
 		public:
 			GLTextureCube(u32 size);
-			GLTextureCube(const String& name, const String& filepath);
-			GLTextureCube(const String& name, const String* files);
-			GLTextureCube(const String& name, const String* files, u32 mips, InputFormat format);
+			GLTextureCube(const String& filepath);
+			GLTextureCube(const String* files);
+			GLTextureCube(const String* files, u32 mips, InputFormat format);
 			~GLTextureCube();
 
 			inline void* GetHandle() const override { return (void*)(size_t)m_Handle; }
@@ -67,7 +69,10 @@ namespace Lumos
             
             static void MakeDefault();
         protected:
-            static CommandBuffer* CreateFuncGL();
+			static TextureCube* CreateFuncGL(u32);
+			static TextureCube* CreateFromFileFuncGL(const String& filepath);
+			static TextureCube* CreateFromFilesFuncGL(const String* files);
+			static TextureCube* CreateFromVCrossFuncGL(const String* files, u32 mips, InputFormat format);
             
 		private:
 			static u32 LoadFromSingleFile();
@@ -99,7 +104,11 @@ namespace Lumos
 
 			inline const String& GetName() const override { return m_Name; }
 			inline const String& GetFilepath() const override { return m_Name; }
+
+			static void MakeDefault();
 		protected:
+			static TextureDepth* CreateFuncGL(u32, u32);
+
 			void Init();
 
 			String m_Name;
@@ -129,6 +138,10 @@ namespace Lumos
 			inline void SetCount(u32 count) { m_Count = count; }
 
 			void Init() override;
+
+			static void MakeDefault();
+		protected:
+			static TextureDepthArray* CreateFuncGL(u32, u32, u32);
 		};
 	}
 }

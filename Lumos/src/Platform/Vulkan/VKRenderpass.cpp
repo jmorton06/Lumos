@@ -195,14 +195,14 @@ namespace Lumos
 			reinterpret_cast<VKCommandBuffer*>(commandBuffer)->GetCommandBuffer().endRenderPass();
 		}
         
-        void VKCommandBuffer::MakeDefault()
+        void VKRenderpass::MakeDefault()
         {
             CreateFunc = CreateFuncVulkan;
         }
         
-        CommandBuffer* VKCommandBuffer::CreateFuncVulkan()
+		RenderPass* VKRenderpass::CreateFuncVulkan()
         {
-            return lmnew VKCommandBuffer();
+            return lmnew VKRenderpass();
         }
 	}
 }

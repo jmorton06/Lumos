@@ -150,14 +150,14 @@ namespace Lumos
 			static_cast<VKCommandBuffer*>(commandBuffer)->GetCommandBuffer().draw(count, 1, 0, 0);
 		}
         
-        void VKCommandBuffer::MakeDefault()
+        void VKRenderer::MakeDefault()
         {
             CreateFunc = CreateFuncVulkan;
         }
         
-        CommandBuffer* VKCommandBuffer::CreateFuncVulkan()
+		Renderer* VKRenderer::CreateFuncVulkan(u32 width, u32 height)
         {
-            return lmnew VKCommandBuffer();
+            return lmnew VKRenderer(width, height);
         }
 	}
 }

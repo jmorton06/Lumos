@@ -108,7 +108,7 @@ namespace Lumos
 
             static void MakeDefault();
         protected:
-            static CommandBuffer* CreateFuncGL();
+            static Shader* CreateFuncGL(const String& name, const String& source);
             
 		public:
 			static bool TryCompile(const String& source, String& error);

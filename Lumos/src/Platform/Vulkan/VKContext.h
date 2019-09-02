@@ -54,7 +54,7 @@ namespace Lumos
 
             static void MakeDefault();
         protected:
-            static GraphicsContext* CreateFuncVulkan();
+            static GraphicsContext* CreateFuncVulkan(const WindowProperties&, void*);
 
 			void CreateInstance();
 			void SetupDebugCallback();

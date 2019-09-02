@@ -38,7 +38,7 @@ namespace Lumos
 
             static void MakeDefault();
         protected:
-            static Shader* CreateFuncVulkan();
+            static Shader* CreateFuncVulkan(const String&, const String&);
             
 		private:
 			vk::PipelineShaderStageCreateInfo* 	m_ShaderStages;

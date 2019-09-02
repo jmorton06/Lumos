@@ -931,5 +931,16 @@ namespace Lumos
 		{
 			GLCall(glUniformMatrix4fv(location, count, GL_FALSE /*GLTRUE*/, &matrix.values[0]));
 		}
+
+
+		Shader* GLShader::CreateFuncGL(const String & name, const String & source)
+		{
+			return lmnew GLShader(name, source);
+		}
+
+		void GLShader::MakeDefault()
+		{
+			CreateFunc = CreateFuncGL;
+		}
 	}
 }

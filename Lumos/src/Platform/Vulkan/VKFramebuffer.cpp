@@ -8,7 +8,7 @@ namespace Lumos
 {
 	namespace Graphics
 	{
-		VKFramebuffer::VKFramebuffer(FramebufferInfo frameBufferInfo)
+		VKFramebuffer::VKFramebuffer(const FramebufferInfo& frameBufferInfo)
 		{
 			m_Width  = frameBufferInfo.width;
 			m_Height = frameBufferInfo.height;
@@ -48,14 +48,14 @@ namespace Lumos
 			VKDevice::Instance()->GetDevice().destroyFramebuffer(m_Framebuffer);
 		}
         
-        void VKCommandBuffer::MakeDefault()
+        void VKFramebuffer::MakeDefault()
         {
             CreateFunc = CreateFuncVulkan;
         }
         
-        CommandBuffer* VKCommandBuffer::CreateFuncVulkan()
+		Framebuffer* VKFramebuffer::CreateFuncVulkan(const FramebufferInfo& info)
         {
-            return lmnew VKCommandBuffer();
+            return lmnew VKFramebuffer(info);
         }
 	}
 }

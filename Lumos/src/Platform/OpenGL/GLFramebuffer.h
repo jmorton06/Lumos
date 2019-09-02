@@ -15,7 +15,7 @@ namespace Lumos
 		public:
 
 			GLFramebuffer();
-			GLFramebuffer(FramebufferInfo bufferInfo);
+			GLFramebuffer(const FramebufferInfo& bufferInfo);
 			~GLFramebuffer();
 
 			inline u32 GetFramebuffer() const { return m_Handle; }
@@ -43,7 +43,7 @@ namespace Lumos
             
             static void MakeDefault();
         protected:
-            static CommandBuffer* CreateFuncGL();
+            static Framebuffer* CreateFuncGL(const FramebufferInfo& bufferInfo);
 		private:
 
 			u32 m_Handle;

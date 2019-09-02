@@ -12,7 +12,6 @@ namespace Lumos
         class GLPipeline : public Pipeline
         {
         public:
-            GLPipeline();
             GLPipeline(const PipelineInfo& pipelineCI);
             ~GLPipeline();
 
@@ -24,7 +23,7 @@ namespace Lumos
 			Shader* GetShader() const override { return m_Shader; }
             static void MakeDefault();
         protected:
-            static CommandBuffer* CreateFuncGL();
+            static Pipeline* CreateFuncGL(const PipelineInfo& pipelineCI);
         private:
 			DescriptorSet* m_DescriptorSet = nullptr;
 			Shader* m_Shader = nullptr;

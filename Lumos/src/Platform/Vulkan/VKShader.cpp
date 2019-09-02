@@ -149,14 +149,14 @@ namespace Lumos
 			}
 		}
         
-        void VKCommandBuffer::MakeDefault()
+        void VKShader::MakeDefault()
         {
             CreateFunc = CreateFuncVulkan;
         }
         
-        CommandBuffer* VKCommandBuffer::CreateFuncVulkan()
+		Shader* VKShader::CreateFuncVulkan(const String& name, const String& source)
         {
-            return lmnew VKCommandBuffer();
+            return lmnew VKShader(name, source);
         }
 
 	}

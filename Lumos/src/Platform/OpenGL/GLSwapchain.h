@@ -25,7 +25,7 @@ namespace Lumos
             
             static void MakeDefault();
         protected:
-            static CommandBuffer* CreateFuncGL();
+            static Swapchain* CreateFuncGL(u32 width, u32 height);
             
 		private:
 			std::vector<GLTexture2D*> swapChainBuffers;

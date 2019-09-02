@@ -23,7 +23,7 @@ namespace Lumos
             
             static void MakeDefault();
         protected:
-            static CommandBuffer* CreateFuncGL();
+            static VertexArray* CreateFuncGL();
 		};
 	}
 }
