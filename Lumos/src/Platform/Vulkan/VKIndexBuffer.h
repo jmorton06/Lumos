@@ -22,8 +22,8 @@ namespace Lumos
 
             static void MakeDefault();
         protected:
-            static IndexBuffer* CreateFuncVulkan();
-            
+            static IndexBuffer* CreateFuncVulkan(u32* data, u32 count, BufferUsage bufferUsage);
+			static IndexBuffer* CreateFunc16Vulkan(u16* data, u32 count, BufferUsage bufferUsage);
 		private:
 			BufferUsage m_Usage;
 			u32 m_Count;

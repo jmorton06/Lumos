@@ -56,5 +56,22 @@ namespace Lumos
 			u32 location = glGetUniformBlockIndex(shader->GetHandle(), name.c_str());
 			GLCall(glUniformBlockBinding(shader->GetHandle(), location, slot));
 		}
+
+		void GLUniformBuffer::MakeDefault()
+		{
+			CreateFunc = CreateFuncGL;
+			CreateDataFunc = CreateDataFuncGL;
+		}
+
+		UniformBuffer* GLUniformBuffer::CreateDataFuncGL(uint32_t size, const void* data)
+		{
+			//TODO
+			return lmnew GLUniformBuffer();
+		}
+
+		UniformBuffer* GLUniformBuffer::CreateFuncGL()
+		{
+			return lmnew GLUniformBuffer();
+		}
 	}
 }

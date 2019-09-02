@@ -30,7 +30,7 @@ namespace Lumos
             
             static void MakeDefault();
         protected:
-            static CommandBuffer* CreateFuncGL();
+            static VertexBuffer* CreateFuncGL(const BufferUsage& usage);
             
 		protected:
 			void* GetPointerInternal() override;

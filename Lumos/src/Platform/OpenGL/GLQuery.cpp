@@ -42,6 +42,16 @@ namespace Lumos
 			glEndQuery(m_QueryType);
 		}
 
+		void GLQuery::MakeDefault()
+		{
+			CreateFunc = CreateFuncGL;
+		}
+
+		Query* GLQuery::CreateFuncGL(QueryType type)
+		{
+			return lmnew GLQuery(type);
+		}
+
 		u32 GLQuery::GetResult()
 		{
 			int SamplesPassed = 0;

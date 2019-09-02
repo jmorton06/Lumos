@@ -8,13 +8,13 @@ namespace Lumos::Graphics
         
     }
     
-    void VKCommandBuffer::MakeDefault()
+    void VKRenderDevice::MakeDefault()
     {
         CreateFunc = CreateFuncVulkan;
     }
     
-    CommandBuffer* VKCommandBuffer::CreateFuncVulkan()
+	RenderDevice* VKRenderDevice::CreateFuncVulkan()
     {
-        return lmnew VKCommandBuffer();
+        return lmnew VKRenderDevice();
     }
 }

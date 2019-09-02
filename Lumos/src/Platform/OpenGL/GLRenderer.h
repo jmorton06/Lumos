@@ -57,7 +57,7 @@ namespace Lumos
 
             static void MakeDefault();
         protected:
-            static CommandBuffer* CreateFuncGL();
+            static Renderer* CreateFuncGL(u32 width, u32 height);
 
 			String m_RendererTitle;
 			Graphics::GLContext* m_Context;

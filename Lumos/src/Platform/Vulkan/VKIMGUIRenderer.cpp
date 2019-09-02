@@ -273,14 +273,14 @@ namespace Lumos
 			//ImGui_ImplVulkan_ClearDescriptors();
         }
         
-        void VKCommandBuffer::MakeDefault()
+        void VKIMGUIRenderer::MakeDefault()
         {
             CreateFunc = CreateFuncVulkan;
         }
         
-        CommandBuffer* VKCommandBuffer::CreateFuncVulkan()
+		IMGUIRenderer* VKIMGUIRenderer::CreateFuncVulkan(u32 width, u32 height, bool clearScreen)
         {
-            return lmnew VKCommandBuffer();
+            return lmnew VKIMGUIRenderer(width, height, clearScreen);
         }
     }
 }

@@ -13,7 +13,7 @@ namespace Lumos
 		{
 		public:
 
-			VKFramebuffer(FramebufferInfo frameBufferInfo);
+			VKFramebuffer(const FramebufferInfo& frameBufferInfo);
 			~VKFramebuffer();
 
 			inline vk::Framebuffer GetFramebuffer() const { return m_Framebuffer; }
@@ -36,7 +36,7 @@ namespace Lumos
             
             static void MakeDefault();
         protected:
-            static Framebuffer* CreateFuncVulkan();
+            static Framebuffer* CreateFuncVulkan(const FramebufferInfo&);
 		private:
 
 			u32 m_Width;

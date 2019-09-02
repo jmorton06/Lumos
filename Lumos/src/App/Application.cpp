@@ -69,9 +69,6 @@ namespace Lumos
 
 		ImGui::CreateContext();
 		ImGui::StyleColorsDark();
-
-        Thread* thread = Thread::Create(nullptr, this);
-        delete thread;
 	}
 
 	Application::~Application()

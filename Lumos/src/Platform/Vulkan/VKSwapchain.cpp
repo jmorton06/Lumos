@@ -137,14 +137,14 @@ namespace Lumos
             VKDevice::Instance()->GetPresentQueue().presentKHR(present);
 		}
         
-        void VKCommandBuffer::MakeDefault()
+        void VKSwapchain::MakeDefault()
         {
             CreateFunc = CreateFuncVulkan;
         }
         
-        CommandBuffer* VKCommandBuffer::CreateFuncVulkan()
+		Swapchain* VKSwapchain::CreateFuncVulkan(u32 width, u32 height)
         {
-            return lmnew VKCommandBuffer();
+            return lmnew VKSwapchain(width, height);
         }
 	}
 }

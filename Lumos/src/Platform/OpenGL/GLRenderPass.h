@@ -19,7 +19,7 @@ namespace Lumos
             void EndRenderpass(CommandBuffer* commandBuffer) override;
             static void MakeDefault();
         protected:
-            static CommandBuffer* CreateFuncGL();
+            static RenderPass* CreateFuncGL();
 		private:
 			bool m_Clear = true;
         };

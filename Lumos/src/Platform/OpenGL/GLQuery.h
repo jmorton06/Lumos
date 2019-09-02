@@ -19,7 +19,7 @@ namespace Lumos
             
             static void MakeDefault();
         protected:
-            static CommandBuffer* CreateFuncGL();
+            static Query* CreateFuncGL(QueryType type);
 		private:
 			u32 m_Handle;
 			u32 m_QueryType;

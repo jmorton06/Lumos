@@ -21,7 +21,7 @@ namespace Lumos
             
             static void MakeDefault();
         protected:
-            static CommandBuffer* CreateFuncGL();
+            static IMGUIRenderer* CreateFuncGL(u32 width, u32 height, bool clearScreen);
 		private:
 			void* m_WindowHandle;
 			bool m_ClearScreen;

@@ -54,6 +54,16 @@ namespace Lumos
         {
 			GLCall(glBindFramebuffer(GL_FRAMEBUFFER, 0));
         }
+
+		void GLRenderPass::MakeDefault()
+		{
+			CreateFunc = CreateFuncGL;
+		}
+
+		RenderPass* GLRenderPass::CreateFuncGL()
+		{
+			return lmnew GLRenderPass;
+		}
     }
 }
 

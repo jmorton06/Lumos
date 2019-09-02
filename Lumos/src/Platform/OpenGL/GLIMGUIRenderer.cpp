@@ -49,6 +49,16 @@ namespace Lumos
         {
             
         }
+
+		void GLIMGUIRenderer::MakeDefault()
+		{
+			CreateFunc = CreateFuncGL;
+		}
+
+		IMGUIRenderer* GLIMGUIRenderer::CreateFuncGL(u32 width, u32 height, bool clearScreen)
+		{
+			return lmnew GLIMGUIRenderer(width, height, clearScreen);
+		}
     }
 }
 

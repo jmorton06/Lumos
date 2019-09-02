@@ -28,7 +28,8 @@ namespace Lumos
 
             static void MakeDefault();
         protected:
-            static CommandBuffer* CreateFuncGL();
+			static UniformBuffer* CreateFuncGL();
+			static UniformBuffer* CreateDataFuncGL(uint32_t, const void*);
             
         private:
 			u8* m_Data = nullptr;

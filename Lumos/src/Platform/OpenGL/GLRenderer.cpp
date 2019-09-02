@@ -193,5 +193,15 @@ namespace Lumos
 				static_cast<Graphics::GLDescriptorSet*>(descriptor)->Bind(dynamicOffset);
 			}
 		}
+
+		void GLRenderer::MakeDefault()
+		{
+			CreateFunc = CreateFuncGL;
+		}
+
+		Renderer* GLRenderer::CreateFuncGL(u32 width, u32 height)
+		{
+			return lmnew GLRenderer(width, height);
+		}
 	}
 }

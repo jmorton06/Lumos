@@ -15,7 +15,7 @@ namespace Lumos
             
             static void MakeDefault();
         protected:
-            static CommandBuffer* CreateFuncGL();
+            static RenderDevice* CreateFuncGL();
             
         };
     }

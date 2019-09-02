@@ -41,6 +41,16 @@ namespace Lumos
 		{
 			return 1;
 		}
+
+		void GLSwapchain::MakeDefault()
+		{
+			CreateFunc = CreateFuncGL;
+		}
+
+		Swapchain* GLSwapchain::CreateFuncGL(u32 width, u32 height)
+		{
+			return lmnew GLSwapchain(width, height);
+		}
 	}
 }
 

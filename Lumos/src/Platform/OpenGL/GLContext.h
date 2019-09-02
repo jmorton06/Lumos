@@ -24,7 +24,7 @@ namespace Lumos
 			void OnImGUI() override;
             static void MakeDefault();
         protected:
-            static CommandBuffer* CreateFuncGL();
+            static GraphicsContext* CreateFuncGL(const WindowProperties& properties, void* cont);
 		};
 	}
 }

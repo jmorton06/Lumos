@@ -14,7 +14,6 @@ namespace Lumos
 		class VKPipeline : public Pipeline
 		{
 		public:
-			VKPipeline();
 			VKPipeline(const PipelineInfo& pipelineCI);
 			~VKPipeline();
 
@@ -35,7 +34,7 @@ namespace Lumos
 
             static void MakeDefault();
         protected:
-            static Pipeline* CreateFuncVulkan();
+            static Pipeline* CreateFuncVulkan(const PipelineInfo& pipelineCI);
             
 		private:
 		

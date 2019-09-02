@@ -221,5 +221,15 @@ namespace Lumos
 		{
 
 		}
+
+		void GLContext::MakeDefault()
+		{
+			CreateFunc = CreateFuncGL;
+		}
+
+		GraphicsContext* GLContext::CreateFuncGL(const WindowProperties& properties, void* cont)
+		{
+			return lmnew GLContext(properties, cont);
+		}
 	}
 }

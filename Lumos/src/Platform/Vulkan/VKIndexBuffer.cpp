@@ -39,14 +39,20 @@ namespace Lumos
 			return m_Size;
 		}
         
-        void VKCommandBuffer::MakeDefault()
+        void VKIndexBuffer::MakeDefault()
         {
             CreateFunc = CreateFuncVulkan;
+			Create16Func = CreateFunc16Vulkan;
         }
         
-        CommandBuffer* VKCommandBuffer::CreateFuncVulkan()
+		IndexBuffer* VKIndexBuffer::CreateFuncVulkan(u32* data, u32 count, BufferUsage bufferUsage)
         {
-            return lmnew VKCommandBuffer();
+            return lmnew VKIndexBuffer(data, count, bufferUsage);
         }
+
+		IndexBuffer* VKIndexBuffer::CreateFunc16Vulkan(u16* data, u32 count, BufferUsage bufferUsage)
+		{
+			return lmnew VKIndexBuffer(data, count, bufferUsage);
+		}
 	}
 }

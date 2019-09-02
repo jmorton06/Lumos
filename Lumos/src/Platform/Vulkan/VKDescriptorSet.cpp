@@ -201,14 +201,14 @@ namespace Lumos
 			}
 		}
         
-        void VKCommandBuffer::MakeDefault()
+        void VKDescriptorSet::MakeDefault()
         {
             CreateFunc = CreateFuncVulkan;
         }
         
-        CommandBuffer* VKCommandBuffer::CreateFuncVulkan()
+		DescriptorSet* VKDescriptorSet::CreateFuncVulkan(DescriptorInfo info)
         {
-            return lmnew VKCommandBuffer();
+            return lmnew VKDescriptorSet(info);
         }
 	}
 }

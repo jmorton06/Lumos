@@ -87,5 +87,15 @@ namespace Lumos
 		{
 			GLCall(glBindBuffer(GL_ARRAY_BUFFER, 0));
 		}
+
+		void GLVertexBuffer::MakeDefault()
+		{
+			CreateFunc = CreateFuncGL;
+		}
+
+		VertexBuffer* GLVertexBuffer::CreateFuncGL(const BufferUsage& usage)
+		{
+			return lmnew GLVertexBuffer(usage);
+		}
 	}
 }

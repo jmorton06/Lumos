@@ -29,7 +29,7 @@ namespace Lumos
             
             static void MakeDefault();
         protected:
-            static DescriptorSet* CreateFuncVulkan();
+            static DescriptorSet* CreateFuncVulkan(DescriptorInfo);
             
 		private:
 			vk::DescriptorSet m_DescriptorSet;

@@ -39,7 +39,7 @@ namespace Lumos
 			static void Release();
 
 			static RenderAPI GetRenderAPI() { return s_RenderAPI; }
-			static void SetRenderAPI(RenderAPI api) { s_RenderAPI = api; }
+			static void SetRenderAPI(RenderAPI api);
 
 			virtual void Init() = 0;
 			virtual void Present() = 0;

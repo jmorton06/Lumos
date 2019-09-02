@@ -49,7 +49,7 @@ namespace Lumos
             
             static void MakeDefault();
         protected:
-            static Renderer* CreateFuncVulkan();
+            static Renderer* CreateFuncVulkan(u32 width, u32 height);
 		private:
 			Lumos::Graphics::VKContext* m_Context;
 

@@ -122,5 +122,15 @@ namespace Lumos
 				m_PushConstants.push_back(pushConstant);
 			}
 		}
+
+		void GLDescriptorSet::MakeDefault()
+		{
+			CreateFunc = CreateFuncGL;
+		}
+
+		DescriptorSet* GLDescriptorSet::CreateFuncGL(DescriptorInfo info)
+		{
+			return lmnew GLDescriptorSet(info);
+		}
     }
 }

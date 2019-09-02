@@ -37,5 +37,15 @@ namespace Lumos
 		void GLCommandBuffer::ExecuteSecondary(CommandBuffer* primaryCmdBuffer)
 		{
 		}
+
+		void GLCommandBuffer::MakeDefault()
+		{
+			CreateFunc = CreateFuncGL;
+		}
+
+		CommandBuffer* GLCommandBuffer::CreateFuncGL()
+		{
+			return lmnew GLCommandBuffer();
+		}
 	}
 }
