@@ -74,7 +74,7 @@ namespace Lumos
 	Application::~Application()
 	{
 #ifdef  LUMOS_EDITOR
-		delete m_Editor;
+		lmdel m_Editor;
 #endif
 		ImGui::DestroyContext();
 	}
@@ -141,7 +141,7 @@ namespace Lumos
 
 		if (pause)
 		{
-			LUMOS_CORE_ERROR("{0}", reason);
+			LUMOS_LOG_ERROR("{0}", reason);
 		}
 
 		return 0;

@@ -43,7 +43,7 @@ namespace Lumos
 		std::ifstream stream(path);
 		if (!stream.good())
 		{
-			LUMOS_CORE_ERROR("Serializer can't serialize cus can't read file : {0}", path);
+			LUMOS_LOG_CRITICAL("Serializer can't serialize cus can't read file : {0}", path);
 			return nullptr;
 		}
 
@@ -51,7 +51,7 @@ namespace Lumos
 		stream >> input;
 		if (input.is_null())
 		{
-			LUMOS_CORE_ERROR("File is either a non-json file or corrupted");
+			LUMOS_LOG_CRITICAL("File is either a non-json file or corrupted");
 		}
 
 		return input;
@@ -67,11 +67,11 @@ namespace Lumos
 		const auto iterator = input.find("typeID");
 		if (iterator == input.end())
 		{
-			LUMOS_CORE_ERROR("The object you are serialising is not serialising its typeID!");
+			LUMOS_LOG_CRITICAL("The object you are serialising is not serialising its typeID!");
 		}
 		else if (input.is_null())
 		{
-			LUMOS_CORE_ERROR("File is either a non-json file or corrupted");
+			LUMOS_LOG_CRITICAL("File is either a non-json file or corrupted");
 		}
 
 		//Create instance of the type that is specified in the json file under the "typeID" member

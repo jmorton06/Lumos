@@ -16,7 +16,7 @@ namespace Lumos
     
     Mutex *Mutex::Create(bool p_recursive)
     {
-        LUMOS_CORE_ASSERT(CreateFunc, "No Mutex Create Function");
+        LUMOS_ASSERT(CreateFunc, "No Mutex Create Function");
         
         return CreateFunc(p_recursive);
     }

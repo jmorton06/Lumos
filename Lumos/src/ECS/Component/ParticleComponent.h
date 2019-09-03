@@ -12,7 +12,7 @@ namespace Lumos
         ParticleComponent();
         explicit ParticleComponent(Ref<ParticleEmitter>& emitter);
 
-        void Init() override;
+        void Init();
         void OnUpdateComponent(float dt) override;
 
 		void OnIMGUI() override;

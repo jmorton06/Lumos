@@ -490,17 +490,17 @@ namespace Lumos
 
 		if (!err.empty())
 		{
-			LUMOS_CORE_ERROR(err);
+			LUMOS_LOG_CRITICAL(err);
 		}
 
 		if (!warn.empty())
 		{
-			LUMOS_CORE_ERROR(warn);
+			LUMOS_LOG_CRITICAL(warn);
 		}
 
 		if (!ret)
 		{
-			LUMOS_CORE_ERROR("Failed to parse glTF");
+			LUMOS_LOG_CRITICAL("Failed to parse glTF");
 		}
 
         auto LoadedMaterials = LoadMaterials(model);

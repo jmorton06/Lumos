@@ -119,7 +119,7 @@ namespace Lumos
             }
             else
             {
-                LUMOS_CORE_ERROR("Failed to cast Reference");
+                LUMOS_LOG_ERROR("Failed to cast Reference");
             }
         }
         
@@ -143,7 +143,7 @@ namespace Lumos
             }
             else
             {
-                LUMOS_CORE_ERROR("Failed to cast Reference");
+                LUMOS_LOG_ERROR("Failed to cast Reference");
             }
             
             return *this;
@@ -189,7 +189,7 @@ namespace Lumos
             
         _FORCE_INLINE_ void refPointer(T* ptr)
         {
-            LUMOS_CORE_ASSERT(ptr, "Creating shared ptr with nullptr");
+            LUMOS_ASSERT(ptr, "Creating shared ptr with nullptr");
             
             m_Ptr = ptr;
             m_Counter = lmnew RefCount();

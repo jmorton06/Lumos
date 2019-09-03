@@ -21,7 +21,7 @@ namespace Lumos
 
 		VertexArray* VertexArray::Create()
 		{
-            LUMOS_CORE_ASSERT(CreateFunc, "No VertexArray Create Function");
+            LUMOS_ASSERT(CreateFunc, "No VertexArray Create Function");
             
             return CreateFunc();
 		}

@@ -25,7 +25,7 @@ namespace Lumos
 
 		void GraphicsContext::Create(const WindowProperties& properties, void* deviceContext)
 		{
-            LUMOS_CORE_ASSERT(CreateFunc, "No GraphicsContext Create Function");
+            LUMOS_ASSERT(CreateFunc, "No GraphicsContext Create Function");
             
 			s_Context = CreateFunc(properties, deviceContext);
 		}

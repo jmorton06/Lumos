@@ -96,7 +96,7 @@ namespace Lumos
 
 		if (!RenderList::AllocateNewRenderList(m_pFrameRenderList.get(), true))
 		{
-			LUMOS_CORE_ERROR("Unable to allocate scene render list! - Try using less shadow maps");
+			LUMOS_LOG_CRITICAL("Unable to allocate scene render list! - Try using less shadow maps");
 		}
 
 		m_RootEntity = EntityManager::Instance()->CreateEntity("Root");

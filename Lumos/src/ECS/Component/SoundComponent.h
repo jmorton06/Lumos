@@ -12,7 +12,7 @@ namespace Lumos
 		explicit SoundComponent(Ref<SoundNode>& sound);
 
 		void OnUpdateComponent(float dt) override;
-		void Init() override;
+		void Init();
 
 		void OnIMGUI() override;
         

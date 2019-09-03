@@ -11,7 +11,7 @@ namespace Lumos
 	{
 		if (g_NumRenderLists >= 31)
 		{
-			LUMOS_CORE_ERROR("Attempting to create more than 32 renderlists!");
+			LUMOS_LOG_CRITICAL("Attempting to create more than 32 renderlists!");
 			return false;
 		}
 

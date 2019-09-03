@@ -417,12 +417,12 @@ namespace Lumos
 			if (width == 0)
 			{
 				width = 1;
-				LUMOS_CORE_ERROR("Width 0");
+				LUMOS_LOG_CRITICAL("Width 0");
 			}
 			if (height == 0)
 			{
 				height = 1;
-				LUMOS_CORE_ERROR("Height 0");
+				LUMOS_LOG_CRITICAL("Height 0");
 			}
 			m_ScreenBufferWidth = width;
 			m_ScreenBufferHeight = height;

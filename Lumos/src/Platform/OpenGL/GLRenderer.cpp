@@ -107,7 +107,7 @@ namespace Lumos
 
 		void GLRenderer::SetBlendEquationInternal(RendererBlendFunction blendEquation)
 		{
-			LUMOS_CORE_ASSERT(false, "Not implemented");
+			LUMOS_ASSERT(false, "Not implemented");
 		}
 
 		void GLRenderer::SetViewportInternal(u32 x, u32 y, u32 width, u32 height)

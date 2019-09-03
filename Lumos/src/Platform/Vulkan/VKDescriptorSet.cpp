@@ -56,40 +56,38 @@ namespace Lumos
 			return writeDescriptorSet;
 		}
 
-		vk::WriteDescriptorSet VKDescriptorSet::ImageInfoToVK(ImageInfo& imageInfo)
+		vk::WriteDescriptorSet VKDescriptorSet::ImageInfoToVK(ImageInfo& imageInfo, vk::DescriptorImageInfo* imageInfos)
 		{
-            std::vector<vk::DescriptorImageInfo> imageInfos(imageInfo.count);
-            
 			for (int i = 0; i < imageInfo.count; i++)
 			{
 				vk::DescriptorImageInfo des;
 				switch (imageInfo.type)
 				{
 				case TextureType::COLOUR:
-					des = static_cast<VKTexture2D*>(imageInfo.texture[i])->GetDescriptor();
+					des = *static_cast<VKTexture2D*>(imageInfo.texture[i])->GetDescriptor();
 					imageInfos[i].imageLayout = des.imageLayout;
 					imageInfos[i].imageView = des.imageView;
 					imageInfos[i].sampler = des.sampler;
 					break;
 				case TextureType::DEPTH:
-					des = static_cast<VKTextureCube*>(imageInfo.texture[i])->GetDescriptor();
+					des = *static_cast<VKTextureDepth*>(imageInfo.texture[i])->GetDescriptor();
 					imageInfos[i].imageLayout = des.imageLayout;
 					imageInfos[i].imageView = des.imageView;
 					imageInfos[i].sampler = des.sampler;
 					break;
-				case TextureType::DEPTHARRAY: 
-					des = static_cast<VKTextureDepth*>(imageInfo.texture[i])->GetDescriptor();
+				case TextureType::DEPTHARRAY:
+					des = *static_cast<VKTextureDepthArray*>(imageInfo.texture[i])->GetDescriptor();
 					imageInfos[i].imageLayout = des.imageLayout;
 					imageInfos[i].imageView = des.imageView;
 					imageInfos[i].sampler = des.sampler;
 					break;
 				case TextureType::CUBE:
-					des = static_cast<VKTextureDepthArray*>(imageInfo.texture[i])->GetDescriptor();
+					des = *static_cast<VKTextureCube*>(imageInfo.texture[i])->GetDescriptor();
 					imageInfos[i].imageLayout = des.imageLayout;
 					imageInfos[i].imageView = des.imageView;
 					imageInfos[i].sampler = des.sampler;
 					break;
-				default: LUMOS_CORE_ERROR("Unsupported Texture Type"); des = vk::DescriptorImageInfo(); break;
+				default: LUMOS_LOG_ERROR("Unsupported Texture Type"); des = vk::DescriptorImageInfo(); break;
 				}
 			}
 
@@ -97,7 +95,7 @@ namespace Lumos
 			writeDescriptorSet.dstSet = m_DescriptorSet;
 			writeDescriptorSet.descriptorType = vk::DescriptorType::eCombinedImageSampler;
 			writeDescriptorSet.dstBinding = imageInfo.binding;
-			writeDescriptorSet.pImageInfo = imageInfos.data();
+			writeDescriptorSet.pImageInfo = imageInfos;
 			writeDescriptorSet.descriptorCount = imageInfo.count;
 
 			return writeDescriptorSet;
@@ -105,20 +103,94 @@ namespace Lumos
 
 		void VKDescriptorSet::Update(std::vector<BufferInfo>& bufferInfos)
 		{
-            std::vector<ImageInfo> temp;
-            UpdateInternal(temp, bufferInfos);
+			std::vector<vk::WriteDescriptorSet> descriptorWrites;
+			vk::DescriptorBufferInfo* buffersInfo = lmnew vk::DescriptorBufferInfo[bufferInfos.size()];
+
+			m_Dynamic = false;
+
+			int index = 0;
+
+			for (auto& bufferInfo : bufferInfos)
+			{
+				buffersInfo[index].buffer = *dynamic_cast<VKUniformBuffer*>(bufferInfo.buffer)->GetBuffer();
+				buffersInfo[index].offset = bufferInfo.offset;
+				buffersInfo[index].range = bufferInfo.size;
+
+				vk::WriteDescriptorSet writeDescriptorSet{};
+				writeDescriptorSet.dstSet = m_DescriptorSet;
+				writeDescriptorSet.descriptorType = VKTools::DescriptorTypeToVK(bufferInfo.type);
+				writeDescriptorSet.dstBinding = bufferInfo.binding;
+				writeDescriptorSet.pBufferInfo = &buffersInfo[index];
+				writeDescriptorSet.descriptorCount = 1;
+
+				descriptorWrites.emplace_back(writeDescriptorSet);
+				index++;
+
+				if (bufferInfo.type == DescriptorType::UNIFORM_BUFFER_DYNAMIC)
+					m_Dynamic = true;
+			}
+
+			VKDevice::Instance()->GetDevice().updateDescriptorSets(static_cast<uint32_t>(descriptorWrites.size()), descriptorWrites.data(), 0, nullptr);
+
+			delete[] buffersInfo;
 		}
 
 		void VKDescriptorSet::Update(std::vector<ImageInfo>& imageInfos)
 		{
-            std::vector<BufferInfo> temp;
-			UpdateInternal(imageInfos, temp);
-        }
+			std::vector<vk::WriteDescriptorSet> descriptorWrites;
+			std::vector<vk::DescriptorImageInfo*> allocatedArrays;
+
+			m_Dynamic = false;
+
+			for (auto& imageInfo : imageInfos)
+			{
+				vk::DescriptorImageInfo* imageInfos = lmnew vk::DescriptorImageInfo[imageInfo.count];
+				allocatedArrays.emplace_back(imageInfos);
+				descriptorWrites.push_back(ImageInfoToVK(imageInfo, imageInfos));
+			}
+
+			VKDevice::Instance()->GetDevice().updateDescriptorSets(static_cast<uint32_t>(descriptorWrites.size()), descriptorWrites.data(), 0, nullptr);
+
+			for (auto& allocatedArray : allocatedArrays)
+			{
+				delete[] allocatedArray;
+			}
+		}
 
 		void VKDescriptorSet::Update(std::vector<ImageInfo>& imageInfos, std::vector<BufferInfo>& bufferInfos)
 		{
-            UpdateInternal(imageInfos, bufferInfos);
-        }
+			std::vector<vk::WriteDescriptorSet> descriptorWrites;
+			std::vector<vk::DescriptorImageInfo*> allocatedArrays;
+
+			m_Dynamic = false;
+
+			for (auto& imageInfo : imageInfos)
+			{
+				vk::DescriptorImageInfo* imageInfos = lmnew vk::DescriptorImageInfo[imageInfo.count];
+				allocatedArrays.emplace_back(imageInfos);
+				descriptorWrites.push_back(ImageInfoToVK(imageInfo, imageInfos));
+			}
+
+			for (auto& bufferInfo : bufferInfos)
+			{
+				vk::DescriptorBufferInfo info = {};
+				info.buffer = *dynamic_cast<VKUniformBuffer*>(bufferInfo.buffer)->GetBuffer();
+				info.offset = bufferInfo.offset;
+				info.range = bufferInfo.size;
+
+				if (bufferInfo.type == DescriptorType::UNIFORM_BUFFER_DYNAMIC)
+					m_Dynamic = true;
+
+				descriptorWrites.push_back(GetWriteDescriptorSet(m_DescriptorSet, VKTools::DescriptorTypeToVK(bufferInfo.type), bufferInfo.binding, &info));
+			}
+
+			VKDevice::Instance()->GetDevice().updateDescriptorSets(static_cast<uint32_t>(descriptorWrites.size()), descriptorWrites.data(), 0, nullptr);
+
+			for (auto& allocatedArray : allocatedArrays)
+			{
+				delete[] allocatedArray;
+			}
+		}
 
 		void VKDescriptorSet::SetPushConstants(std::vector<PushConstant>& pushConstants)
 		{
@@ -128,77 +200,15 @@ namespace Lumos
 				m_PushConstants.push_back(pushConstant);
 			}
 		}
-        
-        void VKDescriptorSet::MakeDefault()
-        {
-            CreateFunc = CreateFuncVulkan;
-        }
-        
+
+		void VKDescriptorSet::MakeDefault()
+		{
+			CreateFunc = CreateFuncVulkan;
+		}
+
 		DescriptorSet* VKDescriptorSet::CreateFuncVulkan(DescriptorInfo info)
-        {
-            return lmnew VKDescriptorSet(info);
-        }
-        
-        void VKDescriptorSet::UpdateInternal(std::vector<ImageInfo>& imageInfos, std::vector<BufferInfo>& bufferInfos)
-        {
-            std::vector<vk::WriteDescriptorSet> descriptorWrites;
-            std::vector<std::vector<vk::DescriptorImageInfo>> allocatedArrays;
-            
-            m_Dynamic = false;
-            
-            for (auto& imageInfo : imageInfos)
-            {
-                std::vector<vk::DescriptorImageInfo> descriptorImageInfo(imageInfo.count);
-                
-                for (int i = 0; i < imageInfo.count; i++)
-                {
-                    vk::DescriptorImageInfo des;
-                    switch (imageInfo.type)
-                    {
-                        case TextureType::COLOUR:
-                            des = static_cast<VKTexture2D*>(imageInfo.texture[i])->GetDescriptor();
-                            break;
-                        case TextureType::DEPTH:
-                            des = static_cast<VKTextureCube*>(imageInfo.texture[i])->GetDescriptor();
-                            break;
-                        case TextureType::DEPTHARRAY:
-                            des = static_cast<VKTextureDepth*>(imageInfo.texture[i])->GetDescriptor();
-                            break;
-                        case TextureType::CUBE:
-                            des = static_cast<VKTextureDepthArray*>(imageInfo.texture[i])->GetDescriptor();
-                            break;
-                        default: LUMOS_CORE_ERROR("Unsupported Texture Type"); des = vk::DescriptorImageInfo(); break;
-                    }
-                    
-                    descriptorImageInfo[i] = des;
-                }
-                
-                vk::WriteDescriptorSet writeDescriptorSet{};
-                writeDescriptorSet.dstSet = m_DescriptorSet;
-                writeDescriptorSet.descriptorType = vk::DescriptorType::eCombinedImageSampler;
-                writeDescriptorSet.dstBinding = imageInfo.binding;
-                writeDescriptorSet.pImageInfo = descriptorImageInfo.data();
-                writeDescriptorSet.descriptorCount = imageInfo.count;
-                
-                descriptorWrites.emplace_back(writeDescriptorSet);
-                
-                allocatedArrays.emplace_back(descriptorImageInfo);
-            }
-            
-            for (auto& bufferInfo : bufferInfos)
-            {
-                vk::DescriptorBufferInfo info = {};
-                info.buffer = *dynamic_cast<VKUniformBuffer*>(bufferInfo.buffer)->GetBuffer();
-                info.offset = bufferInfo.offset;
-                info.range = bufferInfo.size;
-                
-                if (bufferInfo.type == DescriptorType::UNIFORM_BUFFER_DYNAMIC)
-                    m_Dynamic = true;
-                
-                descriptorWrites.push_back(GetWriteDescriptorSet(m_DescriptorSet, VKTools::DescriptorTypeToVK(bufferInfo.type), bufferInfo.binding, &info));
-            }
-            
-            VKDevice::Instance()->GetDevice().updateDescriptorSets(static_cast<uint32_t>(descriptorWrites.size()), descriptorWrites.data(), 0, nullptr);
-        }
+		{
+			return lmnew VKDescriptorSet(info);
+		}
 	}
 }

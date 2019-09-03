@@ -42,7 +42,7 @@ namespace Lumos
                              vk::DeviceMemory& imageMemory);
             vk::ImageView CreateImageView(vk::Image image, vk::Format format, vk::ImageAspectFlags aspectFlags, uint32_t mipLevels);
 
-             const vk::DescriptorImageInfo& GetDescriptor() const { return m_Descriptor; }
+            const vk::DescriptorImageInfo* GetDescriptor() const { return &m_Descriptor; }
 
 			void UpdateDescriptor();
 
@@ -108,7 +108,7 @@ namespace Lumos
 				vk::DeviceMemory& imageMemory);
 			vk::ImageView CreateImageView(vk::Image image, vk::Format format, uint32_t mipLevels);
 
-            const vk::DescriptorImageInfo& GetDescriptor() const { return m_Descriptor; }
+			const vk::DescriptorImageInfo* GetDescriptor() const { return &m_Descriptor; }
 
 			void UpdateDescriptor();
 
@@ -175,7 +175,7 @@ namespace Lumos
 			vk::DeviceMemory GetDeviceMemory() const { return m_TextureImageMemory; }
 			vk::ImageView GetImageView() const { return  m_TextureImageView; }
 			vk::Sampler GetSampler() const { return m_TextureSampler; }
-            const vk::DescriptorImageInfo& GetDescriptor() const { return m_Descriptor; }
+			const vk::DescriptorImageInfo* GetDescriptor() const { return &m_Descriptor; }
 			void UpdateDescriptor();
 
             static void MakeDefault();
@@ -225,7 +225,7 @@ namespace Lumos
 			vk::ImageView GetImageView() const { return  m_TextureImageView; }
 			vk::ImageView GetImageView(int index) const { return  m_IndividualImageViews[index]; }
 			vk::Sampler GetSampler() const { return m_TextureSampler; }
-            const vk::DescriptorImageInfo& GetDescriptor() const { return m_Descriptor; }
+			const vk::DescriptorImageInfo* GetDescriptor() const { return &m_Descriptor; }
 			void UpdateDescriptor();
 
             static void MakeDefault();

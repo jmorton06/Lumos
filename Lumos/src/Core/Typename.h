@@ -32,7 +32,7 @@ namespace Lumos
 
         if (result.size() < 2)
         {
-            LUMOS_CORE_WARN("Failed to GetTypename. Returning empty string!");
+            LUMOS_LOG_WARN("Failed to GetTypename. Returning empty string!");
             return "";
         }
         

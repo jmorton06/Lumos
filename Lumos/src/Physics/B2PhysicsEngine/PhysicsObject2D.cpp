@@ -108,7 +108,7 @@ namespace Lumos
 		}
 		else
 		{
-			LUMOS_CORE_ERROR("Shape Not Supported");
+			LUMOS_LOG_CRITICAL("Shape Not Supported");
 		}
 	}
     

@@ -20,7 +20,7 @@ namespace Lumos
         
         IMGUIRenderer* IMGUIRenderer::Create(u32 width, u32 height, bool clearScreen)
 		{
-            LUMOS_CORE_ASSERT(CreateFunc, "No IMGUIRenderer Create Function");
+            LUMOS_ASSERT(CreateFunc, "No IMGUIRenderer Create Function");
             
             return CreateFunc(width, height, clearScreen);
 		}

@@ -108,7 +108,7 @@ namespace Lumos
 			case TextureWrap::CLAMP_TO_EDGE:	return vk::SamplerAddressMode::eClampToEdge;
 			case TextureWrap::REPEAT:			return vk::SamplerAddressMode::eRepeat;
 			case TextureWrap::MIRRORED_REPEAT:	return vk::SamplerAddressMode::eMirroredRepeat;
-			default: LUMOS_CORE_ERROR("[Texture] Unsupported wrap type!");  return vk::SamplerAddressMode::eClampToEdge;
+			default: LUMOS_LOG_CRITICAL("[Texture] Unsupported wrap type!");  return vk::SamplerAddressMode::eClampToEdge;
 			}
 		}
 
@@ -306,7 +306,7 @@ namespace Lumos
 
 			if (!pixels)
 			{
-                LUMOS_CORE_ERROR("failed to load texture image!");
+                LUMOS_LOG_CRITICAL("failed to load texture image!");
 			}
 
 			m_MipLevels = static_cast<uint32_t>(std::floor(std::log2(Maths::Max(texWidth, texHeight)))) + 1;

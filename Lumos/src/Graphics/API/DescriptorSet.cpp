@@ -18,7 +18,7 @@ namespace Lumos
 
 		DescriptorSet* DescriptorSet::Create(DescriptorInfo info)
 		{
-            LUMOS_CORE_ASSERT(CreateFunc, "No DescriptorSet Create Function");
+            LUMOS_ASSERT(CreateFunc, "No DescriptorSet Create Function");
             
             return CreateFunc(info);
 		}

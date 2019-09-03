@@ -18,7 +18,7 @@ namespace Lumos
 
 		Pipeline* Pipeline::Create(const PipelineInfo& pipelineInfo)
 		{
-            LUMOS_CORE_ASSERT(CreateFunc, "No Pipeline Create Function");
+            LUMOS_ASSERT(CreateFunc, "No Pipeline Create Function");
             
             return CreateFunc(pipelineInfo);
 		}

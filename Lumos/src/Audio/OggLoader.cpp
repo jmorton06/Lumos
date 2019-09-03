@@ -13,14 +13,14 @@ namespace Lumos
 
 		if (!m_FileHandle)
 		{
-			LUMOS_CORE_ERROR("Failed to load OGG file '{0}'!", fileName);
+			LUMOS_LOG_CRITICAL("Failed to load OGG file '{0}'!", fileName);
 		}
 
 		auto m_StreamHandle = stb_vorbis_open_filename(fileName.c_str(), nullptr, nullptr);
 
 		if (!m_StreamHandle)
 		{
-			LUMOS_CORE_ERROR("Failed to load OGG file '{0}'!", fileName);
+			LUMOS_LOG_CRITICAL("Failed to load OGG file '{0}'!", fileName);
 		}
 
 		// Get file info

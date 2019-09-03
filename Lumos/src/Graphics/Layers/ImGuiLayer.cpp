@@ -197,7 +197,7 @@ namespace Lumos
 		std::string filePath = "/CoreTextures/Roboto-Medium.ttf";
 		
 		if (!VFS::Get()->ResolvePhysicalPath(filePath, physicalPath))
-			LUMOS_CORE_ERROR("Failed to Load font {0}", filePath);
+			LUMOS_LOG_CRITICAL("Failed to Load font {0}", filePath);
 
 		filePath = physicalPath;
         
