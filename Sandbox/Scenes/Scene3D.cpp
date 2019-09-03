@@ -12,7 +12,7 @@ public:
 		m_Name = "Test";
 	};
 
-	void Init() override {};
+	void Init() {};
 
 	void OnIMGUI() override 
 	{

@@ -57,7 +57,7 @@ namespace Lumos
 
 			if (result != vk::Result::eSuccess)
 			{
-				LUMOS_CORE_ERROR("[VULKAN] Failed to allocate buffer memory!");
+				LUMOS_LOG_CRITICAL("[VULKAN] Failed to allocate buffer memory!");
 			}
 
 			VKDevice::Instance()->GetDevice().bindBufferMemory(m_Buffer, m_Memory, 0);
@@ -82,7 +82,7 @@ namespace Lumos
 			vk::Result res = VKDevice::Instance()->GetDevice().mapMemory(m_Memory, offset, size, vk::MemoryMapFlagBits(), &m_Mapped);
 #endif
 			if (res != vk::Result::eSuccess)
-				LUMOS_CORE_ERROR("[VULKAN] Failed to map buffer");
+				LUMOS_LOG_CRITICAL("[VULKAN] Failed to map buffer");
 		}
 
 		void VKBuffer::UnMap()

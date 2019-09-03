@@ -10,10 +10,10 @@
 namespace Lumos
 {
     template <class T>
-    using hasInit = decltype(std::declval<T>().Init());
+    using HasInit = decltype(std::declval<T>().Init());
     
     template <class T>
-    using hasUpdate = decltype(std::declval<T>().Update());
+    using HasUpdate = decltype(std::declval<T>().Update());
 
 	class IComponentArray
 	{
@@ -29,7 +29,7 @@ namespace Lumos
 	public:
 		void InsertData(Entity* entity, T* component)
 		{
-			LUMOS_CORE_ASSERT(m_EntityToIndexMap.find(entity) == m_EntityToIndexMap.end(), "Component added to same entity more than once.");
+			LUMOS_ASSERT(m_EntityToIndexMap.find(entity) == m_EntityToIndexMap.end(), "Component added to same entity more than once.");
 
 			// Put new entry at end and update the maps
 			size_t newIndex = m_Size;
@@ -38,7 +38,7 @@ namespace Lumos
 			m_ComponentArray[newIndex] = component;
             m_ComponentArray[newIndex]->SetEntity(entity);
             
-            if constexpr(is_detected_v<hasInit, T>)
+            if constexpr(is_detected_v<HasInit, T>)
             {
                 m_ComponentArray[newIndex]->Init();
             }
@@ -47,7 +47,7 @@ namespace Lumos
 
 		void RemoveData(Entity* entity)
 		{
-			LUMOS_CORE_ASSERT(m_EntityToIndexMap.find(entity) != m_EntityToIndexMap.end(), "Removing non-existent component.");
+			LUMOS_ASSERT(m_EntityToIndexMap.find(entity) != m_EntityToIndexMap.end(), "Removing non-existent component.");
 
 			// Copy element at end into deleted element's place to maintain density
 			size_t indexOfRemovedEntity = m_EntityToIndexMap[entity];
@@ -147,7 +147,7 @@ namespace Lumos
 		{
 			auto typeName = typeid(T).hash_code();
 
-			LUMOS_CORE_ASSERT(m_ComponentTypes.find(typeName) == m_ComponentTypes.end(), "Registering component type more than once.");
+			LUMOS_ASSERT(m_ComponentTypes.find(typeName) == m_ComponentTypes.end(), "Registering component type more than once.");
 
 			// Add this component type to the component type map
             m_ComponentTypes[typeName] = m_NextComponentType;
@@ -164,7 +164,7 @@ namespace Lumos
 		{
 			auto typeName = typeid(T).hash_code();
 
-			LUMOS_CORE_ASSERT(m_ComponentTypes.find(typeName) != m_ComponentTypes.end(), "Component not registered before use.");
+			LUMOS_ASSERT(m_ComponentTypes.find(typeName) != m_ComponentTypes.end(), "Component not registered before use.");
 
 			return m_ComponentTypes[typeName];
 		}
@@ -204,7 +204,7 @@ namespace Lumos
 		{
 			auto typeName = typeid(T).hash_code();
 
-			LUMOS_CORE_ASSERT(m_ComponentArrays.find(typeName) != m_ComponentArrays.end(), "Component not registered before use.");
+			LUMOS_ASSERT(m_ComponentArrays.find(typeName) != m_ComponentArrays.end(), "Component not registered before use.");
 
 			return static_cast<ComponentArray<T>*>(m_ComponentArrays[typeName].get());
 		}

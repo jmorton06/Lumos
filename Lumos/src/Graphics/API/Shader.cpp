@@ -31,7 +31,7 @@ namespace Lumos
 			filePath = filepath;
 #endif
 
-            LUMOS_CORE_ASSERT(CreateFunc, "No Shader Create Function");
+            LUMOS_ASSERT(CreateFunc, "No Shader Create Function");
             
             //return CreateFunc(name,filepath);
             
@@ -70,7 +70,7 @@ namespace Lumos
 
 		bool Shader::TryCompile(const String& source, String& error, const String& name)
 		{
-            LUMOS_CORE_ASSERT(CreateFunc, "No Shader TryCompile Function");
+            LUMOS_ASSERT(CreateFunc, "No Shader TryCompile Function");
             
             return false;// CreateFunc(framebufferInfo);
 		}

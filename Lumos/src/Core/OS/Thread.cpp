@@ -21,7 +21,7 @@ namespace Lumos
 
     Thread* Thread::Create(ThreadCreateCallback p_callback, void *p_user, const Settings &p_settings)
     {
-        LUMOS_CORE_ASSERT(CreateFunc, "No Thread Create Function");
+        LUMOS_ASSERT(CreateFunc, "No Thread Create Function");
         
         return CreateFunc(p_callback, p_user, p_settings);
     }

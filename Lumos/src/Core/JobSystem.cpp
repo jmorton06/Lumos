@@ -122,7 +122,7 @@ namespace Lumos
                     worker.detach();
                 }
 
-                LUMOS_CORE_INFO("Initialised JobSystem with [{0} cores] [{1} threads]" ,numCores, numThreads);
+                LUMOS_LOG_INFO("Initialised JobSystem with [{0} cores] [{1} threads]" ,numCores, numThreads);
             }
 
             // This little function will not let the System to be deadlocked while the main thread is waiting for something

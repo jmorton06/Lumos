@@ -19,7 +19,7 @@ namespace Lumos
 
 		Framebuffer* Framebuffer::Create(const FramebufferInfo& framebufferInfo)
 		{
-            LUMOS_CORE_ASSERT(CreateFunc, "No Framebuffer Create Function");
+            LUMOS_ASSERT(CreateFunc, "No Framebuffer Create Function");
             
 #ifdef LUMOS_RENDER_API_OPENGL
 			if(Graphics::GraphicsContext::GetRenderAPI() == RenderAPI::OPENGL && framebufferInfo.screenFBO)

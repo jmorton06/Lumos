@@ -20,14 +20,14 @@ namespace Lumos
 
 		UniformBuffer* UniformBuffer::Create()
 		{
-            LUMOS_CORE_ASSERT(CreateFunc, "No UniformBuffer Create Function");
+            LUMOS_ASSERT(CreateFunc, "No UniformBuffer Create Function");
             
             return CreateFunc();
 		}
 
 		UniformBuffer* UniformBuffer::Create(uint32_t size, const void* data)
 		{
-            LUMOS_CORE_ASSERT(CreateFunc, "No UniformBuffer Create Function");
+            LUMOS_ASSERT(CreateFunc, "No UniformBuffer Create Function");
             
             return CreateDataFunc(size, data);
 		}

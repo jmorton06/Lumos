@@ -16,7 +16,7 @@ namespace Lumos
 		void SetRadius(float radius);
 
 		void OnUpdateComponent(float dt) override;
-		void Init() override;
+		void Init();
 
 		void OnIMGUI() override;
 

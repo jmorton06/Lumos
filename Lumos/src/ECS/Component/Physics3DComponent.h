@@ -13,7 +13,7 @@ namespace Lumos
 
 		~Physics3DComponent() = default;
 
-		void Init() override;
+		void Init();
 		void OnUpdateComponent(float dt) override;
 		void OnUpdateTransform(const Maths::Matrix4& entityTransform) override;
         

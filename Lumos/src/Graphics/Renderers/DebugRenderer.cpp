@@ -342,7 +342,7 @@ namespace Lumos
 			m_LogEntriesOffset = (m_LogEntriesOffset + 1) % MAX_LOG_SIZE;
 		}
 
-		LUMOS_CORE_WARN(text);
+		LUMOS_LOG_WARN(text);
 	}
 
 	void DebugRenderer::Log(const Maths::Vector3& colour, const std::string text, ...)

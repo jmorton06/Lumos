@@ -92,7 +92,7 @@ namespace Lumos
 				m_ImageAvailableSemaphore[i] = VKDevice::Instance()->GetDevice().createSemaphore(semaphoreInfo);
 				if (!m_ImageAvailableSemaphore[i])
 				{
-					LUMOS_CORE_ERROR("[VULKAN] Failed to create semaphores!");
+					LUMOS_LOG_CRITICAL("[VULKAN] Failed to create semaphores!");
 				}
 			}
 		}
@@ -109,7 +109,7 @@ namespace Lumos
 			}
 			else if (result != vk::Result::eSuccess && result != vk::Result::eSuboptimalKHR)
 			{
-				LUMOS_CORE_ERROR("[VULKAN] Failed to acquire swap chain image!");
+				LUMOS_LOG_CRITICAL("[VULKAN] Failed to acquire swap chain image!");
 			}
 		}
 

@@ -50,63 +50,63 @@ namespace Lumos
 
 		Texture2D* Texture2D::Create()
 		{
-            LUMOS_CORE_ASSERT(CreateFunc, "No Texture2D Create Function");
+            LUMOS_ASSERT(CreateFunc, "No Texture2D Create Function");
             
             return CreateFunc();
 		}
 
 		Texture2D* Texture2D::CreateFromSource(u32 width, u32 height, void* data, TextureParameters parameters, TextureLoadOptions loadOptions)
 		{
-            LUMOS_CORE_ASSERT(CreateFromSourceFunc, "No Texture2D Create Function");
+            LUMOS_ASSERT(CreateFromSourceFunc, "No Texture2D Create Function");
             
             return CreateFromSourceFunc(width, height, data, parameters, loadOptions);
 		}
 
 		Texture2D* Texture2D::CreateFromFile(const String& name, const String& filepath, TextureParameters parameters, TextureLoadOptions loadOptions)
 		{
-            LUMOS_CORE_ASSERT(CreateFromFileFunc, "No Texture2D Create Function");
+            LUMOS_ASSERT(CreateFromFileFunc, "No Texture2D Create Function");
             
             return CreateFromFileFunc(name, filepath, parameters, loadOptions);
 		}
 
 		TextureCube* TextureCube::Create(u32 size)
 		{
-            LUMOS_CORE_ASSERT(CreateFunc, "No TextureCube Create Function");
+            LUMOS_ASSERT(CreateFunc, "No TextureCube Create Function");
             
             return CreateFunc(size);
 		}
 
 		TextureCube* TextureCube::CreateFromFile(const String& filepath)
 		{
-            LUMOS_CORE_ASSERT(CreateFromFileFunc, "No TextureCube Create Function");
+            LUMOS_ASSERT(CreateFromFileFunc, "No TextureCube Create Function");
             
             return CreateFromFileFunc(filepath);
 		}
 
 		TextureCube* TextureCube::CreateFromFiles(const String* files)
 		{
-            LUMOS_CORE_ASSERT(CreateFromFilesFunc, "No TextureCube Create Function");
+            LUMOS_ASSERT(CreateFromFilesFunc, "No TextureCube Create Function");
             
             return CreateFromFilesFunc(files);
 		}
 
 		TextureCube* TextureCube::CreateFromVCross(const String* files, u32 mips, InputFormat format)
 		{
-            LUMOS_CORE_ASSERT(CreateFromVCrossFunc, "No TextureCube Create Function");
+            LUMOS_ASSERT(CreateFromVCrossFunc, "No TextureCube Create Function");
             
             return CreateFromVCrossFunc(files, mips, format);
 		}
 
 		TextureDepth* TextureDepth::Create(u32 width, u32 height)
 		{
-            LUMOS_CORE_ASSERT(CreateFunc, "No TextureDepth Create Function");
+            LUMOS_ASSERT(CreateFunc, "No TextureDepth Create Function");
             
             return CreateFunc(width, height);
 		}
 
 		TextureDepthArray* TextureDepthArray::Create(u32 width, u32 height, u32 count)
 		{
-            LUMOS_CORE_ASSERT(CreateFunc, "No TextureDepthArray Create Function");
+            LUMOS_ASSERT(CreateFunc, "No TextureDepthArray Create Function");
             
             return CreateFunc(width,height,count);
 		}

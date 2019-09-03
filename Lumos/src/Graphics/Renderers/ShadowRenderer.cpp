@@ -53,7 +53,7 @@ namespace Lumos
 				m_apShadowRenderLists[i] = lmnew RenderList();
 				if (!RenderList::AllocateNewRenderList(m_apShadowRenderLists[i], true))
 				{
-					LUMOS_CORE_ERROR("Unable to allocate shadow render list {0} - Try using less shadow maps", i);
+					LUMOS_LOG_CRITICAL("Unable to allocate shadow render list {0} - Try using less shadow maps", i);
 				}
 			}
 

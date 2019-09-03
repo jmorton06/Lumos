@@ -41,7 +41,7 @@ namespace Lumos
 
 			i32 GetLocation() const { return m_Location; }
 			inline Type GetType() const { return m_Type; }
-			inline const ShaderStruct& GetShaderUniformStruct() const { LUMOS_CORE_ASSERT(m_Struct, "");  return *m_Struct; }
+			inline const ShaderStruct& GetShaderUniformStruct() const { LUMOS_ASSERT(m_Struct, "");  return *m_Struct; }
 
 		protected:
 			void SetOffset(u32 offset) override;

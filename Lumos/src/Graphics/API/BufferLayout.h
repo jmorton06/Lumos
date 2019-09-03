@@ -29,7 +29,7 @@ namespace Lumos
 			template<typename T>
 			void Push(const String& name, u32 count = 1, bool normalized = false)
 			{
-				LUMOS_CORE_ASSERT(false, "Unkown type!");
+				LUMOS_ASSERT(false, "Unkown type!");
 			}
 
 			inline const std::vector<BufferElement>& GetLayout() const { return m_Layout; }

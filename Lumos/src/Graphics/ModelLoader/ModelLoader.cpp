@@ -18,9 +18,9 @@ namespace Lumos
 		else if (fileExtension == "gltf" || fileExtension == "glb")
 			return LoadGLTF(resolvedPath);
 		else
-			LUMOS_CORE_ERROR("Unsupported File Type : {0}", fileExtension);
+			LUMOS_LOG_CRITICAL("Unsupported File Type : {0}", fileExtension);
 
-		LUMOS_CORE_INFO("Loaded Model - {0}", resolvedPath);
+		LUMOS_LOG_INFO("Loaded Model - {0}", resolvedPath);
 
 		return nullptr;
 	}

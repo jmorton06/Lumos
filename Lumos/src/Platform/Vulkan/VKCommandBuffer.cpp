@@ -56,7 +56,7 @@ namespace Lumos
 				m_CommandBuffer[0].begin(beginCI);
 			}
 			else
-				LUMOS_CORE_ERROR("BeginRecording() called from a secondary command buffer!");
+				LUMOS_LOG_CRITICAL("BeginRecording() called from a secondary command buffer!");
 		}
 
 		void VKCommandBuffer::BeginRecordingSecondary(RenderPass* renderPass, Framebuffer* framebuffer)
@@ -75,7 +75,7 @@ namespace Lumos
 				m_CommandBuffer[0].begin(beginCI);
 			}
 			else
-				LUMOS_CORE_ERROR("BeginRecordingSecondary() called from a primary command buffer!");
+				LUMOS_LOG_CRITICAL("BeginRecordingSecondary() called from a primary command buffer!");
 		}
 
 		void VKCommandBuffer::EndRecording()
@@ -124,7 +124,7 @@ namespace Lumos
 					
 			}
 			else
-				LUMOS_CORE_ERROR("Used Execute on secondary command buffer!");
+				LUMOS_LOG_CRITICAL("Used Execute on secondary command buffer!");
 		}
 
 		void VKCommandBuffer::ExecuteSecondary(CommandBuffer* primaryCmdBuffer)
@@ -132,7 +132,7 @@ namespace Lumos
 			if (!m_Primary)
 				static_cast<VKCommandBuffer*>(primaryCmdBuffer)->GetCommandBuffer().executeCommands(m_CommandBuffer[0]);
 			else
-				LUMOS_CORE_ERROR("Used ExecuteSecondary on primary command buffer!");
+				LUMOS_LOG_CRITICAL("Used ExecuteSecondary on primary command buffer!");
 		}
 
 		void VKCommandBuffer::UpdateViewport(u32 width, u32 height)

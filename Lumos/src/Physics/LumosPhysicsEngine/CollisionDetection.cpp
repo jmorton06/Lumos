@@ -21,7 +21,7 @@ namespace Lumos
 
 	bool CollisionDetection::InvalidCheckCollision(const PhysicsObject3D* obj1, const PhysicsObject3D* obj2, const CollisionShape* shape1, const CollisionShape* shape2, CollisionData* out_coldata) const
 	{
-		LUMOS_CORE_ERROR("Invalid Collision type specified");
+		LUMOS_LOG_CRITICAL("Invalid Collision type specified");
 		return false;
 	}
 

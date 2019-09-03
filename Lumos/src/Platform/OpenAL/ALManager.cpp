@@ -26,15 +26,15 @@ namespace Lumos
 
         void ALManager::OnInit()
         {
-            LUMOS_CORE_INFO("Creating SoundSystem!");
-            LUMOS_CORE_INFO("Found the following devices: {0}", alcGetString(nullptr, ALC_DEVICE_SPECIFIER));
+            LUMOS_LOG_INFO("Creating SoundSystem!");
+            LUMOS_LOG_INFO("Found the following devices: {0}", alcGetString(nullptr, ALC_DEVICE_SPECIFIER));
 
             m_Device = alcOpenDevice(nullptr);
 
             if (!m_Device)
-                LUMOS_CORE_INFO("Failed to create SoundSystem! (No valid device!)");
+                LUMOS_LOG_INFO("Failed to create SoundSystem! (No valid device!)");
 
-            LUMOS_CORE_INFO("SoundSystem created with device: {0}", alcGetString(m_Device, ALC_DEVICE_SPECIFIER));	//Outputs used OAL device!
+            LUMOS_LOG_INFO("SoundSystem created with device: {0}", alcGetString(m_Device, ALC_DEVICE_SPECIFIER));	//Outputs used OAL device!
 
             m_Context = alcCreateContext(m_Device, nullptr);
 

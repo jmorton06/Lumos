@@ -16,7 +16,6 @@ namespace Lumos
 		virtual ~LumosComponent() = default;
 		virtual Entity* GetEntity() { return m_Entity; }
 
-		virtual void Init() {}; //Called After entity is set
 		virtual void OnRenderComponent() {};
 		virtual void OnUpdateComponent(float dt) {};
         virtual void OnIMGUI() {}

@@ -66,7 +66,7 @@ namespace Lumos
 			else
 			{
 				vk::AttachmentDescription Attachment = {};
-				LUMOS_CORE_ERROR("[VULKAN] - Unsupported TextureType - {0}", static_cast<int>(info.textureType));
+				LUMOS_LOG_CRITICAL("[VULKAN] - Unsupported TextureType - {0}", static_cast<int>(info.textureType));
 				return Attachment;
 			}
 		}

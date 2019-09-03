@@ -57,7 +57,7 @@ namespace Lumos
 
 		if (!ok)
 		{
-			LUMOS_CORE_ERROR(error);
+			LUMOS_LOG_CRITICAL(error);
 		}
 
 		auto entity = EntityManager::Instance()->CreateEntity(name);

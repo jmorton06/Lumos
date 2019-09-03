@@ -19,7 +19,7 @@ namespace Lumos
 
 		Query* Query::Create(QueryType type)
 		{
-            LUMOS_CORE_ASSERT(CreateFunc, "No Query Create Function");
+            LUMOS_ASSERT(CreateFunc, "No Query Create Function");
             
             return CreateFunc(type);
 		}

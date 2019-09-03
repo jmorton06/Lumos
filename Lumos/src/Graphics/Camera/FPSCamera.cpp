@@ -29,7 +29,7 @@ namespace Lumos
 		{
 			//if (!Input::GetInput().firstUpdate)
 			{
-				//LUMOS_CORE_ASSERT(false,"");
+				//LUMOS_ASSERT(false,"");
 				Maths::Vector2 windowCentre = Maths::Vector2();// Window::Instance()->GetScreenSize().GetX() / 2.0f, Window::Instance()->GetScreenSize().GetY() / 2.0f);
 				xpos -= windowCentre.GetX();
 				ypos -= windowCentre.GetY();

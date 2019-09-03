@@ -18,7 +18,7 @@ namespace Lumos
 
 		CommandBuffer* CommandBuffer::Create()
 		{
-            LUMOS_CORE_ASSERT(CreateFunc, "No CommandBuffer Create Function");
+            LUMOS_ASSERT(CreateFunc, "No CommandBuffer Create Function");
             
             return CreateFunc();
 		}

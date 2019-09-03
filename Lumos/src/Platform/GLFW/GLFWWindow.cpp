@@ -29,7 +29,7 @@ namespace Lumos
 
 	static void GLFWErrorCallback(int error, const char* description)
 	{
-		LUMOS_CORE_ERROR("GLFW Error - {0} : {1}", error, description);
+		LUMOS_LOG_ERROR("GLFW Error - {0} : {1}", error, description);
 	}
 
 	GLFWWindow::GLFWWindow(const WindowProperties& properties)
@@ -58,12 +58,12 @@ namespace Lumos
 
 	bool GLFWWindow::Init(const WindowProperties& properties)
 	{
-		LUMOS_CORE_INFO("Creating window - Title : {0}, Width : {1}, Height : {2}", properties.Title, properties.Width, properties.Height);
+		LUMOS_LOG_INFO("Creating window - Title : {0}, Width : {1}, Height : {2}", properties.Title, properties.Width, properties.Height);
 
 		if (!s_GLFWInitialized)
 		{
 			int success = glfwInit();
-			LUMOS_CORE_ASSERT(success, "Could not initialize GLFW!");
+			LUMOS_ASSERT(success, "Could not initialize GLFW!");
 			glfwSetErrorCallback(GLFWErrorCallback);
 
 			s_GLFWInitialized = true;
@@ -234,7 +234,7 @@ namespace Lumos
  			data.EventCallback(event);
  		});
 
-		LUMOS_CORE_INFO("Initialised GLFW version : {0}", glfwGetVersionString());
+		LUMOS_LOG_INFO("Initialised GLFW version : {0}", glfwGetVersionString());
 
 		return true;
 	}

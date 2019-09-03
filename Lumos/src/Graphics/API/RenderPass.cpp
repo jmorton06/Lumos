@@ -18,7 +18,7 @@ namespace Lumos
 
 		RenderPass* RenderPass::Create()
 		{
-            LUMOS_CORE_ASSERT(CreateFunc, "No RenderPass Create Function");
+            LUMOS_ASSERT(CreateFunc, "No RenderPass Create Function");
             
             return CreateFunc();
 		}

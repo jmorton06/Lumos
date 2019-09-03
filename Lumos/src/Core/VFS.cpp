@@ -21,13 +21,13 @@ namespace Lumos
 
 	void VFS::Mount(const String& virtualPath, const String& physicalPath)
 	{
-		LUMOS_CORE_ASSERT(s_Instance,"");
+		LUMOS_ASSERT(s_Instance,"");
 		m_MountPoints[virtualPath].push_back(physicalPath);
 	}
 
 	void VFS::Unmount(const String& path)
 	{
-		LUMOS_CORE_ASSERT(s_Instance,"");
+		LUMOS_ASSERT(s_Instance,"");
 		m_MountPoints[path].clear();
 	}
 
@@ -63,21 +63,21 @@ namespace Lumos
 
 	u8* VFS::ReadFile(const String& path)
 	{
-		LUMOS_CORE_ASSERT(s_Instance,"");
+		LUMOS_ASSERT(s_Instance,"");
 		String physicalPath;
 		return ResolvePhysicalPath(path, physicalPath) ? FileSystem::ReadFile(physicalPath) : nullptr;
 	}
 
 	String VFS::ReadTextFile(const String& path)
 	{
-		LUMOS_CORE_ASSERT(s_Instance,"");
+		LUMOS_ASSERT(s_Instance,"");
 		String physicalPath;
 		return ResolvePhysicalPath(path, physicalPath) ? FileSystem::ReadTextFile(physicalPath) : nullptr;
 	}
 
 	bool VFS::WriteFile(const String& path, u8* buffer)
 	{
-		LUMOS_CORE_ASSERT(s_Instance,"");
+		LUMOS_ASSERT(s_Instance,"");
 		String physicalPath;
 		return ResolvePhysicalPath(path, physicalPath) ? FileSystem::WriteFile(physicalPath, buffer) : false;
 
@@ -85,7 +85,7 @@ namespace Lumos
 
 	bool VFS::WriteTextFile(const String& path, const String& text)
 	{
-		LUMOS_CORE_ASSERT(s_Instance,"");
+		LUMOS_ASSERT(s_Instance,"");
 		String physicalPath;
 		return ResolvePhysicalPath(path, physicalPath) ? FileSystem::WriteTextFile(physicalPath, text) : false;
 	}

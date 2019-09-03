@@ -11,7 +11,7 @@ namespace Lumos
 
 		if (!file)
 		{
-			LUMOS_CORE_ERROR("Failed to load WAV file '{0}'!", fileName);
+			LUMOS_LOG_CRITICAL("Failed to load WAV file '{0}'!", fileName);
 			return data;
 		}
 

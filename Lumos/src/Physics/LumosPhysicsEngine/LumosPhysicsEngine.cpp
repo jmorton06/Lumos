@@ -94,7 +94,7 @@ namespace Lumos
 
 				if (m_UpdateAccum >= s_UpdateTimestep)
 				{
-					LUMOS_CORE_ERROR("Physics too slow to run in real time!");
+					LUMOS_LOG_CRITICAL("Physics too slow to run in real time!");
 					//Drop Time in the hope that it can continue to run in real-time
 					m_UpdateAccum = 0.0f;
 				}

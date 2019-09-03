@@ -49,7 +49,7 @@ namespace Lumos
     void WindowsThread::WaitToFinishFuncWindows(Thread *p_thread)
     {
         WindowsThread *tp = static_cast<WindowsThread *>(p_thread);
-        //LUMOS_CORE_ASSERT(tp);
+        //LUMOS_ASSERT(tp);
         WaitForSingleObject(tp->m_Handle, INFINITE);
         CloseHandle(tp->m_Handle);
     }

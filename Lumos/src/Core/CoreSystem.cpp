@@ -13,17 +13,17 @@ namespace Lumos
 	{
 		LMLog::OnInit();
 
-		LUMOS_CORE_INFO("Lumos Engine - Version {0}.{1}.{2}", LumosVersion.major, LumosVersion.minor, LumosVersion.patch);
+		LUMOS_LOG_INFO("Lumos Engine - Version {0}.{1}.{2}", LumosVersion.major, LumosVersion.minor, LumosVersion.patch);
 
 		System::JobSystem::OnInit();
-		LUMOS_CORE_INFO("Initializing System");
+		LUMOS_LOG_INFO("Initializing System");
 		VFS::OnInit();
         LuaScript::Instance()->OnInit();
 	}
 
 	void CoreSystem::Shutdown()
 	{
-		LUMOS_CORE_INFO("Shutting down System");
+		LUMOS_LOG_INFO("Shutting down System");
         LuaScript::Release();
 		VFS::OnShutdown();
 		Lumos::Memory::LogMemoryInformation();

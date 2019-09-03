@@ -92,7 +92,7 @@ namespace Lumos
 
 		if (!RegisterClassA(&winClass))
 		{
-			LUMOS_CORE_ERROR("Could not register Win32 class!");
+			LUMOS_LOG_CRITICAL("Could not register Win32 class!");
 			return false;
 		}
 
@@ -109,7 +109,7 @@ namespace Lumos
 
 		if (!hWnd)
 		{
-			LUMOS_CORE_ERROR("Could not create window!");
+			LUMOS_LOG_CRITICAL("Could not create window!");
 			return false;
 		}
 
@@ -122,13 +122,13 @@ namespace Lumos
 		{
 			if (!SetPixelFormat(hDc, pixelFormat, &pfd))
 			{
-				LUMOS_CORE_ERROR("Failed setting pixel format!");
+				LUMOS_LOG_CRITICAL("Failed setting pixel format!");
 				return false;
 			}
 		}
 		else
 		{
-			LUMOS_CORE_ERROR("Failed choosing pixel format!");
+			LUMOS_LOG_CRITICAL("Failed choosing pixel format!");
 			return false;
 		}
 
