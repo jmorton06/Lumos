@@ -40,44 +40,23 @@ namespace Lumos
 
 	LumosPhysicsEngine::~LumosPhysicsEngine()
 	{
-		RemoveAllPhysicsObjects();
-
+        m_PhysicsObjects.clear();
+        
+        for (Constraint* c : m_Constraints)
+            delete c;
+        m_Constraints.clear();
+        
+        for (Manifold* m : m_Manifolds)
+            delete m;
+        m_Manifolds.clear();
+        
 		CollisionDetection::Release();
 
 		if (m_BroadphaseDetection != nullptr)
 			delete m_BroadphaseDetection;
 	}
 
-	void LumosPhysicsEngine::AddPhysicsObject(const Ref<PhysicsObject3D>& obj)
-	{
-		m_PhysicsObjects.emplace_back(obj);
-	}
-
-	void LumosPhysicsEngine::RemovePhysicsObject(const Ref<PhysicsObject3D>& obj)
-	{
-		/// Lookup the object in question
-		const auto it = std::find(m_PhysicsObjects.begin(), m_PhysicsObjects.end(), obj);
-
-		/// If found, remove it from the list
-		if (it != m_PhysicsObjects.end())
-			m_PhysicsObjects.erase(it);
-	}
-
-	void LumosPhysicsEngine::RemoveAllPhysicsObjects()
-	{
-		//delete and remove all constraints/collision manifolds
-		for (Constraint* c : m_Constraints)
-			delete c;
-		m_Constraints.clear();
-
-		for (Manifold* m : m_Manifolds)
-			delete m;
-		m_Manifolds.clear();
-
-		m_PhysicsObjects.clear();
-	}
-
-	void LumosPhysicsEngine::OnUpdate(TimeStep* timeStep)
+	void LumosPhysicsEngine::OnUpdate(TimeStep* timeStep, Scene* scene)
 	{
 		if (!m_IsPaused)
 		{
@@ -89,7 +68,7 @@ namespace Lumos
 				for (int i = 0; (m_UpdateAccum >= s_UpdateTimestep) && i < max_updates_per_frame; ++i)
 				{
 					m_UpdateAccum -= s_UpdateTimestep;
-					UpdatePhysics();
+					UpdatePhysics(scene);
 				}
 
 				if (m_UpdateAccum >= s_UpdateTimestep)
@@ -98,24 +77,32 @@ namespace Lumos
 					//Drop Time in the hope that it can continue to run in real-time
 					m_UpdateAccum = 0.0f;
 				}
-
 			}
 			else
 			{
 				s_UpdateTimestep = timeStep->GetSeconds();
-				UpdatePhysics();
+				UpdatePhysics(scene);
 			}
 		}
 	}
 
-	void LumosPhysicsEngine::UpdatePhysics()
+	void LumosPhysicsEngine::UpdatePhysics(Scene* scene)
 	{
+        m_PhysicsObjects.clear();
+        
 		for (Manifold* m : m_Manifolds)
 		{
 			delete m;
 		}
 		m_Manifolds.clear();
-
+        
+        scene->IterateEntities([&](Entity* entity)
+        {
+            auto obj = entity->GetComponent<Physics3DComponent>();
+            if(obj)
+                m_PhysicsObjects.emplace_back(obj->GetPhysicsObject());
+        });
+        
 		//Check for collisions
 		BroadPhaseCollisions();
 		NarrowPhaseCollisions();

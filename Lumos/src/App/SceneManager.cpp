@@ -95,7 +95,6 @@ namespace Lumos
         if (m_CurrentScene)
         {
             LUMOS_LOG_INFO("[SceneManager] - Exiting scene : {0}" , m_CurrentScene->GetSceneName());
-            Application::Instance()->GetSystem<LumosPhysicsEngine>()->RemoveAllPhysicsObjects();
             Application::Instance()->GetSystem<LumosPhysicsEngine>()->SetPaused(true);
             m_CurrentScene->OnCleanupScene();
 			Application::Instance()->OnExitScene();

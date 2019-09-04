@@ -28,7 +28,7 @@ namespace Lumos
 		m_UpdateAccum = 0.0f;
 	}
 
-	void B2PhysicsEngine::OnUpdate(TimeStep* timeStep)
+	void B2PhysicsEngine::OnUpdate(TimeStep* timeStep, Scene* scene)
 	{
 		const int max_updates_per_frame = 5;
 

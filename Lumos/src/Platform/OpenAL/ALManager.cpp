@@ -42,7 +42,7 @@ namespace Lumos
             alDistanceModel(AL_LINEAR_DISTANCE_CLAMPED);
         }
 
-        void ALManager::OnUpdate(TimeStep* dt)
+        void ALManager::OnUpdate(TimeStep* dt, Scene* scene)
         {
 			UpdateListener();
 

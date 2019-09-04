@@ -13,14 +13,12 @@ namespace Lumos
     {
         m_Name = "Physics3D";
         m_PhysicsObject = CreateRef<PhysicsObject3D>();
-        Application::Instance()->GetSystem<LumosPhysicsEngine>()->AddPhysicsObject(m_PhysicsObject);
     }
     
 	Physics3DComponent::Physics3DComponent(Ref<PhysicsObject3D>& physics)
 	{
 		m_Name = "Physics3D";
         m_PhysicsObject = physics;
-		Application::Instance()->GetSystem<LumosPhysicsEngine>()->AddPhysicsObject(m_PhysicsObject);
 	}
 
 	void Physics3DComponent::Init()

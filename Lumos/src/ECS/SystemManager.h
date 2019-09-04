@@ -68,10 +68,10 @@ namespace Lumos
 			return m_Systems.find(typeName) != m_Systems.end();
 		}
 
-		void OnUpdate(TimeStep* dt)
+		void OnUpdate(TimeStep* dt, Scene* scene)
 		{
 			for (auto& system : m_Systems)
-				system.second->OnUpdate(dt);
+				system.second->OnUpdate(dt, scene);
 		}
 
 		void OnImGUI()

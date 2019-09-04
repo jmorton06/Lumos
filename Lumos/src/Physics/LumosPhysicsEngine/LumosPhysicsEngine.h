@@ -6,6 +6,7 @@
 #include "Manifold.h"
 #include "Broadphase.h"
 #include "ECS/ISystem.h"
+#include "App/Scene.h"
 
 namespace Lumos
 {
@@ -32,17 +33,12 @@ namespace Lumos
 
 		void SetDefaults();
 
-		//Add/Remove Physics Objects
-		void AddPhysicsObject(const Ref<PhysicsObject3D>& obj);
-		void RemovePhysicsObject(const Ref<PhysicsObject3D>& obj);
-		void RemoveAllPhysicsObjects(); //Delete all physics entities etc and reset-physics environment for new scene to be initialized
-
 		//Add Constraints
 		void AddConstraint(Constraint* c) { m_Constraints.push_back(c); }
 
 		void OnInit() override {};
 		//Update Physics Engine
-		void OnUpdate(TimeStep* timeStep) override;			//Remember DeltaTime is 'seconds' since last update not milliseconds
+		void OnUpdate(TimeStep* timeStep, Scene* scene) override;
 
 		//Getters / Setters
 		bool IsPaused() const { return m_IsPaused; }
@@ -77,7 +73,7 @@ namespace Lumos
 	protected:
 
 		//The actual time-independant update function
-		void UpdatePhysics();
+		void UpdatePhysics(Scene* scene);
 
 		//Handles broadphase collision detection
 		void BroadPhaseCollisions();

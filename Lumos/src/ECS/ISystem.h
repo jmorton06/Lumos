@@ -1,5 +1,6 @@
 #pragma once
 #include "LM.h"
+#include "App/Scene.h"
 
 namespace Lumos
 {
@@ -12,7 +13,7 @@ namespace Lumos
 		virtual ~ISystem() = default;
 
 		virtual void OnInit() = 0;
-		virtual void OnUpdate(TimeStep* dt) = 0;
+		virtual void OnUpdate(TimeStep* dt, Scene* scene) = 0;
 		virtual void OnIMGUI() = 0;
         
         inline const String& GetName() const { return m_DebugName; }

@@ -243,7 +243,7 @@ namespace Lumos
 #endif
 		{
 			m_SceneManager->GetCurrentScene()->OnUpdate(Engine::GetTimeStep());
-			m_SystemManager->OnUpdate(Engine::GetTimeStep());
+			m_SystemManager->OnUpdate(Engine::GetTimeStep(),m_SceneManager->GetCurrentScene());
 		}
 
 		m_LayerStack->OnUpdate(Engine::GetTimeStep(), m_SceneManager->GetCurrentScene());
