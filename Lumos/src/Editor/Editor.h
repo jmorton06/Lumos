@@ -11,6 +11,7 @@ namespace Lumos
 	namespace Graphics 
 	{
 		class Texture2D;
+		class GridRenderer;
 	}
 
 	class Editor

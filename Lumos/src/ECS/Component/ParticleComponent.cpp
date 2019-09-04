@@ -25,10 +25,6 @@ namespace Lumos
     {
     }
 
-	void ParticleComponent::OnUpdateComponent(float dt)
-    {
-    }
-
 	void ParticleComponent::OnIMGUI()
 	{
 	}

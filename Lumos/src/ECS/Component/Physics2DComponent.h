@@ -11,7 +11,7 @@ namespace Lumos
         Physics2DComponent();
 		explicit Physics2DComponent(Ref<PhysicsObject2D>& physics);
 
-		void OnUpdateComponent(float dt) override;
+		void Update();
 		void OnIMGUI() override;
         
         PhysicsObject2D* GetPhysicsObject() const { return m_PhysicsObject.get(); }

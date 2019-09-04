@@ -14,7 +14,8 @@ namespace Lumos
 		~Physics3DComponent() = default;
 
 		void Init();
-		void OnUpdateComponent(float dt) override;
+		void Update();
+
 		void OnUpdateTransform(const Maths::Matrix4& entityTransform) override;
         
         void OnIMGUI() override;

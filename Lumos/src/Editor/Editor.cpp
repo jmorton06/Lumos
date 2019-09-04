@@ -337,7 +337,6 @@ namespace Lumos
 				ImGui::TreePop();
 			}
 
-			
 			if (ImGui::TreeNode("Scene"))
 			{
 				ImGui::Indent();

@@ -34,7 +34,7 @@ namespace Lumos
 		m_BoundingShape->SetRadius(radius);
 	}
 
-	void LightComponent::OnUpdateComponent(float dt)
+	void LightComponent::Update()
 	{
 		//auto euler = Maths::Matrix4::GetEulerAngles(m_Entity->GetTransformComponent()->GetTransform().GetWorldMatrix());
 		//float x = cos(euler.y)*cos(euler.x);

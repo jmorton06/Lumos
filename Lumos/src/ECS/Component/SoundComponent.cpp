@@ -23,17 +23,6 @@ namespace Lumos
 		m_BoundingShape = CreateScope<Maths::BoundingSphere>(sound->GetPosition(),sound->GetRadius());
 	}
 
-	void SoundComponent::OnUpdateComponent(float dt)
-	{
-	//	Physics3DComponent* physicsComponent = m_Entity->GetComponent<Physics3DComponent>();
-	//	if (physicsComponent)
-	//	{
-	//		m_SoundNode->SetPosition(physicsComponent->GetPhysicsObject()->GetPosition()); //TODO : Get From Entity Transform
-	//		////m_SoundNode->SetVelocity(physicsComponent->GetPhysicsObject()->GetLinearVelocity());
-	//		m_BoundingShape->SetPosition(m_SoundNode->GetPosition());
-	//	}
-	}
-
 	void SoundComponent::Init()
 	{
 		Application::Instance()->GetSystem<AudioManager>()->AddSoundNode(m_SoundNode.get());

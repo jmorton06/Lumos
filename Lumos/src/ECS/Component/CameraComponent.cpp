@@ -21,10 +21,6 @@ namespace Lumos
         m_BoundingShape = nullptr;
 	}
 
-	void CameraComponent::OnUpdateComponent(float dt)
-	{
-	}
-
     void CameraComponent::OnIMGUI()
     {
 		if (ImGui::Button("Set Active"))

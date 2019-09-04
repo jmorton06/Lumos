@@ -11,9 +11,7 @@ namespace Lumos
         MaterialComponent();
         explicit MaterialComponent(Ref<Material>& material);
         virtual ~MaterialComponent();
-        
-        void OnUpdateComponent(float dt) override;
-        
+
         void OnIMGUI() override;
         
         const Ref<Material>& GetMaterial() const { return m_Material; }

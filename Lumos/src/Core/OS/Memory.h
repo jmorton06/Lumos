@@ -1,15 +1,23 @@
 #pragma once
 #include "LM.h"
+#include "Allocators/Allocator.h"
 
-namespace Lumos::Memory
+namespace Lumos
 {
-    LUMOS_EXPORT void* AlignedAlloc(size_t size, size_t alignment);
-    LUMOS_EXPORT void AlignedFree(void* data);
+	class Memory
+	{
+	public:
+		static void* AlignedAlloc(size_t size, size_t alignment);
+		static void AlignedFree(void* data);
 
-	LUMOS_EXPORT void* NewFunc(std::size_t size, const char *file, int line);
-	LUMOS_EXPORT void DeleteFunc(void* p);
-	LUMOS_EXPORT void LogMemoryInformation();
+		static void* NewFunc(std::size_t size, const char *file, int line);
+		static void DeleteFunc(void* p);
+		static void LogMemoryInformation();
+
+		static Allocator* const MemoryAllocator;
+	};
 }
+
 #define CUSTOM_MEMORY_ALLOCATOR
 #if  defined(CUSTOM_MEMORY_ALLOCATOR) && defined(LUMOS_ENGINE)
 

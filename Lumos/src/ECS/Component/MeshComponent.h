@@ -13,8 +13,6 @@ namespace Lumos
 		explicit MeshComponent(Graphics::Mesh* mesh);
 		~MeshComponent() = default;
 
-		void OnUpdateComponent(float dt) override;
-
 		void OnIMGUI() override;
 
 		Graphics::Mesh* GetMesh() const { return m_Mesh.get(); }
