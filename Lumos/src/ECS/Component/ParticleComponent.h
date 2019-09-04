@@ -13,7 +13,6 @@ namespace Lumos
         explicit ParticleComponent(Ref<ParticleEmitter>& emitter);
 
         void Init();
-        void OnUpdateComponent(float dt) override;
 
 		void OnIMGUI() override;
 		nlohmann::json Serialise() override { return nullptr; };

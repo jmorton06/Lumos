@@ -111,8 +111,8 @@ namespace Lumos
 		bool OnWindowClose(WindowCloseEvent& e);
         bool OnWindowResize(WindowResizeEvent& e);
 
-		float 	  				  	m_UpdateTimer;
-		Scope<Timer>	  	m_Timer;
+		float m_UpdateTimer;
+		Scope<Timer> m_Timer;
 
 		u32 m_Frames;
 		u32 m_Updates;

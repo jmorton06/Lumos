@@ -23,10 +23,6 @@ namespace Lumos
     {
     }
     
-    void MaterialComponent::OnUpdateComponent(float dt)
-    {
-    }
-    
     void MaterialComponent::OnIMGUI()
     {
 		ImGui::Separator();

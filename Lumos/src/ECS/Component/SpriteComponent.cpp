@@ -20,10 +20,6 @@ namespace Lumos
 		m_Name = "Sprite";
 	}
 
-	void SpriteComponent::OnUpdateComponent(float dt)
-	{
-	}
-
 	void SpriteComponent::OnIMGUI()
 	{
 

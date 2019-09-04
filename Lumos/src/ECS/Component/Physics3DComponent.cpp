@@ -28,7 +28,7 @@ namespace Lumos
 		m_PhysicsObject->SetEntity(m_Entity);
 	}
 
-	void Physics3DComponent::OnUpdateComponent(float dt)
+	void Physics3DComponent::Update()
 	{
         m_Entity->GetTransformComponent()->GetTransform().SetLocalPosition(m_PhysicsObject->GetPosition());
         m_Entity->GetTransformComponent()->GetTransform().SetLocalOrientation(m_PhysicsObject->GetOrientation());

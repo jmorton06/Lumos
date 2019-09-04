@@ -6,21 +6,18 @@ namespace Lumos
 {
 	namespace Graphics
 	{
-		class TextureDepth;
-		class Texture;
 		class Shader;
 
-		class LUMOS_EXPORT SkyboxRenderer : public Renderer3D
+		class LUMOS_EXPORT GridRenderer : public Renderer3D
 		{
 		public:
-			SkyboxRenderer(u32 width, u32 height, Texture* cubeMap, bool renderToGBuffer = false);
-			~SkyboxRenderer();
+			GridRenderer(u32 width, u32 height, bool renderToGBuffer = false);
+			~GridRenderer();
 
 			void Init() override;
 			void BeginScene(Scene* scene) override;
 			void OnResize(u32 width, u32 height) override;
 			void CreateGraphicsPipeline();
-			void SetCubeMap(Texture* cubeMap);
 			void UpdateUniformBuffer();
 
 			void Begin() override;
@@ -35,14 +32,21 @@ namespace Lumos
 
 			struct UniformBufferObject
 			{
-				Lumos::Maths::Matrix4 invprojview;
+				Lumos::Maths::Matrix4 mvp;
+			};
+
+			struct UniformBufferObjectFrag
+			{
+				float scale;
+				float res;
+				float p0;
+				float p1;
 			};
 
 			void SetRenderTarget(Texture* texture) override;
 			void SetRenderToGBufferTexture(bool set) override;
 
 		private:
-
 			void SetSystemUniforms(Shader* shader) const;
 
 			u8* m_VSSystemUniformBuffer{};
@@ -54,13 +58,12 @@ namespace Lumos
 			std::vector<u32> m_PSSystemUniformBufferOffsets;
 
 			Lumos::Graphics::UniformBuffer* m_UniformBuffer;
+			Lumos::Graphics::UniformBuffer* m_UniformBufferFrag;
 			std::vector<Lumos::Graphics::CommandBuffer*> m_CommandBuffers;
 			std::vector<Framebuffer*> m_Framebuffers;
 
 			u32 m_CurrentBufferID = 0;
-
-			Mesh* m_Skybox;
-			Texture* m_CubeMap;
+			Mesh* m_Quad;
 		};
 	}
 }

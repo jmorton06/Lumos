@@ -20,10 +20,6 @@ namespace Lumos
 		m_Name = "Transform";
 		m_CanDisable = false;
 	}
-
-	void TransformComponent::OnUpdateComponent(float dt)
-	{
-	}
     
     void TransformComponent::SetWorldMatrix(const Maths::Matrix4 &matrix)
     {

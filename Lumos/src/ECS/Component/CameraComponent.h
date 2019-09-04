@@ -12,7 +12,6 @@ namespace Lumos
         CameraComponent();
 		explicit CameraComponent(Camera* camera);
 
-		void OnUpdateComponent(float dt) override;
         void OnIMGUI() override;
 		void SetAsMainCamera();
 		

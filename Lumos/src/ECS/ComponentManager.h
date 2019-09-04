@@ -20,7 +20,7 @@ namespace Lumos
 	public:
 		virtual ~IComponentArray() = default;
 		virtual void EntityDestroyed(Entity* entity) = 0;
-		virtual void OnUpdate(float dt) = 0;
+		virtual void OnUpdate() = 0;
 	};
 
 	template<typename T>
@@ -75,11 +75,14 @@ namespace Lumos
 			return m_ComponentArray[m_EntityToIndexMap[entity]];
 		}
 
-		void OnUpdate(float dt) override
+		void OnUpdate() override
 		{
 			for (int i = 0; i < m_Size; i++)
 			{
-				m_ComponentArray[i]->OnUpdateComponent(dt);
+				if constexpr (is_detected_v<HasUpdate, T>)
+				{
+					m_ComponentArray[i]->Update();
+				}
 			}
 		}
 
@@ -140,7 +143,7 @@ namespace Lumos
 		ComponentManager();
 		~ComponentManager();
 
-		void OnUpdate(float dt);
+		void OnUpdate();
 
 		template<typename T>
 		void RegisterComponent()

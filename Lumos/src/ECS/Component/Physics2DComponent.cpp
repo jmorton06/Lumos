@@ -20,7 +20,7 @@ namespace Lumos
 		m_Name = "Physics2D";
 	}
 
-	void Physics2DComponent::OnUpdateComponent(float dt)
+	void Physics2DComponent::Update()
 	{
         auto angle = m_PhysicsObject->GetAngle();
         auto qw = cos(angle/2);

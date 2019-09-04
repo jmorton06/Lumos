@@ -17,7 +17,6 @@ namespace Lumos
 		virtual Entity* GetEntity() { return m_Entity; }
 
 		virtual void OnRenderComponent() {};
-		virtual void OnUpdateComponent(float dt) {};
         virtual void OnIMGUI() {}
 
 		void SetEntity(Entity* entity) { m_Entity = entity; }
@@ -28,10 +27,10 @@ namespace Lumos
 		Maths::BoundingShape* GetBoundingShape() const { return m_BoundingShape.get(); }
 
 		const String& GetName() const { return m_Name; }
-		bool& GetActive() { return m_Active; }
 		const bool GetCanDisable() const { return m_CanDisable; }
+		bool& GetActive() { return m_Active; }
+
 		void SetActive(bool active) { m_Active = active; }
-        
         void SetName(const String& name) { m_Name = name; }
 
 	protected:

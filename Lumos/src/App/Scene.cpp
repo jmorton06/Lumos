@@ -148,7 +148,7 @@ namespace Lumos
 
 		per_object_func(m_RootEntity);
 
-		ComponentManager::Instance()->OnUpdate(timeStep->GetSeconds());
+		ComponentManager::Instance()->OnUpdate();
 	}
 
 	void Scene::InsertToRenderList(RenderList* list, const Maths::Frustum& frustum) const
@@ -167,7 +167,7 @@ namespace Lumos
 					maxScaling = Maths::Max(transform.GetWorldMatrix().GetScaling().GetY(), maxScaling);
 					maxScaling = Maths::Max(transform.GetWorldMatrix().GetScaling().GetZ(), maxScaling);
 
-					bool inside = frustum.InsideFrustum(transform.GetWorldMatrix().GetPositionVector(), maxScaling * obj->GetBoundingRadius());
+					bool inside = frustum.InsideFrustum(transform.GetWorldMatrix().GetPositionVector(), maxScaling * meshComponent->GetBoundingShape()->SphereRadius());// maxScaling * obj->GetBoundingRadius());
 
 					if (inside)
 					{

@@ -65,10 +65,10 @@ namespace Lumos
 			return	a * (1.0f - t) + b * t;
 		}
         
-        static const std::string CHARS = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz";
         
         inline String GenerateUUID()
         {
+			static const std::string CHARS = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz";
             String uuid = std::string(36,' ');
             u32 rnd = 0;
             
