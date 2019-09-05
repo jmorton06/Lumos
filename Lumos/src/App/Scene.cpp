@@ -88,7 +88,7 @@ namespace Lumos
 		//Default physics setup
 		Application::Instance()->GetSystem<LumosPhysicsEngine>()->SetDampingFactor(0.998f);
 		Application::Instance()->GetSystem<LumosPhysicsEngine>()->SetIntegrationType(IntegrationType::RUNGE_KUTTA_4);
-		Application::Instance()->GetSystem<LumosPhysicsEngine>()->SetBroadphase(lmnew Octree(5, 5, CreateRef<SortAndSweepBroadphase>()));
+		Application::Instance()->GetSystem<LumosPhysicsEngine>()->SetBroadphase(Lumos::CreateRef<Octree>(5, 3, Lumos::CreateRef<SortAndSweepBroadphase>()));
 
 		m_SceneBoundingRadius = 400.0f; //Default scene radius of 400m
 
@@ -163,11 +163,11 @@ namespace Lumos
 					auto& transform = obj->GetComponent<TransformComponent>()->GetTransform();
 
 					float maxScaling = 0.0f;
-					maxScaling = Maths::Max(transform.GetWorldMatrix().GetScaling().GetX(), maxScaling);
-					maxScaling = Maths::Max(transform.GetWorldMatrix().GetScaling().GetY(), maxScaling);
-					maxScaling = Maths::Max(transform.GetWorldMatrix().GetScaling().GetZ(), maxScaling);
+					maxScaling = Maths::Max(transform->GetWorldMatrix().GetScaling().GetX(), maxScaling);
+					maxScaling = Maths::Max(transform->GetWorldMatrix().GetScaling().GetY(), maxScaling);
+					maxScaling = Maths::Max(transform->GetWorldMatrix().GetScaling().GetZ(), maxScaling);
 
-					bool inside = frustum.InsideFrustum(transform.GetWorldMatrix().GetPositionVector(), maxScaling * meshComponent->GetBoundingShape()->SphereRadius());// maxScaling * obj->GetBoundingRadius());
+					bool inside = frustum.InsideFrustum(transform->GetWorldMatrix().GetPositionVector(), maxScaling * meshComponent->GetBoundingShape()->SphereRadius());// maxScaling * obj->GetBoundingRadius());
 
 					if (inside)
 					{

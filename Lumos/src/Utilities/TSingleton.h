@@ -44,9 +44,7 @@ namespace Lumos
 		static std::mutex m_mConstructed;
 
 	private:
-		//Prevent the class from being copied either by '=' operator or by copy constructor
-		TSingleton(TSingleton const&) = delete;
-		TSingleton& operator=(TSingleton const&) = delete;
+		NONCOPYABLE(TSingleton);
 	};
 
 	//Finally make sure that the instance is initialised to NULL at the start of the program

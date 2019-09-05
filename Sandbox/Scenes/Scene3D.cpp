@@ -55,7 +55,7 @@ void Scene3D::OnInit()
 
     Application::Instance()->GetSystem<LumosPhysicsEngine>()->SetDampingFactor(0.998f);
     Application::Instance()->GetSystem<LumosPhysicsEngine>()->SetIntegrationType(IntegrationType::RUNGE_KUTTA_4);
-    Application::Instance()->GetSystem<LumosPhysicsEngine>()->SetBroadphase(new Octree(5, 3, Lumos::CreateRef<SortAndSweepBroadphase>()));
+    Application::Instance()->GetSystem<LumosPhysicsEngine>()->SetBroadphase(Lumos::CreateRef<Octree>(5, 3, Lumos::CreateRef<SortAndSweepBroadphase>()));
 
 	LoadModels();
 
@@ -339,7 +339,7 @@ void Scene3D::LoadModels()
 
 	AddEntity(pendulum);
 
-	auto pendulumConstraint = new SpringConstraint(pendulumHolder->GetComponent<Physics3DComponent>()->GetPhysicsObject(), pendulum->GetComponent<Physics3DComponent>()->GetPhysicsObject(), pendulumHolder->GetComponent<Physics3DComponent>()->GetPhysicsObject()->GetPosition(), pendulum->GetComponent<Physics3DComponent>()->GetPhysicsObject()->GetPosition(), 0.9f, 0.5f);
+	auto pendulumConstraint = new SpringConstraint(pendulumHolder->GetComponent<Physics3DComponent>()->GetPhysicsObject().get(), pendulum->GetComponent<Physics3DComponent>()->GetPhysicsObject().get(), pendulumHolder->GetComponent<Physics3DComponent>()->GetPhysicsObject()->GetPosition(), pendulum->GetComponent<Physics3DComponent>()->GetPhysicsObject()->GetPosition(), 0.9f, 0.5f);
 	Application::Instance()->GetSystem<LumosPhysicsEngine>()->AddConstraint(pendulumConstraint);
 
 #if 0

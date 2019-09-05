@@ -26,9 +26,9 @@ namespace Lumos
         auto qw = cos(angle/2);
         auto qz = 1.0f * sin(angle/2);
         
-        m_Entity->GetTransformComponent()->GetTransform().SetLocalPosition(Maths::Vector3(m_PhysicsObject->GetPosition(), 1.0f));
-        m_Entity->GetTransformComponent()->GetTransform().SetLocalOrientation(Maths::Quaternion(0.0f, 0.0f, qz, qw));
-		m_Entity->GetTransformComponent()->GetTransform().UpdateMatrices();
+        m_Entity->GetTransformComponent()->GetTransform()->SetLocalPosition(Maths::Vector3(m_PhysicsObject->GetPosition(), 1.0f));
+        m_Entity->GetTransformComponent()->GetTransform()->SetLocalOrientation(Maths::Quaternion(0.0f, 0.0f, qz, qw));
+		m_Entity->GetTransformComponent()->GetTransform()->UpdateMatrices();
 	}
 
 	void Physics2DComponent::OnIMGUI()

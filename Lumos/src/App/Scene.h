@@ -118,8 +118,7 @@ namespace Lumos
 		Scope<RenderList>	m_pFrameRenderList;
 
     private:
-        Scene(Scene const&) = delete;
-        Scene& operator=(Scene const&) = delete;
+		NONCOPYABLE(Scene)
 
 		bool OnWindowResize(WindowResizeEvent& e);
 };

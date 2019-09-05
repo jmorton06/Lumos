@@ -41,8 +41,9 @@ namespace Lumos
 				void* userData);
 
 			vk::Instance GetVKInstance()		const { return m_VkInstance; }
-			VKCommandPool* GetCommandPool()		const { return m_CommandPool; }
 			void* GetWindowContext()			const { return m_WindowContext; }
+
+			const Ref<VKCommandPool>& GetCommandPool() const { return m_CommandPool; }
 
 			size_t GetMinUniformBufferOffsetAlignment() const override;
 
@@ -79,7 +80,7 @@ namespace Lumos
 			std::vector<const char*> m_InstanceLayerNames;
 			std::vector<const char*> m_InstanceExtensionNames;
 
-			VKCommandPool* m_CommandPool;
+			Ref<VKCommandPool> m_CommandPool;
 			void* m_WindowContext;
 
 			bool m_StandardValidationLayer = false;

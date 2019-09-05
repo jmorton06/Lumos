@@ -51,9 +51,6 @@ namespace Lumos
         m_Manifolds.clear();
         
 		CollisionDetection::Release();
-
-		if (m_BroadphaseDetection != nullptr)
-			delete m_BroadphaseDetection;
 	}
 
 	void LumosPhysicsEngine::OnUpdate(TimeStep* timeStep, Scene* scene)
@@ -98,9 +95,11 @@ namespace Lumos
         
         scene->IterateEntities([&](Entity* entity)
         {
-            auto obj = entity->GetComponent<Physics3DComponent>();
-            if(obj)
-                m_PhysicsObjects.emplace_back(obj->GetPhysicsObject());
+            auto phy3D = entity->GetComponent<Physics3DComponent>();
+			if (phy3D != nullptr)
+			{
+				m_PhysicsObjects.emplace_back(phy3D->GetPhysicsObject());
+			}
         });
         
 		//Check for collisions
@@ -118,13 +117,13 @@ namespace Lumos
 	{
         System::JobSystem::Dispatch(static_cast<u32>(m_PhysicsObjects.size()), 16, [&](JobDispatchArgs args)
         {
-            UpdatePhysicsObject(m_PhysicsObjects[args.jobIndex].get());
+            UpdatePhysicsObject(m_PhysicsObjects[args.jobIndex]);
         });
         
         System::JobSystem::Wait();
 	}
 
-	void LumosPhysicsEngine::UpdatePhysicsObject(PhysicsObject3D* obj) const
+	void LumosPhysicsEngine::UpdatePhysicsObject(const Ref<PhysicsObject3D>& obj) const
 	{
 		if (!obj->GetIsStatic() && obj->IsAwake())
 		{
@@ -190,6 +189,7 @@ namespace Lumos
 				// RK2 integration for linear motion
 				Integration::State state = { obj->m_Position, obj->m_LinearVelocity, obj->m_Force * obj->m_InvMass };
                 Integration::RK2(state,0.0f, s_UpdateTimestep);
+
 				obj->m_Position = state.position;
 				obj->m_LinearVelocity = state.velocity;
 

@@ -32,23 +32,23 @@ namespace Lumos
     
     void Entity::OnUpdateObject(float dt)
     {
-        if (m_DefaultTransformComponent && m_DefaultTransformComponent->GetTransform().HasUpdated())
+        if (m_DefaultTransformComponent && m_DefaultTransformComponent->GetTransform()->HasUpdated())
         {
             if (!m_Parent)
                 m_DefaultTransformComponent->SetWorldMatrix(Maths::Matrix4());
             else
             {
-                m_DefaultTransformComponent->SetWorldMatrix(m_Parent->GetTransformComponent()->GetTransform().GetWorldMatrix());
+                m_DefaultTransformComponent->SetWorldMatrix(m_Parent->GetTransformComponent()->GetTransform()->GetWorldMatrix());
             }
             
             
             for (auto child : m_Children)
             {
                 if (child && child->GetTransformComponent())
-                    child->GetTransformComponent()->SetWorldMatrix(m_DefaultTransformComponent->GetTransform().GetWorldMatrix());
+                    child->GetTransformComponent()->SetWorldMatrix(m_DefaultTransformComponent->GetTransform()->GetWorldMatrix());
             }
             
-            m_DefaultTransformComponent->GetTransform().SetHasUpdated(false);
+            m_DefaultTransformComponent->GetTransform()->SetHasUpdated(false);
         }
     }
     
@@ -57,7 +57,7 @@ namespace Lumos
         if (child->m_Parent)
             child->m_Parent->RemoveChild(child);
         
-        child->GetTransformComponent()->GetTransform().SetHasUpdated(true);
+        child->GetTransformComponent()->GetTransform()->SetHasUpdated(true);
         
         child->m_Parent = this;
         m_Children.push_back(child);
@@ -100,16 +100,16 @@ namespace Lumos
         
         Maths::Matrix4 model = Maths::Matrix4();
         if (this->GetComponent<TransformComponent>() != nullptr)
-            model = GetComponent<TransformComponent>()->GetTransform().GetWorldMatrix();
+            model = GetComponent<TransformComponent>()->GetTransform()->GetWorldMatrix();
         
         float delta[16];
         ImGuizmo::Manipulate(view.values, proj.values, static_cast<ImGuizmo::OPERATION>(mode), ImGuizmo::LOCAL, model.values, delta, nullptr);
         
         if (GetTransformComponent() != nullptr && ImGuizmo::IsUsing())
         {
-            auto mat = Maths::Matrix4(delta) * m_DefaultTransformComponent->GetTransform().GetLocalMatrix();
-            m_DefaultTransformComponent->GetTransform().SetLocalTransform(mat);
-            m_DefaultTransformComponent->GetTransform().ApplyTransform();
+            auto mat = Maths::Matrix4(delta) * m_DefaultTransformComponent->GetTransform()->GetLocalMatrix();
+            m_DefaultTransformComponent->GetTransform()->SetLocalTransform(mat);
+            m_DefaultTransformComponent->GetTransform()->ApplyTransform();
             
         }
     }
@@ -181,7 +181,7 @@ namespace Lumos
             m_Parent->RemoveChild(this);
         
         m_Parent = parent;
-        m_DefaultTransformComponent->SetWorldMatrix(m_Parent->GetTransformComponent()->GetTransform().GetWorldMatrix());
+        m_DefaultTransformComponent->SetWorldMatrix(m_Parent->GetTransformComponent()->GetTransform()->GetWorldMatrix());
     }
     
     const bool Entity::ActiveInHierarchy() const

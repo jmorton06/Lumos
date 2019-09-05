@@ -136,7 +136,11 @@
 {																		\
 	LUMOS_LOG_ERROR("Unimplemented : {0} : {1}", __FILE__, __LINE__); 	\
 	LUMOS_BREAK();  													\
-}																		
+}
+
+#define NONCOPYABLE(type_identifier)								\
+    type_identifier(const type_identifier&) = delete;				\
+    type_identifier& operator=(const type_identifier&) = delete;
 
 namespace Lumos
 {

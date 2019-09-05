@@ -52,12 +52,9 @@ namespace Lumos
 
         static float GetDeltaTime() { return s_UpdateTimestep; }
 
-		Broadphase* GetBroadphase() const { return m_BroadphaseDetection; }
-		inline void SetBroadphase(Broadphase* bp)
+		Ref<Broadphase> GetBroadphase() const { return m_BroadphaseDetection; }
+		inline void SetBroadphase(const Ref<Broadphase>& bp)
 		{
-			if (m_BroadphaseDetection)
-				delete m_BroadphaseDetection;
-
 			m_BroadphaseDetection = bp;
 		}
 
@@ -83,7 +80,7 @@ namespace Lumos
 
 		//Updates all physics objects position, orientation, velocity etc (default method uses symplectic euler integration)
 		void UpdatePhysicsObjects();
-		void UpdatePhysicsObject(PhysicsObject3D* obj) const;
+		void UpdatePhysicsObject(const Ref<PhysicsObject3D>& obj) const;
 
 		//Solves all engine constraints (constraints and manifolds)
 		void SolveConstraints();
@@ -101,7 +98,7 @@ namespace Lumos
 		std::vector<Manifold*>		m_Manifolds;			// Contact constraints between pairs of objects
 		std::mutex					m_ManifoldsMutex;
 
-		Broadphase* m_BroadphaseDetection;
+		Ref<Broadphase> m_BroadphaseDetection;
 		IntegrationType m_IntegrationType;
 
 		bool m_MultipleUpdates = true;

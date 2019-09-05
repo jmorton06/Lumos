@@ -36,12 +36,12 @@ namespace Lumos
 
 	void LightComponent::Update()
 	{
-		//auto euler = Maths::Matrix4::GetEulerAngles(m_Entity->GetTransformComponent()->GetTransform().GetWorldMatrix());
+		//auto euler = Maths::Matrix4::GetEulerAngles(m_Entity->GetTransformComponent()->GetTransform()->GetWorldMatrix());
 		//float x = cos(euler.y)*cos(euler.x);
 		//float y = sin(euler.y)*cos(euler.x);
 		//float z = sin(euler.x);
 		//m_Light->m_Direction = Maths::Vector4(x,y,z, 1.0f);
-		m_Light->m_Position  = Maths::Vector4(m_Entity->GetTransformComponent()->GetTransform().GetWorldMatrix().GetPositionVector(), 1.0f);
+		m_Light->m_Position  = Maths::Vector4(m_Entity->GetTransformComponent()->GetTransform()->GetWorldMatrix().GetPositionVector(), 1.0f);
 		m_BoundingShape->SetPosition(m_Light->m_Position.ToVector3());
 	}
 

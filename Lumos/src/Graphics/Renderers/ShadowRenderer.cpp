@@ -255,7 +255,7 @@ namespace Lumos
 						{
 							auto mesh = model->GetMesh();
 							{
-								SubmitMesh(mesh, nullptr, obj->GetComponent<TransformComponent>()->GetTransform().GetWorldMatrix(), Maths::Matrix4());
+								SubmitMesh(mesh, nullptr, obj->GetComponent<TransformComponent>()->GetTransform()->GetWorldMatrix(), Maths::Matrix4());
 							}
 						}
 					}
