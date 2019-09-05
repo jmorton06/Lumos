@@ -20,7 +20,7 @@ namespace Lumos
         
         void OnIMGUI() override;
         
-        PhysicsObject3D* GetPhysicsObject() const { return m_PhysicsObject.get(); }
+		Ref<PhysicsObject3D>& GetPhysicsObject() { return m_PhysicsObject; }
 
 		nlohmann::json Serialise() override { return nullptr; };
 		void Deserialise(nlohmann::json& data) override {};

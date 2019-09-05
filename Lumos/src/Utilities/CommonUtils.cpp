@@ -87,7 +87,7 @@ namespace Lumos
 		}
 		else
 		{
-			pSphere->GetTransformComponent()->GetTransform().SetLocalPosition(pos);
+			pSphere->GetTransformComponent()->GetTransform()->SetLocalPosition(pos);
 		}
 
 		return pSphere;
@@ -147,7 +147,7 @@ namespace Lumos
 		}
 		else
 		{
-			Cube->GetTransformComponent()->GetTransform().SetLocalPosition(pos);
+			Cube->GetTransformComponent()->GetTransform()->SetLocalPosition(pos);
 		}
 
 		return Cube;
@@ -208,7 +208,7 @@ namespace Lumos
 		}
 		else
 		{
-			Cube->GetTransformComponent()->GetTransform().SetLocalPosition(pos);
+			Cube->GetTransformComponent()->GetTransform()->SetLocalPosition(pos);
 		}
 
 		return Cube;

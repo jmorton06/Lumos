@@ -501,7 +501,7 @@ namespace Lumos
 		m_Application->m_SceneManager->GetCurrentScene()->IterateEntities([&](Entity* entity)
 		{
 			auto boundingBox = entity->GetBoundingRadius();
-			Maths::BoundingSphere test(entity->GetTransformComponent()->GetTransform().GetWorldPosition(), boundingBox);
+			Maths::BoundingSphere test(entity->GetTransformComponent()->GetTransform()->GetWorldPosition(), boundingBox);
 			if (test.Intersects(worldMousePos))
 			{
 				m_Selected = entity;

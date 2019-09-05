@@ -130,37 +130,30 @@ namespace Lumos
 
 			data[0].Position = Maths::Vector3(1.0f, 1.0f, 1.0f);
 			data[0].Colours = Maths::Vector4(0.0f);
-			data[0].TexCoords = Maths::Vector2(1.0f, 1.0f);
 			data[0].Normal = Maths::Vector3(0.0f, 0.0f, 1.0f);
 
 			data[1].Position = Maths::Vector3(-1.0f, 1.0f, 1.0f);
 			data[1].Colours = Maths::Vector4(0.0f);
-			data[1].TexCoords = Maths::Vector2(1.0f, 0.0f);
 			data[1].Normal = Maths::Vector3(0.0f, 0.0f, 1.0f);
 
 			data[2].Position = Maths::Vector3(-1.0f, -1.0f, 1.0f);
 			data[2].Colours = Maths::Vector4(0.0f);
-			data[2].TexCoords = Maths::Vector2(0.0f, 0.0f);
 			data[2].Normal = Maths::Vector3(0.0f, 0.0f, 1.0f);
 
 			data[3].Position = Maths::Vector3(1.0f, -1.0f, 1.0f);
 			data[3].Colours = Maths::Vector4(0.0f);
-			data[3].TexCoords = Maths::Vector2(1.0f, 0.0f);
 			data[3].Normal = Maths::Vector3(0.0f, 0.0f, 1.0f);
 
 			data[4].Position = Maths::Vector3(1.0f, 1.0f, 1.0f);
 			data[4].Colours = Maths::Vector4(0.0f);
-			data[4].TexCoords = Maths::Vector2(1.0f, 1.0f);
 			data[4].Normal = Maths::Vector3(1.0f, 0.0f, 0.0f);
 
 			data[5].Position = Maths::Vector3(1.0f, -1.0f, 1.0f);
 			data[5].Colours = Maths::Vector4(0.0f);
-			data[5].TexCoords = Maths::Vector2(1.0f, 0.0f);
 			data[5].Normal = Maths::Vector3(1.0f, 0.0f, 0.0f);
 
 			data[6].Position = Maths::Vector3(1.0f, -1.0f, -1.0f);
 			data[6].Colours = Maths::Vector4(0.0f);
-			data[6].TexCoords = Maths::Vector2(0.0f, 0.0f);
 			data[6].Normal = Maths::Vector3(1.0f, 0.0f, 0.0f);
 
 			data[7].Position = Maths::Vector3(1.0f, 1.0f, -1.0f);
@@ -254,7 +247,7 @@ namespace Lumos
                 boundingSphere->ExpandToFit(data[i].Position);
             }
             
-			delete[] data;
+			lmdel[] data;
 
 			Graphics::BufferLayout layout;
 			layout.Push<Maths::Vector3>("position");
@@ -512,7 +505,7 @@ namespace Lumos
 			return lmnew Mesh(va, ib, boundingSphere);
 		}
 
-		Mesh* CreateIcoSphere(u32 radius, u32 subdivision, Ref<Material> material)
+		Mesh* CreateIcoSphere(u32 radius, u32 subdivision)
 		{
 			return nullptr;
 		}
@@ -575,6 +568,183 @@ namespace Lumos
 			Ref<IndexBuffer> ib;
 			ib.reset(IndexBuffer::Create(indices, 6));
 			
+			return lmnew Mesh(va, ib, boundingBox);
+		}
+
+		Mesh* CreateCapsule(float radius, float midHeight, int radialSegments, int rings)
+		{
+			using namespace Maths;
+
+			int i, j, prevrow, thisrow, point;
+			float x, y, z, u, v, w;
+			float onethird = 1.0f / 3.0f;
+			float twothirds = 2.0f / 3.0f;
+
+			std::vector<Vertex> data;
+			std::vector<u32> indices;
+
+			point = 0;
+
+			/* top hemisphere */
+			thisrow = 0;
+			prevrow = 0;
+			for (j = 0; j <= (rings + 1); j++)
+			{
+				v = float(j);
+
+				v /= (rings + 1);
+				w = sin(0.5f * Maths::PI * v);
+				z = radius * cos(0.5f * Maths::PI * v);
+
+				for (i = 0; i <= radialSegments; i++) 
+				{
+					u = float(i);
+					u /= radialSegments;
+
+					x = sin(u * (Maths::PI * 2.0f));
+					y = -cos(u * (Maths::PI * 2.0f));
+
+					Vector3 p = Vector3(x * radius * w, y * radius * w, z);
+
+					Vertex vertex;
+					vertex.Position = p + Vector3(0.0f, 0.0f, 0.5f * midHeight);
+					vertex.Normal = p.Normal();
+					vertex.TexCoords = Vector2(u, onethird * v);
+					data.emplace_back(vertex);
+					point++;
+
+					if (i > 0 && j > 0)
+					{
+						indices.push_back(thisrow + i - 1);
+						indices.push_back(prevrow + i);
+						indices.push_back(prevrow + i - 1);
+
+						indices.push_back(thisrow + i - 1);
+						indices.push_back(thisrow + i);
+						indices.push_back(prevrow + i);
+					};
+				};
+
+				prevrow = thisrow;
+				thisrow = point;
+			};
+
+			/* cylinder */
+			thisrow = point;
+			prevrow = 0;
+			for (j = 0; j <= (rings + 1); j++) 
+			{
+				v = float(j);
+				v /= (rings + 1);
+
+				z = midHeight * v;
+				z = (midHeight * 0.5f) - z;
+
+				for (i = 0; i <= radialSegments; i++) 
+				{
+					u = float(i);
+					u /= radialSegments;
+
+					x = sin(u * (Maths::PI * 2.0f));
+					y = -cos(u * (Maths::PI * 2.0f));
+
+					Vector3 p = Vector3(x * radius, y * radius, z);
+
+					Vertex vertex;
+					vertex.Position = p;
+					vertex.Normal = Vector3(x, y, 0.0f);
+					vertex.TexCoords = Vector2(u, onethird + (v * onethird));
+					data.emplace_back(vertex);
+
+					point++;
+
+					if (i > 0 && j > 0)
+					{
+						indices.push_back(thisrow + i - 1);
+						indices.push_back(prevrow + i);
+						indices.push_back(prevrow + i - 1);
+
+						indices.push_back(thisrow + i - 1);
+						indices.push_back(thisrow + i);
+						indices.push_back(prevrow + i);
+					};
+				};
+
+				prevrow = thisrow;
+				thisrow = point;
+			};
+
+			/* bottom hemisphere */
+			thisrow = point;
+			prevrow = 0;
+
+			for (j = 0; j <= (rings + 1); j++)
+			{
+				v = float(j);
+
+				v /= (rings + 1);
+				v += 1.0f;
+				w = sin(0.5f * Maths::PI * v);
+				z = radius * cos(0.5f * Maths::PI * v);
+
+				for (i = 0; i <= radialSegments; i++) 
+				{
+					float u2 = float(i);
+					u2 /= radialSegments;
+
+					x = sin(u2 * (Maths::PI * 2.0f));
+					y = -cos(u2 * (Maths::PI * 2.0f));
+
+					Vector3 p = Vector3(x * radius * w, y * radius * w, z);
+
+					Vertex vertex;
+					vertex.Position = p + Vector3(0.0f, 0.0f, -0.5f * midHeight);
+					vertex.Normal = p.Normal();
+					vertex.TexCoords = Vector2(u2, twothirds + ((v - 1.0f) * onethird));
+					data.emplace_back(vertex);
+
+					point++;
+
+					if (i > 0 && j > 0)
+					{
+						indices.push_back(thisrow + i - 1);
+						indices.push_back(prevrow + i);
+						indices.push_back(prevrow + i - 1);
+
+						indices.push_back(thisrow + i - 1);
+						indices.push_back(thisrow + i);
+						indices.push_back(prevrow + i);
+					};
+				};
+
+				prevrow = thisrow;
+				thisrow = point;
+			}
+
+			VertexBuffer* buffer = VertexBuffer::Create(BufferUsage::STATIC);
+			buffer->SetData(static_cast<u32>(data.size() * sizeof(Vertex)), data.data());
+
+			Ref<Maths::BoundingSphere> boundingBox = CreateRef<Maths::BoundingSphere>();
+			for (size_t i = 0; i < data.size(); i++)
+			{
+				boundingBox->ExpandToFit(data[i].Position);
+			}
+
+			Graphics::BufferLayout layout;
+			layout.Push<Maths::Vector3>("postion");
+			layout.Push<Maths::Vector4>("colours");
+			layout.Push<Maths::Vector2>("texCoord");
+			layout.Push<Maths::Vector3>("normal");
+			layout.Push<Maths::Vector3>("tangent");
+			buffer->SetLayout(layout);
+
+			Ref<VertexArray> va;
+			va.reset(VertexArray::Create());
+			va->PushBuffer(buffer);
+
+			Ref<IndexBuffer> ib;
+			ib.reset(IndexBuffer::Create(indices.data(), static_cast<u32>(indices.size())));
+
 			return lmnew Mesh(va, ib, boundingBox);
 		}
 	}

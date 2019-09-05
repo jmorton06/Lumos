@@ -19,7 +19,7 @@ namespace Lumos
 
             VKDevice::Instance();
             
-            m_Swapchain = lmnew VKSwapchain(m_Width, m_Height);
+            m_Swapchain = CreateRef<VKSwapchain>(m_Width, m_Height);
             m_Swapchain->Init();
             
             CreateSemaphores();
@@ -27,8 +27,8 @@ namespace Lumos
 
         VKRenderer::~VKRenderer()
 		{
-            delete m_Swapchain;
-            
+			m_Swapchain.reset();
+
 			for (int i = 0; i < 5; i++)
 			{
 				VKDevice::Instance()->GetDevice().destroySemaphore(m_ImageAvailableSemaphore[i]);
@@ -78,8 +78,7 @@ namespace Lumos
 			m_Width  = width;
 			m_Height = height;
 
-			delete m_Swapchain;
-			m_Swapchain = lmnew VKSwapchain(width, height);
+			m_Swapchain = CreateRef<VKSwapchain>(width, height);
 			m_Swapchain->Init();
 		}
 

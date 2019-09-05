@@ -99,18 +99,13 @@ namespace Lumos
 
 		VKContext::~VKContext()
 		{
-			delete m_CommandPool;
-            
 			DestroyDebugReportCallbackEXT(m_VkInstance, m_DebugCallback, nullptr);
 			m_VkInstance.destroy();
 		}
 
 		void VKContext::Init()
 		{
-            if(m_CommandPool != nullptr)
-                delete m_CommandPool;
-            
-			m_CommandPool = lmnew VKCommandPool();
+			m_CommandPool = CreateRef<VKCommandPool>();
 		};
 
 		void VKContext::Present()
@@ -120,8 +115,7 @@ namespace Lumos
 
 		void VKContext::Unload()
 		{
-			delete m_CommandPool;
-			m_CommandPool = nullptr;
+			m_CommandPool.reset();
 		}
 
 		VkBool32 VKContext::DebugCallback(VkDebugReportFlagsEXT flags,

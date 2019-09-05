@@ -62,9 +62,6 @@ namespace Lumos
 		Application(const WindowProperties& properties);
 		virtual ~Application();
 
-		Application(Application const&) = delete;
-		Application& operator=(Application const&) = delete;
-
 		int Quit(bool pause = false, const std::string &reason = "");
 
 		void Run();
@@ -137,6 +134,8 @@ namespace Lumos
 #ifdef LUMOS_EDITOR
 		Editor* m_Editor = nullptr;
 #endif
+
+		NONCOPYABLE(Application)
 	};
 
 	//Defined by client

@@ -8,7 +8,7 @@
 
 namespace Lumos
 {
-	AssetManager<Graphics::Mesh>*	 AssetsManager::s_DefaultModels   = nullptr;
+	AssetManager<Graphics::Mesh>* AssetsManager::s_DefaultModels   = nullptr;
 	AssetManager<Graphics::Texture2D>* AssetsManager::s_DefaultTextures = nullptr;
 
 	void AssetsManager::InitializeMeshes()
@@ -19,7 +19,7 @@ namespace Lumos
         auto cube = Ref<Graphics::Mesh>(Graphics::CreateCube(2.0f));
         s_DefaultModels->AddAsset("Cube", cube);
         s_DefaultModels->AddAsset("Pyramid", Ref<Graphics::Mesh>(Graphics::CreatePyramid(1.0f)));
-        s_DefaultModels->AddAsset("Sphere", Ref<Graphics::Mesh>(Graphics::CreateSphere(64,64)));
+		s_DefaultModels->AddAsset("Sphere", Ref<Graphics::Mesh>(Graphics::CreateCapsule(1.0f,2.0f)));// Graphics::CreateSphere(64, 64)));
 	}
 
 	void AssetsManager::ReleaseMeshes()

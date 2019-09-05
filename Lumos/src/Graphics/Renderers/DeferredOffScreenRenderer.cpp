@@ -179,7 +179,7 @@ namespace Lumos
 						else
 							textureMatrix = Maths::Matrix4();
 
-						auto transform = obj->GetComponent<TransformComponent>()->GetTransform().GetWorldMatrix();
+						auto transform = obj->GetComponent<TransformComponent>()->GetTransform()->GetWorldMatrix();
 
 						SubmitMesh(mesh, material, transform, textureMatrix);
 					}

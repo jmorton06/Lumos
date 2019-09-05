@@ -62,19 +62,9 @@ namespace Lumos
 			ApplyTransform();
         }
 
-		void Transform::SetWorldPosition(const Vector3& worldPos) 
-		{
-			m_LocalPosition = worldPos;
-		}
-
 		void Transform::SetLocalPosition(const Vector3& localPos)
 		{
 			m_LocalPosition = localPos;
-		}
-
-		void Transform::SetWorldScale(const Vector3& worldScale) 
-		{
-			m_LocalScale = worldScale;
 		}
 
 		void Transform::SetLocalScale(const Vector3& newScale)
@@ -86,10 +76,6 @@ namespace Lumos
 		{
 			m_LocalOrientation = quat;
 		}
-        
-        void Transform::SetWorldOrientation(const Quaternion & quat)
-        {
-            m_LocalOrientation = quat;
-        }
+       
 	}
 }
