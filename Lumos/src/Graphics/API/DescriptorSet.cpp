@@ -14,9 +14,9 @@ namespace Lumos
 {
 	namespace Graphics
 	{
-        DescriptorSet*(*DescriptorSet::CreateFunc)(DescriptorInfo) = nullptr;
+        DescriptorSet*(*DescriptorSet::CreateFunc)(const DescriptorInfo&) = nullptr;
 
-		DescriptorSet* DescriptorSet::Create(DescriptorInfo info)
+		DescriptorSet* DescriptorSet::Create(const DescriptorInfo& info)
 		{
             LUMOS_ASSERT(CreateFunc, "No DescriptorSet Create Function");
             

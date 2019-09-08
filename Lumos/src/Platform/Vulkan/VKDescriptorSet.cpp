@@ -10,7 +10,7 @@ namespace Lumos
 {
 	namespace Graphics
 	{
-		VKDescriptorSet::VKDescriptorSet(DescriptorInfo info)
+		VKDescriptorSet::VKDescriptorSet(const DescriptorInfo& info)
 		{
 			vk::DescriptorSetAllocateInfo descriptorSetAllocateInfo{};
 			descriptorSetAllocateInfo.descriptorPool = static_cast<Graphics::VKPipeline*>(info.pipeline)->GetDescriptorPool();
@@ -103,93 +103,17 @@ namespace Lumos
 
 		void VKDescriptorSet::Update(std::vector<BufferInfo>& bufferInfos)
 		{
-			std::vector<vk::WriteDescriptorSet> descriptorWrites;
-			vk::DescriptorBufferInfo* buffersInfo = lmnew vk::DescriptorBufferInfo[bufferInfos.size()];
-
-			m_Dynamic = false;
-
-			int index = 0;
-
-			for (auto& bufferInfo : bufferInfos)
-			{
-				buffersInfo[index].buffer = *dynamic_cast<VKUniformBuffer*>(bufferInfo.buffer)->GetBuffer();
-				buffersInfo[index].offset = bufferInfo.offset;
-				buffersInfo[index].range = bufferInfo.size;
-
-				vk::WriteDescriptorSet writeDescriptorSet{};
-				writeDescriptorSet.dstSet = m_DescriptorSet;
-				writeDescriptorSet.descriptorType = VKTools::DescriptorTypeToVK(bufferInfo.type);
-				writeDescriptorSet.dstBinding = bufferInfo.binding;
-				writeDescriptorSet.pBufferInfo = &buffersInfo[index];
-				writeDescriptorSet.descriptorCount = 1;
-
-				descriptorWrites.emplace_back(writeDescriptorSet);
-				index++;
-
-				if (bufferInfo.type == DescriptorType::UNIFORM_BUFFER_DYNAMIC)
-					m_Dynamic = true;
-			}
-
-			VKDevice::Instance()->GetDevice().updateDescriptorSets(static_cast<uint32_t>(descriptorWrites.size()), descriptorWrites.data(), 0, nullptr);
-
-			delete[] buffersInfo;
+            UpdateInternal(nullptr, &bufferInfos);
 		}
 
 		void VKDescriptorSet::Update(std::vector<ImageInfo>& imageInfos)
 		{
-			std::vector<vk::WriteDescriptorSet> descriptorWrites;
-			std::vector<vk::DescriptorImageInfo*> allocatedArrays;
-
-			m_Dynamic = false;
-
-			for (auto& imageInfo : imageInfos)
-			{
-				vk::DescriptorImageInfo* imageInfos = lmnew vk::DescriptorImageInfo[imageInfo.count];
-				allocatedArrays.emplace_back(imageInfos);
-				descriptorWrites.push_back(ImageInfoToVK(imageInfo, imageInfos));
-			}
-
-			VKDevice::Instance()->GetDevice().updateDescriptorSets(static_cast<uint32_t>(descriptorWrites.size()), descriptorWrites.data(), 0, nullptr);
-
-			for (auto& allocatedArray : allocatedArrays)
-			{
-				delete[] allocatedArray;
-			}
+             UpdateInternal(&imageInfos, nullptr);
 		}
 
 		void VKDescriptorSet::Update(std::vector<ImageInfo>& imageInfos, std::vector<BufferInfo>& bufferInfos)
 		{
-			std::vector<vk::WriteDescriptorSet> descriptorWrites;
-			std::vector<vk::DescriptorImageInfo*> allocatedArrays;
-
-			m_Dynamic = false;
-
-			for (auto& imageInfo : imageInfos)
-			{
-				vk::DescriptorImageInfo* imageInfos = lmnew vk::DescriptorImageInfo[imageInfo.count];
-				allocatedArrays.emplace_back(imageInfos);
-				descriptorWrites.push_back(ImageInfoToVK(imageInfo, imageInfos));
-			}
-
-			for (auto& bufferInfo : bufferInfos)
-			{
-				vk::DescriptorBufferInfo info = {};
-				info.buffer = *dynamic_cast<VKUniformBuffer*>(bufferInfo.buffer)->GetBuffer();
-				info.offset = bufferInfo.offset;
-				info.range = bufferInfo.size;
-
-				if (bufferInfo.type == DescriptorType::UNIFORM_BUFFER_DYNAMIC)
-					m_Dynamic = true;
-
-				descriptorWrites.push_back(GetWriteDescriptorSet(m_DescriptorSet, VKTools::DescriptorTypeToVK(bufferInfo.type), bufferInfo.binding, &info));
-			}
-
-			VKDevice::Instance()->GetDevice().updateDescriptorSets(static_cast<uint32_t>(descriptorWrites.size()), descriptorWrites.data(), 0, nullptr);
-
-			for (auto& allocatedArray : allocatedArrays)
-			{
-				delete[] allocatedArray;
-			}
+            UpdateInternal(&imageInfos, &bufferInfos);
 		}
 
 		void VKDescriptorSet::SetPushConstants(std::vector<PushConstant>& pushConstants)
@@ -206,9 +130,65 @@ namespace Lumos
 			CreateFunc = CreateFuncVulkan;
 		}
 
-		DescriptorSet* VKDescriptorSet::CreateFuncVulkan(DescriptorInfo info)
+		DescriptorSet* VKDescriptorSet::CreateFuncVulkan(const DescriptorInfo& info)
 		{
 			return lmnew VKDescriptorSet(info);
 		}
-	}
+    
+        void VKDescriptorSet::UpdateInternal(std::vector<ImageInfo>* imageInfos, std::vector<BufferInfo>* bufferInfos)
+        {
+            std::vector<vk::WriteDescriptorSet> descriptorWrites;
+            
+            std::vector<vk::DescriptorImageInfo*> allocatedArrays;
+            vk::DescriptorBufferInfo* buffersInfo = nullptr;
+            
+            m_Dynamic = false;
+            
+            if(imageInfos != nullptr)
+            {
+                for (auto& imageInfo : *imageInfos)
+                {
+                    vk::DescriptorImageInfo* imageInfos = lmnew vk::DescriptorImageInfo[imageInfo.count];
+                    allocatedArrays.emplace_back(imageInfos);
+                    descriptorWrites.push_back(ImageInfoToVK(imageInfo, imageInfos));
+                }
+            }
+      
+            if(bufferInfos != nullptr)
+            {
+                vk::DescriptorBufferInfo* buffersInfo = lmnew vk::DescriptorBufferInfo[bufferInfos->size()];
+
+                int index = 0;
+                
+                for (auto& bufferInfo : *bufferInfos)
+                {
+                    buffersInfo[index].buffer = *dynamic_cast<VKUniformBuffer*>(bufferInfo.buffer)->GetBuffer();
+                    buffersInfo[index].offset = bufferInfo.offset;
+                    buffersInfo[index].range = bufferInfo.size;
+    
+                    vk::WriteDescriptorSet writeDescriptorSet{};
+                    writeDescriptorSet.dstSet = m_DescriptorSet;
+                    writeDescriptorSet.descriptorType = VKTools::DescriptorTypeToVK(bufferInfo.type);
+                    writeDescriptorSet.dstBinding = bufferInfo.binding;
+                    writeDescriptorSet.pBufferInfo = &buffersInfo[index];
+                    writeDescriptorSet.descriptorCount = 1;
+    
+                    descriptorWrites.emplace_back(writeDescriptorSet);
+                    index++;
+    
+                    if (bufferInfo.type == DescriptorType::UNIFORM_BUFFER_DYNAMIC)
+                        m_Dynamic = true;
+                }
+            }
+            
+            VKDevice::Instance()->GetDevice().updateDescriptorSets(static_cast<uint32_t>(descriptorWrites.size()), descriptorWrites.data(), 0, nullptr);
+            
+            delete[] buffersInfo;
+            
+            for (auto& allocatedArray : allocatedArrays)
+            {
+                delete[] allocatedArray;
+            }
+        }
+    }
 }

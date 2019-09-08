@@ -9,7 +9,7 @@ namespace Lumos
         class GLDescriptorSet : public DescriptorSet
         {
         public:
-            GLDescriptorSet(DescriptorInfo& info) ;
+            GLDescriptorSet(const DescriptorInfo& info) ;
 
             ~GLDescriptorSet() {};
 
@@ -24,7 +24,7 @@ namespace Lumos
 			u32 GetDynamicOffset() const override { return m_DynamicOffset; }
             static void MakeDefault();
         protected:
-            static DescriptorSet* CreateFuncGL(DescriptorInfo info);
+            static DescriptorSet* CreateFuncGL(const DescriptorInfo& info);
         private:
 			u32 m_DynamicOffset = 0;
 			Shader* m_Shader = nullptr;
