@@ -13,5 +13,9 @@ public:
 	virtual void OnIMGUI() override;
 
 	void LoadModels();
+    
+private:
+    
+    Lumos::Entity* m_Terrain;
 
 };

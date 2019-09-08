@@ -87,24 +87,55 @@ void GraphicsScene::OnCleanupScene()
 void GraphicsScene::LoadModels()
 {
 	//HeightMap
-	auto heightmap = EntityManager::Instance()->CreateEntity("heightmap");
-	heightmap->AddComponent<TransformComponent>(Matrix4::Scale(Maths::Vector3(1.0f)));
-	heightmap->AddComponent<TextureMatrixComponent>(Matrix4::Scale(Maths::Vector3(1.0f, 1.0f, 1.0f)));
+	m_Terrain = EntityManager::Instance()->CreateEntity("heightmap");
+	m_Terrain->AddComponent<TransformComponent>(Matrix4::Scale(Maths::Vector3(1.0f)));
+	m_Terrain->AddComponent<TextureMatrixComponent>(Matrix4::Scale(Maths::Vector3(1.0f, 1.0f, 1.0f)));
     Lumos::Ref<Graphics::Mesh> terrain = Lumos::Ref<Graphics::Mesh>(new Terrain());
 	auto material = Lumos::CreateRef<Material>();
 
 	material->LoadMaterial("checkerboard", "/CoreTextures/checkerboard.tga");
 
-	heightmap->AddComponent<MaterialComponent>(material);
-    heightmap->SetBoundingRadius(800.0f);
+	m_Terrain->AddComponent<MaterialComponent>(material);
+    m_Terrain->SetBoundingRadius(800.0f);
+    
+	m_Terrain->AddComponent<MeshComponent>(terrain);
 
-	//terrain->SetMaterial(Lumos::CreateRef<Material>(*m_MaterialManager->GetAsset("Stone").get()));
-	//terrain->SetMaterialFlag(Material::RenderFlags::WIREFRAME);
-	heightmap->AddComponent<MeshComponent>(terrain);
-
-	AddEntity(heightmap);
+	AddEntity(m_Terrain);
 }
 
 void GraphicsScene::OnIMGUI()
 {
+    ImGui::Begin("Terrain");
+    
+    int width = 500;
+    int height = 500;
+    int lowside = 50;
+    int lowscale = 10;
+    float xRand = 1.0f;
+    float yRand = 150.0f;
+    float zRand = 1.0f;
+    float texRandX = 1.0f/16.0f;
+    float texRandZ = 1.0f/16.0f;
+    
+    if(ImGui::Button("Rebuild Terrain"))
+    {
+        EntityManager::Instance()->DeleteEntity(m_Terrain);
+        
+        m_Terrain = EntityManager::Instance()->CreateEntity("heightmap");
+        m_Terrain->AddComponent<TransformComponent>(Matrix4::Scale(Maths::Vector3(1.0f)));
+        m_Terrain->AddComponent<TextureMatrixComponent>(Matrix4::Scale(Maths::Vector3(1.0f, 1.0f, 1.0f)));
+        Lumos::Ref<Graphics::Mesh> terrain = Lumos::Ref<Graphics::Mesh>(new Terrain());
+        auto material = Lumos::CreateRef<Material>();
+        
+        material->LoadMaterial("checkerboard", "/CoreTextures/checkerboard.tga");
+        
+        m_Terrain->AddComponent<MaterialComponent>(material);
+        m_Terrain->SetBoundingRadius(800.0f);
+        
+        m_Terrain->AddComponent<MeshComponent>(terrain);
+        
+        AddEntity(m_Terrain);
+    }
+    
+    ImGui::End();
 }
