@@ -17,9 +17,9 @@ namespace Lumos
 		s_DefaultTextures = lmnew AssetManager<Graphics::Texture2D>();
 
         auto cube = Ref<Graphics::Mesh>(Graphics::CreateCube(2.0f));
-        s_DefaultModels->AddAsset("Cube", cube);
-        s_DefaultModels->AddAsset("Pyramid", Ref<Graphics::Mesh>(Graphics::CreatePyramid(1.0f)));
-		s_DefaultModels->AddAsset("Sphere", Ref<Graphics::Mesh>(Graphics::CreateCapsule(1.0f,2.0f)));// Graphics::CreateSphere(64, 64)));
+        s_DefaultModels->Add("Cube", cube);
+        s_DefaultModels->Add("Pyramid", Ref<Graphics::Mesh>(Graphics::CreatePyramid(1.0f)));
+		s_DefaultModels->Add("Sphere", Ref<Graphics::Mesh>(Graphics::CreateCapsule(1.0f,2.0f)));// Graphics::CreateSphere(64, 64)));
 	}
 
 	void AssetsManager::ReleaseMeshes()
