@@ -103,7 +103,7 @@ namespace Lumos
 		{
 		public:
 			virtual ~DescriptorSet() = default;
-			static DescriptorSet* Create(DescriptorInfo info);
+			static DescriptorSet* Create(const DescriptorInfo& info);
 
 			virtual void Update(std::vector<ImageInfo>& imageInfos, std::vector<BufferInfo>& bufferInfos) = 0;
 			virtual void Update(std::vector<ImageInfo>& imageInfos) = 0;
@@ -113,7 +113,7 @@ namespace Lumos
 			virtual u32 GetDynamicOffset() const = 0;
            
         protected:
-            static DescriptorSet* (*CreateFunc)(DescriptorInfo);
+            static DescriptorSet* (*CreateFunc)(const DescriptorInfo&);
 		};
 	}
 }

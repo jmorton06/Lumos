@@ -9,7 +9,7 @@ namespace Lumos
 		class VKDescriptorSet : public DescriptorSet
 		{
 		public:
-			VKDescriptorSet(DescriptorInfo info);
+			VKDescriptorSet(const DescriptorInfo& info);
 			~VKDescriptorSet();
 
 			vk::DescriptorSet GetDescriptorSet() const { return m_DescriptorSet; }
@@ -17,18 +17,23 @@ namespace Lumos
 			void Update(std::vector<ImageInfo>& imageInfos, std::vector<BufferInfo>& bufferInfos) override;
 			void Update(std::vector<BufferInfo>& bufferInfos) override;
 			void Update(std::vector<ImageInfo>& imageInfos) override;
+            
 			void SetPushConstants(std::vector<PushConstant>& pushConstants) override;
 			bool GetIsDynamic() const { return m_Dynamic; }
 
-			std::vector<PushConstant> GetPushConstants() const { return m_PushConstants; }
+			const std::vector<PushConstant>& GetPushConstants() const { return m_PushConstants; }
 
 			vk::WriteDescriptorSet ImageInfoToVK(ImageInfo& imageInfo, vk::DescriptorImageInfo* imageInfos);
 
 			void SetDynamicOffset(u32 offset) override { m_DynamicOffset = offset; }
 			u32 GetDynamicOffset() const override { return m_DynamicOffset; }
+            
 			static void MakeDefault();
 		protected:
-			static DescriptorSet* CreateFuncVulkan(DescriptorInfo);
+            
+            void UpdateInternal(std::vector<ImageInfo>* imageInfos, std::vector<BufferInfo>* bufferInfos);
+            
+			static DescriptorSet* CreateFuncVulkan(const DescriptorInfo&);
 		private:
 			vk::DescriptorSet m_DescriptorSet;
 			u32 m_DynamicOffset = 0;
