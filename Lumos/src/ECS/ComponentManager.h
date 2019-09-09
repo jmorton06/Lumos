@@ -212,7 +212,7 @@ namespace Lumos
 			return static_cast<ComponentArray<T>*>(m_ComponentArrays[typeName].get());
 		}
 
-		std::vector<LumosComponent*> GetAllComponents(Entity* entity);
+		const std::vector<LumosComponent*> GetAllComponents(Entity* entity);
 
 	private:
 		std::unordered_map<size_t, ComponentType> m_ComponentTypes;

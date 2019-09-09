@@ -19,7 +19,8 @@ namespace Lumos
                                  SubPassContents contents, uint32_t width, uint32_t height) const  override;
             void EndRenderpass(CommandBuffer* commandBuffer) override;
 
-            vk::RenderPass GetRenderpass() const { return m_RenderPass; };
+            const vk::RenderPass& GetRenderpass() const { return m_RenderPass; };
+
             static void MakeDefault();
         protected:
             static RenderPass* CreateFuncVulkan();

@@ -116,7 +116,7 @@ namespace Lumos
             return lmnew Mesh(va, ib, boundingSphere);
 		}
 
-		Mesh* CreateCube(float size)
+		Mesh* CreateCube()
 		{
 			//    v6----- v5
 			//   /|      /|
@@ -281,7 +281,7 @@ namespace Lumos
 			return lmnew Mesh(va, ib, boundingSphere);
 		}
 
-		Mesh* CreatePyramid(float size)
+		Mesh* CreatePyramid()
 		{
 			Vertex* data = lmnew Vertex[18];
 
@@ -608,7 +608,7 @@ namespace Lumos
 
 					Vertex vertex;
 					vertex.Position = p + Vector3(0.0f, 0.0f, 0.5f * midHeight);
-					vertex.Normal = p.Normal();
+					vertex.Normal = (p + Vector3(0.0f, 0.0f, 0.5f * midHeight)).Normal();
 					vertex.TexCoords = Vector2(u, onethird * v);
 					data.emplace_back(vertex);
 					point++;
@@ -652,7 +652,7 @@ namespace Lumos
 
 					Vertex vertex;
 					vertex.Position = p;
-					vertex.Normal = Vector3(x, y, 0.0f);
+					vertex.Normal = Vector3(x, y, z);
 					vertex.TexCoords = Vector2(u, onethird + (v * onethird));
 					data.emplace_back(vertex);
 
@@ -699,7 +699,7 @@ namespace Lumos
 
 					Vertex vertex;
 					vertex.Position = p + Vector3(0.0f, 0.0f, -0.5f * midHeight);
-					vertex.Normal = p.Normal();
+					vertex.Normal = (p + Vector3(0.0f, 0.0f, -0.5f * midHeight)).Normal();
 					vertex.TexCoords = Vector2(u2, twothirds + ((v - 1.0f) * onethird));
 					data.emplace_back(vertex);
 
@@ -748,4 +748,186 @@ namespace Lumos
 			return lmnew Mesh(va, ib, boundingBox);
 		}
 	}
+
+	Graphics::Mesh* Graphics::CreateCylinder(float bottomRadius, float topRadius, float height, int radialSegments, int rings)
+	{
+		int i, j, prevrow, thisrow, point = 0;
+		float x, y, z, u, v, radius;
+
+		using namespace Maths;
+
+		std::vector<Vertex> data;
+		std::vector<u32> indices;
+
+		thisrow = 0;
+		prevrow = 0;
+		for (j = 0; j <= (rings + 1); j++) 
+		{
+			v = float(j);
+			v /= (rings + 1);
+
+			radius = topRadius + ((bottomRadius - topRadius) * v);
+
+			y = height * v;
+			y = (height * 0.5f) - y;
+
+			for (i = 0; i <= radialSegments; i++) 
+			{
+				u = float(i);
+				u /= radialSegments;
+
+				x = sin(u * (Maths::PI * 2.0f));
+				z = cos(u * (Maths::PI * 2.0f));
+
+				Vector3 p = Vector3(x * radius, y, z * radius);
+
+				Vertex vertex;
+				vertex.Position = p;
+				vertex.Normal = Vector3(x, y, z);
+				vertex.TexCoords = Vector2(u, v * 0.5f);
+				data.emplace_back(vertex);
+
+				point++;
+
+				if (i > 0 && j > 0)
+				{
+					indices.push_back(thisrow + i - 1);
+					indices.push_back(prevrow + i);
+					indices.push_back(prevrow + i - 1);
+
+					indices.push_back(thisrow + i - 1);
+					indices.push_back(thisrow + i);
+					indices.push_back(prevrow + i);
+				};
+			};
+
+			prevrow = thisrow;
+			thisrow = point;
+		};
+
+		// add top
+		if (topRadius > 0.0f)
+		{
+			y = height * 0.5f;
+
+			Vertex vertex;
+			vertex.Position = Vector3(0.0f, y, 0.0f);
+			vertex.Normal = Vector3(0.0f, 1.0f, 0.0f);
+			vertex.TexCoords = Vector2(0.25f, 0.75f);
+			data.emplace_back(vertex);
+			point++;
+
+			for (i = 0; i <= radialSegments; i++)
+			{
+				float r = float(i);
+				r /= radialSegments;
+
+				x = sin(r * (Maths::PI * 2.0f));
+				z = cos(r * (Maths::PI * 2.0f));
+
+				u = ((x + 1.0f) * 0.25f);
+				v = 0.5f + ((z + 1.0f) * 0.25f);
+
+				Vector3 p = Vector3(x * topRadius, y, z * topRadius);
+				Vertex vertex;
+				vertex.Position = p;
+				vertex.Normal = Vector3(0.0f, 1.0f, 0.0f);
+				vertex.TexCoords = Vector2(u, v);
+				data.emplace_back(vertex);
+				point++;
+
+				if (i > 0) 
+				{
+					indices.push_back(point - 2);
+					indices.push_back(point - 1);
+					indices.push_back(thisrow);
+				};
+			};
+		};
+
+		// add bottom
+		if (bottomRadius > 0.0f) 
+		{
+			y = height * -0.5f;
+
+			thisrow = point;
+
+			Vertex vertex;
+			vertex.Position = Vector3(0.0f, y, 0.0f);
+			vertex.Normal = Vector3(0.0f, -1.0f, 0.0f);
+			vertex.TexCoords = Vector2(0.75f, 0.75f);
+			data.emplace_back(vertex);
+			point++;
+
+			for (i = 0; i <= radialSegments; i++) 
+			{
+				float r = float(i);
+				r /= radialSegments;
+
+				x = sin(r * (Maths::PI * 2.0f));
+				z = cos(r * (Maths::PI * 2.0f));
+
+				u = 0.5f + ((x + 1.0f) * 0.25f);
+				v = 1.0f - ((z + 1.0f) * 0.25f);
+
+				Vector3 p = Vector3(x * bottomRadius, y, z * bottomRadius);
+
+				vertex.Position = p;
+				vertex.Normal = Vector3(0.0f, -1.0f, 0.0f);
+				vertex.TexCoords = Vector2(u, v);
+				data.emplace_back(vertex);
+				point++;
+
+				if (i > 0) 
+				{
+					indices.push_back(point - 1);
+					indices.push_back(point - 2);
+					indices.push_back(thisrow);
+				};
+			};
+		};
+
+		VertexBuffer* buffer = VertexBuffer::Create(BufferUsage::STATIC);
+		buffer->SetData(static_cast<u32>(data.size() * sizeof(Vertex)), data.data());
+
+		Ref<Maths::BoundingSphere> boundingBox = CreateRef<Maths::BoundingSphere>();
+		for (size_t i = 0; i < data.size(); i++)
+		{
+			boundingBox->ExpandToFit(data[i].Position);
+		}
+
+		Graphics::BufferLayout layout;
+		layout.Push<Maths::Vector3>("postion");
+		layout.Push<Maths::Vector4>("colours");
+		layout.Push<Maths::Vector2>("texCoord");
+		layout.Push<Maths::Vector3>("normal");
+		layout.Push<Maths::Vector3>("tangent");
+		buffer->SetLayout(layout);
+
+		Ref<VertexArray> va;
+		va.reset(VertexArray::Create());
+		va->PushBuffer(buffer);
+
+		Ref<IndexBuffer> ib;
+		ib.reset(IndexBuffer::Create(indices.data(), static_cast<u32>(indices.size())));
+
+		return lmnew Mesh(va, ib, boundingBox);
+	}
+
+	Graphics::Mesh* Graphics::CreatePrimative(PrimitiveType type)
+	{ 
+		switch (type)
+		{
+		case Graphics::PrimitiveType::Cube		: return Graphics::CreateCube();
+		case Graphics::PrimitiveType::Plane		: return Graphics::CreatePlane(1.0f, 1.0f, Maths::Vector3(0.0f,1.0f,0.0f));
+		case Graphics::PrimitiveType::Quad		: return Graphics::CreateQuad();
+		case Graphics::PrimitiveType::Sphere	: return Graphics::CreateSphere();
+		case Graphics::PrimitiveType::Pyramid	: return Graphics::CreatePyramid();
+		case Graphics::PrimitiveType::Capsule	: return Graphics::CreateCapsule();
+		case Graphics::PrimitiveType::Cylinder  : return Graphics::CreateCylinder();
+		}
+
+		LUMOS_LOG_ERROR("Primitive not supported");
+		return nullptr;
+	};
 }

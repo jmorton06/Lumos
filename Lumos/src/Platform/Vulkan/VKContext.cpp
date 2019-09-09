@@ -16,7 +16,7 @@ namespace Lumos
 {
 	namespace Graphics
 	{
-		std::vector<const char*> VKContext::GetRequiredExtensions()
+		const std::vector<const char*> VKContext::GetRequiredExtensions()
 		{
 			std::vector<const char*> extensions;
 
@@ -47,7 +47,7 @@ namespace Lumos
 			return extensions;
 		}
 
-		std::vector<const char*> VKContext::GetRequiredLayers()
+		const std::vector<const char*> VKContext::GetRequiredLayers()
 		{
 			std::vector<const char*> layers;
 

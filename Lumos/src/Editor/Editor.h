@@ -20,10 +20,7 @@ namespace Lumos
 	public:
 		Editor(Application* app, u32 width, u32 height);
 		~Editor();
-        
-        Editor(Editor const&) = delete;
-        Editor& operator=(Editor const&) = delete;
-        
+
 		void OnImGui();
 		void DrawConsole();
 		void DrawMenuBar();
@@ -58,5 +55,7 @@ namespace Lumos
         bool m_ShowGraphicsInfo = true;
         bool m_ShowInspector = true;
         bool m_ShowImGuiDemo = true;
+
+		NONCOPYABLE(Editor)
 	};
 }

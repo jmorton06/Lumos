@@ -24,8 +24,8 @@ namespace Lumos
 			void SetDynamicData(uint32_t size,  uint32_t typeSize, const void* data) override;
 
 			vk::Buffer* GetBuffer() { return &m_Buffer; }
-			vk::DescriptorBufferInfo GetBufferInfo() const { return m_DesciptorBufferInfo; };
 			vk::DeviceMemory* GetMemory() { return &m_Memory; }
+			const vk::DescriptorBufferInfo& GetBufferInfo() const { return m_DesciptorBufferInfo; };
 
 			u8* GetBuffer() const override { return nullptr; };
             static void MakeDefault();

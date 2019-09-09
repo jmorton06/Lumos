@@ -165,24 +165,24 @@ namespace Lumos
 
 		m_IndexBuffer = Ref<Graphics::IndexBuffer>(Graphics::IndexBuffer::Create(indices, numIndices));// / sizeof(u32));
         
-        delete[] normals;
-        delete[] tangents;
-        delete[] verts;
-        delete[] vertices;
-        delete[] indices;
-        delete[] texCoords;
+        lmdel[] normals;
+        lmdel[] tangents;
+        lmdel[] verts;
+        lmdel[] vertices;
+        lmdel[] indices;
+        lmdel[] texCoords;
 
 		for (int x = 0; x < lowside + 1; ++x)
 		{
-			delete[] lowMap[x];
+			lmdel[] lowMap[x];
 		}
 
 		for (int x = 0; x < width; ++x)
 		{
-			delete[] lowMapExpand[x];
+			lmdel[] lowMapExpand[x];
 		}
 
-		delete[] lowMap;
-		delete[] lowMapExpand;
+		lmdel[] lowMap;
+		lmdel[] lowMapExpand;
 	}
 }

@@ -93,7 +93,7 @@ namespace Lumos
 			VKTextureCube(const String* files, u32 mips, InputFormat format);
 			~VKTextureCube();
 
-			virtual void* GetHandle() const override { return (void*)m_TextureImageView; }
+			virtual void* GetHandle() const override { return (void*)&m_Descriptor; }
 
 			void Bind(u32 slot = 0) const override;
 			void Unbind(u32 slot = 0) const override;
@@ -161,7 +161,7 @@ namespace Lumos
 			void Unbind(u32 slot = 0) const override;
 			void Resize(u32 width, u32 height) override;
 
-			virtual void* GetHandle() const override { return (void*)m_TextureImageView; }
+			virtual void* GetHandle() const override { return (void*)&m_Descriptor; }
 
 			inline const String& GetName() const override { return m_Name; }
 			inline const String& GetFilepath() const override { return m_Name; }
@@ -209,7 +209,7 @@ namespace Lumos
 			void Unbind(u32 slot = 0) const override;
 			void Resize(u32 width, u32 height, u32 count) override;
 
-			virtual void* GetHandle() const override { return (void*)m_TextureImageView; }
+			virtual void* GetHandle() const override { return (void*)&m_Descriptor; }
 
 			inline const String& GetName() const override { return m_Name; }
 			inline const String& GetFilepath() const override { return m_Name; }

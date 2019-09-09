@@ -10,25 +10,20 @@ namespace Lumos
 	{
 		Mesh::Mesh() : m_VertexArray(nullptr), m_IndexBuffer(nullptr), m_ArrayCleanUp(false), m_TextureCleanUp(false), m_BoundingSphere(nullptr)
 		{
-			Init();
 		}
 
 		Mesh::Mesh(const Mesh& mesh)
 			: m_VertexArray(mesh.m_VertexArray), m_IndexBuffer(mesh.m_IndexBuffer), m_ArrayCleanUp(false), m_TextureCleanUp(false), m_BoundingSphere(mesh.m_BoundingSphere)
 		{
-			Init();
 		}
 
 		Mesh::Mesh(Ref<VertexArray>& vertexArray, Ref<IndexBuffer>& indexBuffer, const Ref<Maths::BoundingSphere>& boundingSphere)
 			: m_VertexArray(vertexArray), m_IndexBuffer(indexBuffer), m_ArrayCleanUp(true), m_TextureCleanUp(false), m_BoundingSphere(boundingSphere)
 		{
-			Init();
 		}
 
 		Mesh::~Mesh()
 		{
-			for (auto& cmdBuffer : m_CMDBuffers)
-				delete cmdBuffer;
 		}
 
 		void Mesh::Draw()
@@ -38,18 +33,6 @@ namespace Lumos
 			Renderer::DrawIndexed(nullptr, DrawType::TRIANGLE, m_IndexBuffer->GetCount());
 			m_IndexBuffer->Unbind();
 			m_VertexArray->Unbind();
-		}
-
-		void Mesh::Init()
-		{
-			for (auto& cmdBuffer : m_CMDBuffers)
-				delete cmdBuffer;
-
-            for (int i = 0; i < 2; i++)
-			{
-				m_CMDBuffers.emplace_back(Graphics::CommandBuffer::Create());
-				m_CMDBuffers[i]->Init(false);
-			}
 		}
 
 		Maths::Vector3 Mesh::GenerateTangent(const Maths::Vector3 &a, const Maths::Vector3 &b, const Maths::Vector3 &c, const Maths::Vector2 &ta, const Maths::Vector2 &tb, const Maths::Vector2 &tc)

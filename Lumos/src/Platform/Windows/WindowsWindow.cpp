@@ -113,8 +113,6 @@ namespace Lumos
 			return false;
 		}
 
-		//RegisterWindowClass(hWnd, this);
-
 		hDc = GetDC(hWnd);
 		PIXELFORMATDESCRIPTOR pfd = GetPixelFormat();
 		i32 pixelFormat = ChoosePixelFormat(hDc, &pfd);
@@ -174,6 +172,9 @@ namespace Lumos
 	void WindowsWindow::OnUpdate()
 	{
 		MSG message;
+
+		ZeroMemory(&message, sizeof(MSG));
+
 		while (PeekMessage(&message, NULL, NULL, NULL, PM_REMOVE) > 0)
 		{
 			if (message.message == WM_QUIT)

@@ -204,8 +204,9 @@ namespace Lumos
 			m_SystemUniforms.clear();
 
 			m_DeferredCommandBuffers->BeginRecording();
+			m_DeferredCommandBuffers->UpdateViewport(m_ScreenBufferWidth, m_ScreenBufferHeight);
 
-			m_RenderPass->BeginRenderpass(m_DeferredCommandBuffers, Maths::Vector4(0.0f), m_FBO, Graphics::SECONDARY, m_ScreenBufferWidth, m_ScreenBufferHeight);
+			m_RenderPass->BeginRenderpass(m_DeferredCommandBuffers, Maths::Vector4(0.0f), m_FBO, Graphics::INLINE, m_ScreenBufferWidth, m_ScreenBufferHeight);
 		}
 
 		void DeferredOffScreenRenderer::BeginScene(Scene* scene)
@@ -265,12 +266,12 @@ namespace Lumos
                 auto command = m_CommandQueue[i];
 				Mesh* mesh = command.mesh;
 
-				Graphics::CommandBuffer* currentCMDBuffer = mesh->GetCommandBuffer(0);
+				//Graphics::CommandBuffer* currentCMDBuffer = mesh->GetCommandBuffer(0);
 
-				currentCMDBuffer->BeginRecordingSecondary(m_RenderPass, m_FBO);
-				currentCMDBuffer->UpdateViewport(m_ScreenBufferWidth, m_ScreenBufferHeight);
+				//currentCMDBuffer->BeginRecordingSecondary(m_RenderPass, m_FBO);
+				//currentCMDBuffer->UpdateViewport(m_ScreenBufferWidth, m_ScreenBufferHeight);
 
-				m_Pipeline->SetActive(currentCMDBuffer);
+				m_Pipeline->SetActive(m_DeferredCommandBuffers);
 
 				uint32_t dynamicOffset = i * static_cast<uint32_t>(m_DynamicAlignment);
 
@@ -278,17 +279,17 @@ namespace Lumos
 				descriptorSets.emplace_back(m_Pipeline->GetDescriptorSet());
 				descriptorSets.emplace_back(command.material ? command.material->GetDescriptorSet() : m_DefaultMaterial->GetDescriptorSet());
 
-				mesh->GetVertexArray()->Bind(currentCMDBuffer);
-				mesh->GetIndexBuffer()->Bind(currentCMDBuffer);
+				mesh->GetVertexArray()->Bind(m_DeferredCommandBuffers);
+				mesh->GetIndexBuffer()->Bind(m_DeferredCommandBuffers);
 
-				Renderer::BindDescriptorSets(m_Pipeline, currentCMDBuffer, dynamicOffset, descriptorSets);
-				Renderer::DrawIndexed(currentCMDBuffer, DrawType::TRIANGLE, mesh->GetIndexBuffer()->GetCount());
+				Renderer::BindDescriptorSets(m_Pipeline, m_DeferredCommandBuffers, dynamicOffset, descriptorSets);
+				Renderer::DrawIndexed(m_DeferredCommandBuffers, DrawType::TRIANGLE, mesh->GetIndexBuffer()->GetCount());
 
 				mesh->GetVertexArray()->Unbind();
 				mesh->GetIndexBuffer()->Unbind();
 
-				currentCMDBuffer->EndRecording();
-				currentCMDBuffer->ExecuteSecondary(m_DeferredCommandBuffers);
+				//currentCMDBuffer->EndRecording();
+				//currentCMDBuffer->ExecuteSecondary(m_DeferredCommandBuffers);
 			}
         }
 

@@ -41,13 +41,13 @@ namespace Lumos
         bool GetSwitchingScene() const { return m_SwitchingScenes; }
 
 	protected:
-		u32								m_SceneIdx;
-		Scene*								m_CurrentScene;
+		u32 m_SceneIdx;
+		Scene* m_CurrentScene;
 		std::vector<Scope<Scene>> m_vpAllScenes;
+
     private:
         bool m_SwitchingScenes = false;
         int m_QueuedSceneIndex = -1;
-        SceneManager(SceneManager const&) = delete;
-        SceneManager& operator=(SceneManager const&) = delete;
+        NONCOPYABLE(SceneManager)
 	};
 }

@@ -26,6 +26,7 @@ namespace Lumos
 		, m_IntegrationType(IntegrationType::RUNGE_KUTTA_4)
 	{
         m_DebugName = "Lumos3DPhysicsEngine";
+		m_PhysicsObjects.reserve(100);
 	}
 
 	void LumosPhysicsEngine::SetDefaults()
