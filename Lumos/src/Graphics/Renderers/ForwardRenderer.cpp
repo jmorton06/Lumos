@@ -259,7 +259,7 @@ namespace Lumos
 
 			m_CommandBuffers[m_CurrentBufferID]->BeginRecording();
 
-			m_RenderPass->BeginRenderpass(m_CommandBuffers[m_CurrentBufferID], m_ClearColour, m_Framebuffers[m_CurrentBufferID], Graphics::SECONDARY, m_ScreenBufferWidth, m_ScreenBufferHeight);
+			m_RenderPass->BeginRenderpass(m_CommandBuffers[m_CurrentBufferID], m_ClearColour, m_Framebuffers[m_CurrentBufferID], Graphics::INLINE, m_ScreenBufferWidth, m_ScreenBufferHeight);
 		}
 
 		void ForwardRenderer::BeginScene(Scene* scene)
@@ -331,11 +331,10 @@ namespace Lumos
 			{
 				Mesh* mesh = command.mesh;
 
-				Graphics::CommandBuffer* currentCMDBuffer = (mesh->GetCommandBuffer(static_cast<int>(m_CurrentBufferID)));
+				Graphics::CommandBuffer* currentCMDBuffer = m_CommandBuffers[m_CurrentBufferID];// (mesh->GetCommandBuffer(static_cast<int>(m_CurrentBufferID)));
 
-				currentCMDBuffer->BeginRecordingSecondary(m_RenderPass, m_Framebuffers[m_CurrentBufferID]);
-
-				currentCMDBuffer->UpdateViewport(m_ScreenBufferWidth, m_ScreenBufferHeight);
+				//currentCMDBuffer->BeginRecordingSecondary(m_RenderPass, m_Framebuffers[m_CurrentBufferID]);
+				//currentCMDBuffer->UpdateViewport(m_ScreenBufferWidth, m_ScreenBufferHeight);
 
 				m_Pipeline->SetActive(currentCMDBuffer);
 
@@ -356,8 +355,8 @@ namespace Lumos
 				mesh->GetVertexArray()->Unbind();
 				mesh->GetIndexBuffer()->Unbind();
 
-				currentCMDBuffer->EndRecording();
-				currentCMDBuffer->ExecuteSecondary(m_CommandBuffers[m_CurrentBufferID]);
+				//currentCMDBuffer->EndRecording();
+				//currentCMDBuffer->ExecuteSecondary(m_CommandBuffers[m_CurrentBufferID]);
 
 				index++;
 			}

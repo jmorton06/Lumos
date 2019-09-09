@@ -199,7 +199,7 @@ namespace Lumos
 
 			m_CommandBuffers[m_CommandBufferIndex]->BeginRecording();
 
-			m_RenderPass->BeginRenderpass(m_CommandBuffers[m_CommandBufferIndex], m_ClearColour, m_Framebuffers[m_CommandBufferIndex], Graphics::SECONDARY, m_ScreenBufferWidth, m_ScreenBufferHeight);
+			m_RenderPass->BeginRenderpass(m_CommandBuffers[m_CommandBufferIndex], m_ClearColour, m_Framebuffers[m_CommandBufferIndex], Graphics::INLINE, m_ScreenBufferWidth, m_ScreenBufferHeight);
 		}
 
 		void DeferredRenderer::BeginScene(Scene* scene)
@@ -296,10 +296,12 @@ namespace Lumos
 
 		void DeferredRenderer::Present()
 		{
-			Graphics::CommandBuffer* currentCMDBuffer = (m_ScreenQuad->GetCommandBuffer(static_cast<int>(m_CommandBufferIndex)));
+			//Graphics::CommandBuffer* currentCMDBuffer = (m_ScreenQuad->GetCommandBuffer(static_cast<int>(m_CommandBufferIndex)));
 
-			currentCMDBuffer->BeginRecordingSecondary(m_RenderPass, m_Framebuffers[m_CommandBufferIndex]);
-			currentCMDBuffer->UpdateViewport(m_ScreenBufferWidth, m_ScreenBufferHeight);
+			Graphics::CommandBuffer* currentCMDBuffer = m_CommandBuffers[m_CommandBufferIndex];
+
+			//currentCMDBuffer->BeginRecordingSecondary(m_RenderPass, m_Framebuffers[m_CommandBufferIndex]);
+			//currentCMDBuffer->UpdateViewport(m_ScreenBufferWidth, m_ScreenBufferHeight);
 
 			m_Pipeline->SetActive(currentCMDBuffer);
 
@@ -316,8 +318,8 @@ namespace Lumos
 			m_ScreenQuad->GetVertexArray()->Unbind();
 			m_ScreenQuad->GetIndexBuffer()->Unbind();
 
-			currentCMDBuffer->EndRecording();
-			currentCMDBuffer->ExecuteSecondary(m_CommandBuffers[m_CommandBufferIndex]);
+			//currentCMDBuffer->EndRecording();
+			//currentCMDBuffer->ExecuteSecondary(m_CommandBuffers[m_CommandBufferIndex]);
 		}
 
 		void DeferredRenderer::CreateDeferredPipeline()

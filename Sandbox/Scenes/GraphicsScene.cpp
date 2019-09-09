@@ -103,19 +103,31 @@ void GraphicsScene::LoadModels()
 	AddEntity(m_Terrain);
 }
 
+int width = 500;
+int height = 500;
+int lowside = 50;
+int lowscale = 10;
+float xRand = 1.0f;
+float yRand = 150.0f;
+float zRand = 1.0f;
+float texRandX = 1.0f / 16.0f;
+float texRandZ = 1.0f / 16.0f;
+
 void GraphicsScene::OnIMGUI()
 {
     ImGui::Begin("Terrain");
-    
-    int width = 500;
-    int height = 500;
-    int lowside = 50;
-    int lowscale = 10;
-    float xRand = 1.0f;
-    float yRand = 150.0f;
-    float zRand = 1.0f;
-    float texRandX = 1.0f/16.0f;
-    float texRandZ = 1.0f/16.0f;
+
+	ImGui::SliderInt("Width", &width, 1, 5000);
+	ImGui::SliderInt("Height", &height, 1, 5000);
+	ImGui::SliderInt("lowside", &lowside, 1, 300);
+	ImGui::SliderInt("lowscale", &lowscale, 1, 300);
+
+	ImGui::SliderFloat("xRand", &xRand, 0.0f, 300.0f);
+	ImGui::SliderFloat("yRand", &yRand, 0.0f, 300.0f);
+	ImGui::SliderFloat("zRand", &zRand, 0.0f, 300.0f);
+
+	ImGui::InputFloat("texRandX", &texRandX);
+	ImGui::InputFloat("texRandZ", &texRandZ);
     
     if(ImGui::Button("Rebuild Terrain"))
     {
@@ -124,7 +136,7 @@ void GraphicsScene::OnIMGUI()
         m_Terrain = EntityManager::Instance()->CreateEntity("heightmap");
         m_Terrain->AddComponent<TransformComponent>(Matrix4::Scale(Maths::Vector3(1.0f)));
         m_Terrain->AddComponent<TextureMatrixComponent>(Matrix4::Scale(Maths::Vector3(1.0f, 1.0f, 1.0f)));
-        Lumos::Ref<Graphics::Mesh> terrain = Lumos::Ref<Graphics::Mesh>(new Terrain());
+        Lumos::Ref<Graphics::Mesh> terrain = Lumos::Ref<Graphics::Mesh>(new Terrain(width,height,lowside,lowscale,xRand,yRand,zRand,texRandX,texRandZ));
         auto material = Lumos::CreateRef<Material>();
         
         material->LoadMaterial("checkerboard", "/CoreTextures/checkerboard.tga");

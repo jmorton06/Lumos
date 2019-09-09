@@ -114,6 +114,7 @@ namespace Lumos
 		u32 m_Frames;
 		u32 m_Updates;
 		float m_SecondTimer = 0.0f;
+		bool m_Minimized = false;
 
 		Scope<Window> m_Window;
         Scope<SceneManager> m_SceneManager;

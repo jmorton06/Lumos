@@ -18,7 +18,7 @@ namespace Lumos
 			void SetData(u32 size, const void* data) override;
 			void SetDataSub(u32 size, const void* data, u32 offset) override;
 
-			BufferLayout GetLayout() const { return m_Layout; }
+			const BufferLayout& GetLayout() const { return m_Layout; }
 
 			void ReleasePointer() override;
 

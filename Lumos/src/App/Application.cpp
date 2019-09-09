@@ -174,6 +174,7 @@ namespace Lumos
 				m_Updates++;
 			}
 
+			if(!m_Minimized)
 			{
 				OnRender();
 				m_Frames++;
@@ -326,11 +327,14 @@ namespace Lumos
 	{
 		auto windowSize = GetWindowSize();
 
-		u32 width = 1;
-		u32 height = 1;
+		int width = e.GetWidth(), height = e.GetHeight();
 
-		if (e.GetWidth() != 0) width = e.GetWidth();
-		if (e.GetHeight() != 0) height = e.GetHeight();
+		if (width == 0 || height == 0)
+		{
+			m_Minimized = true;
+			return false;
+		}
+		m_Minimized = false;
 
 		m_RenderManager->OnResize(width, height);
 		Graphics::Renderer::GetRenderer()->OnResize(width, height);

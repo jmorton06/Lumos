@@ -148,7 +148,7 @@ void Scene3D::LoadModels()
 	ground->AddComponent<Physics3DComponent>(testPhysics);
 	//ground->AddComponent<TestComponent>();
 
-	Ref<Graphics::Mesh> groundModel = CreateRef<Graphics::Mesh>(*AssetsManager::DefaultModels()->Get("Cube"));
+	Ref<Graphics::Mesh> groundModel = AssetsManager::DefaultModels()->Get("Cube");
 	ground->AddComponent<MeshComponent>(groundModel);
 
 	MaterialProperties properties;
@@ -316,7 +316,7 @@ void Scene3D::LoadModels()
 	pendulumHolder->AddComponent<Physics3DComponent>(pendulumHolderPhysics);
 	pendulumHolder->AddComponent<TransformComponent>(Matrix4::Scale(Maths::Vector3(0.5f, 0.5f, 0.5f)));
 
-	Ref<Graphics::Mesh> pendulumHolderModel = CreateRef<Graphics::Mesh>(*AssetsManager::DefaultModels()->Get("Cube"));
+	Ref<Graphics::Mesh> pendulumHolderModel = AssetsManager::DefaultModels()->Get("Cube");
 	pendulumHolder->AddComponent<MeshComponent>(pendulumHolderModel);
 
 	AddEntity(pendulumHolder);
@@ -334,7 +334,7 @@ void Scene3D::LoadModels()
 	pendulum->AddComponent<Physics3DComponent>(pendulumPhysics);
 	pendulum->AddComponent<TransformComponent>(Matrix4::Scale(Maths::Vector3(0.5f, 0.5f, 0.5f)));
 
-	Ref<Graphics::Mesh> pendulumModel = CreateRef<Graphics::Mesh>(*AssetsManager::DefaultModels()->Get("Sphere"));
+	Ref<Graphics::Mesh> pendulumModel = AssetsManager::DefaultModels()->Get("Sphere");
 	pendulum->AddComponent<MeshComponent>(pendulumModel);
 
 	AddEntity(pendulum);
@@ -384,7 +384,7 @@ void Scene3D::LoadModels()
 		auto sphere = EntityManager::Instance()->CreateEntity("Sphere" + StringFormat::ToString(numSpheres++));
 
 		sphere->AddComponent<TransformComponent>(Matrix4::Scale(Maths::Vector3(0.5f, 0.5f, 0.5f)) * Matrix4::Translation(Maths::Vector3(i * 2.0f, 30.0f, 0.0f)));
-		Ref<Graphics::Mesh> sphereModel = CreateRef<Graphics::Mesh>(*AssetsManager::DefaultModels()->Get("Sphere"));
+		Ref<Graphics::Mesh> sphereModel = AssetsManager::DefaultModels()->Get("Sphere");
 		sphere->AddComponent<MeshComponent>(sphereModel);
 		sphere->AddComponent<MaterialComponent>(m);
 
@@ -412,7 +412,7 @@ void Scene3D::LoadModels()
 		auto sphere = EntityManager::Instance()->CreateEntity("Sphere" + StringFormat::ToString(numSpheres++));
 
 		sphere->AddComponent<TransformComponent>(Matrix4::Scale(Maths::Vector3(0.5f, 0.5f, 0.5f)) * Matrix4::Translation(Maths::Vector3(i * 2.0f, 33.0f, 0.0f)));
-		Ref<Graphics::Mesh> sphereModel = CreateRef<Graphics::Mesh>(*AssetsManager::DefaultModels()->Get("Sphere"));
+		Ref<Graphics::Mesh> sphereModel = AssetsManager::DefaultModels()->Get("Sphere");
 		sphere->AddComponent<MeshComponent>(sphereModel);
 		sphere->AddComponent<MaterialComponent>(m);
 

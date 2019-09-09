@@ -33,7 +33,8 @@ namespace Lumos
         virtual void OnGuizmo(u32 mode = 0);
         virtual void Init();
         
-        std::vector<Entity*>& GetChildren() { return m_Children; }
+        const std::vector<Entity*>& GetChildren() const { return m_Children; }
+
         void AddChild(Entity* child);
         void RemoveChild(Entity* child);
         
@@ -53,7 +54,7 @@ namespace Lumos
         void SetActive(bool active) { m_Active = active; };
         void SetActiveRecursive(bool active);
         
-        std::vector<LumosComponent*> GetAllComponents();
+        const std::vector<LumosComponent*> GetAllComponents();
         
         nlohmann::json Serialise() override;
         void Deserialise(nlohmann::json& data) override;
@@ -63,16 +64,15 @@ namespace Lumos
         virtual ~Entity();
     private:
         
-        Entity(Entity const&) = delete;
-        Entity& operator=(Entity const&) = delete;
+        NONCOPYABLE(Entity)
         
-        String                    m_Name;
-        float                    m_BoundingRadius;
-        String                    m_UUID;
-        String                    m_PrefabFileLocation;
+        String                  m_Name;
+        float                   m_BoundingRadius;
+        String                  m_UUID;
+        String                  m_PrefabFileLocation;
         bool                    m_Active;
         u32                     m_FrustumCullFlags;
-        TransformComponent*        m_DefaultTransformComponent = nullptr;
+        TransformComponent*     m_DefaultTransformComponent = nullptr;
         
         Entity* m_Parent;
         EntityManager* m_Manager;

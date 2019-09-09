@@ -25,13 +25,14 @@ namespace Lumos
 
 			vk::DescriptorSetLayout* GetDescriptorLayout(int id) { return &m_DescriptorLayouts[id]; };
 			
-			const String& 		GetPipelineName() 	const { return m_PipelineName; };
+			const String& GetPipelineName() const { return m_PipelineName; };
 			
-			vk::DescriptorPool  GetDescriptorPool() const { return m_DescriptorPool; };
-			vk::PipelineLayout  GetPipelineLayout() const { return m_PipelineLayout; };
-			vk::Pipeline 		GetPipeline() 		const { return m_Pipeline; }
-			DescriptorSet*		GetDescriptorSet()	const override { return m_DescriptorSet; }
-			Shader*				GetShader()			const override { return m_Shader; }
+			const vk::DescriptorPool& GetDescriptorPool() const { return m_DescriptorPool; };
+			const vk::PipelineLayout& GetPipelineLayout() const { return m_PipelineLayout; };
+			const vk::Pipeline& GetPipeline() const { return m_Pipeline; }
+
+			DescriptorSet* GetDescriptorSet() const override { return m_DescriptorSet; }
+			Shader* GetShader()	const override { return m_Shader; }
 
             static void MakeDefault();
         protected:

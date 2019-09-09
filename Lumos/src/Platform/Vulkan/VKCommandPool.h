@@ -14,7 +14,7 @@ namespace Lumos
 
 			void Init();
 
-			vk::CommandPool GetCommandPool() const { return m_CommandPool; }
+			const vk::CommandPool& GetCommandPool() const { return m_CommandPool; }
             
         private:
 			vk::CommandPool m_CommandPool;

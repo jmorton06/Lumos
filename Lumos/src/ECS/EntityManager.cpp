@@ -205,7 +205,7 @@ namespace Lumos
         }
     }
     
-    std::vector<LumosComponent*> Entity::GetAllComponents()
+	const std::vector<LumosComponent*> Entity::GetAllComponents()
     {
         return ComponentManager::Instance()->GetAllComponents(this);
     }

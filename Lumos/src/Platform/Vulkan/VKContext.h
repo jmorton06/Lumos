@@ -66,8 +66,8 @@ namespace Lumos
             void DebugDrawVmaMemory(VmaStatInfo& info, bool indent = true);
 #endif
 
-			std::vector<const char*> GetRequiredExtensions();
-			std::vector<const char*> GetRequiredLayers();
+			const std::vector<const char*> GetRequiredExtensions();
+			const std::vector<const char*> GetRequiredLayers();
 
 		private:
 

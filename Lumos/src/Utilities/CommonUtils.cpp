@@ -46,7 +46,7 @@ namespace Lumos
 		Entity* pSphere = EntityManager::Instance()->CreateEntity(name);
 
 		pSphere->AddComponent<TextureMatrixComponent>(Maths::Matrix4::Scale(Maths::Vector3(10.0f, 10.0f, 10.0f)));
-        Ref<Graphics::Mesh> sphereModel = CreateRef<Graphics::Mesh>(*AssetsManager::DefaultModels()->Get("Sphere"));
+        Ref<Graphics::Mesh> sphereModel = AssetsManager::DefaultModels()->Get("Sphere");
         pSphere->AddComponent<MeshComponent>(sphereModel);
 
 		Ref<Material> matInstance = CreateRef<Material>();
@@ -105,7 +105,7 @@ namespace Lumos
 		Entity* Cube = EntityManager::Instance()->CreateEntity(name);
 
 		Cube->AddComponent<TextureMatrixComponent>(Maths::Matrix4::Scale(Maths::Vector3(10.0f, 10.0f, 10.0f)));
-        Ref<Graphics::Mesh> cubeModel = CreateRef<Graphics::Mesh>(*AssetsManager::DefaultModels()->Get("Cube"));
+        Ref<Graphics::Mesh> cubeModel = AssetsManager::DefaultModels()->Get("Cube");
         Cube->AddComponent<MeshComponent>(cubeModel);
 
 		auto matInstance = CreateRef<Material>();
@@ -165,7 +165,7 @@ namespace Lumos
 		Entity* Cube = EntityManager::Instance()->CreateEntity(name);
 		Entity* meshEntity = EntityManager::Instance()->CreateEntity("Mesh");
 
-        Ref<Graphics::Mesh> pyramidModel = CreateRef<Graphics::Mesh>(*AssetsManager::DefaultModels()->Get("Pyramid"));
+        Ref<Graphics::Mesh> pyramidModel = AssetsManager::DefaultModels()->Get("Pyramid");
 		meshEntity->AddComponent<MeshComponent>(pyramidModel);
 
 		Ref<Material> matInstance = CreateRef<Material>();

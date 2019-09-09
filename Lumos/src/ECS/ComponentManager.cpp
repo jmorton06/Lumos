@@ -31,7 +31,7 @@ namespace Lumos
 			componentArray.second->OnUpdate();
 	}
 
-	std::vector<LumosComponent*> ComponentManager::GetAllComponents(Entity* entity)
+	const std::vector<LumosComponent*> ComponentManager::GetAllComponents(Entity* entity)
 	{
 		std::vector<LumosComponent*> components;
 
