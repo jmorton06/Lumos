@@ -23,7 +23,7 @@ namespace Lumos
     {
     }
     
-    void MaterialComponent::OnIMGUI()
+    void MaterialComponent::OnImGui()
     {
 		ImGui::Separator();
 

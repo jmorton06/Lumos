@@ -332,31 +332,31 @@ namespace Lumos
 				const Maths::Matrix4 invCam = Maths::Matrix4::Inverse(cameraProj * scene->GetCamera()->GetViewMatrix());
 
 				// Project frustum corners into world space
-				for (uint32_t i = 0; i < 8; i++)
+				for (uint32_t j = 0; j < 8; j++)
 				{
-					Maths::Vector4 invCorner = invCam * Maths::Vector4(frustumCorners[i], 1.0f);
-					frustumCorners[i] = (invCorner / invCorner.GetW()).ToVector3();
+					Maths::Vector4 invCorner = invCam * Maths::Vector4(frustumCorners[j], 1.0f);
+					frustumCorners[j] = (invCorner / invCorner.GetW()).ToVector3();
 				}
 
-				for (uint32_t i = 0; i < 4; i++)
+				for (uint32_t j = 0; j < 4; j++)
 				{
-					Maths::Vector3 dist = frustumCorners[i + 4] - frustumCorners[i];
-					frustumCorners[i + 4] = frustumCorners[i] + (dist * splitDist);
-					frustumCorners[i] = frustumCorners[i] + (dist * lastSplitDist);
+					Maths::Vector3 dist = frustumCorners[j + 4] - frustumCorners[j];
+					frustumCorners[j + 4] = frustumCorners[j] + (dist * splitDist);
+					frustumCorners[j] = frustumCorners[j] + (dist * lastSplitDist);
 				}
 
 				// Get frustum center
 				Maths::Vector3 frustumCenter = Maths::Vector3(0.0f);
-				for (uint32_t i = 0; i < 8; i++)
+				for (uint32_t j = 0; j < 8; j++)
 				{
-					frustumCenter += frustumCorners[i];
+					frustumCenter += frustumCorners[j];
 				}
 				frustumCenter /= 8.0f;
 
 				float radius = 0.0f;
-				for (uint32_t i = 0; i < 8; i++)
+				for (uint32_t j = 0; j < 8; j++)
 				{
-					float distance = (frustumCorners[i] - frustumCenter).Length();
+					float distance = (frustumCorners[j] - frustumCenter).Length();
 					radius = Maths::Max(radius, distance);
 				}
 				radius = std::ceil(radius * 16.0f) / 16.0f;

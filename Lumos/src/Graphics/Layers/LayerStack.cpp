@@ -77,12 +77,12 @@ namespace Lumos
 		}
 	}
 
-	void LayerStack::OnIMGUI()
+	void LayerStack::OnImGui()
 	{
 		for (u32 i = 0; i < m_Layers.size(); i++)
 		{
 			Layer* layer = m_Layers[i];
-			layer->OnIMGUI();
+			layer->OnImGui();
 		}
 	}
     

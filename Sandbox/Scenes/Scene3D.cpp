@@ -14,7 +14,7 @@ public:
 
 	void Init() {};
 
-	void OnIMGUI() override 
+	void OnImGui() override 
 	{
 		ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(2, 2));
 		ImGui::Columns(2);
@@ -420,6 +420,6 @@ void Scene3D::LoadModels()
 	}
 }
 
-void Scene3D::OnIMGUI()
+void Scene3D::OnImGui()
 {
 }

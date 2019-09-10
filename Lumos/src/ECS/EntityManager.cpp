@@ -114,7 +114,7 @@ namespace Lumos
         }
     }
     
-    void Entity::OnIMGUI()
+    void Entity::OnImGui()
     {
         static char objName[INPUT_BUF_SIZE];
         strcpy(objName, m_Name.c_str());
@@ -168,7 +168,7 @@ namespace Lumos
                 {
                     ImGui::Checkbox("Active", &component->GetActive());
                 }
-                component->OnIMGUI();
+                component->OnImGui();
                 
                 ImGui::TreePop();
             }

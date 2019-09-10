@@ -17,7 +17,7 @@ namespace Lumos
 		virtual Entity* GetEntity() { return m_Entity; }
 
 		virtual void OnRenderComponent() {};
-        virtual void OnIMGUI() {}
+        virtual void OnImGui() {}
 
 		void SetEntity(Entity* entity) { m_Entity = entity; }
 

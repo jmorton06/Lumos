@@ -299,7 +299,7 @@ namespace Lumos
 
         static auto const readOnlyFlag = ImGuiInputTextFlags_ReadOnly;
 
-		void VKContext::OnImGUI()
+		void VKContext::OnImGui()
 		{
 			ImGui::Text("Vulkan Info");
 

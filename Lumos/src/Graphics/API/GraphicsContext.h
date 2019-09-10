@@ -7,26 +7,26 @@ namespace Lumos
 	namespace Graphics
 	{
 
-        enum class LUMOS_EXPORT RenderAPI
+        enum class RenderAPI : u32
 		{
 		#ifdef LUMOS_RENDER_API_OPENGL
-			OPENGL = 0,
+			OPENGL,
 		#endif
 
 		#ifdef LUMOS_RENDER_API_VULKAN
-			VULKAN = 1,
+			VULKAN,
 		#endif
 
 		#ifdef LUMOS_RENDER_API_DIRECT3D
-			DIRECT3D = 2, //Unsupported
+			DIRECT3D, //Unsupported
 		#endif
 
 		#ifdef LUMOS_RENDER_API_NONE
-			METAL = 3, //Unsupported
+			METAL, //Unsupported
 		#endif
 
 		#ifdef LUMOS_RENDER_API_NONE
-			NONE = 4, //Unsupported
+			NONE, //Unsupported
 		#endif
 		};
 
@@ -49,7 +49,7 @@ namespace Lumos
 			static GraphicsContext* GetContext() { return s_Context; }
             virtual bool FlipImGUITexture() const = 0;
 
-			virtual void OnImGUI() = 0;
+			virtual void OnImGui() = 0;
 
         protected:
             static GraphicsContext* (*CreateFunc)(const WindowProperties&, void*);

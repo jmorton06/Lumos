@@ -31,7 +31,7 @@ namespace Lumos
 		m_Entity->GetTransformComponent()->GetTransform()->UpdateMatrices();
 	}
 
-	void Physics2DComponent::OnIMGUI()
+	void Physics2DComponent::OnImGui()
 	{
 		auto pos = m_PhysicsObject->GetPosition();
 		auto angle = m_PhysicsObject->GetAngle();

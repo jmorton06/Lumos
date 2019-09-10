@@ -255,11 +255,11 @@ namespace Lumos
 		style.PopupBorderSize = 1;
 		style.FrameBorderSize = 0.0f;
 
-		style.WindowRounding = 3;
-		style.ChildRounding = 3;
-		style.FrameRounding = 3;
-		style.ScrollbarRounding = 2;
-		style.GrabRounding = 3;
+		style.WindowRounding = 1;
+		style.ChildRounding = 1;
+		style.FrameRounding = 1;
+		style.ScrollbarRounding = 1;
+		style.GrabRounding = 1;
 
 #ifdef IMGUI_HAS_DOCK
 		style.TabBorderSize = 0.0f;

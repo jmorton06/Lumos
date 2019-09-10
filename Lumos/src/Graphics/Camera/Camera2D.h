@@ -21,6 +21,8 @@ namespace Lumos
         float GetScale() const override;
         
         void UpdateScroll(float offset, float dt) override;
+		void OnImGui() override;
+
     private:
 		float m_Scale;
 	};

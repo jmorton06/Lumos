@@ -14,7 +14,7 @@ namespace Lumos
 
         void Init();
 
-		void OnIMGUI() override;
+		void OnImGui() override;
 		nlohmann::json Serialise() override { return nullptr; };
 		void Deserialise(nlohmann::json& data) override {};
     private:

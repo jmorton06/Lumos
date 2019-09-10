@@ -56,7 +56,7 @@ namespace Lumos
 		}
 	}
 
-	void B2PhysicsEngine::OnIMGUI()
+	void B2PhysicsEngine::OnImGui()
 	{
 		ImGui::Text("2D Physics Engine");
 

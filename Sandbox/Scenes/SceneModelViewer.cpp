@@ -103,6 +103,6 @@ void SceneModelViewer::LoadModels()
 
 }
 
-void SceneModelViewer::OnIMGUI()
+void SceneModelViewer::OnImGui()
 {
 }

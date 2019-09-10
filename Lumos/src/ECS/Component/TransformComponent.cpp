@@ -21,7 +21,7 @@ namespace Lumos
         m_Transform->SetWorldMatrix(matrix);
     }
 
-    void TransformComponent::OnIMGUI()
+    void TransformComponent::OnImGui()
     {
 		auto pos = m_Transform->GetLocalPosition();
 		auto scale = m_Transform->GetLocalScale();

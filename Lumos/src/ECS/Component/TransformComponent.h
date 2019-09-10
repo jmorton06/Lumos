@@ -11,7 +11,7 @@ namespace Lumos
 		TransformComponent(const Maths::Matrix4& matrix = Maths::Matrix4());
 
         void SetWorldMatrix(const Maths::Matrix4& matrix);
-        void OnIMGUI() override;
+        void OnImGui() override;
 		
 		Ref<Maths::Transform>& GetTransform() { return m_Transform; }
 

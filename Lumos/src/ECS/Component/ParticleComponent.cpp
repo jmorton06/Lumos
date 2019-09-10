@@ -25,7 +25,7 @@ namespace Lumos
     {
     }
 
-	void ParticleComponent::OnIMGUI()
+	void ParticleComponent::OnImGui()
 	{
 	}
 }

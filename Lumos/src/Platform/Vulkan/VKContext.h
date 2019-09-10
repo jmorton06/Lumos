@@ -48,7 +48,7 @@ namespace Lumos
 			size_t GetMinUniformBufferOffsetAlignment() const override;
 
             bool FlipImGUITexture() const override { return false; }
-			void OnImGUI() override;
+			void OnImGui() override;
 
 			const std::vector<const char*>& GetLayerNames()			const { return m_InstanceLayerNames; }
 			const std::vector<const char*>& GetExtensionNames()		const { return m_InstanceExtensionNames; }

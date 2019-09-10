@@ -39,9 +39,9 @@ namespace Lumos
 		m_Renderer->RenderScene(scene->GetRenderList(), scene);
 	}
 
-	void Layer3D::OnIMGUI()
+	void Layer3D::OnImGui()
 	{
-		m_Renderer->OnIMGUI();
+		m_Renderer->OnImGui();
 	}
 
     bool Layer3D::OnwindowResizeEvent(WindowResizeEvent & e)

@@ -20,7 +20,7 @@ namespace Lumos
 		m_Name = "Sprite";
 	}
 
-	void SpriteComponent::OnIMGUI()
+	void SpriteComponent::OnImGui()
 	{
 
 	}

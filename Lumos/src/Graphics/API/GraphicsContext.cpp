@@ -32,7 +32,7 @@ namespace Lumos
 
 		void GraphicsContext::Release()
 		{
-			delete s_Context;
+			lmdel s_Context;
 		}
 
 		GraphicsContext::~GraphicsContext()

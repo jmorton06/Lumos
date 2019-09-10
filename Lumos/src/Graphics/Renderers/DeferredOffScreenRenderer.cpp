@@ -464,7 +464,7 @@ namespace Lumos
 			m_ClearColour = Maths::Vector4(0.8f, 0.8f, 0.8f, 1.0f);
 		}
 
-		void DeferredOffScreenRenderer::OnIMGUI()
+		void DeferredOffScreenRenderer::OnImGui()
 		{
 			ImGui::Text("Deferred Offscreen Renderer");
 

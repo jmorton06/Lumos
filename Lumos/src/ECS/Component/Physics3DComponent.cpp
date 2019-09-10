@@ -39,7 +39,7 @@ namespace Lumos
         //m_PhysicsObject->SetOrientation(Maths::Quaternion(Maths::Matrix4::GetEulerAngles(entityTransform.GetRotation()), 1.0f));
 	}
     
-    void Physics3DComponent::OnIMGUI()
+    void Physics3DComponent::OnImGui()
     {
         ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(2,2));
         ImGui::Columns(2);

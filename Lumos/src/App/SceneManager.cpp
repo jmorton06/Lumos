@@ -38,10 +38,6 @@ namespace Lumos
 
         LUMOS_LOG_INFO("[SceneManager] - Enqueued scene : {0}", scene->GetSceneName().c_str());
         m_vpAllScenes.emplace_back(Scope<Scene>(scene));
-
-		auto screenSize = Application::Instance()->GetWindowSize();
-		scene->SetScreenWidth(static_cast<u32>(screenSize.GetX()));
-		scene->SetScreenHeight(static_cast<u32>(screenSize.GetY()));
 	}
 
 	void SceneManager::SwitchScene()

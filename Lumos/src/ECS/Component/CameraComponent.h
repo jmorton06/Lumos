@@ -12,7 +12,7 @@ namespace Lumos
         CameraComponent();
 		explicit CameraComponent(Camera* camera);
 
-        void OnIMGUI() override;
+        void OnImGui() override;
 		void SetAsMainCamera();
 		
 		Camera* GetCamera() const { return m_Camera; }
