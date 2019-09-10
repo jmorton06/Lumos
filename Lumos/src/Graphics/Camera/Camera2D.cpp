@@ -5,6 +5,8 @@
 #include "Maths/MathsUtilities.h"
 #include "App/Window.h"
 
+#include <imgui/imgui.h>
+
 namespace Lumos
 {
     Camera2D::Camera2D(u32 width, u32 height, float scale) : Camera(45.0f, 0.0f, 1.0f, 1.0f)
@@ -91,4 +93,60 @@ namespace Lumos
         m_Scale = Maths::Max(m_Scale, 0.0f);
         m_ZoomVelocity = m_ZoomVelocity * pow(m_ZoomDampeningFactor, dt);
     }
+
+	void Camera2D::OnImGui()
+	{
+		if (ImGui::TreeNode("Camera2D"))
+		{
+			ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(2, 2));
+			ImGui::Columns(2);
+			ImGui::Separator();
+
+			ImGui::AlignTextToFramePadding();
+			ImGui::Text("Position");
+			ImGui::NextColumn();
+			ImGui::PushItemWidth(-1);
+			ImGui::DragFloat3("##Position", &m_Position.x);
+			ImGui::PopItemWidth();
+			ImGui::NextColumn();
+
+			ImGui::AlignTextToFramePadding();
+			ImGui::Text("Aspect");
+			ImGui::NextColumn();
+			ImGui::PushItemWidth(-1);
+			ImGui::DragFloat("##Aspect", &m_AspectRatio);
+			ImGui::PopItemWidth();
+			ImGui::NextColumn();
+
+			ImGui::AlignTextToFramePadding();
+			ImGui::Text("Near");
+			ImGui::NextColumn();
+			ImGui::PushItemWidth(-1);
+			ImGui::DragFloat("##Near", &m_Near);
+			ImGui::PopItemWidth();
+			ImGui::NextColumn();
+
+			ImGui::AlignTextToFramePadding();
+			ImGui::Text("Far");
+			ImGui::NextColumn();
+			ImGui::PushItemWidth(-1);
+			ImGui::DragFloat("##Far", &m_Far);
+			ImGui::PopItemWidth();
+			ImGui::NextColumn();
+
+			ImGui::AlignTextToFramePadding();
+			ImGui::Text("Scale");
+			ImGui::NextColumn();
+			ImGui::PushItemWidth(-1);
+			ImGui::DragFloat("##Scale", &m_Scale);
+			ImGui::PopItemWidth();
+			ImGui::NextColumn();
+
+			ImGui::Columns(1);
+			ImGui::Separator();
+			ImGui::PopStyleVar();
+
+			ImGui::TreePop();
+		}
+	}
 }

@@ -18,7 +18,7 @@ namespace Lumos
 
 		void OnUpdateTransform(const Maths::Matrix4& entityTransform) override;
         
-        void OnIMGUI() override;
+        void OnImGui() override;
         
 		Ref<PhysicsObject3D>& GetPhysicsObject() { return m_PhysicsObject; }
 

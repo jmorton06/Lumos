@@ -13,7 +13,7 @@ namespace Lumos
 
 		void Init();
 
-		void OnIMGUI() override;
+		void OnImGui() override;
         
         SoundNode* GetSoundNode() const { return m_SoundNode.get(); }
 

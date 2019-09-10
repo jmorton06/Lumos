@@ -445,9 +445,9 @@ namespace Lumos
             }
         }
 
-		void DeferredRenderer::OnIMGUI()
+		void DeferredRenderer::OnImGui()
 		{
-			m_OffScreenRenderer->OnIMGUI();
+			m_OffScreenRenderer->OnImGui();
 
 			ImGui::Text("Deferred Renderer");
 

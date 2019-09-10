@@ -260,14 +260,14 @@ namespace Lumos
 
 				if (ImGui::TreeNode("Systems"))
 				{
-					systems->OnImGUI();
+					systems->OnImGui();
 					ImGui::TreePop();
 				}
 
 				auto layerStack = Application::Instance()->GetLayerStack();
 				if (ImGui::TreeNode("Layers"))
 				{
-					layerStack->OnIMGUI();
+					layerStack->OnImGui();
 					ImGui::TreePop();
 				}
 
@@ -346,7 +346,7 @@ namespace Lumos
                 ImGui::TreePop();
             }
 			
-			m_Application->m_SceneManager->GetCurrentScene()->OnIMGUI();
+			m_Application->m_SceneManager->GetCurrentScene()->OnImGui();
 		}
 		ImGui::End();
 	}
@@ -357,7 +357,7 @@ namespace Lumos
         
 		if (m_Selected)
         {
-            m_Selected->OnIMGUI();
+            m_Selected->OnImGui();
         }
 
 		ImGui::End();
@@ -371,7 +371,7 @@ namespace Lumos
 		
 		ImGuizmo::SetDrawlist();
 		m_SceneViewSize = Maths::Vector2(ImGui::GetWindowSize().x, ImGui::GetWindowSize().y);
-		Maths::Vector2 m_SceneViewPosition = Maths::Vector2(ImGui::GetWindowPos().x, ImGui::GetWindowPos().y);
+		m_SceneViewPosition = Maths::Vector2(ImGui::GetWindowPos().x, ImGui::GetWindowPos().y);
 
 		m_Application->m_SceneManager->GetCurrentScene()->GetCamera()->SetAspectRatio(static_cast<float>(ImGui::GetWindowSize().x) / static_cast<float>(ImGui::GetWindowSize().y));
 
@@ -528,7 +528,7 @@ namespace Lumos
     {
         ImGui::Begin("GraphicsInfo", &m_ShowGraphicsInfo, 0);
         {
-            Graphics::GraphicsContext::GetContext()->OnImGUI();
+            Graphics::GraphicsContext::GetContext()->OnImGui();
         }
         ImGui::End();
     }

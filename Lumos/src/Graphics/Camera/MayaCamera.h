@@ -19,6 +19,9 @@ namespace Lumos
 		void MouseRotate(const Maths::Vector2& delta, const float dt);
 		void MouseZoom(float delta, const float dt);
 
+		void OnImGui() override;
+
+	private:
 		float m_PanSpeed, m_RotationSpeed, m_ZoomSpeed;
 		bool m_Free;
 	};

@@ -113,7 +113,7 @@ float zRand = 1.0f;
 float texRandX = 1.0f / 16.0f;
 float texRandZ = 1.0f / 16.0f;
 
-void GraphicsScene::OnIMGUI()
+void GraphicsScene::OnImGui()
 {
     ImGui::Begin("Terrain");
 

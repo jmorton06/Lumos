@@ -6,7 +6,7 @@ namespace Lumos
 {
 	namespace Graphics
 	{
-		enum class RenderAPI : int;
+		enum class RenderAPI : u32;
 	}
 
 	class LUMOS_EXPORT WindowsWindow : public Window

@@ -12,7 +12,7 @@ namespace Lumos
         explicit MaterialComponent(Ref<Material>& material);
         virtual ~MaterialComponent();
 
-        void OnIMGUI() override;
+        void OnImGui() override;
         
         const Ref<Material>& GetMaterial() const { return m_Material; }
 

@@ -26,7 +26,7 @@ namespace Lumos
 	namespace Graphics
 	{
 		class RenderManager;
-		enum class RenderAPI;
+		enum class RenderAPI : u32;
 	}
 
 	namespace Maths

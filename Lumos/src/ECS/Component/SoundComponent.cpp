@@ -28,7 +28,7 @@ namespace Lumos
 		Application::Instance()->GetSystem<AudioManager>()->AddSoundNode(m_SoundNode.get());
 	}
 
-	void SoundComponent::OnIMGUI()
+	void SoundComponent::OnImGui()
 	{
 		auto pos = m_SoundNode->GetPosition();
 		auto radius = m_SoundNode->GetRadius();

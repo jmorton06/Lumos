@@ -18,7 +18,7 @@ namespace Lumos
 		void Init();
 		void Update();
 
-		void OnIMGUI() override;
+		void OnImGui() override;
 
 		Ref<Graphics::Light> GetLight() const { return m_Light; }
 

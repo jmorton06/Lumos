@@ -71,22 +71,22 @@ namespace Lumos
             {
                 for (auto& imageInfo : *imageInfos)
                 {
-                    vk::DescriptorImageInfo* imageInfos = lmnew vk::DescriptorImageInfo[imageInfo.count];
-                    allocatedArrays.emplace_back(imageInfos);
+                    vk::DescriptorImageInfo* imageInfosPtr = lmnew vk::DescriptorImageInfo[imageInfo.count];
+                    allocatedArrays.emplace_back(imageInfosPtr);
 
 					for (int i = 0; i < imageInfo.count; i++)
 					{
 						vk::DescriptorImageInfo des = *static_cast<vk::DescriptorImageInfo*>(imageInfo.texture[i]->GetHandle());
-						imageInfos[i].imageLayout = des.imageLayout;
-						imageInfos[i].imageView = des.imageView;
-						imageInfos[i].sampler = des.sampler;
+						imageInfosPtr[i].imageLayout = des.imageLayout;
+						imageInfosPtr[i].imageView = des.imageView;
+						imageInfosPtr[i].sampler = des.sampler;
 					}
 
 					vk::WriteDescriptorSet writeDescriptorSet{};
 					writeDescriptorSet.dstSet = m_DescriptorSet;
 					writeDescriptorSet.descriptorType = vk::DescriptorType::eCombinedImageSampler;
 					writeDescriptorSet.dstBinding = imageInfo.binding;
-					writeDescriptorSet.pImageInfo = imageInfos;
+					writeDescriptorSet.pImageInfo = imageInfosPtr;
 					writeDescriptorSet.descriptorCount = imageInfo.count;
 
                     descriptorWrites.push_back(writeDescriptorSet);
@@ -95,7 +95,7 @@ namespace Lumos
       
             if(bufferInfos != nullptr)
             {
-                vk::DescriptorBufferInfo* buffersInfo = lmnew vk::DescriptorBufferInfo[bufferInfos->size()];
+                buffersInfo = lmnew vk::DescriptorBufferInfo[bufferInfos->size()];
 
                 int index = 0;
                 

@@ -21,12 +21,12 @@ namespace Lumos
         m_BoundingShape = nullptr;
 	}
 
-    void CameraComponent::OnIMGUI()
+    void CameraComponent::OnImGui()
     {
 		if (ImGui::Button("Set Active"))
 			SetAsMainCamera();
 
-		m_Camera->OnImGUI();
+		m_Camera->OnImGui();
     }
 
 	void CameraComponent::SetAsMainCamera()

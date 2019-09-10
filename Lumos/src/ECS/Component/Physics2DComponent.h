@@ -12,7 +12,7 @@ namespace Lumos
 		explicit Physics2DComponent(Ref<PhysicsObject2D>& physics);
 
 		void Update();
-		void OnIMGUI() override;
+		void OnImGui() override;
         
         Ref<PhysicsObject2D> GetPhysicsObject() { return m_PhysicsObject; }
 		nlohmann::json Serialise() override { return nullptr; };

@@ -49,7 +49,7 @@ namespace Lumos
 		//	   Note: This is time relative to seconds not milliseconds! (e.g. msec / 1000)
 		virtual void OnUpdate(TimeStep* timeStep);
 		virtual void OnTick() { };
-		virtual void OnIMGUI() { };
+		virtual void OnImGui() { };
 		virtual void OnEvent(Event& e);
 		// Delete all contained Objects
 		//    - This is the default action upon firing OnCleanupScene()

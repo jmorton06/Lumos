@@ -10,7 +10,7 @@ namespace Lumos
 	public:
 		explicit TextureMatrixComponent(const Maths::Matrix4& matrix);
 
-		void OnIMGUI() override;
+		void OnImGui() override;
         
         const Maths::Matrix4& GetMatrix() const { return m_TextureMatrix; }
 

@@ -29,7 +29,7 @@ namespace Lumos
         void RemoveComponent();
         
         virtual void OnUpdateObject(float dt);
-        virtual void OnIMGUI();
+        virtual void OnImGui();
         virtual void OnGuizmo(u32 mode = 0);
         virtual void Init();
         

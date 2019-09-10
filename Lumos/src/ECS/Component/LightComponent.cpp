@@ -60,7 +60,7 @@ namespace Lumos
 		}
 	}
 
-	void LightComponent::OnIMGUI()
+	void LightComponent::OnImGui()
 	{
 		ImGui::SameLine();
 		ImGui::Checkbox("##Active", &m_Active);

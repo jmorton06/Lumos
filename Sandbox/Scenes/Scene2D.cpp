@@ -51,7 +51,7 @@ void Scene2D::OnCleanupScene()
 	Scene::OnCleanupScene();
 }
 
-void Scene2D::OnIMGUI()
+void Scene2D::OnImGui()
 {
 }
 

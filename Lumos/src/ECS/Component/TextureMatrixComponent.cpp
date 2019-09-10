@@ -10,7 +10,7 @@ namespace Lumos
 		m_Name = "TextureMatrix";
 	}
 
-	void TextureMatrixComponent::OnIMGUI()
+	void TextureMatrixComponent::OnImGui()
 	{
 	}
 

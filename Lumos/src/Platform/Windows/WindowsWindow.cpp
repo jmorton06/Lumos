@@ -270,7 +270,6 @@ namespace Lumos
 	void MouseScrollCallback(Window* window, int inSw, WPARAM wParam, LPARAM lParam)
 	{
 		WindowsWindow::WindowData data = static_cast<WindowsWindow*>(window)->m_Data;
-		HWND hWnd = static_cast<WindowsWindow*>(window)->GetHWND();
 
 		MouseScrolledEvent event(0.0f, static_cast<float>(GET_WHEEL_DELTA_WPARAM(wParam)) / static_cast<float>(WHEEL_DELTA));
 		data.EventCallback(event);

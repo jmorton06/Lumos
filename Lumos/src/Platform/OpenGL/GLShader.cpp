@@ -9,7 +9,7 @@ namespace Lumos
 	namespace Graphics
 	{
 		bool IGNORE_LINES = false;
-		static ShaderType type = ShaderType::UNKNOWN;
+		static ShaderType s_Type = ShaderType::UNKNOWN;
 
 		bool GLShader::TryCompile(const String& source, String& error)
 		{
@@ -100,7 +100,7 @@ namespace Lumos
 
 		void GLShader::PreProcess(const String& source, std::map<ShaderType, String>* sources)
 		{
-			type = ShaderType::UNKNOWN;
+			s_Type = ShaderType::UNKNOWN;
 			std::vector<String> lines = GetLines(source);
 			ReadShaderFile(lines, sources);
 		}
@@ -123,43 +123,43 @@ namespace Lumos
 				{
 					if (StringContains(str, "vertex"))
 					{
-						type = ShaderType::VERTEX;
+						s_Type = ShaderType::VERTEX;
 						std::map<ShaderType, String>::iterator it = shaders->begin();
-						shaders->insert(it, std::pair<ShaderType, String>(type, ""));
+						shaders->insert(it, std::pair<ShaderType, String>(s_Type, ""));
 					}
 					else if (StringContains(str, "geometry"))
 					{
-						type = ShaderType::GEOMETRY;
+						s_Type = ShaderType::GEOMETRY;
 						std::map<ShaderType, String>::iterator it = shaders->begin();
-						shaders->insert(it, std::pair<ShaderType, String>(type, ""));
+						shaders->insert(it, std::pair<ShaderType, String>(s_Type, ""));
 					}
 					else if (StringContains(str, "fragment"))
 					{
-						type = ShaderType::FRAGMENT;
+						s_Type = ShaderType::FRAGMENT;
 						std::map<ShaderType, String>::iterator it = shaders->begin();
-						shaders->insert(it, std::pair<ShaderType, String>(type, ""));
+						shaders->insert(it, std::pair<ShaderType, String>(s_Type, ""));
 					}
 					else if (StringContains(str, "tess_cont"))
 					{
-						type = ShaderType::TESSELLATION_CONTROL;
+						s_Type = ShaderType::TESSELLATION_CONTROL;
 						std::map<ShaderType, String>::iterator it = shaders->begin();
-						shaders->insert(it, std::pair<ShaderType, String>(type, ""));
+						shaders->insert(it, std::pair<ShaderType, String>(s_Type, ""));
 					}
 					else if (StringContains(str, "tess_eval"))
 					{
-						type = ShaderType::TESSELLATION_EVALUATION;
+						s_Type = ShaderType::TESSELLATION_EVALUATION;
 						std::map<ShaderType, String>::iterator it = shaders->begin();
-						shaders->insert(it, std::pair<ShaderType, String>(type, ""));
+						shaders->insert(it, std::pair<ShaderType, String>(s_Type, ""));
 					}
 					else if (StringContains(str, "compute"))
 					{
-						type = ShaderType::COMPUTE;
+						s_Type = ShaderType::COMPUTE;
 						std::map<ShaderType, String>::iterator it = shaders->begin();
-						shaders->insert(it, std::pair<ShaderType, String>(type, ""));
+						shaders->insert(it, std::pair<ShaderType, String>(s_Type, ""));
 					}
 					else if (StringContains(str, "end"))
 					{
-						type = ShaderType::UNKNOWN;
+						s_Type = ShaderType::UNKNOWN;
 					}
 				}
 				else if (StartsWith(str, "#include"))
@@ -194,10 +194,10 @@ namespace Lumos
 						}
 					}
 				}
-				else if (type != ShaderType::UNKNOWN)
+				else if (s_Type != ShaderType::UNKNOWN)
 				{
-					shaders->at(type).append(lines[i]);
-					shaders->at(type).append("\n");
+					shaders->at(s_Type).append(lines[i]);
+					shaders->at(s_Type).append("\n");
 				}
 			}
 		}
@@ -276,9 +276,8 @@ namespace Lumos
 			case ShaderType::COMPUTE:
 				return GL_COMPUTE_SHADER;
 #endif
-			default: LUMOS_LOG_ERROR("Unsupported Shader Type"); return -1;
+			default: LUMOS_LOG_ERROR("Unsupported Shader Type"); return GL_VERTEX_SHADER;
 			}
-			return -1;
 		}
 
 		String TypeToString(ShaderType type)
@@ -330,7 +329,7 @@ namespace Lumos
 				GLCall(glDeleteShader(shader));
 
 				LUMOS_LOG_ERROR(info.message[info.shader]);
-				return -1;
+				return 0;
 			}
 			return shader;
 		}

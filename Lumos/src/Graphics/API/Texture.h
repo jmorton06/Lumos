@@ -7,9 +7,9 @@ namespace Lumos
 {
 	namespace Graphics
 	{
-		enum class LUMOS_EXPORT TextureWrap
+		enum class TextureWrap
 		{
-			NONE = 0,
+			NONE,
 			REPEAT,
 			CLAMP,
 			MIRRORED_REPEAT,
@@ -17,16 +17,16 @@ namespace Lumos
 			CLAMP_TO_BORDER
 		};
 
-		enum class LUMOS_EXPORT TextureFilter
+		enum class TextureFilter
 		{
-			NONE = 0,
+			NONE,
 			LINEAR,
 			NEAREST
 		};
 
-		enum class LUMOS_EXPORT TextureFormat
+		enum class TextureFormat
 		{
-			NONE = 0,
+			NONE,
 			R8,
 			RG8,
 			RGB8,
@@ -42,16 +42,16 @@ namespace Lumos
 			DEPTH_STENCIL
 		};
 
-		enum class LUMOS_EXPORT TextureType
+		enum class TextureType
 		{
-			COLOUR = 0,
+			COLOUR,
 			DEPTH,
 			DEPTHARRAY,
 			CUBE,
 			OTHER
 		};
 
-		struct LUMOS_EXPORT TextureParameters
+		struct TextureParameters
 		{
 			TextureFormat format;
 			TextureFilter filter;
@@ -90,7 +90,7 @@ namespace Lumos
 			}
 		};
 
-		struct LUMOS_EXPORT TextureLoadOptions
+		struct TextureLoadOptions
 		{
 			bool flipX;
 			bool flipY;

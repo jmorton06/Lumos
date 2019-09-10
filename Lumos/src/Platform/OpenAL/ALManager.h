@@ -17,7 +17,7 @@ namespace Lumos
             void OnInit() override;
             void OnUpdate(TimeStep* dt, Scene* scene) override;
 			void UpdateListener();
-			void OnIMGUI() override;
+			void OnImGui() override;
 
         private:
             ALCcontext* m_Context;

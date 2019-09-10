@@ -74,10 +74,10 @@ namespace Lumos
 				system.second->OnUpdate(dt, scene);
 		}
 
-		void OnImGUI()
+		void OnImGui()
 		{
 			for (auto& system : m_Systems)
-				system.second->OnIMGUI();
+				system.second->OnImGui();
 		}
 
     private:

@@ -11,7 +11,7 @@ namespace Lumos
         SpriteComponent();
 		explicit SpriteComponent(Ref<Graphics::Sprite>& sprite);
 
-		void OnIMGUI() override;
+		void OnImGui() override;
         
         Graphics::Sprite* GetSprite() const { return m_Sprite.get(); }
 

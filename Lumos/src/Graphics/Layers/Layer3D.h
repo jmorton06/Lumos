@@ -22,7 +22,7 @@ namespace Lumos
 		virtual void OnUpdate(TimeStep* dt,Scene* scene) override;
 		virtual void OnEvent(Event& event) override;
 		virtual void OnRender(Scene* scene) override;
-		virtual void OnIMGUI() override;
+		virtual void OnImGui() override;
 
     protected:
         Scene* m_Scene;

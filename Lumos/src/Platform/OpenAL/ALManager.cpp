@@ -80,7 +80,7 @@ namespace Lumos
 			}
 		}
 
-		void ALManager::OnIMGUI()
+		void ALManager::OnImGui()
 		{
 			ImGui::Text("OpenAL Audio");
 

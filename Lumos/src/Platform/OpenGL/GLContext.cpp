@@ -217,7 +217,7 @@ namespace Lumos
 		{
 		}
 
-		void GLContext::OnImGUI()
+		void GLContext::OnImGui()
 		{
 
 		}

@@ -26,7 +26,7 @@ namespace Lumos
 		m_BoundingShape = CreateScope<Maths::BoundingSphere>(Maths::Vector3(0.0f), 1.0f);
 	}
 
-	void MeshComponent::OnIMGUI()
+	void MeshComponent::OnImGui()
 	{
 		
 	}

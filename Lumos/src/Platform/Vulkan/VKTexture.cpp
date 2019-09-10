@@ -910,17 +910,19 @@ namespace Lumos
 
 		void VKTextureDepthArray::CreateImageView(vk::Image image, vk::Format format, vk::ImageAspectFlags aspectFlags)
 		{
-			vk::ImageViewCreateInfo viewInfo = {};
-			viewInfo.image = image;
-			viewInfo.viewType = vk::ImageViewType::e2DArray;
-			viewInfo.format = format;
-			viewInfo.subresourceRange.aspectMask = aspectFlags;
-			viewInfo.subresourceRange.baseMipLevel = 0;
-			viewInfo.subresourceRange.levelCount = 1;
-			viewInfo.subresourceRange.baseArrayLayer = 0;
-			viewInfo.subresourceRange.layerCount = m_Count;
+			{
+				vk::ImageViewCreateInfo viewInfo = {};
+				viewInfo.image = image;
+				viewInfo.viewType = vk::ImageViewType::e2DArray;
+				viewInfo.format = format;
+				viewInfo.subresourceRange.aspectMask = aspectFlags;
+				viewInfo.subresourceRange.baseMipLevel = 0;
+				viewInfo.subresourceRange.levelCount = 1;
+				viewInfo.subresourceRange.baseArrayLayer = 0;
+				viewInfo.subresourceRange.layerCount = m_Count;
 
-			m_TextureImageView = VKDevice::Instance()->GetDevice().createImageView(viewInfo);
+				m_TextureImageView = VKDevice::Instance()->GetDevice().createImageView(viewInfo);
+			}
 
 			for (uint32_t i = 0; i < m_Count; i++)
 			{

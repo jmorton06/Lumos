@@ -16,7 +16,7 @@ namespace Lumos
 		m_Name = "AI";
 	}
 
-	void AIComponent::OnIMGUI()
+	void AIComponent::OnImGui()
 	{
 	}
 
