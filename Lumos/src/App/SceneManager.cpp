@@ -1,4 +1,4 @@
-#include "LM.h"
+#include "lmpch.h"
 #include "SceneManager.h"
 
 #include "Physics/B2PhysicsEngine/B2PhysicsEngine.h"
@@ -26,18 +26,6 @@ namespace Lumos
 		}
 
 		m_vpAllScenes.clear();
-	}
-
-	void SceneManager::EnqueueScene(Scene* scene)
-	{
-		if (scene == nullptr)
-		{
-			LUMOS_LOG_ERROR("Attempting to enqueue nullptr scene", "");
-			return;
-		}
-
-        LUMOS_LOG_INFO("[SceneManager] - Enqueued scene : {0}", scene->GetSceneName().c_str());
-        m_vpAllScenes.emplace_back(Scope<Scene>(scene));
 	}
 
 	void SceneManager::SwitchScene()

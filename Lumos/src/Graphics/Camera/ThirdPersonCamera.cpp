@@ -1,8 +1,8 @@
-#include "LM.h"
+#include "lmpch.h"
 #include "ThirdPersonCamera.h"
 #include "App/Application.h"
-#include "App/Input.h"
-#include "App/Window.h"
+#include "Core/OS/Input.h"
+#include "Core/OS/Window.h"
 
 #include <imgui/imgui.h>
 
@@ -31,10 +31,10 @@ namespace Lumos
 
 	void ThirdPersonCamera::HandleMouse(float dt, float xpos, float ypos)
 	{
-		//if (Input::GetInput().m_UpdateCamera)
+		//if (Input::GetInput()->m_UpdateCamera)
 		{
-			//if (!Input::GetInput().firstUpdate)
-            if (Input::GetInput().GetMouseHeld(InputCode::MouseKey::ButtonRight))
+			//if (!Input::GetInput()->firstUpdate)
+            if (Input::GetInput()->GetMouseHeld(InputCode::MouseKey::ButtonRight))
 			{
 				m_RotateVelocity = m_RotateVelocity + Maths::Vector2((xpos - m_PreviousCurserPos.GetX()), (ypos - m_PreviousCurserPos.GetY())) *  m_MouseSensitivity;
 				m_Pitch -= m_RotateVelocity.GetY();
@@ -54,47 +54,47 @@ namespace Lumos
 			}
 			/*else
 			{
-			Input::GetInput().firstUpdate = false;
+			Input::GetInput()->firstUpdate = false;
 			}*/
 
 			m_PreviousCurserPos = Maths::Vector2(xpos, ypos);
 		}
 
 		m_RotateVelocity = m_RotateVelocity * pow(m_RotateDampeningFactor, dt);
-		UpdateScroll(Input::GetInput().GetScrollOffset(), dt);
-		Input::GetInput().SetScrollOffset(0.0f);
+		UpdateScroll(Input::GetInput()->GetScrollOffset(), dt);
+		Input::GetInput()->SetScrollOffset(0.0f);
 	}
 
 	void ThirdPersonCamera::HandleKeyboard(float dt)
 	{
 		m_CameraSpeed = 1000.0f * dt;
 
-        if (Input::GetInput().GetKeyHeld(InputCode::Key::W))
+        if (Input::GetInput()->GetKeyHeld(InputCode::Key::W))
 		{
 			m_Velocity += GetForwardDirection() * m_CameraSpeed;
 		}
 
-        if (Input::GetInput().GetKeyHeld(InputCode::Key::S))
+        if (Input::GetInput()->GetKeyHeld(InputCode::Key::S))
 		{
 			m_Velocity -= GetForwardDirection() * m_CameraSpeed;
 		}
 
-        if (Input::GetInput().GetKeyHeld(InputCode::Key::A))
+        if (Input::GetInput()->GetKeyHeld(InputCode::Key::A))
 		{
 			m_Velocity -= GetRightDirection() * m_CameraSpeed;
 		}
 
-        if (Input::GetInput().GetKeyHeld(InputCode::Key::D))
+        if (Input::GetInput()->GetKeyHeld(InputCode::Key::D))
 		{
 			m_Velocity += GetRightDirection() * m_CameraSpeed;
 		}
 
-        if (Input::GetInput().GetKeyHeld(InputCode::Key::Space))
+        if (Input::GetInput()->GetKeyHeld(InputCode::Key::Space))
 		{
 			m_Velocity -= GetUpDirection() * m_CameraSpeed;
 		}
 
-        if (Input::GetInput().GetKeyHeld(InputCode::Key::LeftShift))
+        if (Input::GetInput()->GetKeyHeld(InputCode::Key::LeftShift))
 		{
 			m_Velocity += GetUpDirection() * m_CameraSpeed;
 		}

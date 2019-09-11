@@ -1,5 +1,5 @@
 #pragma once
-#include "LM.h"
+#include "lmpch.h"
 #include "Maths/Maths.h"
 
 #include "Events/Event.h"
@@ -18,14 +18,10 @@ namespace Lumos
 	class LUMOS_EXPORT Input
 	{
 	public:
-		static Input& GetInput() { return *s_Input; }
-		static Input* s_Input;
+		static Input* GetInput() { return s_Input; }
 
 		static void Create();
-		static void Release() { delete s_Input; }
-
-		Input();
-		virtual ~Input() {}
+		static void Release() { lmdel s_Input; }
 
 		bool GetKeyPressed(u32 key)   const { return m_KeyPressed[key]; }
 		bool GetKeyHeld(u32 key)      const { return m_KeyHeld[key]; }
@@ -40,8 +36,8 @@ namespace Lumos
 		void SetMouseOnScreen(bool onScreen){ m_MouseOnScreen = onScreen; }
 		bool GetMouseOnScreen() const { return m_MouseOnScreen; }
 
-		void StoreMousePosition(int xpos, int ypos){ m_MousePosition = Maths::Vector2(float(xpos), float(ypos)); }
-		Maths::Vector2 GetMousePosition() const { return m_MousePosition; }
+		void StoreMousePosition(int xpos, int ypos) { m_MousePosition = Maths::Vector2(float(xpos), float(ypos)); }
+		const Maths::Vector2& GetMousePosition() const { return m_MousePosition; }
 
 		void SetWindowFocus(bool focus)		{ m_WindowFocus = focus; }
 		bool GetWindowFocus() const { return m_WindowFocus; }
@@ -54,6 +50,10 @@ namespace Lumos
 		void OnEvent(Event& e);
 
 	protected:
+		Input();
+		virtual ~Input() = default;
+
+		static Input* s_Input;
 
 		bool OnKeyPressed(KeyPressedEvent& e);
 		bool OnKeyReleased(KeyReleasedEvent& e);

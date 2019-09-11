@@ -1,8 +1,8 @@
-#include "LM.h"
+#include "lmpch.h"
 #include "LumosPhysicsEngine.h"
 #include "CollisionDetection.h"
 #include "PhysicsObject3D.h"
-#include "App/Window.h"
+#include "Core/OS/Window.h"
 
 #include "Integration.h"
 #include "Constraint.h"

@@ -1,5 +1,5 @@
 #pragma once
-#include "LM.h"
+#include "lmpch.h"
 #include "Graphics/API/IndexBuffer.h"
 #include "GLDebug.h"
 

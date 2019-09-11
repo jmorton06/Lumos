@@ -1,4 +1,4 @@
-#include "LM.h"
+#include "lmpch.h"
 
 #if defined(LUMOS_PLATFORM_MACOS)
 //#define VK_USE_PLATFORM_MACOS_MVK
@@ -15,7 +15,7 @@
 
 #include "GLFWKeyCodes.h"
 
-#include "App/Input.h"
+#include "Core/OS/Input.h"
 #include "App/Application.h"
 
 #include "Events/ApplicationEvent.h"
@@ -151,7 +151,7 @@ namespace Lumos
 
 		glfwSetWindowFocusCallback(m_Handle, [](GLFWwindow* window, int focused)
 		{
-			Input::GetInput().SetWindowFocus(focused);
+			Input::GetInput()->SetWindowFocus(focused);
 		});
 
 		glfwSetKeyCallback(m_Handle, [](GLFWwindow* window, int key, int scancode, int action, int mods)
@@ -322,5 +322,15 @@ namespace Lumos
 	void GLFWWindow::SetMousePosition(const Maths::Vector2& pos)
 	{
 		glfwSetCursorPos(m_Handle, pos.GetX(), pos.GetY());
+	}
+
+	void GLFWWindow::MakeDefault()
+	{
+		CreateFunc = CreateFuncGLFW;
+	}
+
+	Window* GLFWWindow::CreateFuncGLFW(const WindowProperties& properties)
+	{
+		return lmnew GLFWWindow(properties);
 	}
 }

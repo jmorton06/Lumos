@@ -1,5 +1,5 @@
 #pragma once
-#include "LM.h"
+#include "lmpch.h"
 #include "Plane.h"
 #include "Matrix4.h"
 #include "BoundingBox.h"

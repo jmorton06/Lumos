@@ -1,8 +1,8 @@
-#include "LM.h"
+#include "lmpch.h"
 #include "FPSCamera.h"
 #include "App/Application.h"
-#include "App/Input.h"
-#include "App/Window.h"
+#include "Core/OS/Input.h"
+#include "Core/OS/Window.h"
 
 #include <imgui/imgui.h>
 
@@ -27,9 +27,9 @@ namespace Lumos
 
 	void FPSCamera::HandleMouse(float dt, float xpos, float ypos)
 	{
-		if (Input::GetInput().GetWindowFocus())
+		if (Input::GetInput()->GetWindowFocus())
 		{
-			//if (!Input::GetInput().firstUpdate)
+			//if (!Input::GetInput()->firstUpdate)
 			{
 				//LUMOS_ASSERT(false,"");
 				Maths::Vector2 windowCentre = Maths::Vector2();// Window::Instance()->GetScreenSize().GetX() / 2.0f, Window::Instance()->GetScreenSize().GetY() / 2.0f);
@@ -51,8 +51,8 @@ namespace Lumos
 			m_PreviousCurserPos = Maths::Vector2(xpos, ypos);
 		}
 
-		UpdateScroll(Input::GetInput().GetScrollOffset(), dt);
-		Input::GetInput().SetScrollOffset(0.0f);
+		UpdateScroll(Input::GetInput()->GetScrollOffset(), dt);
+		Input::GetInput()->SetScrollOffset(0.0f);
 	}
 
 	void FPSCamera::HandleKeyboard(float dt)
@@ -65,32 +65,32 @@ namespace Lumos
 
 		m_CameraSpeed = 1000.0f * dt;
 
-		if (Input::GetInput().GetKeyHeld(LUMOS_KEY_W))
+		if (Input::GetInput()->GetKeyHeld(LUMOS_KEY_W))
 		{
 			m_Velocity += forward * m_CameraSpeed;
 		}
 
-		if (Input::GetInput().GetKeyHeld(LUMOS_KEY_S))
+		if (Input::GetInput()->GetKeyHeld(LUMOS_KEY_S))
 		{
 			m_Velocity -= forward * m_CameraSpeed;
 		}
 
-		if (Input::GetInput().GetKeyHeld(LUMOS_KEY_A))
+		if (Input::GetInput()->GetKeyHeld(LUMOS_KEY_A))
 		{
 			m_Velocity -= right * m_CameraSpeed;
 		}
 
-		if (Input::GetInput().GetKeyHeld(LUMOS_KEY_D))
+		if (Input::GetInput()->GetKeyHeld(LUMOS_KEY_D))
 		{
 			m_Velocity += right * m_CameraSpeed;
 		}
 
-		if (Input::GetInput().GetKeyHeld(LUMOS_KEY_SPACE))
+		if (Input::GetInput()->GetKeyHeld(LUMOS_KEY_SPACE))
 		{
 			m_Velocity -= up * m_CameraSpeed;
 		}
 
-		if (Input::GetInput().GetKeyHeld(LUMOS_KEY_LEFT_SHIFT))
+		if (Input::GetInput()->GetKeyHeld(LUMOS_KEY_LEFT_SHIFT))
 		{
 			m_Velocity += up * m_CameraSpeed;
 		}

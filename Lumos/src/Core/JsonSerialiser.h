@@ -1,5 +1,5 @@
 #pragma once
-#include "LM.h"
+#include "lmpch.h"
 #include <jsonhpp/json.hpp>
 
 namespace Lumos
@@ -26,8 +26,6 @@ namespace Lumos
 		std::ofstream stream;
 		stream.open(path, std::fstream::out);
 		stream << obj;
-
-
 	}
 
 	template <typename T>

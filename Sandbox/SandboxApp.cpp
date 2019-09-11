@@ -27,10 +27,10 @@ public:
 		VFS::Get()->Mount("Textures", root + "/Sandbox/res/textures");
 		VFS::Get()->Mount("Sounds", root + "/Sandbox/res/sounds");
 
-		GetSceneManager()->EnqueueScene(new SceneModelViewer("SceneModelViewer"));
-		GetSceneManager()->EnqueueScene(new Scene2D("2D Test"));
-		GetSceneManager()->EnqueueScene(new Scene3D("Physics Scene"));
-		GetSceneManager()->EnqueueScene(new GraphicsScene("Terrain Test"));
+		GetSceneManager()->EnqueueScene<SceneModelViewer>("SceneModelViewer");
+		GetSceneManager()->EnqueueScene<Scene2D>("2D Test");
+		GetSceneManager()->EnqueueScene<Scene3D>("Physics Scene");
+		GetSceneManager()->EnqueueScene<GraphicsScene>("Terrain Test");
 		GetSceneManager()->SwitchScene(2);
         GetSceneManager()->ApplySceneSwitch();
 	}

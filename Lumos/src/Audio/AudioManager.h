@@ -1,5 +1,5 @@
 #pragma once
-#include "LM.h"
+#include "lmpch.h"
 #include "ECS/ISystem.h"
 
 namespace Lumos

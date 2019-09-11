@@ -1,4 +1,4 @@
-#include "LM.h"
+#include "lmpch.h"
 
 #ifdef LUMOS_RENDER_API_OPENGL
 #define IMGUI_IMPL_OPENGL_LOADER_GLAD

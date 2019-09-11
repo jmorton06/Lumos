@@ -1,4 +1,4 @@
-#include "LM.h"
+#include "lmpch.h"
 #include "UnixThread.h"
 
 #if defined(__FreeBSD__) || defined(__OpenBSD__)

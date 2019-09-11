@@ -1,9 +1,9 @@
-#include "LM.h"
+#include "lmpch.h"
 #include "Camera2D.h"
 #include "App/Application.h"
-#include "App/Input.h"
+#include "Core/OS/Input.h"
 #include "Maths/MathsUtilities.h"
-#include "App/Window.h"
+#include "Core/OS/Window.h"
 
 #include <imgui/imgui.h>
 
@@ -34,22 +34,22 @@ namespace Lumos
 
 		m_CameraSpeed = 100.0f * dt;// *m_Scale;
 
-		if (Input::GetInput().GetKeyHeld(LUMOS_KEY_A))
+		if (Input::GetInput()->GetKeyHeld(LUMOS_KEY_A))
 		{
 			m_Velocity -= right * m_CameraSpeed;
 		}
 
-		if (Input::GetInput().GetKeyHeld(LUMOS_KEY_D))
+		if (Input::GetInput()->GetKeyHeld(LUMOS_KEY_D))
 		{
 			m_Velocity += right * m_CameraSpeed;
 		}
 
-		if (Input::GetInput().GetKeyHeld(LUMOS_KEY_W))
+		if (Input::GetInput()->GetKeyHeld(LUMOS_KEY_W))
 		{
 			m_Velocity += up * m_CameraSpeed;
 		}
 
-		if (Input::GetInput().GetKeyHeld(LUMOS_KEY_S))
+		if (Input::GetInput()->GetKeyHeld(LUMOS_KEY_S))
 		{
 			m_Velocity -= up * m_CameraSpeed;
 		}
@@ -57,8 +57,8 @@ namespace Lumos
 		m_Position += m_Velocity * dt;
 		m_Velocity = m_Velocity * pow(m_DampeningFactor, dt);
         
-        UpdateScroll(Input::GetInput().GetScrollOffset(), dt);
-		Input::GetInput().SetScrollOffset(0.0f);
+        UpdateScroll(Input::GetInput()->GetScrollOffset(), dt);
+		Input::GetInput()->SetScrollOffset(0.0f);
 	}
 
 	void Camera2D::UpdateProjectionMatrix(float width, float height)

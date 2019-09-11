@@ -1,6 +1,6 @@
 #pragma once
 
-#include "LM.h"
+#include "lmpch.h"
 
 #include "ShaderUniform.h"
 #include "ShaderResource.h"

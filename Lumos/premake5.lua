@@ -60,8 +60,8 @@ project "Lumos"
 		staticruntime "Off"
 		systemversion "latest"
 
-		pchheader "LM.h"
-		pchsource "src/LM.cpp"
+		pchheader "lmpch.h"
+		pchsource "src/lmpch.cpp"
 
 		defines
 		{
@@ -182,8 +182,8 @@ project "Lumos"
 		}
 
 		filter { "action:xcode4" }
-			pchheader "../Lumos/src/LM.h"
-			pchsource "../Lumos/src/LM.cpp"
+			pchheader "../Lumos/src/lmpch.h"
+			pchsource "../Lumos/src/lmpch.cpp"
 
 			filter 'files:external/**.cpp'
 				flags  { 'NoPCH' }
@@ -312,8 +312,8 @@ project "Lumos"
 
 		links { "X11", "pthread"}
 
-		pchheader "../Lumos/src/LM.h"
-		pchsource "../Lumos/src/LM.cpp"
+		pchheader "../Lumos/src/lmpch.h"
+		pchsource "../Lumos/src/lmpch.cpp"
 
 		filter 'files:external/**.cpp'
 			flags  { 'NoPCH' }

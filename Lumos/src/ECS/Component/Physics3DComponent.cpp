@@ -1,4 +1,4 @@
-#include "LM.h"
+#include "lmpch.h"
 #include "Physics3DComponent.h"
 #include "App/Application.h"
 #include "Physics/LumosPhysicsEngine/LumosPhysicsEngine.h"

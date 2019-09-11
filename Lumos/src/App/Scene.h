@@ -1,5 +1,5 @@
 #pragma once
-#include "LM.h"
+#include "lmpch.h"
 #include "Maths/Frustum.h"
 #include "Graphics/RenderList.h"
 #include "Utilities/AssetManager.h"

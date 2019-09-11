@@ -1,4 +1,4 @@
-#include "LM.h"
+#include "lmpch.h"
 #include "CommonUtils.h"
 #include "Physics/LumosPhysicsEngine/SphereCollisionShape.h"
 #include "Physics/LumosPhysicsEngine/PyramidCollisionShape.h"

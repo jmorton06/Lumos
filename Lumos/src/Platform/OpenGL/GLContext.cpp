@@ -1,4 +1,4 @@
-#include "LM.h"
+#include "lmpch.h"
 #include "GLContext.h"
 
 #include "GLVertexArray.h"

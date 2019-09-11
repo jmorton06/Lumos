@@ -1,6 +1,6 @@
 #pragma once
 
-#include "LM.h"
+#include "lmpch.h"
 
 namespace Lumos
 {
@@ -11,8 +11,6 @@ namespace Lumos
 	public:
         SceneManager();
         virtual ~SceneManager();
-		// Add Scene to list of possible scenes to switch to
-		void EnqueueScene(Scene* scene);
 
 		//Jump to the next scene in the list or first scene if at the end
 		void SwitchScene();
@@ -35,15 +33,23 @@ namespace Lumos
 		inline u32   SceneCount() const { return static_cast<u32>(m_vpAllScenes.size()); }
 
 		std::vector<String> GetSceneNames();
-        const std::vector<Scope<Scene>>& GetScenes() const { return m_vpAllScenes; }
+        const std::vector<Ref<Scene>>& GetScenes() const { return m_vpAllScenes; }
         
         void SetSwitchScene(bool switching) { m_SwitchingScenes = switching; }
         bool GetSwitchingScene() const { return m_SwitchingScenes; }
 
+		template<class T>
+		void EnqueueScene(const String& name)
+		{
+			//T* scene = lmnew T(name);
+			m_vpAllScenes.emplace_back(CreateRef<T>(name));
+			LUMOS_LOG_INFO("[SceneManager] - Enqueued scene : {0}", name.c_str());
+		}
+
 	protected:
 		u32 m_SceneIdx;
 		Scene* m_CurrentScene;
-		std::vector<Scope<Scene>> m_vpAllScenes;
+		std::vector<Ref<Scene>> m_vpAllScenes;
 
     private:
         bool m_SwitchingScenes = false;

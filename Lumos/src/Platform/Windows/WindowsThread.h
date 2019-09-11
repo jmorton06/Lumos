@@ -1,6 +1,6 @@
 #pragma once
 
-#include "LM.h"
+#include "lmpch.h"
 #include "Core/OS/Thread.h"
 
 #include <windows.h>
@@ -18,7 +18,7 @@ namespace Lumos
         static void MakeDefault();
 
     protected:
-        WindowsThread(ThreadCreateCallback p_callback, void *, const Settings &);
+        WindowsThread();
 
         HANDLE m_Handle;
         ThreadCreateCallback m_Callback;

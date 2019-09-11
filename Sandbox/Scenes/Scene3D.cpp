@@ -39,7 +39,7 @@ public:
 	void Deserialise(nlohmann::json& data) override {};
 };
 
-Scene3D::Scene3D(const std::string& SceneName)
+Scene3D::Scene3D(const String& SceneName)
 		: Scene(SceneName)
 {
 	//ComponentManager::Instance()->RegisterComponent<TestComponent>();

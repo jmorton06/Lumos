@@ -3,7 +3,7 @@
 using namespace Lumos;
 using namespace Maths;
 
-GraphicsScene::GraphicsScene(const std::string& SceneName) : Scene(SceneName) {}
+GraphicsScene::GraphicsScene(const std::string& SceneName) : Scene(SceneName), m_Terrain(nullptr) {}
 
 GraphicsScene::~GraphicsScene() = default;
 

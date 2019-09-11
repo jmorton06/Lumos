@@ -1,4 +1,4 @@
-#include "LM.h"																									
+#include "lmpch.h"																									
 #define NOMINMAX
 #undef NOGDI
 #include <Windows.h>
@@ -13,7 +13,7 @@
 #include "WindowsKeyCodes.h"
 #include "Graphics/API/GraphicsContext.h"
 #include "App/Application.h"
-#include "App/Input.h"
+#include "Core/OS/Input.h"
 #include "Maths/MathsUtilities.h"
 #include "Events/ApplicationEvent.h"
 
@@ -166,7 +166,7 @@ namespace Lumos
 
 	void FocusCallback(Window* window, bool focused)
 	{
-		Input::GetInput().SetWindowFocus(focused);
+		Input::GetInput()->SetWindowFocus(focused);
 	}
 
 	void WindowsWindow::OnUpdate()
@@ -382,5 +382,15 @@ namespace Lumos
 			result = DefWindowProc(hWnd, message, wParam, lParam);
 		}
 		return result;
+	}
+
+	void WindowsWindow::MakeDefault()
+	{
+		CreateFunc = CreateFuncWindows;
+	}
+
+	Window* WindowsWindow::CreateFuncWindows(const WindowProperties& properties)
+	{
+		return lmnew WindowsWindow(properties);
 	}
 }

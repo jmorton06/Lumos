@@ -1,6 +1,6 @@
 #pragma once
 
-#include "LM.h"
+#include "lmpch.h"
 #include "Utilities/Timer.h"
 #include "Maths/Vector2.h"
 #include "Utilities/TSingleton.h"
@@ -27,10 +27,10 @@ namespace Lumos
 	class LUMOS_EXPORT Window
 	{
 	public:
-		using EventCallbackFn = std::function<void(Event&)>; 
+		using EventCallbackFn = std::function<void(Event&)>;
 
 		static Window* Create(const WindowProperties& properties);
-		virtual ~Window() {};
+		virtual ~Window() = default;
 		bool Initialise(const WindowProperties& properties);
 
 		bool HasInitialised() const { return m_Init; };
@@ -57,6 +57,9 @@ namespace Lumos
 		virtual u32 GetHeight() const = 0;
 
 	protected:
+		static Window *(*CreateFunc)(const WindowProperties&);
+
+		Window() = default;
 
 		bool				m_Init;
 		Maths::Vector2		m_Position;

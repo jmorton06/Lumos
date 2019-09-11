@@ -1,4 +1,4 @@
-#include "LM.h"
+#include "lmpch.h"
 #include "GLQuery.h"
 #include "GL.h"
 #include "GLDebug.h"
