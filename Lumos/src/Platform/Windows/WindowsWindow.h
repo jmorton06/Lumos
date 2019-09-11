@@ -1,6 +1,6 @@
 #pragma once
-#include "LM.h"
-#include "App/Window.h"
+#include "lmpch.h"
+#include "Core/OS/Window.h"
 
 namespace Lumos
 {
@@ -52,7 +52,11 @@ namespace Lumos
 		HINSTANCE GetHInstance() const { return hInstance; }
 		HWND GetHWND() const { return hWnd; }
 
+		static void MakeDefault();
+
 	protected:
+
+ 		static Window* CreateFuncWindows(const WindowProperties& properties);
 
 		HINSTANCE hInstance{};
 		HDC hDc{};

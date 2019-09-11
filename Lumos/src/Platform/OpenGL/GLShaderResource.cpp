@@ -1,4 +1,4 @@
-#include "LM.h"
+#include "lmpch.h"
 #include "GLShaderResource.h"
 
 namespace Lumos

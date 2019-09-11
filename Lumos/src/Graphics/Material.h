@@ -1,6 +1,6 @@
 #pragma once
 
-#include "LM.h"
+#include "lmpch.h"
 #include "Maths/Maths.h"
 #include "Graphics/API/Shader.h"
 #include "Graphics/API/Texture.h"
@@ -61,8 +61,7 @@ namespace Lumos
 		Material(Ref<Graphics::Shader>& shader, const MaterialProperties& properties = MaterialProperties(), const PBRMataterialTextures& textures = PBRMataterialTextures());
 		Material();
         
-        Material(Material const&) = delete;
-        Material& operator=(Material const&) = delete;
+		NONCOPYABLE(Material);
 
 		~Material();
 

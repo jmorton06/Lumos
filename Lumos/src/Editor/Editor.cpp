@@ -1,9 +1,9 @@
-#include "LM.h"
+#include "lmpch.h"
 #include "Editor.h"
 #include "Console.h"
 #include "ImGUIConsoleSink.h"
 #include "App/Application.h"
-#include "App/Input.h"
+#include "Core/OS/Input.h"
 #include "App/Engine.h"
 #include "App/Scene.h"
 #include "App/SceneManager.h"
@@ -487,7 +487,7 @@ namespace Lumos
 		if (bCheck)
 			return;
 
-		Maths::Vector2 relativeMousePos = Input::GetInput().GetMousePosition() - m_SceneViewPosition;
+		Maths::Vector2 relativeMousePos = Input::GetInput()->GetMousePosition() - m_SceneViewPosition;
 
 		float pointX = +2.0f * relativeMousePos.x / m_SceneViewSize.x - 1.0f;
 		float pointY = -2.0f * relativeMousePos.y / m_SceneViewSize.y + 1.0f;

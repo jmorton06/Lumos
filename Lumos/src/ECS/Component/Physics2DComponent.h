@@ -1,5 +1,5 @@
 #pragma once
-#include "LM.h"
+#include "lmpch.h"
 #include "LumosComponent.h"
 #include "Physics/B2PhysicsEngine/PhysicsObject2D.h"
 

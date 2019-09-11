@@ -1,7 +1,7 @@
 #pragma once
 
-#include "LM.h"
-#include "App/Window.h"
+#include "lmpch.h"
+#include "Core/OS/Window.h"
 
 struct GLFWwindow;
 
@@ -40,7 +40,11 @@ namespace Lumos
 
 		void SetIcon(const String& file);
 
-	protected:
+	     static void MakeDefault();
+
+    protected:
+
+		static Window* CreateFuncGLFW(const WindowProperties& properties);
 
 		GLFWwindow* m_Handle;
 

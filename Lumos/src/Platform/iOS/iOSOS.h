@@ -1,4 +1,4 @@
-#include "LM.h"
+#include "lmpch.h"
 #include "Core/OS/OS.h"
 
 namespace Lumos
@@ -9,6 +9,7 @@ namespace Lumos
         iOSOS();
         ~iOSOS();
 
+        void Init() override;
         void Run() override {}
         
         void* GetIOSView() const { return m_IOSView; }

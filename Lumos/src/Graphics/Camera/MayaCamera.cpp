@@ -1,8 +1,8 @@
-#include "LM.h"
+#include "lmpch.h"
 #include "MayaCamera.h"
 #include "App/Application.h"
-#include "App/Input.h"
-#include "App/Window.h"
+#include "Core/OS/Input.h"
+#include "Core/OS/Window.h"
 
 #include <imgui/imgui.h>
 
@@ -53,11 +53,11 @@ namespace Lumos
 	{
 		const Maths::Vector2 delta = (Maths::Vector2(xpos, ypos) - m_PreviousCurserPos);
 
-		if (Input::GetInput().GetMouseHeld(LUMOS_MOUSE_MIDDLE))
+		if (Input::GetInput()->GetMouseHeld(LUMOS_MOUSE_MIDDLE))
 			MousePan(delta);
-		else if (Input::GetInput().GetMouseHeld(LUMOS_MOUSE_LEFT))
+		else if (Input::GetInput()->GetMouseHeld(LUMOS_MOUSE_LEFT))
 			MouseRotate(delta, dt);
-		else if (Input::GetInput().GetMouseHeld(LUMOS_MOUSE_RIGHT))
+		else if (Input::GetInput()->GetMouseHeld(LUMOS_MOUSE_RIGHT))
 			MouseZoom(delta.GetY(), dt);
 
 		float yawSign = GetUpDirection().GetY() < 0 ? -1.0f : 1.0f;

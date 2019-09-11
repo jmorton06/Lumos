@@ -1,5 +1,5 @@
 #pragma once
-#include "LM.h"
+#include "lmpch.h"
 
     //Wrapper around typeid(T).name(), to enforce a consistent return style across all (supported) compilers.
 

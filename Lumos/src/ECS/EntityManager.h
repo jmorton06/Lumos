@@ -1,6 +1,6 @@
 #pragma once
 
-#include "LM.h"
+#include "lmpch.h"
 #include "ECS.h"
 #include "ECSDefines.h"
 #include "Utilities/TSingleton.h"

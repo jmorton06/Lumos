@@ -1,5 +1,5 @@
 #pragma once
-#include "LM.h"
+#include "lmpch.h"
 #include "Core/Error.h"
 
 namespace Lumos
@@ -9,14 +9,14 @@ namespace Lumos
     class Thread
     {
     public:
-    	enum class Priority 
+    	enum class Priority
         {
 		    LOW,
 		    NORMAL,
 		    HIGH
 	    };
 
-        struct Settings 
+        struct Settings
         {
             Priority priority;
             Settings() { priority = Priority::NORMAL; }
@@ -36,7 +36,7 @@ namespace Lumos
 
     protected:
         static Thread *(*CreateFunc)(ThreadCreateCallback, void*, const Settings &);
-        
+
         Thread() = default;
         static ID (*GetThreadIDFunc)();
 	    static void (*WaitToFinishFunc)(Thread *);

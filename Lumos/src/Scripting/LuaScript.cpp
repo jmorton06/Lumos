@@ -1,11 +1,11 @@
-#include "LM.h"
+#include "lmpch.h"
 #include "LuaScript.h"
-#include "App/Window.h"
+#include "Core/OS/Window.h"
 #include <sol/sol.hpp>
 
 namespace Lumos
 {
-	LuaScript::LuaScript()
+	LuaScript::LuaScript() : m_State(nullptr)
 	{
 	}
     

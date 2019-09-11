@@ -1,6 +1,6 @@
 #pragma once
-#include "LM.h"
-#include "App/Window.h"
+#include "lmpch.h"
+#include "Core/OS/Window.h"
 
 namespace Lumos
 {

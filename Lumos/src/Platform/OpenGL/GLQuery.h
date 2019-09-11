@@ -1,5 +1,5 @@
 #pragma once
-#include "LM.h"
+#include "lmpch.h"
 #include "Graphics/API/Query.h"
 
 namespace Lumos

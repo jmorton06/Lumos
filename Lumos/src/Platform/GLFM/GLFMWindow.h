@@ -1,7 +1,7 @@
 #pragma once
 
-#include "LM.h"
-#include "App/Window.h"
+#include "lmpch.h"
+#include "Core/OS/Window.h"
 
 namespace Lumos
 {
@@ -34,7 +34,11 @@ namespace Lumos
         
         String GetTitle() const override { return "Mobile"; }
 
-	protected:
+     static void MakeDefault();
+
+    protected:
+
+		static Window* CreateFuncGLFM(const WindowProperties& properties);
 
 		uint m_Handle;
 	};

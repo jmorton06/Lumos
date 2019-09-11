@@ -1,6 +1,6 @@
-#include "LM.h"
+#include "lmpch.h"
 #include "Scene.h"
-#include "Input.h"
+#include "Core/OS/Input.h"
 #include "Application.h"
 
 #include "Graphics/ParticleManager.h"
@@ -27,7 +27,8 @@ namespace Lumos
 		m_EnvironmentMap(nullptr), 
 		m_SceneBoundingRadius(0),
 		m_ScreenWidth(0),
-		m_ScreenHeight(0)
+		m_ScreenHeight(0),
+		m_RootEntity(nullptr)
 	{
 	}
 
@@ -127,7 +128,7 @@ namespace Lumos
 
 	void Scene::OnUpdate(TimeStep* timeStep)
 	{
-		const Maths::Vector2 mousePos = Input::GetInput().GetMousePosition();
+		const Maths::Vector2 mousePos = Input::GetInput()->GetMousePosition();
 
 		if(m_pCamera)
 		{
