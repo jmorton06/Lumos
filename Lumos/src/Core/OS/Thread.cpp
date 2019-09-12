@@ -44,6 +44,6 @@ namespace Lumos
         if (SetNameFunc)
             return SetNameFunc(p_name);
 
-        return ERR_UNAVAILABLE;
+        return Error::UNAVAILABLE;
     };
 }
