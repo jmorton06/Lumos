@@ -3,7 +3,7 @@
 width               =   1280
 height              =   800
 fullscreen          =   false
-borderless		    =   false
+borderless		    =   true
 vsync			    =   true
 title               =   "Sandbox"
 renderAPI           =   1

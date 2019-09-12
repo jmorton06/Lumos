@@ -11,14 +11,14 @@ namespace Lumos
     ParticleComponent::ParticleComponent()
     {
         m_Name = "Particle";
-        m_BoundingShape = Scope<Maths::BoundingBox>();
+        m_BoundingShape = Ref<Maths::BoundingBox>();
     }
     
     ParticleComponent::ParticleComponent(Ref<ParticleEmitter>& emitter)
             : m_ParticleEmitter(emitter), m_PositionOffset(Maths::Vector3(0.0f,0.0f,0.0f))
     {
 		m_Name = "Particle";
-		m_BoundingShape = Scope<Maths::BoundingBox>(emitter->CalculateBoundingBox());
+		m_BoundingShape = Ref<Maths::BoundingBox>(emitter->CalculateBoundingBox());
     }
 
     void ParticleComponent::Init()

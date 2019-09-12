@@ -24,7 +24,7 @@ namespace Lumos
 		virtual void UpdateBoundingShape() { };
 		virtual void OnUpdateTransform(const Maths::Matrix4& entityTransform) {};
 
-		Maths::BoundingShape* GetBoundingShape() const { return m_BoundingShape.get(); }
+		const Ref<Maths::BoundingShape>& GetBoundingShape() const { return m_BoundingShape; }
 
 		const String& GetName() const { return m_Name; }
 		const bool GetCanDisable() const { return m_CanDisable; }
@@ -38,7 +38,7 @@ namespace Lumos
 		String m_Name;
 		bool m_Active = true;
 		bool m_CanDisable = true;
-		Scope<Maths::BoundingShape> m_BoundingShape;
+		Ref<Maths::BoundingShape> m_BoundingShape;
 	};
 
 }

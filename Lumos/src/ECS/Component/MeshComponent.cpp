@@ -9,21 +9,21 @@ namespace Lumos
 {
     MeshComponent::MeshComponent()
     {
+		m_BoundingShape = nullptr;
         m_Name = "Mesh";
-        m_BoundingShape = CreateScope<Maths::BoundingSphere>(Maths::Vector3(0.0f),1.0f);
     }
     
 	MeshComponent::MeshComponent(const Ref<Graphics::Mesh>& model)
 		: m_Mesh(model)
 	{
 		m_Name = "Mesh";
-		m_BoundingShape = CreateScope<Maths::BoundingSphere>(Maths::Vector3(0.0f),1.0f);
+		m_BoundingShape = m_Mesh->GetBoundingSphere();
 	}
 
 	MeshComponent::MeshComponent(Graphics::Mesh* mesh)
 	{
         m_Mesh = Lumos::Ref<Graphics::Mesh>(mesh);
-		m_BoundingShape = CreateScope<Maths::BoundingSphere>(Maths::Vector3(0.0f), 1.0f);
+		m_BoundingShape = m_Mesh->GetBoundingSphere();
 	}
 
 	void MeshComponent::OnImGui()

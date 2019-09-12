@@ -28,7 +28,8 @@ namespace Lumos
 		void DrawInspectorWindow();
 		void DrawSceneView();
         void DrawGraphicsInfoWindow();
-		void BeginDockSpace();
+		void DrawInfoBar();
+		void BeginDockSpace(bool infoBar);
 		void EndDockSpace();
         
         void DrawNode(Entity* node);

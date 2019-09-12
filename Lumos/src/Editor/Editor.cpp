@@ -41,7 +41,9 @@ namespace Lumos
 	void Editor::OnImGui()
 	{
 		DrawMenuBar();
-		BeginDockSpace();
+		DrawInfoBar();
+
+		BeginDockSpace(true);
 		//SelectEntity();
         if(m_ShowSceneView)
             DrawSceneView();
@@ -106,47 +108,16 @@ namespace Lumos
                 ImGui::EndMenu();
             }
 
-			ImGui::SameLine(ImGui::GetWindowContentRegionMax().x / 2.0f);
+			ImGui::SameLine(ImGui::GetWindowContentRegionMax().x - 20.0f);
+			if (ImGui::Button(ICON_FA_TIMES, ImVec2(19.0f, 19.0f)))
+				Application::Instance()->SetAppState(AppState::Closing);
 
-			bool selected = false;
+			if (ImGui::IsItemHovered())
 			{
-				selected = m_Application->GetEditorState() == EditorState::Play;
-				if (selected)
-					ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.1f, 0.2f, 0.7f, 1.0f));
-
-				if (ImGui::Button(ICON_FA_PLAY, ImVec2(19.0f, 19.0f)))
-					m_Application->SetEditorState(EditorState::Play);
-
-				if (selected)
-					ImGui::PopStyleColor();
+				ImGui::BeginTooltip();
+				ImGui::TextUnformatted("Exit");
+				ImGui::EndTooltip();
 			}
-
-			{
-				selected = m_Application->GetEditorState() == EditorState::Paused;
-				if (selected)
-					ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.1f, 0.2f, 0.7f, 1.0f));
-
-				if (ImGui::Button(ICON_FA_PAUSE, ImVec2(19.0f, 19.0f)))
-					m_Application->SetEditorState(EditorState::Paused);
-
-				if (selected)
-					ImGui::PopStyleColor();
-			}
-
-			{
-				selected = m_Application->GetEditorState() == EditorState::Next;
-				if (selected)
-					ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.1f, 0.2f, 0.7f, 1.0f));
-
-				if (ImGui::Button(ICON_FA_STEP_FORWARD, ImVec2(19.0f, 19.0f)))
-					m_Application->SetEditorState(EditorState::Next);
-
-				if (selected)
-					ImGui::PopStyleColor();
-			}
-
-			ImGui::SameLine(ImGui::GetWindowContentRegionMax().x - 330.0f);
-			ImGui::Text("Application average %.3f ms/frame (%i FPS)", 1000.0f / (float)Engine::Instance()->GetFPS(), Engine::Instance()->GetFPS());
 
 			ImGui::EndMainMenuBar();
 		}
@@ -210,52 +181,11 @@ namespace Lumos
 
 	void Editor::DrawHierarchyWindow()
 	{
-		ImGui::Begin("Hierarchy", &m_ShowHierarchy, 0);
+		auto flags = ImGuiWindowFlags_NoCollapse;
+		ImGui::Begin("Hierarchy", &m_ShowHierarchy, flags);
 		{
 			if (ImGui::TreeNode("Application"))
 			{
-                bool flipImage = Graphics::GraphicsContext::GetContext()->FlipImGUITexture();
-				bool selected = false;
-				{
-					selected = m_ImGuizmoOperation == ImGuizmo::TRANSLATE;
-					if (selected)
-						ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.7f, 0.7f, 0.7f, 1.0f));
-
-					if (ImGui::Button(ICON_FA_ARROWS_ALT, ImVec2(28.0f, 28.0f)))
-						m_ImGuizmoOperation = ImGuizmo::TRANSLATE;
-
-					if (selected)
-						ImGui::PopStyleColor();
-				}
-
-				{
-					selected = m_ImGuizmoOperation == ImGuizmo::ROTATE;
-					if (selected)
-						ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.7f, 0.7f, 0.7f, 1.0f));
-
-					ImGui::SameLine();
-					if (ImGui::Button(ICON_FA_SYNC, ImVec2(28.0f, 28.0f)))
-						m_ImGuizmoOperation = ImGuizmo::ROTATE;
-
-					if (selected)
-						ImGui::PopStyleColor();
-				}
-
-				{
-					selected = m_ImGuizmoOperation == ImGuizmo::SCALE;
-					if (selected)
-						ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.7f, 0.7f, 0.7f, 1.0f));
-
-					ImGui::SameLine();
-					if (ImGui::Button(ICON_FA_EXPAND_ARROWS_ALT, ImVec2(28.0f, 28.0f)))
-						m_ImGuizmoOperation = ImGuizmo::SCALE;
-
-					if (selected)
-						ImGui::PopStyleColor();
-				}
-
-				ImGui::NewLine();
-				
 				auto systems = Application::Instance()->GetSystemManager();
 
 				if (ImGui::TreeNode("Systems"))
@@ -277,6 +207,8 @@ namespace Lumos
 				ImGui::Text("Frame Time : %5.2f ms", Engine::Instance()->GetFrametime());
 				ImGui::NewLine();
 				ImGui::Text("Scene : %s", m_Application->m_SceneManager->GetCurrentScene()->GetSceneName().c_str());
+
+				bool flipImage = Graphics::GraphicsContext::GetContext()->FlipImGUITexture();
 
 				if (ImGui::TreeNode("GBuffer"))
 				{
@@ -353,7 +285,8 @@ namespace Lumos
 
 	void Editor::DrawInspectorWindow()
 	{
-		ImGui::Begin("Inspector", &m_ShowInspector, 0);
+		auto flags = ImGuiWindowFlags_NoCollapse;
+		ImGui::Begin("Inspector", &m_ShowInspector, flags);
         
 		if (m_Selected)
         {
@@ -365,9 +298,9 @@ namespace Lumos
 
 	void Editor::DrawSceneView()
 	{
-		ImGuiWindowFlags windowFlags = 0;
+		auto flags = ImGuiWindowFlags_NoCollapse;
 		ImGui::SetNextWindowBgAlpha(0.0f);
-		ImGui::Begin("Scene",  &m_ShowSceneView, windowFlags);
+		ImGui::Begin("Scene",  &m_ShowSceneView, flags);
 		
 		ImGuizmo::SetDrawlist();
 		m_SceneViewSize = Maths::Vector2(ImGui::GetWindowSize().x, ImGui::GetWindowSize().y);
@@ -411,11 +344,22 @@ namespace Lumos
 		ImGui::End();
 	}
 
-	void Editor::BeginDockSpace()
+	void Editor::BeginDockSpace(bool infoBar)
 	{
 		ImGuiViewport* viewport = ImGui::GetMainViewport();
-		ImGui::SetNextWindowPos(viewport->Pos);
-		ImGui::SetNextWindowSize(viewport->Size);
+
+		auto pos = viewport->Pos;
+		auto size = viewport->Size;
+
+		if (infoBar)
+		{
+			const float infoBarSize = 20.0f;
+			pos.y += infoBarSize;
+			size.y -= infoBarSize;
+		}
+	
+		ImGui::SetNextWindowPos(pos);
+		ImGui::SetNextWindowSize(size);
 		ImGui::SetNextWindowViewport(viewport->ID);
 		ImGui::SetNextWindowBgAlpha(0.0f);
 		ImGui::PushStyleVar(ImGuiStyleVar_WindowRounding, 0.0f);
@@ -526,10 +470,168 @@ namespace Lumos
     
     void Editor::DrawGraphicsInfoWindow()
     {
-        ImGui::Begin("GraphicsInfo", &m_ShowGraphicsInfo, 0);
+		auto flags = ImGuiWindowFlags_NoCollapse;
+        ImGui::Begin("GraphicsInfo", &m_ShowGraphicsInfo, flags);
         {
             Graphics::GraphicsContext::GetContext()->OnImGui();
         }
         ImGui::End();
     }
+
+	void Editor::DrawInfoBar()
+	{
+		auto windowFlags
+			= ImGuiWindowFlags_NoDocking
+			| ImGuiWindowFlags_NoBringToFrontOnFocus
+			| ImGuiWindowFlags_NoNavFocus
+			| ImGuiWindowFlags_NoTitleBar
+			| ImGuiWindowFlags_NoCollapse
+			| ImGuiWindowFlags_NoResize
+			| ImGuiWindowFlags_NoBackground
+			| ImGuiWindowFlags_NoMove
+			| ImGuiWindowFlags_NoScrollWithMouse;
+		//| ImGuiWindowFlags_MenuBar;
+
+		ImGuiViewport* viewport = ImGui::GetMainViewport();
+
+		auto pos = viewport->Pos;
+		auto size = viewport->Size;
+
+		size.y = 20.0f;
+		pos.y += 20.0f;
+		ImGui::SetNextWindowPos(pos);
+		ImGui::SetNextWindowSize(size);
+
+		ImGui::Begin("InfoBar", nullptr, windowFlags);
+		{
+			bool flipImage = Graphics::GraphicsContext::GetContext()->FlipImGUITexture();
+			bool selected = false;
+			{
+				selected = m_ImGuizmoOperation == ImGuizmo::TRANSLATE;
+				if (selected)
+					ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.7f, 0.7f, 0.7f, 1.0f));
+
+				if (ImGui::Button(ICON_FA_ARROWS_ALT, ImVec2(19.0f, 19.0f)))
+					m_ImGuizmoOperation = ImGuizmo::TRANSLATE;
+
+				if (ImGui::IsItemHovered())
+				{
+					ImGui::BeginTooltip();
+					ImGui::TextUnformatted("Translate");
+					ImGui::EndTooltip();
+				}
+
+				if (selected)
+					ImGui::PopStyleColor();
+			}
+
+			{
+				selected = m_ImGuizmoOperation == ImGuizmo::ROTATE;
+				if (selected)
+					ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.7f, 0.7f, 0.7f, 1.0f));
+
+				ImGui::SameLine();
+				if (ImGui::Button(ICON_FA_SYNC, ImVec2(19.0f, 19.0f)))
+					m_ImGuizmoOperation = ImGuizmo::ROTATE;
+
+				if (ImGui::IsItemHovered())
+				{
+					ImGui::BeginTooltip();
+					ImGui::TextUnformatted("Rotate");
+					ImGui::EndTooltip();
+				}
+
+				if (selected)
+					ImGui::PopStyleColor();
+			}
+
+			{
+				selected = m_ImGuizmoOperation == ImGuizmo::SCALE;
+				if (selected)
+					ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.7f, 0.7f, 0.7f, 1.0f));
+
+				ImGui::SameLine();
+				if (ImGui::Button(ICON_FA_EXPAND_ARROWS_ALT, ImVec2(19.0f, 19.0f)))
+					m_ImGuizmoOperation = ImGuizmo::SCALE;
+
+				if (ImGui::IsItemHovered())
+				{
+					ImGui::BeginTooltip();
+					ImGui::TextUnformatted("Scale");
+					ImGui::EndTooltip();
+				}
+
+				if (selected)
+					ImGui::PopStyleColor();
+			}
+
+			ImGui::SameLine(ImGui::GetWindowContentRegionMax().x / 2.0f);
+
+			{
+				selected = m_Application->GetEditorState() == EditorState::Play;
+				if (selected)
+					ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.1f, 0.2f, 0.7f, 1.0f));
+
+				if (ImGui::Button(ICON_FA_PLAY, ImVec2(19.0f, 19.0f)))
+					m_Application->SetEditorState(EditorState::Play);
+
+				if (ImGui::IsItemHovered())
+				{
+					ImGui::BeginTooltip();
+					ImGui::TextUnformatted("Play");
+					ImGui::EndTooltip();
+				}
+
+				if (selected)
+					ImGui::PopStyleColor();
+			}
+
+			ImGui::SameLine();
+
+			{
+				selected = m_Application->GetEditorState() == EditorState::Paused;
+				if (selected)
+					ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.1f, 0.2f, 0.7f, 1.0f));
+
+				if (ImGui::Button(ICON_FA_PAUSE, ImVec2(19.0f, 19.0f)))
+					m_Application->SetEditorState(EditorState::Paused);
+
+				if (ImGui::IsItemHovered())
+				{
+					ImGui::BeginTooltip();
+					ImGui::TextUnformatted("Pause");
+					ImGui::EndTooltip();
+				}
+
+				if (selected)
+					ImGui::PopStyleColor();
+			}
+
+			ImGui::SameLine();
+
+			{
+				selected = m_Application->GetEditorState() == EditorState::Next;
+				if (selected)
+					ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.1f, 0.2f, 0.7f, 1.0f));
+
+				if (ImGui::Button(ICON_FA_STEP_FORWARD, ImVec2(19.0f, 19.0f)))
+					m_Application->SetEditorState(EditorState::Next);
+
+				if (ImGui::IsItemHovered())
+				{
+					ImGui::BeginTooltip();
+					ImGui::TextUnformatted("Next");
+					ImGui::EndTooltip();
+				}
+
+				if (selected)
+					ImGui::PopStyleColor();
+			}
+
+			ImGui::SameLine(ImGui::GetWindowContentRegionMax().x - 130.0f);
+			ImGui::Text("%.2f ms (%i FPS)", 1000.0f / (float)Engine::Instance()->GetFPS(), Engine::Instance()->GetFPS());
+
+		}
+		ImGui::End();
+	}
 }
