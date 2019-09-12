@@ -96,7 +96,7 @@ void GraphicsScene::LoadModels()
 	material->LoadMaterial("checkerboard", "/CoreTextures/checkerboard.tga");
 
 	m_Terrain->AddComponent<MaterialComponent>(material);
-    m_Terrain->SetBoundingRadius(800.0f);
+    m_Terrain->SetBoundingRadius(400.0f);
     
 	m_Terrain->AddComponent<MeshComponent>(terrain);
 

@@ -39,8 +39,9 @@ namespace Lumos
 
 	void Console::OnImGuiRender(bool* show)
 	{
+		auto flags = ImGuiWindowFlags_NoCollapse;
 		ImGui::SetNextWindowSize(ImVec2(640, 480), ImGuiCond_FirstUseEver);
-		ImGui::Begin("Console", show);
+		ImGui::Begin("Console", show, flags);
 		{
             ImGuiRenderHeader();
 			ImGui::Separator();

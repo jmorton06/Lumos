@@ -228,7 +228,7 @@ namespace Lumos
       	icons_config.OversampleH = 2;
       	icons_config.OversampleV = 1;
       	icons_config.GlyphOffset.y += 1.0f;      // Move everything by 1 pixels down
-		icons_config.GlyphOffset.x -= 1.0f;      // Move everything by 1 pixels left
+		//icons_config.GlyphOffset.x -= 1.0f;      // Move everything by 1 pixels left
       	//icons_config.GlyphExtraSpacing.x = 1.0f; // Increase spacing between characters
         icons_config.OversampleH = icons_config.OversampleV = 1;
         icons_config.PixelSnapH = true;
