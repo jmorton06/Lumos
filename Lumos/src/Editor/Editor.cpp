@@ -376,17 +376,18 @@ namespace Lumos
 			| ImGuiWindowFlags_NoBackground
 			| ImGuiWindowFlags_NoMove
 			| ImGuiWindowFlags_MenuBar
-			| ImGuiDockNodeFlags_PassthruDockspace;
+			| ImGuiDockNodeFlags_PassthruCentralNode;
 
 		ImGui::Begin("DockSpace", nullptr, windowFlags);
 
 		ImGui::PopStyleVar(3);
 
-		if (ImGui::DockBuilderGetNode(ImGui::GetID("MyDockspace")) == NULL)
+		if (ImGui::DockBuilderGetNode(ImGui::GetID("MyDockspace")) == nullptr)
 		{
 			ImGuiID dockspace_id = ImGui::GetID("MyDockspace");
 			ImGui::DockBuilderRemoveNode(dockspace_id);
 			ImGui::DockBuilderAddNode(dockspace_id);
+			ImGui::DockBuilderSetNodeSize(dockspace_id, ImGui::GetIO().DisplaySize);
 
 			ImGuiID dock_main_id    = dockspace_id;
 			ImGuiID dock_id_bottom  = ImGui::DockBuilderSplitNode(dock_main_id, ImGuiDir_Down, 0.2f, nullptr, &dock_main_id);
@@ -400,15 +401,14 @@ namespace Lumos
 			ImGui::DockBuilderDockWindow("Console", dock_id_bottom);
 			ImGui::DockBuilderDockWindow("Engine", dock_id_left);
 			ImGui::DockBuilderDockWindow("Scene Information", dock_id_left);
-			ImGui::DockBuilderDockWindow("ImGui Demo", dock_id_left);
+			ImGui::DockBuilderDockWindow("Dear ImGui Demo", dock_id_left);
             ImGui::DockBuilderDockWindow("GraphicsInfo", dock_id_left);
 
 			ImGui::DockBuilderFinish(dockspace_id);
 		}
 		
-
 		ImGuiID dockspace_id = ImGui::GetID("MyDockspace");
-		ImGuiDockNodeFlags dockspace_flags = ImGuiDockNodeFlags_PassthruDockspace;
+		ImGuiDockNodeFlags dockspace_flags = ImGuiDockNodeFlags_PassthruCentralNode;
 		ImGui::DockSpace(dockspace_id, ImVec2(0.0f, 0.0f), dockspace_flags);
 	}
 

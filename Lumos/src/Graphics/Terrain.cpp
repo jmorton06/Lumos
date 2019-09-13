@@ -2,7 +2,7 @@
 #include "Terrain.h"
 #include "App/SceneManager.h"
 #include "Maths/BoundingSphere.h"
-#include "external/simplex/simplexnoise.h"
+#include <simplex/simplexnoise.h>
 
 namespace Lumos
 {

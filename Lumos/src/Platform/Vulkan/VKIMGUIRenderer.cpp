@@ -1,7 +1,7 @@
 #include "lmpch.h"
 #include "VKIMGUIRenderer.h"
-#include "external/imgui/imgui.h"
-#include "external/imgui/examples/imgui_impl_vulkan.h"
+#include <imgui/imgui.h>
+#include <imgui/examples/imgui_impl_vulkan.h>
 
 #include "VKDevice.h"
 #include "VKCommandBuffer.h"

@@ -1,8 +1,8 @@
 #include "lmpch.h"
 #include "GLIMGUIRenderer.h"
-#include "external/imgui/imgui.h"
+#include <imgui/imgui.h>
 #define IMGUI_IMPL_OPENGL_LOADER_GLAD
-#include "external/imgui/examples/imgui_impl_opengl3.h"
+#include <imgui/examples/imgui_impl_opengl3.h>
 
 #include "GLDebug.h"
 

@@ -86,7 +86,7 @@ namespace Lumos
 			}
 		}
 
-		std::array<T*, MAX_ENTITIES> GetArray() const
+		const std::array<T*, MAX_ENTITIES>& GetArray() const
 		{
 			return m_ComponentArray;
 		}

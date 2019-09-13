@@ -52,6 +52,8 @@
 #include "Graphics/Camera/MayaCamera.h"
 #include "Graphics/Camera/Camera2D.h"
 
+#include "Editor/EditorCamera.h" //temp
+
 //Managers
 #include "Graphics/ParticleManager.h"
 
