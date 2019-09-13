@@ -27,7 +27,6 @@ project "Lumos"
 		"external/",
 		"external/jsonhpp/",
 		"external/stb/",
-		"external/imgui/",
 		"external/spdlog/include",
 		"../Dependencies/",
 		"../Dependencies/lua/src/",
@@ -35,14 +34,16 @@ project "Lumos"
 		"../Dependencies/glad/include/",
 		"../Dependencies/OpenAL/include/",
 		"../Dependencies/Box2D/",
-		"../Dependencies/vulkan/"
+		"../Dependencies/vulkan/",
+		"../Dependencies/imgui/"
 	}
 
 	links
 	{
 		"lua",
 		"Box2D",
-		"volk"
+		"volk",
+		"imgui"
 	}
 
 	cwd = os.getcwd() .. "/.."

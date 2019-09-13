@@ -16,6 +16,7 @@ namespace Lumos
 		, m_Fov(FOV)
 		, m_Near(Near)
 		, m_Far(Far)
+		, m_Roll(1.0f)
 	{
 		Camera::BuildViewMatrix();
 	};
@@ -31,6 +32,7 @@ namespace Lumos
 		, m_Fov(FOV)
 		, m_Near(Near)
 		, m_Far(Far)
+		, m_Roll(1.0f)
 	{
 		Camera::BuildViewMatrix();
 	}
@@ -50,13 +52,6 @@ namespace Lumos
 	{
 		m_ViewMatrix = Maths::Matrix4::Rotation(-m_Pitch, Maths::Vector3(1, 0, 0)) *
 				Maths::Matrix4::Rotation(-m_Yaw, Maths::Vector3(0, 1, 0)) *
-				Maths::Matrix4::Translation(-m_Position);
-	};
-
-	Maths::Matrix4 Camera::BuildViewMatrix(float pitch, float yaw) const
-	{
-		return	Maths::Matrix4::Rotation(-pitch, Maths::Vector3(1, 0, 0)) *
-				Maths::Matrix4::Rotation(-yaw, Maths::Vector3(0, 1, 0)) *
 				Maths::Matrix4::Translation(-m_Position);
 	};
 
@@ -93,7 +88,7 @@ namespace Lumos
 
 	Maths::Quaternion Camera::GetOrientation() const
 	{
-		return  Maths::Quaternion::EulerAnglesToQuaternion(m_Pitch, m_Yaw, 1.0f);
+		return Maths::Quaternion::EulerAnglesToQuaternion(m_Pitch, m_Yaw, m_Roll);
 	}
 
 	void Camera::OnImGui()

@@ -29,10 +29,8 @@ namespace Lumos
 	{
 		if (Input::GetInput()->GetWindowFocus())
 		{
-			//if (!Input::GetInput()->firstUpdate)
 			{
-				//LUMOS_ASSERT(false,"");
-				Maths::Vector2 windowCentre = Maths::Vector2();// Window::Instance()->GetScreenSize().GetX() / 2.0f, Window::Instance()->GetScreenSize().GetY() / 2.0f);
+				Maths::Vector2 windowCentre = Maths::Vector2();
 				xpos -= windowCentre.GetX();
 				ypos -= windowCentre.GetY();
 

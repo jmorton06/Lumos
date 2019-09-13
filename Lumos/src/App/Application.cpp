@@ -235,9 +235,9 @@ namespace Lumos
 		if (Input::GetInput()->GetKeyPressed(InputCode::Key::K)) CommonUtils::AddPyramid(m_SceneManager->GetCurrentScene());
 		if (Input::GetInput()->GetKeyPressed(InputCode::Key::L)) CommonUtils::AddLightCube(m_SceneManager->GetCurrentScene());
 
-		if (Input::GetInput()->GetKeyPressed(InputCode::Key::E)) m_SceneManager->SwitchScene((sceneIdx + 1) % sceneMax);
-		if (Input::GetInput()->GetKeyPressed(InputCode::Key::Q)) m_SceneManager->SwitchScene((sceneIdx == 0 ? sceneMax : sceneIdx) - 1);
-		if (Input::GetInput()->GetKeyPressed(InputCode::Key::R)) m_SceneManager->SwitchScene(sceneIdx);
+		if (Input::GetInput()->GetKeyPressed(InputCode::Key::G)) m_SceneManager->SwitchScene((sceneIdx + 1) % sceneMax);
+		if (Input::GetInput()->GetKeyPressed(InputCode::Key::H)) m_SceneManager->SwitchScene((sceneIdx == 0 ? sceneMax : sceneIdx) - 1);
+		if (Input::GetInput()->GetKeyPressed(InputCode::Key::F)) m_SceneManager->SwitchScene(sceneIdx);
 		if (Input::GetInput()->GetKeyPressed(InputCode::Key::V)) m_Window->ToggleVSync();
 
 #ifdef LUMOS_EDITOR

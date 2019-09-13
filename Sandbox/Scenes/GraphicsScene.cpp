@@ -19,8 +19,6 @@ void GraphicsScene::OnInit()
 	m_SceneBoundingRadius = 200.0f;
 
 	m_pCamera = new ThirdPersonCamera(45.0f, 0.1f, 1000.0f, (float) m_ScreenWidth / (float) m_ScreenHeight);
-	m_pCamera->SetYaw(-40.0f);
-	m_pCamera->SetPitch(-20.0f);
 	m_pCamera->SetPosition(Maths::Vector3(120.0f, 70.0f, 260.0f));
 
 	String environmentFiles[11] =
@@ -115,7 +113,7 @@ float texRandZ = 1.0f / 16.0f;
 
 void GraphicsScene::OnImGui()
 {
-    ImGui::Begin("Terrain");
+    /*ImGui::Begin("Terrain");
 
 	ImGui::SliderInt("Width", &width, 1, 5000);
 	ImGui::SliderInt("Height", &height, 1, 5000);
@@ -149,5 +147,5 @@ void GraphicsScene::OnImGui()
         AddEntity(m_Terrain);
     }
     
-    ImGui::End();
+    ImGui::End();*/
 }

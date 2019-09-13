@@ -31,17 +31,12 @@ namespace Lumos
 
 	void ThirdPersonCamera::HandleMouse(float dt, float xpos, float ypos)
 	{
-		//if (Input::GetInput()->m_UpdateCamera)
 		{
-			//if (!Input::GetInput()->firstUpdate)
             if (Input::GetInput()->GetMouseHeld(InputCode::MouseKey::ButtonRight))
 			{
 				m_RotateVelocity = m_RotateVelocity + Maths::Vector2((xpos - m_PreviousCurserPos.GetX()), (ypos - m_PreviousCurserPos.GetY())) *  m_MouseSensitivity;
 				m_Pitch -= m_RotateVelocity.GetY();
 				m_Yaw -= m_RotateVelocity.GetX();
-
-				//m_Pitch = Maths::Min(m_Pitch, 90.0f);
-				//m_Pitch = Maths::Max(m_Pitch, -90.0f);
 
 				if (m_Yaw < 0)
 				{
@@ -52,10 +47,6 @@ namespace Lumos
 					m_Yaw -= 360.0f;
 				}
 			}
-			/*else
-			{
-			Input::GetInput()->firstUpdate = false;
-			}*/
 
 			m_PreviousCurserPos = Maths::Vector2(xpos, ypos);
 		}

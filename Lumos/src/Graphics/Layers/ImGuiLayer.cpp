@@ -191,6 +191,9 @@ namespace Lumos
 	void ImGuiLayer::SetImGuiStyle()
 	{
 		ImGuiIO& io = ImGui::GetIO();
+
+		ImGui::StyleColorsDark();
+
 		std::string physicalPath;
 
 #if 1
