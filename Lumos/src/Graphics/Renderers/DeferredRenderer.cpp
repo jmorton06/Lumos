@@ -11,6 +11,7 @@
 #include "ECS/Component/LightComponent.h"
 #include "ECS/Component/TransformComponent.h"
 #include "Maths/Maths.h"
+#include "Core/Profiler.h"
 
 #include "Graphics/RenderManager.h"
 #include "Graphics/Camera/Camera.h"
@@ -165,6 +166,8 @@ namespace Lumos
 
 		void DeferredRenderer::RenderScene(RenderList* renderList, Scene* scene)
 		{
+            PROFILERRECORD("DeferredRenderer::RenderScene");
+
 			BeginScene(scene);
 
 			m_OffScreenRenderer->RenderScene(renderList, scene);

@@ -10,6 +10,7 @@
 
 #include "Maths/Maths.h"
 #include "Core/JobSystem.h"
+#include "Core/Profiler.h"
 
 #include "Graphics/RenderManager.h"
 #include "Graphics/Camera/Camera.h"
@@ -150,6 +151,8 @@ namespace Lumos
 
 		void DeferredOffScreenRenderer::RenderScene(RenderList* renderList, Scene* scene)
 		{
+            PROFILERRECORD("DeferredOffScreenRenderer::RenderScene");
+
 			BeginScene(scene);
 
 			Begin();
@@ -266,11 +269,6 @@ namespace Lumos
                 auto command = m_CommandQueue[i];
 				Mesh* mesh = command.mesh;
 
-				//Graphics::CommandBuffer* currentCMDBuffer = mesh->GetCommandBuffer(0);
-
-				//currentCMDBuffer->BeginRecordingSecondary(m_RenderPass, m_FBO);
-				//currentCMDBuffer->UpdateViewport(m_ScreenBufferWidth, m_ScreenBufferHeight);
-
 				m_Pipeline->SetActive(m_DeferredCommandBuffers);
 
 				uint32_t dynamicOffset = i * static_cast<uint32_t>(m_DynamicAlignment);
@@ -287,9 +285,6 @@ namespace Lumos
 
 				mesh->GetVertexArray()->Unbind();
 				mesh->GetIndexBuffer()->Unbind();
-
-				//currentCMDBuffer->EndRecording();
-				//currentCMDBuffer->ExecuteSecondary(m_DeferredCommandBuffers);
 			}
         }
 
