@@ -24,6 +24,7 @@
 #include "Maths/Maths.h"
 #include "RenderCommand.h"
 #include "Core/JobSystem.h"
+#include "Core/Profiler.h"
 
 #define THREAD_CASCADE_GEN
 
@@ -235,8 +236,9 @@ namespace Lumos
 
 		void ShadowRenderer::RenderScene(RenderList* renderList, Scene* scene)
 		{
-			//SortRenderLists(scene);
-			UpdateCascades(scene);
+            PROFILERRECORD("ShadowRenderer::RenderScene");
+
+            UpdateCascades(scene);
 
 			memcpy(m_VSSystemUniformBuffer + m_VSSystemUniformBufferOffsets[VSSystemUniformIndex_ProjectionViewMatrix], m_ShadowProjView, sizeof(Maths::Matrix4) * 16);
 

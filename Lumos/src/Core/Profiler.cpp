@@ -159,7 +159,7 @@ namespace Lumos
                         else
                             colour = {0.8f,0.2f,0.2f,1.0f};
                         
-                        ImGui::TextColored(colour, "%s %lf ms", action.name.c_str(), action.duration);
+                        ImGui::TextColored(colour, "%s %lf ms | %f ms per call | %f percent | %llu calls", action.name.c_str(), action.duration, action.duration / action.calls, action.percentage, action.calls);
                     }
                 }
             }

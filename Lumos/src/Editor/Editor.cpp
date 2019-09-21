@@ -97,6 +97,8 @@ namespace Lumos
 				if (ImGui::MenuItem("Inspector", "", &m_ShowInspector, true)) { m_ShowInspector = true; }
 				if (ImGui::MenuItem("GraphicsInfo", "", &m_ShowGraphicsInfo, true)) { m_ShowGraphicsInfo = true; }
 				if (ImGui::MenuItem("ImGuiExample", "", &m_ShowImGuiDemo, true)) { m_ShowImGuiDemo = true; }
+                if (ImGui::MenuItem("Profiler", "", &m_ShowProfiler, true)) { m_ShowProfiler = true;  }
+
 				ImGui::EndMenu();
 			}
             
@@ -406,6 +408,7 @@ namespace Lumos
 			ImGui::DockBuilderDockWindow("Inspector", dock_id_right);
 			ImGui::DockBuilderDockWindow("Hierarchy", dock_id_left);
 			ImGui::DockBuilderDockWindow("Console", dock_id_bottom);
+            ImGui::DockBuilderDockWindow("Profiler", dock_id_bottom);
 			ImGui::DockBuilderDockWindow("Engine", dock_id_left);
 			ImGui::DockBuilderDockWindow("Scene Information", dock_id_left);
 			ImGui::DockBuilderDockWindow("Dear ImGui Demo", dock_id_left);
