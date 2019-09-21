@@ -4,6 +4,7 @@
 #include "ImGUIConsoleSink.h"
 #include "App/Application.h"
 #include "Core/OS/Input.h"
+#include "Core/Profiler.h"
 #include "App/Engine.h"
 #include "App/Scene.h"
 #include "App/SceneManager.h"
@@ -61,7 +62,6 @@ namespace Lumos
         if(m_ShowProfiler)
         {
             Profiler::Instance()->OnImGui();
-            Profiler::Instance()->ClearHistory();
         }
 
         if(m_ShowImGuiDemo)

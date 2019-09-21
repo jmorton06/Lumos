@@ -19,6 +19,9 @@ namespace Lumos
     
     Profiler::Profiler()
     {
+        m_Timer = CreateScope<Timer>();
+        m_UpdateTimer = 0.0f;
+        m_UpdateFrequency = 0.1f;
         m_Enabled = false;
     }
     
@@ -31,6 +34,7 @@ namespace Lumos
     {
         if (IsEnabled())
         {
+            m_UpdateTimer += deltaTime;
             ++m_ElapsedFrames;
         }
     }
@@ -42,7 +46,7 @@ namespace Lumos
         m_WorkingThreads.clear();
         m_ElapsedFrames = 0;
         
-        m_lastTime = 0.0;
+        m_Timer->GetMS();
     }
     
     bool Profiler::IsEnabled()
@@ -95,14 +99,73 @@ namespace Lumos
         
         m_SaveMutex.unlock();
     }
+
+    ProfilerReport Profiler::GenerateReport()
+    {
+        ProfilerReport report;
+
+        double time = m_Timer->GetMS();
+        
+        report.workingThreads = static_cast<uint16_t>((m_WorkingThreads.size() - 1) / m_ElapsedFrames);
+        report.elapsedFrames = m_ElapsedFrames;
+        report.elaspedTime = time;
+
+        std::multimap<double, std::string> sortedHistory;
+
+        for (auto& data : m_ElapsedHistory)
+            sortedHistory.insert(std::pair<double, std::string>(data.second, data.first));
+
+        for (auto& data : sortedHistory)
+            report.actions.push_back({ data.second, data.first, (data.first / time), m_CallsCounter[data.second] });
+
+        return report;
+    }
     
     void Profiler::OnImGui()
     {
         ImGui::Begin("Profiler");
         {
-            for(auto& data : m_ElapsedHistory)
+            ImGui::Checkbox("Profiler Enabled", &m_Enabled);
+            ImGui::InputFloat("Update Frequency", &m_UpdateFrequency);
+            ImGui::Text("Report period duration : %lf ms", m_Report.elaspedTime);
+            ImGui::Text("Threads : %i", m_Report.workingThreads);
+            ImGui::Text("Frames : %i", m_Report.elapsedFrames);
+            
+            if (IsEnabled())
             {
-                ImGui::Text("%s %lf ms", data.first.c_str() , data.second);
+                if ( m_UpdateTimer >= m_UpdateFrequency)
+                {
+                    m_Report = GenerateReport();
+                    ClearHistory();
+                    m_UpdateTimer = 0.0f;
+                }
+                
+                if (m_Report.actions.empty())
+                {
+                    ImGui::Text("Collecting Data");
+                }
+                else
+                {
+                    for (const auto& action : m_Report.actions)
+                    {
+                        ImVec4 colour;
+                        
+                        if (action.percentage <= 25.0f)
+                            colour = {0.2f,0.8f,0.2f,1.0f};
+                        else if (action.percentage <= 50.0f)
+                            colour = {0.2f,0.6f,0.6f,1.0f};
+                        else if (action.percentage <= 75.0f)
+                            colour = {0.7f,0.2f,0.3f,1.0f};
+                        else
+                            colour = {0.8f,0.2f,0.2f,1.0f};
+                        
+                        ImGui::TextColored(colour, "%s %lf ms", action.name.c_str(), action.duration);
+                    }
+                }
+            }
+            else
+            {
+                ImGui::Text("Profiler Disabled");
             }
         }
         ImGui::End();

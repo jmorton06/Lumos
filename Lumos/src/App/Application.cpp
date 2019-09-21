@@ -24,6 +24,7 @@
 #include "Core/OS/Thread.h"
 #include "Core/OS/Input.h"
 #include "Core/OS/Window.h"
+#include "Core/Profiler.h"
 
 #include "Scripting/LuaScript.h"
 
@@ -168,6 +169,7 @@ namespace Lumos
 			m_UpdateTimer += Engine::Instance()->TargetFrameRate();
 #endif
 
+            Profiler::Instance()->Update(now);
             Engine::GetTimeStep()->Update(now);
 
 			{
