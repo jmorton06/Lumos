@@ -20,6 +20,7 @@ namespace Lumos
 		CollisionCuboid = 1,
 		CollisionSphere = 2,
 		CollisionPyramid = 3,
+        CollisionCapsule = 4,
 		CollisionShapeTypeMax
 	};
 
