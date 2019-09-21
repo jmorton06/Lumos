@@ -26,7 +26,6 @@ namespace Lumos
 
 	class LUMOS_EXPORT LumosPhysicsEngine : public ISystem
 	{
-		friend class TSingleton<LumosPhysicsEngine>;
 	public:
 		LumosPhysicsEngine();
 		~LumosPhysicsEngine();

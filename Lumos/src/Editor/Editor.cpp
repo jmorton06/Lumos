@@ -44,6 +44,8 @@ namespace Lumos
 		DrawInfoBar();
 
 		BeginDockSpace(true);
+        EndDockSpace();
+
 		//SelectEntity();
         if(m_ShowSceneView)
             DrawSceneView();
@@ -55,11 +57,16 @@ namespace Lumos
             DrawInspectorWindow();
         if(m_ShowGraphicsInfo)
             DrawGraphicsInfoWindow();
+        
+        if(m_ShowProfiler)
+        {
+            Profiler::Instance()->OnImGui();
+            Profiler::Instance()->ClearHistory();
+        }
 
         if(m_ShowImGuiDemo)
             ImGui::ShowDemoWindow(&m_ShowImGuiDemo);
 
-		EndDockSpace();
 	}
 
 	void Editor::DrawMenuBar()
@@ -375,8 +382,8 @@ namespace Lumos
 			| ImGuiWindowFlags_NoResize
 			| ImGuiWindowFlags_NoBackground
 			| ImGuiWindowFlags_NoMove
-			| ImGuiWindowFlags_MenuBar
-			| ImGuiDockNodeFlags_PassthruCentralNode;
+        | ImGuiWindowFlags_MenuBar;
+			//| ImGuiDockNodeFlags_PassthruCentralNode;
 
 		ImGui::Begin("DockSpace", nullptr, windowFlags);
 
@@ -504,7 +511,6 @@ namespace Lumos
 
 		ImGui::Begin("InfoBar", nullptr, windowFlags);
 		{
-			bool flipImage = Graphics::GraphicsContext::GetContext()->FlipImGUITexture();
 			bool selected = false;
 			{
 				selected = m_ImGuizmoOperation == ImGuizmo::TRANSLATE;
