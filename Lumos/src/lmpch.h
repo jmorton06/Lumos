@@ -26,7 +26,6 @@
 #include "Core/String.h"
 #include "Core/LMLog.h"
 #include "Core/OS/Memory.h"
-#include "Core/Profiler.h"
 #endif
 
 #include <stdio.h>
