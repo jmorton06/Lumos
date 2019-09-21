@@ -160,7 +160,7 @@ namespace Lumos
         for (auto& component : components)
         {
             ImGui::Separator();
-            bool open = ImGui::TreeNode(component->GetName().c_str());
+            bool open = ImGui::CollapsingHeader(component->GetName().c_str());
             
             if (open)
             {
@@ -169,8 +169,6 @@ namespace Lumos
                     ImGui::Checkbox("Active", &component->GetActive());
                 }
                 component->OnImGui();
-                
-                ImGui::TreePop();
             }
         }
     }
