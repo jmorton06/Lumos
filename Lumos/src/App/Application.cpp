@@ -171,12 +171,14 @@ namespace Lumos
             Engine::GetTimeStep()->Update(now);
 
 			{
+                PROFILERRECORD("Application::Update");
 				OnUpdate(Engine::GetTimeStep());
 				m_Updates++;
 			}
 
 			if(!m_Minimized)
 			{
+                PROFILERRECORD("Application::Render");
 				OnRender();
 				m_Frames++;
 			}
@@ -192,6 +194,8 @@ namespace Lumos
 
 		if (m_Timer->GetMS() - m_SecondTimer > 1.0f)
 		{
+            PROFILERRECORD("Application::FrameRateCalc");
+
 			m_SecondTimer += 1.0f;
 			Engine::Instance()->SetFPS(m_Frames);
 			Engine::Instance()->SetUPS(m_Updates);
@@ -207,7 +211,7 @@ namespace Lumos
 
 
 		m_SceneManager->ApplySceneSwitch();
-
+        
 		return m_CurrentState != AppState::Closing;
 	}
 

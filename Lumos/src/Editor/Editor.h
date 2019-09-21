@@ -56,6 +56,7 @@ namespace Lumos
         bool m_ShowGraphicsInfo = true;
         bool m_ShowInspector = true;
         bool m_ShowImGuiDemo = true;
+        bool m_ShowProfiler = true;
 
 		NONCOPYABLE(Editor)
 	};
