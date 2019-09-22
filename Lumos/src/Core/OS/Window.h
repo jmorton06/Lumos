@@ -51,6 +51,7 @@ namespace Lumos
 		virtual void HideMouse(bool hide) {};
 		virtual void SetMousePosition(const Maths::Vector2& pos) {};
 		virtual void SetEventCallback(const EventCallbackFn& callback) = 0;
+        virtual void UpdateCursorImGui() = 0;
 
 		virtual String GetTitle() const = 0;
 		virtual u32 GetWidth()  const = 0;

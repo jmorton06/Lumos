@@ -25,6 +25,7 @@ namespace Lumos
 		void OnUpdate() override;
 		void HideMouse(bool hide) override;
 		void SetMousePosition(const Maths::Vector2& pos) override;
+        void UpdateCursorImGui() override;
 
 		bool Init(const WindowProperties& properties);
 

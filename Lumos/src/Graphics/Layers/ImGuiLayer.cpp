@@ -21,7 +21,6 @@ namespace Lumos
 
 	ImGuiLayer::~ImGuiLayer()
 	{
-
 	}
 
 	void ImGuiLayer::OnAttach()
@@ -30,6 +29,7 @@ namespace Lumos
 		ImGuiIO& io = ImGui::GetIO();
 		io.DisplaySize = ImVec2(static_cast<float>(app->GetWindow()->GetWidth()), static_cast<float>(app->GetWindow()->GetHeight()));
         io.ConfigFlags |= ImGuiConfigFlags_DockingEnable;
+        io.BackendFlags |= ImGuiBackendFlags_HasMouseCursors;
 		io.ConfigWindowsMoveFromTitleBarOnly = true;
 
 		SetImGuiKeyCodes();
@@ -49,6 +49,9 @@ namespace Lumos
 	{
 		ImGuiIO& io = ImGui::GetIO();
 		io.DeltaTime = dt->GetMillis();
+        
+        Application* app = Application::Instance();
+        app->GetWindow()->UpdateCursorImGui();
 
 		ImGui::NewFrame();
 		ImGuizmo::BeginFrame();

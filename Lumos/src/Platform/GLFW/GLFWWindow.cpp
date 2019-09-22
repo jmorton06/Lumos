@@ -5,7 +5,6 @@
 #define GLFW_EXPOSE_NATIVE_COCOA
 #endif
 
-
 #include "GLFWWindow.h"
 #include "Graphics/API/GraphicsContext.h"
 #include "Utilities/LoadImage.h"
@@ -21,6 +20,10 @@
 #include "Events/ApplicationEvent.h"
 #include "Events/MouseEvent.h"
 #include "Events/KeyEvent.h"
+
+#include <imgui/imgui.h>
+
+static GLFWcursor* g_MouseCursors[ImGuiMouseCursor_COUNT] = { 0 };
 
 namespace Lumos
 {
@@ -46,6 +49,12 @@ namespace Lumos
 
 	GLFWWindow::~GLFWWindow()
 	{
+        for (ImGuiMouseCursor cursor_n = 0; cursor_n < ImGuiMouseCursor_COUNT; cursor_n++)
+        {
+            glfwDestroyCursor(g_MouseCursors[cursor_n]);
+            g_MouseCursors[cursor_n] = NULL;
+        }
+        
 		glfwDestroyWindow(m_Handle);
 		s_NumGLFWWindows--;
 
@@ -234,6 +243,15 @@ namespace Lumos
  			data.EventCallback(event);
  		});
 
+        g_MouseCursors[ImGuiMouseCursor_Arrow] = glfwCreateStandardCursor(GLFW_ARROW_CURSOR);
+        g_MouseCursors[ImGuiMouseCursor_TextInput] = glfwCreateStandardCursor(GLFW_IBEAM_CURSOR);
+        g_MouseCursors[ImGuiMouseCursor_ResizeAll] = glfwCreateStandardCursor(GLFW_ARROW_CURSOR);
+        g_MouseCursors[ImGuiMouseCursor_ResizeNS] = glfwCreateStandardCursor(GLFW_VRESIZE_CURSOR);
+        g_MouseCursors[ImGuiMouseCursor_ResizeEW] = glfwCreateStandardCursor(GLFW_HRESIZE_CURSOR);
+        g_MouseCursors[ImGuiMouseCursor_ResizeNESW] = glfwCreateStandardCursor(GLFW_ARROW_CURSOR);
+        g_MouseCursors[ImGuiMouseCursor_ResizeNWSE] = glfwCreateStandardCursor(GLFW_ARROW_CURSOR);
+        g_MouseCursors[ImGuiMouseCursor_Hand] = glfwCreateStandardCursor(GLFW_HAND_CURSOR);
+        
 		LUMOS_LOG_INFO("Initialised GLFW version : {0}", glfwGetVersionString());
 
 		return true;
@@ -333,4 +351,20 @@ namespace Lumos
 	{
 		return lmnew GLFWWindow(properties);
 	}
+
+    void GLFWWindow::UpdateCursorImGui()
+    {
+        ImGuiIO& io = ImGui::GetIO();
+        ImGuiMouseCursor imgui_cursor = ImGui::GetMouseCursor();
+        if (imgui_cursor == ImGuiMouseCursor_None || io.MouseDrawCursor)
+        {
+            // Hide OS mouse cursor if imgui is drawing it or if it wants no cursor
+            glfwSetInputMode(m_Handle, GLFW_CURSOR, GLFW_CURSOR_HIDDEN);
+        }
+        else
+        {
+            glfwSetCursor(m_Handle, g_MouseCursors[imgui_cursor] ? g_MouseCursors[imgui_cursor] : g_MouseCursors[ImGuiMouseCursor_Arrow]);
+            glfwSetInputMode(m_Handle, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
+        }
+    }
 }

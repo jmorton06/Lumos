@@ -23,7 +23,8 @@ namespace Lumos
 		void SetVSync(bool set) override {};
 		void HideMouse(bool hide) override {};
 		void SetMousePosition(const Maths::Vector2& pos) override {};
-
+		void UpdateCursorImGui() override;
+		
 		bool Init(const WindowProperties& properties);
 
 		inline String GetTitle() const override { return m_Data.Title; }
