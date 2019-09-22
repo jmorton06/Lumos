@@ -46,12 +46,201 @@ layout(std140, binding = 0) uniform UniformBufferLight
 
 struct Material
 {
-	vec4 albedo;
-	vec3 specular;
-	float roughness;
-	vec3 normal;
-	float ao;
+	vec4 Albedo;
+	vec3 Specular;
+	float Roughness;
+	vec3 Emissive;
+	vec3 Normal;
+	float AO;
+	vec3 View;
+	float NDotV;
 };
+
+Material material;
+const float Epsilon = 0.00001;
+
+// Constant normal incidence Fresnel factor for all dielectrics.
+const vec3 Fdielectric = vec3(0.04);
+
+// GGX/Towbridge-Reitz normal distribution function.
+// Uses Disney's reparametrization of alpha = roughness^2
+float ndfGGX(float cosLh, float roughness)
+{
+	float alpha = roughness * roughness;
+	float alphaSq = alpha * alpha;
+
+	float denom = (cosLh * cosLh) * (alphaSq - 1.0) + 1.0;
+	return alphaSq / (PI * denom * denom);
+}
+
+// Single term for separable Schlick-GGX below.
+float gaSchlickG1(float cosTheta, float k)
+{
+	return cosTheta / (cosTheta * (1.0 - k) + k);
+}
+
+// Schlick-GGX approximation of geometric attenuation function using Smith's method.
+float gaSchlickGGX(float cosLi, float NdotV, float roughness)
+{
+	float r = roughness + 1.0;
+	float k = (r * r) / 8.0; // Epic suggests using this roughness remapping for analytic lights.
+	return gaSchlickG1(cosLi, k) * gaSchlickG1(NdotV, k);
+}
+
+float GeometrySchlickGGX(float NdotV, float roughness)
+{
+    float r = (roughness + 1.0);
+    float k = (r*r) / 8.0;
+
+    float nom   = NdotV;
+    float denom = NdotV * (1.0 - k) + k;
+
+    return nom / denom;
+}
+
+float GeometrySmith(vec3 N, vec3 V, vec3 L, float roughness)
+{
+    float NdotV = max(dot(N, V), 0.0);
+    float NdotL = max(dot(N, L), 0.0);
+    float ggx2 = GeometrySchlickGGX(NdotV, roughness);
+    float ggx1 = GeometrySchlickGGX(NdotL, roughness);
+
+    return ggx1 * ggx2;
+}
+
+// Shlick's approximation of the Fresnel factor.
+vec3 fresnelSchlick(vec3 F0, float cosTheta)
+{
+	return F0 + (1.0 - F0) * pow(1.0 - cosTheta, 5.0);
+}
+
+vec3 fresnelSchlickRoughness(vec3 F0, float cosTheta, float roughness)
+{
+    return F0 + (max(vec3(1.0 - roughness), F0) - F0) * pow(1.0 - cosTheta, 5.0);
+} 
+
+// ---------------------------------------------------------------------------------------------------
+// The following code (from Unreal Engine 4's paper) shows how to filter the environment map
+// for different roughnesses. This is mean to be computed offline and stored in cube map mips,
+// so turning this on online will cause poor performance
+float RadicalInverse_VdC(uint bits) 
+{
+    bits = (bits << 16u) | (bits >> 16u);
+    bits = ((bits & 0x55555555u) << 1u) | ((bits & 0xAAAAAAAAu) >> 1u);
+    bits = ((bits & 0x33333333u) << 2u) | ((bits & 0xCCCCCCCCu) >> 2u);
+    bits = ((bits & 0x0F0F0F0Fu) << 4u) | ((bits & 0xF0F0F0F0u) >> 4u);
+    bits = ((bits & 0x00FF00FFu) << 8u) | ((bits & 0xFF00FF00u) >> 8u);
+    return float(bits) * 2.3283064365386963e-10; // / 0x100000000
+}
+
+vec2 Hammersley(uint i, uint N)
+{
+    return vec2(float(i)/float(N), RadicalInverse_VdC(i));
+}
+
+vec3 ImportanceSampleGGX(vec2 Xi, float Roughness, vec3 N)
+{
+	float a = Roughness * Roughness;
+	float Phi = 2 * PI * Xi.x;
+	float CosTheta = sqrt( (1 - Xi.y) / ( 1 + (a*a - 1) * Xi.y ) );
+	float SinTheta = sqrt( 1 - CosTheta * CosTheta );
+	vec3 H;
+	H.x = SinTheta * cos( Phi );
+	H.y = SinTheta * sin( Phi );
+	H.z = CosTheta;
+	vec3 UpVector = abs(N.z) < 0.999 ? vec3(0,0,1) : vec3(1,0,0);
+	vec3 TangentX = normalize( cross( UpVector, N ) );
+	vec3 TangentY = cross( N, TangentX );
+	// Tangent to world space
+	return TangentX * H.x + TangentY * H.y + N * H.z;
+}
+
+float TotalWeight = 0.0;
+
+vec3 RotateVectorAboutY(float angle, vec3 vec)
+{
+    angle = radians(angle);
+    mat3x3 rotationMatrix ={vec3(cos(angle),0.0,sin(angle)),
+                            vec3(0.0,1.0,0.0),
+                            vec3(-sin(angle),0.0,cos(angle))};
+    return rotationMatrix * vec;
+}
+
+vec3 Lighting(vec3 F0, float shadow, vec3 wsPos)
+{
+	vec3 result = vec3(0.0);
+
+	for(int i = 0; i < ubo.lightCount; i++)
+	{
+		Light light = ubo.lights[i];
+
+		float value = shadow;
+
+		if(light.type > 0.0)
+		{
+		    // Vector to light
+			vec3 L = light.position.xyz - wsPos;
+			// Distance from light to fragment position
+			float dist = length(L);
+		
+			// Light to fragment
+			L = normalize(L);
+
+			// Attenuation
+			float atten = light.radius / (pow(dist, 2.0) + 1.0);
+			
+			value = atten;
+
+			light.direction = vec4(L,1.0);
+		}
+
+		vec3 Li = light.direction.xyz;
+		vec3 Lradiance = light.colour.xyz;
+		vec3 Lh = normalize(Li + material.View);
+
+		// Calculate angles between surface normal and various light vectors.
+		float cosLi = max(0.0, dot(material.Normal, Li));
+		float cosLh = max(0.0, dot(material.Normal, Lh));
+
+		vec3 F = fresnelSchlick(F0, max(0.0, dot(Lh, material.View)));
+		float D = ndfGGX(cosLh, material.Roughness);
+		float G = gaSchlickGGX(cosLi, material.NDotV, material.Roughness);
+
+		vec3 kd = (1.0 - F) * (1.0 - material.Roughness);
+		vec3 diffuseBRDF = kd * material.Albedo.xyz;
+
+		// Cook-Torrance
+		vec3 specularBRDF = (F * D * G) / max(Epsilon, 4.0 * cosLi * material.NDotV);
+
+		result += (diffuseBRDF + specularBRDF) * Lradiance * cosLi * value * light.intensity;
+	}
+	return result;
+}
+
+vec3 IBL(vec3 F0, vec3 Lr)
+{
+	vec3 irradiance = texture(uEnvironmentMap, material.Normal).rgb;
+	vec3 F = fresnelSchlickRoughness(F0, material.NDotV, material.Roughness);
+	vec3 kd = (1.0 - F) * (1.0 - material.Specular);
+	vec3 diffuseIBL = material.Albedo.xyz * irradiance;
+
+	int u_EnvRadianceTexLevels = textureQueryLevels(uEnvironmentMap);
+	float NoV = clamp(material.NDotV, 0.0, 1.0);
+	vec3 R = 2.0 * dot(material.View, material.Normal) * material.Normal - material.View;
+	vec3 specularIrradiance = vec3(0.0);
+
+	float u_RadiancePrefilter = 0.5;
+	//if (0.0 > 0.5)
+	//	specularIrradiance = PrefilterEnvMap(material.Specular * material.Roughness, R) * u_RadiancePrefilter;
+	//else
+		specularIrradiance = textureLod(uEnvironmentMap, RotateVectorAboutY(0.0, Lr), sqrt(material.Roughness) * u_EnvRadianceTexLevels).rgb * (1.0 - u_RadiancePrefilter);
+
+	// Sample BRDF Lut, 1.0 - roughness for y-coord because texture was generated (in Sparky) for gloss model
+	vec2 specularBRDF = texture(uPreintegratedFG, vec2(material.NDotV, 1.0 - material.Roughness.x)).rg;
+	vec3 specularIBL = specularIrradiance * (F * specularBRDF.x + specularBRDF.y);
+
+	return kd * diffuseIBL + specularIBL;
+}
 
 vec3 FinalGamma(vec3 color)
 {
@@ -61,92 +250,6 @@ vec3 FinalGamma(vec3 color)
 vec3 GammaCorrectTextureRGB(vec3 texCol)
 {
 	return vec3(pow(texCol.rgb, vec3(GAMMA)));
-}
-
-float FresnelSchlick(float f0, float fd90, float view)
-{
-	return f0 + (fd90 - f0) * pow(max(1.0 - view, 0.1), 5.0);
-}
-
-float Disney(Light light, Material material, vec3 eye)
-{
-	vec3 halfVector = normalize(light.direction.xyz + eye);
-
-	float NdotL = max(dot(material.normal, light.direction.xyz), 0.0);
-	float LdotH = max(dot(light.direction.xyz, halfVector), 0.0);
-	float NdotV = max(dot(material.normal, eye), 0.0);
-
-	float energyBias = mix(0.0, 0.5, material.roughness);
-	float energyFactor = mix(1.0, 1.0 / 1.51, material.roughness);
-	float fd90 = energyBias + 2.0 * (LdotH * LdotH) * material.roughness;
-	float f0 = 1.0;
-
-	float lightScatter = FresnelSchlick(f0, fd90, NdotL);
-	float viewScatter = FresnelSchlick(f0, fd90, NdotV);
-
-	return lightScatter * viewScatter * energyFactor;
-}
-
-vec3 GGX(Light light, Material material, vec3 eye)
-{
-	vec3 h = normalize(light.direction.xyz + eye);
-	float NdotH = max(dot(material.normal, h), 0.0);
-
-	float rough2 = max(material.roughness * material.roughness, 2.0e-3); // capped so spec highlights doesn't disappear
-	float rough4 = rough2 * rough2;
-
-	float d = (NdotH * rough4 - NdotH) * NdotH + 1.0;
-	float D = rough4 / (PI * (d * d));
-
-	// Fresnel
-	vec3 reflectivity = material.specular;
-	float fresnel = 1.0;
-	float NdotL = clamp(dot(material.normal, light.direction.xyz), 0.0, 1.0);
-	float LdotH = clamp(dot(light.direction.xyz, h), 0.0, 1.0);
-	float NdotV = clamp(dot(material.normal, eye), 0.0, 1.0);
-	vec3 F = reflectivity + (fresnel - fresnel * reflectivity) * exp2((-5.55473 * LdotH - 6.98316) * LdotH);
-
-	// geometric / visibility
-	float k = rough2 * 0.5;
-	float G_SmithL = NdotL * (1.0 - k) + k;
-	float G_SmithV = NdotV * (1.0 - k) + k;
-	float G = 0.25 / (G_SmithL * G_SmithV);
-
-	return G * D * F;
-}
-
-vec3 RadianceIBLIntegration(float NdotV, float roughness, vec3 specular)
-{
-	vec2 preintegratedFG = texture(uPreintegratedFG, vec2(roughness, 1.0 - NdotV)).rg;
-	return specular * preintegratedFG.r + preintegratedFG.g;
-}
-
-vec3 IBL(Material material, vec3 eye)
-{
-	float NdotV = max(dot(material.normal, eye), 0.0);
-
-	vec3 reflectionVector = normalize(reflect(-eye, material.normal));
-	float smoothness = 1.0 - material.roughness;
-	float mipLevel = (1.0 - smoothness * smoothness) * 10.0;
-	vec4 cs = textureLod(uEnvironmentMap, reflectionVector, mipLevel);
-	vec3 result = pow(cs.xyz, vec3(GAMMA)) * RadianceIBLIntegration(NdotV, material.roughness, material.specular);
-
-	vec3 diffuseDominantDirection = material.normal;
-	float diffuseLowMip = 9.6;
-	vec3 diffuseImageLighting = textureLod(uEnvironmentMap, diffuseDominantDirection, diffuseLowMip).rgb;
-	diffuseImageLighting = pow(diffuseImageLighting, vec3(GAMMA));
-
-	return result + diffuseImageLighting * material.albedo.rgb;
-}
-
-float Diffuse(Light light, Material material, vec3 eye)
-{
-	return Disney(light, material, eye);
-}
-
-vec3 Specular(Light light, Material material, vec3 eye)
-{
-	return GGX(light, material, eye);
 }
 
 float Attentuate( vec3 lightData, float dist )
@@ -222,12 +325,14 @@ void main()
 	vec3 normal		= normalize(normalTex.xyz);
     vec3 finalColour;
 
-    Material material;
-    material.albedo    = colourTex;
-    material.specular  = spec;
-    material.roughness = roughness;
-    material.normal    = normal;
-	material.ao		   = pbrTex.z;
+    material.Albedo    = colourTex;
+    material.Specular  = spec;
+    material.Roughness = max(roughness, 0.05);
+    material.Normal    = normal;
+	material.AO		   = pbrTex.z;
+	material.Emissive  = emissive;
+	material.View 	   = normalize(ubo.cameraPosition.xyz - wsPos);
+	material.NDotV 	   = max(dot(material.Normal, material.View), 0.0);
 
     vec3 eye      = normalize(ubo.cameraPosition.xyz - wsPos);
     vec4 diffuse  = vec4(0.0);
@@ -253,40 +358,22 @@ void main()
     else
         shadow = filterPCF(shadowCoord / shadowCoord.w, cascadeIndex);
 
-	for(int i = 0; i < ubo.lightCount; ++i)
-	{
-		Light light = ubo.lights[i];
-
-		float value = shadow;
-		if(light.type > 0.0)
-		{
-		    // Vector to light
-			vec3 L = light.position.xyz - wsPos;
-			// Distance from light to fragment position
-			float dist = length(L);
-		
-			// Light to fragment
-			L = normalize(L);
-
-			// Attenuation
-			float atten = light.radius / (pow(dist, 2.0) + 1.0);
-			
-			value = atten;
-
-			light.direction = vec4(L,1.0);
-		}
-
-		float NdotL = clamp(dot(material.normal, light.direction.xyz), 0.0, 1.0)  * value  * material.ao;
-		diffuse  += NdotL * Diffuse(light, material, eye) * light.colour * light.intensity;
-		specular += NdotL * Specular(light, material, eye) * light.colour.xyz * light.intensity;
-	}
-  
     //finalColour = material.albedo.xyz * diffuse.rgb + specular;
-    finalColour = material.albedo.xyz * diffuse.rgb + (specular + IBL(material, eye));
+    //finalColour = material.albedo.xyz * diffuse.rgb + (specular + IBL(material, eye));
 
-	finalColour += emissive;
-	finalColour = FinalGamma(finalColour);
-	outColor = vec4(finalColour, 1.0);
+	//finalColour += emissive;
+	//finalColour = FinalGamma(finalColour);
+	//outColor = diffuse;//vec4(finalColour, 1.0);
+
+	vec3 Lr = 2.0 * material.NDotV * material.Normal - material.View;
+
+	// Fresnel reflectance, metals use albedo
+	vec3 F0 = mix(Fdielectric, material.Albedo.xyz, material.Roughness);
+
+	vec3 lightContribution = Lighting(F0, shadow, wsPos);
+	vec3 iblContribution = IBL(F0, Lr);
+
+	outColor = vec4(lightContribution + iblContribution, 1.0);
 
 	if(ubo.mode > 0)
 	{
@@ -296,13 +383,13 @@ void main()
 				outColor = colourTex;
 				break;
 			case 2:
-				outColor = vec4(material.specular, 1.0);
+				outColor = vec4(material.Specular, 1.0);
 				break;
 			case 3:
-				outColor = vec4(material.roughness, material.roughness, material.roughness,1.0);
+				outColor = vec4(material.Roughness, material.Roughness, material.Roughness,1.0);
 				break;
 			case 4:
-				outColor = vec4(material.ao, material.ao, material.ao, 1.0);
+				outColor = vec4(material.AO, material.AO, material.AO, 1.0);
 				break;
 			case 5:
 				outColor = vec4(emissive, 1.0);
