@@ -23,7 +23,6 @@
 #include "Graphics/API/Texture.h"
 #include "Graphics/API/GraphicsContext.h"
 
-#include <imgui/imgui.h>
 #include <imgui/imgui_internal.h>
 #include <imgui/plugins/ImGuizmo.h>
 #include <IconFontCppHeaders/IconsFontAwesome5.h>
@@ -137,6 +136,12 @@ namespace Lumos
         if (node == nullptr)
             return;
         
+        if(m_HierarchyFilter.IsActive())
+        {
+            if(!m_HierarchyFilter.PassFilter((node->GetName().c_str())))
+               return;
+        }
+        
         bool noChildren = node->GetChildren().empty();
         
         ImGuiTreeNodeFlags nodeFlags = ((m_Selected == node) ? ImGuiTreeNodeFlags_Selected : 0);
@@ -193,6 +198,8 @@ namespace Lumos
 		auto flags = ImGuiWindowFlags_NoCollapse;
 		ImGui::Begin("Hierarchy", &m_ShowHierarchy, flags);
 		{
+            m_HierarchyFilter.Draw("Filter", -100.0f);
+            
 			if (ImGui::TreeNode("Application"))
 			{
 				auto systems = Application::Instance()->GetSystemManager();
