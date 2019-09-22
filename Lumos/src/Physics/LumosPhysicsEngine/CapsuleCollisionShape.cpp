@@ -20,15 +20,24 @@ namespace Lumos
 
 	Maths::Matrix3 CapsuleCollisionShape::BuildInverseInertia(float invMass) const
 	{
-		float i = 2.5f * invMass / (m_Radius * m_Radius); //SOLID
-		//float i = 1.5f * invMass * m_Radius * m_Radius; //HOLLOW
+        Maths::Vector3 halfExtents(m_Radius, m_Radius,m_Radius);
+        halfExtents.x += m_Height / 2.0f;
 
-		Maths::Matrix3 inertia;
-		inertia._11 = i;
-		inertia._22 = i;
-		inertia._33 = i;
+        float lx = 2.0f * (halfExtents[0]);
+        float ly = 2.0f * (halfExtents[1]);
+        float lz = 2.0f * (halfExtents[2]);
+        const float x2 = lx * lx;
+        const float y2 = ly * ly;
+        const float z2 = lz * lz;
+        const float scaledmass = (1.0f / invMass) * float(.08333333);
 
-		return inertia;
+        Maths::Matrix3 inertia;
+
+        inertia._11 = 1.0f / scaledmass * (y2 + z2);
+        inertia._22 = 1.0f / scaledmass * (x2 + z2);
+        inertia._33 = 1.0f / scaledmass * (x2 + y2);
+        
+        return inertia;
 	}
 
 	void CapsuleCollisionShape::GetCollisionAxes(const PhysicsObject3D* currentObject, std::vector<Maths::Vector3>* out_axes) const
