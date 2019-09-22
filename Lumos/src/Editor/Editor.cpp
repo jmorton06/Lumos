@@ -136,61 +136,75 @@ namespace Lumos
         if (node == nullptr)
             return;
         
+        bool show = true;
+        
         if(m_HierarchyFilter.IsActive())
         {
             if(!m_HierarchyFilter.PassFilter((node->GetName().c_str())))
-               return;
+            {
+                show = false;
+            }
         }
         
-        bool noChildren = node->GetChildren().empty();
-        
-        ImGuiTreeNodeFlags nodeFlags = ((m_Selected == node) ? ImGuiTreeNodeFlags_Selected : 0);
-        
-        nodeFlags |= ImGuiTreeNodeFlags_OpenOnArrow | ImGuiTreeNodeFlags_OpenOnDoubleClick;
-        
-        if(noChildren)
+        if(show)
         {
-            nodeFlags |= ImGuiTreeNodeFlags_Leaf;
-        }
-        
-		String icon(ICON_FA_CUBE);
-        bool nodeOpen = ImGui::TreeNodeEx(("##" + node->GetUUID()).c_str(), nodeFlags, (icon + " " + node->GetName()).c_str(), 0);
+            bool noChildren = node->GetChildren().empty();
+                  
+              ImGuiTreeNodeFlags nodeFlags = ((m_Selected == node) ? ImGuiTreeNodeFlags_Selected : 0);
+              
+              nodeFlags |= ImGuiTreeNodeFlags_OpenOnArrow | ImGuiTreeNodeFlags_OpenOnDoubleClick;
+              
+              if(noChildren)
+              {
+                  nodeFlags |= ImGuiTreeNodeFlags_Leaf;
+              }
+              
+              String icon(ICON_FA_CUBE);
+              bool nodeOpen = ImGui::TreeNodeEx(("##" + node->GetUUID()).c_str(), nodeFlags, (icon + " " + node->GetName()).c_str(), 0);
 
-		if (ImGui::BeginDragDropSource(ImGuiDragDropFlags_None))
-		{
-			auto ptr = node;
-			ImGui::SetDragDropPayload("Drag_Entity", &ptr, sizeof(Entity**));
-			ImGui::Text("Moving %s", node->GetName().c_str());
-			ImGui::EndDragDropSource();
-		}
+              if (ImGui::BeginDragDropSource(ImGuiDragDropFlags_None))
+              {
+                  auto ptr = node;
+                  ImGui::SetDragDropPayload("Drag_Entity", &ptr, sizeof(Entity**));
+                  ImGui::Text("Moving %s", node->GetName().c_str());
+                  ImGui::EndDragDropSource();
+              }
 
-		if (ImGui::BeginDragDropTarget())
-		{
-			if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("Drag_Entity"))
-			{
-				LUMOS_ASSERT(payload->DataSize == sizeof(Entity**), "Error ImGUI drag entity");
-				auto entity = *reinterpret_cast<Entity**>(payload->Data);
-				node->AddChild(entity);
+              if (ImGui::BeginDragDropTarget())
+              {
+                  if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("Drag_Entity"))
+                  {
+                      LUMOS_ASSERT(payload->DataSize == sizeof(Entity**), "Error ImGUI drag entity");
+                      auto entity = *reinterpret_cast<Entity**>(payload->Data);
+                      node->AddChild(entity);
 
-				if (m_Selected == entity)
-					m_Selected = nullptr;
-			}
-			ImGui::EndDragDropTarget();
-		}
+                      if (m_Selected == entity)
+                          m_Selected = nullptr;
+                  }
+                  ImGui::EndDragDropTarget();
+              }
 
-        if (ImGui::IsItemClicked())
-            m_Selected = node;
-        
-        if (nodeOpen == false)
-            return;
-        
-        for (auto child : node->GetChildren())
-        {
-            this->DrawNode(child);
-        }
-        
-        if(nodeOpen)
+              if (ImGui::IsItemClicked())
+                  m_Selected = node;
+              
+              if (nodeOpen == false)
+                  return;
+            
+            for (auto child : node->GetChildren())
+            {
+                this->DrawNode(child);
+            }
+            
             ImGui::TreePop();
+
+        }
+        else
+        {
+            for (auto child : node->GetChildren())
+            {
+                this->DrawNode(child);
+            }
+        }
     }
 
 	void Editor::DrawHierarchyWindow()
