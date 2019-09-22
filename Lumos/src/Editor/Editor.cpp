@@ -58,7 +58,7 @@ namespace Lumos
             DrawInspectorWindow();
         if(m_ShowGraphicsInfo)
             DrawGraphicsInfoWindow();
-        
+
         if(m_ShowProfiler)
         {
             Profiler::Instance()->OnImGui();
@@ -355,41 +355,47 @@ namespace Lumos
 
 	void Editor::BeginDockSpace(bool infoBar)
 	{
-		ImGuiViewport* viewport = ImGui::GetMainViewport();
+        static bool p_open = true;
+        static bool opt_fullscreen_persistant = true;
+        static ImGuiDockNodeFlags opt_flags = ImGuiDockNodeFlags_None;
+        bool opt_fullscreen = opt_fullscreen_persistant;
 
-		auto pos = viewport->Pos;
-		auto size = viewport->Size;
+        // We are using the ImGuiWindowFlags_NoDocking flag to make the parent window not dockable into,
+        // because it would be confusing to have two docking targets within each others.
+        ImGuiWindowFlags window_flags = ImGuiWindowFlags_MenuBar | ImGuiWindowFlags_NoDocking;
+        if (opt_fullscreen)
+        {
+            ImGuiViewport* viewport = ImGui::GetMainViewport();
 
-		if (infoBar)
-		{
-			const float infoBarSize = 20.0f;
-			pos.y += infoBarSize;
-			size.y -= infoBarSize;
-		}
-	
-		ImGui::SetNextWindowPos(pos);
-		ImGui::SetNextWindowSize(size);
-		ImGui::SetNextWindowViewport(viewport->ID);
-		ImGui::SetNextWindowBgAlpha(0.0f);
-		ImGui::PushStyleVar(ImGuiStyleVar_WindowRounding, 0.0f);
-		ImGui::PushStyleVar(ImGuiStyleVar_WindowBorderSize, 0.0f);
-		ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0.0f, 0.0f));
+            auto pos = viewport->Pos;
+            auto size = viewport->Size;
+    
+            if (infoBar)
+            {
+                const float infoBarSize = 24.0f;
+                pos.y += infoBarSize;
+                size.y -= infoBarSize;
+            }
+            
+            ImGui::SetNextWindowPos(pos);
+            ImGui::SetNextWindowSize(size);
+            ImGui::SetNextWindowViewport(viewport->ID);
+            ImGui::PushStyleVar(ImGuiStyleVar_WindowRounding, 0.0f);
+            ImGui::PushStyleVar(ImGuiStyleVar_WindowBorderSize, 0.0f);
+            window_flags |= ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove;
+            window_flags |= ImGuiWindowFlags_NoBringToFrontOnFocus | ImGuiWindowFlags_NoNavFocus;
+        }
+        
+        // When using ImGuiDockNodeFlags_PassthruDockspace, DockSpace() will render our background and handle the pass-thru hole, so we ask Begin() to not render a background.
+        if (opt_flags & ImGuiDockNodeFlags_DockSpace)
+            window_flags |= ImGuiWindowFlags_NoBackground;
 
-		auto windowFlags
-			= ImGuiWindowFlags_NoDocking
-			| ImGuiWindowFlags_NoBringToFrontOnFocus
-			| ImGuiWindowFlags_NoNavFocus
-			| ImGuiWindowFlags_NoTitleBar
-			| ImGuiWindowFlags_NoCollapse
-			| ImGuiWindowFlags_NoResize
-			| ImGuiWindowFlags_NoBackground
-			| ImGuiWindowFlags_NoMove
-        | ImGuiWindowFlags_MenuBar;
-			//| ImGuiDockNodeFlags_PassthruCentralNode;
+        ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0.0f, 0.0f));
+        ImGui::Begin("DockSpace Demo", &p_open, window_flags);
+        ImGui::PopStyleVar();
 
-		ImGui::Begin("DockSpace", nullptr, windowFlags);
-
-		ImGui::PopStyleVar(3);
+        if (opt_fullscreen)
+            ImGui::PopStyleVar(2);
 
 		if (ImGui::DockBuilderGetNode(ImGui::GetID("MyDockspace")) == nullptr)
 		{
@@ -417,9 +423,13 @@ namespace Lumos
 			ImGui::DockBuilderFinish(dockspace_id);
 		}
 		
-		ImGuiID dockspace_id = ImGui::GetID("MyDockspace");
-		ImGuiDockNodeFlags dockspace_flags = ImGuiDockNodeFlags_PassthruCentralNode;
-		ImGui::DockSpace(dockspace_id, ImVec2(0.0f, 0.0f), dockspace_flags);
+		  // Dockspace
+          ImGuiIO& io = ImGui::GetIO();
+          if (io.ConfigFlags & ImGuiConfigFlags_DockingEnable)
+          {
+              ImGuiID dockspace_id = ImGui::GetID("MyDockspace");
+              ImGui::DockSpace(dockspace_id, ImVec2(0.0f, 0.0f), opt_flags);
+          }
 	}
 
 	void Editor::EndDockSpace()
@@ -497,23 +507,25 @@ namespace Lumos
 			| ImGuiWindowFlags_NoTitleBar
 			| ImGuiWindowFlags_NoCollapse
 			| ImGuiWindowFlags_NoResize
-			| ImGuiWindowFlags_NoBackground
+            | ImGuiWindowFlags_NoScrollbar
+			//| ImGuiWindowFlags_NoBackground
 			| ImGuiWindowFlags_NoMove
-			| ImGuiWindowFlags_NoScrollWithMouse;
-		//| ImGuiWindowFlags_MenuBar;
+        | ImGuiWindowFlags_NoScrollWithMouse;
+            //| ImGuiWindowFlags_MenuBar;
 
 		ImGuiViewport* viewport = ImGui::GetMainViewport();
 
 		auto pos = viewport->Pos;
 		auto size = viewport->Size;
 
-		size.y = 20.0f;
+		size.y = 24.0f;
 		pos.y += 20.0f;
 		ImGui::SetNextWindowPos(pos);
 		ImGui::SetNextWindowSize(size);
 
 		ImGui::Begin("InfoBar", nullptr, windowFlags);
 		{
+            ImGui::Indent();
 			bool selected = false;
 			{
 				selected = m_ImGuizmoOperation == ImGuizmo::TRANSLATE;

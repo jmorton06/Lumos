@@ -266,6 +266,7 @@ namespace Lumos
 		style.FrameRounding = 1;
 		style.ScrollbarRounding = 1;
 		style.GrabRounding = 1;
+        style.WindowMinSize = ImVec2(10.0f,10.0f);
 
 #ifdef IMGUI_HAS_DOCK
 		style.TabBorderSize = 0.0f;
