@@ -1,5 +1,6 @@
 #pragma once
 #include "Maths/Vector2.h"
+#include <imgui/imgui.h>
 
 namespace Lumos
 {
@@ -57,6 +58,9 @@ namespace Lumos
         bool m_ShowInspector = true;
         bool m_ShowImGuiDemo = true;
         bool m_ShowProfiler = true;
+        
+        ImGuiTextFilter m_HierarchyFilter;
+
 
 		NONCOPYABLE(Editor)
 	};
