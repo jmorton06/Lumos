@@ -42,6 +42,8 @@ namespace Lumos
 #define HID_USAGE_GENERIC_KEYBOARD ((USHORT)0x06)
 #endif
 
+	static ImGuiMouseCursor g_LastMouseCursor = ImGuiMouseCursor_COUNT;
+
 	WindowsWindow::WindowsWindow(const WindowProperties& properties) : hWnd(nullptr)
 	{
 		m_Init = false;
@@ -382,6 +384,43 @@ namespace Lumos
 			result = DefWindowProc(hWnd, message, wParam, lParam);
 		}
 		return result;
+	}
+
+	void WindowsWindow::UpdateCursorImGui()
+	{
+		ImGuiIO& io = ImGui::GetIO();
+		if (io.ConfigFlags & ImGuiConfigFlags_NoMouseCursorChange)
+			return;
+
+		ImGuiMouseCursor imgui_cursor = io.MouseDrawCursor ? ImGuiMouseCursor_None : ImGui::GetMouseCursor();
+		if (g_LastMouseCursor != imgui_cursor)
+		{
+			g_LastMouseCursor = imgui_cursor;
+
+			if (imgui_cursor == ImGuiMouseCursor_None || io.MouseDrawCursor)
+			{
+				// Hide OS mouse cursor if imgui is drawing it or if it wants no cursor
+				::SetCursor(NULL);
+			}
+			else
+			{
+				// Show OS mouse cursor
+				LPTSTR win32_cursor = IDC_ARROW;
+				switch (imgui_cursor)
+				{
+				case ImGuiMouseCursor_Arrow:        win32_cursor = IDC_ARROW; break;
+				case ImGuiMouseCursor_TextInput:    win32_cursor = IDC_IBEAM; break;
+				case ImGuiMouseCursor_ResizeAll:    win32_cursor = IDC_SIZEALL; break;
+				case ImGuiMouseCursor_ResizeEW:     win32_cursor = IDC_SIZEWE; break;
+				case ImGuiMouseCursor_ResizeNS:     win32_cursor = IDC_SIZENS; break;
+				case ImGuiMouseCursor_ResizeNESW:   win32_cursor = IDC_SIZENESW; break;
+				case ImGuiMouseCursor_ResizeNWSE:   win32_cursor = IDC_SIZENWSE; break;
+				case ImGuiMouseCursor_Hand:         win32_cursor = IDC_HAND; break;
+				}
+				::SetCursor(::LoadCursor(NULL, win32_cursor));
+			}
+		}
+
 	}
 
 	void WindowsWindow::MakeDefault()
