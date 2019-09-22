@@ -17,6 +17,8 @@
 #include "Maths/MathsUtilities.h"
 #include "Events/ApplicationEvent.h"
 
+#include <imgui/imgui.h>
+
 extern "C"
 {
     __declspec(dllexport) DWORD NvOptimusEnablement = 0x00000001;
