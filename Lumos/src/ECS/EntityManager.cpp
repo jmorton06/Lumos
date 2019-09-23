@@ -131,10 +131,21 @@ namespace Lumos
         ImGui::SameLine();
         if (ImGui::Button(ICON_FA_PLUS))
         {
-            if (ImGui::BeginPopup("item context menu", 3))
-            {
-                ImGui::EndPopup();
-            }
+            ImGui::OpenPopup("Add Component");
+        }
+        
+        if (ImGui::BeginPopup("Add Component", 3))
+        {
+            if (ImGui::Selectable("Mesh")) this->AddComponent<MeshComponent>();
+            if (ImGui::Selectable("Material")) this->AddComponent<MaterialComponent>();
+            if (ImGui::Selectable("Camera")) this->AddComponent<CameraComponent>();
+            if (ImGui::Selectable("Sprite")) this->AddComponent<SpriteComponent>();
+            if (ImGui::Selectable("Light")) this->AddComponent<LightComponent>();
+            if (ImGui::Selectable("Sound")) this->AddComponent<SoundComponent>();
+            if (ImGui::Selectable("Physics2D")) this->AddComponent<Physics2DComponent>();
+            if (ImGui::Selectable("Physics3D")) this->AddComponent<Physics3DComponent>();
+
+            ImGui::EndPopup();
         }
         ImGui::SameLine();
         
