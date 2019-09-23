@@ -14,7 +14,7 @@ namespace Lumos
     }
     
     MaterialComponent::MaterialComponent(Ref<Material>& material)
-    : m_Material(material)
+        : m_Material(material)
     {
 		m_Name = "Material";
     }
@@ -25,8 +25,6 @@ namespace Lumos
     
     void MaterialComponent::OnImGui()
     {
-		ImGui::Separator();
-
 		if (m_Material)
 		{
 			m_Material->OnImGui();

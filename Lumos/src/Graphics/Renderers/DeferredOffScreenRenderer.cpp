@@ -162,7 +162,7 @@ namespace Lumos
 				if (obj != nullptr)
 				{
 					auto* model = obj->GetComponent<MeshComponent>();
-					if (model && model->GetMesh())
+					if (model && model->GetActive() && model->GetMesh())
 					{
 						auto mesh = model->GetMesh();
 						auto materialComponent = obj->GetComponent<MaterialComponent>();
