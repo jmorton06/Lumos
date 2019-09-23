@@ -6,8 +6,9 @@
 namespace Lumos
 {
     ProfilerRecord::ProfilerRecord(const String& name)
-    : m_Name(name)
+        : m_Name(name)
     {
+        m_EndTime = 0.0f;
         m_Timer = CreateScope<Timer>();
     }
     
@@ -22,6 +23,7 @@ namespace Lumos
         m_Timer = CreateScope<Timer>();
         m_UpdateTimer = 0.0f;
         m_UpdateFrequency = 0.1f;
+        m_ElapsedFrames = 0;
         m_Enabled = false;
     }
     
