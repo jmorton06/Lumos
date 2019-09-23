@@ -174,15 +174,52 @@ namespace Lumos
         for (auto& component : components)
         {
             ImGui::Separator();
-            bool open = ImGui::CollapsingHeader(component->GetName().c_str());
+            bool open = ImGui::CollapsingHeader(component->GetName().c_str(), ImGuiTreeNodeFlags_AllowOverlapMode);
             
             if (open)
             {
                 if (component->GetCanDisable())
                 {
                     ImGui::Checkbox("Active", &component->GetActive());
+                    
+                    ImGui::SameLine();
+                    const float ItemSpacing = ImGui::GetStyle().ItemSpacing.x;
+
+                    static float HostButtonWidth = 18.0f;
+                    float pos = HostButtonWidth + ItemSpacing;
+                    ImGui::SameLine(ImGui::GetWindowWidth() - pos);
+                    if(ImGui::Button("..."))
+                       ImGui::OpenPopup("Remove Component");
+                   
+                   if(ImGui::BeginPopup("Remove Component", 3))
+                   {
+                       if (ImGui::Selectable("Remove")) this->RemoveComponent<MeshComponent>();
+                       ImGui::EndPopup();
+                   }
                 }
                 component->OnImGui();
+            }
+            else
+            {
+                if (component->GetCanDisable())
+                {
+                    const float ItemSpacing = ImGui::GetStyle().ItemSpacing.x;
+
+                    static float HostButtonWidth = 40.0f;
+                    float pos = HostButtonWidth + ItemSpacing;
+                    ImGui::SameLine(ImGui::GetWindowWidth() - pos);
+                    ImGui::Checkbox("##Active", &component->GetActive());
+                    ImGui::SameLine();
+
+                    if(ImGui::Button("..."))
+                        ImGui::OpenPopup("Remove Component");
+                    
+                    if(ImGui::BeginPopup("Remove Component", 3))
+                    {
+                        if (ImGui::Selectable("Remove")) this->RemoveComponent<MeshComponent>();
+                        ImGui::EndPopup();
+                    }
+                }
             }
         }
     }
