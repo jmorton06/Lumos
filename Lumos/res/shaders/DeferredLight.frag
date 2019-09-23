@@ -117,7 +117,7 @@ vec3 fresnelSchlick(vec3 F0, float cosTheta)
 vec3 fresnelSchlickRoughness(vec3 F0, float cosTheta, float roughness)
 {
     return F0 + (max(vec3(1.0 - roughness), F0) - F0) * pow(1.0 - cosTheta, 5.0);
-} 
+}
 
 // ---------------------------------------------------------------------------------------------------
 // The following code (from Unreal Engine 4's paper) shows how to filter the environment map
@@ -182,13 +182,13 @@ vec3 Lighting(vec3 F0, float shadow, vec3 wsPos)
 			vec3 L = light.position.xyz - wsPos;
 			// Distance from light to fragment position
 			float dist = length(L);
-		
+
 			// Light to fragment
 			L = normalize(L);
 
 			// Attenuation
 			float atten = light.radius / (pow(dist, 2.0) + 1.0);
-			
+
 			value = atten;
 
 			light.direction = vec4(L,1.0);
@@ -206,7 +206,7 @@ vec3 Lighting(vec3 F0, float shadow, vec3 wsPos)
 		float D = ndfGGX(cosLh, material.Roughness);
 		float G = gaSchlickGGX(cosLi, material.NDotV, material.Roughness);
 
-		vec3 kd = (1.0 - F) * (1.0 - material.Roughness);
+		vec3 kd = (1.0 - F) * (1.0 - material.Specular.x);
 		vec3 diffuseBRDF = kd * material.Albedo.xyz;
 
 		// Cook-Torrance
@@ -221,7 +221,7 @@ vec3 IBL(vec3 F0, vec3 Lr)
 {
 	vec3 irradiance = texture(uEnvironmentMap, material.Normal).rgb;
 	vec3 F = fresnelSchlickRoughness(F0, material.NDotV, material.Roughness);
-	vec3 kd = (1.0 - F) * (1.0 - material.Specular);
+	vec3 kd = (1.0 - F) * (1.0 - material.Specular.x);
 	vec3 diffuseIBL = material.Albedo.xyz * irradiance;
 
 	int u_EnvRadianceTexLevels = textureQueryLevels(uEnvironmentMap);
@@ -240,6 +240,30 @@ vec3 IBL(vec3 F0, vec3 Lr)
 	vec3 specularIBL = specularIrradiance * (F * specularBRDF.x + specularBRDF.y);
 
 	return kd * diffuseIBL + specularIBL;
+}
+
+vec3 RadianceIBLIntegration(float NdotV, float roughness, vec3 specular)
+{
+	vec2 preintegratedFG = texture(uPreintegratedFG, vec2(roughness, 1.0 - NdotV)).rg;
+	return specular * preintegratedFG.r + preintegratedFG.g;
+}
+
+vec3 IBL(Material material, vec3 eye)
+{
+	float NdotV = max(dot(material.Normal, eye), 0.0);
+
+	vec3 reflectionVector = normalize(reflect(-eye, material.Normal));
+	float smoothness = 1.0 - material.Roughness;
+	float mipLevel = (1.0 - smoothness * smoothness) * 10.0;
+	vec4 cs = textureLod(uEnvironmentMap, reflectionVector, mipLevel);
+	vec3 result = pow(cs.xyz, vec3(GAMMA)) * RadianceIBLIntegration(NdotV, material.Roughness, material.Specular);
+
+	vec3 diffuseDominantDirection = material.Normal;
+	float diffuseLowMip = 9.6;
+	vec3 diffuseImageLighting = textureLod(uEnvironmentMap, diffuseDominantDirection, diffuseLowMip).rgb;
+	diffuseImageLighting = pow(diffuseImageLighting, vec3(GAMMA));
+
+	return result + diffuseImageLighting * material.Albedo.rgb;
 }
 
 vec3 FinalGamma(vec3 color)
@@ -304,6 +328,36 @@ float filterPCF(vec4 sc, int cascadeIndex)
 	return shadowFactor / count;
 }
 
+int CalculateCascadeIndex(vec3 wsPos)
+{
+	int cascadeIndex = 0;
+	vec4 viewPos = ubo.viewMatrix * vec4(wsPos, 1.0);
+
+	for(int i = 0; i < ubo.shadowCount - 1; ++i)
+	{
+		if(viewPos.z < ubo.uSplitDepths[i].x)
+		{
+			cascadeIndex = i + 1;
+		}
+	}
+
+	return cascadeIndex;
+}
+
+float CalculateShadow(vec3 wsPos, int cascadeIndex)
+{
+	vec4 shadowCoord = (biasMat * ubo.uShadowTransform[cascadeIndex]) * vec4(wsPos, 1.0);
+
+    float shadow = 0;
+
+    if(ubo.shadowMode == 0)
+        shadow = textureProj(shadowCoord / shadowCoord.w, vec2(0.0f), cascadeIndex);
+    else
+        shadow = filterPCF(shadowCoord / shadowCoord.w, cascadeIndex);
+
+	return shadow;
+}
+
 layout(location = 0) out vec4 outColor;
 
 void main()
@@ -338,42 +392,19 @@ void main()
     vec4 diffuse  = vec4(0.0);
     vec3 specular = vec3(0.0);
 
-	int cascadeIndex = 0;
-	vec4 viewPos = ubo.viewMatrix * vec4(wsPos, 1.0);
-
-	for(int i = 0; i < ubo.shadowCount - 1; ++i)
-	{
-		if(viewPos.z < ubo.uSplitDepths[i].x)
-		{
-			cascadeIndex = i + 1;
-		}
-	}
-	
-	vec4 shadowCoord = (biasMat * ubo.uShadowTransform[cascadeIndex]) * vec4(wsPos, 1.0);
-
-    float shadow = 0;
-    
-    if(ubo.shadowMode == 0)
-        shadow = textureProj(shadowCoord / shadowCoord.w, vec2(0.0f), cascadeIndex);
-    else
-        shadow = filterPCF(shadowCoord / shadowCoord.w, cascadeIndex);
-
-    //finalColour = material.albedo.xyz * diffuse.rgb + specular;
-    //finalColour = material.albedo.xyz * diffuse.rgb + (specular + IBL(material, eye));
-
-	//finalColour += emissive;
-	//finalColour = FinalGamma(finalColour);
-	//outColor = diffuse;//vec4(finalColour, 1.0);
+	int cascadeIndex = CalculateCascadeIndex(wsPos);
+	float shadow = CalculateShadow(wsPos,cascadeIndex);
 
 	vec3 Lr = 2.0 * material.NDotV * material.Normal - material.View;
 
 	// Fresnel reflectance, metals use albedo
-	vec3 F0 = mix(Fdielectric, material.Albedo.xyz, material.Roughness);
+	vec3 F0 = mix(Fdielectric, material.Albedo.xyz, material.Specular.x);
 
 	vec3 lightContribution = Lighting(F0, shadow, wsPos);
-	vec3 iblContribution = IBL(F0, Lr);
+	vec3 iblContribution = IBL(material, eye);//IBL(F0, Lr);
 
-	outColor = vec4(lightContribution + iblContribution, 1.0);
+	finalColour = FinalGamma(lightContribution + iblContribution + emissive);
+	outColor = vec4(finalColour, 1.0);
 
 	if(ubo.mode > 0)
 	{

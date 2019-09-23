@@ -58,6 +58,7 @@ namespace Lumos
         bool m_ShowInspector = true;
         bool m_ShowImGuiDemo = true;
         bool m_ShowProfiler = true;
+		bool m_ShowBoundingBox = true;
         
         ImGuiTextFilter m_HierarchyFilter;
 

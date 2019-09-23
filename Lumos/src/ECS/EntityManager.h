@@ -38,8 +38,6 @@ namespace Lumos
         void AddChild(Entity* child);
         void RemoveChild(Entity* child);
         
-        void  SetBoundingRadius(float radius) { m_BoundingRadius = radius; }
-        float GetBoundingRadius() const { return m_BoundingRadius; }
         u32& GetFrustumCullFlags() { return m_FrustumCullFlags; }
         
         TransformComponent* GetTransformComponent();
@@ -67,7 +65,6 @@ namespace Lumos
         NONCOPYABLE(Entity)
         
         String                  m_Name;
-        float                   m_BoundingRadius;
         String                  m_UUID;
         String                  m_PrefabFileLocation;
         bool                    m_Active;

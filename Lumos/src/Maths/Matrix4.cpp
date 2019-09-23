@@ -512,7 +512,7 @@ namespace Lumos
 			return m;
 		}
 
-		Matrix4 Matrix4::Orthographic(float znear, float zfar, float right, float left, float top, float bottom)
+		Matrix4 Matrix4::Orthographic(float left, float right, float bottom, float top, float znear, float zfar)
 		{
 			if(CONFIG_CLIP_CONTROL == CLIP_CONTROL_LH_ZO)
 				return OrthographicLH_ZO(znear, zfar, right, left, top, bottom);

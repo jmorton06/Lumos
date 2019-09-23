@@ -373,7 +373,7 @@ namespace Lumos
 				lightDir.Normalise();
 				Maths::Matrix4 lightViewMatrix = Maths::Matrix4::BuildViewMatrix(frustumCenter - lightDir * -minExtents.z, frustumCenter);
 
-				Maths::Matrix4 lightOrthoMatrix = Maths::Matrix4::Orthographic(-(maxExtents.z - minExtents.z), maxExtents.z - minExtents.z, maxExtents.x, minExtents.x, maxExtents.y, minExtents.y);
+				Maths::Matrix4 lightOrthoMatrix = Maths::Matrix4::Orthographic(minExtents.x, maxExtents.x, minExtents.y, maxExtents.y, -(maxExtents.z - minExtents.z), maxExtents.z - minExtents.z);
 
 				// Store split distance and matrix in cascade
 				m_SplitDepth[i] = Maths::Vector4((scene->GetCamera()->GetNear() + splitDist * clipRange) * -1.0f);

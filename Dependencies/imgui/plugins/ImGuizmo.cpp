@@ -1920,7 +1920,7 @@ namespace ImGuizmo
       }
    }
 
-   void DrawCube(const float *view, const float *projection, const float *matrix)
+   void DrawCube(const float *view, const float *projection, const float *matrix, bool filled)
    {
       matrix_t viewInverse;
       viewInverse.Inverse(*(matrix_t*)view);
@@ -1969,7 +1969,10 @@ namespace ImGuizmo
             continue;
 
          // draw face with lighter color
-         gContext.mDrawList->AddConvexPolyFilled(faceCoordsScreen, 4, directionColor[normalIndex] | 0x808080);
+         if(filled)
+            gContext.mDrawList->AddConvexPolyFilled(faceCoordsScreen, 4, directionColor[normalIndex] | 0x808080);
+         else
+            gContext.mDrawList->AddPolyline(faceCoordsScreen, 4, directionColor[normalIndex] | 0x808080, true, 2.0f);
       }
    }
 

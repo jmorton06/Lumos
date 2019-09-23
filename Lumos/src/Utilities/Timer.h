@@ -19,7 +19,7 @@ namespace Lumos
 		Timer() : m_Start(Now()), m_Frequency() { m_LastTime = m_Start; }
 		~Timer() = default;
 
-		float	GetTimedMS();
+		float GetTimedMS();
 
 		static TimeStamp Now();
 

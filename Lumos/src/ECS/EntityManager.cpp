@@ -14,8 +14,12 @@
 
 namespace Lumos
 {
-    Entity::Entity(EntityManager* manager, const String& name) : m_Name(name), m_Parent(nullptr), m_BoundingRadius(1),
-    m_FrustumCullFlags(0), m_Active(true), m_Manager(manager)
+    Entity::Entity(EntityManager* manager, const String& name) 
+		: m_Name(name), 
+		m_Parent(nullptr),
+		m_FrustumCullFlags(0),
+		m_Active(true), 
+		m_Manager(manager)
     {
         Init();
     }
@@ -105,6 +109,8 @@ namespace Lumos
         float delta[16];
         ImGuizmo::Manipulate(view.values, proj.values, static_cast<ImGuizmo::OPERATION>(mode), ImGuizmo::LOCAL, model.values, delta, nullptr);
         
+		//ImGuizmo::DrawCube(view.values, proj.values, (model * Maths::Matrix4::Scale(Maths::Vector3(m_BoundingRadius,m_BoundingRadius, m_BoundingRadius))).values, false);
+
         if (GetTransformComponent() != nullptr && ImGuizmo::IsUsing())
         {
             auto mat = Maths::Matrix4(delta) * m_DefaultTransformComponent->GetTransform()->GetLocalMatrix();

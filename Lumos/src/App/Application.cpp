@@ -254,7 +254,8 @@ namespace Lumos
 			m_SystemManager->OnUpdate(Engine::GetTimeStep(),m_SceneManager->GetCurrentScene());
 		}
 
-		m_LayerStack->OnUpdate(Engine::GetTimeStep(), m_SceneManager->GetCurrentScene());
+		if(!m_Minimized)
+			m_LayerStack->OnUpdate(Engine::GetTimeStep(), m_SceneManager->GetCurrentScene());
 	}
 
 	void Application::OnEvent(Event& e)

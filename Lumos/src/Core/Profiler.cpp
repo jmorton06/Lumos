@@ -13,7 +13,7 @@ namespace Lumos
     
     ProfilerRecord::~ProfilerRecord()
     {
-        m_EndTime = m_Timer->GetMS();
+        m_EndTime = m_Timer->GetTimedMS();
         Profiler::Instance()->Save(*this);
     }
     
@@ -113,7 +113,7 @@ namespace Lumos
         std::multimap<double, std::string> sortedHistory;
 
         for (auto& data : m_ElapsedHistory)
-            sortedHistory.insert(std::pair<double, std::string>(data.second, data.first));
+            sortedHistory.insert(std::pair<float, std::string>(data.second, data.first));
 
         for (auto& data : sortedHistory)
             report.actions.push_back({ data.second, data.first, (data.first / time), m_CallsCounter[data.second] });
@@ -127,7 +127,7 @@ namespace Lumos
         {
             ImGui::Checkbox("Profiler Enabled", &m_Enabled);
             ImGui::InputFloat("Update Frequency", &m_UpdateFrequency);
-            ImGui::Text("Report period duration : %lf ms", m_Report.elaspedTime);
+            ImGui::Text("Report period duration : %f ms", m_Report.elaspedTime);
             ImGui::Text("Threads : %i", m_Report.workingThreads);
             ImGui::Text("Frames : %i", m_Report.elapsedFrames);
             
@@ -159,7 +159,7 @@ namespace Lumos
                         else
                             colour = {0.8f,0.2f,0.2f,1.0f};
                         
-                        ImGui::TextColored(colour, "%s %lf ms | %f ms per call | %f percent | %llu calls", action.name.c_str(), action.duration, action.duration / action.calls, action.percentage, action.calls);
+                        ImGui::TextColored(colour, "%s %f ms | %f ms per call | %f percent | %llu calls", action.name.c_str(), action.duration, action.duration / action.calls, action.percentage, action.calls);
                     }
                 }
             }

@@ -40,6 +40,7 @@ namespace Lumos
 			delete m_UniformBufferFrag;
 			delete m_Pipeline;
 			delete m_RenderPass;
+			delete m_DescriptorSet;
 			delete[] m_VSSystemUniformBuffer;
 
 			for (auto& commandBuffer : m_CommandBuffers)
@@ -67,7 +68,7 @@ namespace Lumos
 			SetSystemUniforms(m_Shader);
 			m_Pipeline->SetActive(m_CommandBuffers[m_CurrentBufferID]);
 
-			std::vector<Graphics::DescriptorSet*> descriptorSets = { m_Pipeline->GetDescriptorSet() };
+			std::vector<Graphics::DescriptorSet*> descriptorSets = { m_Pipeline->GetDescriptorSet(), m_DescriptorSet };
 
 			m_Quad->GetVertexArray()->Bind(m_CommandBuffers[m_CurrentBufferID]);
 			m_Quad->GetIndexBuffer()->Bind(m_CommandBuffers[m_CurrentBufferID]);
@@ -93,7 +94,7 @@ namespace Lumos
 		void GridRenderer::Init()
 		{
 			m_Shader = Shader::CreateFromFile("Grid", "/CoreShaders/");
-			m_Quad = Graphics::CreatePlane(100.0f, 100.0f, Maths::Vector3(0.0f, 1.0f, 0.0f));
+			m_Quad = Graphics::CreatePlane(500.0f, 500.f, Maths::Vector3(0.0f, 1.0f, 0.0f));
 
 			// Vertex shader System uniforms
 			m_VSSystemUniformBufferSize = sizeof(Maths::Matrix4);
@@ -163,7 +164,6 @@ namespace Lumos
 			m_RenderPass->EndRenderpass(m_CommandBuffers[m_CurrentBufferID]);
 			m_CommandBuffers[m_CurrentBufferID]->EndRecording();
 
-
 			if (m_RenderTexture)
 				m_CommandBuffers[m_CurrentBufferID]->Execute(true);
 		}
@@ -192,6 +192,7 @@ namespace Lumos
 		void GridRenderer::OnResize(u32 width, u32 height)
 		{
 			delete m_Pipeline;
+			delete m_DescriptorSet;
 
 			for (auto fbo : m_Framebuffers)
 				delete fbo;
@@ -218,7 +219,6 @@ namespace Lumos
 			std::vector<Graphics::DescriptorLayoutInfo> layoutInfo =
 			{
 				{ Graphics::DescriptorType::UNIFORM_BUFFER, Graphics::ShaderType::VERTEX, 0 }
-				
 			};
 
 			std::vector<Graphics::DescriptorLayoutInfo> layoutInfoFrag =
@@ -254,8 +254,8 @@ namespace Lumos
 			pipelineCI.numColorAttachments = 1;
 			pipelineCI.wireframeEnabled = false;
 			pipelineCI.cullMode = Graphics::CullMode::NONE;
-			pipelineCI.transparencyEnabled = false;
-			pipelineCI.depthBiasEnabled = false;
+			pipelineCI.transparencyEnabled = true;
+			pipelineCI.depthBiasEnabled = true;
 			pipelineCI.width = m_ScreenBufferWidth;
 			pipelineCI.height = m_ScreenBufferHeight;
 			pipelineCI.maxObjects = 1;
@@ -272,13 +272,6 @@ namespace Lumos
 				m_UniformBuffer->Init(bufferSize, nullptr);
 			}
 
-			if (m_UniformBufferFrag == nullptr)
-			{
-				m_UniformBufferFrag = Graphics::UniformBuffer::Create();
-				uint32_t bufferSize = static_cast<uint32_t>(sizeof(UniformBufferObjectFrag));
-				m_UniformBufferFrag->Init(bufferSize, nullptr);
-			}
-
 			std::vector<Graphics::BufferInfo> bufferInfos;
 
 			Graphics::BufferInfo bufferInfo = {};
@@ -292,6 +285,23 @@ namespace Lumos
 
 			bufferInfos.push_back(bufferInfo);
 
+			if (m_Pipeline != nullptr)
+				m_Pipeline->GetDescriptorSet()->Update(bufferInfos);
+
+			Graphics::DescriptorInfo info{};
+			info.pipeline = m_Pipeline;
+			info.layoutIndex = 1;
+			info.shader = m_Shader;
+			info.count = 1;
+			m_DescriptorSet = Graphics::DescriptorSet::Create(info);
+
+			if (m_UniformBufferFrag == nullptr)
+			{
+				m_UniformBufferFrag = Graphics::UniformBuffer::Create();
+				uint32_t bufferSize = static_cast<uint32_t>(sizeof(UniformBufferObjectFrag));
+				m_UniformBufferFrag->Init(bufferSize, nullptr);
+			}
+
 			Graphics::BufferInfo bufferInfo2 = {};
 			bufferInfo2.buffer = m_UniformBufferFrag;
 			bufferInfo2.offset = 0;
@@ -301,10 +311,9 @@ namespace Lumos
 			bufferInfo2.shaderType = ShaderType::FRAGMENT;
 			bufferInfo2.systemUniforms = true;
 
-			bufferInfos.push_back(bufferInfo2);
+			std::vector<Graphics::BufferInfo> bufferInfos2 = { bufferInfo2 };
 
-			if (m_Pipeline != nullptr)
-				m_Pipeline->GetDescriptorSet()->Update(bufferInfos);
+			m_DescriptorSet->Update(bufferInfos2);
 		}
 
 		void GridRenderer::SetRenderTarget(Texture* texture)

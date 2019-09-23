@@ -8,7 +8,7 @@ namespace Lumos
 	class LUMOS_EXPORT Camera2D : public Camera
 	{
 	public:
-		Camera2D(u32 width, u32 height, float scale);
+		Camera2D(float aspectRatio, float scale);
 		virtual ~Camera2D() override;
 
 		virtual void HandleMouse(float dt, float xpos, float ypos) override;
@@ -25,6 +25,7 @@ namespace Lumos
 
     private:
 		float m_Scale;
+		float m_AspectRatio;
 	};
 }
 

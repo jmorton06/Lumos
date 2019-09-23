@@ -189,6 +189,8 @@ namespace Lumos
 		io.KeyMap[ImGuiKey_X] = LUMOS_KEY_X;
 		io.KeyMap[ImGuiKey_Y] = LUMOS_KEY_Y;
 		io.KeyMap[ImGuiKey_Z] = LUMOS_KEY_Z;
+		io.KeyRepeatDelay = 400.0f;
+		io.KeyRepeatRate = 40.0f;
 	}
 
 	void ImGuiLayer::SetImGuiStyle()
