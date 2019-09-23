@@ -124,7 +124,7 @@ void main()
 		specular = tex.b;
 		roughness = tex.g;
 	}
-	
+
 	vec3 emissive   = GetEmissive();
 	float ao		= GetAO();
 

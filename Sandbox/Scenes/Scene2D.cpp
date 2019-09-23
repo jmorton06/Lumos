@@ -18,8 +18,7 @@ void Scene2D::OnInit()
 
 	Application::Instance()->GetSystem<LumosPhysicsEngine>()->SetPaused(true);
 
-	m_pCamera = new Camera2D(16, 9, 0.4f);
-    m_pCamera->SetPosition({-16.0f,5.0f,0.0f});
+	m_pCamera = new Camera2D(static_cast<float>(m_ScreenWidth) / static_cast<float>(m_ScreenHeight), 2.0f);
 
 	auto cameraEntity = EntityManager::Instance()->CreateEntity("Camera");
 	cameraEntity->AddComponent<CameraComponent>(m_pCamera);
@@ -65,12 +64,14 @@ void Scene2D::LoadSprites()
 		Lumos::Ref<Graphics::Texture2D>(Graphics::Texture2D::CreateFromFile("Test4", "/CoreTextures/water/waterDUDV.png"))
 	};
 
+	float scale = 0.1f;
+
 	for (int i = 0; i < 1000; i++)
 	{
 		auto testSprite = EntityManager::Instance()->CreateEntity("Sprite" + StringFormat::ToString(i));
 
-		Vector2 pos(RandomNumberGenerator32::Rand(-5.0f, 10.0f), RandomNumberGenerator32::Rand(-5.0f, 500.0f));
-		Vector2 size(RandomNumberGenerator32::Rand(1.0f, 3.0f), RandomNumberGenerator32::Rand(1.0f, 3.0f));
+		Vector2 pos(RandomNumberGenerator32::Rand(-5.0f * scale, 10.0f * scale), RandomNumberGenerator32::Rand(-5.0f * scale, 500.0f * scale));
+		Vector2 size(RandomNumberGenerator32::Rand(1.0f / 10.0f * scale, 3.0f* scale), RandomNumberGenerator32::Rand(1.0f * scale , 3.0f * scale));
 		int textureID = static_cast<int>(RandomNumberGenerator32::Rand(0.0f, 4.0f));
 		auto colour = Maths::Vector4(RandomNumberGenerator32::Rand(0.0f, 1.0f), RandomNumberGenerator32::Rand(0.0f, 1.0f), RandomNumberGenerator32::Rand(0.0f, 1.0f), 1.0f);
 		Lumos::Ref<Graphics::Sprite> sprite = Lumos::CreateRef<Graphics::Sprite>(textures[textureID], pos, size, colour);
@@ -93,18 +94,18 @@ void Scene2D::LoadSprites()
 
 	auto testSprite = EntityManager::Instance()->CreateEntity("SpriteTest");
 
-	Lumos::Ref<Graphics::Sprite> sprite = Lumos::CreateRef<Graphics::Sprite>(Maths::Vector2(-1.0f, 0.0f), Maths::Vector2(1.0f, 1.0f), Maths::Vector4(0.4f, 0.1f, 0.6f, 1.0f));
+	Lumos::Ref<Graphics::Sprite> sprite = Lumos::CreateRef<Graphics::Sprite>(Maths::Vector2(-2.0f, 0.0f), Maths::Vector2(1.0f, 1.0f), Maths::Vector4(0.4f, 0.1f, 0.6f, 1.0f));
 	testSprite->AddComponent<SpriteComponent>(sprite);
 	testSprite->AddComponent<TransformComponent>();
 
 	AddEntity(testSprite);
 
 	auto groundSprite = EntityManager::Instance()->CreateEntity("Ground");
-	Lumos::Ref<Graphics::Sprite> ground = Lumos::CreateRef<Graphics::Sprite>(Maths::Vector2(-25.0f, -5.0f), Maths::Vector2(50.0f, 10.0f), Maths::Vector4(0.4f, 0.1f, 0.6f, 1.0f));
+	Lumos::Ref<Graphics::Sprite> ground = Lumos::CreateRef<Graphics::Sprite>(Maths::Vector2(-25.0f * scale, -5.0f * scale), Maths::Vector2(50.0f * scale, 10.0f * scale), Maths::Vector4(0.4f, 0.1f, 0.6f, 1.0f));
 	groundSprite->AddComponent<SpriteComponent>(ground);
 	PhysicsObjectParamaters groundParams;
-	groundParams.position = Vector3(0.0f, -20.0f, 1.0f);
-	groundParams.scale = Vector3(25.0f, 5.0f, 1.0f);
+	groundParams.position = Vector3(0.0f, -20.0f  * scale, 1.0f);
+	groundParams.scale = Vector3(25.0f * scale, 5.0f * scale, 1.0f);
 	groundParams.shape = Shape::Square;
 	groundParams.isStatic = true;
 	Lumos::Ref<PhysicsObject2D> groundPhysics = Lumos::CreateRef<PhysicsObject2D>();

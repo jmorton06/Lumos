@@ -122,7 +122,7 @@ namespace Lumos
 			{
 				Entity* entity = list[i].target_obj;
 
-				if (!entity->ActiveInHierarchy() || !frustum.InsideFrustum(entity->GetComponent<TransformComponent>()->GetTransform()->GetWorldMatrix().GetPositionVector(), entity->GetBoundingRadius()))
+				if (!entity->ActiveInHierarchy())
 				{
 					entity->GetFrustumCullFlags() &= ~m_BitMask;
 				}

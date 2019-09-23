@@ -212,7 +212,8 @@ namespace Lumos
 		auto flags = ImGuiWindowFlags_NoCollapse;
 		ImGui::Begin("Hierarchy", &m_ShowHierarchy, flags);
 		{
-            m_HierarchyFilter.Draw("Filter", -100.0f);
+			ImGui::Indent();
+            m_HierarchyFilter.Draw("");
             
 			if (ImGui::TreeNode("Application"))
 			{
@@ -338,8 +339,8 @@ namespace Lumos
 
 		m_Application->m_SceneManager->GetCurrentScene()->GetCamera()->SetAspectRatio(static_cast<float>(ImGui::GetWindowSize().x) / static_cast<float>(ImGui::GetWindowSize().y));
 
-		auto width = static_cast<unsigned int>(ImGui::GetWindowContentRegionMax().x - ImGui::GetWindowContentRegionMin().x);
-		auto height = static_cast<unsigned int>(ImGui::GetWindowContentRegionMax().y - ImGui::GetWindowContentRegionMin().y + 20);
+		auto width = static_cast<unsigned int>(ImGui::GetWindowContentRegionMax().x - ImGui::GetWindowContentRegionMin().x + 2);
+		auto height = static_cast<unsigned int>(ImGui::GetWindowContentRegionMax().y - ImGui::GetWindowContentRegionMin().y + 22);
 
 		// Make pixel perfect
 		width -= (width % 2 != 0) ? 1 : 0;
@@ -364,7 +365,7 @@ namespace Lumos
 #endif
 
 			ImGuizmo::DrawGrid(view.values, proj.values, identityMatrix.values, m_GridSize);
-		}	
+		}
 
 		if (m_Selected)
 		{
@@ -412,7 +413,7 @@ namespace Lumos
             window_flags |= ImGuiWindowFlags_NoBackground;
 
         ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0.0f, 0.0f));
-        ImGui::Begin("DockSpace Demo", &p_open, window_flags);
+        ImGui::Begin("MyDockspace", &p_open, window_flags);
         ImGui::PopStyleVar();
 
         if (opt_fullscreen)
@@ -425,11 +426,11 @@ namespace Lumos
 			ImGui::DockBuilderAddNode(dockspace_id);
 			ImGui::DockBuilderSetNodeSize(dockspace_id, ImGui::GetIO().DisplaySize);
 
-			ImGuiID dock_main_id    = dockspace_id;
-			ImGuiID dock_id_bottom  = ImGui::DockBuilderSplitNode(dock_main_id, ImGuiDir_Down, 0.2f, nullptr, &dock_main_id);
-			ImGuiID dock_id_left    = ImGui::DockBuilderSplitNode(dock_main_id, ImGuiDir_Left, 0.2f, nullptr, &dock_main_id);
+			ImGuiID dock_main_id   = dockspace_id;
+			ImGuiID dock_id_bottom = ImGui::DockBuilderSplitNode(dock_main_id, ImGuiDir_Down, 0.2f, nullptr, &dock_main_id);
+			ImGuiID dock_id_left   = ImGui::DockBuilderSplitNode(dock_main_id, ImGuiDir_Left, 0.2f, nullptr, &dock_main_id);
             ImGuiID dock_id_right  = ImGui::DockBuilderSplitNode(dock_main_id, ImGuiDir_Right, 0.3f, nullptr, &dock_main_id);
-			ImGuiID dock_id_middle   = ImGui::DockBuilderSplitNode(dock_main_id, ImGuiDir_Right, 0.8f, nullptr, &dock_main_id);
+			ImGuiID dock_id_middle = ImGui::DockBuilderSplitNode(dock_main_id, ImGuiDir_Right, 0.8f, nullptr, &dock_main_id);
 
 			ImGui::DockBuilderDockWindow("Scene", dock_id_middle);
 			ImGui::DockBuilderDockWindow("Inspector", dock_id_right);
@@ -483,7 +484,7 @@ namespace Lumos
 
 		Maths::Vector3 worldMousePos = invProjView * Maths::Vector3(pointX, pointY, 0.0f);
 
-		m_Application->m_SceneManager->GetCurrentScene()->IterateEntities([&](Entity* entity)
+		/*m_Application->m_SceneManager->GetCurrentScene()->IterateEntities([&](Entity* entity)
 		{
 			auto boundingBox = entity->GetBoundingRadius();
 			Maths::BoundingSphere test(entity->GetTransformComponent()->GetTransform()->GetWorldPosition(), boundingBox);
@@ -492,7 +493,7 @@ namespace Lumos
 				m_Selected = entity;
 				return;
 			}
-		});
+		});*/
 	}
 
 	void Editor::OnInit()

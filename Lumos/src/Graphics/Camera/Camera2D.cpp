@@ -9,11 +9,11 @@
 
 namespace Lumos
 {
-    Camera2D::Camera2D(u32 width, u32 height, float scale) : Camera(45.0f, 0.0f, 1.0f, 1.0f)
-		, m_Scale(scale)
+    Camera2D::Camera2D(float aspectRatio, float scale) : Camera(45.0f, 0.0f, 1.0f, 1.0f)
+		, m_Scale(scale), m_AspectRatio(aspectRatio)
 	{
 		Application::Instance()->GetWindow()->HideMouse(false);
-		m_ProjMatrix = Maths::Matrix4::Orthographic(-1.0f, 1.0f, static_cast<float>(width), 0.0f, static_cast<float>(height), 0.0f);
+		m_ProjMatrix = Maths::Matrix4::Orthographic(-m_AspectRatio * m_Scale, m_AspectRatio * m_Scale, -m_Scale, m_Scale, -1.0f, 1.0f);
 		m_Position = Maths::Vector3(0.0f);
 		m_Velocity = Maths::Vector3(0.0f);
 
@@ -32,7 +32,7 @@ namespace Lumos
 	{
 		Maths::Vector3 up = Maths::Vector3(0, 1, 0), right = Maths::Vector3(1, 0, 0);
 
-		m_CameraSpeed = 100.0f * dt;// *m_Scale;
+		m_CameraSpeed = m_Scale * dt * 20.0f;// *m_Scale;
 
 		if (Input::GetInput()->GetKeyHeld(LUMOS_KEY_A))
 		{
@@ -59,17 +59,19 @@ namespace Lumos
         
         UpdateScroll(Input::GetInput()->GetScrollOffset(), dt);
 		Input::GetInput()->SetScrollOffset(0.0f);
+
+		m_ProjMatrix = Maths::Matrix4::Orthographic(-m_AspectRatio * m_Scale, m_AspectRatio * m_Scale, -m_Scale, m_Scale, -1.0f, 1.0f);
 	}
 
 	void Camera2D::UpdateProjectionMatrix(float width, float height)
 	{
-		//m_ProjMatrix = Maths::Matrix4::Orthographic(-1.0f, 1.0f, width, 0.0f, height, 0.0f);
+		m_AspectRatio = width / height;
+		m_ProjMatrix = Maths::Matrix4::Orthographic(-m_AspectRatio * m_Scale, m_AspectRatio * m_Scale, -m_Scale, m_Scale, -1.0f, 1.0f);
 	}
 
 	void Camera2D::BuildViewMatrix()
 	{
-		m_ViewMatrix = Maths::Matrix4::Scale(Maths::Vector3(m_Scale)) *
-				Maths::Matrix4::Translation(-m_Position);
+		m_ViewMatrix = Maths::Matrix4::Translation(-m_Position);
 	}
 
 	float Camera2D::GetScale() const
@@ -86,11 +88,11 @@ namespace Lumos
     {
         if (offset != 0.0f)
         {
-            m_ZoomVelocity += dt * offset * 0.1f;
+            m_ZoomVelocity += dt * offset;
         }
         
-        m_Scale += m_ZoomVelocity;
-        m_Scale = Maths::Max(m_Scale, 0.0f);
+        m_Scale -= m_ZoomVelocity;
+        m_Scale = Maths::Max(m_Scale, 0.15f);
         m_ZoomVelocity = m_ZoomVelocity * pow(m_ZoomDampeningFactor, dt);
     }
 

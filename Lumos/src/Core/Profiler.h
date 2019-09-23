@@ -17,12 +17,12 @@ namespace Lumos
         ProfilerRecord(const String& name);
         ~ProfilerRecord();
         
-        const double EndTime() const { return m_EndTime; }
+        const float EndTime() const { return m_EndTime; }
         const String& Name() const { return m_Name; }
     private:
         String m_Name;
         Scope<Timer> m_Timer;
-        double m_EndTime;
+        float m_EndTime;
     };
 
     struct ProfilerReport
@@ -66,7 +66,7 @@ namespace Lumos
         Scope<Timer> m_Timer;
         
         std::mutex m_SaveMutex;
-        std::unordered_map<String, double> m_ElapsedHistory;
+        std::unordered_map<String, float> m_ElapsedHistory;
         std::unordered_map<String, uint64_t> m_CallsCounter;
         std::vector<std::thread::id> m_WorkingThreads;
         uint32_t m_ElapsedFrames;

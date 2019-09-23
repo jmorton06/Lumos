@@ -388,16 +388,39 @@ namespace Lumos
 		return result;
 	}
 
-	void WindowsWindow::UpdateCursorImGui()
+	static void ImGuiUpdateMousePos(HWND hWnd)
 	{
 		ImGuiIO& io = ImGui::GetIO();
-		if (io.ConfigFlags & ImGuiConfigFlags_NoMouseCursorChange)
-			return;
 
+		// Set OS mouse position if requested (rarely used, only when ImGuiConfigFlags_NavEnableSetMousePos is enabled by user)
+		if (io.WantSetMousePos)
+		{
+			POINT pos = { (int)io.MousePos.x, (int)io.MousePos.y };
+			::ClientToScreen(hWnd, &pos);
+			::SetCursorPos(pos.x, pos.y);
+		}
+
+		// Set mouse position
+		io.MousePos = ImVec2(-FLT_MAX, -FLT_MAX);
+		POINT pos;
+		if (HWND active_window = ::GetForegroundWindow())
+			if (active_window == hWnd || ::IsChild(active_window, hWnd))
+				if (::GetCursorPos(&pos) && ::ScreenToClient(hWnd, &pos))
+					io.MousePos = ImVec2((float)pos.x, (float)pos.y);
+	}
+
+	void WindowsWindow::UpdateCursorImGui()
+	{
+		ImGuiUpdateMousePos(hWnd);
+
+		ImGuiIO& io = ImGui::GetIO();
 		ImGuiMouseCursor imgui_cursor = io.MouseDrawCursor ? ImGuiMouseCursor_None : ImGui::GetMouseCursor();
 		if (g_LastMouseCursor != imgui_cursor)
 		{
 			g_LastMouseCursor = imgui_cursor;
+
+			if (io.ConfigFlags & ImGuiConfigFlags_NoMouseCursorChange)
+				return;
 
 			if (imgui_cursor == ImGuiMouseCursor_None || io.MouseDrawCursor)
 			{

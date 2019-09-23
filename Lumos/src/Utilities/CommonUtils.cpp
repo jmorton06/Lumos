@@ -62,7 +62,6 @@ namespace Lumos
 		pSphere->AddComponent<MaterialComponent>(matInstance);
 
 		pSphere->AddComponent<TransformComponent>(Maths::Matrix4::Scale(Maths::Vector3(radius, radius, radius)));
-		pSphere->SetBoundingRadius(radius);
 
 		if (physics_enabled)
 		{
@@ -122,7 +121,6 @@ namespace Lumos
 		Cube->AddComponent<MaterialComponent>(matInstance);
 
 		Cube->AddComponent<TransformComponent>(Maths::Matrix4::Scale(halfdims));
-		Cube->SetBoundingRadius(halfdims.Length());
 
 		if (physics_enabled)
 		{
@@ -181,7 +179,6 @@ namespace Lumos
 		meshEntity->AddComponent<MaterialComponent>(matInstance);
 
 		meshEntity->AddComponent<TransformComponent>(Maths::Matrix4::Scale(halfdims) * Maths::Matrix4::RotationX(-90.0f));
-		meshEntity->SetBoundingRadius(halfdims.Length());
 		
 		Cube->AddChild(meshEntity);
 
