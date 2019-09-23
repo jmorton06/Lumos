@@ -131,11 +131,8 @@ namespace Lumos
         ImGui::SameLine();
         if (ImGui::Button(ICON_FA_PLUS))
         {
-            static float value = 0.5f;
             if (ImGui::BeginPopup("item context menu", 3))
             {
-                if (ImGui::Selectable("Copy")) value = 0.0f;
-                if (ImGui::Selectable("Paste")) value = 3.1415f;
                 ImGui::EndPopup();
             }
         }
