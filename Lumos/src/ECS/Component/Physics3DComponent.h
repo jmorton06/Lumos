@@ -24,6 +24,8 @@ namespace Lumos
 
 		nlohmann::json Serialise() override { return nullptr; };
 		void Deserialise(nlohmann::json& data) override {};
+
+		SETUPCOMPOMENT(Physics3DComponent);
     private:
         Ref<PhysicsObject3D> m_PhysicsObject;
 	};

@@ -23,7 +23,9 @@ namespace Lumos
 		Ref<Graphics::Light> GetLight() const { return m_Light; }
 
 		nlohmann::json Serialise() override;;
-		void Deserialise(nlohmann::json& data) override;;
+		void Deserialise(nlohmann::json& data) override;
+
+		SETUPCOMPOMENT(LightComponent);
         
     private:
         Ref<Graphics::Light> m_Light;

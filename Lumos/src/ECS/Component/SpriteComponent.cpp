@@ -11,13 +11,11 @@ namespace Lumos
     SpriteComponent::SpriteComponent()
     {
         m_Sprite = Ref<Graphics::Sprite>();
-        m_Name = "Sprite";
     }
     
 	SpriteComponent::SpriteComponent(Ref<Graphics::Sprite>& sprite)
 		: m_Sprite(sprite)
 	{
-		m_Name = "Sprite";
 	}
 
 	void SpriteComponent::OnImGui()

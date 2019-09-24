@@ -14,7 +14,6 @@ namespace Lumos
 {
     LightComponent::LightComponent()
     {
-        m_Name = "Light";
         m_Light = CreateRef<Graphics::Light>();
         m_BoundingShape = CreateRef<Maths::BoundingSphere>(m_Light->m_Position.ToVector3(), m_Light->m_Radius * m_Light->m_Radius);
     }
@@ -22,7 +21,6 @@ namespace Lumos
 	LightComponent::LightComponent(const Ref<Graphics::Light>& light)
 		: m_Light(light)
 	{
-		m_Name = "Light";
         m_BoundingShape = CreateRef<Maths::BoundingSphere>(light->m_Position.ToVector3(), light->m_Radius * light->m_Radius);
 	}
     

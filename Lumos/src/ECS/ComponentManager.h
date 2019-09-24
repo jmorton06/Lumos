@@ -21,6 +21,8 @@ namespace Lumos
 		virtual ~IComponentArray() = default;
 		virtual void EntityDestroyed(Entity* entity) = 0;
 		virtual void OnUpdate() = 0;
+		virtual void RemoveData(Entity* entity) = 0;
+		virtual LumosComponent* CreateLumosComponent(Entity* entity) = 0;
 	};
 
 	template<typename T>
@@ -45,14 +47,14 @@ namespace Lumos
 			m_Size++;
 		}
 
-		void RemoveData(Entity* entity)
+		void RemoveData(Entity* entity) override
 		{
 			LUMOS_ASSERT(m_EntityToIndexMap.find(entity) != m_EntityToIndexMap.end(), "Removing non-existent component.");
 
 			// Copy element at end into deleted element's place to maintain density
 			size_t indexOfRemovedEntity = m_EntityToIndexMap[entity];
 			size_t indexOfLastElement = m_Size - 1;
-			delete m_ComponentArray[indexOfRemovedEntity];
+			lmdel m_ComponentArray[indexOfRemovedEntity];
 			m_ComponentArray[indexOfRemovedEntity] = m_ComponentArray[indexOfLastElement];
 
 			// Update map to point to moved spot
@@ -112,9 +114,24 @@ namespace Lumos
 
 		T* CreateComponent(Entity* entity)
 		{
-			auto component = lmnew T();
+			T* component = lmnew T();
 			InsertData(entity, component);
 			return component;
+		}
+
+		LumosComponent* CreateLumosComponent(Entity* entity) override
+		{
+			if constexpr (std::is_base_of_v<T ,Lumos::LumosComponent>)
+			{
+				//To stop build error with instantiating LumosComponent
+				return nullptr;
+			}
+			else
+			{
+				T* component = lmnew T();
+				InsertData(entity, component);
+				return static_cast<LumosComponent*>(component);
+			}
 		}
 
 	private:
@@ -184,6 +201,11 @@ namespace Lumos
 			GetComponentArray<T>()->RemoveData(entity);
 		}
 
+		void RemoveComponent(Entity* entity, size_t id)
+		{
+			m_ComponentArrays.at(id)->RemoveData(entity);
+		}
+
 		template<typename T>
 		T* GetComponent(Entity* entity)
 		{
@@ -213,6 +235,11 @@ namespace Lumos
 		}
 
 		const std::vector<LumosComponent*> GetAllComponents(Entity* entity);
+
+		LumosComponent* CreateComponent(Entity* entity, size_t id)
+		{
+			return m_ComponentArrays.at(id)->CreateLumosComponent(entity);
+		}
 
 	private:
 		std::unordered_map<size_t, ComponentType> m_ComponentTypes;

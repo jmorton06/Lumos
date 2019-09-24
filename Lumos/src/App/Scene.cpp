@@ -159,7 +159,7 @@ namespace Lumos
 			if (obj->ActiveInHierarchy())
 			{
 				auto meshComponent = obj->GetComponent<MeshComponent>();
-				if (meshComponent && meshComponent->GetActive())
+				if (meshComponent && meshComponent->GetActive() && meshComponent->GetMesh())
 				{
 					auto& transform = obj->GetComponent<TransformComponent>()->GetTransform();
 

@@ -13,7 +13,6 @@ namespace Lumos
 	AIComponent::AIComponent(Ref<AINode>& aiNode)
 		: m_AINode(aiNode)
 	{
-		m_Name = "AI";
 	}
 
 	void AIComponent::OnImGui()

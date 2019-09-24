@@ -14,6 +14,8 @@ namespace Lumos
 		void OnImGui() override;
 		nlohmann::json Serialise() override { return nullptr; };
 		void Deserialise(nlohmann::json& data) override {};
+
+		SETUPCOMPOMENT(AIComponent);
     private:
         Ref<AINode> m_AINode;
 	};

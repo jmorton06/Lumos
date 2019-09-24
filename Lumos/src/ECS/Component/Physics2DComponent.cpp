@@ -10,14 +10,12 @@ namespace Lumos
 {
     Physics2DComponent::Physics2DComponent()
     {
-        m_Name = "Physics2D";
         m_PhysicsObject = CreateRef<PhysicsObject2D>();
     }
     
 	Physics2DComponent::Physics2DComponent(Ref<PhysicsObject2D>& physics)
 		: m_PhysicsObject(physics)
 	{
-		m_Name = "Physics2D";
 	}
 
 	void Physics2DComponent::Update()

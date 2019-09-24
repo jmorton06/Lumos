@@ -97,7 +97,7 @@ void SceneModelViewer::LoadModels()
         "/Meshes/capsule.glb"
 	};
 
-	auto TestObject = ModelLoader::LoadModel(ExampleModelPaths[1]);
+	auto TestObject = ModelLoader::LoadModel(ExampleModelPaths[0]);
 	TestObject->GetOrAddComponent<TransformComponent>(Maths::Matrix4::Scale(Maths::Vector3(1.0f, 1.0f, 1.0f)));
 	AddEntity(TestObject);
 

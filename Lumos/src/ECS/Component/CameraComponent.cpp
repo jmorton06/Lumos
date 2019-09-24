@@ -17,7 +17,6 @@ namespace Lumos
 	CameraComponent::CameraComponent(Camera* camera)
 		: m_Camera(camera)
 	{
-		m_Name = "Camera";
         m_BoundingShape = nullptr;
 	}
 

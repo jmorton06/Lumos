@@ -17,6 +17,8 @@ namespace Lumos
         Ref<PhysicsObject2D> GetPhysicsObject() { return m_PhysicsObject; }
 		nlohmann::json Serialise() override { return nullptr; };
 		void Deserialise(nlohmann::json& data) override {};
+
+		SETUPCOMPOMENT(Physics2DComponent);
         
     private:
         Ref<PhysicsObject2D> m_PhysicsObject;

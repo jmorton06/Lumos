@@ -174,52 +174,36 @@ namespace Lumos
         for (auto& component : components)
         {
             ImGui::Separator();
-            bool open = ImGui::CollapsingHeader(component->GetName().c_str(), ImGuiTreeNodeFlags_AllowOverlapMode);
+			String name = component->GetName().substr(component->GetName().find_last_of(':') + 1);
+			u32 index = FindStringPosition(name, "Component");
+
+			if (index >= 0)
+				name = RemoveStringRange(name, index, 9);
+            bool open = ImGui::CollapsingHeader(name.c_str(), ImGuiTreeNodeFlags_AllowItemOverlap);
             
+			if (component->GetCanDisable())
+			{
+				const float ItemSpacing = ImGui::GetStyle().ItemSpacing.x;
+
+				static float HostButtonWidth = 42.0f;
+				float pos = HostButtonWidth + ItemSpacing;
+				ImGui::SameLine(ImGui::GetWindowWidth() - pos);
+				ImGui::Checkbox(("##Active" + component->GetName()).c_str(), &component->GetActive());
+				ImGui::SameLine();
+
+				if (ImGui::Button((ICON_FA_COG"##" + component->GetName()).c_str()))
+					ImGui::OpenPopup(("Remove Component" + component->GetName()).c_str());
+
+				if (ImGui::BeginPopup(("Remove Component" + component->GetName()).c_str(), 3))
+				{
+					if (ImGui::Selectable(("Remove##" + component->GetName()).c_str())) this->RemoveComponent(component->GetTypeID());
+					ImGui::EndPopup();
+				}
+			}
+
             if (open)
             {
-                if (component->GetCanDisable())
-                {
-                    ImGui::Checkbox("Active", &component->GetActive());
-                    
-                    ImGui::SameLine();
-                    const float ItemSpacing = ImGui::GetStyle().ItemSpacing.x;
-
-                    static float HostButtonWidth = 18.0f;
-                    float pos = HostButtonWidth + ItemSpacing;
-                    ImGui::SameLine(ImGui::GetWindowWidth() - pos);
-                    if(ImGui::Button("..."))
-                       ImGui::OpenPopup("Remove Component");
-                   
-                   if(ImGui::BeginPopup("Remove Component", 3))
-                   {
-                       if (ImGui::Selectable("Remove")) this->RemoveComponent<MeshComponent>();
-                       ImGui::EndPopup();
-                   }
-                }
                 component->OnImGui();
-            }
-            else
-            {
-                if (component->GetCanDisable())
-                {
-                    const float ItemSpacing = ImGui::GetStyle().ItemSpacing.x;
-
-                    static float HostButtonWidth = 40.0f;
-                    float pos = HostButtonWidth + ItemSpacing;
-                    ImGui::SameLine(ImGui::GetWindowWidth() - pos);
-                    ImGui::Checkbox("##Active", &component->GetActive());
-                    ImGui::SameLine();
-
-                    if(ImGui::Button("..."))
-                        ImGui::OpenPopup("Remove Component");
-                    
-                    if(ImGui::BeginPopup("Remove Component", 3))
-                    {
-                        if (ImGui::Selectable("Remove")) this->RemoveComponent<MeshComponent>();
-                        ImGui::EndPopup();
-                    }
-                }
             }
         }
     }
@@ -278,8 +262,13 @@ namespace Lumos
         nlohmann::json serializedComponents = nlohmann::json::array_t();
         auto components = GetAllComponents();
         
-        for (int i = 0; i < components.size(); ++i)
-            serializedComponents.push_back(components[i]->Serialise());
+		for (int i = 0; i < components.size(); ++i)
+		{
+			auto sComp = components[i]->Serialise();
+			if(sComp != nullptr)
+				serializedComponents.push_back(sComp);
+		}
+            
         
         output["components"] = serializedComponents;
         
@@ -300,7 +289,8 @@ namespace Lumos
         for (int i = 0; i < components.size(); i++)
         {
             auto type = components[i]["typeID"];
-            //auto component = new <typeID to class>();
+			auto component = ComponentManager::Instance()->CreateComponent(this, type);
+			component->Deserialise(components[i]);
         }
     }
 }
