@@ -9,7 +9,7 @@ class TestComponent : public LumosComponent
 public:
 	TestComponent() 
 	{
-		m_Name = "Test";
+
 	};
 
 	void Init() {};

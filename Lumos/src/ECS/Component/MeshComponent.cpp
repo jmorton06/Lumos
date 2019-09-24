@@ -10,13 +10,11 @@ namespace Lumos
     MeshComponent::MeshComponent()
     {
 		m_BoundingShape = nullptr;
-        m_Name = "Mesh";
     }
     
 	MeshComponent::MeshComponent(const Ref<Graphics::Mesh>& model)
 		: m_Mesh(model)
 	{
-		m_Name = "Mesh";
 		m_BoundingShape = m_Mesh->GetBoundingSphere();
 	}
 

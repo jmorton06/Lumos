@@ -1,8 +1,6 @@
 #pragma once
 #include "lmpch.h"
 
-    //Wrapper around typeid(T).name(), to enforce a consistent return style across all (supported) compilers.
-
 #if defined(LUMOS_PLATFORM_WINDOWS)
 
 namespace Lumos
@@ -46,7 +44,7 @@ namespace Lumos
     }
 }
     
-#define LUMOS_TYPENAME(T) GetTypename<T>()
+#define LUMOS_TYPENAME_STRING(T) GetTypename<T>()
     
 #else
 #include <cxxabi.h>
@@ -63,5 +61,7 @@ namespace Lumos
         return result;
     }
 }
-#define LUMOS_TYPENAME(T) GetTypename<T>()
+#define LUMOS_TYPENAME_STRING(T) GetTypename<T>()
 #endif
+
+#define LUMOS_TYPENAME(T) typeid(T).hash_code()

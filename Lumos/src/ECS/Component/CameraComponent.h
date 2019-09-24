@@ -19,6 +19,8 @@ namespace Lumos
 		nlohmann::json Serialise() override { return nullptr; };
 		void Deserialise(nlohmann::json& data) override {};
 
+		SETUPCOMPOMENT(CameraComponent);
+
     private:
 		Camera* m_Camera;
 	};

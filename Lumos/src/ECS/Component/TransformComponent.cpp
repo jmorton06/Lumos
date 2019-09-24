@@ -9,7 +9,6 @@ namespace Lumos
 {
 	TransformComponent::TransformComponent(const Maths::Matrix4& matrix)
 	{
-		m_Name = "Transform";
 		m_CanDisable = false;
 
 		m_Transform = CreateRef<Maths::Transform>(matrix);

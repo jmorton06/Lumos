@@ -20,6 +20,8 @@ namespace Lumos
 		nlohmann::json Serialise() override { return nullptr; };
 		void Deserialise(nlohmann::json& data) override {};
         
+		SETUPCOMPOMENT(SoundComponent);
+
     private:
         Ref<SoundNode> m_SoundNode;
 	};

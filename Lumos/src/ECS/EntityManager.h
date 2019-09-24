@@ -27,6 +27,8 @@ namespace Lumos
         
         template <typename T>
         void RemoveComponent();
+
+		void RemoveComponent(size_t id);
         
         virtual void OnUpdateObject(float dt);
         virtual void OnImGui();
@@ -118,6 +120,11 @@ namespace Lumos
     {
         ComponentManager::Instance()->RemoveComponent<T>(this);
     }
+
+	inline void Entity::RemoveComponent(size_t id)
+	{
+		ComponentManager::Instance()->RemoveComponent(this, id);
+	}
 
 
 	class LUMOS_EXPORT EntityManager : public TSingleton<EntityManager>

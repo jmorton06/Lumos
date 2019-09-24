@@ -18,6 +18,9 @@ namespace Lumos
 
 		nlohmann::json Serialise() override { return nullptr; };
 		void Deserialise(nlohmann::json& data) override {};
+
+		SETUPCOMPOMENT(MaterialComponent);
+
     private:
         Ref<Material> m_Material;
     };

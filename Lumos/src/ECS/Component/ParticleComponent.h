@@ -17,6 +17,9 @@ namespace Lumos
 		void OnImGui() override;
 		nlohmann::json Serialise() override { return nullptr; };
 		void Deserialise(nlohmann::json& data) override {};
+
+		SETUPCOMPOMENT(ParticleComponent);
+
     private:
         Ref<ParticleEmitter> m_ParticleEmitter;
         Maths::Vector3 m_PositionOffset;

@@ -16,7 +16,7 @@ namespace Lumos
 		m_ProjMatrix = Maths::Matrix4::Orthographic(-m_AspectRatio * m_Scale, m_AspectRatio * m_Scale, -m_Scale, m_Scale, -1.0f, 1.0f);
 		m_Position = Maths::Vector3(0.0f);
 		m_Velocity = Maths::Vector3(0.0f);
-
+		m_MouseSensitivity = 0.005f;
         BuildViewMatrix();
 	}
 
@@ -26,13 +26,20 @@ namespace Lumos
 
 	void Camera2D::HandleMouse(float dt, float xpos, float ypos)
 	{
+		if (Input::GetInput()->GetMouseHeld(InputCode::MouseKey::ButtonRight))
+		{
+			m_Position.x -= (xpos - m_PreviousCurserPos.GetX()) * m_Scale * m_MouseSensitivity * 0.5f;
+			m_Position.y += (ypos - m_PreviousCurserPos.GetY()) * m_Scale * m_MouseSensitivity * 0.5f;
+		}
+
+		m_PreviousCurserPos = Maths::Vector2(xpos, ypos);
 	}
 
 	void Camera2D::HandleKeyboard(float dt)
 	{
 		Maths::Vector3 up = Maths::Vector3(0, 1, 0), right = Maths::Vector3(1, 0, 0);
 
-		m_CameraSpeed = m_Scale * dt * 20.0f;// *m_Scale;
+		m_CameraSpeed = m_Scale * dt * 20.0f;
 
 		if (Input::GetInput()->GetKeyHeld(LUMOS_KEY_A))
 		{

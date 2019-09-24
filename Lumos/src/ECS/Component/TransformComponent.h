@@ -18,6 +18,8 @@ namespace Lumos
 		nlohmann::json Serialise() override;
 		void Deserialise(nlohmann::json& data) override;
 
+		SETUPCOMPOMENT(TransformComponent);
+
     private:
 		Ref<Maths::Transform> m_Transform;
 	};
