@@ -196,8 +196,14 @@ namespace Lumos
 
 				if (ImGui::BeginPopup(("Remove Component" + component->GetName()).c_str(), 3))
 				{
-					if (ImGui::Selectable(("Remove##" + component->GetName()).c_str())) this->RemoveComponent(component->GetTypeID());
-					ImGui::EndPopup();
+					if (ImGui::Selectable(("Remove##" + component->GetName()).c_str()))
+                    {
+                        this->RemoveComponent(component->GetTypeID());
+                        ImGui::EndPopup();
+                        return;
+                    }
+                    else
+                        ImGui::EndPopup();
 				}
 			}
 
