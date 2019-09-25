@@ -1,8 +1,8 @@
-#include "LM.h"
+#include "lmpch.h"
 #include "LumosPhysicsEngine.h"
 #include "CollisionDetection.h"
 #include "PhysicsObject3D.h"
-#include "App/Window.h"
+#include "Core/OS/Window.h"
 
 #include "Integration.h"
 #include "Constraint.h"
@@ -26,6 +26,7 @@ namespace Lumos
 		, m_IntegrationType(IntegrationType::RUNGE_KUTTA_4)
 	{
         m_DebugName = "Lumos3DPhysicsEngine";
+		m_PhysicsObjects.reserve(100);
 	}
 
 	void LumosPhysicsEngine::SetDefaults()
@@ -40,44 +41,20 @@ namespace Lumos
 
 	LumosPhysicsEngine::~LumosPhysicsEngine()
 	{
-		RemoveAllPhysicsObjects();
-
+        m_PhysicsObjects.clear();
+        
+        for (Constraint* c : m_Constraints)
+            delete c;
+        m_Constraints.clear();
+        
+        for (Manifold* m : m_Manifolds)
+            delete m;
+        m_Manifolds.clear();
+        
 		CollisionDetection::Release();
-
-		if (m_BroadphaseDetection != nullptr)
-			delete m_BroadphaseDetection;
 	}
 
-	void LumosPhysicsEngine::AddPhysicsObject(const Ref<PhysicsObject3D>& obj)
-	{
-		m_PhysicsObjects.emplace_back(obj);
-	}
-
-	void LumosPhysicsEngine::RemovePhysicsObject(const Ref<PhysicsObject3D>& obj)
-	{
-		/// Lookup the object in question
-		const auto it = std::find(m_PhysicsObjects.begin(), m_PhysicsObjects.end(), obj);
-
-		/// If found, remove it from the list
-		if (it != m_PhysicsObjects.end())
-			m_PhysicsObjects.erase(it);
-	}
-
-	void LumosPhysicsEngine::RemoveAllPhysicsObjects()
-	{
-		//delete and remove all constraints/collision manifolds
-		for (Constraint* c : m_Constraints)
-			delete c;
-		m_Constraints.clear();
-
-		for (Manifold* m : m_Manifolds)
-			delete m;
-		m_Manifolds.clear();
-
-		m_PhysicsObjects.clear();
-	}
-
-	void LumosPhysicsEngine::OnUpdate(TimeStep* timeStep)
+	void LumosPhysicsEngine::OnUpdate(TimeStep* timeStep, Scene* scene)
 	{
 		if (!m_IsPaused)
 		{
@@ -89,33 +66,43 @@ namespace Lumos
 				for (int i = 0; (m_UpdateAccum >= s_UpdateTimestep) && i < max_updates_per_frame; ++i)
 				{
 					m_UpdateAccum -= s_UpdateTimestep;
-					UpdatePhysics();
+					UpdatePhysics(scene);
 				}
 
 				if (m_UpdateAccum >= s_UpdateTimestep)
 				{
-					LUMOS_CORE_ERROR("Physics too slow to run in real time!");
+					LUMOS_LOG_CRITICAL("Physics too slow to run in real time!");
 					//Drop Time in the hope that it can continue to run in real-time
 					m_UpdateAccum = 0.0f;
 				}
-
 			}
 			else
 			{
 				s_UpdateTimestep = timeStep->GetSeconds();
-				UpdatePhysics();
+				UpdatePhysics(scene);
 			}
 		}
 	}
 
-	void LumosPhysicsEngine::UpdatePhysics()
+	void LumosPhysicsEngine::UpdatePhysics(Scene* scene)
 	{
+        m_PhysicsObjects.clear();
+        
 		for (Manifold* m : m_Manifolds)
 		{
 			delete m;
 		}
 		m_Manifolds.clear();
-
+        
+        scene->IterateEntities([&](Entity* entity)
+        {
+            auto phy3D = entity->GetComponent<Physics3DComponent>();
+			if (phy3D != nullptr)
+			{
+				m_PhysicsObjects.emplace_back(phy3D->GetPhysicsObject());
+			}
+        });
+        
 		//Check for collisions
 		BroadPhaseCollisions();
 		NarrowPhaseCollisions();
@@ -131,13 +118,13 @@ namespace Lumos
 	{
         System::JobSystem::Dispatch(static_cast<u32>(m_PhysicsObjects.size()), 16, [&](JobDispatchArgs args)
         {
-            UpdatePhysicsObject(m_PhysicsObjects[args.jobIndex].get());
+            UpdatePhysicsObject(m_PhysicsObjects[args.jobIndex]);
         });
         
         System::JobSystem::Wait();
 	}
 
-	void LumosPhysicsEngine::UpdatePhysicsObject(PhysicsObject3D* obj) const
+	void LumosPhysicsEngine::UpdatePhysicsObject(const Ref<PhysicsObject3D>& obj) const
 	{
 		if (!obj->GetIsStatic() && obj->IsAwake())
 		{
@@ -203,6 +190,7 @@ namespace Lumos
 				// RK2 integration for linear motion
 				Integration::State state = { obj->m_Position, obj->m_LinearVelocity, obj->m_Force * obj->m_InvMass };
                 Integration::RK2(state,0.0f, s_UpdateTimestep);
+
 				obj->m_Position = state.position;
 				obj->m_LinearVelocity = state.velocity;
 
@@ -355,7 +343,7 @@ namespace Lumos
 		}
 	}
 
-	void LumosPhysicsEngine::OnIMGUI()
+	void LumosPhysicsEngine::OnImGui()
 	{
 		ImGui::Text("3D Physics Engine");
 

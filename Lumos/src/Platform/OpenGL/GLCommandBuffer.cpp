@@ -1,4 +1,4 @@
-#include "LM.h"
+#include "lmpch.h"
 #include "GLCommandBuffer.h"
 
 namespace Lumos
@@ -36,6 +36,16 @@ namespace Lumos
 
 		void GLCommandBuffer::ExecuteSecondary(CommandBuffer* primaryCmdBuffer)
 		{
+		}
+
+		void GLCommandBuffer::MakeDefault()
+		{
+			CreateFunc = CreateFuncGL;
+		}
+
+		CommandBuffer* GLCommandBuffer::CreateFuncGL()
+		{
+			return lmnew GLCommandBuffer();
 		}
 	}
 }

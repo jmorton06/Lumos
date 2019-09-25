@@ -15,4 +15,7 @@ C:/VulkanSDK/1.1.82.1/Bin32/glslangValidator.exe -V Shadow.frag -o Shadow.frag.s
 
 C:/VulkanSDK/1.1.82.1/Bin32/glslangValidator.exe -V Batch2D.vert -o Batch2D.vert.spv
 C:/VulkanSDK/1.1.82.1/Bin32/glslangValidator.exe -V Batch2D.frag -o Batch2D.frag.spv
+
+C:/VulkanSDK/1.1.82.1/Bin32/glslangValidator.exe -V Grid.vert -o Grid.vert.spv
+C:/VulkanSDK/1.1.82.1/Bin32/glslangValidator.exe -V Grid.frag -o Grid.frag.spv
 pause

@@ -1,4 +1,4 @@
-#include "LM.h"
+#include "lmpch.h"
 #include "CommonUtils.h"
 #include "Physics/LumosPhysicsEngine/SphereCollisionShape.h"
 #include "Physics/LumosPhysicsEngine/PyramidCollisionShape.h"
@@ -46,7 +46,7 @@ namespace Lumos
 		Entity* pSphere = EntityManager::Instance()->CreateEntity(name);
 
 		pSphere->AddComponent<TextureMatrixComponent>(Maths::Matrix4::Scale(Maths::Vector3(10.0f, 10.0f, 10.0f)));
-        Ref<Graphics::Mesh> sphereModel = CreateRef<Graphics::Mesh>(*AssetsManager::DefaultModels()->GetAsset("Sphere"));
+        Ref<Graphics::Mesh> sphereModel = AssetsManager::DefaultModels()->Get("Sphere");
         pSphere->AddComponent<MeshComponent>(sphereModel);
 
 		Ref<Material> matInstance = CreateRef<Material>();
@@ -62,7 +62,6 @@ namespace Lumos
 		pSphere->AddComponent<MaterialComponent>(matInstance);
 
 		pSphere->AddComponent<TransformComponent>(Maths::Matrix4::Scale(Maths::Vector3(radius, radius, radius)));
-		pSphere->SetBoundingRadius(radius);
 
 		if (physics_enabled)
 		{
@@ -87,7 +86,7 @@ namespace Lumos
 		}
 		else
 		{
-			pSphere->GetTransformComponent()->GetTransform().SetLocalPosition(pos);
+			pSphere->GetTransformComponent()->GetTransform()->SetLocalPosition(pos);
 		}
 
 		return pSphere;
@@ -105,7 +104,7 @@ namespace Lumos
 		Entity* Cube = EntityManager::Instance()->CreateEntity(name);
 
 		Cube->AddComponent<TextureMatrixComponent>(Maths::Matrix4::Scale(Maths::Vector3(10.0f, 10.0f, 10.0f)));
-        Ref<Graphics::Mesh> cubeModel = CreateRef<Graphics::Mesh>(*AssetsManager::DefaultModels()->GetAsset("Cube"));
+        Ref<Graphics::Mesh> cubeModel = AssetsManager::DefaultModels()->Get("Cube");
         Cube->AddComponent<MeshComponent>(cubeModel);
 
 		auto matInstance = CreateRef<Material>();
@@ -122,7 +121,6 @@ namespace Lumos
 		Cube->AddComponent<MaterialComponent>(matInstance);
 
 		Cube->AddComponent<TransformComponent>(Maths::Matrix4::Scale(halfdims));
-		Cube->SetBoundingRadius(halfdims.Length());
 
 		if (physics_enabled)
 		{
@@ -147,7 +145,7 @@ namespace Lumos
 		}
 		else
 		{
-			Cube->GetTransformComponent()->GetTransform().SetLocalPosition(pos);
+			Cube->GetTransformComponent()->GetTransform()->SetLocalPosition(pos);
 		}
 
 		return Cube;
@@ -165,7 +163,7 @@ namespace Lumos
 		Entity* Cube = EntityManager::Instance()->CreateEntity(name);
 		Entity* meshEntity = EntityManager::Instance()->CreateEntity("Mesh");
 
-        Ref<Graphics::Mesh> pyramidModel = CreateRef<Graphics::Mesh>(*AssetsManager::DefaultModels()->GetAsset("Pyramid"));
+        Ref<Graphics::Mesh> pyramidModel = AssetsManager::DefaultModels()->Get("Pyramid");
 		meshEntity->AddComponent<MeshComponent>(pyramidModel);
 
 		Ref<Material> matInstance = CreateRef<Material>();
@@ -181,7 +179,6 @@ namespace Lumos
 		meshEntity->AddComponent<MaterialComponent>(matInstance);
 
 		meshEntity->AddComponent<TransformComponent>(Maths::Matrix4::Scale(halfdims) * Maths::Matrix4::RotationX(-90.0f));
-		meshEntity->SetBoundingRadius(halfdims.Length());
 		
 		Cube->AddChild(meshEntity);
 
@@ -208,7 +205,7 @@ namespace Lumos
 		}
 		else
 		{
-			Cube->GetTransformComponent()->GetTransform().SetLocalPosition(pos);
+			Cube->GetTransformComponent()->GetTransform()->SetLocalPosition(pos);
 		}
 
 		return Cube;

@@ -1,8 +1,8 @@
 #pragma once
-#include "LM.h"
+#include "lmpch.h"
 #include "Graphics/API/Pipeline.h"
 #include "Maths/Maths.h"
-#include "App/Window.h"
+#include "Core/OS/Window.h"
 #include "Graphics/API/Renderer.h"
 #include "GLSwapchain.h"
 
@@ -55,7 +55,9 @@ namespace Lumos
 
 			const String& GetTitleInternal() const override;
 
-		protected:
+            static void MakeDefault();
+        protected:
+            static Renderer* CreateFuncGL(u32 width, u32 height);
 
 			String m_RendererTitle;
 			Graphics::GLContext* m_Context;

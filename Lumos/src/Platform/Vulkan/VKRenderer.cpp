@@ -1,4 +1,4 @@
-#include "LM.h"
+#include "lmpch.h"
 #include "VKRenderer.h"
 #include "VKDevice.h"
 #include "VKShader.h"
@@ -19,7 +19,7 @@ namespace Lumos
 
             VKDevice::Instance();
             
-            m_Swapchain = lmnew VKSwapchain(m_Width, m_Height);
+            m_Swapchain = CreateRef<VKSwapchain>(m_Width, m_Height);
             m_Swapchain->Init();
             
             CreateSemaphores();
@@ -27,8 +27,8 @@ namespace Lumos
 
         VKRenderer::~VKRenderer()
 		{
-            delete m_Swapchain;
-            
+			m_Swapchain.reset();
+
 			for (int i = 0; i < 5; i++)
 			{
 				VKDevice::Instance()->GetDevice().destroySemaphore(m_ImageAvailableSemaphore[i]);
@@ -78,8 +78,7 @@ namespace Lumos
 			m_Width  = width;
 			m_Height = height;
 
-			delete m_Swapchain;
-			m_Swapchain = lmnew VKSwapchain(width, height);
+			m_Swapchain = CreateRef<VKSwapchain>(width, height);
 			m_Swapchain->Init();
 		}
 
@@ -92,7 +91,7 @@ namespace Lumos
 				m_ImageAvailableSemaphore[i] = VKDevice::Instance()->GetDevice().createSemaphore(semaphoreInfo);
 				if (!m_ImageAvailableSemaphore[i])
 				{
-					LUMOS_CORE_ERROR("[VULKAN] Failed to create semaphores!");
+					LUMOS_LOG_CRITICAL("[VULKAN] Failed to create semaphores!");
 				}
 			}
 		}
@@ -109,7 +108,7 @@ namespace Lumos
 			}
 			else if (result != vk::Result::eSuccess && result != vk::Result::eSuboptimalKHR)
 			{
-				LUMOS_CORE_ERROR("[VULKAN] Failed to acquire swap chain image!");
+				LUMOS_LOG_CRITICAL("[VULKAN] Failed to acquire swap chain image!");
 			}
 		}
 
@@ -149,5 +148,15 @@ namespace Lumos
 		{
 			static_cast<VKCommandBuffer*>(commandBuffer)->GetCommandBuffer().draw(count, 1, 0, 0);
 		}
+        
+        void VKRenderer::MakeDefault()
+        {
+            CreateFunc = CreateFuncVulkan;
+        }
+        
+		Renderer* VKRenderer::CreateFuncVulkan(u32 width, u32 height)
+        {
+            return lmnew VKRenderer(width, height);
+        }
 	}
 }

@@ -1,4 +1,4 @@
-#include "LM.h"
+#include "lmpch.h"
 #include "GLTools.h"
 #include "GL.h"
 #include "GLRenderer.h"
@@ -24,7 +24,7 @@ namespace Lumos
 			case TextureFormat::RGBA32:             return GL_RGBA32F;
 			case TextureFormat::DEPTH:              return GL_DEPTH24_STENCIL8;
 			default:
-				LUMOS_CORE_ASSERT(false, "[Texture] Unsupported TextureFormat");
+				LUMOS_ASSERT(false, "[Texture] Unsupported TextureFormat");
 				return 0;
 			}
 		}
@@ -41,7 +41,7 @@ namespace Lumos
 			case TextureWrap::REPEAT:			return GL_REPEAT;
 			case TextureWrap::MIRRORED_REPEAT:	return GL_MIRRORED_REPEAT;
 			default:
-				LUMOS_CORE_ASSERT(false, "[Texture] Unsupported TextureWrap");
+				LUMOS_ASSERT(false, "[Texture] Unsupported TextureWrap");
 				return 0;
 			}
 		}
@@ -55,7 +55,7 @@ namespace Lumos
 			case 24:	return TextureFormat::RGB8;
 			case 32:	return TextureFormat::RGBA8;
 			default:
-				LUMOS_CORE_ASSERT(false, "[Texture] Unsupported image bit-depth! ({0})", bits);
+				LUMOS_ASSERT(false, "[Texture] Unsupported image bit-depth! ({0})", bits);
 				return TextureFormat::RGB8;
 			}
 		}
@@ -78,7 +78,7 @@ namespace Lumos
 			case GL_LUMINANCE_ALPHA:	return GL_LUMINANCE_ALPHA;
 
 			default:
-				LUMOS_CORE_ASSERT(false, "[Texture] Unsupported Texture Format");
+				LUMOS_ASSERT(false, "[Texture] Unsupported Texture Format");
 				return 0;
 			}
 		}
@@ -94,7 +94,7 @@ namespace Lumos
 			case StencilType::ZERO:		return GL_ZERO;
 			case StencilType::ALWAYS:	return GL_ALWAYS;
 			default:
-				LUMOS_CORE_ASSERT(false, "Unsupported StencilType");
+				LUMOS_ASSERT(false, "Unsupported StencilType");
 				return 0;
 			}
 		}
@@ -131,7 +131,7 @@ namespace Lumos
 			case DataType::FLOAT: return GL_FLOAT;
 			case DataType::UNSIGNED_INT: return GL_UNSIGNED_INT;
 			case DataType::UNSIGNED_BYTE: return GL_UNSIGNED_BYTE;
-			default: LUMOS_CORE_ERROR("Unsupported DataType"); break;
+			default: LUMOS_LOG_ERROR("Unsupported DataType"); break;
 			}
 			return 0;
 		}
@@ -143,7 +143,7 @@ namespace Lumos
 			case DrawType::POINT:    return GL_POINTS;
 			case DrawType::LINES:    return GL_LINES;
 			case DrawType::TRIANGLE: return GL_TRIANGLES;
-			default: LUMOS_CORE_ERROR("Unsupported DrawType"); break;
+			default: LUMOS_LOG_ERROR("Unsupported DrawType"); break;
 			}
 			return 0;
 		}

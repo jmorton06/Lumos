@@ -1,5 +1,5 @@
 #pragma once
-#include "LM.h"
+#include "lmpch.h"
 
 namespace Lumos
 {
@@ -63,12 +63,11 @@ namespace Lumos
 		static constexpr  float Lerp(const float a, const float b, const float t)
 		{
 			return	a * (1.0f - t) + b * t;
-		}
-        
-        static const std::string CHARS = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz";
-        
+		};
+
         inline String GenerateUUID()
         {
+			static const std::string CHARS = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz";
             String uuid = std::string(36,' ');
             u32 rnd = 0;
             

@@ -1,4 +1,4 @@
-#include "LM.h"
+#include "lmpch.h"
 #include "Console.h"
 
 namespace Lumos 
@@ -39,8 +39,9 @@ namespace Lumos
 
 	void Console::OnImGuiRender(bool* show)
 	{
+		auto flags = ImGuiWindowFlags_NoCollapse;
 		ImGui::SetNextWindowSize(ImVec2(640, 480), ImGuiCond_FirstUseEver);
-		ImGui::Begin("Console", show);
+		ImGui::Begin("Console", show, flags);
 		{
             ImGuiRenderHeader();
 			ImGui::Separator();
@@ -248,7 +249,7 @@ namespace Lumos
 		switch (level)
 		{
 			case Console::Message::Level::Trace   : return { 0.75f, 0.75f, 0.75f, 1.00f }; // White-ish gray
-			case Console::Message::Level::Info    : return { 0.00f, 0.50f, 0.00f, 1.00f }; // Green
+			case Console::Message::Level::Info    : return { 0.20f, 0.70f, 0.20f, 1.00f }; // Green
 			case Console::Message::Level::Debug   : return { 0.00f, 0.50f, 0.50f, 1.00f }; // Cyan
 			case Console::Message::Level::Warn    : return { 1.00f, 1.00f, 0.00f, 1.00f }; // Yellow
 			case Console::Message::Level::Error   : return { 1.00f, 0.00f, 0.00f, 1.00f }; // Red

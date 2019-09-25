@@ -1,4 +1,4 @@
-#include "LM.h"
+#include "lmpch.h"
 #include "Shader.h"
 
 #ifdef LUMOS_RENDER_API_OPENGL
@@ -18,6 +18,8 @@ namespace Lumos
 {
 	namespace Graphics
 	{
+        Shader*(*Shader::CreateFunc)(const String&, const String&) = nullptr;
+
 		const Shader* Shader::s_CurrentlyBound = nullptr;
 
 		Shader* Shader::CreateFromFile(const String& name, const String& filepath)
@@ -29,6 +31,10 @@ namespace Lumos
 			filePath = filepath;
 #endif
 
+            LUMOS_ASSERT(CreateFunc, "No Shader Create Function");
+            
+            //return CreateFunc(name,filepath);
+            
 			switch (Graphics::GraphicsContext::GetRenderAPI())
 			{
 #ifdef LUMOS_RENDER_API_OPENGL
@@ -64,19 +70,9 @@ namespace Lumos
 
 		bool Shader::TryCompile(const String& source, String& error, const String& name)
 		{
-			switch (Graphics::GraphicsContext::GetRenderAPI())
-			{
-#ifdef LUMOS_RENDER_API_OPENGL
-			case RenderAPI::OPENGL:		return GLShader::TryCompile(source, error);
-#endif
-#ifdef LUMOS_RENDER_API_DIRECT3D
-			case RenderAPI::DIRECT3D:	return D3DShader::TryCompile(source, error);
-#endif
-#ifdef LUMOS_RENDER_API_VULKAN
-			case RenderAPI::VULKAN:     return false; //VKShader::TryCompile(source, error);
-#endif
-			}
-			return false;
+            LUMOS_ASSERT(CreateFunc, "No Shader TryCompile Function");
+            
+            return false;// CreateFunc(framebufferInfo);
 		}
 
 		bool Shader::TryCompileFromFile(const String& filepath, String& error)

@@ -1,5 +1,5 @@
 #pragma once
-#include "LM.h"
+#include "lmpch.h"
 #include "LumosComponent.h"
 #include "Graphics/Material.h"
 
@@ -11,15 +11,16 @@ namespace Lumos
         MaterialComponent();
         explicit MaterialComponent(Ref<Material>& material);
         virtual ~MaterialComponent();
-        
-        void OnUpdateComponent(float dt) override;
-        
-        void OnIMGUI() override;
+
+        void OnImGui() override;
         
         const Ref<Material>& GetMaterial() const { return m_Material; }
 
 		nlohmann::json Serialise() override { return nullptr; };
 		void Deserialise(nlohmann::json& data) override {};
+
+		SETUPCOMPOMENT(MaterialComponent);
+
     private:
         Ref<Material> m_Material;
     };

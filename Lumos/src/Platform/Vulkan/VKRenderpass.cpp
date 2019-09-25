@@ -1,4 +1,4 @@
-#include "LM.h"
+#include "lmpch.h"
 #include "VKRenderpass.h"
 #include "VKCommandBuffer.h"
 #include "VKFramebuffer.h"
@@ -66,7 +66,7 @@ namespace Lumos
 			else
 			{
 				vk::AttachmentDescription Attachment = {};
-				LUMOS_CORE_ERROR("[VULKAN] - Unsupported TextureType - {0}", static_cast<int>(info.textureType));
+				LUMOS_LOG_CRITICAL("[VULKAN] - Unsupported TextureType - {0}", static_cast<int>(info.textureType));
 				return Attachment;
 			}
 		}
@@ -194,5 +194,15 @@ namespace Lumos
 		{
 			reinterpret_cast<VKCommandBuffer*>(commandBuffer)->GetCommandBuffer().endRenderPass();
 		}
+        
+        void VKRenderpass::MakeDefault()
+        {
+            CreateFunc = CreateFuncVulkan;
+        }
+        
+		RenderPass* VKRenderpass::CreateFuncVulkan()
+        {
+            return lmnew VKRenderpass();
+        }
 	}
 }

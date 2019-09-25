@@ -1,4 +1,4 @@
-#include "LM.h"
+#include "lmpch.h"
 #include "Frustum.h"
 
 namespace Lumos
@@ -31,7 +31,7 @@ namespace Lumos
 			return true;
 		}
 
-		bool Frustum::AABBInsideFrustum(Vector3 &position, const Vector3 &size) const
+		bool Frustum::AABBInsideFrustum(const Vector3 &position, const Vector3 &size) const
 		{
 			for (const auto & plane : planes)
 			{
@@ -63,6 +63,33 @@ namespace Lumos
 			}
 
 			return true;
+		}
+
+		nlohmann::json Frustum::Serialise()
+		{
+			nlohmann::json output;
+			output["typeID"] = LUMOS_TYPENAME(Matrix4);
+
+			nlohmann::json data = nlohmann::json::array_t();
+
+			for (int i = 0; i < 6; i++)
+			{
+				data.push_back(planes[i].Serialise());
+			}
+
+			output["values"] = data;
+
+			return output;
+		}
+		
+		void Frustum::Deserialise(nlohmann::json & data)
+		{
+			nlohmann::json::array_t dataArray = data["values"];
+
+			for (int i = 0; i < 6; i++)
+			{
+				planes[i].Deserialise(dataArray[i]);
+			}
 		}
 	}
 }

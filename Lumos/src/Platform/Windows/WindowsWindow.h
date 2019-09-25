@@ -1,12 +1,12 @@
 #pragma once
-#include "LM.h"
-#include "App/Window.h"
+#include "lmpch.h"
+#include "Core/OS/Window.h"
 
 namespace Lumos
 {
 	namespace Graphics
 	{
-		enum class RenderAPI : int;
+		enum class RenderAPI : u32;
 	}
 
 	class LUMOS_EXPORT WindowsWindow : public Window
@@ -23,7 +23,8 @@ namespace Lumos
 		void SetVSync(bool set) override {};
 		void HideMouse(bool hide) override {};
 		void SetMousePosition(const Maths::Vector2& pos) override {};
-
+		void UpdateCursorImGui() override;
+		
 		bool Init(const WindowProperties& properties);
 
 		inline String GetTitle() const override { return m_Data.Title; }
@@ -52,7 +53,11 @@ namespace Lumos
 		HINSTANCE GetHInstance() const { return hInstance; }
 		HWND GetHWND() const { return hWnd; }
 
+		static void MakeDefault();
+
 	protected:
+
+ 		static Window* CreateFuncWindows(const WindowProperties& properties);
 
 		HINSTANCE hInstance{};
 		HDC hDc{};

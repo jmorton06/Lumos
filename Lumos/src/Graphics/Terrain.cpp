@@ -1,82 +1,71 @@
-#include "LM.h"
+#include "lmpch.h"
 #include "Terrain.h"
 #include "App/SceneManager.h"
 #include "Maths/BoundingSphere.h"
-#include "external/simplex/simplexnoise.h"
-
-#define RAW_WIDTH_RANDOM     500
-#define RAW_HEIGHT_RANDOM     500
-#define RAW_LOWSIDE_RANDOM    50
-#define RAW_LOWSCALE_RANDOM   10
-
-#define HEIGHTMAP_X_RANDOM    1.0f
-#define HEIGHTMAP_Z_RANDOM    1.0f
-#define HEIGHTMAP_Y_RANDOM    150.0f
-#define HEIGHTMAP_TEX_X_RANDOM   1.0f / 16.0f
-#define HEIGHTMAP_TEX_Z_RANDOM   1.0f / 16.0f
+#include <simplex/simplexnoise.h>
 
 namespace Lumos
 {
-	Terrain::Terrain()
+	Terrain::Terrain(int width, int height, int lowside, int lowscale, float xRand, float yRand, float zRand, float texRandX, float texRandZ)
 	{
 		int xCoord = 0;
 		int zCoord = 0;
-		u32 numVertices = RAW_WIDTH_RANDOM  * RAW_HEIGHT_RANDOM;
-		u32 numIndices = (RAW_WIDTH_RANDOM - 1) * (RAW_HEIGHT_RANDOM - 1) * 6;
+		u32 numVertices = width  * height;
+		u32 numIndices = (width - 1) * (height - 1) * 6;
 		Maths::Vector3* vertices = lmnew Maths::Vector3[numVertices];
 		Maths::Vector2* texCoords = lmnew Maths::Vector2[numVertices];
 		u32* indices = lmnew u32[numIndices];
         m_BoundingSphere = CreateRef<Maths::BoundingSphere>();
 
-		float** lowMap = lmnew float*[RAW_LOWSIDE_RANDOM + 1];
+		float** lowMap = lmnew float*[lowside + 1];
 
-		for (int x = 0; x < RAW_LOWSIDE_RANDOM + 1; ++x)
+		for (int x = 0; x < lowside + 1; ++x)
 		{
-			lowMap[x] = lmnew float[RAW_LOWSIDE_RANDOM + 1];
+			lowMap[x] = lmnew float[lowside + 1];
 		}
 
-		float** lowMapExpand = lmnew float*[RAW_WIDTH_RANDOM];
+		float** lowMapExpand = lmnew float*[width];
 
-		for (int x = 0; x < RAW_WIDTH_RANDOM; ++x)
+		for (int x = 0; x < width; ++x)
 		{
-			lowMapExpand[x] = lmnew float[RAW_HEIGHT_RANDOM];
+			lowMapExpand[x] = lmnew float[height];
 		}
 
 
-		for (int x = 0; x < RAW_LOWSIDE_RANDOM + 1; ++x) 
+		for (int x = 0; x < lowside + 1; ++x)
 		{
-			for (int z = 0; z < RAW_LOWSIDE_RANDOM + 1; ++z) 
+			for (int z = 0; z < lowside + 1; ++z)
 			{
-				lowMap[x][z] = (octave_noise_2d(1.0f, 0.1f, 0.01f, static_cast<float>(x) + static_cast<float>(xCoord * RAW_LOWSIDE_RANDOM), static_cast<float>(z) + static_cast<float>(zCoord * RAW_LOWSIDE_RANDOM)) / 2.0f) + 0.5f;
+				lowMap[x][z] = (octave_noise_2d(1.0f, 0.1f, 0.01f, static_cast<float>(x) + static_cast<float>(xCoord * lowside), static_cast<float>(z) + static_cast<float>(zCoord * lowside)) / 2.0f) + 0.5f;
 			}
 		}
 
-		for (int x = 0; x < RAW_WIDTH_RANDOM; ++x) 
+		for (int x = 0; x < width; ++x)
 		{
-			for (int z = 0; z < RAW_HEIGHT_RANDOM; ++z) 
+			for (int z = 0; z < height; ++z)
 			{
 				lowMapExpand[x][z] = 0.1f;
 			}
 		}
 
-		for (int x = 0; x < (RAW_LOWSIDE_RANDOM); ++x) 
+		for (int x = 0; x < (lowside); ++x)
 		{
-			for (int lx = 0; lx < (RAW_LOWSCALE_RANDOM); ++lx) 
+			for (int lx = 0; lx < (lowscale); ++lx)
 			{
-				int currXCoord = (x * RAW_LOWSCALE_RANDOM) + lx;
+				int currXCoord = (x * lowscale) + lx;
 
-				for (int z = 0; z < (RAW_LOWSIDE_RANDOM); ++z)
+				for (int z = 0; z < (lowside); ++z)
 				{
-					for (int lz = 0; lz < RAW_LOWSCALE_RANDOM; ++lz) 
+					for (int lz = 0; lz < lowscale; ++lz)
 					{
-						int currZCoord = (z * RAW_LOWSCALE_RANDOM) + lz;
+						int currZCoord = (z * lowscale) + lz;
 
 						float topL = lowMap[x + 1][z + 1];
 						float topR = lowMap[x][z + 1];
 						float botL = lowMap[x + 1][z];
 						float botR = lowMap[x][z];
 
-						float xScaleWeight = (static_cast<float>(lx) / (RAW_LOWSCALE_RANDOM));
+						float xScaleWeight = (static_cast<float>(lx) / (lowscale));
 						float xScaleTemp1 =
 							(xScaleWeight * topL) +
 							((1.0f - xScaleWeight) * topR);
@@ -84,7 +73,7 @@ namespace Lumos
 							(xScaleWeight * botL) +
 							((1.0f - xScaleWeight) * botR);
 
-						float yScaleWeight = (static_cast<float>(lz) / (RAW_LOWSCALE_RANDOM));
+						float yScaleWeight = (static_cast<float>(lz) / (lowscale));
 						float temp =
 							yScaleWeight * xScaleTemp1 +
 							(1.0f - yScaleWeight) * xScaleTemp2;
@@ -95,11 +84,11 @@ namespace Lumos
 			}
 		}
 
-		for (int x = 0; x < RAW_WIDTH_RANDOM; ++x) 
+		for (int x = 0; x < width; ++x)
 		{
-			for (int z = 0; z < RAW_HEIGHT_RANDOM; ++z) 
+			for (int z = 0; z < height; ++z)
 			{
-				int offset = (x * RAW_WIDTH_RANDOM) + z;
+				int offset = (x * width) + z;
 
 				float lowWeight = 0.4f;
 				//float lowWeight = 0.0f;
@@ -108,30 +97,30 @@ namespace Lumos
 				float dataVal = (
 					(lowMapExpand[x][z] * lowWeight) +
 					(((octave_noise_2d(5, 0.45f, 0.01f,
-					static_cast<float>(x) + (static_cast<float>(xCoord) * RAW_WIDTH_RANDOM),
-					static_cast<float>(z) + (static_cast<float>(zCoord) * RAW_WIDTH_RANDOM)) / 2.0f) + 0.5f) * normWeight)
+					static_cast<float>(x) + (static_cast<float>(xCoord) * width),
+					static_cast<float>(z) + (static_cast<float>(zCoord) * width)) / 2.0f) + 0.5f) * normWeight)
 					);
 
 				vertices[offset] = Maths::Vector3(
-					(static_cast<float>(x) + (static_cast<float>(xCoord) * RAW_WIDTH_RANDOM)) * HEIGHTMAP_X_RANDOM,
-					(dataVal * dataVal * dataVal) * HEIGHTMAP_Y_RANDOM,
-					(static_cast<float>(z) + static_cast<float>(zCoord * RAW_WIDTH_RANDOM)) * HEIGHTMAP_Z_RANDOM
+					(static_cast<float>(x) + (static_cast<float>(xCoord) * width)) * xRand,
+					(dataVal * dataVal * dataVal) * yRand,
+					(static_cast<float>(z) + static_cast<float>(zCoord * width)) * zRand
 					);
 
-				texCoords[offset] = Maths::Vector2(x * HEIGHTMAP_TEX_X_RANDOM, z * HEIGHTMAP_TEX_Z_RANDOM);
+				texCoords[offset] = Maths::Vector2(x * texRandX, z * texRandZ);
 			}
 		}
 
 		numIndices = 0;
 
-		for (int x = 0; x < RAW_WIDTH_RANDOM - 1; ++x) 
+		for (int x = 0; x < width - 1; ++x)
 		{
-			for (int z = 0; z < RAW_HEIGHT_RANDOM - 1; ++z) 
+			for (int z = 0; z < height - 1; ++z)
 			{
-				int a = (x      * (RAW_WIDTH_RANDOM)) + z;
-				int b = ((x + 1) * (RAW_WIDTH_RANDOM)) + z;
-				int c = ((x + 1) * (RAW_WIDTH_RANDOM)) + (z + 1);
-				int d = (x      * (RAW_WIDTH_RANDOM)) + (z + 1);
+				int a = (x      * (width)) + z;
+				int b = ((x + 1) * (width)) + z;
+				int c = ((x + 1) * (width)) + (z + 1);
+				int d = (x      * (width)) + (z + 1);
 
 				indices[numIndices++] = c;
 				indices[numIndices++] = b;
@@ -176,24 +165,24 @@ namespace Lumos
 
 		m_IndexBuffer = Ref<Graphics::IndexBuffer>(Graphics::IndexBuffer::Create(indices, numIndices));// / sizeof(u32));
         
-        delete[] normals;
-        delete[] tangents;
-        delete[] verts;
-        delete[] vertices;
-        delete[] indices;
-        delete[] texCoords;
+        lmdel[] normals;
+        lmdel[] tangents;
+        lmdel[] verts;
+        lmdel[] vertices;
+        lmdel[] indices;
+        lmdel[] texCoords;
 
-		for (int x = 0; x < RAW_LOWSIDE_RANDOM + 1; ++x)
+		for (int x = 0; x < lowside + 1; ++x)
 		{
-			delete[] lowMap[x];
+			lmdel[] lowMap[x];
 		}
 
-		for (int x = 0; x < RAW_WIDTH_RANDOM; ++x)
+		for (int x = 0; x < width; ++x)
 		{
-			delete[] lowMapExpand[x];
+			lmdel[] lowMapExpand[x];
 		}
 
-		delete[] lowMap;
-		delete[] lowMapExpand;
+		lmdel[] lowMap;
+		lmdel[] lowMapExpand;
 	}
 }

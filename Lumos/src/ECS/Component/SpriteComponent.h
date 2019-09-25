@@ -1,5 +1,5 @@
 #pragma once
-#include "LM.h"
+#include "lmpch.h"
 #include "LumosComponent.h"
 #include "Graphics/Sprite.h"
 
@@ -11,15 +11,15 @@ namespace Lumos
         SpriteComponent();
 		explicit SpriteComponent(Ref<Graphics::Sprite>& sprite);
 
-		void OnUpdateComponent(float dt) override;
-
-		void OnIMGUI() override;
+		void OnImGui() override;
         
         Graphics::Sprite* GetSprite() const { return m_Sprite.get(); }
 
 		nlohmann::json Serialise() override { return nullptr; };
 		void Deserialise(nlohmann::json& data) override {};
         
+		SETUPCOMPOMENT(SpriteComponent);
+
     private:
         Ref<Graphics::Sprite> m_Sprite;
 	};

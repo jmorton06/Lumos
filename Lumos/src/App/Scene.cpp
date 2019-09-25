@@ -1,6 +1,6 @@
-#include "LM.h"
+#include "lmpch.h"
 #include "Scene.h"
-#include "Input.h"
+#include "Core/OS/Input.h"
 #include "Application.h"
 
 #include "Graphics/ParticleManager.h"
@@ -27,7 +27,8 @@ namespace Lumos
 		m_EnvironmentMap(nullptr), 
 		m_SceneBoundingRadius(0),
 		m_ScreenWidth(0),
-		m_ScreenHeight(0)
+		m_ScreenHeight(0),
+		m_RootEntity(nullptr)
 	{
 	}
 
@@ -88,7 +89,7 @@ namespace Lumos
 		//Default physics setup
 		Application::Instance()->GetSystem<LumosPhysicsEngine>()->SetDampingFactor(0.998f);
 		Application::Instance()->GetSystem<LumosPhysicsEngine>()->SetIntegrationType(IntegrationType::RUNGE_KUTTA_4);
-		Application::Instance()->GetSystem<LumosPhysicsEngine>()->SetBroadphase(lmnew Octree(5, 5, CreateRef<SortAndSweepBroadphase>()));
+		Application::Instance()->GetSystem<LumosPhysicsEngine>()->SetBroadphase(Lumos::CreateRef<Octree>(5, 3, Lumos::CreateRef<SortAndSweepBroadphase>()));
 
 		m_SceneBoundingRadius = 400.0f; //Default scene radius of 400m
 
@@ -96,7 +97,7 @@ namespace Lumos
 
 		if (!RenderList::AllocateNewRenderList(m_pFrameRenderList.get(), true))
 		{
-			LUMOS_CORE_ERROR("Unable to allocate scene render list! - Try using less shadow maps");
+			LUMOS_LOG_CRITICAL("Unable to allocate scene render list! - Try using less shadow maps");
 		}
 
 		m_RootEntity = EntityManager::Instance()->CreateEntity("Root");
@@ -127,7 +128,7 @@ namespace Lumos
 
 	void Scene::OnUpdate(TimeStep* timeStep)
 	{
-		const Maths::Vector2 mousePos = Input::GetInput().GetMousePosition();
+		const Maths::Vector2 mousePos = Input::GetInput()->GetMousePosition();
 
 		if(m_pCamera)
 		{
@@ -148,7 +149,7 @@ namespace Lumos
 
 		per_object_func(m_RootEntity);
 
-		ComponentManager::Instance()->OnUpdate(timeStep->GetSeconds());
+		ComponentManager::Instance()->OnUpdate();
 	}
 
 	void Scene::InsertToRenderList(RenderList* list, const Maths::Frustum& frustum) const
@@ -158,16 +159,16 @@ namespace Lumos
 			if (obj->ActiveInHierarchy())
 			{
 				auto meshComponent = obj->GetComponent<MeshComponent>();
-				if (meshComponent && meshComponent->GetActive())
+				if (meshComponent && meshComponent->GetActive() && meshComponent->GetMesh())
 				{
 					auto& transform = obj->GetComponent<TransformComponent>()->GetTransform();
 
 					float maxScaling = 0.0f;
-					maxScaling = Maths::Max(transform.GetWorldMatrix().GetScaling().GetX(), maxScaling);
-					maxScaling = Maths::Max(transform.GetWorldMatrix().GetScaling().GetY(), maxScaling);
-					maxScaling = Maths::Max(transform.GetWorldMatrix().GetScaling().GetZ(), maxScaling);
+					maxScaling = Maths::Max(transform->GetWorldMatrix().GetScaling().GetX(), maxScaling);
+					maxScaling = Maths::Max(transform->GetWorldMatrix().GetScaling().GetY(), maxScaling);
+					maxScaling = Maths::Max(transform->GetWorldMatrix().GetScaling().GetZ(), maxScaling);
 
-					bool inside = frustum.InsideFrustum(transform.GetWorldMatrix().GetPositionVector(), maxScaling * obj->GetBoundingRadius());
+					bool inside = frustum.InsideFrustum(transform->GetWorldMatrix().GetPositionVector(), maxScaling * meshComponent->GetBoundingShape()->SphereRadius());// maxScaling * obj->GetBoundingRadius());
 
 					if (inside)
 					{

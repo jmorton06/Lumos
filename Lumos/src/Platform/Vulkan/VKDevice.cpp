@@ -1,4 +1,4 @@
-#include "LM.h"
+#include "lmpch.h"
 
 #include "App/Application.h"
 #include "Core/Version.h"
@@ -49,7 +49,7 @@ namespace Lumos
 
 			if (pGPUs.empty())
 			{
-				LUMOS_CORE_ERROR("[VULKAN] No GPUs found!");
+				LUMOS_LOG_CRITICAL("[VULKAN] No GPUs found!");
 				return false;
 			}
 
@@ -57,17 +57,17 @@ namespace Lumos
 			m_PhysicalDeviceProperties = m_PhysicalDevice.getProperties();
 			m_MemoryProperties = m_PhysicalDevice.getMemoryProperties();
 
-			LUMOS_CORE_INFO("Vulkan : {0}.{1}.{2}", VK_VERSION_MAJOR(m_PhysicalDeviceProperties.apiVersion), VK_VERSION_MINOR(m_PhysicalDeviceProperties.apiVersion), VK_VERSION_PATCH(m_PhysicalDeviceProperties.apiVersion));
-			LUMOS_CORE_INFO("GPU : {0}", std::string(m_PhysicalDeviceProperties.deviceName));
-			LUMOS_CORE_INFO("Vendor ID : {0}", StringFormat::ToString(m_PhysicalDeviceProperties.vendorID));
-			LUMOS_CORE_INFO("Device Type : {0}", String(TranslateVkPhysicalDeviceTypeToString(m_PhysicalDeviceProperties.deviceType)));
-			LUMOS_CORE_INFO("Driver Version : {0}.{1}.{2}", VK_VERSION_MAJOR(m_PhysicalDeviceProperties.driverVersion), VK_VERSION_MINOR(m_PhysicalDeviceProperties.driverVersion), VK_VERSION_PATCH(m_PhysicalDeviceProperties.driverVersion));
+			LUMOS_LOG_INFO("Vulkan : {0}.{1}.{2}", VK_VERSION_MAJOR(m_PhysicalDeviceProperties.apiVersion), VK_VERSION_MINOR(m_PhysicalDeviceProperties.apiVersion), VK_VERSION_PATCH(m_PhysicalDeviceProperties.apiVersion));
+			LUMOS_LOG_INFO("GPU : {0}", std::string(m_PhysicalDeviceProperties.deviceName));
+			LUMOS_LOG_INFO("Vendor ID : {0}", StringFormat::ToString(m_PhysicalDeviceProperties.vendorID));
+			LUMOS_LOG_INFO("Device Type : {0}", String(TranslateVkPhysicalDeviceTypeToString(m_PhysicalDeviceProperties.deviceType)));
+			LUMOS_LOG_INFO("Driver Version : {0}.{1}.{2}", VK_VERSION_MAJOR(m_PhysicalDeviceProperties.driverVersion), VK_VERSION_MINOR(m_PhysicalDeviceProperties.driverVersion), VK_VERSION_PATCH(m_PhysicalDeviceProperties.driverVersion));
 
 			// Queue family
 			m_QueueFamiliyProperties = m_PhysicalDevice.getQueueFamilyProperties();
 			if (m_QueueFamiliyProperties.size() == 0)
 			{
-				LUMOS_CORE_ERROR("[VULKAN] No Queue Families were found!");
+				LUMOS_LOG_CRITICAL("[VULKAN] No Queue Families were found!");
 				return false;
 			}
 
@@ -75,7 +75,7 @@ namespace Lumos
 
 			if(!m_Surface)
 			{
-				LUMOS_CORE_ERROR("[VULKAN] Failed to create window surface!");
+				LUMOS_LOG_CRITICAL("[VULKAN] Failed to create window surface!");
 			}
 
 			VkBool32* supportsPresent = lmnew VkBool32[m_QueueFamiliyProperties.size()];
@@ -99,7 +99,7 @@ namespace Lumos
 
 			if (m_GraphicsQueueFamilyIndex == UINT32_MAX)
 			{
-				LUMOS_CORE_ERROR("[VULKAN] Couldn't find a Graphics queue family index!");
+				LUMOS_LOG_CRITICAL("[VULKAN] Couldn't find a Graphics queue family index!");
 				return false;
 			}
 
@@ -107,7 +107,7 @@ namespace Lumos
 
 			if (formats.empty())
 			{
-				LUMOS_CORE_ERROR("[VULKAN] Couldn't get surface formats!");
+				LUMOS_LOG_CRITICAL("[VULKAN] Couldn't get surface formats!");
 				return false;
 			}
 
@@ -162,7 +162,7 @@ namespace Lumos
 
 			if (!m_Device)
 			{
-				LUMOS_CORE_ERROR("[VULKAN] vkCreateDevice() failed!");
+				LUMOS_LOG_CRITICAL("[VULKAN] vkCreateDevice() failed!");
 				return false;
 			}
 
@@ -199,7 +199,7 @@ namespace Lumos
 
             if (vmaCreateAllocator(&allocatorInfo, &m_Allocator) != VK_SUCCESS)
             {
-                LUMOS_CORE_ERROR("[VULKAN] Failed to create VMA allocator");
+                LUMOS_LOG_CRITICAL("[VULKAN] Failed to create VMA allocator");
             }
 #endif
 

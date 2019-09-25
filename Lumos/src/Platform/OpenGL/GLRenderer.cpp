@@ -1,7 +1,7 @@
-#include "LM.h"
+#include "lmpch.h"
 #include "GLRenderer.h"
 #include "Graphics/API/Shader.h"
-#include "App/Window.h"
+#include "Core/OS/Window.h"
 #include "GLDebug.h"
 
 #include "GL.h"
@@ -107,7 +107,7 @@ namespace Lumos
 
 		void GLRenderer::SetBlendEquationInternal(RendererBlendFunction blendEquation)
 		{
-			LUMOS_CORE_ASSERT(false, "Not implemented");
+			LUMOS_ASSERT(false, "Not implemented");
 		}
 
 		void GLRenderer::SetViewportInternal(u32 x, u32 y, u32 width, u32 height)
@@ -192,6 +192,16 @@ namespace Lumos
 			{
 				static_cast<Graphics::GLDescriptorSet*>(descriptor)->Bind(dynamicOffset);
 			}
+		}
+
+		void GLRenderer::MakeDefault()
+		{
+			CreateFunc = CreateFuncGL;
+		}
+
+		Renderer* GLRenderer::CreateFuncGL(u32 width, u32 height)
+		{
+			return lmnew GLRenderer(width, height);
 		}
 	}
 }

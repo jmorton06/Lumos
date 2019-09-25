@@ -1,5 +1,5 @@
 #pragma once
-#include "LM.h"
+#include "lmpch.h"
 
 namespace Lumos
 {
@@ -55,6 +55,9 @@ namespace Lumos
 
 			virtual DescriptorSet* GetDescriptorSet() const = 0;
 			virtual Shader* GetShader() const = 0;
+            
+        protected:
+            static Pipeline* (*CreateFunc)(const PipelineInfo&);
 		};
 	}
 }

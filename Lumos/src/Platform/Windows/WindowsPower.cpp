@@ -1,4 +1,4 @@
-#include "LM.h"
+#include "lmpch.h"
 #include "WindowsPower.h"
 #include <windows.h>
 

@@ -1,5 +1,5 @@
 #pragma once
-#include "LM.h"
+#include "lmpch.h"
 #include "Graphics/API/Framebuffer.h"
 #include "VK.h"
 #include "VKTexture.h"
@@ -13,10 +13,10 @@ namespace Lumos
 		{
 		public:
 
-			VKFramebuffer(FramebufferInfo frameBufferInfo);
+			VKFramebuffer(const FramebufferInfo& frameBufferInfo);
 			~VKFramebuffer();
 
-			inline vk::Framebuffer GetFramebuffer() const { return m_Framebuffer; }
+			const vk::Framebuffer& GetFramebuffer() const { return m_Framebuffer; }
 
 			void SetClearColour(const Maths::Vector4& colour) override {};
 
@@ -33,7 +33,10 @@ namespace Lumos
 			void AddShadowAttachment(Texture* texture) override {};
 			void AddTextureLayer(int index, Texture* texture) override {};
 			void GenerateFramebuffer() override {};
-
+            
+            static void MakeDefault();
+        protected:
+            static Framebuffer* CreateFuncVulkan(const FramebufferInfo&);
 		private:
 
 			u32 m_Width;

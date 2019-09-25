@@ -1,11 +1,12 @@
 #pragma once
 
-#include "LM.h"
+#include "lmpch.h"
 #include "Utilities/TSingleton.h"
 #include "PhysicsObject3D.h"
 #include "Manifold.h"
 #include "Broadphase.h"
 #include "ECS/ISystem.h"
+#include "App/Scene.h"
 
 namespace Lumos
 {
@@ -25,24 +26,18 @@ namespace Lumos
 
 	class LUMOS_EXPORT LumosPhysicsEngine : public ISystem
 	{
-		friend class TSingleton<LumosPhysicsEngine>;
 	public:
 		LumosPhysicsEngine();
 		~LumosPhysicsEngine();
 
 		void SetDefaults();
 
-		//Add/Remove Physics Objects
-		void AddPhysicsObject(const Ref<PhysicsObject3D>& obj);
-		void RemovePhysicsObject(const Ref<PhysicsObject3D>& obj);
-		void RemoveAllPhysicsObjects(); //Delete all physics entities etc and reset-physics environment for new scene to be initialized
-
 		//Add Constraints
 		void AddConstraint(Constraint* c) { m_Constraints.push_back(c); }
 
 		void OnInit() override {};
 		//Update Physics Engine
-		void OnUpdate(TimeStep* timeStep) override;			//Remember DeltaTime is 'seconds' since last update not milliseconds
+		void OnUpdate(TimeStep* timeStep, Scene* scene) override;
 
 		//Getters / Setters
 		bool IsPaused() const { return m_IsPaused; }
@@ -56,12 +51,9 @@ namespace Lumos
 
         static float GetDeltaTime() { return s_UpdateTimestep; }
 
-		Broadphase* GetBroadphase() const { return m_BroadphaseDetection; }
-		inline void SetBroadphase(Broadphase* bp)
+		Ref<Broadphase> GetBroadphase() const { return m_BroadphaseDetection; }
+		inline void SetBroadphase(const Ref<Broadphase>& bp)
 		{
-			if (m_BroadphaseDetection)
-				delete m_BroadphaseDetection;
-
 			m_BroadphaseDetection = bp;
 		}
 
@@ -73,11 +65,11 @@ namespace Lumos
 
 		PhysicsObject3D* FindObjectByName(const String& name);
 
-		void OnIMGUI() override;
+		void OnImGui() override;
 	protected:
 
 		//The actual time-independant update function
-		void UpdatePhysics();
+		void UpdatePhysics(Scene* scene);
 
 		//Handles broadphase collision detection
 		void BroadPhaseCollisions();
@@ -87,7 +79,7 @@ namespace Lumos
 
 		//Updates all physics objects position, orientation, velocity etc (default method uses symplectic euler integration)
 		void UpdatePhysicsObjects();
-		void UpdatePhysicsObject(PhysicsObject3D* obj) const;
+		void UpdatePhysicsObject(const Ref<PhysicsObject3D>& obj) const;
 
 		//Solves all engine constraints (constraints and manifolds)
 		void SolveConstraints();
@@ -105,7 +97,7 @@ namespace Lumos
 		std::vector<Manifold*>		m_Manifolds;			// Contact constraints between pairs of objects
 		std::mutex					m_ManifoldsMutex;
 
-		Broadphase* m_BroadphaseDetection;
+		Ref<Broadphase> m_BroadphaseDetection;
 		IntegrationType m_IntegrationType;
 
 		bool m_MultipleUpdates = true;

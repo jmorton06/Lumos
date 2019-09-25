@@ -1,4 +1,4 @@
-#include "LM.h"
+#include "lmpch.h"
 #include "Framebuffer.h"
 #include "Graphics/API/GraphicsContext.h"
 
@@ -15,21 +15,17 @@ namespace Lumos
 {
 	namespace Graphics
 	{
+        Framebuffer*(*Framebuffer::CreateFunc)(const FramebufferInfo&) = nullptr;
+
 		Framebuffer* Framebuffer::Create(const FramebufferInfo& framebufferInfo)
 		{
-			switch (Graphics::GraphicsContext::GetRenderAPI())
-			{
+            LUMOS_ASSERT(CreateFunc, "No Framebuffer Create Function");
+            
 #ifdef LUMOS_RENDER_API_OPENGL
-			case RenderAPI::OPENGL: return framebufferInfo.screenFBO ? nullptr : lmnew GLFramebuffer(framebufferInfo); //TODO: REMOVE
+			if(Graphics::GraphicsContext::GetRenderAPI() == RenderAPI::OPENGL && framebufferInfo.screenFBO)
+				return nullptr; //TODO: REMOVE
 #endif
-#ifdef LUMOS_RENDER_API_VULKAN
-			case RenderAPI::VULKAN:	return lmnew Graphics::VKFramebuffer(framebufferInfo);
-#endif
-#ifdef LUMOS_RENDER_API_DIRECT3D
-			case RenderAPI::DIRECT3D: return lmnew D3DFrameBuffer2D();
-#endif
-			}
-			return nullptr;
+            return CreateFunc(framebufferInfo);
 		}
 	}
 }

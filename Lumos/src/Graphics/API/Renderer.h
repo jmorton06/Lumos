@@ -1,5 +1,5 @@
 #pragma once
-#include "LM.h"
+#include "lmpch.h"
 #include "Maths/Maths.h"
 
 namespace Lumos
@@ -14,7 +14,7 @@ namespace Lumos
 		class VertexArray;
 		class Mesh;
 
-		enum LUMOS_EXPORT RendererBufferType
+		enum RendererBufferType
 		{
 			RENDERER_BUFFER_NONE = 0,
 			RENDERER_BUFFER_COLOUR = BIT(0),
@@ -22,14 +22,14 @@ namespace Lumos
 			RENDERER_BUFFER_STENCIL = BIT(2)
 		};
 
-		enum class LUMOS_EXPORT DrawType
+		enum class DrawType
 		{
 			POINT,
 			TRIANGLE,
 			LINES
 		};
 
-		enum class LUMOS_EXPORT StencilType
+		enum class StencilType
 		{
 			EQUAL,
 			NOTEQUAL,
@@ -39,13 +39,13 @@ namespace Lumos
 			ALWAYS
 		};
 
-		enum class LUMOS_EXPORT PixelPackType
+		enum class PixelPackType
 		{
 			PACK,
 			UNPACK
 		};
 
-		enum class LUMOS_EXPORT RendererBlendFunction
+		enum class RendererBlendFunction
 		{
 			NONE,
 			ZERO,
@@ -55,20 +55,20 @@ namespace Lumos
 			ONE_MINUS_SOURCE_ALPHA
 		};
 
-		enum class LUMOS_EXPORT RendererBlendEquation
+		enum class RendererBlendEquation
 		{
 			NONE,
 			ADD,
 			SUBTRACT
 		};
 
-		enum class LUMOS_EXPORT RenderMode
+		enum class RenderMode
 		{
 			FILL,
 			WIREFRAME
 		};
 
-		enum class LUMOS_EXPORT DataType
+		enum class DataType
 		{
 			FLOAT,
 			UNSIGNED_INT,
@@ -78,10 +78,7 @@ namespace Lumos
 		class LUMOS_EXPORT Renderer
 		{
 		public:
-			Renderer()
-			{
-			}
-
+			Renderer() = default;
 			virtual ~Renderer() = default;
 
 			static void Init(u32 width, u32 height);
@@ -110,6 +107,8 @@ namespace Lumos
 			inline static Swapchain* GetSwapchain() { return s_Instance->GetSwapchainInternal(); }
             
         protected:
+            static Renderer* (*CreateFunc)(u32, u32);
+            
             static Renderer* s_Instance;
 		};
 	}

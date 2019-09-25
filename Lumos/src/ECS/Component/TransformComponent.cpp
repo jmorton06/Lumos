@@ -1,4 +1,4 @@
-#include "LM.h"
+#include "lmpch.h"
 #include "TransformComponent.h"
 #include "ECS/EntityManager.h"
 
@@ -8,34 +8,23 @@
 namespace Lumos
 {
 	TransformComponent::TransformComponent(const Maths::Matrix4& matrix)
-		: m_Transform(matrix)
 	{
-		m_Name = "Transform";
 		m_CanDisable = false;
-	}
 
-	TransformComponent::TransformComponent()
-		: m_Transform()
-	{
-		m_Name = "Transform";
-		m_CanDisable = false;
-	}
-
-	void TransformComponent::OnUpdateComponent(float dt)
-	{
+		m_Transform = CreateRef<Maths::Transform>(matrix);
 	}
     
     void TransformComponent::SetWorldMatrix(const Maths::Matrix4 &matrix)
     {
-        m_Transform.SetHasUpdated(true);
-        m_Transform.SetWorldMatrix(matrix);
+        m_Transform->SetHasUpdated(true);
+        m_Transform->SetWorldMatrix(matrix);
     }
 
-    void TransformComponent::OnIMGUI()
+    void TransformComponent::OnImGui()
     {
-		auto pos = m_Transform.GetLocalPosition();
-		auto scale = m_Transform.GetLocalScale();
-        auto rotation = m_Transform.GetLocalOrientation().ToEuler();
+		auto pos = m_Transform->GetLocalPosition();
+		auto scale = m_Transform->GetLocalScale();
+        auto rotation = m_Transform->GetLocalOrientation().ToEuler();
             
         bool update = false;
 
@@ -49,7 +38,7 @@ namespace Lumos
         ImGui::PushItemWidth(-1);
         if(ImGui::InputFloat3("##Position", &pos.x))
         {
-            m_Transform.SetLocalPosition(pos);
+            m_Transform->SetLocalPosition(pos);
             update = true;
         }
             
@@ -62,7 +51,7 @@ namespace Lumos
         ImGui::PushItemWidth(-1);
         if(ImGui::InputFloat3("##Rotation", &rotation.x))
         {
-            m_Transform.SetLocalOrientation(Maths::Quaternion::EulerAnglesToQuaternion(rotation.GetX(), rotation.GetY(), rotation.GetZ()));
+            m_Transform->SetLocalOrientation(Maths::Quaternion::EulerAnglesToQuaternion(rotation.GetX(), rotation.GetY(), rotation.GetZ()));
             update = true;
         }
             
@@ -75,7 +64,7 @@ namespace Lumos
         ImGui::PushItemWidth(-1);
         if(ImGui::InputFloat3("##Scale", &scale.x))
         {
-            m_Transform.SetLocalScale(scale);
+            m_Transform->SetLocalScale(scale);
             update = true;
         }
             
@@ -83,7 +72,7 @@ namespace Lumos
         ImGui::NextColumn();
             
         if(update)
-            m_Transform.UpdateMatrices();
+            m_Transform->UpdateMatrices();
 
         ImGui::Columns(1);
         ImGui::Separator();
@@ -94,7 +83,7 @@ namespace Lumos
 	{
 		nlohmann::json output;
 		output["typeID"] = LUMOS_TYPENAME(TransformComponent);
-		output["transform"] = m_Transform.Serialise();
+		output["transform"] = m_Transform->Serialise();
 		output["active"] = m_Active;
 
 		return output;
@@ -102,7 +91,7 @@ namespace Lumos
 
 	void TransformComponent::Deserialise(nlohmann::json & data)
 	{
-		m_Transform.Deserialise(data["transform"]);
+		m_Transform->Deserialise(data["transform"]);
 		m_Active = data["active"];
 	}
 }

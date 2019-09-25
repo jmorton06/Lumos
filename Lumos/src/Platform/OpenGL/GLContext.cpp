@@ -1,4 +1,4 @@
-#include "LM.h"
+#include "lmpch.h"
 #include "GLContext.h"
 
 #include "GLVertexArray.h"
@@ -90,13 +90,13 @@ static std::string GetStringForSeverity(GLenum severity)
 	switch (severity)
 	{
 	case GL_DEBUG_SEVERITY_HIGH:
-		LUMOS_CORE_ASSERT(0,"");
+		LUMOS_ASSERT(0,"");
 		return "High";
 	case GL_DEBUG_SEVERITY_MEDIUM:
-		LUMOS_CORE_ASSERT(0,"");
+		LUMOS_ASSERT(0,"");
 		return "Medium";
 	case GL_DEBUG_SEVERITY_LOW:
-		LUMOS_CORE_ASSERT(0,"");
+		LUMOS_ASSERT(0,"");
 		return "Low";
 	case GL_DEBUG_SEVERITY_NOTIFICATION:
 		return "Notification";
@@ -118,11 +118,11 @@ void APIENTRY openglCallbackFunction(GLenum source,
 	if(!PrintMessage(type))
 		return;
 
-	LUMOS_CORE_INFO(OPENGLLOG"Message: {0}" , message);
-	LUMOS_CORE_INFO(OPENGLLOG"Type: {0}"	   , GetStringForType(type));
-	LUMOS_CORE_INFO(OPENGLLOG"Source: {0}"  , GetStringForSource(source));
-	LUMOS_CORE_INFO(OPENGLLOG"ID: {0}"      , id);
-	LUMOS_CORE_INFO(OPENGLLOG"Severity: {0}", GetStringForSeverity(source));
+	LUMOS_LOG_INFO(OPENGLLOG"Message: {0}" , message);
+	LUMOS_LOG_INFO(OPENGLLOG"Type: {0}"	   , GetStringForType(type));
+	LUMOS_LOG_INFO(OPENGLLOG"Source: {0}"  , GetStringForSource(source));
+	LUMOS_LOG_INFO(OPENGLLOG"ID: {0}"      , id);
+	LUMOS_LOG_INFO(OPENGLLOG"Severity: {0}", GetStringForSeverity(source));
 }
 
 #endif
@@ -142,13 +142,13 @@ namespace Lumos
 		
 			if (!wglMakeCurrent(hDc, tempContext))
 			{
-				LUMOS_CORE_ERROR("Failed to initialize OpenGL context");
+				LUMOS_LOG_ERROR("Failed to initialize OpenGL context");
 			}
 
 			if (!gladLoadWGL(hDc))
-				LUMOS_CORE_ERROR("glad failed to load WGL!");
+				LUMOS_LOG_ERROR("glad failed to load WGL!");
 			if (!gladLoadGL())
-				LUMOS_CORE_ERROR("glad failed to load OpenGL!");
+				LUMOS_LOG_ERROR("glad failed to load OpenGL!");
 
 			const int contextAttribsList[] =
 			{
@@ -166,7 +166,7 @@ namespace Lumos
 			HGLRC hrc = wglCreateContextAttribsARB(hDc, nullptr, contextAttribsList);
 			if (hrc == nullptr)
 			{
-				LUMOS_CORE_ERROR("Failed to create core OpenGL context");
+				LUMOS_LOG_ERROR("Failed to create core OpenGL context");
 			}
 			else
 			{
@@ -177,22 +177,22 @@ namespace Lumos
 #else
 			if (!gladLoadGLLoader(reinterpret_cast<GLADloadproc>(glfwGetProcAddress)))
 			{
-				LUMOS_CORE_ERROR("Failed to initialize OpenGL context");
+				LUMOS_LOG_ERROR("Failed to initialize OpenGL context");
 			}
 #endif
 
 			glClearColor(0.2f, 0.2f, 0.2f, 1.0f);
 
-			LUMOS_CORE_INFO("----------------------------------");
-			LUMOS_CORE_INFO(OPENGLLOG);
-			LUMOS_CORE_INFO(glGetString(GL_VERSION));
-			LUMOS_CORE_INFO(glGetString(GL_VENDOR));
-			LUMOS_CORE_INFO(glGetString(GL_RENDERER));
-			LUMOS_CORE_INFO("----------------------------------");
+			LUMOS_LOG_INFO("----------------------------------");
+			LUMOS_LOG_INFO(OPENGLLOG);
+			LUMOS_LOG_INFO(glGetString(GL_VERSION));
+			LUMOS_LOG_INFO(glGetString(GL_VENDOR));
+			LUMOS_LOG_INFO(glGetString(GL_RENDERER));
+			LUMOS_LOG_INFO("----------------------------------");
 
 #if LUMOS_DEBUG
 #ifdef GL_DEBUD_CALLBACK
-				LUMOS_CORE_INFO(OPENGLLOG"Registering OpenGL debug callback");
+				LUMOS_LOG_INFO(OPENGLLOG"Registering OpenGL debug callback");
 
 				glEnable(GL_DEBUG_OUTPUT);
 				glEnable(GL_DEBUG_OUTPUT_SYNCHRONOUS);
@@ -205,7 +205,7 @@ namespace Lumos
 					&unusedIds,
 					true);
 #else
-			LUMOS_CORE_INFO(OPENGLLOG"glDebugMessageCallback not available");
+			LUMOS_LOG_INFO(OPENGLLOG"glDebugMessageCallback not available");
 #endif
 #endif
 			Maths::Matrix4::SetUpCoordSystem(false, false);
@@ -217,9 +217,19 @@ namespace Lumos
 		{
 		}
 
-		void GLContext::OnImGUI()
+		void GLContext::OnImGui()
 		{
 
+		}
+
+		void GLContext::MakeDefault()
+		{
+			CreateFunc = CreateFuncGL;
+		}
+
+		GraphicsContext* GLContext::CreateFuncGL(const WindowProperties& properties, void* cont)
+		{
+			return lmnew GLContext(properties, cont);
 		}
 	}
 }

@@ -1,5 +1,5 @@
 #pragma once
-#include "LM.h"
+#include "lmpch.h"
 #include "VKDevice.h"
 #include "VKCommandBuffer.h"
 #include "VKRenderpass.h"
@@ -33,6 +33,10 @@ namespace Lumos
 			Texture* 			GetImage(u32 id) 			override { return (Texture*)m_SwapChainBuffers[id]; };
 			Framebuffer*		CreateFramebuffer(RenderPass* renderPass, u32 id) override { return nullptr; };
 
+            static void MakeDefault();
+        protected:
+            static Swapchain* CreateFuncVulkan(u32 width, u32 height);
+            
 		private:
             vk::SwapchainKHR 			m_SwapChain;
 			std::vector<VKTexture2D*> 	m_SwapChainBuffers;

@@ -1,4 +1,4 @@
-#include "LM.h"
+#include "lmpch.h"
 #include "SoundComponent.h"
 #include "App/Scene.h"
 #include "Maths/BoundingSphere.h"
@@ -12,26 +12,13 @@ namespace Lumos
     SoundComponent::SoundComponent()
     {
         m_SoundNode = Ref<SoundNode>(SoundNode::Create());
-        m_Name = "Sound";
-        m_BoundingShape = CreateScope<Maths::BoundingSphere>(m_SoundNode->GetPosition(),m_SoundNode->GetRadius());
+        m_BoundingShape = CreateRef<Maths::BoundingSphere>(m_SoundNode->GetPosition(),m_SoundNode->GetRadius());
     }
     
 	SoundComponent::SoundComponent(Ref<SoundNode>& sound)
 		: m_SoundNode(sound)
 	{
-		m_Name = "Sound";
-		m_BoundingShape = CreateScope<Maths::BoundingSphere>(sound->GetPosition(),sound->GetRadius());
-	}
-
-	void SoundComponent::OnUpdateComponent(float dt)
-	{
-	//	Physics3DComponent* physicsComponent = m_Entity->GetComponent<Physics3DComponent>();
-	//	if (physicsComponent)
-	//	{
-	//		m_SoundNode->SetPosition(physicsComponent->GetPhysicsObject()->GetPosition()); //TODO : Get From Entity Transform
-	//		////m_SoundNode->SetVelocity(physicsComponent->GetPhysicsObject()->GetLinearVelocity());
-	//		m_BoundingShape->SetPosition(m_SoundNode->GetPosition());
-	//	}
+		m_BoundingShape = CreateRef<Maths::BoundingSphere>(sound->GetPosition(),sound->GetRadius());
 	}
 
 	void SoundComponent::Init()
@@ -39,7 +26,7 @@ namespace Lumos
 		Application::Instance()->GetSystem<AudioManager>()->AddSoundNode(m_SoundNode.get());
 	}
 
-	void SoundComponent::OnIMGUI()
+	void SoundComponent::OnImGui()
 	{
 		auto pos = m_SoundNode->GetPosition();
 		auto radius = m_SoundNode->GetRadius();

@@ -1,11 +1,9 @@
-#include "LM.h"
+#include "lmpch.h"
 #include "Application.h"
 
 #include "Scene.h"
 #include "SceneManager.h"
-#include "Input.h"
 #include "Engine.h"
-#include "Window.h"
 #include "Editor/Editor.h"
 
 #include "Graphics/API/Renderer.h"
@@ -23,6 +21,11 @@
 #include "Utilities/AssetsManager.h"
 #include "Core/VFS.h"
 #include "Core/JobSystem.h"
+#include "Core/OS/Thread.h"
+#include "Core/OS/Input.h"
+#include "Core/OS/Window.h"
+#include "Core/Profiler.h"
+
 #include "Scripting/LuaScript.h"
 
 #include "Events/ApplicationEvent.h"
@@ -73,7 +76,7 @@ namespace Lumos
 	Application::~Application()
 	{
 #ifdef  LUMOS_EDITOR
-		delete m_Editor;
+		lmdel m_Editor;
 #endif
 		ImGui::DestroyContext();
 	}
@@ -140,7 +143,7 @@ namespace Lumos
 
 		if (pause)
 		{
-			LUMOS_CORE_ERROR("{0}", reason);
+			LUMOS_LOG_ERROR("{0}", reason);
 		}
 
 		return 0;
@@ -166,22 +169,26 @@ namespace Lumos
 			m_UpdateTimer += Engine::Instance()->TargetFrameRate();
 #endif
 
+            Profiler::Instance()->Update(now);
             Engine::GetTimeStep()->Update(now);
 
 			{
+                PROFILERRECORD("Application::Update");
 				OnUpdate(Engine::GetTimeStep());
 				m_Updates++;
 			}
 
+			if(!m_Minimized)
 			{
+                PROFILERRECORD("Application::Render");
 				OnRender();
 				m_Frames++;
 			}
 
-			Input::GetInput().ResetPressed();
+			Input::GetInput()->ResetPressed();
 			m_Window->OnUpdate();
 
-			if (Input::GetInput().GetKeyPressed(LUMOS_KEY_ESCAPE))
+			if (Input::GetInput()->GetKeyPressed(LUMOS_KEY_ESCAPE))
 				m_CurrentState = AppState::Closing;
 #ifdef LUMOS_LIMIT_FRAMERATE
 		}
@@ -189,6 +196,8 @@ namespace Lumos
 
 		if (m_Timer->GetMS() - m_SecondTimer > 1.0f)
 		{
+            PROFILERRECORD("Application::FrameRateCalc");
+
 			m_SecondTimer += 1.0f;
 			Engine::Instance()->SetFPS(m_Frames);
 			Engine::Instance()->SetUPS(m_Updates);
@@ -204,7 +213,7 @@ namespace Lumos
 
 
 		m_SceneManager->ApplySceneSwitch();
-
+        
 		return m_CurrentState != AppState::Closing;
 	}
 
@@ -225,27 +234,28 @@ namespace Lumos
 		const u32 sceneIdx = m_SceneManager->GetCurrentSceneIndex();
 		const u32 sceneMax = m_SceneManager->SceneCount();
 
-		if (Input::GetInput().GetKeyPressed(InputCode::Key::P)) Application::Instance()->GetSystem<LumosPhysicsEngine>()->SetPaused(!Application::Instance()->GetSystem<LumosPhysicsEngine>()->IsPaused());
-		if (Input::GetInput().GetKeyPressed(InputCode::Key::P)) Application::Instance()->GetSystem<B2PhysicsEngine>()->SetPaused(!Application::Instance()->GetSystem<B2PhysicsEngine>()->IsPaused());
+		if (Input::GetInput()->GetKeyPressed(InputCode::Key::P)) Application::Instance()->GetSystem<LumosPhysicsEngine>()->SetPaused(!Application::Instance()->GetSystem<LumosPhysicsEngine>()->IsPaused());
+		if (Input::GetInput()->GetKeyPressed(InputCode::Key::P)) Application::Instance()->GetSystem<B2PhysicsEngine>()->SetPaused(!Application::Instance()->GetSystem<B2PhysicsEngine>()->IsPaused());
 
-		if (Input::GetInput().GetKeyPressed(InputCode::Key::J)) CommonUtils::AddSphere(m_SceneManager->GetCurrentScene());
-		if (Input::GetInput().GetKeyPressed(InputCode::Key::K)) CommonUtils::AddPyramid(m_SceneManager->GetCurrentScene());
-		if (Input::GetInput().GetKeyPressed(InputCode::Key::L)) CommonUtils::AddLightCube(m_SceneManager->GetCurrentScene());
+		if (Input::GetInput()->GetKeyPressed(InputCode::Key::J)) CommonUtils::AddSphere(m_SceneManager->GetCurrentScene());
+		if (Input::GetInput()->GetKeyPressed(InputCode::Key::K)) CommonUtils::AddPyramid(m_SceneManager->GetCurrentScene());
+		if (Input::GetInput()->GetKeyPressed(InputCode::Key::L)) CommonUtils::AddLightCube(m_SceneManager->GetCurrentScene());
 
-		if (Input::GetInput().GetKeyPressed(InputCode::Key::E)) m_SceneManager->SwitchScene((sceneIdx + 1) % sceneMax);
-		if (Input::GetInput().GetKeyPressed(InputCode::Key::Q)) m_SceneManager->SwitchScene((sceneIdx == 0 ? sceneMax : sceneIdx) - 1);
-		if (Input::GetInput().GetKeyPressed(InputCode::Key::R)) m_SceneManager->SwitchScene(sceneIdx);
-		if (Input::GetInput().GetKeyPressed(InputCode::Key::V)) m_Window->ToggleVSync();
+		if (Input::GetInput()->GetKeyPressed(InputCode::Key::G)) m_SceneManager->SwitchScene((sceneIdx + 1) % sceneMax);
+		if (Input::GetInput()->GetKeyPressed(InputCode::Key::H)) m_SceneManager->SwitchScene((sceneIdx == 0 ? sceneMax : sceneIdx) - 1);
+		if (Input::GetInput()->GetKeyPressed(InputCode::Key::F)) m_SceneManager->SwitchScene(sceneIdx);
+		if (Input::GetInput()->GetKeyPressed(InputCode::Key::V)) m_Window->ToggleVSync();
 
 #ifdef LUMOS_EDITOR
 		if (Application::Instance()->GetEditorState() != EditorState::Paused && Application::Instance()->GetEditorState() != EditorState::Preview)
 #endif
 		{
 			m_SceneManager->GetCurrentScene()->OnUpdate(Engine::GetTimeStep());
-			m_SystemManager->OnUpdate(Engine::GetTimeStep());
+			m_SystemManager->OnUpdate(Engine::GetTimeStep(),m_SceneManager->GetCurrentScene());
 		}
 
-		m_LayerStack->OnUpdate(Engine::GetTimeStep(), m_SceneManager->GetCurrentScene());
+		if(!m_Minimized)
+			m_LayerStack->OnUpdate(Engine::GetTimeStep(), m_SceneManager->GetCurrentScene());
 	}
 
 	void Application::OnEvent(Event& e)
@@ -261,7 +271,7 @@ namespace Lumos
 
 		m_SceneManager->GetCurrentScene()->OnEvent(e);
 
-		Input::GetInput().OnEvent(e);
+		Input::GetInput()->OnEvent(e);
 	}
 
 	void Application::Run()
@@ -325,11 +335,14 @@ namespace Lumos
 	{
 		auto windowSize = GetWindowSize();
 
-		u32 width = 1;
-		u32 height = 1;
+		int width = e.GetWidth(), height = e.GetHeight();
 
-		if (e.GetWidth() != 0) width = e.GetWidth();
-		if (e.GetHeight() != 0) height = e.GetHeight();
+		if (width == 0 || height == 0)
+		{
+			m_Minimized = true;
+			return false;
+		}
+		m_Minimized = false;
 
 		m_RenderManager->OnResize(width, height);
 		Graphics::Renderer::GetRenderer()->OnResize(width, height);

@@ -1,9 +1,10 @@
-#include "LM.h"
+#include "lmpch.h"
 #include "Editor.h"
 #include "Console.h"
 #include "ImGUIConsoleSink.h"
 #include "App/Application.h"
-#include "App/Input.h"
+#include "Core/OS/Input.h"
+#include "Core/Profiler.h"
 #include "App/Engine.h"
 #include "App/Scene.h"
 #include "App/SceneManager.h"
@@ -22,7 +23,6 @@
 #include "Graphics/API/Texture.h"
 #include "Graphics/API/GraphicsContext.h"
 
-#include <imgui/imgui.h>
 #include <imgui/imgui_internal.h>
 #include <imgui/plugins/ImGuizmo.h>
 #include <IconFontCppHeaders/IconsFontAwesome5.h>
@@ -41,7 +41,11 @@ namespace Lumos
 	void Editor::OnImGui()
 	{
 		DrawMenuBar();
-		BeginDockSpace();
+		DrawInfoBar();
+
+		BeginDockSpace(true);
+        EndDockSpace();
+
 		//SelectEntity();
         if(m_ShowSceneView)
             DrawSceneView();
@@ -54,10 +58,14 @@ namespace Lumos
         if(m_ShowGraphicsInfo)
             DrawGraphicsInfoWindow();
 
+        if(m_ShowProfiler)
+        {
+            Profiler::Instance()->OnImGui();
+        }
+
         if(m_ShowImGuiDemo)
             ImGui::ShowDemoWindow(&m_ShowImGuiDemo);
 
-		EndDockSpace();
 	}
 
 	void Editor::DrawMenuBar()
@@ -88,6 +96,8 @@ namespace Lumos
 				if (ImGui::MenuItem("Inspector", "", &m_ShowInspector, true)) { m_ShowInspector = true; }
 				if (ImGui::MenuItem("GraphicsInfo", "", &m_ShowGraphicsInfo, true)) { m_ShowGraphicsInfo = true; }
 				if (ImGui::MenuItem("ImGuiExample", "", &m_ShowImGuiDemo, true)) { m_ShowImGuiDemo = true; }
+                if (ImGui::MenuItem("Profiler", "", &m_ShowProfiler, true)) { m_ShowProfiler = true;  }
+
 				ImGui::EndMenu();
 			}
             
@@ -106,47 +116,16 @@ namespace Lumos
                 ImGui::EndMenu();
             }
 
-			ImGui::SameLine(ImGui::GetWindowContentRegionMax().x / 2.0f);
+			ImGui::SameLine(ImGui::GetWindowContentRegionMax().x - 20.0f);
+			if (ImGui::Button(ICON_FA_TIMES, ImVec2(19.0f, 19.0f)))
+				Application::Instance()->SetAppState(AppState::Closing);
 
-			bool selected = false;
+			if (ImGui::IsItemHovered())
 			{
-				selected = m_Application->GetEditorState() == EditorState::Play;
-				if (selected)
-					ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.1f, 0.2f, 0.7f, 1.0f));
-
-				if (ImGui::Button(ICON_FA_PLAY, ImVec2(19.0f, 19.0f)))
-					m_Application->SetEditorState(EditorState::Play);
-
-				if (selected)
-					ImGui::PopStyleColor();
+				ImGui::BeginTooltip();
+				ImGui::TextUnformatted("Exit");
+				ImGui::EndTooltip();
 			}
-
-			{
-				selected = m_Application->GetEditorState() == EditorState::Paused;
-				if (selected)
-					ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.1f, 0.2f, 0.7f, 1.0f));
-
-				if (ImGui::Button(ICON_FA_PAUSE, ImVec2(19.0f, 19.0f)))
-					m_Application->SetEditorState(EditorState::Paused);
-
-				if (selected)
-					ImGui::PopStyleColor();
-			}
-
-			{
-				selected = m_Application->GetEditorState() == EditorState::Next;
-				if (selected)
-					ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.1f, 0.2f, 0.7f, 1.0f));
-
-				if (ImGui::Button(ICON_FA_STEP_FORWARD, ImVec2(19.0f, 19.0f)))
-					m_Application->SetEditorState(EditorState::Next);
-
-				if (selected)
-					ImGui::PopStyleColor();
-			}
-
-			ImGui::SameLine(ImGui::GetWindowContentRegionMax().x - 330.0f);
-			ImGui::Text("Application average %.3f ms/frame (%i FPS)", 1000.0f / (float)Engine::Instance()->GetFPS(), Engine::Instance()->GetFPS());
 
 			ImGui::EndMainMenuBar();
 		}
@@ -157,117 +136,99 @@ namespace Lumos
         if (node == nullptr)
             return;
         
-        bool noChildren = node->GetChildren().empty();
+        bool show = true;
         
-        ImGuiTreeNodeFlags nodeFlags = ((m_Selected == node) ? ImGuiTreeNodeFlags_Selected : 0);
-        
-        nodeFlags |= ImGuiTreeNodeFlags_OpenOnArrow | ImGuiTreeNodeFlags_OpenOnDoubleClick;
-        
-        if(noChildren)
+        if(m_HierarchyFilter.IsActive())
         {
-            nodeFlags |= ImGuiTreeNodeFlags_Leaf;
+            if(!m_HierarchyFilter.PassFilter((node->GetName().c_str())))
+            {
+                show = false;
+            }
         }
         
-		String icon(ICON_FA_CUBE);
-        bool nodeOpen = ImGui::TreeNodeEx(("##" + node->GetUUID()).c_str(), nodeFlags, (icon + " " + node->GetName()).c_str(), 0);
-
-		if (ImGui::BeginDragDropSource(ImGuiDragDropFlags_None))
-		{
-			auto ptr = node;
-			ImGui::SetDragDropPayload("Drag_Entity", &ptr, sizeof(Entity**));
-			ImGui::Text("Moving %s", node->GetName().c_str());
-			ImGui::EndDragDropSource();
-		}
-
-		if (ImGui::BeginDragDropTarget())
-		{
-			if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("Drag_Entity"))
-			{
-				LUMOS_ASSERT(payload->DataSize == sizeof(Entity**), "Error ImGUI drag entity");
-				auto entity = *reinterpret_cast<Entity**>(payload->Data);
-				node->AddChild(entity);
-
-				if (m_Selected == entity)
-					m_Selected = nullptr;
-			}
-			ImGui::EndDragDropTarget();
-		}
-
-        if (ImGui::IsItemClicked())
-            m_Selected = node;
-        
-        if (nodeOpen == false)
-            return;
-        
-        for (auto child : node->GetChildren())
+        if(show)
         {
-            this->DrawNode(child);
-        }
-        
-        if(nodeOpen)
+            bool noChildren = node->GetChildren().empty();
+                  
+              ImGuiTreeNodeFlags nodeFlags = ((m_Selected == node) ? ImGuiTreeNodeFlags_Selected : 0);
+              
+              nodeFlags |= ImGuiTreeNodeFlags_OpenOnArrow | ImGuiTreeNodeFlags_OpenOnDoubleClick;
+              
+              if(noChildren)
+              {
+                  nodeFlags |= ImGuiTreeNodeFlags_Leaf;
+              }
+              
+              String icon(ICON_FA_CUBE);
+              bool nodeOpen = ImGui::TreeNodeEx(("##" + node->GetUUID()).c_str(), nodeFlags, (icon + " " + node->GetName()).c_str(), 0);
+
+              if (ImGui::BeginDragDropSource(ImGuiDragDropFlags_None))
+              {
+                  auto ptr = node;
+                  ImGui::SetDragDropPayload("Drag_Entity", &ptr, sizeof(Entity**));
+                  ImGui::Text("Moving %s", node->GetName().c_str());
+                  ImGui::EndDragDropSource();
+              }
+
+              if (ImGui::BeginDragDropTarget())
+              {
+                  if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("Drag_Entity"))
+                  {
+                      LUMOS_ASSERT(payload->DataSize == sizeof(Entity**), "Error ImGUI drag entity");
+                      auto entity = *reinterpret_cast<Entity**>(payload->Data);
+                      node->AddChild(entity);
+
+                      if (m_Selected == entity)
+                          m_Selected = nullptr;
+                  }
+                  ImGui::EndDragDropTarget();
+              }
+
+              if (ImGui::IsItemClicked())
+                  m_Selected = node;
+              
+              if (nodeOpen == false)
+                  return;
+            
+            for (auto child : node->GetChildren())
+            {
+                this->DrawNode(child);
+            }
+            
             ImGui::TreePop();
+
+        }
+        else
+        {
+            for (auto child : node->GetChildren())
+            {
+                this->DrawNode(child);
+            }
+        }
     }
 
 	void Editor::DrawHierarchyWindow()
 	{
-		ImGui::Begin("Hierarchy", &m_ShowHierarchy, 0);
+		auto flags = ImGuiWindowFlags_NoCollapse;
+		ImGui::Begin("Hierarchy", &m_ShowHierarchy, flags);
 		{
+			ImGui::Indent();
+            m_HierarchyFilter.Draw("");
+            
 			if (ImGui::TreeNode("Application"))
 			{
-                bool flipImage = Graphics::GraphicsContext::GetContext()->FlipImGUITexture();
-				bool selected = false;
-				{
-					selected = m_ImGuizmoOperation == ImGuizmo::TRANSLATE;
-					if (selected)
-						ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.7f, 0.7f, 0.7f, 1.0f));
-
-					if (ImGui::Button(ICON_FA_ARROWS_ALT, ImVec2(28.0f, 28.0f)))
-						m_ImGuizmoOperation = ImGuizmo::TRANSLATE;
-
-					if (selected)
-						ImGui::PopStyleColor();
-				}
-
-				{
-					selected = m_ImGuizmoOperation == ImGuizmo::ROTATE;
-					if (selected)
-						ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.7f, 0.7f, 0.7f, 1.0f));
-
-					ImGui::SameLine();
-					if (ImGui::Button(ICON_FA_SYNC, ImVec2(28.0f, 28.0f)))
-						m_ImGuizmoOperation = ImGuizmo::ROTATE;
-
-					if (selected)
-						ImGui::PopStyleColor();
-				}
-
-				{
-					selected = m_ImGuizmoOperation == ImGuizmo::SCALE;
-					if (selected)
-						ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.7f, 0.7f, 0.7f, 1.0f));
-
-					ImGui::SameLine();
-					if (ImGui::Button(ICON_FA_EXPAND_ARROWS_ALT, ImVec2(28.0f, 28.0f)))
-						m_ImGuizmoOperation = ImGuizmo::SCALE;
-
-					if (selected)
-						ImGui::PopStyleColor();
-				}
-
-				ImGui::NewLine();
-				
 				auto systems = Application::Instance()->GetSystemManager();
 
 				if (ImGui::TreeNode("Systems"))
 				{
-					systems->OnImGUI();
+					systems->OnImGui();
 					ImGui::TreePop();
 				}
 
 				auto layerStack = Application::Instance()->GetLayerStack();
 				if (ImGui::TreeNode("Layers"))
 				{
-					layerStack->OnIMGUI();
+					layerStack->OnImGui();
 					ImGui::TreePop();
 				}
 
@@ -277,6 +238,8 @@ namespace Lumos
 				ImGui::Text("Frame Time : %5.2f ms", Engine::Instance()->GetFrametime());
 				ImGui::NewLine();
 				ImGui::Text("Scene : %s", m_Application->m_SceneManager->GetCurrentScene()->GetSceneName().c_str());
+
+				bool flipImage = Graphics::GraphicsContext::GetContext()->FlipImGUITexture();
 
 				if (ImGui::TreeNode("GBuffer"))
 				{
@@ -337,7 +300,6 @@ namespace Lumos
 				ImGui::TreePop();
 			}
 
-			
 			if (ImGui::TreeNode("Scene"))
 			{
 				ImGui::Indent();
@@ -347,18 +309,19 @@ namespace Lumos
                 ImGui::TreePop();
             }
 			
-			m_Application->m_SceneManager->GetCurrentScene()->OnIMGUI();
+			m_Application->m_SceneManager->GetCurrentScene()->OnImGui();
 		}
 		ImGui::End();
 	}
 
 	void Editor::DrawInspectorWindow()
 	{
-		ImGui::Begin("Inspector", &m_ShowInspector, 0);
+		auto flags = ImGuiWindowFlags_NoCollapse;
+		ImGui::Begin("Inspector", &m_ShowInspector, flags);
         
 		if (m_Selected)
         {
-            m_Selected->OnIMGUI();
+            m_Selected->OnImGui();
         }
 
 		ImGui::End();
@@ -366,18 +329,18 @@ namespace Lumos
 
 	void Editor::DrawSceneView()
 	{
-		ImGuiWindowFlags windowFlags = 0;
+		auto flags = ImGuiWindowFlags_NoCollapse;
 		ImGui::SetNextWindowBgAlpha(0.0f);
-		ImGui::Begin("Scene",  &m_ShowSceneView, windowFlags);
+		ImGui::Begin("Scene",  &m_ShowSceneView, flags);
 		
 		ImGuizmo::SetDrawlist();
 		m_SceneViewSize = Maths::Vector2(ImGui::GetWindowSize().x, ImGui::GetWindowSize().y);
-		Maths::Vector2 m_SceneViewPosition = Maths::Vector2(ImGui::GetWindowPos().x, ImGui::GetWindowPos().y);
+		m_SceneViewPosition = Maths::Vector2(ImGui::GetWindowPos().x, ImGui::GetWindowPos().y);
 
 		m_Application->m_SceneManager->GetCurrentScene()->GetCamera()->SetAspectRatio(static_cast<float>(ImGui::GetWindowSize().x) / static_cast<float>(ImGui::GetWindowSize().y));
 
-		auto width = static_cast<unsigned int>(ImGui::GetWindowContentRegionMax().x - ImGui::GetWindowContentRegionMin().x);
-		auto height = static_cast<unsigned int>(ImGui::GetWindowContentRegionMax().y - ImGui::GetWindowContentRegionMin().y + 20);
+		auto width = static_cast<unsigned int>(ImGui::GetWindowContentRegionMax().x - ImGui::GetWindowContentRegionMin().x + 2);
+		auto height = static_cast<unsigned int>(ImGui::GetWindowContentRegionMax().y - ImGui::GetWindowContentRegionMin().y + 22);
 
 		// Make pixel perfect
 		width -= (width % 2 != 0) ? 1 : 0;
@@ -402,7 +365,7 @@ namespace Lumos
 #endif
 
 			ImGuizmo::DrawGrid(view.values, proj.values, identityMatrix.values, m_GridSize);
-		}	
+		}
 
 		if (m_Selected)
 		{
@@ -412,61 +375,83 @@ namespace Lumos
 		ImGui::End();
 	}
 
-	void Editor::BeginDockSpace()
+	void Editor::BeginDockSpace(bool infoBar)
 	{
-		ImGuiViewport* viewport = ImGui::GetMainViewport();
-		ImGui::SetNextWindowPos(viewport->Pos);
-		ImGui::SetNextWindowSize(viewport->Size);
-		ImGui::SetNextWindowViewport(viewport->ID);
-		ImGui::SetNextWindowBgAlpha(0.0f);
-		ImGui::PushStyleVar(ImGuiStyleVar_WindowRounding, 0.0f);
-		ImGui::PushStyleVar(ImGuiStyleVar_WindowBorderSize, 0.0f);
-		ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0.0f, 0.0f));
+        static bool p_open = true;
+        static bool opt_fullscreen_persistant = true;
+        static ImGuiDockNodeFlags opt_flags = ImGuiDockNodeFlags_None;
+        bool opt_fullscreen = opt_fullscreen_persistant;
 
-		auto windowFlags
-			= ImGuiWindowFlags_NoDocking
-			| ImGuiWindowFlags_NoBringToFrontOnFocus
-			| ImGuiWindowFlags_NoNavFocus
-			| ImGuiWindowFlags_NoTitleBar
-			| ImGuiWindowFlags_NoCollapse
-			| ImGuiWindowFlags_NoResize
-			| ImGuiWindowFlags_NoBackground
-			| ImGuiWindowFlags_NoMove
-			| ImGuiWindowFlags_MenuBar
-			| ImGuiDockNodeFlags_PassthruDockspace;
+        // We are using the ImGuiWindowFlags_NoDocking flag to make the parent window not dockable into,
+        // because it would be confusing to have two docking targets within each others.
+        ImGuiWindowFlags window_flags = ImGuiWindowFlags_MenuBar | ImGuiWindowFlags_NoDocking;
+        if (opt_fullscreen)
+        {
+            ImGuiViewport* viewport = ImGui::GetMainViewport();
 
-		ImGui::Begin("DockSpace", nullptr, windowFlags);
+            auto pos = viewport->Pos;
+            auto size = viewport->Size;
+    
+            if (infoBar)
+            {
+                const float infoBarSize = 24.0f;
+                pos.y += infoBarSize;
+                size.y -= infoBarSize;
+            }
+            
+            ImGui::SetNextWindowPos(pos);
+            ImGui::SetNextWindowSize(size);
+            ImGui::SetNextWindowViewport(viewport->ID);
+            ImGui::PushStyleVar(ImGuiStyleVar_WindowRounding, 0.0f);
+            ImGui::PushStyleVar(ImGuiStyleVar_WindowBorderSize, 0.0f);
+            window_flags |= ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove;
+            window_flags |= ImGuiWindowFlags_NoBringToFrontOnFocus | ImGuiWindowFlags_NoNavFocus;
+        }
+        
+        // When using ImGuiDockNodeFlags_PassthruDockspace, DockSpace() will render our background and handle the pass-thru hole, so we ask Begin() to not render a background.
+        if (opt_flags & ImGuiDockNodeFlags_DockSpace)
+            window_flags |= ImGuiWindowFlags_NoBackground;
 
-		ImGui::PopStyleVar(3);
+        ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0.0f, 0.0f));
+        ImGui::Begin("MyDockspace", &p_open, window_flags);
+        ImGui::PopStyleVar();
 
-		if (ImGui::DockBuilderGetNode(ImGui::GetID("MyDockspace")) == NULL)
+        if (opt_fullscreen)
+            ImGui::PopStyleVar(2);
+
+		if (ImGui::DockBuilderGetNode(ImGui::GetID("MyDockspace")) == nullptr)
 		{
 			ImGuiID dockspace_id = ImGui::GetID("MyDockspace");
 			ImGui::DockBuilderRemoveNode(dockspace_id);
 			ImGui::DockBuilderAddNode(dockspace_id);
+			ImGui::DockBuilderSetNodeSize(dockspace_id, ImGui::GetIO().DisplaySize);
 
-			ImGuiID dock_main_id    = dockspace_id;
-			ImGuiID dock_id_bottom  = ImGui::DockBuilderSplitNode(dock_main_id, ImGuiDir_Down, 0.2f, nullptr, &dock_main_id);
-			ImGuiID dock_id_left    = ImGui::DockBuilderSplitNode(dock_main_id, ImGuiDir_Left, 0.2f, nullptr, &dock_main_id);
+			ImGuiID dock_main_id   = dockspace_id;
+			ImGuiID dock_id_bottom = ImGui::DockBuilderSplitNode(dock_main_id, ImGuiDir_Down, 0.2f, nullptr, &dock_main_id);
+			ImGuiID dock_id_left   = ImGui::DockBuilderSplitNode(dock_main_id, ImGuiDir_Left, 0.2f, nullptr, &dock_main_id);
             ImGuiID dock_id_right  = ImGui::DockBuilderSplitNode(dock_main_id, ImGuiDir_Right, 0.3f, nullptr, &dock_main_id);
-			ImGuiID dock_id_middle   = ImGui::DockBuilderSplitNode(dock_main_id, ImGuiDir_Right, 0.8f, nullptr, &dock_main_id);
+			ImGuiID dock_id_middle = ImGui::DockBuilderSplitNode(dock_main_id, ImGuiDir_Right, 0.8f, nullptr, &dock_main_id);
 
 			ImGui::DockBuilderDockWindow("Scene", dock_id_middle);
 			ImGui::DockBuilderDockWindow("Inspector", dock_id_right);
 			ImGui::DockBuilderDockWindow("Hierarchy", dock_id_left);
 			ImGui::DockBuilderDockWindow("Console", dock_id_bottom);
+            ImGui::DockBuilderDockWindow("Profiler", dock_id_bottom);
 			ImGui::DockBuilderDockWindow("Engine", dock_id_left);
 			ImGui::DockBuilderDockWindow("Scene Information", dock_id_left);
-			ImGui::DockBuilderDockWindow("ImGui Demo", dock_id_left);
+			ImGui::DockBuilderDockWindow("Dear ImGui Demo", dock_id_left);
             ImGui::DockBuilderDockWindow("GraphicsInfo", dock_id_left);
 
 			ImGui::DockBuilderFinish(dockspace_id);
 		}
 		
-
-		ImGuiID dockspace_id = ImGui::GetID("MyDockspace");
-		ImGuiDockNodeFlags dockspace_flags = ImGuiDockNodeFlags_PassthruDockspace;
-		ImGui::DockSpace(dockspace_id, ImVec2(0.0f, 0.0f), dockspace_flags);
+		  // Dockspace
+          ImGuiIO& io = ImGui::GetIO();
+          if (io.ConfigFlags & ImGuiConfigFlags_DockingEnable)
+          {
+              ImGuiID dockspace_id = ImGui::GetID("MyDockspace");
+              ImGui::DockSpace(dockspace_id, ImVec2(0.0f, 0.0f), opt_flags);
+          }
 	}
 
 	void Editor::EndDockSpace()
@@ -488,7 +473,7 @@ namespace Lumos
 		if (bCheck)
 			return;
 
-		Maths::Vector2 relativeMousePos = Input::GetInput().GetMousePosition() - m_SceneViewPosition;
+		Maths::Vector2 relativeMousePos = Input::GetInput()->GetMousePosition() - m_SceneViewPosition;
 
 		float pointX = +2.0f * relativeMousePos.x / m_SceneViewSize.x - 1.0f;
 		float pointY = -2.0f * relativeMousePos.y / m_SceneViewSize.y + 1.0f;
@@ -499,16 +484,16 @@ namespace Lumos
 
 		Maths::Vector3 worldMousePos = invProjView * Maths::Vector3(pointX, pointY, 0.0f);
 
-		m_Application->m_SceneManager->GetCurrentScene()->IterateEntities([&](Entity* entity)
+		/*m_Application->m_SceneManager->GetCurrentScene()->IterateEntities([&](Entity* entity)
 		{
 			auto boundingBox = entity->GetBoundingRadius();
-			Maths::BoundingSphere test(entity->GetTransformComponent()->GetTransform().GetWorldPosition(), boundingBox);
+			Maths::BoundingSphere test(entity->GetTransformComponent()->GetTransform()->GetWorldPosition(), boundingBox);
 			if (test.Intersects(worldMousePos))
 			{
 				m_Selected = entity;
 				return;
 			}
-		});
+		});*/
 	}
 
 	void Editor::OnInit()
@@ -527,10 +512,169 @@ namespace Lumos
     
     void Editor::DrawGraphicsInfoWindow()
     {
-        ImGui::Begin("GraphicsInfo", &m_ShowGraphicsInfo, 0);
+		auto flags = ImGuiWindowFlags_NoCollapse;
+        ImGui::Begin("GraphicsInfo", &m_ShowGraphicsInfo, flags);
         {
-            Graphics::GraphicsContext::GetContext()->OnImGUI();
+            Graphics::GraphicsContext::GetContext()->OnImGui();
         }
         ImGui::End();
     }
+
+	void Editor::DrawInfoBar()
+	{
+		auto windowFlags
+			= ImGuiWindowFlags_NoDocking
+			| ImGuiWindowFlags_NoBringToFrontOnFocus
+			| ImGuiWindowFlags_NoNavFocus
+			| ImGuiWindowFlags_NoTitleBar
+			| ImGuiWindowFlags_NoCollapse
+			| ImGuiWindowFlags_NoResize
+            | ImGuiWindowFlags_NoScrollbar
+			//| ImGuiWindowFlags_NoBackground
+			| ImGuiWindowFlags_NoMove
+        | ImGuiWindowFlags_NoScrollWithMouse;
+            //| ImGuiWindowFlags_MenuBar;
+
+		ImGuiViewport* viewport = ImGui::GetMainViewport();
+
+		auto pos = viewport->Pos;
+		auto size = viewport->Size;
+
+		size.y = 24.0f;
+		pos.y += 20.0f;
+		ImGui::SetNextWindowPos(pos);
+		ImGui::SetNextWindowSize(size);
+
+		ImGui::Begin("InfoBar", nullptr, windowFlags);
+		{
+            ImGui::Indent();
+			bool selected = false;
+			{
+				selected = m_ImGuizmoOperation == ImGuizmo::TRANSLATE;
+				if (selected)
+					ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.7f, 0.7f, 0.7f, 1.0f));
+
+				if (ImGui::Button(ICON_FA_ARROWS_ALT, ImVec2(19.0f, 19.0f)))
+					m_ImGuizmoOperation = ImGuizmo::TRANSLATE;
+
+				if (ImGui::IsItemHovered())
+				{
+					ImGui::BeginTooltip();
+					ImGui::TextUnformatted("Translate");
+					ImGui::EndTooltip();
+				}
+
+				if (selected)
+					ImGui::PopStyleColor();
+			}
+
+			{
+				selected = m_ImGuizmoOperation == ImGuizmo::ROTATE;
+				if (selected)
+					ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.7f, 0.7f, 0.7f, 1.0f));
+
+				ImGui::SameLine();
+				if (ImGui::Button(ICON_FA_SYNC, ImVec2(19.0f, 19.0f)))
+					m_ImGuizmoOperation = ImGuizmo::ROTATE;
+
+				if (ImGui::IsItemHovered())
+				{
+					ImGui::BeginTooltip();
+					ImGui::TextUnformatted("Rotate");
+					ImGui::EndTooltip();
+				}
+
+				if (selected)
+					ImGui::PopStyleColor();
+			}
+
+			{
+				selected = m_ImGuizmoOperation == ImGuizmo::SCALE;
+				if (selected)
+					ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.7f, 0.7f, 0.7f, 1.0f));
+
+				ImGui::SameLine();
+				if (ImGui::Button(ICON_FA_EXPAND_ARROWS_ALT, ImVec2(19.0f, 19.0f)))
+					m_ImGuizmoOperation = ImGuizmo::SCALE;
+
+				if (ImGui::IsItemHovered())
+				{
+					ImGui::BeginTooltip();
+					ImGui::TextUnformatted("Scale");
+					ImGui::EndTooltip();
+				}
+
+				if (selected)
+					ImGui::PopStyleColor();
+			}
+
+			ImGui::SameLine(ImGui::GetWindowContentRegionMax().x / 2.0f);
+
+			{
+				selected = m_Application->GetEditorState() == EditorState::Play;
+				if (selected)
+					ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.1f, 0.2f, 0.7f, 1.0f));
+
+				if (ImGui::Button(ICON_FA_PLAY, ImVec2(19.0f, 19.0f)))
+					m_Application->SetEditorState(EditorState::Play);
+
+				if (ImGui::IsItemHovered())
+				{
+					ImGui::BeginTooltip();
+					ImGui::TextUnformatted("Play");
+					ImGui::EndTooltip();
+				}
+
+				if (selected)
+					ImGui::PopStyleColor();
+			}
+
+			ImGui::SameLine();
+
+			{
+				selected = m_Application->GetEditorState() == EditorState::Paused;
+				if (selected)
+					ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.1f, 0.2f, 0.7f, 1.0f));
+
+				if (ImGui::Button(ICON_FA_PAUSE, ImVec2(19.0f, 19.0f)))
+					m_Application->SetEditorState(EditorState::Paused);
+
+				if (ImGui::IsItemHovered())
+				{
+					ImGui::BeginTooltip();
+					ImGui::TextUnformatted("Pause");
+					ImGui::EndTooltip();
+				}
+
+				if (selected)
+					ImGui::PopStyleColor();
+			}
+
+			ImGui::SameLine();
+
+			{
+				selected = m_Application->GetEditorState() == EditorState::Next;
+				if (selected)
+					ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.1f, 0.2f, 0.7f, 1.0f));
+
+				if (ImGui::Button(ICON_FA_STEP_FORWARD, ImVec2(19.0f, 19.0f)))
+					m_Application->SetEditorState(EditorState::Next);
+
+				if (ImGui::IsItemHovered())
+				{
+					ImGui::BeginTooltip();
+					ImGui::TextUnformatted("Next");
+					ImGui::EndTooltip();
+				}
+
+				if (selected)
+					ImGui::PopStyleColor();
+			}
+
+			ImGui::SameLine(ImGui::GetWindowContentRegionMax().x - 130.0f);
+			ImGui::Text("%.2f ms (%i FPS)", 1000.0f / (float)Engine::Instance()->GetFPS(), Engine::Instance()->GetFPS());
+
+		}
+		ImGui::End();
+	}
 }

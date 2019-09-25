@@ -1,8 +1,8 @@
-#include "LM.h"
+#include "lmpch.h"
 #include "GLIMGUIRenderer.h"
-#include "external/imgui/imgui.h"
+#include <imgui/imgui.h>
 #define IMGUI_IMPL_OPENGL_LOADER_GLAD
-#include "external/imgui/examples/imgui_impl_opengl3.h"
+#include <imgui/examples/imgui_impl_opengl3.h>
 
 #include "GLDebug.h"
 
@@ -49,6 +49,16 @@ namespace Lumos
         {
             
         }
+
+		void GLIMGUIRenderer::MakeDefault()
+		{
+			CreateFunc = CreateFuncGL;
+		}
+
+		IMGUIRenderer* GLIMGUIRenderer::CreateFuncGL(u32 width, u32 height, bool clearScreen)
+		{
+			return lmnew GLIMGUIRenderer(width, height, clearScreen);
+		}
     }
 }
 

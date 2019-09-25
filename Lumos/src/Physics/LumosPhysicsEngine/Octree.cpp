@@ -1,4 +1,4 @@
-#include "LM.h"
+#include "lmpch.h"
 #include "Maths/BoundingBox.h"
 #include "Octree.h"
 
@@ -26,7 +26,6 @@ namespace Lumos
 		m_LeafNodes.reserve(m_MaxPartitionDepth * m_MaxPartitionDepth * m_MaxPartitionDepth);
 
 		// Init root world space
-		m_RootNode.reset();
 		m_RootNode = CreateRef<OctreeNode>();
 		m_RootNode->physicsObjects.reserve(m_MaxObjectsPerPartition);
 		m_RootNode->childNodes.reserve(8);

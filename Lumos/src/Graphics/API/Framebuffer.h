@@ -1,5 +1,5 @@
 #pragma once
-#include "LM.h"
+#include "lmpch.h"
 #include "Maths/Maths.h"
 
 namespace Lumos
@@ -57,6 +57,9 @@ namespace Lumos
 			virtual u32 GetWidth() const = 0;
 			virtual u32 GetHeight() const = 0;
 			virtual void SetClearColour(const Maths::Vector4& colour) = 0;
+            
+        protected:
+            static Framebuffer* (*CreateFunc)(const FramebufferInfo&);
 		};
 	}
 }

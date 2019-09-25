@@ -1,5 +1,5 @@
 #pragma once
-#include "LM.h"
+#include "lmpch.h"
 #include "Maths/Quaternion.h"
 #include "Core/Serialisable.h"
 
@@ -16,30 +16,18 @@ namespace Lumos
 			~Transform();
 
             void SetWorldMatrix(const Matrix4& mat);
-			void SetWorldPosition(const Vector3& worldPos);
-			void SetLocalPosition(const Vector3& localPos);
             
             void SetLocalTransform(const Matrix4& localMat);
 
-			void SetWorldScale(const Vector3& worldScale);
+			void SetLocalPosition(const Vector3& localPos);
 			void SetLocalScale(const Vector3& localScale);
 			void SetLocalOrientation(const Quaternion& quat);
-            void SetWorldOrientation(const Quaternion& quat);
 
-			Matrix4 GetWorldMatrix() const
-			{
-				return m_WorldMatrix;
-			}
+			const Matrix4& GetWorldMatrix() const { return m_WorldMatrix; }
+			const Matrix4& GetLocalMatrix() const { return m_LocalMatrix; }
 
-			Matrix4 GetLocalMatrix() const
-			{
-				return m_LocalMatrix;
-			}
-
-			Vector3 GetWorldPosition() const
-			{
-				return m_WorldMatrix.GetPositionVector();
-			}
+			const Vector3 GetWorldPosition() const { return m_WorldMatrix.GetPositionVector(); }
+			const Quaternion GetWorldOrientation() const { return m_WorldMatrix.ToQuaternion(); }
 
 			const Vector3& GetLocalPosition() { return m_LocalPosition; }
 			const Vector3& GetLocalScale() { return m_LocalScale; }

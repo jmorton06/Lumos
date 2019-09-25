@@ -1,4 +1,4 @@
-#include "LM.h"
+#include "lmpch.h"
 #include "ModelLoader.h"
 #include "Graphics/Mesh.h"
 #include "Graphics/Material.h"
@@ -437,24 +437,24 @@ namespace Lumos
         
         if (!node.scale.empty())
         {
-            transform->GetTransform().SetLocalScale(Maths::Vector3(static_cast<float>(node.scale[0]), static_cast<float>(node.scale[1]), static_cast<float>(node.scale[2])));
+            transform->GetTransform()->SetLocalScale(Maths::Vector3(static_cast<float>(node.scale[0]), static_cast<float>(node.scale[1]), static_cast<float>(node.scale[2])));
         }
         if (!node.rotation.empty())
         {
-            transform->GetTransform().SetLocalOrientation(Maths::Quaternion(static_cast<float>(node.rotation[0]), static_cast<float>(node.rotation[1]), static_cast<float>(node.rotation[2]), static_cast<float>(node.rotation[3])));
+            transform->GetTransform()->SetLocalOrientation(Maths::Quaternion(static_cast<float>(node.rotation[0]), static_cast<float>(node.rotation[1]), static_cast<float>(node.rotation[2]), static_cast<float>(node.rotation[3])));
         }
         if (!node.translation.empty())
         {
-            transform->GetTransform().SetLocalPosition(Maths::Vector3(static_cast<float>(node.translation[0]), static_cast<float>(node.translation[1]), static_cast<float>(node.translation[2])));
+            transform->GetTransform()->SetLocalPosition(Maths::Vector3(static_cast<float>(node.translation[0]), static_cast<float>(node.translation[1]), static_cast<float>(node.translation[2])));
         }
         if (!node.matrix.empty())
         {
             auto lTransform = Maths::Matrix4(reinterpret_cast<float*>(node.matrix.data()));
-            transform->GetTransform().SetLocalTransform(lTransform);
-            transform->GetTransform().ApplyTransform(); // this creates S, R, T vectors from local matrix
+            transform->GetTransform()->SetLocalTransform(lTransform);
+            transform->GetTransform()->ApplyTransform(); // this creates S, R, T vectors from local matrix
         }
 
-		transform->GetTransform().UpdateMatrices();
+		transform->GetTransform()->UpdateMatrices();
         
         if (!node.children.empty())
         {
@@ -490,17 +490,17 @@ namespace Lumos
 
 		if (!err.empty())
 		{
-			LUMOS_CORE_ERROR(err);
+			LUMOS_LOG_CRITICAL(err);
 		}
 
 		if (!warn.empty())
 		{
-			LUMOS_CORE_ERROR(warn);
+			LUMOS_LOG_CRITICAL(warn);
 		}
 
 		if (!ret)
 		{
-			LUMOS_CORE_ERROR("Failed to parse glTF");
+			LUMOS_LOG_CRITICAL("Failed to parse glTF");
 		}
 
         auto LoadedMaterials = LoadMaterials(model);

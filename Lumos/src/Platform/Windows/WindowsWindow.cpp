@@ -1,4 +1,4 @@
-#include "LM.h"																									
+#include "lmpch.h"																									
 #define NOMINMAX
 #undef NOGDI
 #include <Windows.h>
@@ -13,9 +13,11 @@
 #include "WindowsKeyCodes.h"
 #include "Graphics/API/GraphicsContext.h"
 #include "App/Application.h"
-#include "App/Input.h"
+#include "Core/OS/Input.h"
 #include "Maths/MathsUtilities.h"
 #include "Events/ApplicationEvent.h"
+
+#include <imgui/imgui.h>
 
 extern "C"
 {
@@ -41,6 +43,8 @@ namespace Lumos
 #ifndef HID_USAGE_GENERIC_KEYBOARD
 #define HID_USAGE_GENERIC_KEYBOARD ((USHORT)0x06)
 #endif
+
+	static ImGuiMouseCursor g_LastMouseCursor = ImGuiMouseCursor_COUNT;
 
 	WindowsWindow::WindowsWindow(const WindowProperties& properties) : hWnd(nullptr)
 	{
@@ -92,7 +96,7 @@ namespace Lumos
 
 		if (!RegisterClassA(&winClass))
 		{
-			LUMOS_CORE_ERROR("Could not register Win32 class!");
+			LUMOS_LOG_CRITICAL("Could not register Win32 class!");
 			return false;
 		}
 
@@ -109,11 +113,9 @@ namespace Lumos
 
 		if (!hWnd)
 		{
-			LUMOS_CORE_ERROR("Could not create window!");
+			LUMOS_LOG_CRITICAL("Could not create window!");
 			return false;
 		}
-
-		//RegisterWindowClass(hWnd, this);
 
 		hDc = GetDC(hWnd);
 		PIXELFORMATDESCRIPTOR pfd = GetPixelFormat();
@@ -122,13 +124,13 @@ namespace Lumos
 		{
 			if (!SetPixelFormat(hDc, pixelFormat, &pfd))
 			{
-				LUMOS_CORE_ERROR("Failed setting pixel format!");
+				LUMOS_LOG_CRITICAL("Failed setting pixel format!");
 				return false;
 			}
 		}
 		else
 		{
-			LUMOS_CORE_ERROR("Failed choosing pixel format!");
+			LUMOS_LOG_CRITICAL("Failed choosing pixel format!");
 			return false;
 		}
 
@@ -168,12 +170,15 @@ namespace Lumos
 
 	void FocusCallback(Window* window, bool focused)
 	{
-		Input::GetInput().SetWindowFocus(focused);
+		Input::GetInput()->SetWindowFocus(focused);
 	}
 
 	void WindowsWindow::OnUpdate()
 	{
 		MSG message;
+
+		ZeroMemory(&message, sizeof(MSG));
+
 		while (PeekMessage(&message, NULL, NULL, NULL, PM_REMOVE) > 0)
 		{
 			if (message.message == WM_QUIT)
@@ -269,7 +274,6 @@ namespace Lumos
 	void MouseScrollCallback(Window* window, int inSw, WPARAM wParam, LPARAM lParam)
 	{
 		WindowsWindow::WindowData data = static_cast<WindowsWindow*>(window)->m_Data;
-		HWND hWnd = static_cast<WindowsWindow*>(window)->GetHWND();
 
 		MouseScrolledEvent event(0.0f, static_cast<float>(GET_WHEEL_DELTA_WPARAM(wParam)) / static_cast<float>(WHEEL_DELTA));
 		data.EventCallback(event);
@@ -382,5 +386,75 @@ namespace Lumos
 			result = DefWindowProc(hWnd, message, wParam, lParam);
 		}
 		return result;
+	}
+
+	static void ImGuiUpdateMousePos(HWND hWnd)
+	{
+		ImGuiIO& io = ImGui::GetIO();
+
+		// Set OS mouse position if requested (rarely used, only when ImGuiConfigFlags_NavEnableSetMousePos is enabled by user)
+		if (io.WantSetMousePos)
+		{
+			POINT pos = { (int)io.MousePos.x, (int)io.MousePos.y };
+			::ClientToScreen(hWnd, &pos);
+			::SetCursorPos(pos.x, pos.y);
+		}
+
+		// Set mouse position
+		io.MousePos = ImVec2(-FLT_MAX, -FLT_MAX);
+		POINT pos;
+		if (HWND active_window = ::GetForegroundWindow())
+			if (active_window == hWnd || ::IsChild(active_window, hWnd))
+				if (::GetCursorPos(&pos) && ::ScreenToClient(hWnd, &pos))
+					io.MousePos = ImVec2((float)pos.x, (float)pos.y);
+	}
+
+	void WindowsWindow::UpdateCursorImGui()
+	{
+		ImGuiUpdateMousePos(hWnd);
+
+		ImGuiIO& io = ImGui::GetIO();
+		ImGuiMouseCursor imgui_cursor = io.MouseDrawCursor ? ImGuiMouseCursor_None : ImGui::GetMouseCursor();
+		if (g_LastMouseCursor != imgui_cursor)
+		{
+			g_LastMouseCursor = imgui_cursor;
+
+			if (io.ConfigFlags & ImGuiConfigFlags_NoMouseCursorChange)
+				return;
+
+			if (imgui_cursor == ImGuiMouseCursor_None || io.MouseDrawCursor)
+			{
+				// Hide OS mouse cursor if imgui is drawing it or if it wants no cursor
+				::SetCursor(NULL);
+			}
+			else
+			{
+				// Show OS mouse cursor
+				LPTSTR win32_cursor = IDC_ARROW;
+				switch (imgui_cursor)
+				{
+				case ImGuiMouseCursor_Arrow:        win32_cursor = IDC_ARROW; break;
+				case ImGuiMouseCursor_TextInput:    win32_cursor = IDC_IBEAM; break;
+				case ImGuiMouseCursor_ResizeAll:    win32_cursor = IDC_SIZEALL; break;
+				case ImGuiMouseCursor_ResizeEW:     win32_cursor = IDC_SIZEWE; break;
+				case ImGuiMouseCursor_ResizeNS:     win32_cursor = IDC_SIZENS; break;
+				case ImGuiMouseCursor_ResizeNESW:   win32_cursor = IDC_SIZENESW; break;
+				case ImGuiMouseCursor_ResizeNWSE:   win32_cursor = IDC_SIZENWSE; break;
+				case ImGuiMouseCursor_Hand:         win32_cursor = IDC_HAND; break;
+				}
+				::SetCursor(::LoadCursor(NULL, win32_cursor));
+			}
+		}
+
+	}
+
+	void WindowsWindow::MakeDefault()
+	{
+		CreateFunc = CreateFuncWindows;
+	}
+
+	Window* WindowsWindow::CreateFuncWindows(const WindowProperties& properties)
+	{
+		return lmnew WindowsWindow(properties);
 	}
 }

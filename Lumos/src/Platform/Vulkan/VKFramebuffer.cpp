@@ -1,4 +1,4 @@
-#include "LM.h"
+#include "lmpch.h"
 #include "VKFramebuffer.h"
 #include "VKDevice.h"
 #include "VKTexture.h"
@@ -8,7 +8,7 @@ namespace Lumos
 {
 	namespace Graphics
 	{
-		VKFramebuffer::VKFramebuffer(FramebufferInfo frameBufferInfo)
+		VKFramebuffer::VKFramebuffer(const FramebufferInfo& frameBufferInfo)
 		{
 			m_Width  = frameBufferInfo.width;
 			m_Height = frameBufferInfo.height;
@@ -47,5 +47,15 @@ namespace Lumos
 		{
 			VKDevice::Instance()->GetDevice().destroyFramebuffer(m_Framebuffer);
 		}
+        
+        void VKFramebuffer::MakeDefault()
+        {
+            CreateFunc = CreateFuncVulkan;
+        }
+        
+		Framebuffer* VKFramebuffer::CreateFuncVulkan(const FramebufferInfo& info)
+        {
+            return lmnew VKFramebuffer(info);
+        }
 	}
 }

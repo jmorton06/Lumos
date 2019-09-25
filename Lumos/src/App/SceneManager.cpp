@@ -1,4 +1,4 @@
-#include "LM.h"
+#include "lmpch.h"
 #include "SceneManager.h"
 
 #include "Physics/B2PhysicsEngine/B2PhysicsEngine.h"
@@ -21,27 +21,11 @@ namespace Lumos
 
 		if (m_CurrentScene)
 		{
-			LUMOS_CORE_INFO("[SceneManager] - Exiting scene : {0}", m_CurrentScene->GetSceneName());
+			LUMOS_LOG_INFO("[SceneManager] - Exiting scene : {0}", m_CurrentScene->GetSceneName());
 			m_CurrentScene->OnCleanupScene();
 		}
 
 		m_vpAllScenes.clear();
-	}
-
-	void SceneManager::EnqueueScene(Scene* scene)
-	{
-		if (scene == nullptr)
-		{
-			LUMOS_CORE_ERROR("Attempting to enqueue nullptr scene", "");
-			return;
-		}
-
-        LUMOS_CORE_INFO("[SceneManager] - Enqueued scene : {0}", scene->GetSceneName().c_str());
-        m_vpAllScenes.emplace_back(std::move(Scope<Scene>(scene)));
-
-		auto screenSize = Application::Instance()->GetWindowSize();
-		scene->SetScreenWidth(static_cast<u32>(screenSize.GetX()));
-		scene->SetScreenHeight(static_cast<u32>(screenSize.GetY()));
 	}
 
 	void SceneManager::SwitchScene()
@@ -76,7 +60,7 @@ namespace Lumos
 		}
 		else
 		{
-			LUMOS_CORE_ERROR("[SceneManager] - Unknown Scene Alias : {0}", name.c_str());
+			LUMOS_LOG_ERROR("[SceneManager] - Unknown Scene Alias : {0}", name.c_str());
 		}
 	}
     
@@ -87,15 +71,14 @@ namespace Lumos
         
         if (m_QueuedSceneIndex < 0 || m_QueuedSceneIndex >= static_cast<int>(m_vpAllScenes.size()))
         {
-            LUMOS_CORE_ERROR("[SceneManager] - Invalid Scene Index : {0}", m_QueuedSceneIndex);
+            LUMOS_LOG_ERROR("[SceneManager] - Invalid Scene Index : {0}", m_QueuedSceneIndex);
             return;
         }
         
         //Clear up old scene
         if (m_CurrentScene)
         {
-            LUMOS_CORE_INFO("[SceneManager] - Exiting scene : {0}" , m_CurrentScene->GetSceneName());
-            Application::Instance()->GetSystem<LumosPhysicsEngine>()->RemoveAllPhysicsObjects();
+            LUMOS_LOG_INFO("[SceneManager] - Exiting scene : {0}" , m_CurrentScene->GetSceneName());
             Application::Instance()->GetSystem<LumosPhysicsEngine>()->SetPaused(true);
             m_CurrentScene->OnCleanupScene();
 			Application::Instance()->OnExitScene();
@@ -115,7 +98,7 @@ namespace Lumos
         
         Application::Instance()->OnNewScene(m_CurrentScene);
         
-        LUMOS_CORE_INFO("[SceneManager] - Scene switched to : {0}", m_CurrentScene->GetSceneName().c_str());
+        LUMOS_LOG_INFO("[SceneManager] - Scene switched to : {0}", m_CurrentScene->GetSceneName().c_str());
         
         m_SwitchingScenes = false;
     }

@@ -1,4 +1,4 @@
-#include "LM.h"
+#include "lmpch.h"
 #include "LightComponent.h"
 #include "Physics3DComponent.h"
 #include "Physics/LumosPhysicsEngine/PhysicsObject3D.h"
@@ -15,13 +15,13 @@ namespace Lumos
     LightComponent::LightComponent()
     {
         m_Light = CreateRef<Graphics::Light>();
+        m_BoundingShape = CreateRef<Maths::BoundingSphere>(m_Light->m_Position.ToVector3(), m_Light->m_Radius * m_Light->m_Radius);
     }
     
 	LightComponent::LightComponent(const Ref<Graphics::Light>& light)
 		: m_Light(light)
 	{
-		m_Name = "Light";
-		m_BoundingShape = CreateScope<Maths::BoundingSphere>(light->m_Position.ToVector3(), light->m_Radius * light->m_Radius);
+        m_BoundingShape = CreateRef<Maths::BoundingSphere>(light->m_Position.ToVector3(), light->m_Radius * light->m_Radius);
 	}
     
     LightComponent::~LightComponent()
@@ -34,14 +34,14 @@ namespace Lumos
 		m_BoundingShape->SetRadius(radius);
 	}
 
-	void LightComponent::OnUpdateComponent(float dt)
+	void LightComponent::Update()
 	{
-		//auto euler = Maths::Matrix4::GetEulerAngles(m_Entity->GetTransformComponent()->GetTransform().GetWorldMatrix());
+		//auto euler = Maths::Matrix4::GetEulerAngles(m_Entity->GetTransformComponent()->GetTransform()->GetWorldMatrix());
 		//float x = cos(euler.y)*cos(euler.x);
 		//float y = sin(euler.y)*cos(euler.x);
 		//float z = sin(euler.x);
 		//m_Light->m_Direction = Maths::Vector4(x,y,z, 1.0f);
-		m_Light->m_Position  = Maths::Vector4(m_Entity->GetTransformComponent()->GetTransform().GetWorldMatrix().GetPositionVector(), 1.0f);
+		m_Light->m_Position  = Maths::Vector4(m_Entity->GetTransformComponent()->GetTransform()->GetWorldMatrix().GetPositionVector(), 1.0f);
 		m_BoundingShape->SetPosition(m_Light->m_Position.ToVector3());
 	}
 
@@ -60,7 +60,7 @@ namespace Lumos
 		}
 	}
 
-	void LightComponent::OnIMGUI()
+	void LightComponent::OnImGui()
 	{
 		ImGui::SameLine();
 		ImGui::Checkbox("##Active", &m_Active);

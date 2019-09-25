@@ -1,17 +1,13 @@
-#include "LM.h"
+#include "lmpch.h"
 #include "Memory.h"
-#include <new>
-
-//#define USE_STB_LEAKCHECK
-#ifdef USE_STB_LEAKCHECK
-
-#define STB_LEAKCHECK_IMPLEMENTATION
-#include <stb/stb_leakcheck.h>
-
-#endif
+#include "Allocators/BinAllocator.h"
+#include "Allocators/DefaultAllocator.h"
+#include "Allocators/StbAllocator.h"
 
 namespace Lumos
 {
+	Allocator* const Memory::MemoryAllocator = new DefaultAllocator();
+
     void* Memory::AlignedAlloc(size_t size, size_t alignment)
     {
         void *data = nullptr;
@@ -36,29 +32,24 @@ namespace Lumos
     
     void* Memory::NewFunc(std::size_t size, const char *file, int line)
     {
-#ifdef USE_STB_LEAKCHECK
-        void* p = stb_leakcheck_malloc(size, file, line);
-#else
-        void* p = malloc(size);
-#endif
-        return p;
+		if (MemoryAllocator)
+			return MemoryAllocator->Malloc(size, file, line);
+		else
+			return malloc(size);
     }
     
     void Memory::DeleteFunc(void* p)
     {
-#ifdef USE_STB_LEAKCHECK
-        stb_leakcheck_free(p);
-#else
-        free(p);
-#endif
-        
+		if (MemoryAllocator)
+			return MemoryAllocator->Free(p);
+		else
+			return free(p);
     }
     
     void Memory::LogMemoryInformation()
     {
-#ifdef USE_STB_LEAKCHECK
-        stb_leakcheck_dumpmem();
-#endif
+		if (MemoryAllocator)
+			return MemoryAllocator->Print();
     }
 }
 

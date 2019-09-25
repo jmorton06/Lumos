@@ -1,5 +1,5 @@
 #pragma once
-#include "LM.h"
+#include "lmpch.h"
 
 namespace Lumos
 {
@@ -45,6 +45,9 @@ namespace Lumos
 			virtual void BeginRenderpass(CommandBuffer* commandBuffer, const Maths::Vector4& clearColour, Framebuffer* frame,
 				SubPassContents contents, uint32_t width, uint32_t height) const = 0;
 			virtual void EndRenderpass(CommandBuffer * commandBuffer) = 0;
+            
+        protected:
+            static RenderPass* (*CreateFunc)();
 		};
 	}
 }

@@ -29,7 +29,10 @@ namespace Lumos
             void FrameRender(ImGui_ImplVulkanH_WindowData* wd);
             void SetupVulkanWindowData(ImGui_ImplVulkanH_WindowData* wd, VkSurfaceKHR surface, int width, int height);
 			bool Implemented() const override { return true; }
-
+            
+            static void MakeDefault();
+        protected:
+            static IMGUIRenderer* CreateFuncVulkan(u32 width, u32 height, bool clearScreen);
         private:
 			void* m_WindowHandle;
 			u32 m_Width;

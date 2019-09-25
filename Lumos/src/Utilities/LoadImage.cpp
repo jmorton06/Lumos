@@ -1,4 +1,4 @@
-#include "LM.h"
+#include "lmpch.h"
 #include "LoadImage.h"
 
 #include "Core/VFS.h"
@@ -40,7 +40,7 @@ namespace Lumos
 		if (FreeImage_FIFSupportsReading(fif))
 			dib = FreeImage_Load(fif, filename);
 
-		LUMOS_CORE_ASSERT(dib, "Could not load image '{0}'!", filename);
+		LUMOS_ASSERT(dib, "Could not load image '{0}'!", filename);
 
 		FIBITMAP* bitmap = FreeImage_ConvertTo32Bits(dib);
 		FreeImage_Unload(dib);
@@ -71,7 +71,7 @@ namespace Lumos
 		int texWidth = 0, texHeight = 0, texChannels = 0;
 		stbi_uc* pixels = stbi_load(filename, &texWidth, &texHeight, &texChannels, STBI_rgb_alpha);
 
-		LUMOS_CORE_ASSERT(pixels, "Could not load image '{0}'!", filename);
+		LUMOS_ASSERT(pixels, "Could not load image '{0}'!", filename);
 
 		if (width)
 			*width = texWidth;

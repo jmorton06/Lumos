@@ -1,4 +1,4 @@
-#include "LM.h"
+#include "lmpch.h"
 #include "ComponentManager.h"
 #include "ECS/Component/Components.h"
 
@@ -25,13 +25,13 @@ namespace Lumos
 	{
 	}
 
-	void ComponentManager::OnUpdate(float dt)
+	void ComponentManager::OnUpdate()
 	{
 		for (auto& componentArray : m_ComponentArrays)
-			componentArray.second->OnUpdate(dt);
+			componentArray.second->OnUpdate();
 	}
 
-	std::vector<LumosComponent*> ComponentManager::GetAllComponents(Entity* entity)
+	const std::vector<LumosComponent*> ComponentManager::GetAllComponents(Entity* entity)
 	{
 		std::vector<LumosComponent*> components;
 

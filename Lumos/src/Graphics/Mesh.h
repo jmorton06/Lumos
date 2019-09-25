@@ -1,5 +1,5 @@
 #pragma once
-#include "LM.h"
+#include "lmpch.h"
 
 #include "API/IndexBuffer.h"
 #include "API/VertexArray.h"
@@ -89,14 +89,9 @@ namespace Lumos
 			virtual ~Mesh();
 			virtual void Draw();
 
-			void Init();
 			Ref<VertexArray> GetVertexArray() const { return m_VertexArray; }
 			Ref<IndexBuffer> GetIndexBuffer() const { return m_IndexBuffer; }
 			Ref<Maths::BoundingSphere> GetBoundingSphere() const { return m_BoundingSphere; }
-
-			std::vector<Graphics::CommandBuffer*> m_CMDBuffers;
-
-			Graphics::CommandBuffer* GetCommandBuffer(int id) const { return m_CMDBuffers[id]; }
 
 		protected:
 

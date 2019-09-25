@@ -1,6 +1,6 @@
 #pragma once
 
-#include "LM.h"
+#include "lmpch.h"
 #include "ECS.h"
 #include "ECSDefines.h"
 #include "Utilities/TSingleton.h"
@@ -27,18 +27,19 @@ namespace Lumos
         
         template <typename T>
         void RemoveComponent();
+
+		void RemoveComponent(size_t id);
         
         virtual void OnUpdateObject(float dt);
-        virtual void OnIMGUI();
+        virtual void OnImGui();
         virtual void OnGuizmo(u32 mode = 0);
         virtual void Init();
         
-        std::vector<Entity*>& GetChildren() { return m_Children; }
+        const std::vector<Entity*>& GetChildren() const { return m_Children; }
+
         void AddChild(Entity* child);
         void RemoveChild(Entity* child);
         
-        void  SetBoundingRadius(float radius) { m_BoundingRadius = radius; }
-        float GetBoundingRadius() const { return m_BoundingRadius; }
         u32& GetFrustumCullFlags() { return m_FrustumCullFlags; }
         
         TransformComponent* GetTransformComponent();
@@ -53,7 +54,7 @@ namespace Lumos
         void SetActive(bool active) { m_Active = active; };
         void SetActiveRecursive(bool active);
         
-        std::vector<LumosComponent*> GetAllComponents();
+        const std::vector<LumosComponent*> GetAllComponents();
         
         nlohmann::json Serialise() override;
         void Deserialise(nlohmann::json& data) override;
@@ -63,16 +64,14 @@ namespace Lumos
         virtual ~Entity();
     private:
         
-        Entity(Entity const&) = delete;
-        Entity& operator=(Entity const&) = delete;
+        NONCOPYABLE(Entity)
         
-        String                    m_Name;
-        float                    m_BoundingRadius;
-        String                    m_UUID;
-        String                    m_PrefabFileLocation;
+        String                  m_Name;
+        String                  m_UUID;
+        String                  m_PrefabFileLocation;
         bool                    m_Active;
         u32                     m_FrustumCullFlags;
-        TransformComponent*        m_DefaultTransformComponent = nullptr;
+        TransformComponent*     m_DefaultTransformComponent = nullptr;
         
         Entity* m_Parent;
         EntityManager* m_Manager;
@@ -121,6 +120,11 @@ namespace Lumos
     {
         ComponentManager::Instance()->RemoveComponent<T>(this);
     }
+
+	inline void Entity::RemoveComponent(size_t id)
+	{
+		ComponentManager::Instance()->RemoveComponent(this, id);
+	}
 
 
 	class LUMOS_EXPORT EntityManager : public TSingleton<EntityManager>

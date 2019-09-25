@@ -1,5 +1,5 @@
 #pragma once
-#include "LM.h"
+#include "lmpch.h"
 #include "Vector4.h"
 #include "MathsCommon.h"
 #include "Core/Serialisable.h"
@@ -138,7 +138,7 @@ namespace Lumos
 			static Matrix4 Translation(const Vector3 &translation);
             static Matrix4 Inverse(const Matrix4 &inM);
 			static Matrix4 Perspective(float znear, float zfar, float aspect, float fov);
-			static Matrix4 Orthographic(float znear, float zfar, float right, float left, float top, float bottom);
+			static Matrix4 Orthographic(float left, float right, float bottom, float top, float znear, float zfar);
 			static Matrix4 BuildViewMatrix(const Vector3 &from, const Vector3 &lookingAt,
 										   const Vector3 &up = Vector3(0.0f, 1.0f, 0.0f));
 

@@ -1,4 +1,4 @@
-#include "LM.h"
+#include "lmpch.h"
 #include "VertexArray.h"
 #include "VertexBuffer.h"
 
@@ -17,21 +17,13 @@ namespace Lumos
 {
 	namespace Graphics
 	{
+        VertexArray*(*VertexArray::CreateFunc)() = nullptr;
+
 		VertexArray* VertexArray::Create()
 		{
-			switch (GraphicsContext::GetRenderAPI())
-			{
-#ifdef LUMOS_RENDER_API_OPENGL
-			case RenderAPI::OPENGL:		return lmnew GLVertexArray();
-#endif
-#ifdef LUMOS_RENDER_API_VULKAN
-			case RenderAPI::VULKAN:		return lmnew VKVertexArray();
-#endif
-#ifdef LUMOS_RENDER_API_DIRECT3D
-			case RenderAPI::DIRECT3D:	return lmnew D3DVertexArray();
-#endif
-			}
-			return nullptr;
+            LUMOS_ASSERT(CreateFunc, "No VertexArray Create Function");
+            
+            return CreateFunc();
 		}
 
 		void VertexArray::DeleteBuffers()

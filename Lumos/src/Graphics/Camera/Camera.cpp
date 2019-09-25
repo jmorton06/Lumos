@@ -1,4 +1,4 @@
-#include "LM.h"
+#include "lmpch.h"
 #include "Camera.h"
 #include <imgui/imgui.h>
 
@@ -16,6 +16,7 @@ namespace Lumos
 		, m_Fov(FOV)
 		, m_Near(Near)
 		, m_Far(Far)
+		, m_Roll(1.0f)
 	{
 		Camera::BuildViewMatrix();
 	};
@@ -31,6 +32,7 @@ namespace Lumos
 		, m_Fov(FOV)
 		, m_Near(Near)
 		, m_Far(Far)
+		, m_Roll(1.0f)
 	{
 		Camera::BuildViewMatrix();
 	}
@@ -50,13 +52,6 @@ namespace Lumos
 	{
 		m_ViewMatrix = Maths::Matrix4::Rotation(-m_Pitch, Maths::Vector3(1, 0, 0)) *
 				Maths::Matrix4::Rotation(-m_Yaw, Maths::Vector3(0, 1, 0)) *
-				Maths::Matrix4::Translation(-m_Position);
-	};
-
-	Maths::Matrix4 Camera::BuildViewMatrix(float pitch, float yaw) const
-	{
-		return	Maths::Matrix4::Rotation(-pitch, Maths::Vector3(1, 0, 0)) *
-				Maths::Matrix4::Rotation(-yaw, Maths::Vector3(0, 1, 0)) *
 				Maths::Matrix4::Translation(-m_Position);
 	};
 
@@ -93,78 +88,78 @@ namespace Lumos
 
 	Maths::Quaternion Camera::GetOrientation() const
 	{
-		return  Maths::Quaternion::EulerAnglesToQuaternion(m_Pitch, m_Yaw, 1.0f);
+		return Maths::Quaternion::EulerAnglesToQuaternion(m_Pitch, m_Yaw, m_Roll);
 	}
 
-	void Camera::OnImGUI()
+	void Camera::OnImGui()
 	{
-			if (ImGui::TreeNode("Camera"))
-			{
-				ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(2, 2));
-				ImGui::Columns(2);
-				ImGui::Separator();
+		if (ImGui::TreeNode("Camera"))
+		{
+			ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(2, 2));
+			ImGui::Columns(2);
+			ImGui::Separator();
 
-				ImGui::AlignTextToFramePadding();
-				ImGui::Text("Position");
-				ImGui::NextColumn();
-				ImGui::PushItemWidth(-1);
-				ImGui::DragFloat3("##Position", &m_Position.x);
-				ImGui::PopItemWidth();
-				ImGui::NextColumn();
+			ImGui::AlignTextToFramePadding();
+			ImGui::Text("Position");
+			ImGui::NextColumn();
+			ImGui::PushItemWidth(-1);
+			ImGui::DragFloat3("##Position", &m_Position.x);
+			ImGui::PopItemWidth();
+			ImGui::NextColumn();
 
-				ImGui::AlignTextToFramePadding();
-				ImGui::Text("Aspect");
-				ImGui::NextColumn();
-				ImGui::PushItemWidth(-1);
-				ImGui::DragFloat("##Aspect", &m_AspectRatio);
-				ImGui::PopItemWidth();
-				ImGui::NextColumn();
+			ImGui::AlignTextToFramePadding();
+			ImGui::Text("Aspect");
+			ImGui::NextColumn();
+			ImGui::PushItemWidth(-1);
+			ImGui::DragFloat("##Aspect", &m_AspectRatio);
+			ImGui::PopItemWidth();
+			ImGui::NextColumn();
 
-				ImGui::AlignTextToFramePadding();
-				ImGui::Text("Pitch");
-				ImGui::NextColumn();
-				ImGui::PushItemWidth(-1);
-				ImGui::DragFloat("##Pitch", &m_Pitch);
-				ImGui::PopItemWidth();
-				ImGui::NextColumn();
+			ImGui::AlignTextToFramePadding();
+			ImGui::Text("Pitch");
+			ImGui::NextColumn();
+			ImGui::PushItemWidth(-1);
+			ImGui::DragFloat("##Pitch", &m_Pitch);
+			ImGui::PopItemWidth();
+			ImGui::NextColumn();
 
-				ImGui::AlignTextToFramePadding();
-				ImGui::Text("Yaw");
-				ImGui::NextColumn();
-				ImGui::PushItemWidth(-1);
-				ImGui::DragFloat3("##Yaw", &m_Yaw);
-				ImGui::PopItemWidth();
-				ImGui::NextColumn();
+			ImGui::AlignTextToFramePadding();
+			ImGui::Text("Yaw");
+			ImGui::NextColumn();
+			ImGui::PushItemWidth(-1);
+			ImGui::DragFloat3("##Yaw", &m_Yaw);
+			ImGui::PopItemWidth();
+			ImGui::NextColumn();
 
-				ImGui::AlignTextToFramePadding();
-				ImGui::Text("Fov");
-				ImGui::NextColumn();
-				ImGui::PushItemWidth(-1);
-				ImGui::DragFloat("##Fov", &m_Fov);
-				ImGui::PopItemWidth();
-				ImGui::NextColumn();
+			ImGui::AlignTextToFramePadding();
+			ImGui::Text("Fov");
+			ImGui::NextColumn();
+			ImGui::PushItemWidth(-1);
+			ImGui::DragFloat("##Fov", &m_Fov);
+			ImGui::PopItemWidth();
+			ImGui::NextColumn();
 
-				ImGui::AlignTextToFramePadding();
-				ImGui::Text("Near");
-				ImGui::NextColumn();
-				ImGui::PushItemWidth(-1);
-				ImGui::DragFloat("##Near", &m_Near);
-				ImGui::PopItemWidth();
-				ImGui::NextColumn();
+			ImGui::AlignTextToFramePadding();
+			ImGui::Text("Near");
+			ImGui::NextColumn();
+			ImGui::PushItemWidth(-1);
+			ImGui::DragFloat("##Near", &m_Near);
+			ImGui::PopItemWidth();
+			ImGui::NextColumn();
 
-				ImGui::AlignTextToFramePadding();
-				ImGui::Text("Far");
-				ImGui::NextColumn();
-				ImGui::PushItemWidth(-1);
-				ImGui::DragFloat("##Far", &m_Far);
-				ImGui::PopItemWidth();
-				ImGui::NextColumn();
+			ImGui::AlignTextToFramePadding();
+			ImGui::Text("Far");
+			ImGui::NextColumn();
+			ImGui::PushItemWidth(-1);
+			ImGui::DragFloat("##Far", &m_Far);
+			ImGui::PopItemWidth();
+			ImGui::NextColumn();
 
-				ImGui::Columns(1);
-				ImGui::Separator();
-				ImGui::PopStyleVar();
+			ImGui::Columns(1);
+			ImGui::Separator();
+			ImGui::PopStyleVar();
 
-				ImGui::TreePop();
+			ImGui::TreePop();
 		}
 	}
 }

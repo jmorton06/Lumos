@@ -1,5 +1,5 @@
 #pragma once
-#include "LM.h"
+#include "lmpch.h"
 
 namespace Lumos
 {
@@ -25,6 +25,9 @@ namespace Lumos
 			inline bool GetInUse() const { return m_InUse; }
 
 			bool m_InUse;
+            
+        protected:
+            static Query* (*CreateFunc)(QueryType);
 		};
 	}
 }

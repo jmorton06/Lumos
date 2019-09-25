@@ -27,6 +27,11 @@ namespace Lumos
 
 			void Bind() override;
 			void Unbind() override;
+            
+            static void MakeDefault();
+        protected:
+            static VertexBuffer* CreateFuncGL(const BufferUsage& usage);
+            
 		protected:
 			void* GetPointerInternal() override;
 		};

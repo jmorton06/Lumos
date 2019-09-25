@@ -1,4 +1,4 @@
-#include "LM.h"
+#include "lmpch.h"
 #include "Integration.h"
 
 namespace Lumos

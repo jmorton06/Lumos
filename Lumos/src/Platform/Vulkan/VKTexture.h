@@ -12,7 +12,7 @@ namespace Lumos
 {
 	namespace Graphics
 	{
-		class VKTexture2D : public Texture2D
+        class VKTexture2D : public Texture2D
 		{
 		public:
 			VKTexture2D(u32 width, u32 height, void* data, TextureParameters parameters = TextureParameters(), TextureLoadOptions loadOptions = TextureLoadOptions());
@@ -42,7 +42,7 @@ namespace Lumos
                              vk::DeviceMemory& imageMemory);
             vk::ImageView CreateImageView(vk::Image image, vk::Format format, vk::ImageAspectFlags aspectFlags, uint32_t mipLevels);
 
-            vk::DescriptorImageInfo* GetDescriptor() { return &m_Descriptor; }
+            const vk::DescriptorImageInfo* GetDescriptor() const { return &m_Descriptor; }
 
 			void UpdateDescriptor();
 
@@ -52,6 +52,12 @@ namespace Lumos
             vk::DeviceMemory GetDeviceMemory() const { return m_TextureImageMemory; }
             vk::ImageView GetImageView() const { return  m_TextureImageView; }
             vk::Sampler GetSampler() const { return m_TextureSampler; }
+            
+            static void MakeDefault();
+        protected:
+            static Texture2D* CreateFuncVulkan();
+			static Texture2D* CreateFromSourceFuncVulkan(u32, u32, void*, TextureParameters, TextureLoadOptions);
+			static Texture2D* CreateFromFileFuncVulkan(const String&, const String&, TextureParameters, TextureLoadOptions);
             
         private:
             String m_Name;
@@ -82,12 +88,12 @@ namespace Lumos
 		{
 		public:
 			VKTextureCube(u32 size);
-			VKTextureCube(const String& name, const String& filepath);
-			VKTextureCube(const String& name, const String* files);
-			VKTextureCube(const String& name, const String* files, u32 mips, InputFormat format);
+			VKTextureCube(const String& filepath);
+			VKTextureCube(const String* files);
+			VKTextureCube(const String* files, u32 mips, InputFormat format);
 			~VKTextureCube();
 
-			virtual void* GetHandle() const override { return (void*)m_TextureImageView; }
+			virtual void* GetHandle() const override { return (void*)&m_Descriptor; }
 
 			void Bind(u32 slot = 0) const override;
 			void Unbind(u32 slot = 0) const override;
@@ -102,7 +108,7 @@ namespace Lumos
 				vk::DeviceMemory& imageMemory);
 			vk::ImageView CreateImageView(vk::Image image, vk::Format format, uint32_t mipLevels);
 
-			vk::DescriptorImageInfo* GetDescriptor() { return &m_Descriptor; }
+			const vk::DescriptorImageInfo* GetDescriptor() const { return &m_Descriptor; }
 
 			void UpdateDescriptor();
 
@@ -113,6 +119,13 @@ namespace Lumos
 			vk::ImageView GetImageView() const { return  m_TextureImageView; }
 			vk::Sampler GetSampler() const { return m_TextureSampler; }
 
+            static void MakeDefault();
+        protected:
+			static TextureCube* CreateFuncVulkan(u32);
+			static TextureCube* CreateFromFileFuncVulkan(const String& filepath);
+			static TextureCube* CreateFromFilesFuncVulkan(const String* files);
+			static TextureCube* CreateFromVCrossFuncVulkan(const String* files, u32 mips, InputFormat format);
+            
 		private:
 			String m_Name;
 			String m_Files[MAX_MIPS];
@@ -148,7 +161,7 @@ namespace Lumos
 			void Unbind(u32 slot = 0) const override;
 			void Resize(u32 width, u32 height) override;
 
-			virtual void* GetHandle() const override { return (void*)m_TextureImageView; }
+			virtual void* GetHandle() const override { return (void*)&m_Descriptor; }
 
 			inline const String& GetName() const override { return m_Name; }
 			inline const String& GetFilepath() const override { return m_Name; }
@@ -162,10 +175,12 @@ namespace Lumos
 			vk::DeviceMemory GetDeviceMemory() const { return m_TextureImageMemory; }
 			vk::ImageView GetImageView() const { return  m_TextureImageView; }
 			vk::Sampler GetSampler() const { return m_TextureSampler; }
-			vk::DescriptorImageInfo* GetDescriptor() { return &m_Descriptor; }
+			const vk::DescriptorImageInfo* GetDescriptor() const { return &m_Descriptor; }
 			void UpdateDescriptor();
 
-		protected:
+            static void MakeDefault();
+        protected:
+            static TextureDepth* CreateFuncVulkan(u32, u32);
 			void Init();
 
 		private:
@@ -194,7 +209,7 @@ namespace Lumos
 			void Unbind(u32 slot = 0) const override;
 			void Resize(u32 width, u32 height, u32 count) override;
 
-			virtual void* GetHandle() const override { return (void*)m_TextureImageView; }
+			virtual void* GetHandle() const override { return (void*)&m_Descriptor; }
 
 			inline const String& GetName() const override { return m_Name; }
 			inline const String& GetFilepath() const override { return m_Name; }
@@ -210,10 +225,12 @@ namespace Lumos
 			vk::ImageView GetImageView() const { return  m_TextureImageView; }
 			vk::ImageView GetImageView(int index) const { return  m_IndividualImageViews[index]; }
 			vk::Sampler GetSampler() const { return m_TextureSampler; }
-			vk::DescriptorImageInfo* GetDescriptor() { return &m_Descriptor; }
+			const vk::DescriptorImageInfo* GetDescriptor() const { return &m_Descriptor; }
 			void UpdateDescriptor();
 
-		protected:
+            static void MakeDefault();
+        protected:
+            static TextureDepthArray* CreateFuncVulkan(u32, u32, u32);
 			void Init() override;
 
 		private:

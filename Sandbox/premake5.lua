@@ -31,7 +31,9 @@ project "Sandbox"
 
 	links
 	{
-		"Lumos"
+		"Lumos",
+		"imgui",
+		"box2d"
 	}
 
 	cwd = os.getcwd() .. "/.."

@@ -1,4 +1,4 @@
-#include "LM.h"
+#include "lmpch.h"
 #include "Renderer.h"
 
 #ifdef LUMOS_RENDER_API_OPENGL
@@ -20,23 +20,15 @@ namespace Lumos
 {
 	namespace Graphics
 	{
+        Renderer*(*Renderer::CreateFunc)(u32, u32) = nullptr;
+
 		Renderer* Renderer::s_Instance = nullptr;
 
 		void Renderer::Init(u32 width, u32 height)
 		{
-			switch (Graphics::GraphicsContext::GetRenderAPI())
-			{
-#ifdef LUMOS_RENDER_API_OPENGL
-			case RenderAPI::OPENGL:	s_Instance = lmnew GLRenderer(width, height); break;
-#endif
-
-#ifdef LUMOS_RENDER_API_VULKAN
-			case RenderAPI::VULKAN: s_Instance = lmnew Graphics::VKRenderer(width, height); break;
-#endif
-#ifdef LUMOS_RENDER_API_DIRECT3D
-			case RenderAPI::DIRECT3D: s_Instance = lmnew D3DRenderer(width, height); break;
-#endif
-			}
+            LUMOS_ASSERT(CreateFunc, "No Renderer Create Function");
+            
+            s_Instance = CreateFunc(width, height);
 			s_Instance->InitInternal();
 		}
 

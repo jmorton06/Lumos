@@ -1,4 +1,4 @@
-#include "LM.h"
+#include "lmpch.h"
 #include "CameraComponent.h"
 #include "ECS/EntityManager.h"
 #include "Graphics/Camera/Camera.h"
@@ -17,20 +17,15 @@ namespace Lumos
 	CameraComponent::CameraComponent(Camera* camera)
 		: m_Camera(camera)
 	{
-		m_Name = "Camera";
         m_BoundingShape = nullptr;
 	}
 
-	void CameraComponent::OnUpdateComponent(float dt)
-	{
-	}
-
-    void CameraComponent::OnIMGUI()
+    void CameraComponent::OnImGui()
     {
 		if (ImGui::Button("Set Active"))
 			SetAsMainCamera();
 
-		m_Camera->OnImGUI();
+		m_Camera->OnImGui();
     }
 
 	void CameraComponent::SetAsMainCamera()

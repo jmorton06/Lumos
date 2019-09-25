@@ -1,6 +1,6 @@
 #pragma once
 
-#include "LM.h"
+#include "lmpch.h"
 #include "Matrix3.h"
 #include "Matrix4.h"
 #include "Plane.h"
@@ -47,6 +47,19 @@ namespace Lumos
 		inline Vector4 ToVector(const Vector4Simple& vec)
 		{
 			return Vector4(vec.x, vec.y, vec.z, vec.w);
+		}
+
+		inline Vector2 WorldToScreen(const Vector3& worldPos, const Matrix4& mvp, float width, float height, float winPosX = 0.0f, float winPosY = 0.0f)
+		{
+			Vector4 trans = mvp * Vector4(worldPos);
+			trans *= 0.5f / trans.GetW();
+			trans += Vector4(0.5f, 0.5f, 0.0f, 0.0f);
+			trans.y = 1.f - trans.y;
+			trans.x *= width;
+			trans.y *= height;
+			trans.x += winPosX;
+			trans.y += winPosY;
+			return Vector2(trans.x, trans.y);
 		}
 	}
 }

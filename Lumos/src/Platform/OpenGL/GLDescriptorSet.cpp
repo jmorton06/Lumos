@@ -1,4 +1,4 @@
-#include "LM.h"
+#include "lmpch.h"
 #include "GLDescriptorSet.h"
 #include "GLShader.h"
 #include "GLTexture.h"
@@ -9,7 +9,7 @@ namespace Lumos
 {
     namespace Graphics
     {
-        GLDescriptorSet::GLDescriptorSet(DescriptorInfo& info)
+        GLDescriptorSet::GLDescriptorSet(const DescriptorInfo& info)
         {
             m_Shader = info.shader;
         }
@@ -121,6 +121,16 @@ namespace Lumos
 			{
 				m_PushConstants.push_back(pushConstant);
 			}
+		}
+
+		void GLDescriptorSet::MakeDefault()
+		{
+			CreateFunc = CreateFuncGL;
+		}
+
+		DescriptorSet* GLDescriptorSet::CreateFuncGL(const DescriptorInfo& info)
+		{
+			return lmnew GLDescriptorSet(info);
 		}
     }
 }

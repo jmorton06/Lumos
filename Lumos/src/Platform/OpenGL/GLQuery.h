@@ -1,5 +1,5 @@
 #pragma once
-#include "LM.h"
+#include "lmpch.h"
 #include "Graphics/API/Query.h"
 
 namespace Lumos
@@ -16,7 +16,10 @@ namespace Lumos
 			u32 GetResult() override;
 			bool GetResultReady() override;
 			void End() override;
-
+            
+            static void MakeDefault();
+        protected:
+            static Query* CreateFuncGL(QueryType type);
 		private:
 			u32 m_Handle;
 			u32 m_QueryType;

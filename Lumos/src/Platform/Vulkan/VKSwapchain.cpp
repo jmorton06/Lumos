@@ -1,4 +1,4 @@
-#include "LM.h"
+#include "lmpch.h"
 #include "VKSwapchain.h"
 #include "VKTools.h"
 
@@ -136,5 +136,15 @@ namespace Lumos
 			present.pResults = VK_NULL_HANDLE;
             VKDevice::Instance()->GetPresentQueue().presentKHR(present);
 		}
+        
+        void VKSwapchain::MakeDefault()
+        {
+            CreateFunc = CreateFuncVulkan;
+        }
+        
+		Swapchain* VKSwapchain::CreateFuncVulkan(u32 width, u32 height)
+        {
+            return lmnew VKSwapchain(width, height);
+        }
 	}
 }

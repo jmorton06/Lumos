@@ -1,7 +1,7 @@
 #pragma once
 
-#include "LM.h"
-#include "App/Window.h"
+#include "lmpch.h"
+#include "Core/OS/Window.h"
 
 struct GLFWwindow;
 
@@ -9,7 +9,7 @@ namespace Lumos
 {
 	namespace Graphics
 	{
-		enum class RenderAPI : int;
+		enum class RenderAPI : u32;
 	}
 
 	class LUMOS_EXPORT GLFWWindow : public Window
@@ -25,6 +25,7 @@ namespace Lumos
 		void OnUpdate() override;
 		void HideMouse(bool hide) override;
 		void SetMousePosition(const Maths::Vector2& pos) override;
+        void UpdateCursorImGui() override;
 
 		bool Init(const WindowProperties& properties);
 
@@ -40,7 +41,11 @@ namespace Lumos
 
 		void SetIcon(const String& file);
 
-	protected:
+	     static void MakeDefault();
+
+    protected:
+
+		static Window* CreateFuncGLFW(const WindowProperties& properties);
 
 		GLFWwindow* m_Handle;
 

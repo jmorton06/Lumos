@@ -1,5 +1,5 @@
 #pragma once
-#include "LM.h"
+#include "lmpch.h"
 #include "LumosComponent.h"
 #include "Audio/SoundNode.h"
 
@@ -11,16 +11,17 @@ namespace Lumos
         SoundComponent();
 		explicit SoundComponent(Ref<SoundNode>& sound);
 
-		void OnUpdateComponent(float dt) override;
-		void Init() override;
+		void Init();
 
-		void OnIMGUI() override;
+		void OnImGui() override;
         
         SoundNode* GetSoundNode() const { return m_SoundNode.get(); }
 
 		nlohmann::json Serialise() override { return nullptr; };
 		void Deserialise(nlohmann::json& data) override {};
         
+		SETUPCOMPOMENT(SoundComponent);
+
     private:
         Ref<SoundNode> m_SoundNode;
 	};

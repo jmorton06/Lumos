@@ -1,5 +1,5 @@
 #pragma once
-#include "LM.h"
+#include "lmpch.h"
 #include "Graphics/API/UniformBuffer.h"
 
 namespace Lumos
@@ -26,6 +26,11 @@ namespace Lumos
             uint32_t GetTypeSize()  const { return m_DynamicTypeSize; }
             bool GetDynamic()       const { return m_Dynamic; }
 
+            static void MakeDefault();
+        protected:
+			static UniformBuffer* CreateFuncGL();
+			static UniformBuffer* CreateDataFuncGL(uint32_t, const void*);
+            
         private:
 			u8* m_Data = nullptr;
             uint32_t m_Size = 0;

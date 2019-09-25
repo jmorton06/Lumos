@@ -1,11 +1,9 @@
 #pragma once
-#include "LM.h"
+#include "lmpch.h"
 #include "Renderer3D.h"
 
 namespace Lumos
 {
-	class LightSetup;
-	
 	namespace Graphics
 	{
 		class TextureDepth;
@@ -17,7 +15,6 @@ namespace Lumos
 		public:
 			SkyboxRenderer(u32 width, u32 height, Texture* cubeMap, bool renderToGBuffer = false);
 			~SkyboxRenderer();
-			//void Render(Graphics::CommandBuffer* commandBuffer, Scene* scene, int framebufferId);
 
 			void Init() override;
 			void BeginScene(Scene* scene) override;
@@ -25,7 +22,6 @@ namespace Lumos
 			void CreateGraphicsPipeline();
 			void SetCubeMap(Texture* cubeMap);
 			void UpdateUniformBuffer();
-			//void SetRenderInfo(Graphics::RenderPass* renderPass) { m_RenderPass = renderPass; }
 
 			void Begin() override;
 			void Submit(const RenderCommand& command) override {};

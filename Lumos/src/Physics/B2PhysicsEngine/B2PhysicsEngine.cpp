@@ -1,4 +1,4 @@
-#include "LM.h"
+#include "lmpch.h"
 #include "B2PhysicsEngine.h"
 
 #include "Utilities/TimeStep.h"
@@ -28,7 +28,7 @@ namespace Lumos
 		m_UpdateAccum = 0.0f;
 	}
 
-	void B2PhysicsEngine::OnUpdate(TimeStep* timeStep)
+	void B2PhysicsEngine::OnUpdate(TimeStep* timeStep, Scene* scene)
 	{
 		const int max_updates_per_frame = 5;
 
@@ -45,7 +45,7 @@ namespace Lumos
 
 				if (m_UpdateAccum >= m_UpdateTimestep)
 				{
-					LUMOS_CORE_ERROR("Physics too slow to run in real time!");
+					LUMOS_LOG_CRITICAL("Physics too slow to run in real time!");
 					//Drop Time in the hope that it can continue to run in real-time
 					m_UpdateAccum = 0.0f;
 				}
@@ -56,7 +56,7 @@ namespace Lumos
 		}
 	}
 
-	void B2PhysicsEngine::OnIMGUI()
+	void B2PhysicsEngine::OnImGui()
 	{
 		ImGui::Text("2D Physics Engine");
 

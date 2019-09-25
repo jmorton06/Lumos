@@ -1,4 +1,4 @@
-#include "LM.h"
+#include "lmpch.h"
 #include "GLUniformBuffer.h"
 #include "GL.h"
 #include "GLDebug.h"
@@ -55,6 +55,23 @@ namespace Lumos
 			GLCall(glBindBufferBase(GL_UNIFORM_BUFFER, slot, m_Handle));
 			u32 location = glGetUniformBlockIndex(shader->GetHandle(), name.c_str());
 			GLCall(glUniformBlockBinding(shader->GetHandle(), location, slot));
+		}
+
+		void GLUniformBuffer::MakeDefault()
+		{
+			CreateFunc = CreateFuncGL;
+			CreateDataFunc = CreateDataFuncGL;
+		}
+
+		UniformBuffer* GLUniformBuffer::CreateDataFuncGL(uint32_t size, const void* data)
+		{
+			//TODO
+			return lmnew GLUniformBuffer();
+		}
+
+		UniformBuffer* GLUniformBuffer::CreateFuncGL()
+		{
+			return lmnew GLUniformBuffer();
 		}
 	}
 }

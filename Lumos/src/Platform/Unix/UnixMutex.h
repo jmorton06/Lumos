@@ -15,6 +15,10 @@ namespace Lumos
 
         UnixMutex(bool p_recursive);
         ~UnixMutex();
+        
+        static void MakeDefault();
+    protected:
+        static Mutex* CreateFuncUnix(bool p_recursive);
 
     private:
         pthread_mutexattr_t attr;

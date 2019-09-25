@@ -1,5 +1,6 @@
 #pragma once
 #include "Maths/Vector2.h"
+#include <imgui/imgui.h>
 
 namespace Lumos
 {
@@ -11,6 +12,7 @@ namespace Lumos
 	namespace Graphics 
 	{
 		class Texture2D;
+		class GridRenderer;
 	}
 
 	class Editor
@@ -19,10 +21,7 @@ namespace Lumos
 	public:
 		Editor(Application* app, u32 width, u32 height);
 		~Editor();
-        
-        Editor(Editor const&) = delete;
-        Editor& operator=(Editor const&) = delete;
-        
+
 		void OnImGui();
 		void DrawConsole();
 		void DrawMenuBar();
@@ -30,7 +29,8 @@ namespace Lumos
 		void DrawInspectorWindow();
 		void DrawSceneView();
         void DrawGraphicsInfoWindow();
-		void BeginDockSpace();
+		void DrawInfoBar();
+		void BeginDockSpace(bool infoBar);
 		void EndDockSpace();
         
         void DrawNode(Entity* node);
@@ -57,5 +57,12 @@ namespace Lumos
         bool m_ShowGraphicsInfo = true;
         bool m_ShowInspector = true;
         bool m_ShowImGuiDemo = true;
+        bool m_ShowProfiler = true;
+		bool m_ShowBoundingBox = true;
+        
+        ImGuiTextFilter m_HierarchyFilter;
+
+
+		NONCOPYABLE(Editor)
 	};
 }

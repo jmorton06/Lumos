@@ -1,4 +1,4 @@
-#include "LM.h"
+#include "lmpch.h"
 #include "WindowsMutex.h"
 
 namespace Lumos
@@ -54,5 +54,15 @@ namespace Lumos
     #else
         DeleteCriticalSection(&mutex);
     #endif
+    }
+
+    Mutex* WindowsMutex::CreateFuncWindows(bool p_recursive)
+    {
+        return lmnew WindowsMutex(p_recursive);
+    }
+    
+    void WindowsMutex::MakeDefault()
+    {
+        CreateFunc = CreateFuncWindows;
     }
 }

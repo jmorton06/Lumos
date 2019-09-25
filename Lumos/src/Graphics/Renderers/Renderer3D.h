@@ -1,5 +1,5 @@
 #pragma once
-#include "LM.h"
+#include "lmpch.h"
 #include "RenderCommand.h"
 
 namespace Lumos
@@ -46,7 +46,7 @@ namespace Lumos
 
 			virtual void SetRenderTarget(Graphics::Texture* texture) { m_RenderTexture = texture; }
 			virtual void SetRenderToGBufferTexture(bool set) { m_RenderToGBufferTexture = set; }
-			virtual void OnIMGUI() {};
+			virtual void OnImGui() {};
 
 		protected:
 			Framebuffer* m_FBO;

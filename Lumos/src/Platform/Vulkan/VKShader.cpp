@@ -1,4 +1,4 @@
-#include "LM.h"
+#include "lmpch.h"
 #include "VKShader.h"
 #include "VKDevice.h"
 #include "VKTools.h"
@@ -148,6 +148,16 @@ namespace Lumos
 				}
 			}
 		}
+        
+        void VKShader::MakeDefault()
+        {
+            CreateFunc = CreateFuncVulkan;
+        }
+        
+		Shader* VKShader::CreateFuncVulkan(const String& name, const String& source)
+        {
+            return lmnew VKShader(name, source);
+        }
 
 	}
 }

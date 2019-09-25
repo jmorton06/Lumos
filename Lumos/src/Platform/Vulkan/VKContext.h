@@ -41,18 +41,21 @@ namespace Lumos
 				void* userData);
 
 			vk::Instance GetVKInstance()		const { return m_VkInstance; }
-			VKCommandPool* GetCommandPool()		const { return m_CommandPool; }
 			void* GetWindowContext()			const { return m_WindowContext; }
+
+			const Ref<VKCommandPool>& GetCommandPool() const { return m_CommandPool; }
 
 			size_t GetMinUniformBufferOffsetAlignment() const override;
 
             bool FlipImGUITexture() const override { return false; }
-			void OnImGUI() override;
+			void OnImGui() override;
 
 			const std::vector<const char*>& GetLayerNames()			const { return m_InstanceLayerNames; }
 			const std::vector<const char*>& GetExtensionNames()		const { return m_InstanceExtensionNames; }
 
-		protected:
+            static void MakeDefault();
+        protected:
+            static GraphicsContext* CreateFuncVulkan(const WindowProperties&, void*);
 
 			void CreateInstance();
 			void SetupDebugCallback();
@@ -63,8 +66,8 @@ namespace Lumos
             void DebugDrawVmaMemory(VmaStatInfo& info, bool indent = true);
 #endif
 
-			std::vector<const char*> GetRequiredExtensions();
-			std::vector<const char*> GetRequiredLayers();
+			const std::vector<const char*> GetRequiredExtensions();
+			const std::vector<const char*> GetRequiredLayers();
 
 		private:
 
@@ -77,7 +80,7 @@ namespace Lumos
 			std::vector<const char*> m_InstanceLayerNames;
 			std::vector<const char*> m_InstanceExtensionNames;
 
-			VKCommandPool* m_CommandPool;
+			Ref<VKCommandPool> m_CommandPool;
 			void* m_WindowContext;
 
 			bool m_StandardValidationLayer = false;

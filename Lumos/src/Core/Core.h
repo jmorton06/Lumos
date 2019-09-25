@@ -100,32 +100,47 @@
 ((m_hex >= 'a' && m_hex <= 'f') ? (10 + m_hex - 'a') : 0)))
 
 #ifdef LUMOS_ENABLE_ASSERTS
-	#define LUMOS_ASSERT(x, ...)                               		\
-	{                                                       		\
-		if (!(x))                                           		\
-		{                                                   		\
-			LUMOS_CORE_ERROR("Assertion failed: {0}", __VA_ARGS__); \
-			LUMOS_BREAK();                                 			\
-		}                                                   		\
-	}
-	#define LUMOS_CORE_ASSERT(x, ...)                               \
-	{                                                            	\
-		if (!(x))                                                	\
-		{                                                        	\
-			LUMOS_CORE_ERROR("Assertion failed: {0}", __VA_ARGS__); \
-			LUMOS_BREAK();                                     		\
-		}                                                        	\
-	}
+
+	#define LUMOS_ASSERT_NO_MESSAGE(condition)		\
+	{												\
+		if(!(condition))							\
+		{											\
+			LUMOS_LOG_ERROR("Assertion Failed!");	\
+			LUMOS_BREAK();							\
+		}											\
+	}												
+
+	#define LUMOS_ASSERT_MESSAGE(condition, ...)					\
+	{																\
+		if(!(condition))											\
+		{															\
+			LUMOS_LOG_ERROR("Assertion Failed : {0}", __VA_ARGS__);	\
+			LUMOS_BREAK();											\
+		}															\
+	}																
+
+	#define LUMOS_CLIENT_ASSERT	 LUMOS_ASSERT_MESSAGE
+	#define LUMOS_CORE_ASSERT		 LUMOS_ASSERT_MESSAGE
 #else
-	#define LUMOS_ASSERT(x, ...)
-	#define LUMOS_CORE_ASSERT(x, ...)
+	#define LUMOS_CLIENT_ASSERT(...)
+	#define LUMOS_CORE_ASSERT(...)
 #endif
 
-#define UNIMPLEMENTED	 													\
-	{																		\
-		LUMOS_CORE_ERROR("Unimplemented : {0} : {1}", __FILE__, __LINE__); 	\
-		LUMOS_BREAK();  													\
-	}																		\
+#ifdef LUMOS_ENGINE
+	#define LUMOS_ASSERT LUMOS_CORE_ASSERT
+#else
+	#define LUMOS_ASSERT LUMOS_CLIENT_ASSERT
+#endif
+
+#define UNIMPLEMENTED	 												\
+{																		\
+	LUMOS_LOG_ERROR("Unimplemented : {0} : {1}", __FILE__, __LINE__); 	\
+	LUMOS_BREAK();  													\
+}
+
+#define NONCOPYABLE(type_identifier)								\
+    type_identifier(const type_identifier&) = delete;				\
+    type_identifier& operator=(const type_identifier&) = delete;
 
 namespace Lumos
 {

@@ -1,5 +1,5 @@
 #pragma once
-#include "LM.h"
+#include "lmpch.h"
 #include "Camera.h"
 
 namespace Lumos
@@ -14,6 +14,8 @@ namespace Lumos
 
 		virtual void HandleMouse(float dt, float xpos, float ypos) override;
 		virtual void HandleKeyboard(float dt) override;
+
+		void OnImGui() override;
 	};
 
 }

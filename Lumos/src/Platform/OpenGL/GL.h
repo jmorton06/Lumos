@@ -1,5 +1,5 @@
 #pragma once
-#include "LM.h"
+#include "lmpch.h"
 #ifdef LUMOS_PLATFORM_MOBILE
 #ifdef LUMOS_PLATFORM_IOS
 #include <OpenGLES/ES3/gl.h>

@@ -1,5 +1,5 @@
 #pragma once
-#include "LM.h"
+#include "lmpch.h"
 #include "Maths/Maths.h"
 
 namespace Lumos
@@ -20,6 +20,7 @@ namespace Lumos
 		CollisionCuboid = 1,
 		CollisionSphere = 2,
 		CollisionPyramid = 3,
+        CollisionCapsule = 4,
 		CollisionShapeTypeMax
 	};
 

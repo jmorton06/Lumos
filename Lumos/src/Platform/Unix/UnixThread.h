@@ -1,6 +1,6 @@
 #pragma once
 
-#include "LM.h"
+#include "lmpch.h"
 #include "Core/OS/Thread.h"
 
 #include <pthread.h>
@@ -30,6 +30,7 @@ namespace Lumos
         void* m_User;
         ID m_ID;
 
+        static Thread* CreateFuncUnix(ThreadCreateCallback p_callback, void *p_user, const Settings &);
         static void *ThreadCallback(void *userdata);
 
         static ID GetThreadIDFuncUnix();

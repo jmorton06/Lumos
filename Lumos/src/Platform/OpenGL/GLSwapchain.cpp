@@ -1,8 +1,8 @@
-﻿#include "LM.h"
+﻿#include "lmpch.h"
 #include "GLSwapchain.h"
 #include "Graphics/API/Framebuffer.h"
 #include "GLTexture.h"
-#include "App/Window.h"
+#include "Core/OS/Window.h"
 
 namespace Lumos
 {
@@ -40,6 +40,16 @@ namespace Lumos
 		size_t GLSwapchain::GetSwapchainBufferCount() const
 		{
 			return 1;
+		}
+
+		void GLSwapchain::MakeDefault()
+		{
+			CreateFunc = CreateFuncGL;
+		}
+
+		Swapchain* GLSwapchain::CreateFuncGL(u32 width, u32 height)
+		{
+			return lmnew GLSwapchain(width, height);
 		}
 	}
 }

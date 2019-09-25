@@ -1,4 +1,4 @@
-#include "LM.h"
+#include "lmpch.h"
 #include "ALManager.h"
 #include "ALSoundNode.h"
 #include "Maths/Maths.h"
@@ -26,15 +26,15 @@ namespace Lumos
 
         void ALManager::OnInit()
         {
-            LUMOS_CORE_INFO("Creating SoundSystem!");
-            LUMOS_CORE_INFO("Found the following devices: {0}", alcGetString(nullptr, ALC_DEVICE_SPECIFIER));
+            LUMOS_LOG_INFO("Creating SoundSystem!");
+            LUMOS_LOG_INFO("Found the following devices: {0}", alcGetString(nullptr, ALC_DEVICE_SPECIFIER));
 
             m_Device = alcOpenDevice(nullptr);
 
             if (!m_Device)
-                LUMOS_CORE_INFO("Failed to create SoundSystem! (No valid device!)");
+                LUMOS_LOG_INFO("Failed to create SoundSystem! (No valid device!)");
 
-            LUMOS_CORE_INFO("SoundSystem created with device: {0}", alcGetString(m_Device, ALC_DEVICE_SPECIFIER));	//Outputs used OAL device!
+            LUMOS_LOG_INFO("SoundSystem created with device: {0}", alcGetString(m_Device, ALC_DEVICE_SPECIFIER));	//Outputs used OAL device!
 
             m_Context = alcCreateContext(m_Device, nullptr);
 
@@ -42,7 +42,7 @@ namespace Lumos
             alDistanceModel(AL_LINEAR_DISTANCE_CLAMPED);
         }
 
-        void ALManager::OnUpdate(TimeStep* dt)
+        void ALManager::OnUpdate(TimeStep* dt, Scene* scene)
         {
 			UpdateListener();
 
@@ -80,7 +80,7 @@ namespace Lumos
 			}
 		}
 
-		void ALManager::OnIMGUI()
+		void ALManager::OnImGui()
 		{
 			ImGui::Text("OpenAL Audio");
 

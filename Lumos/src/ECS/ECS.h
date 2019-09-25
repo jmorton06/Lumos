@@ -12,8 +12,8 @@ namespace Lumos
         ~EntityComponentSystem() = default;
         
     private:
-       // Scope<SystemManager> m_SystemManager;
-       // Scope<EntityManager> m_EntityManager;
-       // Scope<ComponentManager> m_ComponentManager;
+        Scope<SystemManager> m_SystemManager;
+        Scope<EntityManager> m_EntityManager;
+        Scope<ComponentManager> m_ComponentManager;
     };
 }

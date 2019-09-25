@@ -1,5 +1,5 @@
 #pragma once
-#include "LM.h"
+#include "lmpch.h"
 #include "Graphics/API/VertexArray.h"
 
 namespace Lumos
@@ -20,6 +20,10 @@ namespace Lumos
 
 			void Bind(CommandBuffer* commandBuffer) const override;
 			void Unbind() const override;
+            
+            static void MakeDefault();
+        protected:
+            static VertexArray* CreateFuncGL();
 		};
 	}
 }
