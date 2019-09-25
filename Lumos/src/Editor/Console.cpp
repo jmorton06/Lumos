@@ -1,6 +1,6 @@
 #include "lmpch.h"
 #include "Console.h"
-
+#include <IconFontCppHeaders/IconsFontAwesome5.h>
 namespace Lumos 
 {
 	Console::Message::Level Console::s_MessageBufferRenderFilter = Console::Message::Level::Trace;
@@ -41,7 +41,7 @@ namespace Lumos
 	{
 		auto flags = ImGuiWindowFlags_NoCollapse;
 		ImGui::SetNextWindowSize(ImVec2(640, 480), ImGuiCond_FirstUseEver);
-		ImGui::Begin("Console", show, flags);
+		ImGui::Begin(ICON_FA_ALIGN_LEFT" Console###console", show, flags);
 		{
             ImGuiRenderHeader();
 			ImGui::Separator();

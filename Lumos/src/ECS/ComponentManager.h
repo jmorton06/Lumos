@@ -23,6 +23,8 @@ namespace Lumos
 		virtual void OnUpdate() = 0;
 		virtual void RemoveData(Entity* entity) = 0;
 		virtual LumosComponent* CreateLumosComponent(Entity* entity) = 0;
+		virtual size_t GetID() = 0;
+		virtual const String GetName() const = 0;
 	};
 
 	template<typename T>
@@ -134,6 +136,16 @@ namespace Lumos
 			}
 		}
 
+		size_t GetID() override
+		{
+			return typeid(T).hash_code();
+		}
+
+		const String GetName() const override
+		{
+			return LUMOS_TYPENAME_STRING(T);
+		}
+
 	private:
 		// The packed array of components (of generic type T),
 		// set to a specified maximum amount, matching the maximum number
@@ -240,6 +252,8 @@ namespace Lumos
 		{
 			return m_ComponentArrays.at(id)->CreateLumosComponent(entity);
 		}
+
+		const std::unordered_map<size_t, Ref<IComponentArray>>& GetComponentArrays() const { return m_ComponentArrays; }
 
 	private:
 		std::unordered_map<size_t, ComponentType> m_ComponentTypes;

@@ -2,6 +2,7 @@
 #include "Profiler.h"
 
 #include <imgui/imgui.h>
+#include <IconFontCppHeaders/IconsFontAwesome5.h>
 
 namespace Lumos
 {
@@ -125,7 +126,7 @@ namespace Lumos
     
     void Profiler::OnImGui()
     {
-        ImGui::Begin("Profiler");
+        ImGui::Begin(ICON_FA_STOPWATCH" Profiler###profiler");
         {
             ImGui::Checkbox("Profiler Enabled", &m_Enabled);
             ImGui::InputFloat("Update Frequency", &m_UpdateFrequency);

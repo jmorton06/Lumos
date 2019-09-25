@@ -178,7 +178,7 @@ namespace Lumos
 
 			delete[] indices;
 
-			m_ClearColour = Maths::Vector4(0.8f, 0.5f, 0.5f, 1.0f);
+			m_ClearColour = Maths::Vector4(0.2f, 0.2f, 0.2f, 1.0f);
 		}
 
 		void Renderer2D::Submit(Renderable2D* renderable, const Maths::Matrix4& transform)

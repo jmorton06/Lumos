@@ -31,12 +31,6 @@ namespace Lumos
 		m_Entity->GetTransformComponent()->GetTransform()->UpdateMatrices();
 	}
 
-	void Physics3DComponent::OnUpdateTransform(const Maths::Matrix4& entityTransform)
-	{
-		//m_PhysicsObject->SetPosition(entityTransform.GetPositionVector());
-        //m_PhysicsObject->SetOrientation(Maths::Quaternion(Maths::Matrix4::GetEulerAngles(entityTransform.GetRotation()), 1.0f));
-	}
-    
     void Physics3DComponent::OnImGui()
     {
         ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(2,2));

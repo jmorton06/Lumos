@@ -40,6 +40,9 @@ namespace Lumos
 		u32 GetImGuizmoOperation() const { return m_ImGuizmoOperation; }
 		void OnInit();
 		void OnNewScene(Scene* scene);
+		void OnImGuizmo();
+
+		void Draw2DGrid(ImDrawList* drawList, const ImVec2& cameraPos, const ImVec2& windowPos, const ImVec2& canvasSize, const float factor, const float thickness);
 
 	private:
 		Application* m_Application;
@@ -59,6 +62,8 @@ namespace Lumos
         bool m_ShowImGuiDemo = true;
         bool m_ShowProfiler = true;
 		bool m_ShowBoundingBox = true;
+		bool m_SnapQuizmo = true;
+		float m_SnapAmount = 1.0f;
         
         ImGuiTextFilter m_HierarchyFilter;
 
