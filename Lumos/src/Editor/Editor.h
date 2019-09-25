@@ -57,9 +57,9 @@ namespace Lumos
         bool m_ShowConsole = true;
         bool m_ShowHierarchy = true;
         bool m_ShowSceneView = true;
-        bool m_ShowGraphicsInfo = true;
+        bool m_ShowGraphicsInfo = false;
         bool m_ShowInspector = true;
-        bool m_ShowImGuiDemo = true;
+        bool m_ShowImGuiDemo = false;
         bool m_ShowProfiler = true;
 		bool m_ShowBoundingBox = true;
 		bool m_SnapQuizmo = true;
