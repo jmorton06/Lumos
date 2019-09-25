@@ -1,10 +1,9 @@
-#include "LM.h"
+#include "lmpch.h"
 
 #if defined(LUMOS_PLATFORM_MACOS)
 //#define VK_USE_PLATFORM_MACOS_MVK
 #define GLFW_EXPOSE_NATIVE_COCOA
 #endif
-
 
 #include "GLFWWindow.h"
 #include "Graphics/API/GraphicsContext.h"
@@ -15,12 +14,16 @@
 
 #include "GLFWKeyCodes.h"
 
-#include "App/Input.h"
+#include "Core/OS/Input.h"
 #include "App/Application.h"
 
 #include "Events/ApplicationEvent.h"
 #include "Events/MouseEvent.h"
 #include "Events/KeyEvent.h"
+
+#include <imgui/imgui.h>
+
+static GLFWcursor* g_MouseCursors[ImGuiMouseCursor_COUNT] = { 0 };
 
 namespace Lumos
 {
@@ -29,7 +32,7 @@ namespace Lumos
 
 	static void GLFWErrorCallback(int error, const char* description)
 	{
-		LUMOS_CORE_ERROR("GLFW Error - {0} : {1}", error, description);
+		LUMOS_LOG_ERROR("GLFW Error - {0} : {1}", error, description);
 	}
 
 	GLFWWindow::GLFWWindow(const WindowProperties& properties)
@@ -46,6 +49,12 @@ namespace Lumos
 
 	GLFWWindow::~GLFWWindow()
 	{
+        for (ImGuiMouseCursor cursor_n = 0; cursor_n < ImGuiMouseCursor_COUNT; cursor_n++)
+        {
+            glfwDestroyCursor(g_MouseCursors[cursor_n]);
+            g_MouseCursors[cursor_n] = NULL;
+        }
+        
 		glfwDestroyWindow(m_Handle);
 		s_NumGLFWWindows--;
 
@@ -58,12 +67,12 @@ namespace Lumos
 
 	bool GLFWWindow::Init(const WindowProperties& properties)
 	{
-		LUMOS_CORE_INFO("Creating window - Title : {0}, Width : {1}, Height : {2}", properties.Title, properties.Width, properties.Height);
+		LUMOS_LOG_INFO("Creating window - Title : {0}, Width : {1}, Height : {2}", properties.Title, properties.Width, properties.Height);
 
 		if (!s_GLFWInitialized)
 		{
 			int success = glfwInit();
-			LUMOS_CORE_ASSERT(success, "Could not initialize GLFW!");
+			LUMOS_ASSERT(success, "Could not initialize GLFW!");
 			glfwSetErrorCallback(GLFWErrorCallback);
 
 			s_GLFWInitialized = true;
@@ -117,8 +126,10 @@ namespace Lumos
 
 		m_Handle = glfwCreateWindow(ScreenWidth, ScreenHeight, properties.Title.c_str(), nullptr, nullptr);
 
+#ifdef LUMOS_RENDER_API_OPENGL
         if(m_Data.m_RenderAPI == Graphics::RenderAPI::OPENGL)
             glfwMakeContextCurrent(m_Handle);
+#endif
 
 		glfwSetWindowUserPointer(m_Handle, &m_Data);
 
@@ -149,7 +160,7 @@ namespace Lumos
 
 		glfwSetWindowFocusCallback(m_Handle, [](GLFWwindow* window, int focused)
 		{
-			Input::GetInput().SetWindowFocus(focused);
+			Input::GetInput()->SetWindowFocus(focused);
 		});
 
 		glfwSetKeyCallback(m_Handle, [](GLFWwindow* window, int key, int scancode, int action, int mods)
@@ -232,7 +243,16 @@ namespace Lumos
  			data.EventCallback(event);
  		});
 
-		LUMOS_CORE_INFO("Initialised GLFW version : {0}", glfwGetVersionString());
+        g_MouseCursors[ImGuiMouseCursor_Arrow] = glfwCreateStandardCursor(GLFW_ARROW_CURSOR);
+        g_MouseCursors[ImGuiMouseCursor_TextInput] = glfwCreateStandardCursor(GLFW_IBEAM_CURSOR);
+        g_MouseCursors[ImGuiMouseCursor_ResizeAll] = glfwCreateStandardCursor(GLFW_ARROW_CURSOR);
+        g_MouseCursors[ImGuiMouseCursor_ResizeNS] = glfwCreateStandardCursor(GLFW_VRESIZE_CURSOR);
+        g_MouseCursors[ImGuiMouseCursor_ResizeEW] = glfwCreateStandardCursor(GLFW_HRESIZE_CURSOR);
+        g_MouseCursors[ImGuiMouseCursor_ResizeNESW] = glfwCreateStandardCursor(GLFW_ARROW_CURSOR);
+        g_MouseCursors[ImGuiMouseCursor_ResizeNWSE] = glfwCreateStandardCursor(GLFW_ARROW_CURSOR);
+        g_MouseCursors[ImGuiMouseCursor_Hand] = glfwCreateStandardCursor(GLFW_HAND_CURSOR);
+        
+		LUMOS_LOG_INFO("Initialised GLFW version : {0}", glfwGetVersionString());
 
 		return true;
 	}
@@ -285,8 +305,10 @@ namespace Lumos
 
 	void GLFWWindow::OnUpdate()
 	{
+#ifdef LUMOS_RENDER_API_OPENGL
         if(m_Data.m_RenderAPI == Graphics::RenderAPI::OPENGL)
 			glfwSwapBuffers(m_Handle);
+#endif
 
 		glfwPollEvents();
 	}
@@ -319,4 +341,30 @@ namespace Lumos
 	{
 		glfwSetCursorPos(m_Handle, pos.GetX(), pos.GetY());
 	}
+
+	void GLFWWindow::MakeDefault()
+	{
+		CreateFunc = CreateFuncGLFW;
+	}
+
+	Window* GLFWWindow::CreateFuncGLFW(const WindowProperties& properties)
+	{
+		return lmnew GLFWWindow(properties);
+	}
+
+    void GLFWWindow::UpdateCursorImGui()
+    {
+        ImGuiIO& io = ImGui::GetIO();
+        ImGuiMouseCursor imgui_cursor = ImGui::GetMouseCursor();
+        if (imgui_cursor == ImGuiMouseCursor_None || io.MouseDrawCursor)
+        {
+            // Hide OS mouse cursor if imgui is drawing it or if it wants no cursor
+            glfwSetInputMode(m_Handle, GLFW_CURSOR, GLFW_CURSOR_HIDDEN);
+        }
+        else
+        {
+            glfwSetCursor(m_Handle, g_MouseCursors[imgui_cursor] ? g_MouseCursors[imgui_cursor] : g_MouseCursors[ImGuiMouseCursor_Arrow]);
+            glfwSetInputMode(m_Handle, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
+        }
+    }
 }

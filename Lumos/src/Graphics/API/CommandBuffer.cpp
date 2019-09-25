@@ -1,4 +1,4 @@
-#include "LM.h"
+#include "lmpch.h"
 #include "CommandBuffer.h"
 #include "GraphicsContext.h"
 
@@ -14,18 +14,13 @@ namespace Lumos
 {
 	namespace Graphics
 	{
+        CommandBuffer*(*CommandBuffer::CreateFunc)() = nullptr;
+
 		CommandBuffer* CommandBuffer::Create()
 		{
-			switch (Graphics::GraphicsContext::GetRenderAPI())
-			{
-#ifdef LUMOS_RENDER_API_OPENGL
-			case RenderAPI::OPENGL:		return lmnew GLCommandBuffer();
-#endif
-#ifdef LUMOS_RENDER_API_VULKAN
-			case RenderAPI::VULKAN:		return lmnew VKCommandBuffer();
-#endif
-			}
-			return nullptr;
+            LUMOS_ASSERT(CreateFunc, "No CommandBuffer Create Function");
+            
+            return CreateFunc();
 		}
 	}
 }

@@ -1,5 +1,5 @@
 #pragma once
-#include "LM.h"
+#include "lmpch.h"
 //#define LUMOS_SSE //TODO : remove
 
 #ifdef LUMOS_SSE

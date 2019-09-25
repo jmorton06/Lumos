@@ -1,4 +1,4 @@
-#include "LM.h"
+#include "lmpch.h"
 #include "Core/OS/OS.h"
 
 namespace Lumos
@@ -9,6 +9,7 @@ namespace Lumos
         macOSOS() {}
         ~macOSOS() {}
 
+        void Init();
         void Run() override;
 	};
 }

@@ -1,7 +1,7 @@
-#include "LM.h"
+#include "lmpch.h"
 #include "DebugRenderer.h"
 #include "Graphics/API/Texture.h"
-#include "App/Window.h"
+#include "Core/OS/Window.h"
 #include "Graphics/API/Renderer.h"
 #include "Graphics/Material.h"
 #include "Graphics/API/VertexArray.h"
@@ -342,7 +342,7 @@ namespace Lumos
 			m_LogEntriesOffset = (m_LogEntriesOffset + 1) % MAX_LOG_SIZE;
 		}
 
-		LUMOS_CORE_WARN(text);
+		LUMOS_LOG_WARN(text);
 	}
 
 	void DebugRenderer::Log(const Maths::Vector3& colour, const std::string text, ...)

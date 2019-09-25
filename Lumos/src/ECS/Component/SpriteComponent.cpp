@@ -1,4 +1,4 @@
-#include "LM.h"
+#include "lmpch.h"
 #include "SpriteComponent.h"
 #include "Physics2DComponent.h"
 #include "ECS/EntityManager.h"
@@ -11,20 +11,14 @@ namespace Lumos
     SpriteComponent::SpriteComponent()
     {
         m_Sprite = Ref<Graphics::Sprite>();
-        m_Name = "Sprite";
     }
     
 	SpriteComponent::SpriteComponent(Ref<Graphics::Sprite>& sprite)
 		: m_Sprite(sprite)
 	{
-		m_Name = "Sprite";
 	}
 
-	void SpriteComponent::OnUpdateComponent(float dt)
-	{
-	}
-
-	void SpriteComponent::OnIMGUI()
+	void SpriteComponent::OnImGui()
 	{
 
 	}

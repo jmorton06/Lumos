@@ -1,4 +1,4 @@
-#include "LM.h"
+#include "lmpch.h"
 #include "MaterialComponent.h"
 #include "Graphics/API/GraphicsContext.h"
 #include "Graphics/API/Texture.h"
@@ -9,28 +9,20 @@ namespace Lumos
 {
     MaterialComponent::MaterialComponent()
     {
-        m_Name = "Material";
         m_Material = CreateRef<Material>();
     }
     
     MaterialComponent::MaterialComponent(Ref<Material>& material)
-    : m_Material(material)
+        : m_Material(material)
     {
-		m_Name = "Material";
     }
     
     MaterialComponent::~MaterialComponent()
     {
     }
     
-    void MaterialComponent::OnUpdateComponent(float dt)
+    void MaterialComponent::OnImGui()
     {
-    }
-    
-    void MaterialComponent::OnIMGUI()
-    {
-		ImGui::Separator();
-
 		if (m_Material)
 		{
 			m_Material->OnImGui();

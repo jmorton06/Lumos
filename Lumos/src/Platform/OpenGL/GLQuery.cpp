@@ -1,4 +1,4 @@
-#include "LM.h"
+#include "lmpch.h"
 #include "GLQuery.h"
 #include "GL.h"
 #include "GLDebug.h"
@@ -40,6 +40,16 @@ namespace Lumos
 		void GLQuery::End()
 		{
 			glEndQuery(m_QueryType);
+		}
+
+		void GLQuery::MakeDefault()
+		{
+			CreateFunc = CreateFuncGL;
+		}
+
+		Query* GLQuery::CreateFuncGL(QueryType type)
+		{
+			return lmnew GLQuery(type);
 		}
 
 		u32 GLQuery::GetResult()

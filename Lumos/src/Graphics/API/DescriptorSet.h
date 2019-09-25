@@ -1,5 +1,5 @@
 #pragma once
-#include "LM.h"
+#include "lmpch.h"
 
 namespace Lumos
 {
@@ -103,7 +103,7 @@ namespace Lumos
 		{
 		public:
 			virtual ~DescriptorSet() = default;
-			static DescriptorSet* Create(DescriptorInfo info);
+			static DescriptorSet* Create(const DescriptorInfo& info);
 
 			virtual void Update(std::vector<ImageInfo>& imageInfos, std::vector<BufferInfo>& bufferInfos) = 0;
 			virtual void Update(std::vector<ImageInfo>& imageInfos) = 0;
@@ -111,6 +111,9 @@ namespace Lumos
 			virtual void SetPushConstants(std::vector<PushConstant>& pushConstants) = 0;
 			virtual void SetDynamicOffset(u32 offset) = 0;
 			virtual u32 GetDynamicOffset() const = 0;
+           
+        protected:
+            static DescriptorSet* (*CreateFunc)(const DescriptorInfo&);
 		};
 	}
 }

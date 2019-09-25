@@ -1,4 +1,4 @@
-#include "LM.h"
+#include "lmpch.h"
 #include "Physics2DComponent.h"
 #include "Maths/MathsUtilities.h"
 #include "ECS/EntityManager.h"
@@ -10,28 +10,26 @@ namespace Lumos
 {
     Physics2DComponent::Physics2DComponent()
     {
-        m_Name = "Physics2D";
         m_PhysicsObject = CreateRef<PhysicsObject2D>();
     }
     
 	Physics2DComponent::Physics2DComponent(Ref<PhysicsObject2D>& physics)
 		: m_PhysicsObject(physics)
 	{
-		m_Name = "Physics2D";
 	}
 
-	void Physics2DComponent::OnUpdateComponent(float dt)
+	void Physics2DComponent::Update()
 	{
         auto angle = m_PhysicsObject->GetAngle();
         auto qw = cos(angle/2);
         auto qz = 1.0f * sin(angle/2);
         
-        m_Entity->GetTransformComponent()->GetTransform().SetLocalPosition(Maths::Vector3(m_PhysicsObject->GetPosition(), 1.0f));
-        m_Entity->GetTransformComponent()->GetTransform().SetLocalOrientation(Maths::Quaternion(0.0f, 0.0f, qz, qw));
-		m_Entity->GetTransformComponent()->GetTransform().UpdateMatrices();
+        m_Entity->GetTransformComponent()->GetTransform()->SetLocalPosition(Maths::Vector3(m_PhysicsObject->GetPosition(), 1.0f));
+        m_Entity->GetTransformComponent()->GetTransform()->SetLocalOrientation(Maths::Quaternion(0.0f, 0.0f, qz, qw));
+		m_Entity->GetTransformComponent()->GetTransform()->UpdateMatrices();
 	}
 
-	void Physics2DComponent::OnIMGUI()
+	void Physics2DComponent::OnImGui()
 	{
 		auto pos = m_PhysicsObject->GetPosition();
 		auto angle = m_PhysicsObject->GetAngle();

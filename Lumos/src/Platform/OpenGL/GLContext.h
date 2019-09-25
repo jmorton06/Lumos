@@ -1,5 +1,5 @@
 #pragma once
-#include "LM.h"
+#include "lmpch.h"
 #include "Graphics/API/GraphicsContext.h"
 
 namespace Lumos
@@ -21,7 +21,10 @@ namespace Lumos
 
             bool FlipImGUITexture() const override { return true; }
 
-			void OnImGUI() override;
+			void OnImGui() override;
+            static void MakeDefault();
+        protected:
+            static GraphicsContext* CreateFuncGL(const WindowProperties& properties, void* cont);
 		};
 	}
 }

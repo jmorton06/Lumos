@@ -1,6 +1,6 @@
 #pragma once
 
-#include "LM.h"
+#include "lmpch.h"
 
 #include "Graphics/API/VertexBuffer.h"
 
@@ -23,6 +23,11 @@ namespace Lumos
 		public:
 			static IndexBuffer* Create(u16* data, u32 count, BufferUsage bufferUsage = BufferUsage::STATIC);
 			static IndexBuffer* Create(u32* data, u32 count, BufferUsage bufferUsage = BufferUsage::STATIC);
+            
+        protected:
+            static IndexBuffer* (*Create16Func)(u16*, u32, BufferUsage);
+            static IndexBuffer* (*CreateFunc)(u32*, u32, BufferUsage);
+
 		};
 	}
 }

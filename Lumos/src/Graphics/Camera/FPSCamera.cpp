@@ -1,8 +1,10 @@
-#include "LM.h"
+#include "lmpch.h"
 #include "FPSCamera.h"
 #include "App/Application.h"
-#include "App/Input.h"
-#include "App/Window.h"
+#include "Core/OS/Input.h"
+#include "Core/OS/Window.h"
+
+#include <imgui/imgui.h>
 
 namespace Lumos
 {
@@ -25,12 +27,10 @@ namespace Lumos
 
 	void FPSCamera::HandleMouse(float dt, float xpos, float ypos)
 	{
-		if (Input::GetInput().GetWindowFocus())
+		if (Input::GetInput()->GetWindowFocus())
 		{
-			//if (!Input::GetInput().firstUpdate)
 			{
-				//LUMOS_CORE_ASSERT(false,"");
-				Maths::Vector2 windowCentre = Maths::Vector2();// Window::Instance()->GetScreenSize().GetX() / 2.0f, Window::Instance()->GetScreenSize().GetY() / 2.0f);
+				Maths::Vector2 windowCentre = Maths::Vector2();
 				xpos -= windowCentre.GetX();
 				ypos -= windowCentre.GetY();
 
@@ -49,8 +49,8 @@ namespace Lumos
 			m_PreviousCurserPos = Maths::Vector2(xpos, ypos);
 		}
 
-		UpdateScroll(Input::GetInput().GetScrollOffset(), dt);
-		Input::GetInput().SetScrollOffset(0.0f);
+		UpdateScroll(Input::GetInput()->GetScrollOffset(), dt);
+		Input::GetInput()->SetScrollOffset(0.0f);
 	}
 
 	void FPSCamera::HandleKeyboard(float dt)
@@ -63,32 +63,32 @@ namespace Lumos
 
 		m_CameraSpeed = 1000.0f * dt;
 
-		if (Input::GetInput().GetKeyHeld(LUMOS_KEY_W))
+		if (Input::GetInput()->GetKeyHeld(LUMOS_KEY_W))
 		{
 			m_Velocity += forward * m_CameraSpeed;
 		}
 
-		if (Input::GetInput().GetKeyHeld(LUMOS_KEY_S))
+		if (Input::GetInput()->GetKeyHeld(LUMOS_KEY_S))
 		{
 			m_Velocity -= forward * m_CameraSpeed;
 		}
 
-		if (Input::GetInput().GetKeyHeld(LUMOS_KEY_A))
+		if (Input::GetInput()->GetKeyHeld(LUMOS_KEY_A))
 		{
 			m_Velocity -= right * m_CameraSpeed;
 		}
 
-		if (Input::GetInput().GetKeyHeld(LUMOS_KEY_D))
+		if (Input::GetInput()->GetKeyHeld(LUMOS_KEY_D))
 		{
 			m_Velocity += right * m_CameraSpeed;
 		}
 
-		if (Input::GetInput().GetKeyHeld(LUMOS_KEY_SPACE))
+		if (Input::GetInput()->GetKeyHeld(LUMOS_KEY_SPACE))
 		{
 			m_Velocity -= up * m_CameraSpeed;
 		}
 
-		if (Input::GetInput().GetKeyHeld(LUMOS_KEY_LEFT_SHIFT))
+		if (Input::GetInput()->GetKeyHeld(LUMOS_KEY_LEFT_SHIFT))
 		{
 			m_Velocity += up * m_CameraSpeed;
 		}
@@ -96,6 +96,110 @@ namespace Lumos
 		m_Position += m_Velocity * dt;
 		m_Velocity = m_Velocity * pow(m_DampeningFactor, dt);
 
+	}
+
+	void FPSCamera::OnImGui()
+	{
+		if (ImGui::TreeNode("Camera"))
+		{
+			ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(2, 2));
+			ImGui::Columns(2);
+			ImGui::Separator();
+
+			ImGui::AlignTextToFramePadding();
+			ImGui::Text("Position");
+			ImGui::NextColumn();
+			ImGui::PushItemWidth(-1);
+			ImGui::DragFloat3("##Position", &m_Position.x);
+			ImGui::PopItemWidth();
+			ImGui::NextColumn();
+
+			ImGui::AlignTextToFramePadding();
+			ImGui::Text("Aspect");
+			ImGui::NextColumn();
+			ImGui::PushItemWidth(-1);
+			ImGui::DragFloat("##Aspect", &m_AspectRatio);
+			ImGui::PopItemWidth();
+			ImGui::NextColumn();
+
+			ImGui::AlignTextToFramePadding();
+			ImGui::Text("Pitch");
+			ImGui::NextColumn();
+			ImGui::PushItemWidth(-1);
+			ImGui::DragFloat("##Pitch", &m_Pitch);
+			ImGui::PopItemWidth();
+			ImGui::NextColumn();
+
+			ImGui::AlignTextToFramePadding();
+			ImGui::Text("Yaw");
+			ImGui::NextColumn();
+			ImGui::PushItemWidth(-1);
+			ImGui::DragFloat3("##Yaw", &m_Yaw);
+			ImGui::PopItemWidth();
+			ImGui::NextColumn();
+
+			ImGui::AlignTextToFramePadding();
+			ImGui::Text("Fov");
+			ImGui::NextColumn();
+			ImGui::PushItemWidth(-1);
+			ImGui::DragFloat("##Fov", &m_Fov);
+			ImGui::PopItemWidth();
+			ImGui::NextColumn();
+
+			ImGui::AlignTextToFramePadding();
+			ImGui::Text("Near");
+			ImGui::NextColumn();
+			ImGui::PushItemWidth(-1);
+			ImGui::DragFloat("##Near", &m_Near);
+			ImGui::PopItemWidth();
+			ImGui::NextColumn();
+
+			ImGui::AlignTextToFramePadding();
+			ImGui::Text("Far");
+			ImGui::NextColumn();
+			ImGui::PushItemWidth(-1);
+			ImGui::DragFloat("##Far", &m_Far);
+			ImGui::PopItemWidth();
+			ImGui::NextColumn();
+
+			ImGui::AlignTextToFramePadding();
+			ImGui::Text("MouseSensitivity");
+			ImGui::NextColumn();
+			ImGui::PushItemWidth(-1);
+			ImGui::InputFloat("##MouseSensitivity", &m_MouseSensitivity);
+			ImGui::PopItemWidth();
+			ImGui::NextColumn();
+
+			ImGui::AlignTextToFramePadding();
+			ImGui::Text("ZoomDampeningFactor");
+			ImGui::NextColumn();
+			ImGui::PushItemWidth(-1);
+			ImGui::InputFloat("##ZoomDampeningFactor", &m_ZoomDampeningFactor);
+			ImGui::PopItemWidth();
+			ImGui::NextColumn();
+
+			ImGui::AlignTextToFramePadding();
+			ImGui::Text("DampeningFactor");
+			ImGui::NextColumn();
+			ImGui::PushItemWidth(-1);
+			ImGui::InputFloat("##DampeningFactor", &m_DampeningFactor);
+			ImGui::PopItemWidth();
+			ImGui::NextColumn();
+
+			ImGui::AlignTextToFramePadding();
+			ImGui::Text("RotateDampeningFactor");
+			ImGui::NextColumn();
+			ImGui::PushItemWidth(-1);
+			ImGui::InputFloat("##RotateDampeningFactor", &m_RotateDampeningFactor);
+			ImGui::PopItemWidth();
+			ImGui::NextColumn();
+
+			ImGui::Columns(1);
+			ImGui::Separator();
+			ImGui::PopStyleVar();
+
+			ImGui::TreePop();
+		}
 	}
 
 }

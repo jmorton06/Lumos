@@ -1,4 +1,4 @@
-#include "LM.h"
+#include "lmpch.h"
 #include "GLShader.h"
 
 #include "Platform/OpenGL/GL.h"
@@ -9,7 +9,7 @@ namespace Lumos
 	namespace Graphics
 	{
 		bool IGNORE_LINES = false;
-		static ShaderType type = ShaderType::UNKNOWN;
+		static ShaderType s_Type = ShaderType::UNKNOWN;
 
 		bool GLShader::TryCompile(const String& source, String& error)
 		{
@@ -20,7 +20,7 @@ namespace Lumos
 			if (!GLShader::Compile(sources, info))
 			{
 				error = info.message[info.shader];
-				LUMOS_CORE_ERROR(error);
+				LUMOS_LOG_ERROR(error);
 				return false;
 			}
 			return true;
@@ -81,14 +81,14 @@ namespace Lumos
 			m_Handle = Compile(sources, error);
 
 			if (!m_Handle)
-				LUMOS_CORE_ERROR("{0} - {1}", error.message[error.shader], m_Name);
+				LUMOS_LOG_ERROR("{0} - {1}", error.message[error.shader], m_Name);
 
-			LUMOS_CORE_ASSERT(m_Handle, "");
+			LUMOS_ASSERT(m_Handle, "");
 
 			ResolveUniforms();
 			ValidateUniforms();
 
-			LUMOS_CORE_WARN("Successfully compiled shader: {0}", m_Name);
+			LUMOS_LOG_WARN("Successfully compiled shader: {0}", m_Name);
 
 			delete sources;
 		}
@@ -100,7 +100,7 @@ namespace Lumos
 
 		void GLShader::PreProcess(const String& source, std::map<ShaderType, String>* sources)
 		{
-			type = ShaderType::UNKNOWN;
+			s_Type = ShaderType::UNKNOWN;
 			std::vector<String> lines = GetLines(source);
 			ReadShaderFile(lines, sources);
 		}
@@ -123,43 +123,43 @@ namespace Lumos
 				{
 					if (StringContains(str, "vertex"))
 					{
-						type = ShaderType::VERTEX;
+						s_Type = ShaderType::VERTEX;
 						std::map<ShaderType, String>::iterator it = shaders->begin();
-						shaders->insert(it, std::pair<ShaderType, String>(type, ""));
+						shaders->insert(it, std::pair<ShaderType, String>(s_Type, ""));
 					}
 					else if (StringContains(str, "geometry"))
 					{
-						type = ShaderType::GEOMETRY;
+						s_Type = ShaderType::GEOMETRY;
 						std::map<ShaderType, String>::iterator it = shaders->begin();
-						shaders->insert(it, std::pair<ShaderType, String>(type, ""));
+						shaders->insert(it, std::pair<ShaderType, String>(s_Type, ""));
 					}
 					else if (StringContains(str, "fragment"))
 					{
-						type = ShaderType::FRAGMENT;
+						s_Type = ShaderType::FRAGMENT;
 						std::map<ShaderType, String>::iterator it = shaders->begin();
-						shaders->insert(it, std::pair<ShaderType, String>(type, ""));
+						shaders->insert(it, std::pair<ShaderType, String>(s_Type, ""));
 					}
 					else if (StringContains(str, "tess_cont"))
 					{
-						type = ShaderType::TESSELLATION_CONTROL;
+						s_Type = ShaderType::TESSELLATION_CONTROL;
 						std::map<ShaderType, String>::iterator it = shaders->begin();
-						shaders->insert(it, std::pair<ShaderType, String>(type, ""));
+						shaders->insert(it, std::pair<ShaderType, String>(s_Type, ""));
 					}
 					else if (StringContains(str, "tess_eval"))
 					{
-						type = ShaderType::TESSELLATION_EVALUATION;
+						s_Type = ShaderType::TESSELLATION_EVALUATION;
 						std::map<ShaderType, String>::iterator it = shaders->begin();
-						shaders->insert(it, std::pair<ShaderType, String>(type, ""));
+						shaders->insert(it, std::pair<ShaderType, String>(s_Type, ""));
 					}
 					else if (StringContains(str, "compute"))
 					{
-						type = ShaderType::COMPUTE;
+						s_Type = ShaderType::COMPUTE;
 						std::map<ShaderType, String>::iterator it = shaders->begin();
-						shaders->insert(it, std::pair<ShaderType, String>(type, ""));
+						shaders->insert(it, std::pair<ShaderType, String>(s_Type, ""));
 					}
 					else if (StringContains(str, "end"))
 					{
-						type = ShaderType::UNKNOWN;
+						s_Type = ShaderType::UNKNOWN;
 					}
 				}
 				else if (StartsWith(str, "#include"))
@@ -172,7 +172,7 @@ namespace Lumos
 						if (j != std::string::npos)
 							file.erase(j, rem.length());
 						file = StringReplace(file, '\"');
-						LUMOS_CORE_WARN("Including file \'{0}\' into shader.", file);
+						LUMOS_LOG_WARN("Including file \'{0}\' into shader.", file);
 						VFS::Get()->ReadTextFile(file);
 						ReadShaderFile(GetLines(VFS::Get()->ReadTextFile(file)), shaders);
 					}
@@ -194,10 +194,10 @@ namespace Lumos
 						}
 					}
 				}
-				else if (type != ShaderType::UNKNOWN)
+				else if (s_Type != ShaderType::UNKNOWN)
 				{
-					shaders->at(type).append(lines[i]);
-					shaders->at(type).append("\n");
+					shaders->at(s_Type).append(lines[i]);
+					shaders->at(s_Type).append("\n");
 				}
 			}
 		}
@@ -243,7 +243,7 @@ namespace Lumos
 				info.line[info.shader] = 0;
 				info.message[info.shader] += errorMessage;
 
-				LUMOS_CORE_ERROR(info.message[info.shader]);
+				LUMOS_LOG_ERROR(info.message[info.shader]);
 				return 0;
 			}
 
@@ -276,9 +276,8 @@ namespace Lumos
 			case ShaderType::COMPUTE:
 				return GL_COMPUTE_SHADER;
 #endif
-			default: LUMOS_CORE_ERROR("Unsupported Shader Type"); return -1;
+			default: LUMOS_LOG_ERROR("Unsupported Shader Type"); return GL_VERTEX_SHADER;
 			}
-			return -1;
 		}
 
 		String TypeToString(ShaderType type)
@@ -329,8 +328,8 @@ namespace Lumos
 				info.message[info.shader] += errorMessage;
 				GLCall(glDeleteShader(shader));
 
-				LUMOS_CORE_ERROR(info.message[info.shader]);
-				return -1;
+				LUMOS_LOG_ERROR(info.message[info.shader]);
+				return 0;
 			}
 			return shader;
 		}
@@ -414,7 +413,7 @@ namespace Lumos
 						if (t == GLShaderUniformDeclaration::Type::NONE)
 						{
 							ShaderStruct* s = FindStruct(typeString);
-							LUMOS_CORE_ASSERT(s, "");
+							LUMOS_ASSERT(s, "");
 							declaration = lmnew GLShaderUniformDeclaration(s, name, count);
 
 							ISStruct = true;
@@ -465,7 +464,7 @@ namespace Lumos
 					if (t == GLShaderUniformDeclaration::Type::NONE)
 					{
 						//ShaderStruct* s = FindStruct(typeString);
-						//LUMOS_CORE_ASSERT(s, "");
+						//LUMOS_ASSERT(s, "");
 						//declaration = lmnew GLShaderUniformDeclaration(s, name, count);
 						return;
 					}
@@ -660,7 +659,7 @@ namespace Lumos
 		{
 			GLCall(const GLint result = glGetUniformLocation(m_Handle, name.c_str()));
 			//if (result == -1)
-			//	LUMOS_CORE_WARN("{0} : could not find uniform {1} in shader!",m_Name,name);
+			//	LUMOS_LOG_WARN("{0} : could not find uniform {1} in shader!",m_Name,name);
 
 			return result;
 		}
@@ -715,7 +714,7 @@ namespace Lumos
 		void GLShader::SetSystemUniformBuffer(ShaderType type, u8* data, u32 size, u32 slot)
 		{
 			Bind();
-			LUMOS_CORE_ASSERT(m_UniformBuffers[type].size() > slot, "");
+			LUMOS_ASSERT(m_UniformBuffers[type].size() > slot, "");
 			if (!m_UniformBuffers[type].empty())
 			{
 				ShaderUniformBufferDeclaration* declaration = m_UniformBuffers[type][slot];
@@ -754,7 +753,7 @@ namespace Lumos
 		{
 			if (uniform->GetLocation() == -1)
 			{
-				//LUMOS_CORE_ERROR( "Couldnt Find Uniform In Shader: " + uniform->GetName());
+				//LUMOS_LOG_ERROR( "Couldnt Find Uniform In Shader: " + uniform->GetName());
 				return;
 			}
 
@@ -792,7 +791,7 @@ namespace Lumos
 				SetUniformStruct(uniform, data, offset);
 				break;
 			default:
-				LUMOS_CORE_ASSERT(false, "Unknown type!");
+				LUMOS_ASSERT(false, "Unknown type!");
 			}
 		}
 
@@ -801,7 +800,7 @@ namespace Lumos
 			ShaderUniformDeclaration* uniform = FindUniformDeclaration(name);
 			if (!uniform)
 			{
-				LUMOS_CORE_ASSERT("Cannot find uniform in {0} shader with name '{1}'", m_Name, name);
+				LUMOS_LOG_ERROR("Cannot find uniform in {0} shader with name '{1}'", m_Name, name);
 				return;
 			}
 			ResolveAndSetUniform(static_cast<GLShaderUniformDeclaration*>(uniform), data, 0, uniform->GetCount());
@@ -809,7 +808,7 @@ namespace Lumos
 
 		void GLShader::ResolveAndSetUniformField(const GLShaderUniformDeclaration& field, u8* data, i32 offset, u32 count) const
 		{
-			//LUMOS_CORE_ASSERT(field.GetLocation() < 0, "Couldnt Find Uniform In Shader: " + field.GetName());
+			//LUMOS_ASSERT(field.GetLocation() < 0, "Couldnt Find Uniform In Shader: " + field.GetName());
 
 			switch (field.GetType())
 			{
@@ -838,7 +837,7 @@ namespace Lumos
 				SetUniformMat4Array(field.GetLocation(), count, *reinterpret_cast<Maths::Matrix4*>(&data[offset]));
 				break;
 			default:
-				LUMOS_CORE_ASSERT(false, "Unknown type!");
+				LUMOS_ASSERT(false, "Unknown type!");
 			}
 		}
 
@@ -930,6 +929,17 @@ namespace Lumos
 		void GLShader::SetUniformMat4Array(u32 location, u32 count, const Maths::Matrix4& matrix)
 		{
 			GLCall(glUniformMatrix4fv(location, count, GL_FALSE /*GLTRUE*/, &matrix.values[0]));
+		}
+
+
+		Shader* GLShader::CreateFuncGL(const String & name, const String & source)
+		{
+			return lmnew GLShader(name, source);
+		}
+
+		void GLShader::MakeDefault()
+		{
+			CreateFunc = CreateFuncGL;
 		}
 	}
 }

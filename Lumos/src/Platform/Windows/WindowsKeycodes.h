@@ -1,6 +1,6 @@
 #pragma once 
-#include "LM.h"
-#include "App/KeyCodes.h"
+#include "lmpch.h"
+#include "Core/OS/KeyCodes.h"
 
 namespace Lumos
 {
@@ -207,6 +207,8 @@ namespace Lumos
 			{ KEYBOARD_LSHIFT	, LUMOS_KEY_LEFT_SHIFT	},
 			{ KEYBOARD_ESCAPE	, LUMOS_KEY_ESCAPE		},
 			{ KEYBOARD_ADD		, LUMOS_KEY_ADD			},
+			{ KEYBOARD_BACK		, LUMOS_KEY_BACKSPACE	},
+			{ KEYBOARD_RETURN	, LUMOS_KEY_ENTER		},
 			{ KEYBOARD_COMMA	, LUMOS_KEY_COMMA		}
 			};
 

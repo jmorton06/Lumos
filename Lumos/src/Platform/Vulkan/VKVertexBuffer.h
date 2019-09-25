@@ -10,7 +10,7 @@ namespace Lumos
 		class VKVertexBuffer : public VertexBuffer, public VKBuffer
 		{
 		public:
-			explicit VKVertexBuffer(BufferUsage usage);
+			explicit VKVertexBuffer(const BufferUsage& usage);
 			~VKVertexBuffer();
 
 			void Resize(u32 size) override;
@@ -18,13 +18,16 @@ namespace Lumos
 			void SetData(u32 size, const void* data) override;
 			void SetDataSub(u32 size, const void* data, u32 offset) override;
 
-			BufferLayout GetLayout() const { return m_Layout; }
+			const BufferLayout& GetLayout() const { return m_Layout; }
 
 			void ReleasePointer() override;
 
 			void Bind() override;
 			void Unbind() override;
-		protected:
+            
+            static void MakeDefault();
+        protected:
+            static VertexBuffer* CreateFuncVulkan(const BufferUsage& usage);
 			void* GetPointerInternal() override;
 
 			bool m_MappedBuffer = false;

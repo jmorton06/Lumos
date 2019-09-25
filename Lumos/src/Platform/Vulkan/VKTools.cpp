@@ -1,4 +1,4 @@
-#include "LM.h"
+#include "lmpch.h"
 #include "VKTools.h"
 #include "VKDevice.h"
 #include "VKShader.h"
@@ -191,7 +191,7 @@ namespace Lumos
             }
             else
             {
-                LUMOS_CORE_ERROR("unsupported layout transition!");
+                LUMOS_LOG_CRITICAL("unsupported layout transition!");
             }
 
             commandBuffer.pipelineBarrier(sourceStage, destinationStage, static_cast<vk::DependencyFlagBits>(0), 0, nullptr, 0, nullptr, 1, &barrier);
@@ -456,7 +456,7 @@ namespace Lumos
                 case TextureFormat::RGBA16:             return vk::Format::eR16G16B16A16Sfloat;
 				case TextureFormat::RGB32:              return vk::Format::eR32G32B32Sfloat;
 				case TextureFormat::RGBA32:             return vk::Format::eR32G32B32A32Sfloat;
-                default: LUMOS_CORE_ERROR("[Texture] Unsupported image bit-depth!");  return vk::Format::eR8G8B8A8Unorm;
+                default: LUMOS_LOG_CRITICAL("[Texture] Unsupported image bit-depth!");  return vk::Format::eR8G8B8A8Unorm;
             }
         }
         
@@ -471,7 +471,7 @@ namespace Lumos
                 case ShaderType::TESSELLATION_EVALUATION:   return vk::ShaderStageFlagBits::eTessellationEvaluation;
                 case ShaderType::COMPUTE:                   return vk::ShaderStageFlagBits::eCompute;
                 default:
-                    LUMOS_CORE_ERROR("Unknown Shader Type");
+                    LUMOS_LOG_CRITICAL("Unknown Shader Type");
                     return vk::ShaderStageFlagBits::eVertex;
             }
         }

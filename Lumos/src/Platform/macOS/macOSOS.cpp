@@ -1,6 +1,9 @@
-#include "LM.h"
+#include "lmpch.h"
 #include "macOSOS.h"
 #include "macOSPower.h"
+#include "Platform/Unix/UnixThread.h"
+#include "Platform/Unix/UnixMutex.h"
+#include "Platform/GLFW/GLFWWindow.h"
 #include "Core/CoreSystem.h"
 #include "App/Application.h"
 
@@ -14,11 +17,18 @@ namespace Lumos
         auto percentage = power.GetPowerPercentageLeft();
         auto secondsLeft = power.GetPowerSecondsLeft();
         auto state = power.GetPowerState();
-        
+
         LUMOS_CORE_INFO("Battery Info - Percentage : {0} , Time Left {1}s , State : {2}", percentage, secondsLeft, PowerStateToString(state));
         auto app = Lumos::Application::Instance();
         app->Init();
         app->Run();
         delete app;
+    }
+
+    void macOSOS::Init()
+    {
+        UnixThread::MakeDefault();
+        UnixMutex::MakeDefault();
+        GLFWWindow::MakeDefault();
     }
 }

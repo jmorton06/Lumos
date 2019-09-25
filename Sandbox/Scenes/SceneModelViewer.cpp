@@ -44,8 +44,8 @@ void SceneModelViewer::OnInit()
 	auto lightEntity = EntityManager::Instance()->CreateEntity("Directional Light");
 	lightEntity->AddComponent<LightComponent>(sun);
 	lightEntity->AddComponent<TransformComponent>(Matrix4::Translation(Maths::Vector3(26.0f, 22.0f, 48.5f)));
-	lightEntity->GetTransformComponent()->GetTransform().SetLocalOrientation(Maths::Quaternion::LookAt(Maths::Vector3(26.0f, 22.0f, 48.5f), Maths::Vector3::Zero()));
-	lightEntity->GetTransformComponent()->GetTransform().ApplyTransform();
+	lightEntity->GetTransformComponent()->GetTransform()->SetLocalOrientation(Maths::Quaternion::LookAt(Maths::Vector3(26.0f, 22.0f, 48.5f), Maths::Vector3::Zero()));
+	lightEntity->GetTransformComponent()->GetTransform()->ApplyTransform();
 	AddEntity(lightEntity);
 
     auto shadowRenderer = new Graphics::ShadowRenderer();
@@ -103,6 +103,6 @@ void SceneModelViewer::LoadModels()
 
 }
 
-void SceneModelViewer::OnIMGUI()
+void SceneModelViewer::OnImGui()
 {
 }

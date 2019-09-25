@@ -26,7 +26,10 @@ namespace Lumos
 
 			const std::vector<vk::Buffer>& GetVKBuffers() const { return m_VKBuffers; }
 			const std::vector<uint64_t>& GetOffsets() const { return m_Offsets; }
-
+            
+            static void MakeDefault();
+        protected:
+            static VertexArray* CreateFuncVulkan();
 		private:
 			std::vector<vk::Buffer> m_VKBuffers;
 			std::vector<uint64_t> m_Offsets;

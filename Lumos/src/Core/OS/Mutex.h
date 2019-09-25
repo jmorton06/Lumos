@@ -10,8 +10,10 @@ namespace Lumos
         virtual bool TryLock() = 0; ///< Attempt to lock the mutex, True on success, ERROR means it can't lock.
         
         static Mutex *Create(bool p_recursive = true); ///< Create a mutex
-        
         virtual ~Mutex();
+        
+    protected:
+        static Mutex *(*CreateFunc)(bool);
     };
     
     class MutexLock

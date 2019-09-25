@@ -9,12 +9,12 @@ class TestComponent : public LumosComponent
 public:
 	TestComponent() 
 	{
-		m_Name = "Test";
+
 	};
 
-	void Init() override {};
+	void Init() {};
 
-	void OnIMGUI() override 
+	void OnImGui() override 
 	{
 		ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(2, 2));
 		ImGui::Columns(2);
@@ -39,7 +39,7 @@ public:
 	void Deserialise(nlohmann::json& data) override {};
 };
 
-Scene3D::Scene3D(const std::string& SceneName)
+Scene3D::Scene3D(const String& SceneName)
 		: Scene(SceneName)
 {
 	//ComponentManager::Instance()->RegisterComponent<TestComponent>();
@@ -55,11 +55,11 @@ void Scene3D::OnInit()
 
     Application::Instance()->GetSystem<LumosPhysicsEngine>()->SetDampingFactor(0.998f);
     Application::Instance()->GetSystem<LumosPhysicsEngine>()->SetIntegrationType(IntegrationType::RUNGE_KUTTA_4);
-    Application::Instance()->GetSystem<LumosPhysicsEngine>()->SetBroadphase(new Octree(5, 3, Lumos::CreateRef<SortAndSweepBroadphase>()));
+    Application::Instance()->GetSystem<LumosPhysicsEngine>()->SetBroadphase(Lumos::CreateRef<Octree>(5, 3, Lumos::CreateRef<SortAndSweepBroadphase>()));
 
 	LoadModels();
 
-	m_pCamera = new ThirdPersonCamera(-20.0f, -40.0f, Maths::Vector3(-3.0f, 10.0f, 15.0f), 60.0f, 0.1f, 1000.0f, (float) m_ScreenWidth / (float) m_ScreenHeight);
+	m_pCamera = new EditorCamera(-20.0f, -40.0f, Maths::Vector3(-3.0f, 10.0f, 15.0f), 60.0f, 0.1f, 1000.0f, (float) m_ScreenWidth / (float) m_ScreenHeight);
 
 	m_SceneBoundingRadius = 20.0f;
 
@@ -99,9 +99,11 @@ void Scene3D::OnInit()
 	auto shadowLayer = new Layer3D(shadowRenderer, "Shadow");
 	auto deferredLayer = new Layer3D(new Graphics::DeferredRenderer(m_ScreenWidth, m_ScreenHeight, true), "Deferred");
 	auto skyBoxLayer = new Layer3D(new Graphics::SkyboxRenderer(m_ScreenWidth, m_ScreenHeight, m_EnvironmentMap, true), "Skybox");
+	//auto gridLayer = new Layer3D(new Graphics::GridRenderer(m_ScreenWidth, m_ScreenHeight, true), "Grid");
 	Application::Instance()->PushLayer(shadowLayer);
     Application::Instance()->PushLayer(deferredLayer);
 	Application::Instance()->PushLayer(skyBoxLayer);
+	//Application::Instance()->PushLayer(gridLayer);
 
 	Application::Instance()->GetRenderManager()->SetShadowRenderer(shadowRenderer);
     Application::Instance()->GetRenderManager()->SetSkyBoxTexture(m_EnvironmentMap);
@@ -148,7 +150,7 @@ void Scene3D::LoadModels()
 	ground->AddComponent<Physics3DComponent>(testPhysics);
 	//ground->AddComponent<TestComponent>();
 
-	Ref<Graphics::Mesh> groundModel = CreateRef<Graphics::Mesh>(*AssetsManager::DefaultModels()->GetAsset("Cube"));
+	Ref<Graphics::Mesh> groundModel = AssetsManager::DefaultModels()->Get("Cube");
 	ground->AddComponent<MeshComponent>(groundModel);
 
 	MaterialProperties properties;
@@ -200,7 +202,7 @@ void Scene3D::LoadModels()
 	cube->AddComponent<Physics3DComponent>(cubePhysics);
 	cube->AddComponent<TransformComponent>(Matrix4::Scale(Maths::Vector3(0.5f, 0.5f, 0.5f)));
 
-	Ref<Graphics::Mesh> cubeModel = CreateRef<Graphics::Mesh>(*AssetsManager::DefaultModels()->GetAsset("Cube"));
+	Ref<Graphics::Mesh> cubeModel = CreateRef<Graphics::Mesh>(*AssetsManager::DefaultModels()->Get("Cube"));
 	cube->AddComponent<MeshComponent>(cubeModel);
 
 	cube->AddComponent<MaterialComponent>(marbleMaterial);
@@ -220,7 +222,7 @@ void Scene3D::LoadModels()
 	restsphere->AddComponent<Physics3DComponent>(restspherePhysics);
 	restsphere->AddComponent<TransformComponent>(Matrix4::Scale(Maths::Vector3(0.5f, 0.5f, 0.5f)));
 
-	Ref<Graphics::Mesh> restsphereModel = CreateRef<Graphics::Mesh>(*AssetsManager::DefaultModels()->GetAsset("Cube"));
+	Ref<Graphics::Mesh> restsphereModel = CreateRef<Graphics::Mesh>(*AssetsManager::DefaultModels()->Get("Cube"));
 	restsphere->AddComponent<MeshComponent>(restsphereModel);
 	restsphere->AddComponent<MaterialComponent>(castIronMaterial);
 
@@ -239,7 +241,7 @@ void Scene3D::LoadModels()
 	pyramid->AddComponent<Physics3DComponent>(pyramidPhysics);
 	pyramid->AddComponent<TransformComponent>(Matrix4::Scale(Maths::Vector3(0.5f, 0.5f, 0.5f)));
 
-	Ref<Graphics::Mesh> pyramidModel = CreateRef<Graphics::Mesh>(*AssetsManager::DefaultModels()->GetAsset("Pyramid"));
+	Ref<Graphics::Mesh> pyramidModel = CreateRef<Graphics::Mesh>(*AssetsManager::DefaultModels()->Get("Pyramid"));
 	pyramid->AddComponent<MeshComponent>(pyramidModel);
 	pyramid->AddComponent<MaterialComponent>(marbleMaterial);
 
@@ -258,7 +260,7 @@ void Scene3D::LoadModels()
 	grassSphere->AddComponent<Physics3DComponent>(grassSpherePhysics);
 	grassSphere->AddComponent<TransformComponent>(Matrix4::Scale(Maths::Vector3(0.5f, 0.5f, 0.5f)));
 
-	Ref<Graphics::Mesh> grassSphereModel = CreateRef<Graphics::Mesh>(*AssetsManager::DefaultModels()->GetAsset("Sphere"));
+	Ref<Graphics::Mesh> grassSphereModel = CreateRef<Graphics::Mesh>(*AssetsManager::DefaultModels()->Get("Sphere"));
 	grassSphere->AddComponent<MeshComponent>(grassSphereModel);
 	grassSphere->AddComponent<MaterialComponent>(grassMaterial);
 
@@ -277,7 +279,7 @@ void Scene3D::LoadModels()
 	marbleSphere->AddComponent<Physics3DComponent>(marbleSpherePhysics);
 	marbleSphere->AddComponent<TransformComponent>(Matrix4::Scale(Maths::Vector3(0.5f, 0.5f, 0.5f)));
 
-	Ref<Graphics::Mesh> marbleSphereModel = CreateRef<Graphics::Mesh>(*AssetsManager::DefaultModels()->GetAsset("Sphere"));
+	Ref<Graphics::Mesh> marbleSphereModel = CreateRef<Graphics::Mesh>(*AssetsManager::DefaultModels()->Get("Sphere"));
 	marbleSphere->AddComponent<MeshComponent>(marbleSphereModel);
 	marbleSphere->AddComponent<MaterialComponent>(marbleMaterial);
 
@@ -296,7 +298,7 @@ void Scene3D::LoadModels()
 	stoneSphere->AddComponent<Physics3DComponent>(stoneSpherePhysics);
 	stoneSphere->AddComponent<TransformComponent>(Matrix4::Scale(Maths::Vector3(0.5f, 0.5f, 0.5f)));
 
-	Ref<Graphics::Mesh> stoneSphereModel = CreateRef<Graphics::Mesh>(*AssetsManager::DefaultModels()->GetAsset("Sphere"));
+	Ref<Graphics::Mesh> stoneSphereModel = CreateRef<Graphics::Mesh>(*AssetsManager::DefaultModels()->Get("Sphere"));
 	stoneSphere->AddComponent<MeshComponent>(stoneSphereModel);
 	stoneSphere->AddComponent<MaterialComponent>(stoneMaterial);
 
@@ -316,7 +318,7 @@ void Scene3D::LoadModels()
 	pendulumHolder->AddComponent<Physics3DComponent>(pendulumHolderPhysics);
 	pendulumHolder->AddComponent<TransformComponent>(Matrix4::Scale(Maths::Vector3(0.5f, 0.5f, 0.5f)));
 
-	Ref<Graphics::Mesh> pendulumHolderModel = CreateRef<Graphics::Mesh>(*AssetsManager::DefaultModels()->GetAsset("Cube"));
+	Ref<Graphics::Mesh> pendulumHolderModel = AssetsManager::DefaultModels()->Get("Cube");
 	pendulumHolder->AddComponent<MeshComponent>(pendulumHolderModel);
 
 	AddEntity(pendulumHolder);
@@ -334,12 +336,12 @@ void Scene3D::LoadModels()
 	pendulum->AddComponent<Physics3DComponent>(pendulumPhysics);
 	pendulum->AddComponent<TransformComponent>(Matrix4::Scale(Maths::Vector3(0.5f, 0.5f, 0.5f)));
 
-	Ref<Graphics::Mesh> pendulumModel = CreateRef<Graphics::Mesh>(*AssetsManager::DefaultModels()->GetAsset("Sphere"));
+	Ref<Graphics::Mesh> pendulumModel = AssetsManager::DefaultModels()->Get("Sphere");
 	pendulum->AddComponent<MeshComponent>(pendulumModel);
 
 	AddEntity(pendulum);
 
-	auto pendulumConstraint = new SpringConstraint(pendulumHolder->GetComponent<Physics3DComponent>()->GetPhysicsObject(), pendulum->GetComponent<Physics3DComponent>()->GetPhysicsObject(), pendulumHolder->GetComponent<Physics3DComponent>()->GetPhysicsObject()->GetPosition(), pendulum->GetComponent<Physics3DComponent>()->GetPhysicsObject()->GetPosition(), 0.9f, 0.5f);
+	auto pendulumConstraint = new SpringConstraint(pendulumHolder->GetComponent<Physics3DComponent>()->GetPhysicsObject().get(), pendulum->GetComponent<Physics3DComponent>()->GetPhysicsObject().get(), pendulumHolder->GetComponent<Physics3DComponent>()->GetPhysicsObject()->GetPosition(), pendulum->GetComponent<Physics3DComponent>()->GetPhysicsObject()->GetPosition(), 0.9f, 0.5f);
 	Application::Instance()->GetSystem<LumosPhysicsEngine>()->AddConstraint(pendulumConstraint);
 
 #if 0
@@ -384,7 +386,7 @@ void Scene3D::LoadModels()
 		auto sphere = EntityManager::Instance()->CreateEntity("Sphere" + StringFormat::ToString(numSpheres++));
 
 		sphere->AddComponent<TransformComponent>(Matrix4::Scale(Maths::Vector3(0.5f, 0.5f, 0.5f)) * Matrix4::Translation(Maths::Vector3(i * 2.0f, 30.0f, 0.0f)));
-		Ref<Graphics::Mesh> sphereModel = CreateRef<Graphics::Mesh>(*AssetsManager::DefaultModels()->GetAsset("Sphere"));
+		Ref<Graphics::Mesh> sphereModel = AssetsManager::DefaultModels()->Get("Sphere");
 		sphere->AddComponent<MeshComponent>(sphereModel);
 		sphere->AddComponent<MaterialComponent>(m);
 
@@ -412,7 +414,7 @@ void Scene3D::LoadModels()
 		auto sphere = EntityManager::Instance()->CreateEntity("Sphere" + StringFormat::ToString(numSpheres++));
 
 		sphere->AddComponent<TransformComponent>(Matrix4::Scale(Maths::Vector3(0.5f, 0.5f, 0.5f)) * Matrix4::Translation(Maths::Vector3(i * 2.0f, 33.0f, 0.0f)));
-		Ref<Graphics::Mesh> sphereModel = CreateRef<Graphics::Mesh>(*AssetsManager::DefaultModels()->GetAsset("Sphere"));
+		Ref<Graphics::Mesh> sphereModel = AssetsManager::DefaultModels()->Get("Sphere");
 		sphere->AddComponent<MeshComponent>(sphereModel);
 		sphere->AddComponent<MaterialComponent>(m);
 
@@ -420,6 +422,6 @@ void Scene3D::LoadModels()
 	}
 }
 
-void Scene3D::OnIMGUI()
+void Scene3D::OnImGui()
 {
 }

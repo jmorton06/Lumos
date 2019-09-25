@@ -27,7 +27,6 @@ project "Lumos"
 		"external/",
 		"external/jsonhpp/",
 		"external/stb/",
-		"external/imgui/",
 		"external/spdlog/include",
 		"../Dependencies/",
 		"../Dependencies/lua/src/",
@@ -35,14 +34,16 @@ project "Lumos"
 		"../Dependencies/glad/include/",
 		"../Dependencies/OpenAL/include/",
 		"../Dependencies/Box2D/",
-		"../Dependencies/vulkan/"
+		"../Dependencies/vulkan/",
+		"../Dependencies/imgui/"
 	}
 
 	links
 	{
 		"lua",
 		"Box2D",
-		"volk"
+		"volk",
+		"imgui"
 	}
 
 	cwd = os.getcwd() .. "/.."
@@ -60,8 +61,8 @@ project "Lumos"
 		staticruntime "Off"
 		systemversion "latest"
 
-		pchheader "LM.h"
-		pchsource "src/LM.cpp"
+		pchheader "lmpch.h"
+		pchsource "src/lmpch.cpp"
 
 		defines
 		{
@@ -182,8 +183,8 @@ project "Lumos"
 		}
 
 		filter { "action:xcode4" }
-			pchheader "../Lumos/src/LM.h"
-			pchsource "../Lumos/src/LM.cpp"
+			pchheader "../Lumos/src/lmpch.h"
+			pchsource "../Lumos/src/lmpch.cpp"
 
 			filter 'files:external/**.cpp'
 				flags  { 'NoPCH' }
@@ -312,8 +313,8 @@ project "Lumos"
 
 		links { "X11", "pthread"}
 
-		pchheader "../Lumos/src/LM.h"
-		pchsource "../Lumos/src/LM.cpp"
+		pchheader "../Lumos/src/lmpch.h"
+		pchsource "../Lumos/src/lmpch.cpp"
 
 		filter 'files:external/**.cpp'
 			flags  { 'NoPCH' }

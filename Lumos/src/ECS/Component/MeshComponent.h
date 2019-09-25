@@ -1,5 +1,5 @@
 #pragma once
-#include "LM.h"
+#include "lmpch.h"
 #include "LumosComponent.h"
 #include "Graphics/Mesh.h"
 
@@ -13,14 +13,15 @@ namespace Lumos
 		explicit MeshComponent(Graphics::Mesh* mesh);
 		~MeshComponent() = default;
 
-		void OnUpdateComponent(float dt) override;
-
-		void OnIMGUI() override;
+		void OnImGui() override;
 
 		Graphics::Mesh* GetMesh() const { return m_Mesh.get(); }
 
 		nlohmann::json Serialise() override { return nullptr; };
 		void Deserialise(nlohmann::json& data) override {};
+
+		SETUPCOMPOMENT(MeshComponent);
+
 	private:
 		Ref<Graphics::Mesh> m_Mesh;
 	};

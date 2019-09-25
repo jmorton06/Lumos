@@ -1,4 +1,4 @@
-#include "LM.h"
+#include "lmpch.h"
 #include "WindowsThread.h"
 
 #ifdef PTHREAD_BSD_SET_NAME
@@ -7,22 +7,13 @@
 
 namespace Lumos
 {
-    WindowsThread::WindowsThread(ThreadCreateCallback p_callback, void *p_user, const Settings &)
+    WindowsThread::WindowsThread()
     {
-        m_Callback = p_callback;
-        m_User = p_user;
-        m_Handle = CreateEvent(NULL, TRUE, FALSE, NULL);
-
-	    QueueUserWorkItem(ThreadCallback, this, WT_EXECUTELONGFUNCTION);
+		m_Handle = NULL;
     }   
 
     WindowsThread::~WindowsThread() 
     {
-    }
-
-    static void _thread_id_key_destr_callback(void *p_value) 
-    {
-        lmdel(static_cast<Thread::ID *>(p_value));
     }
 
     Thread::ID WindowsThread::GetID() const 
@@ -32,9 +23,9 @@ namespace Lumos
 
     DWORD WindowsThread::ThreadCallback(LPVOID userdata)
     {
-        WindowsThread *t = reinterpret_cast<WindowsThread *>(userdata);
+        WindowsThread* t = reinterpret_cast<WindowsThread*>(userdata);
        
-        t->m_ID = (ID)GetCurrentThreadId(); // must implement
+		t->m_ID = (ID)GetCurrentThreadId();
         t->m_Callback(t->m_User);
         SetEvent(t->m_Handle);
 
@@ -46,17 +37,29 @@ namespace Lumos
         return (ID)GetCurrentThreadId();
     }
 
-    void WindowsThread::WaitToFinishFuncWindows(Thread *p_thread)
+    void WindowsThread::WaitToFinishFuncWindows(Thread* p_thread)
     {
-        WindowsThread *tp = static_cast<WindowsThread *>(p_thread);
-        //LUMOS_CORE_ASSERT(tp);
+        WindowsThread* tp = static_cast<WindowsThread*>(p_thread);
+        LUMOS_ASSERT(tp, "Thread nullptr");
         WaitForSingleObject(tp->m_Handle, INFINITE);
         CloseHandle(tp->m_Handle);
     }
 
     void WindowsThread::MakeDefault() 
     {
-        get_thread_id_func = GetThreadIDFuncWindows;
-        wait_to_finish_func = WaitToFinishFuncWindows;
+        GetThreadIDFunc = GetThreadIDFuncWindows;
+        WaitToFinishFunc = WaitToFinishFuncWindows;
+        CreateFunc = CreateFuncWindows;
+    }
+
+    Thread* WindowsThread::CreateFuncWindows(ThreadCreateCallback p_callback, void* p_user, const Settings& p_settings)
+    {
+		WindowsThread* tr = lmnew WindowsThread();
+		tr->m_Callback = p_callback;
+		tr->m_User = p_user;
+		tr->m_Handle = CreateEvent(NULL, TRUE, FALSE, NULL);
+
+		QueueUserWorkItem(ThreadCallback, tr, WT_EXECUTELONGFUNCTION);
+        return tr;
     }
 }

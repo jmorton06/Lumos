@@ -1,4 +1,4 @@
-#include "LM.h"
+#include "lmpch.h"
 #include "GLRenderPass.h"
 #include "Graphics/API/Renderer.h"
 #include "GLFramebuffer.h"
@@ -54,6 +54,16 @@ namespace Lumos
         {
 			GLCall(glBindFramebuffer(GL_FRAMEBUFFER, 0));
         }
+
+		void GLRenderPass::MakeDefault()
+		{
+			CreateFunc = CreateFuncGL;
+		}
+
+		RenderPass* GLRenderPass::CreateFuncGL()
+		{
+			return lmnew GLRenderPass;
+		}
     }
 }
 

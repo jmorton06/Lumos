@@ -1,4 +1,4 @@
-#include "LM.h"
+#include "lmpch.h"
 #include "VKIndexBuffer.h"
 #include "VKVertexBuffer.h"
 #include "VKCommandBuffer.h"
@@ -37,6 +37,22 @@ namespace Lumos
 		u32 VKIndexBuffer::GetSize() const
 		{
 			return m_Size;
+		}
+        
+        void VKIndexBuffer::MakeDefault()
+        {
+            CreateFunc = CreateFuncVulkan;
+			Create16Func = CreateFunc16Vulkan;
+        }
+        
+		IndexBuffer* VKIndexBuffer::CreateFuncVulkan(u32* data, u32 count, BufferUsage bufferUsage)
+        {
+            return lmnew VKIndexBuffer(data, count, bufferUsage);
+        }
+
+		IndexBuffer* VKIndexBuffer::CreateFunc16Vulkan(u16* data, u32 count, BufferUsage bufferUsage)
+		{
+			return lmnew VKIndexBuffer(data, count, bufferUsage);
 		}
 	}
 }

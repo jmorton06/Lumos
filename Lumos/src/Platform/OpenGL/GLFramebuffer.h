@@ -1,5 +1,5 @@
 #pragma once
-#include "LM.h"
+#include "lmpch.h"
 #include "Graphics/API/Framebuffer.h"
 #include "Platform/OpenGL/GL.h"
 #include "GLTexture.h"
@@ -15,7 +15,7 @@ namespace Lumos
 		public:
 
 			GLFramebuffer();
-			GLFramebuffer(FramebufferInfo bufferInfo);
+			GLFramebuffer(const FramebufferInfo& bufferInfo);
 			~GLFramebuffer();
 
 			inline u32 GetFramebuffer() const { return m_Handle; }
@@ -40,7 +40,10 @@ namespace Lumos
 			void AddTextureLayer(int index, Texture*  texture) override;
 
 			void Validate() override;
-
+            
+            static void MakeDefault();
+        protected:
+            static Framebuffer* CreateFuncGL(const FramebufferInfo& bufferInfo);
 		private:
 
 			u32 m_Handle;

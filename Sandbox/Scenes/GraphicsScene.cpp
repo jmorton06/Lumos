@@ -3,7 +3,7 @@
 using namespace Lumos;
 using namespace Maths;
 
-GraphicsScene::GraphicsScene(const std::string& SceneName) : Scene(SceneName) {}
+GraphicsScene::GraphicsScene(const std::string& SceneName) : Scene(SceneName), m_Terrain(nullptr) {}
 
 GraphicsScene::~GraphicsScene() = default;
 
@@ -12,15 +12,13 @@ void GraphicsScene::OnInit()
 	Scene::OnInit();
 	Application::Instance()->GetSystem<LumosPhysicsEngine>()->SetDampingFactor(0.998f);
 	Application::Instance()->GetSystem<LumosPhysicsEngine>()->SetIntegrationType(IntegrationType::RUNGE_KUTTA_4);
-	Application::Instance()->GetSystem<LumosPhysicsEngine>()->SetBroadphase(new Octree(5, 3, Lumos::CreateRef<SortAndSweepBroadphase>()));
+	Application::Instance()->GetSystem<LumosPhysicsEngine>()->SetBroadphase(Lumos::CreateRef<Octree>(5, 3, Lumos::CreateRef<SortAndSweepBroadphase>()));
 
 	LoadModels();
 
 	m_SceneBoundingRadius = 200.0f;
 
 	m_pCamera = new ThirdPersonCamera(45.0f, 0.1f, 1000.0f, (float) m_ScreenWidth / (float) m_ScreenHeight);
-	m_pCamera->SetYaw(-40.0f);
-	m_pCamera->SetPitch(-20.0f);
 	m_pCamera->SetPosition(Maths::Vector3(120.0f, 70.0f, 260.0f));
 
 	String environmentFiles[11] =
@@ -87,24 +85,66 @@ void GraphicsScene::OnCleanupScene()
 void GraphicsScene::LoadModels()
 {
 	//HeightMap
-	auto heightmap = EntityManager::Instance()->CreateEntity("heightmap");
-	heightmap->AddComponent<TransformComponent>(Matrix4::Scale(Maths::Vector3(1.0f)));
-	heightmap->AddComponent<TextureMatrixComponent>(Matrix4::Scale(Maths::Vector3(1.0f, 1.0f, 1.0f)));
+	m_Terrain = EntityManager::Instance()->CreateEntity("heightmap");
+	m_Terrain->AddComponent<TransformComponent>(Matrix4::Scale(Maths::Vector3(1.0f)));
+	m_Terrain->AddComponent<TextureMatrixComponent>(Matrix4::Scale(Maths::Vector3(1.0f, 1.0f, 1.0f)));
     Lumos::Ref<Graphics::Mesh> terrain = Lumos::Ref<Graphics::Mesh>(new Terrain());
 	auto material = Lumos::CreateRef<Material>();
 
 	material->LoadMaterial("checkerboard", "/CoreTextures/checkerboard.tga");
 
-	heightmap->AddComponent<MaterialComponent>(material);
-    heightmap->SetBoundingRadius(800.0f);
+	m_Terrain->AddComponent<MaterialComponent>(material);
+    
+	m_Terrain->AddComponent<MeshComponent>(terrain);
 
-	//terrain->SetMaterial(Lumos::CreateRef<Material>(*m_MaterialManager->GetAsset("Stone").get()));
-	//terrain->SetMaterialFlag(Material::RenderFlags::WIREFRAME);
-	heightmap->AddComponent<MeshComponent>(terrain);
-
-	AddEntity(heightmap);
+	AddEntity(m_Terrain);
 }
 
-void GraphicsScene::OnIMGUI()
+int width = 500;
+int height = 500;
+int lowside = 50;
+int lowscale = 10;
+float xRand = 1.0f;
+float yRand = 150.0f;
+float zRand = 1.0f;
+float texRandX = 1.0f / 16.0f;
+float texRandZ = 1.0f / 16.0f;
+
+void GraphicsScene::OnImGui()
 {
+    /*ImGui::Begin("Terrain");
+
+	ImGui::SliderInt("Width", &width, 1, 5000);
+	ImGui::SliderInt("Height", &height, 1, 5000);
+	ImGui::SliderInt("lowside", &lowside, 1, 300);
+	ImGui::SliderInt("lowscale", &lowscale, 1, 300);
+
+	ImGui::SliderFloat("xRand", &xRand, 0.0f, 300.0f);
+	ImGui::SliderFloat("yRand", &yRand, 0.0f, 300.0f);
+	ImGui::SliderFloat("zRand", &zRand, 0.0f, 300.0f);
+
+	ImGui::InputFloat("texRandX", &texRandX);
+	ImGui::InputFloat("texRandZ", &texRandZ);
+    
+    if(ImGui::Button("Rebuild Terrain"))
+    {
+        EntityManager::Instance()->DeleteEntity(m_Terrain);
+        
+        m_Terrain = EntityManager::Instance()->CreateEntity("heightmap");
+        m_Terrain->AddComponent<TransformComponent>(Matrix4::Scale(Maths::Vector3(1.0f)));
+        m_Terrain->AddComponent<TextureMatrixComponent>(Matrix4::Scale(Maths::Vector3(1.0f, 1.0f, 1.0f)));
+        Lumos::Ref<Graphics::Mesh> terrain = Lumos::Ref<Graphics::Mesh>(new Terrain(width,height,lowside,lowscale,xRand,yRand,zRand,texRandX,texRandZ));
+        auto material = Lumos::CreateRef<Material>();
+        
+        material->LoadMaterial("checkerboard", "/CoreTextures/checkerboard.tga");
+        
+        m_Terrain->AddComponent<MaterialComponent>(material);
+        m_Terrain->SetBoundingRadius(800.0f);
+        
+        m_Terrain->AddComponent<MeshComponent>(terrain);
+        
+        AddEntity(m_Terrain);
+    }
+    
+    ImGui::End();*/
 }

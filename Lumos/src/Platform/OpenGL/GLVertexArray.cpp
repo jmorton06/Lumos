@@ -1,4 +1,4 @@
-#include "LM.h"
+#include "lmpch.h"
 #include "GLVertexArray.h"
 #include "GLVertexBuffer.h"
 
@@ -45,6 +45,16 @@ namespace Lumos
 			if (!m_Buffers.empty())
 				m_Buffers.front()->Unbind();
 			GLCall(glBindVertexArray(0));
+		}
+
+		void GLVertexArray::MakeDefault()
+		{
+			CreateFunc = CreateFuncGL;
+		}
+
+		VertexArray* GLVertexArray::CreateFuncGL()
+		{
+			return lmnew GLVertexArray();
 		}
 	}
 }

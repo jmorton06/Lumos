@@ -1,5 +1,5 @@
 #pragma once
-#include "LM.h"
+#include "lmpch.h"
 #include "LumosComponent.h"
 #include "Physics/B2PhysicsEngine/PhysicsObject2D.h"
 
@@ -11,12 +11,14 @@ namespace Lumos
         Physics2DComponent();
 		explicit Physics2DComponent(Ref<PhysicsObject2D>& physics);
 
-		void OnUpdateComponent(float dt) override;
-		void OnIMGUI() override;
+		void Update();
+		void OnImGui() override;
         
-        PhysicsObject2D* GetPhysicsObject() const { return m_PhysicsObject.get(); }
+        Ref<PhysicsObject2D> GetPhysicsObject() { return m_PhysicsObject; }
 		nlohmann::json Serialise() override { return nullptr; };
 		void Deserialise(nlohmann::json& data) override {};
+
+		SETUPCOMPOMENT(Physics2DComponent);
         
     private:
         Ref<PhysicsObject2D> m_PhysicsObject;

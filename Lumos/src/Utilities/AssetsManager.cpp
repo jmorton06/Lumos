@@ -1,4 +1,4 @@
-#include "LM.h"
+#include "lmpch.h"
 #include "AssetsManager.h"
 #include "Graphics/Mesh.h"
 #include "Graphics/MeshFactory.h"
@@ -8,7 +8,7 @@
 
 namespace Lumos
 {
-	AssetManager<Graphics::Mesh>*	 AssetsManager::s_DefaultModels   = nullptr;
+	AssetManager<Graphics::Mesh>* AssetsManager::s_DefaultModels = nullptr;
 	AssetManager<Graphics::Texture2D>* AssetsManager::s_DefaultTextures = nullptr;
 
 	void AssetsManager::InitializeMeshes()
@@ -16,15 +16,14 @@ namespace Lumos
 		s_DefaultModels   = lmnew AssetManager<Graphics::Mesh>();
 		s_DefaultTextures = lmnew AssetManager<Graphics::Texture2D>();
 
-        auto cube = Ref<Graphics::Mesh>(Graphics::CreateCube(2.0f));
-        s_DefaultModels->AddAsset("Cube", cube);
-        s_DefaultModels->AddAsset("Pyramid", Ref<Graphics::Mesh>(Graphics::CreatePyramid(1.0f)));
-        s_DefaultModels->AddAsset("Sphere", Ref<Graphics::Mesh>(Graphics::CreateSphere(64,64)));
+        s_DefaultModels->Add("Cube", Ref<Graphics::Mesh>(Graphics::CreatePrimative(Graphics::PrimitiveType::Cube)));
+        s_DefaultModels->Add("Pyramid", Ref<Graphics::Mesh>(Graphics::CreatePrimative(Graphics::PrimitiveType::Pyramid)));
+		s_DefaultModels->Add("Sphere", Ref<Graphics::Mesh>(Graphics::CreatePrimative(Graphics::PrimitiveType::Sphere)));
 	}
 
 	void AssetsManager::ReleaseMeshes()
 	{
-		delete s_DefaultModels;
-		delete s_DefaultTextures;
+		lmdel s_DefaultModels;
+		lmdel s_DefaultTextures;
 	}
 }

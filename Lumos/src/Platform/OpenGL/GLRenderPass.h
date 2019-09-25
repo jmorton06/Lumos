@@ -1,5 +1,5 @@
 #pragma once
-#include "LM.h"
+#include "lmpch.h"
 #include "Graphics/API/RenderPass.h"
 
 namespace Lumos
@@ -17,7 +17,9 @@ namespace Lumos
             void BeginRenderpass(CommandBuffer * commandBuffer, const Maths::Vector4& clearColour, Framebuffer* frame,
                                  SubPassContents contents, uint32_t width, uint32_t height) const  override;
             void EndRenderpass(CommandBuffer* commandBuffer) override;
-
+            static void MakeDefault();
+        protected:
+            static RenderPass* CreateFuncGL();
 		private:
 			bool m_Clear = true;
         };

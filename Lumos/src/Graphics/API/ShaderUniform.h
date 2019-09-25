@@ -1,6 +1,6 @@
 #pragma once
 
-#include "LM.h"
+#include "lmpch.h"
 
 namespace Lumos
 {
@@ -22,6 +22,9 @@ namespace Lumos
 			virtual u32 GetOffset() const = 0;
 		protected:
 			virtual void SetOffset(u32 offset) = 0;
+            
+        protected:
+            static ShaderUniformDeclaration* (*CreateFunc)();
 		};
 
 		typedef std::vector<ShaderUniformDeclaration*> ShaderUniformList;
@@ -37,6 +40,9 @@ namespace Lumos
 			virtual const ShaderUniformList& GetUniformDeclarations() const = 0;
 
 			virtual ShaderUniformDeclaration* FindUniform(const String& name) = 0;
+            
+        protected:
+            static ShaderUniformBufferDeclaration* (*CreateFunc)();
 		};
 
 		typedef std::vector<ShaderUniformBufferDeclaration*> ShaderUniformBufferList;

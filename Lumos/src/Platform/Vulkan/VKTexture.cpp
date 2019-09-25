@@ -1,4 +1,4 @@
-#include "LM.h"
+#include "lmpch.h"
 #include "VKTexture.h"
 #include "VKDevice.h"
 #include "Utilities/LoadImage.h"
@@ -108,7 +108,7 @@ namespace Lumos
 			case TextureWrap::CLAMP_TO_EDGE:	return vk::SamplerAddressMode::eClampToEdge;
 			case TextureWrap::REPEAT:			return vk::SamplerAddressMode::eRepeat;
 			case TextureWrap::MIRRORED_REPEAT:	return vk::SamplerAddressMode::eMirroredRepeat;
-			default: LUMOS_CORE_ERROR("[Texture] Unsupported wrap type!");  return vk::SamplerAddressMode::eClampToEdge;
+			default: LUMOS_LOG_CRITICAL("[Texture] Unsupported wrap type!");  return vk::SamplerAddressMode::eClampToEdge;
 			}
 		}
 
@@ -306,7 +306,7 @@ namespace Lumos
 
 			if (!pixels)
 			{
-                LUMOS_CORE_ERROR("failed to load texture image!");
+                LUMOS_LOG_CRITICAL("failed to load texture image!");
 			}
 
 			m_MipLevels = static_cast<uint32_t>(std::floor(std::log2(Maths::Max(texWidth, texHeight)))) + 1;
@@ -332,9 +332,8 @@ namespace Lumos
 		{
 		}
 
-		VKTextureCube::VKTextureCube(const String& name, const String* files)
+		VKTextureCube::VKTextureCube(const String* files)
 		{
-			m_Name = name;
 			for (u32 i = 0; i < 6; i++)
 				m_Files[i] = files[i];
 
@@ -343,9 +342,8 @@ namespace Lumos
 			UpdateDescriptor();
 		}
 
-		VKTextureCube::VKTextureCube(const String& name, const String* files, u32 mips, const InputFormat format)
+		VKTextureCube::VKTextureCube(const String* files, u32 mips, const InputFormat format)
 		{
-			m_Name = name;
 			m_NumMips = mips;
 			for (u32 i = 0; i < mips; i++)
 				m_Files[i] = files[i];
@@ -355,9 +353,8 @@ namespace Lumos
 			UpdateDescriptor();
 		}
 
-		VKTextureCube::VKTextureCube(const String& name, const String& filepath) : m_Width(0), m_Height(0), m_Size(0), m_NumMips(0)
+		VKTextureCube::VKTextureCube(const String& filepath) : m_Width(0), m_Height(0), m_Size(0), m_NumMips(0)
 		{
-			m_Name = name;
 			m_Files[0] = filepath;
 		}
 
@@ -913,17 +910,19 @@ namespace Lumos
 
 		void VKTextureDepthArray::CreateImageView(vk::Image image, vk::Format format, vk::ImageAspectFlags aspectFlags)
 		{
-			vk::ImageViewCreateInfo viewInfo = {};
-			viewInfo.image = image;
-			viewInfo.viewType = vk::ImageViewType::e2DArray;
-			viewInfo.format = format;
-			viewInfo.subresourceRange.aspectMask = aspectFlags;
-			viewInfo.subresourceRange.baseMipLevel = 0;
-			viewInfo.subresourceRange.levelCount = 1;
-			viewInfo.subresourceRange.baseArrayLayer = 0;
-			viewInfo.subresourceRange.layerCount = m_Count;
+			{
+				vk::ImageViewCreateInfo viewInfo = {};
+				viewInfo.image = image;
+				viewInfo.viewType = vk::ImageViewType::e2DArray;
+				viewInfo.format = format;
+				viewInfo.subresourceRange.aspectMask = aspectFlags;
+				viewInfo.subresourceRange.baseMipLevel = 0;
+				viewInfo.subresourceRange.levelCount = 1;
+				viewInfo.subresourceRange.baseArrayLayer = 0;
+				viewInfo.subresourceRange.layerCount = m_Count;
 
-			m_TextureImageView = VKDevice::Instance()->GetDevice().createImageView(viewInfo);
+				m_TextureImageView = VKDevice::Instance()->GetDevice().createImageView(viewInfo);
+			}
 
 			for (uint32_t i = 0; i < m_Count; i++)
 			{
@@ -968,6 +967,76 @@ namespace Lumos
 #endif
 
 			Init();
+		}
+
+		Texture2D* VKTexture2D::CreateFuncVulkan()
+		{
+			return lmnew VKTexture2D();
+		}
+
+		Texture2D* VKTexture2D::CreateFromSourceFuncVulkan(u32 width, u32 height, void* data, TextureParameters parameters, TextureLoadOptions loadoptions)
+		{
+			return lmnew VKTexture2D(width, height, data, parameters, loadoptions);
+		}
+
+		Texture2D* VKTexture2D::CreateFromFileFuncVulkan(const String& name, const String& filename, TextureParameters parameters, TextureLoadOptions loadoptions)
+		{
+			return lmnew VKTexture2D(name, filename, parameters, loadoptions);
+		}
+        
+		TextureCube* VKTextureCube::CreateFuncVulkan(u32 size)
+		{
+			return lmnew VKTextureCube(size);
+		}
+
+		TextureCube* VKTextureCube::CreateFromFileFuncVulkan(const String& filepath)
+		{
+			return lmnew VKTextureCube(filepath);
+		}
+
+		TextureCube* VKTextureCube::CreateFromFilesFuncVulkan(const String* files)
+		{
+			return lmnew VKTextureCube(files);
+		}
+
+		TextureCube* VKTextureCube::CreateFromVCrossFuncVulkan(const String* files, u32 mips, InputFormat format)
+		{
+			return lmnew VKTextureCube(files, mips, format);
+		}
+
+		TextureDepth* VKTextureDepth::CreateFuncVulkan(u32 width, u32 height)
+		{
+			return lmnew VKTextureDepth(width, height);
+		}
+
+		TextureDepthArray* VKTextureDepthArray::CreateFuncVulkan(u32 width, u32 height, u32 count)
+		{
+			return lmnew VKTextureDepthArray(width, height, count);
+		}
+
+		void VKTexture2D::MakeDefault()
+		{
+			CreateFunc = CreateFuncVulkan;
+			CreateFromFileFunc = CreateFromFileFuncVulkan;
+			CreateFromSourceFunc = CreateFromSourceFuncVulkan;
+		}
+
+        void VKTextureCube::MakeDefault()
+        {
+            CreateFunc = CreateFuncVulkan;
+			CreateFromFileFunc = CreateFromFileFuncVulkan;
+			CreateFromFilesFunc = CreateFromFilesFuncVulkan;
+			CreateFromVCrossFunc = CreateFromVCrossFuncVulkan;
+        }
+
+		void VKTextureDepth::MakeDefault()
+		{
+			CreateFunc = CreateFuncVulkan;
+		}
+
+		void VKTextureDepthArray::MakeDefault()
+		{
+			CreateFunc = CreateFuncVulkan;
 		}
 	}
 }

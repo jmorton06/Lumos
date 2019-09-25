@@ -1,6 +1,6 @@
 #pragma once
 
-#include "LM.h"
+#include "lmpch.h"
 #include "LMLog.h"
 #include "ReferenceCounter.h"
 #include "OS/Memory.h"
@@ -24,7 +24,7 @@ namespace Lumos
     };
     
     template<class T>
-    class LUMOS_EXPORT Reference
+    class Reference
     {
     public:
         Reference(std::nullptr_t)
@@ -119,7 +119,7 @@ namespace Lumos
             }
             else
             {
-                LUMOS_CORE_ERROR("Failed to cast Reference");
+                LUMOS_LOG_ERROR("Failed to cast Reference");
             }
         }
         
@@ -143,7 +143,7 @@ namespace Lumos
             }
             else
             {
-                LUMOS_CORE_ERROR("Failed to cast Reference");
+                LUMOS_LOG_ERROR("Failed to cast Reference");
             }
             
             return *this;
@@ -189,7 +189,7 @@ namespace Lumos
             
         _FORCE_INLINE_ void refPointer(T* ptr)
         {
-            LUMOS_CORE_ASSERT(ptr, "Creating shared ptr with nullptr");
+            LUMOS_ASSERT(ptr, "Creating shared ptr with nullptr");
             
             m_Ptr = ptr;
             m_Counter = lmnew RefCount();
@@ -351,13 +351,6 @@ namespace Lumos
         auto ptr = lmnew T(std::forward<Args>(args) ...);
         return Owned<T>(ptr);
     }
-
-    template <typename T>
-    Scope<T> CreateScope(T* t)
-    {
-        return Owned<T>(t);
-    }
-    
 #else
     template<class T>
     using Ref = std::shared_ptr<T>;
@@ -378,12 +371,6 @@ namespace Lumos
     Scope<T> CreateScope(Args&& ...args)
     {
         return std::make_unique<T>(std::forward<Args>(args) ...);
-    }
-    
-    template <typename T>
-    Scope<T> CreateScope(T* t)
-    {
-        return std::unique_ptr<T>(t);
     }
 #endif
 }

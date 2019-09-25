@@ -1,4 +1,4 @@
-#include "LM.h"
+#include "lmpch.h"
 #include "Audio/AudioManager.h"
 
 #include <AL/al.h>
@@ -15,9 +15,9 @@ namespace Lumos
             ~ALManager();
 
             void OnInit() override;
-            void OnUpdate(TimeStep* dt) override;
+            void OnUpdate(TimeStep* dt, Scene* scene) override;
 			void UpdateListener();
-			void OnIMGUI() override;
+			void OnImGui() override;
 
         private:
             ALCcontext* m_Context;

@@ -1,4 +1,4 @@
-#include "LM.h"
+#include "lmpch.h"
 #include "DescriptorSet.h"
 #include "GraphicsContext.h"
 
@@ -14,21 +14,13 @@ namespace Lumos
 {
 	namespace Graphics
 	{
-		DescriptorSet* DescriptorSet::Create(DescriptorInfo info)
+        DescriptorSet*(*DescriptorSet::CreateFunc)(const DescriptorInfo&) = nullptr;
+
+		DescriptorSet* DescriptorSet::Create(const DescriptorInfo& info)
 		{
-			switch (Graphics::GraphicsContext::GetRenderAPI())
-			{
-#ifdef LUMOS_RENDER_API_OPENGL
-			case RenderAPI::OPENGL:	return lmnew GLDescriptorSet(info);
-#endif
-#ifdef LUMOS_RENDER_API_VULKAN
-			case RenderAPI::VULKAN:	return lmnew VKDescriptorSet(info);
-#endif
-#ifdef LUMOS_RENDER_API_DIRECT3D
-			case RenderAPI::DIRECT3D: return nullptr;
-#endif
-			}
-			return nullptr;
+            LUMOS_ASSERT(CreateFunc, "No DescriptorSet Create Function");
+            
+            return CreateFunc(info);
 		}
 	}
 }

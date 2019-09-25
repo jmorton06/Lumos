@@ -1,5 +1,5 @@
 #pragma once
-#include "LM.h"
+#include "lmpch.h"
 #include "Maths/Frustum.h"
 #include "Graphics/RenderList.h"
 #include "Utilities/AssetManager.h"
@@ -49,7 +49,7 @@ namespace Lumos
 		//	   Note: This is time relative to seconds not milliseconds! (e.g. msec / 1000)
 		virtual void OnUpdate(TimeStep* timeStep);
 		virtual void OnTick() { };
-		virtual void OnIMGUI() { };
+		virtual void OnImGui() { };
 		virtual void OnEvent(Event& e);
 		// Delete all contained Objects
 		//    - This is the default action upon firing OnCleanupScene()
@@ -118,8 +118,7 @@ namespace Lumos
 		Scope<RenderList>	m_pFrameRenderList;
 
     private:
-        Scene(Scene const&) = delete;
-        Scene& operator=(Scene const&) = delete;
+		NONCOPYABLE(Scene)
 
 		bool OnWindowResize(WindowResizeEvent& e);
 };

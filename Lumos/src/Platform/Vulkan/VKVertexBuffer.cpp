@@ -1,4 +1,4 @@
-#include "LM.h"
+#include "lmpch.h"
 #include "VKDevice.h"
 #include "VKVertexBuffer.h"
 #include "VKRenderer.h"
@@ -7,7 +7,7 @@ namespace Lumos
 { 
 	namespace Graphics
 	{
-		VKVertexBuffer::VKVertexBuffer(BufferUsage usage)
+		VKVertexBuffer::VKVertexBuffer(const BufferUsage& usage)
 			: VKBuffer(), m_Usage(usage), m_Size(0)
 		{
 		}
@@ -74,5 +74,15 @@ namespace Lumos
 		void VKVertexBuffer::Unbind()
 		{
 		}
+        
+        void VKVertexBuffer::MakeDefault()
+        {
+            CreateFunc = CreateFuncVulkan;
+        }
+        
+        VertexBuffer* VKVertexBuffer::CreateFuncVulkan(const BufferUsage& usage)
+        {
+            return lmnew VKVertexBuffer(usage);
+        }
 	}
 }

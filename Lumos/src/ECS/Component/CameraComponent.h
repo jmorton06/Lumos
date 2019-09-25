@@ -1,5 +1,5 @@
 #pragma once
-#include "LM.h"
+#include "lmpch.h"
 #include "LumosComponent.h"
 
 namespace Lumos
@@ -12,13 +12,14 @@ namespace Lumos
         CameraComponent();
 		explicit CameraComponent(Camera* camera);
 
-		void OnUpdateComponent(float dt) override;
-        void OnIMGUI() override;
+        void OnImGui() override;
 		void SetAsMainCamera();
 		
 		Camera* GetCamera() const { return m_Camera; }
 		nlohmann::json Serialise() override { return nullptr; };
 		void Deserialise(nlohmann::json& data) override {};
+
+		SETUPCOMPOMENT(CameraComponent);
 
     private:
 		Camera* m_Camera;

@@ -1,4 +1,4 @@
-#include "LM.h"
+#include "lmpch.h"
 #include "RenderDevice.h"
 #include "GraphicsContext.h"
 
@@ -14,19 +14,15 @@ namespace Lumos
 {
     namespace Graphics
     {
+        RenderDevice*(*RenderDevice::CreateFunc)() = nullptr;
+
         RenderDevice* RenderDevice::s_Instance = nullptr;
         
         void RenderDevice::Create()
         {
-            switch (Graphics::GraphicsContext::GetRenderAPI())
-            {
-#ifdef LUMOS_RENDER_API_OPENGL
-                case RenderAPI::OPENGL : s_Instance = lmnew GLRenderDevice();
-#endif
-#ifdef LUMOS_RENDER_API_VULKAN
-                case RenderAPI::VULKAN : s_Instance = lmnew VKRenderDevice();
-#endif
-            }
+            LUMOS_ASSERT(CreateFunc, "No RenderDevice Create Function");
+            
+			s_Instance = CreateFunc();
         }
         
         void RenderDevice::Release()

@@ -1,4 +1,4 @@
-#include "LM.h"
+#include "lmpch.h"
 #include "VKPipeline.h"
 #include "VKDevice.h"
 #include "VKCommandBuffer.h"
@@ -12,11 +12,6 @@ namespace Lumos
 {
 	namespace Graphics
 	{
-
-		VKPipeline::VKPipeline()
-		{
-		}
-
 		VKPipeline::VKPipeline(const PipelineInfo& pipelineCI)
 		{
 			Init(pipelineCI);
@@ -279,5 +274,15 @@ namespace Lumos
 			VKDevice::Instance()->GetDevice().allocateDescriptorSets(descSetAllocInfo, &set);
 			return set;
 		}
+        
+        void VKPipeline::MakeDefault()
+        {
+            CreateFunc = CreateFuncVulkan;
+        }
+
+		Pipeline* VKPipeline::CreateFuncVulkan(const PipelineInfo& pipelineCI)
+        {
+            return lmnew VKPipeline(pipelineCI);
+        }
 	}
 }

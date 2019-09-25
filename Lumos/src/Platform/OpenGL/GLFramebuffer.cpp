@@ -1,4 +1,4 @@
-#include "LM.h"
+#include "lmpch.h"
 #include "GLFramebuffer.h"
 
 #include "Platform/OpenGL/GLDebug.h"
@@ -15,7 +15,7 @@ namespace Lumos
 			m_ColourAttachmentCount = 0;
 		}
 
-		GLFramebuffer::GLFramebuffer(FramebufferInfo bufferInfo)
+		GLFramebuffer::GLFramebuffer(const FramebufferInfo& bufferInfo)
 		{
 			GLCall(glGenFramebuffers(1, &m_Handle));
 			GLCall(glBindFramebuffer(GL_FRAMEBUFFER, m_Handle));
@@ -150,8 +150,18 @@ namespace Lumos
 			u32 status = glCheckFramebufferStatus(GL_FRAMEBUFFER);
 			if (status != GL_FRAMEBUFFER_COMPLETE)
 			{
-				LUMOS_CORE_ERROR("Unable to create Framebuffer! StatusCode: {0}", status);
+				LUMOS_LOG_CRITICAL("Unable to create Framebuffer! StatusCode: {0}", status);
 			}
+		}
+
+		void GLFramebuffer::MakeDefault()
+		{
+			CreateFunc = CreateFuncGL;
+		}
+
+		Framebuffer* GLFramebuffer::CreateFuncGL(const FramebufferInfo & bufferInfo)
+		{
+			return lmnew GLFramebuffer(bufferInfo);
 		}
 	}
 }

@@ -1,5 +1,5 @@
 #pragma once
-#include "LM.h"
+#include "lmpch.h"
 
 namespace Lumos
 {
@@ -34,6 +34,10 @@ namespace Lumos
 			virtual void Execute(bool waitFence) = 0;
 			virtual void ExecuteSecondary(CommandBuffer* primaryCmdBuffer) = 0;
 			virtual void UpdateViewport(u32 width, u32 height) = 0;
-		};
+            
+        protected:
+            static CommandBuffer* (*CreateFunc)();
+            
+        };
 	}
 }

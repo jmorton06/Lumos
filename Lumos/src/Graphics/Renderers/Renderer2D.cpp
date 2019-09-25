@@ -1,4 +1,4 @@
-#include "LM.h"
+#include "lmpch.h"
 #include "Renderer2D.h"
 #include "Graphics/API/Shader.h"
 #include "Graphics/RenderList.h"
@@ -318,7 +318,7 @@ namespace Lumos
 					auto* sprite = obj->GetComponent<SpriteComponent>();
 					if (sprite)
 					{
-						Submit(reinterpret_cast<Renderable2D*>(sprite->GetSprite()), obj->GetTransformComponent()->GetTransform().GetWorldMatrix());
+						Submit(reinterpret_cast<Renderable2D*>(sprite->GetSprite()), obj->GetTransformComponent()->GetTransform()->GetWorldMatrix());
 					}
 				}
 			});
@@ -417,12 +417,12 @@ namespace Lumos
 			if (width == 0)
 			{
 				width = 1;
-				LUMOS_CORE_ERROR("Width 0");
+				LUMOS_LOG_CRITICAL("Width 0");
 			}
 			if (height == 0)
 			{
 				height = 1;
-				LUMOS_CORE_ERROR("Height 0");
+				LUMOS_LOG_CRITICAL("Height 0");
 			}
 			m_ScreenBufferWidth = width;
 			m_ScreenBufferHeight = height;

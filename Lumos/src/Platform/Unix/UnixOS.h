@@ -1,14 +1,17 @@
-#include "LM.h"
+#include "lmpch.h"
 #include "Core/OS/OS.h"
+#include "UnixThread.h"
+#include "UnixMutex.h"
 
 namespace Lumos
 {
     class UnixOS : public OS
     {
     public:
-        UnixOS() {}
-        ~UnixOS() {}
+        UnixOS() = default;
+        ~UnixOS() = default;
 
-        void Run() override {}
+        void Init();
+        void Run() override;
     };
 }

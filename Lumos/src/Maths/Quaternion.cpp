@@ -1,4 +1,4 @@
-#include "LM.h"
+#include "lmpch.h"
 #include "Quaternion.h"
 #include "MathsUtilities.h"
 
@@ -232,15 +232,15 @@ namespace Lumos
 			return euler;
 		}
 
-		Quaternion Quaternion::EulerAnglesToQuaternion(float roll, float yaw, float pitch)
+		Quaternion Quaternion::EulerAnglesToQuaternion(float pitch, float yaw, float roll)
 		{
 			float cos1 = cos(Maths::DegreesToRadians(yaw   * 0.5f));
-			float cos2 = cos(Maths::DegreesToRadians(pitch * 0.5f));
-			float cos3 = cos(Maths::DegreesToRadians(roll  * 0.5f));
+			float cos2 = cos(Maths::DegreesToRadians(roll * 0.5f));
+			float cos3 = cos(Maths::DegreesToRadians(pitch  * 0.5f));
 
 			float sin1 = sin(Maths::DegreesToRadians(yaw   * 0.5f));
-			float sin2 = sin(Maths::DegreesToRadians(pitch * 0.5f));
-			float sin3 = sin(Maths::DegreesToRadians(roll  * 0.5f));
+			float sin2 = sin(Maths::DegreesToRadians(roll * 0.5f));
+			float sin3 = sin(Maths::DegreesToRadians(pitch  * 0.5f));
 
 			Quaternion q;
 

@@ -1,4 +1,4 @@
-#include "LM.h"
+#include "lmpch.h"
 #include "GLPipeline.h"
 #include "GLDescriptorSet.h"
 #include "GLShader.h"
@@ -7,11 +7,6 @@ namespace Lumos
 {
     namespace Graphics
     {
-        GLPipeline::GLPipeline() : m_RenderPass(nullptr)
-        {
-			m_DescriptorSet = nullptr;
-        }
-
         GLPipeline::GLPipeline(const PipelineInfo &pipelineCI) : m_RenderPass(nullptr)
         {
             Init(pipelineCI);
@@ -45,5 +40,15 @@ namespace Lumos
             
             m_Shader->Bind();
         }
+
+		void GLPipeline::MakeDefault()
+		{
+			CreateFunc = CreateFuncGL;
+		}
+
+		Pipeline* GLPipeline::CreateFuncGL(const PipelineInfo & pipelineCI)
+		{
+			return lmnew GLPipeline(pipelineCI);
+		}
     }
 }

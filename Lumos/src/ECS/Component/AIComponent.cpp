@@ -1,4 +1,4 @@
-#include "LM.h"
+#include "lmpch.h"
 #include "AIComponent.h"
 
 #include <imgui/imgui.h>
@@ -13,10 +13,9 @@ namespace Lumos
 	AIComponent::AIComponent(Ref<AINode>& aiNode)
 		: m_AINode(aiNode)
 	{
-		m_Name = "AI";
 	}
 
-	void AIComponent::OnIMGUI()
+	void AIComponent::OnImGui()
 	{
 	}
 

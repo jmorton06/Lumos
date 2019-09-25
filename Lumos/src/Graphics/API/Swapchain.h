@@ -1,5 +1,5 @@
 #pragma once
-#include "LM.h"
+#include "lmpch.h"
 
 namespace Lumos
 {
@@ -22,6 +22,9 @@ namespace Lumos
 			virtual size_t GetSwapchainBufferCount() const = 0;
 			virtual u32 GetFramebufferCount() const = 0;
 			virtual Framebuffer* CreateFramebuffer(RenderPass* renderPass, u32 id) = 0;
+            
+        protected:
+            static Swapchain* (*CreateFunc)(u32, u32);
 		};
 	}
 }

@@ -1,7 +1,7 @@
-#include "LM.h"
+#include "lmpch.h"
 #include "ImGuiLayer.h"
-#include "App/Input.h"
-#include "App/Window.h"
+#include "Core/OS/Input.h"
+#include "Core/OS/Window.h"
 #include "App/Application.h"
 #include "Graphics/API/IMGUIRenderer.h"
 #include "Core/VFS.h"
@@ -21,7 +21,6 @@ namespace Lumos
 
 	ImGuiLayer::~ImGuiLayer()
 	{
-
 	}
 
 	void ImGuiLayer::OnAttach()
@@ -30,6 +29,7 @@ namespace Lumos
 		ImGuiIO& io = ImGui::GetIO();
 		io.DisplaySize = ImVec2(static_cast<float>(app->GetWindow()->GetWidth()), static_cast<float>(app->GetWindow()->GetHeight()));
         io.ConfigFlags |= ImGuiConfigFlags_DockingEnable;
+        io.BackendFlags |= ImGuiBackendFlags_HasMouseCursors;
 		io.ConfigWindowsMoveFromTitleBarOnly = true;
 
 		SetImGuiKeyCodes();
@@ -49,6 +49,9 @@ namespace Lumos
 	{
 		ImGuiIO& io = ImGui::GetIO();
 		io.DeltaTime = dt->GetMillis();
+        
+        Application* app = Application::Instance();
+        app->GetWindow()->UpdateCursorImGui();
 
 		ImGui::NewFrame();
 		ImGuizmo::BeginFrame();
@@ -186,18 +189,23 @@ namespace Lumos
 		io.KeyMap[ImGuiKey_X] = LUMOS_KEY_X;
 		io.KeyMap[ImGuiKey_Y] = LUMOS_KEY_Y;
 		io.KeyMap[ImGuiKey_Z] = LUMOS_KEY_Z;
+		io.KeyRepeatDelay = 400.0f;
+		io.KeyRepeatRate = 40.0f;
 	}
 
 	void ImGuiLayer::SetImGuiStyle()
 	{
 		ImGuiIO& io = ImGui::GetIO();
+
+		ImGui::StyleColorsDark();
+
 		std::string physicalPath;
 
 #if 1
 		std::string filePath = "/CoreTextures/Roboto-Medium.ttf";
 		
 		if (!VFS::Get()->ResolvePhysicalPath(filePath, physicalPath))
-			LUMOS_CORE_ERROR("Failed to Load font {0}", filePath);
+			LUMOS_LOG_CRITICAL("Failed to Load font {0}", filePath);
 
 		filePath = physicalPath;
         
@@ -228,7 +236,7 @@ namespace Lumos
       	icons_config.OversampleH = 2;
       	icons_config.OversampleV = 1;
       	icons_config.GlyphOffset.y += 1.0f;      // Move everything by 1 pixels down
-		icons_config.GlyphOffset.x -= 1.0f;      // Move everything by 1 pixels left
+		//icons_config.GlyphOffset.x -= 1.0f;      // Move everything by 1 pixels left
       	//icons_config.GlyphExtraSpacing.x = 1.0f; // Increase spacing between characters
         icons_config.OversampleH = icons_config.OversampleV = 1;
         icons_config.PixelSnapH = true;
@@ -255,11 +263,12 @@ namespace Lumos
 		style.PopupBorderSize = 1;
 		style.FrameBorderSize = 0.0f;
 
-		style.WindowRounding = 3;
-		style.ChildRounding = 3;
-		style.FrameRounding = 3;
-		style.ScrollbarRounding = 2;
-		style.GrabRounding = 3;
+		style.WindowRounding = 1;
+		style.ChildRounding = 1;
+		style.FrameRounding = 1;
+		style.ScrollbarRounding = 1;
+		style.GrabRounding = 1;
+        style.WindowMinSize = ImVec2(10.0f,10.0f);
 
 #ifdef IMGUI_HAS_DOCK
 		style.TabBorderSize = 0.0f;
@@ -292,7 +301,7 @@ namespace Lumos
 		colors[ImGuiCol_ButtonHovered] = ImVec4(0.28f, 0.56f, 1.00f, 1.00f);
 		colors[ImGuiCol_ButtonActive] = ImVec4(0.06f, 0.53f, 0.98f, 1.00f);
 		colors[ImGuiCol_Header] = ImVec4(0.20f, 0.25f, 0.29f, 0.55f);
-		colors[ImGuiCol_HeaderHovered] = ImVec4(0.26f, 0.59f, 0.98f, 0.80f);
+		colors[ImGuiCol_HeaderHovered] = ImVec4(0.26f, 0.59f, 0.98f, 0.0f);
 		colors[ImGuiCol_HeaderActive] = ImVec4(0.26f, 0.59f, 0.98f, 1.00f);
 		colors[ImGuiCol_Separator] = ImVec4(0.20f, 0.25f, 0.29f, 1.00f);
 		colors[ImGuiCol_SeparatorHovered] = ImVec4(0.10f, 0.40f, 0.75f, 0.78f);

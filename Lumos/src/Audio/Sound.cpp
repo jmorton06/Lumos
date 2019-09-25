@@ -1,4 +1,4 @@
-#include "LM.h"
+#include "lmpch.h"
 #include "Sound.h"
 #include "Core/VFS.h"
 
@@ -48,7 +48,7 @@ namespace Lumos
 			String physicalPath;
 			if (!Lumos::VFS::Get()->ResolvePhysicalPath(fileName, physicalPath))
 			{
-				LUMOS_CORE_ERROR("Could not load Audio File : ", fileName);
+				LUMOS_LOG_CRITICAL("Could not load Audio File : ", fileName);
 			}
 
 			fileName = physicalPath;

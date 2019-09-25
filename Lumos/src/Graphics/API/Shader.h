@@ -1,6 +1,6 @@
 #pragma once
 
-#include "LM.h"
+#include "lmpch.h"
 
 #include "ShaderUniform.h"
 #include "ShaderResource.h"
@@ -72,6 +72,9 @@ namespace Lumos
 			static Shader* CreateFromFile(const String& name, const String& filepath);
 			static bool TryCompile(const String& source, String& error, const String& name);
 			static bool TryCompileFromFile(const String& filepath, String& error);
+            
+        protected:
+            static Shader* (*CreateFunc)(const String&, const String&);
 		};
 	}
 }

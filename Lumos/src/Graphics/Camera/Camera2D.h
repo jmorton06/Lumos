@@ -1,5 +1,5 @@
 #pragma once
-#include "LM.h"
+#include "lmpch.h"
 #include "Camera.h"
 
 namespace Lumos
@@ -8,7 +8,7 @@ namespace Lumos
 	class LUMOS_EXPORT Camera2D : public Camera
 	{
 	public:
-		Camera2D(u32 width, u32 height, float scale);
+		Camera2D(float aspectRatio, float scale);
 		virtual ~Camera2D() override;
 
 		virtual void HandleMouse(float dt, float xpos, float ypos) override;
@@ -21,8 +21,11 @@ namespace Lumos
         float GetScale() const override;
         
         void UpdateScroll(float offset, float dt) override;
+		void OnImGui() override;
+
     private:
 		float m_Scale;
+		float m_AspectRatio;
 	};
 }
 

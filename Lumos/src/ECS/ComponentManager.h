@@ -1,5 +1,5 @@
 #pragma once
-#include "LM.h"
+#include "lmpch.h"
 #include "ECS.h"
 #include "ECSDefines.h"
 #include "Utilities/TSingleton.h"
@@ -10,17 +10,19 @@
 namespace Lumos
 {
     template <class T>
-    using hasInit = decltype(std::declval<T>().Init());
+    using HasInit = decltype(std::declval<T>().Init());
     
     template <class T>
-    using hasUpdate = decltype(std::declval<T>().Update());
+    using HasUpdate = decltype(std::declval<T>().Update());
 
 	class IComponentArray
 	{
 	public:
 		virtual ~IComponentArray() = default;
 		virtual void EntityDestroyed(Entity* entity) = 0;
-		virtual void OnUpdate(float dt) = 0;
+		virtual void OnUpdate() = 0;
+		virtual void RemoveData(Entity* entity) = 0;
+		virtual LumosComponent* CreateLumosComponent(Entity* entity) = 0;
 	};
 
 	template<typename T>
@@ -29,7 +31,7 @@ namespace Lumos
 	public:
 		void InsertData(Entity* entity, T* component)
 		{
-			LUMOS_CORE_ASSERT(m_EntityToIndexMap.find(entity) == m_EntityToIndexMap.end(), "Component added to same entity more than once.");
+			LUMOS_ASSERT(m_EntityToIndexMap.find(entity) == m_EntityToIndexMap.end(), "Component added to same entity more than once.");
 
 			// Put new entry at end and update the maps
 			size_t newIndex = m_Size;
@@ -38,21 +40,21 @@ namespace Lumos
 			m_ComponentArray[newIndex] = component;
             m_ComponentArray[newIndex]->SetEntity(entity);
             
-            if constexpr(is_detected_v<hasInit, T>)
+            if constexpr(is_detected_v<HasInit, T>)
             {
                 m_ComponentArray[newIndex]->Init();
             }
 			m_Size++;
 		}
 
-		void RemoveData(Entity* entity)
+		void RemoveData(Entity* entity) override
 		{
-			LUMOS_CORE_ASSERT(m_EntityToIndexMap.find(entity) != m_EntityToIndexMap.end(), "Removing non-existent component.");
+			LUMOS_ASSERT(m_EntityToIndexMap.find(entity) != m_EntityToIndexMap.end(), "Removing non-existent component.");
 
 			// Copy element at end into deleted element's place to maintain density
 			size_t indexOfRemovedEntity = m_EntityToIndexMap[entity];
 			size_t indexOfLastElement = m_Size - 1;
-			delete m_ComponentArray[indexOfRemovedEntity];
+			lmdel m_ComponentArray[indexOfRemovedEntity];
 			m_ComponentArray[indexOfRemovedEntity] = m_ComponentArray[indexOfLastElement];
 
 			// Update map to point to moved spot
@@ -75,15 +77,18 @@ namespace Lumos
 			return m_ComponentArray[m_EntityToIndexMap[entity]];
 		}
 
-		void OnUpdate(float dt) override
+		void OnUpdate() override
 		{
 			for (int i = 0; i < m_Size; i++)
 			{
-				m_ComponentArray[i]->OnUpdateComponent(dt);
+				if constexpr (is_detected_v<HasUpdate, T>)
+				{
+					m_ComponentArray[i]->Update();
+				}
 			}
 		}
 
-		std::array<T*, MAX_ENTITIES> GetArray() const
+		const std::array<T*, MAX_ENTITIES>& GetArray() const
 		{
 			return m_ComponentArray;
 		}
@@ -109,9 +114,24 @@ namespace Lumos
 
 		T* CreateComponent(Entity* entity)
 		{
-			auto component = lmnew T();
+			T* component = lmnew T();
 			InsertData(entity, component);
 			return component;
+		}
+
+		LumosComponent* CreateLumosComponent(Entity* entity) override
+		{
+			if constexpr (std::is_base_of_v<T ,Lumos::LumosComponent>)
+			{
+				//To stop build error with instantiating LumosComponent
+				return nullptr;
+			}
+			else
+			{
+				T* component = lmnew T();
+				InsertData(entity, component);
+				return static_cast<LumosComponent*>(component);
+			}
 		}
 
 	private:
@@ -140,14 +160,14 @@ namespace Lumos
 		ComponentManager();
 		~ComponentManager();
 
-		void OnUpdate(float dt);
+		void OnUpdate();
 
 		template<typename T>
 		void RegisterComponent()
 		{
 			auto typeName = typeid(T).hash_code();
 
-			LUMOS_CORE_ASSERT(m_ComponentTypes.find(typeName) == m_ComponentTypes.end(), "Registering component type more than once.");
+			LUMOS_ASSERT(m_ComponentTypes.find(typeName) == m_ComponentTypes.end(), "Registering component type more than once.");
 
 			// Add this component type to the component type map
             m_ComponentTypes[typeName] = m_NextComponentType;
@@ -164,7 +184,7 @@ namespace Lumos
 		{
 			auto typeName = typeid(T).hash_code();
 
-			LUMOS_CORE_ASSERT(m_ComponentTypes.find(typeName) != m_ComponentTypes.end(), "Component not registered before use.");
+			LUMOS_ASSERT(m_ComponentTypes.find(typeName) != m_ComponentTypes.end(), "Component not registered before use.");
 
 			return m_ComponentTypes[typeName];
 		}
@@ -179,6 +199,11 @@ namespace Lumos
 		void RemoveComponent(Entity* entity)
 		{
 			GetComponentArray<T>()->RemoveData(entity);
+		}
+
+		void RemoveComponent(Entity* entity, size_t id)
+		{
+			m_ComponentArrays.at(id)->RemoveData(entity);
 		}
 
 		template<typename T>
@@ -204,12 +229,17 @@ namespace Lumos
 		{
 			auto typeName = typeid(T).hash_code();
 
-			LUMOS_CORE_ASSERT(m_ComponentArrays.find(typeName) != m_ComponentArrays.end(), "Component not registered before use.");
+			LUMOS_ASSERT(m_ComponentArrays.find(typeName) != m_ComponentArrays.end(), "Component not registered before use.");
 
 			return static_cast<ComponentArray<T>*>(m_ComponentArrays[typeName].get());
 		}
 
-		std::vector<LumosComponent*> GetAllComponents(Entity* entity);
+		const std::vector<LumosComponent*> GetAllComponents(Entity* entity);
+
+		LumosComponent* CreateComponent(Entity* entity, size_t id)
+		{
+			return m_ComponentArrays.at(id)->CreateLumosComponent(entity);
+		}
 
 	private:
 		std::unordered_map<size_t, ComponentType> m_ComponentTypes;

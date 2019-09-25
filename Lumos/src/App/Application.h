@@ -1,5 +1,5 @@
 #pragma once
-#include "LM.h"
+#include "lmpch.h"
 #include "ECS/SystemManager.h"
 
 #define LUMOS_EDITOR //temp
@@ -26,7 +26,7 @@ namespace Lumos
 	namespace Graphics
 	{
 		class RenderManager;
-		enum class RenderAPI;
+		enum class RenderAPI : u32;
 	}
 
 	namespace Maths
@@ -61,9 +61,6 @@ namespace Lumos
 	public:
 		Application(const WindowProperties& properties);
 		virtual ~Application();
-
-		Application(Application const&) = delete;
-		Application& operator=(Application const&) = delete;
 
 		int Quit(bool pause = false, const std::string &reason = "");
 
@@ -111,12 +108,13 @@ namespace Lumos
 		bool OnWindowClose(WindowCloseEvent& e);
         bool OnWindowResize(WindowResizeEvent& e);
 
-		float 	  				  	m_UpdateTimer;
-		Scope<Timer>	  	m_Timer;
+		float m_UpdateTimer;
+		Scope<Timer> m_Timer;
 
 		u32 m_Frames;
 		u32 m_Updates;
 		float m_SecondTimer = 0.0f;
+		bool m_Minimized = false;
 
 		Scope<Window> m_Window;
         Scope<SceneManager> m_SceneManager;
@@ -137,6 +135,8 @@ namespace Lumos
 #ifdef LUMOS_EDITOR
 		Editor* m_Editor = nullptr;
 #endif
+
+		NONCOPYABLE(Application)
 	};
 
 	//Defined by client

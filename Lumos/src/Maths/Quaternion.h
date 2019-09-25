@@ -1,6 +1,6 @@
 #pragma once
 
-#include "LM.h"
+#include "lmpch.h"
 #include "Matrix3.h"
 #include "Matrix4.h"
 #include "MathsCommon.h"
@@ -60,7 +60,7 @@ namespace Lumos
 			static const Quaternion EMPTY;
 			static const Quaternion IDENTITY;
 
-			static Quaternion EulerAnglesToQuaternion(float roll, float yaw, float pitch);
+			static Quaternion EulerAnglesToQuaternion(float pitch, float yaw, float roll);
 			static Quaternion AxisAngleToQuaterion(const Vector3& vector, float degrees);
 
 			static void RotatePointByQuaternion(const Quaternion& q, Vector3& point);

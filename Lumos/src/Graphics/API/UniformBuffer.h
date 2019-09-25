@@ -16,6 +16,11 @@ namespace Lumos
 			virtual void SetDynamicData(uint32_t size, uint32_t typeSize, const void* data) = 0;
 
 			virtual u8* GetBuffer() const = 0;
+            
+        protected:
+            static UniformBuffer* (*CreateFunc)();
+            static UniformBuffer* (*CreateDataFunc)(uint32_t, const void*);
+
 
 		};
 	}

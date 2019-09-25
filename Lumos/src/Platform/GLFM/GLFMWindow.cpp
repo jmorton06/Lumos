@@ -1,4 +1,4 @@
-#include "LM.h"																									
+#include "lmpch.h"																									
 
 
 #include "GLFMWindow.h"
@@ -47,4 +47,13 @@ namespace Lumos
 	}
 
 
+	void GLFMWindow::MakeDefault()
+	{
+		CreateFunc = CreateFuncGLFW;
+	}
+
+	Window* GLFMWindow::CreateFuncGLFM(const WindowProperties& properties)
+	{
+		return lmnew GLFMWindow(properties);
+	}
 }

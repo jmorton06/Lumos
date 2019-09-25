@@ -1,5 +1,5 @@
 #pragma once
-#include "LM.h"
+#include "lmpch.h"
 #include "Graphics/API/DescriptorSet.h"
 
 namespace Lumos
@@ -9,7 +9,7 @@ namespace Lumos
         class GLDescriptorSet : public DescriptorSet
         {
         public:
-            GLDescriptorSet(DescriptorInfo& info) ;
+            GLDescriptorSet(const DescriptorInfo& info) ;
 
             ~GLDescriptorSet() {};
 
@@ -22,7 +22,9 @@ namespace Lumos
 
 			void SetDynamicOffset(u32 offset) override { m_DynamicOffset = offset; }
 			u32 GetDynamicOffset() const override { return m_DynamicOffset; }
-
+            static void MakeDefault();
+        protected:
+            static DescriptorSet* CreateFuncGL(const DescriptorInfo& info);
         private:
 			u32 m_DynamicOffset = 0;
 			Shader* m_Shader = nullptr;

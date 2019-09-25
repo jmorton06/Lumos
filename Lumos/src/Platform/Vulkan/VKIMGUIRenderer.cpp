@@ -1,7 +1,7 @@
-#include "LM.h"
+#include "lmpch.h"
 #include "VKIMGUIRenderer.h"
-#include "external/imgui/imgui.h"
-#include "external/imgui/examples/imgui_impl_vulkan.h"
+#include <imgui/imgui.h>
+#include <imgui/examples/imgui_impl_vulkan.h>
 
 #include "VKDevice.h"
 #include "VKCommandBuffer.h"
@@ -24,9 +24,11 @@ namespace Lumos
 {
     namespace Graphics
     {
-        VKIMGUIRenderer::VKIMGUIRenderer(u32 width, u32 height, bool clearScreen): m_CommandBuffers{},
-                                                                                     m_Framebuffers{},
-                                                                                     m_Renderpass(nullptr)
+        VKIMGUIRenderer::VKIMGUIRenderer(u32 width, u32 height, bool clearScreen)
+			:	m_CommandBuffers{},
+				m_Framebuffers{},
+				m_Renderpass(nullptr),
+				m_FontTexture(nullptr)
         {
 	        m_WindowHandle = nullptr;
 	        m_Width = width;
@@ -271,6 +273,16 @@ namespace Lumos
         void VKIMGUIRenderer::Clear()
         {
 			//ImGui_ImplVulkan_ClearDescriptors();
+        }
+        
+        void VKIMGUIRenderer::MakeDefault()
+        {
+            CreateFunc = CreateFuncVulkan;
+        }
+        
+		IMGUIRenderer* VKIMGUIRenderer::CreateFuncVulkan(u32 width, u32 height, bool clearScreen)
+        {
+            return lmnew VKIMGUIRenderer(width, height, clearScreen);
         }
     }
 }

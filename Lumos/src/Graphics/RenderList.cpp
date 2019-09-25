@@ -1,4 +1,4 @@
-#include "LM.h"
+#include "lmpch.h"
 #include "RenderList.h"
 #include "ECS/Component/TransformComponent.h"
 
@@ -11,7 +11,7 @@ namespace Lumos
 	{
 		if (g_NumRenderLists >= 31)
 		{
-			LUMOS_CORE_ERROR("Attempting to create more than 32 renderlists!");
+			LUMOS_LOG_CRITICAL("Attempting to create more than 32 renderlists!");
 			return false;
 		}
 
@@ -68,7 +68,7 @@ namespace Lumos
 #pragma omp parallel for
 			for (auto &i : list)
 			{
-				i.cam_dist_sq = (i.target_obj->GetComponent<TransformComponent>()->GetTransform().GetWorldMatrix().GetPositionVector() - m_CameraPos).LengthSquared() * mul;
+				i.cam_dist_sq = (i.target_obj->GetComponent<TransformComponent>()->GetTransform()->GetWorldMatrix().GetPositionVector() - m_CameraPos).LengthSquared() * mul;
 			}
 		};
 
@@ -122,7 +122,7 @@ namespace Lumos
 			{
 				Entity* entity = list[i].target_obj;
 
-				if (!entity->ActiveInHierarchy() || !frustum.InsideFrustum(entity->GetComponent<TransformComponent>()->GetTransform().GetWorldMatrix().GetPositionVector(), entity->GetBoundingRadius()))
+				if (!entity->ActiveInHierarchy())
 				{
 					entity->GetFrustumCullFlags() &= ~m_BitMask;
 				}
@@ -185,7 +185,7 @@ namespace Lumos
 		if (!isOpaque)
 		{
 #endif
-			carry_obj.cam_dist_sq = (obj->GetComponent<TransformComponent>()->GetTransform().GetWorldMatrix().GetPositionVector() - m_CameraPos).LengthSquared();
+			carry_obj.cam_dist_sq = (obj->GetComponent<TransformComponent>()->GetTransform()->GetWorldMatrix().GetPositionVector() - m_CameraPos).LengthSquared();
 
 			if (!isOpaque)
 			{

@@ -36,6 +36,10 @@ namespace Lumos
 			static void PreProcess(const String& source, std::map<ShaderType, String>* sources);
 			static void ReadShaderFile(std::vector<String> lines, std::map<ShaderType, String>* shaders);
 
+            static void MakeDefault();
+        protected:
+            static Shader* CreateFuncVulkan(const String&, const String&);
+            
 		private:
 			vk::PipelineShaderStageCreateInfo* 	m_ShaderStages;
 			uint32_t 							m_StageCount;

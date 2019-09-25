@@ -1,5 +1,5 @@
 #pragma once
-#include "LM.h"
+#include "lmpch.h"
 #include "LumosComponent.h"
 #include "Physics/LumosPhysicsEngine/PhysicsObject3D.h"
 
@@ -13,16 +13,19 @@ namespace Lumos
 
 		~Physics3DComponent() = default;
 
-		void Init() override;
-		void OnUpdateComponent(float dt) override;
+		void Init();
+		void Update();
+
 		void OnUpdateTransform(const Maths::Matrix4& entityTransform) override;
         
-        void OnIMGUI() override;
+        void OnImGui() override;
         
-        PhysicsObject3D* GetPhysicsObject() const { return m_PhysicsObject.get(); }
+		Ref<PhysicsObject3D>& GetPhysicsObject() { return m_PhysicsObject; }
 
 		nlohmann::json Serialise() override { return nullptr; };
 		void Deserialise(nlohmann::json& data) override {};
+
+		SETUPCOMPOMENT(Physics3DComponent);
     private:
         Ref<PhysicsObject3D> m_PhysicsObject;
 	};

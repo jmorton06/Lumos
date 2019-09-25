@@ -1,6 +1,6 @@
 #pragma once
 
-#include "LM.h"
+#include "lmpch.h"
 #include "Maths/BoundingShape.h"
 
 #include "Core/Serialisable.h"
@@ -16,31 +16,36 @@ namespace Lumos
 		virtual ~LumosComponent() = default;
 		virtual Entity* GetEntity() { return m_Entity; }
 
-		virtual void Init() {}; //Called After entity is set
 		virtual void OnRenderComponent() {};
-		virtual void OnUpdateComponent(float dt) {};
-        virtual void OnIMGUI() {}
+        virtual void OnImGui() {}
 
 		void SetEntity(Entity* entity) { m_Entity = entity; }
 
 		virtual void UpdateBoundingShape() { };
 		virtual void OnUpdateTransform(const Maths::Matrix4& entityTransform) {};
+		virtual size_t GetTypeID() const = 0;
 
-		Maths::BoundingShape* GetBoundingShape() const { return m_BoundingShape.get(); }
+		const Ref<Maths::BoundingShape>& GetBoundingShape() const { return m_BoundingShape; }
 
-		const String& GetName() const { return m_Name; }
-		bool& GetActive() { return m_Active; }
+		virtual const String& GetName() const = 0;
 		const bool GetCanDisable() const { return m_CanDisable; }
+		bool& GetActive() { return m_Active; }
+
 		void SetActive(bool active) { m_Active = active; }
-        
-        void SetName(const String& name) { m_Name = name; }
+        //void SetName(const String& name) { m_Name = name; }
 
 	protected:
 		Entity* m_Entity = nullptr;
-		String m_Name;
+		//String m_Name;
 		bool m_Active = true;
 		bool m_CanDisable = true;
-		Scope<Maths::BoundingShape> m_BoundingShape;
+		Ref<Maths::BoundingShape> m_BoundingShape;
 	};
 
 }
+
+#define SETUPCOMPOMENT(type_identifier)								\
+    size_t GetTypeID() const override { return typeid(type_identifier).hash_code(); } \
+	const String& GetName() const override { return m_Name; } \
+	private: \
+	String m_Name = LUMOS_TYPENAME_STRING(type_identifier);

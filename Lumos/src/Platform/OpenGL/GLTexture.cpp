@@ -1,4 +1,4 @@
-#include "LM.h"
+#include "lmpch.h"
 #include "GLTexture.h"
 #include "Platform/OpenGL/GL.h"
 #include "Platform/OpenGL/GLTools.h"
@@ -155,25 +155,22 @@ namespace Lumos
 			m_Height = size;
 		}
 
-		GLTextureCube::GLTextureCube(const String& name, const String& filepath) : m_Width(0), m_Height(0), m_Size(0), m_NumMips(0), m_Bits(0),
+		GLTextureCube::GLTextureCube(const String& filepath) : m_Width(0), m_Height(0), m_Size(0), m_NumMips(0), m_Bits(0),
 			m_Format()
 		{
-			m_Name = name;
 			m_Files[0] = filepath;
 			m_Handle = LoadFromSingleFile();
 		}
 
-		GLTextureCube::GLTextureCube(const String& name, const String* files)
+		GLTextureCube::GLTextureCube(const String* files)
 		{
-			m_Name = name;
 			for (u32 i = 0; i < 6; i++)
 				m_Files[i] = files[i];
 			m_Handle = LoadFromMultipleFiles();
 		}
 
-		GLTextureCube::GLTextureCube(const String& name, const String* files, u32 mips, const InputFormat format)
+		GLTextureCube::GLTextureCube(const String* files, u32 mips, const InputFormat format)
 		{
-			m_Name = name;
 			m_NumMips = mips;
 			for (u32 i = 0; i < mips; i++)
 				m_Files[i] = files[i];
@@ -462,6 +459,76 @@ namespace Lumos
 #endif
 			GLCall(glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_COMPARE_FUNC, GL_LEQUAL));
 			GLCall(glBindTexture(GL_TEXTURE_2D_ARRAY, 0));
+		}
+
+		Texture2D* GLTexture2D::CreateFuncGL()
+		{
+			return lmnew GLTexture2D();
+		}
+
+		Texture2D* GLTexture2D::CreateFromSourceFuncGL(u32 width, u32 height, void* data, TextureParameters parameters, TextureLoadOptions loadoptions)
+		{
+			return lmnew GLTexture2D(width, height, data, parameters, loadoptions);
+		}
+
+		Texture2D* GLTexture2D::CreateFromFileFuncGL(const String& name, const String& filename, TextureParameters parameters, TextureLoadOptions loadoptions)
+		{
+			return lmnew GLTexture2D(name, filename, parameters, loadoptions);
+		}
+
+		TextureCube* GLTextureCube::CreateFuncGL(u32 size)
+		{
+			return lmnew GLTextureCube(size);
+		}
+
+		TextureCube* GLTextureCube::CreateFromFileFuncGL(const String& filepath)
+		{
+			return lmnew GLTextureCube(filepath);
+		}
+
+		TextureCube* GLTextureCube::CreateFromFilesFuncGL(const String* files)
+		{
+			return lmnew GLTextureCube(files);
+		}
+
+		TextureCube* GLTextureCube::CreateFromVCrossFuncGL(const String* files, u32 mips, InputFormat format)
+		{
+			return lmnew GLTextureCube(files, mips, format);
+		}
+
+		TextureDepth* GLTextureDepth::CreateFuncGL(u32 width, u32 height)
+		{
+			return lmnew GLTextureDepth(width, height);
+		}
+
+		TextureDepthArray* GLTextureDepthArray::CreateFuncGL(u32 width, u32 height, u32 count)
+		{
+			return lmnew GLTextureDepthArray(width, height, count);
+		}
+
+		void GLTexture2D::MakeDefault()
+		{
+			CreateFunc = CreateFuncGL;
+			CreateFromFileFunc = CreateFromFileFuncGL;
+			CreateFromSourceFunc = CreateFromSourceFuncGL;
+		}
+
+		void GLTextureCube::MakeDefault()
+		{
+			CreateFunc = CreateFuncGL;
+			CreateFromFileFunc = CreateFromFileFuncGL;
+			CreateFromFilesFunc = CreateFromFilesFuncGL;
+			CreateFromVCrossFunc = CreateFromVCrossFuncGL;
+		}
+
+		void GLTextureDepth::MakeDefault()
+		{
+			CreateFunc = CreateFuncGL;
+		}
+
+		void GLTextureDepthArray::MakeDefault()
+		{
+			CreateFunc = CreateFuncGL;
 		}
 	}
 }

@@ -1,4 +1,4 @@
-#include "LM.h"
+#include "lmpch.h"
 #include "ModelLoader.h"
 #include "Graphics/Mesh.h"
 #include "Graphics/Material.h"
@@ -57,7 +57,7 @@ namespace Lumos
 
 		if (!ok)
 		{
-			LUMOS_CORE_ERROR(error);
+			LUMOS_LOG_CRITICAL(error);
 		}
 
 		auto entity = EntityManager::Instance()->CreateEntity(name);

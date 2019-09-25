@@ -1,4 +1,4 @@
-#include "LM.h"
+#include "lmpch.h"
 #include "Physics3DComponent.h"
 #include "App/Application.h"
 #include "Physics/LumosPhysicsEngine/LumosPhysicsEngine.h"
@@ -11,16 +11,12 @@ namespace Lumos
 {
     Physics3DComponent::Physics3DComponent()
     {
-        m_Name = "Physics3D";
         m_PhysicsObject = CreateRef<PhysicsObject3D>();
-        Application::Instance()->GetSystem<LumosPhysicsEngine>()->AddPhysicsObject(m_PhysicsObject);
     }
     
 	Physics3DComponent::Physics3DComponent(Ref<PhysicsObject3D>& physics)
 	{
-		m_Name = "Physics3D";
         m_PhysicsObject = physics;
-		Application::Instance()->GetSystem<LumosPhysicsEngine>()->AddPhysicsObject(m_PhysicsObject);
 	}
 
 	void Physics3DComponent::Init()
@@ -28,11 +24,11 @@ namespace Lumos
 		m_PhysicsObject->SetEntity(m_Entity);
 	}
 
-	void Physics3DComponent::OnUpdateComponent(float dt)
+	void Physics3DComponent::Update()
 	{
-        m_Entity->GetTransformComponent()->GetTransform().SetLocalPosition(m_PhysicsObject->GetPosition());
-        m_Entity->GetTransformComponent()->GetTransform().SetLocalOrientation(m_PhysicsObject->GetOrientation());
-		m_Entity->GetTransformComponent()->GetTransform().UpdateMatrices();
+        m_Entity->GetTransformComponent()->GetTransform()->SetLocalPosition(m_PhysicsObject->GetPosition());
+        m_Entity->GetTransformComponent()->GetTransform()->SetLocalOrientation(m_PhysicsObject->GetOrientation());
+		m_Entity->GetTransformComponent()->GetTransform()->UpdateMatrices();
 	}
 
 	void Physics3DComponent::OnUpdateTransform(const Maths::Matrix4& entityTransform)
@@ -41,7 +37,7 @@ namespace Lumos
         //m_PhysicsObject->SetOrientation(Maths::Quaternion(Maths::Matrix4::GetEulerAngles(entityTransform.GetRotation()), 1.0f));
 	}
     
-    void Physics3DComponent::OnIMGUI()
+    void Physics3DComponent::OnImGui()
     {
         ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(2,2));
         ImGui::Columns(2);

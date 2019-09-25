@@ -1,4 +1,4 @@
-#include "LM.h"
+#include "lmpch.h"
 #include "UnixThread.h"
 
 #if defined(__FreeBSD__) || defined(__OpenBSD__)
@@ -108,15 +108,21 @@ namespace Lumos
 
     #endif // PTHREAD_RENAME_SELF
 
-        return err == 0 ? OK : ERR_INVALID_PARAMETER;
+        return err == 0 ? Error::OK : Error::INVALID_PARAMETER;
 
     #endif // PTHREAD_NO_RENAME
     };
+    
+    Thread* UnixThread::CreateFuncUnix(ThreadCreateCallback p_callback, void *p_user, const Settings & p_settings)
+    {
+        return lmnew UnixThread(p_callback, p_user, p_settings);
+    }
 
     void UnixThread::MakeDefault() 
     {
-        get_thread_id_func = GetThreadIDFuncUnix;
-        wait_to_finish_func = WaitToFinishFuncUnix;
-        set_name_func = SetNameFuncUnix;
+        GetThreadIDFunc = GetThreadIDFuncUnix;
+        WaitToFinishFunc = WaitToFinishFuncUnix;
+        SetNameFunc = SetNameFuncUnix;
+        CreateFunc = CreateFuncUnix;
     }
 }

@@ -1,9 +1,10 @@
-#include "LM.h"
+#include "lmpch.h"
 #include "CoreSystem.h"
 #include "VFS.h"
 #include "JobSystem.h"
 #include "Scripting/LuaScript.h"
 #include "Core/Version.h"
+#include "Core/Profiler.h"
 
 namespace Lumos
 { 
@@ -11,19 +12,23 @@ namespace Lumos
 	{
 	void CoreSystem::Init()
 	{
-		LMLog::OnInit();
+        LMLog::OnInit();
 
-		LUMOS_CORE_INFO("Lumos Engine - Version {0}.{1}.{2}", LumosVersion.major, LumosVersion.minor, LumosVersion.patch);
+        Profiler::Instance()->Enable();
+        PROFILERRECORD("CoreSystem::Init");
+
+		LUMOS_LOG_INFO("Lumos Engine - Version {0}.{1}.{2}", LumosVersion.major, LumosVersion.minor, LumosVersion.patch);
 
 		System::JobSystem::OnInit();
-		LUMOS_CORE_INFO("Initializing System");
+		LUMOS_LOG_INFO("Initializing System");
 		VFS::OnInit();
         LuaScript::Instance()->OnInit();
 	}
 
 	void CoreSystem::Shutdown()
 	{
-		LUMOS_CORE_INFO("Shutting down System");
+		LUMOS_LOG_INFO("Shutting down System");
+        Profiler::Release();
         LuaScript::Release();
 		VFS::OnShutdown();
 		Lumos::Memory::LogMemoryInformation();

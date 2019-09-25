@@ -1,4 +1,4 @@
-#include "LM.h"
+#include "lmpch.h"
 #include "UnixMutex.h"
 
 namespace Lumos
@@ -29,5 +29,15 @@ namespace Lumos
     UnixMutex::~UnixMutex() 
     {
         pthread_mutex_destroy(&mutex);
+    }
+    
+    Mutex* UnixMutex::CreateFuncUnix(bool p_recursive)
+    {
+        return lmnew UnixMutex(p_recursive);
+    }
+    
+    void UnixMutex::MakeDefault()
+    {
+        CreateFunc = CreateFuncUnix;
     }
 }

@@ -1,5 +1,5 @@
 #pragma once
-#include "LM.h"
+#include "lmpch.h"
 
 #define MAX_MIPS 11
 
@@ -7,9 +7,9 @@ namespace Lumos
 {
 	namespace Graphics
 	{
-		enum class LUMOS_EXPORT TextureWrap
+		enum class TextureWrap
 		{
-			NONE = 0,
+			NONE,
 			REPEAT,
 			CLAMP,
 			MIRRORED_REPEAT,
@@ -17,16 +17,16 @@ namespace Lumos
 			CLAMP_TO_BORDER
 		};
 
-		enum class LUMOS_EXPORT TextureFilter
+		enum class TextureFilter
 		{
-			NONE = 0,
+			NONE,
 			LINEAR,
 			NEAREST
 		};
 
-		enum class LUMOS_EXPORT TextureFormat
+		enum class TextureFormat
 		{
-			NONE = 0,
+			NONE,
 			R8,
 			RG8,
 			RGB8,
@@ -42,16 +42,16 @@ namespace Lumos
 			DEPTH_STENCIL
 		};
 
-		enum class LUMOS_EXPORT TextureType
+		enum class TextureType
 		{
-			COLOUR = 0,
+			COLOUR,
 			DEPTH,
 			DEPTHARRAY,
 			CUBE,
 			OTHER
 		};
 
-		struct LUMOS_EXPORT TextureParameters
+		struct TextureParameters
 		{
 			TextureFormat format;
 			TextureFilter filter;
@@ -90,7 +90,7 @@ namespace Lumos
 			}
 		};
 
-		struct LUMOS_EXPORT TextureLoadOptions
+		struct TextureLoadOptions
 		{
 			bool flipX;
 			bool flipY;
@@ -156,6 +156,11 @@ namespace Lumos
 			static Texture2D* CreateFromFile(const String& name, const String& filepath, TextureParameters parameters = TextureParameters(), TextureLoadOptions loadOptions = TextureLoadOptions());
 
 			virtual void BuildTexture(TextureFormat internalformat, u32 width, u32 height, bool depth, bool samplerShadow) = 0;
+            
+        protected:
+            static Texture2D* (*CreateFunc)();
+            static Texture2D* (*CreateFromSourceFunc)(u32, u32, void*, TextureParameters, TextureLoadOptions);
+            static Texture2D* (*CreateFromFileFunc)(const String&, const String&, TextureParameters, TextureLoadOptions);
 		};
 
 		class LUMOS_EXPORT TextureCube : public Texture
@@ -170,7 +175,13 @@ namespace Lumos
 			static TextureCube* Create(u32 size);
 			static TextureCube* CreateFromFile(const String& filepath);
 			static TextureCube* CreateFromFiles(const String* files);
-			static TextureCube* CreateFromVCross(const String* files, u32 mips);
+			static TextureCube* CreateFromVCross(const String* files, u32 mips, InputFormat = InputFormat::VERTICAL_CROSS);
+            
+        protected:
+            static TextureCube* (*CreateFunc)(u32);
+            static TextureCube* (*CreateFromFileFunc)(const String&);
+            static TextureCube* (*CreateFromFilesFunc)(const String*);
+            static TextureCube* (*CreateFromVCrossFunc)(const String*, u32, InputFormat);
 		};
 
 		class LUMOS_EXPORT TextureDepth : public Texture
@@ -179,6 +190,9 @@ namespace Lumos
 			static TextureDepth* Create(u32 width, u32 height);
 
 			virtual void Resize(u32 width, u32 height) = 0;
+            
+        protected:
+            static TextureDepth* (*CreateFunc)(u32, u32);
 		};
 
 		class LUMOS_EXPORT TextureDepthArray : public Texture
@@ -188,6 +202,9 @@ namespace Lumos
 
 			virtual void Init() = 0;
 			virtual void Resize(u32 width, u32 height, u32 count) = 0;
+            
+        protected:
+            static TextureDepthArray* (*CreateFunc)(u32, u32, u32);
 		};
 	}
 }

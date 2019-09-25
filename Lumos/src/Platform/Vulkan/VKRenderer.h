@@ -1,6 +1,6 @@
 #pragma once
 
-#include "LM.h"
+#include "lmpch.h"
 #include "VK.h"
 #include "Maths/Maths.h"
 #include "VKContext.h"
@@ -28,7 +28,7 @@ namespace Lumos
 
 			static VKRenderer* GetRenderer() { return static_cast<VKRenderer*>(s_Instance); }
 
-			Swapchain* GetSwapchainInternal() const override { return m_Swapchain; }
+			Swapchain* GetSwapchainInternal() const override { return m_Swapchain.get(); }
 
 			void InitInternal() override;
 			void Begin() override;
@@ -46,11 +46,13 @@ namespace Lumos
 			void DrawInternal(CommandBuffer* commandBuffer, DrawType type, u32 count, DataType datayType, void* indices) const override;
 
             void CreateSemaphores();
-
+            
+            static void MakeDefault();
+        protected:
+            static Renderer* CreateFuncVulkan(u32 width, u32 height);
 		private:
 			Lumos::Graphics::VKContext* m_Context;
-
-			Lumos::Graphics::VKSwapchain* m_Swapchain;
+			Ref<Lumos::Graphics::VKSwapchain> m_Swapchain;
 
 			vk::Semaphore m_ImageAvailableSemaphore[5];
 			u32 m_CurrentSemaphoreIndex = 0;

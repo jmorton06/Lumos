@@ -1,5 +1,5 @@
 #pragma once
-#include "LM.h"
+#include "lmpch.h"
 #include "ECS/ISystem.h"
 
 namespace Lumos
@@ -14,7 +14,7 @@ namespace Lumos
 
         virtual ~AudioManager() = default;
         virtual void OnInit() override = 0;
-        virtual void OnUpdate(TimeStep* dt) override = 0;
+        virtual void OnUpdate(TimeStep* dt, Scene* scene) override = 0;
 
 		virtual void SetListener(Camera* camera) { m_Listener = camera; }
 		Camera* GetListener() const { return m_Listener; }
