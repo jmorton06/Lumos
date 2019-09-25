@@ -148,47 +148,47 @@ namespace Lumos
         
         if(show)
         {
-            bool noChildren = node->GetChildren().empty();
-                  
-              ImGuiTreeNodeFlags nodeFlags = ((m_Selected == node) ? ImGuiTreeNodeFlags_Selected : 0);
-              
-              nodeFlags |= ImGuiTreeNodeFlags_OpenOnArrow | ImGuiTreeNodeFlags_OpenOnDoubleClick;
-              
-              if(noChildren)
-              {
-                  nodeFlags |= ImGuiTreeNodeFlags_Leaf;
-              }
-              
-              String icon(ICON_FA_CUBE);
-              bool nodeOpen = ImGui::TreeNodeEx(("##" + node->GetUUID()).c_str(), nodeFlags, (icon + " " + node->GetName()).c_str(), 0);
+			bool noChildren = node->GetChildren().empty();
 
-              if (ImGui::BeginDragDropSource(ImGuiDragDropFlags_None))
-              {
-                  auto ptr = node;
-                  ImGui::SetDragDropPayload("Drag_Entity", &ptr, sizeof(Entity**));
-                  ImGui::Text("Moving %s", node->GetName().c_str());
-                  ImGui::EndDragDropSource();
-              }
-
-              if (ImGui::BeginDragDropTarget())
-              {
-                  if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("Drag_Entity"))
-                  {
-                      LUMOS_ASSERT(payload->DataSize == sizeof(Entity**), "Error ImGUI drag entity");
-                      auto entity = *reinterpret_cast<Entity**>(payload->Data);
-                      node->AddChild(entity);
-
-                      if (m_Selected == entity)
-                          m_Selected = nullptr;
-                  }
-                  ImGui::EndDragDropTarget();
-              }
-
-              if (ImGui::IsItemClicked())
-                  m_Selected = node;
+			ImGuiTreeNodeFlags nodeFlags = ((m_Selected == node) ? ImGuiTreeNodeFlags_Selected : 0);
               
-              if (nodeOpen == false)
-                  return;
+			nodeFlags |= ImGuiTreeNodeFlags_OpenOnArrow | ImGuiTreeNodeFlags_OpenOnDoubleClick;
+              
+			if(noChildren)
+			{
+				nodeFlags |= ImGuiTreeNodeFlags_Leaf;
+			}
+
+			String icon(ICON_FA_CUBE);
+			bool nodeOpen = ImGui::TreeNodeEx(("##" + node->GetUUID()).c_str(), nodeFlags, (icon + " " + node->GetName()).c_str(), 0);
+
+			if (ImGui::BeginDragDropSource(ImGuiDragDropFlags_None))
+			{
+				auto ptr = node;
+				ImGui::SetDragDropPayload("Drag_Entity", &ptr, sizeof(Entity**));
+				ImGui::Text("Moving %s", node->GetName().c_str());
+				ImGui::EndDragDropSource();
+			}
+
+			if (ImGui::BeginDragDropTarget())
+			{
+				if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("Drag_Entity"))
+				{
+					LUMOS_ASSERT(payload->DataSize == sizeof(Entity**), "Error ImGUI drag entity");
+					auto entity = *reinterpret_cast<Entity**>(payload->Data);
+					node->AddChild(entity);
+
+					if (m_Selected == entity)
+						m_Selected = nullptr;
+				}
+				ImGui::EndDragDropTarget();
+			}
+
+			if (ImGui::IsItemClicked())
+				m_Selected = node;
+              
+			if (nodeOpen == false)
+				return;
             
             for (auto child : node->GetChildren())
             {
@@ -210,10 +210,10 @@ namespace Lumos
 	void Editor::DrawHierarchyWindow()
 	{
 		auto flags = ImGuiWindowFlags_NoCollapse;
-		ImGui::Begin("Hierarchy", &m_ShowHierarchy, flags);
+		ImGui::Begin(ICON_FA_LIST_ALT" Hierarchy###hierarchy", &m_ShowHierarchy, flags);
 		{
 			ImGui::Indent();
-            m_HierarchyFilter.Draw("");
+            m_HierarchyFilter.Draw(ICON_FA_SEARCH);
             
 			if (ImGui::TreeNode("Application"))
 			{
@@ -317,7 +317,7 @@ namespace Lumos
 	void Editor::DrawInspectorWindow()
 	{
 		auto flags = ImGuiWindowFlags_NoCollapse;
-		ImGui::Begin("Inspector", &m_ShowInspector, flags);
+		ImGui::Begin(ICON_FA_INFO_CIRCLE" Inspector###inspector", &m_ShowInspector, flags);
         
 		if (m_Selected)
         {
@@ -331,13 +331,14 @@ namespace Lumos
 	{
 		auto flags = ImGuiWindowFlags_NoCollapse;
 		ImGui::SetNextWindowBgAlpha(0.0f);
-		ImGui::Begin("Scene",  &m_ShowSceneView, flags);
+		ImGui::Begin(ICON_FA_GAMEPAD" Scene###scene",  &m_ShowSceneView, flags);
 		
 		ImGuizmo::SetDrawlist();
 		m_SceneViewSize = Maths::Vector2(ImGui::GetWindowSize().x, ImGui::GetWindowSize().y);
 		m_SceneViewPosition = Maths::Vector2(ImGui::GetWindowPos().x, ImGui::GetWindowPos().y);
 
-		m_Application->m_SceneManager->GetCurrentScene()->GetCamera()->SetAspectRatio(static_cast<float>(ImGui::GetWindowSize().x) / static_cast<float>(ImGui::GetWindowSize().y));
+		Camera* camera = m_Application->m_SceneManager->GetCurrentScene()->GetCamera();
+		camera->SetAspectRatio(static_cast<float>(ImGui::GetWindowSize().x) / static_cast<float>(ImGui::GetWindowSize().y));
 
 		auto width = static_cast<unsigned int>(ImGui::GetWindowContentRegionMax().x - ImGui::GetWindowContentRegionMin().x + 2);
 		auto height = static_cast<unsigned int>(ImGui::GetWindowContentRegionMax().y - ImGui::GetWindowContentRegionMin().y + 22);
@@ -353,26 +354,81 @@ namespace Lumos
 		ImGuizmo::SetRect(ImGui::GetWindowPos().x, ImGui::GetWindowPos().y, static_cast<float>(width), static_cast<float>(height));
 		ImGui::Image(m_Application->m_RenderManager->GetGBuffer()->GetTexture(Graphics::SCREENTEX_OFFSCREEN0)->GetHandle(), ImVec2(static_cast<float>(width), static_cast<float>(height)), ImVec2(0.0f, flipImage ? 1.0f : 0.0f), ImVec2(1.0f, flipImage ? 0.0f : 1.0f));
 
+		m_ShowGrid = camera->Is2D();
+
 		if (m_ShowGrid)
 		{
-			Maths::Matrix4 view = Application::Instance()->GetSceneManager()->GetCurrentScene()->GetCamera()->GetViewMatrix();
-			Maths::Matrix4 proj = Application::Instance()->GetSceneManager()->GetCurrentScene()->GetCamera()->GetProjectionMatrix();
-			Maths::Matrix4 identityMatrix;
+			if (camera->Is2D())
+			{
+				Draw2DGrid(ImGui::GetWindowDrawList(), { camera->GetPosition().GetX(), camera->GetPosition().GetY() }, ImGui::GetWindowPos(), { static_cast<float>(m_SceneViewSize.GetX()), static_cast<float>(m_SceneViewSize.GetY()) }, camera->GetScale(), 1.5f);
+			}
+			else
+			{
+				Maths::Matrix4 view = camera->GetViewMatrix();
+				Maths::Matrix4 proj = camera->GetProjectionMatrix();
+				Maths::Matrix4 identityMatrix;
 
 #ifdef LUMOS_RENDER_API_VULKAN
-			if (Graphics::GraphicsContext::GetRenderAPI() == Graphics::RenderAPI::VULKAN)
-				proj[5] *= -1.0f;
+				if (Graphics::GraphicsContext::GetRenderAPI() == Graphics::RenderAPI::VULKAN)
+					proj[5] *= -1.0f;
 #endif
 
-			ImGuizmo::DrawGrid(view.values, proj.values, identityMatrix.values, m_GridSize);
+				ImGuizmo::DrawGrid(view.values, proj.values, identityMatrix.values, m_GridSize, 1.0f);
+			}
 		}
 
 		if (m_Selected)
 		{
-			m_Selected->OnGuizmo(m_ImGuizmoOperation);
+			OnImGuizmo();
 		}
 
 		ImGui::End();
+	}
+
+	void Editor::OnImGuizmo()
+	{
+		Maths::Matrix4 view = Application::Instance()->GetSceneManager()->GetCurrentScene()->GetCamera()->GetViewMatrix();
+		Maths::Matrix4 proj = Application::Instance()->GetSceneManager()->GetCurrentScene()->GetCamera()->GetProjectionMatrix();
+
+#ifdef LUMOS_RENDER_API_VULKAN
+		if (Graphics::GraphicsContext::GetRenderAPI() == Graphics::RenderAPI::VULKAN)
+			proj[5] *= -1.0f;
+#endif
+		ImGuizmo::SetDrawlist();
+		ImGuizmo::SetOrthographic(Application::Instance()->GetSceneManager()->GetCurrentScene()->GetCamera()->Is2D());
+
+		if (m_Selected->GetComponent<TransformComponent>() != nullptr)
+		{
+			Maths::Matrix4 model = m_Selected->GetComponent<TransformComponent>()->GetTransform()->GetWorldMatrix();
+
+			float snapAmount[3] = { m_SnapAmount  , m_SnapAmount , m_SnapAmount };
+			float delta[16];
+			ImGuizmo::Manipulate(view.values, proj.values, static_cast<ImGuizmo::OPERATION>(m_ImGuizmoOperation), ImGuizmo::LOCAL, model.values, delta, m_SnapQuizmo ? snapAmount : nullptr);
+
+			if (ImGuizmo::IsUsing())
+			{
+				auto mat = Maths::Matrix4(delta) * m_Selected->GetComponent<TransformComponent>()->GetTransform()->GetLocalMatrix();
+				m_Selected->GetComponent<TransformComponent>()->GetTransform()->SetLocalTransform(mat);
+				m_Selected->GetComponent<TransformComponent>()->GetTransform()->ApplyTransform();
+
+				auto physics2DComponent = m_Selected->GetComponent<Physics2DComponent>();
+
+				if (physics2DComponent)
+				{
+					physics2DComponent->GetPhysicsObject()->SetPosition({ mat.GetPositionVector().GetX(), mat.GetPositionVector().GetY() });
+				}
+				else
+				{
+					auto physics3DComponent = m_Selected->GetComponent<Physics3DComponent>();
+					if (physics3DComponent)
+					{
+						physics3DComponent->GetPhysicsObject()->SetPosition(mat.GetPositionVector());
+						physics3DComponent->GetPhysicsObject()->SetOrientation(mat.GetRotation().ToQuaternion());
+					}
+					
+				}
+			}
+		}
 	}
 
 	void Editor::BeginDockSpace(bool infoBar)
@@ -432,13 +488,11 @@ namespace Lumos
             ImGuiID dock_id_right  = ImGui::DockBuilderSplitNode(dock_main_id, ImGuiDir_Right, 0.3f, nullptr, &dock_main_id);
 			ImGuiID dock_id_middle = ImGui::DockBuilderSplitNode(dock_main_id, ImGuiDir_Right, 0.8f, nullptr, &dock_main_id);
 
-			ImGui::DockBuilderDockWindow("Scene", dock_id_middle);
-			ImGui::DockBuilderDockWindow("Inspector", dock_id_right);
-			ImGui::DockBuilderDockWindow("Hierarchy", dock_id_left);
-			ImGui::DockBuilderDockWindow("Console", dock_id_bottom);
-            ImGui::DockBuilderDockWindow("Profiler", dock_id_bottom);
-			ImGui::DockBuilderDockWindow("Engine", dock_id_left);
-			ImGui::DockBuilderDockWindow("Scene Information", dock_id_left);
+			ImGui::DockBuilderDockWindow(ICON_FA_GAMEPAD" Scene###scene", dock_id_middle);
+			ImGui::DockBuilderDockWindow(ICON_FA_INFO_CIRCLE" Inspector###inspector", dock_id_right);
+			ImGui::DockBuilderDockWindow(ICON_FA_LIST_ALT" Hierarchy###hierarchy", dock_id_left);
+			ImGui::DockBuilderDockWindow(ICON_FA_ALIGN_LEFT" Console###console", dock_id_bottom);
+            ImGui::DockBuilderDockWindow(ICON_FA_STOPWATCH" Profiler###profiler", dock_id_bottom);
 			ImGui::DockBuilderDockWindow("Dear ImGui Demo", dock_id_left);
             ImGui::DockBuilderDockWindow("GraphicsInfo", dock_id_left);
 
@@ -676,5 +730,53 @@ namespace Lumos
 
 		}
 		ImGui::End();
+	}
+
+	static ImVec2 operator+(const ImVec2 &a, const ImVec2 &b) {
+		return ImVec2(a.x + b.x, a.y + b.y);
+	}
+
+	static ImVec2 operator-(const ImVec2 &a, const ImVec2 &b) {
+		return ImVec2(a.x - b.x, a.y - b.y);
+	}
+
+	void Editor::Draw2DGrid(ImDrawList* drawList, const ImVec2& cameraPos, const ImVec2& windowPos, const ImVec2& canvasSize, const float factor, const float thickness)
+	{
+		ImU32 GRID_COLOR = IM_COL32(100, 100, 100, 40);
+	
+		static const auto graduation = ImVec2{ 10, 10 };
+		float GRID_SZ = 64.0f / factor;
+		const ImVec2& offset = { canvasSize.x / 2.0f - cameraPos.x * 300.0f / factor, canvasSize.y / 2.0f + cameraPos.y* 300.0f / factor };// cameraPos;
+
+		const auto& gridColor = GRID_COLOR;
+		const auto& smallGridColor = IM_COL32(100, 10, 100, 40);
+
+		for (float x = -GRID_SZ; x < canvasSize.x + GRID_SZ; x += GRID_SZ)
+		{
+			auto localX = floorf(x + fmodf(offset.x, GRID_SZ));
+			drawList->AddLine(ImVec2{ localX, 0.0f } + windowPos, ImVec2{ localX, canvasSize.y } +windowPos, gridColor);
+
+			auto smallGraduation = GRID_SZ / graduation.x;
+
+			for (int i = 1; i < graduation.x; ++i)
+			{
+				const auto graduation = floorf(localX + smallGraduation * i);
+				drawList->AddLine(ImVec2{ graduation, 0.0f } +windowPos, ImVec2{ graduation, canvasSize.y } +windowPos, smallGridColor);
+			}
+		}
+
+		for (float y = -GRID_SZ; y < canvasSize.y + GRID_SZ; y += GRID_SZ)
+		{
+			auto localY = floorf(y + fmodf(offset.y, GRID_SZ));
+			drawList->AddLine(ImVec2{ 0.0f, localY } +windowPos, ImVec2{ canvasSize.x, localY } +windowPos, gridColor);
+
+			auto smallGraduation = GRID_SZ / graduation.y;
+
+			for (int i = 1; i < graduation.y; ++i)
+			{
+				const auto graduation = floorf(localY + smallGraduation * i);
+				drawList->AddLine(ImVec2{ 0.0f, graduation } +windowPos, ImVec2{ canvasSize.x, graduation } +windowPos, smallGridColor);
+			}
+		}
 	}
 }

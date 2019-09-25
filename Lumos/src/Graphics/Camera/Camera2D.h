@@ -22,6 +22,7 @@ namespace Lumos
         
         void UpdateScroll(float offset, float dt) override;
 		void OnImGui() override;
+		bool Is2D() const override { return true; }
 
     private:
 		float m_Scale;

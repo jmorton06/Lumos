@@ -15,8 +15,6 @@ namespace Lumos
 
 		void Init();
 		void Update();
-
-		void OnUpdateTransform(const Maths::Matrix4& entityTransform) override;
         
         void OnImGui() override;
         

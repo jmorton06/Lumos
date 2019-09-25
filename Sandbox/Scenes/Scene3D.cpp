@@ -37,6 +37,8 @@ public:
 
 	nlohmann::json Serialise() override { return nullptr; };
 	void Deserialise(nlohmann::json& data) override {};
+
+	SETUPCOMPOMENT(TransformComponent);
 };
 
 Scene3D::Scene3D(const String& SceneName)

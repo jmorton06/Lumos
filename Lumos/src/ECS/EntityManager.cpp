@@ -1,15 +1,7 @@
 #include "lmpch.h"
 #include "EntityManager.h"
-#include "Graphics/API/GraphicsContext.h"
-#include "Graphics/Camera/Camera.h"
-#include "App/Application.h"
-#include "App/Scene.h"
-#include "App/SceneManager.h"
-#include "Maths/MathsUtilities.h"
 
 #include <imgui/imgui.h>
-#include <imgui/plugins/ImGuizmo.h>
-
 #include <IconFontCppHeaders/IconsFontAwesome5.h>
 
 namespace Lumos
@@ -90,36 +82,7 @@ namespace Lumos
         
         return m_DefaultTransformComponent;
     }
-    
-    void Entity::OnGuizmo(u32 mode)
-    {
-        Maths::Matrix4 view = Application::Instance()->GetSceneManager()->GetCurrentScene()->GetCamera()->GetViewMatrix();
-        Maths::Matrix4 proj = Application::Instance()->GetSceneManager()->GetCurrentScene()->GetCamera()->GetProjectionMatrix();
-        
-#ifdef LUMOS_RENDER_API_VULKAN
-        if (Graphics::GraphicsContext::GetRenderAPI() == Graphics::RenderAPI::VULKAN)
-            proj[5] *= -1.0f;
-#endif
-        ImGuizmo::SetDrawlist();
-        
-        Maths::Matrix4 model = Maths::Matrix4();
-        if (this->GetComponent<TransformComponent>() != nullptr)
-            model = GetComponent<TransformComponent>()->GetTransform()->GetWorldMatrix();
-        
-        float delta[16];
-        ImGuizmo::Manipulate(view.values, proj.values, static_cast<ImGuizmo::OPERATION>(mode), ImGuizmo::LOCAL, model.values, delta, nullptr);
-        
-		//ImGuizmo::DrawCube(view.values, proj.values, (model * Maths::Matrix4::Scale(Maths::Vector3(m_BoundingRadius,m_BoundingRadius, m_BoundingRadius))).values, false);
 
-        if (GetTransformComponent() != nullptr && ImGuizmo::IsUsing())
-        {
-            auto mat = Maths::Matrix4(delta) * m_DefaultTransformComponent->GetTransform()->GetLocalMatrix();
-            m_DefaultTransformComponent->GetTransform()->SetLocalTransform(mat);
-            m_DefaultTransformComponent->GetTransform()->ApplyTransform();
-            
-        }
-    }
-    
     void Entity::OnImGui()
     {
         static char objName[INPUT_BUF_SIZE];
@@ -136,14 +99,10 @@ namespace Lumos
         
         if (ImGui::BeginPopup("Add Component", 3))
         {
-            if (ImGui::Selectable("Mesh")) this->AddComponent<MeshComponent>();
-            if (ImGui::Selectable("Material")) this->AddComponent<MaterialComponent>();
-            if (ImGui::Selectable("Camera")) this->AddComponent<CameraComponent>();
-            if (ImGui::Selectable("Sprite")) this->AddComponent<SpriteComponent>();
-            if (ImGui::Selectable("Light")) this->AddComponent<LightComponent>();
-            if (ImGui::Selectable("Sound")) this->AddComponent<SoundComponent>();
-            if (ImGui::Selectable("Physics2D")) this->AddComponent<Physics2DComponent>();
-            if (ImGui::Selectable("Physics3D")) this->AddComponent<Physics3DComponent>();
+			const auto& componentArrays = ComponentManager::Instance()->GetComponentArrays();
+
+			for(const auto& componentArray : componentArrays)
+				if (ImGui::Selectable(componentArray.second->GetName().c_str())) ComponentManager::Instance()->CreateComponent(this, componentArray.second->GetID());
 
             ImGui::EndPopup();
         }
@@ -196,14 +155,8 @@ namespace Lumos
 
 				if (ImGui::BeginPopup(("Remove Component" + component->GetName()).c_str(), 3))
 				{
-					if (ImGui::Selectable(("Remove##" + component->GetName()).c_str()))
-                    {
-                        this->RemoveComponent(component->GetTypeID());
-                        ImGui::EndPopup();
-                        return;
-                    }
-                    else
-                        ImGui::EndPopup();
+					if (ImGui::Selectable(("Remove##" + component->GetName()).c_str())) this->RemoveComponent(component->GetTypeID());
+					ImGui::EndPopup();
 				}
 			}
 

@@ -32,7 +32,6 @@ namespace Lumos
         
         virtual void OnUpdateObject(float dt);
         virtual void OnImGui();
-        virtual void OnGuizmo(u32 mode = 0);
         virtual void Init();
         
         const std::vector<Entity*>& GetChildren() const { return m_Children; }
@@ -136,7 +135,7 @@ namespace Lumos
         ~EntityManager();
 
 		void Clear();
-		Entity* CreateEntity(const String& name = "");
+		Entity* CreateEntity(const String& name = "Entity");
 		void DeleteEntity(Entity* entity);
 
 		const std::vector<Entity*>& GetEntities() const { return m_Entities; }
