@@ -22,8 +22,7 @@ namespace Lumos
     Profiler::Profiler()
     {
         m_Timer = CreateScope<Timer>();
-        m_UpdateTimer = 0.0f;
-        m_UpdateFrequency = 0.1f;
+
         m_ElapsedFrames = 0;
         m_Enabled = false;
     }
@@ -37,7 +36,6 @@ namespace Lumos
     {
         if (IsEnabled())
         {
-            m_UpdateTimer += deltaTime;
             ++m_ElapsedFrames;
         }
     }
@@ -52,7 +50,7 @@ namespace Lumos
         m_Timer->GetMS();
     }
     
-    bool Profiler::IsEnabled()
+    bool& Profiler::IsEnabled()
     {
         return m_Enabled;
     }
@@ -119,58 +117,8 @@ namespace Lumos
             sortedHistory.insert(std::pair<float, std::string>(data.second, data.first));
 
         for (auto& data : sortedHistory)
-            report.actions.push_back({ data.second, data.first, (data.first / time), m_CallsCounter[data.second] });
+            report.actions.push_back({ data.second, data.first, (data.first / time) * 100.0f, m_CallsCounter[data.second] });
 
         return report;
-    }
-    
-    void Profiler::OnImGui()
-    {
-        ImGui::Begin(ICON_FA_STOPWATCH" Profiler###profiler");
-        {
-            ImGui::Checkbox("Profiler Enabled", &m_Enabled);
-            ImGui::InputFloat("Update Frequency", &m_UpdateFrequency);
-            ImGui::Text("Report period duration : %f ms", m_Report.elaspedTime);
-            ImGui::Text("Threads : %i", m_Report.workingThreads);
-            ImGui::Text("Frames : %i", m_Report.elapsedFrames);
-            
-            if (IsEnabled())
-            {
-                if ( m_UpdateTimer >= m_UpdateFrequency)
-                {
-                    m_Report = GenerateReport();
-                    ClearHistory();
-                    m_UpdateTimer = 0.0f;
-                }
-                
-                if (m_Report.actions.empty())
-                {
-                    ImGui::Text("Collecting Data");
-                }
-                else
-                {
-                    for (const auto& action : m_Report.actions)
-                    {
-                        ImVec4 colour;
-                        
-                        if (action.percentage <= 25.0f)
-                            colour = {0.2f,0.8f,0.2f,1.0f};
-                        else if (action.percentage <= 50.0f)
-                            colour = {0.2f,0.6f,0.6f,1.0f};
-                        else if (action.percentage <= 75.0f)
-                            colour = {0.7f,0.2f,0.3f,1.0f};
-                        else
-                            colour = {0.8f,0.2f,0.2f,1.0f};
-                        
-                        ImGui::TextColored(colour, "%s %f ms | %f ms per call | %f percent | %llu calls", action.name.c_str(), action.duration, action.duration / action.calls, action.percentage, action.calls);
-                    }
-                }
-            }
-            else
-            {
-                ImGui::Text("Profiler Disabled");
-            }
-        }
-        ImGui::End();
     }
 }

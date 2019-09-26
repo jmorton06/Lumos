@@ -66,7 +66,7 @@ void Scene2D::LoadSprites()
 
 	float scale = 0.1f;
 
-	for (int i = 0; i < 1000; i++)
+	for (int i = 0; i < 100; i++)
 	{
 		auto testSprite = EntityManager::Instance()->CreateEntity("Sprite" + StringFormat::ToString(i));
 
@@ -94,9 +94,9 @@ void Scene2D::LoadSprites()
 
 	auto testSprite = EntityManager::Instance()->CreateEntity("SpriteTest");
 
-	Lumos::Ref<Graphics::Sprite> sprite = Lumos::CreateRef<Graphics::Sprite>(Maths::Vector2(-2.0f, 0.0f), Maths::Vector2(1.0f, 1.0f), Maths::Vector4(0.4f, 0.1f, 0.6f, 1.0f));
+	Lumos::Ref<Graphics::Sprite> sprite = Lumos::CreateRef<Graphics::Sprite>(Maths::Vector2(0.0f, 0.0f), Maths::Vector2(1.0f, 1.0f), Maths::Vector4(0.4f, 0.1f, 0.6f, 1.0f));
 	testSprite->AddComponent<SpriteComponent>(sprite);
-	testSprite->AddComponent<TransformComponent>();
+	testSprite->AddComponent<TransformComponent>(Maths::Matrix4::Translation(Maths::Vector3(-4.0f,1.0f,0.0f)));
 
 	AddEntity(testSprite);
 

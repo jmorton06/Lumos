@@ -270,11 +270,6 @@ namespace Lumos
 		style.GrabRounding = 1;
         style.WindowMinSize = ImVec2(10.0f,10.0f);
 
-#ifdef IMGUI_HAS_DOCK
-		style.TabBorderSize = 0.0f;
-		style.TabRounding = 3;
-#endif
-
 		ImVec4* colors = ImGui::GetStyle().Colors;
 		colors[ImGuiCol_Text] = ImVec4(0.95f, 0.96f, 0.98f, 1.00f);
 		colors[ImGuiCol_TextDisabled] = ImVec4(0.36f, 0.42f, 0.47f, 1.00f);
@@ -324,5 +319,24 @@ namespace Lumos
 		colors[ImGuiCol_NavWindowingHighlight] = ImVec4(1.00f, 1.00f, 1.00f, 0.70f);
 		colors[ImGuiCol_NavWindowingDimBg] = ImVec4(0.80f, 0.80f, 0.80f, 0.20f);
 		colors[ImGuiCol_ModalWindowDimBg] = ImVec4(0.80f, 0.80f, 0.80f, 0.35f);
+
+#ifdef IMGUI_HAS_DOCK 
+		style.TabBorderSize = 0.0f;
+		style.TabRounding = 1;
+
+		colors[ImGuiCol_DockingEmptyBg] = ImVec4(0.33f, 0.33f, 0.33f, 1.00f);
+		colors[ImGuiCol_Tab] = ImVec4(0.09f, 0.21f, 0.31f, 1.00f);
+		colors[ImGuiCol_TabHovered] = ImVec4(0.20f, 0.25f, 0.29f, 1.00f);
+		colors[ImGuiCol_TabActive] = ImVec4(0.18f, 0.22f, 0.25f, 1.00f);
+		colors[ImGuiCol_TabUnfocused] = ImVec4(0.09f, 0.21f, 0.31f, 1.00f);
+		colors[ImGuiCol_TabUnfocusedActive] = ImVec4(0.18f, 0.22f, 0.25f, 1.00f);
+		colors[ImGuiCol_DockingPreview] = ImVec4(0.33f, 0.33f, 0.33f, 1.00f);
+
+		if (ImGui::GetIO().ConfigFlags & ImGuiConfigFlags_ViewportsEnable)
+		{
+			style.WindowRounding = 0.0f;
+			style.Colors[ImGuiCol_WindowBg].w = 1.0f;
+		}
+#endif
 	}
 }

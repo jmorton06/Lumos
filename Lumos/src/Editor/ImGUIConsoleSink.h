@@ -1,6 +1,6 @@
 #pragma once
 #include "lmpch.h"
-#include "Console.h"
+#include "ConsoleWindow.h"
 #include <imgui/imgui.h>
 #include <spdlog/sinks/base_sink.h>
 
@@ -24,25 +24,25 @@ namespace Lumos
 			fmt::memory_buffer formatted;
             spdlog::sinks::sink::formatter_->format(msg, formatted);
 			String source = fmt::format("File : {0} | Function : {1} | Line : {2}", msg.source.filename, msg.source.funcname, msg.source.line);
-            Console::Instance()->AddMessage(CreateRef<Console::Message>(fmt::to_string(formatted), GetMessageLevel(msg.level), source, static_cast<int>(msg.thread_id)));
+            ConsoleWindow::AddMessage(CreateRef<ConsoleWindow::Message>(fmt::to_string(formatted), GetMessageLevel(msg.level), source, static_cast<int>(msg.thread_id)));
 		}
 
-        static Console::Message::Level GetMessageLevel(const spdlog::level::level_enum level)
+        static ConsoleWindow::Message::Level GetMessageLevel(const spdlog::level::level_enum level)
 		{
 			switch (level)
 			{
-				case spdlog::level::level_enum::trace   : return Console::Message::Level::Trace;
-				case spdlog::level::level_enum::debug   : return Console::Message::Level::Debug;
-				case spdlog::level::level_enum::info    : return Console::Message::Level::Info;
-				case spdlog::level::level_enum::warn    : return Console::Message::Level::Warn;
-				case spdlog::level::level_enum::err     : return Console::Message::Level::Error;
-				case spdlog::level::level_enum::critical: return Console::Message::Level::Critical;
-				case spdlog::level::level_enum::off     : return Console::Message::Level::Off;
+				case spdlog::level::level_enum::trace   : return ConsoleWindow::Message::Level::Trace;
+				case spdlog::level::level_enum::debug   : return ConsoleWindow::Message::Level::Debug;
+				case spdlog::level::level_enum::info    : return ConsoleWindow::Message::Level::Info;
+				case spdlog::level::level_enum::warn    : return ConsoleWindow::Message::Level::Warn;
+				case spdlog::level::level_enum::err     : return ConsoleWindow::Message::Level::Error;
+				case spdlog::level::level_enum::critical: return ConsoleWindow::Message::Level::Critical;
+				case spdlog::level::level_enum::off     : return ConsoleWindow::Message::Level::Off;
 			}
-			return Console::Message::Level::Invalid;
+			return ConsoleWindow::Message::Level::Invalid;
 		}
 
-		void flush_() override { Console::Instance()->Flush(); };
+		void flush_() override { ConsoleWindow::Flush(); };
 	};
 }
 
