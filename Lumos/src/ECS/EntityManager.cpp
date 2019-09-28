@@ -241,13 +241,15 @@ namespace Lumos
         m_Name = data["name"];
         m_PrefabFileLocation = data["prefabFilePath"];
         
-        auto parentID = data["parentID"];
+        const String& parentID = data["parentID"];
+
+		m_Parent = m_Manager->GetEntity(parentID);
         nlohmann::json::array_t children = data["children"];
         nlohmann::json::array_t components = data["components"];
         
         for (int i = 0; i < components.size(); i++)
         {
-            auto type = components[i]["typeID"];
+            size_t type = components[i]["typeID"];
 			auto component = ComponentManager::Instance()->CreateComponent(this, type);
 			component->Deserialise(components[i]);
         }
@@ -285,4 +287,14 @@ void Lumos::EntityManager::DeleteEntity(Entity* entity)
 			m_Entities.erase(m_Entities.begin() + i);
 		}
 	}
+}
+
+Lumos::Entity * Lumos::EntityManager::GetEntity(const String & uuid)
+{
+	for (auto entity : m_Entities)
+	{
+		if (entity->GetUUID() == uuid)
+			return entity;
+	}
+	return nullptr;
 }
