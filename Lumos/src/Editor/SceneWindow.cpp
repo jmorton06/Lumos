@@ -1,6 +1,5 @@
 #include "lmpch.h"
 #include "SceneWindow.h"
-#include "Maths/Maths.h"
 #include "Editor.h"
 #include "Graphics/Camera/Camera.h"
 #include "App/Application.h"
@@ -8,7 +7,7 @@
 #include "Graphics/API/GraphicsContext.h"
 #include "Graphics/RenderManager.h"
 #include "Graphics/GBuffer.h"
-#include <imgui/imgui.h>
+
 #include <imgui/plugins/ImGuizmo.h>
 #include <IconFontCppHeaders/IconsFontAwesome5.h>
 
@@ -18,11 +17,19 @@ namespace Lumos
 	{
 		m_Name = ICON_FA_GAMEPAD" Scene###scene";
 		m_SimpleName = "Scene";
+
+		m_ComponentIconMap[typeid(LightComponent).hash_code()] = ICON_FA_LIGHTBULB;
+		m_ComponentIconMap[typeid(CameraComponent).hash_code()] = ICON_FA_VIDEO;
+		m_ComponentIconMap[typeid(SoundComponent).hash_code()] = ICON_FA_VOLUME_UP;
+
+		m_ShowComponentGizmoMap[typeid(LightComponent).hash_code()] = true;
+		m_ShowComponentGizmoMap[typeid(CameraComponent).hash_code()] = true;
+		m_ShowComponentGizmoMap[typeid(SoundComponent).hash_code()] = true;
 	}
 
 	void SceneWindow::OnImGui()
 	{
-		auto flags = ImGuiWindowFlags_NoCollapse;
+		auto flags = ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoScrollWithMouse;
 		ImGui::SetNextWindowBgAlpha(0.0f);
 		ImGui::Begin(m_Name.c_str(), &m_Active, flags);
 
@@ -55,6 +62,7 @@ namespace Lumos
 			}
 			else
 			{
+#if 0 
 				Maths::Matrix4 view = camera->GetViewMatrix();
 				Maths::Matrix4 proj = camera->GetProjectionMatrix();
 				Maths::Matrix4 identityMatrix;
@@ -65,12 +73,33 @@ namespace Lumos
 #endif
 
 				ImGuizmo::DrawGrid(view.values, proj.values, identityMatrix.values, m_Editor->GetGridSize(), 1.0f);
+#endif
 			}
 		}
 
 
 		m_Editor->OnImGuizmo();
+		DrawGizmos(static_cast<float>(width), static_cast<float>(height), ImGui::GetWindowPos().x, ImGui::GetWindowPos().y);
 
 		ImGui::End();
+	}
+
+	void SceneWindow::DrawGizmos(float width, float height, float xpos, float ypos)
+	{	
+		Camera* camera = Application::Instance()->GetSceneManager()->GetCurrentScene()->GetCamera();
+
+		Maths::Matrix4 view = camera->GetViewMatrix();
+		Maths::Matrix4 proj = camera->GetProjectionMatrix();
+
+		if (Graphics::GraphicsContext::GetRenderAPI() == Graphics::RenderAPI::VULKAN)
+			proj[5] *= -1.0f;
+
+		Maths::Matrix4 viewProj = proj * view;
+		Maths::Frustum f;
+		f.FromMatrix(viewProj);
+
+		ShowComponentGizmo<LightComponent>(width, height, xpos, ypos, viewProj, f);
+		ShowComponentGizmo<CameraComponent>(width, height, xpos, ypos, viewProj, f);
+		ShowComponentGizmo<SoundComponent>(width, height, xpos, ypos, viewProj, f);
 	}
 }

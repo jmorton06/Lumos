@@ -41,6 +41,8 @@ namespace Lumos
 			void SetRenderTarget(Texture* texture) override;
 			void SetRenderToGBufferTexture(bool set) override;
 
+			void OnImGui() override;
+
 		private:
 
 			void SetSystemUniforms(Shader* shader) const;

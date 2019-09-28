@@ -138,6 +138,8 @@ namespace Lumos
 		Entity* CreateEntity(const String& name = "Entity");
 		void DeleteEntity(Entity* entity);
 
+		Entity* GetEntity(const String& uuid);
+
 		const std::vector<Entity*>& GetEntities() const { return m_Entities; }
 
 	private:

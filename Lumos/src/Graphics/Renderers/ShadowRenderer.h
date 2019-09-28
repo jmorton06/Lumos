@@ -83,6 +83,8 @@ namespace Lumos
 
 			void SetLight(Ref<Graphics::Light>& light) { m_Light = light; }
 
+			void OnImGui() override;
+
 		protected:
 
 			void SetSystemUniforms(Shader* shader);

@@ -9,6 +9,7 @@
 #include "Graphics/API/CommandBuffer.h"
 #include "Graphics/API/Swapchain.h"
 #include "Graphics/API/RenderPass.h"
+#include "Graphics/API/GraphicsContext.h"
 #include "Graphics/API/Pipeline.h"
 #include "Graphics/GBuffer.h"
 #include "Graphics/Mesh.h"
@@ -17,6 +18,8 @@
 #include "App/Scene.h"
 #include "App/Application.h"
 #include "Graphics/Camera/Camera.h"
+
+#include <imgui/imgui.h>
 
 namespace Lumos
 {
@@ -331,6 +334,26 @@ namespace Lumos
 
 					m_Framebuffers.emplace_back(Framebuffer::Create(bufferInfo));
 				}
+			}
+		}
+
+		void SkyboxRenderer::OnImGui()
+		{
+			ImGui::Text("Skybox Renderer");
+			if (ImGui::TreeNode("CubeMap"))
+			{
+				bool flipImage = Graphics::GraphicsContext::GetContext()->FlipImGUITexture();
+
+				ImGui::Image(m_CubeMap->GetHandle(), ImVec2(128, 128), ImVec2(0.0f, flipImage ? 1.0f : 0.0f), ImVec2(1.0f, flipImage ? 0.0f : 1.0f));
+
+				if (ImGui::IsItemHovered())
+				{
+					ImGui::BeginTooltip();
+					ImGui::Image(m_CubeMap->GetHandle(), ImVec2(256, 256), ImVec2(0.0f, flipImage ? 1.0f : 0.0f), ImVec2(1.0f, flipImage ? 0.0f : 1.0f));
+					ImGui::EndTooltip();
+				}
+
+				ImGui::TreePop();
 			}
 		}
 	}

@@ -26,6 +26,8 @@
 #include "Core/JobSystem.h"
 #include "Core/Profiler.h"
 
+#include <imgui/imgui.h>
+
 #define THREAD_CASCADE_GEN
 
 namespace Lumos
@@ -551,6 +553,26 @@ namespace Lumos
 			command.transform = transform;
 			command.material = material;
 			Submit(command);
+		}
+
+		void ShadowRenderer::OnImGui()
+		{
+			ImGui::Text("Shadow Renderer");
+			if (ImGui::TreeNode("Texture"))
+			{
+				bool flipImage = Graphics::GraphicsContext::GetContext()->FlipImGUITexture();
+
+				ImGui::Image(m_ShadowTex->GetHandle(), ImVec2(128, 128), ImVec2(0.0f, flipImage ? 1.0f : 0.0f), ImVec2(1.0f, flipImage ? 0.0f : 1.0f));
+
+				if (ImGui::IsItemHovered())
+				{
+					ImGui::BeginTooltip();
+					ImGui::Image(m_ShadowTex->GetHandle(), ImVec2(256, 256), ImVec2(0.0f, flipImage ? 1.0f : 0.0f), ImVec2(1.0f, flipImage ? 0.0f : 1.0f));
+					ImGui::EndTooltip();
+				}
+
+				ImGui::TreePop();
+			}
 		}
 	}
 }
