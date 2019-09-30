@@ -65,6 +65,8 @@ namespace Lumos
 
 		PhysicsObject3D* FindObjectByName(const String& name);
 
+        void ClearConstraints();
+        
 		void OnImGui() override;
 	protected:
 

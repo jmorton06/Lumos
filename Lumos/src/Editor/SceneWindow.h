@@ -38,7 +38,7 @@ namespace Lumos
 						{
 							Maths::Vector2 screenPos = Maths::WorldToScreen(pos, viewProj, width, height);
 							ImGui::SetCursorPos({ screenPos.x - ImGui::GetFontSize() / 2.0f , screenPos.y - ImGui::GetFontSize() / 2.0f });
-							ImGui::Text(m_ComponentIconMap[typeid(T).hash_code()]);
+                            ImGui::Text("%s", m_ComponentIconMap[typeid(T).hash_code()]);
 						}
 					}
 				}
