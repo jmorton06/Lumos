@@ -320,6 +320,13 @@ namespace Lumos
 		}
 	}
 
+    void LumosPhysicsEngine::ClearConstraints()
+    {
+        for (Constraint* c : m_Constraints)
+            delete c;
+        m_Constraints.clear();
+    }
+
 	PhysicsObject3D* LumosPhysicsEngine::FindObjectByName(const String& name)
 	{
 		auto it = std::find_if(m_PhysicsObjects.begin(), m_PhysicsObjects.end(), [name](Ref<PhysicsObject3D> o) 

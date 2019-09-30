@@ -121,6 +121,7 @@ void Scene3D::OnCleanupScene()
 	{
 		SAFE_DELETE(m_pCamera)
         SAFE_DELETE(m_EnvironmentMap);
+        Application::Instance()->GetSystem<LumosPhysicsEngine>()->ClearConstraints();
 	}
 
 	Scene::OnCleanupScene();
@@ -133,7 +134,7 @@ void Scene3D::LoadModels()
 	const float groundLength = 100.0f;
 
 	auto testMaterial = CreateRef<Material>();
-	testMaterial->LoadMaterial("checkerboard", "/CoreTextures/checkerboard.tga");
+    testMaterial->LoadMaterial("checkerboard", "/CoreTextures/checkerboard.tga");
 
 	auto ground = EntityManager::Instance()->CreateEntity("Ground");
 	Ref<PhysicsObject3D> testPhysics = CreateRef<PhysicsObject3D>();
@@ -153,7 +154,7 @@ void Scene3D::LoadModels()
 	MaterialProperties properties;
 	properties.albedoColour = Vector4(0.6f,0.1f,0.1f,1.0f);
 	properties.roughnessColour = Vector4(0.6f);
-	properties.specularColour = Vector4(0.94f);
+	properties.specularColour = Vector4(0.15f);
 	properties.usingAlbedoMap     = 0.5f;
 	properties.usingRoughnessMap  = 0.0f;
 	properties.usingNormalMap     = 0.0f;
