@@ -121,7 +121,6 @@ namespace Lumos
 
 		ImGui::Columns(1);
 		ImGui::Separator();
-		ImGui::PopStyleVar();
 	}
 
 	nlohmann::json LightComponent::Serialise() 

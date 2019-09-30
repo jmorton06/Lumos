@@ -59,13 +59,13 @@ namespace Lumos
 			size_t newIndex = m_Size;
 			m_EntityToIndexMap[entity] = newIndex;
 			m_IndexToEntityMap[newIndex] = entity;
-            //m_ComponentArray[newIndex]->SetEntity(entity);
             
+            m_Size++;
+
             if constexpr(is_detected_v<HasInit, T>)
             {
                 m_ComponentArray[newIndex].Init();
             }
-			m_Size++;
 		}
 
 		void RemoveData(Entity* entity) override
@@ -76,8 +76,8 @@ namespace Lumos
 			size_t indexOfRemovedEntity = m_EntityToIndexMap[entity];
 			size_t indexOfLastElement = m_Size - 1;
 			//lmdel m_ComponentArray[indexOfRemovedEntity];
-			m_ComponentArray[indexOfRemovedEntity] = m_ComponentArray[indexOfLastElement];
-
+			//m_ComponentArray[indexOfRemovedEntity] = m_ComponentArray[indexOfLastElement];
+            m_ComponentArray.erase(m_ComponentArray.begin() + indexOfRemovedEntity);
 			// Update map to point to moved spot
 			Entity* entityOfLastElement = m_IndexToEntityMap[indexOfLastElement];
 			m_EntityToIndexMap[entityOfLastElement] = indexOfRemovedEntity;
@@ -108,7 +108,7 @@ namespace Lumos
 				}
 			}
 
-			// Return a reference to the entity's component
+            LUMOS_ASSERT(false, "Entity not found");
 			return nullptr;
 		}
 

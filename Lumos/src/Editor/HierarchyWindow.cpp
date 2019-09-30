@@ -44,7 +44,12 @@ namespace Lumos
 			}
 
 			String icon(ICON_FA_CUBE);
-			bool nodeOpen = ImGui::TreeNodeEx("##" + node->GetUUID(), nodeFlags, (icon + " " + node->GetName()).c_str(), 0);
+            
+            std::stringstream ss;
+            ss << "##";
+            ss << node->GetUUID();
+            
+            bool nodeOpen = ImGui::TreeNodeEx(ss.str().c_str(), nodeFlags, (icon + " " + node->GetName()).c_str(), 0);
 
 			if (ImGui::BeginDragDropSource(ImGuiDragDropFlags_None))
 			{
