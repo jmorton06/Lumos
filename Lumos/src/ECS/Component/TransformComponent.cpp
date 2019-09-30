@@ -9,8 +9,6 @@ namespace Lumos
 {
 	TransformComponent::TransformComponent(const Maths::Matrix4& matrix)
 	{
-		m_CanDisable = false;
-
 		m_Transform = CreateRef<Maths::Transform>(matrix);
 	}
     
@@ -84,7 +82,6 @@ namespace Lumos
 		nlohmann::json output;
 		output["typeID"] = LUMOS_TYPENAME(TransformComponent);
 		output["transform"] = m_Transform->Serialise();
-		output["active"] = m_Active;
 
 		return output;
 	}
@@ -92,6 +89,5 @@ namespace Lumos
 	void TransformComponent::Deserialise(nlohmann::json & data)
 	{
 		m_Transform->Deserialise(data["transform"]);
-		m_Active = data["active"];
 	}
 }

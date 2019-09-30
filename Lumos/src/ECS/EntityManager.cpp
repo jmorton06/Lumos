@@ -1,5 +1,6 @@
 #include "lmpch.h"
 #include "EntityManager.h"
+#include "Utilities/RandomNumberGenerator.h"
 
 #include <imgui/imgui.h>
 #include <IconFontCppHeaders/IconsFontAwesome5.h>
@@ -23,28 +24,30 @@ namespace Lumos
     
     void Entity::Init()
     {
-        m_UUID = Maths::GenerateUUID();
+        m_UUID = RandomNumberGenerator32::Rand(0, INT_MAX);
     }
     
     void Entity::OnUpdateObject(float dt)
     {
-        if (m_DefaultTransformComponent && m_DefaultTransformComponent->GetTransform()->HasUpdated())
+		auto transformComponent = this->GetTransformComponent();
+
+        if (transformComponent && transformComponent->GetTransform()->HasUpdated())
         {
             if (!m_Parent)
-                m_DefaultTransformComponent->SetWorldMatrix(Maths::Matrix4());
+				transformComponent->SetWorldMatrix(Maths::Matrix4());
             else
             {
-                m_DefaultTransformComponent->SetWorldMatrix(m_Parent->GetTransformComponent()->GetTransform()->GetWorldMatrix());
+				transformComponent->SetWorldMatrix(m_Parent->GetTransformComponent()->GetTransform()->GetWorldMatrix());
             }
             
             
             for (auto child : m_Children)
             {
                 if (child && child->GetTransformComponent())
-                    child->GetTransformComponent()->SetWorldMatrix(m_DefaultTransformComponent->GetTransform()->GetWorldMatrix());
+                    child->GetTransformComponent()->SetWorldMatrix(transformComponent->GetTransform()->GetWorldMatrix());
             }
             
-            m_DefaultTransformComponent->GetTransform()->SetHasUpdated(false);
+			transformComponent->GetTransform()->SetHasUpdated(false);
         }
     }
     
@@ -72,15 +75,14 @@ namespace Lumos
     
     TransformComponent* Entity::GetTransformComponent()
     {
-        if (!m_DefaultTransformComponent)
+		auto transformComponent = this->GetComponent<TransformComponent>();
+        if (!transformComponent)
         {
-            m_DefaultTransformComponent = GetComponent<TransformComponent>();
-            
-            if (!m_DefaultTransformComponent)
-                AddComponent<TransformComponent>();
+            AddComponent<TransformComponent>();
+			transformComponent = this->GetComponent<TransformComponent>();
         }
         
-        return m_DefaultTransformComponent;
+        return transformComponent;
     }
 
     void Entity::OnImGui()
@@ -129,42 +131,7 @@ namespace Lumos
         ImGui::Separator();
         ImGui::PopStyleVar();
         
-        auto components = GetAllComponents();
-        for (auto& component : components)
-        {
-            ImGui::Separator();
-			String name = component->GetName().substr(component->GetName().find_last_of(':') + 1);
-			u32 index = FindStringPosition(name, "Component");
-
-			if (index >= 0)
-				name = RemoveStringRange(name, index, 9);
-            bool open = ImGui::CollapsingHeader(name.c_str(), ImGuiTreeNodeFlags_AllowItemOverlap);
-            
-			if (component->GetCanDisable())
-			{
-				const float ItemSpacing = ImGui::GetStyle().ItemSpacing.x;
-
-				static float HostButtonWidth = 42.0f;
-				float pos = HostButtonWidth + ItemSpacing;
-				ImGui::SameLine(ImGui::GetWindowWidth() - pos);
-				ImGui::Checkbox(("##Active" + component->GetName()).c_str(), &component->GetActive());
-				ImGui::SameLine();
-
-				if (ImGui::Button((ICON_FA_COG"##" + component->GetName()).c_str()))
-					ImGui::OpenPopup(("Remove Component" + component->GetName()).c_str());
-
-				if (ImGui::BeginPopup(("Remove Component" + component->GetName()).c_str(), 3))
-				{
-					if (ImGui::Selectable(("Remove##" + component->GetName()).c_str())) this->RemoveComponent(component->GetTypeID());
-					ImGui::EndPopup();
-				}
-			}
-
-            if (open)
-            {
-                component->OnImGui();
-            }
-        }
+		ComponentManager::Instance()->OnImGui(this);
     }
     
     void Entity::SetParent(Entity *parent)
@@ -197,11 +164,6 @@ namespace Lumos
         }
     }
     
-	const std::vector<LumosComponent*> Entity::GetAllComponents()
-    {
-        return ComponentManager::Instance()->GetAllComponents(this);
-    }
-    
     nlohmann::json Entity::Serialise()
     {
         nlohmann::json output;
@@ -209,7 +171,7 @@ namespace Lumos
         output["instanceID"] = m_UUID;
         output["active"] = m_Active;
         output["name"] = m_Name;
-        output["parentID"] = m_Parent ? m_Parent->GetUUID() : "";
+        output["parentID"] = m_Parent ? m_Parent->GetUUID() : 0;
         output["prefabFilePath"] = m_PrefabFileLocation;
         
         nlohmann::json childrenIDs = nlohmann::json::array_t();
@@ -219,14 +181,14 @@ namespace Lumos
         output["children"] = childrenIDs;
         
         nlohmann::json serializedComponents = nlohmann::json::array_t();
-        auto components = GetAllComponents();
+      /*  auto components = GetAllComponents();
         
 		for (int i = 0; i < components.size(); ++i)
 		{
 			auto sComp = components[i]->Serialise();
 			if(sComp != nullptr)
 				serializedComponents.push_back(sComp);
-		}
+		}*/
             
         
         output["components"] = serializedComponents;
@@ -241,7 +203,7 @@ namespace Lumos
         m_Name = data["name"];
         m_PrefabFileLocation = data["prefabFilePath"];
         
-        const String& parentID = data["parentID"];
+        u32 parentID = data["parentID"];
 
 		m_Parent = m_Manager->GetEntity(parentID);
         nlohmann::json::array_t children = data["children"];
@@ -250,8 +212,8 @@ namespace Lumos
         for (int i = 0; i < components.size(); i++)
         {
             size_t type = components[i]["typeID"];
-			auto component = ComponentManager::Instance()->CreateComponent(this, type);
-			component->Deserialise(components[i]);
+			ComponentManager::Instance()->CreateComponent(this, type);
+			//component->Deserialise(components[i]);
         }
     }
 }
@@ -289,7 +251,7 @@ void Lumos::EntityManager::DeleteEntity(Entity* entity)
 	}
 }
 
-Lumos::Entity * Lumos::EntityManager::GetEntity(const String & uuid)
+Lumos::Entity * Lumos::EntityManager::GetEntity(u32 uuid)
 {
 	for (auto entity : m_Entities)
 	{

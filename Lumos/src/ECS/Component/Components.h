@@ -2,7 +2,6 @@
 
 // Header file with all component includes
 
-#include "LumosComponent.h"
 #include "TransformComponent.h"
 #include "MeshComponent.h"
 #include "LightComponent.h"

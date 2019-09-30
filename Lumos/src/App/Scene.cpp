@@ -159,7 +159,7 @@ namespace Lumos
 			if (obj->ActiveInHierarchy())
 			{
 				auto meshComponent = obj->GetComponent<MeshComponent>();
-				if (meshComponent && meshComponent->GetActive() && meshComponent->GetMesh())
+				if (meshComponent &&/* meshComponent->GetActive() &&*/ meshComponent->GetMesh())
 				{
 					auto& transform = obj->GetComponent<TransformComponent>()->GetTransform();
 
@@ -168,7 +168,7 @@ namespace Lumos
 					maxScaling = Maths::Max(transform->GetWorldMatrix().GetScaling().GetY(), maxScaling);
 					maxScaling = Maths::Max(transform->GetWorldMatrix().GetScaling().GetZ(), maxScaling);
 
-					bool inside = frustum.InsideFrustum(transform->GetWorldMatrix().GetPositionVector(), maxScaling * meshComponent->GetBoundingShape()->SphereRadius());// maxScaling * obj->GetBoundingRadius());
+					bool inside = frustum.InsideFrustum(transform->GetWorldMatrix().GetPositionVector(), maxScaling * meshComponent->GetMesh()->GetBoundingSphere()->SphereRadius());// maxScaling * obj->GetBoundingRadius());
 
 					if (inside)
 					{

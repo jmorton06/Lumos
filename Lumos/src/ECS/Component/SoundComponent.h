@@ -1,11 +1,10 @@
 #pragma once
 #include "lmpch.h"
-#include "LumosComponent.h"
 #include "Audio/SoundNode.h"
 
 namespace Lumos
 {
-	class LUMOS_EXPORT SoundComponent : public LumosComponent
+	class LUMOS_EXPORT SoundComponent
 	{
 	public:
         SoundComponent();
@@ -13,14 +12,9 @@ namespace Lumos
 
 		void Init();
 
-		void OnImGui() override;
+		void OnImGui();
         
         SoundNode* GetSoundNode() const { return m_SoundNode.get(); }
-
-		nlohmann::json Serialise() override { return nullptr; };
-		void Deserialise(nlohmann::json& data) override {};
-        
-		SETUPCOMPOMENT(SoundComponent);
 
     private:
         Ref<SoundNode> m_SoundNode;

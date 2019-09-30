@@ -3,17 +3,29 @@
 #include "ECS.h"
 #include "ECSDefines.h"
 #include "Utilities/TSingleton.h"
-#include "ECS/Component/LumosComponent.h"
 
 #include "Core/Typename.h"
+#include "Core/Profiler.h"
+
+#include "Component/TransformComponent.h"
+
+#include <imgui/imgui.h>
+#include <IconFontCppHeaders/IconsFontAwesome5.h>
 
 namespace Lumos
 {
+	class Entity;
+
     template <class T>
     using HasInit = decltype(std::declval<T>().Init());
     
     template <class T>
     using HasUpdate = decltype(std::declval<T>().Update());
+
+	template <class T>
+	using HasImGui = decltype(std::declval<T>().OnImGui());
+
+	using ComponentType = uint32_t;
 
 	class IComponentArray
 	{
@@ -21,8 +33,9 @@ namespace Lumos
 		virtual ~IComponentArray() = default;
 		virtual void EntityDestroyed(Entity* entity) = 0;
 		virtual void OnUpdate() = 0;
+		virtual void OnImGui(Entity* entity) = 0;
 		virtual void RemoveData(Entity* entity) = 0;
-		virtual LumosComponent* CreateLumosComponent(Entity* entity) = 0;
+		virtual void CreateLumosComponent(Entity* entity) = 0;
 		virtual size_t GetID() = 0;
 		virtual const String GetName() const = 0;
 	};
@@ -31,7 +44,14 @@ namespace Lumos
 	class ComponentArray : public IComponentArray
 	{
 	public:
-		void InsertData(Entity* entity, T* component)
+
+		ComponentArray(u32 initSize = 30)
+		{
+			m_ComponentArray.reserve(30);
+			m_Size = 0;
+		}
+
+		void InsertData(Entity* entity, const T& component)
 		{
 			LUMOS_ASSERT(m_EntityToIndexMap.find(entity) == m_EntityToIndexMap.end(), "Component added to same entity more than once.");
 
@@ -39,12 +59,11 @@ namespace Lumos
 			size_t newIndex = m_Size;
 			m_EntityToIndexMap[entity] = newIndex;
 			m_IndexToEntityMap[newIndex] = entity;
-			m_ComponentArray[newIndex] = component;
-            m_ComponentArray[newIndex]->SetEntity(entity);
+            //m_ComponentArray[newIndex]->SetEntity(entity);
             
             if constexpr(is_detected_v<HasInit, T>)
             {
-                m_ComponentArray[newIndex]->Init();
+                m_ComponentArray[newIndex].Init();
             }
 			m_Size++;
 		}
@@ -56,7 +75,7 @@ namespace Lumos
 			// Copy element at end into deleted element's place to maintain density
 			size_t indexOfRemovedEntity = m_EntityToIndexMap[entity];
 			size_t indexOfLastElement = m_Size - 1;
-			lmdel m_ComponentArray[indexOfRemovedEntity];
+			//lmdel m_ComponentArray[indexOfRemovedEntity];
 			m_ComponentArray[indexOfRemovedEntity] = m_ComponentArray[indexOfLastElement];
 
 			// Update map to point to moved spot
@@ -72,29 +91,41 @@ namespace Lumos
 
 		T* GetData(Entity* entity)
 		{
-			if (m_EntityToIndexMap.find(entity) == m_EntityToIndexMap.end())
-				return nullptr;
+			auto index = m_EntityToIndexMap.find(entity);
+			if (index != m_EntityToIndexMap.end())
+				return &m_ComponentArray[index->second];
+
+			return nullptr;
+		}
+
+		Entity* GetEntity(T* component)
+		{
+			for (size_t index = 0; index < m_Size; index++)
+			{
+				if (&m_ComponentArray[index] == component)
+				{
+					return m_IndexToEntityMap[index];
+				}
+			}
 
 			// Return a reference to the entity's component
-			return m_ComponentArray[m_EntityToIndexMap[entity]];
+			return nullptr;
 		}
 
 		void OnUpdate() override
 		{
+			PROFILERRECORD("ComponentManager::OnUpdate");
 			for (int i = 0; i < m_Size; i++)
 			{
 				if constexpr (is_detected_v<HasUpdate, T>)
 				{
-					m_ComponentArray[i]->Update();
+					m_ComponentArray[i].Update();
 				}
 			}
 		}
 
-		const std::array<T*, MAX_ENTITIES>& GetArray() const
-		{
-			return m_ComponentArray;
-		}
-        
+		void OnImGui(Entity* entity) override;
+
         T** GetRawData() const
         {
             return m_ComponentArray.data();
@@ -114,25 +145,24 @@ namespace Lumos
 			}
 		}
 
-		T* CreateComponent(Entity* entity)
+		template<typename ... Args>
+		void CreateComponent(Entity* entity, Args&& ...args)
 		{
-			T* component = lmnew T();
+			T& component = m_ComponentArray.emplace_back(std::forward<Args>(args)...);
 			InsertData(entity, component);
-			return component;
 		}
 
-		LumosComponent* CreateLumosComponent(Entity* entity) override
+		void CreateLumosComponent(Entity* entity) override
 		{
-			if constexpr (std::is_base_of_v<T ,Lumos::LumosComponent>)
+			//if constexpr (std::is_base_of_v<T ,Lumos::LumosComponent>)
+			//{
+			//	//To stop build error with instantiating LumosComponent
+			//	return nullptr;
+			//}
+			//else
 			{
-				//To stop build error with instantiating LumosComponent
-				return nullptr;
-			}
-			else
-			{
-				T* component = lmnew T();
+				T component = m_ComponentArray.emplace_back();
 				InsertData(entity, component);
-				return static_cast<LumosComponent*>(component);
 			}
 		}
 
@@ -146,12 +176,18 @@ namespace Lumos
 			return LUMOS_TYPENAME_STRING(T);
 		}
 
+		inline T* operator[](int index)
+		{
+			return &m_ComponentArray[index];
+		}
+
+
 	private:
 		// The packed array of components (of generic type T),
 		// set to a specified maximum amount, matching the maximum number
 		// of entities allowed to exist simultaneously, so that each entity
 		// has a unique spot.
-		std::array<T*, MAX_ENTITIES> m_ComponentArray{};
+		std::vector<T> m_ComponentArray{};
 
 		// Map from an entity ID to an array index.
 		std::unordered_map<Entity*, size_t> m_EntityToIndexMap{};
@@ -201,10 +237,10 @@ namespace Lumos
 			return m_ComponentTypes[typeName];
 		}
 
-		template<typename T>
-		void AddComponent(Entity* entity, T* component)
+		template<typename T, typename ... Args>
+		void AddComponent(Entity* entity, Args&& ...args)
 		{
-			GetComponentArray<T>()->InsertData(entity, component);
+			GetComponentArray<T>()->CreateComponent(entity, std::forward<Args>(args) ...);
 		}
 
 		template<typename T>
@@ -236,6 +272,18 @@ namespace Lumos
 			}
 		}
 
+		void OnImGui(Entity* entity)
+		{
+			// Notify each component array that an entity has been destroyed
+			// If it has a component for that entity, it will remove it
+			for (auto& pair : m_ComponentArrays)
+			{
+				auto& component = pair.second;
+
+				component->OnImGui(entity);
+			}
+		}
+
 		template<typename T>
 		ComponentArray<T>* GetComponentArray()
 		{
@@ -246,11 +294,9 @@ namespace Lumos
 			return static_cast<ComponentArray<T>*>(m_ComponentArrays[typeName].get());
 		}
 
-		const std::vector<LumosComponent*> GetAllComponents(Entity* entity);
-
-		LumosComponent* CreateComponent(Entity* entity, size_t id)
+		void CreateComponent(Entity* entity, size_t id)
 		{
-			return m_ComponentArrays.at(id)->CreateLumosComponent(entity);
+			m_ComponentArrays.at(id)->CreateLumosComponent(entity);
 		}
 
 		const std::unordered_map<size_t, Ref<IComponentArray>>& GetComponentArrays() const { return m_ComponentArrays; }
@@ -260,5 +306,56 @@ namespace Lumos
 		std::unordered_map<size_t, Ref<IComponentArray>> m_ComponentArrays;
 		ComponentType m_NextComponentType;
 	};
+
+	template<typename T>
+	inline void ComponentArray<T>::OnImGui(Entity * entity)
+	{
+		PROFILERRECORD("ComponentManager::OnImGui");
+		if constexpr (is_detected_v<HasImGui, T>)
+		{
+			T* component = GetData(entity);
+
+			if (component)
+			{
+				ImGui::Separator();
+
+				String componentName = LUMOS_TYPENAME_STRING(T);
+				size_t typeID = typeid(T).hash_code();
+
+				String name = componentName.substr(componentName.find_last_of(':') + 1);
+				u32 index = FindStringPosition(name, "Component");
+
+				if (index >= 0)
+					name = RemoveStringRange(name, index, 9);
+				bool open = ImGui::CollapsingHeader(name.c_str(), ImGuiTreeNodeFlags_AllowItemOverlap);
+
+				if (typeID != typeid(TransformComponent).hash_code())
+				{
+					const float ItemSpacing = ImGui::GetStyle().ItemSpacing.x;
+
+					const float HostButtonWidth = 42.0f;
+					static bool temp = true;
+					float pos = HostButtonWidth + ItemSpacing;
+					ImGui::SameLine(ImGui::GetWindowWidth() - pos);
+					ImGui::Checkbox(("##Active" + componentName).c_str(), &temp);
+					ImGui::SameLine();
+
+					if (ImGui::Button((ICON_FA_COG"##" + componentName).c_str()))
+						ImGui::OpenPopup(("Remove Component" + componentName).c_str());
+
+					if (ImGui::BeginPopup(("Remove Component" + componentName).c_str(), 3))
+					{
+						if (ImGui::Selectable(("Remove##" + componentName).c_str())) RemoveData(entity);
+						ImGui::EndPopup();
+					}
+				}
+
+				if (open)
+				{
+					component->OnImGui();
+				}
+			}
+		}
+	}
 }
 

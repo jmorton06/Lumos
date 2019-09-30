@@ -71,6 +71,9 @@ namespace Lumos
 			Quaternion	m_LocalOrientation;
 
 			bool m_HasUpdated = false;
+
+			Transform* m_Parent = nullptr;
+			std::vector<Transform*> m_Children;
 		};
 	}
 }
