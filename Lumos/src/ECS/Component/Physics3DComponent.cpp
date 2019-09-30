@@ -21,14 +21,21 @@ namespace Lumos
 
 	void Physics3DComponent::Init()
 	{
-		m_PhysicsObject->SetEntity(m_Entity);
+		auto entity = ComponentManager::Instance()->GetComponentArray<Physics3DComponent>()->GetEntity(this);
+		m_PhysicsObject->SetEntity(entity);
 	}
 
 	void Physics3DComponent::Update()
 	{
-        m_Entity->GetTransformComponent()->GetTransform()->SetLocalPosition(m_PhysicsObject->GetPosition());
-        m_Entity->GetTransformComponent()->GetTransform()->SetLocalOrientation(m_PhysicsObject->GetOrientation());
-		m_Entity->GetTransformComponent()->GetTransform()->UpdateMatrices();
+		auto entity = ComponentManager::Instance()->GetComponentArray<Physics3DComponent>()->GetEntity(this);
+
+		if (entity)
+		{
+			entity->GetTransformComponent()->GetTransform()->SetLocalPosition(m_PhysicsObject->GetPosition());
+			entity->GetTransformComponent()->GetTransform()->SetLocalOrientation(m_PhysicsObject->GetOrientation());
+			entity->GetTransformComponent()->GetTransform()->UpdateMatrices();
+		}
+
 	}
 
     void Physics3DComponent::OnImGui()

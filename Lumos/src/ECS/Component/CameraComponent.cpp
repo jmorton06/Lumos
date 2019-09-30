@@ -11,13 +11,11 @@ namespace Lumos
     CameraComponent::CameraComponent()
     {
         m_Camera = nullptr;
-        m_BoundingShape = nullptr;
     }
     
 	CameraComponent::CameraComponent(Camera* camera)
 		: m_Camera(camera)
 	{
-        m_BoundingShape = nullptr;
 	}
 
     void CameraComponent::OnImGui()

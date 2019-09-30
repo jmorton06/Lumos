@@ -242,9 +242,9 @@ namespace Lumos
 
 		void DeferredRenderer::SubmitLightSetup(Scene* scene)
 		{
-			auto lightList = ComponentManager::Instance()->GetComponentArray<LightComponent>()->GetArray();// scene->GetLightList();
+			auto lightList = *ComponentManager::Instance()->GetComponentArray<LightComponent>();// scene->GetLightList();
 			auto size = ComponentManager::Instance()->GetComponentArray<LightComponent>()->GetSize();
-			if (lightList.empty())
+			if (size == 0)
 				return;
 
 			u32 numLights = 0;

@@ -1,11 +1,12 @@
 #pragma once
 #include "lmpch.h"
-#include "LumosComponent.h"
 #include "Physics/LumosPhysicsEngine/PhysicsObject3D.h"
+
+#include <jsonhpp/json.hpp>
 
 namespace Lumos
 {
-	class LUMOS_EXPORT Physics3DComponent : public LumosComponent
+	class LUMOS_EXPORT Physics3DComponent
 	{
 	public:
         Physics3DComponent();
@@ -15,15 +16,13 @@ namespace Lumos
 
 		void Init();
 		void Update();
-        
-        void OnImGui() override;
+        void OnImGui();
         
 		Ref<PhysicsObject3D>& GetPhysicsObject() { return m_PhysicsObject; }
 
-		nlohmann::json Serialise() override { return nullptr; };
-		void Deserialise(nlohmann::json& data) override {};
+		nlohmann::json Serialise() { return nullptr; };
+		void Deserialise(nlohmann::json& data) {};
 
-		SETUPCOMPOMENT(Physics3DComponent);
     private:
         Ref<PhysicsObject3D> m_PhysicsObject;
 	};

@@ -46,14 +46,12 @@ namespace Lumos
         void SetParent(Entity* parent);
         
         const String& GetName() const { return m_Name; }
-        const String& GetUUID() const { return m_UUID; }
+        const u32 GetUUID() const { return m_UUID; }
         
         const bool Active() const { return m_Active; }
         const bool ActiveInHierarchy() const;
         void SetActive(bool active) { m_Active = active; };
         void SetActiveRecursive(bool active);
-        
-        const std::vector<LumosComponent*> GetAllComponents();
         
         nlohmann::json Serialise() override;
         void Deserialise(nlohmann::json& data) override;
@@ -66,26 +64,23 @@ namespace Lumos
         NONCOPYABLE(Entity)
         
         String                  m_Name;
-        String                  m_UUID;
+        u32						m_UUID;
+        EntityManager*			m_Manager;
         String                  m_PrefabFileLocation;
         bool                    m_Active;
         u32                     m_FrustumCullFlags;
         TransformComponent*     m_DefaultTransformComponent = nullptr;
         
         Entity* m_Parent;
-        EntityManager* m_Manager;
         std::vector<Entity*> m_Children;
     };
 
     template<typename T, typename ... Args>
     inline void Entity::AddComponent(Args && ...args)
     {
-        auto component = lmnew T(std::forward<Args>(args) ...);
-        
-        if (ComponentManager::Instance()->GetComponentType<T>() == ComponentManager::Instance()->GetComponentType<TransformComponent>())
-            m_DefaultTransformComponent = reinterpret_cast<TransformComponent*>(component);
-        
-        ComponentManager::Instance()->AddComponent<T>(this, component);
+        ComponentManager::Instance()->AddComponent<T>(this, std::forward<Args>(args) ...);
+		if(typeid(T).hash_code() == typeid(TransformComponent).hash_code())
+			m_DefaultTransformComponent = ComponentManager::Instance()->GetComponent<TransformComponent>(this);
     }
 
     template<typename T, typename ... Args>
@@ -97,14 +92,9 @@ namespace Lumos
             return component;
         else
         {
-            component = lmnew T(std::forward<Args>(args) ...);
-  
-            if (ComponentManager::Instance()->GetComponentType<T>() == ComponentManager::Instance()->GetComponentType<TransformComponent>())
-                m_DefaultTransformComponent = reinterpret_cast<TransformComponent*>(component);
+			AddComponent<T>(std::forward<Args>(args) ...);
             
-            ComponentManager::Instance()->AddComponent<T>(this, component);
-            
-            return component;
+			return ComponentManager::Instance()->GetComponent<T>(this);
         }
     }
 
@@ -138,7 +128,7 @@ namespace Lumos
 		Entity* CreateEntity(const String& name = "Entity");
 		void DeleteEntity(Entity* entity);
 
-		Entity* GetEntity(const String& uuid);
+		Entity* GetEntity(u32 uuid);
 
 		const std::vector<Entity*>& GetEntities() const { return m_Entities; }
 

@@ -1,12 +1,13 @@
 #pragma once
 #include "lmpch.h"
-#include "LumosComponent.h"
 #include "Maths/Vector3.h"
 #include "Graphics/Light.h"
 
+#include <jsonhpp/json.hpp>
+
 namespace Lumos
 {
-	class LUMOS_EXPORT LightComponent : public LumosComponent
+	class LUMOS_EXPORT LightComponent
 	{
 	public:
         LightComponent();
@@ -18,14 +19,12 @@ namespace Lumos
 		void Init();
 		void Update();
 
-		void OnImGui() override;
+		void OnImGui();
 
 		Ref<Graphics::Light> GetLight() const { return m_Light; }
 
-		nlohmann::json Serialise() override;;
-		void Deserialise(nlohmann::json& data) override;
-
-		SETUPCOMPOMENT(LightComponent);
+		nlohmann::json Serialise();
+		void Deserialise(nlohmann::json& data);
         
     private:
         Ref<Graphics::Light> m_Light;

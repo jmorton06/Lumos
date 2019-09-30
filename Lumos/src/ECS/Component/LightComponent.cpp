@@ -15,13 +15,11 @@ namespace Lumos
     LightComponent::LightComponent()
     {
         m_Light = CreateRef<Graphics::Light>();
-        m_BoundingShape = CreateRef<Maths::BoundingSphere>(m_Light->m_Position.ToVector3(), m_Light->m_Radius * m_Light->m_Radius);
     }
     
 	LightComponent::LightComponent(const Ref<Graphics::Light>& light)
 		: m_Light(light)
 	{
-        m_BoundingShape = CreateRef<Maths::BoundingSphere>(light->m_Position.ToVector3(), light->m_Radius * light->m_Radius);
 	}
     
     LightComponent::~LightComponent()
@@ -31,7 +29,6 @@ namespace Lumos
 	void LightComponent::SetRadius(float radius)
 	{
 		m_Light->m_Radius = radius;
-		m_BoundingShape->SetRadius(radius);
 	}
 
 	void LightComponent::Update()
@@ -41,8 +38,8 @@ namespace Lumos
 		//float y = sin(euler.y)*cos(euler.x);
 		//float z = sin(euler.x);
 		//m_Light->m_Direction = Maths::Vector4(x,y,z, 1.0f);
-		m_Light->m_Position  = Maths::Vector4(m_Entity->GetTransformComponent()->GetTransform()->GetWorldMatrix().GetPositionVector(), 1.0f);
-		m_BoundingShape->SetPosition(m_Light->m_Position.ToVector3());
+		auto entity = ComponentManager::Instance()->GetComponentArray<LightComponent>()->GetEntity(this);
+		m_Light->m_Position  = Maths::Vector4(entity->GetTransformComponent()->GetTransform()->GetWorldMatrix().GetPositionVector(), 1.0f);
 	}
 
 	void LightComponent::Init()
@@ -62,12 +59,6 @@ namespace Lumos
 
 	void LightComponent::OnImGui()
 	{
-		ImGui::SameLine();
-		ImGui::Checkbox("##Active", &m_Active);
-		ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(2, 2));
-		ImGui::Columns(2);
-		ImGui::Separator();
-
 		ImGui::AlignTextToFramePadding();
 		ImGui::Text("Position");
 		ImGui::NextColumn();
@@ -136,8 +127,7 @@ namespace Lumos
 	nlohmann::json LightComponent::Serialise() 
 	{
 		nlohmann::json output;
-		output["typeID"]	= LUMOS_TYPENAME(LightComponent);
-		output["active"]	= m_Active;
+		output["typeID"] = LUMOS_TYPENAME(LightComponent);
 		output["position"]	= m_Light->m_Position.Serialise();
 		output["direction"] = m_Light->m_Direction.Serialise();
 		output["colour"]	= m_Light->m_Colour.Serialise();
@@ -156,6 +146,5 @@ namespace Lumos
 		m_Light->m_Intensity	= data["intensity"];
 		m_Light->m_Radius		= data["radius"];
 		m_Light->m_Type			= data["type"];
-		m_Active				= data["active"];
 	}
 }

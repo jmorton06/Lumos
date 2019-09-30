@@ -4,7 +4,7 @@
 using namespace Lumos;
 using namespace Maths;
 
-class TestComponent : public LumosComponent
+class TestComponent
 {
 public:
 	TestComponent() 
@@ -14,7 +14,7 @@ public:
 
 	void Init() {};
 
-	void OnImGui() override 
+	void OnImGui() 
 	{
 		ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(2, 2));
 		ImGui::Columns(2);
@@ -34,11 +34,6 @@ public:
 		ImGui::Separator();
 		ImGui::PopStyleVar();
 	};
-
-	nlohmann::json Serialise() override { return nullptr; };
-	void Deserialise(nlohmann::json& data) override {};
-
-	SETUPCOMPOMENT(TransformComponent);
 };
 
 Scene3D::Scene3D(const String& SceneName)
@@ -91,7 +86,7 @@ void Scene3D::OnInit()
 
 	auto cameraEntity = EntityManager::Instance()->CreateEntity("Camera");
 	cameraEntity->AddComponent<CameraComponent>(m_pCamera);
-	AddEntity(cameraEntity);
+	//AddEntity(cameraEntity);
 
 	Application::Instance()->GetSystem<AudioManager>()->SetListener(m_pCamera);
 
