@@ -132,8 +132,8 @@ namespace Lumos
 
 		if(m_pCamera)
 		{
-			m_pCamera->HandleMouse(timeStep->GetSeconds(), mousePos.GetX(), mousePos.GetY());
-			m_pCamera->HandleKeyboard(timeStep->GetSeconds());
+			m_pCamera->HandleMouse(timeStep->GetMillis(), mousePos.GetX(), mousePos.GetY());
+			m_pCamera->HandleKeyboard(timeStep->GetMillis());
 			m_pCamera->BuildViewMatrix();
 		}
 

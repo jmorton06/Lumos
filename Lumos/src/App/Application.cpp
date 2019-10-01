@@ -161,7 +161,7 @@ namespace Lumos
 
 	bool Application::OnFrame()
 	{
-		float now = m_Timer->GetMS(1.0f) * 1000.0f;
+		float now = m_Timer->GetMS(1.0f);
 
 #ifdef LUMOS_LIMIT_FRAMERATE
 		if (now - m_UpdateTimer > Engine::Instance()->TargetFrameRate())
