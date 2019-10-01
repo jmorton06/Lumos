@@ -94,14 +94,16 @@ namespace Lumos
 		}
 		m_Manifolds.clear();
         
-        scene->IterateEntities([&](Entity* entity)
+		auto& componentArray = *ComponentManager::Instance()->GetComponentArray<Physics3DComponent>();
+		auto size = componentArray.GetSize();
+        for(int i = 0; i < int(size); i++)
         {
-            auto phy3D = entity->GetComponent<Physics3DComponent>();
+			Physics3DComponent* phy3D = componentArray[i];
 			if (phy3D != nullptr)
 			{
 				m_PhysicsObjects.emplace_back(phy3D->GetPhysicsObject());
 			}
-        });
+        };
         
 		//Check for collisions
 		BroadPhaseCollisions();
@@ -257,47 +259,49 @@ namespace Lumos
 			CollisionData colData;
 			CollisionDetection colDetect;
 
-			for (size_t i = 0; i < m_BroadphaseCollisionPairs.size(); ++i)
+			System::JobSystem::Dispatch(static_cast<u32>(m_BroadphaseCollisionPairs.size()), 4, [&](JobDispatchArgs args)
 			{
-				CollisionPair &cp = m_BroadphaseCollisionPairs[i];
+				CollisionPair &cp = m_BroadphaseCollisionPairs[args.jobIndex];
 				auto shapeA = cp.pObjectA->GetCollisionShape();
 				auto shapeB = cp.pObjectB->GetCollisionShape();
 
-				if (!shapeA || !shapeB)
-					continue;
-
-				// Detects if the objects are colliding - Seperating Axis Theorem
-				if (CollisionDetection::Instance()->CheckCollision(cp.pObjectA, cp.pObjectB, shapeA.get(), shapeB.get(), &colData))
+				if (shapeA && shapeB)
 				{
-					// Check to see if any of the objects have collision callbacks that dont
-					// want the objects to physically collide
-					const bool okA = cp.pObjectA->FireOnCollisionEvent(cp.pObjectA, cp.pObjectB);
-					const bool okB = cp.pObjectB->FireOnCollisionEvent(cp.pObjectB, cp.pObjectA);
-
-					if (okA && okB)
+					// Detects if the objects are colliding - Seperating Axis Theorem
+					if (CollisionDetection::Instance()->CheckCollision(cp.pObjectA, cp.pObjectB, shapeA.get(), shapeB.get(), &colData))
 					{
-						// Build full collision manifold that will also handle the collision
-						// response between the two objects in the solver stage
-						Manifold* manifold = lmnew Manifold();
-						manifold->Initiate(cp.pObjectA, cp.pObjectB);
+						// Check to see if any of the objects have collision callbacks that dont
+						// want the objects to physically collide
+						const bool okA = cp.pObjectA->FireOnCollisionEvent(cp.pObjectA, cp.pObjectB);
+						const bool okB = cp.pObjectB->FireOnCollisionEvent(cp.pObjectB, cp.pObjectA);
 
-						// Construct contact points that form the perimeter of the collision manifold
-						if (CollisionDetection::Instance()->BuildCollisionManifold(cp.pObjectA, cp.pObjectB, shapeA.get(), shapeB.get(), colData, manifold))
+						if (okA && okB)
 						{
-							// Fire callback
-							cp.pObjectA->FireOnCollisionManifoldCallback(cp.pObjectA, cp.pObjectB, manifold);
-							cp.pObjectB->FireOnCollisionManifoldCallback(cp.pObjectB, cp.pObjectA, manifold);
+							// Build full collision manifold that will also handle the collision
+							// response between the two objects in the solver stage
+							Manifold* manifold = lmnew Manifold();
+							manifold->Initiate(cp.pObjectA, cp.pObjectB);
 
-							// Add to list of manifolds that need solving
-							m_Manifolds.push_back(manifold);
-						}
-						else
-						{
-							delete manifold;
+							// Construct contact points that form the perimeter of the collision manifold
+							if (CollisionDetection::Instance()->BuildCollisionManifold(cp.pObjectA, cp.pObjectB, shapeA.get(), shapeB.get(), colData, manifold))
+							{
+								// Fire callback
+								cp.pObjectA->FireOnCollisionManifoldCallback(cp.pObjectA, cp.pObjectB, manifold);
+								cp.pObjectB->FireOnCollisionManifoldCallback(cp.pObjectB, cp.pObjectA, manifold);
+
+								// Add to list of manifolds that need solving
+								m_Manifolds.push_back(manifold);
+							}
+							else
+							{
+								delete manifold;
+							}
 						}
 					}
 				}
-			}
+			});
+
+			System::JobSystem::Wait();
 		}
 	}
 

@@ -16,7 +16,6 @@
 #include "Graphics/Light.h"
 #include "Graphics/RenderList.h"
 
-#include "ECS/Component/TransformComponent.h"
 #include "ECS/Component/MeshComponent.h"
 
 #include "Maths/MathsUtilities.h"
@@ -259,7 +258,7 @@ namespace Lumos
 						{
 							auto mesh = model->GetMesh();
 							{
-								SubmitMesh(mesh, nullptr, obj->GetComponent<TransformComponent>()->GetTransform()->GetWorldMatrix(), Maths::Matrix4());
+								SubmitMesh(mesh, nullptr, obj->GetComponent<Maths::Transform>()->GetWorldMatrix(), Maths::Matrix4());
 							}
 						}
 					}
@@ -283,7 +282,12 @@ namespace Lumos
 
 		void ShadowRenderer::UpdateCascades(Scene* scene)
 		{
-			if (!m_Light)
+			if (!m_LightEntity)
+				return;
+
+			Light* light = m_LightEntity->GetComponent<Graphics::Light>();
+
+			if (!light)
 				return;
 
 			float cascadeSplits[SHADOWMAP_MAX];
@@ -371,7 +375,7 @@ namespace Lumos
 				Maths::Vector3 maxExtents = Maths::Vector3(radius);
 				Maths::Vector3 minExtents = -maxExtents;
 
-				Maths::Vector3 lightDir = -m_Light->m_Direction.ToVector3();
+				Maths::Vector3 lightDir = -light->m_Direction.ToVector3();
 				lightDir.Normalise();
 				Maths::Matrix4 lightViewMatrix = Maths::Matrix4::BuildViewMatrix(frustumCenter - lightDir * -minExtents.z, frustumCenter);
 

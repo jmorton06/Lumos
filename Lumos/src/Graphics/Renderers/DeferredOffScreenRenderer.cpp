@@ -5,7 +5,6 @@
 #include "ECS/EntityManager.h"
 #include "ECS/Component/MaterialComponent.h"
 #include "ECS/Component/MeshComponent.h"
-#include "ECS/Component/TransformComponent.h"
 #include "ECS/Component/TextureMatrixComponent.h"
 
 #include "Maths/Maths.h"
@@ -182,7 +181,7 @@ namespace Lumos
 						else
 							textureMatrix = Maths::Matrix4();
 
-						auto transform = obj->GetComponent<TransformComponent>()->GetTransform()->GetWorldMatrix();
+						auto transform = obj->GetComponent<Maths::Transform>()->GetWorldMatrix();
 
 						SubmitMesh(mesh, material, transform, textureMatrix);
 					}

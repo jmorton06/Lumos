@@ -11,6 +11,7 @@ namespace Lumos
 	class Scene;
 	class Camera;
 	class Mesh;
+	class Entity;
 
 	namespace Graphics
 	{
@@ -81,7 +82,7 @@ namespace Lumos
 			void CreateUniformBuffer();
 			void UpdateCascades(Scene* scene);
 
-			void SetLight(Ref<Graphics::Light>& light) { m_Light = light; }
+			void SetLightEntity(Entity* entity) { m_LightEntity = entity; }
 
 			void OnImGui() override;
 
@@ -104,7 +105,7 @@ namespace Lumos
 			Lumos::Graphics::UniformBuffer* m_ModelUniformBuffer;
 			Lumos::Graphics::CommandBuffer* m_CommandBuffer;
 
-			Ref<Graphics::Light> m_Light;
+			Entity* m_LightEntity;
 
 			u32 m_Layer = 0;
 

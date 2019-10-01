@@ -8,8 +8,6 @@
 #include "App/Application.h"
 #include "ECS/EntityManager.h"
 #include "ECS/Component/MaterialComponent.h"
-#include "ECS/Component/LightComponent.h"
-#include "ECS/Component/TransformComponent.h"
 #include "Maths/Maths.h"
 #include "Core/Profiler.h"
 
@@ -242,8 +240,8 @@ namespace Lumos
 
 		void DeferredRenderer::SubmitLightSetup(Scene* scene)
 		{
-			auto lightList = *ComponentManager::Instance()->GetComponentArray<LightComponent>();// scene->GetLightList();
-			auto size = ComponentManager::Instance()->GetComponentArray<LightComponent>()->GetSize();
+			auto lightList = *ComponentManager::Instance()->GetComponentArray<Graphics::Light>();// scene->GetLightList();
+			auto size = lightList.GetSize();
 			if (size == 0)
 				return;
 
@@ -251,8 +249,8 @@ namespace Lumos
 
             for (int i = 0; i < size; i++)
             {
-                lightList[i]->GetLight()->m_Direction.Normalise();
-                memcpy(m_PSSystemUniformBuffer + m_PSSystemUniformBufferOffsets[PSSystemUniformIndex_Lights] + sizeof(Graphics::Light) * i, &*lightList[i]->GetLight().get(), sizeof(Graphics::Light));
+                lightList[i]->m_Direction.Normalise();
+                memcpy(m_PSSystemUniformBuffer + m_PSSystemUniformBufferOffsets[PSSystemUniformIndex_Lights] + sizeof(Graphics::Light) * i, &*lightList[i], sizeof(Graphics::Light));
 				numLights++;
             }
             

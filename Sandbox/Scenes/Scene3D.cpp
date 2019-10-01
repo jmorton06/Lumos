@@ -76,12 +76,10 @@ void Scene3D::OnInit()
 	};
 
 	m_EnvironmentMap = Graphics::TextureCube::CreateFromVCross(environmentFiles, 11);
-
-	auto sun = CreateRef<Graphics::Light>(Maths::Vector3(26.0f, 22.0f, 48.5f), Maths::Vector4(1.0f) , 0.9f);
     
     auto lightEntity = EntityManager::Instance()->CreateEntity("Directional Light");
-    lightEntity->AddComponent<LightComponent>(sun);
-    lightEntity->AddComponent<TransformComponent>(Matrix4::Translation(Maths::Vector3(26.0f, 22.0f, 48.5f)) * Maths::Quaternion::LookAt(Maths::Vector3(26.0f, 22.0f, 48.5f), Maths::Vector3::Zero()).ToMatrix4());
+    lightEntity->AddComponent<Graphics::Light>(Maths::Vector3(26.0f, 22.0f, 48.5f), Maths::Vector4(1.0f), 0.9f);
+    lightEntity->AddComponent<Maths::Transform>(Matrix4::Translation(Maths::Vector3(26.0f, 22.0f, 48.5f)) * Maths::Quaternion::LookAt(Maths::Vector3(26.0f, 22.0f, 48.5f), Maths::Vector3::Zero()).ToMatrix4());
     AddEntity(lightEntity);
 
 	auto cameraEntity = EntityManager::Instance()->CreateEntity("Camera");
@@ -91,7 +89,7 @@ void Scene3D::OnInit()
 	Application::Instance()->GetSystem<AudioManager>()->SetListener(m_pCamera);
 
 	auto shadowRenderer = new Graphics::ShadowRenderer();
-	shadowRenderer->SetLight(sun);
+	shadowRenderer->SetLightEntity(lightEntity);
 
 	auto shadowLayer = new Layer3D(shadowRenderer, "Shadow");
 	auto deferredLayer = new Layer3D(new Graphics::DeferredRenderer(m_ScreenWidth, m_ScreenHeight, true), "Deferred");
@@ -144,7 +142,7 @@ void Scene3D::LoadModels()
 	testPhysics->SetIsAtRest(true);
 	testPhysics->SetIsStatic(true);
 
-	ground->AddComponent<TransformComponent>(Matrix4::Scale(Maths::Vector3(groundWidth, groundHeight, groundLength)));
+	ground->AddComponent<Maths::Transform>(Matrix4::Scale(Maths::Vector3(groundWidth, groundHeight, groundLength)));
 	ground->AddComponent<Physics3DComponent>(testPhysics);
 	//ground->AddComponent<TestComponent>();
 
@@ -314,7 +312,7 @@ void Scene3D::LoadModels()
 	pendulumHolderPhysics->SetIsStatic(true);
 	pendulumHolderPhysics->SetPosition(Maths::Vector3(12.5f, 15.0f, 20.0f));
 	pendulumHolder->AddComponent<Physics3DComponent>(pendulumHolderPhysics);
-	pendulumHolder->AddComponent<TransformComponent>(Matrix4::Scale(Maths::Vector3(0.5f, 0.5f, 0.5f)));
+	pendulumHolder->AddComponent<Maths::Transform>(Matrix4::Scale(Maths::Vector3(0.5f, 0.5f, 0.5f)));
 
 	Ref<Graphics::Mesh> pendulumHolderModel = AssetsManager::DefaultModels()->Get("Cube");
 	pendulumHolder->AddComponent<MeshComponent>(pendulumHolderModel);
@@ -332,7 +330,7 @@ void Scene3D::LoadModels()
 	pendulumPhysics->SetIsStatic(false);
 	pendulumPhysics->SetPosition(Maths::Vector3(12.5f, 10.0f, 20.0f));
 	pendulum->AddComponent<Physics3DComponent>(pendulumPhysics);
-	pendulum->AddComponent<TransformComponent>(Matrix4::Scale(Maths::Vector3(0.5f, 0.5f, 0.5f)));
+	pendulum->AddComponent<Maths::Transform>(Matrix4::Scale(Maths::Vector3(0.5f, 0.5f, 0.5f)));
 
 	Ref<Graphics::Mesh> pendulumModel = AssetsManager::DefaultModels()->Get("Sphere");
 	pendulum->AddComponent<MeshComponent>(pendulumModel);
@@ -383,7 +381,7 @@ void Scene3D::LoadModels()
 
 		auto sphere = EntityManager::Instance()->CreateEntity("Sphere" + StringFormat::ToString(numSpheres++));
 
-		sphere->AddComponent<TransformComponent>(Matrix4::Scale(Maths::Vector3(0.5f, 0.5f, 0.5f)) * Matrix4::Translation(Maths::Vector3(i * 2.0f, 30.0f, 0.0f)));
+		sphere->AddComponent<Maths::Transform>(Matrix4::Scale(Maths::Vector3(0.5f, 0.5f, 0.5f)) * Matrix4::Translation(Maths::Vector3(i * 2.0f, 30.0f, 0.0f)));
 		Ref<Graphics::Mesh> sphereModel = AssetsManager::DefaultModels()->Get("Sphere");
 		sphere->AddComponent<MeshComponent>(sphereModel);
 		sphere->AddComponent<MaterialComponent>(m);
@@ -411,7 +409,7 @@ void Scene3D::LoadModels()
 
 		auto sphere = EntityManager::Instance()->CreateEntity("Sphere" + StringFormat::ToString(numSpheres++));
 
-		sphere->AddComponent<TransformComponent>(Matrix4::Scale(Maths::Vector3(0.5f, 0.5f, 0.5f)) * Matrix4::Translation(Maths::Vector3(i * 2.0f, 33.0f, 0.0f)));
+		sphere->AddComponent<Maths::Transform>(Matrix4::Scale(Maths::Vector3(0.5f, 0.5f, 0.5f)) * Matrix4::Translation(Maths::Vector3(i * 2.0f, 33.0f, 0.0f)));
 		Ref<Graphics::Mesh> sphereModel = AssetsManager::DefaultModels()->Get("Sphere");
 		sphere->AddComponent<MeshComponent>(sphereModel);
 		sphere->AddComponent<MaterialComponent>(m);

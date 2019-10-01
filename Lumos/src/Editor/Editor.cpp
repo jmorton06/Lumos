@@ -148,9 +148,9 @@ namespace Lumos
 		ImGuizmo::SetDrawlist();
 		ImGuizmo::SetOrthographic(Application::Instance()->GetSceneManager()->GetCurrentScene()->GetCamera()->Is2D());
 
-		if (m_Selected->GetComponent<TransformComponent>() != nullptr)
+		if (m_Selected->GetComponent<Maths::Transform>() != nullptr)
 		{
-			Maths::Matrix4 model = m_Selected->GetComponent<TransformComponent>()->GetTransform()->GetWorldMatrix();
+			Maths::Matrix4 model = m_Selected->GetComponent<Maths::Transform>()->GetWorldMatrix();
 
 			float snapAmount[3] = { m_SnapAmount  , m_SnapAmount , m_SnapAmount };
 			float delta[16];
@@ -158,9 +158,9 @@ namespace Lumos
 
 			if (ImGuizmo::IsUsing())
 			{
-				auto mat = Maths::Matrix4(delta) * m_Selected->GetComponent<TransformComponent>()->GetTransform()->GetLocalMatrix();
-				m_Selected->GetComponent<TransformComponent>()->GetTransform()->SetLocalTransform(mat);
-				m_Selected->GetComponent<TransformComponent>()->GetTransform()->ApplyTransform();
+				auto mat = Maths::Matrix4(delta) * m_Selected->GetComponent<Maths::Transform>()->GetLocalMatrix();
+				m_Selected->GetComponent<Maths::Transform>()->SetLocalTransform(mat);
+				m_Selected->GetComponent<Maths::Transform>()->ApplyTransform();
 
 				auto physics2DComponent = m_Selected->GetComponent<Physics2DComponent>();
 

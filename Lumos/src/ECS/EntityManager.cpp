@@ -19,7 +19,7 @@ namespace Lumos
     
     Entity::~Entity()
     {
-        ComponentManager::Instance()->EntityDestroyed(this);
+		ComponentManager::Instance()->EntityDestroyed(this);
     }
     
     void Entity::Init()
@@ -31,23 +31,23 @@ namespace Lumos
     {
 		auto transformComponent = this->GetTransformComponent();
 
-        if (transformComponent && transformComponent->GetTransform()->HasUpdated())
+        if (transformComponent && transformComponent->HasUpdated())
         {
             if (!m_Parent)
 				transformComponent->SetWorldMatrix(Maths::Matrix4());
             else
             {
-				transformComponent->SetWorldMatrix(m_Parent->GetTransformComponent()->GetTransform()->GetWorldMatrix());
+				transformComponent->SetWorldMatrix(m_Parent->GetTransformComponent()->GetWorldMatrix());
             }
             
             
             for (auto child : m_Children)
             {
                 if (child && child->GetTransformComponent())
-                    child->GetTransformComponent()->SetWorldMatrix(transformComponent->GetTransform()->GetWorldMatrix());
+                    child->GetTransformComponent()->SetWorldMatrix(transformComponent->GetWorldMatrix());
             }
             
-			transformComponent->GetTransform()->SetHasUpdated(false);
+			transformComponent->SetHasUpdated(false);
         }
     }
     
@@ -56,7 +56,7 @@ namespace Lumos
         if (child->m_Parent)
             child->m_Parent->RemoveChild(child);
         
-        child->GetTransformComponent()->GetTransform()->SetHasUpdated(true);
+        child->GetTransformComponent()->SetHasUpdated(true);
         
         child->m_Parent = this;
         m_Children.push_back(child);
@@ -73,13 +73,13 @@ namespace Lumos
         }
     }
     
-    TransformComponent* Entity::GetTransformComponent()
+    Maths::Transform* Entity::GetTransformComponent()
     {
-		auto transformComponent = this->GetComponent<TransformComponent>();
+		auto transformComponent = this->GetComponent<Maths::Transform>();
         if (!transformComponent)
         {
-            AddComponent<TransformComponent>();
-			transformComponent = this->GetComponent<TransformComponent>();
+            AddComponent<Maths::Transform>();
+			transformComponent = this->GetComponent<Maths::Transform>();
         }
         
         return transformComponent;
@@ -140,7 +140,7 @@ namespace Lumos
             m_Parent->RemoveChild(this);
         
         m_Parent = parent;
-        m_DefaultTransformComponent->SetWorldMatrix(m_Parent->GetTransformComponent()->GetTransform()->GetWorldMatrix());
+        GetTransformComponent()->SetWorldMatrix(m_Parent->GetTransformComponent()->GetWorldMatrix());
     }
     
     const bool Entity::ActiveInHierarchy() const

@@ -1,6 +1,8 @@
 #include "lmpch.h"
 #include "Transform.h"
 
+#include <imgui/imgui.h>
+
 namespace Lumos
 {
 	namespace Maths
@@ -39,6 +41,7 @@ namespace Lumos
 		{
 			m_LocalMatrix = Matrix4::Translation(m_LocalPosition) * m_LocalOrientation.ToMatrix4() * Matrix4::Scale(m_LocalScale);
             
+			m_Dirty		 = false;
             m_HasUpdated = true;
 		}
 
@@ -64,18 +67,116 @@ namespace Lumos
 
 		void Transform::SetLocalPosition(const Vector3& localPos)
 		{
+			m_Dirty = true;
 			m_LocalPosition = localPos;
 		}
 
 		void Transform::SetLocalScale(const Vector3& newScale)
 		{
+			m_Dirty = true;
 			m_LocalScale = newScale;
 		}
 
 		void Transform::SetLocalOrientation(const Quaternion & quat)
 		{
+			m_Dirty = true;
 			m_LocalOrientation = quat;
 		}
+
+		const Matrix4& Transform::GetWorldMatrix() 
+		{
+			if (m_Dirty)
+				UpdateMatrices();
+
+			return m_WorldMatrix; 
+		}
+
+		const Matrix4& Transform::GetLocalMatrix() 
+		{
+			if (m_Dirty)
+				UpdateMatrices();
+
+			return m_LocalMatrix; 
+		}
+
+		const Vector3 Transform::GetWorldPosition() const 
+		{ 
+			return m_WorldMatrix.GetPositionVector(); 
+		}
+
+		const Quaternion Transform::GetWorldOrientation() const 
+		{ 
+			return m_WorldMatrix.ToQuaternion(); 
+		}
+
+		const Vector3& Transform::GetLocalPosition() 
+		{ 
+			return m_LocalPosition; 
+		}
+
+		const Vector3& Transform::GetLocalScale()
+		{ 
+			return m_LocalScale; 
+		}
+
+		const Quaternion& Transform::GetLocalOrientation()
+		{ 
+			return m_LocalOrientation; 
+		}
        
+		void Transform::OnImGui()
+		{
+			auto rotation = m_LocalOrientation.ToEuler();
+
+			bool update = false;
+
+			ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(2, 2));
+			ImGui::Columns(2);
+			ImGui::Separator();
+
+			ImGui::AlignTextToFramePadding();
+			ImGui::Text("Position");
+			ImGui::NextColumn();
+			ImGui::PushItemWidth(-1);
+			if (ImGui::InputFloat3("##Position", &m_LocalPosition.x))
+			{
+				update = true;
+			}
+
+			ImGui::PopItemWidth();
+			ImGui::NextColumn();
+
+			ImGui::AlignTextToFramePadding();
+			ImGui::Text("Rotation");
+			ImGui::NextColumn();
+			ImGui::PushItemWidth(-1);
+			if (ImGui::InputFloat3("##Rotation", &rotation.x))
+			{
+				SetLocalOrientation(Maths::Quaternion::EulerAnglesToQuaternion(rotation.GetX(), rotation.GetY(), rotation.GetZ()));
+				update = true;
+			}
+
+			ImGui::PopItemWidth();
+			ImGui::NextColumn();
+
+			ImGui::AlignTextToFramePadding();
+			ImGui::Text("Scale");
+			ImGui::NextColumn();
+			ImGui::PushItemWidth(-1);
+			if (ImGui::InputFloat3("##Scale", &m_LocalScale.x))
+			{
+				update = true;
+			}
+
+			ImGui::PopItemWidth();
+			ImGui::NextColumn();
+
+			if (update)
+				UpdateMatrices();
+
+			ImGui::Columns(1);
+			ImGui::Separator();
+			ImGui::PopStyleVar();
+		}
 	}
 }

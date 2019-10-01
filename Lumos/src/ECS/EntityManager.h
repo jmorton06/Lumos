@@ -6,6 +6,7 @@
 #include "Utilities/TSingleton.h"
 #include "Component/Components.h"
 #include "ComponentManager.h"
+#include "Maths/Transform.h"
 
 #include "Core/Serialisable.h"
 
@@ -41,7 +42,7 @@ namespace Lumos
         
         u32& GetFrustumCullFlags() { return m_FrustumCullFlags; }
         
-        TransformComponent* GetTransformComponent();
+		Maths::Transform* GetTransformComponent();
         
         void SetParent(Entity* parent);
         
@@ -69,7 +70,6 @@ namespace Lumos
         String                  m_PrefabFileLocation;
         bool                    m_Active;
         u32                     m_FrustumCullFlags;
-        TransformComponent*     m_DefaultTransformComponent = nullptr;
         
         Entity* m_Parent;
         std::vector<Entity*> m_Children;
@@ -79,8 +79,6 @@ namespace Lumos
     inline void Entity::AddComponent(Args && ...args)
     {
         ComponentManager::Instance()->AddComponent<T>(this, std::forward<Args>(args) ...);
-		if(typeid(T).hash_code() == typeid(TransformComponent).hash_code())
-			m_DefaultTransformComponent = ComponentManager::Instance()->GetComponent<TransformComponent>(this);
     }
 
     template<typename T, typename ... Args>
