@@ -1,6 +1,6 @@
 #pragma once
 #include "lmpch.h"
-//#define LUMOS_SSE //TODO : remove
+#define LUMOS_SSE //TODO : remove
 
 #ifdef LUMOS_SSE
 #define LUMOS_SSEVEC4

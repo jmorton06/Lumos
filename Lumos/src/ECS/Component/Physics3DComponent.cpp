@@ -3,7 +3,6 @@
 #include "App/Application.h"
 #include "Physics/LumosPhysicsEngine/LumosPhysicsEngine.h"
 #include "ECS/EntityManager.h"
-#include "TransformComponent.h"
 
 #include <imgui/imgui.h>
 
@@ -31,9 +30,9 @@ namespace Lumos
 
 		if (entity)
 		{
-			entity->GetTransformComponent()->GetTransform()->SetLocalPosition(m_PhysicsObject->GetPosition());
-			entity->GetTransformComponent()->GetTransform()->SetLocalOrientation(m_PhysicsObject->GetOrientation());
-			entity->GetTransformComponent()->GetTransform()->UpdateMatrices();
+			entity->GetTransformComponent()->SetLocalPosition(m_PhysicsObject->GetPosition());
+			entity->GetTransformComponent()->SetLocalOrientation(m_PhysicsObject->GetOrientation());
+			entity->GetTransformComponent()->UpdateMatrices();
 		}
 
 	}

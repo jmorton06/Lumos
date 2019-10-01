@@ -38,11 +38,9 @@ void GraphicsScene::OnInit()
 
 	m_EnvironmentMap = Graphics::TextureCube::CreateFromVCross(environmentFiles, 11);
 
-	auto sun = Lumos::CreateRef<Graphics::Light>(Maths::Vector3(26.0f, 22.0f, 48.5f), Maths::Vector4(1.0f), 2.0f);
-
 	auto lightEntity = EntityManager::Instance()->CreateEntity("Directional Light");
-	lightEntity->AddComponent<LightComponent>(sun);
-	lightEntity->AddComponent<TransformComponent>(Matrix4::Translation(Maths::Vector3(26.0f, 22.0f, 48.5f)));
+	lightEntity->AddComponent<Graphics::Light>(Maths::Vector3(26.0f, 22.0f, 48.5f), Maths::Vector4(1.0f), 2.0f);
+	lightEntity->AddComponent<Maths::Transform>(Matrix4::Translation(Maths::Vector3(26.0f, 22.0f, 48.5f)));
 	AddEntity(lightEntity);
 
 	Application::Instance()->GetSystem<AudioManager>()->SetListener(m_pCamera);
@@ -50,7 +48,7 @@ void GraphicsScene::OnInit()
 	auto shadowRenderer = new Graphics::ShadowRenderer();
 	auto deferredRenderer = new Graphics::DeferredRenderer(m_ScreenWidth, m_ScreenHeight);
 	auto skyboxRenderer = new Graphics::SkyboxRenderer(m_ScreenWidth, m_ScreenHeight, m_EnvironmentMap);
-	shadowRenderer->SetLight(sun);
+	shadowRenderer->SetLightEntity(lightEntity);
 
 	deferredRenderer->SetRenderToGBufferTexture(true);
 	skyboxRenderer->SetRenderToGBufferTexture(true);
@@ -86,7 +84,7 @@ void GraphicsScene::LoadModels()
 {
 	//HeightMap
 	m_Terrain = EntityManager::Instance()->CreateEntity("heightmap");
-	m_Terrain->AddComponent<TransformComponent>(Matrix4::Scale(Maths::Vector3(1.0f)));
+	m_Terrain->AddComponent<Maths::Transform>(Matrix4::Scale(Maths::Vector3(1.0f)));
 	m_Terrain->AddComponent<TextureMatrixComponent>(Matrix4::Scale(Maths::Vector3(1.0f, 1.0f, 1.0f)));
     Lumos::Ref<Graphics::Mesh> terrain = Lumos::Ref<Graphics::Mesh>(new Terrain());
 	auto material = Lumos::CreateRef<Material>();

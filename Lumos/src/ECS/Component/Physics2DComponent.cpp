@@ -2,7 +2,6 @@
 #include "Physics2DComponent.h"
 #include "Maths/MathsUtilities.h"
 #include "ECS/EntityManager.h"
-#include "ECS/Component/TransformComponent.h"
 
 #include <imgui/imgui.h>
 
@@ -25,9 +24,9 @@ namespace Lumos
         auto qz = 1.0f * sin(angle/2);
         
 		auto entity = ComponentManager::Instance()->GetComponentArray<Physics2DComponent>()->GetEntity(this);
-		entity->GetTransformComponent()->GetTransform()->SetLocalPosition(Maths::Vector3(m_PhysicsObject->GetPosition(), 1.0f));
-		entity->GetTransformComponent()->GetTransform()->SetLocalOrientation(Maths::Quaternion(0.0f, 0.0f, qz, qw));
-		entity->GetTransformComponent()->GetTransform()->UpdateMatrices();
+		entity->GetTransformComponent()->SetLocalPosition(Maths::Vector3(m_PhysicsObject->GetPosition(), 1.0f));
+		entity->GetTransformComponent()->SetLocalOrientation(Maths::Quaternion(0.0f, 0.0f, qz, qw));
+		entity->GetTransformComponent()->UpdateMatrices();
 	}
 
 	void Physics2DComponent::OnImGui()

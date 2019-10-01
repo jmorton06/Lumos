@@ -11,7 +11,7 @@ Lumos::Profiler::Instance()->IsEnabled() ? CreateScope<Lumos::ProfilerRecord>(na
 
 namespace Lumos
 {
-    class ProfilerRecord
+    class LUMOS_EXPORT ProfilerRecord
     {
     public:
         ProfilerRecord(const String& name);
@@ -41,7 +41,7 @@ namespace Lumos
         std::vector<Action> actions;
     };
     
-    class Profiler : public TSingleton<Profiler>
+    class LUMOS_EXPORT Profiler : public TSingleton<Profiler>
     {
         friend class TSingleton<Profiler>;
     public:

@@ -7,11 +7,6 @@
 #include "Core/Typename.h"
 #include "Core/Profiler.h"
 
-#include "Component/TransformComponent.h"
-
-#include <imgui/imgui.h>
-#include <IconFontCppHeaders/IconsFontAwesome5.h>
-
 namespace Lumos
 {
 	class Entity;
@@ -38,6 +33,8 @@ namespace Lumos
 		virtual void CreateLumosComponent(Entity* entity) = 0;
 		virtual size_t GetID() = 0;
 		virtual const String GetName() const = 0;
+
+		LUMOS_EXPORT void ImGuiComponentHeader(const String& name, size_t hashCode, Entity * entity, bool& open);
 	};
 
 	template<typename T>
@@ -75,8 +72,7 @@ namespace Lumos
 			// Copy element at end into deleted element's place to maintain density
 			size_t indexOfRemovedEntity = m_EntityToIndexMap[entity];
 			size_t indexOfLastElement = m_Size - 1;
-			//lmdel m_ComponentArray[indexOfRemovedEntity];
-			//m_ComponentArray[indexOfRemovedEntity] = m_ComponentArray[indexOfLastElement];
+
             m_ComponentArray.erase(m_ComponentArray.begin() + indexOfRemovedEntity);
 			// Update map to point to moved spot
 			Entity* entityOfLastElement = m_IndexToEntityMap[indexOfLastElement];
@@ -154,16 +150,8 @@ namespace Lumos
 
 		void CreateLumosComponent(Entity* entity) override
 		{
-			//if constexpr (std::is_base_of_v<T ,Lumos::LumosComponent>)
-			//{
-			//	//To stop build error with instantiating LumosComponent
-			//	return nullptr;
-			//}
-			//else
-			{
-				T component = m_ComponentArray.emplace_back();
-				InsertData(entity, component);
-			}
+			T& component = m_ComponentArray.emplace_back();
+			InsertData(entity, component);
 		}
 
 		size_t GetID() override
@@ -288,8 +276,9 @@ namespace Lumos
 		ComponentArray<T>* GetComponentArray()
 		{
 			auto typeName = typeid(T).hash_code();
-
-			LUMOS_ASSERT(m_ComponentArrays.find(typeName) != m_ComponentArrays.end(), "Component not registered before use.");
+			auto index = m_ComponentArrays.find(typeName);
+			if (index == m_ComponentArrays.end())
+				RegisterComponent<T>();
 
 			return static_cast<ComponentArray<T>*>(m_ComponentArrays[typeName].get());
 		}
@@ -311,45 +300,18 @@ namespace Lumos
 	inline void ComponentArray<T>::OnImGui(Entity * entity)
 	{
 		PROFILERRECORD("ComponentManager::OnImGui");
-		if constexpr (is_detected_v<HasImGui, T>)
+		
+		T* component = GetData(entity);
+
+		if (component)
 		{
-			T* component = GetData(entity);
+			String componentName = LUMOS_TYPENAME_STRING(T);
+			size_t typeID = typeid(T).hash_code();
+			bool open = true;
+			ImGuiComponentHeader(componentName, typeID, entity, open);
 
-			if (component)
+			if constexpr (is_detected_v<HasImGui, T>)
 			{
-				ImGui::Separator();
-
-				String componentName = LUMOS_TYPENAME_STRING(T);
-				size_t typeID = typeid(T).hash_code();
-
-				String name = componentName.substr(componentName.find_last_of(':') + 1);
-				u32 index = FindStringPosition(name, "Component");
-
-				if (index >= 0)
-					name = RemoveStringRange(name, index, 9);
-				bool open = ImGui::CollapsingHeader(name.c_str(), ImGuiTreeNodeFlags_AllowItemOverlap);
-
-				if (typeID != typeid(TransformComponent).hash_code())
-				{
-					const float ItemSpacing = ImGui::GetStyle().ItemSpacing.x;
-
-					const float HostButtonWidth = 42.0f;
-					static bool temp = true;
-					float pos = HostButtonWidth + ItemSpacing;
-					ImGui::SameLine(ImGui::GetWindowWidth() - pos);
-					ImGui::Checkbox(("##Active" + componentName).c_str(), &temp);
-					ImGui::SameLine();
-
-					if (ImGui::Button((ICON_FA_COG"##" + componentName).c_str()))
-						ImGui::OpenPopup(("Remove Component" + componentName).c_str());
-
-					if (ImGui::BeginPopup(("Remove Component" + componentName).c_str(), 3))
-					{
-						if (ImGui::Selectable(("Remove##" + componentName).c_str())) RemoveData(entity);
-						ImGui::EndPopup();
-					}
-				}
-
 				if (open)
 				{
 					component->OnImGui();

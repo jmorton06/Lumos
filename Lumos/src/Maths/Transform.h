@@ -23,22 +23,26 @@ namespace Lumos
 			void SetLocalScale(const Vector3& localScale);
 			void SetLocalOrientation(const Quaternion& quat);
 
-			const Matrix4& GetWorldMatrix() const { return m_WorldMatrix; }
-			const Matrix4& GetLocalMatrix() const { return m_LocalMatrix; }
+			const Matrix4& GetWorldMatrix();
+			const Matrix4& GetLocalMatrix();
 
-			const Vector3 GetWorldPosition() const { return m_WorldMatrix.GetPositionVector(); }
-			const Quaternion GetWorldOrientation() const { return m_WorldMatrix.ToQuaternion(); }
+			const Vector3 GetWorldPosition() const;
+			const Quaternion GetWorldOrientation() const;
 
-			const Vector3& GetLocalPosition() { return m_LocalPosition; }
-			const Vector3& GetLocalScale() { return m_LocalScale; }
-			const Quaternion& GetLocalOrientation() { return m_LocalOrientation; }
+			const Vector3& GetLocalPosition();
+			const Vector3& GetLocalScale();
+			const Quaternion& GetLocalOrientation();
 
+			//Updates Local Matrix from R,T and S vectors
 			void UpdateMatrices();
 
 			bool HasUpdated() const { return m_HasUpdated; }
 			void SetHasUpdated(bool set) { m_HasUpdated = set; }
 
+			//Sets R,T and S vectors from Local Matrix
 			void ApplyTransform();
+
+			void OnImGui();
 
 			nlohmann::json Serialise()
 			{
@@ -71,6 +75,7 @@ namespace Lumos
 			Quaternion	m_LocalOrientation;
 
 			bool m_HasUpdated = false;
+			bool m_Dirty = false;
 
 			Transform* m_Parent = nullptr;
 			std::vector<Transform*> m_Children;

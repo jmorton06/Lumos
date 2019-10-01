@@ -32,7 +32,7 @@ namespace Lumos
 					auto entity = ComponentManager::Instance()->GetComponentArray<T>()->GetEntity(component);
 					if (component && entity)
 					{
-						Maths::Vector3 pos = entity->GetTransformComponent()->GetTransform()->GetWorldPosition();
+						Maths::Vector3 pos = entity->GetTransformComponent()->GetWorldPosition();
 
 						if (frustum.InsideFrustum(pos, 0.1f))
 						{

@@ -161,7 +161,7 @@ namespace Lumos
 				auto meshComponent = obj->GetComponent<MeshComponent>();
 				if (meshComponent &&/* meshComponent->GetActive() &&*/ meshComponent->GetMesh())
 				{
-					auto& transform = obj->GetComponent<TransformComponent>()->GetTransform();
+					auto transform = obj->GetComponent<Maths::Transform>();
 
 					float maxScaling = 0.0f;
 					maxScaling = Maths::Max(transform->GetWorldMatrix().GetScaling().GetX(), maxScaling);

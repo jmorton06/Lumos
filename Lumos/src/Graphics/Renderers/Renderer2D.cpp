@@ -14,11 +14,10 @@
 #include "Graphics/API/VertexArray.h"
 #include "Graphics/API/Texture.h"
 #include "Graphics/GBuffer.h"
+#include "Graphics/Sprite.h"
 #include "App/Scene.h"
 #include "ECS/EntityManager.h"
 #include "ECS/Component/MaterialComponent.h"
-#include "ECS/Component/SpriteComponent.h"
-#include "ECS/Component/TransformComponent.h"
 #include "App/Application.h"
 #include "Graphics/RenderManager.h"
 #include "Platform/OpenGL/GLDescriptorSet.h"
@@ -315,10 +314,10 @@ namespace Lumos
 			{
 				if (obj != nullptr)
 				{
-					auto* sprite = obj->GetComponent<SpriteComponent>();
+					auto* sprite = obj->GetComponent<Graphics::Sprite>();
 					if (sprite)
 					{
-						Submit(reinterpret_cast<Renderable2D*>(sprite->GetSprite()), obj->GetTransformComponent()->GetTransform()->GetWorldMatrix());
+						Submit(reinterpret_cast<Renderable2D*>(sprite), obj->GetTransformComponent()->GetWorldMatrix());
 					}
 				}
 			});

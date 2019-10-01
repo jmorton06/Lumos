@@ -20,7 +20,6 @@
 #include "ECS/EntityManager.h"
 #include "ECS/Component/MaterialComponent.h"
 #include "ECS/Component/MeshComponent.h"
-#include "ECS/Component/TransformComponent.h"
 #include "ECS/Component/TextureMatrixComponent.h"
 
 #include "App/Application.h"
@@ -102,7 +101,7 @@ namespace Lumos
 									textureMatrix = textureMatrixTransform->GetMatrix();
 								else
 									textureMatrix = Maths::Matrix4();
-								SubmitMesh(mesh, material, obj->GetComponent<TransformComponent>()->GetTransform()->GetWorldMatrix(), textureMatrix);
+								SubmitMesh(mesh, material, obj->GetComponent<Maths::Transform>()->GetWorldMatrix(), textureMatrix);
 							}
 						}
 					}
