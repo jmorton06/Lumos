@@ -268,8 +268,8 @@ inline void ImGui::FileBrowser::Display()
         {
             ScopeGuard endNewDirPopup([] { EndPopup(); });
 
-            InputText("name", newDirNameBuf_->data(), newDirNameBuf_->size()); SameLine();
-            if(Button("ok") && (*newDirNameBuf_)[0] != '\0')
+            InputText(" Name", newDirNameBuf_->data(), newDirNameBuf_->size()); SameLine();
+            if(Button("OK") && (*newDirNameBuf_)[0] != '\0')
             {
                 ScopeGuard closeNewDirPopup([] { CloseCurrentPopup(); });
                 if(create_directory(pwd_ / newDirNameBuf_->data()))
@@ -360,7 +360,7 @@ inline void ImGui::FileBrowser::Display()
     SameLine();
 
     int escIdx = GetIO().KeyMap[ImGuiKey_Escape];
-    if(Button("cancel") || closeFlag_ ||
+    if(Button("Cancel") || closeFlag_ ||
         ((flags_ & ImGuiFileBrowserFlags_CloseOnEsc) && IsWindowFocused(ImGuiFocusedFlags_RootAndChildWindows) && escIdx >= 0 && IsKeyPressed(escIdx)))
         CloseCurrentPopup();
 
