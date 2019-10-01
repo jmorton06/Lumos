@@ -48,7 +48,7 @@ namespace Lumos
 	void ImGuiLayer::OnUpdate(TimeStep* dt, Scene* scene)
 	{
 		ImGuiIO& io = ImGui::GetIO();
-		io.DeltaTime = dt->GetMillis();
+		io.DeltaTime = dt->GetSeconds();
         
         Application* app = Application::Instance();
         app->GetWindow()->UpdateCursorImGui();
