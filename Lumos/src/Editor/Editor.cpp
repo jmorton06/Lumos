@@ -51,6 +51,7 @@ namespace Lumos
 			window->SetEditor(this);
         
         m_FileBrowser = ImGui::FileBrowser(ImGuiFileBrowserFlags_CreateNewDir | ImGuiFileBrowserFlags_EnterNewFilename);
+        m_FileBrowser.SetTitle("Test File Browser");
 	}
 
 	Editor::~Editor()
