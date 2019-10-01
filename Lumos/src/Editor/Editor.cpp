@@ -49,6 +49,8 @@ namespace Lumos
 		m_Windows.back()->SetActive(false);
 		for (auto& window : m_Windows)
 			window->SetEditor(this);
+        
+        m_FileBrowser = ImGui::FileBrowser(ImGuiFileBrowserFlags_CreateNewDir | ImGuiFileBrowserFlags_EnterNewFilename);
 	}
 
 	Editor::~Editor()
@@ -424,6 +426,19 @@ namespace Lumos
 				if (selected)
 					ImGui::PopStyleColor();
 			}
+            
+            ImGui::SameLine();
+            
+            if(ImGui::Button("open file dialog"))
+                m_FileBrowser.Open();
+            
+            m_FileBrowser.Display();
+            
+            if(m_FileBrowser.HasSelected())
+            {
+                std::cout << "Selected filename" << m_FileBrowser.GetSelected().string() << std::endl;
+                m_FileBrowser.ClearSelected();
+            }
 
 			ImGui::SameLine(ImGui::GetWindowContentRegionMax().x - 130.0f);
 			ImGui::Text("%.2f ms (%i FPS)", 1000.0f / (float)Engine::Instance()->GetFPS(), Engine::Instance()->GetFPS());

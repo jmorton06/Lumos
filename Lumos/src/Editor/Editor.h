@@ -1,7 +1,9 @@
 #pragma once
 #include "Maths/Vector2.h"
 #include "EditorWindow.h"
+
 #include <imgui/imgui.h>
+#include <imgui/plugins/ImFileBrowser.h>
 
 namespace Lumos
 {
@@ -53,6 +55,8 @@ namespace Lumos
 		bool m_SnapQuizmo = true;
 		bool m_ShowImGuiDemo = true;
 		float m_SnapAmount = 1.0f;
+        
+        ImGui::FileBrowser m_FileBrowser;
         
 		std::vector<Ref<EditorWindow>> m_Windows;
 
