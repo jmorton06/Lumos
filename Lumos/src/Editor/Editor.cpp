@@ -34,6 +34,14 @@
 #include <imgui/plugins/ImGuizmo.h>
 #include <IconFontCppHeaders/IconsFontAwesome5.h>
 
+static ImVec2 operator+(const ImVec2 &a, const ImVec2 &b) {
+	return ImVec2(a.x + b.x, a.y + b.y);
+}
+
+static ImVec2 operator-(const ImVec2 &a, const ImVec2 &b) {
+	return ImVec2(a.x - b.x, a.y - b.y);
+}
+
 namespace Lumos
 {
 	Editor::Editor(Application* app, u32 width, u32 height) : m_Application(app)
@@ -50,8 +58,11 @@ namespace Lumos
 		for (auto& window : m_Windows)
 			window->SetEditor(this);
         
-        m_FileBrowser = ImGui::FileBrowser(ImGuiFileBrowserFlags_CreateNewDir | ImGuiFileBrowserFlags_EnterNewFilename);
+        m_FileBrowser = ImGui::FileBrowser(ImGuiFileBrowserFlags_CreateNewDir | ImGuiFileBrowserFlags_EnterNewFilename | ImGuiFileBrowserFlags_NoModal);
         m_FileBrowser.SetTitle("Test File Browser");
+		m_FileBrowser.SetFileFilters({ ".sh" , ".h" });
+		m_FileBrowser.SetLabels(ICON_FA_FOLDER, ICON_FA_FILE_ALT);
+		m_FileBrowser.Refresh();
 	}
 
 	Editor::~Editor()
@@ -433,6 +444,8 @@ namespace Lumos
             if(ImGui::Button("open file dialog"))
                 m_FileBrowser.Open();
             
+			ImGuiViewport* viewport = ImGui::GetMainViewport();
+			ImGui::SetNextWindowPos(viewport->Pos + ImVec2(viewport->Size.x * 0.5f, viewport->Size.y * 0.5f), ImGuiCond_Appearing, ImVec2(0.5f, 0.5f));
             m_FileBrowser.Display();
             
             if(m_FileBrowser.HasSelected())
@@ -446,14 +459,6 @@ namespace Lumos
 
 		}
 		ImGui::End();
-	}
-
-	static ImVec2 operator+(const ImVec2 &a, const ImVec2 &b) {
-		return ImVec2(a.x + b.x, a.y + b.y);
-	}
-
-	static ImVec2 operator-(const ImVec2 &a, const ImVec2 &b) {
-		return ImVec2(a.x - b.x, a.y - b.y);
 	}
 
 	void Editor::Draw2DGrid(ImDrawList* drawList, const ImVec2& cameraPos, const ImVec2& windowPos, const ImVec2& canvasSize, const float factor, const float thickness)

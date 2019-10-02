@@ -105,7 +105,7 @@ namespace Lumos
     {
         ProfilerReport report;
 
-        double time = m_Timer->GetMS();
+        double time = m_Timer->GetTimedMS();
         
         report.workingThreads = static_cast<uint16_t>((m_WorkingThreads.size() - 1) / m_ElapsedFrames);
         report.elapsedFrames = m_ElapsedFrames;
