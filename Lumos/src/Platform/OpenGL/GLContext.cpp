@@ -221,9 +221,9 @@ namespace Lumos
 
 		void GLContext::OnImGui()
 		{
-			ImGui::Text((const char*)(glGetString(GL_VERSION)));
-			ImGui::Text((const char*)(glGetString(GL_VENDOR)));
-			ImGui::Text((const char*)(glGetString(GL_RENDERER)));
+            ImGui::Text("%s", (const char*)(glGetString(GL_VERSION)));
+            ImGui::Text("%s", (const char*)(glGetString(GL_VENDOR)));
+            ImGui::Text("%s", (const char*)(glGetString(GL_RENDERER)));
 		}
 
 		void GLContext::MakeDefault()
