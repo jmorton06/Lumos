@@ -39,6 +39,10 @@ namespace ImGui
         // set the window title text
         void SetTitle(std::string title);
 
+        void SetCancelText(std::string cancel);
+
+        void SetOkText(std::string ok);
+
         // open the browsing window
         void Open();
 
@@ -57,11 +61,19 @@ namespace ImGui
         // set current browsing directory
         bool SetPwd(const std::filesystem::path &pwd = std::filesystem::current_path());
 
+        void Refresh() { SetPwd(); }
+
         // returns selected filename. make sense only when HasSelected returns true
         std::filesystem::path GetSelected() const;
 
         // set selected filename to empty
         void ClearSelected();
+
+        void ClearFilters();
+
+        void SetLabels(const char* folderLabel = "[D]", const char* fileLabel = "[F]");
+
+        void SetFileFilters(const std::vector<const char*> fileFilters);
 
     private:
 
@@ -82,6 +94,11 @@ namespace ImGui
 
         std::string title_;
         std::string openLabel_;
+        std::string okText_;
+        std::string cancel_;
+
+        const char* directoryLabel_ = "[D]";
+        const char* fileLabel_ = "[F]";
 
         bool openFlag_;
         bool closeFlag_;
@@ -98,8 +115,11 @@ namespace ImGui
             bool isDir;
             std::string name;
             std::string showName;
+            std::string extension;
         };
         std::vector<FileRecord> fileRecords_;
+        std::vector<const char*> fileTypeFilters_;
+        int fileTypeFilterIndex_ = 0;
 
         // IMPROVE: overflow when selectedFilename_.length() > inputNameBuf_.size() - 1
         static constexpr size_t INPUT_NAME_BUF_SIZE = 512;
@@ -120,6 +140,8 @@ inline ImGui::FileBrowser::FileBrowser(ImGuiFileBrowserFlags flags)
 
     inputNameBuf_->at(0) = '\0';
     SetTitle("file browser");
+    SetOkText("OK");
+    SetCancelText("Cancel");
     SetPwd(std::filesystem::current_path());
 }
 
@@ -161,6 +183,16 @@ inline void ImGui::FileBrowser::SetTitle(std::string title)
     title_ = std::move(title);
     openLabel_ = title_ + "##filebrowser_" + std::to_string(reinterpret_cast<size_t>(this));
     openNewDirLabel_ = "new dir##new_dir_" + std::to_string(reinterpret_cast<size_t>(this));
+}
+
+inline void ImGui::FileBrowser::SetCancelText(std::string cancel)
+{
+    cancel_ = std::move(cancel);
+}
+
+inline void ImGui::FileBrowser::SetOkText(std::string ok)
+{
+    okText_ = std::move(ok);
 }
 
 inline void ImGui::FileBrowser::Open()
@@ -264,6 +296,13 @@ inline void ImGui::FileBrowser::Display()
             (*newDirNameBuf_)[0] = '\0';
         }
 
+        if (ImGui::IsItemHovered())
+        {
+            ImGui::BeginTooltip();
+            ImGui::TextUnformatted("Create new folder");
+            ImGui::EndTooltip();
+        }
+
         if(BeginPopup(openNewDirLabel_.c_str()))
         {
             ScopeGuard endNewDirPopup([] { EndPopup(); });
@@ -291,9 +330,15 @@ inline void ImGui::FileBrowser::Display()
             (flags_ & ImGuiFileBrowserFlags_NoModal) ? ImGuiWindowFlags_AlwaysHorizontalScrollbar : 0);
         ScopeGuard endChild([] { EndChild(); });
 
+        ImGui::Indent();
+
         for(auto &rsc : fileRecords_)
         {
+            if (!rsc.isDir && fileTypeFilters_.size() > 0 && fileTypeFilterIndex_ < fileTypeFilters_.size() && !(rsc.extension == fileTypeFilters_[fileTypeFilterIndex_]))
+                continue;
+
             const bool selected = selectedFilename_ == rsc.name;
+           
             if(Selectable(rsc.showName.c_str(), selected, ImGuiSelectableFlags_DontClosePopups | ImGuiSelectableFlags_AllowDoubleClick))
             {
                 if(selected)
@@ -337,7 +382,7 @@ inline void ImGui::FileBrowser::Display()
 
     if(!(flags_ & ImGuiFileBrowserFlags_SelectDirectory))
     {
-        if(Button(" ok ") && !selectedFilename_.empty())
+        if(Button(okText_.c_str()) && !selectedFilename_.empty())
         {
             ok_ = true;
             CloseCurrentPopup();
@@ -347,7 +392,7 @@ inline void ImGui::FileBrowser::Display()
     {
         if(selectedFilename_.empty())
         {
-            if(Button(" ok "))
+            if(Button(okText_.c_str()))
             {
                 ok_ = true;
                 CloseCurrentPopup();
@@ -360,7 +405,7 @@ inline void ImGui::FileBrowser::Display()
     SameLine();
 
     int escIdx = GetIO().KeyMap[ImGuiKey_Escape];
-    if(Button("Cancel") || closeFlag_ ||
+    if(Button(cancel_.c_str()) || closeFlag_ ||
         ((flags_ & ImGuiFileBrowserFlags_CloseOnEsc) && IsWindowFocused(ImGuiFocusedFlags_RootAndChildWindows) && escIdx >= 0 && IsKeyPressed(escIdx)))
         CloseCurrentPopup();
 
@@ -368,6 +413,14 @@ inline void ImGui::FileBrowser::Display()
     {
         SameLine();
         Text("%s", statusStr_.c_str());
+    }
+
+    if (!fileTypeFilters_.empty())
+    {
+        ImGui::SameLine();
+        ImGui::PushItemWidth(100.0f);
+        ImGui::Combo("##Filters", &fileTypeFilterIndex_, fileTypeFilters_.data(), int(fileTypeFilters_.size()));
+        ImGui::PopItemWidth();
     }
 }
 
@@ -408,14 +461,32 @@ inline void ImGui::FileBrowser::ClearSelected()
     ok_ = false;
 }
 
+inline void ImGui::FileBrowser::ClearFilters()
+{
+    fileTypeFilters_.clear();
+    fileTypeFilterIndex_ = 0;
+}
+
+inline void ImGui::FileBrowser::SetFileFilters(const std::vector<const char*> fileFilters)
+{
+    fileTypeFilterIndex_ = 0;
+    fileTypeFilters_ = std::move(fileFilters);
+}
+
+inline void ImGui::FileBrowser::SetLabels(const char* folderLabel, const char* fileLabel)
+{
+    fileLabel_ = fileLabel;
+    directoryLabel_ = folderLabel;
+}
+
 inline void ImGui::FileBrowser::SetPwdUncatched(const std::filesystem::path &pwd)
 {
-    fileRecords_ = { FileRecord{ true, "..", "[D] .." } };
+    fileRecords_ = { FileRecord{ true, "..", std::string(directoryLabel_) + std::string(" ..") } };
 
     for(auto &p : std::filesystem::directory_iterator(pwd))
     {
         FileRecord rcd;
-
+        
         if(p.is_regular_file())
             rcd.isDir = false;
         else if(p.is_directory())
@@ -427,7 +498,9 @@ inline void ImGui::FileBrowser::SetPwdUncatched(const std::filesystem::path &pwd
         if(rcd.name.empty())
             continue;
 
-        rcd.showName = (rcd.isDir ? "[D] " : "[F] ") + p.path().filename().u8string();
+        rcd.extension = p.path().filename().extension().string();
+
+        rcd.showName = (rcd.isDir ? directoryLabel_ : fileLabel_) + std::string(" ") + p.path().filename().u8string();
         fileRecords_.push_back(rcd);
     }
 
