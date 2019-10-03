@@ -71,7 +71,7 @@ namespace ImGui
 
         void ClearFilters();
 
-        void SetLabels(const char* folderLabel = "[D]", const char* fileLabel = "[F]");
+        void SetLabels(const char* folderLabel = "[D]", const char* fileLabel = "[F]", const char* newFolderLabel = "+");
 
         void SetFileFilters(const std::vector<const char*> fileFilters);
 
@@ -97,6 +97,7 @@ namespace ImGui
         std::string okText_;
         std::string cancel_;
 
+        const char* newFolderLabel_ = "+";
         const char* directoryLabel_ = "[D]";
         const char* fileLabel_ = "[F]";
 
@@ -284,13 +285,13 @@ inline void ImGui::FileBrowser::Display()
 
     SameLine();
 
-    if(SmallButton("*"))
-        SetPwd(pwd_);
+  /*  if(SmallButton("*"))
+        SetPwd(pwd_);*/
 
     if(newDirNameBuf_)
     {
         SameLine();
-        if(SmallButton("+"))
+        if(SmallButton(newFolderLabel_))
         {
             OpenPopup(openNewDirLabel_.c_str());
             (*newDirNameBuf_)[0] = '\0';
@@ -326,8 +327,7 @@ inline void ImGui::FileBrowser::Display()
     if(!(flags_ & ImGuiFileBrowserFlags_SelectDirectory) && (flags_ & ImGuiFileBrowserFlags_EnterNewFilename))
         reserveHeight += GetItemsLineHeightWithSpacing();
     {
-        BeginChild("ch", ImVec2(0, -reserveHeight), true,
-            (flags_ & ImGuiFileBrowserFlags_NoModal) ? ImGuiWindowFlags_AlwaysHorizontalScrollbar : 0);
+        BeginChild("ch", ImVec2(0, -reserveHeight), true, 0);
         ScopeGuard endChild([] { EndChild(); });
 
         ImGui::Indent();
@@ -473,10 +473,11 @@ inline void ImGui::FileBrowser::SetFileFilters(const std::vector<const char*> fi
     fileTypeFilters_ = std::move(fileFilters);
 }
 
-inline void ImGui::FileBrowser::SetLabels(const char* folderLabel, const char* fileLabel)
+inline void ImGui::FileBrowser::SetLabels(const char* folderLabel, const char* fileLabel, const char* newFolderLabel)
 {
     fileLabel_ = fileLabel;
     directoryLabel_ = folderLabel;
+    newFolderLabel_ = newFolderLabel;
 }
 
 inline void ImGui::FileBrowser::SetPwdUncatched(const std::filesystem::path &pwd)
