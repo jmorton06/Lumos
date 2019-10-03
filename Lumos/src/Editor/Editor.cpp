@@ -29,6 +29,7 @@
 #include "Graphics/API/GraphicsContext.h"
 #include "Graphics/API/Texture.h"
 #include "Graphics/API/GraphicsContext.h"
+#include "Graphics/MeshFactory.h"
 
 #include <imgui/imgui_internal.h>
 #include <imgui/plugins/ImGuizmo.h>
@@ -58,10 +59,10 @@ namespace Lumos
 		for (auto& window : m_Windows)
 			window->SetEditor(this);
         
-        m_FileBrowser = ImGui::FileBrowser(ImGuiFileBrowserFlags_CreateNewDir | ImGuiFileBrowserFlags_EnterNewFilename | ImGuiFileBrowserFlags_NoModal);
+		m_FileBrowser = ImGui::FileBrowser(ImGuiFileBrowserFlags_CreateNewDir | ImGuiFileBrowserFlags_EnterNewFilename | ImGuiFileBrowserFlags_NoModal);
         m_FileBrowser.SetTitle("Test File Browser");
 		m_FileBrowser.SetFileFilters({ ".sh" , ".h" });
-		m_FileBrowser.SetLabels(ICON_FA_FOLDER, ICON_FA_FILE_ALT);
+		m_FileBrowser.SetLabels(ICON_FA_FOLDER, ICON_FA_FILE_ALT, ICON_FA_FOLDER_PLUS);
 		m_FileBrowser.Refresh();
 	}
 
@@ -131,6 +132,58 @@ namespace Lumos
                 }
                 ImGui::EndMenu();
             }
+
+			if (ImGui::BeginMenu("Entity"))
+			{
+				if (ImGui::MenuItem("CreateEmpty"))
+				{
+					Application::Instance()->GetSceneManager()->GetCurrentScene()->AddEntity(EntityManager::Instance()->CreateEntity());
+				}
+
+				if (ImGui::MenuItem("Cube"))
+				{
+					auto entity = EntityManager::Instance()->CreateEntity();
+					entity->AddComponent<MeshComponent>(Graphics::CreatePrimative(Graphics::PrimitiveType::Cube));
+					Application::Instance()->GetSceneManager()->GetCurrentScene()->AddEntity(entity);
+				}
+
+				if (ImGui::MenuItem("Sphere"))
+				{
+					auto entity = EntityManager::Instance()->CreateEntity();
+					entity->AddComponent<MeshComponent>(Graphics::CreatePrimative(Graphics::PrimitiveType::Sphere));
+					Application::Instance()->GetSceneManager()->GetCurrentScene()->AddEntity(entity);
+				}
+
+				if (ImGui::MenuItem("Pyramid"))
+				{
+					auto entity = EntityManager::Instance()->CreateEntity();
+					entity->AddComponent<MeshComponent>(Graphics::CreatePrimative(Graphics::PrimitiveType::Pyramid));
+					Application::Instance()->GetSceneManager()->GetCurrentScene()->AddEntity(entity);
+				}
+
+				if (ImGui::MenuItem("Plane"))
+				{
+					auto entity = EntityManager::Instance()->CreateEntity();
+					entity->AddComponent<MeshComponent>(Graphics::CreatePrimative(Graphics::PrimitiveType::Plane));
+					Application::Instance()->GetSceneManager()->GetCurrentScene()->AddEntity(entity);
+				}
+				
+				if (ImGui::MenuItem("Cylinder"))
+				{
+					auto entity = EntityManager::Instance()->CreateEntity();
+					entity->AddComponent<MeshComponent>(Graphics::CreatePrimative(Graphics::PrimitiveType::Cylinder));
+					Application::Instance()->GetSceneManager()->GetCurrentScene()->AddEntity(entity);
+				}
+
+				if (ImGui::MenuItem("Capsule"))
+				{
+					auto entity = EntityManager::Instance()->CreateEntity();
+					entity->AddComponent<MeshComponent>(Graphics::CreatePrimative(Graphics::PrimitiveType::Capsule));
+					Application::Instance()->GetSceneManager()->GetCurrentScene()->AddEntity(entity);
+				}
+
+				ImGui::EndMenu();
+			}
 
 			ImGui::SameLine(ImGui::GetWindowContentRegionMax().x - 20.0f);
 			if (ImGui::Button(ICON_FA_TIMES, ImVec2(19.0f, 19.0f)))
