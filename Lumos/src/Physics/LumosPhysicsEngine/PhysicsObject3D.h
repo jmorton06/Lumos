@@ -42,7 +42,6 @@ namespace Lumos
 		const Maths::Vector3&	 GetTorque()			  const { return m_Torque; }
 		const Maths::Matrix3&	 GetInverseInertia()	  const { return m_InvInertia; }
 		const Ref<CollisionShape>&	GetCollisionShape()	  const { return m_CollisionShape; }
-		Entity*					 GetAssociatedObject()	  const { return m_pParent; }
 		const Maths::Matrix4&	 GetWorldSpaceTransform() const;	//Built from scratch or returned from cached value
 
 		Maths::BoundingBox GetWorldSpaceAABB() const;
@@ -96,9 +95,6 @@ namespace Lumos
 
 		void SetCollisionShape(const Ref<CollisionShape>& colShape) { m_CollisionShape = colShape; AutoResizeBoundingBox(); }
 
-		//Called automatically when PhysicsObject3D is created through Object3D::CreatePhysicsNode()
-		void SetAssociatedObject(Entity* obj) { m_pParent = obj; }
-
 		//<---------- CALLBACKS ------------>
 		void SetOnCollisionCallback(PhysicsCollisionCallback& callback) { m_OnCollisionCallback = callback; }
 
@@ -131,13 +127,10 @@ namespace Lumos
 			m_onCollisionManifoldCallbacks.push_back(callback);
 		}
 
-		void SetEntity(Entity* entity){ m_pParent = entity; }
-
 		nlohmann::json Serialise() override;
 		void Deserialise(nlohmann::json& data) override;
 
 	protected:
-		Entity*				m_pParent;			//Optional: Attached GameObject or NULL if none set
 		mutable bool		m_wsTransformInvalidated;
 		float				m_RestVelocityThresholdSquared;
 		float				m_AverageSummedVelocity;

@@ -1,6 +1,7 @@
 #include "lmpch.h"
 #include "Light.h"
 
+#include "ImGui/ImGuiHelpers.h"
 #include <imgui/imgui.h>
 
 namespace Lumos
@@ -25,50 +26,15 @@ namespace Lumos
 
 		void Light::OnImGui()
 		{
-			ImGui::AlignTextToFramePadding();
-			ImGui::Text("Position");
-			ImGui::NextColumn();
-			ImGui::PushItemWidth(-1);
-			ImGui::InputFloat3("##Position", &m_Position.x);
+			ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(2, 2));
+			ImGui::Columns(2);
+			ImGui::Separator();
 
-			ImGui::PopItemWidth();
-			ImGui::NextColumn();
-
-			ImGui::AlignTextToFramePadding();
-			ImGui::Text("Direction");
-			ImGui::NextColumn();
-			ImGui::PushItemWidth(-1);
-			ImGui::InputFloat3("##Direction", &m_Direction.x);
-
-			ImGui::PopItemWidth();
-			ImGui::NextColumn();
-
-			ImGui::AlignTextToFramePadding();
-			ImGui::Text("Radius");
-			ImGui::NextColumn();
-			ImGui::PushItemWidth(-1);
-			ImGui::InputFloat("##Radius", &m_Radius);
-
-			ImGui::PopItemWidth();
-			ImGui::NextColumn();
-
-			ImGui::AlignTextToFramePadding();
-			ImGui::Text("Colour");
-			ImGui::NextColumn();
-			ImGui::PushItemWidth(-1);
-			ImGui::ColorEdit4("##Colour", &m_Colour.x);
-
-			ImGui::PopItemWidth();
-			ImGui::NextColumn();
-
-			ImGui::AlignTextToFramePadding();
-			ImGui::Text("Intensity");
-			ImGui::NextColumn();
-			ImGui::PushItemWidth(-1);
-			ImGui::DragFloat("##Intensity", &m_Intensity);
-
-			ImGui::PopItemWidth();
-			ImGui::NextColumn();
+			ImGuiHelpers::Property("Position", m_Position);
+			ImGuiHelpers::Property("Direction", m_Direction);
+			ImGuiHelpers::Property("Radius", m_Radius, 0.0f, 100.0f);
+			ImGuiHelpers::Property("Colour", m_Colour, ImGuiHelpers::PropertyFlag::ColorProperty);
+			ImGuiHelpers::Property("Intensity", m_Intensity, 0.0f, 100.0f);
 
 			ImGui::AlignTextToFramePadding();
 			ImGui::Text("Light Type");
@@ -87,6 +53,7 @@ namespace Lumos
 
 			ImGui::Columns(1);
 			ImGui::Separator();
+			ImGui::PopStyleVar();
 		}
 
 		nlohmann::json Light::Serialise()

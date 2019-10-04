@@ -138,7 +138,7 @@ namespace Lumos
 			ImGui::Text("Position");
 			ImGui::NextColumn();
 			ImGui::PushItemWidth(-1);
-			if (ImGui::InputFloat3("##Position", &m_LocalPosition.x))
+			if (ImGui::DragFloat3("##Position", &m_LocalPosition.x))
 			{
 				update = true;
 			}
@@ -150,7 +150,7 @@ namespace Lumos
 			ImGui::Text("Rotation");
 			ImGui::NextColumn();
 			ImGui::PushItemWidth(-1);
-			if (ImGui::InputFloat3("##Rotation", &rotation.x))
+			if (ImGui::DragFloat3("##Rotation", &rotation.x, 1.0f, -180.0f, 180.0f))
 			{
 				SetLocalOrientation(Maths::Quaternion::EulerAnglesToQuaternion(rotation.GetX(), rotation.GetY(), rotation.GetZ()));
 				update = true;
@@ -163,7 +163,7 @@ namespace Lumos
 			ImGui::Text("Scale");
 			ImGui::NextColumn();
 			ImGui::PushItemWidth(-1);
-			if (ImGui::InputFloat3("##Scale", &m_LocalScale.x))
+			if (ImGui::DragFloat3("##Scale", &m_LocalScale.x))
 			{
 				update = true;
 			}
