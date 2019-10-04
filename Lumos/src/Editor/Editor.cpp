@@ -227,7 +227,6 @@ namespace Lumos
 			{
 				auto mat = Maths::Matrix4(delta) * m_Selected->GetComponent<Maths::Transform>()->GetLocalMatrix();
 				m_Selected->GetComponent<Maths::Transform>()->SetLocalTransform(mat);
-				m_Selected->GetComponent<Maths::Transform>()->ApplyTransform();
 
 				auto physics2DComponent = m_Selected->GetComponent<Physics2DComponent>();
 

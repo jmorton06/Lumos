@@ -58,6 +58,18 @@ namespace Lumos
 	{
 		if (!m_IsPaused)
 		{
+            m_PhysicsObjects.clear();
+            
+            auto physicsEntities = EntityManager::Instance()->GetEntitiesWithType<Physics3DComponent>();
+
+            if (physicsEntities.empty())
+                return;
+            
+            for (auto entity : physicsEntities)
+            {
+                m_PhysicsObjects.emplace_back(entity->GetComponent<Physics3DComponent>()->GetPhysicsObject());
+            }
+            
 			if (m_MultipleUpdates)
 			{
 				const int max_updates_per_frame = 5;
@@ -81,30 +93,28 @@ namespace Lumos
 				s_UpdateTimestep = timeStep->GetMillis();
 				UpdatePhysics(scene);
 			}
+            
+            for (auto entity : physicsEntities)
+            {
+                auto physicsObject = entity->GetComponent<Physics3DComponent>()->GetPhysicsObject();
+                auto transform = entity->GetTransformComponent();
+
+                transform->SetLocalPosition(physicsObject->GetPosition());
+                transform->SetLocalOrientation(physicsObject->GetOrientation());
+                transform->UpdateMatrices();
+            }
 		}
 	}
 
 	void LumosPhysicsEngine::UpdatePhysics(Scene* scene)
 	{
-        m_PhysicsObjects.clear();
         
 		for (Manifold* m : m_Manifolds)
 		{
 			delete m;
 		}
 		m_Manifolds.clear();
-        
-		auto& componentArray = *ComponentManager::Instance()->GetComponentArray<Physics3DComponent>();
-		auto size = componentArray.GetSize();
-        for(int i = 0; i < int(size); i++)
-        {
-			Physics3DComponent* phy3D = componentArray[i];
-			if (phy3D != nullptr)
-			{
-				m_PhysicsObjects.emplace_back(phy3D->GetPhysicsObject());
-			}
-        };
-        
+
 		//Check for collisions
 		BroadPhaseCollisions();
 		NarrowPhaseCollisions();
@@ -118,7 +128,7 @@ namespace Lumos
 
 	void LumosPhysicsEngine::UpdatePhysicsObjects()
 	{
-        System::JobSystem::Dispatch(static_cast<u32>(m_PhysicsObjects.size()), 16, [&](JobDispatchArgs args)
+        System::JobSystem::Dispatch(static_cast<u32>(m_PhysicsObjects.size()), 4, [&](JobDispatchArgs args)
         {
             UpdatePhysicsObject(m_PhysicsObjects[args.jobIndex]);
         });
@@ -330,17 +340,6 @@ namespace Lumos
             delete c;
         m_Constraints.clear();
     }
-
-	PhysicsObject3D* LumosPhysicsEngine::FindObjectByName(const String& name)
-	{
-		auto it = std::find_if(m_PhysicsObjects.begin(), m_PhysicsObjects.end(), [name](Ref<PhysicsObject3D> o) 
-		{
-			Entity *po = o->GetAssociatedObject();
-			return (po != nullptr && po->GetName() == name);
-		});
-
-		return (it == m_PhysicsObjects.end()) ? nullptr : (*it).get();
-	}
 
 	String IntegrationTypeToString(IntegrationType type)
 	{

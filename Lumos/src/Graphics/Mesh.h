@@ -93,6 +93,8 @@ namespace Lumos
 			Ref<IndexBuffer> GetIndexBuffer() const { return m_IndexBuffer; }
 			Ref<Maths::BoundingSphere> GetBoundingSphere() const { return m_BoundingSphere; }
 
+			bool& GetActive() { return m_Active; }
+
 		protected:
 
 			static Maths::Vector3 GenerateTangent(const Maths::Vector3 &a, const Maths::Vector3 &b, const Maths::Vector3 &c, const Maths::Vector2 &ta, const Maths::Vector2 &tb, const Maths::Vector2 &tc);
@@ -107,6 +109,7 @@ namespace Lumos
 
 			bool m_ArrayCleanUp;
 			bool m_TextureCleanUp;
+			bool m_Active = true;
 		};
 	}
 }

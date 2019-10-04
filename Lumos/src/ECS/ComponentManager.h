@@ -94,6 +94,15 @@ namespace Lumos
 			return nullptr;
 		}
 
+		bool HasData(Entity* entity)
+		{
+			auto index = m_EntityToIndexMap.find(entity);
+			if (index != m_EntityToIndexMap.end())
+				return true;
+
+			return false;
+		}
+
 		Entity* GetEntity(T* component)
 		{
 			for (size_t index = 0; index < m_Size; index++)
@@ -246,6 +255,12 @@ namespace Lumos
 		T* GetComponent(Entity* entity)
 		{
 			return GetComponentArray<T>()->GetData(entity);
+		}
+
+		template<typename T>
+		bool HasComponent(Entity* entity)
+		{
+			return GetComponentArray<T>()->HasData(entity);
 		}
 
 		void EntityDestroyed(Entity* entity)

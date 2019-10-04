@@ -240,17 +240,28 @@ namespace Lumos
 
 		void DeferredRenderer::SubmitLightSetup(Scene* scene)
 		{
-			auto lightList = *ComponentManager::Instance()->GetComponentArray<Graphics::Light>();// scene->GetLightList();
-			auto size = lightList.GetSize();
-			if (size == 0)
+			PROFILERRECORD("DeferredRenderer::SubmitLightSetup");
+
+			auto lightEntities = EntityManager::Instance()->GetEntitiesWithType<Graphics::Light>();
+			
+			if (lightEntities.empty())
 				return;
 
 			u32 numLights = 0;
 
-            for (int i = 0; i < size; i++)
+            for (auto entity : lightEntities)
             {
-                lightList[i]->m_Direction.Normalise();
-                memcpy(m_PSSystemUniformBuffer + m_PSSystemUniformBufferOffsets[PSSystemUniformIndex_Lights] + sizeof(Graphics::Light) * i, &*lightList[i], sizeof(Graphics::Light));
+				auto light = entity->GetComponent<Graphics::Light>();
+				auto transform = entity->GetTransformComponent();
+
+				light->m_Position = transform->GetWorldPosition();
+
+				Maths::Vector3 forward = Maths::Vector3(0, 0, -1);
+				Maths::Quaternion::RotatePointByQuaternion(transform->GetWorldOrientation(), forward);
+
+				light->m_Direction = forward.Normal();
+
+                memcpy(m_PSSystemUniformBuffer + m_PSSystemUniformBufferOffsets[PSSystemUniformIndex_Lights] + sizeof(Graphics::Light) * numLights, &*light, sizeof(Graphics::Light));
 				numLights++;
             }
             
