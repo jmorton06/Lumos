@@ -5,7 +5,7 @@ namespace Lumos
 {
 	void ImGuiHelpers::Property(const String& name, bool& value)
 	{
-		ImGui::Text(name.c_str());
+        ImGui::Text("%s", name.c_str());
 		ImGui::NextColumn();
 		ImGui::PushItemWidth(-1);
 
@@ -36,7 +36,7 @@ namespace Lumos
 
 	void ImGuiHelpers::Property(const String& name, Maths::Vector3& value, float min, float max, ImGuiHelpers::PropertyFlag flags)
 	{
-		ImGui::Text(name.c_str());
+        ImGui::Text("%s", name.c_str());
 		ImGui::NextColumn();
 		ImGui::PushItemWidth(-1);
 
@@ -58,7 +58,7 @@ namespace Lumos
 	void ImGuiHelpers::Property(const String& name, Maths::Vector4& value, float min, float max, ImGuiHelpers::PropertyFlag flags)
 	{
 		ImGui::AlignTextToFramePadding();
-		ImGui::Text(name.c_str());
+        ImGui::Text("%s", name.c_str());
 		ImGui::NextColumn();
 		ImGui::PushItemWidth(-1);
 

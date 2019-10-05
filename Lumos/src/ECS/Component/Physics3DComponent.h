@@ -18,7 +18,7 @@ namespace Lumos
 		void Update();
         void OnImGui();
         
-		Ref<PhysicsObject3D>& GetPhysicsObject() { return m_PhysicsObject; }
+		const Ref<PhysicsObject3D>& GetPhysicsObject() const { return m_PhysicsObject; }
 
 		nlohmann::json Serialise() { return nullptr; };
 		void Deserialise(nlohmann::json& data) {};
