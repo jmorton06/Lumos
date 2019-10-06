@@ -65,9 +65,12 @@ namespace Lumos
             if (physicsEntities.empty())
                 return;
             
-            for (auto entity : physicsEntities)
+            for (Entity* entity : physicsEntities)
             {
-                m_PhysicsObjects.emplace_back(entity->GetComponent<Physics3DComponent>()->GetPhysicsObject());
+                auto& physicsObj = entity->GetComponent<Physics3DComponent>()->GetPhysicsObject();
+                
+                if(physicsObj)
+                    m_PhysicsObjects.emplace_back(physicsObj);
             }
             
 			if (m_MultipleUpdates)
@@ -94,7 +97,7 @@ namespace Lumos
 				UpdatePhysics(scene);
 			}
             
-            for (auto entity : physicsEntities)
+            for (Entity* entity : physicsEntities)
             {
                 auto physicsObject = entity->GetComponent<Physics3DComponent>()->GetPhysicsObject();
                 auto transform = entity->GetTransformComponent();
@@ -269,9 +272,10 @@ namespace Lumos
 			CollisionData colData;
 			CollisionDetection colDetect;
 
-			System::JobSystem::Dispatch(static_cast<u32>(m_BroadphaseCollisionPairs.size()), 4, [&](JobDispatchArgs args)
+			//System::JobSystem::Dispatch(static_cast<u32>(m_BroadphaseCollisionPairs.size()), 4, [&](JobDispatchArgs args)
+            for(auto& cp : m_BroadphaseCollisionPairs)
 			{
-				CollisionPair &cp = m_BroadphaseCollisionPairs[args.jobIndex];
+				//CollisionPair &cp = m_BroadphaseCollisionPairs[args.jobIndex];
 				auto shapeA = cp.pObjectA->GetCollisionShape();
 				auto shapeB = cp.pObjectB->GetCollisionShape();
 
@@ -309,15 +313,15 @@ namespace Lumos
 						}
 					}
 				}
-			});
+			}//);
 
-			System::JobSystem::Wait();
+			//System::JobSystem::Wait();
 		}
 	}
 
 	void LumosPhysicsEngine::SolveConstraints()
 	{
-		for (Manifold* m : m_Manifolds)		m->PreSolverStep(s_UpdateTimestep);
+		for (Manifold* m : m_Manifolds) m->PreSolverStep(s_UpdateTimestep);
 		for (Constraint* c : m_Constraints)	c->PreSolverStep(s_UpdateTimestep);
 
 		for (size_t i = 0; i < SOLVER_ITERATIONS; ++i)
