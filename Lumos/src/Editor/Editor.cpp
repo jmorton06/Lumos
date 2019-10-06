@@ -36,7 +36,7 @@
 #include <IconFontCppHeaders/IconsFontAwesome5.h>
 
 #ifdef LUMOS_PLATFORM_WINDOWS
-#include <imgui/plugins/ImFileBrowser.h"
+#include <imgui/plugins/ImFileBrowser.h>
 #endif
 
 static ImVec2 operator+(const ImVec2 &a, const ImVec2 &b) {
