@@ -56,6 +56,7 @@ namespace Lumos
 
 	void LumosPhysicsEngine::OnUpdate(TimeStep* timeStep, Scene* scene)
 	{
+        PROFILERRECORD("LumosPhysicsEngine::OnUpdate");
 		if (!m_IsPaused)
 		{
             m_PhysicsObjects.clear();
