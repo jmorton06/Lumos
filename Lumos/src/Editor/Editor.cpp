@@ -31,9 +31,15 @@
 #include "Graphics/API/GraphicsContext.h"
 #include "Graphics/MeshFactory.h"
 
+#include <imgui/imgui.h>
+
 #include <imgui/imgui_internal.h>
 #include <imgui/plugins/ImGuizmo.h>
 #include <IconFontCppHeaders/IconsFontAwesome5.h>
+
+#ifdef LUMOS_PLATFORM_WINDOWS
+#include <imgui/plugins/ImFileBrowser.h"
+#endif
 
 static ImVec2 operator+(const ImVec2 &a, const ImVec2 &b) {
 	return ImVec2(a.x + b.x, a.y + b.y);
@@ -59,11 +65,14 @@ namespace Lumos
 		for (auto& window : m_Windows)
 			window->SetEditor(this);
         
-		m_FileBrowser = ImGui::FileBrowser(ImGuiFileBrowserFlags_CreateNewDir | ImGuiFileBrowserFlags_EnterNewFilename | ImGuiFileBrowserFlags_NoModal);
-        m_FileBrowser.SetTitle("Test File Browser");
-		m_FileBrowser.SetFileFilters({ ".sh" , ".h" });
-		m_FileBrowser.SetLabels(ICON_FA_FOLDER, ICON_FA_FILE_ALT, ICON_FA_FOLDER_PLUS);
-		m_FileBrowser.Refresh();
+#ifdef LUMOS_PLATFORM_WINDOWS
+		m_FileBrowser = lmnew ImGui::FileBrowser(ImGuiFileBrowserFlags_CreateNewDir | ImGuiFileBrowserFlags_EnterNewFilename | ImGuiFileBrowserFlags_NoModal);
+        m_FileBrowser->SetTitle("Test File Browser");
+		m_FileBrowser->SetFileFilters({ ".sh" , ".h" });
+		m_FileBrowser->SetLabels(ICON_FA_FOLDER, ICON_FA_FILE_ALT, ICON_FA_FOLDER_PLUS);
+		m_FileBrowser->Refresh();
+#endif
+
 	}
 
 	Editor::~Editor()
@@ -493,22 +502,23 @@ namespace Lumos
             
             ImGui::SameLine();
             
+#ifdef LUMOS_PLATFORM_WINDOWS
+
             if(ImGui::Button("open file dialog"))
-                m_FileBrowser.Open();
+                m_FileBrowser->Open();
             
 			ImGuiViewport* viewport = ImGui::GetMainViewport();
 			ImGui::SetNextWindowPos(viewport->Pos + ImVec2(viewport->Size.x * 0.5f, viewport->Size.y * 0.5f), ImGuiCond_Appearing, ImVec2(0.5f, 0.5f));
-            m_FileBrowser.Display();
+            m_FileBrowser->Display();
             
-            if(m_FileBrowser.HasSelected())
+            if(m_FileBrowser->HasSelected())
             {
-                std::cout << "Selected filename" << m_FileBrowser.GetSelected().string() << std::endl;
-                m_FileBrowser.ClearSelected();
+                std::cout << "Selected filename" << m_FileBrowser->GetSelected().string() << std::endl;
+                m_FileBrowser->ClearSelected();
             }
-
+#endif
 			ImGui::SameLine(ImGui::GetWindowContentRegionMax().x - 130.0f);
 			ImGui::Text("%.2f ms (%i FPS)", 1000.0f / (float)Engine::Instance()->GetFPS(), Engine::Instance()->GetFPS());
-
 		}
 		ImGui::End();
 	}
