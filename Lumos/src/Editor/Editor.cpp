@@ -75,6 +75,9 @@ namespace Lumos
 
 	Editor::~Editor()
 	{
+#ifdef LUMOS_PLATFORM_WINDOWS
+        lmdel m_FileBrowser;
+#endif
 	}
 
 	void Editor::OnImGui()
