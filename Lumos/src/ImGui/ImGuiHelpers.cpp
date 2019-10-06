@@ -1,6 +1,8 @@
 #include "lmpch.h"
 #include "ImGui/ImGuiHelpers.h"
 
+#include <imgui/imgui.h>
+
 namespace Lumos
 {
 	void ImGuiHelpers::Property(const String& name, bool& value)
@@ -18,7 +20,7 @@ namespace Lumos
 
 	void ImGuiHelpers::Property(const String& name, float& value, float min, float max, ImGuiHelpers::PropertyFlag flags)
 	{
-		ImGui::Text(name.c_str());
+		ImGui::Text("%s", name.c_str());
 		ImGui::NextColumn();
 		ImGui::PushItemWidth(-1);
 

@@ -2,8 +2,6 @@
 #include "lmpch.h"
 #include "Maths/Maths.h"
 
-#include <ImGui/imgui.h>
-
 namespace Lumos
 {
 	namespace ImGuiHelpers
