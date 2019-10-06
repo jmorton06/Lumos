@@ -31,8 +31,6 @@
 #include "Graphics/API/GraphicsContext.h"
 #include "Graphics/MeshFactory.h"
 
-#include <imgui/imgui.h>
-
 #include <imgui/imgui_internal.h>
 #include <imgui/plugins/ImGuizmo.h>
 #include <IconFontCppHeaders/IconsFontAwesome5.h>

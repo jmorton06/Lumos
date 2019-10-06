@@ -2,6 +2,8 @@
 #include "Maths/Vector2.h"
 #include "EditorWindow.h"
 
+#include <imgui/imgui.h>
+
 namespace ImGui
 {
 	class FileBrowser;
