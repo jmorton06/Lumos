@@ -220,17 +220,21 @@ namespace Lumos
 	{
 		ImDrawList* drawList = ImGui::GetWindowDrawList();
 		const Maths::Vector2 widgetPos = Maths::Vector2(ImGui::GetCursorScreenPos().x, ImGui::GetCursorScreenPos().y);
-        FindMaxFrameTime();
+        FindMaxFrameTime(frameIndexOffset,widgetPos, Maths::Vector2(graphWidth, height));
 		RenderGraph(drawList, widgetPos, Maths::Vector2(graphWidth, height), frameIndexOffset);
 		RenderLegend(drawList, widgetPos + Maths::Vector2(graphWidth, 0.0f), Maths::Vector2(legendWidth, height), frameIndexOffset);
 		ImGui::Dummy(ImVec2(float(graphWidth + legendWidth), float(height)));
 	}
 
-    void ProfilerGraph::FindMaxFrameTime()
+    void ProfilerGraph::FindMaxFrameTime(size_t frameIndexOffset, const Maths::Vector2& graphPos, const Maths::Vector2& graphSize)
     {
         maxFrameTime = 0.0f;
         for (size_t frameNumber = 0; frameNumber < m_Reports.size(); frameNumber++)
         {
+            Maths::Vector2 framePos = graphPos + Maths::Vector2(graphSize.x - 1 - frameWidth - (frameWidth + frameSpacing) * frameNumber, graphSize.y - 1);
+            if (framePos.x < graphPos.x + 1)
+                break;
+
             maxFrameTime = std::max(maxFrameTime, float(m_Reports[frameNumber].elaspedTime) / 50.0f);
         }
     }
@@ -332,55 +336,3 @@ namespace Lumos
 		}
 	}
 }
-//if (Profiler::Instance()->IsEnabled())
-//{
-//	m_UpdateTimer += Engine::Instance()->GetTimeStep()->GetElapsedMillis();
-//}
-//
-//ImGui::Begin(m_Name.c_str());
-//{
-//	auto profiler = Profiler::Instance();
-//	ImGui::Checkbox("Profiler Enabled", &profiler->IsEnabled());
-//	ImGui::InputFloat("Update Frequency", &m_UpdateFrequency);
-//	ImGui::Text("Report period duration : %f ms", m_Report.elaspedTime);
-//	ImGui::Text("Threads : %i", m_Report.workingThreads);
-//	ImGui::Text("Frames : %i", m_Report.elapsedFrames);
-//
-//	if (profiler->IsEnabled())
-//	{
-//		if (m_UpdateTimer >= m_UpdateFrequency)
-//		{
-//			m_Report = profiler->GenerateReport();
-//			profiler->ClearHistory();
-//			m_UpdateTimer = 0.0f;
-//		}
-//
-//		if (m_Report.actions.empty())
-//		{
-//			ImGui::Text("Collecting Data");
-//		}
-//		else
-//		{
-//			for (const auto& action : m_Report.actions)
-//			{
-//				ImVec4 colour;
-//
-//				if (action.percentage <= 25.0f)
-//					colour = { 0.2f,0.8f,0.2f,1.0f };
-//				else if (action.percentage <= 50.0f)
-//					colour = { 0.2f,0.6f,0.6f,1.0f };
-//				else if (action.percentage <= 75.0f)
-//					colour = { 0.7f,0.2f,0.3f,1.0f };
-//				else
-//					colour = { 0.8f,0.2f,0.2f,1.0f };
-//
-//				ImGui::TextColored(colour, "%s %f ms | %f ms per call | %f percent | %llu calls", action.name.c_str(), action.duration, action.duration / action.calls, action.percentage, action.calls);
-//			}
-//		}
-//	}
-//	else
-//	{
-//		ImGui::Text("Profiler Disabled");
-//	}
-//}
-//ImGui::End();
