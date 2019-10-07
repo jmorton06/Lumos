@@ -67,8 +67,8 @@ namespace Lumos
 		ImVec2 canvasSize = ImGui::GetContentRegionAvail();
 
 		int sizeMargin = int(ImGui::GetStyle().ItemSpacing.y);
-		int maxGraphHeight = 600;
-		int availableGraphHeight = (int(canvasSize.y) - sizeMargin) / 2;
+		int maxGraphHeight = 300;
+        int availableGraphHeight = (int(canvasSize.y) - sizeMargin);
 		int graphHeight = std::min(maxGraphHeight, availableGraphHeight);
 		int legendWidth = 350;
 		int graphWidth = int(canvasSize.x) - legendWidth;
@@ -76,9 +76,7 @@ namespace Lumos
 		if (graphHeight * 2 + sizeMargin + sizeMargin < canvasSize.y)
 		{
 			ImGui::Columns(2);
-			size_t textSize = 50;
 			ImGui::Checkbox("Stop profiling", &profiler->IsEnabled());
-			//ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x - textSize);
 			ImGui::Checkbox("Colored legend text", &useColoredLegendText);
 			ImGui::DragInt("Frame offset", &frameOffset, 1.0f, 0, 400);
 			ImGui::NextColumn();
@@ -170,10 +168,8 @@ namespace Lumos
 	inline void ProfilerGraph::RenderGraph(ImDrawList * drawList, const Maths::Vector2 & graphPos, const Maths::Vector2 & graphSize, size_t frameIndexOffset)
 	{
 		Rect(drawList, graphPos, graphPos + graphSize, 0xffffffff, false);
-		float maxFrameTime = 1.0f / 30.0f;
+		//float maxFrameTime = 1.0f / 30.0f;
 		float heightThreshold = 1.0f;
-
-		
 
 		for (size_t frameNumber = 0; frameNumber < m_Reports.size(); frameNumber++)
 		{
@@ -184,7 +180,6 @@ namespace Lumos
 				break;
 			Maths::Vector2 taskPos = framePos;// +Maths::Vector2(0.0f, 0.0f);
 			auto &frame = m_Reports[frameIndex];
-			int taskIndex = 0;
 			float currentTime = 0.0f;
 
 			for (auto task : frame.actions)
@@ -192,38 +187,53 @@ namespace Lumos
 				/*	float taskStartHeight = (float(task.startTime) / maxFrameTime) * graphSize.y;
 					float taskEndHeight = (float(task.endTime) / maxFrameTime) * graphSize.y;*/
 
-				float duration = (float(task.duration)/* / maxFrameTime*/) * graphSize.y / 50.0f;
+				float duration = (float(task.duration) / maxFrameTime) * graphSize.y;
 
 				//float taskEndHeight = (float(task.endTime) / maxFrameTime) * graphSize.y;
 
 				if (abs(duration) > heightThreshold)
 				{
-					Rect(drawList, taskPos + Maths::Vector2(0.0f, -currentTime), taskPos + Maths::Vector2(frameWidth, -duration), colour[taskIndex++ % 16], true);
+					Rect(drawList, taskPos + Maths::Vector2(0.0f, -currentTime), taskPos + Maths::Vector2(frameWidth, -duration), GetColour(task.name), true);
+                    
 					currentTime += duration;
 				}
-
-				//float taskStartHeight = (float(task.startTime) / maxFrameTime) * graphSize.y;
-				//float taskEndHeight = (float(task.endTime) / maxFrameTime) * graphSize.y;
-				////taskMaxCosts[task.name] = std::max(taskMaxCosts[task.name], task.endTime - task.startTime);
-				//if (abs(taskEndHeight - taskStartHeight) > heightThreshold)
-				//	Rect(drawList, taskPos + glm::vec2(0.0f, -taskStartHeight), taskPos + glm::vec2(frameWidth, -taskEndHeight), task.color, true);
 			}
 		}
 	}
+
+    uint32_t ProfilerGraph::GetColour(const String& name)
+    {
+        bool found = m_ColourMap.find(name) != m_ColourMap.end();
+        
+        if(!found)
+            m_ColourMap[name] = colour[colourIndex % 16]; colourIndex++;
+        
+        return m_ColourMap[name];
+    }
+
 	inline void ProfilerGraph::RenderTimings(int graphWidth, int legendWidth, int height, int frameIndexOffset)
 	{
 		ImDrawList* drawList = ImGui::GetWindowDrawList();
 		const Maths::Vector2 widgetPos = Maths::Vector2(ImGui::GetCursorScreenPos().x, ImGui::GetCursorScreenPos().y);
+        FindMaxFrameTime();
 		RenderGraph(drawList, widgetPos, Maths::Vector2(graphWidth, height), frameIndexOffset);
 		RenderLegend(drawList, widgetPos + Maths::Vector2(graphWidth, 0.0f), Maths::Vector2(legendWidth, height), frameIndexOffset);
 		ImGui::Dummy(ImVec2(float(graphWidth + legendWidth), float(height)));
 	}
 
+    void ProfilerGraph::FindMaxFrameTime()
+    {
+        maxFrameTime = 0;
+        for (size_t frameNumber = 0; frameNumber < m_Reports.size(); frameNumber++)
+        {
+            maxFrameTime = std::max(maxFrameTime, float(m_Reports[frameNumber].elaspedTime) / 50.0f);
+        }
+    }
+
 	void ProfilerGraph::RenderLegend(ImDrawList *drawList, const Maths::Vector2& legendPos, const Maths::Vector2& legendSize, size_t frameIndexOffset)
 	{
 		float markerLeftRectMargin = 3.0f;
 		float markerLeftRectWidth = 5.0f;
-		float maxFrameTime = 1.0f / 30.0f;
 		float markerMidWidth = 30.0f;
 		float markerRightRectWidth = 10.0f;
 		float markerRigthRectMargin = 3.0f;
@@ -258,10 +268,8 @@ namespace Lumos
 			}
 			else
 				continue;
-			float taskStartHeight = (float(task.duration) / maxFrameTime) * legendSize.y;
-			float taskEndHeight = (float(task.duration) / maxFrameTime) * legendSize.y;
 
-			float duration = (float(task.duration)/* / maxFrameTime*/) * legendSize.y / 50.0f;
+			float duration = (float(task.duration) / maxFrameTime) * legendSize.y;
 
 			Maths::Vector2 markerLeftRectMin = legendPos + Maths::Vector2(markerLeftRectMargin, legendSize.y);
 			Maths::Vector2 markerLeftRectMax = markerLeftRectMin + Maths::Vector2(markerLeftRectWidth, 0.0f);
@@ -272,7 +280,7 @@ namespace Lumos
 
 			Maths::Vector2 markerRightRectMin = legendPos + Maths::Vector2(markerLeftRectMargin + markerLeftRectWidth + markerMidWidth, legendSize.y - markerRigthRectMargin - (markerRightRectHeight + markerRightRectSpacing) * stat.onScreenIndex);
 			Maths::Vector2 markerRightRectMax = markerRightRectMin + Maths::Vector2(markerRightRectWidth, -markerRightRectHeight);
-			RenderTaskMarker(drawList, markerLeftRectMin, markerLeftRectMax, markerRightRectMin, markerRightRectMax, colour[taskIndex % 16]);
+			RenderTaskMarker(drawList, markerLeftRectMin, markerLeftRectMax, markerRightRectMin, markerRightRectMax, GetColour(task.name));
 
 			uint32_t textColor = useColoredLegendText ? colour[taskIndex % 16] : imguiText;// task.color;
 
