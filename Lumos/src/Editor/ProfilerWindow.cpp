@@ -110,6 +110,11 @@ namespace Lumos
 			auto report = profiler->GenerateReport();
 			profiler->ClearHistory();
 
+            if(m_Reports.size() > 300)
+            {
+                m_Reports.front() = std::move(m_Reports.back());
+                m_Reports.pop_back();
+            }
 			m_Reports.emplace_back(report);
 		}
 
@@ -223,7 +228,7 @@ namespace Lumos
 
     void ProfilerGraph::FindMaxFrameTime()
     {
-        maxFrameTime = 0;
+        maxFrameTime = 0.0f;
         for (size_t frameNumber = 0; frameNumber < m_Reports.size(); frameNumber++)
         {
             maxFrameTime = std::max(maxFrameTime, float(m_Reports[frameNumber].elaspedTime) / 50.0f);
