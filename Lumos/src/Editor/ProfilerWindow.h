@@ -18,16 +18,20 @@ namespace Lumos
 		static void Triangle(ImDrawList *drawList, const std::array<Maths::Vector2, 3>& points, uint32_t col, bool filled = true);
 		static void RenderTaskMarker(ImDrawList *drawList, const Maths::Vector2& leftMinPoint, const Maths::Vector2& leftMaxPoint, const Maths::Vector2& rightMinPoint, const Maths::Vector2& rightMaxPoint, uint32_t col);
 
+        void FindMaxFrameTime();
 		void RenderGraph(ImDrawList *drawList, const Maths::Vector2& graphPos, const Maths::Vector2& graphSize, size_t frameIndexOffset);
 		void RenderLegend(ImDrawList *drawList, const Maths::Vector2& legendPos, const Maths::Vector2& legendSize, size_t frameIndexOffset);
 		void RenderTimings(int graphWidth, int legendWidth, int height, int frameIndexOffset);
 
 		void RebuildTaskStats(size_t endFrame, size_t framesCount);
+        
+        uint32_t GetColour(const String& name);
 
 		int frameWidth;
 		int frameSpacing;
 		bool useColoredLegendText;
 		size_t currFrameIndex = 0;
+        float maxFrameTime = 0.0f;
 
 		struct TaskStats
 		{
@@ -39,6 +43,9 @@ namespace Lumos
 		std::map<std::string, size_t> taskNameToStatsIndex;
 
 		std::vector<ProfilerReport> m_Reports;
+        
+        int colourIndex = 0;
+        std::unordered_map<String, uint32_t> m_ColourMap;
 	};
 	class ProfilerWindow : public EditorWindow
 	{

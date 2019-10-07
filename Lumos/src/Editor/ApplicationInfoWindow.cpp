@@ -50,7 +50,6 @@ namespace Lumos
 				ImGui::NewLine();
 				ImGui::Text("Scene : %s", Application::Instance()->GetSceneManager()->GetCurrentScene()->GetSceneName().c_str());
 
-				bool flipImage = Graphics::GraphicsContext::GetContext()->FlipImGUITexture();
 
 				if (ImGui::TreeNode("GBuffer"))
 				{
