@@ -11,7 +11,6 @@
 #include "Graphics/API/Texture.h"
 #include "Graphics/RenderManager.h"
 #include "Graphics/Layers/LayerStack.h"
-#include "Graphics/Layers/ImGuiLayer.h"
 #include "Graphics/Camera/Camera.h"
 
 #include "ECS/EntityManager.h"
@@ -26,6 +25,7 @@
 #include "Core/OS/Window.h"
 #include "Core/Profiler.h"
 
+#include "ImGui/ImGuiLayer.h"
 #include "Scripting/LuaScript.h"
 
 #include "Events/ApplicationEvent.h"
@@ -161,7 +161,7 @@ namespace Lumos
 
 	bool Application::OnFrame()
 	{
-		float now = m_Timer->GetMS(1.0f) * 1000.0f;
+		float now = m_Timer->GetMS(1.0f);
 
 #ifdef LUMOS_LIMIT_FRAMERATE
 		if (now - m_UpdateTimer > Engine::Instance()->TargetFrameRate())

@@ -5,7 +5,6 @@
 #include "ECS/EntityManager.h"
 #include "ECS/Component/MaterialComponent.h"
 #include "ECS/Component/MeshComponent.h"
-#include "ECS/Component/TransformComponent.h"
 #include "ECS/Component/TextureMatrixComponent.h"
 
 #include "Maths/Maths.h"
@@ -162,12 +161,12 @@ namespace Lumos
 				if (obj != nullptr)
 				{
 					auto* model = obj->GetComponent<MeshComponent>();
-					if (model && model->GetActive() && model->GetMesh())
+					if (model && /*model->GetActive() &&*/ model->GetMesh())
 					{
 						auto mesh = model->GetMesh();
 						auto materialComponent = obj->GetComponent<MaterialComponent>();
 						Material* material = nullptr;
-						if (materialComponent && materialComponent->GetActive() && materialComponent->GetMaterial())
+						if (materialComponent && /* materialComponent->GetActive() &&*/ materialComponent->GetMaterial())
 						{
 							material = materialComponent->GetMaterial().get();
 
@@ -182,7 +181,7 @@ namespace Lumos
 						else
 							textureMatrix = Maths::Matrix4();
 
-						auto transform = obj->GetComponent<TransformComponent>()->GetTransform()->GetWorldMatrix();
+						auto transform = obj->GetComponent<Maths::Transform>()->GetWorldMatrix();
 
 						SubmitMesh(mesh, material, transform, textureMatrix);
 					}

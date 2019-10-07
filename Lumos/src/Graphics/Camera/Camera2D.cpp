@@ -93,9 +93,15 @@ namespace Lumos
     
     void Camera2D::UpdateScroll(float offset, float dt)
     {
+		float multiplier = 2.0f;
+		if (Input::GetInput()->GetKeyHeld(InputCode::Key::LeftShift))
+		{
+			multiplier = 10.0f;
+		}
+
         if (offset != 0.0f)
         {
-            m_ZoomVelocity += dt * offset;
+            m_ZoomVelocity += dt * offset * multiplier;
         }
         
         m_Scale -= m_ZoomVelocity;

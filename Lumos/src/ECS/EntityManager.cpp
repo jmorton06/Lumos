@@ -1,15 +1,8 @@
 #include "lmpch.h"
 #include "EntityManager.h"
-#include "Graphics/API/GraphicsContext.h"
-#include "Graphics/Camera/Camera.h"
-#include "App/Application.h"
-#include "App/Scene.h"
-#include "App/SceneManager.h"
-#include "Maths/MathsUtilities.h"
+#include "Utilities/RandomNumberGenerator.h"
 
 #include <imgui/imgui.h>
-#include <imgui/plugins/ImGuizmo.h>
-
 #include <IconFontCppHeaders/IconsFontAwesome5.h>
 
 namespace Lumos
@@ -26,33 +19,35 @@ namespace Lumos
     
     Entity::~Entity()
     {
-        ComponentManager::Instance()->EntityDestroyed(this);
+		ComponentManager::Instance()->EntityDestroyed(this);
     }
     
     void Entity::Init()
     {
-        m_UUID = Maths::GenerateUUID();
+        m_UUID = RandomNumberGenerator32::Rand(0, INT_MAX);
     }
     
     void Entity::OnUpdateObject(float dt)
     {
-        if (m_DefaultTransformComponent && m_DefaultTransformComponent->GetTransform()->HasUpdated())
+		auto transformComponent = this->GetTransformComponent();
+
+        if (transformComponent && transformComponent->HasUpdated())
         {
             if (!m_Parent)
-                m_DefaultTransformComponent->SetWorldMatrix(Maths::Matrix4());
+				transformComponent->SetWorldMatrix(Maths::Matrix4());
             else
             {
-                m_DefaultTransformComponent->SetWorldMatrix(m_Parent->GetTransformComponent()->GetTransform()->GetWorldMatrix());
+				transformComponent->SetWorldMatrix(m_Parent->GetTransformComponent()->GetWorldMatrix());
             }
             
             
             for (auto child : m_Children)
             {
                 if (child && child->GetTransformComponent())
-                    child->GetTransformComponent()->SetWorldMatrix(m_DefaultTransformComponent->GetTransform()->GetWorldMatrix());
+                    child->GetTransformComponent()->SetWorldMatrix(transformComponent->GetWorldMatrix());
             }
             
-            m_DefaultTransformComponent->GetTransform()->SetHasUpdated(false);
+			transformComponent->SetHasUpdated(false);
         }
     }
     
@@ -61,7 +56,7 @@ namespace Lumos
         if (child->m_Parent)
             child->m_Parent->RemoveChild(child);
         
-        child->GetTransformComponent()->GetTransform()->SetHasUpdated(true);
+        child->GetTransformComponent()->SetHasUpdated(true);
         
         child->m_Parent = this;
         m_Children.push_back(child);
@@ -78,48 +73,18 @@ namespace Lumos
         }
     }
     
-    TransformComponent* Entity::GetTransformComponent()
+    Maths::Transform* Entity::GetTransformComponent()
     {
-        if (!m_DefaultTransformComponent)
+		auto transformComponent = this->GetComponent<Maths::Transform>();
+        if (!transformComponent)
         {
-            m_DefaultTransformComponent = GetComponent<TransformComponent>();
-            
-            if (!m_DefaultTransformComponent)
-                AddComponent<TransformComponent>();
+            AddComponent<Maths::Transform>();
+			transformComponent = this->GetComponent<Maths::Transform>();
         }
         
-        return m_DefaultTransformComponent;
+        return transformComponent;
     }
-    
-    void Entity::OnGuizmo(u32 mode)
-    {
-        Maths::Matrix4 view = Application::Instance()->GetSceneManager()->GetCurrentScene()->GetCamera()->GetViewMatrix();
-        Maths::Matrix4 proj = Application::Instance()->GetSceneManager()->GetCurrentScene()->GetCamera()->GetProjectionMatrix();
-        
-#ifdef LUMOS_RENDER_API_VULKAN
-        if (Graphics::GraphicsContext::GetRenderAPI() == Graphics::RenderAPI::VULKAN)
-            proj[5] *= -1.0f;
-#endif
-        ImGuizmo::SetDrawlist();
-        
-        Maths::Matrix4 model = Maths::Matrix4();
-        if (this->GetComponent<TransformComponent>() != nullptr)
-            model = GetComponent<TransformComponent>()->GetTransform()->GetWorldMatrix();
-        
-        float delta[16];
-        ImGuizmo::Manipulate(view.values, proj.values, static_cast<ImGuizmo::OPERATION>(mode), ImGuizmo::LOCAL, model.values, delta, nullptr);
-        
-		//ImGuizmo::DrawCube(view.values, proj.values, (model * Maths::Matrix4::Scale(Maths::Vector3(m_BoundingRadius,m_BoundingRadius, m_BoundingRadius))).values, false);
 
-        if (GetTransformComponent() != nullptr && ImGuizmo::IsUsing())
-        {
-            auto mat = Maths::Matrix4(delta) * m_DefaultTransformComponent->GetTransform()->GetLocalMatrix();
-            m_DefaultTransformComponent->GetTransform()->SetLocalTransform(mat);
-            m_DefaultTransformComponent->GetTransform()->ApplyTransform();
-            
-        }
-    }
-    
     void Entity::OnImGui()
     {
         static char objName[INPUT_BUF_SIZE];
@@ -136,14 +101,10 @@ namespace Lumos
         
         if (ImGui::BeginPopup("Add Component", 3))
         {
-            if (ImGui::Selectable("Mesh")) this->AddComponent<MeshComponent>();
-            if (ImGui::Selectable("Material")) this->AddComponent<MaterialComponent>();
-            if (ImGui::Selectable("Camera")) this->AddComponent<CameraComponent>();
-            if (ImGui::Selectable("Sprite")) this->AddComponent<SpriteComponent>();
-            if (ImGui::Selectable("Light")) this->AddComponent<LightComponent>();
-            if (ImGui::Selectable("Sound")) this->AddComponent<SoundComponent>();
-            if (ImGui::Selectable("Physics2D")) this->AddComponent<Physics2DComponent>();
-            if (ImGui::Selectable("Physics3D")) this->AddComponent<Physics3DComponent>();
+			const auto& componentArrays = ComponentManager::Instance()->GetComponentArrays();
+
+			for(const auto& componentArray : componentArrays)
+				if (ImGui::Selectable(componentArray.second->GetName().c_str())) ComponentManager::Instance()->CreateComponent(this, componentArray.second->GetID());
 
             ImGui::EndPopup();
         }
@@ -170,42 +131,7 @@ namespace Lumos
         ImGui::Separator();
         ImGui::PopStyleVar();
         
-        auto components = GetAllComponents();
-        for (auto& component : components)
-        {
-            ImGui::Separator();
-			String name = component->GetName().substr(component->GetName().find_last_of(':') + 1);
-			u32 index = FindStringPosition(name, "Component");
-
-			if (index >= 0)
-				name = RemoveStringRange(name, index, 9);
-            bool open = ImGui::CollapsingHeader(name.c_str(), ImGuiTreeNodeFlags_AllowItemOverlap);
-            
-			if (component->GetCanDisable())
-			{
-				const float ItemSpacing = ImGui::GetStyle().ItemSpacing.x;
-
-				static float HostButtonWidth = 42.0f;
-				float pos = HostButtonWidth + ItemSpacing;
-				ImGui::SameLine(ImGui::GetWindowWidth() - pos);
-				ImGui::Checkbox(("##Active" + component->GetName()).c_str(), &component->GetActive());
-				ImGui::SameLine();
-
-				if (ImGui::Button((ICON_FA_COG"##" + component->GetName()).c_str()))
-					ImGui::OpenPopup(("Remove Component" + component->GetName()).c_str());
-
-				if (ImGui::BeginPopup(("Remove Component" + component->GetName()).c_str(), 3))
-				{
-					if (ImGui::Selectable(("Remove##" + component->GetName()).c_str())) this->RemoveComponent(component->GetTypeID());
-					ImGui::EndPopup();
-				}
-			}
-
-            if (open)
-            {
-                component->OnImGui();
-            }
-        }
+		ComponentManager::Instance()->OnImGui(this);
     }
     
     void Entity::SetParent(Entity *parent)
@@ -214,7 +140,7 @@ namespace Lumos
             m_Parent->RemoveChild(this);
         
         m_Parent = parent;
-        m_DefaultTransformComponent->SetWorldMatrix(m_Parent->GetTransformComponent()->GetTransform()->GetWorldMatrix());
+        GetTransformComponent()->SetWorldMatrix(m_Parent->GetTransformComponent()->GetWorldMatrix());
     }
     
     const bool Entity::ActiveInHierarchy() const
@@ -238,11 +164,6 @@ namespace Lumos
         }
     }
     
-	const std::vector<LumosComponent*> Entity::GetAllComponents()
-    {
-        return ComponentManager::Instance()->GetAllComponents(this);
-    }
-    
     nlohmann::json Entity::Serialise()
     {
         nlohmann::json output;
@@ -250,7 +171,7 @@ namespace Lumos
         output["instanceID"] = m_UUID;
         output["active"] = m_Active;
         output["name"] = m_Name;
-        output["parentID"] = m_Parent ? m_Parent->GetUUID() : "";
+        output["parentID"] = m_Parent ? m_Parent->GetUUID() : 0;
         output["prefabFilePath"] = m_PrefabFileLocation;
         
         nlohmann::json childrenIDs = nlohmann::json::array_t();
@@ -260,14 +181,14 @@ namespace Lumos
         output["children"] = childrenIDs;
         
         nlohmann::json serializedComponents = nlohmann::json::array_t();
-        auto components = GetAllComponents();
+      /*  auto components = GetAllComponents();
         
 		for (int i = 0; i < components.size(); ++i)
 		{
 			auto sComp = components[i]->Serialise();
 			if(sComp != nullptr)
 				serializedComponents.push_back(sComp);
-		}
+		}*/
             
         
         output["components"] = serializedComponents;
@@ -282,15 +203,17 @@ namespace Lumos
         m_Name = data["name"];
         m_PrefabFileLocation = data["prefabFilePath"];
         
-        auto parentID = data["parentID"];
+        u32 parentID = data["parentID"];
+
+		m_Parent = m_Manager->GetEntity(parentID);
         nlohmann::json::array_t children = data["children"];
         nlohmann::json::array_t components = data["components"];
         
         for (int i = 0; i < components.size(); i++)
         {
-            auto type = components[i]["typeID"];
-			auto component = ComponentManager::Instance()->CreateComponent(this, type);
-			component->Deserialise(components[i]);
+            size_t type = components[i]["typeID"];
+			ComponentManager::Instance()->CreateComponent(this, type);
+			//component->Deserialise(components[i]);
         }
     }
 }
@@ -326,4 +249,14 @@ void Lumos::EntityManager::DeleteEntity(Entity* entity)
 			m_Entities.erase(m_Entities.begin() + i);
 		}
 	}
+}
+
+Lumos::Entity * Lumos::EntityManager::GetEntity(u32 uuid)
+{
+	for (auto entity : m_Entities)
+	{
+		if (entity->GetUUID() == uuid)
+			return entity;
+	}
+	return nullptr;
 }

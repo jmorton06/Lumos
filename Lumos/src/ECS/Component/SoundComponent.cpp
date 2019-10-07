@@ -12,13 +12,11 @@ namespace Lumos
     SoundComponent::SoundComponent()
     {
         m_SoundNode = Ref<SoundNode>(SoundNode::Create());
-        m_BoundingShape = CreateRef<Maths::BoundingSphere>(m_SoundNode->GetPosition(),m_SoundNode->GetRadius());
     }
     
 	SoundComponent::SoundComponent(Ref<SoundNode>& sound)
 		: m_SoundNode(sound)
 	{
-		m_BoundingShape = CreateRef<Maths::BoundingSphere>(sound->GetPosition(),sound->GetRadius());
 	}
 
 	void SoundComponent::Init()

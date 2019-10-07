@@ -16,7 +16,6 @@
 #include "Graphics/Light.h"
 #include "Graphics/RenderList.h"
 
-#include "ECS/Component/TransformComponent.h"
 #include "ECS/Component/MeshComponent.h"
 
 #include "Maths/MathsUtilities.h"
@@ -25,6 +24,8 @@
 #include "RenderCommand.h"
 #include "Core/JobSystem.h"
 #include "Core/Profiler.h"
+
+#include <imgui/imgui.h>
 
 #define THREAD_CASCADE_GEN
 
@@ -257,7 +258,7 @@ namespace Lumos
 						{
 							auto mesh = model->GetMesh();
 							{
-								SubmitMesh(mesh, nullptr, obj->GetComponent<TransformComponent>()->GetTransform()->GetWorldMatrix(), Maths::Matrix4());
+								SubmitMesh(mesh, nullptr, obj->GetComponent<Maths::Transform>()->GetWorldMatrix(), Maths::Matrix4());
 							}
 						}
 					}
@@ -281,7 +282,12 @@ namespace Lumos
 
 		void ShadowRenderer::UpdateCascades(Scene* scene)
 		{
-			if (!m_Light)
+			if (!m_LightEntity)
+				return;
+
+			Light* light = m_LightEntity->GetComponent<Graphics::Light>();
+
+			if (!light)
 				return;
 
 			float cascadeSplits[SHADOWMAP_MAX];
@@ -369,7 +375,7 @@ namespace Lumos
 				Maths::Vector3 maxExtents = Maths::Vector3(radius);
 				Maths::Vector3 minExtents = -maxExtents;
 
-				Maths::Vector3 lightDir = -m_Light->m_Direction.ToVector3();
+				Maths::Vector3 lightDir = -light->m_Direction.ToVector3();
 				lightDir.Normalise();
 				Maths::Matrix4 lightViewMatrix = Maths::Matrix4::BuildViewMatrix(frustumCenter - lightDir * -minExtents.z, frustumCenter);
 
@@ -551,6 +557,26 @@ namespace Lumos
 			command.transform = transform;
 			command.material = material;
 			Submit(command);
+		}
+
+		void ShadowRenderer::OnImGui()
+		{
+			ImGui::Text("Shadow Renderer");
+			if (ImGui::TreeNode("Texture"))
+			{
+				bool flipImage = Graphics::GraphicsContext::GetContext()->FlipImGUITexture();
+
+				ImGui::Image(m_ShadowTex->GetHandle(), ImVec2(128, 128), ImVec2(0.0f, flipImage ? 1.0f : 0.0f), ImVec2(1.0f, flipImage ? 0.0f : 1.0f));
+
+				if (ImGui::IsItemHovered())
+				{
+					ImGui::BeginTooltip();
+					ImGui::Image(m_ShadowTex->GetHandle(), ImVec2(256, 256), ImVec2(0.0f, flipImage ? 1.0f : 0.0f), ImVec2(1.0f, flipImage ? 0.0f : 1.0f));
+					ImGui::EndTooltip();
+				}
+
+				ImGui::TreePop();
+			}
 		}
 	}
 }

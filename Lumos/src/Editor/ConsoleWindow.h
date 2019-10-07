@@ -1,14 +1,13 @@
 #pragma once
 #include "lmpch.h"
-#include "Utilities/TSingleton.h"
+#include "EditorWindow.h"
 
 #include <imgui/imgui.h>
 
 namespace Lumos
 {
-	class Console : public TSingleton<Console>
+	class ConsoleWindow : public EditorWindow
 	{
-		friend class TSingleton<Console>;
 	public:
 		class Message
 		{
@@ -43,22 +42,23 @@ namespace Lumos
 			static std::vector<Level> s_Levels;
 		};
 
-        Console();
-		~Console() = default;
-		void AddMessage(const Ref<Message>& message);
-		void Flush();
-		void OnImGuiRender(bool* show);
+        ConsoleWindow();
+		~ConsoleWindow() = default;
+		static void Flush();
+		void OnImGui() override;
+		
+		static void AddMessage(const Ref<Message>& message);
 
 	private:
-			void ImGuiRenderHeader();
-			void ImGuiRenderMessages();
+		void ImGuiRenderHeader();
+		void ImGuiRenderMessages();
 	private:
-		uint16_t m_MessageBufferCapacity;
-		uint16_t m_MessageBufferSize;
-		uint16_t m_MessageBufferBegin;
-		std::vector<Ref<Message>> m_MessageBuffer;
-		bool m_AllowScrollingToBottom;
-		bool m_RequestScrollToBottom;
+		static uint16_t s_MessageBufferCapacity;
+		static uint16_t s_MessageBufferSize;
+		static uint16_t s_MessageBufferBegin;
+		static std::vector<Ref<Message>> s_MessageBuffer;
+		static bool s_AllowScrollingToBottom;
+		static bool s_RequestScrollToBottom;
 		static Message::Level s_MessageBufferRenderFilter;
 		ImGuiTextFilter Filter;
 	};

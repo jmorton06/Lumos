@@ -1,6 +1,5 @@
 #include "lmpch.h"
 #include "RenderList.h"
-#include "ECS/Component/TransformComponent.h"
 
 namespace Lumos
 {
@@ -68,7 +67,7 @@ namespace Lumos
 #pragma omp parallel for
 			for (auto &i : list)
 			{
-				i.cam_dist_sq = (i.target_obj->GetComponent<TransformComponent>()->GetTransform()->GetWorldMatrix().GetPositionVector() - m_CameraPos).LengthSquared() * mul;
+				i.cam_dist_sq = (i.target_obj->GetComponent<Maths::Transform>()->GetWorldMatrix().GetPositionVector() - m_CameraPos).LengthSquared() * mul;
 			}
 		};
 
@@ -185,7 +184,7 @@ namespace Lumos
 		if (!isOpaque)
 		{
 #endif
-			carry_obj.cam_dist_sq = (obj->GetComponent<TransformComponent>()->GetTransform()->GetWorldMatrix().GetPositionVector() - m_CameraPos).LengthSquared();
+			carry_obj.cam_dist_sq = (obj->GetComponent<Maths::Transform>()->GetWorldMatrix().GetPositionVector() - m_CameraPos).LengthSquared();
 
 			if (!isOpaque)
 			{

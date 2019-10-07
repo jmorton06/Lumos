@@ -3,7 +3,6 @@
 #include "App/Application.h"
 #include "Physics/LumosPhysicsEngine/LumosPhysicsEngine.h"
 #include "ECS/EntityManager.h"
-#include "TransformComponent.h"
 
 #include <imgui/imgui.h>
 
@@ -21,22 +20,12 @@ namespace Lumos
 
 	void Physics3DComponent::Init()
 	{
-		m_PhysicsObject->SetEntity(m_Entity);
 	}
 
 	void Physics3DComponent::Update()
 	{
-        m_Entity->GetTransformComponent()->GetTransform()->SetLocalPosition(m_PhysicsObject->GetPosition());
-        m_Entity->GetTransformComponent()->GetTransform()->SetLocalOrientation(m_PhysicsObject->GetOrientation());
-		m_Entity->GetTransformComponent()->GetTransform()->UpdateMatrices();
 	}
 
-	void Physics3DComponent::OnUpdateTransform(const Maths::Matrix4& entityTransform)
-	{
-		//m_PhysicsObject->SetPosition(entityTransform.GetPositionVector());
-        //m_PhysicsObject->SetOrientation(Maths::Quaternion(Maths::Matrix4::GetEulerAngles(entityTransform.GetRotation()), 1.0f));
-	}
-    
     void Physics3DComponent::OnImGui()
     {
         ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(2,2));

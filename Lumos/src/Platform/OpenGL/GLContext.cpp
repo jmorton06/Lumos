@@ -17,6 +17,8 @@
 #define NOGDI
 #endif
 
+#include <imgui/imgui.h>
+
 #ifdef GL_DEBUD_CALLBACK
 static std::string GetStringForType(GLenum type)
 {
@@ -219,7 +221,9 @@ namespace Lumos
 
 		void GLContext::OnImGui()
 		{
-
+            ImGui::Text("%s", (const char*)(glGetString(GL_VERSION)));
+            ImGui::Text("%s", (const char*)(glGetString(GL_VENDOR)));
+            ImGui::Text("%s", (const char*)(glGetString(GL_RENDERER)));
 		}
 
 		void GLContext::MakeDefault()

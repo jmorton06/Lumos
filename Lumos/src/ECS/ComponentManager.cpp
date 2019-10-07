@@ -1,16 +1,22 @@
 #include "lmpch.h"
 #include "ComponentManager.h"
 #include "ECS/Component/Components.h"
+#include "Graphics/Sprite.h"
+#include "Graphics/Light.h"
+#include "Maths/Transform.h"
+
+#include <imgui/imgui.h>
+#include <IconFontCppHeaders/IconsFontAwesome5.h>
 
 namespace Lumos
 {
 	ComponentManager::ComponentManager()
 	{
 		m_NextComponentType = 0;
+		RegisterComponent<Maths::Transform>();
+		RegisterComponent<Graphics::Sprite>();
+		RegisterComponent<Graphics::Light>();
 		RegisterComponent<MeshComponent>();
-		RegisterComponent<TransformComponent>();
-		RegisterComponent<SpriteComponent>();
-		RegisterComponent<LightComponent>();
 		RegisterComponent<SoundComponent>();
 		RegisterComponent<TextureMatrixComponent>();
 		RegisterComponent<Physics3DComponent>();
@@ -31,17 +37,33 @@ namespace Lumos
 			componentArray.second->OnUpdate();
 	}
 
-	const std::vector<LumosComponent*> ComponentManager::GetAllComponents(Entity* entity)
+	void IComponentArray::ImGuiComponentHeader(const String& componentName, size_t typeID, Entity* entity, bool& open)
 	{
-		std::vector<LumosComponent*> components;
+		ImGui::Separator();
 
-		for (auto& componentArray : m_ComponentArrays)
+		String name = componentName.substr(componentName.find_last_of(':') + 1);
+
+		open = ImGui::CollapsingHeader(name.c_str(), ImGuiTreeNodeFlags_AllowItemOverlap);
+
+		if (typeID != typeid(Maths::Transform).hash_code())
 		{
-			auto component = static_cast<ComponentArray<LumosComponent>*>(componentArray.second.get())->GetData(entity);
-			if (component != nullptr)
-				components.emplace_back(component);
-		}
+			const float ItemSpacing = ImGui::GetStyle().ItemSpacing.x;
 
-		return components;
+			const float HostButtonWidth = 42.0f;
+			static bool temp = true;
+			float pos = HostButtonWidth + ItemSpacing;
+			ImGui::SameLine(ImGui::GetWindowWidth() - pos);
+			ImGui::Checkbox(("##Active" + componentName).c_str(), &temp);
+			ImGui::SameLine();
+
+			if (ImGui::Button((ICON_FA_COG"##" + componentName).c_str()))
+				ImGui::OpenPopup(("Remove Component" + componentName).c_str());
+
+			if (ImGui::BeginPopup(("Remove Component" + componentName).c_str(), 3))
+			{
+				if (ImGui::Selectable(("Remove##" + componentName).c_str())) RemoveData(entity);
+				ImGui::EndPopup();
+			}
+		}
 	}
 }

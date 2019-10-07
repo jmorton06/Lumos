@@ -61,7 +61,7 @@ namespace Lumos
 		matInstance->SetMaterialProperites(properties);
 		pSphere->AddComponent<MaterialComponent>(matInstance);
 
-		pSphere->AddComponent<TransformComponent>(Maths::Matrix4::Scale(Maths::Vector3(radius, radius, radius)));
+		pSphere->AddComponent<Maths::Transform>(Maths::Matrix4::Scale(Maths::Vector3(radius, radius, radius)));
 
 		if (physics_enabled)
 		{
@@ -86,7 +86,7 @@ namespace Lumos
 		}
 		else
 		{
-			pSphere->GetTransformComponent()->GetTransform()->SetLocalPosition(pos);
+			pSphere->GetTransformComponent()->SetLocalPosition(pos);
 		}
 
 		return pSphere;
@@ -120,7 +120,7 @@ namespace Lumos
 		matInstance->SetRenderFlags(0);
 		Cube->AddComponent<MaterialComponent>(matInstance);
 
-		Cube->AddComponent<TransformComponent>(Maths::Matrix4::Scale(halfdims));
+		Cube->AddComponent<Maths::Transform>(Maths::Matrix4::Scale(halfdims));
 
 		if (physics_enabled)
 		{
@@ -145,7 +145,7 @@ namespace Lumos
 		}
 		else
 		{
-			Cube->GetTransformComponent()->GetTransform()->SetLocalPosition(pos);
+			Cube->GetTransformComponent()->SetLocalPosition(pos);
 		}
 
 		return Cube;
@@ -178,7 +178,7 @@ namespace Lumos
 		matInstance->SetMaterialProperites(properties);
 		meshEntity->AddComponent<MaterialComponent>(matInstance);
 
-		meshEntity->AddComponent<TransformComponent>(Maths::Matrix4::Scale(halfdims) * Maths::Matrix4::RotationX(-90.0f));
+		meshEntity->AddComponent<Maths::Transform>(Maths::Matrix4::Scale(halfdims) * Maths::Matrix4::RotationX(-90.0f));
 		
 		Cube->AddChild(meshEntity);
 
@@ -205,7 +205,7 @@ namespace Lumos
 		}
 		else
 		{
-			Cube->GetTransformComponent()->GetTransform()->SetLocalPosition(pos);
+			Cube->GetTransformComponent()->SetLocalPosition(pos);
 		}
 
 		return Cube;
@@ -230,8 +230,7 @@ namespace Lumos
 		const float radius    = RandomNumberGenerator32::Rand(1.0f, 30.0f);
 		const float intensity = RandomNumberGenerator32::Rand(0.0f, 2.0f);
 
-		Ref<Graphics::Light> light = CreateRef<Graphics::Light>(scene->GetCamera()->GetPosition(), colour,  intensity, Graphics::LightType::PointLight, scene->GetCamera()->GetPosition(), radius);
-		cube->AddComponent<LightComponent>(light);
+		cube->AddComponent<Graphics::Light>(scene->GetCamera()->GetPosition(), colour, intensity, Graphics::LightType::PointLight, scene->GetCamera()->GetPosition(), radius);
 		scene->AddEntity(cube);
 	}
 

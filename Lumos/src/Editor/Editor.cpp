@@ -1,7 +1,14 @@
 #include "lmpch.h"
 #include "Editor.h"
-#include "Console.h"
 #include "ImGUIConsoleSink.h"
+#include "SceneWindow.h"
+#include "ProfilerWindow.h"
+#include "ConsoleWindow.h"
+#include "HierarchyWindow.h"
+#include "InspectorWindow.h"
+#include "ApplicationInfoWindow.h"
+#include "GraphicsInfoWindow.h"
+
 #include "App/Application.h"
 #include "Core/OS/Input.h"
 #include "Core/Profiler.h"
@@ -22,20 +29,55 @@
 #include "Graphics/API/GraphicsContext.h"
 #include "Graphics/API/Texture.h"
 #include "Graphics/API/GraphicsContext.h"
+#include "Graphics/MeshFactory.h"
 
 #include <imgui/imgui_internal.h>
 #include <imgui/plugins/ImGuizmo.h>
 #include <IconFontCppHeaders/IconsFontAwesome5.h>
 
+#ifdef LUMOS_PLATFORM_WINDOWS
+#include <imgui/plugins/ImFileBrowser.h>
+#endif
+
+static ImVec2 operator+(const ImVec2 &a, const ImVec2 &b) {
+	return ImVec2(a.x + b.x, a.y + b.y);
+}
+
+static ImVec2 operator-(const ImVec2 &a, const ImVec2 &b) {
+	return ImVec2(a.x - b.x, a.y - b.y);
+}
+
 namespace Lumos
 {
 	Editor::Editor(Application* app, u32 width, u32 height) : m_Application(app)
 	{
-		m_SceneViewSize = Maths::Vector2(static_cast<float>(width), static_cast<float>(height));
+		m_Windows.emplace_back(CreateRef<ConsoleWindow>());
+		m_Windows.emplace_back(CreateRef<SceneWindow>());
+		m_Windows.emplace_back(CreateRef<ProfilerWindow>());
+		m_Windows.emplace_back(CreateRef<InspectorWindow>());
+		m_Windows.emplace_back(CreateRef<HierarchyWindow>());
+		m_Windows.emplace_back(CreateRef<GraphicsInfoWindow>());
+		m_Windows.back()->SetActive(false);
+		m_Windows.emplace_back(CreateRef<ApplicationInfoWindow>());
+		m_Windows.back()->SetActive(false);
+		for (auto& window : m_Windows)
+			window->SetEditor(this);
+        
+#ifdef LUMOS_PLATFORM_WINDOWS
+		m_FileBrowser = lmnew ImGui::FileBrowser(ImGuiFileBrowserFlags_CreateNewDir | ImGuiFileBrowserFlags_EnterNewFilename | ImGuiFileBrowserFlags_NoModal);
+        m_FileBrowser->SetTitle("Test File Browser");
+		m_FileBrowser->SetFileFilters({ ".sh" , ".h" });
+		m_FileBrowser->SetLabels(ICON_FA_FOLDER, ICON_FA_FILE_ALT, ICON_FA_FOLDER_PLUS);
+		m_FileBrowser->Refresh();
+#endif
+
 	}
 
 	Editor::~Editor()
 	{
+#ifdef LUMOS_PLATFORM_WINDOWS
+        lmdel m_FileBrowser;
+#endif
 	}
 
 	void Editor::OnImGui()
@@ -46,26 +88,14 @@ namespace Lumos
 		BeginDockSpace(true);
         EndDockSpace();
 
-		//SelectEntity();
-        if(m_ShowSceneView)
-            DrawSceneView();
-        if(m_ShowConsole)
-            DrawConsole();
-        if(m_ShowHierarchy)
-            DrawHierarchyWindow();
-        if(m_ShowInspector)
-            DrawInspectorWindow();
-        if(m_ShowGraphicsInfo)
-            DrawGraphicsInfoWindow();
-
-        if(m_ShowProfiler)
-        {
-            Profiler::Instance()->OnImGui();
-        }
+		for (auto& window : m_Windows)
+		{
+			if (window->Active())
+				window->OnImGui();
+		}
 
         if(m_ShowImGuiDemo)
             ImGui::ShowDemoWindow(&m_ShowImGuiDemo);
-
 	}
 
 	void Editor::DrawMenuBar()
@@ -90,13 +120,10 @@ namespace Lumos
 
 			if (ImGui::BeginMenu("Windows"))
 			{
-				if (ImGui::MenuItem("Console", "", &m_ShowConsole, true)) { m_ShowConsole = true;  }
-				if (ImGui::MenuItem("Hierarchy", "", &m_ShowHierarchy, true)) { m_ShowHierarchy = true; }
-				if (ImGui::MenuItem("Scene", "", &m_ShowSceneView, true)) { m_ShowSceneView = true; }
-				if (ImGui::MenuItem("Inspector", "", &m_ShowInspector, true)) { m_ShowInspector = true; }
-				if (ImGui::MenuItem("GraphicsInfo", "", &m_ShowGraphicsInfo, true)) { m_ShowGraphicsInfo = true; }
-				if (ImGui::MenuItem("ImGuiExample", "", &m_ShowImGuiDemo, true)) { m_ShowImGuiDemo = true; }
-                if (ImGui::MenuItem("Profiler", "", &m_ShowProfiler, true)) { m_ShowProfiler = true;  }
+				for (auto& window : m_Windows)
+				{
+					if (ImGui::MenuItem(window->GetName().c_str(), "", &window->Active(), true)) { window->SetActive(true); }
+				}
 
 				ImGui::EndMenu();
 			}
@@ -116,6 +143,58 @@ namespace Lumos
                 ImGui::EndMenu();
             }
 
+			if (ImGui::BeginMenu("Entity"))
+			{
+				if (ImGui::MenuItem("CreateEmpty"))
+				{
+					Application::Instance()->GetSceneManager()->GetCurrentScene()->AddEntity(EntityManager::Instance()->CreateEntity());
+				}
+
+				if (ImGui::MenuItem("Cube"))
+				{
+					auto entity = EntityManager::Instance()->CreateEntity();
+					entity->AddComponent<MeshComponent>(Graphics::CreatePrimative(Graphics::PrimitiveType::Cube));
+					Application::Instance()->GetSceneManager()->GetCurrentScene()->AddEntity(entity);
+				}
+
+				if (ImGui::MenuItem("Sphere"))
+				{
+					auto entity = EntityManager::Instance()->CreateEntity();
+					entity->AddComponent<MeshComponent>(Graphics::CreatePrimative(Graphics::PrimitiveType::Sphere));
+					Application::Instance()->GetSceneManager()->GetCurrentScene()->AddEntity(entity);
+				}
+
+				if (ImGui::MenuItem("Pyramid"))
+				{
+					auto entity = EntityManager::Instance()->CreateEntity();
+					entity->AddComponent<MeshComponent>(Graphics::CreatePrimative(Graphics::PrimitiveType::Pyramid));
+					Application::Instance()->GetSceneManager()->GetCurrentScene()->AddEntity(entity);
+				}
+
+				if (ImGui::MenuItem("Plane"))
+				{
+					auto entity = EntityManager::Instance()->CreateEntity();
+					entity->AddComponent<MeshComponent>(Graphics::CreatePrimative(Graphics::PrimitiveType::Plane));
+					Application::Instance()->GetSceneManager()->GetCurrentScene()->AddEntity(entity);
+				}
+				
+				if (ImGui::MenuItem("Cylinder"))
+				{
+					auto entity = EntityManager::Instance()->CreateEntity();
+					entity->AddComponent<MeshComponent>(Graphics::CreatePrimative(Graphics::PrimitiveType::Cylinder));
+					Application::Instance()->GetSceneManager()->GetCurrentScene()->AddEntity(entity);
+				}
+
+				if (ImGui::MenuItem("Capsule"))
+				{
+					auto entity = EntityManager::Instance()->CreateEntity();
+					entity->AddComponent<MeshComponent>(Graphics::CreatePrimative(Graphics::PrimitiveType::Capsule));
+					Application::Instance()->GetSceneManager()->GetCurrentScene()->AddEntity(entity);
+				}
+
+				ImGui::EndMenu();
+			}
+
 			ImGui::SameLine(ImGui::GetWindowContentRegionMax().x - 20.0f);
 			if (ImGui::Button(ICON_FA_TIMES, ImVec2(19.0f, 19.0f)))
 				Application::Instance()->SetAppState(AppState::Closing);
@@ -131,248 +210,52 @@ namespace Lumos
 		}
 	}
     
-    void Editor::DrawNode(Entity* node)
-    {
-        if (node == nullptr)
-            return;
-        
-        bool show = true;
-        
-        if(m_HierarchyFilter.IsActive())
-        {
-            if(!m_HierarchyFilter.PassFilter((node->GetName().c_str())))
-            {
-                show = false;
-            }
-        }
-        
-        if(show)
-        {
-            bool noChildren = node->GetChildren().empty();
-                  
-              ImGuiTreeNodeFlags nodeFlags = ((m_Selected == node) ? ImGuiTreeNodeFlags_Selected : 0);
-              
-              nodeFlags |= ImGuiTreeNodeFlags_OpenOnArrow | ImGuiTreeNodeFlags_OpenOnDoubleClick;
-              
-              if(noChildren)
-              {
-                  nodeFlags |= ImGuiTreeNodeFlags_Leaf;
-              }
-              
-              String icon(ICON_FA_CUBE);
-              bool nodeOpen = ImGui::TreeNodeEx(("##" + node->GetUUID()).c_str(), nodeFlags, (icon + " " + node->GetName()).c_str(), 0);
-
-              if (ImGui::BeginDragDropSource(ImGuiDragDropFlags_None))
-              {
-                  auto ptr = node;
-                  ImGui::SetDragDropPayload("Drag_Entity", &ptr, sizeof(Entity**));
-                  ImGui::Text("Moving %s", node->GetName().c_str());
-                  ImGui::EndDragDropSource();
-              }
-
-              if (ImGui::BeginDragDropTarget())
-              {
-                  if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("Drag_Entity"))
-                  {
-                      LUMOS_ASSERT(payload->DataSize == sizeof(Entity**), "Error ImGUI drag entity");
-                      auto entity = *reinterpret_cast<Entity**>(payload->Data);
-                      node->AddChild(entity);
-
-                      if (m_Selected == entity)
-                          m_Selected = nullptr;
-                  }
-                  ImGui::EndDragDropTarget();
-              }
-
-              if (ImGui::IsItemClicked())
-                  m_Selected = node;
-              
-              if (nodeOpen == false)
-                  return;
-            
-            for (auto child : node->GetChildren())
-            {
-                this->DrawNode(child);
-            }
-            
-            ImGui::TreePop();
-
-        }
-        else
-        {
-            for (auto child : node->GetChildren())
-            {
-                this->DrawNode(child);
-            }
-        }
-    }
-
-	void Editor::DrawHierarchyWindow()
+	void Editor::OnImGuizmo()
 	{
-		auto flags = ImGuiWindowFlags_NoCollapse;
-		ImGui::Begin("Hierarchy", &m_ShowHierarchy, flags);
-		{
-			ImGui::Indent();
-            m_HierarchyFilter.Draw("");
-            
-			if (ImGui::TreeNode("Application"))
-			{
-				auto systems = Application::Instance()->GetSystemManager();
+		if (!m_Selected)
+			return;
 
-				if (ImGui::TreeNode("Systems"))
-				{
-					systems->OnImGui();
-					ImGui::TreePop();
-				}
-
-				auto layerStack = Application::Instance()->GetLayerStack();
-				if (ImGui::TreeNode("Layers"))
-				{
-					layerStack->OnImGui();
-					ImGui::TreePop();
-				}
-
-				ImGui::NewLine();
-				ImGui::Text("FPS : %5.2i", Engine::Instance()->GetFPS());
-				ImGui::Text("UPS : %5.2i", Engine::Instance()->GetUPS());
-				ImGui::Text("Frame Time : %5.2f ms", Engine::Instance()->GetFrametime());
-				ImGui::NewLine();
-				ImGui::Text("Scene : %s", m_Application->m_SceneManager->GetCurrentScene()->GetSceneName().c_str());
-
-				bool flipImage = Graphics::GraphicsContext::GetContext()->FlipImGUITexture();
-
-				if (ImGui::TreeNode("GBuffer"))
-				{
-					if (ImGui::TreeNode("Colour Texture"))
-					{
-						ImGui::Image(m_Application->m_RenderManager->GetGBuffer()->GetTexture(Graphics::SCREENTEX_COLOUR)->GetHandle(), ImVec2(128, 128), ImVec2(0.0f, flipImage ? 1.0f : 0.0f), ImVec2(1.0f, flipImage ? 0.0f : 1.0f));
-                        
-                        if (ImGui::IsItemHovered())
-                        {
-                            ImGui::BeginTooltip();
-                            ImGui::Image(m_Application->m_RenderManager->GetGBuffer()->GetTexture(Graphics::SCREENTEX_COLOUR)->GetHandle(), ImVec2(256, 256), ImVec2(0.0f, flipImage ? 1.0f : 0.0f), ImVec2(1.0f, flipImage ? 0.0f : 1.0f));
-                            ImGui::EndTooltip();
-                        }
-                        
-						ImGui::TreePop();
-					}
-					if (ImGui::TreeNode("Normal Texture"))
-					{
-						ImGui::Image(m_Application->m_RenderManager->GetGBuffer()->GetTexture(Graphics::SCREENTEX_NORMALS)->GetHandle(), ImVec2(128, 128), ImVec2(0.0f, flipImage ? 1.0f : 0.0f), ImVec2(1.0f, flipImage ? 0.0f : 1.0f));
-                        
-                        if (ImGui::IsItemHovered())
-                        {
-                            ImGui::BeginTooltip();
-                            ImGui::Image(m_Application->m_RenderManager->GetGBuffer()->GetTexture(Graphics::SCREENTEX_NORMALS)->GetHandle(), ImVec2(256, 256), ImVec2(0.0f, flipImage ? 1.0f : 0.0f), ImVec2(1.0f, flipImage ? 0.0f : 1.0f));
-                            ImGui::EndTooltip();
-                        }
-                        
-						ImGui::TreePop();
-					}
-					if (ImGui::TreeNode("PBR Texture"))
-					{
-						ImGui::Image(m_Application->m_RenderManager->GetGBuffer()->GetTexture(Graphics::SCREENTEX_PBR)->GetHandle(), ImVec2(128, 128), ImVec2(0.0f, flipImage ? 1.0f : 0.0f), ImVec2(1.0f, flipImage ? 0.0f : 1.0f));
-                        
-                        if (ImGui::IsItemHovered())
-                        {
-                            ImGui::BeginTooltip();
-                            ImGui::Image(m_Application->m_RenderManager->GetGBuffer()->GetTexture(Graphics::SCREENTEX_PBR)->GetHandle(), ImVec2(256, 256), ImVec2(0.0f, flipImage ? 1.0f : 0.0f), ImVec2(1.0f, flipImage ? 0.0f : 1.0f));
-                            ImGui::EndTooltip();
-                        }
-                        
-						ImGui::TreePop();
-					}
-					if (ImGui::TreeNode("Position Texture"))
-					{
-						ImGui::Image(m_Application->m_RenderManager->GetGBuffer()->GetTexture(Graphics::SCREENTEX_POSITION)->GetHandle(), ImVec2(128, 128), ImVec2(0.0f, flipImage ? 1.0f : 0.0f), ImVec2(1.0f, flipImage ? 0.0f : 1.0f));
-                        
-                        if (ImGui::IsItemHovered())
-                        {
-                            ImGui::BeginTooltip();
-                            ImGui::Image(m_Application->m_RenderManager->GetGBuffer()->GetTexture(Graphics::SCREENTEX_POSITION)->GetHandle(), ImVec2(256, 256), ImVec2(0.0f, flipImage ? 1.0f : 0.0f), ImVec2(1.0f, flipImage ? 0.0f : 1.0f));
-                            ImGui::EndTooltip();
-                        }
-                        
-						ImGui::TreePop();
-					}
-					ImGui::TreePop();
-				}
-				ImGui::TreePop();
-			}
-
-			if (ImGui::TreeNode("Scene"))
-			{
-				ImGui::Indent();
-                
-				DrawNode(Application::Instance()->GetSceneManager()->GetCurrentScene()->GetRootEntity());
-                
-                ImGui::TreePop();
-            }
-			
-			m_Application->m_SceneManager->GetCurrentScene()->OnImGui();
-		}
-		ImGui::End();
-	}
-
-	void Editor::DrawInspectorWindow()
-	{
-		auto flags = ImGuiWindowFlags_NoCollapse;
-		ImGui::Begin("Inspector", &m_ShowInspector, flags);
-        
-		if (m_Selected)
-        {
-            m_Selected->OnImGui();
-        }
-
-		ImGui::End();
-	}
-
-	void Editor::DrawSceneView()
-	{
-		auto flags = ImGuiWindowFlags_NoCollapse;
-		ImGui::SetNextWindowBgAlpha(0.0f);
-		ImGui::Begin("Scene",  &m_ShowSceneView, flags);
-		
-		ImGuizmo::SetDrawlist();
-		m_SceneViewSize = Maths::Vector2(ImGui::GetWindowSize().x, ImGui::GetWindowSize().y);
-		m_SceneViewPosition = Maths::Vector2(ImGui::GetWindowPos().x, ImGui::GetWindowPos().y);
-
-		m_Application->m_SceneManager->GetCurrentScene()->GetCamera()->SetAspectRatio(static_cast<float>(ImGui::GetWindowSize().x) / static_cast<float>(ImGui::GetWindowSize().y));
-
-		auto width = static_cast<unsigned int>(ImGui::GetWindowContentRegionMax().x - ImGui::GetWindowContentRegionMin().x + 2);
-		auto height = static_cast<unsigned int>(ImGui::GetWindowContentRegionMax().y - ImGui::GetWindowContentRegionMin().y + 22);
-
-		// Make pixel perfect
-		width -= (width % 2 != 0) ? 1 : 0;
-		height -= (height % 2 != 0) ? 1 : 0;
-
-        bool flipImage = Graphics::GraphicsContext::GetContext()->FlipImGUITexture();
-
-		ImGui::SetCursorPos({ 0,0 });
-        
-		ImGuizmo::SetRect(ImGui::GetWindowPos().x, ImGui::GetWindowPos().y, static_cast<float>(width), static_cast<float>(height));
-		ImGui::Image(m_Application->m_RenderManager->GetGBuffer()->GetTexture(Graphics::SCREENTEX_OFFSCREEN0)->GetHandle(), ImVec2(static_cast<float>(width), static_cast<float>(height)), ImVec2(0.0f, flipImage ? 1.0f : 0.0f), ImVec2(1.0f, flipImage ? 0.0f : 1.0f));
-
-		if (m_ShowGrid)
-		{
-			Maths::Matrix4 view = Application::Instance()->GetSceneManager()->GetCurrentScene()->GetCamera()->GetViewMatrix();
-			Maths::Matrix4 proj = Application::Instance()->GetSceneManager()->GetCurrentScene()->GetCamera()->GetProjectionMatrix();
-			Maths::Matrix4 identityMatrix;
+		Maths::Matrix4 view = Application::Instance()->GetSceneManager()->GetCurrentScene()->GetCamera()->GetViewMatrix();
+		Maths::Matrix4 proj = Application::Instance()->GetSceneManager()->GetCurrentScene()->GetCamera()->GetProjectionMatrix();
 
 #ifdef LUMOS_RENDER_API_VULKAN
-			if (Graphics::GraphicsContext::GetRenderAPI() == Graphics::RenderAPI::VULKAN)
-				proj[5] *= -1.0f;
+		if (Graphics::GraphicsContext::GetRenderAPI() == Graphics::RenderAPI::VULKAN)
+			proj[5] *= -1.0f;
 #endif
+		ImGuizmo::SetDrawlist();
+		ImGuizmo::SetOrthographic(Application::Instance()->GetSceneManager()->GetCurrentScene()->GetCamera()->Is2D());
 
-			ImGuizmo::DrawGrid(view.values, proj.values, identityMatrix.values, m_GridSize);
-		}
-
-		if (m_Selected)
+		if (m_Selected->GetComponent<Maths::Transform>() != nullptr)
 		{
-			m_Selected->OnGuizmo(m_ImGuizmoOperation);
-		}
+			Maths::Matrix4 model = m_Selected->GetComponent<Maths::Transform>()->GetWorldMatrix();
 
-		ImGui::End();
+			float snapAmount[3] = { m_SnapAmount  , m_SnapAmount , m_SnapAmount };
+			float delta[16];
+			ImGuizmo::Manipulate(view.values, proj.values, static_cast<ImGuizmo::OPERATION>(m_ImGuizmoOperation), ImGuizmo::LOCAL, model.values, delta, m_SnapQuizmo ? snapAmount : nullptr);
+
+			if (ImGuizmo::IsUsing())
+			{
+				auto mat = Maths::Matrix4(delta) * m_Selected->GetComponent<Maths::Transform>()->GetLocalMatrix();
+				m_Selected->GetComponent<Maths::Transform>()->SetLocalTransform(mat);
+
+				auto physics2DComponent = m_Selected->GetComponent<Physics2DComponent>();
+
+				if (physics2DComponent)
+				{
+					physics2DComponent->GetPhysicsObject()->SetPosition({ mat.GetPositionVector().GetX(), mat.GetPositionVector().GetY() });
+				}
+				else
+				{
+					auto physics3DComponent = m_Selected->GetComponent<Physics3DComponent>();
+					if (physics3DComponent)
+					{
+						physics3DComponent->GetPhysicsObject()->SetPosition(mat.GetPositionVector());
+						physics3DComponent->GetPhysicsObject()->SetOrientation(mat.GetRotation().ToQuaternion());
+					}
+					
+				}
+			}
+		}
 	}
 
 	void Editor::BeginDockSpace(bool infoBar)
@@ -432,16 +315,14 @@ namespace Lumos
             ImGuiID dock_id_right  = ImGui::DockBuilderSplitNode(dock_main_id, ImGuiDir_Right, 0.3f, nullptr, &dock_main_id);
 			ImGuiID dock_id_middle = ImGui::DockBuilderSplitNode(dock_main_id, ImGuiDir_Right, 0.8f, nullptr, &dock_main_id);
 
-			ImGui::DockBuilderDockWindow("Scene", dock_id_middle);
-			ImGui::DockBuilderDockWindow("Inspector", dock_id_right);
-			ImGui::DockBuilderDockWindow("Hierarchy", dock_id_left);
-			ImGui::DockBuilderDockWindow("Console", dock_id_bottom);
-            ImGui::DockBuilderDockWindow("Profiler", dock_id_bottom);
-			ImGui::DockBuilderDockWindow("Engine", dock_id_left);
-			ImGui::DockBuilderDockWindow("Scene Information", dock_id_left);
+			ImGui::DockBuilderDockWindow("###scene", dock_id_middle);
+			ImGui::DockBuilderDockWindow("###inspector", dock_id_right);
+			ImGui::DockBuilderDockWindow("###hierarchy", dock_id_left);
+			ImGui::DockBuilderDockWindow("###console", dock_id_bottom);
+            ImGui::DockBuilderDockWindow("###profiler", dock_id_bottom);
 			ImGui::DockBuilderDockWindow("Dear ImGui Demo", dock_id_left);
             ImGui::DockBuilderDockWindow("GraphicsInfo", dock_id_left);
-
+			ImGui::DockBuilderDockWindow("ApplicationInfo", dock_id_left);
 			ImGui::DockBuilderFinish(dockspace_id);
 		}
 		
@@ -459,43 +340,6 @@ namespace Lumos
 		ImGui::End();
 	}
 
-	void Editor::SelectEntity()
-	{
-		bool bCheck = false;
-		bCheck |= !ImGui::IsMouseClicked(0);
-
-		bCheck |= !ImGui::IsWindowHovered
-		(
-			ImGuiHoveredFlags_AllowWhenBlockedByPopup |
-			ImGuiHoveredFlags_AllowWhenBlockedByActiveItem
-		);
-
-		if (bCheck)
-			return;
-
-		Maths::Vector2 relativeMousePos = Input::GetInput()->GetMousePosition() - m_SceneViewPosition;
-
-		float pointX = +2.0f * relativeMousePos.x / m_SceneViewSize.x - 1.0f;
-		float pointY = -2.0f * relativeMousePos.y / m_SceneViewSize.y + 1.0f;
-
-		Maths::Matrix4 view = m_Application->GetSceneManager()->GetCurrentScene()->GetCamera()->GetViewMatrix();
-		Maths::Matrix4 proj = m_Application->GetSceneManager()->GetCurrentScene()->GetCamera()->GetProjectionMatrix();
-		Maths::Matrix4 invProjView = Maths::Matrix4::Inverse(view * proj);
-
-		Maths::Vector3 worldMousePos = invProjView * Maths::Vector3(pointX, pointY, 0.0f);
-
-		/*m_Application->m_SceneManager->GetCurrentScene()->IterateEntities([&](Entity* entity)
-		{
-			auto boundingBox = entity->GetBoundingRadius();
-			Maths::BoundingSphere test(entity->GetTransformComponent()->GetTransform()->GetWorldPosition(), boundingBox);
-			if (test.Intersects(worldMousePos))
-			{
-				m_Selected = entity;
-				return;
-			}
-		});*/
-	}
-
 	void Editor::OnInit()
 	{
 	}
@@ -504,21 +348,7 @@ namespace Lumos
 	{
 		m_Selected = nullptr;
 	}
-
-	void Editor::DrawConsole()
-	{
-		Console::Instance()->OnImGuiRender(&m_ShowConsole);
-	}
-    
-    void Editor::DrawGraphicsInfoWindow()
-    {
-		auto flags = ImGuiWindowFlags_NoCollapse;
-        ImGui::Begin("GraphicsInfo", &m_ShowGraphicsInfo, flags);
-        {
-            Graphics::GraphicsContext::GetContext()->OnImGui();
-        }
-        ImGui::End();
-    }
+   
 
 	void Editor::DrawInfoBar()
 	{
@@ -670,11 +500,72 @@ namespace Lumos
 				if (selected)
 					ImGui::PopStyleColor();
 			}
+            
+            ImGui::SameLine();
+            
+#ifdef LUMOS_PLATFORM_WINDOWS
 
+            if(ImGui::Button("open file dialog"))
+                m_FileBrowser->Open();
+            
+			ImGuiViewport* viewport = ImGui::GetMainViewport();
+			ImGui::SetNextWindowPos(viewport->Pos + ImVec2(viewport->Size.x * 0.5f, viewport->Size.y * 0.5f), ImGuiCond_Appearing, ImVec2(0.5f, 0.5f));
+            m_FileBrowser->Display();
+            
+            if(m_FileBrowser->HasSelected())
+            {
+                std::cout << "Selected filename" << m_FileBrowser->GetSelected().string() << std::endl;
+                m_FileBrowser->ClearSelected();
+            }
+#endif
 			ImGui::SameLine(ImGui::GetWindowContentRegionMax().x - 130.0f);
 			ImGui::Text("%.2f ms (%i FPS)", 1000.0f / (float)Engine::Instance()->GetFPS(), Engine::Instance()->GetFPS());
-
 		}
 		ImGui::End();
+	}
+
+	void Editor::Draw2DGrid(ImDrawList* drawList, const ImVec2& cameraPos, const ImVec2& windowPos, const ImVec2& canvasSize, const float factor, const float thickness)
+	{	
+		static const auto graduation = 10;
+		float GRID_SZ = canvasSize.y * 0.5f / factor;
+		const ImVec2& offset = { canvasSize.x * 0.5f - cameraPos.x * GRID_SZ, canvasSize.y * 0.5f + cameraPos.y * GRID_SZ };
+
+		ImU32 GRID_COLOR = IM_COL32(200, 200, 200, 40);
+		float gridThickness = 1.0f;
+
+		const auto& gridColor = GRID_COLOR;
+		auto smallGraduation = GRID_SZ / graduation;
+		const auto& smallGridColor = IM_COL32(100, 100, 100, smallGraduation);
+
+		for (float x = -GRID_SZ; x < canvasSize.x + GRID_SZ; x += GRID_SZ)
+		{
+			auto localX = floorf(x + fmodf(offset.x, GRID_SZ));
+			drawList->AddLine(ImVec2{ localX, 0.0f } + windowPos, ImVec2{ localX, canvasSize.y } +windowPos, gridColor, gridThickness);
+
+			if (smallGraduation > 5.0f)
+			{
+				for (int i = 1; i < graduation; ++i)
+				{
+					const auto graduation = floorf(localX + smallGraduation * i);
+					drawList->AddLine(ImVec2{ graduation, 0.0f } +windowPos, ImVec2{ graduation, canvasSize.y } +windowPos, smallGridColor, 1.0f);
+				}
+			}
+			
+		}
+
+		for (float y = -GRID_SZ; y < canvasSize.y + GRID_SZ; y += GRID_SZ)
+		{
+			auto localY = floorf(y + fmodf(offset.y, GRID_SZ));
+			drawList->AddLine(ImVec2{ 0.0f, localY } +windowPos, ImVec2{ canvasSize.x, localY } +windowPos, gridColor, gridThickness);
+
+			if (smallGraduation > 5.0f)
+			{
+				for (int i = 1; i < graduation; ++i)
+				{
+					const auto graduation = floorf(localY + smallGraduation * i);
+					drawList->AddLine(ImVec2{ 0.0f, graduation } +windowPos, ImVec2{ canvasSize.x, graduation } +windowPos, smallGridColor,1.0f);
+				}
+			}
+		}
 	}
 }

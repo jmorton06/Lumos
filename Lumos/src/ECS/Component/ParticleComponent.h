@@ -1,12 +1,11 @@
 #pragma once
 #include "lmpch.h"
-#include "LumosComponent.h"
 #include "Maths/Vector3.h"
 #include "Graphics/ParticleEmitter.h"
 
 namespace Lumos
 {
-    class LUMOS_EXPORT ParticleComponent : public LumosComponent
+    class LUMOS_EXPORT ParticleComponent
     {
     public:
         ParticleComponent();
@@ -14,11 +13,7 @@ namespace Lumos
 
         void Init();
 
-		void OnImGui() override;
-		nlohmann::json Serialise() override { return nullptr; };
-		void Deserialise(nlohmann::json& data) override {};
-
-		SETUPCOMPOMENT(ParticleComponent);
+		void OnImGui();
 
     private:
         Ref<ParticleEmitter> m_ParticleEmitter;
