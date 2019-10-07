@@ -3,8 +3,6 @@
 #include "Utilities/Timer.h"
 #include "Utilities/TSingleton.h"
 
-#include <chrono>
-
 #define PROFILERRECORD(name) \
 Scope<Lumos::ProfilerRecord> profilerData = \
 Lumos::Profiler::Instance()->IsEnabled() ? CreateScope<Lumos::ProfilerRecord>(name) : nullptr
@@ -39,6 +37,7 @@ namespace Lumos
         uint16_t workingThreads;
         uint32_t elapsedFrames;
         std::vector<Action> actions;
+		std::vector<size_t> taskStatsIndex;
     };
     
     class LUMOS_EXPORT Profiler : public TSingleton<Profiler>
