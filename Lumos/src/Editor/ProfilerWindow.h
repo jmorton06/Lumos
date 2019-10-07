@@ -18,7 +18,7 @@ namespace Lumos
 		static void Triangle(ImDrawList *drawList, const std::array<Maths::Vector2, 3>& points, uint32_t col, bool filled = true);
 		static void RenderTaskMarker(ImDrawList *drawList, const Maths::Vector2& leftMinPoint, const Maths::Vector2& leftMaxPoint, const Maths::Vector2& rightMinPoint, const Maths::Vector2& rightMaxPoint, uint32_t col);
 
-        void FindMaxFrameTime();
+        void FindMaxFrameTime(size_t frameIndexOffset, const Maths::Vector2& graphPos, const Maths::Vector2& graphSize);
 		void RenderGraph(ImDrawList *drawList, const Maths::Vector2& graphPos, const Maths::Vector2& graphSize, size_t frameIndexOffset);
 		void RenderLegend(ImDrawList *drawList, const Maths::Vector2& legendPos, const Maths::Vector2& legendSize, size_t frameIndexOffset);
 		void RenderTimings(int graphWidth, int legendWidth, int height, int frameIndexOffset);
