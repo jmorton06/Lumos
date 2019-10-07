@@ -11,7 +11,7 @@ Lumos::Profiler::Instance()->IsEnabled() ? CreateScope<Lumos::ProfilerRecord>(na
 
 namespace Lumos
 {
-    class ProfilerRecord
+    class LUMOS_EXPORT ProfilerRecord
     {
     public:
         ProfilerRecord(const String& name);
@@ -41,7 +41,7 @@ namespace Lumos
         std::vector<Action> actions;
     };
     
-    class Profiler : public TSingleton<Profiler>
+    class LUMOS_EXPORT Profiler : public TSingleton<Profiler>
     {
         friend class TSingleton<Profiler>;
     public:
@@ -51,12 +51,11 @@ namespace Lumos
         void ClearHistory();
         void Update(float deltaTime);
         
-        bool IsEnabled();
+        bool& IsEnabled();
         void Enable();
         void Disable();
         void ToggleEnable();
         void Save(const ProfilerRecord& record);
-        void OnImGui();
         
         ProfilerReport GenerateReport();
         
@@ -70,10 +69,5 @@ namespace Lumos
         std::unordered_map<String, uint64_t> m_CallsCounter;
         std::vector<std::thread::id> m_WorkingThreads;
         uint32_t m_ElapsedFrames;
-        
-        float m_UpdateFrequency;
-        float m_UpdateTimer;
-        
-        ProfilerReport m_Report;
     };
 }

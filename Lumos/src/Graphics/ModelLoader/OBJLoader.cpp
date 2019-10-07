@@ -206,7 +206,7 @@ namespace Lumos
             auto mesh = CreateRef<Graphics::Mesh>(va, ib, boundingBox);
 			meshEntity->AddComponent<MeshComponent>(mesh);
 			meshEntity->AddComponent<MaterialComponent>(pbrMaterial);
-			meshEntity->AddComponent<TransformComponent>();
+			meshEntity->AddComponent<Maths::Transform>();
 			entity->AddChild(meshEntity);
 
 			delete[] vertices;

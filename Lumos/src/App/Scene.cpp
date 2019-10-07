@@ -132,8 +132,8 @@ namespace Lumos
 
 		if(m_pCamera)
 		{
-			m_pCamera->HandleMouse(timeStep->GetSeconds(), mousePos.GetX(), mousePos.GetY());
-			m_pCamera->HandleKeyboard(timeStep->GetSeconds());
+			m_pCamera->HandleMouse(timeStep->GetMillis(), mousePos.GetX(), mousePos.GetY());
+			m_pCamera->HandleKeyboard(timeStep->GetMillis());
 			m_pCamera->BuildViewMatrix();
 		}
 
@@ -159,16 +159,16 @@ namespace Lumos
 			if (obj->ActiveInHierarchy())
 			{
 				auto meshComponent = obj->GetComponent<MeshComponent>();
-				if (meshComponent && meshComponent->GetActive() && meshComponent->GetMesh())
+				if (meshComponent &&/* meshComponent->GetActive() &&*/ meshComponent->GetMesh())
 				{
-					auto& transform = obj->GetComponent<TransformComponent>()->GetTransform();
+					auto transform = obj->GetComponent<Maths::Transform>();
 
 					float maxScaling = 0.0f;
 					maxScaling = Maths::Max(transform->GetWorldMatrix().GetScaling().GetX(), maxScaling);
 					maxScaling = Maths::Max(transform->GetWorldMatrix().GetScaling().GetY(), maxScaling);
 					maxScaling = Maths::Max(transform->GetWorldMatrix().GetScaling().GetZ(), maxScaling);
 
-					bool inside = frustum.InsideFrustum(transform->GetWorldMatrix().GetPositionVector(), maxScaling * meshComponent->GetBoundingShape()->SphereRadius());// maxScaling * obj->GetBoundingRadius());
+					bool inside = frustum.InsideFrustum(transform->GetWorldMatrix().GetPositionVector(), maxScaling * meshComponent->GetMesh()->GetBoundingSphere()->SphereRadius());// maxScaling * obj->GetBoundingRadius());
 
 					if (inside)
 					{

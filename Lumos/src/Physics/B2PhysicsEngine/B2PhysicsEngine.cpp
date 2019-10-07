@@ -36,7 +36,7 @@ namespace Lumos
 		{	
 			if(m_MultipleUpdates)
 			{
-				m_UpdateAccum += timeStep->GetSeconds();
+				m_UpdateAccum += timeStep->GetMillis();
 				for (int i = 0; (m_UpdateAccum >= m_UpdateTimestep) && i < max_updates_per_frame; ++i)
 				{
 					m_UpdateAccum -= m_UpdateTimestep;

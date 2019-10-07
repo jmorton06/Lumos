@@ -6,7 +6,6 @@
 #include "ECS/EntityManager.h"
 #include "ECS/Component/MeshComponent.h"
 #include "ECS/Component/MaterialComponent.h"
-#include "ECS/Component/TransformComponent.h"
 
 #include "Graphics/API/Texture.h"
 #include "Utilities/AssetsManager.h"
@@ -413,7 +412,7 @@ namespace Lumos
         if(name == "")
             name = "Mesh : " + StringFormat::ToString(nodeIndex);
         auto meshEntity = EntityManager::Instance()->CreateEntity(name);
-        meshEntity->AddComponent<TransformComponent>();
+        meshEntity->AddComponent<Maths::Transform>();
         
         if(parent)
             parent->AddChild(meshEntity);
@@ -433,28 +432,27 @@ namespace Lumos
             }*/
         }
         
-        TransformComponent* transform = meshEntity->GetTransformComponent();
+        Maths::Transform* transform = meshEntity->GetTransformComponent();
         
         if (!node.scale.empty())
         {
-            transform->GetTransform()->SetLocalScale(Maths::Vector3(static_cast<float>(node.scale[0]), static_cast<float>(node.scale[1]), static_cast<float>(node.scale[2])));
+            transform->SetLocalScale(Maths::Vector3(static_cast<float>(node.scale[0]), static_cast<float>(node.scale[1]), static_cast<float>(node.scale[2])));
         }
         if (!node.rotation.empty())
         {
-            transform->GetTransform()->SetLocalOrientation(Maths::Quaternion(static_cast<float>(node.rotation[0]), static_cast<float>(node.rotation[1]), static_cast<float>(node.rotation[2]), static_cast<float>(node.rotation[3])));
+            transform->SetLocalOrientation(Maths::Quaternion(static_cast<float>(node.rotation[0]), static_cast<float>(node.rotation[1]), static_cast<float>(node.rotation[2]), static_cast<float>(node.rotation[3])));
         }
         if (!node.translation.empty())
         {
-            transform->GetTransform()->SetLocalPosition(Maths::Vector3(static_cast<float>(node.translation[0]), static_cast<float>(node.translation[1]), static_cast<float>(node.translation[2])));
+            transform->SetLocalPosition(Maths::Vector3(static_cast<float>(node.translation[0]), static_cast<float>(node.translation[1]), static_cast<float>(node.translation[2])));
         }
         if (!node.matrix.empty())
         {
             auto lTransform = Maths::Matrix4(reinterpret_cast<float*>(node.matrix.data()));
-            transform->GetTransform()->SetLocalTransform(lTransform);
-            transform->GetTransform()->ApplyTransform(); // this creates S, R, T vectors from local matrix
+            transform->SetLocalTransform(lTransform);
         }
 
-		transform->GetTransform()->UpdateMatrices();
+		transform->UpdateMatrices();
         
         if (!node.children.empty())
         {
@@ -510,7 +508,7 @@ namespace Lumos
         String name = directory.substr(directory.find_last_of('/') + 1);
 
 		auto entity = EntityManager::Instance()->CreateEntity(name);
-		entity->AddComponent<TransformComponent>();
+		entity->AddComponent<Maths::Transform>();
 
         auto meshes = std::vector<Graphics::Mesh*>();
         

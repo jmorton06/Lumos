@@ -8,7 +8,6 @@ namespace Lumos
 {
 
 	PhysicsObject3D::PhysicsObject3D() : PhysicsObject()
-		, m_pParent(nullptr)
 		, m_wsTransformInvalidated(true)
 		, m_RestVelocityThresholdSquared(0.001f)
 		, m_AverageSummedVelocity(0.0f)

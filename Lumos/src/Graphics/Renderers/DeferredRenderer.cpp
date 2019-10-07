@@ -8,8 +8,6 @@
 #include "App/Application.h"
 #include "ECS/EntityManager.h"
 #include "ECS/Component/MaterialComponent.h"
-#include "ECS/Component/LightComponent.h"
-#include "ECS/Component/TransformComponent.h"
 #include "Maths/Maths.h"
 #include "Core/Profiler.h"
 
@@ -242,17 +240,28 @@ namespace Lumos
 
 		void DeferredRenderer::SubmitLightSetup(Scene* scene)
 		{
-			auto lightList = ComponentManager::Instance()->GetComponentArray<LightComponent>()->GetArray();// scene->GetLightList();
-			auto size = ComponentManager::Instance()->GetComponentArray<LightComponent>()->GetSize();
-			if (lightList.empty())
+			PROFILERRECORD("DeferredRenderer::SubmitLightSetup");
+
+			auto lightEntities = EntityManager::Instance()->GetEntitiesWithType<Graphics::Light>();
+			
+			if (lightEntities.empty())
 				return;
 
 			u32 numLights = 0;
 
-            for (int i = 0; i < size; i++)
+            for (auto entity : lightEntities)
             {
-                lightList[i]->GetLight()->m_Direction.Normalise();
-                memcpy(m_PSSystemUniformBuffer + m_PSSystemUniformBufferOffsets[PSSystemUniformIndex_Lights] + sizeof(Graphics::Light) * i, &*lightList[i]->GetLight().get(), sizeof(Graphics::Light));
+				auto light = entity->GetComponent<Graphics::Light>();
+				auto transform = entity->GetTransformComponent();
+
+				light->m_Position = transform->GetWorldPosition();
+
+				Maths::Vector3 forward = Maths::Vector3(0, 0, -1);
+				Maths::Quaternion::RotatePointByQuaternion(transform->GetWorldOrientation(), forward);
+
+				light->m_Direction = forward.Normal();
+
+                memcpy(m_PSSystemUniformBuffer + m_PSSystemUniformBufferOffsets[PSSystemUniformIndex_Lights] + sizeof(Graphics::Light) * numLights, &*light, sizeof(Graphics::Light));
 				numLights++;
             }
             

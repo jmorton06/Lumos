@@ -140,9 +140,9 @@ namespace Lumos
         
         Quaternion Matrix4::ToQuaternion() const
         {
-			auto euler = GetEulerAngles(*this);
-            auto quat = Quaternion::EulerAnglesToQuaternion(euler.GetX(), euler.GetY(), euler.GetZ());
-            return quat;
+			//auto euler = GetEulerAngles(*this);
+            //auto quat = Quaternion::EulerAnglesToQuaternion(euler.GetX(), euler.GetY(), euler.GetZ());
+            return Quaternion::FromMatrix(*this);
         }
 
 		Matrix4 Matrix4::Inverse(const Matrix4 &inM)

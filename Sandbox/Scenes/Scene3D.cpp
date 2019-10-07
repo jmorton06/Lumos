@@ -4,7 +4,7 @@
 using namespace Lumos;
 using namespace Maths;
 
-class TestComponent : public LumosComponent
+class TestComponent
 {
 public:
 	TestComponent() 
@@ -14,7 +14,7 @@ public:
 
 	void Init() {};
 
-	void OnImGui() override 
+	void OnImGui() 
 	{
 		ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(2, 2));
 		ImGui::Columns(2);
@@ -34,9 +34,6 @@ public:
 		ImGui::Separator();
 		ImGui::PopStyleVar();
 	};
-
-	nlohmann::json Serialise() override { return nullptr; };
-	void Deserialise(nlohmann::json& data) override {};
 };
 
 Scene3D::Scene3D(const String& SceneName)
@@ -79,22 +76,20 @@ void Scene3D::OnInit()
 	};
 
 	m_EnvironmentMap = Graphics::TextureCube::CreateFromVCross(environmentFiles, 11);
-
-	auto sun = CreateRef<Graphics::Light>(Maths::Vector3(26.0f, 22.0f, 48.5f), Maths::Vector4(1.0f) , 0.9f);
     
     auto lightEntity = EntityManager::Instance()->CreateEntity("Directional Light");
-    lightEntity->AddComponent<LightComponent>(sun);
-    lightEntity->AddComponent<TransformComponent>(Matrix4::Translation(Maths::Vector3(26.0f, 22.0f, 48.5f)) * Maths::Quaternion::LookAt(Maths::Vector3(26.0f, 22.0f, 48.5f), Maths::Vector3::Zero()).ToMatrix4());
+    lightEntity->AddComponent<Graphics::Light>(Maths::Vector3(26.0f, 22.0f, 48.5f), Maths::Vector4(1.0f), 0.9f);
+    lightEntity->AddComponent<Maths::Transform>(Matrix4::Translation(Maths::Vector3(26.0f, 22.0f, 48.5f)) * Maths::Quaternion::LookAt(Maths::Vector3(26.0f, 22.0f, 48.5f), Maths::Vector3::Zero()).ToMatrix4());
     AddEntity(lightEntity);
 
 	auto cameraEntity = EntityManager::Instance()->CreateEntity("Camera");
 	cameraEntity->AddComponent<CameraComponent>(m_pCamera);
-	AddEntity(cameraEntity);
+	//AddEntity(cameraEntity);
 
 	Application::Instance()->GetSystem<AudioManager>()->SetListener(m_pCamera);
 
 	auto shadowRenderer = new Graphics::ShadowRenderer();
-	shadowRenderer->SetLight(sun);
+	shadowRenderer->SetLightEntity(lightEntity);
 
 	auto shadowLayer = new Layer3D(shadowRenderer, "Shadow");
 	auto deferredLayer = new Layer3D(new Graphics::DeferredRenderer(m_ScreenWidth, m_ScreenHeight, true), "Deferred");
@@ -124,6 +119,7 @@ void Scene3D::OnCleanupScene()
 	{
 		SAFE_DELETE(m_pCamera)
         SAFE_DELETE(m_EnvironmentMap);
+        Application::Instance()->GetSystem<LumosPhysicsEngine>()->ClearConstraints();
 	}
 
 	Scene::OnCleanupScene();
@@ -136,7 +132,7 @@ void Scene3D::LoadModels()
 	const float groundLength = 100.0f;
 
 	auto testMaterial = CreateRef<Material>();
-	testMaterial->LoadMaterial("checkerboard", "/CoreTextures/checkerboard.tga");
+    testMaterial->LoadMaterial("checkerboard", "/CoreTextures/checkerboard.tga");
 
 	auto ground = EntityManager::Instance()->CreateEntity("Ground");
 	Ref<PhysicsObject3D> testPhysics = CreateRef<PhysicsObject3D>();
@@ -146,7 +142,7 @@ void Scene3D::LoadModels()
 	testPhysics->SetIsAtRest(true);
 	testPhysics->SetIsStatic(true);
 
-	ground->AddComponent<TransformComponent>(Matrix4::Scale(Maths::Vector3(groundWidth, groundHeight, groundLength)));
+	ground->AddComponent<Maths::Transform>(Matrix4::Scale(Maths::Vector3(groundWidth, groundHeight, groundLength)));
 	ground->AddComponent<Physics3DComponent>(testPhysics);
 	//ground->AddComponent<TestComponent>();
 
@@ -156,7 +152,7 @@ void Scene3D::LoadModels()
 	MaterialProperties properties;
 	properties.albedoColour = Vector4(0.6f,0.1f,0.1f,1.0f);
 	properties.roughnessColour = Vector4(0.6f);
-	properties.specularColour = Vector4(0.94f);
+	properties.specularColour = Vector4(0.15f);
 	properties.usingAlbedoMap     = 0.5f;
 	properties.usingRoughnessMap  = 0.0f;
 	properties.usingNormalMap     = 0.0f;
@@ -316,7 +312,7 @@ void Scene3D::LoadModels()
 	pendulumHolderPhysics->SetIsStatic(true);
 	pendulumHolderPhysics->SetPosition(Maths::Vector3(12.5f, 15.0f, 20.0f));
 	pendulumHolder->AddComponent<Physics3DComponent>(pendulumHolderPhysics);
-	pendulumHolder->AddComponent<TransformComponent>(Matrix4::Scale(Maths::Vector3(0.5f, 0.5f, 0.5f)));
+	pendulumHolder->AddComponent<Maths::Transform>(Matrix4::Scale(Maths::Vector3(0.5f, 0.5f, 0.5f)));
 
 	Ref<Graphics::Mesh> pendulumHolderModel = AssetsManager::DefaultModels()->Get("Cube");
 	pendulumHolder->AddComponent<MeshComponent>(pendulumHolderModel);
@@ -334,7 +330,7 @@ void Scene3D::LoadModels()
 	pendulumPhysics->SetIsStatic(false);
 	pendulumPhysics->SetPosition(Maths::Vector3(12.5f, 10.0f, 20.0f));
 	pendulum->AddComponent<Physics3DComponent>(pendulumPhysics);
-	pendulum->AddComponent<TransformComponent>(Matrix4::Scale(Maths::Vector3(0.5f, 0.5f, 0.5f)));
+	pendulum->AddComponent<Maths::Transform>(Matrix4::Scale(Maths::Vector3(0.5f, 0.5f, 0.5f)));
 
 	Ref<Graphics::Mesh> pendulumModel = AssetsManager::DefaultModels()->Get("Sphere");
 	pendulum->AddComponent<MeshComponent>(pendulumModel);
@@ -385,7 +381,7 @@ void Scene3D::LoadModels()
 
 		auto sphere = EntityManager::Instance()->CreateEntity("Sphere" + StringFormat::ToString(numSpheres++));
 
-		sphere->AddComponent<TransformComponent>(Matrix4::Scale(Maths::Vector3(0.5f, 0.5f, 0.5f)) * Matrix4::Translation(Maths::Vector3(i * 2.0f, 30.0f, 0.0f)));
+		sphere->AddComponent<Maths::Transform>(Matrix4::Scale(Maths::Vector3(0.5f, 0.5f, 0.5f)) * Matrix4::Translation(Maths::Vector3(i * 2.0f, 30.0f, 0.0f)));
 		Ref<Graphics::Mesh> sphereModel = AssetsManager::DefaultModels()->Get("Sphere");
 		sphere->AddComponent<MeshComponent>(sphereModel);
 		sphere->AddComponent<MaterialComponent>(m);
@@ -413,7 +409,7 @@ void Scene3D::LoadModels()
 
 		auto sphere = EntityManager::Instance()->CreateEntity("Sphere" + StringFormat::ToString(numSpheres++));
 
-		sphere->AddComponent<TransformComponent>(Matrix4::Scale(Maths::Vector3(0.5f, 0.5f, 0.5f)) * Matrix4::Translation(Maths::Vector3(i * 2.0f, 33.0f, 0.0f)));
+		sphere->AddComponent<Maths::Transform>(Matrix4::Scale(Maths::Vector3(0.5f, 0.5f, 0.5f)) * Matrix4::Translation(Maths::Vector3(i * 2.0f, 33.0f, 0.0f)));
 		Ref<Graphics::Mesh> sphereModel = AssetsManager::DefaultModels()->Get("Sphere");
 		sphere->AddComponent<MeshComponent>(sphereModel);
 		sphere->AddComponent<MaterialComponent>(m);

@@ -66,7 +66,7 @@ void Scene2D::LoadSprites()
 
 	float scale = 0.1f;
 
-	for (int i = 0; i < 1000; i++)
+	for (int i = 0; i < 100; i++)
 	{
 		auto testSprite = EntityManager::Instance()->CreateEntity("Sprite" + StringFormat::ToString(i));
 
@@ -74,8 +74,6 @@ void Scene2D::LoadSprites()
 		Vector2 size(RandomNumberGenerator32::Rand(1.0f / 10.0f * scale, 3.0f* scale), RandomNumberGenerator32::Rand(1.0f * scale , 3.0f * scale));
 		int textureID = static_cast<int>(RandomNumberGenerator32::Rand(0.0f, 4.0f));
 		auto colour = Maths::Vector4(RandomNumberGenerator32::Rand(0.0f, 1.0f), RandomNumberGenerator32::Rand(0.0f, 1.0f), RandomNumberGenerator32::Rand(0.0f, 1.0f), 1.0f);
-		Lumos::Ref<Graphics::Sprite> sprite = Lumos::CreateRef<Graphics::Sprite>(textures[textureID], pos, size, colour);
-		sprite.get()->SetPosition(size / -2.0f);
 
 		//test->SetIsStatic(true);
 		PhysicsObjectParamaters params;
@@ -86,23 +84,21 @@ void Scene2D::LoadSprites()
 		Lumos::Ref<PhysicsObject2D> blockPhysics = Lumos::CreateRef<PhysicsObject2D>();
 		blockPhysics->Init(params);
 
-		testSprite->AddComponent<SpriteComponent>(sprite);
+		testSprite->AddComponent<Graphics::Sprite>(textures[textureID], size / -2.0f, size, colour);
 		testSprite->AddComponent<Physics2DComponent>(blockPhysics);
-		testSprite->AddComponent<TransformComponent>();
+		testSprite->AddComponent<Maths::Transform>();
 		AddEntity(testSprite);
 	}
 
 	auto testSprite = EntityManager::Instance()->CreateEntity("SpriteTest");
 
-	Lumos::Ref<Graphics::Sprite> sprite = Lumos::CreateRef<Graphics::Sprite>(Maths::Vector2(-2.0f, 0.0f), Maths::Vector2(1.0f, 1.0f), Maths::Vector4(0.4f, 0.1f, 0.6f, 1.0f));
-	testSprite->AddComponent<SpriteComponent>(sprite);
-	testSprite->AddComponent<TransformComponent>();
+	testSprite->AddComponent<Graphics::Sprite>(Maths::Vector2(0.0f, 0.0f), Maths::Vector2(1.0f, 1.0f), Maths::Vector4(0.4f, 0.1f, 0.6f, 1.0f));
+	testSprite->AddComponent<Maths::Transform>(Maths::Matrix4::Translation(Maths::Vector3(-4.0f,1.0f,0.0f)));
 
 	AddEntity(testSprite);
 
 	auto groundSprite = EntityManager::Instance()->CreateEntity("Ground");
-	Lumos::Ref<Graphics::Sprite> ground = Lumos::CreateRef<Graphics::Sprite>(Maths::Vector2(-25.0f * scale, -5.0f * scale), Maths::Vector2(50.0f * scale, 10.0f * scale), Maths::Vector4(0.4f, 0.1f, 0.6f, 1.0f));
-	groundSprite->AddComponent<SpriteComponent>(ground);
+	groundSprite->AddComponent<Graphics::Sprite>(Maths::Vector2(-25.0f * scale, -5.0f * scale), Maths::Vector2(50.0f * scale, 10.0f * scale), Maths::Vector4(0.4f, 0.1f, 0.6f, 1.0f));
 	PhysicsObjectParamaters groundParams;
 	groundParams.position = Vector3(0.0f, -20.0f  * scale, 1.0f);
 	groundParams.scale = Vector3(25.0f * scale, 5.0f * scale, 1.0f);
@@ -111,7 +107,7 @@ void Scene2D::LoadSprites()
 	Lumos::Ref<PhysicsObject2D> groundPhysics = Lumos::CreateRef<PhysicsObject2D>();
 	groundPhysics->Init(groundParams);
 	groundSprite->AddComponent<Physics2DComponent>(groundPhysics);
-	groundSprite->AddComponent<TransformComponent>();
+	groundSprite->AddComponent<Maths::Transform>();
 
 	AddEntity(groundSprite);
 }

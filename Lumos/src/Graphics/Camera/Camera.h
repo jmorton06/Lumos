@@ -22,6 +22,7 @@ namespace Lumos
 
 		virtual float GetScale() const { return 1.0f; }
 		virtual void OnImGui();
+		virtual bool Is2D() const { return false; }
 
 		const Maths::Vector3& GetPosition() const { return m_Position; }
 		void SetPosition(const Maths::Vector3& val) { m_Position = val; }

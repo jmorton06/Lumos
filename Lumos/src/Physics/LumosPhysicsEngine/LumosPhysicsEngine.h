@@ -63,8 +63,8 @@ namespace Lumos
 		IntegrationType GetIntegrationType() const { return m_IntegrationType; }
 		void SetIntegrationType(const IntegrationType& type){ m_IntegrationType = type; }
 
-		PhysicsObject3D* FindObjectByName(const String& name);
-
+        void ClearConstraints();
+        
 		void OnImGui() override;
 	protected:
 

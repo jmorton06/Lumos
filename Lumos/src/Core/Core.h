@@ -35,8 +35,6 @@
 #define LUMOS_HIDDEN __attribute__ ((visibility ("hidden")))
 #endif
 
-#define IMGUI_API LUMOS_EXPORT
-
 #define BIT(x) (1 << x)
 
 #define NUMBONES 64
