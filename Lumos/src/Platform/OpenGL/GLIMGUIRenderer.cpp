@@ -13,7 +13,7 @@ namespace Lumos
         GLIMGUIRenderer::GLIMGUIRenderer(u32 width, u32 height, bool clearScreen): m_WindowHandle(nullptr)
         {
 	        m_ClearScreen = clearScreen;
-	        ImGui_ImplOpenGL3_Init("#version 410");
+	        ImGui_ImplOpenGL3_Init("#version 330");
             ImGui_ImplOpenGL3_NewFrame();
             
 #ifdef LUMOS_PLATFORM_MACOS

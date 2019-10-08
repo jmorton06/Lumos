@@ -918,17 +918,17 @@ namespace Lumos
 
 		void GLShader::SetUniformMat3(u32 location, const Maths::Matrix3& matrix)
 		{
-			GLCall(glUniformMatrix3fv(location, 1, GL_FALSE /*GLTRUE*/, &matrix.values[0]));
+			GLCall(glUniformMatrix3fv(location, 1, GL_FALSE /*GLTRUE*/, Maths::ValuePointer(matrix) ));// &matrix.values[0]));
 		}
 
 		void GLShader::SetUniformMat4(u32 location, const Maths::Matrix4& matrix)
 		{
-			GLCall(glUniformMatrix4fv(location, 1, GL_FALSE /*GLTRUE*/, &matrix.values[0]));
+			GLCall(glUniformMatrix4fv(location, 1, GL_FALSE /*GLTRUE*/, Maths::ValuePointer(matrix)));
 		}
 
 		void GLShader::SetUniformMat4Array(u32 location, u32 count, const Maths::Matrix4& matrix)
 		{
-			GLCall(glUniformMatrix4fv(location, count, GL_FALSE /*GLTRUE*/, &matrix.values[0]));
+			GLCall(glUniformMatrix4fv(location, count, GL_FALSE /*GLTRUE*/, Maths::ValuePointer(matrix)));
 		}
 
 

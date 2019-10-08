@@ -31,6 +31,8 @@
 #include "Graphics/API/GraphicsContext.h"
 #include "Graphics/MeshFactory.h"
 
+#include "ImGui/ImGuiHelpers.h"
+
 #include <imgui/imgui_internal.h>
 #include <imgui/plugins/ImGuizmo.h>
 #include <IconFontCppHeaders/IconsFontAwesome5.h>
@@ -199,12 +201,7 @@ namespace Lumos
 			if (ImGui::Button(ICON_FA_TIMES, ImVec2(19.0f, 19.0f)))
 				Application::Instance()->SetAppState(AppState::Closing);
 
-			if (ImGui::IsItemHovered())
-			{
-				ImGui::BeginTooltip();
-				ImGui::TextUnformatted("Exit");
-				ImGui::EndTooltip();
-			}
+			ImGuiHelpers::Tooltip("Exit");
 
 			ImGui::EndMainMenuBar();
 		}
@@ -387,12 +384,7 @@ namespace Lumos
 				if (ImGui::Button(ICON_FA_ARROWS_ALT, ImVec2(19.0f, 19.0f)))
 					m_ImGuizmoOperation = ImGuizmo::TRANSLATE;
 
-				if (ImGui::IsItemHovered())
-				{
-					ImGui::BeginTooltip();
-					ImGui::TextUnformatted("Translate");
-					ImGui::EndTooltip();
-				}
+				ImGuiHelpers::Tooltip("Translate");
 
 				if (selected)
 					ImGui::PopStyleColor();
@@ -407,12 +399,7 @@ namespace Lumos
 				if (ImGui::Button(ICON_FA_SYNC, ImVec2(19.0f, 19.0f)))
 					m_ImGuizmoOperation = ImGuizmo::ROTATE;
 
-				if (ImGui::IsItemHovered())
-				{
-					ImGui::BeginTooltip();
-					ImGui::TextUnformatted("Rotate");
-					ImGui::EndTooltip();
-				}
+				ImGuiHelpers::Tooltip("Rotate");
 
 				if (selected)
 					ImGui::PopStyleColor();
@@ -427,12 +414,7 @@ namespace Lumos
 				if (ImGui::Button(ICON_FA_EXPAND_ARROWS_ALT, ImVec2(19.0f, 19.0f)))
 					m_ImGuizmoOperation = ImGuizmo::SCALE;
 
-				if (ImGui::IsItemHovered())
-				{
-					ImGui::BeginTooltip();
-					ImGui::TextUnformatted("Scale");
-					ImGui::EndTooltip();
-				}
+				ImGuiHelpers::Tooltip("Scale");
 
 				if (selected)
 					ImGui::PopStyleColor();
@@ -448,12 +430,7 @@ namespace Lumos
 				if (ImGui::Button(ICON_FA_PLAY, ImVec2(19.0f, 19.0f)))
 					m_Application->SetEditorState(EditorState::Play);
 
-				if (ImGui::IsItemHovered())
-				{
-					ImGui::BeginTooltip();
-					ImGui::TextUnformatted("Play");
-					ImGui::EndTooltip();
-				}
+				ImGuiHelpers::Tooltip("Play");
 
 				if (selected)
 					ImGui::PopStyleColor();
@@ -469,12 +446,7 @@ namespace Lumos
 				if (ImGui::Button(ICON_FA_PAUSE, ImVec2(19.0f, 19.0f)))
 					m_Application->SetEditorState(EditorState::Paused);
 
-				if (ImGui::IsItemHovered())
-				{
-					ImGui::BeginTooltip();
-					ImGui::TextUnformatted("Pause");
-					ImGui::EndTooltip();
-				}
+				ImGuiHelpers::Tooltip("Pause");
 
 				if (selected)
 					ImGui::PopStyleColor();
@@ -490,12 +462,7 @@ namespace Lumos
 				if (ImGui::Button(ICON_FA_STEP_FORWARD, ImVec2(19.0f, 19.0f)))
 					m_Application->SetEditorState(EditorState::Next);
 
-				if (ImGui::IsItemHovered())
-				{
-					ImGui::BeginTooltip();
-					ImGui::TextUnformatted("Next");
-					ImGui::EndTooltip();
-				}
+				ImGuiHelpers::Tooltip("Next");
 
 				if (selected)
 					ImGui::PopStyleColor();

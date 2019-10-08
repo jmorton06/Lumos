@@ -1,5 +1,7 @@
 #include "lmpch.h"
 #include "ImGui/ImGuiHelpers.h"
+#include "Graphics/API/Texture.h"
+#include "Graphics/API/GraphicsContext.h"
 
 #include <imgui/imgui.h>
 
@@ -72,5 +74,44 @@ namespace Lumos
 
 		ImGui::PopItemWidth();
 		ImGui::NextColumn();
+	}
+
+	void ImGuiHelpers::Tooltip(const String & text)
+	{
+		if (ImGui::IsItemHovered())
+		{
+			ImGui::BeginTooltip();
+			ImGui::TextUnformatted(text.c_str());
+			ImGui::EndTooltip();
+		}
+	}
+
+	void ImGuiHelpers::Tooltip(Graphics::Texture2D * texture, const Maths::Vector2 & size)
+	{
+		if (ImGui::IsItemHovered())
+		{
+			ImGui::BeginTooltip();
+			bool flipImage = Graphics::GraphicsContext::GetContext()->FlipImGUITexture();
+			ImGui::Image(texture ? texture->GetHandle() : nullptr, ImVec2(size.GetX(), size.GetY()), ImVec2(0.0f, flipImage ? 1.0f : 0.0f), ImVec2(1.0f, flipImage ? 0.0f : 1.0f));
+			ImGui::EndTooltip();
+		}
+	}
+
+	void ImGuiHelpers::Tooltip(Graphics::Texture2D * texture, const Maths::Vector2 & size, const String & text)
+	{
+		if (ImGui::IsItemHovered())
+		{
+			ImGui::BeginTooltip();
+			bool flipImage = Graphics::GraphicsContext::GetContext()->FlipImGUITexture();
+			ImGui::Image(texture ? texture->GetHandle() : nullptr, ImVec2(size.GetX(), size.GetY()), ImVec2(0.0f, flipImage ? 1.0f : 0.0f), ImVec2(1.0f, flipImage ? 0.0f : 1.0f));
+			ImGui::TextUnformatted(text.c_str());
+			ImGui::EndTooltip();
+		}
+	}
+
+	void ImGuiHelpers::Image(Graphics::Texture2D * texture, const Maths::Vector2 & size)
+	{
+		bool flipImage = Graphics::GraphicsContext::GetContext()->FlipImGUITexture();
+		ImGui::Image(texture ? texture->GetHandle() : nullptr, ImVec2(size.GetX(), size.GetY()), ImVec2(0.0f, flipImage ? 1.0f : 0.0f), ImVec2(1.0f, flipImage ? 0.0f : 1.0f));
 	}
 }
