@@ -19,9 +19,9 @@ namespace Lumos
 
 	void Physics2DComponent::Update()
 	{
-        auto angle = m_PhysicsObject->GetAngle();
+        auto angle = m_PhysicsObject->GetAngle() * Maths::RADTODEG;
         //auto qw = cos(angle/2);
-        //auto qz = 1.0f * sin(angle/2);
+        //auto qz = sin(angle/2);
         
 		auto entity = ComponentManager::Instance()->GetComponentArray<Physics2DComponent>()->GetEntity(this);
 		entity->GetTransformComponent()->SetLocalPosition(Maths::Vector3(m_PhysicsObject->GetPosition(), 1.0f));
