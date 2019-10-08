@@ -322,19 +322,7 @@ namespace Lumos
 		Quaternion Quaternion::FromMatrix(const Matrix4& matrix)
 		{
 			Quaternion q;
-#if 0
-
-			q.w = sqrt(std::max(0.0f, (1.0f + m.values[0] + m.values[5] + m.values[10]))) * 0.5f;
-			q.x = sqrt(std::max(0.0f, (1.0f + m.values[0] - m.values[5] - m.values[10]))) * 0.5f;
-			q.y = sqrt(std::max(0.0f, (1.0f - m.values[0] + m.values[5] - m.values[10]))) * 0.5f;
-			q.z = sqrt(std::max(0.0f, (1.0f - m.values[0] - m.values[5] + m.values[10]))) * 0.5f;
-
-			q.x = copysign(q.x, m.values[9] - m.values[6]);
-			q.y = copysign(q.y, m.values[2] - m.values[8]);
-			q.z = copysign(q.z, m.values[4] - m.values[1]);
-
-			return q;
-#else
+            
 			float t = matrix[0] + matrix[5] + matrix[10];
 
 			if (t > 0.0f)
@@ -378,7 +366,6 @@ namespace Lumos
 			}
 
 			return q;
-#endif
 		}
 
 
@@ -696,9 +683,8 @@ namespace Lumos
 				(w * v.GetZ()) + (v.GetX() * y) - (v.GetY() * x),
 				-(x * v.GetX()) - (y * v.GetY()) - (z * v.GetZ())
 			);
-		}
+        }
 
-          
       Quaternion Quaternion::operator -() const
       {
 #ifdef LUMOS_SSEQUAT
