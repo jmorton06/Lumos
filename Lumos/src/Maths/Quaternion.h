@@ -20,6 +20,11 @@ namespace Lumos
 			Quaternion(const Vector3& vec, float w);
 			Quaternion(float x, float y, float z, float w);
 			Quaternion(const Quaternion& v);
+            
+            ///Construct from Euler (Degrees)
+            Quaternion(float x, float y, float z);
+            ///Construct from Euler (Degrees)
+            Quaternion(const Vector3& v);
 
 #ifdef LUMOS_SSEQUAT
 			Quaternion(__m128 m);
@@ -101,8 +106,18 @@ namespace Lumos
 			Quaternion operator*(const Quaternion& q) const;
 			Quaternion operator*(const Vector3& rhs) const;
 			Quaternion operator+(const Quaternion& a) const;
+            Quaternion operator *(float rhs) const;
+            Quaternion operator -() const;
+            Quaternion operator -(const Quaternion& rhs) const;
+            
+            Quaternion& operator =(const Quaternion& rhs) noexcept;
+            Quaternion& operator +=(const Quaternion& rhs);
+            Quaternion& operator *=(float rhs);
+            bool operator ==(const Quaternion& rhs) const;
+            bool operator !=(const Quaternion& rhs) const;
+            
 
-			nlohmann::json Serialise()
+            nlohmann::json Serialise()
 			{
 				nlohmann::json output;
 				output["typeID"] = LUMOS_TYPENAME(Quaternion);

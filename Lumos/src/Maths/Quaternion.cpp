@@ -9,7 +9,7 @@ namespace Lumos
 		Quaternion::Quaternion()
 		{
 #ifdef LUMOS_SSEQUAT 
-			mmvalue = _mm_set_ps(1.0f, 0.0f, 0.0f, 0.0f);
+			mmvalue = _mm_set_ps(0.0f, 0.0f, 0.0f, 1.0f);
 #else
 			x = y = z = 0.0f;
 			w = 1.0f;
@@ -48,6 +48,16 @@ namespace Lumos
 		{
 		}
 #endif
+    
+        Quaternion::Quaternion(float x, float y, float z)
+        {
+            FromEulerAngles(x,y,z);
+        }
+
+        Quaternion::Quaternion(const Vector3& v)
+        {
+            FromEulerAngles(v.x,v.y,v.z);
+        }
 
 		void Quaternion::Normalise()
 		{
@@ -642,6 +652,15 @@ namespace Lumos
 				return out;
 			}
 		}
+    
+        Quaternion Quaternion::operator *(float rhs) const
+        {
+#ifdef LUMOS_SSEQUAT
+            return Quaternion(_mm_mul_ps(mmvalue, _mm_set1_ps(rhs)));
+#else
+            return Quaternion(x * rhs, y * rhs, z * rhs, w * rhs);
+#endif
+        }
 
 		Quaternion Quaternion::operator*(const Quaternion& q) const
 		{
@@ -679,21 +698,95 @@ namespace Lumos
 			);
 		}
 
-		Quaternion Quaternion::operator+(const Quaternion& a) const
-		{
+          
+      Quaternion Quaternion::operator -() const
+      {
 #ifdef LUMOS_SSEQUAT
-			return _mm_add_ps(mmvalue, a.mmvalue);
+          return Quaternion(_mm_xor_ps(mmvalue, _mm_castsi128_ps(_mm_set1_epi32((int)0x80000000UL))));
 #else
-			return Quaternion(x + a.x, y + a.y, z + a.z, w + a.w);
+          return Quaternion(-x, -y, -z, -w);
 #endif
-		}
+      }
+  
+      Quaternion Quaternion::operator +(const Quaternion& rhs) const
+      {
+#ifdef LUMOS_SSEQUAT
+          return Quaternion(_mm_add_ps(mmvalue, rhs.mmvalue));
+#else
+          return Quaternion(x + rhs.x, y + rhs.y, z + rhs.z, w + rhs.w);
+#endif
+      }
+
+      Quaternion Quaternion::operator -(const Quaternion& rhs) const
+      {
+#ifdef LUMOS_SSEQUAT
+          return Quaternion(_mm_sub_ps(mmvalue, rhs.mmvalue));
+#else
+          return Quaternion(w_ - rhs.w_, x_ - rhs.x_, y_ - rhs.y_, z_ - rhs.z_);
+#endif
+      }
+
+      Quaternion& Quaternion::operator =(const Quaternion& rhs) noexcept
+      {
+#ifdef LUMOS_SSEQUAT
+            mmvalue = rhs.mmvalue;
+#else
+            w = rhs.w;
+            x = rhs.x;
+            y = rhs.y;
+            z = rhs.z;
+    #endif
+            return *this;
+        }
+
+        Quaternion& Quaternion::operator +=(const Quaternion& rhs)
+        {
+#ifdef LUMOS_SSEQUAT
+            mmvalue = _mm_add_ps(mmvalue, rhs.mmvalue);
+#else
+            w += rhs.w;
+            x += rhs.x;
+            y += rhs.y;
+            z += rhs.z;
+#endif
+            return *this;
+        }
+
+        Quaternion& Quaternion::operator *=(float rhs)
+        {
+#ifdef LUMOS_SSEQUAT
+            mmvalue = _mm_mul_ps(mmvalue, _mm_set1_ps(rhs));
+#else
+            w *= rhs;
+            x *= rhs;
+            y *= rhs;
+            z *= rhs;
+#endif
+            return *this;
+        }
+
+        bool Quaternion::operator ==(const Quaternion& rhs) const
+        {
+#ifdef LUMOS_SSEQUAT
+            __m128 c = _mm_cmpeq_ps(mmvalue, rhs.mmvalue);
+            c = _mm_and_ps(c, _mm_movehl_ps(c, c));
+            c = _mm_and_ps(c, _mm_shuffle_ps(c, c, _MM_SHUFFLE(1, 1, 1, 1)));
+            return _mm_cvtsi128_si32(_mm_castps_si128(c)) == -1;
+#else
+            return w == rhs.w && x == rhs.x && y == rhs.y && z == rhs.z;
+#endif
+        }
+    
+        bool Quaternion::operator !=(const Quaternion& rhs) const
+        {
+            return !(*this == rhs);
+        }
 
 		std::istream &operator>>(std::istream &stream, Quaternion &q)
 		{
 			float x, y, z, w;
 			char delim;
 			stream >> delim >> x >> delim >> y >> delim >> z >> delim >> w >> delim;
-			q = Quaternion(x, y, z, w);
 			return stream;
 		}
 	}
