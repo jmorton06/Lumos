@@ -53,19 +53,18 @@ namespace Lumos
 			Quaternion Inverse() const;
 			Quaternion Conjugate() const;
 			float Magnitude() const;
+			float LengthSquared() const;
 
 			void GenerateW();	//builds 4th component when loading in shortened, 3 component quaternions
 			Vector3 ToEuler() const;
-
-			static const Quaternion EMPTY;
-			static const Quaternion IDENTITY;
+			void FromEulerAngles(float pitch, float yaw, float roll);
 
 			static Quaternion EulerAnglesToQuaternion(float pitch, float yaw, float roll);
 			static Quaternion AxisAngleToQuaterion(const Vector3& vector, float degrees);
 
-			static void RotatePointByQuaternion(const Quaternion& q, Vector3& point);
+			static void RotatePointByQuaternion(const Quaternion& quat, Vector3& point);
 
-			static Quaternion FromMatrix(const Matrix4& m);
+			static Quaternion FromMatrix(const Matrix4& matrix);
 			static Quaternion FromVectors(const Vector3 &v1, const Vector3 &v2);
 
 			static Quaternion LookAt(const Vector3& from, const Vector3& to, const Vector3& up = Vector3(0, 1, 0));
@@ -100,7 +99,7 @@ namespace Lumos
 			Quaternion Interpolate(const Quaternion& pStart, const Quaternion& pEnd, float pFactor) const;
 
 			Quaternion operator*(const Quaternion& q) const;
-			Quaternion operator*(const Vector3& v) const;
+			Quaternion operator*(const Vector3& rhs) const;
 			Quaternion operator+(const Quaternion& a) const;
 
 			nlohmann::json Serialise()

@@ -86,12 +86,18 @@ vec4 GetAlbedo()
 
 vec3 GetSpecular()
 {
-	return (1.0 - materialProperties.usingSpecularMap) * materialProperties.specularColour.rgb + materialProperties.usingSpecularMap * GammaCorrectTextureRGB(texture(u_SpecularMap, fragTexCoord)).rgb;
+	vec3 spec = (1.0 - materialProperties.usingSpecularMap) * materialProperties.specularColour.rgb;
+	if(materialProperties.usingSpecularMap > 0.1);
+		spec += materialProperties.usingSpecularMap * GammaCorrectTextureRGB(texture(u_SpecularMap, fragTexCoord)).rgb;
+	return spec;
 }
 
 float GetRoughness()
 {
-	return (1.0 - materialProperties.usingRoughnessMap) *  materialProperties.RoughnessColour.r +  materialProperties.usingRoughnessMap * GammaCorrectTextureRGB(texture(u_RoughnessMap, fragTexCoord)).r;
+	float roughness = (1.0 - materialProperties.usingRoughnessMap) * materialProperties.RoughnessColour.r;
+	if(materialProperties.usingRoughnessMap > 0.1);
+		roughness += materialProperties.usingRoughnessMap * GammaCorrectTextureRGB(texture(u_RoughnessMap, fragTexCoord)).r;
+	return roughness;
 }
 
 float GetAO()
@@ -130,8 +136,8 @@ void main()
 	if(texColour.w < 0.4)
 		discard;
 
-	float specular;
-	float roughness;
+	float specular = 0.0;
+	float roughness = 0.0;
 
 	if(materialProperties.workflow == PBR_WORKFLOW_SEPARATE_TEXTURES)
 	{

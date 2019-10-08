@@ -38,6 +38,10 @@ namespace Lumos
 		static constexpr  float		PI = 3.14159265358979323846f;
 		static constexpr  float		PI_OVER_360 = PI / 360.0f;
 
+		static constexpr float DEGTORAD = PI / 180.0f;
+		static constexpr float DEGTORAD_2 = PI / 360.0f;
+		static constexpr float RADTODEG = 1.0f / DEGTORAD;
+
 		//Radians to degrees
 		static constexpr  double RadiansToDegrees(const double deg)
 		{
