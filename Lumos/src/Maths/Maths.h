@@ -61,5 +61,41 @@ namespace Lumos
 			trans.y += winPosY;
 			return Vector2(trans.x, trans.y);
 		}
+
+		template<typename T>
+		static float* ValuePointer(T& t)
+		{
+			return nullptr;
+		}
+	}
+
+	template<>
+	float* Maths::ValuePointer<Maths::Vector2>(Maths::Vector2& t)
+	{
+		return &(t.x);
+	}
+
+	template<>
+	float* Maths::ValuePointer<Maths::Vector3>(Maths::Vector3& t)
+	{
+		return &(t.x);
+	}
+
+	template<>
+	float* Maths::ValuePointer<Maths::Vector4>(Maths::Vector4& t)
+	{
+		return &(t.x);
+	}
+
+	template<>
+	float* Maths::ValuePointer<Maths::Matrix3>(Maths::Matrix3& t)
+	{
+		return &(t.values[0]);
+	}
+
+	template<>
+	float* Maths::ValuePointer<Maths::Matrix4>(Maths::Matrix4& t)
+	{
+		return &(t.values[0]);
 	}
 }

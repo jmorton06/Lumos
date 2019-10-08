@@ -198,7 +198,7 @@ namespace Lumos
 
 				if (abs(duration) > heightThreshold)
 				{
-					Rect(drawList, taskPos + Maths::Vector2(0.0f, -currentTime), taskPos + Maths::Vector2(frameWidth, -duration), GetColour(task.name), true);
+					Rect(drawList, taskPos + Maths::Vector2(0.0f, -currentTime), taskPos + Maths::Vector2(float(frameWidth), -duration), GetColour(task.name), true);
                     
 					currentTime += duration;
 				}
@@ -220,9 +220,9 @@ namespace Lumos
 	{
 		ImDrawList* drawList = ImGui::GetWindowDrawList();
 		const Maths::Vector2 widgetPos = Maths::Vector2(ImGui::GetCursorScreenPos().x, ImGui::GetCursorScreenPos().y);
-        FindMaxFrameTime(frameIndexOffset,widgetPos, Maths::Vector2(graphWidth, height));
-		RenderGraph(drawList, widgetPos, Maths::Vector2(graphWidth, height), frameIndexOffset);
-		RenderLegend(drawList, widgetPos + Maths::Vector2(graphWidth, 0.0f), Maths::Vector2(legendWidth, height), frameIndexOffset);
+        FindMaxFrameTime(frameIndexOffset,widgetPos, Maths::Vector2(float(graphWidth), float(height)));
+		RenderGraph(drawList, widgetPos, Maths::Vector2(float(graphWidth), float(height)), frameIndexOffset);
+		RenderLegend(drawList, widgetPos + Maths::Vector2(float(graphWidth), 0.0f), Maths::Vector2(float(legendWidth), float(height)), frameIndexOffset);
 		ImGui::Dummy(ImVec2(float(graphWidth + legendWidth), float(height)));
 	}
 
@@ -235,7 +235,12 @@ namespace Lumos
             if (framePos.x < graphPos.x + 1)
                 break;
 
-            maxFrameTime = std::max(maxFrameTime, float(m_Reports[frameNumber].elaspedTime) / 50.0f);
+			float totalTime = 0.0f;
+
+			for (auto action : m_Reports[frameNumber].actions)
+				totalTime += (float)action.duration;
+
+            maxFrameTime = std::max(maxFrameTime, float(totalTime));
         }
     }
 
@@ -291,7 +296,7 @@ namespace Lumos
 			Maths::Vector2 markerRightRectMax = markerRightRectMin + Maths::Vector2(markerRightRectWidth, -markerRightRectHeight);
 			RenderTaskMarker(drawList, markerLeftRectMin, markerLeftRectMax, markerRightRectMin, markerRightRectMax, GetColour(task.name));
 
-			uint32_t textColor = useColoredLegendText ? colour[taskIndex % 16] : imguiText;// task.color;
+			uint32_t textColor = useColoredLegendText ? GetColour(task.name) : imguiText;// task.color;
 
 			float taskTimeMs = float(task.duration);
 			std::ostringstream timeText;
