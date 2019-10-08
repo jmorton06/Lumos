@@ -4,6 +4,8 @@
 #include "Maths/Frustum.h"
 #include "ECS/ComponentManager.h"
 
+#include "ImGui/ImGuiHelpers.h"
+
 #include <imgui/imgui.h>
 
 namespace Lumos
@@ -25,11 +27,11 @@ namespace Lumos
 			if (m_ShowComponentGizmoMap[typeid(T).hash_code()])
 			{
 				auto& components = *ComponentManager::Instance()->GetComponentArray<T>();
-				auto size = ComponentManager::Instance()->GetComponentArray<T>()->GetSize();
+				auto size = components.GetSize();
 				for (int i = 0; i < size; i++)
 				{
 					auto component = components[i];
-					auto entity = ComponentManager::Instance()->GetComponentArray<T>()->GetEntity(component);
+					auto entity = components.GetEntity(component);
 					if (component && entity)
 					{
 						Maths::Vector3 pos = entity->GetTransformComponent()->GetWorldPosition();
@@ -39,6 +41,8 @@ namespace Lumos
 							Maths::Vector2 screenPos = Maths::WorldToScreen(pos, viewProj, width, height);
 							ImGui::SetCursorPos({ screenPos.x - ImGui::GetFontSize() / 2.0f , screenPos.y - ImGui::GetFontSize() / 2.0f });
                             ImGui::Text("%s", m_ComponentIconMap[typeid(T).hash_code()]);
+
+							ImGuiHelpers::Tooltip(components.GetName().c_str());
 						}
 					}
 				}
