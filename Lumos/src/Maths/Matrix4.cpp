@@ -91,16 +91,22 @@ namespace Lumos
 
 		Matrix4 Matrix4::GetRotation() const
 		{
+			Vector3 invScale(
+				1.0f / sqrtf(values[0] * values[0] + values[4] * values[4] + values[8] * values[8]),
+				1.0f / sqrtf(values[1] * values[1] + values[5] * values[5] + values[9] * values[9]),
+				1.0f / sqrtf(values[2] * values[2] + values[6] * values[6] + values[10] * values[10])
+			);
+
 			Matrix4 temp;
-            temp.values[0] = values[0];
-            temp.values[5] = values[5];
-            temp.values[10] = values[10];
-            temp.values[1] = values[1];
-            temp.values[4] = values[4];
-            temp.values[2] = values[2];
-            temp.values[8] = values[8];
-            temp.values[6] = values[6];
-            temp.values[9] = values[9];
+            temp.values[0]  = values[0]  * invScale.x;
+            temp.values[1]  = values[1]  * invScale.y;
+            temp.values[2]  = values[2]  * invScale.z;
+            temp.values[4]  = values[4]  * invScale.x;
+            temp.values[5]  = values[5]  * invScale.y;
+            temp.values[6]  = values[6]  * invScale.z;
+            temp.values[8]  = values[8]  * invScale.x;
+            temp.values[9]  = values[9]  * invScale.y;
+            temp.values[10] = values[10] * invScale.z;
             return temp;
 		}
 
@@ -141,8 +147,8 @@ namespace Lumos
         Quaternion Matrix4::ToQuaternion() const
         {
 			//auto euler = GetEulerAngles(*this);
-            //auto quat = Quaternion::EulerAnglesToQuaternion(euler.GetX(), euler.GetY(), euler.GetZ());
-            return Quaternion::FromMatrix(*this);
+           // auto quat = Quaternion::EulerAnglesToQuaternion(euler.GetZ(), euler.GetY(), euler.GetX());
+			return Quaternion::FromMatrix(*this);
         }
 
 		Matrix4 Matrix4::Inverse(const Matrix4 &inM)

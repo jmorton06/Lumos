@@ -88,7 +88,9 @@ namespace Lumos
 
 	Maths::Quaternion Camera::GetOrientation() const
 	{
-		return Maths::Quaternion::EulerAnglesToQuaternion(m_Pitch, m_Yaw, m_Roll);
+		auto quat = Maths::Quaternion::EulerAnglesToQuaternion(m_Pitch, m_Yaw, m_Roll);
+		LUMOS_LOG_INFO(quat);
+		return quat;
 	}
 
 	void Camera::OnImGui()
