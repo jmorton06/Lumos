@@ -14,6 +14,9 @@ namespace Lumos
 	class Application;
 	class Entity;
 	class Scene;
+	class Event;
+	class WindowCloseEvent;
+	class WindowResizeEvent;
 	
 	namespace Graphics 
 	{
@@ -39,6 +42,7 @@ namespace Lumos
 		void OnInit();
 		void OnNewScene(Scene* scene);
 		void OnImGuizmo();
+		void OnEvent(Event& e);
 
 		void Draw2DGrid(ImDrawList* drawList, const ImVec2& cameraPos, const ImVec2& windowPos, const ImVec2& canvasSize, const float factor, const float thickness);
 
@@ -48,7 +52,11 @@ namespace Lumos
 		void SetSelected(Entity* entity) { m_Selected = entity; }
 		Entity* GetSelected() const { return m_Selected; }
 
+		void BindEventFunction();
+
 	protected:
+		bool OnWindowResize(WindowResizeEvent& e);
+
 		Application* m_Application;
 
 		u32 m_ImGuizmoOperation = 0;

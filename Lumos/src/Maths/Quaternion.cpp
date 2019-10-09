@@ -8,7 +8,7 @@ namespace Lumos
 	{
 		Quaternion::Quaternion()
 		{
-#ifdef LUMOS_SSEQUAT 
+#ifdef LUMOS_SSEQUAT
 			mmvalue = _mm_set_ps(0.0f, 0.0f, 0.0f, 1.0f);
 #else
 			x = y = z = 0.0f;
@@ -19,18 +19,18 @@ namespace Lumos
 		Quaternion::Quaternion(const Vector3& vec, float w)
 		{
 #ifdef LUMOS_SSEQUAT
-			mmvalue = _mm_set_ps(vec.GetZ(), vec.GetY(), vec.GetZ(), w);
+			mmvalue = _mm_set_ps(vec.GetZ(), vec.GetY(), vec.GetX(), w);
 #else
 			x = vec.GetX(); y = vec.GetY(); z = vec.GetZ(); this->w = w;
 #endif
 		}
 
-		Quaternion::Quaternion(float x, float y, float z, float w)
+		Quaternion::Quaternion(float lx, float ly, float lz, float lw)
 		{
-#ifdef LUMOS_SSEQUAT
-			mmvalue = _mm_set_ps(z, y, x, w);
+#ifdef LUMOS_SSEQUAT1
+			mmvalue = _mm_set_ps(lz, ly, lx, lw);
 #else
-			this->x = x;  this->y = y;  this->z = z; this->w = w;
+			this->x = lx;  this->y = ly;  this->z = lz; this->w = lw;
 #endif
 		}
 
@@ -49,9 +49,9 @@ namespace Lumos
 		}
 #endif
     
-        Quaternion::Quaternion(float x, float y, float z)
+        Quaternion::Quaternion(float pitch, float yaw, float roll)
         {
-            FromEulerAngles(x,y,z);
+            FromEulerAngles(pitch, yaw, roll);
         }
 
         Quaternion::Quaternion(const Vector3& v)
@@ -62,8 +62,6 @@ namespace Lumos
 		void Quaternion::Normalise()
 		{
 #ifdef LUMOS_SSEQUAT
-			//mmvalue = _mm_mul_ps(mmvalue, _mm_rsqrt_ps(_mm_dp_ps(mmvalue, mmvalue, 0xFF)));
-
 			__m128 q = mmvalue;
 			__m128 n = _mm_mul_ps(q, q);
 			n = _mm_add_ps(n, _mm_shuffle_ps(n, n, _MM_SHUFFLE(2, 3, 0, 1)));
@@ -91,8 +89,6 @@ namespace Lumos
 		Quaternion Quaternion::Normal() const
 		{
 #ifdef LUMOS_SSEQUAT
-			//return _mm_mul_ps(mmvalue, _mm_rsqrt_ps(_mm_dp_ps(mmvalue, mmvalue, 0xFF)));
-
 			__m128 q = mmvalue;
 			__m128 n = _mm_mul_ps(q, q);
 			n = _mm_add_ps(n, _mm_shuffle_ps(n, n, _MM_SHUFFLE(2, 3, 0, 1)));
@@ -457,37 +453,37 @@ namespace Lumos
 
 		void Quaternion::RotatePointByQuaternion(const Quaternion &quat, Vector3 &point)
 		{
-#ifdef LUMOS_SSEQUAT
-			__m128 q = quat.mmvalue;
-				q = _mm_shuffle_ps(q, q, _MM_SHUFFLE(0, 3, 2, 1));
-#ifdef LUMOS_SSEVEC3
-			__m128 v = point.m_Value;
-#else
-			__m128 v = _mm_set_ps(0.f, rhs.z, rhs.y, rhs.x);
-#endif
-			const __m128 W = _mm_shuffle_ps(q, q, _MM_SHUFFLE(3, 3, 3, 3));
-			const __m128 a_yzx = _mm_shuffle_ps(q, q, _MM_SHUFFLE(3, 0, 2, 1));
-			__m128 x = _mm_mul_ps(q, _mm_shuffle_ps(v, v, _MM_SHUFFLE(3, 0, 2, 1)));
-			__m128 qxv = _mm_sub_ps(x, _mm_mul_ps(a_yzx, v));
-			__m128 Wv = _mm_mul_ps(W, v);
-			__m128 s = _mm_add_ps(qxv, _mm_shuffle_ps(Wv, Wv, _MM_SHUFFLE(3, 1, 0, 2)));
-			__m128 qs = _mm_mul_ps(q, s);
-			__m128 y = _mm_shuffle_ps(qs, qs, _MM_SHUFFLE(3, 1, 0, 2));
-			s = _mm_sub_ps(_mm_mul_ps(a_yzx, s), y);
-			s = _mm_add_ps(s, s);
-			s = _mm_add_ps(s, v);
-
-			Vector3 pos(
-				_mm_cvtss_f32(s),
-				_mm_cvtss_f32(_mm_shuffle_ps(s, s, _MM_SHUFFLE(1, 1, 1, 1))),
-				_mm_cvtss_f32(_mm_movehl_ps(s, s)));
-#else
+//#ifdef LUMOS_SSEQUAT
+//			__m128 q = quat.mmvalue;
+//				q = _mm_shuffle_ps(q, q, _MM_SHUFFLE(0, 3, 2, 1));
+//#ifdef LUMOS_SSEVEC3
+//			__m128 v = point.m_Value;
+//#else
+//			__m128 v = _mm_set_ps(0.f, rhs.z, rhs.y, rhs.x);
+//#endif
+//			const __m128 W = _mm_shuffle_ps(q, q, _MM_SHUFFLE(3, 3, 3, 3));
+//			const __m128 a_yzx = _mm_shuffle_ps(q, q, _MM_SHUFFLE(3, 0, 2, 1));
+//			__m128 x = _mm_mul_ps(q, _mm_shuffle_ps(v, v, _MM_SHUFFLE(3, 0, 2, 1)));
+//			__m128 qxv = _mm_sub_ps(x, _mm_mul_ps(a_yzx, v));
+//			__m128 Wv = _mm_mul_ps(W, v);
+//			__m128 s = _mm_add_ps(qxv, _mm_shuffle_ps(Wv, Wv, _MM_SHUFFLE(3, 1, 0, 2)));
+//			__m128 qs = _mm_mul_ps(q, s);
+//			__m128 y = _mm_shuffle_ps(qs, qs, _MM_SHUFFLE(3, 1, 0, 2));
+//			s = _mm_sub_ps(_mm_mul_ps(a_yzx, s), y);
+//			s = _mm_add_ps(s, s);
+//			s = _mm_add_ps(s, v);
+//
+//			Vector3 pos(
+//				_mm_cvtss_f32(s),
+//				_mm_cvtss_f32(_mm_shuffle_ps(s, s, _MM_SHUFFLE(1, 1, 1, 1))),
+//				_mm_cvtss_f32(_mm_movehl_ps(s, s)));
+//#else
 			Vector3 qVec(quat.x, quat.y, quat.z);
 			Vector3 cross1(qVec.Cross(point));
 			Vector3 cross2(qVec.Cross(cross1));
 
 			Vector3 pos = (point + ((cross1 * quat.w + cross2) * 2.0f));
-#endif
+//#endif
 			point.SetX(pos.x);
 			point.SetY(pos.y);
 			point.SetZ(pos.z);
@@ -640,7 +636,7 @@ namespace Lumos
 			}
 		}
     
-        Quaternion Quaternion::operator *(float rhs) const
+        Quaternion Quaternion::operator*(float rhs) const
         {
 #ifdef LUMOS_SSEQUAT
             return Quaternion(_mm_mul_ps(mmvalue, _mm_set1_ps(rhs)));
@@ -651,19 +647,19 @@ namespace Lumos
 
 		Quaternion Quaternion::operator*(const Quaternion& q) const
 		{
-#ifdef LUMOS_SSEQUAT
-			__m128 q1 = mmvalue;
-			__m128 q2 = q.mmvalue;
-			q2 = _mm_shuffle_ps(q2, q2, _MM_SHUFFLE(0, 3, 2, 1));
-			const __m128 signy = _mm_castsi128_ps(_mm_set_epi32((int)0x80000000UL, (int)0x80000000UL, 0, 0));
-			const __m128 signx = _mm_shuffle_ps(signy, signy, _MM_SHUFFLE(2, 0, 2, 0));
-			const __m128 signz = _mm_shuffle_ps(signy, signy, _MM_SHUFFLE(3, 0, 0, 3));
-			__m128 out = _mm_mul_ps(_mm_shuffle_ps(q1, q1, _MM_SHUFFLE(1, 1, 1, 1)), _mm_shuffle_ps(q2, q2, _MM_SHUFFLE(0, 1, 2, 3)));
-			out = _mm_add_ps(_mm_mul_ps(_mm_xor_ps(signy, _mm_shuffle_ps(q1, q1, _MM_SHUFFLE(2, 2, 2, 2))), _mm_shuffle_ps(q2, q2, _MM_SHUFFLE(1, 0, 3, 2))), _mm_xor_ps(signx, out));
-			out = _mm_add_ps(_mm_mul_ps(_mm_xor_ps(signz, _mm_shuffle_ps(q1, q1, _MM_SHUFFLE(3, 3, 3, 3))), _mm_shuffle_ps(q2, q2, _MM_SHUFFLE(2, 3, 0, 1))), out);
-			out = _mm_add_ps(_mm_mul_ps(_mm_shuffle_ps(q1, q1, _MM_SHUFFLE(0, 0, 0, 0)), q2), out);
-			return Quaternion(_mm_shuffle_ps(out, out, _MM_SHUFFLE(2, 1, 0, 3)));
-#else
+//#ifdef LUMOS_SSEQUAT
+//			__m128 q1 = mmvalue;
+//			__m128 q2 = q.mmvalue;
+//			q2 = _mm_shuffle_ps(q2, q2, _MM_SHUFFLE(0, 3, 2, 1));
+//			const __m128 signy = _mm_castsi128_ps(_mm_set_epi32((int)0x80000000UL, (int)0x80000000UL, 0, 0));
+//			const __m128 signx = _mm_shuffle_ps(signy, signy, _MM_SHUFFLE(2, 0, 2, 0));
+//			const __m128 signz = _mm_shuffle_ps(signy, signy, _MM_SHUFFLE(3, 0, 0, 3));
+//			__m128 out = _mm_mul_ps(_mm_shuffle_ps(q1, q1, _MM_SHUFFLE(1, 1, 1, 1)), _mm_shuffle_ps(q2, q2, _MM_SHUFFLE(0, 1, 2, 3)));
+//			out = _mm_add_ps(_mm_mul_ps(_mm_xor_ps(signy, _mm_shuffle_ps(q1, q1, _MM_SHUFFLE(2, 2, 2, 2))), _mm_shuffle_ps(q2, q2, _MM_SHUFFLE(1, 0, 3, 2))), _mm_xor_ps(signx, out));
+//			out = _mm_add_ps(_mm_mul_ps(_mm_xor_ps(signz, _mm_shuffle_ps(q1, q1, _MM_SHUFFLE(3, 3, 3, 3))), _mm_shuffle_ps(q2, q2, _MM_SHUFFLE(2, 3, 0, 1))), out);
+//			out = _mm_add_ps(_mm_mul_ps(_mm_shuffle_ps(q1, q1, _MM_SHUFFLE(0, 0, 0, 0)), q2), out);
+//			return Quaternion(_mm_shuffle_ps(out, out, _MM_SHUFFLE(2, 1, 0, 3)));
+//#else
 			Quaternion ans;
 
 			ans.w = (w * q.w) - (x * q.x) - (y * q.y) - (z * q.z);
@@ -672,7 +668,7 @@ namespace Lumos
 			ans.z = (z * q.w) + (w * q.z) + (x * q.y) - (y * q.x);
 
 			return ans;
-#endif
+//#endif
 		}
 
 		Quaternion Quaternion::operator*(const Vector3& v) const
@@ -685,47 +681,47 @@ namespace Lumos
 			);
         }
 
-      Quaternion Quaternion::operator -() const
-      {
-#ifdef LUMOS_SSEQUAT
-          return Quaternion(_mm_xor_ps(mmvalue, _mm_castsi128_ps(_mm_set1_epi32((int)0x80000000UL))));
+		Quaternion Quaternion::operator-() const
+		{
+#ifdef LUMOS_SSEQUAT1
+			return Quaternion(_mm_xor_ps(mmvalue, _mm_castsi128_ps(_mm_set1_epi32((int)0x80000000UL))));
 #else
-          return Quaternion(-x, -y, -z, -w);
+			return Quaternion(-x, -y, -z, -w);
 #endif
-      }
+		}
   
-      Quaternion Quaternion::operator +(const Quaternion& rhs) const
-      {
+		Quaternion Quaternion::operator+(const Quaternion& rhs) const
+		{
 #ifdef LUMOS_SSEQUAT
-          return Quaternion(_mm_add_ps(mmvalue, rhs.mmvalue));
+			return Quaternion(_mm_add_ps(mmvalue, rhs.mmvalue));
 #else
-          return Quaternion(x + rhs.x, y + rhs.y, z + rhs.z, w + rhs.w);
+			return Quaternion(x + rhs.x, y + rhs.y, z + rhs.z, w + rhs.w);
 #endif
-      }
+		}
 
-      Quaternion Quaternion::operator -(const Quaternion& rhs) const
-      {
+		Quaternion Quaternion::operator-(const Quaternion& rhs) const
+		{
 #ifdef LUMOS_SSEQUAT
-          return Quaternion(_mm_sub_ps(mmvalue, rhs.mmvalue));
+			return Quaternion(_mm_sub_ps(mmvalue, rhs.mmvalue));
 #else
-          return Quaternion(w_ - rhs.w_, x_ - rhs.x_, y_ - rhs.y_, z_ - rhs.z_);
+			return Quaternion(x - rhs.x, y - rhs.y, z - rhs.z, w - rhs.w);
 #endif
-      }
+		}
 
-      Quaternion& Quaternion::operator =(const Quaternion& rhs) noexcept
-      {
+		Quaternion& Quaternion::operator=(const Quaternion& rhs) noexcept
+		{
 #ifdef LUMOS_SSEQUAT
-            mmvalue = rhs.mmvalue;
+			mmvalue = rhs.mmvalue;
 #else
-            w = rhs.w;
-            x = rhs.x;
-            y = rhs.y;
-            z = rhs.z;
-    #endif
-            return *this;
-        }
+			w = rhs.w;
+			x = rhs.x;
+			y = rhs.y;
+			z = rhs.z;
+#endif
+			return *this;
+		}
 
-        Quaternion& Quaternion::operator +=(const Quaternion& rhs)
+        Quaternion& Quaternion::operator+=(const Quaternion& rhs)
         {
 #ifdef LUMOS_SSEQUAT
             mmvalue = _mm_add_ps(mmvalue, rhs.mmvalue);
@@ -738,7 +734,7 @@ namespace Lumos
             return *this;
         }
 
-        Quaternion& Quaternion::operator *=(float rhs)
+        Quaternion& Quaternion::operator*=(float rhs)
         {
 #ifdef LUMOS_SSEQUAT
             mmvalue = _mm_mul_ps(mmvalue, _mm_set1_ps(rhs));
@@ -751,7 +747,7 @@ namespace Lumos
             return *this;
         }
 
-        bool Quaternion::operator ==(const Quaternion& rhs) const
+        bool Quaternion::operator==(const Quaternion& rhs) const
         {
 #ifdef LUMOS_SSEQUAT
             __m128 c = _mm_cmpeq_ps(mmvalue, rhs.mmvalue);
@@ -763,7 +759,7 @@ namespace Lumos
 #endif
         }
     
-        bool Quaternion::operator !=(const Quaternion& rhs) const
+        bool Quaternion::operator!=(const Quaternion& rhs) const
         {
             return !(*this == rhs);
         }

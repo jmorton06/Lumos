@@ -18,11 +18,11 @@ namespace Lumos
 		public:
 			Quaternion();
 			Quaternion(const Vector3& vec, float w);
-			Quaternion(float x, float y, float z, float w);
+			Quaternion(float lx, float ly, float lz, float lw);
 			Quaternion(const Quaternion& v);
             
             ///Construct from Euler (Degrees)
-            Quaternion(float x, float y, float z);
+            Quaternion(float pitch, float yaw, float roll);
             ///Construct from Euler (Degrees)
             Quaternion(const Vector3& v);
 
@@ -106,17 +106,16 @@ namespace Lumos
 			Quaternion operator*(const Quaternion& q) const;
 			Quaternion operator*(const Vector3& rhs) const;
 			Quaternion operator+(const Quaternion& a) const;
-            Quaternion operator *(float rhs) const;
-            Quaternion operator -() const;
-            Quaternion operator -(const Quaternion& rhs) const;
+            Quaternion operator*(float rhs) const;
+            Quaternion operator-() const;
+            Quaternion operator-(const Quaternion& rhs) const;
             
-            Quaternion& operator =(const Quaternion& rhs) noexcept;
-            Quaternion& operator +=(const Quaternion& rhs);
-            Quaternion& operator *=(float rhs);
-            bool operator ==(const Quaternion& rhs) const;
-            bool operator !=(const Quaternion& rhs) const;
+            Quaternion& operator=(const Quaternion& rhs) noexcept;
+            Quaternion& operator+=(const Quaternion& rhs);
+            Quaternion& operator*=(float rhs);
+            bool operator==(const Quaternion& rhs) const;
+            bool operator!=(const Quaternion& rhs) const;
             
-
             nlohmann::json Serialise()
 			{
 				nlohmann::json output;

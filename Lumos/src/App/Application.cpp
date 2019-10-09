@@ -65,7 +65,11 @@ namespace Lumos
 		VFS::Get()->Mount("CoreFonts", root + "/lumos/res/fonts");
 
 		m_Window = Scope<Window>(Window::Create(properties));
+#ifndef LUMOS_EDITOR
 		m_Window->SetEventCallback(BIND_EVENT_FN(Application::OnEvent));
+#else
+		m_Editor->BindEventFunction();
+#endif
 
 		m_SceneManager = CreateScope<SceneManager>();
 

@@ -178,7 +178,7 @@ namespace Lumos
 		matInstance->SetMaterialProperites(properties);
 		meshEntity->AddComponent<MaterialComponent>(matInstance);
 
-		meshEntity->AddComponent<Maths::Transform>(Maths::Matrix4::Scale(halfdims) * Maths::Matrix4::RotationX(-90.0f));
+		meshEntity->AddComponent<Maths::Transform>(Maths::Matrix4::RotationX(-90.0f) * Maths::Matrix4::Scale(halfdims));
 		
 		Cube->AddChild(meshEntity);
 
