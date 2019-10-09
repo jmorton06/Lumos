@@ -150,7 +150,7 @@ namespace Lumos
 			ImGui::Text("Rotation");
 			ImGui::NextColumn();
 			ImGui::PushItemWidth(-1);
-			if (ImGui::DragFloat3("##Rotation", Maths::ValuePointer(rotation), 1.0f, -180.0f, 180.0f))
+			if (ImGui::InputFloat3("##Rotation", Maths::ValuePointer(rotation)))
 			{
 				SetLocalOrientation(Maths::Quaternion::EulerAnglesToQuaternion(rotation.GetX(), rotation.GetY(), rotation.GetZ()));
 				update = true;

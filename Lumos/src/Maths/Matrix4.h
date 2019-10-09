@@ -110,7 +110,15 @@ namespace Lumos
 				values[14] = v.GetZ();
 			}
 
-			inline Vector3 GetScaling() const { return Vector3(values[0], values[5], values[10]); }
+			inline Vector3 GetScaling() const 
+			{ 
+				//return Vector3(values[0], values[5], values[10]);
+				return Vector3(
+					sqrtf(values[0] * values[0] + values[4] * values[4] + values[8] * values[8]),
+					sqrtf(values[1] * values[1] + values[5] * values[5] + values[9] * values[9]),
+					sqrtf(values[2] * values[2] + values[6] * values[6] + values[10] * values[10])
+				);
+			}
 
 			inline void SetScaling(const Vector3 &in)
 			{

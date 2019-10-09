@@ -15,6 +15,7 @@
 #include "App/Engine.h"
 #include "App/Scene.h"
 #include "App/SceneManager.h"
+#include "Events/ApplicationEvent.h"
 
 #include "Maths/BoundingSphere.h"
 #include "ECS/EntityManager.h"
@@ -534,5 +535,23 @@ namespace Lumos
 				}
 			}
 		}
+	}
+
+	void Editor::OnEvent(Event& e)
+	{
+		EventDispatcher dispatcher(e);
+		dispatcher.Dispatch<WindowResizeEvent>(BIND_EVENT_FN(Editor::OnWindowResize));
+
+		m_Application->OnEvent(e);
+	}
+
+	void Editor::BindEventFunction()
+	{
+		m_Application->GetWindow()->SetEventCallback(BIND_EVENT_FN(Editor::OnEvent));
+	}
+
+	bool Editor::OnWindowResize(WindowResizeEvent & e)
+	{
+		return false;
 	}
 }
