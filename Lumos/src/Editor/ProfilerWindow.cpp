@@ -192,7 +192,7 @@ namespace Lumos
 				/*	float taskStartHeight = (float(task.startTime) / maxFrameTime) * graphSize.y;
 					float taskEndHeight = (float(task.endTime) / maxFrameTime) * graphSize.y;*/
 
-				float duration = (float(task.duration) / maxFrameTime) * graphSize.y;
+				float duration = (float(task.duration) / maxFrameTime) * (graphSize.y - 5.0f);// (float(task.duration) / maxFrameTime) * graphSize.y;
 
 				//float taskEndHeight = (float(task.endTime) / maxFrameTime) * graphSize.y;
 

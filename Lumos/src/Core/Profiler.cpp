@@ -107,6 +107,9 @@ namespace Lumos
 
         double time = m_Timer->GetTimedMS();
         
+		if (m_ElapsedFrames == 0)
+			return report;
+
         report.workingThreads = static_cast<uint16_t>((m_WorkingThreads.size() - 1) / m_ElapsedFrames);
         report.elapsedFrames = m_ElapsedFrames;
         report.elaspedTime = time;

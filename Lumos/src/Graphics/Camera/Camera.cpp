@@ -127,7 +127,7 @@ namespace Lumos
 			ImGui::Text("Yaw");
 			ImGui::NextColumn();
 			ImGui::PushItemWidth(-1);
-			ImGui::DragFloat3("##Yaw", &m_Yaw);
+			ImGui::DragFloat("##Yaw", &m_Yaw);
 			ImGui::PopItemWidth();
 			ImGui::NextColumn();
 
