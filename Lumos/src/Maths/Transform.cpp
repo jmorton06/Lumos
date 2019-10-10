@@ -150,7 +150,7 @@ namespace Lumos
 			ImGui::Text("Rotation");
 			ImGui::NextColumn();
 			ImGui::PushItemWidth(-1);
-			if (ImGui::InputFloat3("##Rotation", Maths::ValuePointer(rotation)))
+			if (ImGui::DragFloat3("##Rotation", Maths::ValuePointer(rotation)))
 			{
 				SetLocalOrientation(Maths::Quaternion::EulerAnglesToQuaternion(rotation.GetX(), rotation.GetY(), rotation.GetZ()));
 				update = true;
@@ -163,7 +163,7 @@ namespace Lumos
 			ImGui::Text("Scale");
 			ImGui::NextColumn();
 			ImGui::PushItemWidth(-1);
-			if (ImGui::DragFloat3("##Scale", Maths::ValuePointer(m_LocalScale)))
+			if (ImGui::DragFloat3("##Scale", Maths::ValuePointer(m_LocalScale), 0.1f))
 			{
 				update = true;
 			}

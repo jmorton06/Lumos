@@ -62,9 +62,9 @@ layout (std140) uniform UniformMaterialData
 	float p1;
 } materialProperties;
 
-const float PBR_WORKFLOW_SEPARATE_TEXTURES = 0.0;
-const float PBR_WORKFLOW_METALLIC_ROUGHNESS = 1.0;
-const float PBR_WORKFLOW_SPECULAR_GLOSINESS = 2.0;
+const int PBR_WORKFLOW_SEPARATE_TEXTURES = 0;
+const int PBR_WORKFLOW_METALLIC_ROUGHNESS = 1;
+const int PBR_WORKFLOW_SPECULAR_GLOSINESS = 2;
 
 #define PI 3.1415926535897932384626433832795
 #define GAMMA 2.2
@@ -86,18 +86,12 @@ vec4 GetAlbedo()
 
 vec3 GetSpecular()
 {
-	vec3 spec = (1.0 - materialProperties.usingSpecularMap) * materialProperties.specularColour.rgb;
-	if(materialProperties.usingSpecularMap > 0.1);
-		spec += materialProperties.usingSpecularMap * GammaCorrectTextureRGB(texture(u_SpecularMap, fragTexCoord)).rgb;
-	return spec;
+	return (1.0 - materialProperties.usingSpecularMap) * materialProperties.specularColour.rgb + materialProperties.usingSpecularMap * texture(u_SpecularMap, fragTexCoord).rgb;
 }
 
 float GetRoughness()
 {
-	float roughness = (1.0 - materialProperties.usingRoughnessMap) * materialProperties.RoughnessColour.r;
-	if(materialProperties.usingRoughnessMap > 0.1);
-		roughness += materialProperties.usingRoughnessMap * GammaCorrectTextureRGB(texture(u_RoughnessMap, fragTexCoord)).r;
-	return roughness;
+	return (1.0 - materialProperties.usingRoughnessMap) * materialProperties.RoughnessColour.r + materialProperties.usingRoughnessMap * texture(u_RoughnessMap, fragTexCoord).r;
 }
 
 float GetAO()

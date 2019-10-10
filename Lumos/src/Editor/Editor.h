@@ -31,6 +31,7 @@ namespace Lumos
 		Editor(Application* app, u32 width, u32 height);
 		~Editor();
 
+		void OnInit();
 		void OnImGui();
 		void DrawMenuBar();
 
@@ -39,7 +40,7 @@ namespace Lumos
 		void EndDockSpace();
 
 		u32 GetImGuizmoOperation() const { return m_ImGuizmoOperation; }
-		void OnInit();
+
 		void OnNewScene(Scene* scene);
 		void OnImGuizmo();
 		void OnEvent(Event& e);
@@ -69,7 +70,7 @@ namespace Lumos
 		float m_SnapAmount = 1.0f;
         
         ImGui::FileBrowser* m_FileBrowser;
-        
+
 		std::vector<Ref<EditorWindow>> m_Windows;
 
 		NONCOPYABLE(Editor)

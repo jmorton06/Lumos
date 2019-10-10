@@ -27,11 +27,7 @@ namespace Lumos
 
 		Quaternion::Quaternion(float lx, float ly, float lz, float lw)
 		{
-#ifdef LUMOS_SSEQUAT1
-			mmvalue = _mm_set_ps(lz, ly, lx, lw);
-#else
 			this->x = lx;  this->y = ly;  this->z = lz; this->w = lw;
-#endif
 		}
 
 		Quaternion::Quaternion(const Quaternion& v)
@@ -249,8 +245,8 @@ namespace Lumos
 		void Quaternion::FromEulerAngles(float pitch, float yaw, float roll)
 		{
 			pitch *= DEGTORAD_2;
-			yaw *= DEGTORAD_2;
-			roll *= DEGTORAD_2;
+			yaw   *= DEGTORAD_2;
+			roll  *= DEGTORAD_2;
 			float sinX = sinf(pitch);
 			float cosX = cosf(pitch);
 			float sinY = sinf(yaw);
