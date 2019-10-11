@@ -9,7 +9,7 @@ namespace Lumos
 		Quaternion::Quaternion()
 		{
 #ifdef LUMOS_SSEQUAT
-			mmvalue = _mm_set_ps(0.0f, 0.0f, 0.0f, 1.0f);
+			mmvalue = _mm_set_ps(1.0f, 0.0f, 0.0f, 0.0f);
 #else
 			x = y = z = 0.0f;
 			w = 1.0f;
@@ -19,7 +19,7 @@ namespace Lumos
 		Quaternion::Quaternion(const Vector3& vec, float w)
 		{
 #ifdef LUMOS_SSEQUAT
-			mmvalue = _mm_set_ps(vec.GetZ(), vec.GetY(), vec.GetX(), w);
+			mmvalue = _mm_set_ps(w, vec.GetZ(), vec.GetY(), vec.GetX());
 #else
 			x = vec.GetX(); y = vec.GetY(); z = vec.GetZ(); this->w = w;
 #endif
@@ -27,7 +27,11 @@ namespace Lumos
 
 		Quaternion::Quaternion(float lx, float ly, float lz, float lw)
 		{
+#ifdef LUMOS_SSEQUAT
+			mmvalue = _mm_set_ps(lw, lz, ly, lx);
+#else
 			this->x = lx;  this->y = ly;  this->z = lz; this->w = lw;
+#endif
 		}
 
 		Quaternion::Quaternion(const Quaternion& v)
@@ -116,28 +120,6 @@ namespace Lumos
 
 		Matrix4 Quaternion::ToMatrix4() const
 		{
-#ifdef LUMOS_SSEQUAT
-			__m128 multiplier2 = _mm_set1_ps(2.0f);
-			__m128 squaredTimes2 = _mm_mul_ps(_mm_mul_ps(mmvalue, mmvalue), multiplier2);
-			__m128 offset1Times2 = _mm_mul_ps(_mm_mul_ps(mmvalue, _mm_set_ps(z, y, x, w)), multiplier2);
-			__m128 offset2Times2 = _mm_mul_ps(_mm_mul_ps(mmvalue, _mm_set_ps(y, x, w, z)), multiplier2);
-
-			Matrix4 mat;
-
-			mat.values[0] = 1 - GetValue(squaredTimes2, 1) - GetValue(squaredTimes2, 2);
-			mat.values[1] = GetValue(offset1Times2, 1) + GetValue(offset1Times2, 3);
-			mat.values[2] = GetValue(offset2Times2, 0) - GetValue(offset2Times2, 1);
-
-			mat.values[4] = GetValue(offset1Times2, 1) - GetValue(offset1Times2, 3);
-			mat.values[5] = 1 - GetValue(squaredTimes2, 0) - GetValue(squaredTimes2, 2);
-			mat.values[6] = GetValue(offset1Times2, 2) + GetValue(offset1Times2, 0);
-
-			mat.values[8] = GetValue(offset2Times2, 0) + GetValue(offset2Times2, 1);
-			mat.values[9] = GetValue(offset1Times2, 2) - GetValue(offset1Times2, 0);
-			mat.values[10] = 1 - GetValue(squaredTimes2, 0) - GetValue(squaredTimes2, 1);
-
-			return mat;
-#else
 			Matrix4 mat;
 
 			float yy = y * y;
@@ -163,7 +145,6 @@ namespace Lumos
 			mat.values[10] = 1 - 2 * xx - 2 * yy;
 
 			return mat;
-#endif
 		}
 
 		Matrix3 Quaternion::ToMatrix3() const

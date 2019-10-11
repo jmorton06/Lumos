@@ -31,6 +31,7 @@ workspace "Lumos"
 
 	require("Lumos/premake5")
 	require("Sandbox/premake5")
+	require("Tests/premake5")
 	--require("Examples/premake5")
 
 	filter()

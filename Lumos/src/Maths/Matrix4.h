@@ -131,6 +131,8 @@ namespace Lumos
 			Vector3 operator*(const Vector3 &v) const;
 			Vector4 operator*(const Vector4 &v) const;
 
+			bool operator==(const Matrix4 &m) const;
+
 			void Transpose();
             Matrix4 GetRotation() const;
             
@@ -177,7 +179,19 @@ namespace Lumos
 				}
 			};
 
-			friend std::ostream &operator<<(std::ostream &o, const Matrix4 &m);
+			friend std::ostream &operator<<(std::ostream &o, const Matrix4 &m)
+			{
+				return o << "Mat4(" << "/n" <<
+					"\t" << m.values[0] << ", " << m.values[4] << ", " << m.values[8] << ", " << m.values[12] << ", "
+					<< "/n" <<
+					"\t" << m.values[1] << ", " << m.values[5] << ", " << m.values[9] << ", " << m.values[13] << ", "
+					<< "/n" <<
+					"\t" << m.values[2] << ", " << m.values[6] << ", " << m.values[10] << ", " << m.values[14] << ", "
+					<< "/n" <<
+					"\t" << m.values[3] << ", " << m.values[7] << ", " << m.values[11] << ", " << m.values[15] << "/n"
+					<<
+					" )";
+			}
 
 			inline float operator[](const int index) const
             {
