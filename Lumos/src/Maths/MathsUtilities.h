@@ -12,6 +12,13 @@ namespace Lumos
 		static constexpr float DEGTORAD_2 = PI / 360.0f;
 		static constexpr float RADTODEG = 1.0f / DEGTORAD;
 
+#ifdef PRECISE_MATH_CHECKS
+#define UNIT_EPSILON 0.00001f
+#else
+		//tolerate some more floating point error normally
+#define UNIT_EPSILON 0.001f
+#endif
+
 		template <class T> const T& Max(const T& a, const T& b)
 		{
 			return (a < b) ? b : a;
@@ -68,6 +75,9 @@ namespace Lumos
 		{
 			return	a * (1.0f - t) + b * t;
 		};
+
+		template <class T>
+		static _ALWAYS_INLINE_ bool Equals(T lhs, T rhs, T eps = UNIT_EPSILON) { return lhs + eps >= rhs && lhs - eps <= rhs; }
 
 		static _ALWAYS_INLINE_ bool IsNAN(double p_val) 
 		{

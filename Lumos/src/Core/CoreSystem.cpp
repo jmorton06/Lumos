@@ -10,12 +10,15 @@ namespace Lumos
 { 
 	namespace Internal 
 	{
-	void CoreSystem::Init()
+	void CoreSystem::Init(bool enableProfiler)
 	{
         LMLog::OnInit();
 
-        Profiler::Instance()->Enable();
-        PROFILERRECORD("CoreSystem::Init");
+		if (enableProfiler)
+		{
+			Profiler::Instance()->Enable();
+			PROFILERRECORD("CoreSystem::Init");
+		}
 
 		LUMOS_LOG_INFO("Lumos Engine - Version {0}.{1}.{2}", LumosVersion.major, LumosVersion.minor, LumosVersion.patch);
 

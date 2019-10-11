@@ -793,21 +793,17 @@ namespace Lumos
                     v.GetX()*values[3] + v.GetY()*values[7] + v.GetZ()*values[11] + v.GetW() * values[15]
                 );
 		#endif
-		};
-
-		std::ostream &operator<<(std::ostream &o, const Matrix4 &m)
-		{
-			return o << "Mat4(" << "/n" <<
-					 "\t" << m.values[0] << ", " << m.values[4] << ", " << m.values[8] << ", " << m.values[12] << ", "
-					 << "/n" <<
-					 "\t" << m.values[1] << ", " << m.values[5] << ", " << m.values[9] << ", " << m.values[13] << ", "
-					 << "/n" <<
-					 "\t" << m.values[2] << ", " << m.values[6] << ", " << m.values[10] << ", " << m.values[14] << ", "
-					 << "/n" <<
-					 "\t" << m.values[3] << ", " << m.values[7] << ", " << m.values[11] << ", " << m.values[15] << "/n"
-					 <<
-					 " )";
 		}
+
+		bool Matrix4::operator==(const Matrix4 & m) const
+		{
+			for (int i = 0; i < 16; i++)
+			{
+				if (!Equals(values[i], m[i]))
+					return false;
+			}
+			return true;
+		};
 	}
 }
 namespace std
