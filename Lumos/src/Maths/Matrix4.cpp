@@ -794,6 +794,15 @@ namespace Lumos
                 );
 		#endif
 		}
+    
+        Matrix4 Matrix4::operator *(float rhs) const
+        {
+            Matrix4 result;
+            result.ToZero();
+            for (int i = 0; i < 16; ++i)
+                result.values[i] = values[i] * rhs;
+            return result;
+        };
 
 		bool Matrix4::operator==(const Matrix4 & m) const
 		{

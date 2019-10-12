@@ -441,11 +441,7 @@ TEST_CASE("Quaternion Tests", "[LumosEngine]")
 		Vector4 v = Vector4(0.0f, 1.0f, 0.0f, 1.0f);
 		v = m * v;
 
-		REQUIRE(Abs(v.x) < (1e-6f));
-		REQUIRE(Abs(v.y + 1.0f) < (1e-6f));
-		REQUIRE(Abs(v.z) < (1e-6f));
-		REQUIRE(Abs(v.w - 1.0f) < (1e-6f));
-		//REQUIRE(v == Vector4(0.0f, -1.0f, 0.0f, 1.0f));
+		REQUIRE(v.Equals(Vector4(0.0f, -1.0f, 0.0f, 1.0f)));
 	}
 
 	{
@@ -456,7 +452,7 @@ TEST_CASE("Quaternion Tests", "[LumosEngine]")
 		Vector4 v = Vector4(0.0f,0.0f,-1.0f,1.0f); //Forward
 		v = m * v;
 
-		REQUIRE(v == Vector4(0.0f, 0.0f, 1.0f, 1.0f));
+        REQUIRE(v.Equals(Vector4(0.0f, 0.0f, 1.0f, 1.0f)));
 	}
 
 	{
@@ -467,7 +463,7 @@ TEST_CASE("Quaternion Tests", "[LumosEngine]")
 		Vector4 v = Vector4(1.0f,0.0f,0.0f,1.0f);
 		v = m * v;
 
-		REQUIRE(v == -Vector4(1.0f, 0.0f, 0.0f, 1.0f));
+		REQUIRE(v.Equals(Vector4(-1.0f, 0.0f, 0.0f, -1.0f)));
 	}
 
 	{

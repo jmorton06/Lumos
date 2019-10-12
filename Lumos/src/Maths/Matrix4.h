@@ -130,6 +130,7 @@ namespace Lumos
 			Matrix4 operator*(const Matrix4 &m) const;
 			Vector3 operator*(const Vector3 &v) const;
 			Vector4 operator*(const Vector4 &v) const;
+            Matrix4 operator*(float rhs) const;
 
 			bool operator==(const Matrix4 &m) const;
 
@@ -203,5 +204,7 @@ namespace Lumos
 				return values[index];
 			}
 		};
+        
+        inline Matrix4 operator *(float lhs, const Matrix4& rhs) { return rhs * lhs; }
 	}
 }

@@ -302,6 +302,7 @@ namespace Lumos
 				return a * (1.0f - t) + b * t;
 			}
 		};
+    inline Vector3 operator *(float lhs, const Vector3& rhs) { return rhs * lhs; }
 	}
 }
 
