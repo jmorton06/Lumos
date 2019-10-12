@@ -95,6 +95,8 @@ namespace Lumos
 
 			inline bool operator==(const Vector2 &A) const { return (A.x == x && A.y == y) ? true : false; };
 		};
+    
+    inline Vector2 operator *(float lhs, const Vector2& rhs) { return rhs * lhs; }
 	}
 }
 namespace std
