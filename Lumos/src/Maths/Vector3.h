@@ -2,6 +2,7 @@
 #include "lmpch.h"
 #include "Vector2.h"
 #include "MathsCommon.h"
+#include "MathsUtilities.h"
 
 #include "Core/Serialisable.h"
 
@@ -216,6 +217,11 @@ namespace Lumos
 				y = data["y"];
 				z = data["z"];
 			};
+            
+            bool Equals(const Vector3& rhs) const
+            {
+                return Maths::Equals(x, rhs.x) && Maths::Equals(y, rhs.y) && Maths::Equals(z, rhs.z);
+            }
 
 #ifdef LUMOS_SSEVEC3
 			inline Vector3 operator+(float v) const { return _mm_add_ps(m_Value, _mm_set1_ps(v)); }

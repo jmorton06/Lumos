@@ -478,7 +478,7 @@ TEST_CASE("Quaternion Tests", "[LumosEngine]")
 
 		Vector3 w = n * u;
 
-		REQUIRE(v == w);
+		REQUIRE(v.Equals(w));
 	}
 
 	{
@@ -491,15 +491,15 @@ TEST_CASE("Quaternion Tests", "[LumosEngine]")
 		yAxis = q.GetYAxis();
 		zAxis = q.GetZAxis();
 
-		REQUIRE(xAxis == Vector3(1.0f,0.0f,0.0f));
-		REQUIRE(yAxis == -Vector3(0.0f,0.0f,-1.0f));
-		REQUIRE(zAxis == Vector3(0.0f,1.0f,0.0f));
+		REQUIRE(xAxis.Equals(Vector3(1.0f,0.0f,0.0f)));
+		REQUIRE(yAxis.Equals(-Vector3(0.0f,0.0f,-1.0f)));
+		REQUIRE(zAxis.Equals(Vector3(0.0f,1.0f,0.0f)));
 
 		q.ToAxes(xAxis, yAxis, zAxis);
 
-		REQUIRE(xAxis == Vector3(1.0f,0.0f,0.0f));
-		REQUIRE(yAxis == -Vector3(0.0f,0.0f,-1.0f));
-		REQUIRE(zAxis == Vector3(0.0f,1.0f,0.0f));
+		REQUIRE(xAxis.Equals(Vector3(1.0f,0.0f,0.0f)));
+		REQUIRE(yAxis.Equals(-Vector3(0.0f,0.0f,-1.0f)));
+		REQUIRE(zAxis.Equals(Vector3(0.0f,1.0f,0.0f)));
 	}
 
 	{
@@ -513,7 +513,7 @@ TEST_CASE("Quaternion Tests", "[LumosEngine]")
 		Matrix4 m = k.ToMatrix4();
 		v = m * v;
 
-		REQUIRE(v == Vector4(-0.737208f, 0.686816f, -1.40883f, 1.0f));
+		REQUIRE(v.Equals(Vector4(-0.737208f, 0.686816f, -1.40883f, 1.0f)));
 	}
 
 }
