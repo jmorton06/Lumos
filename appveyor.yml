@@ -18,5 +18,5 @@ build:
 
 test_script:
   - echo I'm now starting catch tests (https://github.com/philsquared/Catch)
-  - cd bin/Release
+  - cd ../bin/Release
   - Test.exe
