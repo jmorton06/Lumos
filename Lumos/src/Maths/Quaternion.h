@@ -35,10 +35,10 @@ namespace Lumos
 			{
 				struct
 				{
-					float z;
-					float y;
-					float x;
-					float w;
+                    float w;
+                    float x;
+                    float y;
+                    float z;
 				};
 				__m128 mmvalue;
 			} MEM_ALIGN;

@@ -463,7 +463,7 @@ TEST_CASE("Quaternion Tests", "[LumosEngine]")
 		Vector4 v = Vector4(1.0f,0.0f,0.0f,1.0f);
 		v = m * v;
 
-		REQUIRE(v.Equals(Vector4(-1.0f, 0.0f, 0.0f, -1.0f)));
+		REQUIRE(v.Equals(Vector4(-1.0f, 0.0f, 0.0f, 1.0f)));
 	}
 
 	{

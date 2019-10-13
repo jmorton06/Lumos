@@ -9,7 +9,7 @@ namespace Lumos
 		Quaternion::Quaternion()
 		{
 #ifdef LUMOS_SSEQUAT
-			mmvalue = _mm_set_ps(1.0f, 0.0f, 0.0f, 0.0f);
+			mmvalue = _mm_set_ps(0.0f, 0.0f, 0.0f, 1.0f);
 #else
 			x = y = z = 0.0f;
 			w = 1.0f;
@@ -19,7 +19,7 @@ namespace Lumos
 		Quaternion::Quaternion(const Vector3& vec, float w)
 		{
 #ifdef LUMOS_SSEQUAT
-			mmvalue = _mm_set_ps(w, vec.GetZ(), vec.GetY(), vec.GetX());
+			mmvalue = _mm_set_ps(vec.GetZ(), vec.GetY(), vec.GetX(), w);
 #else
 			x = vec.GetX(); y = vec.GetY(); z = vec.GetZ(); this->w = w;
 #endif
@@ -28,7 +28,7 @@ namespace Lumos
 		Quaternion::Quaternion(float lx, float ly, float lz, float lw)
 		{
 #ifdef LUMOS_SSEQUAT
-			mmvalue = _mm_set_ps(lw, lz, ly, lx);
+			mmvalue = _mm_set_ps(lz, ly, lx, lw);
 #else
 			this->x = lx;  this->y = ly;  this->z = lz; this->w = lw;
 #endif
@@ -133,15 +133,15 @@ namespace Lumos
 			float xw = x * w;
 
 			mat.values[0] = 1 - 2 * yy - 2 * zz;
-			mat.values[1] = 2 * xy + 2 * zw;
-			mat.values[2] = 2 * xz - 2 * yw;
+			mat.values[1] = 2 * xy - 2 * zw;
+			mat.values[2] = 2 * xz + 2 * yw;
+			mat.values[4] = 2 * xy + 2 * zw;
+            mat.values[5] = 1 - 2 * xx - 2 * zz;
+			
+            mat.values[6] = 2 * yz - 2 * xw;
 
-			mat.values[4] = 2 * xy - 2 * zw;
-			mat.values[5] = 1 - 2 * xx - 2 * zz;
-			mat.values[6] = 2 * yz + 2 * xw;
-
-			mat.values[8] = 2 * xz + 2 * yw;
-			mat.values[9] = 2 * yz - 2 * xw;
+			mat.values[8] = 2 * xz - 2 * yw;
+			mat.values[9] = 2 * yz + 2 * xw;
 			mat.values[10] = 1 - 2 * xx - 2 * yy;
 
 			return mat;
@@ -161,27 +161,27 @@ namespace Lumos
 			float yz = y * z;
 			float xw = x * w;
 
-			mat.values[0] = 1 - 2 * yy - 2 * zz;
-			mat.values[1] = 2 * xy + 2 * zw;
-			mat.values[2] = 2 * xz - 2 * yw;
+            mat.values[0] = 1 - 2 * yy - 2 * zz;
+            mat.values[1] = 2 * xy - 2 * zw;
+            mat.values[2] = 2 * xz + 2 * yw;
+            mat.values[3] = 2 * xy + 2 * zw;
+            mat.values[4] = 1 - 2 * xx - 2 * zz;
+            
+            mat.values[5] = 2 * yz - 2 * xw;
 
-			mat.values[3] = 2 * xy - 2 * zw;
-			mat.values[4] = 1 - 2 * xx - 2 * zz;
-			mat.values[5] = 2 * yz + 2 * xw;
-
-			mat.values[6] = 2 * xz + 2 * yw;
-			mat.values[7] = 2 * yz - 2 * xw;
-			mat.values[8] = 1 - 2 * xx - 2 * yy;
+            mat.values[6] = 2 * xz - 2 * yw;
+            mat.values[7] = 2 * yz + 2 * xw;
+            mat.values[8] = 1 - 2 * xx - 2 * yy;
 
 			return mat;
 		}
 
 		Quaternion Quaternion::AxisAngleToQuaterion(const Vector3& vector, float degrees)
 		{
-			float theta = DegreesToRadians(degrees);
-			float result = sin(theta * 0.5f);
+			float theta = DegreesToRadians(degrees) / 2.0f;
+			float result = sin(theta);
 
-			return Quaternion(static_cast<float>(vector.GetX() * result), static_cast<float>(vector.GetY() * result), static_cast<float>(vector.GetZ() * result), static_cast<float>(cos(theta * 0.5f)));
+			return Quaternion(static_cast<float>(vector.GetX() * result), static_cast<float>(vector.GetY() * result), static_cast<float>(vector.GetZ() * result), static_cast<float>(cos(theta)));
 		}
 
 		void Quaternion::GenerateW()
