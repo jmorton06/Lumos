@@ -468,13 +468,12 @@ TEST_CASE("Quaternion Tests", "[LumosEngine]")
 
 	{
 		Matrix3 m = Matrix3::RotationX(PI / 2.0f * RADTODEG);
-		Matrix3 n = Matrix3::RotationZ(50);
 		Maths::Quaternion q = Maths::Quaternion::FromMatrix(m);
 
 		Vector3 u = Vector3(1.0f);
 		Vector3 v = m * u;
 
-		n = q.ToMatrix3();
+		Matrix3 n = q.ToMatrix3();
 
 		Vector3 w = n * u;
 
