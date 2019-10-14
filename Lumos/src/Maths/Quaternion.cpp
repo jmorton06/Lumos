@@ -176,8 +176,9 @@ namespace Lumos
 			return mat;
 		}
 
-		Quaternion Quaternion::AxisAngleToQuaterion(const Vector3& vector, float degrees)
+		Quaternion Quaternion::AxisAngleToQuaterion(Vector3& vector, float degrees)
 		{
+			vector.Normalise();
 			float theta = DegreesToRadians(degrees) / 2.0f;
 			float result = sin(theta);
 
@@ -344,14 +345,31 @@ namespace Lumos
 
 		Quaternion Quaternion::FromVectors(const Vector3 &v1, const Vector3 &v2)
 		{
-			Quaternion q;
-			Vector3 a = Vector3::Cross(v1, v2);
-			q.x = a.GetX();
-			q.y = a.GetY();
-			q.z = a.GetZ();
-			q.w = v1.LengthSquared() + v2.LengthSquared() + Vector3::Dot(v1, v2);
-			q.Normalise();
-			return q;
+			Vector3 normStart = v1.Normal();
+			Vector3 normEnd = v2.Normal();
+			float d = normStart.Dot(normEnd);
+
+			if (d > -1.0f + UNIT_EPSILON)
+			{
+				Quaternion q;
+				Vector3 c = normStart.Cross(normEnd);
+				float s = sqrtf((1.0f + d) * 2.0f);
+				float invS = 1.0f / s;
+
+				q.x = c.x * invS;
+				q.y = c.y * invS;
+				q.z = c.z * invS;
+				q.w = 0.5f * s;
+				return q;
+			}
+			else
+			{
+				Vector3 axis = Vector3(1.0f,0.0f,0.0f).Cross(normStart);
+				if (axis.Length() < UNIT_EPSILON)
+					axis = Vector3(0.0f,1.0f,0.0f).Cross(normStart);
+
+				return Quaternion::AxisAngleToQuaterion(axis, 180.f);
+			}
 		}
 
 		Quaternion Quaternion::Interpolate(const Quaternion& pStart, const Quaternion& pEnd, float pFactor) const

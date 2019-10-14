@@ -162,6 +162,13 @@ namespace Lumos
 				return Vector3(*this);
 			}
 
+			inline const Vector3 Normal() const
+			{
+				Vector3 normal(*this);
+				normal.Normalise();
+				return normal;
+			}
+
 			static float Dot(const Vector3 &a, const Vector3 &b)
 			{
 #ifdef LUMOS_SSEVEC3
