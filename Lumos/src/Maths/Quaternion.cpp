@@ -176,13 +176,13 @@ namespace Lumos
 			return mat;
 		}
 
-		Quaternion Quaternion::AxisAngleToQuaterion(Vector3& vector, float degrees)
+		Quaternion Quaternion::AxisAngleToQuaterion(const Vector3& vector, float degrees)
 		{
-			vector.Normalise();
+			Vector3 normalised = vector.Normal();
 			float theta = DegreesToRadians(degrees) / 2.0f;
 			float result = sin(theta);
 
-			return Quaternion(static_cast<float>(vector.GetX() * result), static_cast<float>(vector.GetY() * result), static_cast<float>(vector.GetZ() * result), static_cast<float>(cos(theta)));
+			return Quaternion(static_cast<float>(normalised.GetX() * result), static_cast<float>(normalised.GetY() * result), static_cast<float>(normalised.GetZ() * result), static_cast<float>(cos(theta)));
 		}
 
 		void Quaternion::GenerateW()

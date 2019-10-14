@@ -95,7 +95,7 @@ namespace Lumos
 			}
 
 			static Quaternion EulerAnglesToQuaternion(float pitch, float yaw, float roll);
-			static Quaternion AxisAngleToQuaterion(Vector3& vector, float degrees);
+			static Quaternion AxisAngleToQuaterion(const Vector3& vector, float degrees);
 
 			static void RotatePointByQuaternion(const Quaternion& quat, Vector3& point);
 
