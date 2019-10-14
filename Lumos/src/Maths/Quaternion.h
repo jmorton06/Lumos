@@ -95,7 +95,7 @@ namespace Lumos
 			}
 
 			static Quaternion EulerAnglesToQuaternion(float pitch, float yaw, float roll);
-			static Quaternion AxisAngleToQuaterion(const Vector3& vector, float degrees);
+			static Quaternion AxisAngleToQuaterion(Vector3& vector, float degrees);
 
 			static void RotatePointByQuaternion(const Quaternion& quat, Vector3& point);
 
@@ -145,6 +145,11 @@ namespace Lumos
             Quaternion& operator*=(float rhs);
             bool operator==(const Quaternion& rhs) const;
             bool operator!=(const Quaternion& rhs) const;
+
+			bool Equals(const Quaternion& rhs) const
+			{
+				return Maths::Equals(x, rhs.x) && Maths::Equals(y, rhs.y) && Maths::Equals(z, rhs.z) && Maths::Equals(w, rhs.w);
+			}
             
             nlohmann::json Serialise()
 			{
