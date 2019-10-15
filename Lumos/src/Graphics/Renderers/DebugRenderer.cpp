@@ -145,9 +145,9 @@ namespace Lumos
 	void DebugRenderer::DrawMatrix(const Maths::Matrix4& mtx)
 	{
 		Maths::Vector3 position = mtx.GetPositionVector();
-		GenDrawHairLine(false, position, position + Maths::Vector3(mtx.values[0], mtx.values[1], mtx.values[2]), Maths::Vector4(1.0f, 0.0f, 0.0f, 1.0f));
-		GenDrawHairLine(false, position, position + Maths::Vector3(mtx.values[4], mtx.values[5], mtx.values[6]), Maths::Vector4(0.0f, 1.0f, 0.0f, 1.0f));
-		GenDrawHairLine(false, position, position + Maths::Vector3(mtx.values[8], mtx.values[9], mtx.values[10]), Maths::Vector4(0.0f, 0.0f, 1.0f, 1.0f));
+		GenDrawHairLine(false, position, position + Maths::Vector3(mtx[0], mtx[1], mtx[2]), Maths::Vector4(1.0f, 0.0f, 0.0f, 1.0f));
+		GenDrawHairLine(false, position, position + Maths::Vector3(mtx[4], mtx[5], mtx[6]), Maths::Vector4(0.0f, 1.0f, 0.0f, 1.0f));
+		GenDrawHairLine(false, position, position + Maths::Vector3(mtx[8], mtx[9], mtx[10]), Maths::Vector4(0.0f, 0.0f, 1.0f, 1.0f));
 	}
 	void DebugRenderer::DrawMatrix(const Maths::Matrix3& mtx, const Maths::Vector3& position)
 	{
@@ -158,9 +158,9 @@ namespace Lumos
 	void DebugRenderer::DrawMatrixNDT(const Maths::Matrix4& mtx)
 	{
 		Maths::Vector3 position = mtx.GetPositionVector();
-		GenDrawHairLine(true, position, position + Maths::Vector3(mtx.values[0], mtx.values[1], mtx.values[2]), Maths::Vector4(1.0f, 0.0f, 0.0f, 1.0f));
-		GenDrawHairLine(true, position, position + Maths::Vector3(mtx.values[4], mtx.values[5], mtx.values[6]), Maths::Vector4(0.0f, 1.0f, 0.0f, 1.0f));
-		GenDrawHairLine(true, position, position + Maths::Vector3(mtx.values[8], mtx.values[9], mtx.values[10]), Maths::Vector4(0.0f, 0.0f, 1.0f, 1.0f));
+		GenDrawHairLine(true, position, position + Maths::Vector3(mtx[0], mtx[1], mtx[2]), Maths::Vector4(1.0f, 0.0f, 0.0f, 1.0f));
+		GenDrawHairLine(true, position, position + Maths::Vector3(mtx[4], mtx[5], mtx[6]), Maths::Vector4(0.0f, 1.0f, 0.0f, 1.0f));
+		GenDrawHairLine(true, position, position + Maths::Vector3(mtx[8], mtx[9], mtx[10]), Maths::Vector4(0.0f, 0.0f, 1.0f, 1.0f));
 	}
 	void DebugRenderer::DrawMatrixNDT(const Maths::Matrix3& mtx, const Maths::Vector3& position)
 	{

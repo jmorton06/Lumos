@@ -36,6 +36,7 @@ namespace Lumos
         auto force = m_PhysicsObject->GetForce();
         auto torque = m_PhysicsObject->GetTorque();
         auto orientation = m_PhysicsObject->GetOrientation();
+		auto angularVelocity = m_PhysicsObject->GetAngularVelocity();
         auto friction = m_PhysicsObject->GetFriction();
         auto isStatic = m_PhysicsObject->GetIsStatic();
         auto isRest = m_PhysicsObject->GetIsAtRest();
@@ -82,6 +83,16 @@ namespace Lumos
 
         ImGui::PopItemWidth();
         ImGui::NextColumn();
+
+		ImGui::AlignTextToFramePadding();
+		ImGui::Text("Angular Velocity");
+		ImGui::NextColumn();
+		ImGui::PushItemWidth(-1);
+		if (ImGui::DragFloat3("##Angular Velocity", &angularVelocity.x))
+			m_PhysicsObject->SetAngularVelocity(angularVelocity);
+
+		ImGui::PopItemWidth();
+		ImGui::NextColumn();
             
         ImGui::AlignTextToFramePadding();
         ImGui::Text("Friction");
