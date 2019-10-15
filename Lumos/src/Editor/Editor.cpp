@@ -249,7 +249,7 @@ namespace Lumos
 
 			float snapAmount[3] = { m_SnapAmount  , m_SnapAmount , m_SnapAmount };
 			float delta[16];
-			ImGuizmo::Manipulate(view.values, proj.values, static_cast<ImGuizmo::OPERATION>(m_ImGuizmoOperation), ImGuizmo::LOCAL, model.values, delta, m_SnapQuizmo ? snapAmount : nullptr);
+			ImGuizmo::Manipulate(Maths::ValuePointer(view), Maths::ValuePointer(proj), static_cast<ImGuizmo::OPERATION>(m_ImGuizmoOperation), ImGuizmo::LOCAL, Maths::ValuePointer(model), delta, m_SnapQuizmo ? snapAmount : nullptr);
 
 			if (ImGuizmo::IsUsing())
 			{
