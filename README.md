@@ -33,4 +33,4 @@ make
 
 ## Screenshots
 
-![Lumos](/Resources/Screenshot.png?raw=true)
+![Lumos](/Resources/Screenshot-1610.png?raw=true)
