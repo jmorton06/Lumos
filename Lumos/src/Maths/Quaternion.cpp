@@ -132,18 +132,6 @@ namespace Lumos
 			float yz = y * z;
 			float xw = x * w;
 
-			//mat.values[0] = 1 - 2 * yy - 2 * zz;
-			//mat.values[1] = 2 * xy - 2 * zw;
-			//mat.values[2] = 2 * xz + 2 * yw;
-			//mat.values[4] = 2 * xy + 2 * zw;
-   //         mat.values[5] = 1 - 2 * xx - 2 * zz;
-			//
-   //         mat.values[6] = 2 * yz - 2 * xw;
-
-			//mat.values[8] = 2 * xz - 2 * yw;
-			//mat.values[9] = 2 * yz + 2 * xw;
-			//mat.values[10] = 1 - 2 * xx - 2 * yy;
-
 			mat.values[0] = 1 - 2 * yy - 2 * zz;
 			mat.values[1] = 2 * xy + 2 * zw;
 			mat.values[2] = 2 * xz - 2 * yw;
@@ -172,18 +160,6 @@ namespace Lumos
 			float xx = x * x;
 			float yz = y * z;
 			float xw = x * w;
-
-     /*       mat.values[0] = 1 - 2 * yy - 2 * zz;
-            mat.values[1] = 2 * xy - 2 * zw;
-            mat.values[2] = 2 * xz + 2 * yw;
-            mat.values[3] = 2 * xy + 2 * zw;
-            mat.values[4] = 1 - 2 * xx - 2 * zz;
-            
-            mat.values[5] = 2 * yz - 2 * xw;
-
-            mat.values[6] = 2 * xz - 2 * yw;
-            mat.values[7] = 2 * yz + 2 * xw;
-            mat.values[8] = 1 - 2 * xx - 2 * yy;*/
 
 			mat.values[0] = 1 - 2 * yy - 2 * zz;
 			mat.values[1] = 2 * xy + 2 * zw;
