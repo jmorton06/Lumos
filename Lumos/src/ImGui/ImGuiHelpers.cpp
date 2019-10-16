@@ -178,7 +178,7 @@ namespace Lumos
 			colours[ImGuiCol_Text] = ImVec4(0.95f, 0.96f, 0.98f, 1.00f);
 			colours[ImGuiCol_TextDisabled] = ImVec4(0.36f, 0.42f, 0.47f, 1.00f);
 			colours[ImGuiCol_WindowBg] = ImVec4(0.11f, 0.15f, 0.17f, 1.00f);
-			colours[ImGuiCol_ChildBg] = ImVec4(0.15f, 0.18f, 0.22f, 1.00f);
+			colours[ImGuiCol_ChildBg] = ImVec4(21.0f/255.0f,34.0f/255.0f,67.0f/255.0f, 1.00f);
 			colours[ImGuiCol_PopupBg] = ImVec4(0.08f, 0.08f, 0.08f, 0.94f);
 			colours[ImGuiCol_Border] = ImVec4(0.08f, 0.10f, 0.12f, 1.00f);
 			colours[ImGuiCol_BorderShadow] = ImVec4(0.00f, 0.00f, 0.00f, 0.00f);
@@ -188,7 +188,7 @@ namespace Lumos
 			colours[ImGuiCol_TitleBg] = colours[ImGuiCol_WindowBg];// ImVec4(0.09f, 0.12f, 0.14f, 0.65f);
 			colours[ImGuiCol_TitleBgActive] = colours[ImGuiCol_WindowBg];// ImVec4(0.08f, 0.10f, 0.12f, 1.00f);
 			colours[ImGuiCol_TitleBgCollapsed] = colours[ImGuiCol_WindowBg];// ImVec4(0.00f, 0.00f, 0.00f, 0.51f);
-			colours[ImGuiCol_MenuBarBg] = ImVec4(0.15f, 0.18f, 0.22f, 1.00f); //colours[ImGuiCol_WindowBg];
+			colours[ImGuiCol_MenuBarBg] = colours[ImGuiCol_WindowBg];
 			colours[ImGuiCol_ScrollbarBg] = ImVec4(0.02f, 0.02f, 0.02f, 0.39f);
 			colours[ImGuiCol_ScrollbarGrab] = ImVec4(0.20f, 0.25f, 0.29f, 1.00f);
 			colours[ImGuiCol_ScrollbarGrabHovered] = ImVec4(0.18f, 0.22f, 0.25f, 1.00f);
@@ -224,7 +224,9 @@ namespace Lumos
 			colours[ImGuiCol_NavWindowingDimBg] = ImVec4(0.80f, 0.80f, 0.80f, 0.20f);
 			colours[ImGuiCol_ModalWindowDimBg] = ImVec4(0.80f, 0.80f, 0.80f, 0.35f);
 
-#ifdef IMGUI_HAS_DOCK 
+#ifdef IMGUI_HAS_DOCK
+            colours[ImGuiCol_TabActive] = colours[ImGuiCol_ChildBg];
+            //colours[ImGuiCol_TabHovered]
 			//colours[ImGuiCol_DockingEmptyBg] = ImVec4(0.33f, 0.33f, 0.33f, 1.00f);
 			//colours[ImGuiCol_Tab] = ImVec4(0.09f, 0.21f, 0.31f, 1.00f);
 			//colours[ImGuiCol_TabHovered] = ImVec4(0.20f, 0.25f, 0.29f, 1.00f);
@@ -383,5 +385,14 @@ namespace Lumos
 		default:
 			break;
 		}
+        
+        colours[ImGuiCol_TitleBg] = colours[ImGuiCol_WindowBg];// ImVec4(0.09f, 0.12f, 0.14f, 0.65f);
+        colours[ImGuiCol_TitleBgActive] = colours[ImGuiCol_WindowBg];// ImVec4(0.08f, 0.10f, 0.12f, 1.00f);
+        colours[ImGuiCol_TitleBgCollapsed] = colours[ImGuiCol_WindowBg];// ImVec4(0.00f, 0.00f, 0.00f, 0.51f);
+        colours[ImGuiCol_MenuBarBg] = colours[ImGuiCol_WindowBg];
+        
+#ifdef IMGUI_HAS_DOCK
+        colours[ImGuiCol_TabActive] = colours[ImGuiCol_ChildBg];
+#endif
 	}
 }
