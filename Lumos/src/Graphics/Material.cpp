@@ -174,7 +174,7 @@ namespace Lumos
 			ImGui::Text("Albedo");
 			ImGui::NextColumn();
 			ImGui::PushItemWidth(-1);
-			ImGui::ColorEdit4("##Albedo", &prop->albedoColour.x);
+			ImGui::ColorEdit4("##Albedo", Maths::ValuePointer(prop->albedoColour));
 
 			ImGui::PopItemWidth();
 			ImGui::NextColumn();
@@ -282,7 +282,7 @@ namespace Lumos
 			ImGui::Text("Specular");
 			ImGui::NextColumn();
 			ImGui::PushItemWidth(-1);
-			ImGui::SliderFloat3("##Specular", &prop->specularColour.x, 0.0f, 1.0f);
+			ImGui::SliderFloat3("##Specular", Maths::ValuePointer(prop->specularColour), 0.0f, 1.0f);
 
 			ImGui::PopItemWidth();
 			ImGui::NextColumn();
@@ -339,7 +339,7 @@ namespace Lumos
 			ImGui::Text("Roughness");
 			ImGui::NextColumn();
 			ImGui::PushItemWidth(-1);
-			ImGui::SliderFloat3("##Roughness", &prop->roughnessColour.x, 0.0f, 1.0f);
+			ImGui::SliderFloat3("##Roughness", Maths::ValuePointer(prop->roughnessColour), 0.0f, 1.0f);
 
 			ImGui::PopItemWidth();
 			ImGui::NextColumn();

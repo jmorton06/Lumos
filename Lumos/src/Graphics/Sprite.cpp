@@ -45,7 +45,7 @@ namespace Lumos
 			ImGui::Text("Position");
 			ImGui::NextColumn();
 			ImGui::PushItemWidth(-1);
-			ImGui::InputFloat2("##Position", &m_Position.x);
+			ImGui::InputFloat2("##Position", Maths::ValuePointer(m_Position));
 
 			ImGui::PopItemWidth();
 			ImGui::NextColumn();
@@ -54,7 +54,7 @@ namespace Lumos
 			ImGui::Text("Scale");
 			ImGui::NextColumn();
 			ImGui::PushItemWidth(-1);
-			ImGui::InputFloat2("##Scale", &m_Scale.x);
+			ImGui::InputFloat2("##Scale", Maths::ValuePointer(m_Scale));
 
 			ImGui::PopItemWidth();
 			ImGui::NextColumn();
@@ -63,7 +63,7 @@ namespace Lumos
 			ImGui::Text("Colour");
 			ImGui::NextColumn();
 			ImGui::PushItemWidth(-1);
-			ImGui::ColorEdit4("##Colour", &m_Colour.x);
+			ImGui::ColorEdit4("##Colour", Maths::ValuePointer(m_Colour));
 
 			ImGui::PopItemWidth();
 			ImGui::NextColumn();

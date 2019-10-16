@@ -106,7 +106,7 @@ namespace Lumos
 			ImGui::Text("Position");
 			ImGui::NextColumn();
 			ImGui::PushItemWidth(-1);
-			ImGui::DragFloat3("##Position", &m_Position.x);
+			ImGui::DragFloat3("##Position", Maths::ValuePointer(m_Position));
 			ImGui::PopItemWidth();
 			ImGui::NextColumn();
 

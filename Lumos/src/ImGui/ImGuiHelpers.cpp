@@ -46,9 +46,9 @@ namespace Lumos
 
 		String id = "##" + name;
 		if ((int)flags & (int)PropertyFlag::ColorProperty)
-			ImGui::ColorEdit3(id.c_str(), &value.x, ImGuiColorEditFlags_NoInputs);
+			ImGui::ColorEdit3(id.c_str(), Maths::ValuePointer(value), ImGuiColorEditFlags_NoInputs);
 		else
-			ImGui::SliderFloat3(id.c_str(), &value.x, min, max);
+			ImGui::SliderFloat3(id.c_str(), Maths::ValuePointer(value), min, max);
 
 		ImGui::PopItemWidth();
 		ImGui::NextColumn();
@@ -68,9 +68,9 @@ namespace Lumos
 
 		String id = "##" + name;
 		if ((int)flags & (int)PropertyFlag::ColorProperty)
-			ImGui::ColorEdit4(id.c_str(), &value.x, ImGuiColorEditFlags_NoInputs);
+			ImGui::ColorEdit4(id.c_str(), Maths::ValuePointer(value), ImGuiColorEditFlags_NoInputs);
 		else
-			ImGui::SliderFloat4(id.c_str(), &value.x, min, max);
+			ImGui::SliderFloat4(id.c_str(), Maths::ValuePointer(value), min, max);
 
 		ImGui::PopItemWidth();
 		ImGui::NextColumn();
@@ -185,10 +185,10 @@ namespace Lumos
 			colours[ImGuiCol_FrameBg] = ImVec4(0.20f, 0.25f, 0.29f, 1.00f);
 			colours[ImGuiCol_FrameBgHovered] = ImVec4(0.12f, 0.20f, 0.28f, 1.00f);
 			colours[ImGuiCol_FrameBgActive] = ImVec4(0.09f, 0.12f, 0.14f, 1.00f);
-			colours[ImGuiCol_TitleBg] = ImVec4(0.09f, 0.12f, 0.14f, 0.65f);
-			colours[ImGuiCol_TitleBgActive] = ImVec4(0.08f, 0.10f, 0.12f, 1.00f);
-			colours[ImGuiCol_TitleBgCollapsed] = ImVec4(0.00f, 0.00f, 0.00f, 0.51f);
-			colours[ImGuiCol_MenuBarBg] = ImVec4(0.15f, 0.18f, 0.22f, 1.00f);
+			colours[ImGuiCol_TitleBg] = colours[ImGuiCol_WindowBg];// ImVec4(0.09f, 0.12f, 0.14f, 0.65f);
+			colours[ImGuiCol_TitleBgActive] = colours[ImGuiCol_WindowBg];// ImVec4(0.08f, 0.10f, 0.12f, 1.00f);
+			colours[ImGuiCol_TitleBgCollapsed] = colours[ImGuiCol_WindowBg];// ImVec4(0.00f, 0.00f, 0.00f, 0.51f);
+			colours[ImGuiCol_MenuBarBg] = ImVec4(0.15f, 0.18f, 0.22f, 1.00f); //colours[ImGuiCol_WindowBg];
 			colours[ImGuiCol_ScrollbarBg] = ImVec4(0.02f, 0.02f, 0.02f, 0.39f);
 			colours[ImGuiCol_ScrollbarGrab] = ImVec4(0.20f, 0.25f, 0.29f, 1.00f);
 			colours[ImGuiCol_ScrollbarGrabHovered] = ImVec4(0.18f, 0.22f, 0.25f, 1.00f);
