@@ -40,7 +40,7 @@ struct Light
 	float intensity;
 	float radius;
 	float type;
-	float p0;
+	float angle;
 };
 
 layout (std140) uniform LightData
@@ -344,7 +344,7 @@ void main()
 		Light light = ubo.lights[i];
 
 		float value = shadow;
-		if(light.type > 0.0)
+		if(light.type == 1.0)
 		{
 		    // Vector to light
 			vec3 L = light.position.xyz - wsPos;
@@ -360,6 +360,23 @@ void main()
 			value = atten;
 
 			light.direction = vec4(L,1.0);
+		}
+		else if (light.type == 2.0)
+		{
+			vec3 L = light.position.xyz - wsPos;
+			float cutoffAngle   = 1.0f - light.angle;      
+			float dist          = length(L);
+			L = normalize(L);
+			float theta         = dot(L.xyz, light.direction.xyz);
+			float epsilon       = cutoffAngle - cutoffAngle * 0.9f;
+			float attenuation 	= ((theta - cutoffAngle) / epsilon); // atteunate when approaching the outer cone
+			attenuation         *=  light.radius / (pow(dist, 2.0) + 1.0);//saturate(1.0f - dist / light.range);
+			float intensity 	= attenuation * attenuation;
+			
+			// Erase light if there is no need to compute it
+			intensity *= step(theta, cutoffAngle);
+
+			value = intensity;
 		}
 
 		float NdotL = clamp(dot(material.normal, light.direction.xyz), 0.0, 1.0)  * value * material.ao;
