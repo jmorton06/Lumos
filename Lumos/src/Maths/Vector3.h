@@ -2,6 +2,7 @@
 #include "lmpch.h"
 #include "Vector2.h"
 #include "MathsCommon.h"
+#include "MathsUtilities.h"
 
 #include "Core/Serialisable.h"
 
@@ -161,6 +162,13 @@ namespace Lumos
 				return Vector3(*this);
 			}
 
+			inline const Vector3 Normal() const
+			{
+				Vector3 normal(*this);
+				normal.Normalise();
+				return normal;
+			}
+
 			static float Dot(const Vector3 &a, const Vector3 &b)
 			{
 #ifdef LUMOS_SSEVEC3
@@ -216,6 +224,11 @@ namespace Lumos
 				y = data["y"];
 				z = data["z"];
 			};
+            
+            bool Equals(const Vector3& rhs) const
+            {
+                return Maths::Equals(x, rhs.x) && Maths::Equals(y, rhs.y) && Maths::Equals(z, rhs.z);
+            }
 
 #ifdef LUMOS_SSEVEC3
 			inline Vector3 operator+(float v) const { return _mm_add_ps(m_Value, _mm_set1_ps(v)); }
@@ -302,6 +315,7 @@ namespace Lumos
 				return a * (1.0f - t) + b * t;
 			}
 		};
+    inline Vector3 operator *(float lhs, const Vector3& rhs) { return rhs * lhs; }
 	}
 }
 

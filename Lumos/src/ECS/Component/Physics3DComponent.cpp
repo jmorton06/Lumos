@@ -36,6 +36,7 @@ namespace Lumos
         auto force = m_PhysicsObject->GetForce();
         auto torque = m_PhysicsObject->GetTorque();
         auto orientation = m_PhysicsObject->GetOrientation();
+		auto angularVelocity = m_PhysicsObject->GetAngularVelocity();
         auto friction = m_PhysicsObject->GetFriction();
         auto isStatic = m_PhysicsObject->GetIsStatic();
         auto isRest = m_PhysicsObject->GetIsAtRest();
@@ -47,7 +48,7 @@ namespace Lumos
         ImGui::Text("Position");
         ImGui::NextColumn();
         ImGui::PushItemWidth(-1);
-        if(ImGui::DragFloat3("##Position", &pos.x))
+        if(ImGui::DragFloat3("##Position", Maths::ValuePointer(pos)))
             m_PhysicsObject->SetPosition(pos);
 
         ImGui::PopItemWidth();
@@ -57,7 +58,7 @@ namespace Lumos
         ImGui::Text("Velocity");
         ImGui::NextColumn();
         ImGui::PushItemWidth(-1);
-        if(ImGui::DragFloat3("##Velocity", &velocity.x))
+        if(ImGui::DragFloat3("##Velocity", Maths::ValuePointer(velocity)))
             m_PhysicsObject->SetLinearVelocity(velocity);
 
         ImGui::PopItemWidth();
@@ -67,7 +68,7 @@ namespace Lumos
         ImGui::Text("Torque");
         ImGui::NextColumn();
         ImGui::PushItemWidth(-1);
-        if(ImGui::DragFloat3("##Torque", &torque.x))
+        if(ImGui::DragFloat3("##Torque", Maths::ValuePointer(torque)))
             m_PhysicsObject->SetTorque(torque);
                
         ImGui::PopItemWidth();
@@ -77,11 +78,21 @@ namespace Lumos
         ImGui::Text("Orientation");
         ImGui::NextColumn();
         ImGui::PushItemWidth(-1);
-        if(ImGui::DragFloat3("##Orientation", &orientation.x))
+        if(ImGui::DragFloat4("##Orientation", Maths::ValuePointer(orientation)))
             m_PhysicsObject->SetOrientation(orientation);
 
         ImGui::PopItemWidth();
         ImGui::NextColumn();
+
+		ImGui::AlignTextToFramePadding();
+		ImGui::Text("Angular Velocity");
+		ImGui::NextColumn();
+		ImGui::PushItemWidth(-1);
+		if (ImGui::DragFloat3("##Angular Velocity", Maths::ValuePointer(angularVelocity)))
+			m_PhysicsObject->SetAngularVelocity(angularVelocity);
+
+		ImGui::PopItemWidth();
+		ImGui::NextColumn();
             
         ImGui::AlignTextToFramePadding();
         ImGui::Text("Friction");

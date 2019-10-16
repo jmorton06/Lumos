@@ -56,7 +56,7 @@ void Scene3D::OnInit()
 
 	LoadModels();
 
-	m_pCamera = new EditorCamera(-20.0f, -40.0f, Maths::Vector3(-3.0f, 10.0f, 15.0f), 60.0f, 0.1f, 1000.0f, (float) m_ScreenWidth / (float) m_ScreenHeight);
+	m_pCamera = new EditorCamera(-20.0f, -40.0f, Maths::Vector3(-31.0f, 12.0f, 51.0f), 60.0f, 0.1f, 1000.0f, (float) m_ScreenWidth / (float) m_ScreenHeight);
 
 	m_SceneBoundingRadius = 20.0f;
 
@@ -79,12 +79,12 @@ void Scene3D::OnInit()
     
     auto lightEntity = EntityManager::Instance()->CreateEntity("Directional Light");
     lightEntity->AddComponent<Graphics::Light>(Maths::Vector3(26.0f, 22.0f, 48.5f), Maths::Vector4(1.0f), 0.9f);
-    lightEntity->AddComponent<Maths::Transform>(Matrix4::Translation(Maths::Vector3(26.0f, 22.0f, 48.5f)) * Maths::Quaternion::LookAt(Maths::Vector3(26.0f, 22.0f, 48.5f), Maths::Vector3::Zero()).ToMatrix4());
+	lightEntity->AddComponent<Maths::Transform>(Matrix4::Translation(Maths::Vector3(26.0f, 22.0f, 48.5f)) * Maths::Quaternion::LookAt(Maths::Vector3(26.0f, 22.0f, 48.5f), Maths::Vector3::Zero()).ToMatrix4());
     AddEntity(lightEntity);
 
 	auto cameraEntity = EntityManager::Instance()->CreateEntity("Camera");
 	cameraEntity->AddComponent<CameraComponent>(m_pCamera);
-	//AddEntity(cameraEntity);
+	AddEntity(cameraEntity);
 
 	Application::Instance()->GetSystem<AudioManager>()->SetListener(m_pCamera);
 
@@ -92,8 +92,14 @@ void Scene3D::OnInit()
 	shadowRenderer->SetLightEntity(lightEntity);
 
 	auto shadowLayer = new Layer3D(shadowRenderer, "Shadow");
-	auto deferredLayer = new Layer3D(new Graphics::DeferredRenderer(m_ScreenWidth, m_ScreenHeight, true), "Deferred");
-	auto skyBoxLayer = new Layer3D(new Graphics::SkyboxRenderer(m_ScreenWidth, m_ScreenHeight, m_EnvironmentMap, true), "Skybox");
+
+	bool editor = false;
+
+#ifdef LUMOS_EDITOR
+	editor = true;
+#endif
+	auto deferredLayer = new Layer3D(new Graphics::DeferredRenderer(m_ScreenWidth, m_ScreenHeight, editor), "Deferred");
+	auto skyBoxLayer = new Layer3D(new Graphics::SkyboxRenderer(m_ScreenWidth, m_ScreenHeight, m_EnvironmentMap, editor), "Skybox");
 	//auto gridLayer = new Layer3D(new Graphics::GridRenderer(m_ScreenWidth, m_ScreenHeight, true), "Grid");
 	Application::Instance()->PushLayer(shadowLayer);
     Application::Instance()->PushLayer(deferredLayer);

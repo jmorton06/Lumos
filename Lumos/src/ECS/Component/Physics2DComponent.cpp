@@ -19,13 +19,13 @@ namespace Lumos
 
 	void Physics2DComponent::Update()
 	{
-        auto angle = m_PhysicsObject->GetAngle();
-        auto qw = cos(angle/2);
-        auto qz = 1.0f * sin(angle/2);
+        auto angle = m_PhysicsObject->GetAngle() * Maths::RADTODEG;
+        //auto qw = cos(angle/2);
+        //auto qz = sin(angle/2);
         
 		auto entity = ComponentManager::Instance()->GetComponentArray<Physics2DComponent>()->GetEntity(this);
 		entity->GetTransformComponent()->SetLocalPosition(Maths::Vector3(m_PhysicsObject->GetPosition(), 1.0f));
-		entity->GetTransformComponent()->SetLocalOrientation(Maths::Quaternion(0.0f, 0.0f, qz, qw));
+		entity->GetTransformComponent()->SetLocalOrientation(Maths::Quaternion::EulerAnglesToQuaternion(0.0f, 0.0f, angle));
 		entity->GetTransformComponent()->UpdateMatrices();
 	}
 

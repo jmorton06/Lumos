@@ -40,7 +40,7 @@ namespace Lumos
         ImGui::Text("Position");
         ImGui::NextColumn();
         ImGui::PushItemWidth(-1);
-        if(ImGui::InputFloat3("##Position", &pos.x))
+        if(ImGui::InputFloat3("##Position", Maths::ValuePointer(pos)))
             m_SoundNode->SetPosition(pos);
             
         ImGui::PopItemWidth();

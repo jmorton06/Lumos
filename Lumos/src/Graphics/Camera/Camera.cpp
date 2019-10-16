@@ -16,7 +16,7 @@ namespace Lumos
 		, m_Fov(FOV)
 		, m_Near(Near)
 		, m_Far(Far)
-		, m_Roll(1.0f)
+		, m_Roll(0.0f)
 	{
 		Camera::BuildViewMatrix();
 	};
@@ -32,7 +32,7 @@ namespace Lumos
 		, m_Fov(FOV)
 		, m_Near(Near)
 		, m_Far(Far)
-		, m_Roll(1.0f)
+		, m_Roll(0.0f)
 	{
 		Camera::BuildViewMatrix();
 	}
@@ -127,7 +127,7 @@ namespace Lumos
 			ImGui::Text("Yaw");
 			ImGui::NextColumn();
 			ImGui::PushItemWidth(-1);
-			ImGui::DragFloat3("##Yaw", &m_Yaw);
+			ImGui::DragFloat("##Yaw", &m_Yaw);
 			ImGui::PopItemWidth();
 			ImGui::NextColumn();
 

@@ -15,6 +15,7 @@
 #include "App/Engine.h"
 #include "App/Scene.h"
 #include "App/SceneManager.h"
+#include "Events/ApplicationEvent.h"
 
 #include "Maths/BoundingSphere.h"
 #include "ECS/EntityManager.h"
@@ -53,9 +54,21 @@ namespace Lumos
 {
 	Editor::Editor(Application* app, u32 width, u32 height) : m_Application(app)
 	{
+	}
+
+	Editor::~Editor()
+	{
+#ifdef LUMOS_PLATFORM_WINDOWS
+        lmdel m_FileBrowser;
+#endif
+	}
+
+	void Editor::OnInit()
+	{
 		m_Windows.emplace_back(CreateRef<ConsoleWindow>());
 		m_Windows.emplace_back(CreateRef<SceneWindow>());
 		m_Windows.emplace_back(CreateRef<ProfilerWindow>());
+		m_Windows.back()->SetActive(false);
 		m_Windows.emplace_back(CreateRef<InspectorWindow>());
 		m_Windows.emplace_back(CreateRef<HierarchyWindow>());
 		m_Windows.emplace_back(CreateRef<GraphicsInfoWindow>());
@@ -64,22 +77,16 @@ namespace Lumos
 		m_Windows.back()->SetActive(false);
 		for (auto& window : m_Windows)
 			window->SetEditor(this);
-        
+
 #ifdef LUMOS_PLATFORM_WINDOWS
 		m_FileBrowser = lmnew ImGui::FileBrowser(ImGuiFileBrowserFlags_CreateNewDir | ImGuiFileBrowserFlags_EnterNewFilename | ImGuiFileBrowserFlags_NoModal);
-        m_FileBrowser->SetTitle("Test File Browser");
+		m_FileBrowser->SetTitle("Test File Browser");
 		m_FileBrowser->SetFileFilters({ ".sh" , ".h" });
 		m_FileBrowser->SetLabels(ICON_FA_FOLDER, ICON_FA_FILE_ALT, ICON_FA_FOLDER_PLUS);
 		m_FileBrowser->Refresh();
 #endif
 
-	}
-
-	Editor::~Editor()
-	{
-#ifdef LUMOS_PLATFORM_WINDOWS
-        lmdel m_FileBrowser;
-#endif
+		ImGuiHelpers::SetTheme(ImGuiHelpers::Dark);
 	}
 
 	void Editor::OnImGui()
@@ -107,6 +114,20 @@ namespace Lumos
 			if (ImGui::BeginMenu("File"))
 			{
 				if (ImGui::MenuItem("Exit")) { Application::Instance()->SetAppState(AppState::Closing); }
+
+				if (ImGui::BeginMenu("Style"))
+				{
+					if (ImGui::MenuItem("Dark", "")) { ImGuiHelpers::SetTheme(ImGuiHelpers::Dark); }
+					if (ImGui::MenuItem("Black", "")) { ImGuiHelpers::SetTheme(ImGuiHelpers::Black); }
+					if (ImGui::MenuItem("Grey", "")) { ImGuiHelpers::SetTheme(ImGuiHelpers::Grey); }
+					if (ImGui::MenuItem("Light", "")) { ImGuiHelpers::SetTheme(ImGuiHelpers::Light); }
+					if (ImGui::MenuItem("Cherry", "")) { ImGuiHelpers::SetTheme(ImGuiHelpers::Cherry); }
+					if (ImGui::MenuItem("Classic", "")) { ImGuiHelpers::SetTheme(ImGuiHelpers::Classic); }
+					if (ImGui::MenuItem("ClassicDark", "")) {ImGuiHelpers::SetTheme(ImGuiHelpers::ClassicDark); }
+					if (ImGui::MenuItem("ClassicLight", "")) { ImGuiHelpers::SetTheme(ImGuiHelpers::ClassicLight); }
+					ImGui::EndMenu();
+				}
+
 				ImGui::EndMenu();
 			}
 			if (ImGui::BeginMenu("Edit"))
@@ -228,7 +249,7 @@ namespace Lumos
 
 			float snapAmount[3] = { m_SnapAmount  , m_SnapAmount , m_SnapAmount };
 			float delta[16];
-			ImGuizmo::Manipulate(view.values, proj.values, static_cast<ImGuizmo::OPERATION>(m_ImGuizmoOperation), ImGuizmo::LOCAL, model.values, delta, m_SnapQuizmo ? snapAmount : nullptr);
+			ImGuizmo::Manipulate(Maths::ValuePointer(view), Maths::ValuePointer(proj), static_cast<ImGuizmo::OPERATION>(m_ImGuizmoOperation), ImGuizmo::LOCAL, Maths::ValuePointer(model), delta, m_SnapQuizmo ? snapAmount : nullptr);
 
 			if (ImGuizmo::IsUsing())
 			{
@@ -264,14 +285,21 @@ namespace Lumos
 
         // We are using the ImGuiWindowFlags_NoDocking flag to make the parent window not dockable into,
         // because it would be confusing to have two docking targets within each others.
-        ImGuiWindowFlags window_flags = ImGuiWindowFlags_MenuBar | ImGuiWindowFlags_NoDocking;
+        ImGuiWindowFlags window_flags =  ImGuiWindowFlags_NoDocking;
         if (opt_fullscreen)
         {
             ImGuiViewport* viewport = ImGui::GetMainViewport();
 
             auto pos = viewport->Pos;
             auto size = viewport->Size;
-    
+			bool menuBar = true;
+			if (menuBar)
+			{
+				const float infoBarSize = 19.0f;
+				pos.y += infoBarSize;
+				size.y -= infoBarSize;
+			}
+
             if (infoBar)
             {
                 const float infoBarSize = 24.0f;
@@ -337,10 +365,6 @@ namespace Lumos
 		ImGui::End();
 	}
 
-	void Editor::OnInit()
-	{
-	}
-
 	void Editor::OnNewScene(Scene * scene)
 	{
 		m_Selected = nullptr;
@@ -357,10 +381,8 @@ namespace Lumos
 			| ImGuiWindowFlags_NoCollapse
 			| ImGuiWindowFlags_NoResize
             | ImGuiWindowFlags_NoScrollbar
-			//| ImGuiWindowFlags_NoBackground
 			| ImGuiWindowFlags_NoMove
-        | ImGuiWindowFlags_NoScrollWithMouse;
-            //| ImGuiWindowFlags_MenuBar;
+			| ImGuiWindowFlags_NoScrollWithMouse;
 
 		ImGuiViewport* viewport = ImGui::GetMainViewport();
 
@@ -534,5 +556,23 @@ namespace Lumos
 				}
 			}
 		}
+	}
+
+	void Editor::OnEvent(Event& e)
+	{
+		EventDispatcher dispatcher(e);
+		dispatcher.Dispatch<WindowResizeEvent>(BIND_EVENT_FN(Editor::OnWindowResize));
+
+		m_Application->OnEvent(e);
+	}
+
+	void Editor::BindEventFunction()
+	{
+		m_Application->GetWindow()->SetEventCallback(BIND_EVENT_FN(Editor::OnEvent));
+	}
+
+	bool Editor::OnWindowResize(WindowResizeEvent & e)
+	{
+		return false;
 	}
 }

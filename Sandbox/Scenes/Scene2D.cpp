@@ -64,7 +64,7 @@ void Scene2D::LoadSprites()
 		Lumos::Ref<Graphics::Texture2D>(Graphics::Texture2D::CreateFromFile("Test4", "/CoreTextures/water/waterDUDV.png"))
 	};
 
-	float scale = 0.1f;
+	float scale = 1.0f;
 
 	for (int i = 0; i < 100; i++)
 	{
