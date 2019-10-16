@@ -1,6 +1,7 @@
 #pragma once
 
 #include "Vector2.h"
+#include "MathsUtilities.h"
 
 namespace Lumos::Maths
 {
