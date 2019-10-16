@@ -18,8 +18,13 @@ namespace Lumos
 		public:
 			Quaternion();
 			Quaternion(const Vector3& vec, float w);
-			Quaternion(float x, float y, float z, float w);
+			Quaternion(float lx, float ly, float lz, float lw);
 			Quaternion(const Quaternion& v);
+            
+            ///Construct from Euler (Degrees)
+            Quaternion(float pitch, float yaw, float roll);
+            ///Construct from Euler (Degrees)
+            Quaternion(const Vector3& v);
 
 #ifdef LUMOS_SSEQUAT
 			Quaternion(__m128 m);
@@ -30,10 +35,10 @@ namespace Lumos
 			{
 				struct
 				{
-					float x;
-					float y;
-					float z;
-					float w;
+                    float w;
+                    float x;
+                    float y;
+                    float z;
 				};
 				__m128 mmvalue;
 			} MEM_ALIGN;
@@ -53,19 +58,48 @@ namespace Lumos
 			Quaternion Inverse() const;
 			Quaternion Conjugate() const;
 			float Magnitude() const;
+			float LengthSquared() const;
 
 			void GenerateW();	//builds 4th component when loading in shortened, 3 component quaternions
 			Vector3 ToEuler() const;
+			void FromEulerAngles(float pitch, float yaw, float roll);
 
-			static const Quaternion EMPTY;
-			static const Quaternion IDENTITY;
+			Vector3 GetXAxis() const
+			{
+				return Vector3(1.0f - 2.0f * (y*y + z * z),
+					2.0f * (y*x + z * w),
+					2.0f * (x*z - y * w));
+			}
+
+			Vector3 GetYAxis() const
+			{
+				return Vector3(2.0f * (x*y - w * z),
+					1.0f - 2.0f * (x*x + z * z),
+					2.0f * (y*z + w * x));
+			}
+
+			Vector3 GetZAxis() const
+			{
+				return Vector3(2.0f * (x*z + w * y),
+					2.0f * (y*z - w * x),
+					1.0f - 2.0f * (x*x + y * y));
+			}
+
+			void ToAxes(Vector3& xAxis, Vector3& yAxis, Vector3& zAxis) const
+			{
+				Matrix3 mat = ToMatrix3();
+
+				xAxis = mat.GetCol(0);
+				yAxis = mat.GetCol(1); 
+				zAxis = mat.GetCol(2);
+			}
 
 			static Quaternion EulerAnglesToQuaternion(float pitch, float yaw, float roll);
 			static Quaternion AxisAngleToQuaterion(const Vector3& vector, float degrees);
 
-			static void RotatePointByQuaternion(const Quaternion& q, Vector3& point);
+			static void RotatePointByQuaternion(const Quaternion& quat, Vector3& point);
 
-			static Quaternion FromMatrix(const Matrix4& m);
+			static Quaternion FromMatrix(const Matrix4& matrix);
 			static Quaternion FromVectors(const Vector3 &v1, const Vector3 &v2);
 
 			static Quaternion LookAt(const Vector3& from, const Vector3& to, const Vector3& up = Vector3(0, 1, 0));
@@ -100,10 +134,24 @@ namespace Lumos
 			Quaternion Interpolate(const Quaternion& pStart, const Quaternion& pEnd, float pFactor) const;
 
 			Quaternion operator*(const Quaternion& q) const;
-			Quaternion operator*(const Vector3& v) const;
+			Quaternion operator*(const Vector3& rhs) const;
 			Quaternion operator+(const Quaternion& a) const;
+            Quaternion operator*(float rhs) const;
+            Quaternion operator-() const;
+            Quaternion operator-(const Quaternion& rhs) const;
+            
+            Quaternion& operator=(const Quaternion& rhs) noexcept;
+            Quaternion& operator+=(const Quaternion& rhs);
+            Quaternion& operator*=(float rhs);
+            bool operator==(const Quaternion& rhs) const;
+            bool operator!=(const Quaternion& rhs) const;
 
-			nlohmann::json Serialise()
+			bool Equals(const Quaternion& rhs) const
+			{
+				return Maths::Equals(x, rhs.x) && Maths::Equals(y, rhs.y) && Maths::Equals(z, rhs.z) && Maths::Equals(w, rhs.w);
+			}
+            
+            nlohmann::json Serialise()
 			{
 				nlohmann::json output;
 				output["typeID"] = LUMOS_TYPENAME(Quaternion);

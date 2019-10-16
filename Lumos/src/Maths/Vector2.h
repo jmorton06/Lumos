@@ -74,12 +74,29 @@ namespace Lumos
 				y = data["y"];
 			};
 
-			inline Vector2 operator-(const Vector2 &a) const { return Vector2(x - a.x, y - a.y); }
-			inline Vector2 operator+(const Vector2 &a) const { return Vector2(x + a.x, y + a.y); }
+			inline Vector2 operator-(const Vector2 &a)  const { return Vector2(x - a.x, y - a.y); }
+			inline Vector2 operator+(const Vector2 &a)  const { return Vector2(x + a.x, y + a.y); }
+			inline Vector2 operator*(const Vector2  &v) const { return Vector2(x * v.x, y * v.y); };
+			inline Vector2 operator/(const Vector2  &v) const { return Vector2(x / v.x, y / v.y); };
+			inline Vector2 operator+(const float a) const { return Vector2(x + a, y + a); }
+			inline Vector2 operator-(const float a) const { return Vector2(x - a, y - a); }
 			inline Vector2 operator*(const float a) const { return Vector2(x * a, y * a); }
 			inline Vector2 operator/(const float v) const { return Vector2(x / v, y / v); };
+
+			inline void operator+=(const Vector2  &v) { x += v.x; y += v.y; }
+			inline void operator-=(const Vector2  &v) { x -= v.x; y -= v.y; }
+			inline void operator*=(const Vector2  &v) { x *= v.x; y *= v.y; }
+			inline void operator/=(const Vector2  &v) { x /= v.x; y /= v.y; }
+
+			inline void operator+=(const float v) { x += v; y += v; }
+			inline void operator-=(const float v) { x -= v; y -= v; }
+			inline void operator*=(const float v) { x *= v; y *= v; }
+			inline void operator/=(const float v) { x /= v; y /= v; }
+
 			inline bool operator==(const Vector2 &A) const { return (A.x == x && A.y == y) ? true : false; };
 		};
+    
+    inline Vector2 operator *(float lhs, const Vector2& rhs) { return rhs * lhs; }
 	}
 }
 namespace std

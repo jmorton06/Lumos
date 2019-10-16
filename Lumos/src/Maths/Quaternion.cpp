@@ -6,19 +6,10 @@ namespace Lumos
 {
 	namespace Maths
 	{
-#ifdef LUMOS_SSEQUAT
-		const Quaternion Quaternion::EMPTY = Quaternion(_mm_setzero_ps());
-		const Quaternion Quaternion::IDENTITY = Quaternion(_mm_set_ps(1.0f, 0, 0, 0));
-#else
-		const Quaternion Quaternion::EMPTY = Quaternion(0.0f,0.0f,0.0f,0.0f);
-		const Quaternion Quaternion::IDENTITY = Quaternion(0.0f,0.0f,0.0f,1.0f);
-#endif
-
-
 		Quaternion::Quaternion()
 		{
-#ifdef LUMOS_SSEQUAT 
-			mmvalue = _mm_set_ps(1.0f, 0, 0, 0);
+#ifdef LUMOS_SSEQUAT
+			mmvalue = _mm_set_ps(0.0f, 0.0f, 0.0f, 1.0f);
 #else
 			x = y = z = 0.0f;
 			w = 1.0f;
@@ -28,18 +19,18 @@ namespace Lumos
 		Quaternion::Quaternion(const Vector3& vec, float w)
 		{
 #ifdef LUMOS_SSEQUAT
-			mmvalue = _mm_set_ps(w, vec.GetX(), vec.GetY(), vec.GetZ());
+			mmvalue = _mm_set_ps(vec.GetZ(), vec.GetY(), vec.GetX(), w);
 #else
 			x = vec.GetX(); y = vec.GetY(); z = vec.GetZ(); this->w = w;
 #endif
 		}
 
-		Quaternion::Quaternion(float x, float y, float z, float w)
+		Quaternion::Quaternion(float lx, float ly, float lz, float lw)
 		{
 #ifdef LUMOS_SSEQUAT
-			mmvalue = _mm_set_ps(w, z, y, x);
+			mmvalue = _mm_set_ps(lz, ly, lx, lw);
 #else
-			this->x = x;  this->y = y;  this->z = z; this->w = w;
+			this->x = lx;  this->y = ly;  this->z = lz; this->w = lw;
 #endif
 		}
 
@@ -57,11 +48,29 @@ namespace Lumos
 		{
 		}
 #endif
+    
+        Quaternion::Quaternion(float pitch, float yaw, float roll)
+        {
+            FromEulerAngles(pitch, yaw, roll);
+        }
+
+        Quaternion::Quaternion(const Vector3& v)
+        {
+            FromEulerAngles(v.x,v.y,v.z);
+        }
 
 		void Quaternion::Normalise()
 		{
 #ifdef LUMOS_SSEQUAT
-			mmvalue = _mm_mul_ps(mmvalue, _mm_rsqrt_ps(_mm_dp_ps(mmvalue, mmvalue, 0xFF)));
+			__m128 q = mmvalue;
+			__m128 n = _mm_mul_ps(q, q);
+			n = _mm_add_ps(n, _mm_shuffle_ps(n, n, _MM_SHUFFLE(2, 3, 0, 1)));
+			n = _mm_add_ps(n, _mm_shuffle_ps(n, n, _MM_SHUFFLE(0, 1, 2, 3)));
+			__m128 e = _mm_rsqrt_ps(n);
+			__m128 e3 = _mm_mul_ps(_mm_mul_ps(e, e), e);
+			__m128 half = _mm_set1_ps(0.5f);
+			n = _mm_add_ps(e, _mm_mul_ps(half, _mm_sub_ps(e, _mm_mul_ps(n, e3))));
+			mmvalue = _mm_mul_ps(q, n);
 #else
 			float magnitude = sqrt(Dot(*this, *this));
 
@@ -80,7 +89,16 @@ namespace Lumos
 		Quaternion Quaternion::Normal() const
 		{
 #ifdef LUMOS_SSEQUAT
-			return _mm_mul_ps(mmvalue, _mm_rsqrt_ps(_mm_dp_ps(mmvalue, mmvalue, 0xFF)));
+			__m128 q = mmvalue;
+			__m128 n = _mm_mul_ps(q, q);
+			n = _mm_add_ps(n, _mm_shuffle_ps(n, n, _MM_SHUFFLE(2, 3, 0, 1)));
+			n = _mm_add_ps(n, _mm_shuffle_ps(n, n, _MM_SHUFFLE(0, 1, 2, 3)));
+			__m128 e = _mm_rsqrt_ps(n);
+			__m128 e3 = _mm_mul_ps(_mm_mul_ps(e, e), e);
+			__m128 half = _mm_set1_ps(0.5f);
+			n = _mm_add_ps(e, _mm_mul_ps(half, _mm_sub_ps(e, _mm_mul_ps(n, e3))));
+			return Quaternion(_mm_mul_ps(q, n));
+
 #else
 			float magnitude = sqrt(Dot(*this, *this));
 
@@ -102,28 +120,6 @@ namespace Lumos
 
 		Matrix4 Quaternion::ToMatrix4() const
 		{
-#ifdef LUMOS_SSEQUAT
-			__m128 multiplier2 = _mm_set1_ps(2.0f);
-			__m128 squaredTimes2 = _mm_mul_ps(_mm_mul_ps(mmvalue, mmvalue), multiplier2);
-			__m128 offset1Times2 = _mm_mul_ps(_mm_mul_ps(mmvalue, _mm_set_ps(z, y, x, w)), multiplier2);
-			__m128 offset2Times2 = _mm_mul_ps(_mm_mul_ps(mmvalue, _mm_set_ps(y, x, w, z)), multiplier2);
-
-			Matrix4 mat;
-
-			mat.values[0] = 1 - GetValue(squaredTimes2, 1) - GetValue(squaredTimes2, 2);
-			mat.values[1] = GetValue(offset1Times2, 1) + GetValue(offset1Times2, 3);
-			mat.values[2] = GetValue(offset2Times2, 0) - GetValue(offset2Times2, 1);
-
-			mat.values[4] = GetValue(offset1Times2, 1) - GetValue(offset1Times2, 3);
-			mat.values[5] = 1 - GetValue(squaredTimes2, 0) - GetValue(squaredTimes2, 2);
-			mat.values[6] = GetValue(offset1Times2, 2) + GetValue(offset1Times2, 0);
-
-			mat.values[8] = GetValue(offset2Times2, 0) + GetValue(offset2Times2, 1);
-			mat.values[9] = GetValue(offset1Times2, 2) - GetValue(offset1Times2, 0);
-			mat.values[10] = 1 - GetValue(squaredTimes2, 0) - GetValue(squaredTimes2, 1);
-
-			return mat;
-#else
 			Matrix4 mat;
 
 			float yy = y * y;
@@ -149,7 +145,6 @@ namespace Lumos
 			mat.values[10] = 1 - 2 * xx - 2 * yy;
 
 			return mat;
-#endif
 		}
 
 		Matrix3 Quaternion::ToMatrix3() const
@@ -183,10 +178,11 @@ namespace Lumos
 
 		Quaternion Quaternion::AxisAngleToQuaterion(const Vector3& vector, float degrees)
 		{
-			float theta = DegreesToRadians(degrees);
-			float result = sin(theta * 0.5f);
+			Vector3 normalised = vector.Normal();
+			float theta = DegreesToRadians(degrees) / 2.0f;
+			float result = sin(theta);
 
-			return Quaternion(static_cast<float>(vector.GetX() * result), static_cast<float>(vector.GetY() * result), static_cast<float>(vector.GetZ() * result), static_cast<float>(cos(theta * 0.5f)));
+			return Quaternion(static_cast<float>(normalised.GetX() * result), static_cast<float>(normalised.GetY() * result), static_cast<float>(normalised.GetZ() * result), static_cast<float>(cos(theta)));
 		}
 
 		void Quaternion::GenerateW()
@@ -200,55 +196,56 @@ namespace Lumos
 
 		Vector3 Quaternion::ToEuler() const
 		{
-			Vector3 euler;
+			float check = 2.0f * (-y * z + w * x);
 
-			float t = x * y + z * w;
-
-			if (t > 0.4999) 
+			if (check < -0.995f)
 			{
-				euler.z = Maths::RadiansToDegrees(Maths::PI / 2.0f);
-				euler.y = Maths::RadiansToDegrees(2.0f * atan2(x, w));
-				euler.x = 0.0f;
-
-				return euler;
+				return Vector3(
+					-90.0f,
+					0.0f,
+					-atan2f(2.0f * (x * z - w * y), 1.0f - 2.0f * (y * y + z * z)) * RADTODEG
+				);
 			}
-
-			if (t < -0.4999) 
+			else if (check > 0.995f)
 			{
-				euler.z = -Maths::RadiansToDegrees(Maths::PI / 2.0f);
-				euler.y = -Maths::RadiansToDegrees(2.0f * atan2(x, w));
-				euler.x = 0.0f;
-				return euler;
+				return Vector3(
+					90.0f,
+					0.0f,
+					atan2f(2.0f * (x * z - w * y), 1.0f - 2.0f * (y * y + z * z)) * RADTODEG
+				);
 			}
+			else
+			{
+				return Vector3(
+					asinf(check) * RADTODEG,
+					atan2f(2.0f * (x * z + w * y), 1.0f - 2.0f * (x * x + y * y)) * RADTODEG,
+					atan2f(2.0f * (x * y + w * z), 1.0f - 2.0f * (x * x + z * z)) * RADTODEG
+				);
+			}
+		}
 
-			float sqx = x * x;
-			float sqy = y * y;
-			float sqz = z * z;
+		void Quaternion::FromEulerAngles(float pitch, float yaw, float roll)
+		{
+			pitch *= DEGTORAD_2;
+			yaw   *= DEGTORAD_2;
+			roll  *= DEGTORAD_2;
+			float sinX = sinf(pitch);
+			float cosX = cosf(pitch);
+			float sinY = sinf(yaw);
+			float cosY = cosf(yaw);
+			float sinZ = sinf(roll);
+			float cosZ = cosf(roll);
 
-			euler.z = Maths::RadiansToDegrees(asin(2 * t));
-			euler.y = Maths::RadiansToDegrees(atan2(2 * y*w - 2 * x*z, 1.0f - 2 * sqy - 2 * sqz));
-			euler.x = Maths::RadiansToDegrees(atan2(2 * x*w - 2 * y*z, 1.0f - 2 * sqx - 2.0f*sqz));
-
-			return euler;
+			w = cosY * cosX * cosZ + sinY * sinX * sinZ;
+			x = cosY * sinX * cosZ + sinY * cosX * sinZ;
+			y = sinY * cosX * cosZ - cosY * sinX * sinZ;
+			z = cosY * cosX * sinZ - sinY * sinX * cosZ;
 		}
 
 		Quaternion Quaternion::EulerAnglesToQuaternion(float pitch, float yaw, float roll)
 		{
-			float cos1 = cos(Maths::DegreesToRadians(yaw   * 0.5f));
-			float cos2 = cos(Maths::DegreesToRadians(roll * 0.5f));
-			float cos3 = cos(Maths::DegreesToRadians(pitch  * 0.5f));
-
-			float sin1 = sin(Maths::DegreesToRadians(yaw   * 0.5f));
-			float sin2 = sin(Maths::DegreesToRadians(roll * 0.5f));
-			float sin3 = sin(Maths::DegreesToRadians(pitch  * 0.5f));
-
 			Quaternion q;
-
-			q.x = (sin1 * sin2 * cos3) + (cos1 * cos2 * sin3);
-			q.y = (sin1 * cos2 * cos3) + (cos1 * sin2 * sin3);
-			q.z = (cos1 * sin2 * cos3) - (sin1 * cos2 * sin3);
-			q.w = (cos1 * cos2 * cos3) - (sin1 * sin2 * sin3);
-
+			q.FromEulerAngles(pitch, yaw, roll);
 			return q;
 		};
 
@@ -257,9 +254,14 @@ namespace Lumos
 			return Quaternion(-x, -y, -z, w);
 		}
 
-		//TODO: Convert to sse
 		Quaternion Quaternion::Inverse() const
 		{
+#ifdef LUMOS_SSEQUAT
+			__m128 n = _mm_mul_ps(mmvalue, mmvalue);
+			n = _mm_add_ps(n, _mm_shuffle_ps(n, n, _MM_SHUFFLE(2, 3, 0, 1)));
+			n = _mm_add_ps(n, _mm_shuffle_ps(n, n, _MM_SHUFFLE(0, 1, 2, 3)));
+			return Quaternion(_mm_div_ps(_mm_xor_ps(mmvalue, _mm_castsi128_ps(_mm_set_epi32((int)0x80000000UL, (int)0x80000000UL, (int)0x80000000UL, 0))), n));
+#else
 			Quaternion q = Conjugate();
 
 			float m = q.Magnitude();
@@ -271,25 +273,71 @@ namespace Lumos
 				m = 1.0f / m;
 
 			return Quaternion(q.x * m, q.y * m, q.z * m, q.w * m);
+#endif
 		}
 
 		float Quaternion::Magnitude() const
 		{
-			return sqrt(x * x + y * y + z * z + w * w);
+			return sqrt(LengthSquared());
 		}
 
-		Quaternion Quaternion::FromMatrix(const Matrix4& m)
+		float Quaternion::LengthSquared() const
+		{
+#ifdef LUMOS_SSEQUAT
+			__m128 n = _mm_mul_ps(mmvalue, mmvalue);
+			n = _mm_add_ps(n, _mm_shuffle_ps(n, n, _MM_SHUFFLE(2, 3, 0, 1)));
+			n = _mm_add_ps(n, _mm_shuffle_ps(n, n, _MM_SHUFFLE(0, 1, 2, 3)));
+			return _mm_cvtss_f32(n);
+#else
+			return x * x + y * y + z * z + w * w;
+#endif
+		}
+
+		Quaternion Quaternion::FromMatrix(const Matrix4& matrix)
 		{
 			Quaternion q;
+            
+			float t = matrix[0] + matrix[5] + matrix[10];
 
-			q.w = sqrt(std::max(0.0f, (1.0f + m.values[0] + m.values[5] + m.values[10]))) * 0.5f;
-			q.x = sqrt(std::max(0.0f, (1.0f + m.values[0] - m.values[5] - m.values[10]))) * 0.5f;
-			q.y = sqrt(std::max(0.0f, (1.0f - m.values[0] + m.values[5] - m.values[10]))) * 0.5f;
-			q.z = sqrt(std::max(0.0f, (1.0f - m.values[0] - m.values[5] + m.values[10]))) * 0.5f;
+			if (t > 0.0f)
+			{
+				float invS = 0.5f / sqrtf(1.0f + t);
 
-			q.x = copysign(q.x, m.values[9] - m.values[6]);
-			q.y = copysign(q.y, m.values[2] - m.values[8]);
-			q.z = copysign(q.z, m.values[4] - m.values[1]);
+				q.x = (matrix[9] - matrix[6]) * invS;
+				q.y = (matrix[2] - matrix[8]) * invS;
+				q.z = (matrix[4] - matrix[1]) * invS;
+				q.w = 0.25f / invS;
+			}
+			else
+			{
+				if (matrix[0] > matrix[5] && matrix[0] > matrix[10])
+				{
+					float invS = 0.5f / sqrtf(1.0f + matrix[0] - matrix[5] - matrix[10]);
+
+					q.x = 0.25f / invS;
+					q.y = (matrix[1] + matrix[4]) * invS;
+					q.z = (matrix[8] + matrix[2]) * invS;
+					q.w = (matrix[9] - matrix[6]) * invS;
+				}
+				else if (matrix[5] > matrix[10])
+				{
+					float invS = 0.5f / sqrtf(1.0f + matrix[5] - matrix[0] - matrix[10]);
+
+					q.x = (matrix[1] + matrix[4]) * invS;
+					q.y = 0.25f / invS;
+					q.z = (matrix[6] + matrix[9]) * invS;
+					q.w = (matrix[2] - matrix[8]) * invS;
+				}
+				else
+				{
+					float invS = 0.5f / sqrtf(1.0f + matrix[10] - matrix[0] - matrix[5]);
+
+					q.x = (matrix[2] + matrix[8]) * invS;
+					q.y = (matrix[6] + matrix[9]) * invS;
+					q.z = 0.25f / invS;
+					q.w = (matrix[4] - matrix[1]) * invS;
+				}
+			}
 
 			return q;
 		}
@@ -297,14 +345,31 @@ namespace Lumos
 
 		Quaternion Quaternion::FromVectors(const Vector3 &v1, const Vector3 &v2)
 		{
-			Quaternion q;
-			Vector3 a = Vector3::Cross(v1, v2);
-			q.x = a.GetX();
-			q.y = a.GetY();
-			q.z = a.GetZ();
-			q.w = v1.LengthSquared() + v2.LengthSquared() + Vector3::Dot(v1, v2);
-			q.Normalise();
-			return q;
+			Vector3 normStart = v1.Normal();
+			Vector3 normEnd = v2.Normal();
+			float d = normStart.Dot(normEnd);
+
+			if (d > -1.0f + UNIT_EPSILON)
+			{
+				Quaternion q;
+				Vector3 c = normStart.Cross(normEnd);
+				float s = sqrtf((1.0f + d) * 2.0f);
+				float invS = 1.0f / s;
+
+				q.x = c.x * invS;
+				q.y = c.y * invS;
+				q.z = c.z * invS;
+				q.w = 0.5f * s;
+				return q;
+			}
+			else
+			{
+				Vector3 axis = Vector3(1.0f,0.0f,0.0f).Cross(normStart);
+				if (axis.Length() < UNIT_EPSILON)
+					axis = Vector3(0.0f,1.0f,0.0f).Cross(normStart);
+
+				return Quaternion::AxisAngleToQuaterion(axis, 180.f);
+			}
 		}
 
 		Quaternion Quaternion::Interpolate(const Quaternion& pStart, const Quaternion& pEnd, float pFactor) const
@@ -381,14 +446,39 @@ namespace Lumos
 #endif
 		}
 
-		void Quaternion::RotatePointByQuaternion(const Quaternion &q, Vector3 &point)
+		void Quaternion::RotatePointByQuaternion(const Quaternion &quat, Vector3 &point)
 		{
-			const Quaternion inv(q.Inverse());
-			Quaternion pos(point.GetX(), point.GetY(), point.GetZ(), 0.0f);
+#ifdef LUMOS_SSEQUAT
+			__m128 q = quat.mmvalue;
+				q = _mm_shuffle_ps(q, q, _MM_SHUFFLE(0, 3, 2, 1));
+#ifdef LUMOS_SSEVEC3
+			__m128 v = point.m_Value;
+#else
+			__m128 v = _mm_set_ps(0.f, rhs.z, rhs.y, rhs.x);
+#endif
+			const __m128 W = _mm_shuffle_ps(q, q, _MM_SHUFFLE(3, 3, 3, 3));
+			const __m128 a_yzx = _mm_shuffle_ps(q, q, _MM_SHUFFLE(3, 0, 2, 1));
+			__m128 x = _mm_mul_ps(q, _mm_shuffle_ps(v, v, _MM_SHUFFLE(3, 0, 2, 1)));
+			__m128 qxv = _mm_sub_ps(x, _mm_mul_ps(a_yzx, v));
+			__m128 Wv = _mm_mul_ps(W, v);
+			__m128 s = _mm_add_ps(qxv, _mm_shuffle_ps(Wv, Wv, _MM_SHUFFLE(3, 1, 0, 2)));
+			__m128 qs = _mm_mul_ps(q, s);
+			__m128 y = _mm_shuffle_ps(qs, qs, _MM_SHUFFLE(3, 1, 0, 2));
+			s = _mm_sub_ps(_mm_mul_ps(a_yzx, s), y);
+			s = _mm_add_ps(s, s);
+			s = _mm_add_ps(s, v);
 
-			pos = pos * inv;
-			pos = q * pos;
+			Vector3 pos(
+				_mm_cvtss_f32(s),
+				_mm_cvtss_f32(_mm_shuffle_ps(s, s, _MM_SHUFFLE(1, 1, 1, 1))),
+				_mm_cvtss_f32(_mm_movehl_ps(s, s)));
+#else
+			Vector3 qVec(quat.x, quat.y, quat.z);
+			Vector3 cross1(qVec.Cross(point));
+			Vector3 cross2(qVec.Cross(cross1));
 
+			Vector3 pos = (point + ((cross1 * quat.w + cross2) * 2.0f));
+#endif
 			point.SetX(pos.x);
 			point.SetY(pos.y);
 			point.SetZ(pos.z);
@@ -451,7 +541,10 @@ namespace Lumos
 		float Quaternion::Dot(const Quaternion& q) const
 		{
 #ifdef LUMOS_SSEQUAT
-			return _mm_cvtss_f32(_mm_dp_ps(mmvalue, q.mmvalue, 0xF1));
+			__m128 n = _mm_mul_ps(mmvalue, q.mmvalue);
+			n = _mm_add_ps(n, _mm_shuffle_ps(n, n, _MM_SHUFFLE(2, 3, 0, 1)));
+			n = _mm_add_ps(n, _mm_shuffle_ps(n, n, _MM_SHUFFLE(0, 1, 2, 3)));
+			return _mm_cvtss_f32(n);
 #else
 			return (x * q.x) + (y * q.y) + (z * q.z) + (w * q.w);
 #endif
@@ -537,21 +630,30 @@ namespace Lumos
 				return out;
 			}
 		}
+    
+        Quaternion Quaternion::operator*(float rhs) const
+        {
+#ifdef LUMOS_SSEQUAT
+            return Quaternion(_mm_mul_ps(mmvalue, _mm_set1_ps(rhs)));
+#else
+            return Quaternion(x * rhs, y * rhs, z * rhs, w * rhs);
+#endif
+        }
 
 		Quaternion Quaternion::operator*(const Quaternion& q) const
 		{
 #ifdef LUMOS_SSEQUAT
-			//http://stackoverflow.com/questions/18542894/how-to-multiply-two-quaternions-with-minimal-instructions
-			__m128 wzyx = _mm_shuffle_ps(mmvalue, mmvalue, _MM_SHUFFLE(0, 1, 2, 3));
-			__m128 baba = _mm_shuffle_ps(q.mmvalue, q.mmvalue, _MM_SHUFFLE(0, 1, 0, 1));
-			__m128 dcdc = _mm_shuffle_ps(q.mmvalue, q.mmvalue, _MM_SHUFFLE(2, 3, 2, 3));
-			__m128 ZnXWY = _mm_hsub_ps(_mm_mul_ps(mmvalue, baba), _mm_mul_ps(wzyx, dcdc));
-
-			__m128 XZYnW = _mm_hadd_ps(_mm_mul_ps(mmvalue, dcdc), _mm_mul_ps(wzyx, baba));
-			__m128 XZWY = _mm_addsub_ps(_mm_shuffle_ps(XZYnW, ZnXWY, _MM_SHUFFLE(3, 2, 1, 0)),
-				_mm_shuffle_ps(ZnXWY, XZYnW, _MM_SHUFFLE(2, 3, 0, 1)));
-
-			return _mm_shuffle_ps(XZWY, XZWY, _MM_SHUFFLE(2, 1, 3, 0));
+			__m128 q1 = mmvalue;
+			__m128 q2 = q.mmvalue;
+			q2 = _mm_shuffle_ps(q2, q2, _MM_SHUFFLE(0, 3, 2, 1));
+			const __m128 signy = _mm_castsi128_ps(_mm_set_epi32((int)0x80000000UL, (int)0x80000000UL, 0, 0));
+			const __m128 signx = _mm_shuffle_ps(signy, signy, _MM_SHUFFLE(2, 0, 2, 0));
+			const __m128 signz = _mm_shuffle_ps(signy, signy, _MM_SHUFFLE(3, 0, 0, 3));
+			__m128 out = _mm_mul_ps(_mm_shuffle_ps(q1, q1, _MM_SHUFFLE(1, 1, 1, 1)), _mm_shuffle_ps(q2, q2, _MM_SHUFFLE(0, 1, 2, 3)));
+			out = _mm_add_ps(_mm_mul_ps(_mm_xor_ps(signy, _mm_shuffle_ps(q1, q1, _MM_SHUFFLE(2, 2, 2, 2))), _mm_shuffle_ps(q2, q2, _MM_SHUFFLE(1, 0, 3, 2))), _mm_xor_ps(signx, out));
+			out = _mm_add_ps(_mm_mul_ps(_mm_xor_ps(signz, _mm_shuffle_ps(q1, q1, _MM_SHUFFLE(3, 3, 3, 3))), _mm_shuffle_ps(q2, q2, _MM_SHUFFLE(2, 3, 0, 1))), out);
+			out = _mm_add_ps(_mm_mul_ps(_mm_shuffle_ps(q1, q1, _MM_SHUFFLE(0, 0, 0, 0)), q2), out);
+			return Quaternion(_mm_shuffle_ps(out, out, _MM_SHUFFLE(2, 1, 0, 3)));
 #else
 			Quaternion ans;
 
@@ -572,23 +674,96 @@ namespace Lumos
 				(w * v.GetZ()) + (v.GetX() * y) - (v.GetY() * x),
 				-(x * v.GetX()) - (y * v.GetY()) - (z * v.GetZ())
 			);
-		}
+        }
 
-		Quaternion Quaternion::operator+(const Quaternion& a) const
+		Quaternion Quaternion::operator-() const
 		{
-#ifdef LUMOS_SSEQUAT
-			return _mm_add_ps(mmvalue, a.mmvalue);
+#ifdef LUMOS_SSEQUAT1
+			return Quaternion(_mm_xor_ps(mmvalue, _mm_castsi128_ps(_mm_set1_epi32((int)0x80000000UL))));
 #else
-			return Quaternion(x + a.x, y + a.y, z + a.z, w + a.w);
+			return Quaternion(-x, -y, -z, -w);
 #endif
 		}
+  
+		Quaternion Quaternion::operator+(const Quaternion& rhs) const
+		{
+#ifdef LUMOS_SSEQUAT
+			return Quaternion(_mm_add_ps(mmvalue, rhs.mmvalue));
+#else
+			return Quaternion(x + rhs.x, y + rhs.y, z + rhs.z, w + rhs.w);
+#endif
+		}
+
+		Quaternion Quaternion::operator-(const Quaternion& rhs) const
+		{
+#ifdef LUMOS_SSEQUAT
+			return Quaternion(_mm_sub_ps(mmvalue, rhs.mmvalue));
+#else
+			return Quaternion(x - rhs.x, y - rhs.y, z - rhs.z, w - rhs.w);
+#endif
+		}
+
+		Quaternion& Quaternion::operator=(const Quaternion& rhs) noexcept
+		{
+#ifdef LUMOS_SSEQUAT
+			mmvalue = rhs.mmvalue;
+#else
+			w = rhs.w;
+			x = rhs.x;
+			y = rhs.y;
+			z = rhs.z;
+#endif
+			return *this;
+		}
+
+        Quaternion& Quaternion::operator+=(const Quaternion& rhs)
+        {
+#ifdef LUMOS_SSEQUAT
+            mmvalue = _mm_add_ps(mmvalue, rhs.mmvalue);
+#else
+            w += rhs.w;
+            x += rhs.x;
+            y += rhs.y;
+            z += rhs.z;
+#endif
+            return *this;
+        }
+
+        Quaternion& Quaternion::operator*=(float rhs)
+        {
+#ifdef LUMOS_SSEQUAT
+            mmvalue = _mm_mul_ps(mmvalue, _mm_set1_ps(rhs));
+#else
+            w *= rhs;
+            x *= rhs;
+            y *= rhs;
+            z *= rhs;
+#endif
+            return *this;
+        }
+
+        bool Quaternion::operator==(const Quaternion& rhs) const
+        {
+#ifdef LUMOS_SSEQUAT
+            __m128 c = _mm_cmpeq_ps(mmvalue, rhs.mmvalue);
+            c = _mm_and_ps(c, _mm_movehl_ps(c, c));
+            c = _mm_and_ps(c, _mm_shuffle_ps(c, c, _MM_SHUFFLE(1, 1, 1, 1)));
+            return _mm_cvtsi128_si32(_mm_castps_si128(c)) == -1;
+#else
+            return w == rhs.w && x == rhs.x && y == rhs.y && z == rhs.z;
+#endif
+        }
+    
+        bool Quaternion::operator!=(const Quaternion& rhs) const
+        {
+            return !(*this == rhs);
+        }
 
 		std::istream &operator>>(std::istream &stream, Quaternion &q)
 		{
 			float x, y, z, w;
 			char delim;
 			stream >> delim >> x >> delim >> y >> delim >> z >> delim >> w >> delim;
-			q = Quaternion(x, y, z, w);
 			return stream;
 		}
 	}

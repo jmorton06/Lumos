@@ -1,6 +1,6 @@
 #include "lmpch.h"
 #include "Transform.h"
-
+#include "Maths/Maths.h"
 #include <imgui/imgui.h>
 
 namespace Lumos
@@ -138,7 +138,7 @@ namespace Lumos
 			ImGui::Text("Position");
 			ImGui::NextColumn();
 			ImGui::PushItemWidth(-1);
-			if (ImGui::DragFloat3("##Position", &m_LocalPosition.x))
+			if (ImGui::DragFloat3("##Position", Maths::ValuePointer(m_LocalPosition)))
 			{
 				update = true;
 			}
@@ -150,7 +150,7 @@ namespace Lumos
 			ImGui::Text("Rotation");
 			ImGui::NextColumn();
 			ImGui::PushItemWidth(-1);
-			if (ImGui::DragFloat3("##Rotation", &rotation.x, 1.0f, -180.0f, 180.0f))
+			if (ImGui::DragFloat3("##Rotation", Maths::ValuePointer(rotation)))
 			{
 				SetLocalOrientation(Maths::Quaternion::EulerAnglesToQuaternion(rotation.GetX(), rotation.GetY(), rotation.GetZ()));
 				update = true;
@@ -163,7 +163,7 @@ namespace Lumos
 			ImGui::Text("Scale");
 			ImGui::NextColumn();
 			ImGui::PushItemWidth(-1);
-			if (ImGui::DragFloat3("##Scale", &m_LocalScale.x))
+			if (ImGui::DragFloat3("##Scale", Maths::ValuePointer(m_LocalScale), 0.1f))
 			{
 				update = true;
 			}

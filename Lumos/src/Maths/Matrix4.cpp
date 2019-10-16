@@ -91,16 +91,22 @@ namespace Lumos
 
 		Matrix4 Matrix4::GetRotation() const
 		{
+			Vector3 invScale(
+				1.0f / sqrtf(values[0] * values[0] + values[4] * values[4] + values[8] * values[8]),
+				1.0f / sqrtf(values[1] * values[1] + values[5] * values[5] + values[9] * values[9]),
+				1.0f / sqrtf(values[2] * values[2] + values[6] * values[6] + values[10] * values[10])
+			);
+
 			Matrix4 temp;
-            temp.values[0] = values[0];
-            temp.values[5] = values[5];
-            temp.values[10] = values[10];
-            temp.values[1] = values[1];
-            temp.values[4] = values[4];
-            temp.values[2] = values[2];
-            temp.values[8] = values[8];
-            temp.values[6] = values[6];
-            temp.values[9] = values[9];
+            temp.values[0]  = values[0]  * invScale.x;
+            temp.values[1]  = values[1]  * invScale.y;
+            temp.values[2]  = values[2]  * invScale.z;
+            temp.values[4]  = values[4]  * invScale.x;
+            temp.values[5]  = values[5]  * invScale.y;
+            temp.values[6]  = values[6]  * invScale.z;
+            temp.values[8]  = values[8]  * invScale.x;
+            temp.values[9]  = values[9]  * invScale.y;
+            temp.values[10] = values[10] * invScale.z;
             return temp;
 		}
 
@@ -141,8 +147,8 @@ namespace Lumos
         Quaternion Matrix4::ToQuaternion() const
         {
 			//auto euler = GetEulerAngles(*this);
-            //auto quat = Quaternion::EulerAnglesToQuaternion(euler.GetX(), euler.GetY(), euler.GetZ());
-            return Quaternion::FromMatrix(*this);
+           // auto quat = Quaternion::EulerAnglesToQuaternion(euler.GetZ(), euler.GetY(), euler.GetX());
+			return Quaternion::FromMatrix(GetRotation());
         }
 
 		Matrix4 Matrix4::Inverse(const Matrix4 &inM)
@@ -787,21 +793,26 @@ namespace Lumos
                     v.GetX()*values[3] + v.GetY()*values[7] + v.GetZ()*values[11] + v.GetW() * values[15]
                 );
 		#endif
-		};
-
-		std::ostream &operator<<(std::ostream &o, const Matrix4 &m)
-		{
-			return o << "Mat4(" << "/n" <<
-					 "\t" << m.values[0] << ", " << m.values[4] << ", " << m.values[8] << ", " << m.values[12] << ", "
-					 << "/n" <<
-					 "\t" << m.values[1] << ", " << m.values[5] << ", " << m.values[9] << ", " << m.values[13] << ", "
-					 << "/n" <<
-					 "\t" << m.values[2] << ", " << m.values[6] << ", " << m.values[10] << ", " << m.values[14] << ", "
-					 << "/n" <<
-					 "\t" << m.values[3] << ", " << m.values[7] << ", " << m.values[11] << ", " << m.values[15] << "/n"
-					 <<
-					 " )";
 		}
+    
+        Matrix4 Matrix4::operator *(float rhs) const
+        {
+            Matrix4 result;
+            result.ToZero();
+            for (int i = 0; i < 16; ++i)
+                result.values[i] = values[i] * rhs;
+            return result;
+        };
+
+		bool Matrix4::operator==(const Matrix4 & m) const
+		{
+			for (int i = 0; i < 16; i++)
+			{
+				if (!Equals(values[i], m[i]))
+					return false;
+			}
+			return true;
+		};
 	}
 }
 namespace std

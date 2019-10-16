@@ -14,6 +14,9 @@ namespace Lumos
 	class Application;
 	class Entity;
 	class Scene;
+	class Event;
+	class WindowCloseEvent;
+	class WindowResizeEvent;
 	
 	namespace Graphics 
 	{
@@ -28,6 +31,7 @@ namespace Lumos
 		Editor(Application* app, u32 width, u32 height);
 		~Editor();
 
+		void OnInit();
 		void OnImGui();
 		void DrawMenuBar();
 
@@ -36,9 +40,10 @@ namespace Lumos
 		void EndDockSpace();
 
 		u32 GetImGuizmoOperation() const { return m_ImGuizmoOperation; }
-		void OnInit();
+
 		void OnNewScene(Scene* scene);
 		void OnImGuizmo();
+		void OnEvent(Event& e);
 
 		void Draw2DGrid(ImDrawList* drawList, const ImVec2& cameraPos, const ImVec2& windowPos, const ImVec2& canvasSize, const float factor, const float thickness);
 
@@ -48,7 +53,11 @@ namespace Lumos
 		void SetSelected(Entity* entity) { m_Selected = entity; }
 		Entity* GetSelected() const { return m_Selected; }
 
+		void BindEventFunction();
+
 	protected:
+		bool OnWindowResize(WindowResizeEvent& e);
+
 		Application* m_Application;
 
 		u32 m_ImGuizmoOperation = 0;
@@ -61,7 +70,7 @@ namespace Lumos
 		float m_SnapAmount = 1.0f;
         
         ImGui::FileBrowser* m_FileBrowser;
-        
+
 		std::vector<Ref<EditorWindow>> m_Windows;
 
 		NONCOPYABLE(Editor)

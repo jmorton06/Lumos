@@ -110,7 +110,15 @@ namespace Lumos
 				values[14] = v.GetZ();
 			}
 
-			inline Vector3 GetScaling() const { return Vector3(values[0], values[5], values[10]); }
+			inline Vector3 GetScaling() const 
+			{ 
+				//return Vector3(values[0], values[5], values[10]);
+				return Vector3(
+					sqrtf(values[0] * values[0] + values[4] * values[4] + values[8] * values[8]),
+					sqrtf(values[1] * values[1] + values[5] * values[5] + values[9] * values[9]),
+					sqrtf(values[2] * values[2] + values[6] * values[6] + values[10] * values[10])
+				);
+			}
 
 			inline void SetScaling(const Vector3 &in)
 			{
@@ -122,6 +130,9 @@ namespace Lumos
 			Matrix4 operator*(const Matrix4 &m) const;
 			Vector3 operator*(const Vector3 &v) const;
 			Vector4 operator*(const Vector4 &v) const;
+            Matrix4 operator*(float rhs) const;
+
+			bool operator==(const Matrix4 &m) const;
 
 			void Transpose();
             Matrix4 GetRotation() const;
@@ -169,7 +180,19 @@ namespace Lumos
 				}
 			};
 
-			friend std::ostream &operator<<(std::ostream &o, const Matrix4 &m);
+			friend std::ostream &operator<<(std::ostream &o, const Matrix4 &m)
+			{
+				return o << "Mat4(" << "/n" <<
+					"\t" << m.values[0] << ", " << m.values[4] << ", " << m.values[8] << ", " << m.values[12] << ", "
+					<< "/n" <<
+					"\t" << m.values[1] << ", " << m.values[5] << ", " << m.values[9] << ", " << m.values[13] << ", "
+					<< "/n" <<
+					"\t" << m.values[2] << ", " << m.values[6] << ", " << m.values[10] << ", " << m.values[14] << ", "
+					<< "/n" <<
+					"\t" << m.values[3] << ", " << m.values[7] << ", " << m.values[11] << ", " << m.values[15] << "/n"
+					<<
+					" )";
+			}
 
 			inline float operator[](const int index) const
             {
@@ -181,5 +204,7 @@ namespace Lumos
 				return values[index];
 			}
 		};
+        
+        inline Matrix4 operator *(float lhs, const Matrix4& rhs) { return rhs * lhs; }
 	}
 }

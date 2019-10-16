@@ -63,10 +63,46 @@ namespace Lumos
 		}
 
 		template<typename T>
+		static const float* ValuePointer(const T& t)
+		{
+			return nullptr;
+		}
+
+		template<typename T>
 		static float* ValuePointer(T& t)
 		{
 			return nullptr;
 		}
+	}
+
+	template<>
+	const float* Maths::ValuePointer<Maths::Vector2>(const Maths::Vector2& t)
+	{
+		return &(t.x);
+	}
+
+	template<>
+	const float* Maths::ValuePointer<Maths::Vector3>(const Maths::Vector3& t)
+	{
+		return &(t.x);
+	}
+
+	template<>
+	const float* Maths::ValuePointer<Maths::Vector4>(const Maths::Vector4& t)
+	{
+		return &(t.x);
+	}
+
+	template<>
+	const float* Maths::ValuePointer<Maths::Matrix3>(const Maths::Matrix3& t)
+	{
+		return &(t.values[0]);
+	}
+
+	template<>
+	const float* Maths::ValuePointer<Maths::Matrix4>(const Maths::Matrix4& t)
+	{
+		return &(t.values[0]);
 	}
 
 	template<>

@@ -10,7 +10,7 @@ namespace Lumos
 	class LUMOS_EXPORT CoreSystem
 	{
 	public:
-		static void Init();
+		static void Init(bool enableProfiler = true);
 		static void Shutdown();
 	};
 

@@ -13,3 +13,5 @@ Tools/premake5 gmake2 -j4
 fi
 cd build
 make $*
+cd $DIR/../
+./bin/Debug/Tests
