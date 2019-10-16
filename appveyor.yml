@@ -16,7 +16,7 @@ build:
   project: build/Lumos.sln
   verbosity: minimal
 
-test_script:
-  - echo I'm now starting catch tests (https://github.com/philsquared/Catch)
-  - cd ../bin/Release
-  - Test.exe
+#test_script:
+#  - echo I'm now starting catch tests (https://github.com/philsquared/Catch)
+#  - cd ../bin/Release
+#  - Test.exe
