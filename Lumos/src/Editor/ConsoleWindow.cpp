@@ -13,7 +13,7 @@ namespace Lumos
 
 	ConsoleWindow::ConsoleWindow()
 	{
-		m_Name = ICON_FA_ALIGN_LEFT" ConsoleWindow###console";
+		m_Name = ICON_FA_ALIGN_LEFT" Console###console";
 		m_SimpleName = "Console";
 	}
 
