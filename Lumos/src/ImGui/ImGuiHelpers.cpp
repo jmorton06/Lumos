@@ -178,7 +178,7 @@ namespace Lumos
 			colours[ImGuiCol_Text] = ImVec4(0.95f, 0.96f, 0.98f, 1.00f);
 			colours[ImGuiCol_TextDisabled] = ImVec4(0.36f, 0.42f, 0.47f, 1.00f);
 			colours[ImGuiCol_WindowBg] = ImVec4(0.11f, 0.15f, 0.17f, 1.00f);
-			colours[ImGuiCol_ChildBg] = ImVec4(21.0f/255.0f,34.0f/255.0f,67.0f/255.0f, 1.00f);
+			colours[ImGuiCol_ChildBg] = ImVec4(27.0f/255.0f,32.0f/255.0f,46.0f/255.0f, 1.00f);
 			colours[ImGuiCol_PopupBg] = ImVec4(0.08f, 0.08f, 0.08f, 0.94f);
 			colours[ImGuiCol_Border] = ImVec4(0.08f, 0.10f, 0.12f, 1.00f);
 			colours[ImGuiCol_BorderShadow] = ImVec4(0.00f, 0.00f, 0.00f, 0.00f);
@@ -393,6 +393,7 @@ namespace Lumos
         
 #ifdef IMGUI_HAS_DOCK
         colours[ImGuiCol_TabActive] = colours[ImGuiCol_ChildBg];
+		colours[ImGuiCol_TabUnfocused] = colours[ImGuiCol_WindowBg];
 #endif
 	}
 }

@@ -81,7 +81,7 @@ namespace Lumos
 
 		m_Editor->OnImGuizmo();
 		DrawGizmos(static_cast<float>(width), static_cast<float>(height), ImGui::GetWindowPos().x, ImGui::GetWindowPos().y);
-
+		Application::Instance()->SetSceneActive(ImGui::IsWindowFocused() && !ImGuizmo::IsUsing());
 		ImGui::End();
 	}
 

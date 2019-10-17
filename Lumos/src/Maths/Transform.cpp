@@ -152,7 +152,9 @@ namespace Lumos
 			ImGui::PushItemWidth(-1);
 			if (ImGui::DragFloat3("##Rotation", Maths::ValuePointer(rotation)))
 			{
-				SetLocalOrientation(Maths::Quaternion::EulerAnglesToQuaternion(rotation.GetX(), rotation.GetY(), rotation.GetZ()));
+				float pitch = Maths::Min(rotation.GetX(), 89.9f);
+				pitch = Maths::Max(rotation.GetX(), -89.9f);
+				SetLocalOrientation(Maths::Quaternion::EulerAnglesToQuaternion(pitch, rotation.GetY(), rotation.GetZ()));
 				update = true;
 			}
 

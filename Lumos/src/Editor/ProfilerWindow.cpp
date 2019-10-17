@@ -112,8 +112,10 @@ namespace Lumos
 
             if(m_Reports.size() > 300)
             {
-                m_Reports.front() = std::move(m_Reports.back());
-                m_Reports.pop_back();
+                //m_Reports.front() = std::move(m_Reports.back());
+                //m_Reports.pop_back();
+
+				m_Reports.erase(m_Reports.begin());
             }
 			m_Reports.emplace_back(report);
 		}
@@ -135,7 +137,7 @@ namespace Lumos
 			}
 			currFrame.taskStatsIndex[taskIndex] = taskNameToStatsIndex[task.name];
 		}
-		currFrameIndex = (currFrameIndex + 1) % m_Reports.size();
+		currFrameIndex = /*(currFrameIndex + 1) %*/ m_Reports.size() - 1;
 
 		RebuildTaskStats(currFrameIndex, 300/*frames.size()*/);
 	}
@@ -198,7 +200,7 @@ namespace Lumos
 
 				if (abs(duration) > heightThreshold)
 				{
-					Rect(drawList, taskPos + Maths::Vector2(0.0f, -currentTime), taskPos + Maths::Vector2(float(frameWidth), -duration), GetColour(task.name), true);
+					Rect(drawList, taskPos + Maths::Vector2(0.0f, -currentTime), taskPos + Maths::Vector2(float(frameWidth), -(currentTime + duration)), GetColour(task.name), true);
                     
 					currentTime += duration;
 				}
@@ -288,7 +290,7 @@ namespace Lumos
 			Maths::Vector2 markerLeftRectMin = legendPos + Maths::Vector2(markerLeftRectMargin, legendSize.y);
 			Maths::Vector2 markerLeftRectMax = markerLeftRectMin + Maths::Vector2(markerLeftRectWidth, 0.0f);
 			markerLeftRectMin.y -= currentTime;// taskStartHeight;
-			markerLeftRectMax.y -= duration;// taskEndHeight;
+			markerLeftRectMax.y -= currentTime + duration;// taskEndHeight;
 
 			currentTime += duration;
 

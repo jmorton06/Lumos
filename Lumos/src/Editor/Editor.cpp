@@ -465,7 +465,7 @@ namespace Lumos
 				if (selected)
 					ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.1f, 0.2f, 0.7f, 1.0f));
 
-				if (ImGui::Button(ICON_FA_PAUSE, ImVec2(19.0f, 19.0f)))
+				if (ImGui::Button(ICON_FA_PAUSE,  ImVec2(19.0f, 19.0f)))
 					m_Application->SetEditorState(EditorState::Paused);
 
 				ImGuiHelpers::Tooltip("Pause");

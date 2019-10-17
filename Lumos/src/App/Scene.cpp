@@ -130,7 +130,7 @@ namespace Lumos
 	{
 		const Maths::Vector2 mousePos = Input::GetInput()->GetMousePosition();
 
-		if(m_pCamera)
+		if(m_pCamera && Application::Instance()->GetSceneActive())
 		{
 			m_pCamera->HandleMouse(timeStep->GetMillis(), mousePos.GetX(), mousePos.GetY());
 			m_pCamera->HandleKeyboard(timeStep->GetMillis());
