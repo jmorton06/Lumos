@@ -48,6 +48,7 @@ namespace Lumos
 
 	void ImGuiLayer::OnUpdate(TimeStep* dt, Scene* scene)
 	{
+		LUMOS_PROFILE_FUNC;
 		ImGuiIO& io = ImGui::GetIO();
 		io.DeltaTime = dt->GetMillis();
         

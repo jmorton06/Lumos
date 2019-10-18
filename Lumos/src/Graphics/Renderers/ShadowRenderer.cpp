@@ -237,7 +237,7 @@ namespace Lumos
 
 		void ShadowRenderer::RenderScene(RenderList* renderList, Scene* scene)
 		{
-            PROFILERRECORD("ShadowRenderer::RenderScene");
+            LUMOS_PROFILE_BLOCK("ShadowRenderer::RenderScene");
 
             UpdateCascades(scene);
 

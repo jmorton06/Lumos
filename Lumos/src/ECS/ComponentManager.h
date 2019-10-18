@@ -18,6 +18,9 @@ namespace Lumos
     using HasUpdate = decltype(std::declval<T>().Update());
 
 	template <class T>
+	using HasActive = decltype(std::declval<T>().GetActive());
+
+	template <class T>
 	using HasImGui = decltype(std::declval<T>().OnImGui());
 
 	using ComponentType = uint32_t;
@@ -34,7 +37,7 @@ namespace Lumos
 		virtual size_t GetID() = 0;
 		virtual const String GetName() const = 0;
 
-		LUMOS_EXPORT void ImGuiComponentHeader(const String& name, size_t hashCode, Entity * entity, bool& open);
+		LUMOS_EXPORT void ImGuiComponentHeader(const String& name, size_t hashCode, Entity * entity, bool& open, bool hasActive, bool& active);
 	};
 
 	template<typename T>
@@ -119,7 +122,7 @@ namespace Lumos
 
 		void OnUpdate() override
 		{
-			PROFILERRECORD("ComponentManager::OnUpdate");
+			LUMOS_PROFILE_BLOCK("ComponentManager::OnUpdate");
 			for (int i = 0; i < m_Size; i++)
 			{
 				if constexpr (is_detected_v<HasUpdate, T>)
@@ -314,7 +317,7 @@ namespace Lumos
 	template<typename T>
 	inline void ComponentArray<T>::OnImGui(Entity * entity)
 	{
-		PROFILERRECORD("ComponentManager::OnImGui");
+		LUMOS_PROFILE_BLOCK("ComponentManager::OnImGui");
 		
 		T* component = GetData(entity);
 
@@ -323,7 +326,15 @@ namespace Lumos
 			String componentName = LUMOS_TYPENAME_STRING(T);
 			size_t typeID = typeid(T).hash_code();
 			bool open = true;
-			ImGuiComponentHeader(componentName, typeID, entity, open);
+			bool hasActive = false;
+			bool& active = hasActive;
+			if constexpr (is_detected_v<HasActive, T>)
+			{
+				active = &component->GetActive();
+				hasActive = true;
+			}
+
+			ImGuiComponentHeader(componentName, typeID, entity, open, hasActive, active);
 
 			if constexpr (is_detected_v<HasImGui, T>)
 			{

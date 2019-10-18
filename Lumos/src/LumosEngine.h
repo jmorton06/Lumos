@@ -74,6 +74,7 @@
 
 //Scripting
 #include "Scripting/LuaScript.h"
+#include "Scripting/LuaManager.h"
 
 //Utilities
 #include "Utilities/LoadImage.h"

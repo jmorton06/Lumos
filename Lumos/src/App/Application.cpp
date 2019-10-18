@@ -26,7 +26,7 @@
 #include "Core/Profiler.h"
 
 #include "ImGui/ImGuiLayer.h"
-#include "Scripting/LuaScript.h"
+#include "Scripting/LuaManager.h"
 
 #include "Events/ApplicationEvent.h"
 #include "Audio/AudioManager.h"
@@ -134,7 +134,6 @@ namespace Lumos
 		EntityManager::Release();
 		ComponentManager::Release();
 		SoundManager::Release();
-		LuaScript::Release();
 
 		m_SceneManager.reset();
 		m_RenderManager.reset();
@@ -177,14 +176,14 @@ namespace Lumos
             Engine::GetTimeStep()->Update(now);
 
 			{
-                PROFILERRECORD("Application::Update");
+                LUMOS_PROFILE_BLOCK("Application::Update");
 				OnUpdate(Engine::GetTimeStep());
 				m_Updates++;
 			}
 
 			if(!m_Minimized)
 			{
-                PROFILERRECORD("Application::Render");
+                LUMOS_PROFILE_BLOCK("Application::Render");
 				OnRender();
 				m_Frames++;
 			}
@@ -200,7 +199,7 @@ namespace Lumos
 
 		if (m_Timer->GetMS() - m_SecondTimer > 1.0f)
 		{
-            PROFILERRECORD("Application::FrameRateCalc");
+            LUMOS_PROFILE_BLOCK("Application::FrameRateCalc");
 
 			m_SecondTimer += 1.0f;
 			Engine::Instance()->SetFPS(m_Frames);

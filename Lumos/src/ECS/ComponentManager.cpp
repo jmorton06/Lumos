@@ -33,11 +33,12 @@ namespace Lumos
 
 	void ComponentManager::OnUpdate()
 	{
+		LUMOS_PROFILE_FUNC;
 		for (auto& componentArray : m_ComponentArrays)
 			componentArray.second->OnUpdate();
 	}
 
-	void IComponentArray::ImGuiComponentHeader(const String& componentName, size_t typeID, Entity* entity, bool& open)
+	void IComponentArray::ImGuiComponentHeader(const String& componentName, size_t typeID, Entity* entity, bool& open,bool hasActive, bool& active)
 	{
 		ImGui::Separator();
 
@@ -50,12 +51,15 @@ namespace Lumos
 			const float ItemSpacing = ImGui::GetStyle().ItemSpacing.x;
 
 			const float HostButtonWidth = 42.0f;
-			static bool temp = true;
 			float pos = HostButtonWidth + ItemSpacing;
 			ImGui::SameLine(ImGui::GetWindowWidth() - pos);
-			ImGui::Checkbox(("##Active" + componentName).c_str(), &temp);
-			ImGui::SameLine();
 
+			if (hasActive)
+			{
+				ImGui::Checkbox(("##Active" + componentName).c_str(), &active);
+				ImGui::SameLine();
+			}
+	
 			if (ImGui::Button((ICON_FA_COG"##" + componentName).c_str()))
 				ImGui::OpenPopup(("Remove Component" + componentName).c_str());
 

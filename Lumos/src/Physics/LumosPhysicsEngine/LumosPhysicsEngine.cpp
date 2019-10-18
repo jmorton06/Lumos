@@ -56,7 +56,7 @@ namespace Lumos
 
 	void LumosPhysicsEngine::OnUpdate(TimeStep* timeStep, Scene* scene)
 	{
-        PROFILERRECORD("LumosPhysicsEngine::OnUpdate");
+        LUMOS_PROFILE_BLOCK("LumosPhysicsEngine::OnUpdate");
 		if (!m_IsPaused)
 		{
             m_PhysicsObjects.clear();
@@ -101,11 +101,15 @@ namespace Lumos
             for (Entity* entity : physicsEntities)
             {
                 auto physicsObject = entity->GetComponent<Physics3DComponent>()->GetPhysicsObject();
-                auto transform = entity->GetTransformComponent();
 
-                transform->SetLocalPosition(physicsObject->GetPosition());
-                transform->SetLocalOrientation(physicsObject->GetOrientation());
-                transform->UpdateMatrices();
+				if (physicsObject->m_wsTransformInvalidated == true)
+				{
+					auto transform = entity->GetTransformComponent();
+
+					transform->SetLocalPosition(physicsObject->GetPosition());
+					transform->SetLocalOrientation(physicsObject->GetOrientation());
+					transform->UpdateMatrices();
+				}
             }
 		}
 	}
