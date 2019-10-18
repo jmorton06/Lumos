@@ -330,7 +330,7 @@ namespace Lumos
 			bool& active = hasActive;
 			if constexpr (is_detected_v<HasActive, T>)
 			{
-				active = &component->GetActive();
+				active = component->GetActive();
 				hasActive = true;
 			}
 
