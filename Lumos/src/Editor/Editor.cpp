@@ -91,6 +91,7 @@ namespace Lumos
 
 	void Editor::OnImGui()
 	{
+		LUMOS_PROFILE_FUNC;
 		DrawMenuBar();
 		DrawInfoBar();
 

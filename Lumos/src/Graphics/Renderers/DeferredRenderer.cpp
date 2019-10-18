@@ -164,7 +164,7 @@ namespace Lumos
 
 		void DeferredRenderer::RenderScene(RenderList* renderList, Scene* scene)
 		{
-            PROFILERRECORD("DeferredRenderer::RenderScene");
+            LUMOS_PROFILE_BLOCK("DeferredRenderer::RenderScene");
 
 			BeginScene(scene);
 
@@ -240,7 +240,7 @@ namespace Lumos
 
 		void DeferredRenderer::SubmitLightSetup(Scene* scene)
 		{
-			PROFILERRECORD("DeferredRenderer::SubmitLightSetup");
+			LUMOS_PROFILE_BLOCK("DeferredRenderer::SubmitLightSetup");
 
 			auto lightEntities = EntityManager::Instance()->GetEntitiesWithType<Graphics::Light>();
 			

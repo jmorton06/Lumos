@@ -18,6 +18,8 @@ namespace Lumos
 
 		Graphics::Mesh* GetMesh() const { return m_Mesh.get(); }
 
+		bool& GetActive() { return m_Mesh->GetActive(); }
+
 		nlohmann::json Serialise() { return nullptr; };
 		void Deserialise(nlohmann::json& data) {};
 

@@ -150,7 +150,7 @@ namespace Lumos
 
 		void DeferredOffScreenRenderer::RenderScene(RenderList* renderList, Scene* scene)
 		{
-            PROFILERRECORD("DeferredOffScreenRenderer::RenderScene");
+            LUMOS_PROFILE_BLOCK("DeferredOffScreenRenderer::RenderScene");
 
 			BeginScene(scene);
 
@@ -161,7 +161,7 @@ namespace Lumos
 				if (obj != nullptr)
 				{
 					auto* model = obj->GetComponent<MeshComponent>();
-					if (model && /*model->GetActive() &&*/ model->GetMesh())
+					if (model && model->GetMesh() && model->GetMesh()->GetActive())
 					{
 						auto mesh = model->GetMesh();
 						auto materialComponent = obj->GetComponent<MaterialComponent>();
