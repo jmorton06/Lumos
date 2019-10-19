@@ -23,6 +23,7 @@ namespace Lumos
 			Dark,
 			Grey,
 			Light,
+            Blue,
 			ClassicLight,
 			ClassicDark,
 			Classic,
