@@ -4,6 +4,7 @@
 #include "Graphics/Camera/Camera.h"
 #include "App/Application.h"
 #include "App/SceneManager.h"
+#include "App/Engine.h"
 #include "Graphics/API/GraphicsContext.h"
 #include "Graphics/RenderManager.h"
 #include "Graphics/GBuffer.h"
@@ -83,7 +84,7 @@ namespace Lumos
 
 
 		m_Editor->OnImGuizmo();
-		DrawGizmos(static_cast<float>(width), static_cast<float>(height) - 20.0f, ImGui::GetWindowPos().x, ImGui::GetWindowPos().y);
+		DrawGizmos(static_cast<float>(width), static_cast<float>(height), ImGui::GetWindowPos().x, ImGui::GetWindowPos().y);
 		Application::Instance()->SetSceneActive(ImGui::IsWindowFocused() && !ImGuizmo::IsUsing());
         static bool p_open = true;
         const float DISTANCE = 5.0f;
@@ -98,7 +99,7 @@ namespace Lumos
           ImGui::SetNextWindowBgAlpha(0.35f); // Transparent background
           if (ImGui::Begin("Example: Simple overlay", &p_open, (corner != -1 ? ImGuiWindowFlags_NoMove : 0) | ImGuiWindowFlags_NoDocking | ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoSavedSettings | ImGuiWindowFlags_NoFocusOnAppearing | ImGuiWindowFlags_NoNav))
           {
-              ImGui::Text("Simple overlay\n" "in the corner of the screen.\n" "(right-click to change position)");
+              ImGui::Text("%.2f ms (%i FPS)", 1000.0f / (float)Engine::Instance()->GetFPS(), Engine::Instance()->GetFPS());
               ImGui::Separator();
               if (ImGui::IsMousePosValid())
                   ImGui::Text("Mouse Position: (%.1f,%.1f)", io.MousePos.x, io.MousePos.y);

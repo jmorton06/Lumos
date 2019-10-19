@@ -509,8 +509,6 @@ namespace Lumos
                 m_FileBrowser->ClearSelected();
             }
 #endif
-			ImGui::SameLine(ImGui::GetWindowContentRegionMax().x - 130.0f);
-			ImGui::Text("%.2f ms (%i FPS)", 1000.0f / (float)Engine::Instance()->GetFPS(), Engine::Instance()->GetFPS());
 		}
 		ImGui::End();
 	}
