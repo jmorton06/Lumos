@@ -34,6 +34,9 @@ namespace Lumos
 		ImGui::SetNextWindowBgAlpha(0.0f);
 		ImGui::Begin(m_Name.c_str(), &m_Active, flags);
 
+            ImGui::SetCursorPos({ 0,0 });
+        ImGui::Text("Test");
+        
 		ImGuizmo::SetDrawlist();
 		auto sceneViewSize = Maths::Vector2(ImGui::GetWindowSize().x, ImGui::GetWindowSize().y);
 		auto sceneViewPosition = Maths::Vector2(ImGui::GetWindowPos().x, ImGui::GetWindowPos().y);
@@ -41,8 +44,8 @@ namespace Lumos
 		Camera* camera = Application::Instance()->GetSceneManager()->GetCurrentScene()->GetCamera();
 		camera->SetAspectRatio(static_cast<float>(ImGui::GetWindowSize().x) / static_cast<float>(ImGui::GetWindowSize().y));
 
-		auto width = static_cast<unsigned int>(ImGui::GetWindowContentRegionMax().x - ImGui::GetWindowContentRegionMin().x + 2);
-		auto height = static_cast<unsigned int>(ImGui::GetWindowContentRegionMax().y - ImGui::GetWindowContentRegionMin().y + 22);
+		auto width = static_cast<unsigned int>(ImGui::GetWindowContentRegionMax().x - ImGui::GetWindowContentRegionMin().x);
+		auto height = static_cast<unsigned int>(ImGui::GetWindowContentRegionMax().y - ImGui::GetWindowContentRegionMin().y + 20.0f);
 
 		// Make pixel perfect
 		width -= (width % 2 != 0) ? 1 : 0;
@@ -50,7 +53,7 @@ namespace Lumos
 
 		bool flipImage = Graphics::GraphicsContext::GetContext()->FlipImGUITexture();
 
-		ImGui::SetCursorPos({ 0,0 });
+	
 
 		ImGuizmo::SetRect(ImGui::GetWindowPos().x, ImGui::GetWindowPos().y, static_cast<float>(width), static_cast<float>(height));
 		ImGui::Image(Application::Instance()->GetRenderManager()->GetGBuffer()->GetTexture(Graphics::SCREENTEX_OFFSCREEN0)->GetHandle(), ImVec2(static_cast<float>(width), static_cast<float>(height)), ImVec2(0.0f, flipImage ? 1.0f : 0.0f), ImVec2(1.0f, flipImage ? 0.0f : 1.0f));
@@ -80,8 +83,39 @@ namespace Lumos
 
 
 		m_Editor->OnImGuizmo();
-		DrawGizmos(static_cast<float>(width), static_cast<float>(height), ImGui::GetWindowPos().x, ImGui::GetWindowPos().y);
+		DrawGizmos(static_cast<float>(width), static_cast<float>(height) - 20.0f, ImGui::GetWindowPos().x, ImGui::GetWindowPos().y);
 		Application::Instance()->SetSceneActive(ImGui::IsWindowFocused() && !ImGuizmo::IsUsing());
+        static bool p_open = true;
+        const float DISTANCE = 5.0f;
+          static int corner = 0;
+          ImGuiIO& io = ImGui::GetIO();
+          if (corner != -1)
+          {
+              ImVec2 window_pos = ImVec2((corner & 1) ? (sceneViewPosition.x + sceneViewSize.x - DISTANCE) : (sceneViewPosition.x + DISTANCE), (corner & 2) ? (sceneViewPosition.y + 20.f + sceneViewSize.y - DISTANCE) : (sceneViewPosition.y + 20.f + DISTANCE));
+              ImVec2 window_pos_pivot = ImVec2((corner & 1) ? 1.0f : 0.0f, (corner & 2) ? 1.0f : 0.0f);
+              ImGui::SetNextWindowPos(window_pos, ImGuiCond_Always, window_pos_pivot);
+          }
+          ImGui::SetNextWindowBgAlpha(0.35f); // Transparent background
+          if (ImGui::Begin("Example: Simple overlay", &p_open, (corner != -1 ? ImGuiWindowFlags_NoMove : 0) | ImGuiWindowFlags_NoDocking | ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoSavedSettings | ImGuiWindowFlags_NoFocusOnAppearing | ImGuiWindowFlags_NoNav))
+          {
+              ImGui::Text("Simple overlay\n" "in the corner of the screen.\n" "(right-click to change position)");
+              ImGui::Separator();
+              if (ImGui::IsMousePosValid())
+                  ImGui::Text("Mouse Position: (%.1f,%.1f)", io.MousePos.x, io.MousePos.y);
+              else
+                  ImGui::Text("Mouse Position: <invalid>");
+              if (ImGui::BeginPopupContextWindow())
+              {
+                  if (ImGui::MenuItem("Custom",       NULL, corner == -1)) corner = -1;
+                  if (ImGui::MenuItem("Top-left",     NULL, corner == 0)) corner = 0;
+                  if (ImGui::MenuItem("Top-right",    NULL, corner == 1)) corner = 1;
+                  if (ImGui::MenuItem("Bottom-left",  NULL, corner == 2)) corner = 2;
+                  if (ImGui::MenuItem("Bottom-right", NULL, corner == 3)) corner = 3;
+                  if (p_open && ImGui::MenuItem("Close")) p_open = false;
+                  ImGui::EndPopup();
+              }
+          }
+          ImGui::End();
 		ImGui::End();
 	}
 
@@ -92,8 +126,10 @@ namespace Lumos
 		Maths::Matrix4 view = camera->GetViewMatrix();
 		Maths::Matrix4 proj = camera->GetProjectionMatrix();
 
-		if (Graphics::GraphicsContext::GetRenderAPI() == Graphics::RenderAPI::VULKAN)
-			proj[5] *= -1.0f;
+#ifdef LUMOS_RENDER_API_VULKAN
+        if (Graphics::GraphicsContext::GetRenderAPI() == Graphics::RenderAPI::VULKAN)
+            proj[5] *= -1.0f;
+#endif
 
 		Maths::Matrix4 viewProj = proj * view;
 		Maths::Frustum f;
