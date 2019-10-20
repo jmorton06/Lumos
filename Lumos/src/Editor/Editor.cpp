@@ -115,6 +115,24 @@ namespace Lumos
 			if (ImGui::BeginMenu("File"))
 			{
 				if (ImGui::MenuItem("Exit")) { Application::Instance()->SetAppState(AppState::Closing); }
+                
+                if(ImGui::MenuItem("Open File"))
+                {
+                   #ifdef LUMOS_PLATFORM_WINDOWS
+                        if(ImGui::Button("open file dialog"))
+                            m_FileBrowser->Open();
+                        
+                        ImGuiViewport* viewport = ImGui::GetMainViewport();
+                        ImGui::SetNextWindowPos(viewport->Pos + ImVec2(viewport->Size.x * 0.5f, viewport->Size.y * 0.5f), ImGuiCond_Appearing, ImVec2(0.5f, 0.5f));
+                        m_FileBrowser->Display();
+                        
+                        if(m_FileBrowser->HasSelected())
+                        {
+                            std::cout << "Selected filename" << m_FileBrowser->GetSelected().string() << std::endl;
+                            m_FileBrowser->ClearSelected();
+                        }
+                    #endif
+                }
 
 				if (ImGui::BeginMenu("Style"))
 				{
