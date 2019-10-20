@@ -39,6 +39,7 @@ namespace Lumos
 		void BeginDockSpace(bool infoBar);
 		void EndDockSpace();
 
+        void SetImGuizmoOperation(u32 operation) { m_ImGuizmoOperation = operation; }
 		u32 GetImGuizmoOperation() const { return m_ImGuizmoOperation; }
 
 		void OnNewScene(Scene* scene);

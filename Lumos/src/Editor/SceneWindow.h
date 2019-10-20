@@ -17,6 +17,7 @@ namespace Lumos
 		~SceneWindow() = default;
 
 		void OnImGui() override;
+        void ToolBar();
 		void DrawGizmos(float width, float height, float xpos, float ypos);
 
 	private:

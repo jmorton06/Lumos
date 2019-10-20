@@ -93,9 +93,9 @@ namespace Lumos
 	{
 		LUMOS_PROFILE_FUNC;
 		DrawMenuBar();
-		DrawInfoBar();
+		//DrawInfoBar();
 
-		BeginDockSpace(true);
+		BeginDockSpace(false);
         EndDockSpace();
 
 		for (auto& window : m_Windows)
@@ -219,6 +219,55 @@ namespace Lumos
 
 				ImGui::EndMenu();
 			}
+            
+            ImGui::SameLine(ImGui::GetWindowContentRegionMax().x / 2.0f);
+
+            bool selected = false;
+            {
+                selected = m_Application->GetEditorState() == EditorState::Play;
+                if (selected)
+                    ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.1f, 0.2f, 0.7f, 1.0f));
+
+                if (ImGui::Button(ICON_FA_PLAY, ImVec2(19.0f, 19.0f)))
+                    m_Application->SetEditorState(EditorState::Play);
+
+                ImGuiHelpers::Tooltip("Play");
+
+                if (selected)
+                    ImGui::PopStyleColor();
+            }
+
+            ImGui::SameLine();
+
+            {
+                selected = m_Application->GetEditorState() == EditorState::Paused;
+                if (selected)
+                    ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.1f, 0.2f, 0.7f, 1.0f));
+
+                if (ImGui::Button(ICON_FA_PAUSE,  ImVec2(19.0f, 19.0f)))
+                    m_Application->SetEditorState(EditorState::Paused);
+
+                ImGuiHelpers::Tooltip("Pause");
+
+                if (selected)
+                    ImGui::PopStyleColor();
+            }
+
+            ImGui::SameLine();
+
+            {
+                selected = m_Application->GetEditorState() == EditorState::Next;
+                if (selected)
+                    ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.1f, 0.2f, 0.7f, 1.0f));
+
+                if (ImGui::Button(ICON_FA_STEP_FORWARD, ImVec2(19.0f, 19.0f)))
+                    m_Application->SetEditorState(EditorState::Next);
+
+                ImGuiHelpers::Tooltip("Next");
+
+                if (selected)
+                    ImGui::PopStyleColor();
+            }
 
 			ImGui::SameLine(ImGui::GetWindowContentRegionMax().x - 20.0f);
 			if (ImGui::Button(ICON_FA_TIMES, ImVec2(19.0f, 19.0f)))
@@ -398,117 +447,6 @@ namespace Lumos
 
 		ImGui::Begin("InfoBar", nullptr, windowFlags);
 		{
-            ImGui::Indent();
-			bool selected = false;
-			{
-				selected = m_ImGuizmoOperation == ImGuizmo::TRANSLATE;
-				if (selected)
-					ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.7f, 0.7f, 0.7f, 1.0f));
-
-				if (ImGui::Button(ICON_FA_ARROWS_ALT, ImVec2(19.0f, 19.0f)))
-					m_ImGuizmoOperation = ImGuizmo::TRANSLATE;
-
-				ImGuiHelpers::Tooltip("Translate");
-
-				if (selected)
-					ImGui::PopStyleColor();
-			}
-
-			{
-				selected = m_ImGuizmoOperation == ImGuizmo::ROTATE;
-				if (selected)
-					ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.7f, 0.7f, 0.7f, 1.0f));
-
-				ImGui::SameLine();
-				if (ImGui::Button(ICON_FA_SYNC, ImVec2(19.0f, 19.0f)))
-					m_ImGuizmoOperation = ImGuizmo::ROTATE;
-
-				ImGuiHelpers::Tooltip("Rotate");
-
-				if (selected)
-					ImGui::PopStyleColor();
-			}
-
-			{
-				selected = m_ImGuizmoOperation == ImGuizmo::SCALE;
-				if (selected)
-					ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.7f, 0.7f, 0.7f, 1.0f));
-
-				ImGui::SameLine();
-				if (ImGui::Button(ICON_FA_EXPAND_ARROWS_ALT, ImVec2(19.0f, 19.0f)))
-					m_ImGuizmoOperation = ImGuizmo::SCALE;
-
-				ImGuiHelpers::Tooltip("Scale");
-
-				if (selected)
-					ImGui::PopStyleColor();
-			}
-
-			ImGui::SameLine(ImGui::GetWindowContentRegionMax().x / 2.0f);
-
-			{
-				selected = m_Application->GetEditorState() == EditorState::Play;
-				if (selected)
-					ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.1f, 0.2f, 0.7f, 1.0f));
-
-				if (ImGui::Button(ICON_FA_PLAY, ImVec2(19.0f, 19.0f)))
-					m_Application->SetEditorState(EditorState::Play);
-
-				ImGuiHelpers::Tooltip("Play");
-
-				if (selected)
-					ImGui::PopStyleColor();
-			}
-
-			ImGui::SameLine();
-
-			{
-				selected = m_Application->GetEditorState() == EditorState::Paused;
-				if (selected)
-					ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.1f, 0.2f, 0.7f, 1.0f));
-
-				if (ImGui::Button(ICON_FA_PAUSE,  ImVec2(19.0f, 19.0f)))
-					m_Application->SetEditorState(EditorState::Paused);
-
-				ImGuiHelpers::Tooltip("Pause");
-
-				if (selected)
-					ImGui::PopStyleColor();
-			}
-
-			ImGui::SameLine();
-
-			{
-				selected = m_Application->GetEditorState() == EditorState::Next;
-				if (selected)
-					ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.1f, 0.2f, 0.7f, 1.0f));
-
-				if (ImGui::Button(ICON_FA_STEP_FORWARD, ImVec2(19.0f, 19.0f)))
-					m_Application->SetEditorState(EditorState::Next);
-
-				ImGuiHelpers::Tooltip("Next");
-
-				if (selected)
-					ImGui::PopStyleColor();
-			}
-            
-            ImGui::SameLine();
-            
-#ifdef LUMOS_PLATFORM_WINDOWS
-
-            if(ImGui::Button("open file dialog"))
-                m_FileBrowser->Open();
-            
-			ImGuiViewport* viewport = ImGui::GetMainViewport();
-			ImGui::SetNextWindowPos(viewport->Pos + ImVec2(viewport->Size.x * 0.5f, viewport->Size.y * 0.5f), ImGuiCond_Appearing, ImVec2(0.5f, 0.5f));
-            m_FileBrowser->Display();
-            
-            if(m_FileBrowser->HasSelected())
-            {
-                std::cout << "Selected filename" << m_FileBrowser->GetSelected().string() << std::endl;
-                m_FileBrowser->ClearSelected();
-            }
-#endif
 		}
 		ImGui::End();
 	}
