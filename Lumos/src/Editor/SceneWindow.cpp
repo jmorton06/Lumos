@@ -35,35 +35,33 @@ namespace Lumos
 		ImGui::SetNextWindowBgAlpha(0.0f);
 		ImGui::Begin(m_Name.c_str(), &m_Active, flags);
 
-            ImGui::SetCursorPos({ 0,0 });
-        ImGui::Text("Test");
+        ToolBar();
         
 		ImGuizmo::SetDrawlist();
-		auto sceneViewSize = Maths::Vector2(ImGui::GetWindowSize().x, ImGui::GetWindowSize().y);
-		auto sceneViewPosition = Maths::Vector2(ImGui::GetWindowPos().x, ImGui::GetWindowPos().y);
+		auto sceneViewSize = ImGui::GetContentRegionAvail();
+        auto sceneViewPosition = ImGui::GetWindowPos();
+        
+        sceneViewPosition.x = ImGui::GetCursorPos().x + ImGui::GetWindowPos().x;
+        sceneViewPosition.y = ImGui::GetCursorPos().y + ImGui::GetWindowPos().y;
 
-		Camera* camera = Application::Instance()->GetSceneManager()->GetCurrentScene()->GetCamera();
-		camera->SetAspectRatio(static_cast<float>(ImGui::GetWindowSize().x) / static_cast<float>(ImGui::GetWindowSize().y));
+        sceneViewSize.x = ImGui::GetWindowContentRegionMax().x - ImGui::GetWindowContentRegionMin().x;
+        sceneViewSize.y = ImGui::GetWindowContentRegionMax().y - ImGui::GetWindowContentRegionMin().y;
 
-		auto width = static_cast<unsigned int>(ImGui::GetWindowContentRegionMax().x - ImGui::GetWindowContentRegionMin().x);
-		auto height = static_cast<unsigned int>(ImGui::GetWindowContentRegionMax().y - ImGui::GetWindowContentRegionMin().y + 20.0f);
+        sceneViewSize.x -= static_cast<int>(sceneViewSize.x) % 2 != 0 ? 1.0f : 0.0f;
+        sceneViewSize.y -= static_cast<int>(sceneViewSize.y) % 2 != 0 ? 1.0f : 0.0f;
 
-		// Make pixel perfect
-		width -= (width % 2 != 0) ? 1 : 0;
-		height -= (height % 2 != 0) ? 1 : 0;
+        Camera* camera = Application::Instance()->GetSceneManager()->GetCurrentScene()->GetCamera();
+		camera->SetAspectRatio(static_cast<float>(sceneViewSize.x) / static_cast<float>(sceneViewSize.y));
 
-		bool flipImage = Graphics::GraphicsContext::GetContext()->FlipImGUITexture();
-
-	
-
-		ImGuizmo::SetRect(ImGui::GetWindowPos().x, ImGui::GetWindowPos().y, static_cast<float>(width), static_cast<float>(height));
-		ImGui::Image(Application::Instance()->GetRenderManager()->GetGBuffer()->GetTexture(Graphics::SCREENTEX_OFFSCREEN0)->GetHandle(), ImVec2(static_cast<float>(width), static_cast<float>(height)), ImVec2(0.0f, flipImage ? 1.0f : 0.0f), ImVec2(1.0f, flipImage ? 0.0f : 1.0f));
+		ImGuizmo::SetRect(sceneViewPosition.x, sceneViewPosition.y, sceneViewSize.x, sceneViewSize.y);
+        
+        ImGuiHelpers::Image(Application::Instance()->GetRenderManager()->GetGBuffer()->GetTexture(Graphics::SCREENTEX_OFFSCREEN0), {sceneViewSize.x, sceneViewSize.y});
 
 		if (m_Editor->GetShowGrid())
 		{
 			if (camera->Is2D())
 			{
-				m_Editor->Draw2DGrid(ImGui::GetWindowDrawList(), { camera->GetPosition().GetX(), camera->GetPosition().GetY() }, ImGui::GetWindowPos(), { sceneViewSize.GetX(), sceneViewSize.GetY() }, camera->GetScale(), 1.5f);
+				m_Editor->Draw2DGrid(ImGui::GetWindowDrawList(), { camera->GetPosition().GetX(), camera->GetPosition().GetY() }, sceneViewPosition, { sceneViewSize.x, sceneViewSize.y }, camera->GetScale(), 1.5f);
 			}
 			else
 			{
@@ -84,15 +82,17 @@ namespace Lumos
 
 
 		m_Editor->OnImGuizmo();
-		DrawGizmos(static_cast<float>(width), static_cast<float>(height), ImGui::GetWindowPos().x, ImGui::GetWindowPos().y);
+        
+        DrawGizmos(sceneViewSize.x, sceneViewSize.y, sceneViewPosition.x, sceneViewPosition.y);
 		Application::Instance()->SetSceneActive(ImGui::IsWindowFocused() && !ImGuizmo::IsUsing());
+        
         static bool p_open = true;
         const float DISTANCE = 5.0f;
           static int corner = 0;
           ImGuiIO& io = ImGui::GetIO();
           if (corner != -1)
           {
-              ImVec2 window_pos = ImVec2((corner & 1) ? (sceneViewPosition.x + sceneViewSize.x - DISTANCE) : (sceneViewPosition.x + DISTANCE), (corner & 2) ? (sceneViewPosition.y + 20.f + sceneViewSize.y - DISTANCE) : (sceneViewPosition.y + 20.f + DISTANCE));
+              ImVec2 window_pos = ImVec2((corner & 1) ? (sceneViewPosition.x + sceneViewSize.x - DISTANCE) : (sceneViewPosition.x + DISTANCE), (corner & 2) ? (sceneViewPosition.y + sceneViewSize.y - DISTANCE) : (sceneViewPosition.y + DISTANCE));
               ImVec2 window_pos_pivot = ImVec2((corner & 1) ? 1.0f : 0.0f, (corner & 2) ? 1.0f : 0.0f);
               ImGui::SetNextWindowPos(window_pos, ImGuiCond_Always, window_pos_pivot);
           }
@@ -140,4 +140,70 @@ namespace Lumos
 		ShowComponentGizmo<CameraComponent>(width, height, xpos, ypos, viewProj, f);
 		ShowComponentGizmo<SoundComponent>(width, height, xpos, ypos, viewProj, f);
 	}
+
+    void SceneWindow::ToolBar()
+    {
+          ImGui::Indent();
+            bool selected = false;
+            {
+                selected = m_Editor->GetImGuizmoOperation() == ImGuizmo::TRANSLATE;
+                if (selected)
+                    ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.7f, 0.7f, 0.7f, 1.0f));
+
+                if (ImGui::Button(ICON_FA_ARROWS_ALT, ImVec2(19.0f, 19.0f)))
+                     m_Editor->SetImGuizmoOperation(ImGuizmo::TRANSLATE);
+
+                ImGuiHelpers::Tooltip("Translate");
+
+                if (selected)
+                    ImGui::PopStyleColor();
+            }
+
+            {
+                selected = m_Editor->GetImGuizmoOperation() == ImGuizmo::ROTATE;
+                if (selected)
+                    ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.7f, 0.7f, 0.7f, 1.0f));
+
+                ImGui::SameLine();
+                if (ImGui::Button(ICON_FA_SYNC, ImVec2(19.0f, 19.0f)))
+                     m_Editor->SetImGuizmoOperation(ImGuizmo::ROTATE);
+
+                ImGuiHelpers::Tooltip("Rotate");
+
+                if (selected)
+                    ImGui::PopStyleColor();
+            }
+
+            {
+                selected = m_Editor->GetImGuizmoOperation() == ImGuizmo::SCALE;
+                if (selected)
+                    ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.7f, 0.7f, 0.7f, 1.0f));
+
+                ImGui::SameLine();
+                if (ImGui::Button(ICON_FA_EXPAND_ARROWS_ALT, ImVec2(19.0f, 19.0f)))
+                    m_Editor->SetImGuizmoOperation(ImGuizmo::SCALE);
+
+                ImGuiHelpers::Tooltip("Scale");
+
+                if (selected)
+                    ImGui::PopStyleColor();
+            }
+                    
+#ifdef LUMOS_PLATFORM_WINDOWS
+
+            ImGui::SameLine();
+            if(ImGui::Button("open file dialog"))
+                m_FileBrowser->Open();
+            
+            ImGuiViewport* viewport = ImGui::GetMainViewport();
+            ImGui::SetNextWindowPos(viewport->Pos + ImVec2(viewport->Size.x * 0.5f, viewport->Size.y * 0.5f), ImGuiCond_Appearing, ImVec2(0.5f, 0.5f));
+            m_FileBrowser->Display();
+            
+            if(m_FileBrowser->HasSelected())
+            {
+                std::cout << "Selected filename" << m_FileBrowser->GetSelected().string() << std::endl;
+                m_FileBrowser->ClearSelected();
+            }
+        #endif
+    }
 }
