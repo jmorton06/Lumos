@@ -188,5 +188,20 @@ namespace Lumos
                 if (selected)
                     ImGui::PopStyleColor();
             }
+        
+        ImGui::SameLine();
+                
+        if (ImGui::Button("Settings"))
+            ImGui::OpenPopup("SettingPopup");
+        if (ImGui::BeginPopup("SettingPopup"))
+        {
+            {
+                static bool gizmos = true;
+                if(ImGui::MenuItem("Gizmos","",gizmos == true)){ gizmos = !gizmos;}
+                ImGui::EndPopup();
+            }
+         
+        }
+        
     }
 }
