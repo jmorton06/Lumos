@@ -24,7 +24,7 @@ namespace Lumos
 
 		Sprite::Sprite(const Ref<Texture2D>& texture, const Maths::Vector2& position, const Maths::Vector2& scale, const Maths::Vector4& colour)
 		{
-			m_Texture = texture;
+            m_Texture = texture;
 			m_Position = position;
 			m_Scale = scale;
 			m_Colour = colour;

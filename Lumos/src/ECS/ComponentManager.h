@@ -47,7 +47,7 @@ namespace Lumos
 
 		ComponentArray(u32 initSize = 30)
 		{
-			m_ComponentArray.reserve(30);
+			m_ComponentArray.reserve(initSize);
 			m_Size = 0;
 		}
 

@@ -11,7 +11,7 @@ namespace Lumos
 {
 	HierarchyWindow::HierarchyWindow()
 	{
-		m_Name = " Hierarchy###hierarchy";
+		m_Name = ICON_FA_LIST_ALT" Hierarchy###hierarchy";
 		m_SimpleName = "Hierarchy";
 	}
 
