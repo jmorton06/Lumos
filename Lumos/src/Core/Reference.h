@@ -44,6 +44,9 @@ namespace Lumos
         
         Reference(const Reference& other)
         {
+            m_Ptr = nullptr;
+            m_Counter = nullptr;
+            
             ref(other);
         }
         
@@ -91,6 +94,12 @@ namespace Lumos
 			ref(rhs);
 		}
         
+        _FORCE_INLINE_ Reference& operator=(Reference&& rhs)
+        {
+            ref(rhs);
+            return *this;
+        }
+        
         _FORCE_INLINE_ Reference& operator=(T* newData)
         {
             if(newData != nullptr)
@@ -104,6 +113,8 @@ namespace Lumos
             U* movingPtr = moving.get();
             
             T* castPointer = static_cast<T*>(movingPtr);
+            
+            unref();
             
             if(castPointer != nullptr)
             {
