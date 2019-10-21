@@ -19,6 +19,10 @@ namespace Lumos
 		~LuaManager();
 
 		void OnInit();
+        
+        void BindImGuiLua(sol::state* solState);
+        void BindECSLua(sol::state* state);
+        void BindMathsLua(sol::state* state);
 
 		sol::state* GetState() const { return m_State; }
 
