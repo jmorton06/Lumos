@@ -154,10 +154,11 @@ namespace Lumos
 		}
 
 		template<typename ... Args>
-		void CreateComponent(Entity* entity, Args&& ...args)
+		T* CreateComponent(Entity* entity, Args&& ...args)
 		{
 			T& component = m_ComponentArray.emplace_back(std::forward<Args>(args)...);
 			InsertData(entity, component);
+			return &component;
 		}
 
 		void CreateLumosComponent(Entity* entity) override
@@ -238,9 +239,9 @@ namespace Lumos
 		}
 
 		template<typename T, typename ... Args>
-		void AddComponent(Entity* entity, Args&& ...args)
+		T* AddComponent(Entity* entity, Args&& ...args)
 		{
-			GetComponentArray<T>()->CreateComponent(entity, std::forward<Args>(args) ...);
+			return GetComponentArray<T>()->CreateComponent(entity, std::forward<Args>(args) ...);
 		}
 
 		template<typename T>

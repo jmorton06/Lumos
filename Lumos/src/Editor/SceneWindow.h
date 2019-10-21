@@ -39,7 +39,7 @@ namespace Lumos
 
 						if (frustum.InsideFrustum(pos, 0.1f))
 						{
-							Maths::Vector2 screenPos = Maths::WorldToScreen(pos, viewProj, width, height);
+							Maths::Vector2 screenPos = Maths::WorldToScreen(pos, viewProj, width, height, xpos, ypos);
 							ImGui::SetCursorPos({ screenPos.x - ImGui::GetFontSize() / 2.0f , screenPos.y - ImGui::GetFontSize() / 2.0f });
                             ImGui::Text("%s", m_ComponentIconMap[typeid(T).hash_code()]);
 

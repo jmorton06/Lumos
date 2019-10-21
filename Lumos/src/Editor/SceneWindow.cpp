@@ -21,7 +21,7 @@ namespace Lumos
 		m_SimpleName = "Scene";
 
 		m_ComponentIconMap[typeid(Graphics::Light).hash_code()] = ICON_FA_LIGHTBULB;
-		m_ComponentIconMap[typeid(CameraComponent).hash_code()] = ICON_FA_VIDEO;
+		m_ComponentIconMap[typeid(CameraComponent).hash_code()] = ICON_FA_CAMERA;
 		m_ComponentIconMap[typeid(SoundComponent).hash_code()] = ICON_FA_VOLUME_UP;
 
 		m_ShowComponentGizmoMap[typeid(Graphics::Light).hash_code()] = true;
@@ -83,7 +83,7 @@ namespace Lumos
 
 		m_Editor->OnImGuizmo();
         
-        DrawGizmos(sceneViewSize.x, sceneViewSize.y, sceneViewPosition.x, sceneViewPosition.y);
+        DrawGizmos(sceneViewSize.x, sceneViewSize.y, 0.0f, 40.0f); // Not sure why 40
 		Application::Instance()->SetSceneActive(ImGui::IsWindowFocused() && !ImGuizmo::IsUsing());
         
         static bool p_open = true;
@@ -143,65 +143,66 @@ namespace Lumos
 
     void SceneWindow::ToolBar()
     {
-          ImGui::Indent();
-            bool selected = false;
-            {
-                selected = m_Editor->GetImGuizmoOperation() == ImGuizmo::TRANSLATE;
-                if (selected)
-                    ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.7f, 0.7f, 0.7f, 1.0f));
-
-                if (ImGui::Button(ICON_FA_ARROWS_ALT, ImVec2(19.0f, 19.0f)))
-                     m_Editor->SetImGuizmoOperation(ImGuizmo::TRANSLATE);
-
-                ImGuiHelpers::Tooltip("Translate");
-
-                if (selected)
-                    ImGui::PopStyleColor();
-            }
-
-            {
-                selected = m_Editor->GetImGuizmoOperation() == ImGuizmo::ROTATE;
-                if (selected)
-                    ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.7f, 0.7f, 0.7f, 1.0f));
-
-                ImGui::SameLine();
-                if (ImGui::Button(ICON_FA_SYNC, ImVec2(19.0f, 19.0f)))
-                     m_Editor->SetImGuizmoOperation(ImGuizmo::ROTATE);
-
-                ImGuiHelpers::Tooltip("Rotate");
-
-                if (selected)
-                    ImGui::PopStyleColor();
-            }
-
-            {
-                selected = m_Editor->GetImGuizmoOperation() == ImGuizmo::SCALE;
-                if (selected)
-                    ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.7f, 0.7f, 0.7f, 1.0f));
-
-                ImGui::SameLine();
-                if (ImGui::Button(ICON_FA_EXPAND_ARROWS_ALT, ImVec2(19.0f, 19.0f)))
-                    m_Editor->SetImGuizmoOperation(ImGuizmo::SCALE);
-
-                ImGuiHelpers::Tooltip("Scale");
-
-                if (selected)
-                    ImGui::PopStyleColor();
-            }
-        
-        ImGui::SameLine();
-                
-        if (ImGui::Button("Settings"))
-            ImGui::OpenPopup("SettingPopup");
-        if (ImGui::BeginPopup("SettingPopup"))
+		ImGui::Indent();
+        bool selected = false;
         {
-            {
-                static bool gizmos = true;
-                if(ImGui::MenuItem("Gizmos","",gizmos == true)){ gizmos = !gizmos;}
-                ImGui::EndPopup();
-            }
-         
+            selected = m_Editor->GetImGuizmoOperation() == ImGuizmo::TRANSLATE;
+            if (selected)
+                ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.7f, 0.7f, 0.7f, 1.0f));
+
+            if (ImGui::Button(ICON_FA_ARROWS_ALT, ImVec2(19.0f, 19.0f)))
+                    m_Editor->SetImGuizmoOperation(ImGuizmo::TRANSLATE);
+
+            ImGuiHelpers::Tooltip("Translate");
+
+            if (selected)
+                ImGui::PopStyleColor();
+        }
+
+        {
+            selected = m_Editor->GetImGuizmoOperation() == ImGuizmo::ROTATE;
+            if (selected)
+                ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.7f, 0.7f, 0.7f, 1.0f));
+
+            ImGui::SameLine();
+            if (ImGui::Button(ICON_FA_SYNC, ImVec2(19.0f, 19.0f)))
+                    m_Editor->SetImGuizmoOperation(ImGuizmo::ROTATE);
+
+            ImGuiHelpers::Tooltip("Rotate");
+
+            if (selected)
+                ImGui::PopStyleColor();
+        }
+
+        {
+            selected = m_Editor->GetImGuizmoOperation() == ImGuizmo::SCALE;
+            if (selected)
+                ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.7f, 0.7f, 0.7f, 1.0f));
+
+            ImGui::SameLine();
+            if (ImGui::Button(ICON_FA_EXPAND_ARROWS_ALT, ImVec2(19.0f, 19.0f)))
+                m_Editor->SetImGuizmoOperation(ImGuizmo::SCALE);
+
+            ImGuiHelpers::Tooltip("Scale");
+
+            if (selected)
+                ImGui::PopStyleColor();
         }
         
+		ImGui::SameLine();
+                
+		if (ImGui::Button("Settings"))
+			ImGui::OpenPopup("SettingPopup");
+		if (ImGui::BeginPopup("SettingPopup"))
+		{
+			{
+				static bool gizmos = true;
+				if(ImGui::MenuItem("Gizmos","",gizmos == true)){ gizmos = !gizmos;}
+				ImGui::EndPopup();
+			}
+         
+		}
+
+		ImGui::Unindent();
     }
 }
