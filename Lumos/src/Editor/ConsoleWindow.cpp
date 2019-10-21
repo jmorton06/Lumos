@@ -13,7 +13,7 @@ namespace Lumos
 
 	ConsoleWindow::ConsoleWindow()
 	{
-		m_Name = ICON_FA_ALIGN_LEFT" Console###console";
+		m_Name = ICON_FA_LIST" Console###console";
 		m_SimpleName = "Console";
 	}
 
@@ -43,7 +43,7 @@ namespace Lumos
 	{
 		auto flags = ImGuiWindowFlags_NoCollapse;
 		ImGui::SetNextWindowSize(ImVec2(640, 480), ImGuiCond_FirstUseEver);
-		ImGui::Begin(ICON_FA_ALIGN_LEFT" ConsoleWindow###console", &m_Active, flags);
+		ImGui::Begin(m_Name.c_str(), &m_Active, flags);
 		{
             ImGuiRenderHeader();
 			ImGui::Separator();

@@ -40,6 +40,9 @@ namespace Lumos
 
 		void SetImGuiKeyCodes();
 		void SetImGuiStyle();
+		void AddIconFont();
+
+		float m_FontSize;
 
         Scope<Graphics::IMGUIRenderer> m_IMGUIRenderer;
 		bool m_ClearScreen;

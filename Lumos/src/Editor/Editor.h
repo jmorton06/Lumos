@@ -34,8 +34,6 @@ namespace Lumos
 		void OnInit();
 		void OnImGui();
 		void DrawMenuBar();
-
-		void DrawInfoBar();
 		void BeginDockSpace(bool infoBar);
 		void EndDockSpace();
 

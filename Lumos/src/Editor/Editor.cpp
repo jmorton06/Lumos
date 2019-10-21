@@ -36,6 +36,7 @@
 
 #include <imgui/imgui_internal.h>
 #include <imgui/plugins/ImGuizmo.h>
+#include <imgui/plugins/ImGuiAl/button/imguial_button.h>
 #include <IconFontCppHeaders/IconsFontAwesome5.h>
 
 #ifdef LUMOS_PLATFORM_WINDOWS
@@ -82,7 +83,7 @@ namespace Lumos
 		m_FileBrowser = lmnew ImGui::FileBrowser(ImGuiFileBrowserFlags_CreateNewDir | ImGuiFileBrowserFlags_EnterNewFilename | ImGuiFileBrowserFlags_NoModal);
 		m_FileBrowser->SetTitle("Test File Browser");
 		m_FileBrowser->SetFileFilters({ ".sh" , ".h" });
-		m_FileBrowser->SetLabels(ICON_FA_FOLDER, ICON_FA_FILE_ALT, ICON_FA_FOLDER_PLUS);
+		m_FileBrowser->SetLabels(ICON_FA_FOLDER, ICON_FA_FILE, ICON_FA_FOLDER_OPEN);
 		m_FileBrowser->Refresh();
 #endif
 
@@ -93,7 +94,6 @@ namespace Lumos
 	{
 		LUMOS_PROFILE_FUNC;
 		DrawMenuBar();
-		//DrawInfoBar();
 
 		BeginDockSpace(false);
         EndDockSpace();
@@ -119,7 +119,7 @@ namespace Lumos
                 if(ImGui::MenuItem("Open File"))
                 {
                    #ifdef LUMOS_PLATFORM_WINDOWS
-                        if(ImGui::Button("open file dialog"))
+                        if(ImGuiAl::Button("open file dialog", true))
                             m_FileBrowser->Open();
                         
                         ImGuiViewport* viewport = ImGui::GetMainViewport();
@@ -287,12 +287,6 @@ namespace Lumos
                     ImGui::PopStyleColor();
             }
 
-			ImGui::SameLine(ImGui::GetWindowContentRegionMax().x - 20.0f);
-			if (ImGui::Button(ICON_FA_TIMES, ImVec2(19.0f, 19.0f)))
-				Application::Instance()->SetAppState(AppState::Closing);
-
-			ImGuiHelpers::Tooltip("Exit");
-
 			ImGui::EndMainMenuBar();
 		}
 	}
@@ -437,36 +431,6 @@ namespace Lumos
 	void Editor::OnNewScene(Scene * scene)
 	{
 		m_Selected = nullptr;
-	}
-   
-
-	void Editor::DrawInfoBar()
-	{
-		auto windowFlags
-			= ImGuiWindowFlags_NoDocking
-			| ImGuiWindowFlags_NoBringToFrontOnFocus
-			| ImGuiWindowFlags_NoNavFocus
-			| ImGuiWindowFlags_NoTitleBar
-			| ImGuiWindowFlags_NoCollapse
-			| ImGuiWindowFlags_NoResize
-            | ImGuiWindowFlags_NoScrollbar
-			| ImGuiWindowFlags_NoMove
-			| ImGuiWindowFlags_NoScrollWithMouse;
-
-		ImGuiViewport* viewport = ImGui::GetMainViewport();
-
-		auto pos = viewport->Pos;
-		auto size = viewport->Size;
-
-		size.y = 24.0f;
-		pos.y += 20.0f;
-		ImGui::SetNextWindowPos(pos);
-		ImGui::SetNextWindowSize(size);
-
-		ImGui::Begin("InfoBar", nullptr, windowFlags);
-		{
-		}
-		ImGui::End();
 	}
 
 	void Editor::Draw2DGrid(ImDrawList* drawList, const ImVec2& cameraPos, const ImVec2& windowPos, const ImVec2& canvasSize, const float factor, const float thickness)

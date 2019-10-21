@@ -38,7 +38,7 @@ namespace Lumos
 
 	ProfilerWindow::ProfilerWindow()
 	{
-		m_Name = ICON_FA_STOPWATCH" Profiler###profiler";
+		m_Name = " Profiler###profiler";
 		m_SimpleName = "Profiler";
 
 		m_UpdateTimer = 0.0f;
