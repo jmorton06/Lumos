@@ -81,6 +81,7 @@ namespace Lumos
 			unref();
             
             m_Ptr = p_ptr;
+			m_Counter = nullptr;
             
             if(m_Ptr != nullptr)
             {

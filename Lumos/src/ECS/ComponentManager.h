@@ -47,6 +47,7 @@ namespace Lumos
 
 		ComponentArray(u32 initSize = 30)
 		{
+			m_ComponentArray.reserve(initSize);
 			m_Size = 0;
 		}
 
@@ -58,6 +59,7 @@ namespace Lumos
 			size_t newIndex = m_Size;
 			m_EntityToIndexMap[entity] = newIndex;
 			m_IndexToEntityMap[newIndex] = entity;
+			m_ComponentArray.emplace_back(component);
             
             m_Size++;
 
@@ -75,7 +77,7 @@ namespace Lumos
 			size_t indexOfRemovedEntity = m_EntityToIndexMap[entity];
 			size_t indexOfLastElement = m_Size - 1;
 
-            m_ComponentArray[indexOfRemovedEntity] = m_ComponentArray[indexOfLastElement];			// Update map to point to moved spot
+            m_ComponentArray.erase(m_ComponentArray.begin() + indexOfRemovedEntity);			// Update map to point to moved spot
 			Entity* entityOfLastElement = m_IndexToEntityMap[indexOfLastElement];
 			m_EntityToIndexMap[entityOfLastElement] = indexOfRemovedEntity;
 			m_IndexToEntityMap[indexOfRemovedEntity] = entityOfLastElement;
@@ -186,7 +188,7 @@ namespace Lumos
 		// set to a specified maximum amount, matching the maximum number
 		// of entities allowed to exist simultaneously, so that each entity
 		// has a unique spot.
-		std::array<T, MAX_ENTITIES> m_ComponentArray;
+		std::vector<T> m_ComponentArray;
 
 		// Map from an entity ID to an array index.
 		std::unordered_map<Entity*, size_t> m_EntityToIndexMap;

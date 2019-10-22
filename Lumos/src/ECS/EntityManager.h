@@ -67,7 +67,7 @@ namespace Lumos
 
 		NONCOPYABLE(Entity)
 
-			String                  m_Name;
+		String                  m_Name;
 		u32						m_UUID;
 		EntityManager*			m_Manager;
 		String                  m_PrefabFileLocation;

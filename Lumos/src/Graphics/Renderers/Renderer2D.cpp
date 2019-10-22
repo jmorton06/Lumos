@@ -519,6 +519,8 @@ namespace Lumos
 
 		void Renderer2D::UpdateDesciptorSet()
 		{
+			if (m_Textures.empty())
+				return;
 			std::vector<Graphics::ImageInfo> imageInfos;
 
 			Graphics::ImageInfo imageInfo = {};
