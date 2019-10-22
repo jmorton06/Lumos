@@ -3,6 +3,7 @@
 #include "Maths/MathsUtilities.h"
 #include "ECS/EntityManager.h"
 
+#include <Box2D/Box2D.h>
 #include <imgui/imgui.h>
 
 namespace Lumos
@@ -19,9 +20,10 @@ namespace Lumos
 
 	void Physics2DComponent::Update()
 	{
+		if (!m_PhysicsObject->GetB2Body()->IsAwake())
+			return;
+
         auto angle = m_PhysicsObject->GetAngle() * Maths::RADTODEG;
-        //auto qw = cos(angle/2);
-        //auto qz = sin(angle/2);
         
 		auto entity = ComponentManager::Instance()->GetComponentArray<Physics2DComponent>()->GetEntity(this);
 		entity->GetTransformComponent()->SetLocalPosition(Maths::Vector3(m_PhysicsObject->GetPosition(), 1.0f));
