@@ -50,6 +50,42 @@ namespace Lumos
             ref(other);
         }
         
+        Reference(Reference&& rhs)
+        {
+            m_Ptr = nullptr;
+            m_Counter = nullptr;
+            
+            ref(rhs);
+        }
+               
+        
+        template<typename U>
+        _FORCE_INLINE_ Reference(const Reference<U>& moving)
+        {
+            U* movingPtr = moving.get();
+            
+            T* castPointer = static_cast<T*>(movingPtr);
+            
+            unref();
+            
+            if(castPointer != nullptr)
+            {
+                if (moving.get() == m_Ptr)
+                    return;
+                
+                if(moving.GetCounter() && moving.get())
+                {
+                    m_Ptr = moving.get();
+                    m_Counter = moving.GetCounter();
+                    m_Counter->reference();
+                }
+            }
+            else
+            {
+                LUMOS_LOG_ERROR("Failed to cast Reference");
+            }
+        }
+        
         ~Reference()
         {
 			unref();
@@ -109,33 +145,6 @@ namespace Lumos
         }
         
         template<typename U>
-        _FORCE_INLINE_ Reference(const Reference<U>& moving)
-        {
-            U* movingPtr = moving.get();
-            
-            T* castPointer = static_cast<T*>(movingPtr);
-            
-            unref();
-            
-            if(castPointer != nullptr)
-            {
-                if (moving.get() == m_Ptr)
-                    return;
-                
-                if(moving.GetCounter() && moving.get())
-                {
-                    m_Ptr = moving.get();
-                    m_Counter = moving.GetCounter();
-                    m_Counter->reference();
-                }
-            }
-            else
-            {
-                LUMOS_LOG_ERROR("Failed to cast Reference");
-            }
-        }
-        
-        template<typename U>
         _FORCE_INLINE_ Reference& operator=(const Reference<U>& moving)
         {
             U* movingPtr = moving.get();
@@ -190,6 +199,9 @@ namespace Lumos
                 return;
             
 			unref();
+            
+            m_Counter = nullptr;
+            m_Ptr = nullptr;
             
             if(p_from.GetCounter() && p_from.get())
             {
