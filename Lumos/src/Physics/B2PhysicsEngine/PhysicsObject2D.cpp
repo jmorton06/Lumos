@@ -22,7 +22,8 @@ namespace Lumos
 
 	PhysicsObject2D::~PhysicsObject2D()
 	{
-		Application::Instance()->GetSystem<B2PhysicsEngine>()->GetB2World()->DestroyBody(m_B2Body);
+		if(m_B2Body)
+			Application::Instance()->GetSystem<B2PhysicsEngine>()->GetB2World()->DestroyBody(m_B2Body);
 	}
 
 	void PhysicsObject2D::SetLinearVelocity(const Maths::Vector2& v) const

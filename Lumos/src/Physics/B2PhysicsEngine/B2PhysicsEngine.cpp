@@ -30,6 +30,7 @@ namespace Lumos
 
 	void B2PhysicsEngine::OnUpdate(TimeStep* timeStep, Scene* scene)
 	{
+		LUMOS_PROFILE_FUNC;
 		const int max_updates_per_frame = 5;
 
 		if (!m_Paused)

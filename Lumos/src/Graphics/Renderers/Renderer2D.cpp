@@ -310,7 +310,8 @@ namespace Lumos
 
 			SetSystemUniforms(m_Shader);
 
-			scene->IterateEntities([&](Entity* obj)
+            auto entities = EntityManager::Instance()->GetEntitiesWithType<Graphics::Sprite>();
+			for(auto& obj : entities)
 			{
 				if (obj != nullptr)
 				{
@@ -320,7 +321,7 @@ namespace Lumos
 						Submit(reinterpret_cast<Renderable2D*>(sprite), obj->GetTransformComponent()->GetWorldMatrix());
 					}
 				}
-			});
+			};
 
 			Present();
 
@@ -518,6 +519,8 @@ namespace Lumos
 
 		void Renderer2D::UpdateDesciptorSet()
 		{
+			if (m_Textures.empty())
+				return;
 			std::vector<Graphics::ImageInfo> imageInfos;
 
 			Graphics::ImageInfo imageInfo = {};

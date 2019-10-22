@@ -20,8 +20,8 @@
 // CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 // This file was generated with a script.
-// Generated 2019-05-26 17:50:22.004134 UTC
-// This header was generated with sol v3.0.2 (revision a49fbc2)
+// Generated 2019-10-02 08:43:39.434050 UTC
+// This header was generated with sol v3.0.3 (revision 908074e)
 // https://github.com/ThePhD/sol2
 
 #ifndef SOL_SINGLE_INCLUDE_FORWARD_HPP
@@ -34,7 +34,7 @@
 
 // beginning of sol/feature_test.hpp
 
-#if (defined(__cplusplus) && __cplusplus == 201703L) || (defined(_MSC_VER) && _MSC_VER > 1900 && ((defined(_HAS_CXX17) && _HAS_CXX17 == 1) || (defined(_MSVC_LANG) && (_MSVC_LANG > 201402L))))
+#if (defined(__cplusplus) && __cplusplus >= 201703L) || (defined(_MSC_VER) && _MSC_VER > 1900 && ((defined(_HAS_CXX17) && _HAS_CXX17 == 1) || (defined(_MSVC_LANG) && (_MSVC_LANG > 201402L))))
 #ifndef SOL_CXX17_FEATURES
 #define SOL_CXX17_FEATURES 1
 #endif // C++17 features macro
@@ -250,21 +250,26 @@
 
 #include <utility>
 #include <type_traits>
+#include <string_view>
 
 #if defined(SOL_USING_CXX_LUA) && SOL_USING_CXX_LUA
 struct lua_State;
 #else
 extern "C" {
-	struct lua_State;
+struct lua_State;
 }
 #endif // C++ Mangling for Lua vs. Not
 
 namespace sol {
 
+	enum class type;
+
+	class stateless_reference;
 	template <bool b>
 	class basic_reference;
 	using reference = basic_reference<false>;
 	using main_reference = basic_reference<true>;
+	class stateless_stack_reference;
 	class stack_reference;
 
 	template <typename A>
@@ -276,7 +281,7 @@ namespace sol {
 	template <typename>
 	struct proxy_base;
 	template <typename, typename>
-	struct proxy;
+	struct table_proxy;
 
 	template <bool, typename>
 	class basic_table_core;
@@ -454,6 +459,8 @@ namespace sol {
 	template <class T>
 	class optional<T&>;
 #endif
+
+	using check_handler_type = int(lua_State*, int, type, type, const char*);
 
 } // namespace sol
 

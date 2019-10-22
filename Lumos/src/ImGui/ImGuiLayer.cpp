@@ -11,6 +11,11 @@
 #include <imgui/imgui.h>
 #include <imgui/plugins/ImGuizmo.h>
 #include <IconFontCppHeaders/IconsFontAwesome5.h>
+#include <imgui/plugins/ImGuiAl/fonts/CousineRegular.inl>
+#include <imgui/plugins/ImGuiAl/fonts/KarlaRegular.inl>
+#include <imgui/plugins/ImGuiAl/fonts/GoogleMaterialDesign.inl>
+#include <imgui/plugins/ImGuiAl/fonts/FontAwesome5Solid900.inl>
+#include <IconFontCppHeaders/IconsFontAwesome5.h>
 
 namespace Lumos
 {
@@ -18,6 +23,7 @@ namespace Lumos
 		: Layer(debugName)
 	{
 		m_ClearScreen = clearScreen;
+		m_FontSize = 16.0f;
 	}
 
 	ImGuiLayer::~ImGuiLayer()
@@ -48,6 +54,7 @@ namespace Lumos
 
 	void ImGuiLayer::OnUpdate(TimeStep* dt, Scene* scene)
 	{
+		LUMOS_PROFILE_FUNC;
 		ImGuiIO& io = ImGui::GetIO();
 		io.DeltaTime = dt->GetMillis();
         
@@ -202,51 +209,29 @@ namespace Lumos
 
 		std::string physicalPath;
 
-#if 1
 		std::string filePath = "/CoreTextures/Roboto-Medium.ttf";
 		
 		if (!VFS::Get()->ResolvePhysicalPath(filePath, physicalPath))
 			LUMOS_LOG_CRITICAL("Failed to Load font {0}", filePath);
 
 		filePath = physicalPath;
-        
-        static const ImWchar icons_ranges[] = { ICON_MIN_FA, ICON_MAX_FA, 0 };
         ImFontConfig icons_config;
         icons_config.MergeMode = false;
         icons_config.PixelSnapH = true;
         icons_config.OversampleH = 2;
         icons_config.OversampleV = 1;
-      //  icons_config.GlyphOffset.y -= 1.0f;      // Move everything by 1 pixels up
-      // icons_config.GlyphExtraSpacing.x = 1.0f; // Increase spacing between characters
         icons_config.OversampleH = icons_config.OversampleV = 1;
         icons_config.PixelSnapH = true;
         
-        io.Fonts->AddFontFromFileTTF(filePath.c_str(), 16.0f, &icons_config);// icons_ranges);
-		io.IniFilename = nullptr;
+        io.Fonts->AddFontFromFileTTF(filePath.c_str(), m_FontSize, &icons_config);
+		AddIconFont();
 
-#else
 		io.Fonts->AddFontDefault();
-#endif
+		io.Fonts->AddFontFromMemoryCompressedTTF(KarlaRegular_compressed_data, KarlaRegular_compressed_size, m_FontSize, &icons_config);
+		AddIconFont();
 
-		physicalPath = "";
-		VFS::Get()->ResolvePhysicalPath("/CoreFonts/fa-solid-900.ttf", physicalPath);
-
-		// merge in icons from Font Awesome
-		icons_config.MergeMode = true;
-		icons_config.PixelSnapH = true;
-      	icons_config.OversampleH = 2;
-      	icons_config.OversampleV = 1;
-      	icons_config.GlyphOffset.y += 1.0f;      // Move everything by 1 pixels down
-		//icons_config.GlyphOffset.x -= 1.0f;      // Move everything by 1 pixels left
-      	//icons_config.GlyphExtraSpacing.x = 1.0f; // Increase spacing between characters
-        icons_config.OversampleH = icons_config.OversampleV = 1;
-        icons_config.PixelSnapH = true;
-        //if (icons_config.SizePixels <= 0.0f)
-        icons_config.SizePixels = 13.0f * 1.0f;
-     
-       // const ImWchar* glyph_ranges = font_cfg.GlyphRanges != NULL ? font_cfg.GlyphRanges : GetGlyphRangesDefault();
-        
-		io.Fonts->AddFontFromFileTTF(physicalPath.c_str(), 16.0f, &icons_config, icons_ranges);
+		io.Fonts->AddFontFromMemoryCompressedTTF(CousineRegular_compressed_data, CousineRegular_compressed_size, m_FontSize, &icons_config);
+		AddIconFont();
 
         ImGuiStyle& style = ImGui::GetStyle();
         
@@ -283,5 +268,33 @@ namespace Lumos
 #endif
 
 		ImGuiHelpers::SetTheme(ImGuiHelpers::Theme::Dark);
+	}
+
+	void ImGuiLayer::AddIconFont()
+	{
+		ImGuiIO& io = ImGui::GetIO();
+
+#define USE_FA_ICONS
+#ifdef USE_FA_ICONS
+		static const ImWchar icons_ranges[] = { ICON_MIN_FA, ICON_MAX_FA, 0 };
+		ImFontConfig icons_config;
+		// merge in icons from Font Awesome
+		icons_config.MergeMode = true;
+		icons_config.PixelSnapH = true;
+		icons_config.OversampleH = 2;
+		icons_config.OversampleV = 1;
+		icons_config.GlyphOffset.y += 1.0f;
+		icons_config.OversampleH = icons_config.OversampleV = 1;
+		icons_config.PixelSnapH = true;
+		icons_config.SizePixels = 13.0f * 1.0f;
+
+		io.Fonts->AddFontFromMemoryCompressedTTF(FontAwesome5Solid900_compressed_data, FontAwesome5Solid900_compressed_size, m_FontSize, &icons_config, icons_ranges);
+#else
+
+		static const ImWchar ranges[] = { ICON_MIN_MD, ICON_MAX_MD, 0 };
+		ImFontConfig config;
+		config.MergeMode = true;
+		io.Fonts->AddFontFromMemoryCompressedTTF(GoogleMaterialDesign_compressed_data, GoogleMaterialDesign_compressed_size, m_FontSize, &config, ranges);
+#endif
 	}
 }

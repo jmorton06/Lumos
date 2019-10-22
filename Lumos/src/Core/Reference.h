@@ -44,7 +44,46 @@ namespace Lumos
         
         Reference(const Reference& other)
         {
+            m_Ptr = nullptr;
+            m_Counter = nullptr;
+            
             ref(other);
+        }
+        
+        Reference(Reference&& rhs)
+        {
+            m_Ptr = nullptr;
+            m_Counter = nullptr;
+            
+            ref(rhs);
+        }
+               
+        
+        template<typename U>
+        _FORCE_INLINE_ Reference(const Reference<U>& moving)
+        {
+            U* movingPtr = moving.get();
+            
+            T* castPointer = static_cast<T*>(movingPtr);
+            
+            unref();
+            
+            if(castPointer != nullptr)
+            {
+                if (moving.get() == m_Ptr)
+                    return;
+                
+                if(moving.GetCounter() && moving.get())
+                {
+                    m_Ptr = moving.get();
+                    m_Counter = moving.GetCounter();
+                    m_Counter->reference();
+                }
+            }
+            else
+            {
+                LUMOS_LOG_ERROR("Failed to cast Reference");
+            }
         }
         
         ~Reference()
@@ -78,6 +117,7 @@ namespace Lumos
 			unref();
             
             m_Ptr = p_ptr;
+			m_Counter = nullptr;
             
             if(m_Ptr != nullptr)
             {
@@ -91,36 +131,17 @@ namespace Lumos
 			ref(rhs);
 		}
         
+        _FORCE_INLINE_ Reference& operator=(Reference&& rhs)
+        {
+            ref(rhs);
+            return *this;
+        }
+        
         _FORCE_INLINE_ Reference& operator=(T* newData)
         {
             if(newData != nullptr)
                 refPointer(newData);
             return *this;
-        }
-        
-        template<typename U>
-        _FORCE_INLINE_ Reference(const Reference<U>& moving)
-        {
-            U* movingPtr = moving.get();
-            
-            T* castPointer = static_cast<T*>(movingPtr);
-            
-            if(castPointer != nullptr)
-            {
-                if (moving.get() == m_Ptr)
-                    return;
-                
-                if(moving.GetCounter() && moving.get())
-                {
-                    m_Ptr = moving.get();
-                    m_Counter = moving.GetCounter();
-                    m_Counter->reference();
-                }
-            }
-            else
-            {
-                LUMOS_LOG_ERROR("Failed to cast Reference");
-            }
         }
         
         template<typename U>
@@ -178,6 +199,9 @@ namespace Lumos
                 return;
             
 			unref();
+            
+            m_Counter = nullptr;
+            m_Ptr = nullptr;
             
             if(p_from.GetCounter() && p_from.get())
             {

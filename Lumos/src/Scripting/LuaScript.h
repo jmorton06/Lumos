@@ -1,30 +1,29 @@
 #pragma once
 #include "lmpch.h"
-#include "Utilities/TSingleton.h"
-
-namespace sol
-{
-    class state;
-}
+#include <sol/sol.hpp>
 
 namespace Lumos
-{
-    struct WindowProperties;
-    
-    class LUMOS_EXPORT LuaScript : public TSingleton<LuaScript>
+{    
+	class Entity;
+	class Scene;
+
+    class LUMOS_EXPORT LuaScript
     {
-        friend class TSingleton<LuaScript>;
     public:
-        LuaScript();
+        LuaScript(const String& fileName);
         ~LuaScript();
         
-        void OnInit();
-        
-        sol::state* GetState() const { return m_State; }
-        
-        WindowProperties LoadConfigFile(const String& file);
-        
-    private:
-        sol::state* m_State;
+		void Init(Entity* entity);
+        void Init(Scene* scene);
+		void Update();
+
+		void LoadScript(const std::string& fileName);
+
+	private:
+
+		Scene* m_Scene = nullptr;
+		Entity* m_Entity = nullptr;
+		std::string m_FileName;
+		std::vector<sol::table> m_LuaTables;
     };
 }
