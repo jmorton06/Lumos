@@ -65,12 +65,14 @@ namespace Lumos
 		template<typename T>
 		static const float* ValuePointer(const T& t)
 		{
+			LUMOS_ASSERT(false, "Unimplemented Value Pointer");
 			return nullptr;
 		}
 
 		template<typename T>
 		static float* ValuePointer(T& t)
 		{
+			LUMOS_ASSERT(false, "Unimplemented Value Pointer");
 			return nullptr;
 		}
 	}
@@ -106,6 +108,12 @@ namespace Lumos
 	}
 
 	template<>
+	const float* Maths::ValuePointer<Maths::Quaternion>(const Maths::Quaternion& t)
+	{
+		return &(t.w);
+	}
+
+	template<>
 	float* Maths::ValuePointer<Maths::Vector2>(Maths::Vector2& t)
 	{
 		return &(t.x);
@@ -133,5 +141,11 @@ namespace Lumos
 	float* Maths::ValuePointer<Maths::Matrix4>(Maths::Matrix4& t)
 	{
 		return &(t.values[0]);
+	}
+
+	template<>
+	float* Maths::ValuePointer<Maths::Quaternion>(Maths::Quaternion& t)
+	{
+		return &(t.w);
 	}
 }

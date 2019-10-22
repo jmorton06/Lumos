@@ -176,7 +176,7 @@ vec3 Lighting(vec3 F0, float shadow, vec3 wsPos)
 
 		float value = shadow;
 
-		if(light.type == 1.0)
+		if(light.type == 2.0)
 		{
 		    // Vector to light
 			vec3 L = light.position.xyz - wsPos;
@@ -193,7 +193,7 @@ vec3 Lighting(vec3 F0, float shadow, vec3 wsPos)
 
 			light.direction = vec4(L,1.0);
 		}
-		else if (light.type == 2.0)
+		else if (light.type == 1.0)
 		{
 			vec3 L = light.position.xyz - wsPos;
 			float cutoffAngle   = 1.0f - light.angle;      

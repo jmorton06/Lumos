@@ -18,7 +18,7 @@ namespace Lumos
 		friend class EntityManager;
 	public:
 		template<typename T, typename... Args>
-		void AddComponent(Args&&... args);
+		T* AddComponent(Args&&... args);
 
 		template <typename T, typename... Args>
 		T* GetOrAddComponent(Args&&... args);
@@ -67,7 +67,7 @@ namespace Lumos
 
 		NONCOPYABLE(Entity)
 
-			String                  m_Name;
+		String                  m_Name;
 		u32						m_UUID;
 		EntityManager*			m_Manager;
 		String                  m_PrefabFileLocation;
@@ -79,9 +79,9 @@ namespace Lumos
 	};
 
 	template<typename T, typename ... Args>
-	_FORCE_INLINE_ void Entity::AddComponent(Args && ...args)
+	_FORCE_INLINE_ T* Entity::AddComponent(Args && ...args)
 	{
-		ComponentManager::Instance()->AddComponent<T>(this, std::forward<Args>(args) ...);
+		return ComponentManager::Instance()->AddComponent<T>(this, std::forward<Args>(args) ...);
 	}
 
 	template<typename T, typename ... Args>

@@ -3,9 +3,11 @@
 #include "Utilities/Timer.h"
 #include "Utilities/TSingleton.h"
 
-#define PROFILERRECORD(name) \
+#define LUMOS_PROFILE_BLOCK(name) \
 Scope<Lumos::ProfilerRecord> profilerData = \
 Lumos::Profiler::Instance()->IsEnabled() ? CreateScope<Lumos::ProfilerRecord>(name) : nullptr
+
+#define LUMOS_PROFILE_FUNC LUMOS_PROFILE_BLOCK(__FUNCTION__)
 
 namespace Lumos
 {

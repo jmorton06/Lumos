@@ -31,14 +31,14 @@ public:
 		GetSceneManager()->EnqueueScene<Scene2D>("2D Test");
 		GetSceneManager()->EnqueueScene<Scene3D>("Physics Scene");
 		GetSceneManager()->EnqueueScene<GraphicsScene>("Terrain Test");
-		GetSceneManager()->SwitchScene(2);
+		GetSceneManager()->SwitchScene(1);
         GetSceneManager()->ApplySceneSwitch();
 	}
 };
 
 Lumos::Application* Lumos::CreateApplication()
 {  
-    WindowProperties windowProperties = LuaScript::Instance()->LoadConfigFile(ROOT_DIR"/Sandbox/Settings.lua");
+    WindowProperties windowProperties = LuaManager::Instance()->LoadConfigFile(ROOT_DIR"/Sandbox/Settings.lua");
 	windowProperties.ShowConsole = false;
 
     return new Game(windowProperties);

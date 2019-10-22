@@ -91,6 +91,8 @@ namespace Lumos
 		void SetEditorState(EditorState state)	{ m_EditorState = state; }
 		void SetActiveCamera(Camera* camera);
 
+		void SetSceneActive(bool active) { m_SceneActive = active; }
+		bool GetSceneActive() const { return m_SceneActive; }
 		Maths::Vector2 GetWindowSize() const;
 
 		static Application* Instance() { return s_Instance; }
@@ -115,6 +117,7 @@ namespace Lumos
 		u32 m_Updates;
 		float m_SecondTimer = 0.0f;
 		bool m_Minimized = false;
+		bool m_SceneActive = true;
 
 		Scope<Window> m_Window;
         Scope<SceneManager> m_SceneManager;

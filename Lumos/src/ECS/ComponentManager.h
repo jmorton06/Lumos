@@ -18,6 +18,9 @@ namespace Lumos
     using HasUpdate = decltype(std::declval<T>().Update());
 
 	template <class T>
+	using HasActive = decltype(std::declval<T>().GetActive());
+
+	template <class T>
 	using HasImGui = decltype(std::declval<T>().OnImGui());
 
 	using ComponentType = uint32_t;
@@ -34,7 +37,7 @@ namespace Lumos
 		virtual size_t GetID() = 0;
 		virtual const String GetName() const = 0;
 
-		LUMOS_EXPORT void ImGuiComponentHeader(const String& name, size_t hashCode, Entity * entity, bool& open);
+		LUMOS_EXPORT void ImGuiComponentHeader(const String& name, size_t hashCode, Entity * entity, bool& open, bool hasActive, bool& active);
 	};
 
 	template<typename T>
@@ -44,7 +47,7 @@ namespace Lumos
 
 		ComponentArray(u32 initSize = 30)
 		{
-			m_ComponentArray.reserve(30);
+			m_ComponentArray.reserve(initSize);
 			m_Size = 0;
 		}
 
@@ -56,6 +59,7 @@ namespace Lumos
 			size_t newIndex = m_Size;
 			m_EntityToIndexMap[entity] = newIndex;
 			m_IndexToEntityMap[newIndex] = entity;
+			m_ComponentArray.emplace_back(component);
             
             m_Size++;
 
@@ -73,8 +77,7 @@ namespace Lumos
 			size_t indexOfRemovedEntity = m_EntityToIndexMap[entity];
 			size_t indexOfLastElement = m_Size - 1;
 
-            m_ComponentArray.erase(m_ComponentArray.begin() + indexOfRemovedEntity);
-			// Update map to point to moved spot
+            m_ComponentArray.erase(m_ComponentArray.begin() + indexOfRemovedEntity);			// Update map to point to moved spot
 			Entity* entityOfLastElement = m_IndexToEntityMap[indexOfLastElement];
 			m_EntityToIndexMap[entityOfLastElement] = indexOfRemovedEntity;
 			m_IndexToEntityMap[indexOfRemovedEntity] = entityOfLastElement;
@@ -119,7 +122,7 @@ namespace Lumos
 
 		void OnUpdate() override
 		{
-			PROFILERRECORD("ComponentManager::OnUpdate");
+			LUMOS_PROFILE_BLOCK("ComponentManager::OnUpdate");
 			for (int i = 0; i < m_Size; i++)
 			{
 				if constexpr (is_detected_v<HasUpdate, T>)
@@ -151,15 +154,16 @@ namespace Lumos
 		}
 
 		template<typename ... Args>
-		void CreateComponent(Entity* entity, Args&& ...args)
+		T* CreateComponent(Entity* entity, Args&& ...args)
 		{
-			T& component = m_ComponentArray.emplace_back(std::forward<Args>(args)...);
+			T component = T(std::forward<Args>(args)...);
 			InsertData(entity, component);
+			return GetData(entity);
 		}
 
 		void CreateLumosComponent(Entity* entity) override
 		{
-			T& component = m_ComponentArray.emplace_back();
+			T component = T();
 			InsertData(entity, component);
 		}
 
@@ -184,13 +188,13 @@ namespace Lumos
 		// set to a specified maximum amount, matching the maximum number
 		// of entities allowed to exist simultaneously, so that each entity
 		// has a unique spot.
-		std::vector<T> m_ComponentArray{};
+		std::vector<T> m_ComponentArray;
 
 		// Map from an entity ID to an array index.
-		std::unordered_map<Entity*, size_t> m_EntityToIndexMap{};
+		std::unordered_map<Entity*, size_t> m_EntityToIndexMap;
 
 		// Map from an array index to an entity ID.
-		std::unordered_map<size_t, Entity*> m_IndexToEntityMap{};
+		std::unordered_map<size_t, Entity*> m_IndexToEntityMap;
 
 		// Total size of valid entries in the array.
 		size_t m_Size;
@@ -235,9 +239,9 @@ namespace Lumos
 		}
 
 		template<typename T, typename ... Args>
-		void AddComponent(Entity* entity, Args&& ...args)
+		T* AddComponent(Entity* entity, Args&& ...args)
 		{
-			GetComponentArray<T>()->CreateComponent(entity, std::forward<Args>(args) ...);
+			return GetComponentArray<T>()->CreateComponent(entity, std::forward<Args>(args) ...);
 		}
 
 		template<typename T>
@@ -314,7 +318,7 @@ namespace Lumos
 	template<typename T>
 	inline void ComponentArray<T>::OnImGui(Entity * entity)
 	{
-		PROFILERRECORD("ComponentManager::OnImGui");
+		LUMOS_PROFILE_BLOCK("ComponentManager::OnImGui");
 		
 		T* component = GetData(entity);
 
@@ -323,7 +327,15 @@ namespace Lumos
 			String componentName = LUMOS_TYPENAME_STRING(T);
 			size_t typeID = typeid(T).hash_code();
 			bool open = true;
-			ImGuiComponentHeader(componentName, typeID, entity, open);
+			bool hasActive = false;
+			bool& active = hasActive;
+			if constexpr (is_detected_v<HasActive, T>)
+			{
+				active = component->GetActive();
+				hasActive = true;
+			}
+
+			ImGuiComponentHeader(componentName, typeID, entity, open, hasActive, active);
 
 			if constexpr (is_detected_v<HasImGui, T>)
 			{
