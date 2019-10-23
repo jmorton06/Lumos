@@ -223,6 +223,12 @@ Lumos::EntityManager::~EntityManager()
     Clear();
 }
 
+void Lumos::EntityManager::OnUpdate(float dt)
+{
+	for (auto entity : m_Entities)
+		entity->OnUpdateObject(dt);
+}
+
 void Lumos::EntityManager::Clear()
 {
 	for (auto entity : m_Entities)

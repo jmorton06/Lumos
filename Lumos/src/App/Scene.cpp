@@ -130,7 +130,7 @@ namespace Lumos
 	{
 		const Maths::Vector2 mousePos = Input::GetInput()->GetMousePosition();
 
-		if(m_pCamera && Application::Instance()->GetSceneActive())
+		if (m_pCamera && Application::Instance()->GetSceneActive())
 		{
 			m_pCamera->HandleMouse(timeStep->GetMillis(), mousePos.GetX(), mousePos.GetY());
 			m_pCamera->HandleKeyboard(timeStep->GetMillis());
@@ -138,18 +138,6 @@ namespace Lumos
 		}
 
 		BuildFrameRenderList();
-
-		std::function<void(Entity*)> per_object_func = [&](Entity* obj)
-		{
-			obj->OnUpdateObject(timeStep->GetSeconds());
-
-			for(auto child : obj->GetChildren())
-				per_object_func(child);
-		};
-
-		per_object_func(m_RootEntity);
-
-		ComponentManager::Instance()->OnUpdate();
 	}
 
 	void Scene::InsertToRenderList(RenderList* list, const Maths::Frustum& frustum) const
