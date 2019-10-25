@@ -3,6 +3,7 @@
 #include "Maths/Maths.h"
 #include "Maths/Frustum.h"
 #include "ECS/ComponentManager.h"
+#include "ECS/EntityManager.h"
 
 #include "ImGui/ImGuiHelpers.h"
 

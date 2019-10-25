@@ -1,7 +1,6 @@
 #include "lmpch.h"
 #include "GridRenderer.h"
 #include "Graphics/API/Shader.h"
-#include "Graphics/RenderList.h"
 #include "Graphics/API/Framebuffer.h"
 #include "Graphics/API/Texture.h"
 #include "Graphics/API/UniformBuffer.h"
@@ -57,7 +56,7 @@ namespace Lumos
 			m_CommandBuffers.clear();
 		}
 
-		void GridRenderer::RenderScene(RenderList* renderList, Scene* scene)
+		void GridRenderer::RenderScene(Scene* scene)
 		{
 			m_CurrentBufferID = 0;
 			if (!m_RenderTexture)

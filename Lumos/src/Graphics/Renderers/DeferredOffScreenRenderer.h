@@ -1,5 +1,6 @@
 #pragma once
 #include "Renderer3D.h"
+#include "Maths/Frustum.h"
 
 namespace Lumos
 {
@@ -25,7 +26,7 @@ namespace Lumos
 			DeferredOffScreenRenderer(u32 width, u32 height);
 			~DeferredOffScreenRenderer() override;
 
-			void RenderScene(RenderList* renderList, Scene* scene) override;
+			void RenderScene(Scene* scene) override;
 
 			void Init() override;
 			void Begin() override;
@@ -69,6 +70,8 @@ namespace Lumos
 			std::vector<CommandBuffer*> m_CommandBuffers;
 
 			CommandBuffer* m_DeferredCommandBuffers;
+
+			Maths::Frustum m_Frustum;
 
 			struct UniformBufferModel
 			{
