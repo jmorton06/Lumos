@@ -93,20 +93,11 @@ namespace Lumos
 
 		m_SceneBoundingRadius = 400.0f; //Default scene radius of 400m
 
-		m_pFrameRenderList = CreateScope<RenderList>();
-
-		if (!RenderList::AllocateNewRenderList(m_pFrameRenderList.get(), true))
-		{
-			LUMOS_LOG_CRITICAL("Unable to allocate scene render list! - Try using less shadow maps");
-		}
-
 		m_RootEntity = EntityManager::Instance()->CreateEntity("Root");
 	}
 
 	void Scene::OnCleanupScene()
 	{
-        m_pFrameRenderList.reset();
-
 		DeleteAllGameObjects();
 
 		Application::Instance()->GetRenderManager()->Reset();
@@ -136,59 +127,6 @@ namespace Lumos
 			m_pCamera->HandleKeyboard(timeStep->GetMillis());
 			m_pCamera->BuildViewMatrix();
 		}
-
-		BuildFrameRenderList();
-	}
-
-	void Scene::InsertToRenderList(RenderList* list, const Maths::Frustum& frustum) const
-	{
-		std::function<void(Entity*)> per_object_func = [&](Entity* obj)
-		{
-			if (obj->ActiveInHierarchy())
-			{
-				auto meshComponent = obj->GetComponent<MeshComponent>();
-				if (meshComponent &&/* meshComponent->GetActive() &&*/ meshComponent->GetMesh())
-				{
-					auto transform = obj->GetComponent<Maths::Transform>();
-
-					float maxScaling = 0.0f;
-					maxScaling = Maths::Max(transform->GetWorldMatrix().GetScaling().GetX(), maxScaling);
-					maxScaling = Maths::Max(transform->GetWorldMatrix().GetScaling().GetY(), maxScaling);
-					maxScaling = Maths::Max(transform->GetWorldMatrix().GetScaling().GetZ(), maxScaling);
-
-					bool inside = frustum.InsideFrustum(transform->GetWorldMatrix().GetPositionVector(), maxScaling * meshComponent->GetMesh()->GetBoundingSphere()->SphereRadius());// maxScaling * obj->GetBoundingRadius());
-
-					if (inside)
-					{
-						//Check to see if the object is already listed or not
-						if (!(list->BitMask() & obj->GetFrustumCullFlags()))
-						{
-							list->InsertObject(obj);
-						}
-					}
-				}
-
-				for (auto child : obj->GetChildren())
-					per_object_func(child);
-			}
-		};
-
-		per_object_func(m_RootEntity);
-	}
-
-	void Scene::BuildFrameRenderList()
-	{
-        if(!m_pCamera)
-            return;
-		m_pCamera->BuildViewMatrix();
-		m_FrameFrustum.FromMatrix(m_pCamera->GetProjectionMatrix() * m_pCamera->GetViewMatrix());
-
-		//BuildWorldMatrices();
-
-		m_pFrameRenderList->UpdateCameraWorldPos(m_pCamera->GetPosition());
-		m_pFrameRenderList->RemoveExcessObjects(m_FrameFrustum);
-		m_pFrameRenderList->SortLists();
-		InsertToRenderList(m_pFrameRenderList.get(), m_FrameFrustum);
 	}
 
 	void Scene::IterateEntities(const std::function<void(Entity*)>& per_object_func)

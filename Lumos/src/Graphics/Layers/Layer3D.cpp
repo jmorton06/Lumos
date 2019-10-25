@@ -36,7 +36,7 @@ namespace Lumos
 
 	void Layer3D::OnRender(Scene* scene)
 	{
-		m_Renderer->RenderScene(scene->GetRenderList(), scene);
+		m_Renderer->RenderScene(scene);
 	}
 
 	void Layer3D::OnImGui()

@@ -28,7 +28,7 @@ namespace Lumos
 
 			virtual	~Renderer3D() {}
 
-			virtual void RenderScene(RenderList* renderList, Scene* scene) = 0;
+			virtual void RenderScene(Scene* scene) = 0;
 			Framebuffer* GetFBO() const { return m_FBO; }
 
 			virtual void Init() = 0;

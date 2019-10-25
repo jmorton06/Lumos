@@ -49,7 +49,12 @@ namespace Lumos
             ss << "##";
             ss << node->GetUUID();
             
+			bool active = node->ActiveInHierarchy();
+			if(!active)
+				ImGui::PushStyleColor(ImGuiCol_Text, ImGui::GetStyleColorVec4(ImGuiCol_TextDisabled));
             bool nodeOpen = ImGui::TreeNodeEx(ss.str().c_str(), nodeFlags, (icon + " " + node->GetName()).c_str(), 0);
+			if (!active)
+				ImGui::PopStyleColor();
 
 			if (ImGui::BeginDragDropSource(ImGuiDragDropFlags_None))
 			{

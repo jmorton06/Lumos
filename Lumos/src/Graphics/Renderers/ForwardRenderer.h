@@ -2,6 +2,7 @@
 #include "lmpch.h"
 #include "Renderer3D.h"
 #include "SkyboxRenderer.h"
+#include "Maths/Frustum.h"
 
 namespace Lumos
 {
@@ -17,7 +18,7 @@ namespace Lumos
 		public:
 			ForwardRenderer(u32 width, u32 height, bool renderToGBuffer = false);
 			~ForwardRenderer() override;
-			void RenderScene(RenderList* renderList, Scene* scene) override;
+			void RenderScene(Scene* scene) override;
 
 			u8* m_VSSystemUniformBuffer{};
 			u32 m_VSSystemUniformBufferSize{};
@@ -70,6 +71,8 @@ namespace Lumos
 
 			size_t m_DynamicAlignment;
 			UniformBufferModel m_UBODataDynamic;
+
+			Maths::Frustum m_Frustum;
 
 			u32 m_CurrentBufferID = 0;
 

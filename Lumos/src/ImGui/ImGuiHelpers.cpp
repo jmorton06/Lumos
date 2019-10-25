@@ -140,11 +140,11 @@ namespace Lumos
         drawList->AddRectFilled(bb.Min, ImVec2(pos.x + circleStart, bb.Max.y), bg_col);
         drawList->AddRectFilled(bb.Min, ImVec2(pos.x + circleStart*value, bb.Max.y), fg_col);
         
-        const float t = g->Time;
-        const float r = size.y / 2;
+        const float t = float(g->Time);
+        const float r = size.y / 2.0f;
         const float speed = 1.5f;
         
-        const float a = speed*0;
+        const float a = speed*0.f;
         const float b = speed*0.333f;
         const float c = speed*0.666f;
         
@@ -178,20 +178,20 @@ namespace Lumos
         drawList->PathClear();
         
         int num_segments = 30;
-        int start = abs(ImSin(g->Time*1.8f)*(num_segments-5));
+        float start = abs(ImSin(float(g->Time)*1.8f)*(num_segments-5));
         
-        const float a_min = IM_PI*2.0f * ((float)start) / (float)num_segments;
-        const float a_max = IM_PI*2.0f * ((float)num_segments-3) / (float)num_segments;
+        const float a_min = IM_PI*2.0f * (start / float(num_segments));
+        const float a_max = IM_PI*2.0f * (float(num_segments)-3.0f) / (float)num_segments;
 
         const ImVec2 centre = ImVec2(pos.x+radius, pos.y+radius+style.FramePadding.y);
         
         for (int i = 0; i < num_segments; i++) {
-            const float a = a_min + ((float)i / (float)num_segments) * (a_max - a_min);
-            drawList->PathLineTo(ImVec2(centre.x + ImCos(a+g->Time*8) * radius,
-                                                centre.y + ImSin(a+g->Time*8) * radius));
+            const float a = a_min + (float(i) / float(num_segments)) * (a_max - a_min);
+            drawList->PathLineTo(ImVec2(centre.x + ImCos(a+float(g->Time)*8) * radius,
+                                                centre.y + ImSin(a+ float(g->Time) *8) * radius));
         }
 
-        drawList->PathStroke(color, false, thickness);
+        drawList->PathStroke(color, false, float(thickness));
         
         return true;
     }
