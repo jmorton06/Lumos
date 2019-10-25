@@ -45,7 +45,9 @@ jobs:
           fetch-depth: 1
       - name: Generate Project
         run: | 
-          ./Scripts/GenerateVS.bat
+          cd Scripts
+          ./GenerateVS.bat
+          cd ../
       - name: Build x64
         shell: cmd
         run: |
