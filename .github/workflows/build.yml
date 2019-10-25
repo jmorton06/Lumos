@@ -19,4 +19,35 @@ jobs:
         Tools/linux/premake5 gmake2
         cd build
         make $* CC=gcc-8 CPP=g++-8 CXX=g++-8 CC=gcc-8
+  MacOS:
+    runs-on: macOS-10.14
+    steps:
+    - uses: actions/checkout@v1
+      with:
+        fetch-depth: 1
+    - name: Build
+      run: |
+        Tools/premake5 gmake2
+        cd build
+        make $*
+    - name: Test
+      run: |
+        cd ../
+        ./bin/Debug/Tests
+        
+  Windows:
+    runs-on: windows-2019
+    env:
+      MSBUILD_PATH: C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\MSBuild\Current\Bin\
+    steps:
+      - uses: actions/checkout@v1
+        with:
+          fetch-depth: 1
+      - name: Generate Project
+        run: | 
+          ./Scripts/GenerateVS.bat
+      - name: Build x64
+        shell: cmd
+        run: |
+          "%MSBUILD_PATH%\MSBuild.exe" /p:Platform=x64 /p:Configuration=Release build/Lumos.sln
 
