@@ -2,9 +2,7 @@
 
 **Game Engine written in C++ using OpenGL and Vulkan.**
 
-[![Build status](https://img.shields.io/appveyor/ci/jmorton06/Lumos.svg?style=flat-square&label=Windows)](https://ci.appveyor.com/project/jmorton06/Lumos) [![Build status]( https://img.shields.io/travis/jmorton06/Lumos.svg?style=flat-square&label=Linux%20macOS)](https://travis-ci.org/jmorton06/Lumos)
-[![Codacy Badge](https://img.shields.io/codacy/grade/87b98e66b49044e2b98508c050705dcf.svg?style=flat-square)](https://www.codacy.com/app/jmorton06/Lumos?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=jmorton06/Lumos&amp;utm_campaign=Badge_Grade)
-[![License](http://img.shields.io/:license-mit-blue.svg?style=flat-square)](http://doge.mit-license.org)
+[![Build Status](https://img.shields.io/endpoint.svg?url=https%3A%2F%2Factions-badge.atrox.dev%2Fjmorton06%2FLumos%2Fbadge&style=flat-square&label=build)](https://actions-badge.atrox.dev/jmorton06/Lumos/goto)
 
 ## Building  🔨
  
