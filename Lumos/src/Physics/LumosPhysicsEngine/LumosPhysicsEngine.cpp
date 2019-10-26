@@ -100,16 +100,12 @@ namespace Lumos
             
             for (Entity* entity : physicsEntities)
             {
-                auto physicsObject = entity->GetComponent<Physics3DComponent>()->GetPhysicsObject();
+                auto& physicsObject = entity->GetComponent<Physics3DComponent>()->GetPhysicsObject();
+				auto transform = entity->GetTransformComponent();
 
-				if (physicsObject->m_wsTransformInvalidated == true)
-				{
-					auto transform = entity->GetTransformComponent();
-
-					transform->SetLocalPosition(physicsObject->GetPosition());
-					transform->SetLocalOrientation(physicsObject->GetOrientation());
-					transform->UpdateMatrices();
-				}
+				transform->SetLocalPosition(physicsObject->GetPosition());
+				transform->SetLocalOrientation(physicsObject->GetOrientation());
+				transform->UpdateMatrices();
             }
 		}
 	}

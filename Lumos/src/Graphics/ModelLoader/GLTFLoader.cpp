@@ -234,8 +234,10 @@ namespace Lumos
         return loadedMaterials;
     }
     
-	Graphics::Mesh* LoadMesh(tinygltf::Model& model, tinygltf::Mesh& mesh, std::vector<Ref<Material>>& materials)
+	std::vector<Graphics::Mesh*> LoadMesh(tinygltf::Model& model, tinygltf::Mesh& mesh, std::vector<Ref<Material>>& materials)
     {
+        std::vector<Graphics::Mesh*> meshes;
+        
         for (auto& primitive : mesh.primitives)
         {
             const tinygltf::Accessor &indices = model.accessors[primitive.indices];
@@ -393,13 +395,13 @@ namespace Lumos
             delete[] tempvertices;
             delete[] indicesArray;
             
-            return lMesh;
+            meshes.emplace_back(lMesh);
         }
         
-        return nullptr;
+        return meshes;
     }
     
-    void LoadNode(int nodeIndex, Entity* parent, tinygltf::Model& model, std::vector<Ref<Material>>& materials, std::vector<Graphics::Mesh*>& meshes)
+    void LoadNode(int nodeIndex, Entity* parent, tinygltf::Model& model, std::vector<Ref<Material>>& materials, std::vector<std::vector<Graphics::Mesh*>>& meshes)
     {
         if (nodeIndex < 0)
         {
@@ -419,17 +421,29 @@ namespace Lumos
         
         if(node.mesh >= 0)
         {
-           
-            auto lMesh = Ref<Graphics::Mesh>(meshes[node.mesh]);
-            meshEntity->AddComponent<MeshComponent>(lMesh);
+            int subIndex = 0;
+            for(auto& meshes : meshes[node.mesh])
+            {
+                auto subname = node.name;
+                if(subname == "")
+                    subname = "Mesh : " + StringFormat::ToString(subIndex);
+                auto submeshEntity = EntityManager::Instance()->CreateEntity(name);
+                auto lMesh = Ref<Graphics::Mesh>(meshes);
+                                
+                submeshEntity->AddComponent<MeshComponent>(lMesh);
 
-			int materialIndex = model.meshes[node.mesh].primitives[0].material;
-			if(materialIndex >= 0)
-				meshEntity->AddComponent<MaterialComponent>(materials[materialIndex]);
+                int materialIndex = model.meshes[node.mesh].primitives[subIndex].material;
+                if(materialIndex >= 0)
+                    submeshEntity->AddComponent<MaterialComponent>(materials[materialIndex]);
 
-			/*if (node.skin >= 0)
-			{
-            }*/
+                meshEntity->AddChild(submeshEntity);
+                /*if (node.skin >= 0)
+                {
+                }*/
+                
+                subIndex++;
+
+            }
         }
         
         Maths::Transform* transform = meshEntity->GetTransformComponent();
@@ -510,7 +524,7 @@ namespace Lumos
 		auto entity = EntityManager::Instance()->CreateEntity(name);
 		entity->AddComponent<Maths::Transform>();
 
-        auto meshes = std::vector<Graphics::Mesh*>();
+        auto meshes = std::vector<std::vector<Graphics::Mesh*>>();
         
         for (auto& mesh : model.meshes)
         {
