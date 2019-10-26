@@ -25,7 +25,7 @@ namespace Lumos
 			DeferredRenderer(u32 width, u32 height, bool renderToGBuffer = false);
 			~DeferredRenderer() override;
 
-			void RenderScene(RenderList* renderList, Scene* scene) override;
+			void RenderScene(Scene* scene) override;
 
 			void Init() override;
 			void Begin() override { };

@@ -1,7 +1,6 @@
 #pragma once
 #include "lmpch.h"
 #include "Maths/Frustum.h"
-#include "Graphics/RenderList.h"
 #include "Utilities/AssetManager.h"
 
 #include "Events/Event.h"
@@ -69,11 +68,6 @@ namespace Lumos
 		void  SetWorldRadius(float radius) { m_SceneBoundingRadius = radius; }
 		float GetWorldRadius() const { return m_SceneBoundingRadius; }
 
-		// Adds all visible objects to given RenderList
-		void InsertToRenderList(RenderList* list, const Maths::Frustum& frustum) const;
-
-		void BuildFrameRenderList();
-
 		Entity* GetRootEntity() { return m_RootEntity; }
 
 		void SetCamera(Camera* camera) { m_pCamera = camera; }
@@ -88,9 +82,6 @@ namespace Lumos
         
         u32 GetScreenWidth() const { return m_ScreenWidth; }
         u32 GetScreenHeight() const { return m_ScreenHeight; }
-
-		Maths::Frustum GetFrustum() const { return m_FrameFrustum; }
-		RenderList* GetRenderList() const { return m_pFrameRenderList.get(); }
 
 		void IterateEntities(const std::function<void(Entity*)>& per_object_func);
 
@@ -113,9 +104,6 @@ namespace Lumos
 
 		u32 m_ScreenWidth;
 		u32 m_ScreenHeight;
-
-		Maths::Frustum m_FrameFrustum;
-		Scope<RenderList>	m_pFrameRenderList;
 
     private:
 		NONCOPYABLE(Scene)

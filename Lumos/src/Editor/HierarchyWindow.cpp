@@ -4,7 +4,7 @@
 #include "ECS/EntityManager.h"
 #include "App/Application.h"
 #include "App/SceneManager.h"
-
+#include "ImGui/ImGuiHelpers.h"
 #include <IconFontCppHeaders/IconsFontAwesome5.h>
 
 namespace Lumos
@@ -49,7 +49,12 @@ namespace Lumos
             ss << "##";
             ss << node->GetUUID();
             
+			bool active = node->ActiveInHierarchy();
+			if(!active)
+				ImGui::PushStyleColor(ImGuiCol_Text, ImGui::GetStyleColorVec4(ImGuiCol_TextDisabled));
             bool nodeOpen = ImGui::TreeNodeEx(ss.str().c_str(), nodeFlags, (icon + " " + node->GetName()).c_str(), 0);
+			if (!active)
+				ImGui::PopStyleColor();
 
 			if (ImGui::BeginDragDropSource(ImGuiDragDropFlags_None))
 			{
@@ -105,7 +110,15 @@ namespace Lumos
 			ImGui::Text(ICON_FA_SEARCH);
 			ImGui::SameLine();
 			m_HierarchyFilter.Draw("##HierarchyFilter", ImGui::GetContentRegionAvailWidth() - ImGui::GetStyle().IndentSpacing);
-			ImGui::Unindent();
+            
+            const ImU32 col = ImGui::GetColorU32(ImGuiCol_Text);
+            const ImU32 bg = ImGui::GetColorU32(ImGuiCol_TextSelectedBg);
+
+            ImGui::NewLine();
+            ImGuiHelpers::Spinner("##spinner", 8, 6, col);
+            ImGuiHelpers::BufferingBar("##buffer_bar", 0.7f, Maths::Vector2(400, 6), bg, col);
+
+            ImGui::Unindent();
 
 			if (ImGui::TreeNode("Scene"))
 			{
