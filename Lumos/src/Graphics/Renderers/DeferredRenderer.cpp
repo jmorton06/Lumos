@@ -13,7 +13,6 @@
 
 #include "Graphics/RenderManager.h"
 #include "Graphics/Camera/Camera.h"
-#include "Graphics/RenderList.h"
 #include "Graphics/ModelLoader/ModelLoader.h"
 #include "Graphics/Mesh.h"
 #include "Graphics/MeshFactory.h"
@@ -162,13 +161,13 @@ namespace Lumos
 			CreateScreenDescriptorSet();
 		}
 
-		void DeferredRenderer::RenderScene(RenderList* renderList, Scene* scene)
+		void DeferredRenderer::RenderScene(Scene* scene)
 		{
             LUMOS_PROFILE_BLOCK("DeferredRenderer::RenderScene");
 
 			BeginScene(scene);
 
-			m_OffScreenRenderer->RenderScene(renderList, scene);
+			m_OffScreenRenderer->RenderScene(scene);
 
 			SubmitLightSetup(scene);
 

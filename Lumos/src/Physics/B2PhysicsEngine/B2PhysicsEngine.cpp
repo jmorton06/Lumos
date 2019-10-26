@@ -2,6 +2,7 @@
 #include "B2PhysicsEngine.h"
 
 #include "Utilities/TimeStep.h"
+#include "Core/Profiler.h"
 
 #include <Box2D/Box2D.h>
 #include <Box2D/Common/b2Math.h>

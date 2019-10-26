@@ -50,7 +50,7 @@ namespace Lumos
 			void EndScene() override;
 			void End() override;
 			void Present() override;
-			void RenderScene(RenderList* renderList, Scene* scene) override;
+			void RenderScene(Scene* scene) override;
 
 			Maths::Vector4* GetSplitDepths() { return m_SplitDepth; }
 			Maths::Matrix4* GetShadowProjView() { return m_ShadowProjView; }
@@ -60,7 +60,6 @@ namespace Lumos
 			inline void SetShadowInvalid() { m_ShadowMapsInvalidated = true; }
 
 			inline TextureDepthArray* GetTexture() const { return m_ShadowTex; }
-			void ClearRenderLists();
 
 			u8* m_VSSystemUniformBuffer;
 			u32 m_VSSystemUniformBufferSize;
@@ -97,7 +96,6 @@ namespace Lumos
 			Framebuffer*    m_ShadowFramebuffer[SHADOWMAP_MAX];
 			Maths::Matrix4	m_ShadowProjView[SHADOWMAP_MAX];
 			Maths::Vector4  m_SplitDepth[SHADOWMAP_MAX];
-			RenderList**	m_apShadowRenderLists;
 			Graphics::PushConstant* m_PushConstant = nullptr;
 			bool			m_DeleteTexture = false;
 

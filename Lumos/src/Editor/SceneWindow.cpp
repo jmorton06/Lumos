@@ -9,6 +9,8 @@
 #include "Graphics/RenderManager.h"
 #include "Graphics/GBuffer.h"
 #include "Graphics/Light.h"
+#include "ECS/Component/CameraComponent.h"
+#include "ECS/Component/SoundComponent.h"
 
 #include <imgui/plugins/ImGuizmo.h>
 #include <IconFontCppHeaders/IconsFontAwesome5.h>

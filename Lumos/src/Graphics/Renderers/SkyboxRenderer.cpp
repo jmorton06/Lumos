@@ -1,7 +1,6 @@
 #include "lmpch.h"
 #include "SkyboxRenderer.h"
 #include "Graphics/API/Shader.h"
-#include "Graphics/RenderList.h"
 #include "Graphics/API/Framebuffer.h"
 #include "Graphics/API/Texture.h"
 #include "Graphics/API/UniformBuffer.h"
@@ -59,7 +58,7 @@ namespace Lumos
 			m_CommandBuffers.clear();
 		}
 
-		void SkyboxRenderer::RenderScene(RenderList* renderList, Scene* scene)
+		void SkyboxRenderer::RenderScene(Scene* scene)
 		{
 			m_CurrentBufferID = 0;
 			if (!m_RenderTexture)

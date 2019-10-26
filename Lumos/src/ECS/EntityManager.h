@@ -130,6 +130,7 @@ namespace Lumos
 		EntityManager() = default;
         ~EntityManager();
 
+		void OnUpdate(float dt);
 		void Clear();
 		Entity* CreateEntity(const String& name = "Entity");
 		void DeleteEntity(Entity* entity);
@@ -145,7 +146,7 @@ namespace Lumos
 
 			for (auto entity : m_Entities)
 			{
-				if (entity->HasComponent<T>())
+				if (entity->ActiveInHierarchy() && entity->HasComponent<T>())
 					entities.emplace_back(entity);
 			}
 
@@ -159,7 +160,7 @@ namespace Lumos
 
 			for (auto entity : m_Entities)
 			{
-				if (entity->HasComponent<T>() && entity->HasComponent<S>())
+				if (entity->ActiveInHierarchy() && entity->HasComponent<T>() && entity->HasComponent<S>())
 					entities.emplace_back(entity);
 			}
 
