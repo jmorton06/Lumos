@@ -13,7 +13,6 @@
 
 #include "Graphics/RenderManager.h"
 #include "Graphics/Camera/Camera.h"
-#include "Graphics/RenderList.h"
 #include "Graphics/Mesh.h"
 #include "Graphics/Material.h"
 #include "Graphics/GBuffer.h"
@@ -148,7 +147,7 @@ namespace Lumos
 			m_ClearColour = Maths::Vector4(0.1f, 0.1f, 0.1f, 1.0f);
 		}
 
-		void DeferredOffScreenRenderer::RenderScene(RenderList* renderList, Scene* scene)
+		void DeferredOffScreenRenderer::RenderScene(Scene* scene)
 		{
             LUMOS_PROFILE_BLOCK("DeferredOffScreenRenderer::RenderScene");
 
@@ -156,13 +155,27 @@ namespace Lumos
 
 			Begin();
 
-			renderList->RenderOpaqueObjects([&](Entity* obj)
+			auto entities = EntityManager::Instance()->GetEntitiesWithType<MeshComponent>();
+			for (auto obj : entities)
 			{
 				if (obj != nullptr)
 				{
 					auto* model = obj->GetComponent<MeshComponent>();
-					if (model && model->GetMesh() && model->GetMesh()->GetActive())
+					if (model->GetMesh() && model->GetMesh()->GetActive())
 					{
+						auto& worldTransform = obj->GetComponent<Maths::Transform>()->GetWorldMatrix();
+
+						float maxScaling = 0.0f;
+						auto scale = worldTransform.GetScaling();
+						maxScaling = Maths::Max(scale.GetX(), maxScaling);
+						maxScaling = Maths::Max(scale.GetY(), maxScaling);
+						maxScaling = Maths::Max(scale.GetZ(), maxScaling);
+
+						bool inside = m_Frustum.InsideFrustum(worldTransform.GetPositionVector(), maxScaling * model->GetMesh()->GetBoundingSphere()->SphereRadius());
+
+						if (!inside)
+							continue;
+
 						auto mesh = model->GetMesh();
 						auto materialComponent = obj->GetComponent<MaterialComponent>();
 						Material* material = nullptr;
@@ -170,7 +183,7 @@ namespace Lumos
 						{
 							material = materialComponent->GetMaterial().get();
 
-                            if (material->GetDescriptorSet() == nullptr || material->GetPipeline() != m_Pipeline)
+							if (material->GetDescriptorSet() == nullptr || material->GetPipeline() != m_Pipeline)
 								material->CreateDescriptorSet(m_Pipeline, 1);
 						}
 
@@ -181,12 +194,10 @@ namespace Lumos
 						else
 							textureMatrix = Maths::Matrix4();
 
-						auto transform = obj->GetComponent<Maths::Transform>()->GetWorldMatrix();
-
-						SubmitMesh(mesh, material, transform, textureMatrix);
+						SubmitMesh(mesh, material, worldTransform, textureMatrix);
 					}
 				}
-			});
+			}
 
 			SetSystemUniforms(m_Shader);
 
@@ -218,6 +229,8 @@ namespace Lumos
 
 			auto projView = proj * camera->GetViewMatrix();
 			memcpy(m_VSSystemUniformBuffer + m_VSSystemUniformBufferOffsets[VSSystemUniformIndex_ProjectionViewMatrix], &projView, sizeof(Maths::Matrix4));
+
+			m_Frustum.FromMatrix(projView);
 		}
 
 		void DeferredOffScreenRenderer::Submit(const RenderCommand& command)

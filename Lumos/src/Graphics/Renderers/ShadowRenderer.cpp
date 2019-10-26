@@ -14,8 +14,8 @@
 #include "Graphics/ModelLoader/ModelLoader.h"
 #include "Graphics/Camera/Camera.h"
 #include "Graphics/Light.h"
-#include "Graphics/RenderList.h"
 
+#include "ECS/EntityManager.h"
 #include "ECS/Component/MeshComponent.h"
 
 #include "Maths/MathsUtilities.h"
@@ -47,18 +47,6 @@ namespace Lumos
 			, m_UniformBuffer(nullptr)
 			, m_ModelUniformBuffer(nullptr)
 		{
-			m_apShadowRenderLists = lmnew RenderList*[SHADOWMAP_MAX];
-
-			//Initialize the shadow render lists
-			for (u32 i = 0; i < m_ShadowMapNum; ++i)
-			{
-				m_apShadowRenderLists[i] = lmnew RenderList();
-				if (!RenderList::AllocateNewRenderList(m_apShadowRenderLists[i], true))
-				{
-					LUMOS_LOG_CRITICAL("Unable to allocate shadow render list {0} - Try using less shadow maps", i);
-				}
-			}
-
 			m_Shader = Shader::CreateFromFile("Shadow", "/CoreShaders/");
 			if (texture == nullptr)
 			{
@@ -80,13 +68,9 @@ namespace Lumos
 
 			for (u32 i = 0; i < m_ShadowMapNum; ++i)
 			{
-				if (m_apShadowRenderLists)
-					delete m_apShadowRenderLists[i];
-
 				delete m_ShadowFramebuffer[i];
 			}
 
-			delete[] m_apShadowRenderLists;
 			delete[] m_VSSystemUniformBuffer;
 			delete[] m_PushConstant->data;
             
@@ -200,19 +184,6 @@ namespace Lumos
 		{
 			if (m_ShadowMapNum != num && num <= SHADOWMAP_MAX)
 			{
-				if (m_ShadowMapNum > 0)
-				{
-					for (int i = m_ShadowMapNum - 1; i >= static_cast<int>(num); --i)
-					{
-						delete m_apShadowRenderLists[i];
-						m_apShadowRenderLists[i] = nullptr;
-					}
-				}
-				for (u32 i = m_ShadowMapNum; i < num; i++)
-				{
-					m_apShadowRenderLists[i] = lmnew RenderList();
-					RenderList::AllocateNewRenderList(m_apShadowRenderLists[i], true);
-				}
 				m_ShadowMapNum = num;
 				m_ShadowMapsInvalidated = true;
 			}
@@ -226,16 +197,7 @@ namespace Lumos
 			m_ShadowMapSize = size;
 		}
 
-		void ShadowRenderer::ClearRenderLists()
-		{
-			for (u32 i = 0; i < m_ShadowMapNum; ++i)
-			{
-				if (m_apShadowRenderLists[i])
-					m_apShadowRenderLists[i]->Clear();
-			}
-		}
-
-		void ShadowRenderer::RenderScene(RenderList* renderList, Scene* scene)
+		void ShadowRenderer::RenderScene(Scene* scene)
 		{
             LUMOS_PROFILE_BLOCK("ShadowRenderer::RenderScene");
 
@@ -248,21 +210,35 @@ namespace Lumos
 			{
 				m_Layer = i;
 
-				m_apShadowRenderLists[i]->RenderOpaqueObjects([&](Entity* obj)
-				{
-					if (obj)
-					{
-						const auto model = obj->GetComponent<MeshComponent>();
+				Maths::Frustum f;
+				f.FromMatrix(m_ShadowProjView[i]);
 
-						if (model && model->GetMesh())
+				auto entities = EntityManager::Instance()->GetEntitiesWithType<MeshComponent>();
+				for (auto obj : entities)
+				{
+					if (obj != nullptr)
+					{
+						auto model = obj->GetComponent<MeshComponent>();
+						if (model->GetMesh() && model->GetMesh()->GetActive())
 						{
-							auto mesh = model->GetMesh();
-							{
-								SubmitMesh(mesh, nullptr, obj->GetComponent<Maths::Transform>()->GetWorldMatrix(), Maths::Matrix4());
-							}
+							auto& worldTransform = obj->GetComponent<Maths::Transform>()->GetWorldMatrix();
+
+							float maxScaling = 0.0f;
+							auto scale = worldTransform.GetScaling();
+							maxScaling = Maths::Max(scale.GetX(), maxScaling);
+							maxScaling = Maths::Max(scale.GetY(), maxScaling);
+							maxScaling = Maths::Max(scale.GetZ(), maxScaling);
+
+							bool inside = f.InsideFrustum(worldTransform.GetPositionVector(), maxScaling * model->GetMesh()->GetBoundingSphere()->SphereRadius());
+
+							if (!inside)
+								continue;
+				
+					
+							SubmitMesh(model->GetMesh(), nullptr, worldTransform, Maths::Matrix4());
 						}
 					}
-				});
+				}
 
 				SetSystemUniforms(m_Shader);
 
@@ -384,14 +360,6 @@ namespace Lumos
 				// Store split distance and matrix in cascade
 				m_SplitDepth[i] = Maths::Vector4((scene->GetCamera()->GetNear() + splitDist * clipRange) * -1.0f);
 				m_ShadowProjView[i] = lightOrthoMatrix * lightViewMatrix;
-
-				const Maths::Vector3 top_mid = frustumCenter + lightViewMatrix * Maths::Vector3(0.0f, 0.0f, maxExtents.GetZ());
-				Maths::Frustum f;
-				f.FromMatrix(m_ShadowProjView[i]);
-				m_apShadowRenderLists[i]->UpdateCameraWorldPos(top_mid);
-				m_apShadowRenderLists[i]->RemoveExcessObjects(f);
-				m_apShadowRenderLists[i]->SortLists();
-				scene->InsertToRenderList(m_apShadowRenderLists[i], f);
 			}
 #ifdef THREAD_CASCADE_GEN
 			);

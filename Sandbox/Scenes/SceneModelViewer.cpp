@@ -18,7 +18,7 @@ void SceneModelViewer::OnInit()
 
 	LoadModels();
 
-	m_pCamera = new MayaCamera(-20.0f, -40.0f, Maths::Vector3(-1.0f, 1.0f, 2.0f), 45.0f, 0.1f, 1000.0f, (float) m_ScreenWidth / (float) m_ScreenHeight);
+	m_pCamera = new EditorCamera(-20.0f, -40.0f, Maths::Vector3(-1.0f, 1.0f, 2.0f), 45.0f, 0.1f, 1000.0f, (float) m_ScreenWidth / (float) m_ScreenHeight);
 
 	Application::Instance()->GetSystem<AudioManager>()->SetListener(m_pCamera);
 
@@ -41,9 +41,7 @@ void SceneModelViewer::OnInit()
 
 	auto lightEntity = EntityManager::Instance()->CreateEntity("Directional Light");
 	lightEntity->AddComponent<Graphics::Light>(Maths::Vector3(26.0f, 22.0f, 48.5f), Maths::Vector4(1.0f), 2.0f);
-	lightEntity->AddComponent<Maths::Transform>(Matrix4::Translation(Maths::Vector3(26.0f, 22.0f, 48.5f)));
-	lightEntity->GetTransformComponent()->SetLocalOrientation(Maths::Quaternion::LookAt(Maths::Vector3(26.0f, 22.0f, 48.5f), Maths::Vector3::Zero()));
-	lightEntity->GetTransformComponent()->ApplyTransform();
+	lightEntity->AddComponent<Maths::Transform>(Matrix4::Translation(Maths::Vector3(26.0f, 22.0f, 48.5f)) * Maths::Quaternion::LookAt(Maths::Vector3(26.0f, 22.0f, 48.5f), Maths::Vector3::Zero()).ToMatrix4());
 	AddEntity(lightEntity);
 
     auto shadowRenderer = new Graphics::ShadowRenderer();
@@ -63,6 +61,8 @@ void SceneModelViewer::OnInit()
     
     Application::Instance()->GetRenderManager()->SetShadowRenderer(shadowRenderer);
     Application::Instance()->GetRenderManager()->SetSkyBoxTexture(m_EnvironmentMap);
+    
+    m_SceneBoundingRadius = 20.0f;
 }
 
 void SceneModelViewer::OnUpdate(TimeStep* timeStep)
@@ -91,12 +91,12 @@ void SceneModelViewer::LoadModels()
 		"/Meshes/Cube/Cube.gltf",
 		"/Meshes/KhronosExamples/MetalRoughSpheres/glTF/MetalRoughSpheres.gltf",
 		"/Meshes/KhronosExamples/EnvironmentTest/glTF/EnvironmentTest.gltf",
-        "/Meshes/sponza.glb",
+        "/Meshes/Sponza/sponza.gltf",
         "/Meshes/capsule.glb"
 	};
 
-	auto TestObject = ModelLoader::LoadModel(ExampleModelPaths[0]);
-	TestObject->GetOrAddComponent<Maths::Transform>(Maths::Matrix4::Scale(Maths::Vector3(1.0f, 1.0f, 1.0f)));
+	auto TestObject = ModelLoader::LoadModel(ExampleModelPaths[6]);
+	//TestObject->GetOrAddComponent<Maths::Transform>(Maths::Matrix4::Scale(Maths::Vector3(1.0f, 1.0f, 1.0f)));
 	AddEntity(TestObject);
 
 }

@@ -1,7 +1,6 @@
 #include "lmpch.h"
 #include "ForwardRenderer.h"
 #include "Graphics/API/Shader.h"
-#include "Graphics/RenderList.h"
 #include "Graphics/API/Framebuffer.h"
 #include "Graphics/Light.h"
 #include "Graphics/API/Texture.h"
@@ -65,7 +64,7 @@ namespace Lumos
 			}
 		}
 
-		void ForwardRenderer::RenderScene(RenderList* renderList, Scene* scene)
+		void ForwardRenderer::RenderScene(Scene* scene)
 		{
 			//for (i = 0; i < commandBuffers.size(); i++)
 			{
@@ -75,37 +74,49 @@ namespace Lumos
 
 				Begin();
 
-				renderList->RenderOpaqueObjects([&](Entity* obj)
+				auto entities = EntityManager::Instance()->GetEntitiesWithType<MeshComponent>();
+				for (auto obj : entities)
 				{
 					if (obj != nullptr)
 					{
 						auto* model = obj->GetComponent<MeshComponent>();
-						if (model && model->GetMesh())
+						if (model->GetMesh() && model->GetMesh()->GetActive())
 						{
+							auto& worldTransform = obj->GetComponent<Maths::Transform>()->GetWorldMatrix();
+
+							float maxScaling = 0.0f;
+							auto scale = worldTransform.GetScaling();
+							maxScaling = Maths::Max(scale.GetX(), maxScaling);
+							maxScaling = Maths::Max(scale.GetY(), maxScaling);
+							maxScaling = Maths::Max(scale.GetZ(), maxScaling);
+
+							bool inside = m_Frustum.InsideFrustum(worldTransform.GetPositionVector(), maxScaling * model->GetMesh()->GetBoundingSphere()->SphereRadius());
+
+							if (!inside)
+								continue;
+
 							auto mesh = model->GetMesh();
+							auto materialComponent = obj->GetComponent<MaterialComponent>();
+							Material* material = nullptr;
+							if (materialComponent && /* materialComponent->GetActive() &&*/ materialComponent->GetMaterial())
 							{
-								auto materialComponent = obj->GetComponent<MaterialComponent>();
+								material = materialComponent->GetMaterial().get();
 
-                                Material* material = nullptr;
-                                
-								if (materialComponent && materialComponent->GetMaterial())
-								{
-                                    material = materialComponent->GetMaterial().get();
-									if (material->GetDescriptorSet() == nullptr || material->GetPipeline() != m_Pipeline)
-										material->CreateDescriptorSet(m_Pipeline, 1, false);
-								}
-
-								TextureMatrixComponent* textureMatrixTransform = obj->GetComponent<TextureMatrixComponent>();
-								Maths::Matrix4 textureMatrix;
-								if (textureMatrixTransform)
-									textureMatrix = textureMatrixTransform->GetMatrix();
-								else
-									textureMatrix = Maths::Matrix4();
-								SubmitMesh(mesh, material, obj->GetComponent<Maths::Transform>()->GetWorldMatrix(), textureMatrix);
+								if (material->GetDescriptorSet() == nullptr || material->GetPipeline() != m_Pipeline)
+									material->CreateDescriptorSet(m_Pipeline, 1);
 							}
+
+							TextureMatrixComponent* textureMatrixTransform = obj->GetComponent<TextureMatrixComponent>();
+							Maths::Matrix4 textureMatrix;
+							if (textureMatrixTransform)
+								textureMatrix = textureMatrixTransform->GetMatrix();
+							else
+								textureMatrix = Maths::Matrix4();
+
+							SubmitMesh(mesh, material, worldTransform, textureMatrix);
 						}
 					}
-				});
+				}
 
 				SetSystemUniforms(m_Shader);
 
@@ -268,6 +279,8 @@ namespace Lumos
 
 			memcpy(m_VSSystemUniformBuffer + m_VSSystemUniformBufferOffsets[VSSystemUniformIndex_ProjectionMatrix], &proj, sizeof(Maths::Matrix4));
 			memcpy(m_VSSystemUniformBuffer + m_VSSystemUniformBufferOffsets[VSSystemUniformIndex_ViewMatrix], &camera->GetViewMatrix(), sizeof(Maths::Matrix4));
+
+			m_Frustum.FromMatrix(proj * camera->GetViewMatrix());
 		}
 
 		void ForwardRenderer::Submit(const RenderCommand& command)
