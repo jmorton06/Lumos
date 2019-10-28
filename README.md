@@ -2,7 +2,9 @@
 
 **Game Engine written in C++ using OpenGL and Vulkan.**
 
-[![Build Status](https://img.shields.io/endpoint.svg?url=https%3A%2F%2Factions-badge.atrox.dev%2Fjmorton06%2FLumos%2Fbadge&style=flat-square&label=build)](https://actions-badge.atrox.dev/jmorton06/Lumos/goto)
+[![Build Status](https://img.shields.io/endpoint.svg?url=https%3A%2F%2Factions-badge.atrox.dev%2Fjmorton06%2FLumos%2Fbadge&style=flat-square&label=build&branch=master&event=push)](https://actions-badge.atrox.dev/jmorton06/Lumos/goto)
+
+![](https://github.com/jmorton06/Lumos/workflows/build/badge.svg?branch=master?event=push) ![](https://img.shields.io/github/repo-size/jmorton06/Lumos?style=flat)
 
 ## Building  🔨
  
