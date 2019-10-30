@@ -48,6 +48,7 @@ namespace Lumos
 		Maths::Transform* GetTransformComponent();
 
 		void SetParent(Entity* parent);
+        Entity* GetParent() const { return m_Parent; }
 
 		const String& GetName() const { return m_Name; }
 		const u32 GetUUID() const { return m_UUID; }
