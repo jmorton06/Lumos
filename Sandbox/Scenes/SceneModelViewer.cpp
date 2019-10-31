@@ -97,7 +97,9 @@ void SceneModelViewer::LoadModels()
 
 	auto TestObject = ModelLoader::LoadModel(ExampleModelPaths[6]);
 	//TestObject->GetOrAddComponent<Maths::Transform>(Maths::Matrix4::Scale(Maths::Vector3(1.0f, 1.0f, 1.0f)));
-	AddEntity(TestObject);
+
+	if(TestObject)
+		AddEntity(TestObject);
 
 }
 

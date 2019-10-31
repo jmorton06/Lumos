@@ -117,6 +117,19 @@ namespace Lumos
 		EntityManager::Instance()->Clear();
 	}
 
+    void UpdateTransform(Entity* e)
+    {
+        auto transformComponent = e->GetTransformComponent();
+        
+        if (transformComponent && transformComponent->HasUpdated())
+        {
+            if (!e->GetParent())
+                transformComponent->SetWorldMatrix(Maths::Matrix4());
+            else
+                transformComponent->SetWorldMatrix(e->GetParent()->GetTransformComponent()->GetWorldMatrix());
+        }
+    }
+
 	void Scene::OnUpdate(TimeStep* timeStep)
 	{
 		const Maths::Vector2 mousePos = Input::GetInput()->GetMousePosition();
@@ -126,6 +139,8 @@ namespace Lumos
 			m_pCamera->HandleMouse(timeStep->GetMillis(), mousePos.GetX(), mousePos.GetY());
 			m_pCamera->HandleKeyboard(timeStep->GetMillis());
 			m_pCamera->BuildViewMatrix();
+            
+            IterateEntities(UpdateTransform);
 		}
 	}
 

@@ -2,8 +2,9 @@
 #include "Core/OS/FileSystem.h"
 
 
-#ifndef LINUX
+#ifdef LUMOS_PLATFORM_WINDOWS
 #include <Windows.h>
+#include <wtypes.h>
 
 namespace Lumos 
 {
@@ -32,8 +33,14 @@ namespace Lumos
 
 	bool FileSystem::FileExists(const String& path)
 	{
-		const DWORD result = GetFileAttributes(path.c_str());
-		return !(result == INVALID_FILE_ATTRIBUTES && GetLastError() == ERROR_FILE_NOT_FOUND);
+		auto dwAttr = GetFileAttributes((LPCSTR)path.c_str());
+		return (dwAttr != INVALID_FILE_ATTRIBUTES) && (dwAttr & FILE_ATTRIBUTE_DIRECTORY) == 0;
+	}
+
+	bool FileSystem::FolderExists(const String& path)
+	{
+		DWORD dwAttrib = GetFileAttributes(path.c_str());
+		return dwAttrib != INVALID_FILE_ATTRIBUTES && (dwAttrib & FILE_ATTRIBUTE_DIRECTORY) != 0;
 	}
 
 	i64 FileSystem::GetFileSize(const String& path)

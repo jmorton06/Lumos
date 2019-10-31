@@ -18,5 +18,7 @@ namespace Lumos
 
 	private:
 		ImGuiTextFilter m_HierarchyFilter;
+		Entity* m_DoubleClicked = nullptr;
+		Entity* m_HadRecentDroppedEntity = nullptr;
 	};
 }

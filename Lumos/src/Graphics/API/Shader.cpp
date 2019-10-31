@@ -1,16 +1,6 @@
 #include "lmpch.h"
 #include "Shader.h"
 
-#ifdef LUMOS_RENDER_API_OPENGL
-#include "Platform/OpenGL/GLShader.h"
-#endif
-#ifdef LUMOS_RENDER_API_DIRECT3D
-#include "Graphics/DirectX/DXShader.h"
-#endif
-#ifdef LUMOS_RENDER_API_VULKAN
-#include "Platform/Vulkan/VKShader.h"
-#endif
-
 #include "Graphics/API/GraphicsContext.h"
 #include "Core/VFS.h"
 
@@ -33,39 +23,7 @@ namespace Lumos
 
             LUMOS_ASSERT(CreateFunc, "No Shader Create Function");
             
-            //return CreateFunc(name,filepath);
-            
-			switch (Graphics::GraphicsContext::GetRenderAPI())
-			{
-#ifdef LUMOS_RENDER_API_OPENGL
-			case RenderAPI::OPENGL:
-			{
-				const String source = Lumos::VFS::Get()->ReadTextFile(filePath + name + ".glsl");
-				GLShader* result = lmnew GLShader(name, source);
-				result->m_Path = filePath;
-				return result;
-			}
-#endif
-#ifdef LUMOS_RENDER_API_VULKAN
-			case RenderAPI::VULKAN:
-			{
-				std::string physicalPath;
-				Lumos::VFS::Get()->ResolvePhysicalPath(filepath, physicalPath);
-				Graphics::VKShader* result = lmnew Graphics::VKShader(name, physicalPath);
-				return result;
-			}
-#endif
-#ifdef LUMOS_RENDER_API_DIRECT3D
-			case RenderAPI::DIRECT3D:
-			{
-				const String source = Lumos::VFS::Get()->ReadTextFile(filepath + ".hlsl");
-				D3DShader* result = lmnew D3DShader(name, source);
-				result->m_FilePath = filepath;
-				return result;
-			}
-#endif
-			}
-			return nullptr;
+            return CreateFunc(name,filepath);
 		}
 
 		bool Shader::TryCompile(const String& source, String& error, const String& name)
