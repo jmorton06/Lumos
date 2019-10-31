@@ -142,6 +142,7 @@ namespace Lumos
 					if (ImGui::MenuItem("Light", "")) { ImGuiHelpers::SetTheme(ImGuiHelpers::Light); }
 					if (ImGui::MenuItem("Cherry", "")) { ImGuiHelpers::SetTheme(ImGuiHelpers::Cherry); }
                     if (ImGui::MenuItem("Blue", "")) { ImGuiHelpers::SetTheme(ImGuiHelpers::Blue); }
+					if (ImGui::MenuItem("Cinder", "")) { ImGuiHelpers::SetTheme(ImGuiHelpers::Cinder); }
 					if (ImGui::MenuItem("Classic", "")) { ImGuiHelpers::SetTheme(ImGuiHelpers::Classic); }
 					if (ImGui::MenuItem("ClassicDark", "")) {ImGuiHelpers::SetTheme(ImGuiHelpers::ClassicDark); }
 					if (ImGui::MenuItem("ClassicLight", "")) { ImGuiHelpers::SetTheme(ImGuiHelpers::ClassicLight); }
@@ -240,11 +241,13 @@ namespace Lumos
             
             ImGui::SameLine(ImGui::GetWindowContentRegionMax().x / 2.0f);
 
+			ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.1f, 0.2f, 0.7f, 0.0f));
+
             bool selected = false;
             {
                 selected = m_Application->GetEditorState() == EditorState::Play;
                 if (selected)
-                    ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.1f, 0.2f, 0.7f, 1.0f));
+					ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(0.28f, 0.56f, 0.9f, 1.0f));
 
                 if (ImGui::Button(ICON_FA_PLAY, ImVec2(19.0f, 19.0f)))
                     m_Application->SetEditorState(EditorState::Play);
@@ -260,7 +263,7 @@ namespace Lumos
             {
                 selected = m_Application->GetEditorState() == EditorState::Paused;
                 if (selected)
-                    ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.1f, 0.2f, 0.7f, 1.0f));
+					ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(0.28f, 0.56f, 0.9f, 1.0f));
 
                 if (ImGui::Button(ICON_FA_PAUSE,  ImVec2(19.0f, 19.0f)))
                     m_Application->SetEditorState(EditorState::Paused);
@@ -276,7 +279,7 @@ namespace Lumos
             {
                 selected = m_Application->GetEditorState() == EditorState::Next;
                 if (selected)
-                    ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.1f, 0.2f, 0.7f, 1.0f));
+					ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(0.28f, 0.56f, 0.9f, 1.0f));
 
                 if (ImGui::Button(ICON_FA_STEP_FORWARD, ImVec2(19.0f, 19.0f)))
                     m_Application->SetEditorState(EditorState::Next);
@@ -287,13 +290,14 @@ namespace Lumos
                     ImGui::PopStyleColor();
             }
 
+			ImGui::PopStyleColor();
 			ImGui::EndMainMenuBar();
 		}
 	}
     
 	void Editor::OnImGuizmo()
 	{
-		if (!m_Selected)
+		if (!m_Selected || m_ImGuizmoOperation == 4)
 			return;
 
 		Maths::Matrix4 view = Application::Instance()->GetSceneManager()->GetCurrentScene()->GetCamera()->GetViewMatrix();
@@ -312,6 +316,7 @@ namespace Lumos
 
 			float snapAmount[3] = { m_SnapAmount  , m_SnapAmount , m_SnapAmount };
 			float delta[16];
+
 			ImGuizmo::Manipulate(Maths::ValuePointer(view), Maths::ValuePointer(proj), static_cast<ImGuizmo::OPERATION>(m_ImGuizmoOperation), ImGuizmo::LOCAL, Maths::ValuePointer(model), delta, m_SnapQuizmo ? snapAmount : nullptr);
 
 			if (ImGuizmo::IsUsing())

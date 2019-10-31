@@ -29,26 +29,7 @@ namespace Lumos
     
     void Entity::OnUpdateObject(float dt)
     {
-		auto transformComponent = this->GetTransformComponent();
-
-        if (transformComponent && transformComponent->HasUpdated())
-        {
-            if (!m_Parent)
-				transformComponent->SetWorldMatrix(Maths::Matrix4());
-            else
-            {
-				transformComponent->SetWorldMatrix(m_Parent->GetTransformComponent()->GetWorldMatrix());
-            }
-            
-            
-            for (auto child : m_Children)
-            {
-                if (child && child->GetTransformComponent())
-                    child->GetTransformComponent()->SetWorldMatrix(transformComponent->GetWorldMatrix());
-            }
-            
-			transformComponent->SetHasUpdated(false);
-        }
+		
     }
     
     void Entity::AddChild(Entity* child)

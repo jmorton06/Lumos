@@ -36,7 +36,7 @@ namespace Lumos
 
 			ImGuiTreeNodeFlags nodeFlags = ((m_Editor->GetSelected() == node) ? ImGuiTreeNodeFlags_Selected : 0);
 
-			nodeFlags |= ImGuiTreeNodeFlags_OpenOnArrow | ImGuiTreeNodeFlags_OpenOnDoubleClick;
+			nodeFlags |= ImGuiTreeNodeFlags_OpenOnArrow | ImGuiTreeNodeFlags_FramePadding;
 
 			if (noChildren)
 			{
@@ -46,17 +46,46 @@ namespace Lumos
 			String icon(ICON_FA_CUBE);
             
             std::stringstream ss;
-            ss << "##";
-            ss << node->GetUUID();
+			ss << "##";
+			ss << node->GetUUID();
             
 			bool active = node->ActiveInHierarchy();
 			if(!active)
 				ImGui::PushStyleColor(ImGuiCol_Text, ImGui::GetStyleColorVec4(ImGuiCol_TextDisabled));
-            bool nodeOpen = ImGui::TreeNodeEx(ss.str().c_str(), nodeFlags, (icon + " " + node->GetName()).c_str(), 0);
+
+			bool doubleClicked = false;
+			if (node == m_DoubleClicked)
+			{
+				doubleClicked = true;
+			}
+
+			if(doubleClicked)
+				ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, { 1.0f,2.0f });
+
+			if (m_HadRecentDroppedEntity == node)
+			{
+				ImGui::SetNextItemOpen(true);
+				m_HadRecentDroppedEntity = nullptr;
+			}
+
+            bool nodeOpen = ImGui::TreeNodeEx(ss.str().c_str(), nodeFlags, doubleClicked ? (icon).c_str() :(icon + " " + node->GetName()).c_str(), 0);
+			
+			if (doubleClicked)
+			{
+				ImGui::SameLine();
+				static char objName[INPUT_BUF_SIZE];
+				strcpy(objName, node->GetName().c_str());
+
+				ImGui::PushItemWidth(-1);
+				if (ImGui::InputText("##Name", objName, IM_ARRAYSIZE(objName), 0))
+					node->SetName(objName);
+				ImGui::PopStyleVar();
+			}
+
 			if (!active)
 				ImGui::PopStyleColor();
 
-			if (ImGui::BeginDragDropSource(ImGuiDragDropFlags_None))
+			if (!doubleClicked && ImGui::BeginDragDropSource(ImGuiDragDropFlags_None))
 			{
 				auto ptr = node;
 				ImGui::SetDragDropPayload("Drag_Entity", &ptr, sizeof(Entity**));
@@ -72,6 +101,8 @@ namespace Lumos
 					auto entity = *reinterpret_cast<Entity**>(payload->Data);
 					node->AddChild(entity);
 
+					m_HadRecentDroppedEntity = node;
+
 					if (m_Editor->GetSelected() == entity)
 						m_Editor->SetSelected(nullptr);
 				}
@@ -80,6 +111,11 @@ namespace Lumos
 
 			if (ImGui::IsItemClicked())
 				m_Editor->SetSelected(node);
+			else if (m_DoubleClicked == node && ImGui::IsMouseClicked(0) && !ImGui::IsItemHovered(ImGuiHoveredFlags_None))
+				m_DoubleClicked = nullptr;
+
+			if (ImGui::IsMouseDoubleClicked(0) && ImGui::IsItemHovered(ImGuiHoveredFlags_None))
+				m_DoubleClicked = node;
 
 			if (nodeOpen == false)
 				return;
@@ -111,12 +147,12 @@ namespace Lumos
 			ImGui::SameLine();
 			m_HierarchyFilter.Draw("##HierarchyFilter", ImGui::GetContentRegionAvailWidth() - ImGui::GetStyle().IndentSpacing);
             
-            const ImU32 col = ImGui::GetColorU32(ImGuiCol_Text);
-            const ImU32 bg = ImGui::GetColorU32(ImGuiCol_TextSelectedBg);
+            //const ImU32 col = ImGui::GetColorU32(ImGuiCol_Text);
+            //const ImU32 bg = ImGui::GetColorU32(ImGuiCol_TextSelectedBg);
 
-            ImGui::NewLine();
-            ImGuiHelpers::Spinner("##spinner", 8, 6, col);
-            ImGuiHelpers::BufferingBar("##buffer_bar", 0.7f, Maths::Vector2(400, 6), bg, col);
+            //ImGui::NewLine();
+            //ImGuiHelpers::Spinner("##spinner", 8, 6, col);
+            //ImGuiHelpers::BufferingBar("##buffer_bar", 0.7f, Maths::Vector2(400, 6), bg, col);
 
             ImGui::Unindent();
 

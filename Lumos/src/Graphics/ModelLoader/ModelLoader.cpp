@@ -7,7 +7,11 @@ namespace Lumos
 	Entity* ModelLoader::LoadModel(const String& path)
 	{
 		std::string physicalPath;
-		Lumos::VFS::Get()->ResolvePhysicalPath(path, physicalPath);
+		if (!Lumos::VFS::Get()->ResolvePhysicalPath(path, physicalPath))
+		{
+			LUMOS_LOG_INFO("Loaded Model - {0}", path);
+			return nullptr;
+		}
 
 		String resolvedPath = physicalPath;
 

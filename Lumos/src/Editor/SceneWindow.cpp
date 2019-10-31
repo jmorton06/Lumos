@@ -12,6 +12,7 @@
 #include "ECS/Component/CameraComponent.h"
 #include "ECS/Component/SoundComponent.h"
 
+#include <imgui/imgui_internal.h>
 #include <imgui/plugins/ImGuizmo.h>
 #include <IconFontCppHeaders/IconsFontAwesome5.h>
 
@@ -146,50 +147,82 @@ namespace Lumos
     void SceneWindow::ToolBar()
     {
 		ImGui::Indent();
+		ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.7f, 0.7f, 0.7f, 0.0f));
         bool selected = false;
+
+		{
+			selected = m_Editor->GetImGuizmoOperation() == 4;
+			if (selected)
+				ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(0.28f, 0.56f, 0.9f, 1.0f));
+			ImGui::SameLine();
+			if (ImGui::Button(ICON_FA_MOUSE_POINTER, ImVec2(19.0f, 19.0f)))
+				m_Editor->SetImGuizmoOperation(4);
+
+			if (selected)
+				ImGui::PopStyleColor();
+			ImGuiHelpers::Tooltip("Translate");
+		}
+
+		ImGui::SameLine(); ImGui::SeparatorEx(ImGuiSeparatorFlags_Vertical);  ImGui::SameLine();
+
         {
             selected = m_Editor->GetImGuizmoOperation() == ImGuizmo::TRANSLATE;
             if (selected)
-                ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.7f, 0.7f, 0.7f, 1.0f));
-
+                ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(0.28f, 0.56f, 0.9f, 1.0f));
+			ImGui::SameLine();
             if (ImGui::Button(ICON_FA_ARROWS_ALT, ImVec2(19.0f, 19.0f)))
                     m_Editor->SetImGuizmoOperation(ImGuizmo::TRANSLATE);
 
+			if (selected)
+				ImGui::PopStyleColor();
             ImGuiHelpers::Tooltip("Translate");
-
-            if (selected)
-                ImGui::PopStyleColor();
         }
 
         {
             selected = m_Editor->GetImGuizmoOperation() == ImGuizmo::ROTATE;
-            if (selected)
-                ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.7f, 0.7f, 0.7f, 1.0f));
+			if (selected)
+				ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(0.28f, 0.56f, 0.9f, 1.0f));
 
             ImGui::SameLine();
             if (ImGui::Button(ICON_FA_SYNC, ImVec2(19.0f, 19.0f)))
                     m_Editor->SetImGuizmoOperation(ImGuizmo::ROTATE);
 
+			if (selected)
+				ImGui::PopStyleColor();
             ImGuiHelpers::Tooltip("Rotate");
-
-            if (selected)
-                ImGui::PopStyleColor();
         }
 
         {
             selected = m_Editor->GetImGuizmoOperation() == ImGuizmo::SCALE;
-            if (selected)
-                ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.7f, 0.7f, 0.7f, 1.0f));
+			if (selected)
+				ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(0.28f, 0.56f, 0.9f, 1.0f));
 
             ImGui::SameLine();
             if (ImGui::Button(ICON_FA_EXPAND_ARROWS_ALT, ImVec2(19.0f, 19.0f)))
                 m_Editor->SetImGuizmoOperation(ImGuizmo::SCALE);
 
+			if (selected)
+				ImGui::PopStyleColor();
             ImGuiHelpers::Tooltip("Scale");
-
-            if (selected)
-                ImGui::PopStyleColor();
         }
+
+		ImGui::SameLine(); ImGui::SeparatorEx(ImGuiSeparatorFlags_Vertical);  ImGui::SameLine();
+
+		{
+			selected = m_Editor->GetImGuizmoOperation() == ImGuizmo::BOUNDS;
+			if (selected)
+				ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(0.28f, 0.56f, 0.9f, 1.0f));
+
+			ImGui::SameLine();
+			if (ImGui::Button(ICON_FA_SQUARE, ImVec2(19.0f, 19.0f)))
+				m_Editor->SetImGuizmoOperation(ImGuizmo::BOUNDS);
+
+			if (selected)
+				ImGui::PopStyleColor();
+			ImGuiHelpers::Tooltip("Bounds");
+		}
+
+		ImGui::SameLine(); ImGui::SeparatorEx(ImGuiSeparatorFlags_Vertical);  ImGui::SameLine();
         
 		ImGui::SameLine();
                 
@@ -205,6 +238,7 @@ namespace Lumos
          
 		}
 
+		ImGui::PopStyleColor();
 		ImGui::Unindent();
     }
 }

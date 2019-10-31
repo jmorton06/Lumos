@@ -27,7 +27,8 @@ namespace Lumos
 			ClassicLight,
 			ClassicDark,
 			Classic,
-			Cherry
+			Cherry,
+			Cinder
 		};
 
 		void Property(const String& name, bool& value);

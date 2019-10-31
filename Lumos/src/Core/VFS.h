@@ -13,7 +13,7 @@ namespace Lumos
 	public:
 		void Mount(const String& virtualPath, const String& physicalPath);
 		void Unmount(const String& path);
-		bool ResolvePhysicalPath(const String& path, String& outPhysicalPath);
+		bool ResolvePhysicalPath(const String& path, String& outPhysicalPath, bool folder = false);
 
 		u8* ReadFile(const String& path);
 		String ReadTextFile(const String& path);
