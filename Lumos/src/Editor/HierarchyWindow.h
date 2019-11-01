@@ -13,12 +13,13 @@ namespace Lumos
 		HierarchyWindow();
 		~HierarchyWindow() = default;
 
-		void DrawNode(Entity* node);
+		void DrawNode(Entity* node, bool defaultOpen = false);
 		void OnImGui() override;
 
 	private:
 		ImGuiTextFilter m_HierarchyFilter;
 		Entity* m_DoubleClicked = nullptr;
 		Entity* m_HadRecentDroppedEntity = nullptr;
+		Entity* m_CopiedEntity = nullptr;
 	};
 }

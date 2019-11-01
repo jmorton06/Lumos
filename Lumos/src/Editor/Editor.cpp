@@ -79,6 +79,8 @@ namespace Lumos
 		for (auto& window : m_Windows)
 			window->SetEditor(this);
 
+		m_ShowImGuiDemo = false;
+
 #ifdef LUMOS_PLATFORM_WINDOWS
 		m_FileBrowser = lmnew ImGui::FileBrowser(ImGuiFileBrowserFlags_CreateNewDir | ImGuiFileBrowserFlags_EnterNewFilename | ImGuiFileBrowserFlags_NoModal);
 		m_FileBrowser->SetTitle("Test File Browser");

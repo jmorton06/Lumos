@@ -10,7 +10,6 @@ namespace Lumos
     Entity::Entity(EntityManager* manager, const String& name) 
 		: m_Name(name), 
 		m_Parent(nullptr),
-		m_FrustumCullFlags(0),
 		m_Active(true), 
 		m_Manager(manager)
     {
@@ -19,7 +18,8 @@ namespace Lumos
     
     Entity::~Entity()
     {
-		ComponentManager::Instance()->EntityDestroyed(this);
+		if (m_Parent)
+			m_Parent->RemoveChild(this);
     }
     
     void Entity::Init()
@@ -207,13 +207,20 @@ Lumos::EntityManager::~EntityManager()
 void Lumos::EntityManager::OnUpdate(float dt)
 {
 	for (auto entity : m_Entities)
-		entity->OnUpdateObject(dt);
+		if(entity)
+			entity->OnUpdateObject(dt);
 }
 
 void Lumos::EntityManager::Clear()
 {
 	for (auto entity : m_Entities)
-		delete entity;
+	{
+		if (entity)
+		{
+			ComponentManager::Instance()->EntityDestroyed(entity);
+			delete entity;
+		}
+	}
 
 	m_Entities.clear();
 }
@@ -231,19 +238,41 @@ void Lumos::EntityManager::DeleteEntity(Entity* entity)
 	{
 		if (m_Entities[i] == entity)
 		{
-            if(entity != nullptr)
+			if (entity != nullptr)
+			{
+				ComponentManager::Instance()->EntityDestroyed(entity);
+				auto children = entity->GetChildren();
+
+				for (auto child : children)
+					DeleteEntity(child);
                 delete entity;
-			m_Entities.erase(m_Entities.begin() + i);
+			}
+			m_Entities[i] = nullptr;
 		}
 	}
+}
+
+Lumos::Entity* Lumos::EntityManager::DuplicateEntity(Entity* entity)
+{
+	auto e = CreateEntity(entity->GetName());
+
+	//TODO : Copy Components, Copy Children
+
+	entity->GetParent()->AddChild(e);
+	e->SetActive(entity->Active());
+
+	return e;
 }
 
 Lumos::Entity * Lumos::EntityManager::GetEntity(u32 uuid)
 {
 	for (auto entity : m_Entities)
 	{
-		if (entity->GetUUID() == uuid)
-			return entity;
+		if (entity)
+		{
+			if (entity->GetUUID() == uuid)
+				return entity;
+		}
 	}
 	return nullptr;
 }

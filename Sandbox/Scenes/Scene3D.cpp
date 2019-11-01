@@ -78,7 +78,7 @@ void Scene3D::OnInit()
 	m_EnvironmentMap = Graphics::TextureCube::CreateFromVCross(environmentFiles, 11);
     
     auto lightEntity = EntityManager::Instance()->CreateEntity("Directional Light");
-    lightEntity->AddComponent<Graphics::Light>(Maths::Vector3(26.0f, 22.0f, 48.5f), Maths::Vector4(1.0f), 0.9f);
+    lightEntity->AddComponent<Graphics::Light>(Maths::Vector3(26.0f, 22.0f, 48.5f), Maths::Vector4(1.0f), 1.3f);
 	lightEntity->AddComponent<Maths::Transform>(Matrix4::Translation(Maths::Vector3(26.0f, 22.0f, 48.5f)) * Maths::Quaternion::LookAt(Maths::Vector3(26.0f, 22.0f, 48.5f), Maths::Vector3::Zero()).ToMatrix4());
     AddEntity(lightEntity);
 
@@ -98,13 +98,11 @@ void Scene3D::OnInit()
 #ifdef LUMOS_EDITOR
 	editor = true;
 #endif
-	auto deferredLayer = new Layer3D(new Graphics::DeferredRenderer(m_ScreenWidth, m_ScreenHeight, editor), "Deferred");
-	auto skyBoxLayer = new Layer3D(new Graphics::SkyboxRenderer(m_ScreenWidth, m_ScreenHeight, m_EnvironmentMap, editor), "Skybox");
-	//auto gridLayer = new Layer3D(new Graphics::GridRenderer(m_ScreenWidth, m_ScreenHeight, true), "Grid");
+
 	Application::Instance()->PushLayer(shadowLayer);
-    Application::Instance()->PushLayer(deferredLayer);
-	Application::Instance()->PushLayer(skyBoxLayer);
-	//Application::Instance()->PushLayer(gridLayer);
+    Application::Instance()->PushLayer(new Layer3D(new Graphics::DeferredRenderer(m_ScreenWidth, m_ScreenHeight, editor), "Deferred"));
+	Application::Instance()->PushLayer(new Layer3D(new Graphics::SkyboxRenderer(m_ScreenWidth, m_ScreenHeight, m_EnvironmentMap, editor), "Skybox"));
+	//Application::Instance()->PushLayer(new Layer3D(new Graphics::GridRenderer(m_ScreenWidth, m_ScreenHeight, editor), "Grid"));
 
 	Application::Instance()->GetRenderManager()->SetShadowRenderer(shadowRenderer);
     Application::Instance()->GetRenderManager()->SetSkyBoxTexture(m_EnvironmentMap);
@@ -367,6 +365,14 @@ void Scene3D::LoadModels()
 #endif
 
     //plastics
+	auto spheres = EntityManager::Instance()->CreateEntity("Spheres");
+	auto plastics = EntityManager::Instance()->CreateEntity("Plastic Spheres");
+	auto metals = EntityManager::Instance()->CreateEntity("Metal Spheres");
+	spheres->AddChild(plastics);
+	spheres->AddChild(metals);
+
+	AddEntity(spheres);
+
     int numSpheres = 0;
 	for (int i = 0; i < 10; i++)
 	{
@@ -392,7 +398,7 @@ void Scene3D::LoadModels()
 		sphere->AddComponent<MeshComponent>(sphereModel);
 		sphere->AddComponent<MaterialComponent>(m);
 
-		AddEntity(sphere);
+		plastics->AddChild(sphere);
 	}
 
     //metals
@@ -400,7 +406,7 @@ void Scene3D::LoadModels()
 	{
         float roughness = i / 10.0f;
         Vector4 spec(1.0f);
-        Vector4 diffuse(0.0f,0.0f,0.0f,1.0f);
+        Vector4 diffuse(0.9f);
 
 		Ref<Material> m = CreateRef<Material>();
 		MaterialProperties properties;
@@ -419,8 +425,8 @@ void Scene3D::LoadModels()
 		Ref<Graphics::Mesh> sphereModel = AssetsManager::DefaultModels()->Get("Sphere");
 		sphere->AddComponent<MeshComponent>(sphereModel);
 		sphere->AddComponent<MaterialComponent>(m);
-
-		AddEntity(sphere);
+		
+		metals->AddChild(sphere);
 	}
 }
 

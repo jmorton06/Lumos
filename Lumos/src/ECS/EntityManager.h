@@ -43,8 +43,6 @@ namespace Lumos
 		void AddChild(Entity* child);
 		void RemoveChild(Entity* child);
 
-		u32& GetFrustumCullFlags() { return m_FrustumCullFlags; }
-
 		Maths::Transform* GetTransformComponent();
 
 		void SetParent(Entity* parent);
@@ -74,7 +72,6 @@ namespace Lumos
 		EntityManager*			m_Manager;
 		String                  m_PrefabFileLocation;
 		bool                    m_Active;
-		u32                     m_FrustumCullFlags;
 
 		Entity* m_Parent;
 		std::vector<Entity*> m_Children;
@@ -136,6 +133,7 @@ namespace Lumos
 		void Clear();
 		Entity* CreateEntity(const String& name = "Entity");
 		void DeleteEntity(Entity* entity);
+		Entity* DuplicateEntity(Entity* entity);
 
 		Entity* GetEntity(u32 uuid);
 
@@ -148,7 +146,7 @@ namespace Lumos
 
 			for (auto entity : m_Entities)
 			{
-				if (entity->ActiveInHierarchy() && entity->HasComponent<T>())
+				if (entity && entity->ActiveInHierarchy() && entity->HasComponent<T>())
 					entities.emplace_back(entity);
 			}
 
@@ -162,7 +160,7 @@ namespace Lumos
 
 			for (auto entity : m_Entities)
 			{
-				if (entity->ActiveInHierarchy() && entity->HasComponent<T>() && entity->HasComponent<S>())
+				if (entity && entity->ActiveInHierarchy() && entity->HasComponent<T>() && entity->HasComponent<S>())
 					entities.emplace_back(entity);
 			}
 

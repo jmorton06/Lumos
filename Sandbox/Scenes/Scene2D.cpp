@@ -30,7 +30,13 @@ void Scene2D::OnInit()
 
 	LoadSprites();
 
-	Application::Instance()->PushLayer(new Layer2D(new Graphics::Renderer2D(m_ScreenWidth, m_ScreenHeight, true)));
+	bool editor = false;
+
+#ifdef LUMOS_EDITOR
+	editor = true;
+#endif
+
+	Application::Instance()->PushLayer(new Layer2D(new Graphics::Renderer2D(m_ScreenWidth, m_ScreenHeight, editor)));
 }
 
 
