@@ -46,7 +46,7 @@ namespace Lumos
 
 		void Draw2DGrid(ImDrawList* drawList, const ImVec2& cameraPos, const ImVec2& windowPos, const ImVec2& canvasSize, const float factor, const float thickness);
 
-		const bool& GetShowGrid() const { return m_ShowGrid; }
+		bool& ShowGrid() { return m_ShowGrid; }
 		const float& GetGridSize() const { return m_GridSize; }
 
 		void SetSelected(Entity* entity) { m_Selected = entity; }

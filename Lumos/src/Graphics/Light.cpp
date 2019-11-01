@@ -42,7 +42,7 @@ namespace Lumos
 			ImGuiHelpers::Property("Intensity", m_Intensity, 0.0f, 100.0f);
 
 			if (m_Type == 1)
-				ImGuiHelpers::Property("Angle", m_Angle, 0.0f, 100.0f);
+				ImGuiHelpers::Property("Angle", m_Angle, -1.0f, 1.0f);
 
 			ImGui::AlignTextToFramePadding();
 			ImGui::Text("Light Type");

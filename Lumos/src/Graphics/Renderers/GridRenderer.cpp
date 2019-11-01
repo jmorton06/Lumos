@@ -17,6 +17,8 @@
 #include "App/Application.h"
 #include "Graphics/Camera/Camera.h"
 
+#include <imgui/imgui.h>
+
 namespace Lumos
 {
 	namespace Graphics
@@ -39,7 +41,6 @@ namespace Lumos
 			delete m_UniformBufferFrag;
 			delete m_Pipeline;
 			delete m_RenderPass;
-			delete m_DescriptorSet;
 			delete[] m_VSSystemUniformBuffer;
 
 			for (auto& commandBuffer : m_CommandBuffers)
@@ -67,7 +68,7 @@ namespace Lumos
 			SetSystemUniforms(m_Shader);
 			m_Pipeline->SetActive(m_CommandBuffers[m_CurrentBufferID]);
 
-			std::vector<Graphics::DescriptorSet*> descriptorSets = { m_Pipeline->GetDescriptorSet(), m_DescriptorSet };
+			std::vector<Graphics::DescriptorSet*> descriptorSets = { m_Pipeline->GetDescriptorSet() };
 
 			m_Quad->GetVertexArray()->Bind(m_CommandBuffers[m_CurrentBufferID]);
 			m_Quad->GetIndexBuffer()->Bind(m_CommandBuffers[m_CurrentBufferID]);
@@ -149,8 +150,8 @@ namespace Lumos
 			auto proj = camera->GetProjectionMatrix();
 
 			UniformBufferObjectFrag test;
-			test.res = 1.0f;
-			test.scale = 1.0f;
+			test.res = m_GridRes;
+			test.scale = m_GridSize;
 
 			auto invViewProj = proj * camera->GetViewMatrix();
 			memcpy(m_VSSystemUniformBuffer + m_VSSystemUniformBufferOffsets[VSSystemUniformIndex_InverseProjectionViewMatrix], &invViewProj, sizeof(Maths::Matrix4));
@@ -188,10 +189,22 @@ namespace Lumos
             }
 		}
 
+		void GridRenderer::OnImGui()
+		{
+			ImGui::Text("Grid Renderer");
+
+			if (ImGui::TreeNode("Parameters"))
+			{
+				ImGui::InputFloat("Resolution", &m_GridRes);
+				ImGui::InputFloat("Scale", &m_GridSize);
+
+				ImGui::TreePop();
+			}
+		}
+
 		void GridRenderer::OnResize(u32 width, u32 height)
 		{
 			delete m_Pipeline;
-			delete m_DescriptorSet;
 
 			for (auto fbo : m_Framebuffers)
 				delete fbo;
@@ -211,18 +224,13 @@ namespace Lumos
 		{
 			std::vector<Graphics::DescriptorPoolInfo> poolInfo =
 			{
-				{ Graphics::DescriptorType::UNIFORM_BUFFER, 1 },
-				{ Graphics::DescriptorType::UNIFORM_BUFFER, 1 }
+				{ Graphics::DescriptorType::UNIFORM_BUFFER, 2 }
 			};
 
 			std::vector<Graphics::DescriptorLayoutInfo> layoutInfo =
 			{
-				{ Graphics::DescriptorType::UNIFORM_BUFFER, Graphics::ShaderType::VERTEX, 0 }
-			};
-
-			std::vector<Graphics::DescriptorLayoutInfo> layoutInfoFrag =
-			{
-				 { Graphics::DescriptorType::UNIFORM_BUFFER, Graphics::ShaderType::FRAGMENT, 0 }
+				{ Graphics::DescriptorType::UNIFORM_BUFFER, Graphics::ShaderType::VERTEX, 0 },
+				{ Graphics::DescriptorType::UNIFORM_BUFFER, Graphics::ShaderType::FRAGMENT, 1 }
 			};
 
 			auto attributeDescriptions = Vertex::getAttributeDescriptions();
@@ -233,12 +241,7 @@ namespace Lumos
 			sceneDescriptorLayout.count = static_cast<u32>(layoutInfo.size());
 			sceneDescriptorLayout.layoutInfo = layoutInfo.data();
 
-			Graphics::DescriptorLayout fragDescriptorLayout{};
-			fragDescriptorLayout.count = static_cast<u32>(layoutInfoFrag.size());
-			fragDescriptorLayout.layoutInfo = layoutInfoFrag.data();
-
 			descriptorLayouts.push_back(sceneDescriptorLayout);
-			descriptorLayouts.push_back(fragDescriptorLayout);
 
 			Graphics::PipelineInfo pipelineCI{};
 			pipelineCI.pipelineName = "GridRenderer";
@@ -282,17 +285,6 @@ namespace Lumos
 			bufferInfo.shaderType = ShaderType::VERTEX;
 			bufferInfo.systemUniforms = true;
 
-			bufferInfos.push_back(bufferInfo);
-
-			if (m_Pipeline != nullptr)
-				m_Pipeline->GetDescriptorSet()->Update(bufferInfos);
-
-			Graphics::DescriptorInfo info{};
-			info.pipeline = m_Pipeline;
-			info.layoutIndex = 1;
-			info.shader = m_Shader;
-			info.count = 1;
-			m_DescriptorSet = Graphics::DescriptorSet::Create(info);
 
 			if (m_UniformBufferFrag == nullptr)
 			{
@@ -306,13 +298,21 @@ namespace Lumos
 			bufferInfo2.offset = 0;
 			bufferInfo2.size = sizeof(UniformBufferObjectFrag);
 			bufferInfo2.type = Graphics::DescriptorType::UNIFORM_BUFFER;
-			bufferInfo2.binding = 0;
+			bufferInfo2.binding = 1;
 			bufferInfo2.shaderType = ShaderType::FRAGMENT;
 			bufferInfo2.systemUniforms = true;
 
-			std::vector<Graphics::BufferInfo> bufferInfos2 = { bufferInfo2 };
+			bufferInfos.push_back(bufferInfo);
+			bufferInfos.push_back(bufferInfo2);
+			if (m_Pipeline != nullptr)
+				m_Pipeline->GetDescriptorSet()->Update(bufferInfos);
 
-			m_DescriptorSet->Update(bufferInfos2);
+			//Graphics::DescriptorInfo info{};
+			//info.pipeline = m_Pipeline;
+			//info.layoutIndex = 1;
+			//info.shader = m_Shader;
+			//info.count = 1;
+			//m_DescriptorSet = Graphics::DescriptorSet::Create(info);
 		}
 
 		void GridRenderer::SetRenderTarget(Texture* texture)

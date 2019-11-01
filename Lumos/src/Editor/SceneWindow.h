@@ -53,5 +53,7 @@ namespace Lumos
 
 		std::unordered_map<size_t, const char*> m_ComponentIconMap;
 		std::unordered_map<size_t, bool> m_ShowComponentGizmoMap;
+
+		bool m_ShowStats = true;
 	};
 }

@@ -15,7 +15,7 @@ namespace Lumos
 		m_SimpleName = "Hierarchy";
 	}
 
-	void HierarchyWindow::DrawNode(Entity* node)
+	void HierarchyWindow::DrawNode(Entity* node, bool defaultOpen)
 	{
 		if (node == nullptr)
 			return;
@@ -68,7 +68,7 @@ namespace Lumos
 				m_HadRecentDroppedEntity = nullptr;
 			}
 
-            bool nodeOpen = ImGui::TreeNodeEx(ss.str().c_str(), nodeFlags, doubleClicked ? (icon).c_str() :(icon + " " + node->GetName()).c_str(), 0);
+            bool nodeOpen = ImGui::TreeNodeEx(ss.str().c_str(), nodeFlags, doubleClicked ? (icon).c_str() :(icon + " " + node->GetName()).c_str(), defaultOpen ? ImGuiTreeNodeFlags_DefaultOpen : 0);
 			
 			if (doubleClicked)
 			{
@@ -84,6 +84,33 @@ namespace Lumos
 
 			if (!active)
 				ImGui::PopStyleColor();
+
+			bool deleteEntity = false;
+			if (ImGui::BeginPopupContextItem("Entity context menu"))
+			{
+				if (ImGui::Selectable("Copy")) m_CopiedEntity = node;
+
+				if (m_CopiedEntity)
+				{
+					if (ImGui::Selectable("Paste"))
+					{
+						auto e = EntityManager::Instance()->DuplicateEntity(m_CopiedEntity);
+						node->AddChild(e);
+						m_CopiedEntity = nullptr;
+					}
+				}
+				else
+				{
+					ImGui::TextDisabled("Paste");
+				}
+
+				ImGui::Separator();
+				if (ImGui::Selectable("Duplicate")) EntityManager::Instance()->DuplicateEntity(node);
+				if (ImGui::Selectable("Remove")) deleteEntity = true; if (m_Editor->GetSelected() == node) m_Editor->SetSelected(nullptr);
+				ImGui::Separator();
+				if (ImGui::Selectable("Rename")) m_DoubleClicked = node;
+				ImGui::EndPopup();
+			}
 
 			if (!doubleClicked && ImGui::BeginDragDropSource(ImGuiDragDropFlags_None))
 			{
@@ -109,7 +136,7 @@ namespace Lumos
 				ImGui::EndDragDropTarget();
 			}
 
-			if (ImGui::IsItemClicked())
+			if (ImGui::IsItemClicked() && !deleteEntity)
 				m_Editor->SetSelected(node);
 			else if (m_DoubleClicked == node && ImGui::IsMouseClicked(0) && !ImGui::IsItemHovered(ImGuiHoveredFlags_None))
 				m_DoubleClicked = nullptr;
@@ -125,8 +152,10 @@ namespace Lumos
 				this->DrawNode(child);
 			}
 
-			ImGui::TreePop();
+			if(deleteEntity)
+				EntityManager::Instance()->DeleteEntity(node);
 
+			ImGui::TreePop();
 		}
 		else
 		{
@@ -156,11 +185,11 @@ namespace Lumos
 
             ImGui::Unindent();
 
-			if (ImGui::TreeNode("Scene"))
+			if (ImGui::TreeNodeEx("Scene",ImGuiTreeNodeFlags_DefaultOpen))
 			{
 				ImGui::Indent();
 
-				DrawNode(Application::Instance()->GetSceneManager()->GetCurrentScene()->GetRootEntity());
+				DrawNode(Application::Instance()->GetSceneManager()->GetCurrentScene()->GetRootEntity(), true);
 
 				ImGui::TreePop();
 			}

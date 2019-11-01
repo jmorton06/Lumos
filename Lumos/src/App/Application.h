@@ -74,18 +74,18 @@ namespace Lumos
 		void OnExitScene();
 		void PushLayer(Layer* layer);
 		void PushOverLay(Layer* overlay);
-		void ClearLayers();;
+		void ClearLayers();
 
 		virtual void Init();
 
-		LayerStack*						GetLayerStack()		const { return m_LayerStack; }
-        SceneManager*					GetSceneManager()	const { return m_SceneManager.get(); }
-		Graphics::RenderManager*		GetRenderManager()	const { return m_RenderManager.get(); }
-        Window*							GetWindow()			const { return m_Window.get(); }
-        AppState						GetState()			const { return m_CurrentState; }
-		EditorState						GetEditorState()	const { return m_EditorState; }
-		Camera*							GetActiveCamera()	const { return m_ActiveCamera; }
-		SystemManager*					GetSystemManager()	const { return m_SystemManager.get(); }
+		LayerStack*					GetLayerStack()		const { return m_LayerStack; }
+        SceneManager*				GetSceneManager()	const { return m_SceneManager.get(); }
+		Graphics::RenderManager*	GetRenderManager()	const { return m_RenderManager.get(); }
+        Window*						GetWindow()			const { return m_Window.get(); }
+        AppState					GetState()			const { return m_CurrentState; }
+		EditorState					GetEditorState()	const { return m_EditorState; }
+		Camera*						GetActiveCamera()	const { return m_ActiveCamera; }
+		SystemManager*				GetSystemManager()	const { return m_SystemManager.get(); }
 
         void SetAppState(AppState state)		{ m_CurrentState = state; }
 		void SetEditorState(EditorState state)	{ m_EditorState = state; }

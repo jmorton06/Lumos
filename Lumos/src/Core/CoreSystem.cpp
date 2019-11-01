@@ -5,6 +5,7 @@
 #include "Scripting/LuaManager.h"
 #include "Core/Version.h"
 #include "Core/Profiler.h"
+#include "Core/OS/MemoryManager.h"
 
 namespace Lumos
 { 
@@ -37,5 +38,7 @@ namespace Lumos
 		Lumos::Memory::LogMemoryInformation();
 
 		LMLog::OnRelease();
+
+		MemoryManager::OnShutdown();
     }
 } }

@@ -45,6 +45,7 @@ namespace Lumos
 
 			void SetRenderTarget(Texture* texture) override;
 			void SetRenderToGBufferTexture(bool set) override;
+			void OnImGui() override;
 
 		private:
 			void SetSystemUniforms(Shader* shader) const;
@@ -64,6 +65,9 @@ namespace Lumos
 
 			u32 m_CurrentBufferID = 0;
 			Mesh* m_Quad;
+
+			float m_GridRes = 1.0f;
+			float m_GridSize = 1.0f;
 		};
 	}
 }

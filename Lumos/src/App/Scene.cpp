@@ -138,10 +138,10 @@ namespace Lumos
 		{
 			m_pCamera->HandleMouse(timeStep->GetMillis(), mousePos.GetX(), mousePos.GetY());
 			m_pCamera->HandleKeyboard(timeStep->GetMillis());
-			m_pCamera->BuildViewMatrix();
-            
-            IterateEntities(UpdateTransform);
+			m_pCamera->BuildViewMatrix();    
 		}
+
+        IterateEntities(UpdateTransform);
 	}
 
 	void Scene::IterateEntities(const std::function<void(Entity*)>& per_object_func)
@@ -183,7 +183,8 @@ namespace Lumos
 		auto& entities = EntityManager::Instance()->GetEntities();
 
 		for (int i = 0; i < entities.size(); ++i)
-			serialisedEntities.push_back(entities[i]->Serialise());
+			if(entities[i])
+				serialisedEntities.push_back(entities[i]->Serialise());
 
 		output["entities"] = serialisedEntities;
 

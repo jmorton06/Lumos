@@ -4,7 +4,7 @@
 
 layout(location = 0) out vec4 color;
 
-layout(std140, binding = 0) uniform UniformBuffer
+layout(set = 0,binding = 1) uniform UniformBuffer
 {
 	float u_Scale;
 	float u_Res;

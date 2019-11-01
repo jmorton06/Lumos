@@ -23,6 +23,7 @@
 #include "Core/OS/Thread.h"
 #include "Core/OS/Input.h"
 #include "Core/OS/Window.h"
+#include "Core/OS/MemoryManager.h"
 #include "Core/Profiler.h"
 
 #include "ImGui/ImGuiLayer.h"
@@ -261,6 +262,8 @@ namespace Lumos
 
 		if(!m_Minimized)
 			m_LayerStack->OnUpdate(Engine::GetTimeStep(), m_SceneManager->GetCurrentScene());
+
+		MemoryManager::Get()->GetSystemInfo();
 	}
 
 	void Application::OnEvent(Event& e)
