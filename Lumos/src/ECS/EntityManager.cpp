@@ -18,8 +18,6 @@ namespace Lumos
     
     Entity::~Entity()
     {
-		if (m_Parent)
-			m_Parent->RemoveChild(this);
     }
     
     void Entity::Init()
@@ -240,6 +238,9 @@ void Lumos::EntityManager::DeleteEntity(Entity* entity)
 		{
 			if (entity != nullptr)
 			{
+                if(entity->GetParent())
+                    entity->GetParent()->RemoveChild(entity);
+                
 				ComponentManager::Instance()->EntityDestroyed(entity);
 				auto children = entity->GetChildren();
 
