@@ -170,6 +170,8 @@ namespace Lumos
 				{
 					if (ImGui::MenuItem(window->GetName().c_str(), "", &window->Active(), true)) { window->SetActive(true); }
 				}
+                
+                if (ImGui::MenuItem("ImGui Demo", "", &m_ShowImGuiDemo, true)) { m_ShowImGuiDemo = true; }
 
 				ImGui::EndMenu();
 			}
