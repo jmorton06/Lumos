@@ -2,7 +2,7 @@
 #include "ModelLoader.h"
 #include "Graphics/Mesh.h"
 #include "Graphics/Material.h"
-#include "ECS/EntityManager.h"
+#include "Maths/Transform.h"
 #include "ECS/Component/MeshComponent.h"
 #include "ECS/Component/MaterialComponent.h"
 #include "Graphics/API/Texture.h"
@@ -36,7 +36,7 @@ namespace Lumos
 		}
 	}
 
-	Entity* ModelLoader::LoadOBJ(const String& path)
+	entt::entity ModelLoader::LoadOBJ(const String& path, entt::registry& registry)
 	{
 		String resolvedPath = path;
 		tinyobj::attrib_t attrib;
@@ -60,7 +60,7 @@ namespace Lumos
 			LUMOS_LOG_CRITICAL(error);
 		}
 
-		auto entity = EntityManager::Instance()->CreateEntity(name);
+        auto entity = registry.create();//EntityManager::Instance()->CreateEntity(name);
 
 		for (const auto& shape : shapes)
 		{
@@ -202,12 +202,11 @@ namespace Lumos
 			Ref<Graphics::IndexBuffer> ib;
 			ib.reset(Graphics::IndexBuffer::Create(indices, numIndices));// / sizeof(u32));
 
-			auto meshEntity = EntityManager::Instance()->CreateEntity(shape.name);
+            auto meshEntity = registry.create(); //EntityManager::Instance()->CreateEntity(shape.name);
             auto mesh = CreateRef<Graphics::Mesh>(va, ib, boundingBox);
-			meshEntity->AddComponent<MeshComponent>(mesh);
-			meshEntity->AddComponent<MaterialComponent>(pbrMaterial);
-			meshEntity->AddComponent<Maths::Transform>();
-			entity->AddChild(meshEntity);
+			registry.assign<MeshComponent>(meshEntity,mesh);
+			registry.assign<MaterialComponent>(meshEntity,pbrMaterial);
+			registry.assign<Maths::Transform>(meshEntity);
 
 			delete[] vertices;
 			delete[] indices;
