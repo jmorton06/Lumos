@@ -54,6 +54,8 @@ namespace Lumos
         
         void Transform::SetWorldMatrix(const Matrix4 &mat)
         {
+             if (m_Dirty)
+                 UpdateMatrices();
              m_WorldMatrix = mat * m_LocalMatrix;
         }
         

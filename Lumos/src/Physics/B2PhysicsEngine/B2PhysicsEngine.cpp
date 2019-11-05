@@ -1,8 +1,12 @@
 #include "lmpch.h"
 #include "B2PhysicsEngine.h"
+#include "PhysicsObject2D.h"
 
 #include "Utilities/TimeStep.h"
 #include "Core/Profiler.h"
+#include "ECS/Component/Physics2DComponent.h"
+
+#include "Maths/Transform.h"
 
 #include <Box2D/Box2D.h>
 #include <Box2D/Common/b2Math.h>
@@ -55,6 +59,22 @@ namespace Lumos
 			}
 			else
 				m_B2DWorld->Step(m_UpdateTimestep, 6, 2);
+            
+            auto& registry = scene->GetRegistry();
+            
+            auto group = registry.group<Physics2DComponent>(entt::get<Maths::Transform>);
+
+            for(auto entity : group)
+            {
+                const auto &[phys, trans] = group.get<Physics2DComponent, Maths::Transform>(entity);
+
+               // if (!phys.GetPhysicsObject()->GetB2Body()->IsAwake())
+               //     break;
+
+                trans.SetLocalPosition(Maths::Vector3(phys.GetPhysicsObject()->GetPosition(), 1.0f));
+                trans.SetLocalOrientation(Maths::Quaternion::EulerAnglesToQuaternion(0.0f, 0.0f, phys.GetPhysicsObject()->GetAngle() * Maths::RADTODEG));
+                trans.SetWorldMatrix(Maths::Matrix4()); // temp
+            };
 		}
 	}
 

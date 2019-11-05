@@ -195,49 +195,49 @@ namespace Lumos
 			{
 				if (ImGui::MenuItem("CreateEmpty"))
 				{
-					Application::Instance()->GetSceneManager()->GetCurrentScene()->AddEntity(EntityManager::Instance()->CreateEntity());
+					//Application::Instance()->GetSceneManager()->GetCurrentScene()->AddEntity(EntityManager::Instance()->CreateEntity());
 				}
 
 				if (ImGui::MenuItem("Cube"))
 				{
 					auto entity = EntityManager::Instance()->CreateEntity();
 					entity->AddComponent<MeshComponent>(Graphics::CreatePrimative(Graphics::PrimitiveType::Cube));
-					Application::Instance()->GetSceneManager()->GetCurrentScene()->AddEntity(entity);
+					//Application::Instance()->GetSceneManager()->GetCurrentScene()->AddEntity(entity);
 				}
 
 				if (ImGui::MenuItem("Sphere"))
 				{
 					auto entity = EntityManager::Instance()->CreateEntity();
 					entity->AddComponent<MeshComponent>(Graphics::CreatePrimative(Graphics::PrimitiveType::Sphere));
-					Application::Instance()->GetSceneManager()->GetCurrentScene()->AddEntity(entity);
+					//Application::Instance()->GetSceneManager()->GetCurrentScene()->AddEntity(entity);
 				}
 
 				if (ImGui::MenuItem("Pyramid"))
 				{
 					auto entity = EntityManager::Instance()->CreateEntity();
 					entity->AddComponent<MeshComponent>(Graphics::CreatePrimative(Graphics::PrimitiveType::Pyramid));
-					Application::Instance()->GetSceneManager()->GetCurrentScene()->AddEntity(entity);
+					//Application::Instance()->GetSceneManager()->GetCurrentScene()->AddEntity(entity);
 				}
 
 				if (ImGui::MenuItem("Plane"))
 				{
 					auto entity = EntityManager::Instance()->CreateEntity();
 					entity->AddComponent<MeshComponent>(Graphics::CreatePrimative(Graphics::PrimitiveType::Plane));
-					Application::Instance()->GetSceneManager()->GetCurrentScene()->AddEntity(entity);
+					//Application::Instance()->GetSceneManager()->GetCurrentScene()->AddEntity(entity);
 				}
 				
 				if (ImGui::MenuItem("Cylinder"))
 				{
 					auto entity = EntityManager::Instance()->CreateEntity();
 					entity->AddComponent<MeshComponent>(Graphics::CreatePrimative(Graphics::PrimitiveType::Cylinder));
-					Application::Instance()->GetSceneManager()->GetCurrentScene()->AddEntity(entity);
+					//Application::Instance()->GetSceneManager()->GetCurrentScene()->AddEntity(entity);
 				}
 
 				if (ImGui::MenuItem("Capsule"))
 				{
 					auto entity = EntityManager::Instance()->CreateEntity();
 					entity->AddComponent<MeshComponent>(Graphics::CreatePrimative(Graphics::PrimitiveType::Capsule));
-					Application::Instance()->GetSceneManager()->GetCurrentScene()->AddEntity(entity);
+					//Application::Instance()->GetSceneManager()->GetCurrentScene()->AddEntity(entity);
 				}
 
 				ImGui::EndMenu();

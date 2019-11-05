@@ -77,14 +77,14 @@ void Scene3D::OnInit()
 
 	m_EnvironmentMap = Graphics::TextureCube::CreateFromVCross(environmentFiles, 11);
     
-    auto lightEntity = EntityManager::Instance()->CreateEntity("Directional Light");
-    lightEntity->AddComponent<Graphics::Light>(Maths::Vector3(26.0f, 22.0f, 48.5f), Maths::Vector4(1.0f), 1.3f);
-	lightEntity->AddComponent<Maths::Transform>(Matrix4::Translation(Maths::Vector3(26.0f, 22.0f, 48.5f)) * Maths::Quaternion::LookAt(Maths::Vector3(26.0f, 22.0f, 48.5f), Maths::Vector3::Zero()).ToMatrix4());
-    AddEntity(lightEntity);
+    auto lightEntity = m_Registry.create();//EntityManager::Instance()->CreateEntity("Directional Light");
+    m_Registry.assign<Graphics::Light>(lightEntity, Maths::Vector3(26.0f, 22.0f, 48.5f), Maths::Vector4(1.0f), 1.3f);
+	m_Registry.assign<Maths::Transform>(lightEntity,Matrix4::Translation(Maths::Vector3(26.0f, 22.0f, 48.5f)) * Maths::Quaternion::LookAt(Maths::Vector3(26.0f, 22.0f, 48.5f), Maths::Vector3::Zero()).ToMatrix4());
+    //AddEntity(lightEntity);
 
-	auto cameraEntity = EntityManager::Instance()->CreateEntity("Camera");
-	cameraEntity->AddComponent<CameraComponent>(m_pCamera);
-	AddEntity(cameraEntity);
+	auto cameraEntity = m_Registry.create();//EntityManager::Instance()->CreateEntity("Camera");
+	m_Registry.assign<CameraComponent>(cameraEntity, m_pCamera);
+	//AddEntity(cameraEntity);
 
 	Application::Instance()->GetSystem<AudioManager>()->SetListener(m_pCamera);
 
@@ -138,7 +138,7 @@ void Scene3D::LoadModels()
 	auto testMaterial = CreateRef<Material>();
     testMaterial->LoadMaterial("checkerboard", "/CoreTextures/checkerboard.tga");
 
-	auto ground = EntityManager::Instance()->CreateEntity("Ground");
+	auto ground = m_Registry.create();//EntityManager::Instance()->CreateEntity("Ground");
 	Ref<PhysicsObject3D> testPhysics = CreateRef<PhysicsObject3D>();
 	testPhysics->SetRestVelocityThreshold(-1.0f);
 	testPhysics->SetCollisionShape(CreateRef<CuboidCollisionShape>(Maths::Vector3(groundWidth, groundHeight, groundLength)));
@@ -146,12 +146,12 @@ void Scene3D::LoadModels()
 	testPhysics->SetIsAtRest(true);
 	testPhysics->SetIsStatic(true);
 
-	ground->AddComponent<Maths::Transform>(Matrix4::Scale(Maths::Vector3(groundWidth, groundHeight, groundLength)));
-	ground->AddComponent<Physics3DComponent>(testPhysics);
+	m_Registry.assign<Maths::Transform>(ground, Matrix4::Scale(Maths::Vector3(groundWidth, groundHeight, groundLength)));
+	m_Registry.assign<Physics3DComponent>(ground, testPhysics);
 	//ground->AddComponent<TestComponent>();
 
 	Ref<Graphics::Mesh> groundModel = AssetsManager::DefaultModels()->Get("Cube");
-	ground->AddComponent<MeshComponent>(groundModel);
+	m_Registry.assign<MeshComponent>(ground, groundModel);
 
 	MaterialProperties properties;
 	properties.albedoColour = Vector4(0.6f,0.1f,0.1f,1.0f);
@@ -162,9 +162,9 @@ void Scene3D::LoadModels()
 	properties.usingNormalMap     = 0.0f;
 	properties.usingSpecularMap   = 0.0f;
 	testMaterial->SetMaterialProperites(properties);
-	ground->AddComponent<MaterialComponent>(testMaterial);
+	m_Registry.assign<MaterialComponent>(ground, testMaterial);
 
-	AddEntity(ground);
+	//AddEntity(ground);
 
 	#if 0
 
@@ -306,7 +306,7 @@ void Scene3D::LoadModels()
 #endif
 
 	//Create a pendulum
-	auto pendulumHolder = EntityManager::Instance()->CreateEntity("pendulumHolder");
+	auto pendulumHolder = m_Registry.create();//EntityManager::Instance()->CreateEntity("pendulumHolder");
 	Ref<PhysicsObject3D> pendulumHolderPhysics = CreateRef<PhysicsObject3D>();
 	pendulumHolderPhysics->SetCollisionShape(CreateRef<CuboidCollisionShape>(Maths::Vector3(0.5f, 0.5f, 0.5f)));
 	pendulumHolderPhysics->SetFriction(0.8f);
@@ -315,16 +315,15 @@ void Scene3D::LoadModels()
 	pendulumHolderPhysics->SetInverseInertia(pendulumHolderPhysics->GetCollisionShape()->BuildInverseInertia(1.0f));
 	pendulumHolderPhysics->SetIsStatic(true);
 	pendulumHolderPhysics->SetPosition(Maths::Vector3(12.5f, 15.0f, 20.0f));
-	pendulumHolder->AddComponent<Physics3DComponent>(pendulumHolderPhysics);
-	pendulumHolder->AddComponent<Maths::Transform>(Matrix4::Scale(Maths::Vector3(0.5f, 0.5f, 0.5f)));
+	m_Registry.assign<Physics3DComponent>(pendulumHolder,pendulumHolderPhysics);
+	m_Registry.assign<Maths::Transform>(pendulumHolder,Matrix4::Scale(Maths::Vector3(0.5f, 0.5f, 0.5f)));
 
 	Ref<Graphics::Mesh> pendulumHolderModel = AssetsManager::DefaultModels()->Get("Cube");
-	pendulumHolder->AddComponent<MeshComponent>(pendulumHolderModel);
+	m_Registry.assign<MeshComponent>(pendulumHolder,pendulumHolderModel);
 
-	AddEntity(pendulumHolder);
+	//AddEntity(pendulumHolder);
 
-	//Grass
-	auto pendulum = EntityManager::Instance()->CreateEntity("pendulum");
+	auto pendulum = m_Registry.create();//EntityManager::Instance()->CreateEntity("pendulum");
 	Ref<PhysicsObject3D> pendulumPhysics = CreateRef<PhysicsObject3D>();
 	pendulumPhysics->SetCollisionShape(CreateRef<SphereCollisionShape>(0.5f));
 	pendulumPhysics->SetFriction(0.8f);
@@ -333,15 +332,15 @@ void Scene3D::LoadModels()
 	pendulumPhysics->SetInverseInertia(pendulumPhysics->GetCollisionShape()->BuildInverseInertia(1.0f));
 	pendulumPhysics->SetIsStatic(false);
 	pendulumPhysics->SetPosition(Maths::Vector3(12.5f, 10.0f, 20.0f));
-	pendulum->AddComponent<Physics3DComponent>(pendulumPhysics);
-	pendulum->AddComponent<Maths::Transform>(Matrix4::Scale(Maths::Vector3(0.5f, 0.5f, 0.5f)));
+	m_Registry.assign<Physics3DComponent>(pendulum, pendulumPhysics);
+	m_Registry.assign<Maths::Transform>(pendulum, Matrix4::Scale(Maths::Vector3(0.5f, 0.5f, 0.5f)));
 
 	Ref<Graphics::Mesh> pendulumModel = AssetsManager::DefaultModels()->Get("Sphere");
-	pendulum->AddComponent<MeshComponent>(pendulumModel);
+	m_Registry.assign<MeshComponent>(pendulum, pendulumModel);
 
-	AddEntity(pendulum);
+	//AddEntity(pendulum);
 
-	auto pendulumConstraint = new SpringConstraint(pendulumHolder->GetComponent<Physics3DComponent>()->GetPhysicsObject().get(), pendulum->GetComponent<Physics3DComponent>()->GetPhysicsObject().get(), pendulumHolder->GetComponent<Physics3DComponent>()->GetPhysicsObject()->GetPosition(), pendulum->GetComponent<Physics3DComponent>()->GetPhysicsObject()->GetPosition(), 0.9f, 0.5f);
+	auto pendulumConstraint = new SpringConstraint(m_Registry.get<Physics3DComponent>(pendulumHolder).GetPhysicsObject().get(), m_Registry.get<Physics3DComponent>(pendulum).GetPhysicsObject().get(), m_Registry.get<Physics3DComponent>(pendulumHolder).GetPhysicsObject()->GetPosition(), m_Registry.get<Physics3DComponent>(pendulum).GetPhysicsObject()->GetPosition(), 0.9f, 0.5f);
 	Application::Instance()->GetSystem<LumosPhysicsEngine>()->AddConstraint(pendulumConstraint);
 
 #if 0
@@ -365,15 +364,15 @@ void Scene3D::LoadModels()
 #endif
 
     //plastics
-	auto spheres = EntityManager::Instance()->CreateEntity("Spheres");
-	auto plastics = EntityManager::Instance()->CreateEntity("Plastic Spheres");
-	auto metals = EntityManager::Instance()->CreateEntity("Metal Spheres");
-	spheres->AddChild(plastics);
-	spheres->AddChild(metals);
+	//auto spheres = EntityManager::Instance()->CreateEntity("Spheres");
+	//auto plastics = EntityManager::Instance()->CreateEntity("Plastic Spheres");
+	//auto metals = EntityManager::Instance()->CreateEntity("Metal Spheres");
+	//spheres->AddChild(plastics);
+	//spheres->AddChild(metals);
 
-	AddEntity(spheres);
+	//AddEntity(spheres);
 
-    int numSpheres = 0;
+    //int numSpheres = 0;
 	for (int i = 0; i < 10; i++)
 	{
 		float roughness = i / 10.0f;
@@ -391,14 +390,14 @@ void Scene3D::LoadModels()
 		properties.usingSpecularMap = 0.0f;
 		m->SetMaterialProperites(properties);
 
-		auto sphere = EntityManager::Instance()->CreateEntity("Sphere" + StringFormat::ToString(numSpheres++));
+		auto sphere = m_Registry.create();//EntityManager::Instance()->CreateEntity("Sphere" + StringFormat::ToString(numSpheres++));
 
-		sphere->AddComponent<Maths::Transform>(Matrix4::Translation(Maths::Vector3(float(i), 17.0f, 0.0f)) * Matrix4::Scale(Maths::Vector3(0.5f, 0.5f, 0.5f)));
+		m_Registry.assign<Maths::Transform>(sphere,Matrix4::Translation(Maths::Vector3(float(i), 17.0f, 0.0f)) * Matrix4::Scale(Maths::Vector3(0.5f, 0.5f, 0.5f)));
 		Ref<Graphics::Mesh> sphereModel = AssetsManager::DefaultModels()->Get("Sphere");
-		sphere->AddComponent<MeshComponent>(sphereModel);
-		sphere->AddComponent<MaterialComponent>(m);
+		m_Registry.assign<MeshComponent>(sphere,sphereModel);
+		m_Registry.assign<MaterialComponent>(sphere,m);
 
-		plastics->AddChild(sphere);
+		//plastics->AddChild(sphere);
 	}
 
     //metals
@@ -419,14 +418,14 @@ void Scene3D::LoadModels()
 		properties.usingSpecularMap = 0.0f;
 		m->SetMaterialProperites(properties);
 
-		auto sphere = EntityManager::Instance()->CreateEntity("Sphere" + StringFormat::ToString(numSpheres++));
+		auto sphere = m_Registry.create();//EntityManager::Instance()->CreateEntity("Sphere" + StringFormat::ToString(numSpheres++));
 
-		sphere->AddComponent<Maths::Transform>(Matrix4::Translation(Maths::Vector3(float(i), 18.0f, 0.0f)) * Matrix4::Scale(Maths::Vector3(0.5f, 0.5f, 0.5f)));
+		m_Registry.assign<Maths::Transform>(sphere,Matrix4::Translation(Maths::Vector3(float(i), 18.0f, 0.0f)) * Matrix4::Scale(Maths::Vector3(0.5f, 0.5f, 0.5f)));
 		Ref<Graphics::Mesh> sphereModel = AssetsManager::DefaultModels()->Get("Sphere");
-		sphere->AddComponent<MeshComponent>(sphereModel);
-		sphere->AddComponent<MaterialComponent>(m);
+		m_Registry.assign<MeshComponent>(sphere,sphereModel);
+		m_Registry.assign<MaterialComponent>(sphere, m);
 		
-		metals->AddChild(sphere);
+		//metals->AddChild(sphere);
 	}
 }
 

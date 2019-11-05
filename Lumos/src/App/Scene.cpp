@@ -11,8 +11,8 @@
 #include "Graphics/RenderManager.h"
 #include "Graphics/Camera/Camera.h"
 #include "Utilities/TimeStep.h"
-#include "ECS/EntityManager.h"
-#include "ECS/Component/Components.h"
+//#include "ECS/EntityManager.h"
+//#include "ECS/Component/Components.h"
 #include "Audio/AudioManager.h"
 #include "Physics/LumosPhysicsEngine/SortAndSweepBroadphase.h"
 #include "Physics/LumosPhysicsEngine/Octree.h"
@@ -27,8 +27,8 @@ namespace Lumos
 		m_EnvironmentMap(nullptr), 
 		m_SceneBoundingRadius(0),
 		m_ScreenWidth(0),
-		m_ScreenHeight(0),
-		m_RootEntity(nullptr)
+		m_ScreenHeight(0)//,
+		//m_RootEntity(nullptr)
 	{
 	}
 
@@ -93,7 +93,7 @@ namespace Lumos
 
 		m_SceneBoundingRadius = 400.0f; //Default scene radius of 400m
 
-		m_RootEntity = EntityManager::Instance()->CreateEntity("Root");
+		//m_RootEntity = EntityManager::Instance()->CreateEntity("Root");
 	}
 
 	void Scene::OnCleanupScene()
@@ -106,28 +106,28 @@ namespace Lumos
 		m_CurrentScene = false;
 	};
 
-	void Scene::AddEntity(Entity* game_object)
-	{
-		m_RootEntity->AddChild(game_object);
-	}
+	//void Scene::AddEntity(Entity* game_object)
+	//{
+		//m_RootEntity->AddChild(game_object);
+	//}
 
 
 	void Scene::DeleteAllGameObjects()
 	{
-		EntityManager::Instance()->Clear();
+		//EntityManager::Instance()->Clear();
 	}
 
     void UpdateTransform(Entity* e)
     {
-        auto transformComponent = e->GetTransformComponent();
-        
-        if (transformComponent && transformComponent->HasUpdated())
-        {
-            if (!e->GetParent())
-                transformComponent->SetWorldMatrix(Maths::Matrix4());
-            else
-                transformComponent->SetWorldMatrix(e->GetParent()->GetTransformComponent()->GetWorldMatrix());
-        }
+//        auto transformComponent = e->GetTransformComponent();
+//
+//        if (transformComponent && transformComponent->HasUpdated())
+//        {
+//            if (!e->GetParent())
+//                transformComponent->SetWorldMatrix(Maths::Matrix4());
+//            else
+//                transformComponent->SetWorldMatrix(e->GetParent()->GetTransformComponent()->GetWorldMatrix());
+//        }
     }
 
 	void Scene::OnUpdate(TimeStep* timeStep)
@@ -141,24 +141,24 @@ namespace Lumos
 			m_pCamera->BuildViewMatrix();    
 		}
 
-        IterateEntities(UpdateTransform);
+        //IterateEntities(UpdateTransform);
 	}
 
-	void Scene::IterateEntities(const std::function<void(Entity*)>& per_object_func)
-	{
-		std::function<void(Entity*)> per_object_func2 = [&](Entity* obj)
-		{
-			if (obj->ActiveInHierarchy())
-			{
-				per_object_func(obj);
-
-				for (auto child : obj->GetChildren())
-					per_object_func2(child);
-			}
-		};
-
-		per_object_func2(m_RootEntity);
-	}
+//	void Scene::IterateEntities(const std::function<void(Entity*)>& per_object_func)
+//	{
+//		std::function<void(Entity*)> per_object_func2 = [&](Entity* obj)
+//		{
+//			if (obj->ActiveInHierarchy())
+//			{
+//				per_object_func(obj);
+//
+//				for (auto child : obj->GetChildren())
+//					per_object_func2(child);
+//			}
+//		};
+//
+//		per_object_func2(m_RootEntity);
+//	}
 
 	void Scene::OnEvent(Event& e)
 	{
@@ -173,20 +173,21 @@ namespace Lumos
 
 		return false;
 	}
+
 	nlohmann::json Scene::Serialise()
 	{
 		nlohmann::json output;
 		output["typeID"] = LUMOS_TYPENAME(Scene);
 		output["name"] = m_SceneName;
 
-		nlohmann::json serialisedEntities = nlohmann::json::array_t();
-		auto& entities = EntityManager::Instance()->GetEntities();
-
-		for (int i = 0; i < entities.size(); ++i)
-			if(entities[i])
-				serialisedEntities.push_back(entities[i]->Serialise());
-
-		output["entities"] = serialisedEntities;
+//		nlohmann::json serialisedEntities = nlohmann::json::array_t();
+//		auto& entities = EntityManager::Instance()->GetEntities();
+//
+//		for (int i = 0; i < entities.size(); ++i)
+//			if(entities[i])
+//				serialisedEntities.push_back(entities[i]->Serialise());
+//
+//		output["entities"] = serialisedEntities;
 
 		return output;
 	}
@@ -195,12 +196,12 @@ namespace Lumos
 	{
 		m_SceneName = data["name"];
 
-		nlohmann::json::array_t entities = data["entities"];
+//		nlohmann::json::array_t entities = data["entities"];
 
-		for (int i = 0; i < entities.size(); i++)
-		{
-			auto entity = EntityManager::Instance()->CreateEntity();
-			entity->Deserialise(entities[i]);
-		}
+//		for (int i = 0; i < entities.size(); i++)
+//		{
+//			auto entity = EntityManager::Instance()->CreateEntity();
+//			entity->Deserialise(entities[i]);
+//		}
 	}
 }

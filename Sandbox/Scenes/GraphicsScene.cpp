@@ -41,14 +41,14 @@ void GraphicsScene::OnInit()
 	auto lightEntity = EntityManager::Instance()->CreateEntity("Directional Light");
 	lightEntity->AddComponent<Graphics::Light>(Maths::Vector3(26.0f, 22.0f, 48.5f), Maths::Vector4(1.0f), 2.0f);
 	lightEntity->AddComponent<Maths::Transform>(Matrix4::Translation(Maths::Vector3(26.0f, 22.0f, 48.5f)));
-	AddEntity(lightEntity);
+	//AddEntity(lightEntity);
 
 	Application::Instance()->GetSystem<AudioManager>()->SetListener(m_pCamera);
 
 	auto shadowRenderer = new Graphics::ShadowRenderer();
 	auto deferredRenderer = new Graphics::DeferredRenderer(m_ScreenWidth, m_ScreenHeight);
 	auto skyboxRenderer = new Graphics::SkyboxRenderer(m_ScreenWidth, m_ScreenHeight, m_EnvironmentMap);
-	shadowRenderer->SetLightEntity(lightEntity);
+	//shadowRenderer->SetLightEntity(lightEntity);
 
 	deferredRenderer->SetRenderToGBufferTexture(true);
 	skyboxRenderer->SetRenderToGBufferTexture(true);
@@ -95,7 +95,7 @@ void GraphicsScene::LoadModels()
     
 	m_Terrain->AddComponent<MeshComponent>(terrain);
 
-	AddEntity(m_Terrain);
+	//AddEntity(m_Terrain);
 }
 
 int width = 500;

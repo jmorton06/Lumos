@@ -231,7 +231,7 @@ namespace Lumos
 		const float intensity = RandomNumberGenerator32::Rand(0.0f, 2.0f);
 
 		cube->AddComponent<Graphics::Light>(scene->GetCamera()->GetPosition(), colour, intensity, Graphics::LightType::PointLight, scene->GetCamera()->GetPosition(), radius);
-		scene->AddEntity(cube);
+		//scene->AddEntity(cube);
 	}
 
 	void CommonUtils::AddSphere(Scene* scene)
@@ -255,7 +255,7 @@ namespace Lumos
 		const Maths::Vector3 forward = viewRotation * Maths::Vector3(0.0f, 0.0f, -1.0f);
 		sphere->GetComponent<Physics3DComponent>()->GetPhysicsObject()->SetLinearVelocity(forward * 30.0f);
 
-		scene->AddEntity(sphere);
+		//scene->AddEntity(sphere);
 	}
 
 	void CommonUtils::AddPyramid(Scene* scene)
@@ -279,6 +279,6 @@ namespace Lumos
 		const Maths::Vector3 forward = viewRotation * Maths::Vector3(0.0f, 0.0f, -1.0f);
 		sphere->GetComponent<Physics3DComponent>()->GetPhysicsObject()->SetLinearVelocity(forward * 30.0f);
 
-		scene->AddEntity(sphere);
+	//	scene->AddEntity(sphere);
 	}
 }
