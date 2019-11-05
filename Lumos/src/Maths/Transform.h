@@ -76,9 +76,6 @@ namespace Lumos
 
 			bool m_HasUpdated = false;
 			bool m_Dirty = false;
-
-			Transform* m_Parent = nullptr;
-			std::vector<Transform*> m_Children;
 		};
 	}
 }

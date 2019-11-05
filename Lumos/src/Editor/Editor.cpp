@@ -301,7 +301,7 @@ namespace Lumos
     
 	void Editor::OnImGuizmo()
 	{
-		if (!m_Selected || m_ImGuizmoOperation == 4)
+		if (m_ImGuizmoOperation == 4)
 			return;
 
 		Maths::Matrix4 view = Application::Instance()->GetSceneManager()->GetCurrentScene()->GetCamera()->GetViewMatrix();
@@ -314,9 +314,11 @@ namespace Lumos
 		ImGuizmo::SetDrawlist();
 		ImGuizmo::SetOrthographic(Application::Instance()->GetSceneManager()->GetCurrentScene()->GetCamera()->Is2D());
 
-		if (m_Selected->GetComponent<Maths::Transform>() != nullptr)
+        auto& registry = m_Application->GetSceneManager()->GetCurrentScene()->GetRegistry();
+        
+		if (registry.try_get<Maths::Transform>(m_Selected) != nullptr)
 		{
-			Maths::Matrix4 model = m_Selected->GetComponent<Maths::Transform>()->GetWorldMatrix();
+			Maths::Matrix4 model = registry.try_get<Maths::Transform>(m_Selected)->GetWorldMatrix();
 
 			float snapAmount[3] = { m_SnapAmount  , m_SnapAmount , m_SnapAmount };
 			float delta[16];
@@ -325,10 +327,10 @@ namespace Lumos
 
 			if (ImGuizmo::IsUsing())
 			{
-				auto mat = Maths::Matrix4(delta) * m_Selected->GetComponent<Maths::Transform>()->GetLocalMatrix();
-				m_Selected->GetComponent<Maths::Transform>()->SetLocalTransform(mat);
+				auto mat = Maths::Matrix4(delta) * registry.try_get<Maths::Transform>(m_Selected)->GetLocalMatrix();
+				registry.try_get<Maths::Transform>(m_Selected)->SetLocalTransform(mat);
 
-				auto physics2DComponent = m_Selected->GetComponent<Physics2DComponent>();
+				auto physics2DComponent = registry.try_get<Physics2DComponent>(m_Selected);
 
 				if (physics2DComponent)
 				{
@@ -336,7 +338,7 @@ namespace Lumos
 				}
 				else
 				{
-					auto physics3DComponent = m_Selected->GetComponent<Physics3DComponent>();
+					auto physics3DComponent = registry.try_get<Physics3DComponent>(m_Selected);
 					if (physics3DComponent)
 					{
 						physics3DComponent->GetPhysicsObject()->SetPosition(mat.GetPositionVector());
@@ -439,7 +441,7 @@ namespace Lumos
 
 	void Editor::OnNewScene(Scene * scene)
 	{
-		m_Selected = nullptr;
+        m_Selected;// = nullptr;
 	}
 
 	void Editor::Draw2DGrid(ImDrawList* drawList, const ImVec2& cameraPos, const ImVec2& windowPos, const ImVec2& canvasSize, const float factor, const float thickness)

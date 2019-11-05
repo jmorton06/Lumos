@@ -9,6 +9,8 @@
 #include "Maths/BoundingSphere.h"
 #include "Utilities/AssetsManager.h"
 
+#include "App/Application.h"
+
 #define TINYOBJLOADER_IMPLEMENTATION
 #include <tinyobjloader/tiny_obj_loader.h>
 

@@ -3,6 +3,7 @@
 #include "EditorWindow.h"
 
 #include <imgui/imgui.h>
+#include <entt/entt.hpp>
 
 namespace ImGui
 {
@@ -49,8 +50,8 @@ namespace Lumos
 		bool& ShowGrid() { return m_ShowGrid; }
 		const float& GetGridSize() const { return m_GridSize; }
 
-		void SetSelected(Entity* entity) { m_Selected = entity; }
-		Entity* GetSelected() const { return m_Selected; }
+		void SetSelected(entt::entity entity) { m_Selected = entity; }
+		entt::entity GetSelected() const { return m_Selected; }
 
 		void BindEventFunction();
 
@@ -60,7 +61,7 @@ namespace Lumos
 		Application* m_Application;
 
 		u32 m_ImGuizmoOperation = 0;
-		Entity* m_Selected = nullptr;
+		entt::entity m_Selected;
         float m_GridSize = 10.0f;
 
 		bool m_ShowGrid = true;

@@ -11,6 +11,7 @@
 #include "Maths/MathsUtilities.h"
 #include "Maths/Matrix4.h"
 #include "Maths/Transform.h"
+#include "App/Application.h"
 
 #define TINYGLTF_IMPLEMENTATION
 #define STB_IMAGE_WRITE_IMPLEMENTATION
@@ -414,6 +415,8 @@ namespace Lumos
         if(name == "")
             name = "Mesh : " + StringFormat::ToString(nodeIndex);
         auto meshEntity = registry.create();// EntityManager::Instance()->CreateEntity(name);
+        registry.assign<NameComponent>(meshEntity, name);
+
         registry.assign<Maths::Transform>(meshEntity);
         
        // if(parent)
@@ -432,6 +435,7 @@ namespace Lumos
                                 
                 registry.assign<MeshComponent>(submeshEntity, lMesh);
                 registry.assign<Maths::Transform>(submeshEntity);
+                registry.assign<NameComponent>(submeshEntity, subname);
 
                 int materialIndex = model.meshes[node.mesh].primitives[subIndex].material;
                 if(materialIndex >= 0)
@@ -524,6 +528,8 @@ namespace Lumos
 
         auto entity = registry.create();// EntityManager::Instance()->CreateEntity(name);
 		registry.assign<Maths::Transform>(entity);
+        registry.assign<NameComponent>(entity, name);
+
 
         auto meshes = std::vector<std::vector<Graphics::Mesh*>>();
         
