@@ -55,6 +55,11 @@ namespace Lumos
 		Editor
 	};
 
+    struct NameComponent
+    {
+        String name;
+    };
+
 	class LUMOS_EXPORT Application
 	{
 		friend class Editor;
