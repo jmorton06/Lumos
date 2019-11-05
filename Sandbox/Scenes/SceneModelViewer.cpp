@@ -42,12 +42,12 @@ void SceneModelViewer::OnInit()
 	auto lightEntity = EntityManager::Instance()->CreateEntity("Directional Light");
 	lightEntity->AddComponent<Graphics::Light>(Maths::Vector3(26.0f, 22.0f, 48.5f), Maths::Vector4(1.0f), 2.0f);
 	lightEntity->AddComponent<Maths::Transform>(Matrix4::Translation(Maths::Vector3(26.0f, 22.0f, 48.5f)) * Maths::Quaternion::LookAt(Maths::Vector3(26.0f, 22.0f, 48.5f), Maths::Vector3::Zero()).ToMatrix4());
-	AddEntity(lightEntity);
+	//AddEntity(lightEntity);
 
     auto shadowRenderer = new Graphics::ShadowRenderer();
     auto deferredRenderer = new Graphics::DeferredRenderer(m_ScreenWidth, m_ScreenHeight);
     auto skyboxRenderer = new Graphics::SkyboxRenderer(m_ScreenWidth, m_ScreenHeight, m_EnvironmentMap);
-	shadowRenderer->SetLightEntity(lightEntity);
+	//shadowRenderer->SetLightEntity(lightEntity);
 
     deferredRenderer->SetRenderToGBufferTexture(true);
     skyboxRenderer->SetRenderToGBufferTexture(true);
@@ -98,8 +98,8 @@ void SceneModelViewer::LoadModels()
 	auto TestObject = ModelLoader::LoadModel(ExampleModelPaths[6]);
 	//TestObject->GetOrAddComponent<Maths::Transform>(Maths::Matrix4::Scale(Maths::Vector3(1.0f, 1.0f, 1.0f)));
 
-	if(TestObject)
-		AddEntity(TestObject);
+	//if(TestObject)
+	//	AddEntity(TestObject);
 
 }
 

@@ -53,8 +53,8 @@ namespace Lumos
 		Graphics::GraphicsContext::SetRenderAPI(static_cast<Graphics::RenderAPI>(properties.RenderAPI));
 
 		Engine::Instance();
-		EntityManager::Instance();
-		ComponentManager::Instance();
+		//EntityManager::Instance();
+		//ComponentManager::Instance();
 
 		m_Timer = CreateScope<Timer>();
 
@@ -132,8 +132,8 @@ namespace Lumos
 		Engine::Release();
 		Input::Release();
 		AssetsManager::ReleaseMeshes();
-		EntityManager::Release();
-		ComponentManager::Release();
+		//EntityManager::Release();
+		//ComponentManager::Release();
 		SoundManager::Release();
 
 		m_SceneManager.reset();
@@ -254,8 +254,8 @@ namespace Lumos
 		if (Application::Instance()->GetEditorState() != EditorState::Paused && Application::Instance()->GetEditorState() != EditorState::Preview)
 #endif
 		{
-			EntityManager::Instance()->OnUpdate(Engine::GetTimeStep()->GetElapsedMillis());
-			ComponentManager::Instance()->OnUpdate();
+			//EntityManager::Instance()->OnUpdate(Engine::GetTimeStep()->GetElapsedMillis());
+			//ComponentManager::Instance()->OnUpdate();
 			m_SceneManager->GetCurrentScene()->OnUpdate(Engine::GetTimeStep());
 			m_SystemManager->OnUpdate(Engine::GetTimeStep(),m_SceneManager->GetCurrentScene());
 		}

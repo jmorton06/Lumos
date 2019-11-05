@@ -206,6 +206,11 @@ namespace Lumos
 			memcpy(m_VSSystemUniformBuffer + m_VSSystemUniformBufferOffsets[VSSystemUniformIndex_ProjectionViewMatrix], m_ShadowProjView, sizeof(Maths::Matrix4) * 16);
 
 			Begin();
+            
+            auto& registry = scene->GetRegistry();
+                                    
+            auto group = registry.group<MeshComponent>(entt::get<Maths::Transform>);
+            
 			for (u32 i = 0; i < m_ShadowMapNum; ++i)
 			{
 				m_Layer = i;
@@ -213,32 +218,28 @@ namespace Lumos
 				Maths::Frustum f;
 				f.FromMatrix(m_ShadowProjView[i]);
 
-				auto entities = EntityManager::Instance()->GetEntitiesWithType<MeshComponent>();
-				for (auto obj : entities)
-				{
-					if (obj != nullptr)
-					{
-						auto model = obj->GetComponent<MeshComponent>();
-						if (model->GetMesh() && model->GetMesh()->GetActive())
-						{
-							auto& worldTransform = obj->GetComponent<Maths::Transform>()->GetWorldMatrix();
+                for(auto entity : group)
+                {
+                    const auto &[mesh, trans] = group.get<MeshComponent, Maths::Transform>(entity);
 
-							float maxScaling = 0.0f;
-							auto scale = worldTransform.GetScaling();
-							maxScaling = Maths::Max(scale.GetX(), maxScaling);
-							maxScaling = Maths::Max(scale.GetY(), maxScaling);
-							maxScaling = Maths::Max(scale.GetZ(), maxScaling);
+                    if (mesh.GetMesh() && mesh.GetMesh()->GetActive())
+                    {
+                        auto& worldTransform = trans.GetWorldMatrix();
+                  
+                        float maxScaling = 0.0f;
+                        auto scale = worldTransform.GetScaling();
+                        maxScaling = Maths::Max(scale.GetX(), maxScaling);
+                        maxScaling = Maths::Max(scale.GetY(), maxScaling);
+                        maxScaling = Maths::Max(scale.GetZ(), maxScaling);
 
-							bool inside = f.InsideFrustum(worldTransform.GetPositionVector(), maxScaling * model->GetMesh()->GetBoundingSphere()->SphereRadius());
+                        bool inside = f.InsideFrustum(worldTransform.GetPositionVector(), maxScaling * mesh.GetMesh()->GetBoundingSphere()->SphereRadius());
 
-							if (!inside)
-								continue;
-				
-					
-							SubmitMesh(model->GetMesh(), nullptr, worldTransform, Maths::Matrix4());
-						}
+                        if (!inside)
+                            continue;
+            
+                        SubmitMesh(mesh.GetMesh(), nullptr, worldTransform, Maths::Matrix4());
 					}
-				}
+                }
 
 				SetSystemUniforms(m_Shader);
 
@@ -258,10 +259,7 @@ namespace Lumos
 
 		void ShadowRenderer::UpdateCascades(Scene* scene)
 		{
-			if (!m_LightEntity)
-				return;
-
-			Light* light = m_LightEntity->GetComponent<Graphics::Light>();
+			Light* light = &scene->GetRegistry().get<Graphics::Light>(m_LightEntity);
 
 			if (!light)
 				return;

@@ -189,7 +189,7 @@ namespace Lumos
 			{
 				ImGui::Indent();
 
-				DrawNode(Application::Instance()->GetSceneManager()->GetCurrentScene()->GetRootEntity(), true);
+				//DrawNode(Application::Instance()->GetSceneManager()->GetCurrentScene()->GetRootEntity(), true);
 
 				ImGui::TreePop();
 			}
