@@ -2,14 +2,14 @@
 
 #include "lmpch.h"
 
+#include <entt/entt.hpp>
+
 namespace Lumos
 {
-	class Entity;
-
 	namespace ModelLoader
 	{
-		LUMOS_EXPORT Entity* LoadModel(const String& path);
-		Entity* LoadOBJ(const String& path);
-		Entity* LoadGLTF(const String& path);
+		LUMOS_EXPORT entt::entity LoadModel(const String& path, entt::registry& registry);
+		entt::entity LoadOBJ(const String& path, entt::registry& registry);
+		entt::entity LoadGLTF(const String& path, entt::registry& registry);
 	};
 }

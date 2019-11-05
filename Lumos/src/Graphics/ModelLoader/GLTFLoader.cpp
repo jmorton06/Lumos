@@ -3,7 +3,6 @@
 #include "Graphics/Mesh.h"
 #include "Graphics/Material.h"
 #include "Maths/BoundingSphere.h"
-#include "ECS/EntityManager.h"
 #include "ECS/Component/MeshComponent.h"
 #include "ECS/Component/MaterialComponent.h"
 
@@ -11,6 +10,7 @@
 #include "Utilities/AssetsManager.h"
 #include "Maths/MathsUtilities.h"
 #include "Maths/Matrix4.h"
+#include "Maths/Transform.h"
 
 #define TINYGLTF_IMPLEMENTATION
 #define STB_IMAGE_WRITE_IMPLEMENTATION
@@ -401,7 +401,7 @@ namespace Lumos
         return meshes;
     }
     
-    void LoadNode(int nodeIndex, Entity* parent, tinygltf::Model& model, std::vector<Ref<Material>>& materials, std::vector<std::vector<Graphics::Mesh*>>& meshes)
+    void LoadNode(int nodeIndex, entt::entity parent, tinygltf::Model& model, std::vector<Ref<Material>>& materials, std::vector<std::vector<Graphics::Mesh*>>& meshes, entt::registry& registry)
     {
         if (nodeIndex < 0)
         {
@@ -413,11 +413,11 @@ namespace Lumos
         auto name = node.name;
         if(name == "")
             name = "Mesh : " + StringFormat::ToString(nodeIndex);
-        auto meshEntity = EntityManager::Instance()->CreateEntity(name);
-        meshEntity->AddComponent<Maths::Transform>();
+        auto meshEntity = registry.create();// EntityManager::Instance()->CreateEntity(name);
+        registry.assign<Maths::Transform>(meshEntity);
         
-        if(parent)
-            parent->AddChild(meshEntity);
+       // if(parent)
+       //     parent->AddChild(meshEntity);
         
         if(node.mesh >= 0)
         {
@@ -427,16 +427,17 @@ namespace Lumos
                 auto subname = node.name;
                 if(subname == "")
                     subname = "Mesh : " + StringFormat::ToString(subIndex);
-                auto submeshEntity = EntityManager::Instance()->CreateEntity(name);
+                auto submeshEntity = registry.create();//EntityManager::Instance()->CreateEntity(name);
                 auto lMesh = Ref<Graphics::Mesh>(meshes);
                                 
-                submeshEntity->AddComponent<MeshComponent>(lMesh);
+                registry.assign<MeshComponent>(submeshEntity, lMesh);
+                registry.assign<Maths::Transform>(submeshEntity);
 
                 int materialIndex = model.meshes[node.mesh].primitives[subIndex].material;
                 if(materialIndex >= 0)
-                    submeshEntity->AddComponent<MaterialComponent>(materials[materialIndex]);
+                    registry.assign<MaterialComponent>(submeshEntity, materials[materialIndex]);
 
-                meshEntity->AddChild(submeshEntity);
+                //meshEntity->AddChild(submeshEntity);
                 /*if (node.skin >= 0)
                 {
                 }*/
@@ -446,38 +447,38 @@ namespace Lumos
             }
         }
         
-        Maths::Transform* transform = meshEntity->GetTransformComponent();
+        Maths::Transform& transform = registry.get<Maths::Transform>(meshEntity);
         
         if (!node.scale.empty())
         {
-            transform->SetLocalScale(Maths::Vector3(static_cast<float>(node.scale[0]), static_cast<float>(node.scale[1]), static_cast<float>(node.scale[2])));
+            transform.SetLocalScale(Maths::Vector3(static_cast<float>(node.scale[0]), static_cast<float>(node.scale[1]), static_cast<float>(node.scale[2])));
         }
         if (!node.rotation.empty())
         {
-            transform->SetLocalOrientation(Maths::Quaternion(static_cast<float>(node.rotation[0]), static_cast<float>(node.rotation[1]), static_cast<float>(node.rotation[2]), static_cast<float>(node.rotation[3])));
+            transform.SetLocalOrientation(Maths::Quaternion(static_cast<float>(node.rotation[0]), static_cast<float>(node.rotation[1]), static_cast<float>(node.rotation[2]), static_cast<float>(node.rotation[3])));
         }
         if (!node.translation.empty())
         {
-            transform->SetLocalPosition(Maths::Vector3(static_cast<float>(node.translation[0]), static_cast<float>(node.translation[1]), static_cast<float>(node.translation[2])));
+            transform.SetLocalPosition(Maths::Vector3(static_cast<float>(node.translation[0]), static_cast<float>(node.translation[1]), static_cast<float>(node.translation[2])));
         }
         if (!node.matrix.empty())
         {
             auto lTransform = Maths::Matrix4(reinterpret_cast<float*>(node.matrix.data()));
-            transform->SetLocalTransform(lTransform);
+            transform.SetLocalTransform(lTransform);
         }
 
-		transform->UpdateMatrices();
+		transform.UpdateMatrices();
         
         if (!node.children.empty())
         {
             for (int child : node.children)
             {
-                LoadNode(child, meshEntity, model, materials, meshes);
+                LoadNode(child, meshEntity, model, materials, meshes, registry);
             }
         }
     }
 
-    Entity* ModelLoader::LoadGLTF(const String& path)
+    entt::entity ModelLoader::LoadGLTF(const String& path, entt::registry& registry)
 	{
 		tinygltf::Model model;
 		tinygltf::TinyGLTF loader;
@@ -521,8 +522,8 @@ namespace Lumos
         
         String name = directory.substr(directory.find_last_of('/') + 1);
 
-		auto entity = EntityManager::Instance()->CreateEntity(name);
-		entity->AddComponent<Maths::Transform>();
+        auto entity = registry.create();// EntityManager::Instance()->CreateEntity(name);
+		registry.assign<Maths::Transform>(entity);
 
         auto meshes = std::vector<std::vector<Graphics::Mesh*>>();
         
@@ -534,7 +535,7 @@ namespace Lumos
         const tinygltf::Scene &gltfScene = model.scenes[Maths::Max(0, model.defaultScene)];
         for (size_t i = 0; i < gltfScene.nodes.size(); i++)
         {
-            LoadNode(gltfScene.nodes[i], entity, model, LoadedMaterials, meshes);
+            LoadNode(gltfScene.nodes[i], entity, model, LoadedMaterials, meshes, registry);
         }
         
 		return entity;

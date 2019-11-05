@@ -80,11 +80,9 @@ void Scene3D::OnInit()
     auto lightEntity = m_Registry.create();//EntityManager::Instance()->CreateEntity("Directional Light");
     m_Registry.assign<Graphics::Light>(lightEntity, Maths::Vector3(26.0f, 22.0f, 48.5f), Maths::Vector4(1.0f), 1.3f);
 	m_Registry.assign<Maths::Transform>(lightEntity,Matrix4::Translation(Maths::Vector3(26.0f, 22.0f, 48.5f)) * Maths::Quaternion::LookAt(Maths::Vector3(26.0f, 22.0f, 48.5f), Maths::Vector3::Zero()).ToMatrix4());
-    //AddEntity(lightEntity);
 
 	auto cameraEntity = m_Registry.create();//EntityManager::Instance()->CreateEntity("Camera");
 	m_Registry.assign<CameraComponent>(cameraEntity, m_pCamera);
-	//AddEntity(cameraEntity);
 
 	Application::Instance()->GetSystem<AudioManager>()->SetListener(m_pCamera);
 
@@ -102,7 +100,7 @@ void Scene3D::OnInit()
 	Application::Instance()->PushLayer(shadowLayer);
     Application::Instance()->PushLayer(new Layer3D(new Graphics::DeferredRenderer(m_ScreenWidth, m_ScreenHeight, editor), "Deferred"));
 	Application::Instance()->PushLayer(new Layer3D(new Graphics::SkyboxRenderer(m_ScreenWidth, m_ScreenHeight, m_EnvironmentMap, editor), "Skybox"));
-	//Application::Instance()->PushLayer(new Layer3D(new Graphics::GridRenderer(m_ScreenWidth, m_ScreenHeight, editor), "Grid"));
+	Application::Instance()->PushLayer(new Layer3D(new Graphics::GridRenderer(m_ScreenWidth, m_ScreenHeight, editor), "Grid"));
 
 	Application::Instance()->GetRenderManager()->SetShadowRenderer(shadowRenderer);
     Application::Instance()->GetRenderManager()->SetSkyBoxTexture(m_EnvironmentMap);
@@ -148,7 +146,6 @@ void Scene3D::LoadModels()
 
 	m_Registry.assign<Maths::Transform>(ground, Matrix4::Scale(Maths::Vector3(groundWidth, groundHeight, groundLength)));
 	m_Registry.assign<Physics3DComponent>(ground, testPhysics);
-	//ground->AddComponent<TestComponent>();
 
 	Ref<Graphics::Mesh> groundModel = AssetsManager::DefaultModels()->Get("Cube");
 	m_Registry.assign<MeshComponent>(ground, groundModel);
