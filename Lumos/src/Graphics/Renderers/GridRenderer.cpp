@@ -30,6 +30,9 @@ namespace Lumos
 			SetScreenBufferSize(width, height);
 			Init();
             
+            m_GridRes = 0.16f;
+            m_GridSize = 40.0f;
+            
             SetRenderToGBufferTexture(renderToGBuffer);
 		}
 
@@ -152,11 +155,12 @@ namespace Lumos
 			UniformBufferObjectFrag test;
 			test.res = m_GridRes;
 			test.scale = m_GridSize;
+            test.cameraPos = scene->GetCamera()->GetPosition();
+            test.maxDistance = 100.0f;
 
 			auto invViewProj = proj * camera->GetViewMatrix();
 			memcpy(m_VSSystemUniformBuffer + m_VSSystemUniformBufferOffsets[VSSystemUniformIndex_InverseProjectionViewMatrix], &invViewProj, sizeof(Maths::Matrix4));
 			memcpy(m_PSSystemUniformBuffer + m_VSSystemUniformBufferOffsets[VSSystemUniformIndex_InverseProjectionViewMatrix], &test, sizeof(UniformBufferObjectFrag));
-
 		}
 
 		void GridRenderer::End()
@@ -306,13 +310,6 @@ namespace Lumos
 			bufferInfos.push_back(bufferInfo2);
 			if (m_Pipeline != nullptr)
 				m_Pipeline->GetDescriptorSet()->Update(bufferInfos);
-
-			//Graphics::DescriptorInfo info{};
-			//info.pipeline = m_Pipeline;
-			//info.layoutIndex = 1;
-			//info.shader = m_Shader;
-			//info.count = 1;
-			//m_DescriptorSet = Graphics::DescriptorSet::Create(info);
 		}
 
 		void GridRenderer::SetRenderTarget(Texture* texture)
