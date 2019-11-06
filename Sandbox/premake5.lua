@@ -66,8 +66,7 @@ project "Sandbox"
 		{
 			"OpenAL32",
 			"glfw",
-			"glad",
-			"opengl32.lib"
+			"glad"
 		}
 
 		buildoptions
