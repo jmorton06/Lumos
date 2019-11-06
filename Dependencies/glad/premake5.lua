@@ -2,6 +2,7 @@ project 'glad'
 	kind 'StaticLib'
 	systemversion "latest"
 	cppdialect "C++14"
+	staticruntime "On"
 	files
 	{
 		"include/glad/glad.h",

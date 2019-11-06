@@ -2,6 +2,7 @@ project "imgui"
 	kind "StaticLib"
 	language "C++"
 	cppdialect "C++17"
+	staticruntime "On"
 
 	files
 	{
@@ -29,7 +30,6 @@ project "imgui"
 	filter "system:linux"
 		pic "On"
 		systemversion "latest"
-		staticruntime "On"
 
 	filter "configurations:Debug"
 		runtime "Debug"

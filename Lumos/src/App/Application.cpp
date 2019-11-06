@@ -53,8 +53,6 @@ namespace Lumos
 		Graphics::GraphicsContext::SetRenderAPI(static_cast<Graphics::RenderAPI>(properties.RenderAPI));
 
 		Engine::Instance();
-		//EntityManager::Instance();
-		//ComponentManager::Instance();
 
 		m_Timer = CreateScope<Timer>();
 

@@ -80,10 +80,11 @@ void Scene3D::OnInit()
     auto lightEntity = m_Registry.create();//EntityManager::Instance()->CreateEntity("Directional Light");
     m_Registry.assign<Graphics::Light>(lightEntity, Maths::Vector3(26.0f, 22.0f, 48.5f), Maths::Vector4(1.0f), 1.3f);
 	m_Registry.assign<Maths::Transform>(lightEntity,Matrix4::Translation(Maths::Vector3(26.0f, 22.0f, 48.5f)) * Maths::Quaternion::LookAt(Maths::Vector3(26.0f, 22.0f, 48.5f), Maths::Vector3::Zero()).ToMatrix4());
+	m_Registry.assign<NameComponent>(lightEntity, "Light");
 
 	auto cameraEntity = m_Registry.create();//EntityManager::Instance()->CreateEntity("Camera");
 	m_Registry.assign<CameraComponent>(cameraEntity, m_pCamera);
-
+	m_Registry.assign<NameComponent>(cameraEntity, "Camera");
 	Application::Instance()->GetSystem<AudioManager>()->SetListener(m_pCamera);
 
 	auto shadowRenderer = new Graphics::ShadowRenderer();
@@ -314,7 +315,7 @@ void Scene3D::LoadModels()
 	pendulumHolderPhysics->SetPosition(Maths::Vector3(12.5f, 15.0f, 20.0f));
 	m_Registry.assign<Physics3DComponent>(pendulumHolder,pendulumHolderPhysics);
 	m_Registry.assign<Maths::Transform>(pendulumHolder,Matrix4::Scale(Maths::Vector3(0.5f, 0.5f, 0.5f)));
-
+	m_Registry.assign<NameComponent>(pendulumHolder, "Pendulum Holder");
 	Ref<Graphics::Mesh> pendulumHolderModel = AssetsManager::DefaultModels()->Get("Cube");
 	m_Registry.assign<MeshComponent>(pendulumHolder,pendulumHolderModel);
 
@@ -331,7 +332,7 @@ void Scene3D::LoadModels()
 	pendulumPhysics->SetPosition(Maths::Vector3(12.5f, 10.0f, 20.0f));
 	m_Registry.assign<Physics3DComponent>(pendulum, pendulumPhysics);
 	m_Registry.assign<Maths::Transform>(pendulum, Matrix4::Scale(Maths::Vector3(0.5f, 0.5f, 0.5f)));
-
+	m_Registry.assign<NameComponent>(pendulum, "Pendulum");
 	Ref<Graphics::Mesh> pendulumModel = AssetsManager::DefaultModels()->Get("Sphere");
 	m_Registry.assign<MeshComponent>(pendulum, pendulumModel);
 
@@ -369,7 +370,7 @@ void Scene3D::LoadModels()
 
 	//AddEntity(spheres);
 
-    //int numSpheres = 0;
+    int numSpheres = 0;
 	for (int i = 0; i < 10; i++)
 	{
 		float roughness = i / 10.0f;
@@ -393,7 +394,7 @@ void Scene3D::LoadModels()
 		Ref<Graphics::Mesh> sphereModel = AssetsManager::DefaultModels()->Get("Sphere");
 		m_Registry.assign<MeshComponent>(sphere,sphereModel);
 		m_Registry.assign<MaterialComponent>(sphere,m);
-
+		m_Registry.assign<NameComponent>(sphere, "Sphere" + StringFormat::ToString(numSpheres++));
 		//plastics->AddChild(sphere);
 	}
 
@@ -421,11 +422,14 @@ void Scene3D::LoadModels()
 		Ref<Graphics::Mesh> sphereModel = AssetsManager::DefaultModels()->Get("Sphere");
 		m_Registry.assign<MeshComponent>(sphere,sphereModel);
 		m_Registry.assign<MaterialComponent>(sphere, m);
-		
+		m_Registry.assign<NameComponent>(sphere, "Sphere" + StringFormat::ToString(numSpheres++));
 		//metals->AddChild(sphere);
 	}
 }
 
 void Scene3D::OnImGui()
 {
+	ImGui::Begin("Scene3D");
+	ImGui::TextUnformatted("test");
+	ImGui::End();
 }
