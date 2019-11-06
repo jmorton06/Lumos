@@ -69,7 +69,6 @@ project "Tests"
 
 		links
 		{
-			"OpenAL32",
 			"glfw",
 			"glad",
 		}
