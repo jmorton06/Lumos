@@ -259,7 +259,7 @@ namespace Lumos
 
 		void ShadowRenderer::UpdateCascades(Scene* scene)
 		{
-			Light* light = nullptr;// &scene->GetRegistry().get<Graphics::Light>(m_LightEntity);
+			Light* light = &scene->GetRegistry().get<Graphics::Light>(m_LightEntity);
 
 			if (!light)
 				return;

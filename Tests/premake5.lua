@@ -72,7 +72,6 @@ project "Tests"
 			"OpenAL32",
 			"glfw",
 			"glad",
-			"opengl32.lib"
 		}
 
 	filter "system:macosx"
