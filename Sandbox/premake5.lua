@@ -62,6 +62,14 @@ project "Sandbox"
 			"_DISABLE_EXTENDED_ALIGNED_STORAGE"
 		}
 
+		links
+		{
+			"OpenAL32",
+			"glfw",
+			"glad",
+			"opengl32.lib"
+		}
+
 		buildoptions
 		{
 			"/MP"
@@ -90,6 +98,12 @@ project "Sandbox"
 			"-framework CoreVideo",
 			"-framework OpenAL",
 			"-framework QuartzCore"
+		}
+
+		links
+		{
+			"glfw",
+			"glad"
 		}
 
 
@@ -196,6 +210,12 @@ project "Sandbox"
 			"-Wattributes",
 			"-fPIC",
 			"-Wignored-attributes"
+		}
+
+		links
+		{
+			"glfw",
+			"glad"
 		}
 
 		linkoptions
