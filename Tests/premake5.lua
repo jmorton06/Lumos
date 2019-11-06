@@ -31,8 +31,10 @@ project "Tests"
 	links
 	{
 		"Lumos",
-		--"imgui",
-		--"box2d"
+		"lua",
+		"Box2D",
+		"volk",
+		"imgui"
 	}
 
 	cwd = os.getcwd() .. "/.."
