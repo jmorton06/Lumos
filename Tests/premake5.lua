@@ -67,6 +67,14 @@ project "Tests"
 			"/MP"
 		}
 
+		links
+		{
+			"OpenAL32",
+			"glfw",
+			"glad",
+			"opengl32.lib"
+		}
+
 	filter "system:macosx"
 		cppdialect "C++17"
 		staticruntime "On"
@@ -90,6 +98,12 @@ project "Tests"
 			"-framework CoreVideo",
 			"-framework OpenAL",
 			"-framework QuartzCore"
+		}
+
+		links
+		{
+			"glfw",
+			"glad"
 		}
 
 		filter {"system:macosx", "configurations:release"}
@@ -195,6 +209,12 @@ project "Tests"
 			"-Wattributes",
 			"-fPIC",
 			"-Wignored-attributes"
+		}
+
+		links
+		{
+			"glfw",
+			"glad"
 		}
 
 		linkoptions
