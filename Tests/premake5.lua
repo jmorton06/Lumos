@@ -31,15 +31,15 @@ project "Tests"
 	links
 	{
 		"Lumos",
-		"imgui",
-		"box2d"
+		--"imgui",
+		--"box2d"
 	}
 
 	cwd = os.getcwd() .. "/.."
 
 	defines
 	{
-		"LUMOS_DYNAMIC",
+		--"LUMOS_DYNAMIC",
         "LUMOS_ROOT_DIR="  .. cwd,
         "CATCH_CPP11_OR_GREATER"
 	}
@@ -78,6 +78,16 @@ project "Tests"
 			"LUMOS_RENDER_API_VULKAN",
 			"VK_USE_PLATFORM_MACOS_MVK",
 			"LUMOS_IMGUI"
+		}
+
+		linkoptions 
+		{ 
+			"-framework OpenGL",
+			"-framework Cocoa",
+			"-framework IOKit", 
+			"-framework CoreVideo",
+			"-framework OpenAL",
+			"-framework QuartzCore"
 		}
 
 		filter {"system:macosx", "configurations:release"}
