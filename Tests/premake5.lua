@@ -216,6 +216,8 @@ project "Tests"
 			"glad"
 		}
 
+		links { "X11", "pthread"}
+
 		linkoptions
 		{
 			"-L%{cfg.targetdir}"
