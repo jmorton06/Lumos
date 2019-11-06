@@ -156,7 +156,7 @@ namespace Lumos
 			test.res = m_GridRes;
 			test.scale = m_GridSize;
             test.cameraPos = scene->GetCamera()->GetPosition();
-            test.maxDistance = 100.0f;
+            test.maxDistance = 1000.0f;
 
 			auto invViewProj = proj * camera->GetViewMatrix();
 			memcpy(m_VSSystemUniformBuffer + m_VSSystemUniformBufferOffsets[VSSystemUniformIndex_InverseProjectionViewMatrix], &invViewProj, sizeof(Maths::Matrix4));
