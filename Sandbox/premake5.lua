@@ -216,7 +216,7 @@ project "Sandbox"
 			"glad"
 		}
 
-		links { "X11", "pthread"}
+		links { "X11", "pthread", "libdl"}
 
 		linkoptions
 		{
