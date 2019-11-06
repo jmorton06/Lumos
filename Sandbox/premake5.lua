@@ -64,7 +64,6 @@ project "Sandbox"
 
 		links
 		{
-			"OpenAL32",
 			"glfw",
 			"glad"
 		}
