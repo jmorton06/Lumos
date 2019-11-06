@@ -170,10 +170,12 @@ void HierarchyWindow::DrawNode(entt::entity node, entt::registry& registry)
 {
     bool show = true;
 
-    auto nameComponent = registry.try_get<NameComponent>(node);
-    String name = "";
-    if(nameComponent)
-        name = nameComponent->name;
+	bool hasName = registry.has<NameComponent>(node);
+    String name;
+	if (hasName)
+		name = registry.get<NameComponent>(node).name;
+	else
+		name = StringFormat::ToString((u32)node);
     
     if (m_HierarchyFilter.IsActive())
     {
@@ -200,7 +202,7 @@ void HierarchyWindow::DrawNode(entt::entity node, entt::registry& registry)
         
         std::stringstream ss;
         ss << "##";
-        //ss << node;
+        ss << (u32)node;
         
         bool active = true;//node->ActiveInHierarchy();
         if(!active)
@@ -218,7 +220,7 @@ void HierarchyWindow::DrawNode(entt::entity node, entt::registry& registry)
         if (m_HadRecentDroppedEntity == node)
         {
             ImGui::SetNextItemOpen(true);
-            //m_HadRecentDroppedEntity = nullptr;
+            m_HadRecentDroppedEntity = entt::null;
         }
 
         bool nodeOpen = ImGui::TreeNodeEx(ss.str().c_str(), nodeFlags, doubleClicked ? (icon).c_str() :(icon + " " + name).c_str(), 0);
@@ -229,9 +231,11 @@ void HierarchyWindow::DrawNode(entt::entity node, entt::registry& registry)
             static char objName[INPUT_BUF_SIZE];
             strcpy(objName, name.c_str());
 
+			if (!hasName)
+				registry.assign<NameComponent>(node, name);
             ImGui::PushItemWidth(-1);
-            //if (ImGui::InputText("##Name", objName, IM_ARRAYSIZE(objName), 0))
-              //  node->SetName(objName);
+            if (ImGui::InputText("##Name", objName, IM_ARRAYSIZE(objName), 0))
+				registry.get<NameComponent>(node).name = objName;
             ImGui::PopStyleVar();
         }
 
@@ -243,22 +247,23 @@ void HierarchyWindow::DrawNode(entt::entity node, entt::registry& registry)
         {
             if (ImGui::Selectable("Copy")) m_CopiedEntity = node;
 
-//            if (m_CopiedEntity)
-//            {
-//                if (ImGui::Selectable("Paste"))
-//                {
-//                    auto e = EntityManager::Instance()->DuplicateEntity(m_CopiedEntity);
-//                    node->AddChild(e);
-//                    m_CopiedEntity = nullptr;
-//                }
-//            }
-//            else
-//            {
-//                ImGui::TextDisabled("Paste");
-//            }
+            if (m_CopiedEntity != entt::null)
+            {
+                if (ImGui::Selectable("Paste"))
+                {
+					//auto e = registry.clone(node);// EntityManager::Instance()->DuplicateEntity(m_CopiedEntity);
+                    //node->AddChild(e);
+                    m_CopiedEntity = entt::null;
+                }
+            }
+            else
+            {
+                ImGui::TextDisabled("Paste");
+            }
 
             ImGui::Separator();
-            //if (ImGui::Selectable("Duplicate")) EntityManager::Instance()->DuplicateEntity(node);
+			
+			//if (ImGui::Selectable("Duplicate")) registry.clone(node);// EntityManager::Instance()->DuplicateEntity(node);
             if (ImGui::Selectable("Remove")) deleteEntity = true; if (m_Editor->GetSelected() == node) m_Editor->SetSelected(entt::null);
             ImGui::Separator();
             if (ImGui::Selectable("Rename")) m_DoubleClicked = node;
@@ -273,21 +278,21 @@ void HierarchyWindow::DrawNode(entt::entity node, entt::registry& registry)
             ImGui::EndDragDropSource();
         }
 
-//        if (ImGui::BeginDragDropTarget())
-//        {
-//            if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("Drag_Entity"))
-//            {
-//                LUMOS_ASSERT(payload->DataSize == sizeof(Entity**), "Error ImGUI drag entity");
-//                auto entity = *reinterpret_cast<Entity**>(payload->Data);
-//                node->AddChild(entity);
-//
-//                m_HadRecentDroppedEntity = node;
-//
-//                if (m_Editor->GetSelected() == entity)
-//                    m_Editor->SetSelected(nullptr);
-//            }
-//            ImGui::EndDragDropTarget();
-//        }
+        if (ImGui::BeginDragDropTarget())
+        {
+            if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("Drag_Entity"))
+            {
+                LUMOS_ASSERT(payload->DataSize == sizeof(entt::entity*), "Error ImGUI drag entity");
+                auto entity = *reinterpret_cast<entt::entity*>(payload->Data);
+                //node->AddChild(entity);
+
+                m_HadRecentDroppedEntity = node;
+
+                if (m_Editor->GetSelected() == entity)
+                    m_Editor->SetSelected(entt::null);
+            }
+            ImGui::EndDragDropTarget();
+        }
 
         if (ImGui::IsItemClicked() && !deleteEntity)
             m_Editor->SetSelected(node);

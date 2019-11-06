@@ -60,6 +60,11 @@ namespace Lumos
         String name;
     };
 
+	struct ActiveComponent
+	{
+		bool active;
+	};
+
 	class LUMOS_EXPORT Application
 	{
 		friend class Editor;

@@ -32,15 +32,15 @@ project "Sandbox"
 	links
 	{
 		"Lumos",
-		"imgui",
-		"box2d"
+		--"imgui",
+		--"box2d"
 	}
 
 	cwd = os.getcwd() .. "/.."
 
 	defines
 	{
-		"LUMOS_DYNAMIC",
+		--"LUMOS_DYNAMIC",
 		"LUMOS_ROOT_DIR="  .. cwd,
 	}
 
@@ -79,6 +79,17 @@ project "Sandbox"
 			"VK_USE_PLATFORM_MACOS_MVK",
 			"LUMOS_IMGUI"
 		}
+
+		linkoptions 
+		{ 
+			"-framework OpenGL",
+			"-framework Cocoa",
+			"-framework IOKit", 
+			"-framework CoreVideo",
+			"-framework OpenAL",
+			"-framework QuartzCore"
+		}
+
 
 		filter {"system:macosx", "configurations:release"}
 

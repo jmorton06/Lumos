@@ -90,6 +90,8 @@ namespace Lumos
 #endif
 
 		ImGuiHelpers::SetTheme(ImGuiHelpers::Dark);
+
+		m_Selected = entt::null;
 	}
 
 	void Editor::OnImGui()
@@ -193,51 +195,59 @@ namespace Lumos
 
 			if (ImGui::BeginMenu("Entity"))
 			{
+				auto& registry = m_Application->GetSceneManager()->GetCurrentScene()->GetRegistry();
+
 				if (ImGui::MenuItem("CreateEmpty"))
 				{
-					//Application::Instance()->GetSceneManager()->GetCurrentScene()->AddEntity(EntityManager::Instance()->CreateEntity());
+					auto entity = registry.create();
 				}
 
 				if (ImGui::MenuItem("Cube"))
 				{
-					auto entity = EntityManager::Instance()->CreateEntity();
-					entity->AddComponent<MeshComponent>(Graphics::CreatePrimative(Graphics::PrimitiveType::Cube));
-					//Application::Instance()->GetSceneManager()->GetCurrentScene()->AddEntity(entity);
+					auto entity = registry.create();
+					registry.assign<MeshComponent>(entity, Graphics::CreatePrimative(Graphics::PrimitiveType::Cube));
+					registry.assign<NameComponent>(entity, "Cube");
+					registry.assign<Maths::Transform>(entity);
 				}
 
 				if (ImGui::MenuItem("Sphere"))
 				{
-					auto entity = EntityManager::Instance()->CreateEntity();
-					entity->AddComponent<MeshComponent>(Graphics::CreatePrimative(Graphics::PrimitiveType::Sphere));
-					//Application::Instance()->GetSceneManager()->GetCurrentScene()->AddEntity(entity);
+					auto entity = registry.create();
+					registry.assign<MeshComponent>(entity, Graphics::CreatePrimative(Graphics::PrimitiveType::Sphere));
+					registry.assign<NameComponent>(entity, "Sphere");
+					registry.assign<Maths::Transform>(entity);
 				}
 
 				if (ImGui::MenuItem("Pyramid"))
 				{
-					auto entity = EntityManager::Instance()->CreateEntity();
-					entity->AddComponent<MeshComponent>(Graphics::CreatePrimative(Graphics::PrimitiveType::Pyramid));
-					//Application::Instance()->GetSceneManager()->GetCurrentScene()->AddEntity(entity);
+					auto entity = registry.create();
+					registry.assign<MeshComponent>(entity, Graphics::CreatePrimative(Graphics::PrimitiveType::Pyramid));
+					registry.assign<NameComponent>(entity, "Pyramid");
+					registry.assign<Maths::Transform>(entity);
 				}
 
 				if (ImGui::MenuItem("Plane"))
 				{
-					auto entity = EntityManager::Instance()->CreateEntity();
-					entity->AddComponent<MeshComponent>(Graphics::CreatePrimative(Graphics::PrimitiveType::Plane));
-					//Application::Instance()->GetSceneManager()->GetCurrentScene()->AddEntity(entity);
+					auto entity = registry.create();
+					registry.assign<MeshComponent>(entity, Graphics::CreatePrimative(Graphics::PrimitiveType::Plane));
+					registry.assign<NameComponent>(entity, "Plane");
+					registry.assign<Maths::Transform>(entity);
 				}
 				
 				if (ImGui::MenuItem("Cylinder"))
 				{
-					auto entity = EntityManager::Instance()->CreateEntity();
-					entity->AddComponent<MeshComponent>(Graphics::CreatePrimative(Graphics::PrimitiveType::Cylinder));
-					//Application::Instance()->GetSceneManager()->GetCurrentScene()->AddEntity(entity);
+					auto entity = registry.create();
+					registry.assign<MeshComponent>(entity, Graphics::CreatePrimative(Graphics::PrimitiveType::Cylinder));
+					registry.assign<NameComponent>(entity, "Cylinder");
+					registry.assign<Maths::Transform>(entity);
 				}
 
 				if (ImGui::MenuItem("Capsule"))
 				{
-					auto entity = EntityManager::Instance()->CreateEntity();
-					entity->AddComponent<MeshComponent>(Graphics::CreatePrimative(Graphics::PrimitiveType::Capsule));
-					//Application::Instance()->GetSceneManager()->GetCurrentScene()->AddEntity(entity);
+					auto entity = registry.create();
+					registry.assign<MeshComponent>(entity, Graphics::CreatePrimative(Graphics::PrimitiveType::Capsule));
+					registry.assign<NameComponent>(entity, "Capsule");
+					registry.assign<Maths::Transform>(entity);
 				}
 
 				ImGui::EndMenu();
@@ -301,7 +311,7 @@ namespace Lumos
     
 	void Editor::OnImGuizmo()
 	{
-		if (m_ImGuizmoOperation == 4)
+		if (m_Selected == entt::null || m_ImGuizmoOperation == 4)
 			return;
 
 		Maths::Matrix4 view = Application::Instance()->GetSceneManager()->GetCurrentScene()->GetCamera()->GetViewMatrix();
@@ -315,10 +325,10 @@ namespace Lumos
 		ImGuizmo::SetOrthographic(Application::Instance()->GetSceneManager()->GetCurrentScene()->GetCamera()->Is2D());
 
         auto& registry = m_Application->GetSceneManager()->GetCurrentScene()->GetRegistry();
-        
-		if (registry.try_get<Maths::Transform>(m_Selected) != nullptr)
+		auto transform = registry.try_get<Maths::Transform>(m_Selected);
+		if (transform != nullptr)
 		{
-			Maths::Matrix4 model = registry.try_get<Maths::Transform>(m_Selected)->GetWorldMatrix();
+			Maths::Matrix4 model = transform->GetWorldMatrix();
 
 			float snapAmount[3] = { m_SnapAmount  , m_SnapAmount , m_SnapAmount };
 			float delta[16];
@@ -327,8 +337,9 @@ namespace Lumos
 
 			if (ImGuizmo::IsUsing())
 			{
-				auto mat = Maths::Matrix4(delta) * registry.try_get<Maths::Transform>(m_Selected)->GetLocalMatrix();
-				registry.try_get<Maths::Transform>(m_Selected)->SetLocalTransform(mat);
+				auto mat = Maths::Matrix4(delta) * transform->GetLocalMatrix();
+				transform->SetLocalTransform(mat);
+				transform->SetWorldMatrix(Maths::Matrix4());
 
 				auto physics2DComponent = registry.try_get<Physics2DComponent>(m_Selected);
 
@@ -441,7 +452,12 @@ namespace Lumos
 
 	void Editor::OnNewScene(Scene * scene)
 	{
-        m_Selected;// = nullptr;
+        m_Selected = entt::null;
+
+		for (auto window : m_Windows)
+		{
+			window->OnNewScene(scene);
+		}
 	}
 
 	void Editor::Draw2DGrid(ImDrawList* drawList, const ImVec2& cameraPos, const ImVec2& windowPos, const ImVec2& canvasSize, const float factor, const float thickness)

@@ -2,18 +2,20 @@
 #include "lmpch.h"
 #include "Maths/Vector4.h"
 
+#include <entt/entt.hpp>
+
 namespace Lumos
 {
 	class PhysicsObject;
 	class Scene;
-	class Entity;
 
 	namespace CommonUtils
 	{
 		Maths::Vector4 GenColour(float alpha);
 
 		//Generates a default Sphere object with the parameters specified.
-		Entity* BuildSphereObject(
+		entt::entity BuildSphereObject(
+			entt::registry& registry,
 			const std::string& name,
 			const Maths::Vector3& pos,
 			float radius,
@@ -23,7 +25,8 @@ namespace Lumos
 			const Maths::Vector4& color = Maths::Vector4(1.0f, 1.0f, 1.0f, 1.0f));
 
 		//Generates a default Cuboid object with the parameters specified
-		Entity* BuildCuboidObject(
+		entt::entity BuildCuboidObject(
+			entt::registry& registry,
 			const std::string& name,
 			const Maths::Vector3& pos,
 			const Maths::Vector3& scale,
@@ -33,7 +36,8 @@ namespace Lumos
 			const Maths::Vector4& color = Maths::Vector4(1.0f, 1.0f, 1.0f, 1.0f));
 
 		//Generates a default Cuboid object with the parameters specified
-		Entity* BuildPyramidObject(
+		entt::entity BuildPyramidObject(
+			entt::registry& registry,
 			const std::string& name,
 			const Maths::Vector3& pos,
 			const Maths::Vector3& scale,

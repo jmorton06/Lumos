@@ -114,6 +114,11 @@ namespace Lumos
 
 	void Scene::DeleteAllGameObjects()
 	{
+		m_Registry.each([&](auto entity) 
+		{
+			m_Registry.destroy(entity);
+		});
+
 		//EntityManager::Instance()->Clear();
 	}
 

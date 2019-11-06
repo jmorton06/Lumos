@@ -1,6 +1,7 @@
 #pragma once
 #include "lmpch.h"
 #include "EditorWindow.h"
+#include <entt/imgui_entt_entity_editor.hpp>
 
 namespace Lumos
 {
@@ -10,6 +11,10 @@ namespace Lumos
 		InspectorWindow();
 		~InspectorWindow() = default;
 
+		void OnNewScene(Scene* scene) override;
 		void OnImGui() override;
+
+	private:
+		MM::ImGuiEntityEditor<entt::registry> m_EnttEditor;
 	};
 }

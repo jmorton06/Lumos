@@ -111,19 +111,19 @@ namespace Lumos
 			return m_WorldMatrix.ToQuaternion(); 
 		}
 
-		const Vector3& Transform::GetLocalPosition() 
-		{ 
-			return m_LocalPosition; 
+		const Vector3& Transform::GetLocalPosition() const
+		{
+			return m_LocalPosition;
 		}
 
-		const Vector3& Transform::GetLocalScale()
-		{ 
-			return m_LocalScale; 
+		const Vector3& Transform::GetLocalScale() const
+		{
+			return m_LocalScale;
 		}
 
-		const Quaternion& Transform::GetLocalOrientation()
-		{ 
-			return m_LocalOrientation; 
+		const Quaternion& Transform::GetLocalOrientation() const
+		{
+			return m_LocalOrientation;
 		}
        
 		void Transform::OnImGui()

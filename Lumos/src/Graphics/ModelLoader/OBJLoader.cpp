@@ -62,8 +62,8 @@ namespace Lumos
 			LUMOS_LOG_CRITICAL(error);
 		}
 
-        auto entity = registry.create();//EntityManager::Instance()->CreateEntity(name);
-
+        auto entity = registry.create();
+		registry.assign<NameComponent>(entity, name);
 		for (const auto& shape : shapes)
 		{
 			u32 vertexCount = 0;
@@ -202,13 +202,14 @@ namespace Lumos
 			va->PushBuffer(buffer);
 
 			Ref<Graphics::IndexBuffer> ib;
-			ib.reset(Graphics::IndexBuffer::Create(indices, numIndices));// / sizeof(u32));
+			ib.reset(Graphics::IndexBuffer::Create(indices, numIndices));
 
-            auto meshEntity = registry.create(); //EntityManager::Instance()->CreateEntity(shape.name);
+            //auto meshEntity = registry.create();
             auto mesh = CreateRef<Graphics::Mesh>(va, ib, boundingBox);
-			registry.assign<MeshComponent>(meshEntity,mesh);
-			registry.assign<MaterialComponent>(meshEntity,pbrMaterial);
-			registry.assign<Maths::Transform>(meshEntity);
+			registry.assign<MeshComponent>(entity,mesh);
+			registry.assign<MaterialComponent>(entity, pbrMaterial);
+			registry.assign<Maths::Transform>(entity);
+			//registry.assign<NameComponent>(entity, shape.name);
 
 			delete[] vertices;
 			delete[] indices;

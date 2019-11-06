@@ -18,7 +18,7 @@ namespace Lumos
         void DrawNode(entt::entity node, entt::registry& registry);
 		void DrawNode(Entity* node, bool defaultOpen = false);
 		void OnImGui() override;
-
+		
 	private:
 		ImGuiTextFilter m_HierarchyFilter;
 		entt::entity m_DoubleClicked;
