@@ -252,8 +252,6 @@ namespace Lumos
 		if (Application::Instance()->GetEditorState() != EditorState::Paused && Application::Instance()->GetEditorState() != EditorState::Preview)
 #endif
 		{
-			//EntityManager::Instance()->OnUpdate(Engine::GetTimeStep()->GetElapsedMillis());
-			//ComponentManager::Instance()->OnUpdate();
 			m_SceneManager->GetCurrentScene()->OnUpdate(Engine::GetTimeStep());
 			m_SystemManager->OnUpdate(Engine::GetTimeStep(),m_SceneManager->GetCurrentScene());
 		}
@@ -361,5 +359,6 @@ namespace Lumos
 		if (m_AppType == AppType::Editor)
 			m_Editor->OnImGui();
 #endif
+		Application::Instance()->GetSceneManager()->GetCurrentScene()->OnImGui();
 	}
 }

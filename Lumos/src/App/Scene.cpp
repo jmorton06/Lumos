@@ -11,8 +11,6 @@
 #include "Graphics/RenderManager.h"
 #include "Graphics/Camera/Camera.h"
 #include "Utilities/TimeStep.h"
-//#include "ECS/EntityManager.h"
-//#include "ECS/Component/Components.h"
 #include "Audio/AudioManager.h"
 #include "Physics/LumosPhysicsEngine/SortAndSweepBroadphase.h"
 #include "Physics/LumosPhysicsEngine/Octree.h"
@@ -27,8 +25,7 @@ namespace Lumos
 		m_EnvironmentMap(nullptr), 
 		m_SceneBoundingRadius(0),
 		m_ScreenWidth(0),
-		m_ScreenHeight(0)//,
-		//m_RootEntity(nullptr)
+		m_ScreenHeight(0)
 	{
 	}
 
@@ -92,8 +89,6 @@ namespace Lumos
 		Application::Instance()->GetSystem<LumosPhysicsEngine>()->SetBroadphase(Lumos::CreateRef<Octree>(5, 3, Lumos::CreateRef<SortAndSweepBroadphase>()));
 
 		m_SceneBoundingRadius = 400.0f; //Default scene radius of 400m
-
-		//m_RootEntity = EntityManager::Instance()->CreateEntity("Root");
 	}
 
 	void Scene::OnCleanupScene()
@@ -122,19 +117,6 @@ namespace Lumos
 		//EntityManager::Instance()->Clear();
 	}
 
-    void UpdateTransform(Entity* e)
-    {
-//        auto transformComponent = e->GetTransformComponent();
-//
-//        if (transformComponent && transformComponent->HasUpdated())
-//        {
-//            if (!e->GetParent())
-//                transformComponent->SetWorldMatrix(Maths::Matrix4());
-//            else
-//                transformComponent->SetWorldMatrix(e->GetParent()->GetTransformComponent()->GetWorldMatrix());
-//        }
-    }
-
 	void Scene::OnUpdate(TimeStep* timeStep)
 	{
 		const Maths::Vector2 mousePos = Input::GetInput()->GetMousePosition();
@@ -145,25 +127,7 @@ namespace Lumos
 			m_pCamera->HandleKeyboard(timeStep->GetMillis());
 			m_pCamera->BuildViewMatrix();    
 		}
-
-        //IterateEntities(UpdateTransform);
 	}
-
-//	void Scene::IterateEntities(const std::function<void(Entity*)>& per_object_func)
-//	{
-//		std::function<void(Entity*)> per_object_func2 = [&](Entity* obj)
-//		{
-//			if (obj->ActiveInHierarchy())
-//			{
-//				per_object_func(obj);
-//
-//				for (auto child : obj->GetChildren())
-//					per_object_func2(child);
-//			}
-//		};
-//
-//		per_object_func2(m_RootEntity);
-//	}
 
 	void Scene::OnEvent(Event& e)
 	{

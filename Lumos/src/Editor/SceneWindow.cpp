@@ -23,10 +23,6 @@ namespace Lumos
 		m_Name = ICON_FA_GAMEPAD" Scene###scene";
 		m_SimpleName = "Scene";
 
-		m_ComponentIconMap[typeid(Graphics::Light).hash_code()] = ICON_FA_LIGHTBULB;
-		m_ComponentIconMap[typeid(CameraComponent).hash_code()] = ICON_FA_CAMERA;
-		m_ComponentIconMap[typeid(SoundComponent).hash_code()] = ICON_FA_VOLUME_UP;
-
 		m_ShowComponentGizmoMap[typeid(Graphics::Light).hash_code()] = true;
 		m_ShowComponentGizmoMap[typeid(CameraComponent).hash_code()] = true;
 		m_ShowComponentGizmoMap[typeid(SoundComponent).hash_code()] = true;
@@ -86,7 +82,7 @@ namespace Lumos
 
 		m_Editor->OnImGuizmo();
         
-        DrawGizmos(sceneViewSize.x, sceneViewSize.y, 0.0f, 40.0f); // Not sure why 40
+        DrawGizmos(sceneViewSize.x, sceneViewSize.y, 0.0f, 40.0f, Application::Instance()->GetSceneManager()->GetCurrentScene()); // Not sure why 40
 		Application::Instance()->SetSceneActive(ImGui::IsWindowFocused() && !ImGuizmo::IsUsing());
         
 		if (m_ShowStats)
@@ -129,7 +125,7 @@ namespace Lumos
 		ImGui::End();
 	}
 
-	void SceneWindow::DrawGizmos(float width, float height, float xpos, float ypos)
+	void SceneWindow::DrawGizmos(float width, float height, float xpos, float ypos, Scene* scene)
 	{	
 		Camera* camera = Application::Instance()->GetSceneManager()->GetCurrentScene()->GetCamera();
 
@@ -145,9 +141,10 @@ namespace Lumos
 		Maths::Frustum f;
 		f.FromMatrix(viewProj);
 
-		ShowComponentGizmo<Graphics::Light>(width, height, xpos, ypos, viewProj, f);
-		ShowComponentGizmo<CameraComponent>(width, height, xpos, ypos, viewProj, f);
-		ShowComponentGizmo<SoundComponent>(width, height, xpos, ypos, viewProj, f);
+		auto& registry = scene->GetRegistry();
+		ShowComponentGizmo<Graphics::Light>(width, height, xpos, ypos, viewProj, f, registry);
+		ShowComponentGizmo<CameraComponent>(width, height, xpos, ypos, viewProj, f, registry);
+		ShowComponentGizmo<SoundComponent>(width, height, xpos, ypos, viewProj, f, registry);
 	}
 
     void SceneWindow::ToolBar()

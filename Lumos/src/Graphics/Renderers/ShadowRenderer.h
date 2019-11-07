@@ -12,7 +12,6 @@ namespace Lumos
 	class Scene;
 	class Camera;
 	class Mesh;
-	class Entity;
 
 	namespace Graphics
 	{
