@@ -16,6 +16,7 @@ namespace Lumos
 	class Entity;
 	class Scene;
 	class Event;
+	class Layer3D;
 	class WindowCloseEvent;
 	class WindowResizeEvent;
 	
@@ -55,6 +56,8 @@ namespace Lumos
 
 		void BindEventFunction();
 
+		std::unordered_map<size_t, const char*>& GetComponentIconMap() { return m_ComponentIconMap; }
+
 	protected:
 		bool OnWindowResize(WindowResizeEvent& e);
 
@@ -67,11 +70,16 @@ namespace Lumos
 		bool m_ShowGrid = true;
 		bool m_SnapQuizmo = true;
 		bool m_ShowImGuiDemo = true;
+		bool m_View2D = false;
 		float m_SnapAmount = 1.0f;
         
         ImGui::FileBrowser* m_FileBrowser;
 
 		std::vector<Ref<EditorWindow>> m_Windows;
+
+		Layer3D* m_3DGridLayer = nullptr;
+
+		std::unordered_map<size_t, const char*> m_ComponentIconMap;
 
 		NONCOPYABLE(Editor)
 	};

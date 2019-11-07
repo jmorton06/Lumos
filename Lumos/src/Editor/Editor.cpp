@@ -22,7 +22,10 @@
 #include "ECS/Component/Components.h"
 #include "ECS/SystemManager.h"
 #include "Physics/LumosPhysicsEngine/LumosPhysicsEngine.h"
+#include "Graphics/Layers/Layer3D.h"
 
+#include "Graphics/Sprite.h"
+#include "Graphics/Light.h"
 #include "Graphics/GBuffer.h"
 #include "Graphics/Camera/Camera.h"
 #include "Graphics/RenderManager.h"
@@ -31,6 +34,8 @@
 #include "Graphics/API/Texture.h"
 #include "Graphics/API/GraphicsContext.h"
 #include "Graphics/MeshFactory.h"
+
+#include "Graphics/Renderers/GridRenderer.h"
 
 #include "ImGui/ImGuiHelpers.h"
 
@@ -66,6 +71,16 @@ namespace Lumos
 
 	void Editor::OnInit()
 	{
+		m_ComponentIconMap[typeid(Graphics::Light).hash_code()] = ICON_FA_LIGHTBULB;
+		m_ComponentIconMap[typeid(CameraComponent).hash_code()] = ICON_FA_CAMERA;
+		m_ComponentIconMap[typeid(SoundComponent).hash_code()] = ICON_FA_VOLUME_UP;
+		m_ComponentIconMap[typeid(Graphics::Sprite).hash_code()] = ICON_FA_IMAGE;
+		m_ComponentIconMap[typeid(Maths::Transform).hash_code()] = ICON_FA_VECTOR_SQUARE;
+		m_ComponentIconMap[typeid(Physics2DComponent).hash_code()] = ICON_FA_SQUARE;
+		m_ComponentIconMap[typeid(Physics3DComponent).hash_code()] = ICON_FA_CUBE;
+		m_ComponentIconMap[typeid(MeshComponent).hash_code()] = ICON_FA_SHAPES;
+		m_ComponentIconMap[typeid(MaterialComponent).hash_code()] = ICON_FA_PAINT_BRUSH;
+
 		m_Windows.emplace_back(CreateRef<ConsoleWindow>());
 		m_Windows.emplace_back(CreateRef<SceneWindow>());
 		m_Windows.emplace_back(CreateRef<ProfilerWindow>());
@@ -110,6 +125,22 @@ namespace Lumos
 
         if(m_ShowImGuiDemo)
             ImGui::ShowDemoWindow(&m_ShowImGuiDemo);
+
+		m_View2D = Application::Instance()->GetSceneManager()->GetCurrentScene()->GetCamera()->Is2D();
+
+		if (m_ShowGrid)
+		{
+			if (m_3DGridLayer == nullptr)
+			{
+				m_3DGridLayer = new Layer3D(new Graphics::GridRenderer(u32(Application::Instance()->GetWindowSize().x), u32(Application::Instance()->GetWindowSize().y), true), "Grid");
+				Application::Instance()->PushLayer(m_3DGridLayer);
+			}
+		}
+		else if(m_3DGridLayer)
+		{
+			Application::Instance()->GetLayerStack()->PopLayer(m_3DGridLayer);
+			m_3DGridLayer = nullptr;
+		}
 	}
 
 	void Editor::DrawMenuBar()

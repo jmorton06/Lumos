@@ -12,7 +12,6 @@ namespace Lumos
     class SceneManager;
 	class AudioManager;
 	class SystemManager;
-	class Entity;
 	class Editor;
 	class LayerStack;
 	class Layer;

@@ -11,7 +11,6 @@
 namespace Lumos
 {
 	class LumosPhysicsEngine;
-	class Entity;
 	class Manifold;
 
 	//Callback function called whenever a collision is detected between two objects

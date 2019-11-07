@@ -57,6 +57,7 @@ namespace Lumos
 				m_ShadowTex = texture;
 
 			m_DescriptorSet = nullptr;
+			m_LightEntity = entt::null;
 
 			Init();
 		}
@@ -259,6 +260,9 @@ namespace Lumos
 
 		void ShadowRenderer::UpdateCascades(Scene* scene)
 		{
+			if (m_LightEntity == entt::null)
+				return;
+
 			Light* light = &scene->GetRegistry().get<Graphics::Light>(m_LightEntity);
 
 			if (!light)

@@ -47,7 +47,7 @@ void MaterialTest::OnInit()
 	m_Registry.assign<Maths::Transform>(lightEntity, Matrix4::Translation(Maths::Vector3(26.0f, 22.0f, 48.5f)) * Maths::Quaternion::LookAt(Maths::Vector3(26.0f, 22.0f, 48.5f), Maths::Vector3::Zero()).ToMatrix4());
 	m_Registry.assign<NameComponent>(lightEntity, "Light");
 
-	m_pCamera = new EditorCamera(-20.0f, -40.0f, Maths::Vector3(-31.0f, 12.0f, 51.0f), 60.0f, 0.1f, 1000.0f, (float)m_ScreenWidth / (float)m_ScreenHeight);
+	m_pCamera = new EditorCamera(-1.0f, 358.0f, Maths::Vector3(-0.23f, 2.4f, 11.4f), 60.0f, 0.1f, 1000.0f, (float)m_ScreenWidth / (float)m_ScreenHeight);
 	auto cameraEntity = m_Registry.create();
 	m_Registry.assign<CameraComponent>(cameraEntity, m_pCamera);
 	m_Registry.assign<NameComponent>(cameraEntity, "Camera");
@@ -67,7 +67,6 @@ void MaterialTest::OnInit()
 	Application::Instance()->PushLayer(shadowLayer);
 	Application::Instance()->PushLayer(new Layer3D(new Graphics::DeferredRenderer(m_ScreenWidth, m_ScreenHeight, editor), "Deferred"));
 	Application::Instance()->PushLayer(new Layer3D(new Graphics::SkyboxRenderer(m_ScreenWidth, m_ScreenHeight, m_EnvironmentMap, editor), "Skybox"));
-	Application::Instance()->PushLayer(new Layer3D(new Graphics::GridRenderer(m_ScreenWidth, m_ScreenHeight, editor), "Grid"));
 
 	Application::Instance()->GetRenderManager()->SetShadowRenderer(shadowRenderer);
 	Application::Instance()->GetRenderManager()->SetSkyBoxTexture(m_EnvironmentMap);
@@ -173,12 +172,9 @@ void MaterialTest::LoadModels()
 		m_Registry.assign<NameComponent>(obj, "Test Object" + StringFormat::ToString(numObjects++));
 	}
 
-	m_Registry.destroy(testMesh);
+	//m_Registry.destroy(testMesh);
 }
 
 void MaterialTest::OnImGui()
 {
-	ImGui::Begin("Scene3D");
-	ImGui::TextUnformatted("test");
-	ImGui::End();
 }

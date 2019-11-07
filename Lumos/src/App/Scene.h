@@ -18,7 +18,6 @@ namespace Lumos
 	class Event;
 	class Layer;
 	class Camera;
-	class Entity;
 
 	namespace Graphics
 	{
@@ -56,11 +55,6 @@ namespace Lumos
 		//    - This is the default action upon firing OnCleanupScene()
 		void DeleteAllGameObjects();
 
-		// Add Entity to the scene list
-		//    - All added Entities are managed by the scene itself, firing
-		//		OnRender and OnUpdate functions automatically
-		//void AddEntity(Entity* game_object);
-
 		// The friendly name associated with this scene instance
 		const String& GetSceneName() const { return m_SceneName; }
 
@@ -83,9 +77,7 @@ namespace Lumos
 		void SetScreenHeight(u32 height) { m_ScreenHeight = height; }
         
         u32 GetScreenWidth() const { return m_ScreenWidth; }
-        u32 GetScreenHeight() const { return m_ScreenHeight; }
-
-		//void IterateEntities(const std::function<void(Entity*)>& per_object_func);
+		u32 GetScreenHeight() const { return m_ScreenHeight; }
 
 		// Inherited via Serialisable
 		nlohmann::json Serialise() override;
@@ -101,8 +93,6 @@ namespace Lumos
 		Graphics::TextureCube* m_EnvironmentMap;
 
 		float m_SceneBoundingRadius;
-
-		//Entity* m_RootEntity;
         
         entt::registry m_Registry;
 

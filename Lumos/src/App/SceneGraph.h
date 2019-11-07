@@ -9,6 +9,16 @@ namespace Lumos
         entt::entity parent;
     };
 
+	struct SceneNode
+	{
+		entt::entity parent;
+		entt::entity next;
+		entt::entity firstChild;
+
+		bool active;
+		String name;
+	};
+
     class SceneGraph
     {
     public:

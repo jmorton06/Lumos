@@ -9,6 +9,7 @@
 #include "Graphics/Camera/Camera.h"
 #include "Graphics/Sprite.h"
 #include "Graphics/Material.h"
+#include "Graphics/Light.h"
 
 #include <imgui/imgui.h>
 
@@ -360,6 +361,11 @@ namespace Lumos
 		sprite.OnImGui();
 	}
 
+	static void LightWidget(Graphics::Light& light)
+	{
+		light.OnImGui();
+	}
+
 	static void MaterialWidget(MaterialComponent& material)
 	{
 		material.OnImGui();
@@ -374,8 +380,16 @@ namespace Lumos
 	void InspectorWindow::OnNewScene(Scene* scene)
 	{
 		auto& registry = scene->GetRegistry();
+		auto& iconMap = m_Editor->GetComponentIconMap();
+
 #define TrivialComponent(ComponentType, ComponentName, func) \
-				m_EnttEditor.registerTrivial<ComponentType>(registry, ComponentName); \
+				{ \
+				String Name; \
+				if(iconMap.find(typeid(ComponentType).hash_code()) != iconMap.end()) \
+				Name += iconMap[typeid(ComponentType).hash_code()]; Name += "\t"; \
+				Name += ComponentName; \
+				m_EnttEditor.registerTrivial<ComponentType>(registry, Name.c_str()); \
+				} \
 				m_EnttEditor.registerComponentWidgetFn( \
 					registry.type<ComponentType>(), \
 					[](entt::registry& reg, auto e) { \
@@ -390,6 +404,7 @@ namespace Lumos
 		TrivialComponent(SoundComponent, "Sound", SoundWidget);
 		TrivialComponent(Graphics::Sprite, "Sprite", SpriteWidget);
 		TrivialComponent(MaterialComponent, "Material", MaterialWidget);
+		TrivialComponent(Graphics::Light, "Light", LightWidget);
 	}
 
 	void InspectorWindow::OnImGui()
@@ -427,6 +442,10 @@ namespace Lumos
 				}
 			}
 
+			ImGui::Indent();
+			ImGui::TextUnformatted(ICON_FA_CUBE);
+			ImGui::SameLine();
+
 			//active checkbox
 			//ImGui::SameLine();
 
@@ -437,6 +456,7 @@ namespace Lumos
 			if (ImGui::InputText("##Name", objName, IM_ARRAYSIZE(objName), 0))
 				registry.get<NameComponent>(selected).name = objName;
 
+			ImGui::Unindent();
 			ImGui::Separator();
 
 			m_EnttEditor.RenderImGui(registry, selected);
