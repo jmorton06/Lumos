@@ -217,9 +217,6 @@ namespace Lumos
 		ImVec4 color8(0.71f, 0.22f, 0.27f, 1); // CheckMark
 		ImVec4 color9(0.14f, 0.16f, 0.19f, 1); // Column
 
-		auto mul = [](ImVec4 c, float t) -> ImVec4 { return ImVec4(c.x * t, c.y * t, c.z * t, c.w); };
-		auto lum = [](ImVec4 c, float x) -> ImVec4 { return ImVec4(c.x, c.y, c.z, c.w * x); };
-
 		ImVec4* colours = ImGui::GetStyle().Colors;
 		switch (theme)
 		{

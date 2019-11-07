@@ -132,14 +132,14 @@ namespace Lumos
 		{
 			if (m_3DGridLayer == nullptr)
 			{
-				m_3DGridLayer = new Layer3D(new Graphics::GridRenderer(u32(Application::Instance()->GetWindowSize().x), u32(Application::Instance()->GetWindowSize().y), true), "Grid");
-				Application::Instance()->PushLayer(m_3DGridLayer);
+				//m_3DGridLayer = new Layer3D(new Graphics::GridRenderer(u32(Application::Instance()->GetWindowSize().x), u32(Application::Instance()->GetWindowSize().y), true), "Grid");
+				//Application::Instance()->PushOverLay(m_3DGridLayer);
 			}
 		}
 		else if(m_3DGridLayer)
 		{
-			Application::Instance()->GetLayerStack()->PopLayer(m_3DGridLayer);
-			m_3DGridLayer = nullptr;
+			//Application::Instance()->GetLayerStack()->PopOverlay(m_3DGridLayer);
+			//m_3DGridLayer = nullptr;
 		}
 	}
 
@@ -230,7 +230,7 @@ namespace Lumos
 
 				if (ImGui::MenuItem("CreateEmpty"))
 				{
-					auto entity = registry.create();
+					registry.create();
 				}
 
 				if (ImGui::MenuItem("Cube"))
