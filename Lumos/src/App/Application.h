@@ -1,6 +1,7 @@
 #pragma once
 #include "lmpch.h"
 #include "ECS/SystemManager.h"
+#include "SceneGraph.h"
 
 #define LUMOS_EDITOR //temp
 

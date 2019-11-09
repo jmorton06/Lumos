@@ -5,6 +5,7 @@
 #include "App/Application.h"
 #include "App/SceneManager.h"
 #include "ImGui/ImGuiHelpers.h"
+#include "App/SceneGraph.h"
 #include <IconFontCppHeaders/IconsFontAwesome5.h>
 
 namespace Lumos
@@ -18,6 +19,9 @@ namespace Lumos
 	void HierarchyWindow::DrawNode(entt::entity node, entt::registry& registry)
 	{
 		bool show = true;
+
+		if (!registry.valid(node))
+			return;
 
 		bool hasName = registry.has<NameComponent>(node);
 		String name;
@@ -36,7 +40,11 @@ namespace Lumos
 
 		if (show)
 		{
+			auto hierarchyComponent = registry.try_get<Hierarchy>(node);
 			bool noChildren = true;
+
+			if (hierarchyComponent != nullptr && hierarchyComponent->first() != entt::null)
+				noChildren = false;
 
 			ImGuiTreeNodeFlags nodeFlags = ((m_Editor->GetSelected() == node) ? ImGuiTreeNodeFlags_Selected : 0);
 
@@ -122,7 +130,7 @@ namespace Lumos
 			if (!doubleClicked && ImGui::BeginDragDropSource(ImGuiDragDropFlags_None))
 			{
 				auto ptr = node;
-				ImGui::SetDragDropPayload("Drag_Entity", &ptr, sizeof(Entity**));
+				ImGui::SetDragDropPayload("Drag_Entity", &ptr, sizeof(entt::entity*));
 				//ImGui::Text("Moving %s", node->GetName().c_str());
 				ImGui::EndDragDropSource();
 			}
@@ -134,7 +142,37 @@ namespace Lumos
 					LUMOS_ASSERT(payload->DataSize == sizeof(entt::entity*), "Error ImGUI drag entity");
 					auto entity = *reinterpret_cast<entt::entity*>(payload->Data);
 					//node->AddChild(entity);
+					auto hierarchyComponent = registry.try_get<Hierarchy>(entity);
+					if (hierarchyComponent)
+					{
+						bool entityIsParentOfNode = false;
+						auto nodeHierarchyComponent = registry.try_get<Hierarchy>(node);
+						if (nodeHierarchyComponent)
+						{
+							auto parent = nodeHierarchyComponent->parent();
+							while (parent != entt::null)
+							{
+								if (parent == entity)
+								{
+									entityIsParentOfNode = true;
+									break;
+								}
+								else
+								{
+									nodeHierarchyComponent = registry.try_get<Hierarchy>(parent);
+									parent = nodeHierarchyComponent ? nodeHierarchyComponent->parent() : entt::null;
+								}
+							}
+						}
+						
 
+						if(!entityIsParentOfNode)
+							Hierarchy::Reparent(entity, node, registry, *hierarchyComponent);
+					}
+					else
+					{
+						registry.assign<Hierarchy>(entity, node);
+					}
 					m_HadRecentDroppedEntity = node;
 
 					if (m_Editor->GetSelected() == entity)
@@ -156,6 +194,20 @@ namespace Lumos
 
 			if(deleteEntity)
 				registry.destroy(node);
+
+			if (!noChildren)
+			{
+				entt::entity child = hierarchyComponent->first();
+				while (child != entt::null && registry.valid(child))
+				{
+					ImGui::Indent();
+					DrawNode(child, registry);
+					ImGui::Unindent();
+					auto hierarchyComponent = registry.try_get<Hierarchy>(child);
+					if (hierarchyComponent)
+						child = hierarchyComponent->next();
+				}
+			}
 
 			ImGui::TreePop();
 		}
@@ -181,7 +233,10 @@ namespace Lumos
                 
                 registry.each([&](auto entity)
                 {
-                    DrawNode(entity, registry);
+					auto hierarchyComponent = registry.try_get<Hierarchy>(entity);
+
+					if(!hierarchyComponent || (hierarchyComponent && hierarchyComponent->parent() == entt::null))
+						DrawNode(entity, registry);
                 });
 			}
 		}
