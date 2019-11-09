@@ -281,7 +281,5 @@ void Scene3D::LoadModels()
 
 void Scene3D::OnImGui()
 {
-	ImGui::Begin("Scene3D");
-	ImGui::Text("%i", Engine::Instance()->GetFPS());
-	ImGui::End();
+
 }

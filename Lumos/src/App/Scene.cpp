@@ -89,6 +89,10 @@ namespace Lumos
 		Application::Instance()->GetSystem<LumosPhysicsEngine>()->SetBroadphase(Lumos::CreateRef<Octree>(5, 3, Lumos::CreateRef<SortAndSweepBroadphase>()));
 
 		m_SceneBoundingRadius = 400.0f; //Default scene radius of 400m
+
+		m_Registry.on_construct<Hierarchy>().connect<&Hierarchy::on_construct>();
+		m_Registry.on_replace<Hierarchy>().connect<&Hierarchy::on_replace>();
+		m_Registry.on_destroy<Hierarchy>().connect<&Hierarchy::on_destroy>();
 	}
 
 	void Scene::OnCleanupScene()

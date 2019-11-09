@@ -9,25 +9,41 @@ namespace Lumos
         entt::entity parent;
     };
 
-	struct SceneNode
-	{
-		entt::entity parent;
-		entt::entity next;
-		entt::entity firstChild;
+	class Hierarchy {
+	public:
+		Hierarchy(entt::entity p = entt::null) : _parent{ p } {}
 
-		bool active;
-		String name;
+		inline entt::entity parent() const { return _parent; }
+		inline entt::entity next() const { return _next; }
+		inline entt::entity prev() const { return _prev; }
+		inline entt::entity first() const { return _first; }
+
+		// Return true if rhs is an ancestor of rhs
+		bool compare(const entt::registry& registry, const entt::entity rhs) const;
+
+		// update hierarchy components when hierarchy component is added
+		static void on_construct(entt::entity entity, entt::registry& registry, Hierarchy& hierarchy);
+
+		// update hierarchy components when hierarchy component is removed
+		static void on_destroy(entt::entity entity, entt::registry& registry);
+
+		static void on_replace(entt::entity entity, entt::registry& registry);
+
+		static void Reparent(entt::entity entity, entt::entity parent, entt::registry& registry, Hierarchy& hierarchy);
+
+		entt::entity _parent = entt::null;
+		entt::entity _first = entt::null;
+		entt::entity _next = entt::null;
+		entt::entity _prev = entt::null;
 	};
 
     class SceneGraph
     {
     public:
-        SceneGraph() {}
+		SceneGraph(entt::registry& registry);
         ~SceneGraph() {}
         
         void Update();
-        
-        void AddParent(const entt::entity& child, const entt::entity& parent);
         
         const entt::registry& GetResistry() const { return m_Registry; }
         entt::registry& GetResistry() { return m_Registry; }

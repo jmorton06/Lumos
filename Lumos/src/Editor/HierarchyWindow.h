@@ -16,7 +16,6 @@ namespace Lumos
 		~HierarchyWindow() = default;
 
         void DrawNode(entt::entity node, entt::registry& registry);
-		void DrawNode(Entity* node, bool defaultOpen = false);
 		void OnImGui() override;
 		
 	private:
