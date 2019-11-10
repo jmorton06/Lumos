@@ -129,9 +129,7 @@ namespace Lumos
 		m_View2D = Application::Instance()->GetSceneManager()->GetCurrentScene()->GetCamera()->Is2D();
 
         if(m_Selected != entt::null)
-        {
-            auto& io = ImGui::GetIO();
-            
+        {            
             auto camera = Application::Instance()->GetSceneManager()->GetCurrentScene()->GetCamera();
             
             Maths::Matrix4 view = camera->GetViewMatrix();
@@ -139,15 +137,18 @@ namespace Lumos
             auto transform = Application::Instance()->GetSceneManager()->GetCurrentScene()->GetRegistry().try_get<Maths::Transform>(m_Selected);
             
             float camDistance =  transform ? (Application::Instance()->GetSceneManager()->GetCurrentScene()->GetCamera()->GetPosition() - transform->GetWorldMatrix().GetPositionVector()).Length() : 0.0f;
-            ImGuizmo::ViewManipulate(Maths::ValuePointer(view), camDistance, ImVec2(io.DisplaySize.x - 128, 0), ImVec2(128, 128), 0x10101010);
+            
+            auto window = ImGui::GetCurrentWindow();
+            auto windowPos = window->Pos;
+            auto windowSize = window->Size;
+            auto viewManipulatePos = windowPos + windowSize - ImVec2(128, 0);
+            ImGuizmo::ViewManipulate(Maths::ValuePointer(view), camDistance, viewManipulatePos, ImVec2(128, 128), 0x10101010);
             
             auto quat = view.ToQuaternion();
             auto euler = quat.ToEuler();
             camera->SetPitch(euler.x);
             camera->SetYaw(euler.y);
-            camera->SetPosition(-view.GetPositionVector());
-            
-            
+            //camera->SetPosition(view.GetPositionVector());
         }
         
 		if (m_ShowGrid)
