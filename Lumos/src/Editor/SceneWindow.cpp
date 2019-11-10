@@ -64,7 +64,7 @@ namespace Lumos
 			}
 			else
 			{
-#if 0 
+#if 0
 				Maths::Matrix4 view = camera->GetViewMatrix();
 				Maths::Matrix4 proj = camera->GetProjectionMatrix();
 				Maths::Matrix4 identityMatrix;
@@ -74,7 +74,7 @@ namespace Lumos
 					proj[5] *= -1.0f;
 #endif
 
-				ImGuizmo::DrawGrid(view.values, proj.values, identityMatrix.values, m_Editor->GetGridSize(), 1.0f);
+				ImGuizmo::DrawGrid(view.values, proj.values, identityMatrix.values, m_Editor->GetGridSize());
 #endif
 			}
 		}

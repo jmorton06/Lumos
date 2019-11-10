@@ -128,6 +128,28 @@ namespace Lumos
 
 		m_View2D = Application::Instance()->GetSceneManager()->GetCurrentScene()->GetCamera()->Is2D();
 
+        if(m_Selected != entt::null)
+        {
+            auto& io = ImGui::GetIO();
+            
+            auto camera = Application::Instance()->GetSceneManager()->GetCurrentScene()->GetCamera();
+            
+            Maths::Matrix4 view = camera->GetViewMatrix();
+
+            auto transform = Application::Instance()->GetSceneManager()->GetCurrentScene()->GetRegistry().try_get<Maths::Transform>(m_Selected);
+            
+            float camDistance =  transform ? (Application::Instance()->GetSceneManager()->GetCurrentScene()->GetCamera()->GetPosition() - transform->GetWorldMatrix().GetPositionVector()).Length() : 0.0f;
+            ImGuizmo::ViewManipulate(Maths::ValuePointer(view), camDistance, ImVec2(io.DisplaySize.x - 128, 0), ImVec2(128, 128), 0x10101010);
+            
+            auto quat = view.ToQuaternion();
+            auto euler = quat.ToEuler();
+            camera->SetPitch(euler.x);
+            camera->SetYaw(euler.y);
+            camera->SetPosition(-view.GetPositionVector());
+            
+            
+        }
+        
 		if (m_ShowGrid)
 		{
 			if (m_3DGridLayer == nullptr)
