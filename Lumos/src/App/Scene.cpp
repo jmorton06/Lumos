@@ -90,9 +90,7 @@ namespace Lumos
 
 		m_SceneBoundingRadius = 400.0f; //Default scene radius of 400m
 
-		m_Registry.on_construct<Hierarchy>().connect<&Hierarchy::on_construct>();
-		m_Registry.on_replace<Hierarchy>().connect<&Hierarchy::on_replace>();
-		m_Registry.on_destroy<Hierarchy>().connect<&Hierarchy::on_destroy>();
+		m_SceneGraph.Init(m_Registry);
 	}
 
 	void Scene::OnCleanupScene()
@@ -105,20 +103,12 @@ namespace Lumos
 		m_CurrentScene = false;
 	};
 
-	//void Scene::AddEntity(Entity* game_object)
-	//{
-		//m_RootEntity->AddChild(game_object);
-	//}
-
-
 	void Scene::DeleteAllGameObjects()
 	{
 		m_Registry.each([&](auto entity) 
 		{
 			m_Registry.destroy(entity);
 		});
-
-		//EntityManager::Instance()->Clear();
 	}
 
 	void Scene::OnUpdate(TimeStep* timeStep)
@@ -131,6 +121,8 @@ namespace Lumos
 			m_pCamera->HandleKeyboard(timeStep->GetMillis());
 			m_pCamera->BuildViewMatrix();    
 		}
+
+		m_SceneGraph.Update(m_Registry);
 	}
 
 	void Scene::OnEvent(Event& e)

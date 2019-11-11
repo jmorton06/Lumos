@@ -51,6 +51,9 @@ namespace Lumos
 		bool& ShowGrid() { return m_ShowGrid; }
 		const float& GetGridSize() const { return m_GridSize; }
 
+		bool& SnapGuizmo() { return m_SnapQuizmo; }
+		float& SnapAmount() { return m_SnapAmount; }
+
 		void SetSelected(entt::entity entity) { m_Selected = entity; }
 		entt::entity GetSelected() const { return m_Selected; }
 
@@ -68,7 +71,7 @@ namespace Lumos
         float m_GridSize = 10.0f;
 
 		bool m_ShowGrid = true;
-		bool m_SnapQuizmo = true;
+		bool m_SnapQuizmo = false;
 		bool m_ShowImGuiDemo = true;
 		bool m_View2D = false;
 		float m_SnapAmount = 1.0f;

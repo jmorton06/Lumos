@@ -4,42 +4,9 @@
 using namespace Lumos;
 using namespace Maths;
 
-class TestComponent
-{
-public:
-	TestComponent() 
-	{
-
-	};
-
-	void Init() {};
-
-	void OnImGui() 
-	{
-		ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(2, 2));
-		ImGui::Columns(2);
-		ImGui::Separator();
-
-		ImGui::AlignTextToFramePadding();
-		ImGui::Text("Test");
-		ImGui::NextColumn();
-		ImGui::PushItemWidth(-1);
-		static bool test = false;
-		ImGui::Checkbox("##Test", &test);
-
-		ImGui::PopItemWidth();
-		ImGui::NextColumn();
-
-		ImGui::Columns(1);
-		ImGui::Separator();
-		ImGui::PopStyleVar();
-	};
-};
-
 Scene3D::Scene3D(const String& SceneName)
 		: Scene(SceneName)
 {
-	//ComponentManager::Instance()->RegisterComponent<TestComponent>();
 }
 
 Scene3D::~Scene3D()

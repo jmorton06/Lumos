@@ -410,17 +410,16 @@ namespace Lumos
         }
         
         auto& node = model.nodes[nodeIndex];
+		auto meshEntity = registry.create();
         
         auto name = node.name;
-        if(name == "")
-            name = "Mesh : " + StringFormat::ToString(nodeIndex);
-        auto meshEntity = registry.create();// EntityManager::Instance()->CreateEntity(name);
-        registry.assign<NameComponent>(meshEntity, name);
+        if(name != "")
+			registry.assign<NameComponent>(meshEntity, name);
 
         registry.assign<Maths::Transform>(meshEntity);
         
-       // if(parent)
-       //     parent->AddChild(meshEntity);
+        if(parent != entt::null)
+			registry.assign<Hierarchy>(meshEntity, parent);
         
         if(node.mesh >= 0)
         {
@@ -428,20 +427,19 @@ namespace Lumos
             for(auto& meshes : meshes[node.mesh])
             {
                 auto subname = node.name;
-                if(subname == "")
-                    subname = "Mesh : " + StringFormat::ToString(subIndex);
-                auto submeshEntity = registry.create();//EntityManager::Instance()->CreateEntity(name);
+                auto submeshEntity = registry.create();
                 auto lMesh = Ref<Graphics::Mesh>(meshes);
                                 
-                registry.assign<MeshComponent>(submeshEntity, lMesh);
+                if(subname != "")
+					registry.assign<MeshComponent>(submeshEntity, lMesh);
                 registry.assign<Maths::Transform>(submeshEntity);
                 registry.assign<NameComponent>(submeshEntity, subname);
+				registry.assign<Hierarchy>(submeshEntity, meshEntity);
 
                 int materialIndex = model.meshes[node.mesh].primitives[subIndex].material;
                 if(materialIndex >= 0)
                     registry.assign<MaterialComponent>(submeshEntity, materials[materialIndex]);
 
-                //meshEntity->AddChild(submeshEntity);
                 /*if (node.skin >= 0)
                 {
                 }*/
@@ -521,15 +519,12 @@ namespace Lumos
 		}
 
         auto LoadedMaterials = LoadMaterials(model);
-        
-        String directory = path.substr(0, path.find_last_of('/'));
-        
-        String name = directory.substr(directory.find_last_of('/') + 1);
+                
+        String name = path.substr(path.find_last_of('/') + 1);
 
-        auto entity = registry.create();// EntityManager::Instance()->CreateEntity(name);
+        auto entity = registry.create();
 		registry.assign<Maths::Transform>(entity);
         registry.assign<NameComponent>(entity, name);
-
 
         auto meshes = std::vector<std::vector<Graphics::Mesh*>>();
         

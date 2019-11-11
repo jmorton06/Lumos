@@ -430,7 +430,6 @@ namespace Lumos
 			static char objName[INPUT_BUF_SIZE];
 			strcpy(objName, name.c_str());
 
-			if (true)
 			{
 				if (registry.valid(selected))
 				{
@@ -450,11 +449,8 @@ namespace Lumos
 			//ImGui::SameLine();
 
 			ImGui::PushItemWidth(-1);
-			if (!hasName)
-				registry.assign<NameComponent>(selected, name);
-			ImGui::PushItemWidth(-1);
 			if (ImGui::InputText("##Name", objName, IM_ARRAYSIZE(objName), 0))
-				registry.get<NameComponent>(selected).name = objName;
+				registry.get_or_assign<NameComponent>(selected).name = objName;
 
 			ImGui::Unindent();
 			ImGui::Separator();

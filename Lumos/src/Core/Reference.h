@@ -375,6 +375,9 @@ namespace Lumos
         auto ptr = lmnew T(std::forward<Args>(args) ...);
         return Owned<T>(ptr);
     }
+
+	template<class T>
+	using WeakRef = WeakReference<T>;
 #else
     template<class T>
     using Ref = std::shared_ptr<T>;

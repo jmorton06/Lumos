@@ -204,12 +204,12 @@ namespace Lumos
 			Ref<Graphics::IndexBuffer> ib;
 			ib.reset(Graphics::IndexBuffer::Create(indices, numIndices));
 
-            //auto meshEntity = registry.create();
+            auto meshEntity = registry.create();
             auto mesh = CreateRef<Graphics::Mesh>(va, ib, boundingBox);
-			registry.assign<MeshComponent>(entity,mesh);
-			registry.assign<MaterialComponent>(entity, pbrMaterial);
-			registry.assign<Maths::Transform>(entity);
-			//registry.assign<NameComponent>(entity, shape.name);
+			registry.assign<MeshComponent>(meshEntity,mesh);
+			registry.assign<MaterialComponent>(meshEntity, pbrMaterial);
+			registry.assign<Maths::Transform>(meshEntity);
+			registry.assign<Hierarchy>(meshEntity, entity);
 
 			delete[] vertices;
 			delete[] indices;

@@ -163,9 +163,10 @@ namespace Lumos
 	{
 		auto pyramid = registry.create();
 		registry.assign<NameComponent>(pyramid, name);
+		registry.assign<Maths::Transform>(pyramid);
 
+		auto pyramidMeshEntity = registry.create();
 		Ref<Graphics::Mesh> pyramidModel = AssetsManager::DefaultModels()->Get("Pyramid");
-		registry.assign<MeshComponent>(pyramid, pyramidModel);
 
 		Ref<Material> matInstance = CreateRef<Material>();
 		MaterialProperties properties;
@@ -177,11 +178,10 @@ namespace Lumos
 		properties.usingNormalMap   = 0.0f;
 		properties.usingSpecularMap = 0.0f;
 		matInstance->SetMaterialProperites(properties);
-		registry.assign<MaterialComponent>(pyramid, matInstance);
-		registry.assign<Maths::Transform>(pyramid, Maths::Matrix4::Scale(halfdims));
-		//meshEntity->AddComponent<Maths::Transform>(Maths::Matrix4::RotationX(-90.0f) * Maths::Matrix4::Scale(halfdims));
-		
-		//Cube->AddChild(meshEntity);
+		registry.assign<MaterialComponent>(pyramidMeshEntity, matInstance);
+		registry.assign<Maths::Transform>(pyramidMeshEntity, Maths::Matrix4::RotationX(-90.0f) * Maths::Matrix4::Scale(halfdims));
+		registry.assign<Hierarchy>(pyramidMeshEntity, pyramid);
+		registry.assign<MeshComponent>(pyramidMeshEntity, pyramidModel);
 
 		if (physics_enabled)
 		{

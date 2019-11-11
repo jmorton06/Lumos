@@ -16,6 +16,7 @@
 #include "App/Scene.h"
 #include "App/SceneManager.h"
 #include "Events/ApplicationEvent.h"
+#include "Core/OS/FileSystem.h"
 
 #include "Maths/BoundingSphere.h"
 #include "ECS/EntityManager.h"
@@ -71,6 +72,29 @@ namespace Lumos
 
 	void Editor::OnInit()
 	{
+		const char *ini[] = { "editor.ini", "editor/editor.ini", "../editor/editor.ini" };
+		bool fileFound = false;
+		for (int i = 0; i < IM_ARRAYSIZE(ini); ++i) 
+		{
+			auto fexist = [](const char *f) -> bool 
+			{
+				FILE *fp = fopen(f, "rb");
+				return fp ? (fclose(fp), 1) : 0;
+			};
+			if (fexist(ini[i]))
+			{
+				ImGui::GetIO().IniFilename = ini[i];
+				fileFound = true;
+				break;
+			}
+		}
+
+//		if (!fileFound)
+//		{
+//			FileSystem::WriteFile("editor.ini", nullptr);
+//			ImGui::GetIO().IniFilename = "editor.ini";
+//		}
+
 		m_ComponentIconMap[typeid(Graphics::Light).hash_code()] = ICON_FA_LIGHTBULB;
 		m_ComponentIconMap[typeid(CameraComponent).hash_code()] = ICON_FA_CAMERA;
 		m_ComponentIconMap[typeid(SoundComponent).hash_code()] = ICON_FA_VOLUME_UP;
@@ -115,8 +139,7 @@ namespace Lumos
 		DrawMenuBar();
 
 		BeginDockSpace(false);
-        EndDockSpace();
-
+      
 		for (auto& window : m_Windows)
 		{
 			if (window->Active())
@@ -128,29 +151,6 @@ namespace Lumos
 
 		m_View2D = Application::Instance()->GetSceneManager()->GetCurrentScene()->GetCamera()->Is2D();
 
-        if(m_Selected != entt::null)
-        {            
-            auto camera = Application::Instance()->GetSceneManager()->GetCurrentScene()->GetCamera();
-            
-            Maths::Matrix4 view = camera->GetViewMatrix();
-
-            auto transform = Application::Instance()->GetSceneManager()->GetCurrentScene()->GetRegistry().try_get<Maths::Transform>(m_Selected);
-            
-            float camDistance =  transform ? (Application::Instance()->GetSceneManager()->GetCurrentScene()->GetCamera()->GetPosition() - transform->GetWorldMatrix().GetPositionVector()).Length() : 0.0f;
-            
-            auto window = ImGui::GetCurrentWindow();
-            auto windowPos = window->Pos;
-            auto windowSize = window->Size;
-            auto viewManipulatePos = windowPos + windowSize - ImVec2(128, 0);
-            ImGuizmo::ViewManipulate(Maths::ValuePointer(view), camDistance, viewManipulatePos, ImVec2(128, 128), 0x10101010);
-            
-            auto quat = view.ToQuaternion();
-            auto euler = quat.ToEuler();
-            camera->SetPitch(euler.x);
-            camera->SetYaw(euler.y);
-            //camera->SetPosition(view.GetPositionVector());
-        }
-        
 		if (m_ShowGrid)
 		{
 			if (m_3DGridLayer == nullptr)
@@ -164,6 +164,8 @@ namespace Lumos
 			//Application::Instance()->GetLayerStack()->PopOverlay(m_3DGridLayer);
 			//m_3DGridLayer = nullptr;
 		}
+
+		EndDockSpace();
 	}
 
 	void Editor::DrawMenuBar()
@@ -393,7 +395,6 @@ namespace Lumos
 			{
 				auto mat = Maths::Matrix4(delta) * transform->GetLocalMatrix();
 				transform->SetLocalTransform(mat);
-				transform->SetWorldMatrix(Maths::Matrix4());
 
 				auto physics2DComponent = registry.try_get<Physics2DComponent>(m_Selected);
 
@@ -409,8 +410,55 @@ namespace Lumos
 						physics3DComponent->GetPhysicsObject()->SetPosition(mat.GetPositionVector());
 						physics3DComponent->GetPhysicsObject()->SetOrientation(mat.GetRotation().ToQuaternion());
 					}
-					
 				}
+			}
+
+			if (m_Selected != entt::null)
+			{
+				auto camera = Application::Instance()->GetSceneManager()->GetCurrentScene()->GetCamera();
+
+#if 0
+				Maths::Matrix4 view = camera->GetViewMatrix();
+
+				float camDistance = transform ? (Application::Instance()->GetSceneManager()->GetCurrentScene()->GetCamera()->GetPosition() - transform->GetWorldMatrix().GetPositionVector()).Length() : 0.0f;
+
+				auto window = ImGui::GetCurrentWindow();
+				auto size = 128.0f;
+				auto windowPos = window->Pos;
+				auto windowSize = window->Size;
+				auto viewManipulatePos = ImVec2(windowPos.x + windowSize.x - size, size / 2.0f - 20.0f + windowPos.y);
+
+				//view = Maths::Matrix4::Inverse(view);
+				ImGuizmo::ViewManipulate(Maths::ValuePointer(view), camDistance, viewManipulatePos, ImVec2(size, size), 0x10101010);
+				view = Maths::Matrix4::Inverse(view);
+				auto quat = view.ToQuaternion();
+				auto euler = quat.ToEuler();
+				camera->SetPitch(euler.x);
+				camera->SetYaw(euler.y);
+				camera->SetPosition(view.GetPositionVector());
+#else
+				float pos[3] = { camera->GetPosition().x, camera->GetPosition().y, camera->GetPosition().z };
+				float rot[3] = { camera->GetPitch(), camera->GetYaw(), 0.0f };
+				float scale[3] = { 1.0f, 1.0f, 1.0f };
+				float view[16];
+				ImGuizmo::RecomposeMatrixFromComponents(pos, rot, scale, view);
+
+				float camDistance = transform ? (Application::Instance()->GetSceneManager()->GetCurrentScene()->GetCamera()->GetPosition() - transform->GetWorldMatrix().GetPositionVector()).Length() : 0.0f;
+
+				auto window = ImGui::GetCurrentWindow();
+				auto size = 128.0f;
+				auto windowPos = window->Pos;
+				auto windowSize = window->Size;
+				auto viewManipulatePos = ImVec2(windowPos.x + windowSize.x - size, size / 2.0f - 20.0f + windowPos.y);
+
+				ImGuizmo::ViewManipulate(view, camDistance, viewManipulatePos, ImVec2(size, size), 0x10101010);
+				ImGuizmo::DecomposeMatrixToComponents(view, pos, rot, scale);
+
+				camera->SetPitch(rot[0]);
+				camera->SetYaw(rot[1]);
+				camera->SetPosition({ pos[0], pos[1], pos[2] });
+#endif
+				
 			}
 		}
 	}

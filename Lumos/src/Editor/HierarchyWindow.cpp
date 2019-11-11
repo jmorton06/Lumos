@@ -189,11 +189,18 @@ namespace Lumos
 			if (ImGui::IsMouseDoubleClicked(0) && ImGui::IsItemHovered(ImGuiHoveredFlags_None))
 				m_DoubleClicked = node;
 
-			if (nodeOpen == false)
+			if (deleteEntity)
+			{
+				DestroyEntity(node, registry);
+				if(nodeOpen)
+					ImGui::TreePop();
 				return;
-
-			if(deleteEntity)
-				registry.destroy(node);
+			}
+		
+			if (nodeOpen == false)
+			{
+				return;
+			}
 
 			if (!noChildren)
 			{
@@ -211,6 +218,23 @@ namespace Lumos
 
 			ImGui::TreePop();
 		}
+	}
+
+	void HierarchyWindow::DestroyEntity(entt::entity entity, entt::registry& registry)
+	{
+		auto hierarchyComponent = registry.try_get<Hierarchy>(entity);
+		if (hierarchyComponent)
+		{
+			entt::entity child = hierarchyComponent->first();
+			while (child != entt::null)
+			{
+				auto hierarchyComponent = registry.try_get<Hierarchy>(child);
+				auto next = hierarchyComponent ? hierarchyComponent->next() : entt::null;
+				DestroyEntity(child, registry);
+				child = next;
+			}
+		}
+		registry.destroy(entity);
 	}
 
 	void HierarchyWindow::OnImGui()
