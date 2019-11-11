@@ -63,8 +63,6 @@ namespace Lumos
 			transform.SetLocalScale(scale);
 		}
 
-		transform.SetWorldMatrix(Maths::Matrix4());
-
 		ImGui::PopItemWidth();
 		ImGui::NextColumn();
 

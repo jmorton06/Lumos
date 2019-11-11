@@ -108,7 +108,6 @@ namespace Lumos
 
                 trans.SetLocalPosition(phys.GetPhysicsObject()->GetPosition());
                 trans.SetLocalOrientation(phys.GetPhysicsObject()->GetOrientation());
-                trans.SetWorldMatrix(Maths::Matrix4());
             };
 		}
 	}
