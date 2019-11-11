@@ -111,19 +111,6 @@ namespace Lumos
 		});
 	}
 
-    void UpdateTransform(Entity* e)
-    {
-        auto transformComponent = e->GetTransformComponent();
-        
-        if (transformComponent && transformComponent->HasUpdated())
-        {
-            if (!e->GetParent())
-                transformComponent->SetWorldMatrix(Maths::Matrix4());
-            else
-                transformComponent->SetWorldMatrix(e->GetParent()->GetTransformComponent()->GetWorldMatrix());
-        }
-    }
-
 	void Scene::OnUpdate(TimeStep* timeStep)
 	{
 		const Maths::Vector2 mousePos = Input::GetInput()->GetMousePosition();
