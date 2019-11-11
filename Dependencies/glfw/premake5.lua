@@ -59,6 +59,8 @@ project "glfw"
       "_CRT_SECURE_NO_WARNINGS"
     }
 
+	staticruntime "On"
+
    	buildoptions { "/MP" }
 
     files {

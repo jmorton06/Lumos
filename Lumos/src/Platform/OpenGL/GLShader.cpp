@@ -932,9 +932,12 @@ namespace Lumos
 		}
 
 
-		Shader* GLShader::CreateFuncGL(const String & name, const String & source)
+		Shader* GLShader::CreateFuncGL(const String & name, const String & filePath)
 		{
-			return lmnew GLShader(name, source);
+			const String source = Lumos::VFS::Get()->ReadTextFile(filePath + name + ".glsl");
+			GLShader* result = lmnew GLShader(name, source);
+			result->m_Path = filePath;
+			return result;
 		}
 
 		void GLShader::MakeDefault()

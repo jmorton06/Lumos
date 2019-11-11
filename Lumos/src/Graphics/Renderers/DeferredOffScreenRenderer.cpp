@@ -155,48 +155,49 @@ namespace Lumos
 
 			Begin();
 
-			auto entities = EntityManager::Instance()->GetEntitiesWithType<MeshComponent>();
-			for (auto obj : entities)
-			{
-				if (obj != nullptr)
-				{
-					auto* model = obj->GetComponent<MeshComponent>();
-					if (model->GetMesh() && model->GetMesh()->GetActive())
-					{
-						auto& worldTransform = obj->GetComponent<Maths::Transform>()->GetWorldMatrix();
+            auto& registry = scene->GetRegistry();
+            
+            auto group = registry.group<MeshComponent>(entt::get<Maths::Transform>);
 
-						float maxScaling = 0.0f;
-						auto scale = worldTransform.GetScaling();
-						maxScaling = Maths::Max(scale.GetX(), maxScaling);
-						maxScaling = Maths::Max(scale.GetY(), maxScaling);
-						maxScaling = Maths::Max(scale.GetZ(), maxScaling);
+            for(auto entity : group)
+            {
+                const auto &[mesh, trans] = group.get<MeshComponent, Maths::Transform>(entity);
 
-						bool inside = m_Frustum.InsideFrustum(worldTransform.GetPositionVector(), maxScaling * model->GetMesh()->GetBoundingSphere()->SphereRadius());
+                if (mesh.GetMesh() && mesh.GetMesh()->GetActive())
+                {
+                    auto& worldTransform = trans.GetWorldMatrix();
 
-						if (!inside)
-							continue;
+                    float maxScaling = 0.0f;
+                    auto scale = worldTransform.GetScaling();
+                    maxScaling = Maths::Max(scale.GetX(), maxScaling);
+                    maxScaling = Maths::Max(scale.GetY(), maxScaling);
+                    maxScaling = Maths::Max(scale.GetZ(), maxScaling);
 
-						auto mesh = model->GetMesh();
-						auto materialComponent = obj->GetComponent<MaterialComponent>();
-						Material* material = nullptr;
-						if (materialComponent && /* materialComponent->GetActive() &&*/ materialComponent->GetMaterial())
-						{
-							material = materialComponent->GetMaterial().get();
+                    bool inside = m_Frustum.InsideFrustum(worldTransform.GetPositionVector(), maxScaling * mesh.GetMesh()->GetBoundingSphere()->SphereRadius());
 
-							if (material->GetDescriptorSet() == nullptr || material->GetPipeline() != m_Pipeline)
-								material->CreateDescriptorSet(m_Pipeline, 1);
-						}
+                    if (!inside)
+                        continue;
 
-						TextureMatrixComponent* textureMatrixTransform = obj->GetComponent<TextureMatrixComponent>();
-						Maths::Matrix4 textureMatrix;
-						if (textureMatrixTransform)
-							textureMatrix = textureMatrixTransform->GetMatrix();
-						else
-							textureMatrix = Maths::Matrix4();
+                    auto meshPtr = mesh.GetMesh();
+                    auto materialComponent = registry.try_get<MaterialComponent>(entity);
+                    Material* material = nullptr;
+                    if (materialComponent && /* materialComponent->GetActive() &&*/ materialComponent->GetMaterial())
+                    {
+                        material = materialComponent->GetMaterial().get();
 
-						SubmitMesh(mesh, material, worldTransform, textureMatrix);
-					}
-				}
+                        if (material->GetDescriptorSet() == nullptr || material->GetPipeline() != m_Pipeline)
+                            material->CreateDescriptorSet(m_Pipeline, 1);
+                    }
+
+                    auto textureMatrixTransform = registry.try_get<TextureMatrixComponent>(entity);
+                    Maths::Matrix4 textureMatrix;
+                    if (textureMatrixTransform)
+                        textureMatrix = textureMatrixTransform->GetMatrix();
+                    else
+                        textureMatrix = Maths::Matrix4();
+
+                    SubmitMesh(meshPtr, material, worldTransform, textureMatrix);
+                }
 			}
 
 			SetSystemUniforms(m_Shader);

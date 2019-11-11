@@ -37,14 +37,16 @@ namespace Lumos
 
 			struct UniformBufferObjectFrag
 			{
+                Maths::Vector4 cameraPos;
 				float scale;
 				float res;
-				float p0;
+				float maxDistance;
 				float p1;
 			};
 
 			void SetRenderTarget(Texture* texture) override;
 			void SetRenderToGBufferTexture(bool set) override;
+			void OnImGui() override;
 
 		private:
 			void SetSystemUniforms(Shader* shader) const;
@@ -64,6 +66,9 @@ namespace Lumos
 
 			u32 m_CurrentBufferID = 0;
 			Mesh* m_Quad;
+
+			float m_GridRes = 1.0f;
+			float m_GridSize = 1.0f;
 		};
 	}
 }

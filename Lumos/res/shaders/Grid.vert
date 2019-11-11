@@ -11,6 +11,7 @@ layout(set = 0,binding = 0) uniform UniformBufferObject
 } ubo;
 
 layout(location = 0) out vec2 v_TexCoord;
+layout(location = 1) out vec3 v_Position;
 
 out gl_PerVertex
 {
@@ -21,6 +22,7 @@ void main()
 {
 	vec4 position = ubo.u_MVP * vec4(a_Position, 1.0);
 	gl_Position = position;
+	v_Position = a_Position.xyz;
 
 	v_TexCoord = a_TexCoord;
 }

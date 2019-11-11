@@ -3,6 +3,7 @@
 #include "Maths/Maths.h"
 #include "Renderer3D.h"
 
+#include <entt/entt.hpp>
 #define SHADOWMAP_MAX 16
 
 namespace Lumos
@@ -11,7 +12,6 @@ namespace Lumos
 	class Scene;
 	class Camera;
 	class Mesh;
-	class Entity;
 
 	namespace Graphics
 	{
@@ -81,7 +81,7 @@ namespace Lumos
 			void CreateUniformBuffer();
 			void UpdateCascades(Scene* scene);
 
-			void SetLightEntity(Entity* entity) { m_LightEntity = entity; }
+			void SetLightEntity(entt::entity entity) { m_LightEntity = entity; }
 
 			void OnImGui() override;
 
@@ -90,8 +90,8 @@ namespace Lumos
 			void SetSystemUniforms(Shader* shader);
 
 			TextureDepthArray* m_ShadowTex;
-			u32		    m_ShadowMapNum;
-			u32		    m_ShadowMapSize;
+			u32		        m_ShadowMapNum;
+			u32		        m_ShadowMapSize;
 			bool		    m_ShadowMapsInvalidated;
 			Framebuffer*    m_ShadowFramebuffer[SHADOWMAP_MAX];
 			Maths::Matrix4	m_ShadowProjView[SHADOWMAP_MAX];
@@ -103,7 +103,7 @@ namespace Lumos
 			Lumos::Graphics::UniformBuffer* m_ModelUniformBuffer;
 			Lumos::Graphics::CommandBuffer* m_CommandBuffer;
 
-			Entity* m_LightEntity;
+			entt::entity m_LightEntity;
 
 			u32 m_Layer = 0;
 

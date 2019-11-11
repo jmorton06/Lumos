@@ -308,19 +308,15 @@ namespace Lumos
 			Begin();
 
 			SetSystemUniforms(m_Shader);
-
-            auto entities = EntityManager::Instance()->GetEntitiesWithType<Graphics::Sprite>();
-			for(auto& obj : entities)
-			{
-				if (obj != nullptr)
-				{
-					auto* sprite = obj->GetComponent<Graphics::Sprite>();
-					if (sprite)
-					{
-						Submit(reinterpret_cast<Renderable2D*>(sprite), obj->GetTransformComponent()->GetWorldMatrix());
-					}
-				}
-			};
+			
+            auto& registry = scene->GetRegistry();
+            auto group = registry.group<Graphics::Sprite>(entt::get<Maths::Transform>);
+        
+            for(auto entity: group)
+            {
+                const auto &[sprite, trans] = group.get<Graphics::Sprite, Maths::Transform>(entity);
+                Submit(reinterpret_cast<Renderable2D*>(&sprite), trans.GetWorldMatrix());
+            };
 
 			Present();
 
