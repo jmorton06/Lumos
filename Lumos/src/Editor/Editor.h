@@ -3,6 +3,7 @@
 #include "EditorWindow.h"
 
 #include <imgui/imgui.h>
+#include <entt/entt.hpp>
 
 namespace ImGui
 {
@@ -15,6 +16,7 @@ namespace Lumos
 	class Entity;
 	class Scene;
 	class Event;
+	class Layer3D;
 	class WindowCloseEvent;
 	class WindowResizeEvent;
 	
@@ -49,10 +51,15 @@ namespace Lumos
 		bool& ShowGrid() { return m_ShowGrid; }
 		const float& GetGridSize() const { return m_GridSize; }
 
-		void SetSelected(Entity* entity) { m_Selected = entity; }
-		Entity* GetSelected() const { return m_Selected; }
+		bool& SnapGuizmo() { return m_SnapQuizmo; }
+		float& SnapAmount() { return m_SnapAmount; }
+
+		void SetSelected(entt::entity entity) { m_Selected = entity; }
+		entt::entity GetSelected() const { return m_Selected; }
 
 		void BindEventFunction();
+
+		std::unordered_map<size_t, const char*>& GetComponentIconMap() { return m_ComponentIconMap; }
 
 	protected:
 		bool OnWindowResize(WindowResizeEvent& e);
@@ -60,17 +67,22 @@ namespace Lumos
 		Application* m_Application;
 
 		u32 m_ImGuizmoOperation = 0;
-		Entity* m_Selected = nullptr;
+		entt::entity m_Selected;
         float m_GridSize = 10.0f;
 
 		bool m_ShowGrid = true;
-		bool m_SnapQuizmo = true;
+		bool m_SnapQuizmo = false;
 		bool m_ShowImGuiDemo = true;
+		bool m_View2D = false;
 		float m_SnapAmount = 1.0f;
         
         ImGui::FileBrowser* m_FileBrowser;
 
 		std::vector<Ref<EditorWindow>> m_Windows;
+
+		Layer3D* m_3DGridLayer = nullptr;
+
+		std::unordered_map<size_t, const char*> m_ComponentIconMap;
 
 		NONCOPYABLE(Editor)
 	};

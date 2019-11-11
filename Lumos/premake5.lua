@@ -1,5 +1,5 @@
 project "Lumos"
-	kind "SharedLib"
+	kind "StaticLib"
 	language "C++"
 
 	files
@@ -58,7 +58,7 @@ project "Lumos"
 
 	filter "system:windows"
 		cppdialect "C++17"
-		staticruntime "Off"
+		staticruntime "on"
 		systemversion "latest"
 
 		pchheader "lmpch.h"
@@ -67,7 +67,7 @@ project "Lumos"
 		defines
 		{
 			"LUMOS_PLATFORM_WINDOWS",
-			"LUMOS_BUILD_DLL",
+			--"LUMOS_BUILD_DLL",
 			"LUMOS_RENDER_API_OPENGL",
 			"LUMOS_RENDER_API_VULKAN",
 			"VK_USE_PLATFORM_WIN32_KHR",

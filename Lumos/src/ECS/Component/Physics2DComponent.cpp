@@ -20,15 +20,15 @@ namespace Lumos
 
 	void Physics2DComponent::Update()
 	{
-		if (!m_PhysicsObject->GetB2Body()->IsAwake())
-			return;
+		//if (!m_PhysicsObject->GetB2Body()->IsAwake())
+		//	return;
 
-        auto angle = m_PhysicsObject->GetAngle() * Maths::RADTODEG;
+        // auto angle = m_PhysicsObject->GetAngle() * Maths::RADTODEG;
         
-		auto entity = ComponentManager::Instance()->GetComponentArray<Physics2DComponent>()->GetEntity(this);
-		entity->GetTransformComponent()->SetLocalPosition(Maths::Vector3(m_PhysicsObject->GetPosition(), 1.0f));
-		entity->GetTransformComponent()->SetLocalOrientation(Maths::Quaternion::EulerAnglesToQuaternion(0.0f, 0.0f, angle));
-		entity->GetTransformComponent()->UpdateMatrices();
+//		auto entity = ComponentManager::Instance()->GetComponentArray<Physics2DComponent>()->GetEntity(this);
+//		entity->GetTransformComponent()->SetLocalPosition(Maths::Vector3(m_PhysicsObject->GetPosition(), 1.0f));
+//		entity->GetTransformComponent()->SetLocalOrientation(Maths::Quaternion::EulerAnglesToQuaternion(0.0f, 0.0f, angle));
+//		entity->GetTransformComponent()->UpdateMatrices();
 	}
 
 	void Physics2DComponent::OnImGui()

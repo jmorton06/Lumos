@@ -34,7 +34,8 @@ namespace Lumos
 		return c;
 	}
 
-	Entity* CommonUtils::BuildSphereObject(
+	entt::entity CommonUtils::BuildSphereObject(
+		entt::registry& registry,
 		const std::string& name,
 		const Maths::Vector3& pos,
 		float radius,
@@ -43,11 +44,11 @@ namespace Lumos
 		bool collidable,
 		const Maths::Vector4& color)
 	{
-		Entity* pSphere = EntityManager::Instance()->CreateEntity(name);
-
-		pSphere->AddComponent<TextureMatrixComponent>(Maths::Matrix4::Scale(Maths::Vector3(10.0f, 10.0f, 10.0f)));
-        Ref<Graphics::Mesh> sphereModel = AssetsManager::DefaultModels()->Get("Sphere");
-        pSphere->AddComponent<MeshComponent>(sphereModel);
+		auto pSphere = registry.create();
+		registry.assign<NameComponent>(pSphere, name);
+	
+		Ref<Graphics::Mesh> sphereModel = AssetsManager::DefaultModels()->Get("Sphere");
+		registry.assign<MeshComponent>(pSphere, sphereModel);
 
 		Ref<Material> matInstance = CreateRef<Material>();
 		MaterialProperties properties;
@@ -59,9 +60,8 @@ namespace Lumos
 		properties.usingNormalMap   = 0.0f;
 		properties.usingSpecularMap = 0.0f;
 		matInstance->SetMaterialProperites(properties);
-		pSphere->AddComponent<MaterialComponent>(matInstance);
-
-		pSphere->AddComponent<Maths::Transform>(Maths::Matrix4::Scale(Maths::Vector3(radius, radius, radius)));
+		registry.assign<MaterialComponent>(pSphere, matInstance);
+		registry.assign<Maths::Transform>(pSphere, Maths::Matrix4::Scale(Maths::Vector3(radius, radius, radius)));
 
 		if (physics_enabled)
 		{
@@ -82,17 +82,18 @@ namespace Lumos
 				testPhysics->SetInverseInertia(testPhysics->GetCollisionShape()->BuildInverseInertia(inverse_mass));
 			}
 
-			pSphere->AddComponent<Physics3DComponent>(testPhysics);
+			registry.assign<Physics3DComponent>(pSphere, testPhysics);
 		}
 		else
 		{
-			pSphere->GetTransformComponent()->SetLocalPosition(pos);
+			registry.get<Maths::Transform>(pSphere).SetLocalPosition(pos);
 		}
 
 		return pSphere;
 	}
 
-	Entity* CommonUtils::BuildCuboidObject(
+	entt::entity CommonUtils::BuildCuboidObject(
+		entt::registry& registry,
 		const std::string& name,
 		const Maths::Vector3& pos,
 		const Maths::Vector3& halfdims,
@@ -101,11 +102,11 @@ namespace Lumos
 		bool collidable,
 		const Maths::Vector4& color)
 	{
-		Entity* Cube = EntityManager::Instance()->CreateEntity(name);
+		auto cube = registry.create();
+		registry.assign<NameComponent>(cube, name);
 
-		Cube->AddComponent<TextureMatrixComponent>(Maths::Matrix4::Scale(Maths::Vector3(10.0f, 10.0f, 10.0f)));
-        Ref<Graphics::Mesh> cubeModel = AssetsManager::DefaultModels()->Get("Cube");
-        Cube->AddComponent<MeshComponent>(cubeModel);
+		Ref<Graphics::Mesh> cubeModel = AssetsManager::DefaultModels()->Get("Cube");
+		registry.assign<MeshComponent>(cube, cubeModel);
 
 		auto matInstance = CreateRef<Material>();
 		MaterialProperties properties;
@@ -118,9 +119,8 @@ namespace Lumos
 		properties.usingSpecularMap = 0.0f;
 		matInstance->SetMaterialProperites(properties);
 		matInstance->SetRenderFlags(0);
-		Cube->AddComponent<MaterialComponent>(matInstance);
-
-		Cube->AddComponent<Maths::Transform>(Maths::Matrix4::Scale(halfdims));
+		registry.assign<MaterialComponent>(cube, matInstance);
+		registry.assign<Maths::Transform>(cube, Maths::Matrix4::Scale(halfdims));
 
 		if (physics_enabled)
 		{
@@ -141,17 +141,18 @@ namespace Lumos
 				testPhysics->SetInverseInertia(testPhysics->GetCollisionShape()->BuildInverseInertia(inverse_mass));
 			}
 
-			Cube->AddComponent<Physics3DComponent>(testPhysics);
+			registry.assign<Physics3DComponent>(cube, testPhysics);
 		}
 		else
 		{
-			Cube->GetTransformComponent()->SetLocalPosition(pos);
+			registry.get<Maths::Transform>(cube).SetLocalPosition(pos);
 		}
 
-		return Cube;
+		return cube;
 	}
 
-	Entity* CommonUtils::BuildPyramidObject(
+	entt::entity CommonUtils::BuildPyramidObject(
+		entt::registry& registry,
 		const std::string& name,
 		const Maths::Vector3& pos,
 		const Maths::Vector3& halfdims,
@@ -160,11 +161,12 @@ namespace Lumos
 		bool collidable,
 		const Maths::Vector4& color)
 	{
-		Entity* Cube = EntityManager::Instance()->CreateEntity(name);
-		Entity* meshEntity = EntityManager::Instance()->CreateEntity("Mesh");
+		auto pyramid = registry.create();
+		registry.assign<NameComponent>(pyramid, name);
+		registry.assign<Maths::Transform>(pyramid);
 
-        Ref<Graphics::Mesh> pyramidModel = AssetsManager::DefaultModels()->Get("Pyramid");
-		meshEntity->AddComponent<MeshComponent>(pyramidModel);
+		auto pyramidMeshEntity = registry.create();
+		Ref<Graphics::Mesh> pyramidModel = AssetsManager::DefaultModels()->Get("Pyramid");
 
 		Ref<Material> matInstance = CreateRef<Material>();
 		MaterialProperties properties;
@@ -176,11 +178,10 @@ namespace Lumos
 		properties.usingNormalMap   = 0.0f;
 		properties.usingSpecularMap = 0.0f;
 		matInstance->SetMaterialProperites(properties);
-		meshEntity->AddComponent<MaterialComponent>(matInstance);
-
-		meshEntity->AddComponent<Maths::Transform>(Maths::Matrix4::RotationX(-90.0f) * Maths::Matrix4::Scale(halfdims));
-		
-		Cube->AddChild(meshEntity);
+		registry.assign<MaterialComponent>(pyramidMeshEntity, matInstance);
+		registry.assign<Maths::Transform>(pyramidMeshEntity, Maths::Matrix4::RotationX(-90.0f) * Maths::Matrix4::Scale(halfdims));
+		registry.assign<Hierarchy>(pyramidMeshEntity, pyramid);
+		registry.assign<MeshComponent>(pyramidMeshEntity, pyramidModel);
 
 		if (physics_enabled)
 		{
@@ -201,14 +202,14 @@ namespace Lumos
 				testPhysics->SetInverseInertia(testPhysics->GetCollisionShape()->BuildInverseInertia(inverse_mass));
 			}
 
-			Cube->AddComponent<Physics3DComponent>(testPhysics);
+			registry.assign<Physics3DComponent>(pyramid, testPhysics);
 		}
 		else
 		{
-			Cube->GetTransformComponent()->SetLocalPosition(pos);
+			registry.get<Maths::Transform>(pyramid).SetLocalPosition(pos);
 		}
 
-		return Cube;
+		return pyramid;
 	}
 
 	void CommonUtils::AddLightCube(Scene* scene)
@@ -217,7 +218,10 @@ namespace Lumos
 								 RandomNumberGenerator32::Rand(0.0f, 1.0f),
 								 RandomNumberGenerator32::Rand(0.0f, 1.0f),1.0f);
 
-		Entity* cube = CommonUtils::BuildCuboidObject(
+		entt::registry& registry = scene->GetRegistry();
+
+		auto cube = CommonUtils::BuildCuboidObject(
+				registry,
 				"light Cube",
 				scene->GetCamera()->GetPosition(),
 				Maths::Vector3(0.5f, 0.5f, 0.5f),
@@ -226,17 +230,19 @@ namespace Lumos
 				true,
 				colour);
 
-		cube->GetComponent<Physics3DComponent>()->GetPhysicsObject()->SetIsAtRest(true);
+		registry.get<Physics3DComponent>(cube).GetPhysicsObject()->SetIsAtRest(true);
 		const float radius    = RandomNumberGenerator32::Rand(1.0f, 30.0f);
 		const float intensity = RandomNumberGenerator32::Rand(0.0f, 2.0f);
 
-		cube->AddComponent<Graphics::Light>(scene->GetCamera()->GetPosition(), colour, intensity, Graphics::LightType::PointLight, scene->GetCamera()->GetPosition(), radius);
-		scene->AddEntity(cube);
+		registry.assign<Graphics::Light>(cube, scene->GetCamera()->GetPosition(), colour, intensity, Graphics::LightType::PointLight, scene->GetCamera()->GetPosition(), radius);
 	}
 
 	void CommonUtils::AddSphere(Scene* scene)
 	{
-		Entity* sphere = CommonUtils::BuildSphereObject(
+		entt::registry& registry = scene->GetRegistry();
+
+		auto sphere = CommonUtils::BuildSphereObject(
+				registry,
 				"Sphere",
 				scene->GetCamera()->GetPosition(),
 				0.5f,
@@ -253,14 +259,17 @@ namespace Lumos
 		Maths::Matrix3 viewRotation = Maths::Matrix3(temp);
 		viewRotation = Maths::Matrix3::Inverse(viewRotation);
 		const Maths::Vector3 forward = viewRotation * Maths::Vector3(0.0f, 0.0f, -1.0f);
-		sphere->GetComponent<Physics3DComponent>()->GetPhysicsObject()->SetLinearVelocity(forward * 30.0f);
+		registry.get<Physics3DComponent>(sphere).GetPhysicsObject()->SetLinearVelocity(forward * 30.0f);
 
-		scene->AddEntity(sphere);
+		//scene->AddEntity(sphere);
 	}
 
 	void CommonUtils::AddPyramid(Scene* scene)
 	{
-		Entity* sphere = CommonUtils::BuildPyramidObject(
+		entt::registry& registry = scene->GetRegistry();
+
+		auto sphere = CommonUtils::BuildPyramidObject(
+				registry,
 				"Pyramid",
 				scene->GetCamera()->GetPosition(),
 				Maths::Vector3(0.5f),
@@ -277,8 +286,7 @@ namespace Lumos
 		Maths::Matrix3 viewRotation = Maths::Matrix3(temp);
 		viewRotation = Maths::Matrix3::Inverse(viewRotation);
 		const Maths::Vector3 forward = viewRotation * Maths::Vector3(0.0f, 0.0f, -1.0f);
-		sphere->GetComponent<Physics3DComponent>()->GetPhysicsObject()->SetLinearVelocity(forward * 30.0f);
 
-		scene->AddEntity(sphere);
+		registry.get<Physics3DComponent>(sphere).GetPhysicsObject()->SetLinearVelocity(forward * 30.0f);
 	}
 }

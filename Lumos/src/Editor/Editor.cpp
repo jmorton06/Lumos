@@ -16,13 +16,17 @@
 #include "App/Scene.h"
 #include "App/SceneManager.h"
 #include "Events/ApplicationEvent.h"
+#include "Core/OS/FileSystem.h"
 
 #include "Maths/BoundingSphere.h"
 #include "ECS/EntityManager.h"
 #include "ECS/Component/Components.h"
 #include "ECS/SystemManager.h"
 #include "Physics/LumosPhysicsEngine/LumosPhysicsEngine.h"
+#include "Graphics/Layers/Layer3D.h"
 
+#include "Graphics/Sprite.h"
+#include "Graphics/Light.h"
 #include "Graphics/GBuffer.h"
 #include "Graphics/Camera/Camera.h"
 #include "Graphics/RenderManager.h"
@@ -31,6 +35,8 @@
 #include "Graphics/API/Texture.h"
 #include "Graphics/API/GraphicsContext.h"
 #include "Graphics/MeshFactory.h"
+
+#include "Graphics/Renderers/GridRenderer.h"
 
 #include "ImGui/ImGuiHelpers.h"
 
@@ -66,6 +72,39 @@ namespace Lumos
 
 	void Editor::OnInit()
 	{
+		const char *ini[] = { "editor.ini", "editor/editor.ini", "../editor/editor.ini" };
+		bool fileFound = false;
+		for (int i = 0; i < IM_ARRAYSIZE(ini); ++i) 
+		{
+			auto fexist = [](const char *f) -> bool 
+			{
+				FILE *fp = fopen(f, "rb");
+				return fp ? (fclose(fp), 1) : 0;
+			};
+			if (fexist(ini[i]))
+			{
+				ImGui::GetIO().IniFilename = ini[i];
+				fileFound = true;
+				break;
+			}
+		}
+
+//		if (!fileFound)
+//		{
+//			FileSystem::WriteFile("editor.ini", nullptr);
+//			ImGui::GetIO().IniFilename = "editor.ini";
+//		}
+
+		m_ComponentIconMap[typeid(Graphics::Light).hash_code()] = ICON_FA_LIGHTBULB;
+		m_ComponentIconMap[typeid(CameraComponent).hash_code()] = ICON_FA_CAMERA;
+		m_ComponentIconMap[typeid(SoundComponent).hash_code()] = ICON_FA_VOLUME_UP;
+		m_ComponentIconMap[typeid(Graphics::Sprite).hash_code()] = ICON_FA_IMAGE;
+		m_ComponentIconMap[typeid(Maths::Transform).hash_code()] = ICON_FA_VECTOR_SQUARE;
+		m_ComponentIconMap[typeid(Physics2DComponent).hash_code()] = ICON_FA_SQUARE;
+		m_ComponentIconMap[typeid(Physics3DComponent).hash_code()] = ICON_FA_CUBE;
+		m_ComponentIconMap[typeid(MeshComponent).hash_code()] = ICON_FA_SHAPES;
+		m_ComponentIconMap[typeid(MaterialComponent).hash_code()] = ICON_FA_PAINT_BRUSH;
+
 		m_Windows.emplace_back(CreateRef<ConsoleWindow>());
 		m_Windows.emplace_back(CreateRef<SceneWindow>());
 		m_Windows.emplace_back(CreateRef<ProfilerWindow>());
@@ -90,6 +129,8 @@ namespace Lumos
 #endif
 
 		ImGuiHelpers::SetTheme(ImGuiHelpers::Dark);
+
+		m_Selected = entt::null;
 	}
 
 	void Editor::OnImGui()
@@ -98,8 +139,7 @@ namespace Lumos
 		DrawMenuBar();
 
 		BeginDockSpace(false);
-        EndDockSpace();
-
+      
 		for (auto& window : m_Windows)
 		{
 			if (window->Active())
@@ -108,6 +148,24 @@ namespace Lumos
 
         if(m_ShowImGuiDemo)
             ImGui::ShowDemoWindow(&m_ShowImGuiDemo);
+
+		m_View2D = Application::Instance()->GetSceneManager()->GetCurrentScene()->GetCamera()->Is2D();
+
+		if (m_ShowGrid)
+		{
+			if (m_3DGridLayer == nullptr)
+			{
+				//m_3DGridLayer = new Layer3D(new Graphics::GridRenderer(u32(Application::Instance()->GetWindowSize().x), u32(Application::Instance()->GetWindowSize().y), true), "Grid");
+				//Application::Instance()->PushOverLay(m_3DGridLayer);
+			}
+		}
+		else if(m_3DGridLayer)
+		{
+			//Application::Instance()->GetLayerStack()->PopOverlay(m_3DGridLayer);
+			//m_3DGridLayer = nullptr;
+		}
+
+		EndDockSpace();
 	}
 
 	void Editor::DrawMenuBar()
@@ -193,51 +251,59 @@ namespace Lumos
 
 			if (ImGui::BeginMenu("Entity"))
 			{
+				auto& registry = m_Application->GetSceneManager()->GetCurrentScene()->GetRegistry();
+
 				if (ImGui::MenuItem("CreateEmpty"))
 				{
-					Application::Instance()->GetSceneManager()->GetCurrentScene()->AddEntity(EntityManager::Instance()->CreateEntity());
+					registry.create();
 				}
 
 				if (ImGui::MenuItem("Cube"))
 				{
-					auto entity = EntityManager::Instance()->CreateEntity();
-					entity->AddComponent<MeshComponent>(Graphics::CreatePrimative(Graphics::PrimitiveType::Cube));
-					Application::Instance()->GetSceneManager()->GetCurrentScene()->AddEntity(entity);
+					auto entity = registry.create();
+					registry.assign<MeshComponent>(entity, Graphics::CreatePrimative(Graphics::PrimitiveType::Cube));
+					registry.assign<NameComponent>(entity, "Cube");
+					registry.assign<Maths::Transform>(entity);
 				}
 
 				if (ImGui::MenuItem("Sphere"))
 				{
-					auto entity = EntityManager::Instance()->CreateEntity();
-					entity->AddComponent<MeshComponent>(Graphics::CreatePrimative(Graphics::PrimitiveType::Sphere));
-					Application::Instance()->GetSceneManager()->GetCurrentScene()->AddEntity(entity);
+					auto entity = registry.create();
+					registry.assign<MeshComponent>(entity, Graphics::CreatePrimative(Graphics::PrimitiveType::Sphere));
+					registry.assign<NameComponent>(entity, "Sphere");
+					registry.assign<Maths::Transform>(entity);
 				}
 
 				if (ImGui::MenuItem("Pyramid"))
 				{
-					auto entity = EntityManager::Instance()->CreateEntity();
-					entity->AddComponent<MeshComponent>(Graphics::CreatePrimative(Graphics::PrimitiveType::Pyramid));
-					Application::Instance()->GetSceneManager()->GetCurrentScene()->AddEntity(entity);
+					auto entity = registry.create();
+					registry.assign<MeshComponent>(entity, Graphics::CreatePrimative(Graphics::PrimitiveType::Pyramid));
+					registry.assign<NameComponent>(entity, "Pyramid");
+					registry.assign<Maths::Transform>(entity);
 				}
 
 				if (ImGui::MenuItem("Plane"))
 				{
-					auto entity = EntityManager::Instance()->CreateEntity();
-					entity->AddComponent<MeshComponent>(Graphics::CreatePrimative(Graphics::PrimitiveType::Plane));
-					Application::Instance()->GetSceneManager()->GetCurrentScene()->AddEntity(entity);
+					auto entity = registry.create();
+					registry.assign<MeshComponent>(entity, Graphics::CreatePrimative(Graphics::PrimitiveType::Plane));
+					registry.assign<NameComponent>(entity, "Plane");
+					registry.assign<Maths::Transform>(entity);
 				}
 				
 				if (ImGui::MenuItem("Cylinder"))
 				{
-					auto entity = EntityManager::Instance()->CreateEntity();
-					entity->AddComponent<MeshComponent>(Graphics::CreatePrimative(Graphics::PrimitiveType::Cylinder));
-					Application::Instance()->GetSceneManager()->GetCurrentScene()->AddEntity(entity);
+					auto entity = registry.create();
+					registry.assign<MeshComponent>(entity, Graphics::CreatePrimative(Graphics::PrimitiveType::Cylinder));
+					registry.assign<NameComponent>(entity, "Cylinder");
+					registry.assign<Maths::Transform>(entity);
 				}
 
 				if (ImGui::MenuItem("Capsule"))
 				{
-					auto entity = EntityManager::Instance()->CreateEntity();
-					entity->AddComponent<MeshComponent>(Graphics::CreatePrimative(Graphics::PrimitiveType::Capsule));
-					Application::Instance()->GetSceneManager()->GetCurrentScene()->AddEntity(entity);
+					auto entity = registry.create();
+					registry.assign<MeshComponent>(entity, Graphics::CreatePrimative(Graphics::PrimitiveType::Capsule));
+					registry.assign<NameComponent>(entity, "Capsule");
+					registry.assign<Maths::Transform>(entity);
 				}
 
 				ImGui::EndMenu();
@@ -301,7 +367,7 @@ namespace Lumos
     
 	void Editor::OnImGuizmo()
 	{
-		if (!m_Selected || m_ImGuizmoOperation == 4)
+		if (m_Selected == entt::null || m_ImGuizmoOperation == 4)
 			return;
 
 		Maths::Matrix4 view = Application::Instance()->GetSceneManager()->GetCurrentScene()->GetCamera()->GetViewMatrix();
@@ -314,9 +380,11 @@ namespace Lumos
 		ImGuizmo::SetDrawlist();
 		ImGuizmo::SetOrthographic(Application::Instance()->GetSceneManager()->GetCurrentScene()->GetCamera()->Is2D());
 
-		if (m_Selected->GetComponent<Maths::Transform>() != nullptr)
+        auto& registry = m_Application->GetSceneManager()->GetCurrentScene()->GetRegistry();
+		auto transform = registry.try_get<Maths::Transform>(m_Selected);
+		if (transform != nullptr)
 		{
-			Maths::Matrix4 model = m_Selected->GetComponent<Maths::Transform>()->GetWorldMatrix();
+			Maths::Matrix4 model = transform->GetWorldMatrix();
 
 			float snapAmount[3] = { m_SnapAmount  , m_SnapAmount , m_SnapAmount };
 			float delta[16];
@@ -325,10 +393,10 @@ namespace Lumos
 
 			if (ImGuizmo::IsUsing())
 			{
-				auto mat = Maths::Matrix4(delta) * m_Selected->GetComponent<Maths::Transform>()->GetLocalMatrix();
-				m_Selected->GetComponent<Maths::Transform>()->SetLocalTransform(mat);
+				auto mat = Maths::Matrix4(delta) * transform->GetLocalMatrix();
+				transform->SetLocalTransform(mat);
 
-				auto physics2DComponent = m_Selected->GetComponent<Physics2DComponent>();
+				auto physics2DComponent = registry.try_get<Physics2DComponent>(m_Selected);
 
 				if (physics2DComponent)
 				{
@@ -336,14 +404,61 @@ namespace Lumos
 				}
 				else
 				{
-					auto physics3DComponent = m_Selected->GetComponent<Physics3DComponent>();
+					auto physics3DComponent = registry.try_get<Physics3DComponent>(m_Selected);
 					if (physics3DComponent)
 					{
 						physics3DComponent->GetPhysicsObject()->SetPosition(mat.GetPositionVector());
 						physics3DComponent->GetPhysicsObject()->SetOrientation(mat.GetRotation().ToQuaternion());
 					}
-					
 				}
+			}
+
+			if (m_Selected != entt::null)
+			{
+				auto camera = Application::Instance()->GetSceneManager()->GetCurrentScene()->GetCamera();
+
+#if 0
+				Maths::Matrix4 view = camera->GetViewMatrix();
+
+				float camDistance = transform ? (Application::Instance()->GetSceneManager()->GetCurrentScene()->GetCamera()->GetPosition() - transform->GetWorldMatrix().GetPositionVector()).Length() : 0.0f;
+
+				auto window = ImGui::GetCurrentWindow();
+				auto size = 128.0f;
+				auto windowPos = window->Pos;
+				auto windowSize = window->Size;
+				auto viewManipulatePos = ImVec2(windowPos.x + windowSize.x - size, size / 2.0f - 20.0f + windowPos.y);
+
+				//view = Maths::Matrix4::Inverse(view);
+				ImGuizmo::ViewManipulate(Maths::ValuePointer(view), camDistance, viewManipulatePos, ImVec2(size, size), 0x10101010);
+				view = Maths::Matrix4::Inverse(view);
+				auto quat = view.ToQuaternion();
+				auto euler = quat.ToEuler();
+				camera->SetPitch(euler.x);
+				camera->SetYaw(euler.y);
+				camera->SetPosition(view.GetPositionVector());
+#else
+				float pos[3] = { camera->GetPosition().x, camera->GetPosition().y, camera->GetPosition().z };
+				float rot[3] = { camera->GetPitch(), camera->GetYaw(), 0.0f };
+				float scale[3] = { 1.0f, 1.0f, 1.0f };
+				float view[16];
+				ImGuizmo::RecomposeMatrixFromComponents(pos, rot, scale, view);
+
+				float camDistance = transform ? (Application::Instance()->GetSceneManager()->GetCurrentScene()->GetCamera()->GetPosition() - transform->GetWorldMatrix().GetPositionVector()).Length() : 0.0f;
+
+				auto window = ImGui::GetCurrentWindow();
+				auto size = 128.0f;
+				auto windowPos = window->Pos;
+				auto windowSize = window->Size;
+				auto viewManipulatePos = ImVec2(windowPos.x + windowSize.x - size, size / 2.0f - 20.0f + windowPos.y);
+
+				ImGuizmo::ViewManipulate(view, camDistance, viewManipulatePos, ImVec2(size, size), 0x10101010);
+				ImGuizmo::DecomposeMatrixToComponents(view, pos, rot, scale);
+
+				camera->SetPitch(rot[0]);
+				camera->SetYaw(rot[1]);
+				camera->SetPosition({ pos[0], pos[1], pos[2] });
+#endif
+				
 			}
 		}
 	}
@@ -439,7 +554,12 @@ namespace Lumos
 
 	void Editor::OnNewScene(Scene * scene)
 	{
-		m_Selected = nullptr;
+        m_Selected = entt::null;
+
+		for (auto window : m_Windows)
+		{
+			window->OnNewScene(scene);
+		}
 	}
 
 	void Editor::Draw2DGrid(ImDrawList* drawList, const ImVec2& cameraPos, const ImVec2& windowPos, const ImVec2& canvasSize, const float factor, const float thickness)

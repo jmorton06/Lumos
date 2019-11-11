@@ -23,10 +23,6 @@ namespace Lumos
 		m_Name = ICON_FA_GAMEPAD" Scene###scene";
 		m_SimpleName = "Scene";
 
-		m_ComponentIconMap[typeid(Graphics::Light).hash_code()] = ICON_FA_LIGHTBULB;
-		m_ComponentIconMap[typeid(CameraComponent).hash_code()] = ICON_FA_CAMERA;
-		m_ComponentIconMap[typeid(SoundComponent).hash_code()] = ICON_FA_VOLUME_UP;
-
 		m_ShowComponentGizmoMap[typeid(Graphics::Light).hash_code()] = true;
 		m_ShowComponentGizmoMap[typeid(CameraComponent).hash_code()] = true;
 		m_ShowComponentGizmoMap[typeid(SoundComponent).hash_code()] = true;
@@ -68,7 +64,7 @@ namespace Lumos
 			}
 			else
 			{
-#if 0 
+#if 0
 				Maths::Matrix4 view = camera->GetViewMatrix();
 				Maths::Matrix4 proj = camera->GetProjectionMatrix();
 				Maths::Matrix4 identityMatrix;
@@ -78,7 +74,7 @@ namespace Lumos
 					proj[5] *= -1.0f;
 #endif
 
-				ImGuizmo::DrawGrid(view.values, proj.values, identityMatrix.values, m_Editor->GetGridSize(), 1.0f);
+				ImGuizmo::DrawGrid(view.values, proj.values, identityMatrix.values, m_Editor->GetGridSize());
 #endif
 			}
 		}
@@ -86,7 +82,7 @@ namespace Lumos
 
 		m_Editor->OnImGuizmo();
         
-        DrawGizmos(sceneViewSize.x, sceneViewSize.y, 0.0f, 40.0f); // Not sure why 40
+        DrawGizmos(sceneViewSize.x, sceneViewSize.y, 0.0f, 40.0f, Application::Instance()->GetSceneManager()->GetCurrentScene()); // Not sure why 40
 		Application::Instance()->SetSceneActive(ImGui::IsWindowFocused() && !ImGuizmo::IsUsing());
         
 		if (m_ShowStats)
@@ -129,7 +125,7 @@ namespace Lumos
 		ImGui::End();
 	}
 
-	void SceneWindow::DrawGizmos(float width, float height, float xpos, float ypos)
+	void SceneWindow::DrawGizmos(float width, float height, float xpos, float ypos, Scene* scene)
 	{	
 		Camera* camera = Application::Instance()->GetSceneManager()->GetCurrentScene()->GetCamera();
 
@@ -145,9 +141,10 @@ namespace Lumos
 		Maths::Frustum f;
 		f.FromMatrix(viewProj);
 
-		ShowComponentGizmo<Graphics::Light>(width, height, xpos, ypos, viewProj, f);
-		ShowComponentGizmo<CameraComponent>(width, height, xpos, ypos, viewProj, f);
-		ShowComponentGizmo<SoundComponent>(width, height, xpos, ypos, viewProj, f);
+		auto& registry = scene->GetRegistry();
+		ShowComponentGizmo<Graphics::Light>(width, height, xpos, ypos, viewProj, f, registry);
+		ShowComponentGizmo<CameraComponent>(width, height, xpos, ypos, viewProj, f, registry);
+		ShowComponentGizmo<SoundComponent>(width, height, xpos, ypos, viewProj, f, registry);
 	}
 
     void SceneWindow::ToolBar()
@@ -231,8 +228,22 @@ namespace Lumos
 		ImGui::SameLine(); ImGui::SeparatorEx(ImGuiSeparatorFlags_Vertical);  ImGui::SameLine();
         
 		ImGui::SameLine();
+		{
+			selected = m_Editor->SnapGuizmo() == true;
+			if (selected)
+				ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(0.28f, 0.56f, 0.9f, 1.0f));
+
+			if (ImGui::Button(ICON_FA_MAGNET, ImVec2(19.0f, 19.0f)))
+				m_Editor->SnapGuizmo() = !selected;
+
+			if (selected)
+				ImGui::PopStyleColor();
+			ImGuiHelpers::Tooltip("Snap");
+		}
+
+		ImGui::SameLine(); ImGui::SeparatorEx(ImGuiSeparatorFlags_Vertical);  ImGui::SameLine();
                 
-		if (ImGui::Button("Gizmos"))
+		if (ImGui::Button("Gizmos " ICON_FA_CARET_DOWN))
 			ImGui::OpenPopup("GizmosPopup");
 		if (ImGui::BeginPopup("GizmosPopup"))
 		{
@@ -247,7 +258,7 @@ namespace Lumos
 			}
 		}
 
-		ImGui::SameLine();
+		ImGui::SameLine(); ImGui::SeparatorEx(ImGuiSeparatorFlags_Vertical);  ImGui::SameLine();
 		{
 			selected = m_ShowStats;
 			if (selected)

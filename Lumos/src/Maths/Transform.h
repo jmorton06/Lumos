@@ -29,9 +29,9 @@ namespace Lumos
 			const Vector3 GetWorldPosition() const;
 			const Quaternion GetWorldOrientation() const;
 
-			const Vector3& GetLocalPosition();
-			const Vector3& GetLocalScale();
-			const Quaternion& GetLocalOrientation();
+			const Vector3& GetLocalPosition() const;
+			const Vector3& GetLocalScale() const;
+			const Quaternion& GetLocalOrientation() const;
 
 			//Updates Local Matrix from R,T and S vectors
 			void UpdateMatrices();
@@ -76,9 +76,6 @@ namespace Lumos
 
 			bool m_HasUpdated = false;
 			bool m_Dirty = false;
-
-			Transform* m_Parent = nullptr;
-			std::vector<Transform*> m_Children;
 		};
 	}
 }

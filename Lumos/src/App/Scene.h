@@ -1,5 +1,6 @@
 #pragma once
 #include "lmpch.h"
+#include "SceneGraph.h"
 #include "Maths/Frustum.h"
 #include "Utilities/AssetManager.h"
 
@@ -7,6 +8,8 @@
 #include "Events/ApplicationEvent.h"
 
 #include "Core/Serialisable.h"
+
+#include <entt/entt.hpp>
 
 namespace Lumos
 {
@@ -16,7 +19,6 @@ namespace Lumos
 	class Event;
 	class Layer;
 	class Camera;
-	class Entity;
 
 	namespace Graphics
 	{
@@ -54,11 +56,6 @@ namespace Lumos
 		//    - This is the default action upon firing OnCleanupScene()
 		void DeleteAllGameObjects();
 
-		// Add Entity to the scene list
-		//    - All added Entities are managed by the scene itself, firing
-		//		OnRender and OnUpdate functions automatically
-		void AddEntity(Entity* game_object);
-
 		// The friendly name associated with this scene instance
 		const String& GetSceneName() const { return m_SceneName; }
 
@@ -68,7 +65,7 @@ namespace Lumos
 		void  SetWorldRadius(float radius) { m_SceneBoundingRadius = radius; }
 		float GetWorldRadius() const { return m_SceneBoundingRadius; }
 
-		Entity* GetRootEntity() { return m_RootEntity; }
+		//Entity* GetRootEntity() { return m_RootEntity; }
 
 		void SetCamera(Camera* camera) { m_pCamera = camera; }
 		Camera* GetCamera()	const { return m_pCamera; }
@@ -81,13 +78,14 @@ namespace Lumos
 		void SetScreenHeight(u32 height) { m_ScreenHeight = height; }
         
         u32 GetScreenWidth() const { return m_ScreenWidth; }
-        u32 GetScreenHeight() const { return m_ScreenHeight; }
-
-		void IterateEntities(const std::function<void(Entity*)>& per_object_func);
+		u32 GetScreenHeight() const { return m_ScreenHeight; }
 
 		// Inherited via Serialisable
 		nlohmann::json Serialise() override;
 		void Deserialise(nlohmann::json & data) override;
+        
+        const entt::registry& GetRegistry() const { return m_Registry; }
+        entt::registry& GetRegistry() { return m_Registry; }
 
 	protected:
 
@@ -96,14 +94,16 @@ namespace Lumos
 		Graphics::TextureCube* m_EnvironmentMap;
 
 		float m_SceneBoundingRadius;
-
-		Entity* m_RootEntity;
+        
+        entt::registry m_Registry;
 
 		bool m_CurrentScene = false;
 		bool m_ReflectSkybox = true;
 
 		u32 m_ScreenWidth;
 		u32 m_ScreenHeight;
+
+		SceneGraph m_SceneGraph;
 
     private:
 		NONCOPYABLE(Scene)

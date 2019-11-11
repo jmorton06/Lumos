@@ -4,6 +4,7 @@
 #include "Scenes/GraphicsScene.h"
 #include "Scenes/SceneModelViewer.h"
 #include "Scenes/Scene2D.h"
+#include "Scenes/MaterialTest.h"
 
 using namespace Lumos;
 
@@ -31,6 +32,7 @@ public:
 		GetSceneManager()->EnqueueScene<Scene2D>("2D Test");
 		GetSceneManager()->EnqueueScene<Scene3D>("Physics Scene");
 		GetSceneManager()->EnqueueScene<GraphicsScene>("Terrain Test");
+		GetSceneManager()->EnqueueScene<MaterialTest>("Material Test");
 		GetSceneManager()->SwitchScene(2);
         GetSceneManager()->ApplySceneSwitch();
 	}

@@ -61,18 +61,22 @@ namespace Lumos
 		{
             m_PhysicsObjects.clear();
             
-            auto physicsEntities = EntityManager::Instance()->GetEntitiesWithType<Physics3DComponent>();
+            auto& registry = scene->GetRegistry();
+            
+            auto group = registry.group<Physics3DComponent>(entt::get<Maths::Transform>);
 
-            if (physicsEntities.empty())
+            if (group.empty())
                 return;
             
-            for (Entity* entity : physicsEntities)
+            for(auto entity : group)
             {
-                auto& physicsObj = entity->GetComponent<Physics3DComponent>()->GetPhysicsObject();
-                
+                const auto &phys = group.get<Physics3DComponent>(entity);
+
+                auto& physicsObj = phys.GetPhysicsObject();
+                               
                 if(physicsObj)
                     m_PhysicsObjects.emplace_back(physicsObj);
-            }
+            };
             
 			if (m_MultipleUpdates)
 			{
@@ -98,15 +102,13 @@ namespace Lumos
 				UpdatePhysics(scene);
 			}
             
-            for (Entity* entity : physicsEntities)
+            for(auto entity : group)
             {
-                auto& physicsObject = entity->GetComponent<Physics3DComponent>()->GetPhysicsObject();
-				auto transform = entity->GetTransformComponent();
+                const auto &[phys,trans] = group.get<Physics3DComponent, Maths::Transform>(entity);
 
-				transform->SetLocalPosition(physicsObject->GetPosition());
-				transform->SetLocalOrientation(physicsObject->GetOrientation());
-				transform->UpdateMatrices();
-            }
+                trans.SetLocalPosition(phys.GetPhysicsObject()->GetPosition());
+                trans.SetLocalOrientation(phys.GetPhysicsObject()->GetOrientation());
+            };
 		}
 	}
 
