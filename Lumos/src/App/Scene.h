@@ -1,5 +1,6 @@
 #pragma once
 #include "lmpch.h"
+#include "SceneGraph.h"
 #include "Maths/Frustum.h"
 #include "Utilities/AssetManager.h"
 
@@ -101,6 +102,8 @@ namespace Lumos
 
 		u32 m_ScreenWidth;
 		u32 m_ScreenHeight;
+
+		SceneGraph m_SceneGraph;
 
     private:
 		NONCOPYABLE(Scene)

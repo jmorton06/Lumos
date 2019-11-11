@@ -1,19 +1,65 @@
 #include "lmpch.h"
 #include "SceneGraph.h"
-
+#include "Maths/Transform.h"
 
 namespace Lumos
 {
-	SceneGraph::SceneGraph(entt::registry & registry)
+	SceneGraph::SceneGraph()
+	{
+	}
+
+	void SceneGraph::Init(entt::registry & registry)
 	{
 		registry.on_construct<Hierarchy>().connect<&Hierarchy::on_construct>();
+		registry.on_replace<Hierarchy>().connect<&Hierarchy::on_replace>();
 		registry.on_destroy<Hierarchy>().connect<&Hierarchy::on_destroy>();
 	}
 
-	void SceneGraph::Update()
+	void SceneGraph::Update(entt::registry & registry)
     {
-        
+		auto group = registry.group<Hierarchy>(entt::get<Maths::Transform>);
+
+		if (group.empty())
+			return;
+
+		for (auto entity : group)
+		{
+			const auto &hierarchy = group.get<Hierarchy>(entity);
+			if (hierarchy.parent() == entt::null)
+			{
+				UpdateTransform(entity, registry);
+			}
+			else
+			{
+				registry.get<Maths::Transform>(entity).SetWorldMatrix(Maths::Matrix4());
+			}
+		}
     }
+
+	void SceneGraph::UpdateTransform(entt::entity entity, entt::registry & registry)
+	{
+		auto hierarchyComponent = registry.try_get<Hierarchy>(entity);
+		if (hierarchyComponent)
+		{
+			entt::entity child = hierarchyComponent->first();
+			while (child != entt::null)
+			{
+				auto hierarchyComponent = registry.try_get<Hierarchy>(child);
+				auto next = hierarchyComponent ? hierarchyComponent->next() : entt::null;
+				UpdateTransform(child, registry);
+				child = next;
+			}
+			auto transform = registry.try_get<Maths::Transform>(entity);
+			if(transform && hierarchyComponent->parent() != entt::null)
+			{
+				auto parentTransform = registry.try_get<Maths::Transform>(hierarchyComponent->parent());
+				if (parentTransform)
+				{
+					transform->SetWorldMatrix(parentTransform->GetWorldMatrix());
+				}
+			}
+		}
+	}
 
 	void Hierarchy::Reparent(entt::entity entity, entt::entity parent, entt::registry& registry, Hierarchy& hierarchy)
 	{
@@ -156,7 +202,7 @@ namespace Lumos
 	{
 		auto& hierarchy = registry.get<Hierarchy>(entity);
 		// if is the first child
-		if (hierarchy._prev == entt::null)
+		if (hierarchy._prev == entt::null || !registry.valid(hierarchy._prev))
 		{
 			if (hierarchy._parent != entt::null && registry.valid(hierarchy._parent))
 			{

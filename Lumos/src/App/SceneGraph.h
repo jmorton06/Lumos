@@ -4,12 +4,8 @@
 
 namespace Lumos
 {
-    struct ParentComponent
-    {
-        entt::entity parent;
-    };
-
-	class Hierarchy {
+	class Hierarchy
+	{
 	public:
 		Hierarchy(entt::entity p = entt::null) : _parent{ p } {}
 
@@ -40,15 +36,12 @@ namespace Lumos
     class SceneGraph
     {
     public:
-		SceneGraph(entt::registry& registry);
-        ~SceneGraph() {}
-        
-        void Update();
-        
-        const entt::registry& GetResistry() const { return m_Registry; }
-        entt::registry& GetResistry() { return m_Registry; }
+		SceneGraph();
+		~SceneGraph() = default;
 
-    private:
-        entt::registry m_Registry;
+		void Init(entt::registry & registry);
+        
+        void Update(entt::registry& registry);
+		void UpdateTransform(entt::entity entity, entt::registry& registry);
     };
 }

@@ -228,8 +228,22 @@ namespace Lumos
 		ImGui::SameLine(); ImGui::SeparatorEx(ImGuiSeparatorFlags_Vertical);  ImGui::SameLine();
         
 		ImGui::SameLine();
+		{
+			selected = m_Editor->SnapGuizmo() == true;
+			if (selected)
+				ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(0.28f, 0.56f, 0.9f, 1.0f));
+
+			if (ImGui::Button(ICON_FA_MAGNET, ImVec2(19.0f, 19.0f)))
+				m_Editor->SnapGuizmo() = !selected;
+
+			if (selected)
+				ImGui::PopStyleColor();
+			ImGuiHelpers::Tooltip("Snap");
+		}
+
+		ImGui::SameLine(); ImGui::SeparatorEx(ImGuiSeparatorFlags_Vertical);  ImGui::SameLine();
                 
-		if (ImGui::Button("Gizmos"))
+		if (ImGui::Button("Gizmos " ICON_FA_CARET_DOWN))
 			ImGui::OpenPopup("GizmosPopup");
 		if (ImGui::BeginPopup("GizmosPopup"))
 		{
@@ -244,7 +258,7 @@ namespace Lumos
 			}
 		}
 
-		ImGui::SameLine();
+		ImGui::SameLine(); ImGui::SeparatorEx(ImGuiSeparatorFlags_Vertical);  ImGui::SameLine();
 		{
 			selected = m_ShowStats;
 			if (selected)
