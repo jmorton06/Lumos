@@ -17,15 +17,15 @@ namespace Lumos
 
 	void SceneGraph::Update(entt::registry & registry)
     {
-		auto group = registry.group<Hierarchy>(entt::get<Maths::Transform>);
+		auto view = registry.view<Maths::Transform>();
 
-		if (group.empty())
+		if (view.empty())
 			return;
 
-		for (auto entity : group)
+		for (auto entity : view)
 		{
-			const auto &hierarchy = group.get<Hierarchy>(entity);
-			if (hierarchy.parent() == entt::null)
+			const auto hierarchy = registry.try_get<Hierarchy>(entity);
+			if (hierarchy && hierarchy->parent() != entt::null)
 			{
 				UpdateTransform(entity, registry);
 			}
