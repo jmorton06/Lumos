@@ -52,12 +52,16 @@ namespace Lumos
 
 			const float HostButtonWidth = 42.0f;
 			float pos = HostButtonWidth + ItemSpacing;
-			ImGui::SameLine(ImGui::GetWindowWidth() - pos);
 
 			if (hasActive)
 			{
+				ImGui::SameLine(ImGui::GetWindowWidth() - pos);
 				ImGui::Checkbox(("##Active" + componentName).c_str(), &active);
 				ImGui::SameLine();
+			}
+			else
+			{
+				ImGui::SameLine(ImGui::GetWindowWidth() - 22.0f);
 			}
 	
 			if (ImGui::Button((ICON_FA_COG"##" + componentName).c_str()))

@@ -2,6 +2,8 @@ project 'volk'
 	kind 'StaticLib'
 	systemversion "latest"
 	cppdialect "C++14"
+	staticruntime "On"
+	
 	files
 	{
 		"volk.h",

@@ -31,12 +31,12 @@ namespace Lumos
 		m_MountPoints[path].clear();
 	}
 
-	bool VFS::ResolvePhysicalPath(const String& path, String& outPhysicalPath)
+	bool VFS::ResolvePhysicalPath(const String& path, String& outPhysicalPath, bool folder)
 	{
 		if (path[0] != '/')
 		{
 			outPhysicalPath = path;
-			return FileSystem::FileExists(path);
+			return folder ? FileSystem ::FolderExists(path) : FileSystem::FileExists(path);
 		}
 
 		std::vector<String> dirs = SplitString(path, '/');
@@ -45,14 +45,14 @@ namespace Lumos
 		if (m_MountPoints.find(virtualDir) == m_MountPoints.end() || m_MountPoints[virtualDir].empty())
         {
             outPhysicalPath = path;
-            return FileSystem::FileExists(path);
+            return folder ? FileSystem::FolderExists(path) : FileSystem::FileExists(path);
         }
 
 		const String remainder = path.substr(virtualDir.size() + 1, path.size() - virtualDir.size());
 		for (const String& physicalPath : m_MountPoints[virtualDir])
 		{
 			const String newPath = physicalPath + remainder;
-			if (FileSystem::FileExists(newPath))
+			if (folder ? FileSystem::FolderExists(newPath) : FileSystem::FileExists(newPath))
 			{
 				outPhysicalPath = newPath;
 				return true;

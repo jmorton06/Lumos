@@ -31,15 +31,17 @@ project "Tests"
 	links
 	{
 		"Lumos",
-		"imgui",
-		"box2d"
+		"lua",
+		"Box2D",
+		"volk",
+		"imgui"
 	}
 
 	cwd = os.getcwd() .. "/.."
 
 	defines
 	{
-		"LUMOS_DYNAMIC",
+		--"LUMOS_DYNAMIC",
         "LUMOS_ROOT_DIR="  .. cwd,
         "CATCH_CPP11_OR_GREATER"
 	}
@@ -65,6 +67,12 @@ project "Tests"
 			"/MP"
 		}
 
+		links
+		{
+			"glfw",
+			"glad",
+		}
+
 	filter "system:macosx"
 		cppdialect "C++17"
 		staticruntime "On"
@@ -78,6 +86,22 @@ project "Tests"
 			"LUMOS_RENDER_API_VULKAN",
 			"VK_USE_PLATFORM_MACOS_MVK",
 			"LUMOS_IMGUI"
+		}
+
+		linkoptions 
+		{ 
+			"-framework OpenGL",
+			"-framework Cocoa",
+			"-framework IOKit", 
+			"-framework CoreVideo",
+			"-framework OpenAL",
+			"-framework QuartzCore"
+		}
+
+		links
+		{
+			"glfw",
+			"glad"
 		}
 
 		filter {"system:macosx", "configurations:release"}
@@ -184,6 +208,14 @@ project "Tests"
 			"-fPIC",
 			"-Wignored-attributes"
 		}
+
+		links
+		{
+			"glfw",
+			"glad"
+		}
+
+		links { "X11", "pthread"}
 
 		linkoptions
 		{

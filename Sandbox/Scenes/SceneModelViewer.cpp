@@ -39,10 +39,14 @@ void SceneModelViewer::OnInit()
 
 	m_EnvironmentMap = Graphics::TextureCube::CreateFromVCross(environmentFiles, 11);
 
-	auto lightEntity = EntityManager::Instance()->CreateEntity("Directional Light");
-	lightEntity->AddComponent<Graphics::Light>(Maths::Vector3(26.0f, 22.0f, 48.5f), Maths::Vector4(1.0f), 2.0f);
-	lightEntity->AddComponent<Maths::Transform>(Matrix4::Translation(Maths::Vector3(26.0f, 22.0f, 48.5f)) * Maths::Quaternion::LookAt(Maths::Vector3(26.0f, 22.0f, 48.5f), Maths::Vector3::Zero()).ToMatrix4());
-	AddEntity(lightEntity);
+    auto lightEntity = m_Registry.create();//EntityManager::Instance()->CreateEntity("Directional Light");
+    m_Registry.assign<Graphics::Light>(lightEntity, Maths::Vector3(26.0f, 22.0f, 48.5f), Maths::Vector4(1.0f), 1.3f);
+    m_Registry.assign<Maths::Transform>(lightEntity,Matrix4::Translation(Maths::Vector3(26.0f, 22.0f, 48.5f)) * Maths::Quaternion::LookAt(Maths::Vector3(26.0f, 22.0f, 48.5f), Maths::Vector3::Zero()).ToMatrix4());
+	m_Registry.assign<NameComponent>(lightEntity, "Directional Light");
+
+    auto cameraEntity = m_Registry.create();//EntityManager::Instance()->CreateEntity("Camera");
+    m_Registry.assign<CameraComponent>(cameraEntity, m_pCamera);
+	m_Registry.assign<NameComponent>(cameraEntity, "Camera");
 
     auto shadowRenderer = new Graphics::ShadowRenderer();
     auto deferredRenderer = new Graphics::DeferredRenderer(m_ScreenWidth, m_ScreenHeight);
@@ -95,9 +99,8 @@ void SceneModelViewer::LoadModels()
         "/Meshes/capsule.glb"
 	};
 
-	auto TestObject = ModelLoader::LoadModel(ExampleModelPaths[6]);
-	//TestObject->GetOrAddComponent<Maths::Transform>(Maths::Matrix4::Scale(Maths::Vector3(1.0f, 1.0f, 1.0f)));
-	AddEntity(TestObject);
+	auto TestObject = ModelLoader::LoadModel(ExampleModelPaths[0], m_Registry);
+	m_Registry.get_or_assign<Maths::Transform>(TestObject, Maths::Matrix4::Scale(Maths::Vector3(1.0f, 1.0f, 1.0f)));
 
 }
 

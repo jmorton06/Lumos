@@ -1,6 +1,7 @@
 project 'lua'
 	kind 'StaticLib'
 	systemversion "latest"
+	staticruntime "On"
 
 	defines 
 	{

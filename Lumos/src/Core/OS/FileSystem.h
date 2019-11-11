@@ -8,6 +8,7 @@ namespace Lumos
 	{
 	public:
 		static bool FileExists(const String& path);
+		static bool FolderExists(const String& path);
 		static i64 GetFileSize(const String& path);
 
 		static u8* ReadFile(const String& path);

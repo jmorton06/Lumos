@@ -30,8 +30,9 @@ namespace Lumos
 
 		static String GetFilePathExtension(const String &FileName)
 		{
-			if (FileName.find_last_of('.') != String::npos)
-				return FileName.substr(FileName.find_last_of('.') + 1);
+			auto pos = FileName.find_last_of('.');
+			if (pos != String::npos)
+				return FileName.substr(pos + 1);
 			return "";
 		}
 	};

@@ -32,6 +32,12 @@ namespace Lumos
         struct stat buffer;
         return (stat (path.c_str(), &buffer) == 0);
     }
+	
+	 bool FileSystem::FolderExists(const String& path)
+    {
+        struct stat buffer;
+        return (stat (path.c_str(), &buffer) == 0);
+    }
 
     i64 FileSystem::GetFileSize(const String& path)
     {

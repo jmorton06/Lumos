@@ -39,7 +39,6 @@ namespace Lumos
 	void PhysicsObject2D::SetPosition(const Maths::Vector2 & pos) const
 	{
         m_B2Body->SetTransform(b2Vec2(pos.GetX(), pos.GetY()), m_B2Body->GetAngle());
-
 	}
     
     void PhysicsObject2D::SetOrientation(float angle) const

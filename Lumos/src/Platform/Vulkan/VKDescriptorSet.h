@@ -38,6 +38,8 @@ namespace Lumos
 			Shader* m_Shader = nullptr;
 			bool m_Dynamic = false;
 			std::vector<PushConstant> m_PushConstants;
+			vk::DescriptorBufferInfo* m_BufferInfoPool = nullptr;
+			vk::DescriptorImageInfo* m_ImageInfoPool = nullptr;
 		};
 	}
 }

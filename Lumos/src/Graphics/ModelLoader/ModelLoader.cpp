@@ -4,24 +4,28 @@
 
 namespace Lumos
 {
-	Entity* ModelLoader::LoadModel(const String& path)
+	entt::entity ModelLoader::LoadModel(const String& path, entt::registry& registry)
 	{
 		std::string physicalPath;
-		Lumos::VFS::Get()->ResolvePhysicalPath(path, physicalPath);
+		if (!Lumos::VFS::Get()->ResolvePhysicalPath(path, physicalPath))
+		{
+			LUMOS_LOG_INFO("Loaded Model - {0}", path);
+			return entt::null;
+		}
 
 		String resolvedPath = physicalPath;
 
 		const String fileExtension = StringFormat::GetFilePathExtension(path);
 
 		if (fileExtension == "obj")
-			return LoadOBJ(resolvedPath);
+			return LoadOBJ(resolvedPath, registry);
 		else if (fileExtension == "gltf" || fileExtension == "glb")
-			return LoadGLTF(resolvedPath);
+			return LoadGLTF(resolvedPath, registry);
 		else
 			LUMOS_LOG_CRITICAL("Unsupported File Type : {0}", fileExtension);
 
 		LUMOS_LOG_INFO("Loaded Model - {0}", resolvedPath);
 
-		return nullptr;
+		return entt::null;
 	}
 }
