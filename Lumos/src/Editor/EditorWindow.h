@@ -4,6 +4,7 @@
 namespace Lumos
 {
 	class Editor;
+	class Scene;
 
 	class EditorWindow
 	{
@@ -18,6 +19,7 @@ namespace Lumos
 		bool& Active() { return m_Active; }
 		void SetActive(bool active) { m_Active = active; }
 		virtual void OnImGui() = 0;
+		virtual void OnNewScene(Scene* scene) {}
 
 	protected:
 		bool m_Active = true;

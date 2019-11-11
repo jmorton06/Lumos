@@ -1,21 +1,16 @@
 #pragma once
 #include <LumosEngine.h>
 
-class GraphicsScene : public Lumos::Scene
+class MaterialTest : public Lumos::Scene
 {
 public:
-	GraphicsScene(const std::string& SceneName);
-	virtual ~GraphicsScene();
+	MaterialTest(const String& SceneName);
+	virtual ~MaterialTest();
 
 	virtual void OnInit() override;
 	virtual void OnCleanupScene() override;
 	virtual void OnUpdate(Lumos::TimeStep* timeStep) override;
+	virtual void Render2D() override;
 	virtual void OnImGui() override;
-
 	void LoadModels();
-    
-private:
-    
-    entt::entity m_Terrain;
-
 };

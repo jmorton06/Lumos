@@ -241,26 +241,25 @@ namespace Lumos
 		{
 			LUMOS_PROFILE_BLOCK("DeferredRenderer::SubmitLightSetup");
 
-			auto lightEntities = EntityManager::Instance()->GetEntitiesWithType<Graphics::Light>();
-			
-			if (lightEntities.empty())
-				return;
 
-			u32 numLights = 0;
+            auto& registry = scene->GetRegistry();
+                      
+              auto group = registry.group<Graphics::Light>(entt::get<Maths::Transform>);
 
-            for (auto entity : lightEntities)
-            {
-				auto light = entity->GetComponent<Graphics::Light>();
-				auto transform = entity->GetTransformComponent();
+            u32 numLights = 0;
 
-				light->m_Position = transform->GetWorldPosition();
+              for(auto entity : group)
+              {
+                  const auto &[light, trans] = group.get<Graphics::Light, Maths::Transform>(entity);
+
+				light.m_Position = trans.GetWorldPosition();
 
 				Maths::Vector3 forward = Maths::Vector3(0, 0, -1);
-				Maths::Quaternion::RotatePointByQuaternion(transform->GetWorldOrientation(), forward);
+				Maths::Quaternion::RotatePointByQuaternion(trans.GetWorldOrientation(), forward);
 
-				light->m_Direction = forward.Normal();
+				light.m_Direction = forward.Normal();
 
-                memcpy(m_PSSystemUniformBuffer + m_PSSystemUniformBufferOffsets[PSSystemUniformIndex_Lights] + sizeof(Graphics::Light) * numLights, &*light, sizeof(Graphics::Light));
+                memcpy(m_PSSystemUniformBuffer + m_PSSystemUniformBufferOffsets[PSSystemUniformIndex_Lights] + sizeof(Graphics::Light) * numLights, &light, sizeof(Graphics::Light));
 				numLights++;
             }
             

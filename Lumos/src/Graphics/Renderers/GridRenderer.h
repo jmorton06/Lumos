@@ -37,9 +37,10 @@ namespace Lumos
 
 			struct UniformBufferObjectFrag
 			{
+                Maths::Vector4 cameraPos;
 				float scale;
 				float res;
-				float p0;
+				float maxDistance;
 				float p1;
 			};
 

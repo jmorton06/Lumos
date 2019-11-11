@@ -3,7 +3,7 @@
 using namespace Lumos;
 using namespace Maths;
 
-GraphicsScene::GraphicsScene(const std::string& SceneName) : Scene(SceneName), m_Terrain(nullptr) {}
+GraphicsScene::GraphicsScene(const std::string& SceneName) : Scene(SceneName), m_Terrain(entt::null) {}
 
 GraphicsScene::~GraphicsScene() = default;
 
@@ -38,10 +38,15 @@ void GraphicsScene::OnInit()
 
 	m_EnvironmentMap = Graphics::TextureCube::CreateFromVCross(environmentFiles, 11);
 
-	auto lightEntity = EntityManager::Instance()->CreateEntity("Directional Light");
-	lightEntity->AddComponent<Graphics::Light>(Maths::Vector3(26.0f, 22.0f, 48.5f), Maths::Vector4(1.0f), 2.0f);
-	lightEntity->AddComponent<Maths::Transform>(Matrix4::Translation(Maths::Vector3(26.0f, 22.0f, 48.5f)));
-	AddEntity(lightEntity);
+	auto lightEntity = m_Registry.create();//EntityManager::Instance()->CreateEntity("Directional Light");
+	m_Registry.assign<Graphics::Light>(lightEntity, Maths::Vector3(26.0f, 22.0f, 48.5f), Maths::Vector4(1.0f), 1.3f);
+	m_Registry.assign<Maths::Transform>(lightEntity, Matrix4::Translation(Maths::Vector3(26.0f, 22.0f, 48.5f)) * Maths::Quaternion::LookAt(Maths::Vector3(26.0f, 22.0f, 48.5f), Maths::Vector3::Zero()).ToMatrix4());
+	m_Registry.assign<NameComponent>(lightEntity, "Light");
+
+	auto cameraEntity = m_Registry.create();//EntityManager::Instance()->CreateEntity("Camera");
+	m_Registry.assign<CameraComponent>(cameraEntity, m_pCamera);
+	m_Registry.assign<NameComponent>(cameraEntity, "Camera");
+	Application::Instance()->GetSystem<AudioManager>()->SetListener(m_pCamera);
 
 	Application::Instance()->GetSystem<AudioManager>()->SetListener(m_pCamera);
 
@@ -83,19 +88,18 @@ void GraphicsScene::OnCleanupScene()
 void GraphicsScene::LoadModels()
 {
 	//HeightMap
-	m_Terrain = EntityManager::Instance()->CreateEntity("heightmap");
-	m_Terrain->AddComponent<Maths::Transform>(Matrix4::Scale(Maths::Vector3(1.0f)));
-	m_Terrain->AddComponent<TextureMatrixComponent>(Matrix4::Scale(Maths::Vector3(1.0f, 1.0f, 1.0f)));
+	m_Terrain = m_Registry.create(); // EntityManager::Instance()->CreateEntity("heightmap");
+	m_Registry.assign<Maths::Transform>(m_Terrain, Matrix4::Scale(Maths::Vector3(1.0f)));
+	m_Registry.assign<TextureMatrixComponent>(m_Terrain, Matrix4::Scale(Maths::Vector3(1.0f, 1.0f, 1.0f)));
+	m_Registry.assign<NameComponent>(m_Terrain, "HeightMap");
     Lumos::Ref<Graphics::Mesh> terrain = Lumos::Ref<Graphics::Mesh>(new Terrain());
-	auto material = Lumos::CreateRef<Material>();
 
+	auto material = Lumos::CreateRef<Material>();
 	material->LoadMaterial("checkerboard", "/CoreTextures/checkerboard.tga");
 
-	m_Terrain->AddComponent<MaterialComponent>(material);
-    
-	m_Terrain->AddComponent<MeshComponent>(terrain);
+	m_Registry.assign<MaterialComponent>(m_Terrain, material);
+	m_Registry.assign<MeshComponent>(m_Terrain, terrain);
 
-	AddEntity(m_Terrain);
 }
 
 int width = 500;
@@ -110,7 +114,7 @@ float texRandZ = 1.0f / 16.0f;
 
 void GraphicsScene::OnImGui()
 {
-    /*ImGui::Begin("Terrain");
+    ImGui::Begin("Terrain");
 
 	ImGui::SliderInt("Width", &width, 1, 5000);
 	ImGui::SliderInt("Height", &height, 1, 5000);
@@ -126,23 +130,20 @@ void GraphicsScene::OnImGui()
     
     if(ImGui::Button("Rebuild Terrain"))
     {
-        EntityManager::Instance()->DeleteEntity(m_Terrain);
-        
-        m_Terrain = EntityManager::Instance()->CreateEntity("heightmap");
-        m_Terrain->AddComponent<TransformComponent>(Matrix4::Scale(Maths::Vector3(1.0f)));
-        m_Terrain->AddComponent<TextureMatrixComponent>(Matrix4::Scale(Maths::Vector3(1.0f, 1.0f, 1.0f)));
-        Lumos::Ref<Graphics::Mesh> terrain = Lumos::Ref<Graphics::Mesh>(new Terrain(width,height,lowside,lowscale,xRand,yRand,zRand,texRandX,texRandZ));
-        auto material = Lumos::CreateRef<Material>();
-        
-        material->LoadMaterial("checkerboard", "/CoreTextures/checkerboard.tga");
-        
-        m_Terrain->AddComponent<MaterialComponent>(material);
-        m_Terrain->SetBoundingRadius(800.0f);
-        
-        m_Terrain->AddComponent<MeshComponent>(terrain);
-        
-        AddEntity(m_Terrain);
+		m_Registry.destroy(m_Terrain);
+
+		m_Terrain = m_Registry.create();
+		m_Registry.assign<Maths::Transform>(m_Terrain, Matrix4::Scale(Maths::Vector3(1.0f)));
+		m_Registry.assign<TextureMatrixComponent>(m_Terrain, Matrix4::Scale(Maths::Vector3(1.0f, 1.0f, 1.0f)));
+		m_Registry.assign<NameComponent>(m_Terrain, "HeightMap");
+		Lumos::Ref<Graphics::Mesh> terrain = Lumos::Ref<Graphics::Mesh>(new Terrain(width, height, lowside, lowscale, xRand, yRand, zRand, texRandX, texRandZ));
+
+		auto material = Lumos::CreateRef<Material>();
+		material->LoadMaterial("checkerboard", "/CoreTextures/checkerboard.tga");
+
+		m_Registry.assign<MaterialComponent>(m_Terrain, material);
+		m_Registry.assign<MeshComponent>(m_Terrain, terrain);
     }
     
-    ImGui::End();*/
+    ImGui::End();
 }

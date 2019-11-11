@@ -12,7 +12,6 @@ namespace Lumos
     class SceneManager;
 	class AudioManager;
 	class SystemManager;
-	class Entity;
 	class Editor;
 	class LayerStack;
 	class Layer;
@@ -53,6 +52,16 @@ namespace Lumos
 	{
 		Game,
 		Editor
+	};
+
+    struct NameComponent
+    {
+        String name;
+    };
+
+	struct ActiveComponent
+	{
+		bool active;
 	};
 
 	class LUMOS_EXPORT Application

@@ -32,15 +32,17 @@ project "Sandbox"
 	links
 	{
 		"Lumos",
-		"imgui",
-		"box2d"
+		"lua",
+		"Box2D",
+		"volk",
+		"imgui"
 	}
 
 	cwd = os.getcwd() .. "/.."
 
 	defines
 	{
-		"LUMOS_DYNAMIC",
+		--"LUMOS_DYNAMIC",
 		"LUMOS_ROOT_DIR="  .. cwd,
 	}
 
@@ -58,6 +60,12 @@ project "Sandbox"
 			"WIN32_LEAN_AND_MEAN",
 			"_CRT_SECURE_NO_WARNINGS",
 			"_DISABLE_EXTENDED_ALIGNED_STORAGE"
+		}
+
+		links
+		{
+			"glfw",
+			"glad"
 		}
 
 		buildoptions
@@ -79,6 +87,23 @@ project "Sandbox"
 			"VK_USE_PLATFORM_MACOS_MVK",
 			"LUMOS_IMGUI"
 		}
+
+		linkoptions 
+		{ 
+			"-framework OpenGL",
+			"-framework Cocoa",
+			"-framework IOKit", 
+			"-framework CoreVideo",
+			"-framework OpenAL",
+			"-framework QuartzCore"
+		}
+
+		links
+		{
+			"glfw",
+			"glad"
+		}
+
 
 		filter {"system:macosx", "configurations:release"}
 
@@ -184,6 +209,14 @@ project "Sandbox"
 			"-fPIC",
 			"-Wignored-attributes"
 		}
+
+		links
+		{
+			"glfw",
+			"glad"
+		}
+
+		links { "X11", "pthread", "dl"}
 
 		linkoptions
 		{
