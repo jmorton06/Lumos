@@ -301,12 +301,12 @@ namespace Lumos
 
 		void VKContext::OnImGui()
 		{
-			ImGui::Text("Vulkan Info");
+			ImGui::TextUnformatted("Vulkan Info");
 
 			if (ImGui::TreeNode("Instance"))
 			{
 
-				ImGui::Text("Extensions :");
+				ImGui::TextUnformatted("Extensions :");
 
 				auto globalExtensions = m_InstanceExtensions;
 				for (auto const& extension : globalExtensions)
@@ -321,7 +321,7 @@ namespace Lumos
 				auto layerProperties = m_InstanceLayers;
                 
                 if(layerProperties.empty())
-                    ImGui::Text("No Layers");
+                    ImGui::TextUnformatted("No Layers");
                 
 				for (auto const& layer : layerProperties)
                 {
@@ -471,7 +471,7 @@ namespace Lumos
             float bytesProgress = static_cast<float>(info.usedBytes) / static_cast<float>((info.unusedBytes + info.usedBytes));
             ImGui::ProgressBar(bytesProgress, ImVec2(0.0f, 0.0f));
             ImGui::SameLine(0.0f, ImGui::GetStyle().ItemInnerSpacing.x);
-            ImGui::Text("Used");
+            ImGui::TextUnformatted("Used");
             
             ImGui::InputScalar("Blocks", ImGuiDataType_U32,
                                (void*)&info.blockCount,
@@ -493,7 +493,7 @@ namespace Lumos
                                (void*)&info.unusedBytes,
                                nullptr, nullptr, "%u", readOnlyFlag);
             
-            ImGui::Text("AllocationSize");
+            ImGui::TextUnformatted("AllocationSize");
             
             ImGui::InputScalar("Min", ImGuiDataType_U32,
                                (void*)&info.allocationSizeMin,
@@ -507,7 +507,7 @@ namespace Lumos
                                (void*)&info.allocationSizeMax,
                                nullptr, nullptr, "%u", readOnlyFlag);
             
-            ImGui::Text("UnusedRangeSize");
+            ImGui::TextUnformatted("UnusedRangeSize");
             
             ImGui::InputScalar("Min", ImGuiDataType_U32,
                                (void*)&info.unusedRangeSizeMin,

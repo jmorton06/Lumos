@@ -18,7 +18,7 @@ void SceneModelViewer::OnInit()
 
 	LoadModels();
 
-	m_pCamera = new EditorCamera(-20.0f, -40.0f, Maths::Vector3(-1.0f, 1.0f, 2.0f), 45.0f, 0.1f, 1000.0f, (float) m_ScreenWidth / (float) m_ScreenHeight);
+	m_pCamera = new EditorCamera(-20.0f, 330.0f, Maths::Vector3(-2.5f, 1.3f, 3.8f), 45.0f, 0.1f, 1000.0f, (float) m_ScreenWidth / (float) m_ScreenHeight);
 
 	Application::Instance()->GetSystem<AudioManager>()->SetListener(m_pCamera);
 

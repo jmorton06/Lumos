@@ -98,10 +98,10 @@ namespace Lumos
         ImGui::Separator();
         
         ImGui::AlignTextToFramePadding();
-        ImGui::Text("%s", "Parent");
+		ImGui::TextUnformatted("Parent");
         ImGui::NextColumn();
         ImGui::PushItemWidth(-1);
-        ImGui::Text("%s", m_Parent ? m_Parent->GetName().c_str() : "No Parent");
+        ImGui::TextUnformatted(m_Parent ? m_Parent->GetName().c_str() : "No Parent");
         ImGui::PopItemWidth();
         
         ImGui::NextColumn();

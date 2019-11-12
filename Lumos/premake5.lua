@@ -99,15 +99,8 @@ project "Lumos"
 
 		links
 		{
-			"OpenAL32",
 			"glfw",
-			"glad",
-			"opengl32.lib"
-		}
-
-		libdirs
-		{
-			"../Dependencies/OpenAL/libs/Win32"
+			"glad"
 		}
 
 		buildoptions

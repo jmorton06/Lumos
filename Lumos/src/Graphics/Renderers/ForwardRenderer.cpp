@@ -92,7 +92,7 @@ namespace Lumos
                         maxScaling = Maths::Max(scale.GetY(), maxScaling);
                         maxScaling = Maths::Max(scale.GetZ(), maxScaling);
 
-                        bool inside = m_Frustum.InsideFrustum(worldTransform.GetPositionVector(), maxScaling * mesh.GetMesh()->GetBoundingSphere()->SphereRadius());
+                        bool inside = m_Frustum.InsideFrustum(worldTransform.GetPositionVector(), maxScaling * mesh.GetMesh()->GetBoundingBox()->SphereRadius());
 
                         if (!inside)
                             continue;

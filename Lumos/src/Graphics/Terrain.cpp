@@ -1,7 +1,7 @@
 #include "lmpch.h"
 #include "Terrain.h"
 #include "App/SceneManager.h"
-#include "Maths/BoundingSphere.h"
+#include "Maths/BoundingBox.h"
 #include <simplex/simplexnoise.h>
 
 namespace Lumos
@@ -15,7 +15,7 @@ namespace Lumos
 		Maths::Vector3* vertices = lmnew Maths::Vector3[numVertices];
 		Maths::Vector2* texCoords = lmnew Maths::Vector2[numVertices];
 		u32* indices = lmnew u32[numIndices];
-        m_BoundingSphere = CreateRef<Maths::BoundingSphere>();
+        m_BoundingBox = CreateRef<Maths::BoundingBox>();
 
 		float** lowMap = lmnew float*[lowside + 1];
 
@@ -145,7 +145,7 @@ namespace Lumos
 			verts[i].TexCoords = texCoords[i];
 			verts[i].Tangent = tangents[i];
             
-            m_BoundingSphere->ExpandToFit(verts[i].Position);
+            m_BoundingBox->ExpandToFit(verts[i].Position);
 		}
 
 		m_VertexArray = Ref<Graphics::VertexArray>(Graphics::VertexArray::Create());

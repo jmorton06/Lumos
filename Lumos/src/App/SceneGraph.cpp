@@ -41,6 +41,16 @@ namespace Lumos
 		auto hierarchyComponent = registry.try_get<Hierarchy>(entity);
 		if (hierarchyComponent)
 		{
+			auto transform = registry.try_get<Maths::Transform>(entity);
+			if (transform && hierarchyComponent->parent() != entt::null)
+			{
+				auto parentTransform = registry.try_get<Maths::Transform>(hierarchyComponent->parent());
+				if (parentTransform)
+				{
+					transform->SetWorldMatrix(parentTransform->GetWorldMatrix());
+				}
+			}
+
 			entt::entity child = hierarchyComponent->first();
 			while (child != entt::null)
 			{
@@ -48,15 +58,6 @@ namespace Lumos
 				auto next = hierarchyComponent ? hierarchyComponent->next() : entt::null;
 				UpdateTransform(child, registry);
 				child = next;
-			}
-			auto transform = registry.try_get<Maths::Transform>(entity);
-			if(transform && hierarchyComponent->parent() != entt::null)
-			{
-				auto parentTransform = registry.try_get<Maths::Transform>(hierarchyComponent->parent());
-				if (parentTransform)
-				{
-					transform->SetWorldMatrix(parentTransform->GetWorldMatrix());
-				}
 			}
 		}
 	}

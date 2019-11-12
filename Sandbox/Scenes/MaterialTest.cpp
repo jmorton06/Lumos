@@ -129,9 +129,9 @@ void MaterialTest::LoadModels()
 	testMaterial->LoadMaterial("checkerboard", "/CoreTextures/checkerboard.tga");
 	materials.push_back(testMaterial);
 
-	const float groundWidth = float(materials.size()) / 2.0f + 1.0f;
+	const float groundWidth = (float(materials.size()) * 1.2f + 1.0f) / 2.0f;
 	const float groundHeight = 0.5f;
-	const float groundLength = 2.0f;
+	const float groundLength = 3.0f;
 
 	auto ground = m_Registry.create();
 	Ref<PhysicsObject3D> testPhysics = CreateRef<PhysicsObject3D>();
@@ -141,7 +141,7 @@ void MaterialTest::LoadModels()
 	testPhysics->SetIsAtRest(true);
 	testPhysics->SetIsStatic(true);
 
-	m_Registry.assign<Maths::Transform>(ground, Matrix4::Scale(Maths::Vector3(groundWidth, groundHeight, groundLength)));
+	m_Registry.assign<Maths::Transform>(ground,Matrix4::Translation(Maths::Vector3((float(materials.size()) * 1.2f) / 2.0f - float(materials.size()) / 2.0f - 0.5f, 0.0f, 0.0f)) * Matrix4::Scale(Maths::Vector3(groundWidth, groundHeight, groundLength)));
 	Ref<Graphics::Mesh> groundModel = AssetsManager::DefaultModels()->Get("Cube");
 	m_Registry.assign<MeshComponent>(ground, groundModel);
 
@@ -158,16 +158,14 @@ void MaterialTest::LoadModels()
 	groundMaterial->SetMaterialProperites(properties);
 	m_Registry.assign<MaterialComponent>(ground, groundMaterial);
 
-	auto testMesh = ModelLoader::LoadModel("/CoreMeshes/material_sphere/material_sphere.obj", m_Registry);
-
 	int numObjects = 0;
 
 	for (auto& material : materials)
 	{
 		auto obj = m_Registry.create();
 
-		m_Registry.assign<Maths::Transform>(obj, Matrix4::Translation(Maths::Vector3(float(numObjects) - float(materials.size()) / 2.0f, 0.75f, 0.0f)) * Matrix4::Scale(Maths::Vector3(0.5f, 0.5f, 0.5f)));
-		m_Registry.assign<MeshComponent>(obj, m_Registry.get<MeshComponent>(testMesh).GetMesh());
+		m_Registry.assign<Maths::Transform>(obj, Matrix4::Translation(Maths::Vector3(float(numObjects) * 1.2f - float(materials.size()) / 2.0f, 1.2f, 0.0f)) * Matrix4::Scale(Maths::Vector3(0.5f, 0.5f, 0.5f)));
+		m_Registry.assign<MeshComponent>(obj, AssetsManager::DefaultModels()->Get("Sphere"));
 		m_Registry.assign<MaterialComponent>(obj, testMaterial);
 		m_Registry.assign<NameComponent>(obj, "Test Object" + StringFormat::ToString(numObjects++));
 	}

@@ -28,7 +28,7 @@ namespace Lumos
 		ImGui::Separator();
 
 		ImGui::AlignTextToFramePadding();
-		ImGui::Text("Position");
+		ImGui::TextUnformatted("Position");
 		ImGui::NextColumn();
 		ImGui::PushItemWidth(-1);
 		if (ImGui::DragFloat3("##Position", Maths::ValuePointer(position)))
@@ -40,7 +40,7 @@ namespace Lumos
 		ImGui::NextColumn();
 
 		ImGui::AlignTextToFramePadding();
-		ImGui::Text("Rotation");
+		ImGui::TextUnformatted("Rotation");
 		ImGui::NextColumn();
 		ImGui::PushItemWidth(-1);
 		if (ImGui::DragFloat3("##Rotation", Maths::ValuePointer(rotation)))
@@ -55,7 +55,7 @@ namespace Lumos
 		ImGui::NextColumn();
 
 		ImGui::AlignTextToFramePadding();
-		ImGui::Text("Scale");
+		ImGui::TextUnformatted("Scale");
 		ImGui::NextColumn();
 		ImGui::PushItemWidth(-1);
 		if (ImGui::DragFloat3("##Scale", Maths::ValuePointer(scale), 0.1f))
@@ -94,7 +94,7 @@ namespace Lumos
 		auto elasticity = phys.GetPhysicsObject()->GetElasticity();
 
 		ImGui::AlignTextToFramePadding();
-		ImGui::Text("Position");
+		ImGui::TextUnformatted("Position");
 		ImGui::NextColumn();
 		ImGui::PushItemWidth(-1);
 		if (ImGui::DragFloat3("##Position", Maths::ValuePointer(pos)))
@@ -104,7 +104,7 @@ namespace Lumos
 		ImGui::NextColumn();
 
 		ImGui::AlignTextToFramePadding();
-		ImGui::Text("Velocity");
+		ImGui::TextUnformatted("Velocity");
 		ImGui::NextColumn();
 		ImGui::PushItemWidth(-1);
 		if (ImGui::DragFloat3("##Velocity", Maths::ValuePointer(velocity)))
@@ -114,7 +114,7 @@ namespace Lumos
 		ImGui::NextColumn();
 
 		ImGui::AlignTextToFramePadding();
-		ImGui::Text("Torque");
+		ImGui::TextUnformatted("Torque");
 		ImGui::NextColumn();
 		ImGui::PushItemWidth(-1);
 		if (ImGui::DragFloat3("##Torque", Maths::ValuePointer(torque)))
@@ -124,7 +124,7 @@ namespace Lumos
 		ImGui::NextColumn();
 
 		ImGui::AlignTextToFramePadding();
-		ImGui::Text("Orientation");
+		ImGui::TextUnformatted("Orientation");
 		ImGui::NextColumn();
 		ImGui::PushItemWidth(-1);
 		if (ImGui::DragFloat4("##Orientation", Maths::ValuePointer(orientation)))
@@ -134,7 +134,7 @@ namespace Lumos
 		ImGui::NextColumn();
 
 		ImGui::AlignTextToFramePadding();
-		ImGui::Text("Angular Velocity");
+		ImGui::TextUnformatted("Angular Velocity");
 		ImGui::NextColumn();
 		ImGui::PushItemWidth(-1);
 		if (ImGui::DragFloat3("##Angular Velocity", Maths::ValuePointer(angularVelocity)))
@@ -144,7 +144,7 @@ namespace Lumos
 		ImGui::NextColumn();
 
 		ImGui::AlignTextToFramePadding();
-		ImGui::Text("Friction");
+		ImGui::TextUnformatted("Friction");
 		ImGui::NextColumn();
 		ImGui::PushItemWidth(-1);
 		if (ImGui::DragFloat("##Friction", &friction))
@@ -154,7 +154,7 @@ namespace Lumos
 		ImGui::NextColumn();
 
 		ImGui::AlignTextToFramePadding();
-		ImGui::Text("Mass");
+		ImGui::TextUnformatted("Mass");
 		ImGui::NextColumn();
 		ImGui::PushItemWidth(-1);
 		if (ImGui::DragFloat("##Mass", &mass))
@@ -164,7 +164,7 @@ namespace Lumos
 		ImGui::NextColumn();
 
 		ImGui::AlignTextToFramePadding();
-		ImGui::Text("Elasticity");
+		ImGui::TextUnformatted("Elasticity");
 		ImGui::NextColumn();
 		ImGui::PushItemWidth(-1);
 		if (ImGui::DragFloat("##Elasticity", &elasticity))
@@ -174,7 +174,7 @@ namespace Lumos
 		ImGui::NextColumn();
 
 		ImGui::AlignTextToFramePadding();
-		ImGui::Text("Static");
+		ImGui::TextUnformatted("Static");
 		ImGui::NextColumn();
 		ImGui::PushItemWidth(-1);
 		if (ImGui::Checkbox("##Static", &isStatic))
@@ -185,7 +185,7 @@ namespace Lumos
 
 
 		ImGui::AlignTextToFramePadding();
-		ImGui::Text("At Rest");
+		ImGui::TextUnformatted("At Rest");
 		ImGui::NextColumn();
 		ImGui::PushItemWidth(-1);
 		if (ImGui::Checkbox("##At Rest", &isRest))
@@ -214,7 +214,7 @@ namespace Lumos
 		ImGui::Separator();
 
 		ImGui::AlignTextToFramePadding();
-		ImGui::Text("Position");
+		ImGui::TextUnformatted("Position");
 		ImGui::NextColumn();
 		ImGui::PushItemWidth(-1);
 		if (ImGui::DragFloat2("##Position", &pos.x))
@@ -224,7 +224,7 @@ namespace Lumos
 		ImGui::NextColumn();
 
 		ImGui::AlignTextToFramePadding();
-		ImGui::Text("Orientation");
+		ImGui::TextUnformatted("Orientation");
 		ImGui::NextColumn();
 		ImGui::PushItemWidth(-1);
 		if (ImGui::DragFloat("##Orientation", &angle))
@@ -234,7 +234,7 @@ namespace Lumos
 		ImGui::NextColumn();
 
 		ImGui::AlignTextToFramePadding();
-		ImGui::Text("Friction");
+		ImGui::TextUnformatted("Friction");
 		ImGui::NextColumn();
 		ImGui::PushItemWidth(-1);
 		if (ImGui::DragFloat("##Friction", &friction))
@@ -244,7 +244,7 @@ namespace Lumos
 		ImGui::NextColumn();
 
 		ImGui::AlignTextToFramePadding();
-		ImGui::Text("Elasticity");
+		ImGui::TextUnformatted("Elasticity");
 		ImGui::NextColumn();
 		ImGui::PushItemWidth(-1);
 		if (ImGui::DragFloat("##Elasticity", &elasticity))
@@ -254,7 +254,7 @@ namespace Lumos
 		ImGui::NextColumn();
 
 		ImGui::AlignTextToFramePadding();
-		ImGui::Text("Static");
+		ImGui::TextUnformatted("Static");
 		ImGui::NextColumn();
 		ImGui::PushItemWidth(-1);
 		if (ImGui::Checkbox("##Static", &isStatic))
@@ -264,7 +264,7 @@ namespace Lumos
 		ImGui::NextColumn();
 
 		ImGui::AlignTextToFramePadding();
-		ImGui::Text("At Rest");
+		ImGui::TextUnformatted("At Rest");
 		ImGui::NextColumn();
 		ImGui::PushItemWidth(-1);
 		if (ImGui::Checkbox("##At Rest", &isRest))
@@ -291,7 +291,7 @@ namespace Lumos
 		ImGui::Separator();
 
 		ImGui::AlignTextToFramePadding();
-		ImGui::Text("Position");
+		ImGui::TextUnformatted("Position");
 		ImGui::NextColumn();
 		ImGui::PushItemWidth(-1);
 		if (ImGui::InputFloat3("##Position", Maths::ValuePointer(pos)))
@@ -301,7 +301,7 @@ namespace Lumos
 		ImGui::NextColumn();
 
 		ImGui::AlignTextToFramePadding();
-		ImGui::Text("Radius");
+		ImGui::TextUnformatted("Radius");
 		ImGui::NextColumn();
 		ImGui::PushItemWidth(-1);
 		if (ImGui::InputFloat("##Radius", &radius))
@@ -311,7 +311,7 @@ namespace Lumos
 		ImGui::NextColumn();
 
 		ImGui::AlignTextToFramePadding();
-		ImGui::Text("Pitch");
+		ImGui::TextUnformatted("Pitch");
 		ImGui::NextColumn();
 		ImGui::PushItemWidth(-1);
 		if (ImGui::InputFloat("##Pitch", &pitch))
@@ -321,7 +321,7 @@ namespace Lumos
 		ImGui::NextColumn();
 
 		ImGui::AlignTextToFramePadding();
-		ImGui::Text("Reference Distance");
+		ImGui::TextUnformatted("Reference Distance");
 		ImGui::NextColumn();
 		ImGui::PushItemWidth(-1);
 		if (ImGui::DragFloat("##Reference Distance", &referenceDistance))
@@ -331,7 +331,7 @@ namespace Lumos
 		ImGui::NextColumn();
 
 		ImGui::AlignTextToFramePadding();
-		ImGui::Text("Paused");
+		ImGui::TextUnformatted("Paused");
 		ImGui::NextColumn();
 		ImGui::PushItemWidth(-1);
 		if (ImGui::Checkbox("##Paused", &paused))
@@ -435,7 +435,7 @@ namespace Lumos
 				}
 				else
 				{
-					ImGui::Text("INVALID ENTITY");
+					ImGui::TextUnformatted("INVALID ENTITY");
 				}
 			}
 

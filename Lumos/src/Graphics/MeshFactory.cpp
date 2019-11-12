@@ -1,6 +1,6 @@
 #include "lmpch.h"
 #include "MeshFactory.h"
-#include "Maths/BoundingSphere.h"
+#include "Maths/BoundingBox.h"
 #include "Mesh.h"
 #include "Material.h"
 #include "API/VertexArray.h"
@@ -51,7 +51,7 @@ namespace Lumos
 			Ref<IndexBuffer> ib;
 			ib.reset(IndexBuffer::Create(indices, 6));
 
-			Ref<Maths::BoundingSphere> boundingBox = CreateRef<Maths::BoundingSphere>();
+			Ref<Maths::BoundingBox> boundingBox = CreateRef<Maths::BoundingBox>();
 			for (int i = 0; i < 4; i++)
 			{
 				boundingBox->ExpandToFit(data[i].position);
@@ -90,10 +90,10 @@ namespace Lumos
 			VertexBuffer* buffer = VertexBuffer::Create(BufferUsage::STATIC);
 			buffer->SetData(sizeof(Vertex) * 4, data);
 
-            Ref<Maths::BoundingSphere> boundingSphere = CreateRef<Maths::BoundingSphere>();
+            Ref<Maths::BoundingBox> BoundingBox = CreateRef<Maths::BoundingBox>();
             for (int i = 0; i < 4; i++)
             {
-                boundingSphere->ExpandToFit(data[i].Position);
+                BoundingBox->ExpandToFit(data[i].Position);
             }
 
 			delete[] data;
@@ -113,7 +113,7 @@ namespace Lumos
 
 			Ref<Material> empty;
 
-            return lmnew Mesh(va, ib, boundingSphere);
+            return lmnew Mesh(va, ib, BoundingBox);
 		}
 
 		Mesh* CreateCube()
@@ -241,10 +241,10 @@ namespace Lumos
 			VertexBuffer* buffer = VertexBuffer::Create(BufferUsage::STATIC);
 			buffer->SetData(24 * sizeof(Vertex), data);
 
-            Ref<Maths::BoundingSphere> boundingSphere = CreateRef<Maths::BoundingSphere>();
+            Ref<Maths::BoundingBox> BoundingBox = CreateRef<Maths::BoundingBox>();
             for (int i = 0; i < 4; i++)
             {
-                boundingSphere->ExpandToFit(data[i].Position);
+                BoundingBox->ExpandToFit(data[i].Position);
             }
             
 			lmdel[] data;
@@ -278,7 +278,7 @@ namespace Lumos
 			Ref<IndexBuffer> ib;
 			ib.reset(IndexBuffer::Create(indices, 36));
 			
-			return lmnew Mesh(va, ib, boundingSphere);
+			return lmnew Mesh(va, ib, BoundingBox);
 		}
 
 		Mesh* CreatePyramid()
@@ -381,10 +381,10 @@ namespace Lumos
 			VertexBuffer* buffer = VertexBuffer::Create(BufferUsage::STATIC);
 			buffer->SetData(18 * sizeof(Vertex), data);
 
-            Ref<Maths::BoundingSphere> boundingSphere = CreateRef<Maths::BoundingSphere>();
+            Ref<Maths::BoundingBox> BoundingBox = CreateRef<Maths::BoundingBox>();
             for (int i = 0; i < 4; i++)
             {
-                boundingSphere->ExpandToFit(data[i].Position);
+                BoundingBox->ExpandToFit(data[i].Position);
             }
             
 			delete[] data;
@@ -412,7 +412,7 @@ namespace Lumos
 			Ref<IndexBuffer> ib;
 			ib.reset(IndexBuffer::Create(indices, 18));
 			
-			return lmnew Mesh(va, ib, boundingSphere);
+			return lmnew Mesh(va, ib, BoundingBox);
 		}
 
 		Mesh* CreateSphere(u32 xSegments, u32 ySegments)
@@ -500,9 +500,9 @@ namespace Lumos
 
 			Ref<IndexBuffer> ib;
 			ib.reset(IndexBuffer::Create(indices.data(), static_cast<u32>(indices.size())));
-			Ref<Maths::BoundingSphere> boundingSphere = CreateRef<Maths::BoundingSphere>();
+			Ref<Maths::BoundingBox> BoundingBox = CreateRef<Maths::BoundingBox>();
 
-			return lmnew Mesh(va, ib, boundingSphere);
+			return lmnew Mesh(va, ib, BoundingBox);
 		}
 
 		Mesh* CreateIcoSphere(u32 radius, u32 subdivision)
@@ -541,7 +541,7 @@ namespace Lumos
 			VertexBuffer* buffer = VertexBuffer::Create(BufferUsage::STATIC);
 			buffer->SetData(8 * sizeof(Vertex), data);
 
-            Ref<Maths::BoundingSphere> boundingBox = CreateRef<Maths::BoundingSphere>();
+            Ref<Maths::BoundingBox> boundingBox = CreateRef<Maths::BoundingBox>();
             for (int i = 0; i < 4; i++)
             {
                 boundingBox->ExpandToFit(data[i].Position);
@@ -724,7 +724,7 @@ namespace Lumos
 			VertexBuffer* buffer = VertexBuffer::Create(BufferUsage::STATIC);
 			buffer->SetData(static_cast<u32>(data.size() * sizeof(Vertex)), data.data());
 
-			Ref<Maths::BoundingSphere> boundingBox = CreateRef<Maths::BoundingSphere>();
+			Ref<Maths::BoundingBox> boundingBox = CreateRef<Maths::BoundingBox>();
 			for (size_t i = 0; i < data.size(); i++)
 			{
 				boundingBox->ExpandToFit(data[i].Position);
@@ -890,7 +890,7 @@ namespace Lumos
 		VertexBuffer* buffer = VertexBuffer::Create(BufferUsage::STATIC);
 		buffer->SetData(static_cast<u32>(data.size() * sizeof(Vertex)), data.data());
 
-		Ref<Maths::BoundingSphere> boundingBox = CreateRef<Maths::BoundingSphere>();
+		Ref<Maths::BoundingBox> boundingBox = CreateRef<Maths::BoundingBox>();
 		for (size_t i = 0; i < data.size(); i++)
 		{
 			boundingBox->ExpandToFit(data[i].Position);

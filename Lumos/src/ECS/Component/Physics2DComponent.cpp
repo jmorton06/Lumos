@@ -46,7 +46,7 @@ namespace Lumos
         ImGui::Separator();
 
         ImGui::AlignTextToFramePadding();
-        ImGui::Text("Position");
+        ImGui::TextUnformatted("Position");
         ImGui::NextColumn();
         ImGui::PushItemWidth(-1);
         if(ImGui::DragFloat2("##Position", &pos.x))
@@ -56,7 +56,7 @@ namespace Lumos
         ImGui::NextColumn();
             
         ImGui::AlignTextToFramePadding();
-        ImGui::Text("Orientation");
+        ImGui::TextUnformatted("Orientation");
         ImGui::NextColumn();
         ImGui::PushItemWidth(-1);
         if(ImGui::DragFloat("##Orientation", &angle))
@@ -66,7 +66,7 @@ namespace Lumos
         ImGui::NextColumn();
             
         ImGui::AlignTextToFramePadding();
-        ImGui::Text("Friction");
+        ImGui::TextUnformatted("Friction");
         ImGui::NextColumn();
         ImGui::PushItemWidth(-1);
         if(ImGui::DragFloat("##Friction", &friction))
@@ -76,7 +76,7 @@ namespace Lumos
         ImGui::NextColumn();
             
         ImGui::AlignTextToFramePadding();
-        ImGui::Text("Elasticity");
+        ImGui::TextUnformatted("Elasticity");
         ImGui::NextColumn();
         ImGui::PushItemWidth(-1);
         if(ImGui::DragFloat("##Elasticity", &elasticity))
@@ -86,7 +86,7 @@ namespace Lumos
         ImGui::NextColumn();
             
         ImGui::AlignTextToFramePadding();
-        ImGui::Text("Static");
+        ImGui::TextUnformatted("Static");
         ImGui::NextColumn();
         ImGui::PushItemWidth(-1);
         if(ImGui::Checkbox("##Static", &isStatic))
@@ -96,7 +96,7 @@ namespace Lumos
         ImGui::NextColumn();
             
         ImGui::AlignTextToFramePadding();
-        ImGui::Text("At Rest");
+        ImGui::TextUnformatted("At Rest");
         ImGui::NextColumn();
         ImGui::PushItemWidth(-1);
         if(ImGui::Checkbox("##At Rest", &isRest))

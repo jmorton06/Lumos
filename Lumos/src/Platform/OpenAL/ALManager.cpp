@@ -82,14 +82,14 @@ namespace Lumos
 
 		void ALManager::OnImGui()
 		{
-			ImGui::Text("OpenAL Audio");
+			ImGui::TextUnformatted("OpenAL Audio");
 
 			ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(2, 2));
 			ImGui::Columns(2);
 			ImGui::Separator();
 
 			ImGui::AlignTextToFramePadding();
-			ImGui::Text("Number Of Audio Sources");
+			ImGui::TextUnformatted("Number Of Audio Sources");
 			ImGui::NextColumn();
 			ImGui::PushItemWidth(-1);
             ImGui::Text("%5.2lu", m_SoundNodes.size());
@@ -97,7 +97,7 @@ namespace Lumos
 			ImGui::NextColumn();
 
 			ImGui::AlignTextToFramePadding();
-			ImGui::Text("Number Of Channels");
+			ImGui::TextUnformatted("Number Of Channels");
 			ImGui::NextColumn();
 			ImGui::PushItemWidth(-1);
 			ImGui::Text("%5.2i", m_NumChannels);

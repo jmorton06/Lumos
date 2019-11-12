@@ -137,7 +137,7 @@ namespace Lumos
 			ImGui::Separator();
 
 			ImGui::AlignTextToFramePadding();
-			ImGui::Text("Position");
+			ImGui::TextUnformatted("Position");
 			ImGui::NextColumn();
 			ImGui::PushItemWidth(-1);
 			if (ImGui::DragFloat3("##Position", Maths::ValuePointer(m_LocalPosition)))
@@ -149,7 +149,7 @@ namespace Lumos
 			ImGui::NextColumn();
 
 			ImGui::AlignTextToFramePadding();
-			ImGui::Text("Rotation");
+			ImGui::TextUnformatted("Rotation");
 			ImGui::NextColumn();
 			ImGui::PushItemWidth(-1);
 			if (ImGui::DragFloat3("##Rotation", Maths::ValuePointer(rotation)))
@@ -164,7 +164,7 @@ namespace Lumos
 			ImGui::NextColumn();
 
 			ImGui::AlignTextToFramePadding();
-			ImGui::Text("Scale");
+			ImGui::TextUnformatted("Scale");
 			ImGui::NextColumn();
 			ImGui::PushItemWidth(-1);
 			if (ImGui::DragFloat3("##Scale", Maths::ValuePointer(m_LocalScale), 0.1f))

@@ -37,7 +37,7 @@ namespace Lumos
         ImGui::Separator();
             
         ImGui::AlignTextToFramePadding();
-        ImGui::Text("Position");
+		ImGui::TextUnformatted("Position");
         ImGui::NextColumn();
         ImGui::PushItemWidth(-1);
         if(ImGui::InputFloat3("##Position", Maths::ValuePointer(pos)))
@@ -47,7 +47,7 @@ namespace Lumos
         ImGui::NextColumn();
             
         ImGui::AlignTextToFramePadding();
-        ImGui::Text("Radius");
+		ImGui::TextUnformatted("Radius");
         ImGui::NextColumn();
         ImGui::PushItemWidth(-1);
         if(ImGui::InputFloat("##Radius", &radius))
@@ -57,7 +57,7 @@ namespace Lumos
         ImGui::NextColumn();
             
         ImGui::AlignTextToFramePadding();
-        ImGui::Text("Pitch");
+		ImGui::TextUnformatted("Pitch");
         ImGui::NextColumn();
         ImGui::PushItemWidth(-1);
         if(ImGui::InputFloat("##Pitch", &pitch))
@@ -67,7 +67,7 @@ namespace Lumos
         ImGui::NextColumn();
             
         ImGui::AlignTextToFramePadding();
-        ImGui::Text("Reference Distance");
+		ImGui::TextUnformatted("Reference Distance");
         ImGui::NextColumn();
         ImGui::PushItemWidth(-1);
         if(ImGui::DragFloat("##Reference Distance", &referenceDistance))
@@ -77,7 +77,7 @@ namespace Lumos
         ImGui::NextColumn();
             
         ImGui::AlignTextToFramePadding();
-        ImGui::Text("Paused");
+		ImGui::TextUnformatted("Paused");
         ImGui::NextColumn();
         ImGui::PushItemWidth(-1);
         if(ImGui::Checkbox("##Paused", &paused))

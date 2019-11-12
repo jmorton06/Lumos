@@ -8,17 +8,17 @@ namespace Lumos
 {
 	namespace Graphics
 	{
-		Mesh::Mesh() : m_VertexArray(nullptr), m_IndexBuffer(nullptr), m_ArrayCleanUp(false), m_TextureCleanUp(false), m_BoundingSphere(nullptr)
+		Mesh::Mesh() : m_VertexArray(nullptr), m_IndexBuffer(nullptr), m_ArrayCleanUp(false), m_TextureCleanUp(false), m_BoundingBox(nullptr)
 		{
 		}
 
 		Mesh::Mesh(const Mesh& mesh)
-			: m_VertexArray(mesh.m_VertexArray), m_IndexBuffer(mesh.m_IndexBuffer), m_ArrayCleanUp(false), m_TextureCleanUp(false), m_BoundingSphere(mesh.m_BoundingSphere)
+			: m_VertexArray(mesh.m_VertexArray), m_IndexBuffer(mesh.m_IndexBuffer), m_ArrayCleanUp(false), m_TextureCleanUp(false), m_BoundingBox(mesh.m_BoundingBox)
 		{
 		}
 
-		Mesh::Mesh(Ref<VertexArray>& vertexArray, Ref<IndexBuffer>& indexBuffer, const Ref<Maths::BoundingSphere>& boundingSphere)
-			: m_VertexArray(vertexArray), m_IndexBuffer(indexBuffer), m_ArrayCleanUp(true), m_TextureCleanUp(false), m_BoundingSphere(boundingSphere)
+		Mesh::Mesh(Ref<VertexArray>& vertexArray, Ref<IndexBuffer>& indexBuffer, const Ref<Maths::BoundingBox>& BoundingBox)
+			: m_VertexArray(vertexArray), m_IndexBuffer(indexBuffer), m_ArrayCleanUp(true), m_TextureCleanUp(false), m_BoundingBox(BoundingBox)
 		{
 		}
 
@@ -61,7 +61,6 @@ namespace Lumos
 
 			if (indices)
 			{
-				int test = 0;
 				for (u32 i = 0; i < numIndices; i += 3)
 				{
 					const int a = indices[i];
@@ -73,8 +72,6 @@ namespace Lumos
 					normals[a] += _normal;
 					normals[b] += _normal;
 					normals[c] += _normal;
-
-					test += 3;
 				}
 			}
 			else
