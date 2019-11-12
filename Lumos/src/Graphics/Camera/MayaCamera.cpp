@@ -110,7 +110,7 @@ namespace Lumos
 			ImGui::Separator();
 
 			ImGui::AlignTextToFramePadding();
-			ImGui::Text("Position");
+			ImGui::TextUnformatted("Position");
 			ImGui::NextColumn();
 			ImGui::PushItemWidth(-1);
 			ImGui::DragFloat3("##Position", &m_Position.x);
@@ -118,7 +118,7 @@ namespace Lumos
 			ImGui::NextColumn();
 
 			ImGui::AlignTextToFramePadding();
-			ImGui::Text("Aspect");
+			ImGui::TextUnformatted("Aspect");
 			ImGui::NextColumn();
 			ImGui::PushItemWidth(-1);
 			ImGui::DragFloat("##Aspect", &m_AspectRatio);
@@ -126,7 +126,7 @@ namespace Lumos
 			ImGui::NextColumn();
 
 			ImGui::AlignTextToFramePadding();
-			ImGui::Text("Pitch");
+			ImGui::TextUnformatted("Pitch");
 			ImGui::NextColumn();
 			ImGui::PushItemWidth(-1);
 			ImGui::DragFloat("##Pitch", &m_Pitch);
@@ -134,7 +134,7 @@ namespace Lumos
 			ImGui::NextColumn();
 
 			ImGui::AlignTextToFramePadding();
-			ImGui::Text("Yaw");
+			ImGui::TextUnformatted("Yaw");
 			ImGui::NextColumn();
 			ImGui::PushItemWidth(-1);
 			ImGui::DragFloat3("##Yaw", &m_Yaw);
@@ -142,7 +142,7 @@ namespace Lumos
 			ImGui::NextColumn();
 
 			ImGui::AlignTextToFramePadding();
-			ImGui::Text("Fov");
+			ImGui::TextUnformatted("Fov");
 			ImGui::NextColumn();
 			ImGui::PushItemWidth(-1);
 			ImGui::DragFloat("##Fov", &m_Fov);
@@ -150,7 +150,7 @@ namespace Lumos
 			ImGui::NextColumn();
 
 			ImGui::AlignTextToFramePadding();
-			ImGui::Text("Near");
+			ImGui::TextUnformatted("Near");
 			ImGui::NextColumn();
 			ImGui::PushItemWidth(-1);
 			ImGui::DragFloat("##Near", &m_Near);
@@ -158,7 +158,7 @@ namespace Lumos
 			ImGui::NextColumn();
 
 			ImGui::AlignTextToFramePadding();
-			ImGui::Text("Far");
+			ImGui::TextUnformatted("Far");
 			ImGui::NextColumn();
 			ImGui::PushItemWidth(-1);
 			ImGui::DragFloat("##Far", &m_Far);
@@ -166,7 +166,7 @@ namespace Lumos
 			ImGui::NextColumn();
 
 			ImGui::AlignTextToFramePadding();
-			ImGui::Text("MouseSensitivity");
+			ImGui::TextUnformatted("MouseSensitivity");
 			ImGui::NextColumn();
 			ImGui::PushItemWidth(-1);
 			ImGui::InputFloat("##MouseSensitivity", &m_MouseSensitivity);
@@ -174,7 +174,7 @@ namespace Lumos
 			ImGui::NextColumn();
 
 			ImGui::AlignTextToFramePadding();
-			ImGui::Text("ZoomDampeningFactor");
+			ImGui::TextUnformatted("ZoomDampeningFactor");
 			ImGui::NextColumn();
 			ImGui::PushItemWidth(-1);
 			ImGui::InputFloat("##ZoomDampeningFactor", &m_ZoomDampeningFactor);
@@ -182,7 +182,7 @@ namespace Lumos
 			ImGui::NextColumn();
 
 			ImGui::AlignTextToFramePadding();
-			ImGui::Text("DampeningFactor");
+			ImGui::TextUnformatted("DampeningFactor");
 			ImGui::NextColumn();
 			ImGui::PushItemWidth(-1);
 			ImGui::InputFloat("##DampeningFactor", &m_DampeningFactor);
@@ -190,7 +190,7 @@ namespace Lumos
 			ImGui::NextColumn();
 
 			ImGui::AlignTextToFramePadding();
-			ImGui::Text("RotateDampeningFactor");
+			ImGui::TextUnformatted("RotateDampeningFactor");
 			ImGui::NextColumn();
 			ImGui::PushItemWidth(-1);
 			ImGui::InputFloat("##RotateDampeningFactor", &m_RotateDampeningFactor);

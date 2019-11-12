@@ -107,7 +107,7 @@ namespace Lumos
 				if (ImGui::IsMousePosValid())
 					ImGui::Text("Mouse Position: (%.1f,%.1f)", io.MousePos.x, io.MousePos.y);
 				else
-					ImGui::Text("Mouse Position: <invalid>");
+					ImGui::TextUnformatted("Mouse Position: <invalid>");
 				if (ImGui::BeginPopupContextWindow())
 				{
 					if (ImGui::MenuItem("Custom", NULL, corner == -1)) corner = -1;

@@ -118,7 +118,7 @@ namespace Lumos
 			ImGui::Separator();
 
 			ImGui::AlignTextToFramePadding();
-			ImGui::Text("Position");
+			ImGui::TextUnformatted("Position");
 			ImGui::NextColumn();
 			ImGui::PushItemWidth(-1);
 			ImGui::DragFloat3("##Position", &m_Position.x);
@@ -126,7 +126,7 @@ namespace Lumos
 			ImGui::NextColumn();
 
 			ImGui::AlignTextToFramePadding();
-			ImGui::Text("Aspect");
+			ImGui::TextUnformatted("Aspect");
 			ImGui::NextColumn();
 			ImGui::PushItemWidth(-1);
 			ImGui::DragFloat("##Aspect", &m_AspectRatio);
@@ -134,7 +134,7 @@ namespace Lumos
 			ImGui::NextColumn();
 
 			ImGui::AlignTextToFramePadding();
-			ImGui::Text("Near");
+			ImGui::TextUnformatted("Near");
 			ImGui::NextColumn();
 			ImGui::PushItemWidth(-1);
 			ImGui::DragFloat("##Near", &m_Near);
@@ -142,7 +142,7 @@ namespace Lumos
 			ImGui::NextColumn();
 
 			ImGui::AlignTextToFramePadding();
-			ImGui::Text("Far");
+			ImGui::TextUnformatted("Far");
 			ImGui::NextColumn();
 			ImGui::PushItemWidth(-1);
 			ImGui::DragFloat("##Far", &m_Far);
@@ -150,7 +150,7 @@ namespace Lumos
 			ImGui::NextColumn();
 
 			ImGui::AlignTextToFramePadding();
-			ImGui::Text("Scale");
+			ImGui::TextUnformatted("Scale");
 			ImGui::NextColumn();
 			ImGui::PushItemWidth(-1);
 			ImGui::DragFloat("##Scale", &m_Scale);

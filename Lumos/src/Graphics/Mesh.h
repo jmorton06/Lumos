@@ -5,7 +5,7 @@
 #include "API/VertexArray.h"
 #include "Graphics/API/CommandBuffer.h"
 #include "Graphics/API/DescriptorSet.h"
-#include "Maths/BoundingSphere.h"
+#include "Maths/BoundingBox.h"
 
 #include <array>
 
@@ -84,14 +84,14 @@ namespace Lumos
 
 			Mesh();
 			Mesh(const Mesh& mesh);
-			Mesh(Ref<VertexArray>& vertexArray, Ref<IndexBuffer>& indexBuffer, const Ref<Maths::BoundingSphere>& boundingSphere);
+			Mesh(Ref<VertexArray>& vertexArray, Ref<IndexBuffer>& indexBuffer, const Ref<Maths::BoundingBox>& boundingSphere);
 
 			virtual ~Mesh();
 			virtual void Draw();
 
 			Ref<VertexArray> GetVertexArray() const { return m_VertexArray; }
 			Ref<IndexBuffer> GetIndexBuffer() const { return m_IndexBuffer; }
-			Ref<Maths::BoundingSphere> GetBoundingSphere() const { return m_BoundingSphere; }
+			Ref<Maths::BoundingBox> GetBoundingBox() const { return m_BoundingBox; }
 
 			bool& GetActive() { return m_Active; }
 
@@ -105,7 +105,7 @@ namespace Lumos
 			Ref<VertexArray> m_VertexArray;
 			Ref<IndexBuffer> m_IndexBuffer;
 
-			Ref<Maths::BoundingSphere> m_BoundingSphere;
+			Ref<Maths::BoundingBox> m_BoundingBox;
 
 			bool m_ArrayCleanUp;
 			bool m_TextureCleanUp;

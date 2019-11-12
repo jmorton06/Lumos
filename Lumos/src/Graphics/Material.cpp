@@ -156,13 +156,13 @@ namespace Lumos
 
 			ImGui::NextColumn();
 			ImGui::PushItemWidth(-1);
-			ImGui::Text("%s", tex ? tex->GetFilepath().c_str() : "No Texture");
+			ImGui::TextUnformatted(tex ? tex->GetFilepath().c_str() : "No Texture");
 
 			ImGui::PopItemWidth();
 			ImGui::NextColumn();
 
 			ImGui::AlignTextToFramePadding();
-			ImGui::Text("Use Albedo Map");
+			ImGui::TextUnformatted("Use Albedo Map");
 			ImGui::NextColumn();
 			ImGui::PushItemWidth(-1);
 			ImGui::SliderFloat("##UseAlbedoMap", &prop->usingAlbedoMap, 0.0f, 1.0f);
@@ -171,7 +171,7 @@ namespace Lumos
 			ImGui::NextColumn();
 
 			ImGui::AlignTextToFramePadding();
-			ImGui::Text("Albedo");
+			ImGui::TextUnformatted("Albedo");
 			ImGui::NextColumn();
 			ImGui::PushItemWidth(-1);
 			ImGui::ColorEdit4("##Albedo", Maths::ValuePointer(prop->albedoColour));
@@ -215,13 +215,13 @@ namespace Lumos
 
 			ImGui::NextColumn();
 			ImGui::PushItemWidth(-1);
-			ImGui::Text("%s", tex ? tex->GetFilepath().c_str() : "No Texture");
+			ImGui::TextUnformatted(tex ? tex->GetFilepath().c_str() : "No Texture");
 
 			ImGui::PopItemWidth();
 			ImGui::NextColumn();
 
 			ImGui::AlignTextToFramePadding();
-			ImGui::Text("Use Normal Map");
+			ImGui::TextUnformatted("Use Normal Map");
 			ImGui::NextColumn();
 			ImGui::PushItemWidth(-1);
 			ImGui::SliderFloat("##UseNormalMap", &prop->usingNormalMap, 0.0f, 1.0f);
@@ -264,13 +264,13 @@ namespace Lumos
 
 			ImGui::NextColumn();
 			ImGui::PushItemWidth(-1);
-			ImGui::Text("%s", tex ? tex->GetFilepath().c_str() : "No Texture");
+			ImGui::TextUnformatted(tex ? tex->GetFilepath().c_str() : "No Texture");
 
 			ImGui::PopItemWidth();
 			ImGui::NextColumn();
 
 			ImGui::AlignTextToFramePadding();
-			ImGui::Text("Use Specular Map");
+			ImGui::TextUnformatted("Use Specular Map");
 			ImGui::NextColumn();
 			ImGui::PushItemWidth(-1);
 			ImGui::SliderFloat("##UseSpecularMap", &prop->usingSpecularMap, 0.0f, 1.0f);
@@ -279,7 +279,7 @@ namespace Lumos
 			ImGui::NextColumn();
 
 			ImGui::AlignTextToFramePadding();
-			ImGui::Text("Specular");
+			ImGui::TextUnformatted("Specular");
 			ImGui::NextColumn();
 			ImGui::PushItemWidth(-1);
 			ImGui::SliderFloat3("##Specular", Maths::ValuePointer(prop->specularColour), 0.0f, 1.0f);
@@ -321,13 +321,13 @@ namespace Lumos
 
 			ImGui::NextColumn();
 			ImGui::PushItemWidth(-1);
-			ImGui::Text("%s", tex ? tex->GetFilepath().c_str() : "No Texture");
+			ImGui::TextUnformatted(tex ? tex->GetFilepath().c_str() : "No Texture");
 
 			ImGui::PopItemWidth();
 			ImGui::NextColumn();
 
 			ImGui::AlignTextToFramePadding();
-			ImGui::Text("Use Roughness Map");
+			ImGui::TextUnformatted("Use Roughness Map");
 			ImGui::NextColumn();
 			ImGui::PushItemWidth(-1);
 			ImGui::SliderFloat("##UseRoughnessMap", &prop->usingRoughnessMap, 0.0f, 1.0f);
@@ -336,7 +336,7 @@ namespace Lumos
 			ImGui::NextColumn();
 
 			ImGui::AlignTextToFramePadding();
-			ImGui::Text("Roughness");
+			ImGui::TextUnformatted("Roughness");
 			ImGui::NextColumn();
 			ImGui::PushItemWidth(-1);
 			ImGui::SliderFloat3("##Roughness", Maths::ValuePointer(prop->roughnessColour), 0.0f, 1.0f);
@@ -378,13 +378,13 @@ namespace Lumos
 
 			ImGui::NextColumn();
 			ImGui::PushItemWidth(-1);
-			ImGui::Text("%s", tex ? tex->GetFilepath().c_str() : "No Texture");
+			ImGui::TextUnformatted("%s", tex ? tex->GetFilepath().c_str() : "No Texture");
 
 			ImGui::PopItemWidth();
 			ImGui::NextColumn();
 
 			ImGui::AlignTextToFramePadding();
-			ImGui::Text("Use AO Map");
+			ImGui::TextUnformatted("Use AO Map");
 			ImGui::NextColumn();
 			ImGui::PushItemWidth(-1);
 			ImGui::SliderFloat("##UseAOMap", &prop->usingAOMap, 0.0f, 1.0f);
@@ -426,13 +426,13 @@ namespace Lumos
 
 			ImGui::NextColumn();
 			ImGui::PushItemWidth(-1);
-			ImGui::Text("%s", tex ? tex->GetFilepath().c_str() : "No Texture");
+			ImGui::TextUnformatted("%s", tex ? tex->GetFilepath().c_str() : "No Texture");
 
 			ImGui::PopItemWidth();
 			ImGui::NextColumn();
 
 			ImGui::AlignTextToFramePadding();
-			ImGui::Text("Use Emissive Map");
+			ImGui::TextUnformatted("Use Emissive Map");
 			ImGui::NextColumn();
 			ImGui::PushItemWidth(-1);
 			ImGui::SliderFloat("##UseEmissiveMap", &prop->usingEmissiveMap, 0.0f, 1.0f);

@@ -45,7 +45,7 @@ namespace Lumos
 				ImGuiHelpers::Property("Angle", m_Angle, -1.0f, 1.0f);
 
 			ImGui::AlignTextToFramePadding();
-			ImGui::Text("Light Type");
+			ImGui::TextUnformatted("Light Type");
 			ImGui::NextColumn();
 			ImGui::PushItemWidth(-1);
 			if (ImGui::BeginMenu(LightTypeToString(Graphics::LightType(int(m_Type))).c_str()))

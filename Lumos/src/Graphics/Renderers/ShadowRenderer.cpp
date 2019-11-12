@@ -233,7 +233,7 @@ namespace Lumos
                         maxScaling = Maths::Max(scale.GetY(), maxScaling);
                         maxScaling = Maths::Max(scale.GetZ(), maxScaling);
 
-                        bool inside = f.InsideFrustum(worldTransform.GetPositionVector(), maxScaling * mesh.GetMesh()->GetBoundingSphere()->SphereRadius());
+                        bool inside = f.InsideFrustum(worldTransform.GetPositionVector(), maxScaling * mesh.GetMesh()->GetBoundingBox()->SphereRadius());
 
                         if (!inside)
                             continue;
@@ -531,7 +531,7 @@ namespace Lumos
 
 		void ShadowRenderer::OnImGui()
 		{
-			ImGui::Text("Shadow Renderer");
+			ImGui::TextUnformatted("Shadow Renderer");
 			if (ImGui::TreeNode("Texture"))
 			{
 				bool flipImage = Graphics::GraphicsContext::GetContext()->FlipImGUITexture();

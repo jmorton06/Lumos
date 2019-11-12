@@ -80,14 +80,14 @@ namespace Lumos
 
 	void B2PhysicsEngine::OnImGui()
 	{
-		ImGui::Text("2D Physics Engine");
+		ImGui::TextUnformatted("2D Physics Engine");
 
 		ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(2, 2));
 		ImGui::Columns(2);
 		ImGui::Separator();
 
 		ImGui::AlignTextToFramePadding();
-		ImGui::Text("Number Of Collision Pairs");
+		ImGui::TextUnformatted("Number Of Collision Pairs");
 		ImGui::NextColumn();
 		ImGui::PushItemWidth(-1);
 		ImGui::Text("%5.2i", m_B2DWorld->GetContactCount());
@@ -95,7 +95,7 @@ namespace Lumos
 		ImGui::NextColumn();
 
 		ImGui::AlignTextToFramePadding();
-		ImGui::Text("Number Of Physics Objects");
+		ImGui::TextUnformatted("Number Of Physics Objects");
 		ImGui::NextColumn();
 		ImGui::PushItemWidth(-1);
 		ImGui::Text("%5.2i", m_B2DWorld->GetBodyCount());
@@ -103,7 +103,7 @@ namespace Lumos
 		ImGui::NextColumn();
 
 		ImGui::AlignTextToFramePadding();
-		ImGui::Text("Paused");
+		ImGui::TextUnformatted("Paused");
 		ImGui::NextColumn();
 		ImGui::PushItemWidth(-1);
 		ImGui::Checkbox("##Paused", &m_Paused);
@@ -111,7 +111,7 @@ namespace Lumos
 		ImGui::NextColumn();
 
 		ImGui::AlignTextToFramePadding();
-		ImGui::Text("Gravity");
+		ImGui::TextUnformatted("Gravity");
 		ImGui::NextColumn();
 		ImGui::PushItemWidth(-1);
 		float grav[2] = { m_B2DWorld->GetGravity().x , m_B2DWorld->GetGravity().y };

@@ -246,10 +246,11 @@ namespace Lumos
 		style.ScrollbarSize = 18;
 
 		style.WindowBorderSize = 0;
-		style.ChildBorderSize = 0;
-		style.PopupBorderSize = 0;
+		style.ChildBorderSize = 1;
+		style.PopupBorderSize = 3;
+		style.PopupRounding = 2;
 		style.FrameBorderSize = 0.0f;
-
+		
 		style.WindowRounding = 1;
 		style.ChildRounding = 1;
 		style.FrameRounding = 1;
@@ -259,7 +260,7 @@ namespace Lumos
 
 #ifdef IMGUI_HAS_DOCK 
 		style.TabBorderSize = 0.0f;
-		style.TabRounding = 1;
+		style.TabRounding = 2;
 
 		if (ImGui::GetIO().ConfigFlags & ImGuiConfigFlags_ViewportsEnable)
 		{

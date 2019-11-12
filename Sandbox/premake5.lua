@@ -62,10 +62,17 @@ project "Sandbox"
 			"_DISABLE_EXTENDED_ALIGNED_STORAGE"
 		}
 
+		libdirs
+		{
+			"../Dependencies/OpenAL/libs/Win32"
+		}
+
 		links
 		{
 			"glfw",
-			"glad"
+			"glad",
+			"OpenGL32",
+			"OpenAL32"
 		}
 
 		buildoptions

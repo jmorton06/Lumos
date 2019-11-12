@@ -338,7 +338,7 @@ namespace Lumos
 
 		void SkyboxRenderer::OnImGui()
 		{
-			ImGui::Text("Skybox Renderer");
+			ImGui::TextUnformatted("Skybox Renderer");
 			if (ImGui::TreeNode("CubeMap"))
 			{
 				bool flipImage = Graphics::GraphicsContext::GetContext()->FlipImGUITexture();
