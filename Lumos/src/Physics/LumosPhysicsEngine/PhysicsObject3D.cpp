@@ -1,8 +1,6 @@
 #include "lmpch.h"
 #include "PhysicsObject3D.h"
 #include "LumosPhysicsEngine.h"
-#include "ECS/EntityManager.h"
-
 
 namespace Lumos
 {

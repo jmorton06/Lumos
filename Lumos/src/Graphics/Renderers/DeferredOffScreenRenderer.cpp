@@ -2,12 +2,13 @@
 #include "DeferredOffScreenRenderer.h"
 #include "App/Scene.h"
 #include "App/Application.h"
-#include "ECS/EntityManager.h"
 #include "ECS/Component/MaterialComponent.h"
 #include "ECS/Component/MeshComponent.h"
 #include "ECS/Component/TextureMatrixComponent.h"
 
 #include "Maths/Maths.h"
+#include "Maths/Transform.h"
+
 #include "Core/JobSystem.h"
 #include "Core/Profiler.h"
 

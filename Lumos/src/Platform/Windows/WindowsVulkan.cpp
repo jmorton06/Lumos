@@ -15,18 +15,18 @@
 
 namespace Lumos
 {
-	vk::SurfaceKHR Graphics::VKDevice::CreatePlatformSurface(vk::Instance vkInstance, Window* window)
+	VkSurfaceKHR Graphics::VKDevice::CreatePlatformSurface(VkInstance vkInstance, Window* window)
 	{
-		vk::SurfaceKHR surface;
+		VkSurfaceKHR surface;
 
 #ifdef LUMOS_USE_GLFW_WINDOWS
 		glfwCreateWindowSurface(vkInstance, static_cast<GLFWwindow*>(window->GetHandle()), nullptr, (VkSurfaceKHR*)&surface);
 #else
-		vk::Win32SurfaceCreateInfoKHR surfaceInfo;
+		VkWin32SurfaceCreateInfoKHR surfaceInfo;
 		surfaceInfo.pNext = NULL;
 		surfaceInfo.hwnd = static_cast<HWND>(window->GetHandle());
 		surfaceInfo.hinstance = static_cast<WindowsWindow*>(window)->GetHInstance();
-		surface = m_VKContext->GetVKInstance().createWin32SurfaceKHR(surfaceInfo);
+		vkCreateWin32SurfaceKHR(m_VKContext->GetVKInstance(), &surfaceInfo, nullptr, &surface);
 #endif
 
 		return surface;

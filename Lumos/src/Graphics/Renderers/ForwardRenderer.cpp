@@ -16,10 +16,11 @@
 #include "Graphics/API/GraphicsContext.h"
 #include "Graphics/GBuffer.h"
 #include "App/Scene.h"
-#include "ECS/EntityManager.h"
 #include "ECS/Component/MaterialComponent.h"
 #include "ECS/Component/MeshComponent.h"
 #include "ECS/Component/TextureMatrixComponent.h"
+#include "Maths/Maths.h"
+#include "Maths/Transform.h"
 
 #include "App/Application.h"
 #include "Graphics/RenderManager.h"

@@ -15,10 +15,11 @@
 #include "Graphics/Camera/Camera.h"
 #include "Graphics/Light.h"
 
-#include "ECS/EntityManager.h"
 #include "ECS/Component/MeshComponent.h"
 
 #include "Maths/MathsUtilities.h"
+#include "Maths/Transform.h"
+
 #include "App/Scene.h"
 #include "Maths/Maths.h"
 #include "RenderCommand.h"

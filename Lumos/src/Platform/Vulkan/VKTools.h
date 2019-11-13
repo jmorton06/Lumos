@@ -21,53 +21,55 @@ namespace Lumos
 		enum class DescriptorType;
         enum class ShaderType : int;
 		enum class TextureFormat;
+		enum class TextureWrap;
         enum class Format;
         
 		namespace VKTools
 		{
-			void CreateBuffer(vk::DeviceSize size, vk::BufferUsageFlags usage, vk::MemoryPropertyFlags properties, vk::Buffer& buffer,
-				vk::DeviceMemory& bufferMemory, VmaAllocator allocator = nullptr, VmaAllocation allocation = nullptr);
+			void CreateBuffer(VkDeviceSize size, VkBufferUsageFlags usage, VkMemoryPropertyFlags properties, VkBuffer& buffer,
+				VkDeviceMemory& bufferMemory, VmaAllocator allocator = nullptr, VmaAllocation allocation = nullptr);
 
-			vk::CommandBuffer BeginSingleTimeCommands();
-			void EndSingleTimeCommands(vk::CommandBuffer commandBuffer);
+			VkCommandBuffer BeginSingleTimeCommands();
+			void EndSingleTimeCommands(VkCommandBuffer commandBuffer);
 
-			void CopyBufferToImage(vk::Buffer buffer, vk::Image image, uint32_t width, uint32_t height);
-			void CopyBuffer(vk::Buffer srcBuffer, vk::Buffer dstBuffer, vk::DeviceSize size);
+			void CopyBufferToImage(VkBuffer buffer, VkImage image, uint32_t width, uint32_t height);
+			void CopyBuffer(VkBuffer srcBuffer, VkBuffer dstBuffer, VkDeviceSize size);
 
-			bool HasStencilComponent(vk::Format format);
+			bool HasStencilComponent(VkFormat format);
 
-			void TransitionImageLayout(vk::Image image, vk::Format format, vk::ImageLayout oldLayout, vk::ImageLayout newLayout, uint32_t mipLevels = 1);
+			void TransitionImageLayout(VkImage image, VkFormat format, VkImageLayout oldLayout, VkImageLayout newLayout, uint32_t mipLevels = 1);
 
-			uint32_t FindMemoryType(uint32_t typeFilter, vk::MemoryPropertyFlags properties);
-			vk::Format FindSupportedFormat(const std::vector<vk::Format>& candidates, vk::ImageTiling tiling, vk::FormatFeatureFlags features);
-			vk::Format FindDepthFormat();
+			uint32_t FindMemoryType(uint32_t typeFilter, VkMemoryPropertyFlags properties);
+			VkFormat FindSupportedFormat(const std::vector<VkFormat>& candidates, VkImageTiling tiling, VkFormatFeatureFlags features);
+			VkFormat FindDepthFormat();
 
 			std::string ErrorString(VkResult errorCode);
 
-			vk::VertexInputAttributeDescription VertexInputDescriptionToVK(VertexInputDescription description);
-			vk::CullModeFlags CullModeToVK(CullMode mode);
-			vk::DescriptorType DescriptorTypeToVK(DescriptorType type);
-			vk::Format TextureFormatToVK(const TextureFormat format);
-            vk::ShaderStageFlagBits ShaderTypeToVK(const ShaderType& shaderName);
-            vk::Format FormatToVK(Lumos::Graphics::Format format);
+			VkVertexInputAttributeDescription VertexInputDescriptionToVK(VertexInputDescription description);
+			VkCullModeFlags CullModeToVK(CullMode mode);
+			VkDescriptorType DescriptorTypeToVK(DescriptorType type);
+			VkFormat TextureFormatToVK(const TextureFormat format);
+			VkSamplerAddressMode TextureWrapToVK(const TextureWrap format);
+            VkShaderStageFlagBits ShaderTypeToVK(const ShaderType& shaderName);
+            VkFormat FormatToVK(Lumos::Graphics::Format format);
 
 			void SetImageLayout(
-				vk::CommandBuffer cmdbuffer,
-				vk::Image image,
-				vk::ImageLayout oldImageLayout,
-				vk::ImageLayout newImageLayout,
-				vk::ImageSubresourceRange subresourceRange,
-				vk::PipelineStageFlags srcStageMask = vk::PipelineStageFlagBits::eAllCommands,
-				vk::PipelineStageFlags dstStageMask = vk::PipelineStageFlagBits::eAllCommands);
+				VkCommandBuffer cmdbuffer,
+				VkImage image,
+				VkImageLayout oldImageLayout,
+				VkImageLayout newImageLayout,
+				VkImageSubresourceRange subresourceRange,
+				VkPipelineStageFlags srcStageMask = VK_PIPELINE_STAGE_ALL_COMMANDS_BIT,
+				VkPipelineStageFlags dstStageMask = VK_PIPELINE_STAGE_ALL_COMMANDS_BIT);
 			// Uses a fixed sub resource layout with first mip level and layer
 			void SetImageLayout(
-				vk::CommandBuffer cmdbuffer,
-				vk::Image image,
-				vk::ImageAspectFlags aspectMask,
-				vk::ImageLayout oldImageLayout,
-				vk::ImageLayout newImageLayout,
-				vk::PipelineStageFlags srcStageMask = vk::PipelineStageFlagBits::eAllCommands,
-				vk::PipelineStageFlags dstStageMask = vk::PipelineStageFlagBits::eAllCommands);
+				VkCommandBuffer cmdbuffer,
+				VkImage image,
+				VkImageAspectFlags aspectMask,
+				VkImageLayout oldImageLayout,
+				VkImageLayout newImageLayout,
+				VkPipelineStageFlags srcStageMask = VK_PIPELINE_STAGE_ALL_COMMANDS_BIT,
+				VkPipelineStageFlags dstStageMask = VK_PIPELINE_STAGE_ALL_COMMANDS_BIT);
 		}
 	}
 }

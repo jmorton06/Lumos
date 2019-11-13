@@ -1,7 +1,6 @@
 #include "lmpch.h"
 #include "HierarchyWindow.h"
 #include "Editor.h"
-#include "ECS/EntityManager.h"
 #include "App/Application.h"
 #include "App/SceneManager.h"
 #include "ImGui/ImGuiHelpers.h"
@@ -88,7 +87,7 @@ namespace Lumos
 				ImGui::PopStyleColor();
 
 			bool deleteEntity = false;
-			if (ImGui::BeginPopupContextItem("Entity context menu"))
+			if (ImGui::BeginPopupContextItem(name.c_str()))
 			{
 				if (ImGui::Selectable("Copy")) m_CopiedEntity = node;
 
@@ -96,7 +95,7 @@ namespace Lumos
 				{
 					if (ImGui::Selectable("Paste"))
 					{
-						//auto e = registry.clone(node);// EntityManager::Instance()->DuplicateEntity(m_CopiedEntity);
+						//auto e = registry.clone(node);
 						//node->AddChild(e);
 						m_CopiedEntity = entt::null;
 					}
@@ -108,7 +107,7 @@ namespace Lumos
 
 				ImGui::Separator();
 			
-				//if (ImGui::Selectable("Duplicate")) registry.clone(node);// EntityManager::Instance()->DuplicateEntity(node);
+				//if (ImGui::Selectable("Duplicate")) registry.clone(node);
 				if (ImGui::Selectable("Remove")) deleteEntity = true; if (m_Editor->GetSelected() == node) m_Editor->SetSelected(entt::null);
 				ImGui::Separator();
 				if (ImGui::Selectable("Rename")) m_DoubleClicked = node;

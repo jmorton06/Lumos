@@ -12,7 +12,7 @@ namespace Lumos
 			VKDescriptorSet(const DescriptorInfo& info);
 			~VKDescriptorSet();
 
-			vk::DescriptorSet GetDescriptorSet() const { return m_DescriptorSet; }
+			VkDescriptorSet GetDescriptorSet() const { return m_DescriptorSet; }
 
 			void Update(std::vector<ImageInfo>& imageInfos, std::vector<BufferInfo>& bufferInfos) override;
 			void Update(std::vector<BufferInfo>& bufferInfos) override;
@@ -33,13 +33,13 @@ namespace Lumos
             
 			static DescriptorSet* CreateFuncVulkan(const DescriptorInfo&);
 		private:
-			vk::DescriptorSet m_DescriptorSet;
+			VkDescriptorSet m_DescriptorSet;
 			u32 m_DynamicOffset = 0;
 			Shader* m_Shader = nullptr;
 			bool m_Dynamic = false;
 			std::vector<PushConstant> m_PushConstants;
-			vk::DescriptorBufferInfo* m_BufferInfoPool = nullptr;
-			vk::DescriptorImageInfo* m_ImageInfoPool = nullptr;
+			VkDescriptorBufferInfo* m_BufferInfoPool = nullptr;
+			VkDescriptorImageInfo* m_ImageInfoPool = nullptr;
 		};
 	}
 }

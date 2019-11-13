@@ -38,12 +38,12 @@ void GraphicsScene::OnInit()
 
 	m_EnvironmentMap = Graphics::TextureCube::CreateFromVCross(environmentFiles, 11);
 
-	auto lightEntity = m_Registry.create();//EntityManager::Instance()->CreateEntity("Directional Light");
+	auto lightEntity = m_Registry.create();
 	m_Registry.assign<Graphics::Light>(lightEntity, Maths::Vector3(26.0f, 22.0f, 48.5f), Maths::Vector4(1.0f), 1.3f);
 	m_Registry.assign<Maths::Transform>(lightEntity, Matrix4::Translation(Maths::Vector3(26.0f, 22.0f, 48.5f)) * Maths::Quaternion::LookAt(Maths::Vector3(26.0f, 22.0f, 48.5f), Maths::Vector3::Zero()).ToMatrix4());
 	m_Registry.assign<NameComponent>(lightEntity, "Light");
 
-	auto cameraEntity = m_Registry.create();//EntityManager::Instance()->CreateEntity("Camera");
+	auto cameraEntity = m_Registry.create();
 	m_Registry.assign<CameraComponent>(cameraEntity, m_pCamera);
 	m_Registry.assign<NameComponent>(cameraEntity, "Camera");
 	Application::Instance()->GetSystem<AudioManager>()->SetListener(m_pCamera);

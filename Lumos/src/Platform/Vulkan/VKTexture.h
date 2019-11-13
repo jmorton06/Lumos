@@ -17,7 +17,7 @@ namespace Lumos
 		public:
 			VKTexture2D(u32 width, u32 height, void* data, TextureParameters parameters = TextureParameters(), TextureLoadOptions loadOptions = TextureLoadOptions());
 			VKTexture2D(const String& name, const String& filename, TextureParameters parameters = TextureParameters(), TextureLoadOptions loadOptions = TextureLoadOptions());
-            VKTexture2D(vk::Image image, vk::ImageView imageView);
+            VKTexture2D(VkImage image, VkImageView imageView);
 			VKTexture2D();
 			~VKTexture2D();
 
@@ -37,21 +37,21 @@ namespace Lumos
 			void BuildTexture(TextureFormat internalformat, u32 width, u32 height, bool depth, bool samplerShadow) override;
 
 			void CreateTextureSampler();
-            void CreateImage(uint32_t width, uint32_t height,uint32_t mipLevels, vk::Format format, vk::ImageTiling tiling,
-                             vk::ImageUsageFlags usage, vk::MemoryPropertyFlags properties, vk::Image& image,
-                             vk::DeviceMemory& imageMemory);
-            vk::ImageView CreateImageView(vk::Image image, vk::Format format, vk::ImageAspectFlags aspectFlags, uint32_t mipLevels);
+            void CreateImage(uint32_t width, uint32_t height,uint32_t mipLevels, VkFormat format, VkImageTiling tiling,
+                             VkImageUsageFlags usage, VkMemoryPropertyFlags properties, VkImage& image,
+                             VkDeviceMemory& imageMemory);
+            VkImageView CreateImageView(VkImage image, VkFormat format, VkImageAspectFlags aspectFlags, uint32_t mipLevels);
 
-            const vk::DescriptorImageInfo* GetDescriptor() const { return &m_Descriptor; }
+            const VkDescriptorImageInfo* GetDescriptor() const { return &m_Descriptor; }
 
 			void UpdateDescriptor();
 
 			bool Load();
 
-            vk::Image GetImage() const { return m_TextureImage; };
-            vk::DeviceMemory GetDeviceMemory() const { return m_TextureImageMemory; }
-            vk::ImageView GetImageView() const { return  m_TextureImageView; }
-            vk::Sampler GetSampler() const { return m_TextureSampler; }
+            VkImage GetImage() const { return m_TextureImage; };
+            VkDeviceMemory GetDeviceMemory() const { return m_TextureImageMemory; }
+            VkImageView GetImageView() const { return  m_TextureImageView; }
+            VkSampler GetSampler() const { return m_TextureSampler; }
             
             static void MakeDefault();
         protected:
@@ -70,12 +70,12 @@ namespace Lumos
             TextureParameters m_Parameters;
             TextureLoadOptions m_LoadOptions;
             
-            vk::Image m_TextureImage;
-            vk::ImageLayout m_ImageLayout;
-            vk::DeviceMemory m_TextureImageMemory;
-            vk::ImageView m_TextureImageView;
-            vk::Sampler m_TextureSampler;
-            vk::DescriptorImageInfo m_Descriptor;
+            VkImage m_TextureImage;
+            VkImageLayout m_ImageLayout;
+            VkDeviceMemory m_TextureImageMemory;
+            VkImageView m_TextureImageView;
+            VkSampler m_TextureSampler;
+            VkDescriptorImageInfo m_Descriptor;
             
 #ifdef USE_VMA_ALLOCATOR
             VmaAllocation m_Allocation;
@@ -103,21 +103,21 @@ namespace Lumos
 			inline const String& GetFilepath() const override { return m_Files[0]; }
 
 			void CreateTextureSampler();
-			void CreateImage(uint32_t width, uint32_t height, uint32_t mipLevels, vk::Format format, vk::ImageTiling tiling,
-				vk::ImageUsageFlags usage, vk::MemoryPropertyFlags properties, vk::Image& image,
-				vk::DeviceMemory& imageMemory);
-			vk::ImageView CreateImageView(vk::Image image, vk::Format format, uint32_t mipLevels);
+			void CreateImage(uint32_t width, uint32_t height, uint32_t mipLevels, VkFormat format, VkImageTiling tiling,
+				VkImageUsageFlags usage, VkMemoryPropertyFlags properties, VkImage& image,
+				VkDeviceMemory& imageMemory);
+			VkImageView CreateImageView(VkImage image, VkFormat format, uint32_t mipLevels);
 
-			const vk::DescriptorImageInfo* GetDescriptor() const { return &m_Descriptor; }
+			const VkDescriptorImageInfo* GetDescriptor() const { return &m_Descriptor; }
 
 			void UpdateDescriptor();
 
 			void Load(u32 mips);
 
-			vk::Image GetImage() const { return m_TextureImage; };
-			vk::DeviceMemory GetDeviceMemory() const { return m_TextureImageMemory; }
-			vk::ImageView GetImageView() const { return  m_TextureImageView; }
-			vk::Sampler GetSampler() const { return m_TextureSampler; }
+			VkImage GetImage() const { return m_TextureImage; };
+			VkDeviceMemory GetDeviceMemory() const { return m_TextureImageMemory; }
+			VkImageView GetImageView() const { return  m_TextureImageView; }
+			VkSampler GetSampler() const { return m_TextureSampler; }
 
             static void MakeDefault();
         protected:
@@ -137,12 +137,12 @@ namespace Lumos
 			TextureParameters m_Parameters;
 			TextureLoadOptions m_LoadOptions;
 
-			vk::Image m_TextureImage;
-			vk::ImageLayout m_ImageLayout;
-			vk::DeviceMemory m_TextureImageMemory;
-			vk::ImageView m_TextureImageView;
-			vk::Sampler m_TextureSampler;
-			vk::DescriptorImageInfo m_Descriptor;
+			VkImage m_TextureImage;
+			VkImageLayout m_ImageLayout;
+			VkDeviceMemory m_TextureImageMemory;
+			VkImageView m_TextureImageView;
+			VkSampler m_TextureSampler;
+			VkDescriptorImageInfo m_Descriptor;
 
 #ifdef USE_VMA_ALLOCATOR
 			VmaAllocation m_Allocation;
@@ -167,15 +167,15 @@ namespace Lumos
 			inline const String& GetFilepath() const override { return m_Name; }
 
 			void CreateTextureSampler();
-			void CreateImage(uint32_t width, uint32_t height, vk::Format format, vk::ImageTiling tiling,
-				vk::ImageUsageFlags usage, vk::MemoryPropertyFlags properties, vk::Image& image,
-				vk::DeviceMemory& imageMemory);
-			vk::ImageView CreateImageView(vk::Image image, vk::Format format, vk::ImageAspectFlags aspectFlags);
-			vk::Image GetImage() const { return m_TextureImage; };
-			vk::DeviceMemory GetDeviceMemory() const { return m_TextureImageMemory; }
-			vk::ImageView GetImageView() const { return  m_TextureImageView; }
-			vk::Sampler GetSampler() const { return m_TextureSampler; }
-			const vk::DescriptorImageInfo* GetDescriptor() const { return &m_Descriptor; }
+			void CreateImage(uint32_t width, uint32_t height, VkFormat format, VkImageTiling tiling,
+				VkImageUsageFlags usage, VkMemoryPropertyFlags properties, VkImage& image,
+				VkDeviceMemory& imageMemory);
+			VkImageView CreateImageView(VkImage image, VkFormat format, VkImageAspectFlags aspectFlags);
+			VkImage GetImage() const { return m_TextureImage; };
+			VkDeviceMemory GetDeviceMemory() const { return m_TextureImageMemory; }
+			VkImageView GetImageView() const { return  m_TextureImageView; }
+			VkSampler GetSampler() const { return m_TextureSampler; }
+			const VkDescriptorImageInfo* GetDescriptor() const { return &m_Descriptor; }
 			void UpdateDescriptor();
 
             static void MakeDefault();
@@ -188,11 +188,11 @@ namespace Lumos
 			u32 m_Handle;
 			u32 m_Width, m_Height;
 
-			vk::Image m_TextureImage;
-			vk::DeviceMemory m_TextureImageMemory;
-			vk::ImageView m_TextureImageView;
-			vk::Sampler m_TextureSampler;
-			vk::DescriptorImageInfo m_Descriptor;
+			VkImage m_TextureImage;
+			VkDeviceMemory m_TextureImageMemory;
+			VkImageView m_TextureImageView;
+			VkSampler m_TextureSampler;
+			VkDescriptorImageInfo m_Descriptor;
 
 #ifdef USE_VMA_ALLOCATOR
 			VmaAllocation m_Allocation;
@@ -215,17 +215,17 @@ namespace Lumos
 			inline const String& GetFilepath() const override { return m_Name; }
 
 			void CreateTextureSampler();
-			void CreateImage(uint32_t width, uint32_t height, vk::Format format, vk::ImageTiling tiling,
-				vk::ImageUsageFlags usage, vk::MemoryPropertyFlags properties, vk::Image& image,
-				vk::DeviceMemory& imageMemory);
-			void CreateImageView(vk::Image image, vk::Format format, vk::ImageAspectFlags aspectFlags);
+			void CreateImage(uint32_t width, uint32_t height, VkFormat format, VkImageTiling tiling,
+				VkImageUsageFlags usage, VkMemoryPropertyFlags properties, VkImage& image,
+				VkDeviceMemory& imageMemory);
+			void CreateImageView(VkImage image, VkFormat format, VkImageAspectFlags aspectFlags);
 
-			vk::Image GetImage() const { return m_TextureImage; };
-			vk::DeviceMemory GetDeviceMemory() const { return m_TextureImageMemory; }
-			vk::ImageView GetImageView() const { return  m_TextureImageView; }
-			vk::ImageView GetImageView(int index) const { return  m_IndividualImageViews[index]; }
-			vk::Sampler GetSampler() const { return m_TextureSampler; }
-			const vk::DescriptorImageInfo* GetDescriptor() const { return &m_Descriptor; }
+			VkImage GetImage() const { return m_TextureImage; };
+			VkDeviceMemory GetDeviceMemory() const { return m_TextureImageMemory; }
+			VkImageView GetImageView() const { return  m_TextureImageView; }
+			VkImageView GetImageView(int index) const { return  m_IndividualImageViews[index]; }
+			VkSampler GetSampler() const { return m_TextureSampler; }
+			const VkDescriptorImageInfo* GetDescriptor() const { return &m_Descriptor; }
 			void UpdateDescriptor();
 
             static void MakeDefault();
@@ -239,13 +239,13 @@ namespace Lumos
 			u32 m_Width, m_Height;
 			u32 m_Count;
 
-			vk::Image m_TextureImage;
-			vk::DeviceMemory m_TextureImageMemory;
-			vk::ImageView m_TextureImageView;
-			vk::Sampler m_TextureSampler;
-			vk::DescriptorImageInfo m_Descriptor;
+			VkImage m_TextureImage;
+			VkDeviceMemory m_TextureImageMemory;
+			VkImageView m_TextureImageView;
+			VkSampler m_TextureSampler;
+			VkDescriptorImageInfo m_Descriptor;
 
-			std::vector<vk::ImageView> m_IndividualImageViews;
+			std::vector<VkImageView> m_IndividualImageViews;
 
 #ifdef USE_VMA_ALLOCATOR
 			VmaAllocation m_Allocation;

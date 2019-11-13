@@ -41,24 +41,27 @@ namespace Lumos
 				m_StageCount++;
 			}
 
-			m_ShaderStages = lmnew vk::PipelineShaderStageCreateInfo[m_StageCount];
+			m_ShaderStages = lmnew VkPipelineShaderStageCreateInfo[m_StageCount];
 
 			for (uint32_t i = 0; i < m_StageCount; i++)
-                m_ShaderStages[i] = vk::PipelineShaderStageCreateInfo();
+                m_ShaderStages[i] = VkPipelineShaderStageCreateInfo();
 
 			for (auto& file : *files)
 			{
 				auto fileSize = FileSystem::GetFileSize(m_FilePath + file.second); //TODO: once process
 				u8* source = FileSystem::ReadFile(m_FilePath + file.second);
-				vk::ShaderModuleCreateInfo vertexShaderCI{};
+				VkShaderModuleCreateInfo vertexShaderCI{};
+				vertexShaderCI.sType = VK_STRUCTURE_TYPE_SHADER_MODULE_CREATE_INFO;
 				vertexShaderCI.codeSize = fileSize;
 				vertexShaderCI.pCode = reinterpret_cast<uint32_t*>(source);
 				vertexShaderCI.pNext = VK_NULL_HANDLE;
 
+				m_ShaderStages[currentShaderStage].sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO;
                 m_ShaderStages[currentShaderStage].stage = VKTools::ShaderTypeToVK(file.first);
 				m_ShaderStages[currentShaderStage].pName = "main";
 				m_ShaderStages[currentShaderStage].pNext = VK_NULL_HANDLE;
-				m_ShaderStages[currentShaderStage].module = VKDevice::Instance()->GetDevice().createShaderModule(vertexShaderCI);
+
+				vkCreateShaderModule(VKDevice::Instance()->GetDevice(), &vertexShaderCI, nullptr, &m_ShaderStages[currentShaderStage].module);
 
                 delete[] source;
 
@@ -72,10 +75,12 @@ namespace Lumos
 		void VKShader::Unload() const
 		{
 			for (uint32_t i = 0; i < m_StageCount; i++)
-				VKDevice::Instance()->GetDevice().destroyShaderModule(m_ShaderStages[i].module);
+			{
+				vkDestroyShaderModule(VKDevice::Instance()->GetDevice(), m_ShaderStages[i].module, nullptr);
+			}		
 		}
 
-		vk::PipelineShaderStageCreateInfo* VKShader::GetShaderStages() const
+		VkPipelineShaderStageCreateInfo* VKShader::GetShaderStages() const
 		{
 			return m_ShaderStages;
 		}

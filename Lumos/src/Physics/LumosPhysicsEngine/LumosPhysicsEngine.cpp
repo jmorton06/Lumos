@@ -6,9 +6,12 @@
 
 #include "Integration.h"
 #include "Constraint.h"
-#include "ECS/EntityManager.h"
 #include "Utilities/TimeStep.h"
 #include "Core/JobSystem.h"
+#include "Core/Profiler.h"
+
+#include "ECS/Component/Physics3DComponent.h"
+#include "Maths/Transform.h"
 
 #include <imgui/imgui.h>
 

@@ -29,15 +29,15 @@ namespace Lumos
 			Unload();
 		}
 
-		const char* TranslateVkPhysicalDeviceTypeToString(vk::PhysicalDeviceType type)
+		const char* TranslateVkPhysicalDeviceTypeToString(VkPhysicalDeviceType type)
 		{
 			switch (type)
 			{
-			case vk::PhysicalDeviceType::eOther: return "OTHER";
-			case vk::PhysicalDeviceType::eIntegratedGpu: return "INTEGRATED GPU";
-			case vk::PhysicalDeviceType::eDiscreteGpu: return "DISCRETE GPU";
-			case vk::PhysicalDeviceType::eVirtualGpu: return "VIRTUAL GPU";
-			case vk::PhysicalDeviceType::eCpu: return "CPU";
+			case VK_PHYSICAL_DEVICE_TYPE_OTHER: return "OTHER";
+			case VK_PHYSICAL_DEVICE_TYPE_INTEGRATED_GPU: return "INTEGRATED GPU";
+			case VK_PHYSICAL_DEVICE_TYPE_DISCRETE_GPU: return "DISCRETE GPU";
+			case VK_PHYSICAL_DEVICE_TYPE_VIRTUAL_GPU: return "VIRTUAL GPU";
+			case VK_PHYSICAL_DEVICE_TYPE_CPU: return "CPU";
 			default: return "UNKNOWN";
 			}
 		}
@@ -45,17 +45,20 @@ namespace Lumos
 		bool VKDevice::Init()
 		{
 			// GPU
-			std::vector<vk::PhysicalDevice> pGPUs = m_VKContext->GetVKInstance().enumeratePhysicalDevices();
-
-			if (pGPUs.empty())
+			uint32_t numGPUs = 0;
+			vkEnumeratePhysicalDevices(m_VKContext->GetVKInstance(), &numGPUs, VK_NULL_HANDLE);
+			if (numGPUs == 0)
 			{
-				LUMOS_LOG_CRITICAL("[VULKAN] No GPUs found!");
+				LUMOS_LOG_ERROR("ERROR : No GPUs found!");
 				return false;
 			}
 
+			std::vector<VkPhysicalDevice> pGPUs(numGPUs);
+			vkEnumeratePhysicalDevices(m_VKContext->GetVKInstance(), &numGPUs, pGPUs.data());
 			m_PhysicalDevice = pGPUs[0];
-			m_PhysicalDeviceProperties = m_PhysicalDevice.getProperties();
-			m_MemoryProperties = m_PhysicalDevice.getMemoryProperties();
+
+			vkGetPhysicalDeviceProperties(m_PhysicalDevice, &m_PhysicalDeviceProperties);
+			vkGetPhysicalDeviceMemoryProperties(m_PhysicalDevice, &m_MemoryProperties);
 
 			LUMOS_LOG_INFO("Vulkan : {0}.{1}.{2}", VK_VERSION_MAJOR(m_PhysicalDeviceProperties.apiVersion), VK_VERSION_MINOR(m_PhysicalDeviceProperties.apiVersion), VK_VERSION_PATCH(m_PhysicalDeviceProperties.apiVersion));
 			LUMOS_LOG_INFO("GPU : {0}", std::string(m_PhysicalDeviceProperties.deviceName));
@@ -64,12 +67,16 @@ namespace Lumos
 			LUMOS_LOG_INFO("Driver Version : {0}.{1}.{2}", VK_VERSION_MAJOR(m_PhysicalDeviceProperties.driverVersion), VK_VERSION_MINOR(m_PhysicalDeviceProperties.driverVersion), VK_VERSION_PATCH(m_PhysicalDeviceProperties.driverVersion));
 
 			// Queue family
-			m_QueueFamiliyProperties = m_PhysicalDevice.getQueueFamilyProperties();
-			if (m_QueueFamiliyProperties.size() == 0)
+			uint32_t numQueueFamily = 0;
+			vkGetPhysicalDeviceQueueFamilyProperties(m_PhysicalDevice, &numQueueFamily, VK_NULL_HANDLE);
+			if (numQueueFamily == 0)
 			{
-				LUMOS_LOG_CRITICAL("[VULKAN] No Queue Families were found!");
+				LUMOS_LOG_ERROR("ERROR : No Queue Families were found!");
 				return false;
 			}
+
+			m_QueueFamiliyProperties.resize(numQueueFamily);
+			vkGetPhysicalDeviceQueueFamilyProperties(m_PhysicalDevice, &numQueueFamily, m_QueueFamiliyProperties.data());
 
 			m_Surface = CreatePlatformSurface(m_VKContext->GetVKInstance(), Application::Instance()->GetWindow());
 
@@ -80,12 +87,12 @@ namespace Lumos
 
 			VkBool32* supportsPresent = lmnew VkBool32[m_QueueFamiliyProperties.size()];
 			for (uint32_t i = 0; i < m_QueueFamiliyProperties.size(); i++)
-				supportsPresent[i] = m_PhysicalDevice.getSurfaceSupportKHR(i, m_Surface);
+				vkGetPhysicalDeviceSurfaceSupportKHR(m_PhysicalDevice,i, m_Surface,&supportsPresent[i]);
 
 			m_GraphicsQueueFamilyIndex = UINT32_MAX;
 			for (uint32_t i = 0; i < m_QueueFamiliyProperties.size(); i++)
 			{
-				if ((m_QueueFamiliyProperties[i].queueFlags & vk::QueueFlagBits::eGraphics))
+				if ((m_QueueFamiliyProperties[i].queueFlags & VK_QUEUE_GRAPHICS_BIT))
 				{
 					if (supportsPresent[i] == VK_TRUE)
 					{
@@ -103,28 +110,31 @@ namespace Lumos
 				return false;
 			}
 
-			std::vector<vk::SurfaceFormatKHR> formats = m_PhysicalDevice.getSurfaceFormatsKHR(m_Surface);
-
-			if (formats.empty())
+			uint32_t numFormats;
+			auto result = vkGetPhysicalDeviceSurfaceFormatsKHR(m_PhysicalDevice, m_Surface, &numFormats, VK_NULL_HANDLE);
+			if (result != VK_SUCCESS)
 			{
-				LUMOS_LOG_CRITICAL("[VULKAN] Couldn't get surface formats!");
+				LUMOS_LOG_CRITICAL("ERROR : Couldn't get surface formats!");
 				return false;
 			}
 
-			if (formats.size() == 1 && formats[0].format == vk::Format::eUndefined)
-				m_Format = vk::Format::eB8G8R8A8Unorm;
+			VkSurfaceFormatKHR * pSurfaceFormats = new VkSurfaceFormatKHR[numFormats];
+			result = vkGetPhysicalDeviceSurfaceFormatsKHR(m_PhysicalDevice, m_Surface, &numFormats, pSurfaceFormats);
+
+			if (numFormats == 1 && pSurfaceFormats[0].format == VK_FORMAT_UNDEFINED)
+				m_Format = VK_FORMAT_B8G8R8A8_UNORM;
 			else
-				m_Format = formats[0].format;
+				m_Format = pSurfaceFormats[0].format;
 
 			// Device queue
 
 			float pQueuePriorities[] = { 1.0f };
-			vk::DeviceQueueCreateInfo deviceQueueCI{};
+			VkDeviceQueueCreateInfo deviceQueueCI{};
 			deviceQueueCI.queueCount = 1;
 			deviceQueueCI.queueFamilyIndex = m_GraphicsQueueFamilyIndex;
 			deviceQueueCI.pQueuePriorities = pQueuePriorities;
 
-			vk::PhysicalDeviceFeatures deviceFeatures{};
+			VkPhysicalDeviceFeatures deviceFeatures{};
 			deviceFeatures.shaderClipDistance = VK_TRUE;
 			deviceFeatures.shaderCullDistance = VK_TRUE;
 			deviceFeatures.geometryShader = VK_FALSE;
@@ -141,7 +151,7 @@ namespace Lumos
 			};
 
 			// Device
-			vk::DeviceCreateInfo deviceCI{};
+			VkDeviceCreateInfo deviceCI{};
 			deviceCI.queueCreateInfoCount = 1;
 			deviceCI.pQueueCreateInfos = &deviceQueueCI;
 			deviceCI.enabledExtensionCount = static_cast<uint32_t>(deviceExtensions.size());
@@ -158,16 +168,15 @@ namespace Lumos
 				deviceCI.enabledLayerCount = 0;
 			}
 			
-			m_Device = m_PhysicalDevice.createDevice(deviceCI);
-
-			if (!m_Device)
+			result = vkCreateDevice(m_PhysicalDevice, &deviceCI, VK_NULL_HANDLE, &m_Device);
+			if (result != VK_SUCCESS)
 			{
-				LUMOS_LOG_CRITICAL("[VULKAN] vkCreateDevice() failed!");
+				LUMOS_LOG_CRITICAL("[VULKAN] VKDevice::Instance()->GetDevice() vkCreateDevice() failed!");
 				return false;
 			}
 
-			m_GraphicsQueue = m_Device.getQueue(m_GraphicsQueueFamilyIndex, 0);
-			m_PresentQueue = m_Device.getQueue(m_GraphicsQueueFamilyIndex, 0);
+			vkGetDeviceQueue(m_Device, m_GraphicsQueueFamilyIndex, 0, &m_GraphicsQueue);
+			vkGetDeviceQueue(m_Device, m_GraphicsQueueFamilyIndex, 0, &m_PresentQueue);
             
             
 #ifdef USE_VMA_ALLOCATOR
@@ -181,7 +190,7 @@ namespace Lumos
             fn.vkBindImageMemory                   = (PFN_vkBindImageMemory)vkBindImageMemory;
             fn.vkCmdCopyBuffer                     = (PFN_vkCmdCopyBuffer)vkCmdCopyBuffer;
             fn.vkCreateBuffer                      = (PFN_vkCreateBuffer)vkCreateBuffer;
-            fn.vkCreateImage                       = (PFN_vkCreateImage)vkCreateImage;
+            fn. vkCreateImage                      = (PFN_vkCreateImage)vkCreateImage;
             fn.vkDestroyBuffer                     = (PFN_vkDestroyBuffer)vkDestroyBuffer;
             fn.vkDestroyImage                      = (PFN_vkDestroyImage)vkDestroyImage;
             fn.vkFlushMappedMemoryRanges           = (PFN_vkFlushMappedMemoryRanges)vkFlushMappedMemoryRanges;
@@ -208,18 +217,18 @@ namespace Lumos
 
 		void VKDevice::Unload()
 		{
-			VKDevice::Instance()->GetDevice().destroyPipelineCache(m_PipelineCache);
+			vkDestroyPipelineCache(VKDevice::Instance()->GetDevice(), m_PipelineCache, VK_NULL_HANDLE);
 
 #ifdef USE_VMA_ALLOCATOR
 			vmaDestroyAllocator(m_Allocator);
 #endif
 
-			m_Device.destroy();
-			m_VKContext->GetVKInstance().destroySurfaceKHR(m_Surface);
+			vkDestroyDevice(m_Device, VK_NULL_HANDLE);
+			vkDestroySurfaceKHR(m_VKContext->GetVKInstance(), m_Surface, VK_NULL_HANDLE);
 
 		}
 
-		bool VKDevice::MemoryTypeFromProperties(uint32_t typeBits, vk::MemoryPropertyFlags reqMask, uint32_t * typeIndex)
+		bool VKDevice::MemoryTypeFromProperties(uint32_t typeBits, VkMemoryPropertyFlags reqMask, uint32_t * typeIndex)
 		{
 			for (uint32_t i = 0; i < m_MemoryProperties.memoryTypeCount; i++)
 			{
@@ -238,9 +247,10 @@ namespace Lumos
 
 		void VKDevice::CreatePipelineCache()
 		{
-			vk::PipelineCacheCreateInfo pipelineCacheCI{};
+			VkPipelineCacheCreateInfo pipelineCacheCI{};
+			pipelineCacheCI.sType = VK_STRUCTURE_TYPE_PIPELINE_CACHE_CREATE_INFO;
 			pipelineCacheCI.pNext = NULL;
-			m_PipelineCache = m_Device.createPipelineCache(pipelineCacheCI);
+			vkCreatePipelineCache(m_Device, &pipelineCacheCI, VK_NULL_HANDLE, &m_PipelineCache);
 		}
 	}
 }

@@ -26,7 +26,7 @@ namespace Lumos
 		{
 			m_Size = size;
 
-			VKBuffer::Init(vk::BufferUsageFlagBits::eVertexBuffer, size, nullptr);
+			VKBuffer::Init(VK_BUFFER_USAGE_VERTEX_BUFFER_BIT, size, nullptr);
 		}
 
 		void VKVertexBuffer::SetLayout(const Graphics::BufferLayout& bufferLayout)
@@ -36,13 +36,13 @@ namespace Lumos
 
 		void VKVertexBuffer::SetData(u32 size, const void* data)
 		{
-			VKBuffer::Init(vk::BufferUsageFlagBits::eVertexBuffer, size, data);
+			VKBuffer::Init(VK_BUFFER_USAGE_VERTEX_BUFFER_BIT, size, data);
 		}
 
 
 		void VKVertexBuffer::SetDataSub(u32 size, const void* data, u32 offset)
 		{
-			VKBuffer::Init(vk::BufferUsageFlagBits::eVertexBuffer, size, data);
+			VKBuffer::Init(VK_BUFFER_USAGE_VERTEX_BUFFER_BIT, size, data);
 		}
 
 		void* VKVertexBuffer::GetPointerInternal()
