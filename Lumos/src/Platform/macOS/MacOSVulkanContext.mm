@@ -26,14 +26,14 @@ extern "C" void* MakeViewMetalCompatible(void* handle)
 
 namespace Lumos
 {
-	vk::SurfaceKHR Graphics::VKDevice::CreatePlatformSurface(vk::Instance vkInstance, Window* window)
+	VkSurfaceKHR Graphics::VKDevice::CreatePlatformSurface(VkInstance vkInstance, Window* window)
 	{
-		vk::SurfaceKHR surface;
+		VkSurfaceKHR surface;
 
-        vk::MacOSSurfaceCreateInfoMVK surfaceInfo;
+        VkMacOSSurfaceCreateInfoMVK surfaceInfo;
         surfaceInfo.pNext = NULL;
         surfaceInfo.pView = MakeViewMetalCompatible((void*)glfwGetCocoaWindow(static_cast<GLFWwindow*>(window->GetHandle())));
-        surface = vkInstance.createMacOSSurfaceMVK(surfaceInfo);
+        vkCreateMacOSSurfaceMVK(vkInstance, &surfaceInfo, nullptr, &surface);
 
 		return surface;
 	}

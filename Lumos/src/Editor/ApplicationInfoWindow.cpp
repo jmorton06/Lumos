@@ -3,7 +3,6 @@
 #include "Graphics/API/GraphicsContext.h"
 #include "HierarchyWindow.h"
 #include "Editor.h"
-#include "ECS/EntityManager.h"
 #include "App/Application.h"
 #include "App/SceneManager.h"
 #include "App/Engine.h"

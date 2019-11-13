@@ -2,7 +2,6 @@
 #include "Physics3DComponent.h"
 #include "App/Application.h"
 #include "Physics/LumosPhysicsEngine/LumosPhysicsEngine.h"
-#include "ECS/EntityManager.h"
 
 #include <imgui/imgui.h>
 

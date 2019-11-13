@@ -13,16 +13,16 @@ namespace Lumos
 		class VKBuffer
 		{
 		public:
-			VKBuffer(vk::BufferUsageFlags usage, uint32_t size, const void* data);
+			VKBuffer(VkBufferUsageFlags usage, uint32_t size, const void* data);
 			VKBuffer();
 			virtual ~VKBuffer();
 
-			void Init(vk::BufferUsageFlags usage, uint32_t size, const void* data);
+			void Init(VkBufferUsageFlags usage, uint32_t size, const void* data);
 
 			void SetData(uint32_t size, const void* data);
-			const vk::Buffer& GetBuffer() const { return m_Buffer; }
+			const VkBuffer& GetBuffer() const { return m_Buffer; }
 
-			const vk::DescriptorBufferInfo& GetBufferInfo() const { return m_DesciptorBufferInfo; };
+			const VkDescriptorBufferInfo& GetBufferInfo() const { return m_DesciptorBufferInfo; };
 
 			void Map(VkDeviceSize size = VK_WHOLE_SIZE, VkDeviceSize offset = 0);
 			void UnMap();
@@ -30,13 +30,13 @@ namespace Lumos
 			void Invalidate(VkDeviceSize size = VK_WHOLE_SIZE, VkDeviceSize offset = 0);
 
 		protected:
-			vk::Buffer m_Buffer{};
-			vk::DeviceMemory m_Memory{};
-			vk::DescriptorBufferInfo m_DesciptorBufferInfo;
+			VkBuffer m_Buffer{};
+			VkDeviceMemory m_Memory{};
+			VkDescriptorBufferInfo m_DesciptorBufferInfo;
 			VkDeviceSize m_Size = 0;
 			VkDeviceSize m_Alignment = 0;
 			void* m_Mapped = nullptr;
-                        
+
 #ifdef USE_VMA_ALLOCATOR
             VmaAllocation m_Allocation;
 			VmaAllocation m_MappedAllocation;

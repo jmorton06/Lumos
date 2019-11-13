@@ -145,28 +145,11 @@ namespace Lumos
 		output["typeID"] = LUMOS_TYPENAME(Scene);
 		output["name"] = m_SceneName;
 
-//		nlohmann::json serialisedEntities = nlohmann::json::array_t();
-//		auto& entities = EntityManager::Instance()->GetEntities();
-//
-//		for (int i = 0; i < entities.size(); ++i)
-//			if(entities[i])
-//				serialisedEntities.push_back(entities[i]->Serialise());
-//
-//		output["entities"] = serialisedEntities;
-
 		return output;
 	}
 
 	void Scene::Deserialise(nlohmann::json & data)
 	{
 		m_SceneName = data["name"];
-
-//		nlohmann::json::array_t entities = data["entities"];
-
-//		for (int i = 0; i < entities.size(); i++)
-//		{
-//			auto entity = EntityManager::Instance()->CreateEntity();
-//			entity->Deserialise(entities[i]);
-//		}
 	}
 }

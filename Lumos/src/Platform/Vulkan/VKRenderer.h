@@ -54,7 +54,7 @@ namespace Lumos
 			Lumos::Graphics::VKContext* m_Context;
 			Ref<Lumos::Graphics::VKSwapchain> m_Swapchain;
 
-			vk::Semaphore m_ImageAvailableSemaphore[5];
+			VkSemaphore m_ImageAvailableSemaphore[5];
 			u32 m_CurrentSemaphoreIndex = 0;
 
 			String m_RendererTitle;

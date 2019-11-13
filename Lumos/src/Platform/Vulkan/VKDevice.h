@@ -36,18 +36,18 @@ namespace Lumos
 
 			bool Init();
 			void Unload();
-			bool MemoryTypeFromProperties(uint32_t typeBits, vk::MemoryPropertyFlags reqMask, uint32_t* typeIndex);
+			bool MemoryTypeFromProperties(uint32_t typeBits, VkMemoryPropertyFlags reqMask, uint32_t* typeIndex);
 			void CreatePipelineCache();
 
-			vk::Device GetDevice()							const { return m_Device; };
-			vk::PhysicalDevice GetGPU()						const { return m_PhysicalDevice; };
-			vk::Queue GetGraphicsQueue()					const { return m_GraphicsQueue; };
-			vk::Queue GetPresentQueue()						const { return m_PresentQueue; };
+			VkDevice GetDevice()							const { return m_Device; };
+			VkPhysicalDevice GetGPU()						const { return m_PhysicalDevice; };
+			VkQueue GetGraphicsQueue()					const { return m_GraphicsQueue; };
+			VkQueue GetPresentQueue()						const { return m_PresentQueue; };
 			uint32_t GetGraphicsQueueFamilyIndex()			const { return m_GraphicsQueueFamilyIndex; };
-			vk::SurfaceKHR GetSurface()						const { return m_Surface; };
-			vk::Format GetFormat()							const { return m_Format; };
-			vk::PhysicalDeviceProperties GetGPUProperties()	const { return m_PhysicalDeviceProperties; };
-			vk::PipelineCache GetPipelineCache() 			const { return m_PipelineCache; }
+			VkSurfaceKHR GetSurface()						const { return m_Surface; };
+			VkFormat GetFormat()							const { return m_Format; };
+			VkPhysicalDeviceProperties GetGPUProperties()	const { return m_PhysicalDeviceProperties; };
+			VkPipelineCache GetPipelineCache() 			const { return m_PipelineCache; }
 
 			VKContext* GetVKContext() 						const { return m_VKContext; }
             
@@ -55,21 +55,22 @@ namespace Lumos
             VmaAllocator GetAllocator()                     const { return m_Allocator; }
 #endif
 
-			vk::SurfaceKHR CreatePlatformSurface(vk::Instance vkInstance, Window* window);
+			VkSurfaceKHR CreatePlatformSurface(VkInstance vkInstance, Window* window);
             
+			static VkDevice Device() { return VKDevice::Instance()->GetDevice(); }
 		private:
-			vk::Device m_Device;
-			vk::PhysicalDevice m_PhysicalDevice;
-			vk::PhysicalDeviceProperties m_PhysicalDeviceProperties;
-			vk::PhysicalDeviceMemoryProperties m_MemoryProperties;
-			std::vector<vk::QueueFamilyProperties> m_QueueFamiliyProperties;
-			vk::SurfaceKHR m_Surface;
+			VkDevice m_Device;
+			VkPhysicalDevice m_PhysicalDevice;
+			VkPhysicalDeviceProperties m_PhysicalDeviceProperties;
+			VkPhysicalDeviceMemoryProperties m_MemoryProperties;
+			std::vector<VkQueueFamilyProperties> m_QueueFamiliyProperties;
+			VkSurfaceKHR m_Surface;
 			uint32_t m_GraphicsQueueFamilyIndex;
-			vk::Format m_Format;
-			vk::Queue m_GraphicsQueue;
-			vk::Queue m_PresentQueue;
-			vk::PipelineCache m_PipelineCache;
-			vk::DescriptorPool m_DescriptorPool;
+			VkFormat m_Format;
+			VkQueue m_GraphicsQueue;
+			VkQueue m_PresentQueue;
+			VkPipelineCache m_PipelineCache;
+			VkDescriptorPool m_DescriptorPool;
 
 			VKContext* m_VKContext;
             

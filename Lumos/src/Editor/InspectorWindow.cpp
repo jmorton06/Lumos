@@ -1,7 +1,6 @@
 #include "lmpch.h"
 #include "InspectorWindow.h"
 #include "Editor.h"
-#include "ECS/EntityManager.h"
 #include "Graphics/API/GraphicsContext.h"
 #include "App/Application.h"
 #include "App/SceneManager.h"
@@ -10,6 +9,7 @@
 #include "Graphics/Sprite.h"
 #include "Graphics/Material.h"
 #include "Graphics/Light.h"
+#include "Maths/Transform.h"
 
 #include <imgui/imgui.h>
 

@@ -6,9 +6,9 @@
 
 #include "App/Scene.h"
 #include "App/Application.h"
-#include "ECS/EntityManager.h"
 #include "ECS/Component/MaterialComponent.h"
 #include "Maths/Maths.h"
+#include "Maths/Transform.h"
 #include "Core/Profiler.h"
 
 #include "Graphics/RenderManager.h"

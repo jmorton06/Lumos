@@ -4,7 +4,6 @@
 
 namespace Lumos
 {    
-	class Entity;
 	class Scene;
 
     class LUMOS_EXPORT LuaScript
@@ -13,7 +12,7 @@ namespace Lumos
         LuaScript(const String& fileName);
         ~LuaScript();
         
-		void Init(Entity* entity);
+		void Init();
         void Init(Scene* scene);
 		void Update();
 
@@ -22,7 +21,6 @@ namespace Lumos
 	private:
 
 		Scene* m_Scene = nullptr;
-		Entity* m_Entity = nullptr;
 		std::string m_FileName;
 		std::vector<sol::table> m_LuaTables;
     };
