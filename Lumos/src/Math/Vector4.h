@@ -33,10 +33,10 @@ class  Vector4
 public:
     /// Construct a zero vector.
     Vector4() noexcept :
-        x_(0.0f),
-        y_(0.0f),
-        z_(0.0f),
-        w_(0.0f)
+        x(0.0f),
+        y(0.0f),
+        z(0.0f),
+        w(0.0f)
     {
     }
 
@@ -45,28 +45,28 @@ public:
 
     /// Construct from a 3-dimensional vector and the W coordinate.
     Vector4(const Vector3& vector, float w) noexcept :
-        x_(vector.x_),
-        y_(vector.y_),
-        z_(vector.z_),
-        w_(w)
+        x(vector.x),
+        y(vector.y),
+        z(vector.z),
+        w(w)
     {
     }
 
     /// Construct from coordinates.
     Vector4(float x, float y, float z, float w) noexcept :
-        x_(x),
-        y_(y),
-        z_(z),
-        w_(w)
+        x(x),
+        y(y),
+        z(z),
+        w(w)
     {
     }
 
     /// Construct from a float array.
     explicit Vector4(const float* data) noexcept :
-        x_(data[0]),
-        y_(data[1]),
-        z_(data[2]),
-        w_(data[3])
+        x(data[0]),
+        y(data[1]),
+        z(data[2]),
+        w(data[3])
     {
     }
 
@@ -74,69 +74,69 @@ public:
     Vector4& operator =(const Vector4& rhs) noexcept = default;
 
     /// Test for equality with another vector without epsilon.
-    bool operator ==(const Vector4& rhs) const { return x_ == rhs.x_ && y_ == rhs.y_ && z_ == rhs.z_ && w_ == rhs.w_; }
+    bool operator ==(const Vector4& rhs) const { return x == rhs.x && y == rhs.y && z == rhs.z && w == rhs.w; }
 
     /// Test for inequality with another vector without epsilon.
-    bool operator !=(const Vector4& rhs) const { return x_ != rhs.x_ || y_ != rhs.y_ || z_ != rhs.z_ || w_ != rhs.w_; }
+    bool operator !=(const Vector4& rhs) const { return x != rhs.x || y != rhs.y || z != rhs.z || w != rhs.w; }
 
     /// Add a vector.
-    Vector4 operator +(const Vector4& rhs) const { return Vector4(x_ + rhs.x_, y_ + rhs.y_, z_ + rhs.z_, w_ + rhs.w_); }
+    Vector4 operator +(const Vector4& rhs) const { return Vector4(x + rhs.x, y + rhs.y, z + rhs.z, w + rhs.w); }
 
     /// Return negation.
-    Vector4 operator -() const { return Vector4(-x_, -y_, -z_, -w_); }
+    Vector4 operator -() const { return Vector4(-x, -y, -z, -w); }
 
     /// Subtract a vector.
-    Vector4 operator -(const Vector4& rhs) const { return Vector4(x_ - rhs.x_, y_ - rhs.y_, z_ - rhs.z_, w_ - rhs.w_); }
+    Vector4 operator -(const Vector4& rhs) const { return Vector4(x - rhs.x, y - rhs.y, z - rhs.z, w - rhs.w); }
 
     /// Multiply with a scalar.
-    Vector4 operator *(float rhs) const { return Vector4(x_ * rhs, y_ * rhs, z_ * rhs, w_ * rhs); }
+    Vector4 operator *(float rhs) const { return Vector4(x * rhs, y * rhs, z * rhs, w * rhs); }
 
     /// Multiply with a vector.
-    Vector4 operator *(const Vector4& rhs) const { return Vector4(x_ * rhs.x_, y_ * rhs.y_, z_ * rhs.z_, w_ * rhs.w_); }
+    Vector4 operator *(const Vector4& rhs) const { return Vector4(x * rhs.x, y * rhs.y, z * rhs.z, w * rhs.w); }
 
     /// Divide by a scalar.
-    Vector4 operator /(float rhs) const { return Vector4(x_ / rhs, y_ / rhs, z_ / rhs, w_ / rhs); }
+    Vector4 operator /(float rhs) const { return Vector4(x / rhs, y / rhs, z / rhs, w / rhs); }
 
     /// Divide by a vector.
-    Vector4 operator /(const Vector4& rhs) const { return Vector4(x_ / rhs.x_, y_ / rhs.y_, z_ / rhs.z_, w_ / rhs.w_); }
+    Vector4 operator /(const Vector4& rhs) const { return Vector4(x / rhs.x, y / rhs.y, z / rhs.z, w / rhs.w); }
 
     /// Add-assign a vector.
     Vector4& operator +=(const Vector4& rhs)
     {
-        x_ += rhs.x_;
-        y_ += rhs.y_;
-        z_ += rhs.z_;
-        w_ += rhs.w_;
+        x += rhs.x;
+        y += rhs.y;
+        z += rhs.z;
+        w += rhs.w;
         return *this;
     }
 
     /// Subtract-assign a vector.
     Vector4& operator -=(const Vector4& rhs)
     {
-        x_ -= rhs.x_;
-        y_ -= rhs.y_;
-        z_ -= rhs.z_;
-        w_ -= rhs.w_;
+        x -= rhs.x;
+        y -= rhs.y;
+        z -= rhs.z;
+        w -= rhs.w;
         return *this;
     }
 
     /// Multiply-assign a scalar.
     Vector4& operator *=(float rhs)
     {
-        x_ *= rhs;
-        y_ *= rhs;
-        z_ *= rhs;
-        w_ *= rhs;
+        x *= rhs;
+        y *= rhs;
+        z *= rhs;
+        w *= rhs;
         return *this;
     }
 
     /// Multiply-assign a vector.
     Vector4& operator *=(const Vector4& rhs)
     {
-        x_ *= rhs.x_;
-        y_ *= rhs.y_;
-        z_ *= rhs.z_;
-        w_ *= rhs.w_;
+        x *= rhs.x;
+        y *= rhs.y;
+        z *= rhs.z;
+        w *= rhs.w;
         return *this;
     }
 
@@ -144,43 +144,43 @@ public:
     Vector4& operator /=(float rhs)
     {
         float invRhs = 1.0f / rhs;
-        x_ *= invRhs;
-        y_ *= invRhs;
-        z_ *= invRhs;
-        w_ *= invRhs;
+        x *= invRhs;
+        y *= invRhs;
+        z *= invRhs;
+        w *= invRhs;
         return *this;
     }
 
     /// Divide-assign a vector.
     Vector4& operator /=(const Vector4& rhs)
     {
-        x_ /= rhs.x_;
-        y_ /= rhs.y_;
-        z_ /= rhs.z_;
-        w_ /= rhs.w_;
+        x /= rhs.x;
+        y /= rhs.y;
+        z /= rhs.z;
+        w /= rhs.w;
         return *this;
     }
 
     /// Return const value by index.
-    float operator[](unsigned index) const { return (&x_)[index]; }
+    float operator[](unsigned index) const { return (&x)[index]; }
 
     /// Return mutable value by index.
-    float& operator[](unsigned index) { return (&x_)[index]; }
+    float& operator[](unsigned index) { return (&x)[index]; }
 
     /// Calculate dot product.
-    float DotProduct(const Vector4& rhs) const { return x_ * rhs.x_ + y_ * rhs.y_ + z_ * rhs.z_ + w_ * rhs.w_; }
+    float DotProduct(const Vector4& rhs) const { return x * rhs.x + y * rhs.y + z * rhs.z + w * rhs.w; }
 
     /// Calculate absolute dot product.
     float AbsDotProduct(const Vector4& rhs) const
     {
-        return Urho3D::Abs(x_ * rhs.x_) + Urho3D::Abs(y_ * rhs.y_) + Urho3D::Abs(z_ * rhs.z_) + Urho3D::Abs(w_ * rhs.w_);
+        return Urho3D::Abs(x * rhs.x) + Urho3D::Abs(y * rhs.y) + Urho3D::Abs(z * rhs.z) + Urho3D::Abs(w * rhs.w);
     }
 
     /// Project vector onto axis.
     float ProjectOntoAxis(const Vector3& axis) const { return DotProduct(Vector4(axis.Normalized(), 0.0f)); }
 
     /// Return absolute vector.
-    Vector4 Abs() const { return Vector4(Urho3D::Abs(x_), Urho3D::Abs(y_), Urho3D::Abs(z_), Urho3D::Abs(w_)); }
+    Vector4 Abs() const { return Vector4(Urho3D::Abs(x), Urho3D::Abs(y), Urho3D::Abs(z), Urho3D::Abs(w)); }
 
     /// Linear interpolation with another vector.
     Vector4 Lerp(const Vector4& rhs, float t) const { return *this * (1.0f - t) + rhs * t; }
@@ -188,14 +188,14 @@ public:
     /// Test for equality with another vector with epsilon.
     bool Equals(const Vector4& rhs, float eps = M_EPSILON) const
     {
-        return Urho3D::Equals(x_, rhs.x_, eps) && Urho3D::Equals(y_, rhs.y_, eps) && Urho3D::Equals(z_, rhs.z_, eps) && Urho3D::Equals(w_, rhs.w_, eps);
+        return Urho3D::Equals(x, rhs.x, eps) && Urho3D::Equals(y, rhs.y, eps) && Urho3D::Equals(z, rhs.z, eps) && Urho3D::Equals(w, rhs.w, eps);
     }
 
     /// Return whether is NaN.
-    bool IsNaN() const { return Urho3D::IsNaN(x_) || Urho3D::IsNaN(y_) || Urho3D::IsNaN(z_) || Urho3D::IsNaN(w_); }
+    bool IsNaN() const { return Urho3D::IsNaN(x) || Urho3D::IsNaN(y) || Urho3D::IsNaN(z) || Urho3D::IsNaN(w); }
 
     /// Return float data.
-    const float* Data() const { return &x_; }
+    const float* Data() const { return &x; }
 
     /// Return as string.
 
@@ -203,22 +203,22 @@ public:
     unsigned ToHash() const
     {
         unsigned hash = 37;
-        hash = 37 * hash + FloatToRawIntBits(x_);
-        hash = 37 * hash + FloatToRawIntBits(y_);
-        hash = 37 * hash + FloatToRawIntBits(z_);
-        hash = 37 * hash + FloatToRawIntBits(w_);
+        hash = 37 * hash + FloatToRawIntBits(x);
+        hash = 37 * hash + FloatToRawIntBits(y);
+        hash = 37 * hash + FloatToRawIntBits(z);
+        hash = 37 * hash + FloatToRawIntBits(w);
 
         return hash;
     }
 
     /// X coordinate.
-    float x_;
+    float x;
     /// Y coordinate.
-    float y_;
+    float y;
     /// Z coordinate.
-    float z_;
+    float z;
     /// W coordinate.
-    float w_;
+    float w;
 
     /// Zero vector.
     static const Vector4 ZERO;
@@ -233,18 +233,18 @@ inline Vector4 operator *(float lhs, const Vector4& rhs) { return rhs * lhs; }
 inline Vector4 VectorLerp(const Vector4& lhs, const Vector4& rhs, const Vector4& t) { return lhs + (rhs - lhs) * t; }
 
 /// Per-component min of two 4-vectors.
-inline Vector4 VectorMin(const Vector4& lhs, const Vector4& rhs) { return Vector4(Min(lhs.x_, rhs.x_), Min(lhs.y_, rhs.y_), Min(lhs.z_, rhs.z_), Min(lhs.w_, rhs.w_)); }
+inline Vector4 VectorMin(const Vector4& lhs, const Vector4& rhs) { return Vector4(Min(lhs.x, rhs.x), Min(lhs.y, rhs.y), Min(lhs.z, rhs.z), Min(lhs.w, rhs.w)); }
 
 /// Per-component max of two 4-vectors.
-inline Vector4 VectorMax(const Vector4& lhs, const Vector4& rhs) { return Vector4(Max(lhs.x_, rhs.x_), Max(lhs.y_, rhs.y_), Max(lhs.z_, rhs.z_), Max(lhs.w_, rhs.w_)); }
+inline Vector4 VectorMax(const Vector4& lhs, const Vector4& rhs) { return Vector4(Max(lhs.x, rhs.x), Max(lhs.y, rhs.y), Max(lhs.z, rhs.z), Max(lhs.w, rhs.w)); }
 
 /// Per-component floor of 4-vector.
-inline Vector4 VectorFloor(const Vector4& vec) { return Vector4(Floor(vec.x_), Floor(vec.y_), Floor(vec.z_), Floor(vec.w_)); }
+inline Vector4 VectorFloor(const Vector4& vec) { return Vector4(Floor(vec.x), Floor(vec.y), Floor(vec.z), Floor(vec.w)); }
 
 /// Per-component round of 4-vector.
-inline Vector4 VectorRound(const Vector4& vec) { return Vector4(Round(vec.x_), Round(vec.y_), Round(vec.z_), Round(vec.w_)); }
+inline Vector4 VectorRound(const Vector4& vec) { return Vector4(Round(vec.x), Round(vec.y), Round(vec.z), Round(vec.w)); }
 
 /// Per-component ceil of 4-vector.
-inline Vector4 VectorCeil(const Vector4& vec) { return Vector4(Ceil(vec.x_), Ceil(vec.y_), Ceil(vec.z_), Ceil(vec.w_)); }
+inline Vector4 VectorCeil(const Vector4& vec) { return Vector4(Ceil(vec.x), Ceil(vec.y), Ceil(vec.z), Ceil(vec.w)); }
 
 }

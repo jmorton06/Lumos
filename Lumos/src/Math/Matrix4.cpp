@@ -64,15 +64,15 @@ Matrix4 Matrix4::operator *(const Matrix3x4& rhs) const
 
 void Matrix4::Decompose(Vector3& translation, Quaternion& rotation, Vector3& scale) const
 {
-    translation.x_ = m03_;
-    translation.y_ = m13_;
-    translation.z_ = m23_;
+    translation.x = m03_;
+    translation.y = m13_;
+    translation.z = m23_;
 
-    scale.x_ = sqrtf(m00_ * m00_ + m10_ * m10_ + m20_ * m20_);
-    scale.y_ = sqrtf(m01_ * m01_ + m11_ * m11_ + m21_ * m21_);
-    scale.z_ = sqrtf(m02_ * m02_ + m12_ * m12_ + m22_ * m22_);
+    scale.x = sqrtf(m00_ * m00_ + m10_ * m10_ + m20_ * m20_);
+    scale.y = sqrtf(m01_ * m01_ + m11_ * m11_ + m21_ * m21_);
+    scale.z = sqrtf(m02_ * m02_ + m12_ * m12_ + m22_ * m22_);
 
-    Vector3 invScale(1.0f / scale.x_, 1.0f / scale.y_, 1.0f / scale.z_);
+    Vector3 invScale(1.0f / scale.x, 1.0f / scale.y, 1.0f / scale.z);
     rotation = Quaternion(ToMatrix3().Scaled(invScale));
 }
 

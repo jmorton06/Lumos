@@ -38,12 +38,12 @@ void Polyhedron::Define(const BoundingBox& box)
 {
     Vector3 vertices[8];
     vertices[0] = box.min_;
-    vertices[1] = Vector3(box.max_.x_, box.min_.y_, box.min_.z_);
-    vertices[2] = Vector3(box.min_.x_, box.max_.y_, box.min_.z_);
-    vertices[3] = Vector3(box.max_.x_, box.max_.y_, box.min_.z_);
-    vertices[4] = Vector3(box.min_.x_, box.min_.y_, box.max_.z_);
-    vertices[5] = Vector3(box.max_.x_, box.min_.y_, box.max_.z_);
-    vertices[6] = Vector3(box.min_.x_, box.max_.y_, box.max_.z_);
+    vertices[1] = Vector3(box.max_.x, box.min_.y, box.min_.z);
+    vertices[2] = Vector3(box.min_.x, box.max_.y, box.min_.z);
+    vertices[3] = Vector3(box.max_.x, box.max_.y, box.min_.z);
+    vertices[4] = Vector3(box.min_.x, box.min_.y, box.max_.z);
+    vertices[5] = Vector3(box.max_.x, box.min_.y, box.max_.z);
+    vertices[6] = Vector3(box.min_.x, box.max_.y, box.max_.z);
     vertices[7] = box.max_;
 
     faces_.resize(6);
@@ -171,12 +171,12 @@ void Polyhedron::Clip(const BoundingBox& box)
 {
     Vector3 vertices[8];
     vertices[0] = box.min_;
-    vertices[1] = Vector3(box.max_.x_, box.min_.y_, box.min_.z_);
-    vertices[2] = Vector3(box.min_.x_, box.max_.y_, box.min_.z_);
-    vertices[3] = Vector3(box.max_.x_, box.max_.y_, box.min_.z_);
-    vertices[4] = Vector3(box.min_.x_, box.min_.y_, box.max_.z_);
-    vertices[5] = Vector3(box.max_.x_, box.min_.y_, box.max_.z_);
-    vertices[6] = Vector3(box.min_.x_, box.max_.y_, box.max_.z_);
+    vertices[1] = Vector3(box.max_.x, box.min_.y, box.min_.z);
+    vertices[2] = Vector3(box.min_.x, box.max_.y, box.min_.z);
+    vertices[3] = Vector3(box.max_.x, box.max_.y, box.min_.z);
+    vertices[4] = Vector3(box.min_.x, box.min_.y, box.max_.z);
+    vertices[5] = Vector3(box.max_.x, box.min_.y, box.max_.z);
+    vertices[6] = Vector3(box.min_.x, box.max_.y, box.max_.z);
     vertices[7] = box.max_;
 
     Clip(Plane(vertices[5], vertices[7], vertices[3]));

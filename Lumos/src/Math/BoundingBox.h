@@ -81,8 +81,8 @@ public:
 #ifdef URHO3D_SSE
     BoundingBox(__m128 min, __m128 max) noexcept
     {
-        _mm_storeu_ps(&min_.x_, min);
-        _mm_storeu_ps(&max_.x_, max);
+        _mm_storeu_ps(&min_.x, min);
+        _mm_storeu_ps(&max_.x, max);
     }
 #endif
 
@@ -176,22 +176,22 @@ public:
     void Merge(const Vector3& point)
     {
 #ifdef URHO3D_SSE
-        __m128 vec = _mm_set_ps(1.f, point.z_, point.y_, point.x_);
-        _mm_storeu_ps(&min_.x_, _mm_min_ps(_mm_loadu_ps(&min_.x_), vec));
-        _mm_storeu_ps(&max_.x_, _mm_max_ps(_mm_loadu_ps(&max_.x_), vec));
+        __m128 vec = _mm_set_ps(1.f, point.z, point.y, point.x);
+        _mm_storeu_ps(&min_.x, _mm_min_ps(_mm_loadu_ps(&min_.x), vec));
+        _mm_storeu_ps(&max_.x, _mm_max_ps(_mm_loadu_ps(&max_.x), vec));
 #else
-        if (point.x_ < min_.x_)
-            min_.x_ = point.x_;
-        if (point.y_ < min_.y_)
-            min_.y_ = point.y_;
-        if (point.z_ < min_.z_)
-            min_.z_ = point.z_;
-        if (point.x_ > max_.x_)
-            max_.x_ = point.x_;
-        if (point.y_ > max_.y_)
-            max_.y_ = point.y_;
-        if (point.z_ > max_.z_)
-            max_.z_ = point.z_;
+        if (point.x < min_.x)
+            min_.x = point.x;
+        if (point.y < min_.y)
+            min_.y = point.y;
+        if (point.z < min_.z)
+            min_.z = point.z;
+        if (point.x > max_.x)
+            max_.x = point.x;
+        if (point.y > max_.y)
+            max_.y = point.y;
+        if (point.z > max_.z)
+            max_.z = point.z;
 #endif
     }
 
@@ -199,21 +199,21 @@ public:
     void Merge(const BoundingBox& box)
     {
 #ifdef URHO3D_SSE
-        _mm_storeu_ps(&min_.x_, _mm_min_ps(_mm_loadu_ps(&min_.x_), _mm_loadu_ps(&box.min_.x_)));
-        _mm_storeu_ps(&max_.x_, _mm_max_ps(_mm_loadu_ps(&max_.x_), _mm_loadu_ps(&box.max_.x_)));
+        _mm_storeu_ps(&min_.x, _mm_min_ps(_mm_loadu_ps(&min_.x), _mm_loadu_ps(&box.min_.x)));
+        _mm_storeu_ps(&max_.x, _mm_max_ps(_mm_loadu_ps(&max_.x), _mm_loadu_ps(&box.max_.x)));
 #else
-        if (box.min_.x_ < min_.x_)
-            min_.x_ = box.min_.x_;
-        if (box.min_.y_ < min_.y_)
-            min_.y_ = box.min_.y_;
-        if (box.min_.z_ < min_.z_)
-            min_.z_ = box.min_.z_;
-        if (box.max_.x_ > max_.x_)
-            max_.x_ = box.max_.x_;
-        if (box.max_.y_ > max_.y_)
-            max_.y_ = box.max_.y_;
-        if (box.max_.z_ > max_.z_)
-            max_.z_ = box.max_.z_;
+        if (box.min_.x < min_.x)
+            min_.x = box.min_.x;
+        if (box.min_.y < min_.y)
+            min_.y = box.min_.y;
+        if (box.min_.z < min_.z)
+            min_.z = box.min_.z;
+        if (box.max_.x > max_.x)
+            max_.x = box.max_.x;
+        if (box.max_.y > max_.y)
+            max_.y = box.max_.y;
+        if (box.max_.z > max_.z)
+            max_.z = box.max_.z;
 #endif
     }
 
@@ -244,8 +244,8 @@ public:
     void Clear()
     {
 #ifdef URHO3D_SSE
-        _mm_storeu_ps(&min_.x_, _mm_set1_ps(M_INFINITY));
-        _mm_storeu_ps(&max_.x_, _mm_set1_ps(-M_INFINITY));
+        _mm_storeu_ps(&min_.x, _mm_set1_ps(M_INFINITY));
+        _mm_storeu_ps(&max_.x, _mm_set1_ps(-M_INFINITY));
 #else
         min_ = Vector3(M_INFINITY, M_INFINITY, M_INFINITY);
         max_ = Vector3(-M_INFINITY, -M_INFINITY, -M_INFINITY);
@@ -255,7 +255,7 @@ public:
     /// Return true if this bounding box is defined via a previous call to Define() or Merge().
     bool Defined() const
     {
-        return min_.x_ != M_INFINITY;
+        return min_.x != M_INFINITY;
     }
 
     /// Return center.
@@ -279,8 +279,8 @@ public:
     /// Test if a point is inside.
     Intersection IsInside(const Vector3& point) const
     {
-        if (point.x_ < min_.x_ || point.x_ > max_.x_ || point.y_ < min_.y_ || point.y_ > max_.y_ ||
-            point.z_ < min_.z_ || point.z_ > max_.z_)
+        if (point.x < min_.x || point.x > max_.x || point.y < min_.y || point.y > max_.y ||
+            point.z < min_.z || point.z > max_.z)
             return OUTSIDE;
         else
             return INSIDE;
@@ -289,11 +289,11 @@ public:
     /// Test if another bounding box is inside, outside or intersects.
     Intersection IsInside(const BoundingBox& box) const
     {
-        if (box.max_.x_ < min_.x_ || box.min_.x_ > max_.x_ || box.max_.y_ < min_.y_ || box.min_.y_ > max_.y_ ||
-            box.max_.z_ < min_.z_ || box.min_.z_ > max_.z_)
+        if (box.max_.x < min_.x || box.min_.x > max_.x || box.max_.y < min_.y || box.min_.y > max_.y ||
+            box.max_.z < min_.z || box.min_.z > max_.z)
             return OUTSIDE;
-        else if (box.min_.x_ < min_.x_ || box.max_.x_ > max_.x_ || box.min_.y_ < min_.y_ || box.max_.y_ > max_.y_ ||
-                 box.min_.z_ < min_.z_ || box.max_.z_ > max_.z_)
+        else if (box.min_.x < min_.x || box.max_.x > max_.x || box.min_.y < min_.y || box.max_.y > max_.y ||
+                 box.min_.z < min_.z || box.max_.z > max_.z)
             return INTERSECTS;
         else
             return INSIDE;
@@ -302,8 +302,8 @@ public:
     /// Test if another bounding box is (partially) inside or outside.
     Intersection IsInsideFast(const BoundingBox& box) const
     {
-        if (box.max_.x_ < min_.x_ || box.min_.x_ > max_.x_ || box.max_.y_ < min_.y_ || box.min_.y_ > max_.y_ ||
-            box.max_.z_ < min_.z_ || box.min_.z_ > max_.z_)
+        if (box.max_.x < min_.x || box.min_.x > max_.x || box.max_.y < min_.y || box.min_.y > max_.y ||
+            box.max_.z < min_.z || box.min_.z > max_.z)
             return OUTSIDE;
         else
             return INSIDE;

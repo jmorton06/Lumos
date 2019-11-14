@@ -38,14 +38,14 @@ public:
     /// Construct an identity quaternion.
     Quaternion() noexcept
 #ifndef URHO3D_SSE
-       :w_(1.0f),
-        x_(0.0f),
-        y_(0.0f),
-        z_(0.0f)
+       :w(1.0f),
+        x(0.0f),
+        y(0.0f),
+        z(0.0f)
 #endif
     {
 #ifdef URHO3D_SSE
-        _mm_storeu_ps(&w_, _mm_set_ps(0.f, 0.f, 0.f, 1.f));
+        _mm_storeu_ps(&w, _mm_set_ps(0.f, 0.f, 0.f, 1.f));
 #endif
     }
 
@@ -53,13 +53,13 @@ public:
     Quaternion(const Quaternion& quat) noexcept
 #if defined(URHO3D_SSE) && (!defined(_MSC_VER) || _MSC_VER >= 1700) /* Visual Studio 2012 and newer. VS2010 has a bug with these, see https://github.com/urho3d/Urho3D/issues/1044 */
     {
-        _mm_storeu_ps(&w_, _mm_loadu_ps(&quat.w_));
+        _mm_storeu_ps(&w, _mm_loadu_ps(&quat.w));
     }
 #else
-       :w_(quat.w_),
-        x_(quat.x_),
-        y_(quat.y_),
-        z_(quat.z_)
+       :w(quat.w),
+        x(quat.x),
+        y(quat.y),
+        z(quat.z)
     {
     }
 #endif
@@ -67,28 +67,28 @@ public:
     /// Construct from values.
     Quaternion(float w, float x, float y, float z) noexcept
 #ifndef URHO3D_SSE
-       :w_(w),
-        x_(x),
-        y_(y),
-        z_(z)
+       :w(w),
+        x(x),
+        y(y),
+        z(z)
 #endif
     {
 #ifdef URHO3D_SSE
-        _mm_storeu_ps(&w_, _mm_set_ps(z, y, x, w));
+        _mm_storeu_ps(&w, _mm_set_ps(z, y, x, w));
 #endif
     }
 
     /// Construct from a float array.
     explicit Quaternion(const float* data) noexcept
 #ifndef URHO3D_SSE
-       :w_(data[0]),
-        x_(data[1]),
-        y_(data[2]),
-        z_(data[3])
+       :w(data[0]),
+        x(data[1]),
+        y(data[2]),
+        z(data[3])
 #endif
     {
 #ifdef URHO3D_SSE
-        _mm_storeu_ps(&w_, _mm_loadu_ps(data));
+        _mm_storeu_ps(&w, _mm_loadu_ps(data));
 #endif
     }
 
@@ -113,7 +113,7 @@ public:
     /// Construct from Euler angles (in degrees.)
     explicit Quaternion(Vector3 angles) noexcept
     {
-        FromEulerAngles(angles.x_, angles.y_, angles.z_);
+        FromEulerAngles(angles.x, angles.y, angles.z);
     }
 
     /// Construct from the rotation difference between two direction vectors.
@@ -137,7 +137,7 @@ public:
 #ifdef URHO3D_SSE
     explicit Quaternion(__m128 wxyz) noexcept
     {
-        _mm_storeu_ps(&w_, wxyz);
+        _mm_storeu_ps(&w, wxyz);
     }
 #endif
 
@@ -145,12 +145,12 @@ public:
     Quaternion& operator =(const Quaternion& rhs) noexcept
     {
 #if defined(URHO3D_SSE) && (!defined(_MSC_VER) || _MSC_VER >= 1700) /* Visual Studio 2012 and newer. VS2010 has a bug with these, see https://github.com/urho3d/Urho3D/issues/1044 */
-        _mm_storeu_ps(&w_, _mm_loadu_ps(&rhs.w_));
+        _mm_storeu_ps(&w, _mm_loadu_ps(&rhs.w));
 #else
-        w_ = rhs.w_;
-        x_ = rhs.x_;
-        y_ = rhs.y_;
-        z_ = rhs.z_;
+        w = rhs.w;
+        x = rhs.x;
+        y = rhs.y;
+        z = rhs.z;
 #endif
         return *this;
     }
@@ -159,12 +159,12 @@ public:
     Quaternion& operator +=(const Quaternion& rhs)
     {
 #ifdef URHO3D_SSE
-        _mm_storeu_ps(&w_, _mm_add_ps(_mm_loadu_ps(&w_), _mm_loadu_ps(&rhs.w_)));
+        _mm_storeu_ps(&w, _mm_add_ps(_mm_loadu_ps(&w), _mm_loadu_ps(&rhs.w)));
 #else
-        w_ += rhs.w_;
-        x_ += rhs.x_;
-        y_ += rhs.y_;
-        z_ += rhs.z_;
+        w += rhs.w;
+        x += rhs.x;
+        y += rhs.y;
+        z += rhs.z;
 #endif
         return *this;
     }
@@ -173,12 +173,12 @@ public:
     Quaternion& operator *=(float rhs)
     {
 #ifdef URHO3D_SSE
-        _mm_storeu_ps(&w_, _mm_mul_ps(_mm_loadu_ps(&w_), _mm_set1_ps(rhs)));
+        _mm_storeu_ps(&w, _mm_mul_ps(_mm_loadu_ps(&w), _mm_set1_ps(rhs)));
 #else
-        w_ *= rhs;
-        x_ *= rhs;
-        y_ *= rhs;
-        z_ *= rhs;
+        w *= rhs;
+        x *= rhs;
+        y *= rhs;
+        z *= rhs;
 #endif
         return *this;
     }
@@ -187,12 +187,12 @@ public:
     bool operator ==(const Quaternion& rhs) const
     {
 #ifdef URHO3D_SSE
-        __m128 c = _mm_cmpeq_ps(_mm_loadu_ps(&w_), _mm_loadu_ps(&rhs.w_));
+        __m128 c = _mm_cmpeq_ps(_mm_loadu_ps(&w), _mm_loadu_ps(&rhs.w));
         c = _mm_and_ps(c, _mm_movehl_ps(c, c));
         c = _mm_and_ps(c, _mm_shuffle_ps(c, c, _MM_SHUFFLE(1, 1, 1, 1)));
         return _mm_cvtsi128_si32(_mm_castps_si128(c)) == -1;
 #else
-        return w_ == rhs.w_ && x_ == rhs.x_ && y_ == rhs.y_ && z_ == rhs.z_;
+        return w == rhs.w && x == rhs.x && y == rhs.y && z == rhs.z;
 #endif
     }
 
@@ -203,9 +203,9 @@ public:
     Quaternion operator *(float rhs) const
     {
 #ifdef URHO3D_SSE
-        return Quaternion(_mm_mul_ps(_mm_loadu_ps(&w_), _mm_set1_ps(rhs)));
+        return Quaternion(_mm_mul_ps(_mm_loadu_ps(&w), _mm_set1_ps(rhs)));
 #else
-        return Quaternion(w_ * rhs, x_ * rhs, y_ * rhs, z_ * rhs);
+        return Quaternion(w * rhs, x * rhs, y * rhs, z * rhs);
 #endif
     }
 
@@ -213,9 +213,9 @@ public:
     Quaternion operator -() const
     {
 #ifdef URHO3D_SSE
-        return Quaternion(_mm_xor_ps(_mm_loadu_ps(&w_), _mm_castsi128_ps(_mm_set1_epi32((int)0x80000000UL))));
+        return Quaternion(_mm_xor_ps(_mm_loadu_ps(&w), _mm_castsi128_ps(_mm_set1_epi32((int)0x80000000UL))));
 #else
-        return Quaternion(-w_, -x_, -y_, -z_);
+        return Quaternion(-w, -x, -y, -z);
 #endif
     }
 
@@ -223,9 +223,9 @@ public:
     Quaternion operator +(const Quaternion& rhs) const
     {
 #ifdef URHO3D_SSE
-        return Quaternion(_mm_add_ps(_mm_loadu_ps(&w_), _mm_loadu_ps(&rhs.w_)));
+        return Quaternion(_mm_add_ps(_mm_loadu_ps(&w), _mm_loadu_ps(&rhs.w)));
 #else
-        return Quaternion(w_ + rhs.w_, x_ + rhs.x_, y_ + rhs.y_, z_ + rhs.z_);
+        return Quaternion(w + rhs.w, x + rhs.x, y + rhs.y, z + rhs.z);
 #endif
     }
 
@@ -233,9 +233,9 @@ public:
     Quaternion operator -(const Quaternion& rhs) const
     {
 #ifdef URHO3D_SSE
-        return Quaternion(_mm_sub_ps(_mm_loadu_ps(&w_), _mm_loadu_ps(&rhs.w_)));
+        return Quaternion(_mm_sub_ps(_mm_loadu_ps(&w), _mm_loadu_ps(&rhs.w)));
 #else
-        return Quaternion(w_ - rhs.w_, x_ - rhs.x_, y_ - rhs.y_, z_ - rhs.z_);
+        return Quaternion(w - rhs.w, x - rhs.x, y - rhs.y, z - rhs.z);
 #endif
     }
 
@@ -243,8 +243,8 @@ public:
     Quaternion operator *(const Quaternion& rhs) const
     {
 #ifdef URHO3D_SSE
-        __m128 q1 = _mm_loadu_ps(&w_);
-        __m128 q2 = _mm_loadu_ps(&rhs.w_);
+        __m128 q1 = _mm_loadu_ps(&w);
+        __m128 q2 = _mm_loadu_ps(&rhs.w);
         q2 = _mm_shuffle_ps(q2, q2, _MM_SHUFFLE(0, 3, 2, 1));
         const __m128 signy = _mm_castsi128_ps(_mm_set_epi32((int)0x80000000UL, (int)0x80000000UL, 0, 0));
         const __m128 signx = _mm_shuffle_ps(signy, signy, _MM_SHUFFLE(2, 0, 2, 0));
@@ -256,10 +256,10 @@ public:
         return Quaternion(_mm_shuffle_ps(out, out, _MM_SHUFFLE(2, 1, 0, 3)));
 #else
         return Quaternion(
-            w_ * rhs.w_ - x_ * rhs.x_ - y_ * rhs.y_ - z_ * rhs.z_,
-            w_ * rhs.x_ + x_ * rhs.w_ + y_ * rhs.z_ - z_ * rhs.y_,
-            w_ * rhs.y_ + y_ * rhs.w_ + z_ * rhs.x_ - x_ * rhs.z_,
-            w_ * rhs.z_ + z_ * rhs.w_ + x_ * rhs.y_ - y_ * rhs.x_
+            w * rhs.w - x * rhs.x - y * rhs.y - z * rhs.z,
+            w * rhs.x + x * rhs.w + y * rhs.z - z * rhs.y,
+            w * rhs.y + y * rhs.w + z * rhs.x - x * rhs.z,
+            w * rhs.z + z * rhs.w + x * rhs.y - y * rhs.x
         );
 #endif
     }
@@ -268,9 +268,9 @@ public:
     Vector3 operator *(const Vector3& rhs) const
     {
 #ifdef URHO3D_SSE
-        __m128 q = _mm_loadu_ps(&w_);
+        __m128 q = _mm_loadu_ps(&w);
         q = _mm_shuffle_ps(q, q, _MM_SHUFFLE(0, 3, 2, 1));
-        __m128 v = _mm_set_ps(0.f, rhs.z_, rhs.y_, rhs.x_);
+        __m128 v = _mm_set_ps(0.f, rhs.z, rhs.y, rhs.x);
         const __m128 W = _mm_shuffle_ps(q, q, _MM_SHUFFLE(3, 3, 3, 3));
         const __m128 a_yzx = _mm_shuffle_ps(q, q, _MM_SHUFFLE(3, 0, 2, 1));
         __m128 x = _mm_mul_ps(q, _mm_shuffle_ps(v, v, _MM_SHUFFLE(3, 0, 2, 1)));
@@ -288,11 +288,11 @@ public:
             _mm_cvtss_f32(_mm_shuffle_ps(s, s, _MM_SHUFFLE(1, 1, 1, 1))),
             _mm_cvtss_f32(_mm_movehl_ps(s, s)));
 #else
-        Vector3 qVec(x_, y_, z_);
+        Vector3 qVec(x, y, z);
         Vector3 cross1(qVec.CrossProduct(rhs));
         Vector3 cross2(qVec.CrossProduct(cross1));
 
-        return rhs + 2.0f * (cross1 * w_ + cross2);
+        return rhs + 2.0f * (cross1 * w + cross2);
 #endif
     }
 
@@ -313,7 +313,7 @@ public:
     void Normalize()
     {
 #ifdef URHO3D_SSE
-        __m128 q = _mm_loadu_ps(&w_);
+        __m128 q = _mm_loadu_ps(&w);
         __m128 n = _mm_mul_ps(q, q);
         n = _mm_add_ps(n, _mm_shuffle_ps(n, n, _MM_SHUFFLE(2, 3, 0, 1)));
         n = _mm_add_ps(n, _mm_shuffle_ps(n, n, _MM_SHUFFLE(0, 1, 2, 3)));
@@ -321,16 +321,16 @@ public:
         __m128 e3 = _mm_mul_ps(_mm_mul_ps(e, e), e);
         __m128 half = _mm_set1_ps(0.5f);
         n = _mm_add_ps(e, _mm_mul_ps(half, _mm_sub_ps(e, _mm_mul_ps(n, e3))));
-        _mm_storeu_ps(&w_, _mm_mul_ps(q, n));
+        _mm_storeu_ps(&w, _mm_mul_ps(q, n));
 #else
         float lenSquared = LengthSquared();
         if (!Urho3D::Equals(lenSquared, 1.0f) && lenSquared > 0.0f)
         {
             float invLen = 1.0f / sqrtf(lenSquared);
-            w_ *= invLen;
-            x_ *= invLen;
-            y_ *= invLen;
-            z_ *= invLen;
+            w *= invLen;
+            x *= invLen;
+            y *= invLen;
+            z *= invLen;
         }
 #endif
     }
@@ -339,7 +339,7 @@ public:
     Quaternion Normalized() const
     {
 #ifdef URHO3D_SSE
-        __m128 q = _mm_loadu_ps(&w_);
+        __m128 q = _mm_loadu_ps(&w);
         __m128 n = _mm_mul_ps(q, q);
         n = _mm_add_ps(n, _mm_shuffle_ps(n, n, _MM_SHUFFLE(2, 3, 0, 1)));
         n = _mm_add_ps(n, _mm_shuffle_ps(n, n, _MM_SHUFFLE(0, 1, 2, 3)));
@@ -364,7 +364,7 @@ public:
     Quaternion Inverse() const
     {
 #ifdef URHO3D_SSE
-        __m128 q = _mm_loadu_ps(&w_);
+        __m128 q = _mm_loadu_ps(&w);
         __m128 n = _mm_mul_ps(q, q);
         n = _mm_add_ps(n, _mm_shuffle_ps(n, n, _MM_SHUFFLE(2, 3, 0, 1)));
         n = _mm_add_ps(n, _mm_shuffle_ps(n, n, _MM_SHUFFLE(0, 1, 2, 3)));
@@ -384,13 +384,13 @@ public:
     float LengthSquared() const
     {
 #ifdef URHO3D_SSE
-        __m128 q = _mm_loadu_ps(&w_);
+        __m128 q = _mm_loadu_ps(&w);
         __m128 n = _mm_mul_ps(q, q);
         n = _mm_add_ps(n, _mm_shuffle_ps(n, n, _MM_SHUFFLE(2, 3, 0, 1)));
         n = _mm_add_ps(n, _mm_shuffle_ps(n, n, _MM_SHUFFLE(0, 1, 2, 3)));
         return _mm_cvtss_f32(n);
 #else
-        return w_ * w_ + x_ * x_ + y_ * y_ + z_ * z_;
+        return w * w + x * x + y * y + z * z;
 #endif
     }
 
@@ -398,37 +398,37 @@ public:
     float DotProduct(const Quaternion& rhs) const
     {
 #ifdef URHO3D_SSE
-        __m128 q1 = _mm_loadu_ps(&w_);
-        __m128 q2 = _mm_loadu_ps(&rhs.w_);
+        __m128 q1 = _mm_loadu_ps(&w);
+        __m128 q2 = _mm_loadu_ps(&rhs.w);
         __m128 n = _mm_mul_ps(q1, q2);
         n = _mm_add_ps(n, _mm_shuffle_ps(n, n, _MM_SHUFFLE(2, 3, 0, 1)));
         n = _mm_add_ps(n, _mm_shuffle_ps(n, n, _MM_SHUFFLE(0, 1, 2, 3)));
         return _mm_cvtss_f32(n);
 #else
-        return w_ * rhs.w_ + x_ * rhs.x_ + y_ * rhs.y_ + z_ * rhs.z_;
+        return w * rhs.w + x * rhs.x + y * rhs.y + z * rhs.z;
 #endif
     }
 
     /// Test for equality with another quaternion with epsilon.
     bool Equals(const Quaternion& rhs, float eps = M_EPSILON) const
     {
-        return Urho3D::Equals(w_, rhs.w_, eps) && Urho3D::Equals(x_, rhs.x_, eps) && Urho3D::Equals(y_, rhs.y_, eps) && Urho3D::Equals(z_, rhs.z_, eps);
+        return Urho3D::Equals(w, rhs.w, eps) && Urho3D::Equals(x, rhs.x, eps) && Urho3D::Equals(y, rhs.y, eps) && Urho3D::Equals(z, rhs.z, eps);
     }
 
     /// Return whether any element is NaN.
-    bool IsNaN() const { return Urho3D::IsNaN(w_) || Urho3D::IsNaN(x_) || Urho3D::IsNaN(y_) || Urho3D::IsNaN(z_); }
+    bool IsNaN() const { return Urho3D::IsNaN(w) || Urho3D::IsNaN(x) || Urho3D::IsNaN(y) || Urho3D::IsNaN(z); }
 
     /// Return whether any element is Inf.
-    bool IsInf() const { return Urho3D::IsInf(w_) || Urho3D::IsInf(x_) || Urho3D::IsInf(y_) || Urho3D::IsInf(z_); }
+    bool IsInf() const { return Urho3D::IsInf(w) || Urho3D::IsInf(x) || Urho3D::IsInf(y) || Urho3D::IsInf(z); }
 
     /// Return conjugate.
     Quaternion Conjugate() const
     {
 #ifdef URHO3D_SSE
-        __m128 q = _mm_loadu_ps(&w_);
+        __m128 q = _mm_loadu_ps(&w);
         return Quaternion(_mm_xor_ps(q, _mm_castsi128_ps(_mm_set_epi32((int)0x80000000UL, (int)0x80000000UL, (int)0x80000000UL, 0))));
 #else
-        return Quaternion(w_, -x_, -y_, -z_);
+        return Quaternion(w, -x, -y, -z);
 #endif
     }
 
@@ -452,7 +452,7 @@ public:
     Quaternion Nlerp(const Quaternion& rhs, float t, bool shortestPath = false) const;
 
     /// Return float data.
-    const float* Data() const { return &w_; }
+    const float* Data() const { return &w; }
 
     /// Return as string.
 
@@ -460,22 +460,22 @@ public:
     unsigned ToHash() const
     {
         unsigned hash = 37;
-        hash = 37 * hash + FloatToRawIntBits(x_);
-        hash = 37 * hash + FloatToRawIntBits(y_);
-        hash = 37 * hash + FloatToRawIntBits(z_);
-        hash = 37 * hash + FloatToRawIntBits(w_);
+        hash = 37 * hash + FloatToRawIntBits(x);
+        hash = 37 * hash + FloatToRawIntBits(y);
+        hash = 37 * hash + FloatToRawIntBits(z);
+        hash = 37 * hash + FloatToRawIntBits(w);
 
         return hash;
     }
 
     /// W coordinate.
-    float w_;
+    float w;
     /// X coordinate.
-    float x_;
+    float x;
     /// Y coordinate.
-    float y_;
+    float y;
     /// Z coordinate.
-    float z_;
+    float z;
 
     /// Identity quaternion.
     static const Quaternion IDENTITY;

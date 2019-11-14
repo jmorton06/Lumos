@@ -81,9 +81,9 @@ public:
     /// Define from a 4-dimensional vector, where the w coordinate is the plane parameter.
     void Define(const Vector4& plane)
     {
-        normal_ = Vector3(plane.x_, plane.y_, plane.z_);
+        normal_ = Vector3(plane.x, plane.y, plane.z);
         absNormal_ = normal_.Abs();
-        d_ = plane.w_;
+        d_ = plane.w;
     }
 
     /// Transform with a 3x3 matrix.

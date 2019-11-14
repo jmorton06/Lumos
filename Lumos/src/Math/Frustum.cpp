@@ -32,8 +32,8 @@ namespace Urho3D
 inline Vector3 ClipEdgeZ(const Vector3& v0, const Vector3& v1, float clipZ)
 {
     return Vector3(
-        v1.x_ + (v0.x_ - v1.x_) * ((clipZ - v1.z_) / (v0.z_ - v1.z_)),
-        v1.y_ + (v0.y_ - v1.y_) * ((clipZ - v1.z_) / (v0.z_ - v1.z_)),
+        v1.x + (v0.x - v1.x) * ((clipZ - v1.z) / (v0.z - v1.z)),
+        v1.y + (v0.y - v1.y) * ((clipZ - v1.z) / (v0.z - v1.z)),
         clipZ
     );
 }
@@ -41,20 +41,20 @@ inline Vector3 ClipEdgeZ(const Vector3& v0, const Vector3& v1, float clipZ)
 void ProjectAndMergeEdge(Vector3 v0, Vector3 v1, Rect& rect, const Matrix4& projection)
 {
     // Check if both vertices behind near plane
-    if (v0.z_ < M_MIN_NEARCLIP && v1.z_ < M_MIN_NEARCLIP)
+    if (v0.z < M_MIN_NEARCLIP && v1.z < M_MIN_NEARCLIP)
         return;
 
     // Check if need to clip one of the vertices
-    if (v1.z_ < M_MIN_NEARCLIP)
+    if (v1.z < M_MIN_NEARCLIP)
         v1 = ClipEdgeZ(v1, v0, M_MIN_NEARCLIP);
-    else if (v0.z_ < M_MIN_NEARCLIP)
+    else if (v0.z < M_MIN_NEARCLIP)
         v0 = ClipEdgeZ(v0, v1, M_MIN_NEARCLIP);
 
     // Project, perspective divide and merge
     Vector3 tV0(projection * v0);
     Vector3 tV1(projection * v1);
-    rect.Merge(Vector2(tV0.x_, tV0.y_));
-    rect.Merge(Vector2(tV1.x_, tV1.y_));
+    rect.Merge(Vector2(tV0.x, tV0.y));
+    rect.Merge(Vector2(tV1.x, tV1.y));
 }
 
 Frustum::Frustum(const Frustum& frustum) noexcept
@@ -79,12 +79,12 @@ void Frustum::Define(float fov, float aspectRatio, float zoom, float nearZ, floa
     float halfViewSize = tanf(fov * M_DEGTORAD_2) / zoom;
     Vector3 near, far;
 
-    near.z_ = nearZ;
-    near.y_ = near.z_ * halfViewSize;
-    near.x_ = near.y_ * aspectRatio;
-    far.z_ = farZ;
-    far.y_ = far.z_ * halfViewSize;
-    far.x_ = far.y_ * aspectRatio;
+    near.z = nearZ;
+    near.y = near.z * halfViewSize;
+    near.x = near.y * aspectRatio;
+    far.z = farZ;
+    far.y = far.z * halfViewSize;
+    far.x = far.y * aspectRatio;
 
     Define(near, far, transform);
 }
@@ -92,27 +92,27 @@ void Frustum::Define(float fov, float aspectRatio, float zoom, float nearZ, floa
 void Frustum::Define(const Vector3& near, const Vector3& far, const Matrix3x4& transform)
 {
     vertices_[0] = transform * near;
-    vertices_[1] = transform * Vector3(near.x_, -near.y_, near.z_);
-    vertices_[2] = transform * Vector3(-near.x_, -near.y_, near.z_);
-    vertices_[3] = transform * Vector3(-near.x_, near.y_, near.z_);
+    vertices_[1] = transform * Vector3(near.x, -near.y, near.z);
+    vertices_[2] = transform * Vector3(-near.x, -near.y, near.z);
+    vertices_[3] = transform * Vector3(-near.x, near.y, near.z);
     vertices_[4] = transform * far;
-    vertices_[5] = transform * Vector3(far.x_, -far.y_, far.z_);
-    vertices_[6] = transform * Vector3(-far.x_, -far.y_, far.z_);
-    vertices_[7] = transform * Vector3(-far.x_, far.y_, far.z_);
+    vertices_[5] = transform * Vector3(far.x, -far.y, far.z);
+    vertices_[6] = transform * Vector3(-far.x, -far.y, far.z);
+    vertices_[7] = transform * Vector3(-far.x, far.y, far.z);
 
     UpdatePlanes();
 }
 
 void Frustum::Define(const BoundingBox& box, const Matrix3x4& transform)
 {
-    vertices_[0] = transform * Vector3(box.max_.x_, box.max_.y_, box.min_.z_);
-    vertices_[1] = transform * Vector3(box.max_.x_, box.min_.y_, box.min_.z_);
-    vertices_[2] = transform * Vector3(box.min_.x_, box.min_.y_, box.min_.z_);
-    vertices_[3] = transform * Vector3(box.min_.x_, box.max_.y_, box.min_.z_);
-    vertices_[4] = transform * Vector3(box.max_.x_, box.max_.y_, box.max_.z_);
-    vertices_[5] = transform * Vector3(box.max_.x_, box.min_.y_, box.max_.z_);
-    vertices_[6] = transform * Vector3(box.min_.x_, box.min_.y_, box.max_.z_);
-    vertices_[7] = transform * Vector3(box.min_.x_, box.max_.y_, box.max_.z_);
+    vertices_[0] = transform * Vector3(box.max_.x, box.max_.y, box.min_.z);
+    vertices_[1] = transform * Vector3(box.max_.x, box.min_.y, box.min_.z);
+    vertices_[2] = transform * Vector3(box.min_.x, box.min_.y, box.min_.z);
+    vertices_[3] = transform * Vector3(box.min_.x, box.max_.y, box.min_.z);
+    vertices_[4] = transform * Vector3(box.max_.x, box.max_.y, box.max_.z);
+    vertices_[5] = transform * Vector3(box.max_.x, box.min_.y, box.max_.z);
+    vertices_[6] = transform * Vector3(box.min_.x, box.min_.y, box.max_.z);
+    vertices_[7] = transform * Vector3(box.min_.x, box.max_.y, box.max_.z);
 
     UpdatePlanes();
 }
@@ -140,10 +140,10 @@ void Frustum::DefineOrtho(float orthoSize, float aspectRatio, float zoom, float 
     float halfViewSize = orthoSize * 0.5f / zoom;
     Vector3 near, far;
 
-    near.z_ = nearZ;
-    far.z_ = farZ;
-    far.y_ = near.y_ = halfViewSize;
-    far.x_ = near.x_ = near.y_ * aspectRatio;
+    near.z = nearZ;
+    far.z = farZ;
+    far.y = near.y = halfViewSize;
+    far.x = near.x = near.y * aspectRatio;
 
     Define(near, far, transform);
 }
@@ -155,8 +155,8 @@ void Frustum::DefineSplit(const Matrix4& projection, float near, float far)
     // Figure out depth values for near & far
     Vector4 nearTemp = projection * Vector4(0.0f, 0.0f, near, 1.0f);
     Vector4 farTemp = projection * Vector4(0.0f, 0.0f, far, 1.0f);
-    float nearZ = nearTemp.z_ / nearTemp.w_;
-    float farZ = farTemp.z_ / farTemp.w_;
+    float nearZ = nearTemp.z / nearTemp.w;
+    float farZ = farTemp.z / farTemp.w;
 
     vertices_[0] = projInverse * Vector3(1.0f, 1.0f, nearZ);
     vertices_[1] = projInverse * Vector3(1.0f, -1.0f, nearZ);

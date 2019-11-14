@@ -87,8 +87,8 @@ public:
     Vector2 operator *(const Vector2& rhs) const
     {
         return Vector2(
-            m00_ * rhs.x_ + m01_ * rhs.y_,
-            m10_ * rhs.x_ + m11_ * rhs.y_
+            m00_ * rhs.x + m01_ * rhs.y,
+            m10_ * rhs.x + m11_ * rhs.y
         );
     }
 
@@ -139,8 +139,8 @@ public:
     /// Set scaling elements.
     void SetScale(const Vector2& scale)
     {
-        m00_ = scale.x_;
-        m11_ = scale.y_;
+        m00_ = scale.x;
+        m11_ = scale.y;
     }
 
     /// Set uniform scaling elements.
@@ -174,10 +174,10 @@ public:
     Matrix2 Scaled(const Vector2& scale) const
     {
         return Matrix2(
-            m00_ * scale.x_,
-            m01_ * scale.y_,
-            m10_ * scale.x_,
-            m11_ * scale.y_
+            m00_ * scale.x,
+            m01_ * scale.y,
+            m10_ * scale.x,
+            m11_ * scale.y
         );
     }
 

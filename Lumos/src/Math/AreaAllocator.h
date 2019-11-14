@@ -44,10 +44,10 @@ public:
     bool Allocate(int width, int height, int& x, int& y);
 
     /// Return the current width.
-    int GetWidth() const { return size_.x_; }
+    int GetWidth() const { return size_.x; }
 
     /// Return the current height.
-    int GetHeight() const { return size_.y_; }
+    int GetHeight() const { return size_.y; }
 
     /// Return whether uses fast mode. Fast mode uses a simpler allocation scheme which may waste free space, but is OK for eg. fonts.
     bool GetFastMode() const { return fastMode_; }

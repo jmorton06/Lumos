@@ -34,25 +34,25 @@ class  IntVector3
 public:
     /// Construct a zero vector.
     IntVector3() noexcept :
-        x_(0),
-        y_(0),
-        z_(0)
+        x(0),
+        y(0),
+        z(0)
     {
     }
 
     /// Construct from coordinates.
     IntVector3(int x, int y, int z) noexcept :
-        x_(x),
-        y_(y),
-        z_(z)
+        x(x),
+        y(y),
+        z(z)
     {
     }
 
     /// Construct from an int array.
     explicit IntVector3(const int* data) noexcept :
-        x_(data[0]),
-        y_(data[1]),
-        z_(data[2])
+        x(data[0]),
+        y(data[1]),
+        z(data[2])
     {
     }
 
@@ -63,103 +63,103 @@ public:
     IntVector3& operator =(const IntVector3& rhs) noexcept = default;
 
     /// Test for equality with another vector.
-    bool operator ==(const IntVector3& rhs) const { return x_ == rhs.x_ && y_ == rhs.y_ && z_ == rhs.z_; }
+    bool operator ==(const IntVector3& rhs) const { return x == rhs.x && y == rhs.y && z == rhs.z; }
 
     /// Test for inequality with another vector.
-    bool operator !=(const IntVector3& rhs) const { return x_ != rhs.x_ || y_ != rhs.y_ || z_ != rhs.z_; }
+    bool operator !=(const IntVector3& rhs) const { return x != rhs.x || y != rhs.y || z != rhs.z; }
 
     /// Add a vector.
-    IntVector3 operator +(const IntVector3& rhs) const { return IntVector3(x_ + rhs.x_, y_ + rhs.y_, z_ + rhs.z_); }
+    IntVector3 operator +(const IntVector3& rhs) const { return IntVector3(x + rhs.x, y + rhs.y, z + rhs.z); }
 
     /// Return negation.
-    IntVector3 operator -() const { return IntVector3(-x_, -y_, -z_); }
+    IntVector3 operator -() const { return IntVector3(-x, -y, -z); }
 
     /// Subtract a vector.
-    IntVector3 operator -(const IntVector3& rhs) const { return IntVector3(x_ - rhs.x_, y_ - rhs.y_, z_ - rhs.z_); }
+    IntVector3 operator -(const IntVector3& rhs) const { return IntVector3(x - rhs.x, y - rhs.y, z - rhs.z); }
 
     /// Multiply with a scalar.
-    IntVector3 operator *(int rhs) const { return IntVector3(x_ * rhs, y_ * rhs, z_ * rhs); }
+    IntVector3 operator *(int rhs) const { return IntVector3(x * rhs, y * rhs, z * rhs); }
 
     /// Multiply with a vector.
-    IntVector3 operator *(const IntVector3& rhs) const { return IntVector3(x_ * rhs.x_, y_ * rhs.y_, z_ * rhs.z_); }
+    IntVector3 operator *(const IntVector3& rhs) const { return IntVector3(x * rhs.x, y * rhs.y, z * rhs.z); }
 
     /// Divide by a scalar.
-    IntVector3 operator /(int rhs) const { return IntVector3(x_ / rhs, y_ / rhs, z_ / rhs); }
+    IntVector3 operator /(int rhs) const { return IntVector3(x / rhs, y / rhs, z / rhs); }
 
     /// Divide by a vector.
-    IntVector3 operator /(const IntVector3& rhs) const { return IntVector3(x_ / rhs.x_, y_ / rhs.y_, z_ / rhs.z_); }
+    IntVector3 operator /(const IntVector3& rhs) const { return IntVector3(x / rhs.x, y / rhs.y, z / rhs.z); }
 
     /// Add-assign a vector.
     IntVector3& operator +=(const IntVector3& rhs)
     {
-        x_ += rhs.x_;
-        y_ += rhs.y_;
-        z_ += rhs.z_;
+        x += rhs.x;
+        y += rhs.y;
+        z += rhs.z;
         return *this;
     }
 
     /// Subtract-assign a vector.
     IntVector3& operator -=(const IntVector3& rhs)
     {
-        x_ -= rhs.x_;
-        y_ -= rhs.y_;
-        z_ -= rhs.z_;
+        x -= rhs.x;
+        y -= rhs.y;
+        z -= rhs.z;
         return *this;
     }
 
     /// Multiply-assign a scalar.
     IntVector3& operator *=(int rhs)
     {
-        x_ *= rhs;
-        y_ *= rhs;
-        z_ *= rhs;
+        x *= rhs;
+        y *= rhs;
+        z *= rhs;
         return *this;
     }
 
     /// Multiply-assign a vector.
     IntVector3& operator *=(const IntVector3& rhs)
     {
-        x_ *= rhs.x_;
-        y_ *= rhs.y_;
-        z_ *= rhs.z_;
+        x *= rhs.x;
+        y *= rhs.y;
+        z *= rhs.z;
         return *this;
     }
 
     /// Divide-assign a scalar.
     IntVector3& operator /=(int rhs)
     {
-        x_ /= rhs;
-        y_ /= rhs;
-        z_ /= rhs;
+        x /= rhs;
+        y /= rhs;
+        z /= rhs;
         return *this;
     }
 
     /// Divide-assign a vector.
     IntVector3& operator /=(const IntVector3& rhs)
     {
-        x_ /= rhs.x_;
-        y_ /= rhs.y_;
-        z_ /= rhs.z_;
+        x /= rhs.x;
+        y /= rhs.y;
+        z /= rhs.z;
         return *this;
     }
 
     /// Return integer data.
-    const int* Data() const { return &x_; }
+    const int* Data() const { return &x; }
 
     /// Return as string.
 
     /// Return hash value for HashSet & HashMap.
-    unsigned ToHash() const { return (unsigned)x_ * 31 * 31 + (unsigned)y_ * 31 + (unsigned)z_; }
+    unsigned ToHash() const { return (unsigned)x * 31 * 31 + (unsigned)y * 31 + (unsigned)z; }
 
     /// Return length.
-    float Length() const { return sqrtf((float)(x_ * x_ + y_ * y_ + z_ * z_)); }
+    float Length() const { return sqrtf((float)(x * x + y * y + z * z)); }
 
     /// X coordinate.
-    int x_;
+    int x;
     /// Y coordinate.
-    int y_;
+    int y;
     /// Z coordinate.
-    int z_;
+    int z;
 
     /// Zero vector.
     static const IntVector3 ZERO;
@@ -185,9 +185,9 @@ class  Vector3
 public:
     /// Construct a zero vector.
     Vector3() noexcept :
-        x_(0.0f),
-        y_(0.0f),
-        z_(0.0f)
+        x(0.0f),
+        y(0.0f),
+        z(0.0f)
     {
     }
 
@@ -196,49 +196,49 @@ public:
 
     /// Construct from a two-dimensional vector and the Z coordinate.
     Vector3(const Vector2& vector, float z) noexcept :
-        x_(vector.x_),
-        y_(vector.y_),
-        z_(z)
+        x(vector.x),
+        y(vector.y),
+        z(z)
     {
     }
 
     /// Construct from a two-dimensional vector (for Urho2D).
     explicit Vector3(const Vector2& vector) noexcept :
-        x_(vector.x_),
-        y_(vector.y_),
-        z_(0.0f)
+        x(vector.x),
+        y(vector.y),
+        z(0.0f)
     {
     }
 
     /// Construct from an IntVector3.
     explicit Vector3(const IntVector3& vector) noexcept :
-        x_((float)vector.x_),
-        y_((float)vector.y_),
-        z_((float)vector.z_)
+        x((float)vector.x),
+        y((float)vector.y),
+        z((float)vector.z)
     {
     }
 
     /// Construct from coordinates.
     Vector3(float x, float y, float z) noexcept :
-        x_(x),
-        y_(y),
-        z_(z)
+        x(x),
+        y(y),
+        z(z)
     {
     }
 
     /// Construct from two-dimensional coordinates (for Urho2D).
     Vector3(float x, float y) noexcept :
-        x_(x),
-        y_(y),
-        z_(0.0f)
+        x(x),
+        y(y),
+        z(0.0f)
     {
     }
 
     /// Construct from a float array.
     explicit Vector3(const float* data) noexcept :
-        x_(data[0]),
-        y_(data[1]),
-        z_(data[2])
+        x(data[0]),
+        y(data[1]),
+        z(data[2])
     {
     }
 
@@ -246,65 +246,65 @@ public:
     Vector3& operator =(const Vector3& rhs) noexcept = default;
 
     /// Test for equality with another vector without epsilon.
-    bool operator ==(const Vector3& rhs) const { return x_ == rhs.x_ && y_ == rhs.y_ && z_ == rhs.z_; }
+    bool operator ==(const Vector3& rhs) const { return x == rhs.x && y == rhs.y && z == rhs.z; }
 
     /// Test for inequality with another vector without epsilon.
-    bool operator !=(const Vector3& rhs) const { return x_ != rhs.x_ || y_ != rhs.y_ || z_ != rhs.z_; }
+    bool operator !=(const Vector3& rhs) const { return x != rhs.x || y != rhs.y || z != rhs.z; }
 
     /// Add a vector.
-    Vector3 operator +(const Vector3& rhs) const { return Vector3(x_ + rhs.x_, y_ + rhs.y_, z_ + rhs.z_); }
+    Vector3 operator +(const Vector3& rhs) const { return Vector3(x + rhs.x, y + rhs.y, z + rhs.z); }
 
     /// Return negation.
-    Vector3 operator -() const { return Vector3(-x_, -y_, -z_); }
+    Vector3 operator -() const { return Vector3(-x, -y, -z); }
 
     /// Subtract a vector.
-    Vector3 operator -(const Vector3& rhs) const { return Vector3(x_ - rhs.x_, y_ - rhs.y_, z_ - rhs.z_); }
+    Vector3 operator -(const Vector3& rhs) const { return Vector3(x - rhs.x, y - rhs.y, z - rhs.z); }
 
     /// Multiply with a scalar.
-    Vector3 operator *(float rhs) const { return Vector3(x_ * rhs, y_ * rhs, z_ * rhs); }
+    Vector3 operator *(float rhs) const { return Vector3(x * rhs, y * rhs, z * rhs); }
 
     /// Multiply with a vector.
-    Vector3 operator *(const Vector3& rhs) const { return Vector3(x_ * rhs.x_, y_ * rhs.y_, z_ * rhs.z_); }
+    Vector3 operator *(const Vector3& rhs) const { return Vector3(x * rhs.x, y * rhs.y, z * rhs.z); }
 
     /// Divide by a scalar.
-    Vector3 operator /(float rhs) const { return Vector3(x_ / rhs, y_ / rhs, z_ / rhs); }
+    Vector3 operator /(float rhs) const { return Vector3(x / rhs, y / rhs, z / rhs); }
 
     /// Divide by a vector.
-    Vector3 operator /(const Vector3& rhs) const { return Vector3(x_ / rhs.x_, y_ / rhs.y_, z_ / rhs.z_); }
+    Vector3 operator /(const Vector3& rhs) const { return Vector3(x / rhs.x, y / rhs.y, z / rhs.z); }
 
     /// Add-assign a vector.
     Vector3& operator +=(const Vector3& rhs)
     {
-        x_ += rhs.x_;
-        y_ += rhs.y_;
-        z_ += rhs.z_;
+        x += rhs.x;
+        y += rhs.y;
+        z += rhs.z;
         return *this;
     }
 
     /// Subtract-assign a vector.
     Vector3& operator -=(const Vector3& rhs)
     {
-        x_ -= rhs.x_;
-        y_ -= rhs.y_;
-        z_ -= rhs.z_;
+        x -= rhs.x;
+        y -= rhs.y;
+        z -= rhs.z;
         return *this;
     }
 
     /// Multiply-assign a scalar.
     Vector3& operator *=(float rhs)
     {
-        x_ *= rhs;
-        y_ *= rhs;
-        z_ *= rhs;
+        x *= rhs;
+        y *= rhs;
+        z *= rhs;
         return *this;
     }
 
     /// Multiply-assign a vector.
     Vector3& operator *=(const Vector3& rhs)
     {
-        x_ *= rhs.x_;
-        y_ *= rhs.y_;
-        z_ *= rhs.z_;
+        x *= rhs.x;
+        y *= rhs.y;
+        z *= rhs.z;
         return *this;
     }
 
@@ -312,18 +312,18 @@ public:
     Vector3& operator /=(float rhs)
     {
         float invRhs = 1.0f / rhs;
-        x_ *= invRhs;
-        y_ *= invRhs;
-        z_ *= invRhs;
+        x *= invRhs;
+        y *= invRhs;
+        z *= invRhs;
         return *this;
     }
 
     /// Divide-assign a vector.
     Vector3& operator /=(const Vector3& rhs)
     {
-        x_ /= rhs.x_;
-        y_ /= rhs.y_;
-        z_ /= rhs.z_;
+        x /= rhs.x;
+        y /= rhs.y;
+        z /= rhs.z;
         return *this;
     }
 
@@ -334,25 +334,25 @@ public:
         if (!Urho3D::Equals(lenSquared, 1.0f) && lenSquared > 0.0f)
         {
             float invLen = 1.0f / sqrtf(lenSquared);
-            x_ *= invLen;
-            y_ *= invLen;
-            z_ *= invLen;
+            x *= invLen;
+            y *= invLen;
+            z *= invLen;
         }
     }
 
     /// Return length.
-    float Length() const { return sqrtf(x_ * x_ + y_ * y_ + z_ * z_); }
+    float Length() const { return sqrtf(x * x + y * y + z * z); }
 
     /// Return squared length.
-    float LengthSquared() const { return x_ * x_ + y_ * y_ + z_ * z_; }
+    float LengthSquared() const { return x * x + y * y + z * z; }
 
     /// Calculate dot product.
-    float DotProduct(const Vector3& rhs) const { return x_ * rhs.x_ + y_ * rhs.y_ + z_ * rhs.z_; }
+    float DotProduct(const Vector3& rhs) const { return x * rhs.x + y * rhs.y + z * rhs.z; }
 
     /// Calculate absolute dot product.
     float AbsDotProduct(const Vector3& rhs) const
     {
-        return Urho3D::Abs(x_ * rhs.x_) + Urho3D::Abs(y_ * rhs.y_) + Urho3D::Abs(z_ * rhs.z_);
+        return Urho3D::Abs(x * rhs.x) + Urho3D::Abs(y * rhs.y) + Urho3D::Abs(z * rhs.z);
     }
 
     /// Project direction vector onto axis.
@@ -391,14 +391,14 @@ public:
     Vector3 CrossProduct(const Vector3& rhs) const
     {
         return Vector3(
-            y_ * rhs.z_ - z_ * rhs.y_,
-            z_ * rhs.x_ - x_ * rhs.z_,
-            x_ * rhs.y_ - y_ * rhs.x_
+            y * rhs.z - z * rhs.y,
+            z * rhs.x - x * rhs.z,
+            x * rhs.y - y * rhs.x
         );
     }
 
     /// Return absolute vector.
-    Vector3 Abs() const { return Vector3(Urho3D::Abs(x_), Urho3D::Abs(y_), Urho3D::Abs(z_)); }
+    Vector3 Abs() const { return Vector3(Urho3D::Abs(x), Urho3D::Abs(y), Urho3D::Abs(z)); }
 
     /// Linear interpolation with another vector.
     Vector3 Lerp(const Vector3& rhs, float t) const { return *this * (1.0f - t) + rhs * t; }
@@ -406,17 +406,17 @@ public:
     /// Test for equality with another vector with epsilon.
     bool Equals(const Vector3& rhs, float eps = M_EPSILON) const
     {
-        return Urho3D::Equals(x_, rhs.x_, eps) && Urho3D::Equals(y_, rhs.y_, eps) && Urho3D::Equals(z_, rhs.z_, eps);
+        return Urho3D::Equals(x, rhs.x, eps) && Urho3D::Equals(y, rhs.y, eps) && Urho3D::Equals(z, rhs.z, eps);
     }
 
     /// Returns the angle between this vector and another vector in degrees.
     float Angle(const Vector3& rhs) const { return Urho3D::Acos(DotProduct(rhs) / (Length() * rhs.Length())); }
 
     /// Return whether is NaN.
-    bool IsNaN() const { return Urho3D::IsNaN(x_) || Urho3D::IsNaN(y_) || Urho3D::IsNaN(z_); }
+    bool IsNaN() const { return Urho3D::IsNaN(x) || Urho3D::IsNaN(y) || Urho3D::IsNaN(z); }
 
     /// Return whether is Inf.
-    bool IsInf() const { return Urho3D::IsInf(x_) || Urho3D::IsInf(y_) || Urho3D::IsInf(z_); }
+    bool IsInf() const { return Urho3D::IsInf(x) || Urho3D::IsInf(y) || Urho3D::IsInf(z); }
 
 
     /// Return normalized to unit length.
@@ -454,7 +454,7 @@ public:
     }
 
     /// Return float data.
-    const float* Data() const { return &x_; }
+    const float* Data() const { return &x; }
 
     /// Return as string.
 
@@ -462,19 +462,19 @@ public:
     unsigned ToHash() const
     {
         unsigned hash = 37;
-        hash = 37 * hash + FloatToRawIntBits(x_);
-        hash = 37 * hash + FloatToRawIntBits(y_);
-        hash = 37 * hash + FloatToRawIntBits(z_);
+        hash = 37 * hash + FloatToRawIntBits(x);
+        hash = 37 * hash + FloatToRawIntBits(y);
+        hash = 37 * hash + FloatToRawIntBits(z);
 
         return hash;
     }
 
     /// X coordinate.
-    float x_;
+    float x;
     /// Y coordinate.
-    float y_;
+    float y;
     /// Z coordinate.
-    float z_;
+    float z;
 
     /// Zero vector.
     static const Vector3 ZERO;
@@ -504,36 +504,36 @@ inline IntVector3 operator *(int lhs, const IntVector3& rhs) { return rhs * lhs;
 inline Vector3 VectorLerp(const Vector3& lhs, const Vector3& rhs, const Vector3& t) { return lhs + (rhs - lhs) * t; }
 
 /// Per-component min of two 3-vectors.
-inline Vector3 VectorMin(const Vector3& lhs, const Vector3& rhs) { return Vector3(Min(lhs.x_, rhs.x_), Min(lhs.y_, rhs.y_), Min(lhs.z_, rhs.z_)); }
+inline Vector3 VectorMin(const Vector3& lhs, const Vector3& rhs) { return Vector3(Min(lhs.x, rhs.x), Min(lhs.y, rhs.y), Min(lhs.z, rhs.z)); }
 
 /// Per-component max of two 3-vectors.
-inline Vector3 VectorMax(const Vector3& lhs, const Vector3& rhs) { return Vector3(Max(lhs.x_, rhs.x_), Max(lhs.y_, rhs.y_), Max(lhs.z_, rhs.z_)); }
+inline Vector3 VectorMax(const Vector3& lhs, const Vector3& rhs) { return Vector3(Max(lhs.x, rhs.x), Max(lhs.y, rhs.y), Max(lhs.z, rhs.z)); }
 
 /// Per-component floor of 3-vector.
-inline Vector3 VectorFloor(const Vector3& vec) { return Vector3(Floor(vec.x_), Floor(vec.y_), Floor(vec.z_)); }
+inline Vector3 VectorFloor(const Vector3& vec) { return Vector3(Floor(vec.x), Floor(vec.y), Floor(vec.z)); }
 
 /// Per-component round of 3-vector.
-inline Vector3 VectorRound(const Vector3& vec) { return Vector3(Round(vec.x_), Round(vec.y_), Round(vec.z_)); }
+inline Vector3 VectorRound(const Vector3& vec) { return Vector3(Round(vec.x), Round(vec.y), Round(vec.z)); }
 
 /// Per-component ceil of 3-vector.
-inline Vector3 VectorCeil(const Vector3& vec) { return Vector3(Ceil(vec.x_), Ceil(vec.y_), Ceil(vec.z_)); }
+inline Vector3 VectorCeil(const Vector3& vec) { return Vector3(Ceil(vec.x), Ceil(vec.y), Ceil(vec.z)); }
 
 /// Per-component floor of 3-vector. Returns IntVector3.
-inline IntVector3 VectorFloorToInt(const Vector3& vec) { return IntVector3(FloorToInt(vec.x_), FloorToInt(vec.y_), FloorToInt(vec.z_)); }
+inline IntVector3 VectorFloorToInt(const Vector3& vec) { return IntVector3(FloorToInt(vec.x), FloorToInt(vec.y), FloorToInt(vec.z)); }
 
 /// Per-component round of 3-vector. Returns IntVector3.
-inline IntVector3 VectorRoundToInt(const Vector3& vec) { return IntVector3(RoundToInt(vec.x_), RoundToInt(vec.y_), RoundToInt(vec.z_)); }
+inline IntVector3 VectorRoundToInt(const Vector3& vec) { return IntVector3(RoundToInt(vec.x), RoundToInt(vec.y), RoundToInt(vec.z)); }
 
 /// Per-component ceil of 3-vector. Returns IntVector3.
-inline IntVector3 VectorCeilToInt(const Vector3& vec) { return IntVector3(CeilToInt(vec.x_), CeilToInt(vec.y_), CeilToInt(vec.z_)); }
+inline IntVector3 VectorCeilToInt(const Vector3& vec) { return IntVector3(CeilToInt(vec.x), CeilToInt(vec.y), CeilToInt(vec.z)); }
 
 /// Per-component min of two 3-vectors.
-inline IntVector3 VectorMin(const IntVector3& lhs, const IntVector3& rhs) { return IntVector3(Min(lhs.x_, rhs.x_), Min(lhs.y_, rhs.y_), Min(lhs.z_, rhs.z_)); }
+inline IntVector3 VectorMin(const IntVector3& lhs, const IntVector3& rhs) { return IntVector3(Min(lhs.x, rhs.x), Min(lhs.y, rhs.y), Min(lhs.z, rhs.z)); }
 
 /// Per-component max of two 3-vectors.
-inline IntVector3 VectorMax(const IntVector3& lhs, const IntVector3& rhs) { return IntVector3(Max(lhs.x_, rhs.x_), Max(lhs.y_, rhs.y_), Max(lhs.z_, rhs.z_)); }
+inline IntVector3 VectorMax(const IntVector3& lhs, const IntVector3& rhs) { return IntVector3(Max(lhs.x, rhs.x), Max(lhs.y, rhs.y), Max(lhs.z, rhs.z)); }
 
 /// Return a random value from [0, 1) from 3-vector seed.
-inline float StableRandom(const Vector3& seed) { return StableRandom(Vector2(StableRandom(Vector2(seed.x_, seed.y_)), seed.z_)); }
+inline float StableRandom(const Vector3& seed) { return StableRandom(Vector2(StableRandom(Vector2(seed.x, seed.y)), seed.z)); }
 
 }

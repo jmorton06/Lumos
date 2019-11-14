@@ -1,18 +1,25 @@
 #pragma once
 
 #include "lmpch.h"
-#include "Matrix3.h"
-#include "Matrix4.h"
-#include "Plane.h"
-#include "Quaternion.h"
-#include "Vector2.h"
-#include "Vector3.h"
-#include "Vector4.h"
+#include "Math/Matrix3.h"
+#include "Math/Matrix4.h"
+#include "Math/Plane.h"
+#include "Math/Quaternion.h"
+#include "Math/Vector2.h"
+#include "Math/Vector3.h"
+#include "Math/Vector4.h"
 
 namespace Lumos
 {
 	namespace Maths
 	{
+    using Vector2 = Urtho3D::Vector2;
+    using Vector3 = Urtho3D::Vector3;
+    using Vector4 = Urtho3D::Vector4;
+    using Matrix3 = Urtho3D::Matrix3;
+    using Matrix4 = Urtho3D::Matrix4;
+    using Quaternion = Urtho3D::Quaternion;
+
 		struct Vector2Simple
 		{
 			float x, y;

@@ -46,12 +46,12 @@ void Sphere::Define(const BoundingBox& box)
 
     Clear();
     Merge(min);
-    Merge(Vector3(max.x_, min.y_, min.z_));
-    Merge(Vector3(min.x_, max.y_, min.z_));
-    Merge(Vector3(max.x_, max.y_, min.z_));
-    Merge(Vector3(min.x_, min.y_, max.z_));
-    Merge(Vector3(max.x_, min.y_, max.z_));
-    Merge(Vector3(min.x_, max.y_, max.z_));
+    Merge(Vector3(max.x, min.y, min.z));
+    Merge(Vector3(min.x, max.y, min.z));
+    Merge(Vector3(max.x, max.y, min.z));
+    Merge(Vector3(min.x, min.y, max.z));
+    Merge(Vector3(max.x, min.y, max.z));
+    Merge(Vector3(min.x, max.y, max.z));
     Merge(max);
 }
 
@@ -78,12 +78,12 @@ void Sphere::Merge(const BoundingBox& box)
     const Vector3& max = box.max_;
 
     Merge(min);
-    Merge(Vector3(max.x_, min.y_, min.z_));
-    Merge(Vector3(min.x_, max.y_, min.z_));
-    Merge(Vector3(max.x_, max.y_, min.z_));
-    Merge(Vector3(min.x_, min.y_, max.z_));
-    Merge(Vector3(max.x_, min.y_, max.z_));
-    Merge(Vector3(min.x_, max.y_, max.z_));
+    Merge(Vector3(max.x, min.y, min.z));
+    Merge(Vector3(min.x, max.y, min.z));
+    Merge(Vector3(max.x, max.y, min.z));
+    Merge(Vector3(min.x, min.y, max.z));
+    Merge(Vector3(max.x, min.y, max.z));
+    Merge(Vector3(min.x, max.y, max.z));
     Merge(max);
 }
 
@@ -144,34 +144,34 @@ Intersection Sphere::IsInside(const BoundingBox& box) const
     Vector3 min = box.min_;
     Vector3 max = box.max_;
 
-    if (center_.x_ < min.x_)
+    if (center_.x < min.x)
     {
-        temp = center_.x_ - min.x_;
+        temp = center_.x - min.x;
         distSquared += temp * temp;
     }
-    else if (center_.x_ > max.x_)
+    else if (center_.x > max.x)
     {
-        temp = center_.x_ - max.x_;
+        temp = center_.x - max.x;
         distSquared += temp * temp;
     }
-    if (center_.y_ < min.y_)
+    if (center_.y < min.y)
     {
-        temp = center_.y_ - min.y_;
+        temp = center_.y - min.y;
         distSquared += temp * temp;
     }
-    else if (center_.y_ > max.y_)
+    else if (center_.y > max.y)
     {
-        temp = center_.y_ - max.y_;
+        temp = center_.y - max.y;
         distSquared += temp * temp;
     }
-    if (center_.z_ < min.z_)
+    if (center_.z < min.z)
     {
-        temp = center_.z_ - min.z_;
+        temp = center_.z - min.z;
         distSquared += temp * temp;
     }
-    else if (center_.z_ > max.z_)
+    else if (center_.z > max.z)
     {
-        temp = center_.z_ - max.z_;
+        temp = center_.z - max.z;
         distSquared += temp * temp;
     }
 
@@ -184,25 +184,25 @@ Intersection Sphere::IsInside(const BoundingBox& box) const
     Vector3 tempVec = min; // - - -
     if (tempVec.LengthSquared() >= radiusSquared)
         return INTERSECTS;
-    tempVec.x_ = max.x_; // + - -
+    tempVec.x = max.x; // + - -
     if (tempVec.LengthSquared() >= radiusSquared)
         return INTERSECTS;
-    tempVec.y_ = max.y_; // + + -
+    tempVec.y = max.y; // + + -
     if (tempVec.LengthSquared() >= radiusSquared)
         return INTERSECTS;
-    tempVec.x_ = min.x_; // - + -
+    tempVec.x = min.x; // - + -
     if (tempVec.LengthSquared() >= radiusSquared)
         return INTERSECTS;
-    tempVec.z_ = max.z_; // - + +
+    tempVec.z = max.z; // - + +
     if (tempVec.LengthSquared() >= radiusSquared)
         return INTERSECTS;
-    tempVec.y_ = min.y_; // - - +
+    tempVec.y = min.y; // - - +
     if (tempVec.LengthSquared() >= radiusSquared)
         return INTERSECTS;
-    tempVec.x_ = max.x_; // + - +
+    tempVec.x = max.x; // + - +
     if (tempVec.LengthSquared() >= radiusSquared)
         return INTERSECTS;
-    tempVec.y_ = max.y_; // + + +
+    tempVec.y = max.y; // + + +
     if (tempVec.LengthSquared() >= radiusSquared)
         return INTERSECTS;
 
@@ -217,34 +217,34 @@ Intersection Sphere::IsInsideFast(const BoundingBox& box) const
     Vector3 min = box.min_;
     Vector3 max = box.max_;
 
-    if (center_.x_ < min.x_)
+    if (center_.x < min.x)
     {
-        temp = center_.x_ - min.x_;
+        temp = center_.x - min.x;
         distSquared += temp * temp;
     }
-    else if (center_.x_ > max.x_)
+    else if (center_.x > max.x)
     {
-        temp = center_.x_ - max.x_;
+        temp = center_.x - max.x;
         distSquared += temp * temp;
     }
-    if (center_.y_ < min.y_)
+    if (center_.y < min.y)
     {
-        temp = center_.y_ - min.y_;
+        temp = center_.y - min.y;
         distSquared += temp * temp;
     }
-    else if (center_.y_ > max.y_)
+    else if (center_.y > max.y)
     {
-        temp = center_.y_ - max.y_;
+        temp = center_.y - max.y;
         distSquared += temp * temp;
     }
-    if (center_.z_ < min.z_)
+    if (center_.z < min.z)
     {
-        temp = center_.z_ - min.z_;
+        temp = center_.z - min.z;
         distSquared += temp * temp;
     }
-    else if (center_.z_ > max.z_)
+    else if (center_.z > max.z)
     {
-        temp = center_.z_ - max.z_;
+        temp = center_.z - max.z;
         distSquared += temp * temp;
     }
 

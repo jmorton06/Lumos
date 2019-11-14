@@ -103,9 +103,9 @@ public:
     Vector3 operator *(const Vector3& rhs) const
     {
         return Vector3(
-            m00_ * rhs.x_ + m01_ * rhs.y_ + m02_ * rhs.z_,
-            m10_ * rhs.x_ + m11_ * rhs.y_ + m12_ * rhs.z_,
-            m20_ * rhs.x_ + m21_ * rhs.y_ + m22_ * rhs.z_
+            m00_ * rhs.x + m01_ * rhs.y + m02_ * rhs.z,
+            m10_ * rhs.x + m11_ * rhs.y + m12_ * rhs.z,
+            m20_ * rhs.x + m21_ * rhs.y + m22_ * rhs.z
         );
     }
 
@@ -176,9 +176,9 @@ public:
     /// Set scaling elements.
     void SetScale(const Vector3& scale)
     {
-        m00_ = scale.x_;
-        m11_ = scale.y_;
-        m22_ = scale.z_;
+        m00_ = scale.x;
+        m11_ = scale.y;
+        m22_ = scale.z;
     }
 
     /// Set uniform scaling elements.
@@ -229,15 +229,15 @@ public:
     Matrix3 Scaled(const Vector3& scale) const
     {
         return Matrix3(
-            m00_ * scale.x_,
-            m01_ * scale.y_,
-            m02_ * scale.z_,
-            m10_ * scale.x_,
-            m11_ * scale.y_,
-            m12_ * scale.z_,
-            m20_ * scale.x_,
-            m21_ * scale.y_,
-            m22_ * scale.z_
+            m00_ * scale.x,
+            m01_ * scale.y,
+            m02_ * scale.z,
+            m10_ * scale.x,
+            m11_ * scale.y,
+            m12_ * scale.z,
+            m20_ * scale.x,
+            m21_ * scale.y,
+            m22_ * scale.z
         );
     }
 

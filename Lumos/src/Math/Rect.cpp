@@ -73,16 +73,16 @@ void IntRect::Merge(const IntRect& rect)
 
 void Rect::Clip(const Rect& rect)
 {
-    if (rect.min_.x_ > min_.x_)
-        min_.x_ = rect.min_.x_;
-    if (rect.max_.x_ < max_.x_)
-        max_.x_ = rect.max_.x_;
-    if (rect.min_.y_ > min_.y_)
-        min_.y_ = rect.min_.y_;
-    if (rect.max_.y_ < max_.y_)
-        max_.y_ = rect.max_.y_;
+    if (rect.min_.x > min_.x)
+        min_.x = rect.min_.x;
+    if (rect.max_.x < max_.x)
+        max_.x = rect.max_.x;
+    if (rect.min_.y > min_.y)
+        min_.y = rect.min_.y;
+    if (rect.max_.y < max_.y)
+        max_.y = rect.max_.y;
 
-    if (min_.x_ > max_.x_ || min_.y_ > max_.y_)
+    if (min_.x > max_.x || min_.y > max_.y)
     {
         min_ = Vector2(M_INFINITY, M_INFINITY);
         max_ = Vector2(-M_INFINITY, -M_INFINITY);

@@ -90,33 +90,33 @@ bool AreaAllocator::Allocate(int width, int height, int& x, int& y)
 
         if (best == freeAreas_.end())
         {
-            if (doubleWidth_ && size_.x_ < maxSize_.x_)
+            if (doubleWidth_ && size_.x < maxSize_.x)
             {
-                int oldWidth = size_.x_;
-                size_.x_ <<= 1;
+                int oldWidth = size_.x;
+                size_.x <<= 1;
                 // If no allocations yet, simply expand the single free area
                 IntRect& first = freeAreas_.front();
                 if (freeAreas_.size() == 1 && first.left_ == 0 && first.top_ == 0 && first.right_ == oldWidth &&
-                    first.bottom_ == size_.y_)
-                    first.right_ = size_.x_;
+                    first.bottom_ == size_.y)
+                    first.right_ = size_.x;
                 else
                 {
-                    IntRect newArea(oldWidth, 0, size_.x_, size_.y_);
+                    IntRect newArea(oldWidth, 0, size_.x, size_.y);
                     freeAreas_.push_back(newArea);
                 }
             }
-            else if (!doubleWidth_ && size_.y_ < maxSize_.y_)
+            else if (!doubleWidth_ && size_.y < maxSize_.y)
             {
-                int oldHeight = size_.y_;
-                size_.y_ <<= 1;
+                int oldHeight = size_.y;
+                size_.y <<= 1;
                 // If no allocations yet, simply expand the single free area
                 IntRect& first = freeAreas_.front();
-                if (freeAreas_.size() == 1 && first.left_ == 0 && first.top_ == 0 && first.right_ == size_.x_ &&
+                if (freeAreas_.size() == 1 && first.left_ == 0 && first.top_ == 0 && first.right_ == size_.x &&
                     first.bottom_ == oldHeight)
-                    first.bottom_ = size_.y_;
+                    first.bottom_ = size_.y;
                 else
                 {
-                    IntRect newArea(0, oldHeight, size_.x_, size_.y_);
+                    IntRect newArea(0, oldHeight, size_.x, size_.y);
                     freeAreas_.push_back(newArea);
                 }
             }
@@ -137,7 +137,7 @@ bool AreaAllocator::Allocate(int width, int height, int& x, int& y)
     {
         // Reserve the area by splitting up the remaining free area
         best->left_ = reserved.right_;
-        if (best->Height() > 2 * height || height >= size_.y_ / 2)
+        if (best->Height() > 2 * height || height >= size_.y / 2)
         {
             IntRect splitArea(reserved.left_, reserved.bottom_, best->right_, best->bottom_);
             best->bottom_ = reserved.bottom_;

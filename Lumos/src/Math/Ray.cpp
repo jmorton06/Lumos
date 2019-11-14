@@ -81,65 +81,65 @@ float Ray::HitDistance(const BoundingBox& box) const
     float dist = M_INFINITY;
 
     // Check for intersecting in the X-direction
-    if (origin_.x_ < box.min_.x_ && direction_.x_ > 0.0f)
+    if (origin_.x < box.min_.x && direction_.x > 0.0f)
     {
-        float x = (box.min_.x_ - origin_.x_) / direction_.x_;
+        float x = (box.min_.x - origin_.x) / direction_.x;
         if (x < dist)
         {
             Vector3 point = origin_ + x * direction_;
-            if (point.y_ >= box.min_.y_ && point.y_ <= box.max_.y_ && point.z_ >= box.min_.z_ && point.z_ <= box.max_.z_)
+            if (point.y >= box.min_.y && point.y <= box.max_.y && point.z >= box.min_.z && point.z <= box.max_.z)
                 dist = x;
         }
     }
-    if (origin_.x_ > box.max_.x_ && direction_.x_ < 0.0f)
+    if (origin_.x > box.max_.x && direction_.x < 0.0f)
     {
-        float x = (box.max_.x_ - origin_.x_) / direction_.x_;
+        float x = (box.max_.x - origin_.x) / direction_.x;
         if (x < dist)
         {
             Vector3 point = origin_ + x * direction_;
-            if (point.y_ >= box.min_.y_ && point.y_ <= box.max_.y_ && point.z_ >= box.min_.z_ && point.z_ <= box.max_.z_)
+            if (point.y >= box.min_.y && point.y <= box.max_.y && point.z >= box.min_.z && point.z <= box.max_.z)
                 dist = x;
         }
     }
     // Check for intersecting in the Y-direction
-    if (origin_.y_ < box.min_.y_ && direction_.y_ > 0.0f)
+    if (origin_.y < box.min_.y && direction_.y > 0.0f)
     {
-        float x = (box.min_.y_ - origin_.y_) / direction_.y_;
+        float x = (box.min_.y - origin_.y) / direction_.y;
         if (x < dist)
         {
             Vector3 point = origin_ + x * direction_;
-            if (point.x_ >= box.min_.x_ && point.x_ <= box.max_.x_ && point.z_ >= box.min_.z_ && point.z_ <= box.max_.z_)
+            if (point.x >= box.min_.x && point.x <= box.max_.x && point.z >= box.min_.z && point.z <= box.max_.z)
                 dist = x;
         }
     }
-    if (origin_.y_ > box.max_.y_ && direction_.y_ < 0.0f)
+    if (origin_.y > box.max_.y && direction_.y < 0.0f)
     {
-        float x = (box.max_.y_ - origin_.y_) / direction_.y_;
+        float x = (box.max_.y - origin_.y) / direction_.y;
         if (x < dist)
         {
             Vector3 point = origin_ + x * direction_;
-            if (point.x_ >= box.min_.x_ && point.x_ <= box.max_.x_ && point.z_ >= box.min_.z_ && point.z_ <= box.max_.z_)
+            if (point.x >= box.min_.x && point.x <= box.max_.x && point.z >= box.min_.z && point.z <= box.max_.z)
                 dist = x;
         }
     }
     // Check for intersecting in the Z-direction
-    if (origin_.z_ < box.min_.z_ && direction_.z_ > 0.0f)
+    if (origin_.z < box.min_.z && direction_.z > 0.0f)
     {
-        float x = (box.min_.z_ - origin_.z_) / direction_.z_;
+        float x = (box.min_.z - origin_.z) / direction_.z;
         if (x < dist)
         {
             Vector3 point = origin_ + x * direction_;
-            if (point.x_ >= box.min_.x_ && point.x_ <= box.max_.x_ && point.y_ >= box.min_.y_ && point.y_ <= box.max_.y_)
+            if (point.x >= box.min_.x && point.x <= box.max_.x && point.y >= box.min_.y && point.y <= box.max_.y)
                 dist = x;
         }
     }
-    if (origin_.z_ > box.max_.z_ && direction_.z_ < 0.0f)
+    if (origin_.z > box.max_.z && direction_.z < 0.0f)
     {
-        float x = (box.max_.z_ - origin_.z_) / direction_.z_;
+        float x = (box.max_.z - origin_.z) / direction_.z;
         if (x < dist)
         {
             Vector3 point = origin_ + x * direction_;
-            if (point.x_ >= box.min_.x_ && point.x_ <= box.max_.x_ && point.y_ >= box.min_.y_ && point.y_ <= box.max_.y_)
+            if (point.x >= box.min_.x && point.x <= box.max_.x && point.y >= box.min_.y && point.y <= box.max_.y)
                 dist = x;
         }
     }
@@ -276,8 +276,8 @@ float Ray::HitDistance(const void* vertexData, unsigned vertexStride, unsigned v
             const Vector2& uv0 = *((const Vector2*)(&vertices[uvOffset + nearestIdx * vertexStride]));
             const Vector2& uv1 = *((const Vector2*)(&vertices[uvOffset + (nearestIdx + 1) * vertexStride]));
             const Vector2& uv2 = *((const Vector2*)(&vertices[uvOffset + (nearestIdx + 2) * vertexStride]));
-            *outUV = Vector2(uv0.x_ * barycentric.x_ + uv1.x_ * barycentric.y_ + uv2.x_ * barycentric.z_,
-                uv0.y_ * barycentric.x_ + uv1.y_ * barycentric.y_ + uv2.y_ * barycentric.z_);
+            *outUV = Vector2(uv0.x * barycentric.x + uv1.x * barycentric.y + uv2.x * barycentric.z,
+                uv0.y * barycentric.x + uv1.y * barycentric.y + uv2.y * barycentric.z);
         }
     }
 
@@ -323,8 +323,8 @@ float Ray::HitDistance(const void* vertexData, unsigned vertexStride, const void
                 const Vector2& uv0 = *((const Vector2*)(&vertices[uvOffset + nearestIndices[0] * vertexStride]));
                 const Vector2& uv1 = *((const Vector2*)(&vertices[uvOffset + nearestIndices[1] * vertexStride]));
                 const Vector2& uv2 = *((const Vector2*)(&vertices[uvOffset + nearestIndices[2] * vertexStride]));
-                *outUV = Vector2(uv0.x_ * barycentric.x_ + uv1.x_ * barycentric.y_ + uv2.x_ * barycentric.z_,
-                    uv0.y_ * barycentric.x_ + uv1.y_ * barycentric.y_ + uv2.y_ * barycentric.z_);
+                *outUV = Vector2(uv0.x * barycentric.x + uv1.x * barycentric.y + uv2.x * barycentric.z,
+                    uv0.y * barycentric.x + uv1.y * barycentric.y + uv2.y * barycentric.z);
             }
         }
     }
@@ -359,8 +359,8 @@ float Ray::HitDistance(const void* vertexData, unsigned vertexStride, const void
                 const Vector2& uv0 = *((const Vector2*)(&vertices[uvOffset + nearestIndices[0] * vertexStride]));
                 const Vector2& uv1 = *((const Vector2*)(&vertices[uvOffset + nearestIndices[1] * vertexStride]));
                 const Vector2& uv2 = *((const Vector2*)(&vertices[uvOffset + nearestIndices[2] * vertexStride]));
-                *outUV = Vector2(uv0.x_ * barycentric.x_ + uv1.x_ * barycentric.y_ + uv2.x_ * barycentric.z_,
-                    uv0.y_ * barycentric.x_ + uv1.y_ * barycentric.y_ + uv2.y_ * barycentric.z_);
+                *outUV = Vector2(uv0.x * barycentric.x + uv1.x * barycentric.y + uv2.x * barycentric.z,
+                    uv0.y * barycentric.x + uv1.y * barycentric.y + uv2.y * barycentric.z);
             }
         }
     }
