@@ -15,7 +15,7 @@ namespace Lumos
 
 			m_AttachmentCount = frameBufferInfo.attachmentCount;
 
-			std::vector<vk::ImageView> attachments;
+			std::vector<VkImageView> attachments;
 
 			for(u32 i = 0; i < m_AttachmentCount; i++)
 			{
@@ -29,7 +29,9 @@ namespace Lumos
 				}
 			}
 
-			vk::FramebufferCreateInfo fbCI{};
+			VkFramebufferCreateInfo fbCI{};
+
+			fbCI.sType = VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO;
 
 			if(frameBufferInfo.renderPass)
 				fbCI.renderPass = static_cast<VKRenderpass*>(frameBufferInfo.renderPass)->GetRenderpass();
@@ -39,13 +41,15 @@ namespace Lumos
 			fbCI.width = m_Width;
 			fbCI.height = m_Height;
 			fbCI.layers = 1;//frameBufferInfo.layers;
+			fbCI.pNext = nullptr;
+			fbCI.flags = 0;
 
-			m_Framebuffer = VKDevice::Instance()->GetDevice().createFramebuffer(fbCI);
+			vkCreateFramebuffer(VKDevice::Instance()->GetDevice(), &fbCI, VK_NULL_HANDLE, &m_Framebuffer);
 		}
 
 		VKFramebuffer::~VKFramebuffer()
 		{
-			VKDevice::Instance()->GetDevice().destroyFramebuffer(m_Framebuffer);
+			vkDestroyFramebuffer(VKDevice::Instance()->GetDevice(),m_Framebuffer, VK_NULL_HANDLE);
 		}
         
         void VKFramebuffer::MakeDefault()

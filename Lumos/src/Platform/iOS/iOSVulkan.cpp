@@ -6,16 +6,16 @@
 
 namespace Lumos
 {
-	vk::SurfaceKHR Graphics::VKDevice::CreatePlatformSurface(vk::Instance vkInstance, Window* window)
+	VkSurfaceKHR Graphics::VKDevice::CreatePlatformSurface(VkInstance vkInstance, Window* window)
 	{
-		vk::SurfaceKHR surface;
+		VkSurfaceKHR surface;
 
         auto iosView = static_cast<iOSOS*>(OS::Instance())->GetIOSView();
 
-        vk::IOSSurfaceCreateInfoMVK surfaceCreateInfo = {};
+        VkIOSSurfaceCreateInfoMVK surfaceCreateInfo = {};
         surfaceCreateInfo.pNext = NULL;
         surfaceCreateInfo.pView = iosView;
-        surface = vkInstance.createIOSSurfaceMVK(surfaceCreateInfo);
+        vkCreateIOSSurfaceMVK(vkInstance, &surfaceCreateInfo, nullptr, &surface);
 
 		return surface;
 	}

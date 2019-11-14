@@ -31,7 +31,7 @@ namespace Lumos
 
 			for (int i = 0; i < 5; i++)
 			{
-				VKDevice::Instance()->GetDevice().destroySemaphore(m_ImageAvailableSemaphore[i]);
+				vkDestroySemaphore(VKDevice::Instance()->GetDevice(), m_ImageAvailableSemaphore[i], nullptr);
 			}
             
             m_Context->Unload();
@@ -41,7 +41,7 @@ namespace Lumos
 
 		void VKRenderer::PresentInternal(CommandBuffer* cmdBuffer)
 		{
-			dynamic_cast<VKCommandBuffer*>(cmdBuffer)->ExecuteInternal(vk::PipelineStageFlagBits::eColorAttachmentOutput,
+			dynamic_cast<VKCommandBuffer*>(cmdBuffer)->ExecuteInternal(VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT,
 				m_ImageAvailableSemaphore[m_CurrentSemaphoreIndex], m_ImageAvailableSemaphore[m_CurrentSemaphoreIndex + 1], false);
 			m_CurrentSemaphoreIndex++;
 		}
@@ -52,15 +52,15 @@ namespace Lumos
 			{
 				auto cmd = VKTools::BeginSingleTimeCommands();
 
-				vk::ImageSubresourceRange subresourceRange = {};
-				subresourceRange.aspectMask = vk::ImageAspectFlagBits::eColor;
+				VkImageSubresourceRange subresourceRange = {};	
+				subresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
 				subresourceRange.baseMipLevel = 0;
 				subresourceRange.layerCount = 1;
 				subresourceRange.levelCount = 1;
 
-				vk::ClearColorValue clearColorValue = vk::ClearColorValue(std::array<float, 4> { 0.0f, 0.0f, 0.0f, 0.0f });
+				VkClearColorValue clearColorValue = VkClearColorValue({ 0.0f, 0.0f, 0.0f, 0.0f });
 
-				cmd.clearColorImage(static_cast<VKTexture2D*>(m_Swapchain->GetImage(i))->GetImage(), vk::ImageLayout::eTransferSrcOptimal, &clearColorValue, 1, &subresourceRange);
+				vkCmdClearColorImage(cmd, static_cast<VKTexture2D*>(m_Swapchain->GetImage(i))->GetImage(),VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL, &clearColorValue, 1, &subresourceRange);
 
 				VKTools::EndSingleTimeCommands(cmd);
 			}
@@ -84,12 +84,14 @@ namespace Lumos
 
 		void VKRenderer::CreateSemaphores()
 		{
-			vk::SemaphoreCreateInfo semaphoreInfo = {};
+			VkSemaphoreCreateInfo semaphoreInfo = {};
+			semaphoreInfo.sType = VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO;
+			semaphoreInfo.pNext = nullptr;
 
 			for (int i = 0; i < 5; i++)
 			{
-				m_ImageAvailableSemaphore[i] = VKDevice::Instance()->GetDevice().createSemaphore(semaphoreInfo);
-				if (!m_ImageAvailableSemaphore[i])
+				auto result = vkCreateSemaphore(VKDevice::Instance()->GetDevice(), &semaphoreInfo, nullptr, &m_ImageAvailableSemaphore[i]);
+				if (result != VK_SUCCESS)
 				{
 					LUMOS_LOG_CRITICAL("[VULKAN] Failed to create semaphores!");
 				}
@@ -101,12 +103,12 @@ namespace Lumos
 			m_CurrentSemaphoreIndex = 0;
 			auto result = m_Swapchain->AcquireNextImage(m_ImageAvailableSemaphore[m_CurrentSemaphoreIndex]);
 
-			if (result == vk::Result::eErrorOutOfDateKHR)
+			if (result == VK_ERROR_OUT_OF_DATE_KHR)
 			{
 				OnResize(m_Width, m_Height);
 				return;
 			}
-			else if (result != vk::Result::eSuccess && result != vk::Result::eSuboptimalKHR)
+			else if (result != VK_SUCCESS && result != VK_SUBOPTIMAL_KHR)
 			{
 				LUMOS_LOG_CRITICAL("[VULKAN] Failed to acquire swap chain image!");
 			}
@@ -119,34 +121,37 @@ namespace Lumos
 
 		void VKRenderer::BindDescriptorSetsInternal(Graphics::Pipeline* pipeline, Graphics::CommandBuffer* cmdBuffer, u32 dynamicOffset, std::vector<Graphics::DescriptorSet*>& descriptorSets)
 		{
-			std::vector<vk::DescriptorSet> vkdescriptorSets;
 			u32 numDynamicDescriptorSets = 0;
+			u32 numDesciptorSets = 0;
 
 			for (auto descriptorSet : descriptorSets)
 			{
-				if (dynamic_cast<Graphics::VKDescriptorSet*>(descriptorSet)->GetIsDynamic())
+				auto vkDesSet = static_cast<Graphics::VKDescriptorSet*>(descriptorSet);
+				if (vkDesSet->GetIsDynamic())
 					numDynamicDescriptorSets++;
 
-				vkdescriptorSets.push_back(dynamic_cast<Graphics::VKDescriptorSet*>(descriptorSet)->GetDescriptorSet());
+				m_DescriptorSetPool[numDesciptorSets] = vkDesSet->GetDescriptorSet();
 
 				u32 index = 0;
-				for (auto pc : dynamic_cast<Graphics::VKDescriptorSet*>(descriptorSet)->GetPushConstants())
+				for (auto& pc : vkDesSet->GetPushConstants())
 				{
-					dynamic_cast<Graphics::VKCommandBuffer*>(cmdBuffer)->GetCommandBuffer().pushConstants(dynamic_cast<Graphics::VKPipeline*>(pipeline)->GetPipelineLayout(), VKTools::ShaderTypeToVK(pc.shaderStage), index, pc.size, pc.data);
+					vkCmdPushConstants(static_cast<Graphics::VKCommandBuffer*>(cmdBuffer)->GetCommandBuffer(), static_cast<Graphics::VKPipeline*>(pipeline)->GetPipelineLayout(), VKTools::ShaderTypeToVK(pc.shaderStage), index, pc.size, pc.data);
 				}
+
+				numDesciptorSets++;
 			}
 
-			dynamic_cast<Graphics::VKCommandBuffer*>(cmdBuffer)->GetCommandBuffer().bindDescriptorSets(vk::PipelineBindPoint::eGraphics, dynamic_cast<Graphics::VKPipeline*>(pipeline)->GetPipelineLayout(), 0, static_cast<uint32_t>(vkdescriptorSets.size()), vkdescriptorSets.data(), numDynamicDescriptorSets, &dynamicOffset);
+			vkCmdBindDescriptorSets(static_cast<Graphics::VKCommandBuffer*>(cmdBuffer)->GetCommandBuffer(),VK_PIPELINE_BIND_POINT_GRAPHICS, static_cast<Graphics::VKPipeline*>(pipeline)->GetPipelineLayout(), 0, numDesciptorSets, m_DescriptorSetPool, numDynamicDescriptorSets, &dynamicOffset);
 		}
 
 		void VKRenderer::DrawIndexedInternal(CommandBuffer* commandBuffer, DrawType type, u32 count, u32 start) const
 		{
-			static_cast<VKCommandBuffer*>(commandBuffer)->GetCommandBuffer().drawIndexed(count, 1, 0, 0, 0);
+			vkCmdDrawIndexed(static_cast<VKCommandBuffer*>(commandBuffer)->GetCommandBuffer(), count, 1, 0, 0, 0);
 		}
 
 		void VKRenderer::DrawInternal(CommandBuffer* commandBuffer, DrawType type, u32 count, DataType datayType, void* indices) const
 		{
-			static_cast<VKCommandBuffer*>(commandBuffer)->GetCommandBuffer().draw(count, 1, 0, 0);
+			vkCmdDraw(static_cast<VKCommandBuffer*>(commandBuffer)->GetCommandBuffer(), count, 1, 0, 0);
 		}
         
         void VKRenderer::MakeDefault()

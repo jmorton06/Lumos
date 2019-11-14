@@ -13,9 +13,6 @@
 #include "Graphics/Layers/LayerStack.h"
 #include "Graphics/Camera/Camera.h"
 
-#include "ECS/EntityManager.h"
-#include "ECS/ComponentManager.h"
-
 #include "Utilities/CommonUtils.h"
 #include "Utilities/AssetsManager.h"
 #include "Core/VFS.h"
@@ -130,8 +127,6 @@ namespace Lumos
 		Engine::Release();
 		Input::Release();
 		AssetsManager::ReleaseMeshes();
-		//EntityManager::Release();
-		//ComponentManager::Release();
 		SoundManager::Release();
 
 		m_SceneManager.reset();

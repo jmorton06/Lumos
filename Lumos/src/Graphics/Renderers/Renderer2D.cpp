@@ -15,13 +15,13 @@
 #include "Graphics/GBuffer.h"
 #include "Graphics/Sprite.h"
 #include "App/Scene.h"
-#include "ECS/EntityManager.h"
 #include "ECS/Component/MaterialComponent.h"
 #include "App/Application.h"
 #include "Graphics/RenderManager.h"
 #include "Platform/OpenGL/GLDescriptorSet.h"
 #include "Graphics/Renderable2D.h"
 #include "Graphics/Camera/Camera.h"
+#include "Maths/Transform.h"
 
 #define RENDERER_MAX_SPRITES	10000
 #define RENDERER_SPRITE_SIZE	RENDERER2D_VERTEX_SIZE * 4

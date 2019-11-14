@@ -3,7 +3,6 @@
 #include "Graphics/Mesh.h"
 #include "Graphics/MeshFactory.h"
 #include "Graphics/ModelLoader/ModelLoader.h"
-#include "ECS/EntityManager.h"
 #include "ECS/Component/Components.h"
 
 namespace Lumos

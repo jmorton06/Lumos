@@ -9,7 +9,7 @@ namespace Lumos
 	{
 		VKUniformBuffer::VKUniformBuffer(uint32_t size, const void* data)
 		{
-			VKBuffer::Init(vk::BufferUsageFlagBits::eUniformBuffer, size, data);
+			VKBuffer::Init(VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT, size, data);
 		}
 
 		VKUniformBuffer::VKUniformBuffer()
@@ -22,7 +22,7 @@ namespace Lumos
 
 		void VKUniformBuffer::Init(uint32_t size, const void* data)
 		{
-			VKBuffer::Init(vk::BufferUsageFlagBits::eUniformBuffer, size, data);
+			VKBuffer::Init(VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT, size, data);
 		}
 
 		void VKUniformBuffer::SetData(uint32_t size, const void* data)

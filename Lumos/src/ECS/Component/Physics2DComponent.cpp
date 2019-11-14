@@ -1,7 +1,6 @@
 #include "lmpch.h"
 #include "Physics2DComponent.h"
 #include "Maths/MathsUtilities.h"
-#include "ECS/EntityManager.h"
 
 #include <Box2D/Box2D.h>
 #include <imgui/imgui.h>
@@ -20,15 +19,6 @@ namespace Lumos
 
 	void Physics2DComponent::Update()
 	{
-		//if (!m_PhysicsObject->GetB2Body()->IsAwake())
-		//	return;
-
-        // auto angle = m_PhysicsObject->GetAngle() * Maths::RADTODEG;
-        
-//		auto entity = ComponentManager::Instance()->GetComponentArray<Physics2DComponent>()->GetEntity(this);
-//		entity->GetTransformComponent()->SetLocalPosition(Maths::Vector3(m_PhysicsObject->GetPosition(), 1.0f));
-//		entity->GetTransformComponent()->SetLocalOrientation(Maths::Quaternion::EulerAnglesToQuaternion(0.0f, 0.0f, angle));
-//		entity->GetTransformComponent()->UpdateMatrices();
 	}
 
 	void Physics2DComponent::OnImGui()
@@ -46,7 +36,7 @@ namespace Lumos
         ImGui::Separator();
 
         ImGui::AlignTextToFramePadding();
-        ImGui::Text("Position");
+        ImGui::TextUnformatted("Position");
         ImGui::NextColumn();
         ImGui::PushItemWidth(-1);
         if(ImGui::DragFloat2("##Position", &pos.x))
@@ -56,7 +46,7 @@ namespace Lumos
         ImGui::NextColumn();
             
         ImGui::AlignTextToFramePadding();
-        ImGui::Text("Orientation");
+        ImGui::TextUnformatted("Orientation");
         ImGui::NextColumn();
         ImGui::PushItemWidth(-1);
         if(ImGui::DragFloat("##Orientation", &angle))
@@ -66,7 +56,7 @@ namespace Lumos
         ImGui::NextColumn();
             
         ImGui::AlignTextToFramePadding();
-        ImGui::Text("Friction");
+        ImGui::TextUnformatted("Friction");
         ImGui::NextColumn();
         ImGui::PushItemWidth(-1);
         if(ImGui::DragFloat("##Friction", &friction))
@@ -76,7 +66,7 @@ namespace Lumos
         ImGui::NextColumn();
             
         ImGui::AlignTextToFramePadding();
-        ImGui::Text("Elasticity");
+        ImGui::TextUnformatted("Elasticity");
         ImGui::NextColumn();
         ImGui::PushItemWidth(-1);
         if(ImGui::DragFloat("##Elasticity", &elasticity))
@@ -86,7 +76,7 @@ namespace Lumos
         ImGui::NextColumn();
             
         ImGui::AlignTextToFramePadding();
-        ImGui::Text("Static");
+        ImGui::TextUnformatted("Static");
         ImGui::NextColumn();
         ImGui::PushItemWidth(-1);
         if(ImGui::Checkbox("##Static", &isStatic))
@@ -96,7 +86,7 @@ namespace Lumos
         ImGui::NextColumn();
             
         ImGui::AlignTextToFramePadding();
-        ImGui::Text("At Rest");
+        ImGui::TextUnformatted("At Rest");
         ImGui::NextColumn();
         ImGui::PushItemWidth(-1);
         if(ImGui::Checkbox("##At Rest", &isRest))

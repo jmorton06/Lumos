@@ -22,27 +22,27 @@ namespace Lumos
 		bool VKSwapchain::Init()
 		{
 			// Swap chain
-            vk::SurfaceCapabilitiesKHR surfaceCapabilities;
-            VKDevice::Instance()->GetGPU().getSurfaceCapabilitiesKHR( VKDevice::Instance()->GetSurface(), &surfaceCapabilities);
+            VkSurfaceCapabilitiesKHR surfaceCapabilities;
+			vkGetPhysicalDeviceSurfaceCapabilitiesKHR(VKDevice::Instance()->GetGPU(), VKDevice::Instance()->GetSurface(), &surfaceCapabilities);
 
 			uint32_t numPresentModes;
-			VKDevice::Instance()->GetGPU().getSurfacePresentModesKHR(VKDevice::Instance()->GetSurface(), &numPresentModes, VK_NULL_HANDLE);
+			vkGetPhysicalDeviceSurfacePresentModesKHR(VKDevice::Instance()->GetGPU(), VKDevice::Instance()->GetSurface(), &numPresentModes, VK_NULL_HANDLE);
 
-            vk::PresentModeKHR * pPresentModes = lmnew vk::PresentModeKHR[numPresentModes];
-            VKDevice::Instance()->GetGPU().getSurfacePresentModesKHR(VKDevice::Instance()->GetSurface(), &numPresentModes, pPresentModes);
+			VkPresentModeKHR * pPresentModes = new VkPresentModeKHR[numPresentModes];
+			vkGetPhysicalDeviceSurfacePresentModesKHR(VKDevice::Instance()->GetGPU(), VKDevice::Instance()->GetSurface(), &numPresentModes, pPresentModes);
 
-            vk::Extent2D swapChainExtent;
+            VkExtent2D swapChainExtent;
 
 			swapChainExtent.width = static_cast<uint32_t>(m_Width);
 			swapChainExtent.height = static_cast<uint32_t>(m_Height);
 
-            vk::PresentModeKHR swapChainPresentMode = vk::PresentModeKHR::eFifo;
+			VkPresentModeKHR swapChainPresentMode = VK_PRESENT_MODE_FIFO_KHR;
 			for (uint32_t i = 0; i < numPresentModes; i++)
 			{
-                if (pPresentModes[i] == vk::PresentModeKHR::eMailbox)
-					swapChainPresentMode = vk::PresentModeKHR::eMailbox;
-                if ((swapChainPresentMode != vk::PresentModeKHR::eMailbox) && (pPresentModes[i] == vk::PresentModeKHR::eImmediate))
-					swapChainPresentMode = vk::PresentModeKHR::eImmediate;
+				if (pPresentModes[i] == VK_PRESENT_MODE_MAILBOX_KHR)
+					swapChainPresentMode = VK_PRESENT_MODE_MAILBOX_KHR;
+				if ((swapChainPresentMode != VK_PRESENT_MODE_MAILBOX_KHR) && (pPresentModes[i] == VK_PRESENT_MODE_IMMEDIATE_KHR))
+					swapChainPresentMode = VK_PRESENT_MODE_IMMEDIATE_KHR;
 			}
 
 			// Use double-buffering
@@ -50,55 +50,59 @@ namespace Lumos
 			if (numSwapChainImages > surfaceCapabilities.maxImageCount)
 				numSwapChainImages = surfaceCapabilities.maxImageCount;
 
-            vk::SurfaceTransformFlagBitsKHR preTransform;
-            if (surfaceCapabilities.supportedTransforms & vk::SurfaceTransformFlagBitsKHR::eIdentity)
-				preTransform = vk::SurfaceTransformFlagBitsKHR::eIdentity;
+            VkSurfaceTransformFlagBitsKHR preTransform;
+			if (surfaceCapabilities.supportedTransforms & VK_SURFACE_TRANSFORM_IDENTITY_BIT_KHR)
+				preTransform = VK_SURFACE_TRANSFORM_IDENTITY_BIT_KHR;
 			else
 				preTransform = surfaceCapabilities.currentTransform;
 
-            vk::SwapchainCreateInfoKHR swapChainCI{};
+            VkSwapchainCreateInfoKHR swapChainCI{};
+			swapChainCI.sType = VK_STRUCTURE_TYPE_SWAPCHAIN_CREATE_INFO_KHR;
 			swapChainCI.surface = VKDevice::Instance()->GetSurface();
 			swapChainCI.minImageCount = numSwapChainImages;
 			swapChainCI.imageFormat = VKDevice::Instance()->GetFormat();
 			swapChainCI.imageExtent.width = swapChainExtent.width;
 			swapChainCI.imageExtent.height = swapChainExtent.height;
 			swapChainCI.preTransform = preTransform;
-            swapChainCI.compositeAlpha = vk::CompositeAlphaFlagBitsKHR::eOpaque;
+            swapChainCI.compositeAlpha = VK_COMPOSITE_ALPHA_OPAQUE_BIT_KHR;
 			swapChainCI.imageArrayLayers = 1;
 			swapChainCI.presentMode = swapChainPresentMode;
 			swapChainCI.oldSwapchain = nullptr;
-            swapChainCI.imageColorSpace = vk::ColorSpaceKHR::eSrgbNonlinear;
-            swapChainCI.imageSharingMode = vk::SharingMode::eExclusive;
+            swapChainCI.imageColorSpace = VK_COLORSPACE_SRGB_NONLINEAR_KHR;
+            swapChainCI.imageSharingMode = VK_SHARING_MODE_EXCLUSIVE;
 			swapChainCI.queueFamilyIndexCount = 0;
-            swapChainCI.imageUsage = vk::ImageUsageFlagBits::eColorAttachment;
+            swapChainCI.imageUsage = VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT;
 			swapChainCI.pQueueFamilyIndices = VK_NULL_HANDLE;
 			swapChainCI.clipped = VK_TRUE;
 
-            m_SwapChain = VKDevice::Instance()->GetDevice().createSwapchainKHR(swapChainCI);
+            vkCreateSwapchainKHR(VKDevice::Instance()->GetDevice(), &swapChainCI, nullptr, &m_SwapChain);
     
 			uint32_t swapChainImageCount;
-            VKDevice::Instance()->GetDevice().getSwapchainImagesKHR(m_SwapChain, &swapChainImageCount, nullptr);
+            vkGetSwapchainImagesKHR(VKDevice::Instance()->GetDevice(), m_SwapChain, &swapChainImageCount, nullptr);
 
-            vk::Image * pSwapChainImages = lmnew vk::Image[swapChainImageCount];
-            VKDevice::Instance()->GetDevice().getSwapchainImagesKHR(m_SwapChain, &swapChainImageCount, pSwapChainImages);
+            VkImage * pSwapChainImages = lmnew VkImage[swapChainImageCount];
+            vkGetSwapchainImagesKHR(VKDevice::Instance()->GetDevice(), m_SwapChain, &swapChainImageCount, pSwapChainImages);
 
 			for (uint32_t i = 0; i < swapChainImageCount; i++)
 			{
-                vk::ImageViewCreateInfo viewCI{};
+                VkImageViewCreateInfo viewCI{};
+				viewCI.sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO;
 				viewCI.format = VKDevice::Instance()->GetFormat();
-                viewCI.components.r = vk::ComponentSwizzle::eR;
-				viewCI.components.g = vk::ComponentSwizzle::eG;
-				viewCI.components.b = vk::ComponentSwizzle::eB;
-				viewCI.components.a = vk::ComponentSwizzle::eA;
-                viewCI.subresourceRange.aspectMask = vk::ImageAspectFlagBits::eColor;
+				viewCI.components.r = VK_COMPONENT_SWIZZLE_R;
+				viewCI.components.g = VK_COMPONENT_SWIZZLE_G;
+				viewCI.components.b = VK_COMPONENT_SWIZZLE_B;
+				viewCI.components.a = VK_COMPONENT_SWIZZLE_A;
+				viewCI.subresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
 				viewCI.subresourceRange.baseMipLevel = 0;
 				viewCI.subresourceRange.levelCount = 1;
 				viewCI.subresourceRange.baseArrayLayer = 0;
 				viewCI.subresourceRange.layerCount = 1;
-                viewCI.viewType = vk::ImageViewType::e2D;
+                viewCI.viewType = VK_IMAGE_VIEW_TYPE_2D;
+				viewCI.flags = 0;
 				viewCI.image = pSwapChainImages[i];
 
-                vk::ImageView imageView = VKDevice::Instance()->GetDevice().createImageView(viewCI);
+				VkImageView imageView;
+				vkCreateImageView(VKDevice::Instance()->GetDevice(), &viewCI, VK_NULL_HANDLE, &imageView);
 				VKTexture2D* swapChainBuffer = lmnew VKTexture2D(pSwapChainImages[i], imageView);
 
 				m_SwapChainBuffers.push_back(swapChainBuffer);
@@ -116,17 +120,18 @@ namespace Lumos
 			{
 				delete m_SwapChainBuffers[i];
 			}
-            VKDevice::Instance()->GetDevice().destroySwapchainKHR(m_SwapChain);
+			vkDestroySwapchainKHR(VKDevice::Instance()->GetDevice(), m_SwapChain, VK_NULL_HANDLE);
 		}
 
-        vk::Result VKSwapchain::AcquireNextImage(vk::Semaphore signalSemaphore)
+        VkResult VKSwapchain::AcquireNextImage(VkSemaphore signalSemaphore)
 		{
-            return VKDevice::Instance()->GetDevice().acquireNextImageKHR(m_SwapChain, UINT64_MAX, signalSemaphore, nullptr, &m_CurrentBuffer);
+			return vkAcquireNextImageKHR(VKDevice::Instance()->GetDevice(), m_SwapChain, UINT64_MAX, signalSemaphore, VK_NULL_HANDLE, &m_CurrentBuffer);
 		}
 
-        void VKSwapchain::Present(vk::Semaphore waitSemaphore)
+        void VKSwapchain::Present(VkSemaphore waitSemaphore)
 		{
-            vk::PresentInfoKHR present;
+            VkPresentInfoKHR present;
+			present.sType = VK_STRUCTURE_TYPE_PRESENT_INFO_KHR;
 			present.pNext = VK_NULL_HANDLE;
 			present.swapchainCount = 1;
 			present.pSwapchains = &m_SwapChain;
@@ -134,7 +139,7 @@ namespace Lumos
 			present.waitSemaphoreCount = 1;
 			present.pWaitSemaphores = &waitSemaphore;
 			present.pResults = VK_NULL_HANDLE;
-            VKDevice::Instance()->GetPresentQueue().presentKHR(present);
+			vkQueuePresentKHR(VKDevice::Instance()->GetPresentQueue(), &present);
 		}
         
         void VKSwapchain::MakeDefault()

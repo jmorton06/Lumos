@@ -16,7 +16,7 @@ namespace Lumos
 			bool Init();
 			void Unload() const;
 
-			vk::PipelineShaderStageCreateInfo* GetShaderStages() const;
+			VkPipelineShaderStageCreateInfo* GetShaderStages() const;
 			uint32_t GetStageCount() const;
 
 			void Bind() const {};
@@ -41,7 +41,7 @@ namespace Lumos
             static Shader* CreateFuncVulkan(const String&, const String&);
             
 		private:
-			vk::PipelineShaderStageCreateInfo* 	m_ShaderStages;
+			VkPipelineShaderStageCreateInfo* 	m_ShaderStages;
 			uint32_t 							m_StageCount;
 			String 								m_Name;
 			String								m_FilePath;

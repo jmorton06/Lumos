@@ -2,7 +2,6 @@
 #include "Physics3DComponent.h"
 #include "App/Application.h"
 #include "Physics/LumosPhysicsEngine/LumosPhysicsEngine.h"
-#include "ECS/EntityManager.h"
 
 #include <imgui/imgui.h>
 
@@ -45,7 +44,7 @@ namespace Lumos
         auto elasticity = m_PhysicsObject->GetElasticity();
 
         ImGui::AlignTextToFramePadding();
-        ImGui::Text("Position");
+        ImGui::TextUnformatted("Position");
         ImGui::NextColumn();
         ImGui::PushItemWidth(-1);
         if(ImGui::DragFloat3("##Position", Maths::ValuePointer(pos)))
@@ -55,7 +54,7 @@ namespace Lumos
         ImGui::NextColumn();
 
         ImGui::AlignTextToFramePadding();
-        ImGui::Text("Velocity");
+        ImGui::TextUnformatted("Velocity");
         ImGui::NextColumn();
         ImGui::PushItemWidth(-1);
         if(ImGui::DragFloat3("##Velocity", Maths::ValuePointer(velocity)))
@@ -65,7 +64,7 @@ namespace Lumos
         ImGui::NextColumn();
 
         ImGui::AlignTextToFramePadding();
-        ImGui::Text("Torque");
+        ImGui::TextUnformatted("Torque");
         ImGui::NextColumn();
         ImGui::PushItemWidth(-1);
         if(ImGui::DragFloat3("##Torque", Maths::ValuePointer(torque)))
@@ -75,7 +74,7 @@ namespace Lumos
         ImGui::NextColumn();
 	
         ImGui::AlignTextToFramePadding();
-        ImGui::Text("Orientation");
+        ImGui::TextUnformatted("Orientation");
         ImGui::NextColumn();
         ImGui::PushItemWidth(-1);
         if(ImGui::DragFloat4("##Orientation", Maths::ValuePointer(orientation)))
@@ -85,7 +84,7 @@ namespace Lumos
         ImGui::NextColumn();
 
 		ImGui::AlignTextToFramePadding();
-		ImGui::Text("Angular Velocity");
+		ImGui::TextUnformatted("Angular Velocity");
 		ImGui::NextColumn();
 		ImGui::PushItemWidth(-1);
 		if (ImGui::DragFloat3("##Angular Velocity", Maths::ValuePointer(angularVelocity)))
@@ -95,7 +94,7 @@ namespace Lumos
 		ImGui::NextColumn();
             
         ImGui::AlignTextToFramePadding();
-        ImGui::Text("Friction");
+        ImGui::TextUnformatted("Friction");
         ImGui::NextColumn();
         ImGui::PushItemWidth(-1);
         if(ImGui::DragFloat("##Friction", &friction))
@@ -105,7 +104,7 @@ namespace Lumos
         ImGui::NextColumn();
 			
         ImGui::AlignTextToFramePadding();
-        ImGui::Text("Mass");
+        ImGui::TextUnformatted("Mass");
         ImGui::NextColumn();
         ImGui::PushItemWidth(-1);
         if(ImGui::DragFloat("##Mass", &mass))
@@ -115,7 +114,7 @@ namespace Lumos
         ImGui::NextColumn();
 		
         ImGui::AlignTextToFramePadding();
-        ImGui::Text("Elasticity");
+        ImGui::TextUnformatted("Elasticity");
         ImGui::NextColumn();
         ImGui::PushItemWidth(-1);
         if(ImGui::DragFloat("##Elasticity", &elasticity))
@@ -125,7 +124,7 @@ namespace Lumos
         ImGui::NextColumn();
 		
         ImGui::AlignTextToFramePadding();
-        ImGui::Text("Static");
+        ImGui::TextUnformatted("Static");
         ImGui::NextColumn();
         ImGui::PushItemWidth(-1);
         if(ImGui::Checkbox("##Static", &isStatic))
@@ -136,7 +135,7 @@ namespace Lumos
 			
 
         ImGui::AlignTextToFramePadding();
-        ImGui::Text("At Rest");
+        ImGui::TextUnformatted("At Rest");
         ImGui::NextColumn();
         ImGui::PushItemWidth(-1);
         if(ImGui::Checkbox("##At Rest", &isRest))

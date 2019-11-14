@@ -16,7 +16,7 @@ namespace Lumos
 			VKFramebuffer(const FramebufferInfo& frameBufferInfo);
 			~VKFramebuffer();
 
-			const vk::Framebuffer& GetFramebuffer() const { return m_Framebuffer; }
+			const VkFramebuffer& GetFramebuffer() const { return m_Framebuffer; }
 
 			void SetClearColour(const Maths::Vector4& colour) override {};
 
@@ -42,7 +42,7 @@ namespace Lumos
 			u32 m_Width;
 			u32 m_Height;
 			u32 m_AttachmentCount;
-			vk::Framebuffer m_Framebuffer;
+			VkFramebuffer m_Framebuffer;
 		};
 	}
 }

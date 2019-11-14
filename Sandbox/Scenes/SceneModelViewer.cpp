@@ -18,7 +18,7 @@ void SceneModelViewer::OnInit()
 
 	LoadModels();
 
-	m_pCamera = new EditorCamera(-20.0f, -40.0f, Maths::Vector3(-1.0f, 1.0f, 2.0f), 45.0f, 0.1f, 1000.0f, (float) m_ScreenWidth / (float) m_ScreenHeight);
+	m_pCamera = new EditorCamera(-20.0f, 330.0f, Maths::Vector3(-2.5f, 1.3f, 3.8f), 45.0f, 0.1f, 1000.0f, (float) m_ScreenWidth / (float) m_ScreenHeight);
 
 	Application::Instance()->GetSystem<AudioManager>()->SetListener(m_pCamera);
 
@@ -39,12 +39,12 @@ void SceneModelViewer::OnInit()
 
 	m_EnvironmentMap = Graphics::TextureCube::CreateFromVCross(environmentFiles, 11);
 
-    auto lightEntity = m_Registry.create();//EntityManager::Instance()->CreateEntity("Directional Light");
+    auto lightEntity = m_Registry.create();
     m_Registry.assign<Graphics::Light>(lightEntity, Maths::Vector3(26.0f, 22.0f, 48.5f), Maths::Vector4(1.0f), 1.3f);
     m_Registry.assign<Maths::Transform>(lightEntity,Matrix4::Translation(Maths::Vector3(26.0f, 22.0f, 48.5f)) * Maths::Quaternion::LookAt(Maths::Vector3(26.0f, 22.0f, 48.5f), Maths::Vector3::Zero()).ToMatrix4());
 	m_Registry.assign<NameComponent>(lightEntity, "Directional Light");
 
-    auto cameraEntity = m_Registry.create();//EntityManager::Instance()->CreateEntity("Camera");
+    auto cameraEntity = m_Registry.create();
     m_Registry.assign<CameraComponent>(cameraEntity, m_pCamera);
 	m_Registry.assign<NameComponent>(cameraEntity, "Camera");
 

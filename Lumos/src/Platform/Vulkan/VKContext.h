@@ -31,7 +31,7 @@ namespace Lumos
 
 			inline static VKContext* Get() { return static_cast<VKContext*>(s_Context); }
 
-			static VKAPI_ATTR vk::Bool32 VKAPI_CALL DebugCallback(VkDebugReportFlagsEXT flags,
+			static VKAPI_ATTR VkBool32 VKAPI_CALL DebugCallback(VkDebugReportFlagsEXT flags,
 				VkDebugReportObjectTypeEXT objType,
 				uint64_t sourceObj,
 				size_t location,
@@ -40,7 +40,7 @@ namespace Lumos
 				const char* pMsg,
 				void* userData);
 
-			vk::Instance GetVKInstance()		const { return m_VkInstance; }
+			VkInstance GetVKInstance()		const { return m_VkInstance; }
 			void* GetWindowContext()			const { return m_WindowContext; }
 
 			const Ref<VKCommandPool>& GetCommandPool() const { return m_CommandPool; }
@@ -71,11 +71,11 @@ namespace Lumos
 
 		private:
 
-			vk::Instance m_VkInstance;
-			vk::DebugReportCallbackEXT m_DebugCallback;
+			VkInstance m_VkInstance;
+			VkDebugReportCallbackEXT m_DebugCallback;
 
-			std::vector<vk::LayerProperties> m_InstanceLayers;
-			std::vector<vk::ExtensionProperties> m_InstanceExtensions;
+			std::vector<VkLayerProperties> m_InstanceLayers;
+			std::vector<VkExtensionProperties> m_InstanceExtensions;
 
 			std::vector<const char*> m_InstanceLayerNames;
 			std::vector<const char*> m_InstanceExtensionNames;

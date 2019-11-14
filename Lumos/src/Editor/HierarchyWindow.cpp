@@ -1,7 +1,6 @@
 #include "lmpch.h"
 #include "HierarchyWindow.h"
 #include "Editor.h"
-#include "ECS/EntityManager.h"
 #include "App/Application.h"
 #include "App/SceneManager.h"
 #include "ImGui/ImGuiHelpers.h"
@@ -23,12 +22,8 @@ namespace Lumos
 		if (!registry.valid(node))
 			return;
 
-		bool hasName = registry.has<NameComponent>(node);
-		String name;
-		if (hasName)
-			name = registry.get<NameComponent>(node).name;
-		else
-			name = StringFormat::ToString((u32)node);
+		auto nameComponent = registry.try_get<NameComponent>(node);
+		String name = nameComponent ? nameComponent->name : StringFormat::ToString(entt::to_integer(node));
     
 		if (m_HierarchyFilter.IsActive())
 		{
@@ -54,12 +49,6 @@ namespace Lumos
 			{
 				nodeFlags |= ImGuiTreeNodeFlags_Leaf;
 			}
-
-			String icon(ICON_FA_CUBE);
-        
-			std::stringstream ss;
-			ss << "##";
-			ss << (u32)node;
         
 			bool active = true;
 			if(!active)
@@ -80,19 +69,17 @@ namespace Lumos
 				m_HadRecentDroppedEntity = entt::null;
 			}
 
-			bool nodeOpen = ImGui::TreeNodeEx(ss.str().c_str(), nodeFlags, doubleClicked ? (icon).c_str() :(icon + " " + name).c_str(), 0);
-        
+			bool nodeOpen = ImGui::TreeNodeEx((void*)(intptr_t)entt::to_integer(node), nodeFlags, ICON_FA_CUBE " %s", doubleClicked ? "" :(name).c_str());
+
 			if (doubleClicked)
 			{
 				ImGui::SameLine();
 				static char objName[INPUT_BUF_SIZE];
 				strcpy(objName, name.c_str());
 
-				if (!hasName)
-					registry.assign<NameComponent>(node, name);
 				ImGui::PushItemWidth(-1);
 				if (ImGui::InputText("##Name", objName, IM_ARRAYSIZE(objName), 0))
-					registry.get<NameComponent>(node).name = objName;
+					registry.get_or_assign<NameComponent>(node).name = objName;
 				ImGui::PopStyleVar();
 			}
 
@@ -100,7 +87,7 @@ namespace Lumos
 				ImGui::PopStyleColor();
 
 			bool deleteEntity = false;
-			if (ImGui::BeginPopupContextItem("Entity context menu"))
+			if (ImGui::BeginPopupContextItem(name.c_str()))
 			{
 				if (ImGui::Selectable("Copy")) m_CopiedEntity = node;
 
@@ -108,7 +95,7 @@ namespace Lumos
 				{
 					if (ImGui::Selectable("Paste"))
 					{
-						//auto e = registry.clone(node);// EntityManager::Instance()->DuplicateEntity(m_CopiedEntity);
+						//auto e = registry.clone(node);
 						//node->AddChild(e);
 						m_CopiedEntity = entt::null;
 					}
@@ -120,7 +107,7 @@ namespace Lumos
 
 				ImGui::Separator();
 			
-				//if (ImGui::Selectable("Duplicate")) registry.clone(node);// EntityManager::Instance()->DuplicateEntity(node);
+				//if (ImGui::Selectable("Duplicate")) registry.clone(node);
 				if (ImGui::Selectable("Remove")) deleteEntity = true; if (m_Editor->GetSelected() == node) m_Editor->SetSelected(entt::null);
 				ImGui::Separator();
 				if (ImGui::Selectable("Rename")) m_DoubleClicked = node;
@@ -243,7 +230,7 @@ namespace Lumos
 		ImGui::Begin(m_Name.c_str(), &m_Active, flags);
 		{
 			ImGui::Indent();
-			ImGui::Text(ICON_FA_SEARCH);
+			ImGui::TextUnformatted(ICON_FA_SEARCH);
 			ImGui::SameLine();
 			m_HierarchyFilter.Draw("##HierarchyFilter", ImGui::GetContentRegionAvailWidth() - ImGui::GetStyle().IndentSpacing);
             
@@ -257,10 +244,13 @@ namespace Lumos
                 
                 registry.each([&](auto entity)
                 {
-					auto hierarchyComponent = registry.try_get<Hierarchy>(entity);
+					if (registry.valid(entity))
+					{
+						auto hierarchyComponent = registry.try_get<Hierarchy>(entity);
 
-					if(!hierarchyComponent || (hierarchyComponent && hierarchyComponent->parent() == entt::null))
-						DrawNode(entity, registry);
+						if (!hierarchyComponent || (hierarchyComponent && hierarchyComponent->parent() == entt::null))
+							DrawNode(entity, registry);
+					}
                 });
 			}
 		}

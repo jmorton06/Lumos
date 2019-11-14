@@ -52,6 +52,7 @@ namespace Lumos
 	{
 		m_ViewMatrix = Maths::Matrix4::Rotation(-m_Pitch, Maths::Vector3(1, 0, 0)) *
 				Maths::Matrix4::Rotation(-m_Yaw, Maths::Vector3(0, 1, 0)) *
+				Maths::Matrix4::Rotation(-m_Roll, Maths::Vector3(0, 0, 1)) *
 				Maths::Matrix4::Translation(-m_Position);
 	};
 
@@ -100,7 +101,7 @@ namespace Lumos
 			ImGui::Separator();
 
 			ImGui::AlignTextToFramePadding();
-			ImGui::Text("Position");
+			ImGui::TextUnformatted("Position");
 			ImGui::NextColumn();
 			ImGui::PushItemWidth(-1);
 			ImGui::DragFloat3("##Position", &m_Position.x);
@@ -108,7 +109,7 @@ namespace Lumos
 			ImGui::NextColumn();
 
 			ImGui::AlignTextToFramePadding();
-			ImGui::Text("Aspect");
+			ImGui::TextUnformatted("Aspect");
 			ImGui::NextColumn();
 			ImGui::PushItemWidth(-1);
 			ImGui::DragFloat("##Aspect", &m_AspectRatio);
@@ -116,7 +117,7 @@ namespace Lumos
 			ImGui::NextColumn();
 
 			ImGui::AlignTextToFramePadding();
-			ImGui::Text("Pitch");
+			ImGui::TextUnformatted("Pitch");
 			ImGui::NextColumn();
 			ImGui::PushItemWidth(-1);
 			ImGui::DragFloat("##Pitch", &m_Pitch);
@@ -124,7 +125,7 @@ namespace Lumos
 			ImGui::NextColumn();
 
 			ImGui::AlignTextToFramePadding();
-			ImGui::Text("Yaw");
+			ImGui::TextUnformatted("Yaw");
 			ImGui::NextColumn();
 			ImGui::PushItemWidth(-1);
 			ImGui::DragFloat("##Yaw", &m_Yaw);
@@ -132,7 +133,7 @@ namespace Lumos
 			ImGui::NextColumn();
 
 			ImGui::AlignTextToFramePadding();
-			ImGui::Text("Fov");
+			ImGui::TextUnformatted("Fov");
 			ImGui::NextColumn();
 			ImGui::PushItemWidth(-1);
 			ImGui::DragFloat("##Fov", &m_Fov);
@@ -140,7 +141,7 @@ namespace Lumos
 			ImGui::NextColumn();
 
 			ImGui::AlignTextToFramePadding();
-			ImGui::Text("Near");
+			ImGui::TextUnformatted("Near");
 			ImGui::NextColumn();
 			ImGui::PushItemWidth(-1);
 			ImGui::DragFloat("##Near", &m_Near);
@@ -148,7 +149,7 @@ namespace Lumos
 			ImGui::NextColumn();
 
 			ImGui::AlignTextToFramePadding();
-			ImGui::Text("Far");
+			ImGui::TextUnformatted("Far");
 			ImGui::NextColumn();
 			ImGui::PushItemWidth(-1);
 			ImGui::DragFloat("##Far", &m_Far);

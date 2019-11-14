@@ -42,9 +42,7 @@
 #include "Utilities/AssetsManager.h"
 
 //Entity
-#include "ECS/EntityManager.h"
 #include "ECS/Component/Components.h"
-#include "ECS/ComponentManager.h"
 
 //Cameras
 #include "Graphics/Camera/ThirdPersonCamera.h"
@@ -59,6 +57,7 @@
 
 //Maths
 #include "Maths/Maths.h"
+#include "Maths/Transform.h"
 
 //Audio
 #include "Audio/AudioManager.h"
