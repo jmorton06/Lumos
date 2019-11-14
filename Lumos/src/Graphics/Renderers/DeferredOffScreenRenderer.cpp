@@ -287,9 +287,7 @@ namespace Lumos
 
 				uint32_t dynamicOffset = i * static_cast<uint32_t>(m_DynamicAlignment);
 
-				std::vector<Graphics::DescriptorSet*> descriptorSets;
-				descriptorSets.emplace_back(m_Pipeline->GetDescriptorSet());
-				descriptorSets.emplace_back(command.material ? command.material->GetDescriptorSet() : m_DefaultMaterial->GetDescriptorSet());
+				std::vector<Graphics::DescriptorSet*> descriptorSets = { m_Pipeline->GetDescriptorSet(), command.material ? command.material->GetDescriptorSet() : m_DefaultMaterial->GetDescriptorSet() };
 
 				mesh->GetVertexArray()->Bind(m_DeferredCommandBuffers);
 				mesh->GetIndexBuffer()->Bind(m_DeferredCommandBuffers);

@@ -51,9 +51,11 @@ namespace Lumos
 		frameWidth = 3;
 		frameSpacing = 1;
 		useColoredLegendText = true;
-		prevFpsFrameTime = std::chrono::system_clock::now();
 		fpsFramesCount = 0;
 		avgFrameTime = 1.0f;
+
+		Profiler::Instance()->Enable();
+
 	}
 
 	void ProfilerWindow::OnImGui()
@@ -118,6 +120,10 @@ namespace Lumos
 				m_Reports.erase(m_Reports.begin());
             }
 			m_Reports.emplace_back(report);
+		}
+		else
+		{
+			return;
 		}
 
 		auto &currFrame = m_Reports.back();
@@ -208,7 +214,7 @@ namespace Lumos
 		}
 	}
 
-    uint32_t ProfilerGraph::GetColour(const String& name)
+    uint32_t ProfilerGraph::GetColour(const char* name)
     {
         bool found = m_ColourMap.find(name) != m_ColourMap.end();
         

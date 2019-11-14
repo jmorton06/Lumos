@@ -25,7 +25,7 @@ namespace Lumos
 
 		void RebuildTaskStats(size_t endFrame, size_t framesCount);
         
-        uint32_t GetColour(const String& name);
+        uint32_t GetColour(const char* name);
 
 		int frameWidth;
 		int frameSpacing;
@@ -40,12 +40,12 @@ namespace Lumos
 			size_t onScreenIndex;
 		};
 		std::vector<TaskStats> taskStats;
-		std::map<std::string, size_t> taskNameToStatsIndex;
+		std::map<const char*, size_t> taskNameToStatsIndex;
 
 		std::vector<ProfilerReport> m_Reports;
         
         int colourIndex = 0;
-        std::unordered_map<String, uint32_t> m_ColourMap;
+        std::unordered_map<const char*, uint32_t> m_ColourMap;
 	};
 	class ProfilerWindow : public EditorWindow
 	{
@@ -65,8 +65,8 @@ namespace Lumos
 		int frameWidth;
 		int frameSpacing;
 		bool useColoredLegendText;
-		using TimePoint = std::chrono::time_point<std::chrono::system_clock>;
-		TimePoint prevFpsFrameTime;
+		//using TimePoint = std::chrono::time_point<std::chrono::system_clock>;
+		//TimePoint prevFpsFrameTime;
 		size_t fpsFramesCount;
 		float avgFrameTime;
 	};

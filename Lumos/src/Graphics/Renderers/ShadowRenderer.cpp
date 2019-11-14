@@ -164,8 +164,7 @@ namespace Lumos
 
 				uint32_t dynamicOffset = index * static_cast<uint32_t>(dynamicAlignment);
 
-				std::vector<Graphics::DescriptorSet*> descriptorSets;
-				descriptorSets.emplace_back(m_Pipeline->GetDescriptorSet());
+				std::vector<Graphics::DescriptorSet*> descriptorSets = { m_Pipeline->GetDescriptorSet() };
 
 				mesh->GetVertexArray()->Bind(m_CommandBuffer);
 				mesh->GetIndexBuffer()->Bind(m_CommandBuffer);
@@ -202,8 +201,6 @@ namespace Lumos
 		void ShadowRenderer::RenderScene(Scene* scene)
 		{
             LUMOS_PROFILE_BLOCK("ShadowRenderer::RenderScene");
-
-            UpdateCascades(scene);
 
 			memcpy(m_VSSystemUniformBuffer + m_VSSystemUniformBufferOffsets[VSSystemUniformIndex_ProjectionViewMatrix], m_ShadowProjView, sizeof(Maths::Matrix4) * 16);
 
