@@ -15,18 +15,19 @@ namespace Lumos
 	{
 		VKDescriptorSet::VKDescriptorSet(const DescriptorInfo& info)
 		{
-			vk::DescriptorSetAllocateInfo descriptorSetAllocateInfo{};
+			VkDescriptorSetAllocateInfo descriptorSetAllocateInfo{};
+			descriptorSetAllocateInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO;
 			descriptorSetAllocateInfo.descriptorPool = static_cast<Graphics::VKPipeline*>(info.pipeline)->GetDescriptorPool();
 			descriptorSetAllocateInfo.pSetLayouts = static_cast<Graphics::VKPipeline*>(info.pipeline)->GetDescriptorLayout(info.layoutIndex);
 			descriptorSetAllocateInfo.descriptorSetCount = info.count;
 
-			vk::Result result = Graphics::VKDevice::Instance()->GetDevice().allocateDescriptorSets(&descriptorSetAllocateInfo, &m_DescriptorSet);
+			VkResult result = vkAllocateDescriptorSets(VKDevice::Device(), &descriptorSetAllocateInfo, &m_DescriptorSet);
 
-			if (result != vk::Result::eSuccess)
+			if (result != VK_SUCCESS)
 				LUMOS_ASSERT(false, "Failed to allocate Descriptor Set");
 
-			m_BufferInfoPool = lmnew vk::DescriptorBufferInfo[MAX_BUFFER_INFOS];
-			m_ImageInfoPool = lmnew vk::DescriptorImageInfo[MAX_IMAGE_INFOS];
+			m_BufferInfoPool = lmnew VkDescriptorBufferInfo[MAX_BUFFER_INFOS];
+			m_ImageInfoPool = lmnew VkDescriptorImageInfo[MAX_IMAGE_INFOS];
 		}
 
 		VKDescriptorSet::~VKDescriptorSet()
@@ -71,7 +72,7 @@ namespace Lumos
     
         void VKDescriptorSet::UpdateInternal(std::vector<ImageInfo>* imageInfos, std::vector<BufferInfo>* bufferInfos)
         {
-            std::vector<vk::WriteDescriptorSet> descriptorWrites;
+            std::vector<VkWriteDescriptorSet> descriptorWrites;
             
             m_Dynamic = false;
             
@@ -83,15 +84,16 @@ namespace Lumos
                 {
 					for (int i = 0; i < imageInfo.count; i++)
 					{
-						vk::DescriptorImageInfo des = *static_cast<vk::DescriptorImageInfo*>(imageInfo.texture[i]->GetHandle());
+						VkDescriptorImageInfo des = *static_cast<VkDescriptorImageInfo*>(imageInfo.texture[i]->GetHandle());
 						m_ImageInfoPool[i + imageIndex].imageLayout = des.imageLayout;
 						m_ImageInfoPool[i + imageIndex].imageView = des.imageView;
 						m_ImageInfoPool[i + imageIndex].sampler = des.sampler;
 					}
 
-					vk::WriteDescriptorSet writeDescriptorSet{};
+					VkWriteDescriptorSet writeDescriptorSet{};
+					writeDescriptorSet.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
 					writeDescriptorSet.dstSet = m_DescriptorSet;
-					writeDescriptorSet.descriptorType = vk::DescriptorType::eCombinedImageSampler;
+					writeDescriptorSet.descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
 					writeDescriptorSet.dstBinding = imageInfo.binding;
 					writeDescriptorSet.pImageInfo = &m_ImageInfoPool[imageIndex];
 					writeDescriptorSet.descriptorCount = imageInfo.count;
@@ -111,7 +113,8 @@ namespace Lumos
 					m_BufferInfoPool[index].offset = bufferInfo.offset;
 					m_BufferInfoPool[index].range = bufferInfo.size;
     
-                    vk::WriteDescriptorSet writeDescriptorSet{};
+                    VkWriteDescriptorSet writeDescriptorSet{};
+					writeDescriptorSet.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
                     writeDescriptorSet.dstSet = m_DescriptorSet;
                     writeDescriptorSet.descriptorType = VKTools::DescriptorTypeToVK(bufferInfo.type);
                     writeDescriptorSet.dstBinding = bufferInfo.binding;
@@ -126,7 +129,8 @@ namespace Lumos
                 }
             }
             
-            VKDevice::Instance()->GetDevice().updateDescriptorSets(static_cast<uint32_t>(descriptorWrites.size()), descriptorWrites.data(), 0, nullptr);
+			vkUpdateDescriptorSets(VKDevice::Instance()->GetDevice(), static_cast<uint32_t>(descriptorWrites.size()),
+				descriptorWrites.data(), 0, nullptr);
         }
     }
 }

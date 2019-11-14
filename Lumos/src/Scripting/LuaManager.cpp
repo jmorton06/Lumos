@@ -20,7 +20,10 @@ namespace Lumos
 		BindMathsLua(m_State);
 		BindImGuiLua(m_State);
 		BindECSLua(m_State);
+	}
 
+	void LuaManager::TestLua()
+	{
 		m_State->script(R"(print('[LUA] - Initialised Lua!')
 			local vec1 = Vector4.new(1.0, 0.0, 0.0, 1.0)
 			local vec2 = Vector4.new(1.0, 0.0, 1.0, 0.0)

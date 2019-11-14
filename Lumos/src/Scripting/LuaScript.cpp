@@ -3,7 +3,6 @@
 #include "LuaManager.h"
 
 #include "App/Scene.h"
-#include "ECS/EntityManager.h"
 
 #include "App/Engine.h"
 namespace Lumos
@@ -13,9 +12,8 @@ namespace Lumos
 		m_FileName = fileName;
 	}
 
-	void LuaScript::Init(Entity* entity)
+	void LuaScript::Init()
 	{
-		m_Entity = entity;
 		LoadScript(m_FileName);
 	}
 
@@ -45,9 +43,6 @@ namespace Lumos
 
 		if (m_Scene)
 			FunctionsTable["scene"] = m_Scene;
-
-		if (m_Entity)
-			FunctionsTable["entity"] = m_Entity;
 
 		res = FunctionsTable["Init"]();
 		if (!res.valid())

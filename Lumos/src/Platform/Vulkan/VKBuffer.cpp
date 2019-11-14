@@ -7,7 +7,7 @@ namespace Lumos
 {
 	namespace Graphics
 	{
-		VKBuffer::VKBuffer(vk::BufferUsageFlags usage, uint32_t size, const void* data) : m_Size(size)
+		VKBuffer::VKBuffer(VkBufferUsageFlags usage, uint32_t size, const void* data) : m_Size(size)
 		{
 			Init(usage, size, data);
 		}
@@ -23,44 +23,47 @@ namespace Lumos
 #ifdef USE_VMA_ALLOCATOR
                 vmaDestroyBuffer(VKDevice::Instance()->GetAllocator(), m_Buffer, m_Allocation);
 #else
-				VKDevice::Instance()->GetDevice().destroyBuffer(m_Buffer);
+				vkDestroyBuffer(VKDevice::Device(), m_Buffer, nullptr);
 
 				if (m_Memory)
 				{
-					VKDevice::Instance()->GetDevice().freeMemory(m_Memory);
+					vkFreeMemory(VKDevice::Device(), m_Memory, nullptr);
 				}
 #endif
 			}
 		}
 
-		void VKBuffer::Init(vk::BufferUsageFlags usage, uint32_t size, const void* data)
+		void VKBuffer::Init(VkBufferUsageFlags usage, uint32_t size, const void* data)
 		{
-			vk::BufferCreateInfo bufferInfo = {};
+			VkBufferCreateInfo bufferInfo = {};
+			bufferInfo.sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO;
 			bufferInfo.size = size;
 			bufferInfo.usage = usage;
-			bufferInfo.sharingMode = vk::SharingMode::eExclusive;
+			bufferInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
 
 #ifdef USE_VMA_ALLOCATOR
             VmaAllocationCreateInfo vmaAllocInfo = {};
             vmaAllocInfo.usage = VMA_MEMORY_USAGE_CPU_TO_GPU;
-            vmaCreateBuffer(VKDevice::Instance()->GetAllocator(), (VkBufferCreateInfo*)&bufferInfo, &vmaAllocInfo, (VkBuffer*)&m_Buffer, &m_Allocation, nullptr);
+            vmaCreateBuffer(VKDevice::Instance()->GetAllocator(), &bufferInfo, &vmaAllocInfo, &m_Buffer, &m_Allocation, nullptr);
 #else
-			m_Buffer = VKDevice::Instance()->GetDevice().createBuffer(bufferInfo);
+			vkCreateBuffer(VKDevice::Device(), &bufferInfo, nullptr, &m_Buffer);
 
-			vk::MemoryRequirements memRequirements = VKDevice::Instance()->GetDevice().getBufferMemoryRequirements(m_Buffer);
+			VkMemoryRequirements memRequirements;
+			vkGetBufferMemoryRequirements(VKDevice::Device(), m_Buffer, &memRequirements);
 
-			vk::MemoryAllocateInfo allocInfo = {};
+			VkMemoryAllocateInfo allocInfo = {};
+			allocInfo.sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
 			allocInfo.allocationSize = memRequirements.size;
-			allocInfo.memoryTypeIndex = VKTools::FindMemoryType(memRequirements.memoryTypeBits, vk::MemoryPropertyFlagBits::eHostVisible | vk::MemoryPropertyFlagBits::eHostCoherent);
+			allocInfo.memoryTypeIndex = VKTools::FindMemoryType(memRequirements.memoryTypeBits, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT);
 
-			vk::Result result = VKDevice::Instance()->GetDevice().allocateMemory(&allocInfo, nullptr, &m_Memory);
+			VkResult result = vkAllocateMemory(VKDevice::Device(), &allocInfo, nullptr, &m_Memory);
 
-			if (result != vk::Result::eSuccess)
+			if (result != VK_SUCCESS)
 			{
 				LUMOS_LOG_CRITICAL("[VULKAN] Failed to allocate buffer memory!");
 			}
 
-			VKDevice::Instance()->GetDevice().bindBufferMemory(m_Buffer, m_Memory, 0);
+			vkBindBufferMemory(VKDevice::Device(), m_Buffer, m_Memory, 0);
 #endif
 
 			if(data != nullptr)
@@ -77,11 +80,11 @@ namespace Lumos
 		void VKBuffer::Map(VkDeviceSize size, VkDeviceSize offset)
 		{
 #ifdef USE_VMA_ALLOCATOR
-			vk::Result res = static_cast<vk::Result>(vmaMapMemory(VKDevice::Instance()->GetAllocator(), m_Allocation, &m_Mapped));
+			VkResult res = static_cast<VkResult>(vmaMapMemory(VKDevice::Instance()->GetAllocator(), m_Allocation, &m_Mapped));
 #else
-			vk::Result res = VKDevice::Instance()->GetDevice().mapMemory(m_Memory, offset, size, vk::MemoryMapFlagBits(), &m_Mapped);
+			VkResult res = vkMapMemory(VKDevice::Device(), m_Memory, offset, size, 0, &m_Mapped);
 #endif
-			if (res != vk::Result::eSuccess)
+			if (res != VK_SUCCESS)
 				LUMOS_LOG_CRITICAL("[VULKAN] Failed to map buffer");
 		}
 
@@ -92,9 +95,9 @@ namespace Lumos
 #ifdef USE_VMA_ALLOCATOR
 				vmaUnmapMemory(VKDevice::Instance()->GetAllocator(), m_Allocation);
 #else
-				VKDevice::Instance()->GetDevice().unmapMemory(m_Memory);
+				vkUnmapMemory(VKDevice::Device(), m_Memory);
 #endif
-				m_Memory = nullptr;
+				m_Mapped = nullptr;
 			}
 		}
 
@@ -103,11 +106,11 @@ namespace Lumos
 #ifdef USE_VMA_ALLOCATOR
 			vmaFlushAllocation(VKDevice::Instance()->GetAllocator(), m_Allocation, offset, size);
 #else
-			vk::MappedMemoryRange mappedRange = {};
+			VkMappedMemoryRange mappedRange = {};
 			mappedRange.memory = m_Memory;
 			mappedRange.offset = offset;
 			mappedRange.size = size;
-			VKDevice::Instance()->GetDevice().flushMappedMemoryRanges(1, &mappedRange);
+			vkFlushMappedMemoryRanges(VKDevice::Device(), 1, &mappedRange);
 #endif
 		}
 		
@@ -116,11 +119,11 @@ namespace Lumos
 #ifdef USE_VMA_ALLOCATOR
 			vmaInvalidateAllocation(VKDevice::Instance()->GetAllocator(), m_Allocation, offset, size);
 #else
-			vk::MappedMemoryRange mappedRange = {};
+			VkMappedMemoryRange mappedRange = {};
 			mappedRange.memory = m_Memory;
 			mappedRange.offset = offset;
 			mappedRange.size = size;
-			VKDevice::Instance()->GetDevice().invalidateMappedMemoryRanges(1, &mappedRange);
+			vkInvalidateMappedMemoryRanges(VKDevice::Device(), 1, &mappedRange);
 #endif
 		}
 	}

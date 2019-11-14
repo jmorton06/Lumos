@@ -64,6 +64,8 @@ namespace Lumos
 
         auto entity = registry.create();
 		registry.assign<NameComponent>(entity, name);
+		bool singleMesh = shapes.size() == 1;
+
 		for (const auto& shape : shapes)
 		{
 			u32 vertexCount = 0;
@@ -74,7 +76,7 @@ namespace Lumos
 
 			std::unordered_map<Graphics::Vertex, uint32_t> uniqueVertices;
 
-			Ref<Maths::BoundingSphere> boundingBox = CreateRef<Maths::BoundingSphere>();
+			Ref<Maths::BoundingBox> boundingBox = CreateRef<Maths::BoundingBox>();
 
 			for (u32 i = 0; i < shape.mesh.indices.size(); i++)
 			{
@@ -204,12 +206,20 @@ namespace Lumos
 			Ref<Graphics::IndexBuffer> ib;
 			ib.reset(Graphics::IndexBuffer::Create(indices, numIndices));
 
-            auto meshEntity = registry.create();
-            auto mesh = CreateRef<Graphics::Mesh>(va, ib, boundingBox);
-			registry.assign<MeshComponent>(meshEntity,mesh);
-			registry.assign<MaterialComponent>(meshEntity, pbrMaterial);
-			registry.assign<Maths::Transform>(meshEntity);
-			registry.assign<Hierarchy>(meshEntity, entity);
+			auto mesh = CreateRef<Graphics::Mesh>(va, ib, boundingBox);
+			if (singleMesh)
+			{
+				registry.assign<MeshComponent>(entity, mesh);
+				registry.assign<MaterialComponent>(entity, pbrMaterial);
+			}
+			else
+			{
+				auto meshEntity = registry.create();
+				registry.assign<MeshComponent>(meshEntity, mesh);
+				registry.assign<MaterialComponent>(meshEntity, pbrMaterial);
+				registry.assign<Maths::Transform>(meshEntity);
+				registry.assign<Hierarchy>(meshEntity, entity);
+			}
 
 			delete[] vertices;
 			delete[] indices;

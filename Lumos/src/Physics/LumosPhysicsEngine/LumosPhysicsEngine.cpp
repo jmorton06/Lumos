@@ -6,9 +6,12 @@
 
 #include "Integration.h"
 #include "Constraint.h"
-#include "ECS/EntityManager.h"
 #include "Utilities/TimeStep.h"
 #include "Core/JobSystem.h"
+#include "Core/Profiler.h"
+
+#include "ECS/Component/Physics3DComponent.h"
+#include "Maths/Transform.h"
 
 #include <imgui/imgui.h>
 
@@ -362,14 +365,14 @@ namespace Lumos
 
 	void LumosPhysicsEngine::OnImGui()
 	{
-		ImGui::Text("3D Physics Engine");
+		ImGui::TextUnformatted("3D Physics Engine");
 
 		ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(2, 2));
 		ImGui::Columns(2);
 		ImGui::Separator();
 
 		ImGui::AlignTextToFramePadding();
-		ImGui::Text("Number Of Collision Pairs");
+		ImGui::TextUnformatted("Number Of Collision Pairs");
 		ImGui::NextColumn();
 		ImGui::PushItemWidth(-1);
 		ImGui::Text("%5.2i", GetNumberCollisionPairs());
@@ -377,7 +380,7 @@ namespace Lumos
 		ImGui::NextColumn();
 
 		ImGui::AlignTextToFramePadding();
-		ImGui::Text("Number Of Physics Objects");
+		ImGui::TextUnformatted("Number Of Physics Objects");
 		ImGui::NextColumn();
 		ImGui::PushItemWidth(-1);
 		ImGui::Text("%5.2i", GetNumberPhysicsObjects());
@@ -385,7 +388,7 @@ namespace Lumos
 		ImGui::NextColumn();
 
 		ImGui::AlignTextToFramePadding();
-		ImGui::Text("Number Of Constraints");
+		ImGui::TextUnformatted("Number Of Constraints");
 		ImGui::NextColumn();
 		ImGui::PushItemWidth(-1);
 		ImGui::Text("%5.2i", static_cast<int>(m_Constraints.size()));
@@ -393,7 +396,7 @@ namespace Lumos
 		ImGui::NextColumn();
 
 		ImGui::AlignTextToFramePadding();
-		ImGui::Text("Paused");
+		ImGui::TextUnformatted("Paused");
 		ImGui::NextColumn();
 		ImGui::PushItemWidth(-1);
 		ImGui::Checkbox("##Paused", &m_IsPaused);
@@ -401,7 +404,7 @@ namespace Lumos
 		ImGui::NextColumn();
 
 		ImGui::AlignTextToFramePadding();
-		ImGui::Text("Gravity");
+		ImGui::TextUnformatted("Gravity");
 		ImGui::NextColumn();
 		ImGui::PushItemWidth(-1);
 		ImGui::InputFloat3("##Gravity", &m_Gravity.x);
@@ -409,7 +412,7 @@ namespace Lumos
 		ImGui::NextColumn();
 
 		ImGui::AlignTextToFramePadding();
-		ImGui::Text("Damping Factor");
+		ImGui::TextUnformatted("Damping Factor");
 		ImGui::NextColumn();
 		ImGui::PushItemWidth(-1);
 		ImGui::InputFloat("##Damping Factor", &m_DampingFactor);
@@ -417,7 +420,7 @@ namespace Lumos
 		ImGui::NextColumn();
 
 		ImGui::AlignTextToFramePadding();
-		ImGui::Text("Integration Type");
+		ImGui::TextUnformatted("Integration Type");
 		ImGui::NextColumn();
 		ImGui::PushItemWidth(-1);
 		if (ImGui::BeginMenu(IntegrationTypeToString(m_IntegrationType).c_str()))

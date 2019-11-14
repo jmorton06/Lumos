@@ -1,28 +1,35 @@
 #include "lmpch.h"
 #include "Profiler.h"
 
-#include <imgui/imgui.h>
-#include <IconFontCppHeaders/IconsFontAwesome5.h>
-
 namespace Lumos
 {
-    ProfilerRecord::ProfilerRecord(const String& name)
+#ifdef LUMOS_PROFILER_ENABLED
+	const char* ProfilerRecord::s_CurrentProfilerName = "";
+#endif
+
+    ProfilerRecord::ProfilerRecord(const char* name)
         : m_Name(name)
     {
+#ifdef LUMOS_PROFILER_ENABLED
+		m_Parent = s_CurrentProfilerName;
+		s_CurrentProfilerName = name;
+#endif
+
         m_EndTime = 0.0f;
-        m_Timer = CreateScope<Timer>();
     }
     
     ProfilerRecord::~ProfilerRecord()
     {
-        m_EndTime = m_Timer->GetTimedMS();
+        m_EndTime = m_Timer.GetTimedMS();
         Profiler::Instance()->Save(*this);
+
+#ifdef LUMOS_PROFILER_ENABLED
+		s_CurrentProfilerName = m_Parent;
+#endif
     }
     
     Profiler::Profiler()
     {
-        m_Timer = CreateScope<Timer>();
-
         m_ElapsedFrames = 0;
         m_Enabled = false;
     }
@@ -47,7 +54,7 @@ namespace Lumos
         m_WorkingThreads.clear();
         m_ElapsedFrames = 0;
         
-        m_Timer->GetMS();
+        m_Timer.GetMS();
     }
     
     bool& Profiler::IsEnabled()
@@ -105,7 +112,7 @@ namespace Lumos
     {
         ProfilerReport report;
 
-        double time = m_Timer->GetTimedMS();
+        double time = m_Timer.GetTimedMS();
         
 		if (m_ElapsedFrames == 0)
 			return report;
@@ -114,10 +121,10 @@ namespace Lumos
         report.elapsedFrames = m_ElapsedFrames;
         report.elaspedTime = time;
 
-        std::multimap<double, std::string> sortedHistory;
+        std::multimap<double, const char*> sortedHistory;
 
         for (auto& data : m_ElapsedHistory)
-            sortedHistory.insert(std::pair<float, std::string>(data.second, data.first));
+            sortedHistory.insert(std::pair<float, const char*>(data.second, data.first));
 
         for (auto& data : sortedHistory)
             report.actions.push_back({ data.second, data.first, (data.first / time) * 100.0f, m_CallsCounter[data.second] });

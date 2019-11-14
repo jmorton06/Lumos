@@ -6,9 +6,9 @@
 
 #include "App/Scene.h"
 #include "App/Application.h"
-#include "ECS/EntityManager.h"
 #include "ECS/Component/MaterialComponent.h"
 #include "Maths/Maths.h"
+#include "Maths/Transform.h"
 #include "Core/Profiler.h"
 
 #include "Graphics/RenderManager.h"
@@ -459,14 +459,14 @@ namespace Lumos
 		{
 			m_OffScreenRenderer->OnImGui();
 
-			ImGui::Text("Deferred Renderer");
+			ImGui::TextUnformatted("Deferred Renderer");
 
 			ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(2, 2));
 			ImGui::Columns(2);
 			ImGui::Separator();
 
 			ImGui::AlignTextToFramePadding();
-			ImGui::Text("Number Of Renderables");
+			ImGui::TextUnformatted("Number Of Renderables");
 			ImGui::NextColumn();
 			ImGui::PushItemWidth(-1);
 			ImGui::Text("%5.2lu", m_CommandQueue.size());
@@ -474,7 +474,7 @@ namespace Lumos
 			ImGui::NextColumn();
 
 			ImGui::AlignTextToFramePadding();
-			ImGui::Text("Render Mode");
+			ImGui::TextUnformatted("Render Mode");
 			ImGui::NextColumn();
 			ImGui::PushItemWidth(-1);
 			if (ImGui::BeginMenu(RenderModeToString(m_RenderMode).c_str()))
@@ -491,7 +491,7 @@ namespace Lumos
 			ImGui::NextColumn();
             
             ImGui::AlignTextToFramePadding();
-            ImGui::Text("Shadow Mode");
+            ImGui::TextUnformatted("Shadow Mode");
             ImGui::NextColumn();
             ImGui::PushItemWidth(-1);
             if (ImGui::BeginMenu(ShadowModeToString(m_ShadowMode).c_str()))

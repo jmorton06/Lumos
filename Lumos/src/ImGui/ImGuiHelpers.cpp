@@ -10,7 +10,7 @@ namespace Lumos
 {
 	void ImGuiHelpers::Property(const String& name, bool& value)
 	{
-        ImGui::Text("%s", name.c_str());
+        ImGui::TextUnformatted("%s", name.c_str());
 		ImGui::NextColumn();
 		ImGui::PushItemWidth(-1);
 
@@ -23,7 +23,7 @@ namespace Lumos
 
 	void ImGuiHelpers::Property(const String& name, float& value, float min, float max, ImGuiHelpers::PropertyFlag flags)
 	{
-		ImGui::Text("%s", name.c_str());
+		ImGui::TextUnformatted("%s", name.c_str());
 		ImGui::NextColumn();
 		ImGui::PushItemWidth(-1);
 
@@ -41,7 +41,7 @@ namespace Lumos
 
 	void ImGuiHelpers::Property(const String& name, Maths::Vector3& value, float min, float max, ImGuiHelpers::PropertyFlag flags)
 	{
-        ImGui::Text("%s", name.c_str());
+        ImGui::TextUnformatted("%s", name.c_str());
 		ImGui::NextColumn();
 		ImGui::PushItemWidth(-1);
 
@@ -63,7 +63,7 @@ namespace Lumos
 	void ImGuiHelpers::Property(const String& name, Maths::Vector4& value, float min, float max, ImGuiHelpers::PropertyFlag flags)
 	{
 		ImGui::AlignTextToFramePadding();
-        ImGui::Text("%s", name.c_str());
+        ImGui::TextUnformatted("%s", name.c_str());
 		ImGui::NextColumn();
 		ImGui::PushItemWidth(-1);
 
@@ -232,10 +232,10 @@ namespace Lumos
 			colours[ImGuiCol_FrameBg] = ImVec4(0.26f, 0.26f, 0.26f, 1.00f);
 			colours[ImGuiCol_FrameBgHovered] = ImVec4(0.32f, 0.32f, 0.32f, 1.00f);
 			colours[ImGuiCol_FrameBgActive] = ImVec4(0.37f, 0.37f, 0.37f, 1.00f);
-			colours[ImGuiCol_TitleBg] = ImVec4(0.12f, 0.12f, 0.12f, 1.00f);
+			colours[ImGuiCol_TitleBg] = ImVec4(0.32f, 0.32f, 0.32f, 1.00f);
 			colours[ImGuiCol_TitleBgActive] = ImVec4(0.16f, 0.16f, 0.16f, 1.00f);
 			colours[ImGuiCol_TitleBgCollapsed] = ImVec4(0.16f, 0.16f, 0.16f, 1.00f);
-			colours[ImGuiCol_MenuBarBg] = ImVec4(0.14f, 0.14f, 0.14f, 1.00f);
+			colours[ImGuiCol_MenuBarBg] = ImVec4(0.32f, 0.32f, 0.32f, 1.00f);
 			colours[ImGuiCol_ScrollbarBg] = ImVec4(0.02f, 0.02f, 0.02f, 0.00f);
 			colours[ImGuiCol_ScrollbarGrab] = ImVec4(0.31f, 0.31f, 0.31f, 1.00f);
 			colours[ImGuiCol_ScrollbarGrabHovered] = ImVec4(0.41f, 0.41f, 0.41f, 1.00f);
@@ -288,7 +288,7 @@ namespace Lumos
 			colours[ImGuiCol_TitleBg] = colours[ImGuiCol_WindowBg];// ImVec4(0.09f, 0.12f, 0.14f, 0.65f);
 			colours[ImGuiCol_TitleBgActive] = colours[ImGuiCol_WindowBg];// ImVec4(0.08f, 0.10f, 0.12f, 1.00f);
 			colours[ImGuiCol_TitleBgCollapsed] = colours[ImGuiCol_WindowBg];// ImVec4(0.00f, 0.00f, 0.00f, 0.51f);
-			colours[ImGuiCol_MenuBarBg] = colours[ImGuiCol_WindowBg];
+			colours[ImGuiCol_MenuBarBg] = ImVec4(0.204f, 0.211f, 0.251f, 1.000f);
 			colours[ImGuiCol_ScrollbarBg] = ImVec4(0.02f, 0.02f, 0.02f, 0.39f);
 			colours[ImGuiCol_ScrollbarGrab] = ImVec4(0.20f, 0.25f, 0.29f, 1.00f);
 			colours[ImGuiCol_ScrollbarGrabHovered] = ImVec4(0.18f, 0.22f, 0.25f, 1.00f);
@@ -438,8 +438,8 @@ namespace Lumos
 #define BG(v)   ImVec4(0.200f, 0.220f, 0.270f, v)
 #define TEXTCol(v) ImVec4(0.860f, 0.930f, 0.890f, v)
 
-			colours[ImGuiCol_Text] = TEXTCol(0.78f);
-			colours[ImGuiCol_TextDisabled] = TEXTCol(0.28f);
+			colours[ImGuiCol_Text] = ImVec4(0.95f, 0.96f, 0.98f, 1.00f);
+			colours[ImGuiCol_TextDisabled] = ImVec4(0.36f, 0.42f, 0.47f, 1.00f);
 			colours[ImGuiCol_WindowBg] = ImVec4(0.13f, 0.14f, 0.17f, 1.00f);
 			colours[ImGuiCol_PopupBg] = BG(0.9f);
 			colours[ImGuiCol_Border] = ImVec4(0.31f, 0.31f, 1.00f, 0.00f);
@@ -522,8 +522,8 @@ namespace Lumos
 			ImGui::StyleColorsLight();
 			break;
 		case Cinder:
-			colours[ImGuiCol_Text] = ImVec4(0.86f, 0.93f, 0.89f, 0.78f);
-			colours[ImGuiCol_TextDisabled] = ImVec4(0.86f, 0.93f, 0.89f, 0.28f);
+			colours[ImGuiCol_Text] = ImVec4(0.95f, 0.96f, 0.98f, 1.00f);
+			colours[ImGuiCol_TextDisabled] = ImVec4(0.36f, 0.42f, 0.47f, 1.00f);
 			colours[ImGuiCol_WindowBg] = ImVec4(0.13f, 0.14f, 0.17f, 1.00f);
 			colours[ImGuiCol_ChildWindowBg] = ImVec4(0.20f, 0.22f, 0.27f, 0.58f);
 			colours[ImGuiCol_Border] = ImVec4(0.31f, 0.31f, 1.00f, 0.00f);
@@ -563,21 +563,28 @@ namespace Lumos
 			break;
 		}
         
-        colours[ImGuiCol_TitleBg] = colours[ImGuiCol_WindowBg];
-        colours[ImGuiCol_TitleBgActive] = colours[ImGuiCol_WindowBg];
-        colours[ImGuiCol_TitleBgCollapsed] = colours[ImGuiCol_WindowBg];
-        colours[ImGuiCol_MenuBarBg] = colours[ImGuiCol_WindowBg];
+		//colours[ImGuiCol_MenuBarBg] = ImVec4(0.80f, 0.22f, 0.27f, 0.9f);// colours[ImGuiCol_WindowBg];
+        colours[ImGuiCol_TitleBg] = colours[ImGuiCol_MenuBarBg];
+        colours[ImGuiCol_TitleBgActive] = colours[ImGuiCol_MenuBarBg];
+        colours[ImGuiCol_TitleBgCollapsed] = colours[ImGuiCol_MenuBarBg];
+        
         colours[ImGuiCol_HeaderHovered] = colours[ImGuiCol_Header];
         colours[ImGuiCol_ButtonHovered] =  colours[ImGuiCol_HeaderHovered];
         colours[ImGuiCol_TabHovered] =  colours[ImGuiCol_HeaderHovered];
         colours[ImGuiCol_ButtonActive] = colours[ImGuiCol_HeaderHovered];
         colours[ImGuiCol_HeaderActive] = colours[ImGuiCol_HeaderHovered];
+		colours[ImGuiCol_ChildWindowBg] = colours[ImGuiCol_WindowBg];
+
+		colours[ImGuiCol_Separator] = colours[ImGuiCol_MenuBarBg]; ;// ImVec4(0.0f, 0.0f, 0.0f, 0.0f);
+		colours[ImGuiCol_SeparatorActive] = colours[ImGuiCol_Separator];
+		colours[ImGuiCol_SeparatorHovered] = colours[ImGuiCol_Separator];
 
 
         
 #ifdef IMGUI_HAS_DOCK
-        colours[ImGuiCol_TabActive] = colours[ImGuiCol_ChildBg];
+        colours[ImGuiCol_TabActive] = colours[ImGuiCol_WindowBg];
 		colours[ImGuiCol_TabUnfocused] = colours[ImGuiCol_WindowBg];
+		colours[ImGuiCol_TabUnfocusedActive] = colours[ImGuiCol_WindowBg];
 #endif
 	}
 }

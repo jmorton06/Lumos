@@ -33,7 +33,7 @@ namespace Lumos
 
 		void VKVertexArray::Bind(CommandBuffer* commandBuffer) const
 		{
-			static_cast<VKCommandBuffer*>(commandBuffer)->GetCommandBuffer().bindVertexBuffers(0, 1, m_VKBuffers.data(), m_Offsets.data());
+			vkCmdBindVertexBuffers(static_cast<VKCommandBuffer*>(commandBuffer)->GetCommandBuffer(), 0, 1, m_VKBuffers.data(), m_Offsets.data());
 		}
 
 		void VKVertexArray::Unbind() const

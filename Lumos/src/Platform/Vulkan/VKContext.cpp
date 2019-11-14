@@ -100,7 +100,7 @@ namespace Lumos
 		VKContext::~VKContext()
 		{
 			DestroyDebugReportCallbackEXT(m_VkInstance, m_DebugCallback, nullptr);
-			m_VkInstance.destroy();
+			vkDestroyInstance(m_VkInstance, nullptr);
 		}
 
 		void VKContext::Init()
@@ -168,10 +168,10 @@ namespace Lumos
 		bool VKContext::CheckValidationLayerSupport(const std::vector<const char*>& validationLayers)
 		{
 			uint32_t layerCount;
-			vk::enumerateInstanceLayerProperties(&layerCount, nullptr);
+			vkEnumerateInstanceLayerProperties(&layerCount, nullptr);
 
 			m_InstanceLayers.resize(layerCount);
-			vk::enumerateInstanceLayerProperties(&layerCount, m_InstanceLayers.data());
+			vkEnumerateInstanceLayerProperties(&layerCount, m_InstanceLayers.data());
 
 			for (const char* layerName : validationLayers)
 			{
@@ -198,10 +198,10 @@ namespace Lumos
 		bool VKContext::CheckExtensionSupport(const std::vector<const char*>& extensions)
 		{
 			uint32_t extensionCount;
-			vk::enumerateInstanceExtensionProperties(nullptr, &extensionCount, nullptr);
+			vkEnumerateInstanceExtensionProperties(nullptr, &extensionCount, nullptr);
 
 			m_InstanceExtensions.resize(extensionCount);
-			vk::enumerateInstanceExtensionProperties(nullptr, &extensionCount, m_InstanceExtensions.data());
+			vkEnumerateInstanceExtensionProperties(nullptr, &extensionCount, m_InstanceExtensions.data());
 
 			for (const char* extensionName : extensions)
 			{
@@ -242,14 +242,14 @@ namespace Lumos
 				LUMOS_LOG_CRITICAL("Could not find loader");
 			}
 
-			vk::ApplicationInfo appInfo = {};
+			VkApplicationInfo appInfo = {};
 			appInfo.pApplicationName = "Sandbox";
 			appInfo.applicationVersion = VK_MAKE_VERSION(1, 0, 0);
 			appInfo.pEngineName = "Lumos";
 			appInfo.engineVersion = VK_MAKE_VERSION(LumosVersion.major, LumosVersion.minor, LumosVersion.patch);
 			appInfo.apiVersion = VK_API_VERSION_1_0;
 
-			vk::InstanceCreateInfo createInfo = {};
+			VkInstanceCreateInfo createInfo = {};
 			createInfo.pApplicationInfo = &appInfo;
 
 			m_InstanceLayerNames = GetRequiredLayers();
@@ -265,14 +265,16 @@ namespace Lumos
 				LUMOS_LOG_CRITICAL("[VULKAN] Extensions requested are not available!");
 			}
 
+			createInfo.sType = VK_STRUCTURE_TYPE_INSTANCE_CREATE_INFO;
+
 			createInfo.enabledExtensionCount = static_cast<uint32_t>(m_InstanceExtensionNames.size());
 			createInfo.ppEnabledExtensionNames = m_InstanceExtensionNames.data();
 
 			createInfo.enabledLayerCount = static_cast<uint32_t>(m_InstanceLayerNames.size());
 			createInfo.ppEnabledLayerNames = m_InstanceLayerNames.data();
 
-			m_VkInstance = vk::createInstance(createInfo, nullptr);
-			if (!m_VkInstance)
+			VkResult createResult = vkCreateInstance(&createInfo, nullptr, &m_VkInstance);
+			if (createResult != VK_SUCCESS)
 			{
 				LUMOS_LOG_CRITICAL("[VULKAN] Failed to create instance!");
 			}
@@ -284,14 +286,15 @@ namespace Lumos
 		{
 			if (!EnableValidationLayers) return;
 
-			vk::DebugReportCallbackCreateInfoEXT createInfo = {};
-			createInfo.flags =	vk::DebugReportFlagBitsEXT::eError | vk::DebugReportFlagBitsEXT::eWarning |
-								vk::DebugReportFlagBitsEXT::eInformation | vk::DebugReportFlagBitsEXT::eDebug | vk::DebugReportFlagBitsEXT::ePerformanceWarning;
+			VkDebugReportCallbackCreateInfoEXT createInfo = {};
+			createInfo.sType = VK_STRUCTURE_TYPE_DEBUG_REPORT_CALLBACK_CREATE_INFO_EXT;
+			createInfo.flags = VK_DEBUG_REPORT_ERROR_BIT_EXT | VK_DEBUG_REPORT_WARNING_BIT_EXT |
+				VK_DEBUG_REPORT_INFORMATION_BIT_EXT | VK_DEBUG_REPORT_DEBUG_BIT_EXT;
 
 			createInfo.pfnCallback = reinterpret_cast<PFN_vkDebugReportCallbackEXT>(DebugCallback);
 
-			m_DebugCallback = m_VkInstance.createDebugReportCallbackEXT(createInfo);
-			if (!m_DebugCallback)
+			VkResult result = CreateDebugReportCallbackEXT(m_VkInstance, &createInfo, nullptr, &m_DebugCallback);
+			if (result != VK_SUCCESS)
 			{
 				LUMOS_LOG_CRITICAL("[VULKAN] Failed to set up debug callback!");
 			}
@@ -301,12 +304,12 @@ namespace Lumos
 
 		void VKContext::OnImGui()
 		{
-			ImGui::Text("Vulkan Info");
+			ImGui::TextUnformatted("Vulkan Info");
 
 			if (ImGui::TreeNode("Instance"))
 			{
 
-				ImGui::Text("Extensions :");
+				ImGui::TextUnformatted("Extensions :");
 
 				auto globalExtensions = m_InstanceExtensions;
 				for (auto const& extension : globalExtensions)
@@ -321,7 +324,7 @@ namespace Lumos
 				auto layerProperties = m_InstanceLayers;
                 
                 if(layerProperties.empty())
-                    ImGui::Text("No Layers");
+                    ImGui::TextUnformatted("No Layers");
                 
 				for (auto const& layer : layerProperties)
                 {
@@ -341,7 +344,8 @@ namespace Lumos
 			if (ImGui::TreeNode("Physical Devices"))
 			{
                 auto physicalDevice = VKDevice::Instance()->GetGPU();
-                auto const& properties = physicalDevice.getProperties();
+				VkPhysicalDeviceProperties properties;
+				vkGetPhysicalDeviceProperties(physicalDevice, &properties);
 
                 if (ImGui::TreeNode(properties.deviceName))
                 {
@@ -352,10 +356,20 @@ namespace Lumos
                     ImGui::BulletText("VendorID : %u - DeviceID : %u", properties.vendorID,
                         properties.deviceID);
 
-                    auto const& extensionProperties =
-                        physicalDevice.enumerateDeviceExtensionProperties();
+					uint32_t extensionCount = 0;
 
-                    if (ImGui::TreeNode(&extensionProperties, "Extension Properties (%lu)",
+					vkEnumerateDeviceExtensionProperties(physicalDevice, NULL, &extensionCount, NULL);
+
+					std::vector<VkExtensionProperties> extensionProperties;
+
+					if (extensionCount > 0)
+					{
+						extensionProperties.resize(extensionCount);
+						vkEnumerateDeviceExtensionProperties(
+							physicalDevice, NULL, &extensionCount, extensionProperties.data());
+					}
+
+                    if (ImGui::TreeNode("##extensionProperties", "Extension Properties (%lu)",
                         extensionProperties.size()))
                     {
 
@@ -471,7 +485,7 @@ namespace Lumos
             float bytesProgress = static_cast<float>(info.usedBytes) / static_cast<float>((info.unusedBytes + info.usedBytes));
             ImGui::ProgressBar(bytesProgress, ImVec2(0.0f, 0.0f));
             ImGui::SameLine(0.0f, ImGui::GetStyle().ItemInnerSpacing.x);
-            ImGui::Text("Used");
+            ImGui::TextUnformatted("Used");
             
             ImGui::InputScalar("Blocks", ImGuiDataType_U32,
                                (void*)&info.blockCount,
@@ -493,7 +507,7 @@ namespace Lumos
                                (void*)&info.unusedBytes,
                                nullptr, nullptr, "%u", readOnlyFlag);
             
-            ImGui::Text("AllocationSize");
+            ImGui::TextUnformatted("AllocationSize");
             
             ImGui::InputScalar("Min", ImGuiDataType_U32,
                                (void*)&info.allocationSizeMin,
@@ -507,7 +521,7 @@ namespace Lumos
                                (void*)&info.allocationSizeMax,
                                nullptr, nullptr, "%u", readOnlyFlag);
             
-            ImGui::Text("UnusedRangeSize");
+            ImGui::TextUnformatted("UnusedRangeSize");
             
             ImGui::InputScalar("Min", ImGuiDataType_U32,
                                (void*)&info.unusedRangeSizeMin,

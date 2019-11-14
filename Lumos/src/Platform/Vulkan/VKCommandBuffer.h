@@ -19,20 +19,20 @@ namespace Lumos
 			void EndRecording() override;
 
 			void Execute(bool waitFence) override;
-			void ExecuteInternal(vk::PipelineStageFlags flags, vk::Semaphore waitSemaphore, vk::Semaphore signalSemaphore, bool waitFence);
+			void ExecuteInternal(VkPipelineStageFlags flags, VkSemaphore waitSemaphore, VkSemaphore signalSemaphore, bool waitFence);
 
 			void ExecuteSecondary(CommandBuffer* primaryCmdBuffer) override;
             void UpdateViewport(u32 width, u32 height) override;
 
-			vk::CommandBuffer GetCommandBuffer() const { return m_CommandBuffer[0]; };
-			vk::Fence GetFence() const { return m_Fence; };
+			VkCommandBuffer GetCommandBuffer() const { return m_CommandBuffer; };
+			VkFence GetFence() const { return m_Fence; };
 
             static void MakeDefault();
         protected:
             static CommandBuffer* CreateFuncVulkan();
 		private:
-			std::vector<vk::CommandBuffer> m_CommandBuffer;
-			vk::Fence m_Fence;
+			VkCommandBuffer m_CommandBuffer;
+			VkFence m_Fence;
 			bool m_Primary;
 		};
 	}

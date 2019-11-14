@@ -8,9 +8,9 @@
 
 namespace Lumos
 {
-	vk::SurfaceKHR Graphics::VKDevice::CreatePlatformSurface(vk::Instance vkInstance, Window* window)
+	VkSurfaceKHR Graphics::VKDevice::CreatePlatformSurface(VkInstance vkInstance, Window* window)
 	{
-		vk::SurfaceKHR surface;
+		VkSurfaceKHR surface;
 
         glfwCreateWindowSurface(vkInstance, static_cast<GLFWwindow*>(window->GetHandle()), nullptr, (VkSurfaceKHR*)&surface);
 

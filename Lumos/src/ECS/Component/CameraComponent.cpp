@@ -1,6 +1,5 @@
 #include "lmpch.h"
 #include "CameraComponent.h"
-#include "ECS/EntityManager.h"
 #include "Graphics/Camera/Camera.h"
 #include "App/Application.h"
 

@@ -16,10 +16,11 @@
 #include "Graphics/API/GraphicsContext.h"
 #include "Graphics/GBuffer.h"
 #include "App/Scene.h"
-#include "ECS/EntityManager.h"
 #include "ECS/Component/MaterialComponent.h"
 #include "ECS/Component/MeshComponent.h"
 #include "ECS/Component/TextureMatrixComponent.h"
+#include "Maths/Maths.h"
+#include "Maths/Transform.h"
 
 #include "App/Application.h"
 #include "Graphics/RenderManager.h"
@@ -92,7 +93,7 @@ namespace Lumos
                         maxScaling = Maths::Max(scale.GetY(), maxScaling);
                         maxScaling = Maths::Max(scale.GetZ(), maxScaling);
 
-                        bool inside = m_Frustum.InsideFrustum(worldTransform.GetPositionVector(), maxScaling * mesh.GetMesh()->GetBoundingSphere()->SphereRadius());
+                        bool inside = m_Frustum.InsideFrustum(worldTransform.GetPositionVector(), maxScaling * mesh.GetMesh()->GetBoundingBox()->SphereRadius());
 
                         if (!inside)
                             continue;

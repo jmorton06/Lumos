@@ -59,7 +59,7 @@ namespace Lumos
 
 		// Text change level
 		ImGui::AlignFirstTextHeightToWidgets();
-		ImGui::Text("Display");
+		ImGui::TextUnformatted("Display");
 
 		ImGui::SameLine(0.0f, 2.0f * spacing);
 

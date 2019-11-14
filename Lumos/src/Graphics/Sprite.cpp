@@ -42,7 +42,7 @@ namespace Lumos
 			ImGui::Separator();
 
 			ImGui::AlignTextToFramePadding();
-			ImGui::Text("Position");
+			ImGui::TextUnformatted("Position");
 			ImGui::NextColumn();
 			ImGui::PushItemWidth(-1);
 			ImGui::InputFloat2("##Position", Maths::ValuePointer(m_Position));
@@ -51,7 +51,7 @@ namespace Lumos
 			ImGui::NextColumn();
 
 			ImGui::AlignTextToFramePadding();
-			ImGui::Text("Scale");
+			ImGui::TextUnformatted("Scale");
 			ImGui::NextColumn();
 			ImGui::PushItemWidth(-1);
 			ImGui::InputFloat2("##Scale", Maths::ValuePointer(m_Scale));
@@ -60,7 +60,7 @@ namespace Lumos
 			ImGui::NextColumn();
 
 			ImGui::AlignTextToFramePadding();
-			ImGui::Text("Colour");
+			ImGui::TextUnformatted("Colour");
 			ImGui::NextColumn();
 			ImGui::PushItemWidth(-1);
 			ImGui::ColorEdit4("##Colour", Maths::ValuePointer(m_Colour));
@@ -96,7 +96,7 @@ namespace Lumos
 
 				ImGui::NextColumn();
 				ImGui::PushItemWidth(-1);
-				ImGui::Text("%s", tex ? tex->GetFilepath().c_str() : "No Texture");
+				ImGui::TextUnformatted("%s", tex ? tex->GetFilepath().c_str() : "No Texture");
 
 				ImGui::PopItemWidth();
 				ImGui::NextColumn();

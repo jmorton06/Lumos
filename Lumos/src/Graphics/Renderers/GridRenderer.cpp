@@ -195,7 +195,7 @@ namespace Lumos
 
 		void GridRenderer::OnImGui()
 		{
-			ImGui::Text("Grid Renderer");
+			ImGui::TextUnformatted("Grid Renderer");
 
 			if (ImGui::TreeNode("Parameters"))
 			{

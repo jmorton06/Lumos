@@ -1,11 +1,6 @@
 #pragma once
-
+#include "VK.h"
 #include "Graphics/API/VertexArray.h"
-
-namespace vk
-{
-	class Buffer;
-}
 
 namespace Lumos
 {
@@ -24,14 +19,14 @@ namespace Lumos
 			void Bind(CommandBuffer* commandBuffer) const override;
 			void Unbind() const override;
 
-			const std::vector<vk::Buffer>& GetVKBuffers() const { return m_VKBuffers; }
+			const std::vector<VkBuffer>& GetVKBuffers() const { return m_VKBuffers; }
 			const std::vector<uint64_t>& GetOffsets() const { return m_Offsets; }
             
             static void MakeDefault();
         protected:
             static VertexArray* CreateFuncVulkan();
 		private:
-			std::vector<vk::Buffer> m_VKBuffers;
+			std::vector<VkBuffer> m_VKBuffers;
 			std::vector<uint64_t> m_Offsets;
 		};
 	}

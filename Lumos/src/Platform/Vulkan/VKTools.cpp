@@ -12,9 +12,10 @@ namespace Lumos
 {
 	namespace Graphics
 	{
-        uint32_t VKTools::FindMemoryType(uint32_t typeFilter, vk::MemoryPropertyFlags properties)
+        uint32_t VKTools::FindMemoryType(uint32_t typeFilter, VkMemoryPropertyFlags properties)
         {
-            vk::PhysicalDeviceMemoryProperties memProperties = VKDevice::Instance()->GetGPU().getMemoryProperties();
+			VkPhysicalDeviceMemoryProperties memProperties;
+			vkGetPhysicalDeviceMemoryProperties(VKDevice::Instance()->GetGPU(), &memProperties);
 
             for (uint32_t i = 0; i < memProperties.memoryTypeCount; i++)
             {
@@ -27,205 +28,226 @@ namespace Lumos
             throw std::runtime_error("Failed to find suitable memory type!");
         }
 
-        void VKTools::CreateBuffer(vk::DeviceSize size, vk::BufferUsageFlags usage, vk::MemoryPropertyFlags properties, vk::Buffer& buffer,
-                          vk::DeviceMemory& bufferMemory, VmaAllocator allocator, VmaAllocation allocation)
+        void VKTools::CreateBuffer(VkDeviceSize size, VkBufferUsageFlags usage, VkMemoryPropertyFlags properties, VkBuffer& buffer,
+                          VkDeviceMemory& bufferMemory, VmaAllocator allocator, VmaAllocation allocation)
         {
-            vk::BufferCreateInfo bufferInfo = {};
+            VkBufferCreateInfo bufferInfo = {};
+			bufferInfo.sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO;
             bufferInfo.size = size;
             bufferInfo.usage = usage;
-            bufferInfo.sharingMode = vk::SharingMode::eExclusive;
+			bufferInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
 
 #ifdef USE_VMA_ALLOCATOR
             if(allocator != nullptr)
             {
                 VmaAllocationCreateInfo vmaAllocInfo = {};
                 vmaAllocInfo.usage = VMA_MEMORY_USAGE_GPU_ONLY;
-                vmaCreateBuffer(allocator, (VkBufferCreateInfo*)&bufferInfo, &vmaAllocInfo, (VkBuffer*)&buffer, &allocation, nullptr);
+                vmaCreateBuffer(allocator, &bufferInfo, &vmaAllocInfo, &buffer, &allocation, nullptr);
             }
             else
             {
-                buffer = VKDevice::Instance()->GetDevice().createBuffer(bufferInfo);
+               vkCreateBuffer(VKDevice::Instance()->GetDevice(), &bufferInfo, nullptr, &buffer);
             }
 #else
-            buffer = VKDevice::Instance()->GetDevice().createBuffer(bufferInfo);
+			vkCreateBuffer(VKDevice::Instance()->GetDevice(), &bufferInfo, nullptr, &buffer);
 #endif
-            vk::MemoryRequirements memRequirements = VKDevice::Instance()->GetDevice().getBufferMemoryRequirements(buffer);
+			VkMemoryRequirements memRequirements;
+			vkGetBufferMemoryRequirements(VKDevice::Instance()->GetDevice(), buffer, &memRequirements);
 
-            vk::MemoryAllocateInfo allocInfo = {};
+            VkMemoryAllocateInfo allocInfo = {};
+			allocInfo.sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
             allocInfo.allocationSize = memRequirements.size;
             allocInfo.memoryTypeIndex = FindMemoryType(memRequirements.memoryTypeBits, properties);
             
-            vk::Result result = VKDevice::Instance()->GetDevice().allocateMemory(&allocInfo, nullptr, &bufferMemory);
-            if (result != vk::Result::eSuccess)
-            {
-                throw std::runtime_error("failed to allocate buffer memory!");
-            }
+			VkResult result = vkAllocateMemory(VKDevice::Instance()->GetDevice(), &allocInfo, nullptr, &bufferMemory);
+			if (result != VK_SUCCESS)
+			{
+				throw std::runtime_error("failed to allocate buffer memory!");
+			}
 
-            VKDevice::Instance()->GetDevice().bindBufferMemory(buffer,bufferMemory, 0);
+			vkBindBufferMemory(VKDevice::Instance()->GetDevice(), buffer, bufferMemory, 0);
         }
 
-        vk::CommandBuffer VKTools::BeginSingleTimeCommands()
+        VkCommandBuffer VKTools::BeginSingleTimeCommands()
         {
-            vk::CommandBufferAllocateInfo allocInfo = {};
-            allocInfo.level = vk::CommandBufferLevel::ePrimary;
+            VkCommandBufferAllocateInfo allocInfo = {};
+			allocInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
+			allocInfo.level = VK_COMMAND_BUFFER_LEVEL_PRIMARY;
             allocInfo.commandPool = VKDevice::Instance()->GetVKContext()->GetCommandPool()->GetCommandPool();
             allocInfo.commandBufferCount = 1;
 
-            vk::CommandBuffer commandBuffer = VKDevice::Instance()->GetDevice().allocateCommandBuffers(allocInfo)[0];
+			VkCommandBuffer commandBuffer;
+			vkAllocateCommandBuffers(VKDevice::Instance()->GetDevice(), &allocInfo, &commandBuffer);
 
-            vk::CommandBufferBeginInfo beginInfo = {};
-            beginInfo.flags = vk::CommandBufferUsageFlagBits::eOneTimeSubmit;
+			VkCommandBufferBeginInfo beginInfo = {};
+			beginInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
+			beginInfo.flags = VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT;
 
-            commandBuffer.begin(beginInfo);
+			vkBeginCommandBuffer(commandBuffer, &beginInfo);
 
             return commandBuffer;
         }
 
-        void VKTools::EndSingleTimeCommands(vk::CommandBuffer commandBuffer)
+        void VKTools::EndSingleTimeCommands(VkCommandBuffer commandBuffer)
         {
             vkEndCommandBuffer(commandBuffer);
 
-            vk::SubmitInfo submitInfo = {};
+            VkSubmitInfo submitInfo = {};
+			submitInfo.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
             submitInfo.commandBufferCount = 1;
             submitInfo.pCommandBuffers = &commandBuffer;
 
-            VKDevice::Instance()->GetGraphicsQueue().submit(1, &submitInfo, nullptr);
-            VKDevice::Instance()->GetGraphicsQueue().waitIdle();
+			vkQueueSubmit(VKDevice::Instance()->GetGraphicsQueue(), 1, &submitInfo, VK_NULL_HANDLE);
+			vkQueueWaitIdle(VKDevice::Instance()->GetGraphicsQueue());
 
-            VKDevice::Instance()->GetDevice().freeCommandBuffers(VKDevice::Instance()->GetVKContext()->GetCommandPool()->GetCommandPool(), 1, &commandBuffer);
+			vkFreeCommandBuffers(VKDevice::Instance()->GetDevice(),
+				VKDevice::Instance()->GetVKContext()->GetCommandPool()->GetCommandPool(), 1, &commandBuffer);
         }
 
-        void VKTools::CopyBufferToImage(vk::Buffer buffer, vk::Image image, uint32_t width, uint32_t height)
+        void VKTools::CopyBufferToImage(VkBuffer buffer, VkImage image, uint32_t width, uint32_t height)
         {
-            vk::CommandBuffer commandBuffer = BeginSingleTimeCommands();
+            VkCommandBuffer commandBuffer = BeginSingleTimeCommands();
 
-            vk::BufferImageCopy region = {};
+            VkBufferImageCopy region = {};
             region.bufferOffset = 0;
             region.bufferRowLength = 0;
             region.bufferImageHeight = 0;
-            region.imageSubresource.aspectMask = vk::ImageAspectFlagBits::eColor;
+            region.imageSubresource.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
             region.imageSubresource.mipLevel = 0;
             region.imageSubresource.baseArrayLayer = 0;
             region.imageSubresource.layerCount = 1;
-            region.imageOffset = vk::Offset3D(0, 0, 0);
-            region.imageExtent = vk::Extent3D(width, height, 1);
+			region.imageOffset = { 0, 0, 0 };
+			region.imageExtent = {
+				width,
+				height,
+				1
+			};
 
-            commandBuffer.copyBufferToImage(buffer, image, vk::ImageLayout::eTransferDstOptimal, 1, &region);
+			vkCmdCopyBufferToImage(commandBuffer, buffer, image, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, 1, &region);
 
             VKTools::EndSingleTimeCommands(commandBuffer);
         }
 
-        void VKTools::CopyBuffer(vk::Buffer srcBuffer, vk::Buffer dstBuffer, vk::DeviceSize size)
+        void VKTools::CopyBuffer(VkBuffer srcBuffer, VkBuffer dstBuffer, VkDeviceSize size)
         {
-            vk::CommandBuffer commandBuffer = VKTools::BeginSingleTimeCommands();
+            VkCommandBuffer commandBuffer = VKTools::BeginSingleTimeCommands();
 
-            vk::BufferCopy copyRegion = {};
+            VkBufferCopy copyRegion = {};
             copyRegion.size = size;
-            commandBuffer.copyBuffer(srcBuffer, dstBuffer, copyRegion);
+			vkCmdCopyBuffer(commandBuffer, srcBuffer, dstBuffer, 1, &copyRegion);
 
             VKTools::EndSingleTimeCommands(commandBuffer);
         }
 
-        bool VKTools::HasStencilComponent(vk::Format format)
+        bool VKTools::HasStencilComponent(VkFormat format)
         {
-            return format == vk::Format::eD32SfloatS8Uint || format == vk::Format::eD24UnormS8Uint;
+			return format == VK_FORMAT_D32_SFLOAT_S8_UINT || format == VK_FORMAT_D24_UNORM_S8_UINT;
         }
 
-        void VKTools::TransitionImageLayout(vk::Image image, vk::Format format, vk::ImageLayout oldLayout, vk::ImageLayout newLayout,
+        void VKTools::TransitionImageLayout(VkImage image, VkFormat format, VkImageLayout oldLayout, VkImageLayout newLayout,
             uint32_t mipLevels)
         {
-            vk::CommandBuffer commandBuffer = BeginSingleTimeCommands();
+            VkCommandBuffer commandBuffer = BeginSingleTimeCommands();
 
-            vk::ImageMemoryBarrier barrier = {};
+            VkImageMemoryBarrier barrier = {};
+			barrier.sType = VK_STRUCTURE_TYPE_MEMORY_BARRIER;
             barrier.oldLayout = oldLayout;
             barrier.newLayout = newLayout;
             barrier.srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
             barrier.dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
             barrier.image = image;
 
-            if (newLayout == vk::ImageLayout::eDepthStencilAttachmentOptimal)
-            {
-                barrier.subresourceRange.aspectMask = vk::ImageAspectFlagBits::eDepth;
+			if (newLayout == VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL)
+			{
+				barrier.subresourceRange.aspectMask = VK_IMAGE_ASPECT_DEPTH_BIT;
 
-                if (HasStencilComponent(format))
-                {
-                    barrier.subresourceRange.aspectMask |= vk::ImageAspectFlagBits::eStencil;
-                }
-            }
-            else
-            {
-                barrier.subresourceRange.aspectMask = vk::ImageAspectFlagBits::eColor;
-            }
+				if (HasStencilComponent(format))
+				{
+					barrier.subresourceRange.aspectMask |= VK_IMAGE_ASPECT_STENCIL_BIT;
+				}
+			}
+			else
+			{
+				barrier.subresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
+			}
 
             barrier.subresourceRange.baseMipLevel = 0;
             barrier.subresourceRange.levelCount = mipLevels;
             barrier.subresourceRange.baseArrayLayer = 0;
             barrier.subresourceRange.layerCount = 1;
 
-            vk::PipelineStageFlags sourceStage;
-            vk::PipelineStageFlags destinationStage;
+            VkPipelineStageFlags sourceStage;
+            VkPipelineStageFlags destinationStage;
 
-            if (oldLayout == vk::ImageLayout::eUndefined && newLayout == vk::ImageLayout::eTransferDstOptimal)
-            {
-                barrier.srcAccessMask = vk::AccessFlagBits(0);
-                barrier.dstAccessMask = vk::AccessFlagBits::eTransferWrite;
+			if (oldLayout == VK_IMAGE_LAYOUT_UNDEFINED && newLayout == VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL)
+			{
+				barrier.srcAccessMask = 0;
+				barrier.dstAccessMask = VK_ACCESS_TRANSFER_WRITE_BIT;
 
-                sourceStage = vk::PipelineStageFlagBits::eTopOfPipe;
-                destinationStage = vk::PipelineStageFlagBits::eTransfer;
-            }
-            else if (oldLayout == vk::ImageLayout::eTransferDstOptimal && newLayout == vk::ImageLayout::eShaderReadOnlyOptimal)
-            {
-                barrier.srcAccessMask = vk::AccessFlagBits::eTransferWrite;
-                barrier.dstAccessMask = vk::AccessFlagBits::eShaderRead;
+				sourceStage = VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT;
+				destinationStage = VK_PIPELINE_STAGE_TRANSFER_BIT;
+			}
+			else if (oldLayout == VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL && newLayout == VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL)
+			{
+				barrier.srcAccessMask = VK_ACCESS_TRANSFER_WRITE_BIT;
+				barrier.dstAccessMask = VK_ACCESS_SHADER_READ_BIT;
 
-                sourceStage = vk::PipelineStageFlagBits::eTransfer;
-                destinationStage = vk::PipelineStageFlagBits::eFragmentShader;
-            }
-            else if (oldLayout == vk::ImageLayout::eUndefined && newLayout == vk::ImageLayout::eDepthStencilAttachmentOptimal)
-            {
-                barrier.srcAccessMask = vk::AccessFlagBits(0);
-                barrier.dstAccessMask = vk::AccessFlagBits::eDepthStencilAttachmentRead | vk::AccessFlagBits::eDepthStencilAttachmentWrite;
+				sourceStage = VK_PIPELINE_STAGE_TRANSFER_BIT;
+				destinationStage = VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT;
+			}
+			else if (oldLayout == VK_IMAGE_LAYOUT_UNDEFINED && newLayout == VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL)
+			{
+				barrier.srcAccessMask = 0;
+				barrier.dstAccessMask = VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_READ_BIT | VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT;
 
-                sourceStage = vk::PipelineStageFlagBits::eTopOfPipe;
-                destinationStage = vk::PipelineStageFlagBits::eEarlyFragmentTests;
-            }
+				sourceStage = VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT;
+				destinationStage = VK_PIPELINE_STAGE_EARLY_FRAGMENT_TESTS_BIT;
+			}
             else
             {
                 LUMOS_LOG_CRITICAL("unsupported layout transition!");
             }
 
-            commandBuffer.pipelineBarrier(sourceStage, destinationStage, static_cast<vk::DependencyFlagBits>(0), 0, nullptr, 0, nullptr, 1, &barrier);
+			vkCmdPipelineBarrier(
+				commandBuffer,
+				sourceStage, destinationStage,
+				0,
+				0, nullptr,
+				0, nullptr,
+				1, &barrier
+			);
 
             EndSingleTimeCommands(commandBuffer);
         }
 
-        vk::Format VKTools::FindSupportedFormat(const std::vector<vk::Format>& candidates, vk::ImageTiling tiling,
-                                        vk::FormatFeatureFlags features)
+        VkFormat VKTools::FindSupportedFormat(const std::vector<VkFormat>& candidates, VkImageTiling tiling,
+                                        VkFormatFeatureFlags features)
         {
-            for (vk::Format format : candidates)
-            {
-                vk::FormatProperties props = VKDevice::Instance()->GetGPU().getFormatProperties(format);
+			for (VkFormat format : candidates)
+			{
+				VkFormatProperties props;
+				vkGetPhysicalDeviceFormatProperties(VKDevice::Instance()->GetGPU(), format, &props);
 
-                if (tiling == vk::ImageTiling::eLinear && (props.linearTilingFeatures & features) == features)
-                {
-                    return format;
-                }
-                else if (tiling == vk::ImageTiling::eOptimal && (props.optimalTilingFeatures & features) == features)
-                {
-                    return format;
-                }
-            }
+				if (tiling == VK_IMAGE_TILING_LINEAR && (props.linearTilingFeatures & features) == features)
+				{
+					return format;
+				}
+				else if (tiling == VK_IMAGE_TILING_OPTIMAL && (props.optimalTilingFeatures & features) == features)
+				{
+					return format;
+				}
+			}
 
             throw std::runtime_error("failed to find supported format!");
         }
 
-        vk::Format VKTools::FindDepthFormat()
+        VkFormat VKTools::FindDepthFormat()
         {
-            return FindSupportedFormat(
-                { vk::Format::eD32Sfloat, vk::Format::eD32SfloatS8Uint,vk::Format::eD24UnormS8Uint},
-                vk::ImageTiling::eOptimal,
-                vk::FormatFeatureFlagBits::eDepthStencilAttachment
-            );
+			return FindSupportedFormat(
+				{	VK_FORMAT_D32_SFLOAT, VK_FORMAT_D32_SFLOAT_S8_UINT, VK_FORMAT_D24_UNORM_S8_UINT },
+					VK_IMAGE_TILING_OPTIMAL,
+					VK_FORMAT_FEATURE_DEPTH_STENCIL_ATTACHMENT_BIT
+			);
         }
 
         std::string VKTools::ErrorString(VkResult errorCode)
@@ -262,21 +284,21 @@ namespace Lumos
             }
         }
 
-        vk::Format VKTools::FormatToVK(Lumos::Graphics::Format format)
+        VkFormat VKTools::FormatToVK(Lumos::Graphics::Format format)
         {
             switch(format)
             {
-                case Lumos::Graphics::Format::R32G32B32A32_FLOAT :   return vk::Format::eR32G32B32A32Sfloat;
-                case Lumos::Graphics::Format::R32G32B32_FLOAT :      return vk::Format::eR32G32B32Sfloat;
-                case Lumos::Graphics::Format::R32G32_FLOAT :         return vk::Format::eR32G32Sfloat;
-                case Lumos::Graphics::Format::R32_FLOAT :            return vk::Format::eR32Sfloat;
-                default:                            return vk::Format::eR32G32B32Sfloat;
+                case Lumos::Graphics::Format::R32G32B32A32_FLOAT :   return VkFormat::VK_FORMAT_R32G32B32A32_SFLOAT;
+                case Lumos::Graphics::Format::R32G32B32_FLOAT :      return VkFormat::VK_FORMAT_R32G32B32_SFLOAT;
+                case Lumos::Graphics::Format::R32G32_FLOAT :         return VkFormat::VK_FORMAT_R32G32_SFLOAT;
+                case Lumos::Graphics::Format::R32_FLOAT :            return VkFormat::VK_FORMAT_R32_SFLOAT;
+                default: return VkFormat::VK_FORMAT_R32G32B32A32_SFLOAT;
             }
         }
 
-        vk::VertexInputAttributeDescription VKTools::VertexInputDescriptionToVK(VertexInputDescription description)
+        VkVertexInputAttributeDescription VKTools::VertexInputDescriptionToVK(VertexInputDescription description)
         {
-            vk::VertexInputAttributeDescription vInputAttribDescription{};
+            VkVertexInputAttributeDescription vInputAttribDescription{};
             vInputAttribDescription.location = description.location;
             vInputAttribDescription.binding = description.binding;
             vInputAttribDescription.format = FormatToVK(description.format);
@@ -284,157 +306,170 @@ namespace Lumos
             return vInputAttribDescription;
         }
 
-        vk::CullModeFlags VKTools::CullModeToVK(CullMode mode)
+        VkCullModeFlags VKTools::CullModeToVK(CullMode mode)
         {
             switch(mode)
             {
-                case CullMode::BACK		        : return vk::CullModeFlagBits::eBack;
-                case CullMode::FRONT		    : return vk::CullModeFlagBits::eFront;
-                case CullMode::FRONTANDBACK     : return vk::CullModeFlagBits::eFrontAndBack;
-                case CullMode::NONE		        : return vk::CullModeFlagBits::eNone;
+                case CullMode::BACK		        : return VK_CULL_MODE_BACK_BIT;
+                case CullMode::FRONT		    : return VK_CULL_MODE_FRONT_BIT;
+                case CullMode::FRONTANDBACK     : return VK_CULL_MODE_FRONT_AND_BACK;
+                case CullMode::NONE		        : return VK_CULL_MODE_NONE;
             }
 
-            return vk::CullModeFlagBits::eBack;
+            return VK_CULL_MODE_BACK_BIT;
         }
 
-        vk::DescriptorType VKTools::DescriptorTypeToVK(DescriptorType type)
+        VkDescriptorType VKTools::DescriptorTypeToVK(DescriptorType type)
         {
             switch (type)
             {
-            case DescriptorType::UNIFORM_BUFFER		    : return vk::DescriptorType::eUniformBuffer;
-            case DescriptorType::UNIFORM_BUFFER_DYNAMIC : return vk::DescriptorType::eUniformBufferDynamic;
-            case DescriptorType::IMAGE_SAMPLER			: return vk::DescriptorType::eCombinedImageSampler;
+            case DescriptorType::UNIFORM_BUFFER		    : return VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
+            case DescriptorType::UNIFORM_BUFFER_DYNAMIC : return VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER_DYNAMIC;
+            case DescriptorType::IMAGE_SAMPLER			: return VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
             }
 
-            return vk::DescriptorType::eUniformBuffer;
+            return VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
         }
 
         void VKTools::SetImageLayout(
-            vk::CommandBuffer cmdbuffer,
-            vk::Image image,
-            vk::ImageLayout oldImageLayout,
-            vk::ImageLayout newImageLayout,
-            vk::ImageSubresourceRange subresourceRange,
-            vk::PipelineStageFlags srcStageMask,
-            vk::PipelineStageFlags dstStageMask)
+            VkCommandBuffer cmdbuffer,
+            VkImage image,
+            VkImageLayout oldImageLayout,
+            VkImageLayout newImageLayout,
+            VkImageSubresourceRange subresourceRange,
+            VkPipelineStageFlags srcStageMask,
+            VkPipelineStageFlags dstStageMask)
         {
             // Create an image barrier object
-            vk::ImageMemoryBarrier imageMemoryBarrier;
+            VkImageMemoryBarrier imageMemoryBarrier;
+			imageMemoryBarrier.sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER;
             imageMemoryBarrier.oldLayout = oldImageLayout;
             imageMemoryBarrier.newLayout = newImageLayout;
             imageMemoryBarrier.image = image;
             imageMemoryBarrier.subresourceRange = subresourceRange;
+			imageMemoryBarrier.srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
+			imageMemoryBarrier.dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
+			imageMemoryBarrier.pNext = nullptr;
+			imageMemoryBarrier.srcAccessMask = 0;
+			imageMemoryBarrier.dstAccessMask = 0;
 
             // Source layouts (old)
             // Source access mask controls actions that have to be finished on the old layout
             // before it will be transitioned to the new layout
-            switch (oldImageLayout)
-            {
-            case vk::ImageLayout::eUndefined:
-                // Image layout is undefined (or does not matter)
-                // Only valid as initial layout
-                // No flags required, listed only for completeness
-                //imageMemoryBarrier.srcAccessMask = 0;
-                break;
+			switch (oldImageLayout)
+			{
+			case VK_IMAGE_LAYOUT_UNDEFINED:
+				// Image layout is undefined (or does not matter)
+				// Only valid as initial layout
+				// No flags required, listed only for completeness
+				imageMemoryBarrier.srcAccessMask = 0;
+				break;
 
-            case vk::ImageLayout::ePreinitialized:
-                // Image is preinitialized
-                // Only valid as initial layout for linear images, preserves memory contents
-                // Make sure host writes have been finished
-                imageMemoryBarrier.srcAccessMask = vk::AccessFlagBits::eHostWrite;
-                break;
+			case VK_IMAGE_LAYOUT_PREINITIALIZED:
+				// Image is preinitialized
+				// Only valid as initial layout for linear images, preserves memory contents
+				// Make sure host writes have been finished
+				imageMemoryBarrier.srcAccessMask = VK_ACCESS_HOST_WRITE_BIT;
+				break;
 
-            case vk::ImageLayout::eColorAttachmentOptimal:
-                // Image is a color attachment
-                // Make sure any writes to the color buffer have been finished
-                imageMemoryBarrier.srcAccessMask = vk::AccessFlagBits::eColorAttachmentWrite;
-                break;
+			case VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL:
+				// Image is a color attachment
+				// Make sure any writes to the color buffer have been finished
+				imageMemoryBarrier.srcAccessMask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;
+				break;
 
-            case vk::ImageLayout::eDepthStencilAttachmentOptimal:
-                // Image is a depth/stencil attachment
-                // Make sure any writes to the depth/stencil buffer have been finished
-                imageMemoryBarrier.srcAccessMask = vk::AccessFlagBits::eDepthStencilAttachmentWrite;
-                break;
+			case VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL:
+				// Image is a depth/stencil attachment
+				// Make sure any writes to the depth/stencil buffer have been finished
+				imageMemoryBarrier.srcAccessMask = VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT;
+				break;
 
-            case vk::ImageLayout::eTransferSrcOptimal:
-                // Image is a transfer source
-                // Make sure any reads from the image have been finished
-                imageMemoryBarrier.srcAccessMask = vk::AccessFlagBits::eTransferRead;
-                break;
+			case VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL:
+				// Image is a transfer source 
+				// Make sure any reads from the image have been finished
+				imageMemoryBarrier.srcAccessMask = VK_ACCESS_TRANSFER_READ_BIT;
+				break;
 
-            case vk::ImageLayout::eTransferDstOptimal:
-                // Image is a transfer destination
-                // Make sure any writes to the image have been finished
-                imageMemoryBarrier.srcAccessMask = vk::AccessFlagBits::eTransferWrite;
-                break;
+			case VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL:
+				// Image is a transfer destination
+				// Make sure any writes to the image have been finished
+				imageMemoryBarrier.srcAccessMask = VK_ACCESS_TRANSFER_WRITE_BIT;
+				break;
 
-            case vk::ImageLayout::eShaderReadOnlyOptimal:
-                // Image is read by a shader
-                // Make sure any shader reads from the image have been finished
-                imageMemoryBarrier.srcAccessMask = vk::AccessFlagBits::eShaderRead;
-                break;
-            default:
-                // Other source layouts aren't handled (yet)
-                break;
-            }
+			case VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL:
+				// Image is read by a shader
+				// Make sure any shader reads from the image have been finished
+				imageMemoryBarrier.srcAccessMask = VK_ACCESS_SHADER_READ_BIT;
+				break;
+			default:
+				// Other source layouts aren't handled (yet)
+				break;
+			}
 
-            // Target layouts (new)
-            // Destination access mask controls the dependency for the new image layout
-            switch (newImageLayout)
-            {
-            case vk::ImageLayout::eTransferDstOptimal:
-                // Image will be used as a transfer destination
-                // Make sure any writes to the image have been finished
-                imageMemoryBarrier.dstAccessMask = vk::AccessFlagBits::eTransferWrite;
-                break;
+			// Target layouts (new)
+			// Destination access mask controls the dependency for the new image layout
+			switch (newImageLayout)
+			{
+			case VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL:
+				// Image will be used as a transfer destination
+				// Make sure any writes to the image have been finished
+				imageMemoryBarrier.dstAccessMask = VK_ACCESS_TRANSFER_WRITE_BIT;
+				break;
 
-            case vk::ImageLayout::eTransferSrcOptimal:
-                // Image will be used as a transfer source
-                // Make sure any reads from the image have been finished
-                imageMemoryBarrier.dstAccessMask = vk::AccessFlagBits::eTransferRead;
-                break;
+			case VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL:
+				// Image will be used as a transfer source
+				// Make sure any reads from the image have been finished
+				imageMemoryBarrier.dstAccessMask = VK_ACCESS_TRANSFER_READ_BIT;
+				break;
 
-            case vk::ImageLayout::eColorAttachmentOptimal:
-                // Image will be used as a color attachment
-                // Make sure any writes to the color buffer have been finished
-                imageMemoryBarrier.dstAccessMask = vk::AccessFlagBits::eColorAttachmentWrite;
-                break;
+			case VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL:
+				// Image will be used as a color attachment
+				// Make sure any writes to the color buffer have been finished
+				imageMemoryBarrier.dstAccessMask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;
+				break;
 
-            case vk::ImageLayout::eDepthStencilAttachmentOptimal:
-                // Image layout will be used as a depth/stencil attachment
-                // Make sure any writes to depth/stencil buffer have been finished
-                imageMemoryBarrier.dstAccessMask = imageMemoryBarrier.dstAccessMask | vk::AccessFlagBits::eDepthStencilAttachmentWrite;
-                break;
+			case VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL:
+				// Image layout will be used as a depth/stencil attachment
+				// Make sure any writes to depth/stencil buffer have been finished
+				imageMemoryBarrier.dstAccessMask = imageMemoryBarrier.dstAccessMask | VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT;
+				break;
 
-            case vk::ImageLayout::eShaderReadOnlyOptimal:
-                // Image will be read in a shader (sampler, input attachment)
-                // Make sure any writes to the image have been finished
-                if (imageMemoryBarrier.srcAccessMask == vk::AccessFlagBits())
-                {
-                    imageMemoryBarrier.srcAccessMask = vk::AccessFlagBits::eHostWrite | vk::AccessFlagBits::eTransferWrite;
-                }
-                imageMemoryBarrier.dstAccessMask = vk::AccessFlagBits::eShaderRead;
-                break;
-            default:
-                // Other source layouts aren't handled (yet)
-                break;
-            }
+			case VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL:
+				// Image will be read in a shader (sampler, input attachment)
+				// Make sure any writes to the image have been finished
+				if (imageMemoryBarrier.srcAccessMask == 0)
+				{
+					imageMemoryBarrier.srcAccessMask = VK_ACCESS_HOST_WRITE_BIT | VK_ACCESS_TRANSFER_WRITE_BIT;
+				}
+				imageMemoryBarrier.dstAccessMask = VK_ACCESS_SHADER_READ_BIT;
+				break;
+			default:
+				// Other source layouts aren't handled (yet)
+				break;
+			}
 
             // Put barrier inside setup command buffer
-            cmdbuffer.pipelineBarrier(srcStageMask, dstStageMask, static_cast<vk::DependencyFlagBits>(0), 0, nullptr, 0, nullptr, 1, &imageMemoryBarrier);
+			vkCmdPipelineBarrier(
+				cmdbuffer,
+				srcStageMask,
+				dstStageMask,
+				0,
+				0, nullptr,
+				0, nullptr,
+				1, &imageMemoryBarrier);
         }
 
         // Fixed sub resource on first mip level and layer
         void VKTools::SetImageLayout(
-            vk::CommandBuffer cmdbuffer,
-            vk::Image image,
-            vk::ImageAspectFlags aspectMask,
-            vk::ImageLayout oldImageLayout,
-            vk::ImageLayout newImageLayout,
-            vk::PipelineStageFlags srcStageMask,
-            vk::PipelineStageFlags dstStageMask)
+            VkCommandBuffer cmdbuffer,
+            VkImage image,
+            VkImageAspectFlags aspectMask,
+            VkImageLayout oldImageLayout,
+            VkImageLayout newImageLayout,
+            VkPipelineStageFlags srcStageMask,
+            VkPipelineStageFlags dstStageMask)
         {
-            vk::ImageSubresourceRange subresourceRange = {};
+            VkImageSubresourceRange subresourceRange = {};
             subresourceRange.aspectMask = aspectMask;
             subresourceRange.baseMipLevel = 0;
             subresourceRange.levelCount = 1;
@@ -442,37 +477,50 @@ namespace Lumos
             SetImageLayout(cmdbuffer, image, oldImageLayout, newImageLayout, subresourceRange, srcStageMask, dstStageMask);
         }
 
-        vk::Format VKTools::TextureFormatToVK(const TextureFormat format)
+		VkSamplerAddressMode VKTools::TextureWrapToVK(const TextureWrap wrap)
+		{
+			switch (wrap)
+			{
+			case TextureWrap::CLAMP:		    return VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_EDGE;
+			case TextureWrap::CLAMP_TO_BORDER:	return VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_BORDER;
+			case TextureWrap::CLAMP_TO_EDGE:	return VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_EDGE;
+			case TextureWrap::REPEAT:			return VK_SAMPLER_ADDRESS_MODE_REPEAT;
+			case TextureWrap::MIRRORED_REPEAT:	return VK_SAMPLER_ADDRESS_MODE_MIRRORED_REPEAT;
+			default: LUMOS_LOG_CRITICAL("[Texture] Unsupported wrap type!");  return VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_EDGE;
+			}
+		}
+
+        VkFormat VKTools::TextureFormatToVK(const TextureFormat format)
         {
             switch (format)
             {
-                case TextureFormat::RGBA:				return vk::Format::eR8G8B8A8Unorm;
-                case TextureFormat::RGB:				return vk::Format::eR8G8B8Unorm;
-                case TextureFormat::R8:				    return vk::Format::eR8Unorm;
-                case TextureFormat::RG8:				return vk::Format::eR8G8Unorm;
-                case TextureFormat::RGB8:				return vk::Format::eR8G8B8Unorm;
-                case TextureFormat::RGBA8:				return vk::Format::eR8G8B8A8Unorm;
-                case TextureFormat::RGB16:              return vk::Format::eR16G16B16Sfloat;
-                case TextureFormat::RGBA16:             return vk::Format::eR16G16B16A16Sfloat;
-				case TextureFormat::RGB32:              return vk::Format::eR32G32B32Sfloat;
-				case TextureFormat::RGBA32:             return vk::Format::eR32G32B32A32Sfloat;
-                default: LUMOS_LOG_CRITICAL("[Texture] Unsupported image bit-depth!");  return vk::Format::eR8G8B8A8Unorm;
+                case TextureFormat::RGBA:				return VK_FORMAT_R8G8B8A8_UNORM;
+                case TextureFormat::RGB:				return VK_FORMAT_R8G8B8_UNORM;
+                case TextureFormat::R8:				    return VK_FORMAT_R8_UNORM;
+                case TextureFormat::RG8:				return VK_FORMAT_R8G8_UNORM;
+                case TextureFormat::RGB8:				return VK_FORMAT_R8G8B8_UNORM;
+                case TextureFormat::RGBA8:				return VK_FORMAT_R8G8B8A8_UNORM;
+                case TextureFormat::RGB16:              return VK_FORMAT_R16G16B16_SFLOAT;
+                case TextureFormat::RGBA16:             return VK_FORMAT_R16G16B16A16_SFLOAT;
+				case TextureFormat::RGB32:              return VK_FORMAT_R32G32B32_SFLOAT;
+				case TextureFormat::RGBA32:             return VK_FORMAT_R32G32B32A32_SFLOAT;
+                default: LUMOS_LOG_CRITICAL("[Texture] Unsupported image bit-depth!");  return VK_FORMAT_R8G8B8A8_UNORM;
             }
         }
         
-        vk::ShaderStageFlagBits VKTools::ShaderTypeToVK(const ShaderType& shaderName)
+        VkShaderStageFlagBits VKTools::ShaderTypeToVK(const ShaderType& shaderName)
         {
             switch (shaderName)
             {
-                case ShaderType::VERTEX:                    return vk::ShaderStageFlagBits::eVertex;
-                case ShaderType::GEOMETRY:                  return vk::ShaderStageFlagBits::eGeometry;
-                case ShaderType::FRAGMENT:                  return vk::ShaderStageFlagBits::eFragment;
-                case ShaderType::TESSELLATION_CONTROL:      return vk::ShaderStageFlagBits::eTessellationControl;
-                case ShaderType::TESSELLATION_EVALUATION:   return vk::ShaderStageFlagBits::eTessellationEvaluation;
-                case ShaderType::COMPUTE:                   return vk::ShaderStageFlagBits::eCompute;
+				case ShaderType::VERTEX:					return VK_SHADER_STAGE_VERTEX_BIT;
+                case ShaderType::GEOMETRY:                  return VK_SHADER_STAGE_GEOMETRY_BIT;
+                case ShaderType::FRAGMENT:                  return VK_SHADER_STAGE_FRAGMENT_BIT;
+                case ShaderType::TESSELLATION_CONTROL:      return VK_SHADER_STAGE_TESSELLATION_CONTROL_BIT;
+                case ShaderType::TESSELLATION_EVALUATION:   return VK_SHADER_STAGE_TESSELLATION_EVALUATION_BIT;
+                case ShaderType::COMPUTE:                   return VK_SHADER_STAGE_COMPUTE_BIT;
                 default:
                     LUMOS_LOG_CRITICAL("Unknown Shader Type");
-                    return vk::ShaderStageFlagBits::eVertex;
+                    return VK_SHADER_STAGE_VERTEX_BIT;
             }
         }
 	}

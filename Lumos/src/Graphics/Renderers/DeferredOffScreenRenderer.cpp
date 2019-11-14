@@ -2,12 +2,13 @@
 #include "DeferredOffScreenRenderer.h"
 #include "App/Scene.h"
 #include "App/Application.h"
-#include "ECS/EntityManager.h"
 #include "ECS/Component/MaterialComponent.h"
 #include "ECS/Component/MeshComponent.h"
 #include "ECS/Component/TextureMatrixComponent.h"
 
 #include "Maths/Maths.h"
+#include "Maths/Transform.h"
+
 #include "Core/JobSystem.h"
 #include "Core/Profiler.h"
 
@@ -173,7 +174,7 @@ namespace Lumos
                     maxScaling = Maths::Max(scale.GetY(), maxScaling);
                     maxScaling = Maths::Max(scale.GetZ(), maxScaling);
 
-                    bool inside = m_Frustum.InsideFrustum(worldTransform.GetPositionVector(), maxScaling * mesh.GetMesh()->GetBoundingSphere()->SphereRadius());
+                    bool inside = m_Frustum.InsideFrustum(worldTransform.GetPositionVector(), maxScaling * mesh.GetMesh()->GetBoundingBox()->SphereRadius());
 
                     if (!inside)
                         continue;
@@ -286,9 +287,7 @@ namespace Lumos
 
 				uint32_t dynamicOffset = i * static_cast<uint32_t>(m_DynamicAlignment);
 
-				std::vector<Graphics::DescriptorSet*> descriptorSets;
-				descriptorSets.emplace_back(m_Pipeline->GetDescriptorSet());
-				descriptorSets.emplace_back(command.material ? command.material->GetDescriptorSet() : m_DefaultMaterial->GetDescriptorSet());
+				std::vector<Graphics::DescriptorSet*> descriptorSets = { m_Pipeline->GetDescriptorSet(), command.material ? command.material->GetDescriptorSet() : m_DefaultMaterial->GetDescriptorSet() };
 
 				mesh->GetVertexArray()->Bind(m_DeferredCommandBuffers);
 				mesh->GetIndexBuffer()->Bind(m_DeferredCommandBuffers);
@@ -474,7 +473,7 @@ namespace Lumos
 
 		void DeferredOffScreenRenderer::OnImGui()
 		{
-			ImGui::Text("Deferred Offscreen Renderer");
+			ImGui::TextUnformatted("Deferred Offscreen Renderer");
 
 			if (ImGui::TreeNode("Default Material"))
 			{

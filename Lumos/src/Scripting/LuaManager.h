@@ -20,6 +20,8 @@ namespace Lumos
 
 		void OnInit();
         
+		void TestLua();
+
         void BindImGuiLua(sol::state* solState);
         void BindECSLua(sol::state* state);
         void BindMathsLua(sol::state* state);

@@ -249,7 +249,7 @@ namespace Lumos
             
             size_t maxNumVerts = 0;
             
-            Ref<Maths::BoundingSphere> boundingBox = CreateRef<Maths::BoundingSphere>();
+            Ref<Maths::BoundingBox> boundingBox = CreateRef<Maths::BoundingBox>();
            
             for (auto& attribute : primitive.attributes)
             {

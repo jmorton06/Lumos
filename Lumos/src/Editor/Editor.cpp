@@ -19,7 +19,6 @@
 #include "Core/OS/FileSystem.h"
 
 #include "Maths/BoundingSphere.h"
-#include "ECS/EntityManager.h"
 #include "ECS/Component/Components.h"
 #include "ECS/SystemManager.h"
 #include "Physics/LumosPhysicsEngine/LumosPhysicsEngine.h"
@@ -393,24 +392,33 @@ namespace Lumos
 
 			if (ImGuizmo::IsUsing())
 			{
-				auto mat = Maths::Matrix4(delta) * transform->GetLocalMatrix();
-				transform->SetLocalTransform(mat);
-
-				auto physics2DComponent = registry.try_get<Physics2DComponent>(m_Selected);
-
-				if (physics2DComponent)
+				if (static_cast<ImGuizmo::OPERATION>(m_ImGuizmoOperation) == ImGuizmo::OPERATION::SCALE)
 				{
-					physics2DComponent->GetPhysicsObject()->SetPosition({ mat.GetPositionVector().GetX(), mat.GetPositionVector().GetY() });
+					auto mat = Maths::Matrix4(delta);
+					transform->SetLocalScale(transform->GetLocalScale() * mat.GetScaling());
 				}
 				else
 				{
-					auto physics3DComponent = registry.try_get<Physics3DComponent>(m_Selected);
-					if (physics3DComponent)
+					auto mat = Maths::Matrix4(delta) * transform->GetLocalMatrix();
+					transform->SetLocalTransform(mat);
+
+					auto physics2DComponent = registry.try_get<Physics2DComponent>(m_Selected);
+
+					if (physics2DComponent)
 					{
-						physics3DComponent->GetPhysicsObject()->SetPosition(mat.GetPositionVector());
-						physics3DComponent->GetPhysicsObject()->SetOrientation(mat.GetRotation().ToQuaternion());
+						physics2DComponent->GetPhysicsObject()->SetPosition({ mat.GetPositionVector().GetX(), mat.GetPositionVector().GetY() });
+					}
+					else
+					{
+						auto physics3DComponent = registry.try_get<Physics3DComponent>(m_Selected);
+						if (physics3DComponent)
+						{
+							physics3DComponent->GetPhysicsObject()->SetPosition(mat.GetPositionVector());
+							physics3DComponent->GetPhysicsObject()->SetOrientation(mat.GetRotation().ToQuaternion());
+						}
 					}
 				}
+				
 			}
 
 			if (m_Selected != entt::null)
@@ -467,7 +475,7 @@ namespace Lumos
 	{
         static bool p_open = true;
         static bool opt_fullscreen_persistant = true;
-        static ImGuiDockNodeFlags opt_flags = ImGuiDockNodeFlags_None;
+        static ImGuiDockNodeFlags opt_flags = ImGuiDockNodeFlags_NoWindowMenuButton;
         bool opt_fullscreen = opt_fullscreen_persistant;
 
         // We are using the ImGuiWindowFlags_NoDocking flag to make the parent window not dockable into,
