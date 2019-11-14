@@ -59,6 +59,8 @@ namespace Lumos
 
 			String m_RendererTitle;
 			u32 m_Width, m_Height;
+
+			VkDescriptorSet m_DescriptorSetPool[16];
 		};
 	}
 }

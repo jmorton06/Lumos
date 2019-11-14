@@ -18,8 +18,8 @@ namespace Lumos
 		if (enableProfiler)
 		{
 			Profiler::Instance()->Enable();
-			LUMOS_PROFILE_BLOCK("CoreSystem::Init");
 		}
+		LUMOS_PROFILE_BLOCK("CoreSystem::Init");
 
 		LUMOS_LOG_INFO("Lumos Engine - Version {0}.{1}.{2}", LumosVersion.major, LumosVersion.minor, LumosVersion.patch);
 

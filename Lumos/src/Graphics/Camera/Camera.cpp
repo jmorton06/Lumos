@@ -52,6 +52,7 @@ namespace Lumos
 	{
 		m_ViewMatrix = Maths::Matrix4::Rotation(-m_Pitch, Maths::Vector3(1, 0, 0)) *
 				Maths::Matrix4::Rotation(-m_Yaw, Maths::Vector3(0, 1, 0)) *
+				Maths::Matrix4::Rotation(-m_Roll, Maths::Vector3(0, 0, 1)) *
 				Maths::Matrix4::Translation(-m_Position);
 	};
 

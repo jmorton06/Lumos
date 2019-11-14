@@ -29,6 +29,9 @@ namespace Lumos
 
 		void SetMouseSensitivity(float value) { m_MouseSensitivity = value; }
 
+		float GetRoll() const { return m_Roll; }
+		void SetRoll(float y) { m_Roll = y; }
+
 		float GetYaw() const { return m_Yaw; }
 		void SetYaw(float y) { m_Yaw = y; }
 

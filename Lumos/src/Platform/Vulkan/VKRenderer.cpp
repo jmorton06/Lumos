@@ -121,24 +121,27 @@ namespace Lumos
 
 		void VKRenderer::BindDescriptorSetsInternal(Graphics::Pipeline* pipeline, Graphics::CommandBuffer* cmdBuffer, u32 dynamicOffset, std::vector<Graphics::DescriptorSet*>& descriptorSets)
 		{
-			std::vector<VkDescriptorSet> vkdescriptorSets;
 			u32 numDynamicDescriptorSets = 0;
+			u32 numDesciptorSets = 0;
 
 			for (auto descriptorSet : descriptorSets)
 			{
-				if (dynamic_cast<Graphics::VKDescriptorSet*>(descriptorSet)->GetIsDynamic())
+				auto vkDesSet = static_cast<Graphics::VKDescriptorSet*>(descriptorSet);
+				if (vkDesSet->GetIsDynamic())
 					numDynamicDescriptorSets++;
 
-				vkdescriptorSets.push_back(dynamic_cast<Graphics::VKDescriptorSet*>(descriptorSet)->GetDescriptorSet());
+				m_DescriptorSetPool[numDesciptorSets] = vkDesSet->GetDescriptorSet();
 
 				u32 index = 0;
-				for (auto pc : dynamic_cast<Graphics::VKDescriptorSet*>(descriptorSet)->GetPushConstants())
+				for (auto& pc : vkDesSet->GetPushConstants())
 				{
-					vkCmdPushConstants(dynamic_cast<Graphics::VKCommandBuffer*>(cmdBuffer)->GetCommandBuffer(), dynamic_cast<Graphics::VKPipeline*>(pipeline)->GetPipelineLayout(), VKTools::ShaderTypeToVK(pc.shaderStage), index, pc.size, pc.data);
+					vkCmdPushConstants(static_cast<Graphics::VKCommandBuffer*>(cmdBuffer)->GetCommandBuffer(), static_cast<Graphics::VKPipeline*>(pipeline)->GetPipelineLayout(), VKTools::ShaderTypeToVK(pc.shaderStage), index, pc.size, pc.data);
 				}
+
+				numDesciptorSets++;
 			}
 
-			vkCmdBindDescriptorSets(dynamic_cast<Graphics::VKCommandBuffer*>(cmdBuffer)->GetCommandBuffer(),VK_PIPELINE_BIND_POINT_GRAPHICS, dynamic_cast<Graphics::VKPipeline*>(pipeline)->GetPipelineLayout(), 0, static_cast<uint32_t>(vkdescriptorSets.size()), vkdescriptorSets.data(), numDynamicDescriptorSets, &dynamicOffset);
+			vkCmdBindDescriptorSets(static_cast<Graphics::VKCommandBuffer*>(cmdBuffer)->GetCommandBuffer(),VK_PIPELINE_BIND_POINT_GRAPHICS, static_cast<Graphics::VKPipeline*>(pipeline)->GetPipelineLayout(), 0, numDesciptorSets, m_DescriptorSetPool, numDynamicDescriptorSets, &dynamicOffset);
 		}
 
 		void VKRenderer::DrawIndexedInternal(CommandBuffer* commandBuffer, DrawType type, u32 count, u32 start) const

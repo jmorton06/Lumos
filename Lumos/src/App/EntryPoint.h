@@ -7,7 +7,7 @@ extern Lumos::Application* Lumos::CreateApplication();
 
 int main(int argc, char** argv)
 {
-	Lumos::Internal::CoreSystem::Init();
+	Lumos::Internal::CoreSystem::Init(false);
 
     auto windowsOS = new Lumos::WindowsOS();
     windowsOS->Init();
@@ -29,7 +29,7 @@ extern Lumos::Application* Lumos::CreateApplication();
 
 int main(int argc, char** argv)
 {
-	Lumos::Internal::CoreSystem::Init();
+	Lumos::Internal::CoreSystem::Init(false);
     
     auto unixOS = new Lumos::UnixOS();
     unixOS->Init();
@@ -49,7 +49,7 @@ int main(int argc, char** argv)
 
 int main(int argc, char** argv)
 {
-    Lumos::Internal::CoreSystem::Init();
+	Lumos::Internal::CoreSystem::Init(false);
 
     auto macOSOS = new Lumos::macOSOS();
     macOSOS->Init();
