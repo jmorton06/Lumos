@@ -96,7 +96,6 @@ namespace Lumos
 						auto bb = mesh.GetMesh()->GetBoundingBox();
 						bb->Transform(worldTransform);
 						auto inside = m_Frustum.IsInside(*bb);
-						//DODGY
 
 						if (!inside)
 							continue;

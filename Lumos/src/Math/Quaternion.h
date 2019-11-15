@@ -278,7 +278,7 @@ public:
     /// Define from an angle (in degrees) and axis.
     void FromAngleAxis(float angle, const Vector3& axis);
     /// Define from Euler angles (in degrees.) Equivalent to Y*X*Z.
-    void FromEulerAngles(float x, float y, float z);
+    void FromEulerAngles(float pitch, float yaw, float roll);
     /// Define from the rotation difference between two direction vectors.
     void FromRotationTo(const Vector3& start, const Vector3& end);
     /// Define from orthonormal axes.

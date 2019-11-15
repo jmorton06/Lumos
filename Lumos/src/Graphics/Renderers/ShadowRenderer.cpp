@@ -234,7 +234,6 @@ namespace Lumos
 						////auto bb = mesh.GetMesh()->GetBoundingBox();
 						//bb->Transform(worldTransform);
 						auto inside = true;// f.IsInside(*bb);
-						//DODGY
 
                         if (!inside)
                             continue;
@@ -356,10 +355,9 @@ namespace Lumos
 
 				Maths::Vector3 lightDir = -light->m_Direction.ToVector3();
 				lightDir.Normalize();
-				//DODGY
 				Maths::Matrix4 lightViewMatrix = Maths::Matrix4();// ::BuildViewMatrix(frustumCenter - lightDir * -minExtents.z, frustumCenter);
 
-				Maths::Matrix4 lightOrthoMatrix = Maths::Matrix4();//::Orthographic(minExtents.x, maxExtents.x, minExtents.y, maxExtents.y, -(maxExtents.z - minExtents.z), maxExtents.z - minExtents.z);
+				Maths::Matrix4 lightOrthoMatrix = Maths::Matrix4::Orthographic(minExtents.x, maxExtents.x, minExtents.y, maxExtents.y, -(maxExtents.z - minExtents.z), maxExtents.z - minExtents.z);
 
 				// Store split distance and matrix in cascade
 				m_SplitDepth[i] = Maths::Vector4((scene->GetCamera()->GetNear() + splitDist * clipRange) * -1.0f);

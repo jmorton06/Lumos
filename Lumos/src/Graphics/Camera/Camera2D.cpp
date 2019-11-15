@@ -14,7 +14,7 @@ namespace Lumos
 		, m_Scale(scale), m_AspectRatio(aspectRatio)
 	{
 		Application::Instance()->GetWindow()->HideMouse(false);
-		//m_ProjMatrix = Maths::Matrix4::Orthographic(-m_AspectRatio * m_Scale, m_AspectRatio * m_Scale, -m_Scale, m_Scale, -1.0f, 1.0f);
+		m_ProjMatrix = Maths::Matrix4::Orthographic(-m_AspectRatio * m_Scale, m_AspectRatio * m_Scale, -m_Scale, m_Scale, -1.0f, 1.0f);
 		m_Position = Maths::Vector3(0.0f);
 		m_Velocity = Maths::Vector3(0.0f);
 		m_MouseSensitivity = 0.005f;
@@ -68,14 +68,13 @@ namespace Lumos
         UpdateScroll(Input::GetInput()->GetScrollOffset(), dt);
 		Input::GetInput()->SetScrollOffset(0.0f);
 
-		//m_ProjMatrix = Maths::Matrix4::Orthographic(-m_AspectRatio * m_Scale, m_AspectRatio * m_Scale, -m_Scale, m_Scale, -1.0f, 1.0f);
-		//DODGY
+		m_ProjMatrix = Maths::Matrix4::Orthographic(-m_AspectRatio * m_Scale, m_AspectRatio * m_Scale, -m_Scale, m_Scale, -1.0f, 1.0f);
 	}
 
 	void Camera2D::UpdateProjectionMatrix(float width, float height)
 	{
 		m_AspectRatio = width / height;
-		//m_ProjMatrix = Maths::Matrix4::Orthographic(-m_AspectRatio * m_Scale, m_AspectRatio * m_Scale, -m_Scale, m_Scale, -1.0f, 1.0f);
+		m_ProjMatrix = Maths::Matrix4::Orthographic(-m_AspectRatio * m_Scale, m_AspectRatio * m_Scale, -m_Scale, m_Scale, -1.0f, 1.0f);
 	}
 
 	void Camera2D::BuildViewMatrix()

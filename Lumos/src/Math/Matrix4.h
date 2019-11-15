@@ -16,7 +16,7 @@ namespace Lumos::Maths
 class Matrix3x4;
 
 /// 4x4 matrix for arbitrary linear transforms including projection.
-class  Matrix4
+class Matrix4
 {
 public:
     /// Construct an identity matrix.
@@ -665,6 +665,7 @@ public:
 	static Matrix4 Rotation(const Vector3& rot)
 	{
 		Matrix4 s;
+        //TODO
 		return s;
 	}
 
@@ -718,12 +719,6 @@ public:
 			Lumos::Maths::IsInf(m32_) ||
 			Lumos::Maths::IsInf(m33_));
     }
-
-
-
-
-
-    /// Return as string.
 
     /// Return hash value for HashSet & HashMap.
     unsigned ToHash() const
