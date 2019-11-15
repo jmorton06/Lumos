@@ -6,7 +6,7 @@
 
 namespace Lumos
 {
-	namespace Maths
+	namespace LMMaths
 	{
 		class LUMOS_EXPORT MEM_ALIGN Vector4
 		{
@@ -47,37 +47,37 @@ namespace Lumos
 #ifdef LUMOS_SSEVEC4
 				m_Value = v.m_Value;
 #else
-				x = v.GetX(); y = v.GetY(); z = v.GetZ(); w = v.GetW();
+				x = v.x; y = v.y; z = v.z; w = v.w;
 #endif
 			}
 
 			Vector4(const Vector3 &v, float wVal = 1.0f)
 			{
 #ifdef LUMOS_SSEVEC4
-				m_Value = _mm_set_ps(wVal, v.GetZ(), v.GetY(), v.GetX());
+				m_Value = _mm_set_ps(wVal, v.z, v.y, v.x);
 #else
-				x = v.GetX(); y = v.GetY(); z = v.GetZ(); w = wVal;
+				x = v.x; y = v.y; z = v.z; w = wVal;
 #endif
 			}
 
 			Vector4(float a, float b, const Vector2& cd)
 			{
-				x = a; y = b; z = cd.GetX(); w = cd.GetY();
+				x = a; y = b; z = cd.x; w = cd.y;
 			}
 
 			Vector4(const Vector2& ab, float c, float d)
 			{
-				x = ab.GetX(); y = ab.GetY(); z = c; w = d;
+				x = ab.x; y = ab.y; z = c; w = d;
 			}
 
 			Vector4(float a, const Vector2& bc, float d)
 			{
-				x = a; y = bc.GetX(); z = bc.GetY(); w = d;
+				x = a; y = bc.x; z = bc.y; w = d;
 			}
 
 			Vector4(const Vector2& ab, const Vector2& cd)
 			{
-				x = ab.GetX(); y = ab.GetY(); z = cd.GetX(); w = cd.GetY();
+				x = ab.x; y = ab.y; z = cd.x; w = cd.y;
 			}
 
 #ifdef LUMOS_SSEVEC4
@@ -97,24 +97,6 @@ namespace Lumos
 			float y;
 			float z;
 			float w;
-#endif
-
-			float GetX() const { return x; }
-			float GetY() const { return y; }
-			float GetZ() const { return z; }
-			float GetW() const { return w; }
-
-            float* GetPointer() { return &x; }
-#ifdef LUMOS_SSEVEC4
-			void SetX(const float X) { reinterpret_cast<float *>(&m_Value)[0] = X; }
-			void SetY(const float Y) { reinterpret_cast<float *>(&m_Value)[1] = Y; }
-			void SetZ(const float Z) { reinterpret_cast<float *>(&m_Value)[2] = Z; }
-			void SetW(const float W) { reinterpret_cast<float *>(&m_Value)[3] = W; }
-#else
-			void SetX(const float X) { x = X; }
-			void SetY(const float Y) { y = Y; }
-			void SetZ(const float Z) { z = Z; }
-			void SetW(const float W) { w = W; }
 #endif
 
 			Vector3 ToVector3() const { return Vector3(x, y, z); }
@@ -155,7 +137,7 @@ namespace Lumos
 #endif
 			}
 
-			inline void Normalise() 
+			inline void Normalize() 
 			{
 #ifdef LUMOS_SSEVEC4
 				m_Value = _mm_mul_ps(m_Value, _mm_rsqrt_ps(_mm_dp_ps(m_Value, m_Value, 0xFF)));
@@ -292,11 +274,11 @@ namespace Lumos
 namespace std 
 {
 	template<>
-	struct hash<Lumos::Maths::Vector4>
+	struct hash<Lumos::LMMaths::Vector4>
 	{
-		size_t operator()(const Lumos::Maths::Vector4& x) const
+		size_t operator()(const Lumos::LMMaths::Vector4& x) const
 		{
-			return hash<float>()(x.GetX()) ^ (hash<float>()(x.GetY()) * 997u) ^ (hash<float>()(x.GetZ()) * 999983u) ^ (hash<float>()(x.GetW()) * 999999937);
+			return hash<float>()(x.x) ^ (hash<float>()(x.y) * 997u) ^ (hash<float>()(x.z) * 999983u) ^ (hash<float>()(x.w) * 999999937);
 
 		}
 	};

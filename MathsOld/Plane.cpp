@@ -5,9 +5,9 @@ namespace Lumos
 {
 	namespace Maths 
 	{
-		Plane::Plane(const Vector3 &normal, float distance, bool normalise) 
+		Plane::Plane(const Vector3 &normal, float distance, bool Normalize) 
 		{
-			if (normalise)
+			if (Normalize)
 			{
 				const float length = Vector3::Dot(normal, normal);
 

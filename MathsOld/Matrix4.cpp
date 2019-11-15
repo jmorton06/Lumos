@@ -147,7 +147,7 @@ namespace Lumos
         Quaternion Matrix4::ToQuaternion() const
         {
 			//auto euler = GetEulerAngles(*this);
-           // auto quat = Quaternion::EulerAnglesToQuaternion(euler.GetZ(), euler.GetY(), euler.GetX());
+           // auto quat = Quaternion::EulerAnglesToQuaternion(euler.z, euler.y, euler.x);
 			return Quaternion::FromMatrix(GetRotation());
         }
 
@@ -535,30 +535,30 @@ namespace Lumos
 		Matrix4 Matrix4::BuildViewMatrix(const Vector3 &from, const Vector3 &lookingAt, const Vector3 &up)
 		{
 			Matrix4 r;
-			r.SetPositionVector(Vector3(-from.GetX(), -from.GetY(), -from.GetZ()));
+			r.SetPositionVector(Vector3(-from.x, -from.y, -from.z));
 
 			Matrix4 m;
 
 			Vector3 f = (lookingAt - from);
-			f.Normalise();
+			f.Normalize();
 
 			Vector3 s = Vector3::Cross(f, up);
 			Vector3 u = Vector3::Cross(s, f);
 
-			s.Normalise();
-			u.Normalise();
+			s.Normalize();
+			u.Normalize();
 
-			m.values[0] = s.GetX();
-			m.values[4] = s.GetY();
-			m.values[8] = s.GetZ();
+			m.values[0] = s.x;
+			m.values[4] = s.y;
+			m.values[8] = s.z;
 
-			m.values[1] = u.GetX();
-			m.values[5] = u.GetY();
-			m.values[9] = u.GetZ();
+			m.values[1] = u.x;
+			m.values[5] = u.y;
+			m.values[9] = u.z;
 
-			m.values[2] = -f.GetX();
-			m.values[6] = -f.GetY();
-			m.values[10] = -f.GetZ();
+			m.values[2] = -f.x;
+			m.values[6] = -f.y;
+			m.values[10] = -f.z;
 
 			return m * r;
 		}
@@ -615,13 +615,13 @@ namespace Lumos
 		{
 		#ifdef LUMOS_SSEMAT4
 			Vector3 axisNorm = axis;
-			axisNorm.Normalise();
+			axisNorm.Normalize();
 
 			float rad = Lumos::Maths::DegreesToRadians(degrees);
 			float c = cos(rad);
 			float s = sin(rad);
 
-			__m128 normXYZW = _mm_set_ps(0, axisNorm.GetZ(), axisNorm.GetY(), axisNorm.GetX());
+			__m128 normXYZW = _mm_set_ps(0, axisNorm.z, axisNorm.y, axisNorm.x);
 			__m128 normXYZWWithC = _mm_mul_ps(normXYZW, _mm_set1_ps(1.0f - c));
 			__m128 col0 = _mm_mul_ps(normXYZW, _mm_set1_ps(GetValue(normXYZWWithC, 0)));
 			__m128 col1 = _mm_mul_ps(normXYZW, _mm_set1_ps(GetValue(normXYZWWithC, 1)));
@@ -629,13 +629,13 @@ namespace Lumos
 
 			Matrix4 m;
 			m.values[0] = GetValue(col0, 0) + c;
-			m.values[1] = GetValue(col0, 1) + (axisNorm.GetZ() * s);
-			m.values[2] = GetValue(col0, 2) - (axisNorm.GetY() * s);
-			m.values[4] = GetValue(col1, 0) - (axisNorm.GetZ() * s);
+			m.values[1] = GetValue(col0, 1) + (axisNorm.z * s);
+			m.values[2] = GetValue(col0, 2) - (axisNorm.y * s);
+			m.values[4] = GetValue(col1, 0) - (axisNorm.z * s);
 			m.values[5] = GetValue(col1, 1) + c;
-			m.values[6] = GetValue(col1, 2) + (axisNorm.GetX() * s);
-			m.values[8] = GetValue(col2, 0) + (axisNorm.GetY() * s);
-			m.values[9] = GetValue(col2, 1) - (axisNorm.GetX() * s);
+			m.values[6] = GetValue(col1, 2) + (axisNorm.x * s);
+			m.values[8] = GetValue(col2, 0) + (axisNorm.y * s);
+			m.values[9] = GetValue(col2, 1) - (axisNorm.x * s);
 			m.values[10] = GetValue(col2, 2) + c;
 
 			return m;
@@ -644,22 +644,22 @@ namespace Lumos
 			Matrix4 m;
 
             Vector3 axisNorm = axis;
-			axisNorm.Normalise();
+			axisNorm.Normalize();
 
             float c = cos(static_cast<float>(Maths::DegreesToRadians(degrees)));
             float s = sin(static_cast<float>(Maths::DegreesToRadians(degrees)));
 
-            m.values[0] = (axisNorm.GetX() * axisNorm.GetX()) * (1.0f - c) + c;
-            m.values[1] = (axisNorm.GetY() * axisNorm.GetX()) * (1.0f - c) + (axisNorm.GetZ() * s);
-            m.values[2] = (axisNorm.GetZ() * axisNorm.GetX()) * (1.0f - c) - (axisNorm.GetY() * s);
+            m.values[0] = (axisNorm.x * axisNorm.x) * (1.0f - c) + c;
+            m.values[1] = (axisNorm.y * axisNorm.x) * (1.0f - c) + (axisNorm.z * s);
+            m.values[2] = (axisNorm.z * axisNorm.x) * (1.0f - c) - (axisNorm.y * s);
 
-            m.values[4] = (axisNorm.GetX() * axisNorm.GetY()) * (1.0f - c) - (axisNorm.GetZ() * s);
-            m.values[5] = (axisNorm.GetY() * axisNorm.GetY()) * (1.0f - c) + c;
-            m.values[6] = (axisNorm.GetZ() * axisNorm.GetY()) * (1.0f - c) + (axisNorm.GetX() * s);
+            m.values[4] = (axisNorm.x * axisNorm.y) * (1.0f - c) - (axisNorm.z * s);
+            m.values[5] = (axisNorm.y * axisNorm.y) * (1.0f - c) + c;
+            m.values[6] = (axisNorm.z * axisNorm.y) * (1.0f - c) + (axisNorm.x * s);
 
-            m.values[8] = (axisNorm.GetX() * axisNorm.GetZ()) * (1.0f - c) + (axisNorm.GetY() * s);
-            m.values[9] = (axisNorm.GetY() * axisNorm.GetZ()) * (1.0f - c) - (axisNorm.GetX() * s);
-            m.values[10] = (axisNorm.GetZ() * axisNorm.GetZ()) * (1.0f - c) + c;
+            m.values[8] = (axisNorm.x * axisNorm.z) * (1.0f - c) + (axisNorm.y * s);
+            m.values[9] = (axisNorm.y * axisNorm.z) * (1.0f - c) - (axisNorm.x * s);
+            m.values[10] = (axisNorm.z * axisNorm.z) * (1.0f - c) + c;
 
             return m;
 			#endif
@@ -690,18 +690,18 @@ namespace Lumos
 		Matrix4 Matrix4::Scale(const Vector3 &scale)
 		{
 			Matrix4 m;
-			m.values[0] = scale.GetX();
-			m.values[5] = scale.GetY();
-			m.values[10] = scale.GetZ();
+			m.values[0] = scale.x;
+			m.values[5] = scale.y;
+			m.values[10] = scale.z;
 			return m;
 		}
 
 		Matrix4 Matrix4::Translation(const Vector3 &translation)
 		{
 			Matrix4 m;
-			m.values[12] = translation.GetX();
-			m.values[13] = translation.GetY();
-			m.values[14] = translation.GetZ();
+			m.values[12] = translation.x;
+			m.values[13] = translation.y;
+			m.values[14] = translation.z;
 			return m;
 		}
 
@@ -740,9 +740,9 @@ namespace Lumos
 		{
 		#ifdef LUMOS_SSEMAT40 
 			//Breaks collision - bounding box
-            __m128 m0 = _mm_mul_ps(mmvalues[0], _mm_set1_ps(v.GetX()));
-            __m128 m1 = _mm_mul_ps(mmvalues[1], _mm_set1_ps(v.GetY()));
-            __m128 m2 = _mm_mul_ps(mmvalues[2], _mm_set1_ps(v.GetZ()));
+            __m128 m0 = _mm_mul_ps(mmvalues[0], _mm_set1_ps(v.x));
+            __m128 m1 = _mm_mul_ps(mmvalues[1], _mm_set1_ps(v.y));
+            __m128 m2 = _mm_mul_ps(mmvalues[2], _mm_set1_ps(v.z));
 
 			#ifdef LUMOS_SSEVEC3
 				__m128 tempValue = _mm_add_ps(_mm_add_ps(m0, m1), _mm_add_ps(m2, mmvalues[3]));
@@ -756,15 +756,15 @@ namespace Lumos
 		#else
  			Vector3 vec;
 
-			vec.SetX(v.GetX()*values[0] + v.GetY()*values[4] + v.GetZ()*values[8] + values[12]);
-			vec.SetY(v.GetX()*values[1] + v.GetY()*values[5] + v.GetZ()*values[9] + values[13]);
-			vec.SetZ(v.GetX()*values[2] + v.GetY()*values[6] + v.GetZ()*values[10] + values[14]);
+			vec.x = v.x*values[0] + v.y*values[4] + v.z*values[8] + values[12]);
+			vec.y = v.x*values[1] + v.y*values[5] + v.z*values[9] + values[13]);
+			vec.z = v.x*values[2] + v.y*values[6] + v.z*values[10] + values[14]);
 
-			const float temp = v.GetX()*values[3] + v.GetY()*values[7] + v.GetZ()*values[11] + values[15];
+			const float temp = v.x*values[3] + v.y*values[7] + v.z*values[11] + values[15];
 
-			vec.SetX(vec.GetX() / temp);
-			vec.SetY(vec.GetY() / temp);
-			vec.SetZ(vec.GetZ() / temp);
+			vec.x = vec.x / temp);
+			vec.y = vec.y / temp);
+			vec.z = vec.z / temp);
 
 			return vec;
 		#endif
@@ -774,10 +774,10 @@ namespace Lumos
 		Vector4 Matrix4::operator*(const Vector4 &v) const
 		{
 		#ifdef LUMOS_SSEMAT4
-			__m128 m0 = _mm_mul_ps(mmvalues[0], _mm_set1_ps(v.GetX()));
-			__m128 m1 = _mm_mul_ps(mmvalues[1], _mm_set1_ps(v.GetY()));
-			__m128 m2 = _mm_mul_ps(mmvalues[2], _mm_set1_ps(v.GetZ()));
-			__m128 m3 = _mm_mul_ps(mmvalues[3], _mm_set1_ps(v.GetW()));
+			__m128 m0 = _mm_mul_ps(mmvalues[0], _mm_set1_ps(v.x));
+			__m128 m1 = _mm_mul_ps(mmvalues[1], _mm_set1_ps(v.y));
+			__m128 m2 = _mm_mul_ps(mmvalues[2], _mm_set1_ps(v.z));
+			__m128 m3 = _mm_mul_ps(mmvalues[3], _mm_set1_ps(v.w));
 
 			#ifdef LUMOS_SSEVEC4
 				return Vector4(_mm_add_ps(_mm_add_ps(m0, m1), _mm_add_ps(m2, m3)));
@@ -787,10 +787,10 @@ namespace Lumos
 			#endif
 		#else
 			return Vector4(
-                    v.GetX()*values[0] + v.GetY()*values[4] + v.GetZ()*values[8]  + v.GetW() * values[12],
-                    v.GetX()*values[1] + v.GetY()*values[5] + v.GetZ()*values[9]  + v.GetW() * values[13],
-                    v.GetX()*values[2] + v.GetY()*values[6] + v.GetZ()*values[10] + v.GetW() * values[14],
-                    v.GetX()*values[3] + v.GetY()*values[7] + v.GetZ()*values[11] + v.GetW() * values[15]
+                    v.x*values[0] + v.y*values[4] + v.z*values[8]  + v.w * values[12],
+                    v.x*values[1] + v.y*values[5] + v.z*values[9]  + v.w * values[13],
+                    v.x*values[2] + v.y*values[6] + v.z*values[10] + v.w * values[14],
+                    v.x*values[3] + v.y*values[7] + v.z*values[11] + v.w * values[15]
                 );
 		#endif
 		}

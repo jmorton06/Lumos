@@ -15,7 +15,6 @@
 #include "Physics/LumosPhysicsEngine/SortAndSweepBroadphase.h"
 #include "Physics/LumosPhysicsEngine/Octree.h"
 #include "Physics/LumosPhysicsEngine/LumosPhysicsEngine.h"
-#include "Maths/MathsUtilities.h"
 
 namespace Lumos
 {
@@ -117,7 +116,7 @@ namespace Lumos
 
 		if (m_pCamera && Application::Instance()->GetSceneActive())
 		{
-			m_pCamera->HandleMouse(timeStep->GetMillis(), mousePos.GetX(), mousePos.GetY());
+			m_pCamera->HandleMouse(timeStep->GetMillis(), mousePos.x, mousePos.y);
 			m_pCamera->HandleKeyboard(timeStep->GetMillis());
 			m_pCamera->BuildViewMatrix();    
 		}

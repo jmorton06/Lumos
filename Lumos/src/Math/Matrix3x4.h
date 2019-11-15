@@ -1,34 +1,14 @@
-//
-// Copyright (c) 2008-2019 the Urho3D project.
-//
-// Permission is hereby granted, free of charge, to any person obtaining a copy
-// of this software and associated documentation files (the "Software"), to deal
-// in the Software without restriction, including without limitation the rights
-// to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-// copies of the Software, and to permit persons to whom the Software is
-// furnished to do so, subject to the following conditions:
-//
-// The above copyright notice and this permission notice shall be included in
-// all copies or substantial portions of the Software.
-//
-// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-// IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-// FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-// AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-// LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-// OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
-// THE SOFTWARE.
-//
+
 
 #pragma once
 
 #include "../Math/Matrix4.h"
 
-#ifdef URHO3D_SSE
+#ifdef Lumos_SSE
 #include <emmintrin.h>
 #endif
 
-namespace Urho3D
+namespace Lumos::Maths
 {
 
 /// 3x4 matrix for scene node transform calculations.
@@ -37,7 +17,7 @@ class  Matrix3x4
 public:
     /// Construct an identity matrix.
     Matrix3x4() noexcept
-#ifndef URHO3D_SSE
+#ifndef Lumos_SSE
        :m00_(1.0f),
         m01_(0.0f),
         m02_(0.0f),
@@ -52,7 +32,7 @@ public:
         m23_(0.0f)
 #endif
     {
-#ifdef URHO3D_SSE
+#ifdef Lumos_SSE
         _mm_storeu_ps(&m00_, _mm_set_ps(0.f, 0.f, 0.f, 1.f));
         _mm_storeu_ps(&m10_, _mm_set_ps(0.f, 0.f, 1.f, 0.f));
         _mm_storeu_ps(&m20_, _mm_set_ps(0.f, 1.f, 0.f, 0.f));
@@ -81,7 +61,7 @@ public:
 
     /// Copy-construct from a 4x4 matrix which is assumed to contain no projection.
     explicit Matrix3x4(const Matrix4& matrix) noexcept
-#ifndef URHO3D_SSE
+#ifndef Lumos_SSE
        :m00_(matrix.m00_),
         m01_(matrix.m01_),
         m02_(matrix.m02_),
@@ -96,7 +76,7 @@ public:
         m23_(matrix.m23_)
 #endif
     {
-#ifdef URHO3D_SSE
+#ifdef Lumos_SSE
         _mm_storeu_ps(&m00_, _mm_loadu_ps(&matrix.m00_));
         _mm_storeu_ps(&m10_, _mm_loadu_ps(&matrix.m10_));
         _mm_storeu_ps(&m20_, _mm_loadu_ps(&matrix.m20_));
@@ -124,7 +104,7 @@ public:
 
     /// Construct from a float array.
     explicit Matrix3x4(const float* data) noexcept
-#ifndef URHO3D_SSE
+#ifndef Lumos_SSE
        :m00_(data[0]),
         m01_(data[1]),
         m02_(data[2]),
@@ -139,7 +119,7 @@ public:
         m23_(data[11])
 #endif
     {
-#ifdef URHO3D_SSE
+#ifdef Lumos_SSE
         _mm_storeu_ps(&m00_, _mm_loadu_ps(data));
         _mm_storeu_ps(&m10_, _mm_loadu_ps(data + 4));
         _mm_storeu_ps(&m20_, _mm_loadu_ps(data + 8));
@@ -149,7 +129,7 @@ public:
     /// Construct from translation, rotation and uniform scale.
     Matrix3x4(const Vector3& translation, const Quaternion& rotation, float scale) noexcept
     {
-#ifdef URHO3D_SSE
+#ifdef Lumos_SSE
         __m128 t = _mm_set_ps(1.f, translation.z, translation.y, translation.x);
         __m128 q = _mm_loadu_ps(&rotation.w);
         __m128 s = _mm_set_ps(1.f, scale, scale, scale);
@@ -163,7 +143,7 @@ public:
     /// Construct from translation, rotation and nonuniform scale.
     Matrix3x4(const Vector3& translation, const Quaternion& rotation, const Vector3& scale) noexcept
     {
-#ifdef URHO3D_SSE
+#ifdef Lumos_SSE
         __m128 t = _mm_set_ps(1.f, translation.z, translation.y, translation.x);
         __m128 q = _mm_loadu_ps(&rotation.w);
         __m128 s = _mm_set_ps(1.f, scale.z, scale.y, scale.x);
@@ -198,7 +178,7 @@ public:
     /// Assign from a 4x4 matrix which is assumed to contain no projection.
     Matrix3x4& operator =(const Matrix4& rhs) noexcept
     {
-#ifdef URHO3D_SSE
+#ifdef Lumos_SSE
         _mm_storeu_ps(&m00_, _mm_loadu_ps(&rhs.m00_));
         _mm_storeu_ps(&m10_, _mm_loadu_ps(&rhs.m10_));
         _mm_storeu_ps(&m20_, _mm_loadu_ps(&rhs.m20_));
@@ -222,7 +202,7 @@ public:
     /// Test for equality with another matrix without epsilon.
     bool operator ==(const Matrix3x4& rhs) const
     {
-#ifdef URHO3D_SSE
+#ifdef Lumos_SSE
         __m128 c0 = _mm_cmpeq_ps(_mm_loadu_ps(&m00_), _mm_loadu_ps(&rhs.m00_));
         __m128 c1 = _mm_cmpeq_ps(_mm_loadu_ps(&m10_), _mm_loadu_ps(&rhs.m10_));
         c0 = _mm_and_ps(c0, c1);
@@ -253,7 +233,7 @@ public:
     /// Multiply a Vector3 which is assumed to represent position.
     Vector3 operator *(const Vector3& rhs) const
     {
-#ifdef URHO3D_SSE
+#ifdef Lumos_SSE
         __m128 vec = _mm_set_ps(1.f, rhs.z, rhs.y, rhs.x);
         __m128 r0 = _mm_mul_ps(_mm_loadu_ps(&m00_), vec);
         __m128 r1 = _mm_mul_ps(_mm_loadu_ps(&m10_), vec);
@@ -283,7 +263,7 @@ public:
     /// Multiply a Vector4.
     Vector3 operator *(const Vector4& rhs) const
     {
-#ifdef URHO3D_SSE
+#ifdef Lumos_SSE
         __m128 vec = _mm_loadu_ps(&rhs.x);
         __m128 r0 = _mm_mul_ps(_mm_loadu_ps(&m00_), vec);
         __m128 r1 = _mm_mul_ps(_mm_loadu_ps(&m10_), vec);
@@ -313,7 +293,7 @@ public:
     /// Add a matrix.
     Matrix3x4 operator +(const Matrix3x4& rhs) const
     {
-#ifdef URHO3D_SSE
+#ifdef Lumos_SSE
         Matrix3x4 ret;
         _mm_storeu_ps(&ret.m00_, _mm_add_ps(_mm_loadu_ps(&m00_), _mm_loadu_ps(&rhs.m00_)));
         _mm_storeu_ps(&ret.m10_, _mm_add_ps(_mm_loadu_ps(&m10_), _mm_loadu_ps(&rhs.m10_)));
@@ -340,7 +320,7 @@ public:
     /// Subtract a matrix.
     Matrix3x4 operator -(const Matrix3x4& rhs) const
     {
-#ifdef URHO3D_SSE
+#ifdef Lumos_SSE
         Matrix3x4 ret;
         _mm_storeu_ps(&ret.m00_, _mm_sub_ps(_mm_loadu_ps(&m00_), _mm_loadu_ps(&rhs.m00_)));
         _mm_storeu_ps(&ret.m10_, _mm_sub_ps(_mm_loadu_ps(&m10_), _mm_loadu_ps(&rhs.m10_)));
@@ -367,7 +347,7 @@ public:
     /// Multiply with a scalar.
     Matrix3x4 operator *(float rhs) const
     {
-#ifdef URHO3D_SSE
+#ifdef Lumos_SSE
         Matrix3x4 ret;
         const __m128 mul = _mm_set1_ps(rhs);
         _mm_storeu_ps(&ret.m00_, _mm_mul_ps(_mm_loadu_ps(&m00_), mul));
@@ -395,7 +375,7 @@ public:
     /// Multiply a matrix.
     Matrix3x4 operator *(const Matrix3x4& rhs) const
     {
-#ifdef URHO3D_SSE
+#ifdef Lumos_SSE
         Matrix3x4 out;
 
         __m128 r0 = _mm_loadu_ps(&rhs.m00_);
@@ -446,7 +426,7 @@ public:
     /// Multiply a 4x4 matrix.
     Matrix4 operator *(const Matrix4& rhs) const
     {
-#ifdef URHO3D_SSE
+#ifdef Lumos_SSE
         Matrix4 out;
 
         __m128 r0 = _mm_loadu_ps(&rhs.m00_);
@@ -557,7 +537,7 @@ public:
     /// Convert to a 4x4 matrix by filling in an identity last row.
     Matrix4 ToMatrix4() const
     {
-#ifdef URHO3D_SSE
+#ifdef Lumos_SSE
         Matrix4 ret;
         _mm_storeu_ps(&ret.m00_, _mm_loadu_ps(&m00_));
         _mm_storeu_ps(&ret.m10_, _mm_loadu_ps(&m10_));
@@ -640,7 +620,7 @@ public:
 
         for (unsigned i = 0; i < 12; ++i)
         {
-            if (!Urho3D::Equals(leftData[i], rightData[i], eps))
+            if (!Lumos::Maths::Equals(leftData[i], rightData[i], eps))
                 return false;
         }
 
@@ -669,39 +649,39 @@ public:
     /// Return whether is NaN.
     bool IsNaN() const {
         return (
-            Urho3D::IsNaN(m00_) ||
-            Urho3D::IsNaN(m01_) ||
-            Urho3D::IsNaN(m02_) ||
-            Urho3D::IsNaN(m03_) ||
+            Lumos::Maths::IsNaN(m00_) ||
+            Lumos::Maths::IsNaN(m01_) ||
+            Lumos::Maths::IsNaN(m02_) ||
+            Lumos::Maths::IsNaN(m03_) ||
 
-            Urho3D::IsNaN(m10_) ||
-            Urho3D::IsNaN(m11_) ||
-            Urho3D::IsNaN(m12_) ||
-            Urho3D::IsNaN(m13_) ||
+            Lumos::Maths::IsNaN(m10_) ||
+            Lumos::Maths::IsNaN(m11_) ||
+            Lumos::Maths::IsNaN(m12_) ||
+            Lumos::Maths::IsNaN(m13_) ||
 
-            Urho3D::IsNaN(m20_) ||
-            Urho3D::IsNaN(m21_) ||
-            Urho3D::IsNaN(m22_) ||
-            Urho3D::IsNaN(m23_));
+            Lumos::Maths::IsNaN(m20_) ||
+            Lumos::Maths::IsNaN(m21_) ||
+            Lumos::Maths::IsNaN(m22_) ||
+            Lumos::Maths::IsNaN(m23_));
     }
 
     /// Return whether is Inf.
     bool IsInf() const {
         return (
-            Urho3D::IsInf(m00_) ||
-            Urho3D::IsInf(m01_) ||
-            Urho3D::IsInf(m02_) ||
-            Urho3D::IsInf(m03_) ||
+            Lumos::Maths::IsInf(m00_) ||
+            Lumos::Maths::IsInf(m01_) ||
+            Lumos::Maths::IsInf(m02_) ||
+            Lumos::Maths::IsInf(m03_) ||
 
-            Urho3D::IsInf(m10_) ||
-            Urho3D::IsInf(m11_) ||
-            Urho3D::IsInf(m12_) ||
-            Urho3D::IsInf(m13_) ||
+			Lumos::Maths::IsInf(m10_) ||
+            Lumos::Maths::IsInf(m11_) ||
+            Lumos::Maths::IsInf(m12_) ||
+            Lumos::Maths::IsInf(m13_) ||
 
-            Urho3D::IsInf(m20_) ||
-            Urho3D::IsInf(m21_) ||
-            Urho3D::IsInf(m22_) ||
-            Urho3D::IsInf(m23_));
+			Lumos::Maths::IsInf(m20_) ||
+            Lumos::Maths::IsInf(m21_) ||
+            Lumos::Maths::IsInf(m22_) ||
+            Lumos::Maths::IsInf(m23_));
     }
 
 
@@ -734,7 +714,7 @@ public:
     /// Identity matrix.
     static const Matrix3x4 IDENTITY;
 
-#ifdef URHO3D_SSE
+#ifdef Lumos_SSE
 private:
     /// \brief Sets this matrix from the given translation, rotation (as quaternion (w,x,y,z)), and nonuniform scale (x,y,z) parameters. Note: the w component of the scale parameter passed to this function must be 1.
     void inline SetFromTRS(__m128 t, __m128 q, __m128 s)

@@ -411,7 +411,7 @@ SCENARIO("Quaternion Tests", "[Lumos::Maths]")
 
 		{
 			REQUIRE(firstQuaternion.Equals(secondQuaternion));
-			REQUIRE(firstQuaternion.Equals(secondQuaternion.Normal()));
+			REQUIRE(firstQuaternion.Equals(secondQuaternion.Normalized()));
 			REQUIRE(firstQuaternion.Conjugate().Equals(secondQuaternion.Inverse()));
 			REQUIRE(Maths::Equals(firstQuaternion.Dot(secondQuaternion),1.f));
 		}
@@ -501,7 +501,7 @@ SCENARIO("Quaternion Tests", "[Lumos::Maths]")
 				REQUIRE(Maths::Quaternion(x30a.ToEuler()).Equals(Maths::Quaternion(x30b.ToEuler())));
 
 				Maths::Quaternion tmp(1.f, 1.f, 0.f, 0.f);
-				tmp.Normalise();
+				tmp.Normalize();
 				REQUIRE(tmp.Equals(Maths::Quaternion(tmp.ToEuler())));
 			}
 		}
@@ -541,7 +541,7 @@ SCENARIO("Quaternion Tests", "[Lumos::Maths]")
 			{
 				Maths::Quaternion rotationBetweenXY = Maths::Quaternion::FromVectors(Vector3(1.0f, 0.0f, 0.0f), Vector3(0.0f, 1.0f, 0.0f));
 				Maths::Quaternion rotation90Z = Maths::Quaternion::AxisAngleToQuaterion(Vector3(0.0f, 0.0f, -1.0f), (-90.f));
-				rotation90Z.Normalise();
+				rotation90Z.Normalize();
 				REQUIRE(rotation90Z.Equals(rotationBetweenXY));
 			}
 

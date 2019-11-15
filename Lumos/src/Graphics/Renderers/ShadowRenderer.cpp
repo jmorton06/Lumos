@@ -215,7 +215,7 @@ namespace Lumos
 				m_Layer = i;
 
 				Maths::Frustum f;
-				f.FromMatrix(m_ShadowProjView[i]);
+				f.Projected(m_ShadowProjView[i]);
 
                 for(auto entity : group)
                 {
@@ -226,12 +226,15 @@ namespace Lumos
                         auto& worldTransform = trans.GetWorldMatrix();
                   
                         float maxScaling = 0.0f;
-                        auto scale = worldTransform.GetScaling();
-                        maxScaling = Maths::Max(scale.GetX(), maxScaling);
-                        maxScaling = Maths::Max(scale.GetY(), maxScaling);
-                        maxScaling = Maths::Max(scale.GetZ(), maxScaling);
+                        auto scale = worldTransform.Scale();
+                        maxScaling = Maths::Max(scale.x, maxScaling);
+                        maxScaling = Maths::Max(scale.y, maxScaling);
+                        maxScaling = Maths::Max(scale.z, maxScaling);
 
-                        bool inside = f.InsideFrustum(worldTransform.GetPositionVector(), maxScaling * mesh.GetMesh()->GetBoundingBox()->SphereRadius());
+						////auto bb = mesh.GetMesh()->GetBoundingBox();
+						//bb->Transform(worldTransform);
+						auto inside = true;// f.IsInside(*bb);
+						//DODGY
 
                         if (!inside)
                             continue;
@@ -319,7 +322,7 @@ namespace Lumos
 				for (uint32_t j = 0; j < 8; j++)
 				{
 					Maths::Vector4 invCorner = invCam * Maths::Vector4(frustumCorners[j], 1.0f);
-					frustumCorners[j] = (invCorner / invCorner.GetW()).ToVector3();
+					frustumCorners[j] = (invCorner / invCorner.w).ToVector3();
 				}
 
 				for (uint32_t j = 0; j < 4; j++)
@@ -352,10 +355,11 @@ namespace Lumos
 				Maths::Vector3 minExtents = -maxExtents;
 
 				Maths::Vector3 lightDir = -light->m_Direction.ToVector3();
-				lightDir.Normalise();
-				Maths::Matrix4 lightViewMatrix = Maths::Matrix4::BuildViewMatrix(frustumCenter - lightDir * -minExtents.z, frustumCenter);
+				lightDir.Normalize();
+				//DODGY
+				Maths::Matrix4 lightViewMatrix = Maths::Matrix4();// ::BuildViewMatrix(frustumCenter - lightDir * -minExtents.z, frustumCenter);
 
-				Maths::Matrix4 lightOrthoMatrix = Maths::Matrix4::Orthographic(minExtents.x, maxExtents.x, minExtents.y, maxExtents.y, -(maxExtents.z - minExtents.z), maxExtents.z - minExtents.z);
+				Maths::Matrix4 lightOrthoMatrix = Maths::Matrix4();//::Orthographic(minExtents.x, maxExtents.x, minExtents.y, maxExtents.y, -(maxExtents.z - minExtents.z), maxExtents.z - minExtents.z);
 
 				// Store split distance and matrix in cascade
 				m_SplitDepth[i] = Maths::Vector4((scene->GetCamera()->GetNear() + splitDist * clipRange) * -1.0f);

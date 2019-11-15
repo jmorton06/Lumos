@@ -41,7 +41,7 @@ namespace Lumos
 					continue;
 
 				// Check they both have collision shapes and at least one is awake
-				if (obj1->GetCollisionShape() && obj2->GetCollisionShape() && (obj1->IsAwake() || obj2->IsAwake()))
+				if (obj1->ColumnlisionShape() && obj2->ColumnlisionShape() && (obj1->IsAwake() || obj2->IsAwake()))
 				{
 					CollisionPair cp;
 					cp.pObjectA = obj1;

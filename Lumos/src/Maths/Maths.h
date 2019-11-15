@@ -8,18 +8,15 @@
 #include "Math/Vector2.h"
 #include "Math/Vector3.h"
 #include "Math/Vector4.h"
+#include "Math/BoundingBox.h"
+#include "Math/Sphere.h"
+#include "Math/Frustum.h"
+#include "Math/MathDefs.h"
 
 namespace Lumos
 {
 	namespace Maths
 	{
-    using Vector2 = Urtho3D::Vector2;
-    using Vector3 = Urtho3D::Vector3;
-    using Vector4 = Urtho3D::Vector4;
-    using Matrix3 = Urtho3D::Matrix3;
-    using Matrix4 = Urtho3D::Matrix4;
-    using Quaternion = Urtho3D::Quaternion;
-
 		struct Vector2Simple
 		{
 			float x, y;
@@ -48,7 +45,7 @@ namespace Lumos
 
 		inline Vector3Simple ToVector(const Vector3& vec)
 		{
-			return Vector3Simple(vec.GetX(), vec.GetY(), vec.GetZ());
+			return Vector3Simple(vec.x, vec.y, vec.z);
 		}
 
 		inline Vector4 ToVector(const Vector4Simple& vec)
@@ -58,8 +55,8 @@ namespace Lumos
 
 		inline Vector2 WorldToScreen(const Vector3& worldPos, const Matrix4& mvp, float width, float height, float winPosX = 0.0f, float winPosY = 0.0f)
 		{
-			Vector4 trans = mvp * Vector4(worldPos);
-			trans *= 0.5f / trans.GetW();
+			Vector4 trans = mvp * Vector4(worldPos, 1.0f);
+			trans *= 0.5f / trans.w;
 			trans += Vector4(0.5f, 0.5f, 0.0f, 0.0f);
 			trans.y = 1.f - trans.y;
 			trans.x *= width;
@@ -105,13 +102,13 @@ namespace Lumos
 	template<>
 	const float* Maths::ValuePointer<Maths::Matrix3>(const Maths::Matrix3& t)
 	{
-		return &(t.values[0]);
+		return &(t.m00_);
 	}
 
 	template<>
 	const float* Maths::ValuePointer<Maths::Matrix4>(const Maths::Matrix4& t)
 	{
-		return &(t.values[0]);
+		return &(t.m00_);
 	}
 
 	template<>
@@ -141,13 +138,13 @@ namespace Lumos
 	template<>
 	float* Maths::ValuePointer<Maths::Matrix3>(Maths::Matrix3& t)
 	{
-		return &(t.values[0]);
+		return &(t.m00_);
 	}
 
 	template<>
 	float* Maths::ValuePointer<Maths::Matrix4>(Maths::Matrix4& t)
 	{
-		return &(t.values[0]);
+		return &(t.m00_);
 	}
 
 	template<>

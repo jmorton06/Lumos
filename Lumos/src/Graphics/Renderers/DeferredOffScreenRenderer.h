@@ -1,6 +1,6 @@
 #pragma once
 #include "Renderer3D.h"
-#include "Maths/Frustum.h"
+#include "Math/Frustum.h"
 
 namespace Lumos
 {
@@ -50,7 +50,7 @@ namespace Lumos
 
 		private:
 
-			void SetSystemUniforms(Shader* shader) const;
+			void SetSystemUniforms(Shader* shader);
 
 			u8* m_VSSystemUniformBuffer;
 			u32 m_VSSystemUniformBufferSize;

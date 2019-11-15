@@ -1,24 +1,4 @@
-//
-// Copyright (c) 2008-2019 the Urho3D project.
-//
-// Permission is hereby granted, free of charge, to any person obtaining a copy
-// of this software and associated documentation files (the "Software"), to deal
-// in the Software without restriction, including without limitation the rights
-// to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-// copies of the Software, and to permit persons to whom the Software is
-// furnished to do so, subject to the following conditions:
-//
-// The above copyright notice and this permission notice shall be included in
-// all copies or substantial portions of the Software.
-//
-// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-// IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-// FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-// AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-// LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-// OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
-// THE SOFTWARE.
-//
+
 
 #include "lmpch.h"
 
@@ -29,7 +9,7 @@
 
 
 
-namespace Urho3D
+namespace Lumos::Maths
 {
 
 unsigned Color::ToUInt() const
@@ -259,9 +239,9 @@ float Color::Hue(float min, float max) const
         return 0.0f;
 
     // Calculate and return hue
-    if (Urho3D::Equals(g_, max))
+    if (Lumos::Maths::Equals(g_, max))
         return (b_ + 2.0f * chroma - r_) / (6.0f * chroma);
-    else if (Urho3D::Equals(b_, max))
+    else if (Lumos::Maths::Equals(b_, max))
         return (4.0f * chroma - g_ + r_) / (6.0f * chroma);
     else
     {
@@ -302,7 +282,7 @@ void Color::FromHCM(float h, float c, float m)
         h -= floorf(h);
 
     float hs = h * 6.0f;
-    float x = c * (1.0f - Urho3D::Abs(fmodf(hs, 2.0f) - 1.0f));
+    float x = c * (1.0f - Lumos::Maths::Abs(fmodf(hs, 2.0f) - 1.0f));
 
     // Reconstruct r', g', b' from hue
     if (hs < 2.0f)

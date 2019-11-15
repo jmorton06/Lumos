@@ -1,30 +1,10 @@
-//
-// Copyright (c) 2008-2019 the Urho3D project.
-//
-// Permission is hereby granted, free of charge, to any person obtaining a copy
-// of this software and associated documentation files (the "Software"), to deal
-// in the Software without restriction, including without limitation the rights
-// to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-// copies of the Software, and to permit persons to whom the Software is
-// furnished to do so, subject to the following conditions:
-//
-// The above copyright notice and this permission notice shall be included in
-// all copies or substantial portions of the Software.
-//
-// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-// IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-// FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-// AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-// LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-// OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
-// THE SOFTWARE.
-//
+
 
 #pragma once
 
 #include "../Math/Vector3.h"
 
-namespace Urho3D
+namespace Lumos::Maths
 {
 
 /// 3x3 matrix for rotation and scaling.
@@ -65,18 +45,18 @@ public:
     }
 
     /// Construct from a float array.
-    explicit Matrix3(const float* data) noexcept :
-        m00_(data[0]),
-        m01_(data[1]),
-        m02_(data[2]),
-        m10_(data[3]),
-        m11_(data[4]),
-        m12_(data[5]),
-        m20_(data[6]),
-        m21_(data[7]),
-        m22_(data[8])
-    {
-    }
+	explicit Matrix3(const float* data) noexcept :
+		m00_(data[0]),
+		m01_(data[1]),
+		m02_(data[2]),
+		m10_(data[3]),
+		m11_(data[4]),
+		m12_(data[5]),
+		m20_(data[6]),
+		m21_(data[7]),
+		m22_(data[8])
+	{
+	}
 
     /// Assign from another matrix.
     Matrix3& operator =(const Matrix3& rhs) noexcept = default;
@@ -249,7 +229,7 @@ public:
 
         for (unsigned i = 0; i < 9; ++i)
         {
-            if (!Urho3D::Equals(leftData[i], rightData[i], eps))
+            if (!Lumos::Maths::Equals(leftData[i], rightData[i], eps))
                 return false;
         }
 
@@ -316,6 +296,16 @@ public:
     static const Matrix3 ZERO;
     /// Identity matrix.
     static const Matrix3 IDENTITY;
+
+	static Matrix3 Transpose(const Matrix3& m)
+	{
+		return m.Transpose();
+	}
+
+	static Matrix3 Inverse(const Matrix3& m)
+	{
+		return m.Inverse();
+	}
 };
 
 /// Multiply a 3x3 matrix with a scalar.

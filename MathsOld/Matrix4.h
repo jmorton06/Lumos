@@ -16,7 +16,7 @@
 
 namespace Lumos
 {
-	namespace Maths
+	namespace LMMaths
 	{
 		class Vector3;
 		class Matrix3;
@@ -67,7 +67,7 @@ namespace Lumos
 				return Vector4(values[row], values[row + 4], values[row + 8], values[row + 12]);
 			}
 
-			inline Vector4 GetCol(unsigned int column) const
+			inline Vector4 Column(unsigned int column) const
 			{
 #if defined(LUMOS_SSEVEC4) && defined(LUMOS_SSEMAT4)
 				return Vector4(mmvalues[column]);
@@ -78,10 +78,10 @@ namespace Lumos
 
 			inline void SetRow(unsigned int row, const Vector4 &val)
 			{
-				values[row] = val.GetX();
-				values[row + 4] = val.GetY();
-				values[row + 8] = val.GetZ();
-				values[row + 12] = val.GetW();
+				values[row] = val.x;
+				values[row + 4] = val.y;
+				values[row + 8] = val.z;
+				values[row + 12] = val.w;
 			}
 
 			inline void SetCol(unsigned int column, const Vector4 &val)
@@ -91,7 +91,7 @@ namespace Lumos
 #endif
 			}
 
-			inline Vector3 GetPositionVector() const
+			inline Vector3 Translation() const
 			{
 				return Vector3(values[12], values[13], values[14]);
 			}
@@ -105,9 +105,9 @@ namespace Lumos
 
 			inline void SetPositionVector(const Vector3 &v)
 			{
-				values[12] = v.GetX();
-				values[13] = v.GetY();
-				values[14] = v.GetZ();
+				values[12] = v.x;
+				values[13] = v.y;
+				values[14] = v.z;
 			}
 
 			inline Vector3 GetScaling() const 
@@ -122,9 +122,9 @@ namespace Lumos
 
 			inline void SetScaling(const Vector3 &in)
 			{
-				values[0] = in.GetX();
-				values[5] = in.GetY();
-				values[10] = in.GetZ();
+				values[0] = in.x;
+				values[5] = in.y;
+				values[10] = in.z;
 			}
 
 			Matrix4 operator*(const Matrix4 &m) const;

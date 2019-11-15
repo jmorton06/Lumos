@@ -17,7 +17,7 @@ namespace Lumos
 		//Collision Shape Functionality
 		virtual Maths::Matrix3 BuildInverseInertia(float invMass) const override;
 
-		virtual void GetCollisionAxes(const PhysicsObject3D* currentObject, std::vector<Maths::Vector3>* out_axes) const override;
+		virtual void ColumnlisionAxes(const PhysicsObject3D* currentObject, std::vector<Maths::Vector3>* out_axes) const override;
 		virtual void GetEdges(const PhysicsObject3D* currentObject, std::vector<CollisionEdge>* out_edges) const override;
 
 		virtual void GetMinMaxVertexOnAxis(const PhysicsObject3D* currentObject, const Maths::Vector3& axis, Maths::Vector3* out_min, Maths::Vector3* out_max) const override;
@@ -26,14 +26,14 @@ namespace Lumos
 		virtual void DebugDraw(const PhysicsObject3D* currentObject) const override;
 
 		//Set Cuboid Dimensions
-		void SetHalfWidth(float half_width) { m_PyramidHalfDimensions.SetX(fabs(half_width)); }
-		void SetHalfHeight(float half_height) { m_PyramidHalfDimensions.SetY(fabs(half_height)); }
-		void SetHalfDepth(float half_depth) { m_PyramidHalfDimensions.SetZ(fabs(half_depth)); }
+		void SetHalfWidth(float half_width) { m_PyramidHalfDimensions.x = fabs(half_width); }
+		void SetHalfHeight(float half_height) { m_PyramidHalfDimensions.y = fabs(half_height); }
+		void SetHalfDepth(float half_depth) { m_PyramidHalfDimensions.z = fabs(half_depth); }
 
 		//Get Cuboid Dimensions
-		float GetHalfWidth()	const { return m_PyramidHalfDimensions.GetX(); }
-		float GetHalfHeight()	const { return m_PyramidHalfDimensions.GetY(); }
-		float GetHalfDepth()	const { return m_PyramidHalfDimensions.GetZ(); }
+		float GetHalfWidth()	const { return m_PyramidHalfDimensions.x; }
+		float GetHalfHeight()	const { return m_PyramidHalfDimensions.y; }
+		float GetHalfDepth()	const { return m_PyramidHalfDimensions.z; }
 
 		float GetSize() const override { return m_PyramidHalfDimensions.x; };
 

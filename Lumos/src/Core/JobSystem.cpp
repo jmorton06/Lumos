@@ -1,6 +1,6 @@
 #include "lmpch.h"
 #include "JobSystem.h"
-#include "Maths/MathsUtilities.h"
+#include "Maths/Maths.h"
 
 #include <atomic>
 #include <thread>
@@ -79,7 +79,7 @@ namespace Lumos
                 auto numCores = std::thread::hardware_concurrency();
 
                 // Calculate the actual number of worker threads we want:
-                numThreads = Maths::Max(1U, numCores);
+                numThreads = Lumos::Maths::Max(1U, numCores);
 
                 for (uint32_t threadID = 0; threadID < numThreads; ++threadID)
                 {
@@ -168,7 +168,7 @@ namespace Lumos
 
                         // Calculate the current group's offset into the jobs:
                         const uint32_t groupJobOffset = groupIndex * groupSize;
-                        const uint32_t groupJobEnd = Maths::Min(groupJobOffset + groupSize, jobCount);
+                        const uint32_t groupJobEnd = Lumos::Maths::Min(groupJobOffset + groupSize, jobCount);
 
                         JobDispatchArgs args;
                         args.groupIndex = groupIndex;

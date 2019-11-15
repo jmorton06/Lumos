@@ -1,31 +1,11 @@
-//
-// Copyright (c) 2008-2019 the Urho3D project.
-//
-// Permission is hereby granted, free of charge, to any person obtaining a copy
-// of this software and associated documentation files (the "Software"), to deal
-// in the Software without restriction, including without limitation the rights
-// to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-// copies of the Software, and to permit persons to whom the Software is
-// furnished to do so, subject to the following conditions:
-//
-// The above copyright notice and this permission notice shall be included in
-// all copies or substantial portions of the Software.
-//
-// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-// IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-// FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-// AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-// LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-// OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
-// THE SOFTWARE.
-//
+
 
 #pragma once
 
 #include "../Math/Vector2.h"
 #include "../Math/MathDefs.h"
 
-namespace Urho3D
+namespace Lumos::Maths
 {
 
 /// Three-dimensional vector with integer values.
@@ -191,6 +171,13 @@ public:
     {
     }
 
+	Vector3(float x) noexcept :
+		x(x),
+		y(x),
+		z(x)
+	{
+	}
+
     /// Copy-construct from another vector.
     Vector3(const Vector3& vector) noexcept = default;
 
@@ -327,11 +314,26 @@ public:
         return *this;
     }
 
+	inline float operator[](int i) const
+	{
+		switch (i)
+		{
+		case 0:
+			return x;
+		case 1:
+			return y;
+		case 2:
+			return z;
+		default:
+			return 0.0f;
+		}
+	}
+
     /// Normalize to unit length.
     void Normalize()
     {
         float lenSquared = LengthSquared();
-        if (!Urho3D::Equals(lenSquared, 1.0f) && lenSquared > 0.0f)
+        if (!Lumos::Maths::Equals(lenSquared, 1.0f) && lenSquared > 0.0f)
         {
             float invLen = 1.0f / sqrtf(lenSquared);
             x *= invLen;
@@ -352,7 +354,7 @@ public:
     /// Calculate absolute dot product.
     float AbsDotProduct(const Vector3& rhs) const
     {
-        return Urho3D::Abs(x * rhs.x) + Urho3D::Abs(y * rhs.y) + Urho3D::Abs(z * rhs.z);
+        return Lumos::Maths::Abs(x * rhs.x) + Lumos::Maths::Abs(y * rhs.y) + Lumos::Maths::Abs(z * rhs.z);
     }
 
     /// Project direction vector onto axis.
@@ -398,7 +400,7 @@ public:
     }
 
     /// Return absolute vector.
-    Vector3 Abs() const { return Vector3(Urho3D::Abs(x), Urho3D::Abs(y), Urho3D::Abs(z)); }
+    Vector3 Abs() const { return Vector3(Lumos::Maths::Abs(x), Lumos::Maths::Abs(y), Lumos::Maths::Abs(z)); }
 
     /// Linear interpolation with another vector.
     Vector3 Lerp(const Vector3& rhs, float t) const { return *this * (1.0f - t) + rhs * t; }
@@ -406,24 +408,24 @@ public:
     /// Test for equality with another vector with epsilon.
     bool Equals(const Vector3& rhs, float eps = M_EPSILON) const
     {
-        return Urho3D::Equals(x, rhs.x, eps) && Urho3D::Equals(y, rhs.y, eps) && Urho3D::Equals(z, rhs.z, eps);
+        return Lumos::Maths::Equals(x, rhs.x, eps) && Lumos::Maths::Equals(y, rhs.y, eps) && Lumos::Maths::Equals(z, rhs.z, eps);
     }
 
     /// Returns the angle between this vector and another vector in degrees.
-    float Angle(const Vector3& rhs) const { return Urho3D::Acos(DotProduct(rhs) / (Length() * rhs.Length())); }
+    float Angle(const Vector3& rhs) const { return Lumos::Maths::Acos(DotProduct(rhs) / (Length() * rhs.Length())); }
 
     /// Return whether is NaN.
-    bool IsNaN() const { return Urho3D::IsNaN(x) || Urho3D::IsNaN(y) || Urho3D::IsNaN(z); }
+    bool IsNaN() const { return Lumos::Maths::IsNaN(x) || Lumos::Maths::IsNaN(y) || Lumos::Maths::IsNaN(z); }
 
     /// Return whether is Inf.
-    bool IsInf() const { return Urho3D::IsInf(x) || Urho3D::IsInf(y) || Urho3D::IsInf(z); }
+    bool IsInf() const { return Lumos::Maths::IsInf(x) || Lumos::Maths::IsInf(y) || Lumos::Maths::IsInf(z); }
 
 
     /// Return normalized to unit length.
     Vector3 Normalized() const
     {
         const float lenSquared = LengthSquared();
-        if (!Urho3D::Equals(lenSquared, 1.0f) && lenSquared > 0.0f)
+        if (!Lumos::Maths::Equals(lenSquared, 1.0f) && lenSquared > 0.0f)
         {
             float invLen = 1.0f / sqrtf(lenSquared);
             return *this * invLen;
@@ -492,6 +494,16 @@ public:
     static const Vector3 BACK;
     /// (1,1,1) vector.
     static const Vector3 ONE;
+
+	static float Dot(const Vector3& a, const Vector3& b)
+	{
+		return a.DotProduct(b);
+	}
+
+	static Vector3 Cross(const Vector3& a, const Vector3& b)
+	{
+		return a.CrossProduct(b);
+	}
 };
 
 /// Multiply Vector3 with a scalar.
@@ -537,3 +549,17 @@ inline IntVector3 VectorMax(const IntVector3& lhs, const IntVector3& rhs) { retu
 inline float StableRandom(const Vector3& seed) { return StableRandom(Vector2(StableRandom(Vector2(seed.x, seed.y)), seed.z)); }
 
 }
+
+namespace std
+{
+	template<>
+	struct hash<Lumos::Maths::Vector3>
+	{
+		size_t operator()(const Lumos::Maths::Vector3& x) const
+		{
+			return hash<float>()(x.x) ^ (hash<float>()(x.y) * 997u) ^ (hash<float>()(x.z) * 999983u);
+
+		}
+	};
+}
+

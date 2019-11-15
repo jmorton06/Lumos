@@ -8,7 +8,7 @@
 
 namespace Lumos 
 {
-	namespace Maths 
+	namespace LMMaths
 	{
 		class LUMOS_EXPORT MEM_ALIGN Vector3
 		{
@@ -44,9 +44,9 @@ namespace Lumos
 			Vector3(const Vector2 &vec2, float zVal)
 			{
 #ifdef LUMOS_SSEVEC3
-				m_Value = _mm_set_ps(0, zVal, vec2.GetY(), vec2.GetX());
+				m_Value = _mm_set_ps(0, zVal, vec2.y, vec2.x);
 #else
-				x = vec2.GetX(); y = vec2.GetY(); z = zVal;
+				x = vec2.x; y = vec2.y; z = zVal;
 #endif
 			}
 
@@ -76,20 +76,6 @@ namespace Lumos
 			float x;
 			float y;
 			float z;
-#endif
-
-			float GetX() const { return x; }
-			float GetY() const { return y; }
-			float GetZ() const { return z; }
-
-#ifdef LUMOS_SSEVEC3
-			void SetX(const float X) { reinterpret_cast<float *>(&m_Value)[0] = X; }
-			void SetY(const float Y) { reinterpret_cast<float *>(&m_Value)[1] = Y; }
-			void SetZ(const float Z) { reinterpret_cast<float *>(&m_Value)[2] = Z; }
-#else
-			void SetX(const float X) { x = X; }
-			void SetY(const float Y) { y = Y; }
-			void SetZ(const float Z) { z = Z; }
 #endif
 
 			void ToZero() 
@@ -128,7 +114,7 @@ namespace Lumos
 
 			Vector3 Inverse() const
 			{
-				return Vector3(-GetX(), -GetY(), -GetZ());
+				return Vector3(-x, -y, -z);
 			}
 
 			void Invert() 
@@ -140,7 +126,7 @@ namespace Lumos
 #endif
 			}
 
-			void Normalise()
+			void Normalize()
 			{
 #ifdef LUMOS_SSEVEC3
 				m_Value = _mm_mul_ps(m_Value, _mm_rsqrt_ps(_mm_dp_ps(m_Value, m_Value, 0x77)));
@@ -158,14 +144,14 @@ namespace Lumos
 
 			inline Vector3 Normal() 
 			{
-				Normalise();
+				Normalize();
 				return Vector3(*this);
 			}
 
 			inline const Vector3 Normal() const
 			{
 				Vector3 normal(*this);
-				normal.Normalise();
+				normal.Normalize();
 				return normal;
 			}
 
@@ -203,7 +189,7 @@ namespace Lumos
 
 			inline friend std::ostream &operator<<(std::ostream &o, const Vector3 &v)
 			{
-				o << "Vector3(" << v.GetX() << "," << v.GetY() << "," << v.GetZ() << ")" << std::endl;
+				o << "Vector3(" << v.x << "," << v.y << "," << v.z << ")" << std::endl;
 				return o;
 			}
 
@@ -239,7 +225,7 @@ namespace Lumos
 			inline void operator-=(float v) { m_Value = _mm_sub_ps(m_Value, _mm_set1_ps(v)); }
 			inline void operator*=(float v) { m_Value = _mm_mul_ps(m_Value, _mm_set1_ps(v)); }
 			inline void operator/=(float v) { m_Value = _mm_div_ps(m_Value, _mm_set1_ps(v)); }
-			inline Vector3 operator-() const { return _mm_set_ps(0, -GetZ(), -GetY(), -GetX()); }
+			inline Vector3 operator-() const { return _mm_set_ps(0, -z, -y, -x); }
 
 
 			inline Vector3 operator+(const Vector3 &v) const { return _mm_add_ps(m_Value, v.m_Value); }
@@ -271,10 +257,10 @@ namespace Lumos
 			inline void operator/=(const Vector3  &v) { x /= v.x; y /= v.y; z /= v.z; }
 #endif
 
-			inline bool operator<(const Vector3 &other)	 const { return GetX() < other.GetX() && GetY() < other.GetY() && GetZ() < other.GetZ(); }
-			inline bool operator<=(const Vector3 &other) const { return GetX() <= other.GetX() && GetY() <= other.GetY() && GetZ() <= other.GetZ(); }
-			inline bool operator>(const Vector3 &other)  const { return GetX() > other.GetX() && GetY() > other.GetY() && GetZ() > other.GetZ(); }
-			inline bool operator>=(const Vector3 &other) const { return GetX() >= other.GetX() && GetY() >= other.GetY() && GetZ() >= other.GetZ(); }
+			inline bool operator<(const Vector3 &other)	 const { return x < other.x && y < other.y && z < other.z; }
+			inline bool operator<=(const Vector3 &other) const { return x <= other.x && y <= other.y && z <= other.z; }
+			inline bool operator>(const Vector3 &other)  const { return x > other.x && y > other.y && z > other.z; }
+			inline bool operator>=(const Vector3 &other) const { return x >= other.x && y >= other.y && z >= other.z; }
 
 
 			inline bool operator==(const Vector3 &v) const
@@ -300,11 +286,11 @@ namespace Lumos
 				switch (i)
 				{
 					case 0:
-						return GetX();
+						return x;
 					case 1:
-						return GetY();
+						return y;
 					case 2:
-						return GetZ();
+						return z;
 					default:
 						return 0.0f;
 				}
@@ -322,11 +308,11 @@ namespace Lumos
 namespace std 
 {
 	template<>
-	struct hash<Lumos::Maths::Vector3>
+	struct hash<Lumos::LMMaths::Vector3>
 	{
-		size_t operator()(const Lumos::Maths::Vector3& x) const
+		size_t operator()(const Lumos::LMMaths::Vector3& x) const
 		{
-			return hash<float>()(x.GetX()) ^ (hash<float>()(x.GetY()) * 997u) ^ (hash<float>()(x.GetZ()) * 999983u);
+			return hash<float>()(x.x) ^ (hash<float>()(x.y) * 997u) ^ (hash<float>()(x.z) * 999983u);
 
 		}
 	};

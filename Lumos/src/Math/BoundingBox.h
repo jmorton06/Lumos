@@ -1,35 +1,15 @@
-//
-// Copyright (c) 2008-2019 the Urho3D project.
-//
-// Permission is hereby granted, free of charge, to any person obtaining a copy
-// of this software and associated documentation files (the "Software"), to deal
-// in the Software without restriction, including without limitation the rights
-// to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-// copies of the Software, and to permit persons to whom the Software is
-// furnished to do so, subject to the following conditions:
-//
-// The above copyright notice and this permission notice shall be included in
-// all copies or substantial portions of the Software.
-//
-// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-// IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-// FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-// AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-// LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-// OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
-// THE SOFTWARE.
-//
+
 
 #pragma once
 
 #include "../Math/Rect.h"
 #include "../Math/Vector3.h"
 
-#ifdef URHO3D_SSE
+#ifdef Lumos_SSE
 #include <xmmintrin.h>
 #endif
 
-namespace Urho3D
+namespace Lumos::Maths
 {
 
 class Polyhedron;
@@ -78,7 +58,7 @@ public:
     {
     }
 
-#ifdef URHO3D_SSE
+#ifdef Lumos_SSE
     BoundingBox(__m128 min, __m128 max) noexcept
     {
         _mm_storeu_ps(&min_.x, min);
@@ -175,7 +155,7 @@ public:
     /// Merge a point.
     void Merge(const Vector3& point)
     {
-#ifdef URHO3D_SSE
+#ifdef Lumos_SSE
         __m128 vec = _mm_set_ps(1.f, point.z, point.y, point.x);
         _mm_storeu_ps(&min_.x, _mm_min_ps(_mm_loadu_ps(&min_.x), vec));
         _mm_storeu_ps(&max_.x, _mm_max_ps(_mm_loadu_ps(&max_.x), vec));
@@ -198,7 +178,7 @@ public:
     /// Merge another bounding box.
     void Merge(const BoundingBox& box)
     {
-#ifdef URHO3D_SSE
+#ifdef Lumos_SSE
         _mm_storeu_ps(&min_.x, _mm_min_ps(_mm_loadu_ps(&min_.x), _mm_loadu_ps(&box.min_.x)));
         _mm_storeu_ps(&max_.x, _mm_max_ps(_mm_loadu_ps(&max_.x), _mm_loadu_ps(&box.max_.x)));
 #else
@@ -239,11 +219,13 @@ public:
     void Transform(const Matrix3& transform);
     /// Transform with a 3x4 matrix.
     void Transform(const Matrix3x4& transform);
+	/// Transform with a 4x4 matrix.
+	void Transform(const Matrix4& transform);
 
     /// Clear to undefined state.
     void Clear()
     {
-#ifdef URHO3D_SSE
+#ifdef Lumos_SSE
         _mm_storeu_ps(&min_.x, _mm_set1_ps(M_INFINITY));
         _mm_storeu_ps(&max_.x, _mm_set1_ps(-M_INFINITY));
 #else
@@ -267,6 +249,8 @@ public:
     /// Return half-size.
     Vector3 HalfSize() const { return (max_ - min_) * 0.5f; }
 
+	/// Return transformed by a 4x4 matrix.
+	BoundingBox Transformed(const Matrix4& transform) const;
     /// Return transformed by a 3x3 matrix.
     BoundingBox Transformed(const Matrix3& transform) const;
     /// Return transformed by a 3x4 matrix.

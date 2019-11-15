@@ -60,7 +60,7 @@ namespace Lumos
 		{
 			if (camera->Is2D())
 			{
-				m_Editor->Draw2DGrid(ImGui::GetWindowDrawList(), { camera->GetPosition().GetX(), camera->GetPosition().GetY() }, sceneViewPosition, { sceneViewSize.x, sceneViewSize.y }, camera->GetScale(), 1.5f);
+				m_Editor->Draw2DGrid(ImGui::GetWindowDrawList(), { camera->GetPosition().x, camera->GetPosition().y }, sceneViewPosition, { sceneViewSize.x, sceneViewSize.y }, camera->GetScale(), 1.5f);
 			}
 			else
 			{
@@ -133,13 +133,13 @@ namespace Lumos
 		Maths::Matrix4 proj = camera->GetProjectionMatrix();
 
 #ifdef LUMOS_RENDER_API_VULKAN
-        if (Graphics::GraphicsContext::GetRenderAPI() == Graphics::RenderAPI::VULKAN)
-            proj[5] *= -1.0f;
+        //if (Graphics::GraphicsContext::GetRenderAPI() == Graphics::RenderAPI::VULKAN)
+        //    proj[5] *= -1.0f;
 #endif
 
 		Maths::Matrix4 viewProj = proj * view;
 		Maths::Frustum f;
-		f.FromMatrix(viewProj);
+		f.Projected(viewProj);
 
 		auto& registry = scene->GetRegistry();
 		ShowComponentGizmo<Graphics::Light>(width, height, xpos, ypos, viewProj, f, registry);

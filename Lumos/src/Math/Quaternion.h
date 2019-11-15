@@ -1,57 +1,36 @@
-//
-// Copyright (c) 2008-2019 the Urho3D project.
-//
-// Permission is hereby granted, free of charge, to any person obtaining a copy
-// of this software and associated documentation files (the "Software"), to deal
-// in the Software without restriction, including without limitation the rights
-// to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-// copies of the Software, and to permit persons to whom the Software is
-// furnished to do so, subject to the following conditions:
-//
-// The above copyright notice and this permission notice shall be included in
-// all copies or substantial portions of the Software.
-//
-// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-// IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-// FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-// AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-// LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-// OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
-// THE SOFTWARE.
-//
-
 #pragma once
 
 #include "../Math/Matrix3.h"
 
-#ifdef URHO3D_SSE
+#ifdef Lumos_SSE
 #include <emmintrin.h>
 #endif
 
-namespace Urho3D
+namespace Lumos::Maths
 {
 
+	class Matrix4;
 /// Rotation represented as a four-dimensional normalized vector.
 class  Quaternion
 {
 public:
     /// Construct an identity quaternion.
     Quaternion() noexcept
-#ifndef URHO3D_SSE
+#ifndef Lumos_SSE
        :w(1.0f),
         x(0.0f),
         y(0.0f),
         z(0.0f)
 #endif
     {
-#ifdef URHO3D_SSE
+#ifdef Lumos_SSE
         _mm_storeu_ps(&w, _mm_set_ps(0.f, 0.f, 0.f, 1.f));
 #endif
     }
 
     /// Copy-construct from another quaternion.
     Quaternion(const Quaternion& quat) noexcept
-#if defined(URHO3D_SSE) && (!defined(_MSC_VER) || _MSC_VER >= 1700) /* Visual Studio 2012 and newer. VS2010 has a bug with these, see https://github.com/urho3d/Urho3D/issues/1044 */
+#if defined(Lumos_SSE) && (!defined(_MSC_VER) || _MSC_VER >= 1700) /* Visual Studio 2012 and newer. VS2010 has a bug with these, see https://github.com/Lumos/Lumos/issues/1044 */
     {
         _mm_storeu_ps(&w, _mm_loadu_ps(&quat.w));
     }
@@ -66,28 +45,28 @@ public:
 
     /// Construct from values.
     Quaternion(float w, float x, float y, float z) noexcept
-#ifndef URHO3D_SSE
+#ifndef Lumos_SSE
        :w(w),
         x(x),
         y(y),
         z(z)
 #endif
     {
-#ifdef URHO3D_SSE
+#ifdef Lumos_SSE
         _mm_storeu_ps(&w, _mm_set_ps(z, y, x, w));
 #endif
     }
 
     /// Construct from a float array.
     explicit Quaternion(const float* data) noexcept
-#ifndef URHO3D_SSE
+#ifndef Lumos_SSE
        :w(data[0]),
         x(data[1]),
         y(data[2]),
         z(data[3])
 #endif
     {
-#ifdef URHO3D_SSE
+#ifdef Lumos_SSE
         _mm_storeu_ps(&w, _mm_loadu_ps(data));
 #endif
     }
@@ -134,7 +113,7 @@ public:
         FromRotationMatrix(matrix);
     }
 
-#ifdef URHO3D_SSE
+#ifdef Lumos_SSE
     explicit Quaternion(__m128 wxyz) noexcept
     {
         _mm_storeu_ps(&w, wxyz);
@@ -144,7 +123,7 @@ public:
     /// Assign from another quaternion.
     Quaternion& operator =(const Quaternion& rhs) noexcept
     {
-#if defined(URHO3D_SSE) && (!defined(_MSC_VER) || _MSC_VER >= 1700) /* Visual Studio 2012 and newer. VS2010 has a bug with these, see https://github.com/urho3d/Urho3D/issues/1044 */
+#if defined(Lumos_SSE) && (!defined(_MSC_VER) || _MSC_VER >= 1700) /* Visual Studio 2012 and newer. VS2010 has a bug with these, see https://github.com/Lumos/Lumos/issues/1044 */
         _mm_storeu_ps(&w, _mm_loadu_ps(&rhs.w));
 #else
         w = rhs.w;
@@ -158,7 +137,7 @@ public:
     /// Add-assign a quaternion.
     Quaternion& operator +=(const Quaternion& rhs)
     {
-#ifdef URHO3D_SSE
+#ifdef Lumos_SSE
         _mm_storeu_ps(&w, _mm_add_ps(_mm_loadu_ps(&w), _mm_loadu_ps(&rhs.w)));
 #else
         w += rhs.w;
@@ -172,7 +151,7 @@ public:
     /// Multiply-assign a scalar.
     Quaternion& operator *=(float rhs)
     {
-#ifdef URHO3D_SSE
+#ifdef Lumos_SSE
         _mm_storeu_ps(&w, _mm_mul_ps(_mm_loadu_ps(&w), _mm_set1_ps(rhs)));
 #else
         w *= rhs;
@@ -186,7 +165,7 @@ public:
     /// Test for equality with another quaternion without epsilon.
     bool operator ==(const Quaternion& rhs) const
     {
-#ifdef URHO3D_SSE
+#ifdef Lumos_SSE
         __m128 c = _mm_cmpeq_ps(_mm_loadu_ps(&w), _mm_loadu_ps(&rhs.w));
         c = _mm_and_ps(c, _mm_movehl_ps(c, c));
         c = _mm_and_ps(c, _mm_shuffle_ps(c, c, _MM_SHUFFLE(1, 1, 1, 1)));
@@ -202,7 +181,7 @@ public:
     /// Multiply with a scalar.
     Quaternion operator *(float rhs) const
     {
-#ifdef URHO3D_SSE
+#ifdef Lumos_SSE
         return Quaternion(_mm_mul_ps(_mm_loadu_ps(&w), _mm_set1_ps(rhs)));
 #else
         return Quaternion(w * rhs, x * rhs, y * rhs, z * rhs);
@@ -212,7 +191,7 @@ public:
     /// Return negation.
     Quaternion operator -() const
     {
-#ifdef URHO3D_SSE
+#ifdef Lumos_SSE
         return Quaternion(_mm_xor_ps(_mm_loadu_ps(&w), _mm_castsi128_ps(_mm_set1_epi32((int)0x80000000UL))));
 #else
         return Quaternion(-w, -x, -y, -z);
@@ -222,7 +201,7 @@ public:
     /// Add a quaternion.
     Quaternion operator +(const Quaternion& rhs) const
     {
-#ifdef URHO3D_SSE
+#ifdef Lumos_SSE
         return Quaternion(_mm_add_ps(_mm_loadu_ps(&w), _mm_loadu_ps(&rhs.w)));
 #else
         return Quaternion(w + rhs.w, x + rhs.x, y + rhs.y, z + rhs.z);
@@ -232,7 +211,7 @@ public:
     /// Subtract a quaternion.
     Quaternion operator -(const Quaternion& rhs) const
     {
-#ifdef URHO3D_SSE
+#ifdef Lumos_SSE
         return Quaternion(_mm_sub_ps(_mm_loadu_ps(&w), _mm_loadu_ps(&rhs.w)));
 #else
         return Quaternion(w - rhs.w, x - rhs.x, y - rhs.y, z - rhs.z);
@@ -242,7 +221,7 @@ public:
     /// Multiply a quaternion.
     Quaternion operator *(const Quaternion& rhs) const
     {
-#ifdef URHO3D_SSE
+#ifdef Lumos_SSE
         __m128 q1 = _mm_loadu_ps(&w);
         __m128 q2 = _mm_loadu_ps(&rhs.w);
         q2 = _mm_shuffle_ps(q2, q2, _MM_SHUFFLE(0, 3, 2, 1));
@@ -267,7 +246,7 @@ public:
     /// Multiply a Vector3.
     Vector3 operator *(const Vector3& rhs) const
     {
-#ifdef URHO3D_SSE
+#ifdef Lumos_SSE
         __m128 q = _mm_loadu_ps(&w);
         q = _mm_shuffle_ps(q, q, _MM_SHUFFLE(0, 3, 2, 1));
         __m128 v = _mm_set_ps(0.f, rhs.z, rhs.y, rhs.x);
@@ -312,7 +291,7 @@ public:
     /// Normalize to unit length.
     void Normalize()
     {
-#ifdef URHO3D_SSE
+#ifdef Lumos_SSE
         __m128 q = _mm_loadu_ps(&w);
         __m128 n = _mm_mul_ps(q, q);
         n = _mm_add_ps(n, _mm_shuffle_ps(n, n, _MM_SHUFFLE(2, 3, 0, 1)));
@@ -324,7 +303,7 @@ public:
         _mm_storeu_ps(&w, _mm_mul_ps(q, n));
 #else
         float lenSquared = LengthSquared();
-        if (!Urho3D::Equals(lenSquared, 1.0f) && lenSquared > 0.0f)
+        if (!Lumos::Maths::Equals(lenSquared, 1.0f) && lenSquared > 0.0f)
         {
             float invLen = 1.0f / sqrtf(lenSquared);
             w *= invLen;
@@ -338,7 +317,7 @@ public:
     /// Return normalized to unit length.
     Quaternion Normalized() const
     {
-#ifdef URHO3D_SSE
+#ifdef Lumos_SSE
         __m128 q = _mm_loadu_ps(&w);
         __m128 n = _mm_mul_ps(q, q);
         n = _mm_add_ps(n, _mm_shuffle_ps(n, n, _MM_SHUFFLE(2, 3, 0, 1)));
@@ -350,7 +329,7 @@ public:
         return Quaternion(_mm_mul_ps(q, n));
 #else
         float lenSquared = LengthSquared();
-        if (!Urho3D::Equals(lenSquared, 1.0f) && lenSquared > 0.0f)
+        if (!Lumos::Maths::Equals(lenSquared, 1.0f) && lenSquared > 0.0f)
         {
             float invLen = 1.0f / sqrtf(lenSquared);
             return *this * invLen;
@@ -363,7 +342,7 @@ public:
     /// Return inverse.
     Quaternion Inverse() const
     {
-#ifdef URHO3D_SSE
+#ifdef Lumos_SSE
         __m128 q = _mm_loadu_ps(&w);
         __m128 n = _mm_mul_ps(q, q);
         n = _mm_add_ps(n, _mm_shuffle_ps(n, n, _MM_SHUFFLE(2, 3, 0, 1)));
@@ -383,7 +362,7 @@ public:
     /// Return squared length.
     float LengthSquared() const
     {
-#ifdef URHO3D_SSE
+#ifdef Lumos_SSE
         __m128 q = _mm_loadu_ps(&w);
         __m128 n = _mm_mul_ps(q, q);
         n = _mm_add_ps(n, _mm_shuffle_ps(n, n, _MM_SHUFFLE(2, 3, 0, 1)));
@@ -397,7 +376,7 @@ public:
     /// Calculate dot product.
     float DotProduct(const Quaternion& rhs) const
     {
-#ifdef URHO3D_SSE
+#ifdef Lumos_SSE
         __m128 q1 = _mm_loadu_ps(&w);
         __m128 q2 = _mm_loadu_ps(&rhs.w);
         __m128 n = _mm_mul_ps(q1, q2);
@@ -412,19 +391,19 @@ public:
     /// Test for equality with another quaternion with epsilon.
     bool Equals(const Quaternion& rhs, float eps = M_EPSILON) const
     {
-        return Urho3D::Equals(w, rhs.w, eps) && Urho3D::Equals(x, rhs.x, eps) && Urho3D::Equals(y, rhs.y, eps) && Urho3D::Equals(z, rhs.z, eps);
+        return Lumos::Maths::Equals(w, rhs.w, eps) && Lumos::Maths::Equals(x, rhs.x, eps) && Lumos::Maths::Equals(y, rhs.y, eps) && Lumos::Maths::Equals(z, rhs.z, eps);
     }
 
     /// Return whether any element is NaN.
-    bool IsNaN() const { return Urho3D::IsNaN(w) || Urho3D::IsNaN(x) || Urho3D::IsNaN(y) || Urho3D::IsNaN(z); }
+    bool IsNaN() const { return Lumos::Maths::IsNaN(w) || Lumos::Maths::IsNaN(x) || Lumos::Maths::IsNaN(y) || Lumos::Maths::IsNaN(z); }
 
     /// Return whether any element is Inf.
-    bool IsInf() const { return Urho3D::IsInf(w) || Urho3D::IsInf(x) || Urho3D::IsInf(y) || Urho3D::IsInf(z); }
+    bool IsInf() const { return Lumos::Maths::IsInf(w) || Lumos::Maths::IsInf(x) || Lumos::Maths::IsInf(y) || Lumos::Maths::IsInf(z); }
 
     /// Return conjugate.
     Quaternion Conjugate() const
     {
-#ifdef URHO3D_SSE
+#ifdef Lumos_SSE
         __m128 q = _mm_loadu_ps(&w);
         return Quaternion(_mm_xor_ps(q, _mm_castsi128_ps(_mm_set_epi32((int)0x80000000UL, (int)0x80000000UL, (int)0x80000000UL, 0))));
 #else
@@ -446,6 +425,8 @@ public:
     float Angle() const;
     /// Return the rotation matrix that corresponds to this quaternion.
     Matrix3 RotationMatrix() const;
+
+	Matrix4 RotationMatrix4() const;
     /// Spherical interpolation with another quaternion.
     Quaternion Slerp(const Quaternion& rhs, float t) const;
     /// Normalized linear interpolation with another quaternion.
@@ -479,6 +460,20 @@ public:
 
     /// Identity quaternion.
     static const Quaternion IDENTITY;
+
+	static Quaternion EulerAnglesToQuaternion(float x, float y, float z)
+	{
+		Quaternion q;
+		q.FromEulerAngles(x, y, z);
+		return q;
+	}
+
+	static Quaternion LookAt(const Vector3& from, const Vector3& to, const Vector3& up = Vector3(0.0f, 1.0f, 0.0f))
+	{
+		Quaternion q;
+		q.FromLookRotation(from - to, up);
+		return q;
+	}
 };
 
 }

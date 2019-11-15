@@ -255,9 +255,9 @@ namespace Lumos
 				light.m_Position = trans.GetWorldPosition();
 
 				Maths::Vector3 forward = Maths::Vector3(0, 0, -1);
-				Maths::Quaternion::RotatePointByQuaternion(trans.GetWorldOrientation(), forward);
+				//Maths::Quaternion::RotatePointByQuaternion(trans.GetWorldOrientation(), forward);
 
-				light.m_Direction = forward.Normal();
+				light.m_Direction = forward.Normalized();
 
                 memcpy(m_PSSystemUniformBuffer + m_PSSystemUniformBufferOffsets[PSSystemUniformIndex_Lights] + sizeof(Graphics::Light) * numLights, &light, sizeof(Graphics::Light));
 				numLights++;

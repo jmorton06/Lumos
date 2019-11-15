@@ -19,9 +19,9 @@ namespace Lumos
 		Quaternion::Quaternion(const Vector3& vec, float w)
 		{
 #ifdef LUMOS_SSEQUAT
-			mmvalue = _mm_set_ps(vec.GetZ(), vec.GetY(), vec.GetX(), w);
+			mmvalue = _mm_set_ps(vec.z, vec.y, vec.x, w);
 #else
-			x = vec.GetX(); y = vec.GetY(); z = vec.GetZ(); this->w = w;
+			x = vec.x; y = vec.y; z = vec.z; this->w = w;
 #endif
 		}
 
@@ -59,7 +59,7 @@ namespace Lumos
             FromEulerAngles(v.x,v.y,v.z);
         }
 
-		void Quaternion::Normalise()
+		void Quaternion::Normalize()
 		{
 #ifdef LUMOS_SSEQUAT
 			__m128 q = mmvalue;
@@ -178,11 +178,11 @@ namespace Lumos
 
 		Quaternion Quaternion::AxisAngleToQuaterion(const Vector3& vector, float degrees)
 		{
-			Vector3 normalised = vector.Normal();
+			Vector3 Normalized = vector.Normal();
 			float theta = DegreesToRadians(degrees) / 2.0f;
 			float result = sin(theta);
 
-			return Quaternion(static_cast<float>(normalised.GetX() * result), static_cast<float>(normalised.GetY() * result), static_cast<float>(normalised.GetZ() * result), static_cast<float>(cos(theta)));
+			return Quaternion(static_cast<float>(Normalized.x * result), static_cast<float>(Normalized.y * result), static_cast<float>(Normalized.z * result), static_cast<float>(cos(theta)));
 		}
 
 		void Quaternion::GenerateW()
@@ -479,9 +479,9 @@ namespace Lumos
 
 			Vector3 pos = (point + ((cross1 * quat.w + cross2) * 2.0f));
 #endif
-			point.SetX(pos.x);
-			point.SetY(pos.y);
-			point.SetZ(pos.z);
+			point.x = pos.x);
+			point.y = pos.y);
+			point.z = pos.z);
 		}
 
 		Quaternion Quaternion::LookAt(const Vector3& from, const Vector3& to, const Vector3& up)
@@ -489,7 +489,7 @@ namespace Lumos
 			const Vector3 resting_forward_vector = Vector3(0, 0, -1);
 
 			Vector3 forward = (from - to);
-			forward.Normalise();
+			forward.Normalize();
 
 			//Create look at rotation
 			Quaternion out = GetRotation(resting_forward_vector, forward);
@@ -497,13 +497,13 @@ namespace Lumos
 			//Correct rotation to use given up vector
 			Vector3 up_l = out.Transform(up);
 			Vector3 right = Vector3::Cross(forward, up);
-			right.Normalise();
+			right.Normalize();
 			Vector3 up_w = Vector3::Cross(right, forward);
-			up_w.Normalise();
+			up_w.Normalize();
 			Quaternion fix_spin = GetRotation(up_l, up_w);
 
 			out = fix_spin * out;
-			out.Normalise();
+			out.Normalize();
 
 			return out;
 		}
@@ -525,7 +525,7 @@ namespace Lumos
 
 			float theta = acosf(costheta);
 			Vector3 rotAxis = Vector3::Cross(from_dir, to_dir);
-			rotAxis.Normalise();
+			rotAxis.Normalize();
 
 			return Quaternion::AxisAngleToQuaterion(rotAxis, static_cast<float>(RadiansToDegrees(theta)));
 		}
@@ -626,7 +626,7 @@ namespace Lumos
 				out.y = factor_a * start.y + factor_b * real_end.y;
 				out.z = factor_a * start.z + factor_b * real_end.z;
 				out.w = factor_a * start.w + factor_b * real_end.w;
-				out.Normalise();
+				out.Normalize();
 				return out;
 			}
 		}
@@ -669,10 +669,10 @@ namespace Lumos
 		Quaternion Quaternion::operator*(const Vector3& v) const
 		{
 			return Quaternion(
-				(w * v.GetX()) + (v.GetY() * z) - (v.GetZ() * y),
-				(w * v.GetY()) + (v.GetZ() * x) - (v.GetX() * z),
-				(w * v.GetZ()) + (v.GetX() * y) - (v.GetY() * x),
-				-(x * v.GetX()) - (y * v.GetY()) - (z * v.GetZ())
+				(w * v.x) + (v.y * z) - (v.z * y),
+				(w * v.y) + (v.z * x) - (v.x * z),
+				(w * v.z) + (v.x * y) - (v.y * x),
+				-(x * v.x) - (y * v.y) - (z * v.z)
 			);
         }
 

@@ -1,24 +1,4 @@
-//
-// Copyright (c) 2008-2019 the Urho3D project.
-//
-// Permission is hereby granted, free of charge, to any person obtaining a copy
-// of this software and associated documentation files (the "Software"), to deal
-// in the Software without restriction, including without limitation the rights
-// to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-// copies of the Software, and to permit persons to whom the Software is
-// furnished to do so, subject to the following conditions:
-//
-// The above copyright notice and this permission notice shall be included in
-// all copies or substantial portions of the Software.
-//
-// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-// IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-// FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-// AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-// LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-// OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
-// THE SOFTWARE.
-//
+
 
 #include "lmpch.h"
 
@@ -29,7 +9,7 @@
 
 
 
-namespace Urho3D
+namespace Lumos::Maths
 {
 
 const Matrix4 Matrix4::ZERO(
@@ -131,6 +111,43 @@ Matrix4 Matrix4::Inverse() const
         i10, i11, i12, i13,
         i20, i21, i22, i23,
         i30, i31, i32, i33);
+}
+
+Matrix4 Matrix4::Perspective(float znear, float zfar, float aspect, float fov)
+{
+	Matrix4 projection_;
+	float h = (1.0f / tanf(fov * M_DEGTORAD * 0.5f));// *zoom_;
+	float w = h / aspect;
+	float q = zfar / (zfar - znear);
+	float r = -q * znear;
+
+	projection_.m00_ = w;
+	projection_.m02_ = 0.0f;// projectionOffset_.x_ * 2.0f;
+	projection_.m11_ = h;
+	projection_.m12_ = 0.0f;// projectionOffset_.y_ * 2.0f;
+	projection_.m22_ = q;
+	projection_.m23_ = r;
+	projection_.m32_ = 1.0f;
+	return projection_;
+}
+
+Matrix4 Matrix4::Orthographic(float left, float right, float bottom, float top, float znear, float zfar)
+{
+	Matrix4 projection_;
+	float h = (1.0f / ((left - right) * 0.5f));// *zoom_;
+	float w = h / (left-right) / (top - bottom);
+	float q = 1.0f / zfar;
+	float r = 0.0f;
+
+	projection_.m00_ = w;
+	projection_.m03_ = 0.0f;// projectionOffset_.x_ * 2.0f;
+	projection_.m11_ = h;
+	projection_.m13_ = 0.0f;// projectionOffset_.y_ * 2.0f;
+	projection_.m22_ = q;
+	projection_.m23_ = r;
+	projection_.m33_ = 1.0f;
+
+	return projection_;
 }
 
 }

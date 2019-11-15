@@ -18,7 +18,6 @@
 #include "Events/ApplicationEvent.h"
 #include "Core/OS/FileSystem.h"
 
-#include "Maths/BoundingSphere.h"
 #include "ECS/Component/Components.h"
 #include "ECS/SystemManager.h"
 #include "Physics/LumosPhysicsEngine/LumosPhysicsEngine.h"
@@ -373,8 +372,8 @@ namespace Lumos
 		Maths::Matrix4 proj = Application::Instance()->GetSceneManager()->GetCurrentScene()->GetCamera()->GetProjectionMatrix();
 
 #ifdef LUMOS_RENDER_API_VULKAN
-		if (Graphics::GraphicsContext::GetRenderAPI() == Graphics::RenderAPI::VULKAN)
-			proj[5] *= -1.0f;
+		//if (Graphics::GraphicsContext::GetRenderAPI() == Graphics::RenderAPI::VULKAN)
+		//	proj[5] *= -1.0f;
 #endif
 		ImGuizmo::SetDrawlist();
 		ImGuizmo::SetOrthographic(Application::Instance()->GetSceneManager()->GetCurrentScene()->GetCamera()->Is2D());
@@ -395,7 +394,7 @@ namespace Lumos
 				if (static_cast<ImGuizmo::OPERATION>(m_ImGuizmoOperation) == ImGuizmo::OPERATION::SCALE)
 				{
 					auto mat = Maths::Matrix4(delta);
-					transform->SetLocalScale(transform->GetLocalScale() * mat.GetScaling());
+					transform->SetLocalScale(transform->GetLocalScale() * mat.Scale());
 				}
 				else
 				{
@@ -406,15 +405,15 @@ namespace Lumos
 
 					if (physics2DComponent)
 					{
-						physics2DComponent->GetPhysicsObject()->SetPosition({ mat.GetPositionVector().GetX(), mat.GetPositionVector().GetY() });
+						physics2DComponent->GetPhysicsObject()->SetPosition({ mat.Translation().x, mat.Translation().y });
 					}
 					else
 					{
 						auto physics3DComponent = registry.try_get<Physics3DComponent>(m_Selected);
 						if (physics3DComponent)
 						{
-							physics3DComponent->GetPhysicsObject()->SetPosition(mat.GetPositionVector());
-							physics3DComponent->GetPhysicsObject()->SetOrientation(mat.GetRotation().ToQuaternion());
+							physics3DComponent->GetPhysicsObject()->SetPosition(mat.Translation());
+							physics3DComponent->GetPhysicsObject()->SetOrientation(mat.Rotation());
 						}
 					}
 				}
@@ -428,7 +427,7 @@ namespace Lumos
 #if 0
 				Maths::Matrix4 view = camera->GetViewMatrix();
 
-				float camDistance = transform ? (Application::Instance()->GetSceneManager()->GetCurrentScene()->GetCamera()->GetPosition() - transform->GetWorldMatrix().GetPositionVector()).Length() : 0.0f;
+				float camDistance = transform ? (Application::Instance()->GetSceneManager()->GetCurrentScene()->GetCamera()->GetPosition() - transform->GetWorldMatrix().Translation()).Length() : 0.0f;
 
 				auto window = ImGui::GetCurrentWindow();
 				auto size = 128.0f;
@@ -443,7 +442,7 @@ namespace Lumos
 				auto euler = quat.ToEuler();
 				camera->SetPitch(euler.x);
 				camera->SetYaw(euler.y);
-				camera->SetPosition(view.GetPositionVector());
+				camera->SetPosition(view.Translation());
 #else
 				float pos[3] = { camera->GetPosition().x, camera->GetPosition().y, camera->GetPosition().z };
 				float rot[3] = { camera->GetPitch(), camera->GetYaw(), 0.0f };
@@ -451,7 +450,7 @@ namespace Lumos
 				float view[16];
 				ImGuizmo::RecomposeMatrixFromComponents(pos, rot, scale, view);
 
-				float camDistance = transform ? (Application::Instance()->GetSceneManager()->GetCurrentScene()->GetCamera()->GetPosition() - transform->GetWorldMatrix().GetPositionVector()).Length() : 0.0f;
+				float camDistance = transform ? (Application::Instance()->GetSceneManager()->GetCurrentScene()->GetCamera()->GetPosition() - transform->GetWorldMatrix().Translation()).Length() : 0.0f;
 
 				auto window = ImGui::GetCurrentWindow();
 				auto size = 128.0f;

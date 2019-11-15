@@ -6,7 +6,7 @@
 
 namespace Lumos
 {
-	namespace Maths
+	namespace LMMaths
 	{
 		class LUMOS_EXPORT MEM_ALIGN Vector2
 		{
@@ -31,14 +31,9 @@ namespace Lumos
 
 		public:
 
-			float GetX() const { return x; }
-			float GetY() const { return y; }
-			void SetX(const float X) { x = X; }
-			void SetY(const float Y) { y = Y; }
-
 			void ToZero() { x = 0.0f; y = 0.0f; }
 
-			inline void Normalise()
+			inline void Normalize()
 			{
 				float length = Length();
 
@@ -102,11 +97,11 @@ namespace Lumos
 namespace std
 {
 	template<>
-	struct hash<Lumos::Maths::Vector2>
+	struct hash<Lumos::LMMaths::Vector2>
 	{
-		size_t operator()(const Lumos::Maths::Vector2& x) const
+		size_t operator()(const Lumos::LMMaths::Vector2& x) const
 		{
-			return hash<float>()(x.GetX()) ^ (hash<float>()(x.GetY()) * 997u);
+			return hash<float>()(x.x) ^ (hash<float>()(x.y) * 997u);
 		}
 	};
 }

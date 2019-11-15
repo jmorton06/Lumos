@@ -1,7 +1,7 @@
 #include "lmpch.h"
 #include "Terrain.h"
 #include "App/SceneManager.h"
-#include "Maths/BoundingBox.h"
+#include "Math/BoundingBox.h"
 #include <simplex/simplexnoise.h>
 
 namespace Lumos
@@ -145,7 +145,7 @@ namespace Lumos
 			verts[i].TexCoords = texCoords[i];
 			verts[i].Tangent = tangents[i];
             
-            m_BoundingBox->ExpandToFit(verts[i].Position);
+            m_BoundingBox->Merge(verts[i].Position);
 		}
 
 		m_VertexArray = Ref<Graphics::VertexArray>(Graphics::VertexArray::Create());

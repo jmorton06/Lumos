@@ -14,7 +14,7 @@ namespace Lumos
 			{
 			}
 
-			Plane(const Vector3 &normal, float distance, bool normalise = false);
+			Plane(const Vector3 &normal, float distance, bool Normalize = false);
 
 			~Plane() {};
 

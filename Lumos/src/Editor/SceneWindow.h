@@ -1,7 +1,7 @@
 #include "lmpch.h"
 #include "EditorWindow.h"
 #include "Maths/Maths.h"
-#include "Maths/Frustum.h"
+#include "Math/Frustum.h"
 #include "Maths/Transform.h"
 #include "Editor/Editor.h"
 
@@ -37,7 +37,7 @@ namespace Lumos
 					
 					Maths::Vector3 pos = trans. GetWorldPosition();
 
-					if (frustum.InsideFrustum(pos, 0.1f))
+					if (frustum.IsInside(pos))
 					{
 						Maths::Vector2 screenPos = Maths::WorldToScreen(pos, viewProj, width, height, xpos, ypos);
 						ImGui::SetCursorPos({ screenPos.x - ImGui::GetFontSize() / 2.0f , screenPos.y - ImGui::GetFontSize() / 2.0f });

@@ -206,7 +206,7 @@ namespace Lumos
 
 				if (abs(duration) > heightThreshold)
 				{
-					Rect(drawList, taskPos + Maths::Vector2(0.0f, -currentTime), taskPos + Maths::Vector2(float(frameWidth), -(currentTime + duration)), GetColour(task.name), true);
+					Rect(drawList, taskPos + Maths::Vector2(0.0f, -currentTime), taskPos + Maths::Vector2(float(frameWidth), -(currentTime + duration)), Columnour(task.name), true);
                     
 					currentTime += duration;
 				}
@@ -214,7 +214,7 @@ namespace Lumos
 		}
 	}
 
-    uint32_t ProfilerGraph::GetColour(const char* name)
+    uint32_t ProfilerGraph::Columnour(const char* name)
     {
         bool found = m_ColourMap.find(name) != m_ColourMap.end();
         
@@ -302,9 +302,9 @@ namespace Lumos
 
 			Maths::Vector2 markerRightRectMin = legendPos + Maths::Vector2(markerLeftRectMargin + markerLeftRectWidth + markerMidWidth, legendSize.y - markerRigthRectMargin - (markerRightRectHeight + markerRightRectSpacing) * stat.onScreenIndex);
 			Maths::Vector2 markerRightRectMax = markerRightRectMin + Maths::Vector2(markerRightRectWidth, -markerRightRectHeight);
-			RenderTaskMarker(drawList, markerLeftRectMin, markerLeftRectMax, markerRightRectMin, markerRightRectMax, GetColour(task.name));
+			RenderTaskMarker(drawList, markerLeftRectMin, markerLeftRectMax, markerRightRectMin, markerRightRectMax, Columnour(task.name));
 
-			uint32_t textColor = useColoredLegendText ? GetColour(task.name) : imguiText;// task.color;
+			uint32_t textColor = useColoredLegendText ? Columnour(task.name) : imguiText;// task.color;
 
 			float taskTimeMs = float(task.duration);
 			std::ostringstream timeText;

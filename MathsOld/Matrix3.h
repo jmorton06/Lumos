@@ -84,7 +84,7 @@ namespace Lumos
 				return Vector3(values[row], values[row + 3], values[row + 6]);
 			}
 
-			inline Vector3 GetCol(unsigned int column) const
+			inline Vector3 Column(unsigned int column) const
 			{
 				Vector3 out;
 				memcpy(&out, &values[3 * column], sizeof(Vector3));
@@ -93,9 +93,9 @@ namespace Lumos
 
 			inline void SetRow(unsigned int row, const Vector3 &val)
 			{
-				values[row] = val.GetX();
-				values[row + 3] = val.GetY();
-				values[row + 6] = val.GetZ();
+				values[row] = val.x;
+				values[row + 3] = val.y;
+				values[row + 6] = val.z;
 			}
 
 			inline void SetCol(unsigned int column, const Vector3 &val)
@@ -110,17 +110,17 @@ namespace Lumos
 
 			inline void SetDiagonal(const Vector3 &v)
 			{
-				values[0] = v.GetX();
-				values[4] = v.GetY();
-				values[8] = v.GetZ();
+				values[0] = v.x;
+				values[4] = v.y;
+				values[8] = v.z;
 			}
 
 			inline Vector3 GetScalingVector() const { return Vector3(_11, _22, _33); }
 			inline void	SetScalingVector(const Vector3& in)
             {
-                _11 = in.GetX();
-                _22 = in.GetY();
-                _33 = in.GetZ();
+                _11 = in.x;
+                _22 = in.y;
+                _33 = in.z;
             }
 
 			inline void Transpose()

@@ -92,8 +92,8 @@ namespace Lumos
         Application::Instance()->GetSystem<B2PhysicsEngine>()->SetDefaults();
         
         auto screenSize = Application::Instance()->GetWindowSize();
-        m_CurrentScene->SetScreenWidth(static_cast<u32>(screenSize.GetX()));
-        m_CurrentScene->SetScreenHeight(static_cast<u32>(screenSize.GetY()));
+        m_CurrentScene->SetScreenWidth(static_cast<u32>(screenSize.x));
+        m_CurrentScene->SetScreenHeight(static_cast<u32>(screenSize.y));
         m_CurrentScene->OnInit();
         
         Application::Instance()->OnNewScene(m_CurrentScene);

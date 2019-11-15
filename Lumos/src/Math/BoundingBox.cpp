@@ -1,33 +1,14 @@
-//
-// Copyright (c) 2008-2019 the Urho3D project.
-//
-// Permission is hereby granted, free of charge, to any person obtaining a copy
-// of this software and associated documentation files (the "Software"), to deal
-// in the Software without restriction, including without limitation the rights
-// to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-// copies of the Software, and to permit persons to whom the Software is
-// furnished to do so, subject to the following conditions:
-//
-// The above copyright notice and this permission notice shall be included in
-// all copies or substantial portions of the Software.
-//
-// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-// IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-// FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-// AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-// LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-// OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
-// THE SOFTWARE.
-//
+
 
 #include "lmpch.h"
 
 #include "../Math/Frustum.h"
 #include "../Math/Polyhedron.h"
+#include "../Math/Matrix4.h"
 
 
 
-namespace Urho3D
+namespace Lumos::Maths
 {
 
 void BoundingBox::Define(const Vector3* vertices, unsigned count)
@@ -78,7 +59,7 @@ void BoundingBox::Merge(const Polyhedron& poly)
     {
         const std::vector<Vector3>& face = poly.faces_[i];
         if (!face.empty())
-            Merge(&face[0], face.size());
+            Merge(&face[0], (u32)face.size());
     }
 }
 
@@ -123,14 +104,24 @@ void BoundingBox::Transform(const Matrix3x4& transform)
     *this = Transformed(transform);
 }
 
+void BoundingBox::Transform(const Matrix4& transform)
+{
+	*this = Transformed(transform);
+}
+
 BoundingBox BoundingBox::Transformed(const Matrix3& transform) const
 {
     return Transformed(Matrix3x4(transform));
 }
 
+BoundingBox BoundingBox::Transformed(const Matrix4& transform) const
+{
+	return Transformed(Matrix3x4(transform));
+}
+
 BoundingBox BoundingBox::Transformed(const Matrix3x4& transform) const
 {
-#ifdef URHO3D_SSE
+#ifdef Lumos_SSE
     const __m128 one = _mm_set_ss(1.f);
     __m128 minPt = _mm_movelh_ps(_mm_loadl_pi(_mm_setzero_ps(), (const __m64*)&min_.x), _mm_unpacklo_ps(_mm_set_ss(min_.z), one));
     __m128 maxPt = _mm_movelh_ps(_mm_loadl_pi(_mm_setzero_ps(), (const __m64*)&max_.x), _mm_unpacklo_ps(_mm_set_ss(max_.z), one));

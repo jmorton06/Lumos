@@ -46,7 +46,7 @@ void Scene3D::OnInit()
     
     auto lightEntity = m_Registry.create();
     m_Registry.assign<Graphics::Light>(lightEntity, Maths::Vector3(26.0f, 22.0f, 48.5f), Maths::Vector4(1.0f), 1.3f);
-	m_Registry.assign<Maths::Transform>(lightEntity,Matrix4::Translation(Maths::Vector3(26.0f, 22.0f, 48.5f)) * Maths::Quaternion::LookAt(Maths::Vector3(26.0f, 22.0f, 48.5f), Maths::Vector3::Zero()).ToMatrix4());
+	m_Registry.assign<Maths::Transform>(lightEntity,Matrix4::Translation(Maths::Vector3(26.0f, 22.0f, 48.5f)) * Maths::Quaternion::LookAt(Maths::Vector3(26.0f, 22.0f, 48.5f), Maths::Vector3::ZERO).RotationMatrix4());
 	m_Registry.assign<NameComponent>(lightEntity, "Light");
 
 	auto cameraEntity = m_Registry.create();
@@ -135,7 +135,7 @@ void Scene3D::LoadModels()
 	pendulumHolderPhysics->SetFriction(0.8f);
 	pendulumHolderPhysics->SetIsAtRest(true);
 	pendulumHolderPhysics->SetInverseMass(1.0);
-	pendulumHolderPhysics->SetInverseInertia(pendulumHolderPhysics->GetCollisionShape()->BuildInverseInertia(1.0f));
+	pendulumHolderPhysics->SetInverseInertia(pendulumHolderPhysics->ColumnlisionShape()->BuildInverseInertia(1.0f));
 	pendulumHolderPhysics->SetIsStatic(true);
 	pendulumHolderPhysics->SetPosition(Maths::Vector3(12.5f, 15.0f, 20.0f));
 	m_Registry.assign<Physics3DComponent>(pendulumHolder,pendulumHolderPhysics);
@@ -150,7 +150,7 @@ void Scene3D::LoadModels()
 	pendulumPhysics->SetFriction(0.8f);
 	pendulumPhysics->SetIsAtRest(true);
 	pendulumPhysics->SetInverseMass(1.0);
-	pendulumPhysics->SetInverseInertia(pendulumPhysics->GetCollisionShape()->BuildInverseInertia(1.0f));
+	pendulumPhysics->SetInverseInertia(pendulumPhysics->ColumnlisionShape()->BuildInverseInertia(1.0f));
 	pendulumPhysics->SetIsStatic(false);
 	pendulumPhysics->SetPosition(Maths::Vector3(12.5f, 10.0f, 20.0f));
 	m_Registry.assign<Physics3DComponent>(pendulum, pendulumPhysics);

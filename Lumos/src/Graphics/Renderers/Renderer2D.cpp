@@ -184,7 +184,7 @@ namespace Lumos
 			const Maths::Vector2 min = renderable->GetPosition();
 			const Maths::Vector2 max = renderable->GetPosition() + renderable->GetScale();
 
-			const Maths::Vector4 colour = renderable->GetColour();
+			const Maths::Vector4 colour = renderable->Columnour();
 			const std::vector<Maths::Vector2>& uv = renderable->GetUVs();
 			const Texture* texture = renderable->GetTexture();
 

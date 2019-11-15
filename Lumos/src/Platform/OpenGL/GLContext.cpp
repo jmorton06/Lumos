@@ -8,7 +8,7 @@
 #include <GLFW/glfw3.h>
 #endif
 
-#include "Maths/Matrix4.h"
+#include "Math/Matrix4.h"
 
 #ifdef LUMOS_PLATFORM_WINDOWS
 #undef NOGDI
@@ -210,7 +210,7 @@ namespace Lumos
 			LUMOS_LOG_INFO(OPENGLLOG"glDebugMessageCallback not available");
 #endif
 #endif
-			Maths::Matrix4::SetUpCoordSystem(false, false);
+			//Maths::Matrix4::SetUpCoordSystem(false, false);
 		}
 
 		GLContext::~GLContext() = default;

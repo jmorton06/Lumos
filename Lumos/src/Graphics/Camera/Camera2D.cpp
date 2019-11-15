@@ -2,7 +2,8 @@
 #include "Camera2D.h"
 #include "App/Application.h"
 #include "Core/OS/Input.h"
-#include "Maths/MathsUtilities.h"
+#include "Maths/Maths.h"
+
 #include "Core/OS/Window.h"
 
 #include <imgui/imgui.h>
@@ -13,7 +14,7 @@ namespace Lumos
 		, m_Scale(scale), m_AspectRatio(aspectRatio)
 	{
 		Application::Instance()->GetWindow()->HideMouse(false);
-		m_ProjMatrix = Maths::Matrix4::Orthographic(-m_AspectRatio * m_Scale, m_AspectRatio * m_Scale, -m_Scale, m_Scale, -1.0f, 1.0f);
+		//m_ProjMatrix = Maths::Matrix4::Orthographic(-m_AspectRatio * m_Scale, m_AspectRatio * m_Scale, -m_Scale, m_Scale, -1.0f, 1.0f);
 		m_Position = Maths::Vector3(0.0f);
 		m_Velocity = Maths::Vector3(0.0f);
 		m_MouseSensitivity = 0.005f;
@@ -28,8 +29,8 @@ namespace Lumos
 	{
 		if (Input::GetInput()->GetMouseHeld(InputCode::MouseKey::ButtonRight))
 		{
-			m_Position.x -= (xpos - m_PreviousCurserPos.GetX()) * m_Scale * m_MouseSensitivity * 0.5f;
-			m_Position.y += (ypos - m_PreviousCurserPos.GetY()) * m_Scale * m_MouseSensitivity * 0.5f;
+			m_Position.x -= (xpos - m_PreviousCurserPos.x) * m_Scale * m_MouseSensitivity * 0.5f;
+			m_Position.y += (ypos - m_PreviousCurserPos.y) * m_Scale * m_MouseSensitivity * 0.5f;
 		}
 
 		m_PreviousCurserPos = Maths::Vector2(xpos, ypos);
@@ -67,13 +68,14 @@ namespace Lumos
         UpdateScroll(Input::GetInput()->GetScrollOffset(), dt);
 		Input::GetInput()->SetScrollOffset(0.0f);
 
-		m_ProjMatrix = Maths::Matrix4::Orthographic(-m_AspectRatio * m_Scale, m_AspectRatio * m_Scale, -m_Scale, m_Scale, -1.0f, 1.0f);
+		//m_ProjMatrix = Maths::Matrix4::Orthographic(-m_AspectRatio * m_Scale, m_AspectRatio * m_Scale, -m_Scale, m_Scale, -1.0f, 1.0f);
+		//DODGY
 	}
 
 	void Camera2D::UpdateProjectionMatrix(float width, float height)
 	{
 		m_AspectRatio = width / height;
-		m_ProjMatrix = Maths::Matrix4::Orthographic(-m_AspectRatio * m_Scale, m_AspectRatio * m_Scale, -m_Scale, m_Scale, -1.0f, 1.0f);
+		//m_ProjMatrix = Maths::Matrix4::Orthographic(-m_AspectRatio * m_Scale, m_AspectRatio * m_Scale, -m_Scale, m_Scale, -1.0f, 1.0f);
 	}
 
 	void Camera2D::BuildViewMatrix()
@@ -105,7 +107,7 @@ namespace Lumos
         }
         
         m_Scale -= m_ZoomVelocity;
-        m_Scale = Maths::Max(m_Scale, 0.15f);
+        m_Scale = Lumos::Maths::Max(m_Scale, 0.15f);
         m_ZoomVelocity = m_ZoomVelocity * pow(m_ZoomDampeningFactor, dt);
     }
 

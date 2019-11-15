@@ -1,6 +1,6 @@
 #include "lmpch.h"
 #include "Manifold.h"
-#include "Maths/Matrix3.h"
+#include "Math/Matrix3.h"
 
 #include "LumosPhysicsEngine.h"
 #include "Maths/MathsUtilities.h"

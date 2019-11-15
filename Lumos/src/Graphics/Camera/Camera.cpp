@@ -50,35 +50,33 @@ namespace Lumos
 
 	void Camera::BuildViewMatrix()
 	{
-		m_ViewMatrix = Maths::Matrix4::Rotation(-m_Pitch, Maths::Vector3(1, 0, 0)) *
-				Maths::Matrix4::Rotation(-m_Yaw, Maths::Vector3(0, 1, 0)) *
-				Maths::Matrix4::Rotation(-m_Roll, Maths::Vector3(0, 0, 1)) *
-				Maths::Matrix4::Translation(-m_Position);
+		m_ViewMatrix = Maths::Quaternion::EulerAnglesToQuaternion(-m_Pitch, -m_Yaw, -m_Roll).RotationMatrix4() * Maths::Matrix4::Translation(-m_Position);
 	};
 
 	void Camera::UpdateProjectionMatrix(float width, float height)
 	{
-		m_ProjMatrix = Maths::Matrix4::Perspective(m_Near, m_Far, width/height, m_Fov);
+		m_ProjMatrix = Maths::Matrix4::Perspective(m_Near, m_Far, width / height, m_Fov);
+		//m_ProjMatrix = m_ProjMatrix.Inverse();
 	}
 
 	Maths::Vector3 Camera::GetUpDirection() const
 	{
-		Maths::Vector3 up = Maths::Vector3(0, 1, 0);
-		Maths::Quaternion::RotatePointByQuaternion(GetOrientation(), up);
+		Maths::Vector3 up = Maths::Vector3::UP;
+		up = GetOrientation() * up;
 		return up;
 	}
 
 	Maths::Vector3 Camera::GetRightDirection() const
 	{
-		Maths::Vector3 right = Maths::Vector3(1, 0, 0);
-		Maths::Quaternion::RotatePointByQuaternion(GetOrientation(), right);
+		Maths::Vector3 right = Maths::Vector3::RIGHT;
+		right = GetOrientation() * right;
 		return right;
 	}
 
 	Maths::Vector3 Camera::GetForwardDirection() const
 	{
-		Maths::Vector3 forward = Maths::Vector3(0, 0, -1);
-		Maths::Quaternion::RotatePointByQuaternion(GetOrientation(), forward);
+		Maths::Vector3 forward = Maths::Vector3::FORWARD;
+		forward = GetOrientation() * forward;
 		return forward;
 	}
 

@@ -1,5 +1,6 @@
 #include "lmpch.h"
-#include "Maths/BoundingBox.h"
+
+#include "Maths/Maths.h"
 #include "Octree.h"
 
 namespace Lumos
@@ -32,9 +33,9 @@ namespace Lumos
 
 		for (const auto& physicsObject : objects)
         {
-            if (physicsObject && physicsObject->GetCollisionShape())
+            if (physicsObject && physicsObject->ColumnlisionShape())
 			{
-				m_RootNode->boundingBox.ExpandToFit(physicsObject->GetWorldSpaceAABB());
+				m_RootNode->boundingBox.Merge(physicsObject->GetWorldSpaceAABB());
 				m_RootNode->physicsObjects.emplace_back(physicsObject);
 			}
 		}
@@ -64,7 +65,7 @@ namespace Lumos
 			return;
 		}
 
-		Maths::Vector3 divisionPoints[] = { division->boundingBox.Lower(), division->boundingBox.Centre(), division->boundingBox.Upper() };
+		Maths::Vector3 divisionPoints[] = { division->boundingBox.min_, division->boundingBox.Center(), division->boundingBox.max_ };
 
 		static const size_t NUM_DIVISIONS = 8;
 		static const size_t DIVISION_POINT_INDICES[NUM_DIVISIONS][6] = 
@@ -85,19 +86,19 @@ namespace Lumos
 			newNode->physicsObjects.reserve(m_MaxObjectsPerPartition);
 			newNode->childNodes.reserve(8);
 
-			const Maths::Vector3 lower(divisionPoints[DIVISION_POINT_INDICES[i][0]].GetX(),
-				divisionPoints[DIVISION_POINT_INDICES[i][1]].GetY(),
-				divisionPoints[DIVISION_POINT_INDICES[i][2]].GetZ());
-			const Maths::Vector3 upper(divisionPoints[DIVISION_POINT_INDICES[i][3]].GetX(),
-				divisionPoints[DIVISION_POINT_INDICES[i][4]].GetY(),
-				divisionPoints[DIVISION_POINT_INDICES[i][5]].GetZ());
+			const Maths::Vector3 lower(divisionPoints[DIVISION_POINT_INDICES[i][0]].x,
+				divisionPoints[DIVISION_POINT_INDICES[i][1]].y,
+				divisionPoints[DIVISION_POINT_INDICES[i][2]].z);
+			const Maths::Vector3 upper(divisionPoints[DIVISION_POINT_INDICES[i][3]].x,
+				divisionPoints[DIVISION_POINT_INDICES[i][4]].y,
+				divisionPoints[DIVISION_POINT_INDICES[i][5]].z);
 
 			newNode->boundingBox = Maths::BoundingBox(lower, upper);
 
 			// Add objects inside division
 			for (auto &physicsObject : division->physicsObjects)
 			{
-				if (newNode->boundingBox.Intersects(physicsObject->GetWorldSpaceAABB()))
+				if (newNode->boundingBox.IsInsideFast(physicsObject->GetWorldSpaceAABB()))
 					newNode->physicsObjects.push_back(physicsObject);
 			}
 

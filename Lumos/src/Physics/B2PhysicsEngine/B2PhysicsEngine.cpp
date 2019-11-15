@@ -72,7 +72,7 @@ namespace Lumos
                //     break;
 
                 trans.SetLocalPosition(Maths::Vector3(phys.GetPhysicsObject()->GetPosition(), 1.0f));
-                trans.SetLocalOrientation(Maths::Quaternion::EulerAnglesToQuaternion(0.0f, 0.0f, phys.GetPhysicsObject()->GetAngle() * Maths::RADTODEG));
+                trans.SetLocalOrientation(Maths::Quaternion::EulerAnglesToQuaternion(0.0f, 0.0f, phys.GetPhysicsObject()->GetAngle() * Maths::M_DEGTORAD));
                 trans.SetWorldMatrix(Maths::Matrix4()); // temp
             };
 		}

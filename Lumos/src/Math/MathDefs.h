@@ -1,24 +1,4 @@
-//
-// Copyright (c) 2008-2019 the Urho3D project.
-//
-// Permission is hereby granted, free of charge, to any person obtaining a copy
-// of this software and associated documentation files (the "Software"), to deal
-// in the Software without restriction, including without limitation the rights
-// to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-// copies of the Software, and to permit persons to whom the Software is
-// furnished to do so, subject to the following conditions:
-//
-// The above copyright notice and this permission notice shall be included in
-// all copies or substantial portions of the Software.
-//
-// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-// IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-// FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-// AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-// LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-// OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
-// THE SOFTWARE.
-//
+
 
 /// \file
 
@@ -37,7 +17,7 @@
 #include <limits>
 #include <type_traits>
 
-namespace Urho3D
+namespace Lumos::Maths
 {
 
 #undef M_PI
@@ -65,6 +45,8 @@ enum Intersection
     INTERSECTS,
     INSIDE
 };
+
+template <typename T> T Squared(T v) { return v * v; }
 
 /// Check whether two floating point values are equal within accuracy.
 template <class T>
@@ -296,7 +278,7 @@ inline int Random(int range) { return (int)(Random() * range); }
 inline int Random(int min, int max) { auto range = (float)(max - min); return (int)(Random() * range) + min; }
 
 /// Return a random normal distributed number with the given mean value and variance.
-inline float RandomNormal(float meanValue, float variance) { return RandStandardNormal() * sqrtf(variance) + meanValue; }
+inline float RandomNormal(float meanValue, float variance) { return RandStandardNormalized() * sqrtf(variance) + meanValue; }
 
 /// Convert float to half float. From https://gist.github.com/martinkallman/5049614
 inline unsigned short FloatToHalf(float value)

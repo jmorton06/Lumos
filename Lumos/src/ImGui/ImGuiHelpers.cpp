@@ -93,7 +93,7 @@ namespace Lumos
 		{
 			ImGui::BeginTooltip();
 			bool flipImage = Graphics::GraphicsContext::GetContext()->FlipImGUITexture();
-			ImGui::Image(texture ? texture->GetHandle() : nullptr, ImVec2(size.GetX(), size.GetY()), ImVec2(0.0f, flipImage ? 1.0f : 0.0f), ImVec2(1.0f, flipImage ? 0.0f : 1.0f));
+			ImGui::Image(texture ? texture->GetHandle() : nullptr, ImVec2(size.x, size.y), ImVec2(0.0f, flipImage ? 1.0f : 0.0f), ImVec2(1.0f, flipImage ? 0.0f : 1.0f));
 			ImGui::EndTooltip();
 		}
 	}
@@ -104,7 +104,7 @@ namespace Lumos
 		{
 			ImGui::BeginTooltip();
 			bool flipImage = Graphics::GraphicsContext::GetContext()->FlipImGUITexture();
-			ImGui::Image(texture ? texture->GetHandle() : nullptr, ImVec2(size.GetX(), size.GetY()), ImVec2(0.0f, flipImage ? 1.0f : 0.0f), ImVec2(1.0f, flipImage ? 0.0f : 1.0f));
+			ImGui::Image(texture ? texture->GetHandle() : nullptr, ImVec2(size.x, size.y), ImVec2(0.0f, flipImage ? 1.0f : 0.0f), ImVec2(1.0f, flipImage ? 0.0f : 1.0f));
 			ImGui::TextUnformatted(text.c_str());
 			ImGui::EndTooltip();
 		}
@@ -113,7 +113,7 @@ namespace Lumos
 	void ImGuiHelpers::Image(Graphics::Texture2D * texture, const Maths::Vector2 & size)
 	{
 		bool flipImage = Graphics::GraphicsContext::GetContext()->FlipImGUITexture();
-		ImGui::Image(texture ? texture->GetHandle() : nullptr, ImVec2(size.GetX(), size.GetY()), ImVec2(0.0f, flipImage ? 1.0f : 0.0f), ImVec2(1.0f, flipImage ? 0.0f : 1.0f));
+		ImGui::Image(texture ? texture->GetHandle() : nullptr, ImVec2(size.x, size.y), ImVec2(0.0f, flipImage ? 1.0f : 0.0f), ImVec2(1.0f, flipImage ? 0.0f : 1.0f));
 	}
 
     bool ImGuiHelpers::BufferingBar(const char* label, float value,  const Maths::Vector2& size_arg, const u32& bg_col, const u32& fg_col)

@@ -1,7 +1,7 @@
 #include "lmpch.h"
 #include "CuboidCollisionShape.h"
 #include "PhysicsObject3D.h"
-#include "Maths/Matrix3.h"
+#include "Math/Matrix3.h"
 
 namespace Lumos
 {
@@ -44,18 +44,18 @@ namespace Lumos
 		Maths::Vector3 dimsSq = (m_CuboidHalfDimensions + m_CuboidHalfDimensions);
 		dimsSq = dimsSq * dimsSq;
 
-		inertia._11 = 12.f * invMass * 1.f / (dimsSq.GetY() + dimsSq.GetZ());
-		inertia._22 = 12.f * invMass * 1.f / (dimsSq.GetX() + dimsSq.GetZ());
-		inertia._33 = 12.f * invMass * 1.f / (dimsSq.GetX() + dimsSq.GetY());
+		inertia.m00_ = 12.f * invMass * 1.f / (dimsSq.y + dimsSq.z);
+		inertia.m11_ = 12.f * invMass * 1.f / (dimsSq.x + dimsSq.z);
+		inertia.m22_ = 12.f * invMass * 1.f / (dimsSq.x + dimsSq.y);
 
 		return inertia;
 	}
 
-	void CuboidCollisionShape::GetCollisionAxes(const PhysicsObject3D* currentObject, std::vector<Maths::Vector3>* out_axes) const
+	void CuboidCollisionShape::ColumnlisionAxes(const PhysicsObject3D* currentObject, std::vector<Maths::Vector3>* out_axes) const
 	{
 		if (out_axes)
 		{
-			Maths::Matrix3 objOrientation = currentObject->GetOrientation().ToMatrix3();
+			Maths::Matrix3 objOrientation = currentObject->GetOrientation().RotationMatrix();
 			out_axes->push_back(objOrientation * Maths::Vector3(1.0f, 0.0f, 0.0f)); //X - Axis
 			out_axes->push_back(objOrientation * Maths::Vector3(0.0f, 1.0f, 0.0f)); //Y - Axis
 			out_axes->push_back(objOrientation * Maths::Vector3(0.0f, 0.0f, 1.0f)); //Z - Axis
@@ -87,7 +87,7 @@ namespace Lumos
 		else
 			wsTransform = currentObject->GetWorldSpaceTransform() * Maths::Matrix4::Scale(m_CuboidHalfDimensions);
 
-		Maths::Matrix3 invNormalMatrix = Maths::Matrix3::Transpose(Maths::Matrix3(wsTransform));
+		Maths::Matrix3 invNormalMatrix = Maths::Matrix3::Transpose(wsTransform.ToMatrix3());
 		Maths::Vector3 local_axis = invNormalMatrix * axis;
 
 		int vMin, vMax;
@@ -108,8 +108,8 @@ namespace Lumos
 		else
 			wsTransform = currentObject->GetWorldSpaceTransform() * Maths::Matrix4::Scale(m_CuboidHalfDimensions);
 
-		Maths::Matrix3 invNormalMatrix = Maths::Matrix3::Inverse(Maths::Matrix3(wsTransform));
-		Maths::Matrix3 normalMatrix = Maths::Matrix3::Transpose(invNormalMatrix);
+		Maths::Matrix3 invNormalMatrix = wsTransform.ToMatrix3().Inverse();
+		Maths::Matrix3 normalMatrix = invNormalMatrix.Transpose();
 
 		Maths::Vector3 local_axis = invNormalMatrix * axis;
 
@@ -134,7 +134,7 @@ namespace Lumos
 		if (out_normal && best_face)
 		{
 			*out_normal = normalMatrix * best_face->normal;
-			(*out_normal).Normalise();
+			(*out_normal).Normalize();
 		}
 
 		if (out_face  && best_face)
@@ -151,7 +151,7 @@ namespace Lumos
 			//Add the reference face itself to the list of adjacent planes
 			Maths::Vector3 wsPointOnPlane = wsTransform * m_CubeHull->GetVertex(m_CubeHull->GetEdge(best_face->edge_ids[0]).vStart).pos;
 			Maths::Vector3 planeNrml = -(normalMatrix * best_face->normal);
-			planeNrml.Normalise();
+			planeNrml.Normalize();
 			float planeDist = -Maths::Vector3::Dot(planeNrml, wsPointOnPlane);
 
 			out_adjacent_planes->emplace_back(planeNrml, planeDist);
@@ -169,7 +169,7 @@ namespace Lumos
 						const HullFace& adjFace = m_CubeHull->GetFace(adjFaceIdx);
 
 						planeNrml = -(normalMatrix * adjFace.normal);
-						planeNrml.Normalise();
+						planeNrml.Normalize();
 						planeDist = -Maths::Vector3::Dot(planeNrml, wsPointOnPlane);
 
 						out_adjacent_planes->emplace_back(planeNrml, planeDist);

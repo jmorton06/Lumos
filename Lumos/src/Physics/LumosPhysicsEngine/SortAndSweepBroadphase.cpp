@@ -19,13 +19,13 @@ namespace Lumos
 	{
 		// Determine axis
 		m_axis = axis;
-		m_axis.Normalise();
+		m_axis.Normalize();
 
-		if (abs(m_axis.GetX()) > 0.9f)
+		if (abs(m_axis.x) > 0.9f)
 			m_axisIndex = 0;
-		else if (abs(m_axis.GetY()) > 0.9f)
+		else if (abs(m_axis.y) > 0.9f)
 			m_axisIndex = 1;
-		else if (abs(m_axis.GetZ()) > 0.9f)
+		else if (abs(m_axis.z) > 0.9f)
 			m_axisIndex = 2;
 	}
 
@@ -35,12 +35,12 @@ namespace Lumos
 		// Sort entities along axis
 		std::sort(objects.begin(), objects.end(), [this](Ref<PhysicsObject3D> a, Ref<PhysicsObject3D> b) -> bool
 		{
-			return a->GetWorldSpaceAABB().Lower()[this->m_axisIndex] < b->GetWorldSpaceAABB().Lower()[this->m_axisIndex];
+			return a->GetWorldSpaceAABB().min_[this->m_axisIndex] < b->GetWorldSpaceAABB().min_[this->m_axisIndex];
 		});
 
 		for (auto it = objects.begin(); it != objects.end(); ++it)
 		{
-			float thisBoxRight = (*it)->GetWorldSpaceAABB().Upper()[m_axisIndex];
+			float thisBoxRight = (*it)->GetWorldSpaceAABB().max_[m_axisIndex];
 
 			for (auto iit = it + 1; iit != objects.end(); ++iit)
 			{
@@ -59,7 +59,7 @@ namespace Lumos
 				if ((*it)->GetIsStatic() && (*iit)->GetIsAtRest())
 					continue;
 
-				float testBoxLeft = (*iit)->GetWorldSpaceAABB().Lower()[m_axisIndex];
+				float testBoxLeft = (*iit)->GetWorldSpaceAABB().min_[m_axisIndex];
 
 				// Test for overlap between the axis values of the bounding boxes
 				if (testBoxLeft < thisBoxRight)

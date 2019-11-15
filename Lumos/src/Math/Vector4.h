@@ -1,30 +1,10 @@
-//
-// Copyright (c) 2008-2019 the Urho3D project.
-//
-// Permission is hereby granted, free of charge, to any person obtaining a copy
-// of this software and associated documentation files (the "Software"), to deal
-// in the Software without restriction, including without limitation the rights
-// to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-// copies of the Software, and to permit persons to whom the Software is
-// furnished to do so, subject to the following conditions:
-//
-// The above copyright notice and this permission notice shall be included in
-// all copies or substantial portions of the Software.
-//
-// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-// IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-// FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-// AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-// LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-// OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
-// THE SOFTWARE.
-//
+
 
 #pragma once
 
 #include "../Math/Vector3.h"
 
-namespace Urho3D
+namespace Lumos::Maths
 {
 
 /// Four-dimensional vector.
@@ -40,6 +20,14 @@ public:
     {
     }
 
+	Vector4(float x) noexcept :
+		x(x),
+		y(x),
+		z(x),
+		w(x)
+	{
+	}
+
     /// Copy-construct from another vector.
     Vector4(const Vector4& vector) noexcept = default;
 
@@ -51,6 +39,14 @@ public:
         w(w)
     {
     }
+
+	Vector4(const Vector3& vector) noexcept :
+		x(vector.x),
+		y(vector.y),
+		z(vector.z),
+		w(1.0f)
+	{
+	}
 
     /// Construct from coordinates.
     Vector4(float x, float y, float z, float w) noexcept :
@@ -161,6 +157,29 @@ public:
         return *this;
     }
 
+	inline float operator[](int i) const
+	{
+		switch (i)
+		{
+		case 0:
+			return x;
+		case 1:
+			return y;
+		case 2:
+			return z;
+		case 3:
+			return w;
+		default:
+			return 0.0f;
+		}
+	}
+
+
+	Vector3 ToVector3() const
+	{
+		return Vector3(x, y, z);
+	}
+
     /// Return const value by index.
     float operator[](unsigned index) const { return (&x)[index]; }
 
@@ -173,14 +192,14 @@ public:
     /// Calculate absolute dot product.
     float AbsDotProduct(const Vector4& rhs) const
     {
-        return Urho3D::Abs(x * rhs.x) + Urho3D::Abs(y * rhs.y) + Urho3D::Abs(z * rhs.z) + Urho3D::Abs(w * rhs.w);
+        return Lumos::Maths::Abs(x * rhs.x) + Lumos::Maths::Abs(y * rhs.y) + Lumos::Maths::Abs(z * rhs.z) + Lumos::Maths::Abs(w * rhs.w);
     }
 
     /// Project vector onto axis.
     float ProjectOntoAxis(const Vector3& axis) const { return DotProduct(Vector4(axis.Normalized(), 0.0f)); }
 
     /// Return absolute vector.
-    Vector4 Abs() const { return Vector4(Urho3D::Abs(x), Urho3D::Abs(y), Urho3D::Abs(z), Urho3D::Abs(w)); }
+    Vector4 Abs() const { return Vector4(Lumos::Maths::Abs(x), Lumos::Maths::Abs(y), Lumos::Maths::Abs(z), Lumos::Maths::Abs(w)); }
 
     /// Linear interpolation with another vector.
     Vector4 Lerp(const Vector4& rhs, float t) const { return *this * (1.0f - t) + rhs * t; }
@@ -188,11 +207,11 @@ public:
     /// Test for equality with another vector with epsilon.
     bool Equals(const Vector4& rhs, float eps = M_EPSILON) const
     {
-        return Urho3D::Equals(x, rhs.x, eps) && Urho3D::Equals(y, rhs.y, eps) && Urho3D::Equals(z, rhs.z, eps) && Urho3D::Equals(w, rhs.w, eps);
+        return Lumos::Maths::Equals(x, rhs.x, eps) && Lumos::Maths::Equals(y, rhs.y, eps) && Lumos::Maths::Equals(z, rhs.z, eps) && Lumos::Maths::Equals(w, rhs.w, eps);
     }
 
     /// Return whether is NaN.
-    bool IsNaN() const { return Urho3D::IsNaN(x) || Urho3D::IsNaN(y) || Urho3D::IsNaN(z) || Urho3D::IsNaN(w); }
+    bool IsNaN() const { return Lumos::Maths::IsNaN(x) || Lumos::Maths::IsNaN(y) || Lumos::Maths::IsNaN(z) || Lumos::Maths::IsNaN(w); }
 
     /// Return float data.
     const float* Data() const { return &x; }
@@ -224,6 +243,11 @@ public:
     static const Vector4 ZERO;
     /// (1,1,1) vector.
     static const Vector4 ONE;
+
+	static float Dot(const Vector4& a, const Vector4& b)
+	{
+		return a.DotProduct(b);
+	}
 };
 
 /// Multiply Vector4 with a scalar.
@@ -247,4 +271,17 @@ inline Vector4 VectorRound(const Vector4& vec) { return Vector4(Round(vec.x), Ro
 /// Per-component ceil of 4-vector.
 inline Vector4 VectorCeil(const Vector4& vec) { return Vector4(Ceil(vec.x), Ceil(vec.y), Ceil(vec.z), Ceil(vec.w)); }
 
+}
+
+namespace std
+{
+	template<>
+	struct hash<Lumos::Maths::Vector4>
+	{
+		size_t operator()(const Lumos::Maths::Vector4& x) const
+		{
+			return hash<float>()(x.x) ^ (hash<float>()(x.y) * 997u) ^ (hash<float>()(x.z) * 999983u) ^ (hash<float>()(x.w) * 999999937);
+
+		}
+	};
 }

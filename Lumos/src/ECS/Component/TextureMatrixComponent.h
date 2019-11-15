@@ -1,6 +1,7 @@
 #pragma once
 #include "lmpch.h"
-#include "Maths/Matrix4.h"
+#include "Maths/Maths.h"
+
 
 namespace Lumos
 {
@@ -12,9 +13,6 @@ namespace Lumos
 		void OnImGui();
         
         const Maths::Matrix4& GetMatrix() const { return m_TextureMatrix; }
-
-		nlohmann::json Serialise();
-		void Deserialise(nlohmann::json& data);
 
     private:
         Maths::Matrix4 m_TextureMatrix;

@@ -42,16 +42,11 @@ namespace Lumos
 			{
 				nlohmann::json output;
 				output["typeID"] = LUMOS_TYPENAME(BoundingBox);
-				output["upper"] = m_Upper.Serialise();
-				output["lower"] = m_Lower.Serialise();
-
 				return output;
 			};
 
 			void Deserialise(nlohmann::json& data) override
 			{
-				m_Lower.Deserialise(data["lower"]);
-				m_Upper.Deserialise(data["upper"]);
 			};
 
 		protected:

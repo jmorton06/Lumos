@@ -34,7 +34,7 @@ namespace Lumos
 
 	namespace Maths
 	{
-		class BoundingSphere;
+		class Sphere;
 		class BoundingBox;
 	}
 
@@ -94,7 +94,7 @@ namespace Lumos
 		static void LogE(const char* filename, int linenumber, const std::string text, ...);
 
 		static void DebugDraw(Maths::BoundingBox* box, const Maths::Vector4& edgeColour, float width = 0.02f);
-		static void DebugDraw(Maths::BoundingSphere* sphere, const Maths::Vector4& colour);
+		static void DebugDraw(Maths::Sphere* sphere, const Maths::Vector4& colour);
 
 	protected:
 		//Actual functions managing data parsing to save code bloat - called by public functions

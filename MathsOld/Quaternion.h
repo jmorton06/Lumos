@@ -49,7 +49,7 @@ namespace Lumos
 			float w;
 #endif
 
-			void Normalise();
+			void Normalize();
 			Quaternion Normal() const;
 
 			Matrix4 ToMatrix4() const;
@@ -89,9 +89,9 @@ namespace Lumos
 			{
 				Matrix3 mat = ToMatrix3();
 
-				xAxis = mat.GetCol(0);
-				yAxis = mat.GetCol(1); 
-				zAxis = mat.GetCol(2);
+				xAxis = mat.Column(0);
+				yAxis = mat.Column(1);
+				zAxis = mat.Column(2);
 			}
 
 			static Quaternion EulerAnglesToQuaternion(float pitch, float yaw, float roll);

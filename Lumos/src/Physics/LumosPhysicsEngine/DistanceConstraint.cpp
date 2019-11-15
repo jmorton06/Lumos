@@ -16,8 +16,8 @@ namespace Lumos
 
 		Maths::Vector3 r1 = globalOnA - m_pObj1->GetPosition();
 		Maths::Vector3 r2 = globalOnB - m_pObj2->GetPosition();
-		m_LocalOnA = Maths::Matrix3::Transpose(m_pObj1->GetOrientation().ToMatrix3()) * r1;
-		m_LocalOnB = Maths::Matrix3::Transpose(m_pObj2->GetOrientation().ToMatrix3()) * r2;
+		m_LocalOnA = Maths::Matrix3::Transpose(m_pObj1->GetOrientation().RotationMatrix()) * r1;
+		m_LocalOnB = Maths::Matrix3::Transpose(m_pObj2->GetOrientation().RotationMatrix()) * r2;
 	}
 
 	void DistanceConstraint::ApplyImpulse()
@@ -25,15 +25,15 @@ namespace Lumos
 		if (m_pObj1->GetInverseMass() + m_pObj2->GetInverseMass() == 0.0f)
 			return;
 
-		Maths::Vector3 r1 = m_pObj1->GetOrientation().ToMatrix3() * m_LocalOnA;
-		Maths::Vector3 r2 = m_pObj2->GetOrientation().ToMatrix3() * m_LocalOnB;
+		Maths::Vector3 r1 = m_pObj1->GetOrientation().RotationMatrix() * m_LocalOnA;
+		Maths::Vector3 r2 = m_pObj2->GetOrientation().RotationMatrix() * m_LocalOnB;
 
 		Maths::Vector3 globalOnA = r1 + m_pObj1->GetPosition();
 		Maths::Vector3 globalOnB = r2 + m_pObj2->GetPosition();
 
 		Maths::Vector3 ab = globalOnB - globalOnA;
 		Maths::Vector3 abn = ab;
-		abn.Normalise();
+		abn.Normalize();
 
 		Maths::Vector3 v0 = m_pObj1->GetLinearVelocity() + Maths::Vector3::Cross(m_pObj1->GetAngularVelocity(), r1);
 		Maths::Vector3 v1 = m_pObj2->GetLinearVelocity() + Maths::Vector3::Cross(m_pObj2->GetAngularVelocity(), r2);

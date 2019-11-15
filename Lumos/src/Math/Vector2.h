@@ -1,30 +1,10 @@
-//
-// Copyright (c) 2008-2019 the Urho3D project.
-//
-// Permission is hereby granted, free of charge, to any person obtaining a copy
-// of this software and associated documentation files (the "Software"), to deal
-// in the Software without restriction, including without limitation the rights
-// to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-// copies of the Software, and to permit persons to whom the Software is
-// furnished to do so, subject to the following conditions:
-//
-// The above copyright notice and this permission notice shall be included in
-// all copies or substantial portions of the Software.
-//
-// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-// IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-// FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-// AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-// LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-// OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
-// THE SOFTWARE.
-//
+
 
 #pragma once
 
 #include "../Math/MathDefs.h"
 
-namespace Urho3D
+namespace Lumos::Maths
 {
 
 /// Two-dimensional vector with integer values.
@@ -180,6 +160,12 @@ public:
     {
     }
 
+	Vector2(float x) noexcept :
+		x(x),
+		y(x)
+	{
+	}
+
     /// Copy-construct from another vector.
     Vector2(const Vector2& vector) noexcept = default;
 
@@ -287,7 +273,7 @@ public:
     void Normalize()
     {
         float lenSquared = LengthSquared();
-        if (!Urho3D::Equals(lenSquared, 1.0f) && lenSquared > 0.0f)
+        if (!Equals(lenSquared, 1.0f) && lenSquared > 0.0f)
         {
             float invLen = 1.0f / sqrtf(lenSquared);
             x *= invLen;
@@ -305,31 +291,31 @@ public:
     float DotProduct(const Vector2& rhs) const { return x * rhs.x + y * rhs.y; }
 
     /// Calculate absolute dot product.
-    float AbsDotProduct(const Vector2& rhs) const { return Urho3D::Abs(x * rhs.x) + Urho3D::Abs(y * rhs.y); }
+    float AbsDotProduct(const Vector2& rhs) const { return Lumos::Maths::Abs(x * rhs.x) + Lumos::Maths::Abs(y * rhs.y); }
 
     /// Project vector onto axis.
     float ProjectOntoAxis(const Vector2& axis) const { return DotProduct(axis.Normalized()); }
 
     /// Returns the angle between this vector and another vector in degrees.
-    float Angle(const Vector2& rhs) const { return Urho3D::Acos(DotProduct(rhs) / (Length() * rhs.Length())); }
+    float Angle(const Vector2& rhs) const { return Acos(DotProduct(rhs) / (Length() * rhs.Length())); }
 
     /// Return absolute vector.
-    Vector2 Abs() const { return Vector2(Urho3D::Abs(x), Urho3D::Abs(y)); }
+    Vector2 Abs() const { return Vector2(Lumos::Maths::Abs(x), Lumos::Maths::Abs(y)); }
 
     /// Linear interpolation with another vector.
     Vector2 Lerp(const Vector2& rhs, float t) const { return *this * (1.0f - t) + rhs * t; }
 
     /// Test for equality with another vector with epsilon.
-    bool Equals(const Vector2& rhs, float eps = M_EPSILON) const { return Urho3D::Equals(x, rhs.x, eps) && Urho3D::Equals(y, rhs.y, eps); }
+    bool Equals(const Vector2& rhs, float eps = M_EPSILON) const { return Lumos::Maths::Equals(x, rhs.x, eps) && Lumos::Maths::Equals(y, rhs.y, eps); }
 
     /// Return whether is NaN.
-    bool IsNaN() const { return Urho3D::IsNaN(x) || Urho3D::IsNaN(y); }
+    bool IsNaN() const { return Lumos::Maths::IsNaN(x) || Lumos::Maths::IsNaN(y); }
 
     /// Return normalized to unit length.
     Vector2 Normalized() const
     {
         const float lenSquared = LengthSquared();
-        if (!Urho3D::Equals(lenSquared, 1.0f) && lenSquared > 0.0f)
+        if (!Equals(lenSquared, 1.0f) && lenSquared > 0.0f)
         {
             const float invLen = 1.0f / sqrtf(lenSquared);
             return *this * invLen;
@@ -439,4 +425,16 @@ inline float StableRandom(const Vector2& seed) { return Fract(Sin(seed.DotProduc
 /// Return a random value from [0, 1) from scalar seed.
 inline float StableRandom(float seed) { return StableRandom(Vector2(seed, seed)); }
 
+}
+
+namespace std
+{
+	template<>
+	struct hash<Lumos::Maths::Vector2>
+	{
+		size_t operator()(const Lumos::Maths::Vector2& x) const
+		{
+			return hash<float>()(x.x) ^ (hash<float>()(x.y) * 997u);
+		}
+	};
 }

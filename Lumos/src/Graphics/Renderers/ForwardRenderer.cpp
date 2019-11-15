@@ -88,15 +88,18 @@ namespace Lumos
                         auto& worldTransform = trans.GetWorldMatrix();
 
                         float maxScaling = 0.0f;
-                        auto scale = worldTransform.GetScaling();
-                        maxScaling = Maths::Max(scale.GetX(), maxScaling);
-                        maxScaling = Maths::Max(scale.GetY(), maxScaling);
-                        maxScaling = Maths::Max(scale.GetZ(), maxScaling);
+                        auto scale = worldTransform.Scale();
+                        maxScaling = Maths::Max(scale.x, maxScaling);
+                        maxScaling = Maths::Max(scale.y, maxScaling);
+                        maxScaling = Maths::Max(scale.z, maxScaling);
 
-                        bool inside = m_Frustum.InsideFrustum(worldTransform.GetPositionVector(), maxScaling * mesh.GetMesh()->GetBoundingBox()->SphereRadius());
+						////auto bb = mesh.GetMesh()->GetBoundingBox();
+						//bb->Transform(worldTransform);
+						auto inside = true;// f.IsInside(*bb);
+						//DODGY
 
-                        if (!inside)
-                            continue;
+						if (!inside)
+							continue;
 
                         auto meshPtr = mesh.GetMesh();
                         auto materialComponent = registry.try_get<MaterialComponent>(entity);
@@ -282,7 +285,7 @@ namespace Lumos
 			memcpy(m_VSSystemUniformBuffer + m_VSSystemUniformBufferOffsets[VSSystemUniformIndex_ProjectionMatrix], &proj, sizeof(Maths::Matrix4));
 			memcpy(m_VSSystemUniformBuffer + m_VSSystemUniformBufferOffsets[VSSystemUniformIndex_ViewMatrix], &camera->GetViewMatrix(), sizeof(Maths::Matrix4));
 
-			m_Frustum.FromMatrix(proj * camera->GetViewMatrix());
+			m_Frustum.Projected(proj * camera->GetViewMatrix());
 		}
 
 		void ForwardRenderer::Submit(const RenderCommand& command)

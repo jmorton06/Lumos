@@ -13,14 +13,14 @@ namespace Lumos
 		: Camera(FOV, Near, Far, aspect)
 	{
 		Application::Instance()->GetWindow()->HideMouse(true);
-		m_ProjMatrix = Maths::Matrix4::Perspective(m_Near, m_Far, aspect, FOV);
+		//m_ProjMatrix = Maths::Matrix4::Perspective(m_Near, m_Far, aspect, FOV);
 	}
 
 	FPSCamera::FPSCamera(float pitch, float yaw, const Maths::Vector3& position, float FOV, float Near, float Far, float aspect)
 		: Camera(pitch, yaw, position, FOV, Near, Far, aspect)
 	{
 		Application::Instance()->GetWindow()->HideMouse(true);
-		m_ProjMatrix = Maths::Matrix4::Perspective(m_Near, m_Far, aspect, FOV);
+		//m_ProjMatrix = Maths::Matrix4::Perspective(m_Near, m_Far, aspect, FOV);
 	}
 
 	FPSCamera::~FPSCamera() = default;
@@ -31,8 +31,8 @@ namespace Lumos
 		{
 			{
 				Maths::Vector2 windowCentre = Maths::Vector2();
-				xpos -= windowCentre.GetX();
-				ypos -= windowCentre.GetY();
+				xpos -= windowCentre.x;
+				ypos -= windowCentre.y;
 
 				m_Pitch -= (ypos)* m_MouseSensitivity;
 				m_Yaw   -= (xpos)* m_MouseSensitivity;
@@ -57,9 +57,9 @@ namespace Lumos
 	{
 		const Maths::Quaternion orientation = Maths::Quaternion::EulerAnglesToQuaternion(m_Pitch, m_Yaw, 1.0f);
 		Maths::Vector3 up = Maths::Vector3(0, 1, 0), right = Maths::Vector3(1, 0, 0), forward = Maths::Vector3(0, 0, -1);
-		Maths::Quaternion::RotatePointByQuaternion(orientation, up);
-		Maths::Quaternion::RotatePointByQuaternion(orientation, right);
-		Maths::Quaternion::RotatePointByQuaternion(orientation, forward);
+		//Maths::Quaternion::RotatePointByQuaternion(orientation, up);
+		//Maths::Quaternion::RotatePointByQuaternion(orientation, right);
+		//Maths::Quaternion::RotatePointByQuaternion(orientation, forward);
 
 		m_CameraSpeed = 1000.0f * dt;
 

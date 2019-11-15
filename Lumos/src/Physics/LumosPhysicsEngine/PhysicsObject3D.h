@@ -2,11 +2,9 @@
 
 #include "lmpch.h"
 #include "Physics/PhysicsObject.h"
-#include "Maths/Quaternion.h"
-#include "Maths/Matrix3.h"
 #include "CollisionShape.h"
-#include "Maths/BoundingBox.h"
-#include <memory>
+
+#include "Maths/Maths.h"
 
 namespace Lumos
 {
@@ -40,7 +38,7 @@ namespace Lumos
 		const Maths::Vector3&	 GetAngularVelocity()	  const { return m_AngularVelocity; }
 		const Maths::Vector3&	 GetTorque()			  const { return m_Torque; }
 		const Maths::Matrix3&	 GetInverseInertia()	  const { return m_InvInertia; }
-		const Ref<CollisionShape>&	GetCollisionShape()	  const { return m_CollisionShape; }
+		const Ref<CollisionShape>&	ColumnlisionShape()	  const { return m_CollisionShape; }
 		const Maths::Matrix4&	 GetWorldSpaceTransform() const;	//Built from scratch or returned from cached value
 
 		Maths::BoundingBox GetWorldSpaceAABB() const;

@@ -35,28 +35,28 @@ namespace Lumos
 		{
 			for (const auto & plane : planes)
 			{
-				if (plane.PointInPlane(Vector3(position.GetX() - size.GetX(), position.GetY() + size.GetY(), position.GetZ() + size.GetZ())))
+				if (plane.PointInPlane(Vector3(position.x - size.x, position.y + size.y, position.z + size.z)))
 					continue;
 
-				if (plane.PointInPlane(Vector3(position.GetX() + size.GetX(), position.GetY() + size.GetY(), position.GetZ() + size.GetZ())))
+				if (plane.PointInPlane(Vector3(position.x + size.x, position.y + size.y, position.z + size.z)))
 					continue;
 
-				if (plane.PointInPlane(Vector3(position.GetX() - size.GetX(), position.GetY() - size.GetY(), position.GetZ() + size.GetZ())))
+				if (plane.PointInPlane(Vector3(position.x - size.x, position.y - size.y, position.z + size.z)))
 					continue;
 
-				if (plane.PointInPlane(Vector3(position.GetX() + size.GetX(), position.GetY() - size.GetY(), position.GetZ() + size.GetZ())))
+				if (plane.PointInPlane(Vector3(position.x + size.x, position.y - size.y, position.z + size.z)))
 					continue;
 
-				if (plane.PointInPlane(Vector3(position.GetX() - size.GetX(), position.GetY() + size.GetY(), position.GetZ() - size.GetZ())))
+				if (plane.PointInPlane(Vector3(position.x - size.x, position.y + size.y, position.z - size.z)))
 					continue;
 
-				if (plane.PointInPlane(Vector3(position.GetX() + size.GetX(), position.GetY() + size.GetY(), position.GetZ() - size.GetZ())))
+				if (plane.PointInPlane(Vector3(position.x + size.x, position.y + size.y, position.z - size.z)))
 					continue;
 
-				if (plane.PointInPlane(Vector3(position.GetX() - size.GetX(), position.GetY() - size.GetY(), position.GetZ() - size.GetZ())))
+				if (plane.PointInPlane(Vector3(position.x - size.x, position.y - size.y, position.z - size.z)))
 					continue;
 
-				if (plane.PointInPlane(Vector3(position.GetX() + size.GetX(), position.GetY() - size.GetY(), position.GetZ() - size.GetZ())))
+				if (plane.PointInPlane(Vector3(position.x + size.x, position.y - size.y, position.z - size.z)))
 					continue;
 
 				return false;

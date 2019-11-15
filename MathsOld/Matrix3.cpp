@@ -37,9 +37,9 @@ namespace Lumos
 			memcpy(&values[3], &v2.x, size);
 			memcpy(&values[6], &v3.x, size);
 #else
-            _11 = v1.GetX(); _12 = v1.GetY(); _13 = v1.GetZ();
-            _21 = v2.GetX(); _22 = v2.GetY(); _23 = v2.GetZ();
-            _31 = v3.GetX(); _32 = v3.GetY(); _33 = v3.GetZ();
+            _11 = v1.x; _12 = v1.y; _13 = v1.z;
+            _21 = v2.x; _22 = v2.y; _23 = v2.z;
+            _31 = v3.x; _32 = v3.y; _33 = v3.z;
 #endif
 		}
 
@@ -73,39 +73,39 @@ namespace Lumos
 		{
 			Matrix3 m;
 			Vector3 axisNorm = axis;
-			axisNorm.Normalise();
+			axisNorm.Normalize();
 
 			float c = cos(Lumos::Maths::DegreesToRadians(degrees));
 			float s = sin(Lumos::Maths::DegreesToRadians(degrees));
 
 #ifdef LUMOS_SSEMAT3
-			__m128 normXYZW = _mm_set_ps(0, axisNorm.GetZ(), axisNorm.GetY(), axisNorm.GetX());
+			__m128 normXYZW = _mm_set_ps(0, axisNorm.z, axisNorm.y, axisNorm.x);
 			__m128 normXYZWWithC = _mm_mul_ps(normXYZW, _mm_set1_ps(1.0f - c));
 			__m128 col0 = _mm_mul_ps(normXYZW, _mm_set1_ps(GetValue(normXYZWWithC, 0)));
 			__m128 col1 = _mm_mul_ps(normXYZW, _mm_set1_ps(GetValue(normXYZWWithC, 1)));
 			__m128 col2 = _mm_mul_ps(normXYZW, _mm_set1_ps(GetValue(normXYZWWithC, 2)));
 
 			m.values[0] = GetValue(col0, 0) + c;
-			m.values[1] = GetValue(col0, 1) + (axisNorm.GetZ() * s);
-			m.values[2] = GetValue(col0, 2) - (axisNorm.GetY() * s);
-			m.values[3] = GetValue(col1, 0) - (axisNorm.GetZ() * s);
+			m.values[1] = GetValue(col0, 1) + (axisNorm.z * s);
+			m.values[2] = GetValue(col0, 2) - (axisNorm.y * s);
+			m.values[3] = GetValue(col1, 0) - (axisNorm.z * s);
 			m.values[4] = GetValue(col1, 1) + c;
-			m.values[5] = GetValue(col1, 2) + (axisNorm.GetX() * s);
-			m.values[6] = GetValue(col2, 0) + (axisNorm.GetY() * s);
-			m.values[7] = GetValue(col2, 1) - (axisNorm.GetX() * s);
+			m.values[5] = GetValue(col1, 2) + (axisNorm.x * s);
+			m.values[6] = GetValue(col2, 0) + (axisNorm.y * s);
+			m.values[7] = GetValue(col2, 1) - (axisNorm.x * s);
 			m.values[8] = GetValue(col2, 2) + c;
 #else
-			m(0, 0) = (axis.GetX() * axis.GetX()) * (1.0f - c) + c;
-			m(1, 0) = (axis.GetY() * axis.GetX()) * (1.0f - c) + (axis.GetZ() * s);
-			m(2, 0) = (axis.GetZ() * axis.GetX()) * (1.0f - c) - (axis.GetY() * s);
+			m(0, 0) = (axis.x * axis.x) * (1.0f - c) + c;
+			m(1, 0) = (axis.y * axis.x) * (1.0f - c) + (axis.z * s);
+			m(2, 0) = (axis.z * axis.x) * (1.0f - c) - (axis.y * s);
 
-			m(0, 1) = (axis.GetX() * axis.GetY()) * (1.0f - c) - (axis.GetZ() * s);
-			m(1, 1) = (axis.GetY() * axis.GetY()) * (1.0f - c) + c;
-			m(2, 1) = (axis.GetZ() * axis.GetY()) * (1.0f - c) + (axis.GetX() * s);
+			m(0, 1) = (axis.x * axis.y) * (1.0f - c) - (axis.z * s);
+			m(1, 1) = (axis.y * axis.y) * (1.0f - c) + c;
+			m(2, 1) = (axis.z * axis.y) * (1.0f - c) + (axis.x * s);
 
-			m(0, 2) = (axis.GetX() * axis.GetZ()) * (1.0f - c) + (axis.GetY() * s);
-			m(1, 2) = (axis.GetY() * axis.GetZ()) * (1.0f - c) - (axis.GetX() * s);
-			m(2, 2) = (axis.GetZ() * axis.GetZ()) * (1.0f - c) + c;
+			m(0, 2) = (axis.x * axis.z) * (1.0f - c) + (axis.y * s);
+			m(1, 2) = (axis.y * axis.z) * (1.0f - c) - (axis.x * s);
+			m(2, 2) = (axis.z * axis.z) * (1.0f - c) + c;
 #endif
 			return m;
 		}
@@ -190,9 +190,9 @@ namespace Lumos
 		Vector3 Matrix3::operator*(const Vector3& v) const
 		{
 			return Vector3(
-				v.GetX() * values[0] + v.GetY() * values[3] + v.GetZ() * values[6],
-				v.GetX() * values[1] + v.GetY() * values[4] + v.GetZ() * values[7],
-				v.GetX() * values[2] + v.GetY() * values[5] + v.GetZ() * values[8]
+				v.x * values[0] + v.y * values[3] + v.z * values[6],
+				v.x * values[1] + v.y * values[4] + v.z * values[7],
+				v.x * values[2] + v.y * values[5] + v.z * values[8]
 			);
 		}
 
@@ -355,17 +355,17 @@ namespace Lumos
         {
             Matrix3 m;
 
-            m._11 = a.GetX() * b.GetX();
-            m._12 = a.GetX() * b.GetY();
-            m._13 = a.GetX() * b.GetZ();
+            m._11 = a.x * b.x;
+            m._12 = a.x * b.y;
+            m._13 = a.x * b.z;
 
-            m._21 = a.GetY() * b.GetX();
-            m._22 = a.GetY() * b.GetY();
-            m._23 = a.GetY() * b.GetZ();
+            m._21 = a.y * b.x;
+            m._22 = a.y * b.y;
+            m._23 = a.y * b.z;
 
-            m._31 = a.GetZ() * b.GetX();
-            m._32 = a.GetZ() * b.GetY();
-            m._33 = a.GetZ() * b.GetZ();
+            m._31 = a.z * b.x;
+            m._32 = a.z * b.y;
+            m._33 = a.z * b.z;
 
             return m;
         }
