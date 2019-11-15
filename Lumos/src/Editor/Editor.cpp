@@ -372,8 +372,8 @@ namespace Lumos
 		Maths::Matrix4 proj = Application::Instance()->GetSceneManager()->GetCurrentScene()->GetCamera()->GetProjectionMatrix();
 
 #ifdef LUMOS_RENDER_API_VULKAN
-		//if (Graphics::GraphicsContext::GetRenderAPI() == Graphics::RenderAPI::VULKAN)
-		//	proj[5] *= -1.0f;
+		if (Graphics::GraphicsContext::GetRenderAPI() == Graphics::RenderAPI::VULKAN)
+			proj.m11_ *= -1.0f;
 #endif
 		ImGuizmo::SetDrawlist();
 		ImGuizmo::SetOrthographic(Application::Instance()->GetSceneManager()->GetCurrentScene()->GetCamera()->Is2D());

@@ -56,7 +56,6 @@ namespace Lumos
 	void Camera::UpdateProjectionMatrix(float width, float height)
 	{
 		m_ProjMatrix = Maths::Matrix4::Perspective(m_Near, m_Far, width / height, m_Fov);
-		//m_ProjMatrix = m_ProjMatrix.Inverse();
 	}
 
 	Maths::Vector3 Camera::GetUpDirection() const

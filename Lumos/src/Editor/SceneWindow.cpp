@@ -71,7 +71,7 @@ namespace Lumos
 
 #ifdef LUMOS_RENDER_API_VULKAN
 				if (Graphics::GraphicsContext::GetRenderAPI() == Graphics::RenderAPI::VULKAN)
-					proj[5] *= -1.0f;
+					proj.m11_ *= -1.0f;
 #endif
 
 				ImGuizmo::DrawGrid(view.values, proj.values, identityMatrix.values, m_Editor->GetGridSize());
