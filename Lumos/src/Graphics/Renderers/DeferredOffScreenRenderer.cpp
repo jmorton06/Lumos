@@ -174,12 +174,12 @@ namespace Lumos
                     maxScaling = Maths::Max(scale.y, maxScaling);
                     maxScaling = Maths::Max(scale.z, maxScaling);
 
-					////auto bb = mesh.GetMesh()->GetBoundingBox();
-							//bb->Transform(worldTransform);
-					auto inside = true;// f.IsInside(*bb);
+					auto bb = mesh.GetMesh()->GetBoundingBox();
+                    bb->Transform(worldTransform);
+					auto inside = m_Frustum.IsInside(*bb);
 					//DODGY
 
-					if (!inside)
+                    if (inside != Maths::Intersection::INSIDE)
 						continue;
 
                     auto meshPtr = mesh.GetMesh();
@@ -236,7 +236,7 @@ namespace Lumos
 			projView = projView.Transpose();
 			memcpy(m_VSSystemUniformBuffer + m_VSSystemUniformBufferOffsets[VSSystemUniformIndex_ProjectionViewMatrix], &projView, sizeof(Maths::Matrix4));
 
-			m_Frustum.Projected(projView);
+            m_Frustum.Define(camera->GetFOV(), camera->GetAspectRatio(), 1.0f, camera->GetNear(),camera->GetFar(), Maths::Matrix3x4(camera->GetViewMatrix().Transpose()));
 		}
 
 		void DeferredOffScreenRenderer::Submit(const RenderCommand& command)

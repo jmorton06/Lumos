@@ -133,13 +133,13 @@ namespace Lumos
 		Maths::Matrix4 proj = camera->GetProjectionMatrix();
 
 #ifdef LUMOS_RENDER_API_VULKAN
-        //if (Graphics::GraphicsContext::GetRenderAPI() == Graphics::RenderAPI::VULKAN)
-        //    proj[5] *= -1.0f;
+        if (Graphics::GraphicsContext::GetRenderAPI() == Graphics::RenderAPI::VULKAN)
+            proj.m11_ *= -1.0f;
 #endif
 
 		Maths::Matrix4 viewProj = proj * view;
 		Maths::Frustum f;
-		f.Projected(viewProj);
+		f.Define(camera->GetFOV(), camera->GetAspectRatio(), 1.0f, camera->GetNear(),camera->GetFar(), Maths::Matrix3x4(camera->GetViewMatrix().Transpose()));
 
 		auto& registry = scene->GetRegistry();
 		ShowComponentGizmo<Graphics::Light>(width, height, xpos, ypos, viewProj, f, registry);

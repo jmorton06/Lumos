@@ -215,7 +215,7 @@ namespace Lumos
 				m_Layer = i;
 
 				Maths::Frustum f;
-				f.Projected(m_ShadowProjView[i]);
+				f.Projected(m_ShadowProjView[i]); //TODO FIX
 
                 for(auto entity : group)
                 {

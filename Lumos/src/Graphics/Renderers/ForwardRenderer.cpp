@@ -93,9 +93,9 @@ namespace Lumos
                         maxScaling = Maths::Max(scale.y, maxScaling);
                         maxScaling = Maths::Max(scale.z, maxScaling);
 
-						////auto bb = mesh.GetMesh()->GetBoundingBox();
-						//bb->Transform(worldTransform);
-						auto inside = true;// f.IsInside(*bb);
+						auto bb = mesh.GetMesh()->GetBoundingBox();
+						bb->Transform(worldTransform);
+						auto inside = m_Frustum.IsInside(*bb);
 						//DODGY
 
 						if (!inside)
@@ -285,7 +285,8 @@ namespace Lumos
 			memcpy(m_VSSystemUniformBuffer + m_VSSystemUniformBufferOffsets[VSSystemUniformIndex_ProjectionMatrix], &proj, sizeof(Maths::Matrix4));
 			memcpy(m_VSSystemUniformBuffer + m_VSSystemUniformBufferOffsets[VSSystemUniformIndex_ViewMatrix], &camera->GetViewMatrix(), sizeof(Maths::Matrix4));
 
-			m_Frustum.Projected(proj * camera->GetViewMatrix());
+            m_Frustum.Define(camera->GetFOV(), camera->GetAspectRatio(), 1.0f, camera->GetNear(),camera->GetFar(), Maths::Matrix3x4(camera->GetViewMatrix().Transpose()));
+
 		}
 
 		void ForwardRenderer::Submit(const RenderCommand& command)
