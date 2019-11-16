@@ -662,6 +662,7 @@ namespace Lumos::Maths
         static Matrix4 Rotation(const Vector3& rot)
         {
             Matrix4 s;
+            UNIMPLEMENTED;
             //TODO
             return s;
         }

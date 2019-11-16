@@ -179,7 +179,7 @@ namespace Lumos
 		properties.usingSpecularMap = 0.0f;
 		matInstance->SetMaterialProperites(properties);
 		registry.assign<MaterialComponent>(pyramidMeshEntity, matInstance);
-		//registry.assign<Maths::Transform>(pyramidMeshEntity, Maths::Matrix4::RotationX(-90.0f) * Maths::Matrix4::Scale(halfdims));
+		registry.assign<Maths::Transform>(pyramidMeshEntity, Maths::Quaternion(-90.0f, 0.0f,0.0f).RotationMatrix4() * Maths::Matrix4::Scale(halfdims));
 		registry.assign<Hierarchy>(pyramidMeshEntity, pyramid);
 		registry.assign<MeshComponent>(pyramidMeshEntity, pyramidModel);
 
@@ -258,10 +258,8 @@ namespace Lumos
 		const Maths::Matrix4 temp = scene->GetCamera()->GetViewMatrix();
 		Maths::Matrix3 viewRotation = temp.ToMatrix3();
 		viewRotation = Maths::Matrix3::Inverse(viewRotation);
-		const Maths::Vector3 forward = viewRotation * Maths::Vector3(0.0f, 0.0f, -1.0f);
+		const Maths::Vector3 forward = viewRotation * Maths::Vector3::FORWARD;
 		registry.get<Physics3DComponent>(sphere).GetPhysicsObject()->SetLinearVelocity(forward * 30.0f);
-
-		//scene->AddEntity(sphere);
 	}
 
 	void CommonUtils::AddPyramid(Scene* scene)
@@ -285,7 +283,7 @@ namespace Lumos
 		const Maths::Matrix4 temp = scene->GetCamera()->GetViewMatrix();
 		Maths::Matrix3 viewRotation = temp.ToMatrix3();
 		viewRotation = Maths::Matrix3::Inverse(viewRotation);
-		const Maths::Vector3 forward = viewRotation * Maths::Vector3(0.0f, 0.0f, -1.0f);
+		const Maths::Vector3 forward = viewRotation * Maths::Vector3::FORWARD;
 
 		registry.get<Physics3DComponent>(sphere).GetPhysicsObject()->SetLinearVelocity(forward * 30.0f);
 	}

@@ -121,6 +121,7 @@ namespace Lumos::Maths
         projection_.m22_ = q;
         projection_.m23_ = r;
         projection_.m32_ = 1.0f;
+        
         return projection_;
     }
 

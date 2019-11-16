@@ -680,9 +680,6 @@ namespace Lumos::Maths
                 Lumos::Maths::IsInf(m23_));
         }
 
-
-        /// Return as string.
-
         /// Return hash value for HashSet & HashMap.
         unsigned ToHash() const
         {
