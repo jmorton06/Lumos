@@ -1,12 +1,6 @@
-
-
 #include "lmpch.h"
 
-#include "../Math/Matrix3x4.h"
-
-#include <cstdio>
-
-
+#include "Math/Matrix3x4.h"
 
 namespace Lumos::Maths
 {
