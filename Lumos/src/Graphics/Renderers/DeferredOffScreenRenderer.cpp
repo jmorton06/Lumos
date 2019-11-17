@@ -232,10 +232,9 @@ namespace Lumos
 			auto proj = camera->GetProjectionMatrix();
 
 			auto projView = proj * camera->GetViewMatrix();
-			projView = projView.Transpose();
 			memcpy(m_VSSystemUniformBuffer + m_VSSystemUniformBufferOffsets[VSSystemUniformIndex_ProjectionViewMatrix], &projView, sizeof(Maths::Matrix4));
 
-            m_Frustum.Define(camera->GetFOV(), camera->GetAspectRatio(), 1.0f, camera->GetNear(),camera->GetFar(), Maths::Matrix3x4(camera->GetViewMatrix().Transpose()));
+            m_Frustum.Define(camera->GetFOV(), camera->GetAspectRatio(), 1.0f, camera->GetNear(),camera->GetFar(), Maths::Matrix3x4(camera->GetViewMatrix()));
 		}
 
 		void DeferredOffScreenRenderer::Submit(const RenderCommand& command)
@@ -273,7 +272,7 @@ namespace Lumos
 			for (auto& command : m_CommandQueue)
 			{
 				Maths::Matrix4* modelMat = reinterpret_cast<Maths::Matrix4*>((reinterpret_cast<uint64_t>(m_UBODataDynamic.model) + (index * m_DynamicAlignment)));
-				command.transform = command.transform.Transpose();
+				command.transform = command.transform;
 				*modelMat = command.transform;
 				index++;
 			}

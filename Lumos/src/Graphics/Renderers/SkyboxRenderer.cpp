@@ -146,7 +146,6 @@ namespace Lumos
 			auto proj = camera->GetProjectionMatrix();
 
 			auto invViewProj = Maths::Matrix4::Inverse(proj * camera->GetViewMatrix());
-			invViewProj = invViewProj.Transpose();
 			memcpy(m_VSSystemUniformBuffer + m_VSSystemUniformBufferOffsets[VSSystemUniformIndex_InverseProjectionViewMatrix], &invViewProj, sizeof(Maths::Matrix4));
 		}
 
