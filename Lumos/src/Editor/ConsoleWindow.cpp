@@ -58,7 +58,8 @@ namespace Lumos
 		const float spacing = style.ItemInnerSpacing.x;
 
 		// Text change level
-		ImGui::AlignFirstTextHeightToWidgets();
+        ImGui::AlignTextToFramePadding();
+		//ImGui::AlignFirstTextHeightToWidgets();
 		ImGui::TextUnformatted("Display");
 
 		ImGui::SameLine(0.0f, 2.0f * spacing);
