@@ -375,6 +375,10 @@ namespace Lumos
 		if (Graphics::GraphicsContext::GetRenderAPI() == Graphics::RenderAPI::VULKAN)
 			proj.m11_ *= -1.0f;
 #endif
+        
+        view = view.Transpose();
+        proj = proj.Transpose();
+        
 		ImGuizmo::SetDrawlist();
 		ImGuizmo::SetOrthographic(Application::Instance()->GetSceneManager()->GetCurrentScene()->GetCamera()->Is2D());
 
@@ -383,6 +387,7 @@ namespace Lumos
 		if (transform != nullptr)
 		{
 			Maths::Matrix4 model = transform->GetWorldMatrix();
+            model = model.Transpose();
 
 			float snapAmount[3] = { m_SnapAmount  , m_SnapAmount , m_SnapAmount };
 			float delta[16];
@@ -393,12 +398,12 @@ namespace Lumos
 			{
 				if (static_cast<ImGuizmo::OPERATION>(m_ImGuizmoOperation) == ImGuizmo::OPERATION::SCALE)
 				{
-					auto mat = Maths::Matrix4(delta);
+					auto mat = Maths::Matrix4(delta).Transpose();
 					transform->SetLocalScale(transform->GetLocalScale() * mat.Scale());
 				}
 				else
 				{
-					auto mat = Maths::Matrix4(delta) * transform->GetLocalMatrix();
+                    auto mat = Maths::Matrix4(delta).Transpose() * transform->GetLocalMatrix();
 					transform->SetLocalTransform(mat);
 
 					auto physics2DComponent = registry.try_get<Physics2DComponent>(m_Selected);
