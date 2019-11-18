@@ -355,7 +355,7 @@ namespace Lumos
 
 				Maths::Vector3 lightDir = -light->m_Direction.ToVector3();
 				lightDir.Normalize();
-				Maths::Matrix4 lightViewMatrix = Maths::Matrix4();// ::BuildViewMatrix(frustumCenter - lightDir * -minExtents.z, frustumCenter);
+				Maths::Matrix4 lightViewMatrix = Maths::Quaternion::LookAt(frustumCenter - lightDir * -minExtents.z, frustumCenter).RotationMatrix4();
 
 				Maths::Matrix4 lightOrthoMatrix = Maths::Matrix4::Orthographic(minExtents.x, maxExtents.x, minExtents.y, maxExtents.y, -(maxExtents.z - minExtents.z), maxExtents.z - minExtents.z);
 

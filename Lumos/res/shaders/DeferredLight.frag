@@ -202,7 +202,7 @@ vec3 Lighting(vec3 F0, float shadow, vec3 wsPos)
 			float theta         = dot(L.xyz, light.direction.xyz);
 			float epsilon       = cutoffAngle - cutoffAngle * 0.9f;
 			float attenuation 	= ((theta - cutoffAngle) / epsilon); // atteunate when approaching the outer cone
-			attenuation         *=  light.radius / (pow(dist, 2.0) + 1.0);//saturate(1.0f - dist / light.range);
+			attenuation         *= light.radius / (pow(dist, 2.0) + 1.0);//saturate(1.0f - dist / light.range);
 			float intensity 	= attenuation * attenuation;
 			
 			// Erase light if there is no need to compute it
@@ -303,7 +303,7 @@ float Attentuate( vec3 lightData, float dist )
 float textureProj(vec4 P, vec2 offset, int cascadeIndex)
 {
 	float shadow = 1.0;
-	float bias = 0.001f; //0.005
+	float bias = 0.001; //0.005
 
 	vec4 shadowCoord = P / P.w;
 	if ( shadowCoord.z > -1.0 && shadowCoord.z < 1.0 )
@@ -348,7 +348,7 @@ float filterPCF(vec4 sc, int cascadeIndex)
 int CalculateCascadeIndex(vec3 wsPos)
 {
 	int cascadeIndex = 0;
-	vec4 viewPos = ubo.viewMatrix * vec4(wsPos, 1.0);
+	vec4 viewPos = vec4(wsPos, 1.0) * ubo.viewMatrix;
 
 	for(int i = 0; i < ubo.shadowCount - 1; ++i)
 	{
@@ -363,7 +363,7 @@ int CalculateCascadeIndex(vec3 wsPos)
 
 float CalculateShadow(vec3 wsPos, int cascadeIndex)
 {
-	vec4 shadowCoord = (biasMat * ubo.uShadowTransform[cascadeIndex]) * vec4(wsPos, 1.0);
+	vec4 shadowCoord = biasMat * vec4(wsPos, 1.0) * ubo.uShadowTransform[cascadeIndex];
 
     float shadow = 0;
 
@@ -409,7 +409,7 @@ void main()
     vec4 diffuse  = vec4(0.0);
     vec3 specular = vec3(0.0);
 
-	int cascadeIndex = CalculateCascadeIndex(wsPos);
+	int cascadeIndex = 0;//CalculateCascadeIndex(wsPos);
 	float shadow = CalculateShadow(wsPos,cascadeIndex);
 
 	vec3 Lr = 2.0 * material.NDotV * material.Normal - material.View;

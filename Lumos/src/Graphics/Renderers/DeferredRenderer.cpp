@@ -254,8 +254,8 @@ namespace Lumos
 
 				light.m_Position = trans.GetWorldPosition();
 
-				Maths::Vector3 forward = Maths::Vector3(0, 0, -1);
-				//Maths::Quaternion::RotatePointByQuaternion(trans.GetWorldOrientation(), forward);
+				Maths::Vector3 forward = Maths::Vector3::FORWARD;
+				forward = trans.GetWorldOrientation() * forward;
 
 				light.m_Direction = forward.Normalized();
 
