@@ -105,6 +105,70 @@ namespace Lumos::Maths
             i20, i21, i22, i23,
             i30, i31, i32, i33);
     }
+    
+    Matrix4 PerspectiveRH_ZO(float znear, float zfar, float aspect, float fov)
+    {
+        Matrix4 m;
+        const float h = 1.0f / tan(fov * M_DEGTORAD * 0.5f);
+        float neg_depth_r = 1.0f / (znear - zfar);
+
+        m.m00_ = h / aspect;
+        m.m11_ = -h;
+        m.m22_ = (zfar) * neg_depth_r;
+        m.m32_ = -1.0f;
+        m.m23_ = (znear * zfar) * neg_depth_r;
+        m.m33_ = 0.0f;
+
+        return m;
+    }
+
+    Matrix4 PerspectiveRH_NO(float znear, float zfar, float aspect, float fov)
+    {
+        Matrix4 m;
+        const float h = 1.0f / tan(fov * M_DEGTORAD * 0.5f);
+        float neg_depth_r = 1.0f / (znear - zfar);
+
+        m.m00_ = h / aspect;
+        m.m11_ = h;
+        m.m22_ = (zfar + znear) * neg_depth_r;
+        m.m32_ = -1.0f;
+        m.m23_ = 2.0f * (znear * zfar) * neg_depth_r;
+        m.m33_ = 0.0f;
+
+        return m;
+    }
+
+    Matrix4 PerspectiveLH_ZO(float znear, float zfar, float aspect, float fov)
+    {
+        Matrix4 m;
+        const float h = 1.0f / tan(fov * M_DEGTORAD * 0.5f);
+        float neg_depth_r = 1.0f / (znear - zfar);
+
+        m.m00_ = h / aspect;
+        m.m11_ = h;
+        m.m22_ = (zfar) * neg_depth_r;
+        m.m32_ = 1.0f;
+        m.m23_ = (znear * zfar) * neg_depth_r;
+        m.m33_ = 0.0f;
+
+        return m;
+    }
+
+    Matrix4 PerspectiveLH_NO(float znear, float zfar, float aspect, float fov)
+    {
+        Matrix4 m;
+        const float h = 1.0f / tan(fov * M_DEGTORAD * 0.5f);
+        float neg_depth_r = 1.0f / (znear - zfar);
+
+        m.m00_ = h / aspect;
+        m.m11_ = h;
+        m.m22_ = (zfar + znear) * neg_depth_r;
+        m.m32_ = 1.0f;
+        m.m23_ = 2.0f * (znear * zfar) * neg_depth_r;
+        m.m33_ = 0.0f;
+
+        return m;
+    }
 
     Matrix4 Matrix4::Perspective(float znear, float zfar, float aspect, float fov, float offsetX, float offsetY, float zoom)
     {
@@ -128,11 +192,11 @@ namespace Lumos::Maths
     Matrix4 Matrix4::Orthographic(float left, float right, float bottom, float top, float znear, float zfar, float offsetX, float offsetY, float zoom)
     {
         Matrix4 projection_;
-        float h = (1.0f / ((left - right) * 0.5f)) * zoom;
+        float h = (1.0f / ((top - bottom) * 0.5f)) * zoom;
         float w = h / (left-right) / (top - bottom);
         float q = 1.0f / zfar;
         float r = 0.0f;
-
+        
         projection_.m00_ = w;
         projection_.m03_ = offsetX * 2.0f;
         projection_.m11_ = h;
