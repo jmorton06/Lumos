@@ -292,7 +292,7 @@ void main()
 	float shadow = 0.0f;
 
 	int cascadeIndex = 0;
-	vec4 viewPos = ubo.viewMatrix * vec4(wsPos, 1.0);
+	vec4 viewPos = vec4(wsPos, 1.0) * ubo.viewMatrix;
 
 	for(int i = 0; i < ubo.shadowCount - 1; ++i)
 	{
@@ -309,7 +309,7 @@ void main()
 		//for (int layerIdx = 0; layerIdx < ubo.shadowCount; layerIdx++)
 		{
 			int layerIdx = cascadeIndex;
-			vec4 hcsShadow = ubo.uShadowTransform[layerIdx] * shadowWsPos;
+			vec4 hcsShadow = shadowWsPos * ubo.uShadowTransform[layerIdx];
 
 			if (abs(hcsShadow.x) <= 1.0f && abs(hcsShadow.y) <= 1.0f)
 			{

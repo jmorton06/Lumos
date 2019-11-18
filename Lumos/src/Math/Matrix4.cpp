@@ -106,18 +106,18 @@ namespace Lumos::Maths
             i30, i31, i32, i33);
     }
 
-    Matrix4 Matrix4::Perspective(float znear, float zfar, float aspect, float fov)
+    Matrix4 Matrix4::Perspective(float znear, float zfar, float aspect, float fov, float offsetX, float offsetY, float zoom)
     {
         Matrix4 projection_;
-        float h = (1.0f / tanf(fov * M_DEGTORAD * 0.5f));// *zoom_;
+        float h = (1.0f / tanf(fov * M_DEGTORAD * 0.5f)) * zoom;
         float w = h / aspect;
         float q = zfar / (zfar - znear);
         float r = -q * znear;
 
         projection_.m00_ = w;
-        projection_.m02_ = 0.0f;// projectionOffset_.x_ * 2.0f;
+        projection_.m02_ = offsetX * 2.0f;
         projection_.m11_ = h;
-        projection_.m12_ = 0.0f;// projectionOffset_.y_ * 2.0f;
+        projection_.m12_ = offsetY * 2.0f;
         projection_.m22_ = q;
         projection_.m23_ = r;
         projection_.m32_ = 1.0f;
@@ -125,18 +125,18 @@ namespace Lumos::Maths
         return projection_;
     }
 
-    Matrix4 Matrix4::Orthographic(float left, float right, float bottom, float top, float znear, float zfar)
+    Matrix4 Matrix4::Orthographic(float left, float right, float bottom, float top, float znear, float zfar, float offsetX, float offsetY, float zoom)
     {
         Matrix4 projection_;
-        float h = (1.0f / ((left - right) * 0.5f));// *zoom_;
+        float h = (1.0f / ((left - right) * 0.5f)) * zoom;
         float w = h / (left-right) / (top - bottom);
         float q = 1.0f / zfar;
         float r = 0.0f;
 
         projection_.m00_ = w;
-        projection_.m03_ = 0.0f;// projectionOffset_.x_ * 2.0f;
+        projection_.m03_ = offsetX * 2.0f;
         projection_.m11_ = h;
-        projection_.m13_ = 0.0f;// projectionOffset_.y_ * 2.0f;
+        projection_.m13_ = offsetY * 2.0f;
         projection_.m22_ = q;
         projection_.m23_ = r;
         projection_.m33_ = 1.0f;

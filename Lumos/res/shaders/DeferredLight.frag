@@ -409,7 +409,7 @@ void main()
     vec4 diffuse  = vec4(0.0);
     vec3 specular = vec3(0.0);
 
-	int cascadeIndex = 0;//CalculateCascadeIndex(wsPos);
+	int cascadeIndex = CalculateCascadeIndex(wsPos);
 	float shadow = CalculateShadow(wsPos,cascadeIndex);
 
 	vec3 Lr = 2.0 * material.NDotV * material.Normal - material.View;

@@ -667,8 +667,8 @@ namespace Lumos::Maths
             return s;
         }
 
-        static Matrix4 Perspective(float znear, float zfar, float aspect, float fov);
-        static Matrix4 Orthographic(float left, float right, float bottom, float top, float znear, float zfar);
+        static Matrix4 Perspective(float znear, float zfar, float aspect, float fov, float offsetX = 0.0f, float offsetY = 0.0f, float zoom = 1.0f);
+        static Matrix4 Orthographic(float left, float right, float bottom, float top, float znear, float zfar, float offsetX = 0.0f, float offsetY = 0.0f, float zoom = 1.0f);
 
         /// Return whether is NaN.
         bool IsNaN() const {
