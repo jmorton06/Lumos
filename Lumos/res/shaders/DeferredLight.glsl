@@ -323,7 +323,7 @@ void main()
 	}
 	else
 	{
-		vec4 shadowCoord = (biasMat * ubo.uShadowTransform[cascadeIndex]) * vec4(wsPos, 1.0);
+		vec4 shadowCoord = biasMat * (vec4(wsPos, 1.0) * ubo.uShadowTransform[cascadeIndex]);
 
 		const int enablePCF = 0;
 		if (enablePCF == 1)

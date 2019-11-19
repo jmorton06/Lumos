@@ -155,8 +155,6 @@ vec3 ImportanceSampleGGX(vec2 Xi, float Roughness, vec3 N)
 	return TangentX * H.x + TangentY * H.y + N * H.z;
 }
 
-float TotalWeight = 0.0;
-
 vec3 RotateVectorAboutY(float angle, vec3 vec)
 {
     angle = radians(angle);
@@ -406,13 +404,11 @@ void main()
 	material.NDotV 	   = max(dot(material.Normal, material.View), 0.0);
 
     vec3 eye      = normalize(ubo.cameraPosition.xyz - wsPos);
-    vec4 diffuse  = vec4(0.0);
-    vec3 specular = vec3(0.0);
 
 	int cascadeIndex = CalculateCascadeIndex(wsPos);
 	float shadow = CalculateShadow(wsPos,cascadeIndex);
 
-	vec3 Lr = 2.0 * material.NDotV * material.Normal - material.View;
+	//vec3 Lr = 2.0 * material.NDotV * material.Normal - material.View;
 
 	// Fresnel reflectance, metals use albedo
 	vec3 F0 = mix(Fdielectric, material.Albedo.xyz, material.Specular.x);
