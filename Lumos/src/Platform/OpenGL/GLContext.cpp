@@ -210,7 +210,7 @@ namespace Lumos
 			LUMOS_LOG_INFO(OPENGLLOG"glDebugMessageCallback not available");
 #endif
 #endif
-			//Maths::Matrix4::SetUpCoordSystem(false, false);
+			Maths::Matrix4::SetUpCoordSystem(false, false);
 		}
 
 		GLContext::~GLContext() = default;

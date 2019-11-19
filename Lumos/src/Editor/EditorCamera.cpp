@@ -23,8 +23,8 @@ namespace Lumos
 			if (Input::GetInput()->GetMouseHeld(InputCode::MouseKey::ButtonRight))
 			{
 				m_RotateVelocity = m_RotateVelocity + Maths::Vector2((xpos - m_PreviousCurserPos.x), (ypos - m_PreviousCurserPos.y)) *  m_MouseSensitivity;
-				m_Pitch += m_RotateVelocity.y;
-				m_Yaw += m_RotateVelocity.x;
+				m_Pitch -= m_RotateVelocity.y;
+				m_Yaw -= m_RotateVelocity.x;
 
 				if (m_Yaw < 0)
 				{
@@ -60,12 +60,12 @@ namespace Lumos
 		{
 			if (Input::GetInput()->GetKeyHeld(InputCode::Key::W))
 			{
-				m_Velocity += GetForwardDirection() * m_CameraSpeed;
+				m_Velocity -= GetForwardDirection() * m_CameraSpeed;
 			}
 
 			if (Input::GetInput()->GetKeyHeld(InputCode::Key::S))
 			{
-				m_Velocity -= GetForwardDirection() * m_CameraSpeed;
+				m_Velocity += GetForwardDirection() * m_CameraSpeed;
 			}
 
 			if (Input::GetInput()->GetKeyHeld(InputCode::Key::A))

@@ -8,6 +8,16 @@
 #include <emmintrin.h>
 #endif
 
+#define CLIP_CONTROL_ZO_BIT		(1 << 0) // ZERO_TO_ONE
+#define CLIP_CONTROL_NO_BIT		(1 << 1) // NEGATIVE_ONE_TO_ONE
+#define CLIP_CONTROL_LH_BIT		(1 << 2) // LEFT_HANDED, For DirectX, Metal, Vulkan
+#define CLIP_CONTROL_RH_BIT		(1 << 3) // RIGHT_HANDED, For OpenGL, default
+
+#define CLIP_CONTROL_LH_ZO (CLIP_CONTROL_LH_BIT | CLIP_CONTROL_ZO_BIT)
+#define CLIP_CONTROL_LH_NO (CLIP_CONTROL_LH_BIT | CLIP_CONTROL_NO_BIT)
+#define CLIP_CONTROL_RH_ZO (CLIP_CONTROL_RH_BIT | CLIP_CONTROL_ZO_BIT)
+#define CLIP_CONTROL_RH_NO (CLIP_CONTROL_RH_BIT | CLIP_CONTROL_NO_BIT)
+
 namespace Lumos::Maths
 {
     class Matrix3x4;
@@ -16,6 +26,9 @@ namespace Lumos::Maths
     class Matrix4
     {
     public:
+		static int CONFIG_CLIP_CONTROL;
+		static void SetUpCoordSystem(bool LeftHanded, bool forceZeroToOne);
+
         /// Construct an identity matrix.
         Matrix4() noexcept
     #ifndef Lumos_SSE

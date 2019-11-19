@@ -63,16 +63,16 @@ namespace Lumos::Maths
         Define(lNear, lFar, transform);
     }
 
-    void Frustum::Define(const Vector3& near, const Vector3& far, const Matrix3x4& transform)
+    void Frustum::Define(const Vector3& lNear, const Vector3& lFar, const Matrix3x4& transform)
     {
-        vertices_[0] = transform * near;
-        vertices_[1] = transform * Vector3(near.x, -near.y, near.z);
-        vertices_[2] = transform * Vector3(-near.x, -near.y, near.z);
-        vertices_[3] = transform * Vector3(-near.x, near.y, near.z);
-        vertices_[4] = transform * far;
-        vertices_[5] = transform * Vector3(far.x, -far.y, far.z);
-        vertices_[6] = transform * Vector3(-far.x, -far.y, far.z);
-        vertices_[7] = transform * Vector3(-far.x, far.y, far.z);
+        vertices_[0] = transform * lNear;
+        vertices_[1] = transform * Vector3(lNear.x, -lNear.y, lNear.z);
+        vertices_[2] = transform * Vector3(-lNear.x, -lNear.y, lNear.z);
+        vertices_[3] = transform * Vector3(-lNear.x, lNear.y, lNear.z);
+        vertices_[4] = transform * lFar;
+        vertices_[5] = transform * Vector3(lFar.x, -lFar.y, lFar.z);
+        vertices_[6] = transform * Vector3(-lFar.x, -lFar.y, lFar.z);
+        vertices_[7] = transform * Vector3(-lFar.x, lFar.y, lFar.z);
 
         UpdatePlanes();
     }
@@ -112,23 +112,23 @@ namespace Lumos::Maths
         nearZ = Max(nearZ, 0.0f);
         farZ = Max(farZ, nearZ);
         float halfViewSize = orthoSize * 0.5f / zoom;
-        Vector3 near, far;
+        Vector3 lNear, lFar;
 
-        near.z = nearZ;
-        far.z = farZ;
-        far.y = near.y = halfViewSize;
-        far.x = near.x = near.y * aspectRatio;
+		lNear.z = nearZ;
+		lFar.z = farZ;
+		lFar.y = lNear.y = halfViewSize;
+		lFar.x = lNear.x = lNear.y * aspectRatio;
 
-        Define(near, far, transform);
+        Define(lNear, lFar, transform);
     }
 
-    void Frustum::DefineSplit(const Matrix4& projection, float near, float far)
+    void Frustum::DefineSplit(const Matrix4& projection, float lNear, float lFar)
     {
         Matrix4 projInverse = projection.Inverse();
 
         // Figure out depth values for near & far
-        Vector4 nearTemp = projection * Vector4(0.0f, 0.0f, near, 1.0f);
-        Vector4 farTemp = projection * Vector4(0.0f, 0.0f, far, 1.0f);
+        Vector4 nearTemp = projection * Vector4(0.0f, 0.0f, lNear, 1.0f);
+        Vector4 farTemp = projection * Vector4(0.0f, 0.0f, lFar, 1.0f);
         float nearZ = nearTemp.z / nearTemp.w;
         float farZ = farTemp.z / farTemp.w;
 

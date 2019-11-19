@@ -215,7 +215,7 @@ namespace Lumos
 				m_Layer = i;
 
 				Maths::Frustum f;
-				f.Projected(m_ShadowProjView[i]); //TODO FIX
+				f.Projected(m_ShadowProjView[i]);
 
                 for(auto entity : group)
                 {
@@ -231,12 +231,12 @@ namespace Lumos
                         maxScaling = Maths::Max(scale.y, maxScaling);
                         maxScaling = Maths::Max(scale.z, maxScaling);
 
-						////auto bb = mesh.GetMesh()->GetBoundingBox();
-						//bb->Transform(worldTransform);
-						auto inside = true;// f.IsInside(*bb);
+						auto bb = mesh.GetMesh()->GetBoundingBox();
+						bb->Transform(worldTransform);
+						auto inside = f.IsInside(*bb);
 
-                        if (!inside)
-                            continue;
+						if (inside != Maths::Intersection::INSIDE)
+							continue;
             
                         SubmitMesh(mesh.GetMesh(), nullptr, worldTransform, Maths::Matrix4());
 					}
@@ -312,7 +312,6 @@ namespace Lumos
 					Maths::Vector3(-1.0f, -1.0f,  1.0f),
 				};
 
-				scene->GetCamera()->BuildViewMatrix();
 				Maths::Matrix4 cameraProj = scene->GetCamera()->GetProjectionMatrix();
 
 				const Maths::Matrix4 invCam = Maths::Matrix4::Inverse(cameraProj * scene->GetCamera()->GetViewMatrix());
@@ -361,7 +360,7 @@ namespace Lumos
 
 				// Store split distance and matrix in cascade
 				m_SplitDepth[i] = Maths::Vector4((scene->GetCamera()->GetNear() + splitDist * clipRange) * -1.0f);
-				m_ShadowProjView[i] = lightOrthoMatrix * lightViewMatrix;
+				m_ShadowProjView[i] = lightOrthoMatrix * lightViewMatrix.Inverse();
 			}
 #ifdef THREAD_CASCADE_GEN
 			);

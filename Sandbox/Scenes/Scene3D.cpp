@@ -23,7 +23,7 @@ void Scene3D::OnInit()
 
 	LoadModels();
 
-	m_pCamera = new EditorCamera(-196.0f, 10.0f, Maths::Vector3(14.0f, 16.0f, 46.0f), 60.0f, 0.1f, 1000.0f, (float) m_ScreenWidth / (float) m_ScreenHeight);
+	m_pCamera = new EditorCamera(-20.0f, -40.0f, Maths::Vector3(-31.0f, 12.0f, 51.0f), 60.0f, 0.1f, 1000.0f, (float) m_ScreenWidth / (float) m_ScreenHeight);
 
 	m_SceneBoundingRadius = 20.0f;
 
@@ -135,7 +135,7 @@ void Scene3D::LoadModels()
 	pendulumHolderPhysics->SetFriction(0.8f);
 	pendulumHolderPhysics->SetIsAtRest(true);
 	pendulumHolderPhysics->SetInverseMass(1.0);
-	pendulumHolderPhysics->SetInverseInertia(pendulumHolderPhysics->ColumnlisionShape()->BuildInverseInertia(1.0f));
+	pendulumHolderPhysics->SetInverseInertia(pendulumHolderPhysics->GetCollisionShape()->BuildInverseInertia(1.0f));
 	pendulumHolderPhysics->SetIsStatic(true);
 	pendulumHolderPhysics->SetPosition(Maths::Vector3(12.5f, 15.0f, 20.0f));
 	m_Registry.assign<Physics3DComponent>(pendulumHolder,pendulumHolderPhysics);
@@ -150,7 +150,7 @@ void Scene3D::LoadModels()
 	pendulumPhysics->SetFriction(0.8f);
 	pendulumPhysics->SetIsAtRest(true);
 	pendulumPhysics->SetInverseMass(1.0);
-	pendulumPhysics->SetInverseInertia(pendulumPhysics->ColumnlisionShape()->BuildInverseInertia(1.0f));
+	pendulumPhysics->SetInverseInertia(pendulumPhysics->GetCollisionShape()->BuildInverseInertia(1.0f));
 	pendulumPhysics->SetIsStatic(false);
 	pendulumPhysics->SetPosition(Maths::Vector3(12.5f, 10.0f, 20.0f));
 	m_Registry.assign<Physics3DComponent>(pendulum, pendulumPhysics);

@@ -38,7 +38,7 @@ namespace Lumos
 		return inertia;
 	}
 
-	void SphereCollisionShape::ColumnlisionAxes(const PhysicsObject3D* currentObject, std::vector<Maths::Vector3>* out_axes) const
+	void SphereCollisionShape::GetCollisionAxes(const PhysicsObject3D* currentObject, std::vector<Maths::Vector3>* out_axes) const
 	{
 		/* There is infinite edges so handle seperately */
 	}
@@ -55,7 +55,7 @@ namespace Lumos
 		if (currentObject == nullptr)
 			transform = m_LocalTransform;
 		else
-			transform = currentObject->GetWorldSpaceTransform() * m_LocalTransform;
+			transform = m_LocalTransform * currentObject->GetWorldSpaceTransform();
 
 		Maths::Vector3 pos = transform.Translation();
 

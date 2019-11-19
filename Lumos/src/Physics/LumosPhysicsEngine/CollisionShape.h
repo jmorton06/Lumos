@@ -41,7 +41,7 @@ namespace Lumos
 		//<----- USED BY COLLISION DETECTION ----->
 		// Get all possible collision axes
 		//	- This is a list of all the face normals ignoring any duplicates and parallel vectors.
-		virtual void ColumnlisionAxes(
+		virtual void GetCollisionAxes(
 			const PhysicsObject3D* currentObject,
 			std::vector<Maths::Vector3>* out_axes) const = 0;
 

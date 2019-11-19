@@ -5,6 +5,34 @@
 
 namespace Lumos::Maths
 {
+	int Matrix4::CONFIG_CLIP_CONTROL = CLIP_CONTROL_RH_NO;
+
+	void Matrix4::SetUpCoordSystem(bool LeftHanded, bool forceZeroToOne)
+	{
+		if (forceZeroToOne)
+		{
+			if (LeftHanded)
+			{
+				CONFIG_CLIP_CONTROL = CLIP_CONTROL_LH_ZO;
+			}
+			else
+			{
+				CONFIG_CLIP_CONTROL = CLIP_CONTROL_RH_ZO;
+			}
+		}
+		else
+		{
+			if (LeftHanded)
+			{
+				CONFIG_CLIP_CONTROL = CLIP_CONTROL_LH_NO;
+			}
+			else
+			{
+				CONFIG_CLIP_CONTROL = CLIP_CONTROL_RH_NO;
+			}
+		}
+	}
+
     const Matrix4 Matrix4::ZERO(
         0.0f, 0.0f, 0.0f, 0.0f,
         0.0f, 0.0f, 0.0f, 0.0f,
@@ -106,11 +134,14 @@ namespace Lumos::Maths
             i30, i31, i32, i33);
     }
     
-    Matrix4 PerspectiveRH_ZO(float znear, float zfar, float aspect, float fov)
+    Matrix4 PerspectiveRH_ZO(float znear, float zfar, float aspect, float fov, float offsetX = 0.0f, float offsetY = 0.0f, float zoom = 1.0f)
     {
         Matrix4 m;
-        const float h = 1.0f / tan(fov * M_DEGTORAD * 0.5f);
+        const float h = zoom / tan(fov * M_DEGTORAD * 0.5f);
         float neg_depth_r = 1.0f / (znear - zfar);
+
+		m.m02_ = offsetX * 2.0f;
+		m.m12_ = offsetY * 2.0f;
 
         m.m00_ = h / aspect;
         m.m11_ = -h;
@@ -122,11 +153,14 @@ namespace Lumos::Maths
         return m;
     }
 
-    Matrix4 PerspectiveRH_NO(float znear, float zfar, float aspect, float fov)
+    Matrix4 PerspectiveRH_NO(float znear, float zfar, float aspect, float fov, float offsetX = 0.0f, float offsetY = 0.0f, float zoom = 1.0f)
     {
         Matrix4 m;
-        const float h = 1.0f / tan(fov * M_DEGTORAD * 0.5f);
+        const float h = zoom / tan(fov * M_DEGTORAD * 0.5f);
         float neg_depth_r = 1.0f / (znear - zfar);
+
+		m.m02_ = offsetX * 2.0f;
+		m.m12_ = offsetY * 2.0f;
 
         m.m00_ = h / aspect;
         m.m11_ = h;
@@ -138,11 +172,14 @@ namespace Lumos::Maths
         return m;
     }
 
-    Matrix4 PerspectiveLH_ZO(float znear, float zfar, float aspect, float fov)
+    Matrix4 PerspectiveLH_ZO(float znear, float zfar, float aspect, float fov, float offsetX = 0.0f, float offsetY = 0.0f, float zoom = 1.0f)
     {
         Matrix4 m;
-        const float h = 1.0f / tan(fov * M_DEGTORAD * 0.5f);
+        const float h = zoom / tan(fov * M_DEGTORAD * 0.5f);
         float neg_depth_r = 1.0f / (znear - zfar);
+
+		m.m02_ = offsetX * 2.0f;
+		m.m12_ = offsetY * 2.0f;
 
         m.m00_ = h / aspect;
         m.m11_ = h;
@@ -154,11 +191,14 @@ namespace Lumos::Maths
         return m;
     }
 
-    Matrix4 PerspectiveLH_NO(float znear, float zfar, float aspect, float fov)
+    Matrix4 PerspectiveLH_NO(float znear, float zfar, float aspect, float fov, float offsetX = 0.0f, float offsetY = 0.0f, float zoom = 1.0f)
     {
         Matrix4 m;
-        const float h = 1.0f / tan(fov * M_DEGTORAD * 0.5f);
+        const float h = zoom / tan(fov * M_DEGTORAD * 0.5f);
         float neg_depth_r = 1.0f / (znear - zfar);
+
+		m.m02_ = offsetX * 2.0f;
+		m.m12_ = offsetY * 2.0f;
 
         m.m00_ = h / aspect;
         m.m11_ = h;
@@ -172,39 +212,119 @@ namespace Lumos::Maths
 
     Matrix4 Matrix4::Perspective(float znear, float zfar, float aspect, float fov, float offsetX, float offsetY, float zoom)
     {
-        Matrix4 projection_;
-        float h = (1.0f / tanf(fov * M_DEGTORAD * 0.5f)) * zoom;
-        float w = h / aspect;
-        float q = zfar / (zfar - znear);
-        float r = -q * znear;
+		if (CONFIG_CLIP_CONTROL == CLIP_CONTROL_LH_ZO)
+			return PerspectiveLH_ZO(znear, zfar, aspect, fov, offsetX, offsetY, zoom);
+		else if (CONFIG_CLIP_CONTROL == CLIP_CONTROL_LH_NO)
+			return PerspectiveLH_NO(znear, zfar, aspect, fov, offsetX, offsetY, zoom);
+		else if (CONFIG_CLIP_CONTROL == CLIP_CONTROL_RH_ZO)
+			return PerspectiveRH_ZO(znear, zfar, aspect, fov, offsetX, offsetY, zoom);
+		else if (CONFIG_CLIP_CONTROL == CLIP_CONTROL_RH_NO)
+			return PerspectiveRH_NO(znear, zfar, aspect, fov, offsetX, offsetY, zoom);
 
-        projection_.m00_ = w;
-        projection_.m02_ = offsetX * 2.0f;
-        projection_.m11_ = h;
-        projection_.m12_ = offsetY * 2.0f;
-        projection_.m22_ = q;
-        projection_.m23_ = r;
-        projection_.m32_ = 1.0f;
-        
-        return projection_;
+		return PerspectiveRH_NO(znear, zfar, aspect, fov, offsetX, offsetY, zoom);
     }
+
+	Matrix4 OrthographicRH_ZO(float znear, float zfar, float right, float left, float top, float bottom, float offsetX = 0.0f, float offsetY = 0.0f, float zoom = 1.0f)
+	{
+		Matrix4 m;
+		float x_r = 1.0f / (right - left);
+		float y_r = zoom / (top - bottom);
+		float z_r = 1.0f / (zfar - znear);
+
+		m.m02_ = offsetX * 2.0f;
+		m.m12_ = offsetY * 2.0f;
+
+		m.m00_ = 2.0f * x_r;
+		m.m11_ = -2.0f * y_r;
+		m.m22_ = -1.0f * z_r;
+
+		m.m03_ = -(right + left) * x_r;
+		m.m13_ = -(top + bottom) * y_r;
+		m.m23_ = -(znear)* z_r;
+		m.m33_ = 1.0f;
+
+
+
+		return m;
+	}
+
+	Matrix4 OrthographicRH_NO(float znear, float zfar, float right, float left, float top, float bottom, float offsetX = 0.0f, float offsetY = 0.0f, float zoom = 1.0f)
+	{
+		Matrix4 m;
+		float x_r = 1.0f / (right - left);
+		float y_r = zoom / (top - bottom);
+		float z_r = 1.0f / (zfar - znear);
+
+		m.m02_ = offsetX * 2.0f;
+		m.m12_ = offsetY * 2.0f;
+
+		m.m00_ = 2.0f * x_r;
+		m.m11_ = 2.0f * y_r;
+		m.m22_ = -2.0f * z_r;
+
+		m.m03_ = -(right + left) * x_r;
+		m.m13_ = -(top + bottom) * y_r;
+		m.m23_ = -(zfar + znear) * z_r;
+		m.m33_ = 1.0f;
+
+		return m;
+	}
+
+	Matrix4 OrthographicLH_ZO(float znear, float zfar, float right, float left, float top, float bottom, float offsetX = 0.0f, float offsetY = 0.0f, float zoom = 1.0f)
+	{
+		Matrix4 m;
+		float x_r = 1.0f / (right - left);
+		float y_r = zoom / (top - bottom);
+		float z_r = 1.0f / (zfar - znear);
+
+		m.m02_ = offsetX * 2.0f;
+		m.m12_ = offsetY * 2.0f;
+
+		m.m00_ = 2.0f * x_r;
+		m.m11_ = 2.0f * y_r;
+		m.m22_ = -1.0f * z_r;
+
+		m.m03_ = -(right + left) * x_r;
+		m.m13_ = -(top + bottom) * y_r;
+		m.m23_ = -(znear)* z_r;
+		m.m33_ = 1.0f;
+
+		return m;
+	}
+
+	Matrix4 OrthographicLH_NO(float znear, float zfar, float right, float left, float top, float bottom, float offsetX = 0.0f, float offsetY = 0.0f, float zoom = 1.0f)
+	{
+		Matrix4 m;
+		float x_r = 1.0f / (right - left);
+		float y_r = zoom / (top - bottom);
+		float z_r = 1.0f / (zfar - znear);
+
+		m.m02_ = offsetX * 2.0f;
+		m.m12_ = offsetY * 2.0f;
+
+		m.m00_ = 2.0f * x_r;
+		m.m11_ = 2.0f * y_r;
+		m.m22_ = -1.0f * z_r;
+
+		m.m03_ = -(right + left) * x_r;
+		m.m13_ = -(top + bottom) * y_r;
+		m.m23_ = -(znear)* z_r;
+		m.m33_ = 1.0f;
+
+		return m;
+	}
 
     Matrix4 Matrix4::Orthographic(float left, float right, float bottom, float top, float znear, float zfar, float offsetX, float offsetY, float zoom)
     {
-        Matrix4 projection_;
-        float h = (1.0f / ((top - bottom) * 0.5f)) * zoom;
-        float w = h / (left-right) / (top - bottom);
-        float q = 1.0f / zfar;
-        float r = 0.0f;
-        
-        projection_.m00_ = w;
-        projection_.m03_ = offsetX * 2.0f;
-        projection_.m11_ = h;
-        projection_.m13_ = offsetY * 2.0f;
-        projection_.m22_ = q;
-        projection_.m23_ = r;
-        projection_.m33_ = 1.0f;
+		if (CONFIG_CLIP_CONTROL == CLIP_CONTROL_LH_ZO)
+			return OrthographicLH_ZO(znear, zfar, right, left, top, bottom, offsetX, offsetY, zoom);
+		else if (CONFIG_CLIP_CONTROL == CLIP_CONTROL_LH_NO)
+			return OrthographicLH_NO(znear, zfar, right, left, top, bottom, offsetX, offsetY, zoom);
+		else if (CONFIG_CLIP_CONTROL == CLIP_CONTROL_RH_ZO)
+			return OrthographicRH_ZO(znear, zfar, right, left, top, bottom, offsetX, offsetY, zoom);
+		else if (CONFIG_CLIP_CONTROL == CLIP_CONTROL_RH_NO)
+			return OrthographicRH_NO(znear, zfar, right, left, top, bottom, offsetX, offsetY, zoom);
 
-        return projection_;
+		return OrthographicRH_NO(znear, zfar, right, left, top, bottom, offsetX, offsetY, zoom);
     }
 }

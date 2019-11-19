@@ -51,7 +51,7 @@ namespace Lumos
 		return inertia;
 	}
 
-	void CuboidCollisionShape::ColumnlisionAxes(const PhysicsObject3D* currentObject, std::vector<Maths::Vector3>* out_axes) const
+	void CuboidCollisionShape::GetCollisionAxes(const PhysicsObject3D* currentObject, std::vector<Maths::Vector3>* out_axes) const
 	{
 		if (out_axes)
 		{
@@ -66,7 +66,7 @@ namespace Lumos
 	{
 		if (out_edges)
 		{
-			Maths::Matrix4 transform = currentObject->GetWorldSpaceTransform() * Maths::Matrix4::Scale(Maths::Vector3(m_CuboidHalfDimensions));
+			Maths::Matrix4 transform = m_LocalTransform * currentObject->GetWorldSpaceTransform();
 			for (unsigned int i = 0; i < m_CubeHull->GetNumEdges(); ++i)
 			{
 				const HullEdge& edge = m_CubeHull->GetEdge(i);
@@ -85,7 +85,7 @@ namespace Lumos
 		if (currentObject == nullptr)
 			wsTransform = m_LocalTransform;
 		else
-			wsTransform = currentObject->GetWorldSpaceTransform() * Maths::Matrix4::Scale(m_CuboidHalfDimensions);
+			wsTransform = m_LocalTransform * currentObject->GetWorldSpaceTransform();
 
 		Maths::Matrix3 invNormalMatrix = Maths::Matrix3::Transpose(wsTransform.ToMatrix3());
 		Maths::Vector3 local_axis = invNormalMatrix * axis;
@@ -106,7 +106,7 @@ namespace Lumos
 		if (currentObject == nullptr)
 			wsTransform = m_LocalTransform;
 		else
-			wsTransform = currentObject->GetWorldSpaceTransform() * Maths::Matrix4::Scale(m_CuboidHalfDimensions);
+			wsTransform = m_LocalTransform * currentObject->GetWorldSpaceTransform();
 
 		Maths::Matrix3 invNormalMatrix = wsTransform.ToMatrix3().Inverse();
 		Maths::Matrix3 normalMatrix = invNormalMatrix.Transpose();
@@ -181,7 +181,7 @@ namespace Lumos
 
 	void CuboidCollisionShape::DebugDraw(const PhysicsObject3D* currentObject) const
 	{
-		Maths::Matrix4 transform = currentObject->GetWorldSpaceTransform() * Maths::Matrix4::Scale(m_CuboidHalfDimensions);
+		Maths::Matrix4 transform = m_LocalTransform * currentObject->GetWorldSpaceTransform();
 
 		if (m_CubeHull->GetNumVertices() == 0)
 		{

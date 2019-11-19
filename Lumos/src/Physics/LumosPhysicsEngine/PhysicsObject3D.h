@@ -38,10 +38,10 @@ namespace Lumos
 		const Maths::Vector3&	 GetAngularVelocity()	  const { return m_AngularVelocity; }
 		const Maths::Vector3&	 GetTorque()			  const { return m_Torque; }
 		const Maths::Matrix3&	 GetInverseInertia()	  const { return m_InvInertia; }
-		const Ref<CollisionShape>&	ColumnlisionShape()	  const { return m_CollisionShape; }
+		const Ref<CollisionShape>&	GetCollisionShape()	  const { return m_CollisionShape; }
 		const Maths::Matrix4&	 GetWorldSpaceTransform() const;	//Built from scratch or returned from cached value
 
-		Maths::BoundingBox GetWorldSpaceAABB() const;
+		Maths::BoundingBox GetWorldSpaceAABB();
 
 		void WakeUp() override;
 		void SetIsAtRest(const bool isAtRest) override;

@@ -133,7 +133,9 @@ namespace Lumos
 	bool Scene::OnWindowResize(WindowResizeEvent& e)
 	{
 		if (m_pCamera)
-			m_pCamera->UpdateProjectionMatrix(static_cast<float>(e.GetWidth()), static_cast<float>(e.GetHeight()));
+		{
+			m_pCamera->SetAspectRatio(static_cast<float>(e.GetWidth()) / static_cast<float>(e.GetHeight()));
+		}
 
 		return false;
 	}

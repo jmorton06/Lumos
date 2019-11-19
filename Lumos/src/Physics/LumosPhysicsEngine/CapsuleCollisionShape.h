@@ -15,7 +15,7 @@ namespace Lumos
 		//Collision Shape Functionality
 		virtual Maths::Matrix3 BuildInverseInertia(float invMass) const override;
 
-		virtual void ColumnlisionAxes(const PhysicsObject3D* currentObject, std::vector<Maths::Vector3>* out_axes) const override;
+		virtual void GetCollisionAxes(const PhysicsObject3D* currentObject, std::vector<Maths::Vector3>* out_axes) const override;
 		virtual void GetEdges(const PhysicsObject3D* currentObject, std::vector<CollisionEdge>* out_edges) const override;
 
 		virtual void GetMinMaxVertexOnAxis(const PhysicsObject3D* currentObject, const Maths::Vector3& axis, Maths::Vector3* out_min, Maths::Vector3* out_max) const override;

@@ -63,7 +63,7 @@ namespace Lumos
 		return inertia;
 	}
 
-	void PyramidCollisionShape::ColumnlisionAxes(const PhysicsObject3D* currentObject, std::vector<Maths::Vector3>* out_axes) const
+	void PyramidCollisionShape::GetCollisionAxes(const PhysicsObject3D* currentObject, std::vector<Maths::Vector3>* out_axes) const
 	{
 		if (out_axes)
 		{
@@ -80,7 +80,7 @@ namespace Lumos
 	{
 		if (out_edges)
 		{
-			Maths::Matrix4 transform = currentObject->GetWorldSpaceTransform() * Maths::Matrix4::Scale(Maths::Vector3(m_PyramidHalfDimensions));
+			Maths::Matrix4 transform = m_LocalTransform * currentObject->GetWorldSpaceTransform();
 			for (unsigned int i = 0; i < m_PyramidHull->GetNumEdges(); ++i)
 			{
 				const HullEdge& edge = m_PyramidHull->GetEdge(i);
@@ -99,7 +99,7 @@ namespace Lumos
 		if (currentObject == nullptr)
 			wsTransform = m_LocalTransform;
 		else
-			wsTransform = currentObject->GetWorldSpaceTransform() * Maths::Matrix4::Scale(m_PyramidHalfDimensions);
+			wsTransform = m_LocalTransform * currentObject->GetWorldSpaceTransform();
 
 		const Maths::Matrix3 invNormalMatrix = wsTransform.ToMatrix3().Transpose();
 		const Maths::Vector3 local_axis = invNormalMatrix * axis;
@@ -118,7 +118,7 @@ namespace Lumos
 		if (currentObject == nullptr)
 			wsTransform = m_LocalTransform;
 		else
-			wsTransform = currentObject->GetWorldSpaceTransform() * Maths::Matrix4::Scale(m_PyramidHalfDimensions);
+			wsTransform = m_LocalTransform * currentObject->GetWorldSpaceTransform();
 
 		const Maths::Matrix3 invNormalMatrix = wsTransform.ToMatrix3().Inverse();
 		const Maths::Matrix3 normalMatrix = invNormalMatrix.Transpose();
@@ -194,7 +194,7 @@ namespace Lumos
 
 	void PyramidCollisionShape::DebugDraw(const PhysicsObject3D* currentObject) const
 	{
-		const Maths::Matrix4 transform = currentObject->GetWorldSpaceTransform() * Maths::Matrix4::Scale(m_PyramidHalfDimensions);
+		const Maths::Matrix4 transform = m_LocalTransform * currentObject->GetWorldSpaceTransform();
 
 		m_PyramidHull->DebugDraw(transform);
 	}

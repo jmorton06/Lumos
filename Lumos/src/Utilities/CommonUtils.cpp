@@ -79,7 +79,7 @@ namespace Lumos
 			else
 			{
 				testPhysics->SetCollisionShape(CreateRef<SphereCollisionShape>(radius));
-				testPhysics->SetInverseInertia(testPhysics->ColumnlisionShape()->BuildInverseInertia(inverse_mass));
+				testPhysics->SetInverseInertia(testPhysics->GetCollisionShape()->BuildInverseInertia(inverse_mass));
 			}
 
 			registry.assign<Physics3DComponent>(pSphere, testPhysics);
@@ -138,7 +138,7 @@ namespace Lumos
 			else
 			{
 				testPhysics->SetCollisionShape(CreateRef<CuboidCollisionShape>(halfdims));
-				testPhysics->SetInverseInertia(testPhysics->ColumnlisionShape()->BuildInverseInertia(inverse_mass));
+				testPhysics->SetInverseInertia(testPhysics->GetCollisionShape()->BuildInverseInertia(inverse_mass));
 			}
 
 			registry.assign<Physics3DComponent>(cube, testPhysics);
@@ -199,7 +199,7 @@ namespace Lumos
 			else
 			{
 				testPhysics->SetCollisionShape(CreateRef<PyramidCollisionShape>(halfdims));
-				testPhysics->SetInverseInertia(testPhysics->ColumnlisionShape()->BuildInverseInertia(inverse_mass));
+				testPhysics->SetInverseInertia(testPhysics->GetCollisionShape()->BuildInverseInertia(inverse_mass));
 			}
 
 			registry.assign<Physics3DComponent>(pyramid, testPhysics);
@@ -254,11 +254,7 @@ namespace Lumos
 						RandomNumberGenerator32::Rand(0.0f, 1.0f),
 						1.0f));
 
-		scene->GetCamera()->BuildViewMatrix();
-		const Maths::Matrix4 temp = scene->GetCamera()->GetViewMatrix();
-		Maths::Matrix3 viewRotation = temp.ToMatrix3();
-		viewRotation = Maths::Matrix3::Inverse(viewRotation);
-		const Maths::Vector3 forward = viewRotation * Maths::Vector3::FORWARD;
+		const Maths::Vector3 forward = -scene->GetCamera()->GetForwardDirection();
 		registry.get<Physics3DComponent>(sphere).GetPhysicsObject()->SetLinearVelocity(forward * 30.0f);
 	}
 
@@ -279,11 +275,7 @@ namespace Lumos
 						RandomNumberGenerator32::Rand(0.0f, 1.0f),
 						1.0f));
 
-		scene->GetCamera()->BuildViewMatrix();
-		const Maths::Matrix4 temp = scene->GetCamera()->GetViewMatrix();
-		Maths::Matrix3 viewRotation = temp.ToMatrix3();
-		viewRotation = Maths::Matrix3::Inverse(viewRotation);
-		const Maths::Vector3 forward = viewRotation * Maths::Vector3::FORWARD;
+		const Maths::Vector3 forward = -scene->GetCamera()->GetForwardDirection();
 
 		registry.get<Physics3DComponent>(sphere).GetPhysicsObject()->SetLinearVelocity(forward * 30.0f);
 	}

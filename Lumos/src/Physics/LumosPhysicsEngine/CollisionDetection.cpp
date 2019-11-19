@@ -27,9 +27,6 @@ namespace Lumos
 
 	bool CollisionDetection::CheckSphereCollision(const PhysicsObject3D* obj1, const PhysicsObject3D* obj2, const CollisionShape* shape1, const CollisionShape* shape2, CollisionData* out_coldata) const
 	{
-		//const SphereCollisionShape* sphere1 = reinterpret_cast<const SphereCollisionShape*>(shape1);
-		//const SphereCollisionShape* sphere2 = reinterpret_cast<const SphereCollisionShape*>(shape2);
-
 		CollisionData colData;
 		Maths::Vector3 axis = obj2->GetPosition() - obj1->GetPosition();
 		axis.Normalize();
@@ -67,7 +64,7 @@ namespace Lumos
 		const PhysicsObject3D* complexObj;
 		const PhysicsObject3D* sphereObj;
 
-		if (obj1->ColumnlisionShape()->GetType() == CollisionShapeType::CollisionSphere) 
+		if (obj1->GetCollisionShape()->GetType() == CollisionShapeType::CollisionSphere)
 		{
 			sphereObj = obj1;
 			complexShape = shape2;
@@ -85,7 +82,7 @@ namespace Lumos
 		best_colData.penetration = -FLT_MAX;
 
 		std::vector<Maths::Vector3> possibleCollisionAxes;
-		complexShape->ColumnlisionAxes(complexObj, &possibleCollisionAxes);
+		complexShape->GetCollisionAxes(complexObj, &possibleCollisionAxes);
 
 		std::vector<CollisionEdge> complex_shape_edges;
 
@@ -120,8 +117,8 @@ namespace Lumos
 
 		std::vector<Maths::Vector3> possibleCollisionAxes;
 		std::vector<Maths::Vector3> tempPossibleCollisionAxes;
-		shape1->ColumnlisionAxes(obj1, &possibleCollisionAxes);
-		shape2->ColumnlisionAxes(obj2, &tempPossibleCollisionAxes);
+		shape1->GetCollisionAxes(obj1, &possibleCollisionAxes);
+		shape2->GetCollisionAxes(obj2, &tempPossibleCollisionAxes);
 		for (Maths::Vector3& temp : tempPossibleCollisionAxes)
 			AddPossibleCollisionAxis(temp, &possibleCollisionAxes);
 
@@ -313,9 +310,6 @@ namespace Lumos
 
 	Maths::Vector3 CollisionDetection::PlaneEdgeIntersection(const Maths::Plane& plane, const Maths::Vector3& start, const Maths::Vector3& end) const
 	{
-		//float start_dist = start.Dot(plane.GetNormalized()) + plane.GetDistance();
-		//float end_dist = end.Dot(plane.GetNormalized()) + plane.GetDistance();
-
 		Maths::Vector3 ab = end - start;
 
 		float ab_p = plane.normal_.DotProduct(ab);

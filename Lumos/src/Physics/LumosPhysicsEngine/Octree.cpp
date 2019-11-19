@@ -33,7 +33,7 @@ namespace Lumos
 
 		for (const auto& physicsObject : objects)
         {
-            if (physicsObject && physicsObject->ColumnlisionShape())
+            if (physicsObject && physicsObject->GetCollisionShape())
 			{
 				m_RootNode->boundingBox.Merge(physicsObject->GetWorldSpaceAABB());
 				m_RootNode->physicsObjects.emplace_back(physicsObject);

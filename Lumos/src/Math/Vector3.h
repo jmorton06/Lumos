@@ -5,7 +5,7 @@
 namespace Lumos::Maths
 {
     /// Three-dimensional vector with integer values.
-    class  IntVector3
+    class IntVector3
     {
     public:
         /// Construct a zero vector.

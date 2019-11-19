@@ -27,12 +27,11 @@ namespace Lumos
 	{
 	}
 
-	Maths::BoundingBox PhysicsObject3D::GetWorldSpaceAABB() const
+	Maths::BoundingBox PhysicsObject3D::GetWorldSpaceAABB()
 	{
 		if (m_wsAabbInvalidated)
 		{
-			const auto wm = GetWorldSpaceTransform();
-			//m_localBoundingBox.Transform(wm);
+			m_wsAabb = m_localBoundingBox.Transformed(GetWorldSpaceTransform());
 			m_wsAabbInvalidated = false;
 		}
 
@@ -53,7 +52,7 @@ namespace Lumos
 	{
 		if (m_wsTransformInvalidated)
 		{
-			m_wsTransform = m_Orientation.RotationMatrix();
+			m_wsTransform = m_Orientation.RotationMatrix4();
 			m_wsTransform.SetTranslation(m_Position);
 
 			m_wsTransformInvalidated = false;

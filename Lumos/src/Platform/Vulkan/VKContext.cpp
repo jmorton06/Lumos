@@ -94,7 +94,7 @@ namespace Lumos
 			CreateInstance();
 			SetupDebugCallback();
 
-			//Maths::Matrix4::SetUpCoordSystem(false, true);
+			Maths::Matrix4::SetUpCoordSystem(false, true);
 		}
 
 		VKContext::~VKContext()

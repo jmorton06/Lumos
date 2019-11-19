@@ -1,5 +1,6 @@
 #include "lmpch.h"
 #include "Camera.h"
+#include "ImGui/ImGuiHelpers.h"
 #include <imgui/imgui.h>
 
 namespace Lumos
@@ -17,6 +18,7 @@ namespace Lumos
 		, m_Near(Near)
 		, m_Far(Far)
 		, m_Roll(0.0f)
+		, m_Orthographic(false)
 	{
 		Camera::BuildViewMatrix();
 	};
@@ -33,8 +35,14 @@ namespace Lumos
 		, m_Near(Near)
 		, m_Far(Far)
 		, m_Roll(0.0f)
+		, m_Orthographic(false)
 	{
 		Camera::BuildViewMatrix();
+	}
+
+	Camera::Camera(float aspectRatio, float scale)
+		: m_Scale(scale), m_AspectRatio(aspectRatio), m_Orthographic(true)
+	{
 	}
 
 	void Camera::UpdateScroll(float offset, float dt)
@@ -50,12 +58,16 @@ namespace Lumos
 
 	void Camera::BuildViewMatrix()
 	{
-		m_ViewMatrix = Maths::Quaternion::EulerAnglesToQuaternion(-m_Pitch, -m_Yaw, -m_Roll).RotationMatrix4() * Maths::Matrix4::Translation(-m_Position);
+		m_ViewMatrix = Maths::Matrix4::Translation(m_Position) * Maths::Quaternion::EulerAnglesToQuaternion(m_Pitch, m_Yaw, m_Roll).RotationMatrix4();
+		m_ViewMatrix = m_ViewMatrix.Inverse();
 	};
 
-	void Camera::UpdateProjectionMatrix(float width, float height)
+	void Camera::UpdateProjectionMatrix()
 	{
-		m_ProjMatrix = Maths::Matrix4::Perspective(m_Near, m_Far, width / height, m_Fov);
+		if(m_Orthographic)
+			m_ProjMatrix = Maths::Matrix4::Orthographic(-m_AspectRatio * m_Scale, m_AspectRatio * m_Scale, -m_Scale, m_Scale, m_Near, m_Far, m_ProjectionOffset.x, m_ProjectionOffset.y, m_Zoom);
+		else
+			m_ProjMatrix = Maths::Matrix4::Perspective(m_Near, m_Far, m_AspectRatio, m_Fov, m_ProjectionOffset.x, m_ProjectionOffset.y, m_Zoom);
 	}
 
 	Maths::Vector3 Camera::GetUpDirection() const
@@ -84,6 +96,40 @@ namespace Lumos
 		return m_FocalPoint - GetForwardDirection() * m_Distance;
 	}
 
+	const Maths::Frustum& Camera::GetFrustum()
+	{
+		if (m_ProjectionDirty)
+			UpdateProjectionMatrix();
+
+		if (m_FrustumDirty)
+		{
+			if (customProjection_)
+				m_Frustum.Define(m_ProjMatrix * m_ViewMatrix);
+			else
+			{
+				if (!m_Orthographic)
+					m_Frustum.Define(m_Fov, m_AspectRatio, m_Zoom, GetNear(), GetFar(), Maths::Matrix3x4(m_ViewMatrix));
+				else
+					m_Frustum.DefineOrtho(m_Fov, m_AspectRatio, m_Zoom, GetNear(), GetFar(), Maths::Matrix3x4(m_ViewMatrix));
+			}
+
+			m_FrustumDirty = false;
+		}
+
+		return m_Frustum;
+
+	}
+
+	const Maths::Matrix4& Camera::GetProjectionMatrix() 
+	{ 
+		if (m_ProjectionDirty)
+		{
+			UpdateProjectionMatrix();
+			m_ProjectionDirty = false;
+		}
+		return m_ProjMatrix; 
+	}
+
 	Maths::Quaternion Camera::GetOrientation() const
 	{
 		return Maths::Quaternion::EulerAnglesToQuaternion(m_Pitch, m_Yaw, m_Roll);
@@ -97,61 +143,16 @@ namespace Lumos
 			ImGui::Columns(2);
 			ImGui::Separator();
 
-			ImGui::AlignTextToFramePadding();
-			ImGui::TextUnformatted("Position");
-			ImGui::NextColumn();
-			ImGui::PushItemWidth(-1);
-			ImGui::DragFloat3("##Position", &m_Position.x);
-			ImGui::PopItemWidth();
-			ImGui::NextColumn();
-
-			ImGui::AlignTextToFramePadding();
-			ImGui::TextUnformatted("Aspect");
-			ImGui::NextColumn();
-			ImGui::PushItemWidth(-1);
-			ImGui::DragFloat("##Aspect", &m_AspectRatio);
-			ImGui::PopItemWidth();
-			ImGui::NextColumn();
-
-			ImGui::AlignTextToFramePadding();
-			ImGui::TextUnformatted("Pitch");
-			ImGui::NextColumn();
-			ImGui::PushItemWidth(-1);
-			ImGui::DragFloat("##Pitch", &m_Pitch);
-			ImGui::PopItemWidth();
-			ImGui::NextColumn();
-
-			ImGui::AlignTextToFramePadding();
-			ImGui::TextUnformatted("Yaw");
-			ImGui::NextColumn();
-			ImGui::PushItemWidth(-1);
-			ImGui::DragFloat("##Yaw", &m_Yaw);
-			ImGui::PopItemWidth();
-			ImGui::NextColumn();
-
-			ImGui::AlignTextToFramePadding();
-			ImGui::TextUnformatted("Fov");
-			ImGui::NextColumn();
-			ImGui::PushItemWidth(-1);
-			ImGui::DragFloat("##Fov", &m_Fov);
-			ImGui::PopItemWidth();
-			ImGui::NextColumn();
-
-			ImGui::AlignTextToFramePadding();
-			ImGui::TextUnformatted("Near");
-			ImGui::NextColumn();
-			ImGui::PushItemWidth(-1);
-			ImGui::DragFloat("##Near", &m_Near);
-			ImGui::PopItemWidth();
-			ImGui::NextColumn();
-
-			ImGui::AlignTextToFramePadding();
-			ImGui::TextUnformatted("Far");
-			ImGui::NextColumn();
-			ImGui::PushItemWidth(-1);
-			ImGui::DragFloat("##Far", &m_Far);
-			ImGui::PopItemWidth();
-			ImGui::NextColumn();
+			ImGuiHelpers::Property("Position", m_Position);
+			ImGuiHelpers::Property("Aspect", m_AspectRatio);
+			ImGuiHelpers::Property("Pitch", m_Pitch);
+			ImGuiHelpers::Property("Yaw", m_Yaw);
+			ImGuiHelpers::Property("Roll", m_Roll);
+			ImGuiHelpers::Property("Fov", m_Fov);
+			ImGuiHelpers::Property("Near", m_Near);
+			ImGuiHelpers::Property("Far", m_Far);
+			ImGuiHelpers::Property("Zoom", m_Zoom, 0.0f, 100.0f);
+			ImGuiHelpers::Property("Offset", m_ProjectionOffset);
 
 			ImGui::Columns(1);
 			ImGui::Separator();

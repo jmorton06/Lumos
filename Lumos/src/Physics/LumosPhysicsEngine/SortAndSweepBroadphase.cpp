@@ -44,19 +44,8 @@ namespace Lumos
 
 			for (auto iit = it + 1; iit != objects.end(); ++iit)
 			{
-				// Skip pairs of two at rest objects
-				if ((*it)->GetIsAtRest() && (*iit)->GetIsAtRest())
-					continue;
-
-				// Skip pairs of two at static objects
-				if ((*it)->GetIsStatic() && (*iit)->GetIsStatic())
-					continue;
-
-				// Skip pairs of one static and one at rest
-				if ((*it)->GetIsAtRest() && (*iit)->GetIsStatic())
-					continue;
-
-				if ((*it)->GetIsStatic() && (*iit)->GetIsAtRest())
+				// Skip pairs of two at rest/static objects
+				if (((*it)->GetIsAtRest() || (*it)->GetIsStatic()) && ((*iit)->GetIsAtRest() || (*iit)->GetIsStatic()))
 					continue;
 
 				float testBoxLeft = (*iit)->GetWorldSpaceAABB().min_[m_axisIndex];

@@ -67,13 +67,10 @@ namespace Lumos
         
         UpdateScroll(Input::GetInput()->GetScrollOffset(), dt);
 		Input::GetInput()->SetScrollOffset(0.0f);
-
-		m_ProjMatrix = Maths::Matrix4::Orthographic(-m_AspectRatio * m_Scale, m_AspectRatio * m_Scale, -m_Scale, m_Scale, -1.0f, 1.0f);
 	}
 
-	void Camera2D::UpdateProjectionMatrix(float width, float height)
+	void Camera2D::UpdateProjectionMatrix()
 	{
-		m_AspectRatio = width / height;
 		m_ProjMatrix = Maths::Matrix4::Orthographic(-m_AspectRatio * m_Scale, m_AspectRatio * m_Scale, -m_Scale, m_Scale, -1.0f, 1.0f);
 	}
 

@@ -39,7 +39,7 @@ namespace Lumos::Maths
         void
             Define(float fov, float aspectRatio, float zoom, float nearZ, float farZ, const Matrix3x4& transform = Matrix3x4::IDENTITY);
         /// Define with near and far dimension vectors and a transform matrix.
-        void Define(const Vector3& near, const Vector3& far, const Matrix3x4& transform = Matrix3x4::IDENTITY);
+        void Define(const Vector3& lNear, const Vector3& lFar, const Matrix3x4& transform = Matrix3x4::IDENTITY);
         /// Define with a bounding box and a transform matrix.
         void Define(const BoundingBox& box, const Matrix3x4& transform = Matrix3x4::IDENTITY);
         /// Define from a projection or view-projection matrix.
@@ -48,7 +48,7 @@ namespace Lumos::Maths
         void DefineOrtho
             (float orthoSize, float aspectRatio, float zoom, float nearZ, float farZ, const Matrix3x4& transform = Matrix3x4::IDENTITY);
         /// Define a split (limited) frustum from a projection matrix, with near & far distances specified.
-        void DefineSplit(const Matrix4& projection, float near, float far);
+        void DefineSplit(const Matrix4& projection, float lNear, float lFar);
         /// Transform by a 3x3 matrix.
         void Transform(const Matrix3& transform);
         /// Transform by a 3x4 matrix.

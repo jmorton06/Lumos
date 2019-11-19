@@ -473,4 +473,14 @@ namespace Lumos::Maths
             return q;
         }
     };
+
+	_FORCE_INLINE_ Quaternion operator*(const Vector3& v, const Quaternion& rhs)
+	{
+		return Quaternion(
+			(rhs.w * v.x) + (v.y * rhs.z) - (v.z *rhs.y),
+			(rhs.w * v.y) + (v.z * rhs.x) - (v.x * rhs.z),
+			(rhs.w * v.z) + (v.x * rhs.y) - (v.y * rhs.x),
+			-(rhs.x * v.x) - (rhs.y * v.y) - (rhs.z * v.z)
+		);
+	}
 }
