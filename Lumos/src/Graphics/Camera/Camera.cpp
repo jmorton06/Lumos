@@ -49,7 +49,7 @@ namespace Lumos
 	{
 		if (offset != 0.0f)
 		{
-			m_ZoomVelocity += dt * offset * 10.0f;
+			m_ZoomVelocity -= dt * offset * 10.0f;
 		}
 
 		m_Position += GetForwardDirection() * m_ZoomVelocity;
@@ -143,16 +143,18 @@ namespace Lumos
 			ImGui::Columns(2);
 			ImGui::Separator();
 
-			ImGuiHelpers::Property("Position", m_Position);
-			ImGuiHelpers::Property("Aspect", m_AspectRatio);
-			ImGuiHelpers::Property("Pitch", m_Pitch);
-			ImGuiHelpers::Property("Yaw", m_Yaw);
-			ImGuiHelpers::Property("Roll", m_Roll);
-			ImGuiHelpers::Property("Fov", m_Fov);
-			ImGuiHelpers::Property("Near", m_Near);
-			ImGuiHelpers::Property("Far", m_Far);
+            ImGuiHelpers::Property("Position", m_Position, -1000.0f, 1000.0f);
+			ImGuiHelpers::Property("Aspect", m_AspectRatio, 0.0f, 10.0f);
+			ImGuiHelpers::Property("Pitch", m_Pitch, -360.0f, 360.0f);
+			ImGuiHelpers::Property("Yaw", m_Yaw, -360.0f, 360.0f);
+			ImGuiHelpers::Property("Roll", m_Roll, -360.0f, 360.0f);
+			ImGuiHelpers::Property("Fov", m_Fov, 1.0f, 120.0f);
+			ImGuiHelpers::Property("Near", m_Near, 0.0f, 10.0f);
+			ImGuiHelpers::Property("Far", m_Far, 10.0f, 10000.0f);
 			ImGuiHelpers::Property("Zoom", m_Zoom, 0.0f, 100.0f);
-			ImGuiHelpers::Property("Offset", m_ProjectionOffset);
+			ImGuiHelpers::Property("Offset", m_ProjectionOffset, 0.0f, 10.0f);
+            
+            m_ProjectionDirty = true;
 
 			ImGui::Columns(1);
 			ImGui::Separator();
