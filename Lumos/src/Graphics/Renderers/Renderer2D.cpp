@@ -253,6 +253,8 @@ namespace Lumos
 			auto projView = camera->GetProjectionMatrix() * camera->GetViewMatrix();
 
 			memcpy(m_VSSystemUniformBuffer, &projView, sizeof(Maths::Matrix4));
+            
+            m_Frustum = camera->GetFrustum();
 		}
 
 		void Renderer2D::Present()
@@ -315,6 +317,12 @@ namespace Lumos
             for(auto entity: group)
             {
                 const auto &[sprite, trans] = group.get<Graphics::Sprite, Maths::Transform>(entity);
+                
+//                auto inside = m_Frustum.IsInside(trans.GetWorldPosition());
+//                
+//                if (inside == Maths::Intersection::OUTSIDE)
+//                    continue;
+
                 Submit(reinterpret_cast<Renderable2D*>(&sprite), trans.GetWorldMatrix());
             };
 

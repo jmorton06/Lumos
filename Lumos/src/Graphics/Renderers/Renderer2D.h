@@ -88,7 +88,8 @@ namespace Lumos
 			bool m_RenderToGBufferTexture = false;
 			u32 m_CurrentBufferID = 0;
 			Maths::Vector4 m_ClearColour;
-
+            
+            Maths::Frustum m_Frustum;
 		};
 	}
 }
