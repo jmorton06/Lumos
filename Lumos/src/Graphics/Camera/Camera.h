@@ -98,7 +98,7 @@ namespace Lumos
 		Maths::Matrix4 m_ViewMatrix;
 
 		Maths::Frustum m_Frustum;
-		bool m_FrustumDirty = false;
+		bool m_FrustumDirty = true;
 		bool m_ProjectionDirty = false;
 		bool m_ViewDirty = false;
 		bool customProjection_ = false;

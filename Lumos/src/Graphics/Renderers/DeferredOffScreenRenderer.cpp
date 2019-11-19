@@ -176,9 +176,9 @@ namespace Lumos
 
 					auto bb = mesh.GetMesh()->GetBoundingBox();
                     bb->Transform(worldTransform);
-					auto inside = m_Frustum.IsInside(*bb);
+					auto inside = m_Frustum.IsInsideFast(*bb);
 
-                    if (inside != Maths::Intersection::INSIDE)
+                    if (inside == Maths::Intersection::OUTSIDE)
 						continue;
 
                     auto meshPtr = mesh.GetMesh();
@@ -234,7 +234,7 @@ namespace Lumos
 			auto projView = proj * camera->GetViewMatrix();
 			memcpy(m_VSSystemUniformBuffer + m_VSSystemUniformBufferOffsets[VSSystemUniformIndex_ProjectionViewMatrix], &projView, sizeof(Maths::Matrix4));
 
-            m_Frustum.Define(camera->GetFOV(), camera->GetAspectRatio(), 1.0f, camera->GetNear(),camera->GetFar(), Maths::Matrix3x4(camera->GetViewMatrix()));
+            m_Frustum = camera->GetFrustum();//Define(camera->GetFOV(), camera->GetAspectRatio(), 1.0f, camera->GetNear(),camera->GetFar(), Maths::Matrix3x4(camera->GetViewMatrix()));
 		}
 
 		void DeferredOffScreenRenderer::Submit(const RenderCommand& command)
@@ -281,6 +281,7 @@ namespace Lumos
 
 		void DeferredOffScreenRenderer::Present()
 		{
+            LUMOS_LOG_INFO("Number of rendered meshes : {0}", m_CommandQueue.size());
             for (u32 i = 0; i < static_cast<u32>(m_CommandQueue.size()); i++)
             {
                 auto command = m_CommandQueue[i];
