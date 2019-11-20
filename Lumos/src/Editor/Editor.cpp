@@ -450,7 +450,7 @@ namespace Lumos
 				camera->SetPosition(view.Translation());
 #else
 				float pos[3] = { camera->GetPosition().x, camera->GetPosition().y, camera->GetPosition().z };
-				float rot[3] = { camera->GetPitch(), camera->GetYaw(), 0.0f };
+				float rot[3] = { camera->GetPitch(), camera->GetYaw(), camera->GetRoll() };
 				float scale[3] = { 1.0f, 1.0f, 1.0f };
 				float view[16];
 				ImGuizmo::RecomposeMatrixFromComponents(pos, rot, scale, view);
@@ -468,6 +468,7 @@ namespace Lumos
 
 				camera->SetPitch(rot[0]);
 				camera->SetYaw(rot[1]);
+                camera->SetRoll(rot[2]);
 				camera->SetPosition({ pos[0], pos[1], pos[2] });
 #endif
 				

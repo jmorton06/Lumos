@@ -11,9 +11,10 @@
 namespace Lumos
 {
     Camera2D::Camera2D(float aspectRatio, float scale) : Camera(45.0f, 0.0f, 1.0f, 1.0f)
-		, m_Scale(scale), m_AspectRatio(aspectRatio)
+		, m_AspectRatio(aspectRatio)
 	{
 		Application::Instance()->GetWindow()->HideMouse(false);
+        m_Scale = scale;
 		m_ProjMatrix = Maths::Matrix4::Orthographic(-m_AspectRatio * m_Scale, m_AspectRatio * m_Scale, -m_Scale, m_Scale, -1.0f, 1.0f);
 		m_Position = Maths::Vector3(0.0f);
 		m_Velocity = Maths::Vector3(0.0f);
@@ -78,16 +79,6 @@ namespace Lumos
 	{
 		m_ViewMatrix = Maths::Matrix4::Translation(-m_Position);
 		m_ViewMatrix = m_ViewMatrix.Transpose();
-	}
-
-	float Camera2D::GetScale() const
-	{
-		return m_Scale;
-	}
-
-	void Camera2D::SetScale(float scale)
-	{
-		m_Scale = scale;
 	}
     
     void Camera2D::UpdateScroll(float offset, float dt)

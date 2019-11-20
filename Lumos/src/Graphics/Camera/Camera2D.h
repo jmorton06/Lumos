@@ -17,15 +17,11 @@ namespace Lumos
 		virtual void UpdateProjectionMatrix() override;
 		void BuildViewMatrix() override;
         
-        void  SetScale(float scale);
-        float GetScale() const;
-        
         void UpdateScroll(float offset, float dt) override;
 		void OnImGui() override;
 		bool Is2D() const override { return true; }
 
     private:
-		float m_Scale;
 		float m_AspectRatio;
 	};
 }
