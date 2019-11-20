@@ -1,7 +1,7 @@
 #include "lmpch.h"
 #include "CapsuleCollisionShape.h"
 #include "PhysicsObject3D.h"
-#include "Math/Matrix3.h"
+#include "Maths/Matrix3.h"
 
 
 namespace Lumos
@@ -57,7 +57,7 @@ namespace Lumos
 		if (currentObject == nullptr)
 			transform = m_LocalTransform;
 		else
-			transform = m_LocalTransform * currentObject->GetWorldSpaceTransform();
+			transform = currentObject->GetWorldSpaceTransform() * m_LocalTransform;
 
 		Maths::Vector3 pos = transform.Translation();
 

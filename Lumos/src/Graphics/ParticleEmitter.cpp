@@ -5,7 +5,7 @@
 #include "Mesh.h"
 #include "API/Texture.h"
 #include "Utilities/RandomNumberGenerator.h"
-#include "Math/BoundingBox.h"
+#include "Maths/BoundingBox.h"
 
 namespace Lumos
 {

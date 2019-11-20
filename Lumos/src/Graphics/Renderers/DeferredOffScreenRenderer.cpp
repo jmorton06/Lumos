@@ -168,15 +168,9 @@ namespace Lumos
                 {
                     auto& worldTransform = trans.GetWorldMatrix();
 
-                    float maxScaling = 0.0f;
-                    auto scale = worldTransform.Scale();
-                    maxScaling = Maths::Max(scale.x, maxScaling);
-                    maxScaling = Maths::Max(scale.y, maxScaling);
-                    maxScaling = Maths::Max(scale.z, maxScaling);
-
 					auto bb = mesh.GetMesh()->GetBoundingBox();
-                    bb->Transform(worldTransform);
-					auto inside = m_Frustum.IsInsideFast(*bb);
+                    auto bbCopy = bb->Transformed(worldTransform);
+					auto inside = m_Frustum.IsInsideFast(bbCopy);
 
                     if (inside == Maths::Intersection::OUTSIDE)
 						continue;
@@ -184,7 +178,7 @@ namespace Lumos
                     auto meshPtr = mesh.GetMesh();
                     auto materialComponent = registry.try_get<MaterialComponent>(entity);
                     Material* material = nullptr;
-                    if (materialComponent && /* materialComponent->GetActive() &&*/ materialComponent->GetMaterial())
+                    if (materialComponent && materialComponent->GetActive() && materialComponent->GetMaterial())
                     {
                         material = materialComponent->GetMaterial().get();
 
@@ -234,7 +228,7 @@ namespace Lumos
 			auto projView = proj * camera->GetViewMatrix();
 			memcpy(m_VSSystemUniformBuffer + m_VSSystemUniformBufferOffsets[VSSystemUniformIndex_ProjectionViewMatrix], &projView, sizeof(Maths::Matrix4));
 
-            m_Frustum = camera->GetFrustum();//Define(camera->GetFOV(), camera->GetAspectRatio(), 1.0f, camera->GetNear(),camera->GetFar(), Maths::Matrix3x4(camera->GetViewMatrix()));
+            m_Frustum = camera->GetFrustum();
 		}
 
 		void DeferredOffScreenRenderer::Submit(const RenderCommand& command)
@@ -281,7 +275,6 @@ namespace Lumos
 
 		void DeferredOffScreenRenderer::Present()
 		{
-            LUMOS_LOG_INFO("Number of rendered meshes : {0}", m_CommandQueue.size());
             for (u32 i = 0; i < static_cast<u32>(m_CommandQueue.size()); i++)
             {
                 auto command = m_CommandQueue[i];

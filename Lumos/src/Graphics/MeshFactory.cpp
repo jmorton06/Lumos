@@ -240,7 +240,7 @@ namespace Lumos
 			buffer->SetData(24 * sizeof(Vertex), data);
 
             Ref<Maths::BoundingBox> BoundingBox = CreateRef<Maths::BoundingBox>();
-            for (int i = 0; i < 4; i++)
+            for (int i = 0; i < 8; i++)
             {
                 BoundingBox->Merge(data[i].Position);
             }
@@ -498,7 +498,7 @@ namespace Lumos
 
 			Ref<IndexBuffer> ib;
 			ib.reset(IndexBuffer::Create(indices.data(), static_cast<u32>(indices.size())));
-			Ref<Maths::BoundingBox> BoundingBox = CreateRef<Maths::BoundingBox>();
+			Ref<Maths::BoundingBox> BoundingBox = CreateRef<Maths::BoundingBox>(Maths::Vector3(-0.5f), Maths::Vector3(0.5f));
 
 			return lmnew Mesh(va, ib, BoundingBox);
 		}

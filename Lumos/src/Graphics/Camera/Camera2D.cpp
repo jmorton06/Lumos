@@ -77,6 +77,7 @@ namespace Lumos
 	void Camera2D::BuildViewMatrix()
 	{
 		m_ViewMatrix = Maths::Matrix4::Translation(-m_Position);
+		m_ViewMatrix = m_ViewMatrix.Transpose();
 	}
 
 	float Camera2D::GetScale() const

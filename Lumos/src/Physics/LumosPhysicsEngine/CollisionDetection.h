@@ -4,7 +4,6 @@
 #include "CollisionShape.h"
 #include "Manifold.h"
 #include "Utilities/TSingleton.h"
-#include "Maths/MathsUtilities.h"
 
 #define CALL_MEMBER_FN(instance, ptrToMemberFn)  ((instance).*(ptrToMemberFn))
 

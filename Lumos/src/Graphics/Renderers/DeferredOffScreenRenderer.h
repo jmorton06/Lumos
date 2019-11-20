@@ -1,6 +1,6 @@
 #pragma once
 #include "Renderer3D.h"
-#include "Math/Frustum.h"
+#include "Maths/Frustum.h"
 
 namespace Lumos
 {

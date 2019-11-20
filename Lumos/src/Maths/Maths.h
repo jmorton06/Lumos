@@ -1,17 +1,17 @@
 #pragma once
 
 #include "lmpch.h"
-#include "Math/Matrix3.h"
-#include "Math/Matrix4.h"
-#include "Math/Plane.h"
-#include "Math/Quaternion.h"
-#include "Math/Vector2.h"
-#include "Math/Vector3.h"
-#include "Math/Vector4.h"
-#include "Math/BoundingBox.h"
-#include "Math/Sphere.h"
-#include "Math/Frustum.h"
-#include "Math/MathDefs.h"
+#include "Maths/Matrix3.h"
+#include "Maths/Matrix4.h"
+#include "Maths/Plane.h"
+#include "Maths/Quaternion.h"
+#include "Maths/Vector2.h"
+#include "Maths/Vector3.h"
+#include "Maths/Vector4.h"
+#include "Maths/BoundingBox.h"
+#include "Maths/Sphere.h"
+#include "Maths/Frustum.h"
+#include "Maths/MathDefs.h"
 
 namespace Lumos
 {

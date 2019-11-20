@@ -104,12 +104,13 @@ namespace Lumos
         m_FrustumDirty = true; //temp
 		if (m_FrustumDirty)
 		{
+			customProjection_ = true;
 			if (customProjection_)
 				m_Frustum.Define(m_ProjMatrix * m_ViewMatrix);
 			else
 			{
 				if (!m_Orthographic)
-					m_Frustum.Define(m_Fov, m_AspectRatio, m_Zoom, GetNear(), GetFar(), Maths::Matrix3x4(m_ViewMatrix.Inverse()));
+					m_Frustum.Define(m_Fov, m_AspectRatio, m_Zoom, GetNear(), GetFar(), Maths::Matrix3x4(m_ViewMatrix));
 				else
 					m_Frustum.DefineOrtho(m_Fov, m_AspectRatio, m_Zoom, GetNear(), GetFar(), Maths::Matrix3x4(m_ViewMatrix));
 			}

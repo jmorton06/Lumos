@@ -1,7 +1,7 @@
 #include "lmpch.h"
 #include "CuboidCollisionShape.h"
 #include "PhysicsObject3D.h"
-#include "Math/Matrix3.h"
+#include "Maths/Matrix3.h"
 
 namespace Lumos
 {
@@ -66,7 +66,7 @@ namespace Lumos
 	{
 		if (out_edges)
 		{
-			Maths::Matrix4 transform = m_LocalTransform * currentObject->GetWorldSpaceTransform();
+			Maths::Matrix4 transform =  currentObject->GetWorldSpaceTransform() * m_LocalTransform;
 			for (unsigned int i = 0; i < m_CubeHull->GetNumEdges(); ++i)
 			{
 				const HullEdge& edge = m_CubeHull->GetEdge(i);
@@ -85,7 +85,7 @@ namespace Lumos
 		if (currentObject == nullptr)
 			wsTransform = m_LocalTransform;
 		else
-			wsTransform = m_LocalTransform * currentObject->GetWorldSpaceTransform();
+			wsTransform =  currentObject->GetWorldSpaceTransform() * m_LocalTransform;
 
 		Maths::Matrix3 invNormalMatrix = Maths::Matrix3::Transpose(wsTransform.ToMatrix3());
 		Maths::Vector3 local_axis = invNormalMatrix * axis;
@@ -106,7 +106,7 @@ namespace Lumos
 		if (currentObject == nullptr)
 			wsTransform = m_LocalTransform;
 		else
-			wsTransform = m_LocalTransform * currentObject->GetWorldSpaceTransform();
+			wsTransform = currentObject->GetWorldSpaceTransform() * m_LocalTransform;
 
 		Maths::Matrix3 invNormalMatrix = wsTransform.ToMatrix3().Inverse();
 		Maths::Matrix3 normalMatrix = invNormalMatrix.Transpose();

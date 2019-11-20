@@ -457,7 +457,7 @@ namespace Lumos
         }
         if (!node.rotation.empty())
         {
-            transform.SetLocalOrientation(Maths::Quaternion(static_cast<float>(node.rotation[0]), static_cast<float>(node.rotation[1]), static_cast<float>(node.rotation[2]), static_cast<float>(node.rotation[3])));
+            transform.SetLocalOrientation(Maths::Quaternion(static_cast<float>(node.rotation[3]), static_cast<float>(node.rotation[0]), static_cast<float>(node.rotation[1]), static_cast<float>(node.rotation[2])));
         }
         if (!node.translation.empty())
         {
@@ -466,7 +466,7 @@ namespace Lumos
         if (!node.matrix.empty())
         {
             auto lTransform = Maths::Matrix4(reinterpret_cast<float*>(node.matrix.data()));
-            transform.SetLocalTransform(lTransform);
+            transform.SetLocalTransform(lTransform.Transpose());
         }
 
 		transform.UpdateMatrices();

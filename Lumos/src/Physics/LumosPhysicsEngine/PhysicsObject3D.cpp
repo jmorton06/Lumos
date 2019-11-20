@@ -14,13 +14,13 @@ namespace Lumos
 		, m_LinearVelocity(0.0f, 0.0f, 0.0f)
 		, m_Force(0.0f, 0.0f, 0.0f)
 		, m_InvMass(0.0f)
-		, m_Orientation(0.0f, 0.0f, 0.0f, 1.0f)
+		, m_Orientation(1.0f, 0.0f, 0.0f, 0.0f)
 		, m_AngularVelocity(0.0f, 0.0f, 0.0f)
 		, m_Torque(0.0f, 0.0f, 0.0f)
 		, m_InvInertia(Maths::Matrix3::ZERO)
 		, m_OnCollisionCallback(nullptr)
 	{
-		m_localBoundingBox.Define(-Maths::Vector3(0.5f, 0.5f, 0.5f), Maths::Vector3(0.5f, 0.5f, 0.5f));
+		m_localBoundingBox.Define(Maths::Vector3(-0.5f), Maths::Vector3(0.5f));
 	}
 
 	PhysicsObject3D::~PhysicsObject3D()

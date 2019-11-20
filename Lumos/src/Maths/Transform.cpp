@@ -40,8 +40,7 @@ namespace Lumos
 		void Transform::UpdateMatrices() 
 		{
 			m_LocalMatrix = Matrix4::Translation(m_LocalPosition) * m_LocalOrientation.RotationMatrix4() * Matrix4::Scale(m_LocalScale);
-            
-			m_Dirty		 = false;
+			m_Dirty = false;
             m_HasUpdated = true;
 		}
 
@@ -56,7 +55,7 @@ namespace Lumos
         {
              if (m_Dirty)
                  UpdateMatrices();
-             m_WorldMatrix = mat * m_LocalMatrix;
+             m_WorldMatrix =  mat * m_LocalMatrix;
         }
         
         void Transform::SetLocalTransform(const Matrix4& localMat)

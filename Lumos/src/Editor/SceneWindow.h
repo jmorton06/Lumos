@@ -1,7 +1,7 @@
 #include "lmpch.h"
 #include "EditorWindow.h"
 #include "Maths/Maths.h"
-#include "Math/Frustum.h"
+#include "Maths/Frustum.h"
 #include "Maths/Transform.h"
 #include "Editor/Editor.h"
 

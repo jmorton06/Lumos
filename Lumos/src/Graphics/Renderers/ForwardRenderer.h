@@ -2,7 +2,7 @@
 #include "lmpch.h"
 #include "Renderer3D.h"
 #include "SkyboxRenderer.h"
-#include "Math/Frustum.h"
+#include "Maths/Frustum.h"
 
 namespace Lumos
 {

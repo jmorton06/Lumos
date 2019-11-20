@@ -17,7 +17,6 @@
 
 #include "ECS/Component/MeshComponent.h"
 
-#include "Maths/MathsUtilities.h"
 #include "Maths/Transform.h"
 
 #include "App/Scene.h"
@@ -202,7 +201,7 @@ namespace Lumos
 		{
             LUMOS_PROFILE_BLOCK("ShadowRenderer::RenderScene");
 
-			memcpy(m_VSSystemUniformBuffer + m_VSSystemUniformBufferOffsets[VSSystemUniformIndex_ProjectionViewMatrix], m_ShadowProjView, sizeof(Maths::Matrix4) * 16);
+			memcpy(m_VSSystemUniformBuffer + m_VSSystemUniformBufferOffsets[VSSystemUniformIndex_ProjectionViewMatrix], m_ShadowProjView, sizeof(Maths::Matrix4) * SHADOWMAP_MAX);
 
 			Begin();
             
@@ -215,7 +214,7 @@ namespace Lumos
 				m_Layer = i;
 
 				Maths::Frustum f;
-				f.Projected(m_ShadowProjView[i]);
+				f.Define(m_ShadowProjView[i]);
 
                 for(auto entity : group)
                 {
@@ -224,18 +223,12 @@ namespace Lumos
                     if (mesh.GetMesh() && mesh.GetMesh()->GetActive())
                     {
                         auto& worldTransform = trans.GetWorldMatrix();
-                  
-                        float maxScaling = 0.0f;
-                        auto scale = worldTransform.Scale();
-                        maxScaling = Maths::Max(scale.x, maxScaling);
-                        maxScaling = Maths::Max(scale.y, maxScaling);
-                        maxScaling = Maths::Max(scale.z, maxScaling);
 
 						auto bb = mesh.GetMesh()->GetBoundingBox();
-						bb->Transform(worldTransform);
-						auto inside = f.IsInside(*bb);
+						auto bbCopy = bb->Transformed(worldTransform);
+						auto inside = f.IsInsideFast(bbCopy);
 
-						if (inside != Maths::Intersection::INSIDE)
+						if (inside == Maths::Intersection::OUTSIDE)
 							continue;
             
                         SubmitMesh(mesh.GetMesh(), nullptr, worldTransform, Maths::Matrix4());
@@ -286,7 +279,7 @@ namespace Lumos
 				float log = minZ * std::pow(ratio, p);
 				float uniform = minZ + range * p;
 				float d = cascadeSplitLambda * (log - uniform) + uniform;
-				cascadeSplits[i] = (d - nearClip) / clipRange;
+				cascadeSplits[i] = (d + nearClip) / clipRange;
 			}
 
 #ifdef THREAD_CASCADE_GEN

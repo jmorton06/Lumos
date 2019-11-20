@@ -8,7 +8,7 @@
 #include <GLFW/glfw3.h>
 #endif
 
-#include "Math/Matrix4.h"
+#include "Maths/Matrix4.h"
 
 #ifdef LUMOS_PLATFORM_WINDOWS
 #undef NOGDI

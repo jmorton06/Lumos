@@ -87,7 +87,7 @@ namespace Lumos
 		float m_ZoomVelocity;
 		float m_CameraSpeed;
 		float m_Distance;
-		float m_Scale;
+		float m_Scale = 1.0f;
 		float m_Zoom = 1.0f;
 
 		Maths::Vector2 m_ProjectionOffset = Maths::Vector2(0.0f, 0.0f);

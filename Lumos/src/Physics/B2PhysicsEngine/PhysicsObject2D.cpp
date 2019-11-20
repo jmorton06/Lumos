@@ -3,7 +3,7 @@
 #include "B2PhysicsEngine.h"
 #include "App/Application.h"
 
-#include "Math/Vector2.h"
+#include "Maths/Vector2.h"
 
 #include <Box2D/Box2D.h>
 #include <Box2D/Dynamics/b2World.h>

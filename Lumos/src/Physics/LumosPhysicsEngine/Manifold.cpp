@@ -1,9 +1,8 @@
 #include "lmpch.h"
 #include "Manifold.h"
-#include "Math/Matrix3.h"
+#include "Maths/Matrix3.h"
 
 #include "LumosPhysicsEngine.h"
-#include "Maths/MathsUtilities.h"
 
 namespace Lumos
 {
