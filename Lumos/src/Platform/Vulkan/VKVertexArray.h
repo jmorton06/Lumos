@@ -13,7 +13,7 @@ namespace Lumos
 			VKVertexArray();
 			~VKVertexArray();
 
-			inline VertexBuffer* GetBuffer(u32 index = 0) override;
+			_FORCE_INLINE_ VertexBuffer* GetBuffer(u32 index = 0) override;
 			void PushBuffer(VertexBuffer* buffer) override;
 
 			void Bind(CommandBuffer* commandBuffer) const override;

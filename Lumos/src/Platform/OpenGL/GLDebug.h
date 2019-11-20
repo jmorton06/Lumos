@@ -39,13 +39,13 @@ namespace Lumos
 			glDeleteBuffers(2, buffers);
 		}
 
-		inline void Clear()
+		_FORCE_INLINE_ void Clear()
 		{
 			lines.clear();
 			colours.clear();
 		}
 
-		inline void AddLine(const Maths::Vector3 &from, const Maths::Vector3 &to, const Maths::Vector3 &fromColour, const Maths::Vector3 &toColour)
+		_FORCE_INLINE_ void AddLine(const Maths::Vector3 &from, const Maths::Vector3 &to, const Maths::Vector3 &fromColour, const Maths::Vector3 &toColour)
 		{
 			lines.push_back(from);
 			lines.push_back(to);

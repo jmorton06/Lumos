@@ -70,22 +70,22 @@
 #ifndef _ALWAYS_INLINE_
 
 #if defined(__GNUC__) && (__GNUC__ >= 4)
-#define _ALWAYS_INLINE_ __attribute__((always_inline)) inline
+#define _ALWAYS_INLINE_ __attribute__((always_inline)) _FORCE_INLINE_
 #elif defined(__llvm__)
-#define _ALWAYS_INLINE_ __attribute__((always_inline)) inline
+#define _ALWAYS_INLINE_ __attribute__((always_inline)) _FORCE_INLINE_
 #elif defined(_MSC_VER)
 #define _ALWAYS_INLINE_ __forceinline
 #else
-#define _ALWAYS_INLINE_ inline
+#define _ALWAYS_INLINE_ _FORCE_INLINE_
 #endif
 
 #endif
 
-//should always inline, except in some cases because it makes debugging harder
+//should always _FORCE_INLINE_, except in some cases because it makes debugging harder
 #ifndef _FORCE_INLINE_
 
 #ifdef DISABLE_FORCED_INLINE
-#define _FORCE_INLINE_ inline
+#define _FORCE_INLINE_ _FORCE_INLINE_
 #else
 #define _FORCE_INLINE_ _ALWAYS_INLINE_
 #endif

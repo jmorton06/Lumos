@@ -31,7 +31,7 @@ namespace Lumos
 				delete[] m_CollisionCheckFunctions;
 		}
 
-		inline bool CheckCollision(const PhysicsObject3D* obj1, const PhysicsObject3D* obj2, const CollisionShape* shape1, const CollisionShape* shape2, CollisionData* out_coldata = nullptr) const 
+		_FORCE_INLINE_ bool CheckCollision(const PhysicsObject3D* obj1, const PhysicsObject3D* obj2, const CollisionShape* shape1, const CollisionShape* shape2, CollisionData* out_coldata = nullptr) const 
 		{
 			return CALL_MEMBER_FN(*this, m_CollisionCheckFunctions[shape1->GetType() | shape2->GetType()])(obj1, obj2, shape1, shape2, out_coldata);
 		}
@@ -39,12 +39,12 @@ namespace Lumos
 		bool BuildCollisionManifold(const PhysicsObject3D* obj1, const PhysicsObject3D* obj2, const CollisionShape* shape1, const CollisionShape* shape2, const CollisionData& coldata, Manifold* out_manifold) const;
 
 
-		static inline bool CheckSphereOverlap(const Maths::Vector3& pos1, float radius1, const Maths::Vector3& pos2, float radius2)
+		static _FORCE_INLINE_ bool CheckSphereOverlap(const Maths::Vector3& pos1, float radius1, const Maths::Vector3& pos2, float radius2)
 		{
 			return (pos2 - pos1).LengthSquared() <= Maths::Squared(radius1 + radius2);
 		}
 
-		static inline bool CheckAABBOverlap(const Maths::Vector3& pos1, const Maths::Vector3& halfHidth1, const Maths::Vector3& pos2, const Maths::Vector3& halfHidth2)
+		static _FORCE_INLINE_ bool CheckAABBOverlap(const Maths::Vector3& pos1, const Maths::Vector3& halfHidth1, const Maths::Vector3& pos2, const Maths::Vector3& halfHidth2)
 		{
 			if (abs(pos1.x - pos2.x) >= (halfHidth1.x + halfHidth2.x)) return false;
 			if (abs(pos1.y - pos2.y) >= (halfHidth1.y + halfHidth2.y)) return false;
@@ -52,7 +52,7 @@ namespace Lumos
 			return true;
 		}
 
-		static inline bool CheckAABBSphereOverlap(const Maths::Vector3& center, const Maths::Vector3& halfVol, const Maths::Vector3& spherePos, float sphereRad)
+		static _FORCE_INLINE_ bool CheckAABBSphereOverlap(const Maths::Vector3& center, const Maths::Vector3& halfVol, const Maths::Vector3& spherePos, float sphereRad)
 		{
 			const Maths::Vector3 minVol = center - halfVol;
 			const Maths::Vector3 maxVol = center + halfVol;
@@ -70,7 +70,7 @@ namespace Lumos
 			return distSquared > 0;
 		}
 
-		static inline bool CheckSphereInsideAABB(const Maths::Vector3& spherePos, float sphereRadius, const Maths::Vector3& AABBCenter, const Maths::Vector3& AABBHalfVol)
+		static _FORCE_INLINE_ bool CheckSphereInsideAABB(const Maths::Vector3& spherePos, float sphereRadius, const Maths::Vector3& AABBCenter, const Maths::Vector3& AABBHalfVol)
 		{
 			//min check
 			Maths::Vector3 minPoint = AABBCenter - AABBHalfVol;
@@ -86,7 +86,7 @@ namespace Lumos
 			return true;
 		}
 
-		static inline bool CheckAABBInsideAABB(const Maths::Vector3& AABBInsideCenter, const Maths::Vector3& AABBInsideHalfVol, const Maths::Vector3& AABBCenter, const Maths::Vector3& AABBHalfVol)
+		static _FORCE_INLINE_ bool CheckAABBInsideAABB(const Maths::Vector3& AABBInsideCenter, const Maths::Vector3& AABBInsideHalfVol, const Maths::Vector3& AABBCenter, const Maths::Vector3& AABBHalfVol)
 		{
 			//min check
 			Maths::Vector3 minPoint = AABBCenter - AABBHalfVol;

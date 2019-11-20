@@ -812,6 +812,6 @@ namespace Lumos::Maths
     };
 
     /// Multiply a 4x4 matrix with a scalar.
-    inline Matrix4 operator *(float lhs, const Matrix4& rhs) { return rhs * lhs; }
+    _FORCE_INLINE_ Matrix4 operator *(float lhs, const Matrix4& rhs) { return rhs * lhs; }
 
 }

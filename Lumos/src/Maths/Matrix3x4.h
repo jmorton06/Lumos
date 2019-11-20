@@ -710,7 +710,7 @@ namespace Lumos::Maths
     #ifdef Lumos_SSE
     private:
         /// \brief Sets this matrix from the given translation, rotation (as quaternion (w,x,y,z)), and nonuniform scale (x,y,z) parameters. Note: the w component of the scale parameter passed to this function must be 1.
-        void inline SetFromTRS(__m128 t, __m128 q, __m128 s)
+        void _FORCE_INLINE_ SetFromTRS(__m128 t, __m128 q, __m128 s)
         {
             q = _mm_shuffle_ps(q, q, _MM_SHUFFLE(0, 3, 2, 1));
             __m128 one = _mm_set_ps(0, 0, 0, 1);
@@ -737,6 +737,6 @@ namespace Lumos::Maths
     };
 
     /// Multiply a 3x4 matrix with a scalar.
-    inline Matrix3x4 operator *(float lhs, const Matrix3x4& rhs) { return rhs * lhs; }
+    _FORCE_INLINE_ Matrix3x4 operator *(float lhs, const Matrix3x4& rhs) { return rhs * lhs; }
 
 }

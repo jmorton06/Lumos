@@ -305,5 +305,5 @@ namespace Lumos::Maths
     };
 
     /// Multiply a 3x3 matrix with a scalar.
-    inline Matrix3 operator *(float lhs, const Matrix3& rhs) { return rhs * lhs; }
+    _FORCE_INLINE_ Matrix3 operator *(float lhs, const Matrix3& rhs) { return rhs * lhs; }
 }

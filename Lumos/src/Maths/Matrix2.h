@@ -228,5 +228,5 @@ namespace Lumos::Maths
     };
 
     /// Multiply a 2x2 matrix with a scalar.
-    inline Matrix2 operator *(float lhs, const Matrix2& rhs) { return rhs * lhs; }
+    _FORCE_INLINE_ Matrix2 operator *(float lhs, const Matrix2& rhs) { return rhs * lhs; }
 }

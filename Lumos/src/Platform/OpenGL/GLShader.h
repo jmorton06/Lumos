@@ -52,13 +52,13 @@ namespace Lumos
 			void SetUniform(const String& name, u8* data);
 			void ResolveAndSetUniformField(const GLShaderUniformDeclaration& field, u8* data, i32 offset, u32 count) const;
 
-			inline const String& GetName() const override { return m_Name; }
-			inline const String& GetFilePath() const override { return m_Path; }
+			_FORCE_INLINE_ const String& GetName() const override { return m_Name; }
+			_FORCE_INLINE_ const String& GetFilePath() const override { return m_Path; }
 
-			inline const ShaderUniformBufferList GetSystemUniforms(ShaderType type) const override { try { return m_UniformBuffers.at(type); } catch (std::exception) { return ShaderUniformBufferList(); } }
-			inline const ShaderUniformBufferDeclaration* GetUserUniformBuffer(ShaderType type) const override { try { return m_UserUniformBuffers.at(type); } catch (std::exception) { return nullptr; } }
-			inline const std::vector<ShaderType> GetShaderTypes() const override { return m_ShaderTypes; }
-			inline const ShaderResourceList& GetResources() const { return m_Resources; }
+			_FORCE_INLINE_ const ShaderUniformBufferList GetSystemUniforms(ShaderType type) const override { try { return m_UniformBuffers.at(type); } catch (std::exception) { return ShaderUniformBufferList(); } }
+			_FORCE_INLINE_ const ShaderUniformBufferDeclaration* GetUserUniformBuffer(ShaderType type) const override { try { return m_UserUniformBuffers.at(type); } catch (std::exception) { return nullptr; } }
+			_FORCE_INLINE_ const std::vector<ShaderType> GetShaderTypes() const override { return m_ShaderTypes; }
+			_FORCE_INLINE_ const ShaderResourceList& GetResources() const { return m_Resources; }
 
 			static GLuint CompileShader(ShaderType type, String source, u32 program, GLShaderErrorInfo& info);
 			static u32 Compile(std::map<ShaderType, String>* sources, GLShaderErrorInfo& info);

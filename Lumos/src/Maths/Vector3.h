@@ -310,7 +310,7 @@ namespace Lumos::Maths
             return *this;
         }
 
-        inline float operator[](int i) const
+        _FORCE_INLINE_ float operator[](int i) const
         {
             switch (i)
             {
@@ -503,46 +503,46 @@ namespace Lumos::Maths
     };
 
     /// Multiply Vector3 with a scalar.
-    inline Vector3 operator *(float lhs, const Vector3& rhs) { return rhs * lhs; }
+    _FORCE_INLINE_ Vector3 operator *(float lhs, const Vector3& rhs) { return rhs * lhs; }
 
     /// Multiply IntVector3 with a scalar.
-    inline IntVector3 operator *(int lhs, const IntVector3& rhs) { return rhs * lhs; }
+    _FORCE_INLINE_ IntVector3 operator *(int lhs, const IntVector3& rhs) { return rhs * lhs; }
 
     /// Per-component linear interpolation between two 3-vectors.
-    inline Vector3 VectorLerp(const Vector3& lhs, const Vector3& rhs, const Vector3& t) { return lhs + (rhs - lhs) * t; }
+    _FORCE_INLINE_ Vector3 VectorLerp(const Vector3& lhs, const Vector3& rhs, const Vector3& t) { return lhs + (rhs - lhs) * t; }
 
     /// Per-component min of two 3-vectors.
-    inline Vector3 VectorMin(const Vector3& lhs, const Vector3& rhs) { return Vector3(Min(lhs.x, rhs.x), Min(lhs.y, rhs.y), Min(lhs.z, rhs.z)); }
+    _FORCE_INLINE_ Vector3 VectorMin(const Vector3& lhs, const Vector3& rhs) { return Vector3(Min(lhs.x, rhs.x), Min(lhs.y, rhs.y), Min(lhs.z, rhs.z)); }
 
     /// Per-component max of two 3-vectors.
-    inline Vector3 VectorMax(const Vector3& lhs, const Vector3& rhs) { return Vector3(Max(lhs.x, rhs.x), Max(lhs.y, rhs.y), Max(lhs.z, rhs.z)); }
+    _FORCE_INLINE_ Vector3 VectorMax(const Vector3& lhs, const Vector3& rhs) { return Vector3(Max(lhs.x, rhs.x), Max(lhs.y, rhs.y), Max(lhs.z, rhs.z)); }
 
     /// Per-component floor of 3-vector.
-    inline Vector3 VectorFloor(const Vector3& vec) { return Vector3(Floor(vec.x), Floor(vec.y), Floor(vec.z)); }
+    _FORCE_INLINE_ Vector3 VectorFloor(const Vector3& vec) { return Vector3(Floor(vec.x), Floor(vec.y), Floor(vec.z)); }
 
     /// Per-component round of 3-vector.
-    inline Vector3 VectorRound(const Vector3& vec) { return Vector3(Round(vec.x), Round(vec.y), Round(vec.z)); }
+    _FORCE_INLINE_ Vector3 VectorRound(const Vector3& vec) { return Vector3(Round(vec.x), Round(vec.y), Round(vec.z)); }
 
     /// Per-component ceil of 3-vector.
-    inline Vector3 VectorCeil(const Vector3& vec) { return Vector3(Ceil(vec.x), Ceil(vec.y), Ceil(vec.z)); }
+    _FORCE_INLINE_ Vector3 VectorCeil(const Vector3& vec) { return Vector3(Ceil(vec.x), Ceil(vec.y), Ceil(vec.z)); }
 
     /// Per-component floor of 3-vector. Returns IntVector3.
-    inline IntVector3 VectorFloorToInt(const Vector3& vec) { return IntVector3(FloorToInt(vec.x), FloorToInt(vec.y), FloorToInt(vec.z)); }
+    _FORCE_INLINE_ IntVector3 VectorFloorToInt(const Vector3& vec) { return IntVector3(FloorToInt(vec.x), FloorToInt(vec.y), FloorToInt(vec.z)); }
 
     /// Per-component round of 3-vector. Returns IntVector3.
-    inline IntVector3 VectorRoundToInt(const Vector3& vec) { return IntVector3(RoundToInt(vec.x), RoundToInt(vec.y), RoundToInt(vec.z)); }
+    _FORCE_INLINE_ IntVector3 VectorRoundToInt(const Vector3& vec) { return IntVector3(RoundToInt(vec.x), RoundToInt(vec.y), RoundToInt(vec.z)); }
 
     /// Per-component ceil of 3-vector. Returns IntVector3.
-    inline IntVector3 VectorCeilToInt(const Vector3& vec) { return IntVector3(CeilToInt(vec.x), CeilToInt(vec.y), CeilToInt(vec.z)); }
+    _FORCE_INLINE_ IntVector3 VectorCeilToInt(const Vector3& vec) { return IntVector3(CeilToInt(vec.x), CeilToInt(vec.y), CeilToInt(vec.z)); }
 
     /// Per-component min of two 3-vectors.
-    inline IntVector3 VectorMin(const IntVector3& lhs, const IntVector3& rhs) { return IntVector3(Min(lhs.x, rhs.x), Min(lhs.y, rhs.y), Min(lhs.z, rhs.z)); }
+    _FORCE_INLINE_ IntVector3 VectorMin(const IntVector3& lhs, const IntVector3& rhs) { return IntVector3(Min(lhs.x, rhs.x), Min(lhs.y, rhs.y), Min(lhs.z, rhs.z)); }
 
     /// Per-component max of two 3-vectors.
-    inline IntVector3 VectorMax(const IntVector3& lhs, const IntVector3& rhs) { return IntVector3(Max(lhs.x, rhs.x), Max(lhs.y, rhs.y), Max(lhs.z, rhs.z)); }
+    _FORCE_INLINE_ IntVector3 VectorMax(const IntVector3& lhs, const IntVector3& rhs) { return IntVector3(Max(lhs.x, rhs.x), Max(lhs.y, rhs.y), Max(lhs.z, rhs.z)); }
 
     /// Return a random value from [0, 1) from 3-vector seed.
-    inline float StableRandom(const Vector3& seed) { return StableRandom(Vector2(StableRandom(Vector2(seed.x, seed.y)), seed.z)); }
+    _FORCE_INLINE_ float StableRandom(const Vector3& seed) { return StableRandom(Vector2(StableRandom(Vector2(seed.x, seed.y)), seed.z)); }
 }
 
 namespace std

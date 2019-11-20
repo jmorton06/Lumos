@@ -3,7 +3,7 @@
 
 namespace Lumos::Maths
 {
-    inline Vector3 ClipEdgeZ(const Vector3& v0, const Vector3& v1, float clipZ)
+    _FORCE_INLINE_ Vector3 ClipEdgeZ(const Vector3& v0, const Vector3& v1, float clipZ)
     {
         return Vector3(
             v1.x + (v0.x - v1.x) * ((clipZ - v1.z) / (v0.z - v1.z)),

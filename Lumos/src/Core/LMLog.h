@@ -12,8 +12,8 @@ namespace Lumos
         static void OnInit();
 		static void OnRelease();
         
-        inline static std::shared_ptr<spdlog::logger>& GetCoreLogger() { return s_CoreLogger; }
-        inline static std::shared_ptr<spdlog::logger>& GetClientLogger() { return s_ClientLogger; }
+        _FORCE_INLINE_ static std::shared_ptr<spdlog::logger>& GetCoreLogger() { return s_CoreLogger; }
+        _FORCE_INLINE_ static std::shared_ptr<spdlog::logger>& GetClientLogger() { return s_ClientLogger; }
     private:
         static std::shared_ptr<spdlog::logger> s_CoreLogger;
         static std::shared_ptr<spdlog::logger> s_ClientLogger;

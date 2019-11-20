@@ -42,16 +42,16 @@ namespace Lumos::Maths
     #endif
 
         /// Construct from values.
-        Quaternion(float lw, float lx, float ly, float lz) noexcept
+        Quaternion(float pw, float px, float py, float pz) noexcept
     #ifndef Lumos_SSE
-           :w(w),
-            x(x),
-            y(y),
-            z(z)
+           :w(pw),
+            x(px),
+            y(py),
+            z(pz)
     #endif
         {
     #ifdef Lumos_SSE
-            _mm_storeu_ps(&w, _mm_set_ps(lz, ly, lx, lw));
+            _mm_storeu_ps(&w, _mm_set_ps(pz, py, px, pw));
     #endif
         }
 

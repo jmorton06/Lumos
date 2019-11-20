@@ -148,25 +148,25 @@ namespace Lumos
 		RebuildTaskStats(currFrameIndex, 300/*frames.size()*/);
 	}
 
-	inline void ProfilerGraph::Rect(ImDrawList * drawList, const Maths::Vector2 & minPoint, const Maths::Vector2 & maxPoint, uint32_t col, bool filled)
+	_FORCE_INLINE_ void ProfilerGraph::Rect(ImDrawList * drawList, const Maths::Vector2 & minPoint, const Maths::Vector2 & maxPoint, uint32_t col, bool filled)
 	{
 		if (filled)
 			drawList->AddRectFilled(ImVec2(minPoint.x, minPoint.y), ImVec2(maxPoint.x, maxPoint.y), col);
 		else
 			drawList->AddRect(ImVec2(minPoint.x, minPoint.y), ImVec2(maxPoint.x, maxPoint.y), col);
 	}
-	inline void ProfilerGraph::Text(ImDrawList * drawList, const Maths::Vector2 & point, uint32_t col, const char * text)
+	_FORCE_INLINE_ void ProfilerGraph::Text(ImDrawList * drawList, const Maths::Vector2 & point, uint32_t col, const char * text)
 	{
 		drawList->AddText(ImVec2(point.x, point.y), col, text);
 	}
-	inline void ProfilerGraph::Triangle(ImDrawList * drawList, const std::array<Maths::Vector2, 3>& points, uint32_t col, bool filled)
+	_FORCE_INLINE_ void ProfilerGraph::Triangle(ImDrawList * drawList, const std::array<Maths::Vector2, 3>& points, uint32_t col, bool filled)
 	{
 		if (filled)
 			drawList->AddTriangleFilled(ImVec2(points[0].x, points[0].y), ImVec2(points[1].x, points[1].y), ImVec2(points[2].x, points[2].y), col);
 		else
 			drawList->AddTriangle(ImVec2(points[0].x, points[0].y), ImVec2(points[1].x, points[1].y), ImVec2(points[2].x, points[2].y), col);
 	}
-	inline void ProfilerGraph::RenderTaskMarker(ImDrawList * drawList, const Maths::Vector2 & leftMinPoint, const Maths::Vector2 & leftMaxPoint, const Maths::Vector2 & rightMinPoint, const Maths::Vector2 & rightMaxPoint, uint32_t col)
+	_FORCE_INLINE_ void ProfilerGraph::RenderTaskMarker(ImDrawList * drawList, const Maths::Vector2 & leftMinPoint, const Maths::Vector2 & leftMaxPoint, const Maths::Vector2 & rightMinPoint, const Maths::Vector2 & rightMaxPoint, uint32_t col)
 	{
 		Rect(drawList, leftMinPoint, leftMaxPoint, col, true);
 		Rect(drawList, rightMinPoint, rightMaxPoint, col, true);
@@ -178,7 +178,7 @@ namespace Lumos
 		};
 		drawList->AddConvexPolyFilled(points.data(), int(points.size()), col);
 	}
-	inline void ProfilerGraph::RenderGraph(ImDrawList * drawList, const Maths::Vector2 & graphPos, const Maths::Vector2 & graphSize, size_t frameIndexOffset)
+	_FORCE_INLINE_ void ProfilerGraph::RenderGraph(ImDrawList * drawList, const Maths::Vector2 & graphPos, const Maths::Vector2 & graphSize, size_t frameIndexOffset)
 	{
 		Rect(drawList, graphPos, graphPos + graphSize, 0xffffffff, false);
 		//float maxFrameTime = 1.0f / 30.0f;
@@ -224,7 +224,7 @@ namespace Lumos
         return m_ColourMap[name];
     }
 
-	inline void ProfilerGraph::RenderTimings(int graphWidth, int legendWidth, int height, int frameIndexOffset)
+	_FORCE_INLINE_ void ProfilerGraph::RenderTimings(int graphWidth, int legendWidth, int height, int frameIndexOffset)
 	{
 		ImDrawList* drawList = ImGui::GetWindowDrawList();
 		const Maths::Vector2 widgetPos = Maths::Vector2(ImGui::GetCursorScreenPos().x, ImGui::GetCursorScreenPos().y);

@@ -45,56 +45,56 @@ namespace Lumos::Maths
 
     /// Check whether two floating point values are equal within accuracy.
     template <class T>
-    inline bool Equals(T lhs, T rhs, T eps = M_EPSILON) { return lhs + eps >= rhs && lhs - eps <= rhs; }
+    _FORCE_INLINE_ bool Equals(T lhs, T rhs, T eps = M_EPSILON) { return lhs + eps >= rhs && lhs - eps <= rhs; }
 
     /// Linear interpolation between two values.
     template <class T, class U>
-    inline T Lerp(T lhs, T rhs, U t) { return lhs * (1.0 - t) + rhs * t; }
+    _FORCE_INLINE_ T Lerp(T lhs, T rhs, U t) { return lhs * (1.0 - t) + rhs * t; }
 
     /// Inverse linear interpolation between two values.
     template <class T>
-    inline T InverseLerp(T lhs, T rhs, T x) { return (x - lhs) / (rhs - lhs); }
+    _FORCE_INLINE_ T InverseLerp(T lhs, T rhs, T x) { return (x - lhs) / (rhs - lhs); }
 
     /// Return the smaller of two values.
     template <class T, class U>
-    inline T Min(T lhs, U rhs) { return lhs < rhs ? lhs : rhs; }
+    _FORCE_INLINE_ T Min(T lhs, U rhs) { return lhs < rhs ? lhs : rhs; }
 
     /// Return the larger of two values.
     template <class T, class U>
-    inline T Max(T lhs, U rhs) { return lhs > rhs ? lhs : rhs; }
+    _FORCE_INLINE_ T Max(T lhs, U rhs) { return lhs > rhs ? lhs : rhs; }
 
     /// Return absolute value of a value
     template <class T>
-    inline T Abs(T value) { return value >= 0.0 ? value : -value; }
+    _FORCE_INLINE_ T Abs(T value) { return value >= 0.0 ? value : -value; }
 
     /// Return the sign of a float (-1, 0 or 1.)
     template <class T>
-    inline T Sign(T value) { return value > 0.0 ? 1.0 : (value < 0.0 ? -1.0 : 0.0); }
+    _FORCE_INLINE_ T Sign(T value) { return value > 0.0 ? 1.0 : (value < 0.0 ? -1.0 : 0.0); }
 
     /// Convert degrees to radians.
     template <class T>
-    inline T ToRadians(const T degrees) { return M_DEGTORAD * degrees; }
+    _FORCE_INLINE_ T ToRadians(const T degrees) { return M_DEGTORAD * degrees; }
 
     /// Convert radians to degrees.
     template <class T>
-    inline T ToDegrees(const T radians) { return M_RADTODEG * radians; }
+    _FORCE_INLINE_ T ToDegrees(const T radians) { return M_RADTODEG * radians; }
 
     /// Return a representation of the specified floating-point value as a single format bit layout.
-    inline unsigned FloatToRawIntBits(float value)
+    _FORCE_INLINE_ unsigned FloatToRawIntBits(float value)
     {
         unsigned u = *((unsigned*)&value);
         return u;
     }
 
     /// Check whether a floating point value is NaN.
-    template <class T> inline bool IsNaN(T value) { return std::isnan(value); }
+    template <class T> _FORCE_INLINE_ bool IsNaN(T value) { return std::isnan(value); }
 
     /// Check whether a floating point value is positive or negative infinity
-    template <class T> inline bool IsInf(T value) { return std::isinf(value); }
+    template <class T> _FORCE_INLINE_ bool IsInf(T value) { return std::isinf(value); }
 
     /// Clamp a number to a range.
     template <class T>
-    inline T Clamp(T value, T min, T max)
+    _FORCE_INLINE_ T Clamp(T value, T min, T max)
     {
         if (value < min)
             return min;
@@ -106,72 +106,72 @@ namespace Lumos::Maths
 
     /// Smoothly damp between values.
     template <class T>
-    inline T SmoothStep(T lhs, T rhs, T t)
+    _FORCE_INLINE_ T SmoothStep(T lhs, T rhs, T t)
     {
         t = Clamp((t - lhs) / (rhs - lhs), T(0.0), T(1.0)); // Saturate t
         return t * t * (3.0 - 2.0 * t);
     }
 
     /// Return sine of an angle in degrees.
-    template <class T> inline T Sin(T angle) { return sin(angle * M_DEGTORAD); }
+    template <class T> _FORCE_INLINE_ T Sin(T angle) { return sin(angle * M_DEGTORAD); }
 
     /// Return cosine of an angle in degrees.
-    template <class T> inline T Cos(T angle) { return cos(angle * M_DEGTORAD); }
+    template <class T> _FORCE_INLINE_ T Cos(T angle) { return cos(angle * M_DEGTORAD); }
 
     /// Return tangent of an angle in degrees.
-    template <class T> inline T Tan(T angle) { return tan(angle * M_DEGTORAD); }
+    template <class T> _FORCE_INLINE_ T Tan(T angle) { return tan(angle * M_DEGTORAD); }
 
     /// Return arc sine in degrees.
-    template <class T> inline T Asin(T x) { return M_RADTODEG * asin(Clamp(x, T(-1.0), T(1.0))); }
+    template <class T> _FORCE_INLINE_ T Asin(T x) { return M_RADTODEG * asin(Clamp(x, T(-1.0), T(1.0))); }
 
     /// Return arc cosine in degrees.
-    template <class T> inline T Acos(T x) { return M_RADTODEG * acos(Clamp(x, T(-1.0), T(1.0))); }
+    template <class T> _FORCE_INLINE_ T Acos(T x) { return M_RADTODEG * acos(Clamp(x, T(-1.0), T(1.0))); }
 
     /// Return arc tangent in degrees.
-    template <class T> inline T Atan(T x) { return M_RADTODEG * atan(x); }
+    template <class T> _FORCE_INLINE_ T Atan(T x) { return M_RADTODEG * atan(x); }
 
     /// Return arc tangent of y/x in degrees.
-    template <class T> inline T Atan2(T y, T x) { return M_RADTODEG * atan2(y, x); }
+    template <class T> _FORCE_INLINE_ T Atan2(T y, T x) { return M_RADTODEG * atan2(y, x); }
 
     /// Return X in power Y.
-    template <class T> inline T Pow(T x, T y) { return pow(x, y); }
+    template <class T> _FORCE_INLINE_ T Pow(T x, T y) { return pow(x, y); }
 
     /// Return natural logarithm of X.
-    template <class T> inline T Ln(T x) { return log(x); }
+    template <class T> _FORCE_INLINE_ T Ln(T x) { return log(x); }
 
     /// Return square root of X.
-    template <class T> inline T Sqrt(T x) { return sqrt(x); }
+    template <class T> _FORCE_INLINE_ T Sqrt(T x) { return sqrt(x); }
 
     /// Return remainder of X/Y.
     template<typename T, typename std::enable_if<std::is_floating_point<T>::value>::type* = nullptr>
-    inline T Mod(T x, T y) { return fmod(x, y); }
+    _FORCE_INLINE_ T Mod(T x, T y) { return fmod(x, y); }
 
     /// Return remainder of X/Y.
     template<typename T, typename std::enable_if<std::is_integral<T>::value>::type* = nullptr>
-    inline T Mod(T x, T y) { return x % y; }
+    _FORCE_INLINE_ T Mod(T x, T y) { return x % y; }
 
     /// Return positive remainder of X/Y.
     template<typename T, typename std::enable_if<std::is_integral<T>::value>::type* = nullptr>
-    inline T AbsMod(T x, T y)
+    _FORCE_INLINE_ T AbsMod(T x, T y)
     {
         const T result = x % y;
         return result < 0 ? result + y : result;
     }
 
     /// Return fractional part of passed value in range [0, 1).
-    template <class T> inline T Fract(T value) { return value - floor(value); }
+    template <class T> _FORCE_INLINE_ T Fract(T value) { return value - floor(value); }
 
     /// Round value down.
-    template <class T> inline T Floor(T x) { return floor(x); }
+    template <class T> _FORCE_INLINE_ T Floor(T x) { return floor(x); }
 
     /// Round value down. Returns integer value.
-    template <class T> inline int FloorToInt(T x) { return static_cast<int>(floor(x)); }
+    template <class T> _FORCE_INLINE_ int FloorToInt(T x) { return static_cast<int>(floor(x)); }
 
     /// Round value to nearest integer.
-    template <class T> inline T Round(T x) { return round(x); }
+    template <class T> _FORCE_INLINE_ T Round(T x) { return round(x); }
     #ifndef SWIG
     /// Compute average value of the range.
-    template <class Iterator> inline auto Average(Iterator begin, Iterator end) -> typename std::decay<decltype(*begin)>::type
+    template <class Iterator> _FORCE_INLINE_ auto Average(Iterator begin, Iterator end) -> typename std::decay<decltype(*begin)>::type
     {
         using T = typename std::decay<decltype(*begin)>::type;
 
@@ -187,10 +187,10 @@ namespace Lumos::Maths
     }
     #endif
     /// Round value to nearest integer.
-    template <class T> inline int RoundToInt(T x) { return static_cast<int>(round(x)); }
+    template <class T> _FORCE_INLINE_ int RoundToInt(T x) { return static_cast<int>(round(x)); }
 
     /// Round value to nearest multiple.
-    template <class T> inline T RoundToNearestMultiple(T x, T multiple)
+    template <class T> _FORCE_INLINE_ T RoundToNearestMultiple(T x, T multiple)
     {
         T mag = Abs(x);
         multiple = Abs(multiple);
@@ -202,19 +202,19 @@ namespace Lumos::Maths
     }
 
     /// Round value up.
-    template <class T> inline T Ceil(T x) { return ceil(x); }
+    template <class T> _FORCE_INLINE_ T Ceil(T x) { return ceil(x); }
 
     /// Round value up.
-    template <class T> inline int CeilToInt(T x) { return static_cast<int>(ceil(x)); }
+    template <class T> _FORCE_INLINE_ int CeilToInt(T x) { return static_cast<int>(ceil(x)); }
 
     /// Check whether an unsigned integer is a power of two.
-    inline bool IsPowerOfTwo(unsigned value)
+    _FORCE_INLINE_ bool IsPowerOfTwo(unsigned value)
     {
         return !(value & (value - 1));
     }
 
     /// Round up to next power of two.
-    inline unsigned NextPowerOfTwo(unsigned value)
+    _FORCE_INLINE_ unsigned NextPowerOfTwo(unsigned value)
     {
         // http://graphics.stanford.edu/~seander/bithacks.html#RoundUpPowerOf2
         --value;
@@ -227,7 +227,7 @@ namespace Lumos::Maths
     }
 
     /// Round up or down to the closest power of two.
-    inline unsigned ClosestPowerOfTwo(unsigned value)
+    _FORCE_INLINE_ unsigned ClosestPowerOfTwo(unsigned value)
     {
         unsigned next = NextPowerOfTwo(value);
         unsigned prev = next >> (unsigned)1;
@@ -235,7 +235,7 @@ namespace Lumos::Maths
     }
 
     /// Return log base two or the MSB position of the given value.
-    inline unsigned LogBaseTwo(unsigned value)
+    _FORCE_INLINE_ unsigned LogBaseTwo(unsigned value)
     {
         // http://graphics.stanford.edu/~seander/bithacks.html#IntegerLogObvious
         unsigned ret = 0;
@@ -245,7 +245,7 @@ namespace Lumos::Maths
     }
 
     /// Count the number of set bits in a mask.
-    inline unsigned CountSetBits(unsigned value)
+    _FORCE_INLINE_ unsigned CountSetBits(unsigned value)
     {
         // Brian Kernighan's method
         unsigned count = 0;
@@ -255,28 +255,28 @@ namespace Lumos::Maths
     }
 
     /// Update a hash with the given 8-bit value using the SDBM algorithm.
-    inline constexpr unsigned SDBMHash(unsigned hash, unsigned char c) { return c + (hash << 6u) + (hash << 16u) - hash; }
+    _FORCE_INLINE_ constexpr unsigned SDBMHash(unsigned hash, unsigned char c) { return c + (hash << 6u) + (hash << 16u) - hash; }
 
     /// Return a random float between 0.0 (inclusive) and 1.0 (exclusive.)
-    inline float Random() { return Rand() / 32768.0f; }
+    _FORCE_INLINE_ float Random() { return Rand() / 32768.0f; }
 
     /// Return a random float between 0.0 and range, inclusive from both ends.
-    inline float Random(float range) { return Rand() * range / 32767.0f; }
+    _FORCE_INLINE_ float Random(float range) { return Rand() * range / 32767.0f; }
 
     /// Return a random float between min and max, inclusive from both ends.
-    inline float Random(float min, float max) { return Rand() * (max - min) / 32767.0f + min; }
+    _FORCE_INLINE_ float Random(float min, float max) { return Rand() * (max - min) / 32767.0f + min; }
 
     /// Return a random integer between 0 and range - 1.
-    inline int Random(int range) { return (int)(Random() * range); }
+    _FORCE_INLINE_ int Random(int range) { return (int)(Random() * range); }
 
     /// Return a random integer between min and max - 1.
-    inline int Random(int min, int max) { auto range = (float)(max - min); return (int)(Random() * range) + min; }
+    _FORCE_INLINE_ int Random(int min, int max) { auto range = (float)(max - min); return (int)(Random() * range) + min; }
 
     /// Return a random normal distributed number with the given mean value and variance.
-    inline float RandomNormal(float meanValue, float variance) { return RandStandardNormalized() * sqrtf(variance) + meanValue; }
+    _FORCE_INLINE_ float RandomNormal(float meanValue, float variance) { return RandStandardNormalized() * sqrtf(variance) + meanValue; }
 
     /// Convert float to half float. From https://gist.github.com/martinkallman/5049614
-    inline unsigned short FloatToHalf(float value)
+    _FORCE_INLINE_ unsigned short FloatToHalf(float value)
     {
         unsigned inu = FloatToRawIntBits(value);
         unsigned t1 = inu & 0x7fffffffu;         // Non-sign bits
@@ -298,7 +298,7 @@ namespace Lumos::Maths
     }
 
     /// Convert half float to float. From https://gist.github.com/martinkallman/5049614
-    inline float HalfToFloat(unsigned short value)
+    _FORCE_INLINE_ float HalfToFloat(unsigned short value)
     {
         unsigned t1 = value & 0x7fffu;           // Non-sign bits
         unsigned t2 = value & 0x8000u;           // Sign bit
@@ -319,14 +319,14 @@ namespace Lumos::Maths
     }
 
     /// Wrap a value fitting it in the range defined by [min, max)
-    template<typename T> inline T Wrap(T value, T min, T max)
+    template<typename T> _FORCE_INLINE_ T Wrap(T value, T min, T max)
     {
         T range = max - min;
         return min + Mod(value, range);
     }
 
 /// Calculate both sine and cosine, with angle in degrees.
- void SinCos(float angle, float& sin, float& cos);
+    void SinCos(float angle, float& sin, float& cos);
 }
 
 #ifdef _MSC_VER

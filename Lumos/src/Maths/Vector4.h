@@ -178,7 +178,7 @@ namespace Lumos::Maths
             return *this;
         }
 
-        inline float operator[](int i) const
+        _FORCE_INLINE_ float operator[](int i) const
         {
             switch (i)
             {
@@ -195,10 +195,10 @@ namespace Lumos::Maths
             }
         }
         
-        inline Vector4 operator+(float v) const { return Vector4(x + v, y + v, z + v, w + v); }
-        inline Vector4 operator-(float v) const { return Vector4(x - v, y - v, z - v, w - v); }
-        inline void operator+=(float v) { x += v; y += v; z += v; w += v; }
-        inline void operator-=(float v) { x -= v; y -= v; z -= v; w -= v; }
+        _FORCE_INLINE_ Vector4 operator+(float v) const { return Vector4(x + v, y + v, z + v, w + v); }
+        _FORCE_INLINE_ Vector4 operator-(float v) const { return Vector4(x - v, y - v, z - v, w - v); }
+        _FORCE_INLINE_ void operator+=(float v) { x += v; y += v; z += v; w += v; }
+        _FORCE_INLINE_ void operator-=(float v) { x -= v; y -= v; z -= v; w -= v; }
 
         Vector3 ToVector3() const
         {
@@ -276,30 +276,30 @@ namespace Lumos::Maths
     };
 
     /// Multiply Vector4 with a scalar.
-    inline Vector4 operator *(float lhs, const Vector4& rhs) { return rhs * lhs; }
+    _FORCE_INLINE_ Vector4 operator *(float lhs, const Vector4& rhs) { return rhs * lhs; }
 
     /// Per-component linear interpolation between two 4-vectors.
-    inline Vector4 VectorLerp(const Vector4& lhs, const Vector4& rhs, const Vector4& t) { return lhs + (rhs - lhs) * t; }
+    _FORCE_INLINE_ Vector4 VectorLerp(const Vector4& lhs, const Vector4& rhs, const Vector4& t) { return lhs + (rhs - lhs) * t; }
 
     /// Per-component min of two 4-vectors.
-    inline Vector4 VectorMin(const Vector4& lhs, const Vector4& rhs) { return Vector4(Min(lhs.x, rhs.x), Min(lhs.y, rhs.y), Min(lhs.z, rhs.z), Min(lhs.w, rhs.w)); }
+    _FORCE_INLINE_ Vector4 VectorMin(const Vector4& lhs, const Vector4& rhs) { return Vector4(Min(lhs.x, rhs.x), Min(lhs.y, rhs.y), Min(lhs.z, rhs.z), Min(lhs.w, rhs.w)); }
 
     /// Per-component max of two 4-vectors.
-    inline Vector4 VectorMax(const Vector4& lhs, const Vector4& rhs) { return Vector4(Max(lhs.x, rhs.x), Max(lhs.y, rhs.y), Max(lhs.z, rhs.z), Max(lhs.w, rhs.w)); }
+    _FORCE_INLINE_ Vector4 VectorMax(const Vector4& lhs, const Vector4& rhs) { return Vector4(Max(lhs.x, rhs.x), Max(lhs.y, rhs.y), Max(lhs.z, rhs.z), Max(lhs.w, rhs.w)); }
 
     /// Per-component floor of 4-vector.
-    inline Vector4 VectorFloor(const Vector4& vec) { return Vector4(Floor(vec.x), Floor(vec.y), Floor(vec.z), Floor(vec.w)); }
+    _FORCE_INLINE_ Vector4 VectorFloor(const Vector4& vec) { return Vector4(Floor(vec.x), Floor(vec.y), Floor(vec.z), Floor(vec.w)); }
 
     /// Per-component round of 4-vector.
-    inline Vector4 VectorRound(const Vector4& vec) { return Vector4(Round(vec.x), Round(vec.y), Round(vec.z), Round(vec.w)); }
+    _FORCE_INLINE_ Vector4 VectorRound(const Vector4& vec) { return Vector4(Round(vec.x), Round(vec.y), Round(vec.z), Round(vec.w)); }
 
     /// Per-component ceil of 4-vector.
-    inline Vector4 VectorCeil(const Vector4& vec) { return Vector4(Ceil(vec.x), Ceil(vec.y), Ceil(vec.z), Ceil(vec.w)); }
+    _FORCE_INLINE_ Vector4 VectorCeil(const Vector4& vec) { return Vector4(Ceil(vec.x), Ceil(vec.y), Ceil(vec.z), Ceil(vec.w)); }
     
-    inline Vector4 operator+(float f, const Vector4 &v) { return v + f; }
+    _FORCE_INLINE_ Vector4 operator+(float f, const Vector4 &v) { return v + f; }
 
-    inline Vector4 operator-(float f, const Vector4 &v) { return Vector4(f) - v; }
-    inline Vector4 operator/(float f, const Vector4 &v) { return Vector4(f) / v; }
+    _FORCE_INLINE_ Vector4 operator-(float f, const Vector4 &v) { return Vector4(f) - v; }
+    _FORCE_INLINE_ Vector4 operator/(float f, const Vector4 &v) { return Vector4(f) / v; }
 }
 
 namespace std

@@ -15,7 +15,7 @@ namespace Lumos
 		static nlohmann::json Load(const std::string& path);
 	};
 
-	inline void JsonSerialiser::Serialise(const std::string& path, nlohmann::json& obj)
+	_FORCE_INLINE_ void JsonSerialiser::Serialise(const std::string& path, nlohmann::json& obj)
 	{
 		//check if there is anything serialized
 		if (obj.is_null()) {
@@ -36,7 +36,7 @@ namespace Lumos
 		JsonSerialiser::Serialise(path, j);
 	}
 
-	inline nlohmann::json JsonSerialiser::Load(const std::string& path)
+	_FORCE_INLINE_ nlohmann::json JsonSerialiser::Load(const std::string& path)
 	{
 		std::ifstream stream(path);
 		if (!stream.good())

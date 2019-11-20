@@ -10,7 +10,7 @@ namespace Lumos
     /* Bogus implementation unaware of multiprocessing */
     
     template <class T>
-    static inline T atomic_conditional_increment(volatile T *pw)
+    static _FORCE_INLINE_ T atomic_conditional_increment(volatile T *pw)
     {
         if (*pw == 0)
             return 0;
@@ -21,7 +21,7 @@ namespace Lumos
     }
     
     template <class T>
-    static inline T atomic_decrement(volatile T *pw)
+    static _FORCE_INLINE_ T atomic_decrement(volatile T *pw)
     {
         (*pw)--;
         
@@ -29,7 +29,7 @@ namespace Lumos
     }
     
     template <class T>
-    static inline T atomic_increment(volatile T *pw)
+    static _FORCE_INLINE_ T atomic_increment(volatile T *pw)
     {
         (*pw)++;
         
@@ -45,7 +45,7 @@ namespace Lumos
     }
     
     template <class T, class V>
-    static inline T atomic_add(volatile T *pw, volatile V val)
+    static _FORCE_INLINE_ T atomic_add(volatile T *pw, volatile V val)
     {
         (*pw) += val;
         
@@ -53,7 +53,7 @@ namespace Lumos
     }
     
     template <class T, class V>
-    static inline T atomic_exchange_if_greater(volatile T *pw, volatile V val)
+    static _FORCE_INLINE_ T atomic_exchange_if_greater(volatile T *pw, volatile V val)
     {
         if (val > *pw)
             *pw = val;
@@ -69,7 +69,7 @@ namespace Lumos
     // Clang states it supports GCC atomic builtins.
     
     template <class T>
-    static inline T atomic_conditional_increment(volatile T *pw)
+    static _FORCE_INLINE_ T atomic_conditional_increment(volatile T *pw)
     {
         while (true)
         {
@@ -82,31 +82,31 @@ namespace Lumos
     }
     
     template <class T>
-    static inline T atomic_decrement(volatile T *pw)
+    static _FORCE_INLINE_ T atomic_decrement(volatile T *pw)
     {
         return __sync_sub_and_fetch(pw, 1);
     }
     
     template <class T>
-    static inline T atomic_increment(volatile T *pw)
+    static _FORCE_INLINE_ T atomic_increment(volatile T *pw)
     {
         return __sync_add_and_fetch(pw, 1);
     }
     
     template <class T, class V>
-    static inline T atomic_sub(volatile T *pw, volatile V val)
+    static _FORCE_INLINE_ T atomic_sub(volatile T *pw, volatile V val)
     {
         return __sync_sub_and_fetch(pw, val);
     }
     
     template <class T, class V>
-    static inline T atomic_add(volatile T *pw, volatile V val)
+    static _FORCE_INLINE_ T atomic_add(volatile T *pw, volatile V val)
     {
         return __sync_add_and_fetch(pw, val);
     }
     
     template <class T, class V>
-    static inline T atomic_exchange_if_greater(volatile T *pw, volatile V val)
+    static _FORCE_INLINE_ T atomic_exchange_if_greater(volatile T *pw, volatile V val)
     {
         while (true)
         {
@@ -147,27 +147,27 @@ namespace Lumos
     public:
         // destroy() is called when weak_count_ drops to zero.
         
-        inline bool ref()
+        _FORCE_INLINE_ bool ref()
         {
             return atomic_conditional_increment(&count) != 0;
         }
         
-        inline uint32_t refval()
+        _FORCE_INLINE_ uint32_t refval()
         {
             return atomic_conditional_increment(&count);
         }
         
-        inline bool unref()
+        _FORCE_INLINE_ bool unref()
         {
             return atomic_decrement(&count) == 0;
         }
         
-        inline uint32_t get() const
+        _FORCE_INLINE_ uint32_t get() const
         {
             return count;
         }
         
-        inline void init(uint32_t p_value = 1) {
+        _FORCE_INLINE_ void init(uint32_t p_value = 1) {
             
             count = p_value;
         }

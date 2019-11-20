@@ -38,8 +38,8 @@ namespace Lumos
 		virtual bool GetExit() const = 0;
 		virtual void SetExit(bool exit) = 0;
 
-		inline void SetHasResized(bool resized){ m_HasResized = resized; }
-		inline bool GetHasResized() const { return m_HasResized; }
+		_FORCE_INLINE_ void SetHasResized(bool resized){ m_HasResized = resized; }
+		_FORCE_INLINE_ bool GetHasResized() const { return m_HasResized; }
 
 		virtual void ToggleVSync() = 0;
 		virtual void SetVSync(bool set) = 0;

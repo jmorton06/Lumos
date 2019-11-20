@@ -15,7 +15,7 @@ namespace Lumos
 	};
 
 	template<typename T>
-	inline bool Serialisable::IsType()
+	_FORCE_INLINE_ bool Serialisable::IsType()
 	{
 		return Serialise()["typeID"] == LUMOS_TYPENAME(T);
 	}

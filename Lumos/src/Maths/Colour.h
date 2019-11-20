@@ -234,5 +234,5 @@ namespace Lumos::Maths
     };
 
     /// Multiply Colour with a scalar.
-    inline Colour operator *(float lhs, const Colour& rhs) { return rhs * lhs; }
+    _FORCE_INLINE_ Colour operator *(float lhs, const Colour& rhs) { return rhs * lhs; }
 }

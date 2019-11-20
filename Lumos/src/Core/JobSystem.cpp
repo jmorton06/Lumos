@@ -23,7 +23,7 @@ namespace Lumos
             // Push an item to the end if there is free space
             //	Returns true if succesful
             //	Returns false if there is not enough space
-            inline bool push_back(const T& item)
+            _FORCE_INLINE_ bool push_back(const T& item)
             {
                 bool result = false;
                 lock.lock();
@@ -41,7 +41,7 @@ namespace Lumos
             // Get an item if there are any
             //	Returns true if succesful
             //	Returns false if there are no items
-            inline bool pop_front(T& item)
+            _FORCE_INLINE_ bool pop_front(T& item)
             {
                 bool result = false;
                 lock.lock();
@@ -126,7 +126,7 @@ namespace Lumos
             }
 
             // This little function will not let the System to be deadlocked while the main thread is waiting for something
-            inline void poll()
+            _FORCE_INLINE_ void poll()
             {
                 wakeCondition.notify_one(); // wake one worker thread
                 std::this_thread::yield(); // allow this thread to be rescheduled

@@ -29,15 +29,15 @@ namespace Lumos
 
 		bool Init(const WindowProperties& properties);
 
-		inline void* GetHandle() override { return m_Handle; }
+		_FORCE_INLINE_ void* GetHandle() override { return m_Handle; }
 
-		inline String GetTitle() const override { return m_Data.Title; }
-		inline u32 GetWidth()  const override { return m_Data.Width; }
-		inline u32 GetHeight() const override { return m_Data.Height; }
-		inline float GetScreenRatio() const override { return (float)m_Data.Width / (float)m_Data.Height; }
-		inline bool GetExit() const override { return m_Data.Exit; }
-		inline void SetExit(bool exit) override { m_Data.Exit = exit; }
-		inline void SetEventCallback(const EventCallbackFn& callback) override { m_Data.EventCallback = callback; }
+		_FORCE_INLINE_ String GetTitle() const override { return m_Data.Title; }
+		_FORCE_INLINE_ u32 GetWidth()  const override { return m_Data.Width; }
+		_FORCE_INLINE_ u32 GetHeight() const override { return m_Data.Height; }
+		_FORCE_INLINE_ float GetScreenRatio() const override { return (float)m_Data.Width / (float)m_Data.Height; }
+		_FORCE_INLINE_ bool GetExit() const override { return m_Data.Exit; }
+		_FORCE_INLINE_ void SetExit(bool exit) override { m_Data.Exit = exit; }
+		_FORCE_INLINE_ void SetEventCallback(const EventCallbackFn& callback) override { m_Data.EventCallback = callback; }
 
 		void SetIcon(const String& file);
 

@@ -376,50 +376,50 @@ namespace Lumos::Maths
     };
 
     /// Multiply Vector2 with a scalar
-    inline Vector2 operator *(float lhs, const Vector2& rhs) { return rhs * lhs; }
+    _FORCE_INLINE_ Vector2 operator *(float lhs, const Vector2& rhs) { return rhs * lhs; }
 
     /// Multiply IntVector2 with a scalar.
-    inline IntVector2 operator *(int lhs, const IntVector2& rhs) { return rhs * lhs; }
+    _FORCE_INLINE_ IntVector2 operator *(int lhs, const IntVector2& rhs) { return rhs * lhs; }
 
     /// Per-component linear interpolation between two 2-vectors.
-    inline Vector2 VectorLerp(const Vector2& lhs, const Vector2& rhs, const Vector2& t) { return lhs + (rhs - lhs) * t; }
+    _FORCE_INLINE_ Vector2 VectorLerp(const Vector2& lhs, const Vector2& rhs, const Vector2& t) { return lhs + (rhs - lhs) * t; }
 
     /// Per-component min of two 2-vectors.
-    inline Vector2 VectorMin(const Vector2& lhs, const Vector2& rhs) { return Vector2(Min(lhs.x, rhs.x), Min(lhs.y, rhs.y)); }
+    _FORCE_INLINE_ Vector2 VectorMin(const Vector2& lhs, const Vector2& rhs) { return Vector2(Min(lhs.x, rhs.x), Min(lhs.y, rhs.y)); }
 
     /// Per-component max of two 2-vectors.
-    inline Vector2 VectorMax(const Vector2& lhs, const Vector2& rhs) { return Vector2(Max(lhs.x, rhs.x), Max(lhs.y, rhs.y)); }
+    _FORCE_INLINE_ Vector2 VectorMax(const Vector2& lhs, const Vector2& rhs) { return Vector2(Max(lhs.x, rhs.x), Max(lhs.y, rhs.y)); }
 
     /// Per-component floor of 2-vector.
-    inline Vector2 VectorFloor(const Vector2& vec) { return Vector2(Floor(vec.x), Floor(vec.y)); }
+    _FORCE_INLINE_ Vector2 VectorFloor(const Vector2& vec) { return Vector2(Floor(vec.x), Floor(vec.y)); }
 
     /// Per-component round of 2-vector.
-    inline Vector2 VectorRound(const Vector2& vec) { return Vector2(Round(vec.x), Round(vec.y)); }
+    _FORCE_INLINE_ Vector2 VectorRound(const Vector2& vec) { return Vector2(Round(vec.x), Round(vec.y)); }
 
     /// Per-component ceil of 2-vector.
-    inline Vector2 VectorCeil(const Vector2& vec) { return Vector2(Ceil(vec.x), Ceil(vec.y)); }
+    _FORCE_INLINE_ Vector2 VectorCeil(const Vector2& vec) { return Vector2(Ceil(vec.x), Ceil(vec.y)); }
 
     /// Per-component floor of 2-vector. Returns IntVector2.
-    inline IntVector2 VectorFloorToInt(const Vector2& vec) { return IntVector2(FloorToInt(vec.x), FloorToInt(vec.y)); }
+    _FORCE_INLINE_ IntVector2 VectorFloorToInt(const Vector2& vec) { return IntVector2(FloorToInt(vec.x), FloorToInt(vec.y)); }
 
     /// Per-component round of 2-vector. Returns IntVector2.
-    inline IntVector2 VectorRoundToInt(const Vector2& vec) { return IntVector2(RoundToInt(vec.x), RoundToInt(vec.y)); }
+    _FORCE_INLINE_ IntVector2 VectorRoundToInt(const Vector2& vec) { return IntVector2(RoundToInt(vec.x), RoundToInt(vec.y)); }
 
     /// Per-component ceil of 2-vector. Returns IntVector2.
-    inline IntVector2 VectorCeilToInt(const Vector2& vec) { return IntVector2(CeilToInt(vec.x), CeilToInt(vec.y)); }
+    _FORCE_INLINE_ IntVector2 VectorCeilToInt(const Vector2& vec) { return IntVector2(CeilToInt(vec.x), CeilToInt(vec.y)); }
 
     /// Per-component min of two 2-vectors.
-    inline IntVector2 VectorMin(const IntVector2& lhs, const IntVector2& rhs) { return IntVector2(Min(lhs.x, rhs.x), Min(lhs.y, rhs.y)); }
+    _FORCE_INLINE_ IntVector2 VectorMin(const IntVector2& lhs, const IntVector2& rhs) { return IntVector2(Min(lhs.x, rhs.x), Min(lhs.y, rhs.y)); }
 
     /// Per-component max of two 2-vectors.
-    inline IntVector2 VectorMax(const IntVector2& lhs, const IntVector2& rhs) { return IntVector2(Max(lhs.x, rhs.x), Max(lhs.y, rhs.y)); }
+    _FORCE_INLINE_ IntVector2 VectorMax(const IntVector2& lhs, const IntVector2& rhs) { return IntVector2(Max(lhs.x, rhs.x), Max(lhs.y, rhs.y)); }
 
     /// Return a random value from [0, 1) from 2-vector seed.
     /// http://stackoverflow.com/questions/12964279/whats-the-origin-of-this-glsl-rand-one-liner
-    inline float StableRandom(const Vector2& seed) { return Fract(Sin(seed.DotProduct(Vector2(12.9898f, 78.233f)) * M_RADTODEG) * 43758.5453f); }
+    _FORCE_INLINE_ float StableRandom(const Vector2& seed) { return Fract(Sin(seed.DotProduct(Vector2(12.9898f, 78.233f)) * M_RADTODEG) * 43758.5453f); }
 
     /// Return a random value from [0, 1) from scalar seed.
-    inline float StableRandom(float seed) { return StableRandom(Vector2(seed, seed)); }
+    _FORCE_INLINE_ float StableRandom(float seed) { return StableRandom(Vector2(seed, seed)); }
 }
 
 namespace std
