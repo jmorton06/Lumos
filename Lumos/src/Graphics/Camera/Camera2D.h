@@ -13,13 +13,8 @@ namespace Lumos
 
 		virtual void HandleMouse(float dt, float xpos, float ypos) override;
 		virtual void HandleKeyboard(float dt) override;
-
-		virtual void UpdateProjectionMatrix() override;
-		void BuildViewMatrix() override;
         
         void UpdateScroll(float offset, float dt) override;
-		void OnImGui() override;
-		bool Is2D() const override { return true; }
 
     private:
 		float m_AspectRatio;

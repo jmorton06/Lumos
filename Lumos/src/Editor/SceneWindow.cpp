@@ -58,7 +58,7 @@ namespace Lumos
 
 		if (m_Editor->ShowGrid())
 		{
-			if (camera->Is2D())
+			if (camera->IsOrthographic())
 			{
 				m_Editor->Draw2DGrid(ImGui::GetWindowDrawList(), { camera->GetPosition().x, camera->GetPosition().y }, sceneViewPosition, { sceneViewSize.x, sceneViewSize.y }, camera->GetScale(), 1.5f);
 			}

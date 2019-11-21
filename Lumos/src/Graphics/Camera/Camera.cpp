@@ -104,15 +104,15 @@ namespace Lumos
         m_FrustumDirty = true; //temp
 		if (m_FrustumDirty)
 		{
-			customProjection_ = true;
+			customProjection_ = true; //temp
 			if (customProjection_)
 				m_Frustum.Define(m_ProjMatrix * m_ViewMatrix);
 			else
 			{
-				if (!m_Orthographic)
-					m_Frustum.Define(m_Fov, m_AspectRatio, m_Zoom, GetNear(), GetFar(), Maths::Matrix3x4(m_ViewMatrix));
+				if (m_Orthographic)
+					m_Frustum.DefineOrtho(m_Scale, m_AspectRatio, m_Zoom, GetNear(), GetFar(), Maths::Matrix3x4(m_ViewMatrix));
 				else
-					m_Frustum.DefineOrtho(m_Fov, m_AspectRatio, m_Zoom, GetNear(), GetFar(), Maths::Matrix3x4(m_ViewMatrix));
+					m_Frustum.Define(m_Fov, m_AspectRatio, m_Zoom, GetNear(), GetFar(), Maths::Matrix3x4(m_ViewMatrix));
 			}
 
 			m_FrustumDirty = false;
@@ -155,6 +155,8 @@ namespace Lumos
 			ImGuiHelpers::Property("Far", m_Far, 10.0f, 10000.0f);
 			ImGuiHelpers::Property("Zoom", m_Zoom, 0.0f, 100.0f);
 			ImGuiHelpers::Property("Offset", m_ProjectionOffset, 0.0f, 10.0f);
+			ImGuiHelpers::Property("Scale", m_Scale, 0.0f, 1000.0f);
+			ImGui::Checkbox("Orthograhic", &m_Orthographic);
             
             m_ProjectionDirty = true;
 

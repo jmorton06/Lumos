@@ -265,6 +265,17 @@ namespace Lumos::Maths
         /// Test for inequality with another matrix without epsilon.
         bool operator !=(const Matrix4& rhs) const { return !(*this == rhs); }
 
+		/// Multiply a Vector2 which is assumed to represent position.
+		Vector2 operator *(const Vector2& rhs) const
+		{
+			float invW = 1.0f / (m30_ * rhs.x + m31_ * rhs.y  + m33_);
+
+			return Vector2(
+				(m00_ * rhs.x + m01_ * rhs.y + m03_) * invW,
+				(m10_ * rhs.x + m11_ * rhs.y + m13_) * invW
+			);
+		}
+
         /// Multiply a Vector3 which is assumed to represent position.
         Vector3 operator *(const Vector3& rhs) const
         {

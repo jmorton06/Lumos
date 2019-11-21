@@ -112,7 +112,6 @@ namespace Lumos
 		m_Windows.emplace_back(CreateRef<GraphicsInfoWindow>());
 		m_Windows.back()->SetActive(false);
 		m_Windows.emplace_back(CreateRef<ApplicationInfoWindow>());
-		m_Windows.back()->SetActive(false);
 		for (auto& window : m_Windows)
 			window->SetEditor(this);
 
@@ -147,7 +146,7 @@ namespace Lumos
         if(m_ShowImGuiDemo)
             ImGui::ShowDemoWindow(&m_ShowImGuiDemo);
 
-		m_View2D = Application::Instance()->GetSceneManager()->GetCurrentScene()->GetCamera()->Is2D();
+		m_View2D = Application::Instance()->GetSceneManager()->GetCurrentScene()->GetCamera()->IsOrthographic();
 
 		if (m_ShowGrid)
 		{
@@ -380,7 +379,7 @@ namespace Lumos
         proj = proj.Transpose();
         
 		ImGuizmo::SetDrawlist();
-		ImGuizmo::SetOrthographic(Application::Instance()->GetSceneManager()->GetCurrentScene()->GetCamera()->Is2D());
+		ImGuizmo::SetOrthographic(Application::Instance()->GetSceneManager()->GetCurrentScene()->GetCamera()->IsOrthographic());
 
         auto& registry = m_Application->GetSceneManager()->GetCurrentScene()->GetRegistry();
 		auto transform = registry.try_get<Maths::Transform>(m_Selected);

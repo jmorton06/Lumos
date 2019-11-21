@@ -228,6 +228,8 @@ namespace Lumos
 			const VkDescriptorImageInfo* GetDescriptor() const { return &m_Descriptor; }
 			void UpdateDescriptor();
 
+			void* GetHandleArray(u32 index) override { m_Descriptor.imageView = GetImageView(index);  return (void*)&m_Descriptor; };
+
             static void MakeDefault();
         protected:
             static TextureDepthArray* CreateFuncVulkan(u32, u32, u32);

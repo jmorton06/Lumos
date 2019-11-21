@@ -20,14 +20,14 @@ namespace Lumos
 		virtual void BuildViewMatrix();
 		virtual void UpdateScroll(float offset, float dt);
 		virtual void UpdateProjectionMatrix();
-
 		virtual void OnImGui();
-		virtual bool Is2D() const { return false; }
 
 		const Maths::Vector3& GetPosition() const { return m_Position; }
 		void SetPosition(const Maths::Vector3& val) { m_Position = val; }
 
 		void SetMouseSensitivity(float value) { m_MouseSensitivity = value; }
+		
+		bool IsOrthographic() const { return m_Orthographic; }
 
 		float GetRoll() const { return m_Roll; }
 		void SetRoll(float y) { m_Roll = y; }
