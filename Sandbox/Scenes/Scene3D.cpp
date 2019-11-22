@@ -236,9 +236,6 @@ void Scene3D::LoadModels()
 		m_Registry.assign<MaterialComponent>(sphere, m);
 		m_Registry.assign<NameComponent>(sphere, "Sphere" + StringFormat::ToString(numSpheres++));
 	}
-
-	auto fbxTest = ModelLoader::LoadModel("/CoreMeshes/material_sphere/material_sphere.fbx", m_Registry);
-	m_Registry.get_or_assign<Maths::Transform>(fbxTest, Maths::Matrix4::Scale(Maths::Vector3(1.0f, 1.0f, 1.0f)));
 }
 
 void Scene3D::OnImGui()

@@ -41,13 +41,15 @@ namespace Lumos
 
 			VkDevice GetDevice()							const { return m_Device; };
 			VkPhysicalDevice GetGPU()						const { return m_PhysicalDevice; };
-			VkQueue GetGraphicsQueue()					const { return m_GraphicsQueue; };
+			VkQueue GetGraphicsQueue()					    const { return m_GraphicsQueue; };
 			VkQueue GetPresentQueue()						const { return m_PresentQueue; };
 			uint32_t GetGraphicsQueueFamilyIndex()			const { return m_GraphicsQueueFamilyIndex; };
 			VkSurfaceKHR GetSurface()						const { return m_Surface; };
 			VkFormat GetFormat()							const { return m_Format; };
+            VkColorSpaceKHR GetColourSpace()                const { return m_ColourSpace; };
+
 			VkPhysicalDeviceProperties GetGPUProperties()	const { return m_PhysicalDeviceProperties; };
-			VkPipelineCache GetPipelineCache() 			const { return m_PipelineCache; }
+			VkPipelineCache GetPipelineCache() 			    const { return m_PipelineCache; }
 
 			VKContext* GetVKContext() 						const { return m_VKContext; }
             
@@ -67,6 +69,7 @@ namespace Lumos
 			VkSurfaceKHR m_Surface;
 			uint32_t m_GraphicsQueueFamilyIndex;
 			VkFormat m_Format;
+            VkColorSpaceKHR m_ColourSpace;
 			VkQueue m_GraphicsQueue;
 			VkQueue m_PresentQueue;
 			VkPipelineCache m_PipelineCache;
