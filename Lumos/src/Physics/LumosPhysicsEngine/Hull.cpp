@@ -79,7 +79,7 @@ namespace Lumos
 		HullFace new_face;
 		new_face.idx = (int)m_Faces.size();
 		new_face.normal = normal;
-		new_face.normal.Normalise();
+		new_face.normal.Normalize();
 
 		m_Faces.push_back(new_face);
 		HullFace* new_face_ptr = &m_Faces[new_face.idx];

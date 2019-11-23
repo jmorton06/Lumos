@@ -19,7 +19,7 @@ namespace Lumos
 	{
 		// Position
 		Maths::Vector3 pos(m_positionOffset);
-		Maths::Quaternion::RotatePointByQuaternion(m_pObj1->GetOrientation(), pos);
+		//Maths::Quaternion::RotatePointByQuaternion(m_pObj1->GetOrientation(), pos);
 		pos += m_pObj1->GetPosition();
 		m_pObj2->SetPosition(pos);
 

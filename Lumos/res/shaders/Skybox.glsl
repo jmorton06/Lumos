@@ -14,7 +14,7 @@ void main (void)
 	vec4 pos = vec4(position,1.0);
 	pos.z = 1.0f;
 	gl_Position = pos;
-	OUT.position = sys_InvViewProjMatrix * pos;
+	OUT.position = pos * sys_InvViewProjMatrix;
 }
 
 #shader fragment

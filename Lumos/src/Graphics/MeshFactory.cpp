@@ -1,11 +1,9 @@
 #include "lmpch.h"
 #include "MeshFactory.h"
-#include "Maths/BoundingBox.h"
 #include "Mesh.h"
 #include "Material.h"
 #include "API/VertexArray.h"
 #include "Maths/Maths.h"
-#include "Maths/MathsUtilities.h"
 
 namespace Lumos
 {
@@ -54,14 +52,14 @@ namespace Lumos
 			Ref<Maths::BoundingBox> boundingBox = CreateRef<Maths::BoundingBox>();
 			for (int i = 0; i < 4; i++)
 			{
-				boundingBox->ExpandToFit(data[i].position);
+				boundingBox->Merge(data[i].position);
 			}
 			return lmnew Mesh(va, ib, boundingBox);
 		}
 
 		Mesh* CreateQuad(const Maths::Vector2& position, const Maths::Vector2& size)
 		{
-			return CreateQuad(position.GetX(), position.GetY(), size.GetX(), size.GetY());
+			return CreateQuad(position.x, position.y, size.x, size.y);
 		}
 
 		Mesh* CreateQuad()
@@ -93,7 +91,7 @@ namespace Lumos
             Ref<Maths::BoundingBox> BoundingBox = CreateRef<Maths::BoundingBox>();
             for (int i = 0; i < 4; i++)
             {
-                BoundingBox->ExpandToFit(data[i].Position);
+                BoundingBox->Merge(data[i].Position);
             }
 
 			delete[] data;
@@ -242,9 +240,9 @@ namespace Lumos
 			buffer->SetData(24 * sizeof(Vertex), data);
 
             Ref<Maths::BoundingBox> BoundingBox = CreateRef<Maths::BoundingBox>();
-            for (int i = 0; i < 4; i++)
+            for (int i = 0; i < 8; i++)
             {
-                BoundingBox->ExpandToFit(data[i].Position);
+                BoundingBox->Merge(data[i].Position);
             }
             
 			lmdel[] data;
@@ -384,7 +382,7 @@ namespace Lumos
             Ref<Maths::BoundingBox> BoundingBox = CreateRef<Maths::BoundingBox>();
             for (int i = 0; i < 4; i++)
             {
-                BoundingBox->ExpandToFit(data[i].Position);
+                BoundingBox->Merge(data[i].Position);
             }
             
 			delete[] data;
@@ -424,13 +422,13 @@ namespace Lumos
 
 			float sectorCount = static_cast<float>(xSegments);
 			float stackCount = static_cast<float>(ySegments);
-			float sectorStep = 2 * Maths::PI / sectorCount;
-			float stackStep = Maths::PI / stackCount;
+			float sectorStep = 2 * Maths::M_PI / sectorCount;
+			float stackStep = Maths::M_PI / stackCount;
 			float radius = 1.0f;
 
 			for (int i = 0; i <= stackCount; ++i)
 			{
-                float stackAngle = Maths::PI / 2 - i * stackStep;        // starting from pi/2 to -pi/2
+                float stackAngle = Maths::M_PI / 2 - i * stackStep;        // starting from pi/2 to -pi/2
 				float xy = radius * cos(stackAngle);             // r * cos(u)
 				float z = radius * sin(stackAngle);              // r * sin(u)
 
@@ -451,7 +449,7 @@ namespace Lumos
 					Vertex vertex;
 					vertex.Position = Maths::Vector3(x, y, z);
 					vertex.TexCoords = Maths::Vector2(s, t);
-					vertex.Normal = Maths::Vector3(x, y, z).Normal();
+					vertex.Normal = Maths::Vector3(x, y, z).Normalized();
 
 					data.emplace_back(vertex);
 				}
@@ -500,7 +498,7 @@ namespace Lumos
 
 			Ref<IndexBuffer> ib;
 			ib.reset(IndexBuffer::Create(indices.data(), static_cast<u32>(indices.size())));
-			Ref<Maths::BoundingBox> BoundingBox = CreateRef<Maths::BoundingBox>();
+			Ref<Maths::BoundingBox> BoundingBox = CreateRef<Maths::BoundingBox>(Maths::Vector3(-0.5f), Maths::Vector3(0.5f));
 
 			return lmnew Mesh(va, ib, BoundingBox);
 		}
@@ -512,7 +510,7 @@ namespace Lumos
 
 		Mesh* CreatePlane(float width, float height, const Maths::Vector3& normal)
 		{
-			Maths::Vector3 vec = normal * 90.0f;
+			/*Maths::Vector3 vec = normal * 90.0f;
 			Maths::Matrix4 rotation = Maths::Matrix4::Rotation(vec.z, Maths::Vector3(1.0f, 0.0f, 0.0f)) * Maths::Matrix4::Rotation(vec.y, Maths::Vector3(0.0f, 1.0f, 0.0f)) * Maths::Matrix4::Rotation(vec.x, Maths::Vector3(0.0f, 0.0f, 1.0f));
 
 			Vertex data[4];
@@ -536,15 +534,15 @@ namespace Lumos
 			data[3].Position = rotation * Maths::Vector3(width / 2.0f, 0.0f, -height / 2.0f);
 			data[3].Normal = normal;
 			data[3].TexCoords = Maths::Vector2(1.0f, 0.0f);
-			data[3].Tangent = Maths::Matrix4::Rotation(90.0f, Maths::Vector3(0.0f, 0.0f, 1.0f)) * normal;
+			data[3].Tangent = Maths::Matrix4::Rotation(90.0f, Maths::Vector3(0.0f, 0.0f, 1.0f)) * normal;*/
 
 			VertexBuffer* buffer = VertexBuffer::Create(BufferUsage::STATIC);
-			buffer->SetData(8 * sizeof(Vertex), data);
+			//buffer->SetData(8 * sizeof(Vertex), data);
 
             Ref<Maths::BoundingBox> boundingBox = CreateRef<Maths::BoundingBox>();
             for (int i = 0; i < 4; i++)
             {
-                boundingBox->ExpandToFit(data[i].Position);
+                //boundingBox->Merge(data[i].Position);
             }
 
 			Graphics::BufferLayout layout;
@@ -573,8 +571,6 @@ namespace Lumos
 
 		Mesh* CreateCapsule(float radius, float midHeight, int radialSegments, int rings)
 		{
-			using namespace Maths;
-
 			int i, j, prevrow, thisrow, point;
 			float x, y, z, u, v, w;
 			float onethird = 1.0f / 3.0f;
@@ -593,23 +589,23 @@ namespace Lumos
 				v = float(j);
 
 				v /= (rings + 1);
-				w = sin(0.5f * Maths::PI * v);
-				z = radius * cos(0.5f * Maths::PI * v);
+				w = sin(0.5f * Maths::M_PI * v);
+				z = radius * cos(0.5f * Maths::M_PI * v);
 
 				for (i = 0; i <= radialSegments; i++) 
 				{
 					u = float(i);
 					u /= radialSegments;
 
-					x = sin(u * (Maths::PI * 2.0f));
-					y = -cos(u * (Maths::PI * 2.0f));
+					x = sin(u * (Maths::M_PI * 2.0f));
+					y = -cos(u * (Maths::M_PI * 2.0f));
 
-					Vector3 p = Vector3(x * radius * w, y * radius * w, z);
+					Maths::Vector3 p = Maths::Vector3(x * radius * w, y * radius * w, z);
 
 					Vertex vertex;
-					vertex.Position = p + Vector3(0.0f, 0.0f, 0.5f * midHeight);
-					vertex.Normal = (p + Vector3(0.0f, 0.0f, 0.5f * midHeight)).Normal();
-					vertex.TexCoords = Vector2(u, onethird * v);
+					vertex.Position = p + Maths::Vector3(0.0f, 0.0f, 0.5f * midHeight);
+					vertex.Normal = (p + Maths::Vector3(0.0f, 0.0f, 0.5f * midHeight)).Normalized();
+					vertex.TexCoords = Maths::Vector2(u, onethird * v);
 					data.emplace_back(vertex);
 					point++;
 
@@ -645,15 +641,15 @@ namespace Lumos
 					u = float(i);
 					u /= radialSegments;
 
-					x = sin(u * (Maths::PI * 2.0f));
-					y = -cos(u * (Maths::PI * 2.0f));
+					x = sin(u * (Maths::M_PI * 2.0f));
+					y = -cos(u * (Maths::M_PI * 2.0f));
 
-					Vector3 p = Vector3(x * radius, y * radius, z);
+					Maths::Vector3 p = Maths::Vector3(x * radius, y * radius, z);
 
 					Vertex vertex;
 					vertex.Position = p;
-					vertex.Normal = Vector3(x, y, z);
-					vertex.TexCoords = Vector2(u, onethird + (v * onethird));
+					vertex.Normal = Maths::Vector3(x, y, z);
+					vertex.TexCoords = Maths::Vector2(u, onethird + (v * onethird));
 					data.emplace_back(vertex);
 
 					point++;
@@ -684,23 +680,23 @@ namespace Lumos
 
 				v /= (rings + 1);
 				v += 1.0f;
-				w = sin(0.5f * Maths::PI * v);
-				z = radius * cos(0.5f * Maths::PI * v);
+				w = sin(0.5f * Maths::M_PI * v);
+				z = radius * cos(0.5f * Maths::M_PI * v);
 
 				for (i = 0; i <= radialSegments; i++) 
 				{
 					float u2 = float(i);
 					u2 /= radialSegments;
 
-					x = sin(u2 * (Maths::PI * 2.0f));
-					y = -cos(u2 * (Maths::PI * 2.0f));
+					x = sin(u2 * (Maths::M_PI * 2.0f));
+					y = -cos(u2 * (Maths::M_PI * 2.0f));
 
-					Vector3 p = Vector3(x * radius * w, y * radius * w, z);
+					Maths::Vector3 p = Maths::Vector3(x * radius * w, y * radius * w, z);
 
 					Vertex vertex;
-					vertex.Position = p + Vector3(0.0f, 0.0f, -0.5f * midHeight);
-					vertex.Normal = (p + Vector3(0.0f, 0.0f, -0.5f * midHeight)).Normal();
-					vertex.TexCoords = Vector2(u2, twothirds + ((v - 1.0f) * onethird));
+					vertex.Position = p + Maths::Vector3(0.0f, 0.0f, -0.5f * midHeight);
+					vertex.Normal = (p + Maths::Vector3(0.0f, 0.0f, -0.5f * midHeight)).Normalized();
+					vertex.TexCoords = Maths::Vector2(u2, twothirds + ((v - 1.0f) * onethird));
 					data.emplace_back(vertex);
 
 					point++;
@@ -727,7 +723,7 @@ namespace Lumos
 			Ref<Maths::BoundingBox> boundingBox = CreateRef<Maths::BoundingBox>();
 			for (size_t i = 0; i < data.size(); i++)
 			{
-				boundingBox->ExpandToFit(data[i].Position);
+				boundingBox->Merge(data[i].Position);
 			}
 
 			Graphics::BufferLayout layout;
@@ -754,8 +750,6 @@ namespace Lumos
 		int i, j, prevrow, thisrow, point = 0;
 		float x, y, z, u, v, radius;
 
-		using namespace Maths;
-
 		std::vector<Vertex> data;
 		std::vector<u32> indices;
 
@@ -776,15 +770,15 @@ namespace Lumos
 				u = float(i);
 				u /= radialSegments;
 
-				x = sin(u * (Maths::PI * 2.0f));
-				z = cos(u * (Maths::PI * 2.0f));
+				x = sin(u * (Maths::M_PI * 2.0f));
+				z = cos(u * (Maths::M_PI * 2.0f));
 
-				Vector3 p = Vector3(x * radius, y, z * radius);
+				Maths::Vector3 p = Maths::Vector3(x * radius, y, z * radius);
 
 				Vertex vertex;
 				vertex.Position = p;
-				vertex.Normal = Vector3(x, y, z);
-				vertex.TexCoords = Vector2(u, v * 0.5f);
+				vertex.Normal = Maths::Vector3(x, y, z);
+				vertex.TexCoords = Maths::Vector2(u, v * 0.5f);
 				data.emplace_back(vertex);
 
 				point++;
@@ -811,9 +805,9 @@ namespace Lumos
 			y = height * 0.5f;
 
 			Vertex vertex;
-			vertex.Position = Vector3(0.0f, y, 0.0f);
-			vertex.Normal = Vector3(0.0f, 1.0f, 0.0f);
-			vertex.TexCoords = Vector2(0.25f, 0.75f);
+			vertex.Position = Maths::Vector3(0.0f, y, 0.0f);
+			vertex.Normal = Maths::Vector3(0.0f, 1.0f, 0.0f);
+			vertex.TexCoords = Maths::Vector2(0.25f, 0.75f);
 			data.emplace_back(vertex);
 			point++;
 
@@ -822,17 +816,17 @@ namespace Lumos
 				float r = float(i);
 				r /= radialSegments;
 
-				x = sin(r * (Maths::PI * 2.0f));
-				z = cos(r * (Maths::PI * 2.0f));
+				x = sin(r * (Maths::M_PI * 2.0f));
+				z = cos(r * (Maths::M_PI * 2.0f));
 
 				u = ((x + 1.0f) * 0.25f);
 				v = 0.5f + ((z + 1.0f) * 0.25f);
 
-				Vector3 p = Vector3(x * topRadius, y, z * topRadius);
+				Maths::Vector3 p = Maths::Vector3(x * topRadius, y, z * topRadius);
 				Vertex vertex;
 				vertex.Position = p;
-				vertex.Normal = Vector3(0.0f, 1.0f, 0.0f);
-				vertex.TexCoords = Vector2(u, v);
+				vertex.Normal = Maths::Vector3(0.0f, 1.0f, 0.0f);
+				vertex.TexCoords = Maths::Vector2(u, v);
 				data.emplace_back(vertex);
 				point++;
 
@@ -853,9 +847,9 @@ namespace Lumos
 			thisrow = point;
 
 			Vertex vertex;
-			vertex.Position = Vector3(0.0f, y, 0.0f);
-			vertex.Normal = Vector3(0.0f, -1.0f, 0.0f);
-			vertex.TexCoords = Vector2(0.75f, 0.75f);
+			vertex.Position = Maths::Vector3(0.0f, y, 0.0f);
+			vertex.Normal = Maths::Vector3(0.0f, -1.0f, 0.0f);
+			vertex.TexCoords = Maths::Vector2(0.75f, 0.75f);
 			data.emplace_back(vertex);
 			point++;
 
@@ -864,17 +858,17 @@ namespace Lumos
 				float r = float(i);
 				r /= radialSegments;
 
-				x = sin(r * (Maths::PI * 2.0f));
-				z = cos(r * (Maths::PI * 2.0f));
+				x = sin(r * (Maths::M_PI * 2.0f));
+				z = cos(r * (Maths::M_PI * 2.0f));
 
 				u = 0.5f + ((x + 1.0f) * 0.25f);
 				v = 1.0f - ((z + 1.0f) * 0.25f);
 
-				Vector3 p = Vector3(x * bottomRadius, y, z * bottomRadius);
+				Maths::Vector3 p = Maths::Vector3(x * bottomRadius, y, z * bottomRadius);
 
 				vertex.Position = p;
-				vertex.Normal = Vector3(0.0f, -1.0f, 0.0f);
-				vertex.TexCoords = Vector2(u, v);
+				vertex.Normal = Maths::Vector3(0.0f, -1.0f, 0.0f);
+				vertex.TexCoords = Maths::Vector2(u, v);
 				data.emplace_back(vertex);
 				point++;
 
@@ -893,7 +887,7 @@ namespace Lumos
 		Ref<Maths::BoundingBox> boundingBox = CreateRef<Maths::BoundingBox>();
 		for (size_t i = 0; i < data.size(); i++)
 		{
-			boundingBox->ExpandToFit(data[i].Position);
+			boundingBox->Merge(data[i].Position);
 		}
 
 		Graphics::BufferLayout layout;

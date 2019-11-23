@@ -184,7 +184,7 @@ namespace Lumos
 			const Maths::Vector2 min = renderable->GetPosition();
 			const Maths::Vector2 max = renderable->GetPosition() + renderable->GetScale();
 
-			const Maths::Vector4 colour = renderable->GetColour();
+			const Maths::Vector4 colour = renderable->Columnour();
 			const std::vector<Maths::Vector2>& uv = renderable->GetUVs();
 			const Texture* texture = renderable->GetTexture();
 
@@ -253,6 +253,8 @@ namespace Lumos
 			auto projView = camera->GetProjectionMatrix() * camera->GetViewMatrix();
 
 			memcpy(m_VSSystemUniformBuffer, &projView, sizeof(Maths::Matrix4));
+            
+            m_Frustum = camera->GetFrustum();
 		}
 
 		void Renderer2D::Present()
@@ -315,6 +317,16 @@ namespace Lumos
             for(auto entity: group)
             {
                 const auto &[sprite, trans] = group.get<Graphics::Sprite, Maths::Transform>(entity);
+                
+				/*const Maths::Vector2 min = trans.GetWorldMatrix() * sprite.GetPosition();
+				const Maths::Vector2 max = trans.GetWorldMatrix() * (sprite.GetPosition() + sprite.GetScale());
+				auto bb = Maths::BoundingBox(Maths::Rect(min, max));
+				bb.Transform(trans.GetWorldMatrix());
+                auto inside = m_Frustum.IsInside(bb);
+                
+                if (inside == Maths::Intersection::OUTSIDE)
+                    continue;*/
+
                 Submit(reinterpret_cast<Renderable2D*>(&sprite), trans.GetWorldMatrix());
             };
 

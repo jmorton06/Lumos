@@ -37,7 +37,7 @@ namespace Lumos
 	{
 		UpdateTextureCoord(numTextureRows);
 
-		m_Velocity.SetY(m_Velocity.GetY() + GRAVITY * m_GravityEffect * dt);
+		m_Velocity.y = m_Velocity.y + GRAVITY * m_GravityEffect * dt;
 		m_Position += m_Velocity * dt;
 		m_ElapsedTime += dt;
 
@@ -60,7 +60,7 @@ namespace Lumos
 	{
 		int column = static_cast<int>(fmod(index, textureRows));
 		int row = index / textureRows;
-		offset.SetX(static_cast<float>(column) / static_cast<float>(textureRows));
-		offset.SetY(static_cast<float>(row) / static_cast<float>(textureRows));
+		offset.x = static_cast<float>(column) / static_cast<float>(textureRows);
+		offset.y = static_cast<float>(row) / static_cast<float>(textureRows);
 	}
 }

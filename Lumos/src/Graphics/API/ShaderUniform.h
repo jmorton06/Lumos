@@ -92,12 +92,12 @@ namespace Lumos
 				m_Fields.push_back(field);
 			}
 
-			inline void SetOffset(u32 offset) { m_Offset = offset; }
+			_FORCE_INLINE_ void SetOffset(u32 offset) { m_Offset = offset; }
 
-			inline const String& GetName() const { return m_Name; }
-			inline u32 GetSize() const { return m_Size; }
-			inline u32 GetOffset() const { return m_Offset; }
-			inline const std::vector<ShaderUniformDeclaration*>& GetFields() const { return m_Fields; }
+			_FORCE_INLINE_ const String& GetName() const { return m_Name; }
+			_FORCE_INLINE_ u32 GetSize() const { return m_Size; }
+			_FORCE_INLINE_ u32 GetOffset() const { return m_Offset; }
+			_FORCE_INLINE_ const std::vector<ShaderUniformDeclaration*>& GetFields() const { return m_Fields; }
 		};
 
 		typedef std::vector<ShaderStruct*> ShaderStructList;

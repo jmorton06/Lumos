@@ -3,7 +3,7 @@
 
 #include "Graphics/Mesh.h"
 #include "Graphics/Material.h"
-#include "Maths/MathsUtilities.h"
+#include "Maths/Maths.h"
 
 namespace Lumos
 {
@@ -99,28 +99,28 @@ namespace Lumos
 	{
 		DebugDrawData*target = (mode == DEBUGDRAW_ORTHO ? target = s_OrthoDebugData : target = s_PerspectiveDebugData);
 
-		target->AddLine(at + Maths::Vector3(-scale.GetX()  * 0.5f, scale.GetY() * 0.5f, 0),
-			at + Maths::Vector3(-scale.GetX() * 0.5f, -scale.GetY() * 0.5f, 0), colour, colour);
+		target->AddLine(at + Maths::Vector3(-scale.x  * 0.5f, scale.y * 0.5f, 0),
+			at + Maths::Vector3(-scale.x * 0.5f, -scale.y * 0.5f, 0), colour, colour);
 
-		target->AddLine(at + Maths::Vector3(-scale.GetX() * 0.5f, -scale.GetY() * 0.5f, 0),
-			at + Maths::Vector3(scale.GetX() * 0.5f, -scale.GetY() * 0.5f, 0), colour, colour);
+		target->AddLine(at + Maths::Vector3(-scale.x * 0.5f, -scale.y * 0.5f, 0),
+			at + Maths::Vector3(scale.x * 0.5f, -scale.y * 0.5f, 0), colour, colour);
 
-		target->AddLine(at + Maths::Vector3(scale.GetX() * 0.5f, -scale.GetY() * 0.5f, 0),
-			at + Maths::Vector3(scale.GetX() * 0.5f, scale.GetY() * 0.5f, 0), colour, colour);
+		target->AddLine(at + Maths::Vector3(scale.x * 0.5f, -scale.y * 0.5f, 0),
+			at + Maths::Vector3(scale.x * 0.5f, scale.y * 0.5f, 0), colour, colour);
 
-		target->AddLine(at + Maths::Vector3(scale.GetX() * 0.5f, scale.GetY() * 0.5f, 0),
-			at + Maths::Vector3(-scale.GetX() * 0.5f, scale.GetY() * 0.5f, 0), colour, colour);
+		target->AddLine(at + Maths::Vector3(scale.x * 0.5f, scale.y * 0.5f, 0),
+			at + Maths::Vector3(-scale.x * 0.5f, scale.y * 0.5f, 0), colour, colour);
 	}
 
 	void GLDebug::DrawDebugCross(const DebugDrawMode mode, const Maths::Vector3 &at, const Maths::Vector3 &scale, const Maths::Vector3 &colour)
 	{
 		DebugDrawData*target = (mode == DEBUGDRAW_ORTHO ? target = s_OrthoDebugData : target = s_PerspectiveDebugData);
 
-		target->AddLine(at + Maths::Vector3(-scale.GetX() * 0.5f, -scale.GetY() * 0.5f, 0),
-			at + Maths::Vector3(scale.GetX() * 0.5f, scale.GetY() * 0.5f, 0), colour, colour);
+		target->AddLine(at + Maths::Vector3(-scale.x * 0.5f, -scale.y * 0.5f, 0),
+			at + Maths::Vector3(scale.x * 0.5f, scale.y * 0.5f, 0), colour, colour);
 
-		target->AddLine(at + Maths::Vector3(scale.GetX() * 0.5f, -scale.GetY() * 0.5f, 0),
-			at + Maths::Vector3(-scale.GetX() * 0.5f, scale.GetY() * 0.5f, 0), colour, colour);
+		target->AddLine(at + Maths::Vector3(scale.x * 0.5f, -scale.y * 0.5f, 0),
+			at + Maths::Vector3(-scale.x * 0.5f, scale.y * 0.5f, 0), colour, colour);
 	}
 
 	void GLDebug::DrawDebugCircle(const DebugDrawMode mode, const Maths::Vector3 &at, const float radius, const Maths::Vector3 &colour)
@@ -132,14 +132,14 @@ namespace Lumos
 
 		for (int i = 0; i < stepCount; ++i)
 		{
-			const float startx = radius * static_cast<float>(cos(Maths::DegreesToRadians(i * divisor))) + at.GetX();
-			const float endx = radius * static_cast<float>(cos(Maths::DegreesToRadians((i + 1) * divisor))) + at.GetX();
+			const float startx = radius * static_cast<float>(cos(Maths::ToRadians(i * divisor))) + at.x;
+			const float endx = radius * static_cast<float>(cos(Maths::ToRadians((i + 1) * divisor))) + at.x;
 
-			const float starty = radius * static_cast<float>(sin(Maths::DegreesToRadians(i * divisor))) + at.GetY();
-			const float endy = radius * static_cast<float>(sin(Maths::DegreesToRadians((i + 1) * divisor))) + at.GetY();
+			const float starty = radius * static_cast<float>(sin(Maths::ToRadians(i * divisor))) + at.y;
+			const float endy = radius * static_cast<float>(sin(Maths::ToRadians((i + 1) * divisor))) + at.y;
 
-			target->AddLine(Maths::Vector3(startx, starty, at.GetZ()),
-                            Maths::Vector3(endx, endy, at.GetZ()), colour, colour);
+			target->AddLine(Maths::Vector3(startx, starty, at.z),
+                            Maths::Vector3(endx, endy, at.z), colour, colour);
 		}
 	}
 

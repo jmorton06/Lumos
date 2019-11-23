@@ -202,6 +202,7 @@ namespace Lumos
 
 			virtual void Init() = 0;
 			virtual void Resize(u32 width, u32 height, u32 count) = 0;
+			virtual void* GetHandleArray(u32 index) { return GetHandle(); };
             
         protected:
             static TextureDepthArray* (*CreateFunc)(u32, u32, u32);

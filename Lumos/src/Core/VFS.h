@@ -24,6 +24,6 @@ namespace Lumos
 		static void OnInit();
 		static void OnShutdown();
 
-		inline static VFS* Get() { return s_Instance; }
+		_FORCE_INLINE_ static VFS* Get() { return s_Instance; }
 	};
 }

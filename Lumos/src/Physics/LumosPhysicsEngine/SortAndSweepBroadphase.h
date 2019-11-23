@@ -13,7 +13,7 @@ namespace Lumos
 		explicit SortAndSweepBroadphase(const Maths::Vector3 &axis = Maths::Vector3(1.0f, 0.0f, 0.0f));
 		virtual ~SortAndSweepBroadphase();
 
-		inline Maths::Vector3 Axis() const
+		_FORCE_INLINE_ Maths::Vector3 Axis() const
 		{
 			return m_axis;
 		}

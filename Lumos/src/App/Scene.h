@@ -1,7 +1,7 @@
 #pragma once
 #include "lmpch.h"
 #include "SceneGraph.h"
-#include "Maths/Frustum.h"
+#include "Maths/Maths.h"
 #include "Utilities/AssetManager.h"
 
 #include "Events/Event.h"

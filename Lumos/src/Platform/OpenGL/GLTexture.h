@@ -21,11 +21,11 @@ namespace Lumos
 
 			virtual void* GetHandle() const override { return (void*)(size_t)m_Handle; }
 
-			inline u32 GetWidth() const override { return m_Width; }
-			inline u32 GetHeight() const override { return m_Height; }
+			_FORCE_INLINE_ u32 GetWidth() const override { return m_Width; }
+			_FORCE_INLINE_ u32 GetHeight() const override { return m_Height; }
 
-			inline const String& GetName() const override { return m_Name; }
-			inline const String& GetFilepath() const override { return m_FileName; }
+			_FORCE_INLINE_ const String& GetName() const override { return m_Name; }
+			_FORCE_INLINE_ const String& GetFilepath() const override { return m_FileName; }
 
 			void BuildTexture(TextureFormat internalformat, u32 width, u32 height, bool depth, bool samplerShadow) override;
 
@@ -58,14 +58,14 @@ namespace Lumos
 			GLTextureCube(const String* files, u32 mips, InputFormat format);
 			~GLTextureCube();
 
-			inline void* GetHandle() const override { return (void*)(size_t)m_Handle; }
+			_FORCE_INLINE_ void* GetHandle() const override { return (void*)(size_t)m_Handle; }
 
 			void Bind(u32 slot = 0) const override;
 			void Unbind(u32 slot = 0) const override;
 
-			inline u32 GetSize() const override { return m_Size; }
-			inline const String& GetName() const override { return m_Name; }
-			inline const String& GetFilepath() const override { return m_Files[0]; }
+			_FORCE_INLINE_ u32 GetSize() const override { return m_Size; }
+			_FORCE_INLINE_ const String& GetName() const override { return m_Name; }
+			_FORCE_INLINE_ const String& GetFilepath() const override { return m_Files[0]; }
             
             static void MakeDefault();
         protected:
@@ -100,10 +100,10 @@ namespace Lumos
 			void Unbind(u32 slot = 0) const override;
 			void Resize(u32 width, u32 height) override;
 
-			inline void* GetHandle() const override { return (void*)(size_t)m_Handle; }
+			_FORCE_INLINE_ void* GetHandle() const override { return (void*)(size_t)m_Handle; }
 
-			inline const String& GetName() const override { return m_Name; }
-			inline const String& GetFilepath() const override { return m_Name; }
+			_FORCE_INLINE_ const String& GetName() const override { return m_Name; }
+			_FORCE_INLINE_ const String& GetFilepath() const override { return m_Name; }
 
 			static void MakeDefault();
 		protected:
@@ -130,12 +130,12 @@ namespace Lumos
 			void Unbind(u32 slot = 0) const override;
 			void Resize(u32 width, u32 height, u32 count) override;
 
-			inline void* GetHandle() const override { return (void*)(size_t)m_Handle; }
+			_FORCE_INLINE_ void* GetHandle() const override { return (void*)(size_t)m_Handle; }
 
-			inline const String& GetName() const override { return m_Name; }
-			inline const String& GetFilepath() const override { return m_Name; }
+			_FORCE_INLINE_ const String& GetName() const override { return m_Name; }
+			_FORCE_INLINE_ const String& GetFilepath() const override { return m_Name; }
 
-			inline void SetCount(u32 count) { m_Count = count; }
+			_FORCE_INLINE_ void SetCount(u32 count) { m_Count = count; }
 
 			void Init() override;
 

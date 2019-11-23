@@ -145,7 +145,7 @@ namespace Lumos
 			verts[i].TexCoords = texCoords[i];
 			verts[i].Tangent = tangents[i];
             
-            m_BoundingBox->ExpandToFit(verts[i].Position);
+            m_BoundingBox->Merge(verts[i].Position);
 		}
 
 		m_VertexArray = Ref<Graphics::VertexArray>(Graphics::VertexArray::Create());

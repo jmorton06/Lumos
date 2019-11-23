@@ -24,13 +24,13 @@ namespace Lumos
         void ApplySceneSwitch();
         
 		//Get currently active scene (returns NULL if no scenes yet added)
-		inline Scene* GetCurrentScene() const { return m_CurrentScene; }
+		_FORCE_INLINE_ Scene* GetCurrentScene() const { return m_CurrentScene; }
 
 		//Get currently active scene's index (return 0 if no scenes yet added)
-		inline u32   GetCurrentSceneIndex() const { return m_SceneIdx; }
+		_FORCE_INLINE_ u32   GetCurrentSceneIndex() const { return m_SceneIdx; }
 
 		//Get total number of enqueued scenes
-		inline u32   SceneCount() const { return static_cast<u32>(m_vpAllScenes.size()); }
+		_FORCE_INLINE_ u32   SceneCount() const { return static_cast<u32>(m_vpAllScenes.size()); }
 
 		std::vector<String> GetSceneNames();
         const std::vector<Ref<Scene>>& GetScenes() const { return m_vpAllScenes; }

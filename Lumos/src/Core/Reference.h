@@ -13,7 +13,7 @@ namespace Lumos
         RefCount();
         ~RefCount();
         
-        inline bool IsReferenced() const { return m_RefcountInit.get() < 1; }
+        _FORCE_INLINE_ bool IsReferenced() const { return m_RefcountInit.get() < 1; }
         bool InitRef();
         bool reference(); // returns false if refcount is at zero and didn't get increased
         bool unreference();

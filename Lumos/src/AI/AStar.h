@@ -16,22 +16,22 @@ namespace Lumos
 		void Reset();
 		bool FindPath(PathNode *start, PathNode *end);
 		
-		inline PathNodePriorityQueue OpenList() const
+		_FORCE_INLINE_ PathNodePriorityQueue OpenList() const
 		{
 			return m_OpenList;
 		}
 
-		inline std::vector<QueueablePathNode *> ClosedList() const
+		_FORCE_INLINE_ std::vector<QueueablePathNode *> ClosedList() const
 		{
 			return m_ClosedList;
 		}
 
-		inline std::vector<PathNode *> Path() const
+		_FORCE_INLINE_ std::vector<PathNode *> Path() const
 		{
 			return m_Path;
 		}
 
-		inline float PathCost() const
+		_FORCE_INLINE_ float PathCost() const
 		{
 			return m_ClosedList.back()->gScore;
 		}

@@ -11,31 +11,31 @@ namespace Lumos
 		PathEdge(PathNode* a, PathNode* b);
 		virtual ~PathEdge();
 
-		inline PathNode* NodeA() const
+		_FORCE_INLINE_ PathNode* NodeA() const
 		{
 			return m_NodeA;
 		}
 
-		inline PathNode* NodeB() const
+		_FORCE_INLINE_ PathNode* NodeB() const
 		{
 			return m_NodeB;
 		}
 
 		PathNode *OtherNode(PathNode *node);
 
-		inline bool Traversable() const
+		_FORCE_INLINE_ bool Traversable() const
 		{
 			return m_Traversable;
 		}
 
 		virtual float StaticCost() const;
 
-		inline float Weight() const
+		_FORCE_INLINE_ float Weight() const
 		{
 			return m_Weight;
 		}
 
-		inline float Cost() const
+		_FORCE_INLINE_ float Cost() const
 		{
 			return StaticCost() * m_Weight;
 		}

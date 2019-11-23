@@ -2,11 +2,9 @@
 
 #include "lmpch.h"
 #include "Physics/PhysicsObject.h"
-#include "Maths/Quaternion.h"
-#include "Maths/Matrix3.h"
 #include "CollisionShape.h"
-#include "Maths/BoundingBox.h"
-#include <memory>
+
+#include "Maths/Maths.h"
 
 namespace Lumos
 {
@@ -43,7 +41,7 @@ namespace Lumos
 		const Ref<CollisionShape>&	GetCollisionShape()	  const { return m_CollisionShape; }
 		const Maths::Matrix4&	 GetWorldSpaceTransform() const;	//Built from scratch or returned from cached value
 
-		Maths::BoundingBox GetWorldSpaceAABB() const;
+		Maths::BoundingBox GetWorldSpaceAABB();
 
 		void WakeUp() override;
 		void SetIsAtRest(const bool isAtRest) override;

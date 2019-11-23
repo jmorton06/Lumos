@@ -1,8 +1,7 @@
 #pragma once
 #include "lmpch.h"
 #include "Sound.h"
-#include "Maths/Vector3.h"
-#include "Maths/MathsUtilities.h"
+#include "Maths/Maths.h"
 
 namespace Lumos
 {

@@ -18,11 +18,13 @@ out vec3 fragTangent;
 
 void main() 
 {
-	fragPosition 	= modelMatrix * vec4(inPosition, 1.0);
-    gl_Position 	= sys_projView * fragPosition;
-    fragColor 		= inColor;
-	fragTexCoord 	= inTexCoord;
-	fragNormal 		= transpose(inverse(mat3(modelMatrix))) * normalize(inNormal);
+	fragPosition = vec4(inPosition, 1.0) * modelMatrix;
+	gl_Position = fragPosition * sys_projView;
+	
+	fragColor = inColor;
+	fragTexCoord = inTexCoord;
+	fragNormal = normalize(inNormal) * transpose(inverse(mat3(modelMatrix)));
+	fragTangent = inTangent;
 }
 #shader end
 

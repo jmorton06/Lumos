@@ -68,7 +68,7 @@ namespace Lumos
 			swapChainCI.imageArrayLayers = 1;
 			swapChainCI.presentMode = swapChainPresentMode;
 			swapChainCI.oldSwapchain = nullptr;
-            swapChainCI.imageColorSpace = VK_COLORSPACE_SRGB_NONLINEAR_KHR;
+            swapChainCI.imageColorSpace = VKDevice::Instance()->GetColourSpace();
             swapChainCI.imageSharingMode = VK_SHARING_MODE_EXCLUSIVE;
 			swapChainCI.queueFamilyIndexCount = 0;
             swapChainCI.imageUsage = VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT;

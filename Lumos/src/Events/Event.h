@@ -40,12 +40,12 @@ namespace Lumos
 		virtual int GetCategoryFlags() const = 0;
 		virtual std::string ToString() const { return GetName(); }
 
-		inline bool IsInCategory(EventCategory category)
+		_FORCE_INLINE_ bool IsInCategory(EventCategory category)
 		{
 			return GetCategoryFlags() & category;
 		}
 
-		inline bool Handled() const { return m_Handled; }
+		_FORCE_INLINE_ bool Handled() const { return m_Handled; }
 
 	protected:
 		bool m_Handled = false;
@@ -75,7 +75,7 @@ namespace Lumos
 
 	};
 
-	inline std::ostream& operator<<(std::ostream& os, const Event& e)
+	_FORCE_INLINE_ std::ostream& operator<<(std::ostream& os, const Event& e)
 	{
 		return os << e.ToString();
 	}

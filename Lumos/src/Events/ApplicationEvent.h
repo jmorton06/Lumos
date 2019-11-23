@@ -10,8 +10,8 @@ namespace Lumos
 		WindowResizeEvent(unsigned int width, unsigned int height)
 			: m_Width(width), m_Height(height) {}
 
-		inline unsigned int GetWidth() const { return m_Width; }
-		inline unsigned int GetHeight() const { return m_Height; }
+		_FORCE_INLINE_ unsigned int GetWidth() const { return m_Width; }
+		_FORCE_INLINE_ unsigned int GetHeight() const { return m_Height; }
 
 		std::string ToString() const override
 		{

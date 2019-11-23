@@ -18,7 +18,7 @@ namespace Lumos
 			GLFramebuffer(const FramebufferInfo& bufferInfo);
 			~GLFramebuffer();
 
-			inline u32 GetFramebuffer() const { return m_Handle; }
+			_FORCE_INLINE_ u32 GetFramebuffer() const { return m_Handle; }
 
 			void GenerateFramebuffer() override;
 
@@ -31,7 +31,7 @@ namespace Lumos
 
 			GLenum GetAttachmentPoint(Graphics::TextureFormat format);
 
-			inline void SetClearColour(const Maths::Vector4& colour) override { m_ClearColour = colour; }
+			_FORCE_INLINE_ void SetClearColour(const Maths::Vector4& colour) override { m_ClearColour = colour; }
 
 			void AddTextureAttachment(TextureFormat format, Texture* texture) override;
 			void AddCubeTextureAttachment(TextureFormat format, CubeFace face, TextureCube* texture) override;

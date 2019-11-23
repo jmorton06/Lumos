@@ -205,10 +205,10 @@ float DoShadowTest(vec3 tsShadow, int tsLayer, vec2 pix)
 }
 
 const mat4 biasMat = mat4(
-	0.5, 0.0, 0.0, 0.0,
-	0.0, 0.5, 0.0, 0.0,
+	0.5, 0.0, 0.0, 0.5,
+	0.0, 0.5, 0.0, 0.5,
 	0.0, 0.0, 1.0, 0.0,
-	0.5, 0.5, 0.0, 1.0
+	0.0, 0.0, 0.0, 1.0
 );
 
 #define ambient 0.3
@@ -292,7 +292,7 @@ void main()
 	float shadow = 0.0f;
 
 	int cascadeIndex = 0;
-	vec4 viewPos = ubo.viewMatrix * vec4(wsPos, 1.0);
+	vec4 viewPos = vec4(wsPos, 1.0) * ubo.viewMatrix;
 
 	for(int i = 0; i < ubo.shadowCount - 1; ++i)
 	{
@@ -309,7 +309,7 @@ void main()
 		//for (int layerIdx = 0; layerIdx < ubo.shadowCount; layerIdx++)
 		{
 			int layerIdx = cascadeIndex;
-			vec4 hcsShadow = ubo.uShadowTransform[layerIdx] * shadowWsPos;
+			vec4 hcsShadow = shadowWsPos * ubo.uShadowTransform[layerIdx];
 
 			if (abs(hcsShadow.x) <= 1.0f && abs(hcsShadow.y) <= 1.0f)
 			{
@@ -323,7 +323,7 @@ void main()
 	}
 	else
 	{
-		vec4 shadowCoord = (biasMat * ubo.uShadowTransform[cascadeIndex]) * vec4(wsPos, 1.0);
+		vec4 shadowCoord = vec4(wsPos, 1.0) * ubo.uShadowTransform[cascadeIndex] * biasMat;
 
 		const int enablePCF = 0;
 		if (enablePCF == 1)
