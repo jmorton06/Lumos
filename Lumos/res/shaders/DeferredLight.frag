@@ -316,11 +316,18 @@ float textureProj(vec4 P, vec2 offset, int cascadeIndex)
 
 }
 
+// const mat4 biasMat = mat4(
+// 	0.5, 0.0, 0.0, 0.0,
+// 	0.0, 0.5, 0.0, 0.0,
+// 	0.0, 0.0, 1.0, 0.0,
+// 	0.5, 0.5, 0.0, 1.0
+// );
+
 const mat4 biasMat = mat4(
-	0.5, 0.0, 0.0, 0.0,
-	0.0, 0.5, 0.0, 0.0,
+	0.5, 0.0, 0.0, 0.5,
+	0.0, 0.5, 0.0, 0.5,
 	0.0, 0.0, 1.0, 0.0,
-	0.5, 0.5, 0.0, 1.0
+	0.0, 0.0, 0.0, 1.0
 );
 
 float filterPCF(vec4 sc, int cascadeIndex)
@@ -361,7 +368,7 @@ int CalculateCascadeIndex(vec3 wsPos)
 
 float CalculateShadow(vec3 wsPos, int cascadeIndex)
 {
-	vec4 shadowCoord = biasMat * vec4(wsPos, 1.0) * ubo.uShadowTransform[cascadeIndex];
+	vec4 shadowCoord =  vec4(wsPos, 1.0) * ubo.uShadowTransform[cascadeIndex] * biasMat;
 
     float shadow = 0;
 
