@@ -5,7 +5,7 @@
 #include "API/VertexArray.h"
 #include "Graphics/API/CommandBuffer.h"
 #include "Graphics/API/DescriptorSet.h"
-#include "Maths/BoundingBox.h"
+#include "Maths/Maths.h"
 
 #include <array>
 
@@ -84,7 +84,7 @@ namespace Lumos
 
 			Mesh();
 			Mesh(const Mesh& mesh);
-			Mesh(Ref<VertexArray>& vertexArray, Ref<IndexBuffer>& indexBuffer, const Ref<Maths::BoundingBox>& boundingSphere);
+			Mesh(Ref<VertexArray>& vertexArray, Ref<IndexBuffer>& indexBuffer, const Ref<Maths::BoundingBox>& Sphere);
 
 			virtual ~Mesh();
 			virtual void Draw();

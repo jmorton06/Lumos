@@ -13,7 +13,7 @@ namespace Lumos
 		: Camera(FOV, Near, Far, aspect), m_Free(false)
 	{
 		Application::Instance()->GetWindow()->HideMouse(false);
-		m_ProjMatrix = Maths::Matrix4::Perspective(m_Near, m_Far, aspect, FOV);
+		//m_ProjMatrix = Maths::Matrix4::Perspective(m_Near, m_Far, aspect, FOV);
 		m_RotateDampeningFactor = 0.0f;
 	}
 
@@ -21,7 +21,7 @@ namespace Lumos
 		: Camera(pitch, yaw, position, FOV, Near, Far, aspect), m_Free(false)
 	{
 		Application::Instance()->GetWindow()->HideMouse(false);
-		m_ProjMatrix = Maths::Matrix4::Perspective(m_Near, m_Far, aspect, FOV);
+		//m_ProjMatrix = Maths::Matrix4::Perspective(m_Near, m_Far, aspect, FOV);
 		m_RotateDampeningFactor = 0.0f;
 	}
 
@@ -34,9 +34,9 @@ namespace Lumos
 		{
             if (Input::GetInput()->GetMouseHeld(InputCode::MouseKey::ButtonRight))
 			{
-				m_RotateVelocity = m_RotateVelocity + Maths::Vector2((xpos - m_PreviousCurserPos.GetX()), (ypos - m_PreviousCurserPos.GetY())) *  m_MouseSensitivity;
-				m_Pitch -= m_RotateVelocity.GetY();
-				m_Yaw -= m_RotateVelocity.GetX();
+				m_RotateVelocity = m_RotateVelocity + Maths::Vector2((xpos - m_PreviousCurserPos.x), (ypos - m_PreviousCurserPos.y)) *  m_MouseSensitivity;
+				m_Pitch -= m_RotateVelocity.y;
+				m_Yaw -= m_RotateVelocity.x;
 
 				if (m_Yaw < 0)
 				{

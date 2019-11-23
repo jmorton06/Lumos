@@ -166,10 +166,10 @@ namespace Lumos
 			{
 				for (int i = 0; i < m_ClearCount; i++)
 				{
-					m_ClearValue[i].color.float32[0] = clearColour.GetX();
-					m_ClearValue[i].color.float32[1] = clearColour.GetY();
-					m_ClearValue[i].color.float32[2] = clearColour.GetZ();
-					m_ClearValue[i].color.float32[3] = clearColour.GetW();
+					m_ClearValue[i].color.float32[0] = clearColour.x;
+					m_ClearValue[i].color.float32[1] = clearColour.y;
+					m_ClearValue[i].color.float32[2] = clearColour.z;
+					m_ClearValue[i].color.float32[3] = clearColour.w;
 				}
 			}
 

@@ -22,7 +22,7 @@ namespace Lumos
         virtual void OnNewScene(Scene* scene) {}
 		virtual void OnImGui() {}
 
-		inline const std::string& GetName() const { return m_DebugName; }
+		_FORCE_INLINE_ const std::string& GetName() const { return m_DebugName; }
 	protected:
 		std::string m_DebugName;
 	};

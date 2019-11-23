@@ -26,14 +26,14 @@ namespace Lumos
 		virtual void DebugDraw(const PhysicsObject3D* currentObject) const override;
 
 		//Set Cuboid Dimensions
-		void SetHalfWidth(float half_width) { m_PyramidHalfDimensions.SetX(fabs(half_width)); }
-		void SetHalfHeight(float half_height) { m_PyramidHalfDimensions.SetY(fabs(half_height)); }
-		void SetHalfDepth(float half_depth) { m_PyramidHalfDimensions.SetZ(fabs(half_depth)); }
+		void SetHalfWidth(float half_width) { m_PyramidHalfDimensions.x = fabs(half_width); }
+		void SetHalfHeight(float half_height) { m_PyramidHalfDimensions.y = fabs(half_height); }
+		void SetHalfDepth(float half_depth) { m_PyramidHalfDimensions.z = fabs(half_depth); }
 
 		//Get Cuboid Dimensions
-		float GetHalfWidth()	const { return m_PyramidHalfDimensions.GetX(); }
-		float GetHalfHeight()	const { return m_PyramidHalfDimensions.GetY(); }
-		float GetHalfDepth()	const { return m_PyramidHalfDimensions.GetZ(); }
+		float GetHalfWidth()	const { return m_PyramidHalfDimensions.x; }
+		float GetHalfHeight()	const { return m_PyramidHalfDimensions.y; }
+		float GetHalfDepth()	const { return m_PyramidHalfDimensions.z; }
 
 		float GetSize() const override { return m_PyramidHalfDimensions.x; };
 

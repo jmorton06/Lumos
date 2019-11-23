@@ -41,7 +41,7 @@ namespace Lumos
 			static void OnShutdown();
 
 			static MemoryManager* Get();
-			inline MemoryStats GetMemoryStats() const { return m_MemoryStats; }
+			_FORCE_INLINE_ MemoryStats GetMemoryStats() const { return m_MemoryStats; }
 		public:
 			SystemMemoryInfo GetSystemInfo();
 		public:

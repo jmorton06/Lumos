@@ -20,42 +20,42 @@ namespace Lumos
 
 		void UpdateTime(bool Paused);
 
-		inline int GetMinutes() const
+		_FORCE_INLINE_ int GetMinutes() const
 		{
 			return m_minutes;
 		}
 
-		inline int GetHours() const
+		_FORCE_INLINE_ int GetHours() const
 		{
 			return m_hours;
 		}
 
-		inline int GetDays() const
+		_FORCE_INLINE_ int GetDays() const
 		{
 			return m_days;
 		}
 
-		inline float GetSeconds() const
+		_FORCE_INLINE_ float GetSeconds() const
 		{
 			return m_seconds;
 		}
 
-		inline float GetMilliSeconds() const
+		_FORCE_INLINE_ float GetMilliSeconds() const
 		{
 			return m_milliSeconds;
 		}
 
-		inline void SetStartTime(int hour, int min)
+		_FORCE_INLINE_ void SetStartTime(int hour, int min)
 		{
 			m_milliSeconds = static_cast<float>(min * 60 + hour * 3600) * 1000.0f;
 		}
 
-		inline void SetTimeIncrease(float increase)
+		_FORCE_INLINE_ void SetTimeIncrease(float increase)
 		{
 			m_timeUpdateSpeed = increase;
 		}
 
-		inline float GetTimeIncrease() const
+		_FORCE_INLINE_ float GetTimeIncrease() const
 		{
 			return m_timeUpdateSpeed;
 		}

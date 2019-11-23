@@ -25,7 +25,7 @@ namespace Lumos
 
 		void RebuildTaskStats(size_t endFrame, size_t framesCount);
         
-        uint32_t GetColour(const char* name);
+        uint32_t Columnour(const char* name);
 
 		int frameWidth;
 		int frameSpacing;

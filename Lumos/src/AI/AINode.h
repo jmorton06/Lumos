@@ -14,11 +14,11 @@ namespace Lumos
 		
 	};
 
-	inline AINode::AINode()
+	_FORCE_INLINE_ AINode::AINode()
 	{
 	}
 
-	inline AINode::~AINode()
+	_FORCE_INLINE_ AINode::~AINode()
 	{
 	}
 }

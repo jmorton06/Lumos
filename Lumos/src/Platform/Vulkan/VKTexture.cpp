@@ -6,10 +6,6 @@
 #include "VKCommandBuffer.h"
 #include "VKBuffer.h"
 
-#include "Maths/MathsUtilities.h"
-
-#include <cmath>
-
 namespace Lumos
 {
 	namespace Graphics

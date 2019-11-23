@@ -19,7 +19,7 @@ namespace Lumos
 {
 	static void TransformWidget(Maths::Transform& transform)
 	{
-		auto rotation = transform.GetLocalOrientation().ToEuler();
+		auto rotation = transform.GetLocalOrientation().EulerAngles();
 		auto position = transform.GetLocalPosition();
 		auto scale = transform.GetLocalScale();
 
@@ -45,9 +45,9 @@ namespace Lumos
 		ImGui::PushItemWidth(-1);
 		if (ImGui::DragFloat3("##Rotation", Maths::ValuePointer(rotation)))
 		{
-			float pitch = Maths::Min(rotation.GetX(), 89.9f);
+			float pitch = Maths::Min(rotation.x, 89.9f);
 			pitch = Maths::Max(pitch, -89.9f);
-			transform.SetLocalOrientation(Maths::Quaternion::EulerAnglesToQuaternion(pitch, rotation.GetY(), rotation.GetZ()));
+			transform.SetLocalOrientation(Maths::Quaternion::EulerAnglesToQuaternion(pitch, rotation.y, rotation.z));
 		
 		}
 

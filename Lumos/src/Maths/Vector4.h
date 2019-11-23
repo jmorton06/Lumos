@@ -1,302 +1,315 @@
 #pragma once
-#include "lmpch.h"
-#include "Vector3.h" 
-#include "MathsCommon.h"
-#include "MathsUtilities.h"
+#include "Maths/Vector3.h"
 
-namespace Lumos
+namespace Lumos::Maths
 {
-	namespace Maths
-	{
-		class LUMOS_EXPORT MEM_ALIGN Vector4
-		{
-		public:
-			Vector4()
-			{
-#ifdef LUMOS_SSEVEC4
-				m_Value = _mm_set1_ps(1.0f);
-#else
-				x = y = z = w = 1.0f;
-#endif
-			}
+    /// Four-dimensional vector.
+    class  Vector4
+    {
+    public:
+        /// Construct a zero vector.
+        Vector4() noexcept :
+            x(0.0f),
+            y(0.0f),
+            z(0.0f),
+            w(0.0f)
+        {
+        }
 
-			Vector4(float xVal, float yVal, float zVal, float wVal)
-			{
-#ifdef LUMOS_SSEVEC4
-				m_Value = _mm_set_ps(wVal, zVal, yVal, xVal);
-#else
-                x = xVal; y = yVal; z = zVal; w = wVal;
-#endif
-			}
+        Vector4(float x) noexcept :
+            x(x),
+            y(x),
+            z(x),
+            w(x)
+        {
+        }
+        
+        Vector4(float x, float y, float z, float w) noexcept :
+            x(x),
+            y(y),
+            z(z),
+            w(w)
+        {
+        }
 
-			Vector4(float xVal)
-			{
-#ifdef LUMOS_SSEVEC4
-				m_Value = _mm_set_ps(xVal, xVal, xVal, xVal);
-#else
-				x = y = z = w = xVal;
-#endif
-			}
 
-#ifdef LUMOS_SSEVEC4
-			Vector4(__m128 m) : m_Value(m) { }
-#endif
+        /// Copy-construct from another vector.
+        Vector4(const Vector4& vector) noexcept = default;
 
-			Vector4(const Vector4 &v)
-			{
-#ifdef LUMOS_SSEVEC4
-				m_Value = v.m_Value;
-#else
-				x = v.GetX(); y = v.GetY(); z = v.GetZ(); w = v.GetW();
-#endif
-			}
+        /// Construct from a 3-dimensional vector and the W coordinate.
+        Vector4(const Vector3& vector, float w) noexcept :
+            x(vector.x),
+            y(vector.y),
+            z(vector.z),
+            w(w)
+        {
+        }
+        
+        Vector4(const Vector2& vector, float z, float w) noexcept :
+              x(vector.x),
+              y(vector.y),
+              z(z),
+              w(w)
+          {
+          }
+        
+        Vector4(float x, const Vector2& vector, float w) noexcept :
+               x(x),
+               y(vector.x),
+               z(vector.y),
+               w(w)
+           {
+           }
+         
+        
+        Vector4(float x, float y, const Vector2& vector) noexcept :
+            x(x),
+            y(y),
+            z(vector.x),
+            w(vector.y)
+        {
+        }
 
-			Vector4(const Vector3 &v, float wVal = 1.0f)
-			{
-#ifdef LUMOS_SSEVEC4
-				m_Value = _mm_set_ps(wVal, v.GetZ(), v.GetY(), v.GetX());
-#else
-				x = v.GetX(); y = v.GetY(); z = v.GetZ(); w = wVal;
-#endif
-			}
+        Vector4(const Vector3& vector) noexcept :
+            x(vector.x),
+            y(vector.y),
+            z(vector.z),
+            w(1.0f)
+        {
+        }
 
-			Vector4(float a, float b, const Vector2& cd)
-			{
-				x = a; y = b; z = cd.GetX(); w = cd.GetY();
-			}
+        /// Construct from a float array.
+        explicit Vector4(const float* data) noexcept :
+            x(data[0]),
+            y(data[1]),
+            z(data[2]),
+            w(data[3])
+        {
+        }
 
-			Vector4(const Vector2& ab, float c, float d)
-			{
-				x = ab.GetX(); y = ab.GetY(); z = c; w = d;
-			}
+        /// Assign from another vector.
+        Vector4& operator =(const Vector4& rhs) noexcept = default;
 
-			Vector4(float a, const Vector2& bc, float d)
-			{
-				x = a; y = bc.GetX(); z = bc.GetY(); w = d;
-			}
+        /// Test for equality with another vector without epsilon.
+        bool operator ==(const Vector4& rhs) const { return x == rhs.x && y == rhs.y && z == rhs.z && w == rhs.w; }
 
-			Vector4(const Vector2& ab, const Vector2& cd)
-			{
-				x = ab.GetX(); y = ab.GetY(); z = cd.GetX(); w = cd.GetY();
-			}
+        /// Test for inequality with another vector without epsilon.
+        bool operator !=(const Vector4& rhs) const { return x != rhs.x || y != rhs.y || z != rhs.z || w != rhs.w; }
 
-#ifdef LUMOS_SSEVEC4
-			union
-			{
-				struct 
-				{
-					float x;
-					float y;
-					float z;
-					float w;
-				};
-				__m128 m_Value;
-			} MEM_ALIGN;
-#else
-			float x;
-			float y;
-			float z;
-			float w;
-#endif
+        /// Add a vector.
+        Vector4 operator +(const Vector4& rhs) const { return Vector4(x + rhs.x, y + rhs.y, z + rhs.z, w + rhs.w); }
 
-			float GetX() const { return x; }
-			float GetY() const { return y; }
-			float GetZ() const { return z; }
-			float GetW() const { return w; }
+        /// Return negation.
+        Vector4 operator -() const { return Vector4(-x, -y, -z, -w); }
 
-            float* GetPointer() { return &x; }
-#ifdef LUMOS_SSEVEC4
-			void SetX(const float X) { reinterpret_cast<float *>(&m_Value)[0] = X; }
-			void SetY(const float Y) { reinterpret_cast<float *>(&m_Value)[1] = Y; }
-			void SetZ(const float Z) { reinterpret_cast<float *>(&m_Value)[2] = Z; }
-			void SetW(const float W) { reinterpret_cast<float *>(&m_Value)[3] = W; }
-#else
-			void SetX(const float X) { x = X; }
-			void SetY(const float Y) { y = Y; }
-			void SetZ(const float Z) { z = Z; }
-			void SetW(const float W) { w = W; }
-#endif
+        /// Subtract a vector.
+        Vector4 operator -(const Vector4& rhs) const { return Vector4(x - rhs.x, y - rhs.y, z - rhs.z, w - rhs.w); }
 
-			Vector3 ToVector3() const { return Vector3(x, y, z); }
+        /// Multiply with a scalar.
+        Vector4 operator *(float rhs) const { return Vector4(x * rhs, y * rhs, z * rhs, w * rhs); }
 
-			inline void ToZero()
-			{
-#ifdef LUMOS_SSEVEC4
-				m_Value = _mm_setzero_ps(); 
-#else
-				x = y = z = w = 0.0f;
-#endif
-			}
+        /// Multiply with a vector.
+        Vector4 operator *(const Vector4& rhs) const { return Vector4(x * rhs.x, y * rhs.y, z * rhs.z, w * rhs.w); }
 
-			inline float Length() const
-			{
-#ifdef LUMOS_SSEVEC4
-				return _mm_cvtss_f32(_mm_sqrt_ss(_mm_dp_ps(m_Value, m_Value, 0xF1))); 
-#else
-				return sqrt((x*x) + (y*y) + (z*z) + (w*w));
-#endif
-			}
+        /// Divide by a scalar.
+        Vector4 operator /(float rhs) const { return Vector4(x / rhs, y / rhs, z / rhs, w / rhs); }
 
-			inline float LengthR() const 
-			{ 
-#ifdef LUMOS_SSEVEC4
-				return _mm_cvtss_f32(_mm_rsqrt_ss(_mm_dp_ps(m_Value, m_Value, 0xF1)));
-#else
-				return sqrt((x*x) + (y*y) + (z*z) + (w*w));
-#endif
-			}
+        /// Divide by a vector.
+        Vector4 operator /(const Vector4& rhs) const { return Vector4(x / rhs.x, y / rhs.y, z / rhs.z, w / rhs.w); }
 
-			inline float LengthSq() const 
-			{ 
-#ifdef LUMOS_SSEVEC4
-				return _mm_cvtss_f32(_mm_dp_ps(m_Value, m_Value, 0xF1));
-#else
-				return (x*x) + (y*y) + (z*z) + (w*w);
-#endif
-			}
+        /// Add-assign a vector.
+        Vector4& operator +=(const Vector4& rhs)
+        {
+            x += rhs.x;
+            y += rhs.y;
+            z += rhs.z;
+            w += rhs.w;
+            return *this;
+        }
 
-			inline void Normalise() 
-			{
-#ifdef LUMOS_SSEVEC4
-				m_Value = _mm_mul_ps(m_Value, _mm_rsqrt_ps(_mm_dp_ps(m_Value, m_Value, 0xFF)));
-#else
-				float length = Length();
+        /// Subtract-assign a vector.
+        Vector4& operator -=(const Vector4& rhs)
+        {
+            x -= rhs.x;
+            y -= rhs.y;
+            z -= rhs.z;
+            w -= rhs.w;
+            return *this;
+        }
 
-				if (length != 0.0f)
-				{
-					length = 1.0f / length;
-					x = x * length;
-					y = y * length;
-					z = z * length;
-					w = w * length;
-				}
-#endif
-			}
+        /// Multiply-assign a scalar.
+        Vector4& operator *=(float rhs)
+        {
+            x *= rhs;
+            y *= rhs;
+            z *= rhs;
+            w *= rhs;
+            return *this;
+        }
 
-			inline Vector4 Normal()
-			{
-#ifdef LUMOS_SSEVEC4
-				return _mm_mul_ps(m_Value, _mm_rsqrt_ps(_mm_dp_ps(m_Value, m_Value, 0xFF)));
-#else
-				float length = Length();
+        /// Multiply-assign a vector.
+        Vector4& operator *=(const Vector4& rhs)
+        {
+            x *= rhs.x;
+            y *= rhs.y;
+            z *= rhs.z;
+            w *= rhs.w;
+            return *this;
+        }
 
-				if (length != 0.0f)
-				{
-					length = 1.0f / length;
-					x = x * length;
-					y = y * length;
-					z = z * length;
-					w = w * length;
-				}
+        /// Divide-assign a scalar.
+        Vector4& operator /=(float rhs)
+        {
+            float invRhs = 1.0f / rhs;
+            x *= invRhs;
+            y *= invRhs;
+            z *= invRhs;
+            w *= invRhs;
+            return *this;
+        }
 
-				return *this;
-#endif
-			}
+        /// Divide-assign a vector.
+        Vector4& operator /=(const Vector4& rhs)
+        {
+            x /= rhs.x;
+            y /= rhs.y;
+            z /= rhs.z;
+            w /= rhs.w;
+            return *this;
+        }
 
-			inline float Dot(const Vector4 &v)
-			{
-#ifdef LUMOS_SSEVEC4
-				return _mm_cvtss_f32(_mm_dp_ps(m_Value, v.m_Value, 0xF1));
-#else
-				return (x*v.x) + (y*v.y) + (z*v.z) + (w*v.w);
-#endif
-			}
-
-			nlohmann::json Serialise()
-			{
-				nlohmann::json output;
-				output["typeID"] = LUMOS_TYPENAME(Vector4);
-				output["x"] = x;
-				output["y"] = y;
-				output["z"] = z;
-				output["w"] = w;
-
-				return output;
-			};
-
-			void Deserialise(nlohmann::json& data)
-			{
-				x = data["x"];
-				y = data["y"];
-				z = data["z"];
-				w = data["w"];
-			};
-            
-            bool Equals(const Vector4& rhs) const
+        _FORCE_INLINE_ float operator[](int i) const
+        {
+            switch (i)
             {
-                return Maths::Equals(x, rhs.x) && Maths::Equals(y, rhs.y) && Maths::Equals(z, rhs.z) && Maths::Equals(w, rhs.w);
+            case 0:
+                return x;
+            case 1:
+                return y;
+            case 2:
+                return z;
+            case 3:
+                return w;
+            default:
+                return 0.0f;
             }
+        }
+        
+        _FORCE_INLINE_ Vector4 operator+(float v) const { return Vector4(x + v, y + v, z + v, w + v); }
+        _FORCE_INLINE_ Vector4 operator-(float v) const { return Vector4(x - v, y - v, z - v, w - v); }
+        _FORCE_INLINE_ void operator+=(float v) { x += v; y += v; z += v; w += v; }
+        _FORCE_INLINE_ void operator-=(float v) { x -= v; y -= v; z -= v; w -= v; }
 
-#ifdef LUMOS_SSEVEC4
-			inline Vector4 operator+(float v) const { return _mm_add_ps(m_Value, _mm_set1_ps(v)); }
-			inline Vector4 operator-(float v) const { return _mm_sub_ps(m_Value, _mm_set1_ps(v)); }
-			inline Vector4 operator*(float v) const { return _mm_mul_ps(m_Value, _mm_set1_ps(v)); }
-			inline Vector4 operator/(float v) const { return _mm_div_ps(m_Value, _mm_set1_ps(v)); }
-			inline void operator+=(float v) { m_Value = _mm_add_ps(m_Value, _mm_set1_ps(v)); }
-			inline void operator-=(float v) { m_Value = _mm_sub_ps(m_Value, _mm_set1_ps(v)); }
-			inline void operator*=(float v) { m_Value = _mm_mul_ps(m_Value, _mm_set1_ps(v)); }
-			inline void operator/=(float v) { m_Value = _mm_div_ps(m_Value, _mm_set1_ps(v)); }
+        Vector3 ToVector3() const
+        {
+            return Vector3(x, y, z);
+        }
 
-			inline Vector4 operator+(const Vector4 &v) const { return _mm_add_ps(m_Value, v.m_Value); }
-			inline Vector4 operator-(const Vector4 &v) const { return _mm_sub_ps(m_Value, v.m_Value); }
-			inline Vector4 operator*(const Vector4 &v) const { return _mm_mul_ps(m_Value, v.m_Value); }
-			inline Vector4 operator/(const Vector4 &v) const { return _mm_div_ps(m_Value, v.m_Value); }
-			inline void operator+=(const Vector4 &v) { m_Value = _mm_add_ps(m_Value, v.m_Value); }
-			inline void operator-=(const Vector4 &v) { m_Value = _mm_sub_ps(m_Value, v.m_Value); }
-			inline void operator*=(const Vector4 &v) { m_Value = _mm_mul_ps(m_Value, v.m_Value); }
-			inline void operator/=(const Vector4 &v) { m_Value = _mm_div_ps(m_Value, v.m_Value); }
+        /// Return const value by index.
+        float operator[](unsigned index) const { return (&x)[index]; }
 
-			inline Vector4 operator-() const { return _mm_set_ps(-w, -z, -y, -x); }
-			inline bool operator==(const Vector4 &v) const { return (_mm_movemask_ps(_mm_cmpneq_ps(m_Value, v.m_Value)) & 0x01) == 0; }
-			inline bool operator!=(const Vector4 &v) const { return (_mm_movemask_ps(_mm_cmpneq_ps(m_Value, v.m_Value)) & 0x01) != 0; }
-#else
-			inline Vector4 operator+(float v) const { return Vector4(x + v, y + v, z + v, w + v); }
-			inline Vector4 operator-(float v) const { return Vector4(x - v, y - v, z - v, w - v); }
-			inline Vector4 operator*(float v) const { return Vector4(x * v, y * v, z * v, w * v); }
-			inline Vector4 operator/(float v) const { return Vector4(x / v, y / v, z / v, w / v); }
-			inline void operator+=(float v) { x += v; y += v; z += v; w += v; }
-			inline void operator-=(float v) { x -= v; y -= v; z -= v; w -= v; }
-			inline void operator*=(float v) { x *= v; y *= v; z *= v; w *= v; }
-			inline void operator/=(float v) { x /= v; y /= v; z /= v; w /= v; }
+        /// Return mutable value by index.
+        float& operator[](unsigned index) { return (&x)[index]; }
 
-			inline Vector4 operator+(const Vector4 &v) const { return Vector4(x + v.x, y + v.y, z + v.z, w + v.w); }
-			inline Vector4 operator-(const Vector4 &v) const { return Vector4(x - v.x, y - v.y, z - v.z, w - v.w); }
-			inline Vector4 operator*(const Vector4 &v) const { return Vector4(x * v.x, y * v.y, z * v.z, w * v.w); }
-			inline Vector4 operator/(const Vector4 &v) const { return Vector4(x / v.x, y / v.y, z / v.z, w / v.w); }
-			inline void operator+=(const Vector4 &v) { x += v.x; y += v.y; z += v.z; w += v.w; }
-			inline void operator-=(const Vector4 &v) { x -= v.x; y -= v.y; z -= v.z; w -= v.w; }
-			inline void operator*=(const Vector4 &v) { x *= v.x; y *= v.y; z *= v.z; w *= v.w; }
-			inline void operator/=(const Vector4 &v) { x /= v.x; y /= v.y; z /= v.z; w /= v.w; }
+        /// Calculate dot product.
+        float DotProduct(const Vector4& rhs) const { return x * rhs.x + y * rhs.y + z * rhs.z + w * rhs.w; }
 
-			inline Vector4 operator-() const { return Vector4(-x,-y,-z,-w); }
-			inline bool operator==(const Vector4 &v) const { return x == v.x && y == v.y && z == v.z && w == v.w; }
-			inline bool operator!=(const Vector4 &v) const { return (v.x == x && v.y == y && v.z == z && v.w == w) ? false : true;; }
-#endif
+        /// Calculate absolute dot product.
+        float AbsDotProduct(const Vector4& rhs) const
+        {
+            return Lumos::Maths::Abs(x * rhs.x) + Lumos::Maths::Abs(y * rhs.y) + Lumos::Maths::Abs(z * rhs.z) + Lumos::Maths::Abs(w * rhs.w);
+        }
 
-			friend std::ostream &operator<<(std::ostream &o, const Vector4 &v) { return o << "Vector4(" << v.x << ", " << v.y << ", " << v.z << ", " << v.w << ")"; }
-		};
+        /// Project vector onto axis.
+        float ProjectOntoAxis(const Vector3& axis) const { return DotProduct(Vector4(axis.Normalized(), 0.0f)); }
 
-		inline Vector4 operator+(float f, const Vector4 &v) { return v + f; }
-		inline Vector4 operator*(float f, const Vector4 &v) { return v * f; }
+        /// Return absolute vector.
+        Vector4 Abs() const { return Vector4(Lumos::Maths::Abs(x), Lumos::Maths::Abs(y), Lumos::Maths::Abs(z), Lumos::Maths::Abs(w)); }
 
-#ifdef LUMOS_SSEVEC4
-		inline Vector4 operator-(float f, const Vector4 &v) { return Vector4(_mm_set1_ps(f)) - v; }
-		inline Vector4 operator/(float f, const Vector4 &v) { return Vector4(_mm_set1_ps(f)) / v; }
-#else
-		inline Vector4 operator-(float f, const Vector4 &v) { return Vector4(f) - v; }
-		inline Vector4 operator/(float f, const Vector4 &v) { return Vector4(f) / v; }
-#endif
-	}
+        /// Linear interpolation with another vector.
+        Vector4 Lerp(const Vector4& rhs, float t) const { return *this * (1.0f - t) + rhs * t; }
+
+        /// Test for equality with another vector with epsilon.
+        bool Equals(const Vector4& rhs, float eps = M_EPSILON) const
+        {
+            return Lumos::Maths::Equals(x, rhs.x, eps) && Lumos::Maths::Equals(y, rhs.y, eps) && Lumos::Maths::Equals(z, rhs.z, eps) && Lumos::Maths::Equals(w, rhs.w, eps);
+        }
+
+        /// Return whether is NaN.
+        bool IsNaN() const { return Lumos::Maths::IsNaN(x) || Lumos::Maths::IsNaN(y) || Lumos::Maths::IsNaN(z) || Lumos::Maths::IsNaN(w); }
+
+        /// Return float data.
+        const float* Data() const { return &x; }
+
+        /// Return as string.
+
+        /// Return hash value for HashSet & HashMap.
+        unsigned ToHash() const
+        {
+            unsigned hash = 37;
+            hash = 37 * hash + FloatToRawIntBits(x);
+            hash = 37 * hash + FloatToRawIntBits(y);
+            hash = 37 * hash + FloatToRawIntBits(z);
+            hash = 37 * hash + FloatToRawIntBits(w);
+
+            return hash;
+        }
+
+        /// X coordinate.
+        float x;
+        /// Y coordinate.
+        float y;
+        /// Z coordinate.
+        float z;
+        /// W coordinate.
+        float w;
+
+        /// Zero vector.
+        static const Vector4 ZERO;
+        /// (1,1,1) vector.
+        static const Vector4 ONE;
+
+        static float Dot(const Vector4& a, const Vector4& b)
+        {
+            return a.DotProduct(b);
+        }
+    };
+
+    /// Multiply Vector4 with a scalar.
+    _FORCE_INLINE_ Vector4 operator *(float lhs, const Vector4& rhs) { return rhs * lhs; }
+
+    /// Per-component linear interpolation between two 4-vectors.
+    _FORCE_INLINE_ Vector4 VectorLerp(const Vector4& lhs, const Vector4& rhs, const Vector4& t) { return lhs + (rhs - lhs) * t; }
+
+    /// Per-component min of two 4-vectors.
+    _FORCE_INLINE_ Vector4 VectorMin(const Vector4& lhs, const Vector4& rhs) { return Vector4(Min(lhs.x, rhs.x), Min(lhs.y, rhs.y), Min(lhs.z, rhs.z), Min(lhs.w, rhs.w)); }
+
+    /// Per-component max of two 4-vectors.
+    _FORCE_INLINE_ Vector4 VectorMax(const Vector4& lhs, const Vector4& rhs) { return Vector4(Max(lhs.x, rhs.x), Max(lhs.y, rhs.y), Max(lhs.z, rhs.z), Max(lhs.w, rhs.w)); }
+
+    /// Per-component floor of 4-vector.
+    _FORCE_INLINE_ Vector4 VectorFloor(const Vector4& vec) { return Vector4(Floor(vec.x), Floor(vec.y), Floor(vec.z), Floor(vec.w)); }
+
+    /// Per-component round of 4-vector.
+    _FORCE_INLINE_ Vector4 VectorRound(const Vector4& vec) { return Vector4(Round(vec.x), Round(vec.y), Round(vec.z), Round(vec.w)); }
+
+    /// Per-component ceil of 4-vector.
+    _FORCE_INLINE_ Vector4 VectorCeil(const Vector4& vec) { return Vector4(Ceil(vec.x), Ceil(vec.y), Ceil(vec.z), Ceil(vec.w)); }
+    
+    _FORCE_INLINE_ Vector4 operator+(float f, const Vector4 &v) { return v + f; }
+
+    _FORCE_INLINE_ Vector4 operator-(float f, const Vector4 &v) { return Vector4(f) - v; }
+    _FORCE_INLINE_ Vector4 operator/(float f, const Vector4 &v) { return Vector4(f) / v; }
 }
 
-namespace std 
+namespace std
 {
 	template<>
 	struct hash<Lumos::Maths::Vector4>
 	{
 		size_t operator()(const Lumos::Maths::Vector4& x) const
 		{
-			return hash<float>()(x.GetX()) ^ (hash<float>()(x.GetY()) * 997u) ^ (hash<float>()(x.GetZ()) * 999983u) ^ (hash<float>()(x.GetW()) * 999999937);
+			return hash<float>()(x.x) ^ (hash<float>()(x.y) * 997u) ^ (hash<float>()(x.z) * 999983u) ^ (hash<float>()(x.w) * 999999937);
 
 		}
 	};

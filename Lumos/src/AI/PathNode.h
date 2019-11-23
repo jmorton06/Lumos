@@ -16,12 +16,12 @@ namespace Lumos
 		explicit PathNode(const Maths::Vector3& position = Maths::Vector3());
 		virtual ~PathNode();
 
-		inline size_t NumConnections() const
+		_FORCE_INLINE_ size_t NumConnections() const
 		{
 			return m_connections.size();
 		}
 
-		inline PathEdge *Edge(size_t i)
+		_FORCE_INLINE_ PathEdge *Edge(size_t i)
 		{
 			return m_connections[i];
 		}

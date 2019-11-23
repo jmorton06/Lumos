@@ -18,16 +18,16 @@ namespace Lumos
 		void UpdateTextureCoord(u32 textureRows);
 		void SetTextureOffset(Maths::Vector2& offset, int index, u32 textureRows) const;
 
-		inline Maths::Vector3 GetPosition() const { return m_Position; }
-		inline Maths::Vector3 GetVelocity() const { return m_Velocity; }
-		inline float GetGravityEffect() const { return m_GravityEffect; }
-		inline float GetLifeLength() const { return m_LifeLength; }
-		inline float GetRotation() const { return m_Rotation; }
-		inline float GetScale() const { return m_Scale; }
-		inline float GetElapsedTime() const { return m_ElapsedTime; }
-		inline float GetBlend() const { return m_Blend; }
-		inline Maths::Vector2 GetOffset1() const { return m_TextureOffset1; }
-		inline Maths::Vector2 GetOffset2() const { return m_TextureOffset2; }
+		_FORCE_INLINE_ Maths::Vector3 GetPosition() const { return m_Position; }
+		_FORCE_INLINE_ Maths::Vector3 GetVelocity() const { return m_Velocity; }
+		_FORCE_INLINE_ float GetGravityEffect() const { return m_GravityEffect; }
+		_FORCE_INLINE_ float GetLifeLength() const { return m_LifeLength; }
+		_FORCE_INLINE_ float GetRotation() const { return m_Rotation; }
+		_FORCE_INLINE_ float GetScale() const { return m_Scale; }
+		_FORCE_INLINE_ float GetElapsedTime() const { return m_ElapsedTime; }
+		_FORCE_INLINE_ float GetBlend() const { return m_Blend; }
+		_FORCE_INLINE_ Maths::Vector2 GetOffset1() const { return m_TextureOffset1; }
+		_FORCE_INLINE_ Maths::Vector2 GetOffset2() const { return m_TextureOffset2; }
 
 	private:
 

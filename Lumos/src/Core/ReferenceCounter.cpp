@@ -26,62 +26,62 @@ return m_val;                                                                   
 
 namespace Lumos
 {
-    inline uint32_t _atomic_conditional_increment_impl(volatile uint32_t *pw){
+    _FORCE_INLINE_ uint32_t _atomic_conditional_increment_impl(volatile uint32_t *pw){
         
         ATOMIC_CONDITIONAL_INCREMENT_BODY(pw, LONG, InterlockedCompareExchange, uint32_t)
     }
     
-    inline uint32_t _atomic_decrement_impl(volatile uint32_t *pw) {
+    _FORCE_INLINE_ uint32_t _atomic_decrement_impl(volatile uint32_t *pw) {
         
         return InterlockedDecrement((LONG volatile *)pw);
     }
     
-    inline uint32_t _atomic_increment_impl(volatile uint32_t *pw) {
+    _FORCE_INLINE_ uint32_t _atomic_increment_impl(volatile uint32_t *pw) {
         
         return InterlockedIncrement((LONG volatile *)pw);
     }
     
-    inline uint32_t _atomic_sub_impl(volatile uint32_t *pw, volatile uint32_t val) {
+    _FORCE_INLINE_ uint32_t _atomic_sub_impl(volatile uint32_t *pw, volatile uint32_t val) {
         
         return InterlockedExchangeAdd((LONG volatile *)pw, -(int32_t)val) - val;
     }
     
-    inline uint32_t _atomic_add_impl(volatile uint32_t *pw, volatile uint32_t val) {
+    _FORCE_INLINE_ uint32_t _atomic_add_impl(volatile uint32_t *pw, volatile uint32_t val) {
         
         return InterlockedAdd((LONG volatile *)pw, val);
     }
     
-    inline uint32_t _atomic_exchange_if_greater_impl(volatile uint32_t *pw, volatile uint32_t val){
+    _FORCE_INLINE_ uint32_t _atomic_exchange_if_greater_impl(volatile uint32_t *pw, volatile uint32_t val){
         
         ATOMIC_EXCHANGE_IF_GREATER_BODY(pw, val, LONG, InterlockedCompareExchange, uint32_t)
     }
     
-    inline uint64_t _atomic_conditional_increment_impl(volatile uint64_t *pw){
+    _FORCE_INLINE_ uint64_t _atomic_conditional_increment_impl(volatile uint64_t *pw){
         
         ATOMIC_CONDITIONAL_INCREMENT_BODY(pw, LONGLONG, InterlockedCompareExchange64, uint64_t)
     }
     
-    inline uint64_t _atomic_decrement_impl(volatile uint64_t *pw) {
+    _FORCE_INLINE_ uint64_t _atomic_decrement_impl(volatile uint64_t *pw) {
         
         return InterlockedDecrement64((LONGLONG volatile *)pw);
     }
     
-    inline uint64_t _atomic_increment_impl(volatile uint64_t *pw) {
+    _FORCE_INLINE_ uint64_t _atomic_increment_impl(volatile uint64_t *pw) {
         
         return InterlockedIncrement64((LONGLONG volatile *)pw);
     }
     
-    inline uint64_t _atomic_sub_impl(volatile uint64_t *pw, volatile uint64_t val) {
+    _FORCE_INLINE_ uint64_t _atomic_sub_impl(volatile uint64_t *pw, volatile uint64_t val) {
         
         return InterlockedExchangeAdd64((LONGLONG volatile *)pw, -(int64_t)val) - val;
     }
     
-    inline uint64_t _atomic_add_impl(volatile uint64_t *pw, volatile uint64_t val) {
+    _FORCE_INLINE_ uint64_t _atomic_add_impl(volatile uint64_t *pw, volatile uint64_t val) {
         
         return InterlockedAdd64((LONGLONG volatile *)pw, val);
     }
     
-    inline uint64_t _atomic_exchange_if_greater_impl(volatile uint64_t *pw, volatile uint64_t val){
+    _FORCE_INLINE_ uint64_t _atomic_exchange_if_greater_impl(volatile uint64_t *pw, volatile uint64_t val){
         
         ATOMIC_EXCHANGE_IF_GREATER_BODY(pw, val, LONGLONG, InterlockedCompareExchange64, uint64_t)
     }

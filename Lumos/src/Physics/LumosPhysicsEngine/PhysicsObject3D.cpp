@@ -14,24 +14,24 @@ namespace Lumos
 		, m_LinearVelocity(0.0f, 0.0f, 0.0f)
 		, m_Force(0.0f, 0.0f, 0.0f)
 		, m_InvMass(0.0f)
-		, m_Orientation(0.0f, 0.0f, 0.0f, 1.0f)
+		, m_Orientation(1.0f, 0.0f, 0.0f, 0.0f)
 		, m_AngularVelocity(0.0f, 0.0f, 0.0f)
 		, m_Torque(0.0f, 0.0f, 0.0f)
-		, m_InvInertia(Maths::Matrix3::ZeroMatrix)
+		, m_InvInertia(Maths::Matrix3::ZERO)
 		, m_OnCollisionCallback(nullptr)
 	{
-		m_localBoundingBox.SetHalfDimensions(Maths::Vector3(0.5f, 0.5f, 0.5f));
+		m_localBoundingBox.Define(Maths::Vector3(-0.5f), Maths::Vector3(0.5f));
 	}
 
 	PhysicsObject3D::~PhysicsObject3D()
 	{
 	}
 
-	Maths::BoundingBox PhysicsObject3D::GetWorldSpaceAABB() const
+	Maths::BoundingBox PhysicsObject3D::GetWorldSpaceAABB()
 	{
 		if (m_wsAabbInvalidated)
 		{
-			m_wsAabb = m_localBoundingBox.Transform(GetWorldSpaceTransform());
+			m_wsAabb = m_localBoundingBox.Transformed(GetWorldSpaceTransform());
 			m_wsAabbInvalidated = false;
 		}
 
@@ -52,8 +52,8 @@ namespace Lumos
 	{
 		if (m_wsTransformInvalidated)
 		{
-			m_wsTransform = m_Orientation.ToMatrix4();
-			m_wsTransform.SetPositionVector(m_Position);
+			m_wsTransform = m_Orientation.RotationMatrix4();
+			m_wsTransform.SetTranslation(m_Position);
 
 			m_wsTransformInvalidated = false;
 		}
@@ -63,7 +63,7 @@ namespace Lumos
 
 	void PhysicsObject3D::AutoResizeBoundingBox()
 	{
-		m_localBoundingBox.Reset();
+		m_localBoundingBox.Clear();
 
 		const Maths::Vector3 xAxis(1.0f, 0.0f, 0.0f);
 		const Maths::Vector3 yAxis(0.0f, 1.0f, 0.0f);
@@ -74,16 +74,16 @@ namespace Lumos
 		if(m_CollisionShape)
 		{
 			m_CollisionShape->GetMinMaxVertexOnAxis(nullptr, xAxis, &lower, &upper);
-			m_localBoundingBox.ExpandToFit(lower);
-			m_localBoundingBox.ExpandToFit(upper);
+			m_localBoundingBox.Merge(lower);
+			m_localBoundingBox.Merge(upper);
 
 			m_CollisionShape->GetMinMaxVertexOnAxis(nullptr, yAxis, &lower, &upper);
-			m_localBoundingBox.ExpandToFit(lower);
-			m_localBoundingBox.ExpandToFit(upper);
+			m_localBoundingBox.Merge(lower);
+			m_localBoundingBox.Merge(upper);
 
 			m_CollisionShape->GetMinMaxVertexOnAxis(nullptr, zAxis, &lower, &upper);
-			m_localBoundingBox.ExpandToFit(lower);
-			m_localBoundingBox.ExpandToFit(upper);
+			m_localBoundingBox.Merge(lower);
+			m_localBoundingBox.Merge(upper);
 		}
 
 		m_wsAabbInvalidated = true;
@@ -114,14 +114,6 @@ namespace Lumos
 	{
 		nlohmann::json output;
 		output["typeID"] = LUMOS_TYPENAME(PhysicsObject3D);
-		output["position"] = m_Position.Serialise();
-		output["velocity"] = m_LinearVelocity.Serialise();
-		output["force"] = m_Force.Serialise();
-		output["invMass"] = m_InvMass;
-		output["orientation"] = m_Orientation.Serialise();
-		output["angularVelocity"] = m_AngularVelocity.Serialise();
-		output["torque"] = m_Torque.Serialise();
-		output["invInertia"] = m_InvInertia.Serialise();
 
 		//output["collisionShape"]	= m_CollisionShape;
 
@@ -130,15 +122,6 @@ namespace Lumos
 
 	void PhysicsObject3D::Deserialise(nlohmann::json& data)
 	{
-		m_Position.Deserialise(data["position"]);
-		m_LinearVelocity.Deserialise(data["velocity"]);
-		m_Force.Deserialise(data["force"]);
-		m_InvMass = data["invMass"];
-
-		m_Orientation.Deserialise(data["orientation"]);
-		m_AngularVelocity.Deserialise(data["angularVelocity"]);
-		m_Torque.Deserialise(data["torque"]);
-		m_InvInertia.Deserialise(data["invInertia"]);
 
 		//m_CollisionShape.Deserialise(data["collisionShape"]);
 	}

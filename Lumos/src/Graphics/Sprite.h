@@ -1,6 +1,6 @@
 #pragma once
 #include "lmpch.h"
-#include "Maths/Vector2.h"
+#include "Maths/Maths.h"
 #include "Renderable2D.h"
 
 namespace Lumos
