@@ -903,17 +903,17 @@ namespace Lumos
 
 		void GLShader::SetUniform2f(u32 location, const Maths::Vector2& vector)
 		{
-			GLCall(glUniform2f(location, vector.GetX(), vector.GetY()));
+			GLCall(glUniform2f(location, vector.x, vector.y));
 		}
 
 		void GLShader::SetUniform3f(u32 location, const Maths::Vector3& vector)
 		{
-			GLCall(glUniform3f(location, vector.GetX(), vector.GetY(), vector.GetZ()));
+			GLCall(glUniform3f(location, vector.x, vector.y, vector.z));
 		}
 
 		void GLShader::SetUniform4f(u32 location, const Maths::Vector4& vector)
 		{
-			GLCall(glUniform4f(location, vector.GetX(), vector.GetY(), vector.GetZ(), vector.GetW()));
+			GLCall(glUniform4f(location, vector.x, vector.y, vector.z, vector.w));
 		}
 
 		void GLShader::SetUniformMat3(u32 location, const Maths::Matrix3& matrix)

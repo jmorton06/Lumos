@@ -31,9 +31,9 @@ namespace Lumos
 		//float i = 1.5f * invMass * m_Radius * m_Radius; //HOLLOW
 
 		Maths::Matrix3 inertia;
-		inertia._11 = i;
-		inertia._22 = i;
-		inertia._33 = i;
+		inertia.m00_ = i;
+		inertia.m11_ = i;
+		inertia.m22_ = i;
 
 		return inertia;
 	}
@@ -57,7 +57,7 @@ namespace Lumos
 		else
 			transform = currentObject->GetWorldSpaceTransform() * m_LocalTransform;
 
-		Maths::Vector3 pos = transform.GetPositionVector();
+		Maths::Vector3 pos = transform.Translation();
 
 		if (out_min)
 			*out_min = pos - axis * m_Radius;

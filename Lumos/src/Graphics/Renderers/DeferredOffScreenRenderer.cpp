@@ -168,21 +168,17 @@ namespace Lumos
                 {
                     auto& worldTransform = trans.GetWorldMatrix();
 
-                    float maxScaling = 0.0f;
-                    auto scale = worldTransform.GetScaling();
-                    maxScaling = Maths::Max(scale.GetX(), maxScaling);
-                    maxScaling = Maths::Max(scale.GetY(), maxScaling);
-                    maxScaling = Maths::Max(scale.GetZ(), maxScaling);
+					auto bb = mesh.GetMesh()->GetBoundingBox();
+                    auto bbCopy = bb->Transformed(worldTransform);
+					auto inside = m_Frustum.IsInsideFast(bbCopy);
 
-                    bool inside = m_Frustum.InsideFrustum(worldTransform.GetPositionVector(), maxScaling * mesh.GetMesh()->GetBoundingBox()->SphereRadius());
-
-                    if (!inside)
-                        continue;
+                    if (inside == Maths::Intersection::OUTSIDE)
+						continue;
 
                     auto meshPtr = mesh.GetMesh();
                     auto materialComponent = registry.try_get<MaterialComponent>(entity);
                     Material* material = nullptr;
-                    if (materialComponent && /* materialComponent->GetActive() &&*/ materialComponent->GetMaterial())
+                    if (materialComponent && materialComponent->GetActive() && materialComponent->GetMaterial())
                     {
                         material = materialComponent->GetMaterial().get();
 
@@ -232,7 +228,7 @@ namespace Lumos
 			auto projView = proj * camera->GetViewMatrix();
 			memcpy(m_VSSystemUniformBuffer + m_VSSystemUniformBufferOffsets[VSSystemUniformIndex_ProjectionViewMatrix], &projView, sizeof(Maths::Matrix4));
 
-			m_Frustum.FromMatrix(projView);
+            m_Frustum = camera->GetFrustum();
 		}
 
 		void DeferredOffScreenRenderer::Submit(const RenderCommand& command)
@@ -261,7 +257,7 @@ namespace Lumos
 			m_DeferredCommandBuffers->Execute(true);
 		}
 
-		void DeferredOffScreenRenderer::SetSystemUniforms(Shader* shader) const
+		void DeferredOffScreenRenderer::SetSystemUniforms(Shader* shader)
 		{
 			m_UniformBuffer->SetData(m_VSSystemUniformBufferSize, *&m_VSSystemUniformBuffer);
 
@@ -270,6 +266,7 @@ namespace Lumos
 			for (auto& command : m_CommandQueue)
 			{
 				Maths::Matrix4* modelMat = reinterpret_cast<Maths::Matrix4*>((reinterpret_cast<uint64_t>(m_UBODataDynamic.model) + (index * m_DynamicAlignment)));
+				command.transform = command.transform;
 				*modelMat = command.transform;
 				index++;
 			}

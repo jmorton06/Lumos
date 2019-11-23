@@ -110,24 +110,46 @@ namespace Lumos
 				return false;
 			}
 
-			uint32_t numFormats;
-			auto result = vkGetPhysicalDeviceSurfaceFormatsKHR(m_PhysicalDevice, m_Surface, &numFormats, VK_NULL_HANDLE);
-			if (result != VK_SUCCESS)
-			{
-				LUMOS_LOG_CRITICAL("ERROR : Couldn't get surface formats!");
-				return false;
-			}
+			uint32_t formatCount;
+            vkGetPhysicalDeviceSurfaceFormatsKHR(m_PhysicalDevice, m_Surface, &formatCount, NULL);
+            LUMOS_ASSERT(formatCount > 0, "Format count 0");
 
-			VkSurfaceFormatKHR * pSurfaceFormats = new VkSurfaceFormatKHR[numFormats];
-			result = vkGetPhysicalDeviceSurfaceFormatsKHR(m_PhysicalDevice, m_Surface, &numFormats, pSurfaceFormats);
+            std::vector<VkSurfaceFormatKHR> surfaceFormats(formatCount);
+            vkGetPhysicalDeviceSurfaceFormatsKHR(m_PhysicalDevice, m_Surface, &formatCount, surfaceFormats.data());
 
-			if (numFormats == 1 && pSurfaceFormats[0].format == VK_FORMAT_UNDEFINED)
-				m_Format = VK_FORMAT_B8G8R8A8_UNORM;
-			else
-				m_Format = pSurfaceFormats[0].format;
+            // If the surface format list only includes one entry with VK_FORMAT_UNDEFINED,
+            // there is no preferered format, so we assume VK_FORMAT_B8G8R8A8_UNORM
+            if ((formatCount == 1) && (surfaceFormats[0].format == VK_FORMAT_UNDEFINED))
+            {
+                m_Format = VK_FORMAT_B8G8R8A8_UNORM;
+                m_ColourSpace = surfaceFormats[0].colorSpace;
+            }
+            else
+            {
+                // iterate over the list of available surface format and
+                // check for the presence of VK_FORMAT_B8G8R8A8_UNORM
+                bool found_B8G8R8A8_UNORM = false;
+                for (auto&& surfaceFormat : surfaceFormats)
+                {
+                    if (surfaceFormat.format == VK_FORMAT_B8G8R8A8_UNORM)
+                    {
+                        m_Format = surfaceFormat.format;
+                        m_ColourSpace = surfaceFormat.colorSpace;
+                        found_B8G8R8A8_UNORM = true;
+                        break;
+                    }
+                }
+
+                // in case VK_FORMAT_B8G8R8A8_UNORM is not available
+                // select the first available color format
+                if (!found_B8G8R8A8_UNORM)
+                {
+                    m_Format = surfaceFormats[0].format;
+                    m_ColourSpace = surfaceFormats[0].colorSpace;
+                }
+            }
 
 			// Device queue
-
 			float pQueuePriorities[] = { 1.0f };
 			VkDeviceQueueCreateInfo deviceQueueCI{};
 			deviceQueueCI.queueCount = 1;
@@ -143,7 +165,7 @@ namespace Lumos
 			deviceFeatures.samplerAnisotropy = VK_TRUE;
 
 			//auto extensions = m_VKContext->GetExtensionNames();
-			auto layers		= m_VKContext->GetLayerNames();
+			auto& layers = m_VKContext->GetLayerNames();
 
 			const std::vector<const char*> deviceExtensions = 
 			{
@@ -168,7 +190,7 @@ namespace Lumos
 				deviceCI.enabledLayerCount = 0;
 			}
 			
-			result = vkCreateDevice(m_PhysicalDevice, &deviceCI, VK_NULL_HANDLE, &m_Device);
+			auto result = vkCreateDevice(m_PhysicalDevice, &deviceCI, VK_NULL_HANDLE, &m_Device);
 			if (result != VK_SUCCESS)
 			{
 				LUMOS_LOG_CRITICAL("[VULKAN] VKDevice::Instance()->GetDevice() vkCreateDevice() failed!");

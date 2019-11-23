@@ -37,14 +37,16 @@ namespace Lumos
 					
 					Maths::Vector3 pos = trans. GetWorldPosition();
 
-					if (frustum.InsideFrustum(pos, 0.1f))
-					{
-						Maths::Vector2 screenPos = Maths::WorldToScreen(pos, viewProj, width, height, xpos, ypos);
-						ImGui::SetCursorPos({ screenPos.x - ImGui::GetFontSize() / 2.0f , screenPos.y - ImGui::GetFontSize() / 2.0f });
-                        ImGui::TextUnformatted(m_Editor->GetComponentIconMap()[typeid(T).hash_code()]);
+					auto inside = frustum.IsInside(pos);
 
-						ImGuiHelpers::Tooltip(typeid(T).name());
-					}
+                    if (inside == Maths::Intersection::OUTSIDE)
+                        continue;
+                    
+                    Maths::Vector2 screenPos = Maths::WorldToScreen(pos, viewProj, width, height, xpos, ypos);
+                    ImGui::SetCursorPos({ screenPos.x - ImGui::GetFontSize() / 2.0f , screenPos.y - ImGui::GetFontSize() / 2.0f });
+                    ImGui::TextUnformatted(m_Editor->GetComponentIconMap()[typeid(T).hash_code()]);
+
+                    ImGuiHelpers::Tooltip(typeid(T).name());
 				}
 			}
 		}

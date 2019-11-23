@@ -70,7 +70,7 @@ namespace Lumos
 
 		void SetLocalTransform(const Maths::Matrix4& transform){ m_LocalTransform = transform; }
 
-		inline CollisionShapeType GetType() const { return m_Type; }
+		_FORCE_INLINE_ CollisionShapeType GetType() const { return m_Type; }
 
 	protected:
 		CollisionShapeType m_Type;

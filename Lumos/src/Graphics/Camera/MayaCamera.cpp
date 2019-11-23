@@ -20,11 +20,11 @@ namespace Lumos
 
 		m_Position = Maths::Vector3(-3.0f, 10.0f, 15.0f);
 
-		m_FocalPoint = Maths::Vector3::Zero();
+		m_FocalPoint = Maths::Vector3::ZERO;
 		Maths::Vector3 distance = (m_Position - m_FocalPoint);
 		m_Distance = distance.Length();// m_Position.Distance(m_FocalPoint);
 
-		m_ProjMatrix = Maths::Matrix4::Perspective(m_Near, m_Far, aspect, FOV);
+		//m_ProjMatrix = Maths::Matrix4::Perspective(m_Near, m_Far, aspect, FOV);
 		m_RotateDampeningFactor = 0.00001f;
 	}
 
@@ -37,11 +37,11 @@ namespace Lumos
 		m_RotationSpeed = 1.2f;
 		m_ZoomSpeed = 0.6f;
 
-		m_FocalPoint = Maths::Vector3::Zero();
+		m_FocalPoint = Maths::Vector3::ZERO;
 		Maths::Vector3 distance = (m_Position - m_FocalPoint);
 		m_Distance = distance.Length();// m_Position.Distance(m_FocalPoint);
 
-		m_ProjMatrix = Maths::Matrix4::Perspective(m_Near, m_Far, aspect, FOV);
+		//m_ProjMatrix = Maths::Matrix4::Perspective(m_Near, m_Far, aspect, FOV);
 		m_RotateDampeningFactor = 0.00001f;
 	}
 
@@ -58,11 +58,11 @@ namespace Lumos
 		else if (Input::GetInput()->GetMouseHeld(LUMOS_MOUSE_LEFT))
 			MouseRotate(delta, dt);
 		else if (Input::GetInput()->GetMouseHeld(LUMOS_MOUSE_RIGHT))
-			MouseZoom(delta.GetY(), dt);
+			MouseZoom(delta.y, dt);
 
-		float yawSign = GetUpDirection().GetY() < 0 ? -1.0f : 1.0f;
-		m_Yaw -= yawSign * m_RotateVelocity.GetX()  * dt;
-		m_Pitch -= m_RotateVelocity.GetY()  * dt;
+		float yawSign = GetUpDirection().y < 0 ? -1.0f : 1.0f;
+		m_Yaw -= yawSign * m_RotateVelocity.x  * dt;
+		m_Pitch -= m_RotateVelocity.y  * dt;
 
 		m_Distance -= m_ZoomVelocity * dt;
 		m_FocalPoint += GetForwardDirection() * m_ZoomVelocity * dt;
@@ -87,13 +87,13 @@ namespace Lumos
 
 	void MayaCamera::MousePan(const Maths::Vector2& delta)
 	{
-		m_FocalPoint -= -GetRightDirection() * delta.GetX() * m_PanSpeed * m_Distance;
-		m_FocalPoint -= GetUpDirection() * delta.GetY() * m_PanSpeed * m_Distance;
+		m_FocalPoint -= -GetRightDirection() * delta.x * m_PanSpeed * m_Distance;
+		m_FocalPoint -= GetUpDirection() * delta.y * m_PanSpeed * m_Distance;
 	}
 
 	void MayaCamera::MouseRotate(const Maths::Vector2& delta, const float dt)
 	{
-		m_RotateVelocity = m_RotateVelocity + delta *  m_RotationSpeed;
+		m_RotateVelocity = m_RotateVelocity + m_RotationSpeed * delta ;
 	}
 
 	void MayaCamera::MouseZoom(float delta, const float dt)

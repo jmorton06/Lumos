@@ -26,11 +26,11 @@ namespace Lumos
 		public:
 			GLShaderResourceDeclaration(Type type, const String& name, u32 count);
 
-			inline const String& GetName() const override { return m_Name; }
-			inline u32 GetRegister() const override { return m_Register; }
-			inline u32 GetCount() const override { return m_Count; }
+			_FORCE_INLINE_ const String& GetName() const override { return m_Name; }
+			_FORCE_INLINE_ u32 GetRegister() const override { return m_Register; }
+			_FORCE_INLINE_ u32 GetCount() const override { return m_Count; }
 
-			inline Type GetType() const { return m_Type; }
+			_FORCE_INLINE_ Type GetType() const { return m_Type; }
 		public:
 			static Type StringToType(const String& type);
 			static String TypeToString(Type type);

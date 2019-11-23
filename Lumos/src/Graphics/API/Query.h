@@ -22,7 +22,7 @@ namespace Lumos
 			virtual bool GetResultReady() = 0;
 			virtual void End() = 0;
 
-			inline bool GetInUse() const { return m_InUse; }
+			_FORCE_INLINE_ bool GetInUse() const { return m_InUse; }
 
 			bool m_InUse;
             

@@ -29,7 +29,7 @@ namespace Lumos
 			void Present() override;
 			void Unload();
 
-			inline static VKContext* Get() { return static_cast<VKContext*>(s_Context); }
+			_FORCE_INLINE_ static VKContext* Get() { return static_cast<VKContext*>(s_Context); }
 
 			static VKAPI_ATTR VkBool32 VKAPI_CALL DebugCallback(VkDebugReportFlagsEXT flags,
 				VkDebugReportObjectTypeEXT objType,

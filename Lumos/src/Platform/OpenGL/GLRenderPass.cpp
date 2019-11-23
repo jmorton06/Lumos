@@ -37,12 +37,12 @@ namespace Lumos
             {
                 frame->Bind(width, height);
 			    frame->SetClearColour(clearColour);
-                GLCall(glClearColor(clearColour.GetX(),clearColour.GetY(),clearColour.GetZ(),clearColour.GetW()));
+                GLCall(glClearColor(clearColour.x,clearColour.y,clearColour.z,clearColour.w));
             }
             else
             {
                 GLCall(glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0));
-                GLCall(glClearColor(clearColour.GetX(),clearColour.GetY(),clearColour.GetZ(),clearColour.GetW()));
+                GLCall(glClearColor(clearColour.x,clearColour.y,clearColour.z,clearColour.w));
                 GLCall(glViewport(0, 0, width, height));
             }
 

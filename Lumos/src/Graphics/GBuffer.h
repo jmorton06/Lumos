@@ -37,12 +37,12 @@ namespace Lumos
 			void UpdateTextureSize(u32 width, u32 height);
 			void SetReadBuffer(ScreenTextures type);
 
-			inline u32 GetWidth() const { return m_Width; }
-			inline u32 GetHeight() const { return m_Height; }
+			_FORCE_INLINE_ u32 GetWidth() const { return m_Width; }
+			_FORCE_INLINE_ u32 GetHeight() const { return m_Height; }
 
-			inline Texture2D* GetTexture(u32 index) const { return m_ScreenTex[index]; }
-			inline TextureDepth* GetDepthTexture() const { return m_DepthTexture; };
-			inline TextureFormat GetTextureFormat(u32 index) const { return m_Formats[index]; };
+			_FORCE_INLINE_ Texture2D* GetTexture(u32 index) const { return m_ScreenTex[index]; }
+			_FORCE_INLINE_ TextureDepth* GetDepthTexture() const { return m_DepthTexture; };
+			_FORCE_INLINE_ TextureFormat GetTextureFormat(u32 index) const { return m_Formats[index]; };
 
 		private:
 			void Init();

@@ -1,13 +1,17 @@
 #pragma once
 
 #include "lmpch.h"
-#include "Matrix3.h"
-#include "Matrix4.h"
-#include "Plane.h"
-#include "Quaternion.h"
-#include "Vector2.h"
-#include "Vector3.h"
-#include "Vector4.h"
+#include "Maths/Matrix3.h"
+#include "Maths/Matrix4.h"
+#include "Maths/Plane.h"
+#include "Maths/Quaternion.h"
+#include "Maths/Vector2.h"
+#include "Maths/Vector3.h"
+#include "Maths/Vector4.h"
+#include "Maths/BoundingBox.h"
+#include "Maths/Sphere.h"
+#include "Maths/Frustum.h"
+#include "Maths/MathDefs.h"
 
 namespace Lumos
 {
@@ -29,30 +33,30 @@ namespace Lumos
 			float x, y, z, w;
 		};
 
-		inline Vector2 ToVector(const Vector2Simple& vec)
+		_FORCE_INLINE_ Vector2 ToVector(const Vector2Simple& vec)
 		{
 			return Vector2(vec.x, vec.y);
 		}
 
-		inline Vector3 ToVector(const Vector3Simple& vec)
+		_FORCE_INLINE_ Vector3 ToVector(const Vector3Simple& vec)
 		{
 			return Vector3(vec.x, vec.y, vec.z);
 		}
 
-		inline Vector3Simple ToVector(const Vector3& vec)
+		_FORCE_INLINE_ Vector3Simple ToVector(const Vector3& vec)
 		{
-			return Vector3Simple(vec.GetX(), vec.GetY(), vec.GetZ());
+			return Vector3Simple(vec.x, vec.y, vec.z);
 		}
 
-		inline Vector4 ToVector(const Vector4Simple& vec)
+		_FORCE_INLINE_ Vector4 ToVector(const Vector4Simple& vec)
 		{
 			return Vector4(vec.x, vec.y, vec.z, vec.w);
 		}
 
-		inline Vector2 WorldToScreen(const Vector3& worldPos, const Matrix4& mvp, float width, float height, float winPosX = 0.0f, float winPosY = 0.0f)
+		_FORCE_INLINE_ Vector2 WorldToScreen(const Vector3& worldPos, const Matrix4& mvp, float width, float height, float winPosX = 0.0f, float winPosY = 0.0f)
 		{
-			Vector4 trans = mvp * Vector4(worldPos);
-			trans *= 0.5f / trans.GetW();
+			Vector4 trans = mvp * Vector4(worldPos, 1.0f);
+			trans *= 0.5f / trans.w;
 			trans += Vector4(0.5f, 0.5f, 0.0f, 0.0f);
 			trans.y = 1.f - trans.y;
 			trans.x *= width;
@@ -98,13 +102,13 @@ namespace Lumos
 	template<>
 	const float* Maths::ValuePointer<Maths::Matrix3>(const Maths::Matrix3& t)
 	{
-		return &(t.values[0]);
+		return &(t.m00_);
 	}
 
 	template<>
 	const float* Maths::ValuePointer<Maths::Matrix4>(const Maths::Matrix4& t)
 	{
-		return &(t.values[0]);
+		return &(t.m00_);
 	}
 
 	template<>
@@ -134,13 +138,13 @@ namespace Lumos
 	template<>
 	float* Maths::ValuePointer<Maths::Matrix3>(Maths::Matrix3& t)
 	{
-		return &(t.values[0]);
+		return &(t.m00_);
 	}
 
 	template<>
 	float* Maths::ValuePointer<Maths::Matrix4>(Maths::Matrix4& t)
 	{
-		return &(t.values[0]);
+		return &(t.m00_);
 	}
 
 	template<>

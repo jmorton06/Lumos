@@ -244,24 +244,24 @@ namespace Lumos
 
             auto& registry = scene->GetRegistry();
                       
-              auto group = registry.group<Graphics::Light>(entt::get<Maths::Transform>);
+            auto group = registry.group<Graphics::Light>(entt::get<Maths::Transform>);
 
             u32 numLights = 0;
 
-              for(auto entity : group)
-              {
-                  const auto &[light, trans] = group.get<Graphics::Light, Maths::Transform>(entity);
+			for(auto entity : group)
+			{
+				const auto &[light, trans] = group.get<Graphics::Light, Maths::Transform>(entity);
 
 				light.m_Position = trans.GetWorldPosition();
 
-				Maths::Vector3 forward = Maths::Vector3(0, 0, -1);
-				Maths::Quaternion::RotatePointByQuaternion(trans.GetWorldOrientation(), forward);
+				Maths::Vector3 forward = Maths::Vector3::FORWARD;
+				forward = trans.GetWorldOrientation() * forward;
 
-				light.m_Direction = forward.Normal();
+				light.m_Direction = forward.Normalized();
 
-                memcpy(m_PSSystemUniformBuffer + m_PSSystemUniformBufferOffsets[PSSystemUniformIndex_Lights] + sizeof(Graphics::Light) * numLights, &light, sizeof(Graphics::Light));
+				memcpy(m_PSSystemUniformBuffer + m_PSSystemUniformBufferOffsets[PSSystemUniformIndex_Lights] + sizeof(Graphics::Light) * numLights, &light, sizeof(Graphics::Light));
 				numLights++;
-            }
+			}
             
             Maths::Vector4 cameraPos = Maths::Vector4(scene->GetCamera()->GetPosition());
             memcpy(m_PSSystemUniformBuffer + m_PSSystemUniformBufferOffsets[PSSystemUniformIndex_CameraPosition], &cameraPos, sizeof(Maths::Vector4));
@@ -306,12 +306,7 @@ namespace Lumos
 
 		void DeferredRenderer::Present()
 		{
-			//Graphics::CommandBuffer* currentCMDBuffer = (m_ScreenQuad->GetCommandBuffer(static_cast<int>(m_CommandBufferIndex)));
-
 			Graphics::CommandBuffer* currentCMDBuffer = m_CommandBuffers[m_CommandBufferIndex];
-
-			//currentCMDBuffer->BeginRecordingSecondary(m_RenderPass, m_Framebuffers[m_CommandBufferIndex]);
-			//currentCMDBuffer->UpdateViewport(m_ScreenBufferWidth, m_ScreenBufferHeight);
 
 			m_Pipeline->SetActive(currentCMDBuffer);
 
@@ -327,9 +322,6 @@ namespace Lumos
 
 			m_ScreenQuad->GetVertexArray()->Unbind();
 			m_ScreenQuad->GetIndexBuffer()->Unbind();
-
-			//currentCMDBuffer->EndRecording();
-			//currentCMDBuffer->ExecuteSecondary(m_CommandBuffers[m_CommandBufferIndex]);
 		}
 
 		void DeferredRenderer::CreateDeferredPipeline()

@@ -52,7 +52,7 @@ namespace Lumos
         static float GetDeltaTime() { return s_UpdateTimestep; }
 
 		Ref<Broadphase> GetBroadphase() const { return m_BroadphaseDetection; }
-		inline void SetBroadphase(const Ref<Broadphase>& bp)
+		_FORCE_INLINE_ void SetBroadphase(const Ref<Broadphase>& bp)
 		{
 			m_BroadphaseDetection = bp;
 		}

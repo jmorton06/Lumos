@@ -1,223 +1,309 @@
 #pragma once
+#include "Maths/Vector3.h"
 
-#include "lmpch.h"
-#include "Vector3.h"
-#include "MathsCommon.h"
-#include "Core/Serialisable.h"
-
-namespace Lumos
+namespace Lumos::Maths
 {
-	namespace Maths
-	{
+    /// 3x3 matrix for rotation and scaling.
+    class  Matrix3
+    {
+    public:
+        /// Construct an identity matrix.
+        Matrix3() noexcept :
+            m00_(1.0f),
+            m01_(0.0f),
+            m02_(0.0f),
+            m10_(0.0f),
+            m11_(1.0f),
+            m12_(0.0f),
+            m20_(0.0f),
+            m21_(0.0f),
+            m22_(1.0f)
+        {
+        }
 
-		class Matrix4;
+        /// Copy-construct from another matrix.
+        Matrix3(const Matrix3& matrix) noexcept = default;
 
-		class LUMOS_EXPORT MEM_ALIGN Matrix3
-		{
-		public:
-			Matrix3()
-			{
-				ToIdentity();
-			}
+        /// Construct from values.
+        Matrix3(float v00, float v01, float v02,
+                float v10, float v11, float v12,
+                float v20, float v21, float v22) noexcept :
+            m00_(v00),
+            m01_(v01),
+            m02_(v02),
+            m10_(v10),
+            m11_(v11),
+            m12_(v12),
+            m20_(v20),
+            m21_(v21),
+            m22_(v22)
+        {
+        }
 
-			Matrix3(const float(&elements)[9])
-			{
-				memcpy(values, elements, 9 * sizeof(float));
-			}
+        /// Construct from a float array.
+        explicit Matrix3(const float* data) noexcept :
+            m00_(data[0]),
+            m01_(data[1]),
+            m02_(data[2]),
+            m10_(data[3]),
+            m11_(data[4]),
+            m12_(data[5]),
+            m20_(data[6]),
+            m21_(data[7]),
+            m22_(data[8])
+        {
+        }
 
-			Matrix3(const Vector3 &v1, const Vector3 &v2, const Vector3 &v3);
+        /// Assign from another matrix.
+        Matrix3& operator =(const Matrix3& rhs) noexcept = default;
 
-			Matrix3(
-				float a1, float a2, float a3,
-				float b1, float b2, float b3,
-				float c1, float c2, float c3);
+        /// Test for equality with another matrix without epsilon.
+        bool operator ==(const Matrix3& rhs) const
+        {
+            const float* leftData = Data();
+            const float* rightData = rhs.Data();
 
-			Matrix3(const Matrix4 &m4);
-
-			union
-			{
-				float values[9];
-				struct
-				{
-					float _11, _12, _13;
-					float _21, _22, _23;
-					float _31, _32, _33;
-				};
-			} MEM_ALIGN;
-
-			//Set all matrix values to zero
-			inline Matrix3 &ToZero()
-			{
-				memset(values, 0, 9 * sizeof(float));
-				return *this;
-			}
-
-			inline Matrix3 &ToIdentity()
-			{
-				memcpy(values, Matrix3::IDENTITY_DATA, 9 * sizeof(float));
-				return *this;
-			}
-
-
-			inline float operator[](int index) const
-			{
-				return values[index];
-			}
-
-			inline float &operator[](int index)
-			{
-				return values[index];
-			}
-
-			inline float operator()(int row, int col) const
-			{
-				return values[row + col * 3];
-			}
-
-			inline float &operator()(int row, int col)
-			{
-				return values[row + col * 3];
-			}
-
-			inline Vector3 GetRow(unsigned int row) const
-			{
-				return Vector3(values[row], values[row + 3], values[row + 6]);
-			}
-
-			inline Vector3 GetCol(unsigned int column) const
-			{
-				Vector3 out;
-				memcpy(&out, &values[3 * column], sizeof(Vector3));
-				return out;
-			}
-
-			inline void SetRow(unsigned int row, const Vector3 &val)
-			{
-				values[row] = val.GetX();
-				values[row + 3] = val.GetY();
-				values[row + 6] = val.GetZ();
-			}
-
-			inline void SetCol(unsigned int column, const Vector3 &val)
-			{
-				memcpy(&values[column * 3], &val, sizeof(Vector3));
-			}
-
-			inline Vector3 GetDiagonal() const
-			{
-				return Vector3(values[0], values[4], values[8]);
-			}
-
-			inline void SetDiagonal(const Vector3 &v)
-			{
-				values[0] = v.GetX();
-				values[4] = v.GetY();
-				values[8] = v.GetZ();
-			}
-
-			inline Vector3 GetScalingVector() const { return Vector3(_11, _22, _33); }
-			inline void	SetScalingVector(const Vector3& in)
+            for (unsigned i = 0; i < 9; ++i)
             {
-                _11 = in.GetX();
-                _22 = in.GetY();
-                _33 = in.GetZ();
+                if (leftData[i] != rightData[i])
+                    return false;
             }
 
-			inline void Transpose()
-			{
-#ifdef LUMOS_SSEMAT3
-				__m128 empty = _mm_setzero_ps();
-				__m128 column1 = _mm_loadu_ps(&values[0]);
-				__m128 column2 = _mm_loadu_ps(&values[3]);
-				__m128 column3 = _mm_loadu_ps(&values[6]);
+            return true;
+        }
 
-				_MM_TRANSPOSE4_PS(column1, column2, column3, empty);
+        /// Test for inequality with another matrix without epsilon.
+        bool operator !=(const Matrix3& rhs) const { return !(*this == rhs); }
 
-				_mm_storeu_ps(&values[0], column1);
-				_mm_storeu_ps(&values[3], column2);
-				values[6] = GetValue(column3, 0);
-				values[7] = GetValue(column3, 1);
-				values[8] = GetValue(column3, 2);
-#else
-				Matrix3 m;
-				m._11 = _11;
-				m._21 = _12;
-				m._31 = _13;
+        /// Multiply a Vector3.
+        Vector3 operator *(const Vector3& rhs) const
+        {
+            return Vector3(
+                m00_ * rhs.x + m01_ * rhs.y + m02_ * rhs.z,
+                m10_ * rhs.x + m11_ * rhs.y + m12_ * rhs.z,
+                m20_ * rhs.x + m21_ * rhs.y + m22_ * rhs.z
+            );
+        }
 
-				m._12 = _21;
-				m._22 = _22;
-				m._32 = _23;
+        /// Add a matrix.
+        Matrix3 operator +(const Matrix3& rhs) const
+        {
+            return Matrix3(
+                m00_ + rhs.m00_,
+                m01_ + rhs.m01_,
+                m02_ + rhs.m02_,
+                m10_ + rhs.m10_,
+                m11_ + rhs.m11_,
+                m12_ + rhs.m12_,
+                m20_ + rhs.m20_,
+                m21_ + rhs.m21_,
+                m22_ + rhs.m22_
+            );
+        }
 
-				m._13 = _31;
-				m._23 = _32;
-				m._33 = _33;
+        /// Subtract a matrix.
+        Matrix3 operator -(const Matrix3& rhs) const
+        {
+            return Matrix3(
+                m00_ - rhs.m00_,
+                m01_ - rhs.m01_,
+                m02_ - rhs.m02_,
+                m10_ - rhs.m10_,
+                m11_ - rhs.m11_,
+                m12_ - rhs.m12_,
+                m20_ - rhs.m20_,
+                m21_ - rhs.m21_,
+                m22_ - rhs.m22_
+            );
+        }
 
-				*this = m;
-#endif
-			}
+        /// Multiply with a scalar.
+        Matrix3 operator *(float rhs) const
+        {
+            return Matrix3(
+                m00_ * rhs,
+                m01_ * rhs,
+                m02_ * rhs,
+                m10_ * rhs,
+                m11_ * rhs,
+                m12_ * rhs,
+                m20_ * rhs,
+                m21_ * rhs,
+                m22_ * rhs
+            );
+        }
 
-			// Standard Matrix Functionality
-			static Matrix3 Inverse(const Matrix3 &rhs);
-			static Matrix3 Transpose(const Matrix3 &rhs);
-			static Matrix3 Adjugate(const Matrix3 &m);
-			static Matrix3 OuterProduct(const Vector3& a, const Vector3& b);
-			// Additional Functionality
-			float Trace() const;
-			float Determinant() const;
-			Matrix3 Inverse() const;
+        /// Multiply a matrix.
+        Matrix3 operator *(const Matrix3& rhs) const
+        {
+            return Matrix3(
+                m00_ * rhs.m00_ + m01_ * rhs.m10_ + m02_ * rhs.m20_,
+                m00_ * rhs.m01_ + m01_ * rhs.m11_ + m02_ * rhs.m21_,
+                m00_ * rhs.m02_ + m01_ * rhs.m12_ + m02_ * rhs.m22_,
+                m10_ * rhs.m00_ + m11_ * rhs.m10_ + m12_ * rhs.m20_,
+                m10_ * rhs.m01_ + m11_ * rhs.m11_ + m12_ * rhs.m21_,
+                m10_ * rhs.m02_ + m11_ * rhs.m12_ + m12_ * rhs.m22_,
+                m20_ * rhs.m00_ + m21_ * rhs.m10_ + m22_ * rhs.m20_,
+                m20_ * rhs.m01_ + m21_ * rhs.m11_ + m22_ * rhs.m21_,
+                m20_ * rhs.m02_ + m21_ * rhs.m12_ + m22_ * rhs.m22_
+            );
+        }
 
-			bool TryInvert();
-			bool TryTransposedInvert();
+        /// Set scaling elements.
+        void SetScale(const Vector3& scale)
+        {
+            m00_ = scale.x;
+            m11_ = scale.y;
+            m22_ = scale.z;
+        }
 
-			static const float EMPTY_DATA[9];
-			static const float IDENTITY_DATA[9];
+        /// Set uniform scaling elements.
+        void SetScale(float scale)
+        {
+            m00_ = scale;
+            m11_ = scale;
+            m22_ = scale;
+        }
 
-			static const Matrix3 EMPTY;
-			static const Matrix3 IDENTITY;
-			static const Matrix3 ZeroMatrix;
+        /// Return the scaling part.
+        Vector3 Scale() const
+        {
+            return Vector3(
+                sqrtf(m00_ * m00_ + m10_ * m10_ + m20_ * m20_),
+                sqrtf(m01_ * m01_ + m11_ * m11_ + m21_ * m21_),
+                sqrtf(m02_ * m02_ + m12_ * m12_ + m22_ * m22_)
+            );
+        }
 
-			static Matrix3 RotationX(float degrees);
-			static Matrix3 RotationY(float degrees);
-			static Matrix3 RotationZ(float degrees);
+        /// Return the scaling part with the sign. Reference rotation matrix is required to avoid ambiguity.
+        Vector3 SignedScale(const Matrix3& rotation) const
+        {
+            return Vector3(
+                rotation.m00_ * m00_ + rotation.m10_ * m10_ + rotation.m20_ * m20_,
+                rotation.m01_ * m01_ + rotation.m11_ * m11_ + rotation.m21_ * m21_,
+                rotation.m02_ * m02_ + rotation.m12_ * m12_ + rotation.m22_ * m22_
+            );
+        }
 
-			//Creates a rotation matrix that rotates by 'degrees' around the 'axis'
-			static Matrix3 Rotation(float degrees, const Vector3 &axis);
-			static Matrix3 Rotation(float degreesX, float degreesY, float degreesZ);
+        /// Return transposed.
+        Matrix3 Transpose() const
+        {
+            return Matrix3(
+                m00_,
+                m10_,
+                m20_,
+                m01_,
+                m11_,
+                m21_,
+                m02_,
+                m12_,
+                m22_
+            );
+        }
 
-			//Creates a scaling matrix (puts the 'scale' vector down the diagonal)
-			static Matrix3 Scale(const Vector3 &scale);
+        /// Return scaled by a vector.
+        Matrix3 Scaled(const Vector3& scale) const
+        {
+            return Matrix3(
+                m00_ * scale.x,
+                m01_ * scale.y,
+                m02_ * scale.z,
+                m10_ * scale.x,
+                m11_ * scale.y,
+                m12_ * scale.z,
+                m20_ * scale.x,
+                m21_ * scale.y,
+                m22_ * scale.z
+            );
+        }
 
-			nlohmann::json Serialise()
-			{
-				nlohmann::json output;
-				output["typeID"] = LUMOS_TYPENAME(Matrix3);
+        /// Test for equality with another matrix with epsilon.
+        bool Equals(const Matrix3& rhs, float eps = M_EPSILON) const
+        {
+            const float* leftData = Data();
+            const float* rightData = rhs.Data();
 
-				nlohmann::json data = nlohmann::json::array_t();
+            for (unsigned i = 0; i < 9; ++i)
+            {
+                if (!Lumos::Maths::Equals(leftData[i], rightData[i], eps))
+                    return false;
+            }
 
-				for (int i = 0; i < 9; i++)
-				{
-					data.push_back(values[i]);
-				}
+            return true;
+        }
 
-				output["values"] = data;
+        /// Return inverse.
+        Matrix3 Inverse() const;
 
-				return output;
-			};
+        /// Return float data.
+        const float* Data() const { return &m00_; }
 
-			void Deserialise(nlohmann::json& data)
-			{
-				nlohmann::json::array_t dataArray = data["values"];
+        /// Return matrix element.
+        float Element(unsigned i, unsigned j) const { return Data()[i * 3 + j]; }
 
-				for (int i = 0; i < 9; i++)
-				{
-					values[i] = dataArray[i];
-				}
-			};
+        /// Return matrix row.
+        Vector3 Row(unsigned i) const { return Vector3(Element(i, 0), Element(i, 1), Element(i, 2)); }
 
-			friend std::ostream &operator<<(std::ostream &o, const Matrix3 &m);
+        /// Return matrix column.
+        Vector3 Column(unsigned j) const { return Vector3(Element(0, j), Element(1, j), Element(2, j)); }
 
-			Vector3 operator*(const Vector3& v) const;
-			Matrix3 operator*(const Matrix3& m) const;
-		};
-	}
+        /// Return as string.
+
+        /// Return hash value for HashSet & HashMap.
+        unsigned ToHash() const
+        {
+            unsigned hash = 37;
+            for (int i = 0; i < 3 * 3; i++)
+                hash = 37 * hash + FloatToRawIntBits(Data()[i]);
+            return hash;
+        }
+
+        float m00_;
+        float m01_;
+        float m02_;
+        float m10_;
+        float m11_;
+        float m12_;
+        float m20_;
+        float m21_;
+        float m22_;
+
+        /// Bulk transpose matrices.
+        static void BulkTranspose(float* dest, const float* src, unsigned count)
+        {
+            for (unsigned i = 0; i < count; ++i)
+            {
+                dest[0] = src[0];
+                dest[1] = src[3];
+                dest[2] = src[6];
+                dest[3] = src[1];
+                dest[4] = src[4];
+                dest[5] = src[7];
+                dest[6] = src[2];
+                dest[7] = src[5];
+                dest[8] = src[8];
+
+                dest += 9;
+                src += 9;
+            }
+        }
+
+        /// Zero matrix.
+        static const Matrix3 ZERO;
+        /// Identity matrix.
+        static const Matrix3 IDENTITY;
+
+        static Matrix3 Transpose(const Matrix3& m)
+        {
+            return m.Transpose();
+        }
+
+        static Matrix3 Inverse(const Matrix3& m)
+        {
+            return m.Inverse();
+        }
+    };
+
+    /// Multiply a 3x3 matrix with a scalar.
+    _FORCE_INLINE_ Matrix3 operator *(float lhs, const Matrix3& rhs) { return rhs * lhs; }
 }

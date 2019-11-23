@@ -23,9 +23,9 @@ namespace Lumos
         Maths::Vector3 halfExtents(m_Radius, m_Radius,m_Radius);
         halfExtents.x += m_Height / 2.0f;
 
-        float lx = 2.0f * (halfExtents[0]);
-        float ly = 2.0f * (halfExtents[1]);
-        float lz = 2.0f * (halfExtents[2]);
+        float lx = 2.0f * (halfExtents.x);
+        float ly = 2.0f * (halfExtents.y);
+        float lz = 2.0f * (halfExtents.z);
         const float x2 = lx * lx;
         const float y2 = ly * ly;
         const float z2 = lz * lz;
@@ -33,9 +33,9 @@ namespace Lumos
 
         Maths::Matrix3 inertia;
 
-        inertia._11 = 1.0f / scaledmass * (y2 + z2);
-        inertia._22 = 1.0f / scaledmass * (x2 + z2);
-        inertia._33 = 1.0f / scaledmass * (x2 + y2);
+        inertia.m00_ = 1.0f / scaledmass * (y2 + z2);
+        inertia.m11_ = 1.0f / scaledmass * (x2 + z2);
+        inertia.m22_ = 1.0f / scaledmass * (x2 + y2);
         
         return inertia;
 	}
@@ -59,7 +59,7 @@ namespace Lumos
 		else
 			transform = currentObject->GetWorldSpaceTransform() * m_LocalTransform;
 
-		Maths::Vector3 pos = transform.GetPositionVector();
+		Maths::Vector3 pos = transform.Translation();
 
 		if (out_min)
 			*out_min = pos - axis * m_Radius;

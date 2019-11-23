@@ -40,17 +40,17 @@ namespace Lumos
 	{
 		Maths::BoundingBox* box = lmnew Maths::BoundingBox();
 
-		Maths::Vector3 vel = m_InitialVelocity + Maths::Vector3(m_VelocityVarianceX.GetY(), m_VelocityVarianceY.GetY(), m_VelocityVarianceZ.GetY());
-		Maths::Vector3 pos = m_Position + Maths::Vector3(m_PositionVarianceX.GetY(), m_PositionVarianceY.GetY(), m_PositionVarianceZ.GetY());
+		Maths::Vector3 vel = m_InitialVelocity + Maths::Vector3(m_VelocityVarianceX.y, m_VelocityVarianceY.y, m_VelocityVarianceZ.y);
+		Maths::Vector3 pos = m_Position + Maths::Vector3(m_PositionVarianceX.y, m_PositionVarianceY.y, m_PositionVarianceZ.y);
 
-		box->ExpandToFit(pos + vel * m_ParticleLife);
+		box->Merge(pos + vel * m_ParticleLife);
 
-		vel = m_InitialVelocity + Maths::Vector3(m_VelocityVarianceX.GetX(), m_VelocityVarianceY.GetX(), m_VelocityVarianceZ.GetX());
-		pos = m_Position + Maths::Vector3(m_PositionVarianceX.GetX(), m_PositionVarianceY.GetX(), m_PositionVarianceZ.GetX());
+		vel = m_InitialVelocity + Maths::Vector3(m_VelocityVarianceX.x, m_VelocityVarianceY.x, m_VelocityVarianceZ.x);
+		pos = m_Position + Maths::Vector3(m_PositionVarianceX.x, m_PositionVarianceY.x, m_PositionVarianceZ.x);
 
-		box->ExpandToFit(pos + vel * m_ParticleLife);
+		box->Merge(pos + vel * m_ParticleLife);
 
-		box->ExpandToFit(Maths::Vector3(0.0f));
+		box->Merge(Maths::Vector3(0.0f));
 
 		//TODO: More Accurate box;
 
@@ -65,7 +65,7 @@ namespace Lumos
 		{
 			for (u32 i = 0; i < m_NumLaunchParticles; ++i)
 			{
-//				m_Particles.push_back(CreateRef<Particle>(m_Position + Maths::Vector3(Lumos::RandomNumberGenerator32::Rand(-m_Area.x, m_Area.x),Lumos::RandomNumberGenerator32::Rand(-m_Area.y, m_Area.y),Lumos::RandomNumberGenerator32::Rand(-m_Area.z, m_Area.z)), m_InitialVelocity + Maths::Vector3(Lumos::RandomNumberGenerator32::Rand(m_VelocityVarianceX.GetX(),m_VelocityVarianceX.GetY()),Lumos::RandomNumberGenerator32::Rand(m_VelocityVarianceY.GetX(), m_VelocityVarianceY.GetY()),Lumos::RandomNumberGenerator32::Rand(m_VelocityVarianceZ.GetX(), m_VelocityVarianceZ.GetY())), m_GravityEffect, m_ParticleLife * Lumos::RandomNumberGenerator32::Rand(m_LifeLengthVariance,1.0f), m_Scale * Lumos::RandomNumberGenerator32::Rand(m_ScaleVariance,1.0f)));
+//				m_Particles.push_back(CreateRef<Particle>(m_Position + Maths::Vector3(Lumos::RandomNumberGenerator32::Rand(-m_Area.x, m_Area.x),Lumos::RandomNumberGenerator32::Rand(-m_Area.y, m_Area.y),Lumos::RandomNumberGenerator32::Rand(-m_Area.z, m_Area.z)), m_InitialVelocity + Maths::Vector3(Lumos::RandomNumberGenerator32::Rand(m_VelocityVarianceX.x,m_VelocityVarianceX.y),Lumos::RandomNumberGenerator32::Rand(m_VelocityVarianceY.x, m_VelocityVarianceY.y),Lumos::RandomNumberGenerator32::Rand(m_VelocityVarianceZ.x, m_VelocityVarianceZ.y)), m_GravityEffect, m_ParticleLife * Lumos::RandomNumberGenerator32::Rand(m_LifeLengthVariance,1.0f), m_Scale * Lumos::RandomNumberGenerator32::Rand(m_ScaleVariance,1.0f)));
 			}
 
 			m_NextParticleTime += m_ParticleRate;
@@ -90,18 +90,18 @@ namespace Lumos
 		Maths::Matrix4 mvMatrix;
 		mvMatrix.ToIdentity();
 
-		mvMatrix = Maths::Matrix4::Translation(particle->GetPosition());
-		mvMatrix[0] = viewMatrix[0];
-		mvMatrix[1] = viewMatrix[4];
-		mvMatrix[2] = viewMatrix[8];
-		mvMatrix[4] = viewMatrix[1];
-		mvMatrix[5] = viewMatrix[5];
-		mvMatrix[6] = viewMatrix[9];
-		mvMatrix[8] = viewMatrix[2];
-		mvMatrix[9] = viewMatrix[6];
-		mvMatrix[10] = viewMatrix[10];
-		mvMatrix = mvMatrix * Maths::Matrix4::Rotation(particle->GetRotation(), Maths::Vector3(0.0f, 0.0f, 1.0f)) * Maths::Matrix4::Scale(Maths::Vector3(particle->GetScale()));
-		mvMatrix = viewMatrix * mvMatrix;
+		//mvMatrix = Maths::Matrix4::Translation(particle->GetPosition());
+		//mvMatrix[0] = viewMatrix[0];
+		//mvMatrix[1] = viewMatrix[4];
+		//mvMatrix[2] = viewMatrix[8];
+		//mvMatrix[4] = viewMatrix[1];
+		//mvMatrix[5] = viewMatrix[5];
+		//mvMatrix[6] = viewMatrix[9];
+		//mvMatrix[8] = viewMatrix[2];
+		//mvMatrix[9] = viewMatrix[6];
+		//mvMatrix[10] = viewMatrix[10];
+		//mvMatrix = mvMatrix * Maths::Matrix4::Rotation(particle->GetRotation(), Maths::Vector3(0.0f, 0.0f, 1.0f)) * Maths::Matrix4::Scale(Maths::Vector3(particle->GetScale()));
+		//mvMatrix = viewMatrix * mvMatrix;
 
 		return mvMatrix;
 	}

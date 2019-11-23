@@ -14,7 +14,6 @@
 #include "Graphics/API/GraphicsContext.h"
 #include "App/Application.h"
 #include "Core/OS/Input.h"
-#include "Maths/MathsUtilities.h"
 #include "Events/ApplicationEvent.h"
 
 #include <imgui/imgui.h>

@@ -1,6 +1,7 @@
 #pragma once
 #include "lmpch.h"
-#include "Maths/Vector3.h"
+#include "Maths/Maths.h"
+
 #include "Graphics/ParticleEmitter.h"
 
 namespace Lumos

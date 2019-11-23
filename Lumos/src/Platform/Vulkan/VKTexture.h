@@ -28,11 +28,11 @@ namespace Lumos
 
 			virtual void* GetHandle() const override { return (void*)&m_Descriptor; }
 
-			inline u32 GetWidth() const override { return m_Width; }
-			inline u32 GetHeight() const override { return m_Height; }
+			_FORCE_INLINE_ u32 GetWidth() const override { return m_Width; }
+			_FORCE_INLINE_ u32 GetHeight() const override { return m_Height; }
 
-			inline const String& GetName() const override { return m_Name; }
-			inline const String& GetFilepath() const override { return m_FileName; }
+			_FORCE_INLINE_ const String& GetName() const override { return m_Name; }
+			_FORCE_INLINE_ const String& GetFilepath() const override { return m_FileName; }
 
 			void BuildTexture(TextureFormat internalformat, u32 width, u32 height, bool depth, bool samplerShadow) override;
 
@@ -98,9 +98,9 @@ namespace Lumos
 			void Bind(u32 slot = 0) const override;
 			void Unbind(u32 slot = 0) const override;
 
-			inline u32 GetSize() const override { return m_Size; }
-			inline const String& GetName() const override { return m_Name; }
-			inline const String& GetFilepath() const override { return m_Files[0]; }
+			_FORCE_INLINE_ u32 GetSize() const override { return m_Size; }
+			_FORCE_INLINE_ const String& GetName() const override { return m_Name; }
+			_FORCE_INLINE_ const String& GetFilepath() const override { return m_Files[0]; }
 
 			void CreateTextureSampler();
 			void CreateImage(uint32_t width, uint32_t height, uint32_t mipLevels, VkFormat format, VkImageTiling tiling,
@@ -163,8 +163,8 @@ namespace Lumos
 
 			virtual void* GetHandle() const override { return (void*)&m_Descriptor; }
 
-			inline const String& GetName() const override { return m_Name; }
-			inline const String& GetFilepath() const override { return m_Name; }
+			_FORCE_INLINE_ const String& GetName() const override { return m_Name; }
+			_FORCE_INLINE_ const String& GetFilepath() const override { return m_Name; }
 
 			void CreateTextureSampler();
 			void CreateImage(uint32_t width, uint32_t height, VkFormat format, VkImageTiling tiling,
@@ -211,8 +211,8 @@ namespace Lumos
 
 			virtual void* GetHandle() const override { return (void*)&m_Descriptor; }
 
-			inline const String& GetName() const override { return m_Name; }
-			inline const String& GetFilepath() const override { return m_Name; }
+			_FORCE_INLINE_ const String& GetName() const override { return m_Name; }
+			_FORCE_INLINE_ const String& GetFilepath() const override { return m_Name; }
 
 			void CreateTextureSampler();
 			void CreateImage(uint32_t width, uint32_t height, VkFormat format, VkImageTiling tiling,
@@ -227,6 +227,8 @@ namespace Lumos
 			VkSampler GetSampler() const { return m_TextureSampler; }
 			const VkDescriptorImageInfo* GetDescriptor() const { return &m_Descriptor; }
 			void UpdateDescriptor();
+
+			void* GetHandleArray(u32 index) override { m_Descriptor.imageView = GetImageView(index);  return (void*)&m_Descriptor; };
 
             static void MakeDefault();
         protected:
