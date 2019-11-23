@@ -150,7 +150,6 @@ namespace Lumos
             }
 
 			// Device queue
-
 			float pQueuePriorities[] = { 1.0f };
 			VkDeviceQueueCreateInfo deviceQueueCI{};
 			deviceQueueCI.queueCount = 1;
@@ -166,7 +165,7 @@ namespace Lumos
 			deviceFeatures.samplerAnisotropy = VK_TRUE;
 
 			//auto extensions = m_VKContext->GetExtensionNames();
-			auto layers		= m_VKContext->GetLayerNames();
+			auto& layers = m_VKContext->GetLayerNames();
 
 			const std::vector<const char*> deviceExtensions = 
 			{

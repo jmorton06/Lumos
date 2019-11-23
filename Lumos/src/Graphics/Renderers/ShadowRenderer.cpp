@@ -279,7 +279,7 @@ namespace Lumos
 				float log = minZ * std::pow(ratio, p);
 				float uniform = minZ + range * p;
 				float d = cascadeSplitLambda * (log - uniform) + uniform;
-				cascadeSplits[i] = (d + nearClip) / clipRange;
+				cascadeSplits[i] = (d - nearClip) / clipRange;
 			}
 
 #ifdef THREAD_CASCADE_GEN
@@ -338,9 +338,9 @@ namespace Lumos
 					radius = Maths::Max(radius, distance);
 				}
 				radius = std::ceil(radius * 16.0f) / 16.0f;
-				float sceneBoundingRadius = scene->GetWorldRadius();
+				//float sceneBoundingRadius = scene->GetWorldRadius();
 				//Extend the Z depths to catch shadow casters outside view frustum
-				radius = Maths::Max(radius, sceneBoundingRadius);
+				//radius = Maths::Max(radius, sceneBoundingRadius);
 
 				Maths::Vector3 maxExtents = Maths::Vector3(radius);
 				Maths::Vector3 minExtents = -maxExtents;
