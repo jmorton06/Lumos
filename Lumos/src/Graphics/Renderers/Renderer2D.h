@@ -1,8 +1,8 @@
 #pragma once
 #include "lmpch.h"
 #include "Graphics/Renderable2D.h"
-#include "Maths/Matrix4.h"
 #include "Graphics/API/BufferLayout.h"
+#include "Maths/Maths.h"
 
 namespace Lumos
 {
@@ -88,7 +88,8 @@ namespace Lumos
 			bool m_RenderToGBufferTexture = false;
 			u32 m_CurrentBufferID = 0;
 			Maths::Vector4 m_ClearColour;
-
+            
+            Maths::Frustum m_Frustum;
 		};
 	}
 }

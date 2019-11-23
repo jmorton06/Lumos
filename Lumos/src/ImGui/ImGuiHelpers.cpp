@@ -10,7 +10,7 @@ namespace Lumos
 {
 	void ImGuiHelpers::Property(const String& name, bool& value)
 	{
-        ImGui::TextUnformatted("%s", name.c_str());
+        ImGui::TextUnformatted(name.c_str());
 		ImGui::NextColumn();
 		ImGui::PushItemWidth(-1);
 
@@ -23,12 +23,30 @@ namespace Lumos
 
 	void ImGuiHelpers::Property(const String& name, float& value, float min, float max, ImGuiHelpers::PropertyFlag flags)
 	{
-		ImGui::TextUnformatted("%s", name.c_str());
+		ImGui::TextUnformatted(name.c_str());
 		ImGui::NextColumn();
 		ImGui::PushItemWidth(-1);
 
 		String id = "##" + name;
 		ImGui::SliderFloat(id.c_str(), &value, min, max);
+
+		ImGui::PopItemWidth();
+		ImGui::NextColumn();
+	}
+
+	void ImGuiHelpers::Property(const String& name, Maths::Vector2& value, ImGuiHelpers::PropertyFlag flags)
+	{
+		ImGuiHelpers::Property(name, value, -1.0f, 1.0f, flags);
+	}
+
+	void ImGuiHelpers::Property(const String& name, Maths::Vector2& value, float min, float max, ImGuiHelpers::PropertyFlag flags)
+	{
+		ImGui::TextUnformatted(name.c_str());
+		ImGui::NextColumn();
+		ImGui::PushItemWidth(-1);
+
+		String id = "##" + name;
+		ImGui::SliderFloat2(id.c_str(), Maths::ValuePointer(value), min, max);
 
 		ImGui::PopItemWidth();
 		ImGui::NextColumn();
@@ -41,7 +59,7 @@ namespace Lumos
 
 	void ImGuiHelpers::Property(const String& name, Maths::Vector3& value, float min, float max, ImGuiHelpers::PropertyFlag flags)
 	{
-        ImGui::TextUnformatted("%s", name.c_str());
+        ImGui::TextUnformatted(name.c_str());
 		ImGui::NextColumn();
 		ImGui::PushItemWidth(-1);
 
@@ -63,7 +81,7 @@ namespace Lumos
 	void ImGuiHelpers::Property(const String& name, Maths::Vector4& value, float min, float max, ImGuiHelpers::PropertyFlag flags)
 	{
 		ImGui::AlignTextToFramePadding();
-        ImGui::TextUnformatted("%s", name.c_str());
+        ImGui::TextUnformatted(name.c_str());
 		ImGui::NextColumn();
 		ImGui::PushItemWidth(-1);
 
@@ -93,7 +111,7 @@ namespace Lumos
 		{
 			ImGui::BeginTooltip();
 			bool flipImage = Graphics::GraphicsContext::GetContext()->FlipImGUITexture();
-			ImGui::Image(texture ? texture->GetHandle() : nullptr, ImVec2(size.GetX(), size.GetY()), ImVec2(0.0f, flipImage ? 1.0f : 0.0f), ImVec2(1.0f, flipImage ? 0.0f : 1.0f));
+			ImGui::Image(texture ? texture->GetHandle() : nullptr, ImVec2(size.x, size.y), ImVec2(0.0f, flipImage ? 1.0f : 0.0f), ImVec2(1.0f, flipImage ? 0.0f : 1.0f));
 			ImGui::EndTooltip();
 		}
 	}
@@ -104,7 +122,7 @@ namespace Lumos
 		{
 			ImGui::BeginTooltip();
 			bool flipImage = Graphics::GraphicsContext::GetContext()->FlipImGUITexture();
-			ImGui::Image(texture ? texture->GetHandle() : nullptr, ImVec2(size.GetX(), size.GetY()), ImVec2(0.0f, flipImage ? 1.0f : 0.0f), ImVec2(1.0f, flipImage ? 0.0f : 1.0f));
+			ImGui::Image(texture ? texture->GetHandle() : nullptr, ImVec2(size.x, size.y), ImVec2(0.0f, flipImage ? 1.0f : 0.0f), ImVec2(1.0f, flipImage ? 0.0f : 1.0f));
 			ImGui::TextUnformatted(text.c_str());
 			ImGui::EndTooltip();
 		}
@@ -113,7 +131,7 @@ namespace Lumos
 	void ImGuiHelpers::Image(Graphics::Texture2D * texture, const Maths::Vector2 & size)
 	{
 		bool flipImage = Graphics::GraphicsContext::GetContext()->FlipImGUITexture();
-		ImGui::Image(texture ? texture->GetHandle() : nullptr, ImVec2(size.GetX(), size.GetY()), ImVec2(0.0f, flipImage ? 1.0f : 0.0f), ImVec2(1.0f, flipImage ? 0.0f : 1.0f));
+		ImGui::Image(texture ? texture->GetHandle() : nullptr, ImVec2(size.x, size.y), ImVec2(0.0f, flipImage ? 1.0f : 0.0f), ImVec2(1.0f, flipImage ? 0.0f : 1.0f));
 	}
 
     bool ImGuiHelpers::BufferingBar(const char* label, float value,  const Maths::Vector2& size_arg, const u32& bg_col, const u32& fg_col)

@@ -43,9 +43,9 @@ namespace Lumos
 			const Maths::Vector3 vertex1 = b - a;
 			const Maths::Vector3 vertex2 = c - a;
 
-			const Maths::Vector3 axis = Maths::Vector3(vertex1*coord2.GetY() - vertex2 * coord1.GetY());
+			const Maths::Vector3 axis = Maths::Vector3(vertex1*coord2.y - vertex2 * coord1.y);
 
-			const float factor = 1.0f / (coord1.GetX() * coord2.GetY() - coord2.GetX() * coord1.GetY());
+			const float factor = 1.0f / (coord1.x * coord2.y - coord2.x * coord1.y);
 
 			return axis * factor;
 		}
@@ -93,7 +93,7 @@ namespace Lumos
 
 			for (u32 i = 0; i < numVertices; ++i)
 			{
-				normals[i].Normalise();
+				normals[i].Normalize();
 			}
 
 			return normals;
@@ -143,7 +143,7 @@ namespace Lumos
 			}
 			for (u32 i = 0; i < numVertices; ++i)
 			{
-				tangents[i].Normalise();
+				tangents[i].Normalize();
 			}
 
 			return tangents;

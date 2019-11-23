@@ -22,7 +22,7 @@ namespace Lumos
 
 	float PathNode::HeuristicValue(const PathNode &other) const
 	{
-		return (GetWorldSpaceTransform().GetPositionVector() - other.GetWorldSpaceTransform().GetPositionVector()).Length();
+		return (GetWorldSpaceTransform().Translation() - other.GetWorldSpaceTransform().Translation()).Length();
 	}
 
 }

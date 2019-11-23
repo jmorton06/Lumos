@@ -32,8 +32,8 @@ namespace Lumos
 				LUMOS_ASSERT(false, "Unkown type!");
 			}
 
-			inline const std::vector<BufferElement>& GetLayout() const { return m_Layout; }
-			inline u32 GetStride() const { return m_Size; }
+			_FORCE_INLINE_ const std::vector<BufferElement>& GetLayout() const { return m_Layout; }
+			_FORCE_INLINE_ u32 GetStride() const { return m_Size; }
 
 		private:
 			void Push(const String& name, u32 type, u32 size, u32 count, bool normalized);

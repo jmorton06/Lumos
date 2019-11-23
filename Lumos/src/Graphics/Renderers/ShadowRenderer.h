@@ -55,11 +55,11 @@ namespace Lumos
 			Maths::Vector4* GetSplitDepths() { return m_SplitDepth; }
 			Maths::Matrix4* GetShadowProjView() { return m_ShadowProjView; }
 
-			inline u32 GetShadowMapSize() const { return m_ShadowMapSize; }
-			inline u32 GetShadowMapNum()  const { return m_ShadowMapNum; }
-			inline void SetShadowInvalid() { m_ShadowMapsInvalidated = true; }
+			_FORCE_INLINE_ u32 GetShadowMapSize() const { return m_ShadowMapSize; }
+			_FORCE_INLINE_ u32 GetShadowMapNum()  const { return m_ShadowMapNum; }
+			_FORCE_INLINE_ void SetShadowInvalid() { m_ShadowMapsInvalidated = true; }
 
-			inline TextureDepthArray* GetTexture() const { return m_ShadowTex; }
+			_FORCE_INLINE_ TextureDepthArray* GetTexture() const { return m_ShadowTex; }
 
 			u8* m_VSSystemUniformBuffer;
 			u32 m_VSSystemUniformBufferSize;

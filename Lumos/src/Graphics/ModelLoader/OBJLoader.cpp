@@ -6,7 +6,8 @@
 #include "ECS/Component/MeshComponent.h"
 #include "ECS/Component/MaterialComponent.h"
 #include "Graphics/API/Texture.h"
-#include "Maths/BoundingSphere.h"
+#include "Maths/Maths.h"
+
 #include "Utilities/AssetsManager.h"
 
 #include "App/Application.h"
@@ -104,7 +105,7 @@ namespace Lumos
 					)
 					);
                 
-				boundingBox->ExpandToFit(vertex.Position);
+				boundingBox->Merge(vertex.Position);
 
 				if (!attrib.normals.empty())
 				{

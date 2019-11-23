@@ -1,6 +1,6 @@
 #include "lmpch.h"
 #include "JobSystem.h"
-#include "Maths/MathsUtilities.h"
+#include "Maths/Maths.h"
 
 #include <atomic>
 #include <thread>
@@ -23,7 +23,7 @@ namespace Lumos
             // Push an item to the end if there is free space
             //	Returns true if succesful
             //	Returns false if there is not enough space
-            inline bool push_back(const T& item)
+            _FORCE_INLINE_ bool push_back(const T& item)
             {
                 bool result = false;
                 lock.lock();
@@ -41,7 +41,7 @@ namespace Lumos
             // Get an item if there are any
             //	Returns true if succesful
             //	Returns false if there are no items
-            inline bool pop_front(T& item)
+            _FORCE_INLINE_ bool pop_front(T& item)
             {
                 bool result = false;
                 lock.lock();
@@ -79,7 +79,7 @@ namespace Lumos
                 auto numCores = std::thread::hardware_concurrency();
 
                 // Calculate the actual number of worker threads we want:
-                numThreads = Maths::Max(1U, numCores);
+                numThreads = Lumos::Maths::Max(1U, numCores);
 
                 for (uint32_t threadID = 0; threadID < numThreads; ++threadID)
                 {
@@ -126,7 +126,7 @@ namespace Lumos
             }
 
             // This little function will not let the System to be deadlocked while the main thread is waiting for something
-            inline void poll()
+            _FORCE_INLINE_ void poll()
             {
                 wakeCondition.notify_one(); // wake one worker thread
                 std::this_thread::yield(); // allow this thread to be rescheduled
@@ -168,7 +168,7 @@ namespace Lumos
 
                         // Calculate the current group's offset into the jobs:
                         const uint32_t groupJobOffset = groupIndex * groupSize;
-                        const uint32_t groupJobEnd = Maths::Min(groupJobOffset + groupSize, jobCount);
+                        const uint32_t groupJobEnd = Lumos::Maths::Min(groupJobOffset + groupSize, jobCount);
 
                         JobDispatchArgs args;
                         args.groupIndex = groupIndex;

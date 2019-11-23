@@ -2,14 +2,14 @@
 #include "ModelLoader.h"
 #include "Graphics/Mesh.h"
 #include "Graphics/Material.h"
-#include "Maths/BoundingSphere.h"
+
 #include "ECS/Component/MeshComponent.h"
 #include "ECS/Component/MaterialComponent.h"
 
 #include "Graphics/API/Texture.h"
 #include "Utilities/AssetsManager.h"
-#include "Maths/MathsUtilities.h"
-#include "Maths/Matrix4.h"
+#include "Maths/Maths.h"
+
 #include "Maths/Transform.h"
 #include "App/Application.h"
 
@@ -272,14 +272,14 @@ namespace Lumos
                 if (attribute.first == "POSITION")
                 {
                     size_t positionCount = accessor.count;
-                    maxNumVerts = Maths::Max(maxNumVerts, positionCount);
+                    maxNumVerts = Lumos::Maths::Max(maxNumVerts, positionCount);
                     Maths::Vector3Simple* positions = reinterpret_cast<Maths::Vector3Simple*>(data.data());
                     for (auto p = 0; p < positionCount; ++p)
                     {
                         //positions[p] = glm::vec3(matrix * glm::vec4(positions[p], 1.0f));
                         tempvertices[p].Position = Maths::ToVector(positions[p]);
                         
-                        boundingBox->ExpandToFit(tempvertices[p].Position);
+                        boundingBox->Merge(tempvertices[p].Position);
                     }
                 }
                 
@@ -288,7 +288,7 @@ namespace Lumos
                 else if (attribute.first == "NORMAL")
                 {
                     size_t normalCount = accessor.count;
-                    maxNumVerts = Maths::Max(maxNumVerts, normalCount);
+                    maxNumVerts = Lumos::Maths::Max(maxNumVerts, normalCount);
                     Maths::Vector3Simple* normals = reinterpret_cast<Maths::Vector3Simple*>(data.data());
                     for (auto p = 0; p < normalCount; ++p)
                     {
@@ -301,7 +301,7 @@ namespace Lumos
                 else if (attribute.first == "TEXCOORD_0")
                 {
                     size_t uvCount = accessor.count;
-                    maxNumVerts = Maths::Max(maxNumVerts, uvCount);
+                    maxNumVerts = Lumos::Maths::Max(maxNumVerts, uvCount);
                     Maths::Vector2Simple* uvs = reinterpret_cast<Maths::Vector2Simple*>(data.data());
                     for (auto p = 0; p < uvCount; ++p)
                     {
@@ -314,7 +314,7 @@ namespace Lumos
                 else if (attribute.first == "COLOR_0")
                 {
                     size_t uvCount = accessor.count;
-                    maxNumVerts = Maths::Max(maxNumVerts, uvCount);
+                    maxNumVerts = Lumos::Maths::Max(maxNumVerts, uvCount);
                     Maths::Vector4Simple* colours = reinterpret_cast<Maths::Vector4Simple*>(data.data());
                     for (auto p = 0; p < uvCount; ++p)
                     {
@@ -327,7 +327,7 @@ namespace Lumos
                 else if (attribute.first == "TANGENT")
                 {
                     size_t uvCount = accessor.count;
-                    maxNumVerts = Maths::Max(maxNumVerts, uvCount);
+                    maxNumVerts = Lumos::Maths::Max(maxNumVerts, uvCount);
                     Maths::Vector3Simple* uvs = reinterpret_cast<Maths::Vector3Simple*>(data.data());
                     for (auto p = 0; p < uvCount; ++p)
                     {
@@ -457,7 +457,7 @@ namespace Lumos
         }
         if (!node.rotation.empty())
         {
-            transform.SetLocalOrientation(Maths::Quaternion(static_cast<float>(node.rotation[0]), static_cast<float>(node.rotation[1]), static_cast<float>(node.rotation[2]), static_cast<float>(node.rotation[3])));
+            transform.SetLocalOrientation(Maths::Quaternion(static_cast<float>(node.rotation[3]), static_cast<float>(node.rotation[0]), static_cast<float>(node.rotation[1]), static_cast<float>(node.rotation[2])));
         }
         if (!node.translation.empty())
         {
@@ -466,7 +466,7 @@ namespace Lumos
         if (!node.matrix.empty())
         {
             auto lTransform = Maths::Matrix4(reinterpret_cast<float*>(node.matrix.data()));
-            transform.SetLocalTransform(lTransform);
+            transform.SetLocalTransform(lTransform.Transpose());
         }
 
 		transform.UpdateMatrices();
@@ -533,7 +533,7 @@ namespace Lumos
             meshes.emplace_back(LoadMesh(model,mesh,LoadedMaterials));
         }
         
-        const tinygltf::Scene &gltfScene = model.scenes[Maths::Max(0, model.defaultScene)];
+        const tinygltf::Scene &gltfScene = model.scenes[Lumos::Maths::Max(0, model.defaultScene)];
         for (size_t i = 0; i < gltfScene.nodes.size(); i++)
         {
             LoadNode(gltfScene.nodes[i], entity, model, LoadedMaterials, meshes, registry);

@@ -17,40 +17,40 @@ namespace Lumos
 
 	public:
 
-		inline RandomNumberGenerator32() : generationCount(0) {}
-		inline RandomNumberGenerator32(u32 seed) : engine(seed), generationCount(0) {}
-		inline RandomNumberGenerator32(u32 seed, u64 skip) : engine(seed), generationCount(skip)
+		_FORCE_INLINE_ RandomNumberGenerator32() : generationCount(0) {}
+		_FORCE_INLINE_ RandomNumberGenerator32(u32 seed) : engine(seed), generationCount(0) {}
+		_FORCE_INLINE_ RandomNumberGenerator32(u32 seed, u64 skip) : engine(seed), generationCount(skip)
 		{
 			engine.discard(skip);
 		}
 
-		inline float operator()(float min, float max)
+		_FORCE_INLINE_ float operator()(float min, float max)
 		{
 			++generationCount;
 			std::uniform_real_distribution<float> realDist(min, max);
 			return realDist(engine);
 		}
 
-		inline i32 operator()(i32 min, i32 max)
+		_FORCE_INLINE_ i32 operator()(i32 min, i32 max)
 		{
 			++generationCount;
 			std::uniform_int_distribution<i32> intDist(min, max);
 			return intDist(engine);
 		}
 
-		inline u32 operator()(u32 min, u32 max)
+		_FORCE_INLINE_ u32 operator()(u32 min, u32 max)
 		{
 			++generationCount;
 			std::uniform_int_distribution<u32> uintDist(min, max);
 			return uintDist(engine);
 		}
 
-		inline uint64_t GetNumbersGenerated() const
+		_FORCE_INLINE_ uint64_t GetNumbersGenerated() const
 		{
 			return generationCount;
 		}
 
-		inline void Discard(uint64_t steps)
+		_FORCE_INLINE_ void Discard(uint64_t steps)
 		{
 			engine.discard(steps);
 			generationCount += steps;
@@ -75,33 +75,33 @@ namespace Lumos
 			engine.discard(skip);
 		}
 
-		inline double operator()(double min, double max)
+		_FORCE_INLINE_ double operator()(double min, double max)
 		{
 			++generationCount;
 			std::uniform_real_distribution<double> realDist(min, max);
 			return realDist(engine);
 		}
 
-		inline int64_t operator()(i64 min, i64 max)
+		_FORCE_INLINE_ int64_t operator()(i64 min, i64 max)
 		{
 			++generationCount;
 			std::uniform_int_distribution<i64> intDist(min, max);
 			return intDist(engine);
 		}
 
-		inline u64 operator()(u64 min, u64 max)
+		_FORCE_INLINE_ u64 operator()(u64 min, u64 max)
 		{
 			++generationCount;
 			std::uniform_int_distribution<u64> uintDist(min, max);
 			return uintDist(engine);
 		}
 
-		inline uint64_t GetNumbersGenerated() const
+		_FORCE_INLINE_ uint64_t GetNumbersGenerated() const
 		{
 			return generationCount;
 		}
 
-		inline void Discard(u64 steps)
+		_FORCE_INLINE_ void Discard(u64 steps)
 		{
 			engine.discard(steps);
 			generationCount += steps;

@@ -9,9 +9,8 @@ namespace Lumos
 	EditorCamera::EditorCamera(float pitch, float yaw, const Maths::Vector3& position, float FOV, float Near, float Far, float aspect)
 		: Camera(pitch, yaw, position, FOV, Near, Far, aspect)
 	{
-		m_ProjMatrix = Maths::Matrix4::Perspective(m_Near, m_Far, aspect, FOV);
 		m_RotateDampeningFactor = 0.0f;
-		m_FocalPoint = Maths::Vector3::Zero();
+		m_FocalPoint = Maths::Vector3::ZERO;
 	}
 
 	EditorCamera::~EditorCamera()
@@ -23,9 +22,9 @@ namespace Lumos
 		{
 			if (Input::GetInput()->GetMouseHeld(InputCode::MouseKey::ButtonRight))
 			{
-				m_RotateVelocity = m_RotateVelocity + Maths::Vector2((xpos - m_PreviousCurserPos.GetX()), (ypos - m_PreviousCurserPos.GetY())) *  m_MouseSensitivity;
-				m_Pitch -= m_RotateVelocity.GetY();
-				m_Yaw -= m_RotateVelocity.GetX();
+				m_RotateVelocity = m_RotateVelocity + Maths::Vector2((xpos - m_PreviousCurserPos.x), (ypos - m_PreviousCurserPos.y)) *  m_MouseSensitivity;
+				m_Pitch -= m_RotateVelocity.y;
+				m_Yaw -= m_RotateVelocity.x;
 
 				if (m_Yaw < 0)
 				{
@@ -61,12 +60,12 @@ namespace Lumos
 		{
 			if (Input::GetInput()->GetKeyHeld(InputCode::Key::W))
 			{
-				m_Velocity += GetForwardDirection() * m_CameraSpeed;
+				m_Velocity -= GetForwardDirection() * m_CameraSpeed;
 			}
 
 			if (Input::GetInput()->GetKeyHeld(InputCode::Key::S))
 			{
-				m_Velocity -= GetForwardDirection() * m_CameraSpeed;
+				m_Velocity += GetForwardDirection() * m_CameraSpeed;
 			}
 
 			if (Input::GetInput()->GetKeyHeld(InputCode::Key::A))

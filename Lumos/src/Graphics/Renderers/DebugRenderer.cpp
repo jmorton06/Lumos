@@ -6,9 +6,8 @@
 #include "Graphics/Material.h"
 #include "Graphics/API/VertexArray.h"
 
-#include "Maths/MathsUtilities.h"
-#include "Maths/BoundingBox.h"
-#include "Maths/BoundingSphere.h"
+#include "Maths/Maths.h"
+
 
 #include <cstdarg>
 #include <cstdio>
@@ -144,29 +143,29 @@ namespace Lumos
 	//Draw Matrix (x,y,z axis at pos)
 	void DebugRenderer::DrawMatrix(const Maths::Matrix4& mtx)
 	{
-		Maths::Vector3 position = mtx.GetPositionVector();
-		GenDrawHairLine(false, position, position + Maths::Vector3(mtx[0], mtx[1], mtx[2]), Maths::Vector4(1.0f, 0.0f, 0.0f, 1.0f));
-		GenDrawHairLine(false, position, position + Maths::Vector3(mtx[4], mtx[5], mtx[6]), Maths::Vector4(0.0f, 1.0f, 0.0f, 1.0f));
-		GenDrawHairLine(false, position, position + Maths::Vector3(mtx[8], mtx[9], mtx[10]), Maths::Vector4(0.0f, 0.0f, 1.0f, 1.0f));
+		//Maths::Vector3 position = mtx.Translation();
+		//GenDrawHairLine(false, position, position + Maths::Vector3(mtx[0], mtx[1], mtx[2]), Maths::Vector4(1.0f, 0.0f, 0.0f, 1.0f));
+		//GenDrawHairLine(false, position, position + Maths::Vector3(mtx[4], mtx[5], mtx[6]), Maths::Vector4(0.0f, 1.0f, 0.0f, 1.0f));
+		//GenDrawHairLine(false, position, position + Maths::Vector3(mtx[8], mtx[9], mtx[10]), Maths::Vector4(0.0f, 0.0f, 1.0f, 1.0f));
 	}
 	void DebugRenderer::DrawMatrix(const Maths::Matrix3& mtx, const Maths::Vector3& position)
 	{
-		GenDrawHairLine(false, position, position + mtx.GetCol(0), Maths::Vector4(1.0f, 0.0f, 0.0f, 1.0f));
-		GenDrawHairLine(false, position, position + mtx.GetCol(1), Maths::Vector4(0.0f, 1.0f, 0.0f, 1.0f));
-		GenDrawHairLine(false, position, position + mtx.GetCol(2), Maths::Vector4(0.0f, 0.0f, 1.0f, 1.0f));
+		GenDrawHairLine(false, position, position + mtx.Column(0), Maths::Vector4(1.0f, 0.0f, 0.0f, 1.0f));
+		GenDrawHairLine(false, position, position + mtx.Column(1), Maths::Vector4(0.0f, 1.0f, 0.0f, 1.0f));
+		GenDrawHairLine(false, position, position + mtx.Column(2), Maths::Vector4(0.0f, 0.0f, 1.0f, 1.0f));
 	}
 	void DebugRenderer::DrawMatrixNDT(const Maths::Matrix4& mtx)
 	{
-		Maths::Vector3 position = mtx.GetPositionVector();
-		GenDrawHairLine(true, position, position + Maths::Vector3(mtx[0], mtx[1], mtx[2]), Maths::Vector4(1.0f, 0.0f, 0.0f, 1.0f));
-		GenDrawHairLine(true, position, position + Maths::Vector3(mtx[4], mtx[5], mtx[6]), Maths::Vector4(0.0f, 1.0f, 0.0f, 1.0f));
-		GenDrawHairLine(true, position, position + Maths::Vector3(mtx[8], mtx[9], mtx[10]), Maths::Vector4(0.0f, 0.0f, 1.0f, 1.0f));
+		//Maths::Vector3 position = mtx.Translation();
+		//GenDrawHairLine(true, position, position + Maths::Vector3(mtx[0], mtx[1], mtx[2]), Maths::Vector4(1.0f, 0.0f, 0.0f, 1.0f));
+		//GenDrawHairLine(true, position, position + Maths::Vector3(mtx[4], mtx[5], mtx[6]), Maths::Vector4(0.0f, 1.0f, 0.0f, 1.0f));
+		//GenDrawHairLine(true, position, position + Maths::Vector3(mtx[8], mtx[9], mtx[10]), Maths::Vector4(0.0f, 0.0f, 1.0f, 1.0f));
 	}
 	void DebugRenderer::DrawMatrixNDT(const Maths::Matrix3& mtx, const Maths::Vector3& position)
 	{
-		GenDrawHairLine(true, position, position + mtx.GetCol(0), Maths::Vector4(1.0f, 0.0f, 0.0f, 1.0f));
-		GenDrawHairLine(true, position, position + mtx.GetCol(1), Maths::Vector4(0.0f, 1.0f, 0.0f, 1.0f));
-		GenDrawHairLine(true, position, position + mtx.GetCol(2), Maths::Vector4(0.0f, 0.0f, 1.0f, 1.0f));
+		GenDrawHairLine(true, position, position + mtx.Column(0), Maths::Vector4(1.0f, 0.0f, 0.0f, 1.0f));
+		GenDrawHairLine(true, position, position + mtx.Column(1), Maths::Vector4(0.0f, 1.0f, 0.0f, 1.0f));
+		GenDrawHairLine(true, position, position + mtx.Column(2), Maths::Vector4(0.0f, 0.0f, 1.0f, 1.0f));
 	}
 
 	//Draw Triangle
@@ -219,7 +218,7 @@ namespace Lumos
 	void DebugRenderer::DrawTextCs(const Maths::Vector4& cs_pos, const float font_size, const std::string& text, const TextAlignment alignment, const Maths::Vector4& colour)
 	{
 		Maths::Vector3 cs_size = Maths::Vector3(font_size / m_Width, font_size / m_Height, 0.0f);
-		cs_size = cs_size * cs_pos.GetW();
+		cs_size = cs_size * cs_pos.w;
 
 		//Work out the starting position of text based off desired alignment
 		float x_offset = 0.0f;
@@ -228,30 +227,30 @@ namespace Lumos
 		switch (alignment)
 		{
 		case TEXTALIGN_RIGHT:
-			x_offset = -text_len * cs_size.GetX() * 1.2f;
+			x_offset = -text_len * cs_size.x * 1.2f;
 			break;
 
 		case TEXTALIGN_CENTRE:
-			x_offset = -text_len * cs_size.GetX() * 0.6f;
+			x_offset = -text_len * cs_size.x * 0.6f;
 			break;
 		default:;
 
 			//   case TEXTALIGN_LEFT:
-			//     x_offset = -text_len * cs_size.GetX() * 0.6f;
+			//     x_offset = -text_len * cs_size.x * 0.6f;
 		}
 
 		//Add each characters to the draw list individually
 		for (int i = 0; i < text_len; ++i)
 		{
-			Maths::Vector4 char_pos = Maths::Vector4(cs_pos.GetX() + x_offset, cs_pos.GetY(), cs_pos.GetZ(), cs_pos.GetW());
-			Maths::Vector4 char_data = Maths::Vector4(cs_size.GetX(), cs_size.GetY(), static_cast<float>(text[i]), 0.0f);
+			Maths::Vector4 char_pos = Maths::Vector4(cs_pos.x + x_offset, cs_pos.y, cs_pos.z, cs_pos.w);
+			Maths::Vector4 char_data = Maths::Vector4(cs_size.x, cs_size.y, static_cast<float>(text[i]), 0.0f);
 
 			m_vChars.push_back(char_pos);
 			m_vChars.push_back(char_data);
 			m_vChars.push_back(colour);
 			m_vChars.push_back(colour);	//We dont really need this, but we need the padding to match the same vertex format as all the other debug drawables
 
-			x_offset += cs_size.GetX() * 1.2f;
+			x_offset += cs_size.x * 1.2f;
 		}
 	}
 
@@ -291,7 +290,7 @@ namespace Lumos
 		String formatted_text = String(buf, static_cast<size_t>(length));
 
 		Maths::Vector4 cs_pos = m_ProjViewMtx * Maths::Vector4(pos, 1.0f);
-		cs_pos.SetZ(1.0f * cs_pos.GetW());
+		cs_pos.z = 1.0f * cs_pos.w;
 		DrawTextCs(cs_pos, font_size, formatted_text, alignment, colour);
 	}
 
@@ -316,7 +315,7 @@ namespace Lumos
 
 		DrawTextCs(Maths::Vector4(-1.0f + cs_size_x * 0.5f, 1.0f - (m_NumStatusEntries * cs_size_y) - cs_size_y, -1.0f, 1.0f), STATUS_TEXT_SIZE, formatted_text, TEXTALIGN_LEFT, colour);
 		m_NumStatusEntries++;
-		m_MaxStatusEntryWidth = Maths::Max(m_MaxStatusEntryWidth, cs_size_x * 0.6f * length);
+		m_MaxStatusEntryWidth = Lumos::Maths::Max(m_MaxStatusEntryWidth, cs_size_x * 0.6f * length);
 	}
 
 	//Log
@@ -332,7 +331,7 @@ namespace Lumos
 
 		LogEntry le;
 		le.text = ss.str() + text;
-		le.colour = Maths::Vector4(colour.GetX(), colour.GetY(), colour.GetZ(), 1.0f);
+		le.colour = Maths::Vector4(colour.x, colour.y, colour.z, 1.0f);
 
 		if (m_vLogEntries.size() < MAX_LOG_SIZE)
 			m_vLogEntries.push_back(le);
@@ -400,16 +399,16 @@ namespace Lumos
 
 	void DebugRenderer::DebugDraw(Maths::BoundingBox* box, const Maths::Vector4 &edgeColour, float width)
 	{
-		Maths::Vector3 uuu = box->Upper();
-		Maths::Vector3 lll = box->Lower();
+		Maths::Vector3 uuu = box->max_;
+		Maths::Vector3 lll = box->min_;
 
-		Maths::Vector3 ull(uuu.GetX(), lll.GetY(), lll.GetZ());
-		Maths::Vector3 uul(uuu.GetX(), uuu.GetY(), lll.GetZ());
-		Maths::Vector3 ulu(uuu.GetX(), lll.GetY(), uuu.GetZ());
+		Maths::Vector3 ull(uuu.x, lll.y, lll.z);
+		Maths::Vector3 uul(uuu.x, uuu.y, lll.z);
+		Maths::Vector3 ulu(uuu.x, lll.y, uuu.z);
 
-		Maths::Vector3 luu(lll.GetX(), uuu.GetY(), uuu.GetZ());
-		Maths::Vector3 llu(lll.GetX(), lll.GetY(), uuu.GetZ());
-		Maths::Vector3 lul(lll.GetX(), uuu.GetY(), lll.GetZ());
+		Maths::Vector3 luu(lll.x, uuu.y, uuu.z);
+		Maths::Vector3 llu(lll.x, lll.y, uuu.z);
+		Maths::Vector3 lul(lll.x, uuu.y, lll.z);
 
 		// Draw edges
 		DrawThickLineNDT(luu, uuu, width, edgeColour);
@@ -428,9 +427,9 @@ namespace Lumos
 		DrawThickLineNDT(uul, uuu, width, edgeColour);
 	}
 
-	void DebugRenderer::DebugDraw(Maths::BoundingSphere* sphere, const Maths::Vector4 &colour)
+	void DebugRenderer::DebugDraw(Maths::Sphere* sphere, const Maths::Vector4 &colour)
 	{
-		Lumos::DebugRenderer::DrawPointNDT(sphere->Centre(), sphere->SphereRadius(), colour);
+		Lumos::DebugRenderer::DrawPointNDT(sphere->center_, sphere->radius_, colour);
 	}
 
 	void DebugRenderer::ClearDebugLists()
@@ -486,7 +485,7 @@ namespace Lumos
 		float max_x = 0.0f;
 		for (size_t i = 0; i < log_len; ++i)
 		{
-			max_x = Maths::Max(max_x, m_vLogEntries[i].text.length() * cs_size_x * 0.6f);
+			max_x = Lumos::Maths::Max(max_x, m_vLogEntries[i].text.length() * cs_size_x * 0.6f);
 
 			size_t idx = (i + m_LogEntriesOffset) % MAX_LOG_SIZE;
 
@@ -513,7 +512,7 @@ namespace Lumos
 				auto * lines = reinterpret_cast<LineVertex*>(&list._vThickLines[0]);
 				std::sort(lines, lines + list._vThickLines.size() / 4, [](const LineVertex& a, const LineVertex& b)
 				{
-					return (a.p1.pos.GetW() > b.p1.pos.GetW());
+					return (a.p1.pos.w > b.p1.pos.w);
 				});
 			}
 
@@ -523,7 +522,7 @@ namespace Lumos
 				auto * tris = reinterpret_cast<TriVertex*>(&list._vTris[0]);
 				std::sort(tris, tris + list._vTris.size() / 6, [](const TriVertex& a, const TriVertex& b)
 				{
-					return (a.p0.pos.GetW() > b.p0.pos.GetW());
+					return (a.p0.pos.w > b.p0.pos.w);
 				});
 			}
 			return false;
@@ -560,10 +559,10 @@ namespace Lumos
 			for (int i = 0; i < 5; ++i)
 			{
 				Maths::Vector3 round_offset = Maths::Vector3(
-						cos(Maths::DegreesToRadians(i * 22.5f)) * rounded_offset_x,
-						sin(Maths::DegreesToRadians(i * 22.5f)) * rounded_offset_y,
+						cos(Lumos::Maths::ToRadians(i * 22.5f)) * rounded_offset_x,
+						sin(Lumos::Maths::ToRadians(i * 22.5f)) * rounded_offset_y,
 					0.0f);
-				NextTri(invProjView * Maths::Vector3(max_x + round_offset.GetX() - rounded_offset_x, top_y + round_offset.GetY() - rounded_offset_y, 0.0f));
+				NextTri(invProjView * Maths::Vector3(max_x + round_offset.x - rounded_offset_x, top_y + round_offset.y - rounded_offset_y, 0.0f));
 			}
 			NextTri(invProjView * Maths::Vector3(-1, top_y, 0.0f));
 		}
@@ -584,10 +583,10 @@ namespace Lumos
 			for (int i = 4; i >= 0; --i)
 			{
 				const Maths::Vector3 round_offset = Maths::Vector3(
-					cos(Maths::DegreesToRadians(i * 22.5f)) * rounded_offset_x,
-					sin(Maths::DegreesToRadians(i * 22.5f)) * rounded_offset_y,
+					cos(Lumos::Maths::ToRadians(i * 22.5f)) * rounded_offset_x,
+					sin(Lumos::Maths::ToRadians(i * 22.5f)) * rounded_offset_y,
 					0.0f);
-				NextTri(invProjView * Maths::Vector3(max_x + round_offset.GetX() - rounded_offset_x, btm_y - round_offset.GetY() + rounded_offset_y, 0.0f));
+				NextTri(invProjView * Maths::Vector3(max_x + round_offset.x - rounded_offset_x, btm_y - round_offset.y + rounded_offset_y, 0.0f));
 			}
 			NextTri(invProjView * Maths::Vector3(max_x, 1, 0.0f));
 		}

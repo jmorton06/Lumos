@@ -1,5 +1,6 @@
 #pragma once
-#include "Maths/Vector2.h"
+#include "Maths/Maths.h"
+
 #include "EditorWindow.h"
 
 #include <imgui/imgui.h>

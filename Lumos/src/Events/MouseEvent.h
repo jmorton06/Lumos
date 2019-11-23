@@ -10,8 +10,8 @@ namespace Lumos
 		MouseMovedEvent(float x, float y)
 			: m_MouseX(x), m_MouseY(y) {}
 
-		inline float GetX() const { return m_MouseX; }
-		inline float GetY() const { return m_MouseY; }
+		_FORCE_INLINE_ float GetX() const { return m_MouseX; }
+		_FORCE_INLINE_ float GetY() const { return m_MouseY; }
 
 		std::string ToString() const override
 		{
@@ -34,8 +34,8 @@ namespace Lumos
 		MouseScrolledEvent(float xOffset, float yOffset)
 			: m_XOffset(xOffset), m_YOffset(yOffset) {}
 
-		inline float GetXOffset() const { return m_XOffset; }
-		inline float GetYOffset() const { return m_YOffset; }
+		_FORCE_INLINE_ float GetXOffset() const { return m_XOffset; }
+		_FORCE_INLINE_ float GetYOffset() const { return m_YOffset; }
 
 		std::string ToString() const override
 		{
@@ -54,7 +54,7 @@ namespace Lumos
 	class LUMOS_EXPORT MouseButtonEvent : public Event
 	{
 	public:
-		inline int GetMouseButton() const { return m_Button; }
+		_FORCE_INLINE_ int GetMouseButton() const { return m_Button; }
 
 		EVENT_CLASS_CATEGORY(EventCategoryMouse | EventCategoryInput)
 
@@ -114,7 +114,7 @@ namespace Lumos
 		EVENT_CLASS_TYPE(MouseEntered)
 		EVENT_CLASS_CATEGORY(EventCategoryMouse | EventCategoryInput)
 
-		inline bool GetEntered() const { return m_Entered; }
+		_FORCE_INLINE_ bool GetEntered() const { return m_Entered; }
 
 	protected:
 

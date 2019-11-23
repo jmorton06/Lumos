@@ -21,9 +21,9 @@ namespace Lumos
 
 		virtual ~PerformanceTimer() {}
 
-		inline float GetHigh() const { return m_PreviousData._max; }
-		inline float GetLow()  const { return m_PreviousData._min; }
-		inline float GetAvg()  const { return m_PreviousData._sum / float(m_PreviousData._num); }
+		_FORCE_INLINE_ float GetHigh() const { return m_PreviousData._max; }
+		_FORCE_INLINE_ float GetLow()  const { return m_PreviousData._min; }
+		_FORCE_INLINE_ float GetAvg()  const { return m_PreviousData._sum / float(m_PreviousData._num); }
 
 		void SetUpdateInterval(float seconds) { m_UpdateInterval = seconds; }
 

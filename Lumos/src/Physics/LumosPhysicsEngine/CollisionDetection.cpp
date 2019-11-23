@@ -27,12 +27,9 @@ namespace Lumos
 
 	bool CollisionDetection::CheckSphereCollision(const PhysicsObject3D* obj1, const PhysicsObject3D* obj2, const CollisionShape* shape1, const CollisionShape* shape2, CollisionData* out_coldata) const
 	{
-		//const SphereCollisionShape* sphere1 = reinterpret_cast<const SphereCollisionShape*>(shape1);
-		//const SphereCollisionShape* sphere2 = reinterpret_cast<const SphereCollisionShape*>(shape2);
-
 		CollisionData colData;
 		Maths::Vector3 axis = obj2->GetPosition() - obj1->GetPosition();
-		axis.Normalise();
+		axis.Normalize();
 		if (!CheckCollisionAxis(axis, obj1, obj2, shape1, shape2, &colData))
 			return false;
 
@@ -49,7 +46,7 @@ namespace Lumos
 		if (axis.LengthSquared() < epsilon)
 			return;
 
-		axis.Normalise();
+		axis.Normalize();
 
 		for (const Maths::Vector3& p_axis : *possible_collision_axes)
 		{
@@ -67,7 +64,7 @@ namespace Lumos
 		const PhysicsObject3D* complexObj;
 		const PhysicsObject3D* sphereObj;
 
-		if (obj1->GetCollisionShape()->GetType() == CollisionShapeType::CollisionSphere) 
+		if (obj1->GetCollisionShape()->GetType() == CollisionShapeType::CollisionSphere)
 		{
 			sphereObj = obj1;
 			complexShape = shape2;
@@ -94,7 +91,7 @@ namespace Lumos
 		Maths::Vector3 p = GetClosestPointOnEdges(sphereObj->GetPosition(), complex_shape_edges);
 		//NCLDebug::DrawPoint(p, 0.1f);
 		Maths::Vector3 p_t = sphereObj->GetPosition() - p;
-		p_t.Normalise();
+		p_t.Normalize();
 		AddPossibleCollisionAxis(p_t, &possibleCollisionAxes);
 
 		for (const Maths::Vector3& axis : possibleCollisionAxes)
@@ -137,10 +134,10 @@ namespace Lumos
 			{
 				Maths::Vector3 e1 = edge1.posB - edge1.posA;
 				Maths::Vector3 e2 = edge2.posB - edge2.posA;
-				e1.Normalise();
-				e2.Normalise();
+				e1.Normalize();
+				e2.Normalize();
 
-				Maths::Vector3 temp = e1.Cross(e2);
+				Maths::Vector3 temp = e1.CrossProduct(e2);
 				AddPossibleCollisionAxis(temp, &possibleCollisionAxes);
 			}
 		}
@@ -167,10 +164,10 @@ namespace Lumos
 		shape1->GetMinMaxVertexOnAxis(obj1, axis, &min1, &max1);
 		shape2->GetMinMaxVertexOnAxis(obj2, axis, &min2, &max2);
 
-		float minCorrelation1 = axis.Dot(min1);
-		float maxCorrelation1 = axis.Dot(max1);
-		float minCorrelation2 = axis.Dot(min2);
-		float maxCorrelation2 = axis.Dot(max2);
+		float minCorrelation1 = axis.DotProduct(min1);
+		float maxCorrelation1 = axis.DotProduct(max1);
+		float minCorrelation2 = axis.DotProduct(min2);
+		float maxCorrelation2 = axis.DotProduct(max2);
 
 		if (minCorrelation1 <= minCorrelation2 && maxCorrelation1 >= minCorrelation2)
 		{
@@ -223,9 +220,9 @@ namespace Lumos
 			std::vector<Maths::Plane>* refAdjPlanes;
 			Maths::Plane refPlane;
 
-			if (fabs(coldata.normal.Dot(normal1)) > fabs(coldata.normal.Dot(normal2))) 
+			if (fabs(coldata.normal.DotProduct(normal1)) > fabs(coldata.normal.DotProduct(normal2)))
 			{
-				float planeDist = -(polygon1.front().Dot(-normal1));
+				float planeDist = -(polygon1.front().DotProduct(-normal1));
 				refPlane = Maths::Plane(-normal1, planeDist);
 				refAdjPlanes = &adjPlanes1;
 
@@ -235,7 +232,7 @@ namespace Lumos
 			}
 			else 
 			{
-				float planeDist = -(polygon2.front().Dot(-normal2));
+				float planeDist = -(polygon2.front().DotProduct(-normal2));
 				refPlane = Maths::Plane(-normal2, planeDist);
 				refAdjPlanes = &adjPlanes2;
 
@@ -256,15 +253,15 @@ namespace Lumos
 				if (flipped) 
 				{
 					contact_penetration =
-						-(endPoint.Dot(coldata.normal)
-						- (coldata.normal.Dot(polygon2.front())));
+						-(endPoint.DotProduct(coldata.normal)
+						- (coldata.normal.DotProduct(polygon2.front())));
 
 					globalOnA = endPoint + coldata.normal * contact_penetration;
 					globalOnB = endPoint;
 				}
 				else
 				{
-					contact_penetration = endPoint.Dot(coldata.normal) - coldata.normal.Dot(polygon1.front());
+					contact_penetration = endPoint.DotProduct(coldata.normal) - coldata.normal.DotProduct(polygon1.front());
 
 					globalOnA = endPoint;
 					globalOnB = endPoint - coldata.normal * contact_penetration;
@@ -286,8 +283,8 @@ namespace Lumos
 			Maths::Vector3 a_t = target - edge.posA;
 			Maths::Vector3 a_b = edge.posB - edge.posA;
 
-			float magnitudeAB = a_b.Dot(a_b);   //Magnitude of AB vector (it's length squared)
-			float ABAPproduct = a_t.Dot(a_b);   //The DOT product of a_to_t and a_to_b
+			float magnitudeAB = a_b.DotProduct(a_b);   //Magnitude of AB vector (it's length squared)
+			float ABAPproduct = a_t.DotProduct(a_b);   //The DOT product of a_to_t and a_to_b
 			float distance = ABAPproduct / magnitudeAB; //The normalized "distance" from a to your closest point
 
 			if (distance < 0.0f)     //Clamp returned point to be on the line, e.g if the closest point is beyond the AB return either A or B as closest points
@@ -299,7 +296,7 @@ namespace Lumos
 				temp_closest_point = edge.posA + a_b * distance;
 
 			Maths::Vector3 c_t = target - temp_closest_point;
-			float temp_distsq = c_t.Dot(c_t);
+			float temp_distsq = c_t.DotProduct(c_t);
 
 			if (temp_distsq < closest_distsq)
 			{
@@ -313,18 +310,15 @@ namespace Lumos
 
 	Maths::Vector3 CollisionDetection::PlaneEdgeIntersection(const Maths::Plane& plane, const Maths::Vector3& start, const Maths::Vector3& end) const
 	{
-		//float start_dist = start.Dot(plane.GetNormal()) + plane.GetDistance();
-		//float end_dist = end.Dot(plane.GetNormal()) + plane.GetDistance();
-
 		Maths::Vector3 ab = end - start;
 
-		float ab_p = plane.GetNormal().Dot(ab);
+		float ab_p = plane.normal_.DotProduct(ab);
 
 		if (fabs(ab_p) > 0.0001f) {
-			Maths::Vector3 p_co = plane.GetNormal() * (-plane.GetDistance());
+			Maths::Vector3 p_co = plane.normal_ * (-plane.Distance(Maths::Vector3(0.0f)));
 
 			Maths::Vector3 w = start - p_co;
-			float fac = -(plane.GetNormal().Dot(w)) / ab_p;
+			float fac = -(plane.normal_.DotProduct(w)) / ab_p;
 			ab = ab * fac;
 
 			return start + ab;

@@ -31,11 +31,11 @@ out gl_PerVertex
 
 void main() 
 {
-	fragPosition = ubo2.model * vec4(inPosition, 1.0);
-    gl_Position = ubo.projView * fragPosition;
+	fragPosition = vec4(inPosition, 1.0) * ubo2.model;
+    gl_Position = fragPosition * ubo.projView;
     
     fragColor = inColor;
 	fragTexCoord = inTexCoord;
-    fragNormal = transpose(inverse(mat3(ubo2.model))) * normalize(inNormal);
+    fragNormal = normalize(inNormal) * transpose(inverse(mat3(ubo2.model)));
     fragTangent = inTangent;
 }

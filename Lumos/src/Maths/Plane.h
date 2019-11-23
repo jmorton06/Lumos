@@ -1,62 +1,115 @@
 #pragma once
-#include "lmpch.h"
-#include "Vector3.h"
-#include "Core/Serialisable.h"
+#include "Maths/Matrix3x4.h"
 
-namespace Lumos
+namespace Lumos::Maths
 {
-	namespace Maths 
-	{
-		class LUMOS_EXPORT Plane 
+    /// Surface in three-dimensional space.
+    class  Plane
+    {
+    public:
+        /// Construct a degenerate plane with zero normal and parameter.
+        Plane() noexcept :
+            d_(0.0f)
+        {
+        }
+
+        /// Copy-construct from another plane.
+        Plane(const Plane& plane) noexcept = default;
+
+        /// Construct from 3 vertices.
+        Plane(const Vector3& v0, const Vector3& v1, const Vector3& v2) noexcept
+        {
+            Define(v0, v1, v2);
+        }
+
+        /// Construct from a normal vector and a point on the plane.
+        Plane(const Vector3& normal, const Vector3& point) noexcept
+        {
+            Define(normal, point);
+        }
+
+		Plane(const Vector3& normal, float distance) noexcept
 		{
-		public:
-			Plane() : m_Normal(0) 
-			{
-			}
+			normal_ = normal.Normalized();
+			absNormal_ = normal_.Abs();
+			d_ = distance;
+		}
 
-			Plane(const Vector3 &normal, float distance, bool normalise = false);
+        /// Construct from a 4-dimensional vector, where the w coordinate is the plane parameter.
+        explicit Plane(const Vector4& plane) noexcept
+        {
+            Define(plane);
+        }
 
-			~Plane() {};
+        /// Assign from another plane.
+        Plane& operator =(const Plane& rhs) noexcept = default;
 
-			//Sets the planes normal, which should be Unit Length
-			void SetNormal(const Vector3 &normal) { m_Normal = normal; }
+        /// Define from 3 vertices.
+        void Define(const Vector3& v0, const Vector3& v1, const Vector3& v2)
+        {
+            Vector3 dist1 = v1 - v0;
+            Vector3 dist2 = v2 - v0;
 
-			//Gets the planes normal.
-			Vector3 GetNormal() const { return m_Normal; }
+            Define(dist1.CrossProduct(dist2), v0);
+        }
 
-			//Sets the planes distance from the origin
-			void SetDistance(const float dist) { m_Distance = dist; }
+        /// Define from a normal vector and a point on the plane.
+        void Define(const Vector3& normal, const Vector3& point)
+        {
+            normal_ = normal.Normalized();
+            absNormal_ = normal_.Abs();
+            d_ = -normal_.DotProduct(point);
+        }
 
-			//Gets the planes distance from the origin
-			float GetDistance() const { return m_Distance; }
+        /// Define from a 4-dimensional vector, where the w coordinate is the plane parameter.
+        void Define(const Vector4& plane)
+        {
+            normal_ = Vector3(plane.x, plane.y, plane.z);
+            absNormal_ = normal_.Abs();
+            d_ = plane.w;
+        }
 
-			//Performs a simple sphere / plane test
-			bool SphereInPlane(const Vector3 &position, float radius) const;
+        /// Transform with a 3x3 matrix.
+        void Transform(const Matrix3& transform);
+        /// Transform with a 3x4 matrix.
+        void Transform(const Matrix3x4& transform);
+        /// Transform with a 4x4 matrix.
+        void Transform(const Matrix4& transform);
 
-			//Performs a simple sphere / point test
-			bool PointInPlane(const Vector3 &position) const;
+        /// Project a point on the plane.
+        Vector3 Project(const Vector3& point) const { return point - normal_ * (normal_.DotProduct(point) + d_); }
 
-			nlohmann::json Serialise()
-			{
-				nlohmann::json output;
-				output["typeID"] = LUMOS_TYPENAME(Plane);
-				output["normal"] = m_Normal.Serialise();
-				output["distance"] = m_Distance;
+        /// Return signed distance to a point.
+        float Distance(const Vector3& point) const { return normal_.DotProduct(point) + d_; }
 
-				return output;
-			};
+        /// Reflect a normalized direction vector.
+        Vector3 Reflect(const Vector3& direction) const { return direction - (2.0f * normal_.DotProduct(direction) * normal_); }
 
-			void Deserialise(nlohmann::json& data)
-			{
-				m_Normal.Deserialise(data["normal"]);
-				m_Distance = data["distance"];
-			};
+        bool PointInPlane(const Vector3 &position) const
+        {
+            return Vector3::Dot(position, normal_) + Distance(Maths::Vector3(0.0f)) >= -0.0001f;
+        }
 
-		protected:
-			//Unit-length plane normal
-			Vector3 m_Normal;
-			//Distance from origin
-			float m_Distance;
-		};
-	}
+        /// Return a reflection matrix.
+        Matrix3x4 ReflectionMatrix() const;
+        /// Return transformed by a 3x3 matrix.
+        Plane Transformed(const Matrix3& transform) const;
+        /// Return transformed by a 3x4 matrix.
+        Plane Transformed(const Matrix3x4& transform) const;
+        /// Return transformed by a 4x4 matrix.
+        Plane Transformed(const Matrix4& transform) const;
+
+        /// Return as a vector.
+        Vector4 ToVector4() const { return Vector4(normal_, d_); }
+
+        /// Plane normal.
+        Vector3 normal_;
+        /// Plane absolute normal.
+        Vector3 absNormal_;
+        /// Plane constant.
+        float d_{};
+
+        /// Plane at origin with normal pointing up.
+        static const Plane UP;
+    };
 }

@@ -1,8 +1,6 @@
 #pragma once
 #include "lmpch.h"
-#include "Maths/Vector2.h"
-#include "Maths/Vector3.h"
-#include "Maths/Vector4.h"
+#include "Maths/Maths.h"
 
 #include "Graphics/API/DescriptorSet.h"
 #include "Graphics/API/Texture.h"
@@ -62,7 +60,7 @@ namespace Lumos
 			Texture2D* GetTexture() const { return m_Texture.get(); }
 			Maths::Vector2 GetPosition() const { return m_Position; }
 			Maths::Vector2 GetScale() const { return m_Scale; }
-			const Maths::Vector4& GetColour() const { return m_Colour; }
+			const Maths::Vector4& Columnour() const { return m_Colour; }
 			const std::vector<Maths::Vector2>& GetUVs() const { return m_UVs; }
 
 			static const std::vector<Maths::Vector2>& GetDefaultUVs();

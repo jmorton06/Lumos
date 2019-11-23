@@ -1,5 +1,6 @@
 #include "lmpch.h"
 #include "Renderable2D.h"
+#include "Maths/Maths.h"
 
 namespace Lumos
 {

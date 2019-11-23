@@ -19,9 +19,6 @@ namespace Lumos
 
 			void OnImGui();
 
-			nlohmann::json Serialise();
-			void Deserialise(nlohmann::json& data);
-
 			Maths::Vector4   m_Colour;
 			Maths::Vector4   m_Position;
 			Maths::Vector4   m_Direction;

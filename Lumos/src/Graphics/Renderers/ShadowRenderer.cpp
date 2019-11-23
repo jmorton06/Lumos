@@ -17,7 +17,6 @@
 
 #include "ECS/Component/MeshComponent.h"
 
-#include "Maths/MathsUtilities.h"
 #include "Maths/Transform.h"
 
 #include "App/Scene.h"
@@ -202,7 +201,7 @@ namespace Lumos
 		{
             LUMOS_PROFILE_BLOCK("ShadowRenderer::RenderScene");
 
-			memcpy(m_VSSystemUniformBuffer + m_VSSystemUniformBufferOffsets[VSSystemUniformIndex_ProjectionViewMatrix], m_ShadowProjView, sizeof(Maths::Matrix4) * 16);
+			memcpy(m_VSSystemUniformBuffer + m_VSSystemUniformBufferOffsets[VSSystemUniformIndex_ProjectionViewMatrix], m_ShadowProjView, sizeof(Maths::Matrix4) * SHADOWMAP_MAX);
 
 			Begin();
             
@@ -215,7 +214,7 @@ namespace Lumos
 				m_Layer = i;
 
 				Maths::Frustum f;
-				f.FromMatrix(m_ShadowProjView[i]);
+				f.Define(m_ShadowProjView[i]);
 
                 for(auto entity : group)
                 {
@@ -224,17 +223,13 @@ namespace Lumos
                     if (mesh.GetMesh() && mesh.GetMesh()->GetActive())
                     {
                         auto& worldTransform = trans.GetWorldMatrix();
-                  
-                        float maxScaling = 0.0f;
-                        auto scale = worldTransform.GetScaling();
-                        maxScaling = Maths::Max(scale.GetX(), maxScaling);
-                        maxScaling = Maths::Max(scale.GetY(), maxScaling);
-                        maxScaling = Maths::Max(scale.GetZ(), maxScaling);
 
-                        bool inside = f.InsideFrustum(worldTransform.GetPositionVector(), maxScaling * mesh.GetMesh()->GetBoundingBox()->SphereRadius());
+						auto bb = mesh.GetMesh()->GetBoundingBox();
+						auto bbCopy = bb->Transformed(worldTransform);
+						auto inside = f.IsInsideFast(bbCopy);
 
-                        if (!inside)
-                            continue;
+						if (inside == Maths::Intersection::OUTSIDE)
+							continue;
             
                         SubmitMesh(mesh.GetMesh(), nullptr, worldTransform, Maths::Matrix4());
 					}
@@ -310,7 +305,6 @@ namespace Lumos
 					Maths::Vector3(-1.0f, -1.0f,  1.0f),
 				};
 
-				scene->GetCamera()->BuildViewMatrix();
 				Maths::Matrix4 cameraProj = scene->GetCamera()->GetProjectionMatrix();
 
 				const Maths::Matrix4 invCam = Maths::Matrix4::Inverse(cameraProj * scene->GetCamera()->GetViewMatrix());
@@ -319,7 +313,7 @@ namespace Lumos
 				for (uint32_t j = 0; j < 8; j++)
 				{
 					Maths::Vector4 invCorner = invCam * Maths::Vector4(frustumCorners[j], 1.0f);
-					frustumCorners[j] = (invCorner / invCorner.GetW()).ToVector3();
+					frustumCorners[j] = (invCorner / invCorner.w).ToVector3();
 				}
 
 				for (uint32_t j = 0; j < 4; j++)
@@ -344,22 +338,22 @@ namespace Lumos
 					radius = Maths::Max(radius, distance);
 				}
 				radius = std::ceil(radius * 16.0f) / 16.0f;
-				float sceneBoundingRadius = scene->GetWorldRadius();
+				//float sceneBoundingRadius = scene->GetWorldRadius();
 				//Extend the Z depths to catch shadow casters outside view frustum
-				radius = Maths::Max(radius, sceneBoundingRadius);
+				//radius = Maths::Max(radius, sceneBoundingRadius);
 
 				Maths::Vector3 maxExtents = Maths::Vector3(radius);
 				Maths::Vector3 minExtents = -maxExtents;
 
 				Maths::Vector3 lightDir = -light->m_Direction.ToVector3();
-				lightDir.Normalise();
-				Maths::Matrix4 lightViewMatrix = Maths::Matrix4::BuildViewMatrix(frustumCenter - lightDir * -minExtents.z, frustumCenter);
+				lightDir.Normalize();
+				Maths::Matrix4 lightViewMatrix = Maths::Quaternion::LookAt(frustumCenter - lightDir * -minExtents.z, frustumCenter).RotationMatrix4();
 
 				Maths::Matrix4 lightOrthoMatrix = Maths::Matrix4::Orthographic(minExtents.x, maxExtents.x, minExtents.y, maxExtents.y, -(maxExtents.z - minExtents.z), maxExtents.z - minExtents.z);
 
 				// Store split distance and matrix in cascade
 				m_SplitDepth[i] = Maths::Vector4((scene->GetCamera()->GetNear() + splitDist * clipRange) * -1.0f);
-				m_ShadowProjView[i] = lightOrthoMatrix * lightViewMatrix;
+				m_ShadowProjView[i] = lightOrthoMatrix * lightViewMatrix.Inverse();
 			}
 #ifdef THREAD_CASCADE_GEN
 			);
@@ -532,14 +526,20 @@ namespace Lumos
 			ImGui::TextUnformatted("Shadow Renderer");
 			if (ImGui::TreeNode("Texture"))
 			{
+				static int index = 0;
+
+				ImGui::InputInt("Texture Array Index", &index);
+
+				index = Maths::Max(0, index);
+				index = Maths::Min(index, 3);
 				bool flipImage = Graphics::GraphicsContext::GetContext()->FlipImGUITexture();
 
-				ImGui::Image(m_ShadowTex->GetHandle(), ImVec2(128, 128), ImVec2(0.0f, flipImage ? 1.0f : 0.0f), ImVec2(1.0f, flipImage ? 0.0f : 1.0f));
+				ImGui::Image(m_ShadowTex->GetHandleArray(u32(index)), ImVec2(128, 128), ImVec2(0.0f, flipImage ? 1.0f : 0.0f), ImVec2(1.0f, flipImage ? 0.0f : 1.0f));
 
 				if (ImGui::IsItemHovered())
 				{
 					ImGui::BeginTooltip();
-					ImGui::Image(m_ShadowTex->GetHandle(), ImVec2(256, 256), ImVec2(0.0f, flipImage ? 1.0f : 0.0f), ImVec2(1.0f, flipImage ? 0.0f : 1.0f));
+					ImGui::Image(m_ShadowTex->GetHandleArray(u32(index)), ImVec2(256, 256), ImVec2(0.0f, flipImage ? 1.0f : 0.0f), ImVec2(1.0f, flipImage ? 0.0f : 1.0f));
 					ImGui::EndTooltip();
 				}
 

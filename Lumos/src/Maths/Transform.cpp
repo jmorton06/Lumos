@@ -18,9 +18,9 @@ namespace Lumos
 
 		Transform::Transform(const Matrix4& matrix)
 		{
-            m_LocalPosition     = matrix.GetPositionVector();
-            m_LocalOrientation  = matrix.ToQuaternion();
-            m_LocalScale        = matrix.GetScaling();
+            m_LocalPosition     = matrix.Translation();
+            m_LocalOrientation  = matrix.Rotation();
+            m_LocalScale        = matrix.Scale();
 			m_LocalMatrix		= matrix;
 			m_WorldMatrix		= matrix;
 		}
@@ -39,24 +39,23 @@ namespace Lumos
 
 		void Transform::UpdateMatrices() 
 		{
-			m_LocalMatrix = Matrix4::Translation(m_LocalPosition) * m_LocalOrientation.ToMatrix4() * Matrix4::Scale(m_LocalScale);
-            
-			m_Dirty		 = false;
+			m_LocalMatrix = Matrix4::Translation(m_LocalPosition) * m_LocalOrientation.RotationMatrix4() * Matrix4::Scale(m_LocalScale);
+			m_Dirty = false;
             m_HasUpdated = true;
 		}
 
 		void Transform::ApplyTransform()
 		{
-			m_LocalPosition		= m_LocalMatrix.GetPositionVector();
-			m_LocalOrientation	= m_LocalMatrix.ToQuaternion();
-			m_LocalScale		= m_LocalMatrix.GetScaling();
+			m_LocalPosition		= m_LocalMatrix.Translation();
+			m_LocalOrientation	= m_LocalMatrix.Rotation();
+			m_LocalScale		= m_LocalMatrix.Scale();
 		}
         
         void Transform::SetWorldMatrix(const Matrix4 &mat)
         {
              if (m_Dirty)
                  UpdateMatrices();
-             m_WorldMatrix = mat * m_LocalMatrix;
+             m_WorldMatrix =  mat * m_LocalMatrix;
         }
         
         void Transform::SetLocalTransform(const Matrix4& localMat)
@@ -103,12 +102,12 @@ namespace Lumos
 
 		const Vector3 Transform::GetWorldPosition() const 
 		{ 
-			return m_WorldMatrix.GetPositionVector(); 
+			return m_WorldMatrix.Translation(); 
 		}
 
 		const Quaternion Transform::GetWorldOrientation() const 
 		{ 
-			return m_WorldMatrix.ToQuaternion(); 
+			return m_WorldMatrix.Rotation(); 
 		}
 
 		const Vector3& Transform::GetLocalPosition() const
@@ -128,7 +127,7 @@ namespace Lumos
        
 		void Transform::OnImGui()
 		{
-			auto rotation = m_LocalOrientation.ToEuler();
+			auto rotation = m_LocalOrientation.EulerAngles();
 
 			bool update = false;
 
@@ -154,9 +153,9 @@ namespace Lumos
 			ImGui::PushItemWidth(-1);
 			if (ImGui::DragFloat3("##Rotation", Maths::ValuePointer(rotation)))
 			{
-				float pitch = Maths::Min(rotation.GetX(), 89.9f);
+				float pitch = Maths::Min(rotation.x, 89.9f);
 				pitch = Maths::Max(pitch, -89.9f);
-				SetLocalOrientation(Maths::Quaternion::EulerAnglesToQuaternion(pitch, rotation.GetY(), rotation.GetZ()));
+				SetLocalOrientation(Maths::Quaternion::EulerAnglesToQuaternion(pitch, rotation.y, rotation.z));
 				update = true;
 			}
 

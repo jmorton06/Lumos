@@ -140,6 +140,8 @@
     type_identifier(const type_identifier&) = delete;				\
     type_identifier& operator=(const type_identifier&) = delete;
 
+#define Lumos_SSE 
+
 namespace Lumos
 {
     namespace detail

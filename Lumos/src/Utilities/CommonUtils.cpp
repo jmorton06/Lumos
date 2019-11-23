@@ -25,11 +25,11 @@ namespace Lumos
 	Maths::Vector4 CommonUtils::GenColour(float alpha)
 	{
 		Maths::Vector4 c;
-		c.SetW(alpha);
+		c.w = alpha;
 
-		c.SetX(RandomNumberGenerator32::Rand(0.0f, 1.0f));
-		c.SetY(RandomNumberGenerator32::Rand(0.0f, 1.0f));
-		c.SetZ(RandomNumberGenerator32::Rand(0.0f, 1.0f));
+		c.x = RandomNumberGenerator32::Rand(0.0f, 1.0f);
+		c.y = RandomNumberGenerator32::Rand(0.0f, 1.0f);
+		c.z = RandomNumberGenerator32::Rand(0.0f, 1.0f);
 
 		return c;
 	}
@@ -179,7 +179,7 @@ namespace Lumos
 		properties.usingSpecularMap = 0.0f;
 		matInstance->SetMaterialProperites(properties);
 		registry.assign<MaterialComponent>(pyramidMeshEntity, matInstance);
-		registry.assign<Maths::Transform>(pyramidMeshEntity, Maths::Matrix4::RotationX(-90.0f) * Maths::Matrix4::Scale(halfdims));
+		registry.assign<Maths::Transform>(pyramidMeshEntity, Maths::Quaternion(-90.0f, 0.0f,0.0f).RotationMatrix4() * Maths::Matrix4::Scale(halfdims));
 		registry.assign<Hierarchy>(pyramidMeshEntity, pyramid);
 		registry.assign<MeshComponent>(pyramidMeshEntity, pyramidModel);
 
@@ -254,14 +254,8 @@ namespace Lumos
 						RandomNumberGenerator32::Rand(0.0f, 1.0f),
 						1.0f));
 
-		scene->GetCamera()->BuildViewMatrix();
-		const Maths::Matrix4 temp = scene->GetCamera()->GetViewMatrix();
-		Maths::Matrix3 viewRotation = Maths::Matrix3(temp);
-		viewRotation = Maths::Matrix3::Inverse(viewRotation);
-		const Maths::Vector3 forward = viewRotation * Maths::Vector3(0.0f, 0.0f, -1.0f);
+		const Maths::Vector3 forward = -scene->GetCamera()->GetForwardDirection();
 		registry.get<Physics3DComponent>(sphere).GetPhysicsObject()->SetLinearVelocity(forward * 30.0f);
-
-		//scene->AddEntity(sphere);
 	}
 
 	void CommonUtils::AddPyramid(Scene* scene)
@@ -281,11 +275,7 @@ namespace Lumos
 						RandomNumberGenerator32::Rand(0.0f, 1.0f),
 						1.0f));
 
-		scene->GetCamera()->BuildViewMatrix();
-		const Maths::Matrix4 temp = scene->GetCamera()->GetViewMatrix();
-		Maths::Matrix3 viewRotation = Maths::Matrix3(temp);
-		viewRotation = Maths::Matrix3::Inverse(viewRotation);
-		const Maths::Vector3 forward = viewRotation * Maths::Vector3(0.0f, 0.0f, -1.0f);
+		const Maths::Vector3 forward = -scene->GetCamera()->GetForwardDirection();
 
 		registry.get<Physics3DComponent>(sphere).GetPhysicsObject()->SetLinearVelocity(forward * 30.0f);
 	}

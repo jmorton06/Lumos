@@ -341,7 +341,7 @@ namespace Lumos
 
 	void GLFWWindow::SetMousePosition(const Maths::Vector2& pos)
 	{
-		glfwSetCursorPos(m_Handle, pos.GetX(), pos.GetY());
+		glfwSetCursorPos(m_Handle, pos.x, pos.y);
 	}
 
 	void GLFWWindow::MakeDefault()

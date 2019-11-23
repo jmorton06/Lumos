@@ -3,7 +3,6 @@
 #include "Maths/Matrix3.h"
 
 #include "LumosPhysicsEngine.h"
-#include "Maths/MathsUtilities.h"
 
 namespace Lumos
 {

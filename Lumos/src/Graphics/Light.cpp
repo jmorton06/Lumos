@@ -63,30 +63,6 @@ namespace Lumos
 			ImGui::Separator();
 			ImGui::PopStyleVar();
 		}
-
-		nlohmann::json Light::Serialise()
-		{
-			nlohmann::json output;
-			//output["typeID"] = LUMOS_TYPENAME(Light);
-			//output["position"] = m_Position.Serialise();
-			//output["direction"] = m_Direction.Serialise();
-			//output["colour"] = m_Colour.Serialise();
-			//output["intensity"] = m_Intensity;
-			//output["radius"] = m_Radius;
-			//output["type"] = m_Type;
-
-			return output;
-		}
-
-		void Light::Deserialise(nlohmann::json & data)
-		{
-	/*		m_Position.Deserialise(data["position"]);
-			m_Direction.Deserialise(data["direction"]);
-			m_Colour.Deserialise(data["colour"]);
-			m_Intensity = data["intensity"];
-			m_Radius = data["radius"];
-			m_Type = data["type"];*/
-		}
 	}
 }
 

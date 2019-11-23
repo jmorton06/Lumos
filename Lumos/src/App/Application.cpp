@@ -253,8 +253,6 @@ namespace Lumos
 
 		if(!m_Minimized)
 			m_LayerStack->OnUpdate(Engine::GetTimeStep(), m_SceneManager->GetCurrentScene());
-
-		MemoryManager::Get()->GetSystemInfo();
 	}
 
 	void Application::OnEvent(Event& e)

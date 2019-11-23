@@ -20,6 +20,10 @@ void Scene2D::OnInit()
 
 	m_pCamera = new Camera2D(static_cast<float>(m_ScreenWidth) / static_cast<float>(m_ScreenHeight), 2.0f);
 
+    auto cameraEntity = m_Registry.create();
+    m_Registry.assign<CameraComponent>(cameraEntity, m_pCamera);
+    m_Registry.assign<NameComponent>(cameraEntity, "Camera");
+
 	m_SceneBoundingRadius = 20.0f;
 
 	Application::Instance()->GetSystem<AudioManager>()->SetListener(m_pCamera);

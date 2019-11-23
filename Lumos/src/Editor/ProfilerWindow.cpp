@@ -148,25 +148,25 @@ namespace Lumos
 		RebuildTaskStats(currFrameIndex, 300/*frames.size()*/);
 	}
 
-	inline void ProfilerGraph::Rect(ImDrawList * drawList, const Maths::Vector2 & minPoint, const Maths::Vector2 & maxPoint, uint32_t col, bool filled)
+	_FORCE_INLINE_ void ProfilerGraph::Rect(ImDrawList * drawList, const Maths::Vector2 & minPoint, const Maths::Vector2 & maxPoint, uint32_t col, bool filled)
 	{
 		if (filled)
 			drawList->AddRectFilled(ImVec2(minPoint.x, minPoint.y), ImVec2(maxPoint.x, maxPoint.y), col);
 		else
 			drawList->AddRect(ImVec2(minPoint.x, minPoint.y), ImVec2(maxPoint.x, maxPoint.y), col);
 	}
-	inline void ProfilerGraph::Text(ImDrawList * drawList, const Maths::Vector2 & point, uint32_t col, const char * text)
+	_FORCE_INLINE_ void ProfilerGraph::Text(ImDrawList * drawList, const Maths::Vector2 & point, uint32_t col, const char * text)
 	{
 		drawList->AddText(ImVec2(point.x, point.y), col, text);
 	}
-	inline void ProfilerGraph::Triangle(ImDrawList * drawList, const std::array<Maths::Vector2, 3>& points, uint32_t col, bool filled)
+	_FORCE_INLINE_ void ProfilerGraph::Triangle(ImDrawList * drawList, const std::array<Maths::Vector2, 3>& points, uint32_t col, bool filled)
 	{
 		if (filled)
 			drawList->AddTriangleFilled(ImVec2(points[0].x, points[0].y), ImVec2(points[1].x, points[1].y), ImVec2(points[2].x, points[2].y), col);
 		else
 			drawList->AddTriangle(ImVec2(points[0].x, points[0].y), ImVec2(points[1].x, points[1].y), ImVec2(points[2].x, points[2].y), col);
 	}
-	inline void ProfilerGraph::RenderTaskMarker(ImDrawList * drawList, const Maths::Vector2 & leftMinPoint, const Maths::Vector2 & leftMaxPoint, const Maths::Vector2 & rightMinPoint, const Maths::Vector2 & rightMaxPoint, uint32_t col)
+	_FORCE_INLINE_ void ProfilerGraph::RenderTaskMarker(ImDrawList * drawList, const Maths::Vector2 & leftMinPoint, const Maths::Vector2 & leftMaxPoint, const Maths::Vector2 & rightMinPoint, const Maths::Vector2 & rightMaxPoint, uint32_t col)
 	{
 		Rect(drawList, leftMinPoint, leftMaxPoint, col, true);
 		Rect(drawList, rightMinPoint, rightMaxPoint, col, true);
@@ -178,7 +178,7 @@ namespace Lumos
 		};
 		drawList->AddConvexPolyFilled(points.data(), int(points.size()), col);
 	}
-	inline void ProfilerGraph::RenderGraph(ImDrawList * drawList, const Maths::Vector2 & graphPos, const Maths::Vector2 & graphSize, size_t frameIndexOffset)
+	_FORCE_INLINE_ void ProfilerGraph::RenderGraph(ImDrawList * drawList, const Maths::Vector2 & graphPos, const Maths::Vector2 & graphSize, size_t frameIndexOffset)
 	{
 		Rect(drawList, graphPos, graphPos + graphSize, 0xffffffff, false);
 		//float maxFrameTime = 1.0f / 30.0f;
@@ -206,7 +206,7 @@ namespace Lumos
 
 				if (abs(duration) > heightThreshold)
 				{
-					Rect(drawList, taskPos + Maths::Vector2(0.0f, -currentTime), taskPos + Maths::Vector2(float(frameWidth), -(currentTime + duration)), GetColour(task.name), true);
+					Rect(drawList, taskPos + Maths::Vector2(0.0f, -currentTime), taskPos + Maths::Vector2(float(frameWidth), -(currentTime + duration)), Columnour(task.name), true);
                     
 					currentTime += duration;
 				}
@@ -214,7 +214,7 @@ namespace Lumos
 		}
 	}
 
-    uint32_t ProfilerGraph::GetColour(const char* name)
+    uint32_t ProfilerGraph::Columnour(const char* name)
     {
         bool found = m_ColourMap.find(name) != m_ColourMap.end();
         
@@ -224,7 +224,7 @@ namespace Lumos
         return m_ColourMap[name];
     }
 
-	inline void ProfilerGraph::RenderTimings(int graphWidth, int legendWidth, int height, int frameIndexOffset)
+	_FORCE_INLINE_ void ProfilerGraph::RenderTimings(int graphWidth, int legendWidth, int height, int frameIndexOffset)
 	{
 		ImDrawList* drawList = ImGui::GetWindowDrawList();
 		const Maths::Vector2 widgetPos = Maths::Vector2(ImGui::GetCursorScreenPos().x, ImGui::GetCursorScreenPos().y);
@@ -302,9 +302,9 @@ namespace Lumos
 
 			Maths::Vector2 markerRightRectMin = legendPos + Maths::Vector2(markerLeftRectMargin + markerLeftRectWidth + markerMidWidth, legendSize.y - markerRigthRectMargin - (markerRightRectHeight + markerRightRectSpacing) * stat.onScreenIndex);
 			Maths::Vector2 markerRightRectMax = markerRightRectMin + Maths::Vector2(markerRightRectWidth, -markerRightRectHeight);
-			RenderTaskMarker(drawList, markerLeftRectMin, markerLeftRectMax, markerRightRectMin, markerRightRectMax, GetColour(task.name));
+			RenderTaskMarker(drawList, markerLeftRectMin, markerLeftRectMax, markerRightRectMin, markerRightRectMax, Columnour(task.name));
 
-			uint32_t textColor = useColoredLegendText ? GetColour(task.name) : imguiText;// task.color;
+			uint32_t textColor = useColoredLegendText ? Columnour(task.name) : imguiText;// task.color;
 
 			float taskTimeMs = float(task.duration);
 			std::ostringstream timeText;
