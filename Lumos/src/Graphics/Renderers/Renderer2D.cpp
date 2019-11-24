@@ -184,7 +184,7 @@ namespace Lumos
 			const Maths::Vector2 min = renderable->GetPosition();
 			const Maths::Vector2 max = renderable->GetPosition() + renderable->GetScale();
 
-			const Maths::Vector4 colour = renderable->Columnour();
+			const Maths::Vector4 colour = renderable->GetColour();
 			const std::vector<Maths::Vector2>& uv = renderable->GetUVs();
 			const Texture* texture = renderable->GetTexture();
 
@@ -313,20 +313,18 @@ namespace Lumos
 			
             auto& registry = scene->GetRegistry();
             auto group = registry.group<Graphics::Sprite>(entt::get<Maths::Transform>);
-        
+
             for(auto entity: group)
             {
                 const auto &[sprite, trans] = group.get<Graphics::Sprite, Maths::Transform>(entity);
                 
-				/*const Maths::Vector2 min = trans.GetWorldMatrix() * sprite.GetPosition();
-				const Maths::Vector2 max = trans.GetWorldMatrix() * (sprite.GetPosition() + sprite.GetScale());
-				auto bb = Maths::BoundingBox(Maths::Rect(min, max));
+				auto bb = Maths::BoundingBox(Maths::Rect(sprite.GetPosition(), sprite.GetPosition() + sprite.GetScale()));
 				bb.Transform(trans.GetWorldMatrix());
                 auto inside = m_Frustum.IsInside(bb);
                 
                 if (inside == Maths::Intersection::OUTSIDE)
-                    continue;*/
-
+                    continue;
+                
                 Submit(reinterpret_cast<Renderable2D*>(&sprite), trans.GetWorldMatrix());
             };
 
