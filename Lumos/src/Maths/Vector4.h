@@ -254,6 +254,9 @@ namespace Lumos::Maths
 
             return hash;
         }
+        
+        friend std::ostream &operator<<(std::ostream &o, const Vector4 &v) { return o << "Vector4(" << v.x << ", " << v.y << ", " << v.z << ", " << v.w << ")"; }
+
 
         /// X coordinate.
         float x;

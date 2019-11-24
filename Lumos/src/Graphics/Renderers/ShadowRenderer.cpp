@@ -305,9 +305,7 @@ namespace Lumos
 					Maths::Vector3(-1.0f, -1.0f,  1.0f),
 				};
 
-				Maths::Matrix4 cameraProj = scene->GetCamera()->GetProjectionMatrix();
-
-				const Maths::Matrix4 invCam = Maths::Matrix4::Inverse(cameraProj * scene->GetCamera()->GetViewMatrix());
+				const Maths::Matrix4 invCam = Maths::Matrix4::Inverse(scene->GetCamera()->GetProjectionMatrix() * scene->GetCamera()->GetViewMatrix());
 
 				// Project frustum corners into world space
 				for (uint32_t j = 0; j < 8; j++)
@@ -338,9 +336,9 @@ namespace Lumos
 					radius = Maths::Max(radius, distance);
 				}
 				radius = std::ceil(radius * 16.0f) / 16.0f;
-				//float sceneBoundingRadius = scene->GetWorldRadius();
+				float sceneBoundingRadius = scene->GetWorldRadius();
 				//Extend the Z depths to catch shadow casters outside view frustum
-				//radius = Maths::Max(radius, sceneBoundingRadius);
+				radius = Maths::Max(radius, sceneBoundingRadius);
 
 				Maths::Vector3 maxExtents = Maths::Vector3(radius);
 				Maths::Vector3 minExtents = -maxExtents;
@@ -348,6 +346,8 @@ namespace Lumos
 				Maths::Vector3 lightDir = -light->m_Direction.ToVector3();
 				lightDir.Normalize();
 				Maths::Matrix4 lightViewMatrix = Maths::Quaternion::LookAt(frustumCenter - lightDir * -minExtents.z, frustumCenter).RotationMatrix4();
+                
+                lightViewMatrix.SetTranslation(frustumCenter);
 
 				Maths::Matrix4 lightOrthoMatrix = Maths::Matrix4::Orthographic(minExtents.x, maxExtents.x, minExtents.y, maxExtents.y, -(maxExtents.z - minExtents.z), maxExtents.z - minExtents.z);
 
