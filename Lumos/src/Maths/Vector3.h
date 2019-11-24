@@ -466,6 +466,12 @@ namespace Lumos::Maths
 
             return hash;
         }
+        
+        _FORCE_INLINE_ friend std::ostream &operator<<(std::ostream &o, const Vector3 &v)
+        {
+            o << "Vector3(" << v.x << "," << v.y << "," << v.z << ")" << std::endl;
+            return o;
+        }
 
         /// X coordinate.
         float x;

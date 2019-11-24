@@ -750,6 +750,21 @@ namespace Lumos::Maths
                 hash = 37 * hash + FloatToRawIntBits(Data()[i]);
             return hash;
         }
+        
+        friend std::ostream &operator<<(std::ostream &o, const Matrix4 &m)
+        {
+            return o << "Mat4(" << "/n" <<
+                "\t" << m.m00_ << ", " << m.m10_ << ", " << m.m20_ << ", " << m.m30_ << ", "
+                << "/n" <<
+                "\t" << m.m01_ << ", " << m.m11_ << ", " << m.m21_ << ", " << m.m31_ << ", "
+                << "/n" <<
+                "\t" << m.m02_ << ", " << m.m12_ << ", " << m.m22_ << ", " << m.m32_ << ", "
+                << "/n" <<
+                "\t" << m.m03_ << ", " << m.m13_ << ", " << m.m23_ << ", " << m.m33_ << "/n"
+                <<
+                " )";
+        }
+
 
         float m00_;
         float m01_;
