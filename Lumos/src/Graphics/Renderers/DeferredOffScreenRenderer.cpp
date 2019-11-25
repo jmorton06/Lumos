@@ -206,7 +206,7 @@ namespace Lumos
 
 		void DeferredOffScreenRenderer::PresentToScreen()
 		{
-			Renderer::Present((m_CommandBuffers[Renderer::GetSwapchain()->GetCurrentBufferId()]));
+			Renderer::Present(m_CommandBuffers[Renderer::GetSwapchain()->GetCurrentBufferId()]);
 		}
 
 		void DeferredOffScreenRenderer::Begin()
@@ -223,9 +223,8 @@ namespace Lumos
 		void DeferredOffScreenRenderer::BeginScene(Scene* scene)
 		{
 			auto camera = scene->GetCamera();
-			auto proj = camera->GetProjectionMatrix();
 
-			auto projView = proj * camera->GetViewMatrix();
+			auto projView = camera->GetProjectionMatrix() * camera->GetViewMatrix();
 			memcpy(m_VSSystemUniformBuffer + m_VSSystemUniformBufferOffsets[VSSystemUniformIndex_ProjectionViewMatrix], &projView, sizeof(Maths::Matrix4));
 
             m_Frustum = camera->GetFrustum();

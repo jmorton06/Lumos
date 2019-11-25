@@ -150,7 +150,7 @@ namespace Lumos
 			u32 status = glCheckFramebufferStatus(GL_FRAMEBUFFER);
 			if (status != GL_FRAMEBUFFER_COMPLETE)
 			{
-				LUMOS_LOG_CRITICAL("Unable to create Framebuffer! StatusCode: {0}", status);
+				Debug::Log::Critical("Unable to create Framebuffer! StatusCode: {0}", status);
 			}
 		}
 

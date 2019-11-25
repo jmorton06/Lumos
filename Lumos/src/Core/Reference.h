@@ -1,9 +1,9 @@
 #pragma once
 
 #include "lmpch.h"
-#include "LMLog.h"
 #include "ReferenceCounter.h"
 #include "OS/Memory.h"
+#include "Core/LMLog.h"
 
 namespace Lumos
 {
@@ -82,7 +82,7 @@ namespace Lumos
             }
             else
             {
-                LUMOS_LOG_ERROR("Failed to cast Reference");
+				Debug::Log::Error("Failed to cast Reference");
             }
         }
         
@@ -164,7 +164,7 @@ namespace Lumos
             }
             else
             {
-                LUMOS_LOG_ERROR("Failed to cast Reference");
+                Debug::Log::Error("Failed to cast Reference");
             }
             
             return *this;

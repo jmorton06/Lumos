@@ -21,7 +21,7 @@ namespace Lumos
 
 		if (m_CurrentScene)
 		{
-			LUMOS_LOG_INFO("[SceneManager] - Exiting scene : {0}", m_CurrentScene->GetSceneName());
+			Debug::Log::Info("[SceneManager] - Exiting scene : {0}", m_CurrentScene->GetSceneName());
 			m_CurrentScene->OnCleanupScene();
 		}
 
@@ -60,7 +60,7 @@ namespace Lumos
 		}
 		else
 		{
-			LUMOS_LOG_ERROR("[SceneManager] - Unknown Scene Alias : {0}", name.c_str());
+			Debug::Log::Error("[SceneManager] - Unknown Scene Alias : {0}", name.c_str());
 		}
 	}
     
@@ -71,14 +71,14 @@ namespace Lumos
         
         if (m_QueuedSceneIndex < 0 || m_QueuedSceneIndex >= static_cast<int>(m_vpAllScenes.size()))
         {
-            LUMOS_LOG_ERROR("[SceneManager] - Invalid Scene Index : {0}", m_QueuedSceneIndex);
+			Debug::Log::Error("[SceneManager] - Invalid Scene Index : {0}", m_QueuedSceneIndex);
             return;
         }
         
         //Clear up old scene
         if (m_CurrentScene)
         {
-            LUMOS_LOG_INFO("[SceneManager] - Exiting scene : {0}" , m_CurrentScene->GetSceneName());
+			Debug::Log::Info("[SceneManager] - Exiting scene : {0}" , m_CurrentScene->GetSceneName());
             Application::Instance()->GetSystem<LumosPhysicsEngine>()->SetPaused(true);
             m_CurrentScene->OnCleanupScene();
 			Application::Instance()->OnExitScene();
@@ -98,7 +98,7 @@ namespace Lumos
         
         Application::Instance()->OnNewScene(m_CurrentScene);
         
-        LUMOS_LOG_INFO("[SceneManager] - Scene switched to : {0}", m_CurrentScene->GetSceneName().c_str());
+		Debug::Log::Info("[SceneManager] - Scene switched to : {0}", m_CurrentScene->GetSceneName().c_str());
         
         m_SwitchingScenes = false;
     }
