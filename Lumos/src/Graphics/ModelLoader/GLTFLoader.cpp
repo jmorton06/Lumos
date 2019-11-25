@@ -97,8 +97,11 @@ namespace Lumos
 
 	std::vector<Ref<Material>> LoadMaterials(tinygltf::Model &gltfModel)
     {
-        std::vector<Ref<Graphics::Texture2D>> loadedTextures;
+		std::vector<Ref<Graphics::Texture2D>> loadedTextures;
         std::vector<Ref<Material>> loadedMaterials;
+		loadedTextures.reserve(gltfModel.textures.size());
+		loadedMaterials.reserve(gltfModel.materials.size());
+
         for (tinygltf::Texture &gltfTexture : gltfModel.textures)
         {
             GLTFTexture imageAndSampler{};
@@ -505,17 +508,17 @@ namespace Lumos
 
 		if (!err.empty())
 		{
-			LUMOS_LOG_CRITICAL(err);
+			Debug::Log::Error(err);
 		}
 
 		if (!warn.empty())
 		{
-			LUMOS_LOG_CRITICAL(warn);
+			Debug::Log::Error(warn);
 		}
 
 		if (!ret)
 		{
-			LUMOS_LOG_CRITICAL("Failed to parse glTF");
+			Debug::Log::Error("Failed to parse glTF");
 		}
 
         auto LoadedMaterials = LoadMaterials(model);

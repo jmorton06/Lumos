@@ -13,7 +13,7 @@ namespace Lumos
 	{
 	void CoreSystem::Init(bool enableProfiler)
 	{
-        LMLog::OnInit();
+        Debug::Log::OnInit();
 
 		if (enableProfiler)
 		{
@@ -21,23 +21,23 @@ namespace Lumos
 		}
 		LUMOS_PROFILE_BLOCK("CoreSystem::Init");
 
-		LUMOS_LOG_INFO("Lumos Engine - Version {0}.{1}.{2}", LumosVersion.major, LumosVersion.minor, LumosVersion.patch);
+		Debug::Log::Info("Lumos Engine - Version {0}.{1}.{2}", LumosVersion.major, LumosVersion.minor, LumosVersion.patch);
 
 		System::JobSystem::OnInit();
-		LUMOS_LOG_INFO("Initializing System");
+		Debug::Log::Info("Initializing System");
 		VFS::OnInit();
         LuaManager::Instance()->OnInit();
 	}
 
 	void CoreSystem::Shutdown()
 	{
-		LUMOS_LOG_INFO("Shutting down System");
+		Debug::Log::Info("Shutting down System");
         Profiler::Release();
 		LuaManager::Release();
 		VFS::OnShutdown();
 		Lumos::Memory::LogMemoryInformation();
 
-		LMLog::OnRelease();
+		Debug::Log::OnRelease();
 
 		MemoryManager::OnShutdown();
     }

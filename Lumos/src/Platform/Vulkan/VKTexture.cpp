@@ -324,7 +324,7 @@ namespace Lumos
 
 			if (!pixels)
 			{
-                LUMOS_LOG_CRITICAL("failed to load texture image!");
+				Debug::Log::Critical("failed to load texture image!");
 			}
 
 			m_MipLevels = static_cast<uint32_t>(std::floor(std::log2(Maths::Max(texWidth, texHeight)))) + 1;

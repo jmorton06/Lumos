@@ -15,7 +15,8 @@ namespace Lumos
 
 		void MemoryManager::OnShutdown()
 		{
-			lmdel s_Instance;
+			if(s_Instance)
+				lmdel s_Instance;
 		}
 
 		MemoryManager* MemoryManager::Get()
@@ -56,8 +57,8 @@ namespace Lumos
 			avm = MemoryManager::BytesToString(availableVirtualMemory);
 			tvm = MemoryManager::BytesToString(totalVirtualMemory);
 
-			LUMOS_LOG_INFO("Memory Info:");
-			LUMOS_LOG_INFO("\tPhysical Memory : {0} / {1}", apm, tpm);
-			LUMOS_LOG_INFO("\tVirtual Memory : {0} / {1}: ", avm, tvm);
+			Debug::Log::Info("Memory Info:");
+			Debug::Log::Info("\tPhysical Memory : {0} / {1}", apm, tpm);
+			Debug::Log::Info("\tVirtual Memory : {0} / {1}: ", avm, tvm);
 		}
 }

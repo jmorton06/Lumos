@@ -64,20 +64,20 @@ namespace Lumos
     
     void Profiler::Enable()
     {
-        LUMOS_LOG_INFO("Profiler Enabled");
+		Debug::Log::Info("Profiler Enabled");
         m_Enabled = true;
     }
     
     void Profiler::Disable()
     {
-        LUMOS_LOG_INFO("Profiler Disabled");
+		Debug::Log::Info("Profiler Disabled");
         m_Enabled = false;
     }
     
     void Profiler::ToggleEnable()
     {
         m_Enabled = !m_Enabled;
-        LUMOS_LOG_INFO(m_Enabled ? "Profiler Enabled" : "Profiler Disabled");
+		Debug::Log::Info(m_Enabled ? "Profiler Enabled" : "Profiler Disabled");
     }
     
     void Profiler::Save(const ProfilerRecord& record)
