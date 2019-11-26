@@ -12,15 +12,11 @@ namespace Lumos
 	FPSCamera::FPSCamera(float FOV, float Near, float Far, float aspect)
 		: Camera(FOV, Near, Far, aspect)
 	{
-		Application::Instance()->GetWindow()->HideMouse(true);
-		//m_ProjMatrix = Maths::Matrix4::Perspective(m_Near, m_Far, aspect, FOV);
 	}
 
 	FPSCamera::FPSCamera(float pitch, float yaw, const Maths::Vector3& position, float FOV, float Near, float Far, float aspect)
 		: Camera(pitch, yaw, position, FOV, Near, Far, aspect)
 	{
-		Application::Instance()->GetWindow()->HideMouse(true);
-		//m_ProjMatrix = Maths::Matrix4::Perspective(m_Near, m_Far, aspect, FOV);
 	}
 
 	FPSCamera::~FPSCamera() = default;
@@ -47,19 +43,20 @@ namespace Lumos
 			}
 
 			m_PreviousCurserPos = Maths::Vector2(xpos, ypos);
-		}
 
-		UpdateScroll(Input::GetInput()->GetScrollOffset(), dt);
-		Input::GetInput()->SetScrollOffset(0.0f);
+			m_ViewDirty = true;
+
+			UpdateScroll(Input::GetInput()->GetScrollOffset(), dt);
+		}
 	}
 
 	void FPSCamera::HandleKeyboard(float dt)
 	{
 		const Maths::Quaternion orientation = Maths::Quaternion::EulerAnglesToQuaternion(m_Pitch, m_Yaw, 1.0f);
 		Maths::Vector3 up = Maths::Vector3(0, 1, 0), right = Maths::Vector3(1, 0, 0), forward = Maths::Vector3(0, 0, -1);
-		//Maths::Quaternion::RotatePointByQuaternion(orientation, up);
-		//Maths::Quaternion::RotatePointByQuaternion(orientation, right);
-		//Maths::Quaternion::RotatePointByQuaternion(orientation, forward);
+		up = orientation * up;
+		right = orientation * right;
+		forward = orientation * forward;
 
 		m_CameraSpeed = 1000.0f * dt;
 
@@ -95,6 +92,8 @@ namespace Lumos
 
 		m_Position += m_Velocity * dt;
 		m_Velocity = m_Velocity * pow(m_DampeningFactor, dt);
+
+		m_ViewDirty = true;
 
 	}
 

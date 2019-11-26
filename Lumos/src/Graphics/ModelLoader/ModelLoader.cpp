@@ -21,8 +21,6 @@ namespace Lumos
 			return LoadOBJ(resolvedPath, registry);
 		else if (fileExtension == "gltf" || fileExtension == "glb")
 			return LoadGLTF(resolvedPath, registry);
-		else if (fileExtension == "fbx" || fileExtension == "FBX")
-			return LoadFBX(resolvedPath, registry);
 		else
 			Debug::Log::Error("Unsupported File Type : {0}", fileExtension);
 

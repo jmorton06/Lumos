@@ -19,8 +19,9 @@ namespace Lumos
 		, m_Far(Far)
 		, m_Roll(0.0f)
 		, m_Orthographic(false)
+		, m_ViewDirty(true)
+		, m_ProjectionDirty(true)
 	{
-		Camera::BuildViewMatrix();
 	};
 
 	Camera::Camera(float pitch, float yaw, const Maths::Vector3& position, float FOV, float Near, float Far, float aspect)
@@ -36,12 +37,13 @@ namespace Lumos
 		, m_Far(Far)
 		, m_Roll(0.0f)
 		, m_Orthographic(false)
+		, m_ViewDirty(true)
+		, m_ProjectionDirty(true)
 	{
-		Camera::BuildViewMatrix();
 	}
 
 	Camera::Camera(float aspectRatio, float scale)
-		: m_Scale(scale), m_AspectRatio(aspectRatio), m_Orthographic(true)
+		: m_Scale(scale), m_AspectRatio(aspectRatio), m_Orthographic(true), m_ViewDirty(true) , m_ProjectionDirty(true)
 	{
 	}
 
@@ -52,11 +54,16 @@ namespace Lumos
 			m_ZoomVelocity -= dt * offset * 10.0f;
 		}
 
-		m_Position += GetForwardDirection() * m_ZoomVelocity;
-		m_ZoomVelocity = m_ZoomVelocity * pow(m_ZoomDampeningFactor, dt);
+		if (!Maths::Equals(m_ZoomVelocity, 0.0f))
+		{
+			m_Position += GetForwardDirection() * m_ZoomVelocity;
+			m_ZoomVelocity = m_ZoomVelocity * pow(m_ZoomDampeningFactor, dt);
+			m_ViewDirty = true;
+		}
+
 	}
 
-	void Camera::BuildViewMatrix()
+	void Camera::UpdateViewMatrix()
 	{
 		m_ViewMatrix = Maths::Matrix4::Translation(m_Position) * Maths::Quaternion::EulerAnglesToQuaternion(m_Pitch, m_Yaw, m_Roll).RotationMatrix4();
 		m_ViewMatrix = m_ViewMatrix.Inverse();
@@ -132,6 +139,16 @@ namespace Lumos
 		return m_ProjMatrix; 
 	}
 
+	const Maths::Matrix4 & Camera::GetViewMatrix()
+	{
+		if (m_ViewDirty)
+		{
+			UpdateViewMatrix();
+			m_ViewDirty = false;
+		}
+		return m_ViewMatrix;
+	}
+
 	Maths::Quaternion Camera::GetOrientation() const
 	{
 		return Maths::Quaternion::EulerAnglesToQuaternion(m_Pitch, m_Yaw, m_Roll);
@@ -159,6 +176,7 @@ namespace Lumos
 			ImGui::Checkbox("Orthograhic", &m_Orthographic);
             
             m_ProjectionDirty = true;
+			m_ViewDirty = true;
 
 			ImGui::Columns(1);
 			ImGui::Separator();

@@ -89,6 +89,7 @@ namespace Lumos
 
 		void ShadowRenderer::Init()
 		{
+			LUMOS_PROFILE_FUNC;
 			m_VSSystemUniformBufferSize = sizeof(Maths::Matrix4) * 16;
 			m_VSSystemUniformBuffer = lmnew u8[m_VSSystemUniformBufferSize];
 			memset(m_VSSystemUniformBuffer, 0, m_VSSystemUniformBufferSize);
@@ -151,6 +152,7 @@ namespace Lumos
 
 		void ShadowRenderer::Present()
 		{
+			LUMOS_PROFILE_FUNC;
 			int index = 0;
 
 			m_RenderPass->BeginRenderpass(m_CommandBuffer, Maths::Vector4(0.0f), m_ShadowFramebuffer[m_Layer], Graphics::INLINE, m_ShadowMapSize, m_ShadowMapSize);
@@ -199,7 +201,7 @@ namespace Lumos
 
 		void ShadowRenderer::RenderScene(Scene* scene)
 		{
-            LUMOS_PROFILE_BLOCK("ShadowRenderer::RenderScene");
+			LUMOS_PROFILE_FUNC;
 
 			memcpy(m_VSSystemUniformBuffer + m_VSSystemUniformBufferOffsets[VSSystemUniformIndex_ProjectionViewMatrix], m_ShadowProjView, sizeof(Maths::Matrix4) * SHADOWMAP_MAX);
 
@@ -253,6 +255,7 @@ namespace Lumos
 
 		void ShadowRenderer::UpdateCascades(Scene* scene)
 		{
+			LUMOS_PROFILE_FUNC;
 			if (m_LightEntity == entt::null)
 				return;
 

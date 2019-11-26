@@ -32,6 +32,7 @@ namespace Lumos
 	{
 		memset(m_KeyPressed, 0, MAX_KEYS);
 		memset(m_MouseClicked, 0, MAX_BUTTONS);
+		m_ScrollOffset = 0;
 	}
 
 	void Input::OnEvent(Event& e)

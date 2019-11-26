@@ -6,7 +6,7 @@ namespace Lumos
     {
         int major = 0;
         int minor = 2;
-        int patch = 1;
+        int patch = 2;
     };
 
     constexpr InternalVersion const LumosVersion = InternalVersion();

@@ -15,12 +15,20 @@ namespace Lumos
         
         _FORCE_INLINE_ bool IsReferenced() const { return m_RefcountInit.get() < 1; }
         bool InitRef();
-        bool reference(); // returns false if refcount is at zero and didn't get increased
+
+		//Returns false if refcount is at zero and didn't get increased
+        bool reference(); 
         bool unreference();
+
+		bool weakReference();
+		bool weakUnreference();
+
         int GetReferenceCount() const;
+		int GetWeakReferenceCount() const;
     private:
         ReferenceCounter m_Refcount;
         ReferenceCounter m_RefcountInit;
+		ReferenceCounter m_WeakRefcount;
     };
     
     template<class T>
@@ -227,7 +235,9 @@ namespace Lumos
 				if (m_Counter->unreference())
 				{
 					lmdel m_Ptr;
-					lmdel m_Counter;
+					
+					if(m_Counter->GetWeakReferenceCount() == 0)
+						lmdel m_Counter;
 
 					m_Ptr = nullptr;
 					m_Counter = nullptr;

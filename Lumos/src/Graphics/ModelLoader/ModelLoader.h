@@ -11,6 +11,5 @@ namespace Lumos
 		LUMOS_EXPORT entt::entity LoadModel(const String& path, entt::registry& registry);
 		entt::entity LoadOBJ(const String& path, entt::registry& registry);
 		entt::entity LoadGLTF(const String& path, entt::registry& registry);
-		entt::entity LoadFBX(const String& path, entt::registry& registry);
 	};
 }

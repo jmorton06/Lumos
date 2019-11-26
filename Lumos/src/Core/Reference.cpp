@@ -7,6 +7,7 @@ namespace Lumos
     {
         m_Refcount.init();
         m_RefcountInit.init();
+		m_WeakRefcount.init();
     }
     
     RefCount::~RefCount()
@@ -41,6 +42,11 @@ namespace Lumos
     {
         return m_Refcount.get();
     }
+
+	int RefCount::GetWeakReferenceCount() const
+	{
+		return m_WeakRefcount.get();
+	}
     
     bool RefCount::reference()
     {
@@ -55,4 +61,18 @@ namespace Lumos
         
         return die;
     }
+
+	bool RefCount::weakReference()
+	{
+		bool success = m_WeakRefcount.ref();
+
+		return success;
+	}
+
+	bool RefCount::weakUnreference()
+	{
+		bool die = m_WeakRefcount.unref();
+
+		return die;
+	}
 }
