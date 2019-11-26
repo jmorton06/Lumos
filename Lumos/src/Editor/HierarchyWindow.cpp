@@ -5,6 +5,8 @@
 #include "App/SceneManager.h"
 #include "ImGui/ImGuiHelpers.h"
 #include "App/SceneGraph.h"
+
+#include <imgui/imgui_internal.h>
 #include <IconFontCppHeaders/IconsFontAwesome5.h>
 
 namespace Lumos
@@ -118,54 +120,43 @@ namespace Lumos
 			{
 				auto ptr = node;
 				ImGui::SetDragDropPayload("Drag_Entity", &ptr, sizeof(entt::entity*));
-				//ImGui::Text("Moving %s", node->GetName().c_str());
+				ImGui::Text(ICON_FA_ARROW_UP);
 				ImGui::EndDragDropSource();
 			}
 
-			if (ImGui::BeginDragDropTarget())
+			
+			const ImGuiPayload* payload = ImGui::GetDragDropPayload();
+			if (payload != NULL && payload->IsDataType("Drag_Entity"))
 			{
-				if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("Drag_Entity"))
+				bool acceptable = true;
+
+				LUMOS_ASSERT(payload->DataSize == sizeof(entt::entity*), "Error ImGUI drag entity");
+				auto entity = *reinterpret_cast<entt::entity*>(payload->Data);
+				auto hierarchyComponent = registry.try_get<Hierarchy>(entity);
+				if (hierarchyComponent)
 				{
-					LUMOS_ASSERT(payload->DataSize == sizeof(entt::entity*), "Error ImGUI drag entity");
-					auto entity = *reinterpret_cast<entt::entity*>(payload->Data);
-					//node->AddChild(entity);
-					auto hierarchyComponent = registry.try_get<Hierarchy>(entity);
-					if (hierarchyComponent)
-					{
-						bool entityIsParentOfNode = false;
-						auto nodeHierarchyComponent = registry.try_get<Hierarchy>(node);
-						if (nodeHierarchyComponent)
-						{
-							auto parent = nodeHierarchyComponent->parent();
-							while (parent != entt::null)
-							{
-								if (parent == entity)
-								{
-									entityIsParentOfNode = true;
-									break;
-								}
-								else
-								{
-									nodeHierarchyComponent = registry.try_get<Hierarchy>(parent);
-									parent = nodeHierarchyComponent ? nodeHierarchyComponent->parent() : entt::null;
-								}
-							}
-						}
-						
-
-						if(!entityIsParentOfNode)
-							Hierarchy::Reparent(entity, node, registry, *hierarchyComponent);
-					}
-					else
-					{
-						registry.assign<Hierarchy>(entity, node);
-					}
-					m_HadRecentDroppedEntity = node;
-
-					if (m_Editor->GetSelected() == entity)
-						m_Editor->SetSelected(entt::null);
+					acceptable = IsParentOfEntity(entity, node, registry);
 				}
-				ImGui::EndDragDropTarget();
+
+				if (acceptable && ImGui::BeginDragDropTarget())
+				{
+					// Drop directly on to node and append to the end of it's children list.
+					if (ImGui::AcceptDragDropPayload("Drag_Entity"))
+					{
+						if (hierarchyComponent)
+							Hierarchy::Reparent(entity, node, registry, *hierarchyComponent);
+						else
+						{
+							registry.assign<Hierarchy>(entity, node);
+						}
+					}
+					ImGui::EndDragDropTarget();
+				}
+					
+				m_HadRecentDroppedEntity = node;
+
+				if (m_Editor->GetSelected() == entity)
+					m_Editor->SetSelected(entt::null);
 			}
 
 			if (ImGui::IsItemClicked() && !deleteEntity)
@@ -194,9 +185,9 @@ namespace Lumos
 				entt::entity child = hierarchyComponent->first();
 				while (child != entt::null && registry.valid(child))
 				{
-					ImGui::Indent();
+					ImGui::Indent(16.0f);
 					DrawNode(child, registry);
-					ImGui::Unindent();
+					ImGui::Unindent(16.0f);
 					auto hierarchyComponent = registry.try_get<Hierarchy>(child);
 					if (hierarchyComponent)
 						child = hierarchyComponent->next();
@@ -224,11 +215,76 @@ namespace Lumos
 		registry.destroy(entity);
 	}
 
+	bool HierarchyWindow::IsParentOfEntity(entt::entity entity, entt::entity child, entt::registry & registry)
+	{
+		auto nodeHierarchyComponent = registry.try_get<Hierarchy>(child);
+		if (nodeHierarchyComponent)
+		{
+			auto parent = nodeHierarchyComponent->parent();
+			while (parent != entt::null)
+			{
+				if (parent == entity)
+				{
+					return false;
+				}
+				else
+				{
+					nodeHierarchyComponent = registry.try_get<Hierarchy>(parent);
+					parent = nodeHierarchyComponent ? nodeHierarchyComponent->parent() : entt::null;
+				}
+			}
+		}
+
+		return true;
+	}
+
 	void HierarchyWindow::OnImGui()
 	{
 		auto flags = ImGuiWindowFlags_NoCollapse;
 		ImGui::Begin(m_Name.c_str(), &m_Active, flags);
 		{
+			auto& registry = Application::Instance()->GetSceneManager()->GetCurrentScene()->GetRegistry();
+
+			//Only supports one scene
+			ImVec2 min_space = ImGui::GetWindowContentRegionMin();
+			ImVec2 max_space = ImGui::GetWindowContentRegionMax();
+
+			float yOffset = Maths::Max(45.0f, ImGui::GetScrollY()); // Dont include search bar
+			min_space.x += ImGui::GetWindowPos().x + 1.0f;
+			min_space.y += ImGui::GetWindowPos().y + 1.0f + yOffset;
+			max_space.x += ImGui::GetWindowPos().x - 1.0f;
+			max_space.y += ImGui::GetWindowPos().y - 1.0f + ImGui::GetScrollY();
+			ImRect bb{ min_space,max_space };
+
+			const ImGuiPayload* payload = ImGui::GetDragDropPayload();
+			if (payload != NULL && payload->IsDataType("Drag_Entity"))
+			{
+				bool acceptable = false;
+
+				LUMOS_ASSERT(payload->DataSize == sizeof(entt::entity*), "Error ImGUI drag entity");
+				auto entity = *reinterpret_cast<entt::entity*>(payload->Data);
+				auto hierarchyComponent = registry.try_get<Hierarchy>(entity);
+				if (hierarchyComponent)
+				{
+					acceptable = hierarchyComponent->parent() != entt::null;
+				}
+
+				if (acceptable && ImGui::BeginDragDropTargetCustom(bb, ImGui::GetID("Panel Hierarchy")))
+				{
+					if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("Drag_Entity"))
+					{
+						LUMOS_ASSERT(payload->DataSize == sizeof(entt::entity*), "Error ImGUI drag entity");
+						auto entity = *reinterpret_cast<entt::entity*>(payload->Data);
+						auto hierarchyComponent = registry.try_get<Hierarchy>(entity);
+						if (hierarchyComponent)
+						{
+							Hierarchy::Reparent(entity, entt::null, registry, *hierarchyComponent);
+						}
+					}
+					ImGui::EndDragDropTarget();
+				}
+			}
+
 			ImGui::Indent();
 			ImGui::TextUnformatted(ICON_FA_SEARCH);
 			ImGui::SameLine();
@@ -238,9 +294,22 @@ namespace Lumos
 
 			if (ImGui::CollapsingHeader("Scene",ImGuiTreeNodeFlags_DefaultOpen))
 			{
+				if (ImGui::BeginDragDropTarget())
+				{
+					if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("Drag_Entity"))
+					{
+						LUMOS_ASSERT(payload->DataSize == sizeof(entt::entity*), "Error ImGUI drag entity");
+						auto entity = *reinterpret_cast<entt::entity*>(payload->Data);
+						auto hierarchyComponent = registry.try_get<Hierarchy>(entity);
+						if (hierarchyComponent)
+						{
+							Hierarchy::Reparent(entity, entt::null, registry, *hierarchyComponent);
+						}
+					}
+					ImGui::EndDragDropTarget();
+				}
+
 				ImGui::Indent();
-                
-                auto& registry = Application::Instance()->GetSceneManager()->GetCurrentScene()->GetRegistry();
                 
                 registry.each([&](auto entity)
                 {
@@ -252,6 +321,9 @@ namespace Lumos
 							DrawNode(entity, registry);
 					}
                 });
+
+				
+
 			}
 		}
 		ImGui::End();

@@ -82,6 +82,7 @@ namespace Lumos
 
 		void DeferredOffScreenRenderer::Init()
 		{
+			LUMOS_PROFILE_FUNC;
 			m_Shader = Shader::CreateFromFile("DeferredColour", "/CoreShaders/");
 			m_DefaultMaterial = lmnew Material();
 
@@ -150,7 +151,7 @@ namespace Lumos
 
 		void DeferredOffScreenRenderer::RenderScene(Scene* scene)
 		{
-            LUMOS_PROFILE_BLOCK("DeferredOffScreenRenderer::RenderScene");
+            LUMOS_PROFILE_FUNC;
 
 			BeginScene(scene);
 
@@ -450,6 +451,7 @@ namespace Lumos
 
 		void DeferredOffScreenRenderer::OnResize(u32 width, u32 height)
 		{
+			LUMOS_PROFILE_FUNC;
 			delete m_Pipeline;
 			delete m_FBO;
 

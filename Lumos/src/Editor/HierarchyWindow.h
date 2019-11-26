@@ -19,6 +19,7 @@ namespace Lumos
 		void OnImGui() override;
 
 		void DestroyEntity(entt::entity entity, entt::registry& registry);
+		bool IsParentOfEntity(entt::entity entity, entt::entity child, entt::registry& registry);
 		
 	private:
 		ImGuiTextFilter m_HierarchyFilter;

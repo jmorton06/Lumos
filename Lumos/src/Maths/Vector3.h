@@ -255,6 +255,12 @@ namespace Lumos::Maths
         /// Divide by a vector.
         Vector3 operator /(const Vector3& rhs) const { return Vector3(x / rhs.x, y / rhs.y, z / rhs.z); }
 
+		bool operator<(const Vector3 &other)	const { return x < other.x && y < other.y && z < other.z; }
+		bool operator<=(const Vector3 &other)	const { return x <= other.x && y <= other.y && z <= other.z; }
+		bool operator>(const Vector3 &other)	const { return x > other.x && y > other.y && z > other.z; }
+		bool operator>=(const Vector3 &other)	const { return x >= other.x && y >= other.y && z >= other.z; }
+
+
         /// Add-assign a vector.
         Vector3& operator +=(const Vector3& rhs)
         {

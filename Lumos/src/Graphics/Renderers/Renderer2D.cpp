@@ -22,6 +22,7 @@
 #include "Graphics/Renderable2D.h"
 #include "Graphics/Camera/Camera.h"
 #include "Maths/Transform.h"
+#include "Core/Profiler.h"
 
 #define RENDERER_MAX_SPRITES	10000
 #define RENDERER_SPRITE_SIZE	RENDERER2D_VERTEX_SIZE * 4
@@ -71,6 +72,7 @@ namespace Lumos
 
 		void Renderer2D::Init()
 		{
+			LUMOS_PROFILE_FUNC;
 			m_Shader = Shader::CreateFromFile("Batch2D", "/CoreShaders/");
 
 			m_TransformationStack.emplace_back(Maths::Matrix4());
@@ -307,6 +309,7 @@ namespace Lumos
 
 		void Renderer2D::Render(Scene* scene)
 		{
+			LUMOS_PROFILE_FUNC;
 			Begin();
 
 			SetSystemUniforms(m_Shader);
