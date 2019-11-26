@@ -124,39 +124,43 @@ namespace Lumos
 				ImGui::EndDragDropSource();
 			}
 
-			
 			const ImGuiPayload* payload = ImGui::GetDragDropPayload();
 			if (payload != NULL && payload->IsDataType("Drag_Entity"))
 			{
-				bool acceptable = true;
+				bool acceptable = false;
 
 				LUMOS_ASSERT(payload->DataSize == sizeof(entt::entity*), "Error ImGUI drag entity");
 				auto entity = *reinterpret_cast<entt::entity*>(payload->Data);
-				auto hierarchyComponent = registry.try_get<Hierarchy>(entity);
-				if (hierarchyComponent)
-				{
-					acceptable = (!IsParentOfEntity(entity, node, registry)) && hierarchyComponent->parent() != node;
-				}
+                auto hierarchyComponent = registry.try_get<Hierarchy>(entity);
+                if (hierarchyComponent != nullptr)
+                {
+                    acceptable = entity != node && (!IsParentOfEntity(entity, node, registry)) && (hierarchyComponent->parent() != node);
+                }
+                else
+                    acceptable = entity != node;
 
-				if (acceptable && ImGui::BeginDragDropTarget())
-				{
-					// Drop directly on to node and append to the end of it's children list.
-					if (ImGui::AcceptDragDropPayload("Drag_Entity"))
-					{
-						if (hierarchyComponent)
-							Hierarchy::Reparent(entity, node, registry, *hierarchyComponent);
-						else
-						{
-							registry.assign<Hierarchy>(entity, node);
-						}
-					}
-					ImGui::EndDragDropTarget();
-				}
-					
-				m_HadRecentDroppedEntity = node;
+                if (ImGui::BeginDragDropTarget())
+                {
+                    // Drop directly on to node and append to the end of it's children list.
+                    if (ImGui::AcceptDragDropPayload("Drag_Entity"))
+                    {
+                        if(acceptable)
+                        {
+                            if (hierarchyComponent)
+                               Hierarchy::Reparent(entity, node, registry, *hierarchyComponent);
+                            else
+                            {
+                               registry.assign<Hierarchy>(entity, node);
+                            }
+                            m_HadRecentDroppedEntity = node;
+                        }
+                    }
 
-				if (m_Editor->GetSelected() == entity)
-					m_Editor->SetSelected(entt::null);
+                    ImGui::EndDragDropTarget();
+                }
+                    
+                if (m_Editor->GetSelected() == entity)
+                    m_Editor->SetSelected(entt::null);
 			}
 
 			if (ImGui::IsItemClicked() && !deleteEntity)
@@ -244,47 +248,7 @@ namespace Lumos
 		ImGui::Begin(m_Name.c_str(), &m_Active, flags);
 		{
 			auto& registry = Application::Instance()->GetSceneManager()->GetCurrentScene()->GetRegistry();
-
-			//Only supports one scene
-			ImVec2 min_space = ImGui::GetWindowContentRegionMin();
-			ImVec2 max_space = ImGui::GetWindowContentRegionMax();
-
-			float yOffset = Maths::Max(45.0f, ImGui::GetScrollY()); // Dont include search bar
-			min_space.x += ImGui::GetWindowPos().x + 1.0f;
-			min_space.y += ImGui::GetWindowPos().y + 1.0f + yOffset;
-			max_space.x += ImGui::GetWindowPos().x - 1.0f;
-			max_space.y += ImGui::GetWindowPos().y - 1.0f + ImGui::GetScrollY();
-			ImRect bb{ min_space,max_space };
-
-			const ImGuiPayload* payload = ImGui::GetDragDropPayload();
-			if (payload != NULL && payload->IsDataType("Drag_Entity"))
-			{
-				bool acceptable = false;
-
-				LUMOS_ASSERT(payload->DataSize == sizeof(entt::entity*), "Error ImGUI drag entity");
-				auto entity = *reinterpret_cast<entt::entity*>(payload->Data);
-				auto hierarchyComponent = registry.try_get<Hierarchy>(entity);
-				if (hierarchyComponent)
-				{
-					acceptable = hierarchyComponent->parent() != entt::null;
-				}
-
-				if (acceptable && ImGui::BeginDragDropTargetCustom(bb, ImGui::GetID("Panel Hierarchy")))
-				{
-					if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("Drag_Entity"))
-					{
-						LUMOS_ASSERT(payload->DataSize == sizeof(entt::entity*), "Error ImGUI drag entity");
-						auto entity = *reinterpret_cast<entt::entity*>(payload->Data);
-						auto hierarchyComponent = registry.try_get<Hierarchy>(entity);
-						if (hierarchyComponent)
-						{
-							Hierarchy::Reparent(entity, entt::null, registry, *hierarchyComponent);
-						}
-					}
-					ImGui::EndDragDropTarget();
-				}
-			}
-
+            
 			ImGui::Indent();
 			ImGui::TextUnformatted(ICON_FA_SEARCH);
 			ImGui::SameLine();
@@ -322,7 +286,46 @@ namespace Lumos
 					}
                 });
 
-				
+                //Only supports one scene
+                ImVec2 min_space = ImGui::GetWindowContentRegionMin();
+                ImVec2 max_space = ImGui::GetWindowContentRegionMax();
+
+                float yOffset = Maths::Max(45.0f, ImGui::GetScrollY()); // Dont include search bar
+                min_space.x += ImGui::GetWindowPos().x + 1.0f;
+                min_space.y += ImGui::GetWindowPos().y + 1.0f + yOffset;
+                max_space.x += ImGui::GetWindowPos().x - 1.0f;
+                max_space.y += ImGui::GetWindowPos().y - 1.0f + ImGui::GetScrollY();
+                ImRect bb{ min_space,max_space };
+
+                const ImGuiPayload* payload = ImGui::GetDragDropPayload();
+                if (payload != NULL && payload->IsDataType("Drag_Entity"))
+                {
+                    bool acceptable = false;
+
+                    LUMOS_ASSERT(payload->DataSize == sizeof(entt::entity*), "Error ImGUI drag entity");
+                    auto entity = *reinterpret_cast<entt::entity*>(payload->Data);
+                    auto hierarchyComponent = registry.try_get<Hierarchy>(entity);
+                    if (hierarchyComponent)
+                    {
+                        acceptable = hierarchyComponent->parent() != entt::null;
+                    }
+
+                    if (acceptable && ImGui::BeginDragDropTargetCustom(bb, ImGui::GetID("Panel Hierarchy")))
+                    {
+                        if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("Drag_Entity"))
+                        {
+                            LUMOS_ASSERT(payload->DataSize == sizeof(entt::entity*), "Error ImGUI drag entity");
+                            auto entity = *reinterpret_cast<entt::entity*>(payload->Data);
+                            auto hierarchyComponent = registry.try_get<Hierarchy>(entity);
+                            if (hierarchyComponent)
+                            {
+                                Hierarchy::Reparent(entity, entt::null, registry, *hierarchyComponent);
+                            }
+                        }
+                        ImGui::EndDragDropTarget();
+                    }
+                }
+
 
 			}
 		}
