@@ -135,7 +135,7 @@ namespace Lumos
 				auto hierarchyComponent = registry.try_get<Hierarchy>(entity);
 				if (hierarchyComponent)
 				{
-					acceptable = IsParentOfEntity(entity, node, registry);
+					acceptable = (!IsParentOfEntity(entity, node, registry)) && hierarchyComponent->parent() != node;
 				}
 
 				if (acceptable && ImGui::BeginDragDropTarget())
@@ -185,9 +185,9 @@ namespace Lumos
 				entt::entity child = hierarchyComponent->first();
 				while (child != entt::null && registry.valid(child))
 				{
-					ImGui::Indent(16.0f);
+					ImGui::Indent(8.0f);
 					DrawNode(child, registry);
-					ImGui::Unindent(16.0f);
+					ImGui::Unindent(8.0f);
 					auto hierarchyComponent = registry.try_get<Hierarchy>(child);
 					if (hierarchyComponent)
 						child = hierarchyComponent->next();
@@ -225,7 +225,7 @@ namespace Lumos
 			{
 				if (parent == entity)
 				{
-					return false;
+					return true;
 				}
 				else
 				{
@@ -235,7 +235,7 @@ namespace Lumos
 			}
 		}
 
-		return true;
+		return false;
 	}
 
 	void HierarchyWindow::OnImGui()
