@@ -236,7 +236,6 @@ namespace Lumos
 
         ImGuiStyle& style = ImGui::GetStyle();
         
-		style.PopupRounding = 3;
 		style.WindowPadding = ImVec2(2, 2);
 		style.FramePadding = ImVec2(2, 2);
 		style.ItemSpacing = ImVec2(6, 2);
@@ -248,23 +247,23 @@ namespace Lumos
 		style.WindowBorderSize = 0;
 		style.ChildBorderSize = 1;
 		style.PopupBorderSize = 3;
-		style.PopupRounding = 2;
+		style.PopupRounding = 4;
 		style.FrameBorderSize = 0.0f;
 		
-		style.WindowRounding = 1;
-		style.ChildRounding = 1;
-		style.FrameRounding = 1;
-		style.ScrollbarRounding = 1;
-		style.GrabRounding = 1;
+		style.WindowRounding = 4;
+		style.ChildRounding = 4;
+		style.FrameRounding = 4;
+		style.ScrollbarRounding = 4;
+		style.GrabRounding = 4;
         style.WindowMinSize = ImVec2(10.0f,10.0f);
 
 #ifdef IMGUI_HAS_DOCK 
 		style.TabBorderSize = 0.0f;
-		style.TabRounding = 2;
+		style.TabRounding = 4;
 
 		if (ImGui::GetIO().ConfigFlags & ImGuiConfigFlags_ViewportsEnable)
 		{
-			style.WindowRounding = 0.0f;
+			style.WindowRounding = 4;
 			style.Colors[ImGuiCol_WindowBg].w = 1.0f;
 		}
 #endif

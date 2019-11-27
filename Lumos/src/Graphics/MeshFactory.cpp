@@ -510,8 +510,8 @@ namespace Lumos
 
 		Mesh* CreatePlane(float width, float height, const Maths::Vector3& normal)
 		{
-			/*Maths::Vector3 vec = normal * 90.0f;
-			Maths::Matrix4 rotation = Maths::Matrix4::Rotation(vec.z, Maths::Vector3(1.0f, 0.0f, 0.0f)) * Maths::Matrix4::Rotation(vec.y, Maths::Vector3(0.0f, 1.0f, 0.0f)) * Maths::Matrix4::Rotation(vec.x, Maths::Vector3(0.0f, 0.0f, 1.0f));
+			Maths::Vector3 vec = normal * 90.0f;
+			Maths::Quaternion rotation = Maths::Quaternion(vec.z, Maths::Vector3(1.0f, 0.0f, 0.0f)) * Maths::Quaternion(vec.y, Maths::Vector3(0.0f, 1.0f, 0.0f)) * Maths::Quaternion(vec.x, Maths::Vector3(0.0f, 0.0f, 1.0f));
 
 			Vertex data[4];
 			memset(data, 0, 4 * sizeof(Vertex));
@@ -519,30 +519,26 @@ namespace Lumos
 			data[0].Position = rotation * Maths::Vector3(-width / 2.0f, 0.0f, -height / 2.0f);
 			data[0].Normal = normal;
 			data[0].TexCoords = Maths::Vector2(0.0f, 0.0f);
-			data[0].Tangent = Maths::Matrix4::Rotation(90.0f, Maths::Vector3(0.0f, 0.0f, 1.0f)) * normal;
 
 			data[1].Position = rotation * Maths::Vector3(-width / 2.0f, 0.0f, height / 2.0f);
 			data[1].Normal = normal;
 			data[1].TexCoords = Maths::Vector2(0.0f, 1.0f);
-			data[1].Tangent = Maths::Matrix4::Rotation(90.0f, Maths::Vector3(0, 0, 1)) * normal;
 
 			data[2].Position = rotation * Maths::Vector3(width / 2.0f, 0.0f, height / 2.0f);
 			data[2].Normal = normal;
 			data[2].TexCoords = Maths::Vector2(1.0f, 1.0f);
-			data[2].Tangent = Maths::Matrix4::Rotation(90.0f, Maths::Vector3(0.0f, 0.0f, 1.0f)) * normal;
 
 			data[3].Position = rotation * Maths::Vector3(width / 2.0f, 0.0f, -height / 2.0f);
 			data[3].Normal = normal;
 			data[3].TexCoords = Maths::Vector2(1.0f, 0.0f);
-			data[3].Tangent = Maths::Matrix4::Rotation(90.0f, Maths::Vector3(0.0f, 0.0f, 1.0f)) * normal;*/
 
 			VertexBuffer* buffer = VertexBuffer::Create(BufferUsage::STATIC);
-			//buffer->SetData(8 * sizeof(Vertex), data);
+			buffer->SetData(8 * sizeof(Vertex), data);
 
             Ref<Maths::BoundingBox> boundingBox = CreateRef<Maths::BoundingBox>();
             for (int i = 0; i < 4; i++)
             {
-                //boundingBox->Merge(data[i].Position);
+                boundingBox->Merge(data[i].Position);
             }
 
 			Graphics::BufferLayout layout;

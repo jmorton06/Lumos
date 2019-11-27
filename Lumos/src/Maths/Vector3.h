@@ -167,7 +167,7 @@ namespace Lumos::Maths
         {
         }
 
-        Vector3(float x) noexcept :
+		explicit Vector3(float x) noexcept :
             x(x),
             y(x),
             z(x)

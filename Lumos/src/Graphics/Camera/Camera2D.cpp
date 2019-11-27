@@ -66,7 +66,7 @@ namespace Lumos
 			m_Velocity -= up * m_CameraSpeed;
 		}
 
-		if (!Maths::Equals(m_Velocity, Maths::Vector3::ZERO))
+		if (!Maths::Equals(m_Velocity, Maths::Vector3::ZERO, Maths::Vector3(Maths::M_EPSILON)))
 		{
 			m_Position += m_Velocity * dt;
 			m_Velocity = m_Velocity * pow(m_DampeningFactor, dt);

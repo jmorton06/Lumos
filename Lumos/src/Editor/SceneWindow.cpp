@@ -138,8 +138,7 @@ namespace Lumos
 #endif
 
 		Maths::Matrix4 viewProj = proj * view;
-		Maths::Frustum f;
-		f.Define(camera->GetFOV(), camera->GetAspectRatio(), 1.0f, camera->GetNear(),camera->GetFar(), Maths::Matrix3x4(camera->GetViewMatrix()));
+		const Maths::Frustum& f = camera->GetFrustum();
 
 		auto& registry = scene->GetRegistry();
 		ShowComponentGizmo<Graphics::Light>(width, height, xpos, ypos, viewProj, f, registry);
