@@ -23,6 +23,9 @@ namespace Lumos
 		glfwCreateWindowSurface(vkInstance, static_cast<GLFWwindow*>(window->GetHandle()), nullptr, (VkSurfaceKHR*)&surface);
 #else
 		VkWin32SurfaceCreateInfoKHR surfaceInfo;
+		memset(&surfaceInfo, 0, sizeof(VkWin32SurfaceCreateInfoKHR));
+
+		surfaceInfo.sType = VK_STRUCTURE_TYPE_WIN32_SURFACE_CREATE_INFO_KHR;
 		surfaceInfo.pNext = NULL;
 		surfaceInfo.hwnd = static_cast<HWND>(window->GetHandle());
 		surfaceInfo.hinstance = static_cast<WindowsWindow*>(window)->GetHInstance();

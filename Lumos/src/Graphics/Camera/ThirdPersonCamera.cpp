@@ -12,16 +12,12 @@ namespace Lumos
 	ThirdPersonCamera::ThirdPersonCamera(float FOV, float Near, float Far, float aspect)
 		: Camera(FOV, Near, Far, aspect), m_Free(false)
 	{
-		Application::Instance()->GetWindow()->HideMouse(false);
-		//m_ProjMatrix = Maths::Matrix4::Perspective(m_Near, m_Far, aspect, FOV);
 		m_RotateDampeningFactor = 0.0f;
 	}
 
 	ThirdPersonCamera::ThirdPersonCamera(float pitch, float yaw, const Maths::Vector3& position, float FOV, float Near, float Far, float aspect)
 		: Camera(pitch, yaw, position, FOV, Near, Far, aspect), m_Free(false)
 	{
-		Application::Instance()->GetWindow()->HideMouse(false);
-		//m_ProjMatrix = Maths::Matrix4::Perspective(m_Near, m_Far, aspect, FOV);
 		m_RotateDampeningFactor = 0.0f;
 	}
 
@@ -53,7 +49,8 @@ namespace Lumos
 
 		m_RotateVelocity = m_RotateVelocity * pow(m_RotateDampeningFactor, dt);
 		UpdateScroll(Input::GetInput()->GetScrollOffset(), dt);
-		Input::GetInput()->SetScrollOffset(0.0f);
+		
+		m_ViewDirty = true;
 	}
 
 	void ThirdPersonCamera::HandleKeyboard(float dt)
@@ -92,6 +89,8 @@ namespace Lumos
 
 		m_Position += m_Velocity * dt;
 		m_Velocity = m_Velocity * pow(m_DampeningFactor, dt);
+
+		m_ViewDirty = true;
 	}
 
 	void ThirdPersonCamera::OnImGui()

@@ -5,12 +5,12 @@
 #include <spdlog/sinks/rotating_file_sink.h>
 #include <spdlog/sinks/stdout_color_sinks.h>
 
-namespace Lumos
+namespace Lumos::Debug
 {
-    std::shared_ptr<spdlog::logger> LMLog::s_CoreLogger;
-    std::shared_ptr<spdlog::logger> LMLog::s_ClientLogger;
+    std::shared_ptr<spdlog::logger> Log::s_CoreLogger;
+    std::shared_ptr<spdlog::logger> Log::s_ClientLogger;
     
-    void LMLog::OnInit()
+    void Log::OnInit()
     {
 		std::vector<spdlog::sink_ptr> sinks;
         sinks.emplace_back(std::make_shared<spdlog::sinks::stdout_color_sink_mt>()); // debug console
@@ -33,8 +33,10 @@ namespace Lumos
 		s_ClientLogger->set_level(spdlog::level::trace);
     }
 
-	void LMLog::OnRelease()
+	void Log::OnRelease()
 	{
+		s_CoreLogger.reset();
+		s_ClientLogger.reset();
 		spdlog::shutdown();
 	}
 }

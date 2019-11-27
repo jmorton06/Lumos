@@ -16,34 +16,39 @@ namespace Lumos
 
 		virtual void HandleMouse(float dt, float xpos, float ypos) = 0;
 		virtual void HandleKeyboard(float dt) = 0;
-
-		virtual void BuildViewMatrix();
-		virtual void UpdateScroll(float offset, float dt);
-		virtual void UpdateProjectionMatrix();
 		virtual void OnImGui();
+		virtual void UpdateScroll(float offset, float dt);
 
 		const Maths::Vector3& GetPosition() const { return m_Position; }
-		void SetPosition(const Maths::Vector3& val) { m_Position = val; }
+		void SetPosition(const Maths::Vector3& val)
+		{
+			m_Position = val; 
+			m_ViewDirty = true;
+		}
 
 		void SetMouseSensitivity(float value) { m_MouseSensitivity = value; }
 		
 		bool IsOrthographic() const { return m_Orthographic; }
 
 		float GetRoll() const { return m_Roll; }
-		void SetRoll(float y) { m_Roll = y; }
+		void SetRoll(float y) 
+		{ 
+			m_ViewDirty = true;
+			m_Roll = y; 
+		}
 
 		float GetYaw() const { return m_Yaw; }
 		void SetYaw(float y) 
 		{ 
 			m_Yaw = y; 
-			m_ProjectionDirty = true;
+			m_ViewDirty = true;
 		}
 
 		float GetPitch() const { return m_Pitch; }
 		void SetPitch(float p) 
 		{ 
 			m_Pitch = p; 
-			m_ProjectionDirty = true;
+			m_ViewDirty = true;
 		}
 		
 		float GetAspectRatio() const { return m_AspectRatio; }
@@ -54,7 +59,7 @@ namespace Lumos
 		};
 
 		const Maths::Matrix4& GetProjectionMatrix();
-		const Maths::Matrix4& GetViewMatrix() const { return m_ViewMatrix; }
+		const Maths::Matrix4& GetViewMatrix();
 		const Maths::Vector3& GetVelocity() const { return m_Velocity; }
 
 		Maths::Quaternion GetOrientation() const;
@@ -63,8 +68,12 @@ namespace Lumos
 		float GetNear() const { return m_Near; }
 		float GetFOV() const { return m_Fov; }
 
-		void  SetScale(float scale) { m_Scale = scale; }
 		float GetScale() const { return m_Scale; };
+		void  SetScale(float scale)
+		{ 
+			m_Scale = scale; 
+			m_ProjectionDirty = true;
+		}
 		
 		Maths::Vector3 GetUpDirection() const;
 		Maths::Vector3 GetRightDirection() const;
@@ -74,6 +83,10 @@ namespace Lumos
 		const Maths::Frustum& GetFrustum();
 
 	protected:
+
+		void UpdateViewMatrix();
+		void UpdateProjectionMatrix();
+
 		float m_Pitch;
 		float m_Yaw;
 		float m_Roll;

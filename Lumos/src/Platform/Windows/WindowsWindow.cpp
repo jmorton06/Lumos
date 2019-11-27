@@ -43,8 +43,6 @@ namespace Lumos
 #define HID_USAGE_GENERIC_KEYBOARD ((USHORT)0x06)
 #endif
 
-	static ImGuiMouseCursor g_LastMouseCursor = ImGuiMouseCursor_COUNT;
-
 	WindowsWindow::WindowsWindow(const WindowProperties& properties) : hWnd(nullptr)
 	{
 		m_Init = false;
@@ -158,7 +156,7 @@ namespace Lumos
 
 	void ResizeCallback(Window* window, i32 width, i32 height)
 	{
-		WindowsWindow::WindowData data = static_cast<WindowsWindow*>(window)->m_Data;
+		WindowsWindow::WindowData& data = static_cast<WindowsWindow*>(window)->m_Data;
 
 		data.Width = width;
 		data.Height = height;
@@ -220,7 +218,7 @@ namespace Lumos
 
 	void MouseButtonCallback(Window* window, i32 button, i32 x, i32 y)
 	{
-		WindowsWindow::WindowData data = static_cast<WindowsWindow*>(window)->m_Data;
+		WindowsWindow::WindowData& data = static_cast<WindowsWindow*>(window)->m_Data;
 		HWND hWnd = static_cast<WindowsWindow*>(window)->GetHWND();
 
 		bool down = false;
@@ -272,7 +270,7 @@ namespace Lumos
 
 	void MouseScrollCallback(Window* window, int inSw, WPARAM wParam, LPARAM lParam)
 	{
-		WindowsWindow::WindowData data = static_cast<WindowsWindow*>(window)->m_Data;
+		WindowsWindow::WindowData& data = static_cast<WindowsWindow*>(window)->m_Data;
 
 		MouseScrolledEvent event(0.0f, static_cast<float>(GET_WHEEL_DELTA_WPARAM(wParam)) / static_cast<float>(WHEEL_DELTA));
 		data.EventCallback(event);
@@ -280,14 +278,14 @@ namespace Lumos
 
 	void MouseMoveCallback(Window* window, i32 x, i32 y)
 	{
-		WindowsWindow::WindowData data = static_cast<WindowsWindow*>(window)->m_Data;
+		WindowsWindow::WindowData& data = static_cast<WindowsWindow*>(window)->m_Data;
 		MouseMovedEvent event(static_cast<float>(x), static_cast<float>(y));
 		data.EventCallback(event);
 	}
 
 	void CharCallback(Window* window, i32 key, i32 flags, UINT message)
 	{
-		WindowsWindow::WindowData data = static_cast<WindowsWindow*>(window)->m_Data;
+		WindowsWindow::WindowData& data = static_cast<WindowsWindow*>(window)->m_Data;
 
 		KeyTypedEvent event(key);// WindowsKeyCodes::WindowsKeyToLumos(key)); //TODO : FIX
 		data.EventCallback(event);
@@ -298,7 +296,7 @@ namespace Lumos
 		bool pressed = message == WM_KEYDOWN || message == WM_SYSKEYDOWN;
 		bool repeat = (flags >> 30) & 1;
 
-		WindowsWindow::WindowData data = static_cast<WindowsWindow*>(window)->m_Data;
+		WindowsWindow::WindowData& data = static_cast<WindowsWindow*>(window)->m_Data;
 	
 		if (pressed)
 		{
@@ -312,10 +310,31 @@ namespace Lumos
 		}
 	}
 
+	static void ImGuiUpdateMousePos(HWND hWnd)
+	{
+		ImGuiIO& io = ImGui::GetIO();
+
+		// Set OS mouse position if requested (rarely used, only when ImGuiConfigFlags_NavEnableSetMousePos is enabled by user)
+		if (io.WantSetMousePos)
+		{
+			POINT pos = { (int)io.MousePos.x, (int)io.MousePos.y };
+			::ClientToScreen(hWnd, &pos);
+			::SetCursorPos(pos.x, pos.y);
+		}
+
+		// Set mouse position
+		io.MousePos = ImVec2(-FLT_MAX, -FLT_MAX);
+		POINT pos;
+		if (HWND active_window = ::GetForegroundWindow())
+			if (active_window == hWnd || ::IsChild(active_window, hWnd))
+				if (::GetCursorPos(&pos) && ::ScreenToClient(hWnd, &pos))
+					io.MousePos = ImVec2((float)pos.x, (float)pos.y);
+	}
+
 	LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 	{
 		LRESULT result = NULL;
-		Window* window = Application::Instance()->GetWindow(); //Window::GetWindowClass(hWnd);
+		Window* window = Application::Instance()->GetWindow();
 		if (window == nullptr)
 			return DefWindowProc(hWnd, message, wParam, lParam);
 
@@ -381,68 +400,48 @@ namespace Lumos
 		case WM_SYSCHAR:
 		case WM_UNICHAR:
 			CharCallback(window, i32(wParam), i32(lParam), message);
+			break;
+		case WM_SETCURSOR:
+			ImGuiUpdateMousePos(hWnd);
+			break;
 		default:
 			result = DefWindowProc(hWnd, message, wParam, lParam);
+			break;
 		}
 		return result;
 	}
 
-	static void ImGuiUpdateMousePos(HWND hWnd)
-	{
-		ImGuiIO& io = ImGui::GetIO();
-
-		// Set OS mouse position if requested (rarely used, only when ImGuiConfigFlags_NavEnableSetMousePos is enabled by user)
-		if (io.WantSetMousePos)
-		{
-			POINT pos = { (int)io.MousePos.x, (int)io.MousePos.y };
-			::ClientToScreen(hWnd, &pos);
-			::SetCursorPos(pos.x, pos.y);
-		}
-
-		// Set mouse position
-		io.MousePos = ImVec2(-FLT_MAX, -FLT_MAX);
-		POINT pos;
-		if (HWND active_window = ::GetForegroundWindow())
-			if (active_window == hWnd || ::IsChild(active_window, hWnd))
-				if (::GetCursorPos(&pos) && ::ScreenToClient(hWnd, &pos))
-					io.MousePos = ImVec2((float)pos.x, (float)pos.y);
-	}
-
 	void WindowsWindow::UpdateCursorImGui()
 	{
-		ImGuiUpdateMousePos(hWnd);
+		//ImGuiUpdateMousePos(hWnd);
 
 		ImGuiIO& io = ImGui::GetIO();
 		ImGuiMouseCursor imgui_cursor = io.MouseDrawCursor ? ImGuiMouseCursor_None : ImGui::GetMouseCursor();
-		if (g_LastMouseCursor != imgui_cursor)
+		
+		if (io.ConfigFlags & ImGuiConfigFlags_NoMouseCursorChange)
+			return;
+
+		if (imgui_cursor == ImGuiMouseCursor_None || io.MouseDrawCursor)
 		{
-			g_LastMouseCursor = imgui_cursor;
-
-			if (io.ConfigFlags & ImGuiConfigFlags_NoMouseCursorChange)
-				return;
-
-			if (imgui_cursor == ImGuiMouseCursor_None || io.MouseDrawCursor)
+			// Hide OS mouse cursor if imgui is drawing it or if it wants no cursor
+			::SetCursor(NULL);
+		}
+		else
+		{
+			// Show OS mouse cursor
+			LPTSTR win32_cursor = IDC_ARROW;
+			switch (imgui_cursor)
 			{
-				// Hide OS mouse cursor if imgui is drawing it or if it wants no cursor
-				::SetCursor(NULL);
+			case ImGuiMouseCursor_Arrow:        win32_cursor = IDC_ARROW; break;
+			case ImGuiMouseCursor_TextInput:    win32_cursor = IDC_IBEAM; break;
+			case ImGuiMouseCursor_ResizeAll:    win32_cursor = IDC_SIZEALL; break;
+			case ImGuiMouseCursor_ResizeEW:     win32_cursor = IDC_SIZEWE; break;
+			case ImGuiMouseCursor_ResizeNS:     win32_cursor = IDC_SIZENS; break;
+			case ImGuiMouseCursor_ResizeNESW:   win32_cursor = IDC_SIZENESW; break;
+			case ImGuiMouseCursor_ResizeNWSE:   win32_cursor = IDC_SIZENWSE; break;
+			case ImGuiMouseCursor_Hand:         win32_cursor = IDC_HAND; break;
 			}
-			else
-			{
-				// Show OS mouse cursor
-				LPTSTR win32_cursor = IDC_ARROW;
-				switch (imgui_cursor)
-				{
-				case ImGuiMouseCursor_Arrow:        win32_cursor = IDC_ARROW; break;
-				case ImGuiMouseCursor_TextInput:    win32_cursor = IDC_IBEAM; break;
-				case ImGuiMouseCursor_ResizeAll:    win32_cursor = IDC_SIZEALL; break;
-				case ImGuiMouseCursor_ResizeEW:     win32_cursor = IDC_SIZEWE; break;
-				case ImGuiMouseCursor_ResizeNS:     win32_cursor = IDC_SIZENS; break;
-				case ImGuiMouseCursor_ResizeNESW:   win32_cursor = IDC_SIZENESW; break;
-				case ImGuiMouseCursor_ResizeNWSE:   win32_cursor = IDC_SIZENWSE; break;
-				case ImGuiMouseCursor_Hand:         win32_cursor = IDC_HAND; break;
-				}
-				::SetCursor(::LoadCursor(NULL, win32_cursor));
-			}
+			::SetCursor(::LoadCursor(NULL, win32_cursor));
 		}
 
 	}

@@ -31,6 +31,7 @@ namespace Lumos
 		VkSurfaceKHR surface;
 
         VkMacOSSurfaceCreateInfoMVK surfaceInfo;
+        surfaceInfo.sType = VK_STRUCTURE_TYPE_MACOS_SURFACE_CREATE_INFO_MVK;
         surfaceInfo.pNext = NULL;
         surfaceInfo.pView = MakeViewMetalCompatible((void*)glfwGetCocoaWindow(static_cast<GLFWwindow*>(window->GetHandle())));
         vkCreateMacOSSurfaceMVK(vkInstance, &surfaceInfo, nullptr, &surface);

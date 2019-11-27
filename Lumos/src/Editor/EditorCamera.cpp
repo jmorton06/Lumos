@@ -19,30 +19,29 @@ namespace Lumos
 
 	void EditorCamera::HandleMouse(float dt, float xpos, float ypos)
 	{
+		if (Input::GetInput()->GetMouseHeld(InputCode::MouseKey::ButtonRight))
 		{
-			if (Input::GetInput()->GetMouseHeld(InputCode::MouseKey::ButtonRight))
+			m_RotateVelocity = m_RotateVelocity + Maths::Vector2((xpos - m_PreviousCurserPos.x), (ypos - m_PreviousCurserPos.y)) *  m_MouseSensitivity;
+			m_Pitch -= m_RotateVelocity.y;
+			m_Yaw -= m_RotateVelocity.x;
+
+			if (m_Yaw < 0)
 			{
-				m_RotateVelocity = m_RotateVelocity + Maths::Vector2((xpos - m_PreviousCurserPos.x), (ypos - m_PreviousCurserPos.y)) *  m_MouseSensitivity;
-				m_Pitch -= m_RotateVelocity.y;
-				m_Yaw -= m_RotateVelocity.x;
-
-				if (m_Yaw < 0)
-				{
-					m_Yaw += 360.0f;
-				}
-				if (m_Yaw > 360.0f)
-				{
-					m_Yaw -= 360.0f;
-				}
+				m_Yaw += 360.0f;
 			}
-
-			m_PreviousCurserPos = Maths::Vector2(xpos, ypos);
+			if (m_Yaw > 360.0f)
+			{
+				m_Yaw -= 360.0f;
+			}
 		}
+
+		m_PreviousCurserPos = Maths::Vector2(xpos, ypos);
 
 		m_RotateVelocity = m_RotateVelocity * pow(m_RotateDampeningFactor, dt);
 
+		m_ViewDirty = true;
+
 		UpdateScroll(Input::GetInput()->GetScrollOffset(), dt);
-		Input::GetInput()->SetScrollOffset(0.0f);
 	}
 
 	void EditorCamera::HandleKeyboard(float dt)
@@ -101,5 +100,7 @@ namespace Lumos
 		{
 			//Focus on origin
 		}
+
+		m_ViewDirty = true;
 	}
 }

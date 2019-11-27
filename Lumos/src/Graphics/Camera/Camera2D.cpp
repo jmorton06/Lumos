@@ -14,13 +14,13 @@ namespace Lumos
 		, m_AspectRatio(aspectRatio)
 	{
 		m_Orthographic = true;
-		Application::Instance()->GetWindow()->HideMouse(false);
         m_Scale = scale;
-		m_ProjMatrix = Maths::Matrix4::Orthographic(-m_AspectRatio * m_Scale, m_AspectRatio * m_Scale, -m_Scale, m_Scale, -1.0f, 1.0f);
 		m_Position = Maths::Vector3(0.0f);
 		m_Velocity = Maths::Vector3(0.0f);
 		m_MouseSensitivity = 0.005f;
-        BuildViewMatrix();
+
+		m_ViewDirty = true;
+		m_ProjectionDirty = true;
 	}
 
 	Camera2D::~Camera2D()
@@ -36,6 +36,8 @@ namespace Lumos
 		}
 
 		m_PreviousCurserPos = Maths::Vector2(xpos, ypos);
+
+		m_ViewDirty = true;
 	}
 
 	void Camera2D::HandleKeyboard(float dt)
@@ -64,11 +66,14 @@ namespace Lumos
 			m_Velocity -= up * m_CameraSpeed;
 		}
 
-		m_Position += m_Velocity * dt;
-		m_Velocity = m_Velocity * pow(m_DampeningFactor, dt);
+		if (!Maths::Equals(m_Velocity, Maths::Vector3::ZERO, Maths::Vector3(Maths::M_EPSILON)))
+		{
+			m_Position += m_Velocity * dt;
+			m_Velocity = m_Velocity * pow(m_DampeningFactor, dt);
+			m_ViewDirty = true;
+		}
 
 		UpdateScroll(Input::GetInput()->GetScrollOffset(), dt);
-		Input::GetInput()->SetScrollOffset(0.0f);
 	}
 
     void Camera2D::UpdateScroll(float offset, float dt)
@@ -84,8 +89,21 @@ namespace Lumos
             m_ZoomVelocity += dt * offset * multiplier;
         }
         
-        m_Scale -= m_ZoomVelocity;
-        m_Scale = Lumos::Maths::Max(m_Scale, 0.15f);
-        m_ZoomVelocity = m_ZoomVelocity * pow(m_ZoomDampeningFactor, dt);
+		if (!Maths::Equals(m_ZoomVelocity, 0.0f))
+		{
+			m_Scale -= m_ZoomVelocity;
+
+			if (m_Scale < 0.15f)
+			{
+				m_Scale = 0.15f;
+				m_ZoomVelocity = 0.0f;
+			}
+			else
+			{
+				m_ZoomVelocity = m_ZoomVelocity * pow(m_ZoomDampeningFactor, dt);
+			}
+
+			m_ViewDirty = true;
+		}
     }
 }
