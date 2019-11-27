@@ -158,7 +158,7 @@ namespace Lumos
             test.cameraPos = scene->GetCamera()->GetPosition();
             test.maxDistance = 1000.0f;
 
-			auto invViewProj = proj * camera->GetViewMatrix();
+			auto invViewProj = Maths::Matrix4::Inverse(proj * camera->GetViewMatrix());
 			memcpy(m_VSSystemUniformBuffer + m_VSSystemUniformBufferOffsets[VSSystemUniformIndex_InverseProjectionViewMatrix], &invViewProj, sizeof(Maths::Matrix4));
 			memcpy(m_PSSystemUniformBuffer + m_VSSystemUniformBufferOffsets[VSSystemUniformIndex_InverseProjectionViewMatrix], &test, sizeof(UniformBufferObjectFrag));
 		}

@@ -13,6 +13,7 @@ namespace Lumos
         auto iosView = static_cast<iOSOS*>(OS::Instance())->GetIOSView();
 
         VkIOSSurfaceCreateInfoMVK surfaceCreateInfo = {};
+		surfaceCreateInfo.sType = VK_STRUCTURE_TYPE_IOS_SURFACE_CREATE_INFO_MVK;
         surfaceCreateInfo.pNext = NULL;
         surfaceCreateInfo.pView = iosView;
         vkCreateIOSSurfaceMVK(vkInstance, &surfaceCreateInfo, nullptr, &surface);

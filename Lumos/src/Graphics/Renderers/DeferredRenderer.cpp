@@ -166,8 +166,6 @@ namespace Lumos
 		{
 			LUMOS_PROFILE_FUNC;
 
-			BeginScene(scene);
-
 			m_OffScreenRenderer->RenderScene(scene);
 
 			SubmitLightSetup(scene);
@@ -241,7 +239,6 @@ namespace Lumos
 		void DeferredRenderer::SubmitLightSetup(Scene* scene)
 		{
 			LUMOS_PROFILE_FUNC;
-
 
             auto& registry = scene->GetRegistry();
                       

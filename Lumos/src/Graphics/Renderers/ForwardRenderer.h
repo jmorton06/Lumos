@@ -29,7 +29,6 @@ namespace Lumos
 			std::vector<u32> m_PSSystemUniformBufferOffsets;
 
 			void Init() override;
-			void InitScene(Scene* scene);
 			void Begin() override;
 			void BeginScene(Scene* scene) override;
 			void Submit(const RenderCommand& command) override;

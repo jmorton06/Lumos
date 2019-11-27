@@ -455,7 +455,7 @@ namespace Lumos
 
 			m_EnttEditor.RenderImGui(registry, selected);
 
-			ImGui::End();
 		}
+		ImGui::End();
 	}
 }

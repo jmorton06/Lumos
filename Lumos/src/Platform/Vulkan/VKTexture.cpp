@@ -475,6 +475,7 @@ namespace Lumos
 			vkGetImageMemoryRequirements(VKDevice::Instance()->GetDevice(), image, &memRequirements);
 
 			VkMemoryAllocateInfo allocInfo = {};
+			allocInfo.sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
 			allocInfo.allocationSize = memRequirements.size;
 			allocInfo.memoryTypeIndex = VKTools::FindMemoryType(memRequirements.memoryTypeBits, properties);
 
@@ -727,7 +728,8 @@ namespace Lumos
 
 			m_TextureImageView = CreateImageView(m_TextureImage, depthFormat, VK_IMAGE_ASPECT_DEPTH_BIT);
 
-			//VKTools::TransitionImageLayout(m_TextureImage, depthFormat, VkImageLayout::eUndefined, VkImageLayout::eDepthStencilAttachmentOptimal);
+			VKTools::TransitionImageLayout(m_TextureImage, depthFormat, VK_IMAGE_LAYOUT_UNDEFINED,
+				VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL);
 
 			CreateTextureSampler();
 
@@ -963,6 +965,7 @@ namespace Lumos
 			vkGetImageMemoryRequirements(VKDevice::Instance()->GetDevice(), image, &memRequirements);
 
 			VkMemoryAllocateInfo allocInfo = {};
+			allocInfo.sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
 			allocInfo.allocationSize = memRequirements.size;
 			allocInfo.memoryTypeIndex = VKTools::FindMemoryType(memRequirements.memoryTypeBits, properties);
 

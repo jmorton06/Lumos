@@ -20,7 +20,7 @@ out gl_PerVertex
 
 void main()
 {
-	vec4 position = ubo.u_MVP * vec4(a_Position, 1.0);
+	vec4 position = vec4(a_Position, 1.0) * ubo.u_MVP;
 	gl_Position = position;
 	v_Position = a_Position.xyz;
 
