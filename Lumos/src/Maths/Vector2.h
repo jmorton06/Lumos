@@ -264,6 +264,12 @@ namespace Lumos::Maths
             y /= rhs.y;
             return *this;
         }
+        
+        _FORCE_INLINE_ friend std::ostream &operator<<(std::ostream &o, const Vector2 &v)
+        {
+            o << "Vector2(" << v.x << "," << v.y << ")" << std::endl;
+            return o;
+        }
 
         /// Normalize to unit length.
         void Normalize()

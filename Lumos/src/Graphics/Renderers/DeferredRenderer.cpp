@@ -88,6 +88,7 @@ namespace Lumos
 
 		void DeferredRenderer::Init()
 		{
+			LUMOS_PROFILE_FUNC;
 			m_OffScreenRenderer = lmnew DeferredOffScreenRenderer(m_ScreenBufferWidth, m_ScreenBufferHeight);
 
 			m_Shader = Shader::CreateFromFile("DeferredLight", "/CoreShaders/");
@@ -163,9 +164,7 @@ namespace Lumos
 
 		void DeferredRenderer::RenderScene(Scene* scene)
 		{
-            LUMOS_PROFILE_BLOCK("DeferredRenderer::RenderScene");
-
-			BeginScene(scene);
+			LUMOS_PROFILE_FUNC;
 
 			m_OffScreenRenderer->RenderScene(scene);
 
@@ -239,8 +238,7 @@ namespace Lumos
 
 		void DeferredRenderer::SubmitLightSetup(Scene* scene)
 		{
-			LUMOS_PROFILE_BLOCK("DeferredRenderer::SubmitLightSetup");
-
+			LUMOS_PROFILE_FUNC;
 
             auto& registry = scene->GetRegistry();
                       
@@ -306,6 +304,7 @@ namespace Lumos
 
 		void DeferredRenderer::Present()
 		{
+			LUMOS_PROFILE_FUNC;
 			Graphics::CommandBuffer* currentCMDBuffer = m_CommandBuffers[m_CommandBufferIndex];
 
 			m_Pipeline->SetActive(currentCMDBuffer);
@@ -565,6 +564,7 @@ namespace Lumos
 
 		void DeferredRenderer::OnResize(u32 width, u32 height)
 		{
+			LUMOS_PROFILE_FUNC;
 			delete m_Pipeline;
 
 			for (auto fbo : m_Framebuffers)

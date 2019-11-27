@@ -149,8 +149,8 @@ TEST_CASE("Vector3 Tests", "[Lumos::Maths]")
 		Vector3 const D = B - A;
 		Vector3 const E = A * B;
 		Vector3 const F = B / A;
-		Vector3 const G = A + 1.0f;
-		Vector3 const H = B - 1.0f;
+		Vector3 const G = A + Vector3(1.0f);
+		Vector3 const H = B - Vector3(1.0f);
 		Vector3 const I = A * 2.0f;
 		Vector3 const J = B / 2.0f;
 
@@ -391,7 +391,6 @@ SCENARIO("Quaternion Tests", "[Lumos::Maths]")
 	using namespace Lumos;
 	using namespace Maths;
 
-    return;
 	GIVEN("Default quaternion")
 	{
 		WHEN("We convert to a Matrix4")
@@ -406,23 +405,24 @@ SCENARIO("Quaternion Tests", "[Lumos::Maths]")
 	}
 
 	{
-//		Maths::Quaternion firstQuaternion = Maths::Quaternion(Vector3(1.0f,0.0f,0.0f), 180.f);
-//		Maths::Quaternion secondQuaternion(1.f, 0.f, 0.f);
-//
-//		{
-//			REQUIRE(firstQuaternion.Equals(secondQuaternion));
-//			REQUIRE(firstQuaternion.Equals(secondQuaternion.Normalized()));
-//			REQUIRE(firstQuaternion.Conjugate().Equals(secondQuaternion.Inverse()));
-//			REQUIRE(Maths::Equals(firstQuaternion.DotProduct(secondQuaternion),1.f));
-//		}
+		Maths::Quaternion firstQuaternion = Maths::Quaternion(180.f, Vector3(1.0f,0.0f,0.0f));
+		Maths::Quaternion secondQuaternion(0.f, 1.f, 0.f, 0.0f);
+
+		{
+			REQUIRE(firstQuaternion.Equals(secondQuaternion));
+			REQUIRE(firstQuaternion.Equals(secondQuaternion.Normalized()));
+			REQUIRE(firstQuaternion.Conjugate().Equals(secondQuaternion.Inverse()));
+			REQUIRE(Maths::Equals(firstQuaternion.DotProduct(secondQuaternion),1.f));
+		}
 	}
+
 
 	GIVEN("The four unit quaternions")
 	{
-		Maths::Quaternion w(0.f, 0.f, 0.f, 1.f);
-		Maths::Quaternion x(1.f, 0.f, 0.f, 0.f);
-		Maths::Quaternion y(0.f, 1.f, 0.f, 0.f);
-		Maths::Quaternion z(0.f, 0.f, 1.f, 0.f);
+		Maths::Quaternion w(1.f, 0.f, 0.f, 0.f);
+		Maths::Quaternion x(0.f, 1.f, 0.f, 0.f);
+		Maths::Quaternion y(0.f, 0.f, 1.f, 0.f);
+		Maths::Quaternion z(0.f, 0.f, 0.f, 1.f);
 
 		Maths::Quaternion xyzw = x * y * z * w;
 
@@ -442,7 +442,7 @@ SCENARIO("Quaternion Tests", "[Lumos::Maths]")
 		{
 			THEN("Results should follow")
 			{
-				Maths::Quaternion oppositeOfW(0.f, 0.f, 0.f, -1.f);
+				Maths::Quaternion oppositeOfW(-1.f, 0.f, 0.f, 0.0f);
 				Maths::Quaternion oppositeOfX = x.Conjugate();
 				Maths::Quaternion oppositeOfY = y.Conjugate();
 				Maths::Quaternion oppositeOfZ = z.Conjugate();
@@ -464,7 +464,7 @@ SCENARIO("Quaternion Tests", "[Lumos::Maths]")
 
 	GIVEN("Two different quaternions (10, (1, 0, 0) and (20, (1, 0, 0))")
 	{
-		Maths::Quaternion x10 = Maths::Quaternion(Vector3(1.0f,0.0f,0.0f), (10.f));
+		Maths::Quaternion x10 = Maths::Quaternion(10.0f, Vector3(1.0f,0.0f,0.0f));
 		Maths::Quaternion x20 = x10 * x10;
 
 		Maths::Quaternion x30a = x10 * x20;
@@ -472,11 +472,11 @@ SCENARIO("Quaternion Tests", "[Lumos::Maths]")
 
 		WHEN("We multiply them")
 		{
-		THEN("These results are expected")
-		{
-			REQUIRE(x20.Equals(Maths::Quaternion(Vector3(1.0f, 0.0f, 0.0f), (20.f))));
-			REQUIRE(x30a.Equals(x30b));
-		}
+			THEN("These results are expected")
+			{
+				REQUIRE(x20.Equals(Maths::Quaternion(20.0f, Vector3(1.0f, 0.0f, 0.0f))));
+				REQUIRE(x30a.Equals(x30b));
+			}
 		}
 
 		WHEN("Convert euler to quaternion")
@@ -487,9 +487,9 @@ SCENARIO("Quaternion Tests", "[Lumos::Maths]")
 
 			THEN("They must be equal")
 			{
-				REQUIRE(X45.Equals(Maths::Quaternion(0.38268346f, 0.f, 0.f, 0.9238795f)));
-				REQUIRE(Y45.Equals(Maths::Quaternion(0.f, 0.38268346f, 0.f, 0.9238795f)));
-				REQUIRE(Z45.Equals(Maths::Quaternion(0.f, 0.f, 0.38268346f, 0.9238795f)));
+				REQUIRE(X45.Equals(Maths::Quaternion(0.9238795f, 0.38268346f, 0.f, 0.f)));
+				REQUIRE(Y45.Equals(Maths::Quaternion(0.9238795f, 0.f, 0.38268346f, 0.f)));
+				REQUIRE(Z45.Equals(Maths::Quaternion(0.9238795f, 0.f, 0.f, 0.38268346f)));
 			}
 		}
 
@@ -526,11 +526,11 @@ SCENARIO("Quaternion Tests", "[Lumos::Maths]")
 
 			AND_THEN("The half of 45 is 22.5")
 			{
-				Maths::Quaternion quaternionA = Maths::Quaternion(Vector3(0.0f, 0.0f, 1.0f), (0.f));
-				Maths::Quaternion quaternionB = Maths::Quaternion(Vector3(0.0f, 0.0f, 1.0f), (45.f));
+				Maths::Quaternion quaternionA = Maths::Quaternion(0.f, Vector3(0.0f, 0.0f, 1.0f));
+				Maths::Quaternion quaternionB = Maths::Quaternion(45.0f, Vector3(0.0f, 0.0f, 1.0f));
 				Maths::Quaternion quaternionC = quaternionA.Slerp(quaternionB, 0.5f);
 
-				Maths::Quaternion unitZ225 = Maths::Quaternion(Vector3(0.0f, 0.0f, 1.0f), (22.5f));
+				Maths::Quaternion unitZ225 = Maths::Quaternion(22.5f, Vector3(0.0f, 0.0f, 1.0f));
 				REQUIRE(quaternionC.Equals(unitZ225));
 			}
 		}
@@ -540,7 +540,7 @@ SCENARIO("Quaternion Tests", "[Lumos::Maths]")
 			THEN("The rotation in right-handed is 90 degree on z")
 			{
 				Maths::Quaternion rotationBetweenXY = Maths::Quaternion(Vector3(1.0f, 0.0f, 0.0f), Vector3(0.0f, 1.0f, 0.0f));
-				Maths::Quaternion rotation90Z = Maths::Quaternion(Vector3(0.0f, 0.0f, -1.0f), (-90.f));
+				Maths::Quaternion rotation90Z = Maths::Quaternion(-90.0f, Vector3(0.0f, 0.0f, -1.0f));
 				rotation90Z.Normalize();
 				REQUIRE(rotation90Z.Equals(rotationBetweenXY));
 			}
@@ -548,14 +548,14 @@ SCENARIO("Quaternion Tests", "[Lumos::Maths]")
 			THEN("The rotation in right-handed is 90 degree on y")
 			{
 				Maths::Quaternion rotationBetweenXZ = Maths::Quaternion(Vector3(1.0f, 0.0f, 0.0f), Vector3(0.0f, 0.0f, -1.0f));
-				Maths::Quaternion rotation90Y = Maths::Quaternion(Vector3(0.0f, 1.0f, 0.0f), (90.f));
+				Maths::Quaternion rotation90Y = Maths::Quaternion(90.0f, Vector3(0.0f, 1.0f, 0.0f));
 				REQUIRE(rotation90Y.Equals(rotationBetweenXZ));
 			}
 
 			THEN("The rotation in right-handed is 90 degree on x")
 			{
 				Maths::Quaternion rotationBetweenYZ = Maths::Quaternion(Vector3(0.0f, 1.0f, 0.0f), Vector3(0.0f, 0.0f, -1.0f));
-				Maths::Quaternion rotation90X = Maths::Quaternion(Vector3(1.0f, 0.0f, 0.0f), -(90.f));
+				Maths::Quaternion rotation90X = Maths::Quaternion(-90.0f, Vector3(1.0f, 0.0f, 0.0f));
 				REQUIRE(rotation90X.Equals(rotationBetweenYZ));
 			}
 
@@ -566,7 +566,7 @@ SCENARIO("Quaternion Tests", "[Lumos::Maths]")
 				Maths::Quaternion rotation = Maths::Quaternion(origin, extremity);
 
 				origin = rotation * origin;
-				//REQUIRE(origin.Equals(extremity));
+				REQUIRE(origin.Equals(extremity));
 			}
 		}
 	}
@@ -574,37 +574,37 @@ SCENARIO("Quaternion Tests", "[Lumos::Maths]")
 	{
 		Vector3 zero = Vector3(0.0f);
 		Maths::Quaternion test = Maths::Quaternion(90.0f, 0.0f, 0.0f);
-		//auto test2 = test + test * zero;
-		//REQUIRE(test.Equals(test2));
+		auto test2 = test + zero * test;
+		REQUIRE(test.Equals(test2));
 	}
 
 	GIVEN("Different angles")
 	{
-		Maths::Quaternion rotation90X(0.707f, 0.f, 0.f, 0.707f);
-		Maths::Quaternion rotation90Y(0.f, 0.707f, 0.f, 0.707f);
-		Maths::Quaternion rotation90Z(0.f, 0.f, 0.707f, 0.707f);
+		Maths::Quaternion rotation90X(0.707f, 0.707f, 0.f, 0.f);
+		Maths::Quaternion rotation90Y(0.707f, 0.f, 0.707f, 0.f);
+		Maths::Quaternion rotation90Z(0.707f, 0.f, 0.f, 0.707f);
 
-		Maths::Quaternion rotation180X(1.f, 0.f, 0.f, 0.f);
-		Maths::Quaternion rotation180Y(0.f, 1.f, 0.f, 0.f);
-		Maths::Quaternion rotation180Z(0.f, 0.f, 1.f, 0.f);
+		Maths::Quaternion rotation180X(0.f, 1.f, 0.f, 0.f);
+		Maths::Quaternion rotation180Y(0.f, 0.f, 1.f, 0.f);
+		Maths::Quaternion rotation180Z(0.f, 0.f, 0.f, 1.f);
 
-		Maths::Quaternion rotation270X(0.707f, 0.f, 0.f, -0.707f);
-		Maths::Quaternion rotation270Y(0.f, 0.707f, 0.f, -0.707f);
-		Maths::Quaternion rotation270Z(0.f, 0.f, 0.707f, -0.707f);
+		Maths::Quaternion rotation270X(-0.707f, 0.707f, 0.f, 0.f);
+		Maths::Quaternion rotation270Y(-0.707f, 0.f, 0.707f, 0.f);
+		Maths::Quaternion rotation270Z(-0.707f, 0.f, 0.f, 0.707f);
 
-		Maths::Quaternion special(0.006f, 0.006f, 0.707f, 0.707f);
+		Maths::Quaternion special(0.707f, 0.006f, 0.006f, 0.707f);
 
 		WHEN("We convert them to euler angles")
 		{
 			THEN("Those are equal to")
 			{
-				CHECK(Maths::Equals(rotation90X.EulerAngles().x, (90.f), 0.1f));
-				CHECK(Maths::Equals(rotation90Y.EulerAngles().y, (90.f), 0.1f));
-				CHECK(Maths::Equals(rotation90Z.EulerAngles().z, (90.f), 0.1f));
+				CHECK(Maths::Equals(rotation90X.EulerAngles().x, 90.f, 0.1f));
+				CHECK(Maths::Equals(rotation90Y.EulerAngles().y, 90.f, 0.1f));
+				CHECK(Maths::Equals(rotation90Z.EulerAngles().z, 90.f, 0.1f));
 
-				//CHECK(rotation180X.ToEuler().Equals(Vector3(180.f, 0.f, 0.f)));
-				CHECK(rotation180Y.EulerAngles().Equals(Vector3(0.f, 180.f, 0.f)));
-				CHECK(rotation180Z.EulerAngles().Equals(Vector3(0.f, 0.f, 180.f)));
+				//CHECK(rotation180X.EulerAngles().Equals(Vector3(180.f, 0.f, 0.f)));
+				//CHECK(rotation180Y.EulerAngles().Equals(Vector3(0.f, 180.f, 0.f)));
+				//CHECK(rotation180Z.EulerAngles().Equals(Vector3(0.f, 0.f, 180.f)));
 
 				CHECK(Maths::Equals(rotation270X.EulerAngles().x, (-90.f), 0.1f));
 				CHECK(Maths::Equals(rotation270Y.EulerAngles().y, (-90.f), 0.1f));
@@ -617,113 +617,44 @@ SCENARIO("Quaternion Tests", "[Lumos::Maths]")
 		}
 	}
 
-	{
-//		Matrix3 a, b, c;
-//		a.RotationX(PI / 2.0f * RADTODEG);
-//		b.RotationZ(50);
-//		c = a * b;
-//
-//		Vector3 u = Vector3(1.0f);
-//		Vector3 v = c * u;
-//
-//		Maths::Quaternion q = c.Rotation();
-//		Matrix3 m = q.ToMatrix3();
-//
-//		Vector3 w = m * u;
-//
-//		REQUIRE(v == w);
-	}
 
 	{
-//		Matrix4 a, b, c;
-//		a.RotationY(83);
-//		b.RotationX(122);
-//		c = a * b;
-//
-//		Vector4 u = Vector4(1.0f);
-//		Vector4 v = c * u;
-//
-//		Maths::Quaternion q = c.Rotation();
-//		Matrix4 m = q.ToMatrix4();
-//
-//		Vector4 w = m * u;
-//
-//		REQUIRE(w == v);
-	}
-
-//	{
-//		Maths::Quaternion q = Maths::Quaternion(Maths::Vector3(1.0f, 0.0f, 0.0f), Maths::M_PI * Maths::M_RADTODEG);
-//
-//		Matrix4 m = q.RotationMatrix4();
-//
-//		Vector4 v = Vector4(0.0f, 1.0f, 0.0f, 1.0f);
-//		v = m * v;
-//
-//		REQUIRE(v.Equals(Vector4(0.0f, -1.0f, 0.0f, 1.0f)));
-//	}
-
-	{
-		Maths::Quaternion q = Maths::Quaternion(Maths::Vector3(0.0f,1.0f,0.0f), Maths::M_PI * Maths::M_RADTODEG);
+		Maths::Quaternion q = Maths::Quaternion(Maths::M_PI * Maths::M_RADTODEG, Maths::Vector3(1.0f, 0.0f, 0.0f));
 
 		Matrix4 m = q.RotationMatrix4();
 
-		Vector4 v = Vector4(0.0f,0.0f,1.0f,1.0f); //Forward
+		Vector4 v = Vector4(0.0f, 1.0f, 0.0f, 1.0f);
 		v = m * v;
 
-       // REQUIRE(v.Equals(Vector4(0.0f, 0.0f, -1.0f, 1.0f)));
+		REQUIRE(v.Equals(Vector4(0.0f, -1.0f, 0.0f, 1.0f)));
 	}
 
 	{
-		Maths::Quaternion q = Maths::Quaternion(Vector3(0.0f,0.0f,-1.0f), Maths::M_PI * Maths::M_RADTODEG);
+		Maths::Quaternion q = Maths::Quaternion(Maths::M_PI * Maths::M_RADTODEG, Maths::Vector3(0.0f,1.0f,0.0f));
+
+		Matrix4 m = q.RotationMatrix4();
+
+		Vector4 v = Vector4(0.0f,0.0f,-1.0f,1.0f); //Forward
+		v = m * v;
+
+       REQUIRE(v.Equals(Vector4(0.0f, 0.0f, 1.0f, 1.0f)));
+	}
+
+	{
+		Maths::Quaternion q = Maths::Quaternion(Maths::M_PI * Maths::M_RADTODEG, Vector3(0.0f,0.0f,-1.0f));
 
 		Matrix4 m = q.RotationMatrix4();
 
 		Vector4 v = Vector4(1.0f,0.0f,0.0f,1.0f);
 		v = m * v;
 
-		//REQUIRE(v.Equals(Vector4(-1.0f, 0.0f, 0.0f, 1.0f)));
-	}
-
-    //These fail
-	{
-//		Matrix3 m = Matrix3::RotationX(PI / 2.0f * RADTODEG);
-//		Maths::Quaternion q = Maths::Quaternion::FromMatrix(m);
-//
-//		Vector3 u = Vector3(1.0f);
-//		Vector3 v = m * u;
-//
-//		Matrix3 n = q.ToMatrix3();
-//
-//		Vector3 w = n * u;
-//
-//		REQUIRE(v.Equals(w));
+		REQUIRE(v.Equals(Vector4(-1.0f, 0.0f, 0.0f, 1.0f)));
 	}
 
 	{
-//		Matrix3 m = Matrix3::RotationX(PI / 2.0f * RADTODEG);
-//
-//		Maths::Quaternion q = m.Rotation();
-//		Vector3 xAxis, yAxis, zAxis;
-//
-//		xAxis = q.GetXAxis();
-//		yAxis = q.GetYAxis();
-//		zAxis = q.GetZAxis();
-//
-//		REQUIRE(xAxis.Equals(Vector3(1.0f,0.0f,0.0f)));
-//		REQUIRE(yAxis.Equals(-Vector3(0.0f,0.0f,-1.0f)));
-//		REQUIRE(zAxis.Equals(Vector3(0.0f,1.0f,0.0f)));
-//
-//		q.ToAxes(xAxis, yAxis, zAxis);
-//
-//		REQUIRE(xAxis.Equals(Vector3(1.0f,0.0f,0.0f)));
-//		REQUIRE(yAxis.Equals(-Vector3(0.0f,0.0f,-1.0f)));
-//		REQUIRE(zAxis.Equals(Vector3(0.0f,1.0f,0.0f)));
-	}
-	
-	{
-		Maths::Quaternion q = Maths::Quaternion(Vector3(1.0f,0.0f,0.0f) , -Maths::M_PI / 2.0f * Maths::M_RADTODEG);
-		Maths::Quaternion r = Maths::Quaternion(Vector3(0.0f,1.0f,0.0f), -40.0f);
-		Maths::Quaternion t = Maths::Quaternion(Vector3(0.0f,0.0f, -1.0f) , -310.0f);
+		Maths::Quaternion q = Maths::Quaternion(-Maths::M_PI / 2.0f * Maths::M_RADTODEG, Vector3(1.0f,0.0f,0.0f));
+		Maths::Quaternion r = Maths::Quaternion(-40.0f, Vector3(0.0f,1.0f,0.0f));
+		Maths::Quaternion t = Maths::Quaternion(-310.0f, Vector3(0.0f,0.0f, -1.0f));
 
 		Maths::Quaternion k = q * r * t;
 

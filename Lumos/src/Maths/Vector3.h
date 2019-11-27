@@ -167,7 +167,7 @@ namespace Lumos::Maths
         {
         }
 
-        Vector3(float x) noexcept :
+		explicit Vector3(float x) noexcept :
             x(x),
             y(x),
             z(x)
@@ -254,6 +254,12 @@ namespace Lumos::Maths
 
         /// Divide by a vector.
         Vector3 operator /(const Vector3& rhs) const { return Vector3(x / rhs.x, y / rhs.y, z / rhs.z); }
+
+		bool operator<(const Vector3 &other)	const { return x < other.x && y < other.y && z < other.z; }
+		bool operator<=(const Vector3 &other)	const { return x <= other.x && y <= other.y && z <= other.z; }
+		bool operator>(const Vector3 &other)	const { return x > other.x && y > other.y && z > other.z; }
+		bool operator>=(const Vector3 &other)	const { return x >= other.x && y >= other.y && z >= other.z; }
+
 
         /// Add-assign a vector.
         Vector3& operator +=(const Vector3& rhs)
@@ -465,6 +471,12 @@ namespace Lumos::Maths
             hash = 37 * hash + FloatToRawIntBits(z);
 
             return hash;
+        }
+        
+        _FORCE_INLINE_ friend std::ostream &operator<<(std::ostream &o, const Vector3 &v)
+        {
+            o << "Vector3(" << v.x << "," << v.y << "," << v.z << ")" << std::endl;
+            return o;
         }
 
         /// X coordinate.

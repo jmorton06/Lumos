@@ -22,6 +22,7 @@
 #include "Graphics/Renderable2D.h"
 #include "Graphics/Camera/Camera.h"
 #include "Maths/Transform.h"
+#include "Core/Profiler.h"
 
 #define RENDERER_MAX_SPRITES	10000
 #define RENDERER_SPRITE_SIZE	RENDERER2D_VERTEX_SIZE * 4
@@ -71,6 +72,7 @@ namespace Lumos
 
 		void Renderer2D::Init()
 		{
+			LUMOS_PROFILE_FUNC;
 			m_Shader = Shader::CreateFromFile("Batch2D", "/CoreShaders/");
 
 			m_TransformationStack.emplace_back(Maths::Matrix4());
@@ -184,7 +186,7 @@ namespace Lumos
 			const Maths::Vector2 min = renderable->GetPosition();
 			const Maths::Vector2 max = renderable->GetPosition() + renderable->GetScale();
 
-			const Maths::Vector4 colour = renderable->Columnour();
+			const Maths::Vector4 colour = renderable->GetColour();
 			const std::vector<Maths::Vector2>& uv = renderable->GetUVs();
 			const Texture* texture = renderable->GetTexture();
 
@@ -307,26 +309,25 @@ namespace Lumos
 
 		void Renderer2D::Render(Scene* scene)
 		{
+			LUMOS_PROFILE_FUNC;
 			Begin();
 
 			SetSystemUniforms(m_Shader);
 			
             auto& registry = scene->GetRegistry();
             auto group = registry.group<Graphics::Sprite>(entt::get<Maths::Transform>);
-        
+
             for(auto entity: group)
             {
                 const auto &[sprite, trans] = group.get<Graphics::Sprite, Maths::Transform>(entity);
                 
-				/*const Maths::Vector2 min = trans.GetWorldMatrix() * sprite.GetPosition();
-				const Maths::Vector2 max = trans.GetWorldMatrix() * (sprite.GetPosition() + sprite.GetScale());
-				auto bb = Maths::BoundingBox(Maths::Rect(min, max));
+				auto bb = Maths::BoundingBox(Maths::Rect(sprite.GetPosition(), sprite.GetPosition() + sprite.GetScale()));
 				bb.Transform(trans.GetWorldMatrix());
                 auto inside = m_Frustum.IsInside(bb);
                 
                 if (inside == Maths::Intersection::OUTSIDE)
-                    continue;*/
-
+                    continue;
+                
                 Submit(reinterpret_cast<Renderable2D*>(&sprite), trans.GetWorldMatrix());
             };
 

@@ -131,35 +131,35 @@ namespace Lumos
 			// Note that multiple flags may be set for a single validation message
 			// Error that may result in undefined behaviour
 
-			LUMOS_LOG_WARN("[VULKAN] : [{0}] Code {1}  : {2}", pLayerPrefix, msgCode, pMsg);
+			Debug::Log::Warning("[VULKAN] : [{0}] Code {1}  : {2}", pLayerPrefix, msgCode, pMsg);
 
 			if(!flags)
 				return VK_FALSE;
 
 			if (flags & VK_DEBUG_REPORT_ERROR_BIT_EXT)
 			{
-				LUMOS_LOG_WARN("[VULKAN] - ERROR : [{0}] Code {1}  : {2}", pLayerPrefix, msgCode, pMsg);
+				Debug::Log::Warning("[VULKAN] - ERROR : [{0}] Code {1}  : {2}", pLayerPrefix, msgCode, pMsg);
 			};
 			// Warnings may hint at unexpected / non-spec API usage
 			if (flags & VK_DEBUG_REPORT_WARNING_BIT_EXT)
 			{
-				LUMOS_LOG_WARN("[VULKAN] - WARNING : [{0}] Code {1}  : {2}", pLayerPrefix, msgCode, pMsg);
+				Debug::Log::Warning("[VULKAN] - WARNING : [{0}] Code {1}  : {2}", pLayerPrefix, msgCode, pMsg);
 			};
 			// May indicate sub-optimal usage of the API
 			if (flags & VK_DEBUG_REPORT_PERFORMANCE_WARNING_BIT_EXT)
 			{
-				LUMOS_LOG_INFO("[VULKAN] - PERFORMANCE : [{0}] Code {1}  : {2}", pLayerPrefix, msgCode, pMsg);
+				Debug::Log::Warning("[VULKAN] - PERFORMANCE : [{0}] Code {1}  : {2}", pLayerPrefix, msgCode, pMsg);
 			};
 			// Informal messages that may become handy during debugging
 			if (flags & VK_DEBUG_REPORT_INFORMATION_BIT_EXT)
 			{
-				LUMOS_LOG_INFO("[VULKAN] - INFO : [{0}] Code {1}  : {2}", pLayerPrefix, msgCode, pMsg);
+				Debug::Log::Warning("[VULKAN] - INFO : [{0}] Code {1}  : {2}", pLayerPrefix, msgCode, pMsg);
 			}
 			// Diagnostic info from the Vulkan loader and layers
 			// Usually not helpful in terms of API usage, but may help to debug layer and loader problems 
 			if (flags & VK_DEBUG_REPORT_DEBUG_BIT_EXT)
 			{
-				LUMOS_LOG_INFO("[VULKAN] - DEBUG : [{0}] Code {1}  : {2}", pLayerPrefix, msgCode, pMsg);
+				Debug::Log::Info("[VULKAN] - DEBUG : [{0}] Code {1}  : {2}", pLayerPrefix, msgCode, pMsg);
 			}
 
 			return VK_FALSE;
@@ -234,12 +234,12 @@ namespace Lumos
 		{
 			if (volkInitialize() != VK_SUCCESS)
 			{
-				LUMOS_LOG_CRITICAL("volkInitialize failed");
+				Debug::Log::Critical("volkInitialize failed");
 			}
 
 			if (volkGetInstanceVersion() == 0)
 			{
-				LUMOS_LOG_CRITICAL("Could not find loader");
+				Debug::Log::Critical("Could not find loader");
 			}
 
 			VkApplicationInfo appInfo = {};
@@ -257,12 +257,12 @@ namespace Lumos
 
 			if (EnableValidationLayers && !CheckValidationLayerSupport(m_InstanceLayerNames))
 			{
-				 LUMOS_LOG_CRITICAL("[VULKAN] Validation layers requested, but not available!");
+				Debug::Log::Critical("[VULKAN] Validation layers requested, but not available!");
 			}
 
 			if (!CheckExtensionSupport(m_InstanceExtensionNames))
 			{
-				LUMOS_LOG_CRITICAL("[VULKAN] Extensions requested are not available!");
+				Debug::Log::Critical("[VULKAN] Extensions requested are not available!");
 			}
 
 			createInfo.sType = VK_STRUCTURE_TYPE_INSTANCE_CREATE_INFO;
@@ -276,7 +276,7 @@ namespace Lumos
 			VkResult createResult = vkCreateInstance(&createInfo, nullptr, &m_VkInstance);
 			if (createResult != VK_SUCCESS)
 			{
-				LUMOS_LOG_CRITICAL("[VULKAN] Failed to create instance!");
+				Debug::Log::Critical("[VULKAN] Failed to create instance!");
 			}
 
 			volkLoadInstance(m_VkInstance);
@@ -296,7 +296,7 @@ namespace Lumos
 			VkResult result = CreateDebugReportCallbackEXT(m_VkInstance, &createInfo, nullptr, &m_DebugCallback);
 			if (result != VK_SUCCESS)
 			{
-				LUMOS_LOG_CRITICAL("[VULKAN] Failed to set up debug callback!");
+				Debug::Log::Critical("[VULKAN] Failed to set up debug callback!");
 			}
 		}
 

@@ -23,6 +23,8 @@ void Scene3D::OnInit()
 
 	LoadModels();
 
+	Application::Instance()->GetWindow()->HideMouse(false);
+
 	m_pCamera = new EditorCamera(-20.0f, -40.0f, Maths::Vector3(-31.0f, 12.0f, 51.0f), 60.0f, 0.1f, 1000.0f, (float) m_ScreenWidth / (float) m_ScreenHeight);
 
 	m_SceneBoundingRadius = 20.0f;

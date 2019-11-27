@@ -11,6 +11,3 @@
 
 #include <stb/stb_vorbis.c>
 #include <simplex/simplexnoise.cpp>
-
-#include <OpenFBX/src/miniz.c>
-#include <OpenFBX/src/ofbx.cpp>

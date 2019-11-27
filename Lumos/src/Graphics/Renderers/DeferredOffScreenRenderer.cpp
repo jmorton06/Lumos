@@ -82,6 +82,7 @@ namespace Lumos
 
 		void DeferredOffScreenRenderer::Init()
 		{
+			LUMOS_PROFILE_FUNC;
 			m_Shader = Shader::CreateFromFile("DeferredColour", "/CoreShaders/");
 			m_DefaultMaterial = lmnew Material();
 
@@ -150,7 +151,7 @@ namespace Lumos
 
 		void DeferredOffScreenRenderer::RenderScene(Scene* scene)
 		{
-            LUMOS_PROFILE_BLOCK("DeferredOffScreenRenderer::RenderScene");
+            LUMOS_PROFILE_FUNC;
 
 			BeginScene(scene);
 
@@ -206,7 +207,7 @@ namespace Lumos
 
 		void DeferredOffScreenRenderer::PresentToScreen()
 		{
-			Renderer::Present((m_CommandBuffers[Renderer::GetSwapchain()->GetCurrentBufferId()]));
+			Renderer::Present(m_CommandBuffers[Renderer::GetSwapchain()->GetCurrentBufferId()]);
 		}
 
 		void DeferredOffScreenRenderer::Begin()
@@ -223,9 +224,8 @@ namespace Lumos
 		void DeferredOffScreenRenderer::BeginScene(Scene* scene)
 		{
 			auto camera = scene->GetCamera();
-			auto proj = camera->GetProjectionMatrix();
 
-			auto projView = proj * camera->GetViewMatrix();
+			auto projView = camera->GetProjectionMatrix() * camera->GetViewMatrix();
 			memcpy(m_VSSystemUniformBuffer + m_VSSystemUniformBufferOffsets[VSSystemUniformIndex_ProjectionViewMatrix], &projView, sizeof(Maths::Matrix4));
 
             m_Frustum = camera->GetFrustum();
@@ -451,6 +451,7 @@ namespace Lumos
 
 		void DeferredOffScreenRenderer::OnResize(u32 width, u32 height)
 		{
+			LUMOS_PROFILE_FUNC;
 			delete m_Pipeline;
 			delete m_FBO;
 

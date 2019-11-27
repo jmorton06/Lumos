@@ -89,6 +89,7 @@ namespace Lumos
 
 		void ShadowRenderer::Init()
 		{
+			LUMOS_PROFILE_FUNC;
 			m_VSSystemUniformBufferSize = sizeof(Maths::Matrix4) * 16;
 			m_VSSystemUniformBuffer = lmnew u8[m_VSSystemUniformBufferSize];
 			memset(m_VSSystemUniformBuffer, 0, m_VSSystemUniformBufferSize);
@@ -151,6 +152,7 @@ namespace Lumos
 
 		void ShadowRenderer::Present()
 		{
+			LUMOS_PROFILE_FUNC;
 			int index = 0;
 
 			m_RenderPass->BeginRenderpass(m_CommandBuffer, Maths::Vector4(0.0f), m_ShadowFramebuffer[m_Layer], Graphics::INLINE, m_ShadowMapSize, m_ShadowMapSize);
@@ -199,7 +201,7 @@ namespace Lumos
 
 		void ShadowRenderer::RenderScene(Scene* scene)
 		{
-            LUMOS_PROFILE_BLOCK("ShadowRenderer::RenderScene");
+			LUMOS_PROFILE_FUNC;
 
 			memcpy(m_VSSystemUniformBuffer + m_VSSystemUniformBufferOffsets[VSSystemUniformIndex_ProjectionViewMatrix], m_ShadowProjView, sizeof(Maths::Matrix4) * SHADOWMAP_MAX);
 
@@ -253,6 +255,7 @@ namespace Lumos
 
 		void ShadowRenderer::UpdateCascades(Scene* scene)
 		{
+			LUMOS_PROFILE_FUNC;
 			if (m_LightEntity == entt::null)
 				return;
 
@@ -262,9 +265,10 @@ namespace Lumos
 				return;
 
 			float cascadeSplits[SHADOWMAP_MAX];
+			auto camera = scene->GetCamera();
 
-			float nearClip = scene->GetCamera()->GetNear();
-			float farClip = scene->GetCamera()->GetFar();
+			float nearClip = camera->GetNear();
+			float farClip = camera->GetFar();
 			float clipRange = farClip - nearClip;
 
 			float minZ = nearClip;
@@ -305,9 +309,7 @@ namespace Lumos
 					Maths::Vector3(-1.0f, -1.0f,  1.0f),
 				};
 
-				Maths::Matrix4 cameraProj = scene->GetCamera()->GetProjectionMatrix();
-
-				const Maths::Matrix4 invCam = Maths::Matrix4::Inverse(cameraProj * scene->GetCamera()->GetViewMatrix());
+				const Maths::Matrix4 invCam = Maths::Matrix4::Inverse(camera->GetProjectionMatrix() * camera->GetViewMatrix());
 
 				// Project frustum corners into world space
 				for (uint32_t j = 0; j < 8; j++)
@@ -348,11 +350,12 @@ namespace Lumos
 				Maths::Vector3 lightDir = -light->m_Direction.ToVector3();
 				lightDir.Normalize();
 				Maths::Matrix4 lightViewMatrix = Maths::Quaternion::LookAt(frustumCenter - lightDir * -minExtents.z, frustumCenter).RotationMatrix4();
+                lightViewMatrix.SetTranslation(frustumCenter);
 
 				Maths::Matrix4 lightOrthoMatrix = Maths::Matrix4::Orthographic(minExtents.x, maxExtents.x, minExtents.y, maxExtents.y, -(maxExtents.z - minExtents.z), maxExtents.z - minExtents.z);
 
 				// Store split distance and matrix in cascade
-				m_SplitDepth[i] = Maths::Vector4((scene->GetCamera()->GetNear() + splitDist * clipRange) * -1.0f);
+				m_SplitDepth[i] = Maths::Vector4((camera->GetNear() + splitDist * clipRange) * -1.0f);
 				m_ShadowProjView[i] = lightOrthoMatrix * lightViewMatrix.Inverse();
 			}
 #ifdef THREAD_CASCADE_GEN

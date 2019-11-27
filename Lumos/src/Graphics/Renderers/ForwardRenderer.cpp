@@ -87,17 +87,11 @@ namespace Lumos
                     {
                         auto& worldTransform = trans.GetWorldMatrix();
 
-                        float maxScaling = 0.0f;
-                        auto scale = worldTransform.Scale();
-                        maxScaling = Maths::Max(scale.x, maxScaling);
-                        maxScaling = Maths::Max(scale.y, maxScaling);
-                        maxScaling = Maths::Max(scale.z, maxScaling);
-
 						auto bb = mesh.GetMesh()->GetBoundingBox();
-						bb->Transform(worldTransform);
-						auto inside = m_Frustum.IsInside(*bb);
+						auto bbCopy = bb->Transformed(worldTransform);
+						auto inside = m_Frustum.IsInsideFast(bbCopy);
 
-						if (!inside)
+						if (inside == Maths::Intersection::OUTSIDE)
 							continue;
 
                         auto meshPtr = mesh.GetMesh();
@@ -108,7 +102,7 @@ namespace Lumos
                             material = materialComponent->GetMaterial().get();
 
                             if (material->GetDescriptorSet() == nullptr || material->GetPipeline() != m_Pipeline)
-                                material->CreateDescriptorSet(m_Pipeline, 1);
+                                material->CreateDescriptorSet(m_Pipeline, 1, false);
                         }
 
                         auto textureMatrixTransform = registry.try_get<TextureMatrixComponent>(entity);
@@ -244,7 +238,7 @@ namespace Lumos
 
 			m_Pipeline->GetDescriptorSet()->Update(bufferInfos);
 
-			m_ClearColour = Maths::Vector4(0.8f, 0.8f, 0.8f, 1.0f);
+			m_ClearColour = Maths::Vector4(0.1f, 0.1f, 0.1f, 1.0f);
 
 			m_DefaultTexture = Texture2D::CreateFromFile("Test", "/CoreTextures/checkerboard.tga");
 
@@ -284,7 +278,7 @@ namespace Lumos
 			memcpy(m_VSSystemUniformBuffer + m_VSSystemUniformBufferOffsets[VSSystemUniformIndex_ProjectionMatrix], &proj, sizeof(Maths::Matrix4));
 			memcpy(m_VSSystemUniformBuffer + m_VSSystemUniformBufferOffsets[VSSystemUniformIndex_ViewMatrix], &camera->GetViewMatrix(), sizeof(Maths::Matrix4));
 
-            m_Frustum.Define(camera->GetFOV(), camera->GetAspectRatio(), 1.0f, camera->GetNear(),camera->GetFar(), Maths::Matrix3x4(camera->GetViewMatrix()));
+			m_Frustum = camera->GetFrustum();
 
 		}
 
@@ -336,10 +330,6 @@ namespace Lumos
 			m_ModelUniformBuffer->SetDynamicData(static_cast<uint32_t>(MAX_OBJECTS * m_DynamicAlignment), sizeof(Maths::Matrix4), &*m_UBODataDynamic.model);
 		}
 
-		void ForwardRenderer::InitScene(Scene* scene)
-		{
-		}
-
 		void ForwardRenderer::Present()
 		{
 			int index = 0;
@@ -348,10 +338,7 @@ namespace Lumos
 			{
 				Mesh* mesh = command.mesh;
 
-				Graphics::CommandBuffer* currentCMDBuffer = m_CommandBuffers[m_CurrentBufferID];// (mesh->GetCommandBuffer(static_cast<int>(m_CurrentBufferID)));
-
-				//currentCMDBuffer->BeginRecordingSecondary(m_RenderPass, m_Framebuffers[m_CurrentBufferID]);
-				//currentCMDBuffer->UpdateViewport(m_ScreenBufferWidth, m_ScreenBufferHeight);
+				Graphics::CommandBuffer* currentCMDBuffer = m_CommandBuffers[m_CurrentBufferID];
 
 				m_Pipeline->SetActive(currentCMDBuffer);
 
@@ -371,9 +358,6 @@ namespace Lumos
 
 				mesh->GetVertexArray()->Unbind();
 				mesh->GetIndexBuffer()->Unbind();
-
-				//currentCMDBuffer->EndRecording();
-				//currentCMDBuffer->ExecuteSecondary(m_CommandBuffers[m_CurrentBufferID]);
 
 				index++;
 			}

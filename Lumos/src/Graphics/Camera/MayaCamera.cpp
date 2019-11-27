@@ -12,8 +12,6 @@ namespace Lumos
 	MayaCamera::MayaCamera(float FOV, float Near, float Far, float aspect)
 		: Camera(FOV, Near, Far, aspect), m_Free(false)
 	{
-		Application::Instance()->GetWindow()->HideMouse(false);
-
 		m_PanSpeed = 0.002f;
 		m_RotationSpeed = 1.2f;
 		m_ZoomSpeed = 0.6f;
@@ -22,26 +20,22 @@ namespace Lumos
 
 		m_FocalPoint = Maths::Vector3::ZERO;
 		Maths::Vector3 distance = (m_Position - m_FocalPoint);
-		m_Distance = distance.Length();// m_Position.Distance(m_FocalPoint);
+		m_Distance = distance.Length();
 
-		//m_ProjMatrix = Maths::Matrix4::Perspective(m_Near, m_Far, aspect, FOV);
 		m_RotateDampeningFactor = 0.00001f;
 	}
 
 	MayaCamera::MayaCamera(float pitch, float yaw, const Maths::Vector3& position, float FOV, float Near, float Far, float aspect)
 		: Camera(pitch, yaw, position, FOV, Near, Far, aspect), m_Free(false)
 	{
-		Application::Instance()->GetWindow()->HideMouse(false);
-
 		m_PanSpeed = 0.002f;
 		m_RotationSpeed = 1.2f;
 		m_ZoomSpeed = 0.6f;
 
 		m_FocalPoint = Maths::Vector3::ZERO;
 		Maths::Vector3 distance = (m_Position - m_FocalPoint);
-		m_Distance = distance.Length();// m_Position.Distance(m_FocalPoint);
+		m_Distance = distance.Length();
 
-		//m_ProjMatrix = Maths::Matrix4::Perspective(m_Near, m_Far, aspect, FOV);
 		m_RotateDampeningFactor = 0.00001f;
 	}
 
@@ -78,6 +72,8 @@ namespace Lumos
 
 		m_PreviousCurserPos = Maths::Vector2(xpos, ypos);
 		m_Position = CalculatePosition();
+
+		m_ViewDirty = true;
 	}
 
 	void MayaCamera::HandleKeyboard(float dt)
