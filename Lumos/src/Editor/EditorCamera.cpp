@@ -40,6 +40,7 @@ namespace Lumos
 		m_RotateVelocity = m_RotateVelocity * pow(m_RotateDampeningFactor, dt);
 
 		m_ViewDirty = true;
+		m_FrustumDirty = true;
 
 		UpdateScroll(Input::GetInput()->GetScrollOffset(), dt);
 	}
@@ -88,8 +89,13 @@ namespace Lumos
 			m_Velocity += GetUpDirection() * m_CameraSpeed;
 		}
 
-		m_Position += m_Velocity * dt;
-		m_Velocity = m_Velocity * pow(m_DampeningFactor, dt);
+		if (!Maths::Equals(m_Velocity, Maths::Vector3::ZERO, Maths::Vector3(Maths::M_EPSILON)))
+		{
+			m_Position += m_Velocity * dt;
+			m_Velocity = m_Velocity * pow(m_DampeningFactor, dt);
+			m_ViewDirty = true;
+			m_FrustumDirty = true;
+		}
 
 		if (Input::GetInput()->GetKeyHeld(InputCode::Key::F))
 		{
@@ -100,7 +106,5 @@ namespace Lumos
 		{
 			//Focus on origin
 		}
-
-		m_ViewDirty = true;
 	}
 }

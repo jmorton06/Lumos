@@ -27,11 +27,8 @@ void main()
 	float scale = ubo.u_Scale;
 	float resolution = ubo.u_Res;
 
-	float alpha = 0.5 * (ubo.u_MaxDistance - length(ubo.u_CameraPos.xyz - v_Position)) / ubo.u_MaxDistance;
-	
-	alpha = max(0.0f, alpha);
 	float x = grid(v_TexCoord * scale, resolution);
-	color = vec4(vec3(0.2), alpha) * (1.0 - x);
+	color = vec4(vec3(0.2), 0.5) * (1.0 - x);
 
 	if(color.w < 0.3)
 		discard;

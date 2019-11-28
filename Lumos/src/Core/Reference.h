@@ -58,7 +58,7 @@ namespace Lumos
             ref(other);
         }
         
-        Reference(Reference&& rhs)
+        Reference(Reference&& rhs) noexcept
         {
             m_Ptr = nullptr;
             m_Counter = nullptr;
@@ -139,7 +139,7 @@ namespace Lumos
 			ref(rhs);
 		}
         
-        _FORCE_INLINE_ Reference& operator=(Reference&& rhs)
+        _FORCE_INLINE_ Reference& operator=(Reference&& rhs) noexcept
         {
             ref(rhs);
             return *this;

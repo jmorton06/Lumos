@@ -8,6 +8,7 @@
 namespace Lumos
 {
     WindowsThread::WindowsThread()
+		: m_User(nullptr)
     {
 		m_Handle = NULL;
     }   

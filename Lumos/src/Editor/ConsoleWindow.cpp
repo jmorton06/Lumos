@@ -57,13 +57,6 @@ namespace Lumos
 		ImGuiStyle& style = ImGui::GetStyle();
 		const float spacing = style.ItemInnerSpacing.x;
 
-		// Text change level
-        ImGui::AlignTextToFramePadding();
-		//ImGui::AlignFirstTextHeightToWidgets();
-		ImGui::TextUnformatted("Display");
-
-		ImGui::SameLine(0.0f, 2.0f * spacing);
-
 		// Dropdown with levels
 		ImGui::PushItemWidth(ImGui::CalcTextSize("Critical").x * 1.36f);
 		if (ImGui::BeginCombo(
@@ -85,21 +78,6 @@ namespace Lumos
 
 		ImGui::SameLine(0.0f, spacing);
 
-		// Buttons to quickly change level
-		if (ImGui::ArrowButton("##MessageRenderFilter_L", ImGuiDir_Left))
-		{
-			s_MessageBufferRenderFilter = Message::GetLowerLevel(s_MessageBufferRenderFilter);
-		}
-
-		ImGui::SameLine(0.0f, spacing);
-
-		if (ImGui::ArrowButton("##MessageRenderFilter_R", ImGuiDir_Right))
-		{
-			s_MessageBufferRenderFilter = Message::GetHigherLevel(s_MessageBufferRenderFilter);
-		}
-
-		ImGui::SameLine(0.0f, spacing);
-
 		// Button for advanced settings
 		if (ImGui::Button("Settings"))
 			ImGui::OpenPopup("SettingsPopup");
@@ -116,7 +94,7 @@ namespace Lumos
 		}
 
 		ImGui::SameLine();
-		Filter.Draw("Filter", -100.0f);
+		Filter.Draw("", -100.0f);
 
 	}
 

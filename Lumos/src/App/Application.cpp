@@ -113,11 +113,13 @@ namespace Lumos
 		PushLayerInternal(lmnew ImGuiLayer(false),true,false);
 
 		m_SystemManager = CreateScope<SystemManager>();
-		m_SystemManager->RegisterSystem<AudioManager>(AudioManager::Create());
+
+		auto audioManager = AudioManager::Create();
+		audioManager->OnInit();
+		m_SystemManager->RegisterSystem<AudioManager>(audioManager);
+
 		m_SystemManager->RegisterSystem<LumosPhysicsEngine>();
 		m_SystemManager->RegisterSystem<B2PhysicsEngine>();
-
-		m_SystemManager->GetSystem<AudioManager>()->OnInit();
 
 		m_CurrentState = AppState::Running;
 	}

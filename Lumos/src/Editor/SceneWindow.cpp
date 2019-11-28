@@ -49,8 +49,14 @@ namespace Lumos
         sceneViewSize.x -= static_cast<int>(sceneViewSize.x) % 2 != 0 ? 1.0f : 0.0f;
         sceneViewSize.y -= static_cast<int>(sceneViewSize.y) % 2 != 0 ? 1.0f : 0.0f;
 
+		float aspect = static_cast<float>(sceneViewSize.x) / static_cast<float>(sceneViewSize.y);
+
         Camera* camera = Application::Instance()->GetSceneManager()->GetCurrentScene()->GetCamera();
-		camera->SetAspectRatio(static_cast<float>(sceneViewSize.x) / static_cast<float>(sceneViewSize.y));
+		if (!Maths::Equals(aspect, m_CurrentAspectRatio))
+		{
+			m_CurrentAspectRatio = aspect;
+			camera->SetAspectRatio(aspect);
+		}
 
 		ImGuizmo::SetRect(sceneViewPosition.x, sceneViewPosition.y, sceneViewSize.x, sceneViewSize.y);
         
@@ -248,6 +254,8 @@ namespace Lumos
 		{
 			{
 				ImGui::Checkbox("Grid", &m_Editor->ShowGrid());
+				ImGui::Checkbox("Selected Gizmos", &m_Editor->ShowGizmos());
+				ImGui::Checkbox("View Selected", &m_Editor->ShowViewSelected());
 
 				ImGui::Separator();
 				ImGui::Checkbox("Camera", &m_ShowComponentGizmoMap[typeid(CameraComponent).hash_code()]);
