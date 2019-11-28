@@ -54,11 +54,12 @@ namespace Lumos
 		m_Timer = CreateScope<Timer>();
 
 		const String root = ROOT_DIR;
-
-		VFS::Get()->Mount("CoreShaders", root + "/lumos/res/shaders");
-		VFS::Get()->Mount("CoreMeshes", root + "/lumos/res/meshes");
-		VFS::Get()->Mount("CoreTextures", root + "/lumos/res/textures");
-		VFS::Get()->Mount("CoreFonts", root + "/lumos/res/fonts");
+		
+		Debug::Log::Info(root);
+		VFS::Get()->Mount("CoreShaders", root + "/Lumos/res/shaders");
+		VFS::Get()->Mount("CoreMeshes", root + "/Lumos/res/meshes");
+		VFS::Get()->Mount("CoreTextures", root + "/Lumos/res/textures");
+		VFS::Get()->Mount("CoreFonts", root + "/Lumos/res/fonts");
 
 		m_Window = Scope<Window>(Window::Create(properties));
 #ifndef LUMOS_EDITOR
