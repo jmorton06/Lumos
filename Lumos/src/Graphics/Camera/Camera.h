@@ -24,6 +24,7 @@ namespace Lumos
 		{
 			m_Position = val; 
 			m_ViewDirty = true;
+			m_FrustumDirty = true;
 		}
 
 		void SetMouseSensitivity(float value) { m_MouseSensitivity = value; }
@@ -34,6 +35,7 @@ namespace Lumos
 		void SetRoll(float y) 
 		{ 
 			m_ViewDirty = true;
+			m_FrustumDirty = true;
 			m_Roll = y; 
 		}
 
@@ -42,6 +44,7 @@ namespace Lumos
 		{ 
 			m_Yaw = y; 
 			m_ViewDirty = true;
+			m_FrustumDirty = true;
 		}
 
 		float GetPitch() const { return m_Pitch; }
@@ -49,6 +52,7 @@ namespace Lumos
 		{ 
 			m_Pitch = p; 
 			m_ViewDirty = true;
+			m_FrustumDirty = true;
 		}
 		
 		float GetAspectRatio() const { return m_AspectRatio; }
@@ -56,6 +60,7 @@ namespace Lumos
 		{ 
 			m_AspectRatio = y;
 			m_ProjectionDirty = true;
+			m_FrustumDirty = true;
 		};
 
 		const Maths::Matrix4& GetProjectionMatrix();
@@ -73,6 +78,7 @@ namespace Lumos
 		{ 
 			m_Scale = scale; 
 			m_ProjectionDirty = true;
+			m_FrustumDirty = true;
 		}
 		
 		Maths::Vector3 GetUpDirection() const;

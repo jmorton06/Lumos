@@ -12,6 +12,7 @@ namespace Lumos
 	}
 
 	Input::Input()
+		: m_WindowFocus(true)
 	{
 		Reset();
 	}

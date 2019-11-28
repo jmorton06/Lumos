@@ -496,11 +496,16 @@ namespace Lumos
 				}
 			}
 
+			Ref<Maths::BoundingBox> boundingBox = CreateRef<Maths::BoundingBox>();
+			for (size_t i = 0; i < data.size(); i++)
+			{
+				boundingBox->Merge(data[i].Position);
+			}
+
 			Ref<IndexBuffer> ib;
 			ib.reset(IndexBuffer::Create(indices.data(), static_cast<u32>(indices.size())));
-			Ref<Maths::BoundingBox> BoundingBox = CreateRef<Maths::BoundingBox>(Maths::Vector3(-0.5f), Maths::Vector3(0.5f));
 
-			return lmnew Mesh(va, ib, BoundingBox);
+			return lmnew Mesh(va, ib, boundingBox);
 		}
 
 		Mesh* CreateIcoSphere(u32 radius, u32 subdivision)

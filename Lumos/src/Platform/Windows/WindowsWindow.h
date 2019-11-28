@@ -40,7 +40,7 @@ namespace Lumos
 		struct WindowData
 		{
 			std::string Title;
-			u32 Width, Height;
+			u32 Width = 0, Height = 0;
 			bool VSync;
 			bool Exit;
 			Graphics::RenderAPI m_RenderAPI;
