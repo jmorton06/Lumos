@@ -68,8 +68,8 @@ namespace Lumos
 
 		void OnUpdate(TimeStep* dt, Scene* scene)
 		{
-			for (auto& system : m_Systems)
-				system.second->OnUpdate(dt, scene);
+			//for (auto& system : m_Systems)
+			//	system.second->OnUpdate(dt, scene);
 		}
 
 		void OnImGui()
