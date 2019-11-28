@@ -264,6 +264,11 @@ project "Sandbox"
 			"-L%{cfg.targetdir}"
 		}
 
+                linkoptions
+		{
+			"../Dependencies/OpenAL/libs/linux/libopenal.so"
+		}
+
 		linkoptions{ "-Wl,-rpath=\\$$ORIGIN" }
 
 	filter "configurations:Debug"
