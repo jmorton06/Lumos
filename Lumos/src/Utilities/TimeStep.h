@@ -6,7 +6,7 @@ namespace Lumos
     class LUMOS_EXPORT TimeStep
     {
     public:
-        _FORCE_INLINE_ TimeStep(float initialTime)
+        explicit _FORCE_INLINE_ TimeStep(float initialTime)
                 : m_Timestep(0.0f), m_LastTime(initialTime), m_Elapsed(0.0f)
         {
         }

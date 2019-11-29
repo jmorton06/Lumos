@@ -23,7 +23,7 @@ namespace Lumos
 		static const char* s_CurrentProfilerName;
 #endif
     public:
-        ProfilerRecord(const char* name);
+		explicit ProfilerRecord(const char* name);
         ~ProfilerRecord();
         
         const float EndTime() const { return m_EndTime; }
@@ -45,7 +45,7 @@ namespace Lumos
             uint64_t calls;
         };
 
-        double elaspedTime;
+        double elaspedTime = 0.0;
         uint16_t workingThreads;
         uint32_t elapsedFrames;
         std::vector<Action> actions;

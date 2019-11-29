@@ -24,6 +24,7 @@ namespace Lumos
 		void HideMouse(bool hide) override {};
 		void SetMousePosition(const Maths::Vector2& pos) override {};
 		void UpdateCursorImGui() override;
+		void SetIcon(const String& filePath, const String& smallIconFilePath = "") override;
 		
 		bool Init(const WindowProperties& properties);
 
@@ -40,7 +41,7 @@ namespace Lumos
 		struct WindowData
 		{
 			std::string Title;
-			u32 Width, Height;
+			u32 Width = 0, Height = 0;
 			bool VSync;
 			bool Exit;
 			Graphics::RenderAPI m_RenderAPI;
@@ -63,6 +64,9 @@ namespace Lumos
 		HDC hDc{};
 		HWND hWnd;
 		RAWINPUTDEVICE rid{};
+
+		HICON m_BigIcon;
+		HICON m_SmallIcon;
 	};
 
 }

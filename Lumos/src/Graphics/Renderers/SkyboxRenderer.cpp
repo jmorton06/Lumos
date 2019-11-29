@@ -143,9 +143,7 @@ namespace Lumos
 		void SkyboxRenderer::BeginScene(Scene* scene)
 		{
 			auto camera = scene->GetCamera();
-			auto proj = camera->GetProjectionMatrix();
-
-			auto invViewProj = Maths::Matrix4::Inverse(proj * camera->GetViewMatrix());
+			auto invViewProj = Maths::Matrix4::Inverse(camera->GetProjectionMatrix() * camera->GetViewMatrix());
 			memcpy(m_VSSystemUniformBuffer + m_VSSystemUniformBufferOffsets[VSSystemUniformIndex_InverseProjectionViewMatrix], &invViewProj, sizeof(Maths::Matrix4));
 		}
 

@@ -52,6 +52,9 @@ namespace Lumos
 		bool& ShowGrid() { return m_ShowGrid; }
 		const float& GetGridSize() const { return m_GridSize; }
 
+		bool& ShowGizmos() { return m_ShowGizmos; }
+		bool& ShowViewSelected() { return m_ShowViewSelected; }
+
 		bool& SnapGuizmo() { return m_SnapQuizmo; }
 		float& SnapAmount() { return m_SnapAmount; }
 
@@ -72,6 +75,8 @@ namespace Lumos
         float m_GridSize = 10.0f;
 
 		bool m_ShowGrid = true;
+		bool m_ShowGizmos = true;
+		bool m_ShowViewSelected = false;
 		bool m_SnapQuizmo = false;
 		bool m_ShowImGuiDemo = true;
 		bool m_View2D = false;

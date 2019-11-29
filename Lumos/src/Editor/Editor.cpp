@@ -367,66 +367,73 @@ namespace Lumos
 		if (m_Selected == entt::null || m_ImGuizmoOperation == 4)
 			return;
 
-		Maths::Matrix4 view = Application::Instance()->GetSceneManager()->GetCurrentScene()->GetCamera()->GetViewMatrix();
-		Maths::Matrix4 proj = Application::Instance()->GetSceneManager()->GetCurrentScene()->GetCamera()->GetProjectionMatrix();
+		if (m_ShowGizmos)
+		{
+			Maths::Matrix4 view = Application::Instance()->GetSceneManager()->GetCurrentScene()->GetCamera()->GetViewMatrix();
+			Maths::Matrix4 proj = Application::Instance()->GetSceneManager()->GetCurrentScene()->GetCamera()->GetProjectionMatrix();
 
 #ifdef LUMOS_RENDER_API_VULKAN
-		if (Graphics::GraphicsContext::GetRenderAPI() == Graphics::RenderAPI::VULKAN)
-			proj.m11_ *= -1.0f;
+			if (Graphics::GraphicsContext::GetRenderAPI() == Graphics::RenderAPI::VULKAN)
+				proj.m11_ *= -1.0f;
 #endif
-        
-        view = view.Transpose();
-        proj = proj.Transpose();
-        
-		ImGuizmo::SetDrawlist();
-		ImGuizmo::SetOrthographic(Application::Instance()->GetSceneManager()->GetCurrentScene()->GetCamera()->IsOrthographic());
 
-        auto& registry = m_Application->GetSceneManager()->GetCurrentScene()->GetRegistry();
-		auto transform = registry.try_get<Maths::Transform>(m_Selected);
-		if (transform != nullptr)
-		{
-			Maths::Matrix4 model = transform->GetWorldMatrix();
-            model = model.Transpose();
+			view = view.Transpose();
+			proj = proj.Transpose();
 
-			float snapAmount[3] = { m_SnapAmount  , m_SnapAmount , m_SnapAmount };
-			float delta[16];
+			ImGuizmo::SetDrawlist();
+			ImGuizmo::SetOrthographic(Application::Instance()->GetSceneManager()->GetCurrentScene()->GetCamera()->IsOrthographic());
 
-			ImGuizmo::Manipulate(Maths::ValuePointer(view), Maths::ValuePointer(proj), static_cast<ImGuizmo::OPERATION>(m_ImGuizmoOperation), ImGuizmo::LOCAL, Maths::ValuePointer(model), delta, m_SnapQuizmo ? snapAmount : nullptr);
-
-			if (ImGuizmo::IsUsing())
+			auto& registry = m_Application->GetSceneManager()->GetCurrentScene()->GetRegistry();
+			auto transform = registry.try_get<Maths::Transform>(m_Selected);
+			if (transform != nullptr)
 			{
-				if (static_cast<ImGuizmo::OPERATION>(m_ImGuizmoOperation) == ImGuizmo::OPERATION::SCALE)
-				{
-					auto mat = Maths::Matrix4(delta).Transpose();
-					transform->SetLocalScale(transform->GetLocalScale() * mat.Scale());
-				}
-				else
-				{
-                    auto mat = Maths::Matrix4(delta).Transpose() * transform->GetLocalMatrix();
-					transform->SetLocalTransform(mat);
+				Maths::Matrix4 model = transform->GetWorldMatrix();
+				model = model.Transpose();
 
-					auto physics2DComponent = registry.try_get<Physics2DComponent>(m_Selected);
+				float snapAmount[3] = { m_SnapAmount  , m_SnapAmount , m_SnapAmount };
+				float delta[16];
 
-					if (physics2DComponent)
+				ImGuizmo::Manipulate(Maths::ValuePointer(view), Maths::ValuePointer(proj), static_cast<ImGuizmo::OPERATION>(m_ImGuizmoOperation), ImGuizmo::LOCAL, Maths::ValuePointer(model), delta, m_SnapQuizmo ? snapAmount : nullptr);
+
+				if (ImGuizmo::IsUsing())
+				{
+					if (static_cast<ImGuizmo::OPERATION>(m_ImGuizmoOperation) == ImGuizmo::OPERATION::SCALE)
 					{
-						physics2DComponent->GetPhysicsObject()->SetPosition({ mat.Translation().x, mat.Translation().y });
+						auto mat = Maths::Matrix4(delta).Transpose();
+						transform->SetLocalScale(transform->GetLocalScale() * mat.Scale());
 					}
 					else
 					{
-						auto physics3DComponent = registry.try_get<Physics3DComponent>(m_Selected);
-						if (physics3DComponent)
+						auto mat = Maths::Matrix4(delta).Transpose() * transform->GetLocalMatrix();
+						transform->SetLocalTransform(mat);
+
+						auto physics2DComponent = registry.try_get<Physics2DComponent>(m_Selected);
+
+						if (physics2DComponent)
 						{
-							physics3DComponent->GetPhysicsObject()->SetPosition(mat.Translation());
-							physics3DComponent->GetPhysicsObject()->SetOrientation(mat.Rotation());
+							physics2DComponent->GetPhysicsObject()->SetPosition({ mat.Translation().x, mat.Translation().y });
+						}
+						else
+						{
+							auto physics3DComponent = registry.try_get<Physics3DComponent>(m_Selected);
+							if (physics3DComponent)
+							{
+								physics3DComponent->GetPhysicsObject()->SetPosition(mat.Translation());
+								physics3DComponent->GetPhysicsObject()->SetOrientation(mat.Rotation());
+							}
 						}
 					}
-				}
-				
-			}
 
-			if (m_Selected != entt::null)
+				}
+			}
+		}
+
+			if (m_Selected != entt::null && m_ShowViewSelected)
 			{
+				auto& registry = m_Application->GetSceneManager()->GetCurrentScene()->GetRegistry();
+
 				auto camera = Application::Instance()->GetSceneManager()->GetCurrentScene()->GetCamera();
+				auto transform = registry.try_get<Maths::Transform>(m_Selected);
 
 #if 0
 				Maths::Matrix4 view = camera->GetViewMatrix();
@@ -472,14 +479,13 @@ namespace Lumos
 #endif
 				
 			}
-		}
 	}
 
 	void Editor::BeginDockSpace(bool infoBar)
 	{
         static bool p_open = true;
         static bool opt_fullscreen_persistant = true;
-        static ImGuiDockNodeFlags opt_flags = ImGuiDockNodeFlags_NoWindowMenuButton;
+        static ImGuiDockNodeFlags opt_flags = ImGuiDockNodeFlags_NoWindowMenuButton | ImGuiDockNodeFlags_NoCloseButton;
         bool opt_fullscreen = opt_fullscreen_persistant;
 
         // We are using the ImGuiWindowFlags_NoDocking flag to make the parent window not dockable into,

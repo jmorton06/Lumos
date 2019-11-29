@@ -10,7 +10,7 @@ namespace Lumos
 {
 	struct LUMOS_EXPORT WindowProperties
 	{
-        WindowProperties(u32 width = 1280, u32 height = 720, int renderAPI = 0, String title = "Lumos", bool fullscreen = false, bool vSync = true, bool borderless = false) : Width(width), Height(height), Title(title), Fullscreen(fullscreen), VSync(vSync), Borderless(borderless), RenderAPI(renderAPI)
+        WindowProperties(u32 width = 1280, u32 height = 720, int renderAPI = 0, const String& title = "Lumos", bool fullscreen = false, bool vSync = true, bool borderless = false) : Width(width), Height(height), Title(title), Fullscreen(fullscreen), VSync(vSync), Borderless(borderless), RenderAPI(renderAPI)
 		{
 		}
 
@@ -52,6 +52,7 @@ namespace Lumos
 		virtual void SetMousePosition(const Maths::Vector2& pos) {};
 		virtual void SetEventCallback(const EventCallbackFn& callback) = 0;
         virtual void UpdateCursorImGui() = 0;
+		virtual void SetIcon(const String& filePath, const String& smallIconFilePath = "") = 0;
 
 		virtual String GetTitle() const = 0;
 		virtual u32 GetWidth()  const = 0;

@@ -51,6 +51,7 @@ namespace Lumos
 		UpdateScroll(Input::GetInput()->GetScrollOffset(), dt);
 		
 		m_ViewDirty = true;
+		m_FrustumDirty = true;
 	}
 
 	void ThirdPersonCamera::HandleKeyboard(float dt)
@@ -91,6 +92,7 @@ namespace Lumos
 		m_Velocity = m_Velocity * pow(m_DampeningFactor, dt);
 
 		m_ViewDirty = true;
+		m_FrustumDirty = true;
 	}
 
 	void ThirdPersonCamera::OnImGui()

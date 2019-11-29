@@ -12,6 +12,7 @@
 namespace Lumos
 {
 	HierarchyWindow::HierarchyWindow()
+		: m_HadRecentDroppedEntity(entt::null)
 	{
 		m_Name = ICON_FA_LIST_ALT" Hierarchy###hierarchy";
 		m_SimpleName = "Hierarchy";

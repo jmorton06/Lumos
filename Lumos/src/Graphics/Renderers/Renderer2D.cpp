@@ -197,28 +197,28 @@ namespace Lumos
 			Maths::Vector3 vertex = transform * Maths::Vector3(min.x, min.y, 0.0f);
 			m_Buffer->vertex = vertex;
 			m_Buffer->uv = uv[0];
-			m_Buffer->tid = textureSlot;
+			m_Buffer->tid = Maths::Vector2(textureSlot,0.0f);
 			m_Buffer->color = colour;
 			m_Buffer++;
 
 			vertex = transform * Maths::Vector3(max.x, min.y, 0.0f);
 			m_Buffer->vertex = vertex;
 			m_Buffer->uv = uv[1];
-			m_Buffer->tid = textureSlot;
+			m_Buffer->tid = Maths::Vector2(textureSlot, 0.0f);
 			m_Buffer->color = colour;
 			m_Buffer++;
 
 			vertex = transform * Maths::Vector3(max.x, max.y, 0.0f);
 			m_Buffer->vertex = vertex;
 			m_Buffer->uv = uv[2];
-			m_Buffer->tid = textureSlot;
+			m_Buffer->tid = Maths::Vector2(textureSlot, 0.0f);
 			m_Buffer->color = colour;
 			m_Buffer++;
 
 			vertex = transform * Maths::Vector3(min.x, max.y, 0.0f);
 			m_Buffer->vertex = vertex;
 			m_Buffer->uv = uv[3];
-			m_Buffer->tid = textureSlot;
+			m_Buffer->tid = Maths::Vector2(textureSlot, 0.0f);
 			m_Buffer->color = colour;
 			m_Buffer++;
 
