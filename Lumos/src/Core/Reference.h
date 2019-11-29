@@ -270,7 +270,7 @@ namespace Lumos
     class LUMOS_EXPORT Owned
     {
     public:
-        Owned(std::nullptr_t)
+		explicit Owned(std::nullptr_t)
         {
             m_Ptr = nullptr;
         }
@@ -281,7 +281,7 @@ namespace Lumos
         }
         
         template<typename U>
-        Owned(U* ptr)
+		explicit Owned(U* ptr)
         {
             m_Ptr = dynamic_cast<T*>(ptr);
         }

@@ -378,7 +378,7 @@ namespace Lumos
 
 			ImGui::NextColumn();
 			ImGui::PushItemWidth(-1);
-			ImGui::TextUnformatted("%s", tex ? tex->GetFilepath().c_str() : "No Texture");
+			ImGui::TextUnformatted(tex ? tex->GetFilepath().c_str() : "No Texture");
 
 			ImGui::PopItemWidth();
 			ImGui::NextColumn();
@@ -426,7 +426,7 @@ namespace Lumos
 
 			ImGui::NextColumn();
 			ImGui::PushItemWidth(-1);
-			ImGui::TextUnformatted("%s", tex ? tex->GetFilepath().c_str() : "No Texture");
+			ImGui::TextUnformatted(tex ? tex->GetFilepath().c_str() : "No Texture");
 
 			ImGui::PopItemWidth();
 			ImGui::NextColumn();

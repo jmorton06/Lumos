@@ -63,6 +63,8 @@ namespace Lumos
 		windowProperties.Width = m_State->get<int>("width");
 		windowProperties.Height = m_State->get<int>("height");
 		windowProperties.RenderAPI = m_State->get<int>("renderAPI");
+		windowProperties.Fullscreen = m_State->get<bool>("fullscreen");
+		windowProperties.Borderless = m_State->get<bool>("borderless");
 
 		return windowProperties;
 	}

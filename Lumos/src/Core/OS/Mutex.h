@@ -21,7 +21,7 @@ namespace Lumos
         Mutex *mutex;
         
     public:
-        MutexLock(Mutex *p_mutex)
+		explicit MutexLock(Mutex *p_mutex)
         {
             mutex = p_mutex;
             if (mutex) mutex->Lock();

@@ -198,9 +198,6 @@ namespace Lumos::Maths
                 Lumos::Maths::IsInf(m11_));
         }
 
-
-        /// Return as string.
-
         float m00_;
         float m01_;
         float m10_;

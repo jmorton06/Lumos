@@ -24,6 +24,7 @@ namespace Lumos
 		void HideMouse(bool hide) override {};
 		void SetMousePosition(const Maths::Vector2& pos) override {};
 		void UpdateCursorImGui() override;
+		void SetIcon(const String& filePath, const String& smallIconFilePath = "") override;
 		
 		bool Init(const WindowProperties& properties);
 
@@ -63,6 +64,9 @@ namespace Lumos
 		HDC hDc{};
 		HWND hWnd;
 		RAWINPUTDEVICE rid{};
+
+		HICON m_BigIcon;
+		HICON m_SmallIcon;
 	};
 
 }

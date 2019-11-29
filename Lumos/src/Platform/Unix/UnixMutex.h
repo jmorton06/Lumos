@@ -13,7 +13,7 @@ namespace Lumos
         virtual void Unlock() override;
         virtual bool TryLock() override;
 
-        UnixMutex(bool p_recursive);
+		explicit UnixMutex(bool p_recursive);
         ~UnixMutex();
         
         static void MakeDefault();

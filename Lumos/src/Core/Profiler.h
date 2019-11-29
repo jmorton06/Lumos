@@ -23,7 +23,7 @@ namespace Lumos
 		static const char* s_CurrentProfilerName;
 #endif
     public:
-        ProfilerRecord(const char* name);
+		explicit ProfilerRecord(const char* name);
         ~ProfilerRecord();
         
         const float EndTime() const { return m_EndTime; }
