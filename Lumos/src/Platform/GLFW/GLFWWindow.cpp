@@ -9,9 +9,6 @@
 #include "Graphics/API/GraphicsContext.h"
 #include "Utilities/LoadImage.h"
 
-#include <GLFW/glfw3.h>
-#include <GLFW/glfw3native.h>
-
 #include "GLFWKeyCodes.h"
 
 #include "Core/OS/Input.h"
@@ -21,6 +18,9 @@
 #include "Events/MouseEvent.h"
 #include "Events/KeyEvent.h"
 
+
+#include <GLFW/glfw3.h>
+#include <GLFW/glfw3native.h>
 #include <imgui/imgui.h>
 
 static GLFWcursor* g_MouseCursors[ImGuiMouseCursor_COUNT] = { 0 };
@@ -135,7 +135,7 @@ namespace Lumos
 
 		glfwSetWindowUserPointer(m_Handle, &m_Data);
 
-		SetIcon("/CoreTextures/icon.png");
+		SetIcon("/CoreTextures/icon.png", "/CoreTextures/icon32.png");
         
 		glfwSetWindowPos(m_Handle, mode->width / 2 - ScreenWidth / 2, mode->height / 2 - ScreenHeight / 2);
 		glfwSetInputMode(m_Handle, GLFW_STICKY_KEYS, GL_TRUE);
@@ -259,17 +259,28 @@ namespace Lumos
 		return true;
 	}
 
-	void GLFWWindow::SetIcon(const String& file)
+	void GLFWWindow::SetIcon(const String& file, const String& smallIconFilePath)
 	{
 		u32 width, height;
 		u8* pixels = Lumos::LoadImageFromFile(file, &width, &height, nullptr, true);
 
+		std::vector<GLFWimage> images;
 		GLFWimage image;
 		image.height = height;
 		image.width = width;
 		image.pixels = static_cast<unsigned char*>(pixels);
+		images.push_back(image);
 
-		glfwSetWindowIcon(m_Handle, 1, &image);
+		if (smallIconFilePath != "")
+		{
+			pixels = Lumos::LoadImageFromFile(smallIconFilePath, &width, &height, nullptr, true);
+			image.height = height;
+			image.width = width;
+			image.pixels = static_cast<unsigned char*>(pixels);
+			images.push_back(image);
+		}
+
+		glfwSetWindowIcon(m_Handle, int(images.size()) , images.data());
 
 		delete[] pixels;
 	}

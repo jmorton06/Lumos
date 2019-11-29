@@ -259,12 +259,7 @@ project "Sandbox"
 
 		links { "X11", "pthread", "dl"}
 
-		linkoptions
-		{
-			"-L%{cfg.targetdir}"
-		}
-
-		linkoptions{ "-Wl,-rpath=\\$$ORIGIN" }
+		linkoptions { "-L%{cfg.targetdir}", "-Wl,-rpath=\\$$ORIGIN" }
 
 	filter "configurations:Debug"
 		defines "LUMOS_DEBUG"

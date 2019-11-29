@@ -14,6 +14,7 @@
 #include "Graphics/API/GraphicsContext.h"
 #include "App/Application.h"
 #include "Core/OS/Input.h"
+#include "Utilities/LoadImage.h"
 #include "Events/ApplicationEvent.h"
 
 #include <imgui/imgui.h>
@@ -74,6 +75,90 @@ namespace Lumos
 		return result;
 	}
 
+	static HICON createIcon(unsigned char* image, int width, int height,
+		int xhot, int yhot, bool icon)
+	{
+		int i;
+		HDC dc;
+		HICON handle;
+		HBITMAP color, mask;
+		BITMAPV5HEADER bi;
+		ICONINFO ii;
+		unsigned char* target = NULL;
+		unsigned char* source = image;
+
+		ZeroMemory(&bi, sizeof(bi));
+		bi.bV5Size = sizeof(bi);
+		bi.bV5Width = width;
+		bi.bV5Height = -height;
+		bi.bV5Planes = 1;
+		bi.bV5BitCount = 32;
+		bi.bV5Compression = BI_BITFIELDS;
+		bi.bV5RedMask = 0x00ff0000;
+		bi.bV5GreenMask = 0x0000ff00;
+		bi.bV5BlueMask = 0x000000ff;
+		bi.bV5AlphaMask = 0xff000000;
+
+		dc = GetDC(NULL);
+		color = CreateDIBSection(dc,
+			(BITMAPINFO*)&bi,
+			DIB_RGB_COLORS,
+			(void**)&target,
+			NULL,
+			(DWORD)0);
+		ReleaseDC(NULL, dc);
+
+		if (!color)
+		{
+			Debug::Log::Error("Win32: Failed to create RGBA bitmap");
+			return NULL;
+		}
+
+		mask = CreateBitmap(width, height, 1, 1, NULL);
+		if (!mask)
+		{
+			Debug::Log::Error("Win32: Failed to create mask bitmap");
+			DeleteObject(color);
+			return NULL;
+		}
+
+		for (i = 0; i < width * height; i++)
+		{
+			target[0] = source[2];
+			target[1] = source[1];
+			target[2] = source[0];
+			target[3] = source[3];
+			target += 4;
+			source += 4;
+		}
+
+		ZeroMemory(&ii, sizeof(ii));
+		ii.fIcon = icon;
+		ii.xHotspot = xhot;
+		ii.yHotspot = yhot;
+		ii.hbmMask = mask;
+		ii.hbmColor = color;
+
+		handle = CreateIconIndirect(&ii);
+
+		DeleteObject(color);
+		DeleteObject(mask);
+
+		if (!handle)
+		{
+			if (icon)
+			{
+				Debug::Log::Error("Win32: Failed to create icon");
+			}
+			else
+			{
+				Debug::Log::Error("Win32: Failed to create cursor");
+			}
+		}
+
+		return handle;
+	}
+
 	bool WindowsWindow::Init(const WindowProperties& properties)
 	{
 		m_Data.Title = properties.Title;
@@ -83,30 +168,50 @@ namespace Lumos
 
 		hInstance = reinterpret_cast<HINSTANCE>(&__ImageBase);
 
-		WNDCLASS winClass = {};
-		winClass.hInstance = hInstance; // GetModuleHandle(0);
+		WNDCLASSEXA winClass = {};
+		winClass.cbSize = sizeof(WNDCLASSEX);
+		winClass.hInstance = hInstance;
 		winClass.style = CS_HREDRAW | CS_VREDRAW | CS_OWNDC;
 		winClass.lpfnWndProc = static_cast<WNDPROC>(WndProc);
 		winClass.lpszClassName = properties.Title.c_str();
-		winClass.hCursor = LoadCursor(NULL, IDC_ARROW);
-		winClass.hIcon = LoadIcon(NULL, IDI_WINLOGO);
 
-		if (!RegisterClassA(&winClass))
+		winClass.hbrBackground = (HBRUSH)GetStockObject(WHITE_BRUSH);
+		winClass.hCursor = LoadCursorA(nullptr, IDC_ARROW);
+		winClass.hIcon = winClass.hIconSm = LoadIconA(nullptr, IDI_APPLICATION);
+		winClass.lpszMenuName = nullptr;
+		winClass.style = CS_VREDRAW | CS_HREDRAW;
+
+		DWORD style = WS_POPUP;
+		if (!properties.Fullscreen)
+			style = WS_SYSMENU | WS_CAPTION | WS_CLIPCHILDREN | WS_CLIPSIBLINGS | WS_MINIMIZEBOX | WS_MAXIMIZEBOX | WS_SIZEBOX;
+
+		if (!properties.Borderless)
+			style |= WS_BORDER;
+
+
+		if (!RegisterClassExA(&winClass))
 		{
 			LUMOS_LOG_CRITICAL("Could not register Win32 class!");
 			return false;
 		}
 
 		RECT size = { 0, 0, (LONG)properties.Width, (LONG)properties.Height };
-		AdjustWindowRectEx(&size, WS_OVERLAPPEDWINDOW | WS_CLIPSIBLINGS | WS_CLIPCHILDREN, false, WS_EX_APPWINDOW | WS_EX_WINDOWEDGE);
+		AdjustWindowRectEx(&size, style, false, WS_EX_APPWINDOW | WS_EX_WINDOWEDGE);
 
-		hWnd = CreateWindowExA(WS_EX_APPWINDOW | WS_EX_WINDOWEDGE,
-			winClass.lpszClassName, properties.Title.c_str(),
-			WS_OVERLAPPEDWINDOW | WS_CLIPSIBLINGS | WS_CLIPCHILDREN,
-			GetSystemMetrics(SM_CXSCREEN) / 2 - properties.Width / 2,
-			GetSystemMetrics(SM_CYSCREEN) / 2 - properties.Height / 2,
+		m_Data.Width = size.right - size.left;
+		m_Data.Height = size.bottom - size.top;
 
-			size.right + (-size.left), size.bottom + (-size.top), NULL, NULL, hInstance, NULL);
+		int windowLeft = (GetSystemMetrics(SM_CXSCREEN) - m_Data.Width) / 2;
+		int windowTop = (GetSystemMetrics(SM_CYSCREEN) - m_Data.Height) / 2;
+
+		if (properties.Fullscreen)
+		{
+			windowLeft = 0;
+			windowTop = 0;
+		}
+
+		hWnd = CreateWindow(winClass.lpszClassName, properties.Title.c_str(), style, windowLeft, windowTop,
+			m_Data.Width, m_Data.Height, NULL, NULL, hInstance, NULL);
 
 		if (!hWnd)
 		{
@@ -131,9 +236,25 @@ namespace Lumos
 			return false;
 		}
 
+		SetIcon("/CoreTextures/icon.png","/CoreTextures/icon32.png" );
+
 		ShowWindow(hWnd, SW_SHOW);
 		SetFocus(hWnd);
 		SetWindowTitle(properties.Title);
+
+		RECT clientRect;
+		GetClientRect(hWnd, &clientRect);
+
+		UpdateWindow(hWnd);
+
+		MoveWindow(hWnd, windowLeft, windowTop, m_Data.Width, m_Data.Height, TRUE);
+
+		GetClientRect(hWnd, &clientRect);
+		int w = clientRect.right - clientRect.left;
+		int h = clientRect.bottom - clientRect.top;
+
+		m_Data.Height = h;
+		m_Data.Width = w;
 
 		if(!properties.ShowConsole)
 		{
@@ -142,6 +263,33 @@ namespace Lumos
 			ShowWindow(consoleWindow, SW_HIDE);
 
 			SetActiveWindow(hWnd);
+		}
+
+		if (properties.Fullscreen)
+		{
+			DEVMODE dm;
+			memset(&dm, 0, sizeof(dm));
+			dm.dmSize = sizeof(dm);
+			// use default values from current setting
+			EnumDisplaySettings(NULL, ENUM_CURRENT_SETTINGS, &dm);
+			/*m_data->m_oldScreenWidth = dm.dmPelsWidth;
+			m_data->m_oldHeight = dm.dmPelsHeight;
+			m_data->m_oldBitsPerPel = dm.dmBitsPerPel;*/
+
+			dm.dmPelsWidth = m_Data.Width;
+			dm.dmPelsHeight = m_Data.Height;
+			/*if (colorBitsPerPixel)
+			{
+				dm.dmBitsPerPel = colorBitsPerPixel;
+			}*/
+			dm.dmFields = DM_BITSPERPEL | DM_PELSWIDTH | DM_PELSHEIGHT | DM_DISPLAYFREQUENCY;
+
+			LONG res = ChangeDisplaySettings(&dm, CDS_FULLSCREEN);
+			if (res != DISP_CHANGE_SUCCESSFUL)
+			{  // try again without forcing display frequency
+				dm.dmFields = DM_BITSPERPEL | DM_PELSWIDTH | DM_PELSHEIGHT;
+				res = ChangeDisplaySettings(&dm, CDS_FULLSCREEN);
+			}
 		}
 		
 		//Input
@@ -444,6 +592,47 @@ namespace Lumos
 			::SetCursor(::LoadCursor(NULL, win32_cursor));
 		}
 
+	}
+
+	void WindowsWindow::SetIcon(const String & filePath, const String& smallIconFilePath)
+	{
+		HICON bigIcon = NULL;
+		HICON smallIcon = NULL;
+
+		if (filePath != "")
+		{
+			u32 width, height;
+			u8* pixels = Lumos::LoadImageFromFile(filePath, &width, &height, nullptr, true);
+
+			//Todo load multiple sized icons
+			bigIcon = createIcon(pixels, int(width), int(height), 0, 0, true);
+			delete[] pixels;
+		}
+
+		if (smallIconFilePath != "")
+		{
+			u32 width, height;
+			u8* pixels = Lumos::LoadImageFromFile(smallIconFilePath, &width, &height, nullptr, true);
+
+			//Todo load multiple sized icons
+			auto smallIcon = createIcon(pixels, int(width), int(height), 0, 0, true);
+			delete[] pixels;
+		}
+
+		if (!smallIcon)
+			smallIcon = bigIcon;
+
+		SendMessage(hWnd, WM_SETICON, ICON_BIG, (LPARAM)bigIcon);
+		SendMessage(hWnd, WM_SETICON, ICON_SMALL, (LPARAM)smallIcon);
+
+		if (m_BigIcon)
+			DestroyIcon(m_BigIcon);
+
+		if (m_SmallIcon)
+			DestroyIcon(m_SmallIcon);
+
+		m_BigIcon = bigIcon;
+		m_SmallIcon = smallIcon;
 	}
 
 	void WindowsWindow::MakeDefault()

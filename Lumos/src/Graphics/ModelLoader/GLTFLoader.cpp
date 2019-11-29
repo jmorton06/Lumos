@@ -177,7 +177,7 @@ namespace Lumos
             
             if (roughnessFactor != mat.values.end())
             {
-                properties.roughnessColour = static_cast<float>(roughnessFactor->second.Factor());
+                properties.roughnessColour = Maths::Vector4(static_cast<float>(roughnessFactor->second.Factor()));
             }
             
             if (metallicFactor != mat.values.end())

@@ -94,7 +94,7 @@ namespace Lumos
 		}
 
 		ImGui::SameLine();
-		Filter.Draw("", -100.0f);
+		Filter.Draw("###ConsoleFilter", -100.0f);
 
 	}
 

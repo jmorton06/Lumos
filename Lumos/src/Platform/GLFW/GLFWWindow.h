@@ -39,7 +39,7 @@ namespace Lumos
 		_FORCE_INLINE_ void SetExit(bool exit) override { m_Data.Exit = exit; }
 		_FORCE_INLINE_ void SetEventCallback(const EventCallbackFn& callback) override { m_Data.EventCallback = callback; }
 
-		void SetIcon(const String& file);
+		void SetIcon(const String& file, const String& smallIconFilePath = "") override;
 
 	     static void MakeDefault();
 

@@ -485,7 +485,7 @@ namespace Lumos
 	{
         static bool p_open = true;
         static bool opt_fullscreen_persistant = true;
-        static ImGuiDockNodeFlags opt_flags = ImGuiDockNodeFlags_NoWindowMenuButton;
+        static ImGuiDockNodeFlags opt_flags = ImGuiDockNodeFlags_NoWindowMenuButton | ImGuiDockNodeFlags_NoCloseButton;
         bool opt_fullscreen = opt_fullscreen_persistant;
 
         // We are using the ImGuiWindowFlags_NoDocking flag to make the parent window not dockable into,

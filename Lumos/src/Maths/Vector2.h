@@ -156,7 +156,7 @@ namespace Lumos::Maths
         {
         }
 
-        Vector2(float x) noexcept :
+        explicit Vector2(float x) noexcept :
             x(x),
             y(x)
         {
@@ -275,7 +275,7 @@ namespace Lumos::Maths
         void Normalize()
         {
             float lenSquared = LengthSquared();
-            if (!Equals(lenSquared, 1.0f) && lenSquared > 0.0f)
+            if (!Maths::Equals(lenSquared, 1.0f) && lenSquared > 0.0f)
             {
                 float invLen = 1.0f / sqrtf(lenSquared);
                 x *= invLen;
@@ -317,7 +317,7 @@ namespace Lumos::Maths
         Vector2 Normalized() const
         {
             const float lenSquared = LengthSquared();
-            if (!Equals(lenSquared, 1.0f) && lenSquared > 0.0f)
+            if (!Maths::Equals(lenSquared, 1.0f) && lenSquared > 0.0f)
             {
                 const float invLen = 1.0f / sqrtf(lenSquared);
                 return *this * invLen;

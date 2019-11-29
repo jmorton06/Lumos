@@ -48,7 +48,9 @@ void GraphicsScene::OnInit()
 	m_Registry.assign<NameComponent>(cameraEntity, "Camera");
 	Application::Instance()->GetSystem<AudioManager>()->SetListener(m_pCamera);
 
-	Application::Instance()->GetSystem<AudioManager>()->SetListener(m_pCamera);
+	auto audioSystem = Application::Instance()->GetSystem<AudioManager>();
+	if (audioSystem)
+		Application::Instance()->GetSystem<AudioManager>()->SetListener(m_pCamera);
 
 	auto shadowRenderer = new Graphics::ShadowRenderer();
 	auto deferredRenderer = new Graphics::DeferredRenderer(m_ScreenWidth, m_ScreenHeight);
