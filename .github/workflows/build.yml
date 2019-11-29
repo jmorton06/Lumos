@@ -14,22 +14,22 @@ jobs:
       run: |
         sudo apt-get update
         sudo apt-get install -y g++-8 libxrandr-dev libxinerama-dev libxcursor-dev libxi-dev libopenal-dev mesa-common-dev
-    - name: Build
+    - name: Build gcc
       run: |
         Tools/linux/premake5 gmake2
         cd build
-        make $* CC=gcc-8 CPP=g++-8 CXX=g++-8 CC=gcc-8
+        make $* CC=gcc-8 CPP=g++-8 CXX=g++-8 CC=gcc-8 -j8
   MacOS:
-    runs-on: macOS-10.14
+    runs-on: macOS-latest
     steps:
     - uses: actions/checkout@v1
       with:
         fetch-depth: 1
     - name: Build
       run: |
-        Tools/premake5 gmake2
-        cd build
-        make $*
+        Tools/premake5 xcode4
+        xcodebuild -project build/Sandbox.xcodeproj
+        xcodebuild -project build/Tests.xcodeproj
     - name: Test
       run: |
         ./bin/Debug/Tests
@@ -46,7 +46,11 @@ jobs:
         run: | 
           cd Scripts
           ./GenerateVS19.bat
-      - name: Build x64
+      - name: Build x64 Debug
+        shell: cmd
+        run: |
+          "%MSBUILD_PATH%\MSBuild.exe" /p:Platform=x64 /p:Configuration=Debug build/Lumos.sln
+      - name: Build x64 Release
         shell: cmd
         run: |
           "%MSBUILD_PATH%\MSBuild.exe" /p:Platform=x64 /p:Configuration=Release build/Lumos.sln
