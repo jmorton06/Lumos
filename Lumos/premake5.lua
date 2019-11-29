@@ -257,7 +257,8 @@ project "Lumos"
 			"LUMOS_RENDER_API_OPENGL",
 			"LUMOS_RENDER_API_VULKAN",
 			"VK_USE_PLATFORM_XCB_KHR",
-			"LUMOS_IMGUI"
+			"LUMOS_IMGUI",
+			"LUMOS_OPENAL"
 		}
 
 		files
