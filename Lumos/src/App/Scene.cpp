@@ -97,7 +97,12 @@ namespace Lumos
 		DeleteAllGameObjects();
 
 		Application::Instance()->GetRenderManager()->Reset();
-		Application::Instance()->GetSystem<AudioManager>()->ClearNodes();
+
+		auto audioManager = AudioManager::Create();
+		if (audioManager)
+		{
+			audioManager->ClearNodes();
+		}
 
 		m_CurrentScene = false;
 	};
