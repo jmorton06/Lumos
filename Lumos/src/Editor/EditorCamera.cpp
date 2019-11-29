@@ -39,7 +39,7 @@ namespace Lumos
 
 		m_RotateVelocity = m_RotateVelocity * pow(m_RotateDampeningFactor, dt);
 
-		m_ViewDirty = true;=
+		m_ViewDirty = true;
 		m_FrustumDirty = true;
 
 		UpdateScroll(Input::GetInput()->GetScrollOffset(), dt);
