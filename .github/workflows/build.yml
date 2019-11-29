@@ -18,7 +18,7 @@ jobs:
       run: |
         Tools/linux/premake5 gmake2
         cd build
-        make $* CC=gcc-8 CPP=g++-8 CXX=g++-8 CC=gcc-8
+        make $* CC=gcc-8 CPP=g++-8 CXX=g++-8 CC=gcc-8 -j8
   MacOS:
     runs-on: macOS-latest
     steps:
