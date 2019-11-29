@@ -16,7 +16,7 @@ namespace Lumos::Maths
         {
         }
 
-        Vector4(float x) noexcept :
+		explicit Vector4(float x) noexcept :
             x(x),
             y(x),
             z(x),

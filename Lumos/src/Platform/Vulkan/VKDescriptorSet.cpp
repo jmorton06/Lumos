@@ -23,8 +23,7 @@ namespace Lumos
 
 			VkResult result = vkAllocateDescriptorSets(VKDevice::Device(), &descriptorSetAllocateInfo, &m_DescriptorSet);
 
-			if (result != VK_SUCCESS)
-				LUMOS_ASSERT(false, "Failed to allocate Descriptor Set");
+			LUMOS_ASSERT(result == VK_SUCCESS, "Failed to allocate Descriptor Set");
 
 			m_BufferInfoPool = lmnew VkDescriptorBufferInfo[MAX_BUFFER_INFOS];
 			m_ImageInfoPool = lmnew VkDescriptorImageInfo[MAX_IMAGE_INFOS];

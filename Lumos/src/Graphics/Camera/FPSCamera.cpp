@@ -45,6 +45,7 @@ namespace Lumos
 			m_PreviousCurserPos = Maths::Vector2(xpos, ypos);
 
 			m_ViewDirty = true;
+			m_FrustumDirty = true;
 
 			UpdateScroll(Input::GetInput()->GetScrollOffset(), dt);
 		}
@@ -94,6 +95,7 @@ namespace Lumos
 		m_Velocity = m_Velocity * pow(m_DampeningFactor, dt);
 
 		m_ViewDirty = true;
+		m_FrustumDirty = true;
 
 	}
 

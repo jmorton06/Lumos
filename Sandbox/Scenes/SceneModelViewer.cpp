@@ -20,7 +20,9 @@ void SceneModelViewer::OnInit()
 
 	m_pCamera = new EditorCamera(-20.0f, 330.0f, Maths::Vector3(-2.5f, 1.3f, 3.8f), 45.0f, 0.1f, 1000.0f, (float) m_ScreenWidth / (float) m_ScreenHeight);
 
-	Application::Instance()->GetSystem<AudioManager>()->SetListener(m_pCamera);
+	auto audioSystem = Application::Instance()->GetSystem<AudioManager>();
+	if (audioSystem)
+		Application::Instance()->GetSystem<AudioManager>()->SetListener(m_pCamera);
 
 	String environmentFiles[11] =
 	{

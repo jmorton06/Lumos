@@ -54,11 +54,12 @@ namespace Lumos
 		m_Timer = CreateScope<Timer>();
 
 		const String root = ROOT_DIR;
-
-		VFS::Get()->Mount("CoreShaders", root + "/lumos/res/shaders");
-		VFS::Get()->Mount("CoreMeshes", root + "/lumos/res/meshes");
-		VFS::Get()->Mount("CoreTextures", root + "/lumos/res/textures");
-		VFS::Get()->Mount("CoreFonts", root + "/lumos/res/fonts");
+		
+		Debug::Log::Info(root);
+		VFS::Get()->Mount("CoreShaders", root + "/Lumos/res/shaders");
+		VFS::Get()->Mount("CoreMeshes", root + "/Lumos/res/meshes");
+		VFS::Get()->Mount("CoreTextures", root + "/Lumos/res/textures");
+		VFS::Get()->Mount("CoreFonts", root + "/Lumos/res/fonts");
 
 		m_Window = Scope<Window>(Window::Create(properties));
 #ifndef LUMOS_EDITOR
@@ -113,11 +114,16 @@ namespace Lumos
 		PushLayerInternal(lmnew ImGuiLayer(false),true,false);
 
 		m_SystemManager = CreateScope<SystemManager>();
-		m_SystemManager->RegisterSystem<AudioManager>(AudioManager::Create());
+
+		auto audioManager = AudioManager::Create();
+		if (audioManager)
+		{
+			audioManager->OnInit();
+			m_SystemManager->RegisterSystem<AudioManager>(audioManager);
+		}
+
 		m_SystemManager->RegisterSystem<LumosPhysicsEngine>();
 		m_SystemManager->RegisterSystem<B2PhysicsEngine>();
-
-		m_SystemManager->GetSystem<AudioManager>()->OnInit();
 
 		m_CurrentState = AppState::Running;
 	}

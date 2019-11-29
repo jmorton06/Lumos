@@ -8,8 +8,8 @@ TEST_CASE("Vector2 Tests", "[Lumos::Maths]")
 	using namespace Maths;
 	{
 		Vector2 A(1.0f);
-		Vector2 C = A + 1.0f;
-		A += 1.0f;
+		Vector2 C = A + Vector2(1.0f);
+		A += Vector2(1.0f);
 		REQUIRE(A == Vector2(2.0f));
 		REQUIRE(A == C);
 	}
@@ -25,8 +25,8 @@ TEST_CASE("Vector2 Tests", "[Lumos::Maths]")
 
 	{
 		Vector2 A(1.0f);
-		Vector2 C = A - 1.0f;
-		A -= 1.0f;
+		Vector2 C = A - Vector2(1.0f);
+		A -= Vector2(1.0f);
 		REQUIRE(A == Vector2(0.0f));
 		REQUIRE(A == C);
 	}
@@ -73,10 +73,10 @@ TEST_CASE("Vector2 Tests", "[Lumos::Maths]")
 		Vector2 F = B / A;
 		REQUIRE(F == Vector2(4, 2.5));
 
-		Vector2 G = A + 1.0f;
+		Vector2 G = A + Vector2(1.0f);
 		REQUIRE(G == Vector2(2, 3));
 
-		Vector2 H = B - 1.0f;
+		Vector2 H = B - Vector2(1.0f);
 		REQUIRE(H == Vector2(3, 4));
 
 		Vector2 I = A * 2.0f;

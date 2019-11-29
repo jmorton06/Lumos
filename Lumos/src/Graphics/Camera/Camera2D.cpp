@@ -21,6 +21,7 @@ namespace Lumos
 
 		m_ViewDirty = true;
 		m_ProjectionDirty = true;
+		m_FrustumDirty = true;
 	}
 
 	Camera2D::~Camera2D()
@@ -38,6 +39,7 @@ namespace Lumos
 		m_PreviousCurserPos = Maths::Vector2(xpos, ypos);
 
 		m_ViewDirty = true;
+		m_FrustumDirty = true;
 	}
 
 	void Camera2D::HandleKeyboard(float dt)
@@ -71,6 +73,7 @@ namespace Lumos
 			m_Position += m_Velocity * dt;
 			m_Velocity = m_Velocity * pow(m_DampeningFactor, dt);
 			m_ViewDirty = true;
+			m_FrustumDirty = true;
 		}
 
 		UpdateScroll(Input::GetInput()->GetScrollOffset(), dt);
@@ -103,7 +106,8 @@ namespace Lumos
 				m_ZoomVelocity = m_ZoomVelocity * pow(m_ZoomDampeningFactor, dt);
 			}
 
-			m_ViewDirty = true;
+			m_ProjectionDirty = true;
+			m_FrustumDirty = true;
 		}
     }
 }

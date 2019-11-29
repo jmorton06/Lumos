@@ -431,7 +431,7 @@ namespace Lumos
 			{
 				if (registry.valid(selected))
 				{
-					ImGui::Text("ID: %d, Version: %d", registry.entity(selected), registry.version(selected));
+					ImGui::Text("ID: %d, Version: %d", static_cast<int>(registry.entity(selected)), registry.version(selected));
 				}
 				else
 				{

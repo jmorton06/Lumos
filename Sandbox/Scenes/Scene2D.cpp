@@ -26,7 +26,9 @@ void Scene2D::OnInit()
 
 	m_SceneBoundingRadius = 20.0f;
 
-	Application::Instance()->GetSystem<AudioManager>()->SetListener(m_pCamera);
+	auto audioSystem = Application::Instance()->GetSystem<AudioManager>();
+	if (audioSystem)
+		Application::Instance()->GetSystem<AudioManager>()->SetListener(m_pCamera);
 
 	LoadSprites();
 

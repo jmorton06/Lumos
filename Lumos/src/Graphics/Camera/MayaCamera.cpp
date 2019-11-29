@@ -74,6 +74,7 @@ namespace Lumos
 		m_Position = CalculatePosition();
 
 		m_ViewDirty = true;
+		m_FrustumDirty = true;
 	}
 
 	void MayaCamera::HandleKeyboard(float dt)

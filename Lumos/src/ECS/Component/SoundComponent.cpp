@@ -20,6 +20,8 @@ namespace Lumos
 
 	void SoundComponent::Init()
 	{
+
+		//TODO Remove
 		Application::Instance()->GetSystem<AudioManager>()->AddSoundNode(m_SoundNode.get());
 	}
 

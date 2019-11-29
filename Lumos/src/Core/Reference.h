@@ -58,7 +58,7 @@ namespace Lumos
             ref(other);
         }
         
-        Reference(Reference&& rhs)
+        Reference(Reference&& rhs) noexcept
         {
             m_Ptr = nullptr;
             m_Counter = nullptr;
@@ -139,7 +139,7 @@ namespace Lumos
 			ref(rhs);
 		}
         
-        _FORCE_INLINE_ Reference& operator=(Reference&& rhs)
+        _FORCE_INLINE_ Reference& operator=(Reference&& rhs) noexcept
         {
             ref(rhs);
             return *this;
@@ -270,7 +270,7 @@ namespace Lumos
     class LUMOS_EXPORT Owned
     {
     public:
-        Owned(std::nullptr_t)
+		explicit Owned(std::nullptr_t)
         {
             m_Ptr = nullptr;
         }
@@ -281,7 +281,7 @@ namespace Lumos
         }
         
         template<typename U>
-        Owned(U* ptr)
+		explicit Owned(U* ptr)
         {
             m_Ptr = dynamic_cast<T*>(ptr);
         }
