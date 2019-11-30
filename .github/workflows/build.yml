@@ -43,7 +43,7 @@ jobs:
     - name: Build
       run: |
         Tools/premake5 --os=ios xcode4 
-        xcodebuild -project build/Sandbox.xcodeproj
+        xcodebuild -project build/Sandbox.xcodeproj CODE_SIGN_IDENTITY="" CODE_SIGNING_REQUIRED=NO CODE_SIGNING_ALLOWED=NO
         
   Windows:
     runs-on: windows-2019
