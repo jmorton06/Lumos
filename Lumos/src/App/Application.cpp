@@ -55,7 +55,6 @@ namespace Lumos
 
 		const String root = ROOT_DIR;
 		
-		Debug::Log::Info(root);
 		VFS::Get()->Mount("CoreShaders", root + "/Lumos/res/shaders");
 		VFS::Get()->Mount("CoreMeshes", root + "/Lumos/res/meshes");
 		VFS::Get()->Mount("CoreTextures", root + "/Lumos/res/textures");
