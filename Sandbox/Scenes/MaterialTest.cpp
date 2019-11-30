@@ -166,7 +166,8 @@ void MaterialTest::LoadModels()
 
 		m_Registry.assign<Maths::Transform>(obj, Matrix4::Translation(Maths::Vector3(float(numObjects) * 1.2f - float(materials.size()) / 2.0f, 1.2f, 0.0f)) * Matrix4::Scale(Maths::Vector3(0.5f, 0.5f, 0.5f)));
 		m_Registry.assign<MeshComponent>(obj, AssetsManager::DefaultModels()->Get("Sphere"));
-		m_Registry.assign<MaterialComponent>(obj, testMaterial);
+        
+        m_Registry.assign<MaterialComponent>(obj,material ? material : testMaterial);
 		m_Registry.assign<NameComponent>(obj, "Test Object" + StringFormat::ToString(numObjects++));
 	}
 

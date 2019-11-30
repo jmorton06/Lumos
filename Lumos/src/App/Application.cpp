@@ -336,7 +336,7 @@ namespace Lumos
 
 	bool Application::OnWindowResize(WindowResizeEvent &e)
 	{
-		auto windowSize = GetWindowSize();
+		//auto windowSize = GetWindowSize();
 
 		int width = e.GetWidth(), height = e.GetHeight();
 

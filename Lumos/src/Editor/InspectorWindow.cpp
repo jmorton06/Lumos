@@ -132,6 +132,16 @@ namespace Lumos
 
 		ImGui::PopItemWidth();
 		ImGui::NextColumn();
+        
+        ImGui::AlignTextToFramePadding();
+        ImGui::TextUnformatted("Force");
+        ImGui::NextColumn();
+        ImGui::PushItemWidth(-1);
+        if (ImGui::DragFloat4("##Force", Maths::ValuePointer(force)))
+            phys.GetPhysicsObject()->SetForce(force);
+
+        ImGui::PopItemWidth();
+        ImGui::NextColumn();
 
 		ImGui::AlignTextToFramePadding();
 		ImGui::TextUnformatted("Angular Velocity");
