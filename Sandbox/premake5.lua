@@ -159,7 +159,8 @@ project "Sandbox"
 			"LUMOS_PLATFORM_UNIX",
 			"LUMOS_RENDER_API_VULKAN",
 			"VK_USE_PLATFORM_IOS_MVK",
-			"LUMOS_IMGUI"
+			"LUMOS_IMGUI",
+			"LUMOS_ROOT_DIR=",
 		}
 
 		links
