@@ -36,7 +36,7 @@ namespace Lumos
 #ifdef LUMOS_PLATFORM_MOBILE
 		if (path.find_last_of("/") != String::npos)
 		{
-			outPhysicalPath = path.substr(filePath.find_last_of("/") + 1);
+			outPhysicalPath = path.substr(path.find_last_of("/") + 1);
 			return true;
 		}
 		else
