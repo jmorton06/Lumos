@@ -34,9 +34,9 @@ namespace Lumos
 	bool VFS::ResolvePhysicalPath(const String& path, String& outPhysicalPath, bool folder)
 	{
 #ifdef LUMOS_PLATFORM_MOBILE
-		if (filePath.find_last_of("/") != String::npos)
+		if (path.find_last_of("/") != String::npos)
 		{
-			outPhysicalPath = filePath.substr(filePath.find_last_of("/") + 1);
+			outPhysicalPath = path.substr(filePath.find_last_of("/") + 1);
 			return true;
 		}
 		else
