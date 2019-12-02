@@ -3,6 +3,8 @@
 #include "Maths/Maths.h"
 #include "Maths/Transform.h"
 #include "Core/OS/Window.h"
+#include "Core/VFS.h"
+
 #include <imgui/imgui.h>
 #include <sol/sol.hpp>
 
@@ -58,7 +60,11 @@ namespace Lumos
 	{
 		WindowProperties windowProperties;
 
-		m_State->script_file(file);
+		std::string physicalPath;
+		if (!VFS::Get()->ResolvePhysicalPath(file, physicalPath))
+			return windowProperties;
+
+		m_State->script_file(physicalPath);
 		windowProperties.Title = m_State->get<std::string>("title");
 		windowProperties.Width = m_State->get<int>("width");
 		windowProperties.Height = m_State->get<int>("height");

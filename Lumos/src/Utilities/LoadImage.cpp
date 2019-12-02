@@ -17,12 +17,7 @@ namespace Lumos
 	u8* LoadImageFromFile(const char* filename, u32* width, u32* height, u32* bits, bool flipY)
 	{
         String filePath = String(filename);
-#ifdef LUMOS_PLATFORM_MOBILE
-        if (filePath.find_last_of("/") != String::npos)
-           filePath = filePath.substr(filePath.find_last_of("/") + 1);
-#endif
-
-		std::string physicalPath;
+		String physicalPath;
 		if (!VFS::Get()->ResolvePhysicalPath(filePath, physicalPath))
 			return nullptr;
 
@@ -80,7 +75,8 @@ namespace Lumos
 		if (bits)
 			*bits = 32;// texChannels * 8;// texChannels;	  //32 bits for 4 bytes r g b a 
 
-		const i32 size = texWidth * texHeight * 4;// (b / 8);
+		//TODO support different texChannels
+		const i32 size = texWidth * texHeight * (32 / 8);
 		u8* result = lmnew u8[size];
 		memcpy(result, pixels, size);
 
