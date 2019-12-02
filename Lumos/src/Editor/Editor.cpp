@@ -573,6 +573,7 @@ namespace Lumos
 	void Editor::OnNewScene(Scene * scene)
 	{
         m_Selected = entt::null;
+		m_CurrentSceneAspectRatio = 0.0f;
 
 		for (auto window : m_Windows)
 		{

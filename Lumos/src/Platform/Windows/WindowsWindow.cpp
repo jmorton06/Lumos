@@ -604,7 +604,6 @@ namespace Lumos
 			u32 width, height;
 			u8* pixels = Lumos::LoadImageFromFile(filePath, &width, &height, nullptr, true);
 
-			//Todo load multiple sized icons
 			bigIcon = createIcon(pixels, int(width), int(height), 0, 0, true);
 			delete[] pixels;
 		}
@@ -614,7 +613,6 @@ namespace Lumos
 			u32 width, height;
 			u8* pixels = Lumos::LoadImageFromFile(smallIconFilePath, &width, &height, nullptr, true);
 
-			//Todo load multiple sized icons
 			auto smallIcon = createIcon(pixels, int(width), int(height), 0, 0, true);
 			delete[] pixels;
 		}
