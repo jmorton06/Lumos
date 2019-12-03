@@ -148,19 +148,19 @@ namespace Lumos
 
 		m_View2D = Application::Instance()->GetSceneManager()->GetCurrentScene()->GetCamera()->IsOrthographic();
 
-		/*if (m_ShowGrid)
+		if (m_ShowGrid)
 		{
 			if (m_3DGridLayer == nullptr)
 			{
 				m_3DGridLayer = new Layer3D(new Graphics::GridRenderer(u32(Application::Instance()->GetWindowSize().x), u32(Application::Instance()->GetWindowSize().y), true), "Grid");
-				Application::Instance()->PushOverLay(m_3DGridLayer);
+				Application::Instance()->PushLayerInternal(m_3DGridLayer, true, false);
 			}
 		}
 		else if(m_3DGridLayer)
 		{
 			Application::Instance()->GetLayerStack()->PopOverlay(m_3DGridLayer);
 			m_3DGridLayer = nullptr;
-		}*/
+		}
 
 		EndDockSpace();
 	}
