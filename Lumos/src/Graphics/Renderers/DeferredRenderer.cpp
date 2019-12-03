@@ -246,9 +246,21 @@ namespace Lumos
 
             u32 numLights = 0;
 
+			auto& frustum = scene->GetCamera()->GetFrustum();
+			
 			for(auto entity : group)
 			{
 				const auto &[light, trans] = group.get<Graphics::Light, Maths::Transform>(entity);
+
+				if (light.m_Type != float(LightType::DirectionalLight))
+				{
+					auto& worldTransform = trans.GetWorldMatrix();
+
+					auto inside = frustum.IsInsideFast(Maths::Sphere(light.m_Position.ToVector3(), light.m_Radius));
+
+					if (inside == Maths::Intersection::OUTSIDE)
+						continue;
+				}
 
 				light.m_Position = trans.GetWorldPosition();
 
