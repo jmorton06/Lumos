@@ -30,7 +30,7 @@ namespace Lumos
 			SetScreenBufferSize(width, height);
 			Init();
             
-            m_GridRes = 1.2f;
+			m_GridRes = 1.2f;
             m_GridSize = 500.0f;
             
             SetRenderToGBufferTexture(renderToGBuffer);
@@ -199,9 +199,9 @@ namespace Lumos
 
 			if (ImGui::TreeNode("Parameters"))
 			{
-				ImGui::InputFloat("Resolution", &m_GridRes);
-				ImGui::InputFloat("Scale", &m_GridSize);
-				ImGui::InputFloat("Max Distance", &m_MaxDistance);
+				ImGui::DragFloat("Resolution", &m_GridRes, 1.0f,  0.0f, 10.0f);
+				ImGui::DragFloat("Scale", &m_GridSize, 1.0f, 1.0f, 10000.0f);
+				ImGui::DragFloat("Max Distance", &m_MaxDistance, 1.0f, 1.0f ,10000.0f);
 
 				ImGui::TreePop();
 			}
@@ -299,13 +299,14 @@ namespace Lumos
 			}
 
 			Graphics::BufferInfo bufferInfo2 = {};
+			bufferInfo2.name = "UniformBuffer";
 			bufferInfo2.buffer = m_UniformBufferFrag;
 			bufferInfo2.offset = 0;
 			bufferInfo2.size = sizeof(UniformBufferObjectFrag);
 			bufferInfo2.type = Graphics::DescriptorType::UNIFORM_BUFFER;
 			bufferInfo2.binding = 1;
 			bufferInfo2.shaderType = ShaderType::FRAGMENT;
-			bufferInfo2.systemUniforms = true;
+			bufferInfo2.systemUniforms = false;
 
 			bufferInfos.push_back(bufferInfo);
 			bufferInfos.push_back(bufferInfo2);
