@@ -1,11 +1,12 @@
 #include "iOSOS.h"
 #include "Application.h"
-#include "System/CoreSystem.h"
-#include "System/VFS.h"
+#include "Core/VFS.h"
 
 #include "Platform/Unix/UnixThread.h"
 #include "Platform/Unix/UnixMutex.h"
 #include "Platform/GLFM/GLFMWindow.h"
+
+#include "Core/CoreSystem.h"
 
 #ifdef LUMOS_RENDER_API_VULKAN
 #include "Platform/Vulkan/VKDevice.h"
@@ -17,7 +18,8 @@ namespace Lumos
 {
     iOSOS::iOSOS()
     {
-        Lumos::Internal::CoreSystem::Init();
+        Lumos::Internal::CoreSystem::Init(false);
+        Init();
 
         auto app = Lumos::CreateApplication();
         app->Init();
@@ -48,8 +50,7 @@ namespace Lumos
     void iOSOS::OnQuit()
     {
         delete Application::Instance();
-        
-        Lumos::Internal::CoreSystem::Shutdown();
+	    Lumos::Internal::CoreSystem::Shutdown();
     }
     
     String iOSOS::GetAssetPath() const

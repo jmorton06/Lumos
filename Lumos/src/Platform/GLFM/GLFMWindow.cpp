@@ -49,7 +49,7 @@ namespace Lumos
 
 	void GLFMWindow::MakeDefault()
 	{
-		CreateFunc = CreateFuncGLFW;
+		CreateFunc = CreateFuncGLFM;
 	}
 
 	Window* GLFMWindow::CreateFuncGLFM(const WindowProperties& properties)

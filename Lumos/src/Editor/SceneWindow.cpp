@@ -52,9 +52,9 @@ namespace Lumos
 		float aspect = static_cast<float>(sceneViewSize.x) / static_cast<float>(sceneViewSize.y);
 
         Camera* camera = Application::Instance()->GetSceneManager()->GetCurrentScene()->GetCamera();
-		if (!Maths::Equals(aspect, m_CurrentAspectRatio))
+		if (!Maths::Equals(aspect, m_Editor->GetCurrentSceneAspectRatio()))
 		{
-			m_CurrentAspectRatio = aspect;
+			m_Editor->GetCurrentSceneAspectRatio() = aspect;
 			camera->SetAspectRatio(aspect);
 		}
 

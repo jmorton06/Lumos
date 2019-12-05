@@ -521,24 +521,24 @@ namespace Lumos
 			Vertex data[4];
 			memset(data, 0, 4 * sizeof(Vertex));
 
-			data[0].Position = rotation * Maths::Vector3(-width / 2.0f, 0.0f, -height / 2.0f);
+			data[0].Position = rotation * Maths::Vector3(-width / 2.0f, -1.0f, -height / 2.0f);
 			data[0].Normal = normal;
 			data[0].TexCoords = Maths::Vector2(0.0f, 0.0f);
 
-			data[1].Position = rotation * Maths::Vector3(-width / 2.0f, 0.0f, height / 2.0f);
+			data[1].Position = rotation * Maths::Vector3(-width / 2.0f, -1.0f, height / 2.0f);
 			data[1].Normal = normal;
 			data[1].TexCoords = Maths::Vector2(0.0f, 1.0f);
 
-			data[2].Position = rotation * Maths::Vector3(width / 2.0f, 0.0f, height / 2.0f);
+			data[2].Position = rotation * Maths::Vector3(width / 2.0f, 1.0f, height / 2.0f);
 			data[2].Normal = normal;
 			data[2].TexCoords = Maths::Vector2(1.0f, 1.0f);
 
-			data[3].Position = rotation * Maths::Vector3(width / 2.0f, 0.0f, -height / 2.0f);
+			data[3].Position = rotation * Maths::Vector3(width / 2.0f, 1.0f, -height / 2.0f);
 			data[3].Normal = normal;
 			data[3].TexCoords = Maths::Vector2(1.0f, 0.0f);
 
 			VertexBuffer* buffer = VertexBuffer::Create(BufferUsage::STATIC);
-			buffer->SetData(8 * sizeof(Vertex), data);
+			buffer->SetData(4 * sizeof(Vertex), data);
 
             Ref<Maths::BoundingBox> boundingBox = CreateRef<Maths::BoundingBox>();
             for (int i = 0; i < 4; i++)

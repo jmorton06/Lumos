@@ -325,8 +325,8 @@ namespace Lumos
 				bb.Transform(trans.GetWorldMatrix());
                 auto inside = m_Frustum.IsInside(bb);
                 
-                if (inside == Maths::Intersection::OUTSIDE)
-                    continue;
+				if (inside == Maths::Intersection::OUTSIDE)
+					continue;
                 
                 Submit(reinterpret_cast<Renderable2D*>(&sprite), trans.GetWorldMatrix());
             };

@@ -32,7 +32,6 @@ namespace Lumos
         ImGui::Separator();
             
         auto pos = m_PhysicsObject->GetPosition();
-        auto force = m_PhysicsObject->GetForce();
         auto torque = m_PhysicsObject->GetTorque();
         auto orientation = m_PhysicsObject->GetOrientation();
 		auto angularVelocity = m_PhysicsObject->GetAngularVelocity();

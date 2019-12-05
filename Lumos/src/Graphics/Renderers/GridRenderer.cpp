@@ -30,8 +30,8 @@ namespace Lumos
 			SetScreenBufferSize(width, height);
 			Init();
             
-            m_GridRes = 0.16f;
-            m_GridSize = 40.0f;
+			m_GridRes = 1.2f;
+            m_GridSize = 500.0f;
             
             SetRenderToGBufferTexture(renderToGBuffer);
 		}
@@ -97,7 +97,7 @@ namespace Lumos
 		void GridRenderer::Init()
 		{
 			m_Shader = Shader::CreateFromFile("Grid", "/CoreShaders/");
-			m_Quad = Graphics::CreatePlane(500.0f, 500.f, Maths::Vector3(0.0f, 1.0f, 0.0f));
+			m_Quad = Graphics::CreatePlane(5000.0f, 5000.f, Maths::Vector3(0.0f, 1.0f, 0.0f));
 
 			// Vertex shader System uniforms
 			m_VSSystemUniformBufferSize = sizeof(Maths::Matrix4);
@@ -156,9 +156,9 @@ namespace Lumos
 			test.res = m_GridRes;
 			test.scale = m_GridSize;
             test.cameraPos = scene->GetCamera()->GetPosition();
-            test.maxDistance = 1000.0f;
+            test.maxDistance = m_MaxDistance;
 
-			auto invViewProj = Maths::Matrix4::Inverse(proj * camera->GetViewMatrix());
+			auto invViewProj = proj * camera->GetViewMatrix();
 			memcpy(m_VSSystemUniformBuffer + m_VSSystemUniformBufferOffsets[VSSystemUniformIndex_InverseProjectionViewMatrix], &invViewProj, sizeof(Maths::Matrix4));
 			memcpy(m_PSSystemUniformBuffer + m_VSSystemUniformBufferOffsets[VSSystemUniformIndex_InverseProjectionViewMatrix], &test, sizeof(UniformBufferObjectFrag));
 		}
@@ -199,8 +199,9 @@ namespace Lumos
 
 			if (ImGui::TreeNode("Parameters"))
 			{
-				ImGui::InputFloat("Resolution", &m_GridRes);
-				ImGui::InputFloat("Scale", &m_GridSize);
+				ImGui::DragFloat("Resolution", &m_GridRes, 1.0f,  0.0f, 10.0f);
+				ImGui::DragFloat("Scale", &m_GridSize, 1.0f, 1.0f, 10000.0f);
+				ImGui::DragFloat("Max Distance", &m_MaxDistance, 1.0f, 1.0f ,10000.0f);
 
 				ImGui::TreePop();
 			}
@@ -298,13 +299,14 @@ namespace Lumos
 			}
 
 			Graphics::BufferInfo bufferInfo2 = {};
+			bufferInfo2.name = "UniformBuffer";
 			bufferInfo2.buffer = m_UniformBufferFrag;
 			bufferInfo2.offset = 0;
 			bufferInfo2.size = sizeof(UniformBufferObjectFrag);
 			bufferInfo2.type = Graphics::DescriptorType::UNIFORM_BUFFER;
 			bufferInfo2.binding = 1;
 			bufferInfo2.shaderType = ShaderType::FRAGMENT;
-			bufferInfo2.systemUniforms = true;
+			bufferInfo2.systemUniforms = false;
 
 			bufferInfos.push_back(bufferInfo);
 			bufferInfos.push_back(bufferInfo2);

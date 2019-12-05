@@ -55,7 +55,6 @@ namespace Lumos
 
 		const String root = ROOT_DIR;
 		
-		Debug::Log::Info(root);
 		VFS::Get()->Mount("CoreShaders", root + "/Lumos/res/shaders");
 		VFS::Get()->Mount("CoreMeshes", root + "/Lumos/res/meshes");
 		VFS::Get()->Mount("CoreTextures", root + "/Lumos/res/textures");
@@ -110,8 +109,10 @@ namespace Lumos
 		AssetsManager::InitializeMeshes();
 		m_RenderManager = CreateScope<Graphics::RenderManager>(screenWidth, screenHeight);
 
+		m_ImGuiLayer = lmnew ImGuiLayer(false);
+		m_ImGuiLayer->OnAttach();
+
 		m_LayerStack = lmnew LayerStack();
-		PushLayerInternal(lmnew ImGuiLayer(false),true,false);
 
 		m_SystemManager = CreateScope<SystemManager>();
 
@@ -140,6 +141,7 @@ namespace Lumos
 		m_SystemManager.reset();
 
 		delete m_LayerStack;
+		delete m_ImGuiLayer;
 
 		Graphics::Renderer::Release();
 		Graphics::GraphicsContext::Release();
@@ -227,6 +229,7 @@ namespace Lumos
 			Graphics::Renderer::GetRenderer()->Begin();
 
 			m_LayerStack->OnRender(m_SceneManager->GetCurrentScene());
+			m_ImGuiLayer->OnRender(m_SceneManager->GetCurrentScene());
 
 			Graphics::Renderer::GetRenderer()->Present();
 		}
@@ -257,8 +260,11 @@ namespace Lumos
 			m_SystemManager->OnUpdate(Engine::GetTimeStep(),m_SceneManager->GetCurrentScene());
 		}
 
-		if(!m_Minimized)
+		if (!m_Minimized)
+		{
 			m_LayerStack->OnUpdate(Engine::GetTimeStep(), m_SceneManager->GetCurrentScene());
+			m_ImGuiLayer->OnUpdate(Engine::GetTimeStep(), m_SceneManager->GetCurrentScene());
+		}
 	}
 
 	void Application::OnEvent(Event& e)
@@ -267,6 +273,9 @@ namespace Lumos
 		dispatcher.Dispatch<WindowCloseEvent>(BIND_EVENT_FN(Application::OnWindowClose));
 		dispatcher.Dispatch<WindowResizeEvent>(BIND_EVENT_FN(Application::OnWindowResize));
 
+		m_ImGuiLayer->OnEvent(e);
+		if (e.Handled())
+			return;
 		m_LayerStack->OnEvent(e);
 
 		if (e.Handled())
@@ -336,7 +345,7 @@ namespace Lumos
 
 	bool Application::OnWindowResize(WindowResizeEvent &e)
 	{
-		auto windowSize = GetWindowSize();
+		//auto windowSize = GetWindowSize();
 
 		int width = e.GetWidth(), height = e.GetHeight();
 

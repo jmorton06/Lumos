@@ -31,6 +31,8 @@ namespace Lumos
         float GetScreenRatio() const override { return 1.0f; }
         
         void SetEventCallback(const EventCallbackFn& callback) override { };
+        void SetIcon(const String& filePath, const String& smallIconFilePath) override {};
+        void UpdateCursorImGui() override {};
         
         String GetTitle() const override { return "Mobile"; }
 

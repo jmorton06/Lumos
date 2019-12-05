@@ -140,7 +140,9 @@
     type_identifier(const type_identifier&) = delete;				\
     type_identifier& operator=(const type_identifier&) = delete;
 
+#ifndef LUMOS_PLATFORM_IOS
 #define Lumos_SSE 
+#endif 
 
 namespace Lumos
 {

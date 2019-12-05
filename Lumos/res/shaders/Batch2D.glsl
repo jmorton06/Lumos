@@ -20,7 +20,7 @@ out DATA
 
 void main()
 {
-	gl_Position = ubo.projView * vec4(position,1.0);
+	gl_Position = vec4(position,1.0) * ubo.projView;
 	vs_out.position = position;
 	vs_out.uv = uv;
 	vs_out.tid = tid.x;
