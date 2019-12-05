@@ -169,7 +169,7 @@ namespace Lumos
 					blendAttachState[i].srcColorBlendFactor = VK_BLEND_FACTOR_SRC_ALPHA;
 					blendAttachState[i].dstColorBlendFactor = VK_BLEND_FACTOR_ONE_MINUS_SRC_ALPHA;
 					blendAttachState[i].srcAlphaBlendFactor = VK_BLEND_FACTOR_ONE;
-					blendAttachState[i].dstAlphaBlendFactor = VK_BLEND_FACTOR_ZERO;
+					blendAttachState[i].dstAlphaBlendFactor = VK_BLEND_FACTOR_ONE;
 				}
 				else
 				{

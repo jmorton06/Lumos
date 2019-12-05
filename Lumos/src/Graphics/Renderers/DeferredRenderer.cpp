@@ -127,11 +127,10 @@ namespace Lumos
 
 			AttachmentInfo textureTypes[2] = 
 			{ 
-				{ TextureType::COLOUR, TextureFormat::RGBA8 },
-				{ TextureType::DEPTH , TextureFormat::DEPTH }
+				{ TextureType::COLOUR, TextureFormat::RGBA8 }
 			};
 			Graphics::RenderpassInfo renderpassCI{};
-			renderpassCI.attachmentCount = 2;
+			renderpassCI.attachmentCount = 1;
 			renderpassCI.textureType = textureTypes;
 
 			m_RenderPass->Init(renderpassCI);
@@ -516,14 +515,12 @@ namespace Lumos
 		{
 			TextureType attachmentTypes[2];
 			attachmentTypes[0] = TextureType::COLOUR;
-			attachmentTypes[1] = TextureType::DEPTH;
 
-			Texture* attachments[2];
-			attachments[1] = reinterpret_cast<Texture*>(Application::Instance()->GetRenderManager()->GetGBuffer()->GetDepthTexture());
+			Texture* attachments[1];
 			FramebufferInfo bufferInfo{};
 			bufferInfo.width = m_ScreenBufferWidth;
 			bufferInfo.height = m_ScreenBufferHeight;
-			bufferInfo.attachmentCount = 2;
+			bufferInfo.attachmentCount = 1;
 			bufferInfo.renderPass = m_RenderPass;
 			bufferInfo.attachmentTypes = attachmentTypes;
 
