@@ -54,6 +54,5 @@ namespace Lumos
 		std::unordered_map<size_t, bool> m_ShowComponentGizmoMap;
 
 		bool m_ShowStats = true;
-		float m_CurrentAspectRatio = 0.0f;
 	};
 }

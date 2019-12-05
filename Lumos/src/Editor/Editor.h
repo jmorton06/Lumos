@@ -65,6 +65,8 @@ namespace Lumos
 
 		std::unordered_map<size_t, const char*>& GetComponentIconMap() { return m_ComponentIconMap; }
 
+		float& GetCurrentSceneAspectRatio() { return m_CurrentSceneAspectRatio; }
+
 	protected:
 		bool OnWindowResize(WindowResizeEvent& e);
 
@@ -81,6 +83,7 @@ namespace Lumos
 		bool m_ShowImGuiDemo = true;
 		bool m_View2D = false;
 		float m_SnapAmount = 1.0f;
+		float m_CurrentSceneAspectRatio = 0.0f;
         
         ImGui::FileBrowser* m_FileBrowser;
 

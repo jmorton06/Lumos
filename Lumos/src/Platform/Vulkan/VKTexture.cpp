@@ -168,7 +168,7 @@ namespace Lumos
             allocInfovma.memoryTypeBits = 0;
             allocInfovma.pool = nullptr;
             allocInfovma.pUserData = nullptr;
-            vmaCreateImage(VKDevice::Instance()->GetAllocator(), reinterpret_cast<VkImageCreateInfo*>(&imageInfo), &allocInfovma, reinterpret_cast<VkImage*>(&image), &m_Allocation, nullptr);
+            vmaCreateImage(VKDevice::Instance()->GetAllocator(), &imageInfo, &allocInfovma, &image, &m_Allocation, nullptr);
 #else
 			if (vkCreateImage(VKDevice::Instance()->GetDevice(), &imageInfo, nullptr, &image) != VK_SUCCESS)
 			{
@@ -467,7 +467,7 @@ namespace Lumos
 			allocInfovma.memoryTypeBits = 0;
 			allocInfovma.pool = nullptr;
 			allocInfovma.pUserData = nullptr;
-			vmaCreateImage(VKDevice::Instance()->GetAllocator(), reinterpret_cast<VkImageCreateInfo*>(&imageInfo), &allocInfovma, reinterpret_cast<VkImage*>(&image), &m_Allocation, nullptr);
+			vmaCreateImage(VKDevice::Instance()->GetAllocator(), &imageInfo, &allocInfovma, &image, &m_Allocation, nullptr);
 #else
 			vkCreateImage(VKDevice::Instance()->GetDevice(), &imageInfo, nullptr, &image);
 
@@ -504,7 +504,7 @@ namespace Lumos
 			VkImageView imageView;
 			if (vkCreateImageView(VKDevice::Instance()->GetDevice(), &viewInfo, nullptr, &imageView) != VK_SUCCESS)
 			{
-				throw std::runtime_error("failed to create texture image view!");
+				Lumos::Debug::Log::Error("Failed to create texture image view!");
 			}
 
 			return imageView;
@@ -787,7 +787,7 @@ namespace Lumos
 			allocInfovma.memoryTypeBits = 0;
 			allocInfovma.pool = nullptr;
 			allocInfovma.pUserData = nullptr;
-			vmaCreateImage(VKDevice::Instance()->GetAllocator(), reinterpret_cast<VkImageCreateInfo*>(&imageInfo), &allocInfovma, reinterpret_cast<VkImage*>(&image), &m_Allocation, nullptr);
+			vmaCreateImage(VKDevice::Instance()->GetAllocator(), &imageInfo, &allocInfovma, &image, &m_Allocation, nullptr);
 #else
 			if (vkCreateImage(VKDevice::Instance()->GetDevice(), &imageInfo, nullptr, &image) != VK_SUCCESS)
 			{
@@ -957,7 +957,7 @@ namespace Lumos
 			allocInfovma.memoryTypeBits = 0;
 			allocInfovma.pool = nullptr;
 			allocInfovma.pUserData = nullptr;
-			vmaCreateImage(VKDevice::Instance()->GetAllocator(), reinterpret_cast<VkImageCreateInfo*>(&imageInfo), &allocInfovma, reinterpret_cast<VkImage*>(&image), &m_Allocation, nullptr);
+			vmaCreateImage(VKDevice::Instance()->GetAllocator(), &imageInfo, &allocInfovma, &image, &m_Allocation, nullptr);
 #else
 			vkCreateImage(VKDevice::Instance()->GetDevice(), &imageInfo, nullptr, &image);
 

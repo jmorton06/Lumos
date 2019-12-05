@@ -127,11 +127,10 @@ namespace Lumos
 
 			AttachmentInfo textureTypes[2] = 
 			{ 
-				{ TextureType::COLOUR, TextureFormat::RGBA8 },
-				{ TextureType::DEPTH , TextureFormat::DEPTH }
+				{ TextureType::COLOUR, TextureFormat::RGBA8 }
 			};
 			Graphics::RenderpassInfo renderpassCI{};
-			renderpassCI.attachmentCount = 2;
+			renderpassCI.attachmentCount = 1;
 			renderpassCI.textureType = textureTypes;
 
 			m_RenderPass->Init(renderpassCI);
@@ -246,9 +245,21 @@ namespace Lumos
 
             u32 numLights = 0;
 
+			auto& frustum = scene->GetCamera()->GetFrustum();
+			
 			for(auto entity : group)
 			{
 				const auto &[light, trans] = group.get<Graphics::Light, Maths::Transform>(entity);
+
+				if (light.m_Type != float(LightType::DirectionalLight))
+				{
+					auto& worldTransform = trans.GetWorldMatrix();
+
+					auto inside = frustum.IsInsideFast(Maths::Sphere(light.m_Position.ToVector3(), light.m_Radius));
+
+					if (inside == Maths::Intersection::OUTSIDE)
+						continue;
+				}
 
 				light.m_Position = trans.GetWorldPosition();
 
@@ -504,14 +515,12 @@ namespace Lumos
 		{
 			TextureType attachmentTypes[2];
 			attachmentTypes[0] = TextureType::COLOUR;
-			attachmentTypes[1] = TextureType::DEPTH;
 
-			Texture* attachments[2];
-			attachments[1] = reinterpret_cast<Texture*>(Application::Instance()->GetRenderManager()->GetGBuffer()->GetDepthTexture());
+			Texture* attachments[1];
 			FramebufferInfo bufferInfo{};
 			bufferInfo.width = m_ScreenBufferWidth;
 			bufferInfo.height = m_ScreenBufferHeight;
-			bufferInfo.attachmentCount = 2;
+			bufferInfo.attachmentCount = 1;
 			bufferInfo.renderPass = m_RenderPass;
 			bufferInfo.attachmentTypes = attachmentTypes;
 

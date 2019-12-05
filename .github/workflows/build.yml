@@ -33,6 +33,17 @@ jobs:
     - name: Test
       run: |
         ./bin/Debug/Tests
+
+  iOS:
+    runs-on: macOS-latest
+    steps:
+    - uses: actions/checkout@v1
+      with:
+        fetch-depth: 1
+    - name: Build
+      run: |
+        Tools/premake5 --os=ios xcode4 
+        xcodebuild -project build/Sandbox.xcodeproj CODE_SIGN_IDENTITY="" CODE_SIGNING_REQUIRED=NO CODE_SIGNING_ALLOWED=NO
         
   Windows:
     runs-on: windows-2019

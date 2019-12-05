@@ -9,7 +9,7 @@ namespace Lumos
         iOSOS();
         ~iOSOS();
 
-        void Init() override;
+        void Init();
         void Run() override {}
         
         void* GetIOSView() const { return m_IOSView; }

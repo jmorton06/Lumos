@@ -144,6 +144,8 @@ namespace Lumos
 
 		static Application* s_Instance;
 
+		Layer* m_ImGuiLayer = nullptr;
+
 #ifdef LUMOS_EDITOR
 		Editor* m_Editor = nullptr;
 #endif
