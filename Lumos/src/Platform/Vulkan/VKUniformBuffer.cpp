@@ -12,7 +12,7 @@ namespace Lumos
 			VKBuffer::Init(VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT, size, data);
 		}
 
-		VKUniformBuffer::VKUniformBuffer()
+		VKUniformBuffer::VKUniformBuffer(): m_Allocation(nullptr)
 		{
 		}
 

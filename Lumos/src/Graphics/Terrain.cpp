@@ -1,6 +1,5 @@
 #include "lmpch.h"
 #include "Terrain.h"
-#include "App/SceneManager.h"
 #include "Maths/BoundingBox.h"
 #include <simplex/simplexnoise.h>
 

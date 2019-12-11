@@ -12,7 +12,7 @@
 namespace Lumos
 {
 	HierarchyWindow::HierarchyWindow()
-		: m_HadRecentDroppedEntity(entt::null)
+		: m_DoubleClicked(), m_HadRecentDroppedEntity(entt::null), m_CopiedEntity()
 	{
 		m_Name = ICON_FA_LIST_ALT" Hierarchy###hierarchy";
 		m_SimpleName = "Hierarchy";
@@ -25,7 +25,7 @@ namespace Lumos
 		if (!registry.valid(node))
 			return;
 
-		auto nameComponent = registry.try_get<NameComponent>(node);
+		const auto nameComponent = registry.try_get<NameComponent>(node);
 		String name = nameComponent ? nameComponent->name : StringFormat::ToString(entt::to_integer(node));
     
 		if (m_HierarchyFilter.IsActive())
@@ -128,7 +128,7 @@ namespace Lumos
 			const ImGuiPayload* payload = ImGui::GetDragDropPayload();
 			if (payload != NULL && payload->IsDataType("Drag_Entity"))
 			{
-				bool acceptable = false;
+				bool acceptable;
 
 				LUMOS_ASSERT(payload->DataSize == sizeof(entt::entity*), "Error ImGUI drag entity");
 				auto entity = *reinterpret_cast<entt::entity*>(payload->Data);

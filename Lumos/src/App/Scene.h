@@ -65,8 +65,6 @@ namespace Lumos
 		void  SetWorldRadius(float radius) { m_SceneBoundingRadius = radius; }
 		float GetWorldRadius() const { return m_SceneBoundingRadius; }
 
-		//Entity* GetRootEntity() { return m_RootEntity; }
-
 		void SetCamera(Camera* camera) { m_pCamera = camera; }
 		Camera* GetCamera()	const { return m_pCamera; }
 		Graphics::TextureCube* GetEnvironmentMap() const { return m_EnvironmentMap; }

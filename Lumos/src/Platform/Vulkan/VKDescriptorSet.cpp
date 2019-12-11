@@ -15,11 +15,12 @@ namespace Lumos
 	{
 		VKDescriptorSet::VKDescriptorSet(const DescriptorInfo& info)
 		{
-			VkDescriptorSetAllocateInfo descriptorSetAllocateInfo{};
+			VkDescriptorSetAllocateInfo descriptorSetAllocateInfo;
 			descriptorSetAllocateInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO;
 			descriptorSetAllocateInfo.descriptorPool = static_cast<Graphics::VKPipeline*>(info.pipeline)->GetDescriptorPool();
 			descriptorSetAllocateInfo.pSetLayouts = static_cast<Graphics::VKPipeline*>(info.pipeline)->GetDescriptorLayout(info.layoutIndex);
 			descriptorSetAllocateInfo.descriptorSetCount = info.count;
+			descriptorSetAllocateInfo.pNext = nullptr;
 
 			VkResult result = vkAllocateDescriptorSets(VKDevice::Device(), &descriptorSetAllocateInfo, &m_DescriptorSet);
 

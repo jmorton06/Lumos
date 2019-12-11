@@ -310,7 +310,7 @@ namespace std
 	template<>
 	struct hash<Lumos::Maths::Vector4>
 	{
-		size_t operator()(const Lumos::Maths::Vector4& x) const
+		size_t operator()(const Lumos::Maths::Vector4& x) const noexcept
 		{
 			return hash<float>()(x.x) ^ (hash<float>()(x.y) * 997u) ^ (hash<float>()(x.z) * 999983u) ^ (hash<float>()(x.w) * 999999937);
 

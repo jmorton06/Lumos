@@ -22,12 +22,14 @@
 #include "App/Scene.h"
 #include "Maths/Maths.h"
 #include "RenderCommand.h"
-#include "Core/JobSystem.h"
 #include "Core/Profiler.h"
 
 #include <imgui/imgui.h>
 
 #define THREAD_CASCADE_GEN
+#ifdef THREAD_CASCADE_GEN
+#include "Core/JobSystem.h"
+#endif
 
 namespace Lumos
 {
@@ -59,7 +61,7 @@ namespace Lumos
 			m_DescriptorSet = nullptr;
 			m_LightEntity = entt::null;
 
-			Init();
+			ShadowRenderer::Init();
 		}
 
 		ShadowRenderer::~ShadowRenderer()
@@ -163,7 +165,7 @@ namespace Lumos
 			{
 				Mesh* mesh = command.mesh;
 
-				uint32_t dynamicOffset = index * static_cast<uint32_t>(dynamicAlignment);
+				const uint32_t dynamicOffset = index * static_cast<uint32_t>(dynamicAlignment);
 
 				std::vector<Graphics::DescriptorSet*> descriptorSets = { m_Pipeline->GetDescriptorSet() };
 
@@ -275,11 +277,11 @@ namespace Lumos
 			float maxZ = nearClip + clipRange;
 			float range = maxZ - minZ;
 			float ratio = maxZ / minZ;
-			// Calculate split depths based on view camera furstum
-			// Based on method presentd in https://developer.nvidia.com/gpugems/GPUGems3/gpugems3_ch10.html
+			// Calculate split depths based on view camera frustum
+			// Based on method presented in https://developer.nvidia.com/gpugems/GPUGems3/gpugems3_ch10.html
 			for (uint32_t i = 0; i < m_ShadowMapNum; i++)
 			{
-				float p = (i + 1) / static_cast<float>(m_ShadowMapNum);
+				float p = static_cast<float>(i + 1) / static_cast<float>(m_ShadowMapNum);
 				float log = minZ * std::pow(ratio, p);
 				float uniform = minZ + range * p;
 				float d = cascadeSplitLambda * (log - uniform) + uniform;
@@ -340,9 +342,9 @@ namespace Lumos
 					radius = Maths::Max(radius, distance);
 				}
 				radius = std::ceil(radius * 16.0f) / 16.0f;
-				//float sceneBoundingRadius = scene->GetWorldRadius();
+				float sceneBoundingRadius = scene->GetWorldRadius() * 1.4f;
 				//Extend the Z depths to catch shadow casters outside view frustum
-				//radius = Maths::Max(radius, sceneBoundingRadius);
+				radius = Maths::Max(radius, sceneBoundingRadius);
 
 				Maths::Vector3 maxExtents = Maths::Vector3(radius);
 				Maths::Vector3 minExtents = -maxExtents;
@@ -412,13 +414,13 @@ namespace Lumos
 
 			std::vector<Graphics::DescriptorLayout> descriptorLayouts;
 
-			Graphics::DescriptorLayout sceneDescriptorLayout{};
+			Graphics::DescriptorLayout sceneDescriptorLayout;
 			sceneDescriptorLayout.count = static_cast<u32>(layoutInfo.size());
 			sceneDescriptorLayout.layoutInfo = layoutInfo.data();
 
 			descriptorLayouts.push_back(sceneDescriptorLayout);
 
-			Graphics::PipelineInfo pipelineCI{};
+			Graphics::PipelineInfo pipelineCI;
 			pipelineCI.pipelineName = "ShadowRenderer";
 			pipelineCI.shader = m_Shader;
 			pipelineCI.renderpass = renderPass;
@@ -446,7 +448,7 @@ namespace Lumos
 			{
 				m_UniformBuffer = Graphics::UniformBuffer::Create();
 
-				uint32_t bufferSize = static_cast<uint32_t>(sizeof(UniformBufferObject));
+				const uint32_t bufferSize = static_cast<uint32_t>(sizeof(UniformBufferObject));
 				m_UniformBuffer->Init(bufferSize, nullptr);
 			}
 
@@ -461,7 +463,7 @@ namespace Lumos
 					dynamicAlignment = (dynamicAlignment + minUboAlignment - 1) & ~(minUboAlignment - 1);
 				}
 
-				uint32_t bufferSize2 = static_cast<uint32_t>(MAX_OBJECTS * dynamicAlignment);
+				const uint32_t bufferSize2 = static_cast<uint32_t>(MAX_OBJECTS * dynamicAlignment);
 
 				uboDataDynamic.model = static_cast<Maths::Matrix4*>(Memory::AlignedAlloc(bufferSize2, dynamicAlignment));
 
@@ -470,7 +472,7 @@ namespace Lumos
 
 			std::vector<Graphics::BufferInfo> bufferInfos;
 
-			Graphics::BufferInfo bufferInfo = {};
+			Graphics::BufferInfo bufferInfo;
 			bufferInfo.buffer = m_UniformBuffer;
 			bufferInfo.offset = 0;
 			bufferInfo.name = "UniformBufferObject";

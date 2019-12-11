@@ -10,7 +10,7 @@ namespace Lumos
 {
 	namespace Graphics
 	{
-		VKCommandBuffer::VKCommandBuffer(): m_Primary(false)
+		VKCommandBuffer::VKCommandBuffer(): m_CommandBuffer(nullptr), m_Fence(nullptr), m_Primary(false)
 		{
 		}
 

@@ -54,7 +54,7 @@ namespace Lumos
 
 			void CreateGraphicsPipeline();
 			void CreateFramebuffers();
-			void UpdateDesciptorSet();
+			void UpdateDesciptorSet() const;
 
 		private:
 			std::vector<Renderable2D*> m_Sprites;

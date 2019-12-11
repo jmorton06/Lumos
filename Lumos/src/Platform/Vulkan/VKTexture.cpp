@@ -3,7 +3,6 @@
 #include "VKDevice.h"
 #include "Utilities/LoadImage.h"
 #include "VKTools.h"
-#include "VKCommandBuffer.h"
 #include "VKBuffer.h"
 
 namespace Lumos
@@ -11,7 +10,7 @@ namespace Lumos
 	namespace Graphics
 	{
 		VKTexture2D::VKTexture2D(u32 width, u32 height, void* data, TextureParameters parameters, TextureLoadOptions loadOptions)
-			: m_FileName("NULL"), m_TextureSampler(nullptr), m_TextureImageView(nullptr)
+			: m_FileName("NULL"), m_TextureImage(nullptr), m_TextureImageView(nullptr), m_TextureSampler(nullptr)
 		{
 			m_Width = width;
 			m_Height = height;
@@ -20,7 +19,8 @@ namespace Lumos
 			m_Data = static_cast<u8*>(data);
 			Load();
 
-			m_TextureImageView = CreateImageView(m_TextureImage, VK_FORMAT_R8G8B8A8_UNORM,  VK_IMAGE_ASPECT_COLOR_BIT, m_MipLevels);
+			m_TextureImageView = CreateImageView(m_TextureImage, VK_FORMAT_R8G8B8A8_UNORM, VK_IMAGE_ASPECT_COLOR_BIT,
+			                                     m_MipLevels);
 
 			CreateTextureSampler();
 
@@ -29,16 +29,17 @@ namespace Lumos
 
 		VKTexture2D::VKTexture2D(const String& name, const String& filename, TextureParameters parameters,
 			TextureLoadOptions loadOptions)
-			: m_FileName(filename), m_TextureSampler(nullptr), m_TextureImageView(nullptr)
+			: m_FileName(filename), m_TextureImage(nullptr), m_TextureImageView(nullptr), m_TextureSampler(nullptr)
 		{
 			m_Parameters = parameters;
 			m_LoadOptions = loadOptions;
 			m_DeleteImage = Load();
 
-			if(!m_DeleteImage)
+			if (!m_DeleteImage)
 				return;
 
-            m_TextureImageView = CreateImageView(m_TextureImage, VK_FORMAT_R8G8B8A8_UNORM, VK_IMAGE_ASPECT_COLOR_BIT, m_MipLevels);
+			m_TextureImageView = CreateImageView(m_TextureImage, VK_FORMAT_R8G8B8A8_UNORM, VK_IMAGE_ASPECT_COLOR_BIT,
+			                                     m_MipLevels);
 
 			CreateTextureSampler();
 			UpdateDescriptor();
@@ -113,13 +114,12 @@ namespace Lumos
 
 		void VKTexture2D::CreateTextureSampler()
 		{
-            VkSamplerCreateInfo samplerInfo = {};
+            VkSamplerCreateInfo samplerInfo;
 			samplerInfo.sType = VK_STRUCTURE_TYPE_SAMPLER_CREATE_INFO;
+			samplerInfo.flags = 0;
+			samplerInfo.pNext = VK_NULL_HANDLE;
 			samplerInfo.magFilter = m_Parameters.filter == TextureFilter::LINEAR ? VK_FILTER_LINEAR : VK_FILTER_NEAREST;
 			samplerInfo.minFilter = m_Parameters.filter == TextureFilter::LINEAR ? VK_FILTER_LINEAR : VK_FILTER_NEAREST;
-			samplerInfo.addressModeU = VK_SAMPLER_ADDRESS_MODE_REPEAT;
-			samplerInfo.addressModeV = VK_SAMPLER_ADDRESS_MODE_REPEAT;
-			samplerInfo.addressModeW = VK_SAMPLER_ADDRESS_MODE_REPEAT;
 			samplerInfo.anisotropyEnable = VK_TRUE;
 			samplerInfo.maxAnisotropy = VKDevice::Instance()->GetGPUProperties().limits.maxSamplerAnisotropy;
             samplerInfo.borderColor = VK_BORDER_COLOR_FLOAT_OPAQUE_BLACK;
@@ -349,7 +349,7 @@ namespace Lumos
 			return true;
 		}
 
-		VKTextureCube::VKTextureCube(u32 size)
+		VKTextureCube::VKTextureCube(u32 size): m_ImageLayout()
 		{
 		}
 
@@ -374,7 +374,8 @@ namespace Lumos
 			UpdateDescriptor();
 		}
 
-		VKTextureCube::VKTextureCube(const String& filepath) : m_Width(0), m_Height(0), m_Size(0), m_NumMips(0)
+		VKTextureCube::VKTextureCube(const String& filepath) : m_Width(0), m_Height(0), m_Size(0), m_NumMips(0),
+		                                                       m_ImageLayout()
 		{
 			m_Files[0] = filepath;
 		}
@@ -683,15 +684,11 @@ namespace Lumos
 			delete[] cubeTextureData;
 			delete[] faceHeights;
 			delete[] faceWidths;
-
-			if (allData)
-			{
-				delete[] allData;
-			}
+			delete[] allData;
 		}
 
 		VKTextureDepth::VKTextureDepth(u32 width, u32 height)
-			: m_Width(width), m_Height(height), m_TextureSampler(nullptr), m_TextureImageView(nullptr)
+			: m_Width(width), m_Height(height), m_TextureImageView(nullptr), m_TextureSampler(nullptr)
 		{
 			Init();
 		}
@@ -861,7 +858,7 @@ namespace Lumos
 		VKTextureDepthArray::VKTextureDepthArray(u32 width, u32 height, u32 count)
 			: m_Width(width), m_Height(height), m_Count(count)
 		{
-			Init();
+			VKTextureDepthArray::Init();
 		}
 
 		VKTextureDepthArray::~VKTextureDepthArray()

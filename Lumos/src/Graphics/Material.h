@@ -75,12 +75,12 @@ namespace Lumos
         void SetMaterialProperites(const MaterialProperties& properties);
         void UpdateMaterialPropertiesData();
 
-		PBRMataterialTextures 			GetTextures() 		const { return m_PBRMaterialTextures; }
+		const PBRMataterialTextures& 	GetTextures() 		const { return m_PBRMaterialTextures; }
 		Graphics::Shader* 				GetShader()			const { return m_Shader.get(); }
 		Graphics::DescriptorSet* 		GetDescriptorSet() 	const { return m_DescriptorSet; }
 		Graphics::Pipeline* 			GetPipeline()		const { return m_Pipeline; }
 		int								GetRenderFlags()	const { return m_RenderFlags; }
-		String							GetName()			const { return m_Name; }
+		const String&					GetName()			const { return m_Name; }
 		MaterialProperties*				GetProperties()		const { return m_MaterialProperties; }
 
 		void OnImGui();

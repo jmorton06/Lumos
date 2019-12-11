@@ -55,7 +55,7 @@ namespace Lumos
 
 			ShadowRenderer* m_ShadowRenderer = nullptr;
 
-			u32 m_ScreenBufferWidth, m_ScreenBufferHeight;
+			u32 m_ScreenBufferWidth{}, m_ScreenBufferHeight{};
 		};
 	}
 }

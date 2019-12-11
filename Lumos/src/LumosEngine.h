@@ -91,6 +91,7 @@
 #include "Graphics/Renderers/ForwardRenderer.h"
 #include "Graphics/Renderers/ShadowRenderer.h"
 #include "Graphics/Renderers/GridRenderer.h"
+#include "Graphics/Renderers/SkyboxRenderer.h"
 #include "Graphics/RenderManager.h"
 
 //External

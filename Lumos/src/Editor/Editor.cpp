@@ -16,21 +16,15 @@
 #include "App/Scene.h"
 #include "App/SceneManager.h"
 #include "Events/ApplicationEvent.h"
-#include "Core/OS/FileSystem.h"
 
 #include "ECS/Component/Components.h"
-#include "ECS/SystemManager.h"
 #include "Physics/LumosPhysicsEngine/LumosPhysicsEngine.h"
 #include "Graphics/Layers/Layer3D.h"
 
 #include "Graphics/Sprite.h"
 #include "Graphics/Light.h"
-#include "Graphics/GBuffer.h"
 #include "Graphics/Camera/Camera.h"
-#include "Graphics/RenderManager.h"
 #include "Graphics/Layers/LayerStack.h"
-#include "Graphics/API/GraphicsContext.h"
-#include "Graphics/API/Texture.h"
 #include "Graphics/API/GraphicsContext.h"
 #include "Graphics/MeshFactory.h"
 
@@ -57,7 +51,7 @@ static ImVec2 operator-(const ImVec2 &a, const ImVec2 &b) {
 
 namespace Lumos
 {
-	Editor::Editor(Application* app, u32 width, u32 height) : m_Application(app)
+	Editor::Editor(Application* app, u32 width, u32 height) : m_Application(app), m_Selected(), m_FileBrowser(nullptr)
 	{
 	}
 
@@ -310,7 +304,7 @@ namespace Lumos
 
 			ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.1f, 0.2f, 0.7f, 0.0f));
 
-            bool selected = false;
+            bool selected;
             {
                 selected = m_Application->GetEditorState() == EditorState::Play;
                 if (selected)
