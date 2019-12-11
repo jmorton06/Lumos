@@ -8,23 +8,18 @@
 
 #include "Graphics/API/Renderer.h"
 #include "Graphics/API/GraphicsContext.h"
-#include "Graphics/API/Texture.h"
 #include "Graphics/RenderManager.h"
 #include "Graphics/Layers/LayerStack.h"
 #include "Graphics/Camera/Camera.h"
 
 #include "Utilities/CommonUtils.h"
 #include "Utilities/AssetsManager.h"
-#include "Core/VFS.h"
-#include "Core/JobSystem.h"
-#include "Core/OS/Thread.h"
 #include "Core/OS/Input.h"
 #include "Core/OS/Window.h"
-#include "Core/OS/MemoryManager.h"
 #include "Core/Profiler.h"
+#include "Core/VFS.h"
 
 #include "ImGui/ImGuiLayer.h"
-#include "Scripting/LuaManager.h"
 
 #include "Events/ApplicationEvent.h"
 #include "Audio/AudioManager.h"

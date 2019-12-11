@@ -16,16 +16,14 @@
 namespace Lumos
 {
 	B2PhysicsEngine::B2PhysicsEngine()
-		: m_UpdateTimestep(1.0f / 60.f)
-		, m_UpdateAccum(0.0f)
-        , m_B2DWorld(CreateScope<b2World>(b2Vec2(0.0f,-9.81f)))
+		: m_B2DWorld(CreateScope<b2World>(b2Vec2(0.0f,-9.81f)))
+		, m_UpdateTimestep(1.0f / 60.f)
+        , m_UpdateAccum(0.0f)
 	{
         m_DebugName = "Box2D Physics Engine";
 	}
 
-	B2PhysicsEngine::~B2PhysicsEngine()
-	{
-	}
+	B2PhysicsEngine::~B2PhysicsEngine() = default;
 
 	void B2PhysicsEngine::SetDefaults()
 	{

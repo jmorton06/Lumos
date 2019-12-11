@@ -82,73 +82,73 @@ namespace Lumos
 	}
 
 	template<>
-	const float* Maths::ValuePointer<Maths::Vector2>(const Maths::Vector2& t)
+	_FORCE_INLINE_ const float* Maths::ValuePointer<Maths::Vector2>(const Maths::Vector2& t)
 	{
 		return &(t.x);
 	}
 
 	template<>
-	const float* Maths::ValuePointer<Maths::Vector3>(const Maths::Vector3& t)
+	_FORCE_INLINE_ const float* Maths::ValuePointer<Maths::Vector3>(const Maths::Vector3& t)
 	{
 		return &(t.x);
 	}
 
 	template<>
-	const float* Maths::ValuePointer<Maths::Vector4>(const Maths::Vector4& t)
+	_FORCE_INLINE_ const float* Maths::ValuePointer<Maths::Vector4>(const Maths::Vector4& t)
 	{
 		return &(t.x);
 	}
 
 	template<>
-	const float* Maths::ValuePointer<Maths::Matrix3>(const Maths::Matrix3& t)
+	_FORCE_INLINE_ const float* Maths::ValuePointer<Maths::Matrix3>(const Maths::Matrix3& t)
 	{
 		return &(t.m00_);
 	}
 
 	template<>
-	const float* Maths::ValuePointer<Maths::Matrix4>(const Maths::Matrix4& t)
+	_FORCE_INLINE_ const float* Maths::ValuePointer<Maths::Matrix4>(const Maths::Matrix4& t)
 	{
 		return &(t.m00_);
 	}
 
 	template<>
-	const float* Maths::ValuePointer<Maths::Quaternion>(const Maths::Quaternion& t)
+	_FORCE_INLINE_ const float* Maths::ValuePointer<Maths::Quaternion>(const Maths::Quaternion& t)
 	{
 		return &(t.w);
 	}
 
 	template<>
-	float* Maths::ValuePointer<Maths::Vector2>(Maths::Vector2& t)
+	_FORCE_INLINE_ float* Maths::ValuePointer<Maths::Vector2>(Maths::Vector2& t)
 	{
 		return &(t.x);
 	}
 
 	template<>
-	float* Maths::ValuePointer<Maths::Vector3>(Maths::Vector3& t)
+	_FORCE_INLINE_ float* Maths::ValuePointer<Maths::Vector3>(Maths::Vector3& t)
 	{
 		return &(t.x);
 	}
 
 	template<>
-	float* Maths::ValuePointer<Maths::Vector4>(Maths::Vector4& t)
+	_FORCE_INLINE_ float* Maths::ValuePointer<Maths::Vector4>(Maths::Vector4& t)
 	{
 		return &(t.x);
 	}
 
 	template<>
-	float* Maths::ValuePointer<Maths::Matrix3>(Maths::Matrix3& t)
+	_FORCE_INLINE_ float* Maths::ValuePointer<Maths::Matrix3>(Maths::Matrix3& t)
 	{
 		return &(t.m00_);
 	}
 
 	template<>
-	float* Maths::ValuePointer<Maths::Matrix4>(Maths::Matrix4& t)
+	_FORCE_INLINE_ float* Maths::ValuePointer<Maths::Matrix4>(Maths::Matrix4& t)
 	{
 		return &(t.m00_);
 	}
 
 	template<>
-	float* Maths::ValuePointer<Maths::Quaternion>(Maths::Quaternion& t)
+	_FORCE_INLINE_ float* Maths::ValuePointer<Maths::Quaternion>(Maths::Quaternion& t)
 	{
 		return &(t.w);
 	}

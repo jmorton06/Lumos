@@ -40,8 +40,8 @@ namespace Lumos
             m_Ptr = nullptr;
             m_Counter = nullptr;
         }
-        
-        Reference(T* ptr = nullptr)
+
+        explicit Reference(T* ptr = nullptr)
         {
 			m_Ptr = nullptr;
 			m_Counter = nullptr;
@@ -357,7 +357,7 @@ namespace Lumos
     };
             
     template<typename T>
-    void swap(Owned<T>& lhs, Owned<T>& rhs)
+    void swap(Owned<T>& lhs, Owned<T>& rhs) noexcept
     {
         lhs.swap(rhs);
     }

@@ -66,13 +66,13 @@ namespace Lumos
             void DebugDrawVmaMemory(VmaStatInfo& info, bool indent = true);
 #endif
 
-			const std::vector<const char*> GetRequiredExtensions();
-			const std::vector<const char*> GetRequiredLayers();
+			static const std::vector<const char*> GetRequiredExtensions();
+			const std::vector<const char*> GetRequiredLayers() const;
 
 		private:
 
 			VkInstance m_VkInstance;
-			VkDebugReportCallbackEXT m_DebugCallback;
+			VkDebugReportCallbackEXT m_DebugCallback{};
 
 			std::vector<VkLayerProperties> m_InstanceLayers;
 			std::vector<VkExtensionProperties> m_InstanceExtensions;

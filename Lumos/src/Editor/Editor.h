@@ -14,7 +14,6 @@ namespace ImGui
 namespace Lumos
 {
 	class Application;
-	class Entity;
 	class Scene;
 	class Event;
 	class Layer3D;

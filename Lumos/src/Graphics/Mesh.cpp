@@ -1,6 +1,5 @@
 #include "lmpch.h"
 #include "Mesh.h"
-#include "Material.h"
 #include "API/Renderer.h"
 #include "Platform/Vulkan/VKDevice.h"
 

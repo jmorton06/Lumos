@@ -19,9 +19,9 @@ namespace Lumos
 
 			void OnImGui();
 
-			Maths::Vector4   m_Colour;
-			Maths::Vector4   m_Position;
-			Maths::Vector4   m_Direction;
+			Maths::Vector4 m_Colour;
+			Maths::Vector4 m_Position;
+			Maths::Vector4 m_Direction;
 			float m_Intensity;
 			float m_Radius;
 			float m_Type;

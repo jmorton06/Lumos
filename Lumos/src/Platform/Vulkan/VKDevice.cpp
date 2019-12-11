@@ -17,7 +17,7 @@ namespace Lumos
 	{
 		VKDevice::VKDevice()
 		{
-			m_VKContext = static_cast<VKContext*>(GraphicsContext::GetContext());
+			m_VKContext = dynamic_cast<VKContext*>(GraphicsContext::GetContext());
 
 			Init();
 

@@ -166,8 +166,8 @@ namespace Lumos
 	{
 		if (m_Level != Level::Invalid && m_Level >= s_MessageBufferRenderFilter)
 		{
-			Colour colour = GetRenderColour(m_Level);
-			ImGui::PushStyleColor(ImGuiCol_Text, { colour.r, colour.g, colour.b, colour.a });
+			Maths::Colour colour = GetRenderColour(m_Level);
+			ImGui::PushStyleColor(ImGuiCol_Text, { colour.r_, colour.g_, colour.b_, colour.a_ });
 			ImGui::TextUnformatted(m_Message.c_str());
 			if (ImGui::IsItemHovered())
 			{
@@ -225,7 +225,7 @@ namespace Lumos
         }
 	}
 
-	ConsoleWindow::Message::Colour ConsoleWindow::Message::GetRenderColour(Level level)
+	Maths::Colour ConsoleWindow::Message::GetRenderColour(Level level)
 	{
 		switch (level)
 		{

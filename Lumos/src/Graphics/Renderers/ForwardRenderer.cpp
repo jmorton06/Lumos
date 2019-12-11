@@ -5,7 +5,6 @@
 #include "Graphics/Light.h"
 #include "Graphics/API/Texture.h"
 #include "Graphics/API/UniformBuffer.h"
-#include "Graphics/ModelLoader/ModelLoader.h"
 #include "Graphics/Mesh.h"
 #include "Graphics/Material.h"
 #include "Graphics/API/Renderer.h"

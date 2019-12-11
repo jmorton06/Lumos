@@ -2,8 +2,6 @@
 #include "VKContext.h"
 #include "VKDevice.h"
 #include "VKCommandPool.h"
-#include "VKCommandBuffer.h"
-//#include "Maths/Matrix4.h"
 #include "Core/Version.h"
 
 #include <imgui/imgui.h>
@@ -47,7 +45,7 @@ namespace Lumos
 			return extensions;
 		}
 
-		const std::vector<const char*> VKContext::GetRequiredLayers()
+		const std::vector<const char*> VKContext::GetRequiredLayers() const
 		{
 			std::vector<const char*> layers;
 

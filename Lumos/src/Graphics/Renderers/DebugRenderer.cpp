@@ -1,16 +1,9 @@
 #include "lmpch.h"
 #include "DebugRenderer.h"
-#include "Graphics/API/Texture.h"
 #include "Core/OS/Window.h"
-#include "Graphics/API/Renderer.h"
-#include "Graphics/Material.h"
-#include "Graphics/API/VertexArray.h"
 
 #include "Maths/Maths.h"
-
-
 #include <cstdarg>
-#include <cstdio>
 
 namespace Lumos
 {
