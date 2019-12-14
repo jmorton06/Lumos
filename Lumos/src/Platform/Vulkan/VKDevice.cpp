@@ -152,6 +152,7 @@ namespace Lumos
 			// Device queue
 			float pQueuePriorities[] = { 1.0f };
 			VkDeviceQueueCreateInfo deviceQueueCI{};
+            deviceQueueCI.sType = VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO;
 			deviceQueueCI.queueCount = 1;
 			deviceQueueCI.queueFamilyIndex = m_GraphicsQueueFamilyIndex;
 			deviceQueueCI.pQueuePriorities = pQueuePriorities;
