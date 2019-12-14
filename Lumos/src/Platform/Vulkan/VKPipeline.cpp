@@ -122,6 +122,7 @@ namespace Lumos
 
 			VkPipelineVertexInputStateCreateInfo vi{};
 			memset(&vi, 0, sizeof(vi));
+            vi.sType = VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO;
 			vi.pNext = NULL;
 			vi.vertexBindingDescriptionCount = 1;
 			vi.pVertexBindingDescriptions = &m_VertexBindingDescription;
