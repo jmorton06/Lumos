@@ -993,7 +993,7 @@ namespace Lumos
 				VkImageViewCreateInfo viewInfo = {};
 				viewInfo.sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO;
 				viewInfo.image = image;
-				viewInfo.viewType = VK_IMAGE_VIEW_TYPE_2D;
+				viewInfo.viewType = VK_IMAGE_VIEW_TYPE_2D_ARRAY;
 				viewInfo.format = format;
 				viewInfo.subresourceRange.aspectMask = aspectFlags;
 				viewInfo.subresourceRange.baseMipLevel = 0;
