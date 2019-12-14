@@ -720,7 +720,7 @@ namespace Lumos
 			VkFormat depthFormat = VKTools::FindDepthFormat();
 
 			CreateImage(m_Width, m_Height, depthFormat, VK_IMAGE_TILING_OPTIMAL,
-				VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, m_TextureImage,
+				VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT | VK_IMAGE_USAGE_SAMPLED_BIT, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, m_TextureImage,
 				m_TextureImageMemory);
 
 			m_TextureImageView = CreateImageView(m_TextureImage, depthFormat, VK_IMAGE_ASPECT_DEPTH_BIT);
