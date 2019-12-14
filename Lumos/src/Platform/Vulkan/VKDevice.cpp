@@ -158,7 +158,7 @@ namespace Lumos
 
 			VkPhysicalDeviceFeatures deviceFeatures{};
 			deviceFeatures.shaderClipDistance = VK_TRUE;
-			deviceFeatures.shaderCullDistance = VK_TRUE;
+			//deviceFeatures.shaderCullDistance = VK_TRUE;
 			deviceFeatures.geometryShader = VK_FALSE;
 			deviceFeatures.shaderTessellationAndGeometryPointSize = VK_TRUE;
 			deviceFeatures.fillModeNonSolid = VK_TRUE;
@@ -174,9 +174,10 @@ namespace Lumos
 
 			// Device
 			VkDeviceCreateInfo deviceCI{};
+            deviceCI.sType = VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO;
 			deviceCI.queueCreateInfoCount = 1;
 			deviceCI.pQueueCreateInfos = &deviceQueueCI;
-			deviceCI.enabledExtensionCount = static_cast<uint32_t>(deviceExtensions.size());
+            deviceCI.enabledExtensionCount = static_cast<uint32_t>(deviceExtensions.size());
 			deviceCI.ppEnabledExtensionNames = deviceExtensions.data();
 			deviceCI.pEnabledFeatures = &deviceFeatures;
 
