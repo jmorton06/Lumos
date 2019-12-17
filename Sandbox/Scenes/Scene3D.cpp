@@ -57,7 +57,7 @@ void Scene3D::OnInit()
 
 	auto audioSystem = Application::Instance()->GetSystem<AudioManager>();
 	if(audioSystem)
-		Application::Instance()->GetSystem<AudioManager>()->SetListener(m_pCamera);
+		audioSystem->SetListener(m_pCamera);
 
 	auto shadowRenderer = new Graphics::ShadowRenderer();
 	shadowRenderer->SetLightEntity(lightEntity);

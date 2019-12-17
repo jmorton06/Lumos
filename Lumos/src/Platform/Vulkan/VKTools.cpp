@@ -154,7 +154,7 @@ namespace Lumos
             VkCommandBuffer commandBuffer = BeginSingleTimeCommands();
 
             VkImageMemoryBarrier barrier = {};
-			barrier.sType = VK_STRUCTURE_TYPE_MEMORY_BARRIER;
+			barrier.sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER;
             barrier.oldLayout = oldLayout;
             barrier.newLayout = newLayout;
             barrier.srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
