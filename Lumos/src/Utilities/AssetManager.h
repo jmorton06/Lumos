@@ -1,5 +1,6 @@
 #pragma once
 #include "lmpch.h"
+#include "Core/VFS.h"
 
 namespace Lumos
 {

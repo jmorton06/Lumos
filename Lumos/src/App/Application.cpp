@@ -128,8 +128,7 @@ namespace Lumos
 	{
 		Engine::Release();
 		Input::Release();
-		AssetsManager::ReleaseMeshes();
-		SoundManager::Release();
+		AssetsManager::ReleaseResources();
 
 		m_SceneManager.reset();
 		m_RenderManager.reset();
