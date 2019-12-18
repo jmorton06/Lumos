@@ -16,7 +16,11 @@ namespace Lumos
 
 		VKSwapchain::~VKSwapchain()
 		{
-			Unload();
+			for (uint32_t i = 0; i < m_SwapChainBuffers.size(); i++)
+			{
+				delete m_SwapChainBuffers[i];
+			}
+			vkDestroySwapchainKHR(VKDevice::Instance()->GetDevice(), m_SwapChain, VK_NULL_HANDLE);
 		}
 
 		bool VKSwapchain::Init()
@@ -112,15 +116,6 @@ namespace Lumos
 			delete[] pPresentModes;
 
 			return true;
-		}
-
-		void VKSwapchain::Unload()
-		{
-			for (uint32_t i = 0; i < m_SwapChainBuffers.size(); i++)
-			{
-				delete m_SwapChainBuffers[i];
-			}
-			vkDestroySwapchainKHR(VKDevice::Instance()->GetDevice(), m_SwapChain, VK_NULL_HANDLE);
 		}
 
         VkResult VKSwapchain::AcquireNextImage(VkSemaphore signalSemaphore)

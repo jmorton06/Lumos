@@ -40,6 +40,7 @@ namespace Lumos
 			std::vector<PushConstant> m_PushConstants;
 			VkDescriptorBufferInfo* m_BufferInfoPool = nullptr;
 			VkDescriptorImageInfo* m_ImageInfoPool = nullptr;
+			VkWriteDescriptorSet* m_WriteDescriptorSetPool = nullptr;
 		};
 	}
 }

@@ -9,6 +9,117 @@ namespace Lumos
 {
 	namespace Graphics
 	{
+		static VkImageView CreateImageView(VkImage image, VkFormat format, u32 mipLevels, VkImageViewType viewType, VkImageAspectFlags aspectMask, u32 layerCount, u32 baseArrayLayer = 0)
+		{
+			VkImageViewCreateInfo viewInfo = {};
+			viewInfo.sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO;
+			viewInfo.image = image;
+			viewInfo.viewType = viewType;
+			viewInfo.format = format;
+			viewInfo.components = { VK_COMPONENT_SWIZZLE_R, VK_COMPONENT_SWIZZLE_G, VK_COMPONENT_SWIZZLE_B, VK_COMPONENT_SWIZZLE_A };
+			viewInfo.subresourceRange.aspectMask = aspectMask;
+			viewInfo.subresourceRange.baseMipLevel = 0;
+			viewInfo.subresourceRange.levelCount = mipLevels;
+			viewInfo.subresourceRange.baseArrayLayer = baseArrayLayer;
+			viewInfo.subresourceRange.layerCount = layerCount;
+
+			VkImageView imageView;
+			if (vkCreateImageView(VKDevice::Instance()->GetDevice(), &viewInfo, nullptr, &imageView) != VK_SUCCESS)
+			{
+				Lumos::Debug::Log::Error("Failed to create texture image view!");
+			}
+
+			return imageView;
+		}
+
+		static VkSampler CreateTextureSampler(VkFilter magFilter = VK_FILTER_LINEAR, VkFilter minFilter = VK_FILTER_LINEAR, float minLod = 0.0f, float maxLod = 1.0f, bool anisotropyEnable = false, float maxAnisotropy = 1.0f, VkSamplerAddressMode modeU = VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_EDGE, VkSamplerAddressMode modeV = VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_EDGE, VkSamplerAddressMode modeW = VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_EDGE)
+		{
+			VkSampler sampler;
+			VkSamplerCreateInfo samplerInfo = {};
+			samplerInfo.sType = VK_STRUCTURE_TYPE_SAMPLER_CREATE_INFO;
+			samplerInfo.magFilter = magFilter;
+			samplerInfo.minFilter = minFilter;
+			samplerInfo.mipmapMode = VK_SAMPLER_MIPMAP_MODE_LINEAR;
+			samplerInfo.addressModeU = modeU;
+			samplerInfo.addressModeV = modeV;
+			samplerInfo.addressModeW = modeW;
+			samplerInfo.maxAnisotropy = maxAnisotropy;
+			samplerInfo.anisotropyEnable = anisotropyEnable;
+			samplerInfo.unnormalizedCoordinates = VK_FALSE;
+			samplerInfo.compareEnable = VK_FALSE;
+			samplerInfo.borderColor = VK_BORDER_COLOR_FLOAT_OPAQUE_WHITE;
+			samplerInfo.mipLodBias = 0.0f;
+			samplerInfo.compareOp = VK_COMPARE_OP_NEVER;
+			samplerInfo.minLod = minLod;
+			samplerInfo.maxLod = maxLod;
+
+			if (vkCreateSampler(VKDevice::Instance()->GetDevice(), &samplerInfo, nullptr, &sampler) != VK_SUCCESS)
+			{
+				Lumos::Debug::Log::Error("Failed to create texture sampler!");
+			}
+
+			return sampler;
+		}
+
+#ifdef USE_VMA_ALLOCATOR
+		static void CreateImageVma(const VkImageCreateInfo& imageInfo, VkImage& image, VmaAllocation& allocation)
+		{
+			VmaAllocationCreateInfo allocInfovma;
+			allocInfovma.flags = 0;
+			allocInfovma.usage = VMA_MEMORY_USAGE_GPU_ONLY;
+			allocInfovma.requiredFlags = 0;
+			allocInfovma.preferredFlags = 0;
+			allocInfovma.memoryTypeBits = 0;
+			allocInfovma.pool = nullptr;
+			allocInfovma.pUserData = nullptr;
+			vmaCreateImage(VKDevice::Instance()->GetAllocator(), &imageInfo, &allocInfovma, &image, &allocation, nullptr);
+		}
+#endif
+	
+
+		static void CreateImageDefault(const VkImageCreateInfo& imageInfo, VkImage& image,
+			VkDeviceMemory& imageMemory, VkMemoryPropertyFlags properties)
+		{
+			vkCreateImage(VKDevice::Instance()->GetDevice(), &imageInfo, nullptr, &image);
+
+			VkMemoryRequirements memRequirements;
+			vkGetImageMemoryRequirements(VKDevice::Instance()->GetDevice(), image, &memRequirements);
+
+			VkMemoryAllocateInfo allocInfo = {};
+			allocInfo.sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
+			allocInfo.allocationSize = memRequirements.size;
+			allocInfo.memoryTypeIndex = VKTools::FindMemoryType(memRequirements.memoryTypeBits, properties);
+
+			vkAllocateMemory(VKDevice::Instance()->GetDevice(), &allocInfo, nullptr, &imageMemory);
+			vkBindImageMemory(VKDevice::Instance()->GetDevice(), image, imageMemory, 0);
+		}
+
+		static void CreateImage(u32 width, u32 height, u32 mipLevels, VkFormat format, VkImageType imageType, VkImageTiling tiling,
+			VkImageUsageFlags usage, VkMemoryPropertyFlags properties, VkImage& image,
+			VkDeviceMemory& imageMemory, u32 arrayLayers, VkImageCreateFlags flags, VmaAllocation& allocation)
+		{
+			VkImageCreateInfo imageInfo = {};
+			imageInfo.sType = VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO;
+			imageInfo.imageType = imageType;
+			imageInfo.extent = { width, height, 1 };
+			imageInfo.mipLevels = mipLevels;
+			imageInfo.format = format;
+			imageInfo.tiling = tiling;
+			imageInfo.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
+			imageInfo.usage = usage;
+			imageInfo.samples = VK_SAMPLE_COUNT_1_BIT;
+			imageInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
+			imageInfo.arrayLayers = arrayLayers;
+
+			imageInfo.flags = flags;
+
+#ifdef USE_VMA_ALLOCATOR
+			CreateImageVma(imageInfo, image, allocation);
+#else
+			CreateImageDefault(imageInfo, image, imageMemory, properties);
+#endif
+		}
+
 		VKTexture2D::VKTexture2D(u32 width, u32 height, void* data, TextureParameters parameters, TextureLoadOptions loadOptions)
 			: m_FileName("NULL"), m_TextureImage(nullptr), m_TextureImageView(nullptr), m_TextureSampler(nullptr)
 		{
@@ -19,10 +130,8 @@ namespace Lumos
 			m_Data = static_cast<u8*>(data);
 			Load();
 
-			m_TextureImageView = CreateImageView(m_TextureImage, VK_FORMAT_R8G8B8A8_UNORM, VK_IMAGE_ASPECT_COLOR_BIT,
-			                                     m_MipLevels);
-
-			CreateTextureSampler();
+			m_TextureImageView = Graphics::CreateImageView(m_TextureImage, VK_FORMAT_R8G8B8A8_UNORM, m_MipLevels, VK_IMAGE_VIEW_TYPE_2D, VK_IMAGE_ASPECT_COLOR_BIT, 1);
+			m_TextureSampler = Graphics::CreateTextureSampler(m_Parameters.filter == TextureFilter::LINEAR ? VK_FILTER_LINEAR : VK_FILTER_NEAREST, m_Parameters.filter == TextureFilter::LINEAR ? VK_FILTER_LINEAR : VK_FILTER_NEAREST, 0.0f, static_cast<float>(m_MipLevels), true, VKDevice::Instance()->GetGPUProperties().limits.maxSamplerAnisotropy, VKTools::TextureWrapToVK(m_Parameters.wrap), VKTools::TextureWrapToVK(m_Parameters.wrap), VKTools::TextureWrapToVK(m_Parameters.wrap));
 
 			UpdateDescriptor();
 		}
@@ -38,10 +147,9 @@ namespace Lumos
 			if (!m_DeleteImage)
 				return;
 
-			m_TextureImageView = CreateImageView(m_TextureImage, VK_FORMAT_R8G8B8A8_UNORM, VK_IMAGE_ASPECT_COLOR_BIT,
-			                                     m_MipLevels);
+			m_TextureImageView = Graphics::CreateImageView(m_TextureImage, VK_FORMAT_R8G8B8A8_UNORM, m_MipLevels, VK_IMAGE_VIEW_TYPE_2D, VK_IMAGE_ASPECT_COLOR_BIT, 1);
+			m_TextureSampler = Graphics::CreateTextureSampler(m_Parameters.filter == TextureFilter::LINEAR ? VK_FILTER_LINEAR : VK_FILTER_NEAREST, m_Parameters.filter == TextureFilter::LINEAR ? VK_FILTER_LINEAR : VK_FILTER_NEAREST, 0.0f, static_cast<float>(m_MipLevels), true, VKDevice::Instance()->GetGPUProperties().limits.maxSamplerAnisotropy, VKTools::TextureWrapToVK(m_Parameters.wrap), VKTools::TextureWrapToVK(m_Parameters.wrap), VKTools::TextureWrapToVK(m_Parameters.wrap));
 
-			CreateTextureSampler();
 			UpdateDescriptor();
 		}
 
@@ -61,7 +169,8 @@ namespace Lumos
 			m_Parameters = TextureParameters();
 			m_LoadOptions = TextureLoadOptions();
 			m_DeleteImage = false;
-			CreateTextureSampler();
+			m_TextureSampler = Graphics::CreateTextureSampler(m_Parameters.filter == TextureFilter::LINEAR ? VK_FILTER_LINEAR : VK_FILTER_NEAREST, m_Parameters.filter == TextureFilter::LINEAR ? VK_FILTER_LINEAR : VK_FILTER_NEAREST, 0.0f, static_cast<float>(m_MipLevels), true, VKDevice::Instance()->GetGPUProperties().limits.maxSamplerAnisotropy, VKTools::TextureWrapToVK(m_Parameters.wrap), VKTools::TextureWrapToVK(m_Parameters.wrap), VKTools::TextureWrapToVK(m_Parameters.wrap));
+
 			UpdateDescriptor();
 		}
 
@@ -88,14 +197,6 @@ namespace Lumos
 			}
 		}
 
-		void VKTexture2D::Bind(u32 slot) const
-		{
-		}
-
-		void VKTexture2D::Unbind(u32 slot) const
-		{
-		}
-
 		void VKTexture2D::BuildTexture(TextureFormat internalformat, u32 width, u32 height, bool depth, bool samplerShadow)
 		{
 			m_Width = width;
@@ -103,114 +204,13 @@ namespace Lumos
 			m_Handle = 0;
 			m_DeleteImage = true;
 			m_MipLevels = 1;
-			CreateImage(m_Width, m_Height, m_MipLevels, VKTools::TextureFormatToVK(internalformat), VK_IMAGE_TILING_OPTIMAL,
+			Graphics::CreateImage(m_Width, m_Height, m_MipLevels, VKTools::TextureFormatToVK(internalformat), VK_IMAGE_TYPE_2D, VK_IMAGE_TILING_OPTIMAL,
 				VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT | VK_IMAGE_USAGE_SAMPLED_BIT, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, m_TextureImage,
-				m_TextureImageMemory);
-
-			m_TextureImageView = CreateImageView(m_TextureImage, VKTools::TextureFormatToVK(internalformat), VK_IMAGE_ASPECT_COLOR_BIT, m_MipLevels);
+				m_TextureImageMemory, 1, 0, m_Allocation);
+			
+			m_TextureImageView = Graphics::CreateImageView(m_TextureImage, VKTools::TextureFormatToVK(internalformat), m_MipLevels, VK_IMAGE_VIEW_TYPE_2D, VK_IMAGE_ASPECT_COLOR_BIT, 1);
 
 			UpdateDescriptor();
-		}
-
-		void VKTexture2D::CreateTextureSampler()
-		{
-            VkSamplerCreateInfo samplerInfo;
-			samplerInfo.sType = VK_STRUCTURE_TYPE_SAMPLER_CREATE_INFO;
-			samplerInfo.flags = 0;
-			samplerInfo.pNext = VK_NULL_HANDLE;
-			samplerInfo.magFilter = m_Parameters.filter == TextureFilter::LINEAR ? VK_FILTER_LINEAR : VK_FILTER_NEAREST;
-			samplerInfo.minFilter = m_Parameters.filter == TextureFilter::LINEAR ? VK_FILTER_LINEAR : VK_FILTER_NEAREST;
-			samplerInfo.anisotropyEnable = VK_TRUE;
-			samplerInfo.maxAnisotropy = VKDevice::Instance()->GetGPUProperties().limits.maxSamplerAnisotropy;
-            samplerInfo.borderColor = VK_BORDER_COLOR_FLOAT_OPAQUE_BLACK;
-			samplerInfo.unnormalizedCoordinates = VK_FALSE;
-			samplerInfo.compareEnable = VK_FALSE;
-			samplerInfo.compareOp = VK_COMPARE_OP_NEVER;
-			samplerInfo.mipmapMode = VK_SAMPLER_MIPMAP_MODE_LINEAR;
-			samplerInfo.minLod = 0;
-			samplerInfo.maxLod = static_cast<float>(m_MipLevels);
-			samplerInfo.mipLodBias = 0;
-			samplerInfo.addressModeU = VKTools::TextureWrapToVK(m_Parameters.wrap);
-			samplerInfo.addressModeV = VKTools::TextureWrapToVK(m_Parameters.wrap);
-			samplerInfo.addressModeW = VKTools::TextureWrapToVK(m_Parameters.wrap);
-
-			if (vkCreateSampler(VKDevice::Instance()->GetDevice(), &samplerInfo, nullptr, &m_TextureSampler) != VK_SUCCESS)
-			{
-				throw std::runtime_error("failed to create texture sampler!");
-			}
-		}
-
-        void VKTexture2D::CreateImage(uint32_t width, uint32_t height, uint32_t mipLevels, VkFormat format, VkImageTiling tiling,
-                                      VkImageUsageFlags usage, VkMemoryPropertyFlags properties, VkImage& image,
-                                      VkDeviceMemory& imageMemory)
-		{
-            VkImageCreateInfo imageInfo = {};
-			imageInfo.sType = VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO;
-            imageInfo.imageType = VK_IMAGE_TYPE_2D;
-			imageInfo.extent.width = width;
-			imageInfo.extent.height = height;
-			imageInfo.extent.depth = 1;
-			imageInfo.mipLevels = mipLevels;
-			imageInfo.arrayLayers = 1;
-			imageInfo.format = format;
-			imageInfo.tiling = tiling;
-			imageInfo.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
-			imageInfo.usage = usage;
-			imageInfo.samples = VK_SAMPLE_COUNT_1_BIT;
-			imageInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
-
-#ifdef USE_VMA_ALLOCATOR
-            VmaAllocationCreateInfo allocInfovma;
-            allocInfovma.flags = 0;
-            allocInfovma.usage = VMA_MEMORY_USAGE_GPU_ONLY;
-            allocInfovma.requiredFlags = 0;
-            allocInfovma.preferredFlags = 0;
-            allocInfovma.memoryTypeBits = 0;
-            allocInfovma.pool = nullptr;
-            allocInfovma.pUserData = nullptr;
-            vmaCreateImage(VKDevice::Instance()->GetAllocator(), &imageInfo, &allocInfovma, &image, &m_Allocation, nullptr);
-#else
-			if (vkCreateImage(VKDevice::Instance()->GetDevice(), &imageInfo, nullptr, &image) != VK_SUCCESS)
-			{
-				throw std::runtime_error("failed to create image!");
-			}
-
-			VkMemoryRequirements memRequirements;
-			vkGetImageMemoryRequirements(VKDevice::Instance()->GetDevice(), image, &memRequirements);
-
-			VkMemoryAllocateInfo allocInfo = {};
-			allocInfo.sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
-			allocInfo.allocationSize = memRequirements.size;
-			allocInfo.memoryTypeIndex = VKTools::FindMemoryType(memRequirements.memoryTypeBits, properties);
-
-			if (vkAllocateMemory(VKDevice::Instance()->GetDevice(), &allocInfo, nullptr, &imageMemory) != VK_SUCCESS)
-			{
-				throw std::runtime_error("failed to allocate image memory!");
-			}
-
-			vkBindImageMemory(VKDevice::Instance()->GetDevice(), image, imageMemory, 0);
-#endif
-		}
-
-        VkImageView VKTexture2D::CreateImageView(VkImage image, VkFormat format, VkImageAspectFlags aspectFlags, uint32_t mipLevels)
-		{
-            VkImageViewCreateInfo viewInfo = {};
-			viewInfo.sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO;
-			viewInfo.image = image;
-            viewInfo.viewType = VK_IMAGE_VIEW_TYPE_2D;
-			viewInfo.format = format;
-			viewInfo.subresourceRange.aspectMask = aspectFlags;
-			viewInfo.subresourceRange.baseMipLevel = 0;
-			viewInfo.subresourceRange.levelCount = mipLevels;
-			viewInfo.subresourceRange.baseArrayLayer = 0;
-			viewInfo.subresourceRange.layerCount = 1;
-
-			VkImageView imageView;
-			if (vkCreateImageView(VKDevice::Instance()->GetDevice(), &viewInfo, nullptr, &imageView) != VK_SUCCESS)
-			{
-				throw std::runtime_error("failed to create texture image view!");
-			}
-			return imageView;
 		}
 
 		void VKTexture2D::UpdateDescriptor()
@@ -334,12 +334,12 @@ namespace Lumos
 			if (m_Data == nullptr)
 				delete[] pixels;
 
-            CreateImage(texWidth, texHeight, m_MipLevels, VK_FORMAT_R8G8B8A8_UNORM, VK_IMAGE_TILING_OPTIMAL, VK_IMAGE_USAGE_TRANSFER_SRC_BIT | VK_IMAGE_USAGE_TRANSFER_DST_BIT | VK_IMAGE_USAGE_SAMPLED_BIT, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, m_TextureImage, m_TextureImageMemory);
+			Graphics::CreateImage(texWidth, texHeight, m_MipLevels, VK_FORMAT_R8G8B8A8_UNORM, VK_IMAGE_TYPE_2D, VK_IMAGE_TILING_OPTIMAL,
+				VK_IMAGE_USAGE_TRANSFER_SRC_BIT | VK_IMAGE_USAGE_TRANSFER_DST_BIT | VK_IMAGE_USAGE_SAMPLED_BIT, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, m_TextureImage,
+				m_TextureImageMemory, 1, 0, m_Allocation);
 
 			VKTools::TransitionImageLayout(m_TextureImage, VK_FORMAT_R8G8B8A8_UNORM, VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, m_MipLevels);
-
 			VKTools::CopyBufferToImage(stagingBuffer->GetBuffer(), m_TextureImage, static_cast<uint32_t>(texWidth), static_cast<uint32_t>(texHeight));
-
 			VKTools::TransitionImageLayout(m_TextureImage, VK_FORMAT_R8G8B8A8_UNORM, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, m_MipLevels);
 
 			delete stagingBuffer;
@@ -374,8 +374,12 @@ namespace Lumos
 			UpdateDescriptor();
 		}
 
-		VKTextureCube::VKTextureCube(const String& filepath) : m_Width(0), m_Height(0), m_Size(0), m_NumMips(0),
-		                                                       m_ImageLayout()
+		VKTextureCube::VKTextureCube(const String& filepath) : 
+			m_Width(0), 
+			m_Height(0),
+			m_Size(0), 
+			m_NumMips(0),
+			m_ImageLayout()
 		{
 			m_Files[0] = filepath;
 		}
@@ -398,117 +402,6 @@ namespace Lumos
 #endif
 
 			}
-		}
-
-		void VKTextureCube::Bind(u32 slot) const
-		{
-		}
-
-		void VKTextureCube::Unbind(u32 slot) const
-		{
-		}
-
-		void VKTextureCube::CreateTextureSampler()
-		{
-			VkSamplerCreateInfo samplerInfo = {};
-			samplerInfo.sType = VK_STRUCTURE_TYPE_SAMPLER_CREATE_INFO;
-			samplerInfo.magFilter = VK_FILTER_LINEAR;
-			samplerInfo.minFilter = VK_FILTER_LINEAR;
-			samplerInfo.addressModeU = VK_SAMPLER_ADDRESS_MODE_REPEAT;
-			samplerInfo.addressModeV = VK_SAMPLER_ADDRESS_MODE_REPEAT;
-			samplerInfo.addressModeW = VK_SAMPLER_ADDRESS_MODE_REPEAT;
-			samplerInfo.anisotropyEnable = VK_TRUE;
-			samplerInfo.maxAnisotropy = VKDevice::Instance()->GetGPUProperties().limits.maxSamplerAnisotropy;
-			samplerInfo.borderColor = VK_BORDER_COLOR_FLOAT_OPAQUE_BLACK;
-			samplerInfo.unnormalizedCoordinates = VK_FALSE;
-			samplerInfo.compareEnable = VK_FALSE;
-			samplerInfo.compareOp = VK_COMPARE_OP_NEVER;
-			samplerInfo.mipmapMode = VK_SAMPLER_MIPMAP_MODE_LINEAR;
-			samplerInfo.minLod = 0;
-			samplerInfo.maxLod = static_cast<float>(m_NumMips);
-			samplerInfo.mipLodBias = 0;
-
-			if (vkCreateSampler(VKDevice::Instance()->GetDevice(), &samplerInfo, nullptr, &m_TextureSampler) != VK_SUCCESS)
-			{
-				throw std::runtime_error("failed to create texture sampler!");
-			}
-		}
-
-		void VKTextureCube::CreateImage(uint32_t width, uint32_t height, uint32_t mipLevels, VkFormat format, VkImageTiling tiling,
-			VkImageUsageFlags usage, VkMemoryPropertyFlags properties, VkImage& image,
-			VkDeviceMemory& imageMemory)
-		{
-			VkImageCreateInfo imageInfo = {};
-			imageInfo.sType = VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO;
-			imageInfo.imageType = VK_IMAGE_TYPE_2D;
-			imageInfo.extent = { width, height, 1 };
-			imageInfo.mipLevels = mipLevels;
-			imageInfo.format = format;
-			imageInfo.tiling = tiling;
-			imageInfo.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
-			imageInfo.usage = usage;
-			imageInfo.samples = VK_SAMPLE_COUNT_1_BIT;
-			imageInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
-			imageInfo.arrayLayers = 6;
-			// This flag is required for cube map images
-			imageInfo.flags = VK_IMAGE_CREATE_CUBE_COMPATIBLE_BIT;
-
-			// Ensure that the TRANSFER_DST bit is set for staging
-			if (!(imageInfo.usage & VK_IMAGE_USAGE_TRANSFER_DST_BIT))
-			{
-				imageInfo.usage |= VK_IMAGE_USAGE_TRANSFER_DST_BIT;
-			}
-
-#ifdef USE_VMA_ALLOCATOR
-			VmaAllocationCreateInfo allocInfovma;
-			allocInfovma.flags = 0;
-			allocInfovma.usage = VMA_MEMORY_USAGE_GPU_ONLY;
-			allocInfovma.requiredFlags = 0;
-			allocInfovma.preferredFlags = 0;
-			allocInfovma.memoryTypeBits = 0;
-			allocInfovma.pool = nullptr;
-			allocInfovma.pUserData = nullptr;
-			vmaCreateImage(VKDevice::Instance()->GetAllocator(), &imageInfo, &allocInfovma, &image, &m_Allocation, nullptr);
-#else
-			vkCreateImage(VKDevice::Instance()->GetDevice(), &imageInfo, nullptr, &image);
-
-			VkMemoryRequirements memRequirements;
-			vkGetImageMemoryRequirements(VKDevice::Instance()->GetDevice(), image, &memRequirements);
-
-			VkMemoryAllocateInfo allocInfo = {};
-			allocInfo.sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
-			allocInfo.allocationSize = memRequirements.size;
-			allocInfo.memoryTypeIndex = VKTools::FindMemoryType(memRequirements.memoryTypeBits, properties);
-
-			vkAllocateMemory(VKDevice::Instance()->GetDevice(), &allocInfo, nullptr, &imageMemory);
-			vkBindImageMemory(VKDevice::Instance()->GetDevice(), image, imageMemory, 0);
-#endif
-
-
-		}
-
-		VkImageView VKTextureCube::CreateImageView(VkImage image, VkFormat format, uint32_t mipLevels)
-		{
-			VkImageViewCreateInfo viewInfo = {};
-			viewInfo.sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO;
-			viewInfo.image = image;
-			viewInfo.viewType = VK_IMAGE_VIEW_TYPE_CUBE;
-			viewInfo.format = format;
-			viewInfo.components = { VK_COMPONENT_SWIZZLE_R, VK_COMPONENT_SWIZZLE_G, VK_COMPONENT_SWIZZLE_B, VK_COMPONENT_SWIZZLE_A };
-			viewInfo.subresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
-			viewInfo.subresourceRange.baseMipLevel = 0;
-			viewInfo.subresourceRange.levelCount = mipLevels;
-			viewInfo.subresourceRange.baseArrayLayer = 0;
-			// 6 array layers (faces)
-			viewInfo.subresourceRange.layerCount = 6;
-
-			VkImageView imageView;
-			if (vkCreateImageView(VKDevice::Instance()->GetDevice(), &viewInfo, nullptr, &imageView) != VK_SUCCESS)
-			{
-				Lumos::Debug::Log::Error("Failed to create texture image view!");
-			}
-
-			return imageView;
 		}
 
 		void VKTextureCube::UpdateDescriptor()
@@ -602,7 +495,9 @@ namespace Lumos
 				allData = nullptr;
 			}
 
-			CreateImage(faceWidths[0], faceHeights[0], m_NumMips, VK_FORMAT_R8G8B8A8_UNORM, VK_IMAGE_TILING_OPTIMAL, VK_IMAGE_USAGE_TRANSFER_DST_BIT | VK_IMAGE_USAGE_SAMPLED_BIT, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, m_TextureImage, m_TextureImageMemory);
+			Graphics::CreateImage(faceWidths[0], faceHeights[0], m_NumMips, VK_FORMAT_R8G8B8A8_UNORM, VK_IMAGE_TYPE_2D, VK_IMAGE_TILING_OPTIMAL,
+				VK_IMAGE_USAGE_TRANSFER_SRC_BIT | VK_IMAGE_USAGE_TRANSFER_DST_BIT | VK_IMAGE_USAGE_SAMPLED_BIT, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, m_TextureImage,
+				m_TextureImageMemory, 6, VK_IMAGE_CREATE_CUBE_COMPATIBLE_BIT, m_Allocation);
 
 			VkCommandBuffer cmdBuffer = VKTools::BeginSingleTimeCommands();
 
@@ -668,8 +563,8 @@ namespace Lumos
 
 			VKTools::EndSingleTimeCommands(cmdBuffer);
 
-			CreateTextureSampler();
-			m_TextureImageView = CreateImageView(m_TextureImage, VK_FORMAT_R8G8B8A8_UNORM, m_NumMips);
+			m_TextureSampler = Graphics::CreateTextureSampler(VK_FILTER_LINEAR, VK_FILTER_LINEAR, 0.0f, static_cast<float>(m_NumMips), true, VKDevice::Instance()->GetGPUProperties().limits.maxSamplerAnisotropy, VK_SAMPLER_ADDRESS_MODE_REPEAT, VK_SAMPLER_ADDRESS_MODE_REPEAT, VK_SAMPLER_ADDRESS_MODE_REPEAT);
+			m_TextureImageView = Graphics::CreateImageView(m_TextureImage, VK_FORMAT_R8G8B8A8_UNORM, m_NumMips, VK_IMAGE_VIEW_TYPE_CUBE, VK_IMAGE_ASPECT_COLOR_BIT, 6);
 
 			delete stagingBuffer;
 
@@ -707,124 +602,21 @@ namespace Lumos
 #endif
 		}
 
-		void VKTextureDepth::Bind(u32 slot) const
-		{
-		}
-
-		void VKTextureDepth::Unbind(u32 slot) const
-		{
-		}
-
 		void VKTextureDepth::Init()
 		{
 			VkFormat depthFormat = VKTools::FindDepthFormat();
 
-			CreateImage(m_Width, m_Height, depthFormat, VK_IMAGE_TILING_OPTIMAL,
+			Graphics::CreateImage(m_Width, m_Height, 1, depthFormat, VK_IMAGE_TYPE_2D, VK_IMAGE_TILING_OPTIMAL,
 				VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT | VK_IMAGE_USAGE_SAMPLED_BIT, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, m_TextureImage,
-				m_TextureImageMemory);
+				m_TextureImageMemory, 1, 0, m_Allocation);
 
-			m_TextureImageView = CreateImageView(m_TextureImage, depthFormat, VK_IMAGE_ASPECT_DEPTH_BIT);
+			m_TextureImageView = CreateImageView(m_TextureImage, depthFormat, 1, VK_IMAGE_VIEW_TYPE_2D, VK_IMAGE_ASPECT_DEPTH_BIT, 1);
 
-			VKTools::TransitionImageLayout(m_TextureImage, depthFormat, VK_IMAGE_LAYOUT_UNDEFINED,
-				VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL);
+			VKTools::TransitionImageLayout(m_TextureImage, depthFormat, VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL);
 
-			CreateTextureSampler();
+			m_TextureSampler = Graphics::CreateTextureSampler(VK_FILTER_LINEAR, VK_FILTER_LINEAR, 0.0f, 1.0f, true, VKDevice::Instance()->GetGPUProperties().limits.maxSamplerAnisotropy, VK_SAMPLER_ADDRESS_MODE_REPEAT, VK_SAMPLER_ADDRESS_MODE_REPEAT, VK_SAMPLER_ADDRESS_MODE_REPEAT);
 
 			UpdateDescriptor();
-		}
-
-		void VKTextureDepth::CreateTextureSampler()
-		{
-			VkSamplerCreateInfo samplerInfo = {};
-			samplerInfo.sType = VK_STRUCTURE_TYPE_SAMPLER_CREATE_INFO;
-			samplerInfo.magFilter = VK_FILTER_LINEAR;
-			samplerInfo.minFilter = VK_FILTER_LINEAR;
-			samplerInfo.addressModeU = VK_SAMPLER_ADDRESS_MODE_REPEAT;
-			samplerInfo.addressModeV = VK_SAMPLER_ADDRESS_MODE_REPEAT;
-			samplerInfo.addressModeW = VK_SAMPLER_ADDRESS_MODE_REPEAT;
-			samplerInfo.anisotropyEnable = VK_TRUE;
-			samplerInfo.maxAnisotropy = VKDevice::Instance()->GetGPUProperties().limits.maxSamplerAnisotropy;
-			samplerInfo.borderColor = VK_BORDER_COLOR_INT_OPAQUE_BLACK;
-			samplerInfo.unnormalizedCoordinates = VK_FALSE;
-			samplerInfo.compareEnable = VK_FALSE;
-			samplerInfo.compareOp = VK_COMPARE_OP_ALWAYS;
-			samplerInfo.mipmapMode = VK_SAMPLER_MIPMAP_MODE_LINEAR;
-
-			if (vkCreateSampler(VKDevice::Instance()->GetDevice(), &samplerInfo, nullptr, &m_TextureSampler) != VK_SUCCESS)
-			{
-				throw std::runtime_error("failed to create texture sampler!");
-			}
-		}
-
-		void VKTextureDepth::CreateImage(uint32_t width, uint32_t height, VkFormat format, VkImageTiling tiling,
-			VkImageUsageFlags usage, VkMemoryPropertyFlags properties, VkImage& image,
-			VkDeviceMemory& imageMemory)
-		{
-			VkImageCreateInfo imageInfo = {};
-			imageInfo.sType = VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO;
-			imageInfo.imageType = VK_IMAGE_TYPE_2D;
-			imageInfo.extent = { width, height, 1 },
-			imageInfo.mipLevels = 1;
-			imageInfo.arrayLayers = 1;
-			imageInfo.format = format;
-			imageInfo.tiling = tiling;
-			imageInfo.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
-			imageInfo.usage = usage;
-			imageInfo.samples = VK_SAMPLE_COUNT_1_BIT;
-			imageInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
-
-#ifdef USE_VMA_ALLOCATOR
-			VmaAllocationCreateInfo allocInfovma;
-			allocInfovma.flags = 0;
-			allocInfovma.usage = VMA_MEMORY_USAGE_GPU_ONLY;
-			allocInfovma.requiredFlags = 0;
-			allocInfovma.preferredFlags = 0;
-			allocInfovma.memoryTypeBits = 0;
-			allocInfovma.pool = nullptr;
-			allocInfovma.pUserData = nullptr;
-			vmaCreateImage(VKDevice::Instance()->GetAllocator(), &imageInfo, &allocInfovma, &image, &m_Allocation, nullptr);
-#else
-			if (vkCreateImage(VKDevice::Instance()->GetDevice(), &imageInfo, nullptr, &image) != VK_SUCCESS)
-			{
-				throw std::runtime_error("failed to create image!");
-			}
-
-			VkMemoryRequirements memRequirements;
-			vkGetImageMemoryRequirements(VKDevice::Instance()->GetDevice(), image, &memRequirements);
-
-			VkMemoryAllocateInfo allocInfo = {};
-			allocInfo.sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
-			allocInfo.allocationSize = memRequirements.size;
-			allocInfo.memoryTypeIndex = VKTools::FindMemoryType(memRequirements.memoryTypeBits, properties);
-
-			if (vkAllocateMemory(VKDevice::Instance()->GetDevice(), &allocInfo, nullptr, &imageMemory) != VK_SUCCESS)
-			{
-				throw std::runtime_error("failed to allocate image memory!");
-			}
-			vkBindImageMemory(VKDevice::Instance()->GetDevice(), image, imageMemory, 0);
-#endif
-		}
-
-		VkImageView VKTextureDepth::CreateImageView(VkImage image, VkFormat format, VkImageAspectFlags aspectFlags)
-		{
-			VkImageViewCreateInfo viewInfo = {};
-			viewInfo.sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO;
-			viewInfo.image = image;
-			viewInfo.viewType = VK_IMAGE_VIEW_TYPE_2D;
-			viewInfo.format = format;
-			viewInfo.subresourceRange.aspectMask = aspectFlags;
-			viewInfo.subresourceRange.baseMipLevel = 0;
-			viewInfo.subresourceRange.levelCount = 1;
-			viewInfo.subresourceRange.baseArrayLayer = 0;
-			viewInfo.subresourceRange.layerCount = 1;
-
-			VkImageView imageView;
-			if (vkCreateImageView(VKDevice::Instance()->GetDevice(), &viewInfo, nullptr, &imageView) != VK_SUCCESS)
-			{
-				throw std::runtime_error("failed to create texture image view!");
-			}
-
-			return imageView;
 		}
 
 		void VKTextureDepth::UpdateDescriptor()
@@ -877,132 +669,28 @@ namespace Lumos
 			}
 		}
 
-		void VKTextureDepthArray::Bind(u32 slot) const
-		{
-		}
-
-		void VKTextureDepthArray::Unbind(u32 slot) const
-		{
-		}
-
 		void VKTextureDepthArray::Init()
 		{
 			VkFormat depthFormat = VKTools::FindDepthFormat();
 
-			CreateImage(m_Width, m_Height, depthFormat, VK_IMAGE_TILING_OPTIMAL,
+			Graphics::CreateImage(m_Width, m_Height, 1, depthFormat, VK_IMAGE_TYPE_2D, VK_IMAGE_TILING_OPTIMAL,
 				VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT | VK_IMAGE_USAGE_SAMPLED_BIT, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, m_TextureImage,
-				m_TextureImageMemory);
-			CreateImageView(m_TextureImage, depthFormat, VK_IMAGE_ASPECT_DEPTH_BIT);
+				m_TextureImageMemory, m_Count, 0, m_Allocation);
+
+			m_TextureImageView = CreateImageView(m_TextureImage, depthFormat, 1, VK_IMAGE_VIEW_TYPE_2D_ARRAY, VK_IMAGE_ASPECT_DEPTH_BIT, m_Count);
+
+			for (uint32_t i = 0; i < m_Count; i++)
+			{
+				VkImageView imageView = CreateImageView(m_TextureImage, depthFormat, 1, VK_IMAGE_VIEW_TYPE_2D_ARRAY, VK_IMAGE_ASPECT_DEPTH_BIT, 1, i);
+				m_IndividualImageViews.push_back(imageView);
+			}
 
 			VKTools::TransitionImageLayout(m_TextureImage, depthFormat, VK_IMAGE_LAYOUT_UNDEFINED,
 				VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL);
 
-			CreateTextureSampler();
+			m_TextureSampler = Graphics::CreateTextureSampler();
 
 			UpdateDescriptor();
-		}
-
-		void VKTextureDepthArray::CreateTextureSampler()
-		{
-			VkSamplerCreateInfo samplerInfo = {};
-			samplerInfo.sType = VK_STRUCTURE_TYPE_SAMPLER_CREATE_INFO;
-			samplerInfo.magFilter = VK_FILTER_LINEAR;
-			samplerInfo.minFilter = VK_FILTER_LINEAR;
-			samplerInfo.mipmapMode = VK_SAMPLER_MIPMAP_MODE_LINEAR;
-			samplerInfo.addressModeU = VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_EDGE;
-			samplerInfo.addressModeV = VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_EDGE;
-			samplerInfo.addressModeW = VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_EDGE;
-			samplerInfo.maxAnisotropy = 1.0f;
-			samplerInfo.borderColor = VK_BORDER_COLOR_FLOAT_OPAQUE_WHITE;
-			samplerInfo.mipLodBias = 0.0f;
-			samplerInfo.minLod = 0.0f;
-			samplerInfo.maxLod = 1.0f;
-
-			if (vkCreateSampler(VKDevice::Instance()->GetDevice(), &samplerInfo, nullptr, &m_TextureSampler) != VK_SUCCESS)
-			{
-				throw std::runtime_error("failed to create texture sampler!");
-			}
-		}
-
-		void VKTextureDepthArray::CreateImage(uint32_t width, uint32_t height, VkFormat format, VkImageTiling tiling,
-			VkImageUsageFlags usage, VkMemoryPropertyFlags properties, VkImage& image,
-			VkDeviceMemory& imageMemory)
-		{
-			VkImageCreateInfo imageInfo = {};
-			imageInfo.sType = VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO;
-			imageInfo.imageType = VK_IMAGE_TYPE_2D;
-			imageInfo.extent.width = width;
-			imageInfo.extent.height = height;
-			imageInfo.extent.depth = 1;
-			imageInfo.mipLevels = 1;
-			imageInfo.arrayLayers = m_Count;
-			imageInfo.format = format;
-			imageInfo.tiling = tiling;
-			imageInfo.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
-			imageInfo.usage = usage;
-			imageInfo.samples = VK_SAMPLE_COUNT_1_BIT;
-			imageInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
-
-#ifdef USE_VMA_ALLOCATOR
-			VmaAllocationCreateInfo allocInfovma;
-			allocInfovma.flags = 0;
-			allocInfovma.usage = VMA_MEMORY_USAGE_GPU_ONLY;
-			allocInfovma.requiredFlags = 0;
-			allocInfovma.preferredFlags = 0;
-			allocInfovma.memoryTypeBits = 0;
-			allocInfovma.pool = nullptr;
-			allocInfovma.pUserData = nullptr;
-			vmaCreateImage(VKDevice::Instance()->GetAllocator(), &imageInfo, &allocInfovma, &image, &m_Allocation, nullptr);
-#else
-			vkCreateImage(VKDevice::Instance()->GetDevice(), &imageInfo, nullptr, &image);
-
-			VkMemoryRequirements memRequirements;
-			vkGetImageMemoryRequirements(VKDevice::Instance()->GetDevice(), image, &memRequirements);
-
-			VkMemoryAllocateInfo allocInfo = {};
-			allocInfo.sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
-			allocInfo.allocationSize = memRequirements.size;
-			allocInfo.memoryTypeIndex = VKTools::FindMemoryType(memRequirements.memoryTypeBits, properties);
-
-			vkAllocateMemory(VKDevice::Instance()->GetDevice(), &allocInfo, nullptr, &imageMemory);
-			vkBindImageMemory(VKDevice::Instance()->GetDevice(), image, imageMemory, 0);
-#endif
-		}
-
-		void VKTextureDepthArray::CreateImageView(VkImage image, VkFormat format, VkImageAspectFlags aspectFlags)
-		{
-			{
-				VkImageViewCreateInfo viewInfo = {};
-				viewInfo.sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO;
-				viewInfo.image = image;
-				viewInfo.viewType = VK_IMAGE_VIEW_TYPE_2D_ARRAY;
-				viewInfo.format = format;
-				viewInfo.subresourceRange.aspectMask = aspectFlags;
-				viewInfo.subresourceRange.baseMipLevel = 0;
-				viewInfo.subresourceRange.levelCount = 1;
-				viewInfo.subresourceRange.baseArrayLayer = 0;
-				viewInfo.subresourceRange.layerCount = m_Count;
-
-				vkCreateImageView(VKDevice::Device(), &viewInfo, nullptr, &m_TextureImageView);
-			}
-
-			for (uint32_t i = 0; i < m_Count; i++)
-			{
-				VkImageViewCreateInfo viewInfo = {};
-				viewInfo.sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO;
-				viewInfo.image = image;
-				viewInfo.viewType = VK_IMAGE_VIEW_TYPE_2D_ARRAY;
-				viewInfo.format = format;
-				viewInfo.subresourceRange.aspectMask = aspectFlags;
-				viewInfo.subresourceRange.baseMipLevel = 0;
-				viewInfo.subresourceRange.levelCount = 1;
-				viewInfo.subresourceRange.baseArrayLayer = i;
-				viewInfo.subresourceRange.layerCount = 1;
-
-				VkImageView imageView;
-				vkCreateImageView(VKDevice::Device(), &viewInfo, nullptr, &imageView);
-				m_IndividualImageViews.push_back(imageView);
-			}
 		}
 
 		void VKTextureDepthArray::UpdateDescriptor()
