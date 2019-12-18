@@ -19,12 +19,10 @@ namespace Lumos
 
 			bool Init() override;
 
-			void Unload();
-
             VkResult AcquireNextImage(VkSemaphore signalSemaphore);
             void Present(VkSemaphore waitSemaphore);
 
-            VkSwapchainKHR 	GetSwapchain() 				const { return m_SwapChain; }
+            VkSwapchainKHR 		GetSwapchain() 				const { return m_SwapChain; }
 			uint32_t 			GetCurrentBufferId() 		const override { return m_CurrentBuffer; };
 			size_t 				GetSwapchainBufferCount() 	const override { return m_SwapChainBuffers.size(); };
 			u32 		 		GetFramebufferCount() 		const override { return static_cast<u32>(m_SwapChainBuffers.size()); }
@@ -38,11 +36,11 @@ namespace Lumos
             static Swapchain* CreateFuncVulkan(u32 width, u32 height);
             
 		private:
-            VkSwapchainKHR 			m_SwapChain;
-			std::vector<VKTexture2D*> 	m_SwapChainBuffers;
-			uint32_t 					m_CurrentBuffer = 0;
-			u32						m_Width;
-			u32						m_Height;
+            VkSwapchainKHR m_SwapChain;
+			std::vector<VKTexture2D*> m_SwapChainBuffers;
+			uint32_t m_CurrentBuffer = 0;
+			u32	m_Width;
+			u32	m_Height;
 		};
 	}
 }

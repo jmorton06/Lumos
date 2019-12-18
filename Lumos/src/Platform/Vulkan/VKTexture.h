@@ -21,8 +21,8 @@ namespace Lumos
 			VKTexture2D();
 			~VKTexture2D();
 
-			void Bind(u32 slot = 0) const override;
-			void Unbind(u32 slot = 0) const override;
+			void Bind(u32 slot = 0) const override {};
+			void Unbind(u32 slot = 0) const override {};
 
 			virtual void SetData(const void* pixels) override {};
 
@@ -35,12 +35,6 @@ namespace Lumos
 			_FORCE_INLINE_ const String& GetFilepath() const override { return m_FileName; }
 
 			void BuildTexture(TextureFormat internalformat, u32 width, u32 height, bool depth, bool samplerShadow) override;
-
-			void CreateTextureSampler();
-            void CreateImage(uint32_t width, uint32_t height,uint32_t mipLevels, VkFormat format, VkImageTiling tiling,
-                             VkImageUsageFlags usage, VkMemoryPropertyFlags properties, VkImage& image,
-                             VkDeviceMemory& imageMemory);
-            VkImageView CreateImageView(VkImage image, VkFormat format, VkImageAspectFlags aspectFlags, uint32_t mipLevels);
 
             const VkDescriptorImageInfo* GetDescriptor() const { return &m_Descriptor; }
 
@@ -95,18 +89,12 @@ namespace Lumos
 
 			virtual void* GetHandle() const override { return (void*)&m_Descriptor; }
 
-			void Bind(u32 slot = 0) const override;
-			void Unbind(u32 slot = 0) const override;
+			void Bind(u32 slot = 0) const override {};
+			void Unbind(u32 slot = 0) const override {};
 
 			_FORCE_INLINE_ u32 GetSize() const override { return m_Size; }
 			_FORCE_INLINE_ const String& GetName() const override { return m_Name; }
 			_FORCE_INLINE_ const String& GetFilepath() const override { return m_Files[0]; }
-
-			void CreateTextureSampler();
-			void CreateImage(uint32_t width, uint32_t height, uint32_t mipLevels, VkFormat format, VkImageTiling tiling,
-				VkImageUsageFlags usage, VkMemoryPropertyFlags properties, VkImage& image,
-				VkDeviceMemory& imageMemory);
-			VkImageView CreateImageView(VkImage image, VkFormat format, uint32_t mipLevels);
 
 			const VkDescriptorImageInfo* GetDescriptor() const { return &m_Descriptor; }
 
@@ -157,8 +145,8 @@ namespace Lumos
 			VKTextureDepth(u32 width, u32 height);
 			~VKTextureDepth();
 
-			void Bind(u32 slot = 0) const override;
-			void Unbind(u32 slot = 0) const override;
+			void Bind(u32 slot = 0) const override {};
+			void Unbind(u32 slot = 0) const override {};
 			void Resize(u32 width, u32 height) override;
 
 			virtual void* GetHandle() const override { return (void*)&m_Descriptor; }
@@ -166,11 +154,6 @@ namespace Lumos
 			_FORCE_INLINE_ const String& GetName() const override { return m_Name; }
 			_FORCE_INLINE_ const String& GetFilepath() const override { return m_Name; }
 
-			void CreateTextureSampler();
-			void CreateImage(uint32_t width, uint32_t height, VkFormat format, VkImageTiling tiling,
-				VkImageUsageFlags usage, VkMemoryPropertyFlags properties, VkImage& image,
-				VkDeviceMemory& imageMemory);
-			VkImageView CreateImageView(VkImage image, VkFormat format, VkImageAspectFlags aspectFlags);
 			VkImage GetImage() const { return m_TextureImage; };
 			VkDeviceMemory GetDeviceMemory() const { return m_TextureImageMemory; }
 			VkImageView GetImageView() const { return  m_TextureImageView; }
@@ -205,20 +188,14 @@ namespace Lumos
 			VKTextureDepthArray(u32 width, u32 height, u32 count);
 			~VKTextureDepthArray();
 
-			void Bind(u32 slot = 0) const override;
-			void Unbind(u32 slot = 0) const override;
+			void Bind(u32 slot = 0) const override {};
+			void Unbind(u32 slot = 0) const override {};
 			void Resize(u32 width, u32 height, u32 count) override;
 
 			virtual void* GetHandle() const override { return (void*)&m_Descriptor; }
 
 			_FORCE_INLINE_ const String& GetName() const override { return m_Name; }
 			_FORCE_INLINE_ const String& GetFilepath() const override { return m_Name; }
-
-			void CreateTextureSampler();
-			void CreateImage(uint32_t width, uint32_t height, VkFormat format, VkImageTiling tiling,
-				VkImageUsageFlags usage, VkMemoryPropertyFlags properties, VkImage& image,
-				VkDeviceMemory& imageMemory);
-			void CreateImageView(VkImage image, VkFormat format, VkImageAspectFlags aspectFlags);
 
 			VkImage GetImage() const { return m_TextureImage; };
 			VkDeviceMemory GetDeviceMemory() const { return m_TextureImageMemory; }

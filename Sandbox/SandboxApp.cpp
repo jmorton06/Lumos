@@ -41,7 +41,7 @@ public:
 Lumos::Application* Lumos::CreateApplication()
 {  
     WindowProperties windowProperties = LuaManager::Instance()->LoadConfigFile(ROOT_DIR"/Sandbox/Settings.lua");
-	windowProperties.ShowConsole = false;
+	windowProperties.ShowConsole = true;
 
     return new Game(windowProperties);
 }
