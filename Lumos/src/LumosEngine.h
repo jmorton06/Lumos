@@ -70,6 +70,7 @@
 #include "Core/String.h"
 #include "Core/CoreSystem.h"
 #include "Core/LMLog.h"
+#include "Core/OS/Input.h"
 
 //Scripting
 #include "Scripting/LuaScript.h"
@@ -96,3 +97,4 @@
 
 //External
 #include <imgui/imgui.h>
+#include <Box2D/Box2D.h>

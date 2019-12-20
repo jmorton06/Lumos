@@ -169,12 +169,11 @@ void Scene3D::LoadModels()
 
 #if 0
 	auto soundFilePath = String("/Sounds/fire.ogg");
-	bool loadedSound = SoundManager::Instance()->AddSound("Background", soundFilePath);
+	AssetsManager::Sounds()->LoadAsset("Background", soundFilePath);
 
-	if(loadedSound)
 	{
 		auto soundNode = Ref<SoundNode>(SoundNode::Create());
-		soundNode->SetSound(SoundManager::Instance()->GetSound("Background"));
+		soundNode->SetSound(AssetsManager::Sounds()->Get("Background").get());
 		soundNode->SetVolume(1.0f);
 		soundNode->SetPosition(Maths::Vector3(0.1f, 10.0f, 10.0f));
 		soundNode->SetLooping(true);
@@ -182,8 +181,7 @@ void Scene3D::LoadModels()
 		soundNode->SetPaused(false);
 		soundNode->SetReferenceDistance(1.0f);
 		soundNode->SetRadius(30.0f);
-
-		pendulum->AddComponent<SoundComponent>(soundNode);
+		m_Registry.assign<SoundComponent>(pendulum, soundNode);
 	}
 #endif
 

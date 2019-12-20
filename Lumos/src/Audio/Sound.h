@@ -10,7 +10,7 @@ namespace Lumos
 	{
 		friend class SoundManager;
 	public:
-		static Sound*   Create(const String& name, const String& fileName);
+		static Sound* Create(const String& name, const String& extension);
 		virtual ~Sound();
 
 		unsigned char*	GetData() const { return m_Data.Data; }
