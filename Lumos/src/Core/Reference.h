@@ -35,13 +35,19 @@ namespace Lumos
     class Reference
     {
     public:
-        Reference(std::nullptr_t)
+		Reference() noexcept :
+			m_Ptr(nullptr)
+		{
+		}
+
+		Reference(std::nullptr_t) noexcept :
+			m_Ptr(nullptr),
+			m_Counter(nullptr)
         {
-            m_Ptr = nullptr;
-            m_Counter = nullptr;
         }
 
-        explicit Reference(T* ptr = nullptr)
+        explicit Reference(T* ptr) noexcept :
+			m_Ptr(ptr)
         {
 			m_Ptr = nullptr;
 			m_Counter = nullptr;
@@ -50,7 +56,7 @@ namespace Lumos
                 refPointer(ptr);
         }
         
-        Reference(const Reference& other)
+        Reference(const Reference<T>& other) noexcept
         {
             m_Ptr = nullptr;
             m_Counter = nullptr;
@@ -58,7 +64,7 @@ namespace Lumos
             ref(other);
         }
         
-        Reference(Reference&& rhs) noexcept
+        Reference(Reference<T>&& rhs) noexcept
         {
             m_Ptr = nullptr;
             m_Counter = nullptr;
@@ -67,8 +73,7 @@ namespace Lumos
         }
                
         
-        template<typename U>
-        _FORCE_INLINE_ Reference(const Reference<U>& moving)
+        template<typename U> _FORCE_INLINE_ Reference(const Reference<U>& moving) noexcept
         {
             U* movingPtr = moving.get();
             
@@ -94,14 +99,13 @@ namespace Lumos
             }
         }
         
-        ~Reference()
+        ~Reference() noexcept
         {
 			unref();
         }
         
 		// Access to smart pointer state
 		_FORCE_INLINE_ T* get()                 const { return m_Ptr; }
-		_FORCE_INLINE_ explicit operator bool() const { return m_Ptr != nullptr; }
         _FORCE_INLINE_ RefCount* GetCounter()   const { return m_Counter; }
 
         _FORCE_INLINE_ T* release() noexcept
@@ -183,7 +187,18 @@ namespace Lumos
             reset();
             return *this;
         }
+
+		// Const correct access owned object
+		_FORCE_INLINE_ T* operator->() const { return &*m_Ptr; }
+		_FORCE_INLINE_ T& operator*()  const { return *m_Ptr; }
+
+		_FORCE_INLINE_ T& operator [](int index)
+		{
+			assert(m_Ptr);
+			return m_Ptr[index];
+		}
         
+		_FORCE_INLINE_ explicit operator bool() const { return m_Ptr != nullptr; }
         _FORCE_INLINE_ bool operator==(const T *p_ptr)			const { return m_Ptr == p_ptr; }
         _FORCE_INLINE_ bool operator!=(const T *p_ptr)			const { return m_Ptr != p_ptr; }
         _FORCE_INLINE_ bool operator<(const Reference<T> &p_r)	const { return m_Ptr < p_r.m_Ptr; }
@@ -195,9 +210,6 @@ namespace Lumos
             std::swap(m_Ptr,  other.m_Ptr);
             std::swap(m_Counter, other.m_Counter);
         }
-        // Const correct access owned object
-		_FORCE_INLINE_ T* operator->() const { return &*m_Ptr; }
-		_FORCE_INLINE_ T& operator*()  const { return *m_Ptr; }
 
     private:
             
@@ -253,17 +265,90 @@ namespace Lumos
     class LUMOS_EXPORT WeakReference
     {
     public:
-        WeakReference(T* ptr)
+		WeakReference() noexcept :
+			m_Ptr(nullptr),
+			m_Counter(nullptr)
+		{
+		}
+
+		WeakReference(std::nullptr_t) noexcept :
+			m_Ptr(nullptr),
+			m_Counter(nullptr)
+		{
+		}
+
+		WeakReference(const WeakReference<T>& rhs) noexcept :
+			m_Ptr(rhs.m_Ptr),
+			m_Counter(rhs.m_Counter)
+		{
+			AddRef();
+		}
+
+		explicit WeakReference(T* ptr) noexcept :
+			m_Ptr(ptr)
         {
-            m_Ptr = ptr;
+			LUMOS_ASSERT(ptr, "Creating weak ptr with nullptr");
+
+			m_Counter = lmnew RefCount();
+			m_Counter->weakReference();
         }
+
+		template <class U> WeakReference(const WeakReference<U>& rhs) noexcept :
+			m_Ptr(rhs.m_Ptr),
+			m_Counter(rhs.m_Counter)
+		{
+			AddRef();
+		}
+
+		WeakReference(const Reference<T>& rhs) noexcept :
+			m_Ptr(rhs.get()),
+			m_Counter(rhs.m_Counter)
+		{
+			AddRef();
+		}
         
-        ~WeakReference()
+        ~WeakReference() noexcept
         {
+			if (m_Counter->weakUnreference())
+			{
+				lmdel m_Ptr;
+			}
         }
+
+		void AddRef()
+		{
+			m_Counter->weakReference();
+		}
+
+		bool Expired() const { return m_Counter ? m_Counter->GetReferenceCount() <= 0 : true; }
+
+		Reference<T> Lock() const
+		{
+			if (Expired())
+				return Reference<T>();
+			else
+				return Reference<T>(m_Ptr);
+		}
+
+		_FORCE_INLINE_ T* operator->() const { return &*m_Ptr; }
+		_FORCE_INLINE_ T& operator*()  const { return *m_Ptr; }
+
+		_FORCE_INLINE_ T& operator [](int index)
+		{
+			assert(m_Ptr);
+			return m_Ptr[index];
+		}
+
+		_FORCE_INLINE_ explicit operator bool() const { return m_Ptr != nullptr; }
+		_FORCE_INLINE_ bool operator==(const T *p_ptr)			const { return m_Ptr == p_ptr; }
+		_FORCE_INLINE_ bool operator!=(const T *p_ptr)			const { return m_Ptr != p_ptr; }
+		_FORCE_INLINE_ bool operator<(const WeakReference<T> &p_r)	const { return m_Ptr < p_r.m_Ptr; }
+		_FORCE_INLINE_ bool operator==(const WeakReference<T> &p_r)	const { return m_Ptr == p_r.m_Ptr; }
+		_FORCE_INLINE_ bool operator!=(const WeakReference<T> &p_r)	const { return m_Ptr != p_r.m_Ptr; }
         
     private:
         T* m_Ptr;
+		RefCount* m_Counter = nullptr;
     };
     
     template<class T>

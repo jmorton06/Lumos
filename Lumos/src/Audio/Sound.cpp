@@ -17,11 +17,10 @@ namespace Lumos
 		delete[] m_Data.Data;
 	}
 
-	Sound* Sound::Create(const String& name, const String& fileName)
+	Sound* Sound::Create(const String& name, const String& extension)
 	{
 #ifdef LUMOS_OPENAL
-		std::string extension = fileName.substr(fileName.length() - 3, 3);
-		return lmnew ALSound(fileName, extension);
+		return lmnew ALSound(name, extension);
 #else
 		return nullptr;
 #endif

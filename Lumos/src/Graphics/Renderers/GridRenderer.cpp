@@ -30,8 +30,8 @@ namespace Lumos
 			Renderer3D::SetScreenBufferSize(width, height);
 			GridRenderer::Init();
             
-			m_GridRes = 1.2f;
-            m_GridSize = 500.0f;
+			m_GridRes = 1.6f;
+            m_GridSize = 640.0f;
 
 			GridRenderer::SetRenderToGBufferTexture(renderToGBuffer);
 		}

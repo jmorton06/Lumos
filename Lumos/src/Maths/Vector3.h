@@ -479,6 +479,8 @@ namespace Lumos::Maths
             return o;
         }
 
+		Vector2 xy() { return Vector2(x, y); }
+
         /// X coordinate.
         float x;
         /// Y coordinate.

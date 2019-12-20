@@ -250,15 +250,13 @@ namespace Lumos
 
 				if (light.m_Type != float(LightType::DirectionalLight))
 				{
-					auto& worldTransform = trans.GetWorldMatrix();
+                    light.m_Position = trans.GetWorldPosition();
 
 					auto inside = frustum.IsInsideFast(Maths::Sphere(light.m_Position.ToVector3(), light.m_Radius));
 
 					if (inside == Maths::Intersection::OUTSIDE)
 						continue;
 				}
-
-				light.m_Position = trans.GetWorldPosition();
 
 				Maths::Vector3 forward = Maths::Vector3::FORWARD;
 				forward = trans.GetWorldOrientation() * forward;

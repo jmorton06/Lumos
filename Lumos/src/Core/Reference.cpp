@@ -71,7 +71,7 @@ namespace Lumos
 
 	bool RefCount::weakUnreference()
 	{
-		bool die = m_WeakRefcount.unref();
+		bool die = m_WeakRefcount.unref() && m_Refcount.count == 0;
 
 		return die;
 	}
