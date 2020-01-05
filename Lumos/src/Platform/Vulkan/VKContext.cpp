@@ -40,7 +40,9 @@ namespace Lumos
 			 extensions.push_back(VK_MVK_IOS_SURFACE_EXTENSION_NAME);
 	#elif defined(VK_USE_PLATFORM_MACOS_MVK)
 			 extensions.push_back(VK_MVK_MACOS_SURFACE_EXTENSION_NAME);
-	#endif
+    #elif defined(VK_USE_PLATFORM_METAL_EXT)
+             extensions.push_back("VK_EXT_metal_surface");
+    #endif
 
 			return extensions;
 		}
