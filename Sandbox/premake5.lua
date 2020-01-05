@@ -91,7 +91,7 @@ project "Sandbox"
 			"LUMOS_PLATFORM_UNIX",
 			"LUMOS_RENDER_API_OPENGL",
 			"LUMOS_RENDER_API_VULKAN",
-			"VK_USE_PLATFORM_MACOS_MVK",
+			"VK_EXT_metal_surface",
 			"LUMOS_IMGUI"
 		}
 
