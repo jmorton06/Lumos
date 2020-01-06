@@ -2,8 +2,6 @@
 #include "Application.h"
 #include "Core/VFS.h"
 
-#include "Platform/Unix/UnixThread.h"
-#include "Platform/Unix/UnixMutex.h"
 #include "Platform/GLFM/GLFMWindow.h"
 
 #include "Core/CoreSystem.h"
@@ -37,8 +35,6 @@ namespace Lumos
 
     void iOSOS::Init()
     {
-        UnixThread::MakeDefault();
-        UnixMutex::MakeDefault();
         GLFMWindow::MakeDefault();
     }
 

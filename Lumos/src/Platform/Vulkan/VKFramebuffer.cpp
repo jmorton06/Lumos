@@ -2,7 +2,7 @@
 #include "VKFramebuffer.h"
 #include "VKDevice.h"
 #include "VKTexture.h"
-
+#include "VKInitialisers.h"
 
 namespace Lumos
 {
@@ -29,22 +29,18 @@ namespace Lumos
 				}
 			}
 
-			VkFramebufferCreateInfo fbCI{};
+			VkFramebufferCreateInfo framebufferCreateInfo = VKInitialisers::framebufferCreateInfo();
 
-			fbCI.sType = VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO;
+			framebufferCreateInfo.renderPass = static_cast<VKRenderpass*>(frameBufferInfo.renderPass)->GetRenderpass();
+			framebufferCreateInfo.attachmentCount = m_AttachmentCount;
+			framebufferCreateInfo.pAttachments = attachments.data();
+			framebufferCreateInfo.width = m_Width;
+			framebufferCreateInfo.height = m_Height;
+			framebufferCreateInfo.layers = 1;
+			framebufferCreateInfo.pNext = nullptr;
+			framebufferCreateInfo.flags = 0;
 
-			if(frameBufferInfo.renderPass)
-				fbCI.renderPass = static_cast<VKRenderpass*>(frameBufferInfo.renderPass)->GetRenderpass();
-
-			fbCI.attachmentCount = m_AttachmentCount;
-			fbCI.pAttachments = attachments.data();
-			fbCI.width = m_Width;
-			fbCI.height = m_Height;
-			fbCI.layers = 1;//frameBufferInfo.layers;
-			fbCI.pNext = nullptr;
-			fbCI.flags = 0;
-
-			vkCreateFramebuffer(VKDevice::Instance()->GetDevice(), &fbCI, VK_NULL_HANDLE, &m_Framebuffer);
+			vkCreateFramebuffer(VKDevice::Instance()->GetDevice(), &framebufferCreateInfo, VK_NULL_HANDLE, &m_Framebuffer);
 		}
 
 		VKFramebuffer::~VKFramebuffer()

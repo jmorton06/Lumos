@@ -1,7 +1,5 @@
 #include "lmpch.h"
 #include "UnixOS.h"
-#include "Platform/Unix/UnixThread.h"
-#include "Platform/Unix/UnixMutex.h"
 #include "Platform/GLFW/GLFWWindow.h"
 #include "Core/CoreSystem.h"
 #include "Core/OS/MemoryManager.h"
@@ -21,8 +19,6 @@ namespace Lumos
 
     void UnixOS::Init()
     {
-        UnixThread::MakeDefault();
-        UnixMutex::MakeDefault();
         GLFWWindow::MakeDefault();
     }
 

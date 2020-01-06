@@ -1,7 +1,5 @@
 #include "lmpch.h"
 #include "Core/OS/OS.h"
-#include "UnixThread.h"
-#include "UnixMutex.h"
 
 namespace Lumos
 {

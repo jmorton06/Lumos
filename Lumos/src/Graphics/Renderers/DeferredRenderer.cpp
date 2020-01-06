@@ -149,7 +149,7 @@ namespace Lumos
 
 			Graphics::DescriptorInfo info{};
 			info.pipeline = m_Pipeline;
-			info.layoutIndex = 1; //?
+			info.layoutIndex = 1;
 			info.shader = m_Shader;
 			m_DescriptorSet = Graphics::DescriptorSet::Create(info);
 
@@ -191,7 +191,6 @@ namespace Lumos
 			m_SystemUniforms.clear();
 
 			m_CommandBufferIndex = commandBufferID;
-
 			m_CommandBuffers[m_CommandBufferIndex]->BeginRecording();
 
 			m_RenderPass->BeginRenderpass(m_CommandBuffers[m_CommandBufferIndex], m_ClearColour, m_Framebuffers[m_CommandBufferIndex], Graphics::INLINE, m_ScreenBufferWidth, m_ScreenBufferHeight);
@@ -315,9 +314,7 @@ namespace Lumos
 
 			m_Pipeline->SetActive(currentCMDBuffer);
 
-			std::vector<Graphics::DescriptorSet*> descriptorSets;
-			descriptorSets.emplace_back(m_Pipeline->GetDescriptorSet());
-			descriptorSets.emplace_back(m_DescriptorSet);
+			std::vector<Graphics::DescriptorSet*> descriptorSets = { m_Pipeline->GetDescriptorSet(), m_DescriptorSet };
 
 			m_ScreenQuad->GetVertexArray()->Bind(currentCMDBuffer);
 			m_ScreenQuad->GetIndexBuffer()->Bind(currentCMDBuffer);
@@ -586,7 +583,7 @@ namespace Lumos
 
 			Graphics::DescriptorInfo info{};
 			info.pipeline = m_Pipeline;
-			info.layoutIndex = 1; //?
+			info.layoutIndex = 1;
 			info.shader = m_Shader;
 			if (m_DescriptorSet)
 				delete m_DescriptorSet;

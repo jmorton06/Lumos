@@ -247,7 +247,11 @@ namespace Lumos
 			appInfo.applicationVersion = VK_MAKE_VERSION(1, 0, 0);
 			appInfo.pEngineName = "Lumos";
 			appInfo.engineVersion = VK_MAKE_VERSION(LumosVersion.major, LumosVersion.minor, LumosVersion.patch);
+#if defined(LUMOS_PLATFORM_MACOS) || defined(LUMOS_PLATFORM_IOS)
 			appInfo.apiVersion = VK_API_VERSION_1_0;
+#else
+			appInfo.apiVersion = VK_API_VERSION_1_1;
+#endif
 
 			VkInstanceCreateInfo createInfo = {};
 			createInfo.pApplicationInfo = &appInfo;

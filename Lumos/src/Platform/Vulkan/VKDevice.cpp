@@ -158,7 +158,6 @@ namespace Lumos
 			deviceFeatures.fillModeNonSolid = VK_TRUE;
 			deviceFeatures.samplerAnisotropy = VK_TRUE;
 
-			//auto extensions = m_VKContext->GetExtensionNames();
 			auto& layers = m_VKContext->GetLayerNames();
 
 			const std::vector<const char*> deviceExtensions = 
