@@ -3,9 +3,9 @@
 #include <vector>
 #include "vulkan/vulkan.h"
 
-namespace vks
+namespace Lumos
 {
-    namespace initializers
+    namespace VKInitialisers
     {
 
         inline VkMemoryAllocateInfo memoryAllocateInfo()

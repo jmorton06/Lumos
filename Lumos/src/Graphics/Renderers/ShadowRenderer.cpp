@@ -92,7 +92,7 @@ namespace Lumos
 		void ShadowRenderer::Init()
 		{
 			LUMOS_PROFILE_FUNC;
-			m_VSSystemUniformBufferSize = sizeof(Maths::Matrix4) * 16;
+			m_VSSystemUniformBufferSize = sizeof(Maths::Matrix4) * SHADOWMAP_MAX;
 			m_VSSystemUniformBuffer = lmnew u8[m_VSSystemUniformBufferSize];
 			memset(m_VSSystemUniformBuffer, 0, m_VSSystemUniformBufferSize);
 			m_VSSystemUniformBufferOffsets.resize(VSSystemUniformIndex_Size);
@@ -107,7 +107,7 @@ namespace Lumos
 			m_VSSystemUniformBufferOffsets[VSSystemUniformIndex_ProjectionViewMatrix] = 0;
 
 			m_RenderPass = Graphics::RenderPass::Create();
-			AttachmentInfo textureTypes[2] =
+			AttachmentInfo textureTypes[1] =
 			{
 				{ TextureType::DEPTHARRAY, TextureFormat::DEPTH }
 			};

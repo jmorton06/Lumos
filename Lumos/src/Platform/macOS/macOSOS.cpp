@@ -1,8 +1,6 @@
 #include "lmpch.h"
 #include "macOSOS.h"
 #include "macOSPower.h"
-#include "Platform/Unix/UnixThread.h"
-#include "Platform/Unix/UnixMutex.h"
 #include "Platform/GLFW/GLFWWindow.h"
 #include "Core/CoreSystem.h"
 #include "App/Application.h"
@@ -27,8 +25,6 @@ namespace Lumos
 
     void macOSOS::Init()
     {
-        UnixThread::MakeDefault();
-        UnixMutex::MakeDefault();
         GLFWWindow::MakeDefault();
     }
 }
