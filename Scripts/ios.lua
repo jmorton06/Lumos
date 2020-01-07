@@ -3,6 +3,7 @@ local action = premake.action
 
 -- Add iOS to the allowed system values and `os` command line option
 api.addAllowed("system", { "ios" })
+api.addAllowed('language', 'ObjCpp' )
 table.insert(premake.option.list["os"].allowed, { "ios", "Apple iOS" })
 
 -- The `xcode4` action hardcodes OS to `macosx`. Unset that.

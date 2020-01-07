@@ -1,6 +1,16 @@
 require 'Scripts/ios'
 require 'Scripts/premakeDefines'
 
+if( _TARGET_OS == 'macosx' ) then
+	newoption {
+		trigger = 'ios',
+		description = 'Target iOS'
+	}
+	if( _OPTIONS[ 'ios' ] ) then
+		_TARGET_OS = 'ios'
+	end
+end
+
 workspace "Lumos"
 	architecture "x64"
 
