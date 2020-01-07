@@ -232,6 +232,7 @@ namespace Lumos
 
 		void VKContext::CreateInstance()
 		{
+#ifndef LUMOS_PLATFORM_IOS
 			if (volkInitialize() != VK_SUCCESS)
 			{
 				Debug::Log::Critical("volkInitialize failed");
@@ -241,6 +242,7 @@ namespace Lumos
 			{
 				Debug::Log::Critical("Could not find loader");
 			}
+#endif
 
 			VkApplicationInfo appInfo = {};
 			appInfo.pApplicationName = "Sandbox";
@@ -283,7 +285,9 @@ namespace Lumos
 				Debug::Log::Critical("[VULKAN] Failed to create instance!");
 			}
 
+#ifndef LUMOS_PLATFORM_IOS
 			volkLoadInstance(m_VkInstance);
+#endif
 		}
 
 		void VKContext::SetupDebugCallback()
