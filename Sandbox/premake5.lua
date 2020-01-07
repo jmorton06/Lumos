@@ -189,9 +189,44 @@ project "Sandbox"
 		files
 		{
 			"../Lumos/src/Platform/iOS/Client/**",
+			"res/**"
 		}
 
-		xcodebuildresources { 'res' }
+		xcodebuildresources { "res/**" }
+
+		filter {"system:ios", "configurations:release"}
+
+		local source = "../Dependencies/vulkan/libs/ios/**"
+		local target = "../bin/release/"
+		
+		buildmessage("copying "..source.." -> "..target)
+		
+		postbuildcommands {
+			"{COPY} "..source.." "..target
+		}
+
+		filter {"system:ios", "configurations:dist"}
+
+			local source = "../Dependencies/vulkan/libs/ios/**"
+			local target = "../bin/dist/"
+			
+			buildmessage("copying "..source.." -> "..target)
+			
+			postbuildcommands {
+				"{COPY} "..source.." "..target
+			}
+
+		filter {"system:ios", "configurations:debug"}
+
+			local source = "../Dependencies/vulkan/libs/ios/**"
+			local target = "../bin/debug/"
+			
+			buildmessage("copying "..source.." -> "..target)
+			
+			postbuildcommands {
+				"{COPY} "..source.." "..target
+			}
+
 
 	filter "system:linux"
 		cppdialect "C++17"

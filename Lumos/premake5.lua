@@ -244,7 +244,7 @@ project "Lumos"
 			"-Wno-attributes"
 		}
 
-		xcodebuildresources { 'res' }
+		xcodebuildresources { "res/**" }
 
 
 	filter "system:linux"
