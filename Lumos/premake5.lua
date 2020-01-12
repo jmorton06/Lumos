@@ -210,9 +210,6 @@ project "Lumos"
 			"src/Platform/iOS/*.h",
 			"src/Platform/iOS/*.cpp",
 
-			"src/Platform/GLFM/*.h",
-			"src/Platform/GLFM/*.cpp",
-
 			"src/Platform/OpenAL/*.h",
 			"src/Platform/OpenAL/*.cpp",
 
