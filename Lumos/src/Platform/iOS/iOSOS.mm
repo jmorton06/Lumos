@@ -1,9 +1,7 @@
 #include "iOSOS.h"
+#include "iOSWindow.h"
 #include "Application.h"
 #include "Core/VFS.h"
-
-#include "Platform/GLFM/GLFMWindow.h"
-
 #include "Core/CoreSystem.h"
 
 #ifdef LUMOS_RENDER_API_VULKAN
@@ -35,7 +33,7 @@ namespace Lumos
 
     void iOSOS::Init()
     {
-        GLFMWindow::MakeDefault();
+        iOSWindow::MakeDefault();
     }
 
     void iOSOS::OnFrame()

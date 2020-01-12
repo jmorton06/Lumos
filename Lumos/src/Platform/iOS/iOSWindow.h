@@ -1,18 +1,14 @@
-#pragma once
-
-#include "lmpch.h"
 #include "Core/OS/Window.h"
 
 namespace Lumos
 {
+    class iOSWindow : public Window
+    {
+    public:
+        iOSWindow(const WindowProperties& properties);
+        ~iOSWindow();
 
-	class LUMOS_EXPORT GLFMWindow : public Window
-	{
-	public:
-		GLFMWindow(const WindowProperties& properties);
-		~GLFMWindow();
-
-		void ToggleVSync() override;
+        void ToggleVSync() override;
 		void SetWindowTitle(const String& title) override;
 		void SetBorderlessWindow(bool borderless) override;
 		void OnUpdate() override;
@@ -36,12 +32,12 @@ namespace Lumos
         
         String GetTitle() const override { return "Mobile"; }
 
-     static void MakeDefault();
+        static void MakeDefault();
 
     protected:
 
-		static Window* CreateFuncGLFM(const WindowProperties& properties);
+		static Window* CreateFunciOS(const WindowProperties& properties);
 
 		uint m_Handle;
-	};
+    };
 }
