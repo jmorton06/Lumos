@@ -220,6 +220,11 @@ project "Lumos"
 			"src/Platform/Vulkan/*.cpp"
 		}
 
+		removefiles
+		{
+			"src/Platform/Unix/UnixFileSystem.cpp"
+		}
+
 		links
 		{
 			"QuartzCore.framework",

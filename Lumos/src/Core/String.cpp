@@ -160,4 +160,30 @@ namespace Lumos
 		return str;
 	}
 
+	String& BackSlashesToSlashes(String& string)
+	{
+		size_t len = string.length();
+		for (size_t i = 0; i < len; i++) 
+		{
+			if (string[i] == '\\') 
+			{
+				string[i] = '/';
+			}
+		}
+		return string;
+	}
+
+	String& SlashesToBackSlashes(String& string)
+	{
+		size_t len = string.length();
+		for (size_t i = 0; i < len; i++) 
+		{
+			if (string[i] == '/') 
+			{
+				string[i] = '\\';
+			}
+		}
+		return string;
+	}
+
 }
