@@ -17,6 +17,11 @@ namespace Lumos
 
 		static bool WriteFile(const String& path, u8* buffer);
 		static bool WriteTextFile(const String& path, const String& text);
+
+		//static void SetRootDirectory(const String& path);
+	private:
+
+		//static String s_RootDirectory;
 	};
 
 }

@@ -56,4 +56,15 @@ namespace Lumos
     {
         
     }
+
+    const char* iOSOS::GetExecutablePath()
+    {
+        static char path[512] = "";
+        if (!path[0]) 
+        {
+            NSString *bundlePath = [[NSBundle mainBundle] bundlePath];
+            strcpy(path, (const char *)[bundlePath cStringUsingEncoding:NSUTF8StringEncoding]);
+        }
+        return path;
+}
 }

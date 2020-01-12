@@ -11,5 +11,7 @@ namespace Lumos
 
         void Init();
         void Run() override;
+        const char* GetExecutablePath() override { return nullptr; }
+
     };
 }

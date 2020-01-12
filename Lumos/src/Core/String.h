@@ -61,4 +61,6 @@ namespace Lumos
 	String StringReplace(String str, char ch1, char ch2);
 	String StringReplace(String str, char ch);
 
+	String& BackSlashesToSlashes(String& string);
+	String& SlashesToBackSlashes(String& string);
 }
