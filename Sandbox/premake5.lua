@@ -95,7 +95,7 @@ project "Sandbox"
 
 		files
 		{
-			"../Lumos/src/Platform/macOS/info.plist"
+			"../Lumos/src/Platform/macOS/Info.plist"
 		}
 
 		defines
@@ -157,6 +157,10 @@ project "Sandbox"
 			postbuildcommands {
 				"{COPY} "..source.." "..target
 			}
+
+
+		filter "files:**.plist"
+			buildaction "Resource"
 
 	filter "system:ios"
 		cppdialect "C++17"
