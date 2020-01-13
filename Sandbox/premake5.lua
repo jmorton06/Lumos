@@ -1,5 +1,5 @@
 project "Sandbox"
-	kind "ConsoleApp"
+	kind "WindowedApp"
 	language "C++"
 
 	files
@@ -42,7 +42,6 @@ project "Sandbox"
 
 	defines
 	{
-		--"LUMOS_DYNAMIC",
 		"LUMOS_ROOT_DIR="  .. cwd,
 	}
 
@@ -84,6 +83,20 @@ project "Sandbox"
 		cppdialect "C++17"
 		staticruntime "On"
 		systemversion "latest"
+		platforms {"x64"}
+		defaultplatform "x64"
+		xcodebuildsettings {
+			["ALWAYS_SEARCH_USER_PATHS"] = "YES",
+			["MACOSX_DEPLOYMENT_TARGET"] = "10.12",
+		}
+
+		xcodebuildresources { "res/textures/icon.icns" }
+
+
+		files
+		{
+			"../Lumos/src/Platform/macOS/info.plist"
+		}
 
 		defines
 		{
