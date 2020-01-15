@@ -92,7 +92,7 @@ project "Sandbox"
 			['CLANG_ENABLE_OBJC_WEAK'] = "YES",
 			--['CODE_SIGN_IDENTITY'] = "Mac Developer",
 			--['PRODUCT_BUNDLE_IDENTIFIER'] = "com.jmorton06",
-			['ENABLE_HARDENED_RUNTIME'] = "YES",
+			--['ENABLE_HARDENED_RUNTIME'] = "YES",
 			['ENABLE_TESTABILITY'] = "YES",
 			["WARNING_CFLAGS"] = "-Wall -Wextra " ..
             "-Wno-missing-field-initializers " ..
