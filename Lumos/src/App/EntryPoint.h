@@ -3,9 +3,12 @@
 #include "Core/CoreSystem.h"
 #include "Platform/Windows/WindowsOS.h"
 
+#pragma comment(linker, "/subsystem:windows")
+#include <windows.h>
+
 extern Lumos::Application* Lumos::CreateApplication();
 
-int main(int argc, char** argv)
+int APIENTRY WinMain(HINSTANCE hInstance, HINSTANCE, LPSTR, int)
 {
 	Lumos::Internal::CoreSystem::Init(false);
 
