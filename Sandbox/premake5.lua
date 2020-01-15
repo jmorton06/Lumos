@@ -86,8 +86,21 @@ project "Sandbox"
 		platforms {"x64"}
 		defaultplatform "x64"
 		xcodebuildsettings {
-			["ALWAYS_SEARCH_USER_PATHS"] = "YES",
-			["MACOSX_DEPLOYMENT_TARGET"] = "10.12",
+			['ALWAYS_SEARCH_USER_PATHS'] = "NO",
+			['MACOSX_DEPLOYMENT_TARGET'] = "10.12",
+			['CLANG_ENABLE_OBJC_WEAK'] = "YES",
+			--['CODE_SIGN_IDENTITY'] = "Mac Developer",
+			--['PRODUCT_BUNDLE_IDENTIFIER'] = "com.jmorton06",
+			['ENABLE_HARDENED_RUNTIME'] = "YES",
+			['ENABLE_TESTABILITY'] = "YES",
+			["WARNING_CFLAGS"] = "-Wall -Wextra " ..
+            "-Wno-missing-field-initializers " ..
+            "-Wno-unknown-pragmas " ..
+            "-Wno-unused-parameter " ..
+            "-Wno-unused-local-typedef " ..
+            "-Wno-missing-braces " ..
+            "-Wno-microsoft-anon-tag ",
+
 		}
 
 		xcodebuildresources { "res/textures/icon.icns" }
