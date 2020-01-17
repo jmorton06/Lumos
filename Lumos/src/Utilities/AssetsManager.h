@@ -5,6 +5,7 @@
 namespace Lumos
 {
 	class Material;
+	class Sound;
 
 	namespace Graphics
 	{
@@ -19,12 +20,14 @@ namespace Lumos
 	public:
 		static AssetManager<Graphics::Mesh>* DefaultModels() { return s_DefaultModels; };
 		static AssetManager<Graphics::Texture2D>* DefaultTextures() { return s_DefaultTextures; };
+		static AssetManager<Sound>* Sounds() { return s_Sounds; };
 
 		static void InitializeMeshes();
-		static void ReleaseMeshes();
+		static void ReleaseResources();
 
 	protected:
 		static AssetManager<Graphics::Mesh>* s_DefaultModels;
 		static AssetManager<Graphics::Texture2D>* s_DefaultTextures;
+		static AssetManager<Sound>* s_Sounds;
 	};
 }

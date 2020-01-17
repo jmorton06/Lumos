@@ -6,7 +6,7 @@
 #include "Events/KeyEvent.h"
 #include "Events/MouseEvent.h"
 
-#include "KeyCodes.h"
+#include "Core/OS/KeyCodes.h"
 
 #define MAX_KEYS	1024
 #define MAX_BUTTONS	32

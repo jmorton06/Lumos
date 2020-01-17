@@ -2,7 +2,6 @@
 #include "Material.h"
 #include "Graphics/API/DescriptorSet.h"
 #include "Graphics/API/Pipeline.h"
-#include "Graphics/API/ShaderResource.h"
 #include "Graphics/API/UniformBuffer.h"
 #include "Graphics/API/GraphicsContext.h"
 #include "Core/OS/FileSystem.h"

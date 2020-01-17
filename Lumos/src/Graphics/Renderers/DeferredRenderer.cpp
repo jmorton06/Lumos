@@ -1,19 +1,16 @@
 #include "lmpch.h"
 #include "DeferredRenderer.h"
 #include "DeferredOffScreenRenderer.h"
-#include "SkyboxRenderer.h"
 #include "ShadowRenderer.h"
 
 #include "App/Scene.h"
 #include "App/Application.h"
-#include "ECS/Component/MaterialComponent.h"
 #include "Maths/Maths.h"
 #include "Maths/Transform.h"
 #include "Core/Profiler.h"
 
 #include "Graphics/RenderManager.h"
 #include "Graphics/Camera/Camera.h"
-#include "Graphics/ModelLoader/ModelLoader.h"
 #include "Graphics/Mesh.h"
 #include "Graphics/MeshFactory.h"
 #include "Graphics/Material.h"
@@ -152,7 +149,7 @@ namespace Lumos
 
 			Graphics::DescriptorInfo info{};
 			info.pipeline = m_Pipeline;
-			info.layoutIndex = 1; //?
+			info.layoutIndex = 1;
 			info.shader = m_Shader;
 			m_DescriptorSet = Graphics::DescriptorSet::Create(info);
 
@@ -194,7 +191,6 @@ namespace Lumos
 			m_SystemUniforms.clear();
 
 			m_CommandBufferIndex = commandBufferID;
-
 			m_CommandBuffers[m_CommandBufferIndex]->BeginRecording();
 
 			m_RenderPass->BeginRenderpass(m_CommandBuffers[m_CommandBufferIndex], m_ClearColour, m_Framebuffers[m_CommandBufferIndex], Graphics::INLINE, m_ScreenBufferWidth, m_ScreenBufferHeight);
@@ -253,15 +249,13 @@ namespace Lumos
 
 				if (light.m_Type != float(LightType::DirectionalLight))
 				{
-					auto& worldTransform = trans.GetWorldMatrix();
+                    light.m_Position = trans.GetWorldPosition();
 
 					auto inside = frustum.IsInsideFast(Maths::Sphere(light.m_Position.ToVector3(), light.m_Radius));
 
 					if (inside == Maths::Intersection::OUTSIDE)
 						continue;
 				}
-
-				light.m_Position = trans.GetWorldPosition();
 
 				Maths::Vector3 forward = Maths::Vector3::FORWARD;
 				forward = trans.GetWorldOrientation() * forward;
@@ -320,9 +314,7 @@ namespace Lumos
 
 			m_Pipeline->SetActive(currentCMDBuffer);
 
-			std::vector<Graphics::DescriptorSet*> descriptorSets;
-			descriptorSets.emplace_back(m_Pipeline->GetDescriptorSet());
-			descriptorSets.emplace_back(m_DescriptorSet);
+			std::vector<Graphics::DescriptorSet*> descriptorSets = { m_Pipeline->GetDescriptorSet(), m_DescriptorSet };
 
 			m_ScreenQuad->GetVertexArray()->Bind(currentCMDBuffer);
 			m_ScreenQuad->GetIndexBuffer()->Bind(currentCMDBuffer);
@@ -591,7 +583,7 @@ namespace Lumos
 
 			Graphics::DescriptorInfo info{};
 			info.pipeline = m_Pipeline;
-			info.layoutIndex = 1; //?
+			info.layoutIndex = 1;
 			info.shader = m_Shader;
 			if (m_DescriptorSet)
 				delete m_DescriptorSet;

@@ -15,8 +15,8 @@ namespace Lumos
     class LUMOS_EXPORT OS
     {
     public:
-        OS() {}
-        virtual ~OS() {}
+        OS() = default;
+        virtual ~OS()  = default;
 
         virtual void Run() = 0;
     
@@ -25,6 +25,8 @@ namespace Lumos
 
         static OS* Instance() { return s_Instance; }
         static String PowerStateToString(PowerState state);
+
+        virtual const char* GetExecutablePath() = 0;
 
     private:
 

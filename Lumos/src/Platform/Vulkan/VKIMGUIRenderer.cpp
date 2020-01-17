@@ -110,7 +110,7 @@ namespace Lumos
 				{ TextureType::COLOUR, TextureFormat::RGBA8 }
 			};
 
-            Graphics::RenderpassInfo renderpassCI{};
+            Graphics::RenderpassInfo renderpassCI;
             renderpassCI.attachmentCount = 1;
             renderpassCI.textureType = textureTypes;
             renderpassCI.clear = m_ClearScreen;

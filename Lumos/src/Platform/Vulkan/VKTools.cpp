@@ -6,7 +6,6 @@
 #include "Graphics/API/Texture.h"
 #include "Graphics/API/DescriptorSet.h"
 #include "Graphics/API/Pipeline.h"
-#include "Platform/Vulkan/VKCommandBuffer.h"
 
 namespace Lumos
 {
@@ -92,10 +91,15 @@ namespace Lumos
         {
             vkEndCommandBuffer(commandBuffer);
 
-            VkSubmitInfo submitInfo = {};
+            VkSubmitInfo submitInfo;
 			submitInfo.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
             submitInfo.commandBufferCount = 1;
             submitInfo.pCommandBuffers = &commandBuffer;
+			submitInfo.pSignalSemaphores = nullptr;
+			submitInfo.pNext = nullptr;
+			submitInfo.pWaitDstStageMask = nullptr;
+			submitInfo.signalSemaphoreCount = 0;
+			submitInfo.waitSemaphoreCount = 0;
 
 			vkQueueSubmit(VKDevice::Instance()->GetGraphicsQueue(), 1, &submitInfo, VK_NULL_HANDLE);
 			vkQueueWaitIdle(VKDevice::Instance()->GetGraphicsQueue());
@@ -108,7 +112,7 @@ namespace Lumos
         {
             VkCommandBuffer commandBuffer = BeginSingleTimeCommands();
 
-            VkBufferImageCopy region = {};
+            VkBufferImageCopy region;
             region.bufferOffset = 0;
             region.bufferRowLength = 0;
             region.bufferImageHeight = 0;
@@ -150,7 +154,7 @@ namespace Lumos
             VkCommandBuffer commandBuffer = BeginSingleTimeCommands();
 
             VkImageMemoryBarrier barrier = {};
-			barrier.sType = VK_STRUCTURE_TYPE_MEMORY_BARRIER;
+			barrier.sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER;
             barrier.oldLayout = oldLayout;
             barrier.newLayout = newLayout;
             barrier.srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
@@ -176,8 +180,8 @@ namespace Lumos
             barrier.subresourceRange.baseArrayLayer = 0;
             barrier.subresourceRange.layerCount = 1;
 
-            VkPipelineStageFlags sourceStage;
-            VkPipelineStageFlags destinationStage;
+            VkPipelineStageFlags sourceStage = 0;
+            VkPipelineStageFlags destinationStage = 0;
 
 			if (oldLayout == VK_IMAGE_LAYOUT_UNDEFINED && newLayout == VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL)
 			{
@@ -298,7 +302,7 @@ namespace Lumos
 
         VkVertexInputAttributeDescription VKTools::VertexInputDescriptionToVK(VertexInputDescription description)
         {
-            VkVertexInputAttributeDescription vInputAttribDescription{};
+            VkVertexInputAttributeDescription vInputAttribDescription;
             vInputAttribDescription.location = description.location;
             vInputAttribDescription.binding = description.binding;
             vInputAttribDescription.format = FormatToVK(description.format);

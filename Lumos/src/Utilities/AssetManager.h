@@ -1,5 +1,7 @@
 #pragma once
 #include "lmpch.h"
+#include "Core/VFS.h"
+#include "Audio/Sound.h"
 
 namespace Lumos
 {
@@ -9,6 +11,11 @@ namespace Lumos
 	public:
 		AssetManager() = default;
 		~AssetManager() = default;
+
+		void LoadAsset(const String& name, const String& filePath)
+		{
+			Lumos::Debug::Log::Error("Unsupported Loading Type");
+		}
 
 		void Add(const String& name, const Ref<T>& asset);
         
@@ -51,4 +58,19 @@ namespace Lumos
         const typename std::unordered_map<String, Ref<T>>::iterator s = m_Assets.find(name);
         return s != m_Assets.end();
     }
+
+	template<>
+	_FORCE_INLINE_ void LUMOS_EXPORT AssetManager<Sound>::LoadAsset(const String& name, const String& filePath)
+	{
+		String physicalPath;
+		if (!Lumos::VFS::Get()->ResolvePhysicalPath(filePath, physicalPath))
+		{
+			LUMOS_LOG_CRITICAL("Could not load Audio File : ", filePath);
+		}
+
+		std::string extension = physicalPath.substr(physicalPath.length() - 3, 3);
+
+		auto s = Sound::Create(physicalPath, extension);
+		Add(name, Ref<Sound>(s));
+	}
 }

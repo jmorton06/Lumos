@@ -3,7 +3,6 @@
 #ifdef LUMOS_RENDER_API_VULKAN
 
 #include "Platform/Vulkan/VKDevice.h"
-#include "App/Application.h"
 #include "WindowsWindow.h"
 
 #ifdef LUMOS_USE_GLFW_WINDOWS
@@ -28,7 +27,7 @@ namespace Lumos
 		surfaceInfo.sType = VK_STRUCTURE_TYPE_WIN32_SURFACE_CREATE_INFO_KHR;
 		surfaceInfo.pNext = NULL;
 		surfaceInfo.hwnd = static_cast<HWND>(window->GetHandle());
-		surfaceInfo.hinstance = static_cast<WindowsWindow*>(window)->GetHInstance();
+		surfaceInfo.hinstance = dynamic_cast<WindowsWindow*>(window)->GetHInstance();
 		vkCreateWin32SurfaceKHR(m_VKContext->GetVKInstance(), &surfaceInfo, nullptr, &surface);
 #endif
 

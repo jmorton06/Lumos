@@ -56,7 +56,6 @@ struct Material
 	float NDotV;
 };
 
-Material material;
 const float Epsilon = 0.00001;
 
 // Constant normal incidence Fresnel factor for all dielectrics.
@@ -164,7 +163,7 @@ vec3 RotateVectorAboutY(float angle, vec3 vec)
     return rotationMatrix * vec;
 }
 
-vec3 Lighting(vec3 F0, float shadow, vec3 wsPos)
+vec3 Lighting(vec3 F0, float shadow, vec3 wsPos, Material material)
 {
 	vec3 result = vec3(0.0);
 
@@ -232,7 +231,7 @@ vec3 Lighting(vec3 F0, float shadow, vec3 wsPos)
 	return result;
 }
 
-vec3 IBL(vec3 F0, vec3 Lr)
+vec3 IBL(vec3 F0, vec3 Lr, Material material)
 {
 	vec3 irradiance = texture(uEnvironmentMap, material.Normal).rgb;
 	vec3 F = fresnelSchlickRoughness(F0, material.NDotV, material.Roughness);
@@ -394,6 +393,8 @@ void main()
 	vec3 normal		= normalize(normalTex.xyz);
     vec3 finalColour;
 
+	Material material;
+
     material.Albedo    = colourTex;
     material.Specular  = spec;
     material.Roughness = max(roughness, 0.05);
@@ -413,8 +414,8 @@ void main()
 	// Fresnel reflectance, metals use albedo
 	vec3 F0 = mix(Fdielectric, material.Albedo.xyz, material.Specular.x);
 
-	vec3 lightContribution = Lighting(F0, shadow, wsPos);
-	vec3 iblContribution = IBL(material, eye);//IBL(F0, Lr);
+	vec3 lightContribution = Lighting(F0, shadow, wsPos, material);
+	vec3 iblContribution = IBL(material, eye);//IBL(F0, Lr, material);
 
 	finalColour = FinalGamma(lightContribution + iblContribution + emissive);
 	outColor = vec4(finalColour, 1.0);

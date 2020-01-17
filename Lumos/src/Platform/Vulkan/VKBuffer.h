@@ -32,14 +32,14 @@ namespace Lumos
 		protected:
 			VkBuffer m_Buffer{};
 			VkDeviceMemory m_Memory{};
-			VkDescriptorBufferInfo m_DesciptorBufferInfo;
+			VkDescriptorBufferInfo m_DesciptorBufferInfo{};
 			VkDeviceSize m_Size = 0;
 			VkDeviceSize m_Alignment = 0;
 			void* m_Mapped = nullptr;
 
 #ifdef USE_VMA_ALLOCATOR
-            VmaAllocation m_Allocation;
-			VmaAllocation m_MappedAllocation;
+            VmaAllocation m_Allocation{};
+			VmaAllocation m_MappedAllocation{};
 #endif
 		};
 	}

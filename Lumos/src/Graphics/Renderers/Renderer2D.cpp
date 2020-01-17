@@ -2,7 +2,6 @@
 #include "Renderer2D.h"
 #include "Graphics/API/Shader.h"
 #include "Graphics/API/Framebuffer.h"
-#include "Graphics/ModelLoader/ModelLoader.h"
 #include "Graphics/API/UniformBuffer.h"
 #include "Graphics/API/Renderer.h"
 #include "Graphics/API/CommandBuffer.h"
@@ -15,7 +14,6 @@
 #include "Graphics/GBuffer.h"
 #include "Graphics/Sprite.h"
 #include "App/Scene.h"
-#include "ECS/Component/MaterialComponent.h"
 #include "App/Application.h"
 #include "Graphics/RenderManager.h"
 #include "Platform/OpenGL/GLDescriptorSet.h"
@@ -37,11 +35,11 @@ namespace Lumos
 	{
 		Renderer2D::Renderer2D(u32 width, u32 height, bool renderToGBuffer) : m_IndexCount(0), m_RenderTexture(nullptr), m_Buffer(nullptr)
 		{
-			SetScreenBufferSize(width, height);
+			Renderer2D::SetScreenBufferSize(width, height);
 
-			Init();
-            
-            SetRenderToGBufferTexture(renderToGBuffer);
+			Renderer2D::Init();
+
+			Renderer2D::SetRenderToGBufferTexture(renderToGBuffer);
 		}
 
 		Renderer2D::~Renderer2D()
@@ -89,7 +87,7 @@ namespace Lumos
 				{ TextureType::COLOUR, TextureFormat::RGBA8 }
 			};
 
-			Graphics::RenderpassInfo renderpassCI{};
+			Graphics::RenderpassInfo renderpassCI;
 			renderpassCI.attachmentCount = 1;
 			renderpassCI.textureType = textureTypes;
 			renderpassCI.clear = true;
@@ -121,7 +119,7 @@ namespace Lumos
 
 			std::vector<Graphics::BufferInfo> bufferInfos;
 
-			Graphics::BufferInfo bufferInfo = {};
+			Graphics::BufferInfo bufferInfo;
 			bufferInfo.buffer = m_UniformBuffer;
 			bufferInfo.offset = 0;
 			bufferInfo.size = sizeof(UniformBufferObject);
@@ -392,7 +390,7 @@ namespace Lumos
 
 			std::vector<Graphics::BufferInfo> bufferInfos;
 
-			Graphics::BufferInfo bufferInfo = {};
+			Graphics::BufferInfo bufferInfo;
 			bufferInfo.buffer = m_UniformBuffer;
 			bufferInfo.offset = 0;
 			bufferInfo.size = sizeof(UniformBufferObject);
@@ -458,19 +456,19 @@ namespace Lumos
 
 			std::vector<Graphics::DescriptorLayout> descriptorLayouts;
 
-			Graphics::DescriptorLayout sceneDescriptorLayout{};
+			Graphics::DescriptorLayout sceneDescriptorLayout;
 			sceneDescriptorLayout.count = static_cast<u32>(layoutInfo.size());
 			sceneDescriptorLayout.layoutInfo = layoutInfo.data();
 
 			descriptorLayouts.push_back(sceneDescriptorLayout);
 
-			Graphics::DescriptorLayout meshDescriptorLayout{};
+			Graphics::DescriptorLayout meshDescriptorLayout;
 			meshDescriptorLayout.count = static_cast<u32>(layoutInfoMesh.size());
 			meshDescriptorLayout.layoutInfo = layoutInfoMesh.data();
 
 			descriptorLayouts.push_back(meshDescriptorLayout);
 
-			Graphics::PipelineInfo pipelineCI{};
+			Graphics::PipelineInfo pipelineCI;
 			pipelineCI.pipelineName = "Batch2DRenderer";
 			pipelineCI.shader = m_Shader;
 			pipelineCI.renderpass = m_RenderPass;
@@ -525,7 +523,7 @@ namespace Lumos
 			}
 		}
 
-		void Renderer2D::UpdateDesciptorSet()
+		void Renderer2D::UpdateDesciptorSet() const
 		{
 			if (m_Textures.empty())
 				return;
@@ -535,7 +533,6 @@ namespace Lumos
 
 			imageInfo.binding = 0;
 			imageInfo.name = "textures";
-			imageInfo.count = 0;
 			imageInfo.texture = m_Textures;
 			imageInfo.count = static_cast<int>(m_Textures.size());
 

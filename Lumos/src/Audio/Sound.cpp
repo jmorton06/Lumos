@@ -17,10 +17,10 @@ namespace Lumos
 		delete[] m_Data.Data;
 	}
 
-	Sound* Sound::Create(const String& fileName, const String& format)
+	Sound* Sound::Create(const String& name, const String& extension)
 	{
 #ifdef LUMOS_OPENAL
-		return lmnew ALSound(fileName, format);
+		return lmnew ALSound(name, extension);
 #else
 		return nullptr;
 #endif
@@ -29,42 +29,5 @@ namespace Lumos
 	double Sound::GetLength() const
 	{
 		return m_Data.Length;
-	}
-
-	SoundManager::~SoundManager()
-	{
-		for (auto & sound : m_Sounds)
-		{
-			delete sound.second;
-		}
-	}
-
-	bool SoundManager::AddSound(const String& name, String& fileName)
-	{
-		Sound *s = GetSound(name);
-
-		if (!s)
-		{
-			String physicalPath;
-			if (!Lumos::VFS::Get()->ResolvePhysicalPath(fileName, physicalPath))
-			{
-				LUMOS_LOG_CRITICAL("Could not load Audio File : ", fileName);
-			}
-
-			fileName = physicalPath;
-
-			std::string extension = fileName.substr(fileName.length() - 3, 3);
-
-			s = Sound::Create(physicalPath, extension);
-			m_Sounds.insert(make_pair(name, s));
-			return true;
-		}
-		return true;
-	}
-
-	Sound* SoundManager::GetSound(const String& name)
-	{
-		const std::map<String, Sound*>::iterator s = m_Sounds.find(name);
-		return (s != m_Sounds.end() ? s->second : nullptr);
 	}
 }

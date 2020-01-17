@@ -1,5 +1,5 @@
 project "Sandbox"
-	kind "ConsoleApp"
+	kind "WindowedApp"
 	language "C++"
 
 	files
@@ -42,7 +42,6 @@ project "Sandbox"
 
 	defines
 	{
-		--"LUMOS_DYNAMIC",
 		"LUMOS_ROOT_DIR="  .. cwd,
 	}
 
@@ -50,6 +49,7 @@ project "Sandbox"
 		cppdialect "C++17"
 		staticruntime "On"
 		systemversion "latest"
+		entrypoint "WinMainCRTStartup"
 
 		defines
 		{
@@ -84,6 +84,33 @@ project "Sandbox"
 		cppdialect "C++17"
 		staticruntime "On"
 		systemversion "latest"
+		platforms {"x64"}
+		defaultplatform "x64"
+		xcodebuildsettings {
+			['ALWAYS_SEARCH_USER_PATHS'] = "NO",
+			['MACOSX_DEPLOYMENT_TARGET'] = "10.12",
+			['CLANG_ENABLE_OBJC_WEAK'] = "YES",
+			--['CODE_SIGN_IDENTITY'] = "Mac Developer",
+			--['PRODUCT_BUNDLE_IDENTIFIER'] = "com.jmorton06",
+			--['ENABLE_HARDENED_RUNTIME'] = "YES",
+			['ENABLE_TESTABILITY'] = "YES",
+			["WARNING_CFLAGS"] = "-Wall -Wextra " ..
+            "-Wno-missing-field-initializers " ..
+            "-Wno-unknown-pragmas " ..
+            "-Wno-unused-parameter " ..
+            "-Wno-unused-local-typedef " ..
+            "-Wno-missing-braces " ..
+            "-Wno-microsoft-anon-tag ",
+
+		}
+
+		xcodebuildresources { "res/textures/icon.icns" }
+
+
+		files
+		{
+			"../Lumos/src/Platform/macOS/Info.plist"
+		}
 
 		defines
 		{
@@ -91,7 +118,7 @@ project "Sandbox"
 			"LUMOS_PLATFORM_UNIX",
 			"LUMOS_RENDER_API_OPENGL",
 			"LUMOS_RENDER_API_VULKAN",
-			"VK_USE_PLATFORM_MACOS_MVK",
+			"VK_EXT_metal_surface",
 			"LUMOS_IMGUI"
 		}
 
@@ -145,6 +172,10 @@ project "Sandbox"
 				"{COPY} "..source.." "..target
 			}
 
+
+		filter "files:**.plist"
+			buildaction "Resource"
+
 	filter "system:ios"
 		cppdialect "C++17"
 		staticruntime "On"
@@ -170,6 +201,7 @@ project "Sandbox"
         	"IOKit.framework",
         	"CoreFoundation.framework",
 			"CoreVideo.framework",
+			"CoreGraphics.framework",
 			"UIKit.framework",
 			"OpenAL.framework"
 		}
@@ -193,40 +225,6 @@ project "Sandbox"
 		}
 
 		xcodebuildresources { "res/**" }
-
-		filter {"system:ios", "configurations:release"}
-
-		local source = "../Dependencies/vulkan/libs/ios/**"
-		local target = "../bin/release/"
-		
-		buildmessage("copying "..source.." -> "..target)
-		
-		postbuildcommands {
-			"{COPY} "..source.." "..target
-		}
-
-		filter {"system:ios", "configurations:dist"}
-
-			local source = "../Dependencies/vulkan/libs/ios/**"
-			local target = "../bin/dist/"
-			
-			buildmessage("copying "..source.." -> "..target)
-			
-			postbuildcommands {
-				"{COPY} "..source.." "..target
-			}
-
-		filter {"system:ios", "configurations:debug"}
-
-			local source = "../Dependencies/vulkan/libs/ios/**"
-			local target = "../bin/debug/"
-			
-			buildmessage("copying "..source.." -> "..target)
-			
-			postbuildcommands {
-				"{COPY} "..source.." "..target
-			}
-
 
 	filter "system:linux"
 		cppdialect "C++17"

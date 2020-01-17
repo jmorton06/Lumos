@@ -27,13 +27,13 @@ namespace Lumos
 		{
 			m_Pipeline = nullptr;
 
-			SetScreenBufferSize(width, height);
-			Init();
+			Renderer3D::SetScreenBufferSize(width, height);
+			GridRenderer::Init();
             
-			m_GridRes = 1.2f;
-            m_GridSize = 500.0f;
-            
-            SetRenderToGBufferTexture(renderToGBuffer);
+			m_GridRes = 1.6f;
+            m_GridSize = 640.0f;
+
+			GridRenderer::SetRenderToGBufferTexture(renderToGBuffer);
 		}
 
 		GridRenderer::~GridRenderer()
@@ -128,7 +128,7 @@ namespace Lumos
 				{ TextureType::DEPTH , TextureFormat::DEPTH }
 			};
 
-			Graphics::RenderpassInfo renderpassCI{};
+			Graphics::RenderpassInfo renderpassCI;
 			renderpassCI.attachmentCount = 2;
 			renderpassCI.textureType = textureTypes;
 			renderpassCI.clear = false;
@@ -242,13 +242,13 @@ namespace Lumos
 
 			std::vector<Graphics::DescriptorLayout> descriptorLayouts;
 
-			Graphics::DescriptorLayout sceneDescriptorLayout{};
+			Graphics::DescriptorLayout sceneDescriptorLayout;
 			sceneDescriptorLayout.count = static_cast<u32>(layoutInfo.size());
 			sceneDescriptorLayout.layoutInfo = layoutInfo.data();
 
 			descriptorLayouts.push_back(sceneDescriptorLayout);
 
-			Graphics::PipelineInfo pipelineCI{};
+			Graphics::PipelineInfo pipelineCI;
 			pipelineCI.pipelineName = "GridRenderer";
 			pipelineCI.shader = m_Shader;
 			pipelineCI.renderpass = m_RenderPass;
@@ -281,7 +281,7 @@ namespace Lumos
 
 			std::vector<Graphics::BufferInfo> bufferInfos;
 
-			Graphics::BufferInfo bufferInfo = {};
+			Graphics::BufferInfo bufferInfo;
 			bufferInfo.buffer = m_UniformBuffer;
 			bufferInfo.offset = 0;
 			bufferInfo.size = sizeof(UniformBufferObject);
@@ -298,7 +298,7 @@ namespace Lumos
 				m_UniformBufferFrag->Init(bufferSize, nullptr);
 			}
 
-			Graphics::BufferInfo bufferInfo2 = {};
+			Graphics::BufferInfo bufferInfo2;
 			bufferInfo2.name = "UniformBuffer";
 			bufferInfo2.buffer = m_UniformBufferFrag;
 			bufferInfo2.offset = 0;

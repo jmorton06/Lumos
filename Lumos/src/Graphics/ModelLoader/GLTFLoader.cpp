@@ -7,7 +7,6 @@
 #include "ECS/Component/MaterialComponent.h"
 
 #include "Graphics/API/Texture.h"
-#include "Utilities/AssetsManager.h"
 #include "Maths/Maths.h"
 
 #include "Maths/Transform.h"
@@ -383,7 +382,7 @@ namespace Lumos
                 }
                 else if (componentTypeByteSize == 4)
                 {
-                    uint32_t* in = reinterpret_cast<uint32_t*>(data.data());
+	                auto in = reinterpret_cast<uint32_t*>(data.data());
                     for (auto iCount = 0; iCount < indicesCount; iCount++)
                     {
                         indicesArray[iCount] = in[iCount];
@@ -433,7 +432,7 @@ namespace Lumos
                 auto submeshEntity = registry.create();
                 auto lMesh = Ref<Graphics::Mesh>(meshes);
                                 
-                if(subname != "")
+                if(!subname.empty())
 					registry.assign<MeshComponent>(submeshEntity, lMesh);
                 registry.assign<Maths::Transform>(submeshEntity);
                 registry.assign<NameComponent>(submeshEntity, subname);

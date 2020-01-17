@@ -1,8 +1,6 @@
 #include "lmpch.h"
 #include "WindowsOS.h"
 #include "WindowsPower.h"
-#include "WindowsMutex.h"
-#include "WindowsThread.h"
 #include "WindowsWindow.h"
 #include "Core/CoreSystem.h"
 #include "Core/OS/MemoryManager.h"
@@ -43,10 +41,6 @@ namespace Lumos
 
     void WindowsOS::Init()
     {
-        WindowsThread::MakeDefault();
-        WindowsMutex::MakeDefault();
-
-
 #ifdef LUMOS_USE_GLFW_WINDOWS
         GLFWWindow::MakeDefault();
 #else

@@ -1,11 +1,7 @@
 #include "iOSOS.h"
+#include "iOSWindow.h"
 #include "Application.h"
 #include "Core/VFS.h"
-
-#include "Platform/Unix/UnixThread.h"
-#include "Platform/Unix/UnixMutex.h"
-#include "Platform/GLFM/GLFMWindow.h"
-
 #include "Core/CoreSystem.h"
 
 #ifdef LUMOS_RENDER_API_VULKAN
@@ -37,9 +33,7 @@ namespace Lumos
 
     void iOSOS::Init()
     {
-        UnixThread::MakeDefault();
-        UnixMutex::MakeDefault();
-        GLFMWindow::MakeDefault();
+        iOSWindow::MakeDefault();
     }
 
     void iOSOS::OnFrame()
@@ -62,4 +56,15 @@ namespace Lumos
     {
         
     }
+
+    const char* iOSOS::GetExecutablePath()
+    {
+        static char path[512] = "";
+        if (!path[0]) 
+        {
+            NSString *bundlePath = [[NSBundle mainBundle] bundlePath];
+            strcpy(path, (const char *)[bundlePath cStringUsingEncoding:NSUTF8StringEncoding]);
+        }
+        return path;
+}
 }

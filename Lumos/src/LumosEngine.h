@@ -70,6 +70,7 @@
 #include "Core/String.h"
 #include "Core/CoreSystem.h"
 #include "Core/LMLog.h"
+#include "Core/OS/Input.h"
 
 //Scripting
 #include "Scripting/LuaScript.h"
@@ -91,7 +92,9 @@
 #include "Graphics/Renderers/ForwardRenderer.h"
 #include "Graphics/Renderers/ShadowRenderer.h"
 #include "Graphics/Renderers/GridRenderer.h"
+#include "Graphics/Renderers/SkyboxRenderer.h"
 #include "Graphics/RenderManager.h"
 
 //External
 #include <imgui/imgui.h>
+#include <Box2D/Box2D.h>

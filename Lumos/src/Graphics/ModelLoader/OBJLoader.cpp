@@ -8,8 +8,6 @@
 #include "Graphics/API/Texture.h"
 #include "Maths/Maths.h"
 
-#include "Utilities/AssetsManager.h"
-
 #include "App/Application.h"
 
 #define TINYOBJLOADER_IMPLEMENTATION

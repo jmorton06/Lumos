@@ -16,7 +16,6 @@
 #include <imgui/plugins/ImGuiAl/fonts/KarlaRegular.inl>
 #include <imgui/plugins/ImGuiAl/fonts/GoogleMaterialDesign.inl>
 #include <imgui/plugins/ImGuiAl/fonts/FontAwesome5Solid900.inl>
-#include <IconFontCppHeaders/IconsFontAwesome5.h>
 
 namespace Lumos
 {
@@ -219,8 +218,6 @@ namespace Lumos
         ImFontConfig icons_config;
         icons_config.MergeMode = false;
         icons_config.PixelSnapH = true;
-        icons_config.OversampleH = 2;
-        icons_config.OversampleV = 1;
         icons_config.OversampleH = icons_config.OversampleV = 1;
         icons_config.PixelSnapH = true;
         
@@ -282,8 +279,6 @@ namespace Lumos
 		// merge in icons from Font Awesome
 		icons_config.MergeMode = true;
 		icons_config.PixelSnapH = true;
-		icons_config.OversampleH = 2;
-		icons_config.OversampleV = 1;
 		icons_config.GlyphOffset.y += 1.0f;
 		icons_config.OversampleH = icons_config.OversampleV = 1;
 		icons_config.PixelSnapH = true;

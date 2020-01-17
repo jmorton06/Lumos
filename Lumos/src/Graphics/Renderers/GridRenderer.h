@@ -69,7 +69,7 @@ namespace Lumos
 
 			float m_GridRes = 1.0f;
 			float m_GridSize = 1.0f;
-			float m_MaxDistance = 300.0f;
+			float m_MaxDistance = 600.0f;
 		};
 	}
 }
