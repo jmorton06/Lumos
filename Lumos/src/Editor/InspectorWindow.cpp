@@ -1,18 +1,15 @@
 #include "lmpch.h"
 #include "InspectorWindow.h"
 #include "Editor.h"
-#include "Graphics/API/GraphicsContext.h"
 #include "App/Application.h"
 #include "App/SceneManager.h"
 #include "ECS/Component/Components.h"
 #include "Graphics/Camera/Camera.h"
 #include "Graphics/Sprite.h"
-#include "Graphics/Material.h"
 #include "Graphics/Light.h"
 #include "Maths/Transform.h"
 
 #include <imgui/imgui.h>
-
 #include <IconFontCppHeaders/IconsFontAwesome5.h>
 
 namespace Lumos
@@ -390,12 +387,12 @@ namespace Lumos
 		auto& registry = scene->GetRegistry();
 		auto& iconMap = m_Editor->GetComponentIconMap();
 
-#define TrivialComponent(ComponentType, ComponentName, func) \
+#define TRIVIAL_COMPONENT(ComponentType, ComponentName, func) \
 				{ \
 				String Name; \
 				if(iconMap.find(typeid(ComponentType).hash_code()) != iconMap.end()) \
 				Name += iconMap[typeid(ComponentType).hash_code()]; Name += "\t"; \
-				Name += ComponentName; \
+				Name += (ComponentName); \
 				m_EnttEditor.registerTrivial<ComponentType>(registry, Name.c_str()); \
 				} \
 				m_EnttEditor.registerComponentWidgetFn( \
@@ -404,15 +401,15 @@ namespace Lumos
 						auto& comp = reg.get<ComponentType>(e); \
 						func(comp); });
 
-		TrivialComponent(Maths::Transform, "Transform", TransformWidget);
-		TrivialComponent(MeshComponent, "Mesh", MeshWidget);
-		TrivialComponent(CameraComponent, "Camera", CameraWidget);
-		TrivialComponent(Physics3DComponent, "Physics3D", Physics3DWidget);
-		TrivialComponent(Physics2DComponent, "Physics2D", Physics2DWidget);
-		TrivialComponent(SoundComponent, "Sound", SoundWidget);
-		TrivialComponent(Graphics::Sprite, "Sprite", SpriteWidget);
-		TrivialComponent(MaterialComponent, "Material", MaterialWidget);
-		TrivialComponent(Graphics::Light, "Light", LightWidget);
+		TRIVIAL_COMPONENT(Maths::Transform, "Transform", TransformWidget);
+		TRIVIAL_COMPONENT(MeshComponent, "Mesh", MeshWidget);
+		TRIVIAL_COMPONENT(CameraComponent, "Camera", CameraWidget);
+		TRIVIAL_COMPONENT(Physics3DComponent, "Physics3D", Physics3DWidget);
+		TRIVIAL_COMPONENT(Physics2DComponent, "Physics2D", Physics2DWidget);
+		TRIVIAL_COMPONENT(SoundComponent, "Sound", SoundWidget);
+		TRIVIAL_COMPONENT(Graphics::Sprite, "Sprite", SpriteWidget);
+		TRIVIAL_COMPONENT(MaterialComponent, "Material", MaterialWidget);
+		TRIVIAL_COMPONENT(Graphics::Light, "Light", LightWidget);
 	}
 
 	void InspectorWindow::OnImGui()

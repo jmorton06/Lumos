@@ -2,8 +2,6 @@
 #include "ProfilerWindow.h"
 #include "App/Engine.h"
 
-#include <IconFontCppHeaders/IconsFontAwesome5.h>
-
 //Based on https://github.com/Raikiri/LegitProfiler
 
 namespace Lumos
@@ -98,7 +96,7 @@ namespace Lumos
 
 	}
 
-	ProfilerGraph::ProfilerGraph()
+	ProfilerGraph::ProfilerGraph(): frameWidth(0), frameSpacing(0), useColoredLegendText(false)
 	{
 		m_Reports.reserve(300);
 		currFrameIndex = 0;

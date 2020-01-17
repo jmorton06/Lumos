@@ -147,7 +147,7 @@ project "Lumos"
 			"LUMOS_PLATFORM_UNIX",
 			"LUMOS_RENDER_API_OPENGL",
 			"LUMOS_RENDER_API_VULKAN",
-			"VK_USE_PLATFORM_MACOS_MVK",
+			"VK_USE_PLATFORM_METAL_EXT",
 			"LUMOS_IMGUI",
 			"LUMOS_OPENAL"
 		}
@@ -210,9 +210,6 @@ project "Lumos"
 			"src/Platform/iOS/*.h",
 			"src/Platform/iOS/*.cpp",
 
-			"src/Platform/GLFM/*.h",
-			"src/Platform/GLFM/*.cpp",
-
 			"src/Platform/OpenAL/*.h",
 			"src/Platform/OpenAL/*.cpp",
 
@@ -221,6 +218,11 @@ project "Lumos"
 
 			"src/Platform/Vulkan/*.h",
 			"src/Platform/Vulkan/*.cpp"
+		}
+
+		removefiles
+		{
+			"src/Platform/Unix/UnixFileSystem.cpp"
 		}
 
 		links

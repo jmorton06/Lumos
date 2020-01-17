@@ -1,9 +1,7 @@
 #pragma once
 
 #include "lmpch.h"
-#include "Utilities/Timer.h"
 #include "Maths/Maths.h"
-#include "Utilities/TSingleton.h"
 #include "Events/Event.h"
 
 namespace Lumos

@@ -2,8 +2,6 @@
 #include "VKContext.h"
 #include "VKDevice.h"
 #include "VKCommandPool.h"
-#include "VKCommandBuffer.h"
-//#include "Maths/Matrix4.h"
 #include "Core/Version.h"
 
 #include <imgui/imgui.h>
@@ -42,12 +40,14 @@ namespace Lumos
 			 extensions.push_back(VK_MVK_IOS_SURFACE_EXTENSION_NAME);
 	#elif defined(VK_USE_PLATFORM_MACOS_MVK)
 			 extensions.push_back(VK_MVK_MACOS_SURFACE_EXTENSION_NAME);
-	#endif
+    #elif defined(VK_USE_PLATFORM_METAL_EXT)
+             extensions.push_back("VK_EXT_metal_surface");
+    #endif
 
 			return extensions;
 		}
 
-		const std::vector<const char*> VKContext::GetRequiredLayers()
+		const std::vector<const char*> VKContext::GetRequiredLayers() const
 		{
 			std::vector<const char*> layers;
 
@@ -247,7 +247,11 @@ namespace Lumos
 			appInfo.applicationVersion = VK_MAKE_VERSION(1, 0, 0);
 			appInfo.pEngineName = "Lumos";
 			appInfo.engineVersion = VK_MAKE_VERSION(LumosVersion.major, LumosVersion.minor, LumosVersion.patch);
+#if defined(LUMOS_PLATFORM_MACOS) || defined(LUMOS_PLATFORM_IOS)
 			appInfo.apiVersion = VK_API_VERSION_1_0;
+#else
+			appInfo.apiVersion = VK_API_VERSION_1_1;
+#endif
 
 			VkInstanceCreateInfo createInfo = {};
 			createInfo.pApplicationInfo = &appInfo;

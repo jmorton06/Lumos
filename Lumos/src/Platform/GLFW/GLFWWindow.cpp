@@ -1,7 +1,6 @@
 #include "lmpch.h"
 
 #if defined(LUMOS_PLATFORM_MACOS)
-//#define VK_USE_PLATFORM_MACOS_MVK
 #define GLFW_EXPOSE_NATIVE_COCOA
 #endif
 

@@ -10,7 +10,7 @@ namespace Lumos
 
     void* Memory::AlignedAlloc(size_t size, size_t alignment)
     {
-        void *data = nullptr;
+        void *data;
 #if defined(LUMOS_PLATFORM_WINDOWS)
         data = _aligned_malloc(size, alignment);
 #else

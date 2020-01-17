@@ -3,6 +3,7 @@
 #include "EditorWindow.h"
 
 #include <imgui/imgui.h>
+#include "Maths/Colour.h"
 
 namespace Lumos
 {
@@ -23,8 +24,6 @@ namespace Lumos
 				Critical = 5,
 				Off = 6, // Display nothing
 			};
-		private:
-			struct Colour { float r, g, b, a; };
 		public:
 			Message(const String& message = "", Level level = Level::Invalid, const String& source = "", int threadID = 0);
 			void OnImGUIRender();
@@ -33,7 +32,7 @@ namespace Lumos
 			static Level GetHigherLevel(Level level);
 			static const char* GetLevelName(Level level);
 		private:
-			static Colour GetRenderColour(Level level);
+			static Maths::Colour GetRenderColour(Level level);
 		public:
 			const std::string m_Message;
 			const Level m_Level;

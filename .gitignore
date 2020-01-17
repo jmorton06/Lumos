@@ -151,7 +151,6 @@ Dependencies/OpenAL/OpenALConfig.cmake
 Dependencies/OpenAL/version.h
 Dependencies/Assimp/contrib/zlib/CTestTestfile.cmake
 Dependencies/Assimp/contrib/zlib/CTestTestfile.cmake
-Dependencies/GLFM/example/CMake-Info.plist.in
 Dependencies/tinyobjloader/tinyobjloader-targets.cmake
 imgui.ini
 *.kdev4

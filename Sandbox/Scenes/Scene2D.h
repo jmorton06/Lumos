@@ -13,4 +13,21 @@ public:
 	virtual void OnImGui() override;
 
 	void LoadSprites();
+
+	void Reset();
+	void CreatePillar(int index, float offset);
+
+	std::vector<entt::entity> m_Pillars;
+
+	enum GameState 
+	{
+		Running,
+		GameOver
+	};
+
+	GameState m_GameState = Running;
+
+	u32 m_Score = 0;
+	float m_PillarTarget = 30.0f;
+	int m_PillarIndex = 0;
 };

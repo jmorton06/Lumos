@@ -15,9 +15,6 @@ namespace Lumos
 		virtual void HandleKeyboard(float dt) override;
         
         void UpdateScroll(float offset, float dt) override;
-
-    private:
-		float m_AspectRatio;
 	};
 }
 

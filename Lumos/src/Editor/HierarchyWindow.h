@@ -7,8 +7,6 @@
 
 namespace Lumos
 {
-	class Entity;
-
 	class HierarchyWindow : public EditorWindow
 	{
 	public:

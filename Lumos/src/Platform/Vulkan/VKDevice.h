@@ -61,24 +61,24 @@ namespace Lumos
             
 			static VkDevice Device() { return VKDevice::Instance()->GetDevice(); }
 		private:
-			VkDevice m_Device;
-			VkPhysicalDevice m_PhysicalDevice;
-			VkPhysicalDeviceProperties m_PhysicalDeviceProperties;
-			VkPhysicalDeviceMemoryProperties m_MemoryProperties;
+			VkDevice m_Device{};
+			VkPhysicalDevice m_PhysicalDevice{};
+			VkPhysicalDeviceProperties m_PhysicalDeviceProperties{};
+			VkPhysicalDeviceMemoryProperties m_MemoryProperties{};
 			std::vector<VkQueueFamilyProperties> m_QueueFamiliyProperties;
-			VkSurfaceKHR m_Surface;
-			uint32_t m_GraphicsQueueFamilyIndex;
+			VkSurfaceKHR m_Surface{};
+			uint32_t m_GraphicsQueueFamilyIndex{};
 			VkFormat m_Format;
             VkColorSpaceKHR m_ColourSpace;
-			VkQueue m_GraphicsQueue;
-			VkQueue m_PresentQueue;
-			VkPipelineCache m_PipelineCache;
-			VkDescriptorPool m_DescriptorPool;
+			VkQueue m_GraphicsQueue{};
+			VkQueue m_PresentQueue{};
+			VkPipelineCache m_PipelineCache{};
+			VkDescriptorPool m_DescriptorPool{};
 
 			VKContext* m_VKContext;
             
 #ifdef USE_VMA_ALLOCATOR
-            VmaAllocator m_Allocator;
+            VmaAllocator m_Allocator{};
 #endif
 		};
 	}

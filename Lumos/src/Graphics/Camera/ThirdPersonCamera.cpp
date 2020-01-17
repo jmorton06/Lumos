@@ -1,9 +1,6 @@
 #include "lmpch.h"
 #include "ThirdPersonCamera.h"
-#include "App/Application.h"
 #include "Core/OS/Input.h"
-#include "Core/OS/Window.h"
-
 #include <imgui/imgui.h>
 
 namespace Lumos

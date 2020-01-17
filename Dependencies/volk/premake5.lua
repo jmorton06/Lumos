@@ -33,7 +33,8 @@ project 'volk'
 	filter "system:macosx"
 		defines
 		{
-			"VK_USE_PLATFORM_MACOS_MVK"
+			"VK_USE_PLATFORM_METAL_EXT",
+			"VK_EXT_metal_surface"
 		}
 
 	filter "system:ios"

@@ -2,13 +2,6 @@
 
 #include "App/Application.h"
 #include "Core/Version.h"
-
-#if defined(LUMOS_PLATFORM_MACOS)
-#ifndef VK_USE_PLATFORM_MACOS_MVK
-#define VK_USE_PLATFORM_MACOS_MVK
-#endif
-#endif
-
 #include "VKDevice.h"
 
 namespace Lumos
@@ -17,7 +10,7 @@ namespace Lumos
 	{
 		VKDevice::VKDevice()
 		{
-			m_VKContext = static_cast<VKContext*>(GraphicsContext::GetContext());
+			m_VKContext = dynamic_cast<VKContext*>(GraphicsContext::GetContext());
 
 			Init();
 
@@ -152,19 +145,19 @@ namespace Lumos
 			// Device queue
 			float pQueuePriorities[] = { 1.0f };
 			VkDeviceQueueCreateInfo deviceQueueCI{};
+            deviceQueueCI.sType = VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO;
 			deviceQueueCI.queueCount = 1;
 			deviceQueueCI.queueFamilyIndex = m_GraphicsQueueFamilyIndex;
 			deviceQueueCI.pQueuePriorities = pQueuePriorities;
 
 			VkPhysicalDeviceFeatures deviceFeatures{};
 			deviceFeatures.shaderClipDistance = VK_TRUE;
-			deviceFeatures.shaderCullDistance = VK_TRUE;
+			//deviceFeatures.shaderCullDistance = VK_TRUE;
 			deviceFeatures.geometryShader = VK_FALSE;
 			deviceFeatures.shaderTessellationAndGeometryPointSize = VK_TRUE;
 			deviceFeatures.fillModeNonSolid = VK_TRUE;
 			deviceFeatures.samplerAnisotropy = VK_TRUE;
 
-			//auto extensions = m_VKContext->GetExtensionNames();
 			auto& layers = m_VKContext->GetLayerNames();
 
 			const std::vector<const char*> deviceExtensions = 
@@ -174,9 +167,10 @@ namespace Lumos
 
 			// Device
 			VkDeviceCreateInfo deviceCI{};
+            deviceCI.sType = VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO;
 			deviceCI.queueCreateInfoCount = 1;
 			deviceCI.pQueueCreateInfos = &deviceQueueCI;
-			deviceCI.enabledExtensionCount = static_cast<uint32_t>(deviceExtensions.size());
+            deviceCI.enabledExtensionCount = static_cast<uint32_t>(deviceExtensions.size());
 			deviceCI.ppEnabledExtensionNames = deviceExtensions.data();
 			deviceCI.pEnabledFeatures = &deviceFeatures;
 

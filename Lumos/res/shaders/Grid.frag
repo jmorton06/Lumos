@@ -26,18 +26,8 @@ vec4 Grid(float p_divisions)
     vec2 grid = abs(fract(coord - 0.5) - 0.5) / fwidth(coord);
     float line = min(grid.x, grid.y);
     float lineResult = ubo.u_Res - min(line, ubo.u_Res);
-	vec3 colour = vec3(0.2,0.2,0.2);
+	vec3 colour = vec3(0.3,0.3,0.3);
 
-	if(v_TexCoord.x < 0.5001 && v_TexCoord.x > 0.4999)
-	{
-		colour = vec3(1.0f, 0.0f, 0.0f);
-		lineResult *= 2.0f;
-	}
-	else if(v_TexCoord.y < 0.5001 && v_TexCoord.y > 0.4999)
-	{
-		colour = vec3(0.0f, 0.0f, 1.0f);
-		lineResult *= 2.0f;
-	}
     return vec4(vec3(lineResult) * colour, 0.1 * lineResult);
 }
 

@@ -1,34 +1,29 @@
 #include "lmpch.h"
 #include "Camera2D.h"
-#include "App/Application.h"
 #include "Core/OS/Input.h"
 #include "Maths/Maths.h"
 
-#include "Core/OS/Window.h"
-
-#include <imgui/imgui.h>
-
 namespace Lumos
 {
-    Camera2D::Camera2D(float aspectRatio, float scale) : Camera(45.0f, 0.0f, 1.0f, 1.0f)
-		, m_AspectRatio(aspectRatio)
+    Camera2D::Camera2D(float aspectRatio, float scale) : Camera(aspectRatio, scale)
 	{
+		//m_AspectRatio = aspectRatio;
 		m_Orthographic = true;
         m_Scale = scale;
 		m_Position = Maths::Vector3(0.0f);
 		m_Velocity = Maths::Vector3(0.0f);
 		m_MouseSensitivity = 0.005f;
+		m_Near = 0.0f;
+		m_Far = 1.0f;
 
 		m_ViewDirty = true;
 		m_ProjectionDirty = true;
 		m_FrustumDirty = true;
 	}
 
-	Camera2D::~Camera2D()
-	{
-	}
+	Camera2D::~Camera2D() = default;
 
-	void Camera2D::HandleMouse(float dt, float xpos, float ypos)
+    void Camera2D::HandleMouse(float dt, float xpos, float ypos)
 	{
 		if (Input::GetInput()->GetMouseHeld(InputCode::MouseKey::ButtonRight))
 		{

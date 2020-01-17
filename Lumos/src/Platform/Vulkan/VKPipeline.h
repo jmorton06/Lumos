@@ -40,14 +40,14 @@ namespace Lumos
             
 		private:
 		
-			VkVertexInputBindingDescription 	m_VertexBindingDescription;
-			VkPipelineLayout 					m_PipelineLayout;
-			VkDescriptorPool 					m_DescriptorPool;
-			VkPipeline 						m_Pipeline;
-			std::vector<VkDescriptorSetLayout>m_DescriptorLayouts;
-			std::string 						m_PipelineName;
-			DescriptorSet*						m_DescriptorSet = nullptr;
-			Shader*								m_Shader = nullptr;
+			VkVertexInputBindingDescription m_VertexBindingDescription;
+			VkPipelineLayout m_PipelineLayout;
+			VkDescriptorPool m_DescriptorPool;
+			VkPipeline m_Pipeline;
+			std::vector<VkDescriptorSetLayout> m_DescriptorLayouts;
+			std::string m_PipelineName;
+			DescriptorSet* m_DescriptorSet = nullptr;
+			Shader*	m_Shader = nullptr;
 
 		};
 	}

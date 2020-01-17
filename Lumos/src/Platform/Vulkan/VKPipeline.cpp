@@ -36,7 +36,6 @@ namespace Lumos
 
 			for (auto& descriptorLayout : pipelineCI.descriptorLayouts)
 			{
-
 				std::vector<VkDescriptorSetLayoutBinding> setLayoutBindings;
 
 				setLayoutBindings.reserve(descriptorLayout.count);
@@ -122,6 +121,7 @@ namespace Lumos
 
 			VkPipelineVertexInputStateCreateInfo vi{};
 			memset(&vi, 0, sizeof(vi));
+            vi.sType = VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO;
 			vi.pNext = NULL;
 			vi.vertexBindingDescriptionCount = 1;
 			vi.pVertexBindingDescriptions = &m_VertexBindingDescription;
@@ -238,7 +238,7 @@ namespace Lumos
 			graphicsPipelineCI.pNext = NULL;
 			graphicsPipelineCI.layout = m_PipelineLayout;
 			graphicsPipelineCI.basePipelineHandle = nullptr;
-			graphicsPipelineCI.basePipelineIndex = 0;
+			graphicsPipelineCI.basePipelineIndex = -1;
 			graphicsPipelineCI.pVertexInputState = &vi;
 			graphicsPipelineCI.pInputAssemblyState = &inputAssemblyCI;
 			graphicsPipelineCI.pRasterizationState = &rs;

@@ -2,9 +2,6 @@
 #include "VKRenderer.h"
 #include "VKDevice.h"
 #include "VKShader.h"
-#include "VKVertexBuffer.h"
-#include "VKIndexBuffer.h"
-#include "VKVertexArray.h"
 #include "VKDescriptorSet.h"
 
 namespace Lumos

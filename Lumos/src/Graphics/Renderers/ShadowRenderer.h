@@ -61,8 +61,8 @@ namespace Lumos
 
 			_FORCE_INLINE_ TextureDepthArray* GetTexture() const { return m_ShadowTex; }
 
-			u8* m_VSSystemUniformBuffer;
-			u32 m_VSSystemUniformBufferSize;
+			u8* m_VSSystemUniformBuffer{};
+			u32 m_VSSystemUniformBufferSize{};
 
 			std::vector<u32> m_VSSystemUniformBufferOffsets;
 
@@ -93,7 +93,7 @@ namespace Lumos
 			u32		        m_ShadowMapNum;
 			u32		        m_ShadowMapSize;
 			bool		    m_ShadowMapsInvalidated;
-			Framebuffer*    m_ShadowFramebuffer[SHADOWMAP_MAX];
+			Framebuffer*    m_ShadowFramebuffer[SHADOWMAP_MAX]{};
 			Maths::Matrix4	m_ShadowProjView[SHADOWMAP_MAX];
 			Maths::Vector4  m_SplitDepth[SHADOWMAP_MAX];
 			Graphics::PushConstant* m_PushConstant = nullptr;
@@ -101,14 +101,14 @@ namespace Lumos
 
 			Lumos::Graphics::UniformBuffer* m_UniformBuffer;
 			Lumos::Graphics::UniformBuffer* m_ModelUniformBuffer;
-			Lumos::Graphics::CommandBuffer* m_CommandBuffer;
+			Lumos::Graphics::CommandBuffer* m_CommandBuffer{};
 
 			entt::entity m_LightEntity;
 
 			u32 m_Layer = 0;
 
-			size_t dynamicAlignment;
-			UniformBufferModel uboDataDynamic;
+			size_t dynamicAlignment{};
+			UniformBufferModel uboDataDynamic{};
 		};
 	}
 }
