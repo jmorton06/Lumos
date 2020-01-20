@@ -1,22 +1,63 @@
-# Lumos
 
-**Game Engine written in C++ using OpenGL and Vulkan.**
+<h1 style="text-align: center;">Lumos</h1>
+<p align="center">
+  Game Engine written in C++ using OpenGL and Vulkan.<br/>
+<br/>
+  <a href="#features">Features</a> |
+  <a href="#screenshots">Screenshots</a> |
+  <a href="#building-🔨">Building</a> |
+  <a href="#third-party">Third Party</a>
+<br/>
+<br/>
+<a href="https://actions-badge.atrox.dev/jmorton06/Lumos/goto"><img alt="Build" src="https://img.shields.io/endpoint.svg?url=https%3A%2F%2Factions-badge.atrox.dev%2Fjmorton06%2FLumos%2Fbadge&style=flat-square&label=build&branch=master&event=push"/></a>
+<a href=""><img alt="platforms" src="https://img.shields.io/badge/Platforms-Windows%20%7C%20Linux%20%7C%20macOS%20%7C%20iOS-blue?style=flat-square"/></a>
+<a href="https://github.com/jmorton06/Lumos/blob/master/LICENSE"><img alt="license" src="https://img.shields.io/github/license/jmorton06/Lumos?style=flat-square"/></a>
+<br/>
+<a href="https://github.com/jmorton06/Lumos/issues"><img alt="Issues" src="https://img.shields.io/github/issues-raw/jmorton06/Lumos.svg?style=flat-square"/></a>
+<a href=""><img alt="size" src="https://img.shields.io/github/repo-size/jmorton06/Lumos?style=flat-square"/></a>
+<a href=""><img alt="stars" src="https://img.shields.io/github/stars/jmorton06/Lumos?style=social"/></a>
+<br/>
+</p>
 
-[![Build Status](https://img.shields.io/endpoint.svg?url=https%3A%2F%2Factions-badge.atrox.dev%2Fjmorton06%2FLumos%2Fbadge&style=flat-square&label=build&branch=master&event=push)](https://actions-badge.atrox.dev/jmorton06/Lumos/goto)  ![](https://img.shields.io/github/repo-size/jmorton06/Lumos?style=flat-square)  ![](https://img.shields.io/github/stars/jmorton06/Lumos?style=social)
+#
+## Building 🔨
 
-## Building  🔨
- 
-### Premake
 ```
 git clone https://github.com/jmorton06/Lumos.git
-cd Lumos
-
-Tools/premake5 gmake
-
-cd build
-make
 ```
 
+#### Linux
+```
+sudo apt-get install -y g++-8 libxrandr-dev libxinerama-dev libxcursor-dev libxi-dev libopenal-dev mesa-common-dev
+cd Lumos
+Tools/premake5 gmake2
+cd build
+make -j8
+```
+#### Windows 
+Run Scripts/GenerateVS.bat to generate a visual studio project.
+```
+cd Lumos
+msbuild /p:Platform=x64 /p:Configuration=Release build/Lumos.sln
+```
+#### Mac
+```
+cd Lumos
+Tools/premake5 xcode4
+xcodebuild -project build/Sandbox.xcodeproj
+```
+
+#### iOS
+```
+cd Lumos
+Tools/premake5 xcode4 --os=ios
+xcodebuild -project build/Sandbox.xcodeproj CODE_SIGN_IDENTITY="" CODE_SIGNING_REQUIRED=NO CODE_SIGNING_ALLOWED=NO
+```
+#
+
+## Screenshots
+![Lumos](/Resources/Screenshot-1610.png?raw=true)
+#
 ## Features
 
 * Support for Windows, Linux, macOS.
@@ -28,11 +69,7 @@ make
 * 3D collision detection - cuboid/sphere/pyramid.
 * 2D collision detection - Box2D.
 * Basic lua scripting support - bindings in progress.
-
-## Screenshots
-
-![Lumos](/Resources/Screenshot-1610.png?raw=true)
-
+#
 ## Third Party
  * [imgui](https://github.com/ocornut/imgui) : Dear ImGui: Bloat-free Immediate Mode Graphical User interface for C++ with minimal dependencies.
  * [imguizmo](https://github.com/CedricGuillemet/ImGuizmo) : Immediate mode 3D gizmo for scene editing and other controls based on Dear Imgui.
