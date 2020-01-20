@@ -1,5 +1,5 @@
 
-<h1 style="text-align: center;">Lumos</h1>
+<h1 style="text-align: center; markdown="1">Lumos</h1>
 <p align="center">
   Game Engine written in C++ using OpenGL and Vulkan.<br/>
 <br/>
