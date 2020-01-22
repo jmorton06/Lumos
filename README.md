@@ -1,12 +1,12 @@
+<h1 align="center" style="border-bottom: none;">
+  <a href="https://github.com/jmorton06/Lumos/">Lumos Engine</a>
+</h1>
+<h3 align="center">Cross-platform 2D and 3D Game Engine written in C++ that supports both OpenGL and Vulkan.</h3>
 <p align="center">
-  Lumos
-  <br/>
-  Game Engine written in C++ using OpenGL and Vulkan.<br/>
-<br/>
-  <a href="#features">Features</a> |
-  <a href="#screenshots">Screenshots</a> |
   <a href="#building-🔨">Building</a> |
-  <a href="#third-party">Third Party</a>
+  <a href="#screenshots">Screenshots</a> |
+  <a href="#features">Features</a> |
+  <a href="#dependencies">Dependencies</a>
 <br/>
 <br/>
 <a href="https://actions-badge.atrox.dev/jmorton06/Lumos/goto"><img alt="Build" src="https://img.shields.io/endpoint.svg?url=https%3A%2F%2Factions-badge.atrox.dev%2Fjmorton06%2FLumos%2Fbadge&style=flat-square&label=build&branch=master&event=push"/></a>
@@ -70,7 +70,11 @@ xcodebuild -project build/Sandbox.xcodeproj CODE_SIGN_IDENTITY="" CODE_SIGNING_R
 * 2D collision detection - Box2D.
 * Basic lua scripting support - bindings in progress.
 #
-## Third Party
+## Contributing
+
+* Contributions are welcome. Both new features and bug fixes. Just open a pull request.
+#
+## Dependencies
  * [imgui](https://github.com/ocornut/imgui) : Dear ImGui: Bloat-free Immediate Mode Graphical User interface for C++ with minimal dependencies.
  * [imguizmo](https://github.com/CedricGuillemet/ImGuizmo) : Immediate mode 3D gizmo for scene editing and other controls based on Dear Imgui.
  * [entt](https://github.com/skypjack/entt) : Fast and reliable entity-component system (ECS) 
