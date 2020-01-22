@@ -1,8 +1,10 @@
-<h1 align="center" style="border-bottom: none;">
-  <a href="https://github.com/jmorton06/Lumos/">Lumos Engine</a>
-</h1>
-<h3 align="center">Cross-platform 2D and 3D Game Engine written in C++ that supports both OpenGL and Vulkan.</h3>
 <p align="center">
+  Lumos
+  <br/>
+  Game Engine written in C++ using OpenGL and Vulkan.<br/>
+<br/>
+  <a href="#features">Features</a> |
+  <a href="#screenshots">Screenshots</a> |
   <a href="#building-🔨">Building</a> |
   <a href="#screenshots">Screenshots</a> |
   <a href="#features">Features</a> |
