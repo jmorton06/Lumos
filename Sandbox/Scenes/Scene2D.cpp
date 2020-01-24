@@ -265,7 +265,6 @@ void Scene2D::Reset()
 
 void Scene2D::CreatePillar(int index, float offset)
 {
-	Lumos::Debug::Log::Info(offset);
 	auto& pillarTop = m_Pillars[index];
 	auto& pillarBottom = m_Pillars[index + 1];
 	pillarTop = m_Registry.create();
