@@ -40,5 +40,5 @@ project 'lua'
 	filter "configurations:Release"
 		optimize "On"
 
-	filter "configurations:Dist"
+	filter "configurations:Production"
 		optimize "On"

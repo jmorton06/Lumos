@@ -150,7 +150,7 @@ project "Sandbox"
 				"{COPY} "..source.." "..target
 			}
 
-		filter {"system:macosx", "configurations:dist"}
+		filter {"system:macosx", "configurations:Production"}
 
 			local source = "../Dependencies/vulkan/libs/macOS/**"
 			local target = "../bin/dist/"
@@ -271,7 +271,8 @@ project "Sandbox"
 		symbols "On"
 		runtime "Release"
 
-	filter "configurations:Dist"
-		defines "LUMOS_DIST"
-		optimize "On"
+	filter "configurations:Production"
+		defines "LUMOS_PRODUCTION"
+		symbols "Off"
+		optimize "Full"
 		runtime "Release"

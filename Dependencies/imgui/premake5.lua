@@ -39,6 +39,6 @@ project "imgui"
 		runtime "Release"
 		optimize "on"
 
-	filter "configurations:Dist"
+	filter "configurations:Production"
 		runtime "Release"
 		optimize "on"

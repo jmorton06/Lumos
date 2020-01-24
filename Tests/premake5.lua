@@ -115,7 +115,7 @@ project "Tests"
 				"{COPY} "..source.." "..target
 			}
 
-		filter {"system:macosx", "configurations:dist"}
+		filter {"system:macosx", "configurations:Production"}
 
 			local source = "../Dependencies/vulkan/libs/macOS/**"
 			local target = "../bin/dist/"
@@ -235,7 +235,7 @@ project "Tests"
 		symbols "On"
 		runtime "Release"
 
-	filter "configurations:Dist"
+	filter "configurations:Production"
 		defines "LUMOS_DIST"
 		optimize "On"
 		runtime "Release"

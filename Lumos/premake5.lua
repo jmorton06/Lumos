@@ -330,7 +330,7 @@ project "Lumos"
 		symbols "On"
 		runtime "Release"
 
-	filter "configurations:Dist"
+	filter "configurations:Production"
 		defines "LUMOS_DIST"
 		optimize "On"
 		runtime "Release"
