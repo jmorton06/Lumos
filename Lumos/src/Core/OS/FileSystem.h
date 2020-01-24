@@ -1,4 +1,5 @@
 #pragma once
+
 #include "lmpch.h"
 
 namespace Lumos
@@ -17,17 +18,10 @@ namespace Lumos
 		static bool WriteFile(const String& path, u8* buffer);
 		static bool WriteTextFile(const String& path, const String& text);
 
+		//static void SetRootDirectory(const String& path);
 	private:
-		static bool (*FileExistsFunc)(const String&);
-		static bool (*FolderExistsFunc)(const String&);
-		static i64 (*GetFileSizeFunc)(const String&);
-		
-		static u8* (*ReadFileFunc)(const String&);
-		static bool (*ReadFileFunc)(const String&, void*, i64);
-		static String (*ReadTextFileFunc)(const String&);
 
-		static bool (*WriteFileFunc)(const String&, u8*);
-		static bool (*WriteTextFileFunc)(const String&, const String&);
+		//static String s_RootDirectory;
 	};
 
 }
