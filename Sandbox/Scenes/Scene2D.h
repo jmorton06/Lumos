@@ -28,6 +28,7 @@ public:
 	GameState m_GameState = Running;
 
 	u32 m_Score = 0;
-	float m_PillarTarget = 30.0f;
+	float m_PillarTarget = 35.0f;
 	int m_PillarIndex = 0;
+	float m_FurthestPillarPosX = 0.0f;
 };

@@ -23,7 +23,7 @@ namespace Lumos
 		static i64 (*GetFileSizeFunc)(const String&);
 		
 		static u8* (*ReadFileFunc)(const String&);
-		static bool (*ReadFileFunc)(const String&, void*, i64);
+		static bool (*ReadFileBufferFunc)(const String&, void*, i64);
 		static String (*ReadTextFileFunc)(const String&);
 
 		static bool (*WriteFileFunc)(const String&, u8*);
