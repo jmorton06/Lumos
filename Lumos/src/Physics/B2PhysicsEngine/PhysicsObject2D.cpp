@@ -31,6 +31,11 @@ namespace Lumos
 		m_B2Body->SetLinearVelocity(b2Vec2(v.x, v.y));
 	}
 
+	void PhysicsObject2D::SetAngularVelocity(float velocity)
+	{
+		m_B2Body->SetAngularVelocity(velocity);
+	}
+
 	void PhysicsObject2D::SetForce(const Maths::Vector2& v) const
 	{
         m_B2Body->ApplyForceToCenter(b2Vec2(v.x,v.y), true);
