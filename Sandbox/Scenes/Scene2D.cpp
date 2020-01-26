@@ -101,8 +101,6 @@ void Scene2D::OnInit()
 		CreatePillar(i, (i + 3) * 10.0f);
 }
 
-
-
 void Scene2D::OnUpdate(TimeStep* timeStep)
 {
 	Scene::OnUpdate(timeStep);
@@ -246,6 +244,7 @@ void Scene2D::Reset()
 
 	m_FurthestPillarPosX = 0.0f;
 	m_PillarTarget = 35.0f;
+    m_PillarIndex = 0;
 
 	m_Registry.get<Maths::Transform>(s_player.entity).SetLocalPosition({ 0.0f,0.0f,0.0f });
 	m_Registry.get<Maths::Transform>(s_player.entity).UpdateMatrices();
