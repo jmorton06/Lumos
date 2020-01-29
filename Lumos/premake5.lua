@@ -119,6 +119,8 @@ project "Lumos"
 		cppdialect "C++17"
 		systemversion "latest"
 
+		addCommonXcodeBuildSettings()
+
 		files
 		{
 			"src/Platform/macOS/*.mm",
@@ -186,11 +188,12 @@ project "Lumos"
 			filter 'files:src/**.m'
 				flags  { 'NoPCH' }
 
-	require 'Scripts/ios'
 	filter "system:ios"
 		cppdialect "C++17"
 		systemversion "latest"
 		kind "StaticLib"
+
+		addCommonXcodeBuildSettings()
 
 		defines
 		{
@@ -330,7 +333,8 @@ project "Lumos"
 		symbols "On"
 		runtime "Release"
 
-	filter "configurations:Production"
-		defines "LUMOS_DIST"
-		optimize "On"
+		filter "configurations:Production"
+		defines "LUMOS_PRODUCTION"
+		symbols "Off"
+		optimize "Full"
 		runtime "Release"

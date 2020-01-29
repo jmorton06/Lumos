@@ -1,5 +1,6 @@
-require 'Scripts/ios'
-require 'Scripts/premakeDefines'
+require 'Scripts/premake-ios'
+require 'Scripts/premake-defines'
+require 'Scripts/premake-common'
 
 workspace "Lumos"
 	architecture "x64"
