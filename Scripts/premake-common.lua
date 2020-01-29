@@ -4,12 +4,12 @@ function addCommonXcodeBuildSettings()
 	xcodebuildsettings
 	{
 		["GCC_VERSION"] = "com.apple.compilers.llvm.clang.1_0";
-		["IPHONEOS_DEPLOYMENT_TARGET"] = "6.0";
+		["IPHONEOS_DEPLOYMENT_TARGET"] = "12.0";
 		["TARGETED_DEVICE_FAMILY"]	= "1,2";
 		["GCC_SYMBOLS_PRIVATE_EXTERN"] = "YES";
 		["GCC_DYNAMIC_NO_PIC"] = "NO";			
-		["GCC_C_LANGUAGE_STANDARD"] = "c11";			
-		["CLANG_CXX_LANGUAGE_STANDARD"] = "c++11";
+		["GCC_C_LANGUAGE_STANDARD"] = "c17";			
+		["CLANG_CXX_LANGUAGE_STANDARD"] = "c++17";
 		["CLANG_CXX_LIBRARY"]  = "libc++";
 		["ARCHS"] = "$(ARCHS_STANDARD)";
 		["VALID_ARCHS"] = "$(ARCHS_STANDARD)";	
@@ -51,8 +51,8 @@ function addCommonXcodeBuildSettings()
 		["TARGETED_DEVICE_FAMILY"]	= "3";
 		["GCC_SYMBOLS_PRIVATE_EXTERN"] = "YES";
 		["GCC_DYNAMIC_NO_PIC"] = "NO";			
-		["GCC_C_LANGUAGE_STANDARD"] = "c11";			
-		["CLANG_CXX_LANGUAGE_STANDARD"] = "c++11";
+		["GCC_C_LANGUAGE_STANDARD"] = "c17";			
+		["CLANG_CXX_LANGUAGE_STANDARD"] = "c++17";
 		["CLANG_CXX_LIBRARY"]  = "libc++";
 		["ARCHS"] = "arm64";
 		["VALID_ARCHS"] = "arm64";	
