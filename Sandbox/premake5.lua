@@ -262,6 +262,7 @@ project "Sandbox"
 
 	filter "configurations:Debug"
 		defines "LUMOS_DEBUG"
+		optimize "Off"
 		symbols "On"
 		runtime "Debug"
 
