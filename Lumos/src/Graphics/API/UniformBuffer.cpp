@@ -1,16 +1,6 @@
 #include "lmpch.h"
 #include "UniformBuffer.h"
 
-#include "GraphicsContext.h"
-
-#ifdef LUMOS_RENDER_API_VULKAN 
-#include "Platform/Vulkan/VKUniformBuffer.h"
-#endif
-
-#ifdef LUMOS_RENDER_API_OPENGL
-#include "Platform/OpenGL/GLUniformBuffer.h"
-#endif
-
 namespace Lumos
 {
 	namespace Graphics

@@ -9,25 +9,11 @@ namespace Lumos
 
         enum class RenderAPI : u32
 		{
-		#ifdef LUMOS_RENDER_API_OPENGL
-			OPENGL,
-		#endif
-
-		#ifdef LUMOS_RENDER_API_VULKAN
+			OPENGL = 0,
 			VULKAN,
-		#endif
-
-		#ifdef LUMOS_RENDER_API_DIRECT3D
 			DIRECT3D, //Unsupported
-		#endif
-
-		#ifdef LUMOS_RENDER_API_NONE
 			METAL, //Unsupported
-		#endif
-
-		#ifdef LUMOS_RENDER_API_NONE
 			NONE, //Unsupported
-		#endif
 		};
 
 		class LUMOS_EXPORT GraphicsContext

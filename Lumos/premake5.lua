@@ -119,8 +119,6 @@ project "Lumos"
 		cppdialect "C++17"
 		systemversion "latest"
 
-		addCommonXcodeBuildSettings()
-
 		files
 		{
 			"src/Platform/macOS/*.mm",
@@ -192,8 +190,6 @@ project "Lumos"
 		cppdialect "C++17"
 		systemversion "latest"
 		kind "StaticLib"
-
-		addCommonXcodeBuildSettings()
 
 		defines
 		{

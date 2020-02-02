@@ -42,6 +42,7 @@ Lumos::Application* Lumos::CreateApplication()
 {
 #ifdef LUMOS_PLATFORM_IOS
     WindowProperties windowProperties;
+    windowProperties.RenderAPI = static_cast<int>(Graphics::RenderAPI::VULKAN);
 #else
     WindowProperties windowProperties = LuaManager::Instance()->LoadConfigFile(ROOT_DIR"/Sandbox/Settings.lua");
 	windowProperties.ShowConsole = true;

@@ -8,15 +8,15 @@
 #import "DemoViewController.h"
 
 #include "../iOSOS.h"
+#include "App/Application.h"
 
 #pragma mark -
 #pragma mark DemoViewController
 
-static Lumos::iOSOS* os;
-
 @implementation DemoViewController {
     CADisplayLink* _displayLink;
     BOOL _viewHasAppeared;
+    Lumos::iOSOS* os;
 }
 
 /** Since this is a single-view app, init Vulkan when the view is loaded. */
@@ -24,10 +24,12 @@ static Lumos::iOSOS* os;
 	[super viewDidLoad];
 
     self.view.contentScaleFactor = UIScreen.mainScreen.nativeScale;
+    Lumos::Application::iosViewTest = self.view;
 
-    os = new Lumos::iOSOS();
+    Lumos::iOSOS::Create();
+    os = (Lumos::iOSOS*)Lumos::iOSOS::Instance();
     os->SetIOSView(self.view);
-
+    
     uint32_t fps = 60;
     _displayLink = [CADisplayLink displayLinkWithTarget: self selector: @selector(renderFrame)];
     [_displayLink setFrameInterval: 60 / fps];
@@ -108,7 +110,7 @@ static Lumos::iOSOS* os;
 @implementation DemoView
 
 /** Returns a Metal-compatible layer. */
-//+(Class) layerClass { return [CAMetalLayer class]; }
++(Class) layerClass { return [CAMetalLayer class]; }
 
 @end
 

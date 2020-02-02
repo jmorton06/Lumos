@@ -172,7 +172,7 @@ project "Tests"
 			["SDKROOT"] = "iphoneos",
 			["SUPPORTED_PLATFORMS"] = "iphonesimulator iphoneos",
 			["CODE_SIGN_IDENTITY[sdk=iphoneos*]"] = "iPhone Developer",
-			['IPHONEOS_DEPLOYMENT_TARGET'] = '12.1',
+			['IPHONEOS_DEPLOYMENT_TARGET'] = '13.0',
 			['PRODUCT_BUNDLE_IDENTIFIER'] = "com.jmorton06",
 			['INFOPLIST_FILE'] = "../Lumos/src/Platform/iOS/Client/Info.plist"
 		}

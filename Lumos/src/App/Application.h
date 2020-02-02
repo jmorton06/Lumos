@@ -151,6 +151,9 @@ namespace Lumos
 #endif
 
 		NONCOPYABLE(Application)
+        
+    public:
+        static void* iosViewTest;
 	};
 
 	//Defined by client

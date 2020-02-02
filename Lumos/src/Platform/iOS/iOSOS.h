@@ -21,7 +21,7 @@ namespace Lumos
         void OnFrame();
         void OnQuit();
         void OnKeyPressed(u32 keycode);
-        
+
     private:
         
         void* m_IOSView;
