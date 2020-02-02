@@ -1,5 +1,6 @@
 #include "lmpch.h"
 #include "Framebuffer.h"
+#include "Graphics/API/GraphicsContext.h"
 
 namespace Lumos
 {
