@@ -42,7 +42,6 @@ project "Sandbox"
 
 	defines
 	{
-		"LUMOS_ROOT_DIR="  .. cwd,
 	}
 
 	filter "system:windows"
@@ -59,7 +58,8 @@ project "Sandbox"
 			"VK_USE_PLATFORM_WIN32_KHR",
 			"WIN32_LEAN_AND_MEAN",
 			"_CRT_SECURE_NO_WARNINGS",
-			"_DISABLE_EXTENDED_ALIGNED_STORAGE"
+			"_DISABLE_EXTENDED_ALIGNED_STORAGE",
+			"LUMOS_ROOT_DIR="  .. cwd,
 		}
 
 		libdirs
@@ -119,7 +119,8 @@ project "Sandbox"
 			"LUMOS_RENDER_API_OPENGL",
 			"LUMOS_RENDER_API_VULKAN",
 			"VK_EXT_metal_surface",
-			"LUMOS_IMGUI"
+			"LUMOS_IMGUI",
+			"LUMOS_ROOT_DIR="  .. cwd,
 		}
 
 		linkoptions 
@@ -191,7 +192,7 @@ project "Sandbox"
 			"LUMOS_RENDER_API_VULKAN",
 			"VK_USE_PLATFORM_IOS_MVK",
 			"LUMOS_IMGUI",
-			"LUMOS_ROOT_DIR=",
+			"LUMOS_ROOT_DIR="
 		}
 
 		links
@@ -238,7 +239,8 @@ project "Sandbox"
 			"LUMOS_RENDER_API_OPENGL",
 			"LUMOS_RENDER_API_VULKAN",
 			"VK_USE_PLATFORM_XCB_KHR",
-			"LUMOS_IMGUI"
+			"LUMOS_IMGUI",
+			"LUMOS_ROOT_DIR="  .. cwd,
 		}
 
 		buildoptions

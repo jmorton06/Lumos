@@ -8,7 +8,7 @@
 #endif
 
 #ifdef LUMOS_DEBUG
-const bool EnableValidationLayers = true;
+const bool EnableValidationLayers = false;
 #else
 const bool EnableValidationLayers = false;
 #endif

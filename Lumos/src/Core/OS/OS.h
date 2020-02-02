@@ -28,7 +28,7 @@ namespace Lumos
 
         virtual const char* GetExecutablePath() = 0;
 
-    private:
+    protected:
 
         static OS* s_Instance;
 	};
