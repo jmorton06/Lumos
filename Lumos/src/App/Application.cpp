@@ -28,9 +28,6 @@
 #include "Physics/LumosPhysicsEngine/LumosPhysicsEngine.h"
 
 #include <imgui/imgui.h>
-
-void* Lumos::Application::iosViewTest = nullptr;
-
 namespace Lumos
 {
 	Application* Application::s_Instance = nullptr;

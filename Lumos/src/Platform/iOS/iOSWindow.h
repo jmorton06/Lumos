@@ -33,11 +33,27 @@ namespace Lumos
         String GetTitle() const override { return "Mobile"; }
 
         static void MakeDefault();
-
+        static void* GetIOSView() { return iosView; }
+        static void SetIOSView(void* view) { iosView = view; }
     protected:
 
 		static Window* CreateFunciOS(const WindowProperties& properties);
 
 		uint m_Handle;
+
+        struct WindowData
+		{
+			std::string Title;
+			u32 Width, Height;
+			bool VSync;
+			bool Exit;
+			//Graphics::RenderAPI m_RenderAPI;
+
+			EventCallbackFn EventCallback;
+		};
+
+		WindowData m_Data;
+
+        static void* iosView;
     };
 }
