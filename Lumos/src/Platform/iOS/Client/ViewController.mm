@@ -5,15 +5,15 @@
  *  This code is licensed under the MIT license (MIT) (http://opensource.org/licenses/MIT)
  */
 
-#import "DemoViewController.h"
+#import "ViewController.h"
 
 #include "../iOSOS.h"
 #include "App/Application.h"
 
 #pragma mark -
-#pragma mark DemoViewController
+#pragma mark ViewController
 
-@implementation DemoViewController {
+@implementation ViewController {
     CADisplayLink* _displayLink;
     BOOL _viewHasAppeared;
     Lumos::iOSOS* os;
@@ -105,7 +105,7 @@
 
 
 #pragma mark -
-#pragma mark DemoView
+#pragma mark View
 
 @implementation View
 
