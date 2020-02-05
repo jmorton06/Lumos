@@ -16,6 +16,31 @@ namespace Lumos
 
 		static bool WriteFile(const String& path, u8* buffer);
 		static bool WriteTextFile(const String& path, const String& text);
+        
+        static bool IsRelativePath(const char *path)
+        {
+            if (!path || path[0] == '/' || path[0] == '\\')
+            {
+                return false;
+            }
+            
+            if (strlen(path) >= 2 && isalpha(path[0]) && path[1] == ':')
+            {
+                return false;
+            }
+            
+            return true;
+        }
+
+        static bool IsAbsolutePath(const char *path)
+        {
+            if (!path)
+            {
+                return false;
+            }
+            
+            return !IsRelativePath(path);
+        }
 
 	private:
 		static bool (*FileExistsFunc)(const String&);
