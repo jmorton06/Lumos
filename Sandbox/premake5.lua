@@ -207,6 +207,11 @@ project "Sandbox"
 			"OpenAL.framework"
 		}
 
+		libdirs
+		{
+			"../Dependencies/vulkan/libs/iOS"
+		}
+
 		xcodebuildsettings
 		{
 			["ARCHS"] = "$(ARCHS_STANDARD)",
@@ -217,8 +222,7 @@ project "Sandbox"
 			['IPHONEOS_DEPLOYMENT_TARGET'] = '12.1',
 			['PRODUCT_BUNDLE_IDENTIFIER'] = "com.jmorton06",
 			['INFOPLIST_FILE'] = "../Lumos/src/Platform/iOS/Client/Info.plist",
-			["ENABLE_BITCODE"] = "NO",
-			--['RUNTIME_SEARCH_PATH'] = "@executable_path/Frameworks"
+			["ENABLE_BITCODE"] = "NO"
 		}
 
 		files
@@ -228,7 +232,43 @@ project "Sandbox"
 			"../Sandbox/res/**",
 		}
 
+		linkoptions { "-rpath @executable_path/Frameworks" }
+
 		xcodebuildresources { "res/**" }
+
+		filter {"system:ios", "configurations:release"}
+
+			local source = "../Dependencies/vulkan/libs/iOS/**"
+			local target = "../bin/release/"
+			
+			buildmessage("copying "..source.." -> "..target)
+			
+			postbuildcommands {
+				"{COPY} "..source.." "..target
+			}
+
+		filter {"system:ios", "configurations:Production"}
+
+			local source = "../Dependencies/vulkan/libs/iOS/**"
+			local target = "../bin/dist/"
+			
+			buildmessage("copying "..source.." -> "..target)
+			
+			postbuildcommands {
+				"{COPY} "..source.." "..target
+			}
+
+		filter {"system:ios", "configurations:debug"}
+
+			local source = "../Dependencies/vulkan/libs/iOS/**"
+			local target = "../bin/debug/"
+			
+			buildmessage("copying "..source.." -> "..target)
+			
+			postbuildcommands {
+				"{COPY} "..source.." "..target
+			}
+
 
 	filter "system:linux"
 		cppdialect "C++17"
