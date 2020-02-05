@@ -71,6 +71,7 @@
 #include "Core/CoreSystem.h"
 #include "Core/LMLog.h"
 #include "Core/OS/Input.h"
+#include "Core/OS/OS.h"
 
 //Scripting
 #include "Scripting/LuaScript.h"

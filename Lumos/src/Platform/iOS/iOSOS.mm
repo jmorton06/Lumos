@@ -15,15 +15,16 @@ namespace Lumos
     iOSOS::iOSOS()
     {
         Lumos::Internal::CoreSystem::Init(false);
+
+        String root = GetAssetPath();
+        Lumos::VFS::Get()->Mount("CoreShaders", root + "Lumos/res/shaders");
+        Lumos::VFS::Get()->Mount("CoreMeshes", root + "Lumos/res/meshes");
+        Lumos::VFS::Get()->Mount("CoreTextures", root + "Lumos/res/textures");
+        
         Init();
 
         auto app = Lumos::CreateApplication();
         app->Init();
-
-        String root = GetAssetPath();
-        Lumos::VFS::Get()->Mount("CoreShaders", root + "/Lumos/res/shaders");
-        Lumos::VFS::Get()->Mount("CoreMeshes", root + "/Lumos/res/meshes");
-        Lumos::VFS::Get()->Mount("CoreTextures", root + "/Lumos/res/textures");
     }
 
     iOSOS::~iOSOS()

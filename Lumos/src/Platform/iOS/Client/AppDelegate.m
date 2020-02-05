@@ -41,4 +41,50 @@
 	// Called when the application is about to terminate. Save data if appropriate. See also applicationDidEnterBackground:.
 }
 
+-( void )layoutSubviews
+{
+    [ super layoutSubviews ];
+
+}
+
+-( void )touchesBegan:( NSSet< UITouch* >* )touches withEvent:( UIEvent* )event
+{
+    for( UITouch* touch in touches )
+    {
+        CGPoint   point = [ touch locationInView:self ];
+        NSInteger index = [ touch.estimationUpdateIndex integerValue ];
+
+    }
+}
+
+-( void )touchesMoved:( NSSet< UITouch* >* )touches withEvent:( UIEvent* )event
+{
+    for( UITouch* touch in touches )
+    {
+        CGPoint   point = [ touch locationInView:self ];
+        NSInteger index = [ touch.estimationUpdateIndex integerValue ];
+
+    }
+}
+
+-( void )touchesEnded:( NSSet< UITouch* >* )touches withEvent:( UIEvent* )event
+{
+    for( UITouch* touch in touches )
+    {
+        CGPoint   point = [ touch locationInView:self ];
+        NSInteger index = [ touch.estimationUpdateIndex integerValue ];
+
+    }
+}
+
+-( void )touchesCancelled:( NSSet< UITouch* >* )touches withEvent:( UIEvent* )event
+{
+    for( UITouch* touch in touches )
+    {
+        CGPoint   point = [ touch locationInView:self ];
+        NSInteger index = [ touch.estimationUpdateIndex integerValue ];
+
+    }
+}
+
 @end

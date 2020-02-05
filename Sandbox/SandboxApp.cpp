@@ -23,7 +23,7 @@ public:
 	{
 		Application::Init();
 
-		const String root = ROOT_DIR;
+        const String root = Lumos::OS::Instance()->GetExecutablePath();//ROOT_DIR;
 		VFS::Get()->Mount("Meshes", root + "/Sandbox/res/meshes");
 		VFS::Get()->Mount("Textures", root + "/Sandbox/res/textures");
 		VFS::Get()->Mount("Sounds", root + "/Sandbox/res/sounds");
