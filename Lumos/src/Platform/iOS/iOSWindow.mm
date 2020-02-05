@@ -3,9 +3,10 @@
 #include "iOSWindow.h"
 #include "Graphics/API/GraphicsContext.h"
 
+void* Lumos::iOSWindow::iosView = nullptr;
+
 namespace Lumos
 {
-
 	iOSWindow::iOSWindow(const WindowProperties& properties)
 	{
 		m_Init = false;

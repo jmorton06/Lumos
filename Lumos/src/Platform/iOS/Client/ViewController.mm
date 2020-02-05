@@ -8,7 +8,7 @@
 #import "ViewController.h"
 
 #include "../iOSOS.h"
-#include "App/Application.h"
+#include "../iOSWindow.h"
 
 #pragma mark -
 #pragma mark ViewController
@@ -24,7 +24,7 @@
 	[super viewDidLoad];
 
     self.view.contentScaleFactor = UIScreen.mainScreen.nativeScale;
-    Lumos::Application::iosViewTest = self.view;
+    Lumos::iOSWindow::SetIOSView(self.view);
 
     Lumos::iOSOS::Create();
     os = (Lumos::iOSOS*)Lumos::iOSOS::Instance();
