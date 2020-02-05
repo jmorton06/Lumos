@@ -107,7 +107,7 @@
 #pragma mark -
 #pragma mark DemoView
 
-@implementation DemoView
+@implementation View
 
 /** Returns a Metal-compatible layer. */
 +(Class) layerClass { return [CAMetalLayer class]; }

@@ -12,14 +12,14 @@
 #pragma mark DemoViewController
 
 /** The main view controller for the demo storyboard. */
-@interface DemoViewController : UIViewController <UIKeyInput>
+@interface ViewController : UIViewController <UIKeyInput>
 @end
 
 
 #pragma mark -
-#pragma mark DemoView
+#pragma mark View
 
 /** The Metal-compatibile view for the demo Storyboard. */
-@interface DemoView : UIView
+@interface View : UIView
 @end
 
