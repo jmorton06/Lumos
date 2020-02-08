@@ -11,3 +11,11 @@
 
 #include <stb/stb_vorbis.c>
 #include <simplex/simplexnoise.cpp>
+
+#ifdef LUMOS_RENDER_API_OPENGL
+#include <glad/glad.c>
+#endif
+
+#ifdef LUMOS_RENDER_API_VULKAN
+#include <volk/volk.c>
+#endif

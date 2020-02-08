@@ -15,16 +15,16 @@ namespace Lumos
 
 		bool Init(const WindowProperties& properties, const String& title);
 
-		inline void* GetHandle() override { return (void*)nullptr; }//m_Handle; }
+		inline void* GetHandle() override { return (void*)iosView; }//m_Handle; }
 
-		inline uint GetWidth()  const override { return 500; }
-		inline uint GetHeight() const override { return 500; }
+		inline uint GetWidth()  const override { return m_Data.Width; }
+		inline uint GetHeight() const override { return m_Data.Height; }
         
         bool GetExit() const override { return false; }
         void SetExit(bool exit) override { }
         
         void SetVSync(bool set) override { }
-        float GetScreenRatio() const override { return 1.0f; }
+        float GetScreenRatio() const override { return (float)m_Data.Width / (float)m_Data.Height; }
         
         void SetEventCallback(const EventCallbackFn& callback) override { };
         void SetIcon(const String& filePath, const String& smallIconFilePath) override {};

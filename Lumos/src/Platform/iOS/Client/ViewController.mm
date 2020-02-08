@@ -3,6 +3,8 @@
 #include "../iOSOS.h"
 #include "../iOSWindow.h"
 
+#include "UIWindow.h"
+
 #pragma mark -
 #pragma mark ViewController
 
@@ -10,7 +12,20 @@
     CADisplayLink* _displayLink;
     BOOL _viewHasAppeared;
     Lumos::iOSOS* os;
+    LumosUIWindow* uiWindow;
 }
+
+- (BOOL)prefersStatusBarHidden {
+    return YES;
+}
+
+- (BOOL)prefersHomeIndicatorAutoHidden {
+    return YES;
+}
+
+- (BOOL)shouldAutorotate {
+        return YES;
+};
 
 /** Since this is a single-view app, init Vulkan when the view is loaded. */
 -(void) viewDidLoad {
@@ -18,10 +33,17 @@
 
     self.view.contentScaleFactor = UIScreen.mainScreen.nativeScale;
     Lumos::iOSWindow::SetIOSView(self.view);
-
+    Lumos::iOSOS::SetWindowSize(self.view.bounds.size.width * self.view.contentScaleFactor, self.view.bounds.size.height * self.view.contentScaleFactor);
     Lumos::iOSOS::Create();
     os = (Lumos::iOSOS*)Lumos::iOSOS::Instance();
     os->SetIOSView(self.view);
+    
+//    uiWindow = [ LumosUIWindow alloc ];
+//    [ uiWindow initWithFrame:[ [ UIScreen mainScreen ] bounds ] ];
+//    uiWindow.backgroundColor = [ UIColor whiteColor ];
+//    [ uiWindow makeKeyAndVisible ];
+//    [ uiWindow setMultipleTouchEnabled:YES ];
+
     
     uint32_t fps = 60;
     _displayLink = [CADisplayLink displayLinkWithTarget: self selector: @selector(renderFrame)];

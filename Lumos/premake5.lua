@@ -28,10 +28,10 @@ project "Lumos"
 		"external/jsonhpp/",
 		"external/stb/",
 		"external/spdlog/include",
+		"external/glad/include",
 		"../Dependencies/",
 		"../Dependencies/lua/src/",
 		"../Dependencies/glfw/include/",
-		"../Dependencies/glad/include/",
 		"../Dependencies/OpenAL/include/",
 		"../Dependencies/Box2D/",
 		"../Dependencies/vulkan/",
@@ -100,7 +100,6 @@ project "Lumos"
 		links
 		{
 			"glfw",
-			"glad"
 		}
 
 		buildoptions
@@ -161,8 +160,7 @@ project "Lumos"
         	"CoreFoundation.framework",
 			"CoreVideo.framework",
 			"OpenAL.framework",
-			"glfw",
-			"glad"
+			"glfw"
 		}
 
 		libdirs
@@ -282,8 +280,7 @@ project "Lumos"
 
 		links
 		{
-			"glfw",
-			"glad"
+			"glfw"
 		}
 
 		linkoptions
