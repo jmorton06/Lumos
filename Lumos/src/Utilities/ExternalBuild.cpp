@@ -13,7 +13,7 @@
 #include <simplex/simplexnoise.cpp>
 
 #ifdef LUMOS_RENDER_API_OPENGL
-#include <glad/glad.c>
+#include <glad/src/glad.c>
 #endif
 
 #ifdef LUMOS_RENDER_API_VULKAN
