@@ -53,7 +53,6 @@
     {
         CGPoint   point = [ touch locationInView:self ];
         NSInteger index = [ touch.estimationUpdateIndex integerValue ];
-
     }
 }
 

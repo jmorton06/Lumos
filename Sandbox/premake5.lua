@@ -234,7 +234,12 @@ project "Sandbox"
 
 		linkoptions { "-rpath @executable_path/Frameworks" }
 
-		xcodebuildresources { "res/**" }
+		xcodebuildresources 
+		{
+			"../Lumos/src/Platform/iOS/Client/**",
+			"../Lumos/res/**",
+			"../Sandbox/res/**", 
+		}
 
 		filter {"system:ios", "configurations:release"}
 
