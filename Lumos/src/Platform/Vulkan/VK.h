@@ -1,8 +1,9 @@
 #pragma once
 
-//#ifdef LUMOS_PLATFORM_IOS
-//#include <vulkan/vulkan.h>
-//#else
+#ifdef LUMOS_VOLK
+#define VK_NO_PROTOTYPES
 #include <volk/volk.h>
-//#endif
+#else
+#include <vulkan/vulkan.h>
+#endif
 #define USE_VMA_ALLOCATOR
