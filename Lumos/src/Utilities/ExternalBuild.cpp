@@ -17,5 +17,7 @@
 #endif
 
 #ifdef LUMOS_RENDER_API_VULKAN
+#ifdef LUMOS_VOLK
 #include <volk/volk.c>
+#endif
 #endif

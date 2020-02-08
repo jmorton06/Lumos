@@ -37,7 +37,7 @@ namespace Lumos
 	#elif defined(VK_USE_PLATFORM_XCB_KHR)
 			 extensions.push_back(VK_KHR_XCB_SURFACE_EXTENSION_NAME);
 	#elif defined(VK_USE_PLATFORM_IOS_MVK)
-			 extensions.push_back(VK_MVK_IOS_SURFACE_EXTENSION_NAME);
+			 extensions.push_back("VK_EXT_metal_surface");
 	#elif defined(VK_USE_PLATFORM_MACOS_MVK)
 			 extensions.push_back(VK_MVK_MACOS_SURFACE_EXTENSION_NAME);
     #elif defined(VK_USE_PLATFORM_METAL_EXT)

@@ -58,14 +58,14 @@ void SceneModelViewer::OnInit()
     deferredRenderer->SetRenderToGBufferTexture(true);
     skyboxRenderer->SetRenderToGBufferTexture(true);
     
-    auto shadowLayer = new Layer3D(shadowRenderer, "Shadow");
+    //auto shadowLayer = new Layer3D(shadowRenderer, "Shadow");
     auto deferredLayer = new Layer3D(deferredRenderer, "Deferred");
     auto skyBoxLayer = new Layer3D(skyboxRenderer, "Skybox");
-    Application::Instance()->PushLayer(shadowLayer);
+    //Application::Instance()->PushLayer(shadowLayer);
     Application::Instance()->PushLayer(deferredLayer);
     Application::Instance()->PushLayer(skyBoxLayer);
     
-    Application::Instance()->GetRenderManager()->SetShadowRenderer(shadowRenderer);
+    //Application::Instance()->GetRenderManager()->SetShadowRenderer(shadowRenderer);
     Application::Instance()->GetRenderManager()->SetSkyBoxTexture(m_EnvironmentMap);
     
     m_SceneBoundingRadius = 20.0f;

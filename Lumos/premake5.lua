@@ -42,7 +42,6 @@ project "Lumos"
 	{
 		"lua",
 		"Box2D",
-		"volk",
 		"imgui"
 	}
 
@@ -76,7 +75,8 @@ project "Lumos"
 			"_DISABLE_EXTENDED_ALIGNED_STORAGE",
 			"_SILENCE_CXX17_OLD_ALLOCATOR_MEMBERS_DEPRECATION_WARNING",
 			"LUMOS_IMGUI",
-			"LUMOS_OPENAL"
+			"LUMOS_OPENAL",
+			"LUMOS_VOLK"
 		}
 
 		files
@@ -148,7 +148,8 @@ project "Lumos"
 			"LUMOS_RENDER_API_VULKAN",
 			"VK_USE_PLATFORM_METAL_EXT",
 			"LUMOS_IMGUI",
-			"LUMOS_OPENAL"
+			"LUMOS_OPENAL",
+			"LUMOS_VOLK"
 		}
 
 		links
@@ -257,7 +258,8 @@ project "Lumos"
 			"LUMOS_RENDER_API_OPENGL",
 			"LUMOS_RENDER_API_VULKAN",
 			"VK_USE_PLATFORM_XCB_KHR",
-			"LUMOS_IMGUI"
+			"LUMOS_IMGUI",
+			"LUMOS_VOLK"
 		}
 
 		files

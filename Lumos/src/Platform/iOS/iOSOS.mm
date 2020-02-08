@@ -20,9 +20,13 @@ namespace Lumos
         Lumos::Internal::CoreSystem::Init(false);
 
         String root = GetAssetPath();
-        Lumos::VFS::Get()->Mount("CoreShaders", root + "");
-        Lumos::VFS::Get()->Mount("CoreMeshes", root + "");
-        Lumos::VFS::Get()->Mount("CoreTextures", root + "");
+        Lumos::VFS::Get()->Mount("CoreShaders", root + "shaders");
+        Lumos::VFS::Get()->Mount("CoreMeshes", root + "meshes");
+        Lumos::VFS::Get()->Mount("CoreTextures", root + "textures");
+
+        Lumos::VFS::Get()->Mount("Shaders", root + "shaders");
+        Lumos::VFS::Get()->Mount("Meshes", root + "meshes");
+        Lumos::VFS::Get()->Mount("Textures", root + "textures");
         
         Init();
         
@@ -65,6 +69,7 @@ namespace Lumos
 
     const char* iOSOS::GetExecutablePath()
     {
+        return GetAssetPath().c_str();
         static char path[512] = "";
         if (!path[0]) 
         {

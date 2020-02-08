@@ -24,16 +24,16 @@ public:
 		Application::Init();
 
         const String root = Lumos::OS::Instance()->GetExecutablePath();//ROOT_DIR;
-		VFS::Get()->Mount("Meshes", root + "/Sandbox/res/meshes");
-		VFS::Get()->Mount("Textures", root + "/Sandbox/res/textures");
-		VFS::Get()->Mount("Sounds", root + "/Sandbox/res/sounds");
+		//VFS::Get()->Mount("Meshes", root + "meshes");
+		//VFS::Get()->Mount("Textures", root + "textures");
+		//VFS::Get()->Mount("Sounds", root + "sounds");
 
 		GetSceneManager()->EnqueueScene<SceneModelViewer>("SceneModelViewer");
 		GetSceneManager()->EnqueueScene<Scene2D>("2D Test");
 		GetSceneManager()->EnqueueScene<Scene3D>("Physics Scene");
 		GetSceneManager()->EnqueueScene<GraphicsScene>("Terrain Test");
 		GetSceneManager()->EnqueueScene<MaterialTest>("Material Test");
-		GetSceneManager()->SwitchScene(1);
+		GetSceneManager()->SwitchScene(0);
         GetSceneManager()->ApplySceneSwitch();
 	}
 };

@@ -59,6 +59,7 @@ project "Sandbox"
 			"_CRT_SECURE_NO_WARNINGS",
 			"_DISABLE_EXTENDED_ALIGNED_STORAGE",
 			"LUMOS_ROOT_DIR="  .. cwd,
+			"LUMOS_VOLK"
 		}
 
 		libdirs
@@ -119,6 +120,7 @@ project "Sandbox"
 			"VK_EXT_metal_surface",
 			"LUMOS_IMGUI",
 			"LUMOS_ROOT_DIR="  .. cwd,
+			"LUMOS_VOLK"
 		}
 
 		linkoptions 
@@ -225,8 +227,8 @@ project "Sandbox"
 		files
 		{
 			"../Lumos/src/Platform/iOS/Client/**",
-			--"../Lumos/res/**",
-			--"../Sandbox/res/**",
+			"../Lumos/res/**",
+			"../Sandbox/res/**",
 		}
 
 		linkoptions { "-rpath @executable_path/Frameworks" }
@@ -286,6 +288,7 @@ project "Sandbox"
 			"VK_USE_PLATFORM_XCB_KHR",
 			"LUMOS_IMGUI",
 			"LUMOS_ROOT_DIR="  .. cwd,
+			"LUMOS_VOLK"
 		}
 
 		buildoptions
