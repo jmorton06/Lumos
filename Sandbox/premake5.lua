@@ -34,7 +34,6 @@ project "Sandbox"
 		"Lumos",
 		"lua",
 		"Box2D",
-		"volk",
 		"imgui"
 	}
 
@@ -70,7 +69,6 @@ project "Sandbox"
 		links
 		{
 			"glfw",
-			"glad",
 			"OpenGL32",
 			"OpenAL32"
 		}
@@ -136,7 +134,6 @@ project "Sandbox"
 		links
 		{
 			"glfw",
-			"glad"
 		}
 
 
@@ -222,14 +219,14 @@ project "Sandbox"
 			['IPHONEOS_DEPLOYMENT_TARGET'] = '12.1',
 			['PRODUCT_BUNDLE_IDENTIFIER'] = "com.jmorton06",
 			['INFOPLIST_FILE'] = "../Lumos/src/Platform/iOS/Client/Info.plist",
-			["ENABLE_BITCODE"] = "NO"
+			--["ENABLE_BITCODE"] = "NO"
 		}
 
 		files
 		{
 			"../Lumos/src/Platform/iOS/Client/**",
-			"../Lumos/res/**",
-			"../Sandbox/res/**",
+			--"../Lumos/res/**",
+			--"../Sandbox/res/**",
 		}
 
 		linkoptions { "-rpath @executable_path/Frameworks" }
@@ -303,7 +300,6 @@ project "Sandbox"
 		links
 		{
 			"glfw",
-			"glad"
 		}
 
 		links { "X11", "pthread", "dl"}

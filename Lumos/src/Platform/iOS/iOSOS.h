@@ -21,9 +21,12 @@ namespace Lumos
         void OnFrame();
         void OnQuit();
         void OnKeyPressed(u32 keycode);
-
+        
+        static void SetWindowSize(float x, float y) { m_X = x; m_Y = y;}
+        static float m_X,m_Y;
     private:
         
         void* m_IOSView;
+    
     };
 }

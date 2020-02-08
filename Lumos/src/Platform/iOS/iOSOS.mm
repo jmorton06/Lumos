@@ -12,6 +12,9 @@
 
 namespace Lumos
 {
+    float iOSOS::m_X = 0.0f;
+    float iOSOS::m_Y = 0.0f;
+
     iOSOS::iOSOS()
     {
         Lumos::Internal::CoreSystem::Init(false);

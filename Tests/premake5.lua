@@ -15,7 +15,7 @@ project "Tests"
 		"../Lumos/external/stb/",
 		"../Dependencies/lua/src/",
 		"../Dependencies/glfw/include/",
-		"../Dependencies/glad/include/",
+		"../Lumos/external/glad/include/",
 		"../Dependencies/OpenAL/include/",
 		"../Dependencies/stb/",
 		"../Dependencies/Box2D/",
@@ -33,7 +33,6 @@ project "Tests"
 		"Lumos",
 		"lua",
 		"Box2D",
-		"volk",
 		"imgui"
 	}
 
@@ -70,7 +69,6 @@ project "Tests"
 		links
 		{
 			"glfw",
-			"glad",
 		}
 
 	filter "system:macosx"
@@ -100,8 +98,7 @@ project "Tests"
 
 		links
 		{
-			"glfw",
-			"glad"
+			"glfw"	
 		}
 
 		filter {"system:macosx", "configurations:release"}
@@ -211,8 +208,7 @@ project "Tests"
 
 		links
 		{
-			"glfw",
-			"glad"
+			"glfw"
 		}
 
 		links { "X11", "pthread"}
