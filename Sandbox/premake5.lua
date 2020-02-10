@@ -17,7 +17,6 @@ project "Sandbox"
 		"../Lumos/external/stb/",
 		"../Dependencies/lua/src/",
 		"../Dependencies/glfw/include/",
-		"../Dependencies/glad/include/",
 		"../Dependencies/OpenAL/include/",
 		"../Dependencies/stb/",
 		"../Dependencies/Box2D/",
@@ -26,6 +25,7 @@ project "Sandbox"
 		"../Lumos/external/",
 		"../Lumos/external/jsonhpp/",
 		"../Lumos/external/spdlog/include",
+		"../Lumos/external/glad/include/",
 		"../Lumos/src"
 	}
 

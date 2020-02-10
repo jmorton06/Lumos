@@ -13,10 +13,9 @@
 #include <simplex/simplexnoise.cpp>
 
 #ifdef LUMOS_RENDER_API_OPENGL
+#include <glad/src/glad.c>
 #ifdef LUMOS_PLATFORM_WINDOWS
 #include <glad/src/glad_wgl.c>
-#else
-#include <glad/src/glad.c>
 #endif
 #endif
 
