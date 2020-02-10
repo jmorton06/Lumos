@@ -59,10 +59,13 @@ void Scene3D::OnInit()
 	if(audioSystem)
 		audioSystem->SetListener(m_pCamera);
 
-	auto shadowRenderer = new Graphics::ShadowRenderer();
-	shadowRenderer->SetLightEntity(lightEntity);
-
-	auto shadowLayer = new Layer3D(shadowRenderer, "Shadow");
+#ifndef LUMOS_PLATFORM_IOS
+    auto shadowRenderer = new Graphics::ShadowRenderer();
+    shadowRenderer->SetLightEntity(lightEntity);
+    auto shadowLayer = new Layer3D(shadowRenderer);
+    Application::Instance()->GetRenderManager()->SetShadowRenderer(shadowRenderer);
+    Application::Instance()->PushLayer(shadowLayer);
+#endif
 
 	bool editor = false;
 
@@ -70,11 +73,9 @@ void Scene3D::OnInit()
 	editor = true;
 #endif
 
-	Application::Instance()->PushLayer(shadowLayer);
     Application::Instance()->PushLayer(new Layer3D(new Graphics::DeferredRenderer(m_ScreenWidth, m_ScreenHeight, editor), "Deferred"));
 	Application::Instance()->PushLayer(new Layer3D(new Graphics::SkyboxRenderer(m_ScreenWidth, m_ScreenHeight, m_EnvironmentMap, editor), "Skybox"));
 
-	Application::Instance()->GetRenderManager()->SetShadowRenderer(shadowRenderer);
     Application::Instance()->GetRenderManager()->SetSkyBoxTexture(m_EnvironmentMap);
 }
 

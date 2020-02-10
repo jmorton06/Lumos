@@ -13,13 +13,8 @@
 
 - (BOOL)shouldAutorotateToInterfaceOrientation;
 
+- (void)didReceiveMemoryWarning;
+
+- (UIRectEdge)preferredScreenEdgesDeferringSystemGestures;
+
 @end
-
-
-#pragma mark -
-#pragma mark View
-
-/** The Metal-compatibile view for the demo Storyboard. */
-@interface View : UIView
-@end
-

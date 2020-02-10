@@ -33,7 +33,7 @@ namespace Lumos
 
         m_Data.Title = properties.Title;
         m_Data.Width = properties.Width;
-        m_Data.Height = properties.Width;
+        m_Data.Height = properties.Height;
         m_Data.Exit = false;
         
 		return true;
