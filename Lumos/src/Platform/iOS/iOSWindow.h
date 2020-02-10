@@ -15,7 +15,7 @@ namespace Lumos
 
 		bool Init(const WindowProperties& properties, const String& title);
 
-		inline void* GetHandle() override { return (void*)iosView; }//m_Handle; }
+		inline void* GetHandle() override { return (void*)iosView; }
 
 		inline uint GetWidth()  const override { return m_Data.Width; }
 		inline uint GetHeight() const override { return m_Data.Height; }
@@ -38,8 +38,6 @@ namespace Lumos
     protected:
 
 		static Window* CreateFunciOS(const WindowProperties& properties);
-
-		uint m_Handle;
 
         struct WindowData
 		{

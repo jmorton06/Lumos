@@ -5,14 +5,26 @@
 
 #include "UIWindow.h"
 
+#import <QuartzCore/CAMetalLayer.h>
+#include <MoltenVK/vk_mvk_moltenvk.h>
+
 #pragma mark -
 #pragma mark ViewController
 
 @implementation ViewController {
     CADisplayLink* _displayLink;
+    CAMetalLayer* _metalLayer;
     BOOL _viewHasAppeared;
     Lumos::iOSOS* os;
     LumosUIWindow* uiWindow;
+}
+
+- (void)didReceiveMemoryWarning {
+    printf("Receive memory warning!\n");
+};
+
+- (UIRectEdge)preferredScreenEdgesDeferringSystemGestures {
+    return UIRectEdgeAll;
 }
 
 - (BOOL)prefersStatusBarHidden {
@@ -23,33 +35,48 @@
     return YES;
 }
 
-- (BOOL)shouldAutorotate {
-        return YES;
+- (BOOL)shouldAutorotateToInterfaceOrientation {
+    return YES;
 };
 
 /** Since this is a single-view app, init Vulkan when the view is loaded. */
 -(void) viewDidLoad {
 	[super viewDidLoad];
 
-    self.view.contentScaleFactor = UIScreen.mainScreen.nativeScale;
-    Lumos::iOSWindow::SetIOSView(self.view);
-    Lumos::iOSOS::SetWindowSize(self.view.bounds.size.width * self.view.contentScaleFactor, self.view.bounds.size.height * self.view.contentScaleFactor);
+    self.view.contentScaleFactor = [[UIScreen mainScreen] scale];
+
+    if (@available(iOS 11.0, *)) {
+        [self setNeedsUpdateOfScreenEdgesDeferringSystemGestures];
+    }
+    
+    assert([self.view isKindOfClass:[UIView class]]);
+
+    CGSize drawableSize = self.view.bounds.size;
+     
+     // Since drawable size is in pixels, we need to multiply by the scale to move from points to pixels
+    drawableSize.width = self.view.contentScaleFactor;
+    drawableSize.height = self.view.contentScaleFactor;
+    
+    _metalLayer = [CAMetalLayer new];
+    _metalLayer.frame = self.view.frame;
+    _metalLayer.opaque = true;
+    _metalLayer.framebufferOnly = true;
+    _metalLayer.drawableSize = drawableSize;
+    _metalLayer.pixelFormat = MTLPixelFormatBGRA8Unorm;
+    
+    [self.view.layer addSublayer:_metalLayer];
+    
+    Lumos::iOSWindow::SetIOSView((__bridge void *)_metalLayer);
+    Lumos::iOSOS::SetWindowSize(self.view.bounds.size.width * self.view.contentScaleFactor * 2, self.view.bounds.size.height * self.view.contentScaleFactor * 2);
     Lumos::iOSOS::Create();
     os = (Lumos::iOSOS*)Lumos::iOSOS::Instance();
-    os->SetIOSView(self.view);
-    
-//    uiWindow = [ LumosUIWindow alloc ];
-//    [ uiWindow initWithFrame:[ [ UIScreen mainScreen ] bounds ] ];
-//    uiWindow.backgroundColor = [ UIColor whiteColor ];
-//    [ uiWindow makeKeyAndVisible ];
-//    [ uiWindow setMultipleTouchEnabled:YES ];
-
-    
+    os->SetIOSView((__bridge void *)_metalLayer);
+        
     uint32_t fps = 60;
     _displayLink = [CADisplayLink displayLinkWithTarget: self selector: @selector(renderFrame)];
-    [_displayLink setFrameInterval: 60 / fps];
+    _displayLink.preferredFramesPerSecond = fps;
     [_displayLink addToRunLoop: NSRunLoop.currentRunLoop forMode: NSDefaultRunLoopMode];
-
+    
     // Setup tap gesture to toggle virtual keyboard
     UITapGestureRecognizer* tapSelector = [[UITapGestureRecognizer alloc]
                                            initWithTarget: self action: @selector(handleTapGesture:)];
@@ -98,7 +125,6 @@
     os->OnKeyPressed((u32)keycode);
 }
 
-
 #pragma mark UIKeyInput methods
 
 // Returns whether text is available
@@ -115,17 +141,4 @@
     [self handleKeyboardInput: 0x33];
 }
 
-
 @end
-
-
-#pragma mark -
-#pragma mark View
-
-@implementation View
-
-/** Returns a Metal-compatible layer. */
-+(Class) layerClass { return [CAMetalLayer class]; }
-
-@end
-

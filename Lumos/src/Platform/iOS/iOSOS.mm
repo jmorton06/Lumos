@@ -2,6 +2,7 @@
 #include "iOSWindow.h"
 #include "Application.h"
 #include "Core/VFS.h"
+#include "Core/OS/Input.h"
 #include "Core/CoreSystem.h"
 
 #ifdef LUMOS_RENDER_API_VULKAN
@@ -64,7 +65,7 @@ namespace Lumos
     
     void iOSOS::OnKeyPressed(u32 keycode)
     {
-        
+        Input::GetInput()->SetKeyPressed(keycode, true);
     }
 
     const char* iOSOS::GetExecutablePath()
