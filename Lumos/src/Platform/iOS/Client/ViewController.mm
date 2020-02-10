@@ -54,8 +54,8 @@
     CGSize drawableSize = self.view.bounds.size;
      
      // Since drawable size is in pixels, we need to multiply by the scale to move from points to pixels
-    drawableSize.width = self.view.contentScaleFactor;
-    drawableSize.height = self.view.contentScaleFactor;
+    drawableSize.width *= self.view.contentScaleFactor;
+    drawableSize.height *= self.view.contentScaleFactor;
     
     _metalLayer = [CAMetalLayer new];
     _metalLayer.frame = self.view.frame;
@@ -63,7 +63,7 @@
     _metalLayer.framebufferOnly = true;
     _metalLayer.drawableSize = drawableSize;
     _metalLayer.pixelFormat = MTLPixelFormatBGRA8Unorm;
-    
+      
     [self.view.layer addSublayer:_metalLayer];
     
     Lumos::iOSWindow::SetIOSView((__bridge void *)_metalLayer);
