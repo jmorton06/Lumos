@@ -94,7 +94,9 @@ project "Lumos"
 			"src/Platform/OpenGL/*.cpp",
 
 			"src/Platform/Vulkan/*.h",
-			"src/Platform/Vulkan/*.cpp"
+			"src/Platform/Vulkan/*.cpp",
+
+			"external/glad/src/glad_wgl.c"
 		}
 
 		links
