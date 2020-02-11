@@ -2,6 +2,7 @@
 
 #include "../iOSOS.h"
 #include "../iOSWindow.h"
+#include "../iOSKeyCodes.h"
 
 #include "UIWindow.h"
 
@@ -44,52 +45,63 @@
 	[super viewDidLoad];
 
     self.view.contentScaleFactor = [[UIScreen mainScreen] scale];
+    self.view.contentMode = UIViewContentModeScaleAspectFill;
 
     if (@available(iOS 11.0, *)) {
         [self setNeedsUpdateOfScreenEdgesDeferringSystemGestures];
     }
     
     assert([self.view isKindOfClass:[UIView class]]);
+    
+    self.view.autoresizesSubviews = true;
+    self.modalPresentationStyle = UIModalPresentationFullScreen;
+    _viewHasAppeared = NO;
 
+}
+
+-(void) viewDidAppear: (BOOL) animated {
+    [super viewDidAppear: animated];
+    
+    _viewHasAppeared = YES;
+}
+
+- (void)viewWillLayoutSubviews {
+    [super viewWillLayoutSubviews];
+    NSLog(@"bounds = %@", NSStringFromCGRect(self.view.bounds));
+    
     CGSize drawableSize = self.view.bounds.size;
-     
-     // Since drawable size is in pixels, we need to multiply by the scale to move from points to pixels
+          
+    // Since drawable size is in pixels, we need to multiply by the scale to move from points to pixels
     drawableSize.width *= self.view.contentScaleFactor;
     drawableSize.height *= self.view.contentScaleFactor;
-    
+
     _metalLayer = [CAMetalLayer new];
     _metalLayer.frame = self.view.frame;
     _metalLayer.opaque = true;
     _metalLayer.framebufferOnly = true;
     _metalLayer.drawableSize = drawableSize;
     _metalLayer.pixelFormat = MTLPixelFormatBGRA8Unorm;
-      
+    _metalLayer.contentsScale = self.view.contentScaleFactor;
+
     [self.view.layer addSublayer:_metalLayer];
-    
+
     Lumos::iOSWindow::SetIOSView((__bridge void *)_metalLayer);
-    Lumos::iOSOS::SetWindowSize(self.view.bounds.size.width * self.view.contentScaleFactor * 2, self.view.bounds.size.height * self.view.contentScaleFactor * 2);
+    Lumos::iOSOS::SetWindowSize(self.view.bounds.size.width * self.view.contentScaleFactor, self.view.bounds.size.height * self.view.contentScaleFactor);
     Lumos::iOSOS::Create();
     os = (Lumos::iOSOS*)Lumos::iOSOS::Instance();
     os->SetIOSView((__bridge void *)_metalLayer);
-        
+     
     uint32_t fps = 60;
     _displayLink = [CADisplayLink displayLinkWithTarget: self selector: @selector(renderFrame)];
     _displayLink.preferredFramesPerSecond = fps;
     [_displayLink addToRunLoop: NSRunLoop.currentRunLoop forMode: NSDefaultRunLoopMode];
-    
+
     // Setup tap gesture to toggle virtual keyboard
     UITapGestureRecognizer* tapSelector = [[UITapGestureRecognizer alloc]
-                                           initWithTarget: self action: @selector(handleTapGesture:)];
+                                        initWithTarget: self action: @selector(handleTapGesture:)];
     tapSelector.numberOfTapsRequired = 1;
     tapSelector.cancelsTouchesInView = YES;
     [self.view addGestureRecognizer: tapSelector];
-
-    _viewHasAppeared = NO;
-}
-
--(void) viewDidAppear: (BOOL) animated {
-    [super viewDidAppear: animated];
-    _viewHasAppeared = YES;
 }
 
 -(BOOL) canBecomeFirstResponder { return _viewHasAppeared; }
@@ -122,7 +134,7 @@
 
 // Handle keyboard input
 -(void) handleKeyboardInput: (unichar) keycode {
-    os->OnKeyPressed((u32)keycode);
+    os->OnKeyPressed(Lumos::iOSKeyCodes::iOSKeyToLumos(keycode));
 }
 
 #pragma mark UIKeyInput methods
