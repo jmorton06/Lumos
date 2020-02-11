@@ -23,17 +23,17 @@ public:
 	{
 		Application::Init();
 
-		const String root = ROOT_DIR;
-		VFS::Get()->Mount("Meshes", root + "/Sandbox/res/meshes");
-		VFS::Get()->Mount("Textures", root + "/Sandbox/res/textures");
-		VFS::Get()->Mount("Sounds", root + "/Sandbox/res/sounds");
+        const String root = Lumos::OS::Instance()->GetExecutablePath();//ROOT_DIR;
+		//VFS::Get()->Mount("Meshes", root + "meshes");
+		//VFS::Get()->Mount("Textures", root + "textures");
+		//VFS::Get()->Mount("Sounds", root + "sounds");
 
 		GetSceneManager()->EnqueueScene<SceneModelViewer>("SceneModelViewer");
 		GetSceneManager()->EnqueueScene<Scene2D>("2D Test");
 		GetSceneManager()->EnqueueScene<Scene3D>("Physics Scene");
 		GetSceneManager()->EnqueueScene<GraphicsScene>("Terrain Test");
 		GetSceneManager()->EnqueueScene<MaterialTest>("Material Test");
-		GetSceneManager()->SwitchScene(2);
+		GetSceneManager()->SwitchScene(1);
         GetSceneManager()->ApplySceneSwitch();
 	}
 };
@@ -42,6 +42,7 @@ Lumos::Application* Lumos::CreateApplication()
 {
 #ifdef LUMOS_PLATFORM_IOS
     WindowProperties windowProperties;
+    windowProperties.RenderAPI = static_cast<int>(Graphics::RenderAPI::VULKAN);
 #else
     WindowProperties windowProperties = LuaManager::Instance()->LoadConfigFile(ROOT_DIR"/Sandbox/Settings.lua");
 	windowProperties.ShowConsole = true;

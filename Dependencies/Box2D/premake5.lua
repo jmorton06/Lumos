@@ -19,5 +19,5 @@ project 'Box2D'
 	filter "configurations:Release"
 		optimize "On"
 
-	filter "configurations:Dist"
+	filter "configurations:Production"
 		optimize "On"

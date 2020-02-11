@@ -28,7 +28,6 @@
 #include "Physics/LumosPhysicsEngine/LumosPhysicsEngine.h"
 
 #include <imgui/imgui.h>
-
 namespace Lumos
 {
 	Application* Application::s_Instance = nullptr;

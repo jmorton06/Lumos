@@ -1,14 +1,5 @@
 #include "lmpch.h"
 #include "RenderDevice.h"
-#include "GraphicsContext.h"
-
-#ifdef LUMOS_RENDER_API_VULKAN
-#include "Platform/Vulkan/VKRenderDevice.h"
-#endif
-
-#ifdef LUMOS_RENDER_API_OPENGL
-#include "Platform/OpenGL/GLRenderDevice.h"
-#endif
 
 namespace Lumos
 {

@@ -1,7 +1,6 @@
 #include "lmpch.h"
 #include "Mesh.h"
 #include "API/Renderer.h"
-#include "Platform/Vulkan/VKDevice.h"
 
 namespace Lumos
 {

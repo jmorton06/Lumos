@@ -17,7 +17,6 @@ project "Sandbox"
 		"../Lumos/external/stb/",
 		"../Dependencies/lua/src/",
 		"../Dependencies/glfw/include/",
-		"../Dependencies/glad/include/",
 		"../Dependencies/OpenAL/include/",
 		"../Dependencies/stb/",
 		"../Dependencies/Box2D/",
@@ -26,6 +25,7 @@ project "Sandbox"
 		"../Lumos/external/",
 		"../Lumos/external/jsonhpp/",
 		"../Lumos/external/spdlog/include",
+		"../Lumos/external/glad/include/",
 		"../Lumos/src"
 	}
 
@@ -34,7 +34,6 @@ project "Sandbox"
 		"Lumos",
 		"lua",
 		"Box2D",
-		"volk",
 		"imgui"
 	}
 
@@ -42,7 +41,6 @@ project "Sandbox"
 
 	defines
 	{
-		"LUMOS_ROOT_DIR="  .. cwd,
 	}
 
 	filter "system:windows"
@@ -59,7 +57,9 @@ project "Sandbox"
 			"VK_USE_PLATFORM_WIN32_KHR",
 			"WIN32_LEAN_AND_MEAN",
 			"_CRT_SECURE_NO_WARNINGS",
-			"_DISABLE_EXTENDED_ALIGNED_STORAGE"
+			"_DISABLE_EXTENDED_ALIGNED_STORAGE",
+			"LUMOS_ROOT_DIR="  .. cwd,
+			"LUMOS_VOLK"
 		}
 
 		libdirs
@@ -70,7 +70,6 @@ project "Sandbox"
 		links
 		{
 			"glfw",
-			"glad",
 			"OpenGL32",
 			"OpenAL32"
 		}
@@ -119,7 +118,9 @@ project "Sandbox"
 			"LUMOS_RENDER_API_OPENGL",
 			"LUMOS_RENDER_API_VULKAN",
 			"VK_EXT_metal_surface",
-			"LUMOS_IMGUI"
+			"LUMOS_IMGUI",
+			"LUMOS_ROOT_DIR="  .. cwd,
+			"LUMOS_VOLK"
 		}
 
 		linkoptions 
@@ -135,7 +136,6 @@ project "Sandbox"
 		links
 		{
 			"glfw",
-			"glad"
 		}
 
 
@@ -150,7 +150,7 @@ project "Sandbox"
 				"{COPY} "..source.." "..target
 			}
 
-		filter {"system:macosx", "configurations:dist"}
+		filter {"system:macosx", "configurations:Production"}
 
 			local source = "../Dependencies/vulkan/libs/macOS/**"
 			local target = "../bin/dist/"
@@ -191,7 +191,7 @@ project "Sandbox"
 			"LUMOS_RENDER_API_VULKAN",
 			"VK_USE_PLATFORM_IOS_MVK",
 			"LUMOS_IMGUI",
-			"LUMOS_ROOT_DIR=",
+			"LUMOS_ROOT_DIR="
 		}
 
 		links
@@ -206,6 +206,11 @@ project "Sandbox"
 			"OpenAL.framework"
 		}
 
+		libdirs
+		{
+			"../Dependencies/vulkan/libs/iOS"
+		}
+
 		xcodebuildsettings
 		{
 			["ARCHS"] = "$(ARCHS_STANDARD)",
@@ -215,16 +220,59 @@ project "Sandbox"
 			["CODE_SIGN_IDENTITY[sdk=iphoneos*]"] = "iPhone Developer",
 			['IPHONEOS_DEPLOYMENT_TARGET'] = '12.1',
 			['PRODUCT_BUNDLE_IDENTIFIER'] = "com.jmorton06",
-			['INFOPLIST_FILE'] = "../Lumos/src/Platform/iOS/Client/Info.plist"
+			['INFOPLIST_FILE'] = "../Lumos/src/Platform/iOS/Client/Info.plist",
+			--["ENABLE_BITCODE"] = "NO"
 		}
 
 		files
 		{
 			"../Lumos/src/Platform/iOS/Client/**",
-			"res/**"
+			"../Lumos/res/**",
+			"../Sandbox/res/**",
 		}
 
-		xcodebuildresources { "res/**" }
+		linkoptions { "-rpath @executable_path/Frameworks" }
+
+		xcodebuildresources 
+		{
+			"../Lumos/src/Platform/iOS/Client/**",
+			"../Lumos/res/**",
+			"../Sandbox/res/**", 
+		}
+
+		filter {"system:ios", "configurations:release"}
+
+			local source = "../Dependencies/vulkan/libs/iOS/**"
+			local target = "../bin/release/"
+			
+			buildmessage("copying "..source.." -> "..target)
+			
+			postbuildcommands {
+				"{COPY} "..source.." "..target
+			}
+
+		filter {"system:ios", "configurations:Production"}
+
+			local source = "../Dependencies/vulkan/libs/iOS/**"
+			local target = "../bin/dist/"
+			
+			buildmessage("copying "..source.." -> "..target)
+			
+			postbuildcommands {
+				"{COPY} "..source.." "..target
+			}
+
+		filter {"system:ios", "configurations:debug"}
+
+			local source = "../Dependencies/vulkan/libs/iOS/**"
+			local target = "../bin/debug/"
+			
+			buildmessage("copying "..source.." -> "..target)
+			
+			postbuildcommands {
+				"{COPY} "..source.." "..target
+			}
+
 
 	filter "system:linux"
 		cppdialect "C++17"
@@ -238,7 +286,9 @@ project "Sandbox"
 			"LUMOS_RENDER_API_OPENGL",
 			"LUMOS_RENDER_API_VULKAN",
 			"VK_USE_PLATFORM_XCB_KHR",
-			"LUMOS_IMGUI"
+			"LUMOS_IMGUI",
+			"LUMOS_ROOT_DIR="  .. cwd,
+			"LUMOS_VOLK"
 		}
 
 		buildoptions
@@ -253,7 +303,6 @@ project "Sandbox"
 		links
 		{
 			"glfw",
-			"glad"
 		}
 
 		links { "X11", "pthread", "dl"}
@@ -262,6 +311,7 @@ project "Sandbox"
 
 	filter "configurations:Debug"
 		defines "LUMOS_DEBUG"
+		optimize "Off"
 		symbols "On"
 		runtime "Debug"
 
@@ -271,7 +321,8 @@ project "Sandbox"
 		symbols "On"
 		runtime "Release"
 
-	filter "configurations:Dist"
-		defines "LUMOS_DIST"
-		optimize "On"
+	filter "configurations:Production"
+		defines "LUMOS_PRODUCTION"
+		symbols "Off"
+		optimize "Full"
 		runtime "Release"

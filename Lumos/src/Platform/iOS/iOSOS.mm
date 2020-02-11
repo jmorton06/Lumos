@@ -2,6 +2,7 @@
 #include "iOSWindow.h"
 #include "Application.h"
 #include "Core/VFS.h"
+#include "Core/OS/Input.h"
 #include "Core/CoreSystem.h"
 
 #ifdef LUMOS_RENDER_API_VULKAN
@@ -12,18 +13,28 @@
 
 namespace Lumos
 {
+    float iOSOS::m_X = 0.0f;
+    float iOSOS::m_Y = 0.0f;
+
     iOSOS::iOSOS()
     {
         Lumos::Internal::CoreSystem::Init(false);
+
+        String root = GetAssetPath();
+        Lumos::VFS::Get()->Mount("CoreShaders", root + "shaders");
+        Lumos::VFS::Get()->Mount("CoreMeshes", root + "meshes");
+        Lumos::VFS::Get()->Mount("CoreTextures", root + "textures");
+
+        Lumos::VFS::Get()->Mount("Shaders", root + "shaders");
+        Lumos::VFS::Get()->Mount("Meshes", root + "meshes");
+        Lumos::VFS::Get()->Mount("Textures", root + "textures");
+        
         Init();
+        
+        s_Instance = this;
 
         auto app = Lumos::CreateApplication();
         app->Init();
-
-        String root = GetAssetPath();
-        Lumos::VFS::Get()->Mount("CoreShaders", root + "/Lumos/res/shaders");
-        Lumos::VFS::Get()->Mount("CoreMeshes", root + "/Lumos/res/meshes");
-        Lumos::VFS::Get()->Mount("CoreTextures", root + "/Lumos/res/textures");
     }
 
     iOSOS::~iOSOS()
@@ -54,11 +65,12 @@ namespace Lumos
     
     void iOSOS::OnKeyPressed(u32 keycode)
     {
-        
+        Input::GetInput()->SetKeyPressed(keycode, true);
     }
 
     const char* iOSOS::GetExecutablePath()
     {
+        return GetAssetPath().c_str();
         static char path[512] = "";
         if (!path[0]) 
         {
