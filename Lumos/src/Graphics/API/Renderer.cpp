@@ -1,21 +1,6 @@
 #include "lmpch.h"
 #include "Renderer.h"
 
-#ifdef LUMOS_RENDER_API_OPENGL
-#include "Platform/OpenGL/GLRenderer.h"
-#endif
-#ifdef LUMOS_RENDER_API_DIRECT3D
-#include "DirectX/DXRenderer.h"
-#endif
-
-#ifdef LUMOS_RENDER_API_VULKAN
-#include "Platform/Vulkan/VKRenderer.h"
-#endif
-
-#include "GraphicsContext.h"
-
-#include "../Camera/Camera.h"
-
 namespace Lumos
 {
 	namespace Graphics

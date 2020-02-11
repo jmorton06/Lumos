@@ -1,19 +1,6 @@
 #include "lmpch.h"
 #include "IndexBuffer.h"
 
-#ifdef LUMOS_RENDER_API_OPENGL
-#include "Platform/OpenGL/GLIndexBuffer.h"
-#endif
-#ifdef LUMOS_RENDER_API_DIRECT3D
-#include "Graphics/DirectX/DXIndexBuffer.h"
-#endif
-
-#ifdef LUMOS_RENDER_API_VULKAN
-#include "Platform/Vulkan/VKIndexBuffer.h"
-#endif
-
-#include "Graphics/API/GraphicsContext.h"
-
 namespace Lumos
 {
 	namespace Graphics

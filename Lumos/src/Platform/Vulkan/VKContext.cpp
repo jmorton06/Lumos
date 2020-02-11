@@ -37,7 +37,7 @@ namespace Lumos
 	#elif defined(VK_USE_PLATFORM_XCB_KHR)
 			 extensions.push_back(VK_KHR_XCB_SURFACE_EXTENSION_NAME);
 	#elif defined(VK_USE_PLATFORM_IOS_MVK)
-			 extensions.push_back(VK_MVK_IOS_SURFACE_EXTENSION_NAME);
+			 extensions.push_back("VK_EXT_metal_surface");
 	#elif defined(VK_USE_PLATFORM_MACOS_MVK)
 			 extensions.push_back(VK_MVK_MACOS_SURFACE_EXTENSION_NAME);
     #elif defined(VK_USE_PLATFORM_METAL_EXT)
@@ -232,6 +232,7 @@ namespace Lumos
 
 		void VKContext::CreateInstance()
 		{
+#ifndef LUMOS_PLATFORM_IOS
 			if (volkInitialize() != VK_SUCCESS)
 			{
 				Debug::Log::Critical("volkInitialize failed");
@@ -241,6 +242,7 @@ namespace Lumos
 			{
 				Debug::Log::Critical("Could not find loader");
 			}
+#endif
 
 			VkApplicationInfo appInfo = {};
 			appInfo.pApplicationName = "Sandbox";
@@ -282,8 +284,9 @@ namespace Lumos
 			{
 				Debug::Log::Critical("[VULKAN] Failed to create instance!");
 			}
-
+#ifndef LUMOS_PLATFORM_IOS
 			volkLoadInstance(m_VkInstance);
+#endif
 		}
 
 		void VKContext::SetupDebugCallback()

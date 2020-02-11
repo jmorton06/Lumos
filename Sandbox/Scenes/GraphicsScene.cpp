@@ -52,22 +52,25 @@ void GraphicsScene::OnInit()
 	if (audioSystem)
 		Application::Instance()->GetSystem<AudioManager>()->SetListener(m_pCamera);
 
-	auto shadowRenderer = new Graphics::ShadowRenderer();
 	auto deferredRenderer = new Graphics::DeferredRenderer(m_ScreenWidth, m_ScreenHeight);
 	auto skyboxRenderer = new Graphics::SkyboxRenderer(m_ScreenWidth, m_ScreenHeight, m_EnvironmentMap);
+    
+#ifndef LUMOS_PLATFORM_IOS
+    auto shadowRenderer = new Graphics::ShadowRenderer();
 	shadowRenderer->SetLightEntity(lightEntity);
+    auto shadowLayer = new Layer3D(shadowRenderer);
+    Application::Instance()->GetRenderManager()->SetShadowRenderer(shadowRenderer);
+    Application::Instance()->PushLayer(shadowLayer);
+#endif
 
 	deferredRenderer->SetRenderToGBufferTexture(true);
 	skyboxRenderer->SetRenderToGBufferTexture(true);
 
-	auto shadowLayer = new Layer3D(shadowRenderer);
 	auto deferredLayer = new Layer3D(deferredRenderer);
 	auto skyBoxLayer = new Layer3D(skyboxRenderer);
-	Application::Instance()->PushLayer(shadowLayer);
 	Application::Instance()->PushLayer(deferredLayer);
 	Application::Instance()->PushLayer(skyBoxLayer);
 
-	Application::Instance()->GetRenderManager()->SetShadowRenderer(shadowRenderer);
 	Application::Instance()->GetRenderManager()->SetSkyBoxTexture(m_EnvironmentMap);
 }
 

@@ -15,7 +15,7 @@ project "Tests"
 		"../Lumos/external/stb/",
 		"../Dependencies/lua/src/",
 		"../Dependencies/glfw/include/",
-		"../Dependencies/glad/include/",
+		"../Lumos/external/glad/include/",
 		"../Dependencies/OpenAL/include/",
 		"../Dependencies/stb/",
 		"../Dependencies/Box2D/",
@@ -33,7 +33,6 @@ project "Tests"
 		"Lumos",
 		"lua",
 		"Box2D",
-		"volk",
 		"imgui"
 	}
 
@@ -70,7 +69,6 @@ project "Tests"
 		links
 		{
 			"glfw",
-			"glad",
 		}
 
 	filter "system:macosx"
@@ -100,8 +98,7 @@ project "Tests"
 
 		links
 		{
-			"glfw",
-			"glad"
+			"glfw"	
 		}
 
 		filter {"system:macosx", "configurations:release"}
@@ -115,7 +112,7 @@ project "Tests"
 				"{COPY} "..source.." "..target
 			}
 
-		filter {"system:macosx", "configurations:dist"}
+		filter {"system:macosx", "configurations:Production"}
 
 			local source = "../Dependencies/vulkan/libs/macOS/**"
 			local target = "../bin/dist/"
@@ -172,7 +169,7 @@ project "Tests"
 			["SDKROOT"] = "iphoneos",
 			["SUPPORTED_PLATFORMS"] = "iphonesimulator iphoneos",
 			["CODE_SIGN_IDENTITY[sdk=iphoneos*]"] = "iPhone Developer",
-			['IPHONEOS_DEPLOYMENT_TARGET'] = '12.1',
+			['IPHONEOS_DEPLOYMENT_TARGET'] = '13.0',
 			['PRODUCT_BUNDLE_IDENTIFIER'] = "com.jmorton06",
 			['INFOPLIST_FILE'] = "../Lumos/src/Platform/iOS/Client/Info.plist"
 		}
@@ -211,8 +208,7 @@ project "Tests"
 
 		links
 		{
-			"glfw",
-			"glad"
+			"glfw"
 		}
 
 		links { "X11", "pthread"}
@@ -235,7 +231,7 @@ project "Tests"
 		symbols "On"
 		runtime "Release"
 
-	filter "configurations:Dist"
+	filter "configurations:Production"
 		defines "LUMOS_DIST"
 		optimize "On"
 		runtime "Release"

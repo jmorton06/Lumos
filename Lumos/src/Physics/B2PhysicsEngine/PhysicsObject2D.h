@@ -24,6 +24,7 @@ namespace Lumos
 		b2Body* GetB2Body() const { return m_B2Body; }
 
 		void SetLinearVelocity(const Maths::Vector2& v) const;
+		void SetAngularVelocity(float velocity);
 		void SetForce(const Maths::Vector2& v) const;
 		void SetPosition(const Maths::Vector2& pos) const;
         void SetOrientation(float angle) const;

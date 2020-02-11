@@ -28,10 +28,10 @@ project "Lumos"
 		"external/jsonhpp/",
 		"external/stb/",
 		"external/spdlog/include",
+		"external/glad/include",
 		"../Dependencies/",
 		"../Dependencies/lua/src/",
 		"../Dependencies/glfw/include/",
-		"../Dependencies/glad/include/",
 		"../Dependencies/OpenAL/include/",
 		"../Dependencies/Box2D/",
 		"../Dependencies/vulkan/",
@@ -42,7 +42,6 @@ project "Lumos"
 	{
 		"lua",
 		"Box2D",
-		"volk",
 		"imgui"
 	}
 
@@ -76,7 +75,8 @@ project "Lumos"
 			"_DISABLE_EXTENDED_ALIGNED_STORAGE",
 			"_SILENCE_CXX17_OLD_ALLOCATOR_MEMBERS_DEPRECATION_WARNING",
 			"LUMOS_IMGUI",
-			"LUMOS_OPENAL"
+			"LUMOS_OPENAL",
+			"LUMOS_VOLK"
 		}
 
 		files
@@ -94,13 +94,14 @@ project "Lumos"
 			"src/Platform/OpenGL/*.cpp",
 
 			"src/Platform/Vulkan/*.h",
-			"src/Platform/Vulkan/*.cpp"
+			"src/Platform/Vulkan/*.cpp",
+
+			"external/glad/src/glad_wgl.c"
 		}
 
 		links
 		{
 			"glfw",
-			"glad"
 		}
 
 		buildoptions
@@ -149,7 +150,8 @@ project "Lumos"
 			"LUMOS_RENDER_API_VULKAN",
 			"VK_USE_PLATFORM_METAL_EXT",
 			"LUMOS_IMGUI",
-			"LUMOS_OPENAL"
+			"LUMOS_OPENAL",
+			"LUMOS_VOLK"
 		}
 
 		links
@@ -161,8 +163,7 @@ project "Lumos"
         	"CoreFoundation.framework",
 			"CoreVideo.framework",
 			"OpenAL.framework",
-			"glfw",
-			"glad"
+			"glfw"
 		}
 
 		libdirs
@@ -186,7 +187,6 @@ project "Lumos"
 			filter 'files:src/**.m'
 				flags  { 'NoPCH' }
 
-	require 'Scripts/ios'
 	filter "system:ios"
 		cppdialect "C++17"
 		systemversion "latest"
@@ -201,7 +201,8 @@ project "Lumos"
 			"VK_USE_PLATFORM_IOS_MVK",
 			"LUMOS_IMGUI",
 			"LUMOS_OPENAL",
-			"LUMOS_ROOT_DIR="
+			"LUMOS_ROOT_DIR=",
+			"LUMOS_VOLK"
 		}
 
 		files
@@ -260,7 +261,8 @@ project "Lumos"
 			"LUMOS_RENDER_API_OPENGL",
 			"LUMOS_RENDER_API_VULKAN",
 			"VK_USE_PLATFORM_XCB_KHR",
-			"LUMOS_IMGUI"
+			"LUMOS_IMGUI",
+			"LUMOS_VOLK"
 		}
 
 		files
@@ -283,8 +285,7 @@ project "Lumos"
 
 		links
 		{
-			"glfw",
-			"glad"
+			"glfw"
 		}
 
 		linkoptions
@@ -330,7 +331,8 @@ project "Lumos"
 		symbols "On"
 		runtime "Release"
 
-	filter "configurations:Dist"
-		defines "LUMOS_DIST"
-		optimize "On"
+		filter "configurations:Production"
+		defines "LUMOS_PRODUCTION"
+		symbols "Off"
+		optimize "Full"
 		runtime "Release"

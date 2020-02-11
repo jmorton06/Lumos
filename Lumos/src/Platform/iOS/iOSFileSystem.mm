@@ -1,56 +1,90 @@
 #include "lmpch.h"
 #include "Core/OS/FileSystem.h"
+#include "iOSOS.h"
 
 #include <stdio.h>
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <fcntl.h>
 #include <unistd.h>
+#include <sys/mman.h>
+
+#import <Foundation/Foundation.h>
 
 namespace Lumos
 {
-//    String NormaliseFilename(const char *filename)
-//    {
-//        String normalisedFilename;
-//        if (FileSystem::IsAbsolutePath(filename))
-//        {
-//            normalisedFilename = filename;
-//        }
-//        else
-//        {
-//            normalisedFilename = PlatformFile::GetBasePath();
-//            normalisedFilename.AppendPath(filename);
-//        }
-//
-//        BackSlashesToSlashes(normalizedFilename);
-//        return normalisedFilename;
-//    }
-//
-//    String NormaliseDirectoryName(const char *dirname)
-//    {
-//        String normalizedDirname;
-//        if (FileSystem::IsAbsolutePath(dirname))
-//        {
-//            normalizedDirname = dirname;
-//        }
-//        else
-//        {
-//            normalizedDirname = PlatformFile::GetBasePath();
-//            Append(normalizedDirname, dirname);
-//
-//        }
-//        BackSlashesToSlashes(normalisedFilename);
-//
-//        size_t length = normalisedDirname.length();
-//        if (length > 0)
-//        {
-//            if (normalizedDirname[length - 1] != '/')
-//            {
-//                Append(normalisedDirname, '/');
-//        }
-//
-//        return normalisedDirname;
-//    }
+    String NormaliseFilename(const char *filename)
+    {
+        String normalisedFilename;
+        if (FileSystem::IsAbsolutePath(filename))
+        {
+            normalisedFilename = filename;
+        }
+        else
+        {
+            normalisedFilename = iOSOS::Instance()->GetExecutablePath();
+            //normalisedFilename.AppendPath(filename);
+        }
+
+        BackSlashesToSlashes(normalisedFilename);
+        return normalisedFilename;
+    }
+
+    String NormaliseDirectoryName(const char *dirname)
+    {
+        String normalisedDirname;
+        if (FileSystem::IsAbsolutePath(dirname))
+        {
+            normalisedDirname = dirname;
+        }
+        else
+        {
+            normalisedDirname = iOSOS::Instance()->GetExecutablePath();
+            normalisedDirname.append(dirname);
+
+        }
+        BackSlashesToSlashes(normalisedDirname);
+
+        size_t length = normalisedDirname.length();
+        if (length > 0)
+        {
+            if (normalisedDirname[length - 1] != '/')
+            {
+                normalisedDirname.append("/");
+            }
+        }
+
+        return normalisedDirname;
+    }
+
+    String ConvertToIOSPath(const String& filename, bool forWrite)
+    {
+        if (FileSystem::IsAbsolutePath(filename.c_str()))
+        {
+            return filename;
+        }
+        
+        String result;
+        String appPath = iOSOS::Instance()->GetExecutablePath();
+        String relFilename;// = filename.ToRelativePath(appPath);
+        
+        if (!forWrite)
+        {
+            static NSString *bundlePath = [[NSBundle mainBundle] bundlePath];
+            const char *cstr = (const char *)[bundlePath cStringUsingEncoding:NSUTF8StringEncoding];
+            result = cstr;
+            result.append(relFilename);
+        }
+        else
+        {
+            static NSString *documentPath = [NSSearchPathForDirectoriesInDomains(NSDocumentDirectory, NSUserDomainMask, YES) objectAtIndex:0];
+            const char *cstr = (const char *)[documentPath cStringUsingEncoding:NSUTF8StringEncoding];
+            result = cstr;
+            result.append(relFilename);
+        }
+        
+        return result;
+    }
 
 
     static bool ReadFileInternal(FILE* file, void* buffer, i64 size, bool readbytemode)

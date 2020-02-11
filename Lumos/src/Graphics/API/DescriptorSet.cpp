@@ -1,14 +1,5 @@
 #include "lmpch.h"
 #include "DescriptorSet.h"
-#include "GraphicsContext.h"
-
-#ifdef LUMOS_RENDER_API_VULKAN 
-#include "Platform/Vulkan/VKDescriptorSet.h"
-#endif
-
-#ifdef LUMOS_RENDER_API_OPENGL
-#include "Platform/OpenGL/GLDescriptorSet.h"
-#endif
 
 namespace Lumos
 {

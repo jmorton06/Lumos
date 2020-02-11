@@ -21,17 +21,22 @@ namespace Lumos
         auto secondsLeft = power.GetPowerSecondsLeft();
         auto state = power.GetPowerState();
 
-		LUMOS_LOG_INFO("--------------------");
-		LUMOS_LOG_INFO(" System Information ");
-		LUMOS_LOG_INFO("--------------------");
+	LUMOS_LOG_INFO("--------------------");
+	LUMOS_LOG_INFO(" System Information ");
+	LUMOS_LOG_INFO("--------------------");
 
-		if (state != PowerState::POWERSTATE_NO_BATTERY)
-			LUMOS_LOG_INFO("Battery Info - Percentage : {0} , Time Left {1}s , State : {2}", percentage, secondsLeft, PowerStateToString(state));
-		else
-			LUMOS_LOG_INFO("Power - Outlet");
+	if (state != PowerState::POWERSTATE_NO_BATTERY)
+		LUMOS_LOG_INFO("Battery Info - Percentage : {0} , Time Left {1}s , State : {2}", percentage, secondsLeft, PowerStateToString(state));
+	else
+		LUMOS_LOG_INFO("Power - Outlet");
 
-		auto systemInfo = MemoryManager::Get()->GetSystemInfo();
-		systemInfo.Log();
+	auto systemInfo = MemoryManager::Get()->GetSystemInfo();
+	systemInfo.Log();
+	    
+	const String root = ROOT_DIR;
+	VFS::Get()->Mount("Meshes", root + "/Sandbox/res/meshes");
+	VFS::Get()->Mount("Textures", root + "/Sandbox/res/textures");
+	VFS::Get()->Mount("Sounds", root + "/Sandbox/res/sounds");
 
         auto app = Lumos::Application::Instance();
         app->Init();

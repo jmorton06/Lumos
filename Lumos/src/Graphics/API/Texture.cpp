@@ -3,20 +3,6 @@
 
 #include "Utilities/LoadImage.h"
 
-#ifdef LUMOS_RENDER_API_OPENGL
-#include "Platform/OpenGL/GLTexture.h"
-#endif
-
-#ifdef LUMOS_RENDER_API_DIRECT3D
-#include "Graphics/directx/DXTexture.h"
-#endif
-
-#ifdef LUMOS_RENDER_API_VULKAN
-#include "Platform/Vulkan/VKTexture.h"
-#endif
-
-#include "Graphics/API/GraphicsContext.h"
-
 
 namespace Lumos
 {
