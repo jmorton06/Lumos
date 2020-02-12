@@ -7,7 +7,6 @@
 #include "UIWindow.h"
 
 #import <QuartzCore/CAMetalLayer.h>
-#include <MoltenVK/vk_mvk_moltenvk.h>
 
 #pragma mark -
 #pragma mark ViewController
@@ -99,9 +98,17 @@
     // Setup tap gesture to toggle virtual keyboard
     UITapGestureRecognizer* tapSelector = [[UITapGestureRecognizer alloc]
                                         initWithTarget: self action: @selector(handleTapGesture:)];
-    tapSelector.numberOfTapsRequired = 1;
+    tapSelector.numberOfTapsRequired = 3;
     tapSelector.cancelsTouchesInView = YES;
     [self.view addGestureRecognizer: tapSelector];
+    
+    uiWindow = [ LumosUIWindow alloc ];
+    [ uiWindow initWithFrame:[ [ UIScreen mainScreen ] bounds ] ];
+    uiWindow.backgroundColor = [ UIColor whiteColor ];
+    [ uiWindow makeKeyAndVisible ];
+    [ uiWindow setMultipleTouchEnabled:YES ];
+
+    uiWindow.rootViewController = self;
 }
 
 -(BOOL) canBecomeFirstResponder { return _viewHasAppeared; }
