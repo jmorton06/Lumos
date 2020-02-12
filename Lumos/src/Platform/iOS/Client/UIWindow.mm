@@ -4,6 +4,8 @@
 #include "Events/Event.h"
 #include "Events/ApplicationEvent.h"
 
+#include "../iOSOS.h"
+
 @implementation LumosUIWindow
 
 -( void )layoutSubviews
@@ -21,6 +23,7 @@
     {
         CGPoint   point = [ touch locationInView:self ];
         NSInteger index = [ touch.estimationUpdateIndex integerValue ];
+        Lumos::iOSOS::Get()->OnScreenPressed(point.x, point.y, (u32)index);
     }
 }
 
@@ -30,6 +33,7 @@
     {
         CGPoint   point = [ touch locationInView:self ];
         NSInteger index = [ touch.estimationUpdateIndex integerValue ];
+        Lumos::iOSOS::Get()->OnScreenPressed(point.x, point.y, (u32)index);
     }
 }
 
@@ -39,6 +43,7 @@
     {
         CGPoint   point = [ touch locationInView:self ];
         NSInteger index = [ touch.estimationUpdateIndex integerValue ];
+        Lumos::iOSOS::Get()->OnScreenPressed(point.x, point.y, (u32)index);
     }
 }
 
@@ -48,6 +53,7 @@
     {
         CGPoint   point = [ touch locationInView:self ];
         NSInteger index = [ touch.estimationUpdateIndex integerValue ];
+        Lumos::iOSOS::Get()->OnScreenPressed(point.x, point.y, (u32)index);
     }
 }
 

@@ -65,7 +65,15 @@ namespace Lumos
     
     void iOSOS::OnKeyPressed(u32 keycode)
     {
+        //KeyPressedEvent event(keycode, 1);
+        //Application::Instance()->OnEvent(event);
         Input::GetInput()->SetKeyPressed(keycode, true);
+    }
+
+    void iOSOS::OnScreenPressed(u32 x, u32 y, u32 count)
+    {
+        Input::GetInput()->StoreMousePosition(x, y);
+        Input::GetInput()->SetMouseClicked(count, true);
     }
 
     const char* iOSOS::GetExecutablePath()

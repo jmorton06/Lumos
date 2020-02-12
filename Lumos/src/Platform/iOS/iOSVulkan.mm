@@ -5,6 +5,8 @@
 #include "iOSOS.h"
 #include "iOSWindow.h"
 
+#include <MoltenVK/vk_mvk_moltenvk.h>
+
 namespace Lumos
 {
 	VkSurfaceKHR Graphics::VKDevice::CreatePlatformSurface(VkInstance vkInstance, Window* window)
@@ -18,7 +20,15 @@ namespace Lumos
         surfaceCreateInfo.pNext = NULL;
         surfaceCreateInfo.pView = iosView;
         vkCreateIOSSurfaceMVK(vkInstance, &surfaceCreateInfo, nullptr, &surface);
-
+        
+#ifdef LUMOS_DEBUG
+        MVKConfiguration mvkConfig;
+        size_t pConfigurationSize = sizeof(MVKConfiguration);
+        vkGetMoltenVKConfigurationMVK(vkInstance, &mvkConfig, &pConfigurationSize);
+        mvkConfig.debugMode = true;
+        mvkConfig.synchronousQueueSubmits = VK_FALSE;
+        vkSetMoltenVKConfigurationMVK(vkInstance, &mvkConfig, &pConfigurationSize);
+#endif
 		return surface;
 	}
 
