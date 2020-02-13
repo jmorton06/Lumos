@@ -2,6 +2,11 @@
 #include "iOSWindow.h"
 #include "iOSOS.h"
 #include "Graphics/API/GraphicsContext.h"
+
+#include "Events/ApplicationEvent.h"
+#include "Events/MouseEvent.h"
+#include "Events/KeyEvent.h"
+
 #include <UIKit/UIKit.h>
 
 void* Lumos::iOSWindow::iosView = nullptr;
@@ -68,4 +73,19 @@ namespace Lumos
 	{
 		return lmnew iOSWindow(properties);
 	}
+
+    void iOSWindow::OnKeyEvent(Lumos::InputCode::Key key, bool down)
+    {
+        KeyPressedEvent event(key, 0);
+        m_Data.EventCallback(event);
+    }
+
+    void iOSWindow::OnTouchEvent(u32 xPos, u32 yPos, u32 count, bool down)
+    {
+        MouseMovedEvent event((float)xPos, (float)yPos);
+        m_Data.EventCallback(event);
+        
+        MouseButtonPressedEvent event2(count);
+        m_Data.EventCallback(event2);
+    }
 }

@@ -1,4 +1,5 @@
 #include "Core/OS/Window.h"
+#include "Core/OS/KeyCodes.h"
 
 namespace Lumos
 {
@@ -26,15 +27,19 @@ namespace Lumos
         void SetVSync(bool set) override { }
         float GetScreenRatio() const override { return (float)m_Data.Width / (float)m_Data.Height; }
         
-        void SetEventCallback(const EventCallbackFn& callback) override { };
+        void SetEventCallback(const EventCallbackFn& callback) override { m_Data.EventCallback = callback; };
         void SetIcon(const String& filePath, const String& smallIconFilePath) override {};
         void UpdateCursorImGui() override {};
+        
+        void OnKeyEvent(Lumos::InputCode::Key key, bool down);
+        void OnTouchEvent(u32 xPos, u32 yPos, u32 count, bool down);
         
         String GetTitle() const override { return "Mobile"; }
 
         static void MakeDefault();
         static void* GetIOSView() { return iosView; }
         static void SetIOSView(void* view) { iosView = view; }
+        
     protected:
 
 		static Window* CreateFunciOS(const WindowProperties& properties);

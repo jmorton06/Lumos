@@ -3,6 +3,7 @@
 #include "../iOSOS.h"
 #include "../iOSWindow.h"
 #include "../iOSKeyCodes.h"
+#include "App/Application.h"
 
 #include "UIWindow.h"
 
@@ -141,7 +142,7 @@
 
 // Handle keyboard input
 -(void) handleKeyboardInput: (unichar) keycode {
-    os->OnKeyPressed(Lumos::iOSKeyCodes::iOSKeyToLumos(keycode));
+    os->OnKeyPressed(keycode);
 }
 
 #pragma mark UIKeyInput methods
