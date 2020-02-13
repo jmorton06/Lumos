@@ -1,5 +1,6 @@
 #include "iOSOS.h"
 #include "iOSWindow.h"
+#include "iOSKeyCodes.h"
 #include "Application.h"
 #include "Core/VFS.h"
 #include "Core/OS/Input.h"
@@ -63,17 +64,14 @@ namespace Lumos
         return [NSBundle.mainBundle.resourcePath stringByAppendingString: @"/"].UTF8String;
     }
     
-    void iOSOS::OnKeyPressed(u32 keycode)
+    void iOSOS::OnKeyPressed(char keycode)
     {
-        //KeyPressedEvent event(keycode, 1);
-        //Application::Instance()->OnEvent(event);
-        Input::GetInput()->SetKeyPressed(keycode, true);
+        ((iOSWindow*)Application::Instance()->GetWindow())->OnKeyEvent((Lumos::InputCode::Key)Lumos::iOSKeyCodes::iOSKeyToLumos(keycode), true);
     }
 
     void iOSOS::OnScreenPressed(u32 x, u32 y, u32 count)
     {
-        Input::GetInput()->StoreMousePosition(x, y);
-        Input::GetInput()->SetMouseClicked(count, true);
+        ((iOSWindow*)Application::Instance()->GetWindow())->OnTouchEvent(x,y,count, true);
     }
 
     const char* iOSOS::GetExecutablePath()
