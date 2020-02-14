@@ -11,10 +11,7 @@
 -( void )layoutSubviews
 {
     [ super layoutSubviews ];
-
-//    WindowResizedEvent e;
-//    e.width  = self.bounds.size.width;
-//    e.height = self.bounds.size.height;
+    //Lumos::iOSOS::Get()->OnScreenResize(self.bounds.size.width, self.bounds.size.height);
 }
 
 -( void )touchesBegan:( NSSet< UITouch* >* )touches withEvent:( UIEvent* )event
@@ -23,7 +20,7 @@
     {
         CGPoint   point = [ touch locationInView:self ];
         NSInteger index = [ touch.estimationUpdateIndex integerValue ];
-        Lumos::iOSOS::Get()->OnScreenPressed(point.x, point.y, (u32)index);
+        Lumos::iOSOS::Get()->OnScreenPressed(point.x, point.y, (u32)index, true);
     }
 }
 
@@ -33,7 +30,7 @@
     {
         CGPoint   point = [ touch locationInView:self ];
         NSInteger index = [ touch.estimationUpdateIndex integerValue ];
-        Lumos::iOSOS::Get()->OnScreenPressed(point.x, point.y, (u32)index);
+        Lumos::iOSOS::Get()->OnMouseMovedEvent(point.x, point.y);
     }
 }
 
@@ -43,7 +40,7 @@
     {
         CGPoint   point = [ touch locationInView:self ];
         NSInteger index = [ touch.estimationUpdateIndex integerValue ];
-        Lumos::iOSOS::Get()->OnScreenPressed(point.x, point.y, (u32)index);
+        Lumos::iOSOS::Get()->OnScreenPressed(point.x, point.y, (u32)index,false);
     }
 }
 
@@ -53,7 +50,7 @@
     {
         CGPoint   point = [ touch locationInView:self ];
         NSInteger index = [ touch.estimationUpdateIndex integerValue ];
-        Lumos::iOSOS::Get()->OnScreenPressed(point.x, point.y, (u32)index);
+        Lumos::iOSOS::Get()->OnScreenPressed(point.x, point.y, (u32)index,false);
     }
 }
 

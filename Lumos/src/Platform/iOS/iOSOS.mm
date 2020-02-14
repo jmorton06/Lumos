@@ -64,14 +64,24 @@ namespace Lumos
         return [NSBundle.mainBundle.resourcePath stringByAppendingString: @"/"].UTF8String;
     }
     
-    void iOSOS::OnKeyPressed(char keycode)
+    void iOSOS::OnKeyPressed(char keycode, bool down)
     {
-        ((iOSWindow*)Application::Instance()->GetWindow())->OnKeyEvent((Lumos::InputCode::Key)Lumos::iOSKeyCodes::iOSKeyToLumos(keycode), true);
+        ((iOSWindow*)Application::Instance()->GetWindow())->OnKeyEvent((Lumos::InputCode::Key)Lumos::iOSKeyCodes::iOSKeyToLumos(keycode), down);
     }
 
-    void iOSOS::OnScreenPressed(u32 x, u32 y, u32 count)
+    void iOSOS::OnScreenPressed(u32 x, u32 y, u32 count, bool down)
     {
-        ((iOSWindow*)Application::Instance()->GetWindow())->OnTouchEvent(x,y,count, true);
+        ((iOSWindow*)Application::Instance()->GetWindow())->OnTouchEvent(x,y,count, down);
+    }
+
+    void iOSOS::OnMouseMovedEvent(u32 xPos, u32 yPos)
+    {
+        ((iOSWindow*)Application::Instance()->GetWindow())->OnMouseMovedEvent(xPos,yPos);
+    }
+    
+    void iOSOS::OnScreenResize(u32 width, u32 height)
+    {
+        ((iOSWindow*)Application::Instance()->GetWindow())->OnResizeEvent(width, height);
     }
 
     const char* iOSOS::GetExecutablePath()

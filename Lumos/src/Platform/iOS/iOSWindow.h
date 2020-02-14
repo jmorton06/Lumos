@@ -33,6 +33,8 @@ namespace Lumos
         
         void OnKeyEvent(Lumos::InputCode::Key key, bool down);
         void OnTouchEvent(u32 xPos, u32 yPos, u32 count, bool down);
+        void OnMouseMovedEvent(u32 xPos, u32 yPos);
+        void OnResizeEvent(u32 width, u32 height);
         
         String GetTitle() const override { return "Mobile"; }
 
