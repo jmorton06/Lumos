@@ -76,8 +76,16 @@ namespace Lumos
 
     void iOSWindow::OnKeyEvent(Lumos::InputCode::Key key, bool down)
     {
-        KeyPressedEvent event(key, 0);
-        m_Data.EventCallback(event);
+        if(down)
+        {
+            KeyPressedEvent event(key, 0);
+            m_Data.EventCallback(event);
+        }
+        else
+        {
+            KeyReleasedEvent event(key);
+            m_Data.EventCallback(event);
+        }
     }
 
     void iOSWindow::OnTouchEvent(u32 xPos, u32 yPos, u32 count, bool down)
@@ -85,7 +93,27 @@ namespace Lumos
         MouseMovedEvent event((float)xPos, (float)yPos);
         m_Data.EventCallback(event);
         
-        MouseButtonPressedEvent event2(count);
-        m_Data.EventCallback(event2);
+        if(down)
+        {
+            MouseButtonPressedEvent event2(count);
+            m_Data.EventCallback(event2);
+        }
+        else
+        {
+            MouseButtonPressedEvent event2(count);
+            m_Data.EventCallback(event2);
+        }
+    }
+
+    void iOSWindow::OnMouseMovedEvent(u32 xPos, u32 yPos)
+    {
+        MouseMovedEvent event(xPos, yPos);
+        m_Data.EventCallback(event);
+    }
+
+    void iOSWindow::OnResizeEvent(u32 width, u32 height)
+    {
+        WindowResizeEvent event(width, height);
+        m_Data.EventCallback(event);
     }
 }

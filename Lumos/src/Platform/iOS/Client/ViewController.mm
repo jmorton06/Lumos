@@ -142,7 +142,7 @@
 
 // Handle keyboard input
 -(void) handleKeyboardInput: (unichar) keycode {
-    os->OnKeyPressed(keycode);
+    os->OnKeyPressed(keycode, true);
 }
 
 #pragma mark UIKeyInput methods

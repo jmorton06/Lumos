@@ -20,8 +20,10 @@ namespace Lumos
         
         void OnFrame();
         void OnQuit();
-        void OnKeyPressed(char keycode);
-        void OnScreenPressed(u32 x, u32 y, u32 count);
+        void OnKeyPressed(char keycode, bool down);
+        void OnScreenPressed(u32 x, u32 y, u32 count, bool down);
+        void OnMouseMovedEvent(u32 xPos, u32 yPos);
+        void OnScreenResize(u32 width, u32 height);
         
         static void SetWindowSize(float x, float y) { m_X = x; m_Y = y;}
         static float m_X,m_Y;
