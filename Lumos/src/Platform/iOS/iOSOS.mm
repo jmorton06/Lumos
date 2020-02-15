@@ -10,6 +10,7 @@
 #include "Platform/Vulkan/VKDevice.h"
 #endif
 
+#include <sys/sysctl.h>
 #import <UIKit/UIKit.h>
 
 namespace Lumos
@@ -30,6 +31,8 @@ namespace Lumos
         Lumos::VFS::Get()->Mount("Meshes", root + "meshes");
         Lumos::VFS::Get()->Mount("Textures", root + "textures");
         
+        Lumos::Debug::Log::Info("Device : {0}",GetModelName());
+        Alert("Test Alert", "TEST");
         Init();
         
         s_Instance = this;
@@ -94,5 +97,27 @@ namespace Lumos
             strcpy(path, (const char *)[bundlePath cStringUsingEncoding:NSUTF8StringEncoding]);
         }
         return path;
-}
+    }
+
+    void iOSOS::Alert(const char *message, const char *title)
+    {
+        UIAlertController* alert = [UIAlertController alertControllerWithTitle:[NSString stringWithUTF8String:title]
+               message:[NSString stringWithUTF8String:message] preferredStyle:UIAlertControllerStyleAlert];
+        [alert show];
+    }
+    
+    String iOSOS::GetModelName() const
+    {
+        size_t size;
+        sysctlbyname("hw.machine", NULL, &size, NULL, 0);
+        char *model = (char *)malloc(size);
+        if (model == NULL) {
+            return "";
+        }
+        sysctlbyname("hw.machine", model, &size, NULL, 0);
+        NSString *platform = [NSString stringWithCString:model encoding:NSUTF8StringEncoding];
+        free(model);
+        const char *str = [platform UTF8String];
+        return String(str != NULL ? str : "");
+    }
 }

@@ -25,6 +25,10 @@ namespace Lumos
         void OnMouseMovedEvent(u32 xPos, u32 yPos);
         void OnScreenResize(u32 width, u32 height);
         
+        static void Alert(const char *message, const char *title);
+
+        String GetModelName() const;
+        
         static void SetWindowSize(float x, float y) { m_X = x; m_Y = y;}
         static float m_X,m_Y;
         
