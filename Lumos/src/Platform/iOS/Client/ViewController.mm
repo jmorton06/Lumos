@@ -14,7 +14,6 @@
     CADisplayLink* _displayLink;
     BOOL _viewHasAppeared;
     Lumos::iOSOS* os;
-    LumosUIWindow* uiWindow;
 }
 
 - (void)didReceiveMemoryWarning {
