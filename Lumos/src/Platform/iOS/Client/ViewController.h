@@ -18,3 +18,9 @@
 - (UIRectEdge)preferredScreenEdgesDeferringSystemGestures;
 
 @end
+
+#pragma mark -
+#pragma mark MetalView
+
+@interface MetalView : UIView
+@end

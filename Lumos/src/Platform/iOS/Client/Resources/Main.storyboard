@@ -14,7 +14,7 @@
                         <viewControllerLayoutGuide type="top" id="klr-UD-pWY"/>
                         <viewControllerLayoutGuide type="bottom" id="lMV-Es-kLU"/>
                     </layoutGuides>
-                    <view key="view" clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="scaleToFill" id="xKx-Gc-5Is" customClass="View">
+                    <view key="view" clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="scaleToFill" id="xKx-Gc-5Is" customClass="MetalView">
                         <rect key="frame" x="0.0" y="0.0" width="375" height="812"/>
                         <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                     </view>
