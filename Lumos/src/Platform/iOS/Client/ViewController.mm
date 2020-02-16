@@ -5,8 +5,6 @@
 #include "../iOSKeyCodes.h"
 #include "App/Application.h"
 
-#include "UIWindow.h"
-
 #import <QuartzCore/CAMetalLayer.h>
 
 #pragma mark -
