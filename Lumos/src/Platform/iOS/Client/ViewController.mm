@@ -14,7 +14,6 @@
 
 @implementation ViewController {
     CADisplayLink* _displayLink;
-    CAMetalLayer* _metalLayer;
     BOOL _viewHasAppeared;
     Lumos::iOSOS* os;
     LumosUIWindow* uiWindow;
@@ -67,29 +66,12 @@
 
 - (void)viewWillLayoutSubviews {
     [super viewWillLayoutSubviews];
-    NSLog(@"bounds = %@", NSStringFromCGRect(self.view.bounds));
     
-    CGSize drawableSize = self.view.bounds.size;
-          
-    // Since drawable size is in pixels, we need to multiply by the scale to move from points to pixels
-    drawableSize.width *= self.view.contentScaleFactor;
-    drawableSize.height *= self.view.contentScaleFactor;
-
-    _metalLayer = [CAMetalLayer new];
-    _metalLayer.frame = self.view.frame;
-    _metalLayer.opaque = true;
-    _metalLayer.framebufferOnly = true;
-    _metalLayer.drawableSize = drawableSize;
-    _metalLayer.pixelFormat = MTLPixelFormatBGRA8Unorm;
-    _metalLayer.contentsScale = self.view.contentScaleFactor;
-
-    [self.view.layer addSublayer:_metalLayer];
-
-    Lumos::iOSWindow::SetIOSView((__bridge void *)_metalLayer);
+    Lumos::iOSWindow::SetIOSView((__bridge void *)self.view);
     Lumos::iOSOS::SetWindowSize(self.view.bounds.size.width * self.view.contentScaleFactor, self.view.bounds.size.height * self.view.contentScaleFactor);
     Lumos::iOSOS::Create();
     os = (Lumos::iOSOS*)Lumos::iOSOS::Instance();
-    os->SetIOSView((__bridge void *)_metalLayer);
+    os->SetIOSView((__bridge void *)self.view);
      
     uint32_t fps = 60;
     _displayLink = [CADisplayLink displayLinkWithTarget: self selector: @selector(renderFrame)];
@@ -102,14 +84,6 @@
     tapSelector.numberOfTapsRequired = 3;
     tapSelector.cancelsTouchesInView = YES;
     [self.view addGestureRecognizer: tapSelector];
-    
-    uiWindow = [ LumosUIWindow alloc ];
-    [ uiWindow initWithFrame:[ [ UIScreen mainScreen ] bounds ] ];
-    uiWindow.backgroundColor = [ UIColor whiteColor ];
-    [ uiWindow makeKeyAndVisible ];
-    [ uiWindow setMultipleTouchEnabled:YES ];
-
-    uiWindow.rootViewController = self;
 }
 
 -(BOOL) canBecomeFirstResponder { return _viewHasAppeared; }
@@ -160,5 +134,61 @@
 -(void) deleteBackward {
     [self handleKeyboardInput: 0x33];
 }
+
+-( void )touchesBegan:( NSSet< UITouch* >* )touches withEvent:( UIEvent* )event
+{
+    for( UITouch* touch in touches )
+    {
+        CGPoint   point = [ touch locationInView:self.view ];
+        NSInteger index = [ touch.estimationUpdateIndex integerValue ];
+        Lumos::iOSOS::Get()->OnScreenPressed(point.x, point.y, (u32)index, true);
+    }
+}
+
+-( void )touchesMoved:( NSSet< UITouch* >* )touches withEvent:( UIEvent* )event
+{
+    for( UITouch* touch in touches )
+    {
+        CGPoint   point = [ touch locationInView:self.view ];
+        //NSInteger index = [ touch.estimationUpdateIndex integerValue ];
+        Lumos::iOSOS::Get()->OnMouseMovedEvent(point.x, point.y);
+    }
+}
+
+-( void )touchesEnded:( NSSet< UITouch* >* )touches withEvent:( UIEvent* )event
+{
+    for( UITouch* touch in touches )
+    {
+        CGPoint   point = [ touch locationInView:self.view ];
+        NSInteger index = [ touch.estimationUpdateIndex integerValue ];
+        Lumos::iOSOS::Get()->OnScreenPressed(point.x, point.y, (u32)index,false);
+    }
+}
+
+-( void )touchesCancelled:( NSSet< UITouch* >* )touches withEvent:( UIEvent* )event
+{
+    for( UITouch* touch in touches )
+    {
+        CGPoint   point = [ touch locationInView:self.view ];
+        NSInteger index = [ touch.estimationUpdateIndex integerValue ];
+        Lumos::iOSOS::Get()->OnScreenPressed(point.x, point.y, (u32)index,false);
+    }
+}
+
+-( void )layoutSubviews
+{
+    [ super layoutSubviews ];
+    Lumos::iOSOS::Get()->OnScreenResize(self.view.bounds.size.width * self.view.contentScaleFactor, self.view.bounds.size.height * self.view.contentScaleFactor);
+}
+
+@end
+
+#pragma mark -
+#pragma mark MetalView
+
+@implementation MetalView
+
+/** Returns a Metal-compatible layer. */
++(Class) layerClass { return [CAMetalLayer class]; }
 
 @end

@@ -101,9 +101,26 @@ namespace Lumos
 
     void iOSOS::Alert(const char *message, const char *title)
     {
-        UIAlertController* alert = [UIAlertController alertControllerWithTitle:[NSString stringWithUTF8String:title]
-               message:[NSString stringWithUTF8String:message] preferredStyle:UIAlertControllerStyleAlert];
-        [alert show];
+        NSString* nsmsg = [[NSString alloc] initWithBytes:message
+                            length:strlen(message) * sizeof(message)
+                            encoding:NSUTF8StringEncoding];
+        
+        UIAlertController* alert = [UIAlertController
+                                      alertControllerWithTitle:@"Error"
+                                      message:nsmsg
+                                      preferredStyle:UIAlertControllerStyleAlert];
+          
+        UIAlertAction* okButton = [UIAlertAction
+                                     actionWithTitle:@"OK"
+                                     style:UIAlertActionStyleDefault
+                                     handler:^(UIAlertAction* action) {
+                                          // Handle your ok button action here
+                                     }];
+          
+        [alert addAction:okButton];
+        
+        UIViewController* viewController = [[[[UIApplication sharedApplication] delegate] window] rootViewController];
+        [viewController presentViewController:alert animated:YES completion:nil];
     }
     
     String iOSOS::GetModelName() const
