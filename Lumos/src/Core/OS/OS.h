@@ -27,6 +27,7 @@ namespace Lumos
         static String PowerStateToString(PowerState state);
 
         virtual const char* GetExecutablePath() = 0;
+        virtual const char* GetAssetPath() {};
 
     protected:
 
