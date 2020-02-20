@@ -219,8 +219,7 @@ project "Sandbox"
 			["CODE_SIGN_IDENTITY[sdk=iphoneos*]"] = "iPhone Developer",
 			['IPHONEOS_DEPLOYMENT_TARGET'] = '12.1',
 			['PRODUCT_BUNDLE_IDENTIFIER'] = "com.jmorton06",
-			['INFOPLIST_FILE'] = "../Lumos/src/Platform/iOS/Client/Info.plist",
-			--["ENABLE_BITCODE"] = "NO"
+			['INFOPLIST_FILE'] = "../Lumos/src/Platform/iOS/Client/Info.plist"
 		}
 
 		files
@@ -234,9 +233,9 @@ project "Sandbox"
 
 		xcodebuildresources 
 		{
-			"../Lumos/src/Platform/iOS/Client/**",
-			"../Lumos/res/**",
-			"../Sandbox/res/**", 
+			"../Lumos/src/Platform/iOS/Client",
+			"../Lumos/res",
+			"../Sandbox/res", 
 		}
 
 		filter {"system:ios", "configurations:release"}

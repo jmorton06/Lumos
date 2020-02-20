@@ -62,9 +62,9 @@ namespace Lumos
 	    Lumos::Internal::CoreSystem::Shutdown();
     }
     
-    String iOSOS::GetAssetPath() const
+    const char* iOSOS::GetAssetPath() const
     {
-        return [NSBundle.mainBundle.resourcePath stringByAppendingString: @"/"].UTF8String;
+        return [NSBundle.mainBundle.resourcePath stringByAppendingString: @"/"].UTF8String.c_str();
     }
     
     void iOSOS::OnKeyPressed(char keycode, bool down)
@@ -97,6 +97,11 @@ namespace Lumos
             strcpy(path, (const char *)[bundlePath cStringUsingEncoding:NSUTF8StringEncoding]);
         }
         return path;
+    }
+
+    const char* iOSOS::GetDataPath()
+    {
+
     }
 
     void iOSOS::Alert(const char *message, const char *title)

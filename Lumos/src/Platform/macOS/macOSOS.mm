@@ -33,4 +33,24 @@ namespace Lumos
     {
         GLFWWindow::MakeDefault();
     }
+
+    const char* macOSOS::GetExecutablePath()
+    {
+        std::string result;
+
+        uint32_t size = 0;
+        _NSGetExecutablePath(nullptr, &size);
+
+        std::vector<char> buffer;
+        buffer.resize(size + 1);
+
+        _NSGetExecutablePath(buffer.data(), &size);
+        buffer[size] = '\0';
+
+        if (!strrchr(buffer.data(), '/'))
+        {
+            return "";
+        }
+        return buffer.data();
+    }
 }
