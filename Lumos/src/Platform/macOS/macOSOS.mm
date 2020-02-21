@@ -5,6 +5,8 @@
 #include "Core/CoreSystem.h"
 #include "App/Application.h"
 
+#include <mach-o/dyld.h>
+
 extern Lumos::Application* Lumos::CreateApplication();
 
 namespace Lumos
