@@ -12,6 +12,7 @@
 
 #include <sys/sysctl.h>
 #import <UIKit/UIKit.h>
+#import <AudioToolbox/AudioServices.h>
 
 namespace Lumos
 {
@@ -62,10 +63,9 @@ namespace Lumos
 	    Lumos::Internal::CoreSystem::Shutdown();
     }
     
-    const char* iOSOS::GetAssetPath()
+    String iOSOS::GetAssetPath()
     {
-        String path = [NSBundle.mainBundle.resourcePath stringByAppendingString: @"/"].UTF8String;
-	return path.c_str();
+        return [NSBundle.mainBundle.resourcePath stringByAppendingString: @"/"].UTF8String;
     }
     
     void iOSOS::OnKeyPressed(char keycode, bool down)
@@ -88,7 +88,7 @@ namespace Lumos
         ((iOSWindow*)Application::Instance()->GetWindow())->OnResizeEvent(width, height);
     }
 
-    const char* iOSOS::GetExecutablePath()
+    String iOSOS::GetExecutablePath()
     {
         return GetAssetPath();
         static char path[512] = "";
@@ -98,6 +98,14 @@ namespace Lumos
             strcpy(path, (const char *)[bundlePath cStringUsingEncoding:NSUTF8StringEncoding]);
         }
         return path;
+    }
+
+    void iOSOS::Vibrate() const
+    {
+        @autoreleasepool
+        {
+            AudioServicesPlaySystemSound(kSystemSoundID_Vibrate);
+        }
     }
 
     void iOSOS::Alert(const char *message, const char *title)

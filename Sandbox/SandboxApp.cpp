@@ -33,7 +33,7 @@ public:
 		GetSceneManager()->EnqueueScene<Scene3D>("Physics Scene");
 		GetSceneManager()->EnqueueScene<GraphicsScene>("Terrain Test");
 		GetSceneManager()->EnqueueScene<MaterialTest>("Material Test");
-		GetSceneManager()->SwitchScene(0);
+		GetSceneManager()->SwitchScene(1);
         GetSceneManager()->ApplySceneSwitch();
 	}
 };

@@ -36,7 +36,7 @@ namespace Lumos
         GLFWWindow::MakeDefault();
     }
 
-    const char* macOSOS::GetExecutablePath()
+    String macOSOS::GetExecutablePath()
     {
         std::string result;
 
