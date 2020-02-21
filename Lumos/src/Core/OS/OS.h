@@ -27,7 +27,7 @@ namespace Lumos
         static String PowerStateToString(PowerState state);
 
         virtual String GetExecutablePath() = 0;
-        virtual String GetAssetPath() { return nullptr; };
+        virtual String GetAssetPath() { return ""; };
         virtual void Vibrate() const {};
 
     protected:
