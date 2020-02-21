@@ -26,8 +26,9 @@ namespace Lumos
         static OS* Instance() { return s_Instance; }
         static String PowerStateToString(PowerState state);
 
-        virtual const char* GetExecutablePath() = 0;
-        virtual const char* GetAssetPath() { return nullptr; };
+        virtual String GetExecutablePath() = 0;
+        virtual String GetAssetPath() { return nullptr; };
+        virtual void Vibrate() const {};
 
     protected:
 

@@ -202,7 +202,8 @@ project "Sandbox"
 			"CoreVideo.framework",
 			"CoreGraphics.framework",
 			"UIKit.framework",
-			"OpenAL.framework"
+			"OpenAL.framework",
+			"AudioToolbox.framework"
 		}
 
 		libdirs
@@ -235,7 +236,7 @@ project "Sandbox"
 		{
 			"../Lumos/src/Platform/iOS/Client",
 			"../Lumos/res",
-			"../Sandbox/res", 
+			"../Sandbox/res",
 		}
 
 		filter {"system:ios", "configurations:release"}
