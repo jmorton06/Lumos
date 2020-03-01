@@ -22,6 +22,7 @@ namespace Lumos
     
         static void Create();
         static void Release();
+        static void SetInstance(OS* instance) { s_Instance = instance; }
 
         static OS* Instance() { return s_Instance; }
         static String PowerStateToString(PowerState state);
