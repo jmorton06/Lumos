@@ -68,6 +68,7 @@ namespace Lumos
 		SetMouseHeld(e.GetMouseButton(), true);
 		return false;
 	}
+	
 	bool Input::OnMouseReleased(MouseButtonReleasedEvent& e)
 	{
 		SetMouseClicked(e.GetMouseButton(), false);

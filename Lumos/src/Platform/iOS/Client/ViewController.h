@@ -13,7 +13,13 @@
 
 - (BOOL)shouldAutorotateToInterfaceOrientation;
 
+- (BOOL)hasNotch;
+
 - (void)didReceiveMemoryWarning;
+
+- (void)hideKeyboard;
+
+- (void)showKeyboard;
 
 - (UIRectEdge)preferredScreenEdgesDeferringSystemGestures;
 
