@@ -200,9 +200,7 @@ project "Lumos"
 			"LUMOS_RENDER_API_VULKAN",
 			"VK_USE_PLATFORM_IOS_MVK",
 			"LUMOS_IMGUI",
-			"LUMOS_OPENAL",
-			"LUMOS_ROOT_DIR=",
-			"LUMOS_VOLK"
+			"LUMOS_OPENAL"
 		}
 
 		files

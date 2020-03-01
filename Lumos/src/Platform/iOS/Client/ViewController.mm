@@ -147,7 +147,6 @@
     for( UITouch* touch in touches )
     {
         CGPoint   point = [ touch locationInView:self.view ];
-        //NSInteger index = [ touch.estimationUpdateIndex integerValue ];
         Lumos::iOSOS::Get()->OnMouseMovedEvent(point.x, point.y);
     }
 }
@@ -177,6 +176,22 @@
     [ super layoutSubviews ];
     Lumos::iOSOS::Get()->OnScreenResize(self.view.bounds.size.width * self.view.contentScaleFactor, self.view.bounds.size.height * self.view.contentScaleFactor);
 }
+
+- (BOOL)hasNotch
+{
+    if(@available(iOS 11.0, *)){
+        return [UIApplication sharedApplication].keyWindow.safeAreaInsets.bottom > 0.0f;
+    }
+    return NO;
+}
+
+- (void)showKeyboard {
+    [self becomeFirstResponder];
+};
+
+- (void)hideKeyboard {
+    [self resignFirstResponder];
+};
 
 @end
 

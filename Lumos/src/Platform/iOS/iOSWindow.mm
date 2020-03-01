@@ -24,7 +24,6 @@ namespace Lumos
 		m_Init = Init(prop, "title");
         
 		Graphics::GraphicsContext::Create(prop, nullptr);
-
 	}
 
 	iOSWindow::~iOSWindow()
@@ -95,12 +94,12 @@ namespace Lumos
         
         if(down)
         {
-            MouseButtonPressedEvent event2(count);
+            MouseButtonPressedEvent event2(LUMOS_MOUSE_LEFT);
             m_Data.EventCallback(event2);
         }
         else
         {
-            MouseButtonPressedEvent event2(count);
+            MouseButtonPressedEvent event2(LUMOS_MOUSE_LEFT);
             m_Data.EventCallback(event2);
         }
     }

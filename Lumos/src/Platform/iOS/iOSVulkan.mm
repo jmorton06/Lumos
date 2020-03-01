@@ -21,12 +21,14 @@ namespace Lumos
         surfaceCreateInfo.pView = iosView;
         vkCreateIOSSurfaceMVK(vkInstance, &surfaceCreateInfo, nullptr, &surface);
         
-#if 0
+#if 1
         MVKConfiguration mvkConfig;
         size_t pConfigurationSize = sizeof(MVKConfiguration);
         vkGetMoltenVKConfigurationMVK(vkInstance, &mvkConfig, &pConfigurationSize);
         mvkConfig.debugMode = true;
-        mvkConfig.synchronousQueueSubmits = VK_FALSE;
+        mvkConfig.synchronousQueueSubmits = false;
+        mvkConfig.presentWithCommandBuffer = false;
+        mvkConfig.prefillMetalCommandBuffers = true;
         vkSetMoltenVKConfigurationMVK(vkInstance, &mvkConfig, &pConfigurationSize);
 #endif
 		return surface;

@@ -33,7 +33,6 @@ namespace Lumos
         Lumos::VFS::Get()->Mount("Textures", root + "textures");
         
         Lumos::Debug::Log::Info("Device : {0}",GetModelName());
-        Alert("Test Alert", "TEST");
         Init();
         
         s_Instance = this;
@@ -44,7 +43,7 @@ namespace Lumos
 
     iOSOS::~iOSOS()
     {
-
+        Lumos::Application::Release();
     }
 
     void iOSOS::Init()

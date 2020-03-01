@@ -105,6 +105,7 @@ namespace Lumos
 		Maths::Vector2 GetWindowSize() const;
 
 		static Application* Instance() { return s_Instance; }
+		static void Release() { delete s_Instance; s_Instance = nullptr; }
 
 		template<typename T>
 		T* GetSystem()
