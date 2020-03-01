@@ -46,7 +46,6 @@ void GraphicsScene::OnInit()
 	auto cameraEntity = m_Registry.create();
 	m_Registry.assign<CameraComponent>(cameraEntity, m_pCamera);
 	m_Registry.assign<NameComponent>(cameraEntity, "Camera");
-	Application::Instance()->GetSystem<AudioManager>()->SetListener(m_pCamera);
 
 	auto audioSystem = Application::Instance()->GetSystem<AudioManager>();
 	if (audioSystem)
