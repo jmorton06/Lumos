@@ -21,7 +21,7 @@ namespace Lumos
         surfaceCreateInfo.pView = iosView;
         vkCreateIOSSurfaceMVK(vkInstance, &surfaceCreateInfo, nullptr, &surface);
         
-#if 1
+#if 0
         MVKConfiguration mvkConfig;
         size_t pConfigurationSize = sizeof(MVKConfiguration);
         vkGetMoltenVKConfigurationMVK(vkInstance, &mvkConfig, &pConfigurationSize);
