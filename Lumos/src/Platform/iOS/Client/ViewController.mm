@@ -64,11 +64,11 @@
 - (void)viewWillLayoutSubviews {
     [super viewWillLayoutSubviews];
     
-    Lumos::iOSWindow::SetIOSView((__bridge void *)self.view);
-    Lumos::iOSOS::SetWindowSize(self.view.bounds.size.width * self.view.contentScaleFactor, self.view.bounds.size.height * self.view.contentScaleFactor);
     Lumos::iOSOS::Create();
     os = (Lumos::iOSOS*)Lumos::iOSOS::Instance();
     os->SetIOSView((__bridge void *)self.view);
+    os->SetWindowSize(self.view.bounds.size.width * self.view.contentScaleFactor, self.view.bounds.size.height * self.view.contentScaleFactor);
+    os->Init();
      
     uint32_t fps = 60;
     _displayLink = [CADisplayLink displayLinkWithTarget: self selector: @selector(renderFrame)];

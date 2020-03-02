@@ -16,7 +16,7 @@ namespace Lumos
 
 		bool Init(const WindowProperties& properties, const String& title);
 
-		inline void* GetHandle() override { return (void*)iosView; }
+		void* GetHandle() override { return (void*)m_Handle; }
 
 		inline uint GetWidth()  const override { return m_Data.Width; }
 		inline uint GetHeight() const override { return m_Data.Height; }
@@ -39,8 +39,6 @@ namespace Lumos
         String GetTitle() const override { return "Mobile"; }
 
         static void MakeDefault();
-        static void* GetIOSView() { return iosView; }
-        static void SetIOSView(void* view) { iosView = view; }
         
     protected:
 
@@ -58,7 +56,6 @@ namespace Lumos
 		};
 
 		WindowData m_Data;
-
-        static void* iosView;
+        void* m_Handle;
     };
 }

@@ -16,6 +16,12 @@
 			"type": "shell",
 			"command": "Tools/premake5 gmake2"
 		},
+		{
+			"label": "Generate build files (Clang)",
+			"group": "none",
+			"type": "shell",
+			"command": "Tools/premake5 gmake2"
+		},
 		// ## VS2017
 		{
 			"label": "Generate build files (VS2017)",
@@ -48,6 +54,32 @@
 			"problemMatcher": [
 				{
 					"base": "$gcc",
+					"fileLocation": ["relative", "${workspaceRoot}/build"]
+				}
+			]
+		},
+
+		// ## Clang
+
+		{
+			// Generate build files first:
+			"dependsOn": [
+				"Generate build files (Clang)"
+			],
+
+			"label": "Build (Clang)",
+			"type": "shell",
+			"group": "build",
+			"command": "make -j8",
+			"args": [
+				"config=${input:buildConfigGMake}"
+			],
+			"options": {
+				"cwd": "${workspaceFolder}/build"
+			},
+			"problemMatcher": [
+				{
+					"base": "$clang",
 					"fileLocation": ["relative", "${workspaceRoot}/build"]
 				}
 			]
@@ -121,6 +153,18 @@
 			"group": "build",
 			"problemMatcher": "$gcc"
 		},
+		// # Rebuild:
+		// ## Rebuild (Clang)
+		{
+			"dependsOn": [
+				"Clean BUILD folder",
+				"Build (Clang)"
+			],
+
+			"label": "Rebuild (Clang)",
+			"group": "build",
+			"problemMatcher": "$clang"
+		},
 
 		// ## Rebuild (VS2017)
 		{
@@ -141,6 +185,13 @@
             "default": "debug_x64",
             "type": "pickString",
             "options": ["debug_x64", "release_x64"]
+		},
+		{
+            "id": "buildConfigGMake",
+            "description": "Select build config for Clang:",
+            "default": "debug",
+            "type": "pickString",
+            "options": ["debug", "release"]
         },
         {
             "id": "buildConfigVS2017",

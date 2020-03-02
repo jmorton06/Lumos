@@ -29,13 +29,15 @@ namespace Lumos
 
         String GetModelName() const;
         
-        static void SetWindowSize(float x, float y) { m_X = x; m_Y = y;}
-        static float m_X,m_Y;
+        void SetWindowSize(float x, float y) { m_X = x; m_Y = y;}
+        float GetWidth() { return m_X; }
+        float GetHeight() { return m_Y; }
         
         static iOSOS* Get() { return (iOSOS*)s_Instance; }
     private:
         
         void* m_IOSView;
+        float m_X, m_Y;
     
     };
 }

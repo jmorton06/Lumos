@@ -16,10 +16,16 @@
 
 namespace Lumos
 {
-    float iOSOS::m_X = 0.0f;
-    float iOSOS::m_Y = 0.0f;
-
     iOSOS::iOSOS()
+    {
+    }
+
+    iOSOS::~iOSOS()
+    {
+        Lumos::Application::Release();
+    }
+
+    void iOSOS::Init()
     {
         Lumos::Internal::CoreSystem::Init(false);
 
@@ -33,22 +39,13 @@ namespace Lumos
         Lumos::VFS::Get()->Mount("Textures", root + "textures");
         
         Lumos::Debug::Log::Info("Device : {0}",GetModelName());
-        Init();
         
+        iOSWindow::MakeDefault();
+
         s_Instance = this;
 
         auto app = Lumos::CreateApplication();
         app->Init();
-    }
-
-    iOSOS::~iOSOS()
-    {
-        Lumos::Application::Release();
-    }
-
-    void iOSOS::Init()
-    {
-        iOSWindow::MakeDefault();
     }
 
     void iOSOS::OnFrame()
