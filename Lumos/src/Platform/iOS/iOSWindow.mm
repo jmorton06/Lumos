@@ -9,8 +9,6 @@
 
 #include <UIKit/UIKit.h>
 
-void* Lumos::iOSWindow::iosView = nullptr;
-
 namespace Lumos
 {
 	iOSWindow::iOSWindow(const WindowProperties& properties)
@@ -18,12 +16,16 @@ namespace Lumos
 		m_Init = false;
         auto prop = properties;
         
-        prop.Width = (u32)((iOSOS*)iOSOS::Instance())->m_X;
-        prop.Height = (u32)((iOSOS*)iOSOS::Instance())->m_Y;
+        auto iosOS = (iOSOS*)iOSOS::Instance();
+
+        prop.Width = (u32)iosOS->GetWidth();
+        prop.Height = (u32)iosOS->GetHeight();
 
 		m_Init = Init(prop, "title");
         
-		Graphics::GraphicsContext::Create(prop, nullptr);
+        m_Handle = iosOS->GetIOSView();
+        
+		Graphics::GraphicsContext::Create(prop, iosOS->GetIOSView());
 	}
 
 	iOSWindow::~iOSWindow()
