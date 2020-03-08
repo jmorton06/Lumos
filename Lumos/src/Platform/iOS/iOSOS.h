@@ -13,7 +13,7 @@ namespace Lumos
         void Run() override {}
         String GetExecutablePath() override;
         String GetAssetPath() override;
-        void Vibrate() const;
+        void Vibrate() const override;
         
         void* GetIOSView() const { return m_IOSView; }
         void SetIOSView(void* view) { m_IOSView = view; }
