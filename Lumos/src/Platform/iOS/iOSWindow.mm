@@ -25,7 +25,7 @@ namespace Lumos
         
         m_Handle = iosOS->GetIOSView();
         
-		Graphics::GraphicsContext::Create(prop, iosOS->GetIOSView());
+		Graphics::GraphicsContext::Create(prop, m_Handle);
 	}
 
 	iOSWindow::~iOSWindow()
@@ -101,7 +101,7 @@ namespace Lumos
         }
         else
         {
-            MouseButtonPressedEvent event2(LUMOS_MOUSE_LEFT);
+            MouseButtonReleasedEvent event2(LUMOS_MOUSE_LEFT);
             m_Data.EventCallback(event2);
         }
     }
