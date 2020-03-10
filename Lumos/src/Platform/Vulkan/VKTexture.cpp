@@ -728,6 +728,12 @@ namespace Lumos
 			m_Descriptor.imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
 		}
 
+		void* VKTextureDepthArray::GetHandleArray(u32 index) 
+		{
+			m_Descriptor.imageView = GetImageView(index); 
+			return (void*)&m_Descriptor;
+		}
+
 		void VKTextureDepthArray::Resize(u32 width, u32 height, u32 count)
 		{
 			m_Width = width;

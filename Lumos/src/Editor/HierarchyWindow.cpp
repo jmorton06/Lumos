@@ -5,6 +5,7 @@
 #include "App/SceneManager.h"
 #include "ImGui/ImGuiHelpers.h"
 #include "App/SceneGraph.h"
+#include "Maths/Transform.h"
 
 #include <imgui/imgui_internal.h>
 #include <IconFontCppHeaders/IconsFontAwesome5.h>
@@ -170,7 +171,13 @@ namespace Lumos
 				m_DoubleClicked = entt::null;
 
 			if (ImGui::IsMouseDoubleClicked(0) && ImGui::IsItemHovered(ImGuiHoveredFlags_None))
+			{
 				m_DoubleClicked = node;
+
+				auto transform = registry.try_get<Maths::Transform>(node);
+				if (transform)
+					m_Editor->FocusCamera(transform->GetWorldPosition(), 2.0f, 2.0f);
+			}
 
 			if (deleteEntity)
 			{
