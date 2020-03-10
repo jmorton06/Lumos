@@ -19,6 +19,7 @@ namespace Lumos
 	class Layer3D;
 	class WindowCloseEvent;
 	class WindowResizeEvent;
+	class TimeStep;
 	
 	namespace Graphics 
 	{
@@ -45,6 +46,7 @@ namespace Lumos
 		void OnNewScene(Scene* scene);
 		void OnImGuizmo();
 		void OnEvent(Event& e);
+		void OnUpdate(TimeStep* ts);
 
 		void Draw2DGrid(ImDrawList* drawList, const ImVec2& cameraPos, const ImVec2& windowPos, const ImVec2& canvasSize, const float factor, const float thickness);
 
@@ -65,6 +67,7 @@ namespace Lumos
 		std::unordered_map<size_t, const char*>& GetComponentIconMap() { return m_ComponentIconMap; }
 
 		float& GetCurrentSceneAspectRatio() { return m_CurrentSceneAspectRatio; }
+		void FocusCamera(const Maths::Vector3& point, float distance, float speed = 1.0f);
 
 	protected:
 		bool OnWindowResize(WindowResizeEvent& e);
@@ -83,6 +86,11 @@ namespace Lumos
 		bool m_View2D = false;
 		float m_SnapAmount = 1.0f;
 		float m_CurrentSceneAspectRatio = 0.0f;
+		bool m_TransitioningCamera = false;
+		Maths::Vector3 m_CameraDestination;
+		Maths::Vector3 m_CameraStartPosition;
+		float m_CameraTransitionStartTime = 0.0f;
+		float m_CameraTransitionSpeed = 0.0f;
         
         ImGui::FileBrowser* m_FileBrowser;
 

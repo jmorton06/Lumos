@@ -31,6 +31,10 @@ namespace Lumos
         virtual String GetAssetPath() { return ""; };
         virtual void Vibrate() const {};
 
+		//Mobile only
+		virtual void ShowKeyboard() {};
+		virtual void HideKeyboard() {};
+
     protected:
 
         static OS* s_Instance;

@@ -205,7 +205,7 @@ namespace Lumos
 			const VkDescriptorImageInfo* GetDescriptor() const { return &m_Descriptor; }
 			void UpdateDescriptor();
 
-			void* GetHandleArray(u32 index) override { m_Descriptor.imageView = GetImageView(index);  return (void*)&m_Descriptor; };
+			void* GetHandleArray(u32 index) override;;
 
             static void MakeDefault();
         protected:
