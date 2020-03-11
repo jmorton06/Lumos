@@ -65,5 +65,20 @@ namespace Lumos
             
             return keyMap[key];
         }
+
+        inline u32 iOSTouchToLumosMouseKey(u32 count)
+		{
+            if(count > 3)
+                return 0;
+
+			static std::map<u32, u32> keyMap =
+			{
+			{0, LUMOS_MOUSE_LEFT},
+			{1, LUMOS_MOUSE_RIGHT},
+			{2, LUMOS_MOUSE_MIDDLE}
+			};
+
+			return keyMap[count];
+		}
     }
 }

@@ -469,7 +469,6 @@ namespace Lumos
 
 				if (modified)
 				{
-
 					camera->SetPitch(rot[0]);
 					camera->SetYaw(rot[1]);
 					camera->SetRoll(rot[2]);

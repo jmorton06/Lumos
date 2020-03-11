@@ -7,6 +7,8 @@
 #include "Events/MouseEvent.h"
 #include "Events/KeyEvent.h"
 
+#include "iOSKeyCodes.h"
+
 #include <UIKit/UIKit.h>
 
 namespace Lumos
@@ -96,12 +98,12 @@ namespace Lumos
         
         if(down)
         {
-            MouseButtonPressedEvent event2(LUMOS_MOUSE_LEFT);
+            MouseButtonPressedEvent event2((Lumos::InputCode::Key)Lumos::iOSKeyCodes::iOSTouchToLumosMouseKey(count));
             m_Data.EventCallback(event2);
         }
         else
         {
-            MouseButtonReleasedEvent event2(LUMOS_MOUSE_LEFT);
+            MouseButtonReleasedEvent event2((Lumos::InputCode::Key)Lumos::iOSKeyCodes::iOSTouchToLumosMouseKey(count));
             m_Data.EventCallback(event2);
         }
     }

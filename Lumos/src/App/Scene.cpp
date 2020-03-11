@@ -72,6 +72,7 @@ namespace Lumos
 #ifdef LUMOS_RENDER_API_DIRECT3D
 		case DIRECT3D: RenderAPI = "Direct3D"; break;
 #endif
+        default: break;
 		}
 
 		std::stringstream Title;

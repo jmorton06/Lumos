@@ -42,6 +42,7 @@
 
     self.view.contentScaleFactor = [[UIScreen mainScreen] scale];
     self.view.contentMode = UIViewContentModeScaleAspectFill;
+    self.view.multipleTouchEnabled = true;
 
     if (@available(iOS 11.0, *)) {
         [self setNeedsUpdateOfScreenEdgesDeferringSystemGestures];
