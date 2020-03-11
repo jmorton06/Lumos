@@ -7,6 +7,8 @@
 
 #import <QuartzCore/CAMetalLayer.h>
 
+#define MAX_TOUCHES 10
+
 #pragma mark -
 #pragma mark ViewController
 
@@ -15,6 +17,38 @@
     BOOL _viewHasAppeared;
     Lumos::iOSOS* os;
 }
+
+static UITouch* touches[MAX_TOUCHES];
+
+static int getTouchId(UITouch *touch, bool remove = false)
+{
+    int next = -1;
+    for (int i = 0; i < MAX_TOUCHES; i++) {
+        if (touches[i] == touch){
+            if (remove)
+                touches[i] = NULL;
+            return i;
+        }
+        if (next == -1 && touches[i] == NULL) {
+            next = i;
+        }
+    }
+    
+    if (next != -1) {
+        touches[next] = touch;
+        return next;
+    }
+    
+    return -1;
+}
+
+static void clearTouches()
+{
+    for (int i = 0; i < MAX_TOUCHES; i++) {
+        touches[i] = NULL;
+    }
+}
+
 
 - (void)didReceiveMemoryWarning {
     printf("Receive memory warning!\n");
@@ -139,7 +173,7 @@
     {
         CGPoint   point = [ touch locationInView:self.view ];
         NSInteger index = [ touch.estimationUpdateIndex integerValue ];
-        Lumos::iOSOS::Get()->OnScreenPressed(point.x * self.view.contentScaleFactor, point.y * self.view.contentScaleFactor, (u32)index, true);
+        Lumos::iOSOS::Get()->OnScreenPressed(point.x * self.view.contentScaleFactor, point.y * self.view.contentScaleFactor, (u32)getTouchId(touch), true);
     }
 }
 
@@ -158,7 +192,7 @@
     {
         CGPoint   point = [ touch locationInView:self.view ];
         NSInteger index = [ touch.estimationUpdateIndex integerValue ];
-        Lumos::iOSOS::Get()->OnScreenPressed(point.x * self.view.contentScaleFactor, point.y * self.view.contentScaleFactor, (u32)index,false);
+        Lumos::iOSOS::Get()->OnScreenPressed(point.x * self.view.contentScaleFactor, point.y * self.view.contentScaleFactor, (u32)getTouchId(touch),false);
     }
 }
 
@@ -168,8 +202,10 @@
     {
         CGPoint   point = [ touch locationInView:self.view ];
         NSInteger index = [ touch.estimationUpdateIndex integerValue ];
-        Lumos::iOSOS::Get()->OnScreenPressed(point.x * self.view.contentScaleFactor, point.y * self.view.contentScaleFactor, (u32)index,false);
+        Lumos::iOSOS::Get()->OnScreenPressed(point.x * self.view.contentScaleFactor, point.y * self.view.contentScaleFactor, (u32)getTouchId(touch),false);
     }
+
+    clearTouches();
 }
 
 -( void )layoutSubviews
