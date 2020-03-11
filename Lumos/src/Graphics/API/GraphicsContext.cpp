@@ -62,6 +62,7 @@ namespace Lumos
 				Graphics::DIRECT3D::MakeDefault();
 				break;
 #endif
+                default: break;
 			}
 		}
 	}

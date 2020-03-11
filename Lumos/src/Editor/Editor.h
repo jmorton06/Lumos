@@ -78,7 +78,7 @@ namespace Lumos
 		entt::entity m_Selected;
         float m_GridSize = 10.0f;
 
-		bool m_ShowGrid = true;
+		bool m_ShowGrid = false;
 		bool m_ShowGizmos = true;
 		bool m_ShowViewSelected = false;
 		bool m_SnapQuizmo = false;
