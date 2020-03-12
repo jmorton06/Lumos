@@ -13,6 +13,8 @@ int APIENTRY WinMain(HINSTANCE hInstance, HINSTANCE, LPSTR, int)
 	Lumos::Internal::CoreSystem::Init(false);
 
     auto windowsOS = new Lumos::WindowsOS();
+    Lumos::OS::SetInstance(windowsOS);
+
     windowsOS->Init();
     
     Lumos::CreateApplication();
@@ -35,6 +37,7 @@ int main(int argc, char** argv)
 	Lumos::Internal::CoreSystem::Init(false);
     
     auto unixOS = new Lumos::UnixOS();
+    Lumos::OS::SetInstance(unixOS);
     unixOS->Init();
     
     Lumos::CreateApplication();
@@ -55,6 +58,7 @@ int main(int argc, char** argv)
 	Lumos::Internal::CoreSystem::Init(false);
 
     auto macOSOS = new Lumos::macOSOS();
+    Lumos::OS::SetInstance(macOSOS);
     macOSOS->Init();
     
     Lumos::CreateApplication();

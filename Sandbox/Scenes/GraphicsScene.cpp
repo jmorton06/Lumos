@@ -46,14 +46,13 @@ void GraphicsScene::OnInit()
 	auto cameraEntity = m_Registry.create();
 	m_Registry.assign<CameraComponent>(cameraEntity, m_pCamera);
 	m_Registry.assign<NameComponent>(cameraEntity, "Camera");
-	Application::Instance()->GetSystem<AudioManager>()->SetListener(m_pCamera);
 
 	auto audioSystem = Application::Instance()->GetSystem<AudioManager>();
 	if (audioSystem)
 		Application::Instance()->GetSystem<AudioManager>()->SetListener(m_pCamera);
 
-	auto deferredRenderer = new Graphics::DeferredRenderer(m_ScreenWidth, m_ScreenHeight);
-	auto skyboxRenderer = new Graphics::SkyboxRenderer(m_ScreenWidth, m_ScreenHeight, m_EnvironmentMap);
+	auto deferredRenderer = new Graphics::ForwardRenderer(m_ScreenWidth, m_ScreenHeight);
+	//auto skyboxRenderer = new Graphics::SkyboxRenderer(m_ScreenWidth, m_ScreenHeight, m_EnvironmentMap);
     
 #ifndef LUMOS_PLATFORM_IOS
     auto shadowRenderer = new Graphics::ShadowRenderer();
@@ -64,12 +63,12 @@ void GraphicsScene::OnInit()
 #endif
 
 	deferredRenderer->SetRenderToGBufferTexture(true);
-	skyboxRenderer->SetRenderToGBufferTexture(true);
+	//skyboxRenderer->SetRenderToGBufferTexture(true);
 
 	auto deferredLayer = new Layer3D(deferredRenderer);
-	auto skyBoxLayer = new Layer3D(skyboxRenderer);
+	//auto skyBoxLayer = new Layer3D(skyboxRenderer);
 	Application::Instance()->PushLayer(deferredLayer);
-	Application::Instance()->PushLayer(skyBoxLayer);
+	//Application::Instance()->PushLayer(skyBoxLayer);
 
 	Application::Instance()->GetRenderManager()->SetSkyBoxTexture(m_EnvironmentMap);
 }

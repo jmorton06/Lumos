@@ -13,8 +13,20 @@
 
 - (BOOL)shouldAutorotateToInterfaceOrientation;
 
+- (BOOL)hasNotch;
+
 - (void)didReceiveMemoryWarning;
+
+- (void)hideKeyboard;
+
+- (void)showKeyboard;
 
 - (UIRectEdge)preferredScreenEdgesDeferringSystemGestures;
 
+@end
+
+#pragma mark -
+#pragma mark MetalView
+
+@interface MetalView : UIView
 @end

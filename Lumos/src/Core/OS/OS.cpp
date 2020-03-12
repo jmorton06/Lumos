@@ -33,6 +33,7 @@ namespace Lumos
     void OS::Release()
     {
         lmdel s_Instance;
+        s_Instance = nullptr;
     }
     
     String OS::PowerStateToString(PowerState state)

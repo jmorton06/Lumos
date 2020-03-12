@@ -2,22 +2,53 @@
 
 #include "../iOSOS.h"
 #include "../iOSWindow.h"
-
-#include "UIWindow.h"
+#include "../iOSKeyCodes.h"
+#include "App/Application.h"
 
 #import <QuartzCore/CAMetalLayer.h>
-#include <MoltenVK/vk_mvk_moltenvk.h>
+
+#define MAX_TOUCHES 10
 
 #pragma mark -
 #pragma mark ViewController
 
 @implementation ViewController {
     CADisplayLink* _displayLink;
-    CAMetalLayer* _metalLayer;
     BOOL _viewHasAppeared;
     Lumos::iOSOS* os;
-    LumosUIWindow* uiWindow;
 }
+
+static UITouch* touches[MAX_TOUCHES];
+
+static int getTouchId(UITouch *touch, bool remove = false)
+{
+    int next = -1;
+    for (int i = 0; i < MAX_TOUCHES; i++) {
+        if (touches[i] == touch){
+            if (remove)
+                touches[i] = NULL;
+            return i;
+        }
+        if (next == -1 && touches[i] == NULL) {
+            next = i;
+        }
+    }
+    
+    if (next != -1) {
+        touches[next] = touch;
+        return next;
+    }
+    
+    return -1;
+}
+
+static void clearTouches()
+{
+    for (int i = 0; i < MAX_TOUCHES; i++) {
+        touches[i] = NULL;
+    }
+}
+
 
 - (void)didReceiveMemoryWarning {
     printf("Receive memory warning!\n");
@@ -44,52 +75,47 @@
 	[super viewDidLoad];
 
     self.view.contentScaleFactor = [[UIScreen mainScreen] scale];
+    self.view.contentMode = UIViewContentModeScaleAspectFill;
+    self.view.multipleTouchEnabled = true;
 
     if (@available(iOS 11.0, *)) {
         [self setNeedsUpdateOfScreenEdgesDeferringSystemGestures];
     }
     
     assert([self.view isKindOfClass:[UIView class]]);
-
-    CGSize drawableSize = self.view.bounds.size;
-     
-     // Since drawable size is in pixels, we need to multiply by the scale to move from points to pixels
-    drawableSize.width *= self.view.contentScaleFactor;
-    drawableSize.height *= self.view.contentScaleFactor;
     
-    _metalLayer = [CAMetalLayer new];
-    _metalLayer.frame = self.view.frame;
-    _metalLayer.opaque = true;
-    _metalLayer.framebufferOnly = true;
-    _metalLayer.drawableSize = drawableSize;
-    _metalLayer.pixelFormat = MTLPixelFormatBGRA8Unorm;
-      
-    [self.view.layer addSublayer:_metalLayer];
-    
-    Lumos::iOSWindow::SetIOSView((__bridge void *)_metalLayer);
-    Lumos::iOSOS::SetWindowSize(self.view.bounds.size.width * self.view.contentScaleFactor * 2, self.view.bounds.size.height * self.view.contentScaleFactor * 2);
-    Lumos::iOSOS::Create();
-    os = (Lumos::iOSOS*)Lumos::iOSOS::Instance();
-    os->SetIOSView((__bridge void *)_metalLayer);
-        
-    uint32_t fps = 60;
-    _displayLink = [CADisplayLink displayLinkWithTarget: self selector: @selector(renderFrame)];
-    _displayLink.preferredFramesPerSecond = fps;
-    [_displayLink addToRunLoop: NSRunLoop.currentRunLoop forMode: NSDefaultRunLoopMode];
-    
-    // Setup tap gesture to toggle virtual keyboard
-    UITapGestureRecognizer* tapSelector = [[UITapGestureRecognizer alloc]
-                                           initWithTarget: self action: @selector(handleTapGesture:)];
-    tapSelector.numberOfTapsRequired = 1;
-    tapSelector.cancelsTouchesInView = YES;
-    [self.view addGestureRecognizer: tapSelector];
-
+    self.view.autoresizesSubviews = true;
+    self.modalPresentationStyle = UIModalPresentationFullScreen;
     _viewHasAppeared = NO;
+
 }
 
 -(void) viewDidAppear: (BOOL) animated {
     [super viewDidAppear: animated];
+    
     _viewHasAppeared = YES;
+}
+
+- (void)viewWillLayoutSubviews {
+    [super viewWillLayoutSubviews];
+    
+    Lumos::iOSOS::Create();
+    os = (Lumos::iOSOS*)Lumos::iOSOS::Instance();
+    os->SetIOSView((__bridge void *)self.view);
+    os->SetWindowSize(self.view.bounds.size.width * self.view.contentScaleFactor, self.view.bounds.size.height * self.view.contentScaleFactor);
+    os->Init();
+     
+    uint32_t fps = 60;
+    _displayLink = [CADisplayLink displayLinkWithTarget: self selector: @selector(renderFrame)];
+    _displayLink.preferredFramesPerSecond = fps;
+    [_displayLink addToRunLoop: NSRunLoop.currentRunLoop forMode: NSDefaultRunLoopMode];
+
+    // Setup tap gesture to toggle virtual keyboard
+    UITapGestureRecognizer* tapSelector = [[UITapGestureRecognizer alloc]
+                                        initWithTarget: self action: @selector(handleTapGesture:)];
+    tapSelector.numberOfTapsRequired = 3;
+    tapSelector.cancelsTouchesInView = YES;
+    [self.view addGestureRecognizer: tapSelector];
 }
 
 -(BOOL) canBecomeFirstResponder { return _viewHasAppeared; }
@@ -122,7 +148,7 @@
 
 // Handle keyboard input
 -(void) handleKeyboardInput: (unichar) keycode {
-    os->OnKeyPressed((u32)keycode);
+    os->OnKeyPressed(keycode, true);
 }
 
 #pragma mark UIKeyInput methods
@@ -140,5 +166,78 @@
 -(void) deleteBackward {
     [self handleKeyboardInput: 0x33];
 }
+
+-( void )touchesBegan:( NSSet< UITouch* >* )touches withEvent:( UIEvent* )event
+{
+    for( UITouch* touch in touches )
+    {
+        CGPoint   point = [ touch locationInView:self.view ];
+        NSInteger index = [ touch.estimationUpdateIndex integerValue ];
+        Lumos::iOSOS::Get()->OnScreenPressed(point.x * self.view.contentScaleFactor, point.y * self.view.contentScaleFactor, (u32)getTouchId(touch), true);
+    }
+}
+
+-( void )touchesMoved:( NSSet< UITouch* >* )touches withEvent:( UIEvent* )event
+{
+    for( UITouch* touch in touches )
+    {
+        CGPoint   point = [ touch locationInView:self.view ];
+        Lumos::iOSOS::Get()->OnMouseMovedEvent(point.x * self.view.contentScaleFactor, point.y * self.view.contentScaleFactor);
+    }
+}
+
+-( void )touchesEnded:( NSSet< UITouch* >* )touches withEvent:( UIEvent* )event
+{
+    for( UITouch* touch in touches )
+    {
+        CGPoint   point = [ touch locationInView:self.view ];
+        NSInteger index = [ touch.estimationUpdateIndex integerValue ];
+        Lumos::iOSOS::Get()->OnScreenPressed(point.x * self.view.contentScaleFactor, point.y * self.view.contentScaleFactor, (u32)getTouchId(touch),false);
+    }
+}
+
+-( void )touchesCancelled:( NSSet< UITouch* >* )touches withEvent:( UIEvent* )event
+{
+    for( UITouch* touch in touches )
+    {
+        CGPoint   point = [ touch locationInView:self.view ];
+        NSInteger index = [ touch.estimationUpdateIndex integerValue ];
+        Lumos::iOSOS::Get()->OnScreenPressed(point.x * self.view.contentScaleFactor, point.y * self.view.contentScaleFactor, (u32)getTouchId(touch),false);
+    }
+
+    clearTouches();
+}
+
+-( void )layoutSubviews
+{
+    [ super layoutSubviews ];
+    Lumos::iOSOS::Get()->OnScreenResize(self.view.bounds.size.width * self.view.contentScaleFactor, self.view.bounds.size.height * self.view.contentScaleFactor);
+}
+
+- (BOOL)hasNotch
+{
+    if(@available(iOS 11.0, *)){
+        return [UIApplication sharedApplication].keyWindow.safeAreaInsets.bottom > 0.0f;
+    }
+    return NO;
+}
+
+- (void)showKeyboard {
+    [self becomeFirstResponder];
+};
+
+- (void)hideKeyboard {
+    [self resignFirstResponder];
+};
+
+@end
+
+#pragma mark -
+#pragma mark MetalView
+
+@implementation MetalView
+
+/** Returns a Metal-compatible layer. */
++(Class) layerClass { return [CAMetalLayer class]; }
 
 @end
