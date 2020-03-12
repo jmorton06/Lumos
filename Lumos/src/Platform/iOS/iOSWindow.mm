@@ -2,9 +2,14 @@
 #include "iOSWindow.h"
 #include "iOSOS.h"
 #include "Graphics/API/GraphicsContext.h"
-#include <UIKit/UIKit.h>
 
-void* Lumos::iOSWindow::iosView = nullptr;
+#include "Events/ApplicationEvent.h"
+#include "Events/MouseEvent.h"
+#include "Events/KeyEvent.h"
+
+#include "iOSKeyCodes.h"
+
+#include <UIKit/UIKit.h>
 
 namespace Lumos
 {
@@ -13,13 +18,16 @@ namespace Lumos
 		m_Init = false;
         auto prop = properties;
         
-        prop.Width = (u32)((iOSOS*)iOSOS::Instance())->m_X;
-        prop.Height = (u32)((iOSOS*)iOSOS::Instance())->m_Y;
+        auto iosOS = (iOSOS*)iOSOS::Instance();
+
+        prop.Width = (u32)iosOS->GetWidth();
+        prop.Height = (u32)iosOS->GetHeight();
 
 		m_Init = Init(prop, "title");
         
-		Graphics::GraphicsContext::Create(prop, nullptr);
-
+        m_Handle = iosOS->GetIOSView();
+        
+		Graphics::GraphicsContext::Create(prop, m_Handle);
 	}
 
 	iOSWindow::~iOSWindow()
@@ -68,4 +76,47 @@ namespace Lumos
 	{
 		return lmnew iOSWindow(properties);
 	}
+
+    void iOSWindow::OnKeyEvent(Lumos::InputCode::Key key, bool down)
+    {
+        if(down)
+        {
+            KeyPressedEvent event(key, 0);
+            m_Data.EventCallback(event);
+        }
+        else
+        {
+            KeyReleasedEvent event(key);
+            m_Data.EventCallback(event);
+        }
+    }
+
+    void iOSWindow::OnTouchEvent(u32 xPos, u32 yPos, u32 count, bool down)
+    {
+        MouseMovedEvent event((float)xPos, (float)yPos);
+        m_Data.EventCallback(event);
+        
+        if(down)
+        {
+            MouseButtonPressedEvent event2((Lumos::InputCode::Key)Lumos::iOSKeyCodes::iOSTouchToLumosMouseKey(count));
+            m_Data.EventCallback(event2);
+        }
+        else
+        {
+            MouseButtonReleasedEvent event2((Lumos::InputCode::Key)Lumos::iOSKeyCodes::iOSTouchToLumosMouseKey(count));
+            m_Data.EventCallback(event2);
+        }
+    }
+
+    void iOSWindow::OnMouseMovedEvent(u32 xPos, u32 yPos)
+    {
+        MouseMovedEvent event(xPos, yPos);
+        m_Data.EventCallback(event);
+    }
+
+    void iOSWindow::OnResizeEvent(u32 width, u32 height)
+    {
+        WindowResizeEvent event(width, height);
+        m_Data.EventCallback(event);
+    }
 }

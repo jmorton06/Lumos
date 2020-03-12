@@ -22,11 +22,18 @@ namespace Lumos
     
         static void Create();
         static void Release();
+        static void SetInstance(OS* instance) { s_Instance = instance; }
 
         static OS* Instance() { return s_Instance; }
         static String PowerStateToString(PowerState state);
 
-        virtual const char* GetExecutablePath() = 0;
+        virtual String GetExecutablePath() = 0;
+        virtual String GetAssetPath() { return ""; };
+        virtual void Vibrate() const {};
+
+		//Mobile only
+		virtual void ShowKeyboard() {};
+		virtual void HideKeyboard() {};
 
     protected:
 

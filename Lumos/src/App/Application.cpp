@@ -241,11 +241,12 @@ namespace Lumos
 		if (Input::GetInput()->GetKeyPressed(InputCode::Key::L)) CommonUtils::AddLightCube(m_SceneManager->GetCurrentScene());
 
 		if (Input::GetInput()->GetKeyPressed(InputCode::Key::G)) m_SceneManager->SwitchScene((sceneIdx + 1) % sceneMax);
-		if (Input::GetInput()->GetKeyPressed(InputCode::Key::H)) m_SceneManager->SwitchScene((sceneIdx == 0 ? sceneMax : sceneIdx) - 1);
-		if (Input::GetInput()->GetKeyPressed(InputCode::Key::F)) m_SceneManager->SwitchScene(sceneIdx);
+		if (Input::GetInput()->GetKeyPressed(InputCode::Key::H)) m_SceneManager->SwitchScene(sceneIdx);
 		if (Input::GetInput()->GetKeyPressed(InputCode::Key::V)) m_Window->ToggleVSync();
 
 #ifdef LUMOS_EDITOR
+		m_Editor->OnUpdate(dt);
+
 		if (Application::Instance()->GetEditorState() != EditorState::Paused && Application::Instance()->GetEditorState() != EditorState::Preview)
 #endif
 		{

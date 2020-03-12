@@ -94,9 +94,15 @@ namespace Lumos
 			vkBindImageMemory(VKDevice::Instance()->GetDevice(), image, imageMemory, 0);
 		}
 
+#ifdef USE_VMA_ALLOCATOR
 		static void CreateImage(u32 width, u32 height, u32 mipLevels, VkFormat format, VkImageType imageType, VkImageTiling tiling,
 			VkImageUsageFlags usage, VkMemoryPropertyFlags properties, VkImage& image,
 			VkDeviceMemory& imageMemory, u32 arrayLayers, VkImageCreateFlags flags, VmaAllocation& allocation)
+#else
+        static void CreateImage(u32 width, u32 height, u32 mipLevels, VkFormat format, VkImageType imageType, VkImageTiling tiling,
+            VkImageUsageFlags usage, VkMemoryPropertyFlags properties, VkImage& image,
+            VkDeviceMemory& imageMemory, u32 arrayLayers, VkImageCreateFlags flags)
+#endif
 		{
 			VkImageCreateInfo imageInfo = {};
 			imageInfo.sType = VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO;
@@ -204,9 +210,16 @@ namespace Lumos
 			m_Handle = 0;
 			m_DeleteImage = true;
 			m_MipLevels = 1;
+            
+#ifdef USE_VMA_ALLOCATOR
 			Graphics::CreateImage(m_Width, m_Height, m_MipLevels, VKTools::TextureFormatToVK(internalformat), VK_IMAGE_TYPE_2D, VK_IMAGE_TILING_OPTIMAL,
 				VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT | VK_IMAGE_USAGE_SAMPLED_BIT, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, m_TextureImage,
 				m_TextureImageMemory, 1, 0, m_Allocation);
+#else
+            Graphics::CreateImage(m_Width, m_Height, m_MipLevels, VKTools::TextureFormatToVK(internalformat), VK_IMAGE_TYPE_2D, VK_IMAGE_TILING_OPTIMAL,
+            VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT | VK_IMAGE_USAGE_SAMPLED_BIT, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, m_TextureImage,
+            m_TextureImageMemory, 1, 0);
+#endif
 			
 			m_TextureImageView = Graphics::CreateImageView(m_TextureImage, VKTools::TextureFormatToVK(internalformat), m_MipLevels, VK_IMAGE_VIEW_TYPE_2D, VK_IMAGE_ASPECT_COLOR_BIT, 1);
 
@@ -333,10 +346,14 @@ namespace Lumos
 
 			if (m_Data == nullptr)
 				delete[] pixels;
-
+#ifdef USE_VMA_ALLOCATOR
 			Graphics::CreateImage(texWidth, texHeight, m_MipLevels, VK_FORMAT_R8G8B8A8_UNORM, VK_IMAGE_TYPE_2D, VK_IMAGE_TILING_OPTIMAL,
 				VK_IMAGE_USAGE_TRANSFER_SRC_BIT | VK_IMAGE_USAGE_TRANSFER_DST_BIT | VK_IMAGE_USAGE_SAMPLED_BIT, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, m_TextureImage,
 				m_TextureImageMemory, 1, 0, m_Allocation);
+#else
+            Graphics::CreateImage(texWidth, texHeight, m_MipLevels, VK_FORMAT_R8G8B8A8_UNORM, VK_IMAGE_TYPE_2D, VK_IMAGE_TILING_OPTIMAL,
+            VK_IMAGE_USAGE_TRANSFER_SRC_BIT | VK_IMAGE_USAGE_TRANSFER_DST_BIT | VK_IMAGE_USAGE_SAMPLED_BIT, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, m_TextureImage, m_TextureImageMemory, 1, 0);
+#endif
 
 			VKTools::TransitionImageLayout(m_TextureImage, VK_FORMAT_R8G8B8A8_UNORM, VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, m_MipLevels);
 			VKTools::CopyBufferToImage(stagingBuffer->GetBuffer(), m_TextureImage, static_cast<uint32_t>(texWidth), static_cast<uint32_t>(texHeight));
@@ -494,10 +511,14 @@ namespace Lumos
 				lmdel[] allData;
 				allData = nullptr;
 			}
-
+#ifdef USE_VMA_ALLOCATOR
 			Graphics::CreateImage(faceWidths[0], faceHeights[0], m_NumMips, VK_FORMAT_R8G8B8A8_UNORM, VK_IMAGE_TYPE_2D, VK_IMAGE_TILING_OPTIMAL,
 				VK_IMAGE_USAGE_TRANSFER_SRC_BIT | VK_IMAGE_USAGE_TRANSFER_DST_BIT | VK_IMAGE_USAGE_SAMPLED_BIT, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, m_TextureImage,
 				m_TextureImageMemory, 6, VK_IMAGE_CREATE_CUBE_COMPATIBLE_BIT, m_Allocation);
+#else
+            Graphics::CreateImage(faceWidths[0], faceHeights[0], m_NumMips, VK_FORMAT_R8G8B8A8_UNORM, VK_IMAGE_TYPE_2D, VK_IMAGE_TILING_OPTIMAL,
+            VK_IMAGE_USAGE_TRANSFER_SRC_BIT | VK_IMAGE_USAGE_TRANSFER_DST_BIT | VK_IMAGE_USAGE_SAMPLED_BIT, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, m_TextureImage, m_TextureImageMemory, 6, VK_IMAGE_CREATE_CUBE_COMPATIBLE_BIT);
+#endif
 
 			VkCommandBuffer cmdBuffer = VKTools::BeginSingleTimeCommands();
 
@@ -605,11 +626,14 @@ namespace Lumos
 		void VKTextureDepth::Init()
 		{
 			VkFormat depthFormat = VKTools::FindDepthFormat();
-
+#ifdef USE_VMA_ALLOCATOR
 			Graphics::CreateImage(m_Width, m_Height, 1, depthFormat, VK_IMAGE_TYPE_2D, VK_IMAGE_TILING_OPTIMAL,
 				VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT | VK_IMAGE_USAGE_SAMPLED_BIT, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, m_TextureImage,
 				m_TextureImageMemory, 1, 0, m_Allocation);
-
+#else
+            Graphics::CreateImage(m_Width, m_Height, 1, depthFormat, VK_IMAGE_TYPE_2D, VK_IMAGE_TILING_OPTIMAL,
+            VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT | VK_IMAGE_USAGE_SAMPLED_BIT, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, m_TextureImage, m_TextureImageMemory, 1, 0);
+#endif
 			m_TextureImageView = CreateImageView(m_TextureImage, depthFormat, 1, VK_IMAGE_VIEW_TYPE_2D, VK_IMAGE_ASPECT_DEPTH_BIT, 1);
 
 			VKTools::TransitionImageLayout(m_TextureImage, depthFormat, VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL);
@@ -672,11 +696,15 @@ namespace Lumos
 		void VKTextureDepthArray::Init()
 		{
 			VkFormat depthFormat = VKTools::FindDepthFormat();
-
+#ifdef USE_VMA_ALLOCATOR
 			Graphics::CreateImage(m_Width, m_Height, 1, depthFormat, VK_IMAGE_TYPE_2D, VK_IMAGE_TILING_OPTIMAL,
 				VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT | VK_IMAGE_USAGE_SAMPLED_BIT, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, m_TextureImage,
 				m_TextureImageMemory, m_Count, 0, m_Allocation);
-
+#else
+            Graphics::CreateImage(m_Width, m_Height, 1, depthFormat, VK_IMAGE_TYPE_2D, VK_IMAGE_TILING_OPTIMAL,
+                        VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT | VK_IMAGE_USAGE_SAMPLED_BIT, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, m_TextureImage,
+                        m_TextureImageMemory, m_Count, 0);
+#endif
 			m_TextureImageView = CreateImageView(m_TextureImage, depthFormat, 1, VK_IMAGE_VIEW_TYPE_2D_ARRAY, VK_IMAGE_ASPECT_DEPTH_BIT, m_Count);
 
 			for (uint32_t i = 0; i < m_Count; i++)
@@ -698,6 +726,12 @@ namespace Lumos
 			m_Descriptor.sampler = m_TextureSampler;
 			m_Descriptor.imageView = m_TextureImageView;
 			m_Descriptor.imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
+		}
+
+		void* VKTextureDepthArray::GetHandleArray(u32 index) 
+		{
+			m_Descriptor.imageView = GetImageView(index); 
+			return (void*)&m_Descriptor;
 		}
 
 		void VKTextureDepthArray::Resize(u32 width, u32 height, u32 count)

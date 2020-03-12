@@ -23,6 +23,9 @@ struct player
 	{
 		Lumos::Debug::Log::Info("Collision"); 
 		scene->m_GameState = Scene2D::GameState::GameOver;
+#ifdef LUMOS_PLATFORM_IOS
+		OS::Instance()->Vibrate();
+#endif
 	}
 };
 

@@ -455,7 +455,7 @@ namespace Lumos
 				float view[16];
 				ImGuizmo::RecomposeMatrixFromComponents(pos, rot, scale, view);
 
-				float camDistance = transform ? (Application::Instance()->GetSceneManager()->GetCurrentScene()->GetCamera()->GetPosition() - transform->GetWorldMatrix().Translation()).Length() : 0.0f;
+				float camDistance = 1.0f;// transform ? (Application::Instance()->GetSceneManager()->GetCurrentScene()->GetCamera()->GetPosition() - transform->GetWorldMatrix().Translation()).Length() : 0.0f;
 
 				auto window = ImGui::GetCurrentWindow();
 				auto size = 128.0f;
@@ -463,15 +463,18 @@ namespace Lumos
 				auto windowSize = window->Size;
 				auto viewManipulatePos = ImVec2(windowPos.x + windowSize.x - size, size / 2.0f - 20.0f + windowPos.y);
 
-				ImGuizmo::ViewManipulate(view, camDistance, viewManipulatePos, ImVec2(size, size), 0x10101010);
+				bool modified = false;
+				ImGuizmo::ViewManipulate(view, camDistance, viewManipulatePos, ImVec2(size, size), 0x10101010, modified);
 				ImGuizmo::DecomposeMatrixToComponents(view, pos, rot, scale);
 
-				camera->SetPitch(rot[0]);
-				camera->SetYaw(rot[1]);
-                camera->SetRoll(rot[2]);
-				camera->SetPosition({ pos[0], pos[1], pos[2] });
+				if (modified)
+				{
+					camera->SetPitch(rot[0]);
+					camera->SetYaw(rot[1]);
+					camera->SetRoll(rot[2]);
+					camera->SetPosition({ pos[0], pos[1], pos[2] });
+				}
 #endif
-				
 			}
 	}
 
@@ -628,9 +631,45 @@ namespace Lumos
 		m_Application->OnEvent(e);
 	}
 
+	void Editor::OnUpdate(TimeStep* ts)
+	{
+		if (Input::GetInput()->GetKeyPressed(InputCode::Key::F))
+		{
+			if (m_Application->GetSceneManager()->GetCurrentScene()->GetRegistry().valid(m_Selected))
+			{
+				auto transform = m_Application->GetSceneManager()->GetCurrentScene()->GetRegistry().try_get<Maths::Transform>(m_Selected);
+				if (transform)
+					FocusCamera(transform->GetWorldPosition(), 2.0f, 2.0f);
+			}
+		}
+
+		if (m_TransitioningCamera)
+		{
+			if (m_CameraTransitionStartTime < 0.0f)
+				m_CameraTransitionStartTime = ts->GetElapsedMillis();
+
+			float focusProgress = Maths::Min((ts->GetElapsedMillis() - m_CameraTransitionStartTime) / m_CameraTransitionSpeed, 1.f);
+			Maths::Vector3 newCameraPosition = m_CameraStartPosition.Lerp(m_CameraDestination, focusProgress);
+			m_Application->GetSceneManager()->GetCurrentScene()->GetCamera()->SetPosition(newCameraPosition);
+
+			if (m_Application->GetSceneManager()->GetCurrentScene()->GetCamera()->GetPosition().Equals(m_CameraDestination))
+				m_TransitioningCamera = false;
+		}
+	}
+
 	void Editor::BindEventFunction()
 	{
 		m_Application->GetWindow()->SetEventCallback(BIND_EVENT_FN(Editor::OnEvent));
+	}
+
+	void Editor::FocusCamera(const Maths::Vector3& point, float distance, float speed)
+	{
+		auto camera = m_Application->GetSceneManager()->GetCurrentScene()->GetCamera();
+		m_TransitioningCamera = true;
+		m_CameraDestination = point + camera->GetForwardDirection() * distance;
+		m_CameraTransitionStartTime = -1.0f;
+		m_CameraTransitionSpeed = 1.0f/speed;
+		m_CameraStartPosition = camera->GetPosition();
 	}
 
 	bool Editor::OnWindowResize(WindowResizeEvent & e)

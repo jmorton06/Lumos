@@ -50,6 +50,7 @@ namespace Lumos
                 case RenderAPI::VULKAN:
                     break;
 #endif
+            default: break;
             }
         }
 
@@ -72,6 +73,7 @@ namespace Lumos
                 case RenderAPI::VULKAN:
                     break;
 #endif
+            default: break;
             }
         }
 
@@ -94,6 +96,7 @@ namespace Lumos
 			case RenderAPI::VULKAN:
 				break;
 #endif
+            default: break;
 			}
 		}
 
@@ -116,6 +119,7 @@ namespace Lumos
                 case RenderAPI::VULKAN:
                     break;
 #endif
+            default: break;
             }
         }
 
@@ -138,6 +142,7 @@ namespace Lumos
                 case RenderAPI::VULKAN:
                     break;
 #endif
+            default: break;
             }
         }
 
@@ -160,6 +165,7 @@ namespace Lumos
                 case RenderAPI::VULKAN:
                     break;
 #endif
+            default: break;
             }
         }
 
