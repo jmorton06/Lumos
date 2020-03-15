@@ -245,9 +245,6 @@ project "Lumos"
 			"-Wno-attributes"
 		}
 
-		xcodebuildresources { "Assets/**" }
-
-
 	filter "system:linux"
 		cppdialect "C++17"
 		systemversion "latest"

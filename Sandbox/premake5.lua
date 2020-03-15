@@ -89,9 +89,6 @@ project "Sandbox"
 			['ALWAYS_SEARCH_USER_PATHS'] = "NO",
 			['MACOSX_DEPLOYMENT_TARGET'] = "10.12",
 			['CLANG_ENABLE_OBJC_WEAK'] = "YES",
-			--['CODE_SIGN_IDENTITY'] = "Mac Developer",
-			--['PRODUCT_BUNDLE_IDENTIFIER'] = "com.jmorton06",
-			--['ENABLE_HARDENED_RUNTIME'] = "YES",
 			['ENABLE_TESTABILITY'] = "YES",
 			["WARNING_CFLAGS"] = "-Wall -Wextra " ..
             "-Wno-missing-field-initializers " ..
@@ -220,6 +217,7 @@ project "Sandbox"
 			["CODE_SIGN_IDENTITY[sdk=iphoneos*]"] = "iPhone Developer",
 			['IPHONEOS_DEPLOYMENT_TARGET'] = '12.1',
 			['PRODUCT_BUNDLE_IDENTIFIER'] = "com.jmorton06",
+			['DEVELOPMENT_TEAM'] = 'C5L4T5BF6L',
 			['INFOPLIST_FILE'] = "../Lumos/src/Platform/iOS/Client/Info.plist"
 		}
 
@@ -236,6 +234,9 @@ project "Sandbox"
 			"../Lumos/src/Platform/iOS/Client",
 			"../Assets/**"
 		}
+
+		--fil'ter "files:../Assets/**"
+	    --    buildaction "Copy"
 
 	filter "system:linux"
 		cppdialect "C++17"
