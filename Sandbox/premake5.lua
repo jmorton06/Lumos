@@ -103,7 +103,7 @@ project "Sandbox"
 
 		}
 
-		xcodebuildresources { "res/textures/icon.icns" }
+		xcodebuildresources { "../Assets/textures/icon.icns" }
 
 
 		files
@@ -203,12 +203,12 @@ project "Sandbox"
 			"CoreGraphics.framework",
 			"UIKit.framework",
 			"OpenAL.framework",
-			"AudioToolbox.framework"
+			"AudioToolbox.framework",
 		}
 
-		libdirs
+		linkoptions
 		{
-			"../Dependencies/vulkan/libs/iOS"
+			"../Dependencies/vulkan/libs/iOS/libMoltenVK.a"
 		}
 
 		xcodebuildsettings
@@ -226,8 +226,7 @@ project "Sandbox"
 		files
 		{
 			"../Lumos/src/Platform/iOS/Client/**",
-			"../Lumos/res/**",
-			"../Sandbox/res/**",
+			"../Assets/**"
 		}
 
 		linkoptions { "-rpath @executable_path/Frameworks" }
@@ -235,43 +234,8 @@ project "Sandbox"
 		xcodebuildresources 
 		{
 			"../Lumos/src/Platform/iOS/Client",
-			"../Lumos/res",
-			"../Sandbox/res",
+			"../Assets/**"
 		}
-
-		filter {"system:ios", "configurations:release"}
-
-			local source = "../Dependencies/vulkan/libs/iOS/**"
-			local target = "../bin/release/"
-			
-			buildmessage("copying "..source.." -> "..target)
-			
-			postbuildcommands {
-				"{COPY} "..source.." "..target
-			}
-
-		filter {"system:ios", "configurations:Production"}
-
-			local source = "../Dependencies/vulkan/libs/iOS/**"
-			local target = "../bin/dist/"
-			
-			buildmessage("copying "..source.." -> "..target)
-			
-			postbuildcommands {
-				"{COPY} "..source.." "..target
-			}
-
-		filter {"system:ios", "configurations:debug"}
-
-			local source = "../Dependencies/vulkan/libs/iOS/**"
-			local target = "../bin/debug/"
-			
-			buildmessage("copying "..source.." -> "..target)
-			
-			postbuildcommands {
-				"{COPY} "..source.." "..target
-			}
-
 
 	filter "system:linux"
 		cppdialect "C++17"
