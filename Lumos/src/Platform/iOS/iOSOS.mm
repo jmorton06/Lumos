@@ -30,13 +30,13 @@ namespace Lumos
         Lumos::Internal::CoreSystem::Init(false);
 
         String root = GetAssetPath();
-        Lumos::VFS::Get()->Mount("CoreShaders", root + "shaders");
-        Lumos::VFS::Get()->Mount("CoreMeshes", root + "meshes");
-        Lumos::VFS::Get()->Mount("CoreTextures", root + "textures");
+        Lumos::VFS::Get()->Mount("CoreShaders", root + "/Assets/shaders");
+        Lumos::VFS::Get()->Mount("CoreMeshes", root + "/Assets/meshes");
+        Lumos::VFS::Get()->Mount("CoreTextures", root + "/Assets/textures");
 
-        Lumos::VFS::Get()->Mount("Shaders", root + "shaders");
-        Lumos::VFS::Get()->Mount("Meshes", root + "meshes");
-        Lumos::VFS::Get()->Mount("Textures", root + "textures");
+        Lumos::VFS::Get()->Mount("Shaders", root + "/Assets/shaders");
+        Lumos::VFS::Get()->Mount("Meshes", root + "/Assets/meshes");
+        Lumos::VFS::Get()->Mount("Textures", root + "/Assets/textures");
         
         Lumos::Debug::Log::Info("Device : {0}",GetModelName());
         
