@@ -235,8 +235,45 @@ project "Sandbox"
 			"../Assets/**"
 		}
 
-		--fil'ter "files:../Assets/**"
-	    --    buildaction "Copy"
+		filter {"system:ios", "configurations:release"}
+
+			local source = "../Assets/**"
+			local target = "../bin/release/Sandbox.app/Assets"
+				
+			buildmessage("copying "..source.." -> "..target)
+			
+			os.mkdir(target)
+
+			postbuildcommands {
+				"{COPY} "..source.." "..target
+			}
+
+		filter {"system:ios", "configurations:Production"}
+
+			local source = "../Assets/**"
+			local target = "../bin/dist/Sandbox.app/Assets"
+				
+			buildmessage("copying "..source.." -> "..target)
+			
+			os.mkdir(target)
+
+			postbuildcommands {
+				"{COPY} "..source.." "..target
+			}
+
+		filter {"system:ios", "configurations:debug"}
+
+			local source = "../Assets/**"
+			local target = "../bin/debug/Sandbox.app/Assets"
+				
+			buildmessage("copying "..source.." -> "..target)
+			
+			os.mkdir(target)
+
+			postbuildcommands {
+				"{COPY} "..source.." "..target
+			}
+
 
 	filter "system:linux"
 		cppdialect "C++17"
