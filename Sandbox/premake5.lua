@@ -210,17 +210,18 @@ project "Sandbox"
 
 		xcodebuildsettings
 		{
-			["ARCHS"] = "$(ARCHS_STANDARD)",
-			["ONLY_ACTIVE_ARCH"] = "NO",
-			["SDKROOT"] = "iphoneos",
-			["TARGETED_DEVICE_FAMILY"] = '1,2',
-			["SUPPORTED_PLATFORMS"] = "iphonesimulator iphoneos",
-			["CODE_SIGN_IDENTITY[sdk=iphoneos*]"] = "iPhone Developer",
+			['ARCHS'] = '$(ARCHS_STANDARD)',
+			['ONLY_ACTIVE_ARCH'] = 'NO',
+			['SDKROOT'] = 'iphoneos',
+			['TARGETED_DEVICE_FAMILY'] = '1,2',
+			['SUPPORTED_PLATFORMS'] = 'iphonesimulator iphoneos',
+			['CODE_SIGN_IDENTITY[sdk=iphoneos*]'] = 'iPhone Developer',
 			['IPHONEOS_DEPLOYMENT_TARGET'] = '12.1',
-			['PRODUCT_BUNDLE_IDENTIFIER'] = "com.jmorton06",
+			['PRODUCT_BUNDLE_IDENTIFIER'] = 'com.jmorton06',
 			['DEVELOPMENT_TEAM'] = 'C5L4T5BF6L',
-			['INFOPLIST_FILE'] = "../Lumos/src/Platform/iOS/Client/Info.plist",
-			['ASSETCATALOG_COMPILER_APPICON_NAME'] = 'AppIcon'
+			['INFOPLIST_FILE'] = '../Lumos/src/Platform/iOS/Client/Info.plist',
+			['ASSETCATALOG_COMPILER_APPICON_NAME'] = 'AppIcon',
+			['ASSETCATALOG_COMPILER_LAUNCHIMAGE_NAME'] = 'LaunchImage'
 		}
 
 		files
