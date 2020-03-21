@@ -224,23 +224,32 @@ project "Sandbox"
 			['ASSETCATALOG_COMPILER_LAUNCHIMAGE_NAME'] = 'LaunchImage'
 		}
 
+		if _OPTIONS["teamid"] then
+			xcodebuildsettings {
+				["DEVELOPMENT_TEAM"] = _OPTIONS["teamid"]
+			}
+		end
+
 		files
 		{
 			"../Lumos/src/Platform/iOS/Client/**",
-			"../Assets/**"
+			"../Assets/**",
+			--"../Assets/app/Images.xcassets"
 		}
 
 		linkoptions { "-rpath @executable_path/Frameworks" }
 
+		excludes 
+		{ 
+			("**.DS_Store")
+		}
+
 		xcodebuildresources 
 		{
 			"../Lumos/src/Platform/iOS/Client",
-			"../Assets/**",
-			"../Assets/app/assets/Images.xcassets"
+			--"Assets",
+			--"Images.xcassets"
 		}
-
-		filter "files:**.xcassets"
-			buildaction "Resource"
 
 		filter {"system:ios", "configurations:release"}
 
