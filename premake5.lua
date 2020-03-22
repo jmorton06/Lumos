@@ -9,7 +9,7 @@ workspace "Lumos"
 	{
 		"Debug",
 		"Release",
-		"Dist"
+		"Production"
 	}
 
 	startproject "Sandbox"
