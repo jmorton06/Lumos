@@ -201,6 +201,7 @@ project "Sandbox"
 			"UIKit.framework",
 			"OpenAL.framework",
 			"AudioToolbox.framework",
+			"Foundation.framework"
 		}
 
 		linkoptions
@@ -229,13 +230,6 @@ project "Sandbox"
 				["DEVELOPMENT_TEAM"] = _OPTIONS["teamid"]
 			}
 		end
-
-		files
-		{
-			"../Lumos/src/Platform/iOS/Client/**",
-			"../Assets/**",
-			--"../Assets/app/Images.xcassets"
-		}
 
 		linkoptions { "-rpath @executable_path/Frameworks" }
 
