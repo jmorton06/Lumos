@@ -201,24 +201,24 @@ namespace Lumos
 
     [self.window setRootViewController:self.m_ViewController];
     self.m_ViewController.view.multipleTouchEnabled = YES;
+        
     self.m_ViewController.view.bounds = bounds;
     self.m_ViewController.view.contentScaleFactor = scale;
         
     self.m_MetalLayer = [CAMetalLayer new];
     self.m_MetalLayer.drawableSize = CGSizeMake(scale * bounds.size.width, scale * bounds.size.height);
-
-    self.m_MetalLayer.frame = self.window.layer.frame;
+    self.m_MetalLayer.frame = self.window.frame;
     self.m_MetalLayer.device = mtlDevice;
     self.m_MetalLayer.pixelFormat = MTLPixelFormatBGRA8Unorm;
     self.m_MetalLayer.framebufferOnly = false;
     self.m_MetalLayer.opaque = YES;
-    //[self.window.layer addSublayer:self.m_MetalLayer];
+    self.m_MetalLayer.contentsScale = scale;
         
     [self.m_ViewController.view.layer addSublayer:self.m_MetalLayer];
     
     Lumos::iOSOS::Create();
     Lumos::iOSOS* os = (Lumos::iOSOS*)Lumos::iOSOS::Instance();
-    os->SetIOSView((__bridge void *)self.m_MetalLayer);//self.m_ViewController.view);
+    os->SetIOSView((__bridge void *)self.m_MetalLayer);
     os->SetWindowSize(self.m_ViewController.view.bounds.size.width * self.m_ViewController.view.contentScaleFactor, self.m_ViewController.view.bounds.size.height * self.m_ViewController.view.contentScaleFactor);
     os->Init();
         
@@ -283,7 +283,6 @@ static void clearTouches()
     }
 }
 
-
 - (void)didReceiveMemoryWarning {
     printf("Receive memory warning!\n");
 };
@@ -317,9 +316,8 @@ static void clearTouches()
     
     assert([self.view isKindOfClass:[UIView class]]);
     
-    //self.view.autoresizesSubviews = true;
-    //self.modalPresentationStyle = UIModalPresentationFullScreen;
-
+    self.view.autoresizesSubviews = true;
+    self.modalPresentationStyle = UIModalPresentationFullScreen;
 }
 
 -(void) viewDidAppear: (BOOL) animated {
