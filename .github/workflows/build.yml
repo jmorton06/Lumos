@@ -29,10 +29,6 @@ jobs:
       run: |
         Tools/premake5 xcode4
         xcodebuild -project build/Sandbox.xcodeproj
-        xcodebuild -project build/Tests.xcodeproj
-    - name: Test
-      run: |
-        ./bin/Debug/Tests
 
   iOS:
     runs-on: macOS-latest

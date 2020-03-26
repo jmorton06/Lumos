@@ -54,6 +54,7 @@ void GraphicsScene::OnInit()
 	auto deferredRenderer = new Graphics::ForwardRenderer(m_ScreenWidth, m_ScreenHeight);
 	//auto skyboxRenderer = new Graphics::SkyboxRenderer(m_ScreenWidth, m_ScreenHeight, m_EnvironmentMap);
     
+    //Can't render to array texture on iPhoneX or older
 #ifndef LUMOS_PLATFORM_IOS
     auto shadowRenderer = new Graphics::ShadowRenderer();
 	shadowRenderer->SetLightEntity(lightEntity);

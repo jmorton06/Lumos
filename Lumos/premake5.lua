@@ -200,8 +200,7 @@ project "Lumos"
 			"LUMOS_RENDER_API_VULKAN",
 			"VK_USE_PLATFORM_IOS_MVK",
 			"LUMOS_IMGUI",
-			"LUMOS_OPENAL",
-			"LUMOS_VOLK"
+			"LUMOS_OPENAL"
 		}
 
 		files
@@ -245,9 +244,6 @@ project "Lumos"
 		{
 			"-Wno-attributes"
 		}
-
-		xcodebuildresources { "res/**" }
-
 
 	filter "system:linux"
 		cppdialect "C++17"
