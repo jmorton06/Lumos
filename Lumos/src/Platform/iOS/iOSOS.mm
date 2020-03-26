@@ -1,10 +1,20 @@
 #include "iOSOS.h"
 #include "iOSWindow.h"
 #include "iOSKeyCodes.h"
-#include "Application.h"
 #include "Core/VFS.h"
 #include "Core/OS/Input.h"
 #include "Core/CoreSystem.h"
+#include "App/Application.h"
+
+#ifdef LUMOS_RENDER_API_VULKAN
+#import <QuartzCore/CAMetalLayer.h>
+#import <Metal/Metal.h>
+#else
+#define LUMOS_RENDER_API_OPENGL
+#import <GLKit/GLKit.h>
+#endif
+
+#define MAX_TOUCHES 10
 
 #ifdef LUMOS_RENDER_API_VULKAN
 #include "Platform/Vulkan/VKDevice.h"
@@ -144,23 +154,9 @@ namespace Lumos
     }
 }
 
-#import <UIKit/UIKit.h>
-
-#ifdef LUMOS_RENDER_API_VULKAN
-#import <QuartzCore/CAMetalLayer.h>
-#import <Metal/Metal.h>
-#else
-#define LUMOS_RENDER_API_OPENGL
-#import <GLKit/GLKit.h>
-#endif
-
-#include "iOSKeyCodes.h"
-#include "App/Application.h"
-
-#define MAX_TOUCHES 10
-
 @interface LumosViewController : UIViewController
-  @property (strong, nonatomic)  CADisplayLink* _displayLink;
+  @property (strong, nonatomic) CADisplayLink* _displayLink;
+  @property (strong, nonatomic) UITapGestureRecognizer *tapRecognizer;
 
 - (BOOL)prefersStatusBarHidden;
 - (BOOL)prefersHomeIndicatorAutoHidden;
@@ -175,7 +171,7 @@ namespace Lumos
 
 @interface LumosAppDelegate : UIResponder <UIApplicationDelegate>
 
-@property (strong, nonatomic) UIWindow*             window;
+@property (strong, nonatomic) UIWindow*             m_UIWindow;
 @property (strong, nonatomic) CAMetalLayer*         m_MetalLayer;
 @property (strong, nonatomic) LumosViewController*  m_ViewController;
 
@@ -183,69 +179,106 @@ namespace Lumos
 
 @implementation LumosAppDelegate
 
-- (BOOL)application:(UIApplication *)application didFinishLaunchingWithOptions:(NSDictionary *)launchOptions {
+- (BOOL)application:(UIApplication *)application didFinishLaunchingWithOptions:(NSDictionary *)launchOptions
+{
     // Override point for customization after application launch.
-    @autoreleasepool {
+    @autoreleasepool
+    {
         
     CGRect bounds = [[UIScreen mainScreen] bounds]; // size in "points"
     float scale = [[UIScreen mainScreen] nativeScale]; // scale for retina dimensions
 
-    self.window = [[UIWindow alloc] initWithFrame:bounds];
-    [self.window setBackgroundColor:[UIColor blackColor]];
-    [self.window makeKeyAndVisible];
-    self.window.contentScaleFactor = scale;
-        
+    self.m_UIWindow = [[UIWindow alloc] initWithFrame:bounds];
+    [self.m_UIWindow setBackgroundColor:[UIColor blackColor]];
+    [self.m_UIWindow makeKeyAndVisible];
+    self.m_UIWindow.contentScaleFactor = scale;
+                
     id<MTLDevice> mtlDevice = MTLCreateSystemDefaultDevice();
 
     self.m_ViewController = [[LumosViewController alloc] initWithNibName:nil bundle:nil];
 
-    [self.window setRootViewController:self.m_ViewController];
+    [self.m_UIWindow setRootViewController:self.m_ViewController];
     self.m_ViewController.view.multipleTouchEnabled = YES;
         
     self.m_ViewController.view.bounds = bounds;
     self.m_ViewController.view.contentScaleFactor = scale;
         
+    //bounds = ComputeSafeArea(self.m_ViewController.view);
+        
     self.m_MetalLayer = [CAMetalLayer new];
     self.m_MetalLayer.drawableSize = CGSizeMake(scale * bounds.size.width, scale * bounds.size.height);
-    self.m_MetalLayer.frame = self.window.frame;
+    self.m_MetalLayer.frame = self.m_UIWindow.frame;
     self.m_MetalLayer.device = mtlDevice;
     self.m_MetalLayer.pixelFormat = MTLPixelFormatBGRA8Unorm;
-    self.m_MetalLayer.framebufferOnly = false;
+    self.m_MetalLayer.framebufferOnly = NO;
     self.m_MetalLayer.opaque = YES;
     self.m_MetalLayer.contentsScale = scale;
         
     [self.m_ViewController.view.layer addSublayer:self.m_MetalLayer];
+    [self.m_ViewController.view becomeFirstResponder];
+        
+    self.m_ViewController.view.userInteractionEnabled = YES;
+    self.m_ViewController.view.multipleTouchEnabled = true;
     
     Lumos::iOSOS::Create();
     Lumos::iOSOS* os = (Lumos::iOSOS*)Lumos::iOSOS::Instance();
     os->SetIOSView((__bridge void *)self.m_MetalLayer);
-    os->SetWindowSize(self.m_ViewController.view.bounds.size.width * self.m_ViewController.view.contentScaleFactor, self.m_ViewController.view.bounds.size.height * self.m_ViewController.view.contentScaleFactor);
+    os->SetWindowSize(bounds.size.width * scale, bounds.size.height * scale);
     os->Init();
         
     return YES;
     }
 }
 
-- (void)applicationWillResignActive:(UIApplication *)application {
+CGRect ComputeSafeArea(UIView* view)
+{
+    CGSize screenSize = view.bounds.size;
+    CGRect screenRect = CGRectMake(0, 0, screenSize.width, screenSize.height);
+
+    UIEdgeInsets insets = UIEdgeInsetsMake(0, 0, 0, 0);
+    
+    if (@available(iOS 11.0, tvOS 11.0, *))
+        insets = [view safeAreaInsets];
+
+    screenRect.origin.x += insets.left;
+    screenRect.origin.y += insets.bottom;
+    screenRect.size.width -= insets.left + insets.right;
+    screenRect.size.height -= insets.top + insets.bottom;
+    
+    return screenRect;
+}
+
+- (void)applicationWillResignActive:(UIApplication *)application
+{
     // Sent when the application is about to move from active to inactive state. This can occur for certain types of temporary interruptions (such as an incoming phone call or SMS message) or when the user quits the application and it begins the transition to the background state.
     // Use this method to pause ongoing tasks, disable timers, and throttle down OpenGL ES frame rates. Games should use this method to pause the game.
+    Lumos::Input::GetInput()->SetWindowFocus(false);
 }
 
-- (void)applicationDidEnterBackground:(UIApplication *)application {
+- (void)applicationDidEnterBackground:(UIApplication *)application
+{
     // Use this method to release shared resources, save user data, invalidate timers, and store enough application state information to restore your application to its current state in case it is terminated later.
     // If your application supports background execution, this method is called instead of applicationWillTerminate: when the user quits.
+    Lumos::Input::GetInput()->SetWindowFocus(false);
 }
 
-- (void)applicationWillEnterForeground:(UIApplication *)application {
+- (void)applicationWillEnterForeground:(UIApplication *)application
+{
     // Called as part of the transition from the background to the inactive state; here you can undo many of the changes made on entering the background.
+    Lumos::Input::GetInput()->SetWindowFocus(true);
 }
 
-- (void)applicationDidBecomeActive:(UIApplication *)application {
+- (void)applicationDidBecomeActive:(UIApplication *)application
+{
     // Restart any tasks that were paused (or not yet started) while the application was inactive. If the application was previously in the background, optionally refresh the user interface.
+    Lumos::Input::GetInput()->SetWindowFocus(true);
 }
 
-- (void)applicationWillTerminate:(UIApplication *)application {
+- (void)applicationWillTerminate:(UIApplication *)application
+{
     // Called when the application is about to terminate. Save data if appropriate. See also applicationDidEnterBackground:.
+    ((Lumos::iOSOS*)Lumos::iOSOS::Instance())->OnQuit();
+    Lumos::iOSOS::Release();
 }
 
 @end
@@ -257,18 +290,22 @@ static UITouch* touches[MAX_TOUCHES];
 static int getTouchId(UITouch *touch, bool remove)
 {
     int next = -1;
-    for (int i = 0; i < MAX_TOUCHES; i++) {
-        if (touches[i] == touch){
+    for (int i = 0; i < MAX_TOUCHES; i++)
+    {
+        if (touches[i] == touch)
+        {
             if (remove)
                 touches[i] = NULL;
             return i;
         }
-        if (next == -1 && touches[i] == NULL) {
+        if (next == -1 && touches[i] == NULL)
+        {
             next = i;
         }
     }
     
-    if (next != -1) {
+    if (next != -1)
+    {
         touches[next] = touch;
         return next;
     }
@@ -278,53 +315,67 @@ static int getTouchId(UITouch *touch, bool remove)
 
 static void clearTouches()
 {
-    for (int i = 0; i < MAX_TOUCHES; i++) {
+    for (int i = 0; i < MAX_TOUCHES; i++)
+    {
         touches[i] = NULL;
     }
 }
 
-- (void)didReceiveMemoryWarning {
+- (void)didReceiveMemoryWarning
+{
     printf("Receive memory warning!\n");
 };
 
-- (UIRectEdge)preferredScreenEdgesDeferringSystemGestures {
+- (UIRectEdge)preferredScreenEdgesDeferringSystemGestures
+{
     return UIRectEdgeAll;
 }
 
-- (BOOL)prefersStatusBarHidden {
+- (BOOL)prefersStatusBarHidden
+{
     return YES;
 }
 
-- (BOOL)prefersHomeIndicatorAutoHidden {
+- (BOOL)prefersHomeIndicatorAutoHidden
+{
     return YES;
 }
 
-- (BOOL)shouldAutorotateToInterfaceOrientation {
+- (BOOL)shouldAutorotateToInterfaceOrientation
+{
     return YES;
 };
 
-/** Since this is a single-view app, init Vulkan when the view is loaded. */
--(void) viewDidLoad {
-    
-    //self.view.contentScaleFactor = [[UIScreen mainScreen] scale];
-    //self.view.contentMode = UIViewContentModeScaleAspectFill;
-    self.view.multipleTouchEnabled = true;
+- (BOOL)acceptsFirstResponder
+{
+  return YES;
+}
 
+-(BOOL)canBecomeFirstResponder
+{
+    return YES;
+}
+
+- (BOOL)hasText
+{
+    return YES;
+}
+
+
+-(void) viewDidLoad
+{
     if (@available(iOS 11.0, *)) {
         [self setNeedsUpdateOfScreenEdgesDeferringSystemGestures];
     }
-    
-    assert([self.view isKindOfClass:[UIView class]]);
-    
-    self.view.autoresizesSubviews = true;
-    self.modalPresentationStyle = UIModalPresentationFullScreen;
 }
 
--(void) viewDidAppear: (BOOL) animated {
+-(void) viewDidAppear: (BOOL) animated
+{
     [super viewDidAppear: animated];
 }
 
-- (void)viewWillLayoutSubviews {
+- (void)viewWillLayoutSubviews
+{
     [super viewWillLayoutSubviews];
      
     uint32_t fps = 120;
@@ -333,11 +384,12 @@ static void clearTouches()
     [__displayLink addToRunLoop: NSRunLoop.currentRunLoop forMode: NSDefaultRunLoopMode];
 
     // Setup tap gesture to toggle virtual keyboard
-    UITapGestureRecognizer* tapSelector = [[UITapGestureRecognizer alloc]
+    self.tapRecognizer = [[UITapGestureRecognizer alloc]
                                         initWithTarget: self action: @selector(handleTapGesture:)];
-    tapSelector.numberOfTapsRequired = 3;
-    tapSelector.cancelsTouchesInView = YES;
-    [self.view addGestureRecognizer: tapSelector];
+    self.tapRecognizer.numberOfTapsRequired = 3;
+    self.tapRecognizer.cancelsTouchesInView = YES;
+    
+    [self.view addGestureRecognizer: self.tapRecognizer];
 }
 
 -(void) renderFrame {
@@ -345,8 +397,6 @@ static void clearTouches()
 }
 
 -(void) dealloc {
-    ((Lumos::iOSOS*)Lumos::iOSOS::Instance())->OnQuit();
-    delete (Lumos::iOSOS*)Lumos::iOSOS::Instance();
     [super dealloc];
 }
 
@@ -372,9 +422,6 @@ static void clearTouches()
 }
 
 #pragma mark UIKeyInput methods
-
-// Returns whether text is available
--(BOOL) hasText { return YES; }
 
 // A key on the keyboard has been pressed.
 -(void) insertText: (NSString*) text {
@@ -439,11 +486,11 @@ static void clearTouches()
 }
 
 - (void)showKeyboard {
-    [self becomeFirstResponder];
+    [self.view becomeFirstResponder];
 };
 
 - (void)hideKeyboard {
-    [self resignFirstResponder];
+    [self.view resignFirstResponder];
 };
 
 @end
