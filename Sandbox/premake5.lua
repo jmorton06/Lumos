@@ -89,9 +89,6 @@ project "Sandbox"
 			['ALWAYS_SEARCH_USER_PATHS'] = "NO",
 			['MACOSX_DEPLOYMENT_TARGET'] = "10.12",
 			['CLANG_ENABLE_OBJC_WEAK'] = "YES",
-			--['CODE_SIGN_IDENTITY'] = "Mac Developer",
-			--['PRODUCT_BUNDLE_IDENTIFIER'] = "com.jmorton06",
-			--['ENABLE_HARDENED_RUNTIME'] = "YES",
 			['ENABLE_TESTABILITY'] = "YES",
 			["WARNING_CFLAGS"] = "-Wall -Wextra " ..
             "-Wno-missing-field-initializers " ..
@@ -103,7 +100,7 @@ project "Sandbox"
 
 		}
 
-		xcodebuildresources { "res/textures/icon.icns" }
+		xcodebuildresources { "../Assets/textures/icon.icns" }
 
 
 		files
@@ -203,71 +200,86 @@ project "Sandbox"
 			"CoreGraphics.framework",
 			"UIKit.framework",
 			"OpenAL.framework",
-			"AudioToolbox.framework"
+			"AudioToolbox.framework",
+			"Foundation.framework"
 		}
 
-		libdirs
+		linkoptions
 		{
-			"../Dependencies/vulkan/libs/iOS"
+			"../Dependencies/vulkan/libs/iOS/libMoltenVK.a"
 		}
 
 		xcodebuildsettings
 		{
-			["ARCHS"] = "$(ARCHS_STANDARD)",
-			["ONLY_ACTIVE_ARCH"] = "NO",
-			["SDKROOT"] = "iphoneos",
-			["SUPPORTED_PLATFORMS"] = "iphonesimulator iphoneos",
-			["CODE_SIGN_IDENTITY[sdk=iphoneos*]"] = "iPhone Developer",
+			['ARCHS'] = '$(ARCHS_STANDARD)',
+			['ONLY_ACTIVE_ARCH'] = 'NO',
+			['SDKROOT'] = 'iphoneos',
+			['TARGETED_DEVICE_FAMILY'] = '1,2',
+			['SUPPORTED_PLATFORMS'] = 'iphonesimulator iphoneos',
+			['CODE_SIGN_IDENTITY[sdk=iphoneos*]'] = 'iPhone Developer',
 			['IPHONEOS_DEPLOYMENT_TARGET'] = '12.1',
-			['PRODUCT_BUNDLE_IDENTIFIER'] = "com.jmorton06",
-			['INFOPLIST_FILE'] = "../Lumos/src/Platform/iOS/Client/Info.plist"
+			['PRODUCT_BUNDLE_IDENTIFIER'] = 'com.jmorton06',
+			['DEVELOPMENT_TEAM'] = 'C5L4T5BF6L',
+			['INFOPLIST_FILE'] = '../Lumos/src/Platform/iOS/Client/Info.plist',
+			['ASSETCATALOG_COMPILER_APPICON_NAME'] = 'AppIcon',
+			['ASSETCATALOG_COMPILER_LAUNCHIMAGE_NAME'] = 'LaunchImage'
 		}
 
-		files
-		{
-			"../Lumos/src/Platform/iOS/Client/**",
-			"../Lumos/res/**",
-			"../Sandbox/res/**",
-		}
+		if _OPTIONS["teamid"] then
+			xcodebuildsettings {
+				["DEVELOPMENT_TEAM"] = _OPTIONS["teamid"]
+			}
+		end
 
 		linkoptions { "-rpath @executable_path/Frameworks" }
+
+		excludes 
+		{ 
+			("**.DS_Store")
+		}
 
 		xcodebuildresources 
 		{
 			"../Lumos/src/Platform/iOS/Client",
-			"../Lumos/res",
-			"../Sandbox/res",
+			--"Assets",
+			--"Images.xcassets"
 		}
 
 		filter {"system:ios", "configurations:release"}
 
-			local source = "../Dependencies/vulkan/libs/iOS/**"
-			local target = "../bin/release/"
-			
+			local source = "../Assets/**"
+			local target = "../bin/release/Sandbox.app/Assets"
+				
 			buildmessage("copying "..source.." -> "..target)
 			
+			os.mkdir(target)
+
 			postbuildcommands {
 				"{COPY} "..source.." "..target
 			}
 
 		filter {"system:ios", "configurations:Production"}
 
-			local source = "../Dependencies/vulkan/libs/iOS/**"
-			local target = "../bin/dist/"
-			
+			local source = "../Assets/**"
+			local target = "../bin/dist/Sandbox.app/Assets"
+				
 			buildmessage("copying "..source.." -> "..target)
 			
+			os.mkdir(target)
+
 			postbuildcommands {
 				"{COPY} "..source.." "..target
 			}
 
 		filter {"system:ios", "configurations:debug"}
 
-			local source = "../Dependencies/vulkan/libs/iOS/**"
-			local target = "../bin/debug/"
-			
+			local source = "../Assets/**"
+			local target = "../bin/debug/Sandbox.app/Assets"
+				
 			buildmessage("copying "..source.." -> "..target)
 			
+			os.mkdir(target)
+
 			postbuildcommands {
 				"{COPY} "..source.." "..target
 			}

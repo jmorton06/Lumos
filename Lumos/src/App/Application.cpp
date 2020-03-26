@@ -49,10 +49,10 @@ namespace Lumos
 
 		const String root = ROOT_DIR;
 		
-		VFS::Get()->Mount("CoreShaders", root + "/Lumos/res/shaders");
-		VFS::Get()->Mount("CoreMeshes", root + "/Lumos/res/meshes");
-		VFS::Get()->Mount("CoreTextures", root + "/Lumos/res/textures");
-		VFS::Get()->Mount("CoreFonts", root + "/Lumos/res/fonts");
+		VFS::Get()->Mount("CoreShaders", root + "/Assets/shaders");
+		VFS::Get()->Mount("CoreMeshes", root + "/Assets/meshes");
+		VFS::Get()->Mount("CoreTextures", root + "/Assets/textures");
+		VFS::Get()->Mount("CoreFonts", root + "/Assets/fonts");
 
 		m_Window = Scope<Window>(Window::Create(properties));
 #ifndef LUMOS_EDITOR
