@@ -39,9 +39,8 @@ project "Sandbox"
 
 	cwd = os.getcwd() .. "/.."
 
-	defines
-	{
-	}
+	filter { "files:external/**"}
+		warnings "Off"
 
 	filter "system:windows"
 		cppdialect "C++17"
@@ -102,7 +101,6 @@ project "Sandbox"
 
 		xcodebuildresources { "../Assets/textures/icon.icns" }
 
-
 		files
 		{
 			"../Lumos/src/Platform/macOS/Info.plist"
@@ -135,6 +133,7 @@ project "Sandbox"
 			"glfw",
 		}
 
+		SetRecommendedXcodeSettings()
 
 		filter {"system:macosx", "configurations:release"}
 
@@ -244,6 +243,8 @@ project "Sandbox"
 			--"Assets",
 			--"Images.xcassets"
 		}
+
+		SetRecommendedXcodeSettings()
 
 		filter {"system:ios", "configurations:release"}
 
