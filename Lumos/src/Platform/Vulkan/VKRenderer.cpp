@@ -55,7 +55,7 @@ namespace Lumos
 				subresourceRange.layerCount = 1;
 				subresourceRange.levelCount = 1;
 
-				VkClearColorValue clearColorValue = VkClearColorValue({ 0.0f, 0.0f, 0.0f, 0.0f });
+                VkClearColorValue clearColorValue = VkClearColorValue({ {0.0f, 0.0f, 0.0f, 0.0f} });
 
 				vkCmdClearColorImage(cmd, static_cast<VKTexture2D*>(m_Swapchain->GetImage(i))->GetImage(),VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL, &clearColorValue, 1, &subresourceRange);
 

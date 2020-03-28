@@ -14,6 +14,8 @@ project 'lua'
 		defines "LUA_USE_APICHECK=1"
 	filter {}
 
+	buildoptions { "-w" }
+
 	--buildoptions { "/MT" }
 
 	files
@@ -33,7 +35,7 @@ project 'lua'
     	{
     	  "-fPIC"
 		}
-	
+
 	filter "configurations:Debug"
 		symbols "On"
 

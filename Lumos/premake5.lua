@@ -55,6 +55,9 @@ project "Lumos"
 		"LUMOS_ROOT_DIR="  .. cwd,
 	}
 
+	filter { "files:external/**"}
+		warnings "Off"
+
 	filter "system:windows"
 		cppdialect "C++17"
 		staticruntime "on"
@@ -176,6 +179,8 @@ project "Lumos"
 			"-Wno-attributes"
 		}
 
+		SetRecommendedXcodeSettings()
+
 		filter { "action:xcode4" }
 			pchheader "../Lumos/src/lmpch.h"
 			pchsource "../Lumos/src/lmpch.cpp"
@@ -228,7 +233,6 @@ project "Lumos"
 		{
 			"QuartzCore.framework",
 			"Metal.framework",
-			"Cocoa.framework",
         	"IOKit.framework",
         	"CoreFoundation.framework",
 			"CoreVideo.framework",
@@ -244,6 +248,8 @@ project "Lumos"
 		{
 			"-Wno-attributes"
 		}
+
+		SetRecommendedXcodeSettings()
 
 	filter "system:linux"
 		cppdialect "C++17"
