@@ -27,8 +27,9 @@ jobs:
         fetch-depth: 1
     - name: Build
       run: |
+        gem install xcpretty
         Tools/premake5 xcode4
-        xcodebuild -project build/Sandbox.xcodeproj
+        xcodebuild -project build/Sandbox.xcodeproj | xcpretty
 
   iOS:
     runs-on: macOS-latest
