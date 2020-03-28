@@ -21,6 +21,9 @@
 #endif
 
 #include <sys/sysctl.h>
+#include <SystemConfiguration/SCNetworkReachability.h>
+#include <netinet/in.h>
+
 #import <UIKit/UIKit.h>
 #import <AudioToolbox/AudioServices.h>
 
@@ -151,6 +154,37 @@ namespace Lumos
         free(model);
         const char *str = [platform UTF8String];
         return String(str != NULL ? str : "");
+    }
+
+    void iOSOS::ShowKeyboard(bool open)
+    {
+        
+    }
+
+    bool iOSOS::HasWifiConnection()
+    {
+        struct sockaddr_in zeroAddress;
+        memset(&zeroAddress, 0, sizeof(zeroAddress));
+        zeroAddress.sin_len = sizeof(zeroAddress);
+        zeroAddress.sin_family = AF_INET;
+
+        SCNetworkReachabilityRef reachabilityRef = SCNetworkReachabilityCreateWithAddress(kCFAllocatorDefault, (const struct sockaddr *)&zeroAddress);
+        SCNetworkReachabilityFlags reachabilityFlags;
+        bool isFlagsAvailable = SCNetworkReachabilityGetFlags(reachabilityRef, &reachabilityFlags);
+        CFRelease(reachabilityRef);
+
+        bool hasActiveWiFiConnection = false;
+        if (isFlagsAvailable)
+        {
+           bool isReachable = (reachabilityFlags & kSCNetworkReachabilityFlagsReachable) != 0 &&
+                              (reachabilityFlags & kSCNetworkReachabilityFlagsConnectionRequired) == 0 &&
+                              // in case kSCNetworkReachabilityFlagsConnectionOnDemand || kSCNetworkReachabilityFlagsConnectionOnTraffic
+                              (reachabilityFlags & kSCNetworkReachabilityFlagsInterventionRequired) == 0;
+                       
+           hasActiveWiFiConnection = isReachable && (reachabilityFlags & kSCNetworkReachabilityFlagsIsWWAN) == 0;
+        }
+
+        return hasActiveWiFiConnection;
     }
 }
 
