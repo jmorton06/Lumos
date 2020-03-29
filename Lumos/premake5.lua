@@ -1,6 +1,7 @@
 project "Lumos"
 	kind "StaticLib"
 	language "C++"
+	editandcontinue "Off"
 
 	files
 	{
