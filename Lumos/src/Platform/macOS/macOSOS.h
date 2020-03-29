@@ -12,10 +12,6 @@ namespace Lumos
         void Init();
         void Run() override;
         String GetExecutablePath() override;
-        
-        PowerState GetPowerState() override;
-        int BatteryPercentage() override;
-        int BatterySecondsLeft() override;
 
 	};
 }

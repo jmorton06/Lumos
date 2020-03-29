@@ -11,13 +11,11 @@
 
 #include "App/Application.h"
 #include "Core/OS/Input.h"
-#include "Core/OS/OS.h"
 #include "Core/Profiler.h"
 #include "App/Engine.h"
 #include "App/Scene.h"
 #include "App/SceneManager.h"
 #include "Events/ApplicationEvent.h"
-//#include "Utilities/CommonUtils.h"
 
 #include "ECS/Component/Components.h"
 #include "Physics/LumosPhysicsEngine/LumosPhysicsEngine.h"
@@ -352,41 +350,6 @@ namespace Lumos
                 if (selected)
                     ImGui::PopStyleColor();
             }
-            
-            ImGui::SameLine(ImGui::GetWindowContentRegionMax().x - 25.0f);
-
-            {
-                auto* os = OS::Instance();
-                auto powerState = os->GetPowerState();
-                
-                switch(powerState)
-                {
-                    case POWERSTATE_CHARGING :
-                        ImGui::Text(ICON_FA_BATTERY_FULL);
-                        break;
-                    case POWERSTATE_ON_BATTERY :
-                        ImGui::Text(ICON_FA_BATTERY_FULL);
-                        break;
-                    case POWERSTATE_NO_BATTERY :
-                        ImGui::Text(ICON_FA_BATTERY_EMPTY);
-                        ImGuiHelpers::Tooltip("Battery");
-                        break;
-                    case POWERSTATE_CHARGED :
-                        ImGui::Text(ICON_FA_BATTERY_FULL);
-                        break;
-                        
-                    default : break;
-                }
-                
-                int seconds = os->BatterySecondsLeft();
-                
-                int minutes,hours;
-                
-               // CommonUtils::SecondsToHoursAndMinutes(seconds, hours, minutes, seconds);
-                
-                ImGuiHelpers::Tooltip("Battery");
-            }
-            
 
 			ImGui::PopStyleColor();
 			ImGui::EndMainMenuBar();

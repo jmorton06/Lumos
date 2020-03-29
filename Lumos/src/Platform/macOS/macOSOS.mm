@@ -55,28 +55,4 @@ namespace Lumos
         }
         return buffer.data();
     }
-
-    PowerState macOSOS::GetPowerState()
-    {
-        auto power = macOSPower();
-        auto state = power.GetPowerState();
-
-        return state;
-    }
-
-    int macOSOS::BatteryPercentage()
-    {
-        auto power = macOSPower();
-        auto percentage = power.GetPowerPercentageLeft();
-
-        return percentage;
-    }
-
-    int macOSOS::BatterySecondsLeft()
-    {
-        auto power = macOSPower();
-        auto seconds = power.GetPowerSecondsLeft();
-
-        return seconds;
-    }
 }
