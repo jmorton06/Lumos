@@ -34,7 +34,11 @@ namespace Lumos
 		//Mobile only
 		virtual void ShowKeyboard() {};
 		virtual void HideKeyboard() {};
-
+        
+        virtual PowerState GetPowerState() { return POWERSTATE_UNKNOWN; }
+        virtual int BatteryPercentage() { return 100; }
+        virtual int BatterySecondsLeft() { return 100; }
+        
     protected:
 
         static OS* s_Instance;

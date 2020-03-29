@@ -23,7 +23,7 @@ namespace Lumos
 		void OnAttach() override;
 		void OnDetach() override;
 		void OnUpdate(TimeStep* dt, Scene* scene) override;
-		void OnEvent(Event& event) override;
+		void OnEvent(Event& event);
 		void OnRender(Scene* scene) override;
 		void OnNewScene(Scene* scene) override;
 
