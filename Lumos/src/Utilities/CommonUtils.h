@@ -50,12 +50,5 @@ namespace Lumos
 		void AddLightCube(Scene* scene);
 		void AddSphere(Scene* scene);
 		void AddPyramid(Scene* scene);
-    
-    void SecondsToHoursAndMinutes(int seconds, int& hours, int& minutes, int& leftoverSeconds)
-    {
-        hours = floor(seconds / 3600);
-        minutes = seconds % 3600 / 60;
-        
-        leftoverSeconds = seconds - seconds % 60 * 60;
-    }
+	};
 }
