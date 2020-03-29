@@ -21,7 +21,7 @@ namespace Lumos
 		~B2PhysicsEngine();
 		void SetDefaults();
 
-		void OnUpdate(TimeStep* timeStep, Scene* scene) override;
+		void OnUpdate(TimeStep* timeStep, Scene* scene);
 		void OnInit() override {};
 		void OnImGui() override;
 
