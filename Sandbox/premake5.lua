@@ -1,6 +1,7 @@
 project "Sandbox"
 	kind "WindowedApp"
 	language "C++"
+	editandcontinue "Off"
 
 	files
 	{

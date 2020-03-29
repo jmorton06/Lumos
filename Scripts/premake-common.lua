@@ -115,6 +115,9 @@ function SetRecommendedXcodeSettings()
 end
 
 function SetRecommendedSettings()
+
+	editandcontinue "Off"
+	
 	filter {"system:macosx"}
 		SetRecommendedXcodeSettings()
 end
