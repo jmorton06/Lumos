@@ -108,10 +108,10 @@ function SetRecommendedXcodeSettings()
    }
 
    filter {"system:macosx", "configurations:debug"}
-      xcodebuildsettings
-      {
+        xcodebuildsettings
+    	{
          	['ENABLE_TESTABILITY'] = 'YES'
-      }
+	    }
 end
 
 function SetRecommendedSettings()

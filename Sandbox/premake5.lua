@@ -85,27 +85,22 @@ project "Sandbox"
 		systemversion "latest"
 		platforms {"x64"}
 		defaultplatform "x64"
-		xcodebuildsettings {
-			['ALWAYS_SEARCH_USER_PATHS'] = "NO",
-			['MACOSX_DEPLOYMENT_TARGET'] = "10.12",
-			['CLANG_ENABLE_OBJC_WEAK'] = "YES",
-			['ENABLE_TESTABILITY'] = "YES",
-			["WARNING_CFLAGS"] = "-Wall -Wextra " ..
-            "-Wno-missing-field-initializers " ..
-            "-Wno-unknown-pragmas " ..
-            "-Wno-unused-parameter " ..
-            "-Wno-unused-local-typedef " ..
-            "-Wno-missing-braces " ..
-            "-Wno-microsoft-anon-tag ",
-
-		}
 
 		xcodebuildresources { "../Assets/textures/icon.icns" }
 
-		files
+		xcodebuildsettings
 		{
-			"../Lumos/src/Platform/macOS/Info.plist"
+			['ARCHS'] = '$(ARCHS_STANDARD)',
+			['PRODUCT_BUNDLE_IDENTIFIER'] = 'com.jmorton06',
+			['DEVELOPMENT_TEAM'] = 'C5L4T5BF6L',
+			['INFOPLIST_FILE'] = '../Lumos/src/Platform/macOS/Info.plist'
 		}
+
+		if _OPTIONS["teamid"] then
+			xcodebuildsettings {
+				["DEVELOPMENT_TEAM"] = _OPTIONS["teamid"]
+			}
+		end
 
 		defines
 		{
@@ -168,10 +163,6 @@ project "Sandbox"
 			postbuildcommands {
 				"{COPY} "..source.." "..target
 			}
-
-
-		filter "files:**.plist"
-			buildaction "Resource"
 
 	filter "system:ios"
 		cppdialect "C++17"
