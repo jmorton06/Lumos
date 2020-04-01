@@ -91,16 +91,8 @@ project "Sandbox"
 		xcodebuildsettings
 		{
 			['ARCHS'] = '$(ARCHS_STANDARD)',
-			['PRODUCT_BUNDLE_IDENTIFIER'] = 'com.jmorton06',
-			['DEVELOPMENT_TEAM'] = 'C5L4T5BF6L',
 			['INFOPLIST_FILE'] = '../Lumos/src/Platform/macOS/Info.plist'
 		}
-
-		if _OPTIONS["teamid"] then
-			xcodebuildsettings {
-				["DEVELOPMENT_TEAM"] = _OPTIONS["teamid"]
-			}
-		end
 
 		defines
 		{
