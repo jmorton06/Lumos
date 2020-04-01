@@ -83,14 +83,12 @@ project "Sandbox"
 		cppdialect "C++17"
 		staticruntime "On"
 		systemversion "latest"
-		platforms {"x64"}
-		defaultplatform "x64"
 
 		xcodebuildresources { "../Assets/textures/icon.icns" }
 
 		xcodebuildsettings
 		{
-			['ARCHS'] = '$(ARCHS_STANDARD)',
+			['ARCHS'] = false,
 			['INFOPLIST_FILE'] = '../Lumos/src/Platform/macOS/Info.plist'
 		}
 
