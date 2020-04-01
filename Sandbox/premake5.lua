@@ -84,6 +84,9 @@ project "Sandbox"
 		staticruntime "On"
 		systemversion "latest"
 
+		platforms {"x64"}
+ 		defaultplatform "x64"
+
 		xcodebuildresources { "../Assets/textures/icon.icns" }
 
 		xcodebuildsettings
