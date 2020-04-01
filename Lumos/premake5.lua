@@ -185,12 +185,12 @@ project "Lumos"
 			pchheader "../Lumos/src/lmpch.h"
 			pchsource "../Lumos/src/lmpch.cpp"
 
-			filter 'files:external/**.cpp'
-				flags  { 'NoPCH' }
-			filter 'files:external/**.c'
-				flags  { 'NoPCH' }
-			filter 'files:src/**.m'
-				flags  { 'NoPCH' }
+		filter 'files:external/**.cpp'
+			flags  { 'NoPCH' }
+		filter 'files:external/**.c'
+			flags  { 'NoPCH' }
+		filter 'files:src/**.m'
+			flags  { 'NoPCH' }
 
 	filter "system:ios"
 		cppdialect "C++17"
