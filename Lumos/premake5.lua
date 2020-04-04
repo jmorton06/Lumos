@@ -1,6 +1,7 @@
 project "Lumos"
 	kind "StaticLib"
 	language "C++"
+	editandcontinue "Off"
 
 	files
 	{
@@ -55,6 +56,9 @@ project "Lumos"
 		"LUMOS_ROOT_DIR="  .. cwd,
 	}
 
+	filter { "files:external/**"}
+		warnings "Off"
+
 	filter "system:windows"
 		cppdialect "C++17"
 		staticruntime "on"
@@ -66,7 +70,6 @@ project "Lumos"
 		defines
 		{
 			"LUMOS_PLATFORM_WINDOWS",
-			--"LUMOS_BUILD_DLL",
 			"LUMOS_RENDER_API_OPENGL",
 			"LUMOS_RENDER_API_VULKAN",
 			"VK_USE_PLATFORM_WIN32_KHR",
@@ -163,6 +166,7 @@ project "Lumos"
         	"CoreFoundation.framework",
 			"CoreVideo.framework",
 			"OpenAL.framework",
+			"SystemConfiguration.framework",
 			"glfw"
 		}
 
@@ -176,16 +180,18 @@ project "Lumos"
 			"-Wno-attributes"
 		}
 
+		SetRecommendedXcodeSettings()
+
 		filter { "action:xcode4" }
 			pchheader "../Lumos/src/lmpch.h"
 			pchsource "../Lumos/src/lmpch.cpp"
 
-			filter 'files:external/**.cpp'
-				flags  { 'NoPCH' }
-			filter 'files:external/**.c'
-				flags  { 'NoPCH' }
-			filter 'files:src/**.m'
-				flags  { 'NoPCH' }
+		filter 'files:external/**.cpp'
+			flags  { 'NoPCH' }
+		filter 'files:external/**.c'
+			flags  { 'NoPCH' }
+		filter 'files:src/**.m'
+			flags  { 'NoPCH' }
 
 	filter "system:ios"
 		cppdialect "C++17"
@@ -228,7 +234,6 @@ project "Lumos"
 		{
 			"QuartzCore.framework",
 			"Metal.framework",
-			"Cocoa.framework",
         	"IOKit.framework",
         	"CoreFoundation.framework",
 			"CoreVideo.framework",
@@ -244,6 +249,8 @@ project "Lumos"
 		{
 			"-Wno-attributes"
 		}
+
+		SetRecommendedXcodeSettings()
 
 	filter "system:linux"
 		cppdialect "C++17"

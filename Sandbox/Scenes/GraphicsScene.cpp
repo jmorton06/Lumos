@@ -52,7 +52,7 @@ void GraphicsScene::OnInit()
 		Application::Instance()->GetSystem<AudioManager>()->SetListener(m_pCamera);
 
 	auto deferredRenderer = new Graphics::ForwardRenderer(m_ScreenWidth, m_ScreenHeight);
-	//auto skyboxRenderer = new Graphics::SkyboxRenderer(m_ScreenWidth, m_ScreenHeight, m_EnvironmentMap);
+	auto skyboxRenderer = new Graphics::SkyboxRenderer(m_ScreenWidth, m_ScreenHeight, m_EnvironmentMap);
     
     //Can't render to array texture on iPhoneX or older
 #ifndef LUMOS_PLATFORM_IOS
@@ -64,12 +64,12 @@ void GraphicsScene::OnInit()
 #endif
 
 	deferredRenderer->SetRenderToGBufferTexture(true);
-	//skyboxRenderer->SetRenderToGBufferTexture(true);
+	skyboxRenderer->SetRenderToGBufferTexture(true);
 
 	auto deferredLayer = new Layer3D(deferredRenderer);
-	//auto skyBoxLayer = new Layer3D(skyboxRenderer);
+	auto skyBoxLayer = new Layer3D(skyboxRenderer);
 	Application::Instance()->PushLayer(deferredLayer);
-	//Application::Instance()->PushLayer(skyBoxLayer);
+	Application::Instance()->PushLayer(skyBoxLayer);
 
 	Application::Instance()->GetRenderManager()->SetSkyBoxTexture(m_EnvironmentMap);
 }

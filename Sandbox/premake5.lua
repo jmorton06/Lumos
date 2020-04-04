@@ -1,6 +1,7 @@
 project "Sandbox"
 	kind "WindowedApp"
 	language "C++"
+	editandcontinue "Off"
 
 	files
 	{
@@ -39,9 +40,8 @@ project "Sandbox"
 
 	cwd = os.getcwd() .. "/.."
 
-	defines
-	{
-	}
+	filter { "files:external/**"}
+		warnings "Off"
 
 	filter "system:windows"
 		cppdialect "C++17"
@@ -83,29 +83,21 @@ project "Sandbox"
 		cppdialect "C++17"
 		staticruntime "On"
 		systemversion "latest"
-		platforms {"x64"}
-		defaultplatform "x64"
-		xcodebuildsettings {
-			['ALWAYS_SEARCH_USER_PATHS'] = "NO",
-			['MACOSX_DEPLOYMENT_TARGET'] = "10.12",
-			['CLANG_ENABLE_OBJC_WEAK'] = "YES",
-			['ENABLE_TESTABILITY'] = "YES",
-			["WARNING_CFLAGS"] = "-Wall -Wextra " ..
-            "-Wno-missing-field-initializers " ..
-            "-Wno-unknown-pragmas " ..
-            "-Wno-unused-parameter " ..
-            "-Wno-unused-local-typedef " ..
-            "-Wno-missing-braces " ..
-            "-Wno-microsoft-anon-tag ",
 
-		}
+		platforms {"x64"}
+ 		defaultplatform "x64"
 
 		xcodebuildresources { "../Assets/textures/icon.icns" }
 
-
-		files
+		xcodebuildsettings
 		{
-			"../Lumos/src/Platform/macOS/Info.plist"
+			['ARCHS'] = false,
+			['CODE_SIGN_IDENTITY'] = 'Mac Developer',
+			['PRODUCT_BUNDLE_IDENTIFIER'] = 'com.jmorton06',
+			['DEVELOPMENT_TEAM'] = 'C5L4T5BF6L',
+			['INFOPLIST_FILE'] = '../Lumos/src/Platform/macOS/Info.plist',
+			--['ENABLE_HARDENED_RUNTIME'] = 'YES'
+
 		}
 
 		defines
@@ -135,6 +127,7 @@ project "Sandbox"
 			"glfw",
 		}
 
+		SetRecommendedXcodeSettings()
 
 		filter {"system:macosx", "configurations:release"}
 
@@ -169,10 +162,6 @@ project "Sandbox"
 				"{COPY} "..source.." "..target
 			}
 
-
-		filter "files:**.plist"
-			buildaction "Resource"
-
 	filter "system:ios"
 		cppdialect "C++17"
 		staticruntime "On"
@@ -201,7 +190,8 @@ project "Sandbox"
 			"UIKit.framework",
 			"OpenAL.framework",
 			"AudioToolbox.framework",
-			"Foundation.framework"
+			"Foundation.framework",
+			"SystemConfiguration.framework",
 		}
 
 		linkoptions
@@ -244,6 +234,8 @@ project "Sandbox"
 			--"Assets",
 			--"Images.xcassets"
 		}
+
+		SetRecommendedXcodeSettings()
 
 		filter {"system:ios", "configurations:release"}
 

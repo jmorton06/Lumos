@@ -8,11 +8,14 @@ project 'Box2D'
 	files { 'Box2D/**' }
 	includedirs { '.' }
 
+	buildoptions { "-w" }
+
 	filter "system:windows"
 		systemversion "latest"
    		buildoptions { "/MP" }
 	filter "system:linux"
 		buildoptions { "-fPIC" }
+
     filter "configurations:Debug"
 		symbols "On"
 
