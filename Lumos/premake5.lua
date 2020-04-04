@@ -166,6 +166,7 @@ project "Lumos"
         	"CoreFoundation.framework",
 			"CoreVideo.framework",
 			"OpenAL.framework",
+			"SystemConfiguration.framework",
 			"glfw"
 		}
 

@@ -92,7 +92,12 @@ project "Sandbox"
 		xcodebuildsettings
 		{
 			['ARCHS'] = false,
-			['INFOPLIST_FILE'] = '../Lumos/src/Platform/macOS/Info.plist'
+			['CODE_SIGN_IDENTITY'] = 'Mac Developer',
+			['PRODUCT_BUNDLE_IDENTIFIER'] = 'com.jmorton06',
+			['DEVELOPMENT_TEAM'] = 'C5L4T5BF6L',
+			['INFOPLIST_FILE'] = '../Lumos/src/Platform/macOS/Info.plist',
+			--['ENABLE_HARDENED_RUNTIME'] = 'YES'
+
 		}
 
 		defines
@@ -185,7 +190,8 @@ project "Sandbox"
 			"UIKit.framework",
 			"OpenAL.framework",
 			"AudioToolbox.framework",
-			"Foundation.framework"
+			"Foundation.framework",
+			"SystemConfiguration.framework",
 		}
 
 		linkoptions
