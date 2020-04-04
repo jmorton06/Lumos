@@ -29,7 +29,7 @@ jobs:
       run: |
         gem install xcpretty
         Tools/premake5 xcode4
-        xcodebuild -project build/Sandbox.xcodeproj | xcpretty
+        xcodebuild -project build/Sandbox.xcodeproj CODE_SIGN_IDENTITY="" CODE_SIGNING_REQUIRED=NO CODE_SIGNING_ALLOWED=NO | xcpretty
 
   iOS:
     runs-on: macOS-latest
