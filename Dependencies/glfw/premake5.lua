@@ -34,7 +34,7 @@ project "glfw"
 
   filter "system:macosx"
     defines { "_GLFW_COCOA", "_GLFW_USE_RETINA" }
-
+    
     files {
       "src/cocoa_platform.h",
       "src/cocoa_joystick.h",
