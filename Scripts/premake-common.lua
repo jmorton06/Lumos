@@ -36,6 +36,7 @@ function SetRecommendedXcodeSettings()
    xcodebuildsettings
    {
 		['ARCHS'] = false,
+		['GCC_ENABLE_FIX_AND_CONTIUE'] = false,
 	  	['CLANG_WARN_EMPTY_BODY'] = 'YES',
 	  	['CLANG_ENABLE_OBJC_WEAK'] = 'YES',
 	  	['GCC_WARN_UNUSED_FUNCTION'] = 'YES',
@@ -108,10 +109,11 @@ function SetRecommendedXcodeSettings()
 	  	['CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS'] = 'YES'
    }
 
-   filter {"system:macosx", "configurations:debug"}
+   filter {"system:macosx or system:ios", "configurations:debug"}
         xcodebuildsettings
     	{
-         	['ENABLE_TESTABILITY'] = 'YES'
+			['ENABLE_TESTABILITY'] = 'YES',
+			['ONLY_ACTIVE_ARCH'] = 'YES'
 	    }
 end
 
@@ -119,6 +121,6 @@ function SetRecommendedSettings()
 
 	editandcontinue "Off"
 	
-	filter {"system:macosx"}
+	filter {"system:macosx or system:ios"}
 		SetRecommendedXcodeSettings()
 end
