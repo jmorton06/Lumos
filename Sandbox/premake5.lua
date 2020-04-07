@@ -1,7 +1,20 @@
+IncludeDir = {}
+IncludeDir["GLFW"] = "../Dependencies/glfw/include/"
+IncludeDir["Glad"] = "../Lumos/external/glad/include/"
+IncludeDir["lua"] = "../Dependencies/lua/src/"
+IncludeDir["stb"] = "../Lumos/external/stb/"
+IncludeDir["OpenAL"] = "../Dependencies/OpenAL/include/"
+IncludeDir["Box2D"] = "../Dependencies/Box2D/"
+IncludeDir["Dependencies"] = "../Dependencies/"
+IncludeDir["vulkan"] = "../Dependencies/vulkan/"
+IncludeDir["jsonhpp"] = "../Lumos/external/jsonhpp/"
+IncludeDir["Lumos"] = "../Lumos/src"
+IncludeDir["External"] = "../Lumos/external/"
+
+
 project "Sandbox"
 	kind "WindowedApp"
 	language "C++"
-	editandcontinue "Off"
 
 	files
 	{
@@ -13,21 +26,18 @@ project "Sandbox"
 
 	sysincludedirs
 	{
-		"../Lumos/external/spdlog/include",
-		"../Lumos/external/",
-		"../Lumos/external/stb/",
-		"../Dependencies/lua/src/",
-		"../Dependencies/glfw/include/",
-		"../Dependencies/OpenAL/include/",
-		"../Dependencies/stb/",
-		"../Dependencies/Box2D/",
-		"../Dependencies/vulkan/",
-		"../Dependencies/",
-		"../Lumos/external/",
-		"../Lumos/external/jsonhpp/",
-		"../Lumos/external/spdlog/include",
-		"../Lumos/external/glad/include/",
-		"../Lumos/src"
+		"%{IncludeDir.GLFW}",
+		"%{IncludeDir.Glad}",
+		"%{IncludeDir.lua}",
+		"%{IncludeDir.stb}",
+		"%{IncludeDir.OpenAL}",
+		"%{IncludeDir.Box2D}",
+		"%{IncludeDir.vulkan}",
+		"%{IncludeDir.Dependencies}",
+		"%{IncludeDir.external}",
+		"%{IncludeDir.jsonhpp}",
+		"%{IncludeDir.spdlog}",
+		"%{IncludeDir.Lumos}",
 	}
 
 	links

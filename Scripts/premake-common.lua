@@ -119,8 +119,11 @@ end
 
 function SetRecommendedSettings()
 
-	editandcontinue "Off"
-	
+	filter ()
 	filter {"system:macosx or system:ios"}
 		SetRecommendedXcodeSettings()
+	filter ()
+	editandcontinue "Off"
+	warnings "Off"
+	
 end

@@ -1,3 +1,16 @@
+IncludeDir = {}
+IncludeDir["GLFW"] = "../Dependencies/glfw/include/"
+IncludeDir["Glad"] = "external/glad/include/"
+IncludeDir["lua"] = "../Dependencies/lua/src/"
+IncludeDir["stb"] = "external/stb/"
+IncludeDir["OpenAL"] = "../Dependencies/OpenAL/include/"
+IncludeDir["Box2D"] = "../Dependencies/Box2D/"
+IncludeDir["Dependencies"] = "../Dependencies/"
+IncludeDir["vulkan"] = "../Dependencies/vulkan/"
+IncludeDir["jsonhpp"] = "external/jsonhpp/"
+IncludeDir["Lumos"] = "../Lumos/src"
+IncludeDir["External"] = "external/"
+
 project "Lumos"
 	kind "StaticLib"
 	language "C++"
@@ -25,18 +38,18 @@ project "Lumos"
 
 	sysincludedirs
 	{
-		"external/",
-		"external/jsonhpp/",
-		"external/stb/",
-		"external/spdlog/include",
-		"external/glad/include",
-		"../Dependencies/",
-		"../Dependencies/lua/src/",
-		"../Dependencies/glfw/include/",
-		"../Dependencies/OpenAL/include/",
-		"../Dependencies/Box2D/",
-		"../Dependencies/vulkan/",
-		"../Dependencies/imgui/"
+		"%{IncludeDir.GLFW}",
+		"%{IncludeDir.Glad}",
+		"%{IncludeDir.lua}",
+		"%{IncludeDir.stb}",
+		"%{IncludeDir.OpenAL}",
+		"%{IncludeDir.Box2D}",
+		"%{IncludeDir.vulkan}",
+		"%{IncludeDir.Dependencies}",
+		"%{IncludeDir.external}",
+		"%{IncludeDir.jsonhpp}",
+		"%{IncludeDir.spdlog}",
+		"%{IncludeDir.Lumos}",
 	}
 
 	links

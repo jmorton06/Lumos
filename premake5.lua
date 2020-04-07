@@ -21,30 +21,14 @@ workspace "Lumos"
 
 	group "Dependencies"
 		require("Dependencies/Box2D/premake5")
-			filter ()
 			SetRecommendedSettings()
-			filter ()
-			editandcontinue "Off"
-			warnings "Off"
 		require("Dependencies/lua/premake5")
-			filter ()
 			SetRecommendedSettings()
-			filter ()
-			editandcontinue "Off"
-			warnings "Off"
 		require("Dependencies/imgui/premake5")
-			filter ()
 			SetRecommendedSettings()
-			filter ()
-			editandcontinue "Off"
-			warnings "Off"
 		filter "system:not ios"
 			require("Dependencies/glfw/premake5")
-				filter ()
 				SetRecommendedSettings()
-				filter ()
-				editandcontinue "Off"
-				warnings "Off"
 		filter()
 	group ""
 
