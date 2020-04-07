@@ -10,6 +10,7 @@ IncludeDir["vulkan"] = "../Dependencies/vulkan/"
 IncludeDir["jsonhpp"] = "../Lumos/external/jsonhpp/"
 IncludeDir["Lumos"] = "../Lumos/src"
 IncludeDir["External"] = "../Lumos/external/"
+IncludeDir["ImGui"] = "../Dependencies/imgui/"
 
 
 project "Sandbox"
@@ -30,11 +31,12 @@ project "Sandbox"
 		"%{IncludeDir.Glad}",
 		"%{IncludeDir.lua}",
 		"%{IncludeDir.stb}",
+		"%{IncludeDir.ImGui}",
 		"%{IncludeDir.OpenAL}",
 		"%{IncludeDir.Box2D}",
 		"%{IncludeDir.vulkan}",
 		"%{IncludeDir.Dependencies}",
-		"%{IncludeDir.external}",
+		"%{IncludeDir.External}",
 		"%{IncludeDir.jsonhpp}",
 		"%{IncludeDir.spdlog}",
 		"%{IncludeDir.Lumos}",

@@ -10,6 +10,7 @@ IncludeDir["vulkan"] = "../Dependencies/vulkan/"
 IncludeDir["jsonhpp"] = "external/jsonhpp/"
 IncludeDir["Lumos"] = "../Lumos/src"
 IncludeDir["External"] = "external/"
+IncludeDir["ImGui"] = "../Dependencies/imgui/"
 
 project "Lumos"
 	kind "StaticLib"
@@ -42,11 +43,12 @@ project "Lumos"
 		"%{IncludeDir.Glad}",
 		"%{IncludeDir.lua}",
 		"%{IncludeDir.stb}",
+		"%{IncludeDir.ImGui}",
 		"%{IncludeDir.OpenAL}",
 		"%{IncludeDir.Box2D}",
 		"%{IncludeDir.vulkan}",
 		"%{IncludeDir.Dependencies}",
-		"%{IncludeDir.external}",
+		"%{IncludeDir.External}",
 		"%{IncludeDir.jsonhpp}",
 		"%{IncludeDir.spdlog}",
 		"%{IncludeDir.Lumos}",
