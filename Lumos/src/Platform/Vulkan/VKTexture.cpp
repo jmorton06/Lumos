@@ -74,7 +74,7 @@ namespace Lumos
 			allocInfovma.pUserData = nullptr;
 			vmaCreateImage(VKDevice::Instance()->GetAllocator(), &imageInfo, &allocInfovma, &image, &allocation, nullptr);
 		}
-#endif
+#else
 	
 
 		static void CreateImageDefault(const VkImageCreateInfo& imageInfo, VkImage& image,
@@ -93,6 +93,7 @@ namespace Lumos
 			vkAllocateMemory(VKDevice::Instance()->GetDevice(), &allocInfo, nullptr, &imageMemory);
 			vkBindImageMemory(VKDevice::Instance()->GetDevice(), image, imageMemory, 0);
 		}
+#endif
 
 #ifdef USE_VMA_ALLOCATOR
 		static void CreateImage(u32 width, u32 height, u32 mipLevels, VkFormat format, VkImageType imageType, VkImageTiling tiling,
