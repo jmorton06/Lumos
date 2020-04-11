@@ -45,10 +45,6 @@ static ImVec2 operator+(const ImVec2 &a, const ImVec2 &b) {
 	return ImVec2(a.x + b.x, a.y + b.y);
 }
 
-static ImVec2 operator-(const ImVec2 &a, const ImVec2 &b) {
-	return ImVec2(a.x - b.x, a.y - b.y);
-}
-
 namespace Lumos
 {
 	Editor::Editor(Application* app, u32 width, u32 height) : m_Application(app), m_Selected(), m_FileBrowser(nullptr)
@@ -71,7 +67,7 @@ namespace Lumos
 			auto fexist = [](const char *f) -> bool 
 			{
 				FILE *fp = fopen(f, "rb");
-				return fp ? (fclose(fp), 1) : 0;
+                return fp ? (static_cast<void>(fclose(fp)), 1) : 0;
 			};
 			if (fexist(ini[i]))
 			{

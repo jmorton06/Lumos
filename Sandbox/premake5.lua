@@ -95,7 +95,7 @@ project "Sandbox"
 		cppdialect "C++17"
 		staticruntime "On"
 		systemversion "latest"
-
+		editandcontinue "Off"
 		platforms {"x64"}
  		defaultplatform "x64"
 
@@ -180,6 +180,7 @@ project "Sandbox"
 		systemversion "latest"
 		kind "WindowedApp"
 		targetextension ".app"
+		editandcontinue "Off"
 
 		defines
 		{
