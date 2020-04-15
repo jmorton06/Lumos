@@ -64,11 +64,11 @@ namespace Lumos
 				m_DepthTexture = TextureDepth::Create(m_Width, m_Height);
 			}
 
-			m_Formats[0] = TextureFormat::RGBA;
+			m_Formats[0] = TextureFormat::RGBA32;
 			m_Formats[1] = TextureFormat::RGBA32;
 			m_Formats[2] = TextureFormat::RGBA32;
 			m_Formats[3] = TextureFormat::RGBA32;
-			m_Formats[4] = TextureFormat::RGBA;
+			m_Formats[4] = TextureFormat::RGBA32;
 
 			m_ScreenTex[SCREENTEX_COLOUR]->BuildTexture(m_Formats[0], m_Width, m_Height, false, false);
 			m_ScreenTex[SCREENTEX_POSITION]->BuildTexture(m_Formats[1], m_Width, m_Height, false, false);

@@ -111,8 +111,9 @@ namespace Lumos
 		properties.albedoColour = color;
 		properties.roughnessColour = Vector4(RandomNumberGenerator32::Rand(0.0f, 1.0f));
 		properties.specularColour = Vector4(RandomNumberGenerator32::Rand(0.0f, 1.0f));
+		properties.emissiveColour = color;
 		properties.usingAlbedoMap   = 0.0f;
-		properties.usingRoughnessMap    = 0.0f;
+		properties.usingRoughnessMap= 0.0f;
 		properties.usingNormalMap   = 0.0f;
 		properties.usingSpecularMap = 0.0f;
 		matInstance->SetMaterialProperites(properties);

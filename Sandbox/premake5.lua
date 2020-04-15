@@ -12,7 +12,6 @@ IncludeDir["Lumos"] = "../Lumos/src"
 IncludeDir["External"] = "../Lumos/external/"
 IncludeDir["ImGui"] = "../Dependencies/imgui/"
 
-
 project "Sandbox"
 	kind "WindowedApp"
 	language "C++"
