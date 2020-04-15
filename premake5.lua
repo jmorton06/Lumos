@@ -3,7 +3,7 @@ require 'Scripts/premake-defines'
 require 'Scripts/premake-common'
 
 workspace "Lumos"
-	preferredtoolarchitecture "x86_64"
+	architecture "x86_64"
 
 	configurations
 	{
