@@ -11,6 +11,7 @@
 #include "Graphics/RenderManager.h"
 #include "Graphics/Layers/LayerStack.h"
 #include "Graphics/Camera/Camera.h"
+#include "Graphics/Material.h"
 
 #include "Utilities/CommonUtils.h"
 #include "Utilities/AssetsManager.h"
@@ -65,7 +66,7 @@ namespace Lumos
 
 		ImGui::CreateContext();
 		ImGui::StyleColorsDark();
-	}
+    }
 
 	Application::~Application()
 	{
@@ -120,11 +121,14 @@ namespace Lumos
 		m_SystemManager->RegisterSystem<LumosPhysicsEngine>();
 		m_SystemManager->RegisterSystem<B2PhysicsEngine>();
 
+        Material::InitDefaultTexture();
+
 		m_CurrentState = AppState::Running;
 	}
 
 	int Application::Quit(bool pause, const std::string &reason)
 	{
+        Material::ReleaseDefaultTexture();
 		Engine::Release();
 		Input::Release();
 		AssetsManager::ReleaseResources();

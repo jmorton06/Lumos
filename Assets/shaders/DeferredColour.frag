@@ -20,14 +20,15 @@ layout(set = 1,binding = 6) uniform UniformMaterialData
 	vec4  albedoColour;
 	vec4  RoughnessColour;
 	vec4  specularColour;
+	vec4  emissiveColour;
 	float usingAlbedoMap;
 	float usingSpecularMap;
 	float usingRoughnessMap;
 	float usingNormalMap;
 	float usingAOMap;
 	float usingEmissiveMap;
-	int workflow;
-	float p1;
+	float workflow;
+	float padding;
 } materialProperties;
 
 layout(location = 0) out vec4 outColor;
@@ -36,9 +37,9 @@ layout(location = 2) out vec4 outNormal;
 layout(location = 3) out vec4 outPBR;
 layout(location = 4) out vec4 outDepth;
 
-const int PBR_WORKFLOW_SEPARATE_TEXTURES = 0;
-const int PBR_WORKFLOW_METALLIC_ROUGHNESS = 1;
-const int PBR_WORKFLOW_SPECULAR_GLOSINESS = 2;
+const float PBR_WORKFLOW_SEPARATE_TEXTURES = 0.0f;
+const float PBR_WORKFLOW_METALLIC_ROUGHNESS = 1.0f;
+const float PBR_WORKFLOW_SPECULAR_GLOSINESS = 2.0f;
 
 #define PI 3.1415926535897932384626433832795
 #define GAMMA 2.2
@@ -65,17 +66,17 @@ vec3 GetSpecular()
 
 float GetRoughness()
 {
-	return (1.0 - materialProperties.usingRoughnessMap) *  materialProperties.RoughnessColour.r +  materialProperties.usingRoughnessMap * GammaCorrectTextureRGB(texture(u_RoughnessMap, fragTexCoord)).r;
+	return (1.0 - materialProperties.usingRoughnessMap) *  materialProperties.RoughnessColour.r + materialProperties.usingRoughnessMap * GammaCorrectTextureRGB(texture(u_RoughnessMap, fragTexCoord)).r;
 }
 
 float GetAO()
 {
-	return (1.0 - materialProperties.usingAOMap) +  materialProperties.usingAOMap * GammaCorrectTextureRGB(texture(u_AOMap, fragTexCoord)).r;
+	return materialProperties.usingAOMap * GammaCorrectTextureRGB(texture(u_AOMap, fragTexCoord)).r;
 }
 
 vec3 GetEmissive()
 {
-	return materialProperties.usingEmissiveMap * GammaCorrectTextureRGB(texture(u_EmissiveMap, fragTexCoord));
+	return (1.0 - materialProperties.usingEmissiveMap) * materialProperties.emissiveColour.rgb + materialProperties.usingEmissiveMap * GammaCorrectTextureRGB(texture(u_EmissiveMap, fragTexCoord));
 }
 
 vec3 GetNormalFromMap()
@@ -105,7 +106,7 @@ void main()
 		discard;
 
 	float specular = 0.0;
-	float roughness = 0.0;;
+	float roughness = 0.0;
 
 	if(materialProperties.workflow == PBR_WORKFLOW_SEPARATE_TEXTURES)
 	{

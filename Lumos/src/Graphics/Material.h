@@ -14,23 +14,24 @@ namespace Lumos
 		class UniformBuffer;
 	}
 
-	const int PBR_WORKFLOW_SEPARATE_TEXTURES  = 0;
-	const int PBR_WORKFLOW_METALLIC_ROUGHNESS = 1;
-	const int PBR_WORKFLOW_SPECULAR_GLOSINESS = 2;
+const int PBR_WORKFLOW_SEPARATE_TEXTURES  = 0.0f;
+const int PBR_WORKFLOW_METALLIC_ROUGHNESS = 1.0f;
+const int PBR_WORKFLOW_SPECULAR_GLOSINESS = 2.0f;
 
 	struct MaterialProperties
 	{
 		Maths::Vector4  albedoColour    = Maths::Vector4(1.0f,0.0f,1.0f,1.0f);
 		Maths::Vector4  roughnessColour = Maths::Vector4(1.0f,0.0f,1.0f,1.0f);
 		Maths::Vector4  specularColour  = Maths::Vector4(0.0f,1.0f,0.0f,1.0f);
+        Maths::Vector4  emissiveColour  = Maths::Vector4(0.0f,0.0f,0.0f,1.0f);
 		float usingAlbedoMap = 1.0f;
 		float usingSpecularMap = 1.0f;
 		float usingRoughnessMap = 1.0f;
 		float usingNormalMap = 1.0f;
 		float usingAOMap = 1.0f;
 		float usingEmissiveMap = 1.0f;
-		int workflow = PBR_WORKFLOW_SEPARATE_TEXTURES;
-		float p1 = 1.0f;
+		float workflow = PBR_WORKFLOW_SEPARATE_TEXTURES;
+        float padding;
 	};
 
 	struct PBRMataterialTextures
@@ -84,6 +85,9 @@ namespace Lumos
 		MaterialProperties*				GetProperties()		const { return m_MaterialProperties; }
 
 		void OnImGui();
+        
+        static void InitDefaultTexture();
+        static void ReleaseDefaultTexture();
 
 	private:
 		PBRMataterialTextures   			m_PBRMaterialTextures;
@@ -95,6 +99,7 @@ namespace Lumos
 		u32									m_MaterialBufferSize;
         u8*									m_MaterialBufferData;
 		String								m_Name;
-
+        
+        static Ref<Graphics::Texture2D> s_DefaultTexture;
 	};
 }
