@@ -169,7 +169,9 @@ project "Lumos"
 			"VK_USE_PLATFORM_METAL_EXT",
 			"LUMOS_IMGUI",
 			"LUMOS_OPENAL",
-			"LUMOS_VOLK"
+			"LUMOS_VOLK",
+			"USE_VMA_ALLOCATOR",
+			"Lumos_SSE"
 		}
 
 		links
@@ -221,6 +223,7 @@ project "Lumos"
 			"LUMOS_RENDER_API_VULKAN",
 			"VK_USE_PLATFORM_IOS_MVK",
 			"LUMOS_IMGUI",
+			"USE_VMA_ALLOCATOR",
 			"LUMOS_OPENAL"
 		}
 
@@ -336,6 +339,14 @@ project "Lumos"
 			flags  { 'NoPCH' }
 		filter 'files:src/**.c'
 			flags  { 'NoPCH' }
+
+		if _OPTIONS["arch"] ~= "arm" then
+			buildoptions
+				"-msse4.1",
+			}
+
+			defines { "Lumos_SSE" ,"USE_VMA_ALLOCATOR"}
+		end
 
 	filter "configurations:Debug"
 		defines "LUMOS_DEBUG"

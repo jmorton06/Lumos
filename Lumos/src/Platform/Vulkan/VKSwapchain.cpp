@@ -71,7 +71,7 @@ namespace Lumos
             swapChainCI.compositeAlpha = VK_COMPOSITE_ALPHA_OPAQUE_BIT_KHR;
 			swapChainCI.imageArrayLayers = 1;
 			swapChainCI.presentMode = swapChainPresentMode;
-			swapChainCI.oldSwapchain = nullptr;
+			swapChainCI.oldSwapchain = VK_NULL_HANDLE;
             swapChainCI.imageColorSpace = VKDevice::Instance()->GetColourSpace();
             swapChainCI.imageSharingMode = VK_SHARING_MODE_EXCLUSIVE;
 			swapChainCI.queueFamilyIndexCount = 0;
@@ -79,10 +79,10 @@ namespace Lumos
 			swapChainCI.pQueueFamilyIndices = VK_NULL_HANDLE;
 			swapChainCI.clipped = VK_TRUE;
 
-            vkCreateSwapchainKHR(VKDevice::Instance()->GetDevice(), &swapChainCI, nullptr, &m_SwapChain);
+            vkCreateSwapchainKHR(VKDevice::Instance()->GetDevice(), &swapChainCI, VK_NULL_HANDLE, &m_SwapChain);
     
 			uint32_t swapChainImageCount;
-            vkGetSwapchainImagesKHR(VKDevice::Instance()->GetDevice(), m_SwapChain, &swapChainImageCount, nullptr);
+            vkGetSwapchainImagesKHR(VKDevice::Instance()->GetDevice(), m_SwapChain, &swapChainImageCount, VK_NULL_HANDLE);
 
             VkImage * pSwapChainImages = lmnew VkImage[swapChainImageCount];
             vkGetSwapchainImagesKHR(VKDevice::Instance()->GetDevice(), m_SwapChain, &swapChainImageCount, pSwapChainImages);

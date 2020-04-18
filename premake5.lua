@@ -3,7 +3,24 @@ require 'Scripts/premake-defines'
 require 'Scripts/premake-common'
 
 workspace "Lumos"
-	architecture "x86_64"
+	
+	Arch = ""
+
+	if _OPTIONS["arch"] then
+		Arch = _OPTIONS["arch"]
+	else
+		Arch = "x64"
+	end
+
+	if Arch == "arm" then 
+		architecture "ARM"
+	elseif Arch == "x64" then 
+		architecture "x86_64"
+	elseif Arch == "x86" then
+		architecture "x86"
+	end
+
+	print("Arch = ", Arch)
 
 	configurations
 	{
