@@ -94,7 +94,9 @@ project "Lumos"
 			"_SILENCE_CXX17_OLD_ALLOCATOR_MEMBERS_DEPRECATION_WARNING",
 			"LUMOS_IMGUI",
 			"LUMOS_OPENAL",
-			"LUMOS_VOLK"
+			"LUMOS_VOLK",
+			"USE_VMA_ALLOCATOR",
+			"Lumos_SSE"
 		}
 
 		files
@@ -322,7 +324,6 @@ project "Lumos"
 
 		buildoptions
 		{
-			"-msse4.1",
 			"-fpermissive",
 			"-fPIC",
 			"-Wignored-attributes"
@@ -342,6 +343,7 @@ project "Lumos"
 
 		if _OPTIONS["arch"] ~= "arm" then
 			buildoptions
+			{
 				"-msse4.1",
 			}
 

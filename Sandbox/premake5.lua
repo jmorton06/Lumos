@@ -70,7 +70,6 @@ project "Sandbox"
 			"_CRT_SECURE_NO_WARNINGS",
 			"_DISABLE_EXTENDED_ALIGNED_STORAGE",
 			"LUMOS_ROOT_DIR="  .. cwd,
-			"LUMOS_VOLK"
 			"LUMOS_VOLK",
 			"Lumos_SSE"
 		}
