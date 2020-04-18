@@ -10,7 +10,7 @@ namespace Lumos
 {
 	namespace Graphics
 	{
-		VKCommandBuffer::VKCommandBuffer(): m_CommandBuffer(nullptr), m_Fence(nullptr), m_Primary(false)
+		VKCommandBuffer::VKCommandBuffer(): m_CommandBuffer(nullptr), m_Fence(VK_NULL_HANDLE), m_Primary(false)
 		{
 		}
 
@@ -87,7 +87,7 @@ namespace Lumos
 
 		void VKCommandBuffer::Execute(bool waitFence)
 		{
-			ExecuteInternal(VkPipelineStageFlags(), nullptr, nullptr, waitFence);
+			ExecuteInternal(VkPipelineStageFlags(), VK_NULL_HANDLE, VK_NULL_HANDLE, waitFence);
 		}
 
 		void VKCommandBuffer::ExecuteInternal(VkPipelineStageFlags flags, VkSemaphore waitSemaphore, VkSemaphore signalSemaphore, bool waitFence)

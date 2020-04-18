@@ -71,6 +71,8 @@ project "Sandbox"
 			"_DISABLE_EXTENDED_ALIGNED_STORAGE",
 			"LUMOS_ROOT_DIR="  .. cwd,
 			"LUMOS_VOLK"
+			"LUMOS_VOLK",
+			"Lumos_SSE"
 		}
 
 		libdirs
@@ -95,6 +97,7 @@ project "Sandbox"
 		staticruntime "On"
 		systemversion "latest"
 		editandcontinue "Off"
+
 		platforms {"x64"}
  		defaultplatform "x64"
 
@@ -120,7 +123,8 @@ project "Sandbox"
 			"VK_EXT_metal_surface",
 			"LUMOS_IMGUI",
 			"LUMOS_ROOT_DIR="  .. cwd,
-			"LUMOS_VOLK"
+			"LUMOS_VOLK",
+			"Lumos_SSE"
 		}
 
 		linkoptions 
@@ -308,7 +312,6 @@ project "Sandbox"
 
 		buildoptions
 		{
-			"-msse4.1",
 			"-fpermissive",
 			"-Wattributes",
 			"-fPIC",
@@ -320,9 +323,18 @@ project "Sandbox"
 			"glfw",
 		}
 
-		links { "X11", "pthread", "dl"}
+		links { "X11", "pthread", "dl", "atomic"}
 
 		linkoptions { "-L%{cfg.targetdir}", "-Wl,-rpath=\\$$ORIGIN" }
+
+		if _OPTIONS["arch"] ~= "arm" then
+			buildoptions
+			{
+				"-msse4.1",
+			}
+
+			defines { "Lumos_SSE" ,"USE_VMA_ALLOCATOR"}
+		end
 
 	filter "configurations:Debug"
 		defines "LUMOS_DEBUG"
