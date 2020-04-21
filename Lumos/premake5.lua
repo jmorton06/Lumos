@@ -126,7 +126,7 @@ project "Lumos"
 
 		buildoptions
 		{
-			"/MP"
+			"/MP", "/bigobj"
 		}
 
 		characterset ("MBCS")
