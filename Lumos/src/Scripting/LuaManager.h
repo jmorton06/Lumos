@@ -21,14 +21,13 @@ namespace Lumos
 
 		void OnInit();
         void OnUpdate(Scene* scene);
-        
-		void TestLua();
 
         void BindImGuiLua(sol::state* solState);
         void BindECSLua(sol::state* state);
         void BindMathsLua(sol::state* state);
         void BindLogLua(sol::state* state);
         void BindInputLua(sol::state* state);
+		void BindSceneLua(sol::state* state);
 
 		sol::state* GetState() const { return m_State; }
 

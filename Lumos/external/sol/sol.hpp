@@ -6088,7 +6088,7 @@ namespace sol {
 		stack_dependencies(int stack_target, Args&&... args)
 		: target(stack_target), stack_indices(), len(sizeof...(Args)) {
 			std::size_t i = 0;
-			(void)detail::swallow{int(), (stack_indices[i++] = static_cast<int>(std::forward<Args>(args)), int())...};
+        (void)detail::swallow{int(), (static_cast<void>(stack_indices[i++] = static_cast<int>(std::forward<Args>(args))), int())...};
 		}
 
 		int& operator[](std::size_t i) {

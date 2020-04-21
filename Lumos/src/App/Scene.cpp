@@ -2,7 +2,7 @@
 #include "Scene.h"
 #include "Core/OS/Input.h"
 #include "Application.h"
-
+#include "Scripting/LuaManager.h"
 #include "Graphics/API/GraphicsContext.h"
 #include "Graphics/Layers/LayerStack.h"
 #include "Graphics/RenderManager.h"
@@ -12,6 +12,8 @@
 #include "Physics/LumosPhysicsEngine/SortAndSweepBroadphase.h"
 #include "Physics/LumosPhysicsEngine/Octree.h"
 #include "Physics/LumosPhysicsEngine/LumosPhysicsEngine.h"
+
+#include <sol/sol.hpp>
 
 namespace Lumos
 {
@@ -32,6 +34,9 @@ namespace Lumos
 
 	void Scene::OnInit()
 	{
+        LuaManager::Instance()->GetState()->set("registry", &m_Registry);
+        LuaManager::Instance()->GetState()->set("scene", this);
+
 		m_CurrentScene = true;
 
 		String Configuration;

@@ -176,6 +176,15 @@ namespace Lumos
             Profiler::Instance()->Update(now);
             Engine::GetTimeStep()->Update(now);
 
+			ImGuiIO& io = ImGui::GetIO();
+			io.DeltaTime = Engine::GetTimeStep()->GetMillis();
+			
+			Application* app = Application::Instance();
+			app->GetWindow()->UpdateCursorImGui();
+
+			ImGui::NewFrame();
+
+
 			{
                 LUMOS_PROFILE_BLOCK("Application::Update");
 				OnUpdate(Engine::GetTimeStep());
