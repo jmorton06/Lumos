@@ -4,6 +4,11 @@
 #include "Maths/Transform.h"
 #include "Core/OS/Window.h"
 #include "Core/VFS.h"
+#include "App/Scene.h"
+#include "App/Application.h"
+#include "App/Engine.h"
+#include "Core/OS/Input.h"
+#include "ScriptComponent.h"
 
 #include <imgui/imgui.h>
 #include <sol/sol.hpp>
@@ -17,11 +22,13 @@ namespace Lumos
 	void LuaManager::OnInit()
 	{
 		m_State = lmnew sol::state();
-		m_State->open_libraries(sol::lib::base, sol::lib::package, sol::lib::math);
+		m_State->open_libraries(sol::lib::base, sol::lib::package, sol::lib::math, sol::lib::table);
 
+        BindInputLua(m_State);
 		BindMathsLua(m_State);
 		BindImGuiLua(m_State);
 		BindECSLua(m_State);
+        BindLogLua(m_State);
 	}
 
 	void LuaManager::TestLua()
@@ -56,6 +63,24 @@ namespace Lumos
 		lmdel m_State;
 	}
 
+    void LuaManager::OnUpdate(Scene* scene)
+    {
+        auto& registry = scene->GetRegistry();
+                                         
+        auto view = registry.view<ScriptComponent>();
+    
+        if (view.empty())
+            return;
+
+        float dt = Engine::Instance()->GetTimeStep()->GetElapsedMillis();
+        
+        for (auto entity : view)
+        {
+            auto& luaScript = registry.get<ScriptComponent>(entity);
+            luaScript.Update(dt);
+        }
+    }
+
 	WindowProperties LuaManager::LoadConfigFile(const String& file)
 	{
 		WindowProperties windowProperties;
@@ -75,11 +100,194 @@ namespace Lumos
 		return windowProperties;
 	}
 
-    void LuaManager::BindECSLua(sol::state * state)
+    entt::entity GetEntityByName( entt::registry& registry, const std::string& name )
     {
+        entt::entity e = entt::null;
+        registry.view<NameComponent>().each([&]( const entt::entity& entity, const NameComponent& component )
+        {
+            if ( name == component.name )
+            {
+                e = entity;
+            }
+        });
 
+        return e;
     }
 
+    void LuaManager::BindLogLua(sol::state* state)
+    {
+        auto log = state->create_table("Log");
+
+        log.set_function("Trace", [&](sol::this_state s, std::string_view message)
+        {
+            Lumos::Debug::Log::Trace(message);
+        });
+
+        log.set_function("Info", [&](sol::this_state s, std::string_view message)
+        {
+            Lumos::Debug::Log::Trace(message);
+        });
+
+        log.set_function("Warn", [&](sol::this_state s, std::string_view message)
+        {
+            Lumos::Debug::Log::Warning(message);
+        });
+        
+        log.set_function("Error", [&](sol::this_state s, std::string_view message)
+        {
+            Lumos::Debug::Log::Error(message);
+        });
+        
+        log.set_function("Critical", [&](sol::this_state s, std::string_view message)
+        {
+            Lumos::Debug::Log::Critical(message);
+        });
+    }
+
+    void LuaManager::BindInputLua(sol::state* state)
+    {
+        auto input = (*state)["Input"].get_or_create< sol::table >();
+
+        input.set_function( "GetKeyPressed", [](Lumos::InputCode::Key key) -> bool {
+            return Input::GetInput()->GetKeyPressed(key);
+        });
+        
+        input.set_function( "GetKeyHeld", [](Lumos::InputCode::Key key) -> bool {
+            return Input::GetInput()->GetKeyHeld(key);
+        });
+        
+        input.set_function( "GetMouseClicked", [](Lumos::InputCode::MouseKey key) -> bool {
+            return Input::GetInput()->GetMouseClicked(key);
+        });
+        
+        input.set_function( "GetMouseHeld", [](Lumos::InputCode::MouseKey key) -> bool {
+            return Input::GetInput()->GetMouseHeld(key);
+        });
+        
+        input.set_function( "GetMousePosition", []() -> Maths::Vector2 {
+            return Input::GetInput()->GetMousePosition();
+        });
+        
+        input.set_function( "GetScrollOffset", []() -> float {
+            return Input::GetInput()->GetScrollOffset();
+        });
+        
+        std::initializer_list< std::pair< sol::string_view, Lumos::InputCode::Key > > keyItems =
+        {
+            { "A", Lumos::InputCode::Key::A },
+            { "B", Lumos::InputCode::Key::B },
+            { "C", Lumos::InputCode::Key::C },
+            { "D", Lumos::InputCode::Key::D },
+            { "E", Lumos::InputCode::Key::E },
+            { "F", Lumos::InputCode::Key::F },
+            { "H", Lumos::InputCode::Key::G },
+            { "G", Lumos::InputCode::Key::H },
+            { "I", Lumos::InputCode::Key::I },
+            { "J", Lumos::InputCode::Key::J },
+            { "K", Lumos::InputCode::Key::K },
+            { "L", Lumos::InputCode::Key::L },
+            { "M", Lumos::InputCode::Key::M },
+            { "N", Lumos::InputCode::Key::N },
+            { "O", Lumos::InputCode::Key::O },
+            { "P", Lumos::InputCode::Key::P },
+            { "Q", Lumos::InputCode::Key::Q },
+            { "R", Lumos::InputCode::Key::R },
+            { "S", Lumos::InputCode::Key::S },
+            { "T", Lumos::InputCode::Key::T },
+            { "U", Lumos::InputCode::Key::U },
+            { "V", Lumos::InputCode::Key::V },
+            { "W", Lumos::InputCode::Key::W },
+            { "X", Lumos::InputCode::Key::X },
+            { "Y", Lumos::InputCode::Key::Y },
+            { "Z", Lumos::InputCode::Key::Z },
+            //{ "UNKOWN", Lumos::InputCode::Key::Unknown },
+            { "Space", Lumos::InputCode::Key::Space },
+            { "Escape", Lumos::InputCode::Key::Escape },
+            //{ "APOSTROPHE", Lumos::InputCode::Key::APOSTROPHE },
+            { "Comma", Lumos::InputCode::Key::Comma },
+            //{ "MINUS", Lumos::InputCode::Key::Minus },
+            //{ "PERIOD", Lumos::InputCode::Key::Period },
+            //{ "SLASH", Lumos::InputCode::Key::Slash },
+            //{ "SEMICOLON", Lumos::InputCode::Key::SemiColon },
+            //{ "EQUAL", Lumos::InputCode::Key::Equal },
+            //{ "LEFT_BRACKET", Lumos::InputCode::Key::LeftBracket },
+            //{ "BACKSLASH", Lumos::InputCode::Key::BackSlash },
+            //{ "RIGHT_BRACKET", Lumos::InputCode::Key::RightBracket },
+            //{ "BACK_TICK", Lumos::InputCode::Key::BackTick },
+            { "Enter", Lumos::InputCode::Key::Enter },
+            { "Tab", Lumos::InputCode::Key::Tab },
+            { "Backspace", Lumos::InputCode::Key::Backspace },
+            { "Insert", Lumos::InputCode::Key::Insert },
+            { "Delete", Lumos::InputCode::Key::Delete },
+            { "Right", Lumos::InputCode::Key::Right },
+            { "Left", Lumos::InputCode::Key::Left },
+            { "Down", Lumos::InputCode::Key::Down },
+            { "Up", Lumos::InputCode::Key::Up },
+            { "PageUp", Lumos::InputCode::Key::PageUp },
+            { "PageDown", Lumos::InputCode::Key::PageDown },
+            { "Home", Lumos::InputCode::Key::Home },
+            { "End", Lumos::InputCode::Key::End },
+            //{ "CAPS_LOCK", Lumos::InputCode::Key::CapsLock },
+            //{ "SCROLL_LOCK", Lumos::InputCode::Key::ScrollLock },
+            { "NumLock", Lumos::InputCode::Key::NumLock },
+            { "PrintScreen", Lumos::InputCode::Key::Print },
+            { "Pasue", Lumos::InputCode::Key::Pause },
+            { "LeftShift", Lumos::InputCode::Key::LeftShift },
+            { "LeftControl", Lumos::InputCode::Key::LeftControl },
+            //{ "LEFT_ALT", Lumos::InputCode::Key::LeftAlt },
+            //{ "LEFT_SUPER", Lumos::InputCode::Key::LeftSuper },
+            { "RightShift", Lumos::InputCode::Key::RightShift },
+            { "RightControl", Lumos::InputCode::Key::RightControl },
+            //{ "RIGHT_ALT", Lumos::InputCode::Key::RightAlt },
+            //{ "RIGHT_SUPER", Lumos::InputCode::Key::RightSuper },
+            { "Menu", Lumos::InputCode::Key::Menu },
+            { "F1", Lumos::InputCode::Key::F1 },
+            { "F2", Lumos::InputCode::Key::F2 },
+            { "F3", Lumos::InputCode::Key::F3 },
+            { "F4", Lumos::InputCode::Key::F4 },
+            { "F5", Lumos::InputCode::Key::F5 },
+            { "F6", Lumos::InputCode::Key::F6 },
+            { "F7", Lumos::InputCode::Key::F7 },
+            { "F8", Lumos::InputCode::Key::F8 },
+            { "F9", Lumos::InputCode::Key::F9 },
+            { "F10", Lumos::InputCode::Key::F10 },
+            { "F11", Lumos::InputCode::Key::F11 },
+            { "F12", Lumos::InputCode::Key::F12 },
+            { "Keypad0", Lumos::InputCode::Key::Keypad0 },
+            { "Keypad1", Lumos::InputCode::Key::Keypad1 },
+            { "Keypad2", Lumos::InputCode::Key::Keypad2 },
+            { "Keypad3", Lumos::InputCode::Key::Keypad3 },
+            { "Keypad4", Lumos::InputCode::Key::Keypad4 },
+            { "Keypad5", Lumos::InputCode::Key::Keypad5 },
+            { "Keypad6", Lumos::InputCode::Key::Keypad6 },
+            { "Keypad7", Lumos::InputCode::Key::Keypad7 },
+            { "Keypad8", Lumos::InputCode::Key::Keypad8 },
+            { "Keypad9", Lumos::InputCode::Key::Keypad9 },
+            { "Decimal",  Lumos::InputCode::Key::Decimal },
+            { "Divide",   Lumos::InputCode::Key::Divide },
+            { "Multiply", Lumos::InputCode::Key::Multiply },
+            { "Subtract", Lumos::InputCode::Key::Subtract },
+            { "Add",      Lumos::InputCode::Key::Add },
+            //{ "KP_EQUAL",    Lumos::InputCode::Key::Equal }
+        };
+        state->new_enum< Lumos::InputCode::Key, false >( "Key", keyItems ); // false makes it read/write in Lua, but its faster
+
+        std::initializer_list< std::pair< sol::string_view, Lumos::InputCode::MouseKey > > mouseItems =
+        {
+                { "Left", Lumos::InputCode::MouseKey::ButtonLeft },
+                { "Right", Lumos::InputCode::MouseKey::ButtonRight },
+                { "Middle", Lumos::InputCode::MouseKey::ButtonMiddle },
+        };
+        state->new_enum< Lumos::InputCode::MouseKey, false >( "MouseButton", mouseItems );
+    }
+
+    void LuaManager::BindECSLua(sol::state * state)
+    {
+        sol::usertype<entt::registry> reg_type = state->new_usertype< entt::registry >( "registry" );
+        reg_type.set_function( "create", static_cast< entt::entity( entt::registry::* )() >( &entt::registry::create ) );
+        reg_type.set_function( "destroy", static_cast< void( entt::registry::* )( entt::entity ) >( &entt::registry::destroy ) );
+        state->set_function( "GetEntityByName", &GetEntityByName );
+    }
 
     void LuaManager::BindMathsLua(sol::state * state)
     {

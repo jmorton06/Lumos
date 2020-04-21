@@ -20,6 +20,8 @@
 #include "Core/Profiler.h"
 #include "Core/VFS.h"
 
+#include "Scripting/LuaManager.h"
+
 #include "ImGui/ImGuiLayer.h"
 
 #include "Events/ApplicationEvent.h"
@@ -256,6 +258,7 @@ namespace Lumos
 		{
 			m_SceneManager->GetCurrentScene()->OnUpdate(Engine::GetTimeStep());
 			m_SystemManager->OnUpdate(Engine::GetTimeStep(),m_SceneManager->GetCurrentScene());
+            LuaManager::Instance()->OnUpdate(m_SceneManager->GetCurrentScene());
 		}
 
 		if (!m_Minimized)
