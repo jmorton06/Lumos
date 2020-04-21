@@ -55,13 +55,6 @@ namespace Lumos
 	void ImGuiLayer::OnUpdate(TimeStep* dt, Scene* scene)
 	{
 		LUMOS_PROFILE_FUNC;
-		ImGuiIO& io = ImGui::GetIO();
-		io.DeltaTime = dt->GetMillis();
-        
-        Application* app = Application::Instance();
-        app->GetWindow()->UpdateCursorImGui();
-
-		ImGui::NewFrame();
 		ImGuizmo::BeginFrame();
 
 		Application::Instance()->OnImGui();

@@ -31,33 +31,6 @@ namespace Lumos
         BindLogLua(m_State);
 	}
 
-	void LuaManager::TestLua()
-	{
-		m_State->script(R"(print('[LUA] - Initialised Lua!')
-			local vec1 = Vector4.new(1.0, 0.0, 0.0, 1.0)
-			local vec2 = Vector4.new(1.0, 0.0, 1.0, 0.0)
-			local vector2 = Vector2.new(0.0, 1.0)
-			local vector3 = Vector3.new(0.0, 2.0, 4.0)
-			local testAdd = vec1 + vec2
-			local quatTest = Quaternion.new(90.0,0.0,0.0)
-			local eulerTest = quatTest:ToEuler()
-			local dotTest = vector3:Dot(vector3)
-			
-			print(dotTest)
-
-			print(quatTest)
-			print(eulerTest)
-			print(testAdd)
-			function Update(dt)
-				print(dt)
-			end
-			)"
-		);
-
-		sol::function fn = (*m_State)["Update"];
-		fn.call(0.16f);
-	}
-
 	LuaManager::~LuaManager()
 	{
 		lmdel m_State;
@@ -289,6 +262,12 @@ namespace Lumos
         state->set_function( "GetEntityByName", &GetEntityByName );
     }
 
+    void LuaManager::BindSceneLua(sol::state* state)
+    {
+        sol::usertype<Scene> scene_type = state->new_usertype< Scene >( "Scene" );
+        //scene_type.set_function( "GetRegistry", static_cast< entt::registry( Scene::* )() >( &Scene::GetRegistry ) );
+    }
+
     void LuaManager::BindMathsLua(sol::state * state)
     {
         state->new_usertype<Maths::Vector2>("Vector2",
@@ -422,7 +401,6 @@ namespace Lumos
 
     void LuaManager::BindImGuiLua(sol::state* solState)
     {
-    #if 0
         // imgui bindings=
         sol::table globals = solState->globals();
         sol::table imgui = solState->create_table();
@@ -1864,7 +1842,6 @@ namespace Lumos
         imgui["setMouseCursor"] = ImGui::SetMouseCursor;
         imgui["captureKeyboardFromApp"] = ImGui::CaptureKeyboardFromApp;
         imgui["captureMouseFromApp"] = ImGui::CaptureMouseFromApp;
-    #endif
     }
 
 

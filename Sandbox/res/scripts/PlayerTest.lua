@@ -12,4 +12,8 @@ function OnUpdate(dt)
     if Input.GetKeyPressed( Key.X ) then
         Log.Critical("Player Test - Updated - Component  OnUpdate")
     end
+
+    gui.beginWindow("Lua Test Window")
+
+    gui.endWindow()
 end
