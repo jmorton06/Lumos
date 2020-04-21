@@ -9,6 +9,7 @@ namespace sol
 
 namespace Lumos
 {
+    class Scene;
 	struct WindowProperties;
 
 	class LUMOS_EXPORT LuaManager : public TSingleton<LuaManager>
@@ -19,12 +20,15 @@ namespace Lumos
 		~LuaManager();
 
 		void OnInit();
+        void OnUpdate(Scene* scene);
         
 		void TestLua();
 
         void BindImGuiLua(sol::state* solState);
         void BindECSLua(sol::state* state);
         void BindMathsLua(sol::state* state);
+        void BindLogLua(sol::state* state);
+        void BindInputLua(sol::state* state);
 
 		sol::state* GetState() const { return m_State; }
 

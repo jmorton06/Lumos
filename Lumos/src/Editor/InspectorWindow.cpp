@@ -8,6 +8,7 @@
 #include "Graphics/Sprite.h"
 #include "Graphics/Light.h"
 #include "Maths/Transform.h"
+#include "Scripting/ScriptComponent.h"
 
 #include <imgui/imgui.h>
 #include <IconFontCppHeaders/IconsFontAwesome5.h>
@@ -376,6 +377,32 @@ namespace Lumos
 		material.OnImGui();
 	}
 
+    static void LuaScriptWidget(ScriptComponent& script)
+    {
+        ImGui::TextUnformatted("Loaded Functions : ");
+        
+        auto& solEnv = script.GetSolEnvironment();
+        for (auto&& function : solEnv)
+        {
+            if (function.second.is<sol::function>())
+            {
+                ImGui::TextUnformatted(function.first.as<String>().c_str());
+            }
+        }
+
+		if(ImGui::Button("Reload"))
+			script.Reload();
+        
+		String filePath = script.GetFilePath();
+        
+        static char filePathBuffer[INPUT_BUF_SIZE];
+        strcpy(filePathBuffer, filePath.c_str());
+
+        ImGui::PushItemWidth(-1);
+        if (ImGui::InputText("##filePath", filePathBuffer, IM_ARRAYSIZE(filePathBuffer), 0))
+			script.SetFilePath(filePathBuffer);
+    }
+
 	InspectorWindow::InspectorWindow()
 	{
 		m_Name = ICON_FA_INFO_CIRCLE" Inspector###inspector";
@@ -410,6 +437,7 @@ namespace Lumos
 		TRIVIAL_COMPONENT(Graphics::Sprite, "Sprite", SpriteWidget);
 		TRIVIAL_COMPONENT(MaterialComponent, "Material", MaterialWidget);
 		TRIVIAL_COMPONENT(Graphics::Light, "Light", LightWidget);
+        TRIVIAL_COMPONENT(ScriptComponent, "LuaScript", LuaScriptWidget);
 	}
 
 	void InspectorWindow::OnImGui()
