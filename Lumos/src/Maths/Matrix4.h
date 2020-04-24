@@ -4,7 +4,7 @@
 #include "Maths/Vector4.h"
 #include "Maths/Matrix3.h"
 
-#ifdef Lumos_SSE
+#ifdef LUMOS_SSE
 #include <emmintrin.h>
 #endif
 
@@ -31,7 +31,7 @@ namespace Lumos::Maths
 
         /// Construct an identity matrix.
         Matrix4() noexcept
-    #ifndef Lumos_SSE
+    #ifndef LUMOS_SSE
            :m00_(1.0f),
             m01_(0.0f),
             m02_(0.0f),
@@ -50,7 +50,7 @@ namespace Lumos::Maths
             m33_(1.0f)
     #endif
         {
-    #ifdef Lumos_SSE
+    #ifdef LUMOS_SSE
             _mm_storeu_ps(&m00_, _mm_set_ps(0.f, 0.f, 0.f, 1.f));
             _mm_storeu_ps(&m10_, _mm_set_ps(0.f, 0.f, 1.f, 0.f));
             _mm_storeu_ps(&m20_, _mm_set_ps(0.f, 1.f, 0.f, 0.f));
@@ -60,7 +60,7 @@ namespace Lumos::Maths
 
         /// Copy-construct from another matrix.
         Matrix4(const Matrix4& matrix) noexcept
-    #ifndef Lumos_SSE
+    #ifndef LUMOS_SSE
            :m00_(matrix.m00_),
             m01_(matrix.m01_),
             m02_(matrix.m02_),
@@ -79,7 +79,7 @@ namespace Lumos::Maths
             m33_(matrix.m33_)
     #endif
         {
-    #ifdef Lumos_SSE
+    #ifdef LUMOS_SSE
             _mm_storeu_ps(&m00_, _mm_loadu_ps(&matrix.m00_));
             _mm_storeu_ps(&m10_, _mm_loadu_ps(&matrix.m10_));
             _mm_storeu_ps(&m20_, _mm_loadu_ps(&matrix.m20_));
@@ -134,7 +134,7 @@ namespace Lumos::Maths
 
         /// Construct from a float array.
         explicit Matrix4(const float* data) noexcept
-    #ifndef Lumos_SSE
+    #ifndef LUMOS_SSE
            :m00_(data[0]),
             m01_(data[1]),
             m02_(data[2]),
@@ -153,7 +153,7 @@ namespace Lumos::Maths
             m33_(data[15])
     #endif
         {
-    #ifdef Lumos_SSE
+    #ifdef LUMOS_SSE
             _mm_storeu_ps(&m00_, _mm_loadu_ps(data));
             _mm_storeu_ps(&m10_, _mm_loadu_ps(data + 4));
             _mm_storeu_ps(&m20_, _mm_loadu_ps(data + 8));
@@ -184,7 +184,7 @@ namespace Lumos::Maths
         /// Assign from another matrix.
         Matrix4& operator =(const Matrix4& rhs) noexcept
         {
-    #ifdef Lumos_SSE
+    #ifdef LUMOS_SSE
             _mm_storeu_ps(&m00_, _mm_loadu_ps(&rhs.m00_));
             _mm_storeu_ps(&m10_, _mm_loadu_ps(&rhs.m10_));
             _mm_storeu_ps(&m20_, _mm_loadu_ps(&rhs.m20_));
@@ -235,7 +235,7 @@ namespace Lumos::Maths
         /// Test for equality with another matrix without epsilon.
         bool operator ==(const Matrix4& rhs) const
         {
-    #ifdef Lumos_SSE
+    #ifdef LUMOS_SSE
             __m128 c0 = _mm_cmpeq_ps(_mm_loadu_ps(&m00_), _mm_loadu_ps(&rhs.m00_));
             __m128 c1 = _mm_cmpeq_ps(_mm_loadu_ps(&m10_), _mm_loadu_ps(&rhs.m10_));
             c0 = _mm_and_ps(c0, c1);
@@ -279,7 +279,7 @@ namespace Lumos::Maths
         /// Multiply a Vector3 which is assumed to represent position.
         Vector3 operator *(const Vector3& rhs) const
         {
-    #ifdef Lumos_SSE
+    #ifdef LUMOS_SSE
             __m128 vec = _mm_set_ps(1.f, rhs.z, rhs.y, rhs.x);
             __m128 r0 = _mm_mul_ps(_mm_loadu_ps(&m00_), vec);
             __m128 r1 = _mm_mul_ps(_mm_loadu_ps(&m10_), vec);
@@ -311,7 +311,7 @@ namespace Lumos::Maths
         /// Multiply a Vector4.
         Vector4 operator *(const Vector4& rhs) const
         {
-    #ifdef Lumos_SSE
+    #ifdef LUMOS_SSE
             __m128 vec = _mm_loadu_ps(&rhs.x);
             __m128 r0 = _mm_mul_ps(_mm_loadu_ps(&m00_), vec);
             __m128 r1 = _mm_mul_ps(_mm_loadu_ps(&m10_), vec);
@@ -341,7 +341,7 @@ namespace Lumos::Maths
         /// Add a matrix.
         Matrix4 operator +(const Matrix4& rhs) const
         {
-    #ifdef Lumos_SSE
+    #ifdef LUMOS_SSE
             Matrix4 ret;
             _mm_storeu_ps(&ret.m00_, _mm_add_ps(_mm_loadu_ps(&m00_), _mm_loadu_ps(&rhs.m00_)));
             _mm_storeu_ps(&ret.m10_, _mm_add_ps(_mm_loadu_ps(&m10_), _mm_loadu_ps(&rhs.m10_)));
@@ -373,7 +373,7 @@ namespace Lumos::Maths
         /// Subtract a matrix.
         Matrix4 operator -(const Matrix4& rhs) const
         {
-    #ifdef Lumos_SSE
+    #ifdef LUMOS_SSE
             Matrix4 ret;
             _mm_storeu_ps(&ret.m00_, _mm_sub_ps(_mm_loadu_ps(&m00_), _mm_loadu_ps(&rhs.m00_)));
             _mm_storeu_ps(&ret.m10_, _mm_sub_ps(_mm_loadu_ps(&m10_), _mm_loadu_ps(&rhs.m10_)));
@@ -405,7 +405,7 @@ namespace Lumos::Maths
         /// Multiply with a scalar.
         Matrix4 operator *(float rhs) const
         {
-    #ifdef Lumos_SSE
+    #ifdef LUMOS_SSE
             Matrix4 ret;
             const __m128 mul = _mm_set1_ps(rhs);
             _mm_storeu_ps(&ret.m00_, _mm_mul_ps(_mm_loadu_ps(&m00_), mul));
@@ -438,7 +438,7 @@ namespace Lumos::Maths
         /// Multiply a matrix.
         Matrix4 operator *(const Matrix4& rhs) const
         {
-    #ifdef Lumos_SSE
+    #ifdef LUMOS_SSE
             Matrix4 out;
 
             __m128 r0 = _mm_loadu_ps(&rhs.m00_);
@@ -602,7 +602,7 @@ namespace Lumos::Maths
         /// Return transposed.
         Matrix4 Transpose() const
         {
-    #ifdef Lumos_SSE
+    #ifdef LUMOS_SSE
             __m128 m0 = _mm_loadu_ps(&m00_);
             __m128 m1 = _mm_loadu_ps(&m10_);
             __m128 m2 = _mm_loadu_ps(&m20_);
@@ -788,7 +788,7 @@ namespace Lumos::Maths
         {
             for (unsigned i = 0; i < count; ++i)
             {
-    #ifdef Lumos_SSE
+    #ifdef LUMOS_SSE
                 __m128 m0 = _mm_loadu_ps(src);
                 __m128 m1 = _mm_loadu_ps(src + 4);
                 __m128 m2 = _mm_loadu_ps(src + 8);

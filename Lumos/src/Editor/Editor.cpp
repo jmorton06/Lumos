@@ -248,49 +248,49 @@ namespace Lumos
 				if (ImGui::MenuItem("Cube"))
 				{
 					auto entity = registry.create();
-					registry.assign<MeshComponent>(entity, Graphics::CreatePrimative(Graphics::PrimitiveType::Cube));
-					registry.assign<NameComponent>(entity, "Cube");
-					registry.assign<Maths::Transform>(entity);
+					registry.emplace<MeshComponent>(entity, Graphics::CreatePrimative(Graphics::PrimitiveType::Cube));
+					registry.emplace<NameComponent>(entity, "Cube");
+					registry.emplace<Maths::Transform>(entity);
 				}
 
 				if (ImGui::MenuItem("Sphere"))
 				{
 					auto entity = registry.create();
-					registry.assign<MeshComponent>(entity, Graphics::CreatePrimative(Graphics::PrimitiveType::Sphere));
-					registry.assign<NameComponent>(entity, "Sphere");
-					registry.assign<Maths::Transform>(entity);
+					registry.emplace<MeshComponent>(entity, Graphics::CreatePrimative(Graphics::PrimitiveType::Sphere));
+					registry.emplace<NameComponent>(entity, "Sphere");
+					registry.emplace<Maths::Transform>(entity);
 				}
 
 				if (ImGui::MenuItem("Pyramid"))
 				{
 					auto entity = registry.create();
-					registry.assign<MeshComponent>(entity, Graphics::CreatePrimative(Graphics::PrimitiveType::Pyramid));
-					registry.assign<NameComponent>(entity, "Pyramid");
-					registry.assign<Maths::Transform>(entity);
+					registry.emplace<MeshComponent>(entity, Graphics::CreatePrimative(Graphics::PrimitiveType::Pyramid));
+					registry.emplace<NameComponent>(entity, "Pyramid");
+					registry.emplace<Maths::Transform>(entity);
 				}
 
 				if (ImGui::MenuItem("Plane"))
 				{
 					auto entity = registry.create();
-					registry.assign<MeshComponent>(entity, Graphics::CreatePrimative(Graphics::PrimitiveType::Plane));
-					registry.assign<NameComponent>(entity, "Plane");
-					registry.assign<Maths::Transform>(entity);
+					registry.emplace<MeshComponent>(entity, Graphics::CreatePrimative(Graphics::PrimitiveType::Plane));
+					registry.emplace<NameComponent>(entity, "Plane");
+					registry.emplace<Maths::Transform>(entity);
 				}
 				
 				if (ImGui::MenuItem("Cylinder"))
 				{
 					auto entity = registry.create();
-					registry.assign<MeshComponent>(entity, Graphics::CreatePrimative(Graphics::PrimitiveType::Cylinder));
-					registry.assign<NameComponent>(entity, "Cylinder");
-					registry.assign<Maths::Transform>(entity);
+					registry.emplace<MeshComponent>(entity, Graphics::CreatePrimative(Graphics::PrimitiveType::Cylinder));
+					registry.emplace<NameComponent>(entity, "Cylinder");
+					registry.emplace<Maths::Transform>(entity);
 				}
 
 				if (ImGui::MenuItem("Capsule"))
 				{
 					auto entity = registry.create();
-					registry.assign<MeshComponent>(entity, Graphics::CreatePrimative(Graphics::PrimitiveType::Capsule));
-					registry.assign<NameComponent>(entity, "Capsule");
-					registry.assign<Maths::Transform>(entity);
+					registry.emplace<MeshComponent>(entity, Graphics::CreatePrimative(Graphics::PrimitiveType::Capsule));
+					registry.emplace<NameComponent>(entity, "Capsule");
+					registry.emplace<Maths::Transform>(entity);
 				}
 
 				ImGui::EndMenu();

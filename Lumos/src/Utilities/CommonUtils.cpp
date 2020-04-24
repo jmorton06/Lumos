@@ -43,10 +43,10 @@ namespace Lumos
 		const Maths::Vector4& color)
 	{
 		auto pSphere = registry.create();
-		registry.assign<NameComponent>(pSphere, name);
+		registry.emplace<NameComponent>(pSphere, name);
 	
 		Ref<Graphics::Mesh> sphereModel = AssetsManager::DefaultModels()->Get("Sphere");
-		registry.assign<MeshComponent>(pSphere, sphereModel);
+		registry.emplace<MeshComponent>(pSphere, sphereModel);
 
 		Ref<Material> matInstance = CreateRef<Material>();
 		MaterialProperties properties;
@@ -58,8 +58,8 @@ namespace Lumos
 		properties.usingNormalMap   = 0.0f;
 		properties.usingSpecularMap = 0.0f;
 		matInstance->SetMaterialProperites(properties);
-		registry.assign<MaterialComponent>(pSphere, matInstance);
-		registry.assign<Maths::Transform>(pSphere, Maths::Matrix4::Scale(Maths::Vector3(radius, radius, radius)));
+		registry.emplace<MaterialComponent>(pSphere, matInstance);
+		registry.emplace<Maths::Transform>(pSphere, Maths::Matrix4::Scale(Maths::Vector3(radius, radius, radius)));
 
 		if (physics_enabled)
 		{
@@ -80,7 +80,7 @@ namespace Lumos
 				testPhysics->SetInverseInertia(testPhysics->GetCollisionShape()->BuildInverseInertia(inverse_mass));
 			}
 
-			registry.assign<Physics3DComponent>(pSphere, testPhysics);
+			registry.emplace<Physics3DComponent>(pSphere, testPhysics);
 		}
 		else
 		{
@@ -101,10 +101,10 @@ namespace Lumos
 		const Maths::Vector4& color)
 	{
 		auto cube = registry.create();
-		registry.assign<NameComponent>(cube, name);
+		registry.emplace<NameComponent>(cube, name);
 
 		Ref<Graphics::Mesh> cubeModel = AssetsManager::DefaultModels()->Get("Cube");
-		registry.assign<MeshComponent>(cube, cubeModel);
+		registry.emplace<MeshComponent>(cube, cubeModel);
 
 		auto matInstance = CreateRef<Material>();
 		MaterialProperties properties;
@@ -118,8 +118,8 @@ namespace Lumos
 		properties.usingSpecularMap = 0.0f;
 		matInstance->SetMaterialProperites(properties);
 		matInstance->SetRenderFlags(0);
-		registry.assign<MaterialComponent>(cube, matInstance);
-		registry.assign<Maths::Transform>(cube, Maths::Matrix4::Scale(halfdims));
+		registry.emplace<MaterialComponent>(cube, matInstance);
+		registry.emplace<Maths::Transform>(cube, Maths::Matrix4::Scale(halfdims));
 
 		if (physics_enabled)
 		{
@@ -140,7 +140,7 @@ namespace Lumos
 				testPhysics->SetInverseInertia(testPhysics->GetCollisionShape()->BuildInverseInertia(inverse_mass));
 			}
 
-			registry.assign<Physics3DComponent>(cube, testPhysics);
+			registry.emplace<Physics3DComponent>(cube, testPhysics);
 		}
 		else
 		{
@@ -161,8 +161,8 @@ namespace Lumos
 		const Maths::Vector4& color)
 	{
 		auto pyramid = registry.create();
-		registry.assign<NameComponent>(pyramid, name);
-		registry.assign<Maths::Transform>(pyramid);
+		registry.emplace<NameComponent>(pyramid, name);
+		registry.emplace<Maths::Transform>(pyramid);
 
 		auto pyramidMeshEntity = registry.create();
 		Ref<Graphics::Mesh> pyramidModel = AssetsManager::DefaultModels()->Get("Pyramid");
@@ -177,10 +177,10 @@ namespace Lumos
 		properties.usingNormalMap   = 0.0f;
 		properties.usingSpecularMap = 0.0f;
 		matInstance->SetMaterialProperites(properties);
-		registry.assign<MaterialComponent>(pyramidMeshEntity, matInstance);
-		registry.assign<Maths::Transform>(pyramidMeshEntity, Maths::Quaternion(-90.0f, 0.0f,0.0f).RotationMatrix4() * Maths::Matrix4::Scale(halfdims));
-		registry.assign<Hierarchy>(pyramidMeshEntity, pyramid);
-		registry.assign<MeshComponent>(pyramidMeshEntity, pyramidModel);
+		registry.emplace<MaterialComponent>(pyramidMeshEntity, matInstance);
+		registry.emplace<Maths::Transform>(pyramidMeshEntity, Maths::Quaternion(-90.0f, 0.0f,0.0f).RotationMatrix4() * Maths::Matrix4::Scale(halfdims));
+		registry.emplace<Hierarchy>(pyramidMeshEntity, pyramid);
+		registry.emplace<MeshComponent>(pyramidMeshEntity, pyramidModel);
 
 		if (physics_enabled)
 		{
@@ -201,7 +201,7 @@ namespace Lumos
 				testPhysics->SetInverseInertia(testPhysics->GetCollisionShape()->BuildInverseInertia(inverse_mass));
 			}
 
-			registry.assign<Physics3DComponent>(pyramid, testPhysics);
+			registry.emplace<Physics3DComponent>(pyramid, testPhysics);
 		}
 		else
 		{
@@ -233,7 +233,7 @@ namespace Lumos
 		const float radius    = RandomNumberGenerator32::Rand(1.0f, 30.0f);
 		const float intensity = RandomNumberGenerator32::Rand(0.0f, 2.0f);
 
-		registry.assign<Graphics::Light>(cube, scene->GetCamera()->GetPosition(), colour, intensity, Graphics::LightType::PointLight, scene->GetCamera()->GetPosition(), radius);
+		registry.emplace<Graphics::Light>(cube, scene->GetCamera()->GetPosition(), colour, intensity, Graphics::LightType::PointLight, scene->GetCamera()->GetPosition(), radius);
 	}
 
 	void CommonUtils::AddSphere(Scene* scene)

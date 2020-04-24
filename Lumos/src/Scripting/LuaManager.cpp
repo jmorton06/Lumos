@@ -9,9 +9,15 @@
 #include "App/Engine.h"
 #include "Core/OS/Input.h"
 #include "ScriptComponent.h"
+#include "App/SceneGraph.h"
+#include "Graphics/Camera/ThirdPersonCamera.h"
+
+#include "ECS/Component/Components.h"
+#include "Graphics/Camera/Camera.h"
+#include "Graphics/Sprite.h"
+#include "Graphics/Light.h"
 
 #include <imgui/imgui.h>
-#include <sol/sol.hpp>
 
 namespace Lumos
 {
@@ -29,6 +35,7 @@ namespace Lumos
 		BindImGuiLua(m_State);
 		BindECSLua(m_State);
         BindLogLua(m_State);
+        BindSceneLua(m_State);
 	}
 
 	LuaManager::~LuaManager()
@@ -256,16 +263,50 @@ namespace Lumos
 
     void LuaManager::BindECSLua(sol::state * state)
     {
-        sol::usertype<entt::registry> reg_type = state->new_usertype< entt::registry >( "registry" );
-        reg_type.set_function( "create", static_cast< entt::entity( entt::registry::* )() >( &entt::registry::create ) );
-        reg_type.set_function( "destroy", static_cast< void( entt::registry::* )( entt::entity ) >( &entt::registry::destroy ) );
+        sol::usertype<entt::registry> reg_type = state->new_usertype< entt::registry >( "Registry" );
+        reg_type.set_function( "Create", static_cast< entt::entity( entt::registry::* )() >( &entt::registry::create ) );
+        reg_type.set_function( "Destroy", static_cast< void( entt::registry::* )( entt::entity ) >( &entt::registry::destroy ) );
         state->set_function( "GetEntityByName", &GetEntityByName );
+        
+        sol::usertype< NameComponent > nameComponent_type = state->new_usertype< NameComponent >( "NameComponent" );
+        nameComponent_type["name"] = &NameComponent::name;
+        REGISTER_COMPONENT_WITH_ECS( (*state), NameComponent, static_cast< NameComponent&( entt::registry::* )( const entt::entity )> ( &entt::registry::emplace< NameComponent > ) );
+        
+        sol::usertype< ScriptComponent > script_type = state->new_usertype< ScriptComponent >( "ScriptComponent", sol::constructors<sol::types<String, Scene*>>() );
+        REGISTER_COMPONENT_WITH_ECS( (*state), ScriptComponent, static_cast< ScriptComponent&( entt::registry::* )( const entt::entity )> ( &entt::registry::emplace< ScriptComponent > ) );
+        
+        using namespace Maths;
+        REGISTER_COMPONENT_WITH_ECS( (*state), Transform, static_cast<Transform&( entt::registry::* )( const entt::entity )> ( &entt::registry::emplace<Transform > ) );
+        
+        using namespace Graphics;
+        REGISTER_COMPONENT_WITH_ECS( (*state), Sprite, static_cast<Sprite&( entt::registry::* )( const entt::entity )> ( &entt::registry::emplace<Sprite > ) );
+        REGISTER_COMPONENT_WITH_ECS( (*state), Light, static_cast<Light&( entt::registry::* )( const entt::entity )> ( &entt::registry::emplace<Light > ) );
+
+        REGISTER_COMPONENT_WITH_ECS( (*state), MeshComponent, static_cast<MeshComponent&( entt::registry::* )( const entt::entity )> ( &entt::registry::emplace<MeshComponent > ) );
+        REGISTER_COMPONENT_WITH_ECS( (*state), CameraComponent, static_cast<CameraComponent&( entt::registry::* )( const entt::entity )> ( &entt::registry::emplace<CameraComponent > ) );
+        REGISTER_COMPONENT_WITH_ECS( (*state), Physics3DComponent, static_cast<Physics3DComponent&( entt::registry::* )( const entt::entity )> ( &entt::registry::emplace<Physics3DComponent > ) );
+        REGISTER_COMPONENT_WITH_ECS( (*state), Physics3DComponent, static_cast<Physics3DComponent&( entt::registry::* )( const entt::entity )> ( &entt::registry::emplace<Physics3DComponent > ) );
+        REGISTER_COMPONENT_WITH_ECS( (*state), Physics2DComponent, static_cast<Physics2DComponent&( entt::registry::* )( const entt::entity )> ( &entt::registry::emplace<Physics2DComponent > ) );
+        REGISTER_COMPONENT_WITH_ECS( (*state), SoundComponent, static_cast<SoundComponent&( entt::registry::* )( const entt::entity )> ( &entt::registry::emplace<SoundComponent > ) );
+        REGISTER_COMPONENT_WITH_ECS( (*state), MaterialComponent, static_cast<MaterialComponent&( entt::registry::* )( const entt::entity )> ( &entt::registry::emplace<MaterialComponent > ) );
     }
 
     void LuaManager::BindSceneLua(sol::state* state)
     {
         sol::usertype<Scene> scene_type = state->new_usertype< Scene >( "Scene" );
-        //scene_type.set_function( "GetRegistry", static_cast< entt::registry( Scene::* )() >( &Scene::GetRegistry ) );
+        scene_type.set_function( "GetRegistry", &Scene::GetRegistry );
+        scene_type.set_function("GetCamera", &Scene::GetCamera);
+        
+        sol::usertype< ThirdPersonCamera > camera_type = state->new_usertype< ThirdPersonCamera >( "Camera", sol::constructors<sol::types<float, float, float, float>>() );
+        camera_type["position"]                 = &ThirdPersonCamera::GetPosition;
+        camera_type["yaw"]                      = &ThirdPersonCamera::GetYaw;
+        camera_type["fov"]                      = &ThirdPersonCamera::GetFOV;
+        camera_type["aspectRatio"]              = &ThirdPersonCamera::GetAspectRatio;
+        camera_type["nearPlane"]                = &ThirdPersonCamera::GetNear;
+        camera_type["farPlane"]                 = &ThirdPersonCamera::GetFar;
+        camera_type["GetForwardDir"]            = &ThirdPersonCamera::GetForwardDirection;
+        camera_type["GetUpDir"]                 = &ThirdPersonCamera::GetUpDirection;
+        camera_type["GetRightDir"]              = &ThirdPersonCamera::GetRightDirection;
     }
 
     void LuaManager::BindMathsLua(sol::state * state)
@@ -394,7 +435,8 @@ namespace Lumos
             "LocalPosition", &Maths::Transform::GetLocalPosition,
             "ApplyTransform", &Maths::Transform::ApplyTransform,
             "UpdateMatrices", &Maths::Transform::UpdateMatrices,
-            "SetLocalTransform", &Maths::Transform::SetLocalTransform
+            "SetLocalTransform", &Maths::Transform::SetLocalTransform,
+            "SetLocalPosition", &Maths::Transform::SetLocalPosition
             );
     }
 
@@ -1230,10 +1272,9 @@ namespace Lumos
             sol::overload((void(*)(ImGuiCol, ImU32))ImGui::PushStyleColor,
             (void(*)(ImGuiCol, const ImVec4 &))ImGui::PushStyleColor);
         imgui["popStyleColor"] = sol::overload(ImGui::PopStyleColor, []() { ImGui::PopStyleColor(); });
-        imgui["pushStyleVar"] =
-            sol::overload((void(*)(ImGuiStyleVar, float))ImGui::PushStyleVar,
-            (void(*)(ImGuiStyleVar, const ImVec2 &))ImGui::PushStyleVar),
-            imgui["popStyleVar"] = sol::overload(ImGui::PopStyleVar, []() { ImGui::PopStyleVar(); });
+        imgui["pushStyleVar"] = sol::overload((void(*)(ImGuiStyleVar, float))ImGui::PushStyleVar,
+                                              (void(*)(ImGuiStyleVar, const ImVec2 &))ImGui::PushStyleVar);
+        imgui["popStyleVar"] = sol::overload(ImGui::PopStyleVar, []() { ImGui::PopStyleVar(); });
         imgui["getStyleColorVec4"] = ImGui::GetStyleColorVec4;
         imgui["getFont"] = ImGui::GetFont;
         imgui["getFontSize"] = ImGui::GetFontSize;
@@ -1701,19 +1742,19 @@ namespace Lumos
         imgui["beginPopupContextItem"] =
             sol::overload(ImGui::BeginPopupContextItem,
                 [](const char * _str) { return ImGui::BeginPopupContextItem(_str); },
-                []() { return ImGui::BeginPopupContextItem(); }),
-            imgui["beginPopupContextWindow"] =
+                          []() { return ImGui::BeginPopupContextItem(); });
+        imgui["beginPopupContextWindow"] =
             sol::overload(ImGui::BeginPopupContextWindow,
                 [](const char * _str) { return ImGui::BeginPopupContextWindow(_str); },
                 [](const char * _str, int _mouse_button) {
             return ImGui::BeginPopupContextWindow(_str, _mouse_button);
-        },
-                []() { return ImGui::BeginPopupContextWindow(); }),
-            imgui["beginPopupContextVoid"] =
+        }, []() { return ImGui::BeginPopupContextWindow(); });
+        
+        imgui["beginPopupContextVoid"] =
             sol::overload(ImGui::BeginPopupContextVoid,
                 [](const char * _str) { return ImGui::BeginPopupContextVoid(_str); },
-                []() { return ImGui::BeginPopupContextVoid(); }),
-            imgui["beginPopupModal"] = sol::overload(
+                          []() { return ImGui::BeginPopupContextVoid(); });
+        imgui["beginPopupModal"] = sol::overload(
                 [](const char * _name, sol::function _cb) {
             if (ImGui::BeginPopupModal(_name, NULL))
                 _cb();
@@ -1721,8 +1762,8 @@ namespace Lumos
                 [](const char * _name, ImGuiWindowFlags _flags, sol::function _cb) {
             if (ImGui::BeginPopupModal(_name, NULL, _flags))
                 _cb();
-        }),
-            imgui["endPopup"] = ImGui::EndPopup;
+            });
+        imgui["endPopup"] = ImGui::EndPopup;
         imgui["openPopupOnItemClick"] =
             sol::overload(ImGui::OpenPopupOnItemClick,
                 [](const char * _name) { return ImGui::OpenPopupOnItemClick(_name); });

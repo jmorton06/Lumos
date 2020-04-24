@@ -15,6 +15,6 @@ namespace Lumos
 		void OnImGui() override;
 
 	private:
-		MM::ImGuiEntityEditor<entt::registry> m_EnttEditor;
+		MM::ImGuiEntityEditor<entt::entity> m_EnttEditor;
 	};
 }

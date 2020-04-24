@@ -54,16 +54,6 @@ namespace Lumos
 		Editor
 	};
 
-    struct NameComponent
-    {
-        String name;
-    };
-
-	struct ActiveComponent
-	{
-		bool active;
-	};
-
 	class LUMOS_EXPORT Application
 	{
 		friend class Editor;
