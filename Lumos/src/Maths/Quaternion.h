@@ -1,7 +1,7 @@
 #pragma once
 #include "Maths/Matrix3.h"
 
-#ifdef Lumos_SSE
+#ifdef LUMOS_SSE
 #include <emmintrin.h>
 #endif
 
@@ -14,21 +14,21 @@ namespace Lumos::Maths
     public:
         /// Construct an identity quaternion.
         Quaternion() noexcept
-    #ifndef Lumos_SSE
+    #ifndef LUMOS_SSE
            :w(1.0f),
             x(0.0f),
             y(0.0f),
             z(0.0f)
     #endif
         {
-    #ifdef Lumos_SSE
+    #ifdef LUMOS_SSE
             _mm_storeu_ps(&w, _mm_set_ps(0.f, 0.f, 0.f, 1.f));
     #endif
         }
 
         /// Copy-construct from another quaternion.
         Quaternion(const Quaternion& quat) noexcept
-    #if defined(Lumos_SSE) && (!defined(_MSC_VER) || _MSC_VER >= 1700) /* Visual Studio 2012 and newer. VS2010 has a bug with these, see https://github.com/Lumos/Lumos/issues/1044 */
+    #if defined(LUMOS_SSE) && (!defined(_MSC_VER) || _MSC_VER >= 1700) /* Visual Studio 2012 and newer. VS2010 has a bug with these, see https://github.com/Lumos/Lumos/issues/1044 */
         {
             _mm_storeu_ps(&w, _mm_loadu_ps(&quat.w));
         }
@@ -43,28 +43,28 @@ namespace Lumos::Maths
 
         /// Construct from values.
         Quaternion(float pw, float px, float py, float pz) noexcept
-    #ifndef Lumos_SSE
+    #ifndef LUMOS_SSE
            :w(pw),
             x(px),
             y(py),
             z(pz)
     #endif
         {
-    #ifdef Lumos_SSE
+    #ifdef LUMOS_SSE
             _mm_storeu_ps(&w, _mm_set_ps(pz, py, px, pw));
     #endif
         }
 
         /// Construct from a float array.
         explicit Quaternion(const float* data) noexcept
-    #ifndef Lumos_SSE
+    #ifndef LUMOS_SSE
            :w(data[0]),
             x(data[1]),
             y(data[2]),
             z(data[3])
     #endif
         {
-    #ifdef Lumos_SSE
+    #ifdef LUMOS_SSE
             _mm_storeu_ps(&w, _mm_loadu_ps(data));
     #endif
         }
@@ -111,7 +111,7 @@ namespace Lumos::Maths
             FromRotationMatrix(matrix);
         }
 
-    #ifdef Lumos_SSE
+    #ifdef LUMOS_SSE
         explicit Quaternion(__m128 wxyz) noexcept
         {
             _mm_storeu_ps(&w, wxyz);
@@ -121,7 +121,7 @@ namespace Lumos::Maths
         /// Assign from another quaternion.
         Quaternion& operator =(const Quaternion& rhs) noexcept
         {
-    #if defined(Lumos_SSE) && (!defined(_MSC_VER) || _MSC_VER >= 1700) /* Visual Studio 2012 and newer. VS2010 has a bug with these, see https://github.com/Lumos/Lumos/issues/1044 */
+    #if defined(LUMOS_SSE) && (!defined(_MSC_VER) || _MSC_VER >= 1700) /* Visual Studio 2012 and newer. VS2010 has a bug with these, see https://github.com/Lumos/Lumos/issues/1044 */
             _mm_storeu_ps(&w, _mm_loadu_ps(&rhs.w));
     #else
             w = rhs.w;
@@ -135,7 +135,7 @@ namespace Lumos::Maths
         /// Add-assign a quaternion.
         Quaternion& operator +=(const Quaternion& rhs)
         {
-    #ifdef Lumos_SSE
+    #ifdef LUMOS_SSE
             _mm_storeu_ps(&w, _mm_add_ps(_mm_loadu_ps(&w), _mm_loadu_ps(&rhs.w)));
     #else
             w += rhs.w;
@@ -149,7 +149,7 @@ namespace Lumos::Maths
         /// Multiply-assign a scalar.
         Quaternion& operator *=(float rhs)
         {
-    #ifdef Lumos_SSE
+    #ifdef LUMOS_SSE
             _mm_storeu_ps(&w, _mm_mul_ps(_mm_loadu_ps(&w), _mm_set1_ps(rhs)));
     #else
             w *= rhs;
@@ -163,7 +163,7 @@ namespace Lumos::Maths
         /// Test for equality with another quaternion without epsilon.
         bool operator ==(const Quaternion& rhs) const
         {
-    #ifdef Lumos_SSE
+    #ifdef LUMOS_SSE
             __m128 c = _mm_cmpeq_ps(_mm_loadu_ps(&w), _mm_loadu_ps(&rhs.w));
             c = _mm_and_ps(c, _mm_movehl_ps(c, c));
             c = _mm_and_ps(c, _mm_shuffle_ps(c, c, _MM_SHUFFLE(1, 1, 1, 1)));
@@ -179,7 +179,7 @@ namespace Lumos::Maths
         /// Multiply with a scalar.
         Quaternion operator *(float rhs) const
         {
-    #ifdef Lumos_SSE
+    #ifdef LUMOS_SSE
             return Quaternion(_mm_mul_ps(_mm_loadu_ps(&w), _mm_set1_ps(rhs)));
     #else
             return Quaternion(w * rhs, x * rhs, y * rhs, z * rhs);
@@ -189,7 +189,7 @@ namespace Lumos::Maths
         /// Return negation.
         Quaternion operator -() const
         {
-    #ifdef Lumos_SSE
+    #ifdef LUMOS_SSE
             return Quaternion(_mm_xor_ps(_mm_loadu_ps(&w), _mm_castsi128_ps(_mm_set1_epi32((int)0x80000000UL))));
     #else
             return Quaternion(-w, -x, -y, -z);
@@ -199,7 +199,7 @@ namespace Lumos::Maths
         /// Add a quaternion.
         Quaternion operator +(const Quaternion& rhs) const
         {
-    #ifdef Lumos_SSE
+    #ifdef LUMOS_SSE
             return Quaternion(_mm_add_ps(_mm_loadu_ps(&w), _mm_loadu_ps(&rhs.w)));
     #else
             return Quaternion(w + rhs.w, x + rhs.x, y + rhs.y, z + rhs.z);
@@ -209,7 +209,7 @@ namespace Lumos::Maths
         /// Subtract a quaternion.
         Quaternion operator -(const Quaternion& rhs) const
         {
-    #ifdef Lumos_SSE
+    #ifdef LUMOS_SSE
             return Quaternion(_mm_sub_ps(_mm_loadu_ps(&w), _mm_loadu_ps(&rhs.w)));
     #else
             return Quaternion(w - rhs.w, x - rhs.x, y - rhs.y, z - rhs.z);
@@ -219,7 +219,7 @@ namespace Lumos::Maths
         /// Multiply a quaternion.
         Quaternion operator *(const Quaternion& rhs) const
         {
-    #ifdef Lumos_SSE
+    #ifdef LUMOS_SSE
             __m128 q1 = _mm_loadu_ps(&w);
             __m128 q2 = _mm_loadu_ps(&rhs.w);
             q2 = _mm_shuffle_ps(q2, q2, _MM_SHUFFLE(0, 3, 2, 1));
@@ -244,7 +244,7 @@ namespace Lumos::Maths
         /// Multiply a Vector3.
         Vector3 operator *(const Vector3& rhs) const
         {
-    #ifdef Lumos_SSE
+    #ifdef LUMOS_SSE
             __m128 q = _mm_loadu_ps(&w);
             q = _mm_shuffle_ps(q, q, _MM_SHUFFLE(0, 3, 2, 1));
             __m128 v = _mm_set_ps(0.f, rhs.z, rhs.y, rhs.x);
@@ -289,7 +289,7 @@ namespace Lumos::Maths
         /// Normalize to unit length.
         void Normalize()
         {
-    #ifdef Lumos_SSE
+    #ifdef LUMOS_SSE
             __m128 q = _mm_loadu_ps(&w);
             __m128 n = _mm_mul_ps(q, q);
             n = _mm_add_ps(n, _mm_shuffle_ps(n, n, _MM_SHUFFLE(2, 3, 0, 1)));
@@ -315,7 +315,7 @@ namespace Lumos::Maths
         /// Return normalized to unit length.
         Quaternion Normalized() const
         {
-    #ifdef Lumos_SSE
+    #ifdef LUMOS_SSE
             __m128 q = _mm_loadu_ps(&w);
             __m128 n = _mm_mul_ps(q, q);
             n = _mm_add_ps(n, _mm_shuffle_ps(n, n, _MM_SHUFFLE(2, 3, 0, 1)));
@@ -340,7 +340,7 @@ namespace Lumos::Maths
         /// Return inverse.
         Quaternion Inverse() const
         {
-    #ifdef Lumos_SSE
+    #ifdef LUMOS_SSE
             __m128 q = _mm_loadu_ps(&w);
             __m128 n = _mm_mul_ps(q, q);
             n = _mm_add_ps(n, _mm_shuffle_ps(n, n, _MM_SHUFFLE(2, 3, 0, 1)));
@@ -360,7 +360,7 @@ namespace Lumos::Maths
         /// Return squared length.
         float LengthSquared() const
         {
-    #ifdef Lumos_SSE
+    #ifdef LUMOS_SSE
             __m128 q = _mm_loadu_ps(&w);
             __m128 n = _mm_mul_ps(q, q);
             n = _mm_add_ps(n, _mm_shuffle_ps(n, n, _MM_SHUFFLE(2, 3, 0, 1)));
@@ -374,7 +374,7 @@ namespace Lumos::Maths
         /// Calculate dot product.
         float DotProduct(const Quaternion& rhs) const
         {
-    #ifdef Lumos_SSE
+    #ifdef LUMOS_SSE
             __m128 q1 = _mm_loadu_ps(&w);
             __m128 q2 = _mm_loadu_ps(&rhs.w);
             __m128 n = _mm_mul_ps(q1, q2);
@@ -401,7 +401,7 @@ namespace Lumos::Maths
         /// Return conjugate.
         Quaternion Conjugate() const
         {
-    #ifdef Lumos_SSE
+    #ifdef LUMOS_SSE
             __m128 q = _mm_loadu_ps(&w);
             return Quaternion(_mm_xor_ps(q, _mm_castsi128_ps(_mm_set_epi32((int)0x80000000UL, (int)0x80000000UL, (int)0x80000000UL, 0))));
     #else

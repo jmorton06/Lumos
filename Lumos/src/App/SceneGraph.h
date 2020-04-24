@@ -4,6 +4,16 @@
 
 namespace Lumos
 {
+	struct NameComponent
+    {
+        String name;
+    };
+
+	struct ActiveComponent
+	{
+		bool active;
+	};
+
 	class Hierarchy
 	{
 	public:
@@ -23,7 +33,7 @@ namespace Lumos
 		// update hierarchy components when hierarchy component is removed
 		static void on_destroy(entt::entity entity, entt::registry& registry);
 
-		static void on_replace(entt::entity entity, entt::registry& registry);
+		static void on_update(entt::entity entity, entt::registry& registry);
 
 		static void Reparent(entt::entity entity, entt::entity parent, entt::registry& registry, Hierarchy& hierarchy);
 

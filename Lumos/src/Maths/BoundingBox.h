@@ -2,7 +2,7 @@
 #include "Maths/Rect.h"
 #include "Maths/Vector3.h"
 
-#ifdef Lumos_SSE
+#ifdef LUMOS_SSE
 #include <xmmintrin.h>
 #endif
 
@@ -54,7 +54,7 @@ namespace Lumos::Maths
         {
         }
 
-    #ifdef Lumos_SSE
+    #ifdef LUMOS_SSE
         BoundingBox(__m128 min, __m128 max) noexcept
         {
             _mm_storeu_ps(&min_.x, min);
@@ -151,7 +151,7 @@ namespace Lumos::Maths
         /// Merge a point.
         void Merge(const Vector3& point)
         {
-    #ifdef Lumos_SSE
+    #ifdef LUMOS_SSE
             __m128 vec = _mm_set_ps(1.f, point.z, point.y, point.x);
             _mm_storeu_ps(&min_.x, _mm_min_ps(_mm_loadu_ps(&min_.x), vec));
             _mm_storeu_ps(&max_.x, _mm_max_ps(_mm_loadu_ps(&max_.x), vec));
@@ -174,7 +174,7 @@ namespace Lumos::Maths
         /// Merge another bounding box.
         void Merge(const BoundingBox& box)
         {
-    #ifdef Lumos_SSE
+    #ifdef LUMOS_SSE
             _mm_storeu_ps(&min_.x, _mm_min_ps(_mm_loadu_ps(&min_.x), _mm_loadu_ps(&box.min_.x)));
             _mm_storeu_ps(&max_.x, _mm_max_ps(_mm_loadu_ps(&max_.x), _mm_loadu_ps(&box.max_.x)));
     #else
@@ -221,7 +221,7 @@ namespace Lumos::Maths
         /// Clear to undefined state.
         void Clear()
         {
-    #ifdef Lumos_SSE
+    #ifdef LUMOS_SSE
             _mm_storeu_ps(&min_.x, _mm_set1_ps(M_INFINITY));
             _mm_storeu_ps(&max_.x, _mm_set1_ps(-M_INFINITY));
     #else

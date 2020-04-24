@@ -1,7 +1,7 @@
 #pragma once
 #include "Maths/Matrix4.h"
 
-#ifdef Lumos_SSE
+#ifdef LUMOS_SSE
 #include <emmintrin.h>
 #endif
 
@@ -13,7 +13,7 @@ namespace Lumos::Maths
     public:
         /// Construct an identity matrix.
         Matrix3x4() noexcept
-    #ifndef Lumos_SSE
+    #ifndef LUMOS_SSE
            :m00_(1.0f),
             m01_(0.0f),
             m02_(0.0f),
@@ -28,7 +28,7 @@ namespace Lumos::Maths
             m23_(0.0f)
     #endif
         {
-    #ifdef Lumos_SSE
+    #ifdef LUMOS_SSE
             _mm_storeu_ps(&m00_, _mm_set_ps(0.f, 0.f, 0.f, 1.f));
             _mm_storeu_ps(&m10_, _mm_set_ps(0.f, 0.f, 1.f, 0.f));
             _mm_storeu_ps(&m20_, _mm_set_ps(0.f, 1.f, 0.f, 0.f));
@@ -57,7 +57,7 @@ namespace Lumos::Maths
 
         /// Copy-construct from a 4x4 matrix which is assumed to contain no projection.
         explicit Matrix3x4(const Matrix4& matrix) noexcept
-    #ifndef Lumos_SSE
+    #ifndef LUMOS_SSE
            :m00_(matrix.m00_),
             m01_(matrix.m01_),
             m02_(matrix.m02_),
@@ -72,7 +72,7 @@ namespace Lumos::Maths
             m23_(matrix.m23_)
     #endif
         {
-    #ifdef Lumos_SSE
+    #ifdef LUMOS_SSE
             _mm_storeu_ps(&m00_, _mm_loadu_ps(&matrix.m00_));
             _mm_storeu_ps(&m10_, _mm_loadu_ps(&matrix.m10_));
             _mm_storeu_ps(&m20_, _mm_loadu_ps(&matrix.m20_));
@@ -100,7 +100,7 @@ namespace Lumos::Maths
 
         /// Construct from a float array.
         explicit Matrix3x4(const float* data) noexcept
-    #ifndef Lumos_SSE
+    #ifndef LUMOS_SSE
            :m00_(data[0]),
             m01_(data[1]),
             m02_(data[2]),
@@ -115,7 +115,7 @@ namespace Lumos::Maths
             m23_(data[11])
     #endif
         {
-    #ifdef Lumos_SSE
+    #ifdef LUMOS_SSE
             _mm_storeu_ps(&m00_, _mm_loadu_ps(data));
             _mm_storeu_ps(&m10_, _mm_loadu_ps(data + 4));
             _mm_storeu_ps(&m20_, _mm_loadu_ps(data + 8));
@@ -125,7 +125,7 @@ namespace Lumos::Maths
         /// Construct from translation, rotation and uniform scale.
         Matrix3x4(const Vector3& translation, const Quaternion& rotation, float scale) noexcept
         {
-    #ifdef Lumos_SSE
+    #ifdef LUMOS_SSE
             __m128 t = _mm_set_ps(1.f, translation.z, translation.y, translation.x);
             __m128 q = _mm_loadu_ps(&rotation.w);
             __m128 s = _mm_set_ps(1.f, scale, scale, scale);
@@ -139,7 +139,7 @@ namespace Lumos::Maths
         /// Construct from translation, rotation and nonuniform scale.
         Matrix3x4(const Vector3& translation, const Quaternion& rotation, const Vector3& scale) noexcept
         {
-    #ifdef Lumos_SSE
+    #ifdef LUMOS_SSE
             __m128 t = _mm_set_ps(1.f, translation.z, translation.y, translation.x);
             __m128 q = _mm_loadu_ps(&rotation.w);
             __m128 s = _mm_set_ps(1.f, scale.z, scale.y, scale.x);
@@ -174,7 +174,7 @@ namespace Lumos::Maths
         /// Assign from a 4x4 matrix which is assumed to contain no projection.
         Matrix3x4& operator =(const Matrix4& rhs) noexcept
         {
-    #ifdef Lumos_SSE
+    #ifdef LUMOS_SSE
             _mm_storeu_ps(&m00_, _mm_loadu_ps(&rhs.m00_));
             _mm_storeu_ps(&m10_, _mm_loadu_ps(&rhs.m10_));
             _mm_storeu_ps(&m20_, _mm_loadu_ps(&rhs.m20_));
@@ -198,7 +198,7 @@ namespace Lumos::Maths
         /// Test for equality with another matrix without epsilon.
         bool operator ==(const Matrix3x4& rhs) const
         {
-    #ifdef Lumos_SSE
+    #ifdef LUMOS_SSE
             __m128 c0 = _mm_cmpeq_ps(_mm_loadu_ps(&m00_), _mm_loadu_ps(&rhs.m00_));
             __m128 c1 = _mm_cmpeq_ps(_mm_loadu_ps(&m10_), _mm_loadu_ps(&rhs.m10_));
             c0 = _mm_and_ps(c0, c1);
@@ -229,7 +229,7 @@ namespace Lumos::Maths
         /// Multiply a Vector3 which is assumed to represent position.
         Vector3 operator *(const Vector3& rhs) const
         {
-    #ifdef Lumos_SSE
+    #ifdef LUMOS_SSE
             __m128 vec = _mm_set_ps(1.f, rhs.z, rhs.y, rhs.x);
             __m128 r0 = _mm_mul_ps(_mm_loadu_ps(&m00_), vec);
             __m128 r1 = _mm_mul_ps(_mm_loadu_ps(&m10_), vec);
@@ -259,7 +259,7 @@ namespace Lumos::Maths
         /// Multiply a Vector4.
         Vector3 operator *(const Vector4& rhs) const
         {
-    #ifdef Lumos_SSE
+    #ifdef LUMOS_SSE
             __m128 vec = _mm_loadu_ps(&rhs.x);
             __m128 r0 = _mm_mul_ps(_mm_loadu_ps(&m00_), vec);
             __m128 r1 = _mm_mul_ps(_mm_loadu_ps(&m10_), vec);
@@ -289,7 +289,7 @@ namespace Lumos::Maths
         /// Add a matrix.
         Matrix3x4 operator +(const Matrix3x4& rhs) const
         {
-    #ifdef Lumos_SSE
+    #ifdef LUMOS_SSE
             Matrix3x4 ret;
             _mm_storeu_ps(&ret.m00_, _mm_add_ps(_mm_loadu_ps(&m00_), _mm_loadu_ps(&rhs.m00_)));
             _mm_storeu_ps(&ret.m10_, _mm_add_ps(_mm_loadu_ps(&m10_), _mm_loadu_ps(&rhs.m10_)));
@@ -316,7 +316,7 @@ namespace Lumos::Maths
         /// Subtract a matrix.
         Matrix3x4 operator -(const Matrix3x4& rhs) const
         {
-    #ifdef Lumos_SSE
+    #ifdef LUMOS_SSE
             Matrix3x4 ret;
             _mm_storeu_ps(&ret.m00_, _mm_sub_ps(_mm_loadu_ps(&m00_), _mm_loadu_ps(&rhs.m00_)));
             _mm_storeu_ps(&ret.m10_, _mm_sub_ps(_mm_loadu_ps(&m10_), _mm_loadu_ps(&rhs.m10_)));
@@ -343,7 +343,7 @@ namespace Lumos::Maths
         /// Multiply with a scalar.
         Matrix3x4 operator *(float rhs) const
         {
-    #ifdef Lumos_SSE
+    #ifdef LUMOS_SSE
             Matrix3x4 ret;
             const __m128 mul = _mm_set1_ps(rhs);
             _mm_storeu_ps(&ret.m00_, _mm_mul_ps(_mm_loadu_ps(&m00_), mul));
@@ -371,7 +371,7 @@ namespace Lumos::Maths
         /// Multiply a matrix.
         Matrix3x4 operator *(const Matrix3x4& rhs) const
         {
-    #ifdef Lumos_SSE
+    #ifdef LUMOS_SSE
             Matrix3x4 out;
 
             __m128 r0 = _mm_loadu_ps(&rhs.m00_);
@@ -422,7 +422,7 @@ namespace Lumos::Maths
         /// Multiply a 4x4 matrix.
         Matrix4 operator *(const Matrix4& rhs) const
         {
-    #ifdef Lumos_SSE
+    #ifdef LUMOS_SSE
             Matrix4 out;
 
             __m128 r0 = _mm_loadu_ps(&rhs.m00_);
@@ -533,7 +533,7 @@ namespace Lumos::Maths
         /// Convert to a 4x4 matrix by filling in an identity last row.
         Matrix4 ToMatrix4() const
         {
-    #ifdef Lumos_SSE
+    #ifdef LUMOS_SSE
             Matrix4 ret;
             _mm_storeu_ps(&ret.m00_, _mm_loadu_ps(&m00_));
             _mm_storeu_ps(&ret.m10_, _mm_loadu_ps(&m10_));
@@ -707,7 +707,7 @@ namespace Lumos::Maths
         /// Identity matrix.
         static const Matrix3x4 IDENTITY;
 
-    #ifdef Lumos_SSE
+    #ifdef LUMOS_SSE
     private:
         /// \brief Sets this matrix from the given translation, rotation (as quaternion (w,x,y,z)), and nonuniform scale (x,y,z) parameters. Note: the w component of the scale parameter passed to this function must be 1.
         void _FORCE_INLINE_ SetFromTRS(__m128 t, __m128 q, __m128 s)

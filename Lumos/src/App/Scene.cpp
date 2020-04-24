@@ -12,6 +12,7 @@
 #include "Physics/LumosPhysicsEngine/SortAndSweepBroadphase.h"
 #include "Physics/LumosPhysicsEngine/Octree.h"
 #include "Physics/LumosPhysicsEngine/LumosPhysicsEngine.h"
+#include "Scripting/LuaManager.h"
 
 #include <sol/sol.hpp>
 
@@ -24,11 +25,14 @@ namespace Lumos
 		m_SceneBoundingRadius(0),
 		m_ScreenWidth(0),
 		m_ScreenHeight(0)
-	{
+    {
 	}
 
     Scene::~Scene()
     {
+        if(m_LuaEnv && m_LuaEnv["OnDestroy"])
+            m_LuaEnv["OnDestroy"]();
+        
         DeleteAllGameObjects();
     }
 
@@ -97,6 +101,8 @@ namespace Lumos
 
 	void Scene::OnCleanupScene()
 	{
+        if(m_LuaEnv && m_LuaEnv["OnCleanUp"])
+            m_LuaEnv["OnCleanUp"]();
 		DeleteAllGameObjects();
 
 		Application::Instance()->GetRenderManager()->Reset();
@@ -129,6 +135,9 @@ namespace Lumos
 		}
 
 		m_SceneGraph.Update(m_Registry);
+        
+        if(m_LuaEnv && m_LuaEnv["OnUpdate"])
+            m_LuaEnv["OnUpdate"](timeStep->GetElapsedMillis());
 	}
 
 	void Scene::OnEvent(Event& e)
@@ -160,4 +169,24 @@ namespace Lumos
 	{
 		m_SceneName = data["name"];
 	}
+
+    void Scene::LoadLuaScene(const String &filePath)
+    {
+        m_LuaEnv = sol::environment(*LuaManager::Instance()->GetState(), sol::create, LuaManager::Instance()->GetState()->globals());
+        m_LuaEnv["scene"] = this;
+        m_LuaEnv["reg"] = &m_Registry;
+        
+        LuaManager::Instance()->GetState()->script_file(filePath, m_LuaEnv);
+
+        if(m_LuaEnv["OnInit"])
+            m_LuaEnv["OnInit"]();
+    }
+
+    Scene* Scene::LoadFromLua(const String& filePath)
+    {
+        Scene* scene = new Scene("");
+        scene->LoadLuaScene(filePath);
+        
+        return scene;
+    }
 }

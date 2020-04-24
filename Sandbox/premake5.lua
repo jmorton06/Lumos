@@ -71,7 +71,7 @@ project "Sandbox"
 			"_DISABLE_EXTENDED_ALIGNED_STORAGE",
 			"LUMOS_ROOT_DIR="  .. cwd,
 			"LUMOS_VOLK",
-			"Lumos_SSE"
+			"LUMOS_SSE"
 		}
 
 		libdirs
@@ -123,7 +123,7 @@ project "Sandbox"
 			"LUMOS_IMGUI",
 			"LUMOS_ROOT_DIR="  .. cwd,
 			"LUMOS_VOLK",
-			"Lumos_SSE"
+			"LUMOS_SSE"
 		}
 
 		linkoptions 
@@ -332,7 +332,7 @@ project "Sandbox"
 				"-msse4.1",
 			}
 
-			defines { "Lumos_SSE" ,"USE_VMA_ALLOCATOR"}
+			defines { "LUMOS_SSE" ,"USE_VMA_ALLOCATOR"}
 		end
 
 	filter "configurations:Debug"

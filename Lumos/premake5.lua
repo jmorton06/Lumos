@@ -96,7 +96,7 @@ project "Lumos"
 			"LUMOS_OPENAL",
 			"LUMOS_VOLK",
 			"USE_VMA_ALLOCATOR",
-			"Lumos_SSE"
+			"LUMOS_SSE"
 		}
 
 		files
@@ -173,7 +173,7 @@ project "Lumos"
 			"LUMOS_OPENAL",
 			"LUMOS_VOLK",
 			"USE_VMA_ALLOCATOR",
-			"Lumos_SSE"
+			"LUMOS_SSE"
 		}
 
 		links
@@ -347,7 +347,7 @@ project "Lumos"
 				"-msse4.1",
 			}
 
-			defines { "Lumos_SSE" ,"USE_VMA_ALLOCATOR"}
+			defines { "LUMOS_SSE" ,"USE_VMA_ALLOCATOR"}
 		end
 
 	filter "configurations:Debug"

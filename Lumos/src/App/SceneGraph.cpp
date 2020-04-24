@@ -10,9 +10,9 @@ namespace Lumos
 
 	void SceneGraph::Init(entt::registry & registry)
 	{
-		registry.on_construct<Hierarchy>().connect<&Hierarchy::on_construct>();
-		registry.on_replace<Hierarchy>().connect<&Hierarchy::on_replace>();
-		registry.on_destroy<Hierarchy>().connect<&Hierarchy::on_destroy>();
+		//registry.on_construct<Hierarchy>().connect<&Hierarchy::on_construct>();
+		//registry.on_update<Hierarchy>().connect<&Hierarchy::on_update>();
+		//registry.on_destroy<Hierarchy>().connect<&Hierarchy::on_destroy>();
 	}
 
 	void SceneGraph::Update(entt::registry & registry)
@@ -98,7 +98,7 @@ namespace Lumos
 	{
 		if (hierarchy._parent != entt::null)
 		{
-			auto& parent_hierarchy = registry.get_or_assign<Hierarchy>(hierarchy._parent);
+			auto& parent_hierarchy = registry.get_or_emplace<Hierarchy>(hierarchy._parent);
 
 			if (parent_hierarchy._first == entt::null) 
 			{
@@ -150,7 +150,7 @@ namespace Lumos
 		}
 	}
 
-	void Hierarchy::on_replace(entt::entity entity, entt::registry& registry)
+	void Hierarchy::on_update(entt::entity entity, entt::registry& registry)
 	{
 		auto& hierarchy = registry.get<Hierarchy>(entity);
 		// if is the first child

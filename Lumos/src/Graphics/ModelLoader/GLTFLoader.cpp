@@ -416,12 +416,12 @@ namespace Lumos
         
         auto name = node.name;
         if(name != "")
-			registry.assign<NameComponent>(meshEntity, name);
+			registry.emplace<NameComponent>(meshEntity, name);
 
-        registry.assign<Maths::Transform>(meshEntity);
+        registry.emplace<Maths::Transform>(meshEntity);
         
         if(parent != entt::null)
-			registry.assign<Hierarchy>(meshEntity, parent);
+			registry.emplace<Hierarchy>(meshEntity, parent);
         
         if(node.mesh >= 0)
         {
@@ -433,14 +433,14 @@ namespace Lumos
                 auto lMesh = Ref<Graphics::Mesh>(meshes);
                                 
                 if(!subname.empty())
-					registry.assign<MeshComponent>(submeshEntity, lMesh);
-                registry.assign<Maths::Transform>(submeshEntity);
-                registry.assign<NameComponent>(submeshEntity, subname);
-				registry.assign<Hierarchy>(submeshEntity, meshEntity);
+					registry.emplace<MeshComponent>(submeshEntity, lMesh);
+                registry.emplace<Maths::Transform>(submeshEntity);
+                registry.emplace<NameComponent>(submeshEntity, subname);
+				registry.emplace<Hierarchy>(submeshEntity, meshEntity);
 
                 int materialIndex = model.meshes[node.mesh].primitives[subIndex].material;
                 if(materialIndex >= 0)
-                    registry.assign<MaterialComponent>(submeshEntity, materials[materialIndex]);
+                    registry.emplace<MaterialComponent>(submeshEntity, materials[materialIndex]);
 
                 /*if (node.skin >= 0)
                 {
@@ -525,8 +525,8 @@ namespace Lumos
         String name = path.substr(path.find_last_of('/') + 1);
 
         auto entity = registry.create();
-		registry.assign<Maths::Transform>(entity);
-        registry.assign<NameComponent>(entity, name);
+		registry.emplace<Maths::Transform>(entity);
+        registry.emplace<NameComponent>(entity, name);
 
         auto meshes = std::vector<std::vector<Graphics::Mesh*>>();
         

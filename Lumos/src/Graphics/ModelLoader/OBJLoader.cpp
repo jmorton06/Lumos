@@ -62,7 +62,7 @@ namespace Lumos
 		}
 
         auto entity = registry.create();
-		registry.assign<NameComponent>(entity, name);
+		registry.emplace<NameComponent>(entity, name);
 		bool singleMesh = shapes.size() == 1;
 
 		for (const auto& shape : shapes)
@@ -208,16 +208,16 @@ namespace Lumos
 			auto mesh = CreateRef<Graphics::Mesh>(va, ib, boundingBox);
 			if (singleMesh)
 			{
-				registry.assign<MeshComponent>(entity, mesh);
-				registry.assign<MaterialComponent>(entity, pbrMaterial);
+				registry.emplace<MeshComponent>(entity, mesh);
+				registry.emplace<MaterialComponent>(entity, pbrMaterial);
 			}
 			else
 			{
 				auto meshEntity = registry.create();
-				registry.assign<MeshComponent>(meshEntity, mesh);
-				registry.assign<MaterialComponent>(meshEntity, pbrMaterial);
-				registry.assign<Maths::Transform>(meshEntity);
-				registry.assign<Hierarchy>(meshEntity, entity);
+				registry.emplace<MeshComponent>(meshEntity, mesh);
+				registry.emplace<MaterialComponent>(meshEntity, pbrMaterial);
+				registry.emplace<Maths::Transform>(meshEntity);
+				registry.emplace<Hierarchy>(meshEntity, entity);
 			}
 
 			delete[] vertices;
