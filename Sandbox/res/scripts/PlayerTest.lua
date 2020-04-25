@@ -14,6 +14,6 @@ function OnUpdate(dt)
     end
 
     gui.beginWindow("Lua Test Window")
-
+    gui.text("Player Test Window")
     gui.endWindow()
 end
