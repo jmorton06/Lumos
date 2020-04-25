@@ -61,6 +61,8 @@ void Scene2D::OnInit()
 
 	m_pCamera = new Camera2D(static_cast<float>(m_ScreenWidth) / static_cast<float>(m_ScreenHeight), MAX_HEIGHT);
 
+	LoadLuaScene(ROOT_DIR"/Sandbox/res/scripts/FlappyBirdTest.lua");
+
 	auto cameraEntity = m_Registry.create();
 	m_Registry.emplace<CameraComponent>(cameraEntity, m_pCamera);
 	m_Registry.emplace<NameComponent>(cameraEntity, "Camera");
@@ -78,24 +80,26 @@ void Scene2D::OnInit()
 #endif
 
 	Application::Instance()->PushLayer(new Layer2D(new Graphics::Renderer2D(m_ScreenWidth, m_ScreenHeight, editor)));
+	
+	{
+		s_player.entity = m_Registry.create();
+		s_player.scene = this;
+		auto colour = Maths::Vector4(RandomNumberGenerator32::Rand(0.0f, 1.0f), RandomNumberGenerator32::Rand(0.0f, 1.0f), RandomNumberGenerator32::Rand(0.0f, 1.0f), 1.0f);
+		m_Registry.emplace<Graphics::Sprite>(s_player.entity, Maths::Vector2(-1.0f / 2.0f, -1.0f / 2.0f), Maths::Vector2(1.0f, 1.0f), colour);
 
-	s_player.entity = m_Registry.create();
-	s_player.scene = this;
-	auto colour = Maths::Vector4(RandomNumberGenerator32::Rand(0.0f, 1.0f), RandomNumberGenerator32::Rand(0.0f, 1.0f), RandomNumberGenerator32::Rand(0.0f, 1.0f), 1.0f);
-	m_Registry.emplace<Graphics::Sprite>(s_player.entity, Maths::Vector2(-1.0f / 2.0f, -1.0f / 2.0f), Maths::Vector2(1.0f, 1.0f), colour);
+		PhysicsObjectParamaters params;
+		params.position = Vector3({ 1.0f, 1.0f }, 1.0f);
+		params.scale = Vector3(1.0f / 2.0f, 1.0f / 2.0f, 1.0f);
+		params.shape = Shape::Square;
+		params.isStatic = false;
+		auto blockPhysics = Lumos::CreateRef<PhysicsObject2D>();
+		blockPhysics->Init(params);
+		blockPhysics->GetB2Body()->SetLinearVelocity({SPEED, 0.0f});
+		blockPhysics->GetB2Body()->SetUserData(&s_player);
 
-	PhysicsObjectParamaters params;
-	params.position = Vector3({ 1.0f, 1.0f }, 1.0f);
-	params.scale = Vector3(1.0f / 2.0f, 1.0f / 2.0f, 1.0f);
-	params.shape = Shape::Square;
-	params.isStatic = false;
-	auto blockPhysics = Lumos::CreateRef<PhysicsObject2D>();
-	blockPhysics->Init(params);
-	blockPhysics->GetB2Body()->SetLinearVelocity({SPEED, 0.0f});
-	blockPhysics->GetB2Body()->SetUserData(&s_player);
-
-	m_Registry.emplace<Physics2DComponent>(s_player.entity, blockPhysics);
-	m_Registry.emplace<Maths::Transform>(s_player.entity, Maths::Vector3(1.0f, 1.0f,0.0f));
+		m_Registry.emplace<Physics2DComponent>(s_player.entity, blockPhysics);
+		m_Registry.emplace<Maths::Transform>(s_player.entity, Maths::Vector3(1.0f, 1.0f,0.0f));
+	}
 
 	Application::Instance()->GetSystem<B2PhysicsEngine>()->GetB2World()->SetContactListener(&myContactListenerInstance);
 

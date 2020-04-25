@@ -47,18 +47,19 @@ struct _ECS_export_view< entt::type_list< Component... >, entt::type_list < Excl
 		void OnInit();
         void OnUpdate(Scene* scene);
 
-        void BindImGuiLua(sol::state* solState);
-        void BindECSLua(sol::state* state);
-        void BindMathsLua(sol::state* state);
-        void BindLogLua(sol::state* state);
-        void BindInputLua(sol::state* state);
-		void BindSceneLua(sol::state* state);
+        void BindImGuiLua(sol::state& solState);
+        void BindECSLua(sol::state& state);
+        void BindMathsLua(sol::state& state);
+        void BindLogLua(sol::state& state);
+        void BindInputLua(sol::state& state);
+		void BindSceneLua(sol::state& state);
+        void BindPhysicsObjects(sol::state& state);
 
-		sol::state* GetState() const { return m_State; }
+		sol::state& GetState() { return m_State; }
 
 		WindowProperties LoadConfigFile(const String& file);
 
 	private:
-		sol::state* m_State;
+		sol::state m_State;
 	};
 }

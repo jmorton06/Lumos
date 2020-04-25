@@ -10,7 +10,7 @@ namespace Lumos
     {
     public:
         ScriptComponent() = default;
-        ScriptComponent(const String& fileName, Scene* scene = nullptr);
+        ScriptComponent(const String& fileName, Scene* scene);
         ~ScriptComponent();
         
 		void Init();

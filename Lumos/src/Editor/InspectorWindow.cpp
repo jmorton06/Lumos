@@ -437,8 +437,14 @@ namespace Lumos
 		m_SimpleName = "Inspector";
 	}
 
+    static bool init = false;
 	void InspectorWindow::OnNewScene(Scene* scene)
 	{
+        if(init)
+            return;
+        
+        init = true;
+        
 		auto& registry = scene->GetRegistry();
 		auto& iconMap = m_Editor->GetComponentIconMap();
 

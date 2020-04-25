@@ -38,8 +38,8 @@ namespace Lumos
 
 	void Scene::OnInit()
 	{
-        LuaManager::Instance()->GetState()->set("registry", &m_Registry);
-        LuaManager::Instance()->GetState()->set("scene", this);
+        LuaManager::Instance()->GetState().set("registry", &m_Registry);
+        LuaManager::Instance()->GetState().set("scene", this);
 
 		m_CurrentScene = true;
 
@@ -172,11 +172,24 @@ namespace Lumos
 
     void Scene::LoadLuaScene(const String &filePath)
     {
-        m_LuaEnv = sol::environment(*LuaManager::Instance()->GetState(), sol::create, LuaManager::Instance()->GetState()->globals());
+        m_LuaEnv = sol::environment(LuaManager::Instance()->GetState(), sol::create, LuaManager::Instance()->GetState().globals());
         m_LuaEnv["scene"] = this;
         m_LuaEnv["reg"] = &m_Registry;
         
-        LuaManager::Instance()->GetState()->script_file(filePath, m_LuaEnv);
+        String physicalPath;
+        if (!VFS::Get()->ResolvePhysicalPath(filePath, physicalPath))
+        {
+            Debug::Log::Error("Failed to Load Lua script {0}", filePath );
+            return;
+        }
+        
+        auto loadFileResult = LuaManager::Instance()->GetState().script_file(physicalPath, m_LuaEnv, sol::script_pass_on_error);
+        if (!loadFileResult.valid())
+        {
+            sol::error err = loadFileResult;
+            Debug::Log::Error("Failed to Execute Lua script {0}" , physicalPath );
+            Debug::Log::Error("Error : {0}", err.what());
+        }
 
         if(m_LuaEnv["OnInit"])
             m_LuaEnv["OnInit"]();
