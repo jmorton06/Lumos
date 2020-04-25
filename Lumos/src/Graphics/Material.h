@@ -14,9 +14,9 @@ namespace Lumos
 		class UniformBuffer;
 	}
 
-const int PBR_WORKFLOW_SEPARATE_TEXTURES  = 0.0f;
-const int PBR_WORKFLOW_METALLIC_ROUGHNESS = 1.0f;
-const int PBR_WORKFLOW_SPECULAR_GLOSINESS = 2.0f;
+const float PBR_WORKFLOW_SEPARATE_TEXTURES  = 0.0f;
+const float PBR_WORKFLOW_METALLIC_ROUGHNESS = 1.0f;
+const float PBR_WORKFLOW_SPECULAR_GLOSINESS = 2.0f;
 
 	struct MaterialProperties
 	{
