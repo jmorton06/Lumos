@@ -1,7 +1,20 @@
+IncludeDir = {}
+IncludeDir["GLFW"] = "../Dependencies/glfw/include/"
+IncludeDir["Glad"] = "../Lumos/external/glad/include/"
+IncludeDir["lua"] = "../Dependencies/lua/src/"
+IncludeDir["stb"] = "../Lumos/external/stb/"
+IncludeDir["OpenAL"] = "../Dependencies/OpenAL/include/"
+IncludeDir["Box2D"] = "../Dependencies/Box2D/"
+IncludeDir["Dependencies"] = "../Dependencies/"
+IncludeDir["vulkan"] = "../Dependencies/vulkan/"
+IncludeDir["jsonhpp"] = "../Lumos/external/jsonhpp/"
+IncludeDir["Lumos"] = "../Lumos/src"
+IncludeDir["External"] = "../Lumos/external/"
+IncludeDir["ImGui"] = "../Dependencies/imgui/"
+
 project "Sandbox"
 	kind "WindowedApp"
 	language "C++"
-	editandcontinue "Off"
 
 	files
 	{
@@ -13,21 +26,19 @@ project "Sandbox"
 
 	sysincludedirs
 	{
-		"../Lumos/external/spdlog/include",
-		"../Lumos/external/",
-		"../Lumos/external/stb/",
-		"../Dependencies/lua/src/",
-		"../Dependencies/glfw/include/",
-		"../Dependencies/OpenAL/include/",
-		"../Dependencies/stb/",
-		"../Dependencies/Box2D/",
-		"../Dependencies/vulkan/",
-		"../Dependencies/",
-		"../Lumos/external/",
-		"../Lumos/external/jsonhpp/",
-		"../Lumos/external/spdlog/include",
-		"../Lumos/external/glad/include/",
-		"../Lumos/src"
+		"%{IncludeDir.GLFW}",
+		"%{IncludeDir.Glad}",
+		"%{IncludeDir.lua}",
+		"%{IncludeDir.stb}",
+		"%{IncludeDir.ImGui}",
+		"%{IncludeDir.OpenAL}",
+		"%{IncludeDir.Box2D}",
+		"%{IncludeDir.vulkan}",
+		"%{IncludeDir.Dependencies}",
+		"%{IncludeDir.External}",
+		"%{IncludeDir.jsonhpp}",
+		"%{IncludeDir.spdlog}",
+		"%{IncludeDir.Lumos}",
 	}
 
 	links
@@ -59,7 +70,8 @@ project "Sandbox"
 			"_CRT_SECURE_NO_WARNINGS",
 			"_DISABLE_EXTENDED_ALIGNED_STORAGE",
 			"LUMOS_ROOT_DIR="  .. cwd,
-			"LUMOS_VOLK"
+			"LUMOS_VOLK",
+			"LUMOS_SSE"
 		}
 
 		libdirs
@@ -83,6 +95,7 @@ project "Sandbox"
 		cppdialect "C++17"
 		staticruntime "On"
 		systemversion "latest"
+		editandcontinue "Off"
 
 		platforms {"x64"}
  		defaultplatform "x64"
@@ -109,7 +122,8 @@ project "Sandbox"
 			"VK_EXT_metal_surface",
 			"LUMOS_IMGUI",
 			"LUMOS_ROOT_DIR="  .. cwd,
-			"LUMOS_VOLK"
+			"LUMOS_VOLK",
+			"LUMOS_SSE"
 		}
 
 		linkoptions 
@@ -168,6 +182,7 @@ project "Sandbox"
 		systemversion "latest"
 		kind "WindowedApp"
 		targetextension ".app"
+		editandcontinue "Off"
 
 		defines
 		{
@@ -296,7 +311,6 @@ project "Sandbox"
 
 		buildoptions
 		{
-			"-msse4.1",
 			"-fpermissive",
 			"-Wattributes",
 			"-fPIC",
@@ -308,9 +322,18 @@ project "Sandbox"
 			"glfw",
 		}
 
-		links { "X11", "pthread", "dl"}
+		links { "X11", "pthread", "dl", "atomic"}
 
 		linkoptions { "-L%{cfg.targetdir}", "-Wl,-rpath=\\$$ORIGIN" }
+
+		if _OPTIONS["arch"] ~= "arm" then
+			buildoptions
+			{
+				"-msse4.1",
+			}
+
+			defines { "LUMOS_SSE" ,"USE_VMA_ALLOCATOR"}
+		end
 
 	filter "configurations:Debug"
 		defines "LUMOS_DEBUG"

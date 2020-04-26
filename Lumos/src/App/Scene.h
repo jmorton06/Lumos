@@ -9,6 +9,7 @@
 
 #include "Core/Serialisable.h"
 
+#include <sol/sol.hpp>
 #include <entt/entt.hpp>
 
 namespace Lumos
@@ -82,8 +83,12 @@ namespace Lumos
 		nlohmann::json Serialise() override;
 		void Deserialise(nlohmann::json & data) override;
         
-        const entt::registry& GetRegistry() const { return m_Registry; }
+        //const entt::registry& GetRegistry() const { return m_Registry; }
         entt::registry& GetRegistry() { return m_Registry; }
+        
+        void LoadLuaScene(const String& filePath);
+        
+        static Scene* LoadFromLua(const String& filePath);
 
 	protected:
 
@@ -107,5 +112,7 @@ namespace Lumos
 		NONCOPYABLE(Scene)
 
 		bool OnWindowResize(WindowResizeEvent& e);
+        sol::environment m_LuaEnv;
+        String m_LuaFilePath;
 };
 }

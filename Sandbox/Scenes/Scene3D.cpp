@@ -22,6 +22,8 @@ void Scene3D::OnInit()
     Application::Instance()->GetSystem<LumosPhysicsEngine>()->SetBroadphase(Lumos::CreateRef<Octree>(5, 3, Lumos::CreateRef<SortAndSweepBroadphase>()));
 
 	LoadModels();
+    
+    LoadLuaScene(ROOT_DIR"/Sandbox/res/scripts/LuaSceneTest.lua");
 
 	Application::Instance()->GetWindow()->HideMouse(false);
 
@@ -47,13 +49,13 @@ void Scene3D::OnInit()
 	m_EnvironmentMap = Graphics::TextureCube::CreateFromVCross(environmentFiles, 11);
     
     auto lightEntity = m_Registry.create();
-    m_Registry.assign<Graphics::Light>(lightEntity, Maths::Vector3(26.0f, 22.0f, 48.5f), Maths::Vector4(1.0f), 1.3f);
-	m_Registry.assign<Maths::Transform>(lightEntity,Matrix4::Translation(Maths::Vector3(26.0f, 22.0f, 48.5f)) * Maths::Quaternion::LookAt(Maths::Vector3(26.0f, 22.0f, 48.5f), Maths::Vector3::ZERO).RotationMatrix4());
-	m_Registry.assign<NameComponent>(lightEntity, "Light");
+    m_Registry.emplace<Graphics::Light>(lightEntity, Maths::Vector3(26.0f, 22.0f, 48.5f), Maths::Vector4(1.0f), 1.3f);
+	m_Registry.emplace<Maths::Transform>(lightEntity,Matrix4::Translation(Maths::Vector3(26.0f, 22.0f, 48.5f)) * Maths::Quaternion::LookAt(Maths::Vector3(26.0f, 22.0f, 48.5f), Maths::Vector3::ZERO).RotationMatrix4());
+	m_Registry.emplace<NameComponent>(lightEntity, "Light");
 
 	auto cameraEntity = m_Registry.create();
-	m_Registry.assign<CameraComponent>(cameraEntity, m_pCamera);
-	m_Registry.assign<NameComponent>(cameraEntity, "Camera");
+	m_Registry.emplace<CameraComponent>(cameraEntity, m_pCamera);
+	m_Registry.emplace<NameComponent>(cameraEntity, "Camera");
 
 	auto audioSystem = Application::Instance()->GetSystem<AudioManager>();
 	if(audioSystem)
@@ -117,11 +119,13 @@ void Scene3D::LoadModels()
 	testPhysics->SetIsAtRest(true);
 	testPhysics->SetIsStatic(true);
 
-	m_Registry.assign<Maths::Transform>(ground, Matrix4::Scale(Maths::Vector3(groundWidth, groundHeight, groundLength)));
-	m_Registry.assign<Physics3DComponent>(ground, testPhysics);
+	m_Registry.emplace<Maths::Transform>(ground, Matrix4::Scale(Maths::Vector3(groundWidth, groundHeight, groundLength)));
+	m_Registry.emplace<Physics3DComponent>(ground, testPhysics);
+    
+	m_Registry.emplace<Lumos::ScriptComponent>(ground, ROOT_DIR"/Sandbox/res/scripts/LuaComponentTest.lua", this);
 
 	Ref<Graphics::Mesh> groundModel = AssetsManager::DefaultModels()->Get("Cube");
-	m_Registry.assign<MeshComponent>(ground, groundModel);
+	m_Registry.emplace<MeshComponent>(ground, groundModel);
 
 	MaterialProperties properties;
 	properties.albedoColour = Vector4(0.6f,0.1f,0.1f,1.0f);
@@ -132,7 +136,7 @@ void Scene3D::LoadModels()
 	properties.usingNormalMap     = 0.0f;
 	properties.usingSpecularMap   = 0.0f;
 	testMaterial->SetMaterialProperites(properties);
-	m_Registry.assign<MaterialComponent>(ground, testMaterial);
+	m_Registry.emplace<MaterialComponent>(ground, testMaterial);
 
 	//Create a pendulum
 	auto pendulumHolder = m_Registry.create();
@@ -144,11 +148,12 @@ void Scene3D::LoadModels()
 	pendulumHolderPhysics->SetInverseInertia(pendulumHolderPhysics->GetCollisionShape()->BuildInverseInertia(1.0f));
 	pendulumHolderPhysics->SetIsStatic(true);
 	pendulumHolderPhysics->SetPosition(Maths::Vector3(12.5f, 15.0f, 20.0f));
-	m_Registry.assign<Physics3DComponent>(pendulumHolder,pendulumHolderPhysics);
-	m_Registry.assign<Maths::Transform>(pendulumHolder,Matrix4::Scale(Maths::Vector3(0.5f, 0.5f, 0.5f)));
-	m_Registry.assign<NameComponent>(pendulumHolder, "Pendulum Holder");
+	m_Registry.emplace<Physics3DComponent>(pendulumHolder,pendulumHolderPhysics);
+	m_Registry.emplace<Maths::Transform>(pendulumHolder,Matrix4::Scale(Maths::Vector3(0.5f, 0.5f, 0.5f)));
+	m_Registry.emplace<NameComponent>(pendulumHolder, "Pendulum Holder");
 	Ref<Graphics::Mesh> pendulumHolderModel = AssetsManager::DefaultModels()->Get("Cube");
-	m_Registry.assign<MeshComponent>(pendulumHolder,pendulumHolderModel);
+	m_Registry.emplace<MeshComponent>(pendulumHolder,pendulumHolderModel);
+	m_Registry.emplace<Lumos::ScriptComponent>(pendulumHolder, ROOT_DIR"/Sandbox/res/scripts/PlayerTest.lua", this);
 
 	auto pendulum = m_Registry.create();
 	Ref<PhysicsObject3D> pendulumPhysics = CreateRef<PhysicsObject3D>();
@@ -159,11 +164,11 @@ void Scene3D::LoadModels()
 	pendulumPhysics->SetInverseInertia(pendulumPhysics->GetCollisionShape()->BuildInverseInertia(1.0f));
 	pendulumPhysics->SetIsStatic(false);
 	pendulumPhysics->SetPosition(Maths::Vector3(12.5f, 10.0f, 20.0f));
-	m_Registry.assign<Physics3DComponent>(pendulum, pendulumPhysics);
-	m_Registry.assign<Maths::Transform>(pendulum, Matrix4::Scale(Maths::Vector3(0.5f, 0.5f, 0.5f)));
-	m_Registry.assign<NameComponent>(pendulum, "Pendulum");
+	m_Registry.emplace<Physics3DComponent>(pendulum, pendulumPhysics);
+	m_Registry.emplace<Maths::Transform>(pendulum, Matrix4::Scale(Maths::Vector3(0.5f, 0.5f, 0.5f)));
+	m_Registry.emplace<NameComponent>(pendulum, "Pendulum");
 	Ref<Graphics::Mesh> pendulumModel = AssetsManager::DefaultModels()->Get("Sphere");
-	m_Registry.assign<MeshComponent>(pendulum, pendulumModel);
+	m_Registry.emplace<MeshComponent>(pendulum, pendulumModel);
 
 	auto pendulumConstraint = new SpringConstraint(m_Registry.get<Physics3DComponent>(pendulumHolder).GetPhysicsObject().get(), m_Registry.get<Physics3DComponent>(pendulum).GetPhysicsObject().get(), m_Registry.get<Physics3DComponent>(pendulumHolder).GetPhysicsObject()->GetPosition(), m_Registry.get<Physics3DComponent>(pendulum).GetPhysicsObject()->GetPosition(), 0.9f, 0.5f);
 	Application::Instance()->GetSystem<LumosPhysicsEngine>()->AddConstraint(pendulumConstraint);
@@ -182,7 +187,7 @@ void Scene3D::LoadModels()
 		soundNode->SetPaused(false);
 		soundNode->SetReferenceDistance(1.0f);
 		soundNode->SetRadius(30.0f);
-		m_Registry.assign<SoundComponent>(pendulum, soundNode);
+		m_Registry.emplace<SoundComponent>(pendulum, soundNode);
 	}
 #endif
 
@@ -207,11 +212,11 @@ void Scene3D::LoadModels()
 
 		auto sphere = m_Registry.create();
 
-		m_Registry.assign<Maths::Transform>(sphere,Matrix4::Translation(Maths::Vector3(float(i), 17.0f, 0.0f)) * Matrix4::Scale(Maths::Vector3(0.5f, 0.5f, 0.5f)));
+		m_Registry.emplace<Maths::Transform>(sphere,Matrix4::Translation(Maths::Vector3(float(i), 17.0f, 0.0f)) * Matrix4::Scale(Maths::Vector3(0.5f, 0.5f, 0.5f)));
 		Ref<Graphics::Mesh> sphereModel = AssetsManager::DefaultModels()->Get("Sphere");
-		m_Registry.assign<MeshComponent>(sphere,sphereModel);
-		m_Registry.assign<MaterialComponent>(sphere,m);
-		m_Registry.assign<NameComponent>(sphere, "Sphere" + StringFormat::ToString(numSpheres++));
+		m_Registry.emplace<MeshComponent>(sphere,sphereModel);
+		m_Registry.emplace<MaterialComponent>(sphere,m);
+		m_Registry.emplace<NameComponent>(sphere, "Sphere" + StringFormat::ToString(numSpheres++));
 	}
 
     //metals
@@ -234,11 +239,11 @@ void Scene3D::LoadModels()
 
 		auto sphere = m_Registry.create();
 
-		m_Registry.assign<Maths::Transform>(sphere,Matrix4::Translation(Maths::Vector3(float(i), 18.0f, 0.0f)) * Matrix4::Scale(Maths::Vector3(0.5f, 0.5f, 0.5f)));
+		m_Registry.emplace<Maths::Transform>(sphere,Matrix4::Translation(Maths::Vector3(float(i), 18.0f, 0.0f)) * Matrix4::Scale(Maths::Vector3(0.5f, 0.5f, 0.5f)));
 		Ref<Graphics::Mesh> sphereModel = AssetsManager::DefaultModels()->Get("Sphere");
-		m_Registry.assign<MeshComponent>(sphere,sphereModel);
-		m_Registry.assign<MaterialComponent>(sphere, m);
-		m_Registry.assign<NameComponent>(sphere, "Sphere" + StringFormat::ToString(numSpheres++));
+		m_Registry.emplace<MeshComponent>(sphere,sphereModel);
+		m_Registry.emplace<MaterialComponent>(sphere, m);
+		m_Registry.emplace<NameComponent>(sphere, "Sphere" + StringFormat::ToString(numSpheres++));
 	}
 }
 

@@ -12,6 +12,8 @@
 namespace Lumos
 {
 
+    Ref<Graphics::Texture2D> Material::s_DefaultTexture = nullptr;
+
     Material::Material(Ref<Graphics::Shader>& shader, const MaterialProperties& properties, const PBRMataterialTextures& textures) : m_PBRMaterialTextures(textures), m_Shader(shader)
     {
         m_RenderFlags = 0;
@@ -439,6 +441,15 @@ namespace Lumos
 			ImGui::PopItemWidth();
 			ImGui::NextColumn();
 
+			ImGui::AlignTextToFramePadding();
+			ImGui::TextUnformatted("Emissive");
+			ImGui::NextColumn();
+			ImGui::PushItemWidth(-1);
+			ImGui::SliderFloat3("##Emissive", Maths::ValuePointer(prop->emissiveColour), 0.0f, 1.0f);
+
+			ImGui::PopItemWidth();
+			ImGui::NextColumn();
+
 			ImGui::Columns(1);
 			ImGui::Separator();
 			ImGui::PopStyleVar();
@@ -462,6 +473,7 @@ namespace Lumos
         m_MaterialProperties->usingAOMap        = properties.usingAOMap;
         m_MaterialProperties->usingEmissiveMap  = properties.usingEmissiveMap;
         m_MaterialProperties->workflow          = properties.workflow;
+        m_MaterialProperties->emissiveColour    = properties.emissiveColour;
 
         UpdateMaterialPropertiesData();
 
@@ -503,65 +515,107 @@ namespace Lumos
             imageInfos.push_back(imageInfo1);
         }
         else
+        {
+            Graphics::ImageInfo imageInfo1 = {};
+            imageInfo1.texture ={ s_DefaultTexture.get() };
+            imageInfo1.binding = 0;
+            imageInfo1.name = "u_AlbedoMap";
+            imageInfos.push_back(imageInfo1);
             m_MaterialProperties->usingAlbedoMap = 0.0f;
-
-        if(m_PBRMaterialTextures.specular != nullptr)
-        {
-            Graphics::ImageInfo imageInfo2 = {};
-            imageInfo2.texture ={ m_PBRMaterialTextures.specular.get() };
-            imageInfo2.binding = 1;
-            imageInfo2.name = "u_SpecularMap";
-            imageInfos.push_back(imageInfo2);
         }
-        else
-            m_MaterialProperties->usingSpecularMap = 0.0f;
 
-        if(m_PBRMaterialTextures.roughness != nullptr)
+        if(pbr)
         {
-            Graphics::ImageInfo imageInfo3 = {};
-            imageInfo3.texture = { m_PBRMaterialTextures.roughness.get() };
-            imageInfo3.binding = 2;
-            imageInfo3.name = "u_RoughnessMap";
-            imageInfos.push_back(imageInfo3);
-        }
-        else
-            m_MaterialProperties->usingRoughnessMap = 0.0f;
+            if(m_PBRMaterialTextures.specular != nullptr)
+            {
+                Graphics::ImageInfo imageInfo2 = {};
+                imageInfo2.texture ={ m_PBRMaterialTextures.specular.get() };
+                imageInfo2.binding = 1;
+                imageInfo2.name = "u_SpecularMap";
+                imageInfos.push_back(imageInfo2);
+            }
+            else
+            {
+                Graphics::ImageInfo imageInfo2 = {};
+                imageInfo2.texture ={ s_DefaultTexture.get() };
+                imageInfo2.binding = 1;
+                imageInfo2.name = "u_SpecularMap";
+                imageInfos.push_back(imageInfo2);
+                m_MaterialProperties->usingSpecularMap = 0.0f;
+            }
 
-        if(m_PBRMaterialTextures.normal != nullptr)
-        {
-            Graphics::ImageInfo imageInfo4 = {};
-            imageInfo4.texture = { m_PBRMaterialTextures.normal.get() };
-            imageInfo4.binding = 3;
-            imageInfo4.name = "u_NormalMap";
-            imageInfos.push_back(imageInfo4);
-        }
-        else
-            m_MaterialProperties->usingNormalMap = 0.0f;
+            if(m_PBRMaterialTextures.roughness != nullptr)
+            {
+                Graphics::ImageInfo imageInfo3 = {};
+                imageInfo3.texture = { m_PBRMaterialTextures.roughness.get() };
+                imageInfo3.binding = 2;
+                imageInfo3.name = "u_RoughnessMap";
+                imageInfos.push_back(imageInfo3);
+            }
+            else
+            {
+                Graphics::ImageInfo imageInfo3 = {};
+                imageInfo3.texture = { s_DefaultTexture.get() };
+                imageInfo3.binding = 2;
+                imageInfo3.name = "u_RoughnessMap";
+                imageInfos.push_back(imageInfo3);
+                m_MaterialProperties->usingRoughnessMap = 0.0f;
+            }
 
-        if (m_PBRMaterialTextures.ao != nullptr)
-        {
-            Graphics::ImageInfo imageInfo5 = {};
-            imageInfo5.texture = { m_PBRMaterialTextures.ao.get() };
-            imageInfo5.binding = 4;
-            imageInfo5.name = "u_AOMap";
-            imageInfos.push_back(imageInfo5);
-        }
-        else
-            m_MaterialProperties->usingAOMap = 0.0f;
+            if(m_PBRMaterialTextures.normal != nullptr)
+            {
+                Graphics::ImageInfo imageInfo4 = {};
+                imageInfo4.texture = { m_PBRMaterialTextures.normal.get() };
+                imageInfo4.binding = 3;
+                imageInfo4.name = "u_NormalMap";
+                imageInfos.push_back(imageInfo4);
+            }
+            else
+            {
+                Graphics::ImageInfo imageInfo4 = {};
+                imageInfo4.texture = { s_DefaultTexture.get() };
+                imageInfo4.binding = 3;
+                imageInfo4.name = "u_NormalMap";
+                imageInfos.push_back(imageInfo4);
+                m_MaterialProperties->usingNormalMap = 0.0f;
+            }
 
-        if (m_PBRMaterialTextures.emissive != nullptr)
-        {
-            Graphics::ImageInfo imageInfo6 = {};
-            imageInfo6.texture = { m_PBRMaterialTextures.emissive.get() };
-            imageInfo6.binding = 5;
-            imageInfo6.name = "u_EmissiveMap";
-            imageInfos.push_back(imageInfo6);
-        }
-        else
-            m_MaterialProperties->usingEmissiveMap = 0.0f;
+            if (m_PBRMaterialTextures.ao != nullptr)
+            {
+                Graphics::ImageInfo imageInfo5 = {};
+                imageInfo5.texture = { m_PBRMaterialTextures.ao.get() };
+                imageInfo5.binding = 4;
+                imageInfo5.name = "u_AOMap";
+                imageInfos.push_back(imageInfo5);
+            }
+            else
+            {
+                Graphics::ImageInfo imageInfo5 = {};
+                imageInfo5.texture = { s_DefaultTexture.get() };
+                imageInfo5.binding = 5;
+                imageInfo5.name = "u_AOMap";
+                imageInfos.push_back(imageInfo5);
+                m_MaterialProperties->usingAOMap = 0.0f;
+            }
 
-        if (pbr)
-        {
+            if (m_PBRMaterialTextures.emissive != nullptr)
+            {
+                Graphics::ImageInfo imageInfo6 = {};
+                imageInfo6.texture = { m_PBRMaterialTextures.emissive.get() };
+                imageInfo6.binding = 5;
+                imageInfo6.name = "u_EmissiveMap";
+                imageInfos.push_back(imageInfo6);
+            }
+            else
+            {
+                Graphics::ImageInfo imageInfo6 = {};
+                imageInfo6.texture = { s_DefaultTexture.get() };
+                imageInfo6.binding = 5;
+                imageInfo6.name = "u_EmissiveMap";
+                imageInfos.push_back(imageInfo6);
+                m_MaterialProperties->usingEmissiveMap = 0.0f;
+            }
+            
             Graphics::BufferInfo bufferInfo = {};
             bufferInfo.buffer = m_MaterialPropertiesBuffer;
             bufferInfo.offset = 0;
@@ -579,5 +633,16 @@ namespace Lumos
         }
 
         m_DescriptorSet->Update(imageInfos, bufferInfos);
+    }
+
+    void Material::InitDefaultTexture()
+    {
+        uint32_t whiteTextureData = 0xffffffff;
+        s_DefaultTexture = Ref<Graphics::Texture2D>(Graphics::Texture2D::CreateFromSource(1,1, &whiteTextureData));
+    }
+
+    void Material::ReleaseDefaultTexture()
+    {
+        s_DefaultTexture.release();
     }
 }

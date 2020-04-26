@@ -27,7 +27,7 @@ namespace Lumos
 			return;
 
 		const auto nameComponent = registry.try_get<NameComponent>(node);
-		String name = nameComponent ? nameComponent->name : StringFormat::ToString(entt::to_integer(node));
+		String name = nameComponent ? nameComponent->name : StringFormat::ToString(entt::to_integral(node));
     
 		if (m_HierarchyFilter.IsActive())
 		{
@@ -73,7 +73,7 @@ namespace Lumos
 				m_HadRecentDroppedEntity = entt::null;
 			}
 
-			bool nodeOpen = ImGui::TreeNodeEx((void*)(intptr_t)entt::to_integer(node), nodeFlags, ICON_FA_CUBE " %s", doubleClicked ? "" :(name).c_str());
+            bool nodeOpen = ImGui::TreeNodeEx((void*)(intptr_t)entt::to_integral(node), nodeFlags, ICON_FA_CUBE " %s", doubleClicked ? "" :(name).c_str());
 
 			if (doubleClicked)
 			{
@@ -83,7 +83,7 @@ namespace Lumos
 
 				ImGui::PushItemWidth(-1);
 				if (ImGui::InputText("##Name", objName, IM_ARRAYSIZE(objName), 0))
-					registry.get_or_assign<NameComponent>(node).name = objName;
+					registry.get_or_emplace<NameComponent>(node).name = objName;
 				ImGui::PopStyleVar();
 			}
 
@@ -152,7 +152,7 @@ namespace Lumos
                                Hierarchy::Reparent(entity, node, registry, *hierarchyComponent);
                             else
                             {
-                               registry.assign<Hierarchy>(entity, node);
+                               registry.emplace<Hierarchy>(entity, node);
                             }
                             m_HadRecentDroppedEntity = node;
                         }

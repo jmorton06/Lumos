@@ -237,7 +237,7 @@ namespace Lumos
 			graphicsPipelineCI.sType = VK_STRUCTURE_TYPE_GRAPHICS_PIPELINE_CREATE_INFO;
 			graphicsPipelineCI.pNext = NULL;
 			graphicsPipelineCI.layout = m_PipelineLayout;
-			graphicsPipelineCI.basePipelineHandle = nullptr;
+			graphicsPipelineCI.basePipelineHandle = VK_NULL_HANDLE;
 			graphicsPipelineCI.basePipelineIndex = -1;
 			graphicsPipelineCI.pVertexInputState = &vi;
 			graphicsPipelineCI.pInputAssemblyState = &inputAssemblyCI;
