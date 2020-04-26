@@ -42,13 +42,13 @@ void SceneModelViewer::OnInit()
 	m_EnvironmentMap = Graphics::TextureCube::CreateFromVCross(environmentFiles, 11);
 
     auto lightEntity = m_Registry.create();
-    m_Registry.assign<Graphics::Light>(lightEntity, Maths::Vector3(26.0f, 22.0f, 48.5f), Maths::Vector4(1.0f), 1.3f);
-    m_Registry.assign<Maths::Transform>(lightEntity,Matrix4::Translation(Maths::Vector3(26.0f, 22.0f, 48.5f)) * Maths::Quaternion::LookAt(Maths::Vector3(26.0f, 22.0f, 48.5f), Maths::Vector3::ZERO).RotationMatrix4());
-	m_Registry.assign<NameComponent>(lightEntity, "Directional Light");
+    m_Registry.emplace<Graphics::Light>(lightEntity, Maths::Vector3(26.0f, 22.0f, 48.5f), Maths::Vector4(1.0f), 1.3f);
+    m_Registry.emplace<Maths::Transform>(lightEntity,Matrix4::Translation(Maths::Vector3(26.0f, 22.0f, 48.5f)) * Maths::Quaternion::LookAt(Maths::Vector3(26.0f, 22.0f, 48.5f), Maths::Vector3::ZERO).RotationMatrix4());
+	m_Registry.emplace<NameComponent>(lightEntity, "Directional Light");
 
     auto cameraEntity = m_Registry.create();
-    m_Registry.assign<CameraComponent>(cameraEntity, m_pCamera);
-	m_Registry.assign<NameComponent>(cameraEntity, "Camera");
+    m_Registry.emplace<CameraComponent>(cameraEntity, m_pCamera);
+	m_Registry.emplace<NameComponent>(cameraEntity, "Camera");
 
     auto deferredRenderer = new Graphics::DeferredRenderer(m_ScreenWidth, m_ScreenHeight);
     auto skyboxRenderer = new Graphics::SkyboxRenderer(m_ScreenWidth, m_ScreenHeight, m_EnvironmentMap);
@@ -105,7 +105,7 @@ void SceneModelViewer::LoadModels()
 	};
 
 	auto TestObject = ModelLoader::LoadModel(ExampleModelPaths[0], m_Registry);
-	m_Registry.get_or_assign<Maths::Transform>(TestObject, Maths::Matrix4::Scale(Maths::Vector3(1.0f, 1.0f, 1.0f)));
+	m_Registry.get_or_emplace<Maths::Transform>(TestObject, Maths::Matrix4::Scale(Maths::Vector3(1.0f, 1.0f, 1.0f)));
 
 }
 

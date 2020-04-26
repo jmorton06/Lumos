@@ -2,7 +2,7 @@
 #include "Scene.h"
 #include "Core/OS/Input.h"
 #include "Application.h"
-
+#include "Scripting/LuaManager.h"
 #include "Graphics/API/GraphicsContext.h"
 #include "Graphics/Layers/LayerStack.h"
 #include "Graphics/RenderManager.h"
@@ -12,6 +12,9 @@
 #include "Physics/LumosPhysicsEngine/SortAndSweepBroadphase.h"
 #include "Physics/LumosPhysicsEngine/Octree.h"
 #include "Physics/LumosPhysicsEngine/LumosPhysicsEngine.h"
+#include "Scripting/LuaManager.h"
+
+#include <sol/sol.hpp>
 
 namespace Lumos
 {
@@ -22,16 +25,22 @@ namespace Lumos
 		m_SceneBoundingRadius(0),
 		m_ScreenWidth(0),
 		m_ScreenHeight(0)
-	{
+    {
 	}
 
     Scene::~Scene()
     {
+        if(m_LuaEnv && m_LuaEnv["OnDestroy"])
+            m_LuaEnv["OnDestroy"]();
+        
         DeleteAllGameObjects();
     }
 
 	void Scene::OnInit()
 	{
+        LuaManager::Instance()->GetState().set("registry", &m_Registry);
+        LuaManager::Instance()->GetState().set("scene", this);
+
 		m_CurrentScene = true;
 
 		String Configuration;
@@ -92,6 +101,8 @@ namespace Lumos
 
 	void Scene::OnCleanupScene()
 	{
+        if(m_LuaEnv && m_LuaEnv["OnCleanUp"])
+            m_LuaEnv["OnCleanUp"]();
 		DeleteAllGameObjects();
 
 		Application::Instance()->GetRenderManager()->Reset();
@@ -124,6 +135,9 @@ namespace Lumos
 		}
 
 		m_SceneGraph.Update(m_Registry);
+        
+        if(m_LuaEnv && m_LuaEnv["OnUpdate"])
+            m_LuaEnv["OnUpdate"](timeStep->GetElapsedMillis());
 	}
 
 	void Scene::OnEvent(Event& e)
@@ -155,4 +169,37 @@ namespace Lumos
 	{
 		m_SceneName = data["name"];
 	}
+
+    void Scene::LoadLuaScene(const String &filePath)
+    {
+        m_LuaEnv = sol::environment(LuaManager::Instance()->GetState(), sol::create, LuaManager::Instance()->GetState().globals());
+        m_LuaEnv["scene"] = this;
+        m_LuaEnv["reg"] = &m_Registry;
+        
+        String physicalPath;
+        if (!VFS::Get()->ResolvePhysicalPath(filePath, physicalPath))
+        {
+            Debug::Log::Error("Failed to Load Lua script {0}", filePath );
+            return;
+        }
+        
+        auto loadFileResult = LuaManager::Instance()->GetState().script_file(physicalPath, m_LuaEnv, sol::script_pass_on_error);
+        if (!loadFileResult.valid())
+        {
+            sol::error err = loadFileResult;
+            Debug::Log::Error("Failed to Execute Lua script {0}" , physicalPath );
+            Debug::Log::Error("Error : {0}", err.what());
+        }
+
+        if(m_LuaEnv["OnInit"])
+            m_LuaEnv["OnInit"]();
+    }
+
+    Scene* Scene::LoadFromLua(const String& filePath)
+    {
+        Scene* scene = new Scene("");
+        scene->LoadLuaScene(filePath);
+        
+        return scene;
+    }
 }

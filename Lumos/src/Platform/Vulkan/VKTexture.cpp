@@ -74,9 +74,8 @@ namespace Lumos
 			allocInfovma.pUserData = nullptr;
 			vmaCreateImage(VKDevice::Instance()->GetAllocator(), &imageInfo, &allocInfovma, &image, &allocation, nullptr);
 		}
-#endif
-	
 
+#else
 		static void CreateImageDefault(const VkImageCreateInfo& imageInfo, VkImage& image,
 			VkDeviceMemory& imageMemory, VkMemoryPropertyFlags properties)
 		{
@@ -93,6 +92,7 @@ namespace Lumos
 			vkAllocateMemory(VKDevice::Instance()->GetDevice(), &allocInfo, nullptr, &imageMemory);
 			vkBindImageMemory(VKDevice::Instance()->GetDevice(), image, imageMemory, 0);
 		}
+#endif
 
 #ifdef USE_VMA_ALLOCATOR
 		static void CreateImage(u32 width, u32 height, u32 mipLevels, VkFormat format, VkImageType imageType, VkImageTiling tiling,
@@ -127,7 +127,7 @@ namespace Lumos
 		}
 
 		VKTexture2D::VKTexture2D(u32 width, u32 height, void* data, TextureParameters parameters, TextureLoadOptions loadOptions)
-			: m_FileName("NULL"), m_TextureImage(nullptr), m_TextureImageView(nullptr), m_TextureSampler(nullptr)
+			: m_FileName("NULL"), m_TextureImage(VK_NULL_HANDLE), m_TextureImageView(VK_NULL_HANDLE), m_TextureSampler(VK_NULL_HANDLE)
 		{
 			m_Width = width;
 			m_Height = height;
@@ -144,7 +144,7 @@ namespace Lumos
 
 		VKTexture2D::VKTexture2D(const String& name, const String& filename, TextureParameters parameters,
 			TextureLoadOptions loadOptions)
-			: m_FileName(filename), m_TextureImage(nullptr), m_TextureImageView(nullptr), m_TextureSampler(nullptr)
+			: m_FileName(filename), m_TextureImage(VK_NULL_HANDLE), m_TextureImageView(VK_NULL_HANDLE), m_TextureSampler(VK_NULL_HANDLE)
 		{
 			m_Parameters = parameters;
 			m_LoadOptions = loadOptions;
@@ -159,16 +159,16 @@ namespace Lumos
 			UpdateDescriptor();
 		}
 
-        VKTexture2D::VKTexture2D(VkImage image, VkImageView imageView) : m_TextureImage(image), m_TextureImageView(imageView), m_TextureSampler(nullptr)
+        VKTexture2D::VKTexture2D(VkImage image, VkImageView imageView) : m_TextureImage(image), m_TextureImageView(imageView), m_TextureSampler(VK_NULL_HANDLE)
 		{
 			m_DeleteImage = false;
-			m_TextureImageMemory = nullptr;
+			m_TextureImageMemory = VK_NULL_HANDLE;
 
 			UpdateDescriptor();
 		}
 
 		VKTexture2D::VKTexture2D()
-			: m_FileName("NULL"), m_TextureSampler(nullptr), m_TextureImageView(nullptr)
+			: m_FileName("NULL"), m_TextureSampler(VK_NULL_HANDLE), m_TextureImageView(VK_NULL_HANDLE)
 		{
 			m_Width = 0;
 			m_Height = 0;
@@ -604,7 +604,7 @@ namespace Lumos
 		}
 
 		VKTextureDepth::VKTextureDepth(u32 width, u32 height)
-			: m_Width(width), m_Height(height), m_TextureImageView(nullptr), m_TextureSampler(nullptr)
+			: m_Width(width), m_Height(height), m_TextureImageView(VK_NULL_HANDLE), m_TextureSampler(VK_NULL_HANDLE)
 		{
 			Init();
 		}

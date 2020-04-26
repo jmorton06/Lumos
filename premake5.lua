@@ -3,7 +3,24 @@ require 'Scripts/premake-defines'
 require 'Scripts/premake-common'
 
 workspace "Lumos"
-	architecture "x86_64"
+	
+	Arch = ""
+
+	if _OPTIONS["arch"] then
+		Arch = _OPTIONS["arch"]
+	else
+		Arch = "x64"
+	end
+
+	if Arch == "arm" then 
+		architecture "ARM"
+	elseif Arch == "x64" then 
+		architecture "x86_64"
+	elseif Arch == "x86" then
+		architecture "x86"
+	end
+
+	print("Arch = ", Arch)
 
 	configurations
 	{
@@ -21,30 +38,14 @@ workspace "Lumos"
 
 	group "Dependencies"
 		require("Dependencies/Box2D/premake5")
-			filter ()
 			SetRecommendedSettings()
-			filter ()
-			editandcontinue "Off"
-			warnings "Off"
 		require("Dependencies/lua/premake5")
-			filter ()
 			SetRecommendedSettings()
-			filter ()
-			editandcontinue "Off"
-			warnings "Off"
 		require("Dependencies/imgui/premake5")
-			filter ()
 			SetRecommendedSettings()
-			filter ()
-			editandcontinue "Off"
-			warnings "Off"
 		filter "system:not ios"
 			require("Dependencies/glfw/premake5")
-				filter ()
 				SetRecommendedSettings()
-				filter ()
-				editandcontinue "Off"
-				warnings "Off"
 		filter()
 	group ""
 

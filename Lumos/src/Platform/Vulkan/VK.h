@@ -6,4 +6,3 @@
 #else
 #include <vulkan/vulkan.h>
 #endif
-#define USE_VMA_ALLOCATOR

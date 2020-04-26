@@ -1,9 +1,7 @@
 #!/bin/sh
 echo "Compiling shaders"
 
-cd /Users/josephmorton/dev/Lumos/Lumos/res/shaders
-
-compiler="/Users/josephmorton/vulkansdk-macos-1.1.126.0/macOS/bin/glslangValidator"
+compiler="/Users/josephmorton/vulkansdk-macos-1.2.131.1/macOS/bin/glslangValidator"
 
 echo $compiler
 

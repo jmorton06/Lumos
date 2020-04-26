@@ -11,6 +11,7 @@
 #include "Graphics/RenderManager.h"
 #include "Graphics/Layers/LayerStack.h"
 #include "Graphics/Camera/Camera.h"
+#include "Graphics/Material.h"
 
 #include "Utilities/CommonUtils.h"
 #include "Utilities/AssetsManager.h"
@@ -18,6 +19,8 @@
 #include "Core/OS/Window.h"
 #include "Core/Profiler.h"
 #include "Core/VFS.h"
+
+#include "Scripting/LuaManager.h"
 
 #include "ImGui/ImGuiLayer.h"
 
@@ -65,7 +68,7 @@ namespace Lumos
 
 		ImGui::CreateContext();
 		ImGui::StyleColorsDark();
-	}
+    }
 
 	Application::~Application()
 	{
@@ -120,11 +123,14 @@ namespace Lumos
 		m_SystemManager->RegisterSystem<LumosPhysicsEngine>();
 		m_SystemManager->RegisterSystem<B2PhysicsEngine>();
 
+        Material::InitDefaultTexture();
+
 		m_CurrentState = AppState::Running;
 	}
 
 	int Application::Quit(bool pause, const std::string &reason)
 	{
+        Material::ReleaseDefaultTexture();
 		Engine::Release();
 		Input::Release();
 		AssetsManager::ReleaseResources();
@@ -169,6 +175,15 @@ namespace Lumos
 
             Profiler::Instance()->Update(now);
             Engine::GetTimeStep()->Update(now);
+
+			ImGuiIO& io = ImGui::GetIO();
+			io.DeltaTime = Engine::GetTimeStep()->GetMillis();
+			
+			Application* app = Application::Instance();
+			app->GetWindow()->UpdateCursorImGui();
+
+			ImGui::NewFrame();
+
 
 			{
                 LUMOS_PROFILE_BLOCK("Application::Update");
@@ -252,6 +267,7 @@ namespace Lumos
 		{
 			m_SceneManager->GetCurrentScene()->OnUpdate(Engine::GetTimeStep());
 			m_SystemManager->OnUpdate(Engine::GetTimeStep(),m_SceneManager->GetCurrentScene());
+            LuaManager::Instance()->OnUpdate(m_SceneManager->GetCurrentScene());
 		}
 
 		if (!m_Minimized)

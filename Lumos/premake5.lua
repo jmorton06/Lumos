@@ -1,3 +1,17 @@
+IncludeDir = {}
+IncludeDir["GLFW"] = "../Dependencies/glfw/include/"
+IncludeDir["Glad"] = "external/glad/include/"
+IncludeDir["lua"] = "../Dependencies/lua/src/"
+IncludeDir["stb"] = "external/stb/"
+IncludeDir["OpenAL"] = "../Dependencies/OpenAL/include/"
+IncludeDir["Box2D"] = "../Dependencies/Box2D/"
+IncludeDir["Dependencies"] = "../Dependencies/"
+IncludeDir["vulkan"] = "../Dependencies/vulkan/"
+IncludeDir["jsonhpp"] = "external/jsonhpp/"
+IncludeDir["Lumos"] = "../Lumos/src"
+IncludeDir["External"] = "external/"
+IncludeDir["ImGui"] = "../Dependencies/imgui/"
+
 project "Lumos"
 	kind "StaticLib"
 	language "C++"
@@ -25,18 +39,19 @@ project "Lumos"
 
 	sysincludedirs
 	{
-		"external/",
-		"external/jsonhpp/",
-		"external/stb/",
-		"external/spdlog/include",
-		"external/glad/include",
-		"../Dependencies/",
-		"../Dependencies/lua/src/",
-		"../Dependencies/glfw/include/",
-		"../Dependencies/OpenAL/include/",
-		"../Dependencies/Box2D/",
-		"../Dependencies/vulkan/",
-		"../Dependencies/imgui/"
+		"%{IncludeDir.GLFW}",
+		"%{IncludeDir.Glad}",
+		"%{IncludeDir.lua}",
+		"%{IncludeDir.stb}",
+		"%{IncludeDir.ImGui}",
+		"%{IncludeDir.OpenAL}",
+		"%{IncludeDir.Box2D}",
+		"%{IncludeDir.vulkan}",
+		"%{IncludeDir.Dependencies}",
+		"%{IncludeDir.External}",
+		"%{IncludeDir.jsonhpp}",
+		"%{IncludeDir.spdlog}",
+		"%{IncludeDir.Lumos}",
 	}
 
 	links
@@ -77,9 +92,12 @@ project "Lumos"
 			"_CRT_SECURE_NO_WARNINGS",
 			"_DISABLE_EXTENDED_ALIGNED_STORAGE",
 			"_SILENCE_CXX17_OLD_ALLOCATOR_MEMBERS_DEPRECATION_WARNING",
+			"_SILENCE_CXX17_ITERATOR_BASE_CLASS_DEPRECATION_WARNING",
 			"LUMOS_IMGUI",
 			"LUMOS_OPENAL",
-			"LUMOS_VOLK"
+			"LUMOS_VOLK",
+			"USE_VMA_ALLOCATOR",
+			"LUMOS_SSE"
 		}
 
 		files
@@ -109,7 +127,7 @@ project "Lumos"
 
 		buildoptions
 		{
-			"/MP"
+			"/MP", "/bigobj"
 		}
 
 		characterset ("MBCS")
@@ -154,7 +172,9 @@ project "Lumos"
 			"VK_USE_PLATFORM_METAL_EXT",
 			"LUMOS_IMGUI",
 			"LUMOS_OPENAL",
-			"LUMOS_VOLK"
+			"LUMOS_VOLK",
+			"USE_VMA_ALLOCATOR",
+			"LUMOS_SSE"
 		}
 
 		links
@@ -206,6 +226,7 @@ project "Lumos"
 			"LUMOS_RENDER_API_VULKAN",
 			"VK_USE_PLATFORM_IOS_MVK",
 			"LUMOS_IMGUI",
+			"USE_VMA_ALLOCATOR",
 			"LUMOS_OPENAL"
 		}
 
@@ -304,7 +325,6 @@ project "Lumos"
 
 		buildoptions
 		{
-			"-msse4.1",
 			"-fpermissive",
 			"-fPIC",
 			"-Wignored-attributes"
@@ -321,6 +341,15 @@ project "Lumos"
 			flags  { 'NoPCH' }
 		filter 'files:src/**.c'
 			flags  { 'NoPCH' }
+
+		if _OPTIONS["arch"] ~= "arm" then
+			buildoptions
+			{
+				"-msse4.1",
+			}
+
+			defines { "LUMOS_SSE" ,"USE_VMA_ALLOCATOR"}
+		end
 
 	filter "configurations:Debug"
 		defines "LUMOS_DEBUG"

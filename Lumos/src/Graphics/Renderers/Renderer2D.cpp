@@ -314,7 +314,6 @@ namespace Lumos
 			
             auto& registry = scene->GetRegistry();
             auto group = registry.group<Graphics::Sprite>(entt::get<Maths::Transform>);
-
             for(auto entity: group)
             {
                 const auto &[sprite, trans] = group.get<Graphics::Sprite, Maths::Transform>(entity);

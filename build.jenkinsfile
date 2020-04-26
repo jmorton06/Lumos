@@ -1,0 +1,30 @@
+pipeline {
+    agent {
+        node {
+            label 'master'
+        }
+    }
+    stages {
+        stage('Generate Make files') {
+            steps {
+                sh '''
+                Tools/linux-arm/premake5 --os=linux --arch=arm gmake2
+                '''
+            }
+        }
+        stage('Build') {
+            steps {
+                sh '''
+                cd build
+                make $* CC=gcc-8 CPP=g++-8 CXX=g++-8 CC=gcc-8
+                '''
+            }
+        }
+        stage('Save Output')
+        {
+            steps{
+                archiveArtifacts artifacts: 'bin/'
+            }
+        }
+    }
+}

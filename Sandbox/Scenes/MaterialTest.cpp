@@ -43,14 +43,14 @@ void MaterialTest::OnInit()
 	m_EnvironmentMap = Graphics::TextureCube::CreateFromVCross(environmentFiles, 11);
 
 	auto lightEntity = m_Registry.create();
-	m_Registry.assign<Graphics::Light>(lightEntity, Maths::Vector3(26.0f, 22.0f, 48.5f), Maths::Vector4(1.0f), 1.3f);
-	m_Registry.assign<Maths::Transform>(lightEntity, Matrix4::Translation(Maths::Vector3(26.0f, 22.0f, 48.5f)) * Maths::Quaternion::LookAt(Maths::Vector3(26.0f, 22.0f, 48.5f), Maths::Vector3::ZERO).RotationMatrix4());
-	m_Registry.assign<NameComponent>(lightEntity, "Light");
+	m_Registry.emplace<Graphics::Light>(lightEntity, Maths::Vector3(26.0f, 22.0f, 48.5f), Maths::Vector4(1.0f), 1.3f);
+	m_Registry.emplace<Maths::Transform>(lightEntity, Matrix4::Translation(Maths::Vector3(26.0f, 22.0f, 48.5f)) * Maths::Quaternion::LookAt(Maths::Vector3(26.0f, 22.0f, 48.5f), Maths::Vector3::ZERO).RotationMatrix4());
+	m_Registry.emplace<NameComponent>(lightEntity, "Light");
 
 	m_pCamera = new EditorCamera(-1.0f, 358.0f, Maths::Vector3(-0.23f, 2.4f, 11.4f), 60.0f, 0.1f, 1000.0f, (float)m_ScreenWidth / (float)m_ScreenHeight);
 	auto cameraEntity = m_Registry.create();
-	m_Registry.assign<CameraComponent>(cameraEntity, m_pCamera);
-	m_Registry.assign<NameComponent>(cameraEntity, "Camera");
+	m_Registry.emplace<CameraComponent>(cameraEntity, m_pCamera);
+	m_Registry.emplace<NameComponent>(cameraEntity, "Camera");
 	Application::Instance()->GetSystem<AudioManager>()->SetListener(m_pCamera);
 
 	bool editor = false;
@@ -142,9 +142,9 @@ void MaterialTest::LoadModels()
 	testPhysics->SetIsAtRest(true);
 	testPhysics->SetIsStatic(true);
 
-	m_Registry.assign<Maths::Transform>(ground,Matrix4::Translation(Maths::Vector3((float(materials.size()) * 1.2f) / 2.0f - float(materials.size()) / 2.0f - 0.5f, 0.0f, 0.0f)) * Matrix4::Scale(Maths::Vector3(groundWidth, groundHeight, groundLength)));
+	m_Registry.emplace<Maths::Transform>(ground,Matrix4::Translation(Maths::Vector3((float(materials.size()) * 1.2f) / 2.0f - float(materials.size()) / 2.0f - 0.5f, 0.0f, 0.0f)) * Matrix4::Scale(Maths::Vector3(groundWidth, groundHeight, groundLength)));
 	Ref<Graphics::Mesh> groundModel = AssetsManager::DefaultModels()->Get("Cube");
-	m_Registry.assign<MeshComponent>(ground, groundModel);
+	m_Registry.emplace<MeshComponent>(ground, groundModel);
 
 	auto groundMaterial = CreateRef<Material>();
 
@@ -157,7 +157,7 @@ void MaterialTest::LoadModels()
 	properties.usingNormalMap = 0.0f;
 	properties.usingSpecularMap = 0.0f;
 	groundMaterial->SetMaterialProperites(properties);
-	m_Registry.assign<MaterialComponent>(ground, groundMaterial);
+	m_Registry.emplace<MaterialComponent>(ground, groundMaterial);
 
 	int numObjects = 0;
 
@@ -165,11 +165,11 @@ void MaterialTest::LoadModels()
 	{
 		auto obj = m_Registry.create();
 
-		m_Registry.assign<Maths::Transform>(obj, Matrix4::Translation(Maths::Vector3(float(numObjects) * 1.2f - float(materials.size()) / 2.0f, 1.2f, 0.0f)) * Matrix4::Scale(Maths::Vector3(0.5f, 0.5f, 0.5f)));
-		m_Registry.assign<MeshComponent>(obj, AssetsManager::DefaultModels()->Get("Sphere"));
+		m_Registry.emplace<Maths::Transform>(obj, Matrix4::Translation(Maths::Vector3(float(numObjects) * 1.2f - float(materials.size()) / 2.0f, 1.2f, 0.0f)) * Matrix4::Scale(Maths::Vector3(0.5f, 0.5f, 0.5f)));
+		m_Registry.emplace<MeshComponent>(obj, AssetsManager::DefaultModels()->Get("Sphere"));
         
-        m_Registry.assign<MaterialComponent>(obj,material ? material : testMaterial);
-		m_Registry.assign<NameComponent>(obj, "Test Object" + StringFormat::ToString(numObjects++));
+        m_Registry.emplace<MaterialComponent>(obj,material ? material : testMaterial);
+		m_Registry.emplace<NameComponent>(obj, "Test Object" + StringFormat::ToString(numObjects++));
 	}
 
 	//m_Registry.destroy(testMesh);

@@ -13,7 +13,7 @@ namespace Lumos
 
 		VKShader::VKShader(const std::string& shaderName, const std::string& filePath): m_StageCount(0), m_Name(shaderName), m_FilePath(filePath)
 		{
-			m_ShaderStages = NULL;
+			m_ShaderStages = VK_NULL_HANDLE;
 
 			m_Source = VFS::Get()->ReadTextFile(filePath + shaderName +  ".shader");
 
@@ -24,7 +24,7 @@ namespace Lumos
 		{
 			Unload();
             delete[] m_ShaderStages;
-			m_ShaderStages = nullptr;
+			m_ShaderStages = VK_NULL_HANDLE;
 		}
 
 		bool VKShader::Init()

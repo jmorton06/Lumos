@@ -8,408 +8,464 @@
 #include "Graphics/Sprite.h"
 #include "Graphics/Light.h"
 #include "Maths/Transform.h"
+#include "Scripting/ScriptComponent.h"
 
 #include <imgui/imgui.h>
 #include <IconFontCppHeaders/IconsFontAwesome5.h>
 
-namespace Lumos
-{
-	static void TransformWidget(Maths::Transform& transform)
-	{
-		auto rotation = transform.GetLocalOrientation().EulerAngles();
-		auto position = transform.GetLocalPosition();
-		auto scale = transform.GetLocalScale();
+namespace MM {
+    template <>
+    void ComponentEditorWidget<Lumos::ScriptComponent>(entt::registry& reg, entt::registry::entity_type e)
+    {
+        ImGui::TextUnformatted("Loaded Functions : ");
+        auto& script = reg.get<Lumos::ScriptComponent>(e);
 
-		ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(2, 2));
-		ImGui::Columns(2);
-		ImGui::Separator();
+        auto& solEnv = script.GetSolEnvironment();
+        for (auto&& function : solEnv)
+        {
+            if (function.second.is<sol::function>())
+            {
+                ImGui::TextUnformatted(function.first.as<String>().c_str());
+            }
+        }
 
-		ImGui::AlignTextToFramePadding();
-		ImGui::TextUnformatted("Position");
-		ImGui::NextColumn();
-		ImGui::PushItemWidth(-1);
-		if (ImGui::DragFloat3("##Position", Maths::ValuePointer(position)))
-		{
-			transform.SetLocalPosition(position);
-		}
+        if(ImGui::Button("Reload"))
+            script.Reload();
 
-		ImGui::PopItemWidth();
-		ImGui::NextColumn();
+        String filePath = script.GetFilePath();
 
-		ImGui::AlignTextToFramePadding();
-		ImGui::TextUnformatted("Rotation");
-		ImGui::NextColumn();
-		ImGui::PushItemWidth(-1);
-		if (ImGui::DragFloat3("##Rotation", Maths::ValuePointer(rotation)))
-		{
-			float pitch = Maths::Min(rotation.x, 89.9f);
-			pitch = Maths::Max(pitch, -89.9f);
-			transform.SetLocalOrientation(Maths::Quaternion::EulerAnglesToQuaternion(pitch, rotation.y, rotation.z));
-		
-		}
+        static char filePathBuffer[INPUT_BUF_SIZE];
+        strcpy(filePathBuffer, filePath.c_str());
 
-		ImGui::PopItemWidth();
-		ImGui::NextColumn();
+        ImGui::PushItemWidth(-1);
+        if (ImGui::InputText("##filePath", filePathBuffer, IM_ARRAYSIZE(filePathBuffer), 0))
+            script.SetFilePath(filePathBuffer);
+    }
 
-		ImGui::AlignTextToFramePadding();
-		ImGui::TextUnformatted("Scale");
-		ImGui::NextColumn();
-		ImGui::PushItemWidth(-1);
-		if (ImGui::DragFloat3("##Scale", Maths::ValuePointer(scale), 0.1f))
-		{
-			transform.SetLocalScale(scale);
-		}
+    template <>
+    void ComponentEditorWidget<Lumos::Maths::Transform>(entt::registry& reg, entt::registry::entity_type e)
+    {
+        auto& transform = reg.get<Lumos::Maths::Transform>(e);
 
-		ImGui::PopItemWidth();
-		ImGui::NextColumn();
+        auto rotation = transform.GetLocalOrientation().EulerAngles();
+        auto position = transform.GetLocalPosition();
+        auto scale = transform.GetLocalScale();
 
-		ImGui::Columns(1);
-		ImGui::Separator();
-		ImGui::PopStyleVar();
-	}
+        ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(2, 2));
+        ImGui::Columns(2);
+        ImGui::Separator();
 
-	static void MeshWidget(MeshComponent& mesh)
-	{
-	}
+        ImGui::AlignTextToFramePadding();
+        ImGui::TextUnformatted("Position");
+        ImGui::NextColumn();
+        ImGui::PushItemWidth(-1);
+        if (ImGui::DragFloat3("##Position", Lumos::Maths::ValuePointer(position)))
+        {
+            transform.SetLocalPosition(position);
+        }
 
-	static void Physics3DWidget(Physics3DComponent& phys)
-	{
-		ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(2, 2));
-		ImGui::Columns(2);
-		ImGui::Separator();
+        ImGui::PopItemWidth();
+        ImGui::NextColumn();
 
-		auto pos = phys.GetPhysicsObject()->GetPosition();
-		auto force = phys.GetPhysicsObject()->GetForce();
-		auto torque = phys.GetPhysicsObject()->GetTorque();
-		auto orientation = phys.GetPhysicsObject()->GetOrientation();
-		auto angularVelocity = phys.GetPhysicsObject()->GetAngularVelocity();
-		auto friction = phys.GetPhysicsObject()->GetFriction();
-		auto isStatic = phys.GetPhysicsObject()->GetIsStatic();
-		auto isRest = phys.GetPhysicsObject()->GetIsAtRest();
-		auto mass = 1.0f / phys.GetPhysicsObject()->GetInverseMass();
-		auto velocity = phys.GetPhysicsObject()->GetLinearVelocity();
-		auto elasticity = phys.GetPhysicsObject()->GetElasticity();
+        ImGui::AlignTextToFramePadding();
+        ImGui::TextUnformatted("Rotation");
+        ImGui::NextColumn();
+        ImGui::PushItemWidth(-1);
+        if (ImGui::DragFloat3("##Rotation", Lumos::Maths::ValuePointer(rotation)))
+        {
+            float pitch = Lumos::Maths::Min(rotation.x, 89.9f);
+            pitch = Lumos::Maths::Max(pitch, -89.9f);
+            transform.SetLocalOrientation(Lumos::Maths::Quaternion::EulerAnglesToQuaternion(pitch, rotation.y, rotation.z));
+        
+        }
 
-		ImGui::AlignTextToFramePadding();
-		ImGui::TextUnformatted("Position");
-		ImGui::NextColumn();
-		ImGui::PushItemWidth(-1);
-		if (ImGui::DragFloat3("##Position", Maths::ValuePointer(pos)))
-			phys.GetPhysicsObject()->SetPosition(pos);
+        ImGui::PopItemWidth();
+        ImGui::NextColumn();
 
-		ImGui::PopItemWidth();
-		ImGui::NextColumn();
+        ImGui::AlignTextToFramePadding();
+        ImGui::TextUnformatted("Scale");
+        ImGui::NextColumn();
+        ImGui::PushItemWidth(-1);
+        if (ImGui::DragFloat3("##Scale", Lumos::Maths::ValuePointer(scale), 0.1f))
+        {
+            transform.SetLocalScale(scale);
+        }
 
-		ImGui::AlignTextToFramePadding();
-		ImGui::TextUnformatted("Velocity");
-		ImGui::NextColumn();
-		ImGui::PushItemWidth(-1);
-		if (ImGui::DragFloat3("##Velocity", Maths::ValuePointer(velocity)))
-			phys.GetPhysicsObject()->SetLinearVelocity(velocity);
+        ImGui::PopItemWidth();
+        ImGui::NextColumn();
 
-		ImGui::PopItemWidth();
-		ImGui::NextColumn();
+        ImGui::Columns(1);
+        ImGui::Separator();
+        ImGui::PopStyleVar();
+    }
 
-		ImGui::AlignTextToFramePadding();
-		ImGui::TextUnformatted("Torque");
-		ImGui::NextColumn();
-		ImGui::PushItemWidth(-1);
-		if (ImGui::DragFloat3("##Torque", Maths::ValuePointer(torque)))
-			phys.GetPhysicsObject()->SetTorque(torque);
+    template <>
+    void ComponentEditorWidget<Lumos::MeshComponent>(entt::registry& reg, entt::registry::entity_type e)
+    {
+    }
 
-		ImGui::PopItemWidth();
-		ImGui::NextColumn();
+    template <>
+    void ComponentEditorWidget<Lumos::Physics3DComponent>(entt::registry& reg, entt::registry::entity_type e)
+    {
+        ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(2, 2));
+        ImGui::Columns(2);
+        ImGui::Separator();
+        auto& phys = reg.get<Lumos::Physics3DComponent>(e);
 
-		ImGui::AlignTextToFramePadding();
-		ImGui::TextUnformatted("Orientation");
-		ImGui::NextColumn();
-		ImGui::PushItemWidth(-1);
-		if (ImGui::DragFloat4("##Orientation", Maths::ValuePointer(orientation)))
-			phys.GetPhysicsObject()->SetOrientation(orientation);
+        auto pos = phys.GetPhysicsObject()->GetPosition();
+        auto force = phys.GetPhysicsObject()->GetForce();
+        auto torque = phys.GetPhysicsObject()->GetTorque();
+        auto orientation = phys.GetPhysicsObject()->GetOrientation();
+        auto angularVelocity = phys.GetPhysicsObject()->GetAngularVelocity();
+        auto friction = phys.GetPhysicsObject()->GetFriction();
+        auto isStatic = phys.GetPhysicsObject()->GetIsStatic();
+        auto isRest = phys.GetPhysicsObject()->GetIsAtRest();
+        auto mass = 1.0f / phys.GetPhysicsObject()->GetInverseMass();
+        auto velocity = phys.GetPhysicsObject()->GetLinearVelocity();
+        auto elasticity = phys.GetPhysicsObject()->GetElasticity();
 
-		ImGui::PopItemWidth();
-		ImGui::NextColumn();
+        ImGui::AlignTextToFramePadding();
+        ImGui::TextUnformatted("Position");
+        ImGui::NextColumn();
+        ImGui::PushItemWidth(-1);
+        if (ImGui::DragFloat3("##Position", Lumos::Maths::ValuePointer(pos)))
+            phys.GetPhysicsObject()->SetPosition(pos);
+
+        ImGui::PopItemWidth();
+        ImGui::NextColumn();
+
+        ImGui::AlignTextToFramePadding();
+        ImGui::TextUnformatted("Velocity");
+        ImGui::NextColumn();
+        ImGui::PushItemWidth(-1);
+        if (ImGui::DragFloat3("##Velocity", Lumos::Maths::ValuePointer(velocity)))
+            phys.GetPhysicsObject()->SetLinearVelocity(velocity);
+
+        ImGui::PopItemWidth();
+        ImGui::NextColumn();
+
+        ImGui::AlignTextToFramePadding();
+        ImGui::TextUnformatted("Torque");
+        ImGui::NextColumn();
+        ImGui::PushItemWidth(-1);
+        if (ImGui::DragFloat3("##Torque", Lumos::Maths::ValuePointer(torque)))
+            phys.GetPhysicsObject()->SetTorque(torque);
+
+        ImGui::PopItemWidth();
+        ImGui::NextColumn();
+
+        ImGui::AlignTextToFramePadding();
+        ImGui::TextUnformatted("Orientation");
+        ImGui::NextColumn();
+        ImGui::PushItemWidth(-1);
+        if (ImGui::DragFloat4("##Orientation", Lumos::Maths::ValuePointer(orientation)))
+            phys.GetPhysicsObject()->SetOrientation(orientation);
+
+        ImGui::PopItemWidth();
+        ImGui::NextColumn();
         
         ImGui::AlignTextToFramePadding();
         ImGui::TextUnformatted("Force");
         ImGui::NextColumn();
         ImGui::PushItemWidth(-1);
-        if (ImGui::DragFloat4("##Force", Maths::ValuePointer(force)))
+        if (ImGui::DragFloat4("##Force", Lumos::Maths::ValuePointer(force)))
             phys.GetPhysicsObject()->SetForce(force);
 
         ImGui::PopItemWidth();
         ImGui::NextColumn();
 
-		ImGui::AlignTextToFramePadding();
-		ImGui::TextUnformatted("Angular Velocity");
-		ImGui::NextColumn();
-		ImGui::PushItemWidth(-1);
-		if (ImGui::DragFloat3("##Angular Velocity", Maths::ValuePointer(angularVelocity)))
-			phys.GetPhysicsObject()->SetAngularVelocity(angularVelocity);
+        ImGui::AlignTextToFramePadding();
+        ImGui::TextUnformatted("Angular Velocity");
+        ImGui::NextColumn();
+        ImGui::PushItemWidth(-1);
+        if (ImGui::DragFloat3("##Angular Velocity", Lumos::Maths::ValuePointer(angularVelocity)))
+            phys.GetPhysicsObject()->SetAngularVelocity(angularVelocity);
 
-		ImGui::PopItemWidth();
-		ImGui::NextColumn();
+        ImGui::PopItemWidth();
+        ImGui::NextColumn();
 
-		ImGui::AlignTextToFramePadding();
-		ImGui::TextUnformatted("Friction");
-		ImGui::NextColumn();
-		ImGui::PushItemWidth(-1);
-		if (ImGui::DragFloat("##Friction", &friction))
-			phys.GetPhysicsObject()->SetFriction(friction);
+        ImGui::AlignTextToFramePadding();
+        ImGui::TextUnformatted("Friction");
+        ImGui::NextColumn();
+        ImGui::PushItemWidth(-1);
+        if (ImGui::DragFloat("##Friction", &friction))
+            phys.GetPhysicsObject()->SetFriction(friction);
 
-		ImGui::PopItemWidth();
-		ImGui::NextColumn();
+        ImGui::PopItemWidth();
+        ImGui::NextColumn();
 
-		ImGui::AlignTextToFramePadding();
-		ImGui::TextUnformatted("Mass");
-		ImGui::NextColumn();
-		ImGui::PushItemWidth(-1);
-		if (ImGui::DragFloat("##Mass", &mass))
-			phys.GetPhysicsObject()->SetInverseMass(1.0f / mass);
+        ImGui::AlignTextToFramePadding();
+        ImGui::TextUnformatted("Mass");
+        ImGui::NextColumn();
+        ImGui::PushItemWidth(-1);
+        if (ImGui::DragFloat("##Mass", &mass))
+            phys.GetPhysicsObject()->SetInverseMass(1.0f / mass);
 
-		ImGui::PopItemWidth();
-		ImGui::NextColumn();
+        ImGui::PopItemWidth();
+        ImGui::NextColumn();
 
-		ImGui::AlignTextToFramePadding();
-		ImGui::TextUnformatted("Elasticity");
-		ImGui::NextColumn();
-		ImGui::PushItemWidth(-1);
-		if (ImGui::DragFloat("##Elasticity", &elasticity))
-			phys.GetPhysicsObject()->SetElasticity(elasticity);
+        ImGui::AlignTextToFramePadding();
+        ImGui::TextUnformatted("Elasticity");
+        ImGui::NextColumn();
+        ImGui::PushItemWidth(-1);
+        if (ImGui::DragFloat("##Elasticity", &elasticity))
+            phys.GetPhysicsObject()->SetElasticity(elasticity);
 
-		ImGui::PopItemWidth();
-		ImGui::NextColumn();
+        ImGui::PopItemWidth();
+        ImGui::NextColumn();
 
-		ImGui::AlignTextToFramePadding();
-		ImGui::TextUnformatted("Static");
-		ImGui::NextColumn();
-		ImGui::PushItemWidth(-1);
-		if (ImGui::Checkbox("##Static", &isStatic))
-			phys.GetPhysicsObject()->SetIsStatic(isStatic);
+        ImGui::AlignTextToFramePadding();
+        ImGui::TextUnformatted("Static");
+        ImGui::NextColumn();
+        ImGui::PushItemWidth(-1);
+        if (ImGui::Checkbox("##Static", &isStatic))
+            phys.GetPhysicsObject()->SetIsStatic(isStatic);
 
-		ImGui::PopItemWidth();
-		ImGui::NextColumn();
+        ImGui::PopItemWidth();
+        ImGui::NextColumn();
 
 
-		ImGui::AlignTextToFramePadding();
-		ImGui::TextUnformatted("At Rest");
-		ImGui::NextColumn();
-		ImGui::PushItemWidth(-1);
-		if (ImGui::Checkbox("##At Rest", &isRest))
-			phys.GetPhysicsObject()->SetIsAtRest(isRest);
+        ImGui::AlignTextToFramePadding();
+        ImGui::TextUnformatted("At Rest");
+        ImGui::NextColumn();
+        ImGui::PushItemWidth(-1);
+        if (ImGui::Checkbox("##At Rest", &isRest))
+            phys.GetPhysicsObject()->SetIsAtRest(isRest);
 
-		ImGui::PopItemWidth();
-		ImGui::NextColumn();
+        ImGui::PopItemWidth();
+        ImGui::NextColumn();
 
-		ImGui::Columns(1);
-		ImGui::Separator();
-		ImGui::PopStyleVar();
-	}
+        ImGui::Columns(1);
+        ImGui::Separator();
+        ImGui::PopStyleVar();
+    }
 
-	static void Physics2DWidget(Physics2DComponent& phys)
-	{
-		auto pos = phys.GetPhysicsObject()->GetPosition();
-		auto angle = phys.GetPhysicsObject()->GetAngle();
-		auto friction = phys.GetPhysicsObject()->GetFriction();
-		auto isStatic = phys.GetPhysicsObject()->GetIsStatic();
-		auto isRest = phys.GetPhysicsObject()->GetIsAtRest();
+    template <>
+    void ComponentEditorWidget<Lumos::Physics2DComponent>(entt::registry& reg, entt::registry::entity_type e)
+    {
+        auto& phys = reg.get<Lumos::Physics2DComponent>(e);
 
-		auto elasticity = phys.GetPhysicsObject()->GetElasticity();
+        auto pos = phys.GetPhysicsObject()->GetPosition();
+        auto angle = phys.GetPhysicsObject()->GetAngle();
+        auto friction = phys.GetPhysicsObject()->GetFriction();
+        auto isStatic = phys.GetPhysicsObject()->GetIsStatic();
+        auto isRest = phys.GetPhysicsObject()->GetIsAtRest();
 
-		ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(2, 2));
-		ImGui::Columns(2);
-		ImGui::Separator();
+        auto elasticity = phys.GetPhysicsObject()->GetElasticity();
+        
+        ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(2, 2));
+        ImGui::Columns(2);
+        ImGui::Separator();
 
-		ImGui::AlignTextToFramePadding();
-		ImGui::TextUnformatted("Position");
-		ImGui::NextColumn();
-		ImGui::PushItemWidth(-1);
-		if (ImGui::DragFloat2("##Position", &pos.x))
-			phys.GetPhysicsObject()->SetPosition(pos);
+        ImGui::AlignTextToFramePadding();
+        ImGui::TextUnformatted("Position");
+        ImGui::NextColumn();
+        ImGui::PushItemWidth(-1);
+        if (ImGui::DragFloat2("##Position", &pos.x))
+            phys.GetPhysicsObject()->SetPosition(pos);
 
-		ImGui::PopItemWidth();
-		ImGui::NextColumn();
+        ImGui::PopItemWidth();
+        ImGui::NextColumn();
 
-		ImGui::AlignTextToFramePadding();
-		ImGui::TextUnformatted("Orientation");
-		ImGui::NextColumn();
-		ImGui::PushItemWidth(-1);
-		if (ImGui::DragFloat("##Orientation", &angle))
-			phys.GetPhysicsObject()->SetOrientation(angle);
+        ImGui::AlignTextToFramePadding();
+        ImGui::TextUnformatted("Orientation");
+        ImGui::NextColumn();
+        ImGui::PushItemWidth(-1);
+        if (ImGui::DragFloat("##Orientation", &angle))
+            phys.GetPhysicsObject()->SetOrientation(angle);
 
-		ImGui::PopItemWidth();
-		ImGui::NextColumn();
+        ImGui::PopItemWidth();
+        ImGui::NextColumn();
 
-		ImGui::AlignTextToFramePadding();
-		ImGui::TextUnformatted("Friction");
-		ImGui::NextColumn();
-		ImGui::PushItemWidth(-1);
-		if (ImGui::DragFloat("##Friction", &friction))
-			phys.GetPhysicsObject()->SetFriction(friction);
+        ImGui::AlignTextToFramePadding();
+        ImGui::TextUnformatted("Friction");
+        ImGui::NextColumn();
+        ImGui::PushItemWidth(-1);
+        if (ImGui::DragFloat("##Friction", &friction))
+            phys.GetPhysicsObject()->SetFriction(friction);
 
-		ImGui::PopItemWidth();
-		ImGui::NextColumn();
+        ImGui::PopItemWidth();
+        ImGui::NextColumn();
 
-		ImGui::AlignTextToFramePadding();
-		ImGui::TextUnformatted("Elasticity");
-		ImGui::NextColumn();
-		ImGui::PushItemWidth(-1);
-		if (ImGui::DragFloat("##Elasticity", &elasticity))
-			phys.GetPhysicsObject()->SetElasticity(elasticity);
+        ImGui::AlignTextToFramePadding();
+        ImGui::TextUnformatted("Elasticity");
+        ImGui::NextColumn();
+        ImGui::PushItemWidth(-1);
+        if (ImGui::DragFloat("##Elasticity", &elasticity))
+            phys.GetPhysicsObject()->SetElasticity(elasticity);
 
-		ImGui::PopItemWidth();
-		ImGui::NextColumn();
+        ImGui::PopItemWidth();
+        ImGui::NextColumn();
 
-		ImGui::AlignTextToFramePadding();
-		ImGui::TextUnformatted("Static");
-		ImGui::NextColumn();
-		ImGui::PushItemWidth(-1);
-		if (ImGui::Checkbox("##Static", &isStatic))
-			phys.GetPhysicsObject()->SetIsStatic(isStatic);
+        ImGui::AlignTextToFramePadding();
+        ImGui::TextUnformatted("Static");
+        ImGui::NextColumn();
+        ImGui::PushItemWidth(-1);
+        if (ImGui::Checkbox("##Static", &isStatic))
+            phys.GetPhysicsObject()->SetIsStatic(isStatic);
 
-		ImGui::PopItemWidth();
-		ImGui::NextColumn();
+        ImGui::PopItemWidth();
+        ImGui::NextColumn();
 
-		ImGui::AlignTextToFramePadding();
-		ImGui::TextUnformatted("At Rest");
-		ImGui::NextColumn();
-		ImGui::PushItemWidth(-1);
-		if (ImGui::Checkbox("##At Rest", &isRest))
-			phys.GetPhysicsObject()->SetIsAtRest(isRest);
+        ImGui::AlignTextToFramePadding();
+        ImGui::TextUnformatted("At Rest");
+        ImGui::NextColumn();
+        ImGui::PushItemWidth(-1);
+        if (ImGui::Checkbox("##At Rest", &isRest))
+            phys.GetPhysicsObject()->SetIsAtRest(isRest);
 
-		ImGui::PopItemWidth();
-		ImGui::NextColumn();
+        ImGui::PopItemWidth();
+        ImGui::NextColumn();
 
-		ImGui::Columns(1);
-		ImGui::Separator();
-		ImGui::PopStyleVar();
-	}
+        ImGui::Columns(1);
+        ImGui::Separator();
+        ImGui::PopStyleVar();
+    }
 
-	static void SoundWidget(SoundComponent& sound)
-	{
-		auto pos = sound.GetSoundNode()->GetPosition();
-		auto radius = sound.GetSoundNode()->GetRadius();
-		auto paused = sound.GetSoundNode()->GetPaused();
-		auto pitch = sound.GetSoundNode()->GetPitch();
-		auto referenceDistance = sound.GetSoundNode()->GetReferenceDistance();
+    template <>
+    void ComponentEditorWidget<Lumos::SoundComponent>(entt::registry& reg, entt::registry::entity_type e)
+    {
+        auto& sound = reg.get<Lumos::SoundComponent>(e);
 
-		ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(2, 2));
-		ImGui::Columns(2);
-		ImGui::Separator();
+        auto pos = sound.GetSoundNode()->GetPosition();
+        auto radius = sound.GetSoundNode()->GetRadius();
+        auto paused = sound.GetSoundNode()->GetPaused();
+        auto pitch = sound.GetSoundNode()->GetPitch();
+        auto referenceDistance = sound.GetSoundNode()->GetReferenceDistance();
 
-		ImGui::AlignTextToFramePadding();
-		ImGui::TextUnformatted("Position");
-		ImGui::NextColumn();
-		ImGui::PushItemWidth(-1);
-		if (ImGui::InputFloat3("##Position", Maths::ValuePointer(pos)))
-			sound.GetSoundNode()->SetPosition(pos);
+        ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(2, 2));
+        ImGui::Columns(2);
+        ImGui::Separator();
 
-		ImGui::PopItemWidth();
-		ImGui::NextColumn();
+        ImGui::AlignTextToFramePadding();
+        ImGui::TextUnformatted("Position");
+        ImGui::NextColumn();
+        ImGui::PushItemWidth(-1);
+        if (ImGui::InputFloat3("##Position", Lumos::Maths::ValuePointer(pos)))
+            sound.GetSoundNode()->SetPosition(pos);
 
-		ImGui::AlignTextToFramePadding();
-		ImGui::TextUnformatted("Radius");
-		ImGui::NextColumn();
-		ImGui::PushItemWidth(-1);
-		if (ImGui::InputFloat("##Radius", &radius))
-			sound.GetSoundNode()->SetRadius(radius);
+        ImGui::PopItemWidth();
+        ImGui::NextColumn();
 
-		ImGui::PopItemWidth();
-		ImGui::NextColumn();
+        ImGui::AlignTextToFramePadding();
+        ImGui::TextUnformatted("Radius");
+        ImGui::NextColumn();
+        ImGui::PushItemWidth(-1);
+        if (ImGui::InputFloat("##Radius", &radius))
+            sound.GetSoundNode()->SetRadius(radius);
 
-		ImGui::AlignTextToFramePadding();
-		ImGui::TextUnformatted("Pitch");
-		ImGui::NextColumn();
-		ImGui::PushItemWidth(-1);
-		if (ImGui::InputFloat("##Pitch", &pitch))
-			sound.GetSoundNode()->SetPitch(pitch);
+        ImGui::PopItemWidth();
+        ImGui::NextColumn();
 
-		ImGui::PopItemWidth();
-		ImGui::NextColumn();
+        ImGui::AlignTextToFramePadding();
+        ImGui::TextUnformatted("Pitch");
+        ImGui::NextColumn();
+        ImGui::PushItemWidth(-1);
+        if (ImGui::InputFloat("##Pitch", &pitch))
+            sound.GetSoundNode()->SetPitch(pitch);
 
-		ImGui::AlignTextToFramePadding();
-		ImGui::TextUnformatted("Reference Distance");
-		ImGui::NextColumn();
-		ImGui::PushItemWidth(-1);
-		if (ImGui::DragFloat("##Reference Distance", &referenceDistance))
-			sound.GetSoundNode()->SetReferenceDistance(referenceDistance);
+        ImGui::PopItemWidth();
+        ImGui::NextColumn();
 
-		ImGui::PopItemWidth();
-		ImGui::NextColumn();
+        ImGui::AlignTextToFramePadding();
+        ImGui::TextUnformatted("Reference Distance");
+        ImGui::NextColumn();
+        ImGui::PushItemWidth(-1);
+        if (ImGui::DragFloat("##Reference Distance", &referenceDistance))
+            sound.GetSoundNode()->SetReferenceDistance(referenceDistance);
 
-		ImGui::AlignTextToFramePadding();
-		ImGui::TextUnformatted("Paused");
-		ImGui::NextColumn();
-		ImGui::PushItemWidth(-1);
-		if (ImGui::Checkbox("##Paused", &paused))
-			sound.GetSoundNode()->SetPaused(paused);
+        ImGui::PopItemWidth();
+        ImGui::NextColumn();
 
-		ImGui::PopItemWidth();
-		ImGui::NextColumn();
+        ImGui::AlignTextToFramePadding();
+        ImGui::TextUnformatted("Paused");
+        ImGui::NextColumn();
+        ImGui::PushItemWidth(-1);
+        if (ImGui::Checkbox("##Paused", &paused))
+            sound.GetSoundNode()->SetPaused(paused);
 
-		ImGui::Columns(1);
-		ImGui::Separator();
-		ImGui::PopStyleVar();
-	}
+        ImGui::PopItemWidth();
+        ImGui::NextColumn();
 
-	static void CameraWidget(CameraComponent& camera)
-	{
-		if (camera.GetCamera() && ImGui::Button("Set Active"))
-			camera.SetAsMainCamera();
+        ImGui::Columns(1);
+        ImGui::Separator();
+        ImGui::PopStyleVar();
+    }
 
-		if(camera.GetCamera())
-			camera.GetCamera()->OnImGui();
-	}
+    template <>
+    void ComponentEditorWidget<Lumos::CameraComponent>(entt::registry& reg, entt::registry::entity_type e)
+    {
+        auto& camera = reg.get<Lumos::CameraComponent>(e);
 
-	static void SpriteWidget(Graphics::Sprite& sprite)
-	{
-		sprite.OnImGui();
-	}
+        if (camera.GetCamera() && ImGui::Button("Set Active"))
+            camera.SetAsMainCamera();
 
-	static void LightWidget(Graphics::Light& light)
-	{
-		light.OnImGui();
-	}
+        if(camera.GetCamera())
+            camera.GetCamera()->OnImGui();
+    }
 
-	static void MaterialWidget(MaterialComponent& material)
-	{
-		material.OnImGui();
-	}
+    template <>
+    void ComponentEditorWidget<Lumos::Graphics::Sprite>(entt::registry& reg, entt::registry::entity_type e)
+    {
+        auto& sprite = reg.get<Lumos::Graphics::Sprite>(e);
 
+        sprite.OnImGui();
+    }
+
+    template <>
+    void ComponentEditorWidget<Lumos::Graphics::Light>(entt::registry& reg, entt::registry::entity_type e)
+    {
+        auto& light = reg.get<Lumos::Graphics::Light>(e);
+
+        light.OnImGui();
+    }
+
+    template <>
+    void ComponentEditorWidget<Lumos::MaterialComponent>(entt::registry& reg, entt::registry::entity_type e)
+    {
+        auto& material = reg.get<Lumos::MaterialComponent>(e);
+
+        material.OnImGui();
+    }
+}
+
+namespace Lumos
+{
 	InspectorWindow::InspectorWindow()
 	{
 		m_Name = ICON_FA_INFO_CIRCLE" Inspector###inspector";
 		m_SimpleName = "Inspector";
 	}
 
+    static bool init = false;
 	void InspectorWindow::OnNewScene(Scene* scene)
 	{
+        if(init)
+            return;
+        
+        init = true;
+        
 		auto& registry = scene->GetRegistry();
 		auto& iconMap = m_Editor->GetComponentIconMap();
 
-#define TRIVIAL_COMPONENT(ComponentType, ComponentName, func) \
+#define TRIVIAL_COMPONENT(ComponentType, ComponentName) \
 				{ \
 				String Name; \
 				if(iconMap.find(typeid(ComponentType).hash_code()) != iconMap.end()) \
 				Name += iconMap[typeid(ComponentType).hash_code()]; Name += "\t"; \
 				Name += (ComponentName); \
-				m_EnttEditor.registerTrivial<ComponentType>(registry, Name.c_str()); \
-				} \
-				m_EnttEditor.registerComponentWidgetFn( \
-					registry.type<ComponentType>(), \
-					[](entt::registry& reg, auto e) { \
-						auto& comp = reg.get<ComponentType>(e); \
-						func(comp); });
-
-		TRIVIAL_COMPONENT(Maths::Transform, "Transform", TransformWidget);
-		TRIVIAL_COMPONENT(MeshComponent, "Mesh", MeshWidget);
-		TRIVIAL_COMPONENT(CameraComponent, "Camera", CameraWidget);
-		TRIVIAL_COMPONENT(Physics3DComponent, "Physics3D", Physics3DWidget);
-		TRIVIAL_COMPONENT(Physics2DComponent, "Physics2D", Physics2DWidget);
-		TRIVIAL_COMPONENT(SoundComponent, "Sound", SoundWidget);
-		TRIVIAL_COMPONENT(Graphics::Sprite, "Sprite", SpriteWidget);
-		TRIVIAL_COMPONENT(MaterialComponent, "Material", MaterialWidget);
-		TRIVIAL_COMPONENT(Graphics::Light, "Light", LightWidget);
+				m_EnttEditor.registerComponent<ComponentType>(Name.c_str()); \
+				}
+		TRIVIAL_COMPONENT(Maths::Transform, "Transform");
+		TRIVIAL_COMPONENT(MeshComponent, "Mesh");
+		TRIVIAL_COMPONENT(CameraComponent, "Camera");
+		TRIVIAL_COMPONENT(Physics3DComponent, "Physics3D");
+		TRIVIAL_COMPONENT(Physics2DComponent, "Physics2D");
+		TRIVIAL_COMPONENT(SoundComponent, "Sound");
+		TRIVIAL_COMPONENT(Graphics::Sprite, "Sprite");
+		TRIVIAL_COMPONENT(MaterialComponent, "Material");
+		TRIVIAL_COMPONENT(Graphics::Light, "Light");
+        TRIVIAL_COMPONENT(ScriptComponent, "LuaScript");
 	}
 
 	void InspectorWindow::OnImGui()
@@ -430,7 +486,7 @@ namespace Lumos
 			if (hasName)
 				name = registry.get<NameComponent>(selected).name;
 			else
-				name = StringFormat::ToString(entt::to_integer(selected));
+				name = StringFormat::ToString(entt::to_integral(selected));
 
 			static char objName[INPUT_BUF_SIZE];
 			strcpy(objName, name.c_str());
@@ -455,7 +511,7 @@ namespace Lumos
 
 			ImGui::PushItemWidth(-1);
 			if (ImGui::InputText("##Name", objName, IM_ARRAYSIZE(objName), 0))
-				registry.get_or_assign<NameComponent>(selected).name = objName;
+				registry.get_or_emplace<NameComponent>(selected).name = objName;
 
 			ImGui::Unindent();
 			ImGui::Separator();

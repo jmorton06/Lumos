@@ -61,9 +61,11 @@ void Scene2D::OnInit()
 
 	m_pCamera = new Camera2D(static_cast<float>(m_ScreenWidth) / static_cast<float>(m_ScreenHeight), MAX_HEIGHT);
 
+	LoadLuaScene(ROOT_DIR"/Sandbox/res/scripts/FlappyBirdTest.lua");
+
 	auto cameraEntity = m_Registry.create();
-	m_Registry.assign<CameraComponent>(cameraEntity, m_pCamera);
-	m_Registry.assign<NameComponent>(cameraEntity, "Camera");
+	m_Registry.emplace<CameraComponent>(cameraEntity, m_pCamera);
+	m_Registry.emplace<NameComponent>(cameraEntity, "Camera");
 
 	m_SceneBoundingRadius = 20.0f;
 
@@ -78,24 +80,26 @@ void Scene2D::OnInit()
 #endif
 
 	Application::Instance()->PushLayer(new Layer2D(new Graphics::Renderer2D(m_ScreenWidth, m_ScreenHeight, editor)));
+	
+	{
+		s_player.entity = m_Registry.create();
+		s_player.scene = this;
+		auto colour = Maths::Vector4(RandomNumberGenerator32::Rand(0.0f, 1.0f), RandomNumberGenerator32::Rand(0.0f, 1.0f), RandomNumberGenerator32::Rand(0.0f, 1.0f), 1.0f);
+		m_Registry.emplace<Graphics::Sprite>(s_player.entity, Maths::Vector2(-1.0f / 2.0f, -1.0f / 2.0f), Maths::Vector2(1.0f, 1.0f), colour);
 
-	s_player.entity = m_Registry.create();
-	s_player.scene = this;
-	auto colour = Maths::Vector4(RandomNumberGenerator32::Rand(0.0f, 1.0f), RandomNumberGenerator32::Rand(0.0f, 1.0f), RandomNumberGenerator32::Rand(0.0f, 1.0f), 1.0f);
-	m_Registry.assign<Graphics::Sprite>(s_player.entity, Maths::Vector2(-1.0f / 2.0f, -1.0f / 2.0f), Maths::Vector2(1.0f, 1.0f), colour);
+		PhysicsObjectParamaters params;
+		params.position = Vector3({ 1.0f, 1.0f }, 1.0f);
+		params.scale = Vector3(1.0f / 2.0f, 1.0f / 2.0f, 1.0f);
+		params.shape = Shape::Square;
+		params.isStatic = false;
+		auto blockPhysics = Lumos::CreateRef<PhysicsObject2D>();
+		blockPhysics->Init(params);
+		blockPhysics->GetB2Body()->SetLinearVelocity({SPEED, 0.0f});
+		blockPhysics->GetB2Body()->SetUserData(&s_player);
 
-	PhysicsObjectParamaters params;
-	params.position = Vector3({ 1.0f, 1.0f }, 1.0f);
-	params.scale = Vector3(1.0f / 2.0f, 1.0f / 2.0f, 1.0f);
-	params.shape = Shape::Square;
-	params.isStatic = false;
-	auto blockPhysics = Lumos::CreateRef<PhysicsObject2D>();
-	blockPhysics->Init(params);
-	blockPhysics->GetB2Body()->SetLinearVelocity({SPEED, 0.0f});
-	blockPhysics->GetB2Body()->SetUserData(&s_player);
-
-	m_Registry.assign<Physics2DComponent>(s_player.entity, blockPhysics);
-	m_Registry.assign<Maths::Transform>(s_player.entity, Maths::Vector3(1.0f, 1.0f,0.0f));
+		m_Registry.emplace<Physics2DComponent>(s_player.entity, blockPhysics);
+		m_Registry.emplace<Maths::Transform>(s_player.entity, Maths::Vector3(1.0f, 1.0f,0.0f));
+	}
 
 	Application::Instance()->GetSystem<B2PhysicsEngine>()->GetB2World()->SetContactListener(&myContactListenerInstance);
 
@@ -216,9 +220,9 @@ void Scene2D::LoadSprites()
         auto blockPhysics = Lumos::CreateRef<PhysicsObject2D>();
 		blockPhysics->Init(params);
 
-        m_Registry.assign<Graphics::Sprite>(testSprite, textures[textureID], size / -2.0f, size, colour);
-        m_Registry.assign<Physics2DComponent>(testSprite, blockPhysics);
-        m_Registry.assign<Maths::Transform>(testSprite);
+        m_Registry.emplace<Graphics::Sprite>(testSprite, textures[textureID], size / -2.0f, size, colour);
+        m_Registry.emplace<Physics2DComponent>(testSprite, blockPhysics);
+        m_Registry.emplace<Maths::Transform>(testSprite);
 	}
 
 	entt::entity groundSprite = m_Registry.create();
@@ -231,9 +235,9 @@ void Scene2D::LoadSprites()
 	groundPhysics->Init(groundParams);
     
 	//Set Position of sprite to -Scale to align with box2d collider
-    m_Registry.assign<Graphics::Sprite>(groundSprite, Maths::Vector2(-25.0f, -5.0f), Maths::Vector2(50.0f, 10.0f), Maths::Vector4(0.4f, 0.1f, 0.6f, 1.0f));
-    m_Registry.assign<Physics2DComponent>(groundSprite, groundPhysics);
-    m_Registry.assign<Maths::Transform>(groundSprite, Vector3(0.0f, -15.0f, 1.0f));
+    m_Registry.emplace<Graphics::Sprite>(groundSprite, Maths::Vector2(-25.0f, -5.0f), Maths::Vector2(50.0f, 10.0f), Maths::Vector4(0.4f, 0.1f, 0.6f, 1.0f));
+    m_Registry.emplace<Physics2DComponent>(groundSprite, groundPhysics);
+    m_Registry.emplace<Maths::Transform>(groundSprite, Vector3(0.0f, -15.0f, 1.0f));
 }
 
 void Scene2D::Reset()
@@ -284,7 +288,7 @@ void Scene2D::CreatePillar(int index, float offset)
 	auto pos = Maths::Vector3(offset / 2.0f, ((topY - bottomY )/ 2.0f) + bottomY, 0.0f);
 	auto scale = Maths::Vector3(1.0f, (topY - bottomY) / 2.0f, 1.0f);
 
-	m_Registry.assign<Graphics::Sprite>(pillarTop, -scale.xy(), scale.xy() * 2.0f, colour);
+	m_Registry.emplace<Graphics::Sprite>(pillarTop, -scale.xy(), scale.xy() * 2.0f, colour);
 
 	PhysicsObjectParamaters params;
 	params.position = pos;
@@ -295,8 +299,8 @@ void Scene2D::CreatePillar(int index, float offset)
 	blockPhysics->Init(params);
 	blockPhysics->GetB2Body()->SetLinearVelocity({ 1.0f, 0.0f });
 
-	m_Registry.assign<Physics2DComponent>(pillarTop, blockPhysics);
-	m_Registry.assign<Maths::Transform>(pillarTop, pos);
+	m_Registry.emplace<Physics2DComponent>(pillarTop, blockPhysics);
+	m_Registry.emplace<Maths::Transform>(pillarTop, pos);
 
 	//Bottom Pillar
 	topY = centre - (gapSize / 2.0f);
@@ -305,7 +309,7 @@ void Scene2D::CreatePillar(int index, float offset)
 	pos = Maths::Vector3(offset / 2.0f, ((topY - bottomY) / 2.0f) + bottomY, 0.0f);
 	scale = Maths::Vector3(1.0f, (topY - bottomY) / 2.0f, 1.0f);
 
-	m_Registry.assign<Graphics::Sprite>(pillarBottom, -scale.xy(), scale.xy() * 2.0f, colour);
+	m_Registry.emplace<Graphics::Sprite>(pillarBottom, -scale.xy(), scale.xy() * 2.0f, colour);
 
 	params.position = pos;
 	params.scale = scale;
@@ -315,8 +319,8 @@ void Scene2D::CreatePillar(int index, float offset)
 	blockPhysics->Init(params);
 	blockPhysics->GetB2Body()->SetLinearVelocity({ 1.0f, 0.0f });
 
-	m_Registry.assign<Physics2DComponent>(pillarBottom, blockPhysics);
-	m_Registry.assign<Maths::Transform>(pillarBottom, pos);
+	m_Registry.emplace<Physics2DComponent>(pillarBottom, blockPhysics);
+	m_Registry.emplace<Maths::Transform>(pillarBottom, pos);
 
 	if (pos.x > m_FurthestPillarPosX)
 		m_FurthestPillarPosX = pos.x;

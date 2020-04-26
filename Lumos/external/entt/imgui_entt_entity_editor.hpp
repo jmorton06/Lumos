@@ -8,91 +8,121 @@
 #include <imgui.h>
 #include <IconFontCppHeaders/IconsFontAwesome5.h>
 
-// if you have font awesome or something comparable you can set this to a wastebin
-#ifndef ESS_IMGUI_ENTT_E_E_DELETE_COMP_STR
-	#define ESS_IMGUI_ENTT_E_E_DELETE_COMP_STR "-"
-#endif
-
 namespace MM {
 
-template<typename Registry>
+template <class Component, class EntityType>
+void ComponentEditorWidget(entt::basic_registry<EntityType>& registry, EntityType entity) {}
+
+template <class Component, class EntityType>
+void ComponentAddAction(entt::basic_registry<EntityType>& registry, EntityType entity)
+{
+    registry.template emplace<Component>(entity);
+}
+
+template <class Component, class EntityType>
+void ComponentRemoveAction(entt::basic_registry<EntityType>& registry, EntityType entity)
+{
+    registry.template remove<Component>(entity);
+}
+
+template<typename EntityType>
 class ImGuiEntityEditor {
 	private:
-		using component_type = entt::component;
+        using Registry = entt::basic_registry<EntityType>;
 
-		std::set<component_type> _component_types;
-		std::map<component_type, std::string> _component_names;
-		std::map<component_type, void(*)(Registry&, typename Registry::entity_type)> _component_widget;
-		std::map<component_type, void(*)(Registry&, typename Registry::entity_type)> _component_create;
-		std::map<component_type, void(*)(Registry&, typename Registry::entity_type)> _component_destroy;
 
-	private:
-		inline bool entity_has_component(Registry& ecs, typename Registry::entity_type& e, component_type ct) {
-			component_type type[] = { ct };
-			auto rv = ecs.runtime_view(std::cbegin(type), std::cend(type));
-			return rv.contains(e);
-		}
+        struct ComponentInfo {
+            using Callback = std::function<void(Registry&, EntityType)>;
+            std::string name;
+            Callback widget, create, destroy;
+        };
+    
+    private:
+        using ComponentTypeID = ENTT_ID_TYPE;
 
+        std::map<ComponentTypeID, ComponentInfo> component_infos;
+
+        bool entityHasComponent(Registry& registry, EntityType& entity, ComponentTypeID type_id)
+        {
+            ComponentTypeID type[] = { type_id };
+            return registry.runtime_view(std::cbegin(type), std::cend(type)).contains(entity);
+        }
+    
 	public:
+    
+        template <class Component>
+        ComponentInfo& registerComponent(const ComponentInfo& component_info)
+        {
+            auto index = entt::type_info<Component>::id();
+            auto [it, insert_result] = component_infos.insert_or_assign(index, component_info);
+            assert(insert_result);
+            return std::get<ComponentInfo>(*it);
+        }
+
+        template <class Component>
+        ComponentInfo& registerComponent(const std::string& name, typename ComponentInfo::Callback widget)
+        {
+            return registerComponent<Component>(ComponentInfo{
+                name,
+                widget,
+                ComponentAddAction<Component, EntityType>,
+                ComponentRemoveAction<Component, EntityType>,
+            });
+        }
+
+        template <class Component>
+        ComponentInfo& registerComponent(const std::string& name)
+        {
+            return registerComponent<Component>(name, ComponentEditorWidget<Component, EntityType>);
+        }
+    
 		// calls all the ImGui functions
 		// call this every frame
-		void RenderImGui(Registry& ecs, typename Registry::entity_type& e) 
+		void RenderImGui(Registry& registry, typename Registry::entity_type& e)
 		{
 			if (e != entt::null)
 			{
-				std::vector<component_type> has_not;
-				for (auto ct : _component_types)
-				{
-					if (entity_has_component(ecs, e, ct)) 
-					{
-						std::string label;
-						if (_component_names.count(ct)) 
-						{
-							label = _component_names[ct];
-						} 
-						else 
-						{
-							label = "unnamed component (";
-							label += entt::to_integer(ct);
-							label += ")";
-						}
+				std::map<ComponentTypeID, ComponentInfo> has_not;
+                for (auto& [component_type_id, ci] : component_infos)
+                {
+                    if (entityHasComponent(registry, e, component_type_id))
+                    {
+                        ImGui::PushID(component_type_id);
 
-						bool open = ImGui::CollapsingHeader(label.c_str(), ImGuiTreeNodeFlags_AllowItemOverlap);
-						
-						ImGui::SameLine(ImGui::GetWindowWidth() - 22.0f);
+                        std::string label = ci.name;
+                        
+                        bool open = ImGui::CollapsingHeader(label.c_str(), ImGuiTreeNodeFlags_AllowItemOverlap);
 
-						if (ImGui::Button((ICON_FA_COG"##" + label).c_str()))
-							ImGui::OpenPopup(("Remove Component" + label).c_str());
+                        ImGui::SameLine(ImGui::GetWindowWidth() - 22.0f);
 
-						bool removed = false;
-						if (ImGui::BeginPopup(("Remove Component" + label).c_str(), 3))
-						{
-							if (ImGui::Selectable(("Remove##" + label).c_str()))
-							{
-								_component_destroy[ct](ecs, e);
-								removed = true;
-							}
-							ImGui::EndPopup();
-							if (removed)
-								continue;
-						}
-						if(open)
-						{
-							if (_component_widget.count(ct)) 
-							{
-								_component_widget[ct](ecs, e);
-							}
-							else 
-							{
-								ImGui::TextDisabled("missing widget to display component!");
-							}
-						}
-					} 
-					else
-					{
-						has_not.push_back(ct);
-					}
-				}
+                        if (ImGui::Button((ICON_FA_COG"##" + label).c_str()))
+                            ImGui::OpenPopup(("Remove Component" + label).c_str());
+
+                        bool removed = false;
+                        if (ImGui::BeginPopup(("Remove Component" + label).c_str(), 3))
+                        {
+                            if (ImGui::Selectable(("Remove##" + label).c_str()))
+                            {
+                                ci.destroy(registry, e);
+                                removed = true;
+                            }
+                            ImGui::EndPopup();
+                            if (removed)
+                                continue;
+                        }
+                        if(open)
+                        {
+                            ImGui::PushID("Widget");
+                            ci.widget(registry, e);
+                            ImGui::PopID();
+                        }
+                        ImGui::PopID();
+                    }
+                    else
+                    {
+                        has_not[component_type_id] = ci;
+                    }
+                }
 
 				if (!has_not.empty()) 
 				{
@@ -105,87 +135,21 @@ class ImGuiEntityEditor {
 					{
 						ImGui::TextUnformatted("Available:");
 						ImGui::Separator();
-
-						for (auto ct : has_not)
-						{
-							if (_component_create.count(ct))
-							{
-								std::string label;
-								if (_component_names.count(ct))
-								{
-									label = _component_names[ct];
-								} 
-								else 
-								{
-									label = "unnamed component (";
-									label += entt::to_integer(ct);
-									label += ")";
-								}
-
-								label += "##"; label += entt::to_integer(ct); // better but optional
-
-								if (ImGui::Selectable(label.c_str())) 
-								{
-									_component_create[ct](ecs, e);
-								}
-							}
-						}
+                        
+                        for (auto& [component_type_id, ci] : has_not)
+                        {
+                            ImGui::PushID(component_type_id);
+                            if (ImGui::Selectable(ci.name.c_str()))
+                            {
+                                ci.create(registry, e);
+                            }
+                            ImGui::PopID();
+                        }
 
 						ImGui::EndPopup();
 					}
 				}
 			}
-		}
-
-		// call this (or registerTrivial) before any of the other register functions
-		void registerComponentType(component_type ct) 
-		{
-			if (!_component_types.count(ct))
-			{
-				_component_types.emplace(ct);
-			}
-		}
-
-		// register a name to be displayed for the component
-		void registerComponentName(component_type ct, const std::string& name) 
-		{
-			_component_names[ct] = name;
-		}
-
-		// register a callback to a function displaying a component. using imgui
-		void registerComponentWidgetFn(component_type ct, void(*fn)(Registry&, typename Registry::entity_type)) 
-		{
-			_component_widget[ct] = fn;
-		}
-
-		// register a callback to create a component, if none, you wont be able to create it in the editor
-		void registerComponentCreateFn(component_type ct, void(*fn)(Registry&, typename Registry::entity_type))
-		{
-			_component_create[ct] = fn;
-		}
-
-		// register a callback to delete a component, if none, you wont be able to delete it in the editor
-		void registerComponentDestroyFn(component_type ct, void(*fn)(Registry&, typename Registry::entity_type))
-		{
-			_component_destroy[ct] = fn;
-		}
-
-		// registers the component_type, name, create and destroy for rather trivial types
-		template<typename T>
-		void registerTrivial(Registry& ecs, const std::string& name) 
-		{
-			registerComponentType(ecs.template type<T>());
-			registerComponentName(ecs.template type<T>(), name);
-			registerComponentCreateFn(ecs.template type<T>(),
-				[](Registry& ecs, typename Registry::entity_type e) 
-				{
-					ecs.template assign<T>(e);
-				});
-			registerComponentDestroyFn(ecs.template type<T>(),
-				[](Registry& ecs, typename Registry::entity_type e)
-				{
-					ecs.template remove<T>(e);
-				});
 		}
 };
 

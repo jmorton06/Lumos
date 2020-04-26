@@ -377,8 +377,8 @@ layout(location = 0) out vec4 outColor;
 void main()
 {
 	vec4 colourTex   = texture(uColourSampler   , fragTexCoord);
-
-	 if(colourTex.w < 0.1)
+	
+	if(colourTex.w < 0.1)
         discard;
 
     vec4 positionTex = texture(uPositionSampler , fragTexCoord);
