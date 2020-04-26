@@ -47,7 +47,6 @@ struct _ECS_export_view< entt::type_list< Component... >, entt::type_list < Excl
 		void OnInit();
         void OnUpdate(Scene* scene);
 
-        void BindImGuiLua(sol::state& solState);
         void BindECSLua(sol::state& state);
         void BindMathsLua(sol::state& state);
         void BindLogLua(sol::state& state);
