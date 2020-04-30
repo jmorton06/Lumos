@@ -2,7 +2,7 @@
 #include "Maths/Maths.h"
 #include "WeldConstraint.h"
 #include "PhysicsObject3D.h"
-
+#include "Graphics/Renderers/DebugRenderer.h"
 
 namespace Lumos
 {
@@ -29,5 +29,11 @@ namespace Lumos
 
 	void WeldConstraint::DebugDraw() const
 	{
+        Maths::Vector3 posA = m_pObj1->GetPosition();
+        Maths::Vector3 posB = m_pObj2->GetPosition();
+
+        DebugRenderer::DrawThickLine(posA, posB, 0.02f, Maths::Vector4(0.0f, 0.0f, 0.0f, 1.0f));
+        DebugRenderer::DrawPointNDT(posA, 0.05f, Maths::Vector4(1.0f, 0.8f, 1.0f, 1.0f));
+        DebugRenderer::DrawPointNDT(posB, 0.05f, Maths::Vector4(1.0f, 0.8f, 1.0f, 1.0f));
 	}
 }

@@ -7,6 +7,7 @@
 #include "ECS/Component/Physics2DComponent.h"
 
 #include "Maths/Transform.h"
+#include "B2DebugDraw.h"
 
 #include <Box2D/Box2D.h>
 #include <Box2D/Common/b2Math.h>
@@ -17,10 +18,21 @@ namespace Lumos
 {
 	B2PhysicsEngine::B2PhysicsEngine()
 		: m_B2DWorld(CreateScope<b2World>(b2Vec2(0.0f,-9.81f)))
+		, m_DebugDraw(CreateScope<B2DebugDraw>())
 		, m_UpdateTimestep(1.0f / 60.f)
         , m_UpdateAccum(0.0f)
 	{
         m_DebugName = "Box2D Physics Engine";
+		m_B2DWorld->SetDebugDraw(m_DebugDraw.get());
+
+        uint32 flags = 0;
+        flags += b2Draw::e_shapeBit;
+        flags += b2Draw::e_jointBit;
+        //flags += b2Draw::e_aabbBit;
+        //flags += b2Draw::e_centerOfMassBit;
+        flags += b2Draw::e_pairBit;
+
+        m_DebugDraw->SetFlags(flags);
 	}
 
 	B2PhysicsEngine::~B2PhysicsEngine() = default;
@@ -132,4 +144,17 @@ namespace Lumos
 	{
 		body->CreateFixture(fixtureDef);
 	}
+    
+    void B2PhysicsEngine::OnDebugDraw() { m_B2DWorld->DrawDebugData(); }
+    
+    void B2PhysicsEngine::SetDebugDrawFlags(u32 flags)
+    {
+        m_DebugDraw->SetFlags(flags);
+    }
+    
+    u32 B2PhysicsEngine::GetDebugDrawFlags()
+    {
+        return m_DebugDraw->GetFlags();
+    }
+
 }

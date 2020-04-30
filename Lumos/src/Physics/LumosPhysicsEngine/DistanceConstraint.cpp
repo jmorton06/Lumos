@@ -3,6 +3,8 @@
 #include "LumosPhysicsEngine.h"
 #include "DistanceConstraint.h"
 
+#include "Graphics/Renderers/DebugRenderer.h"
+
 namespace Lumos
 {
 
@@ -59,5 +61,11 @@ namespace Lumos
 
 	void DistanceConstraint::DebugDraw() const
 	{
+        Maths::Vector3 globalOnA = m_pObj1->GetOrientation().RotationMatrix() * m_LocalOnA + m_pObj1->GetPosition();
+        Maths::Vector3 globalOnB = m_pObj2->GetOrientation().RotationMatrix() * m_LocalOnB + m_pObj2->GetPosition();
+
+        DebugRenderer::DrawThickLine(globalOnA, globalOnB, 0.02f, Maths::Vector4(0.0f, 0.0f, 0.0f, 1.0f));
+        DebugRenderer::DrawPointNDT(globalOnA, 0.05f, Maths::Vector4(1.0f, 0.8f, 1.0f, 1.0f));
+        DebugRenderer::DrawPointNDT(globalOnB, 0.05f, Maths::Vector4(1.0f, 0.8f, 1.0f, 1.0f));
 	}
 }

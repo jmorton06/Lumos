@@ -1,5 +1,6 @@
 #pragma once
 #include "lmpch.h"
+#include "Renderer.h"
 
 namespace Lumos
 {
@@ -20,6 +21,13 @@ namespace Lumos
 			FRONTANDBACK,
 			NONE
 		};
+    
+        enum PolygonMode
+        {
+            Fill,
+            Line,
+            Point
+        };
 
 		struct PipelineInfo
 		{
@@ -37,12 +45,14 @@ namespace Lumos
 			CullMode cullMode;
 			String pipelineName;
 			int numColorAttachments;
-			bool wireframeEnabled;
+			PolygonMode polygonMode;
 			bool transparencyEnabled;
 			bool depthBiasEnabled;
 			u32 width;
 			u32 height;
 			u32 maxObjects;
+            float lineWidth = -1.0f;
+			DrawType drawType = DrawType::TRIANGLE;
 
 		};
 		class LUMOS_EXPORT Pipeline

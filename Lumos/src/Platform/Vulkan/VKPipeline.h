@@ -48,6 +48,7 @@ namespace Lumos
 			std::string m_PipelineName;
 			DescriptorSet* m_DescriptorSet = nullptr;
 			Shader*	m_Shader = nullptr;
+            float m_LineWidth = -1.0f;
 
 		};
 	}

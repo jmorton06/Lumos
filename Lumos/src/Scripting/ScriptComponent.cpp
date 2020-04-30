@@ -21,7 +21,7 @@ namespace Lumos
 
     ScriptComponent::~ScriptComponent()
     {
-        if(m_Env["OnRelease"])
+        if(m_Env && m_Env["OnRelease"])
             m_Env["OnRelease"]();
     }
 
@@ -54,13 +54,13 @@ namespace Lumos
 
     void ScriptComponent::Update(float dt)
     {
-        if(m_Env["OnUpdate"])
+        if(m_Env && m_Env["OnUpdate"])
             m_Env["OnUpdate"](dt);
     }
 
     void ScriptComponent::Reload()
     {
-        if(m_Env["OnRelease"])
+        if(m_Env && m_Env["OnRelease"])
             m_Env["OnRelease"]();
         
         Init();
@@ -68,7 +68,7 @@ namespace Lumos
 
     void ScriptComponent::Load(const String& fileName)
     {
-        if(m_Env["OnRelease"])
+        if(m_Env && m_Env["OnRelease"])
             m_Env["OnRelease"]();
         
         m_FileName = fileName;

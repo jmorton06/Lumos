@@ -60,16 +60,6 @@ namespace Lumos
 #endif
 		return surface;
 	}
-
-    static const char* GetPlatformSurfaceExtension()
-	{
-        #if defined(VK_USE_PLATFORM_MACOS_MVK)
-            return VK_MVK_MACOS_SURFACE_EXTENSION_NAME;
-
-        #elif defined(VK_USE_PLATFORM_METAL_EXT)
-            return VK_EXT_METAL_SURFACE_EXTENSION_NAME;
-        #endif
-	}
 }
 
 #endif

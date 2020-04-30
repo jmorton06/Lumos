@@ -48,11 +48,9 @@ struct _ECS_export_view< entt::type_list< Component... >, entt::type_list < Excl
         void OnUpdate(Scene* scene);
 
         void BindECSLua(sol::state& state);
-        void BindMathsLua(sol::state& state);
         void BindLogLua(sol::state& state);
         void BindInputLua(sol::state& state);
 		void BindSceneLua(sol::state& state);
-        void BindPhysicsObjects(sol::state& state);
 
 		sol::state& GetState() { return m_State; }
 

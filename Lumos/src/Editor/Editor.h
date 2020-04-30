@@ -30,6 +30,7 @@ namespace Lumos
 	class Editor
 	{
 		friend class Application;
+        friend class SceneWindow;
 	public:
 		Editor(Application* app, u32 width, u32 height);
 		~Editor();

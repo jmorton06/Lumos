@@ -132,12 +132,43 @@ namespace Lumos
 			inputAssemblyCI.sType = VK_STRUCTURE_TYPE_PIPELINE_INPUT_ASSEMBLY_STATE_CREATE_INFO;
 			inputAssemblyCI.pNext = NULL;
 			inputAssemblyCI.primitiveRestartEnable = VK_FALSE;
-			inputAssemblyCI.topology = VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST;
+		
+            switch(pipelineCI.drawType)
+            {
+                case DrawType::TRIANGLE :
+                inputAssemblyCI.topology = VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST;
+                break;
+                case DrawType::LINES :
+                inputAssemblyCI.topology = VK_PRIMITIVE_TOPOLOGY_LINE_LIST;
+                break;
+                case DrawType::POINT :
+                inputAssemblyCI.topology = VK_PRIMITIVE_TOPOLOGY_POINT_LIST;
+                break;
+                default :
+                inputAssemblyCI.topology = VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST;
+                break;
+            }
+        
+            VkPipelineRasterizationStateCreateInfo rs{};
 
-			VkPipelineRasterizationStateCreateInfo rs{};
+            switch(pipelineCI.polygonMode)
+            {
+                case Graphics::PolygonMode::Fill :
+                rs.polygonMode = VK_POLYGON_MODE_FILL;
+                break;
+                case Graphics::PolygonMode::Line :
+                rs.polygonMode = VK_POLYGON_MODE_LINE;
+                break;
+                case Graphics::PolygonMode::Point :
+                rs.polygonMode = VK_POLYGON_MODE_POINT;
+                break;
+                default :
+                rs.polygonMode = VK_POLYGON_MODE_FILL;
+                break;
+            }
+        
 			rs.sType = VK_STRUCTURE_TYPE_PIPELINE_RASTERIZATION_STATE_CREATE_INFO;
 			rs.pNext = NULL;
-			rs.polygonMode = (pipelineCI.wireframeEnabled ? VK_POLYGON_MODE_LINE : VK_POLYGON_MODE_FILL);
 			rs.cullMode = VKTools::CullModeToVK(pipelineCI.cullMode);
 			rs.frontFace = VK_FRONT_FACE_COUNTER_CLOCKWISE;
 			rs.depthClampEnable = VK_FALSE;
@@ -199,6 +230,12 @@ namespace Lumos
 			vp.pViewports = NULL;
 			dynamicStateEnables[dynamicStateCI.dynamicStateCount++] = VK_DYNAMIC_STATE_VIEWPORT;
 			dynamicStateEnables[dynamicStateCI.dynamicStateCount++] = VK_DYNAMIC_STATE_SCISSOR;
+        
+            if(pipelineCI.lineWidth > 0.0f)
+            {
+                dynamicStateEnables[dynamicStateCI.dynamicStateCount++] = VK_DYNAMIC_STATE_LINE_WIDTH;
+                m_LineWidth = pipelineCI.lineWidth;
+            }
 
 			if (pipelineCI.depthBiasEnabled)
 				dynamicStateEnables[dynamicStateCI.dynamicStateCount++] = VK_DYNAMIC_STATE_DEPTH_BIAS;

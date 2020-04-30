@@ -31,6 +31,7 @@
 #include "Graphics/Renderers/GridRenderer.h"
 
 #include "ImGui/ImGuiHelpers.h"
+#include "Graphics/Renderers/DebugRenderer.h"
 
 #include <imgui/imgui_internal.h>
 #include <imgui/plugins/ImGuizmo.h>
@@ -651,7 +652,7 @@ namespace Lumos
 			if (m_Application->GetSceneManager()->GetCurrentScene()->GetCamera()->GetPosition().Equals(m_CameraDestination))
 				m_TransitioningCamera = false;
 		}
-	}
+    }
 
 	void Editor::BindEventFunction()
 	{

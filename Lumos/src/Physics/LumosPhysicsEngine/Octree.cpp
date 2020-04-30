@@ -2,6 +2,7 @@
 
 #include "Maths/Maths.h"
 #include "Octree.h"
+#include "Graphics/Renderers/DebugRenderer.h"
 
 namespace Lumos
 {
@@ -112,5 +113,13 @@ namespace Lumos
 
 	void Octree::DebugDrawOctreeNode(OctreeNode* node)
 	{
+        if (node)
+        {
+            DebugRenderer::DebugDraw(&node->boundingBox, Maths::Vector4(0.8f, 0.2f, 0.4f, 1.0f), 0.1f);
+
+            // Draw sub divisions
+            for (auto &childNode : node->childNodes)
+                DebugDrawOctreeNode(childNode.get());
+        }
 	}
 }
