@@ -11,6 +11,7 @@ struct b2FixtureDef;
 namespace Lumos
 {
 	class TimeStep;
+	class B2DebugDraw;
 
 	class LUMOS_EXPORT B2PhysicsEngine : public ISystem
 	{
@@ -32,9 +33,16 @@ namespace Lumos
 
 		void SetPaused(bool paused) { m_Paused = paused; }
 		bool IsPaused() const { return m_Paused; }
+
+        void OnDebugDraw() override;
+    
+        u32 GetDebugDrawFlags();
+        void SetDebugDrawFlags(u32 flags);
+    
 	private:
 
 		Scope<b2World> m_B2DWorld;
+		Scope<B2DebugDraw> m_DebugDraw;
 
 		float m_UpdateTimestep, m_UpdateAccum;
 		bool m_Paused = true;

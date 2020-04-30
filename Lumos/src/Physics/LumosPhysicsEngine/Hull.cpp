@@ -1,5 +1,6 @@
 #include "lmpch.h"
 #include "Hull.h"
+#include "Graphics/Renderers/DebugRenderer.h"
 
 namespace Lumos
 {
@@ -161,5 +162,29 @@ namespace Lumos
 
 	void Hull::DebugDraw(const Maths::Matrix4& transform)
 	{
+        //Draw all Hull Polygons
+        for (HullFace& face : m_Faces)
+        {
+            //Render Polygon as triangle fan
+            if (face.vert_ids.size() > 2)
+            {
+                Maths::Vector3 polygon_start = transform * m_Vertices[face.vert_ids[0]].pos;
+                Maths::Vector3 polygon_last = transform * m_Vertices[face.vert_ids[1]].pos;
+
+                for (size_t idx = 2; idx < face.vert_ids.size(); ++idx)
+                {
+                    Maths::Vector3 polygon_next = transform * m_Vertices[face.vert_ids[idx]].pos;
+
+                    DebugRenderer::DrawTriangle(polygon_start, polygon_last, polygon_next, Maths::Vector4(1.0f, 1.0f, 1.0f, 0.2f));
+                    polygon_last = polygon_next;
+                }
+            }
+        }
+
+        //Draw all Hull Edges
+        for (HullEdge& edge : m_Edges)
+        {
+            DebugRenderer::DrawThickLine(transform * m_Vertices[edge.vStart].pos, transform * m_Vertices[edge.vEnd].pos, 0.02f, Maths::Vector4(0.7f, 0.2f, 0.7f, 1.0f));
+        }
 	}
 }

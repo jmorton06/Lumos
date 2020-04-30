@@ -108,7 +108,10 @@ class ImGuiEntityEditor {
                             }
                             ImGui::EndPopup();
                             if (removed)
+                            {
+                                ImGui::PopID();
                                 continue;
+                            }
                         }
                         if(open)
                         {

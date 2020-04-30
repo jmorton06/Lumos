@@ -33,11 +33,11 @@ namespace Lumos
 {
 	namespace Graphics
 	{
-		Renderer2D::Renderer2D(u32 width, u32 height, bool renderToGBuffer) : m_IndexCount(0), m_RenderTexture(nullptr), m_Buffer(nullptr)
+		Renderer2D::Renderer2D(u32 width, u32 height, bool renderToGBuffer, bool clear, bool triangleIndicies) : m_IndexCount(0), m_RenderTexture(nullptr), m_Buffer(nullptr), m_Clear(clear)
 		{
 			Renderer2D::SetScreenBufferSize(width, height);
 
-			Renderer2D::Init();
+			Renderer2D::Init(triangleIndicies);
 
 			Renderer2D::SetRenderToGBufferTexture(renderToGBuffer);
 		}
@@ -68,7 +68,7 @@ namespace Lumos
 			}
 		}
 
-		void Renderer2D::Init()
+		void Renderer2D::Init(bool triangleIndicies)
 		{
 			LUMOS_PROFILE_FUNC;
 			m_Shader = Shader::CreateFromFile("Batch2D", "/CoreShaders/");
@@ -90,7 +90,7 @@ namespace Lumos
 			Graphics::RenderpassInfo renderpassCI;
 			renderpassCI.attachmentCount = 1;
 			renderpassCI.textureType = textureTypes;
-			renderpassCI.clear = true;
+			renderpassCI.clear = m_Clear;
 
 			m_RenderPass->Init(renderpassCI);
 
@@ -158,20 +158,30 @@ namespace Lumos
 
 			u32* indices = lmnew u32[RENDERER_INDICES_SIZE];
 
-			i32 offset = 0;
-			for (i32 i = 0; i < RENDERER_INDICES_SIZE; i += 6)
-			{
-				indices[i] = offset + 0;
-				indices[i + 1] = offset + 1;
-				indices[i + 2] = offset + 2;
+            if(triangleIndicies)
+            {
+                i32 offset = 0;
+                for (i32 i = 0; i < RENDERER_INDICES_SIZE; i++)
+                {
+                    indices[i] = i;
+                }
+            }
+            else
+            {
+                i32 offset = 0;
+                for (i32 i = 0; i < RENDERER_INDICES_SIZE; i += 6)
+                {
+                    indices[i] = offset + 0;
+                    indices[i + 1] = offset + 1;
+                    indices[i + 2] = offset + 2;
 
-				indices[i + 3] = offset + 2;
-				indices[i + 4] = offset + 3;
-				indices[i + 5] = offset + 0;
+                    indices[i + 3] = offset + 2;
+                    indices[i + 4] = offset + 3;
+                    indices[i + 5] = offset + 0;
 
-				offset += 4;
-			}
-
+                    offset += 4;
+                }
+            }
 			m_IndexBuffer = IndexBuffer::Create(indices, RENDERER_INDICES_SIZE);
 
 			delete[] indices;
@@ -181,6 +191,9 @@ namespace Lumos
 
 		void Renderer2D::Submit(Renderable2D* renderable, const Maths::Matrix4& transform)
 		{
+            if(m_IndexCount >= RENDERER_INDICES_SIZE)
+                FlushAndReset();
+        
 			const Maths::Vector2 min = renderable->GetPosition();
 			const Maths::Vector2 max = renderable->GetPosition() + renderable->GetScale();
 
@@ -222,6 +235,61 @@ namespace Lumos
 
 			m_IndexCount += 6;
 		}
+    
+        void Renderer2D::SubmitTriangle(const Maths::Vector3& p1, const Maths::Vector3& p2, const Maths::Vector3& p3, const Maths::Vector4& colour)
+        {
+             m_Triangles.emplace_back(p1, p2, p3, colour);
+
+        }
+    
+        void Renderer2D::SubmitInternal(const TriangleInfo& triangleInfo)
+        {
+            if(m_IndexCount >= RENDERER_INDICES_SIZE)
+                        FlushAndReset();
+
+            float textureSlot = 0.0f;
+
+            m_Buffer->vertex = triangleInfo.p1;
+            m_Buffer->uv = { 0.0f ,0.0f};
+            m_Buffer->tid = Maths::Vector2(textureSlot,0.0f);
+            m_Buffer->color = triangleInfo.col;
+            m_Buffer++;
+
+            m_Buffer->vertex = triangleInfo.p2;
+            m_Buffer->uv = { 0.0f ,0.0f};
+            m_Buffer->tid = Maths::Vector2(textureSlot, 0.0f);
+            m_Buffer->color = triangleInfo.col;
+            m_Buffer++;
+
+            m_Buffer->vertex = triangleInfo.p3;
+            m_Buffer->uv = { 0.0f ,0.0f};
+            m_Buffer->tid = Maths::Vector2(textureSlot, 0.0f);
+            m_Buffer->color = triangleInfo.col;
+            m_Buffer++;
+
+            m_IndexCount += 3;
+        }
+
+		void Renderer2D::BeginSimple()
+		{
+			m_Textures.clear();
+			m_Sprites.clear();
+            m_Triangles.clear();
+		}
+
+		void Renderer2D::BeginRenderPass()
+		{
+			m_CurrentBufferID = 0;
+			if (!m_RenderTexture)
+				m_CurrentBufferID = Renderer::GetSwapchain()->GetCurrentBufferId();
+
+			m_CommandBuffers[m_CurrentBufferID]->BeginRecording();
+
+			m_RenderPass->BeginRenderpass(m_CommandBuffers[m_CurrentBufferID], m_ClearColour, m_Framebuffers[m_CurrentBufferID], Graphics::SECONDARY, m_ScreenBufferWidth, m_ScreenBufferHeight);
+
+			m_VertexArrays[m_BatchDrawCallIndex]->Bind(m_CommandBuffers[m_CurrentBufferID]);
+            m_Buffer = m_VertexArrays[m_BatchDrawCallIndex]->GetBuffer()->GetPointer<VertexData>();
+		}
 
 		void Renderer2D::Begin()
 		{
@@ -235,6 +303,7 @@ namespace Lumos
 
 			m_Textures.clear();
 			m_Sprites.clear();
+            m_Triangles.clear();
 
 			m_VertexArrays[m_BatchDrawCallIndex]->Bind(m_CommandBuffers[m_CurrentBufferID]);
 			m_Buffer = m_VertexArrays[m_BatchDrawCallIndex]->GetBuffer()->GetPointer<VertexData>();
@@ -327,6 +396,9 @@ namespace Lumos
                 
                 Submit(reinterpret_cast<Renderable2D*>(&sprite), trans.GetWorldMatrix());
             };
+        
+            for(auto& triangle : m_Triangles)
+                SubmitInternal(triangle);
 
 			Present();
 
@@ -351,13 +423,7 @@ namespace Lumos
 			{
 				if (m_Textures.size() >= RENDERER_MAX_TEXTURES)
 				{
-					Present();
-
-					m_Textures.clear();
-					m_Sprites.clear();
-
-					m_VertexArrays[m_BatchDrawCallIndex]->Bind();
-					m_Buffer = m_VertexArrays[m_BatchDrawCallIndex]->GetBuffer()->GetPointer<VertexData>();
+                    FlushAndReset();
 				}
 				m_Textures.push_back(texture);
 				result = static_cast<float>(m_Textures.size());
@@ -478,9 +544,9 @@ namespace Lumos
 			pipelineCI.typeCounts = poolInfo.data();
 			pipelineCI.strideSize = sizeof(VertexData);
 			pipelineCI.numColorAttachments = 1;
-			pipelineCI.wireframeEnabled = false;
+            pipelineCI.polygonMode = Graphics::PolygonMode::Fill;
 			pipelineCI.cullMode = Graphics::CullMode::BACK;
-			pipelineCI.transparencyEnabled = false;
+			pipelineCI.transparencyEnabled = true;
 			pipelineCI.depthBiasEnabled = false;
 			pipelineCI.width = m_ScreenBufferWidth;
 			pipelineCI.height = m_ScreenBufferHeight;
@@ -565,5 +631,17 @@ namespace Lumos
                 CreateFramebuffers();
             }
 		}
+    
+        void Renderer2D::FlushAndReset()
+        {
+            Present();
+        
+            m_Textures.clear();
+            m_Sprites.clear();
+            m_Triangles.clear();
+            
+            m_VertexArrays[m_BatchDrawCallIndex]->Bind();
+            m_Buffer = m_VertexArrays[m_BatchDrawCallIndex]->GetBuffer()->GetPointer<VertexData>();
+        }
 	}
 }

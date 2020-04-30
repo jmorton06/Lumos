@@ -12,6 +12,7 @@
 #include "Graphics/Layers/LayerStack.h"
 #include "Graphics/Camera/Camera.h"
 #include "Graphics/Material.h"
+#include "Graphics/Renderers/DebugRenderer.h"
 
 #include "Utilities/CommonUtils.h"
 #include "Utilities/AssetsManager.h"
@@ -126,6 +127,13 @@ namespace Lumos
         Material::InitDefaultTexture();
 
 		m_CurrentState = AppState::Running;
+	
+#ifdef  LUMOS_EDITOR
+        DebugRenderer::Init(screenWidth, screenHeight, true);
+#else
+        DebugRenderer::Init(screenWidth, screenHeight ,false);
+#endif
+
 	}
 
 	int Application::Quit(bool pause, const std::string &reason)
@@ -172,7 +180,7 @@ namespace Lumos
 		{
 			m_UpdateTimer += Engine::Instance()->TargetFrameRate();
 #endif
-
+        
             Profiler::Instance()->Update(now);
             Engine::GetTimeStep()->Update(now);
 
@@ -184,7 +192,6 @@ namespace Lumos
 
 			ImGui::NewFrame();
 
-
 			{
                 LUMOS_PROFILE_BLOCK("Application::Update");
 				OnUpdate(Engine::GetTimeStep());
@@ -195,6 +202,7 @@ namespace Lumos
 			{
                 LUMOS_PROFILE_BLOCK("Application::Render");
 				OnRender();
+
 				m_Frames++;
 			}
 
@@ -235,11 +243,23 @@ namespace Lumos
 		if (m_LayerStack->GetCount() > 0)
 		{
 			Graphics::Renderer::GetRenderer()->Begin();
+            DebugRenderer::Reset();
+
+            m_SystemManager->OnDebugDraw();
 
 			m_LayerStack->OnRender(m_SceneManager->GetCurrentScene());
+			DebugRenderer::Render(m_SceneManager->GetCurrentScene());
 			m_ImGuiLayer->OnRender(m_SceneManager->GetCurrentScene());
 
 			Graphics::Renderer::GetRenderer()->Present();
+        
+            m_FramesSinceLastUpdate++;
+            if(m_SceneViewSizeUpdated)
+            {
+                Application::Instance()->OnSceneViewSizeUpdated(m_SceneViewWidth, m_SceneViewHeight);
+                Debug::Log::Info("Updated Scene View Size : {0}, {1}", m_SceneViewWidth, m_SceneViewHeight );
+                m_SceneViewSizeUpdated = false;
+            }
 		}
 	}
 
@@ -368,6 +388,8 @@ namespace Lumos
 
 		m_RenderManager->OnResize(width, height);
 		Graphics::Renderer::GetRenderer()->OnResize(width, height);
+        DebugRenderer::OnResize(width, height);
+    
 		return false;
 	}
 
@@ -379,4 +401,18 @@ namespace Lumos
 #endif
 		Application::Instance()->GetSceneManager()->GetCurrentScene()->OnImGui();
 	}
+    
+    void Application::OnSceneViewSizeUpdated(u32 width, u32 height)
+    {
+        WindowResizeEvent e(width, height);
+        if (width == 0 || height == 0)
+        {
+            m_Minimized = true;
+        }
+        m_Minimized = false;
+
+        m_RenderManager->OnResize(width, height);
+        m_LayerStack->OnEvent(e);
+        DebugRenderer::OnResize(width, height);
+    }
 }

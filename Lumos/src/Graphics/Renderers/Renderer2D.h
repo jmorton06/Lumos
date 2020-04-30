@@ -21,15 +21,34 @@ namespace Lumos
 		class Shader;
 		class IndexBuffer;
 		class VertexArray;
+    
+        struct TriangleInfo
+        {
+            Maths::Vector3 p1;
+            Maths::Vector3 p2;
+            Maths::Vector3 p3;
+            Maths::Vector4 col;
+        
+            TriangleInfo(const Maths::Vector3& pos1,const Maths::Vector3& pos2, const Maths::Vector3& pos3, const Maths::Vector4& colour)
+            {
+                p1 = pos1;
+                p2 = pos2;
+                p3 = pos3;
+                col = colour;
+            }
+        };
 
 		class LUMOS_EXPORT Renderer2D
 		{
 		public:
-			Renderer2D(u32 width, u32 height, bool renderToGBuffer = false);
+			Renderer2D(u32 width, u32 height, bool renderToGBuffer = false, bool clear = true, bool triangleIndicies = false);
 			virtual ~Renderer2D();
 
-			virtual void Init();
+			virtual void Init(bool triangleIndicies = false);
 			virtual void Submit(Renderable2D* renderable, const Maths::Matrix4& transform);
+            virtual void SubmitTriangle(const Maths::Vector3& p1, const Maths::Vector3& p2, const Maths::Vector3& p3, const Maths::Vector4& colour);
+			virtual void BeginSimple();
+			virtual void BeginRenderPass();
 			virtual void Begin();
 			virtual void BeginScene(Scene* scene);
 			virtual void Present();
@@ -55,8 +74,15 @@ namespace Lumos
 			void CreateGraphicsPipeline();
 			void CreateFramebuffers();
 			void UpdateDesciptorSet() const;
+        
+            void FlushAndReset();
+
+			Shader* GetShader() const { return m_Shader; }
 
 		private:
+        
+            void SubmitInternal(const TriangleInfo& triangle);
+        
 			std::vector<Renderable2D*> m_Sprites;
 			u32 m_ScreenBufferWidth{}, m_ScreenBufferHeight{};
 
@@ -88,8 +114,11 @@ namespace Lumos
 			bool m_RenderToGBufferTexture = false;
 			u32 m_CurrentBufferID = 0;
 			Maths::Vector4 m_ClearColour;
-            
+            Maths::Vector3 m_QuadPositions[4];
+            bool m_Clear = false;
             Maths::Frustum m_Frustum;
+        
+            std::vector<TriangleInfo> m_Triangles;
 		};
 	}
 }

@@ -79,7 +79,7 @@ void Scene2D::OnInit()
 	editor = true;
 #endif
 
-	Application::Instance()->PushLayer(new Layer2D(new Graphics::Renderer2D(m_ScreenWidth, m_ScreenHeight, editor)));
+	Application::Instance()->PushLayer(new Layer2D(new Graphics::Renderer2D(m_ScreenWidth, m_ScreenHeight, editor, true, false)));
 	
 	{
 		s_player.entity = m_Registry.create();
@@ -90,7 +90,7 @@ void Scene2D::OnInit()
 		PhysicsObjectParamaters params;
 		params.position = Vector3({ 1.0f, 1.0f }, 1.0f);
 		params.scale = Vector3(1.0f / 2.0f, 1.0f / 2.0f, 1.0f);
-		params.shape = Shape::Square;
+		params.shape = Shape::Circle;
 		params.isStatic = false;
 		auto blockPhysics = Lumos::CreateRef<PhysicsObject2D>();
 		blockPhysics->Init(params);

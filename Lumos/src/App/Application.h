@@ -74,6 +74,7 @@ namespace Lumos
 		void PushLayer(Layer* layer);
 		void PushOverLay(Layer* overlay);
 		void ClearLayers();
+        void OnSceneViewSizeUpdated(u32 width, u32 height);
 
 		virtual void Init();
 
@@ -103,12 +104,39 @@ namespace Lumos
 			return m_SystemManager->GetSystem<T>();
 		}
 
+        bool OnWindowResize(WindowResizeEvent& e);
+    
+        u32 m_SceneViewWidth = 0;
+        u32 m_SceneViewHeight = 0;
+        bool m_SceneViewSizeUpdated = false;
+        int m_FramesSinceLastUpdate = 0;
+    
+        void SetSceneViewDimensions(u32 width, u32 height)
+        {
+            if(m_FramesSinceLastUpdate < 360)
+                return;
+        
+            m_FramesSinceLastUpdate = 0;
+        
+            if(width != m_SceneViewWidth)
+            {
+                m_SceneViewWidth = width;
+                m_SceneViewSizeUpdated = true;
+            }
+        
+            if(height != m_SceneViewHeight)
+            {
+               m_SceneViewHeight = height;
+               m_SceneViewSizeUpdated = true;
+            }
+            
+        }
+
 	private:
 
 		void PushLayerInternal(Layer* layer, bool overlay, bool sceneAdded);
 
 		bool OnWindowClose(WindowCloseEvent& e);
-        bool OnWindowResize(WindowResizeEvent& e);
 
 		float m_UpdateTimer;
 		Scope<Timer> m_Timer;

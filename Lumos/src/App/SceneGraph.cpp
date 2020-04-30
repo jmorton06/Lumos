@@ -10,9 +10,9 @@ namespace Lumos
 
 	void SceneGraph::Init(entt::registry & registry)
 	{
-		//registry.on_construct<Hierarchy>().connect<&Hierarchy::on_construct>();
-		//registry.on_update<Hierarchy>().connect<&Hierarchy::on_update>();
-		//registry.on_destroy<Hierarchy>().connect<&Hierarchy::on_destroy>();
+		registry.on_construct<Hierarchy>().connect<&Hierarchy::on_construct>();
+		registry.on_update<Hierarchy>().connect<&Hierarchy::on_update>();
+		registry.on_destroy<Hierarchy>().connect<&Hierarchy::on_destroy>();
 	}
 
 	void SceneGraph::Update(entt::registry & registry)
@@ -64,10 +64,10 @@ namespace Lumos
 
 	void Hierarchy::Reparent(entt::entity entity, entt::entity parent, entt::registry& registry, Hierarchy& hierarchy)
 	{
-		Hierarchy::on_destroy(entity, registry);
+		Hierarchy::on_destroy(registry, entity);
 
 		hierarchy._parent = parent;
-		Hierarchy::on_construct(entity, registry, hierarchy);
+		Hierarchy::on_construct(registry, entity);
 	}
 
 	bool Hierarchy::compare(const entt::registry& registry, const entt::entity rhs) const
@@ -94,8 +94,9 @@ namespace Lumos
 		return false;
 	}
 
-	void Hierarchy::on_construct(entt::entity entity, entt::registry& registry, Hierarchy& hierarchy)
+	void Hierarchy::on_construct(entt::registry& registry, entt::entity entity)
 	{
+        auto& hierarchy = registry.get<Hierarchy>(entity);
 		if (hierarchy._parent != entt::null)
 		{
 			auto& parent_hierarchy = registry.get_or_emplace<Hierarchy>(hierarchy._parent);
@@ -150,7 +151,7 @@ namespace Lumos
 		}
 	}
 
-	void Hierarchy::on_update(entt::entity entity, entt::registry& registry)
+	void Hierarchy::on_update(entt::registry& registry, entt::entity entity)
 	{
 		auto& hierarchy = registry.get<Hierarchy>(entity);
 		// if is the first child
@@ -199,7 +200,7 @@ namespace Lumos
 		});*/
 	}
 
-	void Hierarchy::on_destroy(entt::entity entity, entt::registry& registry) 
+	void Hierarchy::on_destroy(entt::registry& registry, entt::entity entity) 
 	{
 		auto& hierarchy = registry.get<Hierarchy>(entity);
 		// if is the first child
