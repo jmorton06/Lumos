@@ -54,6 +54,14 @@ void GraphicsScene::OnInit()
 	auto deferredRenderer = new Graphics::ForwardRenderer(m_ScreenWidth, m_ScreenHeight);
 	auto skyboxRenderer = new Graphics::SkyboxRenderer(m_ScreenWidth, m_ScreenHeight, m_EnvironmentMap);
     
+	//Temp
+	bool editor = false;
+
+#ifdef LUMOS_EDITOR
+	editor = true;
+#endif
+
+
     //Can't render to array texture on iPhoneX or older
 #ifndef LUMOS_PLATFORM_IOS
     auto shadowRenderer = new Graphics::ShadowRenderer();
@@ -63,8 +71,8 @@ void GraphicsScene::OnInit()
     Application::Instance()->PushLayer(shadowLayer);
 #endif
 
-	deferredRenderer->SetRenderToGBufferTexture(true);
-	skyboxRenderer->SetRenderToGBufferTexture(true);
+	deferredRenderer->SetRenderToGBufferTexture(editor);
+	skyboxRenderer->SetRenderToGBufferTexture(editor);
 
 	auto deferredLayer = new Layer3D(deferredRenderer);
 	auto skyBoxLayer = new Layer3D(skyboxRenderer);

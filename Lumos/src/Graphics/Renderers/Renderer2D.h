@@ -76,6 +76,7 @@ namespace Lumos
 			void UpdateDesciptorSet() const;
         
             void FlushAndReset();
+            void SubmitTriangles();
 
 			Shader* GetShader() const { return m_Shader; }
 

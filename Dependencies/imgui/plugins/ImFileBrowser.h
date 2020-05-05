@@ -1,7 +1,12 @@
 #pragma once
 
+#if __has_include(<filesystem>)
+#  include <filesystem>
+#elif __has_include(<experimental/filesystem>)
+#  include <experimental/filesystem>
+#endif
+
 #include <array>
-#include <filesystem>
 #include <functional>
 #include <memory>
 #include <string>

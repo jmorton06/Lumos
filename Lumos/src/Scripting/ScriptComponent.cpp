@@ -42,6 +42,7 @@ namespace Lumos
             sol::error err = loadFileResult;
             Debug::Log::Error("Failed to Execute Lua script {0}" , physicalPath );
             Debug::Log::Error("Error : {0}", err.what());
+            m_Errors.push_back(String(err.what()));
         }
                 
         if(m_Scene)

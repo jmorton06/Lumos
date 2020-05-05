@@ -82,14 +82,14 @@ namespace Lumos
 #ifdef LUMOS_RENDER_API_OPENGL
         if (m_Data.m_RenderAPI == Graphics::RenderAPI::OPENGL)
 		{
-			glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
-			glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
+            glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
+            glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 1);
 			glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 #ifdef LUMOS_PLATFORM_MACOS
             glfwWindowHint(GLFW_SAMPLES, 1);
             glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
             glfwWindowHint(GLFW_TRANSPARENT_FRAMEBUFFER, GLFW_TRUE);
-            glfwWindowHint(GLFW_COCOA_RETINA_FRAMEBUFFER, GL_TRUE);
+            glfwWindowHint(GLFW_COCOA_RETINA_FRAMEBUFFER, GLFW_FALSE);
             glfwWindowHint(GLFW_COCOA_GRAPHICS_SWITCHING, GL_TRUE);
             glfwWindowHint(GLFW_STENCIL_BITS, 8); // Fixes 16 bit stencil bits in macOS.
             glfwWindowHint(GLFW_STEREO, GLFW_FALSE);

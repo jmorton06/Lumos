@@ -50,11 +50,18 @@ void SceneModelViewer::OnInit()
     m_Registry.emplace<CameraComponent>(cameraEntity, m_pCamera);
 	m_Registry.emplace<NameComponent>(cameraEntity, "Camera");
 
+	//Temp
+	bool editor = false;
+
+#ifdef LUMOS_EDITOR
+	editor = true;
+#endif
+
     auto deferredRenderer = new Graphics::DeferredRenderer(m_ScreenWidth, m_ScreenHeight);
     auto skyboxRenderer = new Graphics::SkyboxRenderer(m_ScreenWidth, m_ScreenHeight, m_EnvironmentMap);
 
-    deferredRenderer->SetRenderToGBufferTexture(true);
-    skyboxRenderer->SetRenderToGBufferTexture(true);
+    deferredRenderer->SetRenderToGBufferTexture(editor);
+    skyboxRenderer->SetRenderToGBufferTexture(editor);
     
     auto deferredLayer = new Layer3D(deferredRenderer, "Deferred");
     auto skyBoxLayer = new Layer3D(skyboxRenderer, "Skybox");

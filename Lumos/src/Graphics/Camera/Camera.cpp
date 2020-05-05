@@ -121,7 +121,7 @@ namespace Lumos
 		return m_FocalPoint - GetForwardDirection() * m_Distance;
 	}
 
-	const Maths::Frustum& Camera::GetFrustum()
+    Maths::Frustum& Camera::GetFrustum()
 	{
 		if (m_ProjectionDirty)
 			UpdateProjectionMatrix();
@@ -170,6 +170,24 @@ namespace Lumos
 	{
 		return Maths::Quaternion::EulerAnglesToQuaternion(m_Pitch, m_Yaw, m_Roll);
 	}
+    
+    Maths::Ray Camera::GetScreenRay(float x, float y) const
+    {
+        Maths::Ray ret;
+
+        Maths::Matrix4 viewProjInverse = (m_ProjMatrix * m_ViewMatrix).Inverse();
+
+        // The parameters range from 0.0 to 1.0. Expand to normalized device coordinates (-1.0 to 1.0)
+        x = 2.0f * x - 1.0f;
+        y = 2.0f * y - 1.0f;
+        Maths::Vector3 nearPlane(x, y, 0.0f);
+        Maths::Vector3 farPlane(x, y, 1.0f);
+
+        ret.origin_ = viewProjInverse * nearPlane;
+        ret.direction_ = ((viewProjInverse * farPlane) - ret.origin_).Normalized();
+    
+        return ret;
+    }
 
 	void Camera::OnImGui()
 	{

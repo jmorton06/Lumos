@@ -109,15 +109,9 @@ namespace Lumos
         u32 m_SceneViewWidth = 0;
         u32 m_SceneViewHeight = 0;
         bool m_SceneViewSizeUpdated = false;
-        int m_FramesSinceLastUpdate = 0;
     
         void SetSceneViewDimensions(u32 width, u32 height)
         {
-            if(m_FramesSinceLastUpdate < 360)
-                return;
-        
-            m_FramesSinceLastUpdate = 0;
-        
             if(width != m_SceneViewWidth)
             {
                 m_SceneViewWidth = width;
@@ -131,6 +125,10 @@ namespace Lumos
             }
             
         }
+    
+        #ifdef LUMOS_EDITOR
+        Editor* GetEditor() const { return m_Editor; };
+        #endif
 
 	private:
 

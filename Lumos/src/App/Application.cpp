@@ -14,6 +14,11 @@
 #include "Graphics/Material.h"
 #include "Graphics/Renderers/DebugRenderer.h"
 
+#include "ECS/Component/MeshComponent.h"
+#include "ECS/Component/CameraComponent.h"
+
+#include "Maths/Transform.h"
+
 #include "Utilities/CommonUtils.h"
 #include "Utilities/AssetsManager.h"
 #include "Core/OS/Input.h"
@@ -246,20 +251,28 @@ namespace Lumos
             DebugRenderer::Reset();
 
             m_SystemManager->OnDebugDraw();
+#ifdef LUMOS_EDITOR
+            m_Editor->DebugDraw();
+#endif
 
 			m_LayerStack->OnRender(m_SceneManager->GetCurrentScene());
 			DebugRenderer::Render(m_SceneManager->GetCurrentScene());
 			m_ImGuiLayer->OnRender(m_SceneManager->GetCurrentScene());
 
 			Graphics::Renderer::GetRenderer()->Present();
-        
-            m_FramesSinceLastUpdate++;
+
+#ifdef LUMOS_EDITOR
             if(m_SceneViewSizeUpdated)
             {
-                Application::Instance()->OnSceneViewSizeUpdated(m_SceneViewWidth, m_SceneViewHeight);
-                Debug::Log::Info("Updated Scene View Size : {0}, {1}", m_SceneViewWidth, m_SceneViewHeight );
+                if(m_SceneViewWidth > 0 && m_SceneViewHeight > 0)
+                {
+                    Application::Instance()->OnSceneViewSizeUpdated(m_SceneViewWidth, m_SceneViewHeight);
+                    Debug::Log::Info("Updated Scene View Size : {0}, {1}", m_SceneViewWidth, m_SceneViewHeight );
+                }
+
                 m_SceneViewSizeUpdated = false;
             }
+#endif
 		}
 	}
 
@@ -330,6 +343,7 @@ namespace Lumos
 	void Application::OnNewScene(Scene * scene)
 	{
 #ifdef LUMOS_EDITOR
+        m_SceneViewSizeUpdated = true;
 		m_Editor->OnNewScene(scene);
 #endif
 	}
