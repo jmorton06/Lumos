@@ -380,7 +380,7 @@ namespace Lumos
 			buffer->SetData(18 * sizeof(Vertex), data);
 
             Ref<Maths::BoundingBox> BoundingBox = CreateRef<Maths::BoundingBox>();
-            for (int i = 0; i < 4; i++)
+            for (int i = 0; i < 18; i++)
             {
                 BoundingBox->Merge(data[i].Position);
             }

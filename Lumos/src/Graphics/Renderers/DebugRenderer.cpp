@@ -45,6 +45,7 @@ namespace Lumos
             return;
         
         s_Instance = new DebugRenderer();
+        
         s_Instance->m_Renderer2D = new Graphics::Renderer2D(width, height, drawToGBuffer, false, true);
         s_Instance->m_LineRenderer = new Graphics::LineRenderer(width, height, drawToGBuffer, false);
         s_Instance->m_PointRenderer = new Graphics::PointRenderer(width, height, drawToGBuffer, false);
@@ -58,6 +59,9 @@ namespace Lumos
 	
 	DebugRenderer::DebugRenderer()
 	{
+        m_Renderer2D = nullptr;
+        m_LineRenderer = nullptr;
+        m_PointRenderer = nullptr;
 	}
 
     DebugRenderer::~DebugRenderer()
@@ -70,7 +74,7 @@ namespace Lumos
 	//Draw Point (circle)
 	void DebugRenderer::GenDrawPoint(bool ndt, const Maths::Vector3& pos, float point_radius, const Maths::Vector4& colour)
 	{
-        if(s_Instance)
+        if(s_Instance && s_Instance->m_PointRenderer)
             s_Instance->m_PointRenderer->Submit(pos, point_radius, colour);
 	}
 
@@ -94,7 +98,7 @@ namespace Lumos
 	//Draw Line with a given thickness
 	void DebugRenderer::GenDrawThickLine(bool ndt, const Maths::Vector3& start, const Maths::Vector3& end, float line_width, const Maths::Vector4& colour)
 	{
-        if(s_Instance)
+        if(s_Instance && s_Instance->m_LineRenderer)
             s_Instance->m_LineRenderer->Submit(start, end, colour);
 	}
 	void DebugRenderer::DrawThickLine(const Maths::Vector3& start, const Maths::Vector3& end, float line_width, const Maths::Vector3& colour)
@@ -117,6 +121,7 @@ namespace Lumos
 	//Draw line with thickness of 1 screen pixel regardless of distance from camera
 	void DebugRenderer::GenDrawHairLine(bool ndt, const Maths::Vector3& start, const Maths::Vector3& end, const Maths::Vector4& colour)
 	{
+        if(s_Instance && s_Instance->m_LineRenderer)
 		s_Instance->m_LineRenderer->Submit(start, end, colour);
 	}
 	void DebugRenderer::DrawHairLine(const Maths::Vector3& start, const Maths::Vector3& end, const Maths::Vector3& colour)
@@ -167,7 +172,7 @@ namespace Lumos
 	//Draw Triangle
 	void DebugRenderer::GenDrawTriangle(bool ndt, const Maths::Vector3& v0, const Maths::Vector3& v1, const Maths::Vector3& v2, const Maths::Vector4& colour)
 	{
-        if(s_Instance)
+        if(s_Instance && s_Instance->m_Renderer2D)
             s_Instance->m_Renderer2D->SubmitTriangle(v0,v1,v2, colour);
 	}
 
@@ -235,29 +240,40 @@ namespace Lumos
 
 	void DebugRenderer::Begin()
 	{
-		m_LineRenderer->Begin();
-		m_Renderer2D->BeginSimple();
-        m_PointRenderer->Begin();
+        if(m_LineRenderer)
+            m_LineRenderer->Begin();
+        if(m_Renderer2D)
+            m_Renderer2D->BeginSimple();
+        if(m_PointRenderer)
+            m_PointRenderer->Begin();
 	}
 
 	void DebugRenderer::RenderInternal(Scene* scene)
 	{
         LUMOS_PROFILE_FUNC;
+        if(m_Renderer2D)
+        {
+            m_Renderer2D->BeginRenderPass();
+            m_Renderer2D->BeginScene(scene);
+            m_Renderer2D->SetSystemUniforms(m_Renderer2D->GetShader());
+            m_Renderer2D->SubmitTriangles();
+            m_Renderer2D->Present();
+            m_Renderer2D->End();
+        }
 
-        m_Renderer2D->BeginRenderPass();
-        m_Renderer2D->BeginScene(scene);
-        m_Renderer2D->SetSystemUniforms(m_Renderer2D->GetShader());
-        m_Renderer2D->Present();
-        m_Renderer2D->End();
-    
-        m_PointRenderer->RenderInternal(scene);
-        m_LineRenderer->RenderInternal(scene);
+        if(m_PointRenderer)
+            m_PointRenderer->RenderInternal(scene);
+        if(m_LineRenderer)
+            m_LineRenderer->RenderInternal(scene);
 	}
 
 	void DebugRenderer::OnResizeInternal(u32 width, u32 height)
 	{
-        m_Renderer2D->OnResize(width, height);
-		m_LineRenderer->OnResize(width, height);
-        m_PointRenderer->OnResize(width, height);
+        if(m_Renderer2D)
+            m_Renderer2D->OnResize(width, height);
+        if(m_LineRenderer)
+            m_LineRenderer->OnResize(width, height);
+        if(m_PointRenderer)
+            m_PointRenderer->OnResize(width, height);
 	}
 }

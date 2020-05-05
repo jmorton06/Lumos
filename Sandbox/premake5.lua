@@ -323,7 +323,7 @@ project "Sandbox"
 			"glfw",
 		}
 
-		links { "X11", "pthread", "dl", "atomic"}
+		links { "X11", "pthread", "dl", "atomic", "stdc++fs"}
 
 		linkoptions { "-L%{cfg.targetdir}", "-Wl,-rpath=\\$$ORIGIN" }
 

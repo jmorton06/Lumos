@@ -96,7 +96,7 @@ void B2DebugDraw::DrawSolidCircle(const b2Vec2& center, float radius, const b2Ve
 
      // Draw a line fixed in the circle to animate rotation.
 	 b2Vec2 p = center + radius * axis;
-     DebugRenderer::DrawHairLine({v1.x, v1.y, 0.0f}, {center.x, center.y, 0.0f}, {color.r, color.g, color.b, color.a });
+     DebugRenderer::DrawHairLine({p.x, p.y, 0.0f}, {center.x, center.y, 0.0f}, {color.r, color.g, color.b, color.a });
 
 }
 

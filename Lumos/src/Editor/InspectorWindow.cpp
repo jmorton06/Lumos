@@ -40,6 +40,11 @@ namespace MM {
         ImGui::PushItemWidth(-1);
         if (ImGui::InputText("##filePath", filePathBuffer, IM_ARRAYSIZE(filePathBuffer), 0))
             script.SetFilePath(filePathBuffer);
+    
+    #ifdef LUMOS_EDITOR
+        if(ImGui::Button("Edit File"))
+            Lumos::Application::Instance()->GetEditor()->OpenTextFile(script.GetFilePath());
+    #endif
     }
 
     template <>

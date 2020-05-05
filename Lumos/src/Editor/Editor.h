@@ -1,5 +1,6 @@
 #pragma once
 #include "Maths/Maths.h"
+#include "Maths/Ray.h"
 
 #include "EditorWindow.h"
 
@@ -26,6 +27,16 @@ namespace Lumos
 		class Texture2D;
 		class GridRenderer;
 	}
+    
+
+    enum EditorDebugFlags : u32
+    {
+        Grid = 1,
+        Gizmo = 2,
+        ViewSelected = 4,
+        CameraFrustum = 8,
+        MeshBoundingBoxes = 16,
+    };
 
 	class Editor
 	{
@@ -69,6 +80,15 @@ namespace Lumos
 
 		float& GetCurrentSceneAspectRatio() { return m_CurrentSceneAspectRatio; }
 		void FocusCamera(const Maths::Vector3& point, float distance, float speed = 1.0f);
+    
+        void RecompileShaders();
+        void DebugDraw();
+        void SelectObject(const Maths::Ray& ray);
+
+		void OpenTextFile(const String& filePath);
+		void RemoveWindow(EditorWindow* window);
+
+        Maths::Vector2 m_SceneWindowPos;
 
 	protected:
 		bool OnWindowResize(WindowResizeEvent& e);
@@ -78,6 +98,7 @@ namespace Lumos
 		u32 m_ImGuizmoOperation = 0;
 		entt::entity m_Selected;
         float m_GridSize = 10.0f;
+        u32 m_DebugDrawFlags = 0;
 
 		bool m_ShowGrid = false;
 		bool m_ShowGizmos = true;
@@ -92,7 +113,7 @@ namespace Lumos
 		Maths::Vector3 m_CameraStartPosition;
 		float m_CameraTransitionStartTime = 0.0f;
 		float m_CameraTransitionSpeed = 0.0f;
-        
+            
         ImGui::FileBrowser* m_FileBrowser;
 
 		std::vector<Ref<EditorWindow>> m_Windows;

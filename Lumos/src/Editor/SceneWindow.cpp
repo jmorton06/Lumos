@@ -46,6 +46,8 @@ namespace Lumos
         
         sceneViewPosition.x = ImGui::GetCursorPos().x + ImGui::GetWindowPos().x;
         sceneViewPosition.y = ImGui::GetCursorPos().y + ImGui::GetWindowPos().y;
+    
+        m_Editor->m_SceneWindowPos = { sceneViewPosition.x , sceneViewPosition.y };
 
         sceneViewSize.x = ImGui::GetWindowContentRegionMax().x - ImGui::GetWindowContentRegionMin().x;
         sceneViewSize.y = ImGui::GetWindowContentRegionMax().y - ImGui::GetWindowContentRegionMin().y;
@@ -55,8 +57,24 @@ namespace Lumos
 
         float aspect = static_cast<float>(sceneViewSize.x) / static_cast<float>(sceneViewSize.y);
         
-        if(ImGui::GetCurrentWindow()->ResizeBorderHeld < 0)
-            Application::Instance()->SetSceneViewDimensions(sceneViewSize.x, sceneViewSize.y);
+        static int updateSceneSizeTimer = 0;
+        updateSceneSizeTimer ++;
+    
+        Camera* camera = Application::Instance()->GetSceneManager()->GetCurrentScene()->GetCamera();
+        if (!Maths::Equals(aspect, m_Editor->GetCurrentSceneAspectRatio()))
+        {
+            m_Editor->GetCurrentSceneAspectRatio() = aspect;
+            camera->SetAspectRatio(aspect);
+        }
+    
+        if(updateSceneSizeTimer > 360)
+        {
+            if(ImGui::GetCurrentWindow()->ResizeBorderHeld < 0)
+                Application::Instance()->SetSceneViewDimensions(sceneViewSize.x, sceneViewSize.y);
+        
+            updateSceneSizeTimer = 0;
+        }
+
 
 		ImGuizmo::SetRect(sceneViewPosition.x, sceneViewPosition.y, sceneViewSize.x, sceneViewSize.y);
         
@@ -64,8 +82,6 @@ namespace Lumos
 
 		if (m_Editor->ShowGrid())
 		{
-            Camera* camera = Application::Instance()->GetSceneManager()->GetCurrentScene()->GetCamera();
-
 			if (camera->IsOrthographic())
 			{
 				m_Editor->Draw2DGrid(ImGui::GetWindowDrawList(), { camera->GetPosition().x, camera->GetPosition().y }, sceneViewPosition, { sceneViewSize.x, sceneViewSize.y }, camera->GetScale(), 1.5f);
@@ -93,7 +109,7 @@ namespace Lumos
         DrawGizmos(sceneViewSize.x, sceneViewSize.y, 0.0f, 40.0f, Application::Instance()->GetSceneManager()->GetCurrentScene()); // Not sure why 40
 		Application::Instance()->SetSceneActive(ImGui::IsWindowFocused() && !ImGuizmo::IsUsing());
         
-		if (m_ShowStats)
+		if (m_ShowStats && ImGui::IsWindowFocused())
 		{
 			static bool p_open = true;
 			const float DISTANCE = 5.0f;

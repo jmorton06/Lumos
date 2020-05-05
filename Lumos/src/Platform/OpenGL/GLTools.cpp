@@ -138,8 +138,6 @@ namespace Lumos
 
 		u32 GLTools::DrawTypeToGL(DrawType drawType)
 		{
-		glLineWidth(10.0f);
-
 			switch (drawType)
 			{
 			case DrawType::POINT:    return GL_POINTS;

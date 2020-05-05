@@ -278,7 +278,7 @@ namespace Lumos
         REGISTER_COMPONENT_WITH_ECS( state, NameComponent, static_cast< NameComponent&( entt::registry::* )( const entt::entity )> ( &entt::registry::emplace< NameComponent > ) );
         
         sol::usertype< ScriptComponent > script_type = state.new_usertype< ScriptComponent >( "ScriptComponent", sol::constructors<sol::types<String, Scene*>>() );
-        REGISTER_COMPONENT_WITH_ECS( state, ScriptComponent, static_cast< ScriptComponent&( entt::registry::* )( const entt::entity )> ( &entt::registry::emplace< ScriptComponent > ) );
+        REGISTER_COMPONENT_WITH_ECS( state, ScriptComponent, static_cast< ScriptComponent&( entt::registry::* )( const entt::entity, String&&, Scene*&& )> ( &entt::registry::emplace< ScriptComponent, String, Scene* > ) );
         
         using namespace Maths;
         REGISTER_COMPONENT_WITH_ECS( state, Transform, static_cast<Transform&( entt::registry::* )( const entt::entity )> ( &entt::registry::emplace<Transform > ) );

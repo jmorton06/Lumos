@@ -396,9 +396,6 @@ namespace Lumos
                 
                 Submit(reinterpret_cast<Renderable2D*>(&sprite), trans.GetWorldMatrix());
             };
-        
-            for(auto& triangle : m_Triangles)
-                SubmitInternal(triangle);
 
 			Present();
 
@@ -642,6 +639,12 @@ namespace Lumos
             
             m_VertexArrays[m_BatchDrawCallIndex]->Bind();
             m_Buffer = m_VertexArrays[m_BatchDrawCallIndex]->GetBuffer()->GetPointer<VertexData>();
+        }
+    
+        void Renderer2D::SubmitTriangles()
+        {
+            for(auto& triangle : m_Triangles)
+                SubmitInternal(triangle);
         }
 	}
 }

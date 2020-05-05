@@ -2,6 +2,7 @@
 #include "lmpch.h"
 
 #include "Maths/Maths.h"
+#include "Maths/Ray.h"
 
 namespace Lumos
 {
@@ -86,7 +87,9 @@ namespace Lumos
 		Maths::Vector3 GetForwardDirection() const;
 		Maths::Vector3 CalculatePosition() const;
 
-		const Maths::Frustum& GetFrustum();
+        Maths::Frustum& GetFrustum();
+    
+        Maths::Ray GetScreenRay(float x, float y) const;
 
 	protected:
 
