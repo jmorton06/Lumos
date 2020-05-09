@@ -58,28 +58,13 @@ namespace Lumos
 		, m_ViewDirty(true)
 		, m_Fov(0)
 		, m_Near(0)
-		, m_Far(0)
+		, m_Far(1.0f)
 		, m_ScreenWidth(0)
 		, m_ScreenHeight(0)
 		, m_Orthographic(true)
+        , m_Position(Maths::Vector3(0.0f))
+        , m_Velocity(Maths::Vector3(0.0f))
 	{
-	}
-
-	void Camera::UpdateScroll(float offset, float dt)
-	{
-		if (offset != 0.0f)
-		{
-			m_ZoomVelocity -= dt * offset * 10.0f;
-		}
-
-		if (!Maths::Equals(m_ZoomVelocity, 0.0f))
-		{
-			m_Position += GetForwardDirection() * m_ZoomVelocity;
-			m_ZoomVelocity = m_ZoomVelocity * pow(m_ZoomDampeningFactor, dt);
-			m_ViewDirty = true;
-			m_FrustumDirty = true;
-		}
-
 	}
 
 	void Camera::UpdateViewMatrix()

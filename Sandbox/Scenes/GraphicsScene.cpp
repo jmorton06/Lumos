@@ -18,8 +18,10 @@ void GraphicsScene::OnInit()
 
 	m_SceneBoundingRadius = 200.0f;
 
-	m_pCamera = new ThirdPersonCamera(45.0f, 0.1f, 1000.0f, (float) m_ScreenWidth / (float) m_ScreenHeight);
+	m_pCamera = new Camera(45.0f, 0.1f, 1000.0f, (float) m_ScreenWidth / (float) m_ScreenHeight);
 	m_pCamera->SetPosition(Maths::Vector3(120.0f, 70.0f, 260.0f));
+    m_pCamera->SetCameraController(CreateRef<EditorCameraController>(m_pCamera));
+
 
 	String environmentFiles[11] =
 	{

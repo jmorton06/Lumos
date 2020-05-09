@@ -1,21 +1,18 @@
 #pragma once
 #include "lmpch.h"
-#include "Camera.h"
+#include "CameraController.h"
 
 namespace Lumos
 {
 
-	class LUMOS_EXPORT FPSCamera : public Camera
+	class LUMOS_EXPORT FPSCameraController : CameraController
 	{
 	public:
-		FPSCamera(float FOV, float Near, float Far, float aspect);
-		FPSCamera(float pitch, float yaw, const Maths::Vector3& position, float FOV, float Near, float Far, float aspect);
-		virtual ~FPSCamera() override;
+		FPSCameraController(Camera* camera);
+		virtual ~FPSCameraController() override;
 
 		virtual void HandleMouse(float dt, float xpos, float ypos) override;
 		virtual void HandleKeyboard(float dt) override;
-
-		void OnImGui() override;
 	};
 
 }

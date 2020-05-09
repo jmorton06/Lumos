@@ -33,6 +33,9 @@
 #include "Graphics/MeshFactory.h"
 #include "Graphics/Renderers/GridRenderer.h"
 #include "Graphics/Renderers/DebugRenderer.h"
+#include "Graphics/ModelLoader/ModelLoader.h"
+
+#include "Utilities/AssetsManager.h"
 
 #include "ImGui/ImGuiHelpers.h"
 
@@ -115,7 +118,7 @@ namespace Lumos
 
 		m_FileBrowser = lmnew ImGui::FileBrowser(ImGuiFileBrowserFlags_CreateNewDir | ImGuiFileBrowserFlags_EnterNewFilename | ImGuiFileBrowserFlags_NoModal);
 		m_FileBrowser->SetTitle("Test File Browser");
-		m_FileBrowser->SetFileFilters({ ".sh" , ".h" });
+		//m_FileBrowser->SetFileFilters({ ".sh" , ".h" });
 		m_FileBrowser->SetLabels(ICON_FA_FOLDER, ICON_FA_FILE, ICON_FA_FOLDER_OPEN);
 		m_FileBrowser->Refresh();
 
@@ -123,6 +126,36 @@ namespace Lumos
 
 		m_Selected = entt::null;
 	}
+    
+    bool IsTextFile(const String& filePath)
+    {
+        String extension = StringFormat::GetFilePathExtension(filePath);
+    
+        if(extension == "txt" || extension == "glsl" || extension == "shader" || extension == "vert" || extension == "frag" || extension == "lua" || extension == "Lua")
+            return true;
+    
+        return false;
+    }
+    
+    bool IsAudioFile(const String& filePath)
+    {
+        String extension = StringFormat::GetFilePathExtension(filePath);
+    
+        if(extension == "ogg" || extension == "wav")
+            return true;
+    
+        return false;
+    }
+    
+    bool IsModelFile(const String& filePath)
+    {
+        String extension = StringFormat::GetFilePathExtension(filePath);
+    
+        if(extension == "obj" || extension == "gltf" || extension == "glb")
+            return true;
+    
+        return false;
+    }
 
 	void Editor::OnImGui()
 	{
@@ -156,21 +189,35 @@ namespace Lumos
 			m_3DGridLayer = nullptr;
 		}
     
-        ImGui::Begin("Test");
-        if(ImGui::Button("open file dialog"))
-            m_FileBrowser->Open();
-
-
         m_FileBrowser->Display();
 
         if(m_FileBrowser->HasSelected())
         {
-            std::cout << "Selected filename" << m_FileBrowser->GetSelected().string() << std::endl;
+            if(IsTextFile(m_FileBrowser->GetSelected().string()))
+                OpenTextFile(m_FileBrowser->GetSelected().string());
+            else if(IsModelFile(m_FileBrowser->GetSelected().string()))
+                ModelLoader::LoadModel(m_FileBrowser->GetSelected().string(), m_Application->GetSceneManager()->GetCurrentScene()->GetRegistry());
+            else if(IsAudioFile(m_FileBrowser->GetSelected().string()))
+            {
+                AssetsManager::Sounds()->LoadAsset(StringFormat::GetFileName(m_FileBrowser->GetSelected().string()), m_FileBrowser->GetSelected().string());
+
+                auto soundNode = Ref<SoundNode>(SoundNode::Create());
+                soundNode->SetSound(AssetsManager::Sounds()->Get(StringFormat::GetFileName(m_FileBrowser->GetSelected().string())).get());
+                soundNode->SetVolume(1.0f);
+                soundNode->SetPosition(Maths::Vector3(0.1f, 10.0f, 10.0f));
+                soundNode->SetLooping(true);
+                soundNode->SetIsGlobal(false);
+                soundNode->SetPaused(false);
+                soundNode->SetReferenceDistance(1.0f);
+                soundNode->SetRadius(30.0f);
+            
+                auto& registry = m_Application->GetSceneManager()->GetCurrentScene()->GetRegistry();
+                entt::entity e = registry.create();
+                registry.emplace<SoundComponent>(e, soundNode);
+            }
             m_FileBrowser->ClearSelected();
         }
     
-        ImGui::End();
-
 		EndDockSpace();
 	}
 
@@ -184,18 +231,7 @@ namespace Lumos
                 
                 if(ImGui::MenuItem("Open File"))
                 {
-                        if(ImGuiAl::Button("open file dialog", true))
-                            m_FileBrowser->Open();
-                        
-                        ImGuiViewport* viewport = ImGui::GetMainViewport();
-                        ImGui::SetNextWindowPos(viewport->Pos + ImVec2(viewport->Size.x * 0.5f, viewport->Size.y * 0.5f), ImGuiCond_Appearing, ImVec2(0.5f, 0.5f));
-                        m_FileBrowser->Display();
-                        
-                        if(m_FileBrowser->HasSelected())
-                        {
-                            std::cout << "Selected filename" << m_FileBrowser->GetSelected().string() << std::endl;
-                            m_FileBrowser->ClearSelected();
-                        }
+                    m_FileBrowser->Open();
                 }
 
 				if (ImGui::BeginMenu("Style"))

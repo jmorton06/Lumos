@@ -103,6 +103,7 @@ namespace Lumos
 	{
         if(m_LuaEnv && m_LuaEnv["OnCleanUp"])
             m_LuaEnv["OnCleanUp"]();
+    
 		DeleteAllGameObjects();
 
 		Application::Instance()->GetRenderManager()->Reset();
@@ -130,8 +131,8 @@ namespace Lumos
 
 		if (m_pCamera && Application::Instance()->GetSceneActive())
 		{
-			m_pCamera->HandleMouse(timeStep->GetMillis(), mousePos.x, mousePos.y);
-			m_pCamera->HandleKeyboard(timeStep->GetMillis());
+			m_pCamera->GetController()->HandleMouse(timeStep->GetMillis(), mousePos.x, mousePos.y);
+			m_pCamera->GetController()->HandleKeyboard(timeStep->GetMillis());
 		}
 
 		m_SceneGraph.Update(m_Registry);
