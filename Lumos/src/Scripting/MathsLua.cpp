@@ -36,6 +36,7 @@ namespace Lumos
             "x", &Maths::Vector3::x,
             "y", &Maths::Vector3::y,
             "z", &Maths::Vector3::z,
+            "xy", &Maths::Vector3::xy,
             "Dot", static_cast<float(Maths::Vector3::*)(const Maths::Vector3&) const>(&Maths::Vector3::DotProduct),
             "Cross", static_cast<Maths::Vector3(Maths::Vector3::*)(const Maths::Vector3&) const>(&Maths::Vector3::CrossProduct),
 
@@ -137,7 +138,9 @@ namespace Lumos
             "SetLocalTransform", &Maths::Transform::SetLocalTransform,
             "SetLocalPosition", &Maths::Transform::SetLocalPosition,
             "SetLocalScale", &Maths::Transform::SetLocalScale,
-            "SetLocalOrientation", &Maths::Transform::SetLocalOrientation
+            "SetLocalOrientation", &Maths::Transform::SetLocalOrientation,
+            "GetWorldPosition", &Maths::Transform::GetWorldPosition,
+            "GetWorldOrientation", &Maths::Transform::GetWorldOrientation
             );
     }
 }

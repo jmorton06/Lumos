@@ -22,6 +22,8 @@ namespace Lumos
 		virtual ~PhysicsObject2D();
 
 		b2Body* GetB2Body() const { return m_B2Body; }
+    
+        b2Body& GetB2BodyRef() const { return *m_B2Body; }
 
 		void SetLinearVelocity(const Maths::Vector2& v) const;
 		void SetAngularVelocity(float velocity);

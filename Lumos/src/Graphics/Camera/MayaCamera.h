@@ -1,16 +1,15 @@
 #pragma once
 #include "lmpch.h"
-#include "Camera.h"
+#include "CameraController.h"
 
 namespace Lumos
 {
 
-	class LUMOS_EXPORT MayaCamera : public Camera
+	class LUMOS_EXPORT MayaCameraController : public CameraController
 	{
 	public:
-		MayaCamera(float FOV, float Near, float Far, float aspect);
-		MayaCamera(float pitch, float yaw, const Maths::Vector3& position, float FOV, float Near, float Far, float aspect);
-		virtual ~MayaCamera() override;
+		MayaCameraController(Camera* camera);
+		virtual ~MayaCameraController() override;
 
 		virtual void HandleMouse(float dt, float xpos, float ypos) override;
 		virtual void HandleKeyboard(float dt) override;
@@ -18,8 +17,6 @@ namespace Lumos
 		void MousePan(const Maths::Vector2& delta);
 		void MouseRotate(const Maths::Vector2& delta, const float dt);
 		void MouseZoom(float delta, const float dt);
-
-		void OnImGui() override;
 
 	private:
 		float m_PanSpeed, m_RotationSpeed, m_ZoomSpeed;

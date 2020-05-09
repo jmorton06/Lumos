@@ -3,25 +3,21 @@
 #include "App/Application.h"
 #include "Core/OS/Input.h"
 #include "Core/OS/Window.h"
+#include "Camera.h"
 
 #include <imgui/imgui.h>
 
 namespace Lumos
 {
 
-	FPSCamera::FPSCamera(float FOV, float Near, float Far, float aspect)
-		: Camera(FOV, Near, Far, aspect)
+	FPSCameraController::FPSCameraController(Camera* camera)
+		: CameraController(camera)
 	{
 	}
 
-	FPSCamera::FPSCamera(float pitch, float yaw, const Maths::Vector3& position, float FOV, float Near, float Far, float aspect)
-		: Camera(pitch, yaw, position, FOV, Near, Far, aspect)
-	{
-	}
+	FPSCameraController::~FPSCameraController() = default;
 
-	FPSCamera::~FPSCamera() = default;
-
-	void FPSCamera::HandleMouse(float dt, float xpos, float ypos)
+	void FPSCameraController::HandleMouse(float dt, float xpos, float ypos)
 	{
 		if (Input::GetInput()->GetWindowFocus())
 		{
@@ -30,30 +26,36 @@ namespace Lumos
 				xpos -= windowCentre.x;
 				ypos -= windowCentre.y;
 
-				m_Pitch -= (ypos)* m_MouseSensitivity;
-				m_Yaw   -= (xpos)* m_MouseSensitivity;
+                float pitch = m_Camera->GetPitch();
+                float yaw = m_Camera->GetYaw();
+            
+				pitch -= (ypos)* m_MouseSensitivity;
+				yaw   -= (xpos)* m_MouseSensitivity;
 
 				Application::Instance()->GetWindow()->SetMousePosition(windowCentre);
 
-				if (m_Yaw < 0)
-					m_Yaw += 360.0f;
+				if (yaw < 0)
+					yaw += 360.0f;
 
-				if (m_Yaw > 360.0f)
-					m_Yaw -= 360.0f;
+				if (yaw > 360.0f)
+					yaw -= 360.0f;
+            
+                m_Camera->SetYaw(yaw);
+                m_Camera->SetPitch(pitch);
 			}
 
 			m_PreviousCurserPos = Maths::Vector2(xpos, ypos);
-
-			m_ViewDirty = true;
-			m_FrustumDirty = true;
 
 			UpdateScroll(Input::GetInput()->GetScrollOffset(), dt);
 		}
 	}
 
-	void FPSCamera::HandleKeyboard(float dt)
+	void FPSCameraController::HandleKeyboard(float dt)
 	{
-		const Maths::Quaternion orientation = Maths::Quaternion::EulerAnglesToQuaternion(m_Pitch, m_Yaw, 1.0f);
+        float pitch = m_Camera->GetPitch();
+        float yaw = m_Camera->GetYaw();
+    
+		const Maths::Quaternion orientation = Maths::Quaternion::EulerAnglesToQuaternion(pitch, yaw, 1.0f);
 		Maths::Vector3 up = Maths::Vector3(0, 1, 0), right = Maths::Vector3(1, 0, 0), forward = Maths::Vector3(0, 0, -1);
 		up = orientation * up;
 		right = orientation * right;
@@ -91,116 +93,11 @@ namespace Lumos
 			m_Velocity += up * m_CameraSpeed;
 		}
 
-		m_Position += m_Velocity * dt;
+        Maths::Vector3 pos = m_Camera->GetPosition();
+		pos += m_Velocity * dt;
 		m_Velocity = m_Velocity * pow(m_DampeningFactor, dt);
-
-		m_ViewDirty = true;
-		m_FrustumDirty = true;
+    
+        m_Camera->SetPosition(pos);
 
 	}
-
-	void FPSCamera::OnImGui()
-	{
-		if (ImGui::TreeNode("Camera"))
-		{
-			ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(2, 2));
-			ImGui::Columns(2);
-			ImGui::Separator();
-
-			ImGui::AlignTextToFramePadding();
-			ImGui::TextUnformatted("Position");
-			ImGui::NextColumn();
-			ImGui::PushItemWidth(-1);
-			ImGui::DragFloat3("##Position", &m_Position.x);
-			ImGui::PopItemWidth();
-			ImGui::NextColumn();
-
-			ImGui::AlignTextToFramePadding();
-			ImGui::TextUnformatted("Aspect");
-			ImGui::NextColumn();
-			ImGui::PushItemWidth(-1);
-			ImGui::DragFloat("##Aspect", &m_AspectRatio);
-			ImGui::PopItemWidth();
-			ImGui::NextColumn();
-
-			ImGui::AlignTextToFramePadding();
-			ImGui::TextUnformatted("Pitch");
-			ImGui::NextColumn();
-			ImGui::PushItemWidth(-1);
-			ImGui::DragFloat("##Pitch", &m_Pitch);
-			ImGui::PopItemWidth();
-			ImGui::NextColumn();
-
-			ImGui::AlignTextToFramePadding();
-			ImGui::TextUnformatted("Yaw");
-			ImGui::NextColumn();
-			ImGui::PushItemWidth(-1);
-			ImGui::DragFloat3("##Yaw", &m_Yaw);
-			ImGui::PopItemWidth();
-			ImGui::NextColumn();
-
-			ImGui::AlignTextToFramePadding();
-			ImGui::TextUnformatted("Fov");
-			ImGui::NextColumn();
-			ImGui::PushItemWidth(-1);
-			ImGui::DragFloat("##Fov", &m_Fov);
-			ImGui::PopItemWidth();
-			ImGui::NextColumn();
-
-			ImGui::AlignTextToFramePadding();
-			ImGui::TextUnformatted("Near");
-			ImGui::NextColumn();
-			ImGui::PushItemWidth(-1);
-			ImGui::DragFloat("##Near", &m_Near);
-			ImGui::PopItemWidth();
-			ImGui::NextColumn();
-
-			ImGui::AlignTextToFramePadding();
-			ImGui::TextUnformatted("Far");
-			ImGui::NextColumn();
-			ImGui::PushItemWidth(-1);
-			ImGui::DragFloat("##Far", &m_Far);
-			ImGui::PopItemWidth();
-			ImGui::NextColumn();
-
-			ImGui::AlignTextToFramePadding();
-			ImGui::TextUnformatted("MouseSensitivity");
-			ImGui::NextColumn();
-			ImGui::PushItemWidth(-1);
-			ImGui::InputFloat("##MouseSensitivity", &m_MouseSensitivity);
-			ImGui::PopItemWidth();
-			ImGui::NextColumn();
-
-			ImGui::AlignTextToFramePadding();
-			ImGui::TextUnformatted("ZoomDampeningFactor");
-			ImGui::NextColumn();
-			ImGui::PushItemWidth(-1);
-			ImGui::InputFloat("##ZoomDampeningFactor", &m_ZoomDampeningFactor);
-			ImGui::PopItemWidth();
-			ImGui::NextColumn();
-
-			ImGui::AlignTextToFramePadding();
-			ImGui::TextUnformatted("DampeningFactor");
-			ImGui::NextColumn();
-			ImGui::PushItemWidth(-1);
-			ImGui::InputFloat("##DampeningFactor", &m_DampeningFactor);
-			ImGui::PopItemWidth();
-			ImGui::NextColumn();
-
-			ImGui::AlignTextToFramePadding();
-			ImGui::TextUnformatted("RotateDampeningFactor");
-			ImGui::NextColumn();
-			ImGui::PushItemWidth(-1);
-			ImGui::InputFloat("##RotateDampeningFactor", &m_RotateDampeningFactor);
-			ImGui::PopItemWidth();
-			ImGui::NextColumn();
-
-			ImGui::Columns(1);
-			ImGui::Separator();
-			ImGui::PopStyleVar();
-
-			ImGui::TreePop();
-		}
-	}
-
 }

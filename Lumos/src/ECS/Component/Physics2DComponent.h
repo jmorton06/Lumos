@@ -11,6 +11,7 @@ namespace Lumos
 	public:
         Physics2DComponent();
 		explicit Physics2DComponent(Ref<PhysicsObject2D>& physics);
+        Physics2DComponent(const PhysicsObject2D& physics);
 
 		void Update();
 		void OnImGui();

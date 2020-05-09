@@ -13,6 +13,8 @@
 
 #include "ECS/Component/Components.h"
 #include "Graphics/Camera/Camera.h"
+#include "Graphics/Camera/Camera2D.h"
+
 #include "Graphics/Sprite.h"
 #include "Graphics/Light.h"
 #include "Graphics/API/Texture.h"
@@ -271,6 +273,8 @@ namespace Lumos
         sol::usertype<entt::registry> reg_type = state.new_usertype< entt::registry >( "Registry" );
         reg_type.set_function( "Create", static_cast< entt::entity( entt::registry::* )() >( &entt::registry::create ) );
         reg_type.set_function( "Destroy", static_cast< void( entt::registry::* )( entt::entity ) >( &entt::registry::destroy ) );
+        reg_type.set_function( "Valid", &entt::registry::valid );
+
         state.set_function( "GetEntityByName", &GetEntityByName );
         
         sol::usertype< NameComponent > nameComponent_type = state.new_usertype< NameComponent >( "NameComponent" );
@@ -284,7 +288,9 @@ namespace Lumos
         REGISTER_COMPONENT_WITH_ECS( state, Transform, static_cast<Transform&( entt::registry::* )( const entt::entity )> ( &entt::registry::emplace<Transform > ) );
         
         using namespace Graphics;
-        REGISTER_COMPONENT_WITH_ECS( state, Sprite, static_cast<Sprite&( entt::registry::* )( const entt::entity )> ( &entt::registry::emplace<Sprite > ) );
+        sol::usertype< Sprite > sprite_type = state.new_usertype< Sprite >( "Sprite", sol::constructors<sol::types<Maths::Vector2, Maths::Vector2, Maths::Vector4>>() );
+        REGISTER_COMPONENT_WITH_ECS( state, Sprite, static_cast<Sprite&( entt::registry::* )( const entt::entity, const Vector2&,  const Vector2&,  const Vector4& )> ( &entt::registry::emplace<Sprite, const Vector2&,  const Vector2&,   const Vector4& > ) );
+    
         REGISTER_COMPONENT_WITH_ECS( state, Light, static_cast<Light&( entt::registry::* )( const entt::entity )> ( &entt::registry::emplace<Light > ) );
         
         sol::usertype< MeshComponent > meshComponent_type = state.new_usertype< MeshComponent >( "MeshComponent" );
@@ -295,10 +301,10 @@ namespace Lumos
         REGISTER_COMPONENT_WITH_ECS( state, Physics3DComponent, static_cast<Physics3DComponent&( entt::registry::* )( const entt::entity )> ( &entt::registry::emplace<Physics3DComponent > ) );
         REGISTER_COMPONENT_WITH_ECS( state, Physics3DComponent, static_cast<Physics3DComponent&( entt::registry::* )( const entt::entity )> ( &entt::registry::emplace<Physics3DComponent > ) );
         
-        sol::usertype< Physics2DComponent > physics2DComponent_type = state.new_usertype< Physics2DComponent >( "Physics2DComponent" );
+        sol::usertype< Physics2DComponent > physics2DComponent_type = state.new_usertype< Physics2DComponent >( "Physics2DComponent", sol::constructors<sol::types<PhysicsObject2D>>());
         physics2DComponent_type.set_function( "GetPhysicsObject", &Physics2DComponent::GetPhysicsObjectRaw );
 
-        REGISTER_COMPONENT_WITH_ECS( state, Physics2DComponent, static_cast<Physics2DComponent&( entt::registry::* )( const entt::entity )> ( &entt::registry::emplace<Physics2DComponent > ) );
+        REGISTER_COMPONENT_WITH_ECS( state, Physics2DComponent, static_cast<Physics2DComponent&( entt::registry::* )( const entt::entity , const PhysicsObject2D&)> ( &entt::registry::emplace<Physics2DComponent, const PhysicsObject2D& > ) );
         
         REGISTER_COMPONENT_WITH_ECS( state, SoundComponent, static_cast<SoundComponent&( entt::registry::* )( const entt::entity )> ( &entt::registry::emplace<SoundComponent > ) );
         REGISTER_COMPONENT_WITH_ECS( state, MaterialComponent, static_cast<MaterialComponent&( entt::registry::* )( const entt::entity )> ( &entt::registry::emplace<MaterialComponent > ) );
@@ -321,6 +327,11 @@ namespace Lumos
         state.new_enum< Lumos::Graphics::PrimitiveType, false >( "PrimitiveType", primitives );
         state.set_function("LoadMesh", &CreatePrimative);
     }
+    
+    static float LuaRand(float a, float b)
+    {
+        return RandomNumberGenerator32::Rand(a,b);
+    }
 
     void LuaManager::BindSceneLua(sol::state& state)
     {
@@ -328,18 +339,21 @@ namespace Lumos
         scene_type.set_function( "GetRegistry", &Scene::GetRegistry );
         scene_type.set_function("GetCamera", &Scene::GetCamera);
         
-        sol::usertype< ThirdPersonCamera > camera_type = state.new_usertype< ThirdPersonCamera >( "Camera", sol::constructors<sol::types<float, float, float, float>>() );
-        camera_type["position"]                 = &ThirdPersonCamera::GetPosition;
-        camera_type["yaw"]                      = &ThirdPersonCamera::GetYaw;
-        camera_type["fov"]                      = &ThirdPersonCamera::GetFOV;
-        camera_type["aspectRatio"]              = &ThirdPersonCamera::GetAspectRatio;
-        camera_type["nearPlane"]                = &ThirdPersonCamera::GetNear;
-        camera_type["farPlane"]                 = &ThirdPersonCamera::GetFar;
-        camera_type["GetForwardDir"]            = &ThirdPersonCamera::GetForwardDirection;
-        camera_type["GetUpDir"]                 = &ThirdPersonCamera::GetUpDirection;
-        camera_type["GetRightDir"]              = &ThirdPersonCamera::GetRightDirection;
-                
+        sol::usertype< Camera > camera_type = state.new_usertype< Camera >( "Camera", sol::constructors<sol::types<float, float, float, float>>() );
+        camera_type["position"]                 = &Camera::GetPosition;
+        camera_type["yaw"]                      = &Camera::GetYaw;
+        camera_type["fov"]                      = &Camera::GetFOV;
+        camera_type["aspectRatio"]              = &Camera::GetAspectRatio;
+        camera_type["nearPlane"]                = &Camera::GetNear;
+        camera_type["farPlane"]                 = &Camera::GetFar;
+        camera_type["GetForwardDir"]            = &Camera::GetForwardDirection;
+        camera_type["GetUpDir"]                 = &Camera::GetUpDirection;
+        camera_type["GetRightDir"]              = &Camera::GetRightDirection;
+        camera_type["SetPosition"]              = &Camera::SetPosition;
+
         sol::usertype< Graphics::Texture2D > texture2D_type = state.new_usertype< Graphics::Texture2D >( "Texture2D" );
         texture2D_type.set_function("CreateFromFile", &Graphics::Texture2D::CreateFromFile);
+    
+        state.set_function("Rand", &LuaRand);
     }
 }
