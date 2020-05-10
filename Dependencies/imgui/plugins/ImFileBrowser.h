@@ -123,7 +123,7 @@ namespace ImGui
         int typeFilterIndex_;
 
         std::filesystem::path pwd_;
-        std::string selectedFilename_;
+        std::filesystem::path  selectedFilename_;
 
         struct FileRecord
         {
@@ -401,7 +401,15 @@ inline void ImGui::FileBrowser::Display()
                     {
                         selectedFilename_ = rsc.name;
                         if(!(flags_ & ImGuiFileBrowserFlags_SelectDirectory))
-                            std::strcpy(inputNameBuf_->data(), selectedFilename_.c_str());
+                        {
+#ifdef _MSC_VER
+                            strcpy_s(inputNameBuf_->data(), inputNameBuf_->size(),
+                                     selectedFilename_.u8string().c_str());
+#else
+                            std::strncpy(inputNameBuf_->data(), selectedFilename_.u8string().c_str(),
+                                         inputNameBuf_->size());
+#endif
+                        }
                     }
                 }
             }
