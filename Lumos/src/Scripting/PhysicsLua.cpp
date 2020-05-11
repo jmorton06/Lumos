@@ -297,11 +297,21 @@ namespace Lumos
      
      static void SetCallback(const sol::function& func)
      {
-         static ContactListener listener;
-         listener.SetBeginFunction(func);
-         Application::Instance()->GetSystem<B2PhysicsEngine>()->GetB2World()->SetContactListener(&listener);
+         ContactListener* listener = new ContactListener();
+         listener->SetBeginFunction(func);
+         Application::Instance()->GetSystem<B2PhysicsEngine>()->SetContactListener(listener);
      }
-
+    
+    Ref<PhysicsObject2D> CreateSharedPhysics2D()
+    {
+        return CreateRef<PhysicsObject2D>();
+    }
+    
+    Ref<PhysicsObject2D> CreateSharedPhysics2DWithParams(const PhysicsObjectParamaters& params)
+    {
+        return CreateRef<PhysicsObject2D>(params);
+    }
+    
     void BindPhysicsLua(sol::state& state)
     {
         register_type_b2Vec2(state);
@@ -331,6 +341,7 @@ namespace Lumos
         physics2D_type.set_function( "SetForce", &PhysicsObject2D::SetForce );
         physics2D_type.set_function( "SetPosition", &PhysicsObject2D::SetPosition );
         physics2D_type.set_function( "SetLinearVelocity", &PhysicsObject2D::SetLinearVelocity );
+        physics2D_type.set_function( "SetOrientation", &PhysicsObject2D::SetOrientation );
         physics2D_type.set_function( "SetAngularVelocity", &PhysicsObject2D::SetAngularVelocity );
         physics2D_type.set_function( "SetFriction", &PhysicsObject2D::SetFriction );
         physics2D_type.set_function( "GetPosition", &PhysicsObject2D::GetPosition );
@@ -339,6 +350,9 @@ namespace Lumos
         physics2D_type.set_function( "GetIsStatic", &PhysicsObject2D::GetIsStatic );
         physics2D_type.set_function( "GetB2Body", &PhysicsObject2D::GetB2BodyRef );
         physics2D_type.set_function( "Init", &PhysicsObject2D::Init);
+    
+        state.set_function( "CreatePhysics2DShared", &CreateSharedPhysics2D);
+        state.set_function( "CreatePhysics2DSharedWithParams", &CreateSharedPhysics2DWithParams);
     
         state.set_function( "SetCallback", &SetCallback);
         

@@ -7,29 +7,20 @@ SPEED = 3.0
 m_FurthestPillarPosX = 0
 
 m_PillarTarget = 35.0
-m_PillarIndex = 0
+m_PillarIndex = 1
 
 PLAYERTYPEID = 1
 PILLARTYPEID = 2
 
 local GameStates = {
-    Running,
-    GameOver
+    Running=0,
+    GameOver=1
 }
 
 gameState = GameStates.Running
 
 function beginContact(a, b)
-
-    id = a:GetUserData()
-    if id == "Player" then
-        gameState = GameStates.GameOver
-    end
-
-    id = b:GetUserData()
-    if id == "Player" then
-        gameState = GameStates.GameOver
-    end
+    gameState = GameStates.GameOver
 end
 
 function endContact(a, b, coll)
@@ -48,19 +39,22 @@ player = {}
 score = 0
 
 function CreatePlayer()
-    colour = Vector4.new(Rand(0.0, 1.0), Rand(0.0, 1.0), Rand(0.0, 1.0), 1.0);
+    colour = Vector4.new(1.0,1.0,1.0,1.0)
+
+    texture = LoadTexture("icon", "/CoreTextures/panda.png")
 
     player = registry:Create()
-    registry:assign_Sprite(player, Vector2.new(-1.0/2.0, -1.0/2.0), Vector2.new(1.0, 1.0), colour)
+    registry:assign_Sprite(player, Vector2.new(-1.0/2.0, -1.0/2.0), Vector2.new(1.15, 1.0), colour)
+    registry:get_Sprite(player):SetTexture(texture)
 
     params = PhysicsObjectParamaters.new()
     params.position = Vector3.new( 1.0, 1.0, 1.0)
     params.scale = Vector3.new(1.0 / 2.0, 1.0 / 2.0, 1.0)
 	params.shape = Shape.Circle
 	params.isStatic = false
-    blockPhysics = PhysicsObject2D.new(params)
-    blockPhysics:GetB2Body():SetLinearVelocity(b2Vec2(1.0,0.0))
-    --blockPhysics:GetB2Body():SetUserData("Player")
+    blockPhysics = CreatePhysics2DSharedWithParams(params)
+    blockPhysics:GetB2Body():SetLinearVelocity(b2Vec2(SPEED,0.0))
+    --blockPhysics:GetB2Body():SetUserData(1.0)
 
     SetCallback(beginContact)
 
@@ -86,18 +80,23 @@ function CreatePillar(index, offset)
 	pos = Vector3.new(offset / 2.0, ((topY - bottomY )/ 2.0) + bottomY, 0.0);
 	scale = Vector3.new(1.0, (topY - bottomY) / 2.0, 1.0);
 
+    texture = LoadTexture("icon", "/CoreTextures/icon.png")
+
     registry:assign_Sprite(pillars[index], Vector2.new(-scale.x, -scale.y), Vector2.new(scale.x * 2.0, scale.y * 2.0), colour)
+
+    registry:get_Sprite(pillars[index]):SetTexture(texture)
 
     params = PhysicsObjectParamaters.new()
 	params.position = pos
 	params.scale = scale
 	params.shape = Shape.Square
 	params.isStatic = true
-    blockPhysics = PhysicsObject2D.new(params)
-    --blockPhysics:GetB2Body():SetUserData("Pillar")
+    blockPhysics = CreatePhysics2DSharedWithParams(params)
+   -- blockPhysics:GetB2Body():SetUserData(2.0)
 
     registry:assign_Physics2DComponent(pillars[index], blockPhysics)
     registry:assign_Transform(pillars[index])
+
     tran = registry:get_Transform(pillars[index])
     tran:SetLocalPosition(pos)
 
@@ -115,8 +114,8 @@ function CreatePillar(index, offset)
 	params.shape = Shape.Square
 	params.isStatic = true
     
-    blockPhysics2 = PhysicsObject2D.new(params)
-    --blockPhysics2:GetB2Body():SetUserData("Pillar")
+    blockPhysics2 = CreatePhysics2DSharedWithParams(params)
+    --blockPhysics2:GetB2Body():SetUserData(2.0)
     registry:assign_Physics2DComponent(pillars[index + 1], blockPhysics2)
     registry:assign_Transform(pillars[index + 1])
     tran = registry:get_Transform(pillars[index + 1])
@@ -131,7 +130,23 @@ end
 CreatePlayer()
 
 for i=1,10, 2 do
-    CreatePillar(i, (i + 3) * 10.0)
+    CreatePillar(i, (i + 2) * 10.0)
+end
+
+backgroundTexture = LoadTexture("grass", "/CoreTextures/backgroundColorGrass.png")
+
+backgrounds = {}
+
+function CreateBackground(index)
+    backgrounds[index] = registry:Create()
+    registry:assign_Sprite(backgrounds[index], Vector2.new(-10.0, -10.0), Vector2.new(10.0 * 2.0, 10.0 * 2.0), Vector4.new(1.0,1.0,1.0,1.0))
+    registry:get_Sprite(backgrounds[index]):SetTexture(backgroundTexture)
+    registry:assign_Transform(backgrounds[index])
+    registry:get_Transform(backgrounds[index]):SetLocalPosition(Vector3.new(index * 10.0 - 20.0, 0.0,0.0))
+end
+
+for i=1,50, 1 do
+    CreateBackground(i)
 end
 
 function OnUpdate(dt)
@@ -160,39 +175,39 @@ function OnUpdate(dt)
 
         scene:GetCamera():SetPosition(pos)
 
-        score = registry:get_Transform(player):GetWorldPosition().x - 5 / 10
+        score = math.floor((registry:get_Transform(player):GetWorldPosition().x - 5) / 10)
 
         if registry:get_Transform(player):GetWorldPosition().x > m_PillarTarget then
             
- 			if registry:valid(pillars[m_PillarIndex]) then
-				registry:destroy(pillars[m_PillarIndex])
-				registry:destroy(pillars[m_PillarIndex + 1])
+ 			if pillars[m_PillarIndex] and registry:Valid(pillars[m_PillarIndex]) then
+				registry:Destroy(pillars[m_PillarIndex])
+				registry:Destroy(pillars[m_PillarIndex + 1])
             end
 
  			CreatePillar(m_PillarIndex, m_FurthestPillarPosX * 2.0 + 20.0)
 			m_PillarIndex = m_PillarIndex + 2
-			m_PillarIndex = m_PillarIndex % pillars.size()
+		    m_PillarIndex = math.modf(m_PillarIndex, 10)
 			m_PillarTarget = m_PillarTarget + 10.0
         end 
 
-        if gameState == GameStates.GameOver then
-            gui.beginWindow("GameOver")
-            gui.text("GameOver")
-            gui.text("Score : ")
-            gui.sameLine()
-            gui.text(tostring(score))
-
-            if gui.button("Reset") then
-                Reset();
-            end
-            gui.endWindow()
-        elseif gameState == GameStates.Running then
-            gui.beginWindow("Running")
+        if gameState == GameStates.Running then
+            gui.beginWindow("Running", gui.WindowFlags.NoDecoration)
             gui.text("Score : ")
             gui.sameLine()
             gui.text(tostring(score))
             gui.endWindow()
         end
+    elseif gameState == GameStates.GameOver then
+        gui.beginWindow("GameOver")
+        gui.text("GameOver")
+        gui.text("Score : ")
+        gui.sameLine()
+        gui.text(tostring(score))
+
+        if gui.button("Reset") then
+            Reset();
+        end
+        gui.endWindow()
     end
 end
 
@@ -201,24 +216,33 @@ function Reset()
     phys = registry:get_Physics2DComponent(player):GetPhysicsObject()
 
 	phys:SetPosition(Vector2.new(0.0, 0.0))
-	phys:SetLinearVelocity(Vector2.new(1.0, 0.0))
+	phys:SetLinearVelocity(Vector2.new(SPEED, 0.0))
 	phys:SetOrientation(0.0)
 	phys:SetAngularVelocity(0.0)
 
 	m_FurthestPillarPosX = 0.0
 	m_PillarTarget = 35.0
-    m_PillarIndex = 0
+    m_PillarIndex = 1
 
 	registry:get_Transform(player):SetLocalPosition(Vector3.new(0.0,0.0,0.0))
 	--registry:get_Transform(player):UpdateMatrices()
     
     for i=1,10, 2 do
-        if registry:valid(pillars[i]) then
-            registry:destroy(pillars[i]);
-            registry:destroy(pillars[i + 1]);
+        if registry:Valid(pillars[i]) then
+            registry:Destroy(pillars[i]);
+            registry:Destroy(pillars[i + 1]);
         end
 
-        CreatePillar(i, (i + 3) * 10.0)
+        CreatePillar(i, (i + 2) * 10.0)
     end
+end
+
+function OnCleanUp()
+    backgroundTexture = nil
+    texture = nil
+    blockPhysics = nil
+    blockPhysics2 = nill
+
+    registry:Destroy(player)
 end
 

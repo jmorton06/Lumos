@@ -18,7 +18,7 @@ namespace Lumos
 		void OnImGui();
 
 		Graphics::Mesh* GetMesh() const { return m_Mesh.get(); }
-        void SetMesh(Graphics::Mesh* mesh) { m_Mesh = mesh; }
+        void SetMesh(Graphics::Mesh* mesh) { m_Mesh = Ref<Graphics::Mesh>(mesh); }
 
 		bool& GetActive() { return m_Mesh->GetActive(); }
 

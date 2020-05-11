@@ -106,7 +106,7 @@ namespace Lumos
 		m_Windows.emplace_back(CreateRef<GraphicsInfoWindow>());
 		m_Windows.back()->SetActive(false);
 		m_Windows.emplace_back(CreateRef<ApplicationInfoWindow>());
-        m_Windows.emplace_back(CreateRef<AssetWindow>());
+        //m_Windows.emplace_back(CreateRef<AssetWindow>());
 
 
 		for (auto& window : m_Windows)

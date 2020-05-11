@@ -76,7 +76,7 @@ namespace Lumos
 		float GetScale() const { return m_Scale; };
 		void  SetScale(float scale)
 		{ 
-			m_Scale = scale; 
+ 			m_Scale = scale; 
 			m_ProjectionDirty = true;
 			m_FrustumDirty = true;
 		}

@@ -27,6 +27,56 @@
 
 #include <imgui/imgui.h>
 
+#ifdef CUSTOM_SMART_PTR
+namespace sol {
+    template <typename T>
+    struct unique_usertype_traits<Lumos::Ref<T>> {
+            typedef T type;
+            typedef Lumos::Ref<T> actual_type;
+            static const bool value = true;
+
+            static bool is_null(const actual_type& ptr) {
+                    return ptr == nullptr;
+            }
+
+            static type* get (const actual_type& ptr) {
+                    return ptr.get();
+            }
+    };
+    
+    template <typename T>
+    struct unique_usertype_traits<Lumos::Scope<T>> {
+            typedef T type;
+            typedef Lumos::Scope<T> actual_type;
+            static const bool value = true;
+
+            static bool is_null(const actual_type& ptr) {
+                    return ptr == nullptr;
+            }
+
+            static type* get (const actual_type& ptr) {
+                    return ptr.get();
+            }
+    };
+    
+    template <typename T>
+    struct unique_usertype_traits<Lumos::WeakRef<T>> {
+            typedef T type;
+            typedef Lumos::WeakRef<T> actual_type;
+            static const bool value = true;
+
+            static bool is_null(const actual_type& ptr) {
+                    return ptr == nullptr;
+            }
+
+            static type* get (const actual_type& ptr) {
+                    return ptr.get();
+            }
+    };
+}
+
+#endif
+
 namespace Lumos
 {
 	LuaManager::LuaManager() : m_State(nullptr)
@@ -267,6 +317,11 @@ namespace Lumos
         };
         state.new_enum< Lumos::InputCode::MouseKey, false >( "MouseButton", mouseItems );
     }
+    
+    Ref<Graphics::Texture2D> LoadTexture(const String& name, const String& path)
+    {
+        return Ref<Graphics::Texture2D>(Graphics::Texture2D::CreateFromFile(name, path));
+    }
 
     void LuaManager::BindECSLua(sol::state& state)
     {
@@ -288,7 +343,9 @@ namespace Lumos
         REGISTER_COMPONENT_WITH_ECS( state, Transform, static_cast<Transform&( entt::registry::* )( const entt::entity )> ( &entt::registry::emplace<Transform > ) );
         
         using namespace Graphics;
-        sol::usertype< Sprite > sprite_type = state.new_usertype< Sprite >( "Sprite", sol::constructors<sol::types<Maths::Vector2, Maths::Vector2, Maths::Vector4>>() );
+        sol::usertype< Sprite > sprite_type = state.new_usertype< Sprite >( "Sprite", sol::constructors<sol::types<Maths::Vector2, Maths::Vector2, Maths::Vector4>, Sprite(const Ref<Graphics::Texture2D>&, const Maths::Vector2&, const Maths::Vector2&, const Maths::Vector4&)>() );
+        sprite_type.set_function("SetTexture", &Sprite::SetTexture);
+    
         REGISTER_COMPONENT_WITH_ECS( state, Sprite, static_cast<Sprite&( entt::registry::* )( const entt::entity, const Vector2&,  const Vector2&,  const Vector4& )> ( &entt::registry::emplace<Sprite, const Vector2&,  const Vector2&,   const Vector4& > ) );
     
         REGISTER_COMPONENT_WITH_ECS( state, Light, static_cast<Light&( entt::registry::* )( const entt::entity )> ( &entt::registry::emplace<Light > ) );
@@ -301,10 +358,10 @@ namespace Lumos
         REGISTER_COMPONENT_WITH_ECS( state, Physics3DComponent, static_cast<Physics3DComponent&( entt::registry::* )( const entt::entity )> ( &entt::registry::emplace<Physics3DComponent > ) );
         REGISTER_COMPONENT_WITH_ECS( state, Physics3DComponent, static_cast<Physics3DComponent&( entt::registry::* )( const entt::entity )> ( &entt::registry::emplace<Physics3DComponent > ) );
         
-        sol::usertype< Physics2DComponent > physics2DComponent_type = state.new_usertype< Physics2DComponent >( "Physics2DComponent", sol::constructors<sol::types<PhysicsObject2D>>());
-        physics2DComponent_type.set_function( "GetPhysicsObject", &Physics2DComponent::GetPhysicsObjectRaw );
+        sol::usertype< Physics2DComponent > physics2DComponent_type = state.new_usertype< Physics2DComponent >( "Physics2DComponent", sol::constructors<sol::types<const Ref<PhysicsObject2D>&>>());
+        physics2DComponent_type.set_function( "GetPhysicsObject", &Physics2DComponent::GetPhysicsObject );
 
-        REGISTER_COMPONENT_WITH_ECS( state, Physics2DComponent, static_cast<Physics2DComponent&( entt::registry::* )( const entt::entity , const PhysicsObject2D&)> ( &entt::registry::emplace<Physics2DComponent, const PhysicsObject2D& > ) );
+        REGISTER_COMPONENT_WITH_ECS( state, Physics2DComponent, static_cast<Physics2DComponent&( entt::registry::* )( const entt::entity , Ref<PhysicsObject2D>&)> ( &entt::registry::emplace<Physics2DComponent, Ref<PhysicsObject2D>& > ) );
         
         REGISTER_COMPONENT_WITH_ECS( state, SoundComponent, static_cast<SoundComponent&( entt::registry::* )( const entt::entity )> ( &entt::registry::emplace<SoundComponent > ) );
         REGISTER_COMPONENT_WITH_ECS( state, MaterialComponent, static_cast<MaterialComponent&( entt::registry::* )( const entt::entity )> ( &entt::registry::emplace<MaterialComponent > ) );
@@ -326,6 +383,7 @@ namespace Lumos
         };
         state.new_enum< Lumos::Graphics::PrimitiveType, false >( "PrimitiveType", primitives );
         state.set_function("LoadMesh", &CreatePrimative);
+        state.set_function("LoadTexture", &LoadTexture);
     }
     
     static float LuaRand(float a, float b)

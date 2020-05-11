@@ -56,14 +56,3 @@ void Scene2D::OnCleanupScene()
 
 	Scene::OnCleanupScene();
 }
-
-void Scene2D::OnImGui()
-{
-	
-}
-
-void Scene2D::Reset()
-{
-
-	
-}

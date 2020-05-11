@@ -21,21 +21,26 @@ namespace Lumos
 		, m_DebugDraw(CreateScope<B2DebugDraw>())
 		, m_UpdateTimestep(1.0f / 60.f)
         , m_UpdateAccum(0.0f)
+        , m_Listener(nullptr)
 	{
         m_DebugName = "Box2D Physics Engine";
 		m_B2DWorld->SetDebugDraw(m_DebugDraw.get());
 
         uint32 flags = 0;
-        flags += b2Draw::e_shapeBit;
-        flags += b2Draw::e_jointBit;
+        //flags += b2Draw::e_shapeBit;
+        //flags += b2Draw::e_jointBit;
         //flags += b2Draw::e_aabbBit;
         //flags += b2Draw::e_centerOfMassBit;
-        flags += b2Draw::e_pairBit;
+        //flags += b2Draw::e_pairBit;
 
         m_DebugDraw->SetFlags(flags);
 	}
 
-	B2PhysicsEngine::~B2PhysicsEngine() = default;
+	B2PhysicsEngine::~B2PhysicsEngine()
+    {
+        if(m_Listener)
+            delete m_Listener;
+    }
 
 	void B2PhysicsEngine::SetDefaults()
 	{
@@ -156,5 +161,13 @@ namespace Lumos
     {
         return m_DebugDraw->GetFlags();
     }
-
+    
+    void B2PhysicsEngine::SetContactListener(b2ContactListener* listener)
+    {
+        if(m_Listener)
+            delete m_Listener;
+    
+        m_Listener = listener;
+        m_B2DWorld->SetContactListener(listener);
+    }
 }

@@ -643,6 +643,6 @@ namespace Lumos
 
     void Material::ReleaseDefaultTexture()
     {
-        s_DefaultTexture.release();
+        s_DefaultTexture.reset();
     }
 }

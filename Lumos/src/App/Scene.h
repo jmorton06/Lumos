@@ -113,6 +113,8 @@ namespace Lumos
 
 		bool OnWindowResize(WindowResizeEvent& e);
         sol::environment m_LuaEnv;
+        sol::protected_function m_LuaUpdateFunction;
+        
         String m_LuaFilePath;
 };
 }

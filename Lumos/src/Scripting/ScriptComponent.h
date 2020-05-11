@@ -35,5 +35,6 @@ namespace Lumos
         std::vector<std::string> m_Errors;
         
         sol::environment m_Env;
+        sol::protected_function m_UpdateFunc;
     };
 }
