@@ -22,6 +22,7 @@ namespace Lumos
 		, m_Near(Near)
 		, m_Far(Far)
 		, m_Orthographic(false)
+		, m_Scale(1)
 	{
 	};
 
@@ -41,6 +42,7 @@ namespace Lumos
 		, m_Near(Near)
 		, m_Far(Far)
 		, m_Orthographic(false)
+		, m_Scale(1)
 	{
 	}
 

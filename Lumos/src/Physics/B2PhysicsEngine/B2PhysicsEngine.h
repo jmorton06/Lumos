@@ -7,6 +7,7 @@ class b2World;
 class b2Body;
 struct b2BodyDef;
 struct b2FixtureDef;
+class b2ContactListener;
 
 namespace Lumos
 {
@@ -39,6 +40,8 @@ namespace Lumos
         u32 GetDebugDrawFlags();
         void SetDebugDrawFlags(u32 flags);
     
+        void SetContactListener(b2ContactListener* listener);
+    
 	private:
 
 		Scope<b2World> m_B2DWorld;
@@ -47,5 +50,7 @@ namespace Lumos
 		float m_UpdateTimestep, m_UpdateAccum;
 		bool m_Paused = true;
 		bool m_MultipleUpdates = true;
+    
+        b2ContactListener* m_Listener;
 	};
 }

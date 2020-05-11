@@ -27,5 +27,19 @@ namespace Lumos
 			}
 			return results;
 		}
+    
+        std::vector<Maths::Vector2> Renderable2D::GetUVs(const Maths::Vector2& min, const Maths::Vector2& max)
+        {
+            std::vector<Maths::Vector2> results;
+
+            if (results.empty())
+            {
+                results.push_back(Maths::Vector2(min.x, max.y));
+                results.push_back(max);
+                results.push_back(Maths::Vector2(max.x, min.y));
+                results.push_back(min);
+            }
+            return results;
+        }
 	}
 }

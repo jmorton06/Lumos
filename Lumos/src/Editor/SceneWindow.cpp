@@ -69,8 +69,8 @@ namespace Lumos
     
         if(updateSceneSizeTimer > 360)
         {
-            if(ImGui::GetCurrentWindow()->ResizeBorderHeld < 0)
-                Application::Instance()->SetSceneViewDimensions(sceneViewSize.x, sceneViewSize.y);
+            //if(ImGui::GetCurrentWindow()->ResizeBorderHeld < 0)
+            //    Application::Instance()->SetSceneViewDimensions(sceneViewSize.x, sceneViewSize.y);
         
             updateSceneSizeTimer = 0;
         }

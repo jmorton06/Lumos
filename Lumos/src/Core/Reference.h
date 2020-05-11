@@ -198,13 +198,13 @@ namespace Lumos
 			return m_Ptr[index];
 		}
         
-		_FORCE_INLINE_ explicit operator bool() const { return m_Ptr != nullptr; }
-        _FORCE_INLINE_ bool operator==(const T *p_ptr)			const { return m_Ptr == p_ptr; }
-        _FORCE_INLINE_ bool operator!=(const T *p_ptr)			const { return m_Ptr != p_ptr; }
-        _FORCE_INLINE_ bool operator<(const Reference<T> &p_r)	const { return m_Ptr < p_r.m_Ptr; }
-        _FORCE_INLINE_ bool operator==(const Reference<T> &p_r)	const { return m_Ptr == p_r.m_Ptr; }
-        _FORCE_INLINE_ bool operator!=(const Reference<T> &p_r)	const { return m_Ptr != p_r.m_Ptr; }
-
+		_FORCE_INLINE_ explicit constexpr operator bool() const { return m_Ptr != nullptr; }
+        _FORCE_INLINE_ constexpr bool operator==(const T *p_ptr)			const { return m_Ptr == p_ptr; }
+        _FORCE_INLINE_ constexpr bool operator!=(const T *p_ptr)			const { return m_Ptr != p_ptr; }
+        _FORCE_INLINE_ constexpr bool operator<(const Reference<T> &p_r)	const { return m_Ptr < p_r.m_Ptr; }
+        _FORCE_INLINE_ constexpr bool operator==(const Reference<T> &p_r)	const { return m_Ptr == p_r.m_Ptr; }
+        _FORCE_INLINE_ constexpr bool operator!=(const Reference<T> &p_r)	const { return m_Ptr != p_r.m_Ptr; }
+    
         _FORCE_INLINE_ void swap(Reference& other) noexcept
         {
             std::swap(m_Ptr,  other.m_Ptr);
@@ -447,7 +447,7 @@ namespace Lumos
         lhs.swap(rhs);
     }
            
-#define CUSTOM_SMART_PTR
+//#define CUSTOM_SMART_PTR
 #ifdef CUSTOM_SMART_PTR
     
     template<class T>

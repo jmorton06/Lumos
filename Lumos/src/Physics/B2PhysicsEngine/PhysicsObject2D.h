@@ -38,7 +38,7 @@ namespace Lumos
 
 		nlohmann::json Serialise() override;
 		void Deserialise(nlohmann::json& data) override;
-
+    
 	protected:
 
 		b2Body* m_B2Body;

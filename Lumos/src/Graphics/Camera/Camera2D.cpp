@@ -83,6 +83,7 @@ namespace Lumos
 		if (!Maths::Equals(m_ZoomVelocity, 0.0f))
 		{
             float scale = m_Camera->GetScale();
+
 			scale -= m_ZoomVelocity;
 
 			if (scale < 0.15f)

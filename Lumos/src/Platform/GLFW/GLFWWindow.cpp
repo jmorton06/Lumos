@@ -134,7 +134,9 @@ namespace Lumos
 
 		glfwSetWindowUserPointer(m_Handle, &m_Data);
 
+#ifdef LUMOS_PLATFORM_WINDOWS
 		SetIcon("/CoreTextures/icon.png", "/CoreTextures/icon32.png");
+#endif
         
 		glfwSetWindowPos(m_Handle, mode->width / 2 - ScreenWidth / 2, mode->height / 2 - ScreenHeight / 2);
 		glfwSetInputMode(m_Handle, GLFW_STICKY_KEYS, GL_TRUE);

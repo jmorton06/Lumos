@@ -64,6 +64,7 @@ namespace Lumos
 			const std::vector<Maths::Vector2>& GetUVs() const { return m_UVs; }
 
 			static const std::vector<Maths::Vector2>& GetDefaultUVs();
+            static std::vector<Maths::Vector2> GetUVs(const Maths::Vector2& min, const Maths::Vector2& max);
 
 		protected:
 			Ref<Texture2D> m_Texture;

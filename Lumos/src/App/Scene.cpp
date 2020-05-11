@@ -30,8 +30,21 @@ namespace Lumos
 
     Scene::~Scene()
     {
-        if(m_LuaEnv && m_LuaEnv["OnDestroy"])
-            m_LuaEnv["OnDestroy"]();
+        if(m_LuaEnv)
+        {
+            sol::protected_function onDestroyFunc = m_LuaEnv["OnDestroy"];
+
+            if(onDestroyFunc)
+            {
+                sol::protected_function_result result = onDestroyFunc.call();
+                if (!result.valid())
+                {
+                    sol::error err = result;
+                    Debug::Log::Error("Failed to Execute Scene Lua OnDestroy function" );
+                    Debug::Log::Error("Error : {0}", err.what());
+                }
+            }
+        }
         
         DeleteAllGameObjects();
     }
@@ -101,8 +114,25 @@ namespace Lumos
 
 	void Scene::OnCleanupScene()
 	{
-        if(m_LuaEnv && m_LuaEnv["OnCleanUp"])
-            m_LuaEnv["OnCleanUp"]();
+        if(m_LuaEnv)
+        {
+            sol::protected_function onCleanupFunc = m_LuaEnv["OnCleanUp"];
+
+            if(onCleanupFunc)
+            {
+                sol::protected_function_result result = onCleanupFunc.call();
+                if (!result.valid())
+                {
+                    sol::error err = result;
+                    Debug::Log::Error("Failed to Execute Scene Lua OnCleanUp function" );
+                    Debug::Log::Error("Error : {0}", err.what());
+                }
+            }
+        }
+ 
+        //m_LuaEnv = NULL;
+
+        LuaManager::Instance()->GetState().collect_garbage();
     
 		DeleteAllGameObjects();
 
@@ -137,8 +167,16 @@ namespace Lumos
 
 		m_SceneGraph.Update(m_Registry);
         
-        if(m_LuaEnv && m_LuaEnv["OnUpdate"])
-            m_LuaEnv["OnUpdate"](timeStep->GetElapsedMillis());
+        if(m_LuaUpdateFunction)
+        {
+            sol::protected_function_result result = m_LuaUpdateFunction.call(timeStep->GetElapsedMillis());
+            if (!result.valid())
+            {
+                sol::error err = result;
+                Debug::Log::Error("Failed to Execute Scene Lua update" );
+                Debug::Log::Error("Error : {0}", err.what());
+            }
+        }
 	}
 
 	void Scene::OnEvent(Event& e)
@@ -191,9 +229,22 @@ namespace Lumos
             Debug::Log::Error("Failed to Execute Lua script {0}" , physicalPath );
             Debug::Log::Error("Error : {0}", err.what());
         }
-
-        if(m_LuaEnv["OnInit"])
-            m_LuaEnv["OnInit"]();
+    
+        sol::protected_function onInitFunc = m_LuaEnv["OnInit"];
+    
+        if(onInitFunc)
+        {
+            sol::protected_function_result result = onInitFunc.call();
+            if (!result.valid())
+            {
+                sol::error err = result;
+                Debug::Log::Error("Failed to Execute Scene Lua Init function" );
+                Debug::Log::Error("Error : {0}", err.what());
+            }
+        }
+  
+    
+        m_LuaUpdateFunction = m_LuaEnv["OnUpdate"];
     }
 
     Scene* Scene::LoadFromLua(const String& filePath)
