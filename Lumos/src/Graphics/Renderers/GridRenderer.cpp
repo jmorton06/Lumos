@@ -113,7 +113,7 @@ namespace Lumos
 			// Per Scene System Uniforms
 			m_VSSystemUniformBufferOffsets[VSSystemUniformIndex_InverseProjectionViewMatrix] = 0;
 
-			m_CommandBuffers.resize(2);
+			m_CommandBuffers.resize(Renderer::GetSwapchain()->GetSwapchainBufferCount());
 
 			for (auto& commandBuffer : m_CommandBuffers)
 			{

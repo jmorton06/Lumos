@@ -50,6 +50,8 @@ namespace Lumos
         Lumos::VFS::Get()->Mount("Shaders", root + "/Assets/shaders");
         Lumos::VFS::Get()->Mount("Meshes", root + "/Assets/meshes");
         Lumos::VFS::Get()->Mount("Textures", root + "/Assets/textures");
+        Lumos::VFS::Get()->Mount("Scripts", root + "/Assets/scripts");
+
         
         Lumos::Debug::Log::Info("Device : {0}",GetModelName());
         

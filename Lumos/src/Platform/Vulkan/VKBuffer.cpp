@@ -46,7 +46,7 @@ namespace Lumos
             vmaAllocInfo.usage = VMA_MEMORY_USAGE_CPU_TO_GPU;
             vmaCreateBuffer(VKDevice::Instance()->GetAllocator(), &bufferInfo, &vmaAllocInfo, &m_Buffer, &m_Allocation, nullptr);
 #else
-			vkCreateBuffer(VKDevice::Device(), &bufferInfo, nullptr, &m_Buffer);
+			VK_CHECK_RESULT(vkCreateBuffer(VKDevice::Device(), &bufferInfo, nullptr, &m_Buffer));
 
 			VkMemoryRequirements memRequirements;
 			vkGetBufferMemoryRequirements(VKDevice::Device(), m_Buffer, &memRequirements);
@@ -56,12 +56,7 @@ namespace Lumos
 			allocInfo.allocationSize = memRequirements.size;
 			allocInfo.memoryTypeIndex = VKTools::FindMemoryType(memRequirements.memoryTypeBits, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT);
 
-			VkResult result = vkAllocateMemory(VKDevice::Device(), &allocInfo, nullptr, &m_Memory);
-
-			if (result != VK_SUCCESS)
-			{
-				LUMOS_LOG_CRITICAL("[VULKAN] Failed to allocate buffer memory!");
-			}
+			VK_CHECK_RESULT(vkAllocateMemory(VKDevice::Device(), &allocInfo, nullptr, &m_Memory));
 
 			vkBindBufferMemory(VKDevice::Device(), m_Buffer, m_Memory, 0);
 #endif

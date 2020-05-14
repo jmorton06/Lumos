@@ -43,9 +43,11 @@ namespace Lumos
 		ImGuizmo::SetDrawlist();
 		auto sceneViewSize = ImGui::GetContentRegionAvail();
         auto sceneViewPosition = ImGui::GetWindowPos();
+    
+        auto viewportOffset = ImGui::GetCursorPos();
         
-        sceneViewPosition.x = ImGui::GetCursorPos().x + ImGui::GetWindowPos().x;
-        sceneViewPosition.y = ImGui::GetCursorPos().y + ImGui::GetWindowPos().y;
+        sceneViewPosition.x = viewportOffset.x + ImGui::GetWindowPos().x;
+        sceneViewPosition.y = viewportOffset.y + ImGui::GetWindowPos().y;
     
         m_Editor->m_SceneWindowPos = { sceneViewPosition.x , sceneViewPosition.y };
 
@@ -69,8 +71,8 @@ namespace Lumos
     
         if(updateSceneSizeTimer > 360)
         {
-            //if(ImGui::GetCurrentWindow()->ResizeBorderHeld < 0)
-            //    Application::Instance()->SetSceneViewDimensions(sceneViewSize.x, sceneViewSize.y);
+            if(ImGui::GetCurrentWindow()->ResizeBorderHeld < 0)
+                Application::Instance()->SetSceneViewDimensions(sceneViewSize.x, sceneViewSize.y);
         
             updateSceneSizeTimer = 0;
         }
@@ -107,7 +109,17 @@ namespace Lumos
 		m_Editor->OnImGuizmo();
         
         DrawGizmos(sceneViewSize.x, sceneViewSize.y, 0.0f, 40.0f, Application::Instance()->GetSceneManager()->GetCurrentScene()); // Not sure why 40
-		Application::Instance()->SetSceneActive(ImGui::IsWindowFocused() && !ImGuizmo::IsUsing());
+    
+        auto windowSize = ImGui::GetWindowSize();
+        ImVec2 minBound = sceneViewPosition;
+        minBound.x += viewportOffset.x;
+        minBound.y += viewportOffset.y;
+
+        ImVec2 maxBound = { minBound.x + windowSize.x, minBound.y + windowSize.y };
+        bool updateCamera = ImGui::IsMouseHoveringRect(minBound, maxBound);
+
+    
+		Application::Instance()->SetSceneActive(ImGui::IsWindowFocused() && !ImGuizmo::IsUsing() && updateCamera);
         
 		if (m_ShowStats && ImGui::IsWindowFocused())
 		{

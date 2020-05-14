@@ -30,12 +30,12 @@ namespace Lumos
 			cmdBufferCI.commandBufferCount = 1;
 			cmdBufferCI.level = primary ? VK_COMMAND_BUFFER_LEVEL_PRIMARY : VK_COMMAND_BUFFER_LEVEL_SECONDARY;
 
-			vkAllocateCommandBuffers(VKDevice::Instance()->GetDevice(), &cmdBufferCI, &m_CommandBuffer);
+			VK_CHECK_RESULT(vkAllocateCommandBuffers(VKDevice::Instance()->GetDevice(), &cmdBufferCI, &m_CommandBuffer));
 
 			VkFenceCreateInfo fenceCI{};
 			fenceCI.sType = VK_STRUCTURE_TYPE_FENCE_CREATE_INFO;
 			fenceCI.flags = VK_FENCE_CREATE_SIGNALED_BIT;
-			vkCreateFence(VKDevice::Instance()->GetDevice(), &fenceCI, nullptr, &m_Fence);
+			VK_CHECK_RESULT(vkCreateFence(VKDevice::Instance()->GetDevice(), &fenceCI, nullptr, &m_Fence));
 
 			return true;
 		}
@@ -53,7 +53,7 @@ namespace Lumos
 				VkCommandBufferBeginInfo beginCI{};
 				beginCI.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
 				beginCI.flags = VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT;
-				vkBeginCommandBuffer(m_CommandBuffer, &beginCI);
+				VK_CHECK_RESULT(vkBeginCommandBuffer(m_CommandBuffer, &beginCI));
 			}
 			else
 				Debug::Log::Critical("BeginRecording() called from a secondary command buffer!");
@@ -74,7 +74,7 @@ namespace Lumos
 				beginCI.flags = VK_COMMAND_BUFFER_USAGE_RENDER_PASS_CONTINUE_BIT;
 				beginCI.pInheritanceInfo = &inheritanceInfo;
 
-				vkBeginCommandBuffer(m_CommandBuffer, &beginCI);
+				VK_CHECK_RESULT(vkBeginCommandBuffer(m_CommandBuffer, &beginCI));
 			}
 			else
 				Debug::Log::Critical("BeginRecordingSecondary() called from a primary command buffer!");
@@ -82,7 +82,7 @@ namespace Lumos
 
 		void VKCommandBuffer::EndRecording()
 		{
-			vkEndCommandBuffer(m_CommandBuffer);
+			VK_CHECK_RESULT(vkEndCommandBuffer(m_CommandBuffer));
 		}
 
 		void VKCommandBuffer::Execute(bool waitFence)
@@ -115,14 +115,14 @@ namespace Lumos
 
 				if (waitFence)
 				{
-					vkQueueSubmit(VKDevice::Instance()->GetGraphicsQueue(), 1, &submitInfo, m_Fence);
-					vkWaitForFences(VKDevice::Instance()->GetDevice(), 1, &m_Fence, VK_TRUE, UINT64_MAX);
-					vkResetFences(VKDevice::Instance()->GetDevice(), 1, &m_Fence);
+					VK_CHECK_RESULT(vkQueueSubmit(VKDevice::Instance()->GetGraphicsQueue(), 1, &submitInfo, m_Fence));
+					VK_CHECK_RESULT(vkWaitForFences(VKDevice::Instance()->GetDevice(), 1, &m_Fence, VK_TRUE, UINT64_MAX));
+					VK_CHECK_RESULT(vkResetFences(VKDevice::Instance()->GetDevice(), 1, &m_Fence));
 				}
 				else 
 				{
-					vkQueueSubmit(VKDevice::Instance()->GetGraphicsQueue(), 1, &submitInfo, VK_NULL_HANDLE);
-					vkQueueWaitIdle(VKDevice::Instance()->GetGraphicsQueue());
+					VK_CHECK_RESULT(vkQueueSubmit(VKDevice::Instance()->GetGraphicsQueue(), 1, &submitInfo, VK_NULL_HANDLE));
+					VK_CHECK_RESULT(vkQueueWaitIdle(VKDevice::Instance()->GetGraphicsQueue()));
 				}
 					
 			}

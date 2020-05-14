@@ -322,6 +322,11 @@ namespace Lumos
     {
         return Ref<Graphics::Texture2D>(Graphics::Texture2D::CreateFromFile(name, path));
     }
+    
+    Ref<Graphics::Texture2D> LoadTextureWithParams(const String& name, const String& path, Lumos::Graphics::TextureFilter filter, Lumos::Graphics::TextureWrap wrapMode)
+    {
+        return Ref<Graphics::Texture2D>(Graphics::Texture2D::CreateFromFile(name, path, Graphics::TextureParameters(filter, wrapMode)));
+    }
 
     void LuaManager::BindECSLua(sol::state& state)
     {
@@ -381,9 +386,49 @@ namespace Lumos
             { "Cylinder", Lumos::Graphics::PrimitiveType::Cylinder  },
 
         };
+    
+        enum class TextureWrap
+        {
+            NONE,
+            REPEAT,
+            CLAMP,
+            MIRRORED_REPEAT,
+            CLAMP_TO_EDGE,
+            CLAMP_TO_BORDER
+        };
+
+        enum class TextureFilter
+        {
+            NONE,
+            LINEAR,
+            NEAREST
+        };
+    
+        std::initializer_list< std::pair< sol::string_view, Lumos::Graphics::TextureFilter > > textureFilter =
+        {
+              { "None", Lumos::Graphics::TextureFilter::NONE  },
+              { "Linear", Lumos::Graphics::TextureFilter::LINEAR  },
+              { "Nearest", Lumos::Graphics::TextureFilter::NEAREST  }
+        };
+    
+        std::initializer_list< std::pair< sol::string_view, Lumos::Graphics::TextureWrap > > textureWrap =
+        {
+            { "None", Lumos::Graphics::TextureWrap::NONE  },
+            { "Repeat", Lumos::Graphics::TextureWrap::REPEAT  },
+            { "Clamp", Lumos::Graphics::TextureWrap::CLAMP  },
+            { "MorroredRepeat", Lumos::Graphics::TextureWrap::MIRRORED_REPEAT  },
+            { "ClampToEdge", Lumos::Graphics::TextureWrap::CLAMP_TO_EDGE  },
+            { "ClampToBorder", Lumos::Graphics::TextureWrap::CLAMP_TO_BORDER  }
+        };
+    
         state.new_enum< Lumos::Graphics::PrimitiveType, false >( "PrimitiveType", primitives );
         state.set_function("LoadMesh", &CreatePrimative);
+    
+        state.new_enum< Lumos::Graphics::TextureWrap, false >( "TextureWrap", textureWrap );
+        state.new_enum< Lumos::Graphics::TextureFilter, false >( "TextureFilter", textureFilter );
+
         state.set_function("LoadTexture", &LoadTexture);
+        state.set_function("LoadTextureWithParams", &LoadTextureWithParams);
     }
     
     static float LuaRand(float a, float b)

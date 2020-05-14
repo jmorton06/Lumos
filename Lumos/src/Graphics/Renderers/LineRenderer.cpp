@@ -66,6 +66,12 @@ namespace Lumos
         {
             delete commandBuffer;
         }
+
+        for (int i = 0; i < MAX_BATCH_DRAW_CALLS; i++)
+            delete m_VertexArrays[i];
+
+        for (int i = 0; i < MAX_BATCH_DRAW_CALLS; i++)
+            delete m_SecondaryCommandBuffers[i];
     }
 
     void LineRenderer::Init()
@@ -94,7 +100,7 @@ namespace Lumos
 		
 		CreateFramebuffers();
 		
-		m_CommandBuffers.resize(2);
+		m_CommandBuffers.resize(Renderer::GetSwapchain()->GetSwapchainBufferCount());
 		
 		for (auto& commandBuffer : m_CommandBuffers)
 			{

@@ -49,10 +49,10 @@ namespace Lumos
 					swapChainPresentMode = VK_PRESENT_MODE_IMMEDIATE_KHR;
 			}
 
-			// Use double-buffering
-			uint32_t numSwapChainImages = surfaceCapabilities.minImageCount;
-			if (numSwapChainImages > surfaceCapabilities.maxImageCount)
-				numSwapChainImages = surfaceCapabilities.maxImageCount;
+			// Use triple-buffering
+			uint32_t numSwapChainImages = surfaceCapabilities.maxImageCount;
+			if (numSwapChainImages > 3)
+				numSwapChainImages = 3;
 
             VkSurfaceTransformFlagBitsKHR preTransform;
 			if (surfaceCapabilities.supportedTransforms & VK_SURFACE_TRANSFORM_IDENTITY_BIT_KHR)
@@ -79,13 +79,13 @@ namespace Lumos
 			swapChainCI.pQueueFamilyIndices = VK_NULL_HANDLE;
 			swapChainCI.clipped = VK_TRUE;
 
-            vkCreateSwapchainKHR(VKDevice::Instance()->GetDevice(), &swapChainCI, VK_NULL_HANDLE, &m_SwapChain);
+            VK_CHECK_RESULT(vkCreateSwapchainKHR(VKDevice::Instance()->GetDevice(), &swapChainCI, VK_NULL_HANDLE, &m_SwapChain));
     
 			uint32_t swapChainImageCount;
-            vkGetSwapchainImagesKHR(VKDevice::Instance()->GetDevice(), m_SwapChain, &swapChainImageCount, VK_NULL_HANDLE);
+            VK_CHECK_RESULT(vkGetSwapchainImagesKHR(VKDevice::Instance()->GetDevice(), m_SwapChain, &swapChainImageCount, VK_NULL_HANDLE));
 
             VkImage * pSwapChainImages = lmnew VkImage[swapChainImageCount];
-            vkGetSwapchainImagesKHR(VKDevice::Instance()->GetDevice(), m_SwapChain, &swapChainImageCount, pSwapChainImages);
+            VK_CHECK_RESULT(vkGetSwapchainImagesKHR(VKDevice::Instance()->GetDevice(), m_SwapChain, &swapChainImageCount, pSwapChainImages));
 
 			for (uint32_t i = 0; i < swapChainImageCount; i++)
 			{
@@ -106,7 +106,7 @@ namespace Lumos
 				viewCI.image = pSwapChainImages[i];
 
 				VkImageView imageView;
-				vkCreateImageView(VKDevice::Instance()->GetDevice(), &viewCI, VK_NULL_HANDLE, &imageView);
+				VK_CHECK_RESULT(vkCreateImageView(VKDevice::Instance()->GetDevice(), &viewCI, VK_NULL_HANDLE, &imageView));
 				VKTexture2D* swapChainBuffer = lmnew VKTexture2D(pSwapChainImages[i], imageView);
 
 				m_SwapChainBuffers.push_back(swapChainBuffer);
@@ -134,7 +134,7 @@ namespace Lumos
 			present.waitSemaphoreCount = 1;
 			present.pWaitSemaphores = &waitSemaphore;
 			present.pResults = VK_NULL_HANDLE;
-			vkQueuePresentKHR(VKDevice::Instance()->GetPresentQueue(), &present);
+			VK_CHECK_RESULT(vkQueuePresentKHR(VKDevice::Instance()->GetPresentQueue(), &present));
 		}
         
         void VKSwapchain::MakeDefault()

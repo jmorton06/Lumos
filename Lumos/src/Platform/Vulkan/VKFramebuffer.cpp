@@ -3,6 +3,7 @@
 #include "VKDevice.h"
 #include "VKTexture.h"
 #include "VKInitialisers.h"
+#include "VKTools.h"
 
 namespace Lumos
 {
@@ -40,7 +41,7 @@ namespace Lumos
 			framebufferCreateInfo.pNext = nullptr;
 			framebufferCreateInfo.flags = 0;
 
-			vkCreateFramebuffer(VKDevice::Instance()->GetDevice(), &framebufferCreateInfo, VK_NULL_HANDLE, &m_Framebuffer);
+			VK_CHECK_RESULT(vkCreateFramebuffer(VKDevice::Instance()->GetDevice(), &framebufferCreateInfo, VK_NULL_HANDLE, &m_Framebuffer));
 		}
 
 		VKFramebuffer::~VKFramebuffer()
