@@ -82,14 +82,14 @@ namespace Lumos
 			beginInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
 			beginInfo.flags = VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT;
 
-			vkBeginCommandBuffer(commandBuffer, &beginInfo);
+			VK_CHECK_RESULT(vkBeginCommandBuffer(commandBuffer, &beginInfo));
 
             return commandBuffer;
         }
 
         void VKTools::EndSingleTimeCommands(VkCommandBuffer commandBuffer)
         {
-            vkEndCommandBuffer(commandBuffer);
+            VK_CHECK_RESULT(vkEndCommandBuffer(commandBuffer));
 
             VkSubmitInfo submitInfo;
 			submitInfo.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
@@ -101,8 +101,8 @@ namespace Lumos
 			submitInfo.signalSemaphoreCount = 0;
 			submitInfo.waitSemaphoreCount = 0;
 
-			vkQueueSubmit(VKDevice::Instance()->GetGraphicsQueue(), 1, &submitInfo, VK_NULL_HANDLE);
-			vkQueueWaitIdle(VKDevice::Instance()->GetGraphicsQueue());
+			VK_CHECK_RESULT(vkQueueSubmit(VKDevice::Instance()->GetGraphicsQueue(), 1, &submitInfo, VK_NULL_HANDLE));
+			VK_CHECK_RESULT(vkQueueWaitIdle(VKDevice::Instance()->GetGraphicsQueue()));
 
 			vkFreeCommandBuffers(VKDevice::Instance()->GetDevice(),
 				VKDevice::Instance()->GetVKContext()->GetCommandPool()->GetCommandPool(), 1, &commandBuffer);

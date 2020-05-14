@@ -22,7 +22,7 @@ void Scene2D::OnInit()
     m_pCamera->SetCameraController(CreateRef<CameraController2D>(m_pCamera));
     m_pCamera->SetIsOrthographic(true);
     
-	LoadLuaScene(ROOT_DIR"/Sandbox/res/scripts/FlappyBirdTest.lua");
+	LoadLuaScene("/Scripts/FlappyBirdTest.lua");
 
 	auto cameraEntity = m_Registry.create();
 	m_Registry.emplace<CameraComponent>(cameraEntity, m_pCamera);

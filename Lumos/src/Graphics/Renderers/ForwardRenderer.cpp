@@ -189,7 +189,7 @@ namespace Lumos
 
 			CreateFramebuffers();
 
-			m_CommandBuffers.resize(2);
+			m_CommandBuffers.resize(Renderer::GetSwapchain()->GetSwapchainBufferCount());
 
 			for (auto& commandBuffer : m_CommandBuffers)
 			{

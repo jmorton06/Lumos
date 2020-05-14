@@ -96,7 +96,7 @@ namespace Lumos
 
 			CreateFramebuffers();
 
-			m_CommandBuffers.resize(2);
+			m_CommandBuffers.resize(Renderer::GetSwapchain()->GetSwapchainBufferCount());
 
 			for (auto& commandBuffer : m_CommandBuffers)
 			{
@@ -245,7 +245,7 @@ namespace Lumos
         void Renderer2D::SubmitInternal(const TriangleInfo& triangleInfo)
         {
             if(m_IndexCount >= RENDERER_INDICES_SIZE)
-                        FlushAndReset();
+                FlushAndReset();
 
             float textureSlot = 0.0f;
 

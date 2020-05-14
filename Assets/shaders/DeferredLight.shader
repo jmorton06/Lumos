@@ -1,7 +1,7 @@
 #shader vertex
-DeferredLight.vert.spv
+CompiledSPV/DeferredLight.vert.spv
 #shader end
 
 #shader fragment
-DeferredLight.frag.spv
+CompiledSPV/DeferredLight.frag.spv
 #shader end

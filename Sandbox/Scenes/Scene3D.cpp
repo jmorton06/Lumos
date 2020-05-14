@@ -25,7 +25,7 @@ void Scene3D::OnInit()
 
 	LoadModels();
     
-    LoadLuaScene(ROOT_DIR"/Sandbox/res/scripts/LuaSceneTest.lua");
+    LoadLuaScene("/Scripts/LuaSceneTest.lua");
 
 	Application::Instance()->GetWindow()->HideMouse(false);
 
@@ -126,7 +126,7 @@ void Scene3D::LoadModels()
 	m_Registry.emplace<Maths::Transform>(ground, Matrix4::Scale(Maths::Vector3(groundWidth, groundHeight, groundLength)));
 	m_Registry.emplace<Physics3DComponent>(ground, testPhysics);
     
-	m_Registry.emplace<Lumos::ScriptComponent>(ground, ROOT_DIR"/Sandbox/res/scripts/LuaComponentTest.lua", this);
+	m_Registry.emplace<Lumos::ScriptComponent>(ground, "Scripts/LuaComponentTest.lua", this);
 
 	Ref<Graphics::Mesh> groundModel = AssetsManager::DefaultModels()->Get("Cube");
 	m_Registry.emplace<MeshComponent>(ground, groundModel);
@@ -157,7 +157,7 @@ void Scene3D::LoadModels()
 	m_Registry.emplace<NameComponent>(pendulumHolder, "Pendulum Holder");
 	Ref<Graphics::Mesh> pendulumHolderModel = AssetsManager::DefaultModels()->Get("Cube");
 	m_Registry.emplace<MeshComponent>(pendulumHolder,pendulumHolderModel);
-	m_Registry.emplace<Lumos::ScriptComponent>(pendulumHolder, ROOT_DIR"/Sandbox/res/scripts/PlayerTest.lua", this);
+	m_Registry.emplace<Lumos::ScriptComponent>(pendulumHolder, "Scripts/PlayerTest.lua", this);
 
 	auto pendulum = m_Registry.create();
 	Ref<PhysicsObject3D> pendulumPhysics = CreateRef<PhysicsObject3D>();

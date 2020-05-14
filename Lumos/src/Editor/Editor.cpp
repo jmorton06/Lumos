@@ -112,7 +112,7 @@ namespace Lumos
 		for (auto& window : m_Windows)
 			window->SetEditor(this);
     
-        m_DebugDrawFlags = 0; //EditorDebugFlags::MeshBoundingBoxes | EditorDebugFlags::CameraFrustum;
+        m_DebugDrawFlags = 0;//EditorDebugFlags::MeshBoundingBoxes | EditorDebugFlags::CameraFrustum | EditorDebugFlags::SpriteBoxes;
 
 		m_ShowImGuiDemo = false;
 
@@ -723,10 +723,9 @@ namespace Lumos
 				m_TransitioningCamera = false;
 		}
     
-        if(m_ImGuizmoOperation == 4 && Input::GetInput()->GetMouseClicked(InputCode::MouseKey::ButtonLeft))
+        if(Application::Instance()->GetSceneActive() && m_ImGuizmoOperation == 4 && Input::GetInput()->GetMouseClicked(InputCode::MouseKey::ButtonLeft))
         {
             auto camera = m_Application->GetSceneManager()->GetCurrentScene()->GetCamera();
-        
             auto clickPos = Input::GetInput()->GetMousePosition() - m_SceneWindowPos;
             
             SelectObject(GetScreenRay(clickPos.x, clickPos.y, camera, m_Application->m_SceneViewWidth, m_Application->m_SceneViewHeight));
@@ -741,11 +740,21 @@ namespace Lumos
 	void Editor::FocusCamera(const Maths::Vector3& point, float distance, float speed)
 	{
 		auto camera = m_Application->GetSceneManager()->GetCurrentScene()->GetCamera();
-		m_TransitioningCamera = true;
-		m_CameraDestination = point + camera->GetForwardDirection() * distance;
-		m_CameraTransitionStartTime = -1.0f;
-		m_CameraTransitionSpeed = 1.0f/speed;
-		m_CameraStartPosition = camera->GetPosition();
+    
+        if(camera->IsOrthographic())
+        {
+            camera->SetPosition(point);
+            camera->SetScale(distance / 2.0f);
+        }
+        else
+        {
+            m_TransitioningCamera = true;
+
+            m_CameraDestination = point + camera->GetForwardDirection() * distance;
+            m_CameraTransitionStartTime = -1.0f;
+            m_CameraTransitionSpeed = 1.0f/speed;
+            m_CameraStartPosition = camera->GetPosition();
+        }
 	}
 
 	bool Editor::OnWindowResize(WindowResizeEvent & e)
@@ -790,6 +799,24 @@ namespace Lumos
                  }
              }
         }
+    
+        if(m_DebugDrawFlags & EditorDebugFlags::SpriteBoxes)
+        {
+           auto group = registry.group<Graphics::Sprite>(entt::get<Maths::Transform>);
+
+            for(auto entity : group)
+            {
+                const auto &[sprite, trans] = group.get<Graphics::Sprite, Maths::Transform>(entity);
+
+            {
+                    auto& worldTransform = trans.GetWorldMatrix();
+
+                    auto bb = Maths::BoundingBox(Maths::Rect(sprite.GetPosition(), sprite.GetPosition() + sprite.GetScale()));
+                    bb.Transform(trans.GetWorldMatrix());
+                    DebugRenderer::DebugDraw(&bb, Maths::Vector4(0.8f,0.8f,0.8f,0.2f));
+                }
+            }
+        }
 
         if(m_DebugDrawFlags & EditorDebugFlags::CameraFrustum)
         {
@@ -822,14 +849,26 @@ namespace Lumos
                 }
             }
         
-            auto camera = registry.try_get<CameraComponent>(m_Selected);
-            if(camera)
+            auto sprite = registry.try_get<Graphics::Sprite>(m_Selected);
+            if(transform && sprite)
             {
-                if (camera->GetCamera())
                 {
-                    camera->GetCamera()->GetFrustum().DebugDraw();
+                    auto& worldTransform = transform->GetWorldMatrix();
+
+                    auto bb = Maths::BoundingBox(Maths::Rect(sprite->GetPosition(), sprite->GetPosition() + sprite->GetScale()));
+                    bb.Transform(worldTransform);
+                    DebugRenderer::DebugDraw(&bb, Maths::Vector4(0.8f,0.8f,0.8f,0.2f));
                 }
             }
+        
+//            auto camera = registry.try_get<CameraComponent>(m_Selected);
+//            if(camera)
+//            {
+//                if (camera->GetCamera())
+//                {
+//                    camera->GetCamera()->GetFrustum().DebugDraw();
+//                }
+//            }
         }
     }
     
@@ -860,6 +899,29 @@ namespace Lumos
                }
            }
         }
+    
+        auto spriteGroup = registry.group<Graphics::Sprite>(entt::get<Maths::Transform>);
+
+        for(auto entity : spriteGroup)
+        {
+            const auto &[sprite, trans] = spriteGroup.get<Graphics::Sprite, Maths::Transform>(entity);
+
+            auto& worldTransform = trans.GetWorldMatrix();
+            auto bb = Maths::BoundingBox(Maths::Rect(sprite.GetPosition(), sprite.GetPosition() + sprite.GetScale()));
+            bb.Transform(trans.GetWorldMatrix());
+            float dist = ray.HitDistance(bb);
+      
+            if(dist < Maths::M_INFINITY)
+            {
+                if(m_Selected == entity)
+                   FocusCamera(trans.GetWorldPosition(), (bb.max_ - bb.min_).Length());
+          
+                m_Selected = entity;
+                return;
+            }
+        }
+    
+        m_Selected = entt::null;
     
     }
 

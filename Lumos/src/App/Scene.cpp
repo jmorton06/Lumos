@@ -138,7 +138,7 @@ namespace Lumos
 
 		Application::Instance()->GetRenderManager()->Reset();
 
-		auto audioManager = AudioManager::Create();
+        auto audioManager = Application::Instance()->GetSystem<AudioManager>();
 		if (audioManager)
 		{
 			audioManager->ClearNodes();

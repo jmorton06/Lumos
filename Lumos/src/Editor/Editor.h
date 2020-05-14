@@ -36,6 +36,7 @@ namespace Lumos
         ViewSelected = 4,
         CameraFrustum = 8,
         MeshBoundingBoxes = 16,
+        SpriteBoxes = 32,
     };
 
 	class Editor

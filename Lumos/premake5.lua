@@ -352,7 +352,7 @@ project "Lumos"
 		end
 
 	filter "configurations:Debug"
-		defines "LUMOS_DEBUG"
+		defines { "LUMOS_DEBUG", "_DEBUG" }
 		symbols "On"
 		runtime "Debug"
 

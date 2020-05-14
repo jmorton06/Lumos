@@ -41,7 +41,7 @@ score = 0
 function CreatePlayer()
     colour = Vector4.new(1.0,1.0,1.0,1.0)
 
-    texture = LoadTexture("icon", "/CoreTextures/panda.png")
+    texture = LoadTextureWithParams("icon", "/CoreTextures/panda.png", TextureFilter.Linear, TextureWrap.Clamp)
 
     player = registry:Create()
     registry:assign_Sprite(player, Vector2.new(-1.0/2.0, -1.0/2.0), Vector2.new(1.15, 1.0), colour)
@@ -80,7 +80,7 @@ function CreatePillar(index, offset)
 	pos = Vector3.new(offset / 2.0, ((topY - bottomY )/ 2.0) + bottomY, 0.0);
 	scale = Vector3.new(1.0, (topY - bottomY) / 2.0, 1.0);
 
-    texture = LoadTexture("icon", "/CoreTextures/icon.png")
+    texture = LoadTextureWithParams("icon", "/CoreTextures/icon.png", TextureFilter.Linear, TextureWrap.Clamp)
 
     registry:assign_Sprite(pillars[index], Vector2.new(-scale.x, -scale.y), Vector2.new(scale.x * 2.0, scale.y * 2.0), colour)
 
@@ -133,7 +133,7 @@ for i=1,10, 2 do
     CreatePillar(i, (i + 2) * 10.0)
 end
 
-backgroundTexture = LoadTexture("grass", "/CoreTextures/backgroundColorGrass.png")
+backgroundTexture = LoadTextureWithParams("grass", "/CoreTextures/backgroundColorGrass.png", TextureFilter.Linear, TextureWrap.Clamp)
 
 backgrounds = {}
 
@@ -142,7 +142,7 @@ function CreateBackground(index)
     registry:assign_Sprite(backgrounds[index], Vector2.new(-10.0, -10.0), Vector2.new(10.0 * 2.0, 10.0 * 2.0), Vector4.new(1.0,1.0,1.0,1.0))
     registry:get_Sprite(backgrounds[index]):SetTexture(backgroundTexture)
     registry:assign_Transform(backgrounds[index])
-    registry:get_Transform(backgrounds[index]):SetLocalPosition(Vector3.new(index * 10.0 - 20.0, 0.0,0.0))
+    registry:get_Transform(backgrounds[index]):SetLocalPosition(Vector3.new(index * 20.0 - 20.0, 0.0,0.0))
 end
 
 for i=1,50, 1 do

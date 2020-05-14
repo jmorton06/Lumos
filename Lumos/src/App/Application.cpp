@@ -147,6 +147,7 @@ namespace Lumos
 		Engine::Release();
 		Input::Release();
 		AssetsManager::ReleaseResources();
+        DebugRenderer::Release();
 
 		m_SceneManager.reset();
 		m_RenderManager.reset();

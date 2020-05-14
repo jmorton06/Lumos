@@ -26,7 +26,7 @@ namespace Lumos
 		{
 			m_Swapchain.reset();
 
-			for (int i = 0; i < 10; i++)
+			for (int i = 0; i < NUM_SEMAPHORES; i++)
 			{
 				vkDestroySemaphore(VKDevice::Instance()->GetDevice(), m_ImageAvailableSemaphore[i], nullptr);
 			}
@@ -85,13 +85,9 @@ namespace Lumos
 			semaphoreInfo.sType = VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO;
 			semaphoreInfo.pNext = nullptr;
 
-			for (int i = 0; i < 10; i++)
+			for (int i = 0; i < NUM_SEMAPHORES; i++)
 			{
-				auto result = vkCreateSemaphore(VKDevice::Instance()->GetDevice(), &semaphoreInfo, nullptr, &m_ImageAvailableSemaphore[i]);
-				if (result != VK_SUCCESS)
-				{
-					LUMOS_LOG_CRITICAL("[VULKAN] Failed to create semaphores!");
-				}
+				VK_CHECK_RESULT(vkCreateSemaphore(VKDevice::Instance()->GetDevice(), &semaphoreInfo, nullptr, &m_ImageAvailableSemaphore[i]));
 			}
 		}
 
