@@ -20,6 +20,7 @@ namespace Lumos
 		Camera* GetListener() const { return m_Listener; }
 
 		void AddSoundNode(SoundNode* node) { m_SoundNodes.emplace_back(node); }
+		void OnDebugDraw() override {};
 
 		void ClearNodes() { m_SoundNodes.clear(); }
 	protected:

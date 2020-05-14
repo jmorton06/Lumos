@@ -1,7 +1,7 @@
 #shader vertex
-Skybox.vert.spv
+CompiledSPV/Skybox.vert.spv
 #shader end
 
 #shader fragment
-Skybox.frag.spv
+CompiledSPV/Skybox.frag.spv
 #shader end

@@ -2,46 +2,38 @@
 #include "Camera2D.h"
 #include "Core/OS/Input.h"
 #include "Maths/Maths.h"
+#include "Camera.h"
 
 namespace Lumos
 {
-    Camera2D::Camera2D(float aspectRatio, float scale) : Camera(aspectRatio, scale)
+    CameraController2D::CameraController2D(Camera* camera)
+		: CameraController(camera)
 	{
-		//m_AspectRatio = aspectRatio;
-		m_Orthographic = true;
-        m_Scale = scale;
-		m_Position = Maths::Vector3(0.0f);
+		m_Camera = camera;
 		m_Velocity = Maths::Vector3(0.0f);
 		m_MouseSensitivity = 0.005f;
-		m_Near = 0.0f;
-		m_Far = 1.0f;
-
-		m_ViewDirty = true;
-		m_ProjectionDirty = true;
-		m_FrustumDirty = true;
 	}
 
-	Camera2D::~Camera2D() = default;
+	CameraController2D::~CameraController2D() = default;
 
-    void Camera2D::HandleMouse(float dt, float xpos, float ypos)
+    void CameraController2D::HandleMouse(float dt, float xpos, float ypos)
 	{
 		if (Input::GetInput()->GetMouseHeld(InputCode::MouseKey::ButtonRight))
 		{
-			m_Position.x -= (xpos - m_PreviousCurserPos.x) * m_Scale * m_MouseSensitivity * 0.5f;
-			m_Position.y += (ypos - m_PreviousCurserPos.y) * m_Scale * m_MouseSensitivity * 0.5f;
+            Maths::Vector3 position = m_Camera->GetPosition();
+			position.x -= (xpos - m_PreviousCurserPos.x) * m_Camera->GetScale() * m_MouseSensitivity * 0.5f;
+			position.y += (ypos - m_PreviousCurserPos.y) * m_Camera->GetScale() * m_MouseSensitivity * 0.5f;
+            m_Camera->SetPosition(position);
 		}
 
 		m_PreviousCurserPos = Maths::Vector2(xpos, ypos);
-
-		m_ViewDirty = true;
-		m_FrustumDirty = true;
 	}
 
-	void Camera2D::HandleKeyboard(float dt)
+	void CameraController2D::HandleKeyboard(float dt)
 	{
 		Maths::Vector3 up = Maths::Vector3(0, 1, 0), right = Maths::Vector3(1, 0, 0);
 
-		m_CameraSpeed = m_Scale * dt * 20.0f;
+		m_CameraSpeed = m_Camera->GetScale() * dt * 20.0f;
 
 		if (Input::GetInput()->GetKeyHeld(LUMOS_KEY_A))
 		{
@@ -65,16 +57,17 @@ namespace Lumos
 
 		if (!Maths::Equals(m_Velocity, Maths::Vector3::ZERO, Maths::Vector3(Maths::M_EPSILON)))
 		{
-			m_Position += m_Velocity * dt;
+            Maths::Vector3 position = m_Camera->GetPosition();
+			position += m_Velocity * dt;
 			m_Velocity = m_Velocity * pow(m_DampeningFactor, dt);
-			m_ViewDirty = true;
-			m_FrustumDirty = true;
+        
+            m_Camera->SetPosition(position);
 		}
 
 		UpdateScroll(Input::GetInput()->GetScrollOffset(), dt);
 	}
 
-    void Camera2D::UpdateScroll(float offset, float dt)
+    void CameraController2D::UpdateScroll(float offset, float dt)
     {
 		float multiplier = 2.0f;
 		if (Input::GetInput()->GetKeyHeld(InputCode::Key::LeftShift))
@@ -89,20 +82,21 @@ namespace Lumos
         
 		if (!Maths::Equals(m_ZoomVelocity, 0.0f))
 		{
-			m_Scale -= m_ZoomVelocity;
+            float scale = m_Camera->GetScale();
 
-			if (m_Scale < 0.15f)
+			scale -= m_ZoomVelocity;
+
+			if (scale < 0.15f)
 			{
-				m_Scale = 0.15f;
+				scale = 0.15f;
 				m_ZoomVelocity = 0.0f;
 			}
 			else
 			{
 				m_ZoomVelocity = m_ZoomVelocity * pow(m_ZoomDampeningFactor, dt);
 			}
-
-			m_ProjectionDirty = true;
-			m_FrustumDirty = true;
+        
+            m_Camera->SetScale(scale);
 		}
     }
 }

@@ -17,7 +17,7 @@ namespace Lumos
             ImGui_ImplOpenGL3_NewFrame();
             
 #ifdef LUMOS_PLATFORM_MACOS
-            ImGui::GetIO().DisplayFramebufferScale = {2.0f,2.0f};
+            //ImGui::GetIO().DisplayFramebufferScale = {2.0f,2.0f};
 #endif
         }
 

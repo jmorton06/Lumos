@@ -7,8 +7,7 @@
 	VkResult res = (f);																					\
 	if (res != VK_SUCCESS)																				\
 	{																									\
-		LUMOS_LOG_CRITICAL("[VULKAN] : VkResult is {0} in {1} at line {2}",Lumos::Graphics::VKTools::errorString(res) , __FILE__ , __LINE__); \
-		assert(res == VK_SUCCESS);																		\
+		Lumos::Debug::Log::Error("[VULKAN] : VkResult is {0} in {1} at line {2}",Lumos::Graphics::VKTools::ErrorString(res) , __FILE__ , __LINE__); \
 	}																									\
 }
 

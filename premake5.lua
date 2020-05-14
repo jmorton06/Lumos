@@ -44,7 +44,7 @@ workspace "Lumos"
 		require("Dependencies/imgui/premake5")
 			SetRecommendedSettings()
 		filter "system:not ios"
-			require("Dependencies/glfw/premake5")
+			require("Dependencies/premake5")
 				SetRecommendedSettings()
 		filter()
 	group ""

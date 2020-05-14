@@ -432,7 +432,7 @@ namespace Lumos
 			pipelineCI.typeCounts = poolInfo.data();
 			pipelineCI.strideSize = sizeof(Vertex);
 			pipelineCI.numColorAttachments = 0;
-			pipelineCI.wireframeEnabled = false;
+            pipelineCI.polygonMode = Graphics::PolygonMode::Fill;
 			pipelineCI.cullMode = Graphics::CullMode::FRONT;
 			pipelineCI.transparencyEnabled = false;
 			pipelineCI.depthBiasEnabled = true;

@@ -34,6 +34,15 @@ namespace Lumos
 		Sprite::~Sprite()
 		{
 		}
+    
+        void Sprite::SetSpriteSheet(const Ref<Texture2D>& texture, const Maths::Vector2& index, const Maths::Vector2& cellSize, const Maths::Vector2& spriteSize)
+        {
+            m_Texture = texture;
+            Maths::Vector2 min = {(index.x * cellSize.x) / texture->GetWidth() , (index.y * cellSize.y) / texture->GetHeight() };
+            Maths::Vector2 max = {((index.x + spriteSize.x) * cellSize.x) / texture->GetWidth() , ((index.y+ spriteSize.y) * cellSize.y) / texture->GetHeight() };
+            
+            m_UVs = GetUVs(min, max);
+        }
 
 		void Sprite::OnImGui()
 		{
@@ -96,7 +105,7 @@ namespace Lumos
 
 				ImGui::NextColumn();
 				ImGui::PushItemWidth(-1);
-				ImGui::TextUnformatted("%s", tex ? tex->GetFilepath().c_str() : "No Texture");
+				ImGui::Text("%s", tex ? tex->GetFilepath().c_str() : "No Texture");
 
 				ImGui::PopItemWidth();
 				ImGui::NextColumn();

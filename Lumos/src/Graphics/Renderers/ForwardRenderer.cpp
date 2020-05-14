@@ -189,7 +189,7 @@ namespace Lumos
 
 			CreateFramebuffers();
 
-			m_CommandBuffers.resize(2);
+			m_CommandBuffers.resize(Renderer::GetSwapchain()->GetSwapchainBufferCount());
 
 			for (auto& commandBuffer : m_CommandBuffers)
 			{
@@ -483,7 +483,7 @@ namespace Lumos
 			pipelineCI.typeCounts = poolInfo.data();
 			pipelineCI.strideSize = sizeof(Vertex);
 			pipelineCI.numColorAttachments = 1;
-			pipelineCI.wireframeEnabled = false;
+            pipelineCI.polygonMode = Graphics::PolygonMode::Fill;
 			pipelineCI.cullMode = Graphics::CullMode::BACK;
 			pipelineCI.transparencyEnabled = false;
 			pipelineCI.depthBiasEnabled = false;

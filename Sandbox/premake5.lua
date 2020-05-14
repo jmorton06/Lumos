@@ -69,6 +69,7 @@ project "Sandbox"
 			"WIN32_LEAN_AND_MEAN",
 			"_CRT_SECURE_NO_WARNINGS",
 			"_DISABLE_EXTENDED_ALIGNED_STORAGE",
+			"_SILENCE_CXX17_ITERATOR_BASE_CLASS_DEPRECATION_WARNING",
 			"LUMOS_ROOT_DIR="  .. cwd,
 			"LUMOS_VOLK",
 			"LUMOS_SSE"
@@ -322,7 +323,7 @@ project "Sandbox"
 			"glfw",
 		}
 
-		links { "X11", "pthread", "dl", "atomic"}
+		links { "X11", "pthread", "dl", "atomic", "stdc++fs"}
 
 		linkoptions { "-L%{cfg.targetdir}", "-Wl,-rpath=\\$$ORIGIN" }
 

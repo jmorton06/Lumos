@@ -210,6 +210,7 @@ namespace Lumos
 			{
 				registry.emplace<MeshComponent>(entity, mesh);
 				registry.emplace<MaterialComponent>(entity, pbrMaterial);
+                registry.get_or_emplace<Maths::Transform>(entity);
 			}
 			else
 			{

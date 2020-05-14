@@ -1,7 +1,7 @@
 #shader vertex
-shader.vert.spv
+CompiledSPV/shader.vert.spv
 #shader end
 
 #shader fragment
-shader.frag.spv
+CompiledSPV/shader.frag.spv
 #shader end

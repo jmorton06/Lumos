@@ -18,7 +18,8 @@ void SceneModelViewer::OnInit()
 
 	LoadModels();
 
-	m_pCamera = new EditorCamera(-20.0f, 330.0f, Maths::Vector3(-2.5f, 1.3f, 3.8f), 45.0f, 0.1f, 1000.0f, (float) m_ScreenWidth / (float) m_ScreenHeight);
+	m_pCamera = new Camera(-20.0f, 330.0f, Maths::Vector3(-2.5f, 1.3f, 3.8f), 45.0f, 0.1f, 1000.0f, (float) m_ScreenWidth / (float) m_ScreenHeight);
+    m_pCamera->SetCameraController(CreateRef<EditorCameraController>(m_pCamera));
 
 	auto audioSystem = Application::Instance()->GetSystem<AudioManager>();
 	if (audioSystem)
@@ -50,11 +51,18 @@ void SceneModelViewer::OnInit()
     m_Registry.emplace<CameraComponent>(cameraEntity, m_pCamera);
 	m_Registry.emplace<NameComponent>(cameraEntity, "Camera");
 
+	//Temp
+	bool editor = false;
+
+#ifdef LUMOS_EDITOR
+	editor = true;
+#endif
+
     auto deferredRenderer = new Graphics::DeferredRenderer(m_ScreenWidth, m_ScreenHeight);
     auto skyboxRenderer = new Graphics::SkyboxRenderer(m_ScreenWidth, m_ScreenHeight, m_EnvironmentMap);
 
-    deferredRenderer->SetRenderToGBufferTexture(true);
-    skyboxRenderer->SetRenderToGBufferTexture(true);
+    deferredRenderer->SetRenderToGBufferTexture(editor);
+    skyboxRenderer->SetRenderToGBufferTexture(editor);
     
     auto deferredLayer = new Layer3D(deferredRenderer, "Deferred");
     auto skyBoxLayer = new Layer3D(skyboxRenderer, "Skybox");

@@ -135,10 +135,8 @@ namespace Lumos
 			vkRenderpassCI.dependencyCount = 1;
 			vkRenderpassCI.pDependencies = &dependency;
 
-			VkResult result = vkCreateRenderPass(VKDevice::Instance()->GetDevice(), &vkRenderpassCI, VK_NULL_HANDLE, &m_RenderPass);
-			if (result != VK_SUCCESS)
-				return false;
-
+			VK_CHECK_RESULT(vkCreateRenderPass(VKDevice::Instance()->GetDevice(), &vkRenderpassCI, VK_NULL_HANDLE, &m_RenderPass));
+            
 			m_ClearValue = lmnew VkClearValue[renderpassCI.attachmentCount];
 			m_ClearCount = renderpassCI.attachmentCount;
 			return true;

@@ -1,20 +1,18 @@
 #pragma once
-#include "Camera.h"
+#include "CameraController.h"
 
 namespace Lumos
 {
 
-	class LUMOS_EXPORT ThirdPersonCamera : public Camera
+	class LUMOS_EXPORT ThirdPersonCameraController : public CameraController
 	{
 	public:
-		ThirdPersonCamera(float FOV, float Near, float Far, float aspect);
-		ThirdPersonCamera(float pitch, float yaw, const Maths::Vector3& position, float FOV, float Near, float Far, float aspect);
-		virtual ~ThirdPersonCamera() override;
+		ThirdPersonCameraController(Camera* camera);
+		virtual ~ThirdPersonCameraController() override;
 
 		virtual void HandleMouse(float dt, float xpos, float ypos) override;
 		virtual void HandleKeyboard(float dt) override;
 
-		void OnImGui() override;
 	private:
 		bool m_Free;
 	};

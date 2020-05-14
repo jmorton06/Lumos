@@ -12,6 +12,10 @@
 #include "ECS/Component/CameraComponent.h"
 #include "ECS/Component/SoundComponent.h"
 
+#include "Physics/LumosPhysicsEngine/LumosPhysicsEngine.h"
+#include "Physics/B2PhysicsEngine/B2PhysicsEngine.h"
+
+#include <Box2D/Box2D.h>
 #include <imgui/imgui_internal.h>
 #include <imgui/plugins/ImGuizmo.h>
 #include <IconFontCppHeaders/IconsFontAwesome5.h>
@@ -39,9 +43,13 @@ namespace Lumos
 		ImGuizmo::SetDrawlist();
 		auto sceneViewSize = ImGui::GetContentRegionAvail();
         auto sceneViewPosition = ImGui::GetWindowPos();
+    
+        auto viewportOffset = ImGui::GetCursorPos();
         
-        sceneViewPosition.x = ImGui::GetCursorPos().x + ImGui::GetWindowPos().x;
-        sceneViewPosition.y = ImGui::GetCursorPos().y + ImGui::GetWindowPos().y;
+        sceneViewPosition.x = viewportOffset.x + ImGui::GetWindowPos().x;
+        sceneViewPosition.y = viewportOffset.y + ImGui::GetWindowPos().y;
+    
+        m_Editor->m_SceneWindowPos = { sceneViewPosition.x , sceneViewPosition.y };
 
         sceneViewSize.x = ImGui::GetWindowContentRegionMax().x - ImGui::GetWindowContentRegionMin().x;
         sceneViewSize.y = ImGui::GetWindowContentRegionMax().y - ImGui::GetWindowContentRegionMin().y;
@@ -49,14 +57,26 @@ namespace Lumos
         sceneViewSize.x -= static_cast<int>(sceneViewSize.x) % 2 != 0 ? 1.0f : 0.0f;
         sceneViewSize.y -= static_cast<int>(sceneViewSize.y) % 2 != 0 ? 1.0f : 0.0f;
 
-		float aspect = static_cast<float>(sceneViewSize.x) / static_cast<float>(sceneViewSize.y);
-
+        float aspect = static_cast<float>(sceneViewSize.x) / static_cast<float>(sceneViewSize.y);
+        
+        static int updateSceneSizeTimer = 0;
+        updateSceneSizeTimer ++;
+    
         Camera* camera = Application::Instance()->GetSceneManager()->GetCurrentScene()->GetCamera();
-		if (!Maths::Equals(aspect, m_Editor->GetCurrentSceneAspectRatio()))
-		{
-			m_Editor->GetCurrentSceneAspectRatio() = aspect;
-			camera->SetAspectRatio(aspect);
-		}
+        if (!Maths::Equals(aspect, m_Editor->GetCurrentSceneAspectRatio()))
+        {
+            m_Editor->GetCurrentSceneAspectRatio() = aspect;
+            camera->SetAspectRatio(aspect);
+        }
+    
+        if(updateSceneSizeTimer > 360)
+        {
+            if(ImGui::GetCurrentWindow()->ResizeBorderHeld < 0)
+                Application::Instance()->SetSceneViewDimensions(sceneViewSize.x, sceneViewSize.y);
+        
+            updateSceneSizeTimer = 0;
+        }
+
 
 		ImGuizmo::SetRect(sceneViewPosition.x, sceneViewPosition.y, sceneViewSize.x, sceneViewSize.y);
         
@@ -89,9 +109,19 @@ namespace Lumos
 		m_Editor->OnImGuizmo();
         
         DrawGizmos(sceneViewSize.x, sceneViewSize.y, 0.0f, 40.0f, Application::Instance()->GetSceneManager()->GetCurrentScene()); // Not sure why 40
-		Application::Instance()->SetSceneActive(ImGui::IsWindowFocused() && !ImGuizmo::IsUsing());
+    
+        auto windowSize = ImGui::GetWindowSize();
+        ImVec2 minBound = sceneViewPosition;
+        minBound.x += viewportOffset.x;
+        minBound.y += viewportOffset.y;
+
+        ImVec2 maxBound = { minBound.x + windowSize.x, minBound.y + windowSize.y };
+        bool updateCamera = ImGui::IsMouseHoveringRect(minBound, maxBound);
+
+    
+		Application::Instance()->SetSceneActive(ImGui::IsWindowFocused() && !ImGuizmo::IsUsing() && updateCamera);
         
-		if (m_ShowStats)
+		if (m_ShowStats && ImGui::IsWindowFocused())
 		{
 			static bool p_open = true;
 			const float DISTANCE = 5.0f;
@@ -261,6 +291,153 @@ namespace Lumos
 				ImGui::Checkbox("Camera", &m_ShowComponentGizmoMap[typeid(CameraComponent).hash_code()]);
 				ImGui::Checkbox("Light", &m_ShowComponentGizmoMap[typeid(Graphics::Light).hash_code()]);
 				ImGui::Checkbox("Audio", &m_ShowComponentGizmoMap[typeid(SoundComponent).hash_code()]);
+            
+                ImGui::Separator();
+            
+                auto physics2D = Application::Instance()->GetSystem<B2PhysicsEngine>();
+            
+                if(physics2D)
+                {
+                    u32 flags = physics2D->GetDebugDrawFlags();
+                
+                    bool show2DShapes = flags & b2Draw::e_shapeBit;
+                    if(ImGui::Checkbox("Shapes (2D)", &show2DShapes))
+                    {
+                        if(show2DShapes)
+                            flags += b2Draw::e_shapeBit;
+                        else
+                            flags -= b2Draw::e_shapeBit;
+                    }
+                
+                    bool showCOG = flags & b2Draw::e_centerOfMassBit;
+                    if(ImGui::Checkbox("Centre of Mass (2D)", &showCOG))
+                    {
+                        if(showCOG)
+                            flags += b2Draw::e_centerOfMassBit;
+                        else
+                            flags -= b2Draw::e_centerOfMassBit;
+                    }
+                
+                    bool showJoint = flags & b2Draw::e_jointBit;
+                    if(ImGui::Checkbox("Joint Connection (2D)", &showJoint))
+                    {
+                        if(showJoint)
+                            flags += b2Draw::e_jointBit;
+                        else
+                            flags -= b2Draw::e_jointBit;
+                    }
+                
+                    bool showAABB = flags & b2Draw::e_aabbBit;
+                    if(ImGui::Checkbox("AABB (2D)", &showAABB))
+                    {
+                        if(showAABB)
+                            flags += b2Draw::e_aabbBit;
+                        else
+                            flags -= b2Draw::e_aabbBit;
+                    }
+                
+                    bool showPairs = flags & b2Draw::e_pairBit;
+                    if(ImGui::Checkbox("Broadphase Pairs  (2D)", &showPairs))
+                    {
+                        if(showPairs)
+                            flags += b2Draw::e_pairBit;
+                        else
+                            flags -= b2Draw::e_pairBit;
+                    }
+                    
+                    physics2D->SetDebugDrawFlags(flags);
+                }
+            
+                auto physics3D = Application::Instance()->GetSystem<LumosPhysicsEngine>();
+            
+                if(physics3D)
+                {
+                    u32 flags = physics3D->GetDebugDrawFlags();
+                
+                    bool showCollisionShapes = flags & PhysicsDebugFlags::COLLISIONVOLUMES;
+                    if(ImGui::Checkbox("Collision Volumes", &showCollisionShapes))
+                    {
+                        if(showCollisionShapes)
+                            flags += PhysicsDebugFlags::COLLISIONVOLUMES;
+                        else
+                            flags -= PhysicsDebugFlags::COLLISIONVOLUMES;
+                    }
+                
+                    bool showConstraints = flags & PhysicsDebugFlags::CONSTRAINT;
+                    if(ImGui::Checkbox("Constraints", &showConstraints))
+                    {
+                        if(showConstraints)
+                            flags += PhysicsDebugFlags::CONSTRAINT;
+                        else
+                            flags -= PhysicsDebugFlags::CONSTRAINT;
+                    }
+                
+                    bool showManifolds = flags & PhysicsDebugFlags::MANIFOLD;
+                    if(ImGui::Checkbox("Manifolds", &showManifolds))
+                    {
+                        if(showManifolds)
+                            flags += PhysicsDebugFlags::MANIFOLD;
+                        else
+                            flags -= PhysicsDebugFlags::MANIFOLD;
+                    }
+                
+                    bool showCollisionNormals = flags & PhysicsDebugFlags::COLLISIONNORMALS;
+                    if(ImGui::Checkbox("Collision Normals", &showCollisionNormals))
+                    {
+                        if(showCollisionNormals)
+                            flags += PhysicsDebugFlags::COLLISIONNORMALS;
+                        else
+                            flags -= PhysicsDebugFlags::COLLISIONNORMALS;
+                    }
+                
+                    bool showAABB = flags & PhysicsDebugFlags::AABB;
+                    if(ImGui::Checkbox("AABB", &showAABB))
+                    {
+                        if(showAABB)
+                            flags += PhysicsDebugFlags::AABB;
+                        else
+                            flags -= PhysicsDebugFlags::AABB;
+                    }
+                
+                    bool showLinearVelocity = flags & PhysicsDebugFlags::LINEARVELOCITY;
+                    if(ImGui::Checkbox("Linear Velocity", &showLinearVelocity))
+                    {
+                        if(showLinearVelocity)
+                            flags += PhysicsDebugFlags::LINEARVELOCITY;
+                        else
+                            flags -= PhysicsDebugFlags::LINEARVELOCITY;
+                    }
+                    
+                    bool LINEARFORCE = flags & PhysicsDebugFlags::LINEARFORCE;
+                    if(ImGui::Checkbox("Linear Force", &LINEARFORCE))
+                    {
+                        if(LINEARFORCE)
+                            flags += PhysicsDebugFlags::LINEARFORCE;
+                        else
+                            flags -= PhysicsDebugFlags::LINEARFORCE;
+                    }
+                    
+                    bool BROADPHASE = flags & PhysicsDebugFlags::BROADPHASE;
+                    if(ImGui::Checkbox("Broadphase", &BROADPHASE))
+                    {
+                        if(BROADPHASE)
+                            flags += PhysicsDebugFlags::BROADPHASE;
+                        else
+                            flags -= PhysicsDebugFlags::BROADPHASE;
+                    }
+                
+                    bool showPairs = flags & PhysicsDebugFlags::BROADPHASE_PAIRS;
+                    if(ImGui::Checkbox("Broadphase Pairs", &showPairs))
+                    {
+                        if(showPairs)
+                            flags += PhysicsDebugFlags::BROADPHASE_PAIRS;
+                        else
+                            flags -= PhysicsDebugFlags::BROADPHASE_PAIRS;
+                    }
+                    
+                    physics3D->SetDebugDrawFlags(flags);
+                }
+                    
 				ImGui::EndPopup();
 			}
 		}

@@ -15,6 +15,7 @@ namespace Lumos
 		virtual void OnInit() = 0;
 		virtual void OnUpdate(TimeStep* dt, Scene* scene) = 0;
 		virtual void OnImGui() = 0;
+		virtual void OnDebugDraw() = 0;
         
         _FORCE_INLINE_ const String& GetName() const { return m_DebugName; }
 

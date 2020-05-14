@@ -78,6 +78,12 @@ namespace Lumos
 				system.second->OnImGui();
 		}
 
+		void OnDebugDraw()
+		{
+			for (auto& system : m_Systems)
+				system.second->OnDebugDraw();
+		}
+
     private:
         // Map from system type string pointer to a system pointer
         std::unordered_map<size_t, Ref<ISystem>> m_Systems;

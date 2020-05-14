@@ -27,13 +27,14 @@ public:
 		VFS::Get()->Mount("Meshes", root + "/Assets/meshes");
 		VFS::Get()->Mount("Textures", root + "/Assets/textures");
 		VFS::Get()->Mount("Sounds", root + "/Assets/sounds");
+        VFS::Get()->Mount("Scripts", root + "/Assets/scripts");
 
 		GetSceneManager()->EnqueueScene<SceneModelViewer>("SceneModelViewer");
 		GetSceneManager()->EnqueueScene<Scene2D>("2D Test");
 		GetSceneManager()->EnqueueScene<Scene3D>("Physics Scene");
 		GetSceneManager()->EnqueueScene<GraphicsScene>("Terrain Test");
 		GetSceneManager()->EnqueueScene<MaterialTest>("Material Test");
-		GetSceneManager()->SwitchScene(2);
+		GetSceneManager()->SwitchScene(1);
         GetSceneManager()->ApplySceneSwitch();
 	}
 };

@@ -112,7 +112,7 @@ namespace Lumos
     bool FileSystem::WriteTextFile(const String& path, const String& text)
     {
         FILE* file = fopen(path.c_str(), "w");
-        size_t size = fwrite(text.c_str(), 1, sizeof(text), file);
+        size_t size = fwrite(text.c_str(), 1, strlen(text.c_str()), file);
         fclose(file);
         return size > 0;
     }

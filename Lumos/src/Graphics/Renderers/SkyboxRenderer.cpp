@@ -106,7 +106,7 @@ namespace Lumos
 			// Per Scene System Uniforms
 			m_VSSystemUniformBufferOffsets[VSSystemUniformIndex_InverseProjectionViewMatrix] = 0;
 
-			m_CommandBuffers.resize(2);
+			m_CommandBuffers.resize(Renderer::GetSwapchain()->GetSwapchainBufferCount());
 
 			for (auto& commandBuffer : m_CommandBuffers)
 			{
@@ -230,7 +230,7 @@ namespace Lumos
 			pipelineCI.typeCounts = poolInfo.data();
 			pipelineCI.strideSize = sizeof(Vertex);
 			pipelineCI.numColorAttachments = 1;
-			pipelineCI.wireframeEnabled = false;
+            pipelineCI.polygonMode = Graphics::PolygonMode::Fill;
 			pipelineCI.cullMode = Graphics::CullMode::NONE;
 			pipelineCI.transparencyEnabled = false;
 			pipelineCI.depthBiasEnabled = false;

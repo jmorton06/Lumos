@@ -20,6 +20,20 @@ namespace Lumos
 		RUNGE_KUTTA_2,
 		RUNGE_KUTTA_4
 	};
+    
+    enum PhysicsDebugFlags : u32
+    {
+        CONSTRAINT = 1,
+        MANIFOLD = 2,
+        COLLISIONVOLUMES = 4,
+        COLLISIONNORMALS = 8,
+        AABB = 16,
+        LINEARVELOCITY = 32,
+        LINEARFORCE = 64,
+        BROADPHASE = 128,
+        BROADPHASE_PAIRS = 256,
+        BOUNDING_RADIUS = 512,
+    };
 
 	class Constraint;
 	class TimeStep;
@@ -66,6 +80,11 @@ namespace Lumos
         void ClearConstraints();
         
 		void OnImGui() override;
+        void OnDebugDraw() override;
+    
+        void SetDebugDrawFlags(u32 flags) { m_DebugDrawFlags = flags; }
+        u32 GetDebugDrawFlags() const { return m_DebugDrawFlags; }
+    
 	protected:
 
 		//The actual time-independant update function
@@ -99,6 +118,8 @@ namespace Lumos
 
 		Ref<Broadphase> m_BroadphaseDetection;
 		IntegrationType m_IntegrationType;
+    
+        u32 m_DebugDrawFlags = 0;
 
 		bool m_MultipleUpdates = true;
         static float s_UpdateTimestep;

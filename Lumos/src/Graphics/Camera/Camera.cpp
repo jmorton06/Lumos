@@ -22,6 +22,7 @@ namespace Lumos
 		, m_Near(Near)
 		, m_Far(Far)
 		, m_Orthographic(false)
+		, m_Scale(1)
 	{
 	};
 
@@ -41,6 +42,7 @@ namespace Lumos
 		, m_Near(Near)
 		, m_Far(Far)
 		, m_Orthographic(false)
+		, m_Scale(1)
 	{
 	}
 
@@ -57,29 +59,14 @@ namespace Lumos
 		, m_ProjectionDirty(true)
 		, m_ViewDirty(true)
 		, m_Fov(0)
-		, m_Near(0)
-		, m_Far(0)
+		, m_Near(-10.0)
+		, m_Far(10.0f)
 		, m_ScreenWidth(0)
 		, m_ScreenHeight(0)
 		, m_Orthographic(true)
+        , m_Position(Maths::Vector3(0.0f))
+        , m_Velocity(Maths::Vector3(0.0f))
 	{
-	}
-
-	void Camera::UpdateScroll(float offset, float dt)
-	{
-		if (offset != 0.0f)
-		{
-			m_ZoomVelocity -= dt * offset * 10.0f;
-		}
-
-		if (!Maths::Equals(m_ZoomVelocity, 0.0f))
-		{
-			m_Position += GetForwardDirection() * m_ZoomVelocity;
-			m_ZoomVelocity = m_ZoomVelocity * pow(m_ZoomDampeningFactor, dt);
-			m_ViewDirty = true;
-			m_FrustumDirty = true;
-		}
-
 	}
 
 	void Camera::UpdateViewMatrix()
@@ -121,7 +108,7 @@ namespace Lumos
 		return m_FocalPoint - GetForwardDirection() * m_Distance;
 	}
 
-	const Maths::Frustum& Camera::GetFrustum()
+    Maths::Frustum& Camera::GetFrustum()
 	{
 		if (m_ProjectionDirty)
 			UpdateProjectionMatrix();
@@ -170,6 +157,24 @@ namespace Lumos
 	{
 		return Maths::Quaternion::EulerAnglesToQuaternion(m_Pitch, m_Yaw, m_Roll);
 	}
+    
+    Maths::Ray Camera::GetScreenRay(float x, float y) const
+    {
+        Maths::Ray ret;
+
+        Maths::Matrix4 viewProjInverse = (m_ProjMatrix * m_ViewMatrix).Inverse();
+
+        // The parameters range from 0.0 to 1.0. Expand to normalized device coordinates (-1.0 to 1.0)
+        x = 2.0f * x - 1.0f;
+        y = 2.0f * y - 1.0f;
+        Maths::Vector3 nearPlane(x, y, 0.0f);
+        Maths::Vector3 farPlane(x, y, 1.0f);
+
+        ret.origin_ = viewProjInverse * nearPlane;
+        ret.direction_ = ((viewProjInverse * farPlane) - ret.origin_).Normalized();
+    
+        return ret;
+    }
 
 	void Camera::OnImGui()
 	{

@@ -18,8 +18,10 @@ void GraphicsScene::OnInit()
 
 	m_SceneBoundingRadius = 200.0f;
 
-	m_pCamera = new ThirdPersonCamera(45.0f, 0.1f, 1000.0f, (float) m_ScreenWidth / (float) m_ScreenHeight);
+	m_pCamera = new Camera(45.0f, 0.1f, 1000.0f, (float) m_ScreenWidth / (float) m_ScreenHeight);
 	m_pCamera->SetPosition(Maths::Vector3(120.0f, 70.0f, 260.0f));
+    m_pCamera->SetCameraController(CreateRef<EditorCameraController>(m_pCamera));
+
 
 	String environmentFiles[11] =
 	{
@@ -54,6 +56,14 @@ void GraphicsScene::OnInit()
 	auto deferredRenderer = new Graphics::ForwardRenderer(m_ScreenWidth, m_ScreenHeight);
 	auto skyboxRenderer = new Graphics::SkyboxRenderer(m_ScreenWidth, m_ScreenHeight, m_EnvironmentMap);
     
+	//Temp
+	bool editor = false;
+
+#ifdef LUMOS_EDITOR
+	editor = true;
+#endif
+
+
     //Can't render to array texture on iPhoneX or older
 #ifndef LUMOS_PLATFORM_IOS
     auto shadowRenderer = new Graphics::ShadowRenderer();
@@ -63,8 +73,8 @@ void GraphicsScene::OnInit()
     Application::Instance()->PushLayer(shadowLayer);
 #endif
 
-	deferredRenderer->SetRenderToGBufferTexture(true);
-	skyboxRenderer->SetRenderToGBufferTexture(true);
+	deferredRenderer->SetRenderToGBufferTexture(editor);
+	skyboxRenderer->SetRenderToGBufferTexture(editor);
 
 	auto deferredLayer = new Layer3D(deferredRenderer);
 	auto skyBoxLayer = new Layer3D(skyboxRenderer);

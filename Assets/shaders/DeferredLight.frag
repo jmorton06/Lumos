@@ -247,7 +247,7 @@ vec3 IBL(vec3 F0, vec3 Lr, Material material)
 	//if (0.0 > 0.5)
 	//	specularIrradiance = PrefilterEnvMap(material.Specular * material.Roughness, R) * u_RadiancePrefilter;
 	//else
-		specularIrradiance = textureLod(uEnvironmentMap, RotateVectorAboutY(0.0, Lr), sqrt(material.Roughness) * u_EnvRadianceTexLevels).rgb * (1.0 - u_RadiancePrefilter);
+		specularIrradiance = textureLod(uEnvironmentMap, RotateVectorAboutY(0.0, Lr), sqrt(material.Roughness) * u_EnvRadianceTexLevels).rgb;// * (1.0 - u_RadiancePrefilter);
 
 	// Sample BRDF Lut, 1.0 - roughness for y-coord because texture was generated (in Sparky) for gloss model
 	vec2 specularBRDF = texture(uPreintegratedFG, vec2(material.NDotV, 1.0 - material.Roughness.x)).rg;

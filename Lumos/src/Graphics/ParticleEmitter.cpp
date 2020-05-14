@@ -216,12 +216,12 @@ namespace Lumos
         ParticleEmitter::m_NumTextureRows = numTextureRows;
     }
 
-    Texture2D *ParticleEmitter::GetTexture() const
+    Graphics::Texture2D *ParticleEmitter::GetTexture() const
     {
         return m_Texture;
     }
 
-    void ParticleEmitter::SetTexture(Texture2D* texture)
+    void ParticleEmitter::SetTexture(Graphics::Texture2D* texture)
     {
         ParticleEmitter::m_Texture = texture;
     }

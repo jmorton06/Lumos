@@ -20,14 +20,18 @@ void Scene3D::OnInit()
     Application::Instance()->GetSystem<LumosPhysicsEngine>()->SetDampingFactor(0.998f);
     Application::Instance()->GetSystem<LumosPhysicsEngine>()->SetIntegrationType(IntegrationType::RUNGE_KUTTA_4);
     Application::Instance()->GetSystem<LumosPhysicsEngine>()->SetBroadphase(Lumos::CreateRef<Octree>(5, 3, Lumos::CreateRef<SortAndSweepBroadphase>()));
+    Application::Instance()->GetSystem<LumosPhysicsEngine>()->SetPaused(false);
+    Application::Instance()->GetSystem<LumosPhysicsEngine>()->SetDebugDrawFlags(PhysicsDebugFlags::CONSTRAINT | PhysicsDebugFlags::COLLISIONVOLUMES | PhysicsDebugFlags::BROADPHASE);
 
 	LoadModels();
     
-    LoadLuaScene(ROOT_DIR"/Sandbox/res/scripts/LuaSceneTest.lua");
+    LoadLuaScene("/Scripts/LuaSceneTest.lua");
 
 	Application::Instance()->GetWindow()->HideMouse(false);
 
-	m_pCamera = new EditorCamera(-20.0f, -40.0f, Maths::Vector3(-31.0f, 12.0f, 51.0f), 60.0f, 0.1f, 1000.0f, (float) m_ScreenWidth / (float) m_ScreenHeight);
+	m_pCamera = new Camera(-20.0f, -40.0f, Maths::Vector3(-31.0f, 12.0f, 51.0f), 60.0f, 0.1f, 1000.0f, (float) m_ScreenWidth / (float) m_ScreenHeight);
+    m_pCamera->SetCameraController(CreateRef<EditorCameraController>(m_pCamera));
+
 
 	m_SceneBoundingRadius = 20.0f;
 
@@ -122,7 +126,7 @@ void Scene3D::LoadModels()
 	m_Registry.emplace<Maths::Transform>(ground, Matrix4::Scale(Maths::Vector3(groundWidth, groundHeight, groundLength)));
 	m_Registry.emplace<Physics3DComponent>(ground, testPhysics);
     
-	m_Registry.emplace<Lumos::ScriptComponent>(ground, ROOT_DIR"/Sandbox/res/scripts/LuaComponentTest.lua", this);
+	m_Registry.emplace<Lumos::ScriptComponent>(ground, "Scripts/LuaComponentTest.lua", this);
 
 	Ref<Graphics::Mesh> groundModel = AssetsManager::DefaultModels()->Get("Cube");
 	m_Registry.emplace<MeshComponent>(ground, groundModel);
@@ -153,7 +157,7 @@ void Scene3D::LoadModels()
 	m_Registry.emplace<NameComponent>(pendulumHolder, "Pendulum Holder");
 	Ref<Graphics::Mesh> pendulumHolderModel = AssetsManager::DefaultModels()->Get("Cube");
 	m_Registry.emplace<MeshComponent>(pendulumHolder,pendulumHolderModel);
-	m_Registry.emplace<Lumos::ScriptComponent>(pendulumHolder, ROOT_DIR"/Sandbox/res/scripts/PlayerTest.lua", this);
+	m_Registry.emplace<Lumos::ScriptComponent>(pendulumHolder, "Scripts/PlayerTest.lua", this);
 
 	auto pendulum = m_Registry.create();
 	Ref<PhysicsObject3D> pendulumPhysics = CreateRef<PhysicsObject3D>();
