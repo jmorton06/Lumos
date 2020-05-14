@@ -87,6 +87,7 @@ static std::string GetStringForSource(GLenum source)
 	}
 }
 
+namespace Lumos {
 static std::string GetStringForSeverity(GLenum severity)
 {
 	switch (severity)
@@ -107,8 +108,8 @@ static std::string GetStringForSeverity(GLenum severity)
 	default:
 		return("");
 	}
-
 }
+
 void APIENTRY openglCallbackFunction(GLenum source,
 	GLenum type,
 	GLuint id,
@@ -126,7 +127,7 @@ void APIENTRY openglCallbackFunction(GLenum source,
 	LUMOS_LOG_INFO(OPENGLLOG"ID: {0}"      , id);
 	LUMOS_LOG_INFO(OPENGLLOG"Severity: {0}", GetStringForSeverity(source));
 }
-
+}
 #endif
 
 namespace Lumos

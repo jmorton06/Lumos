@@ -1,7 +1,10 @@
 #pragma once
 #include "lmpch.h"
 
+#include "CameraController.h"
+
 #include "Maths/Maths.h"
+#include "Maths/Ray.h"
 
 namespace Lumos
 {
@@ -12,12 +15,8 @@ namespace Lumos
 		Camera(float pitch, float yaw, const Maths::Vector3& position, float FOV, float Near, float Far, float aspect);
 		Camera(float aspectRatio, float scale);
 
-		virtual ~Camera() = default;
-
-		virtual void HandleMouse(float dt, float xpos, float ypos) = 0;
-		virtual void HandleKeyboard(float dt) = 0;
-		virtual void OnImGui();
-		virtual void UpdateScroll(float offset, float dt);
+        ~Camera() = default;
+        void OnImGui();
 
 		const Maths::Vector3& GetPosition() const { return m_Position; }
 		void SetPosition(const Maths::Vector3& val)
@@ -29,6 +28,7 @@ namespace Lumos
 
 		void SetMouseSensitivity(float value) { m_MouseSensitivity = value; }
 		
+        void SetIsOrthographic(bool ortho) { m_Orthographic = ortho; }
 		bool IsOrthographic() const { return m_Orthographic; }
 
 		float GetRoll() const { return m_Roll; }
@@ -76,7 +76,7 @@ namespace Lumos
 		float GetScale() const { return m_Scale; };
 		void  SetScale(float scale)
 		{ 
-			m_Scale = scale; 
+ 			m_Scale = scale; 
 			m_ProjectionDirty = true;
 			m_FrustumDirty = true;
 		}
@@ -86,7 +86,13 @@ namespace Lumos
 		Maths::Vector3 GetForwardDirection() const;
 		Maths::Vector3 CalculatePosition() const;
 
-		const Maths::Frustum& GetFrustum();
+        Maths::Frustum& GetFrustum();
+    
+        Maths::Ray GetScreenRay(float x, float y) const;
+    
+        void SetCameraController(const Ref<CameraController>& controller) { m_CameraController = controller; }
+    
+        const Ref<CameraController>& GetController() const { return m_CameraController; }
 
 	protected:
 
@@ -133,6 +139,8 @@ namespace Lumos
 		u32 m_ScreenHeight;
 
 		bool m_Orthographic = false;
+    
+        Ref<CameraController> m_CameraController;
 	};
 
 }

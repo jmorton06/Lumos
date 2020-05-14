@@ -22,7 +22,7 @@ namespace Lumos
 
 	PhysicsObject2D::~PhysicsObject2D()
 	{
-		if(m_B2Body)
+		if(m_B2Body && Application::Instance()->GetSystem<B2PhysicsEngine>())
 			Application::Instance()->GetSystem<B2PhysicsEngine>()->GetB2World()->DestroyBody(m_B2Body);
 	}
 

@@ -181,7 +181,7 @@ namespace Lumos
 
 	void CuboidCollisionShape::DebugDraw(const PhysicsObject3D* currentObject) const
 	{
-		Maths::Matrix4 transform = m_LocalTransform * currentObject->GetWorldSpaceTransform();
+		Maths::Matrix4 transform = currentObject->GetWorldSpaceTransform() * m_LocalTransform;
 
 		if (m_CubeHull->GetNumVertices() == 0)
 		{

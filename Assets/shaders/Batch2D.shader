@@ -1,7 +1,7 @@
 #shader vertex
-Batch2D.vert.spv
+CompiledSPV/Batch2D.vert.spv
 #shader end
 
 #shader fragment
-Batch2D.frag.spv
+CompiledSPV/Batch2D.frag.spv
 #shader end

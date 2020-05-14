@@ -28,12 +28,12 @@ namespace Lumos
 		bool compare(const entt::registry& registry, const entt::entity rhs) const;
 
 		// update hierarchy components when hierarchy component is added
-		static void on_construct(entt::entity entity, entt::registry& registry, Hierarchy& hierarchy);
+		static void on_construct(entt::registry& registry, entt::entity entity);
 
 		// update hierarchy components when hierarchy component is removed
-		static void on_destroy(entt::entity entity, entt::registry& registry);
+		static void on_destroy(entt::registry& registry, entt::entity entity);
 
-		static void on_update(entt::entity entity, entt::registry& registry);
+		static void on_update(entt::registry& registry, entt::entity entity);
 
 		static void Reparent(entt::entity entity, entt::entity parent, entt::registry& registry, Hierarchy& hierarchy);
 

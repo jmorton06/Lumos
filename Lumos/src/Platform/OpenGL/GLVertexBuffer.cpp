@@ -66,7 +66,8 @@ namespace Lumos
 
 
 		void* GLVertexBuffer::GetPointerInternal()
-		{
+        {
+            Bind();
 			GLCall(void* result = glMapBuffer(GL_ARRAY_BUFFER, GL_WRITE_ONLY));
 			return result;
 		}

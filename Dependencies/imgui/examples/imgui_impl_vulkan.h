@@ -13,7 +13,7 @@
 
 #include "Platform/Vulkan/VK.h"
 
-#define IMGUI_VK_QUEUED_FRAMES      2
+#define IMGUI_VK_QUEUED_FRAMES      3
 
 // Please zero-clear before use.
 struct ImGui_ImplVulkan_InitInfo

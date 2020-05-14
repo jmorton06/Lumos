@@ -1,23 +1,20 @@
 #pragma once
-#include "Graphics/Camera/Camera.h"
+#include "Graphics/Camera/CameraController.h"
 
 namespace Lumos
 {
-	class LUMOS_EXPORT EditorCamera : public Camera
+	class LUMOS_EXPORT EditorCameraController : public CameraController
 	{
 	public:
-		EditorCamera(float pitch, float yaw, const Maths::Vector3& position, float FOV, float Near, float Far, float aspect);
-		~EditorCamera();
+		EditorCameraController(Camera* camera);
+		~EditorCameraController();
 
 		virtual void HandleMouse(float dt, float xpos, float ypos) override;
 		virtual void HandleKeyboard(float dt) override;
-
-		void SetOrthographic(bool orth) { m_Orthographic = orth; }
-		void Set2D(bool is2D) { m_2D = is2D; }
-
+    
+        void UpdateScroll(float offset, float dt) override;
 
 	private:
-		bool m_Orthographic = false;
-		bool m_2D = false;
-	};
+    
+    };
 }

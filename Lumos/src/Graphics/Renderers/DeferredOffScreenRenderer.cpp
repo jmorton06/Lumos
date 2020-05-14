@@ -354,7 +354,7 @@ namespace Lumos
 			pipelineCI.typeCounts = poolInfo.data();
 			pipelineCI.strideSize = sizeof(Vertex);
 			pipelineCI.numColorAttachments = 6;
-			pipelineCI.wireframeEnabled = false;
+			pipelineCI.polygonMode = Graphics::PolygonMode::Fill;
 			pipelineCI.cullMode = Graphics::CullMode::BACK;
 			pipelineCI.transparencyEnabled = false;
 			pipelineCI.depthBiasEnabled = false;
@@ -407,7 +407,7 @@ namespace Lumos
 			Graphics::BufferInfo bufferInfo2 = {};
 			bufferInfo2.buffer = m_ModelUniformBuffer;
 			bufferInfo2.offset = 0;
-			bufferInfo2.size = sizeof(UniformBufferModel);
+			bufferInfo2.size = sizeof(Maths::Matrix4);//UniformBufferModel);
 			bufferInfo2.type = Graphics::DescriptorType::UNIFORM_BUFFER_DYNAMIC;
 			bufferInfo2.binding = 1;
 			bufferInfo2.shaderType = ShaderType::VERTEX;

@@ -61,7 +61,7 @@ namespace Lumos
 				m_ShaderStages[currentShaderStage].pName = "main";
 				m_ShaderStages[currentShaderStage].pNext = VK_NULL_HANDLE;
 
-				vkCreateShaderModule(VKDevice::Instance()->GetDevice(), &vertexShaderCI, nullptr, &m_ShaderStages[currentShaderStage].module);
+				VK_CHECK_RESULT(vkCreateShaderModule(VKDevice::Instance()->GetDevice(), &vertexShaderCI, nullptr, &m_ShaderStages[currentShaderStage].module));
 
                 delete[] source;
 

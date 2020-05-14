@@ -1,6 +1,7 @@
 #include "lmpch.h"
 #include "PhysicsObject3D.h"
 #include "LumosPhysicsEngine.h"
+#include "Graphics/Renderers/DebugRenderer.h"
 
 namespace Lumos
 {
@@ -108,6 +109,25 @@ namespace Lumos
 
 	void PhysicsObject3D::DebugDraw(uint64_t flags) const
 	{
+        Maths::Vector4 colour(0.4f, 0.3f, 0.7f, 1.0f);
+
+        if (flags & PhysicsDebugFlags::AABB)
+        {
+            if (!IsAwake())
+                colour = Maths::Vector4(0.0f, 1.0f, 0.0f, 1.0f);
+
+            // AABB
+            Maths::BoundingBox box = m_wsAabb;
+            DebugRenderer::DebugDraw(&box, colour);
+        }
+
+        if (flags & PhysicsDebugFlags::LINEARVELOCITY)
+            DebugRenderer::DrawThickLineNDT(m_wsTransform.Translation(), m_wsTransform * m_LinearVelocity, 0.02f,
+                                           Maths::Vector4(0.0f, 1.0f, 0.0f, 1.0f));
+
+        if (flags & PhysicsDebugFlags::LINEARFORCE)
+            DebugRenderer::DrawThickLineNDT(m_wsTransform.Translation(), m_wsTransform * m_Force, 0.02f,
+                                            Maths::Vector4(0.0f, 0.0f, 1.0f, 1.0f));
 	}
 
 	nlohmann::json PhysicsObject3D::Serialise()

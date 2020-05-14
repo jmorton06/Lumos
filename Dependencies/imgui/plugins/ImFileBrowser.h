@@ -1,7 +1,12 @@
 #pragma once
 
+#if __has_include(<filesystem>)
+#  include <filesystem>
+#elif __has_include(<experimental/filesystem>)
+#  include <experimental/filesystem>
+#endif
+
 #include <array>
-#include <filesystem>
 #include <functional>
 #include <memory>
 #include <string>
@@ -36,6 +41,10 @@ namespace ImGui
 
         FileBrowser &operator=(const FileBrowser &copyFrom);
 
+        // set the window size (in pixels)
+        // default is (700, 450)
+        void SetWindowSize(int width, int height) noexcept;
+    
         // set the window title text
         void SetTitle(std::string title);
 
@@ -73,7 +82,7 @@ namespace ImGui
 
         void SetLabels(const char* folderLabel = "[D]", const char* fileLabel = "[F]", const char* newFolderLabel = "+");
 
-        void SetFileFilters(const std::vector<const char*> fileFilters);
+        void SetFileFilters(const std::vector<const char*>& fileFilters);
 
     private:
 
@@ -90,6 +99,8 @@ namespace ImGui
 
         void SetPwdUncatched(const std::filesystem::path &pwd);
 
+        int width_;
+        int height_;
         ImGuiFileBrowserFlags flags_;
 
         std::string title_;
@@ -107,20 +118,21 @@ namespace ImGui
         bool ok_;
 
         std::string statusStr_;
+    
+        std::vector<const char*> typeFilters_;
+        int typeFilterIndex_;
 
         std::filesystem::path pwd_;
-        std::string selectedFilename_;
+        std::filesystem::path  selectedFilename_;
 
         struct FileRecord
         {
-            bool isDir;
-            std::string name;
+            bool isDir = false;
+            std::filesystem::path name;
             std::string showName;
-            std::string extension;
+            std::filesystem::path extension;
         };
         std::vector<FileRecord> fileRecords_;
-        std::vector<const char*> fileTypeFilters_;
-        int fileTypeFilterIndex_ = 0;
 
         // IMPROVE: overflow when selectedFilename_.length() > inputNameBuf_.size() - 1
         static constexpr size_t INPUT_NAME_BUF_SIZE = 512;
@@ -132,7 +144,7 @@ namespace ImGui
 } // namespace ImGui
 
 inline ImGui::FileBrowser::FileBrowser(ImGuiFileBrowserFlags flags)
-    : flags_(flags),
+       : width_(700), height_(450), flags_(flags),
       openFlag_(false), closeFlag_(false), isOpened_(false), ok_(false),
       inputNameBuf_(std::make_unique<std::array<char, INPUT_NAME_BUF_SIZE>>())
 {
@@ -144,6 +156,9 @@ inline ImGui::FileBrowser::FileBrowser(ImGuiFileBrowserFlags flags)
     SetOkText("OK");
     SetCancelText("Cancel");
     SetPwd(std::filesystem::current_path());
+    
+    typeFilters_.clear();
+    typeFilterIndex_ = 0;
 }
 
 inline ImGui::FileBrowser::FileBrowser(const FileBrowser &copyFrom)
@@ -172,11 +187,19 @@ inline ImGui::FileBrowser &ImGui::FileBrowser::operator=(const FileBrowser &copy
 
     if(flags_ & ImGuiFileBrowserFlags_CreateNewDir)
     {
-        newDirNameBuf_ = std::make_unique<std::array<char, INPUT_NAME_BUF_SIZE>>();
+        newDirNameBuf_ = std::make_unique<
+                                std::array<char, INPUT_NAME_BUF_SIZE>>();
         *newDirNameBuf_ = *copyFrom.newDirNameBuf_;
     }
 
     return *this;
+}
+
+inline void ImGui::FileBrowser::SetWindowSize(int width, int height) noexcept
+{
+    assert(width > 0 && height > 0);
+    width_  = width;
+    height_ = height;
 }
 
 inline void ImGui::FileBrowser::SetTitle(std::string title)
@@ -229,9 +252,17 @@ inline void ImGui::FileBrowser::Display()
     // open the popup window
 
     if(openFlag_ && (flags_ & ImGuiFileBrowserFlags_NoModal))
-        SetNextWindowSize(ImVec2(700, 450));
+    {
+        SetNextWindowSize(
+            ImVec2(static_cast<float>(width_), static_cast<float>(height_)));
+    }
     else
-        SetNextWindowSize(ImVec2(700, 450), ImGuiCond_FirstUseEver);
+    {
+        SetNextWindowSize(
+            ImVec2(static_cast<float>(width_), static_cast<float>(height_)),
+            ImGuiCond_FirstUseEver);
+    }
+    
     if(flags_ & ImGuiFileBrowserFlags_NoModal)
     {
         if(!BeginPopup(openLabel_.c_str()))
@@ -285,8 +316,8 @@ inline void ImGui::FileBrowser::Display()
 
     SameLine();
 
-  /*  if(SmallButton("*"))
-        SetPwd(pwd_);*/
+    if(SmallButton("*"))
+        SetPwd(pwd_);
 
     if(newDirNameBuf_)
     {
@@ -322,29 +353,46 @@ inline void ImGui::FileBrowser::Display()
 
     // browse files in a child window
 
-    float reserveHeight = GetItemsLineHeightWithSpacing();
+    float reserveHeight = GetFrameHeightWithSpacing();
     std::filesystem::path newPwd; bool setNewPwd = false;
-    if(!(flags_ & ImGuiFileBrowserFlags_SelectDirectory) && (flags_ & ImGuiFileBrowserFlags_EnterNewFilename))
-        reserveHeight += GetItemsLineHeightWithSpacing();
+    if(!(flags_ & ImGuiFileBrowserFlags_SelectDirectory) &&
+       (flags_ & ImGuiFileBrowserFlags_EnterNewFilename))
+        reserveHeight += GetFrameHeightWithSpacing();
     {
-        BeginChild("ch", ImVec2(0, -reserveHeight), true, 0);
+        BeginChild("ch", ImVec2(0, -reserveHeight), true,
+            (flags_ & ImGuiFileBrowserFlags_NoModal) ?
+                ImGuiWindowFlags_AlwaysHorizontalScrollbar : 0);
         ScopeGuard endChild([] { EndChild(); });
 
         ImGui::Indent();
 
         for(auto &rsc : fileRecords_)
         {
-            if (!rsc.isDir && fileTypeFilters_.size() > 0 && fileTypeFilterIndex_ < fileTypeFilters_.size() && !(rsc.extension == fileTypeFilters_[fileTypeFilterIndex_]))
+            if (!rsc.isDir && typeFilters_.size() > 0 &&
+                static_cast<size_t>(typeFilterIndex_) < typeFilters_.size() &&
+                !(rsc.extension == typeFilters_[typeFilterIndex_]))
+                continue;
+
+            if(!rsc.name.empty() && rsc.name.c_str()[0] == '$')
                 continue;
 
             const bool selected = selectedFilename_ == rsc.name;
            
             if(Selectable(rsc.showName.c_str(), selected, ImGuiSelectableFlags_DontClosePopups | ImGuiSelectableFlags_AllowDoubleClick))
             {
-                if(selected)
+//                if(selected)
+//                {
+//                    selectedFilename_ = std::string();
+//                    (*inputNameBuf_)[0] = '\0';
+//                }
+//                else
+                if(IsItemClicked(0) && IsMouseDoubleClicked(0))
                 {
-                    selectedFilename_ = std::string();
-                    (*inputNameBuf_)[0] = '\0';
+                    if(!selectedFilename_.empty())
+                    {
+                        ok_ = true;
+                        CloseCurrentPopup();
+                    }
                 }
                 else if(rsc.name != "..")
                 {
@@ -353,7 +401,15 @@ inline void ImGui::FileBrowser::Display()
                     {
                         selectedFilename_ = rsc.name;
                         if(!(flags_ & ImGuiFileBrowserFlags_SelectDirectory))
-                            std::strcpy(inputNameBuf_->data(), selectedFilename_.c_str());
+                        {
+#ifdef _MSC_VER
+                            strcpy_s(inputNameBuf_->data(), inputNameBuf_->size(),
+                                     selectedFilename_.u8string().c_str());
+#else
+                            std::strncpy(inputNameBuf_->data(), selectedFilename_.u8string().c_str(),
+                                         inputNameBuf_->size());
+#endif
+                        }
                     }
                 }
             }
@@ -415,13 +471,14 @@ inline void ImGui::FileBrowser::Display()
         Text("%s", statusStr_.c_str());
     }
 
-    if (!fileTypeFilters_.empty())
-    {
-        ImGui::SameLine();
-        ImGui::PushItemWidth(100.0f);
-        ImGui::Combo("##Filters", &fileTypeFilterIndex_, fileTypeFilters_.data(), int(fileTypeFilters_.size()));
-        ImGui::PopItemWidth();
-    }
+     if (!typeFilters_.empty())
+     {
+         SameLine();
+         PushItemWidth(8 * GetFontSize());
+         Combo("##type_filters", &typeFilterIndex_,
+               typeFilters_.data(), int(typeFilters_.size()));
+         PopItemWidth();
+     }
 }
 
 inline bool ImGui::FileBrowser::HasSelected() const noexcept
@@ -463,14 +520,14 @@ inline void ImGui::FileBrowser::ClearSelected()
 
 inline void ImGui::FileBrowser::ClearFilters()
 {
-    fileTypeFilters_.clear();
-    fileTypeFilterIndex_ = 0;
+    typeFilters_.clear();
+    typeFilterIndex_ = 0;
 }
 
-inline void ImGui::FileBrowser::SetFileFilters(const std::vector<const char*> fileFilters)
+inline void ImGui::FileBrowser::SetFileFilters(const std::vector<const char*>& fileFilters)
 {
-    fileTypeFilterIndex_ = 0;
-    fileTypeFilters_ = std::move(fileFilters);
+    typeFilters_ = fileFilters;
+    typeFilterIndex_ = 0;
 }
 
 inline void ImGui::FileBrowser::SetLabels(const char* folderLabel, const char* fileLabel, const char* newFolderLabel)

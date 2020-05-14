@@ -21,7 +21,7 @@ namespace Lumos
 
     ScriptComponent::~ScriptComponent()
     {
-        if(m_Env["OnRelease"])
+        if(m_Env && m_Env["OnRelease"])
             m_Env["OnRelease"]();
     }
 
@@ -42,25 +42,47 @@ namespace Lumos
             sol::error err = loadFileResult;
             Debug::Log::Error("Failed to Execute Lua script {0}" , physicalPath );
             Debug::Log::Error("Error : {0}", err.what());
+            m_Errors.push_back(String(err.what()));
         }
                 
         if(m_Scene)
             m_Env["CurrentScene"] = m_Scene;
-        
-        if(m_Env["OnInit"])
-            m_Env["OnInit"]();
+    
+        sol::protected_function onInitFunc = m_Env["OnInit"];
+          
+        if(onInitFunc)
+        {
+          sol::protected_function_result result = onInitFunc.call();
+          if (!result.valid())
+          {
+              sol::error err = result;
+              Debug::Log::Error("Failed to Execute Script Lua Init function" );
+              Debug::Log::Error("Error : {0}", err.what());
+          }
+        }
+
+
+        m_UpdateFunc = m_Env["OnUpdate"];
 
     }
 
     void ScriptComponent::Update(float dt)
     {
-        if(m_Env["OnUpdate"])
-            m_Env["OnUpdate"](dt);
+        if(m_UpdateFunc)
+        {
+           sol::protected_function_result result = m_UpdateFunc.call(dt);
+           if (!result.valid())
+           {
+               sol::error err = result;
+               Debug::Log::Error("Failed to Execute Script Lua OnUpdate" );
+               Debug::Log::Error("Error : {0}", err.what());
+           }
+        }
     }
 
     void ScriptComponent::Reload()
     {
-        if(m_Env["OnRelease"])
+        if(m_Env && m_Env["OnRelease"])
             m_Env["OnRelease"]();
         
         Init();
@@ -68,7 +90,7 @@ namespace Lumos
 
     void ScriptComponent::Load(const String& fileName)
     {
-        if(m_Env["OnRelease"])
+        if(m_Env && m_Env["OnRelease"])
             m_Env["OnRelease"]();
         
         m_FileName = fileName;

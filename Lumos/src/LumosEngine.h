@@ -49,6 +49,8 @@
 #include "Graphics/Camera/FPSCamera.h"
 #include "Graphics/Camera/MayaCamera.h"
 #include "Graphics/Camera/Camera2D.h"
+#include "Graphics/Camera/Camera.h"
+
 
 #include "Editor/EditorCamera.h" //temp
 

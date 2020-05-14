@@ -17,11 +17,11 @@ project "imgui"
 		"imstb_truetype.h",
 		"imgui_demo.cpp",
 		"plugins/ImGuizmo.h",
-		"plugins/ImGuizmo.cpp"
+		"plugins/ImGuizmo.cpp",
 		--"plugins/ImCurveEdit.h",
 		--"plugins/ImCurveEdit.cpp",
-		--"plugins/ImTextEditor.h",
-		--"plugins/ImTextEditor.cpp",
+		"plugins/ImTextEditor.h",
+		"plugins/ImTextEditor.cpp",
 	}
 
 	filter "system:windows"

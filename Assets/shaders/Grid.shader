@@ -1,7 +1,7 @@
 #shader vertex
-Grid.vert.spv
+CompiledSPV/Grid.vert.spv
 #shader end
 
 #shader fragment
-Grid.frag.spv
+CompiledSPV/Grid.frag.spv
 #shader end

@@ -9,8 +9,13 @@ namespace Lumos
 	class Camera;
 	class Mesh;
 	class VertexArray;
-	class Texture2D;
-	namespace Maths
+    
+    namespace Graphics
+    {
+        class Texture2D;
+    }
+
+    namespace Maths
 	{
 		class BoundingBox;
 	}
@@ -61,8 +66,8 @@ namespace Lumos
 		u32 GetNumTextureRows() const;
 		void SetNumTextureRows(u32 numTextureRows);
 
-		Texture2D* GetTexture() const;
-		void SetTexture(Texture2D *m_Texture);
+		Graphics::Texture2D* GetTexture() const;
+		void SetTexture(Graphics::Texture2D *m_Texture);
 
 		const std::vector<Ref<Particle>>& GetParticles() const;
 		void SetParticles(const std::vector<Ref<Particle>>& particles);
@@ -173,7 +178,7 @@ namespace Lumos
 
 		u32 m_NumTextureRows;
 
-		Texture2D* m_Texture;
+		Graphics::Texture2D* m_Texture;
 		std::vector<Ref<Particle>> m_Particles;
 
 

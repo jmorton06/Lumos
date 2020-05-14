@@ -201,10 +201,10 @@ namespace Lumos
 
 	void PyramidCollisionShape::ConstructPyramidHull()
 	{
-		Maths::Vector3 v0 = Maths::Vector3(-1.0f, -1.0f, -1.0f);		// 0
-		Maths::Vector3 v1 = Maths::Vector3(-1.0f, -1.0f, 1.0f);		// 1
+		Maths::Vector3 v0 = Maths::Vector3(-1.0f, -1.0f, -1.0f);	// 0
+		Maths::Vector3 v1 = Maths::Vector3(-1.0f, -1.0f, 1.0f);	// 1
 		Maths::Vector3 v2 = Maths::Vector3(1.0f, -1.0f, 1.0f);		// 2
-		Maths::Vector3 v3 = Maths::Vector3(1.0f, -1.0f, -1.0f);		// 3
+		Maths::Vector3 v3 = Maths::Vector3(1.0f, -1.0f, -1.0f);	// 3
 		Maths::Vector3 v4 = Maths::Vector3(0.0f, 1.0f, 0.0f);		// 4
 		//Vertices
 		m_PyramidHull->AddVertex(v0);		// 0

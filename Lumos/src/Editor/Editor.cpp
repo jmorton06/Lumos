@@ -8,9 +8,12 @@
 #include "InspectorWindow.h"
 #include "ApplicationInfoWindow.h"
 #include "GraphicsInfoWindow.h"
+#include "TextEditWindow.h"
+#include "AssetWindow.h"
 
 #include "App/Application.h"
 #include "Core/OS/Input.h"
+#include "Core/OS/FileSystem.h"
 #include "Core/Profiler.h"
 #include "App/Engine.h"
 #include "App/Scene.h"
@@ -18,28 +21,30 @@
 #include "Events/ApplicationEvent.h"
 
 #include "ECS/Component/Components.h"
+#include "Scripting/ScriptComponent.h"
+
 #include "Physics/LumosPhysicsEngine/LumosPhysicsEngine.h"
 #include "Graphics/Layers/Layer3D.h"
-
 #include "Graphics/Sprite.h"
 #include "Graphics/Light.h"
 #include "Graphics/Camera/Camera.h"
 #include "Graphics/Layers/LayerStack.h"
 #include "Graphics/API/GraphicsContext.h"
 #include "Graphics/MeshFactory.h"
-
 #include "Graphics/Renderers/GridRenderer.h"
+#include "Graphics/Renderers/DebugRenderer.h"
+#include "Graphics/ModelLoader/ModelLoader.h"
+
+#include "Utilities/AssetsManager.h"
 
 #include "ImGui/ImGuiHelpers.h"
 
 #include <imgui/imgui_internal.h>
 #include <imgui/plugins/ImGuizmo.h>
 #include <imgui/plugins/ImGuiAl/button/imguial_button.h>
+#include <imgui/plugins/ImTextEditor.h>
 #include <IconFontCppHeaders/IconsFontAwesome5.h>
-
-#ifdef LUMOS_PLATFORM_WINDOWS
 #include <imgui/plugins/ImFileBrowser.h>
-#endif
 
 static ImVec2 operator+(const ImVec2 &a, const ImVec2 &b) {
 	return ImVec2(a.x + b.x, a.y + b.y);
@@ -53,9 +58,7 @@ namespace Lumos
 
 	Editor::~Editor()
 	{
-#ifdef LUMOS_PLATFORM_WINDOWS
         lmdel m_FileBrowser;
-#endif
 	}
 
 	void Editor::OnInit()
@@ -92,6 +95,7 @@ namespace Lumos
 		m_ComponentIconMap[typeid(Physics3DComponent).hash_code()] = ICON_FA_CUBE;
 		m_ComponentIconMap[typeid(MeshComponent).hash_code()] = ICON_FA_SHAPES;
 		m_ComponentIconMap[typeid(MaterialComponent).hash_code()] = ICON_FA_PAINT_BRUSH;
+        m_ComponentIconMap[typeid(ScriptComponent).hash_code()] = ICON_FA_SCROLL;
 
 		m_Windows.emplace_back(CreateRef<ConsoleWindow>());
 		m_Windows.emplace_back(CreateRef<SceneWindow>());
@@ -102,23 +106,56 @@ namespace Lumos
 		m_Windows.emplace_back(CreateRef<GraphicsInfoWindow>());
 		m_Windows.back()->SetActive(false);
 		m_Windows.emplace_back(CreateRef<ApplicationInfoWindow>());
+        //m_Windows.emplace_back(CreateRef<AssetWindow>());
+
+
 		for (auto& window : m_Windows)
 			window->SetEditor(this);
+    
+        m_DebugDrawFlags = 0;//EditorDebugFlags::MeshBoundingBoxes | EditorDebugFlags::CameraFrustum | EditorDebugFlags::SpriteBoxes;
 
 		m_ShowImGuiDemo = false;
 
-#ifdef LUMOS_PLATFORM_WINDOWS
 		m_FileBrowser = lmnew ImGui::FileBrowser(ImGuiFileBrowserFlags_CreateNewDir | ImGuiFileBrowserFlags_EnterNewFilename | ImGuiFileBrowserFlags_NoModal);
 		m_FileBrowser->SetTitle("Test File Browser");
-		m_FileBrowser->SetFileFilters({ ".sh" , ".h" });
+		//m_FileBrowser->SetFileFilters({ ".sh" , ".h" });
 		m_FileBrowser->SetLabels(ICON_FA_FOLDER, ICON_FA_FILE, ICON_FA_FOLDER_OPEN);
 		m_FileBrowser->Refresh();
-#endif
 
 		ImGuiHelpers::SetTheme(ImGuiHelpers::Dark);
 
 		m_Selected = entt::null;
 	}
+    
+    bool IsTextFile(const String& filePath)
+    {
+        String extension = StringFormat::GetFilePathExtension(filePath);
+    
+        if(extension == "txt" || extension == "glsl" || extension == "shader" || extension == "vert" || extension == "frag" || extension == "lua" || extension == "Lua")
+            return true;
+    
+        return false;
+    }
+    
+    bool IsAudioFile(const String& filePath)
+    {
+        String extension = StringFormat::GetFilePathExtension(filePath);
+    
+        if(extension == "ogg" || extension == "wav")
+            return true;
+    
+        return false;
+    }
+    
+    bool IsModelFile(const String& filePath)
+    {
+        String extension = StringFormat::GetFilePathExtension(filePath);
+    
+        if(extension == "obj" || extension == "gltf" || extension == "glb")
+            return true;
+    
+        return false;
+    }
 
 	void Editor::OnImGui()
 	{
@@ -151,7 +188,36 @@ namespace Lumos
 			Application::Instance()->GetLayerStack()->PopOverlay(m_3DGridLayer);
 			m_3DGridLayer = nullptr;
 		}
+    
+        m_FileBrowser->Display();
 
+        if(m_FileBrowser->HasSelected())
+        {
+            if(IsTextFile(m_FileBrowser->GetSelected().string()))
+                OpenTextFile(m_FileBrowser->GetSelected().string());
+            else if(IsModelFile(m_FileBrowser->GetSelected().string()))
+                ModelLoader::LoadModel(m_FileBrowser->GetSelected().string(), m_Application->GetSceneManager()->GetCurrentScene()->GetRegistry());
+            else if(IsAudioFile(m_FileBrowser->GetSelected().string()))
+            {
+                AssetsManager::Sounds()->LoadAsset(StringFormat::GetFileName(m_FileBrowser->GetSelected().string()), m_FileBrowser->GetSelected().string());
+
+                auto soundNode = Ref<SoundNode>(SoundNode::Create());
+                soundNode->SetSound(AssetsManager::Sounds()->Get(StringFormat::GetFileName(m_FileBrowser->GetSelected().string())).get());
+                soundNode->SetVolume(1.0f);
+                soundNode->SetPosition(Maths::Vector3(0.1f, 10.0f, 10.0f));
+                soundNode->SetLooping(true);
+                soundNode->SetIsGlobal(false);
+                soundNode->SetPaused(false);
+                soundNode->SetReferenceDistance(1.0f);
+                soundNode->SetRadius(30.0f);
+            
+                auto& registry = m_Application->GetSceneManager()->GetCurrentScene()->GetRegistry();
+                entt::entity e = registry.create();
+                registry.emplace<SoundComponent>(e, soundNode);
+            }
+            m_FileBrowser->ClearSelected();
+        }
+    
 		EndDockSpace();
 	}
 
@@ -165,20 +231,7 @@ namespace Lumos
                 
                 if(ImGui::MenuItem("Open File"))
                 {
-                   #ifdef LUMOS_PLATFORM_WINDOWS
-                        if(ImGuiAl::Button("open file dialog", true))
-                            m_FileBrowser->Open();
-                        
-                        ImGuiViewport* viewport = ImGui::GetMainViewport();
-                        ImGui::SetNextWindowPos(viewport->Pos + ImVec2(viewport->Size.x * 0.5f, viewport->Size.y * 0.5f), ImGuiCond_Appearing, ImVec2(0.5f, 0.5f));
-                        m_FileBrowser->Display();
-                        
-                        if(m_FileBrowser->HasSelected())
-                        {
-                            std::cout << "Selected filename" << m_FileBrowser->GetSelected().string() << std::endl;
-                            m_FileBrowser->ClearSelected();
-                        }
-                    #endif
+                    m_FileBrowser->Open();
                 }
 
 				if (ImGui::BeginMenu("Style"))
@@ -295,6 +348,12 @@ namespace Lumos
 
 				ImGui::EndMenu();
 			}
+        
+            if (ImGui::BeginMenu("Graphics"))
+            {
+                if (ImGui::MenuItem("Compile Shaders")) { RecompileShaders(); }
+                ImGui::EndMenu();
+            }
             
             ImGui::SameLine(ImGui::GetWindowContentRegionMax().x / 2.0f);
 
@@ -543,6 +602,7 @@ namespace Lumos
 			ImGui::DockBuilderDockWindow("###hierarchy", dock_id_left);
 			ImGui::DockBuilderDockWindow("###console", dock_id_bottom);
             ImGui::DockBuilderDockWindow("###profiler", dock_id_bottom);
+            ImGui::DockBuilderDockWindow("Assets", dock_id_bottom);
 			ImGui::DockBuilderDockWindow("Dear ImGui Demo", dock_id_left);
             ImGui::DockBuilderDockWindow("GraphicsInfo", dock_id_left);
 			ImGui::DockBuilderDockWindow("ApplicationInfo", dock_id_left);
@@ -626,6 +686,17 @@ namespace Lumos
 
 		m_Application->OnEvent(e);
 	}
+    
+    Maths::Ray GetScreenRay(int x, int y, Camera* camera, int width, int height)
+    {
+        if (!camera)
+            return Maths::Ray();
+    
+        float screenX = (float)x / (float)width;
+        float screenY = (float)y / (float)height;
+
+        return camera->GetScreenRay(screenX, screenY);
+    }
 
 	void Editor::OnUpdate(TimeStep* ts)
 	{
@@ -651,7 +722,15 @@ namespace Lumos
 			if (m_Application->GetSceneManager()->GetCurrentScene()->GetCamera()->GetPosition().Equals(m_CameraDestination))
 				m_TransitioningCamera = false;
 		}
-	}
+    
+        if(Application::Instance()->GetSceneActive() && m_ImGuizmoOperation == 4 && Input::GetInput()->GetMouseClicked(InputCode::MouseKey::ButtonLeft))
+        {
+            auto camera = m_Application->GetSceneManager()->GetCurrentScene()->GetCamera();
+            auto clickPos = Input::GetInput()->GetMousePosition() - m_SceneWindowPos;
+            
+            SelectObject(GetScreenRay(clickPos.x, clickPos.y, camera, m_Application->m_SceneViewWidth, m_Application->m_SceneViewHeight));
+        }
+    }
 
 	void Editor::BindEventFunction()
 	{
@@ -661,15 +740,225 @@ namespace Lumos
 	void Editor::FocusCamera(const Maths::Vector3& point, float distance, float speed)
 	{
 		auto camera = m_Application->GetSceneManager()->GetCurrentScene()->GetCamera();
-		m_TransitioningCamera = true;
-		m_CameraDestination = point + camera->GetForwardDirection() * distance;
-		m_CameraTransitionStartTime = -1.0f;
-		m_CameraTransitionSpeed = 1.0f/speed;
-		m_CameraStartPosition = camera->GetPosition();
+    
+        if(camera->IsOrthographic())
+        {
+            camera->SetPosition(point);
+            camera->SetScale(distance / 2.0f);
+        }
+        else
+        {
+            m_TransitioningCamera = true;
+
+            m_CameraDestination = point + camera->GetForwardDirection() * distance;
+            m_CameraTransitionStartTime = -1.0f;
+            m_CameraTransitionSpeed = 1.0f/speed;
+            m_CameraStartPosition = camera->GetPosition();
+        }
 	}
 
 	bool Editor::OnWindowResize(WindowResizeEvent & e)
 	{
 		return false;
+	}
+    
+    void Editor::RecompileShaders()
+    {
+        Lumos::Debug::Log::Info("Recompiling shaders");
+        String filePath = "sh ." ROOT_DIR;
+
+    #ifdef LUMOS_RENDER_API_VULKAN
+    #ifdef LUMOS_PLATFORM_WINDOWS
+        filePath += "/Assets/shaders/compile.bat";
+        system(filePath.c_str());
+    #elif LUMOS_PLATFORM_MACOS
+        filePath += "/Assets/shaders/compileMac.sh";
+        system(filePath.c_str());
+    #endif
+    #endif
+    }
+    
+    void Editor::DebugDraw()
+    {
+        auto& registry = Application::Instance()->GetSceneManager()->GetCurrentScene()->GetRegistry();
+
+        if(m_DebugDrawFlags & EditorDebugFlags::MeshBoundingBoxes)
+        {
+            auto group = registry.group<MeshComponent>(entt::get<Maths::Transform>);
+
+             for(auto entity : group)
+             {
+                 const auto &[mesh, trans] = group.get<MeshComponent, Maths::Transform>(entity);
+
+                 if (mesh.GetMesh() && mesh.GetMesh()->GetActive())
+                 {
+                     auto& worldTransform = trans.GetWorldMatrix();
+
+                     auto bbCopy = mesh.GetMesh()->GetBoundingBox()->Transformed(worldTransform);
+                     DebugRenderer::DebugDraw(&bbCopy, Maths::Vector4(0.8f,0.8f,0.8f,0.2f));
+                 }
+             }
+        }
+    
+        if(m_DebugDrawFlags & EditorDebugFlags::SpriteBoxes)
+        {
+           auto group = registry.group<Graphics::Sprite>(entt::get<Maths::Transform>);
+
+            for(auto entity : group)
+            {
+                const auto &[sprite, trans] = group.get<Graphics::Sprite, Maths::Transform>(entity);
+
+            {
+                    auto& worldTransform = trans.GetWorldMatrix();
+
+                    auto bb = Maths::BoundingBox(Maths::Rect(sprite.GetPosition(), sprite.GetPosition() + sprite.GetScale()));
+                    bb.Transform(trans.GetWorldMatrix());
+                    DebugRenderer::DebugDraw(&bb, Maths::Vector4(0.8f,0.8f,0.8f,0.2f));
+                }
+            }
+        }
+
+        if(m_DebugDrawFlags & EditorDebugFlags::CameraFrustum)
+        {
+            auto cameraGroup = registry.group<CameraComponent>(entt::get<Maths::Transform>);
+
+            for(auto entity : cameraGroup)
+            {
+                const auto &[camera, trans] = cameraGroup.get<CameraComponent, Maths::Transform>(entity);
+
+                if (camera.GetCamera())
+                {
+                    camera.GetCamera()->GetFrustum().DebugDraw();
+                }
+            }
+        }
+    
+        if(registry.valid(m_Selected))
+        {
+            auto transform = registry.try_get<Maths::Transform>(m_Selected);
+        
+            auto meshComponent = registry.try_get<MeshComponent>(m_Selected);
+            if(transform && meshComponent)
+            {
+                if (meshComponent->GetMesh() && meshComponent->GetMesh()->GetActive())
+                {
+                    auto& worldTransform = transform->GetWorldMatrix();
+
+                    auto bbCopy = meshComponent->GetMesh()->GetBoundingBox()->Transformed(worldTransform);
+                    DebugRenderer::DebugDraw(&bbCopy, Maths::Vector4(0.8f,0.8f,0.8f,0.2f));
+                }
+            }
+        
+            auto sprite = registry.try_get<Graphics::Sprite>(m_Selected);
+            if(transform && sprite)
+            {
+                {
+                    auto& worldTransform = transform->GetWorldMatrix();
+
+                    auto bb = Maths::BoundingBox(Maths::Rect(sprite->GetPosition(), sprite->GetPosition() + sprite->GetScale()));
+                    bb.Transform(worldTransform);
+                    DebugRenderer::DebugDraw(&bb, Maths::Vector4(0.8f,0.8f,0.8f,0.2f));
+                }
+            }
+        
+//            auto camera = registry.try_get<CameraComponent>(m_Selected);
+//            if(camera)
+//            {
+//                if (camera->GetCamera())
+//                {
+//                    camera->GetCamera()->GetFrustum().DebugDraw();
+//                }
+//            }
+        }
+    }
+    
+    void Editor::SelectObject(const Maths::Ray& ray)
+    {
+        auto& registry = Application::Instance()->GetSceneManager()->GetCurrentScene()->GetRegistry();
+
+        auto group = registry.group<MeshComponent>(entt::get<Maths::Transform>);
+
+        for(auto entity : group)
+        {
+           const auto &[mesh, trans] = group.get<MeshComponent, Maths::Transform>(entity);
+
+           if (mesh.GetMesh() && mesh.GetMesh()->GetActive())
+           {
+               auto& worldTransform = trans.GetWorldMatrix();
+
+               auto bbCopy = mesh.GetMesh()->GetBoundingBox()->Transformed(worldTransform);
+               float dist = ray.HitDistance(bbCopy);
+           
+               if(dist < Maths::M_INFINITY)
+               {
+                    if(m_Selected == entity)
+                        FocusCamera(trans.GetWorldPosition(), (bbCopy.max_ - bbCopy.min_).Length());
+               
+                    m_Selected = entity;
+                    return;
+               }
+           }
+        }
+    
+        auto spriteGroup = registry.group<Graphics::Sprite>(entt::get<Maths::Transform>);
+
+        for(auto entity : spriteGroup)
+        {
+            const auto &[sprite, trans] = spriteGroup.get<Graphics::Sprite, Maths::Transform>(entity);
+
+            auto& worldTransform = trans.GetWorldMatrix();
+            auto bb = Maths::BoundingBox(Maths::Rect(sprite.GetPosition(), sprite.GetPosition() + sprite.GetScale()));
+            bb.Transform(trans.GetWorldMatrix());
+            float dist = ray.HitDistance(bb);
+      
+            if(dist < Maths::M_INFINITY)
+            {
+                if(m_Selected == entity)
+                   FocusCamera(trans.GetWorldPosition(), (bb.max_ - bb.min_).Length());
+          
+                m_Selected = entity;
+                return;
+            }
+        }
+    
+        m_Selected = entt::null;
+    
+    }
+
+	void Editor::OpenTextFile(const String& filePath)
+	{
+		String physicalPath;
+        if (!VFS::Get()->ResolvePhysicalPath(filePath, physicalPath))
+        {
+            Debug::Log::Error("Failed to Load Lua script {0}", filePath );
+            return;
+        }
+
+    
+        for(int i = 0; i < int(m_Windows.size()); i++)
+        {
+            EditorWindow* w = m_Windows[i].get();
+            if(w->GetSimpleName() == "TextEdit")
+            {
+                m_Windows.erase (m_Windows.begin()+i);
+                break;
+            }
+        }
+
+		m_Windows.emplace_back(CreateRef<TextEditWindow>(physicalPath));
+		m_Windows.back()->SetEditor(this);
+	}
+
+	void Editor::RemoveWindow(EditorWindow* window)
+	{
+		for(int i = 0; i < int(m_Windows.size()); i++)
+		{
+			EditorWindow* w = m_Windows[i].get();
+			if(w == window)
+            {
+                m_Windows.erase (m_Windows.begin()+i);
+                return;
+            }
+		}
 	}
 }

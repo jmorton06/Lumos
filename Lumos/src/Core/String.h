@@ -35,6 +35,14 @@ namespace Lumos
 				return FileName.substr(pos + 1);
 			return "";
 		}
+    
+        static String GetFileName(const String &FilePath)
+        {
+            auto pos = FilePath.find_last_of('/');
+            if (pos != String::npos)
+                return FilePath.substr(pos + 1);
+            return FilePath;
+        }
 	};
 
 	std::vector<String> LUMOS_EXPORT SplitString(const String& string, const String& delimiters);

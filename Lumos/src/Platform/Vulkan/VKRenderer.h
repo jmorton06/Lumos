@@ -14,6 +14,8 @@
 #include "VKDescriptorSet.h"
 #include "Graphics/API/Renderer.h"
 
+#define NUM_SEMAPHORES 10
+
 namespace Lumos
 {
 	namespace Graphics
@@ -54,7 +56,7 @@ namespace Lumos
 			Lumos::Graphics::VKContext* m_Context;
 			Ref<Lumos::Graphics::VKSwapchain> m_Swapchain;
 
-			VkSemaphore m_ImageAvailableSemaphore[5];
+			VkSemaphore m_ImageAvailableSemaphore[NUM_SEMAPHORES];
 			u32 m_CurrentSemaphoreIndex = 0;
 
 			String m_RendererTitle;

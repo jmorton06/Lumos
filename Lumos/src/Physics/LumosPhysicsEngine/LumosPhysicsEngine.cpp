@@ -60,10 +60,10 @@ namespace Lumos
 	void LumosPhysicsEngine::OnUpdate(TimeStep* timeStep, Scene* scene)
 	{
         LUMOS_PROFILE_BLOCK("LumosPhysicsEngine::OnUpdate");
+        m_PhysicsObjects.clear();
+
 		if (!m_IsPaused)
 		{
-            m_PhysicsObjects.clear();
-            
             auto& registry = scene->GetRegistry();
             
             auto group = registry.group<Physics3DComponent>(entt::get<Maths::Transform>);
@@ -439,4 +439,31 @@ namespace Lumos
 		ImGui::Separator();
 		ImGui::PopStyleVar();
 	}
+    
+    void LumosPhysicsEngine::OnDebugDraw()
+    {
+        if (m_DebugDrawFlags & PhysicsDebugFlags::MANIFOLD)
+        {
+            for (Manifold *m : m_Manifolds)
+                m->DebugDraw();
+        }
+
+        // Draw all constraints
+        if (m_DebugDrawFlags & PhysicsDebugFlags::CONSTRAINT)
+        {
+            for (Constraint *c : m_Constraints)
+                c->DebugDraw();
+        }
+
+        if (m_BroadphaseDetection && (m_DebugDrawFlags & PhysicsDebugFlags::BROADPHASE))
+            m_BroadphaseDetection->DebugDraw();
+    
+        for(auto obj : m_PhysicsObjects)
+        {
+            obj->DebugDraw(m_DebugDrawFlags);
+        
+            if (obj->GetCollisionShape() && (m_DebugDrawFlags & PhysicsDebugFlags::COLLISIONVOLUMES))
+                obj->GetCollisionShape()->DebugDraw(obj.get());
+        }
+    }
 }
