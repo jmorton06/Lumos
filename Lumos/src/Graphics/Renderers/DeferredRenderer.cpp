@@ -390,8 +390,6 @@ namespace Lumos
 			pipelineCI.cullMode = Graphics::CullMode::NONE;
 			pipelineCI.transparencyEnabled = false;
 			pipelineCI.depthBiasEnabled = false;
-			pipelineCI.width = m_ScreenBufferWidth;
-			pipelineCI.height = m_ScreenBufferHeight;
 			pipelineCI.maxObjects = 10;
 
 			m_Pipeline = Graphics::Pipeline::Create(pipelineCI);
@@ -591,9 +589,9 @@ namespace Lumos
 
 			m_OffScreenRenderer->OnResize(width, height);
 
-			m_CubeMap = nullptr;
-
 			m_ClearColour = Maths::Vector4(0.8f, 0.8f, 0.8f, 1.0f);
+        
+            CreateScreenDescriptorSet();
 		}
 
 		void DeferredRenderer::SetCubeMap(Texture* cubeMap)

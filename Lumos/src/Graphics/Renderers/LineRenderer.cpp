@@ -403,8 +403,6 @@ namespace Lumos
 		pipelineCI.cullMode = Graphics::CullMode::BACK;
 		pipelineCI.transparencyEnabled = false;
 		pipelineCI.depthBiasEnabled = true;
-		pipelineCI.width = m_ScreenBufferWidth;
-		pipelineCI.height = m_ScreenBufferHeight;
 		pipelineCI.maxObjects = MAX_BATCH_DRAW_CALLS;
 		pipelineCI.drawType = DrawType::LINES;
         pipelineCI.lineWidth = 20.0f;

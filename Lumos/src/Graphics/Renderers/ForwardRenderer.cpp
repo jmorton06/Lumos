@@ -384,7 +384,6 @@ namespace Lumos
 
 			delete m_Pipeline;
 			delete m_RenderPass;
-			delete m_Shader;
 
 			for (auto fbo : m_Framebuffers)
 				delete fbo;
@@ -487,8 +486,6 @@ namespace Lumos
 			pipelineCI.cullMode = Graphics::CullMode::BACK;
 			pipelineCI.transparencyEnabled = false;
 			pipelineCI.depthBiasEnabled = false;
-			pipelineCI.width = m_ScreenBufferWidth;
-			pipelineCI.height = m_ScreenBufferHeight;
 			pipelineCI.maxObjects = MAX_OBJECTS;
 
 			m_Pipeline = Graphics::Pipeline::Create(pipelineCI);

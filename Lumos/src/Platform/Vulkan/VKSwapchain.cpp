@@ -12,6 +12,7 @@ namespace Lumos
 		{
 			m_Width = width;
 			m_Height = height;
+			m_SwapChain = VK_NULL_HANDLE;
 		}
 
 		VKSwapchain::~VKSwapchain()

@@ -34,6 +34,7 @@ namespace Lumos
 
 	void SceneWindow::OnImGui()
 	{
+		Application& app = *Application::Instance();
 		auto flags = ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoScrollWithMouse;
 		ImGui::SetNextWindowBgAlpha(0.0f);
 		ImGui::Begin(m_Name.c_str(), &m_Active, flags);
@@ -58,29 +59,20 @@ namespace Lumos
         sceneViewSize.y -= static_cast<int>(sceneViewSize.y) % 2 != 0 ? 1.0f : 0.0f;
 
         float aspect = static_cast<float>(sceneViewSize.x) / static_cast<float>(sceneViewSize.y);
-        
-        static int updateSceneSizeTimer = 0;
-        updateSceneSizeTimer ++;
     
-        Camera* camera = Application::Instance()->GetSceneManager()->GetCurrentScene()->GetCamera();
+        Camera* camera = app.GetSceneManager()->GetCurrentScene()->GetCamera();
         if (!Maths::Equals(aspect, m_Editor->GetCurrentSceneAspectRatio()))
         {
             m_Editor->GetCurrentSceneAspectRatio() = aspect;
             camera->SetAspectRatio(aspect);
         }
     
-        if(updateSceneSizeTimer > 360)
-        {
-            if(ImGui::GetCurrentWindow()->ResizeBorderHeld < 0)
-                Application::Instance()->SetSceneViewDimensions(sceneViewSize.x, sceneViewSize.y);
-        
-            updateSceneSizeTimer = 0;
-        }
-
-
+        if(ImGui::GetCurrentWindow()->ResizeBorderHeld < 0)
+            app.SetSceneViewDimensions(u32(sceneViewSize.x), u32(sceneViewSize.y));
+    
 		ImGuizmo::SetRect(sceneViewPosition.x, sceneViewPosition.y, sceneViewSize.x, sceneViewSize.y);
         
-        ImGuiHelpers::Image(Application::Instance()->GetRenderManager()->GetGBuffer()->GetTexture(Graphics::SCREENTEX_OFFSCREEN0), {sceneViewSize.x, sceneViewSize.y});
+        ImGuiHelpers::Image(app.GetRenderManager()->GetGBuffer()->GetTexture(Graphics::SCREENTEX_OFFSCREEN0), {sceneViewSize.x, sceneViewSize.y});
 
 		if (m_Editor->ShowGrid())
 		{
@@ -108,7 +100,7 @@ namespace Lumos
 
 		m_Editor->OnImGuizmo();
         
-        DrawGizmos(sceneViewSize.x, sceneViewSize.y, 0.0f, 40.0f, Application::Instance()->GetSceneManager()->GetCurrentScene()); // Not sure why 40
+        DrawGizmos(sceneViewSize.x, sceneViewSize.y, 0.0f, 40.0f, app.GetSceneManager()->GetCurrentScene()); // Not sure why 40
     
         auto windowSize = ImGui::GetWindowSize();
         ImVec2 minBound = sceneViewPosition;
@@ -119,7 +111,7 @@ namespace Lumos
         bool updateCamera = ImGui::IsMouseHoveringRect(minBound, maxBound);
 
     
-		Application::Instance()->SetSceneActive(ImGui::IsWindowFocused() && !ImGuizmo::IsUsing() && updateCamera);
+		app.SetSceneActive(ImGui::IsWindowFocused() && !ImGuizmo::IsUsing() && updateCamera);
         
 		if (m_ShowStats && ImGui::IsWindowFocused())
 		{
@@ -336,7 +328,7 @@ namespace Lumos
                             flags -= b2Draw::e_aabbBit;
                     }
                 
-                    bool showPairs = flags & b2Draw::e_pairBit;
+                    bool showPairs = static_cast<bool>(flags & b2Draw::e_pairBit);
                     if(ImGui::Checkbox("Broadphase Pairs  (2D)", &showPairs))
                     {
                         if(showPairs)
@@ -363,7 +355,7 @@ namespace Lumos
                             flags -= PhysicsDebugFlags::COLLISIONVOLUMES;
                     }
                 
-                    bool showConstraints = flags & PhysicsDebugFlags::CONSTRAINT;
+                    bool showConstraints = static_cast<bool>(flags & PhysicsDebugFlags::CONSTRAINT);
                     if(ImGui::Checkbox("Constraints", &showConstraints))
                     {
                         if(showConstraints)
@@ -372,7 +364,7 @@ namespace Lumos
                             flags -= PhysicsDebugFlags::CONSTRAINT;
                     }
                 
-                    bool showManifolds = flags & PhysicsDebugFlags::MANIFOLD;
+                    bool showManifolds = static_cast<bool>(flags & PhysicsDebugFlags::MANIFOLD);
                     if(ImGui::Checkbox("Manifolds", &showManifolds))
                     {
                         if(showManifolds)
