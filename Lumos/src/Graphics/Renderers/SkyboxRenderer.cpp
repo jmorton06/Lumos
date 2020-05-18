@@ -234,8 +234,6 @@ namespace Lumos
 			pipelineCI.cullMode = Graphics::CullMode::NONE;
 			pipelineCI.transparencyEnabled = false;
 			pipelineCI.depthBiasEnabled = false;
-			pipelineCI.width = m_ScreenBufferWidth;
-			pipelineCI.height = m_ScreenBufferHeight;
 			pipelineCI.maxObjects = 1;
 
 			m_Pipeline = Graphics::Pipeline::Create(pipelineCI);
@@ -264,7 +262,6 @@ namespace Lumos
 			bufferInfos.push_back(bufferInfo);
 
 			std::vector<Graphics::ImageInfo> imageInfos;
-
 
 			if (m_CubeMap)
 			{
