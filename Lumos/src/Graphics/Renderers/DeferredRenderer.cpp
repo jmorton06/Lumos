@@ -28,6 +28,8 @@
 #include "Graphics/API/Pipeline.h"
 #include "Graphics/API/GraphicsContext.h"
 
+#include "Graphics/Environment.h"
+
 #include <imgui/imgui.h>
 
 #define MAX_LIGHTS 32
@@ -198,24 +200,31 @@ namespace Lumos
 
 		void DeferredRenderer::BeginScene(Scene* scene)
 		{
-			if (Application::Instance()->GetRenderManager()->GetSkyBox())
-			{
-				if (Application::Instance()->GetRenderManager()->GetSkyBox() != m_CubeMap)
-				{
-					SetCubeMap(Application::Instance()->GetRenderManager()->GetSkyBox());
-					CreateScreenDescriptorSet();
-				}
-			}
-			else
-			{
-				if (m_CubeMap)
-				{
-					m_CubeMap = nullptr;
-					CreateScreenDescriptorSet();
-				}
-			}
-		}
+            auto& registry = scene->GetRegistry();
 
+            auto view = registry.view<Graphics::Environment>();
+            
+            if(view.size() == 0)
+            {
+                if (m_CubeMap)
+                {
+                    m_CubeMap = nullptr;
+                    CreateScreenDescriptorSet();
+                }
+            }
+            else
+            {
+                //Just use first
+                const auto &env = view.get<Graphics::Environment>(view.front());
+
+                if(m_CubeMap != env.GetEnvironmentMap())
+                {
+                    m_CubeMap = env.GetEnvironmentMap();
+                    CreateScreenDescriptorSet();
+                }
+            }
+		}
+    
 		void DeferredRenderer::Submit(const RenderCommand& command)
 		{
 			m_CommandQueue.push_back(command);

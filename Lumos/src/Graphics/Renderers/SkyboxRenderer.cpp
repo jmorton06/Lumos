@@ -17,6 +17,7 @@
 #include "App/Scene.h"
 #include "App/Application.h"
 #include "Graphics/Camera/Camera.h"
+#include "Graphics/Environment.h"
 
 #include <imgui/imgui.h>
 
@@ -24,10 +25,9 @@ namespace Lumos
 {
 	namespace Graphics
 	{
-		SkyboxRenderer::SkyboxRenderer(u32 width, u32 height, Texture* cubeMap, bool renderToGBuffer) : m_UniformBuffer(nullptr), m_CubeMap(nullptr)
+		SkyboxRenderer::SkyboxRenderer(u32 width, u32 height, bool renderToGBuffer) : m_UniformBuffer(nullptr), m_CubeMap(nullptr)
 		{
 			m_Pipeline = nullptr;
-			m_CubeMap = cubeMap;
 
 			SetScreenBufferSize(width, height);
 			Init();
@@ -60,6 +60,9 @@ namespace Lumos
 
 		void SkyboxRenderer::RenderScene(Scene* scene)
 		{
+            if(!m_CubeMap)
+                return;
+
 			m_CurrentBufferID = 0;
 			if (!m_RenderTexture)
 				m_CurrentBufferID = Renderer::GetSwapchain()->GetCurrentBufferId();
@@ -136,12 +139,32 @@ namespace Lumos
 		void SkyboxRenderer::Begin()
 		{
 			m_CommandBuffers[m_CurrentBufferID]->BeginRecording();
-
 			m_RenderPass->BeginRenderpass(m_CommandBuffers[m_CurrentBufferID], Maths::Vector4(0.0f), m_Framebuffers[m_CurrentBufferID], Graphics::INLINE, m_ScreenBufferWidth, m_ScreenBufferHeight);
 		}
 
 		void SkyboxRenderer::BeginScene(Scene* scene)
 		{
+			auto& registry = scene->GetRegistry();
+
+			auto view = registry.view<Graphics::Environment>();
+
+            if(view.size() != 0)
+            {
+                //Just use first
+                const auto &env = view.get<Graphics::Environment>(view.front());
+
+                if(m_CubeMap != env.GetEnvironmentMap())
+                {
+                    m_CubeMap = env.GetEnvironmentMap();
+                    UpdateUniformBuffer();
+                }
+            }
+            else
+            {
+                m_CubeMap = nullptr;
+                return;
+            }
+
 			auto camera = scene->GetCamera();
 			auto invViewProj = Maths::Matrix4::Inverse(camera->GetProjectionMatrix() * camera->GetViewMatrix());
 			memcpy(m_VSSystemUniformBuffer + m_VSSystemUniformBufferOffsets[VSSystemUniformIndex_InverseProjectionViewMatrix], &invViewProj, sizeof(Maths::Matrix4));
@@ -151,7 +174,6 @@ namespace Lumos
 		{
 			m_RenderPass->EndRenderpass(m_CommandBuffers[m_CurrentBufferID]);
 			m_CommandBuffers[m_CurrentBufferID]->EndRecording();
-
 
 			if (m_RenderTexture)
 				m_CommandBuffers[m_CurrentBufferID]->Execute(true);
