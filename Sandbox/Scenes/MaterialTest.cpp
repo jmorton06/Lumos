@@ -40,7 +40,10 @@ void MaterialTest::OnInit()
 		"/Textures/cubemap/CubeMap10.tga"
 	};
 
-	m_EnvironmentMap = Graphics::TextureCube::CreateFromVCross(environmentFiles, 11);
+	auto environmentMap = Graphics::TextureCube::CreateFromVCross(environmentFiles, 11);
+    auto environment = m_Registry.create();
+    m_Registry.emplace<Graphics::Environment>(environment, environmentMap);
+    m_Registry.emplace<NameComponent>(environment, "Environment");
 
 	auto lightEntity = m_Registry.create();
 	m_Registry.emplace<Graphics::Light>(lightEntity, Maths::Vector3(26.0f, 22.0f, 48.5f), Maths::Vector4(1.0f), 1.3f);
@@ -62,9 +65,7 @@ void MaterialTest::OnInit()
 #endif
 
 	Application::Instance()->PushLayer(new Layer3D(new Graphics::DeferredRenderer(m_ScreenWidth, m_ScreenHeight, editor), "Deferred"));
-	Application::Instance()->PushLayer(new Layer3D(new Graphics::SkyboxRenderer(m_ScreenWidth, m_ScreenHeight, m_EnvironmentMap, editor), "Skybox"));
-
-	Application::Instance()->GetRenderManager()->SetSkyBoxTexture(m_EnvironmentMap);
+	Application::Instance()->PushLayer(new Layer3D(new Graphics::SkyboxRenderer(m_ScreenWidth, m_ScreenHeight, editor), "Skybox"));
     
     #ifndef LUMOS_PLATFORM_IOS
         auto shadowRenderer = new Graphics::ShadowRenderer();
@@ -88,8 +89,7 @@ void MaterialTest::OnCleanupScene()
 {
 	if (m_CurrentScene)
 	{
-		SAFE_DELETE(m_pCamera)
-			SAFE_DELETE(m_EnvironmentMap);
+		SAFE_DELETE(m_pCamera);
 		Application::Instance()->GetSystem<LumosPhysicsEngine>()->ClearConstraints();
 	}
 

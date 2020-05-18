@@ -7,6 +7,8 @@
 #include "Graphics/Camera/Camera.h"
 #include "Graphics/Sprite.h"
 #include "Graphics/Light.h"
+#include "Graphics/Environment.h"
+#include "Graphics/API/Texture.h"
 #include "Maths/Transform.h"
 #include "Scripting/ScriptComponent.h"
 
@@ -432,6 +434,14 @@ namespace MM {
 
         material.OnImGui();
     }
+    
+    template <>
+    void ComponentEditorWidget<Lumos::Graphics::Environment>(entt::registry& reg, entt::registry::entity_type e)
+    {
+        auto& environment = reg.get<Lumos::Graphics::Environment>(e);
+    
+        //ImGui::Image(environment.GetEnvironmentMap()->GetHandle());
+    }
 }
 
 namespace Lumos
@@ -471,6 +481,8 @@ namespace Lumos
 		TRIVIAL_COMPONENT(MaterialComponent, "Material");
 		TRIVIAL_COMPONENT(Graphics::Light, "Light");
         TRIVIAL_COMPONENT(ScriptComponent, "LuaScript");
+        TRIVIAL_COMPONENT(Graphics::Environment, "Environment");
+
 	}
 
 	void InspectorWindow::OnImGui()
