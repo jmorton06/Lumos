@@ -147,8 +147,6 @@ namespace Lumos
 			m_ClearColour = Maths::Vector4(0.1f, 0.1f, 0.1f, 1.0f);
 		}
 
-		static bool recentlyResized = true;
-
 		void DeferredOffScreenRenderer::RenderScene(Scene* scene)
 		{
             LUMOS_PROFILE_FUNC;
@@ -183,7 +181,7 @@ namespace Lumos
                     {
                         material = materialComponent->GetMaterial().get();
 
-                        if (material->GetDescriptorSet() == nullptr || material->GetPipeline() != m_Pipeline || recentlyResized)
+                        if (material->GetDescriptorSet() == nullptr || material->GetPipeline() != m_Pipeline)
                             material->CreateDescriptorSet(m_Pipeline, 1);
                     }
 
@@ -197,8 +195,6 @@ namespace Lumos
                     SubmitMesh(meshPtr, material, worldTransform, textureMatrix);
                 }
 			}
-
-			recentlyResized = false;
 
 			SetSystemUniforms(m_Shader);
 
