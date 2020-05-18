@@ -105,6 +105,16 @@ namespace Lumos
 		}
 	}
 
+	void ImGuiHelpers::Tooltip(const char* text)
+	{
+		if (ImGui::IsItemHovered())
+		{
+			ImGui::BeginTooltip();
+			ImGui::TextUnformatted(text);
+			ImGui::EndTooltip();
+		}
+	}
+
 	void ImGuiHelpers::Tooltip(Graphics::Texture2D * texture, const Maths::Vector2 & size)
 	{
 		if (ImGui::IsItemHovered())
@@ -585,7 +595,7 @@ namespace Lumos
         colours[ImGuiCol_TitleBg] = colours[ImGuiCol_MenuBarBg];
         colours[ImGuiCol_TitleBgActive] = colours[ImGuiCol_MenuBarBg];
         colours[ImGuiCol_TitleBgCollapsed] = colours[ImGuiCol_MenuBarBg];
-        
+
         colours[ImGuiCol_HeaderHovered] = colours[ImGuiCol_Header];
         colours[ImGuiCol_ButtonHovered] =  colours[ImGuiCol_HeaderHovered];
         colours[ImGuiCol_TabHovered] =  colours[ImGuiCol_HeaderHovered];
@@ -598,7 +608,7 @@ namespace Lumos
 		colours[ImGuiCol_SeparatorHovered] = colours[ImGuiCol_Separator];
 
 
-        
+
 #ifdef IMGUI_HAS_DOCK
         colours[ImGuiCol_TabActive] = colours[ImGuiCol_WindowBg];
 		colours[ImGuiCol_TabUnfocused] = colours[ImGuiCol_WindowBg];
