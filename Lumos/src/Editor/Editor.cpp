@@ -787,13 +787,13 @@ namespace Lumos
     void Editor::RecompileShaders()
     {
         Lumos::Debug::Log::Info("Recompiling shaders");
-        String filePath = "sh ." ROOT_DIR;
 
     #ifdef LUMOS_RENDER_API_VULKAN
     #ifdef LUMOS_PLATFORM_WINDOWS
-        filePath += "/Assets/shaders/CompileShadersWindows.bat";
-        system(filePath.c_str());
+        //filePath += "/Assets/shaders/CompileShadersWindows.bat";
+        //system(filePath.c_str());
     #elif LUMOS_PLATFORM_MACOS
+        String filePath = "sh ." ROOT_DIR;
         filePath += "/Assets/shaders/CompileShadersMac.sh";
         system(filePath.c_str());
     #endif

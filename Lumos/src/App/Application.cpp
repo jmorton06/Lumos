@@ -252,7 +252,6 @@ namespace Lumos
         {
             if (m_SceneViewWidth > 0 && m_SceneViewHeight > 0)
             {
-                Debug::Log::Info("Updated Scene View Size : {0}, {1}", m_SceneViewWidth, m_SceneViewHeight);
                 OnSceneViewSizeUpdated(m_SceneViewWidth, m_SceneViewHeight);
             }
 
