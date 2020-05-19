@@ -32,7 +32,6 @@ namespace Graphics
 	{
 		class Sphere;
 		class BoundingBox;
-        class Frustum;
 	}
 
 	class LUMOS_EXPORT DebugRenderer
@@ -82,14 +81,8 @@ namespace Graphics
 		static void DrawPolygon(int n_verts, const Maths::Vector3* verts, const Maths::Vector4& colour = Maths::Vector4(1.0f, 1.0f, 1.0f, 1.0f));
 		static void DrawPolygonNDT(int n_verts, const Maths::Vector3* verts, const Maths::Vector4& colour = Maths::Vector4(1.0f, 1.0f, 1.0f, 1.0f));
 
-<<<<<<< HEAD
 		static void DebugDraw(Maths::BoundingBox* box, const Maths::Vector4& edgeColour, float width = 0.02f);
 		static void DebugDraw(Maths::Sphere* sphere, const Maths::Vector4& colour);
-=======
-		static void DebugDraw(const Maths::BoundingBox& box, const Maths::Vector4& edgeColour, float width = 0.02f);
-		static void DebugDraw(const Maths::Sphere& sphere, const Maths::Vector4& colour);
-        static void DebugDraw(const Maths::Frustum& frustum, const Maths::Vector4& colour);
->>>>>>> master
 
 	protected:
 		//Actual functions managing data parsing to save code bloat - called by public functions

@@ -25,6 +25,7 @@ namespace Lumos
 	{
 		struct Light;
 		class GBuffer;
+		class TextureCube;
 	}
 
 	class LUMOS_EXPORT Scene : public Serialisable
@@ -67,6 +68,10 @@ namespace Lumos
 
 		void SetCamera(Camera* camera) { m_pCamera = camera; }
 		Camera* GetCamera()	const { return m_pCamera; }
+		Graphics::TextureCube* GetEnvironmentMap() const { return m_EnvironmentMap; }
+
+		bool GetReflectSkybox() const { return m_ReflectSkybox; }
+		void SetReflectSkybox(bool reflect) { m_ReflectSkybox = reflect; }
 
 		void SetScreenWidth(u32 width)   { m_ScreenWidth = width; }
 		void SetScreenHeight(u32 height) { m_ScreenHeight = height; }
@@ -88,13 +93,15 @@ namespace Lumos
 	protected:
 
 		String m_SceneName;
-		Camera* m_pCamera;
+		Camera* m_pCamera; 
+		Graphics::TextureCube* m_EnvironmentMap;
 
 		float m_SceneBoundingRadius;
         
         entt::registry m_Registry;
 
 		bool m_CurrentScene = false;
+		bool m_ReflectSkybox = true;
 
 		u32 m_ScreenWidth;
 		u32 m_ScreenHeight;

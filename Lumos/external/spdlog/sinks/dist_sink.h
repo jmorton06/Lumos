@@ -1,12 +1,17 @@
-// Copyright(c) 2015-present, Gabi Melman & spdlog contributors.
+//
+// Copyright (c) 2015 David Schury, Gabi Melman
 // Distributed under the MIT License (http://opensource.org/licenses/MIT)
+//
 
 #pragma once
 
+#ifndef SPDLOG_H
+#error "spdlog.h must be included before this file."
+#endif
+
 #include "base_sink.h"
-#include <spdlog/details/log_msg.h>
-#include <spdlog/details/null_mutex.h>
-#include <spdlog/pattern_formatter.h>
+#include "spdlog/details/log_msg.h"
+#include "spdlog/details/null_mutex.h"
 
 #include <algorithm>
 #include <memory>
@@ -24,10 +29,6 @@ class dist_sink : public base_sink<Mutex>
 {
 public:
     dist_sink() = default;
-    explicit dist_sink(std::vector<std::shared_ptr<sink>> sinks)
-        : sinks_(sinks)
-    {}
-
     dist_sink(const dist_sink &) = delete;
     dist_sink &operator=(const dist_sink &) = delete;
 
@@ -49,14 +50,10 @@ public:
         sinks_ = std::move(sinks);
     }
 
-    std::vector<std::shared_ptr<sink>> &sinks()
-    {
-        return sinks_;
-    }
-
 protected:
     void sink_it_(const details::log_msg &msg) override
     {
+
         for (auto &sink : sinks_)
         {
             if (sink->should_log(msg.level))

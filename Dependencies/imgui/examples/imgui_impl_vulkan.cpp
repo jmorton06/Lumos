@@ -211,41 +211,30 @@ void CreateDescriptorSets(ImDrawData* draw_data)
 
 			if (pcmd->TextureId)
 			{
-                if (!g_DescriptorSets[pcmd->TextureId])
-                {
-                    VkWriteDescriptorSet descriptorWrites[1] = {};
+				if (!g_DescriptorSets[pcmd->TextureId])
+				{
+					VkWriteDescriptorSet descriptorWrites[1] = {};
 
-                    VkDescriptorSet set;
-                    VkDescriptorSetAllocateInfo alloc_info = {};
-                    alloc_info.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO;
-                    alloc_info.descriptorPool = g_DescriptorPool;
-                    alloc_info.descriptorSetCount = 1;
-                    alloc_info.pSetLayouts = &g_DescriptorSetLayout;
-                    vkAllocateDescriptorSets(g_Device, &alloc_info, &set);
+					VkDescriptorSet set;
+					VkDescriptorSetAllocateInfo alloc_info = {};
+					alloc_info.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO;
+					alloc_info.descriptorPool = g_DescriptorPool;
+					alloc_info.descriptorSetCount = 1;
+					alloc_info.pSetLayouts = &g_DescriptorSetLayout;
+					vkAllocateDescriptorSets(g_Device, &alloc_info, &set);
 
-                    descriptorWrites[0].sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
-                    descriptorWrites[0].dstSet = set;
-                    descriptorWrites[0].descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
-                    descriptorWrites[0].pImageInfo = (VkDescriptorImageInfo *) pcmd->TextureId;
-                    descriptorWrites[0].descriptorCount = 1;
+					descriptorWrites[0].sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
+					descriptorWrites[0].dstSet = set;
+					descriptorWrites[0].descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
+					descriptorWrites[0].pImageInfo = (VkDescriptorImageInfo*)pcmd->TextureId;
+					descriptorWrites[0].descriptorCount = 1;
 
-                    vkUpdateDescriptorSets(g_Device, 1, descriptorWrites, 0, nullptr);
+					vkUpdateDescriptorSets(g_Device, 1, descriptorWrites, 0, nullptr);
 
-                    g_DescriptorSets[pcmd->TextureId] = set;
-                }
-                else
-                {
-                    VkWriteDescriptorSet descriptorWrites[1] = {};
-                    auto set = g_DescriptorSets[pcmd->TextureId];
-                    descriptorWrites[0].sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
-                    descriptorWrites[0].dstSet = set;
-                    descriptorWrites[0].descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
-                    descriptorWrites[0].pImageInfo = (VkDescriptorImageInfo *) pcmd->TextureId;
-                    descriptorWrites[0].descriptorCount = 1;
-
-                    vkUpdateDescriptorSets(g_Device, 1, descriptorWrites, 0, nullptr);
-                }
-            }
+					g_DescriptorSets[pcmd->TextureId] = set;
+				}
+			}
+			
 		}
 	}
 }

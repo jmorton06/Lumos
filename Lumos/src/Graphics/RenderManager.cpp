@@ -18,7 +18,9 @@ namespace Lumos
 		void RenderManager::OnResize(u32 width, u32 height)
 		{
 			SetScreenBufferSize(width, height);
-			m_GBuffer->UpdateTextureSize(width, height);
+
+			delete m_GBuffer;
+			m_GBuffer = lmnew GBuffer(width, height);
 		}
 
 		void RenderManager::Reset()
@@ -26,8 +28,10 @@ namespace Lumos
 			m_ReflectSkyBox = false;
 			m_UseShadowMap = false;
 			m_NumShadowMaps = 4;
+			m_SkyBoxTexture = nullptr;
 			m_ShadowTexture = nullptr;
 			m_ShadowRenderer = nullptr;
+			m_SkyBoxTexture = nullptr;
 		}
 	}
 }

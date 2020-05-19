@@ -54,11 +54,8 @@ namespace Lumos::Maths
         /// Transform by a 3x4 matrix.
         void Transform(const Matrix3x4& transform);
     
-<<<<<<< HEAD
         void DebugDraw();
 
-=======
->>>>>>> master
         /// Test if a point is inside or outside.
         Intersection IsInside(const Vector3& point) const
         {

@@ -1,4 +1,3 @@
-#include <Graphics/Environment.h>
 #include "Scene3D.h"
 #include "Graphics/MeshFactory.h"
 
@@ -32,10 +31,7 @@ void Scene3D::OnInit()
 
 	m_pCamera = new Camera(-20.0f, -40.0f, Maths::Vector3(-31.0f, 12.0f, 51.0f), 60.0f, 0.1f, 1000.0f, (float) m_ScreenWidth / (float) m_ScreenHeight);
     m_pCamera->SetCameraController(CreateRef<EditorCameraController>(m_pCamera));
-<<<<<<< HEAD
 
-=======
->>>>>>> master
 
 	m_SceneBoundingRadius = 20.0f;
 
@@ -54,12 +50,8 @@ void Scene3D::OnInit()
 		"/Textures/cubemap/CubeMap10.tga"
 	};
 
-	auto environmentMap = Graphics::TextureCube::CreateFromVCross(environmentFiles, 11);
-
-	auto environment = m_Registry.create();
-	m_Registry.emplace<Graphics::Environment>(environment, environmentMap);
-    m_Registry.emplace<NameComponent>(environment, "Environment");
-
+	m_EnvironmentMap = Graphics::TextureCube::CreateFromVCross(environmentFiles, 11);
+    
     auto lightEntity = m_Registry.create();
     m_Registry.emplace<Graphics::Light>(lightEntity, Maths::Vector3(26.0f, 22.0f, 48.5f), Maths::Vector4(1.0f), 1.3f);
 	m_Registry.emplace<Maths::Transform>(lightEntity,Matrix4::Translation(Maths::Vector3(26.0f, 22.0f, 48.5f)) * Maths::Quaternion::LookAt(Maths::Vector3(26.0f, 22.0f, 48.5f), Maths::Vector3::ZERO).RotationMatrix4());
@@ -88,7 +80,9 @@ void Scene3D::OnInit()
 #endif
 
     Application::Instance()->PushLayer(new Layer3D(new Graphics::DeferredRenderer(m_ScreenWidth, m_ScreenHeight, editor), "Deferred"));
-	Application::Instance()->PushLayer(new Layer3D(new Graphics::SkyboxRenderer(m_ScreenWidth, m_ScreenHeight, editor), "Skybox"));
+	Application::Instance()->PushLayer(new Layer3D(new Graphics::SkyboxRenderer(m_ScreenWidth, m_ScreenHeight, m_EnvironmentMap, editor), "Skybox"));
+
+    Application::Instance()->GetRenderManager()->SetSkyBoxTexture(m_EnvironmentMap);
 }
 
 void Scene3D::OnUpdate(TimeStep* timeStep)
@@ -105,6 +99,7 @@ void Scene3D::OnCleanupScene()
 	if (m_CurrentScene)
 	{
 		SAFE_DELETE(m_pCamera)
+        SAFE_DELETE(m_EnvironmentMap);
         Application::Instance()->GetSystem<LumosPhysicsEngine>()->ClearConstraints();
 	}
 
@@ -205,7 +200,7 @@ void Scene3D::LoadModels()
 	for (int i = 0; i < 10; i++)
 	{
 		float roughness = i / 10.0f;
-		Maths::Vector4 spec(0.24f);
+		Maths::Vector4 spec(0.04f);
 		Vector4 diffuse(0.9f);
 
 		Ref<Material> m = CreateRef<Material>();
@@ -232,7 +227,7 @@ void Scene3D::LoadModels()
 	for (int i = 0; i < 10; i++)
 	{
         float roughness = i / 10.0f;
-        Vector4 spec(0.9f);
+        Vector4 spec(1.0f);
         Vector4 diffuse(0.9f);
 
 		Ref<Material> m = CreateRef<Material>();

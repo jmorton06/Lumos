@@ -33,11 +33,7 @@ namespace Lumos
 {
 	namespace Graphics
 	{
-<<<<<<< HEAD
 		Renderer2D::Renderer2D(u32 width, u32 height, bool renderToGBuffer, bool clear, bool triangleIndicies) : m_IndexCount(0), m_RenderTexture(nullptr), m_Buffer(nullptr), m_Clear(clear)
-=======
-		Renderer2D::Renderer2D(u32 width, u32 height, bool renderToGBuffer, bool clear, bool triangleIndicies, bool renderToDepth) : m_IndexCount(0), m_RenderTexture(nullptr), m_Buffer(nullptr), m_Clear(clear), m_RenderToDepthTexture(renderToDepth)
->>>>>>> master
 		{
 			Renderer2D::SetScreenBufferSize(width, height);
 
@@ -86,19 +82,13 @@ namespace Lumos
 			m_RenderPass = Graphics::RenderPass::Create();
 			m_UniformBuffer = Graphics::UniformBuffer::Create();
 
-            
 			AttachmentInfo textureTypes[2] =
 			{
 				{ TextureType::COLOUR, TextureFormat::RGBA8 }
-            };
-        
-            if(m_RenderToDepthTexture)
-            {
-                textureTypes[1] = { TextureType::DEPTH, TextureFormat::DEPTH };
-            }
+			};
 
 			Graphics::RenderpassInfo renderpassCI;
-			renderpassCI.attachmentCount = m_RenderToDepthTexture ? 2 : 1;
+			renderpassCI.attachmentCount = 1;
 			renderpassCI.textureType = textureTypes;
 			renderpassCI.clear = m_Clear;
 
@@ -555,6 +545,8 @@ namespace Lumos
 			pipelineCI.cullMode = Graphics::CullMode::BACK;
 			pipelineCI.transparencyEnabled = true;
 			pipelineCI.depthBiasEnabled = false;
+			pipelineCI.width = m_ScreenBufferWidth;
+			pipelineCI.height = m_ScreenBufferHeight;
 			pipelineCI.maxObjects = MAX_BATCH_DRAW_CALLS;
 
 			m_Pipeline = Graphics::Pipeline::Create(pipelineCI);
@@ -562,21 +554,14 @@ namespace Lumos
 
 		void Renderer2D::CreateFramebuffers()
 		{
-			TextureType attachmentTypes[2];
+			TextureType attachmentTypes[1];
 			attachmentTypes[0] = TextureType::COLOUR;
-            Texture* attachments[2];
 
-            if(m_RenderToDepthTexture)
-            {
-                attachmentTypes[1] = TextureType::DEPTH;
-                attachments[1] = reinterpret_cast<Texture*>(Application::Instance()->GetRenderManager()->GetGBuffer()->GetDepthTexture());
-
-            }
-
+			Texture* attachments[1];
 			FramebufferInfo bufferInfo{};
 			bufferInfo.width = m_ScreenBufferWidth;
 			bufferInfo.height = m_ScreenBufferHeight;
-			bufferInfo.attachmentCount = m_RenderToDepthTexture ? 2 : 1;
+			bufferInfo.attachmentCount = 1;
 			bufferInfo.renderPass = m_RenderPass;
 			bufferInfo.attachmentTypes = attachmentTypes;
 

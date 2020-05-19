@@ -21,8 +21,6 @@ namespace Lumos
 
             bool FlipImGUITexture() const override { return true; }
 
-            void WaitIdle() const override { }
-
 			void OnImGui() override;
             static void MakeDefault();
         protected:
