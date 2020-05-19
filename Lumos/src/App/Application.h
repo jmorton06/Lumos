@@ -123,10 +123,7 @@ namespace Lumos
                m_SceneViewHeight = height;
                m_SceneViewSizeUpdated = true;
             }
-<<<<<<< HEAD
             
-=======
->>>>>>> master
         }
     
         #ifdef LUMOS_EDITOR

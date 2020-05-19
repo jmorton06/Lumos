@@ -1,15 +1,19 @@
-// Copyright(c) 2015-present, Gabi Melman & spdlog contributors.
+//
+// Copyright(c) 2018 spdlog
 // Distributed under the MIT License (http://opensource.org/licenses/MIT)
+//
 
 #pragma once
 
-#ifdef _WIN32
-#include <spdlog/sinks/wincolor_sink.h>
-#else
-#include <spdlog/sinks/ansicolor_sink.h>
+#ifndef SPDLOG_H
+#error "spdlog.h must be included before this file."
 #endif
 
-#include <spdlog/details/synchronous_factory.h>
+#ifdef _WIN32
+#include "spdlog/sinks/wincolor_sink.h"
+#else
+#include "spdlog/sinks/ansicolor_sink.h"
+#endif
 
 namespace spdlog {
 namespace sinks {
@@ -26,20 +30,27 @@ using stderr_color_sink_st = ansicolor_stderr_sink_st;
 #endif
 } // namespace sinks
 
-template<typename Factory = spdlog::synchronous_factory>
-std::shared_ptr<logger> stdout_color_mt(const std::string &logger_name, color_mode mode = color_mode::automatic);
+template<typename Factory = default_factory>
+inline std::shared_ptr<logger> stdout_color_mt(const std::string &logger_name)
+{
+    return Factory::template create<sinks::stdout_color_sink_mt>(logger_name);
+}
 
-template<typename Factory = spdlog::synchronous_factory>
-std::shared_ptr<logger> stdout_color_st(const std::string &logger_name, color_mode mode = color_mode::automatic);
+template<typename Factory = default_factory>
+inline std::shared_ptr<logger> stdout_color_st(const std::string &logger_name)
+{
+    return Factory::template create<sinks::stdout_color_sink_st>(logger_name);
+}
 
-template<typename Factory = spdlog::synchronous_factory>
-std::shared_ptr<logger> stderr_color_mt(const std::string &logger_name, color_mode mode = color_mode::automatic);
+template<typename Factory = default_factory>
+inline std::shared_ptr<logger> stderr_color_mt(const std::string &logger_name)
+{
+    return Factory::template create<sinks::stderr_color_sink_mt>(logger_name);
+}
 
-template<typename Factory = spdlog::synchronous_factory>
-std::shared_ptr<logger> stderr_color_st(const std::string &logger_name, color_mode mode = color_mode::automatic);
-
+template<typename Factory = default_factory>
+inline std::shared_ptr<logger> stderr_color_st(const std::string &logger_name)
+{
+    return Factory::template create<sinks::stderr_color_sink_mt>(logger_name);
+}
 } // namespace spdlog
-
-#ifdef SPDLOG_HEADER_ONLY
-#include "stdout_color_sinks-inl.h"
-#endif

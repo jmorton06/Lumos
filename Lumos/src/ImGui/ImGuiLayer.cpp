@@ -16,8 +16,6 @@
 #include <imgui/plugins/ImGuiAl/fonts/KarlaRegular.inl>
 #include <imgui/plugins/ImGuiAl/fonts/GoogleMaterialDesign.inl>
 #include <imgui/plugins/ImGuiAl/fonts/FontAwesome5Solid900.inl>
-#include <imgui/plugins/ImGuiAl/fonts/FontAwesome5Brands400.inl>
-
 
 namespace Lumos
 {
@@ -280,8 +278,6 @@ namespace Lumos
 		icons_config.SizePixels = 13.0f * 1.0f;
 
 		io.Fonts->AddFontFromMemoryCompressedTTF(FontAwesome5Solid900_compressed_data, FontAwesome5Solid900_compressed_size, m_FontSize, &icons_config, icons_ranges);
-        io.Fonts->AddFontFromMemoryCompressedTTF(FontAwesome5Brands400_compressed_data, FontAwesome5Brands400_compressed_size, m_FontSize, &icons_config, icons_ranges);
-
 #else
 
 		static const ImWchar ranges[] = { ICON_MIN_MD, ICON_MAX_MD, 0 };

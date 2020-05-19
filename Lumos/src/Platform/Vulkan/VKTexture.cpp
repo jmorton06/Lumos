@@ -168,11 +168,10 @@ namespace Lumos
 		}
 
 		VKTexture2D::VKTexture2D()
-			: m_FileName("NULL"), m_TextureImageView(VK_NULL_HANDLE)
+			: m_FileName("NULL"), m_TextureSampler(VK_NULL_HANDLE), m_TextureImageView(VK_NULL_HANDLE)
 		{
 			m_Width = 0;
 			m_Height = 0;
-			m_MipLevels = 1;
 			m_Parameters = TextureParameters();
 			m_LoadOptions = TextureLoadOptions();
 			m_DeleteImage = false;
@@ -206,27 +205,6 @@ namespace Lumos
 
 		void VKTexture2D::BuildTexture(TextureFormat internalformat, u32 width, u32 height, bool depth, bool samplerShadow)
 		{
-
-			if (m_TextureSampler)
-				vkDestroySampler(VKDevice::Device(), m_TextureSampler, nullptr);
-
-			if (m_TextureImageView)
-				vkDestroyImageView(VKDevice::Device(), m_TextureImageView, nullptr);
-
-			if (m_DeleteImage)
-			{
-#ifdef USE_VMA_ALLOCATOR
-				vmaDestroyImage(VKDevice::Instance()->GetAllocator(), m_TextureImage, m_Allocation);
-#else
-				vkDestroyImage(VKDevice::Instance()->GetDevice(), m_TextureImage, nullptr);
-
-				if (m_TextureImageMemory)
-				{
-					vkFreeMemory(VKDevice::Instance()->GetDevice(), m_TextureImageMemory, nullptr);
-				}
-#endif
-			}
-
 			m_Width = width;
 			m_Height = height;
 			m_Handle = 0;
@@ -244,7 +222,6 @@ namespace Lumos
 #endif
 			
 			m_TextureImageView = Graphics::CreateImageView(m_TextureImage, VKTools::TextureFormatToVK(internalformat), m_MipLevels, VK_IMAGE_VIEW_TYPE_2D, VK_IMAGE_ASPECT_COLOR_BIT, 1);
-			m_TextureSampler = Graphics::CreateTextureSampler(m_Parameters.filter == TextureFilter::LINEAR ? VK_FILTER_LINEAR : VK_FILTER_NEAREST, m_Parameters.filter == TextureFilter::LINEAR ? VK_FILTER_LINEAR : VK_FILTER_NEAREST, 0.0f, static_cast<float>(m_MipLevels), true, VKDevice::Instance()->GetGPUProperties().limits.maxSamplerAnisotropy, VKTools::TextureWrapToVK(m_Parameters.wrap), VKTools::TextureWrapToVK(m_Parameters.wrap), VKTools::TextureWrapToVK(m_Parameters.wrap));
 
 			UpdateDescriptor();
 		}
@@ -362,7 +339,7 @@ namespace Lumos
 			if(pixels == nullptr)
 				return false;
 
-			VkDeviceSize imageSize = VkDeviceSize(texWidth * texHeight * 4);
+			VkDeviceSize imageSize = texWidth * texHeight * 4;
 
 			if (!pixels)
 			{

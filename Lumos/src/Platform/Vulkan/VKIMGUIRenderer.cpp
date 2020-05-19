@@ -194,6 +194,9 @@ namespace Lumos
 
 				ImGui_ImplVulkan_InvalidateFontUploadObjects();
 			}
+
+          
+
         }
 
         void VKIMGUIRenderer::NewFrame()

@@ -28,8 +28,6 @@
 #include "Graphics/API/Pipeline.h"
 #include "Graphics/API/GraphicsContext.h"
 
-#include "Graphics/Environment.h"
-
 #include <imgui/imgui.h>
 
 #define MAX_LIGHTS 32
@@ -200,31 +198,24 @@ namespace Lumos
 
 		void DeferredRenderer::BeginScene(Scene* scene)
 		{
-            auto& registry = scene->GetRegistry();
-
-            auto view = registry.view<Graphics::Environment>();
-            
-            if(view.size() == 0)
-            {
-                if (m_CubeMap)
-                {
-                    m_CubeMap = nullptr;
-                    CreateScreenDescriptorSet();
-                }
-            }
-            else
-            {
-                //Just use first
-                const auto &env = view.get<Graphics::Environment>(view.front());
-
-                if(m_CubeMap != env.GetEnvironmentMap())
-                {
-                    m_CubeMap = env.GetEnvironmentMap();
-                    CreateScreenDescriptorSet();
-                }
-            }
+			if (Application::Instance()->GetRenderManager()->GetSkyBox())
+			{
+				if (Application::Instance()->GetRenderManager()->GetSkyBox() != m_CubeMap)
+				{
+					SetCubeMap(Application::Instance()->GetRenderManager()->GetSkyBox());
+					CreateScreenDescriptorSet();
+				}
+			}
+			else
+			{
+				if (m_CubeMap)
+				{
+					m_CubeMap = nullptr;
+					CreateScreenDescriptorSet();
+				}
+			}
 		}
-    
+
 		void DeferredRenderer::Submit(const RenderCommand& command)
 		{
 			m_CommandQueue.push_back(command);
@@ -399,6 +390,8 @@ namespace Lumos
 			pipelineCI.cullMode = Graphics::CullMode::NONE;
 			pipelineCI.transparencyEnabled = false;
 			pipelineCI.depthBiasEnabled = false;
+			pipelineCI.width = m_ScreenBufferWidth;
+			pipelineCI.height = m_ScreenBufferHeight;
 			pipelineCI.maxObjects = 10;
 
 			m_Pipeline = Graphics::Pipeline::Create(pipelineCI);
@@ -598,9 +591,9 @@ namespace Lumos
 
 			m_OffScreenRenderer->OnResize(width, height);
 
+			m_CubeMap = nullptr;
+
 			m_ClearColour = Maths::Vector4(0.8f, 0.8f, 0.8f, 1.0f);
-        
-            CreateScreenDescriptorSet();
 		}
 
 		void DeferredRenderer::SetCubeMap(Texture* cubeMap)

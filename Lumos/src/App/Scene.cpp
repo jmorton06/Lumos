@@ -20,7 +20,8 @@ namespace Lumos
 {
 	Scene::Scene(const String& friendly_name) :
 		m_SceneName(friendly_name),
-		m_pCamera(nullptr),
+		m_pCamera(nullptr), 
+		m_EnvironmentMap(nullptr), 
 		m_SceneBoundingRadius(0),
 		m_ScreenWidth(0),
 		m_ScreenHeight(0)

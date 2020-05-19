@@ -263,6 +263,8 @@ namespace Lumos
 			pipelineCI.cullMode = Graphics::CullMode::NONE;
 			pipelineCI.transparencyEnabled = true;
 			pipelineCI.depthBiasEnabled = true;
+			pipelineCI.width = m_ScreenBufferWidth;
+			pipelineCI.height = m_ScreenBufferHeight;
 			pipelineCI.maxObjects = 1;
 
 			m_Pipeline = Graphics::Pipeline::Create(pipelineCI);

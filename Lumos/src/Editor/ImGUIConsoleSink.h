@@ -20,9 +20,9 @@ namespace Lumos
 		// SPDLog sink interface
         void sink_it_(const spdlog::details::log_msg& msg) override
 		{
-            spdlog::memory_buf_t formatted;
-            spdlog::sinks::base_sink<Mutex>::formatter_->format(msg, formatted);
-            String source = fmt::format("File : {0} | Function : {1} | Line : {2}", msg.source.filename, msg.source.funcname, msg.source.line);
+			fmt::memory_buffer formatted;
+            spdlog::sinks::sink::formatter_->format(msg, formatted);
+			String source = fmt::format("File : {0} | Function : {1} | Line : {2}", msg.source.filename, msg.source.funcname, msg.source.line);
             ConsoleWindow::AddMessage(CreateRef<ConsoleWindow::Message>(fmt::to_string(formatted), GetMessageLevel(msg.level), source, static_cast<int>(msg.thread_id)));
 		}
 

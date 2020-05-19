@@ -13,7 +13,7 @@ namespace Lumos
 		class LUMOS_EXPORT SkyboxRenderer : public Renderer3D
 		{
 		public:
-			SkyboxRenderer(u32 width, u32 height, bool renderToGBuffer = false);
+			SkyboxRenderer(u32 width, u32 height, Texture* cubeMap, bool renderToGBuffer = false);
 			~SkyboxRenderer();
 
 			void Init() override;

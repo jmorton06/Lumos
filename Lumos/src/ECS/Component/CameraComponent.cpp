@@ -9,7 +9,7 @@ namespace Lumos
 {
     CameraComponent::CameraComponent()
     {
-        m_Camera = new Camera(60.0f, 0.1f, 100.0f, 1.0f);
+        m_Camera = nullptr;
     }
     
 	CameraComponent::CameraComponent(Camera* camera)

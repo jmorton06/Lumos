@@ -24,12 +24,6 @@
 #include "Graphics/Renderers/LineRenderer.h"
 #include "Graphics/Renderers/PointRenderer.h"
 #include "Maths/Transform.h"
-<<<<<<< HEAD
-=======
-#include "Maths/Frustum.h"
-#include "Maths/BoundingBox.h"
-#include "Maths/Sphere.h"
->>>>>>> master
 #include "Core/Profiler.h"
 
 namespace Lumos
@@ -52,11 +46,7 @@ namespace Lumos
         
         s_Instance = new DebugRenderer();
         
-<<<<<<< HEAD
         s_Instance->m_Renderer2D = new Graphics::Renderer2D(width, height, drawToGBuffer, false, true);
-=======
-        s_Instance->m_Renderer2D = new Graphics::Renderer2D(width, height, drawToGBuffer, false, true, false);
->>>>>>> master
         s_Instance->m_LineRenderer = new Graphics::LineRenderer(width, height, drawToGBuffer, false);
         s_Instance->m_PointRenderer = new Graphics::PointRenderer(width, height, drawToGBuffer, false);
     }
@@ -213,14 +203,10 @@ namespace Lumos
 		}
 	}
 
-<<<<<<< HEAD
 	void DebugRenderer::DebugDraw(Maths::BoundingBox* box, const Maths::Vector4 &edgeColour, float width)
-=======
-	void DebugRenderer::DebugDraw(const Maths::BoundingBox& box, const Maths::Vector4 &edgeColour, float width)
->>>>>>> master
 	{
-		Maths::Vector3 uuu = box.max_;
-		Maths::Vector3 lll = box.min_;
+		Maths::Vector3 uuu = box->max_;
+		Maths::Vector3 lll = box->min_;
 
 		Maths::Vector3 ull(uuu.x, lll.y, lll.z);
 		Maths::Vector3 uul(uuu.x, uuu.y, lll.z);
@@ -247,35 +233,10 @@ namespace Lumos
 		DrawThickLineNDT(uul, uuu, width, edgeColour);
 	}
 
-<<<<<<< HEAD
 	void DebugRenderer::DebugDraw(Maths::Sphere* sphere, const Maths::Vector4 &colour)
 	{
 		Lumos::DebugRenderer::DrawPointNDT(sphere->center_, sphere->radius_, colour);
 	}
-=======
-	void DebugRenderer::DebugDraw(const Maths::Sphere& sphere, const Maths::Vector4 &colour)
-	{
-		Lumos::DebugRenderer::DrawPointNDT(sphere.center_, sphere.radius_, colour);
-	}
-    
-    void DebugRenderer::DebugDraw(const Maths::Frustum &frustum, const Maths::Vector4 &colour)
-    {
-        auto* vertices = frustum.vertices_;
-    
-        DebugRenderer::DrawHairLine(vertices[0], vertices[1], colour);
-        DebugRenderer::DrawHairLine(vertices[1], vertices[2], colour);
-        DebugRenderer::DrawHairLine(vertices[2], vertices[3], colour);
-        DebugRenderer::DrawHairLine(vertices[3], vertices[0], colour);
-        DebugRenderer::DrawHairLine(vertices[4], vertices[5], colour);
-        DebugRenderer::DrawHairLine(vertices[5], vertices[6], colour);
-        DebugRenderer::DrawHairLine(vertices[6], vertices[7], colour);
-        DebugRenderer::DrawHairLine(vertices[7], vertices[4], colour);
-        DebugRenderer::DrawHairLine(vertices[0], vertices[4], colour);
-        DebugRenderer::DrawHairLine(vertices[1], vertices[5], colour);
-        DebugRenderer::DrawHairLine(vertices[2], vertices[6], colour);
-        DebugRenderer::DrawHairLine(vertices[3], vertices[7], colour);
-    }
->>>>>>> master
 
 	void DebugRenderer::Begin()
 	{

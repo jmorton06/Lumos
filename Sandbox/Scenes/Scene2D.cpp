@@ -38,11 +38,7 @@ void Scene2D::OnInit()
 	editor = true;
 #endif
 
-<<<<<<< HEAD
 	Application::Instance()->PushLayer(new Layer2D(new Graphics::Renderer2D(m_ScreenWidth, m_ScreenHeight, editor, true, false)));
-=======
-	Application::Instance()->PushLayer(new Layer2D(new Graphics::Renderer2D(m_ScreenWidth, m_ScreenHeight, editor, true, false,false)));
->>>>>>> master
 }
 
 void Scene2D::OnUpdate(TimeStep* timeStep)
@@ -55,6 +51,7 @@ void Scene2D::OnCleanupScene()
 	if (m_CurrentScene)
 	{
 		SAFE_DELETE(m_pCamera)
+		SAFE_DELETE(m_EnvironmentMap);
 	}
 
 	Scene::OnCleanupScene();

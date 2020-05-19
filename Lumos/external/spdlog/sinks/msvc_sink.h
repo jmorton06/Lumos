@@ -1,14 +1,19 @@
+//
 // Copyright(c) 2016 Alexander Dalshov.
 // Distributed under the MIT License (http://opensource.org/licenses/MIT)
+//
 
 #pragma once
 
+#ifndef SPDLOG_H
+#error "spdlog.h must be included before this file."
+#endif
+
 #if defined(_WIN32)
 
-#include <spdlog/details/null_mutex.h>
-#include <spdlog/sinks/base_sink.h>
+#include "spdlog/details/null_mutex.h"
+#include "spdlog/sinks/base_sink.h"
 
-#include <spdlog/details/windows_include.h>
 #include <winbase.h>
 
 #include <mutex>
@@ -29,8 +34,8 @@ protected:
     void sink_it_(const details::log_msg &msg) override
     {
 
-        memory_buf_t formatted;
-        base_sink<Mutex>::formatter_->format(msg, formatted);
+        fmt::memory_buffer formatted;
+        sink::formatter_->format(msg, formatted);
         OutputDebugStringA(fmt::to_string(formatted).c_str());
     }
 

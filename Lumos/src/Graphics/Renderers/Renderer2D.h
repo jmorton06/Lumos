@@ -41,11 +41,7 @@ namespace Lumos
 		class LUMOS_EXPORT Renderer2D
 		{
 		public:
-<<<<<<< HEAD
 			Renderer2D(u32 width, u32 height, bool renderToGBuffer = false, bool clear = true, bool triangleIndicies = false);
-=======
-			Renderer2D(u32 width, u32 height, bool renderToGBuffer = false, bool clear = true, bool triangleIndicies = false, bool renderToDepthTexture = true);
->>>>>>> master
 			virtual ~Renderer2D();
 
 			virtual void Init(bool triangleIndicies = false);
@@ -124,11 +120,6 @@ namespace Lumos
             Maths::Frustum m_Frustum;
         
             std::vector<TriangleInfo> m_Triangles;
-<<<<<<< HEAD
-=======
-        
-            bool m_RenderToDepthTexture;
->>>>>>> master
 		};
 	}
 }
