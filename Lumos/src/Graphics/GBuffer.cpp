@@ -28,15 +28,6 @@ namespace Lumos
 			m_Width = width;
 			m_Height = height;
 
-			for (auto& texture : m_ScreenTex)
-			{
-				delete texture;
-				texture = nullptr;
-			}
-
-			delete m_DepthTexture;
-			m_DepthTexture = nullptr;
-
 			BuildTextures();
 		}
 

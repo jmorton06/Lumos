@@ -4,6 +4,11 @@
 #include "Platform/Windows/WindowsOS.h"
 
 #pragma comment(linker, "/subsystem:windows")
+
+#ifndef NOMINMAX
+#define NOMINMAX // For windows.h
+#endif
+
 #include <windows.h>
 
 extern Lumos::Application* Lumos::CreateApplication();

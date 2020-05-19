@@ -48,8 +48,6 @@ namespace Lumos
 			PolygonMode polygonMode;
 			bool transparencyEnabled;
 			bool depthBiasEnabled;
-			u32 width;
-			u32 height;
 			u32 maxObjects;
             float lineWidth = -1.0f;
 			DrawType drawType = DrawType::TRIANGLE;

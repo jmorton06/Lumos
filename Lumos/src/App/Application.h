@@ -123,7 +123,6 @@ namespace Lumos
                m_SceneViewHeight = height;
                m_SceneViewSizeUpdated = true;
             }
-            
         }
     
         #ifdef LUMOS_EDITOR

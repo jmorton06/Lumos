@@ -238,7 +238,6 @@ namespace Lumos
 		if (m_EditorState == EditorState::Next)
 			m_EditorState = EditorState::Paused;
 
-
 		m_SceneManager->ApplySceneSwitch();
         
 		return m_CurrentState != AppState::Closing;
@@ -247,7 +246,18 @@ namespace Lumos
 	void Application::OnRender()
 	{
 		if (m_LayerStack->GetCount() > 0)
-		{
+        {
+    #ifdef LUMOS_EDITOR
+        if (m_SceneViewSizeUpdated)
+        {
+            if (m_SceneViewWidth > 0 && m_SceneViewHeight > 0)
+            {
+                OnSceneViewSizeUpdated(m_SceneViewWidth, m_SceneViewHeight);
+            }
+
+          m_SceneViewSizeUpdated = false;
+        }
+    #endif
 			Graphics::Renderer::GetRenderer()->Begin();
             DebugRenderer::Reset();
 
@@ -261,19 +271,6 @@ namespace Lumos
 			m_ImGuiLayer->OnRender(m_SceneManager->GetCurrentScene());
 
 			Graphics::Renderer::GetRenderer()->Present();
-
-#ifdef LUMOS_EDITOR
-            if(m_SceneViewSizeUpdated)
-            {
-                if(m_SceneViewWidth > 0 && m_SceneViewHeight > 0)
-                {
-                    Application::Instance()->OnSceneViewSizeUpdated(m_SceneViewWidth, m_SceneViewHeight);
-                    Debug::Log::Info("Updated Scene View Size : {0}, {1}", m_SceneViewWidth, m_SceneViewHeight );
-                }
-
-                m_SceneViewSizeUpdated = false;
-            }
-#endif
 		}
 	}
 
@@ -391,6 +388,7 @@ namespace Lumos
 	bool Application::OnWindowResize(WindowResizeEvent &e)
 	{
 		//auto windowSize = GetWindowSize();
+		Graphics::GraphicsContext::GetContext()->WaitIdle();
 
 		int width = e.GetWidth(), height = e.GetHeight();
 
@@ -404,7 +402,9 @@ namespace Lumos
 		m_RenderManager->OnResize(width, height);
 		Graphics::Renderer::GetRenderer()->OnResize(width, height);
         DebugRenderer::OnResize(width, height);
-    
+
+		Graphics::GraphicsContext::GetContext()->WaitIdle();
+
 		return false;
 	}
 
@@ -416,18 +416,22 @@ namespace Lumos
 #endif
 		Application::Instance()->GetSceneManager()->GetCurrentScene()->OnImGui();
 	}
+
     
     void Application::OnSceneViewSizeUpdated(u32 width, u32 height)
     {
-        WindowResizeEvent e(width, height);
+		Graphics::GraphicsContext::GetContext()->WaitIdle();
+
+		WindowResizeEvent e(width, height);
         if (width == 0 || height == 0)
         {
             m_Minimized = true;
         }
         m_Minimized = false;
-
         m_RenderManager->OnResize(width, height);
         m_LayerStack->OnEvent(e);
         DebugRenderer::OnResize(width, height);
-    }
+
+		Graphics::GraphicsContext::GetContext()->WaitIdle();
+	}
 }

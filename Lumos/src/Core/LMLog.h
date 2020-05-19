@@ -1,8 +1,12 @@
 #pragma once
 
+#ifndef NOMINMAX
+#define NOMINMAX // For windows.h
+#endif
+
 #include "Core/Core.h"
-#include "spdlog/spdlog.h"
-#include "spdlog/fmt/ostr.h"
+#include <spdlog/spdlog.h>
+#include <spdlog/fmt/ostr.h>
 
 // Core log macros
 #define LUMOS_CORE_TRACE(...)		SPDLOG_LOGGER_CALL(::Lumos::Debug::Log::GetCoreLogger(), spdlog::level::level_enum::trace, __VA_ARGS__)

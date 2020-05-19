@@ -436,8 +436,6 @@ namespace Lumos
 			pipelineCI.cullMode = Graphics::CullMode::FRONT;
 			pipelineCI.transparencyEnabled = false;
 			pipelineCI.depthBiasEnabled = true;
-			pipelineCI.width = m_ShadowMapSize;
-			pipelineCI.height = m_ShadowMapSize;
 			pipelineCI.maxObjects = MAX_OBJECTS;
 
 			m_Pipeline = Graphics::Pipeline::Create(pipelineCI);
@@ -486,7 +484,7 @@ namespace Lumos
 			Graphics::BufferInfo bufferInfo2 = {};
 			bufferInfo2.buffer = m_ModelUniformBuffer;
 			bufferInfo2.offset = 0;
-			bufferInfo2.size = sizeof(UniformBufferModel);
+			bufferInfo2.size = sizeof(Maths::Matrix4);
 			bufferInfo2.type = Graphics::DescriptorType::UNIFORM_BUFFER_DYNAMIC;
 			bufferInfo2.binding = 1;
 			bufferInfo2.shaderType = ShaderType::VERTEX;
