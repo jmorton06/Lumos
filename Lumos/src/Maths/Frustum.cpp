@@ -1,6 +1,6 @@
 #include "lmpch.h"
 #include "Maths/Frustum.h"
-#include "Graphics/Renderers/DebugRenderer.h"
+
 namespace Lumos::Maths
 {
     _FORCE_INLINE_ Vector3 ClipEdgeZ(const Vector3& v0, const Vector3& v1, float clipZ)
@@ -214,10 +214,5 @@ namespace Lumos::Maths
                 plane.d_ = -plane.d_;
             }
         }
-    }
-    
-    void Frustum::DebugDraw()
-    {
-        Lumos::DebugRenderer::DrawPolygon(NUM_FRUSTUM_VERTICES, vertices_);
     }
 }
