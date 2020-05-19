@@ -85,7 +85,11 @@ namespace Lumos
         
         auto pos = transform.Translation();
         auto sphere = Maths::Sphere(pos, m_Radius);
+<<<<<<< HEAD
         DebugRenderer::DebugDraw(&sphere, Maths::Vector4(1.0f, 1.0f, 1.0f, 0.2f));
+=======
+        DebugRenderer::DebugDraw(sphere, Maths::Vector4(1.0f, 1.0f, 1.0f, 0.2f));
+>>>>>>> master
     
         Maths::Vector3 lastX = pos + Maths::Vector3(0.0f, 1.0f, 0.0f) * m_Radius;
         Maths::Vector3 lastY = pos + Maths::Vector3(1.0f, 0.0f, 0.0f) * m_Radius;

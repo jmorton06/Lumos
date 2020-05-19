@@ -38,7 +38,11 @@ void GraphicsScene::OnInit()
 		"/Textures/cubemap/CubeMap10.tga"
 	};
 
-	m_EnvironmentMap = Graphics::TextureCube::CreateFromVCross(environmentFiles, 11);
+	auto environmentMap = Graphics::TextureCube::CreateFromVCross(environmentFiles, 11);
+    
+    auto environment = m_Registry.create();
+    m_Registry.emplace<Graphics::Environment>(environment, environmentMap);
+    m_Registry.emplace<NameComponent>(environment, "Environment");
 
 	auto lightEntity = m_Registry.create();
 	m_Registry.emplace<Graphics::Light>(lightEntity, Maths::Vector3(26.0f, 22.0f, 48.5f), Maths::Vector4(1.0f), 1.3f);
@@ -54,7 +58,7 @@ void GraphicsScene::OnInit()
 		Application::Instance()->GetSystem<AudioManager>()->SetListener(m_pCamera);
 
 	auto deferredRenderer = new Graphics::ForwardRenderer(m_ScreenWidth, m_ScreenHeight);
-	auto skyboxRenderer = new Graphics::SkyboxRenderer(m_ScreenWidth, m_ScreenHeight, m_EnvironmentMap);
+	auto skyboxRenderer = new Graphics::SkyboxRenderer(m_ScreenWidth, m_ScreenHeight);
     
 	//Temp
 	bool editor = false;
@@ -80,8 +84,6 @@ void GraphicsScene::OnInit()
 	auto skyBoxLayer = new Layer3D(skyboxRenderer);
 	Application::Instance()->PushLayer(deferredLayer);
 	Application::Instance()->PushLayer(skyBoxLayer);
-
-	Application::Instance()->GetRenderManager()->SetSkyBoxTexture(m_EnvironmentMap);
 }
 
 void GraphicsScene::OnUpdate(TimeStep* timeStep)
@@ -94,7 +96,6 @@ void GraphicsScene::OnCleanupScene()
 	if (m_CurrentScene)
 	{
 		SAFE_DELETE(m_pCamera)
-        SAFE_DELETE(m_EnvironmentMap);
 	}
 
 	Scene::OnCleanupScene();
