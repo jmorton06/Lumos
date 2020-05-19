@@ -16,7 +16,6 @@ namespace Lumos
 			None = 0, ColorProperty = 1
 		};
 
-
 		enum Theme
 		{
 			Black,
@@ -41,6 +40,8 @@ namespace Lumos
 		void Property(const String& name, Maths::Vector4& value, float min = -1.0f, float max = 1.0f, PropertyFlag flags = PropertyFlag::None);
 
 		void Tooltip(const String& text);
+		void Tooltip(const char* text);
+
 		void Tooltip(Graphics::Texture2D* texture, const Maths::Vector2& size);
 		void Tooltip(Graphics::Texture2D* texture, const Maths::Vector2& size, const String& text);
 		void Image(Graphics::Texture2D* texture, const Maths::Vector2& size);

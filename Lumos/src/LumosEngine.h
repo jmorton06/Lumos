@@ -38,6 +38,7 @@
 #include "Graphics/GBuffer.h"
 #include "Graphics/Terrain.h"
 #include "Graphics/Light.h"
+#include "Graphics/Environment.h"
 
 #include "Utilities/AssetsManager.h"
 
