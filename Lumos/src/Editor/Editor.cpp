@@ -1,6 +1,6 @@
 #include "lmpch.h"
 #include "Editor.h"
-#include "ImGUIConsoleSink.h"
+//#include "ImGUIConsoleSink.h"
 #include "SceneWindow.h"
 #include "ProfilerWindow.h"
 #include "ConsoleWindow.h"
@@ -15,6 +15,7 @@
 #include "Core/OS/Input.h"
 #include "Core/OS/FileSystem.h"
 #include "Core/Profiler.h"
+#include "Core/Version.h"
 #include "App/Engine.h"
 #include "App/Scene.h"
 #include "App/SceneManager.h"
@@ -44,6 +45,11 @@
 #include <imgui/plugins/ImGuiAl/button/imguial_button.h>
 #include <imgui/plugins/ImTextEditor.h>
 #include <IconFontCppHeaders/IconsFontAwesome5.h>
+<<<<<<< HEAD
+=======
+#include <IconFontCppHeaders/IconsFontAwesome5Brands.h>
+
+>>>>>>> master
 #include <imgui/plugins/ImFileBrowser.h>
 
 static ImVec2 operator+(const ImVec2 &a, const ImVec2 &b) {
@@ -354,6 +360,28 @@ namespace Lumos
                 if (ImGui::MenuItem("Compile Shaders")) { RecompileShaders(); }
                 ImGui::EndMenu();
             }
+<<<<<<< HEAD
+=======
+        
+            if(ImGui::BeginMenu("About"))
+            {
+                auto& version = Lumos::LumosVersion;
+                ImGui::Text("Version : %d.%d.%d", version.major, version.minor, version.patch);
+                ImGui::Separator();
+
+                String githubMenuText = ICON_FA_GITHUB" Github";
+                if (ImGui::MenuItem(githubMenuText.c_str()))
+                {
+                    #ifdef LUMOS_PLATFORM_WINDOWS
+                    //TODO
+                    #else
+                    system("open https://www.github.com/jmorton06/Lumos");
+                    #endif
+                }
+
+                ImGui::EndMenu();
+            }
+>>>>>>> master
             
             ImGui::SameLine(ImGui::GetWindowContentRegionMax().x / 2.0f);
 
@@ -765,6 +793,7 @@ namespace Lumos
     void Editor::RecompileShaders()
     {
         Lumos::Debug::Log::Info("Recompiling shaders");
+<<<<<<< HEAD
         String filePath = "sh ." ROOT_DIR;
 
     #ifdef LUMOS_RENDER_API_VULKAN
@@ -773,6 +802,16 @@ namespace Lumos
         system(filePath.c_str());
     #elif LUMOS_PLATFORM_MACOS
         filePath += "/Assets/shaders/compileMac.sh";
+=======
+
+    #ifdef LUMOS_RENDER_API_VULKAN
+    #ifdef LUMOS_PLATFORM_WINDOWS
+        //filePath += "/Assets/shaders/CompileShadersWindows.bat";
+        //system(filePath.c_str());
+    #elif LUMOS_PLATFORM_MACOS
+        String filePath = "sh ." ROOT_DIR;
+        filePath += "/Assets/shaders/CompileShadersMac.sh";
+>>>>>>> master
         system(filePath.c_str());
     #endif
     #endif
@@ -795,7 +834,11 @@ namespace Lumos
                      auto& worldTransform = trans.GetWorldMatrix();
 
                      auto bbCopy = mesh.GetMesh()->GetBoundingBox()->Transformed(worldTransform);
+<<<<<<< HEAD
                      DebugRenderer::DebugDraw(&bbCopy, Maths::Vector4(0.8f,0.8f,0.8f,0.2f));
+=======
+                     DebugRenderer::DebugDraw(bbCopy, Maths::Vector4(0.8f,0.8f,0.8f,0.2f));
+>>>>>>> master
                  }
              }
         }
@@ -813,7 +856,11 @@ namespace Lumos
 
                     auto bb = Maths::BoundingBox(Maths::Rect(sprite.GetPosition(), sprite.GetPosition() + sprite.GetScale()));
                     bb.Transform(trans.GetWorldMatrix());
+<<<<<<< HEAD
                     DebugRenderer::DebugDraw(&bb, Maths::Vector4(0.8f,0.8f,0.8f,0.2f));
+=======
+                    DebugRenderer::DebugDraw(bb, Maths::Vector4(0.8f,0.8f,0.8f,0.2f));
+>>>>>>> master
                 }
             }
         }
@@ -828,7 +875,11 @@ namespace Lumos
 
                 if (camera.GetCamera())
                 {
+<<<<<<< HEAD
                     camera.GetCamera()->GetFrustum().DebugDraw();
+=======
+                    DebugRenderer::DebugDraw(camera.GetCamera()->GetFrustum(), Maths::Vector4(0.9f));
+>>>>>>> master
                 }
             }
         }
@@ -845,7 +896,11 @@ namespace Lumos
                     auto& worldTransform = transform->GetWorldMatrix();
 
                     auto bbCopy = meshComponent->GetMesh()->GetBoundingBox()->Transformed(worldTransform);
+<<<<<<< HEAD
                     DebugRenderer::DebugDraw(&bbCopy, Maths::Vector4(0.8f,0.8f,0.8f,0.2f));
+=======
+                    DebugRenderer::DebugDraw(bbCopy, Maths::Vector4(0.8f,0.8f,0.8f,0.2f));
+>>>>>>> master
                 }
             }
         
@@ -857,6 +912,7 @@ namespace Lumos
 
                     auto bb = Maths::BoundingBox(Maths::Rect(sprite->GetPosition(), sprite->GetPosition() + sprite->GetScale()));
                     bb.Transform(worldTransform);
+<<<<<<< HEAD
                     DebugRenderer::DebugDraw(&bb, Maths::Vector4(0.8f,0.8f,0.8f,0.2f));
                 }
             }
@@ -869,15 +925,38 @@ namespace Lumos
 //                    camera->GetCamera()->GetFrustum().DebugDraw();
 //                }
 //            }
+=======
+                    DebugRenderer::DebugDraw(bb, Maths::Vector4(0.8f,0.8f,0.8f,0.2f));
+                }
+            }
+        
+            auto camera = registry.try_get<CameraComponent>(m_Selected);
+            if(camera)
+            {
+                if (camera->GetCamera())
+                {
+                    DebugRenderer::DebugDraw(camera->GetCamera()->GetFrustum(), Maths::Vector4(0.9f));
+                }
+            }
+>>>>>>> master
         }
     }
     
     void Editor::SelectObject(const Maths::Ray& ray)
     {
         auto& registry = Application::Instance()->GetSceneManager()->GetCurrentScene()->GetRegistry();
+<<<<<<< HEAD
 
         auto group = registry.group<MeshComponent>(entt::get<Maths::Transform>);
 
+=======
+        float closestEntityDist = Maths::M_INFINITY;
+        entt::entity currentClosestEntity = entt::null;
+
+        auto group = registry.group<MeshComponent>(entt::get<Maths::Transform>);
+
+
+>>>>>>> master
         for(auto entity : group)
         {
            const auto &[mesh, trans] = group.get<MeshComponent, Maths::Transform>(entity);
@@ -891,6 +970,7 @@ namespace Lumos
            
                if(dist < Maths::M_INFINITY)
                {
+<<<<<<< HEAD
                     if(m_Selected == entity)
                         FocusCamera(trans.GetWorldPosition(), (bbCopy.max_ - bbCopy.min_).Length());
                
@@ -899,6 +979,32 @@ namespace Lumos
                }
            }
         }
+=======
+                    if(dist < closestEntityDist)
+                    {
+                        closestEntityDist = dist;
+                        currentClosestEntity = entity;
+                    }
+               }
+           }
+        }
+
+        if(m_Selected != entt::null)
+        {
+            if(m_Selected == currentClosestEntity)
+            {
+                auto& trans = registry.get<Maths::Transform>(m_Selected);
+                auto& mesh = registry.get<MeshComponent>(m_Selected);
+                auto bb = mesh.GetMesh()->GetBoundingBox()->Transformed(trans.GetWorldMatrix());
+
+                FocusCamera(trans.GetWorldPosition(), (bb.max_ - bb.min_).Length());
+            }
+
+
+            m_Selected = currentClosestEntity;
+            return;
+        }
+>>>>>>> master
     
         auto spriteGroup = registry.group<Graphics::Sprite>(entt::get<Maths::Transform>);
 
@@ -913,6 +1019,7 @@ namespace Lumos
       
             if(dist < Maths::M_INFINITY)
             {
+<<<<<<< HEAD
                 if(m_Selected == entity)
                    FocusCamera(trans.GetWorldPosition(), (bb.max_ - bb.min_).Length());
           
@@ -923,6 +1030,30 @@ namespace Lumos
     
         m_Selected = entt::null;
     
+=======
+            	if(dist < closestEntityDist)
+				{
+					closestEntityDist = dist;
+					currentClosestEntity = entity;
+				}
+            }
+        }
+
+        if(m_Selected != entt::null)
+		{
+			if(m_Selected == currentClosestEntity)
+			{
+				auto& trans = registry.get<Maths::Transform>(m_Selected);
+				auto& sprite = registry.get<Graphics::Sprite>(m_Selected);
+				auto bb = Maths::BoundingBox(Maths::Rect(sprite.GetPosition(), sprite.GetPosition() + sprite.GetScale()));
+
+				FocusCamera(trans.GetWorldPosition(), (bb.max_ - bb.min_).Length());
+			}
+		}
+
+
+        m_Selected = currentClosestEntity;
+>>>>>>> master
     }
 
 	void Editor::OpenTextFile(const String& filePath)

@@ -273,12 +273,12 @@ namespace Lumos
 
 		void DeferredOffScreenRenderer::Present()
 		{
+            m_Pipeline->SetActive(m_DeferredCommandBuffers);
+
             for (u32 i = 0; i < static_cast<u32>(m_CommandQueue.size()); i++)
             {
                 auto command = m_CommandQueue[i];
 				Mesh* mesh = command.mesh;
-
-				m_Pipeline->SetActive(m_DeferredCommandBuffers);
 
 				uint32_t dynamicOffset = i * static_cast<uint32_t>(m_DynamicAlignment);
 
@@ -358,8 +358,6 @@ namespace Lumos
 			pipelineCI.cullMode = Graphics::CullMode::BACK;
 			pipelineCI.transparencyEnabled = false;
 			pipelineCI.depthBiasEnabled = false;
-			pipelineCI.width = m_ScreenBufferWidth;
-			pipelineCI.height = m_ScreenBufferHeight;
 			pipelineCI.maxObjects = MAX_OBJECTS;
 
 			m_Pipeline = Graphics::Pipeline::Create(pipelineCI);
@@ -450,7 +448,6 @@ namespace Lumos
 		void DeferredOffScreenRenderer::OnResize(u32 width, u32 height)
 		{
 			LUMOS_PROFILE_FUNC;
-			delete m_Pipeline;
 			delete m_FBO;
 
 			if (m_RenderToGBufferTexture)
@@ -458,13 +455,7 @@ namespace Lumos
 
 			DeferredOffScreenRenderer::SetScreenBufferSize(width, height);
 
-			CreatePipeline();
-			CreateBuffer();
 			CreateFBO();
-
-			m_DefaultMaterial->CreateDescriptorSet(m_Pipeline, 1);
-
-			m_ClearColour = Maths::Vector4(0.8f, 0.8f, 0.8f, 1.0f);
 		}
 
 		void DeferredOffScreenRenderer::OnImGui()

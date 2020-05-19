@@ -34,7 +34,7 @@ namespace Lumos
 
 			static GraphicsContext* GetContext() { return s_Context; }
             virtual bool FlipImGUITexture() const = 0;
-
+            virtual void WaitIdle() const = 0;
 			virtual void OnImGui() = 0;
 
         protected:

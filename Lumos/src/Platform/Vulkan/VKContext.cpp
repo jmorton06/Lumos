@@ -482,6 +482,11 @@ namespace Lumos
         {
             return lmnew VKContext(properties, cont);
         }
+    
+        void VKContext::WaitIdle() const
+        {
+            vkDeviceWaitIdle(VKDevice::Instance()->GetDevice());
+        }
         
 #ifdef USE_VMA_ALLOCATOR
         void VKContext::DebugDrawVmaMemory(VmaStatInfo& info, bool indent)
