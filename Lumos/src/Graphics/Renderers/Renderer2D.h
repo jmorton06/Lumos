@@ -37,6 +37,23 @@ namespace Lumos
                 col = colour;
             }
         };
+    
+        struct Render2DLimits
+        {
+            u32 MaxQuads = 10000;
+            u32 QuadsSize = RENDERER2D_VERTEX_SIZE * 4;
+            u32 BufferSize = 10000 * RENDERER2D_VERTEX_SIZE * 4;
+            u32 IndiciesSize = 10000 * 6;
+            u32 MaxTextures = 16;
+            u32 MaxBatchDrawCalls = 100;
+        
+            void SetMaxQuads(u32 quads)
+            {
+                MaxQuads = quads;
+                BufferSize = MaxQuads * RENDERER2D_VERTEX_SIZE * 4;
+                IndiciesSize = MaxQuads * 6;
+            }
+        };
 
 		class LUMOS_EXPORT Renderer2D
 		{
@@ -122,6 +139,7 @@ namespace Lumos
             std::vector<TriangleInfo> m_Triangles;
         
             bool m_RenderToDepthTexture;
+            Render2DLimits m_Limits;
 		};
 	}
 }

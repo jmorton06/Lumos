@@ -62,6 +62,8 @@ namespace Lumos
         Maths::Vector3 pos = m_Camera->GetPosition();
 		pos = m_Camera->CalculatePosition();
         m_Camera->SetPosition(pos);
+        m_Camera->SetYaw(yaw);
+        m_Camera->SetPitch(pitch);
 	}
 
 	void MayaCameraController::HandleKeyboard(float dt)

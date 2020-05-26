@@ -93,7 +93,8 @@ namespace Lumos
 			m_Shader = Shader::CreateFromFile("DeferredLight", "/CoreShaders/");
 
 			TextureParameters param;
-			param.filter = TextureFilter::LINEAR;
+			param.minFilter = TextureFilter::LINEAR;
+            param.magFilter = TextureFilter::LINEAR;
 			param.format = TextureFormat::RGBA;
 			param.wrap = TextureWrap::CLAMP_TO_EDGE;
 			m_PreintegratedFG = Scope<Texture2D>(Texture2D::CreateFromFile("PreintegratedFG", "/CoreTextures/PreintegratedFG.png", param));
@@ -157,7 +158,7 @@ namespace Lumos
 
 			m_ClearColour = Maths::Vector4(0.1f, 0.1f, 0.1f, 1.0f);
 
-			CreateScreenDescriptorSet();
+            UpdateScreenDescriptorSet();
 		}
 
 		void DeferredRenderer::RenderScene(Scene* scene)
@@ -206,10 +207,20 @@ namespace Lumos
             
             if(view.size() == 0)
             {
-                if (m_CubeMap)
+                if (m_EnvironmentMap)
                 {
-                    m_CubeMap = nullptr;
-                    CreateScreenDescriptorSet();
+                    m_EnvironmentMap = nullptr;
+                    m_IrradianceMap = nullptr;
+                
+                    Graphics::DescriptorInfo info{};
+                    info.pipeline = m_Pipeline;
+                    info.layoutIndex = 1;
+                    info.shader = m_Shader;
+                    if (m_DescriptorSet)
+                        delete m_DescriptorSet;
+                    m_DescriptorSet = Graphics::DescriptorSet::Create(info);
+
+                    UpdateScreenDescriptorSet();
                 }
             }
             else
@@ -217,10 +228,11 @@ namespace Lumos
                 //Just use first
                 const auto &env = view.get<Graphics::Environment>(view.front());
 
-                if(m_CubeMap != env.GetEnvironmentMap())
+                if(m_EnvironmentMap != env.GetEnvironmentMap())
                 {
-                    m_CubeMap = env.GetEnvironmentMap();
-                    CreateScreenDescriptorSet();
+                    m_EnvironmentMap = env.GetEnvironmentMap();
+                    m_IrradianceMap = env.GetIrradianceMap();
+                    UpdateScreenDescriptorSet();
                 }
             }
 		}
@@ -436,7 +448,7 @@ namespace Lumos
 			{
 			case 0 : return "Lighting";
 			case 1 : return "Colour";
-			case 2 : return "Specular";
+			case 2 : return "Metallic";
 			case 3 : return "Roughness";
 			case 4 : return "AO";
 			case 5 : return "Emissive";
@@ -573,7 +585,6 @@ namespace Lumos
 		void DeferredRenderer::OnResize(u32 width, u32 height)
 		{
 			LUMOS_PROFILE_FUNC;
-			delete m_Pipeline;
 
 			for (auto fbo : m_Framebuffers)
 				delete fbo;
@@ -584,31 +595,15 @@ namespace Lumos
 
 			DeferredRenderer::SetScreenBufferSize(width, height);
 
-			CreateDeferredPipeline();
 			CreateFramebuffers();
-			CreateLightBuffer();
-
-			Graphics::DescriptorInfo info{};
-			info.pipeline = m_Pipeline;
-			info.layoutIndex = 1;
-			info.shader = m_Shader;
-			if (m_DescriptorSet)
-				delete m_DescriptorSet;
-			m_DescriptorSet = Graphics::DescriptorSet::Create(info);
 
 			m_OffScreenRenderer->OnResize(width, height);
-
-			m_ClearColour = Maths::Vector4(0.8f, 0.8f, 0.8f, 1.0f);
         
-            CreateScreenDescriptorSet();
+            //Update DescriptorSet with updated gbuffer textures
+            UpdateScreenDescriptorSet();
 		}
 
-		void DeferredRenderer::SetCubeMap(Texture* cubeMap)
-		{
-			m_CubeMap = cubeMap;
-		}
-
-		void DeferredRenderer::CreateScreenDescriptorSet()
+		void DeferredRenderer::UpdateScreenDescriptorSet()
 		{
 			std::vector<Graphics::ImageInfo> bufferInfos;
 
@@ -638,36 +633,44 @@ namespace Lumos
 			imageInfo5.name = "uPreintegratedFG";
 
 			Graphics::ImageInfo imageInfo6 = {};
-			imageInfo6.texture = { m_CubeMap };
+			imageInfo6.texture = { m_EnvironmentMap };
 			imageInfo6.binding = 5;
 			imageInfo6.type = TextureType::CUBE;
 			imageInfo6.name = "uEnvironmentMap";
+        
+            Graphics::ImageInfo imageInfo7 = {};
+            imageInfo7.texture = { m_IrradianceMap };
+            imageInfo7.binding = 6;
+            imageInfo7.type = TextureType::CUBE;
+            imageInfo7.name = "uIrradianceMap";
 
-			Graphics::ImageInfo imageInfo7 = {};
+			Graphics::ImageInfo imageInfo8 = {};
 			auto shadowRenderer = Application::Instance()->GetRenderManager()->GetShadowRenderer();
 			if (shadowRenderer)
 			{
-				imageInfo7.texture = { reinterpret_cast<Texture*>(shadowRenderer->GetTexture()) };
-				imageInfo7.binding = 6;
-				imageInfo7.type = TextureType::DEPTHARRAY;
-				imageInfo7.name = "uShadowMap";
+				imageInfo8.texture = { reinterpret_cast<Texture*>(shadowRenderer->GetTexture()) };
+				imageInfo8.binding = 7;
+				imageInfo8.type = TextureType::DEPTHARRAY;
+				imageInfo8.name = "uShadowMap";
 			}
 
-			Graphics::ImageInfo imageInfo8 = {};
-			imageInfo8.texture = { Application::Instance()->GetRenderManager()->GetGBuffer()->GetDepthTexture() };
-			imageInfo8.binding = 7;
-			imageInfo8.type = TextureType::DEPTH;
-			imageInfo8.name = "uDepthSampler";
+			Graphics::ImageInfo imageInfo9 = {};
+			imageInfo9.texture = { Application::Instance()->GetRenderManager()->GetGBuffer()->GetDepthTexture() };
+			imageInfo9.binding = 8;
+			imageInfo9.type = TextureType::DEPTH;
+			imageInfo9.name = "uDepthSampler";
 
 			bufferInfos.push_back(imageInfo);
 			bufferInfos.push_back(imageInfo2);
 			bufferInfos.push_back(imageInfo3);
 			bufferInfos.push_back(imageInfo4);
 			bufferInfos.push_back(imageInfo5);
-			if (m_CubeMap)
+			if (m_EnvironmentMap)
 				bufferInfos.push_back(imageInfo6);
+            if (m_IrradianceMap)
+                bufferInfos.push_back(imageInfo7);
 			if (shadowRenderer)
-				bufferInfos.push_back(imageInfo7);
+				bufferInfos.push_back(imageInfo8);
 
 			m_DescriptorSet->Update(bufferInfos);
 		}

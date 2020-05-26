@@ -49,11 +49,23 @@ void Scene3D::OnInit()
 		"/Textures/cubemap/CubeMap9.tga",
 		"/Textures/cubemap/CubeMap10.tga"
 	};
+    
+    String environmentIrrFiles[7] =
+    {
+        "/Textures/cubemap/CubeMapIrr_0.tga",
+        "/Textures/cubemap/CubeMapIrr_1.tga",
+        "/Textures/cubemap/CubeMapIrr_2.tga",
+        "/Textures/cubemap/CubeMapIrr_3.tga",
+        "/Textures/cubemap/CubeMapIrr_4.tga",
+        "/Textures/cubemap/CubeMapIrr_5.tga",
+        "/Textures/cubemap/CubeMapIrr_6.tga",
+    };
 
 	auto environmentMap = Graphics::TextureCube::CreateFromVCross(environmentFiles, 11);
+    auto irradianceMap = Graphics::TextureCube::CreateFromVCross(environmentFiles, 7);
 
 	auto environment = m_Registry.create();
-	m_Registry.emplace<Graphics::Environment>(environment, environmentMap);
+	m_Registry.emplace<Graphics::Environment>(environment, environmentMap, irradianceMap);
     m_Registry.emplace<NameComponent>(environment, "Environment");
 
     auto lightEntity = m_Registry.create();
@@ -135,11 +147,11 @@ void Scene3D::LoadModels()
 	MaterialProperties properties;
 	properties.albedoColour = Vector4(0.6f,0.1f,0.1f,1.0f);
 	properties.roughnessColour = Vector4(0.6f);
-	properties.specularColour = Vector4(0.15f);
+	properties.metallicColour = Vector4(0.15f);
 	properties.usingAlbedoMap     = 0.5f;
 	properties.usingRoughnessMap  = 0.0f;
 	properties.usingNormalMap     = 0.0f;
-	properties.usingSpecularMap   = 0.0f;
+	properties.usingMetallicMap   = 0.0f;
 	testMaterial->SetMaterialProperites(properties);
 	m_Registry.emplace<MaterialComponent>(ground, testMaterial);
 
@@ -208,11 +220,11 @@ void Scene3D::LoadModels()
 		MaterialProperties properties;
 		properties.albedoColour = diffuse;
 		properties.roughnessColour = Vector4(roughness);
-		properties.specularColour = spec;
+		properties.metallicColour = spec;
 		properties.usingAlbedoMap   = 0.0f;
 		properties.usingRoughnessMap = 0.0f;
 		properties.usingNormalMap   = 0.0f;
-		properties.usingSpecularMap = 0.0f;
+		properties.usingMetallicMap = 0.0f;
 		m->SetMaterialProperites(properties);
 
 		auto sphere = m_Registry.create();
@@ -235,11 +247,11 @@ void Scene3D::LoadModels()
 		MaterialProperties properties;
 		properties.albedoColour = diffuse;
 		properties.roughnessColour = Vector4(roughness);
-		properties.specularColour = spec;
+		properties.metallicColour = spec;
 		properties.usingAlbedoMap   = 0.0f;
 		properties.usingRoughnessMap    = 0.0f;
 		properties.usingNormalMap   = 0.0f;
-		properties.usingSpecularMap = 0.0f;
+		properties.usingMetallicMap = 0.0f;
 		m->SetMaterialProperites(properties);
 
 		auto sphere = m_Registry.create();

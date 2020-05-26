@@ -71,7 +71,8 @@ namespace Lumos
 			{
 				for(int i = 0; i < imageInfo.count; i++)
 				{
-					imageInfo.texture[i]->Bind(imageInfo.binding + i);
+                    if(imageInfo.texture[i])
+                        imageInfo.texture[i]->Bind(imageInfo.binding + i);
 				}
 
 				dynamic_cast<GLShader*>(m_Shader)->SetUniform1i(imageInfo.name, imageInfo.binding);

@@ -8,11 +8,11 @@
 namespace Lumos
 {
 	TextEditWindow::TextEditWindow(const String& filePath)
+	    : m_FilePath(filePath)
 	{
-		m_Name = "TextEditWindow";
-		m_SimpleName = "TextEdit";
-        m_FilePath = filePath;
-
+        m_Name = "TextEditWindow";
+        m_SimpleName = "TextEdit";
+        
         auto extension = StringFormat::GetFilePathExtension(m_FilePath);
 
         if(extension == "lua" || extension == "Lua")

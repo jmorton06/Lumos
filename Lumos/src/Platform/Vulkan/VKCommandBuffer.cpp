@@ -133,7 +133,7 @@ namespace Lumos
 		void VKCommandBuffer::ExecuteSecondary(CommandBuffer* primaryCmdBuffer)
 		{
 			if (!m_Primary)
-				vkCmdExecuteCommands(((VKCommandBuffer*)primaryCmdBuffer)->GetCommandBuffer(), 1, &m_CommandBuffer);
+				vkCmdExecuteCommands(static_cast<VKCommandBuffer*>(primaryCmdBuffer)->GetCommandBuffer(), 1, &m_CommandBuffer);
 			else
 				Debug::Log::Critical("Used ExecuteSecondary on primary command buffer!");
 		}

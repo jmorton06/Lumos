@@ -137,7 +137,7 @@ namespace Lumos
 			Load();
 
 			m_TextureImageView = Graphics::CreateImageView(m_TextureImage, VK_FORMAT_R8G8B8A8_UNORM, m_MipLevels, VK_IMAGE_VIEW_TYPE_2D, VK_IMAGE_ASPECT_COLOR_BIT, 1);
-			m_TextureSampler = Graphics::CreateTextureSampler(m_Parameters.filter == TextureFilter::LINEAR ? VK_FILTER_LINEAR : VK_FILTER_NEAREST, m_Parameters.filter == TextureFilter::LINEAR ? VK_FILTER_LINEAR : VK_FILTER_NEAREST, 0.0f, static_cast<float>(m_MipLevels), true, VKDevice::Instance()->GetGPUProperties().limits.maxSamplerAnisotropy, VKTools::TextureWrapToVK(m_Parameters.wrap), VKTools::TextureWrapToVK(m_Parameters.wrap), VKTools::TextureWrapToVK(m_Parameters.wrap));
+			m_TextureSampler = Graphics::CreateTextureSampler(VKTools::TextureFilterToVK(m_Parameters.magFilter), VKTools::TextureFilterToVK(m_Parameters.minFilter), 0.0f, static_cast<float>(m_MipLevels), true, VKDevice::Instance()->GetGPUProperties().limits.maxSamplerAnisotropy, VKTools::TextureWrapToVK(m_Parameters.wrap), VKTools::TextureWrapToVK(m_Parameters.wrap), VKTools::TextureWrapToVK(m_Parameters.wrap));
 
 			UpdateDescriptor();
 		}
@@ -154,7 +154,7 @@ namespace Lumos
 				return;
 
 			m_TextureImageView = Graphics::CreateImageView(m_TextureImage, VK_FORMAT_R8G8B8A8_UNORM, m_MipLevels, VK_IMAGE_VIEW_TYPE_2D, VK_IMAGE_ASPECT_COLOR_BIT, 1);
-			m_TextureSampler = Graphics::CreateTextureSampler(m_Parameters.filter == TextureFilter::LINEAR ? VK_FILTER_LINEAR : VK_FILTER_NEAREST, m_Parameters.filter == TextureFilter::LINEAR ? VK_FILTER_LINEAR : VK_FILTER_NEAREST, 0.0f, static_cast<float>(m_MipLevels), true, VKDevice::Instance()->GetGPUProperties().limits.maxSamplerAnisotropy, VKTools::TextureWrapToVK(m_Parameters.wrap), VKTools::TextureWrapToVK(m_Parameters.wrap), VKTools::TextureWrapToVK(m_Parameters.wrap));
+			m_TextureSampler = Graphics::CreateTextureSampler(VKTools::TextureFilterToVK(m_Parameters.magFilter), VKTools::TextureFilterToVK(m_Parameters.minFilter), 0.0f, static_cast<float>(m_MipLevels), true, VKDevice::Instance()->GetGPUProperties().limits.maxSamplerAnisotropy, VKTools::TextureWrapToVK(m_Parameters.wrap), VKTools::TextureWrapToVK(m_Parameters.wrap), VKTools::TextureWrapToVK(m_Parameters.wrap));
 
 			UpdateDescriptor();
 		}
@@ -176,7 +176,7 @@ namespace Lumos
 			m_Parameters = TextureParameters();
 			m_LoadOptions = TextureLoadOptions();
 			m_DeleteImage = false;
-			m_TextureSampler = Graphics::CreateTextureSampler(m_Parameters.filter == TextureFilter::LINEAR ? VK_FILTER_LINEAR : VK_FILTER_NEAREST, m_Parameters.filter == TextureFilter::LINEAR ? VK_FILTER_LINEAR : VK_FILTER_NEAREST, 0.0f, static_cast<float>(m_MipLevels), true, VKDevice::Instance()->GetGPUProperties().limits.maxSamplerAnisotropy, VKTools::TextureWrapToVK(m_Parameters.wrap), VKTools::TextureWrapToVK(m_Parameters.wrap), VKTools::TextureWrapToVK(m_Parameters.wrap));
+			m_TextureSampler = Graphics::CreateTextureSampler(VKTools::TextureFilterToVK(m_Parameters.magFilter), VKTools::TextureFilterToVK(m_Parameters.minFilter), 0.0f, static_cast<float>(m_MipLevels), true, VKDevice::Instance()->GetGPUProperties().limits.maxSamplerAnisotropy, VKTools::TextureWrapToVK(m_Parameters.wrap), VKTools::TextureWrapToVK(m_Parameters.wrap), VKTools::TextureWrapToVK(m_Parameters.wrap));
 
 			UpdateDescriptor();
 		}
@@ -244,7 +244,7 @@ namespace Lumos
 #endif
 			
 			m_TextureImageView = Graphics::CreateImageView(m_TextureImage, VKTools::TextureFormatToVK(internalformat), m_MipLevels, VK_IMAGE_VIEW_TYPE_2D, VK_IMAGE_ASPECT_COLOR_BIT, 1);
-			m_TextureSampler = Graphics::CreateTextureSampler(m_Parameters.filter == TextureFilter::LINEAR ? VK_FILTER_LINEAR : VK_FILTER_NEAREST, m_Parameters.filter == TextureFilter::LINEAR ? VK_FILTER_LINEAR : VK_FILTER_NEAREST, 0.0f, static_cast<float>(m_MipLevels), true, VKDevice::Instance()->GetGPUProperties().limits.maxSamplerAnisotropy, VKTools::TextureWrapToVK(m_Parameters.wrap), VKTools::TextureWrapToVK(m_Parameters.wrap), VKTools::TextureWrapToVK(m_Parameters.wrap));
+			m_TextureSampler = Graphics::CreateTextureSampler(VKTools::TextureFilterToVK(m_Parameters.magFilter), VKTools::TextureFilterToVK(m_Parameters.minFilter), 0.0f, static_cast<float>(m_MipLevels), true, VKDevice::Instance()->GetGPUProperties().limits.maxSamplerAnisotropy, VKTools::TextureWrapToVK(m_Parameters.wrap), VKTools::TextureWrapToVK(m_Parameters.wrap), VKTools::TextureWrapToVK(m_Parameters.wrap));
 
 			UpdateDescriptor();
 		}

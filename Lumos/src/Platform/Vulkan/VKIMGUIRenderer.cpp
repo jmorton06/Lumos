@@ -178,7 +178,7 @@ namespace Lumos
 				int width, height;
 				io.Fonts->GetTexDataAsRGBA32(&pixels, &width, &height);
 
-				m_FontTexture = lmnew VKTexture2D(width, height, pixels);
+				m_FontTexture = lmnew VKTexture2D(width, height, pixels, TextureParameters(TextureFilter::NEAREST, TextureFilter::NEAREST));
 
 				 VkWriteDescriptorSet write_desc[1] = {};
 				 write_desc[0].sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
@@ -276,6 +276,34 @@ namespace Lumos
 		IMGUIRenderer* VKIMGUIRenderer::CreateFuncVulkan(u32 width, u32 height, bool clearScreen)
         {
             return lmnew VKIMGUIRenderer(width, height, clearScreen);
+        }
+
+        void VKIMGUIRenderer::RebuildFontTexture()
+        {
+            // Upload Fonts
+            {
+                ImGuiIO& io = ImGui::GetIO();
+
+                unsigned char* pixels;
+                int width, height;
+                io.Fonts->GetTexDataAsRGBA32(&pixels, &width, &height);
+
+                m_FontTexture = lmnew VKTexture2D(width, height, pixels, TextureParameters(TextureFilter::NEAREST, TextureFilter::NEAREST, TextureWrap::REPEAT));
+
+                VkWriteDescriptorSet write_desc[1] = {};
+                write_desc[0].sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
+                write_desc[0].dstSet = ImGui_ImplVulkanH_GetFontDescriptor();
+                write_desc[0].descriptorCount = 1;
+                write_desc[0].descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
+                write_desc[0].pImageInfo = m_FontTexture->GetDescriptor();
+                vkUpdateDescriptorSets(VKDevice::Device(), 1, write_desc, 0, nullptr);
+
+                io.Fonts->TexID = (ImTextureID)m_FontTexture->GetHandle();// GetImage();
+
+                ImGui_ImplVulkan_AddTexture(io.Fonts->TexID, ImGui_ImplVulkanH_GetFontDescriptor());
+
+                ImGui_ImplVulkan_InvalidateFontUploadObjects();
+            }
         }
     }
 }

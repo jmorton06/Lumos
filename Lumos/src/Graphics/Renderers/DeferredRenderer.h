@@ -43,8 +43,7 @@ namespace Lumos
 			void CreateDeferredPipeline();
 			void CreateLightBuffer();
 			void CreateFramebuffers();
-			void CreateScreenDescriptorSet();
-			void SetCubeMap(Texture* cubeMap);
+			void UpdateScreenDescriptorSet();
 
 			int GetCommandBufferCount() const { return static_cast<int>(m_CommandBuffers.size()); }
 			CommandBuffer* GetCommandBuffer(int id) const { return m_CommandBuffers[id]; }
@@ -83,7 +82,8 @@ namespace Lumos
 			int m_RenderMode = 0;
             int m_ShadowMode = 1;
 
-			Texture* m_CubeMap = nullptr;
+			Texture* m_EnvironmentMap = nullptr;
+            Texture* m_IrradianceMap = nullptr;
 		};
 	}
 }

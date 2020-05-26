@@ -22,10 +22,10 @@ const float PBR_WORKFLOW_SPECULAR_GLOSINESS = 2.0f;
 	{
 		Maths::Vector4  albedoColour    = Maths::Vector4(1.0f,0.0f,1.0f,1.0f);
 		Maths::Vector4  roughnessColour = Maths::Vector4(1.0f,0.0f,1.0f,1.0f);
-		Maths::Vector4  specularColour  = Maths::Vector4(0.0f,1.0f,0.0f,1.0f);
+		Maths::Vector4  metallicColour  = Maths::Vector4(0.0f,1.0f,0.0f,1.0f);
         Maths::Vector4  emissiveColour  = Maths::Vector4(0.0f,0.0f,0.0f,1.0f);
 		float usingAlbedoMap = 1.0f;
-		float usingSpecularMap = 1.0f;
+		float usingMetallicMap = 1.0f;
 		float usingRoughnessMap = 1.0f;
 		float usingNormalMap = 1.0f;
 		float usingAOMap = 1.0f;
@@ -38,7 +38,7 @@ const float PBR_WORKFLOW_SPECULAR_GLOSINESS = 2.0f;
 	{
 		Ref<Graphics::Texture2D> albedo;
 		Ref<Graphics::Texture2D> normal;
-		Ref<Graphics::Texture2D> specular;
+		Ref<Graphics::Texture2D> metallic;
 		Ref<Graphics::Texture2D> roughness;
 		Ref<Graphics::Texture2D> ao;
 		Ref<Graphics::Texture2D> emissive;

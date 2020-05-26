@@ -55,7 +55,7 @@ namespace Lumos
         m_PBRMaterialTextures.albedo    = textures.albedo;
         m_PBRMaterialTextures.normal    = textures.normal;
         m_PBRMaterialTextures.roughness = textures.roughness;
-        m_PBRMaterialTextures.specular  = textures.specular;
+        m_PBRMaterialTextures.metallic  = textures.metallic;
         m_PBRMaterialTextures.ao        = textures.ao;
         m_PBRMaterialTextures.emissive  = textures.emissive;
     }
@@ -72,7 +72,7 @@ namespace Lumos
     {
         m_Name = name;
         m_PBRMaterialTextures = PBRMataterialTextures();
-        auto params = Graphics::TextureParameters(Graphics::TextureFormat::RGBA, Graphics::TextureFilter::LINEAR, Graphics::TextureWrap::CLAMP_TO_EDGE);
+        auto params = Graphics::TextureParameters(Graphics::TextureFormat::RGBA, Graphics::TextureFilter::LINEAR, Graphics::TextureFilter::LINEAR, Graphics::TextureWrap::CLAMP_TO_EDGE);
 
         auto filePath = path + "/" + name + "/albedo" + extension;
 
@@ -92,7 +92,7 @@ namespace Lumos
         filePath = path + "/" + name + "/metallic" + extension;
 
         if (FileExists(filePath))
-        m_PBRMaterialTextures.specular = Ref<Graphics::Texture2D>(Graphics::Texture2D::CreateFromFile(name, path + "/" + name + "/metallic" + extension,params));
+        m_PBRMaterialTextures.metallic = Ref<Graphics::Texture2D>(Graphics::Texture2D::CreateFromFile(name, path + "/" + name + "/metallic" + extension,params));
 
         filePath = path + "/" + name + "/ao" + extension;
 
@@ -113,7 +113,7 @@ namespace Lumos
         m_PBRMaterialTextures.albedo    = Ref<Graphics::Texture2D>(Graphics::Texture2D::CreateFromFile(name, path));
         m_PBRMaterialTextures.normal    = nullptr;
         m_PBRMaterialTextures.roughness = nullptr;
-        m_PBRMaterialTextures.specular  = nullptr;
+        m_PBRMaterialTextures.metallic  = nullptr;
         m_PBRMaterialTextures.ao        = nullptr;
         m_PBRMaterialTextures.emissive  = nullptr;
     }
@@ -145,7 +145,7 @@ namespace Lumos
 				if (ImGui::IsItemHovered() && tex)
 				{
 					ImGui::BeginTooltip();
-					ImGui::Image(tex ? tex->GetHandle() : nullptr, ImVec2(256, 256), ImVec2(0.0f, flipImage ? 1.0f : 0.0f), ImVec2(1.0f, flipImage ? 0.0f : 1.0f));
+					ImGui::Image(tex->GetHandle(), ImVec2(256, 256), ImVec2(0.0f, flipImage ? 1.0f : 0.0f), ImVec2(1.0f, flipImage ? 0.0f : 1.0f));
 					ImGui::EndTooltip();
 				}
 			}
@@ -200,12 +200,12 @@ namespace Lumos
 
 			if (tex)
 			{
-				ImGui::Image(tex ? tex->GetHandle() : nullptr, ImVec2(64, 64), ImVec2(0.0f, flipImage ? 1.0f : 0.0f), ImVec2(1.0f, flipImage ? 0.0f : 1.0f));
+				ImGui::Image(tex->GetHandle(), ImVec2(64, 64), ImVec2(0.0f, flipImage ? 1.0f : 0.0f), ImVec2(1.0f, flipImage ? 0.0f : 1.0f));
 
-				if (ImGui::IsItemHovered() && tex)
+				if (ImGui::IsItemHovered())
 				{
 					ImGui::BeginTooltip();
-					ImGui::Image(tex ? tex->GetHandle() : nullptr, ImVec2(256, 256), ImVec2(0.0f, flipImage ? 1.0f : 0.0f), ImVec2(1.0f, flipImage ? 0.0f : 1.0f));
+					ImGui::Image(tex->GetHandle(), ImVec2(256, 256), ImVec2(0.0f, flipImage ? 1.0f : 0.0f), ImVec2(1.0f, flipImage ? 0.0f : 1.0f));
 					ImGui::EndTooltip();
 				}
 			}
@@ -238,23 +238,23 @@ namespace Lumos
 
 		ImGui::Separator();
 
-		if (ImGui::TreeNode("Specular"))
+		if (ImGui::TreeNode("Metallic"))
 		{
 			ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(2, 2));
 			ImGui::Columns(2);
 			ImGui::Separator();
 
 			ImGui::AlignTextToFramePadding();
-			auto tex = GetTextures().specular;
+			auto tex = GetTextures().metallic;
 
 			if (tex)
 			{
-				ImGui::Image(tex ? tex->GetHandle() : nullptr, ImVec2(64, 64), ImVec2(0.0f, flipImage ? 1.0f : 0.0f), ImVec2(1.0f, flipImage ? 0.0f : 1.0f));
+				ImGui::Image(tex->GetHandle(), ImVec2(64, 64), ImVec2(0.0f, flipImage ? 1.0f : 0.0f), ImVec2(1.0f, flipImage ? 0.0f : 1.0f));
 
-				if (ImGui::IsItemHovered() && tex)
+				if (ImGui::IsItemHovered())
 				{
 					ImGui::BeginTooltip();
-					ImGui::Image(tex ? tex->GetHandle() : nullptr, ImVec2(256, 256), ImVec2(0.0f, flipImage ? 1.0f : 0.0f), ImVec2(1.0f, flipImage ? 0.0f : 1.0f));
+					ImGui::Image(tex->GetHandle(), ImVec2(256, 256), ImVec2(0.0f, flipImage ? 1.0f : 0.0f), ImVec2(1.0f, flipImage ? 0.0f : 1.0f));
 					ImGui::EndTooltip();
 				}
 			}
@@ -271,19 +271,19 @@ namespace Lumos
 			ImGui::NextColumn();
 
 			ImGui::AlignTextToFramePadding();
-			ImGui::TextUnformatted("Use Specular Map");
+			ImGui::TextUnformatted("Use Metallic Map");
 			ImGui::NextColumn();
 			ImGui::PushItemWidth(-1);
-			ImGui::SliderFloat("##UseSpecularMap", &prop->usingSpecularMap, 0.0f, 1.0f);
+			ImGui::SliderFloat("##UseMetallicMap", &prop->usingMetallicMap, 0.0f, 1.0f);
 
 			ImGui::PopItemWidth();
 			ImGui::NextColumn();
 
 			ImGui::AlignTextToFramePadding();
-			ImGui::TextUnformatted("Specular");
+			ImGui::TextUnformatted("Metallic");
 			ImGui::NextColumn();
 			ImGui::PushItemWidth(-1);
-			ImGui::SliderFloat3("##Specular", Maths::ValuePointer(prop->specularColour), 0.0f, 1.0f);
+			ImGui::SliderFloat3("##Metallic", Maths::ValuePointer(prop->metallicColour), 0.0f, 1.0f);
 
 			ImGui::PopItemWidth();
 			ImGui::NextColumn();
@@ -306,9 +306,9 @@ namespace Lumos
 			auto tex = GetTextures().roughness;
 			if (tex)
 			{
-				ImGui::Image(tex ? tex->GetHandle() : nullptr, ImVec2(64, 64), ImVec2(0.0f, flipImage ? 1.0f : 0.0f), ImVec2(1.0f, flipImage ? 0.0f : 1.0f));
+				ImGui::Image(tex->GetHandle(), ImVec2(64, 64), ImVec2(0.0f, flipImage ? 1.0f : 0.0f), ImVec2(1.0f, flipImage ? 0.0f : 1.0f));
 
-				if (ImGui::IsItemHovered() && tex)
+				if (ImGui::IsItemHovered())
 				{
 					ImGui::BeginTooltip();
 					ImGui::Image(tex ? tex->GetHandle() : nullptr, ImVec2(256, 256), ImVec2(0.0f, flipImage ? 1.0f : 0.0f), ImVec2(1.0f, flipImage ? 0.0f : 1.0f));
@@ -363,12 +363,12 @@ namespace Lumos
 			auto tex = GetTextures().ao;
 			if (tex)
 			{
-				ImGui::Image(tex ? tex->GetHandle() : nullptr, ImVec2(64, 64), ImVec2(0.0f, flipImage ? 1.0f : 0.0f), ImVec2(1.0f, flipImage ? 0.0f : 1.0f));
+				ImGui::Image(tex->GetHandle(), ImVec2(64, 64), ImVec2(0.0f, flipImage ? 1.0f : 0.0f), ImVec2(1.0f, flipImage ? 0.0f : 1.0f));
 
-				if (ImGui::IsItemHovered() && tex)
+				if (ImGui::IsItemHovered())
 				{
 					ImGui::BeginTooltip();
-					ImGui::Image(tex ? tex->GetHandle() : nullptr, ImVec2(256, 256), ImVec2(0.0f, flipImage ? 1.0f : 0.0f), ImVec2(1.0f, flipImage ? 0.0f : 1.0f));
+					ImGui::Image(tex->GetHandle(), ImVec2(256, 256), ImVec2(0.0f, flipImage ? 1.0f : 0.0f), ImVec2(1.0f, flipImage ? 0.0f : 1.0f));
 					ImGui::EndTooltip();
 				}
 			}
@@ -411,12 +411,12 @@ namespace Lumos
 			auto tex = GetTextures().emissive;
 			if (tex)
 			{
-				ImGui::Image(tex ? tex->GetHandle() : nullptr, ImVec2(64, 64), ImVec2(0.0f, flipImage ? 1.0f : 0.0f), ImVec2(1.0f, flipImage ? 0.0f : 1.0f));
+				ImGui::Image(tex->GetHandle(), ImVec2(64, 64), ImVec2(0.0f, flipImage ? 1.0f : 0.0f), ImVec2(1.0f, flipImage ? 0.0f : 1.0f));
 
-				if (ImGui::IsItemHovered() && tex)
+				if (ImGui::IsItemHovered())
 				{
 					ImGui::BeginTooltip();
-					ImGui::Image(tex ? tex->GetHandle() : nullptr, ImVec2(256, 256), ImVec2(0.0f, flipImage ? 1.0f : 0.0f), ImVec2(1.0f, flipImage ? 0.0f : 1.0f));
+					ImGui::Image(tex->GetHandle(), ImVec2(256, 256), ImVec2(0.0f, flipImage ? 1.0f : 0.0f), ImVec2(1.0f, flipImage ? 0.0f : 1.0f));
 					ImGui::EndTooltip();
 				}
 			}
@@ -464,11 +464,11 @@ namespace Lumos
     void Material::SetMaterialProperites(const MaterialProperties &properties)
     {
         m_MaterialProperties->albedoColour      = properties.albedoColour;
-        m_MaterialProperties->specularColour    = properties.specularColour;
+        m_MaterialProperties->metallicColour    = properties.metallicColour;
         m_MaterialProperties->roughnessColour   = properties.roughnessColour;
         m_MaterialProperties->usingAlbedoMap    = properties.usingAlbedoMap;
         m_MaterialProperties->usingNormalMap    = properties.usingNormalMap;
-        m_MaterialProperties->usingSpecularMap  = properties.usingSpecularMap;
+        m_MaterialProperties->usingMetallicMap  = properties.usingMetallicMap;
         m_MaterialProperties->usingRoughnessMap = properties.usingRoughnessMap;
         m_MaterialProperties->usingAOMap        = properties.usingAOMap;
         m_MaterialProperties->usingEmissiveMap  = properties.usingEmissiveMap;
@@ -526,12 +526,12 @@ namespace Lumos
 
         if(pbr)
         {
-            if(m_PBRMaterialTextures.specular != nullptr)
+            if(m_PBRMaterialTextures.metallic != nullptr)
             {
                 Graphics::ImageInfo imageInfo2 = {};
-                imageInfo2.texture ={ m_PBRMaterialTextures.specular.get() };
+                imageInfo2.texture ={ m_PBRMaterialTextures.metallic.get() };
                 imageInfo2.binding = 1;
-                imageInfo2.name = "u_SpecularMap";
+                imageInfo2.name = "u_MetallicMap";
                 imageInfos.push_back(imageInfo2);
             }
             else
@@ -539,9 +539,9 @@ namespace Lumos
                 Graphics::ImageInfo imageInfo2 = {};
                 imageInfo2.texture ={ s_DefaultTexture.get() };
                 imageInfo2.binding = 1;
-                imageInfo2.name = "u_SpecularMap";
+                imageInfo2.name = "u_MetallicMap";
                 imageInfos.push_back(imageInfo2);
-                m_MaterialProperties->usingSpecularMap = 0.0f;
+                m_MaterialProperties->usingMetallicMap = 0.0f;
             }
 
             if(m_PBRMaterialTextures.roughness != nullptr)

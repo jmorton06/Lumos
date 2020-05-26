@@ -157,30 +157,37 @@ namespace Lumos
 
 				if (mp->diffuse_texname.length() > 0)
 				{
-					Ref<Graphics::Texture2D> texture = LoadMaterialTextures("Albedo", m_Textures, mp->diffuse_texname, m_Directory, Graphics::TextureParameters(Graphics::TextureFilter::NEAREST, Graphics::TextureWrap::CLAMP_TO_EDGE));
+					Ref<Graphics::Texture2D> texture = LoadMaterialTextures("Albedo", m_Textures, mp->diffuse_texname, m_Directory, Graphics::TextureParameters(Graphics::TextureFilter::NEAREST, Graphics::TextureFilter::NEAREST, mp->diffuse_texopt.clamp ? Graphics::TextureWrap::CLAMP_TO_EDGE : Graphics::TextureWrap::REPEAT));
 					if (texture)
 						textures.albedo = texture;
 				}
 
 				if (mp->bump_texname.length() > 0)
 				{
-					Ref<Graphics::Texture2D> texture = LoadMaterialTextures("Normal", m_Textures, mp->bump_texname, m_Directory, Graphics::TextureParameters(Graphics::TextureWrap::CLAMP));
+					Ref<Graphics::Texture2D> texture = LoadMaterialTextures("Normal", m_Textures, mp->bump_texname, m_Directory, Graphics::TextureParameters(Graphics::TextureFilter::NEAREST, Graphics::TextureFilter::NEAREST, mp->bump_texopt.clamp ? Graphics::TextureWrap::CLAMP_TO_EDGE : Graphics::TextureWrap::REPEAT));
 					if (texture)
 						textures.normal = texture;//pbrMaterial->SetNormalMap(texture);
 				}
 
-				if (mp->ambient_texname.length() > 0)
+				if (mp->roughness_texname.length() > 0)
 				{
-					Ref<Graphics::Texture2D> texture = LoadMaterialTextures("Metallic", m_Textures, mp->ambient_texname.c_str(), m_Directory, Graphics::TextureParameters(Graphics::TextureWrap::CLAMP));
-					//if(texture)// TODO: Fix or check if mesh mtl wrong
-					//	pbrMaterial->SetGlossMap(texture);
+					Ref<Graphics::Texture2D> texture = LoadMaterialTextures("Roughness", m_Textures, mp->roughness_texname.c_str(), m_Directory, Graphics::TextureParameters(Graphics::TextureFilter::NEAREST, Graphics::TextureFilter::NEAREST, mp->roughness_texopt.clamp ? Graphics::TextureWrap::CLAMP_TO_EDGE : Graphics::TextureWrap::REPEAT));
+					if(texture)
+                        textures.roughness = texture;
 				}
+            
+                if(mp->metallic_texname.length() > 0)
+                {
+                    Ref<Graphics::Texture2D> texture = LoadMaterialTextures("Metallic", m_Textures, mp->metallic_texname, m_Directory, Graphics::TextureParameters(Graphics::TextureFilter::NEAREST, Graphics::TextureFilter::NEAREST, mp->metallic_texopt.clamp ? Graphics::TextureWrap::CLAMP_TO_EDGE : Graphics::TextureWrap::REPEAT));
+                    if (texture)
+                        textures.metallic = texture;
+                }
 
 				if (mp->specular_highlight_texname.length() > 0)
 				{
-					Ref<Graphics::Texture2D> texture = LoadMaterialTextures("Specular", m_Textures, mp->specular_highlight_texname, m_Directory, Graphics::TextureParameters(Graphics::TextureWrap::CLAMP));
+					Ref<Graphics::Texture2D> texture = LoadMaterialTextures("Metallic", m_Textures, mp->specular_highlight_texname, m_Directory, Graphics::TextureParameters(Graphics::TextureFilter::NEAREST, Graphics::TextureFilter::NEAREST, mp->specular_texopt.clamp ? Graphics::TextureWrap::CLAMP_TO_EDGE : Graphics::TextureWrap::REPEAT));
 					if (texture)
-						textures.roughness = texture;//pbrMaterial->SetSpecularMap(texture);
+						textures.metallic = texture;
 				}
 			}
 
