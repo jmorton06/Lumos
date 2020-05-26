@@ -14,6 +14,7 @@
 
 #include "Physics/LumosPhysicsEngine/LumosPhysicsEngine.h"
 #include "Physics/B2PhysicsEngine/B2PhysicsEngine.h"
+#include "Core/OS/Input.h"
 
 #include <Box2D/Box2D.h>
 #include <imgui/imgui_internal.h>
@@ -80,25 +81,15 @@ namespace Lumos
 			{
 				m_Editor->Draw2DGrid(ImGui::GetWindowDrawList(), { camera->GetPosition().x, camera->GetPosition().y }, sceneViewPosition, { sceneViewSize.x, sceneViewSize.y }, camera->GetScale(), 1.5f);
 			}
-			else
-			{
-#if 0
-				Maths::Matrix4 view = camera->GetViewMatrix();
-				Maths::Matrix4 proj = camera->GetProjectionMatrix();
-				Maths::Matrix4 identityMatrix;
-
-#ifdef LUMOS_RENDER_API_VULKAN
-				if (Graphics::GraphicsContext::GetRenderAPI() == Graphics::RenderAPI::VULKAN)
-					proj.m11_ *= -1.0f;
-#endif
-
-				ImGuizmo::DrawGrid(view.values, proj.values, identityMatrix.values, m_Editor->GetGridSize());
-#endif
-			}
 		}
 
-
 		m_Editor->OnImGuizmo();
+
+        if(app.GetSceneActive() && !ImGuizmo::IsUsing() && Input::GetInput()->GetMouseClicked(InputCode::MouseKey::ButtonLeft))
+        {
+            auto clickPos = Input::GetInput()->GetMousePosition() - Maths::Vector2(sceneViewPosition.x , sceneViewPosition.y);
+            m_Editor->SelectObject(m_Editor->GetScreenRay(clickPos.x, clickPos.y, camera, sceneViewSize.x, sceneViewSize.y));
+        }
         
         DrawGizmos(sceneViewSize.x, sceneViewSize.y, 0.0f, 40.0f, app.GetSceneManager()->GetCurrentScene()); // Not sure why 40
     

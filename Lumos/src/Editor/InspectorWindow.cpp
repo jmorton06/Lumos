@@ -11,7 +11,7 @@
 #include "Graphics/API/Texture.h"
 #include "Maths/Transform.h"
 #include "Scripting/ScriptComponent.h"
-
+#include "ImGui/ImGuiHelpers.h"
 #include <imgui/imgui.h>
 #include <IconFontCppHeaders/IconsFontAwesome5.h>
 
@@ -439,8 +439,7 @@ namespace MM {
     void ComponentEditorWidget<Lumos::Graphics::Environment>(entt::registry& reg, entt::registry::entity_type e)
     {
         auto& environment = reg.get<Lumos::Graphics::Environment>(e);
-    
-        //ImGui::Image(environment.GetEnvironmentMap()->GetHandle());
+        Lumos::ImGuiHelpers::Image(environment.GetEnvironmentMap(), Lumos::Maths::Vector2(200,200));
     }
 }
 
@@ -497,7 +496,21 @@ namespace Lumos
 				ImGui::End();
 				return;
 			}
-
+        
+            //active checkbox
+            auto activeComponent = registry.try_get<ActiveComponent>(selected);
+            bool active = activeComponent ? activeComponent->active : true;
+            if(ImGui::Checkbox("##ActiveCheckbox", &active))
+            {
+               if(!activeComponent)
+                   registry.emplace<ActiveComponent>(selected, active);
+               else
+                   activeComponent->active = active;
+            }
+            ImGui::SameLine();
+            ImGui::TextUnformatted(ICON_FA_CUBE);
+            ImGui::SameLine();
+        
 			bool hasName = registry.has<NameComponent>(selected);
 			String name;
 			if (hasName)
@@ -518,19 +531,11 @@ namespace Lumos
 					ImGui::TextUnformatted("INVALID ENTITY");
 				}
 			}
-
-			ImGui::Indent();
-			ImGui::TextUnformatted(ICON_FA_CUBE);
-			ImGui::SameLine();
-
-			//active checkbox
-			//ImGui::SameLine();
-
+        
 			ImGui::PushItemWidth(-1);
 			if (ImGui::InputText("##Name", objName, IM_ARRAYSIZE(objName), 0))
 				registry.get_or_emplace<NameComponent>(selected).name = objName;
 
-			ImGui::Unindent();
 			ImGui::Separator();
 
 			m_EnttEditor.RenderImGui(registry, selected);
