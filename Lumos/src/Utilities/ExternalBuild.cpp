@@ -10,6 +10,7 @@
 #endif
 
 #include <imgui/misc/freetype/imgui_freetype.cpp>
+
 #include <stb/stb_vorbis.c>
 #include <simplex/simplexnoise.cpp>
 
@@ -22,3 +23,6 @@
 #include <volk/volk.c>
 #endif
 #endif
+
+#include <OpenFBX/miniz.c>
+#include <OpenFBX/ofbx.cpp>
