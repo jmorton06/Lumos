@@ -17,7 +17,7 @@
 #include <imgui/plugins/ImGuiAl/fonts/GoogleMaterialDesign.inl>
 #include <imgui/plugins/ImGuiAl/fonts/FontAwesome5Solid900.inl>
 #include <imgui/plugins/ImGuiAl/fonts/FontAwesome5Brands400.inl>
-
+#include <imgui/misc/freetype/imgui_freetype.h>
 
 namespace Lumos
 {
@@ -209,6 +209,7 @@ namespace Lumos
 		if (!VFS::Get()->ResolvePhysicalPath(filePath, physicalPath))
 			LUMOS_LOG_CRITICAL("Failed to Load font {0}", filePath);
 
+        io.FontGlobalScale = 1.0f;
 		filePath = physicalPath;
         ImFontConfig icons_config;
         icons_config.MergeMode = false;
@@ -225,10 +226,20 @@ namespace Lumos
 
 		io.Fonts->AddFontFromMemoryCompressedTTF(CousineRegular_compressed_data, CousineRegular_compressed_size, m_FontSize, &icons_config);
 		AddIconFont();
+    
+        io.Fonts->TexGlyphPadding = 1;
+        for (int n = 0; n < io.Fonts->ConfigData.Size; n++)
+        {
+            ImFontConfig* font_config = (ImFontConfig*)&io.Fonts->ConfigData[n];
+            font_config->RasterizerMultiply = 1.0f;
+            font_config->RasterizerFlags = ImGuiFreeType::RasterizerFlags::ForceAutoHint;
+        }
+    
+        ImGuiFreeType::BuildFontAtlas(io.Fonts, ImGuiFreeType::RasterizerFlags::ForceAutoHint);
 
         ImGuiStyle& style = ImGui::GetStyle();
         
-		style.WindowPadding = ImVec2(2, 2);
+		style.WindowPadding = ImVec2(5,5);
 		style.FramePadding = ImVec2(2, 2);
 		style.ItemSpacing = ImVec2(6, 2);
 		style.ItemInnerSpacing = ImVec2(6, 4);

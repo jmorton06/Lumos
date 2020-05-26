@@ -11,6 +11,7 @@ IncludeDir["jsonhpp"] = "../Lumos/external/jsonhpp/"
 IncludeDir["Lumos"] = "../Lumos/src"
 IncludeDir["External"] = "../Lumos/external/"
 IncludeDir["ImGui"] = "../Dependencies/imgui/"
+IncludeDir["freetype"] = "../Dependencies/freetype/include"
 
 project "Sandbox"
 	kind "WindowedApp"
@@ -38,6 +39,7 @@ project "Sandbox"
 		"%{IncludeDir.External}",
 		"%{IncludeDir.jsonhpp}",
 		"%{IncludeDir.spdlog}",
+		"%{IncludeDir.freetype}",
 		"%{IncludeDir.Lumos}",
 	}
 
