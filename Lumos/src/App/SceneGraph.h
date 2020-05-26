@@ -11,7 +11,11 @@ namespace Lumos
 
 	struct ActiveComponent
 	{
-		bool active;
+        ActiveComponent(bool act)
+        {
+            active = act;
+        }
+		bool active = true;
 	};
 
 	class Hierarchy

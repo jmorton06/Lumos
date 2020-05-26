@@ -35,6 +35,7 @@
 #include "Graphics/Renderers/GridRenderer.h"
 #include "Graphics/Renderers/DebugRenderer.h"
 #include "Graphics/ModelLoader/ModelLoader.h"
+#include "Graphics/Environment.h"
 
 #include "Utilities/AssetsManager.h"
 
@@ -66,6 +67,7 @@ namespace Lumos
 
 	void Editor::OnInit()
 	{
+#if 0
 		const char *ini[] = { "editor.ini", "editor/editor.ini", "../editor/editor.ini" };
 		bool fileFound = false;
 		for (int i = 0; i < IM_ARRAYSIZE(ini); ++i) 
@@ -83,13 +85,14 @@ namespace Lumos
 			}
 		}
 
-//		if (!fileFound)
-//		{
-//			FileSystem::WriteFile("editor.ini", nullptr);
-//			ImGui::GetIO().IniFilename = "editor.ini";
-//		}
+		if (!fileFound)
+		{
+			FileSystem::WriteFile("editor.ini", nullptr);
+			ImGui::GetIO().IniFilename = "editor.ini";
+		}
+#endif
 
-		m_ComponentIconMap[typeid(Graphics::Light).hash_code()] = ICON_FA_LIGHTBULB;
+		m_ComponentIconMap[typeid(Graphics::Light).hash_code()] = " " ICON_FA_LIGHTBULB " ";
 		m_ComponentIconMap[typeid(CameraComponent).hash_code()] = ICON_FA_CAMERA;
 		m_ComponentIconMap[typeid(SoundComponent).hash_code()] = ICON_FA_VOLUME_UP;
 		m_ComponentIconMap[typeid(Graphics::Sprite).hash_code()] = ICON_FA_IMAGE;
@@ -99,8 +102,9 @@ namespace Lumos
 		m_ComponentIconMap[typeid(MeshComponent).hash_code()] = ICON_FA_SHAPES;
 		m_ComponentIconMap[typeid(MaterialComponent).hash_code()] = ICON_FA_PAINT_BRUSH;
         m_ComponentIconMap[typeid(ScriptComponent).hash_code()] = ICON_FA_SCROLL;
+        m_ComponentIconMap[typeid(Graphics::Environment).hash_code()] = ICON_FA_GLOBE;
 
-		m_Windows.emplace_back(CreateRef<ConsoleWindow>());
+        m_Windows.emplace_back(CreateRef<ConsoleWindow>());
 		m_Windows.emplace_back(CreateRef<SceneWindow>());
 		m_Windows.emplace_back(CreateRef<ProfilerWindow>());
 		m_Windows.back()->SetActive(false);
@@ -154,7 +158,7 @@ namespace Lumos
     {
         String extension = StringFormat::GetFilePathExtension(filePath);
     
-        if(extension == "obj" || extension == "gltf" || extension == "glb")
+        if(extension == "obj" || extension == "gltf" || extension == "glb" || extension == "fbx" || extension == "FBX")
             return true;
     
         return false;
@@ -196,16 +200,22 @@ namespace Lumos
 
         if(m_FileBrowser->HasSelected())
         {
-            if(IsTextFile(m_FileBrowser->GetSelected().string()))
-                OpenTextFile(m_FileBrowser->GetSelected().string());
-            else if(IsModelFile(m_FileBrowser->GetSelected().string()))
-                ModelLoader::LoadModel(m_FileBrowser->GetSelected().string(), m_Application->GetSceneManager()->GetCurrentScene()->GetRegistry());
-            else if(IsAudioFile(m_FileBrowser->GetSelected().string()))
+            String tempFilePath = m_FileBrowser->GetSelected().string();
+    
+            String filePath = Lumos::BackSlashesToSlashes(tempFilePath);
+            if(IsTextFile(filePath))
+                OpenTextFile(filePath);
+            else if(IsModelFile(filePath))
             {
-                AssetsManager::Sounds()->LoadAsset(StringFormat::GetFileName(m_FileBrowser->GetSelected().string()), m_FileBrowser->GetSelected().string());
+                auto entity = ModelLoader::LoadModel(filePath, m_Application->GetSceneManager()->GetCurrentScene()->GetRegistry());
+                m_Selected = entity;
+            }
+            else if(IsAudioFile(filePath))
+            {
+                AssetsManager::Sounds()->LoadAsset(StringFormat::GetFileName(filePath), filePath);
 
                 auto soundNode = Ref<SoundNode>(SoundNode::Create());
-                soundNode->SetSound(AssetsManager::Sounds()->Get(StringFormat::GetFileName(m_FileBrowser->GetSelected().string())).get());
+                soundNode->SetSound(AssetsManager::Sounds()->Get(StringFormat::GetFileName(filePath)).get());
                 soundNode->SetVolume(1.0f);
                 soundNode->SetPosition(Maths::Vector3(0.1f, 10.0f, 10.0f));
                 soundNode->SetLooping(true);
@@ -217,6 +227,7 @@ namespace Lumos
                 auto& registry = m_Application->GetSceneManager()->GetCurrentScene()->GetRegistry();
                 entt::entity e = registry.create();
                 registry.emplace<SoundComponent>(e, soundNode);
+                m_Selected = e;
             }
             m_FileBrowser->ClearSelected();
         }
@@ -708,7 +719,7 @@ namespace Lumos
 		m_Application->OnEvent(e);
 	}
     
-    Maths::Ray GetScreenRay(int x, int y, Camera* camera, int width, int height)
+    Maths::Ray Editor::GetScreenRay(int x, int y, Camera* camera, int width, int height)
     {
         if (!camera)
             return Maths::Ray();
@@ -733,23 +744,15 @@ namespace Lumos
 
 		if (m_TransitioningCamera)
 		{
-			if (m_CameraTransitionStartTime < 0.0f)
-				m_CameraTransitionStartTime = ts->GetElapsedMillis();
+            if (m_CameraTransitionStartTime < 0.0f)
+                m_CameraTransitionStartTime = ts->GetElapsedMillis();
 
-			float focusProgress = Maths::Min((ts->GetElapsedMillis() - m_CameraTransitionStartTime) / m_CameraTransitionSpeed, 1.f);
-			Maths::Vector3 newCameraPosition = m_CameraStartPosition.Lerp(m_CameraDestination, focusProgress);
-			m_Application->GetSceneManager()->GetCurrentScene()->GetCamera()->SetPosition(newCameraPosition);
+            float focusProgress = Maths::Min((ts->GetElapsedMillis() - m_CameraTransitionStartTime) / m_CameraTransitionSpeed, 1.f);
+            Maths::Vector3 newCameraPosition = m_CameraStartPosition.Lerp(m_CameraDestination, focusProgress);
+            m_Application->GetSceneManager()->GetCurrentScene()->GetCamera()->SetPosition(newCameraPosition);
 
-			if (m_Application->GetSceneManager()->GetCurrentScene()->GetCamera()->GetPosition().Equals(m_CameraDestination))
-				m_TransitioningCamera = false;
-		}
-    
-        if(Application::Instance()->GetSceneActive() && m_ImGuizmoOperation == 4 && Input::GetInput()->GetMouseClicked(InputCode::MouseKey::ButtonLeft))
-        {
-            auto camera = m_Application->GetSceneManager()->GetCurrentScene()->GetCamera();
-            auto clickPos = Input::GetInput()->GetMousePosition() - m_SceneWindowPos;
-            
-            SelectObject(GetScreenRay(clickPos.x, clickPos.y, camera, m_Application->m_SceneViewWidth, m_Application->m_SceneViewHeight));
+            if (m_Application->GetSceneManager()->GetCurrentScene()->GetCamera()->GetPosition().Equals(m_CameraDestination))
+                m_TransitioningCamera = false;
         }
     }
 
@@ -901,6 +904,8 @@ namespace Lumos
 
         auto group = registry.group<MeshComponent>(entt::get<Maths::Transform>);
 
+        static Timer timer;
+        static float timeSinceLastSelect = 0.0f;
 
         for(auto entity : group)
         {
@@ -928,14 +933,21 @@ namespace Lumos
         {
             if(m_Selected == currentClosestEntity)
             {
-                auto& trans = registry.get<Maths::Transform>(m_Selected);
-                auto& mesh = registry.get<MeshComponent>(m_Selected);
-                auto bb = mesh.GetMesh()->GetBoundingBox()->Transformed(trans.GetWorldMatrix());
+                if(timer.GetMS(1.0f) - timeSinceLastSelect < 1.0f)
+                {
+                    auto& trans = registry.get<Maths::Transform>(m_Selected);
+                    auto& mesh = registry.get<MeshComponent>(m_Selected);
+                    auto bb = mesh.GetMesh()->GetBoundingBox()->Transformed(trans.GetWorldMatrix());
 
-                FocusCamera(trans.GetWorldPosition(), (bb.max_ - bb.min_).Length());
+                    FocusCamera(trans.GetWorldPosition(), (bb.max_ - bb.min_).Length());
+                }
+                else
+                {
+                    currentClosestEntity = entt::null;
+                }
             }
 
-
+            timeSinceLastSelect = timer.GetMS(1.0f);
             m_Selected = currentClosestEntity;
             return;
         }

@@ -21,6 +21,7 @@ namespace Lumos
 	class WindowCloseEvent;
 	class WindowResizeEvent;
 	class TimeStep;
+	class Camera;
 	
 	namespace Graphics 
 	{
@@ -90,6 +91,7 @@ namespace Lumos
 		void RemoveWindow(EditorWindow* window);
 
         Maths::Vector2 m_SceneWindowPos;
+		Maths::Ray GetScreenRay(int x, int y, Camera* camera, int width, int height);
 
 	protected:
 		bool OnWindowResize(WindowResizeEvent& e);
