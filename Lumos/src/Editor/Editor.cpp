@@ -540,11 +540,10 @@ namespace Lumos
 				auto windowSize = window->Size;
 				auto viewManipulatePos = ImVec2(windowPos.x + windowSize.x - size, size / 2.0f - 20.0f + windowPos.y);
 
-				bool modified = false;
-				ImGuizmo::ViewManipulate(view, camDistance, viewManipulatePos, ImVec2(size, size), 0x10101010, modified);
+				ImGuizmo::ViewManipulate(view, camDistance, viewManipulatePos, ImVec2(size, size), 0x10101010);
 				ImGuizmo::DecomposeMatrixToComponents(view, pos, rot, scale);
 
-				if (modified)
+				//if (modified)
 				{
 					camera->SetPitch(rot[0]);
 					camera->SetYaw(rot[1]);
