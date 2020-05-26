@@ -48,7 +48,8 @@ project "Sandbox"
 		"Lumos",
 		"lua",
 		"Box2D",
-		"imgui"
+		"imgui",
+		"freetype"
 	}
 
 	cwd = os.getcwd() .. "/.."
