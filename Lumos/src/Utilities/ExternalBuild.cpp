@@ -9,6 +9,7 @@
 #include <imgui/examples/imgui_impl_vulkan.cpp>
 #endif
 
+#include <imgui/misc/freetype/imgui_freetype.cpp>
 #include <stb/stb_vorbis.c>
 #include <simplex/simplexnoise.cpp>
 

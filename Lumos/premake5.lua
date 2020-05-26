@@ -11,6 +11,8 @@ IncludeDir["jsonhpp"] = "external/jsonhpp/"
 IncludeDir["Lumos"] = "../Lumos/src"
 IncludeDir["External"] = "external/"
 IncludeDir["ImGui"] = "../Dependencies/imgui/"
+IncludeDir["freetype"] = "../Dependencies/freetype/include"
+
 
 project "Lumos"
 	kind "StaticLib"
@@ -51,6 +53,7 @@ project "Lumos"
 		"%{IncludeDir.External}",
 		"%{IncludeDir.jsonhpp}",
 		"%{IncludeDir.spdlog}",
+		"%{IncludeDir.freetype}",
 		"%{IncludeDir.Lumos}",
 	}
 
@@ -58,7 +61,8 @@ project "Lumos"
 	{
 		"lua",
 		"Box2D",
-		"imgui"
+		"imgui",
+		"freetype"
 	}
 
 	cwd = os.getcwd() .. "/.."
@@ -70,9 +74,6 @@ project "Lumos"
 		"LUMOS_DYNAMIC",
 		"LUMOS_ROOT_DIR="  .. cwd,
 	}
-
-	filter { "files:external/**"}
-		warnings "Off"
 
 	filter "system:windows"
 		cppdialect "C++17"
