@@ -37,7 +37,7 @@ namespace Lumos
                 glEnable(GL_BLEND);
             else
                 glDisable(GL_BLEND);
-            
+
             m_Shader->Bind();
         }
 

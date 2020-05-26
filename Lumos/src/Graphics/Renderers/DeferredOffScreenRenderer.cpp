@@ -87,11 +87,11 @@ namespace Lumos
 			MaterialProperties properties;
 			properties.albedoColour = Maths::Vector4(1.0f);
 			properties.roughnessColour = Maths::Vector4(0.5f);
-			properties.specularColour = Maths::Vector4(0.5f);
+			properties.metallicColour = Maths::Vector4(0.5f);
 			properties.usingAlbedoMap = 0.0f;
 			properties.usingRoughnessMap = 0.0f;
 			properties.usingNormalMap = 0.0f;
-			properties.usingSpecularMap = 0.0f;
+			properties.usingMetallicMap = 0.0f;
 			m_DefaultMaterial->SetMaterialProperites(properties);
 
 			m_UniformBuffer = nullptr;
@@ -152,11 +152,9 @@ namespace Lumos
             LUMOS_PROFILE_FUNC;
 
 			BeginScene(scene);
-
 			Begin();
 
             auto& registry = scene->GetRegistry();
-            
             auto group = registry.group<MeshComponent>(entt::get<Maths::Transform>);
 
             for(auto entity : group)

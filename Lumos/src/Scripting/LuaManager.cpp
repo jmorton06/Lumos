@@ -325,7 +325,7 @@ namespace Lumos
     
     Ref<Graphics::Texture2D> LoadTextureWithParams(const String& name, const String& path, Lumos::Graphics::TextureFilter filter, Lumos::Graphics::TextureWrap wrapMode)
     {
-        return Ref<Graphics::Texture2D>(Graphics::Texture2D::CreateFromFile(name, path, Graphics::TextureParameters(filter, wrapMode)));
+        return Ref<Graphics::Texture2D>(Graphics::Texture2D::CreateFromFile(name, path, Graphics::TextureParameters(filter, filter, wrapMode)));
     }
 
     void LuaManager::BindECSLua(sol::state& state)

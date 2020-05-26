@@ -493,6 +493,17 @@ namespace Lumos
 			default: LUMOS_LOG_CRITICAL("[Texture] Unsupported wrap type!");  return VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_EDGE;
 			}
 		}
+    
+        VkFilter VKTools::TextureFilterToVK(const TextureFilter filter)
+        {
+            switch (filter)
+            {
+            case TextureFilter::NEAREST:      return VK_FILTER_NEAREST;
+            case TextureFilter::LINEAR:       return VK_FILTER_LINEAR;
+            case TextureFilter::NONE:         return VK_FILTER_LINEAR;
+            default: LUMOS_LOG_CRITICAL("[Texture] Unsupported TextureFilter type!");  return VK_FILTER_LINEAR;
+            }
+        }
 
         VkFormat VKTools::TextureFormatToVK(const TextureFormat format)
         {

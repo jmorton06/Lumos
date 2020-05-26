@@ -97,7 +97,7 @@ namespace Lumos
 		renderpassCI.clear = false;
 		
 		m_RenderPass->Init(renderpassCI);
-		
+
 		CreateFramebuffers();
 		
 		m_CommandBuffers.resize(Renderer::GetSwapchain()->GetSwapchainBufferCount());
@@ -145,16 +145,15 @@ namespace Lumos
 		
 		for (auto& vertexArray : m_VertexArrays)
 			{
+			vertexArray = Graphics::VertexArray::Create();
 			VertexBuffer* buffer = VertexBuffer::Create(BufferUsage::DYNAMIC);
 			buffer->Resize(RENDERER_BUFFER_SIZE);
 			buffer->SetLayout(layout);
-			vertexArray = Graphics::VertexArray::Create();
 			vertexArray->PushBuffer(buffer);
 			}
 		
 		u32* indices = lmnew u32[MaxLineIndices];
 		
-		i32 offset = 0;
 		for (i32 i = 0; i < MaxLineIndices; i++)
 		{
 			indices[i] = i;
@@ -306,8 +305,6 @@ namespace Lumos
 
 	void LineRenderer::OnResize(u32 width, u32 height)
 	{
-		delete m_Pipeline;
-
 		for (auto fbo : m_Framebuffers)
 			delete fbo;
 		m_Framebuffers.clear();
@@ -316,31 +313,6 @@ namespace Lumos
 			m_RenderTexture = Application::Instance()->GetRenderManager()->GetGBuffer()->GetTexture(SCREENTEX_OFFSCREEN0);
     
 		SetScreenBufferSize(width, height);
-
-		CreateGraphicsPipeline();
-
-		if (m_UniformBuffer == nullptr)
-		{
-			m_UniformBuffer = Graphics::UniformBuffer::Create();
-			uint32_t bufferSize = static_cast<uint32_t>(sizeof(UniformBufferObject));
-			m_UniformBuffer->Init(bufferSize, nullptr);
-		}
-
-		std::vector<Graphics::BufferInfo> bufferInfos;
-
-		Graphics::BufferInfo bufferInfo;
-		bufferInfo.buffer = m_UniformBuffer;
-		bufferInfo.offset = 0;
-		bufferInfo.size = sizeof(UniformBufferObject);
-		bufferInfo.type = Graphics::DescriptorType::UNIFORM_BUFFER;
-		bufferInfo.shaderType = ShaderType::VERTEX;
-		bufferInfo.systemUniforms = false;
-		bufferInfo.name = "UniformBufferObject";
-		bufferInfo.binding = 0;
-
-		bufferInfos.push_back(bufferInfo);
-
-		m_Pipeline->GetDescriptorSet()->Update(bufferInfos);
 
 		CreateFramebuffers();
 	}

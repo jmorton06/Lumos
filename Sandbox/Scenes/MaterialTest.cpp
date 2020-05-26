@@ -153,11 +153,11 @@ void MaterialTest::LoadModels()
 	MaterialProperties properties;
 	properties.albedoColour = Vector4(0.6f, 0.1f, 0.1f, 1.0f);
 	properties.roughnessColour = Vector4(0.6f);
-	properties.specularColour = Vector4(0.15f);
+	properties.metallicColour = Vector4(0.15f);
 	properties.usingAlbedoMap = 0.5f;
 	properties.usingRoughnessMap = 0.0f;
 	properties.usingNormalMap = 0.0f;
-	properties.usingSpecularMap = 0.0f;
+	properties.usingMetallicMap = 0.0f;
 	groundMaterial->SetMaterialProperites(properties);
 	m_Registry.emplace<MaterialComponent>(ground, groundMaterial);
 

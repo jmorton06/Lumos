@@ -257,7 +257,6 @@ namespace Lumos
 			ds.back.writeMask = 0;
 			ds.minDepthBounds = 0;
 			ds.maxDepthBounds = 0;
-			ds.stencilTestEnable = VK_FALSE;
 			ds.front = ds.back;
 
 			VkPipelineMultisampleStateCreateInfo ms;

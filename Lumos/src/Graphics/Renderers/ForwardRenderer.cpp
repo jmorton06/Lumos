@@ -379,11 +379,7 @@ namespace Lumos
 
 		void ForwardRenderer::OnResize(u32 width, u32 height)
 		{
-			m_ScreenBufferWidth = static_cast<u32>(width);
-			m_ScreenBufferHeight = static_cast<u32>(height);
-
-			delete m_Pipeline;
-			delete m_RenderPass;
+            SetScreenBufferSize(width, height);
 
 			for (auto fbo : m_Framebuffers)
 				delete fbo;
@@ -393,44 +389,7 @@ namespace Lumos
 			if (m_RenderToGBufferTexture)
 				m_RenderTexture = Application::Instance()->GetRenderManager()->GetGBuffer()->GetTexture(SCREENTEX_OFFSCREEN0);
 
-			m_RenderPass = Graphics::RenderPass::Create();
-
-			AttachmentInfo textureTypes[2] =
-			{
-				{ TextureType::COLOUR, TextureFormat::RGBA8 },
-				{ TextureType::DEPTH , TextureFormat::DEPTH }
-			};
-
-			Graphics::RenderpassInfo renderpassCI{};
-			renderpassCI.attachmentCount = 2;
-			renderpassCI.textureType = textureTypes;
-			m_RenderPass->Init(renderpassCI);
-
-			CreateGraphicsPipeline();
-
 			CreateFramebuffers();
-
-			std::vector<Graphics::BufferInfo> bufferInfos;
-
-			Graphics::BufferInfo bufferInfo = {};
-			bufferInfo.buffer = m_UniformBuffer;
-			bufferInfo.offset = 0;
-			bufferInfo.size = sizeof(UniformBufferObject);
-			bufferInfo.type = Graphics::DescriptorType::UNIFORM_BUFFER;
-			bufferInfo.binding = 0;
-
-			Graphics::BufferInfo bufferInfo2 = {};
-			bufferInfo2.buffer = m_ModelUniformBuffer;
-			bufferInfo2.offset = 0;
-			bufferInfo2.size = sizeof(UniformBufferModel);
-			bufferInfo2.type = Graphics::DescriptorType::UNIFORM_BUFFER_DYNAMIC;
-			bufferInfo2.binding = 1;
-
-			bufferInfos.push_back(bufferInfo);
-			bufferInfos.push_back(bufferInfo2);
-
-			m_Pipeline->GetDescriptorSet()->Update(bufferInfos);
-
 		}
 
 		void ForwardRenderer::CreateGraphicsPipeline()

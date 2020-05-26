@@ -556,7 +556,9 @@ namespace Lumos
 
 			Ref<VertexArray> va;
 			va.reset(VertexArray::Create());
+			va->Bind();
 			va->PushBuffer(buffer);
+			va->Unbind();
 
 			u32 indices[6]
 			{

@@ -39,11 +39,25 @@ void SceneModelViewer::OnInit()
 		"/Textures/cubemap/CubeMap9.tga",
 		"/Textures/cubemap/CubeMap10.tga"
 	};
+    
+    String environmentIrrFiles[7] =
+    {
+         "/Textures/cubemap/CubeMapIrr_0.tga",
+         "/Textures/cubemap/CubeMapIrr_1.tga",
+         "/Textures/cubemap/CubeMapIrr_2.tga",
+         "/Textures/cubemap/CubeMapIrr_3.tga",
+         "/Textures/cubemap/CubeMapIrr_4.tga",
+         "/Textures/cubemap/CubeMapIrr_5.tga",
+         "/Textures/cubemap/CubeMapIrr_6.tga",
+    };
 
-	auto environmentMap = Graphics::TextureCube::CreateFromVCross(environmentFiles, 11);
+    auto environmentMap = Graphics::TextureCube::CreateFromVCross(environmentFiles, 11);
+    auto irradianceMap = Graphics::TextureCube::CreateFromVCross(environmentIrrFiles, 7);
+
     auto environment = m_Registry.create();
-    m_Registry.emplace<Graphics::Environment>(environment, environmentMap);
+    m_Registry.emplace<Graphics::Environment>(environment, environmentMap, irradianceMap);
     m_Registry.emplace<NameComponent>(environment, "Environment");
+
     
     auto lightEntity = m_Registry.create();
     m_Registry.emplace<Graphics::Light>(lightEntity, Maths::Vector3(26.0f, 22.0f, 48.5f), Maths::Vector4(1.0f), 1.3f);

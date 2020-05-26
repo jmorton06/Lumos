@@ -54,38 +54,40 @@ namespace Lumos
 		struct TextureParameters
 		{
 			TextureFormat format;
-			TextureFilter filter;
+			TextureFilter minFilter;
+            TextureFilter magFilter;
 			TextureWrap wrap;
 
 			TextureParameters()
 			{
 				format = TextureFormat::RGBA;
-				filter = TextureFilter::NEAREST;
+				minFilter = TextureFilter::NEAREST;
+                magFilter = TextureFilter::NEAREST;
 				wrap = TextureWrap::REPEAT;
 			}
 
-			TextureParameters(TextureFormat format, TextureFilter filter, TextureWrap wrap)
-				: format(format), filter(filter), wrap(wrap)
+			TextureParameters(TextureFormat format, TextureFilter minFilter, TextureFilter magFilter, TextureWrap wrap)
+				: format(format), minFilter(minFilter), magFilter(magFilter), wrap(wrap)
 			{
 			}
 
-			TextureParameters(TextureFilter filter)
-				: format(TextureFormat::RGBA), filter(filter), wrap(TextureWrap::CLAMP)
+			TextureParameters(TextureFilter minFilter, TextureFilter magFilter)
+				: format(TextureFormat::RGBA), minFilter(minFilter), magFilter(magFilter), wrap(TextureWrap::CLAMP)
 			{
 			}
 
-			TextureParameters(TextureFilter filter, TextureWrap wrap)
-				: format(TextureFormat::RGBA), filter(filter), wrap(wrap)
+			TextureParameters(TextureFilter minFilter, TextureFilter magFilter, TextureWrap wrap)
+				: format(TextureFormat::RGBA), minFilter(minFilter), magFilter(magFilter), wrap(wrap)
 			{
 			}
 
 			TextureParameters(TextureWrap wrap)
-				: format(TextureFormat::RGBA), filter(TextureFilter::LINEAR), wrap(wrap)
+				: format(TextureFormat::RGBA), minFilter(TextureFilter::LINEAR), magFilter(TextureFilter::LINEAR), wrap(wrap)
 			{
 			}
 
 			TextureParameters(TextureFormat format)
-				: format(format), filter(TextureFilter::LINEAR), wrap(TextureWrap::CLAMP)
+				: format(format), minFilter(TextureFilter::LINEAR), magFilter(TextureFilter::LINEAR), wrap(TextureWrap::CLAMP)
 			{
 			}
 		};

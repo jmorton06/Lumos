@@ -3,6 +3,7 @@
 #include "App/Application.h"
 #include "Core/Version.h"
 #include "VKDevice.h"
+#include "VKRenderer.h"
 
 namespace Lumos
 {
@@ -58,6 +59,16 @@ namespace Lumos
 			Debug::Log::Info("Vendor ID : {0}", StringFormat::ToString(m_PhysicalDeviceProperties.vendorID));
 			Debug::Log::Info("Device Type : {0}", String(TranslateVkPhysicalDeviceTypeToString(m_PhysicalDeviceProperties.deviceType)));
 			Debug::Log::Info("Driver Version : {0}.{1}.{2}", VK_VERSION_MAJOR(m_PhysicalDeviceProperties.driverVersion), VK_VERSION_MINOR(m_PhysicalDeviceProperties.driverVersion), VK_VERSION_PATCH(m_PhysicalDeviceProperties.driverVersion));
+
+			auto& caps = Renderer::GetCapabilities();
+			
+			caps.Vendor =  StringFormat::ToString(m_PhysicalDeviceProperties.vendorID);
+			caps.Renderer = std::string(m_PhysicalDeviceProperties.deviceName);
+			caps.Version = StringFormat::ToString(m_PhysicalDeviceProperties.driverVersion);
+
+            caps.MaxAnisotropy = m_PhysicalDeviceProperties.limits.maxSamplerAnisotropy;
+            caps.MaxSamples = m_PhysicalDeviceProperties.limits.maxSamplerAllocationCount;
+            caps.MaxTextureUnits = m_PhysicalDeviceProperties.limits.maxDescriptorSetSamplers;
 
 			// Queue family
 			uint32_t numQueueFamily = 0;

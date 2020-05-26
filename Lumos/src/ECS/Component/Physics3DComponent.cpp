@@ -8,13 +8,13 @@
 namespace Lumos
 {
     Physics3DComponent::Physics3DComponent()
+        : m_PhysicsObject(CreateRef<PhysicsObject3D>())
     {
-        m_PhysicsObject = CreateRef<PhysicsObject3D>();
     }
     
 	Physics3DComponent::Physics3DComponent(Ref<PhysicsObject3D>& physics)
+	    : m_PhysicsObject(physics)
 	{
-        m_PhysicsObject = physics;
 	}
 
 	void Physics3DComponent::Init()

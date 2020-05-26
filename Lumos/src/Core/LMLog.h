@@ -1,7 +1,9 @@
 #pragma once
 
+#ifdef LUMOS_PLATFORM_WINDOWS
 #ifndef NOMINMAX
 #define NOMINMAX // For windows.h
+#endif
 #endif
 
 #include "Core/Core.h"

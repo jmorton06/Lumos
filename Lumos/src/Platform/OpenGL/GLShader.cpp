@@ -211,7 +211,7 @@ namespace Lumos
 			String glVersion;
 
 #ifndef LUMOS_PLATFORM_MOBILE
-			glVersion = "#version 330 core \n";
+			glVersion = "#version 410 core \n";
 #else
 			glVersion = "#version 300 es \n precision highp float; \n precision highp int; \n";
 #endif

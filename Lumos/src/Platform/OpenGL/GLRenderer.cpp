@@ -20,6 +20,16 @@ namespace Lumos
 			m_Swapchain = lmnew Graphics::GLSwapchain(width, height);
 
 			m_RendererTitle = "OPENGL";
+
+			auto& caps = Renderer::GetCapabilities();
+
+			caps.Vendor = (const char*)glGetString(GL_VENDOR);
+			caps.Renderer = (const char*)glGetString(GL_RENDERER);
+			caps.Version = (const char*)glGetString(GL_VERSION);
+
+			glGetIntegerv(GL_MAX_SAMPLES, &caps.MaxSamples);
+			glGetFloatv(GL_MAX_TEXTURE_MAX_ANISOTROPY, &caps.MaxAnisotropy);
+			glGetIntegerv(GL_MAX_COMBINED_TEXTURE_IMAGE_UNITS, &caps.MaxTextureUnits);
 		}
 
 		GLRenderer::~GLRenderer()
@@ -34,7 +44,7 @@ namespace Lumos
 			GLCall(glEnable(GL_CULL_FACE));
 			GLCall(glEnable(GL_BLEND));
 			GLCall(glDepthFunc(GL_LEQUAL));
-			GLCall(glBlendFunc(GL_ONE, GL_ONE_MINUS_SRC_ALPHA));
+			GLCall(glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA));
 			GLCall(glBlendEquation(GL_FUNC_ADD));
 #ifndef LUMOS_PLATFORM_MOBILE
 			GLCall(glEnable(GL_DEPTH_CLAMP));
