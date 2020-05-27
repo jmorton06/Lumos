@@ -31,6 +31,8 @@ namespace Lumos
 			_FORCE_INLINE_ u32 GetWidth() const override { return m_Width; }
 			_FORCE_INLINE_ u32 GetHeight() const override { return m_Height; }
 
+			u32 GetMipMapLevels() const override { return m_MipLevels; }
+
 			_FORCE_INLINE_ const String& GetName() const override { return m_Name; }
 			_FORCE_INLINE_ const String& GetFilepath() const override { return m_FileName; }
 
@@ -95,6 +97,8 @@ namespace Lumos
 			_FORCE_INLINE_ u32 GetSize() const override { return m_Size; }
 			_FORCE_INLINE_ const String& GetName() const override { return m_Name; }
 			_FORCE_INLINE_ const String& GetFilepath() const override { return m_Files[0]; }
+
+            u32 GetMipMapLevels() const override { return m_NumMips; }
 
 			const VkDescriptorImageInfo* GetDescriptor() const { return &m_Descriptor; }
 

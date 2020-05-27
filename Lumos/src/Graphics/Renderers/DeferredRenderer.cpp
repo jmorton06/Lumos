@@ -49,7 +49,7 @@ namespace Lumos
 			PSSystemUniformIndex_LightCount,
 			PSSystemUniformIndex_ShadowCount,
 			PSSystemUniformIndex_RenderMode,
-			PSSystemUniformIndex_ShadowMode,
+			PSSystemUniformIndex_cubemapMipLevels,
 			PSSystemUniformIndex_Size
 		};
 
@@ -121,7 +121,7 @@ namespace Lumos
 			m_PSSystemUniformBufferOffsets[PSSystemUniformIndex_LightCount]			= m_PSSystemUniformBufferOffsets[PSSystemUniformIndex_ShadowSplitDepths] + sizeof(Maths::Vector4) * MAX_SHADOWMAPS;
 			m_PSSystemUniformBufferOffsets[PSSystemUniformIndex_ShadowCount]		= m_PSSystemUniformBufferOffsets[PSSystemUniformIndex_LightCount] + sizeof(int);
 			m_PSSystemUniformBufferOffsets[PSSystemUniformIndex_RenderMode]			= m_PSSystemUniformBufferOffsets[PSSystemUniformIndex_ShadowCount] + sizeof(int);
-            m_PSSystemUniformBufferOffsets[PSSystemUniformIndex_ShadowMode]         = m_PSSystemUniformBufferOffsets[PSSystemUniformIndex_RenderMode] + sizeof(int);
+            m_PSSystemUniformBufferOffsets[PSSystemUniformIndex_cubemapMipLevels]         = m_PSSystemUniformBufferOffsets[PSSystemUniformIndex_RenderMode] + sizeof(int);
 
 			m_RenderPass = Graphics::RenderPass::Create();
 
@@ -302,12 +302,13 @@ namespace Lumos
                 memcpy(m_PSSystemUniformBuffer + m_PSSystemUniformBufferOffsets[PSSystemUniformIndex_ShadowSplitDepths], uSplitDepth, sizeof(Maths::Vector4) * MAX_SHADOWMAPS);
             }
             
-            u32 numShadows = shadowRenderer ? shadowRenderer->GetShadowMapNum() : 0;
+            int numShadows = shadowRenderer ? int(shadowRenderer->GetShadowMapNum()) : 0;
             
+			auto cubemapMipLevels = m_EnvironmentMap ? m_EnvironmentMap->GetMipMapLevels() : 0;
             memcpy(m_PSSystemUniformBuffer + m_PSSystemUniformBufferOffsets[PSSystemUniformIndex_LightCount], &numLights, sizeof(int));
             memcpy(m_PSSystemUniformBuffer + m_PSSystemUniformBufferOffsets[PSSystemUniformIndex_ShadowCount], &numShadows, sizeof(int));
             memcpy(m_PSSystemUniformBuffer + m_PSSystemUniformBufferOffsets[PSSystemUniformIndex_RenderMode], &m_RenderMode, sizeof(int));
-            memcpy(m_PSSystemUniformBuffer + m_PSSystemUniformBufferOffsets[PSSystemUniformIndex_ShadowMode], &m_ShadowMode, sizeof(int));
+            memcpy(m_PSSystemUniformBuffer + m_PSSystemUniformBufferOffsets[PSSystemUniformIndex_cubemapMipLevels], &cubemapMipLevels, sizeof(int));
 		}
 
 		void DeferredRenderer::EndScene()
@@ -457,16 +458,6 @@ namespace Lumos
 			default: return "Lighting";
 			}
 		}
-        
-        String ShadowModeToString(int mode)
-        {
-            switch (mode)
-            {
-                case 0 : return "Normal";
-                case 1 : return "PCF";
-                default: return "Normal";
-            }
-        }
 
 		void DeferredRenderer::OnImGui()
 		{
@@ -502,20 +493,6 @@ namespace Lumos
 			}
 			ImGui::PopItemWidth();
 			ImGui::NextColumn();
-            
-            ImGui::AlignTextToFramePadding();
-            ImGui::TextUnformatted("Shadow Mode");
-            ImGui::NextColumn();
-            ImGui::PushItemWidth(-1);
-            if (ImGui::BeginMenu(ShadowModeToString(m_ShadowMode).c_str()))
-            {
-                if (ImGui::MenuItem(ShadowModeToString(0).c_str(), "", m_ShadowMode == 0, true)) { m_ShadowMode = 0; }
-                if (ImGui::MenuItem(ShadowModeToString(1).c_str(), "", m_ShadowMode == 1, true)) { m_ShadowMode = 1; }
-                
-                ImGui::EndMenu();
-            }
-            ImGui::PopItemWidth();
-            ImGui::NextColumn();
 
 			ImGui::Columns(1);
 			ImGui::Separator();

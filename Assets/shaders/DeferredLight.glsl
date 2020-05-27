@@ -26,6 +26,7 @@ uniform sampler2D uNormalSampler;
 uniform sampler2D uPBRSampler;
 uniform sampler2D uPreintegratedFG;
 uniform samplerCube uEnvironmentMap;
+uniform samplerCube uIrradianceMap;
 uniform sampler2DArrayShadow uShadowMap;
 uniform sampler2D uDepthSampler;
 
@@ -53,7 +54,7 @@ layout (std140) uniform LightData
 	int lightCount;
 	int shadowCount;
 	int mode;
-	int shadowMode;
+	int cubemapMipLevels;
 } ubo;
 
 #define PI 3.1415926535897932384626433832795
@@ -80,12 +81,147 @@ vec2 poissonDisk[16] = vec2[](
 
 struct Material
 {
-	vec4 albedo;
-	vec3 specular;
-	float roughness;
-	vec3 normal;
-	float ao;
+	vec4 Albedo;
+	vec3 Metallic;
+	float Roughness;
+	vec3 Emissive;
+	vec3 Normal;
+	float AO;
+	vec3 View;
+	float NDotV;
 };
+
+
+const float Epsilon = 0.00001;
+
+// Constant normal incidence Fresnel factor for all dielectrics.
+const vec3 Fdielectric = vec3(0.04);
+
+// GGX/Towbridge-Reitz normal distribution function.
+// Uses Disney's reparametrization of alpha = roughness^2
+float ndfGGX(float cosLh, float roughness)
+{
+	float alpha = roughness * roughness;
+	float alphaSq = alpha * alpha;
+
+	float denom = (cosLh * cosLh) * (alphaSq - 1.0) + 1.0;
+	return alphaSq / (PI * denom * denom);
+}
+
+// Single term for separable Schlick-GGX below.
+float gaSchlickG1(float cosTheta, float k)
+{
+	return cosTheta / (cosTheta * (1.0 - k) + k);
+}
+
+// Schlick-GGX approximation of geometric attenuation function using Smith's method.
+float gaSchlickGGX(float cosLi, float NdotV, float roughness)
+{
+	float r = roughness + 1.0;
+	float k = (r * r) / 8.0; // Epic suggests using this roughness remapping for analytic lights.
+	return gaSchlickG1(cosLi, k) * gaSchlickG1(NdotV, k);
+}
+
+// Shlick's approximation of the Fresnel factor.
+vec3 fresnelSchlick(vec3 F0, float cosTheta)
+{
+	return F0 + (1.0 - F0) * pow(1.0 - cosTheta, 5.0);
+}
+
+vec3 fresnelSchlickRoughness(vec3 F0, float cosTheta, float roughness)
+{
+    return F0 + (max(vec3(1.0 - roughness), F0) - F0) * pow(1.0 - cosTheta, 5.0);
+}
+
+vec3 Lighting(vec3 F0, float shadow, vec3 wsPos, Material material)
+{
+	vec3 result = vec3(0.0);
+
+	for(int i = 0; i < ubo.lightCount; i++)
+	{
+		Light light = ubo.lights[i];
+
+		float value = shadow;
+
+		if(light.type == 2.0)
+		{
+		    // Vector to light
+			vec3 L = light.position.xyz - wsPos;
+			// Distance from light to fragment position
+			float dist = length(L);
+
+			// Light to fragment
+			L = normalize(L);
+
+			// Attenuation
+			float atten = light.radius / (pow(dist, 2.0) + 1.0);
+
+			value = atten;
+
+			light.direction = vec4(L,1.0);
+		}
+		else if (light.type == 1.0)
+		{
+			vec3 L = light.position.xyz - wsPos;
+			float cutoffAngle   = 1.0f - light.angle;      
+			float dist          = length(L);
+			L = normalize(L);
+			float theta         = dot(L.xyz, light.direction.xyz);
+			float epsilon       = cutoffAngle - cutoffAngle * 0.9f;
+			float attenuation 	= ((theta - cutoffAngle) / epsilon); // atteunate when approaching the outer cone
+			attenuation         *= light.radius / (pow(dist, 2.0) + 1.0);//saturate(1.0f - dist / light.range);
+			float intensity 	= attenuation * attenuation;
+			
+			// Erase light if there is no need to compute it
+			intensity *= step(theta, cutoffAngle);
+
+			value = intensity;
+		}
+
+		vec3 Li = light.direction.xyz;
+		vec3 Lradiance = light.colour.xyz * light.intensity;
+		vec3 Lh = normalize(Li + material.View);
+
+		// Calculate angles between surface normal and various light vectors.
+		float cosLi = max(0.0, dot(material.Normal, Li));
+		float cosLh = max(0.0, dot(material.Normal, Lh));
+
+		vec3 F = fresnelSchlick(F0, max(0.0, dot(Lh, material.View)));
+		float D = ndfGGX(cosLh, material.Roughness);
+		float G = gaSchlickGGX(cosLi, material.NDotV, material.Roughness);
+
+		vec3 kd = (1.0 - F) * (1.0 - material.Metallic.x);
+		vec3 diffuseBRDF = kd * material.Albedo.xyz;
+
+		// Cook-Torrance
+		vec3 specularBRDF = (F * D * G) / max(Epsilon, 4.0 * cosLi * material.NDotV);
+
+		result += (diffuseBRDF + specularBRDF) * Lradiance * cosLi * value * material.AO;
+	}
+	return result;
+}
+
+vec3 RadianceIBLIntegration(float NdotV, float roughness, vec3 metallic)
+{
+	vec2 preintegratedFG = texture(uPreintegratedFG, vec2(roughness, 1.0 - NdotV)).rg;
+	return metallic * preintegratedFG.r + preintegratedFG.g;
+}
+
+vec3 IBL(vec3 F0, vec3 Lr, Material material)
+{
+	vec3 irradiance = texture(uIrradianceMap, material.Normal).rgb;
+	vec3 F = fresnelSchlickRoughness(F0, material.NDotV, material.Roughness);
+	vec3 kd = (1.0 - F) * (1.0 - material.Metallic.x);
+	vec3 diffuseIBL = material.Albedo.xyz * irradiance;
+
+	int u_EnvRadianceTexLevels = ubo.cubemapMipLevels;//textureQueryLevels(uEnvironmentMap);	
+	vec3 specularIrradiance = textureLod(uEnvironmentMap, Lr, material.Roughness * u_EnvRadianceTexLevels).rgb;
+
+	vec2 specularBRDF = texture(uPreintegratedFG, vec2(material.NDotV, 1.0 - material.Roughness)).rg;
+	vec3 specularIBL = specularIrradiance * (F * specularBRDF.x + specularBRDF.y);
+
+	return kd * diffuseIBL + specularIBL;
+}
 
 vec3 FinalGamma(vec3 color)
 {
@@ -97,90 +233,11 @@ vec3 GammaCorrectTextureRGB(vec3 texCol)
 	return vec3(pow(texCol.rgb, vec3(GAMMA)));
 }
 
-float FresnelSchlick(float f0, float fd90, float view)
+float Attentuate( vec3 lightData, float dist )
 {
-	return f0 + (fd90 - f0) * pow(max(1.0 - view, 0.1), 5.0);
-}
-
-float Disney(Light light, Material material, vec3 eye)
-{
-	vec3 halfVector = normalize(light.direction.xyz + eye);
-
-	float NdotL = max(dot(material.normal, light.direction.xyz), 0.0);
-	float LdotH = max(dot(light.direction.xyz, halfVector), 0.0);
-	float NdotV = max(dot(material.normal, eye), 0.0);
-
-	float energyBias = mix(0.0, 0.5, material.roughness);
-	float energyFactor = mix(1.0, 1.0 / 1.51, material.roughness);
-	float fd90 = energyBias + 2.0 * (LdotH * LdotH) * material.roughness;
-	float f0 = 1.0;
-
-	float lightScatter = FresnelSchlick(f0, fd90, NdotL);
-	float viewScatter = FresnelSchlick(f0, fd90, NdotV);
-
-	return lightScatter * viewScatter * energyFactor;
-}
-
-vec3 GGX(Light light, Material material, vec3 eye)
-{
-	vec3 h = normalize(light.direction.xyz + eye);
-	float NdotH = max(dot(material.normal, h), 0.0);
-
-	float rough2 = max(material.roughness * material.roughness, 2.0e-3); // capped so spec highlights doesn't disappear
-	float rough4 = rough2 * rough2;
-
-	float d = (NdotH * rough4 - NdotH) * NdotH + 1.0;
-	float D = rough4 / (PI * (d * d));
-
-	// Fresnel
-	vec3 reflectivity = material.specular;
-	float fresnel = 1.0;
-	float NdotL = clamp(dot(material.normal, light.direction.xyz), 0.0, 1.0);
-	float LdotH = clamp(dot(light.direction.xyz, h), 0.0, 1.0);
-	float NdotV = clamp(dot(material.normal, eye), 0.0, 1.0);
-	vec3 F = reflectivity + (fresnel - fresnel * reflectivity) * exp2((-5.55473 * LdotH - 6.98316) * LdotH);
-
-	// geometric / visibility
-	float k = rough2 * 0.5;
-	float G_SmithL = NdotL * (1.0 - k) + k;
-	float G_SmithV = NdotV * (1.0 - k) + k;
-	float G = 0.25 / (G_SmithL * G_SmithV);
-
-	return G * D * F;
-}
-
-vec3 RadianceIBLIntegration(float NdotV, float roughness, vec3 specular)
-{
-	vec2 preintegratedFG = texture(uPreintegratedFG, vec2(roughness, 1.0 - NdotV)).rg;
-	return specular * preintegratedFG.r + preintegratedFG.g;
-}
-
-vec3 IBL(Material material, vec3 eye)
-{
-	float NdotV = max(dot(material.normal, eye), 0.0);
-
-	vec3 reflectionVector = normalize(reflect(-eye, material.normal));
-	float smoothness = 1.0 - material.roughness;
-	float mipLevel = (1.0 - smoothness * smoothness) * 10.0;
-	vec4 cs = textureLod(uEnvironmentMap, reflectionVector, mipLevel);
-	vec3 result = pow(cs.xyz, vec3(GAMMA)) * RadianceIBLIntegration(NdotV, material.roughness, material.specular);
-
-	vec3 diffuseDominantDirection = material.normal;
-	float diffuseLowMip = 9.6;
-	vec3 diffuseImageLighting = textureLod(uEnvironmentMap, diffuseDominantDirection, diffuseLowMip).rgb;
-	diffuseImageLighting = pow(diffuseImageLighting, vec3(GAMMA));
-
-	return result + diffuseImageLighting * material.albedo.rgb;
-}
-
-float Diffuse(Light light, Material material, vec3 eye)
-{
-	return Disney(light, material, eye);
-}
-
-vec3 Specular(Light light, Material material, vec3 eye)
-{
-	return GGX(light, material, eye);
+	float att =  1.0 / ( lightData.x + lightData.y*dist + lightData.z*dist*dist );
+	float damping = 1.0;// - (dist/lightData.w);
+	return max(att * damping, 0.0);
 }
 
 float DoShadowTest(vec3 tsShadow, int tsLayer, vec2 pix)
@@ -260,33 +317,35 @@ const int NUM_SHADOWMAPS = 4; //TODO : uniform
 void main()
 {
 	vec4 colourTex   = texture(uColourSampler   , fragTexCoord);
-
-	 if(colourTex.w < 0.1)
+	
+	if(colourTex.w < 0.1)
         discard;
 
     vec4 positionTex = texture(uPositionSampler , fragTexCoord);
     vec4 pbrTex		 = texture(uPBRSampler      , fragTexCoord);
     vec4 normalTex   = texture(uNormalSampler   , fragTexCoord);
+    vec3 wsPos       = positionTex.xyz;
 
-    vec3  spec      = vec3(pbrTex.x);
+    vec3 spec       = vec3(pbrTex.x);
 
 	float roughness = pbrTex.y;
 	vec3 emissive	= vec3(positionTex.w, normalTex.w, pbrTex.w);// EncodeFloatRGBA(pbrTex.w).xyz;
-    vec3 wsPos      = positionTex.xyz;
 	vec3 normal		= normalize(normalTex.xyz);
-
     vec3 finalColour;
 
-    Material material;
-    material.albedo    = colourTex;
-    material.specular  = spec;
-    material.roughness = roughness;
-    material.normal    = normal;
-	material.ao		   = pbrTex.z;
+	Material material;
+    material.Albedo    = colourTex;
+    material.Metallic  = spec;
+    material.Roughness = max(roughness, 0.05);
+    material.Normal    = normal;
+	material.AO		   = pbrTex.z;
+	material.Emissive  = emissive;
+	material.View 	   = normalize(ubo.cameraPosition.xyz - wsPos);
+	material.NDotV 	   = max(dot(material.Normal, material.View), 0.0);
 
     vec3 eye      = normalize(ubo.cameraPosition.xyz - wsPos);
     vec4 diffuse  = vec4(0.0);
-    vec3 specular = vec3(0.0);
+    vec3 metallic = vec3(0.0);
 
 	vec4 shadowWsPos = vec4(wsPos + normal * NORMAL_BIAS, 1.0f);
 	float shadow = 0.0f;
@@ -339,57 +398,14 @@ void main()
 
 	shadow = max(0.3,shadow);
 
-    for(int i = 0; i < ubo.lightCount; ++i)
-	{
-		Light light = ubo.lights[i];
+	vec3 Lr = 2.0 * material.NDotV * material.Normal - material.View;
+	// Fresnel reflectance, metals use albedo
+	vec3 F0 = mix(Fdielectric, material.Albedo.xyz, material.Metallic.x);
 
-		float value = shadow;
-		if(light.type == 2.0)
-		{
-		    // Vector to light
-			vec3 L = light.position.xyz - wsPos;
-			// Distance from light to fragment position
-			float dist = length(L);
-		
-			// Light to fragment
-			L = normalize(L);
+	vec3 lightContribution = Lighting(F0, shadow, wsPos, material);
+	vec3 iblContribution = IBL(F0, Lr, material) * 2.0;
 
-			// Attenuation
-			float atten = light.radius / (pow(dist, 2.0) + 1.0);
-			
-			value = atten;
-
-			light.direction = vec4(L,1.0);
-		}
-		else if (light.type == 1.0)
-		{
-			vec3 L = light.position.xyz - wsPos;
-			float cutoffAngle   = 1.0f - light.angle;      
-			float dist          = length(L);
-			L = normalize(L);
-			float theta         = dot(L.xyz, light.direction.xyz);
-			float epsilon       = cutoffAngle - cutoffAngle * 0.9f;
-			float attenuation 	= ((theta - cutoffAngle) / epsilon); // atteunate when approaching the outer cone
-			attenuation         *=  light.radius / (pow(dist, 2.0) + 1.0);//saturate(1.0f - dist / light.range);
-			float intensity 	= attenuation * attenuation;
-			
-			// Erase light if there is no need to compute it
-			intensity *= step(theta, cutoffAngle);
-
-			value = intensity;
-		}
-
-		float NdotL = clamp(dot(material.normal, light.direction.xyz), 0.0, 1.0)  * value * material.ao;
-		diffuse  += NdotL * Diffuse(light, material, eye) * light.colour * light.intensity;
-		specular += NdotL * Specular(light, material, eye) * light.colour.xyz * light.intensity;
-	}
-
-    diffuse = max(diffuse, vec4(0.1));
-
-    //finalColour = material.albedo.xyz * diffuse.rgb + specular;
-    finalColour = material.albedo.xyz * diffuse.rgb + (specular + IBL(material, eye));
-	finalColour += emissive;
-	finalColour = FinalGamma(finalColour);
+	finalColour = lightContribution + iblContribution + emissive;
 	outColor = vec4(finalColour, 1.0);
 
 	if(ubo.mode > 0)
@@ -400,13 +416,13 @@ void main()
 				outColor = colourTex;
 				break;
 			case 2:
-				outColor = vec4(material.specular, 1.0);
+				outColor = vec4(material.Metallic, 1.0);
 				break;
 			case 3:
-				outColor = vec4(material.roughness, material.roughness, material.roughness,1.0);
+				outColor = vec4(material.Roughness, material.Roughness, material.Roughness,1.0);
 				break;
 			case 4:
-				outColor = vec4(material.ao, material.ao, material.ao, 1.0);
+				outColor = vec4(material.AO, material.AO, material.AO, 1.0);
 				break;
 			case 5:
 				outColor = vec4(emissive, 1.0);
