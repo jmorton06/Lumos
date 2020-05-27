@@ -209,8 +209,6 @@ namespace Lumos
 
 		void GridRenderer::OnResize(u32 width, u32 height)
 		{
-			delete m_Pipeline;
-
 			for (auto fbo : m_Framebuffers)
 				delete fbo;
 			m_Framebuffers.clear();
@@ -220,7 +218,6 @@ namespace Lumos
 
 			SetScreenBufferSize(width, height);
 
-			CreateGraphicsPipeline();
 			UpdateUniformBuffer();
 			CreateFramebuffers();
 		}

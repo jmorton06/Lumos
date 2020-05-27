@@ -33,6 +33,7 @@ namespace Lumos
 
 			Ref<VertexArray> va;
 			va.reset(VertexArray::Create());
+            va->Bind();
 
 			VertexBuffer* buffer = VertexBuffer::Create(BufferUsage::STATIC);
 			buffer->SetData(sizeof(QuadVertex) * 4, data);
@@ -546,17 +547,17 @@ namespace Lumos
                 boundingBox->Merge(data[i].Position);
             }
 
-			Graphics::BufferLayout layout;
-			layout.Push<Maths::Vector3>("postion");
-			layout.Push<Maths::Vector4>("colours");
-			layout.Push<Maths::Vector2>("texCoord");
-			layout.Push<Maths::Vector3>("normal");
-			layout.Push<Maths::Vector3>("tangent");
-			buffer->SetLayout(layout);
-
 			Ref<VertexArray> va;
 			va.reset(VertexArray::Create());
 			va->Bind();
+        
+            Graphics::BufferLayout layout;
+            layout.Push<Maths::Vector3>("postion");
+            layout.Push<Maths::Vector4>("colours");
+            layout.Push<Maths::Vector2>("texCoord");
+            layout.Push<Maths::Vector3>("normal");
+            layout.Push<Maths::Vector3>("tangent");
+            buffer->SetLayout(layout);
 			va->PushBuffer(buffer);
 			va->Unbind();
 

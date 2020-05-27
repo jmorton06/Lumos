@@ -186,7 +186,7 @@ namespace Lumos
 		{
 			if (m_3DGridLayer == nullptr)
 			{
-				m_3DGridLayer = new Layer3D(new Graphics::GridRenderer(u32(Application::Instance()->GetWindowSize().x), u32(Application::Instance()->GetWindowSize().y), true), "Grid");
+				m_3DGridLayer = new Layer3D(new Graphics::GridRenderer(u32(Application::Instance()->m_SceneViewWidth), u32(Application::Instance()->m_SceneViewHeight), true), "Grid");
 				Application::Instance()->PushLayerInternal(m_3DGridLayer, true, false);
 			}
 		}
@@ -727,7 +727,13 @@ namespace Lumos
         float screenX = (float)x / (float)width;
         float screenY = (float)y / (float)height;
 
-        return camera->GetScreenRay(screenX, screenY);
+        bool flipY = false;
+                
+        #ifdef LUMOS_RENDER_API_OPENGL
+        if(Graphics::GraphicsContext::GetRenderAPI() == Graphics::RenderAPI::OPENGL)
+            flipY = true;
+        #endif
+        return camera->GetScreenRay(screenX, screenY, flipY);
     }
 
 	void Editor::OnUpdate(TimeStep* ts)

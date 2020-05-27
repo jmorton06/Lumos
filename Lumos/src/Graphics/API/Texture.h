@@ -123,6 +123,7 @@ namespace Lumos
 			virtual const String& GetFilepath() const = 0;
 
 			virtual u32 GetSize() const { return 0; }
+			virtual u32 GetMipMapLevels() const { return 0; }
 			virtual void* GetHandle() const = 0;
 
 

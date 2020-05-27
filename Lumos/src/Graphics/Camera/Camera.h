@@ -88,7 +88,7 @@ namespace Lumos
 
         Maths::Frustum& GetFrustum();
     
-        Maths::Ray GetScreenRay(float x, float y) const;
+        Maths::Ray GetScreenRay(float x, float y, bool invertY = false) const;
     
         void SetCameraController(const Ref<CameraController>& controller) { m_CameraController = controller; }
     

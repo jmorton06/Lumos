@@ -32,7 +32,7 @@ const float coeiff = 0.3;
 const vec3 totalSkyLight = vec3(0.3, 0.5, 1.0);
 
 const float PI = 3.14159265359;
-const float blurLevel = 0.0f;
+const float blurLevel = 1.0f;
 const float timeCounter = 0.0f;
 
 vec3 mie(float dist, vec3 sunL)
@@ -83,7 +83,7 @@ void main()
 {
 	vec3 colour;
 
-	int cubeMapOnly = -1;
+	int cubeMapOnly = 1;
 	if(cubeMapOnly > 0.0)
 	{
 		colour = textureLod(u_CubeMap, IN.position.xyz, blurLevel).xyz;
