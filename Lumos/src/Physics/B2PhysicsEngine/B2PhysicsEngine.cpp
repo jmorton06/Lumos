@@ -48,7 +48,7 @@ namespace Lumos
 		m_UpdateAccum = 0.0f;
 	}
 
-	void B2PhysicsEngine::OnUpdate(TimeStep* timeStep, Scene* scene)
+	void B2PhysicsEngine::OnUpdate(const TimeStep& timeStep, Scene* scene)
 	{
 		LUMOS_PROFILE_FUNC;
 		const int max_updates_per_frame = 5;
@@ -57,7 +57,7 @@ namespace Lumos
 		{	
 			if(m_MultipleUpdates)
 			{
-				m_UpdateAccum += timeStep->GetMillis();
+				m_UpdateAccum += timeStep.GetMillis();
 				for (int i = 0; (m_UpdateAccum >= m_UpdateTimestep) && i < max_updates_per_frame; ++i)
 				{
 					m_UpdateAccum -= m_UpdateTimestep;

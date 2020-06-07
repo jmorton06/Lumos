@@ -109,7 +109,7 @@ namespace Lumos
         if (view.empty())
             return;
 
-        float dt = Engine::Instance()->GetTimeStep()->GetElapsedMillis();
+        float dt = Engine::Instance()->GetTimeStep().GetElapsedMillis();
         
         for (auto entity : view)
         {
@@ -133,6 +133,8 @@ namespace Lumos
 		windowProperties.RenderAPI = m_State.get<int>("renderAPI");
 		windowProperties.Fullscreen = m_State.get<bool>("fullscreen");
 		windowProperties.Borderless = m_State.get<bool>("borderless");
+    
+        windowProperties.FilePath = file;
 
 		return windowProperties;
 	}
@@ -325,7 +327,7 @@ namespace Lumos
     
     Ref<Graphics::Texture2D> LoadTextureWithParams(const String& name, const String& path, Lumos::Graphics::TextureFilter filter, Lumos::Graphics::TextureWrap wrapMode)
     {
-        return Ref<Graphics::Texture2D>(Graphics::Texture2D::CreateFromFile(name, path, Graphics::TextureParameters(filter, wrapMode)));
+        return Ref<Graphics::Texture2D>(Graphics::Texture2D::CreateFromFile(name, path, Graphics::TextureParameters(filter, filter, wrapMode)));
     }
 
     void LuaManager::BindECSLua(sol::state& state)
@@ -359,7 +361,19 @@ namespace Lumos
         meshComponent_type["SetMesh"] = &MeshComponent::SetMesh;
         
         REGISTER_COMPONENT_WITH_ECS( state, MeshComponent, static_cast<MeshComponent&( entt::registry::* )( const entt::entity )> ( &entt::registry::emplace<MeshComponent > ) );
-        REGISTER_COMPONENT_WITH_ECS( state, CameraComponent, static_cast<CameraComponent&( entt::registry::* )( const entt::entity )> ( &entt::registry::emplace<CameraComponent > ) );
+    
+        sol::usertype< Camera > camera_type = state.new_usertype< Camera >( "Camera", sol::constructors<sol::types<float, float, float, float>>() );
+        camera_type["position"]                 = &Camera::GetPosition;
+        camera_type["yaw"]                      = &Camera::GetYaw;
+        camera_type["fov"]                      = &Camera::GetFOV;
+        camera_type["aspectRatio"]              = &Camera::GetAspectRatio;
+        camera_type["nearPlane"]                = &Camera::GetNear;
+        camera_type["farPlane"]                 = &Camera::GetFar;
+        camera_type["GetForwardDir"]            = &Camera::GetForwardDirection;
+        camera_type["GetUpDir"]                 = &Camera::GetUpDirection;
+        camera_type["GetRightDir"]              = &Camera::GetRightDirection;
+        camera_type["SetPosition"]              = &Camera::SetPosition;
+        REGISTER_COMPONENT_WITH_ECS( state, Camera, static_cast<Camera&( entt::registry::* )( const entt::entity )> ( &entt::registry::emplace<Camera > ) );
         REGISTER_COMPONENT_WITH_ECS( state, Physics3DComponent, static_cast<Physics3DComponent&( entt::registry::* )( const entt::entity )> ( &entt::registry::emplace<Physics3DComponent > ) );
         REGISTER_COMPONENT_WITH_ECS( state, Physics3DComponent, static_cast<Physics3DComponent&( entt::registry::* )( const entt::entity )> ( &entt::registry::emplace<Physics3DComponent > ) );
         
@@ -385,23 +399,6 @@ namespace Lumos
             { "Capsule", Lumos::Graphics::PrimitiveType::Capsule  },
             { "Cylinder", Lumos::Graphics::PrimitiveType::Cylinder  },
 
-        };
-    
-        enum class TextureWrap
-        {
-            NONE,
-            REPEAT,
-            CLAMP,
-            MIRRORED_REPEAT,
-            CLAMP_TO_EDGE,
-            CLAMP_TO_BORDER
-        };
-
-        enum class TextureFilter
-        {
-            NONE,
-            LINEAR,
-            NEAREST
         };
     
         std::initializer_list< std::pair< sol::string_view, Lumos::Graphics::TextureFilter > > textureFilter =
@@ -440,19 +437,6 @@ namespace Lumos
     {
         sol::usertype<Scene> scene_type = state.new_usertype< Scene >( "Scene" );
         scene_type.set_function( "GetRegistry", &Scene::GetRegistry );
-        scene_type.set_function("GetCamera", &Scene::GetCamera);
-        
-        sol::usertype< Camera > camera_type = state.new_usertype< Camera >( "Camera", sol::constructors<sol::types<float, float, float, float>>() );
-        camera_type["position"]                 = &Camera::GetPosition;
-        camera_type["yaw"]                      = &Camera::GetYaw;
-        camera_type["fov"]                      = &Camera::GetFOV;
-        camera_type["aspectRatio"]              = &Camera::GetAspectRatio;
-        camera_type["nearPlane"]                = &Camera::GetNear;
-        camera_type["farPlane"]                 = &Camera::GetFar;
-        camera_type["GetForwardDir"]            = &Camera::GetForwardDirection;
-        camera_type["GetUpDir"]                 = &Camera::GetUpDirection;
-        camera_type["GetRightDir"]              = &Camera::GetRightDirection;
-        camera_type["SetPosition"]              = &Camera::SetPosition;
 
         sol::usertype< Graphics::Texture2D > texture2D_type = state.new_usertype< Graphics::Texture2D >( "Texture2D" );
         texture2D_type.set_function("CreateFromFile", &Graphics::Texture2D::CreateFromFile);

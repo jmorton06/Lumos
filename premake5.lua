@@ -43,8 +43,12 @@ workspace "Lumos"
 			SetRecommendedSettings()
 		require("Dependencies/imgui/premake5")
 			SetRecommendedSettings()
+		require("Dependencies/freetype/premake5")
+			SetRecommendedSettings()
+		require("Dependencies/SPIRVCrosspremake5")
+			SetRecommendedSettings()
 		filter "system:not ios"
-			require("Dependencies/premake5")
+			require("Dependencies/GLFWpremake5")
 				SetRecommendedSettings()
 		filter()
 	group ""

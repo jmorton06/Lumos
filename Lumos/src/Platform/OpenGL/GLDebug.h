@@ -6,7 +6,7 @@
 namespace Lumos
 {
 #ifdef LUMOS_DEBUG
-#ifdef glDebugMessageCallback1
+#ifdef glDebugMessageCallback
 #define GL_DEBUD_CALLBACK 1
 #else
 #define GL_DEBUG 1

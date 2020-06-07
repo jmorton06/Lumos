@@ -175,7 +175,7 @@ namespace Lumos
                 {
                     Maths::Vector3 polygon_next = transform * m_Vertices[face.vert_ids[idx]].pos;
 
-                    DebugRenderer::DrawTriangle(polygon_start, polygon_last, polygon_next, Maths::Vector4(1.0f, 1.0f, 1.0f, 0.2f));
+                    DebugRenderer::DrawTriangle(polygon_start, polygon_last, polygon_next, Maths::Vector4(0.9f,0.9f,0.9f, 0.2f));
                     polygon_last = polygon_next;
                 }
             }

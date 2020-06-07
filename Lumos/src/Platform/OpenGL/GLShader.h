@@ -4,6 +4,9 @@
 #include "GLDebug.h"
 #include "GLShaderUniform.h"
 #include "GLShaderResource.h"
+#include "GLUniformBuffer.h"
+
+#include <spirv_glsl.hpp>
 
 namespace Lumos
 {
@@ -36,9 +39,21 @@ namespace Lumos
 
 			ShaderResourceList m_Resources;
 			ShaderStructList m_Structs;
+            bool m_LoadSPV = false;
+        
+            bool CreateLocations();
+            bool SetUniformLocation(const char *szName);
 
+            std::map<uint32_t, std::string> m_names;
+            std::map<uint32_t, uint32_t> m_uniformBlockLocations;
+            std::map<uint32_t, uint32_t> m_sampledImageLocations;
+            std::vector<spirv_cross::CompilerGLSL*> m_pShaderCompilers;
+        
+            void* GetHandle() const override { return (void*)(size_t)m_Handle; }
+        
 		public:
-			GLShader(const String& name, const String& source);
+			GLShader(const String& name, const String& source, bool loadSPV = false);
+
 			~GLShader();
 
 			void Init();
@@ -77,7 +92,7 @@ namespace Lumos
 			static void ValidateUniforms();
 			static bool IsSystemUniform(ShaderUniformDeclaration* uniform);
 			i32 GetUniformLocation(const String& name) const;
-			u32 GetHandle() const { return m_Handle; }
+			u32 GetHandleInternal() const { return m_Handle; }
 			static ShaderUniformDeclaration* FindUniformDeclaration(const String& name, const ShaderUniformBufferDeclaration* buffer);
 			ShaderUniformDeclaration* FindUniformDeclaration(const String& name);
 
@@ -89,15 +104,19 @@ namespace Lumos
 			void SetUniform1f(const String& name, float value) const;
 			void SetUniform1fv(const String& name, float* value, i32 count) const;
 			void SetUniform1i(const String& name, i32 value) const;
+            void SetUniform1ui(const String& name, u32 value) const;
 			void SetUniform1iv(const String& name, i32* value, i32 count) const;
 			void SetUniform2f(const String& name, const Maths::Vector2& vector) const;
 			void SetUniform3f(const String& name, const Maths::Vector3& vector) const;
 			void SetUniform4f(const String& name, const Maths::Vector4& vector) const;
 			void SetUniformMat4(const String& name, const Maths::Matrix4& matrix) const;
+        
+            void BindUniformBuffer(GLUniformBuffer* buffer, u32 slot, const String& name);
 
 			static void SetUniform1f(u32 location, float value);
 			static void SetUniform1fv(u32 location, float* value, i32 count);
 			static void SetUniform1i(u32 location, i32 value);
+            static void SetUniform1ui(u32 location, u32 value);
 			static void SetUniform1iv(u32 location, i32* value, i32 count);
 			static void SetUniform2f(u32 location, const Maths::Vector2& vector);
 			static void SetUniform3f(u32 location, const Maths::Vector3& vector);

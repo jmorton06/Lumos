@@ -51,7 +51,7 @@ namespace Lumos
 
 		void OnInit() override {};
 		//Update Physics Engine
-		void OnUpdate(TimeStep* timeStep, Scene* scene) override;
+		void OnUpdate(const TimeStep& timeStep, Scene* scene) override;
 
 		//Getters / Setters
 		bool IsPaused() const { return m_IsPaused; }

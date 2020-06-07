@@ -39,6 +39,7 @@ namespace Lumos
 
 		void GLVertexBuffer::SetLayout(const Graphics::BufferLayout& bufferLayout)
         {
+			Bind();
 			m_Layout = bufferLayout;
 			const std::vector<Graphics::BufferElement>& layout = bufferLayout.GetLayout();
                         
@@ -75,7 +76,7 @@ namespace Lumos
 		void GLVertexBuffer::ReleasePointer()
 		{
 			GLCall(glUnmapBuffer(GL_ARRAY_BUFFER));
-			SetLayout(m_Layout);
+			//SetLayout(m_Layout);
 		}
 
 		void GLVertexBuffer::Bind()

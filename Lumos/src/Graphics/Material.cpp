@@ -55,7 +55,7 @@ namespace Lumos
         m_PBRMaterialTextures.albedo    = textures.albedo;
         m_PBRMaterialTextures.normal    = textures.normal;
         m_PBRMaterialTextures.roughness = textures.roughness;
-        m_PBRMaterialTextures.specular  = textures.specular;
+        m_PBRMaterialTextures.metallic  = textures.metallic;
         m_PBRMaterialTextures.ao        = textures.ao;
         m_PBRMaterialTextures.emissive  = textures.emissive;
     }
@@ -72,7 +72,7 @@ namespace Lumos
     {
         m_Name = name;
         m_PBRMaterialTextures = PBRMataterialTextures();
-        auto params = Graphics::TextureParameters(Graphics::TextureFormat::RGBA, Graphics::TextureFilter::LINEAR, Graphics::TextureWrap::CLAMP_TO_EDGE);
+        auto params = Graphics::TextureParameters(Graphics::TextureFormat::RGBA, Graphics::TextureFilter::LINEAR, Graphics::TextureFilter::LINEAR, Graphics::TextureWrap::CLAMP_TO_EDGE);
 
         auto filePath = path + "/" + name + "/albedo" + extension;
 
@@ -92,7 +92,7 @@ namespace Lumos
         filePath = path + "/" + name + "/metallic" + extension;
 
         if (FileExists(filePath))
-        m_PBRMaterialTextures.specular = Ref<Graphics::Texture2D>(Graphics::Texture2D::CreateFromFile(name, path + "/" + name + "/metallic" + extension,params));
+        m_PBRMaterialTextures.metallic = Ref<Graphics::Texture2D>(Graphics::Texture2D::CreateFromFile(name, path + "/" + name + "/metallic" + extension,params));
 
         filePath = path + "/" + name + "/ao" + extension;
 
@@ -113,7 +113,7 @@ namespace Lumos
         m_PBRMaterialTextures.albedo    = Ref<Graphics::Texture2D>(Graphics::Texture2D::CreateFromFile(name, path));
         m_PBRMaterialTextures.normal    = nullptr;
         m_PBRMaterialTextures.roughness = nullptr;
-        m_PBRMaterialTextures.specular  = nullptr;
+        m_PBRMaterialTextures.metallic  = nullptr;
         m_PBRMaterialTextures.ao        = nullptr;
         m_PBRMaterialTextures.emissive  = nullptr;
     }
@@ -123,352 +123,14 @@ namespace Lumos
         memcpy(m_MaterialBufferData, m_MaterialProperties, sizeof(MaterialProperties));
     }
 
-	void Material::OnImGui()
-	{
-		bool flipImage = Graphics::GraphicsContext::GetContext()->FlipImGUITexture();
-
-		MaterialProperties* prop = GetProperties();
-
-		if (ImGui::TreeNode("Albedo"))
-		{
-			ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(2, 2));
-			ImGui::Columns(2);
-			ImGui::Separator();
-
-			ImGui::AlignTextToFramePadding();
-			auto tex = GetTextures().albedo;
-
-			if (tex)
-			{
-				ImGui::Image(tex->GetHandle(), ImVec2(64, 64), ImVec2(0.0f, flipImage ? 1.0f : 0.0f), ImVec2(1.0f, flipImage ? 0.0f : 1.0f));
-
-				if (ImGui::IsItemHovered() && tex)
-				{
-					ImGui::BeginTooltip();
-					ImGui::Image(tex ? tex->GetHandle() : nullptr, ImVec2(256, 256), ImVec2(0.0f, flipImage ? 1.0f : 0.0f), ImVec2(1.0f, flipImage ? 0.0f : 1.0f));
-					ImGui::EndTooltip();
-				}
-			}
-			else
-			{
-				ImGui::Button("Empty", ImVec2(64, 64));
-			}
-
-
-			ImGui::NextColumn();
-			ImGui::PushItemWidth(-1);
-			ImGui::TextUnformatted(tex ? tex->GetFilepath().c_str() : "No Texture");
-
-			ImGui::PopItemWidth();
-			ImGui::NextColumn();
-
-			ImGui::AlignTextToFramePadding();
-			ImGui::TextUnformatted("Use Albedo Map");
-			ImGui::NextColumn();
-			ImGui::PushItemWidth(-1);
-			ImGui::SliderFloat("##UseAlbedoMap", &prop->usingAlbedoMap, 0.0f, 1.0f);
-
-			ImGui::PopItemWidth();
-			ImGui::NextColumn();
-
-			ImGui::AlignTextToFramePadding();
-			ImGui::TextUnformatted("Albedo");
-			ImGui::NextColumn();
-			ImGui::PushItemWidth(-1);
-			ImGui::ColorEdit4("##Albedo", Maths::ValuePointer(prop->albedoColour));
-
-			ImGui::PopItemWidth();
-			ImGui::NextColumn();
-
-			ImGui::Columns(1);
-			ImGui::Separator();
-			ImGui::PopStyleVar();
-
-			ImGui::TreePop();
-		}
-
-		ImGui::Separator();
-
-		if (ImGui::TreeNode("Normal"))
-		{
-			ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(2, 2));
-			ImGui::Columns(2);
-			ImGui::Separator();
-
-			ImGui::AlignTextToFramePadding();
-			auto tex = GetTextures().normal;
-
-			if (tex)
-			{
-				ImGui::Image(tex ? tex->GetHandle() : nullptr, ImVec2(64, 64), ImVec2(0.0f, flipImage ? 1.0f : 0.0f), ImVec2(1.0f, flipImage ? 0.0f : 1.0f));
-
-				if (ImGui::IsItemHovered() && tex)
-				{
-					ImGui::BeginTooltip();
-					ImGui::Image(tex ? tex->GetHandle() : nullptr, ImVec2(256, 256), ImVec2(0.0f, flipImage ? 1.0f : 0.0f), ImVec2(1.0f, flipImage ? 0.0f : 1.0f));
-					ImGui::EndTooltip();
-				}
-			}
-			else
-			{
-				ImGui::Button("Empty", ImVec2(64, 64));
-			}
-
-			ImGui::NextColumn();
-			ImGui::PushItemWidth(-1);
-			ImGui::TextUnformatted(tex ? tex->GetFilepath().c_str() : "No Texture");
-
-			ImGui::PopItemWidth();
-			ImGui::NextColumn();
-
-			ImGui::AlignTextToFramePadding();
-			ImGui::TextUnformatted("Use Normal Map");
-			ImGui::NextColumn();
-			ImGui::PushItemWidth(-1);
-			ImGui::SliderFloat("##UseNormalMap", &prop->usingNormalMap, 0.0f, 1.0f);
-
-			ImGui::PopItemWidth();
-			ImGui::NextColumn();
-
-			ImGui::Columns(1);
-			ImGui::Separator();
-			ImGui::PopStyleVar();
-			ImGui::TreePop();
-		}
-
-		ImGui::Separator();
-
-		if (ImGui::TreeNode("Specular"))
-		{
-			ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(2, 2));
-			ImGui::Columns(2);
-			ImGui::Separator();
-
-			ImGui::AlignTextToFramePadding();
-			auto tex = GetTextures().specular;
-
-			if (tex)
-			{
-				ImGui::Image(tex ? tex->GetHandle() : nullptr, ImVec2(64, 64), ImVec2(0.0f, flipImage ? 1.0f : 0.0f), ImVec2(1.0f, flipImage ? 0.0f : 1.0f));
-
-				if (ImGui::IsItemHovered() && tex)
-				{
-					ImGui::BeginTooltip();
-					ImGui::Image(tex ? tex->GetHandle() : nullptr, ImVec2(256, 256), ImVec2(0.0f, flipImage ? 1.0f : 0.0f), ImVec2(1.0f, flipImage ? 0.0f : 1.0f));
-					ImGui::EndTooltip();
-				}
-			}
-			else
-			{
-				ImGui::Button("Empty", ImVec2(64, 64));
-			}
-
-			ImGui::NextColumn();
-			ImGui::PushItemWidth(-1);
-			ImGui::TextUnformatted(tex ? tex->GetFilepath().c_str() : "No Texture");
-
-			ImGui::PopItemWidth();
-			ImGui::NextColumn();
-
-			ImGui::AlignTextToFramePadding();
-			ImGui::TextUnformatted("Use Specular Map");
-			ImGui::NextColumn();
-			ImGui::PushItemWidth(-1);
-			ImGui::SliderFloat("##UseSpecularMap", &prop->usingSpecularMap, 0.0f, 1.0f);
-
-			ImGui::PopItemWidth();
-			ImGui::NextColumn();
-
-			ImGui::AlignTextToFramePadding();
-			ImGui::TextUnformatted("Specular");
-			ImGui::NextColumn();
-			ImGui::PushItemWidth(-1);
-			ImGui::SliderFloat3("##Specular", Maths::ValuePointer(prop->specularColour), 0.0f, 1.0f);
-
-			ImGui::PopItemWidth();
-			ImGui::NextColumn();
-
-			ImGui::Columns(1);
-			ImGui::Separator();
-			ImGui::PopStyleVar();
-			ImGui::TreePop();
-		}
-
-		ImGui::Separator();
-
-		if (ImGui::TreeNode("Roughness"))
-		{
-			ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(2, 2));
-			ImGui::Columns(2);
-			ImGui::Separator();
-
-			ImGui::AlignTextToFramePadding();
-			auto tex = GetTextures().roughness;
-			if (tex)
-			{
-				ImGui::Image(tex ? tex->GetHandle() : nullptr, ImVec2(64, 64), ImVec2(0.0f, flipImage ? 1.0f : 0.0f), ImVec2(1.0f, flipImage ? 0.0f : 1.0f));
-
-				if (ImGui::IsItemHovered() && tex)
-				{
-					ImGui::BeginTooltip();
-					ImGui::Image(tex ? tex->GetHandle() : nullptr, ImVec2(256, 256), ImVec2(0.0f, flipImage ? 1.0f : 0.0f), ImVec2(1.0f, flipImage ? 0.0f : 1.0f));
-					ImGui::EndTooltip();
-				}
-			}
-			else
-			{
-				ImGui::Button("Empty", ImVec2(64, 64));
-			}
-
-			ImGui::NextColumn();
-			ImGui::PushItemWidth(-1);
-			ImGui::TextUnformatted(tex ? tex->GetFilepath().c_str() : "No Texture");
-
-			ImGui::PopItemWidth();
-			ImGui::NextColumn();
-
-			ImGui::AlignTextToFramePadding();
-			ImGui::TextUnformatted("Use Roughness Map");
-			ImGui::NextColumn();
-			ImGui::PushItemWidth(-1);
-			ImGui::SliderFloat("##UseRoughnessMap", &prop->usingRoughnessMap, 0.0f, 1.0f);
-
-			ImGui::PopItemWidth();
-			ImGui::NextColumn();
-
-			ImGui::AlignTextToFramePadding();
-			ImGui::TextUnformatted("Roughness");
-			ImGui::NextColumn();
-			ImGui::PushItemWidth(-1);
-			ImGui::SliderFloat3("##Roughness", Maths::ValuePointer(prop->roughnessColour), 0.0f, 1.0f);
-
-			ImGui::PopItemWidth();
-			ImGui::NextColumn();
-
-			ImGui::Columns(1);
-			ImGui::Separator();
-			ImGui::PopStyleVar();
-			ImGui::TreePop();
-		}
-
-		ImGui::Separator();
-
-		if (ImGui::TreeNode("Ao"))
-		{
-			ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(2, 2));
-			ImGui::Columns(2);
-			ImGui::Separator();
-
-			ImGui::AlignTextToFramePadding();
-			auto tex = GetTextures().ao;
-			if (tex)
-			{
-				ImGui::Image(tex ? tex->GetHandle() : nullptr, ImVec2(64, 64), ImVec2(0.0f, flipImage ? 1.0f : 0.0f), ImVec2(1.0f, flipImage ? 0.0f : 1.0f));
-
-				if (ImGui::IsItemHovered() && tex)
-				{
-					ImGui::BeginTooltip();
-					ImGui::Image(tex ? tex->GetHandle() : nullptr, ImVec2(256, 256), ImVec2(0.0f, flipImage ? 1.0f : 0.0f), ImVec2(1.0f, flipImage ? 0.0f : 1.0f));
-					ImGui::EndTooltip();
-				}
-			}
-			else
-			{
-				ImGui::Button("Empty", ImVec2(64, 64));
-			}
-
-			ImGui::NextColumn();
-			ImGui::PushItemWidth(-1);
-			ImGui::TextUnformatted(tex ? tex->GetFilepath().c_str() : "No Texture");
-
-			ImGui::PopItemWidth();
-			ImGui::NextColumn();
-
-			ImGui::AlignTextToFramePadding();
-			ImGui::TextUnformatted("Use AO Map");
-			ImGui::NextColumn();
-			ImGui::PushItemWidth(-1);
-			ImGui::SliderFloat("##UseAOMap", &prop->usingAOMap, 0.0f, 1.0f);
-
-			ImGui::PopItemWidth();
-			ImGui::NextColumn();
-
-			ImGui::Columns(1);
-			ImGui::Separator();
-			ImGui::PopStyleVar();
-			ImGui::TreePop();
-		}
-
-		ImGui::Separator();
-
-		if (ImGui::TreeNode("Emissive"))
-		{
-			ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(2, 2));
-			ImGui::Columns(2);
-			ImGui::Separator();
-
-			ImGui::AlignTextToFramePadding();
-			auto tex = GetTextures().emissive;
-			if (tex)
-			{
-				ImGui::Image(tex ? tex->GetHandle() : nullptr, ImVec2(64, 64), ImVec2(0.0f, flipImage ? 1.0f : 0.0f), ImVec2(1.0f, flipImage ? 0.0f : 1.0f));
-
-				if (ImGui::IsItemHovered() && tex)
-				{
-					ImGui::BeginTooltip();
-					ImGui::Image(tex ? tex->GetHandle() : nullptr, ImVec2(256, 256), ImVec2(0.0f, flipImage ? 1.0f : 0.0f), ImVec2(1.0f, flipImage ? 0.0f : 1.0f));
-					ImGui::EndTooltip();
-				}
-			}
-			else
-			{
-				ImGui::Button("Empty", ImVec2(64, 64));
-			}
-
-			ImGui::NextColumn();
-			ImGui::PushItemWidth(-1);
-			ImGui::TextUnformatted(tex ? tex->GetFilepath().c_str() : "No Texture");
-
-			ImGui::PopItemWidth();
-			ImGui::NextColumn();
-
-			ImGui::AlignTextToFramePadding();
-			ImGui::TextUnformatted("Use Emissive Map");
-			ImGui::NextColumn();
-			ImGui::PushItemWidth(-1);
-			ImGui::SliderFloat("##UseEmissiveMap", &prop->usingEmissiveMap, 0.0f, 1.0f);
-
-			ImGui::PopItemWidth();
-			ImGui::NextColumn();
-
-			ImGui::AlignTextToFramePadding();
-			ImGui::TextUnformatted("Emissive");
-			ImGui::NextColumn();
-			ImGui::PushItemWidth(-1);
-			ImGui::SliderFloat3("##Emissive", Maths::ValuePointer(prop->emissiveColour), 0.0f, 1.0f);
-
-			ImGui::PopItemWidth();
-			ImGui::NextColumn();
-
-			ImGui::Columns(1);
-			ImGui::Separator();
-			ImGui::PopStyleVar();
-			ImGui::TreePop();
-		}
-
-		ImGui::Separator();
-
-		SetMaterialProperites(*prop);
-	}
-
     void Material::SetMaterialProperites(const MaterialProperties &properties)
     {
         m_MaterialProperties->albedoColour      = properties.albedoColour;
-        m_MaterialProperties->specularColour    = properties.specularColour;
+        m_MaterialProperties->metallicColour    = properties.metallicColour;
         m_MaterialProperties->roughnessColour   = properties.roughnessColour;
         m_MaterialProperties->usingAlbedoMap    = properties.usingAlbedoMap;
         m_MaterialProperties->usingNormalMap    = properties.usingNormalMap;
-        m_MaterialProperties->usingSpecularMap  = properties.usingSpecularMap;
+        m_MaterialProperties->usingMetallicMap  = properties.usingMetallicMap;
         m_MaterialProperties->usingRoughnessMap = properties.usingRoughnessMap;
         m_MaterialProperties->usingAOMap        = properties.usingAOMap;
         m_MaterialProperties->usingEmissiveMap  = properties.usingEmissiveMap;
@@ -526,12 +188,12 @@ namespace Lumos
 
         if(pbr)
         {
-            if(m_PBRMaterialTextures.specular != nullptr)
+            if(m_PBRMaterialTextures.metallic != nullptr)
             {
                 Graphics::ImageInfo imageInfo2 = {};
-                imageInfo2.texture ={ m_PBRMaterialTextures.specular.get() };
+                imageInfo2.texture ={ m_PBRMaterialTextures.metallic.get() };
                 imageInfo2.binding = 1;
-                imageInfo2.name = "u_SpecularMap";
+                imageInfo2.name = "u_MetallicMap";
                 imageInfos.push_back(imageInfo2);
             }
             else
@@ -539,9 +201,9 @@ namespace Lumos
                 Graphics::ImageInfo imageInfo2 = {};
                 imageInfo2.texture ={ s_DefaultTexture.get() };
                 imageInfo2.binding = 1;
-                imageInfo2.name = "u_SpecularMap";
+                imageInfo2.name = "u_MetallicMap";
                 imageInfos.push_back(imageInfo2);
-                m_MaterialProperties->usingSpecularMap = 0.0f;
+                m_MaterialProperties->usingMetallicMap = 0.0f;
             }
 
             if(m_PBRMaterialTextures.roughness != nullptr)

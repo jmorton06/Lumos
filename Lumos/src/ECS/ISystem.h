@@ -13,7 +13,7 @@ namespace Lumos
 		virtual ~ISystem() = default;
 
 		virtual void OnInit() = 0;
-		virtual void OnUpdate(TimeStep* dt, Scene* scene) = 0;
+		virtual void OnUpdate(const TimeStep& dt, Scene* scene) = 0;
 		virtual void OnImGui() = 0;
 		virtual void OnDebugDraw() = 0;
         

@@ -17,7 +17,7 @@ namespace Lumos
 		public:
 			enum class Type
 			{
-				NONE, FLOAT32, VEC2, VEC3, VEC4, MAT3, MAT4, INT32, INT, STRUCT, MAT4ARRAY
+				NONE, FLOAT32, VEC2, VEC3, VEC4, MAT3, MAT4, INT32, INT, UINT, STRUCT, MAT4ARRAY
 			};
 		private:
 			String m_Name;

@@ -114,6 +114,8 @@ namespace Lumos {
         void CreateGraphicsPipeline();
         void CreateFramebuffers();
         void UpdateDesciptorSet() const;
+    
+        void SetCamera(Camera* camera) { m_Camera = camera; }
 
 	protected:
     
@@ -150,7 +152,7 @@ namespace Lumos {
         Maths::Matrix4 m_ProjectionMatrix;
     
         std::vector<PointInfo> m_Points;
-        Camera* m_CurrentCamera;
+        Camera* m_Camera;
 	};
     }
 }

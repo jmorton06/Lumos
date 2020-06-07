@@ -195,6 +195,7 @@ namespace Lumos
 
 #if LUMOS_DEBUG
 #ifdef GL_DEBUD_CALLBACK
+#ifndef LUMOS_PLATFORM_MACOS
 				LUMOS_LOG_INFO(OPENGLLOG"Registering OpenGL debug callback");
 
 				glEnable(GL_DEBUG_OUTPUT);
@@ -209,6 +210,7 @@ namespace Lumos
 					true);
 #else
 			Debug::Log::Info(OPENGLLOG"glDebugMessageCallback not available");
+#endif
 #endif
 #endif
 			Maths::Matrix4::SetUpCoordSystem(false, false);

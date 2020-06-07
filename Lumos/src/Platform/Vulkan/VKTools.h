@@ -22,6 +22,7 @@ namespace Lumos
 		enum class TextureFormat;
 		enum class TextureWrap;
         enum class Format;
+        enum class TextureFilter;
         
 		namespace VKTools
 		{
@@ -47,8 +48,9 @@ namespace Lumos
 			VkVertexInputAttributeDescription VertexInputDescriptionToVK(VertexInputDescription description);
 			VkCullModeFlags CullModeToVK(CullMode mode);
 			VkDescriptorType DescriptorTypeToVK(DescriptorType type);
-			VkFormat TextureFormatToVK(const TextureFormat format);
+			VkFormat TextureFormatToVK(const TextureFormat format, bool srgb = true);
 			VkSamplerAddressMode TextureWrapToVK(const TextureWrap format);
+            VkFilter TextureFilterToVK(const TextureFilter filter);
             VkShaderStageFlagBits ShaderTypeToVK(const ShaderType& shaderName);
             VkFormat FormatToVK(Lumos::Graphics::Format format);
 

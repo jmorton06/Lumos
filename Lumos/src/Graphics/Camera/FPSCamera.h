@@ -8,11 +8,11 @@ namespace Lumos
 	class LUMOS_EXPORT FPSCameraController : CameraController
 	{
 	public:
-		FPSCameraController(Camera* camera);
+		FPSCameraController();
 		virtual ~FPSCameraController() override;
 
-		virtual void HandleMouse(float dt, float xpos, float ypos) override;
-		virtual void HandleKeyboard(float dt) override;
+		virtual void HandleMouse(Camera* camera, float dt, float xpos, float ypos) override;
+		virtual void HandleKeyboard(Camera* camera, float dt) override;
 	};
 
 }

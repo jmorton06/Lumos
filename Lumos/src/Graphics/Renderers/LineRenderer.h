@@ -9,6 +9,7 @@
 namespace Lumos {
 
     class Scene;
+    class Camera;
 
     namespace Graphics {
     
@@ -105,6 +106,8 @@ namespace Lumos {
         void CreateFramebuffers();
     
         void FlushAndResetLines();
+    
+        void SetCamera(Camera* camera) { m_Camera = camera; }
 
 	protected:
     
@@ -137,6 +140,7 @@ namespace Lumos {
         bool m_Clear = false;
     
         std::vector<LineInfo> m_Lines;
+        Camera* m_Camera = nullptr;
 	};
     }
 }

@@ -47,6 +47,7 @@ namespace Lumos
 			u32 m_Width, m_Height;
 			TextureParameters m_Parameters;
 			TextureLoadOptions m_LoadOptions;
+            bool isHDR = false;
 		};
 
 		class GLTextureCube : public TextureCube
@@ -62,6 +63,8 @@ namespace Lumos
 
 			void Bind(u32 slot = 0) const override;
 			void Unbind(u32 slot = 0) const override;
+
+			u32 GetMipMapLevels() const override { return m_NumMips; }
 
 			_FORCE_INLINE_ u32 GetSize() const override { return m_Size; }
 			_FORCE_INLINE_ const String& GetName() const override { return m_Name; }

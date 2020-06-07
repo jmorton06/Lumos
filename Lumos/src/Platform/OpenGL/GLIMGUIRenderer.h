@@ -18,7 +18,7 @@ namespace Lumos
             void Render(Lumos::Graphics::CommandBuffer* commandBuffer) override;
             void OnResize(u32 width, u32 height) override;
 			bool Implemented() const override { return true; }
-            
+            void RebuildFontTexture()  override;
             static void MakeDefault();
         protected:
             static IMGUIRenderer* CreateFuncGL(u32 width, u32 height, bool clearScreen);

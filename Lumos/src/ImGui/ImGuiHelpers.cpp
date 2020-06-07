@@ -143,6 +143,12 @@ namespace Lumos
 		bool flipImage = Graphics::GraphicsContext::GetContext()->FlipImGUITexture();
 		ImGui::Image(texture ? texture->GetHandle() : nullptr, ImVec2(size.x, size.y), ImVec2(0.0f, flipImage ? 1.0f : 0.0f), ImVec2(1.0f, flipImage ? 0.0f : 1.0f));
 	}
+    
+    void ImGuiHelpers::Image(Graphics::TextureCube * texture, const Maths::Vector2 & size)
+    {
+        bool flipImage = Graphics::GraphicsContext::GetContext()->FlipImGUITexture();
+        ImGui::Image(texture ? texture->GetHandle() : nullptr, ImVec2(size.x, size.y), ImVec2(0.0f, flipImage ? 1.0f : 0.0f), ImVec2(1.0f, flipImage ? 0.0f : 1.0f));
+    }
 
     bool ImGuiHelpers::BufferingBar(const char* label, float value,  const Maths::Vector2& size_arg, const u32& bg_col, const u32& fg_col)
     {
@@ -244,6 +250,15 @@ namespace Lumos
 		ImVec4 color7(0.09f, 0.15f, 0.16f, 1); // ScrollbarGrab
 		ImVec4 color8(0.71f, 0.22f, 0.27f, 1); // CheckMark
 		ImVec4 color9(0.14f, 0.16f, 0.19f, 1); // Column
+    
+        static const float max = 255.0f;
+            ImVec4 blue = ImVec4(0.0f,0.0f,1.0f,1.0f);
+        ImVec4 red = ImVec4(1.0f,0.0f,0.0f,1.0f);
+
+         ImVec4 Titlebar = ImVec4(30.0f/max, 37.0f/max, 50.0f/max, 1.0f);
+         ImVec4 TabActive = ImVec4(48.0f/max, 59.0f/max, 81.0f/max, 1.0f);
+         ImVec4 windowBackground = ImVec4(36.0f/max, 44.0f/max, 60.0f/max, 1.0f);
+         ImVec4 TabUnactive = ImVec4(35.0f/max, 43.0f/max, 59.0f/max, 1.0f);
 
 		ImVec4* colours = ImGui::GetStyle().Colors;
 		switch (theme)
@@ -303,20 +318,27 @@ namespace Lumos
 			break;
 		case Lumos::ImGuiHelpers::Dark:
 			ImGui::StyleColorsDark();
+            
+            #define red ImVec4(1.0f, 0.0f, 0.0f, 1.0f)
+
 			colours[ImGuiCol_Text] = ImVec4(0.95f, 0.96f, 0.98f, 1.00f);
 			colours[ImGuiCol_TextDisabled] = ImVec4(0.36f, 0.42f, 0.47f, 1.00f);
-			colours[ImGuiCol_WindowBg] = ImVec4(0.11f, 0.15f, 0.17f, 1.00f);
-			colours[ImGuiCol_ChildBg] = ImVec4(27.0f/255.0f,32.0f/255.0f,46.0f/255.0f, 1.00f);
+            
+			colours[ImGuiCol_WindowBg] = windowBackground;// TabActive;//windowBackground;
+			colours[ImGuiCol_ChildBg] = windowBackground;//TabActive;//windowBackground;
+            
 			colours[ImGuiCol_PopupBg] = ImVec4(0.08f, 0.08f, 0.08f, 0.94f);
 			colours[ImGuiCol_Border] = ImVec4(0.08f, 0.10f, 0.12f, 1.00f);
 			colours[ImGuiCol_BorderShadow] = ImVec4(0.00f, 0.00f, 0.00f, 0.00f);
 			colours[ImGuiCol_FrameBg] = ImVec4(0.20f, 0.25f, 0.29f, 1.00f);
 			colours[ImGuiCol_FrameBgHovered] = ImVec4(0.12f, 0.20f, 0.28f, 1.00f);
 			colours[ImGuiCol_FrameBgActive] = ImVec4(0.09f, 0.12f, 0.14f, 1.00f);
-			colours[ImGuiCol_TitleBg] = colours[ImGuiCol_WindowBg];// ImVec4(0.09f, 0.12f, 0.14f, 0.65f);
-			colours[ImGuiCol_TitleBgActive] = colours[ImGuiCol_WindowBg];// ImVec4(0.08f, 0.10f, 0.12f, 1.00f);
-			colours[ImGuiCol_TitleBgCollapsed] = colours[ImGuiCol_WindowBg];// ImVec4(0.00f, 0.00f, 0.00f, 0.51f);
-			colours[ImGuiCol_MenuBarBg] = ImVec4(0.204f, 0.211f, 0.251f, 1.000f);
+            
+			colours[ImGuiCol_TitleBg] = Titlebar;
+            colours[ImGuiCol_TitleBgActive] =  Titlebar;
+			colours[ImGuiCol_TitleBgCollapsed] = Titlebar;
+            colours[ImGuiCol_MenuBarBg] = Titlebar;
+            
 			colours[ImGuiCol_ScrollbarBg] = ImVec4(0.02f, 0.02f, 0.02f, 0.39f);
 			colours[ImGuiCol_ScrollbarGrab] = ImVec4(0.20f, 0.25f, 0.29f, 1.00f);
 			colours[ImGuiCol_ScrollbarGrabHovered] = ImVec4(0.18f, 0.22f, 0.25f, 1.00f);
@@ -327,20 +349,14 @@ namespace Lumos
 			colours[ImGuiCol_Button] = ImVec4(0.20f, 0.25f, 0.29f, 1.00f);
 			colours[ImGuiCol_ButtonHovered] = ImVec4(0.28f, 0.56f, 1.00f, 1.00f);
 			colours[ImGuiCol_ButtonActive] = ImVec4(0.06f, 0.53f, 0.98f, 1.00f);
-			colours[ImGuiCol_Header] = ImVec4(0.20f, 0.25f, 0.29f, 0.55f);
-			colours[ImGuiCol_HeaderHovered] = ImVec4(0.26f, 0.59f, 0.98f, 0.80f);
-			colours[ImGuiCol_HeaderActive] = ImVec4(0.26f, 0.59f, 0.98f, 1.00f);
+            
 			colours[ImGuiCol_Separator] = ImVec4(0.20f, 0.25f, 0.29f, 1.00f);
 			colours[ImGuiCol_SeparatorHovered] = ImVec4(0.10f, 0.40f, 0.75f, 0.78f);
 			colours[ImGuiCol_SeparatorActive] = ImVec4(0.10f, 0.40f, 0.75f, 1.00f);
 			colours[ImGuiCol_ResizeGrip] = ImVec4(0.26f, 0.59f, 0.98f, 0.25f);
 			colours[ImGuiCol_ResizeGripHovered] = ImVec4(0.26f, 0.59f, 0.98f, 0.67f);
 			colours[ImGuiCol_ResizeGripActive] = ImVec4(0.26f, 0.59f, 0.98f, 0.95f);
-			colours[ImGuiCol_Tab] = ImVec4(0.11f, 0.15f, 0.17f, 1.00f);
-			colours[ImGuiCol_TabHovered] = ImVec4(0.26f, 0.59f, 0.98f, 0.80f);
-			colours[ImGuiCol_TabActive] = ImVec4(0.20f, 0.25f, 0.29f, 1.00f);
-			colours[ImGuiCol_TabUnfocused] = ImVec4(0.11f, 0.15f, 0.17f, 1.00f);
-			colours[ImGuiCol_TabUnfocusedActive] = ImVec4(0.11f, 0.15f, 0.17f, 1.00f);
+            
 			colours[ImGuiCol_PlotLines] = ImVec4(0.61f, 0.61f, 0.61f, 1.00f);
 			colours[ImGuiCol_PlotLinesHovered] = ImVec4(1.00f, 0.43f, 0.35f, 1.00f);
 			colours[ImGuiCol_PlotHistogram] = ImVec4(0.90f, 0.70f, 0.00f, 1.00f);
@@ -353,15 +369,14 @@ namespace Lumos
 			colours[ImGuiCol_ModalWindowDimBg] = ImVec4(0.80f, 0.80f, 0.80f, 0.35f);
 
 #ifdef IMGUI_HAS_DOCK
-            colours[ImGuiCol_TabActive] = colours[ImGuiCol_ChildBg];  
 
-			//colours[ImGuiCol_DockingEmptyBg] = ImVec4(0.33f, 0.33f, 0.33f, 1.00f);
-			//colours[ImGuiCol_Tab] = ImVec4(0.09f, 0.21f, 0.31f, 1.00f);
-			//colours[ImGuiCol_TabHovered] = ImVec4(0.20f, 0.25f, 0.29f, 1.00f);
-			//colours[ImGuiCol_TabActive] = ImVec4(0.18f, 0.22f, 0.25f, 1.00f);
-			//colours[ImGuiCol_TabUnfocused] = ImVec4(0.09f, 0.21f, 0.31f, 1.00f);
-			//colours[ImGuiCol_TabUnfocusedActive] = ImVec4(0.18f, 0.22f, 0.25f, 1.00f);
-			//colours[ImGuiCol_DockingPreview] = ImVec4(0.33f, 0.33f, 0.33f, 1.00f);
+            colours[ImGuiCol_Tab] = TabUnactive;
+            colours[ImGuiCol_TabHovered] = ImVec4(0.26f, 0.59f, 0.98f, 0.80f);
+            colours[ImGuiCol_TabActive] = TabActive;
+            colours[ImGuiCol_TabUnfocused] = TabUnactive;
+            colours[ImGuiCol_TabUnfocusedActive] = TabActive;
+			colours[ImGuiCol_DockingEmptyBg] = ImVec4(0.33f, 0.33f, 0.33f, 1.00f);
+			colours[ImGuiCol_DockingPreview] = ImVec4(0.33f, 0.33f, 0.33f, 1.00f);
 
 #endif
 			break;
@@ -590,29 +605,9 @@ namespace Lumos
 		default:
 			break;
 		}
-        
-		//colours[ImGuiCol_MenuBarBg] = ImVec4(0.80f, 0.22f, 0.27f, 0.9f);// colours[ImGuiCol_WindowBg];
-        colours[ImGuiCol_TitleBg] = colours[ImGuiCol_MenuBarBg];
-        colours[ImGuiCol_TitleBgActive] = colours[ImGuiCol_MenuBarBg];
-        colours[ImGuiCol_TitleBgCollapsed] = colours[ImGuiCol_MenuBarBg];
 
-        colours[ImGuiCol_HeaderHovered] = colours[ImGuiCol_Header];
-        colours[ImGuiCol_ButtonHovered] =  colours[ImGuiCol_HeaderHovered];
-        colours[ImGuiCol_TabHovered] =  colours[ImGuiCol_HeaderHovered];
-        colours[ImGuiCol_ButtonActive] = colours[ImGuiCol_HeaderHovered];
-        colours[ImGuiCol_HeaderActive] = colours[ImGuiCol_HeaderHovered];
-		colours[ImGuiCol_ChildWindowBg] = colours[ImGuiCol_WindowBg];
-
-		colours[ImGuiCol_Separator] = colours[ImGuiCol_MenuBarBg]; ;// ImVec4(0.0f, 0.0f, 0.0f, 0.0f);
+		colours[ImGuiCol_Separator] = colours[ImGuiCol_MenuBarBg];
 		colours[ImGuiCol_SeparatorActive] = colours[ImGuiCol_Separator];
 		colours[ImGuiCol_SeparatorHovered] = colours[ImGuiCol_Separator];
-
-
-
-#ifdef IMGUI_HAS_DOCK
-        colours[ImGuiCol_TabActive] = colours[ImGuiCol_WindowBg];
-		colours[ImGuiCol_TabUnfocused] = colours[ImGuiCol_WindowBg];
-		colours[ImGuiCol_TabUnfocusedActive] = colours[ImGuiCol_WindowBg];
-#endif
 	}
 }

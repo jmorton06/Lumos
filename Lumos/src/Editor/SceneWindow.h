@@ -44,7 +44,14 @@ namespace Lumos
                     
                     Maths::Vector2 screenPos = Maths::WorldToScreen(pos, viewProj, width, height, xpos, ypos);
                     ImGui::SetCursorPos({ screenPos.x - ImGui::GetFontSize() / 2.0f , screenPos.y - ImGui::GetFontSize() / 2.0f });
-                    ImGui::TextUnformatted(m_Editor->GetComponentIconMap()[typeid(T).hash_code()]);
+                    ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.7f, 0.7f, 0.7f, 0.0f));
+
+                    if(ImGui::Button(m_Editor->GetComponentIconMap()[typeid(T).hash_code()]))
+                    {
+                        m_Editor->SetSelected(entity);
+                    }
+                
+                    ImGui::PopStyleColor();
 
                     ImGuiHelpers::Tooltip(typeid(T).name());
 				}

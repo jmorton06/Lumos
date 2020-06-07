@@ -18,30 +18,8 @@ void GraphicsScene::OnInit()
 
 	m_SceneBoundingRadius = 200.0f;
 
-	m_pCamera = new Camera(45.0f, 0.1f, 1000.0f, (float) m_ScreenWidth / (float) m_ScreenHeight);
-	m_pCamera->SetPosition(Maths::Vector3(120.0f, 70.0f, 260.0f));
-    m_pCamera->SetCameraController(CreateRef<EditorCameraController>(m_pCamera));
-
-
-	String environmentFiles[11] =
-	{
-		"/Textures/cubemap/CubeMap0.tga",
-		"/Textures/cubemap/CubeMap1.tga",
-		"/Textures/cubemap/CubeMap2.tga",
-		"/Textures/cubemap/CubeMap3.tga",
-		"/Textures/cubemap/CubeMap4.tga",
-		"/Textures/cubemap/CubeMap5.tga",
-		"/Textures/cubemap/CubeMap6.tga",
-		"/Textures/cubemap/CubeMap7.tga",
-		"/Textures/cubemap/CubeMap8.tga",
-		"/Textures/cubemap/CubeMap9.tga",
-		"/Textures/cubemap/CubeMap10.tga"
-	};
-
-	auto environmentMap = Graphics::TextureCube::CreateFromVCross(environmentFiles, 11);
-    
     auto environment = m_Registry.create();
-    m_Registry.emplace<Graphics::Environment>(environment, environmentMap);
+    m_Registry.emplace<Graphics::Environment>(environment, "/Textures/cubemap/Arches_E_PineTree", 11, 3072, 4096, ".tga");
     m_Registry.emplace<NameComponent>(environment, "Environment");
 
 	auto lightEntity = m_Registry.create();
@@ -50,23 +28,21 @@ void GraphicsScene::OnInit()
 	m_Registry.emplace<NameComponent>(lightEntity, "Light");
 
 	auto cameraEntity = m_Registry.create();
-	m_Registry.emplace<CameraComponent>(cameraEntity, m_pCamera);
+	auto& camera = m_Registry.emplace<Camera>(cameraEntity, 45.0f, 0.1f, 1000.0f, (float) m_ScreenWidth / (float) m_ScreenHeight);
 	m_Registry.emplace<NameComponent>(cameraEntity, "Camera");
+	camera.SetCameraController(CreateRef<EditorCameraController>());
 
 	auto audioSystem = Application::Instance()->GetSystem<AudioManager>();
 	if (audioSystem)
-		Application::Instance()->GetSystem<AudioManager>()->SetListener(m_pCamera);
+		Application::Instance()->GetSystem<AudioManager>()->SetListener(&camera);
 
-	auto deferredRenderer = new Graphics::ForwardRenderer(m_ScreenWidth, m_ScreenHeight);
+    bool editor = false;
+
+    #ifdef LUMOS_EDITOR
+    editor = true;
+    #endif
+	auto deferredRenderer = new Graphics::ForwardRenderer(m_ScreenWidth, m_ScreenHeight, editor, true);
 	auto skyboxRenderer = new Graphics::SkyboxRenderer(m_ScreenWidth, m_ScreenHeight);
-    
-	//Temp
-	bool editor = false;
-
-#ifdef LUMOS_EDITOR
-	editor = true;
-#endif
-
 
     //Can't render to array texture on iPhoneX or older
 #ifndef LUMOS_PLATFORM_IOS
@@ -86,18 +62,13 @@ void GraphicsScene::OnInit()
 	Application::Instance()->PushLayer(skyBoxLayer);
 }
 
-void GraphicsScene::OnUpdate(TimeStep* timeStep)
+void GraphicsScene::OnUpdate(const TimeStep& timeStep)
 {
 	Scene::OnUpdate(timeStep);
 }
 
 void GraphicsScene::OnCleanupScene()
 {
-	if (m_CurrentScene)
-	{
-		SAFE_DELETE(m_pCamera)
-	}
-
 	Scene::OnCleanupScene();
 }
 

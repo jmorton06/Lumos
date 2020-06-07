@@ -9,11 +9,11 @@
 #include "Graphics/RenderManager.h"
 #include "Graphics/GBuffer.h"
 #include "Graphics/Light.h"
-#include "ECS/Component/CameraComponent.h"
 #include "ECS/Component/SoundComponent.h"
 
 #include "Physics/LumosPhysicsEngine/LumosPhysicsEngine.h"
 #include "Physics/B2PhysicsEngine/B2PhysicsEngine.h"
+#include "Core/OS/Input.h"
 
 #include <Box2D/Box2D.h>
 #include <imgui/imgui_internal.h>
@@ -28,7 +28,7 @@ namespace Lumos
 		m_SimpleName = "Scene";
 
 		m_ShowComponentGizmoMap[typeid(Graphics::Light).hash_code()] = true;
-		m_ShowComponentGizmoMap[typeid(CameraComponent).hash_code()] = true;
+		m_ShowComponentGizmoMap[typeid(Camera).hash_code()] = true;
 		m_ShowComponentGizmoMap[typeid(SoundComponent).hash_code()] = true;
 	}
 
@@ -60,7 +60,14 @@ namespace Lumos
 
         float aspect = static_cast<float>(sceneViewSize.x) / static_cast<float>(sceneViewSize.y);
     
-        Camera* camera = app.GetSceneManager()->GetCurrentScene()->GetCamera();
+        Camera* camera = nullptr;
+        auto& registry = app.GetSceneManager()->GetCurrentScene()->GetRegistry();
+        auto cameraView = registry.view<Camera>();
+        if(!cameraView.empty())
+        {
+            camera = &registry.get<Camera>(cameraView.front());
+        }
+    
         if (!Maths::Equals(aspect, m_Editor->GetCurrentSceneAspectRatio()))
         {
             m_Editor->GetCurrentSceneAspectRatio() = aspect;
@@ -80,25 +87,15 @@ namespace Lumos
 			{
 				m_Editor->Draw2DGrid(ImGui::GetWindowDrawList(), { camera->GetPosition().x, camera->GetPosition().y }, sceneViewPosition, { sceneViewSize.x, sceneViewSize.y }, camera->GetScale(), 1.5f);
 			}
-			else
-			{
-#if 0
-				Maths::Matrix4 view = camera->GetViewMatrix();
-				Maths::Matrix4 proj = camera->GetProjectionMatrix();
-				Maths::Matrix4 identityMatrix;
-
-#ifdef LUMOS_RENDER_API_VULKAN
-				if (Graphics::GraphicsContext::GetRenderAPI() == Graphics::RenderAPI::VULKAN)
-					proj.m11_ *= -1.0f;
-#endif
-
-				ImGuizmo::DrawGrid(view.values, proj.values, identityMatrix.values, m_Editor->GetGridSize());
-#endif
-			}
 		}
 
-
 		m_Editor->OnImGuizmo();
+
+        if(app.GetSceneActive() && !ImGuizmo::IsUsing() && Input::GetInput()->GetMouseClicked(InputCode::MouseKey::ButtonLeft))
+        {
+            auto clickPos = Input::GetInput()->GetMousePosition() - Maths::Vector2(sceneViewPosition.x , sceneViewPosition.y);
+            m_Editor->SelectObject(m_Editor->GetScreenRay(clickPos.x, clickPos.y, camera, sceneViewSize.x, sceneViewSize.y));
+        }
         
         DrawGizmos(sceneViewSize.x, sceneViewSize.y, 0.0f, 40.0f, app.GetSceneManager()->GetCurrentScene()); // Not sure why 40
     
@@ -154,8 +151,14 @@ namespace Lumos
 	}
 
 	void SceneWindow::DrawGizmos(float width, float height, float xpos, float ypos, Scene* scene)
-	{	
-		Camera* camera = Application::Instance()->GetSceneManager()->GetCurrentScene()->GetCamera();
+	{
+        Camera* camera = nullptr;
+        auto& registry = Application::Instance()->GetSceneManager()->GetCurrentScene()->GetRegistry();
+        auto cameraView = registry.view<Camera>();
+        if(!cameraView.empty())
+        {
+            camera = &registry.get<Camera>(cameraView.front());
+        }
 
 		Maths::Matrix4 view = camera->GetViewMatrix();
 		Maths::Matrix4 proj = camera->GetProjectionMatrix();
@@ -168,9 +171,8 @@ namespace Lumos
 		Maths::Matrix4 viewProj = proj * view;
 		const Maths::Frustum& f = camera->GetFrustum();
 
-		auto& registry = scene->GetRegistry();
 		ShowComponentGizmo<Graphics::Light>(width, height, xpos, ypos, viewProj, f, registry);
-		ShowComponentGizmo<CameraComponent>(width, height, xpos, ypos, viewProj, f, registry);
+		ShowComponentGizmo<Camera>(width, height, xpos, ypos, viewProj, f, registry);
 		ShowComponentGizmo<SoundComponent>(width, height, xpos, ypos, viewProj, f, registry);
 	}
 
@@ -256,7 +258,8 @@ namespace Lumos
         
 		ImGui::SameLine();
 		{
-			selected = m_Editor->SnapGuizmo() == true;
+			selected = (m_Editor->SnapGuizmo() == true);
+
 			if (selected)
 				ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(0.28f, 0.56f, 0.9f, 1.0f));
 
@@ -280,7 +283,7 @@ namespace Lumos
 				ImGui::Checkbox("View Selected", &m_Editor->ShowViewSelected());
 
 				ImGui::Separator();
-				ImGui::Checkbox("Camera", &m_ShowComponentGizmoMap[typeid(CameraComponent).hash_code()]);
+				ImGui::Checkbox("Camera", &m_ShowComponentGizmoMap[typeid(Camera).hash_code()]);
 				ImGui::Checkbox("Light", &m_ShowComponentGizmoMap[typeid(Graphics::Light).hash_code()]);
 				ImGui::Checkbox("Audio", &m_ShowComponentGizmoMap[typeid(SoundComponent).hash_code()]);
             

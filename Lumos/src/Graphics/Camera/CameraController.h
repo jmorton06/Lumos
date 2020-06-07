@@ -10,13 +10,12 @@ namespace Lumos
 	class LUMOS_EXPORT CameraController
 	{
 	public:
-        CameraController(Camera* camera) { m_Camera = camera; };
-
+        CameraController() = default;
 		virtual ~CameraController() = default;
 
-		virtual void HandleMouse(float dt, float xpos, float ypos) = 0;
-		virtual void HandleKeyboard(float dt) = 0;
-        virtual void UpdateScroll(float offset, float dt) { };
+		virtual void HandleMouse(Camera* camera, float dt, float xpos, float ypos) {};
+		virtual void HandleKeyboard(Camera* camera, float dt) {};
+        virtual void UpdateScroll(Camera* camera, float offset, float dt) { };
     
         virtual void OnImGui() {};
 
@@ -42,8 +41,6 @@ namespace Lumos
 		float m_ZoomDampeningFactor = 0.00001f;
 		float m_DampeningFactor = 0.00001f;
 		float m_RotateDampeningFactor = 0.00001f;
-
-        Camera* m_Camera;
 	};
 
 }

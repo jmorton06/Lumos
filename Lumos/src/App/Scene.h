@@ -48,7 +48,7 @@ namespace Lumos
 		// Update Scene Logic
 		//   - Called once per frame and should contain all time-sensitive update logic
 		//	   Note: This is time relative to seconds not milliseconds! (e.g. msec / 1000)
-		virtual void OnUpdate(TimeStep* timeStep);
+		virtual void OnUpdate(const TimeStep& timeStep);
 		virtual void OnTick() { };
 		virtual void OnImGui() { };
 		virtual void OnEvent(Event& e);
@@ -64,9 +64,6 @@ namespace Lumos
 		//     cast shadows are rendered as necessary.
 		void  SetWorldRadius(float radius) { m_SceneBoundingRadius = radius; }
 		float GetWorldRadius() const { return m_SceneBoundingRadius; }
-
-		void SetCamera(Camera* camera) { m_pCamera = camera; }
-		Camera* GetCamera()	const { return m_pCamera; }
 
 		void SetScreenWidth(u32 width)   { m_ScreenWidth = width; }
 		void SetScreenHeight(u32 height) { m_ScreenHeight = height; }
@@ -88,8 +85,6 @@ namespace Lumos
 	protected:
 
 		String m_SceneName;
-		Camera* m_pCamera;
-
 		float m_SceneBoundingRadius;
         
         entt::registry m_Registry;

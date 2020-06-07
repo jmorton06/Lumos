@@ -53,8 +53,9 @@ namespace Lumos
 		void GLUniformBuffer::Bind(u32 slot, GLShader* shader, String& name)
 		{
 			GLCall(glBindBufferBase(GL_UNIFORM_BUFFER, slot, m_Handle));
-			u32 location = glGetUniformBlockIndex(shader->GetHandle(), name.c_str());
-			GLCall(glUniformBlockBinding(shader->GetHandle(), location, slot));
+            shader->BindUniformBuffer(this, slot, name);
+			//u32 location = glGetUniformBlockIndex(shader->GetHandle(), name.c_str());
+			//GLCall(glUniformBlockBinding(shader->GetHandle(), location, slot));
 		}
 
 		void GLUniformBuffer::MakeDefault()

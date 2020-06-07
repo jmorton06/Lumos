@@ -3,9 +3,9 @@
 #extension GL_ARB_shading_language_420pack : enable
 
 //Depth Only
-layout(location = 0) out float depth;
+//layout(location = 0) out float depth;
 
 void main(void)
 {
-    depth = gl_FragCoord.z;
+    //depth = gl_FragCoord.z;
 }

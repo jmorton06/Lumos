@@ -88,11 +88,12 @@ namespace Lumos
 #ifdef LUMOS_PLATFORM_MACOS
             glfwWindowHint(GLFW_SAMPLES, 1);
             glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
-            glfwWindowHint(GLFW_TRANSPARENT_FRAMEBUFFER, GLFW_TRUE);
+            glfwWindowHint(GLFW_TRANSPARENT_FRAMEBUFFER, GLFW_FALSE);
             glfwWindowHint(GLFW_COCOA_RETINA_FRAMEBUFFER, GLFW_FALSE);
             glfwWindowHint(GLFW_COCOA_GRAPHICS_SWITCHING, GL_TRUE);
             glfwWindowHint(GLFW_STENCIL_BITS, 8); // Fixes 16 bit stencil bits in macOS.
             glfwWindowHint(GLFW_STEREO, GLFW_FALSE);
+            glfwWindowHint(GLFW_SRGB_CAPABLE, GLFW_TRUE);
 #endif
 		}
 #endif
@@ -263,7 +264,7 @@ namespace Lumos
 	void GLFWWindow::SetIcon(const String& file, const String& smallIconFilePath)
 	{
 		u32 width, height;
-		u8* pixels = Lumos::LoadImageFromFile(file, &width, &height, nullptr, true);
+		u8* pixels = Lumos::LoadImageFromFile(file, &width, &height, nullptr, nullptr, true);
 
 		std::vector<GLFWimage> images;
 		GLFWimage image;
@@ -274,7 +275,7 @@ namespace Lumos
 
 		if (smallIconFilePath != "")
 		{
-			pixels = Lumos::LoadImageFromFile(smallIconFilePath, &width, &height, nullptr, true);
+			pixels = Lumos::LoadImageFromFile(smallIconFilePath, &width, &height, nullptr, nullptr, true);
 			image.height = height;
 			image.width = width;
 			image.pixels = static_cast<unsigned char*>(pixels);
