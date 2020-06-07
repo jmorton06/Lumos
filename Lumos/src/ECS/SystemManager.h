@@ -66,7 +66,7 @@ namespace Lumos
 			return m_Systems.find(typeName) != m_Systems.end();
 		}
 
-		void OnUpdate(TimeStep* dt, Scene* scene)
+		void OnUpdate(const TimeStep& dt, Scene* scene)
 		{
 			for (auto& system : m_Systems)
 				system.second->OnUpdate(dt, scene);

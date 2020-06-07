@@ -3,17 +3,15 @@
 #include "Maths/Ray.h"
 
 #include "EditorWindow.h"
+#include "FileBrowserWindow.h"
 
 #include <imgui/imgui.h>
 #include <entt/entt.hpp>
 
-namespace ImGui
-{
-	class FileBrowser;
-}
-
 namespace Lumos
 {
+    #define BIND_FILEBROWSER_FN(x) std::bind(&x, this, std::placeholders::_1)
+    
 	class Application;
 	class Scene;
 	class Event;
@@ -21,11 +19,14 @@ namespace Lumos
 	class WindowCloseEvent;
 	class WindowResizeEvent;
 	class TimeStep;
+	class Camera;
 	
 	namespace Graphics 
 	{
 		class Texture2D;
 		class GridRenderer;
+        class ForwardRenderer;
+        class Mesh;
 	}
     
 
@@ -49,6 +50,7 @@ namespace Lumos
 
 		void OnInit();
 		void OnImGui();
+        void OnRender();
 		void DrawMenuBar();
 		void BeginDockSpace(bool infoBar);
 		void EndDockSpace();
@@ -59,7 +61,7 @@ namespace Lumos
 		void OnNewScene(Scene* scene);
 		void OnImGuizmo();
 		void OnEvent(Event& e);
-		void OnUpdate(TimeStep* ts);
+		void OnUpdate(const TimeStep& ts);
 
 		void Draw2DGrid(ImDrawList* drawList, const ImVec2& cameraPos, const ImVec2& windowPos, const ImVec2& canvasSize, const float factor, const float thickness);
 
@@ -68,6 +70,8 @@ namespace Lumos
 
 		bool& ShowGizmos() { return m_ShowGizmos; }
 		bool& ShowViewSelected() { return m_ShowViewSelected; }
+
+        void ToggleSnap() { m_SnapQuizmo = !m_SnapQuizmo; }
 
 		bool& SnapGuizmo() { return m_SnapQuizmo; }
 		float& SnapAmount() { return m_SnapAmount; }
@@ -88,8 +92,16 @@ namespace Lumos
 
 		void OpenTextFile(const String& filePath);
 		void RemoveWindow(EditorWindow* window);
+    
+        void ShowPreview();
+        void DrawPreview();
 
         Maths::Vector2 m_SceneWindowPos;
+		Maths::Ray GetScreenRay(int x, int y, Camera* camera, int width, int height);
+
+		void FileOpenCallback(const String& filepath);
+    
+        FileBrowserWindow& GetFileBrowserWindow() { return m_FileBrowserWindow; }
 
 	protected:
 		bool OnWindowResize(WindowResizeEvent& e);
@@ -114,15 +126,21 @@ namespace Lumos
 		Maths::Vector3 m_CameraStartPosition;
 		float m_CameraTransitionStartTime = 0.0f;
 		float m_CameraTransitionSpeed = 0.0f;
-            
-        ImGui::FileBrowser* m_FileBrowser;
 
 		std::vector<Ref<EditorWindow>> m_Windows;
 
 		Layer3D* m_3DGridLayer = nullptr;
 
 		std::unordered_map<size_t, const char*> m_ComponentIconMap;
+    
+		FileBrowserWindow m_FileBrowserWindow;
+        Camera* m_EditorCamera = nullptr;
+        //CameraController* m_EditorCameraController = nullptr;
 
 		NONCOPYABLE(Editor)
+
+		Ref<Graphics::ForwardRenderer> m_PreviewRenderer;
+		Ref<Graphics::Texture2D> m_PreviewTexture;
+        Ref<Graphics::Mesh> m_PreviewSphere;
 	};
 }

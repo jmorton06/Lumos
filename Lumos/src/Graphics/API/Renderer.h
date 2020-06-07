@@ -75,6 +75,18 @@ namespace Lumos
 			UNSIGNED_BYTE
 		};
 
+		struct RenderAPICapabilities
+		{
+			std::string Vendor;
+			std::string Renderer;
+			std::string Version;
+
+			int MaxSamples = 0;
+			float MaxAnisotropy = 0.0f;
+			int MaxTextureUnits = 0;
+            int UniformBufferOffsetAlignment = 0;
+		};
+
 		class LUMOS_EXPORT Renderer
 		{
 		public:
@@ -105,7 +117,13 @@ namespace Lumos
 			_FORCE_INLINE_ static const String& GetTitle() { return s_Instance->GetTitleInternal(); }
 
 			_FORCE_INLINE_ static Swapchain* GetSwapchain() { return s_Instance->GetSwapchainInternal(); }
-            
+
+			static RenderAPICapabilities& GetCapabilities()
+			{
+				static RenderAPICapabilities capabilities;
+				return capabilities;
+			}
+			
         protected:
             static Renderer* (*CreateFunc)(u32, u32);
             

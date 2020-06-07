@@ -56,7 +56,7 @@ namespace Lumos
 		}
 	}
 
-	void LayerStack::OnUpdate(TimeStep* timeStep, Scene* scene)
+	void LayerStack::OnUpdate(const TimeStep& timeStep, Scene* scene)
 	{
 		for (u32 i = 0; i < m_Layers.size(); i++)
 		{

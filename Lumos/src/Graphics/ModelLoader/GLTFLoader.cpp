@@ -119,7 +119,7 @@ namespace Lumos
             {
                 Graphics::TextureParameters params;
                 if(gltfTexture.sampler != -1)
-                    params = Graphics::TextureParameters(GetFilter(imageAndSampler.Sampler->magFilter), GetWrapMode(imageAndSampler.Sampler->wrapS));
+                    params = Graphics::TextureParameters(GetFilter(imageAndSampler.Sampler->minFilter), GetFilter(imageAndSampler.Sampler->magFilter), GetWrapMode(imageAndSampler.Sampler->wrapS));
 
 				Graphics::Texture2D* texture2D = Graphics::Texture2D::CreateFromSource(imageAndSampler.Image->width, imageAndSampler.Image->height, imageAndSampler.Image->image.data(), params);
                 if (texture2D)
@@ -165,7 +165,7 @@ namespace Lumos
             
             if (metallicRoughnessTexture != mat.values.end())
             {
-                textures.specular = loadedTextures[gltfModel.textures[metallicRoughnessTexture->second.TextureIndex()].source];
+                textures.metallic = loadedTextures[gltfModel.textures[metallicRoughnessTexture->second.TextureIndex()].source];
 				properties.workflow = PBR_WORKFLOW_METALLIC_ROUGHNESS;
             }
 
@@ -181,7 +181,7 @@ namespace Lumos
             
             if (metallicFactor != mat.values.end())
             {
-                properties.specularColour = Maths::Vector4(static_cast<float>(metallicFactor->second.Factor()));
+                properties.metallicColour = Maths::Vector4(static_cast<float>(metallicFactor->second.Factor()));
             }
             
             if (baseColorFactor != mat.values.end())
@@ -190,41 +190,41 @@ namespace Lumos
             }
             
             // Extensions
-            auto specularGlossinessWorkflow = mat.extensions.find("KHR_materials_pbrSpecularGlossiness");
-            if (specularGlossinessWorkflow != mat.extensions.end())
+            auto metallicGlossinessWorkflow = mat.extensions.find("KHR_materials_pbrMetallicGlossiness");
+            if (metallicGlossinessWorkflow != mat.extensions.end())
             {
-                if (specularGlossinessWorkflow->second.Has("diffuseTexture"))
+                if (metallicGlossinessWorkflow->second.Has("diffuseTexture"))
                 {
-                    int index = specularGlossinessWorkflow->second.Get("diffuseTexture").Get("index").Get<int>();
+                    int index = metallicGlossinessWorkflow->second.Get("diffuseTexture").Get("index").Get<int>();
                     textures.albedo = loadedTextures[gltfModel.textures[index].source];
 
                 }
                 
-                if (specularGlossinessWorkflow->second.Has("specularGlossinessTexture"))
+                if (metallicGlossinessWorkflow->second.Has("metallicGlossinessTexture"))
                 {
-                    int index = specularGlossinessWorkflow->second.Get("specularGlossinessTexture").Get("index").Get<int>();
+                    int index = metallicGlossinessWorkflow->second.Get("metallicGlossinessTexture").Get("index").Get<int>();
                     textures.roughness = loadedTextures[gltfModel.textures[index].source];
                 }
                 
-                if (specularGlossinessWorkflow->second.Has("diffuseFactor"))
+                if (metallicGlossinessWorkflow->second.Has("diffuseFactor"))
                 {
-                    auto& factor = specularGlossinessWorkflow->second.Get("diffuseFactor");
+                    auto& factor = metallicGlossinessWorkflow->second.Get("diffuseFactor");
                     properties.albedoColour.x = factor.ArrayLen() > 0 ? float(factor.Get(0).IsNumber() ? factor.Get(0).Get<double>() : factor.Get(0).Get<int>()) : 1.0f;
                     properties.albedoColour.y = factor.ArrayLen() > 1 ? float(factor.Get(1).IsNumber() ? factor.Get(1).Get<double>() : factor.Get(1).Get<int>()) : 1.0f;
                     properties.albedoColour.z = factor.ArrayLen() > 2 ? float(factor.Get(2).IsNumber() ? factor.Get(2).Get<double>() : factor.Get(2).Get<int>()) : 1.0f;
                     properties.albedoColour.w = factor.ArrayLen() > 3 ? float(factor.Get(3).IsNumber() ? factor.Get(3).Get<double>() : factor.Get(3).Get<int>()) : 1.0f;
                 }
-                if (specularGlossinessWorkflow->second.Has("specularFactor"))
+                if (metallicGlossinessWorkflow->second.Has("metallicFactor"))
                 {
-                    auto& factor = specularGlossinessWorkflow->second.Get("specularFactor");
-                    properties.specularColour.x = factor.ArrayLen() > 0 ? float(factor.Get(0).IsNumber() ? factor.Get(0).Get<double>() : factor.Get(0).Get<int>()) : 1.0f;
-                    properties.specularColour.y = factor.ArrayLen() > 0 ? float(factor.Get(1).IsNumber() ? factor.Get(1).Get<double>() : factor.Get(1).Get<int>()) : 1.0f;
-                    properties.specularColour.z = factor.ArrayLen() > 0 ? float(factor.Get(2).IsNumber() ? factor.Get(2).Get<double>() : factor.Get(2).Get<int>()) : 1.0f;
-                    properties.specularColour.w = factor.ArrayLen() > 0 ? float(factor.Get(3).IsNumber() ? factor.Get(3).Get<double>() : factor.Get(3).Get<int>()) : 1.0f;
+                    auto& factor = metallicGlossinessWorkflow->second.Get("metallicFactor");
+                    properties.metallicColour.x = factor.ArrayLen() > 0 ? float(factor.Get(0).IsNumber() ? factor.Get(0).Get<double>() : factor.Get(0).Get<int>()) : 1.0f;
+                    properties.metallicColour.y = factor.ArrayLen() > 0 ? float(factor.Get(1).IsNumber() ? factor.Get(1).Get<double>() : factor.Get(1).Get<int>()) : 1.0f;
+                    properties.metallicColour.z = factor.ArrayLen() > 0 ? float(factor.Get(2).IsNumber() ? factor.Get(2).Get<double>() : factor.Get(2).Get<int>()) : 1.0f;
+                    properties.metallicColour.w = factor.ArrayLen() > 0 ? float(factor.Get(3).IsNumber() ? factor.Get(3).Get<double>() : factor.Get(3).Get<int>()) : 1.0f;
                 }
-                if (specularGlossinessWorkflow->second.Has("glossinessFactor"))
+                if (metallicGlossinessWorkflow->second.Has("glossinessFactor"))
                 {
-                    auto& factor = specularGlossinessWorkflow->second.Get("glossinessFactor");
+                    auto& factor = metallicGlossinessWorkflow->second.Get("glossinessFactor");
                     properties.roughnessColour = Maths::Vector4(1.0f - float(factor.IsNumber() ? factor.Get<double>() : factor.Get<int>()));
                 }
             }
@@ -244,7 +244,7 @@ namespace Lumos
         for (auto& primitive : mesh.primitives)
         {
             const tinygltf::Accessor &indices = model.accessors[primitive.indices];
-            
+
             const u32 numVertices = static_cast<u32>(indices.count);
 			Graphics::Vertex* tempvertices = lmnew Graphics::Vertex[numVertices];
             u32* indicesArray = lmnew u32[numVertices];
@@ -432,10 +432,10 @@ namespace Lumos
                 auto submeshEntity = registry.create();
                 auto lMesh = Ref<Graphics::Mesh>(meshes);
                                 
-                if(!subname.empty())
-					registry.emplace<MeshComponent>(submeshEntity, lMesh);
+                registry.emplace<MeshComponent>(submeshEntity, lMesh);
                 registry.emplace<Maths::Transform>(submeshEntity);
-                registry.emplace<NameComponent>(submeshEntity, subname);
+                if(!subname.empty())
+                    registry.emplace<NameComponent>(submeshEntity, subname);
 				registry.emplace<Hierarchy>(submeshEntity, meshEntity);
 
                 int materialIndex = model.meshes[node.mesh].primitives[subIndex].material;

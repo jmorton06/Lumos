@@ -29,6 +29,7 @@ namespace Lumos
             void FrameRender(ImGui_ImplVulkanH_WindowData* wd);
             void SetupVulkanWindowData(ImGui_ImplVulkanH_WindowData* wd, VkSurfaceKHR surface, int width, int height);
 			bool Implemented() const override { return true; }
+            void RebuildFontTexture() override;
             
             static void MakeDefault();
         protected:

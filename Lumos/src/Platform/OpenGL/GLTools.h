@@ -20,7 +20,6 @@ namespace Lumos
 		{
 			u32 TextureFormatToGL(TextureFormat format);
 			u32 TextureWrapToGL(TextureWrap wrap);
-			TextureFormat BitsToTextureFormat(u32 bits);
 			u32 TextureFormatToInternalFormat(u32 format);
 			u32 StencilTypeToGL(const StencilType type);
 

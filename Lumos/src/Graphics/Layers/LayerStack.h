@@ -22,7 +22,7 @@ namespace Lumos
 		void Clear();
 
 		void OnRender(Scene* scene);
-		void OnUpdate(TimeStep* timeStep, Scene* scene);
+		void OnUpdate(const TimeStep& timeStep, Scene* scene);
 		void OnEvent(Event& e);
 		void OnImGui();
 

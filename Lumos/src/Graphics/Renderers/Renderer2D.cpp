@@ -22,23 +22,17 @@
 #include "Maths/Transform.h"
 #include "Core/Profiler.h"
 
-#define RENDERER_MAX_SPRITES	10000
-#define RENDERER_SPRITE_SIZE	RENDERER2D_VERTEX_SIZE * 4
-#define RENDERER_BUFFER_SIZE	RENDERER_SPRITE_SIZE * RENDERER_MAX_SPRITES
-#define RENDERER_INDICES_SIZE	RENDERER_MAX_SPRITES * 6
-#define RENDERER_MAX_TEXTURES	16 - 1
-#define MAX_BATCH_DRAW_CALLS	100
-
 namespace Lumos
 {
 	namespace Graphics
-	{
+	{    
 		Renderer2D::Renderer2D(u32 width, u32 height, bool renderToGBuffer, bool clear, bool triangleIndicies, bool renderToDepth) : m_IndexCount(0), m_RenderTexture(nullptr), m_Buffer(nullptr), m_Clear(clear), m_RenderToDepthTexture(renderToDepth)
 		{
-			Renderer2D::SetScreenBufferSize(width, height);
+            m_Limits.SetMaxQuads(10000);
+            m_Limits.MaxQuads = 16;//Renderer::GetCapabilities().MaxTextureUnits;
 
+            Renderer2D::SetScreenBufferSize(width, height);
 			Renderer2D::Init(triangleIndicies);
-
 			Renderer2D::SetRenderToGBufferTexture(renderToGBuffer);
 		}
 
@@ -56,10 +50,10 @@ namespace Lumos
 			for (auto frameBuffer : m_Framebuffers)
 				delete frameBuffer;
 
-			for (int i = 0; i < MAX_BATCH_DRAW_CALLS; i++)
+			for (int i = 0; i < m_Limits.MaxBatchDrawCalls; i++)
 				delete m_VertexArrays[i];
 
-			for (int i = 0; i < MAX_BATCH_DRAW_CALLS; i++)
+			for (int i = 0; i < m_Limits.MaxBatchDrawCalls; i++)
 				delete m_SecondaryCommandBuffers[i];
 
 			for (auto& commandBuffer : m_CommandBuffers)
@@ -110,7 +104,7 @@ namespace Lumos
 				commandBuffer->Init(true);
 			}
 
-			m_SecondaryCommandBuffers.resize(MAX_BATCH_DRAW_CALLS);
+			m_SecondaryCommandBuffers.resize(m_Limits.MaxBatchDrawCalls);
 
 			for (auto& cmdBuffer : m_SecondaryCommandBuffers)
 			{
@@ -151,23 +145,23 @@ namespace Lumos
 			layout.Push<Maths::Vector2>("ID"); // Texture Index
 			layout.Push<Maths::Vector4>("COLOUR"); // Colour
 
-			m_VertexArrays.resize(MAX_BATCH_DRAW_CALLS);
+			m_VertexArrays.resize(m_Limits.MaxBatchDrawCalls);
 
 			for (auto& vertexArray : m_VertexArrays)
 			{
-				VertexBuffer* buffer = VertexBuffer::Create(BufferUsage::DYNAMIC);
-				buffer->Resize(RENDERER_BUFFER_SIZE);
-				buffer->SetLayout(layout);
 				vertexArray = Graphics::VertexArray::Create();
+				vertexArray->Bind();
+				VertexBuffer* buffer = VertexBuffer::Create(BufferUsage::DYNAMIC);
+				buffer->Resize(m_Limits.BufferSize);
+				buffer->SetLayout(layout);
 				vertexArray->PushBuffer(buffer);
 			}
 
-			u32* indices = lmnew u32[RENDERER_INDICES_SIZE];
+			u32* indices = lmnew u32[m_Limits.IndiciesSize];
 
             if(triangleIndicies)
             {
-                i32 offset = 0;
-                for (i32 i = 0; i < RENDERER_INDICES_SIZE; i++)
+                for (i32 i = 0; i < m_Limits.IndiciesSize; i++)
                 {
                     indices[i] = i;
                 }
@@ -175,7 +169,7 @@ namespace Lumos
             else
             {
                 i32 offset = 0;
-                for (i32 i = 0; i < RENDERER_INDICES_SIZE; i += 6)
+                for (i32 i = 0; i < m_Limits.IndiciesSize; i += 6)
                 {
                     indices[i] = offset + 0;
                     indices[i + 1] = offset + 1;
@@ -188,7 +182,7 @@ namespace Lumos
                     offset += 4;
                 }
             }
-			m_IndexBuffer = IndexBuffer::Create(indices, RENDERER_INDICES_SIZE);
+			m_IndexBuffer = IndexBuffer::Create(indices, m_Limits.IndiciesSize);
 
 			delete[] indices;
 
@@ -197,7 +191,7 @@ namespace Lumos
 
 		void Renderer2D::Submit(Renderable2D* renderable, const Maths::Matrix4& transform)
 		{
-            if(m_IndexCount >= RENDERER_INDICES_SIZE)
+            if(m_IndexCount >= m_Limits.IndiciesSize)
                 FlushAndReset();
         
 			const Maths::Vector2 min = renderable->GetPosition();
@@ -250,7 +244,7 @@ namespace Lumos
     
         void Renderer2D::SubmitInternal(const TriangleInfo& triangleInfo)
         {
-            if(m_IndexCount >= RENDERER_INDICES_SIZE)
+            if(m_IndexCount >= m_Limits.IndiciesSize)
                 FlushAndReset();
 
             float textureSlot = 0.0f;
@@ -324,12 +318,18 @@ namespace Lumos
 
 		void Renderer2D::BeginScene(Scene* scene)
 		{
-			auto camera = scene->GetCamera();
-			auto projView = camera->GetProjectionMatrix() * camera->GetViewMatrix();
+            auto& registry = scene->GetRegistry();
+                 
+            auto cameraView = registry.view<Camera>();
+            if(!cameraView.empty())
+            {
+                m_Camera = &registry.get<Camera>(cameraView.front());
+            }
+			auto projView = m_Camera->GetProjectionMatrix() * m_Camera->GetViewMatrix();
 
 			memcpy(m_VSSystemUniformBuffer, &projView, sizeof(Maths::Matrix4));
             
-            m_Frustum = camera->GetFrustum();
+            m_Frustum = m_Camera->GetFrustum();
 		}
 
 		void Renderer2D::Present()
@@ -424,7 +424,7 @@ namespace Lumos
 
 			if (!found)
 			{
-				if (m_Textures.size() >= RENDERER_MAX_TEXTURES)
+				if (m_Textures.size() >= m_Limits.MaxTextures)
 				{
                     FlushAndReset();
 				}
@@ -436,8 +436,6 @@ namespace Lumos
 
 		void Renderer2D::OnResize(u32 width, u32 height)
 		{
-			delete m_Pipeline;
-
 			for (auto fbo : m_Framebuffers)
 				delete fbo;
 			m_Framebuffers.clear();
@@ -446,37 +444,6 @@ namespace Lumos
 				m_RenderTexture = Application::Instance()->GetRenderManager()->GetGBuffer()->GetTexture(SCREENTEX_OFFSCREEN0);
 
 			SetScreenBufferSize(width, height);
-
-			CreateGraphicsPipeline();
-
-			if (m_UniformBuffer == nullptr)
-			{
-				m_UniformBuffer = Graphics::UniformBuffer::Create();
-				uint32_t bufferSize = static_cast<uint32_t>(sizeof(UniformBufferObject));
-				m_UniformBuffer->Init(bufferSize, nullptr);
-			}
-
-			std::vector<Graphics::BufferInfo> bufferInfos;
-
-			Graphics::BufferInfo bufferInfo;
-			bufferInfo.buffer = m_UniformBuffer;
-			bufferInfo.offset = 0;
-			bufferInfo.size = sizeof(UniformBufferObject);
-			bufferInfo.type = Graphics::DescriptorType::UNIFORM_BUFFER;
-			bufferInfo.shaderType = ShaderType::VERTEX;
-			bufferInfo.systemUniforms = false;
-			bufferInfo.name = "UniformBufferObject";
-			bufferInfo.binding = 0;
-
-			bufferInfos.push_back(bufferInfo);
-
-			delete m_DescriptorSet; Graphics::DescriptorInfo info{};
-			info.pipeline = m_Pipeline;
-			info.layoutIndex = 1; //?
-			info.shader = m_Shader;
-			m_DescriptorSet = Graphics::DescriptorSet::Create(info);
-
-			m_Pipeline->GetDescriptorSet()->Update(bufferInfos);
 
 			CreateFramebuffers();
 		}
@@ -506,8 +473,8 @@ namespace Lumos
 		{
 			std::vector<Graphics::DescriptorPoolInfo> poolInfo =
 			{
-				{ Graphics::DescriptorType::UNIFORM_BUFFER, MAX_BATCH_DRAW_CALLS },
-				{ Graphics::DescriptorType::IMAGE_SAMPLER, MAX_BATCH_DRAW_CALLS }
+				{ Graphics::DescriptorType::UNIFORM_BUFFER, m_Limits.MaxBatchDrawCalls },
+				{ Graphics::DescriptorType::IMAGE_SAMPLER, m_Limits.MaxBatchDrawCalls }
 			};
 
 			std::vector<Graphics::DescriptorLayoutInfo> layoutInfo =
@@ -517,7 +484,7 @@ namespace Lumos
 
 			std::vector<Graphics::DescriptorLayoutInfo> layoutInfoMesh =
 			{
-				 { Graphics::DescriptorType::IMAGE_SAMPLER,Graphics::ShaderType::FRAGMENT , 0, RENDERER_MAX_TEXTURES }
+				 { Graphics::DescriptorType::IMAGE_SAMPLER,Graphics::ShaderType::FRAGMENT , 0, m_Limits.MaxTextures }
 			};
 
 			auto attributeDescriptions = VertexData::getAttributeDescriptions();
@@ -551,7 +518,7 @@ namespace Lumos
 			pipelineCI.cullMode = Graphics::CullMode::BACK;
 			pipelineCI.transparencyEnabled = true;
 			pipelineCI.depthBiasEnabled = false;
-			pipelineCI.maxObjects = MAX_BATCH_DRAW_CALLS;
+			pipelineCI.maxObjects = m_Limits.MaxBatchDrawCalls;
 
 			m_Pipeline = Graphics::Pipeline::Create(pipelineCI);
 		}

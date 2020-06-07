@@ -7,6 +7,7 @@ namespace Lumos
 	namespace Graphics
 	{
 		class Texture2D;
+        class TextureCube;
 	}
 
 	namespace ImGuiHelpers
@@ -45,6 +46,7 @@ namespace Lumos
 		void Tooltip(Graphics::Texture2D* texture, const Maths::Vector2& size);
 		void Tooltip(Graphics::Texture2D* texture, const Maths::Vector2& size, const String& text);
 		void Image(Graphics::Texture2D* texture, const Maths::Vector2& size);
+        void Image(Graphics::TextureCube* texture, const Maths::Vector2& size);
 
 		void SetTheme(Theme theme);
     

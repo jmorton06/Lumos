@@ -3,6 +3,7 @@
 #include "App/Application.h"
 #include "Core/Version.h"
 #include "VKDevice.h"
+#include "VKRenderer.h"
 
 namespace Lumos
 {
@@ -58,6 +59,17 @@ namespace Lumos
 			Debug::Log::Info("Vendor ID : {0}", StringFormat::ToString(m_PhysicalDeviceProperties.vendorID));
 			Debug::Log::Info("Device Type : {0}", String(TranslateVkPhysicalDeviceTypeToString(m_PhysicalDeviceProperties.deviceType)));
 			Debug::Log::Info("Driver Version : {0}.{1}.{2}", VK_VERSION_MAJOR(m_PhysicalDeviceProperties.driverVersion), VK_VERSION_MINOR(m_PhysicalDeviceProperties.driverVersion), VK_VERSION_PATCH(m_PhysicalDeviceProperties.driverVersion));
+
+			auto& caps = Renderer::GetCapabilities();
+			
+			caps.Vendor =  StringFormat::ToString(m_PhysicalDeviceProperties.vendorID);
+			caps.Renderer = std::string(m_PhysicalDeviceProperties.deviceName);
+			caps.Version = StringFormat::ToString(m_PhysicalDeviceProperties.driverVersion);
+
+            caps.MaxAnisotropy = m_PhysicalDeviceProperties.limits.maxSamplerAnisotropy;
+            caps.MaxSamples = m_PhysicalDeviceProperties.limits.maxSamplerAllocationCount;
+            caps.MaxTextureUnits = m_PhysicalDeviceProperties.limits.maxDescriptorSetSamplers;
+            caps.UniformBufferOffsetAlignment = int(m_PhysicalDeviceProperties.limits.minUniformBufferOffsetAlignment);
 
 			// Queue family
 			uint32_t numQueueFamily = 0;
@@ -187,7 +199,7 @@ namespace Lumos
 			auto result = vkCreateDevice(m_PhysicalDevice, &deviceCI, VK_NULL_HANDLE, &m_Device);
 			if (result != VK_SUCCESS)
 			{
-				Debug::Log::Critical("[VULKAN] VKDevice::Instance()->GetDevice() vkCreateDevice() failed!");
+				Debug::Log::Critical("[VULKAN] vkCreateDevice() failed!");
 				return false;
 			}
 
@@ -199,6 +211,7 @@ namespace Lumos
             VmaAllocatorCreateInfo allocatorInfo = {};
             allocatorInfo.physicalDevice = m_PhysicalDevice;
             allocatorInfo.device = m_Device;
+			allocatorInfo.instance = m_VKContext->GetVKInstance();
             
             VmaVulkanFunctions fn;
             fn.vkAllocateMemory                    = (PFN_vkAllocateMemory)vkAllocateMemory;
@@ -206,7 +219,7 @@ namespace Lumos
             fn.vkBindImageMemory                   = (PFN_vkBindImageMemory)vkBindImageMemory;
             fn.vkCmdCopyBuffer                     = (PFN_vkCmdCopyBuffer)vkCmdCopyBuffer;
             fn.vkCreateBuffer                      = (PFN_vkCreateBuffer)vkCreateBuffer;
-            fn. vkCreateImage                      = (PFN_vkCreateImage)vkCreateImage;
+            fn.vkCreateImage                       = (PFN_vkCreateImage)vkCreateImage;
             fn.vkDestroyBuffer                     = (PFN_vkDestroyBuffer)vkDestroyBuffer;
             fn.vkDestroyImage                      = (PFN_vkDestroyImage)vkDestroyImage;
             fn.vkFlushMappedMemoryRanges           = (PFN_vkFlushMappedMemoryRanges)vkFlushMappedMemoryRanges;
@@ -233,7 +246,7 @@ namespace Lumos
 
 		void VKDevice::Unload()
 		{
-			vkDestroyPipelineCache(VKDevice::Instance()->GetDevice(), m_PipelineCache, VK_NULL_HANDLE);
+			vkDestroyPipelineCache(m_Device, m_PipelineCache, VK_NULL_HANDLE);
 
 #ifdef USE_VMA_ALLOCATOR
 			vmaDestroyAllocator(m_Allocator);

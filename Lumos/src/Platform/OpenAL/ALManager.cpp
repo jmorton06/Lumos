@@ -42,12 +42,12 @@ namespace Lumos
             alDistanceModel(AL_LINEAR_DISTANCE_CLAMPED);
         }
 
-        void ALManager::OnUpdate(TimeStep* dt, Scene* scene)
+        void ALManager::OnUpdate(const TimeStep& dt, Scene* scene)
         {
 			UpdateListener();
 
 			for (auto node : m_SoundNodes)
-				node->OnUpdate(dt->GetElapsedMillis());
+				node->OnUpdate(dt.GetElapsedMillis());
         }
 
 		void ALManager::UpdateListener()
@@ -55,7 +55,7 @@ namespace Lumos
 			if (m_Listener)
 			{
 				Maths::Vector3 worldPos = m_Listener->GetPosition();
-				Maths::Vector3 velocity = m_Listener->GetVelocity();
+				Maths::Vector3 velocity = Maths::Vector3(0.0f);//m_Listener->GetVelocity();
                 
                 ALfloat direction[6];
                 

@@ -7,8 +7,7 @@
 namespace Lumos
 {
 
-	ThirdPersonCameraController::ThirdPersonCameraController(Camera* camera)
-		: CameraController(camera)
+	ThirdPersonCameraController::ThirdPersonCameraController()
 	{
 		m_RotateDampeningFactor = 0.0f;
 	}
@@ -17,13 +16,13 @@ namespace Lumos
 	{
 	}
 
-	void ThirdPersonCameraController::HandleMouse(float dt, float xpos, float ypos)
+	void ThirdPersonCameraController::HandleMouse(Camera* camera, float dt, float xpos, float ypos)
 	{
 		{
             if (Input::GetInput()->GetMouseHeld(InputCode::MouseKey::ButtonRight))
 			{
-                float pitch = m_Camera->GetPitch();
-                float yaw = m_Camera->GetYaw();
+                float pitch = camera->GetPitch();
+                float yaw = camera->GetYaw();
             
 				m_RotateVelocity = m_RotateVelocity + Maths::Vector2((xpos - m_PreviousCurserPos.x), (ypos - m_PreviousCurserPos.y)) *  m_MouseSensitivity;
 				pitch -= m_RotateVelocity.y;
@@ -38,18 +37,18 @@ namespace Lumos
 					yaw -= 360.0f;
 				}
             
-                m_Camera->SetPitch(pitch);
-                m_Camera->SetYaw(yaw);
+                camera->SetPitch(pitch);
+                camera->SetYaw(yaw);
 			}
 
 			m_PreviousCurserPos = Maths::Vector2(xpos, ypos);
 		}
 
 		m_RotateVelocity = m_RotateVelocity * pow(m_RotateDampeningFactor, dt);
-		UpdateScroll(Input::GetInput()->GetScrollOffset(), dt);
+		UpdateScroll(camera, Input::GetInput()->GetScrollOffset(), dt);
 	}
 
-	void ThirdPersonCameraController::HandleKeyboard(float dt)
+	void ThirdPersonCameraController::HandleKeyboard(Camera* camera, float dt)
 	{
 		m_CameraSpeed = 1000.0f * dt;
         
@@ -57,39 +56,39 @@ namespace Lumos
 
         if (Input::GetInput()->GetKeyHeld(InputCode::Key::W))
 		{
-			m_Velocity += m_Camera->GetForwardDirection() * m_CameraSpeed;
+			m_Velocity += camera->GetForwardDirection() * m_CameraSpeed;
 		}
 
         if (Input::GetInput()->GetKeyHeld(InputCode::Key::S))
 		{
-			m_Velocity -= m_Camera->GetForwardDirection() * m_CameraSpeed;
+			m_Velocity -= camera->GetForwardDirection() * m_CameraSpeed;
 		}
 
         if (Input::GetInput()->GetKeyHeld(InputCode::Key::A))
 		{
-			m_Velocity -= m_Camera->GetRightDirection() * m_CameraSpeed;
+			m_Velocity -= camera->GetRightDirection() * m_CameraSpeed;
 		}
 
         if (Input::GetInput()->GetKeyHeld(InputCode::Key::D))
 		{
-			m_Velocity += m_Camera->GetRightDirection() * m_CameraSpeed;
+			m_Velocity += camera->GetRightDirection() * m_CameraSpeed;
 		}
 
         if (Input::GetInput()->GetKeyHeld(InputCode::Key::Space))
 		{
-			m_Velocity -= m_Camera->GetUpDirection() * m_CameraSpeed;
+			m_Velocity -= camera->GetUpDirection() * m_CameraSpeed;
 		}
 
         if (Input::GetInput()->GetKeyHeld(InputCode::Key::LeftShift))
 		{
-			m_Velocity += m_Camera->GetUpDirection() * m_CameraSpeed;
+			m_Velocity += camera->GetUpDirection() * m_CameraSpeed;
 		}
 
-        Maths::Vector3 position = m_Camera->GetPosition();
+        Maths::Vector3 position = camera->GetPosition();
     
 		position += m_Velocity * dt;
 		m_Velocity = m_Velocity * pow(m_DampeningFactor, dt);
     
-        m_Camera->SetPosition(position);
+        camera->SetPosition(position);
 	}
 }

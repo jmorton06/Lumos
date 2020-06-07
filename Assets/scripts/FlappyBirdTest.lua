@@ -173,8 +173,9 @@ function OnUpdate(dt)
 
         pos.y = 0.0
 
-        scene:GetCamera():SetPosition(pos)
-
+        cameraView = registry:view_Camera(registry)
+        registry:get_Camera(cameraView:front()):SetPosition(pos)
+        
         score = math.floor((registry:get_Transform(player):GetWorldPosition().x - 5) / 10)
 
         if registry:get_Transform(player):GetWorldPosition().x > m_PillarTarget then

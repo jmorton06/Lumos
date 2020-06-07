@@ -18,8 +18,16 @@ namespace Lumos
                 m_PrefilteredEnvironment = nullptr;
                 m_IrradianceMap = nullptr;
             }
+        
+            Environment(TextureCube* env, TextureCube* irr)
+            {
+                m_Environmnet = Ref<TextureCube>(env);
+                m_IrradianceMap = Ref<TextureCube>(irr);
+                m_PrefilteredEnvironment = nullptr;
+            }
+        
             Environment(const String& filepath, bool genPrefilter, bool genIrradiance);
-
+            Environment(const String& name, u32 numMip, u32 width, u32 height, const String& fileType = ".tga");
             ~Environment();
 
             TextureCube* GetEnvironmentMap() const { return m_Environmnet.get(); }

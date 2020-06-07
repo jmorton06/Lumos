@@ -6,6 +6,12 @@
 #include "ImGui/ImGuiHelpers.h"
 #include "App/SceneGraph.h"
 #include "Maths/Transform.h"
+#include "InspectorWindow.h"
+
+#include "Graphics/Camera/Camera.h"
+#include "Graphics/Light.h"
+#include "Graphics/Environment.h"
+#include "ECS/Component/Components.h"
 
 #include <imgui/imgui_internal.h>
 #include <IconFontCppHeaders/IconsFontAwesome5.h>
@@ -53,8 +59,10 @@ namespace Lumos
 			{
 				nodeFlags |= ImGuiTreeNodeFlags_Leaf;
 			}
-        
-			bool active = true;
+
+			auto activeComponent = registry.try_get<ActiveComponent>(node);
+			bool active = activeComponent ? activeComponent->active : true;
+
 			if(!active)
 				ImGui::PushStyleColor(ImGuiCol_Text, ImGui::GetStyleColorVec4(ImGuiCol_TextDisabled));
 
@@ -72,23 +80,62 @@ namespace Lumos
 				ImGui::SetNextItemOpen(true);
 				m_HadRecentDroppedEntity = entt::null;
 			}
+        
+            String icon = ICON_FA_CUBE;
+			auto& iconMap = m_Editor->GetComponentIconMap();
 
-            bool nodeOpen = ImGui::TreeNodeEx((void*)(intptr_t)entt::to_integral(node), nodeFlags, ICON_FA_CUBE " %s", doubleClicked ? "" :(name).c_str());
+			if(registry.has<Camera>(node))
+            {
+                if(iconMap.find(typeid(Camera).hash_code()) != iconMap.end())
+				    icon = iconMap[typeid(Camera).hash_code()];
+            }
+			else if(registry.has<SoundComponent>(node))
+            {
+                if(iconMap.find(typeid(SoundComponent).hash_code()) != iconMap.end())
+                    icon = iconMap[typeid(SoundComponent).hash_code()];
+            }
+            else if(registry.has<Physics2DComponent>(node))
+            {
+                if(iconMap.find(typeid(Physics2DComponent).hash_code()) != iconMap.end())
+                    icon = iconMap[typeid(Physics2DComponent).hash_code()];
+            }
+            else if(registry.has<Graphics::Light>(node))
+            {
+                if(iconMap.find(typeid(Graphics::Light).hash_code()) != iconMap.end())
+                    icon = iconMap[typeid(Graphics::Light).hash_code()];
+            }
+            else if(registry.has<Graphics::Environment>(node))
+            {
+                if(iconMap.find(typeid(Graphics::Environment).hash_code()) != iconMap.end())
+                    icon = iconMap[typeid(Graphics::Environment).hash_code()];
+            }
 
-			if (doubleClicked)
-			{
-				ImGui::SameLine();
-				static char objName[INPUT_BUF_SIZE];
-				strcpy(objName, name.c_str());
+            bool nodeOpen = ImGui::TreeNodeEx((void*)(intptr_t)entt::to_integral(node), nodeFlags, (icon + " %s").c_str(), doubleClicked ? "" :(name).c_str());
 
-				ImGui::PushItemWidth(-1);
-				if (ImGui::InputText("##Name", objName, IM_ARRAYSIZE(objName), 0))
-					registry.get_or_emplace<NameComponent>(node).name = objName;
-				ImGui::PopStyleVar();
-			}
+			if (doubleClicked) {
+                ImGui::SameLine();
+                static char objName[INPUT_BUF_SIZE];
+                strcpy(objName, name.c_str());
 
-			if (!active)
-				ImGui::PopStyleColor();
+                ImGui::PushItemWidth(-1);
+                if (ImGui::InputText("##Name", objName, IM_ARRAYSIZE(objName), 0))
+                    registry.get_or_emplace<NameComponent>(node).name = objName;
+                ImGui::PopStyleVar();
+            }
+#if 0
+            ImGui::SameLine(ImGui::GetWindowContentRegionMax().x - 22.0f);
+            ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.7f, 0.7f, 0.7f, 0.0f));
+            if(ImGui::Button(active ? ICON_FA_EYE : ICON_FA_EYE_SLASH))
+            {
+                auto& activeComponent = registry.get_or_emplace<ActiveComponent>(node);
+
+                activeComponent.active = !active;
+            }
+            ImGui::PopStyleColor();
+#endif
+
+            if (!active)
+                ImGui::PopStyleColor();
 
 			bool deleteEntity = false;
 			if (ImGui::BeginPopupContextItem(name.c_str()))
@@ -252,16 +299,18 @@ namespace Lumos
 
 	void HierarchyWindow::OnImGui()
 	{
-		auto flags = ImGuiWindowFlags_NoCollapse;
+		auto flags = ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_MenuBar;
 		ImGui::Begin(m_Name.c_str(), &m_Active, flags);
 		{
 			auto& registry = Application::Instance()->GetSceneManager()->GetCurrentScene()->GetRegistry();
             
-			ImGui::Indent();
+            ImGui::PushStyleColor(ImGuiCol_MenuBarBg, ImGui::GetStyleColorVec4(ImGuiCol_TabActive));
+            ImGui::BeginMenuBar();
 			ImGui::TextUnformatted(ICON_FA_SEARCH);
 			ImGui::SameLine();
 			m_HierarchyFilter.Draw("##HierarchyFilter", ImGui::GetContentRegionAvailWidth() - ImGui::GetStyle().IndentSpacing);
-            
+            ImGui::EndMenuBar();
+            ImGui::PopStyleColor();
             ImGui::Unindent();
 
 			if (ImGui::CollapsingHeader("Scene",ImGuiTreeNodeFlags_DefaultOpen))
@@ -289,7 +338,7 @@ namespace Lumos
 					{
 						auto hierarchyComponent = registry.try_get<Hierarchy>(entity);
 
-						if (!hierarchyComponent || (hierarchyComponent && hierarchyComponent->parent() == entt::null))
+						if (!hierarchyComponent || hierarchyComponent->parent() == entt::null)
 							DrawNode(entity, registry);
 					}
                 });

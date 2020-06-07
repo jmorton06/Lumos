@@ -149,16 +149,22 @@ namespace Lumos
 
 		void GridRenderer::BeginScene(Scene* scene)
 		{
-			auto camera = scene->GetCamera();
-			auto proj = camera->GetProjectionMatrix();
+            auto& registry = scene->GetRegistry();
+                 
+            auto cameraView = registry.view<Camera>();
+            if(!cameraView.empty())
+            {
+                m_Camera = &registry.get<Camera>(cameraView.front());
+            }
+			auto proj = m_Camera->GetProjectionMatrix();
 
 			UniformBufferObjectFrag test;
 			test.res = m_GridRes;
 			test.scale = m_GridSize;
-            test.cameraPos = scene->GetCamera()->GetPosition();
+            test.cameraPos = m_Camera->GetPosition();
             test.maxDistance = m_MaxDistance;
 
-			auto invViewProj = proj * camera->GetViewMatrix();
+			auto invViewProj = proj * m_Camera->GetViewMatrix();
 			memcpy(m_VSSystemUniformBuffer + m_VSSystemUniformBufferOffsets[VSSystemUniformIndex_InverseProjectionViewMatrix], &invViewProj, sizeof(Maths::Matrix4));
 			memcpy(m_PSSystemUniformBuffer + m_VSSystemUniformBufferOffsets[VSSystemUniformIndex_InverseProjectionViewMatrix], &test, sizeof(UniformBufferObjectFrag));
 		}
@@ -209,8 +215,6 @@ namespace Lumos
 
 		void GridRenderer::OnResize(u32 width, u32 height)
 		{
-			delete m_Pipeline;
-
 			for (auto fbo : m_Framebuffers)
 				delete fbo;
 			m_Framebuffers.clear();
@@ -220,7 +224,6 @@ namespace Lumos
 
 			SetScreenBufferSize(width, height);
 
-			CreateGraphicsPipeline();
 			UpdateUniformBuffer();
 			CreateFramebuffers();
 		}

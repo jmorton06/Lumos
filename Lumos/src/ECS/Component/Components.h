@@ -9,5 +9,4 @@
 #include "Physics3DComponent.h"
 #include "AIComponent.h"
 #include "ParticleComponent.h"
-#include "CameraComponent.h"
 #include "MaterialComponent.h"

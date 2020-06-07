@@ -23,8 +23,7 @@ namespace Lumos
 		{
 			if (s_Instance == nullptr)
 			{
-				s_Instance = (MemoryManager*)malloc(sizeof(MemoryManager));
-				s_Instance = new(s_Instance) MemoryManager();
+				s_Instance = new MemoryManager();
 			}
 			return s_Instance;
 		}

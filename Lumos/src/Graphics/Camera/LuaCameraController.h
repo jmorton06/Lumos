@@ -10,11 +10,11 @@ namespace Lumos
 	class LUMOS_EXPORT LuaCameraController : CameraController
 	{
 	public:
-		LuaCameraController(Camera* camera);
+		LuaCameraController();
 		virtual ~LuaCameraController() override;
 
-		virtual void HandleMouse(float dt, float xpos, float ypos) override;
-		virtual void HandleKeyboard(float dt) override;
+		virtual void HandleMouse(Camera* camera, float dt, float xpos, float ypos) override;
+		virtual void HandleKeyboard(Camera* camera, float dt) override;
 
         void SetFunctions(sol::protected_function mouseFunc, sol::protected_function keyboardFunc)
         {

@@ -1,6 +1,7 @@
 #pragma once
 #include "lmpch.h"
 #include "ECS/SystemManager.h"
+#include "Core/OS/Window.h"
 
 #define LUMOS_EDITOR //temp
 
@@ -65,7 +66,7 @@ namespace Lumos
 
 		void Run();
 		bool OnFrame();
-		void OnUpdate(TimeStep* dt);
+		void OnUpdate(const TimeStep& dt);
 		void OnRender();
 		void OnEvent(Event& e);
 		void OnImGui();
@@ -161,6 +162,7 @@ namespace Lumos
 		static Application* s_Instance;
 
 		Layer* m_ImGuiLayer = nullptr;
+        WindowProperties m_InitialProperties;
 
 #ifdef LUMOS_EDITOR
 		Editor* m_Editor = nullptr;

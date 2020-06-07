@@ -14,7 +14,7 @@
 
 namespace Lumos
 {
-	u8* LoadImageFromFile(const char* filename, u32* width, u32* height, u32* bits, bool flipY)
+	u8* LoadImageFromFile(const char* filename, u32* width, u32* height, u32* bits, bool* isHDR, bool flipY)
 	{
         String filePath = String(filename);
 		String physicalPath;
@@ -64,19 +64,38 @@ namespace Lumos
 		FreeImage_Unload(bitmap);
 #else
 		int texWidth = 0, texHeight = 0, texChannels = 0;
-		stbi_uc* pixels = stbi_load(filename, &texWidth, &texHeight, &texChannels, STBI_rgb_alpha);
+        stbi_uc* pixels = nullptr;
+        int sizeOfChannel = 8;
+        if (stbi_is_hdr(filename))
+        {
+            sizeOfChannel = 16;
+            pixels = (u8*)stbi_loadf(filename, &texWidth, &texHeight, &texChannels, 0);
+
+            if(isHDR)
+                *isHDR = true;
+        }
+        else
+        {
+            pixels = stbi_load(filename, &texWidth, &texHeight, &texChannels, STBI_rgb_alpha);
+
+            if(isHDR)
+                *isHDR = false;
+        }
 
 		LUMOS_ASSERT(pixels, "Could not load image '{0}'!", filename);
 
+        //TODO support different texChannels
+        if(texChannels != 4)
+            texChannels = 4;
+    
 		if (width)
 			*width = texWidth;
 		if (height)
 			*height = texHeight;
 		if (bits)
-			*bits = 32;// texChannels * 8;// texChannels;	  //32 bits for 4 bytes r g b a 
+			*bits = texChannels * sizeOfChannel;// texChannels;	  //32 bits for 4 bytes r g b a
 
-		//TODO support different texChannels
-		const i32 size = texWidth * texHeight * (32 / 8);
+		const i32 size = texWidth * texHeight * texChannels;
 		u8* result = lmnew u8[size];
 		memcpy(result, pixels, size);
 
@@ -85,8 +104,8 @@ namespace Lumos
 		return result;
 	}
 
-	u8* LoadImageFromFile(const String& filename, u32* width, u32* height, u32* bits, bool flipY)
+	u8* LoadImageFromFile(const String& filename, u32* width, u32* height, u32* bits, bool* isHDR, bool flipY)
 	{
-		return LoadImageFromFile(filename.c_str(), width, height, bits, flipY);
+		return LoadImageFromFile(filename.c_str(), width, height, bits, isHDR, flipY);
 	}
 }

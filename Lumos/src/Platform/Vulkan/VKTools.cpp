@@ -493,8 +493,19 @@ namespace Lumos
 			default: LUMOS_LOG_CRITICAL("[Texture] Unsupported wrap type!");  return VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_EDGE;
 			}
 		}
+    
+        VkFilter VKTools::TextureFilterToVK(const TextureFilter filter)
+        {
+            switch (filter)
+            {
+            case TextureFilter::NEAREST:      return VK_FILTER_NEAREST;
+            case TextureFilter::LINEAR:       return VK_FILTER_LINEAR;
+            case TextureFilter::NONE:         return VK_FILTER_LINEAR;
+            default: LUMOS_LOG_CRITICAL("[Texture] Unsupported TextureFilter type!");  return VK_FILTER_LINEAR;
+            }
+        }
 
-        VkFormat VKTools::TextureFormatToVK(const TextureFormat format)
+        VkFormat VKTools::TextureFormatToVK(const TextureFormat format, bool srgb)
         {
             switch (format)
             {
@@ -502,8 +513,8 @@ namespace Lumos
                 case TextureFormat::RGB:				return VK_FORMAT_R8G8B8_UNORM;
                 case TextureFormat::R8:				    return VK_FORMAT_R8_UNORM;
                 case TextureFormat::RG8:				return VK_FORMAT_R8G8_UNORM;
-                case TextureFormat::RGB8:				return VK_FORMAT_R8G8B8_UNORM;
-                case TextureFormat::RGBA8:				return VK_FORMAT_R8G8B8A8_UNORM;
+                case TextureFormat::RGB8:				return srgb ? VK_FORMAT_R8G8B8A8_SRGB : VK_FORMAT_R8G8B8A8_UNORM; //VK_FORMAT_R8G8B8_UNORM not supported mac
+                case TextureFormat::RGBA8:				return srgb ? VK_FORMAT_R8G8B8A8_SRGB : VK_FORMAT_R8G8B8A8_UNORM; //Temp : VK_FORMAT_R8G8B8A8_UNORM mimmap gen broken
                 case TextureFormat::RGB16:              return VK_FORMAT_R16G16B16_SFLOAT;
                 case TextureFormat::RGBA16:             return VK_FORMAT_R16G16B16A16_SFLOAT;
 				case TextureFormat::RGB32:              return VK_FORMAT_R32G32B32_SFLOAT;
