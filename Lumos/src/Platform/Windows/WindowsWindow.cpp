@@ -602,7 +602,7 @@ namespace Lumos
 		if (filePath != "")
 		{
 			u32 width, height;
-			u8* pixels = Lumos::LoadImageFromFile(filePath, &width, &height, nullptr, true);
+			u8* pixels = Lumos::LoadImageFromFile(filePath, &width, &height, nullptr, nullptr, true);
 
 			bigIcon = createIcon(pixels, int(width), int(height), 0, 0, true);
 			delete[] pixels;
@@ -611,7 +611,7 @@ namespace Lumos
 		if (smallIconFilePath != "")
 		{
 			u32 width, height;
-			u8* pixels = Lumos::LoadImageFromFile(smallIconFilePath, &width, &height, nullptr, true);
+			u8* pixels = Lumos::LoadImageFromFile(smallIconFilePath, &width, &height, nullptr, nullptr, true);
 
 			auto smallIcon = createIcon(pixels, int(width), int(height), 0, 0, true);
 			delete[] pixels;
