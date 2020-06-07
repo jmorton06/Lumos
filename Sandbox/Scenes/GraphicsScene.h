@@ -9,7 +9,7 @@ public:
 
 	virtual void OnInit() override;
 	virtual void OnCleanupScene() override;
-	virtual void OnUpdate(Lumos::TimeStep* timeStep) override;
+	virtual void OnUpdate(const Lumos::TimeStep& timeStep) override;
 	virtual void OnImGui() override;
 
 	void LoadModels();

@@ -27,7 +27,6 @@
 #include "Graphics/API/RenderPass.h"
 #include "Graphics/API/Pipeline.h"
 #include "Graphics/API/GraphicsContext.h"
-
 #include "Graphics/Environment.h"
 
 #include <imgui/imgui.h>
@@ -45,7 +44,8 @@ namespace Lumos
 			PSSystemUniformIndex_CameraPosition,
 			PSSystemUniformIndex_ViewMatrix, 
 			PSSystemUniformIndex_ShadowTransforms,
-			PSSystemUniformIndex_ShadowSplitDepths, 
+			PSSystemUniformIndex_ShadowSplitDepths,
+			PSSystemUniformIndex_BiasMatrix, 
 			PSSystemUniformIndex_LightCount,
 			PSSystemUniformIndex_ShadowCount,
 			PSSystemUniformIndex_RenderMode,
@@ -91,13 +91,44 @@ namespace Lumos
 			m_OffScreenRenderer = lmnew DeferredOffScreenRenderer(m_ScreenBufferWidth, m_ScreenBufferHeight);
 
 			m_Shader = Shader::CreateFromFile("DeferredLight", "/CoreShaders/");
+                
+            switch (Graphics::GraphicsContext::GetRenderAPI())
+            {
+            #ifdef LUMOS_RENDER_API_OPENGL
+                case Graphics::RenderAPI::OPENGL :
+                m_BiasMatrix = Maths::Matrix4( 0.5f, 0.0f, 0.0f, 0.5f,
+                                                0.0f, 0.5f, 0.0f, 0.5f,
+                                                0.0f, 0.0f, 0.5f, 0.5f,
+                                                0.0f, 0.0f, 0.0f, 1.0f  );
+                break;
+            #endif
 
+            #ifdef LUMOS_RENDER_API_VULKAN
+                case Graphics::RenderAPI::VULKAN :
+                m_BiasMatrix = Maths::Matrix4( 0.5f, 0.0f, 0.0f, 0.5f,
+                                                0.0f, 0.5f, 0.0f, 0.5f,
+                                                0.0f, 0.0f, 1.0f, 0.0f,
+                                                0.0f, 0.0f, 0.0f, 1.0f  );
+                break;
+            #endif
+
+            #ifdef LUMOS_RENDER_API_DIRECT3D
+                case Graphics::RenderAPI::DIRECT3D :
+                m_BiasMatrix = Maths::Matrix4(  0.5f, 0.0f, 0.0f, 0.5f,
+                                                0.0f, 0.5f, 0.0f, 0.5f,
+                                                0.0f, 0.0f, 1.0f, 0.0f,
+                                                0.0f, 0.0f, 0.0f, 1.0f  );
+                break;
+            #endif
+            default: break;
+            }
+        
 			TextureParameters param;
 			param.minFilter = TextureFilter::LINEAR;
             param.magFilter = TextureFilter::LINEAR;
 			param.format = TextureFormat::RGBA;
 			param.wrap = TextureWrap::CLAMP_TO_EDGE;
-			m_PreintegratedFG = Scope<Texture2D>(Texture2D::CreateFromFile("PreintegratedFG", "/CoreTextures/PreintegratedFG.png", param));
+			m_PreintegratedFG = Scope<Texture2D>(Texture2D::CreateFromFile("PreintegratedFG", "/CoreTextures/PreintegratedFG.tga", param));
 
 			m_LightUniformBuffer = nullptr;
 			m_UniformBuffer = nullptr;
@@ -107,7 +138,7 @@ namespace Lumos
 			m_DescriptorSet = nullptr;
 			
 			// Pixel/fragment shader System uniforms
-			m_PSSystemUniformBufferSize = sizeof(Light) * MAX_LIGHTS + sizeof(Maths::Vector4) + sizeof(Maths::Matrix4) + (sizeof(Maths::Matrix4) + sizeof(Maths::Vector4))* MAX_SHADOWMAPS + sizeof(int) * 4;
+			m_PSSystemUniformBufferSize = sizeof(Light) * MAX_LIGHTS + sizeof(Maths::Vector4) + sizeof(Maths::Matrix4) * 2 + (sizeof(Maths::Matrix4) + sizeof(Maths::Vector4)) * MAX_SHADOWMAPS + sizeof(int) * 4;
 			m_PSSystemUniformBuffer = lmnew u8[m_PSSystemUniformBufferSize];
 			memset(m_PSSystemUniformBuffer, 0, m_PSSystemUniformBufferSize);
 			m_PSSystemUniformBufferOffsets.resize(PSSystemUniformIndex_Size);
@@ -118,10 +149,11 @@ namespace Lumos
 			m_PSSystemUniformBufferOffsets[PSSystemUniformIndex_ViewMatrix]			= m_PSSystemUniformBufferOffsets[PSSystemUniformIndex_CameraPosition] + sizeof(Maths::Vector4);
 			m_PSSystemUniformBufferOffsets[PSSystemUniformIndex_ShadowTransforms]	= m_PSSystemUniformBufferOffsets[PSSystemUniformIndex_ViewMatrix] + sizeof(Maths::Matrix4);
 			m_PSSystemUniformBufferOffsets[PSSystemUniformIndex_ShadowSplitDepths]	= m_PSSystemUniformBufferOffsets[PSSystemUniformIndex_ShadowTransforms] + sizeof(Maths::Matrix4) * MAX_SHADOWMAPS;
-			m_PSSystemUniformBufferOffsets[PSSystemUniformIndex_LightCount]			= m_PSSystemUniformBufferOffsets[PSSystemUniformIndex_ShadowSplitDepths] + sizeof(Maths::Vector4) * MAX_SHADOWMAPS;
+			m_PSSystemUniformBufferOffsets[PSSystemUniformIndex_BiasMatrix]			= m_PSSystemUniformBufferOffsets[PSSystemUniformIndex_ShadowSplitDepths] + sizeof(Maths::Vector4) * MAX_SHADOWMAPS;
+			m_PSSystemUniformBufferOffsets[PSSystemUniformIndex_LightCount]			= m_PSSystemUniformBufferOffsets[PSSystemUniformIndex_BiasMatrix] + sizeof(Maths::Matrix4);
 			m_PSSystemUniformBufferOffsets[PSSystemUniformIndex_ShadowCount]		= m_PSSystemUniformBufferOffsets[PSSystemUniformIndex_LightCount] + sizeof(int);
 			m_PSSystemUniformBufferOffsets[PSSystemUniformIndex_RenderMode]			= m_PSSystemUniformBufferOffsets[PSSystemUniformIndex_ShadowCount] + sizeof(int);
-            m_PSSystemUniformBufferOffsets[PSSystemUniformIndex_cubemapMipLevels]         = m_PSSystemUniformBufferOffsets[PSSystemUniformIndex_RenderMode] + sizeof(int);
+            m_PSSystemUniformBufferOffsets[PSSystemUniformIndex_cubemapMipLevels]	= m_PSSystemUniformBufferOffsets[PSSystemUniformIndex_RenderMode] + sizeof(int);
 
 			m_RenderPass = Graphics::RenderPass::Create();
 
@@ -202,6 +234,14 @@ namespace Lumos
 		void DeferredRenderer::BeginScene(Scene* scene)
 		{
             auto& registry = scene->GetRegistry();
+        
+            Camera* cameraComponent = nullptr;
+                 
+            auto cameraView = registry.view<Camera>();
+            if(!cameraView.empty())
+            {
+                m_Camera = &registry.get<Camera>(cameraView.front());
+            }
 
             auto view = registry.view<Graphics::Environment>();
             
@@ -262,16 +302,15 @@ namespace Lumos
 
             u32 numLights = 0;
 
-			auto& frustum = scene->GetCamera()->GetFrustum();
+			auto& frustum = m_Camera->GetFrustum();
 			
 			for(auto entity : group)
 			{
 				const auto &[light, trans] = group.get<Graphics::Light, Maths::Transform>(entity);
-
+                light.m_Position = trans.GetWorldPosition();
+            
 				if (light.m_Type != float(LightType::DirectionalLight))
-				{
-                    light.m_Position = trans.GetWorldPosition();
-
+                {
 					auto inside = frustum.IsInsideFast(Maths::Sphere(light.m_Position.ToVector3(), light.m_Radius));
 
 					if (inside == Maths::Intersection::OUTSIDE)
@@ -287,19 +326,20 @@ namespace Lumos
 				numLights++;
 			}
             
-            Maths::Vector4 cameraPos = Maths::Vector4(scene->GetCamera()->GetPosition());
+            Maths::Vector4 cameraPos = Maths::Vector4(m_Camera->GetPosition());
             memcpy(m_PSSystemUniformBuffer + m_PSSystemUniformBufferOffsets[PSSystemUniformIndex_CameraPosition], &cameraPos, sizeof(Maths::Vector4));
             
             auto shadowRenderer = Application::Instance()->GetRenderManager()->GetShadowRenderer();
             if (shadowRenderer)
             {
                 Maths::Matrix4* shadowTransforms = shadowRenderer->GetShadowProjView();
-                auto viewMat = scene->GetCamera()->GetViewMatrix();
+                auto viewMat = m_Camera->GetViewMatrix();
                 Lumos::Maths::Vector4* uSplitDepth = shadowRenderer->GetSplitDepths();
                 
                 memcpy(m_PSSystemUniformBuffer + m_PSSystemUniformBufferOffsets[PSSystemUniformIndex_ViewMatrix], &viewMat, sizeof(Maths::Matrix4));
                 memcpy(m_PSSystemUniformBuffer + m_PSSystemUniformBufferOffsets[PSSystemUniformIndex_ShadowTransforms], shadowTransforms, sizeof(Maths::Matrix4) * MAX_SHADOWMAPS);
                 memcpy(m_PSSystemUniformBuffer + m_PSSystemUniformBufferOffsets[PSSystemUniformIndex_ShadowSplitDepths], uSplitDepth, sizeof(Maths::Vector4) * MAX_SHADOWMAPS);
+				memcpy(m_PSSystemUniformBuffer + m_PSSystemUniformBufferOffsets[PSSystemUniformIndex_BiasMatrix], &m_BiasMatrix, sizeof(Maths::Matrix4));
             }
             
             int numShadows = shadowRenderer ? int(shadowRenderer->GetShadowMapNum()) : 0;
@@ -545,7 +585,7 @@ namespace Lumos
 			std::vector<Graphics::BufferInfo> bufferInfos;
 
 			Graphics::BufferInfo bufferInfo = {};
-			bufferInfo.name = "LightData";
+			bufferInfo.name = "UniformBufferLight";
 			bufferInfo.buffer = m_LightUniformBuffer;
 			bufferInfo.offset = 0;
 			bufferInfo.size = m_PSSystemUniformBufferSize;

@@ -17,7 +17,7 @@ namespace Lumos
 
 			_FORCE_INLINE_ static GLContext* Get() { return static_cast<GLContext*>(s_Context); }
 
-			size_t GetMinUniformBufferOffsetAlignment() const override { return 1; }
+			size_t GetMinUniformBufferOffsetAlignment() const override { return 256; }
 
             bool FlipImGUITexture() const override { return true; }
 

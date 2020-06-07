@@ -164,9 +164,14 @@ namespace Lumos
                 m_CubeMap = nullptr;
                 return;
             }
-
-			auto camera = scene->GetCamera();
-			auto invViewProj = Maths::Matrix4::Inverse(camera->GetProjectionMatrix() * camera->GetViewMatrix());
+                                              
+            auto cameraView = registry.view<Camera>();
+            if(!cameraView.empty())
+            {
+                m_Camera = &registry.get<Camera>(cameraView.front());
+            }
+        
+			auto invViewProj = Maths::Matrix4::Inverse(m_Camera->GetProjectionMatrix() * m_Camera->GetViewMatrix());
 			memcpy(m_VSSystemUniformBuffer + m_VSSystemUniformBufferOffsets[VSSystemUniformIndex_InverseProjectionViewMatrix], &invViewProj, sizeof(Maths::Matrix4));
 		}
 

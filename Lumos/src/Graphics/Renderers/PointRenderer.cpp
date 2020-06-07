@@ -184,8 +184,8 @@ namespace Lumos
         if (PointIndexCount >= MaxPointIndices)
             FlushAndResetPoints();
         
-        Maths::Vector3 right = pointInfo.size * m_CurrentCamera->GetRightDirection();
-        Maths::Vector3 up = pointInfo.size * m_CurrentCamera->GetUpDirection();
+        Maths::Vector3 right = pointInfo.size * m_Camera->GetRightDirection();
+        Maths::Vector3 up = pointInfo.size * m_Camera->GetUpDirection();
 
         m_Buffer->vertex = pointInfo.p1 - right - up;// + Maths::Vector3(-pointInfo.size, -pointInfo.size, 0.0f));
         m_Buffer->color = pointInfo.col;
@@ -230,9 +230,16 @@ namespace Lumos
 
 	void PointRenderer::BeginScene(Scene* scene)
 	{
-		m_CurrentCamera = scene->GetCamera();
-		auto projView = m_CurrentCamera->GetProjectionMatrix() * m_CurrentCamera->GetViewMatrix();
-        m_ProjectionMatrix = m_CurrentCamera->GetProjectionMatrix();
+        auto& registry = scene->GetRegistry();
+                 
+		auto cameraView = registry.view<Camera>();
+		if(!cameraView.empty())
+		{
+			m_Camera = &registry.get<Camera>(cameraView.front());
+		}
+    
+        auto projView = m_Camera->GetProjectionMatrix() * m_Camera->GetViewMatrix();
+        m_ProjectionMatrix = m_Camera->GetProjectionMatrix();
 
 		memcpy(m_VSSystemUniformBuffer, &projView, sizeof(Maths::Matrix4));
 	}

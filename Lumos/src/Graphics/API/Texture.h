@@ -50,7 +50,7 @@ namespace Lumos
 			CUBE,
 			OTHER
 		};
-
+    
 		struct TextureParameters
 		{
 			TextureFormat format;
@@ -144,6 +144,8 @@ namespace Lumos
 
 		public:
 			static u8 GetStrideFromFormat(TextureFormat format);
+            static TextureFormat BitsToTextureFormat(u32 bits);
+            static u32 CalculateMipMapCount(u32 width, u32 height);
 		};
 
 		class LUMOS_EXPORT Texture2D : public Texture

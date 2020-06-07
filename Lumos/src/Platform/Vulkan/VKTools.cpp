@@ -505,7 +505,7 @@ namespace Lumos
             }
         }
 
-        VkFormat VKTools::TextureFormatToVK(const TextureFormat format)
+        VkFormat VKTools::TextureFormatToVK(const TextureFormat format, bool srgb)
         {
             switch (format)
             {
@@ -513,8 +513,8 @@ namespace Lumos
                 case TextureFormat::RGB:				return VK_FORMAT_R8G8B8_UNORM;
                 case TextureFormat::R8:				    return VK_FORMAT_R8_UNORM;
                 case TextureFormat::RG8:				return VK_FORMAT_R8G8_UNORM;
-                case TextureFormat::RGB8:				return VK_FORMAT_R8G8B8_UNORM;
-                case TextureFormat::RGBA8:				return VK_FORMAT_R8G8B8A8_UNORM;
+                case TextureFormat::RGB8:				return srgb ? VK_FORMAT_R8G8B8A8_SRGB : VK_FORMAT_R8G8B8A8_UNORM; //VK_FORMAT_R8G8B8_UNORM not supported mac
+                case TextureFormat::RGBA8:				return srgb ? VK_FORMAT_R8G8B8A8_SRGB : VK_FORMAT_R8G8B8A8_UNORM; //Temp : VK_FORMAT_R8G8B8A8_UNORM mimmap gen broken
                 case TextureFormat::RGB16:              return VK_FORMAT_R16G16B16_SFLOAT;
                 case TextureFormat::RGBA16:             return VK_FORMAT_R16G16B16A16_SFLOAT;
 				case TextureFormat::RGB32:              return VK_FORMAT_R32G32B32_SFLOAT;

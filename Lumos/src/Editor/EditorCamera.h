@@ -6,13 +6,13 @@ namespace Lumos
 	class LUMOS_EXPORT EditorCameraController : public CameraController
 	{
 	public:
-		EditorCameraController(Camera* camera);
+		EditorCameraController();
 		~EditorCameraController();
 
-		virtual void HandleMouse(float dt, float xpos, float ypos) override;
-		virtual void HandleKeyboard(float dt) override;
+		virtual void HandleMouse(Camera* camera, float dt, float xpos, float ypos) override;
+		virtual void HandleKeyboard(Camera* camera, float dt) override;
     
-        void UpdateScroll(float offset, float dt) override;
+        void UpdateScroll(Camera* camera, float offset, float dt) override;
 
 	private:
     

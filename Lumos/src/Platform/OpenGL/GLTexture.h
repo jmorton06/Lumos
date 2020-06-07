@@ -47,6 +47,7 @@ namespace Lumos
 			u32 m_Width, m_Height;
 			TextureParameters m_Parameters;
 			TextureLoadOptions m_LoadOptions;
+            bool isHDR = false;
 		};
 
 		class GLTextureCube : public TextureCube

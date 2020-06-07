@@ -20,7 +20,6 @@ namespace Lumos
 {
 	Scene::Scene(const String& friendly_name) :
 		m_SceneName(friendly_name),
-		m_pCamera(nullptr),
 		m_SceneBoundingRadius(0),
 		m_ScreenWidth(0),
 		m_ScreenHeight(0)
@@ -154,21 +153,29 @@ namespace Lumos
 		});
 	}
 
-	void Scene::OnUpdate(TimeStep* timeStep)
+	void Scene::OnUpdate(const TimeStep& timeStep)
 	{
 		const Maths::Vector2 mousePos = Input::GetInput()->GetMousePosition();
 
-		if (m_pCamera && Application::Instance()->GetSceneActive())
-		{
-			m_pCamera->GetController()->HandleMouse(timeStep->GetMillis(), mousePos.x, mousePos.y);
-			m_pCamera->GetController()->HandleKeyboard(timeStep->GetMillis());
-		}
+        auto cameraView = m_Registry.view<Camera>();
+        if(!cameraView.empty())
+        {
+            Camera& camera = m_Registry.get<Camera>(cameraView.front());
+    
+            auto cameraController = camera.GetController();
+        
+            if (cameraController && Application::Instance()->GetSceneActive())
+            {
+                cameraController->HandleMouse(&camera, timeStep.GetMillis(), mousePos.x, mousePos.y);
+                cameraController->HandleKeyboard(&camera, timeStep.GetMillis());
+            }
+        }
 
 		m_SceneGraph.Update(m_Registry);
         
         if(m_LuaUpdateFunction)
         {
-            sol::protected_function_result result = m_LuaUpdateFunction.call(timeStep->GetElapsedMillis());
+            sol::protected_function_result result = m_LuaUpdateFunction.call(timeStep.GetElapsedMillis());
             if (!result.valid())
             {
                 sol::error err = result;
@@ -186,9 +193,13 @@ namespace Lumos
 
 	bool Scene::OnWindowResize(WindowResizeEvent& e)
 	{
-		if (m_pCamera)
-		{
-			m_pCamera->SetAspectRatio(static_cast<float>(e.GetWidth()) / static_cast<float>(e.GetHeight()));
+        if(!Application::Instance()->GetSceneActive())
+            return false;
+
+        auto cameraView = m_Registry.view<Camera>();
+        if(!cameraView.empty())
+        {
+			m_Registry.get<Camera>(cameraView.front()).SetAspectRatio(static_cast<float>(e.GetWidth()) / static_cast<float>(e.GetHeight()));
 		}
 
 		return false;

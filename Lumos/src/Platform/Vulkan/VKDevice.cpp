@@ -69,6 +69,7 @@ namespace Lumos
             caps.MaxAnisotropy = m_PhysicalDeviceProperties.limits.maxSamplerAnisotropy;
             caps.MaxSamples = m_PhysicalDeviceProperties.limits.maxSamplerAllocationCount;
             caps.MaxTextureUnits = m_PhysicalDeviceProperties.limits.maxDescriptorSetSamplers;
+            caps.UniformBufferOffsetAlignment = int(m_PhysicalDeviceProperties.limits.minUniformBufferOffsetAlignment);
 
 			// Queue family
 			uint32_t numQueueFamily = 0;

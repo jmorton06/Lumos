@@ -32,33 +32,6 @@ namespace Lumos
     
     Orientation orientation = Orientation::Y_UP;
     float fbx_scale = 1.f;
-
-	static Graphics::TextureWrap GetWrapMode(int mode)
-	{
-		switch (mode)
-		{
-		//case TINYGLTF_TEXTURE_WRAP_REPEAT: return Graphics::TextureWrap::REPEAT;
-		//case TINYGLTF_TEXTURE_WRAP_CLAMP_TO_EDGE: return Graphics::TextureWrap::CLAMP_TO_EDGE;
-		//case TINYGLTF_TEXTURE_WRAP_MIRRORED_REPEAT: return Graphics::TextureWrap::MIRRORED_REPEAT;
-		default: return Graphics::TextureWrap::REPEAT;
-		}
-	}
-
-	static Graphics::TextureFilter GetFilter(int value)
-	{
-		switch (value)
-		{
-		//case TINYGLTF_TEXTURE_FILTER_NEAREST:
-		//case TINYGLTF_TEXTURE_FILTER_NEAREST_MIPMAP_NEAREST:
-		//case TINYGLTF_TEXTURE_FILTER_NEAREST_MIPMAP_LINEAR:
-		//	return Graphics::TextureFilter::NEAREST;
-		//case TINYGLTF_TEXTURE_FILTER_LINEAR:
-		//case TINYGLTF_TEXTURE_FILTER_LINEAR_MIPMAP_NEAREST:
-		//case TINYGLTF_TEXTURE_FILTER_LINEAR_MIPMAP_LINEAR:
-		//	return Graphics::TextureFilter::LINEAR;
-		default: return Graphics::TextureFilter::LINEAR;
-		}
-	}
     
     static ofbx::Vec3 operator-(const ofbx::Vec3& a, const ofbx::Vec3& b)
     {

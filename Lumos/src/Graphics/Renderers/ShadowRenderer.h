@@ -107,8 +107,8 @@ namespace Lumos
 
 			u32 m_Layer = 0;
 
-			size_t dynamicAlignment{};
-			UniformBufferModel uboDataDynamic{};
+			size_t m_DynamicAlignment = 0;
+			UniformBufferModel uboDataDynamic;
 		};
 	}
 }

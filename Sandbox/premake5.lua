@@ -12,6 +12,7 @@ IncludeDir["Lumos"] = "../Lumos/src"
 IncludeDir["External"] = "../Lumos/external/"
 IncludeDir["ImGui"] = "../Dependencies/imgui/"
 IncludeDir["freetype"] = "../Dependencies/freetype/include"
+IncludeDir["SpirvCross"] = "../Dependencies/SPIRV-Cross"
 
 project "Sandbox"
 	kind "WindowedApp"
@@ -40,6 +41,7 @@ project "Sandbox"
 		"%{IncludeDir.jsonhpp}",
 		"%{IncludeDir.spdlog}",
 		"%{IncludeDir.freetype}",
+		"%{IncludeDir.SpirvCross}",
 		"%{IncludeDir.Lumos}",
 	}
 
@@ -49,7 +51,8 @@ project "Sandbox"
 		"lua",
 		"Box2D",
 		"imgui",
-		"freetype"
+		"freetype",
+		"SpirvCross"
 	}
 
 	cwd = os.getcwd() .. "/.."

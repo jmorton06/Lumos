@@ -38,9 +38,14 @@ namespace Lumos
 		ImGuiIO& io = ImGui::GetIO();
 		io.DisplaySize = ImVec2(static_cast<float>(app->GetWindow()->GetWidth()), static_cast<float>(app->GetWindow()->GetHeight()));
         io.ConfigFlags |= ImGuiConfigFlags_DockingEnable;
+        io.ConfigFlags |= ImGuiConfigFlags_IsSRGB;
+    
+        #ifdef LUMOS_PLATFORM_IOS
+        io.ConfigFlags |= ImGuiConfigFlags_IsTouchScreen;
+        #endif
         io.BackendFlags |= ImGuiBackendFlags_HasMouseCursors;
 		io.ConfigWindowsMoveFromTitleBarOnly = true;
-
+    
 		SetImGuiKeyCodes();
 		SetImGuiStyle();
 
@@ -54,7 +59,7 @@ namespace Lumos
 	{
 	}
 
-	void ImGuiLayer::OnUpdate(TimeStep* dt, Scene* scene)
+	void ImGuiLayer::OnUpdate(const TimeStep& dt, Scene* scene)
 	{
 		LUMOS_PROFILE_FUNC;
 		ImGuizmo::BeginFrame();

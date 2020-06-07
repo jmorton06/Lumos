@@ -22,8 +22,9 @@ namespace Graphics
     class Renderer2D; 
     class LineRenderer;
     class PointRenderer;
+    class Light;
 }
-
+    class SoundNode;
 	class Texture2D;
 	class Material;
     class Scene;
@@ -82,9 +83,12 @@ namespace Graphics
 		static void DrawPolygon(int n_verts, const Maths::Vector3* verts, const Maths::Vector4& colour = Maths::Vector4(1.0f, 1.0f, 1.0f, 1.0f));
 		static void DrawPolygonNDT(int n_verts, const Maths::Vector3* verts, const Maths::Vector4& colour = Maths::Vector4(1.0f, 1.0f, 1.0f, 1.0f));
 
-		static void DebugDraw(const Maths::BoundingBox& box, const Maths::Vector4& edgeColour, float width = 0.02f);
+		static void DebugDraw(const Maths::BoundingBox& box, const Maths::Vector4& edgeColour, bool cornersOnly = false, float width = 0.02f);
 		static void DebugDraw(const Maths::Sphere& sphere, const Maths::Vector4& colour);
         static void DebugDraw(const Maths::Frustum& frustum, const Maths::Vector4& colour);
+        static void DebugDraw(Graphics::Light* light, const Maths::Vector4& colour);
+        static void DebugDraw(SoundNode* sound, const Maths::Vector4& colour);
+
 
 	protected:
 		//Actual functions managing data parsing to save code bloat - called by public functions

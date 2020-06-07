@@ -16,7 +16,6 @@
 #include "Graphics/Light.h"
 
 #include "ECS/Component/MeshComponent.h"
-
 #include "Maths/Transform.h"
 
 #include "App/Scene.h"
@@ -96,6 +95,14 @@ namespace Lumos
 			m_VSSystemUniformBuffer = lmnew u8[m_VSSystemUniformBufferSize];
 			memset(m_VSSystemUniformBuffer, 0, m_VSSystemUniformBufferSize);
 			m_VSSystemUniformBufferOffsets.resize(VSSystemUniformIndex_Size);
+        
+            const size_t minUboAlignment = size_t(Graphics::Renderer::GetCapabilities().UniformBufferOffsetAlignment);
+
+            m_DynamicAlignment = sizeof(Lumos::Maths::Matrix4);
+            if (minUboAlignment > 0)
+            {
+                m_DynamicAlignment = (m_DynamicAlignment + minUboAlignment - 1) & ~(minUboAlignment - 1);
+            }
 
 			m_PushConstant = lmnew Graphics::PushConstant();
 			m_PushConstant->type = Graphics::PushConstantDataType::UINT;
@@ -166,7 +173,7 @@ namespace Lumos
 			{
 				Mesh* mesh = command.mesh;
 
-				const uint32_t dynamicOffset = index * static_cast<uint32_t>(dynamicAlignment);
+				const uint32_t dynamicOffset = index * static_cast<uint32_t>(m_DynamicAlignment);
 
 				std::vector<Graphics::DescriptorSet*> descriptorSets = { m_Pipeline->GetDescriptorSet() };
 
@@ -233,8 +240,9 @@ namespace Lumos
 						auto bbCopy = bb->Transformed(worldTransform);
 						auto inside = f.IsInsideFast(bbCopy);
 
-						if (inside == Maths::Intersection::OUTSIDE)
-							continue;
+						//Todo fix for open
+						//if (inside == Maths::Intersection::OUTSIDE)
+						//	continue;
             
                         SubmitMesh(mesh.GetMesh(), nullptr, worldTransform, Maths::Matrix4());
 					}
@@ -242,8 +250,8 @@ namespace Lumos
 
 				SetSystemUniforms(m_Shader);
 
-				i32 layer = static_cast<i32>(m_Layer);
-				memcpy(m_PushConstant->data, &layer, sizeof(i32));
+				u32 layer = static_cast<u32>(m_Layer);
+				memcpy(m_PushConstant->data, &layer, sizeof(u32));
 				std::vector<Graphics::PushConstant> pcVector;
 				pcVector.push_back(*m_PushConstant);
 				m_Pipeline->GetDescriptorSet()->SetPushConstants(pcVector);
@@ -268,10 +276,17 @@ namespace Lumos
 				return;
 
 			float cascadeSplits[SHADOWMAP_MAX];
-			auto camera = scene->GetCamera();
+        
+            auto& registry = scene->GetRegistry();
+                 
+            auto cameraView = registry.view<Camera>();
+            if(!cameraView.empty())
+            {
+                m_Camera = &registry.get<Camera>(cameraView.front());
+            }
 
-			float nearClip = camera->GetNear();
-			float farClip = camera->GetFar();
+			float nearClip = m_Camera->GetNear();
+			float farClip = m_Camera->GetFar();
 			float clipRange = farClip - nearClip;
 
 			float minZ = nearClip;
@@ -312,7 +327,7 @@ namespace Lumos
 					Maths::Vector3(-1.0f, -1.0f,  1.0f),
 				};
 
-				const Maths::Matrix4 invCam = Maths::Matrix4::Inverse(camera->GetProjectionMatrix() * camera->GetViewMatrix());
+				const Maths::Matrix4 invCam = Maths::Matrix4::Inverse(m_Camera->GetProjectionMatrix() * m_Camera->GetViewMatrix());
 
 				// Project frustum corners into world space
 				for (uint32_t j = 0; j < 8; j++)
@@ -358,7 +373,7 @@ namespace Lumos
 				Maths::Matrix4 lightOrthoMatrix = Maths::Matrix4::Orthographic(minExtents.x, maxExtents.x, minExtents.y, maxExtents.y, -(maxExtents.z - minExtents.z), maxExtents.z - minExtents.z);
 
 				// Store split distance and matrix in cascade
-				m_SplitDepth[i] = Maths::Vector4((camera->GetNear() + splitDist * clipRange) * -1.0f);
+				m_SplitDepth[i] = Maths::Vector4((m_Camera->GetNear() + splitDist * clipRange) * -1.0f);
 				m_ShadowProjView[i] = lightOrthoMatrix * lightViewMatrix.Inverse();
 			}
 #ifdef THREAD_CASCADE_GEN
@@ -454,18 +469,8 @@ namespace Lumos
 			if (m_ModelUniformBuffer == nullptr)
 			{
 				m_ModelUniformBuffer = Graphics::UniformBuffer::Create();
-				const size_t minUboAlignment = Graphics::GraphicsContext::GetContext()->GetMinUniformBufferOffsetAlignment();
-
-				dynamicAlignment = sizeof(Lumos::Maths::Matrix4);
-				if (minUboAlignment > 0)
-				{
-					dynamicAlignment = (dynamicAlignment + minUboAlignment - 1) & ~(minUboAlignment - 1);
-				}
-
-				const uint32_t bufferSize2 = static_cast<uint32_t>(MAX_OBJECTS * dynamicAlignment);
-
-				uboDataDynamic.model = static_cast<Maths::Matrix4*>(Memory::AlignedAlloc(bufferSize2, dynamicAlignment));
-
+				const uint32_t bufferSize2 = static_cast<uint32_t>(MAX_OBJECTS * m_DynamicAlignment);
+				uboDataDynamic.model = static_cast<Maths::Matrix4*>(Memory::AlignedAlloc(bufferSize2, m_DynamicAlignment));
 				m_ModelUniformBuffer->Init(bufferSize2, nullptr);
 			}
 
@@ -484,6 +489,7 @@ namespace Lumos
 			Graphics::BufferInfo bufferInfo2 = {};
 			bufferInfo2.buffer = m_ModelUniformBuffer;
 			bufferInfo2.offset = 0;
+			bufferInfo2.name = "UniformBufferObject2";
 			bufferInfo2.size = sizeof(Maths::Matrix4);
 			bufferInfo2.type = Graphics::DescriptorType::UNIFORM_BUFFER_DYNAMIC;
 			bufferInfo2.binding = 1;
@@ -504,11 +510,11 @@ namespace Lumos
 
 			for (auto& command : m_CommandQueue)
 			{
-				Maths::Matrix4* modelMat = reinterpret_cast<Maths::Matrix4*>((reinterpret_cast<uint64_t>(uboDataDynamic.model) + (index * dynamicAlignment)));
+				Maths::Matrix4* modelMat = reinterpret_cast<Maths::Matrix4*>((reinterpret_cast<uint64_t>(uboDataDynamic.model) + (index * m_DynamicAlignment)));
 				*modelMat = command.transform;
 				index++;
 			}
-			m_ModelUniformBuffer->SetDynamicData(static_cast<uint32_t>(MAX_OBJECTS * dynamicAlignment), sizeof(Maths::Matrix4), &*uboDataDynamic.model);
+			m_ModelUniformBuffer->SetDynamicData(static_cast<uint32_t>(MAX_OBJECTS * m_DynamicAlignment), sizeof(Maths::Matrix4), &*uboDataDynamic.model);
 		}
 
 		void ShadowRenderer::Submit(const RenderCommand& command)

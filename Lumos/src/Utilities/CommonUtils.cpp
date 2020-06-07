@@ -211,7 +211,7 @@ namespace Lumos
 		return pyramid;
 	}
 
-	void CommonUtils::AddLightCube(Scene* scene)
+	void CommonUtils::AddLightCube(Scene* scene, const Maths::Vector3& pos, const Maths::Vector3& dir)
 	{
 		Maths::Vector4 colour = Maths::Vector4(RandomNumberGenerator32::Rand(0.0f, 1.0f),
 								 RandomNumberGenerator32::Rand(0.0f, 1.0f),
@@ -222,7 +222,7 @@ namespace Lumos
 		auto cube = CommonUtils::BuildCuboidObject(
 				registry,
 				"light Cube",
-				scene->GetCamera()->GetPosition(),
+				pos,
 				Maths::Vector3(0.5f, 0.5f, 0.5f),
 				true,
 				1.0f,
@@ -233,17 +233,17 @@ namespace Lumos
 		const float radius    = RandomNumberGenerator32::Rand(1.0f, 30.0f);
 		const float intensity = RandomNumberGenerator32::Rand(0.0f, 2.0f);
 
-		registry.emplace<Graphics::Light>(cube, scene->GetCamera()->GetPosition(), colour, intensity, Graphics::LightType::PointLight, scene->GetCamera()->GetPosition(), radius);
+		registry.emplace<Graphics::Light>(cube, pos, colour, intensity, Graphics::LightType::PointLight, pos, radius);
 	}
 
-	void CommonUtils::AddSphere(Scene* scene)
+	void CommonUtils::AddSphere(Scene* scene, const Maths::Vector3& pos, const Maths::Vector3& dir)
 	{
 		entt::registry& registry = scene->GetRegistry();
 
 		auto sphere = CommonUtils::BuildSphereObject(
 				registry,
 				"Sphere",
-				scene->GetCamera()->GetPosition(),
+				pos,
 				0.5f,
 				true,
 				1.0f,
@@ -253,18 +253,18 @@ namespace Lumos
 						RandomNumberGenerator32::Rand(0.0f, 1.0f),
 						1.0f));
 
-		const Maths::Vector3 forward = -scene->GetCamera()->GetForwardDirection();
+		const Maths::Vector3 forward = dir;
 		registry.get<Physics3DComponent>(sphere).GetPhysicsObject()->SetLinearVelocity(forward * 30.0f);
 	}
 
-	void CommonUtils::AddPyramid(Scene* scene)
+	void CommonUtils::AddPyramid(Scene* scene, const Maths::Vector3& pos, const Maths::Vector3& dir)
 	{
 		entt::registry& registry = scene->GetRegistry();
 
 		auto sphere = CommonUtils::BuildPyramidObject(
 				registry,
 				"Pyramid",
-				scene->GetCamera()->GetPosition(),
+				pos,
 				Maths::Vector3(0.5f),
 				true,
 				1.0f,
@@ -274,7 +274,7 @@ namespace Lumos
 						RandomNumberGenerator32::Rand(0.0f, 1.0f),
 						1.0f));
 
-		const Maths::Vector3 forward = -scene->GetCamera()->GetForwardDirection();
+		const Maths::Vector3 forward = dir;
 
 		registry.get<Physics3DComponent>(sphere).GetPhysicsObject()->SetLinearVelocity(forward * 30.0f);
 	}

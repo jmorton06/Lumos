@@ -76,6 +76,7 @@ const float PBR_WORKFLOW_SPECULAR_GLOSINESS = 2.0f;
         void SetMaterialProperites(const MaterialProperties& properties);
         void UpdateMaterialPropertiesData();
 
+        PBRMataterialTextures&         GetTextures()             { return m_PBRMaterialTextures; }
 		const PBRMataterialTextures& 	GetTextures() 		const { return m_PBRMaterialTextures; }
 		Graphics::Shader* 				GetShader()			const { return m_Shader.get(); }
 		Graphics::DescriptorSet* 		GetDescriptorSet() 	const { return m_DescriptorSet; }
@@ -83,8 +84,6 @@ const float PBR_WORKFLOW_SPECULAR_GLOSINESS = 2.0f;
 		int								GetRenderFlags()	const { return m_RenderFlags; }
 		const String&					GetName()			const { return m_Name; }
 		MaterialProperties*				GetProperties()		const { return m_MaterialProperties; }
-
-		void OnImGui();
         
         static void InitDefaultTexture();
         static void ReleaseDefaultTexture();

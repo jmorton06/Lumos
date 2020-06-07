@@ -223,8 +223,14 @@ namespace Lumos
 
 	void LineRenderer::BeginScene(Scene* scene)
 	{
-		auto camera = scene->GetCamera();
-		auto projView = camera->GetProjectionMatrix() * camera->GetViewMatrix();
+        auto& registry = scene->GetRegistry();
+                 
+		auto cameraView = registry.view<Camera>();
+		if(!cameraView.empty())
+		{
+			m_Camera = &registry.get<Camera>(cameraView.front());
+		}
+		auto projView = m_Camera->GetProjectionMatrix() * m_Camera->GetViewMatrix();
 
 		memcpy(m_VSSystemUniformBuffer, &projView, sizeof(Maths::Matrix4));
 	}

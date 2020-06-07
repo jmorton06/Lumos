@@ -10,14 +10,13 @@
 namespace Lumos
 {
 
-	FPSCameraController::FPSCameraController(Camera* camera)
-		: CameraController(camera)
+	FPSCameraController::FPSCameraController()
 	{
 	}
 
 	FPSCameraController::~FPSCameraController() = default;
 
-	void FPSCameraController::HandleMouse(float dt, float xpos, float ypos)
+	void FPSCameraController::HandleMouse(Camera* camera, float dt, float xpos, float ypos)
 	{
 		if (Input::GetInput()->GetWindowFocus())
 		{
@@ -26,8 +25,8 @@ namespace Lumos
 				xpos -= windowCentre.x;
 				ypos -= windowCentre.y;
 
-                float pitch = m_Camera->GetPitch();
-                float yaw = m_Camera->GetYaw();
+                float pitch = camera->GetPitch();
+                float yaw = camera->GetYaw();
             
 				pitch -= (ypos)* m_MouseSensitivity;
 				yaw   -= (xpos)* m_MouseSensitivity;
@@ -40,20 +39,20 @@ namespace Lumos
 				if (yaw > 360.0f)
 					yaw -= 360.0f;
             
-                m_Camera->SetYaw(yaw);
-                m_Camera->SetPitch(pitch);
+                camera->SetYaw(yaw);
+                camera->SetPitch(pitch);
 			}
 
 			m_PreviousCurserPos = Maths::Vector2(xpos, ypos);
 
-			UpdateScroll(Input::GetInput()->GetScrollOffset(), dt);
+			UpdateScroll(camera, Input::GetInput()->GetScrollOffset(), dt);
 		}
 	}
 
-	void FPSCameraController::HandleKeyboard(float dt)
+	void FPSCameraController::HandleKeyboard(Camera* camera, float dt)
 	{
-        float pitch = m_Camera->GetPitch();
-        float yaw = m_Camera->GetYaw();
+        float pitch = camera->GetPitch();
+        float yaw = camera->GetYaw();
     
 		const Maths::Quaternion orientation = Maths::Quaternion::EulerAnglesToQuaternion(pitch, yaw, 1.0f);
 		Maths::Vector3 up = Maths::Vector3(0, 1, 0), right = Maths::Vector3(1, 0, 0), forward = Maths::Vector3(0, 0, -1);
@@ -93,11 +92,11 @@ namespace Lumos
 			m_Velocity += up * m_CameraSpeed;
 		}
 
-        Maths::Vector3 pos = m_Camera->GetPosition();
+        Maths::Vector3 pos = camera->GetPosition();
 		pos += m_Velocity * dt;
 		m_Velocity = m_Velocity * pow(m_DampeningFactor, dt);
     
-        m_Camera->SetPosition(pos);
+        camera->SetPosition(pos);
 
 	}
 }

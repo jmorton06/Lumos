@@ -1,3 +1,5 @@
+cd "$(dirname "$0")"
+
 /VulkanSDK/1.1.85.0/x86_64/bin/glslangValidator -V shader.vert -o /CompiledSPV/shader.vert.spv
 /VulkanSDK/1.1.85.0/x86_64/bin/glslangValidator -V shader.frag -o /CompiledSPV/shader.frag.spv
 

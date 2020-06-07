@@ -84,6 +84,7 @@ namespace Lumos
 			int MaxSamples = 0;
 			float MaxAnisotropy = 0.0f;
 			int MaxTextureUnits = 0;
+            int UniformBufferOffsetAlignment = 0;
 		};
 
 		class LUMOS_EXPORT Renderer

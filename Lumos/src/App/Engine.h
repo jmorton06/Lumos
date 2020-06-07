@@ -23,7 +23,7 @@ namespace Lumos
         void SetFrametime(float frameTime) { m_Frametime = frameTime;  }
         void SetTargetFrameRate(float targetFPS) { m_MaxFramesPerSecond = targetFPS; }
         
-        static TimeStep* GetTimeStep() { return Engine::Instance()->m_TimeStep; }
+        static TimeStep& GetTimeStep() { return Engine::Instance()->m_TimeStep; }
 
     private:
 
@@ -32,6 +32,6 @@ namespace Lumos
         float m_Frametime = 0.1f;
         float m_MaxFramesPerSecond;
         
-        TimeStep* m_TimeStep;
+        TimeStep m_TimeStep;
     };
 }

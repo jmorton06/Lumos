@@ -65,6 +65,7 @@ namespace Lumos
 			std::vector<u32> m_PSSystemUniformBufferOffsets;
 
 			Maths::Vector4 m_ClearColour;
+			Maths::Matrix4 m_BiasMatrix;
 
 			UniformBuffer* m_UniformBuffer;
 			UniformBuffer* m_LightUniformBuffer;

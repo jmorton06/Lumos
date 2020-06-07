@@ -73,7 +73,7 @@ float GetRoughness()
 
 float GetAO()
 {
-	return materialProperties.usingAOMap * GammaCorrectTextureRGB(texture(u_AOMap, fragTexCoord)).r;
+	return (1.0 - materialProperties.usingAOMap) + materialProperties.usingAOMap * GammaCorrectTextureRGB(texture(u_AOMap, fragTexCoord)).r;
 }
 
 vec3 GetEmissive()

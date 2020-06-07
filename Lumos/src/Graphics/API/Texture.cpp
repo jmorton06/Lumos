@@ -33,6 +33,31 @@ namespace Lumos
 			default: return 0;
 			}
 		}
+    
+        TextureFormat Texture::BitsToTextureFormat(u32 bits)
+        {
+            switch (bits)
+            {
+            case 8:     return TextureFormat::R8;
+            case 16:    return TextureFormat::RG8;
+            case 24:    return TextureFormat::RGB8;
+            case 32:    return TextureFormat::RGBA8;
+            case 48:    return TextureFormat::RGB16;
+            case 64:    return TextureFormat::RGBA16;
+            default:
+                LUMOS_ASSERT(false, "[Texture] Unsupported image bit-depth! ({0})", bits);
+                return TextureFormat::RGB8;
+            }
+        }
+    
+        u32 Texture::CalculateMipMapCount(u32 width, u32 height)
+        {
+            u32 levels = 1;
+            while ((width | height) >> levels)
+                levels++;
+
+            return levels;
+        }
 
 		Texture2D* Texture2D::Create()
 		{

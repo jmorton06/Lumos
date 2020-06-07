@@ -15,7 +15,7 @@ namespace Lumos
             ~ALManager();
 
             void OnInit() override;
-            void OnUpdate(TimeStep* dt, Scene* scene) override;
+            void OnUpdate(const TimeStep& dt, Scene* scene) override;
 			void UpdateListener();
 			void OnImGui() override;
 

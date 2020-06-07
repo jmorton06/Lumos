@@ -13,11 +13,11 @@ namespace Lumos
 			switch (format)
 			{
 			case TextureFormat::RGBA:				return GL_RGBA;
-			case TextureFormat::RGB:				return GL_RGB;
+			case TextureFormat::RGB:				return GL_SRGB;
 			case TextureFormat::R8:				    return GL_R8;
 			case TextureFormat::RG8:				return GL_RG8;
 			case TextureFormat::RGB8:				return GL_RGB8;
-			case TextureFormat::RGBA8:				return GL_RGBA8;
+			case TextureFormat::RGBA8:				return GL_SRGB_ALPHA;//GL_RGBA8;
 			case TextureFormat::RGB16:              return GL_RGB16F;
 			case TextureFormat::RGBA16:             return GL_RGBA16F;
 			case TextureFormat::RGB32:              return GL_RGB32F;
@@ -46,20 +46,6 @@ namespace Lumos
 			}
 		}
 
-		TextureFormat GLTools::BitsToTextureFormat(u32 bits)
-		{
-			switch (bits)
-			{
-			case 8:		return TextureFormat::R8;
-			case 16:	return TextureFormat::RG8;
-			case 24:	return TextureFormat::RGB8;
-			case 32:	return TextureFormat::RGBA8;
-			default:
-				LUMOS_ASSERT(false, "[Texture] Unsupported image bit-depth! ({0})", bits);
-				return TextureFormat::RGB8;
-			}
-		}
-
 		u32 GLTools::TextureFormatToInternalFormat(u32 format)
 		{
 			switch (format)
@@ -72,8 +58,11 @@ namespace Lumos
 			case GL_RGBA8:				return GL_RGBA;
 			case GL_RGB16:              return GL_RGB;
 			case GL_RGBA16:             return GL_RGBA;
+            case GL_RGBA16F:            return GL_RGB;
 			case GL_RGB32F:             return GL_RGB;
 			case GL_RGBA32F:            return GL_RGBA;
+            case GL_SRGB:               return GL_RGB;
+            case GL_SRGB_ALPHA:         return GL_RGBA;
 			case GL_LUMINANCE:			return GL_LUMINANCE;
 			case GL_LUMINANCE_ALPHA:	return GL_LUMINANCE_ALPHA;
 

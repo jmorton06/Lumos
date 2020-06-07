@@ -15,7 +15,7 @@ namespace Lumos
 		class LUMOS_EXPORT ForwardRenderer : public Renderer3D
 		{
 		public:
-			ForwardRenderer(u32 width, u32 height, bool renderToGBuffer = false);
+			ForwardRenderer(u32 width, u32 height, bool renderToGBuffer = false, bool depthTest = true);
 			~ForwardRenderer() override;
 			void RenderScene(Scene* scene) override;
 
@@ -30,6 +30,8 @@ namespace Lumos
 			void Init() override;
 			void Begin() override;
 			void BeginScene(Scene* scene) override;
+        
+            void BeginScene(const Maths::Matrix4& proj, const Maths::Matrix4& view);
 			void Submit(const RenderCommand& command) override;
 			void SubmitMesh(Mesh* mesh, Material* material, const Maths::Matrix4& transform, const Maths::Matrix4& textureMatrix) override;
 			void EndScene() override;
@@ -53,9 +55,12 @@ namespace Lumos
 
 			void SetRenderTarget(Texture* texture) override;
 			void SetRenderToGBufferTexture(bool set) override;
+            void SetSystemUniforms(Shader* shader) const;
+        
+            Shader* GetShader() { return m_Shader; }
+
 		private:
 
-			void SetSystemUniforms(Shader* shader) const;
 
 			Maths::Vector4 m_ClearColour;
 
@@ -73,6 +78,7 @@ namespace Lumos
 			Maths::Frustum m_Frustum;
 
 			u32 m_CurrentBufferID = 0;
+            bool m_DepthTest = false;
 
 		};
 	}
