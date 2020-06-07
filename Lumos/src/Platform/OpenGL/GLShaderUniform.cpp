@@ -34,9 +34,10 @@ namespace Lumos
 		{
 			switch (type)
 			{
-			case GLShaderUniformDeclaration::Type::INT:					return 4;
+			case GLShaderUniformDeclaration::Type::INT:				return 4;
 			case GLShaderUniformDeclaration::Type::INT32:				return 4;
-			case GLShaderUniformDeclaration::Type::FLOAT32:				return 4;
+			case GLShaderUniformDeclaration::Type::FLOAT32:			return 4;
+            case GLShaderUniformDeclaration::Type::UINT:               return 4;
 			case GLShaderUniformDeclaration::Type::VEC2:				return sizeof(Maths::Vector2);// 4 * 2;
 			case GLShaderUniformDeclaration::Type::VEC3:				return sizeof(Maths::Vector3);//4 * 3;
 			case GLShaderUniformDeclaration::Type::VEC4:				return sizeof(Maths::Vector4);//4 * 4;
@@ -50,6 +51,7 @@ namespace Lumos
 		GLShaderUniformDeclaration::Type GLShaderUniformDeclaration::StringToType(const String& type, u32 count)
 		{
 			if (type == "i32")	return Type::INT32;
+			if (type == "uint")	return Type::UINT;
 			if (type == "int")		return Type::INT32;
 			if (type == "float")	return Type::FLOAT32;
 			if (type == "vec2")		return Type::VEC2;
@@ -74,6 +76,7 @@ namespace Lumos
 			case GLShaderUniformDeclaration::Type::MAT3:		return "mat3";
 			case GLShaderUniformDeclaration::Type::MAT4:		return "mat4";
 			case GLShaderUniformDeclaration::Type::INT:			return "int";
+            case GLShaderUniformDeclaration::Type::UINT:            return "uint";
 			case GLShaderUniformDeclaration::Type::MAT4ARRAY:	return "mat4Array";
 			default: return "Invalid Type";
 			}

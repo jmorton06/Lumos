@@ -2,6 +2,7 @@
 #include "TextEditWindow.h"
 #include "Core/OS/FileSystem.h"
 #include "Editor.h"
+#include "Core/OS/Input.h"
 
 #include <imgui/imgui.h>
 
@@ -102,6 +103,15 @@ namespace Lumos
             editor.IsOverwrite() ? "Ovr" : "Ins",
             editor.CanUndo() ? "*" : " ",
             editor.GetLanguageDefinition().mName.c_str(), m_FilePath.c_str());
+    
+        if(ImGui::IsItemActive())
+        {
+            if(Input::GetInput()->GetKeyHeld(InputCode::Key::LeftControl) && Input::GetInput()->GetKeyPressed(InputCode::Key::S))
+            {
+                auto textToSave = editor.GetText();
+                FileSystem::WriteTextFile(m_FilePath, textToSave);
+            }
+        }
 
         editor.Render("TextEditor");
         ImGui::End();

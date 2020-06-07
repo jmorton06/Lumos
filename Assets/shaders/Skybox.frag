@@ -12,7 +12,7 @@ const float coeiff = 0.3;
 const vec3 totalSkyLight = vec3(0.3, 0.5, 1.0);
 
 const float PI = 3.14159265359;
-const float blurLevel = 4.0f;
+const float blurLevel = 2.0f;
 const float timeCounter = 0.0f;
 
 vec3 mie(float dist, vec3 sunL)
@@ -75,3 +75,5 @@ void main()
 
 	outFrag = vec4(colour, 1.0);
 }
+
+

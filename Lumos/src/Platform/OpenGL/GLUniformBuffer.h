@@ -25,6 +25,7 @@ namespace Lumos
             uint32_t GetSize()      const { return m_Size; }
             uint32_t GetTypeSize()  const { return m_DynamicTypeSize; }
             bool GetDynamic()       const { return m_Dynamic; }
+            u32 GetHandle()         const { return m_Handle;}
 
             static void MakeDefault();
         protected:

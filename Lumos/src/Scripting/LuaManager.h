@@ -32,6 +32,7 @@ struct _ECS_export_view< entt::type_list< Component... >, entt::type_list < Excl
      reg_type.set_function( "view_" #Comp, &_ECS_export_view< type_list< Comp >, type_list<> >::view ); \
      auto V = curLuaState.new_usertype< basic_view< entity, exclude_t<>, Comp > >( #Comp "_view" ); \
      V.set_function( "each", &basic_view< entity, exclude_t<>, Comp >::each< std::function< void( Comp& ) > > ); \
+     V.set_function( "front", &basic_view< entity, exclude_t<>, Comp >::front); \
  }
 
     class Scene;

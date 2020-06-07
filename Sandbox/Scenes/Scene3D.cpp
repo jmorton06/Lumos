@@ -30,42 +30,10 @@ void Scene3D::OnInit()
 
 	Application::Instance()->GetWindow()->HideMouse(false);
 
-	m_pCamera = new Camera(-20.0f, -40.0f, Maths::Vector3(-31.0f, 12.0f, 51.0f), 60.0f, 0.1f, 1000.0f, (float) m_ScreenWidth / (float) m_ScreenHeight);
-    m_pCamera->SetCameraController(CreateRef<EditorCameraController>(m_pCamera));
-
 	m_SceneBoundingRadius = 20.0f;
 
-	String environmentFiles[11] =
-	{
-		"/Textures/cubemap/CubeMap0.tga",
-		"/Textures/cubemap/CubeMap1.tga",
-		"/Textures/cubemap/CubeMap2.tga",
-		"/Textures/cubemap/CubeMap3.tga",
-		"/Textures/cubemap/CubeMap4.tga",
-		"/Textures/cubemap/CubeMap5.tga",
-		"/Textures/cubemap/CubeMap6.tga",
-		"/Textures/cubemap/CubeMap7.tga",
-		"/Textures/cubemap/CubeMap8.tga",
-		"/Textures/cubemap/CubeMap9.tga",
-		"/Textures/cubemap/CubeMap10.tga"
-	};
-    
-    String environmentIrrFiles[7] =
-    {
-        "/Textures/cubemap/CubeMapIrr_0.tga",
-        "/Textures/cubemap/CubeMapIrr_1.tga",
-        "/Textures/cubemap/CubeMapIrr_2.tga",
-        "/Textures/cubemap/CubeMapIrr_3.tga",
-        "/Textures/cubemap/CubeMapIrr_4.tga",
-        "/Textures/cubemap/CubeMapIrr_5.tga",
-        "/Textures/cubemap/CubeMapIrr_6.tga",
-    };
-
-	auto environmentMap = Graphics::TextureCube::CreateFromVCross(environmentFiles, 11);
-    auto irradianceMap = Graphics::TextureCube::CreateFromVCross(environmentFiles, 7);
-
 	auto environment = m_Registry.create();
-	m_Registry.emplace<Graphics::Environment>(environment, environmentMap, irradianceMap);
+	m_Registry.emplace<Graphics::Environment>(environment, "/Textures/cubemap/Arches_E_PineTree", 11, 3072, 4096, ".tga");
     m_Registry.emplace<NameComponent>(environment, "Environment");
 
     auto lightEntity = m_Registry.create();
@@ -74,12 +42,12 @@ void Scene3D::OnInit()
 	m_Registry.emplace<NameComponent>(lightEntity, "Light");
 
 	auto cameraEntity = m_Registry.create();
-	m_Registry.emplace<CameraComponent>(cameraEntity, m_pCamera);
+	Camera& camera = m_Registry.emplace<Camera>(cameraEntity, -20.0f, -40.0f, Maths::Vector3(-31.0f, 12.0f, 51.0f), 60.0f, 0.1f, 1000.0f, (float) m_ScreenWidth / (float) m_ScreenHeight);
+	camera.SetCameraController(CreateRef<EditorCameraController>());
 	m_Registry.emplace<NameComponent>(cameraEntity, "Camera");
-
 	auto audioSystem = Application::Instance()->GetSystem<AudioManager>();
-	if(audioSystem)
-		audioSystem->SetListener(m_pCamera);
+	if (audioSystem)
+		Application::Instance()->GetSystem<AudioManager>()->SetListener(&camera);
 
 #ifndef LUMOS_PLATFORM_IOS
     auto shadowRenderer = new Graphics::ShadowRenderer();
@@ -99,7 +67,7 @@ void Scene3D::OnInit()
 	Application::Instance()->PushLayer(new Layer3D(new Graphics::SkyboxRenderer(m_ScreenWidth, m_ScreenHeight, editor), "Skybox"));
 }
 
-void Scene3D::OnUpdate(TimeStep* timeStep)
+void Scene3D::OnUpdate(const TimeStep& timeStep)
 {
 	Scene::OnUpdate(timeStep);
 }
@@ -112,7 +80,6 @@ void Scene3D::OnCleanupScene()
 {
 	if (m_CurrentScene)
 	{
-		SAFE_DELETE(m_pCamera)
         Application::Instance()->GetSystem<LumosPhysicsEngine>()->ClearConstraints();
 	}
 

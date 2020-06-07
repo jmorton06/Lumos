@@ -30,6 +30,7 @@ namespace Lumos
 			glGetIntegerv(GL_MAX_SAMPLES, &caps.MaxSamples);
 			glGetFloatv(GL_MAX_TEXTURE_MAX_ANISOTROPY, &caps.MaxAnisotropy);
 			glGetIntegerv(GL_MAX_COMBINED_TEXTURE_IMAGE_UNITS, &caps.MaxTextureUnits);
+            glGetIntegerv(GL_UNIFORM_BUFFER_OFFSET_ALIGNMENT, &caps.UniformBufferOffsetAlignment);
 		}
 
 		GLRenderer::~GLRenderer()
@@ -46,6 +47,7 @@ namespace Lumos
 			GLCall(glDepthFunc(GL_LEQUAL));
 			GLCall(glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA));
 			GLCall(glBlendEquation(GL_FUNC_ADD));
+
 #ifndef LUMOS_PLATFORM_MOBILE
 			GLCall(glEnable(GL_DEPTH_CLAMP));
 			GLCall(glEnable(GL_TEXTURE_CUBE_MAP_SEAMLESS));

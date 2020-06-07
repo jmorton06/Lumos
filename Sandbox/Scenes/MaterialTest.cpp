@@ -24,25 +24,9 @@ void MaterialTest::OnInit()
 	LoadModels();
 
 	m_SceneBoundingRadius = 20.0f;
-
-	String environmentFiles[11] =
-	{
-		"/Textures/cubemap/CubeMap0.tga",
-		"/Textures/cubemap/CubeMap1.tga",
-		"/Textures/cubemap/CubeMap2.tga",
-		"/Textures/cubemap/CubeMap3.tga",
-		"/Textures/cubemap/CubeMap4.tga",
-		"/Textures/cubemap/CubeMap5.tga",
-		"/Textures/cubemap/CubeMap6.tga",
-		"/Textures/cubemap/CubeMap7.tga",
-		"/Textures/cubemap/CubeMap8.tga",
-		"/Textures/cubemap/CubeMap9.tga",
-		"/Textures/cubemap/CubeMap10.tga"
-	};
-
-	auto environmentMap = Graphics::TextureCube::CreateFromVCross(environmentFiles, 11);
+    
     auto environment = m_Registry.create();
-    m_Registry.emplace<Graphics::Environment>(environment, environmentMap);
+    m_Registry.emplace<Graphics::Environment>(environment, "/Textures/cubemap/Arches_E_PineTree", 11, 3072, 4096, ".tga");
     m_Registry.emplace<NameComponent>(environment, "Environment");
 
 	auto lightEntity = m_Registry.create();
@@ -50,13 +34,10 @@ void MaterialTest::OnInit()
 	m_Registry.emplace<Maths::Transform>(lightEntity, Matrix4::Translation(Maths::Vector3(26.0f, 22.0f, 48.5f)) * Maths::Quaternion::LookAt(Maths::Vector3(26.0f, 22.0f, 48.5f), Maths::Vector3::ZERO).RotationMatrix4());
 	m_Registry.emplace<NameComponent>(lightEntity, "Light");
 
-	m_pCamera = new Camera(-1.0f, 358.0f, Maths::Vector3(-0.23f, 2.4f, 11.4f), 60.0f, 0.1f, 1000.0f, (float)m_ScreenWidth / (float)m_ScreenHeight);
-    m_pCamera->SetCameraController(CreateRef<EditorCameraController>(m_pCamera));
-
 	auto cameraEntity = m_Registry.create();
-	m_Registry.emplace<CameraComponent>(cameraEntity, m_pCamera);
+	auto& camera = m_Registry.emplace<Camera>(cameraEntity, -1.0f, 358.0f, Maths::Vector3(-0.23f, 2.4f, 11.4f), 60.0f, 0.1f, 1000.0f, (float)m_ScreenWidth / (float)m_ScreenHeight);
 	m_Registry.emplace<NameComponent>(cameraEntity, "Camera");
-	Application::Instance()->GetSystem<AudioManager>()->SetListener(m_pCamera);
+	Application::Instance()->GetSystem<AudioManager>()->SetListener(&camera);
 
 	bool editor = false;
 
@@ -76,7 +57,7 @@ void MaterialTest::OnInit()
     #endif
 }
 
-void MaterialTest::OnUpdate(TimeStep* timeStep)
+void MaterialTest::OnUpdate(const TimeStep& timeStep)
 {
 	Scene::OnUpdate(timeStep);
 }
@@ -89,7 +70,6 @@ void MaterialTest::OnCleanupScene()
 {
 	if (m_CurrentScene)
 	{
-		SAFE_DELETE(m_pCamera);
 		Application::Instance()->GetSystem<LumosPhysicsEngine>()->ClearConstraints();
 	}
 

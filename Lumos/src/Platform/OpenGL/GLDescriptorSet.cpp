@@ -96,23 +96,37 @@ namespace Lumos
                     size  = buffer->GetSize();
                 }
 
-                if(!bufferInfo.name.empty())
+                //if(!bufferInfo.name.empty())
                 {
-                    static_cast<GLUniformBuffer*>(buffer)->Bind(0, dynamic_cast<GLShader*>(m_Shader), bufferInfo.name);
+                    //buffer->SetData(size, data);
+                    auto bufferHandle = static_cast<GLUniformBuffer*>(buffer)->GetHandle();
+                    auto slot = bufferInfo.binding;
+                    GLCall(glBindBufferBase(GL_UNIFORM_BUFFER, slot, bufferHandle));
+
+					if(buffer->GetDynamic())
+						GLCall(glBindBufferRange(GL_UNIFORM_BUFFER, slot, bufferHandle, offset, size));
+
+					if (bufferInfo.name != "")
+					{
+						auto loc = glGetUniformBlockIndex(dynamic_cast<GLShader*>(m_Shader)->GetHandleInternal(), bufferInfo.name.c_str());
+						GLCall(glUniformBlockBinding(dynamic_cast<GLShader*>(m_Shader)->GetHandleInternal(), loc, slot));
+					}
+
                 }
-                else
-                {
-                    if(bufferInfo.systemUniforms)
-                        m_Shader->SetSystemUniformBuffer(bufferInfo.shaderType, data, size);
-                    else
-                        m_Shader->SetUserUniformBuffer(bufferInfo.shaderType, data, size);
-                }
+//                else
+//                {
+//                    if(bufferInfo.systemUniforms)
+//                        m_Shader->SetSystemUniformBuffer(bufferInfo.shaderType, data, size);
+//                    else
+//                        m_Shader->SetUserUniformBuffer(bufferInfo.shaderType, data, size);
+//                }
 
 			}
 
-            for(auto pc : m_PushConstants)
+			for (auto pc : m_PushConstants)
+				m_Shader->SetUserUniformBuffer(pc.shaderStage, pc.data, pc.size);
                 //((GLShader*)m_Shader)->SetUniform("PushConstant", (u8*)pc.data);
-	            dynamic_cast<GLShader*>(m_Shader)->SetUniform1i("PushConstant", static_cast<i32>(pc.data[0])); //TEMP
+	            //dynamic_cast<GLShader*>(m_Shader)->SetUniform1i("pushConsts.cascadeIndex", static_cast<i32>(pc.data[0])); //TEMP
 		}
 
         void GLDescriptorSet::SetPushConstants(std::vector<PushConstant>& pushConstants)

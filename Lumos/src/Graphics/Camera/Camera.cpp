@@ -11,10 +11,7 @@ namespace Lumos
 		, m_Yaw(0.0f)
 		, m_Roll(0.0f)
 		, m_Position(Maths::Vector3(0.0f, 0.0f, 0.0f))
-		, m_Velocity(Maths::Vector3(0.0f))
-		, m_RotateVelocity(Maths::Vector2(0.0f))
 		, m_AspectRatio(aspect)
-		, m_ZoomVelocity(0.0f)
 		, m_FrustumDirty(true)
 		, m_ProjectionDirty(true)
 		, m_ViewDirty(true)
@@ -31,10 +28,7 @@ namespace Lumos
 		, m_Yaw(yaw)
 		, m_Roll(0.0f)
 		, m_Position(position)
-		, m_Velocity(Maths::Vector3(0.0f))
-		, m_RotateVelocity(Maths::Vector2(0.0f))
 		, m_AspectRatio(aspect)
-		, m_ZoomVelocity(0.0f)
 		, m_FrustumDirty(true)
 		, m_ProjectionDirty(true)
 		, m_ViewDirty(true)
@@ -51,9 +45,6 @@ namespace Lumos
 		, m_Yaw(0)
 		, m_Roll(0)
 		, m_AspectRatio(aspectRatio)
-		, m_ZoomVelocity(0)
-		, m_CameraSpeed(0)
-		, m_Distance(0)
 		, m_Scale(scale)
 		, m_FrustumDirty(true)
 		, m_ProjectionDirty(true)
@@ -65,7 +56,6 @@ namespace Lumos
 		, m_ScreenHeight(0)
 		, m_Orthographic(true)
         , m_Position(Maths::Vector3(0.0f))
-        , m_Velocity(Maths::Vector3(0.0f))
 	{
 	}
 
@@ -101,11 +91,6 @@ namespace Lumos
 		Maths::Vector3 forward = Maths::Vector3::FORWARD;
 		forward = GetOrientation() * forward;
 		return forward;
-	}
-
-	Maths::Vector3 Camera::CalculatePosition() const
-	{
-		return m_FocalPoint - GetForwardDirection() * m_Distance;
 	}
 
     Maths::Frustum& Camera::GetFrustum()

@@ -8,7 +8,7 @@ namespace Lumos
 {
 	struct LUMOS_EXPORT WindowProperties
 	{
-        WindowProperties(u32 width = 1280, u32 height = 720, int renderAPI = 0, const String& title = "Lumos", bool fullscreen = false, bool vSync = true, bool borderless = false) : Width(width), Height(height), Title(title), Fullscreen(fullscreen), VSync(vSync), Borderless(borderless), RenderAPI(renderAPI)
+        WindowProperties(u32 width = 1280, u32 height = 720, int renderAPI = 0, const String& title = "Lumos", bool fullscreen = false, bool vSync = true, bool borderless = false, const String& filepath = "") : Width(width), Height(height), Title(title), Fullscreen(fullscreen), VSync(vSync), Borderless(borderless), RenderAPI(renderAPI), FilePath(filepath)
 		{
 		}
 
@@ -16,9 +16,10 @@ namespace Lumos
 		bool Fullscreen;
 		bool VSync;
 		bool Borderless;
-		bool ShowConsole = false;
+		bool ShowConsole = true;
 		String Title;
         int RenderAPI;
+        String FilePath;
 
 	};
 

@@ -1,7 +1,8 @@
 #!/bin/sh
 echo "Compiling shaders"
+cd "$(dirname "$0")"
 
-COMPILER="/Users/josephmorton/vulkansdk-macos-1.2.131.1/macOS/bin/glslangValidator"
+COMPILER="/Users/josephmorton/vulkansdk-macos-1.2.141.0/macOS/bin/glslangValidator"
 
 echo $COMPILER
 
@@ -24,11 +25,8 @@ for SRC in *.vert *.frag *.comp; do
                 echo "Compiling $OUT from:"
 
                 $COMPILER -V "$SRC" -o "$OUT"
-
             else
-
                 echo "(Unchanged $SRC)"
-
             fi
         else
             echo "Compiling $OUT from:"
@@ -36,3 +34,5 @@ for SRC in *.vert *.frag *.comp; do
         fi
     fi
 done
+
+echo "Finished Compiling Shaders"

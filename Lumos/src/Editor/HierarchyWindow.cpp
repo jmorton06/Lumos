@@ -84,10 +84,10 @@ namespace Lumos
             String icon = ICON_FA_CUBE;
 			auto& iconMap = m_Editor->GetComponentIconMap();
 
-			if(registry.has<CameraComponent>(node))
+			if(registry.has<Camera>(node))
             {
-                if(iconMap.find(typeid(CameraComponent).hash_code()) != iconMap.end())
-				    icon = iconMap[typeid(CameraComponent).hash_code()];
+                if(iconMap.find(typeid(Camera).hash_code()) != iconMap.end())
+				    icon = iconMap[typeid(Camera).hash_code()];
             }
 			else if(registry.has<SoundComponent>(node))
             {

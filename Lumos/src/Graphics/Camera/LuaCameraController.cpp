@@ -10,25 +10,24 @@
 namespace Lumos
 {
 
-	LuaCameraController::LuaCameraController(Camera* camera)
-		: CameraController(camera)
+	LuaCameraController::LuaCameraController()
 	{
 	}
 
 	LuaCameraController::~LuaCameraController() = default;
 
-	void LuaCameraController::HandleMouse(float dt, float xpos, float ypos)
+	void LuaCameraController::HandleMouse(Camera* camera, float dt, float xpos, float ypos)
 	{
         if(m_HandleMouseFunc)
-            m_HandleMouseFunc.call(dt, xpos, ypos);
+            m_HandleMouseFunc.call(camera, dt, xpos, ypos);
 
         if(m_HandleScrollFunc)
-            m_HandleScrollFunc.call(Input::GetInput()->GetScrollOffset(), dt);  
+            m_HandleScrollFunc.call(camera, Input::GetInput()->GetScrollOffset(), dt);
 	}
 
-	void LuaCameraController::HandleKeyboard(float dt)
+	void LuaCameraController::HandleKeyboard(Camera* camera, float dt)
 	{
         if(m_HandleKeyboardFunc)
-            m_HandleKeyboardFunc.call(dt);
+            m_HandleKeyboardFunc.call(camera, dt);
 	}
 }

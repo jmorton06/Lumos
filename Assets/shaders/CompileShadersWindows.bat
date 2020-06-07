@@ -2,8 +2,12 @@
 @echo off
 setLocal enableExtensions enableDelayedExpansion
 
+dir=$(cd -P -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd -P)
+
 set COMPILER=C:/VulkanSDK/1.1.126.0/Bin32/glslangValidator.exe
 set DSTDIR=CompiledSPV
+
+echo Compiling Shaders to spv
 
 if not exist "%DSTDIR%" (
   mkdir "%DSTDIR%"
@@ -27,8 +31,6 @@ for %%f in (*.vert *.frag *.comp) do (
     echo Compiling
     %COMPILER% -V "!SRC!" -o "!DST!"
 
-  ) else (
-    echo Unchanged !SRC!
   )
 )
 pause

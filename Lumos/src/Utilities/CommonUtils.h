@@ -47,8 +47,8 @@ namespace Lumos
 			const Maths::Vector4& color = Maths::Vector4(1.0f, 1.0f, 1.0f, 1.0f));
 
 
-		void AddLightCube(Scene* scene);
-		void AddSphere(Scene* scene);
-		void AddPyramid(Scene* scene);
+		void AddLightCube(Scene* scene, const Maths::Vector3& pos, const Maths::Vector3& dir);
+		void AddSphere(Scene* scene, const Maths::Vector3& pos, const Maths::Vector3& dir);
+		void AddPyramid(Scene* scene, const Maths::Vector3& pos, const Maths::Vector3& dir);
 	};
 }

@@ -94,6 +94,14 @@ namespace Lumos
 			properties.usingMetallicMap = 0.0f;
 			m_DefaultMaterial->SetMaterialProperites(properties);
 
+            const size_t minUboAlignment = size_t(Graphics::Renderer::GetCapabilities().UniformBufferOffsetAlignment);
+
+            m_DynamicAlignment = sizeof(Lumos::Maths::Matrix4);
+            if (minUboAlignment > 0)
+            {
+                m_DynamicAlignment = (m_DynamicAlignment + minUboAlignment - 1) & ~(minUboAlignment - 1);
+            }
+        
 			m_UniformBuffer = nullptr;
 			m_ModelUniformBuffer = nullptr;
 
@@ -179,8 +187,11 @@ namespace Lumos
                     {
                         material = materialComponent->GetMaterial().get();
 
-                        if (material->GetDescriptorSet() == nullptr || material->GetPipeline() != m_Pipeline)
+                        if (material->GetDescriptorSet() == nullptr || material->GetPipeline() != m_Pipeline || materialComponent->GetTexturesUpdated())
+                        {
                             material->CreateDescriptorSet(m_Pipeline, 1);
+                            materialComponent->SetTexturesUpdated(false);
+                        }
                     }
 
                     auto textureMatrixTransform = registry.try_get<TextureMatrixComponent>(entity);
@@ -219,12 +230,18 @@ namespace Lumos
 
 		void DeferredOffScreenRenderer::BeginScene(Scene* scene)
 		{
-			auto camera = scene->GetCamera();
-
-			auto projView = camera->GetProjectionMatrix() * camera->GetViewMatrix();
+            auto& registry = scene->GetRegistry();
+            auto cameraView = registry.view<Camera>();
+            if(!cameraView.empty())
+            {
+                m_Camera = &registry.get<Camera>(cameraView.front());
+            }
+        
+            LUMOS_ASSERT(m_Camera, "No Camera Set for Renderer");
+			auto projView = m_Camera->GetProjectionMatrix() * m_Camera->GetViewMatrix();
 			memcpy(m_VSSystemUniformBuffer + m_VSSystemUniformBufferOffsets[VSSystemUniformIndex_ProjectionViewMatrix], &projView, sizeof(Maths::Matrix4));
 
-            m_Frustum = camera->GetFrustum();
+            m_Frustum = m_Camera->GetFrustum();
 		}
 
 		void DeferredOffScreenRenderer::Submit(const RenderCommand& command)
@@ -374,18 +391,9 @@ namespace Lumos
 			if (m_ModelUniformBuffer == nullptr)
 			{
 				m_ModelUniformBuffer = Graphics::UniformBuffer::Create();
-				const size_t minUboAlignment = Graphics::GraphicsContext::GetContext()->GetMinUniformBufferOffsetAlignment();
-
-				m_DynamicAlignment = sizeof(Lumos::Maths::Matrix4);
-				if (minUboAlignment > 0)
-				{
-					m_DynamicAlignment = (m_DynamicAlignment + minUboAlignment - 1) & ~(minUboAlignment - 1);
-				}
-
+	
 				uint32_t bufferSize2 = static_cast<uint32_t>(MAX_OBJECTS * m_DynamicAlignment);
-
                 m_UBODataDynamic.model = static_cast<Maths::Matrix4*>(Memory::AlignedAlloc(bufferSize2, m_DynamicAlignment));
-
 				m_ModelUniformBuffer->Init(bufferSize2, nullptr);
 			}
 
@@ -399,15 +407,17 @@ namespace Lumos
 			bufferInfo.binding = 0;
 			bufferInfo.shaderType = ShaderType::VERTEX;
 			bufferInfo.systemUniforms = true;
+            bufferInfo.name = "UniformBufferObject";
 
 			Graphics::BufferInfo bufferInfo2 = {};
 			bufferInfo2.buffer = m_ModelUniformBuffer;
 			bufferInfo2.offset = 0;
-			bufferInfo2.size = sizeof(Maths::Matrix4);//UniformBufferModel);
+			bufferInfo2.size = sizeof(Maths::Matrix4);
 			bufferInfo2.type = Graphics::DescriptorType::UNIFORM_BUFFER_DYNAMIC;
 			bufferInfo2.binding = 1;
 			bufferInfo2.shaderType = ShaderType::VERTEX;
 			bufferInfo2.systemUniforms = false;
+            bufferInfo2.name = "UniformBufferObject2";
 
 			bufferInfos.push_back(bufferInfo);
 			bufferInfos.push_back(bufferInfo2);
@@ -459,12 +469,6 @@ namespace Lumos
 		void DeferredOffScreenRenderer::OnImGui()
 		{
 			ImGui::TextUnformatted("Deferred Offscreen Renderer");
-
-			if (ImGui::TreeNode("Default Material"))
-			{
-				m_DefaultMaterial->OnImGui();
-				ImGui::TreePop();
-			}
 		}
 	}
 }

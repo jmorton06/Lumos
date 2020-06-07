@@ -27,7 +27,7 @@ namespace Lumos
             }
         
             Environment(const String& filepath, bool genPrefilter, bool genIrradiance);
-
+            Environment(const String& name, u32 numMip, u32 width, u32 height, const String& fileType = ".tga");
             ~Environment();
 
             TextureCube* GetEnvironmentMap() const { return m_Environmnet.get(); }

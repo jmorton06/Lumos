@@ -47,10 +47,13 @@ namespace Lumos
 			virtual void SetRenderTarget(Graphics::Texture* texture) { m_RenderTexture = texture; }
 			virtual void SetRenderToGBufferTexture(bool set) { m_RenderToGBufferTexture = set; }
 			virtual void OnImGui() {};
+            
+            void SetCamera(Camera* camera) { m_Camera = camera; }
 
 		protected:
 			Framebuffer* m_FBO;
-			Shader* m_Shader;
+            Shader* m_Shader;
+            Camera* m_Camera;
 
 			Lumos::Graphics::RenderPass* m_RenderPass;
 			Lumos::Graphics::Pipeline* m_Pipeline;

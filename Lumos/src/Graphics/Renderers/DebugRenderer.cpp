@@ -14,6 +14,7 @@
 #include "Graphics/API/Texture.h"
 #include "Graphics/GBuffer.h"
 #include "Graphics/Sprite.h"
+#include "Graphics/Light.h"
 #include "App/Scene.h"
 #include "App/Application.h"
 #include "Graphics/RenderManager.h"
@@ -27,6 +28,7 @@
 #include "Maths/Frustum.h"
 #include "Maths/BoundingBox.h"
 #include "Maths/Sphere.h"
+#include "Audio/SoundNode.h"
 #include "Core/Profiler.h"
 
 namespace Lumos
@@ -206,7 +208,7 @@ namespace Lumos
 		}
 	}
 
-	void DebugRenderer::DebugDraw(const Maths::BoundingBox& box, const Maths::Vector4 &edgeColour, float width)
+	void DebugRenderer::DebugDraw(const Maths::BoundingBox& box, const Maths::Vector4 &edgeColour, bool cornersOnly, float width)
 	{
 		Maths::Vector3 uuu = box.max_;
 		Maths::Vector3 lll = box.min_;
@@ -220,20 +222,61 @@ namespace Lumos
 		Maths::Vector3 lul(lll.x, uuu.y, lll.z);
 
 		// Draw edges
-		DrawThickLineNDT(luu, uuu, width, edgeColour);
-		DrawThickLineNDT(lul, uul, width, edgeColour);
-		DrawThickLineNDT(llu, ulu, width, edgeColour);
-		DrawThickLineNDT(lll, ull, width, edgeColour);
+		if (!cornersOnly)
+		{
+			DrawThickLineNDT(luu, uuu, width, edgeColour);
+			DrawThickLineNDT(lul, uul, width, edgeColour);
+			DrawThickLineNDT(llu, ulu, width, edgeColour);
+			DrawThickLineNDT(lll, ull, width, edgeColour);
 
-		DrawThickLineNDT(lul, lll, width, edgeColour);
-		DrawThickLineNDT(uul, ull, width, edgeColour);
-		DrawThickLineNDT(luu, llu, width, edgeColour);
-		DrawThickLineNDT(uuu, ulu, width, edgeColour);
+			DrawThickLineNDT(lul, lll, width, edgeColour);
+			DrawThickLineNDT(uul, ull, width, edgeColour);
+			DrawThickLineNDT(luu, llu, width, edgeColour);
+			DrawThickLineNDT(uuu, ulu, width, edgeColour);
 
-		DrawThickLineNDT(lll, llu, width, edgeColour);
-		DrawThickLineNDT(ull, ulu, width, edgeColour);
-		DrawThickLineNDT(lul, luu, width, edgeColour);
-		DrawThickLineNDT(uul, uuu, width, edgeColour);
+			DrawThickLineNDT(lll, llu, width, edgeColour);
+			DrawThickLineNDT(ull, ulu, width, edgeColour);
+			DrawThickLineNDT(lul, luu, width, edgeColour);
+			DrawThickLineNDT(uul, uuu, width, edgeColour);
+		}
+		else
+		{
+			DrawThickLineNDT(luu, luu + (uuu - luu) * 0.25f, width, edgeColour);
+			DrawThickLineNDT(luu + (uuu - luu) * 0.75f, uuu, width, edgeColour);
+
+			DrawThickLineNDT(lul, lul + (uul - lul) * 0.25f, width, edgeColour);
+			DrawThickLineNDT(lul + (uul - lul) * 0.75f, uul, width, edgeColour);
+
+			DrawThickLineNDT(llu, llu + (ulu - llu) * 0.25f, width, edgeColour);
+			DrawThickLineNDT(llu + (ulu - llu) * 0.75f, ulu, width, edgeColour);
+
+			DrawThickLineNDT(lll, lll + (ull - lll) * 0.25f, width, edgeColour);
+			DrawThickLineNDT(lll + (ull - lll) * 0.75f, ull, width, edgeColour);
+
+			DrawThickLineNDT(lul, lul + (lll - lul) * 0.25f, width, edgeColour);
+			DrawThickLineNDT(lul + (lll - lul) * 0.75f, lll, width, edgeColour);
+
+			DrawThickLineNDT(uul, uul + (ull - uul) * 0.25f, width, edgeColour);
+			DrawThickLineNDT(uul + (ull - uul) * 0.75f, ull, width, edgeColour);
+
+			DrawThickLineNDT(luu, luu + (llu - luu) * 0.25f, width, edgeColour);
+			DrawThickLineNDT(luu + (llu - luu) * 0.75f, llu, width, edgeColour);
+
+			DrawThickLineNDT(uuu, uuu + (ulu - uuu) * 0.25f, width, edgeColour);
+			DrawThickLineNDT(uuu + (ulu - uuu) * 0.75f, ulu, width, edgeColour);
+
+			DrawThickLineNDT(lll, lll + (llu - lll) * 0.25f, width, edgeColour);
+			DrawThickLineNDT(lll + (llu - lll) * 0.75f, llu, width, edgeColour);
+
+			DrawThickLineNDT(ull, ull + (ulu - ull) * 0.25f, width, edgeColour);
+			DrawThickLineNDT(ull + (ulu - ull) * 0.75f, ulu, width, edgeColour);
+
+			DrawThickLineNDT(lul, lul + (luu - lul) * 0.25f, width, edgeColour);
+			DrawThickLineNDT(lul + (luu - lul) * 0.75f, luu, width, edgeColour);
+
+			DrawThickLineNDT(uul, uul + (uuu - uul) * 0.25f, width, edgeColour);
+			DrawThickLineNDT(uul + (uuu - uul) * 0.75f, uuu, width, edgeColour);
+		}
 	}
 
 	void DebugRenderer::DebugDraw(const Maths::Sphere& sphere, const Maths::Vector4 &colour)
@@ -296,5 +339,32 @@ namespace Lumos
             m_LineRenderer->OnResize(width, height);
         if(m_PointRenderer)
             m_PointRenderer->OnResize(width, height);
-	}
+    }
+    
+    void DebugRenderer::DebugDraw(Graphics::Light* light, const Maths::Vector4 &colour)
+    {
+        //Directional
+        if(light->m_Type < 0.1f)
+        {
+            DrawHairLine((light->m_Position - (light->m_Direction)).ToVector3(), (light->m_Position + (light->m_Direction)).ToVector3(), colour);
+        }
+        //Spot
+        else if(light->m_Type < 1.1f)
+        {
+            DrawHairLine(light->m_Position.ToVector3(), (light->m_Position + light->m_Direction).ToVector3(), colour);
+            DrawPoint(light->m_Position.ToVector3(), light->m_Radius, colour);
+        }
+        //Point
+        else
+        {
+            DrawPoint(light->m_Position.ToVector3(), light->m_Radius, colour);
+        }
+    }
+    
+    void DebugRenderer::DebugDraw(SoundNode* sound, const Maths::Vector4 &colour)
+    {
+        DrawPoint(sound->GetPosition(), sound->GetRadius(), colour);
+
+    }
+    
 }

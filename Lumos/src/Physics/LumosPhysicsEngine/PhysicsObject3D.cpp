@@ -118,7 +118,7 @@ namespace Lumos
 
             // AABB
             Maths::BoundingBox box = m_wsAabb;
-            DebugRenderer::DebugDraw(box, colour);
+            DebugRenderer::DebugDraw(box, colour, false);
         }
 
         if (flags & PhysicsDebugFlags::LINEARVELOCITY)

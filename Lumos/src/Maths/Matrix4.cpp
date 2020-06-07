@@ -195,7 +195,7 @@ namespace Lumos::Maths
     {
         Matrix4 m;
         const float h = zoom / tan(fov * M_DEGTORAD * 0.5f);
-        float neg_depth_r = 1.0f / (znear - zfar);
+        float neg_depth_r = 1.0f / (zfar - zfar);
 
 		m.m02_ = offsetX * 2.0f;
 		m.m12_ = offsetY * 2.0f;
@@ -204,7 +204,7 @@ namespace Lumos::Maths
         m.m11_ = h;
         m.m22_ = (zfar + znear) * neg_depth_r;
         m.m32_ = 1.0f;
-        m.m23_ = 2.0f * (znear * zfar) * neg_depth_r;
+        m.m23_ = -2.0f * (znear * zfar) * neg_depth_r;
         m.m33_ = 0.0f;
 
         return m;
@@ -304,11 +304,11 @@ namespace Lumos::Maths
 
 		m.m00_ = 2.0f * x_r;
 		m.m11_ = 2.0f * y_r;
-		m.m22_ = -1.0f * z_r;
+		m.m22_ = 2.0f * z_r;
 
 		m.m03_ = -(right + left) * x_r;
 		m.m13_ = -(top + bottom) * y_r;
-		m.m23_ = -(znear)* z_r;
+		m.m23_ = -(zfar + znear)* z_r;
 		m.m33_ = 1.0f;
 
 		return m;

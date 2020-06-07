@@ -23,7 +23,7 @@ namespace Lumos
 	{
 	}
 
-	void Layer3D::OnUpdate(TimeStep* dt, Scene* scene)
+	void Layer3D::OnUpdate(const TimeStep& dt, Scene* scene)
 	{
 	}
 

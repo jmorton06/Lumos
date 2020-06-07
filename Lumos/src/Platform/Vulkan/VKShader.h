@@ -19,24 +19,26 @@ namespace Lumos
 			VkPipelineShaderStageCreateInfo* GetShaderStages() const;
 			uint32_t GetStageCount() const;
 
-			void Bind() const {};
-			void Unbind() const {};
+			void Bind() const override {};
+			void Unbind() const override {};
 
-			void SetSystemUniformBuffer(ShaderType type, u8* data, u32 size, u32 slot = 0) {};
-			void SetUserUniformBuffer(ShaderType type, u8* data, u32 size) {};
+			void SetSystemUniformBuffer(ShaderType type, u8* data, u32 size, u32 slot = 0) override {};
+			void SetUserUniformBuffer(ShaderType type, u8* data, u32 size) override {};
 
-			const ShaderUniformBufferList GetSystemUniforms(ShaderType type) const { return ShaderUniformBufferList(); };
-			const ShaderUniformBufferDeclaration* GetUserUniformBuffer(ShaderType type) const { return nullptr; };
+			const ShaderUniformBufferList GetSystemUniforms(ShaderType type) const override { return ShaderUniformBufferList(); };
+			const ShaderUniformBufferDeclaration* GetUserUniformBuffer(ShaderType type) const override { return nullptr; };
 
-			const std::vector<ShaderType> GetShaderTypes() const { return std::vector<ShaderType>(); };
+			const std::vector<ShaderType> GetShaderTypes() const override { return std::vector<ShaderType>(); };
 
-			const String& GetName() const { return m_Name; }
-			const String& GetFilePath() const { return m_FilePath; };
+			const String& GetName() const override { return m_Name; }
+			const String& GetFilePath() const override { return m_FilePath; };
 
 			static void PreProcess(const String& source, std::map<ShaderType, String>* sources);
 			static void ReadShaderFile(std::vector<String> lines, std::map<ShaderType, String>* shaders);
 
             static void MakeDefault();
+        
+            void* GetHandle() const override { return nullptr; }
         protected:
             static Shader* CreateFuncVulkan(const String&, const String&);
             

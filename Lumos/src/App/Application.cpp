@@ -15,7 +15,6 @@
 #include "Graphics/Renderers/DebugRenderer.h"
 
 #include "ECS/Component/MeshComponent.h"
-#include "ECS/Component/CameraComponent.h"
 
 #include "Maths/Transform.h"
 
@@ -42,7 +41,7 @@ namespace Lumos
 	Application* Application::s_Instance = nullptr;
 
 	Application::Application(const WindowProperties& properties)
-		: m_UpdateTimer(0), m_Frames(0), m_Updates(0)
+		: m_UpdateTimer(0), m_Frames(0), m_Updates(0), m_InitialProperties(properties)
 	{
 		LUMOS_ASSERT(!s_Instance, "Application already exists!");
 		s_Instance = this;
@@ -78,9 +77,6 @@ namespace Lumos
 
 	Application::~Application()
 	{
-#ifdef  LUMOS_EDITOR
-		lmdel m_Editor;
-#endif
 		ImGui::DestroyContext();
 	}
 
@@ -155,6 +151,10 @@ namespace Lumos
 
 		delete m_LayerStack;
 		delete m_ImGuiLayer;
+    
+        #ifdef  LUMOS_EDITOR
+        lmdel m_Editor;
+        #endif
 
 		Graphics::Renderer::Release();
 		Graphics::GraphicsContext::Release();
@@ -188,10 +188,12 @@ namespace Lumos
 #endif
         
             Profiler::Instance()->Update(now);
-            Engine::GetTimeStep()->Update(now);
+        
+            auto& ts = Engine::GetTimeStep();
+            ts.Update(now);
 
 			ImGuiIO& io = ImGui::GetIO();
-			io.DeltaTime = Engine::GetTimeStep()->GetMillis();
+			io.DeltaTime = ts.GetMillis();
 			
 			Application* app = Application::Instance();
 			app->GetWindow()->UpdateCursorImGui();
@@ -200,7 +202,7 @@ namespace Lumos
 
 			{
                 LUMOS_PROFILE_BLOCK("Application::Update");
-				OnUpdate(Engine::GetTimeStep());
+				OnUpdate(ts);
 				m_Updates++;
 			}
 
@@ -264,6 +266,7 @@ namespace Lumos
             m_SystemManager->OnDebugDraw();
 #ifdef LUMOS_EDITOR
             m_Editor->DebugDraw();
+            m_Editor->OnRender();
 #endif
 
 			m_LayerStack->OnRender(m_SceneManager->GetCurrentScene());
@@ -274,7 +277,7 @@ namespace Lumos
 		}
 	}
 
-	void Application::OnUpdate(TimeStep* dt)
+	void Application::OnUpdate(const TimeStep& dt)
 	{
 		const u32 sceneIdx = m_SceneManager->GetCurrentSceneIndex();
 		const u32 sceneMax = m_SceneManager->SceneCount();
@@ -282,9 +285,20 @@ namespace Lumos
 		if (Input::GetInput()->GetKeyPressed(InputCode::Key::P)) Application::Instance()->GetSystem<LumosPhysicsEngine>()->SetPaused(!Application::Instance()->GetSystem<LumosPhysicsEngine>()->IsPaused());
 		if (Input::GetInput()->GetKeyPressed(InputCode::Key::P)) Application::Instance()->GetSystem<B2PhysicsEngine>()->SetPaused(!Application::Instance()->GetSystem<B2PhysicsEngine>()->IsPaused());
 
-		if (Input::GetInput()->GetKeyPressed(InputCode::Key::J)) CommonUtils::AddSphere(m_SceneManager->GetCurrentScene());
-		if (Input::GetInput()->GetKeyPressed(InputCode::Key::K)) CommonUtils::AddPyramid(m_SceneManager->GetCurrentScene());
-		if (Input::GetInput()->GetKeyPressed(InputCode::Key::L)) CommonUtils::AddLightCube(m_SceneManager->GetCurrentScene());
+        Camera* cameraComponent = nullptr;
+           
+        auto cameraView = m_SceneManager->GetCurrentScene()->GetRegistry().view<Camera>();
+        if(cameraView.size() > 0)
+        {
+           cameraComponent = m_SceneManager->GetCurrentScene()->GetRegistry().try_get<Camera>(cameraView[0]);
+        }
+    
+        if(cameraComponent)
+        {
+            if (Input::GetInput()->GetKeyPressed(InputCode::Key::J)) CommonUtils::AddSphere(m_SceneManager->GetCurrentScene(),cameraComponent->GetPosition(), -cameraComponent->GetForwardDirection());
+            if (Input::GetInput()->GetKeyPressed(InputCode::Key::K)) CommonUtils::AddPyramid(m_SceneManager->GetCurrentScene(), cameraComponent->GetPosition(), -cameraComponent->GetForwardDirection());
+            if (Input::GetInput()->GetKeyPressed(InputCode::Key::L)) CommonUtils::AddLightCube(m_SceneManager->GetCurrentScene(), cameraComponent->GetPosition(), -cameraComponent->GetForwardDirection());
+        }
 
 		if (Input::GetInput()->GetKeyPressed(InputCode::Key::G)) m_SceneManager->SwitchScene((sceneIdx + 1) % sceneMax);
 		if (Input::GetInput()->GetKeyPressed(InputCode::Key::H)) m_SceneManager->SwitchScene(sceneIdx);
@@ -296,15 +310,15 @@ namespace Lumos
 		if (Application::Instance()->GetEditorState() != EditorState::Paused && Application::Instance()->GetEditorState() != EditorState::Preview)
 #endif
 		{
-			m_SceneManager->GetCurrentScene()->OnUpdate(Engine::GetTimeStep());
-			m_SystemManager->OnUpdate(Engine::GetTimeStep(),m_SceneManager->GetCurrentScene());
+			m_SceneManager->GetCurrentScene()->OnUpdate(dt);
+			m_SystemManager->OnUpdate(dt,m_SceneManager->GetCurrentScene());
             LuaManager::Instance()->OnUpdate(m_SceneManager->GetCurrentScene());
 		}
 
 		if (!m_Minimized)
 		{
-			m_LayerStack->OnUpdate(Engine::GetTimeStep(), m_SceneManager->GetCurrentScene());
-			m_ImGuiLayer->OnUpdate(Engine::GetTimeStep(), m_SceneManager->GetCurrentScene());
+			m_LayerStack->OnUpdate(dt, m_SceneManager->GetCurrentScene());
+			m_ImGuiLayer->OnUpdate(dt, m_SceneManager->GetCurrentScene());
 		}
 	}
 

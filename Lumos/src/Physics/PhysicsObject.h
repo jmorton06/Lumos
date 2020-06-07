@@ -51,6 +51,9 @@ namespace Lumos
 		virtual	void SetIsAtRest(const bool isAtRest)   { m_AtRest = isAtRest; }
 		virtual void WakeUp() { m_AtRest = false; }
 		bool IsAwake() const { return !m_AtRest; }
+    
+        _FORCE_INLINE_ bool operator<(const PhysicsObject &p_r) const { return false; }
+        _FORCE_INLINE_ bool operator==(const PhysicsObject &p_r) const { return false; }
 
 	protected:
 

@@ -36,6 +36,7 @@ layout(std140, binding = 0) uniform UniformBufferLight
 	mat4 viewMatrix;
 	mat4 uShadowTransform[MAX_SHADOWMAPS];
     vec4 uSplitDepths[MAX_SHADOWMAPS];
+	mat4 biasMat;
 	int lightCount;
 	int shadowCount;
 	int mode;
@@ -135,12 +136,13 @@ vec3 Lighting(vec3 F0, float shadow, vec3 wsPos, Material material)
 			float epsilon       = cutoffAngle - cutoffAngle * 0.9f;
 			float attenuation 	= ((theta - cutoffAngle) / epsilon); // atteunate when approaching the outer cone
 			attenuation         *= light.radius / (pow(dist, 2.0) + 1.0);//saturate(1.0f - dist / light.range);
-			float intensity 	= attenuation * attenuation;
+			//float intensity 	= attenuation * attenuation;
+			
 			
 			// Erase light if there is no need to compute it
-			intensity *= step(theta, cutoffAngle);
+			//intensity *= step(theta, cutoffAngle);
 
-			value = intensity;
+			value = clamp(attenuation, 0.0, 1.0);
 		}
 
 		vec3 Li = light.direction.xyz;
@@ -205,18 +207,18 @@ float Attentuate( vec3 lightData, float dist )
 	return max(att * damping, 0.0);
 }
 
-float textureProj(vec4 P, vec2 offset, int cascadeIndex)
+float textureProj(vec4 shadowCoord, vec2 offset, int cascadeIndex)
 {
 	float shadow = 1.0;
-	float bias = 0.001; //0.005
+	float bias = 0.001;
+	float ambient = 0.2;
 
-	vec4 shadowCoord = P / P.w;
-	if ( shadowCoord.z > -1.0 && shadowCoord.z < 1.0 )
+	if ( shadowCoord.z > -1.0 && shadowCoord.z < 1.0 && shadowCoord.w > 0)
 	{
-		float dist = texture(uShadowMap, vec3(shadowCoord.st + offset, cascadeIndex)).x;//, shadowCoord.z));
-		if (shadowCoord.w > 0 && dist < shadowCoord.z - bias)
+		float dist = texture(uShadowMap, vec3(shadowCoord.st + offset, cascadeIndex)).r;
+		if (dist < shadowCoord.z - bias)
 		{
-			shadow = 0.1f;
+			shadow = ambient;
 		}
 	}
 	return shadow;
@@ -268,8 +270,8 @@ int CalculateCascadeIndex(vec3 wsPos)
 
 float CalculateShadow(vec3 wsPos, int cascadeIndex)
 {
-	vec4 shadowCoord =  vec4(wsPos, 1.0) * ubo.uShadowTransform[cascadeIndex] * biasMat;
-	return filterPCF(shadowCoord / shadowCoord.w, cascadeIndex);
+	vec4 shadowCoord =  vec4(wsPos, 1.0) * (ubo.uShadowTransform[cascadeIndex] * ubo.biasMat);
+	return filterPCF(shadowCoord * ( 1.0 / shadowCoord.w), cascadeIndex);
 }
 
 layout(location = 0) out vec4 outColor;
@@ -288,7 +290,7 @@ void main()
     vec3  spec      = vec3(pbrTex.x);
 
 	float roughness = pbrTex.y;
-	vec3 emissive	= vec3(positionTex.w, normalTex.w, pbrTex.w);// EncodeFloatRGBA(pbrTex.w).xyz;
+	vec3 emissive	= vec3(positionTex.w, normalTex.w, pbrTex.w);
     vec3 wsPos      = positionTex.xyz;
 	vec3 normal		= normalize(normalTex.xyz);
     vec3 finalColour;
@@ -350,3 +352,5 @@ void main()
 		}
 	}
 }
+
+

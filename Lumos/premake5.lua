@@ -12,6 +12,7 @@ IncludeDir["Lumos"] = "../Lumos/src"
 IncludeDir["External"] = "external/"
 IncludeDir["ImGui"] = "../Dependencies/imgui/"
 IncludeDir["freetype"] = "../Dependencies/freetype/include"
+IncludeDir["SpirvCross"] = "../Dependencies/SPIRV-Cross"
 
 
 project "Lumos"
@@ -54,6 +55,7 @@ project "Lumos"
 		"%{IncludeDir.jsonhpp}",
 		"%{IncludeDir.spdlog}",
 		"%{IncludeDir.freetype}",
+		"%{IncludeDir.SpirvCross}",
 		"%{IncludeDir.Lumos}",
 	}
 
@@ -62,7 +64,8 @@ project "Lumos"
 		"lua",
 		"Box2D",
 		"imgui",
-		"freetype"
+		"freetype",
+		"SpirvCross"
 	}
 
 	cwd = os.getcwd() .. "/.."

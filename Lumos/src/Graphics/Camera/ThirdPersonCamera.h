@@ -7,11 +7,11 @@ namespace Lumos
 	class LUMOS_EXPORT ThirdPersonCameraController : public CameraController
 	{
 	public:
-		ThirdPersonCameraController(Camera* camera);
+		ThirdPersonCameraController();
 		virtual ~ThirdPersonCameraController() override;
 
-		virtual void HandleMouse(float dt, float xpos, float ypos) override;
-		virtual void HandleKeyboard(float dt) override;
+		virtual void HandleMouse(Camera* camera, float dt, float xpos, float ypos) override;
+		virtual void HandleKeyboard(Camera* camera, float dt) override;
 
 	private:
 		bool m_Free;

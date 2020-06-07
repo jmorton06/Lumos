@@ -29,8 +29,9 @@ namespace Lumos
 {
 	namespace Graphics
 	{
-		ForwardRenderer::ForwardRenderer(u32 width, u32 height, bool renderToGBuffer)
+		ForwardRenderer::ForwardRenderer(u32 width, u32 height, bool renderToGBuffer, bool depthTest)
 		{
+            m_DepthTest = depthTest;
 			SetScreenBufferSize(width, height);
 			ForwardRenderer::Init();
             SetRenderToGBufferTexture(renderToGBuffer);
@@ -68,10 +69,6 @@ namespace Lumos
 		{
 			//for (i = 0; i < commandBuffers.size(); i++)
 			{
-				m_CurrentBufferID = 0;
-				if (!m_RenderTexture)
-					m_CurrentBufferID = Renderer::GetSwapchain()->GetCurrentBufferId();
-
 				Begin();
 
                 auto& registry = scene->GetRegistry();
@@ -173,15 +170,30 @@ namespace Lumos
 			m_UniformBuffer = Graphics::UniformBuffer::Create();
 			m_ModelUniformBuffer = Graphics::UniformBuffer::Create();
 
-			AttachmentInfo textureTypes[2] =
-			{
-				{ TextureType::COLOUR, TextureFormat::RGBA8 },
-				{ TextureType::DEPTH , TextureFormat::DEPTH }
-			};
+            Graphics::RenderpassInfo renderpassCI{};
 
-			Graphics::RenderpassInfo renderpassCI{};
-			renderpassCI.attachmentCount = 2;
-			renderpassCI.textureType = textureTypes;
+            if(m_DepthTest)
+            {
+                AttachmentInfo textureTypes[2] =
+                {
+                    { TextureType::COLOUR, TextureFormat::RGBA8 },
+                    { TextureType::DEPTH , TextureFormat::DEPTH }
+                };
+
+                renderpassCI.attachmentCount = 2;
+                renderpassCI.textureType = textureTypes;
+            }
+            else
+            {
+                AttachmentInfo textureTypes[1] =
+                {
+                    { TextureType::COLOUR, TextureFormat::RGBA8 },
+                };
+
+                renderpassCI.attachmentCount = 1;
+                renderpassCI.textureType = textureTypes;
+            }
+
 
 			m_RenderPass->Init(renderpassCI);
 
@@ -237,7 +249,7 @@ namespace Lumos
 
 			m_Pipeline->GetDescriptorSet()->Update(bufferInfos);
 
-			m_ClearColour = Maths::Vector4(0.1f, 0.1f, 0.1f, 1.0f);
+			m_ClearColour = Maths::Vector4(0.4f, 0.4f, 0.4f, 1.0f);
 
 			m_DefaultTexture = Texture2D::CreateFromFile("Test", "/CoreTextures/checkerboard.tga");
 
@@ -261,6 +273,10 @@ namespace Lumos
 
 		void ForwardRenderer::Begin()
 		{
+            m_CurrentBufferID = 0;
+            if (!m_RenderTexture)
+                m_CurrentBufferID = Renderer::GetSwapchain()->GetCurrentBufferId();
+        
 			m_CommandQueue.clear();
 			m_SystemUniforms.clear();
 
@@ -271,15 +287,27 @@ namespace Lumos
 
 		void ForwardRenderer::BeginScene(Scene* scene)
 		{
-			auto camera = scene->GetCamera();
-			auto proj = camera->GetProjectionMatrix();
+            auto& registry = scene->GetRegistry();
+                 
+            auto cameraView = registry.view<Camera>();
+            if(!cameraView.empty())
+            {
+                m_Camera = &registry.get<Camera>(cameraView.front());
+            }
+			auto proj = m_Camera->GetProjectionMatrix();
 
 			memcpy(m_VSSystemUniformBuffer + m_VSSystemUniformBufferOffsets[VSSystemUniformIndex_ProjectionMatrix], &proj, sizeof(Maths::Matrix4));
-			memcpy(m_VSSystemUniformBuffer + m_VSSystemUniformBufferOffsets[VSSystemUniformIndex_ViewMatrix], &camera->GetViewMatrix(), sizeof(Maths::Matrix4));
+			memcpy(m_VSSystemUniformBuffer + m_VSSystemUniformBufferOffsets[VSSystemUniformIndex_ViewMatrix], &m_Camera->GetViewMatrix(), sizeof(Maths::Matrix4));
 
-			m_Frustum = camera->GetFrustum();
+			m_Frustum = m_Camera->GetFrustum();
 
 		}
+    
+        void ForwardRenderer::BeginScene(const Maths::Matrix4& proj, const Maths::Matrix4& view)
+        {
+            memcpy(m_VSSystemUniformBuffer + m_VSSystemUniformBufferOffsets[VSSystemUniformIndex_ProjectionMatrix], &proj, sizeof(Maths::Matrix4));
+            memcpy(m_VSSystemUniformBuffer + m_VSSystemUniformBufferOffsets[VSSystemUniformIndex_ViewMatrix], &view, sizeof(Maths::Matrix4));
+        }
 
 		void ForwardRenderer::Submit(const RenderCommand& command)
 		{
@@ -342,8 +370,6 @@ namespace Lumos
 				m_Pipeline->SetActive(currentCMDBuffer);
 
 				uint32_t dynamicOffset = index * static_cast<uint32_t>(m_DynamicAlignment);
-
-				m_Shader->SetUserUniformBuffer(ShaderType::VERTEX, reinterpret_cast<u8*>(m_ModelUniformBuffer->GetBuffer()) + dynamicOffset, sizeof(Maths::Matrix4));
 
 				std::vector<Graphics::DescriptorSet*> descriptorSets;
 				descriptorSets.emplace_back(m_Pipeline->GetDescriptorSet());
@@ -464,15 +490,19 @@ namespace Lumos
 		void ForwardRenderer::CreateFramebuffers()
 		{
 			TextureType attachmentTypes[2];
-			attachmentTypes[0] = TextureType::COLOUR;
-			attachmentTypes[1] = TextureType::DEPTH;
+            Texture* attachments[2];
 
-			Texture* attachments[2];
-			attachments[1] = reinterpret_cast<Texture*>(Application::Instance()->GetRenderManager()->GetGBuffer()->GetDepthTexture());
+			attachmentTypes[0] = TextureType::COLOUR;
+            if(m_DepthTest)
+            {
+                attachmentTypes[1] = TextureType::DEPTH;
+                attachments[1] = reinterpret_cast<Texture*>(Application::Instance()->GetRenderManager()->GetGBuffer()->GetDepthTexture());
+            }
+
 			FramebufferInfo bufferInfo{};
 			bufferInfo.width = m_ScreenBufferWidth;
 			bufferInfo.height = m_ScreenBufferHeight;
-			bufferInfo.attachmentCount = 2;
+			bufferInfo.attachmentCount = m_DepthTest ? 2 : 1;
 			bufferInfo.renderPass = m_RenderPass;
 			bufferInfo.attachmentTypes = attachmentTypes;
 

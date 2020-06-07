@@ -7,7 +7,8 @@
 namespace Lumos
 {
 	class Scene;
-	
+    class Camera;
+
 	namespace Graphics
 	{
 		class RenderPass;
@@ -96,6 +97,7 @@ namespace Lumos
             void SubmitTriangles();
 
 			Shader* GetShader() const { return m_Shader; }
+            void SetCamera(Camera* camera) { m_Camera = camera; }
 
 		private:
         
@@ -140,6 +142,7 @@ namespace Lumos
         
             bool m_RenderToDepthTexture;
             Render2DLimits m_Limits;
+            Camera* m_Camera = nullptr;
 		};
 	}
 }
