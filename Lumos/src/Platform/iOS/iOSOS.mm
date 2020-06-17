@@ -60,7 +60,7 @@ namespace Lumos
         s_Instance = this;
 
         auto app = Lumos::CreateApplication();
-        app.Init();
+        app->Init();
     }
 
     void iOSOS::OnFrame()
@@ -70,7 +70,7 @@ namespace Lumos
     
     void iOSOS::OnQuit()
     {
-        delete Application::Get();
+        Application::Release();
 	    Lumos::Internal::CoreSystem::Shutdown();
     }
     

@@ -22,7 +22,7 @@ namespace Lumos
         }
         else
         {
-            normalisedFilename = iOSOS::Get().GetExecutablePath();
+            normalisedFilename = iOSOS::Get()->GetExecutablePath();
             //normalisedFilename.AppendPath(filename);
         }
 
@@ -39,7 +39,7 @@ namespace Lumos
         }
         else
         {
-            normalisedDirname = iOSOS::Get().GetExecutablePath();
+            normalisedDirname = iOSOS::Get()->GetExecutablePath();
             normalisedDirname.append(dirname);
 
         }
@@ -65,7 +65,7 @@ namespace Lumos
         }
         
         String result;
-        String appPath = iOSOS::Get().GetExecutablePath();
+        String appPath = iOSOS::Get()->GetExecutablePath();
         String relFilename;// = filename.ToRelativePath(appPath);
         
         if (!forWrite)
