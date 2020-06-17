@@ -13,6 +13,7 @@ IncludeDir["External"] = "external/"
 IncludeDir["ImGui"] = "../Dependencies/imgui/"
 IncludeDir["freetype"] = "../Dependencies/freetype/include"
 IncludeDir["SpirvCross"] = "../Dependencies/SPIRV-Cross"
+IncludeDir["cereal"] = "external/cereal/include"
 
 
 project "Lumos"
@@ -56,6 +57,7 @@ project "Lumos"
 		"%{IncludeDir.spdlog}",
 		"%{IncludeDir.freetype}",
 		"%{IncludeDir.SpirvCross}",
+		"%{IncludeDir.cereal}",
 		"%{IncludeDir.Lumos}",
 	}
 

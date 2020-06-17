@@ -83,7 +83,7 @@ namespace Lumos
 			m_QueueFamiliyProperties.resize(numQueueFamily);
 			vkGetPhysicalDeviceQueueFamilyProperties(m_PhysicalDevice, &numQueueFamily, m_QueueFamiliyProperties.data());
 
-			m_Surface = CreatePlatformSurface(m_VKContext->GetVKInstance(), Application::Instance()->GetWindow());
+			m_Surface = CreatePlatformSurface(m_VKContext->GetVKInstance(), Application::Get().GetWindow());
 
 			if(!m_Surface)
 			{
@@ -199,7 +199,7 @@ namespace Lumos
 			auto result = vkCreateDevice(m_PhysicalDevice, &deviceCI, VK_NULL_HANDLE, &m_Device);
 			if (result != VK_SUCCESS)
 			{
-				Debug::Log::Critical("[VULKAN] VKDevice::Instance()->GetDevice() vkCreateDevice() failed!");
+				Debug::Log::Critical("[VULKAN] vkCreateDevice() failed!");
 				return false;
 			}
 
@@ -211,6 +211,7 @@ namespace Lumos
             VmaAllocatorCreateInfo allocatorInfo = {};
             allocatorInfo.physicalDevice = m_PhysicalDevice;
             allocatorInfo.device = m_Device;
+			allocatorInfo.instance = m_VKContext->GetVKInstance();
             
             VmaVulkanFunctions fn;
             fn.vkAllocateMemory                    = (PFN_vkAllocateMemory)vkAllocateMemory;
@@ -218,7 +219,7 @@ namespace Lumos
             fn.vkBindImageMemory                   = (PFN_vkBindImageMemory)vkBindImageMemory;
             fn.vkCmdCopyBuffer                     = (PFN_vkCmdCopyBuffer)vkCmdCopyBuffer;
             fn.vkCreateBuffer                      = (PFN_vkCreateBuffer)vkCreateBuffer;
-            fn. vkCreateImage                      = (PFN_vkCreateImage)vkCreateImage;
+            fn.vkCreateImage                       = (PFN_vkCreateImage)vkCreateImage;
             fn.vkDestroyBuffer                     = (PFN_vkDestroyBuffer)vkDestroyBuffer;
             fn.vkDestroyImage                      = (PFN_vkDestroyImage)vkDestroyImage;
             fn.vkFlushMappedMemoryRanges           = (PFN_vkFlushMappedMemoryRanges)vkFlushMappedMemoryRanges;
@@ -232,6 +233,11 @@ namespace Lumos
             fn.vkUnmapMemory                       = (PFN_vkUnmapMemory)vkUnmapMemory;
             fn.vkGetBufferMemoryRequirements2KHR   = 0;  //(PFN_vkGetBufferMemoryRequirements2KHR)vkGetBufferMemoryRequirements2KHR;
             fn.vkGetImageMemoryRequirements2KHR    = 0;  //(PFN_vkGetImageMemoryRequirements2KHR)vkGetImageMemoryRequirements2KHR;
+            fn.vkBindImageMemory2KHR = 0;
+            fn.vkBindBufferMemory2KHR = 0;
+            fn.vkGetPhysicalDeviceMemoryProperties2KHR = 0;
+            fn.vkGetImageMemoryRequirements2KHR = 0;
+            fn.vkGetBufferMemoryRequirements2KHR = 0;
             allocatorInfo.pVulkanFunctions = &fn;
 
             if (vmaCreateAllocator(&allocatorInfo, &m_Allocator) != VK_SUCCESS)
@@ -245,7 +251,7 @@ namespace Lumos
 
 		void VKDevice::Unload()
 		{
-			vkDestroyPipelineCache(VKDevice::Instance()->GetDevice(), m_PipelineCache, VK_NULL_HANDLE);
+			vkDestroyPipelineCache(m_Device, m_PipelineCache, VK_NULL_HANDLE);
 
 #ifdef USE_VMA_ALLOCATOR
 			vmaDestroyAllocator(m_Allocator);

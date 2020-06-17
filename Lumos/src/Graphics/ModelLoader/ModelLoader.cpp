@@ -2,6 +2,8 @@
 #include "ModelLoader.h"
 #include "Core/VFS.h"
 
+#include <entt/entity/entity.hpp>
+
 namespace Lumos
 {
 	entt::entity ModelLoader::LoadModel(const String& path, entt::registry& registry)

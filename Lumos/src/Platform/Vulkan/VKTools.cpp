@@ -14,7 +14,7 @@ namespace Lumos
         uint32_t VKTools::FindMemoryType(uint32_t typeFilter, VkMemoryPropertyFlags properties)
         {
 			VkPhysicalDeviceMemoryProperties memProperties;
-			vkGetPhysicalDeviceMemoryProperties(VKDevice::Instance()->GetGPU(), &memProperties);
+			vkGetPhysicalDeviceMemoryProperties(VKDevice::Get().GetGPU(), &memProperties);
 
             for (uint32_t i = 0; i < memProperties.memoryTypeCount; i++)
             {
@@ -45,26 +45,26 @@ namespace Lumos
             }
             else
             {
-               vkCreateBuffer(VKDevice::Instance()->GetDevice(), &bufferInfo, nullptr, &buffer);
+               vkCreateBuffer(VKDevice::Get().GetDevice(), &bufferInfo, nullptr, &buffer);
             }
 #else
-			vkCreateBuffer(VKDevice::Instance()->GetDevice(), &bufferInfo, nullptr, &buffer);
+			vkCreateBuffer(VKDevice::Get().GetDevice(), &bufferInfo, nullptr, &buffer);
 #endif
 			VkMemoryRequirements memRequirements;
-			vkGetBufferMemoryRequirements(VKDevice::Instance()->GetDevice(), buffer, &memRequirements);
+			vkGetBufferMemoryRequirements(VKDevice::Get().GetDevice(), buffer, &memRequirements);
 
             VkMemoryAllocateInfo allocInfo = {};
 			allocInfo.sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
             allocInfo.allocationSize = memRequirements.size;
             allocInfo.memoryTypeIndex = FindMemoryType(memRequirements.memoryTypeBits, properties);
             
-			VkResult result = vkAllocateMemory(VKDevice::Instance()->GetDevice(), &allocInfo, nullptr, &bufferMemory);
+			VkResult result = vkAllocateMemory(VKDevice::Get().GetDevice(), &allocInfo, nullptr, &bufferMemory);
 			if (result != VK_SUCCESS)
 			{
 				throw std::runtime_error("failed to allocate buffer memory!");
 			}
 
-			vkBindBufferMemory(VKDevice::Instance()->GetDevice(), buffer, bufferMemory, 0);
+			vkBindBufferMemory(VKDevice::Get().GetDevice(), buffer, bufferMemory, 0);
         }
 
         VkCommandBuffer VKTools::BeginSingleTimeCommands()
@@ -72,11 +72,11 @@ namespace Lumos
             VkCommandBufferAllocateInfo allocInfo = {};
 			allocInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
 			allocInfo.level = VK_COMMAND_BUFFER_LEVEL_PRIMARY;
-            allocInfo.commandPool = VKDevice::Instance()->GetVKContext()->GetCommandPool()->GetCommandPool();
+            allocInfo.commandPool = VKDevice::Get().GetVKContext()->GetCommandPool()->GetCommandPool();
             allocInfo.commandBufferCount = 1;
 
 			VkCommandBuffer commandBuffer;
-			vkAllocateCommandBuffers(VKDevice::Instance()->GetDevice(), &allocInfo, &commandBuffer);
+			vkAllocateCommandBuffers(VKDevice::Get().GetDevice(), &allocInfo, &commandBuffer);
 
 			VkCommandBufferBeginInfo beginInfo = {};
 			beginInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
@@ -101,11 +101,11 @@ namespace Lumos
 			submitInfo.signalSemaphoreCount = 0;
 			submitInfo.waitSemaphoreCount = 0;
 
-			VK_CHECK_RESULT(vkQueueSubmit(VKDevice::Instance()->GetGraphicsQueue(), 1, &submitInfo, VK_NULL_HANDLE));
-			VK_CHECK_RESULT(vkQueueWaitIdle(VKDevice::Instance()->GetGraphicsQueue()));
+			VK_CHECK_RESULT(vkQueueSubmit(VKDevice::Get().GetGraphicsQueue(), 1, &submitInfo, VK_NULL_HANDLE));
+			VK_CHECK_RESULT(vkQueueWaitIdle(VKDevice::Get().GetGraphicsQueue()));
 
-			vkFreeCommandBuffers(VKDevice::Instance()->GetDevice(),
-				VKDevice::Instance()->GetVKContext()->GetCommandPool()->GetCommandPool(), 1, &commandBuffer);
+			vkFreeCommandBuffers(VKDevice::Get().GetDevice(),
+				VKDevice::Get().GetVKContext()->GetCommandPool()->GetCommandPool(), 1, &commandBuffer);
         }
 
         void VKTools::CopyBufferToImage(VkBuffer buffer, VkImage image, uint32_t width, uint32_t height)
@@ -230,7 +230,7 @@ namespace Lumos
 			for (VkFormat format : candidates)
 			{
 				VkFormatProperties props;
-				vkGetPhysicalDeviceFormatProperties(VKDevice::Instance()->GetGPU(), format, &props);
+				vkGetPhysicalDeviceFormatProperties(VKDevice::Get().GetGPU(), format, &props);
 
 				if (tiling == VK_IMAGE_TILING_LINEAR && (props.linearTilingFeatures & features) == features)
 				{

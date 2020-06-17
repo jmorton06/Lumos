@@ -30,6 +30,7 @@
 #include "Graphics/Layers/Layer3D.h"
 #include "Graphics/Sprite.h"
 #include "Graphics/Light.h"
+#include "Graphics/API/Texture.h"
 #include "Graphics/Camera/Camera.h"
 #include "Graphics/Layers/LayerStack.h"
 #include "Graphics/API/GraphicsContext.h"
@@ -191,13 +192,13 @@ namespace Lumos
 		{
 			if (m_3DGridLayer == nullptr)
 			{
-				m_3DGridLayer = new Layer3D(new Graphics::GridRenderer(u32(Application::Instance()->m_SceneViewWidth), u32(Application::Instance()->m_SceneViewHeight), true), "Grid");
-				Application::Instance()->PushLayerInternal(m_3DGridLayer, true, false);
+				m_3DGridLayer = new Layer3D(new Graphics::GridRenderer(u32(Application::Get().m_SceneViewWidth), u32(Application::Get().m_SceneViewHeight), true), "Grid");
+				Application::Get().PushLayerInternal(m_3DGridLayer, true, false);
 			}
 		}
 		else if(m_3DGridLayer)
 		{
-			Application::Instance()->GetLayerStack()->PopOverlay(m_3DGridLayer);
+			Application::Get().GetLayerStack()->PopOverlay(m_3DGridLayer);
 			m_3DGridLayer = nullptr;
 		}
         
@@ -214,7 +215,7 @@ namespace Lumos
 		{
 			if (ImGui::BeginMenu("File"))
 			{
-				if (ImGui::MenuItem("Exit")) { Application::Instance()->SetAppState(AppState::Closing); }
+				if (ImGui::MenuItem("Exit")) { Application::Get().SetAppState(AppState::Closing); }
                 
                 if(ImGui::MenuItem("Open File"))
                 {
@@ -264,14 +265,14 @@ namespace Lumos
             
             if (ImGui::BeginMenu("Scenes"))
             {
-                auto scenes = Application::Instance()->GetSceneManager()->GetSceneNames();
+                auto scenes = Application::Get().GetSceneManager()->GetSceneNames();
                 
                 for(size_t i = 0; i < scenes.size(); i++)
                 {
                     auto name = scenes[i];
                     if (ImGui::MenuItem(name.c_str()))
                     {
-                        Application::Instance()->GetSceneManager()->SwitchScene(name);
+                        Application::Get().GetSceneManager()->SwitchScene(name);
                     }
                 }
                 ImGui::EndMenu();
@@ -596,7 +597,7 @@ namespace Lumos
 				float view[16];
 				ImGuizmo::RecomposeMatrixFromComponents(pos, rot, scale, view);
 
-				float camDistance = 1.0f;// transform ? (Application::Instance()->GetSceneManager()->GetCurrentScene()->GetCamera()->GetPosition() - transform->GetWorldMatrix().Translation()).Length() : 0.0f;
+				float camDistance = 1.0f;// transform ? (Application::Get().GetSceneManager()->GetCurrentScene()->GetCamera()->GetPosition() - transform->GetWorldMatrix().Translation()).Length() : 0.0f;
 
 				auto window = ImGui::GetCurrentWindow();
 				auto size = 128.0f;
@@ -711,7 +712,6 @@ namespace Lumos
 	void Editor::OnNewScene(Scene * scene)
 	{
         m_Selected = entt::null;
-		m_CurrentSceneAspectRatio = 0.0f;
 
 		for (auto window : m_Windows)
 		{
@@ -799,7 +799,7 @@ namespace Lumos
         }
 		auto cameraController = m_EditorCamera ? m_EditorCamera->GetController() : nullptr;
 
-		if (cameraController && Application::Instance()->GetSceneActive())
+		if (cameraController && Application::Get().GetSceneActive())
 		{
 			const Maths::Vector2 mousePos = Input::GetInput()->GetMousePosition();
 
@@ -862,6 +862,10 @@ namespace Lumos
                 ToggleSnap();
             }
         }
+    
+        if (Input::GetInput()->GetKeyPressed(InputCode::Key::Z))
+            Application::Get().GetSceneManager()->GetCurrentScene()->Serialise(ROOT_DIR"/Scene.json");
+
     }
 
 	void Editor::BindEventFunction()
@@ -909,7 +913,7 @@ namespace Lumos
     
     void Editor::DebugDraw()
     {
-        auto& registry = Application::Instance()->GetSceneManager()->GetCurrentScene()->GetRegistry();
+        auto& registry = Application::Get().GetSceneManager()->GetCurrentScene()->GetRegistry();
 
         if(m_DebugDrawFlags & EditorDebugFlags::MeshBoundingBoxes)
         {
@@ -1011,7 +1015,7 @@ namespace Lumos
     
     void Editor::SelectObject(const Maths::Ray& ray)
     {
-        auto& registry = Application::Instance()->GetSceneManager()->GetCurrentScene()->GetRegistry();
+        auto& registry = Application::Get().GetSceneManager()->GetCurrentScene()->GetRegistry();
         float closestEntityDist = Maths::M_INFINITY;
         entt::entity currentClosestEntity = entt::null;
 
@@ -1162,7 +1166,7 @@ namespace Lumos
             m_PreviewRenderer = CreateRef<Graphics::ForwardRenderer>(200, 200, false, false);
             m_PreviewSphere = Ref<Graphics::Mesh>(Graphics::CreateSphere());
         
-            m_PreviewRenderer->SetRenderTarget(m_PreviewTexture.get());
+            m_PreviewRenderer->SetRenderTarget(m_PreviewTexture.get(), true);
         }
     
         Maths::Matrix4 proj = Maths::Matrix4::Perspective(0.1f, 10.0f, 200.0f / 200.0f, 60.0f);

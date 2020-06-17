@@ -88,8 +88,7 @@ namespace Lumos {
         void OnResize(u32 width, u32 height);
         void PresentToScreen();
         void SetScreenBufferSize(u32 width, u32 height);
-        void SetRenderTarget(Graphics::Texture* texture);
-        void SetRenderToGBufferTexture(bool set);
+        void SetRenderTarget(Graphics::Texture* texture, bool rebuildFramebuffer);
 
         void SetSystemUniforms(Graphics::Shader* shader) const;
         float SubmitTexture(Graphics::Texture* texture);
@@ -134,7 +133,6 @@ namespace Lumos {
         LineVertexData* m_Buffer{};
 
         Graphics::Texture* m_RenderTexture;
-        bool m_RenderToGBufferTexture = false;
         u32 m_CurrentBufferID = 0;
         Maths::Vector4 m_ClearColour;
         bool m_Clear = false;

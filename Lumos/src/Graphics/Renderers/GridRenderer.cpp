@@ -32,8 +32,6 @@ namespace Lumos
             
 			m_GridRes = 1.6f;
             m_GridSize = 640.0f;
-
-			GridRenderer::SetRenderToGBufferTexture(renderToGBuffer);
 		}
 
 		GridRenderer::~GridRenderer()
@@ -184,21 +182,6 @@ namespace Lumos
 			m_UniformBufferFrag->SetData(sizeof(UniformBufferObjectFrag), *&m_PSSystemUniformBuffer);
 		}
 
-		void GridRenderer::SetRenderToGBufferTexture(bool set)
-		{
-            if(set)
-            {
-                m_RenderToGBufferTexture = true;
-                m_RenderTexture = Application::Instance()->GetRenderManager()->GetGBuffer()->GetTexture(SCREENTEX_OFFSCREEN0);
-                
-                for (auto fbo : m_Framebuffers)
-                    delete fbo;
-                m_Framebuffers.clear();
-                
-                CreateFramebuffers();
-            }
-		}
-
 		void GridRenderer::OnImGui()
 		{
 			ImGui::TextUnformatted("Grid Renderer");
@@ -218,9 +201,6 @@ namespace Lumos
 			for (auto fbo : m_Framebuffers)
 				delete fbo;
 			m_Framebuffers.clear();
-
-			if (m_RenderToGBufferTexture)
-				m_RenderTexture = Application::Instance()->GetRenderManager()->GetGBuffer()->GetTexture(SCREENTEX_OFFSCREEN0);
 
 			SetScreenBufferSize(width, height);
 
@@ -315,9 +295,12 @@ namespace Lumos
 				m_Pipeline->GetDescriptorSet()->Update(bufferInfos);
 		}
 
-		void GridRenderer::SetRenderTarget(Texture* texture)
+		void GridRenderer::SetRenderTarget(Texture* texture, bool rebuildFramebuffer)
 		{
 			m_RenderTexture = texture;
+
+            if(!rebuildFramebuffer)
+                return;
 
 			for (auto fbo : m_Framebuffers)
 				delete fbo;
@@ -340,7 +323,7 @@ namespace Lumos
 			bufferInfo.renderPass = m_RenderPass;
 			bufferInfo.attachmentTypes = attachmentTypes;
 
-			attachments[1] = dynamic_cast<Texture*>(Application::Instance()->GetRenderManager()->GetGBuffer()->GetDepthTexture());
+			attachments[1] = dynamic_cast<Texture*>(Application::Get().GetRenderManager()->GetGBuffer()->GetDepthTexture());
 
 			if (m_RenderTexture)
 			{

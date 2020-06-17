@@ -96,7 +96,7 @@ namespace Lumos
 		bool GetSceneActive() const { return m_SceneActive; }
 		Maths::Vector2 GetWindowSize() const;
 
-		static Application* Instance() { return s_Instance; }
+        static Application& Get() { return *s_Instance; }
 		static void Release() { if(s_Instance) delete s_Instance; s_Instance = nullptr; }
 
 		template<typename T>
@@ -106,10 +106,6 @@ namespace Lumos
 		}
 
         bool OnWindowResize(WindowResizeEvent& e);
-    
-        u32 m_SceneViewWidth = 0;
-        u32 m_SceneViewHeight = 0;
-        bool m_SceneViewSizeUpdated = false;
     
         void SetSceneViewDimensions(u32 width, u32 height)
         {
@@ -144,6 +140,10 @@ namespace Lumos
 		float m_SecondTimer = 0.0f;
 		bool m_Minimized = false;
 		bool m_SceneActive = true;
+    
+        u32 m_SceneViewWidth = 0;
+        u32 m_SceneViewHeight = 0;
+        bool m_SceneViewSizeUpdated = false;
 
 		Scope<Window> m_Window;
         Scope<SceneManager> m_SceneManager;
@@ -152,8 +152,7 @@ namespace Lumos
 
 		Camera* m_ActiveCamera = nullptr;
 
-		LayerStack* m_LayerStack{};
-		std::vector<Layer*> m_CurrentSceneLayers;
+		LayerStack* m_LayerStack = nullptr;
 
         AppState m_CurrentState		= AppState::Loading;
 		EditorState m_EditorState	= EditorState::Play;

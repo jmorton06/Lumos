@@ -22,7 +22,7 @@ namespace Lumos
 	{
 
 		//TODO Remove
-		Application::Instance()->GetSystem<AudioManager>()->AddSoundNode(m_SoundNode.get());
+		Application::Get().GetSystem<AudioManager>()->AddSoundNode(m_SoundNode.get());
 	}
 
 	void SoundComponent::OnImGui()

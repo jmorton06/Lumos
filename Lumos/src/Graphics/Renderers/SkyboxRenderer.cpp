@@ -31,9 +31,7 @@ namespace Lumos
 
 			SetScreenBufferSize(width, height);
 			Init();
-            
-            SetRenderToGBufferTexture(renderToGBuffer);
-		}
+        }
 
 		SkyboxRenderer::~SkyboxRenderer()
 		{
@@ -189,21 +187,6 @@ namespace Lumos
 			m_UniformBuffer->SetData(sizeof(UniformBufferObject), *&m_VSSystemUniformBuffer);
 		}
 
-		void SkyboxRenderer::SetRenderToGBufferTexture(bool set)
-		{
-            if(set)
-            {
-                m_RenderToGBufferTexture = true;
-                m_RenderTexture = Application::Instance()->GetRenderManager()->GetGBuffer()->GetTexture(SCREENTEX_OFFSCREEN0);
-                
-                for (auto fbo : m_Framebuffers)
-                    delete fbo;
-                m_Framebuffers.clear();
-                
-                CreateFramebuffers();
-            }
-		}
-
 		void SkyboxRenderer::OnResize(u32 width, u32 height)
 		{
 			delete m_Pipeline;
@@ -211,9 +194,6 @@ namespace Lumos
 			for (auto fbo : m_Framebuffers)
 				delete fbo;
 			m_Framebuffers.clear();
-
-			if (m_RenderToGBufferTexture)
-				m_RenderTexture = Application::Instance()->GetRenderManager()->GetGBuffer()->GetTexture(SCREENTEX_OFFSCREEN0);
 
 			SetScreenBufferSize(width, height);
 
@@ -311,10 +291,13 @@ namespace Lumos
 			UpdateUniformBuffer();
 		}
 
-		void SkyboxRenderer::SetRenderTarget(Texture* texture)
+		void SkyboxRenderer::SetRenderTarget(Texture* texture, bool rebuildFramebuffer)
 		{
 			m_RenderTexture = texture;
 
+            if(!rebuildFramebuffer)
+                return;
+        
 			for (auto fbo : m_Framebuffers)
 				delete fbo;
 			m_Framebuffers.clear();
@@ -336,7 +319,7 @@ namespace Lumos
 			bufferInfo.renderPass = m_RenderPass;
 			bufferInfo.attachmentTypes = attachmentTypes;
 
-			attachments[1] = dynamic_cast<Texture*>(Application::Instance()->GetRenderManager()->GetGBuffer()->GetDepthTexture());
+			attachments[1] = dynamic_cast<Texture*>(Application::Get().GetRenderManager()->GetGBuffer()->GetDepthTexture());
 
 			if (m_RenderTexture)
 			{

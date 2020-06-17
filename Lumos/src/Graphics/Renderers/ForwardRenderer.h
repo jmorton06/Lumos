@@ -53,8 +53,7 @@ namespace Lumos
 				Lumos::Maths::Matrix4* model;
 			};
 
-			void SetRenderTarget(Texture* texture) override;
-			void SetRenderToGBufferTexture(bool set) override;
+			void SetRenderTarget(Texture* texture, bool rebuildFramebuffer) override;
             void SetSystemUniforms(Shader* shader) const;
         
             Shader* GetShader() { return m_Shader; }

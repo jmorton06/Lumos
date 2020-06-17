@@ -16,7 +16,7 @@ namespace Lumos
 		Maths::Vector3 pointOnPlane;
 	};
 
-	class LUMOS_EXPORT CollisionDetection : public TSingleton<CollisionDetection>
+	class LUMOS_EXPORT CollisionDetection : public ThreadSafeSingleton<CollisionDetection>
 	{
 		friend class TSingleton<CollisionDetection>;
 		typedef  bool (CollisionDetection::*CollisionCheckFunc)(const PhysicsObject3D* obj1, const PhysicsObject3D* obj2, const CollisionShape* shape1, const CollisionShape* shape2, CollisionData* out_coldata) const;

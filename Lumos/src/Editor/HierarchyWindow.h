@@ -2,7 +2,7 @@
 #include "lmpch.h"
 #include "EditorWindow.h"
 
-#include <entt/entt.hpp>
+#include <entt/entity/fwd.hpp>
 #include <imgui/imgui.h>
 
 namespace Lumos

@@ -18,17 +18,17 @@ void Scene3D::OnInit()
 {
 	Scene::OnInit();
 
-    Application::Instance()->GetSystem<LumosPhysicsEngine>()->SetDampingFactor(0.998f);
-    Application::Instance()->GetSystem<LumosPhysicsEngine>()->SetIntegrationType(IntegrationType::RUNGE_KUTTA_4);
-    Application::Instance()->GetSystem<LumosPhysicsEngine>()->SetBroadphase(Lumos::CreateRef<Octree>(5, 3, Lumos::CreateRef<SortAndSweepBroadphase>()));
-    Application::Instance()->GetSystem<LumosPhysicsEngine>()->SetPaused(false);
-    Application::Instance()->GetSystem<LumosPhysicsEngine>()->SetDebugDrawFlags(PhysicsDebugFlags::CONSTRAINT | PhysicsDebugFlags::COLLISIONVOLUMES | PhysicsDebugFlags::BROADPHASE);
+    Application::Get().GetSystem<LumosPhysicsEngine>()->SetDampingFactor(0.998f);
+    Application::Get().GetSystem<LumosPhysicsEngine>()->SetIntegrationType(IntegrationType::RUNGE_KUTTA_4);
+    Application::Get().GetSystem<LumosPhysicsEngine>()->SetBroadphase(Lumos::CreateRef<Octree>(5, 3, Lumos::CreateRef<SortAndSweepBroadphase>()));
+    Application::Get().GetSystem<LumosPhysicsEngine>()->SetPaused(false);
+    Application::Get().GetSystem<LumosPhysicsEngine>()->SetDebugDrawFlags(PhysicsDebugFlags::CONSTRAINT | PhysicsDebugFlags::COLLISIONVOLUMES | PhysicsDebugFlags::BROADPHASE);
 
 	LoadModels();
     
     LoadLuaScene("/Scripts/LuaSceneTest.lua");
 
-	Application::Instance()->GetWindow()->HideMouse(false);
+	Application::Get().GetWindow()->HideMouse(false);
 
 	m_SceneBoundingRadius = 20.0f;
 
@@ -45,16 +45,16 @@ void Scene3D::OnInit()
 	Camera& camera = m_Registry.emplace<Camera>(cameraEntity, -20.0f, -40.0f, Maths::Vector3(-31.0f, 12.0f, 51.0f), 60.0f, 0.1f, 1000.0f, (float) m_ScreenWidth / (float) m_ScreenHeight);
 	camera.SetCameraController(CreateRef<EditorCameraController>());
 	m_Registry.emplace<NameComponent>(cameraEntity, "Camera");
-	auto audioSystem = Application::Instance()->GetSystem<AudioManager>();
+	auto audioSystem = Application::Get().GetSystem<AudioManager>();
 	if (audioSystem)
-		Application::Instance()->GetSystem<AudioManager>()->SetListener(&camera);
+		Application::Get().GetSystem<AudioManager>()->SetListener(&camera);
 
 #ifndef LUMOS_PLATFORM_IOS
     auto shadowRenderer = new Graphics::ShadowRenderer();
     shadowRenderer->SetLightEntity(lightEntity);
     auto shadowLayer = new Layer3D(shadowRenderer);
-    Application::Instance()->GetRenderManager()->SetShadowRenderer(shadowRenderer);
-    Application::Instance()->PushLayer(shadowLayer);
+    Application::Get().GetRenderManager()->SetShadowRenderer(shadowRenderer);
+    PushLayer(shadowLayer);
 #endif
 
 	bool editor = false;
@@ -63,8 +63,8 @@ void Scene3D::OnInit()
 	editor = true;
 #endif
 
-    Application::Instance()->PushLayer(new Layer3D(new Graphics::DeferredRenderer(m_ScreenWidth, m_ScreenHeight, editor), "Deferred"));
-	Application::Instance()->PushLayer(new Layer3D(new Graphics::SkyboxRenderer(m_ScreenWidth, m_ScreenHeight, editor), "Skybox"));
+    PushLayer(new Layer3D(new Graphics::DeferredRenderer(m_ScreenWidth, m_ScreenHeight, editor), "Deferred"));
+	PushLayer(new Layer3D(new Graphics::SkyboxRenderer(m_ScreenWidth, m_ScreenHeight, editor), "Skybox"));
 }
 
 void Scene3D::OnUpdate(const TimeStep& timeStep)
@@ -80,7 +80,7 @@ void Scene3D::OnCleanupScene()
 {
 	if (m_CurrentScene)
 	{
-        Application::Instance()->GetSystem<LumosPhysicsEngine>()->ClearConstraints();
+        Application::Get().GetSystem<LumosPhysicsEngine>()->ClearConstraints();
 	}
 
 	Scene::OnCleanupScene();
@@ -124,14 +124,17 @@ void Scene3D::LoadModels()
 
 	//Create a pendulum
 	auto pendulumHolder = m_Registry.create();
-	Ref<PhysicsObject3D> pendulumHolderPhysics = CreateRef<PhysicsObject3D>();
-	pendulumHolderPhysics->SetCollisionShape(CreateRef<CuboidCollisionShape>(Maths::Vector3(0.5f, 0.5f, 0.5f)));
-	pendulumHolderPhysics->SetFriction(0.8f);
-	pendulumHolderPhysics->SetIsAtRest(true);
-	pendulumHolderPhysics->SetInverseMass(1.0);
-	pendulumHolderPhysics->SetInverseInertia(pendulumHolderPhysics->GetCollisionShape()->BuildInverseInertia(1.0f));
-	pendulumHolderPhysics->SetIsStatic(true);
-	pendulumHolderPhysics->SetPosition(Maths::Vector3(12.5f, 15.0f, 20.0f));
+    Physics3DProperties physicsProperties;
+    physicsProperties.Position = Maths::Vector3(12.5f, 15.0f, 20.0f);
+    physicsProperties.Mass = 1.0f;
+    physicsProperties.Shape = CreateRef<CuboidCollisionShape>(Maths::Vector3(0.5f, 0.5f, 0.5f));
+    physicsProperties.Friction = 0.8f;
+    physicsProperties.AtRest = true;
+    physicsProperties.Static = true;
+    physicsProperties.Friction = 0.8f;
+    
+	Ref<PhysicsObject3D> pendulumHolderPhysics = CreateRef<PhysicsObject3D>(physicsProperties);
+    
 	m_Registry.emplace<Physics3DComponent>(pendulumHolder,pendulumHolderPhysics);
 	m_Registry.emplace<Maths::Transform>(pendulumHolder,Matrix4::Scale(Maths::Vector3(0.5f, 0.5f, 0.5f)));
 	m_Registry.emplace<NameComponent>(pendulumHolder, "Pendulum Holder");
@@ -141,13 +144,12 @@ void Scene3D::LoadModels()
 
 	auto pendulum = m_Registry.create();
 	Ref<PhysicsObject3D> pendulumPhysics = CreateRef<PhysicsObject3D>();
-	pendulumPhysics->SetCollisionShape(CreateRef<SphereCollisionShape>(0.5f));
 	pendulumPhysics->SetFriction(0.8f);
 	pendulumPhysics->SetIsAtRest(true);
 	pendulumPhysics->SetInverseMass(1.0);
-	pendulumPhysics->SetInverseInertia(pendulumPhysics->GetCollisionShape()->BuildInverseInertia(1.0f));
 	pendulumPhysics->SetIsStatic(false);
 	pendulumPhysics->SetPosition(Maths::Vector3(12.5f, 10.0f, 20.0f));
+    pendulumPhysics->SetCollisionShape(CreateRef<SphereCollisionShape>(0.5f));
 	m_Registry.emplace<Physics3DComponent>(pendulum, pendulumPhysics);
 	m_Registry.emplace<Maths::Transform>(pendulum, Matrix4::Scale(Maths::Vector3(0.5f, 0.5f, 0.5f)));
 	m_Registry.emplace<NameComponent>(pendulum, "Pendulum");
@@ -155,7 +157,7 @@ void Scene3D::LoadModels()
 	m_Registry.emplace<MeshComponent>(pendulum, pendulumModel);
 
 	auto pendulumConstraint = new SpringConstraint(m_Registry.get<Physics3DComponent>(pendulumHolder).GetPhysicsObject().get(), m_Registry.get<Physics3DComponent>(pendulum).GetPhysicsObject().get(), m_Registry.get<Physics3DComponent>(pendulumHolder).GetPhysicsObject()->GetPosition(), m_Registry.get<Physics3DComponent>(pendulum).GetPhysicsObject()->GetPosition(), 0.9f, 0.5f);
-	Application::Instance()->GetSystem<LumosPhysicsEngine>()->AddConstraint(pendulumConstraint);
+	Application::Get().GetSystem<LumosPhysicsEngine>()->AddConstraint(pendulumConstraint);
 
 #if 0
 	auto soundFilePath = String("/Sounds/fire.ogg");

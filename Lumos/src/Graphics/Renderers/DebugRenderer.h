@@ -22,7 +22,7 @@ namespace Graphics
     class Renderer2D; 
     class LineRenderer;
     class PointRenderer;
-    class Light;
+    struct Light;
 }
     class SoundNode;
 	class Texture2D;
@@ -45,6 +45,7 @@ namespace Graphics
         static void Init(u32 width, u32 height, bool drawToGBuffer);
         static void Release();
         static void Render(Scene* scene) { if(s_Instance) s_Instance->RenderInternal(scene); }
+		static void SetRenderTarget(Graphics::Texture* texture, bool rebuildFramebuffer);
         
         DebugRenderer();
         ~DebugRenderer();
@@ -89,6 +90,7 @@ namespace Graphics
         static void DebugDraw(Graphics::Light* light, const Maths::Vector4& colour);
         static void DebugDraw(SoundNode* sound, const Maths::Vector4& colour);
 
+		static void OnResize(u32 width, u32 height) { if(s_Instance) s_Instance->OnResizeInternal(width, height);  }
 
 	protected:
 		//Actual functions managing data parsing to save code bloat - called by public functions
@@ -99,7 +101,6 @@ namespace Graphics
     
         static DebugRenderer* GetInstance() { return s_Instance; }
         static void Reset() { if(s_Instance) s_Instance->Begin(); }
-        static void OnResize(u32 width, u32 height) { if(s_Instance) s_Instance->OnResizeInternal(width, height);  }
     
 	private:
 

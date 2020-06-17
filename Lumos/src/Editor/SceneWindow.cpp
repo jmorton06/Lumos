@@ -6,14 +6,17 @@
 #include "App/SceneManager.h"
 #include "App/Engine.h"
 #include "Graphics/API/GraphicsContext.h"
+#include "Graphics/API/Texture.h"
 #include "Graphics/RenderManager.h"
 #include "Graphics/GBuffer.h"
 #include "Graphics/Light.h"
 #include "ECS/Component/SoundComponent.h"
+#include "Graphics/Layers/LayerStack.h"
 
 #include "Physics/LumosPhysicsEngine/LumosPhysicsEngine.h"
 #include "Physics/B2PhysicsEngine/B2PhysicsEngine.h"
 #include "Core/OS/Input.h"
+#include "Graphics/Renderers/DebugRenderer.h"
 
 #include <Box2D/Box2D.h>
 #include <imgui/imgui_internal.h>
@@ -26,15 +29,21 @@ namespace Lumos
 	{
 		m_Name = ICON_FA_GAMEPAD" Scene###scene";
 		m_SimpleName = "Scene";
+        m_CurrentScene = nullptr;
 
 		m_ShowComponentGizmoMap[typeid(Graphics::Light).hash_code()] = true;
 		m_ShowComponentGizmoMap[typeid(Camera).hash_code()] = true;
 		m_ShowComponentGizmoMap[typeid(SoundComponent).hash_code()] = true;
+
+        //TODO : Get from editors saved settings
+        m_AspectRatio = 1.0;
+        m_Width = 1280;
+        m_Height = 800;
 	}
 
 	void SceneWindow::OnImGui()
 	{
-		Application& app = *Application::Instance();
+		Application& app = Application::Get();
 		auto flags = ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoScrollWithMouse;
 		ImGui::SetNextWindowBgAlpha(0.0f);
 		ImGui::Begin(m_Name.c_str(), &m_Active, flags);
@@ -61,25 +70,24 @@ namespace Lumos
         float aspect = static_cast<float>(sceneViewSize.x) / static_cast<float>(sceneViewSize.y);
     
         Camera* camera = nullptr;
-        auto& registry = app.GetSceneManager()->GetCurrentScene()->GetRegistry();
+        auto& registry = m_CurrentScene->GetRegistry();
         auto cameraView = registry.view<Camera>();
         if(!cameraView.empty())
         {
             camera = &registry.get<Camera>(cameraView.front());
         }
     
-        if (!Maths::Equals(aspect, m_Editor->GetCurrentSceneAspectRatio()))
+        if (!Maths::Equals(aspect, m_AspectRatio))
         {
-            m_Editor->GetCurrentSceneAspectRatio() = aspect;
+            m_AspectRatio = aspect;
             camera->SetAspectRatio(aspect);
         }
-    
-        if(ImGui::GetCurrentWindow()->ResizeBorderHeld < 0)
-            app.SetSceneViewDimensions(u32(sceneViewSize.x), u32(sceneViewSize.y));
+
+        Resize(sceneViewSize.x, sceneViewSize.y);
     
 		ImGuizmo::SetRect(sceneViewPosition.x, sceneViewPosition.y, sceneViewSize.x, sceneViewSize.y);
         
-        ImGuiHelpers::Image(app.GetRenderManager()->GetGBuffer()->GetTexture(Graphics::SCREENTEX_OFFSCREEN0), {sceneViewSize.x, sceneViewSize.y});
+        ImGuiHelpers::Image(m_GameViewTexture.get(), {sceneViewSize.x, sceneViewSize.y});
 
 		if (m_Editor->ShowGrid())
 		{
@@ -126,7 +134,7 @@ namespace Lumos
 			ImGui::SetNextWindowBgAlpha(0.35f); // Transparent background
 			if (ImGui::Begin("Example: Simple overlay", &p_open, (corner != -1 ? ImGuiWindowFlags_NoMove : 0) | ImGuiWindowFlags_NoDocking | ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoSavedSettings | ImGuiWindowFlags_NoFocusOnAppearing | ImGuiWindowFlags_NoNav))
 			{
-				ImGui::Text("%.2f ms (%i FPS)", 1000.0f / (float)Engine::Instance()->GetFPS(), Engine::Instance()->GetFPS());
+				ImGui::Text("%.2f ms (%i FPS)", 1000.0f / (float)Engine::Get().GetFPS(), Engine::Get().GetFPS());
 				ImGui::Separator();
 				ImGuiIO& io = ImGui::GetIO();
 				if (ImGui::IsMousePosValid())
@@ -153,7 +161,7 @@ namespace Lumos
 	void SceneWindow::DrawGizmos(float width, float height, float xpos, float ypos, Scene* scene)
 	{
         Camera* camera = nullptr;
-        auto& registry = Application::Instance()->GetSceneManager()->GetCurrentScene()->GetRegistry();
+        auto& registry = Application::Get().GetSceneManager()->GetCurrentScene()->GetRegistry();
         auto cameraView = registry.view<Camera>();
         if(!cameraView.empty())
         {
@@ -289,7 +297,7 @@ namespace Lumos
             
                 ImGui::Separator();
             
-                auto physics2D = Application::Instance()->GetSystem<B2PhysicsEngine>();
+                auto physics2D = Application::Get().GetSystem<B2PhysicsEngine>();
             
                 if(physics2D)
                 {
@@ -343,7 +351,7 @@ namespace Lumos
                     physics2D->SetDebugDrawFlags(flags);
                 }
             
-                auto physics3D = Application::Instance()->GetSystem<LumosPhysicsEngine>();
+                auto physics3D = Application::Get().GetSystem<LumosPhysicsEngine>();
             
                 if(physics3D)
                 {
@@ -457,5 +465,66 @@ namespace Lumos
 
 		ImGui::PopStyleColor();
 		ImGui::Unindent();
+    }
+
+    void SceneWindow::OnNewScene(Scene* scene)
+    {
+        m_AspectRatio = 1.0f;
+        m_CurrentScene = scene;
+        auto sceneLayers = scene->GetLayers();
+    
+        for(auto layer : *sceneLayers)
+        {
+            layer->SetRenderTarget(m_GameViewTexture.get(), true);
+        }
+
+        DebugRenderer::SetRenderTarget(m_GameViewTexture.get(), true);
+    }
+
+    void SceneWindow::Resize(u32 width, u32 height)
+    {
+        bool resize = false;
+
+        LUMOS_ASSERT(width > 0 && height > 0, "Scene View Dimensions 0");
+
+        Application::Get().SetSceneViewDimensions(width, height);
+
+        if(m_Width != width || m_Height != height)
+        {
+            resize = true;
+            m_Width = width;
+            m_Height = height;
+        }
+
+        if(!m_GameViewTexture)
+            m_GameViewTexture = Ref<Graphics::Texture2D>(Graphics::Texture2D::Create());
+
+        if(resize)
+        {
+            m_GameViewTexture->BuildTexture(Graphics::TextureFormat::RGBA32, m_Width, m_Height, false, false);
+
+            Graphics::GraphicsContext::GetContext()->WaitIdle();
+
+            auto sceneLayers = m_CurrentScene->GetLayers();
+    
+            for(auto layer : *sceneLayers)
+            {
+                layer->SetRenderTarget(m_GameViewTexture.get(), true, false); //Prevent framebuffer being rebuilt as it needs resizing after
+            }
+
+            DebugRenderer::SetRenderTarget(m_GameViewTexture.get(), false);
+
+            WindowResizeEvent e(width, height);
+            auto& app = Application::Get();
+            app.GetRenderManager()->OnResize(width, height);
+                
+            for(auto layer : *sceneLayers)
+            {
+                layer->OnEvent(e);
+            }
+            DebugRenderer::OnResize(width, height);
+
+            Graphics::GraphicsContext::GetContext()->WaitIdle();
+        }
     }
 }

@@ -10,9 +10,9 @@ GraphicsScene::~GraphicsScene() = default;
 void GraphicsScene::OnInit()
 {
 	Scene::OnInit();
-	Application::Instance()->GetSystem<LumosPhysicsEngine>()->SetDampingFactor(0.998f);
-	Application::Instance()->GetSystem<LumosPhysicsEngine>()->SetIntegrationType(IntegrationType::RUNGE_KUTTA_4);
-	Application::Instance()->GetSystem<LumosPhysicsEngine>()->SetBroadphase(Lumos::CreateRef<Octree>(5, 3, Lumos::CreateRef<SortAndSweepBroadphase>()));
+	Application::Get().GetSystem<LumosPhysicsEngine>()->SetDampingFactor(0.998f);
+	Application::Get().GetSystem<LumosPhysicsEngine>()->SetIntegrationType(IntegrationType::RUNGE_KUTTA_4);
+	Application::Get().GetSystem<LumosPhysicsEngine>()->SetBroadphase(Lumos::CreateRef<Octree>(5, 3, Lumos::CreateRef<SortAndSweepBroadphase>()));
 
 	LoadModels();
 
@@ -32,9 +32,9 @@ void GraphicsScene::OnInit()
 	m_Registry.emplace<NameComponent>(cameraEntity, "Camera");
 	camera.SetCameraController(CreateRef<EditorCameraController>());
 
-	auto audioSystem = Application::Instance()->GetSystem<AudioManager>();
+	auto audioSystem = Application::Get().GetSystem<AudioManager>();
 	if (audioSystem)
-		Application::Instance()->GetSystem<AudioManager>()->SetListener(&camera);
+		Application::Get().GetSystem<AudioManager>()->SetListener(&camera);
 
     bool editor = false;
 
@@ -49,17 +49,14 @@ void GraphicsScene::OnInit()
     auto shadowRenderer = new Graphics::ShadowRenderer();
 	shadowRenderer->SetLightEntity(lightEntity);
     auto shadowLayer = new Layer3D(shadowRenderer);
-    Application::Instance()->GetRenderManager()->SetShadowRenderer(shadowRenderer);
-    Application::Instance()->PushLayer(shadowLayer);
+    Application::Get().GetRenderManager()->SetShadowRenderer(shadowRenderer);
+    PushLayer(shadowLayer);
 #endif
-
-	deferredRenderer->SetRenderToGBufferTexture(editor);
-	skyboxRenderer->SetRenderToGBufferTexture(editor);
 
 	auto deferredLayer = new Layer3D(deferredRenderer);
 	auto skyBoxLayer = new Layer3D(skyboxRenderer);
-	Application::Instance()->PushLayer(deferredLayer);
-	Application::Instance()->PushLayer(skyBoxLayer);
+	PushLayer(deferredLayer);
+	PushLayer(skyBoxLayer);
 }
 
 void GraphicsScene::OnUpdate(const TimeStep& timeStep)
@@ -75,7 +72,7 @@ void GraphicsScene::OnCleanupScene()
 void GraphicsScene::LoadModels()
 {
 	//HeightMap
-	m_Terrain = m_Registry.create(); // EntityManager::Instance()->CreateEntity("heightmap");
+	m_Terrain = m_Registry.create(); // EntityManager::Get().CreateEntity("heightmap");
 	m_Registry.emplace<Maths::Transform>(m_Terrain, Matrix4::Scale(Maths::Vector3(1.0f)));
 	m_Registry.emplace<TextureMatrixComponent>(m_Terrain, Matrix4::Scale(Maths::Vector3(1.0f, 1.0f, 1.0f)));
 	m_Registry.emplace<NameComponent>(m_Terrain, "HeightMap");

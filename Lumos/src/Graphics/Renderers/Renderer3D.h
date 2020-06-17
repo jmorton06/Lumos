@@ -44,11 +44,11 @@ namespace Lumos
 
 			virtual void SetScreenBufferSize(u32 width, u32 height) { if (width == 0) width = 1; if (height == 0) height = 1; m_ScreenBufferWidth = width; m_ScreenBufferHeight = height; }
 
-			virtual void SetRenderTarget(Graphics::Texture* texture) { m_RenderTexture = texture; }
-			virtual void SetRenderToGBufferTexture(bool set) { m_RenderToGBufferTexture = set; }
+			virtual void SetRenderTarget(Graphics::Texture* texture, bool rebuildFramebuffer = true) { m_RenderTexture = texture; }
 			virtual void OnImGui() {};
             
             void SetCamera(Camera* camera) { m_Camera = camera; }
+			Texture* GetRenderTarget() const { return m_RenderTexture; }
 
 		protected:
 			Framebuffer* m_FBO;
@@ -63,7 +63,6 @@ namespace Lumos
 			CommandQueue m_CommandQueue;
 			SystemUniformList m_SystemUniforms;
 			Texture* m_RenderTexture = nullptr;
-			bool m_RenderToGBufferTexture = false;
 		};
 	}
 }

@@ -360,7 +360,9 @@ namespace Lumos
 			if (c == 1)
 			{
                 registry.emplace<MeshComponent>(entity, mesh);
-                registry.get_or_emplace<Maths::Transform>(entity);
+            
+                if(!registry.has<Maths::Transform>(entity))
+                    registry.emplace<Maths::Transform>(entity);
                 registry.emplace<NameComponent>(entity, fbx_mesh->name);
 
                 if(material)

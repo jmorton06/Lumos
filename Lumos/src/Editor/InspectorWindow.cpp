@@ -14,17 +14,31 @@
 #include "Scripting/ScriptComponent.h"
 #include "ImGui/ImGuiHelpers.h"
 #include "FileBrowserWindow.h"
+#include "Physics/LumosPhysicsEngine/CuboidCollisionShape.h"
+#include "Physics/LumosPhysicsEngine/SphereCollisionShape.h"
+#include "Physics/LumosPhysicsEngine/PyramidCollisionShape.h"
+#include "Physics/LumosPhysicsEngine/CapsuleCollisionShape.h"
+
 #include <imgui/imgui.h>
 #include <IconFontCppHeaders/IconsFontAwesome5.h>
+#include <sol/sol.hpp>
 
 namespace MM {
     template <>
     void ComponentEditorWidget<Lumos::ScriptComponent>(entt::registry& reg, entt::registry::entity_type e)
     {
-        ImGui::TextUnformatted("Loaded Functions : ");
         auto& script = reg.get<Lumos::ScriptComponent>(e);
+        
+        if(!script.Loaded())
+        {
+            ImGui::Text("Script Failed to Load : %s", script.GetFilePath().c_str());
+            return;
+        }
+    
+        ImGui::TextUnformatted("Loaded Functions : ");
 
         auto& solEnv = script.GetSolEnvironment();
+        
         for (auto&& function : solEnv)
         {
             if (function.second.is<sol::function>())
@@ -47,7 +61,7 @@ namespace MM {
     
     #ifdef LUMOS_EDITOR
         if(ImGui::Button("Edit File"))
-            Lumos::Application::Instance()->GetEditor()->OpenTextFile(script.GetFilePath());
+            Lumos::Application::Get().GetEditor()->OpenTextFile(script.GetFilePath());
     #endif
     }
 
@@ -111,6 +125,112 @@ namespace MM {
     template <>
     void ComponentEditorWidget<Lumos::MeshComponent>(entt::registry& reg, entt::registry::entity_type e)
     {
+        auto& meshComponent = reg.get<Lumos::MeshComponent>(e);
+        ImGui::TextUnformatted(meshComponent.GetFilePath().c_str());
+        auto primitiveType = meshComponent.GetPrimitiveType();
+    }
+
+    static void CuboidCollisionShapeInspector(Lumos::CuboidCollisionShape* shape, const Lumos::Physics3DComponent& phys)
+    {
+            ImGui::AlignTextToFramePadding();
+            ImGui::TextUnformatted("Half Dimensions");
+            ImGui::NextColumn();
+            ImGui::PushItemWidth(-1);
+
+            Lumos::Maths::Vector3 size = shape->GetHalfDimensions();
+            if(ImGui::DragFloat3("##CollisionShapeHalfDims", Lumos::Maths::ValuePointer(size), 1.0f, 0.0f, 10000.0f))
+            {
+                shape->SetHalfDimensions(size);
+                phys.GetPhysicsObject()->CollisionShapeUpdated();
+            }
+            ImGui::NextColumn();
+            ImGui::PushItemWidth(-1);
+    }
+    
+    static void SphereCollisionShapeInspector(Lumos::SphereCollisionShape* shape, const Lumos::Physics3DComponent& phys)
+    {
+            ImGui::AlignTextToFramePadding();
+            ImGui::TextUnformatted("Radius");
+            ImGui::NextColumn();
+            ImGui::PushItemWidth(-1);
+
+            float radius = shape->GetRadius();
+            if(ImGui::DragFloat("##CollisionShapeRadius", &radius, 1.0f, 0.0f, 10000.0f))
+            {
+                shape->SetRadius(radius);
+                phys.GetPhysicsObject()->CollisionShapeUpdated();
+            }
+            ImGui::NextColumn();
+            ImGui::PushItemWidth(-1);
+    }
+    
+    static void PyramidCollisionShapeInspector(Lumos::PyramidCollisionShape* shape, const Lumos::Physics3DComponent& phys)
+    {
+            ImGui::AlignTextToFramePadding();
+            ImGui::TextUnformatted("Half Dimensions");
+            ImGui::NextColumn();
+            ImGui::PushItemWidth(-1);
+
+            Lumos::Maths::Vector3 size = shape->GetHalfDimensions();
+            if(ImGui::DragFloat3("##CollisionShapeHalfDims", Lumos::Maths::ValuePointer(size), 1.0f, 0.0f, 10000.0f))
+            {
+                shape->SetHalfDimensions(size);
+                phys.GetPhysicsObject()->CollisionShapeUpdated();
+            }
+            ImGui::NextColumn();
+            ImGui::PushItemWidth(-1);
+    }
+    
+    static void CapsuleCollisionShapeInspector(Lumos::CapsuleCollisionShape* shape, const Lumos::Physics3DComponent& phys)
+    {
+            ImGui::AlignTextToFramePadding();
+            ImGui::TextUnformatted("Half Dimensions");
+            ImGui::NextColumn();
+            ImGui::PushItemWidth(-1);
+
+              float radius = shape->GetRadius();
+              if(ImGui::DragFloat("##CollisionShapeRadius", &radius, 1.0f, 0.0f, 10000.0f))
+              {
+                  shape->SetRadius(radius);
+                  phys.GetPhysicsObject()->CollisionShapeUpdated();
+              }
+            ImGui::NextColumn();
+            ImGui::PushItemWidth(-1);
+    }
+    
+    String CollisionShapeTypeToString(Lumos::CollisionShapeType type)
+    {
+        switch(type)
+        {
+            case Lumos::CollisionShapeType::CollisionCuboid:
+                return "Cuboid";
+            case Lumos::CollisionShapeType::CollisionSphere:
+                return "Sphere";
+            case Lumos::CollisionShapeType::CollisionPyramid:
+                return "Pyramid";
+            case Lumos::CollisionShapeType::CollisionCapsule:
+                return "Capsule";
+            default:
+                Lumos::Debug::Log::Error("Unsupported Collision shape");
+                break;
+        }
+    
+        return "Error";
+    }
+    
+    Lumos::CollisionShapeType StringToCollisionShapeType(const String& type)
+    {
+        if(type == "Sphere")
+            return Lumos::CollisionShapeType::CollisionSphere;
+        if(type == "Cuboid")
+            return Lumos::CollisionShapeType::CollisionCuboid;
+        if(type == "Pyramid")
+            return Lumos::CollisionShapeType::CollisionPyramid;
+        if(type == "Capsule")
+            return Lumos::CollisionShapeType::CollisionCapsule;
+    
+        Lumos::Debug::Log::Error("Unsupported Collision shape {0}", type);
+        return Lumos::CollisionShapeType::CollisionSphere;
     }
 
     template <>
@@ -132,6 +252,8 @@ namespace MM {
         auto mass = 1.0f / phys.GetPhysicsObject()->GetInverseMass();
         auto velocity = phys.GetPhysicsObject()->GetLinearVelocity();
         auto elasticity = phys.GetPhysicsObject()->GetElasticity();
+    
+        auto collisionShape = phys.GetPhysicsObject()->GetCollisionShape();
 
         ImGui::AlignTextToFramePadding();
         ImGui::TextUnformatted("Position");
@@ -243,6 +365,68 @@ namespace MM {
 
         ImGui::PopItemWidth();
         ImGui::NextColumn();
+    
+        if(collisionShape)
+        {
+            ImGui::Columns(1);
+            ImGui::Separator();
+            ImGui::PopStyleVar();
+        
+            ImGui::Separator();
+            ImGui::TextUnformatted("Collision Shape");
+
+            ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(2, 2));
+            ImGui::Columns(2);
+            ImGui::Separator();
+        
+            ImGui::AlignTextToFramePadding();
+            ImGui::TextUnformatted("Shape Type");
+            ImGui::NextColumn();
+            ImGui::PushItemWidth(-1);
+        
+            const char* shapes[] = { "Sphere", "Cuboid", "Pyramid", "Capsule" };
+            const char* shape_current = CollisionShapeTypeToString(collisionShape->GetType()).c_str();
+            if (ImGui::BeginCombo("", shape_current, 0)) // The second parameter is the label previewed before opening the combo.
+            {
+                for (int n = 0; n < 4; n++)
+                {
+                    bool is_selected = (shape_current == shapes[n]);
+                    if (ImGui::Selectable(shapes[n], shape_current))
+                    {
+                        phys.GetPhysicsObject()->SetCollisionShape(StringToCollisionShapeType(shapes[n]));
+                    }
+                    if (is_selected)
+                        ImGui::SetItemDefaultFocus();
+                }
+                ImGui::EndCombo();
+			}
+			// ImGui::TextUnformatted(CollisionShapeTypeToString(collisionShape->GetType()).c_str());
+			ImGui::PopItemWidth();
+            ImGui::NextColumn();
+
+            bool updatedCollisionShape = false;
+            switch(collisionShape->GetType())
+            {
+                case Lumos::CollisionShapeType::CollisionCuboid:
+                    CuboidCollisionShapeInspector(reinterpret_cast<Lumos::CuboidCollisionShape*>(collisionShape.get()), phys);
+                    break;
+                case Lumos::CollisionShapeType::CollisionSphere:
+                    SphereCollisionShapeInspector(reinterpret_cast<Lumos::SphereCollisionShape*>(collisionShape.get()), phys);
+                    break;
+                case Lumos::CollisionShapeType::CollisionPyramid:
+                    PyramidCollisionShapeInspector(reinterpret_cast<Lumos::PyramidCollisionShape*>(collisionShape.get()), phys);
+                    break;
+                case Lumos::CollisionShapeType::CollisionCapsule:
+                    CapsuleCollisionShapeInspector(reinterpret_cast<Lumos::CapsuleCollisionShape*>(collisionShape.get()), phys);
+                    break;
+                default:
+                    Lumos::Debug::Log::Error("Unsupported Collision shape");
+                    break;
+
+            }
+            ImGui::PopItemWidth();
+            ImGui::NextColumn();
+        }
 
         ImGui::Columns(1);
         ImGui::Separator();
@@ -434,7 +618,7 @@ namespace MM {
 
         MaterialProperties* prop = material->GetProperties();
 
-        if (ImGui::TreeNode("Albedo"))
+        if (ImGui::TreeNodeEx("Albedo", ImGuiTreeNodeFlags_DefaultOpen))
         {
             ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(2, 2));
             ImGui::Columns(2);
@@ -447,8 +631,10 @@ namespace MM {
             {
                 if(ImGui::ImageButton(tex->GetHandle(), ImVec2(64, 64), ImVec2(0.0f, flipImage ? 1.0f : 0.0f), ImVec2(1.0f, flipImage ? 0.0f : 1.0f)))
                 {
-                    Application::Instance()->GetEditor()->GetFileBrowserWindow().Open();
-                    Application::Instance()->GetEditor()->GetFileBrowserWindow().SetCallback(std::bind(&MaterialComponent::SetAlbedoTexture, &materialComponent, std::placeholders::_1));
+                #ifdef LUMOS_EDITOR
+                    Application::Get().GetEditor()->GetFileBrowserWindow().Open();
+                    Application::Get().GetEditor()->GetFileBrowserWindow().SetCallback(std::bind(&MaterialComponent::SetAlbedoTexture, &materialComponent, std::placeholders::_1));
+                #endif
                 }
                    
 
@@ -463,8 +649,10 @@ namespace MM {
             {
                 if(ImGui::Button("Empty", ImVec2(64, 64)))
                 {
-                    Application::Instance()->GetEditor()->GetFileBrowserWindow().Open();
-                    Application::Instance()->GetEditor()->GetFileBrowserWindow().SetCallback(std::bind(&MaterialComponent::SetAlbedoTexture, &materialComponent, std::placeholders::_1));
+                #ifdef LUMOS_EDITOR
+                    Application::Get().GetEditor()->GetFileBrowserWindow().Open();
+                    Application::Get().GetEditor()->GetFileBrowserWindow().SetCallback(std::bind(&MaterialComponent::SetAlbedoTexture, &materialComponent, std::placeholders::_1));
+                #endif
                 }
             }
 
@@ -475,24 +663,9 @@ namespace MM {
 
             ImGui::PopItemWidth();
             ImGui::NextColumn();
-
-            ImGui::AlignTextToFramePadding();
-            ImGui::TextUnformatted("Use Albedo Map");
-            ImGui::NextColumn();
-            ImGui::PushItemWidth(-1);
-            ImGui::SliderFloat("##UseAlbedoMap", &prop->usingAlbedoMap, 0.0f, 1.0f);
-
-            ImGui::PopItemWidth();
-            ImGui::NextColumn();
-
-            ImGui::AlignTextToFramePadding();
-            ImGui::TextUnformatted("Albedo");
-            ImGui::NextColumn();
-            ImGui::PushItemWidth(-1);
-            ImGui::ColorEdit4("##Albedo", Maths::ValuePointer(prop->albedoColour));
-
-            ImGui::PopItemWidth();
-            ImGui::NextColumn();
+        
+            ImGuiHelpers::Property("Use Albedo Map", prop->usingAlbedoMap, 0.0f, 1.0f);
+            ImGuiHelpers::Property("Albedo", prop->albedoColour, 0.0f, 1.0f, false, Lumos::ImGuiHelpers::PropertyFlag::ColorProperty);
 
             ImGui::Columns(1);
             ImGui::Separator();
@@ -516,8 +689,10 @@ namespace MM {
             {
                 if(ImGui::ImageButton(tex->GetHandle(), ImVec2(64, 64), ImVec2(0.0f, flipImage ? 1.0f : 0.0f), ImVec2(1.0f, flipImage ? 0.0f : 1.0f)))
                 {
-                    Application::Instance()->GetEditor()->GetFileBrowserWindow().Open();
-                    Application::Instance()->GetEditor()->GetFileBrowserWindow().SetCallback(std::bind(&MaterialComponent::SetNormalTexture, &materialComponent, std::placeholders::_1));
+                #ifdef LUMOS_EDITOR
+                    Application::Get().GetEditor()->GetFileBrowserWindow().Open();
+                    Application::Get().GetEditor()->GetFileBrowserWindow().SetCallback(std::bind(&MaterialComponent::SetNormalTexture, &materialComponent, std::placeholders::_1));
+                #endif
                 }
 
                 if (ImGui::IsItemHovered())
@@ -531,8 +706,10 @@ namespace MM {
             {
                 if(ImGui::Button("Empty", ImVec2(64, 64)))
                 {
-                    Application::Instance()->GetEditor()->GetFileBrowserWindow().Open();
-                    Application::Instance()->GetEditor()->GetFileBrowserWindow().SetCallback(std::bind(&MaterialComponent::SetNormalTexture, &materialComponent, std::placeholders::_1));
+                #ifdef LUMOS_EDITOR
+                    Application::Get().GetEditor()->GetFileBrowserWindow().Open();
+                    Application::Get().GetEditor()->GetFileBrowserWindow().SetCallback(std::bind(&MaterialComponent::SetNormalTexture, &materialComponent, std::placeholders::_1));
+                #endif
                 }
             }
 
@@ -542,15 +719,8 @@ namespace MM {
 
             ImGui::PopItemWidth();
             ImGui::NextColumn();
-
-            ImGui::AlignTextToFramePadding();
-            ImGui::TextUnformatted("Use Normal Map");
-            ImGui::NextColumn();
-            ImGui::PushItemWidth(-1);
-            ImGui::SliderFloat("##UseNormalMap", &prop->usingNormalMap, 0.0f, 1.0f);
-
-            ImGui::PopItemWidth();
-            ImGui::NextColumn();
+        
+            ImGuiHelpers::Property("Use Normal Map", prop->usingNormalMap, 0.0f, 1.0f);
 
             ImGui::Columns(1);
             ImGui::Separator();
@@ -573,8 +743,10 @@ namespace MM {
             {
                 if(ImGui::ImageButton(tex->GetHandle(), ImVec2(64, 64), ImVec2(0.0f, flipImage ? 1.0f : 0.0f), ImVec2(1.0f, flipImage ? 0.0f : 1.0f)))
                 {
-                    Application::Instance()->GetEditor()->GetFileBrowserWindow().Open();
-                    Application::Instance()->GetEditor()->GetFileBrowserWindow().SetCallback(std::bind(&MaterialComponent::SetMetallicTexture, &materialComponent, std::placeholders::_1));
+                #ifdef LUMOS_EDITOR
+                    Application::Get().GetEditor()->GetFileBrowserWindow().Open();
+                    Application::Get().GetEditor()->GetFileBrowserWindow().SetCallback(std::bind(&MaterialComponent::SetMetallicTexture, &materialComponent, std::placeholders::_1));
+                #endif
                 }
 
                 if (ImGui::IsItemHovered())
@@ -588,8 +760,10 @@ namespace MM {
             {
                 if(ImGui::Button("Empty", ImVec2(64, 64)))
                 {
-                    Application::Instance()->GetEditor()->GetFileBrowserWindow().Open();
-                    Application::Instance()->GetEditor()->GetFileBrowserWindow().SetCallback(std::bind(&MaterialComponent::SetMetallicTexture, &materialComponent, std::placeholders::_1));
+                #ifdef LUMOS_EDITOR
+                    Application::Get().GetEditor()->GetFileBrowserWindow().Open();
+                    Application::Get().GetEditor()->GetFileBrowserWindow().SetCallback(std::bind(&MaterialComponent::SetMetallicTexture, &materialComponent, std::placeholders::_1));
+                #endif
                 }
             }
 
@@ -599,24 +773,10 @@ namespace MM {
 
             ImGui::PopItemWidth();
             ImGui::NextColumn();
+        
+            ImGuiHelpers::Property("Use Metallic Map", prop->usingMetallicMap, 0.0f, 1.0f);
+            ImGuiHelpers::Property("Metallic", prop->metallicColour, 0.0f, 1.0f, false);
 
-            ImGui::AlignTextToFramePadding();
-            ImGui::TextUnformatted("Use Metallic Map");
-            ImGui::NextColumn();
-            ImGui::PushItemWidth(-1);
-            ImGui::SliderFloat("##UseMetallicMap", &prop->usingMetallicMap, 0.0f, 1.0f);
-
-            ImGui::PopItemWidth();
-            ImGui::NextColumn();
-
-            ImGui::AlignTextToFramePadding();
-            ImGui::TextUnformatted("Metallic");
-            ImGui::NextColumn();
-            ImGui::PushItemWidth(-1);
-            ImGui::SliderFloat3("##Metallic", Maths::ValuePointer(prop->metallicColour), 0.0f, 1.0f);
-
-            ImGui::PopItemWidth();
-            ImGui::NextColumn();
 
             ImGui::Columns(1);
             ImGui::Separator();
@@ -638,8 +798,10 @@ namespace MM {
             {
                 if(ImGui::ImageButton(tex->GetHandle(), ImVec2(64, 64), ImVec2(0.0f, flipImage ? 1.0f : 0.0f), ImVec2(1.0f, flipImage ? 0.0f : 1.0f)))
                 {
-                    Application::Instance()->GetEditor()->GetFileBrowserWindow().Open();
-                    Application::Instance()->GetEditor()->GetFileBrowserWindow().SetCallback(std::bind(&MaterialComponent::SetRoughnessTexture, &materialComponent, std::placeholders::_1));
+                #ifdef LUMOS_EDITOR
+                    Application::Get().GetEditor()->GetFileBrowserWindow().Open();
+                    Application::Get().GetEditor()->GetFileBrowserWindow().SetCallback(std::bind(&MaterialComponent::SetRoughnessTexture, &materialComponent, std::placeholders::_1));
+                #endif
                 }
 
                 if (ImGui::IsItemHovered())
@@ -653,8 +815,10 @@ namespace MM {
             {
                 if(ImGui::Button("Empty", ImVec2(64, 64)))
                 {
-                    Application::Instance()->GetEditor()->GetFileBrowserWindow().Open();
-                    Application::Instance()->GetEditor()->GetFileBrowserWindow().SetCallback(std::bind(&MaterialComponent::SetRoughnessTexture, &materialComponent, std::placeholders::_1));
+                #ifdef LUMOS_EDITOR
+                    Application::Get().GetEditor()->GetFileBrowserWindow().Open();
+                    Application::Get().GetEditor()->GetFileBrowserWindow().SetCallback(std::bind(&MaterialComponent::SetRoughnessTexture, &materialComponent, std::placeholders::_1));
+                #endif
                 }
             }
 
@@ -664,24 +828,9 @@ namespace MM {
 
             ImGui::PopItemWidth();
             ImGui::NextColumn();
-
-            ImGui::AlignTextToFramePadding();
-            ImGui::TextUnformatted("Use Roughness Map");
-            ImGui::NextColumn();
-            ImGui::PushItemWidth(-1);
-            ImGui::SliderFloat("##UseRoughnessMap", &prop->usingRoughnessMap, 0.0f, 1.0f);
-
-            ImGui::PopItemWidth();
-            ImGui::NextColumn();
-
-            ImGui::AlignTextToFramePadding();
-            ImGui::TextUnformatted("Roughness");
-            ImGui::NextColumn();
-            ImGui::PushItemWidth(-1);
-            ImGui::SliderFloat3("##Roughness", Maths::ValuePointer(prop->roughnessColour), 0.0f, 1.0f);
-
-            ImGui::PopItemWidth();
-            ImGui::NextColumn();
+        
+            ImGuiHelpers::Property("Use Roughness Map", prop->usingRoughnessMap, 0.0f, 1.0f);
+            ImGuiHelpers::Property("Roughness", prop->roughnessColour, 0.0f, 1.0f, false);
 
             ImGui::Columns(1);
             ImGui::Separator();
@@ -703,8 +852,10 @@ namespace MM {
             {
                 if(ImGui::ImageButton(tex->GetHandle(), ImVec2(64, 64), ImVec2(0.0f, flipImage ? 1.0f : 0.0f), ImVec2(1.0f, flipImage ? 0.0f : 1.0f)))
                 {
-                    Application::Instance()->GetEditor()->GetFileBrowserWindow().Open();
-                    Application::Instance()->GetEditor()->GetFileBrowserWindow().SetCallback(std::bind(&MaterialComponent::SetAOTexture, &materialComponent, std::placeholders::_1));
+            #ifdef LUMOS_EDITOR
+                    Application::Get().GetEditor()->GetFileBrowserWindow().Open();
+                    Application::Get().GetEditor()->GetFileBrowserWindow().SetCallback(std::bind(&MaterialComponent::SetAOTexture, &materialComponent, std::placeholders::_1));
+            #endif
                 }
 
                 if (ImGui::IsItemHovered())
@@ -718,26 +869,20 @@ namespace MM {
             {
                 if(ImGui::Button("Empty", ImVec2(64, 64)))
                 {
-                    Application::Instance()->GetEditor()->GetFileBrowserWindow().Open();
-                    Application::Instance()->GetEditor()->GetFileBrowserWindow().SetCallback(std::bind(&MaterialComponent::SetAOTexture, &materialComponent, std::placeholders::_1));
+                #ifdef LUMOS_EDITOR
+                    Application::Get().GetEditor()->GetFileBrowserWindow().Open();
+                    Application::Get().GetEditor()->GetFileBrowserWindow().SetCallback(std::bind(&MaterialComponent::SetAOTexture, &materialComponent, std::placeholders::_1));
+                #endif
                 }
             }
 
             ImGui::NextColumn();
             ImGui::PushItemWidth(-1);
             ImGui::TextUnformatted(tex ? tex->GetFilepath().c_str() : "No Texture");
-
             ImGui::PopItemWidth();
             ImGui::NextColumn();
-
-            ImGui::AlignTextToFramePadding();
-            ImGui::TextUnformatted("Use AO Map");
-            ImGui::NextColumn();
-            ImGui::PushItemWidth(-1);
-            ImGui::SliderFloat("##UseAOMap", &prop->usingAOMap, 0.0f, 1.0f);
-
-            ImGui::PopItemWidth();
-            ImGui::NextColumn();
+        
+            ImGuiHelpers::Property("Use AO Map", prop->usingAOMap, 0.0f, 1.0f);
 
             ImGui::Columns(1);
             ImGui::Separator();
@@ -759,8 +904,10 @@ namespace MM {
             {
                 if(ImGui::ImageButton(tex->GetHandle(), ImVec2(64, 64), ImVec2(0.0f, flipImage ? 1.0f : 0.0f), ImVec2(1.0f, flipImage ? 0.0f : 1.0f)))
                 {
-                    Application::Instance()->GetEditor()->GetFileBrowserWindow().Open();
-                    Application::Instance()->GetEditor()->GetFileBrowserWindow().SetCallback(std::bind(&MaterialComponent::SetEmissiveTexture, &materialComponent, std::placeholders::_1));
+                #ifdef LUMOS_EDITOR
+                    Application::Get().GetEditor()->GetFileBrowserWindow().Open();
+                    Application::Get().GetEditor()->GetFileBrowserWindow().SetCallback(std::bind(&MaterialComponent::SetEmissiveTexture, &materialComponent, std::placeholders::_1));
+                #endif
                 }
 
                 if (ImGui::IsItemHovered())
@@ -774,8 +921,10 @@ namespace MM {
             {
                 if(ImGui::Button("Empty", ImVec2(64, 64)))
                 {
-                    Application::Instance()->GetEditor()->GetFileBrowserWindow().Open();
-                    Application::Instance()->GetEditor()->GetFileBrowserWindow().SetCallback(std::bind(&MaterialComponent::SetEmissiveTexture, &materialComponent, std::placeholders::_1));
+                #ifdef LUMOS_EDITOR
+                    Application::Get().GetEditor()->GetFileBrowserWindow().Open();
+                    Application::Get().GetEditor()->GetFileBrowserWindow().SetCallback(std::bind(&MaterialComponent::SetEmissiveTexture, &materialComponent, std::placeholders::_1));
+                #endif
                 }
             }
 
@@ -821,6 +970,63 @@ namespace MM {
         auto& environment = reg.get<Lumos::Graphics::Environment>(e);
         Lumos::ImGuiHelpers::Image(environment.GetEnvironmentMap(), Lumos::Maths::Vector2(200,200));
     }
+    
+    template <>
+    void ComponentEditorWidget<Lumos::TextureMatrixComponent>(entt::registry& reg, entt::registry::entity_type e)
+    {
+        auto& textureMatrix = reg.get<Lumos::TextureMatrixComponent>(e);
+        Lumos::Maths::Matrix4& mat = textureMatrix.GetMatrix();
+        auto rotation = textureMatrix.GetMatrix().Rotation();
+        auto position = textureMatrix.GetMatrix().Translation();
+        auto scale = textureMatrix.GetMatrix().Scale();
+
+        ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(2, 2));
+        ImGui::Columns(2);
+        ImGui::Separator();
+
+        ImGui::AlignTextToFramePadding();
+        ImGui::TextUnformatted("Position");
+        ImGui::NextColumn();
+        ImGui::PushItemWidth(-1);
+        if (ImGui::DragFloat3("##Position", Lumos::Maths::ValuePointer(position)))
+        {
+           mat.SetTranslation(position);
+        }
+
+        ImGui::PopItemWidth();
+        ImGui::NextColumn();
+
+        ImGui::AlignTextToFramePadding();
+        ImGui::TextUnformatted("Rotation");
+        ImGui::NextColumn();
+        ImGui::PushItemWidth(-1);
+        if (ImGui::DragFloat3("##Rotation", Lumos::Maths::ValuePointer(rotation)))
+        {
+            float pitch = Lumos::Maths::Min(rotation.x, 89.9f);
+            pitch = Lumos::Maths::Max(pitch, -89.9f);
+            mat.SetRotation(Lumos::Maths::Quaternion::EulerAnglesToQuaternion(pitch, rotation.y, rotation.z).RotationMatrix());
+
+        }
+
+        ImGui::PopItemWidth();
+        ImGui::NextColumn();
+
+        ImGui::AlignTextToFramePadding();
+        ImGui::TextUnformatted("Scale");
+        ImGui::NextColumn();
+        ImGui::PushItemWidth(-1);
+        if (ImGui::DragFloat3("##Scale", Lumos::Maths::ValuePointer(scale), 0.1f))
+        {
+           mat.SetScale(scale);
+        }
+
+        ImGui::PopItemWidth();
+        ImGui::NextColumn();
+
+        ImGui::Columns(1);
+        ImGui::Separator();
+        ImGui::PopStyleVar();
+    }
 }
 
 namespace Lumos
@@ -861,12 +1067,14 @@ namespace Lumos
 		TRIVIAL_COMPONENT(Graphics::Light, "Light");
         TRIVIAL_COMPONENT(ScriptComponent, "LuaScript");
         TRIVIAL_COMPONENT(Graphics::Environment, "Environment");
+        TRIVIAL_COMPONENT(TextureMatrixComponent, "Texture Matrix");
+
 
 	}
 
 	void InspectorWindow::OnImGui()
 	{
-        auto& registry = Application::Instance()->GetSceneManager()->GetCurrentScene()->GetRegistry();
+        auto& registry = Application::Get().GetSceneManager()->GetCurrentScene()->GetRegistry();
 		auto selected = m_Editor->GetSelected();
 
 		if (ImGui::Begin(m_Name.c_str(), &m_Active))

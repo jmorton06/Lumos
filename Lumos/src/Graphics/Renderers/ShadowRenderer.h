@@ -3,7 +3,7 @@
 #include "Maths/Maths.h"
 #include "Renderer3D.h"
 
-#include <entt/entt.hpp>
+#include <entt/entity/fwd.hpp>
 #define SHADOWMAP_MAX 16
 
 namespace Lumos

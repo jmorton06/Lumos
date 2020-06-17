@@ -51,7 +51,7 @@ namespace Lumos
 #endif
 		Graphics::GraphicsContext::SetRenderAPI(static_cast<Graphics::RenderAPI>(properties.RenderAPI));
 
-		Engine::Instance();
+		Engine::Get();
 
 		m_Timer = CreateScope<Timer>();
 
@@ -174,7 +174,11 @@ namespace Lumos
 
 	Maths::Vector2 Application::GetWindowSize() const
 	{
+		#ifdef LUMOS_EDITOR
+		return Maths::Vector2(m_SceneViewWidth, m_SceneViewHeight);
+		#else
 		return Maths::Vector2(static_cast<float>(m_Window->GetWidth()), static_cast<float>(m_Window->GetHeight()));
+		#endif
 	}
 
 	bool Application::OnFrame()
@@ -182,12 +186,12 @@ namespace Lumos
 		float now = m_Timer->GetMS(1.0f);
 
 #ifdef LUMOS_LIMIT_FRAMERATE
-		if (now - m_UpdateTimer > Engine::Instance()->TargetFrameRate())
+		if (now - m_UpdateTimer > Engine::Get().TargetFrameRate())
 		{
-			m_UpdateTimer += Engine::Instance()->TargetFrameRate();
+			m_UpdateTimer += Engine::Get().TargetFrameRate();
 #endif
         
-            Profiler::Instance()->Update(now);
+            Profiler::Get().Update(now);
         
             auto& ts = Engine::GetTimeStep();
             ts.Update(now);
@@ -195,8 +199,8 @@ namespace Lumos
 			ImGuiIO& io = ImGui::GetIO();
 			io.DeltaTime = ts.GetMillis();
 			
-			Application* app = Application::Instance();
-			app->GetWindow()->UpdateCursorImGui();
+			Application& app = Application::Get();
+			app.GetWindow()->UpdateCursorImGui();
 
 			ImGui::NewFrame();
 
@@ -228,9 +232,9 @@ namespace Lumos
             LUMOS_PROFILE_BLOCK("Application::FrameRateCalc");
 
 			m_SecondTimer += 1.0f;
-			Engine::Instance()->SetFPS(m_Frames);
-			Engine::Instance()->SetUPS(m_Updates);
-			Engine::Instance()->SetFrametime(1000.0f / m_Frames);
+			Engine::Get().SetFPS(m_Frames);
+			Engine::Get().SetUPS(m_Updates);
+			Engine::Get().SetFrametime(1000.0f / m_Frames);
 
 			m_Frames = 0;
 			m_Updates = 0;
@@ -247,7 +251,7 @@ namespace Lumos
 
 	void Application::OnRender()
 	{
-		if (m_LayerStack->GetCount() > 0)
+		if (m_LayerStack->GetCount() > 0 || m_SceneManager->GetCurrentScene()->GetLayers()->GetCount() > 0)
         {
     #ifdef LUMOS_EDITOR
         if (m_SceneViewSizeUpdated)
@@ -270,6 +274,7 @@ namespace Lumos
 #endif
 
 			m_LayerStack->OnRender(m_SceneManager->GetCurrentScene());
+            m_SceneManager->GetCurrentScene()->GetLayers()->OnRender(m_SceneManager->GetCurrentScene());
 			DebugRenderer::Render(m_SceneManager->GetCurrentScene());
 			m_ImGuiLayer->OnRender(m_SceneManager->GetCurrentScene());
 
@@ -282,8 +287,8 @@ namespace Lumos
 		const u32 sceneIdx = m_SceneManager->GetCurrentSceneIndex();
 		const u32 sceneMax = m_SceneManager->SceneCount();
 
-		if (Input::GetInput()->GetKeyPressed(InputCode::Key::P)) Application::Instance()->GetSystem<LumosPhysicsEngine>()->SetPaused(!Application::Instance()->GetSystem<LumosPhysicsEngine>()->IsPaused());
-		if (Input::GetInput()->GetKeyPressed(InputCode::Key::P)) Application::Instance()->GetSystem<B2PhysicsEngine>()->SetPaused(!Application::Instance()->GetSystem<B2PhysicsEngine>()->IsPaused());
+		if (Input::GetInput()->GetKeyPressed(InputCode::Key::P)) Application::Get().GetSystem<LumosPhysicsEngine>()->SetPaused(!Application::Get().GetSystem<LumosPhysicsEngine>()->IsPaused());
+		if (Input::GetInput()->GetKeyPressed(InputCode::Key::P)) Application::Get().GetSystem<B2PhysicsEngine>()->SetPaused(!Application::Get().GetSystem<B2PhysicsEngine>()->IsPaused());
 
         Camera* cameraComponent = nullptr;
            
@@ -307,17 +312,18 @@ namespace Lumos
 #ifdef LUMOS_EDITOR
 		m_Editor->OnUpdate(dt);
 
-		if (Application::Instance()->GetEditorState() != EditorState::Paused && Application::Instance()->GetEditorState() != EditorState::Preview)
+		if (Application::Get().GetEditorState() != EditorState::Paused && Application::Get().GetEditorState() != EditorState::Preview)
 #endif
 		{
 			m_SceneManager->GetCurrentScene()->OnUpdate(dt);
 			m_SystemManager->OnUpdate(dt,m_SceneManager->GetCurrentScene());
-            LuaManager::Instance()->OnUpdate(m_SceneManager->GetCurrentScene());
+            LuaManager::Get().OnUpdate(m_SceneManager->GetCurrentScene());
 		}
 
 		if (!m_Minimized)
 		{
 			m_LayerStack->OnUpdate(dt, m_SceneManager->GetCurrentScene());
+            m_SceneManager->GetCurrentScene()->GetLayers()->OnUpdate(dt, m_SceneManager->GetCurrentScene());
 			m_ImGuiLayer->OnUpdate(dt, m_SceneManager->GetCurrentScene());
 		}
 	}
@@ -362,12 +368,7 @@ namespace Lumos
 
 	void Application::OnExitScene()
 	{
-		for (auto& layer : m_CurrentSceneLayers)
-		{
-			m_LayerStack->PopLayer(layer);
-		}
 
-		m_CurrentSceneLayers.clear();
 	}
 
 	void Application::PushLayerInternal(Layer* layer, bool overlay, bool sceneAdded)
@@ -378,9 +379,6 @@ namespace Lumos
 			m_LayerStack->PushLayer(layer);
 
 		layer->OnAttach();
-
-		if (sceneAdded)
-			m_CurrentSceneLayers.emplace_back(layer);
 	}
 
 	void Application::PushLayer(Layer* layer)
@@ -401,7 +399,6 @@ namespace Lumos
 
 	bool Application::OnWindowResize(WindowResizeEvent &e)
 	{
-		//auto windowSize = GetWindowSize();
 		Graphics::GraphicsContext::GetContext()->WaitIdle();
 
 		int width = e.GetWidth(), height = e.GetHeight();
@@ -428,7 +425,7 @@ namespace Lumos
 		if (m_AppType == AppType::Editor)
 			m_Editor->OnImGui();
 #endif
-		Application::Instance()->GetSceneManager()->GetCurrentScene()->OnImGui();
+		Application::Get().GetSceneManager()->GetCurrentScene()->OnImGui();
 	}
 
     
@@ -444,6 +441,7 @@ namespace Lumos
         m_Minimized = false;
         m_RenderManager->OnResize(width, height);
         m_LayerStack->OnEvent(e);
+        m_SceneManager->GetCurrentScene()->GetLayers()->OnEvent(e);
         DebugRenderer::OnResize(width, height);
 
 		Graphics::GraphicsContext::GetContext()->WaitIdle();

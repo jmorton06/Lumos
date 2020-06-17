@@ -50,6 +50,7 @@ namespace Lumos
 			u32 m_Width, m_Height, m_ColourAttachmentCount;
 			Maths::Vector4 m_ClearColour;
 			std::vector<GLenum> m_AttachmentData;
+			bool m_ScreenFramebuffer = false;
 		};
 	}
 }

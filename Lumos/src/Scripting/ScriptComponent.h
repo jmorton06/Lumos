@@ -1,6 +1,6 @@
 #pragma once
 #include "lmpch.h"
-#include <sol/sol.hpp>
+#include <sol/forward.hpp>
 
 namespace Lumos
 {    
@@ -20,12 +20,14 @@ namespace Lumos
 
 		void LoadScript(const std::string& fileName);
         
-        const sol::environment& GetSolEnvironment() const { return m_Env; }
+        const sol::environment& GetSolEnvironment() const { return *m_Env; }
         const String& GetFilePath() const { return m_FileName; }
         
         void SetFilePath(const String& path) { m_FileName = path; }
     
         const std::vector<std::string>& GetErrors() const { return m_Errors; }
+    
+        bool Loaded() { return m_Env != nullptr; }
         
 	private:
 
@@ -34,7 +36,7 @@ namespace Lumos
         
         std::vector<std::string> m_Errors;
         
-        sol::environment m_Env;
-        sol::protected_function m_UpdateFunc;
+        Ref<sol::environment> m_Env;
+        Ref<sol::protected_function> m_UpdateFunc;
     };
 }

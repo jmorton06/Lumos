@@ -50,11 +50,11 @@ namespace Lumos
             for (int i = 0; i < Renderer::GetRenderer()->GetSwapchain()->GetSwapchainBufferCount(); i++)
             {
                 ImGui_ImplVulkanH_FrameData* fd = &g_WindowData.Frames[i];
-                vkDestroyFence(VKDevice::Instance()->GetDevice(), fd->Fence, g_Allocator);
-                vkDestroyCommandPool(VKDevice::Instance()->GetDevice(), fd->CommandPool, g_Allocator);
+                vkDestroyFence(VKDevice::Get().GetDevice(), fd->Fence, g_Allocator);
+                vkDestroyCommandPool(VKDevice::Get().GetDevice(), fd->CommandPool, g_Allocator);
             }
             
-            vkDestroyDescriptorPool(VKDevice::Instance()->GetDevice(),g_DescriptorPool,nullptr);
+            vkDestroyDescriptorPool(VKDevice::Get().GetDevice(),g_DescriptorPool,nullptr);
             
             ImGui_ImplVulkan_Shutdown();
         }
@@ -83,7 +83,7 @@ namespace Lumos
                 pool_info.maxSets = 1000 * IM_ARRAYSIZE(pool_sizes);
                 pool_info.poolSizeCount = (uint32_t)IM_ARRAYSIZE(pool_sizes);
                 pool_info.pPoolSizes = pool_sizes;
-                VkResult err = vkCreateDescriptorPool(VKDevice::Instance()->GetDevice(), &pool_info, g_Allocator, &g_DescriptorPool);
+                VkResult err = vkCreateDescriptorPool(VKDevice::Get().GetDevice(), &pool_info, g_Allocator, &g_DescriptorPool);
                 check_vk_result(err);
             }
 
@@ -155,17 +155,17 @@ namespace Lumos
             w = (int)m_Width;
             h = (int)m_Height;
             ImGui_ImplVulkanH_WindowData* wd = &g_WindowData;
-            VkSurfaceKHR surface = VKDevice::Instance()->GetSurface();
+            VkSurfaceKHR surface = VKDevice::Get().GetSurface();
             SetupVulkanWindowData(wd, surface, w, h);
 
             // Setup Vulkan binding
             ImGui_ImplVulkan_InitInfo init_info = {};
             init_info.Instance = static_cast<VKContext*>(VKContext::GetContext())->GetVKInstance();
-            init_info.PhysicalDevice = VKDevice::Instance()->GetGPU();
-            init_info.Device = VKDevice::Instance()->GetDevice();
-            init_info.QueueFamily = VKDevice::Instance()->GetGraphicsQueueFamilyIndex();
-            init_info.Queue = VKDevice::Instance()->GetGraphicsQueue();
-            init_info.PipelineCache = VKDevice::Instance()->GetPipelineCache();
+            init_info.PhysicalDevice = VKDevice::Get().GetGPU();
+            init_info.Device = VKDevice::Get().GetDevice();
+            init_info.QueueFamily = VKDevice::Get().GetGraphicsQueueFamilyIndex();
+            init_info.Queue = VKDevice::Get().GetGraphicsQueue();
+            init_info.PipelineCache = VKDevice::Get().GetPipelineCache();
             init_info.DescriptorPool = g_DescriptorPool;
             init_info.Allocator = g_Allocator;
             init_info.CheckVkResultFn = NULL;

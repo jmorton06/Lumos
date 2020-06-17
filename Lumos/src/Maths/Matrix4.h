@@ -28,6 +28,7 @@ namespace Lumos::Maths
     public:
 		static int CONFIG_CLIP_CONTROL;
 		static void SetUpCoordSystem(bool LeftHanded, bool forceZeroToOne);
+        static bool IsDepthZeroOne();
 
         /// Construct an identity matrix.
         Matrix4() noexcept
@@ -686,8 +687,7 @@ namespace Lumos::Maths
         static Matrix4 Rotation(const Vector3& rot)
         {
             Matrix4 s;
-            UNIMPLEMENTED;
-            //TODO
+            s.SetRotation(Quaternion::EulerAnglesToQuaternion(rot.x, rot.y, rot.z).RotationMatrix());
             return s;
         }
 

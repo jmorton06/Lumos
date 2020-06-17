@@ -302,7 +302,7 @@ namespace Lumos
 		auto flags = ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_MenuBar;
 		ImGui::Begin(m_Name.c_str(), &m_Active, flags);
 		{
-			auto& registry = Application::Instance()->GetSceneManager()->GetCurrentScene()->GetRegistry();
+			auto& registry = Application::Get().GetSceneManager()->GetCurrentScene()->GetRegistry();
             
             ImGui::PushStyleColor(ImGuiCol_MenuBarBg, ImGui::GetStyleColorVec4(ImGuiCol_TabActive));
             ImGui::BeginMenuBar();

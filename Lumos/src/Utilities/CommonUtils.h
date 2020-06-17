@@ -2,7 +2,7 @@
 #include "lmpch.h"
 #include "Maths/Maths.h"
 
-#include <entt/entt.hpp>
+#include <entt/entity/fwd.hpp>
 
 namespace Lumos
 {

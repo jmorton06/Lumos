@@ -299,7 +299,7 @@ namespace Lumos
      {
          ContactListener* listener = new ContactListener();
          listener->SetBeginFunction(func);
-         Application::Instance()->GetSystem<B2PhysicsEngine>()->SetContactListener(listener);
+         Application::Get().GetSystem<B2PhysicsEngine>()->SetContactListener(listener);
      }
     
     Ref<PhysicsObject2D> CreateSharedPhysics2D()

@@ -5,7 +5,7 @@
 
 namespace Lumos
 {
-    class LUMOS_EXPORT Engine : public TSingleton<Engine>
+    class LUMOS_EXPORT Engine : public ThreadSafeSingleton<Engine>
     {
         friend class TSingleton<Engine>;
 
@@ -23,7 +23,7 @@ namespace Lumos
         void SetFrametime(float frameTime) { m_Frametime = frameTime;  }
         void SetTargetFrameRate(float targetFPS) { m_MaxFramesPerSecond = targetFPS; }
         
-        static TimeStep& GetTimeStep() { return Engine::Instance()->m_TimeStep; }
+        static TimeStep& GetTimeStep() { return Engine::Get().m_TimeStep; }
 
     private:
 

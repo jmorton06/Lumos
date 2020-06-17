@@ -18,7 +18,7 @@ void SceneModelViewer::OnInit()
 
 	LoadModels();
 
-	auto audioSystem = Application::Instance()->GetSystem<AudioManager>();
+	auto audioSystem = Application::Get().GetSystem<AudioManager>();
 
     auto environment = m_Registry.create();
     m_Registry.emplace<Graphics::Environment>(environment, "/Textures/cubemap/Arches_E_PineTree", 11, 3072, 4096, ".tga");
@@ -35,7 +35,7 @@ void SceneModelViewer::OnInit()
 	camera.SetCameraController(CreateRef<EditorCameraController>());
 
 	if (audioSystem)
-		Application::Instance()->GetSystem<AudioManager>()->SetListener(&camera);
+		Application::Get().GetSystem<AudioManager>()->SetListener(&camera);
 	m_Registry.emplace<NameComponent>(cameraEntity, "Camera");
 
 	//Temp
@@ -47,21 +47,18 @@ void SceneModelViewer::OnInit()
 
     auto deferredRenderer = new Graphics::DeferredRenderer(m_ScreenWidth, m_ScreenHeight);
     auto skyboxRenderer = new Graphics::SkyboxRenderer(m_ScreenWidth, m_ScreenHeight);
-
-    deferredRenderer->SetRenderToGBufferTexture(editor);
-    skyboxRenderer->SetRenderToGBufferTexture(editor);
     
     auto deferredLayer = new Layer3D(deferredRenderer, "Deferred");
     auto skyBoxLayer = new Layer3D(skyboxRenderer, "Skybox");
-    Application::Instance()->PushLayer(deferredLayer);
-    Application::Instance()->PushLayer(skyBoxLayer);
+    PushLayer(deferredLayer);
+    PushLayer(skyBoxLayer);
         
 #ifndef LUMOS_PLATFORM_IOS
     auto shadowRenderer = new Graphics::ShadowRenderer();
     shadowRenderer->SetLightEntity(lightEntity);
     auto shadowLayer = new Layer3D(shadowRenderer);
-    Application::Instance()->GetRenderManager()->SetShadowRenderer(shadowRenderer);
-    Application::Instance()->PushLayer(shadowLayer);
+    Application::Get().GetRenderManager()->SetShadowRenderer(shadowRenderer);
+    PushLayer(shadowLayer);
 #endif
     
     m_SceneBoundingRadius = 20.0f;
@@ -92,7 +89,9 @@ void SceneModelViewer::LoadModels()
 	};
 
 	auto TestObject = ModelLoader::LoadModel(ExampleModelPaths[0], m_Registry);
-	m_Registry.get_or_emplace<Maths::Transform>(TestObject, Maths::Matrix4::Scale(Maths::Vector3(1.0f, 1.0f, 1.0f)));
+    
+    if(!m_Registry.has<Maths::Transform>(TestObject))
+        m_Registry.emplace<Maths::Transform>(TestObject, Maths::Matrix4::Scale(Maths::Vector3(1.0f, 1.0f, 1.0f)));
 
 }
 

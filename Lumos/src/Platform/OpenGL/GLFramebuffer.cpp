@@ -17,38 +17,48 @@ namespace Lumos
 
 		GLFramebuffer::GLFramebuffer(const FramebufferInfo& bufferInfo)
 		{
-			GLCall(glGenFramebuffers(1, &m_Handle));
-			GLCall(glBindFramebuffer(GL_FRAMEBUFFER, m_Handle));
-
+			m_ScreenFramebuffer = bufferInfo.screenFBO;
 			m_Width = bufferInfo.width;
 			m_Height = bufferInfo.height;
 			m_ColourAttachmentCount = 0;
 
-			for (u32 i = 0; i < bufferInfo.attachmentCount; i++)
+			if(m_ScreenFramebuffer)
 			{
-				switch (bufferInfo.attachmentTypes[i])
-				{
-				case TextureType::COLOUR		: AddTextureAttachment(TextureFormat::RGBA32, bufferInfo.attachments[i]); break;
-				case TextureType::DEPTH			: AddTextureAttachment(TextureFormat::DEPTH, bufferInfo.attachments[i]); break;
-				case TextureType::DEPTHARRAY	: AddTextureLayer(bufferInfo.layer, bufferInfo.attachments[i]); break;
-				case TextureType::OTHER			: UNIMPLEMENTED; break;
-				case TextureType::CUBE			: UNIMPLEMENTED; break;
-				}
+				GLCall(glBindFramebuffer(GL_FRAMEBUFFER, 0));
 			}
+			else
+			{
+				GLCall(glGenFramebuffers(1, &m_Handle));
+				GLCall(glBindFramebuffer(GL_FRAMEBUFFER, m_Handle));
 
-			GLCall(glDrawBuffers(static_cast<GLsizei>(m_AttachmentData.size()), m_AttachmentData.data()));
+				for (u32 i = 0; i < bufferInfo.attachmentCount; i++)
+				{
+					switch (bufferInfo.attachmentTypes[i])
+					{
+					case TextureType::COLOUR		: AddTextureAttachment(TextureFormat::RGBA32, bufferInfo.attachments[i]); break;
+					case TextureType::DEPTH			: AddTextureAttachment(TextureFormat::DEPTH, bufferInfo.attachments[i]); break;
+					case TextureType::DEPTHARRAY	: AddTextureLayer(bufferInfo.layer, bufferInfo.attachments[i]); break;
+					case TextureType::OTHER			: UNIMPLEMENTED; break;
+					case TextureType::CUBE			: UNIMPLEMENTED; break;
+					}
+				}
 
-			Validate();
+				GLCall(glDrawBuffers(static_cast<GLsizei>(m_AttachmentData.size()), m_AttachmentData.data()));
+
+				Validate();
+			}
 		}
 
 		GLFramebuffer::~GLFramebuffer()
 		{
-			GLCall(glDeleteFramebuffers(1, &m_Handle));
+			if(!m_ScreenFramebuffer)
+				GLCall(glDeleteFramebuffers(1, &m_Handle));
 		}
 
 		void GLFramebuffer::GenerateFramebuffer()
 		{
-			GLCall(glGenFramebuffers(1, &m_Handle));
+			if(!m_ScreenFramebuffer)
+				GLCall(glGenFramebuffers(1, &m_Handle));
 		}
 
 		void GLFramebuffer::UnBind() const
@@ -58,7 +68,7 @@ namespace Lumos
 
 		void GLFramebuffer::Bind(u32 width, u32 height) const
 		{
-			GLCall(glBindFramebuffer(GL_DRAW_FRAMEBUFFER, m_Handle));
+			GLCall(glBindFramebuffer(GL_DRAW_FRAMEBUFFER, m_ScreenFramebuffer ? 0 : m_Handle));
 			GLCall(glViewport(0, 0, width, height));
 
 			GLCall(glDrawBuffers(static_cast<GLsizei>(m_AttachmentData.size()), m_AttachmentData.data()));
@@ -88,7 +98,7 @@ namespace Lumos
 
 		void GLFramebuffer::Bind() const
 		{
-			GLCall(glBindFramebuffer(GL_FRAMEBUFFER, m_Handle));
+			GLCall(glBindFramebuffer(GL_FRAMEBUFFER,  m_ScreenFramebuffer ? 0 : m_Handle));
 		}
 
 		void GLFramebuffer::AddTextureAttachment(const Graphics::TextureFormat format, Texture* texture)

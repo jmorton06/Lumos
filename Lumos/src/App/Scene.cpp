@@ -13,7 +13,13 @@
 #include "Physics/LumosPhysicsEngine/Octree.h"
 #include "Physics/LumosPhysicsEngine/LumosPhysicsEngine.h"
 #include "Scripting/LuaManager.h"
+#include "Graphics/Layers/LayerStack.h"
+#include "Maths/Transform.h"
+#include "Core/OS/FileSystem.h"
 
+#include <cereal/archives/json.hpp>
+#include <entt/entity/registry.hpp>
+//#include <cereal/cereal.hpp>
 #include <sol/sol.hpp>
 
 namespace Lumos
@@ -24,13 +30,14 @@ namespace Lumos
 		m_ScreenWidth(0),
 		m_ScreenHeight(0)
     {
+        m_LayerStack = new LayerStack();
 	}
 
     Scene::~Scene()
     {
         if(m_LuaEnv)
         {
-            sol::protected_function onDestroyFunc = m_LuaEnv["OnDestroy"];
+            sol::protected_function onDestroyFunc = (*m_LuaEnv)["OnDestroy"];
 
             if(onDestroyFunc)
             {
@@ -43,14 +50,16 @@ namespace Lumos
                 }
             }
         }
+    
+        delete m_LayerStack;
         
         DeleteAllGameObjects();
     }
 
 	void Scene::OnInit()
 	{
-        LuaManager::Instance()->GetState().set("registry", &m_Registry);
-        LuaManager::Instance()->GetState().set("scene", this);
+        LuaManager::Get().GetState().set("registry", &m_Registry);
+        LuaManager::Get().GetState().set("scene", this);
 
 		m_CurrentScene = true;
 
@@ -96,15 +105,14 @@ namespace Lumos
 		}
 
 		std::stringstream Title;
-		Title << Platform << dash << RenderAPI << dash << Configuration << dash << m_SceneName << dash << Application::Instance()->GetWindow()->GetTitle();
+		Title << Platform << dash << RenderAPI << dash << Configuration << dash << m_SceneName << dash << Application::Get().GetWindow()->GetTitle();
 
-		Application::Instance()->GetWindow()->SetWindowTitle(Title.str());
+		Application::Get().GetWindow()->SetWindowTitle(Title.str());
 
 		//Default physics setup
-		Application::Instance()->GetSystem<LumosPhysicsEngine>()->SetDampingFactor(0.998f);
-		Application::Instance()->GetSystem<LumosPhysicsEngine>()->SetIntegrationType(IntegrationType::RUNGE_KUTTA_4);
-		Application::Instance()->GetSystem<LumosPhysicsEngine>()->SetBroadphase(Lumos::CreateRef<Octree>(5, 3, Lumos::CreateRef<SortAndSweepBroadphase>()));
-
+		Application::Get().GetSystem<LumosPhysicsEngine>()->SetDampingFactor(0.998f);
+		Application::Get().GetSystem<LumosPhysicsEngine>()->SetIntegrationType(IntegrationType::RUNGE_KUTTA_4);
+		Application::Get().GetSystem<LumosPhysicsEngine>()->SetBroadphase(Lumos::CreateRef<Octree>(5, 3, Lumos::CreateRef<SortAndSweepBroadphase>()));
 		m_SceneBoundingRadius = 400.0f; //Default scene radius of 400m
 
 		m_SceneGraph.Init(m_Registry);
@@ -114,7 +122,7 @@ namespace Lumos
 	{
         if(m_LuaEnv)
         {
-            sol::protected_function onCleanupFunc = m_LuaEnv["OnCleanUp"];
+            sol::protected_function onCleanupFunc = (*m_LuaEnv)["OnCleanUp"];
 
             if(onCleanupFunc)
             {
@@ -130,13 +138,15 @@ namespace Lumos
  
         //m_LuaEnv = NULL;
 
-        LuaManager::Instance()->GetState().collect_garbage();
+        LuaManager::Get().GetState().collect_garbage();
+    
+        m_LayerStack->Clear();
     
 		DeleteAllGameObjects();
 
-		Application::Instance()->GetRenderManager()->Reset();
+		Application::Get().GetRenderManager()->Reset();
 
-        auto audioManager = Application::Instance()->GetSystem<AudioManager>();
+        auto audioManager = Application::Get().GetSystem<AudioManager>();
 		if (audioManager)
 		{
 			audioManager->ClearNodes();
@@ -164,7 +174,7 @@ namespace Lumos
     
             auto cameraController = camera.GetController();
         
-            if (cameraController && Application::Instance()->GetSceneActive())
+            if (cameraController && Application::Get().GetSceneActive())
             {
                 cameraController->HandleMouse(&camera, timeStep.GetMillis(), mousePos.x, mousePos.y);
                 cameraController->HandleKeyboard(&camera, timeStep.GetMillis());
@@ -175,7 +185,7 @@ namespace Lumos
         
         if(m_LuaUpdateFunction)
         {
-            sol::protected_function_result result = m_LuaUpdateFunction.call(timeStep.GetElapsedMillis());
+            sol::protected_function_result result = m_LuaUpdateFunction->call(timeStep.GetElapsedMillis());
             if (!result.valid())
             {
                 sol::error err = result;
@@ -193,7 +203,7 @@ namespace Lumos
 
 	bool Scene::OnWindowResize(WindowResizeEvent& e)
 	{
-        if(!Application::Instance()->GetSceneActive())
+        if(!Application::Get().GetSceneActive())
             return false;
 
         auto cameraView = m_Registry.view<Camera>();
@@ -205,25 +215,11 @@ namespace Lumos
 		return false;
 	}
 
-	nlohmann::json Scene::Serialise()
-	{
-		nlohmann::json output;
-		output["typeID"] = LUMOS_TYPENAME(Scene);
-		output["name"] = m_SceneName;
-
-		return output;
-	}
-
-	void Scene::Deserialise(nlohmann::json & data)
-	{
-		m_SceneName = data["name"];
-	}
-
     void Scene::LoadLuaScene(const String &filePath)
     {
-        m_LuaEnv = sol::environment(LuaManager::Instance()->GetState(), sol::create, LuaManager::Instance()->GetState().globals());
-        m_LuaEnv["scene"] = this;
-        m_LuaEnv["reg"] = &m_Registry;
+        m_LuaEnv = CreateRef<sol::environment>(LuaManager::Get().GetState(), sol::create, LuaManager::Get().GetState().globals());
+        (*m_LuaEnv)["scene"] = this;
+        (*m_LuaEnv)["reg"] = &m_Registry;
         
         String physicalPath;
         if (!VFS::Get()->ResolvePhysicalPath(filePath, physicalPath))
@@ -232,7 +228,7 @@ namespace Lumos
             return;
         }
         
-        auto loadFileResult = LuaManager::Instance()->GetState().script_file(physicalPath, m_LuaEnv, sol::script_pass_on_error);
+        auto loadFileResult = LuaManager::Get().GetState().script_file(physicalPath, *m_LuaEnv, sol::script_pass_on_error);
         if (!loadFileResult.valid())
         {
             sol::error err = loadFileResult;
@@ -240,7 +236,7 @@ namespace Lumos
             Debug::Log::Error("Error : {0}", err.what());
         }
     
-        sol::protected_function onInitFunc = m_LuaEnv["OnInit"];
+        sol::protected_function onInitFunc = (*m_LuaEnv)["OnInit"];
     
         if(onInitFunc)
         {
@@ -254,7 +250,7 @@ namespace Lumos
         }
   
     
-        m_LuaUpdateFunction = m_LuaEnv["OnUpdate"];
+        m_LuaUpdateFunction = CreateRef<sol::protected_function>((*m_LuaEnv)["OnUpdate"]);
     }
 
     Scene* Scene::LoadFromLua(const String& filePath)
@@ -263,5 +259,30 @@ namespace Lumos
         scene->LoadLuaScene(filePath);
         
         return scene;
+    }
+    
+    void Scene::PushLayer(Layer* layer, bool overlay)
+    {
+        if(overlay)
+            m_LayerStack->PushOverlay(layer);
+        else
+            m_LayerStack->PushLayer(layer);
+
+        layer->OnAttach();
+    }
+    
+    void Scene::Serialise(const String& filePath)
+    {
+        std::stringstream storage;
+        cereal::JSONOutputArchive archive(storage);
+        entt::snapshot{m_Registry}.entities(archive).component<Maths::Transform, NameComponent, ActiveComponent, Hierarchy>(archive);
+    
+        archive(*this);
+        FileSystem::WriteTextFile(filePath, storage.str());
+     }
+    
+    void Scene::Deserialise(const String& filePath)
+    {
+    
     }
 }

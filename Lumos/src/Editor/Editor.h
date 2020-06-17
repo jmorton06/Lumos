@@ -6,7 +6,7 @@
 #include "FileBrowserWindow.h"
 
 #include <imgui/imgui.h>
-#include <entt/entt.hpp>
+#include <entt/entity/fwd.hpp>
 
 namespace Lumos
 {
@@ -83,7 +83,6 @@ namespace Lumos
 
 		std::unordered_map<size_t, const char*>& GetComponentIconMap() { return m_ComponentIconMap; }
 
-		float& GetCurrentSceneAspectRatio() { return m_CurrentSceneAspectRatio; }
 		void FocusCamera(const Maths::Vector3& point, float distance, float speed = 1.0f);
     
         void RecompileShaders();

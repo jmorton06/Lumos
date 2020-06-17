@@ -24,8 +24,13 @@ namespace Lumos
 		virtual void DebugDraw(const PhysicsObject3D* currentObject) const override;
 
 		//Get/Set Sphere Radius
-		void SetRadius(float radius) { m_Radius = radius; }
-		float GetRadius() const  { return m_Radius; }
+        void SetRadius(float radius)
+        {
+            m_Radius = radius;
+            m_LocalTransform = Maths::Matrix4::Scale(Maths::Vector3(m_Radius));
+        }
+    
+        float GetRadius() const  { return m_Radius; }
 
 		float GetSize() const override { return m_Radius; }
 

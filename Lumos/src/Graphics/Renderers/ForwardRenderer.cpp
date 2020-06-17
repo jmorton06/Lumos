@@ -34,7 +34,6 @@ namespace Lumos
             m_DepthTest = depthTest;
 			SetScreenBufferSize(width, height);
 			ForwardRenderer::Init();
-            SetRenderToGBufferTexture(renderToGBuffer);
 		}
 
 		ForwardRenderer::~ForwardRenderer()
@@ -354,7 +353,7 @@ namespace Lumos
 
 			shader->SetSystemUniformBuffer(ShaderType::FRAGMENT, m_PSSystemUniformBuffer, m_PSSystemUniformBufferSize, 0);
 
-			m_ModelUniformBuffer->SetDynamicData(static_cast<uint32_t>(MAX_OBJECTS * m_DynamicAlignment), sizeof(Maths::Matrix4), &*m_UBODataDynamic.model);
+			m_ModelUniformBuffer->SetDynamicData(static_cast<uint32_t>(index * m_DynamicAlignment), sizeof(Maths::Matrix4), &*m_UBODataDynamic.model);
 		}
 
 		void ForwardRenderer::Present()
@@ -388,21 +387,6 @@ namespace Lumos
 			}
 		}
 
-		void ForwardRenderer::SetRenderToGBufferTexture(bool set)
-		{
-            if(set)
-            {
-                m_RenderToGBufferTexture = true;
-                m_RenderTexture = Application::Instance()->GetRenderManager()->GetGBuffer()->GetTexture(SCREENTEX_OFFSCREEN0);
-
-                for (auto fbo : m_Framebuffers)
-                    delete fbo;
-                m_Framebuffers.clear();
-
-                CreateFramebuffers();
-            }
-		}
-
 		void ForwardRenderer::OnResize(u32 width, u32 height)
 		{
             SetScreenBufferSize(width, height);
@@ -411,9 +395,6 @@ namespace Lumos
 				delete fbo;
 
 			m_Framebuffers.clear();
-
-			if (m_RenderToGBufferTexture)
-				m_RenderTexture = Application::Instance()->GetRenderManager()->GetGBuffer()->GetTexture(SCREENTEX_OFFSCREEN0);
 
 			CreateFramebuffers();
 		}
@@ -476,10 +457,13 @@ namespace Lumos
 			m_Pipeline = Graphics::Pipeline::Create(pipelineCI);
 		}
 
-		void ForwardRenderer::SetRenderTarget(Texture* texture)
+		void ForwardRenderer::SetRenderTarget(Texture* texture, bool rebuildFramebuffer)
 		{
 			m_RenderTexture = texture;
 
+            if(!rebuildFramebuffer)
+                return;
+        
 			for (auto fbo : m_Framebuffers)
 				delete fbo;
 			m_Framebuffers.clear();
@@ -496,7 +480,7 @@ namespace Lumos
             if(m_DepthTest)
             {
                 attachmentTypes[1] = TextureType::DEPTH;
-                attachments[1] = reinterpret_cast<Texture*>(Application::Instance()->GetRenderManager()->GetGBuffer()->GetDepthTexture());
+                attachments[1] = reinterpret_cast<Texture*>(Application::Get().GetRenderManager()->GetGBuffer()->GetDepthTexture());
             }
 
 			FramebufferInfo bufferInfo{};

@@ -34,11 +34,10 @@ namespace Lumos
 
 	void ImGuiLayer::OnAttach()
 	{
-		Application* app = Application::Instance();
+		Application& app = Application::Get();
 		ImGuiIO& io = ImGui::GetIO();
-		io.DisplaySize = ImVec2(static_cast<float>(app->GetWindow()->GetWidth()), static_cast<float>(app->GetWindow()->GetHeight()));
+		io.DisplaySize = ImVec2(static_cast<float>(app.GetWindow()->GetWidth()), static_cast<float>(app.GetWindow()->GetHeight()));
         io.ConfigFlags |= ImGuiConfigFlags_DockingEnable;
-        io.ConfigFlags |= ImGuiConfigFlags_IsSRGB;
     
         #ifdef LUMOS_PLATFORM_IOS
         io.ConfigFlags |= ImGuiConfigFlags_IsTouchScreen;
@@ -49,7 +48,7 @@ namespace Lumos
 		SetImGuiKeyCodes();
 		SetImGuiStyle();
 
-		m_IMGUIRenderer = Scope<Graphics::IMGUIRenderer>(Graphics::IMGUIRenderer::Create(app->GetWindow()->GetWidth(),app->GetWindow()->GetHeight(), m_ClearScreen));
+		m_IMGUIRenderer = Scope<Graphics::IMGUIRenderer>(Graphics::IMGUIRenderer::Create(app.GetWindow()->GetWidth(),app.GetWindow()->GetHeight(), m_ClearScreen));
 
         if(m_IMGUIRenderer)
             m_IMGUIRenderer->Init();
@@ -64,7 +63,7 @@ namespace Lumos
 		LUMOS_PROFILE_FUNC;
 		ImGuizmo::BeginFrame();
 
-		Application::Instance()->OnImGui();
+		Application::Get().OnImGui();
         
 		ImGui::Render();
 	}

@@ -4,6 +4,8 @@
 #include "App/Scene.h"
 #include "App/Engine.h"
 
+#include <sol/sol.hpp>
+
 namespace Lumos
 {
     ScriptComponent::ScriptComponent(const String& fileName, Scene* scene)
@@ -21,8 +23,8 @@ namespace Lumos
 
     ScriptComponent::~ScriptComponent()
     {
-        if(m_Env && m_Env["OnRelease"])
-            m_Env["OnRelease"]();
+        if(m_Env && (*m_Env)["OnRelease"])
+            (*m_Env)["OnRelease"]();
     }
 
     void ScriptComponent::LoadScript(const std::string& fileName)
@@ -31,12 +33,13 @@ namespace Lumos
         if (!VFS::Get()->ResolvePhysicalPath(fileName, physicalPath))
         {
             Debug::Log::Error("Failed to Load Lua script {0}", fileName );
+            m_Env = nullptr;
             return;
         }
 
-        m_Env = sol::environment(LuaManager::Instance()->GetState(), sol::create, LuaManager::Instance()->GetState().globals());
+        m_Env = CreateRef<sol::environment>(LuaManager::Get().GetState(), sol::create, LuaManager::Get().GetState().globals());
 
-        auto loadFileResult = LuaManager::Instance()->GetState().script_file(physicalPath, m_Env, sol::script_pass_on_error);
+        auto loadFileResult = LuaManager::Get().GetState().script_file(physicalPath, *m_Env, sol::script_pass_on_error);
         if (!loadFileResult.valid())
         {
             sol::error err = loadFileResult;
@@ -46,9 +49,9 @@ namespace Lumos
         }
                 
         if(m_Scene)
-            m_Env["CurrentScene"] = m_Scene;
+            (*m_Env)["CurrentScene"] = m_Scene;
     
-        sol::protected_function onInitFunc = m_Env["OnInit"];
+        sol::protected_function onInitFunc = (*m_Env)["OnInit"];
           
         if(onInitFunc)
         {
@@ -62,7 +65,10 @@ namespace Lumos
         }
 
 
-        m_UpdateFunc = m_Env["OnUpdate"];
+        if((*m_Env)["OnUpdate"])
+            m_UpdateFunc = CreateRef<sol::protected_function>((*m_Env)["OnUpdate"]);
+        else
+            m_UpdateFunc = nullptr;
 
     }
 
@@ -70,7 +76,7 @@ namespace Lumos
     {
         if(m_UpdateFunc)
         {
-           sol::protected_function_result result = m_UpdateFunc.call(dt);
+           sol::protected_function_result result = m_UpdateFunc->call(dt);
            if (!result.valid())
            {
                sol::error err = result;
@@ -82,16 +88,16 @@ namespace Lumos
 
     void ScriptComponent::Reload()
     {
-        if(m_Env && m_Env["OnRelease"])
-            m_Env["OnRelease"]();
+        if((*m_Env) && (*m_Env)["OnRelease"])
+            (*m_Env)["OnRelease"]();
         
         Init();
     }
 
     void ScriptComponent::Load(const String& fileName)
     {
-        if(m_Env && m_Env["OnRelease"])
-            m_Env["OnRelease"]();
+        if((*m_Env) && (*m_Env)["OnRelease"])
+            (*m_Env)["OnRelease"]();
         
         m_FileName = fileName;
         Init();

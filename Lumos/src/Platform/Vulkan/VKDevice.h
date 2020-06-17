@@ -26,7 +26,7 @@ namespace Lumos
 			}
 		};
 
-		class LUMOS_EXPORT VKDevice : public TSingleton<VKDevice>
+		class LUMOS_EXPORT VKDevice : public ThreadSafeSingleton<VKDevice>
 		{
 			friend class TSingleton<VKDevice>;
 
@@ -59,7 +59,7 @@ namespace Lumos
 
 			VkSurfaceKHR CreatePlatformSurface(VkInstance vkInstance, Window* window);
             
-			static VkDevice Device() { return VKDevice::Instance()->GetDevice(); }
+			static VkDevice Device() { return VKDevice::Get().GetDevice(); }
 		private:
 			VkDevice m_Device{};
 			VkPhysicalDevice m_PhysicalDevice{};

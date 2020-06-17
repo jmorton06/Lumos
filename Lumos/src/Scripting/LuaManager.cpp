@@ -109,7 +109,7 @@ namespace Lumos
         if (view.empty())
             return;
 
-        float dt = Engine::Instance()->GetTimeStep().GetElapsedMillis();
+        float dt = Engine::Get().GetTimeStep().GetElapsedMillis();
         
         for (auto entity : view)
         {

@@ -2,8 +2,25 @@
 #include "SceneGraph.h"
 #include "Maths/Transform.h"
 
+#include <entt/entt.hpp>
+
 namespace Lumos
 {
+    Hierarchy::Hierarchy(entt::entity p) : _parent(p)
+    {
+        _first = entt::null;
+        _next = entt::null;
+        _prev = entt::null;
+    }
+    
+    Hierarchy::Hierarchy()
+    {
+        _parent = entt::null;
+        _first = entt::null;
+        _next = entt::null;
+        _prev = entt::null;
+    }
+
 	SceneGraph::SceneGraph()
 	{
 	}

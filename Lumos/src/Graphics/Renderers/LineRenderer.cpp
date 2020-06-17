@@ -39,14 +39,11 @@ namespace Lumos
 	{
 		m_RenderTexture = nullptr;
 		m_BatchDrawCallIndex = 0;
-        m_RenderToGBufferTexture = renderToGBuffer;
         LineIndexCount = 0;
     
         LineRenderer::SetScreenBufferSize(width, height);
 
         LineRenderer::Init();
-
-        LineRenderer::SetRenderToGBufferTexture(renderToGBuffer);
 	}
 
     LineRenderer::~LineRenderer()
@@ -315,9 +312,6 @@ namespace Lumos
 			delete fbo;
 		m_Framebuffers.clear();
 
-		if (m_RenderToGBufferTexture)
-			m_RenderTexture = Application::Instance()->GetRenderManager()->GetGBuffer()->GetTexture(SCREENTEX_OFFSCREEN0);
-    
 		SetScreenBufferSize(width, height);
 
 		CreateFramebuffers();
@@ -421,30 +415,18 @@ namespace Lumos
 		}
 	}
     
-	void LineRenderer::SetRenderTarget(Texture* texture)
+	void LineRenderer::SetRenderTarget(Texture* texture, bool rebuildFramebuffer)
 	{
 		m_RenderTexture = texture;
 
+        if(!rebuildFramebuffer)
+            return;
+    
 		for (auto fbo : m_Framebuffers)
 			delete fbo;
 		m_Framebuffers.clear();
 
 		CreateFramebuffers();
-	}
-
-	void LineRenderer::SetRenderToGBufferTexture(bool set)
-	{
-		if(set)
-		{
-			m_RenderToGBufferTexture = true;
-			m_RenderTexture = Application::Instance()->GetRenderManager()->GetGBuffer()->GetTexture(SCREENTEX_OFFSCREEN0);
-			
-			for (auto fbo : m_Framebuffers)
-				delete fbo;
-			m_Framebuffers.clear();
-			
-			CreateFramebuffers();
-		}
 	}
     
     void LineRenderer::FlushAndResetLines()

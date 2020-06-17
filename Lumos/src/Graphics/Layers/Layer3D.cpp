@@ -49,4 +49,10 @@ namespace Lumos
         m_Renderer->OnResize(e.GetWidth(), e.GetHeight());
         return false;
     }
+    
+    void Layer3D::SetRenderTarget(Graphics::Texture* texture, bool onlyIfTargetsScreen, bool rebuildFramebuffer)
+    {
+		if(!onlyIfTargetsScreen || m_Renderer->GetRenderTarget() == nullptr)
+        	m_Renderer->SetRenderTarget(texture, rebuildFramebuffer);
+    }
 }

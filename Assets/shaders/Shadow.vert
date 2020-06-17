@@ -26,5 +26,21 @@ layout (location = 0) in vec3 position;
 
 void main()
 {
-    gl_Position = vec4(position, 1.0) * ubo2.model * ubo.projView[pushConsts.cascadeIndex];
+    mat4 proj;
+    switch(pushConsts.cascadeIndex)
+    {
+        case 0 : 
+            proj = ubo.projView[0];
+            break;
+        case 1 : 
+            proj = ubo.projView[1];
+            break;
+        case 2 : 
+            proj = ubo.projView[2];
+            break;
+        default : 
+            proj = ubo.projView[3];
+            break;
+    }
+    gl_Position = vec4(position, 1.0) * ubo2.model * proj; 
 }

@@ -13,6 +13,8 @@ namespace Lumos
 		void OnImGui();
         
         const Maths::Matrix4& GetMatrix() const { return m_TextureMatrix; }
+        Maths::Matrix4& GetMatrix() { return m_TextureMatrix; }
+
 
     private:
         Maths::Matrix4 m_TextureMatrix;

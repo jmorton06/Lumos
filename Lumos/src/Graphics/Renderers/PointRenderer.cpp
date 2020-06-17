@@ -41,8 +41,6 @@ namespace Lumos
         PointRenderer::SetScreenBufferSize(width, height);
 
         PointRenderer::Init();
-
-        PointRenderer::SetRenderToGBufferTexture(renderToGBuffer);
 	}
 
     PointRenderer::~PointRenderer()
@@ -324,9 +322,6 @@ namespace Lumos
 			delete fbo;
 		m_Framebuffers.clear();
 
-		if (m_RenderToGBufferTexture)
-			m_RenderTexture = Application::Instance()->GetRenderManager()->GetGBuffer()->GetTexture(SCREENTEX_OFFSCREEN0);
-    
 		SetScreenBufferSize(width, height);
 
 		CreateFramebuffers();
@@ -434,7 +429,7 @@ namespace Lumos
 	{
 	}
 
-	void PointRenderer::SetRenderTarget(Texture* texture)
+	void PointRenderer::SetRenderTarget(Texture* texture, bool rebuildFramebuffer)
 	{
 		m_RenderTexture = texture;
 
@@ -443,21 +438,6 @@ namespace Lumos
 		m_Framebuffers.clear();
 
 		CreateFramebuffers();
-	}
-
-	void PointRenderer::SetRenderToGBufferTexture(bool set)
-	{
-		if(set)
-		{
-			m_RenderToGBufferTexture = true;
-			m_RenderTexture = Application::Instance()->GetRenderManager()->GetGBuffer()->GetTexture(SCREENTEX_OFFSCREEN0);
-			
-			for (auto fbo : m_Framebuffers)
-				delete fbo;
-			m_Framebuffers.clear();
-			
-			CreateFramebuffers();
-		}
 	}
     
     void PointRenderer::FlushAndResetPoints()

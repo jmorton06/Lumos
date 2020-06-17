@@ -52,7 +52,7 @@ namespace Lumos
 		fpsFramesCount = 0;
 		avgFrameTime = 1.0f;
 
-		Profiler::Instance()->Enable();
+		Profiler::Get().Enable();
 
 	}
 
@@ -60,7 +60,7 @@ namespace Lumos
 	{
 		ImGui::Begin(m_Name.c_str(), 0, ImGuiWindowFlags_NoScrollbar);
 
-		auto profiler = Profiler::Instance();
+		auto& profiler = Profiler::Get();
 
 		m_CPUGraph.Update();
 
@@ -76,7 +76,7 @@ namespace Lumos
 		if (graphHeight * 2 + sizeMargin + sizeMargin < canvasSize.y)
 		{
 			ImGui::Columns(2);
-			ImGui::Checkbox("Stop profiling", &profiler->IsEnabled());
+			ImGui::Checkbox("Stop profiling", &profiler.IsEnabled());
 			ImGui::Checkbox("Colored legend text", &useColoredLegendText);
 			ImGui::DragInt("Frame offset", &frameOffset, 1.0f, 0, 400);
 			ImGui::NextColumn();
@@ -86,7 +86,7 @@ namespace Lumos
 			ImGui::SliderFloat("Transparency", &ImGui::GetStyle().Colors[ImGuiCol_WindowBg].w, 0.0f, 1.0f);
 			ImGui::Columns(1);
 		}
-		if (!profiler->IsEnabled())
+		if (!profiler.IsEnabled())
 			frameOffset = 0;
 		m_CPUGraph.frameWidth = frameWidth;
 		m_CPUGraph.frameSpacing = frameSpacing;
@@ -104,11 +104,11 @@ namespace Lumos
 
 	void ProfilerGraph::Update()
 	{
-		auto profiler = Profiler::Instance();
-		if (profiler->IsEnabled())
+		auto& profiler = Profiler::Get();
+		if (profiler.IsEnabled())
 		{
-			auto report = profiler->GenerateReport();
-			profiler->ClearHistory();
+			auto report = profiler.GenerateReport();
+			profiler.ClearHistory();
 
             if(m_Reports.size() > 300)
             {
