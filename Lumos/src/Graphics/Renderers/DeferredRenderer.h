@@ -48,8 +48,7 @@ namespace Lumos
 			int GetCommandBufferCount() const { return static_cast<int>(m_CommandBuffers.size()); }
 			CommandBuffer* GetCommandBuffer(int id) const { return m_CommandBuffers[id]; }
 
-			void SetRenderTarget(Texture* texture) override;
-			void SetRenderToGBufferTexture(bool set) override;
+			void SetRenderTarget(Texture* texture, bool rebuildFramebuffer) override;
 
 			void OnImGui() override;
 

@@ -14,7 +14,7 @@ namespace Lumos
 
 			m_RendererTitle = "Vulkan";
 
-            VKDevice::Instance();
+            VKDevice::Get();
             
             m_Swapchain = CreateRef<VKSwapchain>(m_Width, m_Height);
             m_Swapchain->Init();
@@ -28,7 +28,7 @@ namespace Lumos
 
 			for (int i = 0; i < NUM_SEMAPHORES; i++)
 			{
-				vkDestroySemaphore(VKDevice::Instance()->GetDevice(), m_ImageAvailableSemaphore[i], nullptr);
+				vkDestroySemaphore(VKDevice::Get().GetDevice(), m_ImageAvailableSemaphore[i], nullptr);
 			}
             
             m_Context->Unload();
@@ -87,7 +87,7 @@ namespace Lumos
 
 			for (int i = 0; i < NUM_SEMAPHORES; i++)
 			{
-				VK_CHECK_RESULT(vkCreateSemaphore(VKDevice::Instance()->GetDevice(), &semaphoreInfo, nullptr, &m_ImageAvailableSemaphore[i]));
+				VK_CHECK_RESULT(vkCreateSemaphore(VKDevice::Get().GetDevice(), &semaphoreInfo, nullptr, &m_ImageAvailableSemaphore[i]));
 			}
 		}
 

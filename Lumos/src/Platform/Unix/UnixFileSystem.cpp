@@ -102,9 +102,13 @@ namespace Lumos
     }
 
     bool FileSystem::WriteFile(const String& path, u8* buffer)
-    {
+    {            
         FILE* file = fopen(path.c_str(), "wb");
-        size_t size = fwrite(buffer, 1, sizeof(buffer), file);
+        size_t size = 0;
+        if(buffer)
+        {
+            size = fwrite(buffer, 1, sizeof(buffer), file);
+        }
         fclose(file);
         return size > 0;
     }

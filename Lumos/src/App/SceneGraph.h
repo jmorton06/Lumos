@@ -1,11 +1,17 @@
 #pragma once
 
-#include <entt/entt.hpp>
+#include <entt/entity/fwd.hpp>
+#include <cereal/cereal.hpp>
 
 namespace Lumos
 {
 	struct NameComponent
     {
+        template<typename Archive>
+        void serialize(Archive &archive)
+        {
+            archive(cereal::make_nvp("Name", name));
+        }
         String name;
     };
 
@@ -15,14 +21,22 @@ namespace Lumos
         {
             active = act;
         }
+            
+        template<typename Archive>
+        void serialize(Archive &archive)
+        {
+            archive(cereal::make_nvp("Active", active));
+        }
+                    
 		bool active = true;
 	};
 
 	class Hierarchy
 	{
 	public:
-		Hierarchy(entt::entity p = entt::null) : _parent{ p } {}
-
+		Hierarchy(entt::entity p);
+        Hierarchy();
+    
 		inline entt::entity parent() const { return _parent; }
 		inline entt::entity next() const { return _next; }
 		inline entt::entity prev() const { return _prev; }
@@ -41,10 +55,16 @@ namespace Lumos
 
 		static void Reparent(entt::entity entity, entt::entity parent, entt::registry& registry, Hierarchy& hierarchy);
 
-		entt::entity _parent = entt::null;
-		entt::entity _first = entt::null;
-		entt::entity _next = entt::null;
-		entt::entity _prev = entt::null;
+		entt::entity _parent;
+		entt::entity _first;
+		entt::entity _next;
+		entt::entity _prev;
+            
+        template<typename Archive>
+        void serialize(Archive &archive)
+        {
+            archive(cereal::make_nvp("First", _first), cereal::make_nvp("Next", _next), cereal::make_nvp("Previous", _prev), cereal::make_nvp("Parent", _parent));
+        }
 	};
 
     class SceneGraph

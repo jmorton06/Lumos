@@ -76,6 +76,16 @@ namespace Lumos
         delete m_PointRenderer;
     }
 
+	void DebugRenderer::SetRenderTarget(Graphics::Texture* texture, bool rebuildFramebuffer)
+	{
+        if(s_Instance->m_LineRenderer)
+		s_Instance->m_LineRenderer->SetRenderTarget(texture, rebuildFramebuffer);
+        if(s_Instance->m_Renderer2D)
+		s_Instance->m_Renderer2D->SetRenderTarget(texture, rebuildFramebuffer);
+        if(s_Instance->m_PointRenderer)
+		s_Instance->m_PointRenderer->SetRenderTarget(texture, rebuildFramebuffer);
+	}
+
 	//Draw Point (circle)
 	void DebugRenderer::GenDrawPoint(bool ndt, const Maths::Vector3& pos, float point_radius, const Maths::Vector4& colour)
 	{

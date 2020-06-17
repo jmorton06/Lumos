@@ -3,25 +3,40 @@
 #include "LumosPhysicsEngine.h"
 #include "Graphics/Renderers/DebugRenderer.h"
 
+#include "CuboidCollisionShape.h"
+#include "PyramidCollisionShape.h"
+#include "SphereCollisionShape.h"
+#include "CapsuleCollisionShape.h"
+
 namespace Lumos
 {
 
-	PhysicsObject3D::PhysicsObject3D() : PhysicsObject()
-		, m_wsTransformInvalidated(true)
+	PhysicsObject3D::PhysicsObject3D(const Physics3DProperties& properties)
+		: m_wsTransformInvalidated(true)
 		, m_RestVelocityThresholdSquared(0.001f)
 		, m_AverageSummedVelocity(0.0f)
 		, m_wsAabbInvalidated(true)
-		, m_Position(0.0f, 0.0f, 0.0f)
-		, m_LinearVelocity(0.0f, 0.0f, 0.0f)
-		, m_Force(0.0f, 0.0f, 0.0f)
-		, m_InvMass(0.0f)
-		, m_Orientation(1.0f, 0.0f, 0.0f, 0.0f)
-		, m_AngularVelocity(0.0f, 0.0f, 0.0f)
-		, m_Torque(0.0f, 0.0f, 0.0f)
+		, m_Position(properties.Position)
+		, m_LinearVelocity(properties.LinearVelocity)
+		, m_Force(properties.Force)
+		, m_Orientation(properties.Orientation)
+		, m_AngularVelocity(properties.AngularVelocity)
+		, m_Torque(properties.Torque)
 		, m_InvInertia(Maths::Matrix3::ZERO)
 		, m_OnCollisionCallback(nullptr)
 	{
-		m_localBoundingBox.Define(Maths::Vector3(-0.5f), Maths::Vector3(0.5f));
+        LUMOS_ASSERT(properties.Mass > 0.0f, "Mass <= 0");
+        m_InvMass = 1.0f / properties.Mass;
+    
+        m_localBoundingBox.Define(Maths::Vector3(-0.5f), Maths::Vector3(0.5f));
+
+        if(properties.Shape)
+            SetCollisionShape(properties.Shape);
+    
+        m_Static = properties.Static;
+        m_AtRest = properties.AtRest;
+        m_Elasticity = properties.Elasticity;
+        m_Friction = properties.Friction;
 	}
 
 	PhysicsObject3D::~PhysicsObject3D()
@@ -129,6 +144,28 @@ namespace Lumos
             DebugRenderer::DrawThickLineNDT(m_wsTransform.Translation(), m_wsTransform * m_Force, 0.02f,
                                             Maths::Vector4(0.0f, 0.0f, 1.0f, 1.0f));
 	}
+    
+        void PhysicsObject3D::SetCollisionShape(CollisionShapeType type)
+        {
+            switch (type)
+            {
+                case CollisionShapeType::CollisionCuboid:
+                    SetCollisionShape(new CuboidCollisionShape());
+                    break;
+                case CollisionShapeType::CollisionSphere:
+                    SetCollisionShape(new SphereCollisionShape());
+                    break;
+                case CollisionShapeType::CollisionPyramid:
+                    SetCollisionShape(new PyramidCollisionShape());
+                    break;
+                case CollisionShapeType::CollisionCapsule:
+                    SetCollisionShape(new CapsuleCollisionShape());
+                    break;
+                default:
+                    Lumos::Debug::Log::Error("Unsupported Collision shape");
+                    break;
+            }
+        }
 
 	nlohmann::json PhysicsObject3D::Serialise()
 	{

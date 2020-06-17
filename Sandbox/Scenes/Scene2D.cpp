@@ -16,7 +16,7 @@ void Scene2D::OnInit()
 {
 	Scene::OnInit();
 
-	Application::Instance()->GetSystem<LumosPhysicsEngine>()->SetPaused(true);
+	Application::Get().GetSystem<LumosPhysicsEngine>()->SetPaused(true);
     
 	LoadLuaScene("/Scripts/FlappyBirdTest.lua");
 
@@ -26,9 +26,9 @@ void Scene2D::OnInit()
 	camera.SetIsOrthographic(true);
 	m_Registry.emplace<NameComponent>(cameraEntity, "Camera");
 
-	auto audioSystem = Application::Instance()->GetSystem<AudioManager>();
+	auto audioSystem = Application::Get().GetSystem<AudioManager>();
 	if (audioSystem)
-		Application::Instance()->GetSystem<AudioManager>()->SetListener(&camera);
+		Application::Get().GetSystem<AudioManager>()->SetListener(&camera);
 
 	bool editor = false;
 
@@ -36,7 +36,7 @@ void Scene2D::OnInit()
 	editor = true;
 #endif
 
-	Application::Instance()->PushLayer(new Layer2D(new Graphics::Renderer2D(m_ScreenWidth, m_ScreenHeight, editor, true, false,false)));
+	PushLayer(new Layer2D(new Graphics::Renderer2D(m_ScreenWidth, m_ScreenHeight, editor, true, false,false)));
 }
 
 void Scene2D::OnUpdate(const TimeStep& timeStep)

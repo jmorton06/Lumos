@@ -31,7 +31,7 @@ namespace Lumos
 				pitch -= (ypos)* m_MouseSensitivity;
 				yaw   -= (xpos)* m_MouseSensitivity;
 
-				Application::Instance()->GetWindow()->SetMousePosition(windowCentre);
+				Application::Get().GetWindow()->SetMousePosition(windowCentre);
 
 				if (yaw < 0)
 					yaw += 360.0f;

@@ -122,10 +122,10 @@ namespace Lumos
 
 			AttachmentInfo textureTypesOffScreen[5] = 
 			{
-				{ TextureType::COLOUR, Application::Instance()->GetRenderManager()->GetGBuffer()->GetTextureFormat(SCREENTEX_COLOUR) },
-				{ TextureType::COLOUR, Application::Instance()->GetRenderManager()->GetGBuffer()->GetTextureFormat(SCREENTEX_POSITION) },
-				{ TextureType::COLOUR, Application::Instance()->GetRenderManager()->GetGBuffer()->GetTextureFormat(SCREENTEX_NORMALS) },
-				{ TextureType::COLOUR, Application::Instance()->GetRenderManager()->GetGBuffer()->GetTextureFormat(SCREENTEX_PBR) },
+				{ TextureType::COLOUR, Application::Get().GetRenderManager()->GetGBuffer()->GetTextureFormat(SCREENTEX_COLOUR) },
+				{ TextureType::COLOUR, Application::Get().GetRenderManager()->GetGBuffer()->GetTextureFormat(SCREENTEX_POSITION) },
+				{ TextureType::COLOUR, Application::Get().GetRenderManager()->GetGBuffer()->GetTextureFormat(SCREENTEX_NORMALS) },
+				{ TextureType::COLOUR, Application::Get().GetRenderManager()->GetGBuffer()->GetTextureFormat(SCREENTEX_PBR) },
 				{ TextureType::DEPTH, TextureFormat::DEPTH }
 			};
 
@@ -283,7 +283,7 @@ namespace Lumos
 				*modelMat = command.transform;
 				index++;
 			}
-			m_ModelUniformBuffer->SetDynamicData(static_cast<uint32_t>(MAX_OBJECTS * m_DynamicAlignment), sizeof(Maths::Matrix4), &*m_UBODataDynamic.model);
+			m_ModelUniformBuffer->SetDynamicData(static_cast<uint32_t>(index * m_DynamicAlignment), sizeof(Maths::Matrix4), &*m_UBODataDynamic.model);
 		}
 
 		void DeferredOffScreenRenderer::Present()
@@ -443,11 +443,11 @@ namespace Lumos
 			bufferInfo.attachmentTypes = attachmentTypes;
 
 			Texture* attachments[attachmentCount];
-			attachments[0] = Application::Instance()->GetRenderManager()->GetGBuffer()->GetTexture(SCREENTEX_COLOUR);
-			attachments[1] = Application::Instance()->GetRenderManager()->GetGBuffer()->GetTexture(SCREENTEX_POSITION);
-			attachments[2] = Application::Instance()->GetRenderManager()->GetGBuffer()->GetTexture(SCREENTEX_NORMALS);
-			attachments[3] = Application::Instance()->GetRenderManager()->GetGBuffer()->GetTexture(SCREENTEX_PBR);
-			attachments[4] = Application::Instance()->GetRenderManager()->GetGBuffer()->GetDepthTexture();
+			attachments[0] = Application::Get().GetRenderManager()->GetGBuffer()->GetTexture(SCREENTEX_COLOUR);
+			attachments[1] = Application::Get().GetRenderManager()->GetGBuffer()->GetTexture(SCREENTEX_POSITION);
+			attachments[2] = Application::Get().GetRenderManager()->GetGBuffer()->GetTexture(SCREENTEX_NORMALS);
+			attachments[3] = Application::Get().GetRenderManager()->GetGBuffer()->GetTexture(SCREENTEX_PBR);
+			attachments[4] = Application::Get().GetRenderManager()->GetGBuffer()->GetDepthTexture();
 			bufferInfo.attachments = attachments;
 
 			m_FBO = Framebuffer::Create(bufferInfo);
@@ -457,9 +457,6 @@ namespace Lumos
 		{
 			LUMOS_PROFILE_FUNC;
 			delete m_FBO;
-
-			if (m_RenderToGBufferTexture)
-				m_RenderTexture = Application::Instance()->GetRenderManager()->GetGBuffer()->GetTexture(SCREENTEX_OFFSCREEN0);
 
 			DeferredOffScreenRenderer::SetScreenBufferSize(width, height);
 

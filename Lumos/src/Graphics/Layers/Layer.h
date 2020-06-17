@@ -7,6 +7,11 @@
 namespace Lumos
 {
 	class Scene;
+    
+    namespace Graphics
+    {
+        class Texture;
+    }
 
 	class LUMOS_EXPORT Layer
 	{
@@ -21,6 +26,9 @@ namespace Lumos
 		virtual void OnRender(Scene* scene) {}
         virtual void OnNewScene(Scene* scene) {}
 		virtual void OnImGui() {}
+
+		//onlyIfTargetsScreen : so editor can override layers that render to screen
+        virtual void SetRenderTarget(Graphics::Texture* texture, bool onlyIfTargetsScreen = false, bool rebuildFramebuffer = true) {};
 
 		_FORCE_INLINE_ const std::string& GetName() const { return m_DebugName; }
 	protected:

@@ -57,7 +57,6 @@ namespace Lumos
 		{
 			DeferredRenderer::SetScreenBufferSize(width, height);
 			DeferredRenderer::Init();
-            SetRenderToGBufferTexture(renderToGBuffer);
 		}
 
 		DeferredRenderer::~DeferredRenderer()
@@ -329,7 +328,7 @@ namespace Lumos
             Maths::Vector4 cameraPos = Maths::Vector4(m_Camera->GetPosition());
             memcpy(m_PSSystemUniformBuffer + m_PSSystemUniformBufferOffsets[PSSystemUniformIndex_CameraPosition], &cameraPos, sizeof(Maths::Vector4));
             
-            auto shadowRenderer = Application::Instance()->GetRenderManager()->GetShadowRenderer();
+            auto shadowRenderer = Application::Get().GetRenderManager()->GetShadowRenderer();
             if (shadowRenderer)
             {
                 Maths::Matrix4* shadowTransforms = shadowRenderer->GetShadowProjView();
@@ -457,28 +456,16 @@ namespace Lumos
 			m_Pipeline = Graphics::Pipeline::Create(pipelineCI);
 		}
 
-		void DeferredRenderer::SetRenderTarget(Texture* texture)
+		void DeferredRenderer::SetRenderTarget(Texture* texture, bool rebuildFramebuffer)
 		{
 			m_RenderTexture = texture;
 
-			for (auto fbo : m_Framebuffers)
-				delete fbo;
-			m_Framebuffers.clear();
-
-			CreateFramebuffers();
-		}
-
-		void DeferredRenderer::SetRenderToGBufferTexture(bool set)
-		{
-            if(set)
+            if(rebuildFramebuffer)
             {
-                m_RenderToGBufferTexture = true;
-                m_RenderTexture = Application::Instance()->GetRenderManager()->GetGBuffer()->GetTexture(SCREENTEX_OFFSCREEN0);
-                
                 for (auto fbo : m_Framebuffers)
                     delete fbo;
                 m_Framebuffers.clear();
-                
+
                 CreateFramebuffers();
             }
 		}
@@ -606,10 +593,7 @@ namespace Lumos
 			for (auto fbo : m_Framebuffers)
 				delete fbo;
 			m_Framebuffers.clear();
-
-			if (m_RenderToGBufferTexture)
-				m_RenderTexture = Application::Instance()->GetRenderManager()->GetGBuffer()->GetTexture(SCREENTEX_OFFSCREEN0);
-
+			
 			DeferredRenderer::SetScreenBufferSize(width, height);
 
 			CreateFramebuffers();
@@ -625,22 +609,22 @@ namespace Lumos
 			std::vector<Graphics::ImageInfo> bufferInfos;
 
 			Graphics::ImageInfo imageInfo = {};
-			imageInfo.texture = { Application::Instance()->GetRenderManager()->GetGBuffer()->GetTexture(SCREENTEX_COLOUR) };
+			imageInfo.texture = { Application::Get().GetRenderManager()->GetGBuffer()->GetTexture(SCREENTEX_COLOUR) };
 			imageInfo.binding = 0;
 			imageInfo.name = "uColourSampler";
 
 			Graphics::ImageInfo imageInfo2 = {};
-			imageInfo2.texture = { Application::Instance()->GetRenderManager()->GetGBuffer()->GetTexture(SCREENTEX_POSITION) };
+			imageInfo2.texture = { Application::Get().GetRenderManager()->GetGBuffer()->GetTexture(SCREENTEX_POSITION) };
 			imageInfo2.binding = 1;
 			imageInfo2.name = "uPositionSampler";
 
 			Graphics::ImageInfo imageInfo3 = {};
-			imageInfo3.texture = { Application::Instance()->GetRenderManager()->GetGBuffer()->GetTexture(SCREENTEX_NORMALS) };
+			imageInfo3.texture = { Application::Get().GetRenderManager()->GetGBuffer()->GetTexture(SCREENTEX_NORMALS) };
 			imageInfo3.binding = 2;
 			imageInfo3.name = "uNormalSampler";
 
 			Graphics::ImageInfo imageInfo4 = {};
-			imageInfo4.texture = { Application::Instance()->GetRenderManager()->GetGBuffer()->GetTexture(SCREENTEX_PBR) };
+			imageInfo4.texture = { Application::Get().GetRenderManager()->GetGBuffer()->GetTexture(SCREENTEX_PBR) };
 			imageInfo4.binding = 3;
 			imageInfo4.name = "uPBRSampler";
 
@@ -662,7 +646,7 @@ namespace Lumos
             imageInfo7.name = "uIrradianceMap";
 
 			Graphics::ImageInfo imageInfo8 = {};
-			auto shadowRenderer = Application::Instance()->GetRenderManager()->GetShadowRenderer();
+			auto shadowRenderer = Application::Get().GetRenderManager()->GetShadowRenderer();
 			if (shadowRenderer)
 			{
 				imageInfo8.texture = { reinterpret_cast<Texture*>(shadowRenderer->GetTexture()) };
@@ -672,7 +656,7 @@ namespace Lumos
 			}
 
 			Graphics::ImageInfo imageInfo9 = {};
-			imageInfo9.texture = { Application::Instance()->GetRenderManager()->GetGBuffer()->GetDepthTexture() };
+			imageInfo9.texture = { Application::Get().GetRenderManager()->GetGBuffer()->GetDepthTexture() };
 			imageInfo9.binding = 8;
 			imageInfo9.type = TextureType::DEPTH;
 			imageInfo9.name = "uDepthSampler";

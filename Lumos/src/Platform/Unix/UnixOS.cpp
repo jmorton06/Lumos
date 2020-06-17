@@ -16,10 +16,10 @@ namespace Lumos
 		VFS::Get()->Mount("Textures", root + "/Assets/textures");
 		VFS::Get()->Mount("Sounds", root + "/Assets/sounds");
         
-        auto app = Lumos::Application::Instance();
-        app->Init();
-        app->Run();
-        delete app;
+        auto& app = Lumos::Application::Get();
+        app.Init();
+        app.Run();
+        app.Release();
     }
 
     void UnixOS::Init()

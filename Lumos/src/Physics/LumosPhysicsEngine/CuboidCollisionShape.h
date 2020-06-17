@@ -24,14 +24,17 @@ namespace Lumos
 		virtual void DebugDraw(const PhysicsObject3D* currentObject) const override;
 
 		//Set Cuboid Dimensions
-		void SetHalfWidth(float half_width) { m_CuboidHalfDimensions.x = fabs(half_width); }
-		void SetHalfHeight(float half_height) { m_CuboidHalfDimensions.y = fabs(half_height); }
-		void SetHalfDepth(float half_depth) { m_CuboidHalfDimensions.z = fabs(half_depth); }
+		void SetHalfWidth(float half_width) { m_CuboidHalfDimensions.x = fabs(half_width);  m_LocalTransform = Maths::Matrix4::Scale(m_CuboidHalfDimensions); }
+		void SetHalfHeight(float half_height) { m_CuboidHalfDimensions.y = fabs(half_height); m_LocalTransform = Maths::Matrix4::Scale(m_CuboidHalfDimensions); }
+		void SetHalfDepth(float half_depth) { m_CuboidHalfDimensions.z = fabs(half_depth); m_LocalTransform = Maths::Matrix4::Scale(m_CuboidHalfDimensions); }
 
 		//Get Cuboid Dimensions
 		float GetHalfWidth()	const { return m_CuboidHalfDimensions.x; }
 		float GetHalfHeight()	const { return m_CuboidHalfDimensions.y; }
 		float GetHalfDepth()	const { return m_CuboidHalfDimensions.z; }
+    
+        const Maths::Vector3& GetHalfDimensions() const { return m_CuboidHalfDimensions; }
+        void SetHalfDimensions(const Maths::Vector3& dims) { m_CuboidHalfDimensions = dims; m_LocalTransform = Maths::Matrix4::Scale(m_CuboidHalfDimensions); }
 
 		virtual float GetSize() const override { return m_CuboidHalfDimensions.x; }
 

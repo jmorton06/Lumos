@@ -74,29 +74,31 @@ namespace Lumos
 			Debug::Log::Error("[SceneManager] - Invalid Scene Index : {0}", m_QueuedSceneIndex);
             return;
         }
+
+		auto& app = Application::Get();
         
         //Clear up old scene
         if (m_CurrentScene)
         {
 			Debug::Log::Info("[SceneManager] - Exiting scene : {0}" , m_CurrentScene->GetSceneName());
-            Application::Instance()->GetSystem<LumosPhysicsEngine>()->SetPaused(true);
+            app.GetSystem<LumosPhysicsEngine>()->SetPaused(true);
             m_CurrentScene->OnCleanupScene();
-			Application::Instance()->OnExitScene();
+			app.OnExitScene();
         }
         
         m_SceneIdx = m_QueuedSceneIndex;
         m_CurrentScene = m_vpAllScenes[m_QueuedSceneIndex].get();
         
         //Initialize new scene
-        Application::Instance()->GetSystem<LumosPhysicsEngine>()->SetDefaults();
-        Application::Instance()->GetSystem<B2PhysicsEngine>()->SetDefaults();
+        app.GetSystem<LumosPhysicsEngine>()->SetDefaults();
+        app.GetSystem<B2PhysicsEngine>()->SetDefaults();
         
-        auto screenSize = Application::Instance()->GetWindowSize();
+        auto screenSize = app.GetWindowSize();
         m_CurrentScene->SetScreenWidth(static_cast<u32>(screenSize.x));
         m_CurrentScene->SetScreenHeight(static_cast<u32>(screenSize.y));
         m_CurrentScene->OnInit();
         
-        Application::Instance()->OnNewScene(m_CurrentScene);
+        Application::Get().OnNewScene(m_CurrentScene);
         
 		Debug::Log::Info("[SceneManager] - Scene switched to : {0}", m_CurrentScene->GetSceneName().c_str());
         

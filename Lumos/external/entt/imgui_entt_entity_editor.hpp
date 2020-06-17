@@ -91,14 +91,18 @@ class ImGuiEntityEditor {
 
                         std::string label = ci.name;
                         
-                        bool open = ImGui::CollapsingHeader(label.c_str(), ImGuiTreeNodeFlags_AllowItemOverlap);
+                        bool open = ImGui::CollapsingHeader(label.c_str(), ImGuiTreeNodeFlags_AllowItemOverlap | ImGuiTreeNodeFlags_DefaultOpen);
+                    
+                        bool removed = false;
+                    
+                        ImGui::SameLine(ImGui::GetContentRegionAvailWidth() - 16.0f);
 
-                        ImGui::SameLine(ImGui::GetWindowWidth() - 22.0f);
+                        ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.7f, 0.7f, 0.7f, 0.0f));
 
                         if (ImGui::Button((ICON_FA_COG"##" + label).c_str()))
                             ImGui::OpenPopup(("Remove Component" + label).c_str());
-
-                        bool removed = false;
+                        ImGui::PopStyleColor();
+                    
                         if (ImGui::BeginPopup(("Remove Component" + label).c_str(), 3))
                         {
                             if (ImGui::Selectable(("Remove##" + label).c_str()))

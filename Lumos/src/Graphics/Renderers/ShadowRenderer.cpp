@@ -240,9 +240,8 @@ namespace Lumos
 						auto bbCopy = bb->Transformed(worldTransform);
 						auto inside = f.IsInsideFast(bbCopy);
 
-						//Todo fix for open
-						//if (inside == Maths::Intersection::OUTSIDE)
-						//	continue;
+						if (inside == Maths::Intersection::OUTSIDE)
+							continue;
             
                         SubmitMesh(mesh.GetMesh(), nullptr, worldTransform, Maths::Matrix4());
 					}
@@ -514,7 +513,7 @@ namespace Lumos
 				*modelMat = command.transform;
 				index++;
 			}
-			m_ModelUniformBuffer->SetDynamicData(static_cast<uint32_t>(MAX_OBJECTS * m_DynamicAlignment), sizeof(Maths::Matrix4), &*uboDataDynamic.model);
+			m_ModelUniformBuffer->SetDynamicData(static_cast<uint32_t>(index * m_DynamicAlignment), sizeof(Maths::Matrix4), &*uboDataDynamic.model);
 		}
 
 		void ShadowRenderer::Submit(const RenderCommand& command)

@@ -33,7 +33,6 @@ namespace Lumos
 
             Renderer2D::SetScreenBufferSize(width, height);
 			Renderer2D::Init(triangleIndicies);
-			Renderer2D::SetRenderToGBufferTexture(renderToGBuffer);
 		}
 
 		Renderer2D::~Renderer2D()
@@ -50,11 +49,11 @@ namespace Lumos
 			for (auto frameBuffer : m_Framebuffers)
 				delete frameBuffer;
 
-			for (int i = 0; i < m_Limits.MaxBatchDrawCalls; i++)
-				delete m_VertexArrays[i];
-
-			for (int i = 0; i < m_Limits.MaxBatchDrawCalls; i++)
-				delete m_SecondaryCommandBuffers[i];
+			for (u32 i = 0; i < m_Limits.MaxBatchDrawCalls; i++)
+            {
+                delete m_VertexArrays[i];
+                delete m_SecondaryCommandBuffers[i];
+            }
 
 			for (auto& commandBuffer : m_CommandBuffers)
 			{
@@ -114,7 +113,7 @@ namespace Lumos
 
 			CreateGraphicsPipeline();
 
-			uint32_t bufferSize = static_cast<uint32_t>(sizeof(UniformBufferObject));
+			uint32_t bufferSize = static_cast<uint32_t>(sizeof(Maths::Matrix4));
 			m_UniformBuffer->Init(bufferSize, nullptr);
 
 			std::vector<Graphics::BufferInfo> bufferInfos;
@@ -122,7 +121,7 @@ namespace Lumos
 			Graphics::BufferInfo bufferInfo;
 			bufferInfo.buffer = m_UniformBuffer;
 			bufferInfo.offset = 0;
-			bufferInfo.size = sizeof(UniformBufferObject);
+			bufferInfo.size = bufferSize;
 			bufferInfo.type = Graphics::DescriptorType::UNIFORM_BUFFER;
 			bufferInfo.shaderType = ShaderType::VERTEX;
 			bufferInfo.systemUniforms = false;
@@ -161,15 +160,15 @@ namespace Lumos
 
             if(triangleIndicies)
             {
-                for (i32 i = 0; i < m_Limits.IndiciesSize; i++)
+                for (u32 i = 0; i < m_Limits.IndiciesSize; i++)
                 {
                     indices[i] = i;
                 }
             }
             else
             {
-                i32 offset = 0;
-                for (i32 i = 0; i < m_Limits.IndiciesSize; i += 6)
+                u32 offset = 0;
+                for (u32 i = 0; i < m_Limits.IndiciesSize; i += 6)
                 {
                     indices[i] = offset + 0;
                     indices[i + 1] = offset + 1;
@@ -313,7 +312,7 @@ namespace Lumos
 		{
 			shader->SetSystemUniformBuffer(ShaderType::VERTEX, m_VSSystemUniformBuffer, m_VSSystemUniformBufferSize, 0);
 
-			m_UniformBuffer->SetData(sizeof(UniformBufferObject), *&m_VSSystemUniformBuffer);
+			m_UniformBuffer->SetData(sizeof(Maths::Matrix4), *&m_VSSystemUniformBuffer);
 		}
 
 		void Renderer2D::BeginScene(Scene* scene)
@@ -440,9 +439,6 @@ namespace Lumos
 				delete fbo;
 			m_Framebuffers.clear();
 
-			if (m_RenderToGBufferTexture)
-				m_RenderTexture = Application::Instance()->GetRenderManager()->GetGBuffer()->GetTexture(SCREENTEX_OFFSCREEN0);
-
 			SetScreenBufferSize(width, height);
 
 			CreateFramebuffers();
@@ -532,7 +528,7 @@ namespace Lumos
             if(m_RenderToDepthTexture)
             {
                 attachmentTypes[1] = TextureType::DEPTH;
-                attachments[1] = reinterpret_cast<Texture*>(Application::Instance()->GetRenderManager()->GetGBuffer()->GetDepthTexture());
+                attachments[1] = reinterpret_cast<Texture*>(Application::Get().GetRenderManager()->GetGBuffer()->GetDepthTexture());
 
             }
 
@@ -581,7 +577,7 @@ namespace Lumos
 			m_DescriptorSet->Update(imageInfos);
 		}
 
-		void Renderer2D::SetRenderTarget(Texture* texture)
+		void Renderer2D::SetRenderTarget(Texture* texture, bool rebuildFramebuffer)
 		{
 			m_RenderTexture = texture;
 
@@ -592,21 +588,6 @@ namespace Lumos
 			CreateFramebuffers();
 		}
 
-		void Renderer2D::SetRenderToGBufferTexture(bool set)
-		{
-            if(set)
-            {
-                m_RenderToGBufferTexture = true;
-                m_RenderTexture = Application::Instance()->GetRenderManager()->GetGBuffer()->GetTexture(SCREENTEX_OFFSCREEN0);
-                
-                for (auto fbo : m_Framebuffers)
-                    delete fbo;
-                m_Framebuffers.clear();
-                
-                CreateFramebuffers();
-            }
-		}
-    
         void Renderer2D::FlushAndReset()
         {
             Present();

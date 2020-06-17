@@ -1,7 +1,8 @@
 #pragma once
 #include "lmpch.h"
 #include "Maths/Maths.h"
-#include "Core/Serialisable.h"
+
+#include <cereal/cereal.hpp>
 
 namespace Lumos
 {
@@ -44,17 +45,11 @@ namespace Lumos
 
 			void OnImGui();
 
-			nlohmann::json Serialise()
-			{
-				nlohmann::json output;
-				output["typeID"] = LUMOS_TYPENAME(Transform);
-
-				return output;
-			};
-
-			void Deserialise(nlohmann::json& data)
-			{
-			};
+            template<typename Archive>
+            void serialize(Archive &archive)
+            {
+                archive(cereal::make_nvp("Position", m_LocalPosition), cereal::make_nvp("Rotation", m_LocalOrientation), cereal::make_nvp("Scale", m_LocalScale));
+            }
 
 		protected:
 			Matrix4		m_LocalMatrix;
@@ -67,5 +62,15 @@ namespace Lumos
 			bool m_HasUpdated = false;
 			bool m_Dirty = false;
 		};
+    
+        template<typename Archive> void serialize(Archive& archive, Maths::Vector3& v3)
+        {
+            archive(cereal::make_nvp("x", v3.x), cereal::make_nvp("y", v3.y), cereal::make_nvp("z", v3.z));
+        }
+
+        template<typename Archive> void serialize(Archive& archive, Maths::Quaternion& quat)
+        {
+            archive(cereal::make_nvp("x", quat.x), cereal::make_nvp("y", quat.y), cereal::make_nvp("z", quat.z), cereal::make_nvp("w", quat.w));
+        }
 	}
 }

@@ -27,7 +27,7 @@ namespace Lumos
 		{
 			if (ImGui::TreeNode("Application"))
 			{
-				auto systems = Application::Instance()->GetSystemManager();
+				auto systems = Application::Get().GetSystemManager();
 
 				if (ImGui::TreeNode("Systems"))
 				{
@@ -35,7 +35,7 @@ namespace Lumos
 					ImGui::TreePop();
 				}
 
-				auto layerStack = Application::Instance()->GetLayerStack();
+				auto layerStack = Application::Get().GetLayerStack();
 				if (ImGui::TreeNode("Layers"))
 				{
 					layerStack->OnImGui();
@@ -43,40 +43,40 @@ namespace Lumos
 				}
 
 				ImGui::NewLine();
-				ImGui::Text("FPS : %5.2i", Engine::Instance()->GetFPS());
-				ImGui::Text("UPS : %5.2i", Engine::Instance()->GetUPS());
-				ImGui::Text("Frame Time : %5.2f ms", Engine::Instance()->GetFrametime());
+				ImGui::Text("FPS : %5.2i", Engine::Get().GetFPS());
+				ImGui::Text("UPS : %5.2i", Engine::Get().GetUPS());
+				ImGui::Text("Frame Time : %5.2f ms", Engine::Get().GetFrametime());
 				ImGui::NewLine();
-				ImGui::Text("Scene : %s", Application::Instance()->GetSceneManager()->GetCurrentScene()->GetSceneName().c_str());
+				ImGui::Text("Scene : %s", Application::Get().GetSceneManager()->GetCurrentScene()->GetSceneName().c_str());
 
 
 				if (ImGui::TreeNode("GBuffer"))
 				{
 					if (ImGui::TreeNode("Colour Texture"))
 					{
-						ImGuiHelpers::Image(Application::Instance()->GetRenderManager()->GetGBuffer()->GetTexture(Graphics::SCREENTEX_COLOUR), Maths::Vector2(128.0f,128.0f));
-						ImGuiHelpers::Tooltip(Application::Instance()->GetRenderManager()->GetGBuffer()->GetTexture(Graphics::SCREENTEX_COLOUR), Maths::Vector2(256.0f, 256.0f));
+						ImGuiHelpers::Image(Application::Get().GetRenderManager()->GetGBuffer()->GetTexture(Graphics::SCREENTEX_COLOUR), Maths::Vector2(128.0f,128.0f));
+						ImGuiHelpers::Tooltip(Application::Get().GetRenderManager()->GetGBuffer()->GetTexture(Graphics::SCREENTEX_COLOUR), Maths::Vector2(256.0f, 256.0f));
 
 						ImGui::TreePop();
 					}
 					if (ImGui::TreeNode("Normal Texture"))
 					{
-						ImGuiHelpers::Image(Application::Instance()->GetRenderManager()->GetGBuffer()->GetTexture(Graphics::SCREENTEX_NORMALS), Maths::Vector2(128.0f, 128.0f));
-						ImGuiHelpers::Tooltip(Application::Instance()->GetRenderManager()->GetGBuffer()->GetTexture(Graphics::SCREENTEX_NORMALS), Maths::Vector2(256.0f, 256.0f));
+						ImGuiHelpers::Image(Application::Get().GetRenderManager()->GetGBuffer()->GetTexture(Graphics::SCREENTEX_NORMALS), Maths::Vector2(128.0f, 128.0f));
+						ImGuiHelpers::Tooltip(Application::Get().GetRenderManager()->GetGBuffer()->GetTexture(Graphics::SCREENTEX_NORMALS), Maths::Vector2(256.0f, 256.0f));
 
 						ImGui::TreePop();
 					}
 					if (ImGui::TreeNode("PBR Texture"))
 					{
-						ImGuiHelpers::Image(Application::Instance()->GetRenderManager()->GetGBuffer()->GetTexture(Graphics::SCREENTEX_PBR), Maths::Vector2(128.0f, 128.0f));
-						ImGuiHelpers::Tooltip(Application::Instance()->GetRenderManager()->GetGBuffer()->GetTexture(Graphics::SCREENTEX_PBR), Maths::Vector2(256.0f, 256.0f));
+						ImGuiHelpers::Image(Application::Get().GetRenderManager()->GetGBuffer()->GetTexture(Graphics::SCREENTEX_PBR), Maths::Vector2(128.0f, 128.0f));
+						ImGuiHelpers::Tooltip(Application::Get().GetRenderManager()->GetGBuffer()->GetTexture(Graphics::SCREENTEX_PBR), Maths::Vector2(256.0f, 256.0f));
 
 						ImGui::TreePop();
 					}
 					if (ImGui::TreeNode("Position Texture"))
 					{
-						ImGuiHelpers::Image(Application::Instance()->GetRenderManager()->GetGBuffer()->GetTexture(Graphics::SCREENTEX_POSITION), Maths::Vector2(128.0f, 128.0f));
-						ImGuiHelpers::Tooltip(Application::Instance()->GetRenderManager()->GetGBuffer()->GetTexture(Graphics::SCREENTEX_POSITION), Maths::Vector2(256.0f, 256.0f));
+						ImGuiHelpers::Image(Application::Get().GetRenderManager()->GetGBuffer()->GetTexture(Graphics::SCREENTEX_POSITION), Maths::Vector2(128.0f, 128.0f));
+						ImGuiHelpers::Tooltip(Application::Get().GetRenderManager()->GetGBuffer()->GetTexture(Graphics::SCREENTEX_POSITION), Maths::Vector2(256.0f, 256.0f));
 
 						ImGui::TreePop();
 					}

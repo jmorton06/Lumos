@@ -9,7 +9,89 @@ namespace Lumos
 	{
 	public:
 		//Provide global access to the only instance of this class
-		static T* Instance()
+		static T& Get()
+		{
+			if (!m_pInstance)	//This if statement prevents the costly Lock-step being required each time the instance is requested
+			{
+				m_pInstance = lmnew T();
+			}
+			return *m_pInstance;
+		}
+
+		//Provide global access to release/delete this class
+		static void Release()
+		{
+			if (m_pInstance)
+			{
+				lmdel m_pInstance;
+				m_pInstance = nullptr;
+			}
+		}
+
+	protected:
+		//Only allow the class to be created and destroyed by itself
+		TSingleton() {}
+		~TSingleton() {}
+
+		static T* m_pInstance;
+
+	private:
+		NONCOPYABLE(TSingleton);
+	};
+
+	//Finally make sure that the instance is initialised to NULL at the start of the program
+	template <class T>
+	T* TSingleton<T>::m_pInstance = nullptr;
+    
+    template <class T>
+    class TSingletonInit
+    {
+    public:
+        //Provide global access to the only instance of this class
+        static T& Get()
+        {
+            LUMOS_ASSERT(m_pInstance == nullptr, "Singleton hasn't been Initialised");
+            return *m_pInstance;
+        }
+
+        template<typename... TArgs>
+        static void Init(TArgs... args)
+        {
+            LUMOS_ASSERT(m_pInstance == nullptr, "Calling Init twice");
+            m_pInstance = new T(std::forward<TArgs>(args)...);
+        }
+
+        //Provide global access to release/delete this class
+        static void Release()
+        {
+            if (m_pInstance)
+            {
+                lmdel m_pInstance;
+                m_pInstance = nullptr;
+            }
+        }
+
+    protected:
+        //Only allow the class to be created and destroyed by itself
+        TSingletonInit() {}
+        ~TSingletonInit() {}
+
+        static T* m_pInstance;
+
+    private:
+        NONCOPYABLE(TSingletonInit);
+    };
+
+    template <class T>
+    T* TSingletonInit<T>::m_pInstance = nullptr;
+
+
+	template <class T>
+	class ThreadSafeSingleton
+	{
+	public:
+		//Provide global access to the only instance of this class
+		static T& Get()
 		{
 			if (!m_pInstance)	//This if statement prevents the costly Lock-step being required each time the instance is requested
 			{
@@ -19,7 +101,7 @@ namespace Lumos
 					m_pInstance = lmnew T();
 				}
 			}
-			return m_pInstance;
+			return *m_pInstance;
 		}
 
 		//Provide global access to release/delete this class
@@ -36,18 +118,20 @@ namespace Lumos
 
 	protected:
 		//Only allow the class to be created and destroyed by itself
-		TSingleton() {}
-		~TSingleton() {}
+		ThreadSafeSingleton() {}
+		~ThreadSafeSingleton() {}
 
 		static T* m_pInstance;
 		//Keep a static instance pointer to refer to as required by the rest of the program
 		static std::mutex m_mConstructed;
 
 	private:
-		NONCOPYABLE(TSingleton);
+		NONCOPYABLE(ThreadSafeSingleton);
 	};
 
 	//Finally make sure that the instance is initialised to NULL at the start of the program
-	template <class T> std::mutex TSingleton<T>::m_mConstructed;
-	template <class T> T* TSingleton<T>::m_pInstance = nullptr;
+	template <class T> 
+	std::mutex ThreadSafeSingleton<T>::m_mConstructed;
+	template <class T>
+	T* ThreadSafeSingleton<T>::m_pInstance = nullptr;
 }

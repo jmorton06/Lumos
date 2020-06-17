@@ -21,12 +21,28 @@ namespace Lumos
 	//			  > This can be useful for AI to see if a player/agent is inside an area/collision volume
 	typedef std::function<bool(PhysicsObject3D* this_obj, PhysicsObject3D* colliding_obj)> PhysicsCollisionCallback;
 
+    struct Physics3DProperties
+    {
+        Maths::Vector3 Position = Maths::Vector3(0.0f);
+        Maths::Vector3 LinearVelocity = Maths::Vector3(0.0f);
+        Maths::Vector3 Force = Maths::Vector3(0.0f);
+        float Mass = 1.0f;
+        Maths::Quaternion Orientation = Maths::Quaternion();
+        Maths::Vector3 AngularVelocity = Maths::Vector3(0.0f);
+        Maths::Vector3 Torque = Maths::Vector3(0.0f);
+        bool Static = false;
+        float Elasticity = 0.9f;
+        float Friction = 0.8f;
+        bool AtRest = false;
+        Ref<CollisionShape> Shape = nullptr;
+    };
+    
 	class LUMOS_EXPORT PhysicsObject3D : public PhysicsObject
 	{
 		friend class LumosPhysicsEngine;
 
 	public:
-		PhysicsObject3D();
+		PhysicsObject3D(const Physics3DProperties& properties = Physics3DProperties());
 		virtual ~PhysicsObject3D();
 
 		//<--------- GETTERS ------------->
@@ -38,7 +54,6 @@ namespace Lumos
 		const Maths::Vector3&	 GetAngularVelocity()	  const { return m_AngularVelocity; }
 		const Maths::Vector3&	 GetTorque()			  const { return m_Torque; }
 		const Maths::Matrix3&	 GetInverseInertia()	  const { return m_InvInertia; }
-		const Ref<CollisionShape>&	GetCollisionShape()	  const { return m_CollisionShape; }
 		const Maths::Matrix4&	 GetWorldSpaceTransform() const;	//Built from scratch or returned from cached value
 
 		Maths::BoundingBox GetWorldSpaceAABB();
@@ -77,7 +92,6 @@ namespace Lumos
 
         void SetLinearVelocity(const Maths::Vector3& v) { if(m_Static) return; m_LinearVelocity = v; }
 		void SetForce(const Maths::Vector3& v) { if(m_Static) return; m_Force = v; }
-		void SetInverseMass(const float& v) { m_InvMass = v; }
 
 		void SetOrientation(const Maths::Quaternion& v)
 		{
@@ -89,8 +103,6 @@ namespace Lumos
 		void SetAngularVelocity(const Maths::Vector3& v) { if(m_Static) return; m_AngularVelocity = v; }
 		void SetTorque(const Maths::Vector3& v) {if(m_Static) return;  m_Torque = v; }
 		void SetInverseInertia(const Maths::Matrix3& v) { m_InvInertia = v; }
-
-		void SetCollisionShape(const Ref<CollisionShape>& colShape) { m_CollisionShape = colShape; AutoResizeBoundingBox(); }
 
 		//<---------- CALLBACKS ------------>
 		void SetOnCollisionCallback(PhysicsCollisionCallback& callback) { m_OnCollisionCallback = callback; }
@@ -126,6 +138,48 @@ namespace Lumos
 
 		nlohmann::json Serialise() override;
 		void Deserialise(nlohmann::json& data) override;
+    
+        void SetCollisionShape(const Ref<CollisionShape>& shape)
+        {
+            m_CollisionShape = shape;
+            m_InvInertia = m_CollisionShape->BuildInverseInertia(m_InvMass);
+            AutoResizeBoundingBox();
+        }
+    
+        void SetCollisionShape(CollisionShape* shape)
+        {
+            m_CollisionShape = Ref<CollisionShape>(shape);
+            m_InvInertia = m_CollisionShape->BuildInverseInertia(m_InvMass);
+            AutoResizeBoundingBox();
+        }
+    
+        void SetCollisionShape(CollisionShapeType type);
+
+        void CollisionShapeUpdated()
+        {
+            if(m_CollisionShape)
+                m_InvInertia = m_CollisionShape->BuildInverseInertia(m_InvMass);
+            AutoResizeBoundingBox();
+        }
+
+    
+        void SetInverseMass(const float& v)
+        {
+            m_InvMass = v;
+            if(m_CollisionShape)
+                m_InvInertia = m_CollisionShape->BuildInverseInertia(m_InvMass);
+        }
+    
+        void SetMass(const float& v)
+        {
+            LUMOS_ASSERT(v > 0, "Physics object mass <= 0");
+            m_InvMass = 1.0f / v;
+
+            if(m_CollisionShape)
+                m_InvInertia = m_CollisionShape->BuildInverseInertia(m_InvMass);
+        }
+
+        const Ref<CollisionShape>& GetCollisionShape() const { return m_CollisionShape; }
 
 	protected:
 		mutable bool		m_wsTransformInvalidated;

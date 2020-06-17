@@ -60,17 +60,17 @@ namespace Lumos
         s_Instance = this;
 
         auto app = Lumos::CreateApplication();
-        app->Init();
+        app.Init();
     }
 
     void iOSOS::OnFrame()
     {
-        Application::Instance()->OnFrame();
+        Application::Get().OnFrame();
     }
     
     void iOSOS::OnQuit()
     {
-        delete Application::Instance();
+        delete Application::Get();
 	    Lumos::Internal::CoreSystem::Shutdown();
     }
     
@@ -81,22 +81,22 @@ namespace Lumos
     
     void iOSOS::OnKeyPressed(char keycode, bool down)
     {
-        ((iOSWindow*)Application::Instance()->GetWindow())->OnKeyEvent((Lumos::InputCode::Key)Lumos::iOSKeyCodes::iOSKeyToLumos(keycode), down);
+        ((iOSWindow*)Application::Get().GetWindow())->OnKeyEvent((Lumos::InputCode::Key)Lumos::iOSKeyCodes::iOSKeyToLumos(keycode), down);
     }
 
     void iOSOS::OnScreenPressed(u32 x, u32 y, u32 count, bool down)
     {
-        ((iOSWindow*)Application::Instance()->GetWindow())->OnTouchEvent(x,y,count, down);
+        ((iOSWindow*)Application::Get().GetWindow())->OnTouchEvent(x,y,count, down);
     }
 
     void iOSOS::OnMouseMovedEvent(u32 xPos, u32 yPos)
     {
-        ((iOSWindow*)Application::Instance()->GetWindow())->OnMouseMovedEvent(xPos,yPos);
+        ((iOSWindow*)Application::Get().GetWindow())->OnMouseMovedEvent(xPos,yPos);
     }
     
     void iOSOS::OnScreenResize(u32 width, u32 height)
     {
-        ((iOSWindow*)Application::Instance()->GetWindow())->OnResizeEvent(width, height);
+        ((iOSWindow*)Application::Get().GetWindow())->OnResizeEvent(width, height);
     }
 
     String iOSOS::GetExecutablePath()

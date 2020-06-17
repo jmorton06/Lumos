@@ -32,6 +32,11 @@ namespace Lumos::Maths
 			}
 		}
 	}
+    
+    bool Matrix4::IsDepthZeroOne()
+    {
+        return CONFIG_CLIP_CONTROL == CLIP_CONTROL_RH_ZO || CONFIG_CLIP_CONTROL == CLIP_CONTROL_LH_ZO;
+    }
 
     const Matrix4 Matrix4::ZERO(
         0.0f, 0.0f, 0.0f, 0.0f,

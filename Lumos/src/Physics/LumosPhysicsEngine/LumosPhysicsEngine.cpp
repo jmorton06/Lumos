@@ -11,6 +11,7 @@
 #include "Core/Profiler.h"
 
 #include "ECS/Component/Physics3DComponent.h"
+
 #include "Maths/Transform.h"
 
 #include <imgui/imgui.h>
@@ -78,7 +79,9 @@ namespace Lumos
                 auto& physicsObj = phys.GetPhysicsObject();
                                
                 if(physicsObj)
-                    m_PhysicsObjects.emplace_back(physicsObj);
+                {
+                    m_PhysicsObjects.push_back(physicsObj);
+                }
             };
             
 			if (m_MultipleUpdates)
@@ -288,7 +291,7 @@ namespace Lumos
 				if (shapeA && shapeB)
 				{
 					// Detects if the objects are colliding - Seperating Axis Theorem
-					if (CollisionDetection::Instance()->CheckCollision(cp.pObjectA, cp.pObjectB, shapeA.get(), shapeB.get(), &colData))
+					if (CollisionDetection::Get().CheckCollision(cp.pObjectA, cp.pObjectB, shapeA.get(), shapeB.get(), &colData))
 					{
 						// Check to see if any of the objects have collision callbacks that dont
 						// want the objects to physically collide
@@ -303,7 +306,7 @@ namespace Lumos
 							manifold->Initiate(cp.pObjectA, cp.pObjectB);
 
 							// Construct contact points that form the perimeter of the collision manifold
-							if (CollisionDetection::Instance()->BuildCollisionManifold(cp.pObjectA, cp.pObjectB, shapeA.get(), shapeB.get(), colData, manifold))
+							if (CollisionDetection::Get().BuildCollisionManifold(cp.pObjectA, cp.pObjectB, shapeA.get(), shapeB.get(), colData, manifold))
 							{
 								// Fire callback
 								cp.pObjectA->FireOnCollisionManifoldCallback(cp.pObjectA, cp.pObjectB, manifold);

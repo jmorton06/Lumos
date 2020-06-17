@@ -60,7 +60,7 @@ namespace Lumos
 				descriptorLayoutCI.pBindings = setLayoutBindings.data();
 
 				VkDescriptorSetLayout layout;
-				vkCreateDescriptorSetLayout(VKDevice::Instance()->GetDevice(), &descriptorLayoutCI, VK_NULL_HANDLE, &layout);
+				vkCreateDescriptorSetLayout(VKDevice::Get().GetDevice(), &descriptorLayoutCI, VK_NULL_HANDLE, &layout);
 
 				m_DescriptorLayouts.push_back(layout);
 			}
@@ -70,7 +70,7 @@ namespace Lumos
 			pipelineLayoutCreateInfo.setLayoutCount = static_cast<uint32_t>(m_DescriptorLayouts.size());
 			pipelineLayoutCreateInfo.pSetLayouts = m_DescriptorLayouts.data();
 
-			auto result = vkCreatePipelineLayout(VKDevice::Instance()->GetDevice(), &pipelineLayoutCreateInfo, VK_NULL_HANDLE, &m_PipelineLayout);
+			auto result = vkCreatePipelineLayout(VKDevice::Get().GetDevice(), &pipelineLayoutCreateInfo, VK_NULL_HANDLE, &m_PipelineLayout);
 			if (result != VK_SUCCESS)
 				return false;
 
@@ -93,7 +93,7 @@ namespace Lumos
 			descriptorPoolInfo.pPoolSizes = poolSizes.data();
 			descriptorPoolInfo.maxSets = pipelineCI.maxObjects;
 
-			VK_CHECK_RESULT(vkCreateDescriptorPool(VKDevice::Instance()->GetDevice(), &descriptorPoolInfo, nullptr, &m_DescriptorPool));
+			VK_CHECK_RESULT(vkCreateDescriptorPool(VKDevice::Get().GetDevice(), &descriptorPoolInfo, nullptr, &m_DescriptorPool));
 
 			DescriptorInfo info;
 			info.pipeline = this;
@@ -289,20 +289,20 @@ namespace Lumos
 			graphicsPipelineCI.renderPass = static_cast<VKRenderpass*>(pipelineCI.renderpass)->GetRenderpass();
 			graphicsPipelineCI.subpass = 0;
 
-			VK_CHECK_RESULT(vkCreateGraphicsPipelines(VKDevice::Instance()->GetDevice(), VKDevice::Instance()->GetPipelineCache(), 1, &graphicsPipelineCI, VK_NULL_HANDLE, &m_Pipeline));
+			VK_CHECK_RESULT(vkCreateGraphicsPipelines(VKDevice::Get().GetDevice(), VKDevice::Get().GetPipelineCache(), 1, &graphicsPipelineCI, VK_NULL_HANDLE, &m_Pipeline));
 
 			return true;
 		}
 
 		void VKPipeline::Unload() const
 		{
-			vkDestroyDescriptorPool(VKDevice::Instance()->GetDevice(), m_DescriptorPool, VK_NULL_HANDLE);
-			vkDestroyPipelineLayout(VKDevice::Instance()->GetDevice(), m_PipelineLayout, VK_NULL_HANDLE);
+			vkDestroyDescriptorPool(VKDevice::Get().GetDevice(), m_DescriptorPool, VK_NULL_HANDLE);
+			vkDestroyPipelineLayout(VKDevice::Get().GetDevice(), m_PipelineLayout, VK_NULL_HANDLE);
 
 			for (auto& descriptorLayout : m_DescriptorLayouts)
-				vkDestroyDescriptorSetLayout(VKDevice::Instance()->GetDevice(), descriptorLayout, VK_NULL_HANDLE);
+				vkDestroyDescriptorSetLayout(VKDevice::Get().GetDevice(), descriptorLayout, VK_NULL_HANDLE);
 
-			vkDestroyPipeline(VKDevice::Instance()->GetDevice(), m_Pipeline, VK_NULL_HANDLE);
+			vkDestroyPipeline(VKDevice::Get().GetDevice(), m_Pipeline, VK_NULL_HANDLE);
 		}
 
 		void VKPipeline::SetActive(CommandBuffer* cmdBuffer)
@@ -319,7 +319,7 @@ namespace Lumos
 			descSetAllocInfo[0].descriptorPool = m_DescriptorPool;
 			descSetAllocInfo[0].descriptorSetCount = 1;
 			descSetAllocInfo[0].pSetLayouts = m_DescriptorLayouts.data();
-			VK_CHECK_RESULT(vkAllocateDescriptorSets(VKDevice::Instance()->GetDevice(), descSetAllocInfo, &set));
+			VK_CHECK_RESULT(vkAllocateDescriptorSets(VKDevice::Get().GetDevice(), descSetAllocInfo, &set));
 			return set;
 		}
         

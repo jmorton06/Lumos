@@ -121,7 +121,7 @@ namespace Lumos
     
         u32 m_DebugDrawFlags = 0;
 
-		bool m_MultipleUpdates = true;
+		bool m_MultipleUpdates = false;
         static float s_UpdateTimestep;
 	};
 }

@@ -24,16 +24,34 @@ namespace Lumos
 		virtual void GetIncidentReferencePolygon(const PhysicsObject3D* currentObject, const Maths::Vector3& axis, std::list<Maths::Vector3>* out_face, Maths::Vector3* out_normal, std::vector<Maths::Plane>* out_adjacent_planes) const override;
 
 		virtual void DebugDraw(const PhysicsObject3D* currentObject) const override;
+    
+        const Maths::Vector3& GetHalfDimensions() const { return m_PyramidHalfDimensions; }
+        void SetHalfDimensions(const Maths::Vector3& dims)
+        {
+            m_PyramidHalfDimensions = dims;
 
-		//Set Cuboid Dimensions
-		void SetHalfWidth(float half_width) { m_PyramidHalfDimensions.x = fabs(half_width); }
-		void SetHalfHeight(float half_height) { m_PyramidHalfDimensions.y = fabs(half_height); }
-		void SetHalfDepth(float half_depth) { m_PyramidHalfDimensions.z = fabs(half_depth); }
+            m_LocalTransform = Maths::Matrix4::Scale(m_PyramidHalfDimensions);
+            m_Type = CollisionShapeType::CollisionPyramid;
 
-		//Get Cuboid Dimensions
-		float GetHalfWidth()	const { return m_PyramidHalfDimensions.x; }
-		float GetHalfHeight()	const { return m_PyramidHalfDimensions.y; }
-		float GetHalfDepth()	const { return m_PyramidHalfDimensions.z; }
+            Maths::Vector3 m_Points[5] = {
+                m_LocalTransform * Maths::Vector3(-1.0f, -1.0f, -1.0f),
+                m_LocalTransform * Maths::Vector3(-1.0f, -1.0f, 1.0f),
+                m_LocalTransform * Maths::Vector3(1.0f, -1.0f, 1.0f),
+                m_LocalTransform * Maths::Vector3(1.0f, -1.0f, -1.0f),
+                m_LocalTransform * Maths::Vector3(0.0f, 1.0f, 0.0f)
+            };
+
+            m_Normals[0] = Maths::Vector3::Cross(m_Points[0] - m_Points[3], m_Points[4] - m_Points[3]).Normalized();
+            m_Normals[1] = Maths::Vector3::Cross(m_Points[1] - m_Points[0], m_Points[4] - m_Points[0]).Normalized();
+            m_Normals[2] = Maths::Vector3::Cross(m_Points[2] - m_Points[1], m_Points[4] - m_Points[1]).Normalized();
+            m_Normals[3] = Maths::Vector3::Cross(m_Points[3] - m_Points[2], m_Points[4] - m_Points[2]).Normalized();
+            m_Normals[4] = Maths::Vector3(0.0f, -1.0f, 0.0f);
+
+            if (m_PyramidHull->GetNumVertices() == 0)
+            {
+                ConstructPyramidHull();
+            }
+        }
 
 		float GetSize() const override { return m_PyramidHalfDimensions.x; };
 

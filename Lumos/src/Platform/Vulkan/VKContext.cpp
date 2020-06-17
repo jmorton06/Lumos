@@ -227,7 +227,7 @@ namespace Lumos
 
 		size_t VKContext::GetMinUniformBufferOffsetAlignment() const
 		{
-			return Graphics::VKDevice::Instance()->GetGPUProperties().limits.minUniformBufferOffsetAlignment;
+			return Graphics::VKDevice::Get().GetGPUProperties().limits.minUniformBufferOffsetAlignment;
 		}
 
 		void VKContext::CreateInstance()
@@ -350,7 +350,7 @@ namespace Lumos
             
 			if (ImGui::TreeNode("Physical Devices"))
 			{
-                auto physicalDevice = VKDevice::Instance()->GetGPU();
+                auto physicalDevice = VKDevice::Get().GetGPU();
 				VkPhysicalDeviceProperties properties;
 				vkGetPhysicalDeviceProperties(physicalDevice, &properties);
 
@@ -396,7 +396,7 @@ namespace Lumos
             ImGui::NewLine();
             
 #ifdef USE_VMA_ALLOCATOR
-            VmaAllocator allocator = VKDevice::Instance()->GetAllocator();
+            VmaAllocator allocator = VKDevice::Get().GetAllocator();
             
             VmaStats stats;
             vmaCalculateStats(allocator, &stats);
@@ -485,7 +485,7 @@ namespace Lumos
     
         void VKContext::WaitIdle() const
         {
-            vkDeviceWaitIdle(VKDevice::Instance()->GetDevice());
+            vkDeviceWaitIdle(VKDevice::Get().GetDevice());
         }
         
 #ifdef USE_VMA_ALLOCATOR

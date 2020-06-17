@@ -95,10 +95,12 @@ namespace Lumos::Maths
     {
         Matrix4 projInverse = projection.Inverse();
 
-        vertices_[0] = projInverse * Vector3(1.0f, 1.0f, 0.0f);
-        vertices_[1] = projInverse * Vector3(1.0f, -1.0f, 0.0f);
-        vertices_[2] = projInverse * Vector3(-1.0f, -1.0f, 0.0f);
-        vertices_[3] = projInverse * Vector3(-1.0f, 1.0f, 0.0f);
+        bool zeroOne = Matrix4::IsDepthZeroOne();
+    
+        vertices_[0] = projInverse * Vector3(1.0f, 1.0f, zeroOne ? 0.0f : -1.0f);
+        vertices_[1] = projInverse * Vector3(1.0f, -1.0f, zeroOne ? 0.0f : -1.0f);
+        vertices_[2] = projInverse * Vector3(-1.0f, -1.0f, zeroOne ? 0.0f : -1.0f);
+        vertices_[3] = projInverse * Vector3(-1.0f, 1.0f, zeroOne ? 0.0f : -1.0f);
         vertices_[4] = projInverse * Vector3(1.0f, 1.0f, 1.0f);
         vertices_[5] = projInverse * Vector3(1.0f, -1.0f, 1.0f);
         vertices_[6] = projInverse * Vector3(-1.0f, -1.0f, 1.0f);

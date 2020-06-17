@@ -75,16 +75,10 @@ namespace Lumos
 			virtual void OnResize(u32 width, u32 height);
 			virtual void PresentToScreen();
 			virtual void SetScreenBufferSize(u32 width, u32 height);
-			virtual void SetRenderTarget(Texture* texture);
-			virtual void SetRenderToGBufferTexture(bool set);
+			virtual void SetRenderTarget(Texture* texture, bool rebuildFrameBuffer = true);
 
 			void SetSystemUniforms(Shader* shader) const;
 			float SubmitTexture(Texture* texture);
-
-			struct UniformBufferObject
-			{
-				Maths::Matrix4 projView;
-			};
 
 			u8* m_VSSystemUniformBuffer{};
 			u32 m_VSSystemUniformBufferSize{};
@@ -98,6 +92,7 @@ namespace Lumos
 
 			Shader* GetShader() const { return m_Shader; }
             void SetCamera(Camera* camera) { m_Camera = camera; }
+			Texture* GetRenderTarget() const { return m_RenderTexture; }
 
 		private:
         
@@ -131,7 +126,6 @@ namespace Lumos
 			std::vector<Texture*> m_Textures;
 
 			Texture* m_RenderTexture;
-			bool m_RenderToGBufferTexture = false;
 			u32 m_CurrentBufferID = 0;
 			Maths::Vector4 m_ClearColour;
             Maths::Vector3 m_QuadPositions[4];

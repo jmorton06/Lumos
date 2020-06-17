@@ -6,80 +6,106 @@
 #include <imgui/imgui.h>
 #include <imgui/imgui_internal.h>
 
+static ImVec4 operator+(const ImVec4 &a, const ImVec4 &b) {
+    return ImVec4(a.x + b.x, a.y + b.y, a.z + b.z, a.w + b.w);
+}
+
 namespace Lumos
 {
-	void ImGuiHelpers::Property(const String& name, bool& value)
+	bool ImGuiHelpers::Property(const String& name, bool& value)
 	{
+        bool updated = false;
         ImGui::TextUnformatted(name.c_str());
 		ImGui::NextColumn();
 		ImGui::PushItemWidth(-1);
 
 		String id = "##" + name;
-		ImGui::Checkbox(id.c_str(), &value);
+		if(ImGui::Checkbox(id.c_str(), &value))
+            updated = true;
 
 		ImGui::PopItemWidth();
 		ImGui::NextColumn();
+    
+        return updated;
 	}
 
-	void ImGuiHelpers::Property(const String& name, float& value, float min, float max, ImGuiHelpers::PropertyFlag flags)
+	bool ImGuiHelpers::Property(const String& name, float& value, float min, float max, ImGuiHelpers::PropertyFlag flags)
 	{
+        bool updated = false;
+
 		ImGui::TextUnformatted(name.c_str());
 		ImGui::NextColumn();
 		ImGui::PushItemWidth(-1);
 
 		String id = "##" + name;
-		ImGui::SliderFloat(id.c_str(), &value, min, max);
+		if(ImGui::SliderFloat(id.c_str(), &value, min, max))
+            updated = true;
 
 		ImGui::PopItemWidth();
 		ImGui::NextColumn();
+    
+        return updated;
 	}
 
-	void ImGuiHelpers::Property(const String& name, Maths::Vector2& value, ImGuiHelpers::PropertyFlag flags)
+	bool ImGuiHelpers::Property(const String& name, Maths::Vector2& value, ImGuiHelpers::PropertyFlag flags)
 	{
-		ImGuiHelpers::Property(name, value, -1.0f, 1.0f, flags);
+		return ImGuiHelpers::Property(name, value, -1.0f, 1.0f, flags);
 	}
 
-	void ImGuiHelpers::Property(const String& name, Maths::Vector2& value, float min, float max, ImGuiHelpers::PropertyFlag flags)
+	bool ImGuiHelpers::Property(const String& name, Maths::Vector2& value, float min, float max, ImGuiHelpers::PropertyFlag flags)
 	{
+        bool updated = false;
+
 		ImGui::TextUnformatted(name.c_str());
 		ImGui::NextColumn();
 		ImGui::PushItemWidth(-1);
 
 		String id = "##" + name;
-		ImGui::SliderFloat2(id.c_str(), Maths::ValuePointer(value), min, max);
+		if(ImGui::SliderFloat2(id.c_str(), Maths::ValuePointer(value), min, max))
+            updated = true;
 
 		ImGui::PopItemWidth();
 		ImGui::NextColumn();
+    
+        return updated;
 	}
 
-	void ImGuiHelpers::Property(const String& name, Maths::Vector3& value, ImGuiHelpers::PropertyFlag flags)
+	bool ImGuiHelpers::Property(const String& name, Maths::Vector3& value, ImGuiHelpers::PropertyFlag flags)
 	{
-		ImGuiHelpers::Property(name, value, -1.0f, 1.0f, flags);
+		return ImGuiHelpers::Property(name, value, -1.0f, 1.0f, flags);
 	}
 
-	void ImGuiHelpers::Property(const String& name, Maths::Vector3& value, float min, float max, ImGuiHelpers::PropertyFlag flags)
+	bool ImGuiHelpers::Property(const String& name, Maths::Vector3& value, float min, float max, ImGuiHelpers::PropertyFlag flags)
 	{
+        bool updated = false;
+
         ImGui::TextUnformatted(name.c_str());
 		ImGui::NextColumn();
 		ImGui::PushItemWidth(-1);
 
 		String id = "##" + name;
 		if ((int)flags & (int)PropertyFlag::ColorProperty)
-			ImGui::ColorEdit3(id.c_str(), Maths::ValuePointer(value), ImGuiColorEditFlags_NoInputs);
+			if(ImGui::ColorEdit3(id.c_str(), Maths::ValuePointer(value), ImGuiColorEditFlags_NoInputs))
+                updated = true;
 		else
-			ImGui::SliderFloat3(id.c_str(), Maths::ValuePointer(value), min, max);
+			if(ImGui::SliderFloat3(id.c_str(), Maths::ValuePointer(value), min, max))
+                updated = true;
 
 		ImGui::PopItemWidth();
 		ImGui::NextColumn();
+
+        return updated;
 	}
 
-	void ImGuiHelpers::Property(const String& name, Maths::Vector4& value, ImGuiHelpers::PropertyFlag flags)
+	bool ImGuiHelpers::Property(const String& name, Maths::Vector4& value, bool exposeW, ImGuiHelpers::PropertyFlag flags)
 	{
-		Property(name, value, -1.0f, 1.0f, flags);
+		return Property(name, value, -1.0f, 1.0f, exposeW, flags);
 	}
 
-	void ImGuiHelpers::Property(const String& name, Maths::Vector4& value, float min, float max, ImGuiHelpers::PropertyFlag flags)
+	bool ImGuiHelpers::Property(const String& name, Maths::Vector4& value, float min, float max, bool exposeW, ImGuiHelpers::PropertyFlag flags)
 	{
+        bool updated = false;
+
 		ImGui::AlignTextToFramePadding();
         ImGui::TextUnformatted(name.c_str());
 		ImGui::NextColumn();
@@ -87,12 +113,19 @@ namespace Lumos
 
 		String id = "##" + name;
 		if ((int)flags & (int)PropertyFlag::ColorProperty)
-			ImGui::ColorEdit4(id.c_str(), Maths::ValuePointer(value), ImGuiColorEditFlags_NoInputs);
+        {
+            if(ImGui::ColorEdit4(id.c_str(), Maths::ValuePointer(value), ImGuiColorEditFlags_NoInputs))
+            updated = true;
+        
+        }
 		else
-			ImGui::SliderFloat4(id.c_str(), Maths::ValuePointer(value), min, max);
+			if((exposeW ? ImGui::SliderFloat4(id.c_str(), Maths::ValuePointer(value), min, max) : ImGui::SliderFloat3(id.c_str(), Maths::ValuePointer(value), min, max)))
+                updated = true;
 
 		ImGui::PopItemWidth();
 		ImGui::NextColumn();
+    
+        return updated;
 	}
 
 	void ImGuiHelpers::Tooltip(const String & text)
@@ -347,9 +380,9 @@ namespace Lumos
 			colours[ImGuiCol_SliderGrab] = ImVec4(0.28f, 0.56f, 1.00f, 1.00f);
 			colours[ImGuiCol_SliderGrabActive] = ImVec4(0.37f, 0.61f, 1.00f, 1.00f);
 			colours[ImGuiCol_Button] = ImVec4(0.20f, 0.25f, 0.29f, 1.00f);
-			colours[ImGuiCol_ButtonHovered] = ImVec4(0.28f, 0.56f, 1.00f, 1.00f);
-			colours[ImGuiCol_ButtonActive] = ImVec4(0.06f, 0.53f, 0.98f, 1.00f);
-            
+			colours[ImGuiCol_ButtonHovered] = ImVec4(0.20f, 0.25f, 0.29f, 1.00f) + ImVec4(0.1f,0.1f,0.1f,0.1f);
+            colours[ImGuiCol_ButtonActive] = ImVec4(0.20f, 0.25f, 0.29f, 1.00f) + ImVec4(0.1f,0.1f,0.1f,0.1f);
+
 			colours[ImGuiCol_Separator] = ImVec4(0.20f, 0.25f, 0.29f, 1.00f);
 			colours[ImGuiCol_SeparatorHovered] = ImVec4(0.10f, 0.40f, 0.75f, 0.78f);
 			colours[ImGuiCol_SeparatorActive] = ImVec4(0.10f, 0.40f, 0.75f, 1.00f);
@@ -367,11 +400,16 @@ namespace Lumos
 			colours[ImGuiCol_NavWindowingHighlight] = ImVec4(1.00f, 1.00f, 1.00f, 0.70f);
 			colours[ImGuiCol_NavWindowingDimBg] = ImVec4(0.80f, 0.80f, 0.80f, 0.20f);
 			colours[ImGuiCol_ModalWindowDimBg] = ImVec4(0.80f, 0.80f, 0.80f, 0.35f);
+            
+            colours[ImGuiCol_Header] = TabActive;
+            colours[ImGuiCol_HeaderHovered] = TabActive + ImVec4(0.1f,0.1f,0.1f,0.1f);
+            colours[ImGuiCol_HeaderActive] = TabActive;
+            
 
 #ifdef IMGUI_HAS_DOCK
 
             colours[ImGuiCol_Tab] = TabUnactive;
-            colours[ImGuiCol_TabHovered] = ImVec4(0.26f, 0.59f, 0.98f, 0.80f);
+            colours[ImGuiCol_TabHovered] = TabActive + ImVec4(0.1f,0.1f,0.1f,0.1f);
             colours[ImGuiCol_TabActive] = TabActive;
             colours[ImGuiCol_TabUnfocused] = TabUnactive;
             colours[ImGuiCol_TabUnfocusedActive] = TabActive;

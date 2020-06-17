@@ -22,8 +22,8 @@ namespace Lumos
 
 	PhysicsObject2D::~PhysicsObject2D()
 	{
-		if(m_B2Body && Application::Instance()->GetSystem<B2PhysicsEngine>())
-			Application::Instance()->GetSystem<B2PhysicsEngine>()->GetB2World()->DestroyBody(m_B2Body);
+		if(m_B2Body && Application::Get().GetSystem<B2PhysicsEngine>())
+			Application::Get().GetSystem<B2PhysicsEngine>()->GetB2World()->DestroyBody(m_B2Body);
 	}
 
 	void PhysicsObject2D::SetLinearVelocity(const Maths::Vector2& v) const
@@ -62,7 +62,7 @@ namespace Lumos
 			bodyDef.type = b2_dynamicBody;
 
 		bodyDef.position.Set(params.position.x, params.position.y);
-		m_B2Body = Application::Instance()->GetSystem<B2PhysicsEngine>()->CreateB2Body(&bodyDef);
+		m_B2Body = Application::Get().GetSystem<B2PhysicsEngine>()->CreateB2Body(&bodyDef);
 
 		if (params.shape == Shape::Circle)
 		{

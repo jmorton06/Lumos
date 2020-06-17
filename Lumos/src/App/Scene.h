@@ -9,8 +9,8 @@
 
 #include "Core/Serialisable.h"
 
-#include <sol/sol.hpp>
-#include <entt/entt.hpp>
+#include <sol/forward.hpp>
+#include <entt/entity/registry.hpp>
 
 namespace Lumos
 {
@@ -20,6 +20,7 @@ namespace Lumos
 	class Event;
 	class Layer;
 	class Camera;
+    class LayerStack;
 
 	namespace Graphics
 	{
@@ -27,7 +28,7 @@ namespace Lumos
 		class GBuffer;
 	}
 
-	class LUMOS_EXPORT Scene : public Serialisable
+	class LUMOS_EXPORT Scene
 	{
 	public:
 		explicit Scene(const String& SceneName); //Called once at program start - all scene initialization should be done in 'OnInitialize'
@@ -70,10 +71,6 @@ namespace Lumos
         
         u32 GetScreenWidth() const { return m_ScreenWidth; }
 		u32 GetScreenHeight() const { return m_ScreenHeight; }
-
-		// Inherited via Serialisable
-		nlohmann::json Serialise() override;
-		void Deserialise(nlohmann::json & data) override;
         
         //const entt::registry& GetRegistry() const { return m_Registry; }
         entt::registry& GetRegistry() { return m_Registry; }
@@ -81,6 +78,19 @@ namespace Lumos
         void LoadLuaScene(const String& filePath);
         
         static Scene* LoadFromLua(const String& filePath);
+    
+        LayerStack* GetLayers() const { return m_LayerStack; }
+    
+        void PushLayer(Layer* layer, bool overlay = false);
+    
+        void Serialise(const String& filePath);
+        void Deserialise(const String& filePath);
+    
+        template<typename Archive>
+        void serialize(Archive &archive)
+        {
+            archive(cereal::make_nvp("Bounding Radius", m_SceneBoundingRadius), cereal::make_nvp("Scene Name", m_SceneName));
+        }
 
 	protected:
 
@@ -95,14 +105,18 @@ namespace Lumos
 		u32 m_ScreenHeight;
 
 		SceneGraph m_SceneGraph;
+    
+        LayerStack* m_LayerStack = nullptr;
 
     private:
 		NONCOPYABLE(Scene)
 
 		bool OnWindowResize(WindowResizeEvent& e);
-        sol::environment m_LuaEnv;
-        sol::protected_function m_LuaUpdateFunction;
+        Ref<sol::environment> m_LuaEnv;
+        Ref<sol::protected_function> m_LuaUpdateFunction;
         
         String m_LuaFilePath;
+
+	friend class Entity;
 };
 }

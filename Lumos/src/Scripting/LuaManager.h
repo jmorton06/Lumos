@@ -38,7 +38,7 @@ struct _ECS_export_view< entt::type_list< Component... >, entt::type_list < Excl
     class Scene;
 	struct WindowProperties;
 
-	class LUMOS_EXPORT LuaManager : public TSingleton<LuaManager>
+	class LUMOS_EXPORT LuaManager : public ThreadSafeSingleton<LuaManager>
 	{
 		friend class TSingleton<LuaManager>;
 	public:

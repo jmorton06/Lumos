@@ -17,9 +17,9 @@ void MaterialTest::OnInit()
 {
 	Scene::OnInit();
 
-	Application::Instance()->GetSystem<LumosPhysicsEngine>()->SetDampingFactor(0.998f);
-	Application::Instance()->GetSystem<LumosPhysicsEngine>()->SetIntegrationType(IntegrationType::RUNGE_KUTTA_4);
-	Application::Instance()->GetSystem<LumosPhysicsEngine>()->SetBroadphase(Lumos::CreateRef<Octree>(5, 3, Lumos::CreateRef<SortAndSweepBroadphase>()));
+	Application::Get().GetSystem<LumosPhysicsEngine>()->SetDampingFactor(0.998f);
+	Application::Get().GetSystem<LumosPhysicsEngine>()->SetIntegrationType(IntegrationType::RUNGE_KUTTA_4);
+	Application::Get().GetSystem<LumosPhysicsEngine>()->SetBroadphase(Lumos::CreateRef<Octree>(5, 3, Lumos::CreateRef<SortAndSweepBroadphase>()));
 
 	LoadModels();
 
@@ -37,7 +37,7 @@ void MaterialTest::OnInit()
 	auto cameraEntity = m_Registry.create();
 	auto& camera = m_Registry.emplace<Camera>(cameraEntity, -1.0f, 358.0f, Maths::Vector3(-0.23f, 2.4f, 11.4f), 60.0f, 0.1f, 1000.0f, (float)m_ScreenWidth / (float)m_ScreenHeight);
 	m_Registry.emplace<NameComponent>(cameraEntity, "Camera");
-	Application::Instance()->GetSystem<AudioManager>()->SetListener(&camera);
+	Application::Get().GetSystem<AudioManager>()->SetListener(&camera);
 
 	bool editor = false;
 
@@ -45,15 +45,15 @@ void MaterialTest::OnInit()
 	editor = true;
 #endif
 
-	Application::Instance()->PushLayer(new Layer3D(new Graphics::DeferredRenderer(m_ScreenWidth, m_ScreenHeight, editor), "Deferred"));
-	Application::Instance()->PushLayer(new Layer3D(new Graphics::SkyboxRenderer(m_ScreenWidth, m_ScreenHeight, editor), "Skybox"));
+	PushLayer(new Layer3D(new Graphics::DeferredRenderer(m_ScreenWidth, m_ScreenHeight, editor), "Deferred"));
+	PushLayer(new Layer3D(new Graphics::SkyboxRenderer(m_ScreenWidth, m_ScreenHeight, editor), "Skybox"));
     
     #ifndef LUMOS_PLATFORM_IOS
         auto shadowRenderer = new Graphics::ShadowRenderer();
         shadowRenderer->SetLightEntity(lightEntity);
         auto shadowLayer = new Layer3D(shadowRenderer);
-        Application::Instance()->GetRenderManager()->SetShadowRenderer(shadowRenderer);
-        Application::Instance()->PushLayer(shadowLayer);
+        Application::Get().GetRenderManager()->SetShadowRenderer(shadowRenderer);
+        PushLayer(shadowLayer);
     #endif
 }
 
@@ -70,7 +70,7 @@ void MaterialTest::OnCleanupScene()
 {
 	if (m_CurrentScene)
 	{
-		Application::Instance()->GetSystem<LumosPhysicsEngine>()->ClearConstraints();
+		Application::Get().GetSystem<LumosPhysicsEngine>()->ClearConstraints();
 	}
 
 	Scene::OnCleanupScene();

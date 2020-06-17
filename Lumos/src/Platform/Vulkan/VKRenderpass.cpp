@@ -135,7 +135,7 @@ namespace Lumos
 			vkRenderpassCI.dependencyCount = 1;
 			vkRenderpassCI.pDependencies = &dependency;
 
-			VK_CHECK_RESULT(vkCreateRenderPass(VKDevice::Instance()->GetDevice(), &vkRenderpassCI, VK_NULL_HANDLE, &m_RenderPass));
+			VK_CHECK_RESULT(vkCreateRenderPass(VKDevice::Get().GetDevice(), &vkRenderpassCI, VK_NULL_HANDLE, &m_RenderPass));
             
 			m_ClearValue = lmnew VkClearValue[renderpassCI.attachmentCount];
 			m_ClearCount = renderpassCI.attachmentCount;
@@ -144,7 +144,7 @@ namespace Lumos
 
 		void VKRenderpass::Unload() const
 		{
-			vkDestroyRenderPass(VKDevice::Instance()->GetDevice(), m_RenderPass, VK_NULL_HANDLE);
+			vkDestroyRenderPass(VKDevice::Get().GetDevice(), m_RenderPass, VK_NULL_HANDLE);
 		}
 
 		VkSubpassContents SubPassContentsToVK(SubPassContents contents)

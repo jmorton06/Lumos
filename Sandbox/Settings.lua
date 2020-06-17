@@ -6,6 +6,6 @@ fullscreen=false
 borderless=false
 vsync=true
 title="Sandbox"
-renderAPI=0
+renderAPI=1
 
 -- OpenGL = 0, Vulkan = 1, Direct3D = 2
