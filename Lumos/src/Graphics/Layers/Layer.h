@@ -33,6 +33,7 @@ namespace Lumos
 		_FORCE_INLINE_ const std::string& GetName() const { return m_DebugName; }
 	protected:
 		std::string m_DebugName;
+		bool m_ScreenLayer = true;
 	};
 
 }

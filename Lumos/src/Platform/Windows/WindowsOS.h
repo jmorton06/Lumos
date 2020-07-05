@@ -3,15 +3,17 @@
 
 namespace Lumos
 {
-    class LUMOS_EXPORT WindowsOS : public OS
-    {
+	class LUMOS_EXPORT WindowsOS : public OS
+	{
 	public:
-        WindowsOS() = default;
-        ~WindowsOS() = default;
+		WindowsOS() = default;
+		~WindowsOS() = default;
 
-        void Init();
-        void Run() override;
-        String GetExecutablePath() override { return ""; }
-
+		void Init();
+		void Run() override;
+		std::string GetExecutablePath() override
+		{
+			return "";
+		}
 	};
 }

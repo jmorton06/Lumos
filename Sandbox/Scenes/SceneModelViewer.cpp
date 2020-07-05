@@ -20,23 +20,22 @@ void SceneModelViewer::OnInit()
 
 	auto audioSystem = Application::Get().GetSystem<AudioManager>();
 
-    auto environment = m_Registry.create();
-    m_Registry.emplace<Graphics::Environment>(environment, "/Textures/cubemap/Arches_E_PineTree", 11, 3072, 4096, ".tga");
-    m_Registry.emplace<NameComponent>(environment, "Environment");
+	auto environment = GetRegistry().create();
+	GetRegistry().emplace<Graphics::Environment>(environment, "/Textures/cubemap/Arches_E_PineTree", 11, 3072, 4096, ".tga");
+	GetRegistry().emplace<NameComponent>(environment, "Environment");
 
-    
-    auto lightEntity = m_Registry.create();
-    m_Registry.emplace<Graphics::Light>(lightEntity, Maths::Vector3(26.0f, 22.0f, 48.5f), Maths::Vector4(1.0f), 1.3f);
-    m_Registry.emplace<Maths::Transform>(lightEntity,Matrix4::Translation(Maths::Vector3(26.0f, 22.0f, 48.5f)) * Maths::Quaternion::LookAt(Maths::Vector3(26.0f, 22.0f, 48.5f), Maths::Vector3::ZERO).RotationMatrix4());
-	m_Registry.emplace<NameComponent>(lightEntity, "Directional Light");
+	auto lightEntity = GetRegistry().create();
+	GetRegistry().emplace<Graphics::Light>(lightEntity, Maths::Vector3(26.0f, 22.0f, 48.5f), Maths::Vector4(1.0f), 1.3f);
+	GetRegistry().emplace<Maths::Transform>(lightEntity, Matrix4::Translation(Maths::Vector3(26.0f, 22.0f, 48.5f)) * Maths::Quaternion::LookAt(Maths::Vector3(26.0f, 22.0f, 48.5f), Maths::Vector3::ZERO).RotationMatrix4());
+	GetRegistry().emplace<NameComponent>(lightEntity, "Directional Light");
 
-    auto cameraEntity = m_Registry.create();
-    Camera& camera = m_Registry.emplace<Camera>(cameraEntity, -20.0f, 330.0f, Maths::Vector3(-2.5f, 1.3f, 3.8f), 45.0f, 0.1f, 1000.0f, (float) m_ScreenWidth / (float) m_ScreenHeight);
+	auto cameraEntity = GetRegistry().create();
+	Camera& camera = GetRegistry().emplace<Camera>(cameraEntity, -20.0f, 330.0f, Maths::Vector3(-2.5f, 1.3f, 3.8f), 45.0f, 0.1f, 1000.0f, (float)m_ScreenWidth / (float)m_ScreenHeight);
 	camera.SetCameraController(CreateRef<EditorCameraController>());
 
-	if (audioSystem)
+	if(audioSystem)
 		Application::Get().GetSystem<AudioManager>()->SetListener(&camera);
-	m_Registry.emplace<NameComponent>(cameraEntity, "Camera");
+	GetRegistry().emplace<NameComponent>(cameraEntity, "Camera");
 
 	//Temp
 	bool editor = false;
@@ -45,23 +44,23 @@ void SceneModelViewer::OnInit()
 	editor = true;
 #endif
 
-    auto deferredRenderer = new Graphics::DeferredRenderer(m_ScreenWidth, m_ScreenHeight);
-    auto skyboxRenderer = new Graphics::SkyboxRenderer(m_ScreenWidth, m_ScreenHeight);
-    
-    auto deferredLayer = new Layer3D(deferredRenderer, "Deferred");
-    auto skyBoxLayer = new Layer3D(skyboxRenderer, "Skybox");
-    PushLayer(deferredLayer);
-    PushLayer(skyBoxLayer);
-        
+	auto deferredRenderer = new Graphics::DeferredRenderer(m_ScreenWidth, m_ScreenHeight);
+	auto skyboxRenderer = new Graphics::SkyboxRenderer(m_ScreenWidth, m_ScreenHeight);
+
+	auto deferredLayer = new Layer3D(deferredRenderer, "Deferred");
+	auto skyBoxLayer = new Layer3D(skyboxRenderer, "Skybox");
+	PushLayer(deferredLayer);
+	PushLayer(skyBoxLayer);
+
 #ifndef LUMOS_PLATFORM_IOS
-    auto shadowRenderer = new Graphics::ShadowRenderer();
-    shadowRenderer->SetLightEntity(lightEntity);
-    auto shadowLayer = new Layer3D(shadowRenderer);
-    Application::Get().GetRenderManager()->SetShadowRenderer(shadowRenderer);
-    PushLayer(shadowLayer);
+	auto shadowRenderer = new Graphics::ShadowRenderer();
+	shadowRenderer->SetLightEntity(lightEntity);
+	auto shadowLayer = new Layer3D(shadowRenderer);
+	Application::Get().GetRenderManager()->SetShadowRenderer(shadowRenderer);
+	PushLayer(shadowLayer);
 #endif
-    
-    m_SceneBoundingRadius = 20.0f;
+
+	m_SceneBoundingRadius = 20.0f;
 }
 
 void SceneModelViewer::OnUpdate(const TimeStep& timeStep)
@@ -76,23 +75,20 @@ void SceneModelViewer::OnCleanupScene()
 
 void SceneModelViewer::LoadModels()
 {
-	std::vector<String> ExampleModelPaths
-	{
+	std::vector<std::string> ExampleModelPaths{
 		"/Meshes/DamagedHelmet/glTF/DamagedHelmet.gltf",
 		"/Meshes/Scene/scene.gltf",
 		"/Meshes/Spyro/ArtisansHub.obj",
 		"/Meshes/Cube/Cube.gltf",
 		"/Meshes/KhronosExamples/MetalRoughSpheres/glTF/MetalRoughSpheres.gltf",
 		"/Meshes/KhronosExamples/EnvironmentTest/glTF/EnvironmentTest.gltf",
-        "/Meshes/Sponza/sponza.gltf",
-        "/Meshes/capsule.glb"
-	};
+		"/Meshes/Sponza/sponza.gltf",
+		"/Meshes/capsule.glb"};
 
-	auto TestObject = ModelLoader::LoadModel(ExampleModelPaths[0], m_Registry);
-    
-    if(!m_Registry.has<Maths::Transform>(TestObject))
-        m_Registry.emplace<Maths::Transform>(TestObject, Maths::Matrix4::Scale(Maths::Vector3(1.0f, 1.0f, 1.0f)));
+	auto TestObject = ModelLoader::LoadModel(ExampleModelPaths[0], GetRegistry());
 
+	if(!GetRegistry().has<Maths::Transform>(TestObject))
+		GetRegistry().emplace<Maths::Transform>(TestObject, Maths::Matrix4::Scale(Maths::Vector3(1.0f, 1.0f, 1.0f)));
 }
 
 void SceneModelViewer::OnImGui()

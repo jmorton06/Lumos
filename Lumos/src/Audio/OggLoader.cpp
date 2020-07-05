@@ -5,20 +5,20 @@
 
 namespace Lumos
 {
-	AudioData LoadOgg(const String& fileName)
+	AudioData LoadOgg(const std::string& fileName)
 	{
 		AudioData data = AudioData();
 
 		const auto m_FileHandle = fopen(fileName.c_str(), "rb");
 
-		if (!m_FileHandle)
+		if(!m_FileHandle)
 		{
 			LUMOS_LOG_CRITICAL("Failed to load OGG file '{0}'!", fileName);
 		}
 
 		auto m_StreamHandle = stb_vorbis_open_filename(fileName.c_str(), nullptr, nullptr);
 
-		if (!m_StreamHandle)
+		if(!m_StreamHandle)
 		{
 			LUMOS_LOG_CRITICAL("Failed to load OGG file '{0}'!", fileName);
 		}
@@ -29,13 +29,13 @@ namespace Lumos
 		data.BitRate = 16;
 		data.FreqRate = static_cast<float>(m_VorbisInfo.sample_rate);
 
-		const u32 dataSize = stb_vorbis_stream_length_in_samples(m_StreamHandle) *  m_VorbisInfo.channels * sizeof(i16);
+		const u32 dataSize = stb_vorbis_stream_length_in_samples(m_StreamHandle) * m_VorbisInfo.channels * sizeof(i16);
 		auto* buffer = static_cast<i16*>(malloc(dataSize * sizeof(u16)));
-		stb_vorbis_get_samples_short_interleaved(m_StreamHandle, m_VorbisInfo.channels, static_cast<short *>(buffer), dataSize);
+		stb_vorbis_get_samples_short_interleaved(m_StreamHandle, m_VorbisInfo.channels, static_cast<short*>(buffer), dataSize);
 		data.Data = reinterpret_cast<unsigned char*>(buffer);
 		data.Size = dataSize;
 
-		data.Length = stb_vorbis_stream_length_in_seconds(m_StreamHandle) * 1000.0f;// * m_VorbisInfo.channels;
+		data.Length = stb_vorbis_stream_length_in_seconds(m_StreamHandle) * 1000.0f; // * m_VorbisInfo.channels;
 
 		stb_vorbis_close(m_StreamHandle);
 

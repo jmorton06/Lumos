@@ -15,7 +15,8 @@ namespace Lumos
 	namespace Graphics
 	{
 
-		GLRenderer::GLRenderer(u32 width, u32 height) : m_Context(nullptr)
+		GLRenderer::GLRenderer(u32 width, u32 height)
+			: m_Context(nullptr)
 		{
 			m_Swapchain = lmnew Graphics::GLSwapchain(width, height);
 
@@ -30,7 +31,7 @@ namespace Lumos
 			glGetIntegerv(GL_MAX_SAMPLES, &caps.MaxSamples);
 			glGetFloatv(GL_MAX_TEXTURE_MAX_ANISOTROPY, &caps.MaxAnisotropy);
 			glGetIntegerv(GL_MAX_COMBINED_TEXTURE_IMAGE_UNITS, &caps.MaxTextureUnits);
-            glGetIntegerv(GL_UNIFORM_BUFFER_OFFSET_ALIGNMENT, &caps.UniformBufferOffsetAlignment);
+			glGetIntegerv(GL_UNIFORM_BUFFER_OFFSET_ALIGNMENT, &caps.UniformBufferOffsetAlignment);
 		}
 
 		GLRenderer::~GLRenderer()
@@ -76,7 +77,7 @@ namespace Lumos
 
 		void GLRenderer::SetDepthTestingInternal(bool enabled)
 		{
-			if (enabled)
+			if(enabled)
 			{
 				GLCall(glEnable(GL_DEPTH_TEST));
 			}
@@ -93,16 +94,20 @@ namespace Lumos
 
 		void GLRenderer::SetPixelPackType(const PixelPackType type)
 		{
-			switch (type)
+			switch(type)
 			{
-			case PixelPackType::PACK:  GLCall(glPixelStorei(GL_PACK_ALIGNMENT, 1)); break;
-			case PixelPackType::UNPACK: GLCall(glPixelStorei(GL_UNPACK_ALIGNMENT, 1)); break;
+			case PixelPackType::PACK:
+				GLCall(glPixelStorei(GL_PACK_ALIGNMENT, 1));
+				break;
+			case PixelPackType::UNPACK:
+				GLCall(glPixelStorei(GL_UNPACK_ALIGNMENT, 1));
+				break;
 			}
 		}
 
 		void GLRenderer::SetBlendInternal(bool enabled)
 		{
-			if (enabled)
+			if(enabled)
 			{
 				GLCall(glEnable(GL_BLEND));
 			}
@@ -127,7 +132,7 @@ namespace Lumos
 			GLCall(glViewport(x, y, width, height));
 		}
 
-		const String& GLRenderer::GetTitleInternal() const
+		const std::string& GLRenderer::GetTitleInternal() const
 		{
 			return m_RendererTitle;
 		}
@@ -135,10 +140,14 @@ namespace Lumos
 		void GLRenderer::SetRenderModeInternal(RenderMode mode)
 		{
 #ifndef LUMOS_PLATFORM_MOBILE
-			switch (mode)
+			switch(mode)
 			{
-			case RenderMode::FILL: GLCall(glPolygonMode(GL_FRONT_AND_BACK, GL_FILL)); break;
-			case RenderMode::WIREFRAME: GLCall(glPolygonMode(GL_FRONT_AND_BACK, GL_LINE)); break;
+			case RenderMode::FILL:
+				GLCall(glPolygonMode(GL_FRONT_AND_BACK, GL_FILL));
+				break;
+			case RenderMode::WIREFRAME:
+				GLCall(glPolygonMode(GL_FRONT_AND_BACK, GL_LINE));
+				break;
 			}
 #endif
 		}
@@ -149,7 +158,7 @@ namespace Lumos
 
 		void GLRenderer::SetCullingInternal(bool enabled, bool front)
 		{
-			if (enabled)
+			if(enabled)
 			{
 				GLCall(glEnable(GL_CULL_FACE));
 				GLCall(glCullFace(front ? GL_FRONT : GL_BACK));
@@ -162,7 +171,7 @@ namespace Lumos
 
 		void GLRenderer::SetStencilTestInternal(bool enabled)
 		{
-			if (enabled)
+			if(enabled)
 			{
 				GLCall(glEnable(GL_STENCIL_TEST));
 			}
@@ -200,7 +209,7 @@ namespace Lumos
 
 		void GLRenderer::BindDescriptorSetsInternal(Graphics::Pipeline* pipeline, Graphics::CommandBuffer* cmdBuffer, u32 dynamicOffset, std::vector<Graphics::DescriptorSet*>& descriptorSets)
 		{
-			for (auto descriptor : descriptorSets)
+			for(auto descriptor : descriptorSets)
 			{
 				static_cast<Graphics::GLDescriptorSet*>(descriptor)->Bind(dynamicOffset);
 			}

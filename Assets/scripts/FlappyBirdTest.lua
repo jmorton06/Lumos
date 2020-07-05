@@ -47,7 +47,7 @@ function CreatePlayer()
     registry:assign_Sprite(player, Vector2.new(-1.0/2.0, -1.0/2.0), Vector2.new(1.15, 1.0), colour)
     registry:get_Sprite(player):SetTexture(texture)
 
-    params = PhysicsObjectParamaters.new()
+    params = RigidBodyParamaters.new()
     params.position = Vector3.new( 1.0, 1.0, 1.0)
     params.scale = Vector3.new(1.0 / 2.0, 1.0 / 2.0, 1.0)
 	params.shape = Shape.Circle
@@ -86,7 +86,7 @@ function CreatePillar(index, offset)
 
     registry:get_Sprite(pillars[index]):SetTexture(texture)
 
-    params = PhysicsObjectParamaters.new()
+    params = RigidBodyParamaters.new()
 	params.position = pos
 	params.scale = scale
 	params.shape = Shape.Square
@@ -163,7 +163,7 @@ function OnUpdate(dt)
             velocity = velocity + up * cameraSpeed * 400.0
         end
 
-        phys:GetPhysicsObject():GetB2Body():ApplyForce(b2Vec2(velocity.x,velocity.y), phys:GetPhysicsObject():GetB2Body():GetPosition(), true)
+        phys:GetRigidBody():GetB2Body():ApplyForce(b2Vec2(velocity.x,velocity.y), phys:GetRigidBody():GetB2Body():GetPosition(), true)
 
         pos = registry:get_Transform(player):GetWorldPosition()
 
@@ -214,7 +214,7 @@ end
 
 function Reset()
     gameState = GameStates.Running
-    phys = registry:get_Physics2DComponent(player):GetPhysicsObject()
+    phys = registry:get_Physics2DComponent(player):GetRigidBody()
 
 	phys:SetPosition(Vector2.new(0.0, 0.0))
 	phys:SetLinearVelocity(Vector2.new(SPEED, 0.0))

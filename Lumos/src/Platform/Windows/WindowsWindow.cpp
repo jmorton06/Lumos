@@ -1,4 +1,4 @@
-#include "lmpch.h"																									
+#include "lmpch.h"
 #define NOMINMAX
 #undef NOGDI
 #include <Windows.h>
@@ -6,7 +6,7 @@
 #define NOGDI
 
 #ifndef GET_WHEEL_DELTA_WPARAM
-#define GET_WHEEL_DELTA_WPARAM(wParam)  ((short)HIWORD(wParam))
+#	define GET_WHEEL_DELTA_WPARAM(wParam) ((short)HIWORD(wParam))
 #endif
 
 #include "WindowsWindow.h"
@@ -19,10 +19,9 @@
 
 #include <imgui/imgui.h>
 
-extern "C"
-{
-    __declspec(dllexport) DWORD NvOptimusEnablement = 0x00000001;
-    __declspec(dllexport) int AmdPowerXpressRequestHighPerformance = 1;
+extern "C" {
+__declspec(dllexport) DWORD NvOptimusEnablement = 0x00000001;
+__declspec(dllexport) int AmdPowerXpressRequestHighPerformance = 1;
 }
 
 namespace Lumos
@@ -33,18 +32,19 @@ namespace Lumos
 	LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam);
 
 #ifndef HID_USAGE_PAGE_GENERIC
-#define HID_USAGE_PAGE_GENERIC ((USHORT)0x01)
+#	define HID_USAGE_PAGE_GENERIC ((USHORT)0x01)
 #endif
 
 #ifndef HID_USAGE_GENERIC_MOUSE
-#define HID_USAGE_GENERIC_MOUSE ((USHORT)0x02)
+#	define HID_USAGE_GENERIC_MOUSE ((USHORT)0x02)
 #endif
 
 #ifndef HID_USAGE_GENERIC_KEYBOARD
-#define HID_USAGE_GENERIC_KEYBOARD ((USHORT)0x06)
+#	define HID_USAGE_GENERIC_KEYBOARD ((USHORT)0x06)
 #endif
 
-	WindowsWindow::WindowsWindow(const WindowProperties& properties) : hWnd(nullptr)
+	WindowsWindow::WindowsWindow(const WindowProperties& properties)
+		: hWnd(nullptr)
 	{
 		m_Init = false;
 		m_VSync = properties.VSync;
@@ -75,8 +75,7 @@ namespace Lumos
 		return result;
 	}
 
-	static HICON createIcon(unsigned char* image, int width, int height,
-		int xhot, int yhot, bool icon)
+	static HICON createIcon(unsigned char* image, int width, int height, int xhot, int yhot, bool icon)
 	{
 		int i;
 		HDC dc;
@@ -108,21 +107,21 @@ namespace Lumos
 			(DWORD)0);
 		ReleaseDC(NULL, dc);
 
-		if (!color)
+		if(!color)
 		{
 			Debug::Log::Error("Win32: Failed to create RGBA bitmap");
 			return NULL;
 		}
 
 		mask = CreateBitmap(width, height, 1, 1, NULL);
-		if (!mask)
+		if(!mask)
 		{
 			Debug::Log::Error("Win32: Failed to create mask bitmap");
 			DeleteObject(color);
 			return NULL;
 		}
 
-		for (i = 0; i < width * height; i++)
+		for(i = 0; i < width * height; i++)
 		{
 			target[0] = source[2];
 			target[1] = source[1];
@@ -144,9 +143,9 @@ namespace Lumos
 		DeleteObject(color);
 		DeleteObject(mask);
 
-		if (!handle)
+		if(!handle)
 		{
-			if (icon)
+			if(icon)
 			{
 				Debug::Log::Error("Win32: Failed to create icon");
 			}
@@ -182,20 +181,19 @@ namespace Lumos
 		winClass.style = CS_VREDRAW | CS_HREDRAW;
 
 		DWORD style = WS_POPUP;
-		if (!properties.Fullscreen)
+		if(!properties.Fullscreen)
 			style = WS_SYSMENU | WS_CAPTION | WS_CLIPCHILDREN | WS_CLIPSIBLINGS | WS_MINIMIZEBOX | WS_MAXIMIZEBOX | WS_SIZEBOX;
 
-		if (!properties.Borderless)
+		if(!properties.Borderless)
 			style |= WS_BORDER;
 
-
-		if (!RegisterClassExA(&winClass))
+		if(!RegisterClassExA(&winClass))
 		{
 			LUMOS_LOG_CRITICAL("Could not register Win32 class!");
 			return false;
 		}
 
-		RECT size = { 0, 0, (LONG)properties.Width, (LONG)properties.Height };
+		RECT size = {0, 0, (LONG)properties.Width, (LONG)properties.Height};
 		AdjustWindowRectEx(&size, style, false, WS_EX_APPWINDOW | WS_EX_WINDOWEDGE);
 
 		m_Data.Width = size.right - size.left;
@@ -204,16 +202,15 @@ namespace Lumos
 		int windowLeft = (GetSystemMetrics(SM_CXSCREEN) - m_Data.Width) / 2;
 		int windowTop = (GetSystemMetrics(SM_CYSCREEN) - m_Data.Height) / 2;
 
-		if (properties.Fullscreen)
+		if(properties.Fullscreen)
 		{
 			windowLeft = 0;
 			windowTop = 0;
 		}
 
-		hWnd = CreateWindow(winClass.lpszClassName, properties.Title.c_str(), style, windowLeft, windowTop,
-			m_Data.Width, m_Data.Height, NULL, NULL, hInstance, NULL);
+		hWnd = CreateWindow(winClass.lpszClassName, properties.Title.c_str(), style, windowLeft, windowTop, m_Data.Width, m_Data.Height, NULL, NULL, hInstance, NULL);
 
-		if (!hWnd)
+		if(!hWnd)
 		{
 			LUMOS_LOG_CRITICAL("Could not create window!");
 			return false;
@@ -222,9 +219,9 @@ namespace Lumos
 		hDc = GetDC(hWnd);
 		PIXELFORMATDESCRIPTOR pfd = GetPixelFormat();
 		i32 pixelFormat = ChoosePixelFormat(hDc, &pfd);
-		if (pixelFormat)
+		if(pixelFormat)
 		{
-			if (!SetPixelFormat(hDc, pixelFormat, &pfd))
+			if(!SetPixelFormat(hDc, pixelFormat, &pfd))
 			{
 				LUMOS_LOG_CRITICAL("Failed setting pixel format!");
 				return false;
@@ -236,7 +233,7 @@ namespace Lumos
 			return false;
 		}
 
-		SetIcon("/CoreTextures/icon.png","/CoreTextures/icon32.png" );
+		SetIcon("/CoreTextures/icon.png", "/CoreTextures/icon32.png");
 
 		ShowWindow(hWnd, SW_SHOW);
 		SetFocus(hWnd);
@@ -264,8 +261,14 @@ namespace Lumos
 
 			SetActiveWindow(hWnd);
 		}
+		else
+		{
+			HWND consoleWindow = GetConsoleWindow();
 
-		if (properties.Fullscreen)
+			ShowWindow(consoleWindow, SW_SHOW);
+		}
+
+		if(properties.Fullscreen)
 		{
 			DEVMODE dm;
 			memset(&dm, 0, sizeof(dm));
@@ -285,13 +288,13 @@ namespace Lumos
 			dm.dmFields = DM_BITSPERPEL | DM_PELSWIDTH | DM_PELSHEIGHT | DM_DISPLAYFREQUENCY;
 
 			LONG res = ChangeDisplaySettings(&dm, CDS_FULLSCREEN);
-			if (res != DISP_CHANGE_SUCCESSFUL)
-			{  // try again without forcing display frequency
+			if(res != DISP_CHANGE_SUCCESSFUL)
+			{ // try again without forcing display frequency
 				dm.dmFields = DM_BITSPERPEL | DM_PELSWIDTH | DM_PELSHEIGHT;
 				res = ChangeDisplaySettings(&dm, CDS_FULLSCREEN);
 			}
 		}
-		
+
 		//Input
 		rid.usUsagePage = HID_USAGE_PAGE_GENERIC;
 		rid.usUsage = HID_USAGE_GENERIC_KEYBOARD;
@@ -324,9 +327,9 @@ namespace Lumos
 
 		ZeroMemory(&message, sizeof(MSG));
 
-		while (PeekMessage(&message, NULL, NULL, NULL, PM_REMOVE) > 0)
+		while(PeekMessage(&message, NULL, NULL, NULL, PM_REMOVE) > 0)
 		{
-			if (message.message == WM_QUIT)
+			if(message.message == WM_QUIT)
 			{
 				WindowCloseEvent event;
 				m_Data.EventCallback(event);
@@ -340,14 +343,14 @@ namespace Lumos
 		::SwapBuffers(hDc);
 	}
 
-	void WindowsWindow::SetWindowTitle(const String& title)
+	void WindowsWindow::SetWindowTitle(const std::string& title)
 	{
 		SetWindowText(hWnd, title.c_str());
 	}
 
 	void WindowsWindow::ToggleVSync()
 	{
-		if (m_VSync)
+		if(m_VSync)
 		{
 			m_VSync = false;
 			//glfwSwapInterval(0);
@@ -361,7 +364,6 @@ namespace Lumos
 
 	void WindowsWindow::SetBorderlessWindow(bool borderless)
 	{
-
 	}
 
 	void MouseButtonCallback(Window* window, i32 button, i32 x, i32 y)
@@ -370,7 +372,7 @@ namespace Lumos
 		HWND hWnd = static_cast<WindowsWindow*>(window)->GetHWND();
 
 		bool down = false;
-		switch (button)
+		switch(button)
 		{
 		case WM_LBUTTONDOWN:
 			SetCapture(hWnd);
@@ -404,7 +406,7 @@ namespace Lumos
 			break;
 		}
 
-		if (down)
+		if(down)
 		{
 			MouseButtonPressedEvent event(button);
 			data.EventCallback(event);
@@ -435,7 +437,7 @@ namespace Lumos
 	{
 		WindowsWindow::WindowData& data = static_cast<WindowsWindow*>(window)->m_Data;
 
-		KeyTypedEvent event(key);// WindowsKeyCodes::WindowsKeyToLumos(key)); //TODO : FIX
+		KeyTypedEvent event(key); // WindowsKeyCodes::WindowsKeyToLumos(key)); //TODO : FIX
 		data.EventCallback(event);
 	}
 
@@ -445,8 +447,8 @@ namespace Lumos
 		bool repeat = (flags >> 30) & 1;
 
 		WindowsWindow::WindowData& data = static_cast<WindowsWindow*>(window)->m_Data;
-	
-		if (pressed)
+
+		if(pressed)
 		{
 			KeyPressedEvent event(WindowsKeyCodes::WindowsKeyToLumos(key), repeat ? 1 : 0);
 			data.EventCallback(event);
@@ -463,9 +465,9 @@ namespace Lumos
 		ImGuiIO& io = ImGui::GetIO();
 
 		// Set OS mouse position if requested (rarely used, only when ImGuiConfigFlags_NavEnableSetMousePos is enabled by user)
-		if (io.WantSetMousePos)
+		if(io.WantSetMousePos)
 		{
-			POINT pos = { (int)io.MousePos.x, (int)io.MousePos.y };
+			POINT pos = {(int)io.MousePos.x, (int)io.MousePos.y};
 			::ClientToScreen(hWnd, &pos);
 			::SetCursorPos(pos.x, pos.y);
 		}
@@ -473,9 +475,9 @@ namespace Lumos
 		// Set mouse position
 		io.MousePos = ImVec2(-FLT_MAX, -FLT_MAX);
 		POINT pos;
-		if (HWND active_window = ::GetForegroundWindow())
-			if (active_window == hWnd || ::IsChild(active_window, hWnd))
-				if (::GetCursorPos(&pos) && ::ScreenToClient(hWnd, &pos))
+		if(HWND active_window = ::GetForegroundWindow())
+			if(active_window == hWnd || ::IsChild(active_window, hWnd))
+				if(::GetCursorPos(&pos) && ::ScreenToClient(hWnd, &pos))
 					io.MousePos = ImVec2((float)pos.x, (float)pos.y);
 	}
 
@@ -483,14 +485,13 @@ namespace Lumos
 	{
 		LRESULT result = NULL;
 		Window* window = Application::Get().GetWindow();
-		if (window == nullptr)
+		if(window == nullptr)
 			return DefWindowProc(hWnd, message, wParam, lParam);
 
-		switch (message)
+		switch(message)
 		{
-		case WM_ACTIVATE:
-		{
-			if (!HIWORD(wParam)) // Is minimized
+		case WM_ACTIVATE: {
+			if(!HIWORD(wParam)) // Is minimized
 			{
 				// active
 			}
@@ -501,16 +502,16 @@ namespace Lumos
 
 			return 0;
 		}
-		case WM_SYSCOMMAND:
-		{
-			switch (wParam)
+		case WM_SYSCOMMAND: {
+			switch(wParam)
 			{
 			case SC_SCREENSAVE:
 			case SC_MONITORPOWER:
 				return 0;
 			}
 			result = DefWindowProc(hWnd, message, wParam, lParam);
-		} break;
+		}
+		break;
 		case WM_SETFOCUS:
 			FocusCallback(window, true);
 			break;
@@ -565,11 +566,11 @@ namespace Lumos
 
 		ImGuiIO& io = ImGui::GetIO();
 		ImGuiMouseCursor imgui_cursor = io.MouseDrawCursor ? ImGuiMouseCursor_None : ImGui::GetMouseCursor();
-		
-		if (io.ConfigFlags & ImGuiConfigFlags_NoMouseCursorChange)
+
+		if(io.ConfigFlags & ImGuiConfigFlags_NoMouseCursorChange)
 			return;
 
-		if (imgui_cursor == ImGuiMouseCursor_None || io.MouseDrawCursor)
+		if(imgui_cursor == ImGuiMouseCursor_None || io.MouseDrawCursor)
 		{
 			// Hide OS mouse cursor if imgui is drawing it or if it wants no cursor
 			::SetCursor(NULL);
@@ -578,55 +579,70 @@ namespace Lumos
 		{
 			// Show OS mouse cursor
 			LPTSTR win32_cursor = IDC_ARROW;
-			switch (imgui_cursor)
+			switch(imgui_cursor)
 			{
-			case ImGuiMouseCursor_Arrow:        win32_cursor = IDC_ARROW; break;
-			case ImGuiMouseCursor_TextInput:    win32_cursor = IDC_IBEAM; break;
-			case ImGuiMouseCursor_ResizeAll:    win32_cursor = IDC_SIZEALL; break;
-			case ImGuiMouseCursor_ResizeEW:     win32_cursor = IDC_SIZEWE; break;
-			case ImGuiMouseCursor_ResizeNS:     win32_cursor = IDC_SIZENS; break;
-			case ImGuiMouseCursor_ResizeNESW:   win32_cursor = IDC_SIZENESW; break;
-			case ImGuiMouseCursor_ResizeNWSE:   win32_cursor = IDC_SIZENWSE; break;
-			case ImGuiMouseCursor_Hand:         win32_cursor = IDC_HAND; break;
+			case ImGuiMouseCursor_Arrow:
+				win32_cursor = IDC_ARROW;
+				break;
+			case ImGuiMouseCursor_TextInput:
+				win32_cursor = IDC_IBEAM;
+				break;
+			case ImGuiMouseCursor_ResizeAll:
+				win32_cursor = IDC_SIZEALL;
+				break;
+			case ImGuiMouseCursor_ResizeEW:
+				win32_cursor = IDC_SIZEWE;
+				break;
+			case ImGuiMouseCursor_ResizeNS:
+				win32_cursor = IDC_SIZENS;
+				break;
+			case ImGuiMouseCursor_ResizeNESW:
+				win32_cursor = IDC_SIZENESW;
+				break;
+			case ImGuiMouseCursor_ResizeNWSE:
+				win32_cursor = IDC_SIZENWSE;
+				break;
+			case ImGuiMouseCursor_Hand:
+				win32_cursor = IDC_HAND;
+				break;
 			}
 			::SetCursor(::LoadCursor(NULL, win32_cursor));
 		}
-
 	}
 
-	void WindowsWindow::SetIcon(const String & filePath, const String& smallIconFilePath)
+	void WindowsWindow::SetIcon(const std::string& filePath, const std::string& smallIconFilePath)
 	{
 		HICON bigIcon = NULL;
 		HICON smallIcon = NULL;
 
-		if (filePath != "")
+		if(filePath != "")
 		{
 			u32 width, height;
-			u8* pixels = Lumos::LoadImageFromFile(filePath, &width, &height, nullptr,nullptr, true);
+			u8* pixels = Lumos::LoadImageFromFile(filePath, &width, &height, nullptr, nullptr, true);
 
 			bigIcon = createIcon(pixels, int(width), int(height), 0, 0, true);
 			delete[] pixels;
 		}
 
-		if (smallIconFilePath != "")
+		if(smallIconFilePath != "")
 		{
 			u32 width, height;
-			u8* pixels = Lumos::LoadImageFromFile(smallIconFilePath, &width, &height, nullptr,nullptr, true);
+			u8* pixels = Lumos::LoadImageFromFile(smallIconFilePath, &width, &height, nullptr, nullptr, true);
 
 			auto smallIcon = createIcon(pixels, int(width), int(height), 0, 0, true);
 			delete[] pixels;
 		}
 
-		if (!smallIcon)
+		if(!smallIcon)
 			smallIcon = bigIcon;
 
 		SendMessage(hWnd, WM_SETICON, ICON_BIG, (LPARAM)bigIcon);
 		SendMessage(hWnd, WM_SETICON, ICON_SMALL, (LPARAM)smallIcon);
 
-		if (m_BigIcon)
+		if(m_BigIcon)
 			DestroyIcon(m_BigIcon);
 
-		if (m_SmallIcon)
+		if(m_SmallIcon)
 			DestroyIcon(m_SmallIcon);
 
 		m_BigIcon = bigIcon;

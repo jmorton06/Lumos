@@ -557,6 +557,11 @@ namespace Lumos::Maths
 
     /// Return a random value from [0, 1) from 3-vector seed.
     _FORCE_INLINE_ float StableRandom(const Vector3& seed) { return StableRandom(Vector2(StableRandom(Vector2(seed.x, seed.y)), seed.z)); }
+            
+    template<typename Archive> void serialize(Archive& archive, Maths::Vector3& v3)
+    {
+        archive(v3.x, v3.y, v3.z);
+    }
 }
 
 namespace std

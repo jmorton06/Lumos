@@ -10,7 +10,7 @@ namespace Lumos
 	{
 		struct LUMOS_EXPORT BufferElement
 		{
-			String name;
+			std::string name;
 			u32 type;
 			u32 size;
 			u32 count;
@@ -23,35 +23,42 @@ namespace Lumos
 		private:
 			u32 m_Size;
 			std::vector<BufferElement> m_Layout;
+
 		public:
 			BufferLayout();
 
 			template<typename T>
-			void Push(const String& name, u32 count = 1, bool normalized = false)
+			void Push(const std::string& name, u32 count = 1, bool normalized = false)
 			{
 				LUMOS_ASSERT(false, "Unkown type!");
 			}
 
-			_FORCE_INLINE_ const std::vector<BufferElement>& GetLayout() const { return m_Layout; }
-			_FORCE_INLINE_ u32 GetStride() const { return m_Size; }
+			_FORCE_INLINE_ const std::vector<BufferElement>& GetLayout() const
+			{
+				return m_Layout;
+			}
+			_FORCE_INLINE_ u32 GetStride() const
+			{
+				return m_Size;
+			}
 
 		private:
-			void Push(const String& name, u32 type, u32 size, u32 count, bool normalized);
-			void Push(const String& name, u32 type, u32 size, u32 count, bool normalized, u32 offset);
+			void Push(const std::string& name, u32 type, u32 size, u32 count, bool normalized);
+			void Push(const std::string& name, u32 type, u32 size, u32 count, bool normalized, u32 offset);
 		};
 
 		template<>
-		void LUMOS_EXPORT BufferLayout::Push<float>(const String& name, u32 count , bool normalized );
+		void LUMOS_EXPORT BufferLayout::Push<float>(const std::string& name, u32 count, bool normalized);
 		template<>
-		void LUMOS_EXPORT BufferLayout::Push<u32>(const String& name, u32 count , bool normalized );
+		void LUMOS_EXPORT BufferLayout::Push<u32>(const std::string& name, u32 count, bool normalized);
 		template<>
-		void LUMOS_EXPORT BufferLayout::Push<u8>(const String& name, u32 count , bool normalized );
+		void LUMOS_EXPORT BufferLayout::Push<u8>(const std::string& name, u32 count, bool normalized);
 		template<>
-		void LUMOS_EXPORT BufferLayout::Push<Maths::Vector2>(const String& name, u32 count , bool normalized );
+		void LUMOS_EXPORT BufferLayout::Push<Maths::Vector2>(const std::string& name, u32 count, bool normalized);
 		template<>
-		void LUMOS_EXPORT BufferLayout::Push<Maths::Vector3>(const String& name, u32 count , bool normalized );
+		void LUMOS_EXPORT BufferLayout::Push<Maths::Vector3>(const std::string& name, u32 count, bool normalized);
 		template<>
-		void LUMOS_EXPORT BufferLayout::Push<Maths::Vector4>(const String& name, u32 count , bool normalized );
+		void LUMOS_EXPORT BufferLayout::Push<Maths::Vector4>(const std::string& name, u32 count, bool normalized);
 
 	}
 }

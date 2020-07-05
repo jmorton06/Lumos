@@ -89,4 +89,4 @@ xcodebuild -project build/Sandbox.xcodeproj CODE_SIGN_IDENTITY="" CODE_SIGNING_R
  * [catch](https://github.com/catchorg/Catch2) : A testing framework.
  * [sol2](https://github.com/ThePhD/sol2) : C++ <-> Lua API wrapper
  * [IconFontCppHeaders](https://github.com/juliettef/IconFontCppHeaders) : C, C++ headers and C# classes for icon fonts
- * [jsonhpp](https://github.com/nlohmann/json) : JSON for Modern C++
+ * [cereal](https://github.com/USCiLab/cereal) : A C++11 library for serialization

@@ -4,14 +4,15 @@
 
 #include "EditorWindow.h"
 #include "FileBrowserWindow.h"
+#include "Utilities/IniFile.h"
 
 #include <imgui/imgui.h>
 #include <entt/entity/fwd.hpp>
 
 namespace Lumos
 {
-    #define BIND_FILEBROWSER_FN(x) std::bind(&x, this, std::placeholders::_1)
-    
+#define BIND_FILEBROWSER_FN(x) std::bind(&x, this, std::placeholders::_1)
+
 	class Application;
 	class Scene;
 	class Event;
@@ -20,43 +21,49 @@ namespace Lumos
 	class WindowResizeEvent;
 	class TimeStep;
 	class Camera;
-	
-	namespace Graphics 
+
+	namespace Graphics
 	{
 		class Texture2D;
 		class GridRenderer;
-        class ForwardRenderer;
-        class Mesh;
+		class ForwardRenderer;
+		class Mesh;
 	}
-    
 
-    enum EditorDebugFlags : u32
-    {
-        Grid = 1,
-        Gizmo = 2,
-        ViewSelected = 4,
-        CameraFrustum = 8,
-        MeshBoundingBoxes = 16,
-        SpriteBoxes = 32,
-    };
+	enum EditorDebugFlags : u32
+	{
+		Grid = 1,
+		Gizmo = 2,
+		ViewSelected = 4,
+		CameraFrustum = 8,
+		MeshBoundingBoxes = 16,
+		SpriteBoxes = 32,
+	};
 
 	class Editor
 	{
 		friend class Application;
-        friend class SceneWindow;
+		friend class SceneWindow;
+
 	public:
 		Editor(Application* app, u32 width, u32 height);
 		~Editor();
 
 		void OnInit();
 		void OnImGui();
-        void OnRender();
+		void OnRender();
 		void DrawMenuBar();
 		void BeginDockSpace(bool infoBar);
 		void EndDockSpace();
 
-        void SetImGuizmoOperation(u32 operation) { m_ImGuizmoOperation = operation; }
-		u32 GetImGuizmoOperation() const { return m_ImGuizmoOperation; }
+		void SetImGuizmoOperation(u32 operation)
+		{
+			m_ImGuizmoOperation = operation;
+		}
+		u32 GetImGuizmoOperation() const
+		{
+			return m_ImGuizmoOperation;
+		}
 
 		void OnNewScene(Scene* scene);
 		void OnImGuizmo();
@@ -65,42 +72,82 @@ namespace Lumos
 
 		void Draw2DGrid(ImDrawList* drawList, const ImVec2& cameraPos, const ImVec2& windowPos, const ImVec2& canvasSize, const float factor, const float thickness);
 
-		bool& ShowGrid() { return m_ShowGrid; }
-		const float& GetGridSize() const { return m_GridSize; }
+		bool& ShowGrid()
+		{
+			return m_ShowGrid;
+		}
+		const float& GetGridSize() const
+		{
+			return m_GridSize;
+		}
 
-		bool& ShowGizmos() { return m_ShowGizmos; }
-		bool& ShowViewSelected() { return m_ShowViewSelected; }
+		bool& ShowGizmos()
+		{
+			return m_ShowGizmos;
+		}
+		bool& ShowViewSelected()
+		{
+			return m_ShowViewSelected;
+		}
 
-        void ToggleSnap() { m_SnapQuizmo = !m_SnapQuizmo; }
+		void ToggleSnap()
+		{
+			m_SnapQuizmo = !m_SnapQuizmo;
+		}
 
-		bool& SnapGuizmo() { return m_SnapQuizmo; }
-		float& SnapAmount() { return m_SnapAmount; }
+		bool& SnapGuizmo()
+		{
+			return m_SnapQuizmo;
+		}
+		float& SnapAmount()
+		{
+			return m_SnapAmount;
+		}
 
-		void SetSelected(entt::entity entity) { m_Selected = entity; }
-		entt::entity GetSelected() const { return m_Selected; }
+		void SetSelected(entt::entity entity)
+		{
+			m_Selected = entity;
+		}
+		entt::entity GetSelected() const
+		{
+			return m_Selected;
+		}
 
 		void BindEventFunction();
 
-		std::unordered_map<size_t, const char*>& GetComponentIconMap() { return m_ComponentIconMap; }
+		std::unordered_map<size_t, const char*>& GetComponentIconMap()
+		{
+			return m_ComponentIconMap;
+		}
 
 		void FocusCamera(const Maths::Vector3& point, float distance, float speed = 1.0f);
-    
-        void RecompileShaders();
-        void DebugDraw();
-        void SelectObject(const Maths::Ray& ray);
 
-		void OpenTextFile(const String& filePath);
+		void RecompileShaders();
+		void DebugDraw();
+		void SelectObject(const Maths::Ray& ray);
+
+		void OpenTextFile(const std::string& filePath);
 		void RemoveWindow(EditorWindow* window);
-    
-        void ShowPreview();
-        void DrawPreview();
 
-        Maths::Vector2 m_SceneWindowPos;
+		void ShowPreview();
+		void DrawPreview();
+
+		Maths::Vector2 m_SceneWindowPos;
 		Maths::Ray GetScreenRay(int x, int y, Camera* camera, int width, int height);
 
-		void FileOpenCallback(const String& filepath);
-    
-        FileBrowserWindow& GetFileBrowserWindow() { return m_FileBrowserWindow; }
+		void FileOpenCallback(const std::string& filepath);
+
+		FileBrowserWindow& GetFileBrowserWindow()
+		{
+			return m_FileBrowserWindow;
+		}
+
+		void AddDefaultEditorSettings();
+		void SaveEditorSettings();
+		void LoadEditorSettings();
+
+		void OpenFile();
+		const char* GetIconFontIcon(const std::string& fileType);
 
 	protected:
 		bool OnWindowResize(WindowResizeEvent& e);
@@ -109,8 +156,8 @@ namespace Lumos
 
 		u32 m_ImGuizmoOperation = 0;
 		entt::entity m_Selected;
-        float m_GridSize = 10.0f;
-        u32 m_DebugDrawFlags = 0;
+		float m_GridSize = 10.0f;
+		u32 m_DebugDrawFlags = 0;
 
 		bool m_ShowGrid = false;
 		bool m_ShowGizmos = true;
@@ -131,15 +178,17 @@ namespace Lumos
 		Layer3D* m_3DGridLayer = nullptr;
 
 		std::unordered_map<size_t, const char*> m_ComponentIconMap;
-    
+
 		FileBrowserWindow m_FileBrowserWindow;
-        Camera* m_EditorCamera = nullptr;
-        //CameraController* m_EditorCameraController = nullptr;
+		Camera* m_EditorCamera = nullptr;
+		//CameraController* m_EditorCameraController = nullptr;
 
 		NONCOPYABLE(Editor)
 
 		Ref<Graphics::ForwardRenderer> m_PreviewRenderer;
 		Ref<Graphics::Texture2D> m_PreviewTexture;
-        Ref<Graphics::Mesh> m_PreviewSphere;
+		Ref<Graphics::Mesh> m_PreviewSphere;
+
+		IniFile m_IniFile;
 	};
 }

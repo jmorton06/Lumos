@@ -1,29 +1,42 @@
 #pragma once
 #include "lmpch.h"
-#include "Physics/LumosPhysicsEngine/PhysicsObject3D.h"
+#include "Physics/LumosPhysicsEngine/RigidBody3D.h"
 
-#include <jsonhpp/json.hpp>
+#include <cereal/cereal.hpp>
 
 namespace Lumos
 {
 	class LUMOS_EXPORT Physics3DComponent
 	{
 	public:
-        Physics3DComponent();
-		explicit Physics3DComponent(Ref<PhysicsObject3D>& physics);
+		Physics3DComponent();
+		explicit Physics3DComponent(Ref<RigidBody3D>& physics);
 
 		~Physics3DComponent() = default;
 
 		void Init();
 		void Update();
-        void OnImGui();
-        
-		const Ref<PhysicsObject3D>& GetPhysicsObject() const { return m_PhysicsObject; }
+		void OnImGui();
 
-		nlohmann::json Serialise() { return nullptr; };
-		void Deserialise(nlohmann::json& data) {};
+		const Ref<RigidBody3D>& GetRigidBody() const
+		{
+			return m_RigidBody;
+		}
 
-    private:
-        Ref<PhysicsObject3D> m_PhysicsObject;
+		template<typename Archive>
+		void save(Archive& archive) const
+		{
+			archive(*m_RigidBody.get());
+		}
+
+		template<typename Archive>
+		void load(Archive& archive)
+		{
+			m_RigidBody = CreateRef<RigidBody3D>();
+			archive(*m_RigidBody.get());
+		}
+
+	private:
+		Ref<RigidBody3D> m_RigidBody;
 	};
 }

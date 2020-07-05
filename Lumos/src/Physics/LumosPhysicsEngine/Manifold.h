@@ -1,7 +1,7 @@
 #pragma once
 
 #include "lmpch.h"
-#include "PhysicsObject3D.h"
+#include "RigidBody3D.h"
 #include "Maths/Maths.h"
 
 namespace Lumos
@@ -12,14 +12,14 @@ namespace Lumos
 	*/
 	struct LUMOS_EXPORT ContactPoint
 	{
-		float   sumImpulseContact;
-		float	sumImpulseFriction;
-		float	elatisity_term;
-		float	collisionPenetration;
+		float sumImpulseContact;
+		float sumImpulseFriction;
+		float elatisity_term;
+		float collisionPenetration;
 
 		Maths::Vector3 collisionNormal;
-		Maths::Vector3 relPosA;			//Position relative to objectA
-		Maths::Vector3 relPosB;			//Position relative to objectB
+		Maths::Vector3 relPosA; //Position relative to objectA
+		Maths::Vector3 relPosB; //Position relative to objectB
 	};
 
 	class LUMOS_EXPORT Manifold
@@ -29,7 +29,7 @@ namespace Lumos
 		~Manifold();
 
 		//Initiate for collision pair
-		void Initiate(PhysicsObject3D* nodeA, PhysicsObject3D* nodeB);
+		void Initiate(RigidBody3D* nodeA, RigidBody3D* nodeB);
 
 		//Called whenever a new collision contact between A & B are found
 		void AddContact(const Maths::Vector3& globalOnA, const Maths::Vector3& globalOnB, const Maths::Vector3& _normal, const float& _penetration);
@@ -42,15 +42,22 @@ namespace Lumos
 		void DebugDraw() const;
 
 		//Get the physics objects
-		PhysicsObject3D* NodeA() const { return m_pNodeA; }
-		PhysicsObject3D* NodeB() const { return m_pNodeB; }
+		RigidBody3D* NodeA() const
+		{
+			return m_pNodeA;
+		}
+		RigidBody3D* NodeB() const
+		{
+			return m_pNodeB;
+		}
+
 	protected:
 		void SolveContactPoint(ContactPoint& c) const;
 		void UpdateConstraint(ContactPoint& c);
 
 	protected:
-		PhysicsObject3D*			m_pNodeA;
-		PhysicsObject3D*			m_pNodeB;
-		std::vector<ContactPoint>	m_vContacts;
+		RigidBody3D* m_pNodeA;
+		RigidBody3D* m_pNodeB;
+		std::vector<ContactPoint> m_vContacts;
 	};
 }

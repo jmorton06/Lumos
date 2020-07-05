@@ -58,7 +58,6 @@ namespace Lumos
 				m_ShadowTex = texture;
 
 			m_DescriptorSet = nullptr;
-			m_LightEntity = entt::null;
 
 			ShadowRenderer::Init();
 		}
@@ -266,18 +265,24 @@ namespace Lumos
 		void ShadowRenderer::UpdateCascades(Scene* scene)
 		{
 			LUMOS_PROFILE_FUNC;
-			if (m_LightEntity == entt::null)
-				return;
-
-			Light* light = &scene->GetRegistry().get<Graphics::Light>(m_LightEntity);
-
-			if (!light)
-				return;
-
-			float cascadeSplits[SHADOWMAP_MAX];
         
             auto& registry = scene->GetRegistry();
-                 
+            auto view = registry.view<Graphics::Light>();
+        
+            Light* light = nullptr;
+        
+            for(auto& lightEntity : view)
+            {
+                auto& currentLight = view.get<Graphics::Light>(lightEntity);
+                if(currentLight.Type == (float)Graphics::LightType::DirectionalLight)
+                    light = &currentLight;
+            }
+        
+            if(!light)
+                return;
+
+			float cascadeSplits[SHADOWMAP_MAX];
+                         
             auto cameraView = registry.view<Camera>();
             if(!cameraView.empty())
             {
@@ -364,7 +369,7 @@ namespace Lumos
 				Maths::Vector3 maxExtents = Maths::Vector3(radius);
 				Maths::Vector3 minExtents = -maxExtents;
 
-				Maths::Vector3 lightDir = -light->m_Direction.ToVector3();
+				Maths::Vector3 lightDir = -light->Direction.ToVector3();
 				lightDir.Normalize();
 				Maths::Matrix4 lightViewMatrix = Maths::Quaternion::LookAt(frustumCenter - lightDir * -minExtents.z, frustumCenter).RotationMatrix4();
                 lightViewMatrix.SetTranslation(frustumCenter);

@@ -6,6 +6,8 @@
 #include "Maths/Maths.h"
 #include "Maths/Ray.h"
 
+#include <cereal/cereal.hpp>
+
 namespace Lumos
 {
 	class LUMOS_EXPORT Camera
@@ -93,6 +95,24 @@ namespace Lumos
     
         const Ref<CameraController>& GetController() const { return m_CameraController; }
 
+        template<typename Archive>
+        void save(Archive &archive) const
+        {
+            archive(cereal::make_nvp("Position", m_Position), cereal::make_nvp("Pitch", m_Pitch), cereal::make_nvp("Yaw", m_Yaw), cereal::make_nvp("Roll", m_Roll), cereal::make_nvp("Scale", m_Scale), cereal::make_nvp("Aspect", m_AspectRatio), cereal::make_nvp("FOV", m_Fov), cereal::make_nvp("Near", m_Near), cereal::make_nvp("Far", m_Far));
+            //Todo camera controller
+        }
+    
+        template<typename Archive>
+        void load(Archive &archive)
+        {
+            archive(cereal::make_nvp("Position", m_Position), cereal::make_nvp("Pitch", m_Pitch), cereal::make_nvp("Yaw", m_Yaw), cereal::make_nvp("Roll", m_Roll), cereal::make_nvp("Scale", m_Scale), cereal::make_nvp("Aspect", m_AspectRatio), cereal::make_nvp("FOV", m_Fov), cereal::make_nvp("Near", m_Near), cereal::make_nvp("Far", m_Far));
+            //Todo camera controller
+        
+            m_FrustumDirty = true;
+            m_ProjectionDirty = true;
+            m_ViewDirty = true;
+        }
+
 	protected:
 
 		void UpdateViewMatrix();
@@ -102,7 +122,7 @@ namespace Lumos
 		float m_Yaw;
 		float m_Roll;
 
-		Maths::Vector3 m_Position;
+		Maths::Vector3 m_Position = Maths::Vector3(0.0f);
 
 		float m_AspectRatio;
 		float m_Scale = 1.0f;

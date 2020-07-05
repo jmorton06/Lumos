@@ -4,21 +4,20 @@
 #include "Core/VFS.h"
 
 #ifdef FREEIMAGE
-#include <FreeImage.h>
-#include <Utilities.h>
+#	include <FreeImage.h>
+#	include <Utilities.h>
 #else
-#define STB_IMAGE_IMPLEMENTATION
-#include "stb_image.h"
+#	define STB_IMAGE_IMPLEMENTATION
+#	include "stb_image.h"
 #endif
-
 
 namespace Lumos
 {
 	u8* LoadImageFromFile(const char* filename, u32* width, u32* height, u32* bits, bool* isHDR, bool flipY)
 	{
-        String filePath = String(filename);
-		String physicalPath;
-		if (!VFS::Get()->ResolvePhysicalPath(filePath, physicalPath))
+		std::string filePath = std::string(filename);
+		std::string physicalPath;
+		if(!VFS::Get()->ResolvePhysicalPath(filePath, physicalPath))
 			return nullptr;
 
 		filename = physicalPath.c_str();
@@ -27,12 +26,12 @@ namespace Lumos
 		FREE_IMAGE_FORMAT fif = FIF_UNKNOWN;
 		FIBITMAP* dib = nullptr;
 		fif = FreeImage_GetFileType(filename, 0);
-		if (fif == FIF_UNKNOWN)
+		if(fif == FIF_UNKNOWN)
 			fif = FreeImage_GetFIFFromFilename(filename);
-		if (fif == FIF_UNKNOWN)
+		if(fif == FIF_UNKNOWN)
 			return nullptr;
 
-		if (FreeImage_FIFSupportsReading(fif))
+		if(FreeImage_FIFSupportsReading(fif))
 			dib = FreeImage_Load(fif, filename);
 
 		LUMOS_ASSERT(dib, "Could not load image '{0}'!", filename);
@@ -45,17 +44,17 @@ namespace Lumos
 		u32 h = FreeImage_GetHeight(bitmap);
 		u32 b = FreeImage_GetBPP(bitmap);
 
-		if (flipY)
+		if(flipY)
 			FreeImage_FlipVertical(bitmap);
 
-		if (FreeImage_GetRedMask(bitmap) == 0xff0000)
+		if(FreeImage_GetRedMask(bitmap) == 0xff0000)
 			SwapRedBlue32(bitmap);
 
-		if (width)
+		if(width)
 			*width = w;
-		if (height)
+		if(height)
 			*height = h;
-		if (bits)
+		if(bits)
 			*bits = b;
 
 		i32 size = w * h * (b / 8);
@@ -64,36 +63,36 @@ namespace Lumos
 		FreeImage_Unload(bitmap);
 #else
 		int texWidth = 0, texHeight = 0, texChannels = 0;
-        stbi_uc* pixels = nullptr;
-        int sizeOfChannel = 8;
-        if (stbi_is_hdr(filename))
-        {
-            sizeOfChannel = 16;
-            pixels = (u8*)stbi_loadf(filename, &texWidth, &texHeight, &texChannels, 0);
+		stbi_uc* pixels = nullptr;
+		int sizeOfChannel = 8;
+		if(stbi_is_hdr(filename))
+		{
+			sizeOfChannel = 16;
+			pixels = (u8*)stbi_loadf(filename, &texWidth, &texHeight, &texChannels, 0);
 
-            if(isHDR)
-                *isHDR = true;
-        }
-        else
-        {
-            pixels = stbi_load(filename, &texWidth, &texHeight, &texChannels, STBI_rgb_alpha);
+			if(isHDR)
+				*isHDR = true;
+		}
+		else
+		{
+			pixels = stbi_load(filename, &texWidth, &texHeight, &texChannels, STBI_rgb_alpha);
 
-            if(isHDR)
-                *isHDR = false;
-        }
+			if(isHDR)
+				*isHDR = false;
+		}
 
 		LUMOS_ASSERT(pixels, "Could not load image '{0}'!", filename);
 
-        //TODO support different texChannels
-        if(texChannels != 4)
-            texChannels = 4;
-    
-		if (width)
+		//TODO support different texChannels
+		if(texChannels != 4)
+			texChannels = 4;
+
+		if(width)
 			*width = texWidth;
-		if (height)
+		if(height)
 			*height = texHeight;
-		if (bits)
-			*bits = texChannels * sizeOfChannel;// texChannels;	  //32 bits for 4 bytes r g b a
+		if(bits)
+			*bits = texChannels * sizeOfChannel; // texChannels;	  //32 bits for 4 bytes r g b a
 
 		const i32 size = texWidth * texHeight * texChannels;
 		u8* result = lmnew u8[size];
@@ -104,7 +103,7 @@ namespace Lumos
 		return result;
 	}
 
-	u8* LoadImageFromFile(const String& filename, u32* width, u32* height, u32* bits, bool* isHDR, bool flipY)
+	u8* LoadImageFromFile(const std::string& filename, u32* width, u32* height, u32* bits, bool* isHDR, bool flipY)
 	{
 		return LoadImageFromFile(filename.c_str(), width, height, bits, isHDR, flipY);
 	}

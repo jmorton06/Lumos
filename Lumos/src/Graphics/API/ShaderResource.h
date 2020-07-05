@@ -10,7 +10,7 @@ namespace Lumos
 		{
 		public:
 			virtual ~ShaderResourceDeclaration() = default;
-			virtual const String& GetName() const = 0;
+			virtual const std::string& GetName() const = 0;
 			virtual u32 GetRegister() const = 0;
 			virtual u32 GetCount() const = 0;
 		};

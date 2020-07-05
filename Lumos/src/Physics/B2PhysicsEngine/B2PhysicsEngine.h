@@ -44,8 +44,8 @@ namespace Lumos
     
 	private:
 
-		Scope<b2World> m_B2DWorld;
-		Scope<B2DebugDraw> m_DebugDraw;
+		UniqueRef<b2World> m_B2DWorld;
+		UniqueRef<B2DebugDraw> m_DebugDraw;
 
 		float m_UpdateTimestep, m_UpdateAccum;
 		bool m_Paused = true;

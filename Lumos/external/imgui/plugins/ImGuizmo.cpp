@@ -1117,7 +1117,7 @@ namespace ImGuizmo
             gContext.mRadiusSquareCenter = radiusAxis;
          }
 
-         drawList->AddPolyline(circlePos, halfCircleSegmentCount, colors[3 - axis], false, 2);
+         drawList->AddPolyline(circlePos, halfCircleSegmentCount, colors[3 - axis], false, 3);
       }
       drawList->AddCircle(worldToPos(gContext.mModel.v.position, gContext.mViewProjection), gContext.mRadiusSquareCenter, colors[0], 64, 3.f);
 
@@ -1147,15 +1147,15 @@ namespace ImGuizmo
       }
    }
 
-   static void DrawHatchedAxis(const vec_t& axis)
-   {
-      for (int j = 1; j < 10; j++)
-      {
-         ImVec2 baseSSpace2 = worldToPos(axis * 0.05f * (float)(j * 2) * gContext.mScreenFactor, gContext.mMVP);
-         ImVec2 worldDirSSpace2 = worldToPos(axis * 0.05f * (float)(j * 2 + 1) * gContext.mScreenFactor, gContext.mMVP);
-         gContext.mDrawList->AddLine(baseSSpace2, worldDirSSpace2, 0x80000000, 6.f);
-      }
-   }
+//   static void DrawHatchedAxis(const vec_t& axis)
+//   {
+//      for (int j = 1; j < 10; j++)
+//      {
+//         ImVec2 baseSSpace2 = worldToPos(axis * 0.05f * (float)(j * 2) * gContext.mScreenFactor, gContext.mMVP);
+//         ImVec2 worldDirSSpace2 = worldToPos(axis * 0.05f * (float)(j * 2 + 1) * gContext.mScreenFactor, gContext.mMVP);
+//         gContext.mDrawList->AddLine(baseSSpace2, worldDirSSpace2, 0x80000000, 6.f);
+//      }
+//   }
 
    static void DrawScaleGizmo(int type)
    {
@@ -1197,7 +1197,7 @@ namespace ImGuizmo
 
             if (gContext.mAxisFactor[i] < 0.f)
             {
-               DrawHatchedAxis(dirAxis * scaleDisplay[i]);
+               //DrawHatchedAxis(dirAxis * scaleDisplay[i]);
             }
          }
       }
@@ -1270,7 +1270,7 @@ namespace ImGuizmo
 
             if (gContext.mAxisFactor[i] < 0.f)
             {
-               DrawHatchedAxis(dirAxis);
+               //DrawHatchedAxis(dirAxis);
             }
          }
 

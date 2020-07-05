@@ -5,7 +5,7 @@
 class SceneModelViewer : public Lumos::Scene
 {
 public:
-	explicit SceneModelViewer(const String& SceneName);
+	explicit SceneModelViewer(const std::string& SceneName);
 	virtual ~SceneModelViewer();
 
 	virtual void OnInit() override;

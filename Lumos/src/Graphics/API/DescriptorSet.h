@@ -24,7 +24,7 @@ namespace Lumos
 			R32G32B32A32_FLOAT,
 			R32G32B32_FLOAT,
 			R32G32_FLOAT,
-            R32_FLOAT
+			R32_FLOAT
 		};
 
 		struct VertexInputDescription
@@ -59,7 +59,7 @@ namespace Lumos
 		{
 			Pipeline* pipeline;
 			u32 layoutIndex;
-            Shader* shader;
+			Shader* shader;
 			u32 count = 1;
 		};
 
@@ -69,7 +69,7 @@ namespace Lumos
 			u32 offset;
 			u32 size;
 			int binding;
-			String name = "";
+			std::string name = "";
 			DescriptorType type;
 			ShaderType shaderType;
 			bool systemUniforms = false;
@@ -87,15 +87,15 @@ namespace Lumos
 			u32 size;
 			PushConstantDataType type;
 			u8* data;
-            ShaderType shaderStage;
+			ShaderType shaderStage;
 		};
 
 		struct ImageInfo
 		{
-            std::vector<Texture*> texture;
+			std::vector<Texture*> texture;
 			int count = 1;
 			int binding;
-			String name;
+			std::string name;
 			TextureType type;
 		};
 
@@ -111,9 +111,9 @@ namespace Lumos
 			virtual void SetPushConstants(std::vector<PushConstant>& pushConstants) = 0;
 			virtual void SetDynamicOffset(u32 offset) = 0;
 			virtual u32 GetDynamicOffset() const = 0;
-           
-        protected:
-            static DescriptorSet* (*CreateFunc)(const DescriptorInfo&);
+
+		protected:
+			static DescriptorSet* (*CreateFunc)(const DescriptorInfo&);
 		};
 	}
 }

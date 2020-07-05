@@ -13,7 +13,7 @@ function OnUpdate(dt)
         Log.Critical("Player Test - Updated - Component  OnUpdate")
     end
 
-    gui.beginWindow("Lua Test Window")
-    gui.text("Player Test Window")
-    gui.endWindow()
+    -- gui.beginWindow("Lua Test Window")
+    -- gui.text("Player Test Window")
+    -- gui.endWindow()
 end

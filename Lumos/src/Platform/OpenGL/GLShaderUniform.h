@@ -4,7 +4,6 @@
 #include "Graphics/API/ShaderUniform.h"
 #include "GLDebug.h"
 
-
 namespace Lumos
 {
 	namespace Graphics
@@ -14,13 +13,26 @@ namespace Lumos
 		private:
 			friend class GLShader;
 			friend class GLShaderUniformBufferDeclaration;
+
 		public:
 			enum class Type
 			{
-				NONE, FLOAT32, VEC2, VEC3, VEC4, MAT3, MAT4, INT32, INT, UINT, STRUCT, MAT4ARRAY
+				NONE,
+				FLOAT32,
+				VEC2,
+				VEC3,
+				VEC4,
+				MAT3,
+				MAT4,
+				INT32,
+				INT,
+				UINT,
+				STRUCT,
+				MAT4ARRAY
 			};
+
 		private:
-			String m_Name;
+			std::string m_Name;
 			u32 m_Size;
 			u32 m_Count;
 			u32 m_Offset;
@@ -28,33 +40,63 @@ namespace Lumos
 			Type m_Type;
 			ShaderStruct* m_Struct;
 			mutable i32 m_Location;
+
 		public:
-			GLShaderUniformDeclaration(Type type, const String& name, u32 count = 1);
-			GLShaderUniformDeclaration(ShaderStruct* uniformStruct, const String& name, u32 count = 1);
+			GLShaderUniformDeclaration(Type type, const std::string& name, u32 count = 1);
+			GLShaderUniformDeclaration(ShaderStruct* uniformStruct, const std::string& name, u32 count = 1);
 
-			_FORCE_INLINE_ const String& GetName() const override { return m_Name; }
-			_FORCE_INLINE_ void SetName(const String& name) override { m_Name = name; }
-			_FORCE_INLINE_ u32 GetSize() const override { return m_Size; }
-			_FORCE_INLINE_ u32 GetCount() const override { return m_Count; }
-			_FORCE_INLINE_ u32 GetOffset() const override { return m_Offset; }
-			_FORCE_INLINE_ u32 GetAbsoluteOffset() const { return m_Struct ? m_Struct->GetOffset() + m_Offset : m_Offset; }
+			_FORCE_INLINE_ const std::string& GetName() const override
+			{
+				return m_Name;
+			}
+			_FORCE_INLINE_ void SetName(const std::string& name) override
+			{
+				m_Name = name;
+			}
+			_FORCE_INLINE_ u32 GetSize() const override
+			{
+				return m_Size;
+			}
+			_FORCE_INLINE_ u32 GetCount() const override
+			{
+				return m_Count;
+			}
+			_FORCE_INLINE_ u32 GetOffset() const override
+			{
+				return m_Offset;
+			}
+			_FORCE_INLINE_ u32 GetAbsoluteOffset() const
+			{
+				return m_Struct ? m_Struct->GetOffset() + m_Offset : m_Offset;
+			}
 
-			i32 GetLocation() const { return m_Location; }
-			_FORCE_INLINE_ Type GetType() const { return m_Type; }
-			_FORCE_INLINE_ const ShaderStruct& GetShaderUniformStruct() const { LUMOS_ASSERT(m_Struct, "");  return *m_Struct; }
+			i32 GetLocation() const
+			{
+				return m_Location;
+			}
+			_FORCE_INLINE_ Type GetType() const
+			{
+				return m_Type;
+			}
+			_FORCE_INLINE_ const ShaderStruct& GetShaderUniformStruct() const
+			{
+				LUMOS_ASSERT(m_Struct, "");
+				return *m_Struct;
+			}
 
 		protected:
 			void SetOffset(u32 offset) override;
+
 		public:
 			static u32 SizeOfUniformType(Type type);
-			static Type StringToType(const String& type, u32 count);
-			static String TypeToString(Type type);
+			static Type StringToType(const std::string& type, u32 count);
+			static std::string TypeToString(Type type);
 		};
 
 		struct LUMOS_EXPORT GLShaderUniformField
 		{
 			GLShaderUniformDeclaration::Type type;
-			String name;
+			std::string name;
 			u32 count;
 			mutable u32 size;
 			mutable i32 location;
@@ -65,29 +107,46 @@ namespace Lumos
 		{
 		private:
 			friend class Shader;
+
 		private:
-			String m_Name;
+			std::string m_Name;
 			ShaderUniformList m_Uniforms;
 			u32 m_Register;
 			u32 m_Size;
 			u32 m_ShaderType; // 0 = VS, 1 = PS, 2 = GS
 		public:
-			GLShaderUniformBufferDeclaration(const String& name, u32 shaderType);
+			GLShaderUniformBufferDeclaration(const std::string& name, u32 shaderType);
 
 			void PushUniform(GLShaderUniformDeclaration* uniform);
 
-			_FORCE_INLINE_ const String& GetName() const override { return m_Name; }
-			_FORCE_INLINE_ u32 GetRegister() const override { return m_Register; }
-			_FORCE_INLINE_ u32 GetShaderType() const override { return m_ShaderType; }
-			_FORCE_INLINE_ u32 GetSize() const override { return m_Size; }
-			_FORCE_INLINE_ const ShaderUniformList& GetUniformDeclarations() const override { return m_Uniforms; }
+			_FORCE_INLINE_ const std::string& GetName() const override
+			{
+				return m_Name;
+			}
+			_FORCE_INLINE_ u32 GetRegister() const override
+			{
+				return m_Register;
+			}
+			_FORCE_INLINE_ u32 GetShaderType() const override
+			{
+				return m_ShaderType;
+			}
+			_FORCE_INLINE_ u32 GetSize() const override
+			{
+				return m_Size;
+			}
+			_FORCE_INLINE_ const ShaderUniformList& GetUniformDeclarations() const override
+			{
+				return m_Uniforms;
+			}
 
-			ShaderUniformDeclaration* FindUniform(const String& name) override;
+			ShaderUniformDeclaration* FindUniform(const std::string& name) override;
 			~GLShaderUniformBufferDeclaration() override;
-            
-            static void MakeDefault();
-        protected:
-            static CommandBuffer* CreateFuncGL();
+
+			static void MakeDefault();
+
+		protected:
+			static CommandBuffer* CreateFuncGL();
 		};
 	}
 }
