@@ -44,7 +44,7 @@ namespace Lumos
 
 		float m_FontSize;
 
-        Scope<Graphics::IMGUIRenderer> m_IMGUIRenderer;
+        UniqueRef<Graphics::IMGUIRenderer> m_IMGUIRenderer;
 		bool m_ClearScreen;
 	};
 

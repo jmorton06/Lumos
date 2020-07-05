@@ -303,6 +303,11 @@ namespace Lumos::Maths
 
     _FORCE_INLINE_ Vector4 operator-(float f, const Vector4 &v) { return Vector4(f) - v; }
     _FORCE_INLINE_ Vector4 operator/(float f, const Vector4 &v) { return Vector4(f) / v; }
+    
+    template<typename Archive> void serialize(Archive& archive, Maths::Vector4& v4)
+    {
+        archive(v4.x, v4.y, v4.z, v4.w);
+    }
 }
 
 namespace std

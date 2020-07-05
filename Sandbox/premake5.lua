@@ -1,18 +1,16 @@
 IncludeDir = {}
-IncludeDir["GLFW"] = "../Dependencies/glfw/include/"
+IncludeDir["GLFW"] = "../Lumos/external/glfw/include/"
 IncludeDir["Glad"] = "../Lumos/external/glad/include/"
-IncludeDir["lua"] = "../Dependencies/lua/src/"
+IncludeDir["lua"] = "../Lumos/external/lua/src/"
 IncludeDir["stb"] = "../Lumos/external/stb/"
-IncludeDir["OpenAL"] = "../Dependencies/OpenAL/include/"
-IncludeDir["Box2D"] = "../Dependencies/Box2D/"
-IncludeDir["Dependencies"] = "../Dependencies/"
-IncludeDir["vulkan"] = "../Dependencies/vulkan/"
-IncludeDir["jsonhpp"] = "../Lumos/external/jsonhpp/"
+IncludeDir["OpenAL"] = "../Lumos/external/OpenAL/include/"
+IncludeDir["Box2D"] = "../Lumos/external/Box2D/"
+IncludeDir["vulkan"] = "../Lumos/external/vulkan/"
 IncludeDir["Lumos"] = "../Lumos/src"
 IncludeDir["External"] = "../Lumos/external/"
-IncludeDir["ImGui"] = "../Dependencies/imgui/"
-IncludeDir["freetype"] = "../Dependencies/freetype/include"
-IncludeDir["SpirvCross"] = "../Dependencies/SPIRV-Cross"
+IncludeDir["ImGui"] = "../Lumos/external/imgui/"
+IncludeDir["freetype"] = "../Lumos/external/freetype/include"
+IncludeDir["SpirvCross"] = "../Lumos/external/SPIRV-Cross"
 IncludeDir["cereal"] = "../Lumos/external/cereal/include"
 
 project "Sandbox"
@@ -37,9 +35,7 @@ project "Sandbox"
 		"%{IncludeDir.OpenAL}",
 		"%{IncludeDir.Box2D}",
 		"%{IncludeDir.vulkan}",
-		"%{IncludeDir.Dependencies}",
 		"%{IncludeDir.External}",
-		"%{IncludeDir.jsonhpp}",
 		"%{IncludeDir.spdlog}",
 		"%{IncludeDir.freetype}",
 		"%{IncludeDir.SpirvCross}",
@@ -85,7 +81,7 @@ project "Sandbox"
 
 		libdirs
 		{
-			"../Dependencies/OpenAL/libs/Win32"
+			"../Lumos/external/OpenAL/libs/Win32"
 		}
 
 		links
@@ -154,7 +150,7 @@ project "Sandbox"
 
 		filter {"system:macosx", "configurations:release"}
 
-			local source = "../Dependencies/vulkan/libs/macOS/**"
+			local source = "../Lumos/external/vulkan/libs/macOS/**"
 			local target = "../bin/release/"
 			
 			buildmessage("copying "..source.." -> "..target)
@@ -165,7 +161,7 @@ project "Sandbox"
 
 		filter {"system:macosx", "configurations:Production"}
 
-			local source = "../Dependencies/vulkan/libs/macOS/**"
+			local source = "../Lumos/external/vulkan/libs/macOS/**"
 			local target = "../bin/dist/"
 			
 			buildmessage("copying "..source.." -> "..target)
@@ -176,7 +172,7 @@ project "Sandbox"
 
 		filter {"system:macosx", "configurations:debug"}
 
-			local source = "../Dependencies/vulkan/libs/macOS/**"
+			local source = "../Lumos/external/vulkan/libs/macOS/**"
 			local target = "../bin/debug/"
 			
 			buildmessage("copying "..source.." -> "..target)
@@ -220,7 +216,7 @@ project "Sandbox"
 
 		linkoptions
 		{
-			"../Dependencies/vulkan/libs/iOS/libMoltenVK.a"
+			"../Lumos/external/vulkan/libs/iOS/libMoltenVK.a"
 		}
 
 		xcodebuildsettings

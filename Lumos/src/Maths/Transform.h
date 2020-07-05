@@ -46,9 +46,16 @@ namespace Lumos
 			void OnImGui();
 
             template<typename Archive>
-            void serialize(Archive &archive)
+            void save(Archive &archive) const
             {
                 archive(cereal::make_nvp("Position", m_LocalPosition), cereal::make_nvp("Rotation", m_LocalOrientation), cereal::make_nvp("Scale", m_LocalScale));
+            }
+        
+            template<typename Archive>
+            void load(Archive &archive)
+            {
+                archive(cereal::make_nvp("Position", m_LocalPosition), cereal::make_nvp("Rotation", m_LocalOrientation), cereal::make_nvp("Scale", m_LocalScale));
+                m_Dirty = true;
             }
 
 		protected:
@@ -62,15 +69,5 @@ namespace Lumos
 			bool m_HasUpdated = false;
 			bool m_Dirty = false;
 		};
-    
-        template<typename Archive> void serialize(Archive& archive, Maths::Vector3& v3)
-        {
-            archive(cereal::make_nvp("x", v3.x), cereal::make_nvp("y", v3.y), cereal::make_nvp("z", v3.z));
-        }
-
-        template<typename Archive> void serialize(Archive& archive, Maths::Quaternion& quat)
-        {
-            archive(cereal::make_nvp("x", quat.x), cereal::make_nvp("y", quat.y), cereal::make_nvp("z", quat.z), cereal::make_nvp("w", quat.w));
-        }
 	}
 }

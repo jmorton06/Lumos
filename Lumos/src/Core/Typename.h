@@ -5,63 +5,63 @@
 
 namespace Lumos
 {
-    template<typename T>
-    String GetTypename()
-    {
-		String delimiters = String(1, ' ');
+	template<typename T>
+	std::string GetTypename()
+	{
+		std::string delimiters = std::string(1, ' ');
 		size_t start = 0;
-		String string = typeid(T).name();
+		std::string string = typeid(T).name();
 		size_t end = string.find_first_of(delimiters);
 
-		std::vector<String> result;
+		std::vector<std::string> result;
 
-		while (end <= String::npos)
+		while(end <= std::string::npos)
 		{
-			String token = string.substr(start, end - start);
-			if (!token.empty())
+			std::string token = string.substr(start, end - start);
+			if(!token.empty())
 				result.push_back(token);
 
-			if (end == String::npos)
+			if(end == std::string::npos)
 				break;
 
 			start = end + 1;
 			end = string.find_first_of(delimiters, start);
 		}
 
-        if (result.size() < 2)
-        {
-            LUMOS_LOG_WARN("Failed to GetTypename. Returning empty string!");
-            return "";
-        }
-        
-        String name = "";
-        for (size_t i = 1; i < result.size(); i++)
-        {
-			name += result[i];
-        }
+		if(result.size() < 2)
+		{
+			LUMOS_LOG_WARN("Failed to GetTypename. Returning empty string!");
+			return "";
+		}
 
-        return name;
-    }
+		std::string name = "";
+		for(size_t i = 1; i < result.size(); i++)
+		{
+			name += result[i];
+		}
+
+		return name;
+	}
 }
-    
-#define LUMOS_TYPENAME_STRING(T) GetTypename<T>()
-    
+
+#	define LUMOS_TYPENAME_STRING(T) GetTypename<T>()
+
 #else
-#include <cxxabi.h>
+#	include <cxxabi.h>
 
 namespace Lumos
 {
-    template<typename T>
-    std::string GetTypename()
-    {
-        int status;
-        char* realName = abi::__cxa_demangle(typeid(T).name(), 0, 0, &status);
-        String result = { realName };
-        free(realName);
-        return result;
-    }
+	template<typename T>
+	std::string GetTypename()
+	{
+		int status;
+		char* realName = abi::__cxa_demangle(typeid(T).name(), 0, 0, &status);
+		std::string result = {realName};
+		free(realName);
+		return result;
+	}
 }
-#define LUMOS_TYPENAME_STRING(T) GetTypename<T>()
+#	define LUMOS_TYPENAME_STRING(T) GetTypename<T>()
 #endif
 
 #define LUMOS_TYPENAME(T) typeid(T).hash_code()

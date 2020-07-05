@@ -6,8 +6,8 @@
 #define LUMOS_PROFILER_ENABLED
 #ifdef LUMOS_PROFILER_ENABLED
 #define LUMOS_PROFILE_BLOCK(name) \
-Scope<Lumos::ProfilerRecord> profilerData \
- = Lumos::Profiler::Get().IsEnabled() ? CreateScope<Lumos::ProfilerRecord>(name) : nullptr;
+UniqueRef<Lumos::ProfilerRecord> profilerData \
+ = Lumos::Profiler::Get().IsEnabled() ? CreateUniqueRef<Lumos::ProfilerRecord>(name) : nullptr;
 
 #define LUMOS_PROFILE_FUNC LUMOS_PROFILE_BLOCK(__FUNCTION__)
 #else

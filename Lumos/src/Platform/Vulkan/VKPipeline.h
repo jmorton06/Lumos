@@ -23,23 +23,44 @@ namespace Lumos
 			void SetActive(Graphics::CommandBuffer* cmdBuffer) override;
 			VkDescriptorSet CreateDescriptorSet();
 
-			VkDescriptorSetLayout* GetDescriptorLayout(int id) { return &m_DescriptorLayouts[id]; };
-			
-			const String& GetPipelineName() const { return m_PipelineName; };
-			
-			const VkDescriptorPool& GetDescriptorPool() const { return m_DescriptorPool; };
-			const VkPipelineLayout& GetPipelineLayout() const { return m_PipelineLayout; };
-			const VkPipeline& GetPipeline() const { return m_Pipeline; }
+			VkDescriptorSetLayout* GetDescriptorLayout(int id)
+			{
+				return &m_DescriptorLayouts[id];
+			};
 
-			DescriptorSet* GetDescriptorSet() const override { return m_DescriptorSet; }
-			Shader* GetShader()	const override { return m_Shader; }
+			const std::string& GetPipelineName() const
+			{
+				return m_PipelineName;
+			};
 
-            static void MakeDefault();
-        protected:
-            static Pipeline* CreateFuncVulkan(const PipelineInfo& pipelineCI);
-            
+			const VkDescriptorPool& GetDescriptorPool() const
+			{
+				return m_DescriptorPool;
+			};
+			const VkPipelineLayout& GetPipelineLayout() const
+			{
+				return m_PipelineLayout;
+			};
+			const VkPipeline& GetPipeline() const
+			{
+				return m_Pipeline;
+			}
+
+			DescriptorSet* GetDescriptorSet() const override
+			{
+				return m_DescriptorSet;
+			}
+			Shader* GetShader() const override
+			{
+				return m_Shader;
+			}
+
+			static void MakeDefault();
+
+		protected:
+			static Pipeline* CreateFuncVulkan(const PipelineInfo& pipelineCI);
+
 		private:
-		
 			VkVertexInputBindingDescription m_VertexBindingDescription;
 			VkPipelineLayout m_PipelineLayout;
 			VkDescriptorPool m_DescriptorPool;
@@ -47,11 +68,8 @@ namespace Lumos
 			std::vector<VkDescriptorSetLayout> m_DescriptorLayouts;
 			std::string m_PipelineName;
 			DescriptorSet* m_DescriptorSet = nullptr;
-			Shader*	m_Shader = nullptr;
-            float m_LineWidth = -1.0f;
-
+			Shader* m_Shader = nullptr;
+			float m_LineWidth = -1.0f;
 		};
 	}
 }
-
-

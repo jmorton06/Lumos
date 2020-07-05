@@ -9,19 +9,44 @@ namespace Lumos
 	namespace Graphics
 	{
 		Light::Light(const Maths::Vector3& direction, const Maths::Vector4& colour, float intensity, const LightType& type, const Maths::Vector3& position, float radius, float angle)
-			: m_Direction(direction), m_Colour(colour), m_Position(position), m_Intensity(intensity), m_Radius(radius), m_Type(float(type)), m_Angle(angle)
+			: Direction(direction)
+			, Colour(colour)
+			, Position(position)
+			, Intensity(intensity)
+			, Radius(radius)
+			, Type(float(type))
+			, Angle(angle)
 		{
 		}
 
-		String LightTypeToString(Graphics::LightType type)
+		std::string Light::LightTypeToString(Graphics::LightType type)
 		{
-			switch (type)
+			switch(type)
 			{
-			case Graphics::LightType::DirectionalLight: return "Directional Light";
-			case Graphics::LightType::SpotLight: return "Spot Light";
-			case Graphics::LightType::PointLight: return "Point Light";
-			default: return "ERROR";
+			case Graphics::LightType::DirectionalLight:
+				return "Directional Light";
+			case Graphics::LightType::SpotLight:
+				return "Spot Light";
+			case Graphics::LightType::PointLight:
+				return "Point Light";
+			default:
+				return "ERROR";
 			}
+		}
+
+		float Light::StringToLightType(const std::string& type)
+		{
+			if(type == "Directional")
+				return float(Graphics::LightType::DirectionalLight);
+
+			if(type == "Point")
+				return float(Graphics::LightType::PointLight);
+
+			if(type == "Spot")
+				return float(Graphics::LightType::SpotLight);
+
+			Lumos::Debug::Log::Error("Unknown Light Type");
+			return 0.0f;
 		}
 
 		void Light::OnImGui()
@@ -30,29 +55,38 @@ namespace Lumos
 			ImGui::Columns(2);
 			ImGui::Separator();
 
-			if(m_Type != 0)
-				ImGuiHelpers::Property("Position", m_Position);
+			if(Type != 0)
+				ImGuiHelpers::Property("Position", Position);
 
-			if (m_Type != 2)
-				ImGuiHelpers::Property("Direction", m_Direction);
+			if(Type != 2)
+				ImGuiHelpers::Property("Direction", Direction);
 
-			if (m_Type != 0)
-				ImGuiHelpers::Property("Radius", m_Radius, 0.0f, 100.0f);
-			ImGuiHelpers::Property("Colour", m_Colour, true, ImGuiHelpers::PropertyFlag::ColorProperty);
-			ImGuiHelpers::Property("Intensity", m_Intensity, 0.0f, 100.0f);
+			if(Type != 0)
+				ImGuiHelpers::Property("Radius", Radius, 0.0f, 100.0f);
+			ImGuiHelpers::Property("Colour", Colour, true, ImGuiHelpers::PropertyFlag::ColorProperty);
+			ImGuiHelpers::Property("Intensity", Intensity, 0.0f, 100.0f);
 
-			if (m_Type == 1)
-				ImGuiHelpers::Property("Angle", m_Angle, -1.0f, 1.0f);
+			if(Type == 1)
+				ImGuiHelpers::Property("Angle", Angle, -1.0f, 1.0f);
 
 			ImGui::AlignTextToFramePadding();
 			ImGui::TextUnformatted("Light Type");
 			ImGui::NextColumn();
 			ImGui::PushItemWidth(-1);
-			if (ImGui::BeginMenu(LightTypeToString(Graphics::LightType(int(m_Type))).c_str()))
+			if(ImGui::BeginMenu(LightTypeToString(Graphics::LightType(int(Type))).c_str()))
 			{
-				if (ImGui::MenuItem("Directional Light", "", static_cast<int>(m_Type) == 0, true)) { m_Type = float(int(Graphics::LightType::DirectionalLight)); }
-				if (ImGui::MenuItem("Spot Light", "", static_cast<int>(m_Type) == 1, true)) { m_Type = float(int(Graphics::LightType::SpotLight)); }
-				if (ImGui::MenuItem("Point Light", "", static_cast<int>(m_Type) == 2, true)) { m_Type = float(int(Graphics::LightType::PointLight)); }
+				if(ImGui::MenuItem("Directional Light", "", static_cast<int>(Type) == 0, true))
+				{
+					Type = float(int(Graphics::LightType::DirectionalLight));
+				}
+				if(ImGui::MenuItem("Spot Light", "", static_cast<int>(Type) == 1, true))
+				{
+					Type = float(int(Graphics::LightType::SpotLight));
+				}
+				if(ImGui::MenuItem("Point Light", "", static_cast<int>(Type) == 2, true))
+				{
+					Type = float(int(Graphics::LightType::PointLight));
+				}
 				ImGui::EndMenu();
 			}
 
@@ -65,4 +99,3 @@ namespace Lumos
 		}
 	}
 }
-

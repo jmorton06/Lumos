@@ -462,10 +462,10 @@ namespace Lumos
     }
             
     template<class T>
-    using Scope = Owned<T>;
+    using UniqueRef = Owned<T>;
 
     template <typename T, typename ... Args>
-    Scope<T> CreateScope(Args&& ...args)
+    UniqueRef<T> CreateUniqueRef(Args&& ...args)
     {
         auto ptr = lmnew T(std::forward<Args>(args) ...);
         return Owned<T>(ptr);
@@ -487,10 +487,10 @@ namespace Lumos
     using WeakRef = std::weak_ptr<T>;
 
     template<class T>
-    using Scope = std::unique_ptr<T>;
+    using UniqueRef = std::unique_ptr<T>;
     
     template <typename T, typename ... Args>
-    Scope<T> CreateScope(Args&& ...args)
+    UniqueRef<T> CreateUniqueRef(Args&& ...args)
     {
         return std::make_unique<T>(std::forward<Args>(args) ...);
     }

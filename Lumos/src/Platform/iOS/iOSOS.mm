@@ -42,7 +42,7 @@ namespace Lumos
     {
         Lumos::Internal::CoreSystem::Init(false);
 
-        String root = GetAssetPath();
+        std::string root = GetAssetPath();
         Lumos::VFS::Get()->Mount("CoreShaders", root + "/Assets/shaders");
         Lumos::VFS::Get()->Mount("CoreMeshes", root + "/Assets/meshes");
         Lumos::VFS::Get()->Mount("CoreTextures", root + "/Assets/textures");
@@ -74,7 +74,7 @@ namespace Lumos
 	    Lumos::Internal::CoreSystem::Shutdown();
     }
     
-    String iOSOS::GetAssetPath()
+    std::string iOSOS::GetAssetPath()
     {
         return [NSBundle.mainBundle.resourcePath stringByAppendingString: @"/"].UTF8String;
     }
@@ -99,7 +99,7 @@ namespace Lumos
         ((iOSWindow*)Application::Get().GetWindow())->OnResizeEvent(width, height);
     }
 
-    String iOSOS::GetExecutablePath()
+    std::string iOSOS::GetExecutablePath()
     {
         return GetAssetPath();
         static char path[512] = "";
@@ -143,7 +143,7 @@ namespace Lumos
         [viewController presentViewController:alert animated:YES completion:nil];
     }
     
-    String iOSOS::GetModelName() const
+    std::string iOSOS::GetModelName() const
     {
         size_t size;
         sysctlbyname("hw.machine", NULL, &size, NULL, 0);
@@ -155,7 +155,7 @@ namespace Lumos
         NSString *platform = [NSString stringWithCString:model encoding:NSUTF8StringEncoding];
         free(model);
         const char *str = [platform UTF8String];
-        return String(str != NULL ? str : "");
+        return std::string(str != NULL ? str : "");
     }
 
     void iOSOS::ShowKeyboard(bool open)

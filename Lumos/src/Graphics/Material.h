@@ -5,6 +5,8 @@
 #include "Graphics/API/Shader.h"
 #include "Graphics/API/Texture.h"
 
+#include <cereal/cereal.hpp>
+
 namespace Lumos
 {
 	namespace Graphics
@@ -14,16 +16,16 @@ namespace Lumos
 		class UniformBuffer;
 	}
 
-const float PBR_WORKFLOW_SEPARATE_TEXTURES  = 0.0f;
-const float PBR_WORKFLOW_METALLIC_ROUGHNESS = 1.0f;
-const float PBR_WORKFLOW_SPECULAR_GLOSINESS = 2.0f;
+	const float PBR_WORKFLOW_SEPARATE_TEXTURES = 0.0f;
+	const float PBR_WORKFLOW_METALLIC_ROUGHNESS = 1.0f;
+	const float PBR_WORKFLOW_SPECULAR_GLOSINESS = 2.0f;
 
 	struct MaterialProperties
 	{
-		Maths::Vector4  albedoColour    = Maths::Vector4(1.0f,0.0f,1.0f,1.0f);
-		Maths::Vector4  roughnessColour = Maths::Vector4(1.0f,0.0f,1.0f,1.0f);
-		Maths::Vector4  metallicColour  = Maths::Vector4(0.0f,1.0f,0.0f,1.0f);
-        Maths::Vector4  emissiveColour  = Maths::Vector4(0.0f,0.0f,0.0f,1.0f);
+		Maths::Vector4 albedoColour = Maths::Vector4(1.0f, 0.0f, 1.0f, 1.0f);
+		Maths::Vector4 roughnessColour = Maths::Vector4(1.0f, 0.0f, 1.0f, 1.0f);
+		Maths::Vector4 metallicColour = Maths::Vector4(0.0f, 1.0f, 0.0f, 1.0f);
+		Maths::Vector4 emissiveColour = Maths::Vector4(0.0f, 0.0f, 0.0f, 1.0f);
 		float usingAlbedoMap = 1.0f;
 		float usingMetallicMap = 1.0f;
 		float usingRoughnessMap = 1.0f;
@@ -31,7 +33,7 @@ const float PBR_WORKFLOW_SPECULAR_GLOSINESS = 2.0f;
 		float usingAOMap = 1.0f;
 		float usingEmissiveMap = 1.0f;
 		float workflow = PBR_WORKFLOW_SEPARATE_TEXTURES;
-        float padding;
+		float padding;
 	};
 
 	struct PBRMataterialTextures
@@ -56,49 +58,123 @@ const float PBR_WORKFLOW_SPECULAR_GLOSINESS = 2.0f;
 			DEFERREDRENDER = BIT(3),
 			NOSHADOW = BIT(4),
 		};
+
 	protected:
 		int m_RenderFlags;
+
 	public:
 		Material(Ref<Graphics::Shader>& shader, const MaterialProperties& properties = MaterialProperties(), const PBRMataterialTextures& textures = PBRMataterialTextures());
 		Material();
-        
+
 		NONCOPYABLE(Material);
 
 		~Material();
 
-		void SetRenderFlags(int flags) { m_RenderFlags = flags; }
-		void SetRenderFlag(Material::RenderFlags flag) { m_RenderFlags |= static_cast<int>(flag); }
-		void LoadPBRMaterial(const String& name, const String& path, const String& extension = ".png"); //TODO : Texture Parameters
-		void LoadMaterial(const String& name, const String& path);
+		void SetRenderFlags(int flags)
+		{
+			m_RenderFlags = flags;
+		}
+		void SetRenderFlag(Material::RenderFlags flag)
+		{
+			m_RenderFlags |= static_cast<int>(flag);
+		}
+		void LoadPBRMaterial(const std::string& name, const std::string& path, const std::string& extension = ".png"); //TODO : Texture Parameters
+		void LoadMaterial(const std::string& name, const std::string& path);
 		void CreateDescriptorSet(Graphics::Pipeline* pipeline, int layoutID, bool pbr = true);
 
 		void SetTextures(const PBRMataterialTextures& textures);
-        void SetMaterialProperites(const MaterialProperties& properties);
-        void UpdateMaterialPropertiesData();
+		void SetMaterialProperites(const MaterialProperties& properties);
+		void UpdateMaterialPropertiesData();
 
-        PBRMataterialTextures&         GetTextures()             { return m_PBRMaterialTextures; }
-		const PBRMataterialTextures& 	GetTextures() 		const { return m_PBRMaterialTextures; }
-		Graphics::Shader* 				GetShader()			const { return m_Shader.get(); }
-		Graphics::DescriptorSet* 		GetDescriptorSet() 	const { return m_DescriptorSet; }
-		Graphics::Pipeline* 			GetPipeline()		const { return m_Pipeline; }
-		int								GetRenderFlags()	const { return m_RenderFlags; }
-		const String&					GetName()			const { return m_Name; }
-		MaterialProperties*				GetProperties()		const { return m_MaterialProperties; }
-        
-        static void InitDefaultTexture();
-        static void ReleaseDefaultTexture();
+		PBRMataterialTextures& GetTextures()
+		{
+			return m_PBRMaterialTextures;
+		}
+		const PBRMataterialTextures& GetTextures() const
+		{
+			return m_PBRMaterialTextures;
+		}
+		Graphics::Shader* GetShader() const
+		{
+			return m_Shader.get();
+		}
+		Graphics::DescriptorSet* GetDescriptorSet() const
+		{
+			return m_DescriptorSet;
+		}
+		Graphics::Pipeline* GetPipeline() const
+		{
+			return m_Pipeline;
+		}
+		int GetRenderFlags() const
+		{
+			return m_RenderFlags;
+		}
+		const std::string& GetName() const
+		{
+			return m_Name;
+		}
+		MaterialProperties* GetProperties() const
+		{
+			return m_MaterialProperties;
+		}
+
+		static void InitDefaultTexture();
+		static void ReleaseDefaultTexture();
+
+		template<typename Archive>
+		void save(Archive& archive) const
+		{
+			archive(cereal::make_nvp("Albedo", m_PBRMaterialTextures.albedo ? m_PBRMaterialTextures.albedo->GetFilepath() : ""),
+				cereal::make_nvp("Normal", m_PBRMaterialTextures.normal ? m_PBRMaterialTextures.normal->GetFilepath() : ""),
+				cereal::make_nvp("Roughness", m_PBRMaterialTextures.roughness ? m_PBRMaterialTextures.roughness->GetFilepath() : ""),
+				cereal::make_nvp("Ao", m_PBRMaterialTextures.ao ? m_PBRMaterialTextures.ao->GetFilepath() : ""),
+				cereal::make_nvp("Emissive", m_PBRMaterialTextures.emissive ? m_PBRMaterialTextures.emissive->GetFilepath() : ""),
+				cereal::make_nvp("albedoColour", m_MaterialProperties->albedoColour),
+				cereal::make_nvp("roughnessColour", m_MaterialProperties->roughnessColour),
+				cereal::make_nvp("metallicColour", m_MaterialProperties->metallicColour),
+				cereal::make_nvp("emissiveColour", m_MaterialProperties->emissiveColour),
+				cereal::make_nvp("usingAlbedoMap", m_MaterialProperties->usingAlbedoMap),
+				cereal::make_nvp("usingMetallicMap", m_MaterialProperties->usingMetallicMap),
+				cereal::make_nvp("usingRoughnessMap", m_MaterialProperties->usingRoughnessMap),
+				cereal::make_nvp("usingNormalMap", m_MaterialProperties->usingNormalMap),
+				cereal::make_nvp("usingAOMap", m_MaterialProperties->usingAOMap),
+				cereal::make_nvp("usingEmissiveMap", m_MaterialProperties->usingEmissiveMap),
+				cereal::make_nvp("workflow", m_MaterialProperties->workflow));
+		}
+
+		template<typename Archive>
+		void load(Archive& archive)
+		{
+			archive(cereal::make_nvp("Albedo", m_PBRMaterialTextures.albedo ? m_PBRMaterialTextures.albedo->GetFilepath() : ""),
+				cereal::make_nvp("Normal", m_PBRMaterialTextures.normal ? m_PBRMaterialTextures.normal->GetFilepath() : ""),
+				cereal::make_nvp("Roughness", m_PBRMaterialTextures.roughness ? m_PBRMaterialTextures.roughness->GetFilepath() : ""),
+				cereal::make_nvp("Ao", m_PBRMaterialTextures.ao ? m_PBRMaterialTextures.ao->GetFilepath() : ""),
+				cereal::make_nvp("Emissive", m_PBRMaterialTextures.emissive ? m_PBRMaterialTextures.emissive->GetFilepath() : ""),
+				cereal::make_nvp("albedoColour", m_MaterialProperties->albedoColour),
+				cereal::make_nvp("roughnessColour", m_MaterialProperties->roughnessColour),
+				cereal::make_nvp("metallicColour", m_MaterialProperties->metallicColour),
+				cereal::make_nvp("emissiveColour", m_MaterialProperties->emissiveColour),
+				cereal::make_nvp("usingAlbedoMap", m_MaterialProperties->usingAlbedoMap),
+				cereal::make_nvp("usingMetallicMap", m_MaterialProperties->usingMetallicMap),
+				cereal::make_nvp("usingRoughnessMap", m_MaterialProperties->usingRoughnessMap),
+				cereal::make_nvp("usingNormalMap", m_MaterialProperties->usingNormalMap),
+				cereal::make_nvp("usingAOMap", m_MaterialProperties->usingAOMap),
+				cereal::make_nvp("usingEmissiveMap", m_MaterialProperties->usingEmissiveMap),
+				cereal::make_nvp("workflow", m_MaterialProperties->workflow));
+		}
 
 	private:
-		PBRMataterialTextures   			m_PBRMaterialTextures;
-		Ref<Graphics::Shader>				m_Shader;
-		Graphics::Pipeline* 				m_Pipeline;
-		Graphics::DescriptorSet* 			m_DescriptorSet;
-		Graphics::UniformBuffer* 			m_MaterialPropertiesBuffer;
-		MaterialProperties*					m_MaterialProperties;
-		u32									m_MaterialBufferSize;
-        u8*									m_MaterialBufferData;
-		String								m_Name;
-        
-        static Ref<Graphics::Texture2D> s_DefaultTexture;
+		PBRMataterialTextures m_PBRMaterialTextures;
+		Ref<Graphics::Shader> m_Shader;
+		Graphics::Pipeline* m_Pipeline;
+		Graphics::DescriptorSet* m_DescriptorSet;
+		Graphics::UniformBuffer* m_MaterialPropertiesBuffer;
+		MaterialProperties* m_MaterialProperties;
+		u32 m_MaterialBufferSize;
+		u8* m_MaterialBufferData;
+		std::string m_Name;
+
+		static Ref<Graphics::Texture2D> s_DefaultTexture;
 	};
 }

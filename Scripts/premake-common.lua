@@ -47,6 +47,7 @@ newoption
 }
 
 function SetRecommendedXcodeSettings()
+
    xcodebuildsettings
    {
 		['ARCHS'] = false,
@@ -120,7 +121,8 @@ function SetRecommendedXcodeSettings()
 		['ENABLE_STRICT_OBJC_MSGSEND'] = 'YES',
 		['GCC_WARN_UNDECLARED_SELECTOR'] = 'YES',
 	  	['CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF'] = 'YES',
-	  	['CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS'] = 'YES'
+		['CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS'] = 'YES',
+		['CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER'] = 'YES'
    }
 
    filter {"system:macosx or system:ios", "configurations:debug"}
@@ -128,7 +130,12 @@ function SetRecommendedXcodeSettings()
     	{
 			['ENABLE_TESTABILITY'] = 'YES',
 			['ONLY_ACTIVE_ARCH'] = 'YES'
-	    }
+		}
+	filter{"system:macosx"}
+		xcodebuildsettings 
+		{
+			["MACOSX_DEPLOYMENT_TARGET"] = "10.15"
+		}
 end
 
 function SetRecommendedSettings()

@@ -11,11 +11,14 @@ namespace Lumos
 	{
 		static ShaderType type = ShaderType::UNKNOWN;
 
-		VKShader::VKShader(const std::string& shaderName, const std::string& filePath): m_StageCount(0), m_Name(shaderName), m_FilePath(filePath)
+		VKShader::VKShader(const std::string& shaderName, const std::string& filePath)
+			: m_StageCount(0)
+			, m_Name(shaderName)
+			, m_FilePath(filePath)
 		{
 			m_ShaderStages = VK_NULL_HANDLE;
 
-			m_Source = VFS::Get()->ReadTextFile(filePath + shaderName +  ".shader");
+			m_Source = VFS::Get()->ReadTextFile(filePath + shaderName + ".shader");
 
 			Init();
 		}
@@ -23,7 +26,7 @@ namespace Lumos
 		VKShader::~VKShader()
 		{
 			Unload();
-            delete[] m_ShaderStages;
+			delete[] m_ShaderStages;
 			m_ShaderStages = VK_NULL_HANDLE;
 		}
 
@@ -32,10 +35,10 @@ namespace Lumos
 			uint32_t currentShaderStage = 0;
 			m_StageCount = 0;
 
-			std::map<ShaderType, String>* files = lmnew std::map<ShaderType, String>();
+			std::map<ShaderType, std::string>* files = lmnew std::map<ShaderType, std::string>();
 			PreProcess(m_Source, files);
 
-			for (auto& source : *files)
+			for(auto& source : *files)
 			{
 				m_ShaderTypes.push_back(source.first);
 				m_StageCount++;
@@ -43,10 +46,10 @@ namespace Lumos
 
 			m_ShaderStages = lmnew VkPipelineShaderStageCreateInfo[m_StageCount];
 
-			for (uint32_t i = 0; i < m_StageCount; i++)
-                m_ShaderStages[i] = VkPipelineShaderStageCreateInfo();
+			for(uint32_t i = 0; i < m_StageCount; i++)
+				m_ShaderStages[i] = VkPipelineShaderStageCreateInfo();
 
-			for (auto& file : *files)
+			for(auto& file : *files)
 			{
 				auto fileSize = FileSystem::GetFileSize(m_FilePath + file.second); //TODO: once process
 				u8* source = FileSystem::ReadFile(m_FilePath + file.second);
@@ -57,27 +60,27 @@ namespace Lumos
 				vertexShaderCI.pNext = VK_NULL_HANDLE;
 
 				m_ShaderStages[currentShaderStage].sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO;
-                m_ShaderStages[currentShaderStage].stage = VKTools::ShaderTypeToVK(file.first);
+				m_ShaderStages[currentShaderStage].stage = VKTools::ShaderTypeToVK(file.first);
 				m_ShaderStages[currentShaderStage].pName = "main";
 				m_ShaderStages[currentShaderStage].pNext = VK_NULL_HANDLE;
 
 				VK_CHECK_RESULT(vkCreateShaderModule(VKDevice::Get().GetDevice(), &vertexShaderCI, nullptr, &m_ShaderStages[currentShaderStage].module));
 
-                delete[] source;
+				delete[] source;
 
 				currentShaderStage++;
 			}
 
-            delete files;
+			delete files;
 			return true;
 		}
 
 		void VKShader::Unload() const
 		{
-			for (uint32_t i = 0; i < m_StageCount; i++)
+			for(uint32_t i = 0; i < m_StageCount; i++)
 			{
 				vkDestroyShaderModule(VKDevice::Get().GetDevice(), m_ShaderStages[i].module, nullptr);
-			}		
+			}
 		}
 
 		VkPipelineShaderStageCreateInfo* VKShader::GetShaderStages() const
@@ -90,81 +93,81 @@ namespace Lumos
 			return m_StageCount;
 		}
 
-		void VKShader::PreProcess(const String& source, std::map<ShaderType, String>* sources)
+		void VKShader::PreProcess(const std::string& source, std::map<ShaderType, std::string>* sources)
 		{
 			type = ShaderType::UNKNOWN;
-			std::vector<String> lines = GetLines(source);
+			std::vector<std::string> lines = GetLines(source);
 			ReadShaderFile(lines, sources);
 		}
 
-		void VKShader::ReadShaderFile(std::vector<String> lines, std::map<ShaderType, String>* shaders)
+		void VKShader::ReadShaderFile(std::vector<std::string> lines, std::map<ShaderType, std::string>* shaders)
 		{
-			for (u32 i = 0; i < lines.size(); i++)
+			for(u32 i = 0; i < lines.size(); i++)
 			{
-				String str = String(lines[i]);
+				std::string str = std::string(lines[i]);
 				str = StringReplace(str, '\t');
 
-				if (StartsWith(str, "#shader"))
+				if(StartsWith(str, "#shader"))
 				{
-					if (StringContains(str, "vertex"))
+					if(StringContains(str, "vertex"))
 					{
 						type = ShaderType::VERTEX;
-						std::map<ShaderType, String>::iterator it = shaders->begin();
-						shaders->insert(it, std::pair<ShaderType, String>(type, ""));
+						std::map<ShaderType, std::string>::iterator it = shaders->begin();
+						shaders->insert(it, std::pair<ShaderType, std::string>(type, ""));
 					}
-					else if (StringContains(str, "geometry"))
+					else if(StringContains(str, "geometry"))
 					{
 						type = ShaderType::GEOMETRY;
-						std::map<ShaderType, String>::iterator it = shaders->begin();
-						shaders->insert(it, std::pair<ShaderType, String>(type, ""));
+						std::map<ShaderType, std::string>::iterator it = shaders->begin();
+						shaders->insert(it, std::pair<ShaderType, std::string>(type, ""));
 					}
-					else if (StringContains(str, "fragment"))
+					else if(StringContains(str, "fragment"))
 					{
 						type = ShaderType::FRAGMENT;
-						std::map<ShaderType, String>::iterator it = shaders->begin();
-						shaders->insert(it, std::pair<ShaderType, String>(type, ""));
+						std::map<ShaderType, std::string>::iterator it = shaders->begin();
+						shaders->insert(it, std::pair<ShaderType, std::string>(type, ""));
 					}
-					else if (StringContains(str, "tess_cont"))
+					else if(StringContains(str, "tess_cont"))
 					{
 						type = ShaderType::TESSELLATION_CONTROL;
-						std::map<ShaderType, String>::iterator it = shaders->begin();
-						shaders->insert(it, std::pair<ShaderType, String>(type, ""));
+						std::map<ShaderType, std::string>::iterator it = shaders->begin();
+						shaders->insert(it, std::pair<ShaderType, std::string>(type, ""));
 					}
-					else if (StringContains(str, "tess_eval"))
+					else if(StringContains(str, "tess_eval"))
 					{
 						type = ShaderType::TESSELLATION_EVALUATION;
-						std::map<ShaderType, String>::iterator it = shaders->begin();
-						shaders->insert(it, std::pair<ShaderType, String>(type, ""));
+						std::map<ShaderType, std::string>::iterator it = shaders->begin();
+						shaders->insert(it, std::pair<ShaderType, std::string>(type, ""));
 					}
-					else if (StringContains(str, "compute"))
+					else if(StringContains(str, "compute"))
 					{
 						type = ShaderType::COMPUTE;
-						std::map<ShaderType, String>::iterator it = shaders->begin();
-						shaders->insert(it, std::pair<ShaderType, String>(type, ""));
+						std::map<ShaderType, std::string>::iterator it = shaders->begin();
+						shaders->insert(it, std::pair<ShaderType, std::string>(type, ""));
 					}
-					else if (StringContains(str, "end"))
+					else if(StringContains(str, "end"))
 					{
 						type = ShaderType::UNKNOWN;
 					}
 				}
-				else if (type != ShaderType::UNKNOWN)
+				else if(type != ShaderType::UNKNOWN)
 				{
 					shaders->at(type).append(lines[i]);
 				}
 			}
 		}
-        
-        void VKShader::MakeDefault()
-        {
-            CreateFunc = CreateFuncVulkan;
-        }
-        
-		Shader* VKShader::CreateFuncVulkan(const String& name, const String& source)
-        {
+
+		void VKShader::MakeDefault()
+		{
+			CreateFunc = CreateFuncVulkan;
+		}
+
+		Shader* VKShader::CreateFuncVulkan(const std::string& name, const std::string& source)
+		{
 			std::string physicalPath;
 			Lumos::VFS::Get()->ResolvePhysicalPath(source, physicalPath, true);
-            return lmnew VKShader(name, physicalPath);
-        }
+			return lmnew VKShader(name, physicalPath);
+		}
 
 	}
 }

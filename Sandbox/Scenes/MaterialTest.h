@@ -4,7 +4,7 @@
 class MaterialTest : public Lumos::Scene
 {
 public:
-	MaterialTest(const String& SceneName);
+	MaterialTest(const std::string& SceneName);
 	virtual ~MaterialTest();
 
 	virtual void OnInit() override;

@@ -15,12 +15,15 @@ namespace Lumos
 		FileBrowserWindow();
 		~FileBrowserWindow();
 
-        void Open();
+		void Open();
 		void OnImGui() override;
-        void SetCallback(const std::function<void(const String&)>& callback) { m_Callback = callback; }
-		
+		void SetCallback(const std::function<void(const std::string&)>& callback)
+		{
+			m_Callback = callback;
+		}
+
 	private:
-        std::function<void(const String&)> m_Callback;
-        ImGui::FileBrowser* m_FileBrowser;
+		std::function<void(const std::string&)> m_Callback;
+		ImGui::FileBrowser* m_FileBrowser;
 	};
 }

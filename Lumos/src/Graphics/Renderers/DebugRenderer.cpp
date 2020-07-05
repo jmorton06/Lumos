@@ -354,20 +354,20 @@ namespace Lumos
     void DebugRenderer::DebugDraw(Graphics::Light* light, const Maths::Vector4 &colour)
     {
         //Directional
-        if(light->m_Type < 0.1f)
+        if(light->Type < 0.1f)
         {
-            DrawHairLine((light->m_Position - (light->m_Direction)).ToVector3(), (light->m_Position + (light->m_Direction)).ToVector3(), colour);
+            DrawHairLine((light->Position - (light->Direction)).ToVector3(), (light->Position + (light->Direction)).ToVector3(), colour);
         }
         //Spot
-        else if(light->m_Type < 1.1f)
+        else if(light->Type < 1.1f)
         {
-            DrawHairLine(light->m_Position.ToVector3(), (light->m_Position + light->m_Direction).ToVector3(), colour);
-            DrawPoint(light->m_Position.ToVector3(), light->m_Radius, colour);
+            DrawHairLine(light->Position.ToVector3(), (light->Position + light->Direction).ToVector3(), colour);
+            DrawPoint(light->Position.ToVector3(), light->Radius, colour);
         }
         //Point
         else
         {
-            DrawPoint(light->m_Position.ToVector3(), light->m_Radius, colour);
+            DrawPoint(light->Position.ToVector3(), light->Radius, colour);
         }
     }
     

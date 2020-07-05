@@ -52,7 +52,7 @@ namespace Lumos
     
     void Layer3D::SetRenderTarget(Graphics::Texture* texture, bool onlyIfTargetsScreen, bool rebuildFramebuffer)
     {
-		if(!onlyIfTargetsScreen || m_Renderer->GetRenderTarget() == nullptr)
+		if(!onlyIfTargetsScreen || m_ScreenLayer)
         	m_Renderer->SetRenderTarget(texture, rebuildFramebuffer);
     }
 }

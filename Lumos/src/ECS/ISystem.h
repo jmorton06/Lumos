@@ -16,10 +16,13 @@ namespace Lumos
 		virtual void OnUpdate(const TimeStep& dt, Scene* scene) = 0;
 		virtual void OnImGui() = 0;
 		virtual void OnDebugDraw() = 0;
-        
-        _FORCE_INLINE_ const String& GetName() const { return m_DebugName; }
 
-    protected:
-        String m_DebugName;
+		_FORCE_INLINE_ const std::string& GetName() const
+		{
+			return m_DebugName;
+		}
+
+	protected:
+		std::string m_DebugName;
 	};
 }

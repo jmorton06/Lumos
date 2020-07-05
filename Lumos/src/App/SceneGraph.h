@@ -6,28 +6,33 @@
 namespace Lumos
 {
 	struct NameComponent
-    {
-        template<typename Archive>
-        void serialize(Archive &archive)
-        {
-            archive(cereal::make_nvp("Name", name));
-        }
-        String name;
-    };
+	{
+		template<typename Archive>
+		void serialize(Archive& archive)
+		{
+			archive(cereal::make_nvp("Name", name));
+		}
+		std::string name;
+	};
 
 	struct ActiveComponent
 	{
-        ActiveComponent(bool act)
-        {
-            active = act;
-        }
-            
-        template<typename Archive>
-        void serialize(Archive &archive)
-        {
-            archive(cereal::make_nvp("Active", active));
-        }
-                    
+		ActiveComponent()
+		{
+			active = true;
+		}
+
+		ActiveComponent(bool act)
+		{
+			active = act;
+		}
+
+		template<typename Archive>
+		void serialize(Archive& archive)
+		{
+			archive(cereal::make_nvp("Active", active));
+		}
+
 		bool active = true;
 	};
 
@@ -35,12 +40,24 @@ namespace Lumos
 	{
 	public:
 		Hierarchy(entt::entity p);
-        Hierarchy();
-    
-		inline entt::entity parent() const { return _parent; }
-		inline entt::entity next() const { return _next; }
-		inline entt::entity prev() const { return _prev; }
-		inline entt::entity first() const { return _first; }
+		Hierarchy();
+
+		inline entt::entity parent() const
+		{
+			return _parent;
+		}
+		inline entt::entity next() const
+		{
+			return _next;
+		}
+		inline entt::entity prev() const
+		{
+			return _prev;
+		}
+		inline entt::entity first() const
+		{
+			return _first;
+		}
 
 		// Return true if rhs is an ancestor of rhs
 		bool compare(const entt::registry& registry, const entt::entity rhs) const;
@@ -59,23 +76,23 @@ namespace Lumos
 		entt::entity _first;
 		entt::entity _next;
 		entt::entity _prev;
-            
-        template<typename Archive>
-        void serialize(Archive &archive)
-        {
-            archive(cereal::make_nvp("First", _first), cereal::make_nvp("Next", _next), cereal::make_nvp("Previous", _prev), cereal::make_nvp("Parent", _parent));
-        }
+
+		template<typename Archive>
+		void serialize(Archive& archive)
+		{
+			archive(cereal::make_nvp("First", _first), cereal::make_nvp("Next", _next), cereal::make_nvp("Previous", _prev), cereal::make_nvp("Parent", _parent));
+		}
 	};
 
-    class SceneGraph
-    {
-    public:
+	class SceneGraph
+	{
+	public:
 		SceneGraph();
 		~SceneGraph() = default;
 
-		void Init(entt::registry & registry);
-        
-        void Update(entt::registry& registry);
+		void Init(entt::registry& registry);
+
+		void Update(entt::registry& registry);
 		void UpdateTransform(entt::entity entity, entt::registry& registry);
-    };
+	};
 }

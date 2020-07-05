@@ -18,18 +18,18 @@ void GraphicsScene::OnInit()
 
 	m_SceneBoundingRadius = 200.0f;
 
-    auto environment = m_Registry.create();
-    m_Registry.emplace<Graphics::Environment>(environment, "/Textures/cubemap/Arches_E_PineTree", 11, 3072, 4096, ".tga");
-    m_Registry.emplace<NameComponent>(environment, "Environment");
+    auto environment = GetRegistry().create();
+    GetRegistry().emplace<Graphics::Environment>(environment, "/Textures/cubemap/Arches_E_PineTree", 11, 3072, 4096, ".tga");
+    GetRegistry().emplace<NameComponent>(environment, "Environment");
 
-	auto lightEntity = m_Registry.create();
-	m_Registry.emplace<Graphics::Light>(lightEntity, Maths::Vector3(26.0f, 22.0f, 48.5f), Maths::Vector4(1.0f), 1.3f);
-	m_Registry.emplace<Maths::Transform>(lightEntity, Matrix4::Translation(Maths::Vector3(26.0f, 22.0f, 48.5f)) * Maths::Quaternion::LookAt(Maths::Vector3(26.0f, 22.0f, 48.5f), Maths::Vector3::ZERO).RotationMatrix4());
-	m_Registry.emplace<NameComponent>(lightEntity, "Light");
+	auto lightEntity = GetRegistry().create();
+	GetRegistry().emplace<Graphics::Light>(lightEntity, Maths::Vector3(26.0f, 22.0f, 48.5f), Maths::Vector4(1.0f), 1.3f);
+	GetRegistry().emplace<Maths::Transform>(lightEntity, Matrix4::Translation(Maths::Vector3(26.0f, 22.0f, 48.5f)) * Maths::Quaternion::LookAt(Maths::Vector3(26.0f, 22.0f, 48.5f), Maths::Vector3::ZERO).RotationMatrix4());
+	GetRegistry().emplace<NameComponent>(lightEntity, "Light");
 
-	auto cameraEntity = m_Registry.create();
-	auto& camera = m_Registry.emplace<Camera>(cameraEntity, 45.0f, 0.1f, 1000.0f, (float) m_ScreenWidth / (float) m_ScreenHeight);
-	m_Registry.emplace<NameComponent>(cameraEntity, "Camera");
+	auto cameraEntity = GetRegistry().create();
+	auto& camera = GetRegistry().emplace<Camera>(cameraEntity, 45.0f, 0.1f, 1000.0f, (float) m_ScreenWidth / (float) m_ScreenHeight);
+	GetRegistry().emplace<NameComponent>(cameraEntity, "Camera");
 	camera.SetCameraController(CreateRef<EditorCameraController>());
 
 	auto audioSystem = Application::Get().GetSystem<AudioManager>();
@@ -72,17 +72,17 @@ void GraphicsScene::OnCleanupScene()
 void GraphicsScene::LoadModels()
 {
 	//HeightMap
-	m_Terrain = m_Registry.create(); // EntityManager::Get().CreateEntity("heightmap");
-	m_Registry.emplace<Maths::Transform>(m_Terrain, Matrix4::Scale(Maths::Vector3(1.0f)));
-	m_Registry.emplace<TextureMatrixComponent>(m_Terrain, Matrix4::Scale(Maths::Vector3(1.0f, 1.0f, 1.0f)));
-	m_Registry.emplace<NameComponent>(m_Terrain, "HeightMap");
+	m_Terrain = GetRegistry().create(); // EntityManager::Get().CreateEntity("heightmap");
+	GetRegistry().emplace<Maths::Transform>(m_Terrain, Matrix4::Scale(Maths::Vector3(1.0f)));
+	GetRegistry().emplace<TextureMatrixComponent>(m_Terrain, Matrix4::Scale(Maths::Vector3(1.0f, 1.0f, 1.0f)));
+	GetRegistry().emplace<NameComponent>(m_Terrain, "HeightMap");
     Lumos::Ref<Graphics::Mesh> terrain = Lumos::Ref<Graphics::Mesh>(new Terrain());
 
 	auto material = Lumos::CreateRef<Material>();
 	material->LoadMaterial("checkerboard", "/CoreTextures/checkerboard.tga");
 
-	m_Registry.emplace<MaterialComponent>(m_Terrain, material);
-	m_Registry.emplace<MeshComponent>(m_Terrain, terrain);
+	GetRegistry().emplace<MaterialComponent>(m_Terrain, material);
+	GetRegistry().emplace<MeshComponent>(m_Terrain, terrain);
 
 }
 
@@ -114,19 +114,19 @@ void GraphicsScene::OnImGui()
     
     if(ImGui::Button("Rebuild Terrain"))
     {
-		m_Registry.destroy(m_Terrain);
+		GetRegistry().destroy(m_Terrain);
 
-		m_Terrain = m_Registry.create();
-		m_Registry.emplace<Maths::Transform>(m_Terrain, Matrix4::Scale(Maths::Vector3(1.0f)));
-		m_Registry.emplace<TextureMatrixComponent>(m_Terrain, Matrix4::Scale(Maths::Vector3(1.0f, 1.0f, 1.0f)));
-		m_Registry.emplace<NameComponent>(m_Terrain, "HeightMap");
+		m_Terrain = GetRegistry().create();
+		GetRegistry().emplace<Maths::Transform>(m_Terrain, Matrix4::Scale(Maths::Vector3(1.0f)));
+		GetRegistry().emplace<TextureMatrixComponent>(m_Terrain, Matrix4::Scale(Maths::Vector3(1.0f, 1.0f, 1.0f)));
+		GetRegistry().emplace<NameComponent>(m_Terrain, "HeightMap");
 		Lumos::Ref<Graphics::Mesh> terrain = Lumos::Ref<Graphics::Mesh>(new Terrain(width, height, lowside, lowscale, xRand, yRand, zRand, texRandX, texRandZ));
 
 		auto material = Lumos::CreateRef<Material>();
 		material->LoadMaterial("checkerboard", "/CoreTextures/checkerboard.tga");
 
-		m_Registry.emplace<MaterialComponent>(m_Terrain, material);
-		m_Registry.emplace<MeshComponent>(m_Terrain, terrain);
+		GetRegistry().emplace<MaterialComponent>(m_Terrain, material);
+		GetRegistry().emplace<MeshComponent>(m_Terrain, terrain);
     }
     
     ImGui::End();

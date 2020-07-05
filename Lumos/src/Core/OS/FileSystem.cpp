@@ -3,11 +3,11 @@
 
 namespace Lumos
 {
-    bool (*FileSystem::FileExistsFunc)(const String&) = NULL;
-    bool (*FileSystem::FolderExistsFunc)(const String&) = NULL;
-	i64 (*FileSystem::GetFileSizeFunc)(const String&) = NULL;
-	u8* (*FileSystem::ReadFileFunc)(const String&) = NULL;
-	bool (*FileSystem::ReadFileBufferFunc)(const String&, void*, i64) = NULL;
-    bool (*FileSystem::WriteFileFunc)(const String&, u8*) = NULL;
-	bool (*FileSystem::WriteTextFileFunc)(const String&, const String&) = NULL;
+	bool (*FileSystem::FileExistsFunc)(const std::string&) = NULL;
+	bool (*FileSystem::FolderExistsFunc)(const std::string&) = NULL;
+	i64 (*FileSystem::GetFileSizeFunc)(const std::string&) = NULL;
+	u8* (*FileSystem::ReadFileFunc)(const std::string&) = NULL;
+	bool (*FileSystem::ReadFileBufferFunc)(const std::string&, void*, i64) = NULL;
+	bool (*FileSystem::WriteFileFunc)(const std::string&, u8*) = NULL;
+	bool (*FileSystem::WriteTextFileFunc)(const std::string&, const std::string&) = NULL;
 }

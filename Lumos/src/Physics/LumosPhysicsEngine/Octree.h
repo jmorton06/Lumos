@@ -5,7 +5,7 @@
 
 namespace Lumos
 {
-	class PhysicsObject3D;
+	class RigidBody3D;
 	struct CollisionPair;
 
 	namespace Maths
@@ -28,12 +28,12 @@ namespace Lumos
 			{
 			}
 
-			std::vector<Ref<PhysicsObject3D>> physicsObjects;
-			std::vector<Ref<OctreeNode>>	  childNodes;
-			Maths::BoundingBox							  boundingBox;
+			std::vector<Ref<RigidBody3D>> physicsObjects;
+			std::vector<Ref<OctreeNode>> childNodes;
+			Maths::BoundingBox boundingBox;
 		};
 
-		void FindPotentialCollisionPairs(std::vector<Ref<PhysicsObject3D>>& objects, std::vector<CollisionPair> &collisionPairs) override;
+		void FindPotentialCollisionPairs(std::vector<Ref<RigidBody3D>>& objects, std::vector<CollisionPair>& collisionPairs) override;
 		void DebugDraw() override;
 		void Divide(const Ref<OctreeNode>& node, size_t iteration);
 		static void DebugDrawOctreeNode(OctreeNode* node);
