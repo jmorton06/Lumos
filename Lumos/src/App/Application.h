@@ -204,7 +204,7 @@ namespace Lumos
 		LayerStack* m_LayerStack = nullptr;
 
 		AppState m_CurrentState = AppState::Loading;
-		EditorState m_EditorState = EditorState::Play;
+		EditorState m_EditorState = EditorState::Preview;
 		AppType m_AppType = AppType::Editor;
 
 		static Application* s_Instance;

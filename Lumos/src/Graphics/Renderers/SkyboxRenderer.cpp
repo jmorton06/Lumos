@@ -25,7 +25,7 @@ namespace Lumos
 {
 	namespace Graphics
 	{
-		SkyboxRenderer::SkyboxRenderer(u32 width, u32 height, bool renderToGBuffer)
+		SkyboxRenderer::SkyboxRenderer(u32 width, u32 height)
 			: m_UniformBuffer(nullptr)
 			, m_CubeMap(nullptr)
 		{
@@ -142,7 +142,7 @@ namespace Lumos
 			m_RenderPass->BeginRenderpass(m_CommandBuffers[m_CurrentBufferID], Maths::Vector4(0.0f), m_Framebuffers[m_CurrentBufferID], Graphics::INLINE, m_ScreenBufferWidth, m_ScreenBufferHeight);
 		}
 
-		void SkyboxRenderer::BeginScene(Scene* scene)
+		void SkyboxRenderer::BeginScene(Scene* scene, Camera* overrideCamera)
 		{
 			auto& registry = scene->GetRegistry();
 
@@ -165,11 +165,19 @@ namespace Lumos
 				return;
 			}
 
-			auto cameraView = registry.view<Camera>();
-			if(!cameraView.empty())
+			if(overrideCamera)
+				m_Camera = overrideCamera;
+			else
 			{
-				m_Camera = &registry.get<Camera>(cameraView.front());
+				auto cameraView = registry.view<Camera>();
+				if(!cameraView.empty())
+				{
+					m_Camera = &registry.get<Camera>(cameraView.front());
+				}
 			}
+
+			if(!m_Camera)
+				return;
 
 			auto invViewProj = Maths::Matrix4::Inverse(m_Camera->GetProjectionMatrix() * m_Camera->GetViewMatrix());
 			memcpy(m_VSSystemUniformBuffer + m_VSSystemUniformBufferOffsets[VSSystemUniformIndex_InverseProjectionViewMatrix], &invViewProj, sizeof(Maths::Matrix4));

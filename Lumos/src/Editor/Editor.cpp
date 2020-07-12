@@ -73,7 +73,7 @@ namespace Lumos
 	{
 		SaveEditorSettings();
 		// put back when stop overriding with a scene camera
-		// delete m_EditorCamera;
+        delete m_EditorCamera;
 	}
 
 	void Editor::OnInit()
@@ -115,10 +115,7 @@ namespace Lumos
 			1000.0f,
 			(float)m_Application->GetWindowSize().x / (float)m_Application->GetWindowSize().y);
 		m_EditorCamera->SetCameraController(CreateRef<EditorCameraController>());
-
-		// Todo : use this camera in editor
-		delete m_EditorCamera;
-		m_EditorCamera = nullptr;
+        m_CurrentCamera = m_EditorCamera;
 
 		m_ComponentIconMap[typeid(Graphics::Light).hash_code()] = " " ICON_FA_LIGHTBULB " ";
 		m_ComponentIconMap[typeid(Camera).hash_code()] = ICON_FA_CAMERA;
@@ -205,28 +202,12 @@ namespace Lumos
 		if(m_ShowImGuiDemo)
 			ImGui::ShowDemoWindow(&m_ShowImGuiDemo);
 
-		m_View2D = m_EditorCamera->IsOrthographic();
-
-		if(m_ShowGrid)
-		{
-			if(m_3DGridLayer == nullptr)
-			{
-				m_3DGridLayer = new Layer3D(
-					new Graphics::GridRenderer(
-						u32(Application::Get().m_SceneViewWidth), u32(Application::Get().m_SceneViewHeight), true),
-					"Grid");
-				Application::Get().PushLayerInternal(m_3DGridLayer, true, false);
-			}
-		}
-		else if(m_3DGridLayer)
-		{
-			Application::Get().GetLayerStack()->PopOverlay(m_3DGridLayer);
-			m_3DGridLayer = nullptr;
-		}
-
-		//ShowPreview();
+		m_View2D = m_CurrentCamera->IsOrthographic();
 
 		m_FileBrowserWindow.OnImGui();
+    
+        if(m_Application->GetEditorState() == EditorState::Preview)
+            m_Application->GetSceneManager()->GetCurrentScene()->UpdateSceneGraph();
 
 		EndDockSpace();
 	}
@@ -273,6 +254,12 @@ namespace Lumos
 					m_FileBrowserWindow.SetCallback(BIND_FILEBROWSER_FN(Editor::FileOpenCallback));
 					m_FileBrowserWindow.Open();
 				}
+            
+                if(ImGui::MenuItem("New Scene"))
+                {
+                    m_Application->GetSceneManager()->EnqueueScene<Scene>("New Scene");
+                    m_Application->GetSceneManager()->SwitchScene((int)(m_Application->GetSceneManager()->GetScenes().size()) - 1);
+                }
 
 				if(ImGui::BeginMenu("Style"))
 				{
@@ -472,6 +459,11 @@ namespace Lumos
 
 			ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.1f, 0.2f, 0.7f, 0.0f));
 
+            
+        
+            if(m_Application->GetEditorState()  == EditorState::Next)
+                m_Application->SetEditorState(EditorState::Paused);
+
 			bool selected;
 			{
 				selected = m_Application->GetEditorState() == EditorState::Play;
@@ -479,7 +471,7 @@ namespace Lumos
 					ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(0.28f, 0.56f, 0.9f, 1.0f));
 
 				if(ImGui::Button(ICON_FA_PLAY, ImVec2(19.0f, 19.0f)))
-					m_Application->SetEditorState(EditorState::Play);
+					m_Application->SetEditorState(selected ? EditorState::Preview : EditorState::Play);
 
 				ImGuiHelpers::Tooltip("Play");
 
@@ -495,7 +487,7 @@ namespace Lumos
 					ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(0.28f, 0.56f, 0.9f, 1.0f));
 
 				if(ImGui::Button(ICON_FA_PAUSE, ImVec2(19.0f, 19.0f)))
-					m_Application->SetEditorState(EditorState::Paused);
+					m_Application->SetEditorState(selected ? EditorState::Play : EditorState::Paused);
 
 				ImGuiHelpers::Tooltip("Pause");
 
@@ -623,27 +615,37 @@ namespace Lumos
 			ImGui::EndMainMenuBar();
 		}
 	}
+    
+    static const float identityMatrix[16] =
+    { 1.f, 0.f, 0.f, 0.f,
+        0.f, 1.f, 0.f, 0.f,
+        0.f, 0.f, 1.f, 0.f,
+        0.f, 0.f, 0.f, 1.f };
 
 	void Editor::OnImGuizmo()
 	{
+        Maths::Matrix4 view = m_CurrentCamera->GetViewMatrix();
+        Maths::Matrix4 proj = m_CurrentCamera->GetProjectionMatrix();
+        
+    #ifdef LUMOS_RENDER_API_VULKAN
+        if(Graphics::GraphicsContext::GetRenderAPI() == Graphics::RenderAPI::VULKAN)
+            proj.m11_ *= -1.0f;
+    #endif
+        
+        view = view.Transpose();
+        proj = proj.Transpose();
+    
+        //if(m_ShowGrid && !m_CurrentCamera->IsOrthographic())
+          //  ImGuizmo::DrawGrid(Maths::ValuePointer(view),
+            //                   Maths::ValuePointer(proj), identityMatrix, 120.f);
+    
 		if(m_Selected == entt::null || m_ImGuizmoOperation == 4)
 			return;
 
 		if(m_ShowGizmos)
 		{
-			Maths::Matrix4 view = m_EditorCamera->GetViewMatrix();
-			Maths::Matrix4 proj = m_EditorCamera->GetProjectionMatrix();
-
-#ifdef LUMOS_RENDER_API_VULKAN
-			if(Graphics::GraphicsContext::GetRenderAPI() == Graphics::RenderAPI::VULKAN)
-				proj.m11_ *= -1.0f;
-#endif
-
-			view = view.Transpose();
-			proj = proj.Transpose();
-
 			ImGuizmo::SetDrawlist();
-			ImGuizmo::SetOrthographic(m_EditorCamera->IsOrthographic());
+			ImGuizmo::SetOrthographic(m_CurrentCamera->IsOrthographic());
 
 			auto& registry = m_Application->GetSceneManager()->GetCurrentScene()->GetRegistry();
 			auto transform = registry.try_get<Maths::Transform>(m_Selected);
@@ -702,26 +704,6 @@ namespace Lumos
 
 			auto transform = registry.try_get<Maths::Transform>(m_Selected);
 
-#if 0
-				Maths::Matrix4 view = m_EditorCamera->GetViewMatrix();
-
-				float camDistance = transform ? (m_EditorCamera->GetPosition() - transform->GetWorldMatrix().Translation()).Length() : 0.0f;
-
-				auto window = ImGui::GetCurrentWindow();
-				auto size = 128.0f;
-				auto windowPos = window->Pos;
-				auto windowSize = window->Size;
-				auto viewManipulatePos = ImVec2(windowPos.x + windowSize.x - size, size / 2.0f - 20.0f + windowPos.y);
-
-				//view = Maths::Matrix4::Inverse(view);
-				ImGuizmo::ViewManipulate(Maths::ValuePointer(view), camDistance, viewManipulatePos, ImVec2(size, size), 0x10101010);
-				view = Maths::Matrix4::Inverse(view);
-				auto quat = view.ToQuaternion();
-				auto euler = quat.ToEuler();
-				camera->SetPitch(euler.x);
-				camera->SetYaw(euler.y);
-				camera->SetPosition(view.Translation());
-#else
 			float pos[3] = {
 				m_EditorCamera->GetPosition().x, m_EditorCamera->GetPosition().y, m_EditorCamera->GetPosition().z};
 			float rot[3] = {m_EditorCamera->GetPitch(), m_EditorCamera->GetYaw(), m_EditorCamera->GetRoll()};
@@ -750,7 +732,6 @@ namespace Lumos
 				m_EditorCamera->SetRoll(rot[2]);
 				m_EditorCamera->SetPosition({pos[0], pos[1], pos[2]});
 			}
-#endif
 		}
 	}
 
@@ -859,6 +840,19 @@ namespace Lumos
 			window->OnNewScene(scene);
 		}
 	}
+    
+    void Editor::Draw3DGrid()
+    {
+    #if 1
+        if(!m_GridRenderer)
+        {
+            return;
+        }
+
+        m_GridRenderer->BeginScene(Application::Get().GetSceneManager()->GetCurrentScene(), m_EditorCamera);
+        m_GridRenderer->RenderScene(Application::Get().GetSceneManager()->GetCurrentScene());
+    #endif
+    }
 
 	void Editor::Draw2DGrid(ImDrawList* drawList,
 		const ImVec2& cameraPos,
@@ -946,19 +940,19 @@ namespace Lumos
 	void Editor::OnUpdate(const TimeStep& ts)
 	{
 		auto& registry = m_Application->GetSceneManager()->GetCurrentScene()->GetRegistry();
-		auto cameraView = registry.view<Camera>();
-		if(!cameraView.empty())
-		{
-			m_EditorCamera = &registry.get<Camera>(cameraView.front());
-		}
-		auto cameraController = m_EditorCamera ? m_EditorCamera->GetController() : nullptr;
+//		auto cameraView = registry.view<Camera>();
+//		if(!cameraView.empty())
+//		{
+//            m_CurrentCamera = &registry.get<Camera>(cameraView.front());
+//		}
+		auto cameraController = m_CurrentCamera ? m_CurrentCamera->GetController() : nullptr;
 
 		if(cameraController && Application::Get().GetSceneActive())
 		{
 			const Maths::Vector2 mousePos = Input::GetInput()->GetMousePosition();
 
-			cameraController->HandleMouse(m_EditorCamera, ts.GetMillis(), mousePos.x, mousePos.y);
-			cameraController->HandleKeyboard(m_EditorCamera, ts.GetMillis());
+			cameraController->HandleMouse(m_CurrentCamera, ts.GetMillis(), mousePos.x, mousePos.y);
+			cameraController->HandleKeyboard(m_CurrentCamera, ts.GetMillis());
 		}
 
 		if(Input::GetInput()->GetKeyPressed(InputCode::Key::F))
@@ -970,6 +964,11 @@ namespace Lumos
 					FocusCamera(transform->GetWorldPosition(), 2.0f, 2.0f);
 			}
 		}
+    
+        if (Input::GetInput()->GetKeyHeld(InputCode::Key::O))
+        {
+            FocusCamera(Maths::Vector3(0.0f,0.0f,0.0f), 2.0f, 2.0f);
+        }
 
 		if(m_TransitioningCamera)
 		{
@@ -979,9 +978,9 @@ namespace Lumos
 			float focusProgress =
 				Maths::Min((ts.GetElapsedMillis() - m_CameraTransitionStartTime) / m_CameraTransitionSpeed, 1.f);
 			Maths::Vector3 newCameraPosition = m_CameraStartPosition.Lerp(m_CameraDestination, focusProgress);
-			m_EditorCamera->SetPosition(newCameraPosition);
+            m_CurrentCamera->SetPosition(newCameraPosition);
 
-			if(m_EditorCamera->GetPosition().Equals(m_CameraDestination))
+			if(m_CurrentCamera->GetPosition().Equals(m_CameraDestination))
 				m_TransitioningCamera = false;
 		}
 
@@ -1032,19 +1031,19 @@ namespace Lumos
 
 	void Editor::FocusCamera(const Maths::Vector3& point, float distance, float speed)
 	{
-		if(m_EditorCamera->IsOrthographic())
+		if(m_CurrentCamera->IsOrthographic())
 		{
-			m_EditorCamera->SetPosition(point);
-			m_EditorCamera->SetScale(distance / 2.0f);
+            m_CurrentCamera->SetPosition(point);
+            m_CurrentCamera->SetScale(distance / 2.0f);
 		}
 		else
 		{
 			m_TransitioningCamera = true;
 
-			m_CameraDestination = point + m_EditorCamera->GetForwardDirection() * distance;
+			m_CameraDestination = point + m_CurrentCamera->GetForwardDirection() * distance;
 			m_CameraTransitionStartTime = -1.0f;
 			m_CameraTransitionSpeed = 1.0f / speed;
-			m_CameraStartPosition = m_EditorCamera->GetPosition();
+			m_CameraStartPosition = m_CurrentCamera->GetPosition();
 		}
 	}
 
@@ -1312,6 +1311,9 @@ namespace Lumos
 	void Editor::OnRender()
 	{
 		//DrawPreview();
+    
+        if(m_Application->GetEditorState() == EditorState::Preview && m_ShowGrid && !m_EditorCamera->IsOrthographic())
+            Draw3DGrid();
 	}
 
 	void Editor::DrawPreview()
@@ -1321,7 +1323,7 @@ namespace Lumos
 			m_PreviewTexture = Ref<Graphics::Texture2D>(Graphics::Texture2D::Create());
 			m_PreviewTexture->BuildTexture(Graphics::TextureFormat::RGBA32, 200, 200, false, false);
 
-			m_PreviewRenderer = CreateRef<Graphics::ForwardRenderer>(200, 200, false, false);
+			m_PreviewRenderer = CreateRef<Graphics::ForwardRenderer>(200, 200, false);
 			m_PreviewSphere = Ref<Graphics::Mesh>(Graphics::CreateSphere());
 
 			m_PreviewRenderer->SetRenderTarget(m_PreviewTexture.get(), true);
@@ -1439,4 +1441,18 @@ namespace Lumos
 
 		return ICON_FA_FILE;
 	}
+    
+    void Editor::CreateGridRenderer()
+    {
+        if(!m_GridRenderer)
+            m_GridRenderer = CreateRef<Graphics::GridRenderer>(u32(Application::Get().m_SceneViewWidth),u32(Application::Get().m_SceneViewHeight), true);
+    }
+    
+    const Ref<Graphics::GridRenderer>& Editor::GetGridRenderer()
+    {
+        //if(!m_GridRenderer)
+          //  m_GridRenderer = CreateRef<Graphics::GridRenderer>(u32(Application::Get().m_SceneViewWidth), u32(Application::Get().m_SceneViewHeight), true);
+        return m_GridRenderer;
+    }
+
 }

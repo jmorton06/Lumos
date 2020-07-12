@@ -6,7 +6,9 @@
 namespace Lumos
 {
 	Layer3D::Layer3D(Graphics::Renderer3D* renderer, const std::string& debugName)
-		: m_Renderer(renderer), Layer(debugName), m_Scene(nullptr)
+		: m_Renderer(renderer)
+		, Layer(debugName)
+		, m_Scene(nullptr)
 	{
 	}
 
@@ -29,13 +31,13 @@ namespace Lumos
 
 	void Layer3D::OnEvent(Event& event)
 	{
-        EventDispatcher dispatcher(event);
-        dispatcher.Dispatch<WindowResizeEvent>(BIND_EVENT_FN(Layer3D::OnwindowResizeEvent));
+		EventDispatcher dispatcher(event);
+		dispatcher.Dispatch<WindowResizeEvent>(BIND_EVENT_FN(Layer3D::OnwindowResizeEvent));
 	}
 
 	void Layer3D::OnRender(Scene* scene)
 	{
-        m_Renderer->BeginScene(scene);
+		m_Renderer->BeginScene(scene, m_OverrideCamera);
 		m_Renderer->RenderScene(scene);
 	}
 
@@ -44,15 +46,15 @@ namespace Lumos
 		m_Renderer->OnImGui();
 	}
 
-    bool Layer3D::OnwindowResizeEvent(WindowResizeEvent & e)
-    {
-        m_Renderer->OnResize(e.GetWidth(), e.GetHeight());
-        return false;
-    }
-    
-    void Layer3D::SetRenderTarget(Graphics::Texture* texture, bool onlyIfTargetsScreen, bool rebuildFramebuffer)
-    {
+	bool Layer3D::OnwindowResizeEvent(WindowResizeEvent& e)
+	{
+		m_Renderer->OnResize(e.GetWidth(), e.GetHeight());
+		return false;
+	}
+
+	void Layer3D::SetRenderTarget(Graphics::Texture* texture, bool onlyIfTargetsScreen, bool rebuildFramebuffer)
+	{
 		if(!onlyIfTargetsScreen || m_ScreenLayer)
-        	m_Renderer->SetRenderTarget(texture, rebuildFramebuffer);
-    }
+			m_Renderer->SetRenderTarget(texture, rebuildFramebuffer);
+	}
 }

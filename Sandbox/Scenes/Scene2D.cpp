@@ -26,17 +26,7 @@ void Scene2D::OnInit()
 	camera.SetIsOrthographic(true);
 	GetRegistry().emplace<NameComponent>(cameraEntity, "Camera");
 
-	auto audioSystem = Application::Get().GetSystem<AudioManager>();
-	if(audioSystem)
-		Application::Get().GetSystem<AudioManager>()->SetListener(&camera);
-
-	bool editor = false;
-
-#ifdef LUMOS_EDITOR
-	editor = true;
-#endif
-
-	PushLayer(new Layer2D(new Graphics::Renderer2D(m_ScreenWidth, m_ScreenHeight, editor, true, false, false)));
+	PushLayer(new Layer2D(new Graphics::Renderer2D(m_ScreenWidth, m_ScreenHeight, true, false, false)));
 }
 
 void Scene2D::OnUpdate(const TimeStep& timeStep)

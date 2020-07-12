@@ -27,6 +27,7 @@ namespace Lumos
 		class Texture2D;
 		class GridRenderer;
 		class ForwardRenderer;
+        class GridRenderer;
 		class Mesh;
 	}
 
@@ -71,6 +72,7 @@ namespace Lumos
 		void OnUpdate(const TimeStep& ts);
 
 		void Draw2DGrid(ImDrawList* drawList, const ImVec2& cameraPos, const ImVec2& windowPos, const ImVec2& canvasSize, const float factor, const float thickness);
+        void Draw3DGrid();
 
 		bool& ShowGrid()
 		{
@@ -149,7 +151,17 @@ namespace Lumos
 		void OpenFile();
 		const char* GetIconFontIcon(const std::string& fileType);
 
+		Camera* GetCamera() const
+		{
+			return m_EditorCamera;
+		}
+    
+        void CreateGridRenderer();
+        const Ref<Graphics::GridRenderer>& GetGridRenderer();
+
 	protected:
+        NONCOPYABLE(Editor)
+
 		bool OnWindowResize(WindowResizeEvent& e);
 
 		Application* m_Application;
@@ -175,19 +187,16 @@ namespace Lumos
 
 		std::vector<Ref<EditorWindow>> m_Windows;
 
-		Layer3D* m_3DGridLayer = nullptr;
-
 		std::unordered_map<size_t, const char*> m_ComponentIconMap;
 
 		FileBrowserWindow m_FileBrowserWindow;
 		Camera* m_EditorCamera = nullptr;
-		//CameraController* m_EditorCameraController = nullptr;
-
-		NONCOPYABLE(Editor)
+		Camera* m_CurrentCamera = nullptr;
 
 		Ref<Graphics::ForwardRenderer> m_PreviewRenderer;
 		Ref<Graphics::Texture2D> m_PreviewTexture;
 		Ref<Graphics::Mesh> m_PreviewSphere;
+        Ref<Graphics::GridRenderer> m_GridRenderer;
 
 		IniFile m_IniFile;
 	};

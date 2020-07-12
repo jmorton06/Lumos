@@ -53,7 +53,7 @@ namespace Lumos
 			PSSystemUniformIndex_Size
 		};
 
-		DeferredRenderer::DeferredRenderer(u32 width, u32 height, bool renderToGBuffer)
+		DeferredRenderer::DeferredRenderer(u32 width, u32 height)
 		{
 			DeferredRenderer::SetScreenBufferSize(width, height);
 			DeferredRenderer::Init();
@@ -154,7 +154,7 @@ namespace Lumos
 			Graphics::RenderpassInfo renderpassCI{};
 			renderpassCI.attachmentCount = 1;
 			renderpassCI.textureType = textureTypes;
-            renderpassCI.clear = false;
+			renderpassCI.clear = false;
 
 			m_RenderPass->Init(renderpassCI);
 
@@ -190,8 +190,6 @@ namespace Lumos
 
 			m_OffScreenRenderer->RenderScene(scene);
 
-			SubmitLightSetup(scene);
-
 			SetSystemUniforms(m_Shader);
 
 			int commandBufferIndex = 0;
@@ -222,17 +220,23 @@ namespace Lumos
 			m_RenderPass->BeginRenderpass(m_CommandBuffers[m_CommandBufferIndex], m_ClearColour, m_Framebuffers[m_CommandBufferIndex], Graphics::INLINE, m_ScreenBufferWidth, m_ScreenBufferHeight);
 		}
 
-		void DeferredRenderer::BeginScene(Scene* scene)
+		void DeferredRenderer::BeginScene(Scene* scene, Camera* overrideCamera)
 		{
 			auto& registry = scene->GetRegistry();
 
-			Camera* cameraComponent = nullptr;
-
-			auto cameraView = registry.view<Camera>();
-			if(!cameraView.empty())
+			if(overrideCamera)
+				m_Camera = overrideCamera;
+			else
 			{
-				m_Camera = &registry.get<Camera>(cameraView.front());
+				auto cameraView = registry.view<Camera>();
+				if(!cameraView.empty())
+				{
+					m_Camera = &registry.get<Camera>(cameraView.front());
+				}
 			}
+
+			if(!m_Camera)
+				return;
 
 			auto view = registry.view<Graphics::Environment>();
 
@@ -266,6 +270,10 @@ namespace Lumos
 					UpdateScreenDescriptorSet();
 				}
 			}
+
+			SubmitLightSetup(scene);
+        
+            m_OffScreenRenderer->BeginScene(scene, m_Camera);
 		}
 
 		void DeferredRenderer::Submit(const RenderCommand& command)

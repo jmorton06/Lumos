@@ -23,15 +23,17 @@ namespace Lumos
 {
 	namespace Graphics
 	{
-		GridRenderer::GridRenderer(u32 width, u32 height, bool renderToGBuffer) : m_UniformBuffer(nullptr), m_UniformBufferFrag(nullptr)
+		GridRenderer::GridRenderer(u32 width, u32 height, bool renderToGBuffer)
+			: m_UniformBuffer(nullptr)
+			, m_UniformBufferFrag(nullptr)
 		{
 			m_Pipeline = nullptr;
 
 			Renderer3D::SetScreenBufferSize(width, height);
 			GridRenderer::Init();
-            
+
 			m_GridRes = 1.6f;
-            m_GridSize = 640.0f;
+			m_GridSize = 640.0f;
 		}
 
 		GridRenderer::~GridRenderer()
@@ -44,12 +46,12 @@ namespace Lumos
 			delete m_RenderPass;
 			delete[] m_VSSystemUniformBuffer;
 
-			for (auto& commandBuffer : m_CommandBuffers)
+			for(auto& commandBuffer : m_CommandBuffers)
 			{
 				delete commandBuffer;
 			}
 
-			for (auto& fbo : m_Framebuffers)
+			for(auto& fbo : m_Framebuffers)
 			{
 				delete fbo;
 			}
@@ -61,7 +63,7 @@ namespace Lumos
 		void GridRenderer::RenderScene(Scene* scene)
 		{
 			m_CurrentBufferID = 0;
-			if (!m_RenderTexture)
+			if(!m_RenderTexture)
 				m_CurrentBufferID = Renderer::GetSwapchain()->GetCurrentBufferId();
 
 			Begin();
@@ -69,7 +71,7 @@ namespace Lumos
 			SetSystemUniforms(m_Shader);
 			m_Pipeline->SetActive(m_CommandBuffers[m_CurrentBufferID]);
 
-			std::vector<Graphics::DescriptorSet*> descriptorSets = { m_Pipeline->GetDescriptorSet() };
+			std::vector<Graphics::DescriptorSet*> descriptorSets = {m_Pipeline->GetDescriptorSet()};
 
 			m_Quad->GetVertexArray()->Bind(m_CommandBuffers[m_CurrentBufferID]);
 			m_Quad->GetIndexBuffer()->Bind(m_CommandBuffers[m_CurrentBufferID]);
@@ -82,7 +84,7 @@ namespace Lumos
 
 			End();
 
-			if (!m_RenderTexture)
+			if(!m_RenderTexture)
 				Renderer::Present((m_CommandBuffers[Renderer::GetSwapchain()->GetCurrentBufferId()]));
 		}
 
@@ -113,21 +115,21 @@ namespace Lumos
 
 			m_CommandBuffers.resize(Renderer::GetSwapchain()->GetSwapchainBufferCount());
 
-			for (auto& commandBuffer : m_CommandBuffers)
+			for(auto& commandBuffer : m_CommandBuffers)
 			{
 				commandBuffer = Graphics::CommandBuffer::Create();
 				commandBuffer->Init(true);
 			}
 
 			m_RenderPass = Graphics::RenderPass::Create();
-			AttachmentInfo textureTypes[2] =
-			{
-				{ TextureType::COLOUR, TextureFormat::RGBA8 },
-				{ TextureType::DEPTH , TextureFormat::DEPTH }
-			};
+			AttachmentInfo textureTypes[1] =
+				{
+					{TextureType::COLOUR, TextureFormat::RGBA8},
+					//{TextureType::DEPTH, TextureFormat::DEPTH}
+				};
 
 			Graphics::RenderpassInfo renderpassCI;
-			renderpassCI.attachmentCount = 2;
+			renderpassCI.attachmentCount = 1;
 			renderpassCI.textureType = textureTypes;
 			renderpassCI.clear = false;
 
@@ -145,22 +147,31 @@ namespace Lumos
 			m_RenderPass->BeginRenderpass(m_CommandBuffers[m_CurrentBufferID], Maths::Vector4(0.0f), m_Framebuffers[m_CurrentBufferID], Graphics::INLINE, m_ScreenBufferWidth, m_ScreenBufferHeight);
 		}
 
-		void GridRenderer::BeginScene(Scene* scene)
+		void GridRenderer::BeginScene(Scene* scene, Camera* overrideCamera)
 		{
-            auto& registry = scene->GetRegistry();
-                 
-            auto cameraView = registry.view<Camera>();
-            if(!cameraView.empty())
-            {
-                m_Camera = &registry.get<Camera>(cameraView.front());
-            }
+			auto& registry = scene->GetRegistry();
+
+			if(overrideCamera)
+				m_Camera = overrideCamera;
+			else
+			{
+				auto cameraView = registry.view<Camera>();
+				if(!cameraView.empty())
+				{
+					m_Camera = &registry.get<Camera>(cameraView.front());
+				}
+			}
+
+			if(!m_Camera)
+				return;
+
 			auto proj = m_Camera->GetProjectionMatrix();
 
 			UniformBufferObjectFrag test;
 			test.res = m_GridRes;
 			test.scale = m_GridSize;
-            test.cameraPos = m_Camera->GetPosition();
-            test.maxDistance = m_MaxDistance;
+			test.cameraPos = m_Camera->GetPosition();
+			test.maxDistance = m_MaxDistance;
 
 			auto invViewProj = proj * m_Camera->GetViewMatrix();
 			memcpy(m_VSSystemUniformBuffer + m_VSSystemUniformBufferOffsets[VSSystemUniformIndex_InverseProjectionViewMatrix], &invViewProj, sizeof(Maths::Matrix4));
@@ -172,7 +183,7 @@ namespace Lumos
 			m_RenderPass->EndRenderpass(m_CommandBuffers[m_CurrentBufferID]);
 			m_CommandBuffers[m_CurrentBufferID]->EndRecording();
 
-			if (m_RenderTexture)
+			if(m_RenderTexture)
 				m_CommandBuffers[m_CurrentBufferID]->Execute(true);
 		}
 
@@ -186,11 +197,11 @@ namespace Lumos
 		{
 			ImGui::TextUnformatted("Grid Renderer");
 
-			if (ImGui::TreeNode("Parameters"))
+			if(ImGui::TreeNode("Parameters"))
 			{
-				ImGui::DragFloat("Resolution", &m_GridRes, 1.0f,  0.0f, 10.0f);
+				ImGui::DragFloat("Resolution", &m_GridRes, 1.0f, 0.0f, 10.0f);
 				ImGui::DragFloat("Scale", &m_GridSize, 1.0f, 1.0f, 10000.0f);
-				ImGui::DragFloat("Max Distance", &m_MaxDistance, 1.0f, 1.0f ,10000.0f);
+				ImGui::DragFloat("Max Distance", &m_MaxDistance, 1.0f, 1.0f, 10000.0f);
 
 				ImGui::TreePop();
 			}
@@ -198,7 +209,7 @@ namespace Lumos
 
 		void GridRenderer::OnResize(u32 width, u32 height)
 		{
-			for (auto fbo : m_Framebuffers)
+			for(auto fbo : m_Framebuffers)
 				delete fbo;
 			m_Framebuffers.clear();
 
@@ -211,15 +222,13 @@ namespace Lumos
 		void GridRenderer::CreateGraphicsPipeline()
 		{
 			std::vector<Graphics::DescriptorPoolInfo> poolInfo =
-			{
-				{ Graphics::DescriptorType::UNIFORM_BUFFER, 2 }
-			};
+				{
+					{Graphics::DescriptorType::UNIFORM_BUFFER, 2}};
 
 			std::vector<Graphics::DescriptorLayoutInfo> layoutInfo =
-			{
-				{ Graphics::DescriptorType::UNIFORM_BUFFER, Graphics::ShaderType::VERTEX, 0 },
-				{ Graphics::DescriptorType::UNIFORM_BUFFER, Graphics::ShaderType::FRAGMENT, 1 }
-			};
+				{
+					{Graphics::DescriptorType::UNIFORM_BUFFER, Graphics::ShaderType::VERTEX, 0},
+					{Graphics::DescriptorType::UNIFORM_BUFFER, Graphics::ShaderType::FRAGMENT, 1}};
 
 			auto attributeDescriptions = Vertex::getAttributeDescriptions();
 
@@ -242,7 +251,7 @@ namespace Lumos
 			pipelineCI.typeCounts = poolInfo.data();
 			pipelineCI.strideSize = sizeof(Vertex);
 			pipelineCI.numColorAttachments = 1;
-            pipelineCI.polygonMode = Graphics::PolygonMode::Fill;
+			pipelineCI.polygonMode = Graphics::PolygonMode::Fill;
 			pipelineCI.cullMode = Graphics::CullMode::NONE;
 			pipelineCI.transparencyEnabled = true;
 			pipelineCI.depthBiasEnabled = true;
@@ -253,7 +262,7 @@ namespace Lumos
 
 		void GridRenderer::UpdateUniformBuffer()
 		{
-			if (m_UniformBuffer == nullptr)
+			if(m_UniformBuffer == nullptr)
 			{
 				m_UniformBuffer = Graphics::UniformBuffer::Create();
 				uint32_t bufferSize = static_cast<uint32_t>(sizeof(UniformBufferObject));
@@ -271,8 +280,7 @@ namespace Lumos
 			bufferInfo.shaderType = ShaderType::VERTEX;
 			bufferInfo.systemUniforms = true;
 
-
-			if (m_UniformBufferFrag == nullptr)
+			if(m_UniformBufferFrag == nullptr)
 			{
 				m_UniformBufferFrag = Graphics::UniformBuffer::Create();
 				uint32_t bufferSize = static_cast<uint32_t>(sizeof(UniformBufferObjectFrag));
@@ -291,7 +299,7 @@ namespace Lumos
 
 			bufferInfos.push_back(bufferInfo);
 			bufferInfos.push_back(bufferInfo2);
-			if (m_Pipeline != nullptr)
+			if(m_Pipeline != nullptr)
 				m_Pipeline->GetDescriptorSet()->Update(bufferInfos);
 		}
 
@@ -299,10 +307,10 @@ namespace Lumos
 		{
 			m_RenderTexture = texture;
 
-            if(!rebuildFramebuffer)
-                return;
+			if(!rebuildFramebuffer)
+				return;
 
-			for (auto fbo : m_Framebuffers)
+			for(auto fbo : m_Framebuffers)
 				delete fbo;
 			m_Framebuffers.clear();
 
@@ -315,17 +323,17 @@ namespace Lumos
 			attachmentTypes[0] = TextureType::COLOUR;
 			attachmentTypes[1] = TextureType::DEPTH;
 
-			Texture* attachments[2];
+			Texture* attachments[1];
 			FramebufferInfo bufferInfo{};
 			bufferInfo.width = m_ScreenBufferWidth;
 			bufferInfo.height = m_ScreenBufferHeight;
-			bufferInfo.attachmentCount = 2;
+			bufferInfo.attachmentCount = 1;
 			bufferInfo.renderPass = m_RenderPass;
 			bufferInfo.attachmentTypes = attachmentTypes;
 
-			attachments[1] = dynamic_cast<Texture*>(Application::Get().GetRenderManager()->GetGBuffer()->GetDepthTexture());
+			//attachments[1] = dynamic_cast<Texture*>(Application::Get().GetRenderManager()->GetGBuffer()->GetDepthTexture());
 
-			if (m_RenderTexture)
+			if(m_RenderTexture)
 			{
 				attachments[0] = m_RenderTexture;
 				bufferInfo.attachments = attachments;
@@ -334,7 +342,7 @@ namespace Lumos
 			}
 			else
 			{
-				for (uint32_t i = 0; i < Renderer::GetSwapchain()->GetSwapchainBufferCount(); i++)
+				for(uint32_t i = 0; i < Renderer::GetSwapchain()->GetSwapchainBufferCount(); i++)
 				{
 					bufferInfo.screenFBO = true;
 					attachments[0] = Renderer::GetSwapchain()->GetImage(i);

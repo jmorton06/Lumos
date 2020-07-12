@@ -19,7 +19,7 @@ namespace Lumos
 		, m_Near(Near)
 		, m_Far(Far)
 		, m_Orthographic(false)
-		, m_Scale(1)
+		, m_Scale(1.0f)
 	{
 	};
 
@@ -36,7 +36,7 @@ namespace Lumos
 		, m_Near(Near)
 		, m_Far(Far)
 		, m_Orthographic(false)
-		, m_Scale(1)
+		, m_Scale(1.0f)
 	{
 	}
 
@@ -52,8 +52,6 @@ namespace Lumos
 		, m_Fov(0)
 		, m_Near(-10.0)
 		, m_Far(10.0f)
-		, m_ScreenWidth(0)
-		, m_ScreenHeight(0)
 		, m_Orthographic(true)
         , m_Position(Maths::Vector3(0.0f))
 	{

@@ -37,20 +37,12 @@ void MaterialTest::OnInit()
 	auto cameraEntity = GetRegistry().create();
 	auto& camera = GetRegistry().emplace<Camera>(cameraEntity, -1.0f, 358.0f, Maths::Vector3(-0.23f, 2.4f, 11.4f), 60.0f, 0.1f, 1000.0f, (float)m_ScreenWidth / (float)m_ScreenHeight);
 	GetRegistry().emplace<NameComponent>(cameraEntity, "Camera");
-	Application::Get().GetSystem<AudioManager>()->SetListener(&camera);
 
-	bool editor = false;
-
-#ifdef LUMOS_EDITOR
-	editor = true;
-#endif
-
-	PushLayer(new Layer3D(new Graphics::DeferredRenderer(m_ScreenWidth, m_ScreenHeight, editor), "Deferred"));
-	PushLayer(new Layer3D(new Graphics::SkyboxRenderer(m_ScreenWidth, m_ScreenHeight, editor), "Skybox"));
+	PushLayer(new Layer3D(new Graphics::DeferredRenderer(m_ScreenWidth, m_ScreenHeight), "Deferred"));
+	PushLayer(new Layer3D(new Graphics::SkyboxRenderer(m_ScreenWidth, m_ScreenHeight), "Skybox"));
 
 #ifndef LUMOS_PLATFORM_IOS
 	auto shadowRenderer = new Graphics::ShadowRenderer();
-	shadowRenderer->SetLightEntity(lightEntity);
 	auto shadowLayer = new Layer3D(shadowRenderer);
 	Application::Get().GetRenderManager()->SetShadowRenderer(shadowRenderer);
 	PushLayer(shadowLayer);

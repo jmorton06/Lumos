@@ -30,7 +30,7 @@ namespace Lumos
 
 			void Init() override;
 			void Begin() override;
-			void BeginScene(Scene* scene) override;
+			void BeginScene(Scene* scene, Camera* overrideCamera) override;
 			void Submit(const RenderCommand& command) override;
 			void SubmitMesh(Mesh* mesh, Material* material, const Maths::Matrix4& transform, const Maths::Matrix4& textureMatrix) override;
 			void EndScene() override;
@@ -43,13 +43,18 @@ namespace Lumos
 			void CreateBuffer();
 			void CreateFBO();
 
-			int GetCommandBufferCount() const { return static_cast<int>(m_CommandBuffers.size()); }
-			CommandBuffer* GetCommandBuffer(int id) const { return m_CommandBuffers[id]; }
+			int GetCommandBufferCount() const
+			{
+				return static_cast<int>(m_CommandBuffers.size());
+			}
+			CommandBuffer* GetCommandBuffer(int id) const
+			{
+				return m_CommandBuffers[id];
+			}
 
 			void OnImGui() override;
 
 		private:
-
 			void SetSystemUniforms(Shader* shader);
 
 			u8* m_VSSystemUniformBuffer;

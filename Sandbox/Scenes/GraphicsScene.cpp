@@ -31,23 +31,13 @@ void GraphicsScene::OnInit()
 	auto& camera = GetRegistry().emplace<Camera>(cameraEntity, 45.0f, 0.1f, 1000.0f, (float) m_ScreenWidth / (float) m_ScreenHeight);
 	GetRegistry().emplace<NameComponent>(cameraEntity, "Camera");
 	camera.SetCameraController(CreateRef<EditorCameraController>());
-
-	auto audioSystem = Application::Get().GetSystem<AudioManager>();
-	if (audioSystem)
-		Application::Get().GetSystem<AudioManager>()->SetListener(&camera);
-
-    bool editor = false;
-
-    #ifdef LUMOS_EDITOR
-    editor = true;
-    #endif
-	auto deferredRenderer = new Graphics::ForwardRenderer(m_ScreenWidth, m_ScreenHeight, editor, true);
+    
+	auto deferredRenderer = new Graphics::ForwardRenderer(m_ScreenWidth, m_ScreenHeight, true);
 	auto skyboxRenderer = new Graphics::SkyboxRenderer(m_ScreenWidth, m_ScreenHeight);
 
     //Can't render to array texture on iPhoneX or older
 #ifndef LUMOS_PLATFORM_IOS
     auto shadowRenderer = new Graphics::ShadowRenderer();
-	shadowRenderer->SetLightEntity(lightEntity);
     auto shadowLayer = new Layer3D(shadowRenderer);
     Application::Get().GetRenderManager()->SetShadowRenderer(shadowRenderer);
     PushLayer(shadowLayer);
