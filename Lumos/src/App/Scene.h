@@ -96,7 +96,6 @@ namespace Lumos
 			return m_ScreenHeight;
 		}
 
-		//const entt::registry& GetRegistry() const { return m_Registry; }
 		entt::registry& GetRegistry();
 
 		void LoadLuaScene(const std::string& filePath);
@@ -109,6 +108,8 @@ namespace Lumos
 		}
 
 		void PushLayer(Layer* layer, bool overlay = false);
+    
+        void UpdateSceneGraph();
 
 		void Serialise(const std::string& filePath, bool binary = false);
 		void Deserialise(const std::string& filePath, bool binary = false);

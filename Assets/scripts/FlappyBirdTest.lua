@@ -2,22 +2,26 @@ registry = scene:GetRegistry()
 
 pillars = {}
 
-MAX_HEIGHT = 10.0
-SPEED = 3.0
-m_FurthestPillarPosX = 0
+local MAX_HEIGHT = 10.0
+local SPEED = 3.0
+local m_FurthestPillarPosX = 0
+local gapSize = 4.0;
 
-m_PillarTarget = 35.0
-m_PillarIndex = 1
+local m_PillarTarget = 35.0
+local m_PillarIndex = 1
 
-PLAYERTYPEID = 1
-PILLARTYPEID = 2
+local PLAYERTYPEID = 1
+local PILLARTYPEID = 2
 
 local GameStates = {
     Running=0,
     GameOver=1
 }
 
-gameState = GameStates.Running
+local gameState = GameStates.Running
+
+local player = {}
+local score = 0
 
 function beginContact(a, b)
     gameState = GameStates.GameOver
@@ -34,9 +38,6 @@ end
 function postSolve(a, b, coll, normalimpulse, tangentimpulse)
  
 end
-
-player = {}
-score = 0
 
 function CreatePlayer()
     colour = Vector4.new(1.0,1.0,1.0,1.0)
@@ -70,7 +71,6 @@ function CreatePillar(index, offset)
 
 	colour = Vector4.new(Rand(0.0, 1.0), Rand(0.0, 1.0), Rand(0.0, 1.0), 1.0);
 
-	gapSize = 4.0;
     centre = Rand(-6.0, 6.0);
     
     --Top Pillar
@@ -149,6 +149,14 @@ for i=1,50, 1 do
     CreateBackground(i)
 end
 
+function updateSpeed(speed)
+    SPEED = speed
+end
+
+function updateGap(gap)
+    gapSize = gap
+end
+
 function OnUpdate(dt)
     if gameState == GameStates.Running then
 		phys = registry:get_Physics2DComponent(player)
@@ -210,6 +218,11 @@ function OnUpdate(dt)
         end
         gui.endWindow()
     end
+
+    gui.beginWindow("Settings")
+    gui.inputFloat("Gap Size", gapSize, updateGap)
+    gui.inputFloat("Speed", SPEED, updateSpeed)
+    gui.endWindow()
 end
 
 function Reset()

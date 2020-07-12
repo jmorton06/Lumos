@@ -44,36 +44,44 @@ void Scene3D::OnInit()
 	Camera& camera = GetRegistry().emplace<Camera>(cameraEntity, -20.0f, -40.0f, Maths::Vector3(-31.0f, 12.0f, 51.0f), 60.0f, 0.1f, 1000.0f, (float)m_ScreenWidth / (float)m_ScreenHeight);
 	camera.SetCameraController(CreateRef<EditorCameraController>());
 	GetRegistry().emplace<NameComponent>(cameraEntity, "Camera");
-	auto audioSystem = Application::Get().GetSystem<AudioManager>();
-	if(audioSystem)
-		Application::Get().GetSystem<AudioManager>()->SetListener(&camera);
 
 #ifndef LUMOS_PLATFORM_IOS
 	auto shadowRenderer = new Graphics::ShadowRenderer();
-	shadowRenderer->SetLightEntity(lightEntity);
 	auto shadowLayer = new Layer3D(shadowRenderer);
 	Application::Get().GetRenderManager()->SetShadowRenderer(shadowRenderer);
 	PushLayer(shadowLayer);
 #endif
 
-	//auto group = m_EntityManager->GetEntitiesWithTypes<Maths::Transform, MeshComponent>();
-
-	//entt::view<Maths::Transform> view = m_EntityManager->getView<Maths::Transform>();
-	//auto view = GetRegistry().view<Maths::Transform>();
-	bool editor = false;
-
-#ifdef LUMOS_EDITOR
-	editor = true;
-#endif
-
-	PushLayer(new Layer3D(new Graphics::SkyboxRenderer(m_ScreenWidth, m_ScreenHeight, editor), "Skybox"));
-
-	PushLayer(new Layer3D(new Graphics::DeferredRenderer(m_ScreenWidth, m_ScreenHeight, editor), "Deferred"));
+	PushLayer(new Layer3D(new Graphics::SkyboxRenderer(m_ScreenWidth, m_ScreenHeight), "Skybox"));
+	PushLayer(new Layer3D(new Graphics::DeferredRenderer(m_ScreenWidth, m_ScreenHeight), "Deferred"));
 }
 
 void Scene3D::OnUpdate(const TimeStep& timeStep)
 {
 	Scene::OnUpdate(timeStep);
+
+	if(Input::GetInput()->GetKeyPressed(InputCode::Key::P))
+		Application::Get().GetSystem<LumosPhysicsEngine>()->SetPaused(!Application::Get().GetSystem<LumosPhysicsEngine>()->IsPaused());
+	if(Input::GetInput()->GetKeyPressed(InputCode::Key::P))
+		Application::Get().GetSystem<B2PhysicsEngine>()->SetPaused(!Application::Get().GetSystem<B2PhysicsEngine>()->IsPaused());
+
+	Camera* cameraComponent = nullptr;
+
+	auto cameraView = m_EntityManager->GetEntitiesWithType<Camera>();
+	if(cameraView.size() > 0)
+	{
+		cameraComponent = m_EntityManager->GetRegistry().template try_get<Camera>(cameraView[0]);
+	}
+
+	if(cameraComponent)
+	{
+		if(Input::GetInput()->GetKeyPressed(InputCode::Key::J))
+			CommonUtils::AddSphere(this, cameraComponent->GetPosition(), -cameraComponent->GetForwardDirection());
+		if(Input::GetInput()->GetKeyPressed(InputCode::Key::K))
+			CommonUtils::AddPyramid(this, cameraComponent->GetPosition(), -cameraComponent->GetForwardDirection());
+		if(Input::GetInput()->GetKeyPressed(InputCode::Key::L))
+			CommonUtils::AddLightCube(this, cameraComponent->GetPosition(), -cameraComponent->GetForwardDirection());
+	}
 }
 
 void Scene3D::Render2D()
@@ -140,7 +148,7 @@ void Scene3D::LoadModels()
 	Ref<RigidBody3D> pendulumHolderPhysics = CreateRef<RigidBody3D>(physicsProperties);
 
 	GetRegistry().emplace<Physics3DComponent>(pendulumHolder, pendulumHolderPhysics);
-	GetRegistry().emplace<Maths::Transform>(pendulumHolder, Matrix4::Scale(Maths::Vector3(0.5f, 0.5f, 0.5f)));
+	GetRegistry().emplace_or_replace<Maths::Transform>(pendulumHolder, Matrix4::Scale(Maths::Vector3(0.5f, 0.5f, 0.5f)));
 	GetRegistry().emplace<NameComponent>(pendulumHolder, "Pendulum Holder");
 	Ref<Graphics::Mesh> pendulumHolderModel = AssetsManager::DefaultModels()->Get("Cube");
 	GetRegistry().emplace<MeshComponent>(pendulumHolder, pendulumHolderModel);
@@ -155,7 +163,7 @@ void Scene3D::LoadModels()
 	pendulumPhysics->SetPosition(Maths::Vector3(12.5f, 10.0f, 20.0f));
 	pendulumPhysics->SetCollisionShape(CreateRef<SphereCollisionShape>(0.5f));
 	GetRegistry().emplace<Physics3DComponent>(pendulum, pendulumPhysics);
-	GetRegistry().emplace<Maths::Transform>(pendulum, Matrix4::Scale(Maths::Vector3(0.5f, 0.5f, 0.5f)));
+	GetRegistry().emplace_or_replace<Maths::Transform>(pendulum, Matrix4::Scale(Maths::Vector3(0.5f, 0.5f, 0.5f)));
 	GetRegistry().emplace<NameComponent>(pendulum, "Pendulum");
 	Ref<Graphics::Mesh> pendulumModel = AssetsManager::DefaultModels()->Get("Sphere");
 	GetRegistry().emplace<MeshComponent>(pendulum, pendulumModel);

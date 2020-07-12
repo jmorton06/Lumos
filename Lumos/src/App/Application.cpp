@@ -137,11 +137,7 @@ namespace Lumos
 
 		m_CurrentState = AppState::Running;
 
-#ifdef LUMOS_EDITOR
-		DebugRenderer::Init(screenWidth, screenHeight, true);
-#else
-		DebugRenderer::Init(screenWidth, screenHeight, false);
-#endif
+		DebugRenderer::Init(screenWidth, screenHeight);
 	}
 
 	int Application::Quit(bool pause, const std::string& reason)
@@ -247,9 +243,6 @@ namespace Lumos
 			m_SceneManager->GetCurrentScene()->OnTick();
 		}
 
-		if(m_EditorState == EditorState::Next)
-			m_EditorState = EditorState::Paused;
-
 		m_SceneManager->ApplySceneSwitch();
 
 		return m_CurrentState != AppState::Closing;
@@ -259,29 +252,18 @@ namespace Lumos
 	{
 		if(m_LayerStack->GetCount() > 0 || m_SceneManager->GetCurrentScene()->GetLayers()->GetCount() > 0)
 		{
-			//#ifdef LUMOS_EDITOR
-			//			if(m_SceneViewSizeUpdated)
-			//			{
-			//				if(m_SceneViewWidth > 0 && m_SceneViewHeight > 0)
-			//				{
-			//					OnSceneViewSizeUpdated(m_SceneViewWidth, m_SceneViewHeight);
-			//				}
-			//
-			//				m_SceneViewSizeUpdated = false;
-			//			}
-			//#endif
 			Graphics::Renderer::GetRenderer()->Begin();
 			DebugRenderer::Reset();
 
 			m_SystemManager->OnDebugDraw();
-#ifdef LUMOS_EDITOR
-			m_Editor->DebugDraw();
-			m_Editor->OnRender();
-#endif
 
 			m_LayerStack->OnRender(m_SceneManager->GetCurrentScene());
 			m_SceneManager->GetCurrentScene()->GetLayers()->OnRender(m_SceneManager->GetCurrentScene());
-			DebugRenderer::Render(m_SceneManager->GetCurrentScene());
+#ifdef LUMOS_EDITOR
+            m_Editor->DebugDraw();
+            m_Editor->OnRender();
+#endif
+			DebugRenderer::Render(m_SceneManager->GetCurrentScene(), nullptr);
 			m_ImGuiLayer->OnRender(m_SceneManager->GetCurrentScene());
 
 			Graphics::Renderer::GetRenderer()->Present();
@@ -290,38 +272,6 @@ namespace Lumos
 
 	void Application::OnUpdate(const TimeStep& dt)
 	{
-		const u32 sceneIdx = m_SceneManager->GetCurrentSceneIndex();
-		const u32 sceneMax = m_SceneManager->SceneCount();
-
-		if(Input::GetInput()->GetKeyPressed(InputCode::Key::P))
-			Application::Get().GetSystem<LumosPhysicsEngine>()->SetPaused(!Application::Get().GetSystem<LumosPhysicsEngine>()->IsPaused());
-		if(Input::GetInput()->GetKeyPressed(InputCode::Key::P))
-			Application::Get().GetSystem<B2PhysicsEngine>()->SetPaused(!Application::Get().GetSystem<B2PhysicsEngine>()->IsPaused());
-
-		Camera* cameraComponent = nullptr;
-
-		auto cameraView = m_SceneManager->GetCurrentScene()->GetRegistry().view<Camera>();
-		if(cameraView.size() > 0)
-		{
-			cameraComponent = m_SceneManager->GetCurrentScene()->GetRegistry().try_get<Camera>(cameraView[0]);
-		}
-
-		if(cameraComponent)
-		{
-			if(Input::GetInput()->GetKeyPressed(InputCode::Key::J))
-				CommonUtils::AddSphere(m_SceneManager->GetCurrentScene(), cameraComponent->GetPosition(), -cameraComponent->GetForwardDirection());
-			if(Input::GetInput()->GetKeyPressed(InputCode::Key::K))
-				CommonUtils::AddPyramid(m_SceneManager->GetCurrentScene(), cameraComponent->GetPosition(), -cameraComponent->GetForwardDirection());
-			if(Input::GetInput()->GetKeyPressed(InputCode::Key::L))
-				CommonUtils::AddLightCube(m_SceneManager->GetCurrentScene(), cameraComponent->GetPosition(), -cameraComponent->GetForwardDirection());
-		}
-
-		if(Input::GetInput()->GetKeyPressed(InputCode::Key::G))
-			m_SceneManager->SwitchScene((sceneIdx + 1) % sceneMax);
-		if(Input::GetInput()->GetKeyPressed(InputCode::Key::H))
-			m_SceneManager->SwitchScene(sceneIdx);
-		if(Input::GetInput()->GetKeyPressed(InputCode::Key::V))
-			m_Window->ToggleVSync();
 
 #ifdef LUMOS_EDITOR
 		m_Editor->OnUpdate(dt);
@@ -438,7 +388,7 @@ namespace Lumos
 		if(m_AppType == AppType::Editor)
 			m_Editor->OnImGui();
 #endif
-		Application::Get().GetSceneManager()->GetCurrentScene()->OnImGui();
+		m_SceneManager->GetCurrentScene()->OnImGui();
 	}
 
 	void Application::OnSceneViewSizeUpdated(u32 width, u32 height)

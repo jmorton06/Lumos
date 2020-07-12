@@ -12,12 +12,12 @@
 #include "Graphics/Light.h"
 #include "ECS/Component/SoundComponent.h"
 #include "Graphics/Layers/LayerStack.h"
-
+#include "Graphics/Renderers/GridRenderer.h"
 #include "Physics/LumosPhysicsEngine/LumosPhysicsEngine.h"
 #include "Physics/B2PhysicsEngine/B2PhysicsEngine.h"
 #include "Core/OS/Input.h"
 #include "Graphics/Renderers/DebugRenderer.h"
-
+#include "EditorCamera.h"
 #include <Box2D/Box2D.h>
 #include <imgui/imgui_internal.h>
 #include <imgui/plugins/ImGuizmo.h>
@@ -48,7 +48,44 @@ namespace Lumos
 		ImGui::SetNextWindowBgAlpha(0.0f);
 		ImGui::Begin(m_Name.c_str(), &m_Active, flags);
 
-		ToolBar();
+		Camera* camera = nullptr;
+
+		bool gameView = false;
+
+		if(app.GetEditorState() == EditorState::Preview)
+		{
+			camera = m_Editor->GetCamera();
+
+			auto sceneLayers = m_CurrentScene->GetLayers();
+			for(auto layer : *sceneLayers)
+			{
+				layer->SetOverrideCamera(camera);
+			}
+
+			DebugRenderer::SetOverrideCamera(camera);
+		}
+		else
+		{
+            m_Editor->SetSelected(entt::null);
+			gameView = true;
+			auto sceneLayers = m_CurrentScene->GetLayers();
+			for(auto layer : *sceneLayers)
+			{
+				layer->SetOverrideCamera(nullptr);
+			}
+
+			DebugRenderer::SetOverrideCamera(nullptr);
+
+			auto& registry = m_CurrentScene->GetRegistry();
+			auto cameraView = registry.view<Camera>();
+			if(!cameraView.empty())
+			{
+				camera = &registry.get<Camera>(cameraView.front());
+			}
+		}
+
+		if(!gameView)
+			ToolBar();
 
 		ImGuizmo::SetDrawlist();
 		auto sceneViewSize = ImGui::GetContentRegionAvail();
@@ -69,25 +106,32 @@ namespace Lumos
 
 		float aspect = static_cast<float>(sceneViewSize.x) / static_cast<float>(sceneViewSize.y);
 
-		Camera* camera = nullptr;
-		auto& registry = m_CurrentScene->GetRegistry();
-		auto cameraView = registry.view<Camera>();
-		if(!cameraView.empty())
+		if(!Maths::Equals(aspect, camera->GetAspectRatio()))
 		{
-			camera = &registry.get<Camera>(cameraView.front());
-		}
-
-		if(!Maths::Equals(aspect, m_AspectRatio))
-		{
-			m_AspectRatio = aspect;
 			camera->SetAspectRatio(aspect);
 		}
 
 		Resize(static_cast<u32>(sceneViewSize.x), static_cast<u32>(sceneViewSize.y));
 
-		ImGuizmo::SetRect(sceneViewPosition.x, sceneViewPosition.y, sceneViewSize.x, sceneViewSize.y);
-
 		ImGuiHelpers::Image(m_GameViewTexture.get(), {sceneViewSize.x, sceneViewSize.y});
+
+		auto windowSize = ImGui::GetWindowSize();
+		ImVec2 minBound = sceneViewPosition;
+		minBound.x += viewportOffset.x;
+		minBound.y += viewportOffset.y;
+
+		ImVec2 maxBound = {minBound.x + windowSize.x, minBound.y + windowSize.y};
+		bool updateCamera = ImGui::IsMouseHoveringRect(minBound, maxBound);
+
+		app.SetSceneActive(ImGui::IsWindowFocused() && !ImGuizmo::IsUsing() && updateCamera);
+
+		if(gameView)
+		{
+			ImGui::End();
+			return;
+		}
+
+		ImGuizmo::SetRect(sceneViewPosition.x, sceneViewPosition.y, sceneViewSize.x, sceneViewSize.y);
 
 		if(m_Editor->ShowGrid())
 		{
@@ -99,23 +143,13 @@ namespace Lumos
 
 		m_Editor->OnImGuizmo();
 
-		if(app.GetSceneActive() && !ImGuizmo::IsUsing() && Input::GetInput()->GetMouseClicked(InputCode::MouseKey::ButtonLeft))
+		if(!gameView && app.GetSceneActive() && !ImGuizmo::IsUsing() && Input::GetInput()->GetMouseClicked(InputCode::MouseKey::ButtonLeft))
 		{
 			auto clickPos = Input::GetInput()->GetMousePosition() - Maths::Vector2(sceneViewPosition.x, sceneViewPosition.y);
 			m_Editor->SelectObject(m_Editor->GetScreenRay(clickPos.x, clickPos.y, camera, sceneViewSize.x, sceneViewSize.y));
 		}
 
 		DrawGizmos(sceneViewSize.x, sceneViewSize.y, 0.0f, 40.0f, app.GetSceneManager()->GetCurrentScene()); // Not sure why 40
-
-		auto windowSize = ImGui::GetWindowSize();
-		ImVec2 minBound = sceneViewPosition;
-		minBound.x += viewportOffset.x;
-		minBound.y += viewportOffset.y;
-
-		ImVec2 maxBound = {minBound.x + windowSize.x, minBound.y + windowSize.y};
-		bool updateCamera = ImGui::IsMouseHoveringRect(minBound, maxBound);
-
-		app.SetSceneActive(ImGui::IsWindowFocused() && !ImGuizmo::IsUsing() && updateCamera);
 
 		if(m_ShowStats && ImGui::IsWindowFocused())
 		{
@@ -178,14 +212,8 @@ namespace Lumos
 
 	void SceneWindow::DrawGizmos(float width, float height, float xpos, float ypos, Scene* scene)
 	{
-		Camera* camera = nullptr;
-		auto& registry = Application::Get().GetSceneManager()->GetCurrentScene()->GetRegistry();
-		auto cameraView = registry.view<Camera>();
-		if(!cameraView.empty())
-		{
-			camera = &registry.get<Camera>(cameraView.front());
-		}
-
+		Camera* camera = m_Editor->GetCamera();
+        auto& registry = scene->GetRegistry();
 		Maths::Matrix4 view = camera->GetViewMatrix();
 		Maths::Matrix4 proj = camera->GetProjectionMatrix();
 
@@ -490,6 +518,46 @@ namespace Lumos
 			ImGuiHelpers::Tooltip("Show Statistics");
 		}
 
+		ImGui::SameLine();
+		ImGui::SeparatorEx(ImGuiSeparatorFlags_Vertical);
+		ImGui::SameLine();
+		//Editor Camera Settings
+
+		auto& camera = *m_Editor->GetCamera();
+		bool ortho = camera.IsOrthographic();
+
+		selected = !ortho;
+		if(selected)
+			ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(0.28f, 0.56f, 0.9f, 1.0f));
+		if(ImGui::Button("3D"))
+		{
+			if(ortho)
+			{
+				camera.SetIsOrthographic(false);
+				((EditorCameraController*)camera.GetController().get())->SetMode(false);
+			}
+		}
+		if(selected)
+			ImGui::PopStyleColor();
+		ImGui::SameLine();
+
+		selected = ortho;
+		if(selected)
+			ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(0.28f, 0.56f, 0.9f, 1.0f));
+		if(ImGui::Button("2D"))
+		{
+			if(!ortho)
+			{
+				camera.SetIsOrthographic(true);
+				camera.SetRoll(0.0f);
+				camera.SetYaw(0.0f);
+				camera.SetPitch(0.0f);
+				((EditorCameraController*)camera.GetController().get())->SetMode(true);
+			}
+		}
+		if(selected)
+			ImGui::PopStyleColor();
+
 		ImGui::PopStyleColor();
 		ImGui::Unindent();
 	}
@@ -503,9 +571,11 @@ namespace Lumos
 		for(auto layer : *sceneLayers)
 		{
 			layer->SetRenderTarget(m_GameViewTexture.get(), true);
+			layer->SetOverrideCamera(m_Editor->GetCamera());
 		}
 
 		DebugRenderer::SetRenderTarget(m_GameViewTexture.get(), true);
+		DebugRenderer::SetOverrideCamera(m_Editor->GetCamera());
 	}
 
 	void SceneWindow::Resize(u32 width, u32 height)
@@ -528,9 +598,9 @@ namespace Lumos
 
 		if(resize)
 		{
-			m_GameViewTexture->BuildTexture(Graphics::TextureFormat::RGBA32, m_Width, m_Height, false, false);
+            Graphics::GraphicsContext::GetContext()->WaitIdle();
 
-			Graphics::GraphicsContext::GetContext()->WaitIdle();
+			m_GameViewTexture->BuildTexture(Graphics::TextureFormat::RGBA32, m_Width, m_Height, false, false);
 
 			auto sceneLayers = m_CurrentScene->GetLayers();
 
@@ -540,6 +610,11 @@ namespace Lumos
 			}
 
 			DebugRenderer::SetRenderTarget(m_GameViewTexture.get(), false);
+
+            if(!m_Editor->GetGridRenderer())
+                m_Editor->CreateGridRenderer();
+			m_Editor->GetGridRenderer()->SetRenderTarget(m_GameViewTexture.get(), false);
+			m_Editor->GetGridRenderer()->OnResize(m_Width, m_Height);
 
 			WindowResizeEvent e(width, height);
 			auto& app = Application::Get();

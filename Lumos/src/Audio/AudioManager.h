@@ -16,7 +16,6 @@ namespace Lumos
         virtual void OnInit() override = 0;
         virtual void OnUpdate(const TimeStep& dt, Scene* scene) override = 0;
 
-		virtual void SetListener(Camera* camera) { m_Listener = camera; }
 		Camera* GetListener() const { return m_Listener; }
 
 		void AddSoundNode(SoundNode* node) { m_SoundNodes.emplace_back(node); }

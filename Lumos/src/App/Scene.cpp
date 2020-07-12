@@ -76,6 +76,10 @@ namespace Lumos
 
 	void Scene::OnInit()
 	{
+        //m_EntityManager->AddDependency<Physics3DComponent, Maths::Transform>();
+        //m_EntityManager->AddDependency<Physics2DComponent, Maths::Transform>();
+        //m_EntityManager->AddDependency<MeshComponent, Maths::Transform>();
+
 		LuaManager::Get().GetState().set("registry", &m_EntityManager->GetRegistry());
 		LuaManager::Get().GetState().set("scene", this);
 
@@ -184,9 +188,7 @@ namespace Lumos
 
 	void Scene::DeleteAllGameObjects()
 	{
-		m_EntityManager->GetRegistry().each([&](auto entity) {
-			m_EntityManager->GetRegistry().destroy(entity);
-		});
+        m_EntityManager->Clear();
 	}
 
 	void Scene::OnUpdate(const TimeStep& timeStep)
@@ -369,5 +371,10 @@ namespace Lumos
 			entt::snapshot_loader{m_EntityManager->GetRegistry()}.entities(input).component<ALL_COMPONENTS>(input); //continuous_loader
 			input(*this);
 		}
-	}
+    }
+    
+    void Scene::UpdateSceneGraph()
+    {
+        m_SceneGraph.Update(m_EntityManager->GetRegistry());
+    }
 }

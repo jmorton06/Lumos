@@ -11,6 +11,10 @@ namespace Lumos {
     
     void EntityManager::Clear()
     {
+        m_Registry.each([&](auto entity) {
+            m_Registry.destroy(entity);
+        });
+
         m_Registry.clear();
     }
 }

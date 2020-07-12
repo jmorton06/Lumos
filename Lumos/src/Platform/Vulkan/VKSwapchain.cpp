@@ -42,13 +42,13 @@ namespace Lumos
 			swapChainExtent.height = static_cast<uint32_t>(m_Height);
 
 			VkPresentModeKHR swapChainPresentMode = VK_PRESENT_MODE_FIFO_KHR;
-			for (uint32_t i = 0; i < numPresentModes; i++)
-			{
-				if (pPresentModes[i] == VK_PRESENT_MODE_MAILBOX_KHR)
-					swapChainPresentMode = VK_PRESENT_MODE_MAILBOX_KHR;
-				if ((swapChainPresentMode != VK_PRESENT_MODE_MAILBOX_KHR) && (pPresentModes[i] == VK_PRESENT_MODE_IMMEDIATE_KHR))
-					swapChainPresentMode = VK_PRESENT_MODE_IMMEDIATE_KHR;
-			}
+//			for (uint32_t i = 0; i < numPresentModes; i++)
+//			{
+//				if (pPresentModes[i] == VK_PRESENT_MODE_MAILBOX_KHR)
+//					swapChainPresentMode = VK_PRESENT_MODE_MAILBOX_KHR;
+//				if ((swapChainPresentMode != VK_PRESENT_MODE_MAILBOX_KHR) && (pPresentModes[i] == VK_PRESENT_MODE_IMMEDIATE_KHR))
+//					swapChainPresentMode = VK_PRESENT_MODE_IMMEDIATE_KHR;
+//			}
 
 			// Use triple-buffering
 			uint32_t numSwapChainImages = surfaceCapabilities.maxImageCount;
