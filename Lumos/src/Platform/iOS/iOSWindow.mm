@@ -98,12 +98,12 @@ namespace Lumos
         
         if(down)
         {
-            MouseButtonPressedEvent event2((Lumos::InputCode::Key)Lumos::iOSKeyCodes::iOSTouchToLumosMouseKey(count));
+            MouseButtonPressedEvent event2((Lumos::InputCode::MouseKey)Lumos::iOSKeyCodes::iOSTouchToLumosMouseKey(count));
             m_Data.EventCallback(event2);
         }
         else
         {
-            MouseButtonReleasedEvent event2((Lumos::InputCode::Key)Lumos::iOSKeyCodes::iOSTouchToLumosMouseKey(count));
+            MouseButtonReleasedEvent event2((Lumos::InputCode::MouseKey)Lumos::iOSKeyCodes::iOSTouchToLumosMouseKey(count));
             m_Data.EventCallback(event2);
         }
     }
