@@ -372,48 +372,49 @@ namespace Lumos
 		HWND hWnd = static_cast<WindowsWindow*>(window)->GetHWND();
 
 		bool down = false;
+		Lumos::InputCode::MouseKey mouseKey; 
 		switch(button)
 		{
 		case WM_LBUTTONDOWN:
 			SetCapture(hWnd);
-			button = LUMOS_MOUSE_LEFT;
+			mouseKey = Lumos::InputCode::MouseKey::ButtonLeft;
 			down = true;
 			break;
 		case WM_LBUTTONUP:
 			ReleaseCapture();
-			button = LUMOS_MOUSE_LEFT;
+			mouseKey = Lumos::InputCode::MouseKey::ButtonLeft;
 			down = false;
 			break;
 		case WM_RBUTTONDOWN:
 			SetCapture(hWnd);
-			button = LUMOS_MOUSE_RIGHT;
+			mouseKey = Lumos::InputCode::MouseKey::ButtonRight;
 			down = true;
 			break;
 		case WM_RBUTTONUP:
 			ReleaseCapture();
-			button = LUMOS_MOUSE_RIGHT;
+			mouseKey = Lumos::InputCode::MouseKey::ButtonRight;
 			down = false;
 			break;
 		case WM_MBUTTONDOWN:
 			SetCapture(hWnd);
-			button = LUMOS_MOUSE_MIDDLE;
+			mouseKey = Lumos::InputCode::MouseKey::ButtonMiddle;
 			down = true;
 			break;
 		case WM_MBUTTONUP:
 			ReleaseCapture();
-			button = LUMOS_MOUSE_MIDDLE;
+			mouseKey = Lumos::InputCode::MouseKey::ButtonMiddle;
 			down = false;
 			break;
 		}
 
 		if(down)
 		{
-			MouseButtonPressedEvent event(button);
+			MouseButtonPressedEvent event(mouseKey);
 			data.EventCallback(event);
 		}
 		else
 		{
-			MouseButtonReleasedEvent event(button);
+			MouseButtonReleasedEvent event(mouseKey);
 			data.EventCallback(event);
 		}
 	}
@@ -437,7 +438,7 @@ namespace Lumos
 	{
 		WindowsWindow::WindowData& data = static_cast<WindowsWindow*>(window)->m_Data;
 
-		KeyTypedEvent event(key);
+		KeyTypedEvent event(Lumos::InputCode::Key{} , char(key));
 		data.EventCallback(event);
 	}
 
