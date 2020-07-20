@@ -1,5 +1,5 @@
 #include <LumosEngine.h>
-#include <App/EntryPoint.h>
+#include <Core/EntryPoint.h>
 #include "Scenes/Scene3D.h"
 #include "Scenes/GraphicsScene.h"
 #include "Scenes/SceneModelViewer.h"
@@ -10,32 +10,32 @@ using namespace Lumos;
 
 class Game : public Application
 {
-public:
+    public:
 	explicit Game(const WindowProperties& windowProperties)
 		: Application(windowProperties)
 	{
 	}
-
+    
 	~Game()
 	{
 	}
-
+    
 	void Init() override
 	{
 		Application::Init();
-
+        
 		const std::string root = ROOT_DIR;
 		VFS::Get()->Mount("Meshes", root + "/Assets/meshes");
 		VFS::Get()->Mount("Textures", root + "/Assets/textures");
 		VFS::Get()->Mount("Sounds", root + "/Assets/sounds");
 		VFS::Get()->Mount("Scripts", root + "/Assets/scripts");
-
+        
 		GetSceneManager()->EnqueueScene<SceneModelViewer>("SceneModelViewer");
 		GetSceneManager()->EnqueueScene<Scene2D>("2D Test");
 		GetSceneManager()->EnqueueScene<Scene3D>("Physics Scene");
 		GetSceneManager()->EnqueueScene<GraphicsScene>("Terrain Test");
 		GetSceneManager()->EnqueueScene<MaterialTest>("Material Test");
-		GetSceneManager()->SwitchScene(2);
+		GetSceneManager()->SwitchScene(1);
 		GetSceneManager()->ApplySceneSwitch();
 	}
 };
@@ -49,6 +49,6 @@ Lumos::Application* Lumos::CreateApplication()
 	WindowProperties windowProperties = LuaManager::Get().LoadConfigFile(ROOT_DIR "/Sandbox/Settings.lua");
 	windowProperties.ShowConsole = true;
 #endif
-
+    
 	return new Game(windowProperties);
 }

@@ -20,13 +20,10 @@ void Scene2D::OnInit()
 
 	LoadLuaScene("/Scripts/FlappyBirdTest.lua");
 
-	auto cameraEntity = GetRegistry().create();
-	auto& camera = GetRegistry().emplace<Camera>(cameraEntity, static_cast<float>(m_ScreenWidth) / static_cast<float>(m_ScreenHeight), 10.0f);
-	camera.SetCameraController(CreateRef<CameraController2D>());
-	camera.SetIsOrthographic(true);
-	GetRegistry().emplace<NameComponent>(cameraEntity, "Camera");
+	auto cameraEntity = m_EntityManager->Create("Camera");
+	cameraEntity.AddComponent<Camera>(static_cast<float>(m_ScreenWidth) / static_cast<float>(m_ScreenHeight), 10.0f);
 
-	PushLayer(new Layer2D(new Graphics::Renderer2D(m_ScreenWidth, m_ScreenHeight, true, false, false)));
+	PushLayer(new Layer2D(new Graphics::Renderer2D(m_ScreenWidth, m_ScreenHeight, true, false, true)));
 }
 
 void Scene2D::OnUpdate(const TimeStep& timeStep)

@@ -1,10 +1,10 @@
 #if defined(LUMOS_RENDER_API_VULKAN) && !defined(LUMOS_PLATFORM_MACOS) && !defined(LUMOS_PLATFORM_IOS)
 
-#include "Platform/Vulkan/VKDevice.h"
-#include "App/Application.h"
+#	include "Platform/Vulkan/VKDevice.h"
+#	include "Core/Application.h"
 
-#include <GLFW/glfw3.h>
-#include <GLFW/glfw3native.h>
+#	include <GLFW/glfw3.h>
+#	include <GLFW/glfw3native.h>
 
 namespace Lumos
 {
@@ -12,7 +12,7 @@ namespace Lumos
 	{
 		VkSurfaceKHR surface;
 
-        glfwCreateWindowSurface(vkInstance, static_cast<GLFWwindow*>(window->GetHandle()), nullptr, (VkSurfaceKHR*)&surface);
+		glfwCreateWindowSurface(vkInstance, static_cast<GLFWwindow*>(window->GetHandle()), nullptr, (VkSurfaceKHR*)&surface);
 
 		return surface;
 	}

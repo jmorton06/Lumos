@@ -37,9 +37,6 @@ namespace Lumos
 		void RenderDircGridView(int dirIndex);
 
 		void RenderBreadCrumbs();
-
-		void RenderSearch();
-
 		void RenderBottom();
 
 		int GetParsedAssetID(const std::string& extension)
@@ -57,9 +54,6 @@ namespace Lumos
 
 		static std::string ParseFilename(const std::string& str, const char delim, std::vector<std::string>& out);
 		static std::string ParseFiletype(const std::string& filename);
-
-		static void ProcessAseets(const std::string& assetType);
-		static void InitiateAssetConversion(const std::string& assetPath, const std::string& conversionType);
 
 		static std::vector<DirectoryInformation> GetFsContents(const std::string& path);
 		static std::vector<DirectoryInformation> ReadDirectory(const std::string& path);

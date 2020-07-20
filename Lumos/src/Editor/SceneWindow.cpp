@@ -2,15 +2,15 @@
 #include "SceneWindow.h"
 #include "Editor.h"
 #include "Graphics/Camera/Camera.h"
-#include "App/Application.h"
-#include "App/SceneManager.h"
-#include "App/Engine.h"
+#include "Core/Application.h"
+#include "Scene/SceneManager.h"
+#include "Core/Engine.h"
 #include "Graphics/API/GraphicsContext.h"
 #include "Graphics/API/Texture.h"
 #include "Graphics/RenderManager.h"
 #include "Graphics/GBuffer.h"
 #include "Graphics/Light.h"
-#include "ECS/Component/SoundComponent.h"
+#include "Scene/Component/SoundComponent.h"
 #include "Graphics/Layers/LayerStack.h"
 #include "Graphics/Renderers/GridRenderer.h"
 #include "Physics/LumosPhysicsEngine/LumosPhysicsEngine.h"
@@ -21,13 +21,13 @@
 #include <Box2D/Box2D.h>
 #include <imgui/imgui_internal.h>
 #include <imgui/plugins/ImGuizmo.h>
-#include <IconFontCppHeaders/IconsFontAwesome5.h>
+#include <IconFontCppHeaders/IconsMaterialDesignIcons.h>
 
 namespace Lumos
 {
 	SceneWindow::SceneWindow()
 	{
-		m_Name = ICON_FA_GAMEPAD " Scene###scene";
+		m_Name = ICON_MDI_GAMEPAD_VARIANT " Scene###scene";
 		m_SimpleName = "Scene";
 		m_CurrentScene = nullptr;
 
@@ -66,7 +66,6 @@ namespace Lumos
 		}
 		else
 		{
-            m_Editor->SetSelected(entt::null);
 			gameView = true;
 			auto sceneLayers = m_CurrentScene->GetLayers();
 			for(auto layer : *sceneLayers)
@@ -103,6 +102,12 @@ namespace Lumos
 
 		sceneViewSize.x -= static_cast<int>(sceneViewSize.x) % 2 != 0 ? 1.0f : 0.0f;
 		sceneViewSize.y -= static_cast<int>(sceneViewSize.y) % 2 != 0 ? 1.0f : 0.0f;
+    
+    
+        if(sceneViewSize.x == 0.0f || sceneViewSize.y == 0.0f)
+        {
+            sceneViewSize = ImVec2(80.0f, 60.0f);
+        }
 
 		float aspect = static_cast<float>(sceneViewSize.x) / static_cast<float>(sceneViewSize.y);
 
@@ -213,7 +218,7 @@ namespace Lumos
 	void SceneWindow::DrawGizmos(float width, float height, float xpos, float ypos, Scene* scene)
 	{
 		Camera* camera = m_Editor->GetCamera();
-        auto& registry = scene->GetRegistry();
+		auto& registry = scene->GetRegistry();
 		Maths::Matrix4 view = camera->GetViewMatrix();
 		Maths::Matrix4 proj = camera->GetProjectionMatrix();
 
@@ -241,12 +246,12 @@ namespace Lumos
 			if(selected)
 				ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(0.28f, 0.56f, 0.9f, 1.0f));
 			ImGui::SameLine();
-			if(ImGui::Button(ICON_FA_MOUSE_POINTER, ImVec2(19.0f, 19.0f)))
+			if(ImGui::Button(ICON_MDI_CURSOR_DEFAULT, ImVec2(19.0f, 19.0f)))
 				m_Editor->SetImGuizmoOperation(4);
 
 			if(selected)
 				ImGui::PopStyleColor();
-			ImGuiHelpers::Tooltip("Translate");
+			ImGuiHelpers::Tooltip("Select");
 		}
 
 		ImGui::SameLine();
@@ -258,7 +263,7 @@ namespace Lumos
 			if(selected)
 				ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(0.28f, 0.56f, 0.9f, 1.0f));
 			ImGui::SameLine();
-			if(ImGui::Button(ICON_FA_ARROWS_ALT, ImVec2(19.0f, 19.0f)))
+			if(ImGui::Button(ICON_MDI_ARROW_ALL, ImVec2(19.0f, 19.0f)))
 				m_Editor->SetImGuizmoOperation(ImGuizmo::TRANSLATE);
 
 			if(selected)
@@ -272,7 +277,7 @@ namespace Lumos
 				ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(0.28f, 0.56f, 0.9f, 1.0f));
 
 			ImGui::SameLine();
-			if(ImGui::Button(ICON_FA_SYNC, ImVec2(19.0f, 19.0f)))
+			if(ImGui::Button(ICON_MDI_ROTATE_ORBIT, ImVec2(19.0f, 19.0f)))
 				m_Editor->SetImGuizmoOperation(ImGuizmo::ROTATE);
 
 			if(selected)
@@ -286,7 +291,7 @@ namespace Lumos
 				ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(0.28f, 0.56f, 0.9f, 1.0f));
 
 			ImGui::SameLine();
-			if(ImGui::Button(ICON_FA_EXPAND_ARROWS_ALT, ImVec2(19.0f, 19.0f)))
+			if(ImGui::Button(ICON_MDI_ARROW_EXPAND_ALL, ImVec2(19.0f, 19.0f)))
 				m_Editor->SetImGuizmoOperation(ImGuizmo::SCALE);
 
 			if(selected)
@@ -304,7 +309,7 @@ namespace Lumos
 				ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(0.28f, 0.56f, 0.9f, 1.0f));
 
 			ImGui::SameLine();
-			if(ImGui::Button(ICON_FA_SQUARE, ImVec2(19.0f, 19.0f)))
+			if(ImGui::Button(ICON_MDI_BORDER_NONE, ImVec2(19.0f, 19.0f)))
 				m_Editor->SetImGuizmoOperation(ImGuizmo::BOUNDS);
 
 			if(selected)
@@ -323,7 +328,7 @@ namespace Lumos
 			if(selected)
 				ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(0.28f, 0.56f, 0.9f, 1.0f));
 
-			if(ImGui::Button(ICON_FA_MAGNET, ImVec2(19.0f, 19.0f)))
+			if(ImGui::Button(ICON_MDI_MAGNET, ImVec2(19.0f, 19.0f)))
 				m_Editor->SnapGuizmo() = !selected;
 
 			if(selected)
@@ -335,7 +340,7 @@ namespace Lumos
 		ImGui::SeparatorEx(ImGuiSeparatorFlags_Vertical);
 		ImGui::SameLine();
 
-		if(ImGui::Button("Gizmos " ICON_FA_CARET_DOWN))
+		if(ImGui::Button("Gizmos " ICON_MDI_CHEVRON_DOWN))
 			ImGui::OpenPopup("GizmosPopup");
 		if(ImGui::BeginPopup("GizmosPopup"))
 		{
@@ -529,7 +534,7 @@ namespace Lumos
 		selected = !ortho;
 		if(selected)
 			ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(0.28f, 0.56f, 0.9f, 1.0f));
-		if(ImGui::Button("3D"))
+		if(ImGui::Button(ICON_MDI_AXIS_ARROW" 3D"))
 		{
 			if(ortho)
 			{
@@ -544,7 +549,7 @@ namespace Lumos
 		selected = ortho;
 		if(selected)
 			ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(0.28f, 0.56f, 0.9f, 1.0f));
-		if(ImGui::Button("2D"))
+		if(ImGui::Button(ICON_MDI_ANGLE_RIGHT "2D"))
 		{
 			if(!ortho)
 			{
@@ -598,7 +603,7 @@ namespace Lumos
 
 		if(resize)
 		{
-            Graphics::GraphicsContext::GetContext()->WaitIdle();
+			Graphics::GraphicsContext::GetContext()->WaitIdle();
 
 			m_GameViewTexture->BuildTexture(Graphics::TextureFormat::RGBA32, m_Width, m_Height, false, false);
 
@@ -611,8 +616,8 @@ namespace Lumos
 
 			DebugRenderer::SetRenderTarget(m_GameViewTexture.get(), false);
 
-            if(!m_Editor->GetGridRenderer())
-                m_Editor->CreateGridRenderer();
+			if(!m_Editor->GetGridRenderer())
+				m_Editor->CreateGridRenderer();
 			m_Editor->GetGridRenderer()->SetRenderTarget(m_GameViewTexture.get(), false);
 			m_Editor->GetGridRenderer()->OnResize(m_Width, m_Height);
 

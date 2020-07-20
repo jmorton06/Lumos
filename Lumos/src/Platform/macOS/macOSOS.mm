@@ -3,7 +3,7 @@
 #include "macOSPower.h"
 #include "Platform/GLFW/GLFWWindow.h"
 #include "Core/CoreSystem.h"
-#include "App/Application.h"
+#include "Core/Application.h"
 
 #include <mach-o/dyld.h>
 

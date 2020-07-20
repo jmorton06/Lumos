@@ -14,14 +14,14 @@
 #include "Graphics/API/Pipeline.h"
 #include "Graphics/API/GraphicsContext.h"
 #include "Graphics/GBuffer.h"
-#include "App/Scene.h"
-#include "ECS/Component/MaterialComponent.h"
-#include "ECS/Component/MeshComponent.h"
-#include "ECS/Component/TextureMatrixComponent.h"
+#include "Scene/Scene.h"
+#include "Scene/Component/MaterialComponent.h"
+#include "Scene/Component/MeshComponent.h"
+#include "Scene/Component/TextureMatrixComponent.h"
 #include "Maths/Maths.h"
 #include "Maths/Transform.h"
 
-#include "App/Application.h"
+#include "Core/Application.h"
 #include "Graphics/RenderManager.h"
 #include "Graphics/Camera/Camera.h"
 
@@ -233,7 +233,6 @@ namespace Lumos
 			if(!m_RenderTexture)
 				m_CurrentBufferID = Renderer::GetSwapchain()->GetCurrentBufferId();
 
-			m_CommandQueue.clear();
 			m_SystemUniforms.clear();
 
 			m_CommandBuffers[m_CurrentBufferID]->BeginRecording();
@@ -265,6 +264,8 @@ namespace Lumos
 			memcpy(m_VSSystemUniformBuffer + m_VSSystemUniformBufferOffsets[VSSystemUniformIndex_ViewMatrix], &m_Camera->GetViewMatrix(), sizeof(Maths::Matrix4));
 
 			m_Frustum = m_Camera->GetFrustum();
+
+            m_CommandQueue.clear();
 
 			auto group = registry.group<MeshComponent>(entt::get<Maths::Transform>);
 

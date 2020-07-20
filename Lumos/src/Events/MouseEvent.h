@@ -54,22 +54,29 @@ namespace Lumos
 	class LUMOS_EXPORT MouseButtonEvent : public Event
 	{
 	public:
-		_FORCE_INLINE_ int GetMouseButton() const { return m_Button; }
+		_FORCE_INLINE_ Lumos::InputCode::MouseKey GetMouseButton() const
+		{
+			return m_Button;
+		}
 
 		EVENT_CLASS_CATEGORY(EventCategoryMouse | EventCategoryInput)
 
 	protected:
-		MouseButtonEvent(int button)
-			:m_Button(button) {}
+		MouseButtonEvent(Lumos::InputCode::MouseKey button)
+			: m_Button(button)
+		{
+		}
 
-		int m_Button;
+		Lumos::InputCode::MouseKey m_Button;
 	};
 
 	class LUMOS_EXPORT MouseButtonPressedEvent : public MouseButtonEvent
 	{
 	public:
-		MouseButtonPressedEvent(int button)
-			: MouseButtonEvent(button) {}
+		MouseButtonPressedEvent(Lumos::InputCode::MouseKey button)
+			: MouseButtonEvent(button)
+		{
+		}
 
 		std::string ToString() const override
 		{
@@ -85,8 +92,10 @@ namespace Lumos
 	class LUMOS_EXPORT MouseButtonReleasedEvent : public MouseButtonEvent
 	{
 	public:
-		MouseButtonReleasedEvent(int button)
-			: MouseButtonEvent(button) {}
+		MouseButtonReleasedEvent(Lumos::InputCode::MouseKey button)
+			: MouseButtonEvent(button)
+		{
+		}
 
 		std::string ToString() const override
 		{

@@ -1,6 +1,6 @@
 #pragma once
 #include "lmpch.h"
-#include "App/Application.h"
+#include "Core/Application.h"
 
 #include <sol/forward.hpp>
 #include <cereal/cereal.hpp>

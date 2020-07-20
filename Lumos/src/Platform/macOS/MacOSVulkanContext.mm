@@ -4,7 +4,7 @@
 #include <QuartzCore/CAMetalLayer.h>
 
 #include "Platform/Vulkan/VKDevice.h"
-#include "App/Application.h"
+#include "Core/Application.h"
 
 #define GLFW_EXPOSE_NATIVE_COCOA
 #include <GLFW/glfw3.h>

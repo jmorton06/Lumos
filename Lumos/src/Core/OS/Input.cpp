@@ -50,29 +50,29 @@ namespace Lumos
 
 	bool Input::OnKeyPressed(KeyPressedEvent& e)
 	{
-		SetKeyPressed(e.GetKeyCode(), e.GetRepeatCount() < 1);
-		SetKeyHeld(e.GetKeyCode(), true);
+		SetKeyPressed(Lumos::InputCode::Key(e.GetKeyCode()), e.GetRepeatCount() < 1);
+		SetKeyHeld(Lumos::InputCode::Key(e.GetKeyCode()), true);
 		return false;
 	}
 
 	bool Input::OnKeyReleased(KeyReleasedEvent& e)
 	{
-		SetKeyPressed(e.GetKeyCode(), false);
-		SetKeyHeld(e.GetKeyCode(), false);
+		SetKeyPressed(Lumos::InputCode::Key(e.GetKeyCode()), false);
+		SetKeyHeld(Lumos::InputCode::Key(e.GetKeyCode()), false);
 		return false;
 	}
 
 	bool Input::OnMousePressed(MouseButtonPressedEvent& e)
 	{
-		SetMouseClicked(e.GetMouseButton(), true);
-		SetMouseHeld(e.GetMouseButton(), true);
+		SetMouseClicked(Lumos::InputCode::MouseKey(e.GetMouseButton()), true);
+		SetMouseHeld(Lumos::InputCode::MouseKey(e.GetMouseButton()), true);
 		return false;
 	}
 	
 	bool Input::OnMouseReleased(MouseButtonReleasedEvent& e)
 	{
-		SetMouseClicked(e.GetMouseButton(), false);
-		SetMouseHeld(e.GetMouseButton(), false);
+		SetMouseClicked(Lumos::InputCode::MouseKey(e.GetMouseButton()), false);
+		SetMouseHeld(Lumos::InputCode::MouseKey(e.GetMouseButton()), false);
 		return false;
 	}
 

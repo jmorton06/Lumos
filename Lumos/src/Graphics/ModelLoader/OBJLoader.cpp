@@ -3,12 +3,12 @@
 #include "Graphics/Mesh.h"
 #include "Graphics/Material.h"
 #include "Maths/Transform.h"
-#include "ECS/Component/MeshComponent.h"
-#include "ECS/Component/MaterialComponent.h"
+#include "Scene/Component/MeshComponent.h"
+#include "Scene/Component/MaterialComponent.h"
 #include "Graphics/API/Texture.h"
 #include "Maths/Maths.h"
 
-#include "App/Application.h"
+#include "Core/Application.h"
 
 #define TINYOBJLOADER_IMPLEMENTATION
 #include <tinyobjloader/tiny_obj_loader.h>

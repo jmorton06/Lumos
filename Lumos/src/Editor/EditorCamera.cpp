@@ -2,7 +2,7 @@
 #include "EditorCamera.h"
 #include "Editor.h"
 #include "Graphics/Camera/Camera.h"
-#include "App/Application.h"
+#include "Core/Application.h"
 #include "Core/OS/Input.h"
 
 namespace Lumos
@@ -11,8 +11,8 @@ namespace Lumos
 	{
 		m_RotateDampeningFactor = 0.0f;
 		m_FocalPoint = Maths::Vector3::ZERO;
-        m_Velocity = Maths::Vector3(0.0f);
-        m_MouseSensitivity = 0.005f;
+		m_Velocity = Maths::Vector3(0.0f);
+		m_MouseSensitivity = 0.005f;
 	}
 
 	EditorCameraController::~EditorCameraController()
@@ -25,7 +25,7 @@ namespace Lumos
 		{
 			if(m_2DMode)
 			{
-                m_MouseSensitivity = 0.005f;
+				m_MouseSensitivity = 0.005f;
 				Maths::Vector3 position = camera->GetPosition();
 				position.x -= (xpos - m_PreviousCurserPos.x) * camera->GetScale() * m_MouseSensitivity * 0.5f;
 				position.y += (ypos - m_PreviousCurserPos.y) * camera->GetScale() * m_MouseSensitivity * 0.5f;
@@ -33,7 +33,7 @@ namespace Lumos
 			}
 			else
 			{
-                m_MouseSensitivity = 0.1f;
+				m_MouseSensitivity = 0.1f;
 				m_RotateVelocity = m_RotateVelocity + Maths::Vector2((xpos - m_PreviousCurserPos.x), (ypos - m_PreviousCurserPos.y)) * m_MouseSensitivity;
 
 				float pitch = camera->GetPitch();
@@ -71,22 +71,22 @@ namespace Lumos
 
 			m_CameraSpeed = camera->GetScale() * dt * 20.0f;
 
-			if(Input::GetInput()->GetKeyHeld(LUMOS_KEY_A))
+			if(Input::GetInput()->GetKeyHeld(Lumos::InputCode::Key::A))
 			{
 				m_Velocity -= right * m_CameraSpeed;
 			}
 
-			if(Input::GetInput()->GetKeyHeld(LUMOS_KEY_D))
+			if(Input::GetInput()->GetKeyHeld(Lumos::InputCode::Key::D))
 			{
 				m_Velocity += right * m_CameraSpeed;
 			}
 
-			if(Input::GetInput()->GetKeyHeld(LUMOS_KEY_W))
+			if(Input::GetInput()->GetKeyHeld(Lumos::InputCode::Key::W))
 			{
 				m_Velocity += up * m_CameraSpeed;
 			}
 
-			if(Input::GetInput()->GetKeyHeld(LUMOS_KEY_S))
+			if(Input::GetInput()->GetKeyHeld(Lumos::InputCode::Key::S))
 			{
 				m_Velocity -= up * m_CameraSpeed;
 			}

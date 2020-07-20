@@ -3,8 +3,8 @@
 #include "DeferredOffScreenRenderer.h"
 #include "ShadowRenderer.h"
 
-#include "App/Scene.h"
-#include "App/Application.h"
+#include "Scene/Scene.h"
+#include "Core/Application.h"
 #include "Maths/Maths.h"
 #include "Maths/Transform.h"
 #include "Core/Profiler.h"
@@ -272,8 +272,8 @@ namespace Lumos
 			}
 
 			SubmitLightSetup(scene);
-        
-            m_OffScreenRenderer->BeginScene(scene, m_Camera);
+
+			m_OffScreenRenderer->BeginScene(scene, m_Camera);
 		}
 
 		void DeferredRenderer::Submit(const RenderCommand& command)

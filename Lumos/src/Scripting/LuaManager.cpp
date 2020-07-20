@@ -3,15 +3,15 @@
 #include "Maths/Transform.h"
 #include "Core/OS/Window.h"
 #include "Core/VFS.h"
-#include "App/Scene.h"
-#include "App/Application.h"
-#include "App/Engine.h"
+#include "Scene/Scene.h"
+#include "Core/Application.h"
+#include "Core/Engine.h"
 #include "Core/OS/Input.h"
 #include "ScriptComponent.h"
-#include "App/SceneGraph.h"
+#include "Scene/SceneGraph.h"
 #include "Graphics/Camera/ThirdPersonCamera.h"
 
-#include "ECS/Component/Components.h"
+#include "Scene/Component/Components.h"
 #include "Graphics/Camera/Camera.h"
 #include "Graphics/Camera/Camera2D.h"
 
@@ -248,16 +248,16 @@ namespace Lumos
 				//{ "UNKOWN", Lumos::InputCode::Key::Unknown },
 				{"Space", Lumos::InputCode::Key::Space},
 				{"Escape", Lumos::InputCode::Key::Escape},
-				//{ "APOSTROPHE", Lumos::InputCode::Key::APOSTROPHE },
+				{ "APOSTROPHE", Lumos::InputCode::Key::Apostrophe },
 				{"Comma", Lumos::InputCode::Key::Comma},
-				//{ "MINUS", Lumos::InputCode::Key::Minus },
-				//{ "PERIOD", Lumos::InputCode::Key::Period },
-				//{ "SLASH", Lumos::InputCode::Key::Slash },
-				//{ "SEMICOLON", Lumos::InputCode::Key::SemiColon },
-				//{ "EQUAL", Lumos::InputCode::Key::Equal },
-				//{ "LEFT_BRACKET", Lumos::InputCode::Key::LeftBracket },
-				//{ "BACKSLASH", Lumos::InputCode::Key::BackSlash },
-				//{ "RIGHT_BRACKET", Lumos::InputCode::Key::RightBracket },
+				{ "MINUS", Lumos::InputCode::Key::Minus },
+				{ "PERIOD", Lumos::InputCode::Key::Period },
+				{ "SLASH", Lumos::InputCode::Key::Slash },
+				{ "SEMICOLON", Lumos::InputCode::Key::Semicolon },
+				{ "EQUAL", Lumos::InputCode::Key::Equal },
+				{ "LEFT_BRACKET", Lumos::InputCode::Key::LeftBracket },
+				{ "BACKSLASH", Lumos::InputCode::Key::Backslash },
+				{ "RIGHT_BRACKET", Lumos::InputCode::Key::RightBracket },
 				//{ "BACK_TICK", Lumos::InputCode::Key::BackTick },
 				{"Enter", Lumos::InputCode::Key::Enter},
 				{"Tab", Lumos::InputCode::Key::Tab},
@@ -272,19 +272,19 @@ namespace Lumos
 				{"PageDown", Lumos::InputCode::Key::PageDown},
 				{"Home", Lumos::InputCode::Key::Home},
 				{"End", Lumos::InputCode::Key::End},
-				//{ "CAPS_LOCK", Lumos::InputCode::Key::CapsLock },
-				//{ "SCROLL_LOCK", Lumos::InputCode::Key::ScrollLock },
+				{ "CAPS_LOCK", Lumos::InputCode::Key::CapsLock },
+				{ "SCROLL_LOCK", Lumos::InputCode::Key::ScrollLock },
 				{"NumLock", Lumos::InputCode::Key::NumLock},
-				{"PrintScreen", Lumos::InputCode::Key::Print},
+				{"PrintScreen", Lumos::InputCode::Key::PrintScreen},
 				{"Pasue", Lumos::InputCode::Key::Pause},
 				{"LeftShift", Lumos::InputCode::Key::LeftShift},
 				{"LeftControl", Lumos::InputCode::Key::LeftControl},
-				//{ "LEFT_ALT", Lumos::InputCode::Key::LeftAlt },
-				//{ "LEFT_SUPER", Lumos::InputCode::Key::LeftSuper },
+				{ "LEFT_ALT", Lumos::InputCode::Key::LeftAlt },
+				{ "LEFT_SUPER", Lumos::InputCode::Key::LeftSuper },
 				{"RightShift", Lumos::InputCode::Key::RightShift},
 				{"RightControl", Lumos::InputCode::Key::RightControl},
-				//{ "RIGHT_ALT", Lumos::InputCode::Key::RightAlt },
-				//{ "RIGHT_SUPER", Lumos::InputCode::Key::RightSuper },
+				{ "RIGHT_ALT", Lumos::InputCode::Key::RightAlt },
+				{ "RIGHT_SUPER", Lumos::InputCode::Key::RightSuper },
 				{"Menu", Lumos::InputCode::Key::Menu},
 				{"F1", Lumos::InputCode::Key::F1},
 				{"F2", Lumos::InputCode::Key::F2},
@@ -298,22 +298,22 @@ namespace Lumos
 				{"F10", Lumos::InputCode::Key::F10},
 				{"F11", Lumos::InputCode::Key::F11},
 				{"F12", Lumos::InputCode::Key::F12},
-				{"Keypad0", Lumos::InputCode::Key::Keypad0},
-				{"Keypad1", Lumos::InputCode::Key::Keypad1},
-				{"Keypad2", Lumos::InputCode::Key::Keypad2},
-				{"Keypad3", Lumos::InputCode::Key::Keypad3},
-				{"Keypad4", Lumos::InputCode::Key::Keypad4},
-				{"Keypad5", Lumos::InputCode::Key::Keypad5},
-				{"Keypad6", Lumos::InputCode::Key::Keypad6},
-				{"Keypad7", Lumos::InputCode::Key::Keypad7},
-				{"Keypad8", Lumos::InputCode::Key::Keypad8},
-				{"Keypad9", Lumos::InputCode::Key::Keypad9},
-				{"Decimal", Lumos::InputCode::Key::Decimal},
-				{"Divide", Lumos::InputCode::Key::Divide},
-				{"Multiply", Lumos::InputCode::Key::Multiply},
-				{"Subtract", Lumos::InputCode::Key::Subtract},
-				{"Add", Lumos::InputCode::Key::Add},
-				//{ "KP_EQUAL",    Lumos::InputCode::Key::Equal }
+				{"Keypad0", Lumos::InputCode::Key::D0},
+				{"Keypad1", Lumos::InputCode::Key::D1},
+				{"Keypad2", Lumos::InputCode::Key::D2},
+				{"Keypad3", Lumos::InputCode::Key::D3},
+				{"Keypad4", Lumos::InputCode::Key::D4},
+				{"Keypad5", Lumos::InputCode::Key::D5},
+				{"Keypad6", Lumos::InputCode::Key::D6},
+				{"Keypad7", Lumos::InputCode::Key::D7},
+				{"Keypad8", Lumos::InputCode::Key::D8},
+				{"Keypad9", Lumos::InputCode::Key::D9},
+                {"Decimal", Lumos::InputCode::Key::Period},
+                {"Divide", Lumos::InputCode::Key::Slash},
+                {"Multiply", Lumos::InputCode::Key::KPMultiply},
+                {"Subtract", Lumos::InputCode::Key::Minus},
+				{"Add", Lumos::InputCode::Key::KPAdd},
+				{ "KP_EQUAL",    Lumos::InputCode::Key::KPEqual }
 			};
 		state.new_enum<Lumos::InputCode::Key, false>("Key", keyItems); // false makes it read/write in Lua, but its faster
 

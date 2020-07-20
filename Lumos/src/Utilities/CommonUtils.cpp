@@ -7,13 +7,13 @@
 #include "Physics/LumosPhysicsEngine/LumosPhysicsEngine.h"
 #include "Graphics/ModelLoader/ModelLoader.h"
 #include "Utilities/RandomNumberGenerator.h"
-#include "App/Scene.h"
-#include "App/Application.h"
+#include "Scene/Scene.h"
+#include "Core/Application.h"
 #include "Graphics/Camera/Camera.h"
 #include "Graphics/Material.h"
 #include "Graphics/Mesh.h"
 #include "Graphics/Light.h"
-#include "ECS/Component/Components.h"
+#include "Scene/Component/Components.h"
 #include "Maths/Transform.h"
 
 namespace Lumos

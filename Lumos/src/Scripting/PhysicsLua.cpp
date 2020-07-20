@@ -1,8 +1,8 @@
 #include "lmpch.h"
 #include "PhysicsLua.h"
-#include "ECS/Component/Physics2DComponent.h"
-#include "ECS/Component/Physics3DComponent.h"
-#include "App/Application.h"
+#include "Scene/Component/Physics2DComponent.h"
+#include "Scene/Component/Physics3DComponent.h"
+#include "Core/Application.h"
 #include "Physics/B2PhysicsEngine/B2PhysicsEngine.h"
 
 #include <Box2D/Box2D.h>

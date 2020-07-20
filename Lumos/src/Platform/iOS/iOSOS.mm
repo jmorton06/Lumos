@@ -4,7 +4,7 @@
 #include "Core/VFS.h"
 #include "Core/OS/Input.h"
 #include "Core/CoreSystem.h"
-#include "App/Application.h"
+#include "Core/Application.h"
 
 #ifdef LUMOS_RENDER_API_VULKAN
 #import <QuartzCore/CAMetalLayer.h>

@@ -1,7 +1,7 @@
 #include "lmpch.h"
 #include "Layer3D.h"
 #include "Graphics/Renderers/Renderer3D.h"
-#include "App/Scene.h"
+#include "Scene/Scene.h"
 
 namespace Lumos
 {

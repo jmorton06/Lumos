@@ -6,78 +6,75 @@ namespace Lumos
 {
     namespace iOSKeyCodes
     {
-        inline u32 iOSKeyToLumos(char key)
-        {
-            static std::map<char, u32> keyMap =
-            {
-            { 'a', LUMOS_KEY_A},
-            { 'b', LUMOS_KEY_B},
-            { 'c', LUMOS_KEY_C},
-            { 'd', LUMOS_KEY_D},
-            { 'e', LUMOS_KEY_E},
-            { 'f', LUMOS_KEY_F},
-            { 'g', LUMOS_KEY_G},
-            { 'h', LUMOS_KEY_H},
-            { 'i', LUMOS_KEY_I},
-            { 'j', LUMOS_KEY_J},
-            { 'k', LUMOS_KEY_K},
-            { 'l', LUMOS_KEY_L},
-            { 'm', LUMOS_KEY_M},
-            { 'n', LUMOS_KEY_N},
-            { 'o', LUMOS_KEY_O},
-            { 'p', LUMOS_KEY_P},
-            { 'q', LUMOS_KEY_Q},
-            { 'r', LUMOS_KEY_R},
-            { 's', LUMOS_KEY_S},
-            { 't', LUMOS_KEY_T},
-            { 'u', LUMOS_KEY_U},
-            { 'v', LUMOS_KEY_V},
-            { 'w', LUMOS_KEY_W},
-            { 'x', LUMOS_KEY_X},
-            { 'y', LUMOS_KEY_Y},
-            { 'z', LUMOS_KEY_Z},
+		inline Lumos::InputCode::Key iOSKeyToLumos(char key)
+		{
+			static std::map<char, Lumos::InputCode::Key> keyMap =
+				{
+					{'a', Lumos::InputCode::Key::A},
+					{'b', Lumos::InputCode::Key::B},
+					{'c', Lumos::InputCode::Key::C},
+					{'d', Lumos::InputCode::Key::D},
+					{'e', Lumos::InputCode::Key::E},
+					{'f', Lumos::InputCode::Key::F},
+					{'g', Lumos::InputCode::Key::G},
+					{'h', Lumos::InputCode::Key::H},
+					{'i', Lumos::InputCode::Key::I},
+					{'j', Lumos::InputCode::Key::J},
+					{'k', Lumos::InputCode::Key::K},
+					{'l', Lumos::InputCode::Key::L},
+					{'m', Lumos::InputCode::Key::M},
+					{'n', Lumos::InputCode::Key::N},
+					{'o', Lumos::InputCode::Key::O},
+					{'p', Lumos::InputCode::Key::P},
+					{'q', Lumos::InputCode::Key::Q},
+					{'r', Lumos::InputCode::Key::R},
+					{'s', Lumos::InputCode::Key::S},
+					{'t', Lumos::InputCode::Key::T},
+					{'u', Lumos::InputCode::Key::U},
+					{'v', Lumos::InputCode::Key::V},
+					{'w', Lumos::InputCode::Key::W},
+					{'x', Lumos::InputCode::Key::X},
+					{'y', Lumos::InputCode::Key::Y},
+					{'z', Lumos::InputCode::Key::Z},
 
-            { '0', LUMOS_KEY_0},
-            { '1', LUMOS_KEY_1},
-            { '2', LUMOS_KEY_2},
-            { '3', LUMOS_KEY_3},
-            { '4', LUMOS_KEY_4},
-            { '5', LUMOS_KEY_5},
-            { '6', LUMOS_KEY_6},
-            { '7', LUMOS_KEY_7},
-            { '8', LUMOS_KEY_8},
-            { '9', LUMOS_KEY_9},
+					{'0', Lumos::InputCode::Key::D0},
+					{'1', Lumos::InputCode::Key::D1},
+					{'2', Lumos::InputCode::Key::D2},
+					{'3', Lumos::InputCode::Key::D3},
+					{'4', Lumos::InputCode::Key::D4},
+					{'5', Lumos::InputCode::Key::D5},
+					{'6', Lumos::InputCode::Key::D6},
+					{'7', Lumos::InputCode::Key::D7},
+					{'8', Lumos::InputCode::Key::D8},
+					{'9', Lumos::InputCode::Key::D9},
 
-            { '-', LUMOS_KEY_SUBTRACT      },
-            { 0x75, LUMOS_KEY_DELETE       },
-            { ' ', LUMOS_KEY_SPACE         },
-            { 0x7B, LUMOS_KEY_LEFT         },
-            { 0x7C, LUMOS_KEY_RIGHT        },
-            { 0x7E, LUMOS_KEY_UP           },
-            { 0x7D, LUMOS_KEY_DOWN         },
-            { 0x38, LUMOS_KEY_LEFT_SHIFT   },
-            { 0x35, LUMOS_KEY_ESCAPE       },
-            { '+', LUMOS_KEY_ADD           },
-            { 0x33, LUMOS_KEY_BACKSPACE    },
-            { 0x24, LUMOS_KEY_ENTER        },
-            { ',', LUMOS_KEY_COMMA         }
-            };
-            
-            return keyMap[key];
+					{'-', Lumos::InputCode::Key::Minus},
+					{0x75, Lumos::InputCode::Key::Delete},
+					{' ', Lumos::InputCode::Key::Space},
+					{0x7B, Lumos::InputCode::Key::Left},
+					{0x7C, Lumos::InputCode::Key::Right},
+					{0x7E, Lumos::InputCode::Key::Up},
+					{0x7D, Lumos::InputCode::Key::Down},
+					{0x38, Lumos::InputCode::Key::LeftShift},
+					{0x35, Lumos::InputCode::Key::Escape},
+					{'+', Lumos::InputCode::Key::Equal},
+					{0x33, Lumos::InputCode::Key::Backspace},
+					{0x24, Lumos::InputCode::Key::Enter},
+					{',', Lumos::InputCode::Key::Comma}};
+
+			return keyMap[key];
         }
 
-        inline u32 iOSTouchToLumosMouseKey(u32 count)
+		inline Lumos::InputCode::MouseKey iOSTouchToLumosMouseKey(u32 count)
 		{
             if(count > 3)
-                return 0;
+				return Lumos::InputCode::MouseKey::ButtonLeft;
 
-			static std::map<u32, u32> keyMap =
-			{
-			{0, LUMOS_MOUSE_LEFT},
-			{1, LUMOS_MOUSE_RIGHT},
-			{2, LUMOS_MOUSE_MIDDLE}
-			};
-
+			static std::map<u32, Lumos::InputCode::MouseKey> keyMap =
+				{
+					{0, Lumos::InputCode::MouseKey::ButtonLeft},
+					{1, Lumos::InputCode::MouseKey::ButtonRight},
+					{2, Lumos::InputCode::MouseKey::ButtonMiddle}};
 			return keyMap[count];
 		}
     }

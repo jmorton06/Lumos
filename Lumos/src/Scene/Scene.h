@@ -20,6 +20,7 @@ namespace Lumos
 	class Camera;
 	class LayerStack;
 	class EntityManager;
+	class Entity;
 
 	namespace Graphics
 	{
@@ -110,6 +111,8 @@ namespace Lumos
 		void PushLayer(Layer* layer, bool overlay = false);
     
         void UpdateSceneGraph();
+
+		void DuplicateEntity(Entity entity);
 
 		void Serialise(const std::string& filePath, bool binary = false);
 		void Deserialise(const std::string& filePath, bool binary = false);

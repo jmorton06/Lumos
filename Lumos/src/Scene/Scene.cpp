@@ -1,12 +1,13 @@
 #include "lmpch.h"
 #include "Scene.h"
 #include "Core/OS/Input.h"
-#include "Application.h"
+#include "Core/Application.h"
 #include "Scripting/LuaManager.h"
 #include "Graphics/API/GraphicsContext.h"
 #include "Graphics/Layers/LayerStack.h"
 #include "Graphics/RenderManager.h"
 #include "Graphics/Camera/Camera.h"
+#include "Graphics/Sprite.h"
 #include "Utilities/TimeStep.h"
 #include "Audio/AudioManager.h"
 #include "Physics/LumosPhysicsEngine/SortAndSweepBroadphase.h"
@@ -20,12 +21,12 @@
 #include "Graphics/Layers/LayerStack.h"
 #include "Maths/Transform.h"
 #include "Core/OS/FileSystem.h"
-#include "ECS/Component/Components.h"
+#include "Scene/Component/Components.h"
 #include "Scripting/ScriptComponent.h"
 #include "Graphics/MeshFactory.h"
 #include "Graphics/Light.h"
 #include "Graphics/Environment.h"
-#include "ECS/EntityManager.h"
+#include "Scene/EntityManager.h"
 
 #include <cereal/types/polymorphic.hpp>
 #include <cereal/archives/binary.hpp>
@@ -76,9 +77,9 @@ namespace Lumos
 
 	void Scene::OnInit()
 	{
-        //m_EntityManager->AddDependency<Physics3DComponent, Maths::Transform>();
-        //m_EntityManager->AddDependency<Physics2DComponent, Maths::Transform>();
-        //m_EntityManager->AddDependency<MeshComponent, Maths::Transform>();
+		//m_EntityManager->AddDependency<Physics3DComponent, Maths::Transform>();
+		//m_EntityManager->AddDependency<Physics2DComponent, Maths::Transform>();
+		//m_EntityManager->AddDependency<MeshComponent, Maths::Transform>();
 
 		LuaManager::Get().GetState().set("registry", &m_EntityManager->GetRegistry());
 		LuaManager::Get().GetState().set("scene", this);
@@ -188,7 +189,7 @@ namespace Lumos
 
 	void Scene::DeleteAllGameObjects()
 	{
-        m_EntityManager->Clear();
+		m_EntityManager->Clear();
 	}
 
 	void Scene::OnUpdate(const TimeStep& timeStep)
@@ -298,7 +299,7 @@ namespace Lumos
 		layer->OnAttach();
 	}
 
-#define ALL_COMPONENTS Maths::Transform, NameComponent, ActiveComponent, Hierarchy, Camera, ScriptComponent, MaterialComponent, MeshComponent, Graphics::Light, Physics3DComponent, Graphics::Environment, Physics2DComponent
+#define ALL_COMPONENTS Maths::Transform, NameComponent, ActiveComponent, Hierarchy, Camera, ScriptComponent, MaterialComponent, MeshComponent, Graphics::Light, Physics3DComponent, Graphics::Environment, Graphics::Sprite, Physics2DComponent
 	void Scene::Serialise(const std::string& filePath, bool binary)
 	{
 		std::string path = filePath;
@@ -371,10 +372,37 @@ namespace Lumos
 			entt::snapshot_loader{m_EntityManager->GetRegistry()}.entities(input).component<ALL_COMPONENTS>(input); //continuous_loader
 			input(*this);
 		}
-    }
-    
-    void Scene::UpdateSceneGraph()
-    {
-        m_SceneGraph.Update(m_EntityManager->GetRegistry());
-    }
+	}
+
+	void Scene::UpdateSceneGraph()
+	{
+		m_SceneGraph.Update(m_EntityManager->GetRegistry());
+	}
+
+	template<typename T>
+	static void CopyComponentIfExists(entt::entity dst, entt::entity src, entt::registry& registry)
+	{
+		if(registry.has<T>(src))
+		{
+			auto& srcComponent = registry.get<T>(src);
+			registry.emplace_or_replace<T>(dst, srcComponent);
+		}
+	}
+
+	void Scene::DuplicateEntity(Entity entity)
+	{
+		Entity newEntity = m_EntityManager->Create();
+
+		CopyComponentIfExists<Maths::Transform>(newEntity.GetHandle(), entity.GetHandle(), m_EntityManager->GetRegistry());
+		CopyComponentIfExists<MeshComponent>(newEntity.GetHandle(), entity.GetHandle(), m_EntityManager->GetRegistry());
+		CopyComponentIfExists<ScriptComponent>(newEntity.GetHandle(), entity.GetHandle(), m_EntityManager->GetRegistry());
+		CopyComponentIfExists<Camera>(newEntity.GetHandle(), entity.GetHandle(), m_EntityManager->GetRegistry());
+		CopyComponentIfExists<Graphics::Sprite>(newEntity.GetHandle(), entity.GetHandle(), m_EntityManager->GetRegistry());
+		CopyComponentIfExists<RigidBody2D>(newEntity.GetHandle(), entity.GetHandle(), m_EntityManager->GetRegistry());
+		CopyComponentIfExists<RigidBody3D>(newEntity.GetHandle(), entity.GetHandle(), m_EntityManager->GetRegistry());
+		CopyComponentIfExists<Graphics::Light>(newEntity.GetHandle(), entity.GetHandle(), m_EntityManager->GetRegistry());
+		CopyComponentIfExists<Material>(newEntity.GetHandle(), entity.GetHandle(), m_EntityManager->GetRegistry());
+		CopyComponentIfExists<SoundComponent>(newEntity.GetHandle(), entity.GetHandle(), m_EntityManager->GetRegistry());
+		CopyComponentIfExists<Graphics::Environment>(newEntity.GetHandle(), entity.GetHandle(), m_EntityManager->GetRegistry());
+	}
 }

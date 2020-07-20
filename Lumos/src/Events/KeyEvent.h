@@ -1,6 +1,7 @@
 #pragma once
 
 #include "Event.h"
+#include "Core/OS/KeyCodes.h"
 
 namespace Lumos
 {
@@ -8,29 +9,34 @@ namespace Lumos
 	class LUMOS_EXPORT KeyEvent : public Event
 	{
 	public:
-		_FORCE_INLINE_ int GetKeyCode() const { return m_KeyCode; }
+		_FORCE_INLINE_ Lumos::InputCode::Key GetKeyCode() const { return m_KeyCode; }
 
 		EVENT_CLASS_CATEGORY(EventCategoryKeyboard | EventCategoryInput)
 
 	protected:
-		KeyEvent(int keycode)
-			: m_KeyCode(keycode) {}
+		KeyEvent(Lumos::InputCode::Key keycode)
+			: m_KeyCode(keycode)
+		{
+		}
 
-		int m_KeyCode;
+		Lumos::InputCode::Key m_KeyCode;
 	};
 
 	class LUMOS_EXPORT KeyPressedEvent : public KeyEvent
 	{
 	public:
-		KeyPressedEvent(int keycode, int repeatCount)
-			: KeyEvent(keycode), m_RepeatCount(repeatCount) {}
+		KeyPressedEvent(Lumos::InputCode::Key keycode, int repeatCount)
+			: KeyEvent(keycode)
+			, m_RepeatCount(repeatCount)
+		{
+		}
 
 		_FORCE_INLINE_ int GetRepeatCount() const { return m_RepeatCount; }
 
 		std::string ToString() const override
 		{
 			std::stringstream ss;
-			ss << "KeyPressedEvent: " << m_KeyCode << " (" << m_RepeatCount << " repeats)";
+			ss << "KeyPressedEvent: " << u32(m_KeyCode) << " (" << m_RepeatCount << " repeats)";
 			return ss.str();
 		}
 
@@ -42,13 +48,15 @@ namespace Lumos
 	class LUMOS_EXPORT KeyReleasedEvent : public KeyEvent
 	{
 	public:
-		KeyReleasedEvent(int keycode)
-			: KeyEvent(keycode) {}
+		KeyReleasedEvent(Lumos::InputCode::Key keycode)
+			: KeyEvent(keycode)
+		{
+		}
 
 		std::string ToString() const override
 		{
 			std::stringstream ss;
-			ss << "KeyReleasedEvent: " << m_KeyCode;
+			ss << "KeyReleasedEvent: " << u32(m_KeyCode);
 			return ss.str();
 		}
 
@@ -58,17 +66,21 @@ namespace Lumos
 	class LUMOS_EXPORT KeyTypedEvent : public KeyEvent
  	{
  	public:
- 		KeyTypedEvent(int keycode)
- 			:KeyEvent(keycode){}
+		KeyTypedEvent(Lumos::InputCode::Key keycode, char character)
+			: KeyEvent(keycode), Character(character)
+		{
+		}
 
-  		std::string ToString() const override
+		std::string ToString() const override
  		{
  			std::stringstream ss;
- 			ss << "KeyPressedEvent: " << m_KeyCode;
+ 			ss << "KeyPressedEvent: " << u32(m_KeyCode);
  			return ss.str();
  		}
 
   		EVENT_CLASS_TYPE(KeyTyped)
+    
+        char Character;
 
   	private:
  	};

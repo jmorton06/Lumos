@@ -42,7 +42,6 @@ void Scene3D::OnInit()
 
 	auto cameraEntity = GetRegistry().create();
 	Camera& camera = GetRegistry().emplace<Camera>(cameraEntity, -20.0f, -40.0f, Maths::Vector3(-31.0f, 12.0f, 51.0f), 60.0f, 0.1f, 1000.0f, (float)m_ScreenWidth / (float)m_ScreenHeight);
-	camera.SetCameraController(CreateRef<EditorCameraController>());
 	GetRegistry().emplace<NameComponent>(cameraEntity, "Camera");
 
 #ifndef LUMOS_PLATFORM_IOS

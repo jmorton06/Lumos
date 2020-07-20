@@ -3,7 +3,7 @@
 #include "Platform/GLFW/GLFWWindow.h"
 #include "Core/CoreSystem.h"
 #include "Core/OS/MemoryManager.h"
-#include "App/Application.h"
+#include "Core/Application.h"
 
 extern Lumos::Application* Lumos::CreateApplication();
 

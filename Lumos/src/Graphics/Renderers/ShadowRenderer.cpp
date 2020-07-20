@@ -15,10 +15,10 @@
 #include "Graphics/Camera/Camera.h"
 #include "Graphics/Light.h"
 
-#include "ECS/Component/MeshComponent.h"
+#include "Scene/Component/MeshComponent.h"
 #include "Maths/Transform.h"
 
-#include "App/Scene.h"
+#include "Scene/Scene.h"
 #include "Maths/Maths.h"
 #include "RenderCommand.h"
 #include "Core/Profiler.h"

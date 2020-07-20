@@ -55,8 +55,10 @@ namespace Lumos
 		{
 			RigidBodyParamaters params;
 			float angle;
-			archive(cereal::make_nvp("Position", params.position), cereal::make_nvp("Friction", m_Friction), cereal::make_nvp("Angle", angle), cereal::make_nvp("Static", m_Static), cereal::make_nvp("Mass", m_Mass), cereal::make_nvp("Scale", params.scale), cereal::make_nvp("Shape", m_ShapeType));
+            Maths::Vector2 pos;
+			archive(cereal::make_nvp("Position", pos), cereal::make_nvp("Friction", m_Friction), cereal::make_nvp("Angle", angle), cereal::make_nvp("Static", m_Static), cereal::make_nvp("Mass", m_Mass), cereal::make_nvp("Scale", params.scale), cereal::make_nvp("Shape", m_ShapeType));
 			params.shape = m_ShapeType;
+            params.position = Maths::Vector3(pos, 1.0f);
 			Init(params);
 			SetOrientation(angle);
 		}
