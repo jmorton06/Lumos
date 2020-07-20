@@ -4,7 +4,7 @@
 #include "WindowsWindow.h"
 #include "Core/CoreSystem.h"
 #include "Core/OS/MemoryManager.h"
-#include "App/Application.h"
+#include "Core/Application.h"
 
 #ifdef LUMOS_USE_GLFW_WINDOWS
 #	include "Platform/GLFW/GLFWWindow.h"

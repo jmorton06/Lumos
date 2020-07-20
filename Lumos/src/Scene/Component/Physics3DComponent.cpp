@@ -1,6 +1,6 @@
 #include "lmpch.h"
 #include "Physics3DComponent.h"
-#include "App/Application.h"
+#include "Core/Application.h"
 #include "Physics/LumosPhysicsEngine/LumosPhysicsEngine.h"
 
 #include <imgui/imgui.h>

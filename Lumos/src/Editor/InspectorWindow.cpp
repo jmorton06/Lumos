@@ -1,9 +1,9 @@
 #include "lmpch.h"
 #include "InspectorWindow.h"
 #include "Editor.h"
-#include "App/Application.h"
-#include "App/SceneManager.h"
-#include "ECS/Component/Components.h"
+#include "Core/Application.h"
+#include "Scene/SceneManager.h"
+#include "Scene/Component/Components.h"
 #include "Graphics/Camera/Camera.h"
 #include "Graphics/Sprite.h"
 #include "Graphics/Light.h"
@@ -20,7 +20,7 @@
 #include "Physics/LumosPhysicsEngine/CapsuleCollisionShape.h"
 
 #include <imgui/imgui.h>
-#include <IconFontCppHeaders/IconsFontAwesome5.h>
+#include <IconFontCppHeaders/IconsMaterialDesignIcons.h>
 #include <sol/sol.hpp>
 
 namespace MM
@@ -365,45 +365,46 @@ namespace MM
 		ImGui::PopItemWidth();
 		ImGui::NextColumn();
 
+		ImGui::Columns(1);
+		ImGui::Separator();
+		ImGui::PopStyleVar();
+
+		ImGui::Separator();
+		ImGui::TextUnformatted("Collision Shape");
+
+		ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(2, 2));
+		ImGui::Columns(2);
+		ImGui::Separator();
+
+		ImGui::AlignTextToFramePadding();
+		ImGui::TextUnformatted("Shape Type");
+		ImGui::NextColumn();
+		ImGui::PushItemWidth(-1);
+
+		const char* shapes[] = {"Sphere", "Cuboid", "Pyramid", "Capsule"};
+		std::string shape_current = collisionShape ? CollisionShapeTypeToString(collisionShape->GetType()) : "";
+		if(ImGui::BeginCombo("", shape_current.c_str(), 0)) // The second parameter is the label previewed before opening the combo.
+		{
+			for(int n = 0; n < 4; n++)
+			{
+				bool is_selected = (shape_current.c_str() == shapes[n]);
+				if(ImGui::Selectable(shapes[n], shape_current.c_str()))
+				{
+					phys.GetRigidBody()->SetCollisionShape(StringToCollisionShapeType(shapes[n]));
+				}
+				if(is_selected)
+					ImGui::SetItemDefaultFocus();
+			}
+			ImGui::EndCombo();
+		}
+
+		ImGui::PopItemWidth();
+		ImGui::NextColumn();
+
+		bool updatedCollisionShape = false;
+
 		if(collisionShape)
 		{
-			ImGui::Columns(1);
-			ImGui::Separator();
-			ImGui::PopStyleVar();
-
-			ImGui::Separator();
-			ImGui::TextUnformatted("Collision Shape");
-
-			ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(2, 2));
-			ImGui::Columns(2);
-			ImGui::Separator();
-
-			ImGui::AlignTextToFramePadding();
-			ImGui::TextUnformatted("Shape Type");
-			ImGui::NextColumn();
-			ImGui::PushItemWidth(-1);
-
-			const char* shapes[] = {"Sphere", "Cuboid", "Pyramid", "Capsule"};
-			std::string shape_current = CollisionShapeTypeToString(collisionShape->GetType());
-			if(ImGui::BeginCombo("", shape_current.c_str(), 0)) // The second parameter is the label previewed before opening the combo.
-			{
-				for(int n = 0; n < 4; n++)
-				{
-					bool is_selected = (shape_current.c_str() == shapes[n]);
-					if(ImGui::Selectable(shapes[n], shape_current.c_str()))
-					{
-						phys.GetRigidBody()->SetCollisionShape(StringToCollisionShapeType(shapes[n]));
-					}
-					if(is_selected)
-						ImGui::SetItemDefaultFocus();
-				}
-				ImGui::EndCombo();
-			}
-
-			ImGui::PopItemWidth();
-			ImGui::NextColumn();
-
-			bool updatedCollisionShape = false;
 			switch(collisionShape->GetType())
 			{
 			case Lumos::CollisionShapeType::CollisionCuboid:
@@ -422,10 +423,10 @@ namespace MM
 				Lumos::Debug::Log::Error("Unsupported Collision shape");
 				break;
 			}
-			ImGui::PopItemWidth();
-			ImGui::NextColumn();
 		}
 
+		ImGui::PopItemWidth();
+		ImGui::NextColumn();
 		ImGui::Columns(1);
 		ImGui::Separator();
 		ImGui::PopStyleVar();
@@ -1072,7 +1073,7 @@ namespace Lumos
 {
 	InspectorWindow::InspectorWindow()
 	{
-		m_Name = ICON_FA_INFO_CIRCLE " Inspector###inspector";
+		m_Name = ICON_MDI_INFORMATION " Inspector###inspector";
 		m_SimpleName = "Inspector";
 	}
 
@@ -1134,7 +1135,7 @@ namespace Lumos
 					activeComponent->active = active;
 			}
 			ImGui::SameLine();
-			ImGui::TextUnformatted(ICON_FA_CUBE);
+			ImGui::TextUnformatted(ICON_MDI_CUBE);
 			ImGui::SameLine();
 
 			bool hasName = registry.has<NameComponent>(selected);

@@ -6,7 +6,7 @@
 
 #include <entt/entt.hpp>
 #include <imgui.h>
-#include <IconFontCppHeaders/IconsFontAwesome5.h>
+#include <IconFontCppHeaders/IconsMaterialDesignIcons.h>
 
 namespace MM {
 
@@ -99,7 +99,7 @@ class ImGuiEntityEditor {
 
                         ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.7f, 0.7f, 0.7f, 0.0f));
 
-                        if (ImGui::Button((ICON_FA_COG"##" + label).c_str()))
+                        if (ImGui::Button((ICON_MDI_SETTINGS"##" + label).c_str()))
                             ImGui::OpenPopup(("Remove Component" + label).c_str());
                         ImGui::PopStyleColor();
                     

@@ -1,6 +1,6 @@
 #include "lmpch.h"
 #include "ConsoleWindow.h"
-#include <IconFontCppHeaders/IconsFontAwesome5.h>
+#include <IconFontCppHeaders/IconsMaterialDesignIcons.h>
 namespace Lumos
 {
 	ConsoleWindow::Message::Level ConsoleWindow::s_MessageBufferRenderFilter = ConsoleWindow::Message::Level::Trace;
@@ -13,7 +13,7 @@ namespace Lumos
 
 	ConsoleWindow::ConsoleWindow()
 	{
-		m_Name = ICON_FA_LIST " Console###console";
+		m_Name = ICON_MDI_VIEW_LIST " Console###console";
 		m_SimpleName = "Console";
 	}
 
@@ -94,6 +94,8 @@ namespace Lumos
 		}
 
 		ImGui::SameLine();
+        ImGui::TextUnformatted(ICON_MDI_MAGNIFY);
+        ImGui::SameLine();
 		Filter.Draw("###ConsoleFilter", -100.0f);
 	}
 

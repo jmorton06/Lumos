@@ -59,6 +59,9 @@ namespace Lumos
 
 			m_Environmnet = Graphics::TextureCube::CreateFromVCross(envFiles, m_NumMips);
 			m_IrradianceMap = Graphics::TextureCube::CreateFromVCross(irrFiles, m_NumMips);
+
+			delete[] envFiles;
+			delete[] irrFiles;
 		}
 
 		Environment::~Environment()

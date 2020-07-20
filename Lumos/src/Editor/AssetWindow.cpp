@@ -9,7 +9,7 @@
 #	include <experimental/filesystem>
 #endif
 
-#include <IconFontCppHeaders/IconsFontAwesome5.h>
+#include <IconFontCppHeaders/IconsMaterialDesignIcons.h>
 #include <imgui/imgui.h>
 
 namespace Lumos
@@ -43,8 +43,7 @@ namespace Lumos
 	{
 		ImGui::Begin(m_SimpleName.c_str());
 		{
-			ImGui::Columns(2, "AB", true);
-			ImGui::SetColumnOffset(1, 240);
+			ImGui::Columns(2, "AB", true);            
 
 			ImGui::BeginChild("##folders_common");
 			{
@@ -115,10 +114,6 @@ namespace Lumos
 			ImGui::BeginChild("##directory_structure", ImVec2(ImGui::GetColumnWidth() - 12, 250));
 			{
 				RenderBreadCrumbs();
-				ImGui::SameLine();
-				ImGui::Dummy(ImVec2(ImGui::GetColumnWidth() - 350, 0));
-				ImGui::SameLine();
-				RenderSearch();
 				ImGui::EndChild();
 
 				ImGui::BeginChild("Scrolling");
@@ -201,7 +196,7 @@ namespace Lumos
 		{
 			if(m_isInListView)
 			{
-				if(ImGui::Button(ICON_FA_TH_LARGE))
+				if(ImGui::Button(ICON_MDI_VIEW_GRID))
 				{
 					m_isInListView = !m_isInListView;
 				}
@@ -209,14 +204,14 @@ namespace Lumos
 			}
 			else
 			{
-				if(ImGui::Button(ICON_FA_LIST))
+				if(ImGui::Button(ICON_MDI_VIEW_LIST))
 				{
 					m_isInListView = !m_isInListView;
 				}
 				ImGui::SameLine();
 			}
 
-			if(ImGui::Button(ICON_FA_SEARCH))
+			if(ImGui::Button(ICON_MDI_MAGNIFY))
 			{
 				m_showSearchBar = !m_showSearchBar;
 
@@ -239,7 +234,7 @@ namespace Lumos
 				ImGui::SameLine();
 			}
 
-			if(ImGui::Button(ICON_FA_ARROW_LEFT))
+			if(ImGui::Button(ICON_MDI_ARROW_LEFT))
 			{
 				if(strlen(m_CurrentDirPath.c_str()) != m_basePathLen)
 				{
@@ -249,7 +244,7 @@ namespace Lumos
 				}
 			}
 			ImGui::SameLine();
-			if(ImGui::Button(ICON_FA_ARROW_RIGHT))
+			if(ImGui::Button(ICON_MDI_ARROW_RIGHT))
 			{
 				m_prevDirPath = GetParentPath(m_CurrentDirPath);
 				m_CurrentDirPath = m_lastNavPath;
@@ -263,7 +258,7 @@ namespace Lumos
 			{
 				if(data[i] != m_BaseDirPath)
 				{
-					ImGui::TextUnformatted(ICON_FA_ANGLE_RIGHT);
+					ImGui::TextUnformatted(ICON_MDI_CHEVRON_RIGHT);
 				}
 				ImGui::SameLine();
 				ImGui::TextUnformatted(data[i].c_str());
@@ -281,7 +276,6 @@ namespace Lumos
 	void AssetWindow::RenderFileListView(int dirIndex)
 	{
 		auto fileID = GetParsedAssetID(m_CurrentDir[dirIndex].fileType);
-		// auto iconRef = assetIconMaps[fileID]->GetRendererID();
 
 		ImGui::TextUnformatted(m_Editor->GetIconFontIcon(m_CurrentDir[dirIndex].absolutePath));
 		ImGui::SameLine();
@@ -295,7 +289,6 @@ namespace Lumos
 
 		if(ImGui::BeginDragDropSource(ImGuiDragDropFlags_SourceAllowNullID))
 		{
-			// ImGui::Image((void*)iconRef, ImVec2(20, 20));
 			ImGui::TextUnformatted(m_Editor->GetIconFontIcon(m_CurrentDir[dirIndex].absolutePath));
 
 			ImGui::SameLine();
@@ -335,7 +328,7 @@ namespace Lumos
 
 	void AssetWindow::RenderDircListView(int dirIndex)
 	{
-		ImGui::TextUnformatted(ICON_FA_FOLDER);
+		ImGui::TextUnformatted(ICON_MDI_FOLDER);
 		ImGui::SameLine();
 
 		if(ImGui::Selectable(m_CurrentDir[dirIndex].filename.c_str(), false, ImGuiSelectableFlags_AllowDoubleClick))
@@ -350,7 +343,7 @@ namespace Lumos
 
 		if(ImGui::BeginDragDropSource(ImGuiDragDropFlags_AcceptNoDrawDefaultRect))
 		{
-			ImGui::TextUnformatted(ICON_FA_FOLDER);
+			ImGui::TextUnformatted(ICON_MDI_FOLDER);
 			ImGui::SameLine();
 			ImGui::TextUnformatted(m_CurrentDir[dirIndex].filename.c_str());
 			size_t size = sizeof(const char*) + strlen(m_CurrentDir[dirIndex].absolutePath.c_str());
@@ -363,14 +356,14 @@ namespace Lumos
 	void AssetWindow::RenderDircGridView(int dirIndex)
 	{
 		//ImGui::BeginGroup();
-		//ImGui::TextUnformatted(ICON_FA_FOLDER);
+		//ImGui::TextUnformatted(ICON_MDI_FOLDER);
 
 		auto fname = m_CurrentDir[dirIndex].filename;
 		auto newFname = StripExtras(fname);
 		//	ImGui::TextWrapped("%s", newFname.c_str());
 		//	ImGui::EndGroup();
 
-		if(ImGui::Selectable((std::string(ICON_FA_FOLDER "/n/n") + newFname).c_str(), false, 0, ImVec2(70, 70)))
+		if(ImGui::Selectable((std::string(ICON_MDI_FOLDER "/n/n") + newFname).c_str(), false, 0, ImVec2(70, 70)))
 		{
 			if(ImGui::IsMouseDoubleClicked(0))
 			{
@@ -379,33 +372,6 @@ namespace Lumos
 				m_CurrentDir = ReadDirectory(m_CurrentDir[dirIndex].absolutePath);
 			}
 		}
-
-		/*if (ImGui::BeginDragDropSource(ImGuiDragDropFlags_AcceptNoDrawDefaultRect))
-	 {
-	 ImGui::Image((void*)m_folderTex->GetRendererID(), ImVec2(20, 20));
-	 ImGui::SameLine();
-	 ImGui::Text(m_CurrentDir[dirIndex].filename.c_str());
-	 int size = sizeof(const char*) + strlen(m_CurrentDir[dirIndex].absolutePath.c_str());
-	 ImGui::SetDragDropPayload("selectable", m_CurrentDir[dirIndex].absolutePath.c_str(), size);
-	 m_IsDragging = true;
-	 ImGui::EndDragDropSource();
-	 }*/
-	}
-
-	void AssetWindow::RenderSearch()
-	{
-		/*ImGui::BeginChild("##search_menu", ImVec2(320, 30));
-	 {
-	 char buff[100] = { 0 };
-	 ImGui::Image((void*)m_searchTex->GetRendererID(), ImVec2(22, 22));
-	 ImGui::SameLine();
-	 ImGui::InputTextWithHint(inputText, inputHint, buff, 100);
-	 ImGui::SameLine();
-	 ImGui::ImageButton((void*)m_favoritesTex->GetRendererID(), ImVec2(19, 19));
-	 ImGui::SameLine();
-	 ImGui::ImageButton((void*)m_TagsTex->GetRendererID(), ImVec2(19, 19));
-	 }
-	 ImGui::EndChild();*/
 	}
 
 	void AssetWindow::RenderBottom()
@@ -414,25 +380,6 @@ namespace Lumos
 		{
 			ImGui::EndChild();
 		}
-	}
-
-	void AssetWindow::ProcessAseets(const std::string& assetType)
-	{
-		std::vector<std::string> tokenizedAssetData;
-		const char del = *m_Delimiter.c_str();
-
-		auto filename = ParseFilename(assetType, del, tokenizedAssetData);
-		auto filetype = ParseFiletype(filename);
-
-		if(filetype == "blend")
-		{
-			LUMOS_CORE_WARN("Initiating Asset Conversion");
-			InitiateAssetConversion(assetType, "FBX");
-		}
-	}
-
-	void AssetWindow::InitiateAssetConversion(const std::string& assetPath, const std::string& conversionType)
-	{
 	}
 
 	std::vector<DirectoryInformation> AssetWindow::GetFsContents(const std::string& path)
@@ -506,12 +453,12 @@ namespace Lumos
 
 			if(isDir)
 			{
-				DirectoryInformation d(dir_data, ".hazel", entry.path().string(), false);
+				DirectoryInformation d(dir_data, ".Lumos", entry.path().string(), false);
 				dInfo.push_back(d);
 			}
 			else
 			{
-				DirectoryInformation d(dir_data, ".hazel", entry.path().string(), true);
+				DirectoryInformation d(dir_data, ".Lumos", entry.path().string(), true);
 				dInfo.push_back(d);
 			}
 		}

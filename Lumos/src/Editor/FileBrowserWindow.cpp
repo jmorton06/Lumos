@@ -5,7 +5,7 @@
 
 #include <imgui/imgui.h>
 #include <imgui/plugins/ImFileBrowser.h>
-#include <IconFontCppHeaders/IconsFontAwesome5.h>
+#include <IconFontCppHeaders/IconsMaterialDesignIcons.h>
 
 namespace Lumos
 {
@@ -17,7 +17,7 @@ namespace Lumos
 		m_FileBrowser = lmnew ImGui::FileBrowser(ImGuiFileBrowserFlags_CreateNewDir | ImGuiFileBrowserFlags_EnterNewFilename | ImGuiFileBrowserFlags_NoModal);
 		m_FileBrowser->SetTitle("Test File Browser");
 		//m_FileBrowser->SetFileFilters({ ".sh" , ".h" });
-		m_FileBrowser->SetLabels(ICON_FA_FOLDER, ICON_FA_FILE, ICON_FA_FOLDER_OPEN);
+		m_FileBrowser->SetLabels(ICON_MDI_FOLDER, ICON_MDI_FILE, ICON_MDI_FOLDER_OPEN);
 		m_FileBrowser->Refresh();
 	}
 

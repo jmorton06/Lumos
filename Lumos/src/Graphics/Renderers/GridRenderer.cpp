@@ -13,8 +13,8 @@
 #include "Graphics/Mesh.h"
 #include "Graphics/MeshFactory.h"
 #include "Graphics/RenderManager.h"
-#include "App/Scene.h"
-#include "App/Application.h"
+#include "Scene/Scene.h"
+#include "Core/Application.h"
 #include "Graphics/Camera/Camera.h"
 
 #include <imgui/imgui.h>
@@ -32,8 +32,8 @@ namespace Lumos
 			Renderer3D::SetScreenBufferSize(width, height);
 			GridRenderer::Init();
 
-			m_GridRes = 1.6f;
-			m_GridSize = 640.0f;
+			m_GridRes = 1.4f;
+			m_GridSize = 500.0f;
 		}
 
 		GridRenderer::~GridRenderer()

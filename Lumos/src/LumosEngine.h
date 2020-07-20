@@ -1,10 +1,10 @@
 #pragma once
 
 //App
-#include "App/Engine.h"
-#include "App/Application.h"
-#include "App/SceneManager.h"
-#include "App/Scene.h"
+#include "Core/Engine.h"
+#include "Core/Application.h"
+#include "Scene/SceneManager.h"
+#include "Scene/Scene.h"
 
 //Physics
 #include "Physics/LumosPhysicsEngine/LumosPhysicsEngine.h"
@@ -43,8 +43,8 @@
 #include "Utilities/AssetsManager.h"
 
 //Entity
-#include "ECS/Component/Components.h"
-#include "ECS/EntityManager.h"
+#include "Scene/Component/Components.h"
+#include "Scene/EntityManager.h"
 
 //Cameras
 #include "Graphics/Camera/ThirdPersonCamera.h"

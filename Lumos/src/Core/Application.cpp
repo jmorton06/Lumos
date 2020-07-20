@@ -1,8 +1,8 @@
 #include "lmpch.h"
 #include "Application.h"
 
-#include "Scene.h"
-#include "SceneManager.h"
+#include "Scene/Scene.h"
+#include "Scene/SceneManager.h"
 #include "Engine.h"
 #include "Editor/Editor.h"
 
@@ -14,7 +14,7 @@
 #include "Graphics/Material.h"
 #include "Graphics/Renderers/DebugRenderer.h"
 
-#include "ECS/Component/MeshComponent.h"
+#include "Scene/Component/MeshComponent.h"
 
 #include "Maths/Transform.h"
 
@@ -44,6 +44,8 @@ namespace Lumos
 		: m_UpdateTimer(0)
 		, m_Frames(0)
 		, m_Updates(0)
+        , m_SceneViewWidth(800)
+        , m_SceneViewHeight(600)
 		, m_InitialProperties(properties)
 	{
 		LUMOS_ASSERT(!s_Instance, "Application already exists!");
@@ -223,7 +225,7 @@ namespace Lumos
 			Input::GetInput()->ResetPressed();
 			m_Window->OnUpdate();
 
-			if(Input::GetInput()->GetKeyPressed(LUMOS_KEY_ESCAPE))
+			if(Input::GetInput()->GetKeyPressed(Lumos::InputCode::Key::Escape))
 				m_CurrentState = AppState::Closing;
 #ifdef LUMOS_LIMIT_FRAMERATE
 		}
@@ -260,8 +262,8 @@ namespace Lumos
 			m_LayerStack->OnRender(m_SceneManager->GetCurrentScene());
 			m_SceneManager->GetCurrentScene()->GetLayers()->OnRender(m_SceneManager->GetCurrentScene());
 #ifdef LUMOS_EDITOR
-            m_Editor->DebugDraw();
-            m_Editor->OnRender();
+			m_Editor->DebugDraw();
+			m_Editor->OnRender();
 #endif
 			DebugRenderer::Render(m_SceneManager->GetCurrentScene(), nullptr);
 			m_ImGuiLayer->OnRender(m_SceneManager->GetCurrentScene());

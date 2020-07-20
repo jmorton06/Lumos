@@ -11,17 +11,17 @@
 #include "AssetWindow.h"
 #include "EditorCamera.h"
 
-#include "App/Application.h"
+#include "Core/Application.h"
 #include "Core/OS/Input.h"
 #include "Core/OS/FileSystem.h"
 #include "Core/Profiler.h"
 #include "Core/Version.h"
-#include "App/Engine.h"
-#include "App/Scene.h"
-#include "App/SceneManager.h"
+#include "Core/Engine.h"
+#include "Scene/Scene.h"
+#include "Scene/SceneManager.h"
 #include "Events/ApplicationEvent.h"
 
-#include "ECS/Component/Components.h"
+#include "Scene/Component/Components.h"
 #include "Scripting/ScriptComponent.h"
 
 #include "Physics/LumosPhysicsEngine/LumosPhysicsEngine.h"
@@ -50,8 +50,7 @@
 #include <imgui/plugins/ImGuizmo.h>
 #include <imgui/plugins/ImGuiAl/button/imguial_button.h>
 #include <imgui/plugins/ImTextEditor.h>
-#include <IconFontCppHeaders/IconsFontAwesome5.h>
-#include <IconFontCppHeaders/IconsFontAwesome5Brands.h>
+#include <IconFontCppHeaders/IconsMaterialDesignIcons.h>
 
 #include <imgui/plugins/ImFileBrowser.h>
 
@@ -73,7 +72,7 @@ namespace Lumos
 	{
 		SaveEditorSettings();
 		// put back when stop overriding with a scene camera
-        delete m_EditorCamera;
+		delete m_EditorCamera;
 	}
 
 	void Editor::OnInit()
@@ -115,19 +114,19 @@ namespace Lumos
 			1000.0f,
 			(float)m_Application->GetWindowSize().x / (float)m_Application->GetWindowSize().y);
 		m_EditorCamera->SetCameraController(CreateRef<EditorCameraController>());
-        m_CurrentCamera = m_EditorCamera;
+		m_CurrentCamera = m_EditorCamera;
 
-		m_ComponentIconMap[typeid(Graphics::Light).hash_code()] = " " ICON_FA_LIGHTBULB " ";
-		m_ComponentIconMap[typeid(Camera).hash_code()] = ICON_FA_CAMERA;
-		m_ComponentIconMap[typeid(SoundComponent).hash_code()] = ICON_FA_VOLUME_UP;
-		m_ComponentIconMap[typeid(Graphics::Sprite).hash_code()] = ICON_FA_IMAGE;
-		m_ComponentIconMap[typeid(Maths::Transform).hash_code()] = ICON_FA_VECTOR_SQUARE;
-		m_ComponentIconMap[typeid(Physics2DComponent).hash_code()] = ICON_FA_SQUARE;
-		m_ComponentIconMap[typeid(Physics3DComponent).hash_code()] = ICON_FA_CUBE;
-		m_ComponentIconMap[typeid(MeshComponent).hash_code()] = ICON_FA_SHAPES;
-		m_ComponentIconMap[typeid(MaterialComponent).hash_code()] = ICON_FA_PAINT_BRUSH;
-		m_ComponentIconMap[typeid(ScriptComponent).hash_code()] = ICON_FA_SCROLL;
-		m_ComponentIconMap[typeid(Graphics::Environment).hash_code()] = ICON_FA_GLOBE;
+		m_ComponentIconMap[typeid(Graphics::Light).hash_code()] = " " ICON_MDI_LIGHTBULB " ";
+		m_ComponentIconMap[typeid(Camera).hash_code()] = ICON_MDI_CAMERA;
+		m_ComponentIconMap[typeid(SoundComponent).hash_code()] = ICON_MDI_VOLUME_HIGH;
+		m_ComponentIconMap[typeid(Graphics::Sprite).hash_code()] = ICON_MDI_IMAGE;
+		m_ComponentIconMap[typeid(Maths::Transform).hash_code()] = ICON_MDI_VECTOR_LINE;
+		m_ComponentIconMap[typeid(Physics2DComponent).hash_code()] = ICON_MDI_SQUARE_OUTLINE;
+		m_ComponentIconMap[typeid(Physics3DComponent).hash_code()] = ICON_MDI_CUBE_OUTLINE;
+		m_ComponentIconMap[typeid(MeshComponent).hash_code()] = ICON_MDI_SHAPE;
+		m_ComponentIconMap[typeid(MaterialComponent).hash_code()] = ICON_MDI_BRUSH;
+		m_ComponentIconMap[typeid(ScriptComponent).hash_code()] = ICON_MDI_SCRIPT;
+		m_ComponentIconMap[typeid(Graphics::Environment).hash_code()] = ICON_MDI_EARTH;
 
 		m_Windows.emplace_back(CreateRef<ConsoleWindow>());
 		m_Windows.emplace_back(CreateRef<SceneWindow>());
@@ -205,9 +204,9 @@ namespace Lumos
 		m_View2D = m_CurrentCamera->IsOrthographic();
 
 		m_FileBrowserWindow.OnImGui();
-    
-        if(m_Application->GetEditorState() == EditorState::Preview)
-            m_Application->GetSceneManager()->GetCurrentScene()->UpdateSceneGraph();
+
+		if(m_Application->GetEditorState() == EditorState::Preview)
+			m_Application->GetSceneManager()->GetCurrentScene()->UpdateSceneGraph();
 
 		EndDockSpace();
 	}
@@ -254,12 +253,12 @@ namespace Lumos
 					m_FileBrowserWindow.SetCallback(BIND_FILEBROWSER_FN(Editor::FileOpenCallback));
 					m_FileBrowserWindow.Open();
 				}
-            
-                if(ImGui::MenuItem("New Scene"))
-                {
-                    m_Application->GetSceneManager()->EnqueueScene<Scene>("New Scene");
-                    m_Application->GetSceneManager()->SwitchScene((int)(m_Application->GetSceneManager()->GetScenes().size()) - 1);
-                }
+
+				if(ImGui::MenuItem("New Scene"))
+				{
+					m_Application->GetSceneManager()->EnqueueScene<Scene>("New Scene");
+					m_Application->GetSceneManager()->SwitchScene((int)(m_Application->GetSceneManager()->GetScenes().size()) - 1);
+				}
 
 				if(ImGui::BeginMenu("Style"))
 				{
@@ -440,7 +439,7 @@ namespace Lumos
 				ImGui::Text("Version : %d.%d.%d", version.major, version.minor, version.patch);
 				ImGui::Separator();
 
-				std::string githubMenuText = ICON_FA_GITHUB " Github";
+				std::string githubMenuText = ICON_MDI_GITHUB_BOX " Github";
 				if(ImGui::MenuItem(githubMenuText.c_str()))
 				{
 #ifdef LUMOS_PLATFORM_WINDOWS
@@ -459,10 +458,8 @@ namespace Lumos
 
 			ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.1f, 0.2f, 0.7f, 0.0f));
 
-            
-        
-            if(m_Application->GetEditorState()  == EditorState::Next)
-                m_Application->SetEditorState(EditorState::Paused);
+			if(m_Application->GetEditorState() == EditorState::Next)
+				m_Application->SetEditorState(EditorState::Paused);
 
 			bool selected;
 			{
@@ -470,8 +467,12 @@ namespace Lumos
 				if(selected)
 					ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(0.28f, 0.56f, 0.9f, 1.0f));
 
-				if(ImGui::Button(ICON_FA_PLAY, ImVec2(19.0f, 19.0f)))
-					m_Application->SetEditorState(selected ? EditorState::Preview : EditorState::Play);
+				if(ImGui::Button(ICON_MDI_PLAY, ImVec2(19.0f, 19.0f)))
+                {
+                    m_Application->GetSystem<LumosPhysicsEngine>()->SetPaused(selected);
+                    m_Application->GetSystem<B2PhysicsEngine>()->SetPaused(selected);
+                    m_Application->SetEditorState(selected ? EditorState::Preview : EditorState::Play);
+                }
 
 				ImGuiHelpers::Tooltip("Play");
 
@@ -486,7 +487,7 @@ namespace Lumos
 				if(selected)
 					ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(0.28f, 0.56f, 0.9f, 1.0f));
 
-				if(ImGui::Button(ICON_FA_PAUSE, ImVec2(19.0f, 19.0f)))
+				if(ImGui::Button(ICON_MDI_PAUSE, ImVec2(19.0f, 19.0f)))
 					m_Application->SetEditorState(selected ? EditorState::Play : EditorState::Paused);
 
 				ImGuiHelpers::Tooltip("Pause");
@@ -502,7 +503,7 @@ namespace Lumos
 				if(selected)
 					ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(0.28f, 0.56f, 0.9f, 1.0f));
 
-				if(ImGui::Button(ICON_FA_STEP_FORWARD, ImVec2(19.0f, 19.0f)))
+				if(ImGui::Button(ICON_MDI_STEP_FORWARD, ImVec2(19.0f, 19.0f)))
 					m_Application->SetEditorState(EditorState::Next);
 
 				ImGuiHelpers::Tooltip("Next");
@@ -615,30 +616,27 @@ namespace Lumos
 			ImGui::EndMainMenuBar();
 		}
 	}
-    
-    static const float identityMatrix[16] =
-    { 1.f, 0.f, 0.f, 0.f,
-        0.f, 1.f, 0.f, 0.f,
-        0.f, 0.f, 1.f, 0.f,
-        0.f, 0.f, 0.f, 1.f };
+
+	static const float identityMatrix[16] =
+		{1.f, 0.f, 0.f, 0.f, 0.f, 1.f, 0.f, 0.f, 0.f, 0.f, 1.f, 0.f, 0.f, 0.f, 0.f, 1.f};
 
 	void Editor::OnImGuizmo()
 	{
-        Maths::Matrix4 view = m_CurrentCamera->GetViewMatrix();
-        Maths::Matrix4 proj = m_CurrentCamera->GetProjectionMatrix();
-        
-    #ifdef LUMOS_RENDER_API_VULKAN
-        if(Graphics::GraphicsContext::GetRenderAPI() == Graphics::RenderAPI::VULKAN)
-            proj.m11_ *= -1.0f;
-    #endif
-        
-        view = view.Transpose();
-        proj = proj.Transpose();
-    
-        //if(m_ShowGrid && !m_CurrentCamera->IsOrthographic())
-          //  ImGuizmo::DrawGrid(Maths::ValuePointer(view),
-            //                   Maths::ValuePointer(proj), identityMatrix, 120.f);
-    
+		Maths::Matrix4 view = m_CurrentCamera->GetViewMatrix();
+		Maths::Matrix4 proj = m_CurrentCamera->GetProjectionMatrix();
+
+#ifdef LUMOS_RENDER_API_VULKAN
+		if(Graphics::GraphicsContext::GetRenderAPI() == Graphics::RenderAPI::VULKAN)
+			proj.m11_ *= -1.0f;
+#endif
+
+		view = view.Transpose();
+		proj = proj.Transpose();
+
+		//if(m_ShowGrid && !m_CurrentCamera->IsOrthographic())
+		//  ImGuizmo::DrawGrid(Maths::ValuePointer(view),
+		//                   Maths::ValuePointer(proj), identityMatrix, 120.f);
+
 		if(m_Selected == entt::null || m_ImGuizmoOperation == 4)
 			return;
 
@@ -787,34 +785,42 @@ namespace Lumos
 
 		if(opt_fullscreen)
 			ImGui::PopStyleVar(2);
+    
+        ImGuiID DockspaceID = ImGui::GetID("MyDockspace");
 
-		if(ImGui::DockBuilderGetNode(ImGui::GetID("MyDockspace")) == nullptr)
+        if (!ImGui::DockBuilderGetNode(DockspaceID))
 		{
-			ImGuiID dockspace_id = ImGui::GetID("MyDockspace");
-			ImGui::DockBuilderRemoveNode(dockspace_id);
-			ImGui::DockBuilderAddNode(dockspace_id);
-			ImGui::DockBuilderSetNodeSize(dockspace_id, ImGui::GetIO().DisplaySize);
+            ImGui::DockBuilderRemoveNode(DockspaceID); // Clear out existing layout
+            ImGui::DockBuilderAddNode(DockspaceID); // Add empty node
+            ImGui::DockBuilderSetNodeSize(DockspaceID, ImGui::GetIO().DisplaySize);
 
-			ImGuiID dock_main_id = dockspace_id;
-			ImGuiID dock_id_bottom =
-				ImGui::DockBuilderSplitNode(dock_main_id, ImGuiDir_Down, 0.2f, nullptr, &dock_main_id);
-			ImGuiID dock_id_left =
-				ImGui::DockBuilderSplitNode(dock_main_id, ImGuiDir_Left, 0.2f, nullptr, &dock_main_id);
-			ImGuiID dock_id_right =
-				ImGui::DockBuilderSplitNode(dock_main_id, ImGuiDir_Right, 0.3f, nullptr, &dock_main_id);
-			ImGuiID dock_id_middle =
-				ImGui::DockBuilderSplitNode(dock_main_id, ImGuiDir_Right, 0.8f, nullptr, &dock_main_id);
+            ImGuiID dock_main_id = DockspaceID;
+            ImGuiID DockBottom = ImGui::DockBuilderSplitNode(dock_main_id, ImGuiDir_Down, 0.3f, nullptr, &dock_main_id);
+            ImGuiID DockLeft = ImGui::DockBuilderSplitNode(dock_main_id, ImGuiDir_Left, 0.2f, nullptr, &dock_main_id);
+            ImGuiID DockRight = ImGui::DockBuilderSplitNode(dock_main_id, ImGuiDir_Right, 0.20f, nullptr, &dock_main_id);
 
-			ImGui::DockBuilderDockWindow("###scene", dock_id_middle);
-			ImGui::DockBuilderDockWindow("###inspector", dock_id_right);
-			ImGui::DockBuilderDockWindow("###hierarchy", dock_id_left);
-			ImGui::DockBuilderDockWindow("###console", dock_id_bottom);
-			ImGui::DockBuilderDockWindow("###profiler", dock_id_bottom);
-			ImGui::DockBuilderDockWindow("Assets", dock_id_bottom);
-			ImGui::DockBuilderDockWindow("Dear ImGui Demo", dock_id_left);
-			ImGui::DockBuilderDockWindow("GraphicsInfo", dock_id_left);
-			ImGui::DockBuilderDockWindow("ApplicationInfo", dock_id_left);
-			ImGui::DockBuilderFinish(dockspace_id);
+            ImGuiID DockLeftChild = ImGui::DockBuilderSplitNode(DockLeft, ImGuiDir_Down, 0.875f, nullptr, &DockLeft);
+            ImGuiID DockRightChild = ImGui::DockBuilderSplitNode(DockRight, ImGuiDir_Down, 0.875f, nullptr, &DockRight);
+            ImGuiID DockingLeftDownChild = ImGui::DockBuilderSplitNode(DockLeftChild, ImGuiDir_Down, 0.06f, nullptr, &DockLeftChild);
+            ImGuiID DockingRightDownChild = ImGui::DockBuilderSplitNode(DockRightChild, ImGuiDir_Down, 0.06f, nullptr, &DockRightChild);
+        
+            ImGuiID DockBottomChild = ImGui::DockBuilderSplitNode(DockBottom, ImGuiDir_Down, 0.2f, nullptr, &DockBottom);
+            ImGuiID DockingBottomLeftChild = ImGui::DockBuilderSplitNode(DockBottomChild, ImGuiDir_Left, 0.5f, nullptr, &DockBottomChild);
+            ImGuiID DockingBottomRightChild = ImGui::DockBuilderSplitNode(DockBottomChild, ImGuiDir_Right, 0.5f, nullptr, &DockBottomChild);
+            
+            ImGuiID DockMiddle = ImGui::DockBuilderSplitNode(dock_main_id, ImGuiDir_Right, 0.8f, nullptr, &dock_main_id);
+        
+            ImGui::DockBuilderDockWindow("###scene", DockMiddle);
+            ImGui::DockBuilderDockWindow("###inspector", DockRight);
+            ImGui::DockBuilderDockWindow("###console", DockingBottomLeftChild);
+            ImGui::DockBuilderDockWindow("###profiler", DockingBottomLeftChild);
+            ImGui::DockBuilderDockWindow("Assets", DockingBottomRightChild);
+            ImGui::DockBuilderDockWindow("Dear ImGui Demo", DockLeft);
+            ImGui::DockBuilderDockWindow("GraphicsInfo", DockLeft);
+            ImGui::DockBuilderDockWindow("ApplicationInfo", DockLeft);
+            ImGui::DockBuilderDockWindow("###hierarchy", DockLeft);
+
+			ImGui::DockBuilderFinish(DockspaceID);
 		}
 
 		// Dockspace
@@ -840,19 +846,19 @@ namespace Lumos
 			window->OnNewScene(scene);
 		}
 	}
-    
-    void Editor::Draw3DGrid()
-    {
-    #if 1
-        if(!m_GridRenderer)
-        {
-            return;
-        }
 
-        m_GridRenderer->BeginScene(Application::Get().GetSceneManager()->GetCurrentScene(), m_EditorCamera);
-        m_GridRenderer->RenderScene(Application::Get().GetSceneManager()->GetCurrentScene());
-    #endif
-    }
+	void Editor::Draw3DGrid()
+	{
+#if 1
+		if(!m_GridRenderer)
+		{
+			return;
+		}
+
+		m_GridRenderer->BeginScene(Application::Get().GetSceneManager()->GetCurrentScene(), m_EditorCamera);
+		m_GridRenderer->RenderScene(Application::Get().GetSceneManager()->GetCurrentScene());
+#endif
+	}
 
 	void Editor::Draw2DGrid(ImDrawList* drawList,
 		const ImVec2& cameraPos,
@@ -939,89 +945,88 @@ namespace Lumos
 
 	void Editor::OnUpdate(const TimeStep& ts)
 	{
-		auto& registry = m_Application->GetSceneManager()->GetCurrentScene()->GetRegistry();
-//		auto cameraView = registry.view<Camera>();
-//		if(!cameraView.empty())
-//		{
-//            m_CurrentCamera = &registry.get<Camera>(cameraView.front());
-//		}
-		auto cameraController = m_CurrentCamera ? m_CurrentCamera->GetController() : nullptr;
-
-		if(cameraController && Application::Get().GetSceneActive())
-		{
-			const Maths::Vector2 mousePos = Input::GetInput()->GetMousePosition();
-
-			cameraController->HandleMouse(m_CurrentCamera, ts.GetMillis(), mousePos.x, mousePos.y);
-			cameraController->HandleKeyboard(m_CurrentCamera, ts.GetMillis());
-		}
-
-		if(Input::GetInput()->GetKeyPressed(InputCode::Key::F))
-		{
-			if(registry.valid(m_Selected))
-			{
-				auto transform = registry.try_get<Maths::Transform>(m_Selected);
-				if(transform)
-					FocusCamera(transform->GetWorldPosition(), 2.0f, 2.0f);
-			}
-		}
-    
-        if (Input::GetInput()->GetKeyHeld(InputCode::Key::O))
+        if(m_Application->GetEditorState() == EditorState::Preview)
         {
-            FocusCamera(Maths::Vector3(0.0f,0.0f,0.0f), 2.0f, 2.0f);
-        }
+			auto& registry = m_Application->GetSceneManager()->GetCurrentScene()->GetRegistry();
 
-		if(m_TransitioningCamera)
-		{
-			if(m_CameraTransitionStartTime < 0.0f)
-				m_CameraTransitionStartTime = ts.GetElapsedMillis();
-
-			float focusProgress =
+			auto cameraController = m_CurrentCamera ? m_CurrentCamera->GetController() : nullptr;
+			
+			if(cameraController && Application::Get().GetSceneActive())
+			{
+				const Maths::Vector2 mousePos = Input::GetInput()->GetMousePosition();
+				
+				cameraController->HandleMouse(m_CurrentCamera, ts.GetMillis(), mousePos.x, mousePos.y);
+				cameraController->HandleKeyboard(m_CurrentCamera, ts.GetMillis());
+			}
+			
+			if(Input::GetInput()->GetKeyPressed(InputCode::Key::F))
+			{
+				if(registry.valid(m_Selected))
+				{
+					auto transform = registry.try_get<Maths::Transform>(m_Selected);
+					if(transform)
+						FocusCamera(transform->GetWorldPosition(), 2.0f, 2.0f);
+				}
+			}
+			
+			if(Input::GetInput()->GetKeyHeld(InputCode::Key::O))
+			{
+				FocusCamera(Maths::Vector3(0.0f, 0.0f, 0.0f), 2.0f, 2.0f);
+			}
+			
+			if(m_TransitioningCamera)
+			{
+				if(m_CameraTransitionStartTime < 0.0f)
+					m_CameraTransitionStartTime = ts.GetElapsedMillis();
+				
+				float focusProgress =
 				Maths::Min((ts.GetElapsedMillis() - m_CameraTransitionStartTime) / m_CameraTransitionSpeed, 1.f);
-			Maths::Vector3 newCameraPosition = m_CameraStartPosition.Lerp(m_CameraDestination, focusProgress);
-            m_CurrentCamera->SetPosition(newCameraPosition);
+				Maths::Vector3 newCameraPosition = m_CameraStartPosition.Lerp(m_CameraDestination, focusProgress);
+				m_CurrentCamera->SetPosition(newCameraPosition);
+				
+				if(m_CurrentCamera->GetPosition().Equals(m_CameraDestination))
+					m_TransitioningCamera = false;
+			}
+			
+			if(!Input::GetInput()->GetMouseHeld(InputCode::MouseKey::ButtonRight))
+			{
+				if(Input::GetInput()->GetKeyPressed(InputCode::Key::Q))
+				{
+					SetImGuizmoOperation(4);
+				}
 
-			if(m_CurrentCamera->GetPosition().Equals(m_CameraDestination))
-				m_TransitioningCamera = false;
+				if(Input::GetInput()->GetKeyPressed(InputCode::Key::W))
+				{
+					SetImGuizmoOperation(0);
+				}
+				
+				if(Input::GetInput()->GetKeyPressed(InputCode::Key::E))
+				{
+					SetImGuizmoOperation(1);
+				}
+				
+				if(Input::GetInput()->GetKeyPressed(InputCode::Key::R))
+				{
+					SetImGuizmoOperation(2);
+				}
+				
+				if(Input::GetInput()->GetKeyPressed(InputCode::Key::T))
+				{
+					SetImGuizmoOperation(3);
+				}
+				
+				if(Input::GetInput()->GetKeyPressed(InputCode::Key::Y))
+				{
+					ToggleSnap();
+				}
+			}
+
+			if((Input::GetInput()->GetKeyHeld(InputCode::Key::LeftSuper) || (Input::GetInput()->GetKeyHeld(InputCode::Key::LeftShift)) ) && Input::GetInput()->GetKeyPressed(InputCode::Key::Z))
+				Application::Get().GetSceneManager()->GetCurrentScene()->Serialise(ROOT_DIR "/Assets/scenes/", true);
+			
+			if((Input::GetInput()->GetKeyHeld(InputCode::Key::LeftSuper) || (Input::GetInput()->GetKeyHeld(InputCode::Key::LeftShift)) ) && Input::GetInput()->GetKeyPressed(InputCode::Key::X))
+				Application::Get().GetSceneManager()->GetCurrentScene()->Deserialise(ROOT_DIR "/Assets/scenes/", true);
 		}
-
-		if(!Input::GetInput()->GetMouseHeld(InputCode::MouseKey::ButtonRight))
-		{
-			if(Input::GetInput()->GetKeyPressed(InputCode::Key::Q))
-			{
-				SetImGuizmoOperation(4);
-			}
-
-			if(Input::GetInput()->GetKeyPressed(InputCode::Key::W))
-			{
-				SetImGuizmoOperation(0);
-			}
-
-			if(Input::GetInput()->GetKeyPressed(InputCode::Key::E))
-			{
-				SetImGuizmoOperation(1);
-			}
-
-			if(Input::GetInput()->GetKeyPressed(InputCode::Key::R))
-			{
-				SetImGuizmoOperation(2);
-			}
-
-			if(Input::GetInput()->GetKeyPressed(InputCode::Key::T))
-			{
-				SetImGuizmoOperation(3);
-			}
-
-			if(Input::GetInput()->GetKeyPressed(InputCode::Key::Y))
-			{
-				ToggleSnap();
-			}
-		}
-
-		if(Input::GetInput()->GetKeyPressed(InputCode::Key::Z))
-			Application::Get().GetSceneManager()->GetCurrentScene()->Serialise(ROOT_DIR "/Assets/scenes/", true);
-
-		if(Input::GetInput()->GetKeyPressed(InputCode::Key::X))
-			Application::Get().GetSceneManager()->GetCurrentScene()->Deserialise(ROOT_DIR "/Assets/scenes/", true);
 	}
 
 	void Editor::BindEventFunction()
@@ -1033,8 +1038,8 @@ namespace Lumos
 	{
 		if(m_CurrentCamera->IsOrthographic())
 		{
-            m_CurrentCamera->SetPosition(point);
-            m_CurrentCamera->SetScale(distance / 2.0f);
+			m_CurrentCamera->SetPosition(point);
+			m_CurrentCamera->SetScale(distance / 2.0f);
 		}
 		else
 		{
@@ -1311,9 +1316,9 @@ namespace Lumos
 	void Editor::OnRender()
 	{
 		//DrawPreview();
-    
-        if(m_Application->GetEditorState() == EditorState::Preview && m_ShowGrid && !m_EditorCamera->IsOrthographic())
-            Draw3DGrid();
+
+		if(m_Application->GetEditorState() == EditorState::Preview && m_ShowGrid && !m_EditorCamera->IsOrthographic())
+			Draw3DGrid();
 	}
 
 	void Editor::DrawPreview()
@@ -1425,34 +1430,34 @@ namespace Lumos
 	}
 
 	const char* Editor::GetIconFontIcon(const std::string& filePath)
-	{
+	{ 
 		if(IsTextFile(filePath))
 		{
-			return ICON_FA_FILE_CODE;
+			return ICON_MDI_FILE_XML;
 		}
 		else if(IsModelFile(filePath))
 		{
-			return ICON_FA_CUBES;
+			return ICON_MDI_SHAPE;
 		}
 		else if(IsAudioFile(filePath))
 		{
-			return ICON_FA_FILE_AUDIO;
+			return ICON_MDI_FILE_MUSIC;
 		}
 
-		return ICON_FA_FILE;
+		return ICON_MDI_FILE;
 	}
-    
-    void Editor::CreateGridRenderer()
-    {
-        if(!m_GridRenderer)
-            m_GridRenderer = CreateRef<Graphics::GridRenderer>(u32(Application::Get().m_SceneViewWidth),u32(Application::Get().m_SceneViewHeight), true);
-    }
-    
-    const Ref<Graphics::GridRenderer>& Editor::GetGridRenderer()
-    {
-        //if(!m_GridRenderer)
-          //  m_GridRenderer = CreateRef<Graphics::GridRenderer>(u32(Application::Get().m_SceneViewWidth), u32(Application::Get().m_SceneViewHeight), true);
-        return m_GridRenderer;
-    }
+
+	void Editor::CreateGridRenderer()
+	{
+		if(!m_GridRenderer)
+			m_GridRenderer = CreateRef<Graphics::GridRenderer>(u32(Application::Get().m_SceneViewWidth), u32(Application::Get().m_SceneViewHeight), true);
+	}
+
+	const Ref<Graphics::GridRenderer>& Editor::GetGridRenderer()
+	{
+		//if(!m_GridRenderer)
+		//  m_GridRenderer = CreateRef<Graphics::GridRenderer>(u32(Application::Get().m_SceneViewWidth), u32(Application::Get().m_SceneViewHeight), true);
+		return m_GridRenderer;
+	}
 
 }

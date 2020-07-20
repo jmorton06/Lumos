@@ -142,7 +142,7 @@ function CreateBackground(index)
     registry:assign_Sprite(backgrounds[index], Vector2.new(-10.0, -10.0), Vector2.new(10.0 * 2.0, 10.0 * 2.0), Vector4.new(1.0,1.0,1.0,1.0))
     registry:get_Sprite(backgrounds[index]):SetTexture(backgroundTexture)
     registry:assign_Transform(backgrounds[index])
-    registry:get_Transform(backgrounds[index]):SetLocalPosition(Vector3.new(index * 20.0 - 40.0, 0.0,0.0))
+    registry:get_Transform(backgrounds[index]):SetLocalPosition(Vector3.new(index * 20.0 - 40.0, 0.0, -1.0))
 end
 
 for i=1,50, 1 do
@@ -259,4 +259,5 @@ function OnCleanUp()
 
     registry:Destroy(player)
 end
+
 

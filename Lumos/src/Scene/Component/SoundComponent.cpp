@@ -1,7 +1,7 @@
 #include "lmpch.h"
 #include "SoundComponent.h"
-#include "App/Scene.h"
-#include "App/Application.h"
+#include "Scene/Scene.h"
+#include "Core/Application.h"
 #include "Audio/AudioManager.h"
 #include <imgui/imgui.h>
 #include "Physics/LumosPhysicsEngine/RigidBody3D.h"

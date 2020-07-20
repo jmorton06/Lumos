@@ -4,7 +4,7 @@
 
 #include "Utilities/TimeStep.h"
 #include "Core/Profiler.h"
-#include "ECS/Component/Physics2DComponent.h"
+#include "Scene/Component/Physics2DComponent.h"
 
 #include "Maths/Transform.h"
 #include "B2DebugDraw.h"

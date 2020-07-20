@@ -1,10 +1,10 @@
 #include "lmpch.h"
 #include "DeferredOffScreenRenderer.h"
-#include "App/Scene.h"
-#include "App/Application.h"
-#include "ECS/Component/MaterialComponent.h"
-#include "ECS/Component/MeshComponent.h"
-#include "ECS/Component/TextureMatrixComponent.h"
+#include "Scene/Scene.h"
+#include "Core/Application.h"
+#include "Scene/Component/MaterialComponent.h"
+#include "Scene/Component/MeshComponent.h"
+#include "Scene/Component/TextureMatrixComponent.h"
 
 #include "Maths/Maths.h"
 #include "Maths/Transform.h"
@@ -228,7 +228,7 @@ namespace Lumos
 
 		void DeferredOffScreenRenderer::BeginScene(Scene* scene, Camera* overrideCamera)
 		{
-            m_Camera = overrideCamera;
+			m_Camera = overrideCamera;
 
 			LUMOS_ASSERT(m_Camera, "No Camera Set for Renderer");
 			auto projView = m_Camera->GetProjectionMatrix() * m_Camera->GetViewMatrix();

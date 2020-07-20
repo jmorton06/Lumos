@@ -11,7 +11,7 @@
 #include "GLFWKeyCodes.h"
 
 #include "Core/OS/Input.h"
-#include "App/Application.h"
+#include "Core/Application.h"
 
 #include "Events/ApplicationEvent.h"
 #include "Events/MouseEvent.h"
@@ -139,7 +139,7 @@ namespace Lumos
 #endif
 
 		glfwSetWindowPos(m_Handle, mode->width / 2 - ScreenWidth / 2, mode->height / 2 - ScreenHeight / 2);
-		glfwSetInputMode(m_Handle, GLFW_STICKY_KEYS, GL_TRUE);
+		glfwSetInputMode(m_Handle, GLFW_STICKY_KEYS, true);
 
 		// Set GLFW callbacks
 		glfwSetWindowSizeCallback(m_Handle, [](GLFWwindow* window, int width, int height) {
@@ -228,7 +228,7 @@ namespace Lumos
 		glfwSetCharCallback(m_Handle, [](GLFWwindow* window, unsigned int keycode) {
 			WindowData& data = *static_cast<WindowData*>((glfwGetWindowUserPointer(window)));
 
-			KeyTypedEvent event(keycode);
+			KeyTypedEvent event(GLFWKeyCodes::GLFWToLumosKeyboardKey(keycode), char(keycode));
 			data.EventCallback(event);
 		});
 
@@ -317,11 +317,11 @@ namespace Lumos
 	{
 		if(borderless)
 		{
-			glfwWindowHint(GLFW_DECORATED, GL_FALSE);
+			glfwWindowHint(GLFW_DECORATED, false);
 		}
 		else
 		{
-			glfwWindowHint(GLFW_DECORATED, GL_TRUE);
+			glfwWindowHint(GLFW_DECORATED, true);
 		}
 	}
 

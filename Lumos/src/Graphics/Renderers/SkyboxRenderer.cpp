@@ -14,8 +14,8 @@
 #include "Graphics/Mesh.h"
 #include "Graphics/MeshFactory.h"
 #include "Graphics/RenderManager.h"
-#include "App/Scene.h"
-#include "App/Application.h"
+#include "Scene/Scene.h"
+#include "Core/Application.h"
 #include "Graphics/Camera/Camera.h"
 #include "Graphics/Environment.h"
 

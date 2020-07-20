@@ -23,12 +23,14 @@ namespace Lumos
 		Display0
 	};
 
-	enum ControllerType
+	enum class ControllerType
 	{
 		FPS,
 		ThirdPerson,
 		Maya,
 		Simple,
+		Camera2D,
+		EditorCamera,
 		Custom
 	};
 
@@ -61,8 +63,8 @@ namespace Lumos
 
 		void SetIsOrthographic(bool ortho)
 		{
-            m_FrustumDirty = true;
-            m_ProjectionDirty = true;
+			m_FrustumDirty = true;
+			m_ProjectionDirty = true;
 			m_Orthographic = ortho;
 		}
 		bool IsOrthographic() const
@@ -161,19 +163,20 @@ namespace Lumos
 			return m_CameraController;
 		}
 
+		void SetCameraControllerType(ControllerType type);
+
 		template<typename Archive>
 		void save(Archive& archive) const
 		{
-			archive(cereal::make_nvp("Position", m_Position), cereal::make_nvp("Pitch", m_Pitch), cereal::make_nvp("Yaw", m_Yaw), cereal::make_nvp("Roll", m_Roll), cereal::make_nvp("Scale", m_Scale), cereal::make_nvp("Aspect", m_AspectRatio), cereal::make_nvp("FOV", m_Fov), cereal::make_nvp("Near", m_Near), cereal::make_nvp("Far", m_Far));
-			//Todo camera controller
+			archive(cereal::make_nvp("Position", m_Position), cereal::make_nvp("Pitch", m_Pitch), cereal::make_nvp("Yaw", m_Yaw), cereal::make_nvp("Roll", m_Roll), cereal::make_nvp("Scale", m_Scale), cereal::make_nvp("Aspect", m_AspectRatio), cereal::make_nvp("FOV", m_Fov), cereal::make_nvp("Near", m_Near), cereal::make_nvp("Far", m_Far), cereal::make_nvp("ControllerType", m_ControllerType));
 		}
 
 		template<typename Archive>
 		void load(Archive& archive)
 		{
-			archive(cereal::make_nvp("Position", m_Position), cereal::make_nvp("Pitch", m_Pitch), cereal::make_nvp("Yaw", m_Yaw), cereal::make_nvp("Roll", m_Roll), cereal::make_nvp("Scale", m_Scale), cereal::make_nvp("Aspect", m_AspectRatio), cereal::make_nvp("FOV", m_Fov), cereal::make_nvp("Near", m_Near), cereal::make_nvp("Far", m_Far));
-			//Todo camera controller
+			archive(cereal::make_nvp("Position", m_Position), cereal::make_nvp("Pitch", m_Pitch), cereal::make_nvp("Yaw", m_Yaw), cereal::make_nvp("Roll", m_Roll), cereal::make_nvp("Scale", m_Scale), cereal::make_nvp("Aspect", m_AspectRatio), cereal::make_nvp("FOV", m_Fov), cereal::make_nvp("Near", m_Near), cereal::make_nvp("Far", m_Far), cereal::make_nvp("ControllerType", m_ControllerType));
 
+			SetCameraControllerType(m_ControllerType);
 			m_FrustumDirty = true;
 			m_ProjectionDirty = true;
 			m_ViewDirty = true;
@@ -208,6 +211,10 @@ namespace Lumos
 		float m_MouseSensitivity = 0.1f;
 
 		bool m_Orthographic = false;
+		RenderPath m_RenderPath = RenderPath::Deferred;
+		bool m_CastShadow = true;
+		ControllerType m_ControllerType = ControllerType::ThirdPerson;
+		RenderTarget m_Target = RenderTarget::Display0;
 
 		Ref<CameraController> m_CameraController;
 	};

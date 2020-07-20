@@ -44,6 +44,7 @@ namespace Lumos
 		}
 
 		Entity Create();
+		Entity Create(const std::string& name);
 
 		template<typename... Components>
 		auto GetEntitiesWithTypes()
@@ -56,12 +57,12 @@ namespace Lumos
 		{
 			return m_Registry.view<Component>();
 		}
-    
-        template<typename R, typename T>
-        void AddDependency()
-        {
-            m_Registry. template on_construct<R>(). template connect<&entt::registry::get_or_emplace<T>>();
-        }
+
+		template<typename R, typename T>
+		void AddDependency()
+		{
+			m_Registry.template on_construct<R>().template connect<&entt::registry::get_or_emplace<T>>();
+		}
 
 		entt::registry& GetRegistry()
 		{

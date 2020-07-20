@@ -7,7 +7,7 @@ namespace Lumos
     {
         m_Refcount.init();
         m_RefcountInit.init();
-		m_WeakRefcount.init();
+		m_WeakRefcount.init(0);
     }
     
     RefCount::~RefCount()
@@ -18,11 +18,6 @@ namespace Lumos
     {
         if (reference())
         {
-            
-            // this may fail in the scenario of two threads assigning the pointer for the FIRST TIME
-            // at the same time, which is never likely to happen (would be crazy to do)
-            // so don't do it.
-            
             if (m_RefcountInit.get() > 0)
             {
                 m_RefcountInit.unref();

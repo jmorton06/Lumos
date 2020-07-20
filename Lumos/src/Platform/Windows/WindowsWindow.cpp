@@ -12,7 +12,7 @@
 #include "WindowsWindow.h"
 #include "WindowsKeyCodes.h"
 #include "Graphics/API/GraphicsContext.h"
-#include "App/Application.h"
+#include "Core/Application.h"
 #include "Core/OS/Input.h"
 #include "Utilities/LoadImage.h"
 #include "Events/ApplicationEvent.h"
@@ -437,7 +437,7 @@ namespace Lumos
 	{
 		WindowsWindow::WindowData& data = static_cast<WindowsWindow*>(window)->m_Data;
 
-		KeyTypedEvent event(key); // WindowsKeyCodes::WindowsKeyToLumos(key)); //TODO : FIX
+		KeyTypedEvent event(key);
 		data.EventCallback(event);
 	}
 

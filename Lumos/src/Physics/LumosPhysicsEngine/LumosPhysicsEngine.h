@@ -5,8 +5,8 @@
 #include "RigidBody3D.h"
 #include "Manifold.h"
 #include "Broadphase.h"
-#include "ECS/ISystem.h"
-#include "App/Scene.h"
+#include "Scene/ISystem.h"
+#include "Scene/Scene.h"
 
 namespace Lumos
 {

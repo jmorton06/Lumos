@@ -1,20 +1,21 @@
 #include "lmpch.h"
 #include "HierarchyWindow.h"
 #include "Editor.h"
-#include "App/Application.h"
-#include "App/SceneManager.h"
+#include "Core/Application.h"
+#include "Scene/SceneManager.h"
 #include "ImGui/ImGuiHelpers.h"
-#include "App/SceneGraph.h"
+#include "Scene/SceneGraph.h"
 #include "Maths/Transform.h"
 #include "InspectorWindow.h"
+#include "Scene/Entity.h"
 
 #include "Graphics/Camera/Camera.h"
 #include "Graphics/Light.h"
 #include "Graphics/Environment.h"
-#include "ECS/Component/Components.h"
+#include "Scene/Component/Components.h"
 
 #include <imgui/imgui_internal.h>
-#include <IconFontCppHeaders/IconsFontAwesome5.h>
+#include <IconFontCppHeaders/IconsMaterialDesignIcons.h>
 
 namespace Lumos
 {
@@ -23,7 +24,7 @@ namespace Lumos
 		, m_HadRecentDroppedEntity(entt::null)
 		, m_CopiedEntity()
 	{
-		m_Name = ICON_FA_LIST_ALT " Hierarchy###hierarchy";
+		m_Name = "Hierarchy###hierarchy";
 		m_SimpleName = "Hierarchy";
 	}
 
@@ -83,7 +84,7 @@ namespace Lumos
 				m_HadRecentDroppedEntity = entt::null;
 			}
 
-			std::string icon = ICON_FA_CUBE;
+			std::string icon = ICON_MDI_CUBE_OUTLINE;
 			auto& iconMap = m_Editor->GetComponentIconMap();
 
 			if(registry.has<Camera>(node))
@@ -128,7 +129,7 @@ namespace Lumos
 #if 0
             ImGui::SameLine(ImGui::GetWindowContentRegionMax().x - 22.0f);
             ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.7f, 0.7f, 0.7f, 0.0f));
-            if(ImGui::Button(active ? ICON_FA_EYE : ICON_FA_EYE_SLASH))
+            if(ImGui::Button(active ? ICON_MDI_EYE : ICON_MDI_EYE_OFF))
             {
                 auto& activeComponent = registry.get_or_emplace<ActiveComponent>(node);
 
@@ -168,7 +169,11 @@ namespace Lumos
 
 				ImGui::Separator();
 
-				//if (ImGui::Selectable("Duplicate")) registry.clone(node);
+				if (ImGui::Selectable("Duplicate")) 
+				{
+					auto scene = Application::Get().GetSceneManager()->GetCurrentScene();
+					scene->DuplicateEntity({node , scene});
+				}
 				if(ImGui::Selectable("Remove"))
 					deleteEntity = true;
 				if(m_Editor->GetSelected() == node)
@@ -183,7 +188,7 @@ namespace Lumos
 			{
 				auto ptr = node;
 				ImGui::SetDragDropPayload("Drag_Entity", &ptr, sizeof(entt::entity*));
-				ImGui::Text(ICON_FA_ARROW_UP);
+				ImGui::Text(ICON_MDI_ARROW_UP);
 				ImGui::EndDragDropSource();
 			}
 
@@ -316,18 +321,20 @@ namespace Lumos
 		auto flags = ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_MenuBar;
 		ImGui::Begin(m_Name.c_str(), &m_Active, flags);
 		{
-			auto& registry = Application::Get().GetSceneManager()->GetCurrentScene()->GetRegistry();
+			auto scene = Application::Get().GetSceneManager()->GetCurrentScene();
+			auto& registry = scene->GetRegistry();
 
 			ImGui::PushStyleColor(ImGuiCol_MenuBarBg, ImGui::GetStyleColorVec4(ImGuiCol_TabActive));
 			ImGui::BeginMenuBar();
-			ImGui::TextUnformatted(ICON_FA_SEARCH);
+			ImGui::TextUnformatted(ICON_MDI_MAGNIFY);
 			ImGui::SameLine();
 			m_HierarchyFilter.Draw("##HierarchyFilter", ImGui::GetContentRegionAvailWidth() - ImGui::GetStyle().IndentSpacing);
 			ImGui::EndMenuBar();
 			ImGui::PopStyleColor();
 			ImGui::Unindent();
 
-			if(ImGui::CollapsingHeader("Scene", ImGuiTreeNodeFlags_DefaultOpen))
+			const std::string& sceneName = scene->GetSceneName();
+			if(ImGui::CollapsingHeader(sceneName.c_str(), ImGuiTreeNodeFlags_DefaultOpen))
 			{
 				if(ImGui::BeginDragDropTarget())
 				{

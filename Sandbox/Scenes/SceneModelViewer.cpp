@@ -31,7 +31,6 @@ void SceneModelViewer::OnInit()
 
 	auto cameraEntity = GetRegistry().create();
 	Camera& camera = GetRegistry().emplace<Camera>(cameraEntity, -20.0f, 330.0f, Maths::Vector3(-2.5f, 1.3f, 3.8f), 45.0f, 0.1f, 1000.0f, (float)m_ScreenWidth / (float)m_ScreenHeight);
-	camera.SetCameraController(CreateRef<EditorCameraController>());
 	GetRegistry().emplace<NameComponent>(cameraEntity, "Camera");
 
 	//Temp

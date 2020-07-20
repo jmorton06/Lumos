@@ -10,7 +10,7 @@
 #include "Core/JobSystem.h"
 #include "Core/Profiler.h"
 
-#include "ECS/Component/Physics3DComponent.h"
+#include "Scene/Component/Physics3DComponent.h"
 
 #include "Maths/Transform.h"
 

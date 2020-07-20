@@ -1,8 +1,8 @@
 #include "lmpch.h"
 #include "ScriptComponent.h"
 #include "LuaManager.h"
-#include "App/Scene.h"
-#include "App/Engine.h"
+#include "Scene/Scene.h"
+#include "Core/Engine.h"
 
 #include <sol/sol.hpp>
 
