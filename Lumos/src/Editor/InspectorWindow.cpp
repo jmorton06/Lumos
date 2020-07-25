@@ -11,7 +11,7 @@
 #include "Graphics/API/Texture.h"
 #include "Graphics/API/GraphicsContext.h"
 #include "Maths/Transform.h"
-#include "Scripting/ScriptComponent.h"
+#include "Scripting/LuaScriptComponent.h"
 #include "ImGui/ImGuiHelpers.h"
 #include "FileBrowserWindow.h"
 #include "Physics/LumosPhysicsEngine/CuboidCollisionShape.h"
@@ -26,9 +26,9 @@
 namespace MM
 {
 	template<>
-	void ComponentEditorWidget<Lumos::ScriptComponent>(entt::registry& reg, entt::registry::entity_type e)
+	void ComponentEditorWidget<Lumos::LuaScriptComponent>(entt::registry& reg, entt::registry::entity_type e)
 	{
-		auto& script = reg.get<Lumos::ScriptComponent>(e);
+		auto& script = reg.get<Lumos::LuaScriptComponent>(e);
 
 		if(!script.Loaded())
 		{
@@ -40,6 +40,8 @@ namespace MM
 
 		auto& solEnv = script.GetSolEnvironment();
 
+        ImGui::Indent(12.0f);
+
 		for(auto&& function : solEnv)
 		{
 			if(function.second.is<sol::function>())
@@ -47,9 +49,16 @@ namespace MM
 				ImGui::TextUnformatted(function.first.as<std::string>().c_str());
 			}
 		}
+    
+        ImGui::Unindent(12.0f);
 
-		if(ImGui::Button("Reload"))
+        ImGui::Indent(12.0f);
+
+        if(ImGui::Button("Reload", ImVec2{ ImGui::GetWindowWidth() - 24.0f, 20.0f }))
 			script.Reload();
+    
+        ImGui::Unindent(12.0f);
+
 
 		std::string filePath = script.GetFilePath();
 
@@ -1106,7 +1115,7 @@ namespace Lumos
 		TRIVIAL_COMPONENT(Graphics::Sprite, "Sprite");
 		TRIVIAL_COMPONENT(MaterialComponent, "Material");
 		TRIVIAL_COMPONENT(Graphics::Light, "Light");
-		TRIVIAL_COMPONENT(ScriptComponent, "LuaScript");
+		TRIVIAL_COMPONENT(LuaScriptComponent, "LuaScript");
 		TRIVIAL_COMPONENT(Graphics::Environment, "Environment");
 		TRIVIAL_COMPONENT(TextureMatrixComponent, "Texture Matrix");
 	}

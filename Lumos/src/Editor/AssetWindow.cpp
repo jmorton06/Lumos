@@ -25,7 +25,11 @@ namespace Lumos
 		m_Name = "AssetWindow";
 		m_SimpleName = "Assets";
 
-		m_BaseDirPath = ROOT_DIR "/Assets/";
+    #ifdef LUMOS_PLATFORM_IOS
+		m_BaseDirPath = "Assets/";
+    #else
+        m_BaseDirPath = ROOT_DIR "/Assets/";
+    #endif
 		m_CurrentDirPath = m_BaseDirPath;
 		m_prevDirPath = m_CurrentDirPath;
 		m_lastNavPath = m_BaseDirPath;
@@ -495,7 +499,9 @@ namespace Lumos
 	bool AssetWindow::MoveFile(const std::string& filePath, const std::string& movePath)
 	{
 		std::string s = "move " + filePath + " " + movePath.c_str();
+    #ifndef LUMOS_PLATFORM_IOS
 		system(s.c_str());
+    #endif
 
 		std::vector<std::string> data;
 

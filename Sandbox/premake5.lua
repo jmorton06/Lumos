@@ -105,7 +105,7 @@ project "Sandbox"
 		platforms {"x64"}
  		defaultplatform "x64"
 
-		xcodebuildresources { "../Assets/textures/icon.icns" }
+		xcodebuildresources { "../Resources/MacOSIcons/Images.xcassets" }
 
 		xcodebuildsettings
 		{
@@ -114,8 +114,8 @@ project "Sandbox"
 			['PRODUCT_BUNDLE_IDENTIFIER'] = 'com.jmorton06',
 			['DEVELOPMENT_TEAM'] = 'C5L4T5BF6L',
 			['INFOPLIST_FILE'] = '../Lumos/src/Platform/macOS/Info.plist',
+			['ASSETCATALOG_COMPILER_APPICON_NAME'] = 'AppIcon'
 			--['ENABLE_HARDENED_RUNTIME'] = 'YES'
-
 		}
 
 		defines
@@ -139,6 +139,11 @@ project "Sandbox"
 			"-framework CoreVideo",
 			"-framework OpenAL",
 			"-framework QuartzCore"
+		}
+
+		files
+		{
+			"../Resources/MacOSIcons/Images.xcassets",
 		}
 
 		links
@@ -253,6 +258,14 @@ project "Sandbox"
 			"../Lumos/src/Platform/iOS/Client",
 			--"Assets",
 			--"Images.xcassets"
+		}
+
+		xcodebuildresources { "../Resources/IOSIcons/Images.xcassets" }
+
+
+		files
+		{
+			"../Resources/IOSIcons/Images.xcassets",
 		}
 
 		SetRecommendedXcodeSettings()

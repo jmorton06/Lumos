@@ -71,11 +71,19 @@ namespace Lumos
 		{
 			return m_Orthographic;
 		}
+    
+        void SetOrientation(float pitch, float yaw, float roll)
+        {
+            m_Pitch = pitch;
+            m_Yaw = yaw;
+            m_Roll = roll;
+        }
 
 		float GetRoll() const
 		{
 			return m_Roll;
 		}
+    
 		void SetRoll(float y)
 		{
 			m_ViewDirty = true;
@@ -129,6 +137,20 @@ namespace Lumos
 		{
 			return m_Near;
 		}
+    
+        void SetFar(float pFar)
+        {
+			m_Far = pFar;
+            m_ProjectionDirty = true;
+            m_FrustumDirty = true;
+        }
+        
+        void SetNear(float pNear)
+        {
+			m_Near = pNear;
+            m_ProjectionDirty = true;
+            m_FrustumDirty = true;
+        }
 		float GetFOV() const
 		{
 			return m_Fov;
@@ -182,6 +204,11 @@ namespace Lumos
 			m_ViewDirty = true;
 		}
 
+		float GetShadowBoundingRadius() const 
+		{
+			return m_ShadowBoundingRadius;
+		}
+
 	protected:
 		void UpdateViewMatrix();
 		void UpdateProjectionMatrix();
@@ -189,6 +216,8 @@ namespace Lumos
 		float m_Pitch;
 		float m_Yaw;
 		float m_Roll;
+
+		float m_ShadowBoundingRadius = 20.0f;
 
 		Maths::Vector3 m_Position = Maths::Vector3(0.0f);
 

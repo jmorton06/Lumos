@@ -14,6 +14,7 @@ class Game : public Application
 	explicit Game(const WindowProperties& windowProperties)
 		: Application(windowProperties)
 	{
+        Application::Get().GetWindow()->SetWindowTitle("Sandbox");
 	}
     
 	~Game()

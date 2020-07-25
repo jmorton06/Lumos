@@ -16,6 +16,6 @@ public:
     
 private:
     
-    entt::entity m_Terrain;
+    Lumos::Entity m_Terrain;
 
 };

@@ -47,6 +47,7 @@ namespace Lumos
 		~LuaManager();
 
 		void OnInit();
+		void OnInit(Scene* scene);
 		void OnUpdate(Scene* scene);
 
 		void BindECSLua(sol::state& state);

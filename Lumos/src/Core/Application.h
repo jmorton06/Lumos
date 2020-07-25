@@ -80,34 +80,41 @@ namespace Lumos
 
 		virtual void Init();
 
-		LayerStack* GetLayerStack() const
-		{
-			return m_LayerStack;
-		}
+        LayerStack* GetSceneLayers() const
+        {
+            return m_LayerStack;
+        }
+
 		SceneManager* GetSceneManager() const
 		{
 			return m_SceneManager.get();
 		}
+    
 		Graphics::RenderManager* GetRenderManager() const
 		{
 			return m_RenderManager.get();
 		}
+    
 		Window* GetWindow() const
 		{
 			return m_Window.get();
 		}
+    
 		AppState GetState() const
 		{
 			return m_CurrentState;
 		}
+    
 		EditorState GetEditorState() const
 		{
 			return m_EditorState;
 		}
+    
 		Camera* GetActiveCamera() const
 		{
 			return m_ActiveCamera;
 		}
+    
 		SystemManager* GetSystemManager() const
 		{
 			return m_SystemManager.get();
@@ -119,26 +126,31 @@ namespace Lumos
 		{
 			m_CurrentState = state;
 		}
+    
 		void SetEditorState(EditorState state)
 		{
 			m_EditorState = state;
 		}
+    
 		void SetActiveCamera(Camera* camera);
 
 		void SetSceneActive(bool active)
 		{
 			m_SceneActive = active;
 		}
+    
 		bool GetSceneActive() const
 		{
 			return m_SceneActive;
 		}
+    
 		Maths::Vector2 GetWindowSize() const;
 
 		static Application& Get()
 		{
 			return *s_Instance;
 		}
+    
 		static void Release()
 		{
 			if(s_Instance)

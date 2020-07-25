@@ -207,6 +207,7 @@ namespace Lumos
 
 			UpdateUniformBuffer();
 			CreateFramebuffers();
+
 		}
 
 		void SkyboxRenderer::CreateGraphicsPipeline()

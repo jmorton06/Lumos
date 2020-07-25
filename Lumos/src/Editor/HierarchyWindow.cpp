@@ -12,6 +12,7 @@
 #include "Graphics/Camera/Camera.h"
 #include "Graphics/Light.h"
 #include "Graphics/Environment.h"
+#include "Graphics/Sprite.h"
 #include "Scene/Component/Components.h"
 
 #include <imgui/imgui_internal.h>
@@ -112,6 +113,11 @@ namespace Lumos
 				if(iconMap.find(typeid(Graphics::Environment).hash_code()) != iconMap.end())
 					icon = iconMap[typeid(Graphics::Environment).hash_code()];
 			}
+            else if(registry.has<Graphics::Sprite>(node))
+            {
+                if(iconMap.find(typeid(Graphics::Sprite).hash_code()) != iconMap.end())
+                    icon = iconMap[typeid(Graphics::Sprite).hash_code()];
+            }
 
 			bool nodeOpen = ImGui::TreeNodeEx((void*)(intptr_t)entt::to_integral(node), nodeFlags, (icon + " %s").c_str(), doubleClicked ? "" : (name).c_str());
 
@@ -151,14 +157,7 @@ namespace Lumos
 				{
 					if(ImGui::Selectable("Paste"))
 					{
-						//auto e = registry.clone(node);
-						//node->AddChild(e);
-
 						entt::entity copy = registry.create();
-
-						registry.visit(m_CopiedEntity, [&](const auto component) {
-						});
-						//if(registry.has<NameComponent>)
 						m_CopiedEntity = entt::null;
 					}
 				}

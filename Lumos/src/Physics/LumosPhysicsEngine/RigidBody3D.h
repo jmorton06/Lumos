@@ -34,7 +34,7 @@ namespace Lumos
 	//			  > This can be useful for AI to see if a player/agent is inside an area/collision volume
 	typedef std::function<bool(RigidBody3D* this_obj, RigidBody3D* colliding_obj)> PhysicsCollisionCallback;
 
-	struct Physics3DProperties
+	struct RigidBody3DProperties
 	{
 		Maths::Vector3 Position = Maths::Vector3(0.0f);
 		Maths::Vector3 LinearVelocity = Maths::Vector3(0.0f);
@@ -55,7 +55,7 @@ namespace Lumos
 		friend class LumosPhysicsEngine;
 
 	public:
-		RigidBody3D(const Physics3DProperties& properties = Physics3DProperties());
+		RigidBody3D(const RigidBody3DProperties& properties = RigidBody3DProperties());
 		virtual ~RigidBody3D();
 
 		//<--------- GETTERS ------------->

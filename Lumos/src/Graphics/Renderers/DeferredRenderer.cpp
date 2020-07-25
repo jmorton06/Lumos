@@ -154,7 +154,7 @@ namespace Lumos
 			Graphics::RenderpassInfo renderpassCI{};
 			renderpassCI.attachmentCount = 1;
 			renderpassCI.textureType = textureTypes;
-			renderpassCI.clear = false;
+			renderpassCI.clear = true;
 
 			m_RenderPass->Init(renderpassCI);
 

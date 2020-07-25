@@ -7,7 +7,7 @@
 #include "Core/Application.h"
 #include "Core/Engine.h"
 #include "Core/OS/Input.h"
-#include "ScriptComponent.h"
+#include "LuaScriptComponent.h"
 #include "Scene/SceneGraph.h"
 #include "Graphics/Camera/ThirdPersonCamera.h"
 
@@ -111,11 +111,27 @@ namespace Lumos
 	{
 	}
 
+	void LuaManager::OnInit(Scene* scene)
+	{
+		auto& registry = scene->GetRegistry();
+
+		auto view = registry.view<LuaScriptComponent>();
+
+		if(view.empty())
+			return;
+
+		for(auto entity : view)
+		{
+			auto& luaScript = registry.get<LuaScriptComponent>(entity);
+			luaScript.OnInit();
+		}
+	}
+
 	void LuaManager::OnUpdate(Scene* scene)
 	{
 		auto& registry = scene->GetRegistry();
 
-		auto view = registry.view<ScriptComponent>();
+		auto view = registry.view<LuaScriptComponent>();
 
 		if(view.empty())
 			return;
@@ -124,8 +140,8 @@ namespace Lumos
 
 		for(auto entity : view)
 		{
-			auto& luaScript = registry.get<ScriptComponent>(entity);
-			luaScript.Update(dt);
+			auto& luaScript = registry.get<LuaScriptComponent>(entity);
+			luaScript.OnUpdate(dt);
 		}
 	}
 
@@ -349,8 +365,8 @@ namespace Lumos
 		nameComponent_type["name"] = &NameComponent::name;
 		REGISTER_COMPONENT_WITH_ECS(state, NameComponent, static_cast<NameComponent& (entt::registry::*)(const entt::entity)>(&entt::registry::emplace<NameComponent>));
 
-		sol::usertype<ScriptComponent> script_type = state.new_usertype<ScriptComponent>("ScriptComponent", sol::constructors<sol::types<std::string, Scene*>>());
-		REGISTER_COMPONENT_WITH_ECS(state, ScriptComponent, static_cast<ScriptComponent& (entt::registry::*)(const entt::entity, std::string&&, Scene*&&)>(&entt::registry::emplace<ScriptComponent, std::string, Scene*>));
+		sol::usertype<LuaScriptComponent> script_type = state.new_usertype<LuaScriptComponent>("LuaScriptComponent", sol::constructors<sol::types<std::string, Scene*>>());
+		REGISTER_COMPONENT_WITH_ECS(state, LuaScriptComponent, static_cast<LuaScriptComponent& (entt::registry::*)(const entt::entity, std::string&&, Scene*&&)>(&entt::registry::emplace<LuaScriptComponent, std::string, Scene*>));
 
 		using namespace Maths;
 		REGISTER_COMPONENT_WITH_ECS(state, Transform, static_cast<Transform& (entt::registry::*)(const entt::entity)>(&entt::registry::emplace<Transform>));
@@ -368,7 +384,7 @@ namespace Lumos
 
 		REGISTER_COMPONENT_WITH_ECS(state, MeshComponent, static_cast<MeshComponent& (entt::registry::*)(const entt::entity)>(&entt::registry::emplace<MeshComponent>));
 
-		sol::usertype<Camera> camera_type = state.new_usertype<Camera>("Camera", sol::constructors<sol::types<float, float, float, float>>());
+		sol::usertype<Camera> camera_type = state.new_usertype<Camera>("Camera", sol::constructors<Camera(float, float, float, float), Camera(float, float)>());
 		camera_type["position"] = &Camera::GetPosition;
 		camera_type["yaw"] = &Camera::GetYaw;
 		camera_type["fov"] = &Camera::GetFOV;
@@ -379,9 +395,15 @@ namespace Lumos
 		camera_type["GetUpDir"] = &Camera::GetUpDirection;
 		camera_type["GetRightDir"] = &Camera::GetRightDirection;
 		camera_type["SetPosition"] = &Camera::SetPosition;
-		REGISTER_COMPONENT_WITH_ECS(state, Camera, static_cast<Camera& (entt::registry::*)(const entt::entity)>(&entt::registry::emplace<Camera>));
-		REGISTER_COMPONENT_WITH_ECS(state, Physics3DComponent, static_cast<Physics3DComponent& (entt::registry::*)(const entt::entity)>(&entt::registry::emplace<Physics3DComponent>));
-		REGISTER_COMPONENT_WITH_ECS(state, Physics3DComponent, static_cast<Physics3DComponent& (entt::registry::*)(const entt::entity)>(&entt::registry::emplace<Physics3DComponent>));
+        camera_type["SetIsOrthographic"] = &Camera::SetIsOrthographic;
+        camera_type["SetNearPlane"] = &Camera::SetNear;
+        camera_type["SetFarPlane"] = &Camera::SetFar;
+    
+        REGISTER_COMPONENT_WITH_ECS(state, Camera, static_cast<Camera& (entt::registry::*)(const entt::entity, const float&, const float&)>(&entt::registry::emplace<Camera, const float&, const float&>));
+    
+        sol::usertype<Physics3DComponent> physics3DComponent_type = state.new_usertype<Physics3DComponent>("Physics3DComponent", sol::constructors<sol::types<const Ref<RigidBody3D>&>>());
+        physics3DComponent_type.set_function("GetRigidBody", &Physics3DComponent::GetRigidBody);
+		REGISTER_COMPONENT_WITH_ECS(state, Physics3DComponent, static_cast<Physics3DComponent& (entt::registry::*)(const entt::entity,Ref<RigidBody3D>&)>(&entt::registry::emplace<Physics3DComponent, Ref<RigidBody3D>&>));
 
 		sol::usertype<Physics2DComponent> physics2DComponent_type = state.new_usertype<Physics2DComponent>("Physics2DComponent", sol::constructors<sol::types<const Ref<RigidBody2D>&>>());
 		physics2DComponent_type.set_function("GetRigidBody", &Physics2DComponent::GetRigidBody);

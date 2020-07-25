@@ -1,5 +1,3 @@
-registry = scene:GetRegistry()
-
 pillars = {}
 
 local MAX_HEIGHT = 10.0
@@ -40,6 +38,7 @@ function postSolve(a, b, coll, normalimpulse, tangentimpulse)
 end
 
 function CreatePlayer()
+    registry = CurrentScene:GetRegistry()
     colour = Vector4.new(1.0,1.0,1.0,1.0)
 
     texture = LoadTextureWithParams("icon", "/CoreTextures/panda.png", TextureFilter.Linear, TextureWrap.Clamp)
@@ -66,6 +65,8 @@ function CreatePlayer()
 end
 
 function CreatePillar(index, offset)
+    registry = CurrentScene:GetRegistry()
+
 	pillars[index] = registry:Create();
 	pillars[index + 1] = registry:Create();
 
@@ -127,26 +128,14 @@ function CreatePillar(index, offset)
 
 end
 
-CreatePlayer()
-
-for i=1,10, 2 do
-    CreatePillar(i, (i + 2) * 10.0)
-end
-
-backgroundTexture = LoadTextureWithParams("grass", "/CoreTextures/backgroundColorGrass.png", TextureFilter.Linear, TextureWrap.Clamp)
-
-backgrounds = {}
-
 function CreateBackground(index)
+    registry = CurrentScene:GetRegistry()
+
     backgrounds[index] = registry:Create()
     registry:assign_Sprite(backgrounds[index], Vector2.new(-10.0, -10.0), Vector2.new(10.0 * 2.0, 10.0 * 2.0), Vector4.new(1.0,1.0,1.0,1.0))
     registry:get_Sprite(backgrounds[index]):SetTexture(backgroundTexture)
     registry:assign_Transform(backgrounds[index])
     registry:get_Transform(backgrounds[index]):SetLocalPosition(Vector3.new(index * 20.0 - 40.0, 0.0, -1.0))
-end
-
-for i=1,50, 1 do
-    CreateBackground(i)
 end
 
 function updateSpeed(speed)
@@ -157,7 +146,28 @@ function updateGap(gap)
     gapSize = gap
 end
 
+backgrounds = {}
+
+function OnInit()
+    camera = registry:Create();
+    registry:assign_Camera(camera, 1.0, 10.0, 1.0)
+
+    CreatePlayer()
+
+    for i=1,10, 2 do
+        CreatePillar(i, (i + 2) * 10.0)
+    end
+
+    backgroundTexture = LoadTextureWithParams("grass", "/CoreTextures/backgroundColorGrass.png", TextureFilter.Linear, TextureWrap.Clamp)
+
+    for i=1,50, 1 do
+        CreateBackground(i)
+    end
+end
+
 function OnUpdate(dt)
+    registry = CurrentScene:GetRegistry()
+
     if gameState == GameStates.Running then
 		phys = registry:get_Physics2DComponent(player)
 
@@ -226,6 +236,8 @@ function OnUpdate(dt)
 end
 
 function Reset()
+    registry = CurrentScene:GetRegistry()
+
     gameState = GameStates.Running
     phys = registry:get_Physics2DComponent(player):GetRigidBody()
 
@@ -252,6 +264,8 @@ function Reset()
 end
 
 function OnCleanUp()
+    registry = CurrentScene:GetRegistry()
+
     backgroundTexture = nil
     texture = nil
     blockPhysics = nil

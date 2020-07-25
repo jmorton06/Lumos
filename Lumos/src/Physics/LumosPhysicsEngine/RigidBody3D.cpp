@@ -11,7 +11,7 @@
 namespace Lumos
 {
 
-	RigidBody3D::RigidBody3D(const Physics3DProperties& properties)
+	RigidBody3D::RigidBody3D(const RigidBody3DProperties& properties)
 		: m_wsTransformInvalidated(true)
 		, m_RestVelocityThresholdSquared(0.001f)
 		, m_AverageSummedVelocity(0.0f)
