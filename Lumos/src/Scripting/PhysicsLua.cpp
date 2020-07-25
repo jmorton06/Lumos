@@ -304,6 +304,16 @@ namespace Lumos
 		return CreateRef<RigidBody2D>(params);
 	}
 
+	Ref<RigidBody3D> CreateSharedPhysics3D()
+	{
+		return CreateRef<RigidBody3D>();
+	}
+
+	Ref<RigidBody3D> CreateSharedPhysics3DWithParams(const RigidBodyParamaters& params)
+	{
+		return CreateRef<RigidBody3D>();
+	}
+
 	void BindPhysicsLua(sol::state& state)
 	{
 		register_type_b2Vec2(state);
@@ -320,6 +330,20 @@ namespace Lumos
 		physicsObjectParamaters_type["position"] = &RigidBodyParamaters::position;
 		physicsObjectParamaters_type["scale"] = &RigidBodyParamaters::scale;
 		physicsObjectParamaters_type["isStatic"] = &RigidBodyParamaters::isStatic;
+
+		sol::usertype<RigidBody3D> physics3D_type = state.new_usertype<RigidBody3D>("RigidBody3D", sol::constructors<RigidBody2D>());//;const RigidBodyParamaters&)>());
+		physics3D_type.set_function("SetForce", &RigidBody3D::SetForce);
+		physics3D_type.set_function("SetPosition", &RigidBody3D::SetPosition);
+		physics3D_type.set_function("SetLinearVelocity", &RigidBody3D::SetLinearVelocity);
+		physics3D_type.set_function("SetOrientation", &RigidBody3D::SetOrientation);
+		physics3D_type.set_function("SetAngularVelocity", &RigidBody3D::SetAngularVelocity);
+		physics3D_type.set_function("SetFriction", &RigidBody3D::SetFriction);
+		physics3D_type.set_function("GetPosition", &RigidBody3D::GetPosition);
+		physics3D_type.set_function("GetFriction", &RigidBody3D::GetFriction);
+		physics3D_type.set_function("GetIsStatic", &RigidBody3D::GetIsStatic);
+
+		state.set_function("CreatePhysics3DShared", &CreateSharedPhysics3D);
+		state.set_function("CreatePhysics3DSharedWithParams", &CreateSharedPhysics3DWithParams);
 
 		std::initializer_list<std::pair<sol::string_view, Shape>> shapes =
 			{

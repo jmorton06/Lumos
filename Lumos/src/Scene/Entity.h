@@ -10,6 +10,9 @@ namespace Lumos
 	class Entity
 	{
 	public:
+    
+        Entity() = default;
+
 		Entity(entt::entity handle, Scene* scene)
 			: m_EntityHandle(handle)
 			, m_Scene(scene)
@@ -30,6 +33,12 @@ namespace Lumos
 		{
 			return m_Scene->GetRegistry().get_or_emplace<T>(m_EntityHandle, std::forward<Args>(args)...);
 		}
+    
+        template<typename T, typename... Args>
+        void AddOrReplaceComponent(Args&&... args)
+        {
+            m_Scene->GetRegistry().emplace_or_replace<T>(m_EntityHandle, std::forward<Args>(args)...);
+        }
 
 		template<typename T>
 		T& GetComponent()
@@ -72,6 +81,7 @@ namespace Lumos
 		{
 			return m_Scene->GetRegistry().get<Maths::Transform>(m_EntityHandle);
 		}
+
 		const Maths::Transform& GetTransform() const
 		{
 			return m_Scene->GetRegistry().get<Maths::Transform>(m_EntityHandle);
@@ -81,6 +91,7 @@ namespace Lumos
 		{
 			return (u32)m_EntityHandle;
 		}
+
 		operator bool() const
 		{
 			return (u32)m_EntityHandle && m_Scene;
@@ -101,8 +112,17 @@ namespace Lumos
 			return m_EntityHandle;
 		}
 
+		void Destroy()
+		{
+			m_Scene->GetRegistry().destroy(m_EntityHandle);
+		}
+
+		bool Valid()
+		{
+			return m_Scene->GetRegistry().valid(m_EntityHandle);
+		}
+
 	private : 
-		Entity() = default;
 		Entity(const std::string& name);
 
 	private:

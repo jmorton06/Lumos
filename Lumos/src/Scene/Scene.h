@@ -67,18 +67,6 @@ namespace Lumos
 			return m_SceneName;
 		}
 
-		// The maximum bounds of the contained scene
-		//   - This is exclusively used for shadowing purposes, ensuring all objects that could
-		//     cast shadows are rendered as necessary.
-		void SetWorldRadius(float radius)
-		{
-			m_SceneBoundingRadius = radius;
-		}
-		float GetWorldRadius() const
-		{
-			return m_SceneBoundingRadius;
-		}
-
 		void SetScreenWidth(u32 width)
 		{
 			m_ScreenWidth = width;
@@ -99,10 +87,6 @@ namespace Lumos
 
 		entt::registry& GetRegistry();
 
-		void LoadLuaScene(const std::string& filePath);
-
-		static Scene* LoadFromLua(const std::string& filePath);
-
 		LayerStack* GetLayers() const
 		{
 			return m_LayerStack;
@@ -120,12 +104,11 @@ namespace Lumos
 		template<typename Archive>
 		void serialize(Archive& archive)
 		{
-			archive(cereal::make_nvp("Bounding Radius", m_SceneBoundingRadius), cereal::make_nvp("Scene Name", m_SceneName), cereal::make_nvp("Lua Script", m_LuaFilePath));
+			archive(cereal::make_nvp("Scene Name", m_SceneName));
 		}
 
 	protected:
 		std::string m_SceneName;
-		float m_SceneBoundingRadius;
 
 		UniqueRef<EntityManager> m_EntityManager;
 
@@ -142,10 +125,6 @@ namespace Lumos
 		NONCOPYABLE(Scene)
 
 		bool OnWindowResize(WindowResizeEvent& e);
-		Ref<sol::environment> m_LuaEnv;
-		Ref<sol::protected_function> m_LuaUpdateFunction;
-
-		std::string m_LuaFilePath;
 
 		friend class Entity;
 	};

@@ -35,7 +35,7 @@ namespace Lumos
 					ImGui::TreePop();
 				}
 
-				auto layerStack = Application::Get().GetLayerStack();
+				auto layerStack = Application::Get().GetSceneLayers();
 				if(ImGui::TreeNode("Layers"))
 				{
 					layerStack->OnImGui();

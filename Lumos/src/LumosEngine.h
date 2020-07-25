@@ -77,7 +77,7 @@
 #include "Core/OS/OS.h"
 
 //Scripting
-#include "Scripting/ScriptComponent.h"
+#include "Scripting/LuaScriptComponent.h"
 #include "Scripting/LuaManager.h"
 
 //Utilities

@@ -1,5 +1,5 @@
 #include "lmpch.h"
-#include "ScriptComponent.h"
+#include "LuaScriptComponent.h"
 #include "LuaManager.h"
 #include "Scene/Scene.h"
 #include "Core/Engine.h"
@@ -8,7 +8,7 @@
 
 namespace Lumos
 {
-	ScriptComponent::ScriptComponent(const std::string& fileName, Scene* scene)
+	LuaScriptComponent::LuaScriptComponent(const std::string& fileName, Scene* scene)
 	{
 		m_Scene = scene;
 		m_FileName = fileName;
@@ -16,18 +16,18 @@ namespace Lumos
 		Init();
 	}
 
-	void ScriptComponent::Init()
+	void LuaScriptComponent::Init()
 	{
 		LoadScript(m_FileName);
 	}
 
-	ScriptComponent::~ScriptComponent()
+	LuaScriptComponent::~LuaScriptComponent()
 	{
 		if(m_Env && (*m_Env)["OnRelease"])
 			(*m_Env)["OnRelease"]();
 	}
 
-	void ScriptComponent::LoadScript(const std::string& fileName)
+	void LuaScriptComponent::LoadScript(const std::string& fileName)
 	{
 		std::string physicalPath;
 		if(!VFS::Get()->ResolvePhysicalPath(fileName, physicalPath))
@@ -51,11 +51,22 @@ namespace Lumos
 		if(m_Scene)
 			(*m_Env)["CurrentScene"] = m_Scene;
 
-		sol::protected_function onInitFunc = (*m_Env)["OnInit"];
+		if((*m_Env)["OnInit"])
+			m_OnInitFunc = CreateRef<sol::protected_function>((*m_Env)["OnInit"]);
+		else
+			m_OnInitFunc = nullptr;
 
-		if(onInitFunc)
+		if((*m_Env)["OnUpdate"])
+			m_UpdateFunc = CreateRef<sol::protected_function>((*m_Env)["OnUpdate"]);
+		else
+			m_UpdateFunc = nullptr;
+    }
+
+	void LuaScriptComponent::OnInit()
+	{
+		if(m_OnInitFunc)
 		{
-			sol::protected_function_result result = onInitFunc.call();
+			sol::protected_function_result result = m_OnInitFunc->call();
 			if(!result.valid())
 			{
 				sol::error err = result;
@@ -63,14 +74,9 @@ namespace Lumos
 				Debug::Log::Error("Error : {0}", err.what());
 			}
 		}
-
-		if((*m_Env)["OnUpdate"])
-			m_UpdateFunc = CreateRef<sol::protected_function>((*m_Env)["OnUpdate"]);
-		else
-			m_UpdateFunc = nullptr;
 	}
 
-	void ScriptComponent::Update(float dt)
+	void LuaScriptComponent::OnUpdate(float dt)
 	{
 		if(m_UpdateFunc)
 		{
@@ -84,7 +90,7 @@ namespace Lumos
 		}
 	}
 
-	void ScriptComponent::Reload()
+	void LuaScriptComponent::Reload()
 	{
 		if((*m_Env) && (*m_Env)["OnRelease"])
 			(*m_Env)["OnRelease"]();
@@ -92,7 +98,7 @@ namespace Lumos
 		Init();
 	}
 
-	void ScriptComponent::Load(const std::string& fileName)
+	void LuaScriptComponent::Load(const std::string& fileName)
 	{
 		if((*m_Env) && (*m_Env)["OnRelease"])
 			(*m_Env)["OnRelease"]();

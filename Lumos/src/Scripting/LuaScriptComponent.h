@@ -8,15 +8,16 @@ namespace Lumos
 {
 	class Scene;
 
-	class LUMOS_EXPORT ScriptComponent
+	class LUMOS_EXPORT LuaScriptComponent
 	{
 	public:
-		ScriptComponent() = default;
-		ScriptComponent(const std::string& fileName, Scene* scene);
-		~ScriptComponent();
+		LuaScriptComponent() = default;
+		LuaScriptComponent(const std::string& fileName, Scene* scene);
+		~LuaScriptComponent();
 
 		void Init();
-		void Update(float dt);
+		void OnInit();
+		void OnUpdate(float dt);
 		void Reload();
 		void Load(const std::string& fileName);
 
@@ -67,6 +68,7 @@ namespace Lumos
 		std::vector<std::string> m_Errors;
 
 		Ref<sol::environment> m_Env;
+		Ref<sol::protected_function> m_OnInitFunc;
 		Ref<sol::protected_function> m_UpdateFunc;
 	};
 }

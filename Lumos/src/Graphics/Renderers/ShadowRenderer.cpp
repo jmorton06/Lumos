@@ -368,7 +368,7 @@ namespace Lumos
 						radius = Maths::Max(radius, distance);
 					}
 					radius = std::ceil(radius * 16.0f) / 16.0f;
-					float sceneBoundingRadius = scene->GetWorldRadius() * 1.4f;
+					float sceneBoundingRadius = m_Camera->GetShadowBoundingRadius() * 1.4f;
 					//Extend the Z depths to catch shadow casters outside view frustum
 					radius = Maths::Max(radius, sceneBoundingRadius);
 

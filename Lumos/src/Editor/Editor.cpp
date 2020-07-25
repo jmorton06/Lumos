@@ -22,7 +22,7 @@
 #include "Events/ApplicationEvent.h"
 
 #include "Scene/Component/Components.h"
-#include "Scripting/ScriptComponent.h"
+#include "Scripting/LuaScriptComponent.h"
 
 #include "Physics/LumosPhysicsEngine/LumosPhysicsEngine.h"
 #include "Physics/B2PhysicsEngine/B2PhysicsEngine.h"
@@ -77,6 +77,7 @@ namespace Lumos
 
 	void Editor::OnInit()
 	{
+#ifndef LUMOS_PLATFORM_IOS
 		const char* ini[] = {ROOT_DIR "/Editor.ini", ROOT_DIR "/Editor/Editor.ini"};
 		bool fileFound = false;
 		std::string filePath;
@@ -105,6 +106,7 @@ namespace Lumos
 			AddDefaultEditorSettings();
 			// ImGui::GetIO().IniFilename = "editor.ini";
 		}
+#endif
 
 		m_EditorCamera = new Camera(-20.0f,
 			-40.0f,
@@ -125,7 +127,7 @@ namespace Lumos
 		m_ComponentIconMap[typeid(Physics3DComponent).hash_code()] = ICON_MDI_CUBE_OUTLINE;
 		m_ComponentIconMap[typeid(MeshComponent).hash_code()] = ICON_MDI_SHAPE;
 		m_ComponentIconMap[typeid(MaterialComponent).hash_code()] = ICON_MDI_BRUSH;
-		m_ComponentIconMap[typeid(ScriptComponent).hash_code()] = ICON_MDI_SCRIPT;
+		m_ComponentIconMap[typeid(LuaScriptComponent).hash_code()] = ICON_MDI_SCRIPT;
 		m_ComponentIconMap[typeid(Graphics::Environment).hash_code()] = ICON_MDI_EARTH;
 
 		m_Windows.emplace_back(CreateRef<ConsoleWindow>());
@@ -133,11 +135,13 @@ namespace Lumos
 		m_Windows.emplace_back(CreateRef<ProfilerWindow>());
 		m_Windows.back()->SetActive(false);
 		m_Windows.emplace_back(CreateRef<InspectorWindow>());
+        m_Windows.emplace_back(CreateRef<ApplicationInfoWindow>());
 		m_Windows.emplace_back(CreateRef<HierarchyWindow>());
 		m_Windows.emplace_back(CreateRef<GraphicsInfoWindow>());
 		m_Windows.back()->SetActive(false);
-		m_Windows.emplace_back(CreateRef<ApplicationInfoWindow>());
+    #ifndef LUMOS_PLATFORM_IOS
 		m_Windows.emplace_back(CreateRef<AssetWindow>());
+    #endif
 
 		for(auto& window : m_Windows)
 			window->SetEditor(this);
@@ -633,9 +637,11 @@ namespace Lumos
 		view = view.Transpose();
 		proj = proj.Transpose();
 
-		//if(m_ShowGrid && !m_CurrentCamera->IsOrthographic())
-		//  ImGuizmo::DrawGrid(Maths::ValuePointer(view),
-		//                   Maths::ValuePointer(proj), identityMatrix, 120.f);
+    #ifdef USE_IMGUIZMO_GRID
+		if(m_ShowGrid && !m_CurrentCamera->IsOrthographic())
+		  ImGuizmo::DrawGrid(Maths::ValuePointer(view),
+		                   Maths::ValuePointer(proj), identityMatrix, 120.f);
+    #endif
 
 		if(m_Selected == entt::null || m_ImGuizmoOperation == 4)
 			return;
@@ -827,8 +833,7 @@ namespace Lumos
 		ImGuiIO& io = ImGui::GetIO();
 		if(io.ConfigFlags & ImGuiConfigFlags_DockingEnable)
 		{
-			ImGuiID dockspace_id = ImGui::GetID("MyDockspace");
-			ImGui::DockSpace(dockspace_id, ImVec2(0.0f, 0.0f), opt_flags);
+			ImGui::DockSpace(DockspaceID, ImVec2(0.0f, 0.0f), opt_flags);
 		}
 	}
 
@@ -840,11 +845,68 @@ namespace Lumos
 	void Editor::OnNewScene(Scene* scene)
 	{
 		m_Selected = entt::null;
+        m_EditorCamera->SetPosition(Maths::Vector3(-31.0f, 12.0f, 51.0f));
+        m_EditorCamera->SetOrientation(-20.0f, -40.0f, 0.0f);
 
 		for(auto window : m_Windows)
 		{
 			window->OnNewScene(scene);
 		}
+    
+        std::string Configuration;
+        std::string Platform;
+        std::string RenderAPI;
+        std::string dash = " - ";
+        
+    #ifdef LUMOS_DEBUG
+        Configuration = "Debug";
+    #else
+        Configuration = "Release";
+    #endif
+        
+    #ifdef LUMOS_PLATFORM_WINDOWS
+        Platform = "Windows";
+    #elif LUMOS_PLATFORM_LINUX
+        Platform = "Linux";
+    #elif LUMOS_PLATFORM_MACOS
+        Platform = "MacOS";
+    #elif LUMOS_PLATFORM_IOS
+        Platform = "iOS";
+    #endif
+        
+        switch(Graphics::GraphicsContext::GetRenderAPI())
+            {
+    #ifdef LUMOS_RENDER_API_OPENGL
+                case Graphics::RenderAPI::OPENGL:
+                RenderAPI = "OpenGL";
+                break;
+    #endif
+                
+    #ifdef LUMOS_RENDER_API_VULKAN
+    #    if defined(LUMOS_PLATFORM_MACOS) || defined(LUMOS_PLATFORM_IOS)
+                case Graphics::RenderAPI::VULKAN:
+                RenderAPI = "Vulkan ( MoltenVK )";
+                break;
+    #    else
+                case Graphics::RenderAPI::VULKAN:
+                RenderAPI = "Vulkan";
+                break;
+    #    endif
+    #endif
+                
+    #ifdef LUMOS_RENDER_API_DIRECT3D
+                case DIRECT3D:
+                RenderAPI = "Direct3D";
+                break;
+    #endif
+                default:
+                break;
+            }
+        
+        std::stringstream Title;
+        Title << Platform << dash << RenderAPI << dash << Configuration << dash << scene->GetSceneName() << dash << Application::Get().GetWindow()->GetTitle();
+        
+        Application::Get().GetWindow()->SetWindowTitle(Title.str());
 	}
 
 	void Editor::Draw3DGrid()

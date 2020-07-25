@@ -56,7 +56,7 @@ namespace Lumos
 		{
 			camera = m_Editor->GetCamera();
 
-			auto sceneLayers = m_CurrentScene->GetLayers();
+			auto sceneLayers = app.GetSceneLayers();
 			for(auto layer : *sceneLayers)
 			{
 				layer->SetOverrideCamera(camera);
@@ -67,7 +67,7 @@ namespace Lumos
 		else
 		{
 			gameView = true;
-			auto sceneLayers = m_CurrentScene->GetLayers();
+			auto sceneLayers = app.GetSceneLayers();
 			for(auto layer : *sceneLayers)
 			{
 				layer->SetOverrideCamera(nullptr);
@@ -571,7 +571,7 @@ namespace Lumos
 	{
 		m_AspectRatio = 1.0f;
 		m_CurrentScene = scene;
-		auto sceneLayers = scene->GetLayers();
+		auto sceneLayers = Application::Get().GetSceneLayers();
 
 		for(auto layer : *sceneLayers)
 		{
@@ -607,7 +607,7 @@ namespace Lumos
 
 			m_GameViewTexture->BuildTexture(Graphics::TextureFormat::RGBA32, m_Width, m_Height, false, false);
 
-			auto sceneLayers = m_CurrentScene->GetLayers();
+			auto sceneLayers = Application::Get().GetSceneLayers();
 
 			for(auto layer : *sceneLayers)
 			{

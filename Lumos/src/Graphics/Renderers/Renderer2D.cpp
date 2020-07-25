@@ -344,6 +344,12 @@ namespace Lumos
 
 		void Renderer2D::Present()
 		{
+            if(m_IndexCount == 0){
+                m_Empty = true;
+                return;
+            }
+
+            m_Empty = false;
 			UpdateDesciptorSet();
 
 			Graphics::CommandBuffer* currentCMDBuffer = m_SecondaryCommandBuffers[m_BatchDrawCallIndex];
@@ -384,7 +390,7 @@ namespace Lumos
 			if(m_RenderTexture)
 				m_CommandBuffers[m_CurrentBufferID]->Execute(true);
 
-			if(!m_RenderTexture)
+			if(!m_RenderTexture && !m_Empty)
 				PresentToScreen();
 
 			m_BatchDrawCallIndex = 0;

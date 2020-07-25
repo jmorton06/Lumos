@@ -13,6 +13,15 @@
 #include "Graphics/Camera/Camera.h"
 #include "Graphics/Material.h"
 #include "Graphics/Renderers/DebugRenderer.h"
+#include "Graphics/Renderers/Renderer2D.h"
+#include "Graphics/Renderers/DeferredRenderer.h"
+#include "Graphics/Renderers/ForwardRenderer.h"
+#include "Graphics/Renderers/ShadowRenderer.h"
+#include "Graphics/Renderers/GridRenderer.h"
+#include "Graphics/Renderers/SkyboxRenderer.h"
+
+#include "Graphics/Layers/Layer2D.h"
+#include "Graphics/Layers/Layer3D.h"
 
 #include "Scene/Component/MeshComponent.h"
 
@@ -140,6 +149,25 @@ namespace Lumos
 		m_CurrentState = AppState::Running;
 
 		DebugRenderer::Init(screenWidth, screenHeight);
+            
+    #ifndef LUMOS_PLATFORM_IOS
+        auto shadowRenderer = new Graphics::ShadowRenderer();
+        auto shadowLayer = new Layer3D(shadowRenderer);
+        Application::Get().GetRenderManager()->SetShadowRenderer(shadowRenderer);
+        shadowLayer->OnAttach();
+        m_LayerStack->PushLayer(shadowLayer);
+    #endif
+        
+        auto layerSky = new Layer3D(new Graphics::SkyboxRenderer(screenWidth, screenHeight), "Skybox");
+        auto layer2D = new Layer2D(new Graphics::Renderer2D(screenWidth, screenHeight, false, false, true));
+        auto layerDeferred = new Layer3D(new Graphics::DeferredRenderer(screenWidth, screenHeight), "Deferred");
+        m_LayerStack->PushLayer(layerDeferred);
+        m_LayerStack->PushLayer(layerSky);
+        m_LayerStack->PushLayer(layer2D);
+        
+        layerDeferred->OnAttach();
+        layerSky->OnAttach();
+        layer2D->OnAttach();
 	}
 
 	int Application::Quit(bool pause, const std::string& reason)
@@ -252,7 +280,7 @@ namespace Lumos
 
 	void Application::OnRender()
 	{
-		if(m_LayerStack->GetCount() > 0 || m_SceneManager->GetCurrentScene()->GetLayers()->GetCount() > 0)
+		if(m_LayerStack->GetCount() > 0 || m_LayerStack->GetCount() > 0)
 		{
 			Graphics::Renderer::GetRenderer()->Begin();
 			DebugRenderer::Reset();
@@ -260,7 +288,6 @@ namespace Lumos
 			m_SystemManager->OnDebugDraw();
 
 			m_LayerStack->OnRender(m_SceneManager->GetCurrentScene());
-			m_SceneManager->GetCurrentScene()->GetLayers()->OnRender(m_SceneManager->GetCurrentScene());
 #ifdef LUMOS_EDITOR
 			m_Editor->DebugDraw();
 			m_Editor->OnRender();
@@ -290,7 +317,6 @@ namespace Lumos
 		if(!m_Minimized)
 		{
 			m_LayerStack->OnUpdate(dt, m_SceneManager->GetCurrentScene());
-			m_SceneManager->GetCurrentScene()->GetLayers()->OnUpdate(dt, m_SceneManager->GetCurrentScene());
 			m_ImGuiLayer->OnUpdate(dt, m_SceneManager->GetCurrentScene());
 		}
 	}
@@ -405,7 +431,6 @@ namespace Lumos
 		m_Minimized = false;
 		m_RenderManager->OnResize(width, height);
 		m_LayerStack->OnEvent(e);
-		m_SceneManager->GetCurrentScene()->GetLayers()->OnEvent(e);
 		DebugRenderer::OnResize(width, height);
 
 		Graphics::GraphicsContext::GetContext()->WaitIdle();

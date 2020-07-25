@@ -145,6 +145,7 @@ namespace Lumos
 			bool m_RenderToDepthTexture;
 			Render2DLimits m_Limits;
 			Camera* m_Camera = nullptr;
+            bool m_Empty = false;
 		};
 	}
 }

@@ -14,16 +14,10 @@ Scene2D::~Scene2D()
 
 void Scene2D::OnInit()
 {
+    auto gameControllerEntity = m_EntityManager->Create("GameController");
+    gameControllerEntity.AddComponent<LuaScriptComponent>("/Scripts/FlappyBirdTest.lua", this);
+    
 	Scene::OnInit();
-
-	Application::Get().GetSystem<LumosPhysicsEngine>()->SetPaused(true);
-
-	LoadLuaScene("/Scripts/FlappyBirdTest.lua");
-
-	auto cameraEntity = m_EntityManager->Create("Camera");
-	cameraEntity.AddComponent<Camera>(static_cast<float>(m_ScreenWidth) / static_cast<float>(m_ScreenHeight), 10.0f);
-
-	PushLayer(new Layer2D(new Graphics::Renderer2D(m_ScreenWidth, m_ScreenHeight, true, false, true)));
 }
 
 void Scene2D::OnUpdate(const TimeStep& timeStep)

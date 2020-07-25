@@ -12,21 +12,52 @@ namespace Lumos
 	template<class T>
 	class EntityView
 	{
-		entt::view<T> m_View;
+    public:
+		EntityView(Scene* scene)
+			: m_Scene(scene), m_View(scene->GetRegistry().view<T>())
+		{
+		}
+    
+        Entity operator[](int i)
+		{
+			LUMOS_ASSERT(i < size(), "Index out of range on Entity View");
+			Entity(m_View[i], m_Scene);
+		}
+
+		size_t size() const { return m_View.size(); }
+		Entity front() { return Entity(m_View[0], m_Scene); }
+    private:
+        Scene* m_Scene;
+		entt::basic_view<entt::entity, entt::exclude_t<>, T> m_View;
 	};
 
 	template<typename... Components>
 	class EntityGroup
 	{
-		entt::sparse_set<entt::entity>::iterator begin()
+	public:
+		EntityGroup(Scene* scene)
+			: m_Scene(scene)
+			, m_Group(scene->GetRegistry().group<Components...>())
 		{
-			return m_Group.begin();
-		}
-		entt::sparse_set<entt::entity>::iterator end()
-		{
-			return m_Group.end();
 		}
 
+		Entity operator[](int i)
+		{
+			LUMOS_ASSERT(i < size(), "Index out of range on Entity View");
+			Entity(m_Group[i], m_Scene);
+		}
+
+		size_t size() const
+		{
+			return m_Group.size();
+		}
+		Entity front()
+		{
+			return Entity(m_Group[0], m_Scene);
+		}
+
+	private:
+		Scene* m_Scene;
 		entt::group<Components...> m_Group;
 	};
 
@@ -53,9 +84,9 @@ namespace Lumos
 		}
 
 		template<typename Component>
-		auto GetEntitiesWithType()
+		EntityView<Component> GetEntitiesWithType()
 		{
-			return m_Registry.view<Component>();
+			return EntityView<Component>(m_Scene);
 		}
 
 		template<typename R, typename T>

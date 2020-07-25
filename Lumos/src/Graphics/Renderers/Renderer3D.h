@@ -84,6 +84,7 @@ namespace Lumos
 			CommandQueue m_CommandQueue;
 			SystemUniformList m_SystemUniforms;
 			Texture* m_RenderTexture = nullptr;
+			Texture* m_DepthTexture = nullptr;
 		};
 	}
 }
