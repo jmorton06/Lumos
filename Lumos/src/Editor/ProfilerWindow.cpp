@@ -1,6 +1,6 @@
 #include "lmpch.h"
 #include "ProfilerWindow.h"
-#include "App/Engine.h"
+#include "Core/Engine.h"
 
 //Based on https://github.com/Raikiri/LegitProfiler
 
@@ -32,7 +32,7 @@ namespace Lumos
 	uint32_t silver = RGBA_LE(0xbdc3c7ffu);
 	uint32_t imguiText = RGBA_LE(0xF2F5FAFFu);
 
-	uint32_t colour[16] = { turqoise , greenSea,emerald, nephritis , peterRiver , belizeHole , amethyst ,wisteria ,sunFlower ,orange , carrot , pumpkin , alizarin, pomegranate,clouds, silver };
+	uint32_t colour[16] = {turqoise, greenSea, emerald, nephritis, peterRiver, belizeHole, amethyst, wisteria, sunFlower, orange, carrot, pumpkin, alizarin, pomegranate, clouds, silver};
 
 	ProfilerWindow::ProfilerWindow()
 	{
@@ -52,15 +52,14 @@ namespace Lumos
 		fpsFramesCount = 0;
 		avgFrameTime = 1.0f;
 
-		Profiler::Instance()->Enable();
-
+		Profiler::Get().Enable();
 	}
 
 	void ProfilerWindow::OnImGui()
 	{
 		ImGui::Begin(m_Name.c_str(), 0, ImGuiWindowFlags_NoScrollbar);
 
-		auto profiler = Profiler::Instance();
+		auto& profiler = Profiler::Get();
 
 		m_CPUGraph.Update();
 
@@ -68,15 +67,15 @@ namespace Lumos
 
 		int sizeMargin = int(ImGui::GetStyle().ItemSpacing.y);
 		int maxGraphHeight = 300;
-        int availableGraphHeight = (int(canvasSize.y) - sizeMargin);
+		int availableGraphHeight = (int(canvasSize.y) - sizeMargin);
 		int graphHeight = std::min(maxGraphHeight, availableGraphHeight);
 		int legendWidth = 350;
 		int graphWidth = int(canvasSize.x) - legendWidth;
 		m_CPUGraph.RenderTimings(graphWidth, legendWidth, graphHeight, frameOffset);
-		if (graphHeight * 2 + sizeMargin + sizeMargin < canvasSize.y)
+		if(graphHeight * 2 + sizeMargin + sizeMargin < canvasSize.y)
 		{
 			ImGui::Columns(2);
-			ImGui::Checkbox("Stop profiling", &profiler->IsEnabled());
+			ImGui::Checkbox("Stop profiling", &profiler.IsEnabled());
 			ImGui::Checkbox("Colored legend text", &useColoredLegendText);
 			ImGui::DragInt("Frame offset", &frameOffset, 1.0f, 0, 400);
 			ImGui::NextColumn();
@@ -86,17 +85,19 @@ namespace Lumos
 			ImGui::SliderFloat("Transparency", &ImGui::GetStyle().Colors[ImGuiCol_WindowBg].w, 0.0f, 1.0f);
 			ImGui::Columns(1);
 		}
-		if (!profiler->IsEnabled())
+		if(!profiler.IsEnabled())
 			frameOffset = 0;
 		m_CPUGraph.frameWidth = frameWidth;
 		m_CPUGraph.frameSpacing = frameSpacing;
 		m_CPUGraph.useColoredLegendText = useColoredLegendText;
 
 		ImGui::End();
-
 	}
 
-	ProfilerGraph::ProfilerGraph(): frameWidth(0), frameSpacing(0), useColoredLegendText(false)
+	ProfilerGraph::ProfilerGraph()
+		: frameWidth(0)
+		, frameSpacing(0)
+		, useColoredLegendText(false)
 	{
 		m_Reports.reserve(300);
 		currFrameIndex = 0;
@@ -104,19 +105,19 @@ namespace Lumos
 
 	void ProfilerGraph::Update()
 	{
-		auto profiler = Profiler::Instance();
-		if (profiler->IsEnabled())
+		auto& profiler = Profiler::Get();
+		if(profiler.IsEnabled())
 		{
-			auto report = profiler->GenerateReport();
-			profiler->ClearHistory();
+			auto report = profiler.GenerateReport();
+			profiler.ClearHistory();
 
-            if(m_Reports.size() > 300)
-            {
-                //m_Reports.front() = std::move(m_Reports.back());
-                //m_Reports.pop_back();
+			if(m_Reports.size() > 300)
+			{
+				//m_Reports.front() = std::move(m_Reports.back());
+				//m_Reports.pop_back();
 
 				m_Reports.erase(m_Reports.begin());
-            }
+			}
 			m_Reports.emplace_back(report);
 		}
 		else
@@ -124,15 +125,15 @@ namespace Lumos
 			return;
 		}
 
-		auto &currFrame = m_Reports.back();
-	
+		auto& currFrame = m_Reports.back();
+
 		currFrame.taskStatsIndex.resize(currFrame.actions.size());
 
-		for (size_t taskIndex = 0; taskIndex < currFrame.actions.size(); taskIndex++)
+		for(size_t taskIndex = 0; taskIndex < currFrame.actions.size(); taskIndex++)
 		{
-			auto &task = currFrame.actions[taskIndex];
+			auto& task = currFrame.actions[taskIndex];
 			auto it = taskNameToStatsIndex.find(task.name);
-			if (it == taskNameToStatsIndex.end())
+			if(it == taskNameToStatsIndex.end())
 			{
 				taskNameToStatsIndex[task.name] = taskStats.size();
 				TaskStats taskStat;
@@ -143,28 +144,28 @@ namespace Lumos
 		}
 		currFrameIndex = /*(currFrameIndex + 1) %*/ m_Reports.size() - 1;
 
-		RebuildTaskStats(currFrameIndex, 300/*frames.size()*/);
+		RebuildTaskStats(currFrameIndex, 300 /*frames.size()*/);
 	}
 
-	_FORCE_INLINE_ void ProfilerGraph::Rect(ImDrawList * drawList, const Maths::Vector2 & minPoint, const Maths::Vector2 & maxPoint, uint32_t col, bool filled)
+	_FORCE_INLINE_ void ProfilerGraph::Rect(ImDrawList* drawList, const Maths::Vector2& minPoint, const Maths::Vector2& maxPoint, uint32_t col, bool filled)
 	{
-		if (filled)
+		if(filled)
 			drawList->AddRectFilled(ImVec2(minPoint.x, minPoint.y), ImVec2(maxPoint.x, maxPoint.y), col);
 		else
 			drawList->AddRect(ImVec2(minPoint.x, minPoint.y), ImVec2(maxPoint.x, maxPoint.y), col);
 	}
-	_FORCE_INLINE_ void ProfilerGraph::Text(ImDrawList * drawList, const Maths::Vector2 & point, uint32_t col, const char * text)
+	_FORCE_INLINE_ void ProfilerGraph::Text(ImDrawList* drawList, const Maths::Vector2& point, uint32_t col, const char* text)
 	{
 		drawList->AddText(ImVec2(point.x, point.y), col, text);
 	}
-	_FORCE_INLINE_ void ProfilerGraph::Triangle(ImDrawList * drawList, const std::array<Maths::Vector2, 3>& points, uint32_t col, bool filled)
+	_FORCE_INLINE_ void ProfilerGraph::Triangle(ImDrawList* drawList, const std::array<Maths::Vector2, 3>& points, uint32_t col, bool filled)
 	{
-		if (filled)
+		if(filled)
 			drawList->AddTriangleFilled(ImVec2(points[0].x, points[0].y), ImVec2(points[1].x, points[1].y), ImVec2(points[2].x, points[2].y), col);
 		else
 			drawList->AddTriangle(ImVec2(points[0].x, points[0].y), ImVec2(points[1].x, points[1].y), ImVec2(points[2].x, points[2].y), col);
 	}
-	_FORCE_INLINE_ void ProfilerGraph::RenderTaskMarker(ImDrawList * drawList, const Maths::Vector2 & leftMinPoint, const Maths::Vector2 & leftMaxPoint, const Maths::Vector2 & rightMinPoint, const Maths::Vector2 & rightMaxPoint, uint32_t col)
+	_FORCE_INLINE_ void ProfilerGraph::RenderTaskMarker(ImDrawList* drawList, const Maths::Vector2& leftMinPoint, const Maths::Vector2& leftMaxPoint, const Maths::Vector2& rightMinPoint, const Maths::Vector2& rightMaxPoint, uint32_t col)
 	{
 		Rect(drawList, leftMinPoint, leftMaxPoint, col, true);
 		Rect(drawList, rightMinPoint, rightMaxPoint, col, true);
@@ -172,85 +173,85 @@ namespace Lumos
 			ImVec2(leftMaxPoint.x, leftMinPoint.y),
 			ImVec2(leftMaxPoint.x, leftMaxPoint.y),
 			ImVec2(rightMinPoint.x, rightMaxPoint.y),
-			ImVec2(rightMinPoint.x, rightMinPoint.y)
-		};
+			ImVec2(rightMinPoint.x, rightMinPoint.y)};
 		drawList->AddConvexPolyFilled(points.data(), int(points.size()), col);
 	}
-	_FORCE_INLINE_ void ProfilerGraph::RenderGraph(ImDrawList * drawList, const Maths::Vector2 & graphPos, const Maths::Vector2 & graphSize, size_t frameIndexOffset)
+	_FORCE_INLINE_ void ProfilerGraph::RenderGraph(ImDrawList* drawList, const Maths::Vector2& graphPos, const Maths::Vector2& graphSize, size_t frameIndexOffset)
 	{
 		Rect(drawList, graphPos, graphPos + graphSize, 0xffffffff, false);
 		//float maxFrameTime = 1.0f / 30.0f;
 		float heightThreshold = 1.0f;
 
-		for (size_t frameNumber = 0; frameNumber < m_Reports.size(); frameNumber++)
+		for(size_t frameNumber = 0; frameNumber < m_Reports.size(); frameNumber++)
 		{
 			size_t frameIndex = (currFrameIndex - frameIndexOffset - 1 - frameNumber + 2 * m_Reports.size()) % m_Reports.size();
 
 			Maths::Vector2 framePos = graphPos + Maths::Vector2(graphSize.x - 1 - frameWidth - (frameWidth + frameSpacing) * frameNumber, graphSize.y - 1);
-			if (framePos.x < graphPos.x + 1)
+			if(framePos.x < graphPos.x + 1)
 				break;
-			Maths::Vector2 taskPos = framePos;// +Maths::Vector2(0.0f, 0.0f);
-			auto &frame = m_Reports[frameIndex];
+			Maths::Vector2 taskPos = framePos; // +Maths::Vector2(0.0f, 0.0f);
+			auto& frame = m_Reports[frameIndex];
 			float currentTime = 0.0f;
 
-			for (auto task : frame.actions)
+			for(auto task : frame.actions)
 			{
 				/*	float taskStartHeight = (float(task.startTime) / maxFrameTime) * graphSize.y;
 					float taskEndHeight = (float(task.endTime) / maxFrameTime) * graphSize.y;*/
 
-				float duration = (float(task.duration) / maxFrameTime) * (graphSize.y - 5.0f);// (float(task.duration) / maxFrameTime) * graphSize.y;
+				float duration = (float(task.duration) / maxFrameTime) * (graphSize.y - 5.0f); // (float(task.duration) / maxFrameTime) * graphSize.y;
 
 				//float taskEndHeight = (float(task.endTime) / maxFrameTime) * graphSize.y;
 
-				if (abs(duration) > heightThreshold)
+				if(abs(duration) > heightThreshold)
 				{
 					Rect(drawList, taskPos + Maths::Vector2(0.0f, -currentTime), taskPos + Maths::Vector2(float(frameWidth), -(currentTime + duration)), Columnour(task.name), true);
-                    
+
 					currentTime += duration;
 				}
 			}
 		}
 	}
 
-    uint32_t ProfilerGraph::Columnour(const char* name)
-    {
-        bool found = m_ColourMap.find(name) != m_ColourMap.end();
-        
-        if(!found)
-            m_ColourMap[name] = colour[colourIndex % 16]; colourIndex++;
-        
-        return m_ColourMap[name];
-    }
+	uint32_t ProfilerGraph::Columnour(const char* name)
+	{
+		bool found = m_ColourMap.find(name) != m_ColourMap.end();
+
+		if(!found)
+			m_ColourMap[name] = colour[colourIndex % 16];
+		colourIndex++;
+
+		return m_ColourMap[name];
+	}
 
 	_FORCE_INLINE_ void ProfilerGraph::RenderTimings(int graphWidth, int legendWidth, int height, int frameIndexOffset)
 	{
 		ImDrawList* drawList = ImGui::GetWindowDrawList();
 		const Maths::Vector2 widgetPos = Maths::Vector2(ImGui::GetCursorScreenPos().x, ImGui::GetCursorScreenPos().y);
-        FindMaxFrameTime(frameIndexOffset,widgetPos, Maths::Vector2(float(graphWidth), float(height)));
+		FindMaxFrameTime(frameIndexOffset, widgetPos, Maths::Vector2(float(graphWidth), float(height)));
 		RenderGraph(drawList, widgetPos, Maths::Vector2(float(graphWidth), float(height)), frameIndexOffset);
 		RenderLegend(drawList, widgetPos + Maths::Vector2(float(graphWidth), 0.0f), Maths::Vector2(float(legendWidth), float(height)), frameIndexOffset);
 		ImGui::Dummy(ImVec2(float(graphWidth + legendWidth), float(height)));
 	}
 
-    void ProfilerGraph::FindMaxFrameTime(size_t frameIndexOffset, const Maths::Vector2& graphPos, const Maths::Vector2& graphSize)
-    {
-        maxFrameTime = 0.0f;
-        for (size_t frameNumber = 0; frameNumber < m_Reports.size(); frameNumber++)
-        {
-            Maths::Vector2 framePos = graphPos + Maths::Vector2(graphSize.x - 1 - frameWidth - (frameWidth + frameSpacing) * frameNumber, graphSize.y - 1);
-            if (framePos.x < graphPos.x + 1)
-                break;
+	void ProfilerGraph::FindMaxFrameTime(size_t frameIndexOffset, const Maths::Vector2& graphPos, const Maths::Vector2& graphSize)
+	{
+		maxFrameTime = 0.0f;
+		for(size_t frameNumber = 0; frameNumber < m_Reports.size(); frameNumber++)
+		{
+			Maths::Vector2 framePos = graphPos + Maths::Vector2(graphSize.x - 1 - frameWidth - (frameWidth + frameSpacing) * frameNumber, graphSize.y - 1);
+			if(framePos.x < graphPos.x + 1)
+				break;
 
 			float totalTime = 0.0f;
 
-			for (auto action : m_Reports[frameNumber].actions)
+			for(auto action : m_Reports[frameNumber].actions)
 				totalTime += (float)action.duration;
 
-            maxFrameTime = std::max(maxFrameTime, float(totalTime));
-        }
-    }
+			maxFrameTime = std::max(maxFrameTime, float(totalTime));
+		}
+	}
 
-	void ProfilerGraph::RenderLegend(ImDrawList *drawList, const Maths::Vector2& legendPos, const Maths::Vector2& legendSize, size_t frameIndexOffset)
+	void ProfilerGraph::RenderLegend(ImDrawList* drawList, const Maths::Vector2& legendPos, const Maths::Vector2& legendSize, size_t frameIndexOffset)
 	{
 		float markerLeftRectMargin = 3.0f;
 		float markerLeftRectWidth = 5.0f;
@@ -262,10 +263,10 @@ namespace Lumos
 		float nameOffset = 30.0f;
 		Maths::Vector2 textMargin = Maths::Vector2(5.0f, -3.0f);
 
-		auto &currFrame = m_Reports[(currFrameIndex - frameIndexOffset - 1 + 2 * m_Reports.size()) % m_Reports.size()];
+		auto& currFrame = m_Reports[(currFrameIndex - frameIndexOffset - 1 + 2 * m_Reports.size()) % m_Reports.size()];
 		size_t maxTasksCount = size_t(legendSize.y / (markerRightRectHeight + markerRightRectSpacing));
 
-		for (auto &taskStat : taskStats)
+		for(auto& taskStat : taskStats)
 		{
 			taskStat.onScreenIndex = size_t(-1);
 		}
@@ -274,15 +275,15 @@ namespace Lumos
 		size_t tasksShownCount = 0;
 
 		float currentTime = 0.0f;
-		for (size_t taskIndex = 0; taskIndex < currFrame.actions.size(); taskIndex++)
+		for(size_t taskIndex = 0; taskIndex < currFrame.actions.size(); taskIndex++)
 		{
-			auto &task = currFrame.actions[taskIndex];
-			auto &stat = taskStats[currFrame.taskStatsIndex[taskIndex]];
+			auto& task = currFrame.actions[taskIndex];
+			auto& stat = taskStats[currFrame.taskStatsIndex[taskIndex]];
 
-			if (stat.priorityOrder >= tasksToShow)
+			if(stat.priorityOrder >= tasksToShow)
 				continue;
 
-			if (stat.onScreenIndex == size_t(-1))
+			if(stat.onScreenIndex == size_t(-1))
 			{
 				stat.onScreenIndex = tasksShownCount++;
 			}
@@ -293,8 +294,8 @@ namespace Lumos
 
 			Maths::Vector2 markerLeftRectMin = legendPos + Maths::Vector2(markerLeftRectMargin, legendSize.y);
 			Maths::Vector2 markerLeftRectMax = markerLeftRectMin + Maths::Vector2(markerLeftRectWidth, 0.0f);
-			markerLeftRectMin.y -= currentTime;// taskStartHeight;
-			markerLeftRectMax.y -= currentTime + duration;// taskEndHeight;
+			markerLeftRectMin.y -= currentTime; // taskStartHeight;
+			markerLeftRectMax.y -= currentTime + duration; // taskEndHeight;
 
 			currentTime += duration;
 
@@ -302,7 +303,7 @@ namespace Lumos
 			Maths::Vector2 markerRightRectMax = markerRightRectMin + Maths::Vector2(markerRightRectWidth, -markerRightRectHeight);
 			RenderTaskMarker(drawList, markerLeftRectMin, markerLeftRectMax, markerRightRectMin, markerRightRectMax, Columnour(task.name));
 
-			uint32_t textColor = useColoredLegendText ? Columnour(task.name) : imguiText;// task.color;
+			uint32_t textColor = useColoredLegendText ? Columnour(task.name) : imguiText; // task.color;
 
 			float taskTimeMs = float(task.duration);
 			std::ostringstream timeText;
@@ -316,31 +317,31 @@ namespace Lumos
 
 	void ProfilerGraph::RebuildTaskStats(size_t endFrame, size_t framesCount)
 	{
-		for (auto &taskStat : taskStats)
+		for(auto& taskStat : taskStats)
 		{
 			taskStat.maxTime = -1.0f;
 			taskStat.priorityOrder = size_t(-1);
 			taskStat.onScreenIndex = size_t(-1);
 		}
 
-		for (size_t frameNumber = 0; frameNumber < framesCount; frameNumber++)
+		for(size_t frameNumber = 0; frameNumber < framesCount; frameNumber++)
 		{
 			size_t frameIndex = (endFrame - 1 - frameNumber + m_Reports.size()) % m_Reports.size();
-			auto &frame = m_Reports[frameIndex];
-			for (size_t taskIndex = 0; taskIndex < frame.actions.size(); taskIndex++)
+			auto& frame = m_Reports[frameIndex];
+			for(size_t taskIndex = 0; taskIndex < frame.actions.size(); taskIndex++)
 			{
-				auto &task = frame.actions[taskIndex];
-				auto &stats = taskStats[frame.taskStatsIndex[taskIndex]];
+				auto& task = frame.actions[taskIndex];
+				auto& stats = taskStats[frame.taskStatsIndex[taskIndex]];
 				stats.maxTime = std::max(stats.maxTime, task.duration);
 			}
 		}
 		std::vector<size_t> statPriorities;
 		statPriorities.resize(taskStats.size());
-		for (size_t statIndex = 0; statIndex < taskStats.size(); statIndex++)
+		for(size_t statIndex = 0; statIndex < taskStats.size(); statIndex++)
 			statPriorities[statIndex] = statIndex;
 
-		std::sort(statPriorities.begin(), statPriorities.end(), [this](size_t left, size_t right) {return taskStats[left].maxTime > taskStats[right].maxTime; });
-		for (size_t statNumber = 0; statNumber < taskStats.size(); statNumber++)
+		std::sort(statPriorities.begin(), statPriorities.end(), [this](size_t left, size_t right) { return taskStats[left].maxTime > taskStats[right].maxTime; });
+		for(size_t statNumber = 0; statNumber < taskStats.size(); statNumber++)
 		{
 			size_t statIndex = statPriorities[statNumber];
 			taskStats[statIndex].priorityOrder = statNumber;

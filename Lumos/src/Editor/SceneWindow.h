@@ -19,9 +19,11 @@ namespace Lumos
 		~SceneWindow() = default;
 
 		void OnImGui() override;
+		void OnNewScene(Scene* scene) override;
         void ToolBar();
 		void DrawGizmos(float width, float height, float xpos, float ypos, Scene* scene);
 
+		void Resize(u32 width, u32 height);
 	private:
 
 		template<typename T>
@@ -61,5 +63,10 @@ namespace Lumos
 		std::unordered_map<size_t, bool> m_ShowComponentGizmoMap;
 
 		bool m_ShowStats = true;
+        Ref<Graphics::Texture2D> m_GameViewTexture = nullptr;
+		Scene* m_CurrentScene = nullptr;
+		float m_AspectRatio;
+		u32 m_Width, m_Height;
+
 	};
 }

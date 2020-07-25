@@ -6,8 +6,8 @@
 #define LUMOS_PROFILER_ENABLED
 #ifdef LUMOS_PROFILER_ENABLED
 #define LUMOS_PROFILE_BLOCK(name) \
-Scope<Lumos::ProfilerRecord> profilerData \
- = Lumos::Profiler::Instance()->IsEnabled() ? CreateScope<Lumos::ProfilerRecord>(name) : nullptr;
+UniqueRef<Lumos::ProfilerRecord> profilerData \
+ = Lumos::Profiler::Get().IsEnabled() ? CreateUniqueRef<Lumos::ProfilerRecord>(name) : nullptr;
 
 #define LUMOS_PROFILE_FUNC LUMOS_PROFILE_BLOCK(__FUNCTION__)
 #else
@@ -52,7 +52,7 @@ namespace Lumos
 		std::vector<size_t> taskStatsIndex;
     };
     
-    class LUMOS_EXPORT Profiler : public TSingleton<Profiler>
+    class LUMOS_EXPORT Profiler : public ThreadSafeSingleton<Profiler>
     {
         friend class TSingleton<Profiler>;
     public:

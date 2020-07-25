@@ -1,6 +1,5 @@
 #pragma once
 #include "lmpch.h"
-#include "Core/String.h"
 #include "Graphics/Mesh.h"
 #include "Graphics/API/Shader.h"
 
@@ -12,7 +11,7 @@ namespace Lumos
 	{
 		struct LUMOS_EXPORT RendererUniform
 		{
-			String uniform;
+			std::string uniform;
 			u8* value;
 		};
 

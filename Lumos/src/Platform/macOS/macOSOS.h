@@ -3,15 +3,18 @@
 
 namespace Lumos
 {
-    class macOSOS : public OS
-    {
-    public:
-        macOSOS() {}
-        ~macOSOS() {}
+	class macOSOS : public OS
+	{
+	public:
+		macOSOS()
+		{
+		}
+		~macOSOS()
+		{
+		}
 
-        void Init();
-        void Run() override;
-        String GetExecutablePath() override;
-
+		void Init();
+		void Run() override;
+		std::string GetExecutablePath() override;
 	};
 }

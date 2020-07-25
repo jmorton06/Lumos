@@ -21,7 +21,7 @@ namespace Lumos
 			if (m_Buffer)
 			{
 #ifdef USE_VMA_ALLOCATOR
-                vmaDestroyBuffer(VKDevice::Instance()->GetAllocator(), m_Buffer, m_Allocation);
+                vmaDestroyBuffer(VKDevice::Get().GetAllocator(), m_Buffer, m_Allocation);
 #else
 				vkDestroyBuffer(VKDevice::Device(), m_Buffer, nullptr);
 
@@ -44,7 +44,7 @@ namespace Lumos
 #ifdef USE_VMA_ALLOCATOR
             VmaAllocationCreateInfo vmaAllocInfo = {};
             vmaAllocInfo.usage = VMA_MEMORY_USAGE_CPU_TO_GPU;
-            vmaCreateBuffer(VKDevice::Instance()->GetAllocator(), &bufferInfo, &vmaAllocInfo, &m_Buffer, &m_Allocation, nullptr);
+            vmaCreateBuffer(VKDevice::Get().GetAllocator(), &bufferInfo, &vmaAllocInfo, &m_Buffer, &m_Allocation, nullptr);
 #else
 			VK_CHECK_RESULT(vkCreateBuffer(VKDevice::Device(), &bufferInfo, nullptr, &m_Buffer));
 
@@ -75,7 +75,7 @@ namespace Lumos
 		void VKBuffer::Map(VkDeviceSize size, VkDeviceSize offset)
 		{
 #ifdef USE_VMA_ALLOCATOR
-			VkResult res = static_cast<VkResult>(vmaMapMemory(VKDevice::Instance()->GetAllocator(), m_Allocation, &m_Mapped));
+			VkResult res = static_cast<VkResult>(vmaMapMemory(VKDevice::Get().GetAllocator(), m_Allocation, &m_Mapped));
 #else
 			VkResult res = vkMapMemory(VKDevice::Device(), m_Memory, offset, size, 0, &m_Mapped);
 #endif
@@ -88,7 +88,7 @@ namespace Lumos
 			if (m_Mapped)
 			{
 #ifdef USE_VMA_ALLOCATOR
-				vmaUnmapMemory(VKDevice::Instance()->GetAllocator(), m_Allocation);
+				vmaUnmapMemory(VKDevice::Get().GetAllocator(), m_Allocation);
 #else
 				vkUnmapMemory(VKDevice::Device(), m_Memory);
 #endif
@@ -99,7 +99,7 @@ namespace Lumos
 		void VKBuffer::Flush(VkDeviceSize size, VkDeviceSize offset)
 		{
 #ifdef USE_VMA_ALLOCATOR
-			vmaFlushAllocation(VKDevice::Instance()->GetAllocator(), m_Allocation, offset, size);
+			vmaFlushAllocation(VKDevice::Get().GetAllocator(), m_Allocation, offset, size);
 #else
 			VkMappedMemoryRange mappedRange = {};
 			mappedRange.memory = m_Memory;
@@ -112,7 +112,7 @@ namespace Lumos
 		void VKBuffer::Invalidate(VkDeviceSize size, VkDeviceSize offset)
 		{
 #ifdef USE_VMA_ALLOCATOR
-			vmaInvalidateAllocation(VKDevice::Instance()->GetAllocator(), m_Allocation, offset, size);
+			vmaInvalidateAllocation(VKDevice::Get().GetAllocator(), m_Allocation, offset, size);
 #else
 			VkMappedMemoryRange mappedRange = {};
 			mappedRange.memory = m_Memory;

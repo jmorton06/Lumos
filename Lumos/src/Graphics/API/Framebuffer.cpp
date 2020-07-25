@@ -12,10 +12,6 @@ namespace Lumos
 		{
             LUMOS_ASSERT(CreateFunc, "No Framebuffer Create Function");
             
-#ifdef LUMOS_RENDER_API_OPENGL
-			if(Graphics::GraphicsContext::GetRenderAPI() == RenderAPI::OPENGL && framebufferInfo.screenFBO)
-				return nullptr; //TODO: REMOVE
-#endif
             return CreateFunc(framebufferInfo);
 		}
 	}

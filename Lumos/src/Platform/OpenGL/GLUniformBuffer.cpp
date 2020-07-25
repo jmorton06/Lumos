@@ -6,10 +6,10 @@
 
 namespace Lumos
 {
-    namespace Graphics
-    {
+	namespace Graphics
+	{
 		GLUniformBuffer::GLUniformBuffer()
-		{	
+		{
 			glGenBuffers(1, &m_Handle);
 		}
 
@@ -17,18 +17,18 @@ namespace Lumos
 		{
 			GLCall(glDeleteBuffers(1, &m_Handle));
 		}
-		
-		void GLUniformBuffer::Init(uint32_t size, const void * data)
-		{ 
-			m_Data = (u8*)data; 
+
+		void GLUniformBuffer::Init(uint32_t size, const void* data)
+		{
+			m_Data = (u8*)data;
 			m_Size = size;
 			glBindBuffer(GL_UNIFORM_BUFFER, m_Handle);
 			glBufferData(GL_UNIFORM_BUFFER, m_Size, m_Data, GL_DYNAMIC_DRAW);
 		}
 
-		void GLUniformBuffer::SetData(uint32_t size, const void * data) 
+		void GLUniformBuffer::SetData(uint32_t size, const void* data)
 		{
-			m_Data = (u8*)data; 
+			m_Data = (u8*)data;
 			m_Size = size;
 
 			glBindBuffer(GL_UNIFORM_BUFFER, m_Handle);
@@ -37,11 +37,11 @@ namespace Lumos
 			glUnmapBuffer(GL_UNIFORM_BUFFER);
 		}
 
-		void GLUniformBuffer::SetDynamicData(uint32_t size, uint32_t typeSize, const void * data) 
-		{ 
-			m_Data = (u8*)data; 
-			m_Size = size; 
-			m_Dynamic = true; 
+		void GLUniformBuffer::SetDynamicData(uint32_t size, uint32_t typeSize, const void* data)
+		{
+			m_Data = (u8*)data;
+			m_Size = size;
+			m_Dynamic = true;
 			m_DynamicTypeSize = typeSize;
 
 			glBindBuffer(GL_UNIFORM_BUFFER, m_Handle);
@@ -50,10 +50,10 @@ namespace Lumos
 			glUnmapBuffer(GL_UNIFORM_BUFFER);
 		}
 
-		void GLUniformBuffer::Bind(u32 slot, GLShader* shader, String& name)
+		void GLUniformBuffer::Bind(u32 slot, GLShader* shader, std::string& name)
 		{
 			GLCall(glBindBufferBase(GL_UNIFORM_BUFFER, slot, m_Handle));
-            shader->BindUniformBuffer(this, slot, name);
+			shader->BindUniformBuffer(this, slot, name);
 			//u32 location = glGetUniformBlockIndex(shader->GetHandle(), name.c_str());
 			//GLCall(glUniformBlockBinding(shader->GetHandle(), location, slot));
 		}

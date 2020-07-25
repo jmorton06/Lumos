@@ -22,7 +22,8 @@ namespace Lumos
 			Pyramid,
 			Sphere,
 			Capsule,
-			Cylinder
+			Cylinder,
+            None
 		};
 
 		class Mesh;

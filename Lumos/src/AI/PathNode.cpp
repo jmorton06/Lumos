@@ -5,8 +5,8 @@
 namespace Lumos
 {
 
-	PathNode::PathNode(const Maths::Vector3 &position)
-		: PhysicsObject3D()
+	PathNode::PathNode(const Maths::Vector3& position)
+		: RigidBody3D()
 	{
 		SetPosition(position);
 	}
@@ -15,12 +15,12 @@ namespace Lumos
 	{
 	}
 
-	bool PathNode::IsOnList(const std::vector<PathNode *> &list)
+	bool PathNode::IsOnList(const std::vector<PathNode*>& list)
 	{
 		return std::find(list.begin(), list.end(), this) != list.end();
 	}
 
-	float PathNode::HeuristicValue(const PathNode &other) const
+	float PathNode::HeuristicValue(const PathNode& other) const
 	{
 		return (GetWorldSpaceTransform().Translation() - other.GetWorldSpaceTransform().Translation()).Length();
 	}

@@ -4,7 +4,7 @@
 class Scene2D : public Lumos::Scene
 {
 public:
-	explicit Scene2D(const String& SceneName);
+	explicit Scene2D(const std::string& SceneName);
 	virtual ~Scene2D();
 
 	virtual void OnInit() override;

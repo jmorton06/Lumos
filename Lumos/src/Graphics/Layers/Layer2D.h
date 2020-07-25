@@ -22,6 +22,7 @@ namespace Lumos
 		virtual void OnUpdate(const TimeStep& dt, Scene* scene) override;
 		virtual void OnEvent(Event& event) override;
 		virtual void OnRender(Scene* scene) override;
+        virtual void SetRenderTarget(Graphics::Texture* texture, bool onlyIfTargetsScreen, bool rebuildFramebuffer) override;
 
     protected:
         Scene* m_Scene;

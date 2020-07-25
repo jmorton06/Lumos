@@ -40,8 +40,8 @@ namespace Lumos
 		short bitsPerSample;
 	};
 
-	AudioData LoadWav(const String& fileName);
+	AudioData LoadWav(const std::string& fileName);
 
-	void LoadWAVChunkInfo(std::ifstream &file, String &name, unsigned int &size);
-	
+	void LoadWAVChunkInfo(std::ifstream& file, std::string& name, unsigned int& size);
+
 }

@@ -10,7 +10,7 @@ namespace Lumos
 		{
 		public:
 			GLTexture2D(u32 width, u32 height, void* data, TextureParameters parameters = TextureParameters(), TextureLoadOptions loadOptions = TextureLoadOptions());
-			GLTexture2D(const String& name, const String& filename, TextureParameters parameters = TextureParameters(), TextureLoadOptions loadOptions = TextureLoadOptions());
+			GLTexture2D(const std::string& name, const std::string& filename, TextureParameters parameters = TextureParameters(), TextureLoadOptions loadOptions = TextureLoadOptions());
 			GLTexture2D();
 			~GLTexture2D();
 
@@ -19,64 +19,96 @@ namespace Lumos
 
 			virtual void SetData(const void* pixels) override;
 
-			virtual void* GetHandle() const override { return (void*)(size_t)m_Handle; }
+			virtual void* GetHandle() const override
+			{
+				return (void*)(size_t)m_Handle;
+			}
 
-			_FORCE_INLINE_ u32 GetWidth() const override { return m_Width; }
-			_FORCE_INLINE_ u32 GetHeight() const override { return m_Height; }
+			_FORCE_INLINE_ u32 GetWidth() const override
+			{
+				return m_Width;
+			}
+			_FORCE_INLINE_ u32 GetHeight() const override
+			{
+				return m_Height;
+			}
 
-			_FORCE_INLINE_ const String& GetName() const override { return m_Name; }
-			_FORCE_INLINE_ const String& GetFilepath() const override { return m_FileName; }
+			_FORCE_INLINE_ const std::string& GetName() const override
+			{
+				return m_Name;
+			}
+			_FORCE_INLINE_ const std::string& GetFilepath() const override
+			{
+				return m_FileName;
+			}
 
 			void BuildTexture(TextureFormat internalformat, u32 width, u32 height, bool depth, bool samplerShadow) override;
 
 			u8* LoadTextureData();
-			u32  LoadTexture(void* data) const;
-            
-            static void MakeDefault();
-        protected:
+			u32 LoadTexture(void* data) const;
+
+			static void MakeDefault();
+
+		protected:
 			static Texture2D* CreateFuncGL();
 			static Texture2D* CreateFromSourceFuncGL(u32, u32, void*, TextureParameters, TextureLoadOptions);
-			static Texture2D* CreateFromFileFuncGL(const String&, const String&, TextureParameters, TextureLoadOptions);
+			static Texture2D* CreateFromFileFuncGL(const std::string&, const std::string&, TextureParameters, TextureLoadOptions);
 
 		private:
 			u32 Load(void* data);
 
-			String m_Name;
-			String m_FileName;
+			std::string m_Name;
+			std::string m_FileName;
 			u32 m_Handle;
 			u32 m_Width, m_Height;
 			TextureParameters m_Parameters;
 			TextureLoadOptions m_LoadOptions;
-            bool isHDR = false;
+			bool isHDR = false;
 		};
 
 		class GLTextureCube : public TextureCube
 		{
 		public:
 			GLTextureCube(u32 size);
-			GLTextureCube(const String& filepath);
-			GLTextureCube(const String* files);
-			GLTextureCube(const String* files, u32 mips, InputFormat format);
+			GLTextureCube(const std::string& filepath);
+			GLTextureCube(const std::string* files);
+			GLTextureCube(const std::string* files, u32 mips, InputFormat format);
 			~GLTextureCube();
 
-			_FORCE_INLINE_ void* GetHandle() const override { return (void*)(size_t)m_Handle; }
+			_FORCE_INLINE_ void* GetHandle() const override
+			{
+				return (void*)(size_t)m_Handle;
+			}
 
 			void Bind(u32 slot = 0) const override;
 			void Unbind(u32 slot = 0) const override;
 
-			u32 GetMipMapLevels() const override { return m_NumMips; }
+			u32 GetMipMapLevels() const override
+			{
+				return m_NumMips;
+			}
 
-			_FORCE_INLINE_ u32 GetSize() const override { return m_Size; }
-			_FORCE_INLINE_ const String& GetName() const override { return m_Name; }
-			_FORCE_INLINE_ const String& GetFilepath() const override { return m_Files[0]; }
-            
-            static void MakeDefault();
-        protected:
+			_FORCE_INLINE_ u32 GetSize() const override
+			{
+				return m_Size;
+			}
+			_FORCE_INLINE_ const std::string& GetName() const override
+			{
+				return m_Name;
+			}
+			_FORCE_INLINE_ const std::string& GetFilepath() const override
+			{
+				return m_Files[0];
+			}
+
+			static void MakeDefault();
+
+		protected:
 			static TextureCube* CreateFuncGL(u32);
-			static TextureCube* CreateFromFileFuncGL(const String& filepath);
-			static TextureCube* CreateFromFilesFuncGL(const String* files);
-			static TextureCube* CreateFromVCrossFuncGL(const String* files, u32 mips, InputFormat format);
-            
+			static TextureCube* CreateFromFileFuncGL(const std::string& filepath);
+			static TextureCube* CreateFromFilesFuncGL(const std::string* files);
+			static TextureCube* CreateFromVCrossFuncGL(const std::string* files, u32 mips, InputFormat format);
+
 		private:
 			static u32 LoadFromSingleFile();
 			u32 LoadFromMultipleFiles();
@@ -84,8 +116,8 @@ namespace Lumos
 
 			u32 m_Handle;
 			u32 m_Width, m_Height, m_Size;
-			String m_Name;
-			String m_Files[MAX_MIPS];
+			std::string m_Name;
+			std::string m_Files[MAX_MIPS];
 			u32 m_Bits;
 			u32 m_NumMips;
 			InputFormat m_Format;
@@ -103,18 +135,28 @@ namespace Lumos
 			void Unbind(u32 slot = 0) const override;
 			void Resize(u32 width, u32 height) override;
 
-			_FORCE_INLINE_ void* GetHandle() const override { return (void*)(size_t)m_Handle; }
+			_FORCE_INLINE_ void* GetHandle() const override
+			{
+				return (void*)(size_t)m_Handle;
+			}
 
-			_FORCE_INLINE_ const String& GetName() const override { return m_Name; }
-			_FORCE_INLINE_ const String& GetFilepath() const override { return m_Name; }
+			_FORCE_INLINE_ const std::string& GetName() const override
+			{
+				return m_Name;
+			}
+			_FORCE_INLINE_ const std::string& GetFilepath() const override
+			{
+				return m_Name;
+			}
 
 			static void MakeDefault();
+
 		protected:
 			static TextureDepth* CreateFuncGL(u32, u32);
 
 			void Init();
 
-			String m_Name;
+			std::string m_Name;
 			u32 m_Handle;
 			u32 m_Width, m_Height;
 		};
@@ -122,9 +164,10 @@ namespace Lumos
 		class GLTextureDepthArray : public TextureDepthArray
 		{
 		private:
-			String m_Name;
+			std::string m_Name;
 			u32 m_Handle;
 			u32 m_Width, m_Height, m_Count;
+
 		public:
 			GLTextureDepthArray(u32 width, u32 height, u32 count);
 			~GLTextureDepthArray();
@@ -133,16 +176,29 @@ namespace Lumos
 			void Unbind(u32 slot = 0) const override;
 			void Resize(u32 width, u32 height, u32 count) override;
 
-			_FORCE_INLINE_ void* GetHandle() const override { return (void*)(size_t)m_Handle; }
+			_FORCE_INLINE_ void* GetHandle() const override
+			{
+				return (void*)(size_t)m_Handle;
+			}
 
-			_FORCE_INLINE_ const String& GetName() const override { return m_Name; }
-			_FORCE_INLINE_ const String& GetFilepath() const override { return m_Name; }
+			_FORCE_INLINE_ const std::string& GetName() const override
+			{
+				return m_Name;
+			}
+			_FORCE_INLINE_ const std::string& GetFilepath() const override
+			{
+				return m_Name;
+			}
 
-			_FORCE_INLINE_ void SetCount(u32 count) { m_Count = count; }
+			_FORCE_INLINE_ void SetCount(u32 count)
+			{
+				m_Count = count;
+			}
 
 			void Init() override;
 
 			static void MakeDefault();
+
 		protected:
 			static TextureDepthArray* CreateFuncGL(u32, u32, u32);
 		};

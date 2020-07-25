@@ -6,34 +6,35 @@
 namespace Lumos
 {
 
-namespace Graphics
-{
-    class RenderPass;
-    class Pipeline;
-    class DescriptorSet;
-    class CommandBuffer;
-    class UniformBuffer;
-    class Renderable2D;
-    class Framebuffer;
-    class Texture;
-    class Shader;
-    class IndexBuffer;
-    class VertexArray;
-    class Renderer2D; 
-    class LineRenderer;
-    class PointRenderer;
-    class Light;
-}
-    class SoundNode;
+	namespace Graphics
+	{
+		class RenderPass;
+		class Pipeline;
+		class DescriptorSet;
+		class CommandBuffer;
+		class UniformBuffer;
+		class Renderable2D;
+		class Framebuffer;
+		class Texture;
+		class Shader;
+		class IndexBuffer;
+		class VertexArray;
+		class Renderer2D;
+		class LineRenderer;
+		class PointRenderer;
+		struct Light;
+	}
+	class SoundNode;
 	class Texture2D;
 	class Material;
-    class Scene;
+	class Scene;
+	class Camera;
 
 	namespace Maths
 	{
 		class Sphere;
 		class BoundingBox;
-        class Frustum;
+		class Frustum;
 	}
 
 	class LUMOS_EXPORT DebugRenderer
@@ -41,14 +42,20 @@ namespace Graphics
 		friend class Scene;
 		friend class GraphicsPipeline;
 		friend class Application;
+
 	public:
-        static void Init(u32 width, u32 height, bool drawToGBuffer);
-        static void Release();
-        static void Render(Scene* scene) { if(s_Instance) s_Instance->RenderInternal(scene); }
-        
-        DebugRenderer();
-        ~DebugRenderer();
-	
+		static void Init(u32 width, u32 height);
+		static void Release();
+		static void Render(Scene* scene, Camera* overrideCamera)
+		{
+			if(s_Instance)
+				s_Instance->RenderInternal(scene, s_Instance->m_OverrideCamera);
+		}
+		static void SetRenderTarget(Graphics::Texture* texture, bool rebuildFramebuffer);
+
+		DebugRenderer();
+		~DebugRenderer();
+
 		//Note: Functions appended with 'NDT' (no depth testing) will always be rendered in the foreground. This can be useful for debugging things inside objects.
 
 		//Draw Point (circle)
@@ -85,10 +92,21 @@ namespace Graphics
 
 		static void DebugDraw(const Maths::BoundingBox& box, const Maths::Vector4& edgeColour, bool cornersOnly = false, float width = 0.02f);
 		static void DebugDraw(const Maths::Sphere& sphere, const Maths::Vector4& colour);
-        static void DebugDraw(const Maths::Frustum& frustum, const Maths::Vector4& colour);
-        static void DebugDraw(Graphics::Light* light, const Maths::Vector4& colour);
-        static void DebugDraw(SoundNode* sound, const Maths::Vector4& colour);
+		static void DebugDraw(const Maths::Frustum& frustum, const Maths::Vector4& colour);
+		static void DebugDraw(Graphics::Light* light, const Maths::Vector4& colour);
+		static void DebugDraw(SoundNode* sound, const Maths::Vector4& colour);
 
+		static void OnResize(u32 width, u32 height)
+		{
+			if(s_Instance)
+				s_Instance->OnResizeInternal(width, height);
+		}
+
+		static void SetOverrideCamera(Camera* camera)
+		{
+			if(s_Instance)
+				s_Instance->m_OverrideCamera = camera;
+		}
 
 	protected:
 		//Actual functions managing data parsing to save code bloat - called by public functions
@@ -96,23 +114,27 @@ namespace Graphics
 		static void GenDrawThickLine(bool ndt, const Maths::Vector3& start, const Maths::Vector3& end, float line_width, const Maths::Vector4& colour);
 		static void GenDrawHairLine(bool ndt, const Maths::Vector3& start, const Maths::Vector3& end, const Maths::Vector4& colour);
 		static void GenDrawTriangle(bool ndt, const Maths::Vector3& v0, const Maths::Vector3& v1, const Maths::Vector3& v2, const Maths::Vector4& colour);
-    
-        static DebugRenderer* GetInstance() { return s_Instance; }
-        static void Reset() { if(s_Instance) s_Instance->Begin(); }
-        static void OnResize(u32 width, u32 height) { if(s_Instance) s_Instance->OnResizeInternal(width, height);  }
-    
+
+		static DebugRenderer* GetInstance()
+		{
+			return s_Instance;
+		}
+		static void Reset()
+		{
+			if(s_Instance)
+				s_Instance->Begin();
+		}
+
 	private:
+		void Begin();
+		void RenderInternal(Scene* scene, Camera* overrideCamera);
+		void OnResizeInternal(u32 width, u32 height);
 
-        void Begin();
-        void RenderInternal(Scene* scene);
-        void OnResizeInternal(u32 width, u32 height);
-        
-        static DebugRenderer* s_Instance;
+		static DebugRenderer* s_Instance;
 
-        Graphics::Renderer2D* m_Renderer2D;
-        Graphics::LineRenderer* m_LineRenderer;
-        Graphics::PointRenderer* m_PointRenderer;
-
-
+		Graphics::Renderer2D* m_Renderer2D;
+		Graphics::LineRenderer* m_LineRenderer;
+		Graphics::PointRenderer* m_PointRenderer;
+		Camera* m_OverrideCamera = nullptr;
 	};
 }

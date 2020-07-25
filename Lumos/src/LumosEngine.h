@@ -1,10 +1,10 @@
 #pragma once
 
 //App
-#include "App/Engine.h"
-#include "App/Application.h"
-#include "App/SceneManager.h"
-#include "App/Scene.h"
+#include "Core/Engine.h"
+#include "Core/Application.h"
+#include "Scene/SceneManager.h"
+#include "Scene/Scene.h"
 
 //Physics
 #include "Physics/LumosPhysicsEngine/LumosPhysicsEngine.h"
@@ -19,9 +19,9 @@
 #include "Physics/LumosPhysicsEngine/Octree.h"
 #include "Physics/LumosPhysicsEngine/BruteForceBroadphase.h"
 #include "Physics/LumosPhysicsEngine/SortAndSweepBroadphase.h"
-#include "Physics/PhysicsObject.h"
-#include "Physics/B2PhysicsEngine/PhysicsObject2D.h"
-#include "Physics/LumosPhysicsEngine/PhysicsObject3D.h"
+#include "Physics/RigidBody.h"
+#include "Physics/B2PhysicsEngine/RigidBody2D.h"
+#include "Physics/LumosPhysicsEngine/RigidBody3D.h"
 
 //Graphics
 #include "Graphics/API/Texture.h"
@@ -43,7 +43,8 @@
 #include "Utilities/AssetsManager.h"
 
 //Entity
-#include "ECS/Component/Components.h"
+#include "Scene/Component/Components.h"
+#include "Scene/EntityManager.h"
 
 //Cameras
 #include "Graphics/Camera/ThirdPersonCamera.h"
@@ -51,7 +52,6 @@
 #include "Graphics/Camera/MayaCamera.h"
 #include "Graphics/Camera/Camera2D.h"
 #include "Graphics/Camera/Camera.h"
-
 
 #include "Editor/EditorCamera.h" //temp
 
@@ -77,7 +77,7 @@
 #include "Core/OS/OS.h"
 
 //Scripting
-#include "Scripting/ScriptComponent.h"
+#include "Scripting/LuaScriptComponent.h"
 #include "Scripting/LuaManager.h"
 
 //Utilities
@@ -86,6 +86,8 @@
 #include "Utilities/RandomNumberGenerator.h"
 #include "Utilities/TimeStep.h"
 #include "Utilities/CommonUtils.h"
+#include "Utilities/StateMachine.h"
+#include "Utilities/State.h"
 
 //Layers
 #include "ImGui/ImGuiLayer.h"

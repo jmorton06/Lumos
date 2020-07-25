@@ -1,4 +1,4 @@
-#pragma once 
+#pragma once
 #include "lmpch.h"
 #include "Core/OS/KeyCodes.h"
 
@@ -8,76 +8,80 @@ namespace Lumos
 {
 	namespace GLFWKeyCodes
 	{
-		static u32 GLFWToLumosKeyboardKey(u32 glfwKey)
+		static Lumos::InputCode::Key GLFWToLumosKeyboardKey(u32 glfwKey)
 		{
-			static std::map<u32, u32> keyMap =
-			{
-			{GLFW_KEY_A, LUMOS_KEY_A},
-			{GLFW_KEY_B, LUMOS_KEY_B},
-			{GLFW_KEY_C, LUMOS_KEY_C},
-			{GLFW_KEY_D, LUMOS_KEY_D},
-			{GLFW_KEY_E, LUMOS_KEY_E},
-			{GLFW_KEY_F, LUMOS_KEY_F},
-			{GLFW_KEY_G, LUMOS_KEY_G},
-			{GLFW_KEY_H, LUMOS_KEY_H},
-			{GLFW_KEY_I, LUMOS_KEY_I},
-			{GLFW_KEY_J, LUMOS_KEY_J},
-			{GLFW_KEY_K, LUMOS_KEY_K},
-			{GLFW_KEY_L, LUMOS_KEY_L},
-			{GLFW_KEY_M, LUMOS_KEY_M},
-			{GLFW_KEY_N, LUMOS_KEY_N},
-			{GLFW_KEY_O, LUMOS_KEY_O},
-			{GLFW_KEY_P, LUMOS_KEY_P},
-			{GLFW_KEY_Q, LUMOS_KEY_Q},
-			{GLFW_KEY_R, LUMOS_KEY_R},
-			{GLFW_KEY_S, LUMOS_KEY_S},
-			{GLFW_KEY_T, LUMOS_KEY_T},
-			{GLFW_KEY_U, LUMOS_KEY_U},
-			{GLFW_KEY_V, LUMOS_KEY_V},
-			{GLFW_KEY_W, LUMOS_KEY_W},
-			{GLFW_KEY_X, LUMOS_KEY_X},
-			{GLFW_KEY_Y, LUMOS_KEY_Y},
-			{GLFW_KEY_Z, LUMOS_KEY_Z},
+			static std::map<u32, Lumos::InputCode::Key> keyMap =
+				{
+					{GLFW_KEY_A, Lumos::InputCode::Key::A},
+					{GLFW_KEY_B, Lumos::InputCode::Key::B},
+					{GLFW_KEY_C, Lumos::InputCode::Key::C},
+					{GLFW_KEY_D, Lumos::InputCode::Key::D},
+					{GLFW_KEY_E, Lumos::InputCode::Key::E},
+					{GLFW_KEY_F, Lumos::InputCode::Key::F},
+					{GLFW_KEY_G, Lumos::InputCode::Key::G},
+					{GLFW_KEY_H, Lumos::InputCode::Key::H},
+					{GLFW_KEY_I, Lumos::InputCode::Key::I},
+					{GLFW_KEY_J, Lumos::InputCode::Key::J},
+					{GLFW_KEY_K, Lumos::InputCode::Key::K},
+					{GLFW_KEY_L, Lumos::InputCode::Key::L},
+					{GLFW_KEY_M, Lumos::InputCode::Key::M},
+					{GLFW_KEY_N, Lumos::InputCode::Key::N},
+					{GLFW_KEY_O, Lumos::InputCode::Key::O},
+					{GLFW_KEY_P, Lumos::InputCode::Key::P},
+					{GLFW_KEY_Q, Lumos::InputCode::Key::Q},
+					{GLFW_KEY_R, Lumos::InputCode::Key::R},
+					{GLFW_KEY_S, Lumos::InputCode::Key::S},
+					{GLFW_KEY_T, Lumos::InputCode::Key::T},
+					{GLFW_KEY_U, Lumos::InputCode::Key::U},
+					{GLFW_KEY_V, Lumos::InputCode::Key::V},
+					{GLFW_KEY_W, Lumos::InputCode::Key::W},
+					{GLFW_KEY_X, Lumos::InputCode::Key::X},
+					{GLFW_KEY_Y, Lumos::InputCode::Key::Y},
+					{GLFW_KEY_Z, Lumos::InputCode::Key::Z},
 
-			{GLFW_KEY_0, LUMOS_KEY_0},
-			{GLFW_KEY_1, LUMOS_KEY_1},
-			{GLFW_KEY_2, LUMOS_KEY_2},
-			{GLFW_KEY_3, LUMOS_KEY_3},
-			{GLFW_KEY_4, LUMOS_KEY_4},
-			{GLFW_KEY_5, LUMOS_KEY_5},
-			{GLFW_KEY_6, LUMOS_KEY_6},
-			{GLFW_KEY_7, LUMOS_KEY_7},
-			{GLFW_KEY_8, LUMOS_KEY_8},
-			{GLFW_KEY_9, LUMOS_KEY_9},
+					{GLFW_KEY_0, Lumos::InputCode::Key::D0},
+					{GLFW_KEY_1, Lumos::InputCode::Key::D1},
+					{GLFW_KEY_2, Lumos::InputCode::Key::D2},
+					{GLFW_KEY_3, Lumos::InputCode::Key::D3},
+					{GLFW_KEY_4, Lumos::InputCode::Key::D4},
+					{GLFW_KEY_5, Lumos::InputCode::Key::D5},
+					{GLFW_KEY_6, Lumos::InputCode::Key::D6},
+					{GLFW_KEY_7, Lumos::InputCode::Key::D7},
+					{GLFW_KEY_8, Lumos::InputCode::Key::D8},
+					{GLFW_KEY_9, Lumos::InputCode::Key::D9},
 
-			{GLFW_KEY_KP_SUBTRACT	, LUMOS_KEY_SUBTRACT	},
-			{GLFW_KEY_DELETE		, LUMOS_KEY_DELETE		},
-			{GLFW_KEY_SPACE			, LUMOS_KEY_SPACE		},
-			{GLFW_KEY_LEFT			, LUMOS_KEY_LEFT		},
-			{GLFW_KEY_RIGHT			, LUMOS_KEY_RIGHT		},
-			{GLFW_KEY_UP			, LUMOS_KEY_UP			},
-			{GLFW_KEY_DOWN			, LUMOS_KEY_DOWN		},
-			{GLFW_KEY_LEFT_SHIFT	, LUMOS_KEY_LEFT_SHIFT	},
-			{GLFW_KEY_ESCAPE		, LUMOS_KEY_ESCAPE		},
-			{GLFW_KEY_KP_ADD		, LUMOS_KEY_ADD			},
-			{GLFW_KEY_COMMA			, LUMOS_KEY_COMMA		},
-			{GLFW_KEY_BACKSPACE		, LUMOS_KEY_BACKSPACE	},
-			{GLFW_KEY_ENTER			, LUMOS_KEY_ENTER		}
-			};
+					{GLFW_KEY_MINUS, Lumos::InputCode::Key::Minus},
+					{GLFW_KEY_DELETE, Lumos::InputCode::Key::Delete},
+					{GLFW_KEY_SPACE, Lumos::InputCode::Key::Space},
+					{GLFW_KEY_LEFT, Lumos::InputCode::Key::Left},
+					{GLFW_KEY_RIGHT, Lumos::InputCode::Key::Right},
+					{GLFW_KEY_UP, Lumos::InputCode::Key::Up},
+					{GLFW_KEY_DOWN, Lumos::InputCode::Key::Down},
+					{GLFW_KEY_LEFT_SHIFT, Lumos::InputCode::Key::LeftShift},
+					{GLFW_KEY_RIGHT_SHIFT, Lumos::InputCode::Key::RightShift},
+					{GLFW_KEY_ESCAPE, Lumos::InputCode::Key::Escape},
+					{GLFW_KEY_KP_ADD, Lumos::InputCode::Key::A},
+					{GLFW_KEY_COMMA, Lumos::InputCode::Key::Comma},
+					{GLFW_KEY_BACKSPACE, Lumos::InputCode::Key::Backspace},
+					{GLFW_KEY_ENTER, Lumos::InputCode::Key::Enter},
+					{GLFW_KEY_LEFT_SUPER, Lumos::InputCode::Key::LeftSuper},
+					{GLFW_KEY_RIGHT_SUPER, Lumos::InputCode::Key::RightSuper},
+					{GLFW_KEY_LEFT_ALT, Lumos::InputCode::Key::LeftAlt},
+					{GLFW_KEY_RIGHT_ALT, Lumos::InputCode::Key::RightAlt},
+					{GLFW_KEY_LEFT_CONTROL, Lumos::InputCode::Key::LeftControl},
+					{GLFW_KEY_RIGHT_CONTROL, Lumos::InputCode::Key::RightControl}};
 
-			return keyMap[glfwKey];
+ 			return keyMap[glfwKey];
 		}
-	
 
-		static u32 GLFWToLumosMouseKey(u32 glfwKey)
+		static Lumos::InputCode::MouseKey GLFWToLumosMouseKey(u32 glfwKey)
 		{
 
-			static std::map<u32, u32> keyMap =
-			{
-			{GLFW_MOUSE_BUTTON_LEFT, LUMOS_MOUSE_LEFT},
-			{GLFW_MOUSE_BUTTON_RIGHT, LUMOS_MOUSE_RIGHT},
-			{GLFW_MOUSE_BUTTON_MIDDLE, LUMOS_MOUSE_MIDDLE}
-			};
+			static std::map<u32, Lumos::InputCode::MouseKey> keyMap =
+				{
+					{GLFW_MOUSE_BUTTON_LEFT, Lumos::InputCode::MouseKey::ButtonLeft},
+					{GLFW_MOUSE_BUTTON_RIGHT, Lumos::InputCode::MouseKey::ButtonRight},
+					{GLFW_MOUSE_BUTTON_MIDDLE, Lumos::InputCode::MouseKey::ButtonMiddle}};
 
 			return keyMap[glfwKey];
 		}

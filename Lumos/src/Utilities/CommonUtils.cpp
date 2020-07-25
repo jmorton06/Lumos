@@ -7,13 +7,13 @@
 #include "Physics/LumosPhysicsEngine/LumosPhysicsEngine.h"
 #include "Graphics/ModelLoader/ModelLoader.h"
 #include "Utilities/RandomNumberGenerator.h"
-#include "App/Scene.h"
-#include "App/Application.h"
+#include "Scene/Scene.h"
+#include "Core/Application.h"
 #include "Graphics/Camera/Camera.h"
 #include "Graphics/Material.h"
 #include "Graphics/Mesh.h"
 #include "Graphics/Light.h"
-#include "ECS/Component/Components.h"
+#include "Scene/Component/Components.h"
 #include "Maths/Transform.h"
 
 namespace Lumos
@@ -44,7 +44,7 @@ namespace Lumos
 	{
 		auto pSphere = registry.create();
 		registry.emplace<NameComponent>(pSphere, name);
-	
+
 		Ref<Graphics::Mesh> sphereModel = AssetsManager::DefaultModels()->Get("Sphere");
 		registry.emplace<MeshComponent>(pSphere, sphereModel);
 
@@ -53,23 +53,23 @@ namespace Lumos
 		properties.albedoColour = color;
 		properties.roughnessColour = Vector4(RandomNumberGenerator32::Rand(0.0f, 1.0f));
 		properties.metallicColour = Vector4(RandomNumberGenerator32::Rand(0.0f, 1.0f));
-		properties.usingAlbedoMap   = 0.0f;
-		properties.usingRoughnessMap    = 0.0f;
-		properties.usingNormalMap   = 0.0f;
+		properties.usingAlbedoMap = 0.0f;
+		properties.usingRoughnessMap = 0.0f;
+		properties.usingNormalMap = 0.0f;
 		properties.usingMetallicMap = 0.0f;
 		matInstance->SetMaterialProperites(properties);
 		registry.emplace<MaterialComponent>(pSphere, matInstance);
 		registry.emplace<Maths::Transform>(pSphere, Maths::Matrix4::Scale(Maths::Vector3(radius, radius, radius)));
 
-		if (physics_enabled)
+		if(physics_enabled)
 		{
 			//Otherwise create a physics object, and set it's position etc
-			Ref<PhysicsObject3D> testPhysics = CreateRef<PhysicsObject3D>();
+			Ref<RigidBody3D> testPhysics = CreateRef<RigidBody3D>();
 
 			testPhysics->SetPosition(pos);
 			testPhysics->SetInverseMass(inverse_mass);
 
-			if (!collidable)
+			if(!collidable)
 			{
 				//Even without a collision shape, the inertia matrix for rotation has to be derived from the objects shape
 				testPhysics->SetInverseInertia(SphereCollisionShape(radius).BuildInverseInertia(inverse_mass));
@@ -112,24 +112,24 @@ namespace Lumos
 		properties.roughnessColour = Vector4(RandomNumberGenerator32::Rand(0.0f, 1.0f));
 		properties.metallicColour = Vector4(RandomNumberGenerator32::Rand(0.0f, 1.0f));
 		properties.emissiveColour = color;
-		properties.usingAlbedoMap   = 0.0f;
-		properties.usingRoughnessMap= 0.0f;
-		properties.usingNormalMap   = 0.0f;
+		properties.usingAlbedoMap = 0.0f;
+		properties.usingRoughnessMap = 0.0f;
+		properties.usingNormalMap = 0.0f;
 		properties.usingMetallicMap = 0.0f;
 		matInstance->SetMaterialProperites(properties);
 		matInstance->SetRenderFlags(0);
 		registry.emplace<MaterialComponent>(cube, matInstance);
 		registry.emplace<Maths::Transform>(cube, Maths::Matrix4::Scale(halfdims));
 
-		if (physics_enabled)
+		if(physics_enabled)
 		{
 			//Otherwise create a physics object, and set it's position etc
-			Ref<PhysicsObject3D> testPhysics = CreateRef<PhysicsObject3D>();
+			Ref<RigidBody3D> testPhysics = CreateRef<RigidBody3D>();
 
 			testPhysics->SetPosition(pos);
 			testPhysics->SetInverseMass(inverse_mass);
-			
-			if (!collidable)
+
+			if(!collidable)
 			{
 				//Even without a collision shape, the inertia matrix for rotation has to be derived from the objects shape
 				testPhysics->SetInverseInertia(CuboidCollisionShape(halfdims).BuildInverseInertia(inverse_mass));
@@ -172,25 +172,25 @@ namespace Lumos
 		properties.albedoColour = color;
 		properties.roughnessColour = Vector4(RandomNumberGenerator32::Rand(0.0f, 1.0f));
 		properties.metallicColour = Vector4(RandomNumberGenerator32::Rand(0.0f, 1.0f));
-		properties.usingAlbedoMap   = 0.0f;
-		properties.usingRoughnessMap    = 0.0f;
-		properties.usingNormalMap   = 0.0f;
+		properties.usingAlbedoMap = 0.0f;
+		properties.usingRoughnessMap = 0.0f;
+		properties.usingNormalMap = 0.0f;
 		properties.usingMetallicMap = 0.0f;
 		matInstance->SetMaterialProperites(properties);
 		registry.emplace<MaterialComponent>(pyramidMeshEntity, matInstance);
-		registry.emplace<Maths::Transform>(pyramidMeshEntity, Maths::Quaternion(-90.0f, 0.0f,0.0f).RotationMatrix4() * Maths::Matrix4::Scale(halfdims));
+		registry.emplace<Maths::Transform>(pyramidMeshEntity, Maths::Quaternion(-90.0f, 0.0f, 0.0f).RotationMatrix4() * Maths::Matrix4::Scale(halfdims));
 		registry.emplace<Hierarchy>(pyramidMeshEntity, pyramid);
 		registry.emplace<MeshComponent>(pyramidMeshEntity, pyramidModel);
 
-		if (physics_enabled)
+		if(physics_enabled)
 		{
 			//Otherwise create a physics object, and set it's position etc
-			Ref<PhysicsObject3D> testPhysics = CreateRef<PhysicsObject3D>();
+			Ref<RigidBody3D> testPhysics = CreateRef<RigidBody3D>();
 
 			testPhysics->SetPosition(pos);
 			testPhysics->SetInverseMass(inverse_mass);
 
-			if (!collidable)
+			if(!collidable)
 			{
 				//Even without a collision shape, the inertia matrix for rotation has to be derived from the objects shape
 				testPhysics->SetInverseInertia(PyramidCollisionShape(halfdims).BuildInverseInertia(inverse_mass));
@@ -214,23 +214,24 @@ namespace Lumos
 	void CommonUtils::AddLightCube(Scene* scene, const Maths::Vector3& pos, const Maths::Vector3& dir)
 	{
 		Maths::Vector4 colour = Maths::Vector4(RandomNumberGenerator32::Rand(0.0f, 1.0f),
-								 RandomNumberGenerator32::Rand(0.0f, 1.0f),
-								 RandomNumberGenerator32::Rand(0.0f, 1.0f),1.0f);
+			RandomNumberGenerator32::Rand(0.0f, 1.0f),
+			RandomNumberGenerator32::Rand(0.0f, 1.0f),
+			1.0f);
 
 		entt::registry& registry = scene->GetRegistry();
 
 		auto cube = CommonUtils::BuildCuboidObject(
-				registry,
-				"light Cube",
-				pos,
-				Maths::Vector3(0.5f, 0.5f, 0.5f),
-				true,
-				1.0f,
-				true,
-				colour);
+			registry,
+			"light Cube",
+			pos,
+			Maths::Vector3(0.5f, 0.5f, 0.5f),
+			true,
+			1.0f,
+			true,
+			colour);
 
-		registry.get<Physics3DComponent>(cube).GetPhysicsObject()->SetIsAtRest(true);
-		const float radius    = RandomNumberGenerator32::Rand(1.0f, 30.0f);
+		registry.get<Physics3DComponent>(cube).GetRigidBody()->SetIsAtRest(true);
+		const float radius = RandomNumberGenerator32::Rand(1.0f, 30.0f);
 		const float intensity = RandomNumberGenerator32::Rand(0.0f, 2.0f);
 
 		registry.emplace<Graphics::Light>(cube, pos, colour, intensity, Graphics::LightType::PointLight, pos, radius);
@@ -241,20 +242,20 @@ namespace Lumos
 		entt::registry& registry = scene->GetRegistry();
 
 		auto sphere = CommonUtils::BuildSphereObject(
-				registry,
-				"Sphere",
-				pos,
-				0.5f,
-				true,
-				1.0f,
-				true,
-				Maths::Vector4(RandomNumberGenerator32::Rand(0.0f, 1.0f),
-						RandomNumberGenerator32::Rand(0.0f, 1.0f),
-						RandomNumberGenerator32::Rand(0.0f, 1.0f),
-						1.0f));
+			registry,
+			"Sphere",
+			pos,
+			0.5f,
+			true,
+			1.0f,
+			true,
+			Maths::Vector4(RandomNumberGenerator32::Rand(0.0f, 1.0f),
+				RandomNumberGenerator32::Rand(0.0f, 1.0f),
+				RandomNumberGenerator32::Rand(0.0f, 1.0f),
+				1.0f));
 
 		const Maths::Vector3 forward = dir;
-		registry.get<Physics3DComponent>(sphere).GetPhysicsObject()->SetLinearVelocity(forward * 30.0f);
+		registry.get<Physics3DComponent>(sphere).GetRigidBody()->SetLinearVelocity(forward * 30.0f);
 	}
 
 	void CommonUtils::AddPyramid(Scene* scene, const Maths::Vector3& pos, const Maths::Vector3& dir)
@@ -262,20 +263,20 @@ namespace Lumos
 		entt::registry& registry = scene->GetRegistry();
 
 		auto sphere = CommonUtils::BuildPyramidObject(
-				registry,
-				"Pyramid",
-				pos,
-				Maths::Vector3(0.5f),
-				true,
-				1.0f,
-				true,
-				Maths::Vector4(RandomNumberGenerator32::Rand(0.0f, 1.0f),
-						RandomNumberGenerator32::Rand(0.0f, 1.0f),
-						RandomNumberGenerator32::Rand(0.0f, 1.0f),
-						1.0f));
+			registry,
+			"Pyramid",
+			pos,
+			Maths::Vector3(0.5f),
+			true,
+			1.0f,
+			true,
+			Maths::Vector4(RandomNumberGenerator32::Rand(0.0f, 1.0f),
+				RandomNumberGenerator32::Rand(0.0f, 1.0f),
+				RandomNumberGenerator32::Rand(0.0f, 1.0f),
+				1.0f));
 
 		const Maths::Vector3 forward = dir;
 
-		registry.get<Physics3DComponent>(sphere).GetPhysicsObject()->SetLinearVelocity(forward * 30.0f);
+		registry.get<Physics3DComponent>(sphere).GetRigidBody()->SetLinearVelocity(forward * 30.0f);
 	}
 }

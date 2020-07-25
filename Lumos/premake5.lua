@@ -1,18 +1,18 @@
 IncludeDir = {}
-IncludeDir["GLFW"] = "../Dependencies/glfw/include/"
+IncludeDir["GLFW"] = "external/glfw/include/"
 IncludeDir["Glad"] = "external/glad/include/"
-IncludeDir["lua"] = "../Dependencies/lua/src/"
+IncludeDir["lua"] = "external/lua/src/"
 IncludeDir["stb"] = "external/stb/"
-IncludeDir["OpenAL"] = "../Dependencies/OpenAL/include/"
-IncludeDir["Box2D"] = "../Dependencies/Box2D/"
-IncludeDir["Dependencies"] = "../Dependencies/"
-IncludeDir["vulkan"] = "../Dependencies/vulkan/"
-IncludeDir["jsonhpp"] = "external/jsonhpp/"
-IncludeDir["Lumos"] = "../Lumos/src"
+IncludeDir["OpenAL"] = "external/OpenAL/include/"
+IncludeDir["Box2D"] = "external/Box2D/"
+IncludeDir["external"] = "external/"
+IncludeDir["vulkan"] = "external/vulkan/"
+IncludeDir["Lumos"] = "src"
 IncludeDir["External"] = "external/"
-IncludeDir["ImGui"] = "../Dependencies/imgui/"
-IncludeDir["freetype"] = "../Dependencies/freetype/include"
-IncludeDir["SpirvCross"] = "../Dependencies/SPIRV-Cross"
+IncludeDir["ImGui"] = "external/imgui/"
+IncludeDir["freetype"] = "external/freetype/include"
+IncludeDir["SpirvCross"] = "external/SPIRV-Cross"
+IncludeDir["cereal"] = "external/cereal/include"
 
 
 project "Lumos"
@@ -50,12 +50,12 @@ project "Lumos"
 		"%{IncludeDir.OpenAL}",
 		"%{IncludeDir.Box2D}",
 		"%{IncludeDir.vulkan}",
-		"%{IncludeDir.Dependencies}",
+		"%{IncludeDir.external}",
 		"%{IncludeDir.External}",
-		"%{IncludeDir.jsonhpp}",
 		"%{IncludeDir.spdlog}",
 		"%{IncludeDir.freetype}",
 		"%{IncludeDir.SpirvCross}",
+		"%{IncludeDir.cereal}",
 		"%{IncludeDir.Lumos}",
 	}
 
@@ -201,7 +201,8 @@ project "Lumos"
 
 		buildoptions
 		{
-			"-Wno-attributes"
+			"-Wno-attributes",
+			"-Wno-nullability-completeness"
 		}
 
 		SetRecommendedXcodeSettings()
@@ -272,7 +273,8 @@ project "Lumos"
 
 		buildoptions
 		{
-			"-Wno-attributes"
+			"-Wno-attributes",
+			"-Wno-nullability-completeness"
 		}
 
 		SetRecommendedXcodeSettings()
@@ -317,7 +319,7 @@ project "Lumos"
 
 		linkoptions
 		{
-			"../Dependencies/OpenAL/libs/linux/libopenal.so"
+			"external/OpenAL/libs/linux/libopenal.so"
 		}
 
 		linkoptions{ "-Wl,-rpath=\\$$ORIGIN" }

@@ -14,24 +14,24 @@ namespace Lumos
 
 			m_RendererTitle = "Vulkan";
 
-            VKDevice::Instance();
-            
-            m_Swapchain = CreateRef<VKSwapchain>(m_Width, m_Height);
-            m_Swapchain->Init();
-            
-            CreateSemaphores();
+			VKDevice::Get();
+
+			m_Swapchain = CreateRef<VKSwapchain>(m_Width, m_Height);
+			m_Swapchain->Init();
+
+			CreateSemaphores();
 		}
 
-        VKRenderer::~VKRenderer()
+		VKRenderer::~VKRenderer()
 		{
 			m_Swapchain.reset();
 
-			for (int i = 0; i < NUM_SEMAPHORES; i++)
+			for(int i = 0; i < NUM_SEMAPHORES; i++)
 			{
-				vkDestroySemaphore(VKDevice::Instance()->GetDevice(), m_ImageAvailableSemaphore[i], nullptr);
+				vkDestroySemaphore(VKDevice::Get().GetDevice(), m_ImageAvailableSemaphore[i], nullptr);
 			}
-            
-            m_Context->Unload();
+
+			m_Context->Unload();
 
 			VKDevice::Release();
 		}
@@ -39,7 +39,9 @@ namespace Lumos
 		void VKRenderer::PresentInternal(CommandBuffer* cmdBuffer)
 		{
 			dynamic_cast<VKCommandBuffer*>(cmdBuffer)->ExecuteInternal(VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT,
-				m_ImageAvailableSemaphore[m_CurrentSemaphoreIndex], m_ImageAvailableSemaphore[m_CurrentSemaphoreIndex + 1], false);
+				m_ImageAvailableSemaphore[m_CurrentSemaphoreIndex],
+				m_ImageAvailableSemaphore[m_CurrentSemaphoreIndex + 1],
+				false);
 			m_CurrentSemaphoreIndex++;
 		}
 
@@ -49,30 +51,31 @@ namespace Lumos
 			{
 				auto cmd = VKTools::BeginSingleTimeCommands();
 
-				VkImageSubresourceRange subresourceRange = {};	
+				VkImageSubresourceRange subresourceRange = {};
 				subresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
 				subresourceRange.baseMipLevel = 0;
 				subresourceRange.layerCount = 1;
 				subresourceRange.levelCount = 1;
 
-                VkClearColorValue clearColorValue = VkClearColorValue({ {0.0f, 0.0f, 0.0f, 0.0f} });
+				VkClearColorValue clearColorValue = VkClearColorValue({{0.0f, 0.0f, 0.0f, 0.0f}});
 
-				vkCmdClearColorImage(cmd, static_cast<VKTexture2D*>(m_Swapchain->GetImage(i))->GetImage(),VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL, &clearColorValue, 1, &subresourceRange);
+				vkCmdClearColorImage(cmd, static_cast<VKTexture2D*>(m_Swapchain->GetImage(i))->GetImage(), VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL, &clearColorValue, 1, &subresourceRange);
 
 				VKTools::EndSingleTimeCommands(cmd);
 			}
 		}
 
 		void VKRenderer::PresentInternal()
-        {
+		{
 			m_Swapchain->Present(m_ImageAvailableSemaphore[m_CurrentSemaphoreIndex]);
-        }
+		}
 
 		void VKRenderer::OnResize(u32 width, u32 height)
 		{
-			if (width == 0 || height == 0) return;
+			if(width == 0 || height == 0)
+				return;
 
-			m_Width  = width;
+			m_Width = width;
 			m_Height = height;
 
 			m_Swapchain = CreateRef<VKSwapchain>(width, height);
@@ -85,9 +88,9 @@ namespace Lumos
 			semaphoreInfo.sType = VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO;
 			semaphoreInfo.pNext = nullptr;
 
-			for (int i = 0; i < NUM_SEMAPHORES; i++)
+			for(int i = 0; i < NUM_SEMAPHORES; i++)
 			{
-				VK_CHECK_RESULT(vkCreateSemaphore(VKDevice::Instance()->GetDevice(), &semaphoreInfo, nullptr, &m_ImageAvailableSemaphore[i]));
+				VK_CHECK_RESULT(vkCreateSemaphore(VKDevice::Get().GetDevice(), &semaphoreInfo, nullptr, &m_ImageAvailableSemaphore[i]));
 			}
 		}
 
@@ -96,18 +99,18 @@ namespace Lumos
 			m_CurrentSemaphoreIndex = 0;
 			auto result = m_Swapchain->AcquireNextImage(m_ImageAvailableSemaphore[m_CurrentSemaphoreIndex]);
 
-			if (result == VK_ERROR_OUT_OF_DATE_KHR)
+			if(result == VK_ERROR_OUT_OF_DATE_KHR)
 			{
 				OnResize(m_Width, m_Height);
 				return;
 			}
-			else if (result != VK_SUCCESS && result != VK_SUBOPTIMAL_KHR)
+			else if(result != VK_SUCCESS && result != VK_SUBOPTIMAL_KHR)
 			{
 				LUMOS_LOG_CRITICAL("[VULKAN] Failed to acquire swap chain image!");
 			}
 		}
 
-		const String & VKRenderer::GetTitleInternal() const
+		const std::string& VKRenderer::GetTitleInternal() const
 		{
 			return m_RendererTitle;
 		}
@@ -117,16 +120,16 @@ namespace Lumos
 			u32 numDynamicDescriptorSets = 0;
 			u32 numDesciptorSets = 0;
 
-			for (auto descriptorSet : descriptorSets)
+			for(auto descriptorSet : descriptorSets)
 			{
 				auto vkDesSet = static_cast<Graphics::VKDescriptorSet*>(descriptorSet);
-				if (vkDesSet->GetIsDynamic())
+				if(vkDesSet->GetIsDynamic())
 					numDynamicDescriptorSets++;
 
 				m_DescriptorSetPool[numDesciptorSets] = vkDesSet->GetDescriptorSet();
 
 				u32 index = 0;
-				for (auto& pc : vkDesSet->GetPushConstants())
+				for(auto& pc : vkDesSet->GetPushConstants())
 				{
 					vkCmdPushConstants(static_cast<Graphics::VKCommandBuffer*>(cmdBuffer)->GetCommandBuffer(), static_cast<Graphics::VKPipeline*>(pipeline)->GetPipelineLayout(), VKTools::ShaderTypeToVK(pc.shaderStage), index, pc.size, pc.data);
 				}
@@ -134,7 +137,7 @@ namespace Lumos
 				numDesciptorSets++;
 			}
 
-			vkCmdBindDescriptorSets(static_cast<Graphics::VKCommandBuffer*>(cmdBuffer)->GetCommandBuffer(),VK_PIPELINE_BIND_POINT_GRAPHICS, static_cast<Graphics::VKPipeline*>(pipeline)->GetPipelineLayout(), 0, numDesciptorSets, m_DescriptorSetPool, numDynamicDescriptorSets, &dynamicOffset);
+			vkCmdBindDescriptorSets(static_cast<Graphics::VKCommandBuffer*>(cmdBuffer)->GetCommandBuffer(), VK_PIPELINE_BIND_POINT_GRAPHICS, static_cast<Graphics::VKPipeline*>(pipeline)->GetPipelineLayout(), 0, numDesciptorSets, m_DescriptorSetPool, numDynamicDescriptorSets, &dynamicOffset);
 		}
 
 		void VKRenderer::DrawIndexedInternal(CommandBuffer* commandBuffer, DrawType type, u32 count, u32 start) const
@@ -146,15 +149,15 @@ namespace Lumos
 		{
 			vkCmdDraw(static_cast<VKCommandBuffer*>(commandBuffer)->GetCommandBuffer(), count, 1, 0, 0);
 		}
-        
-        void VKRenderer::MakeDefault()
-        {
-            CreateFunc = CreateFuncVulkan;
-        }
-        
+
+		void VKRenderer::MakeDefault()
+		{
+			CreateFunc = CreateFuncVulkan;
+		}
+
 		Renderer* VKRenderer::CreateFuncVulkan(u32 width, u32 height)
-        {
-            return lmnew VKRenderer(width, height);
-        }
+		{
+			return lmnew VKRenderer(width, height);
+		}
 	}
 }

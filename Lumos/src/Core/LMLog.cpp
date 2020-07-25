@@ -19,8 +19,8 @@ namespace Lumos::Debug
 //#endif
         
 #ifndef LUMOS_PLATFORM_IOS
-        auto logFileSink = std::make_shared<spdlog::sinks::rotating_file_sink_mt>("LumosLog.txt", 1048576 * 5, 3);
-        sinks.emplace_back(logFileSink); // Log file
+        //auto logFileSink = std::make_shared<spdlog::sinks::rotating_file_sink_mt>("LumosLog.txt", 1048576 * 5, 3);
+        //sinks.emplace_back(logFileSink); // Log file
 #endif
 
 		// create the loggers

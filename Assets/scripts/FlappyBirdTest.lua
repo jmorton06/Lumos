@@ -1,23 +1,25 @@
-registry = scene:GetRegistry()
-
 pillars = {}
 
-MAX_HEIGHT = 10.0
-SPEED = 3.0
-m_FurthestPillarPosX = 0
+local MAX_HEIGHT = 10.0
+local SPEED = 3.0
+local m_FurthestPillarPosX = 0
+local gapSize = 4.0;
 
-m_PillarTarget = 35.0
-m_PillarIndex = 1
+local m_PillarTarget = 35.0
+local m_PillarIndex = 1
 
-PLAYERTYPEID = 1
-PILLARTYPEID = 2
+local PLAYERTYPEID = 1
+local PILLARTYPEID = 2
 
 local GameStates = {
     Running=0,
     GameOver=1
 }
 
-gameState = GameStates.Running
+local gameState = GameStates.Running
+
+local player = {}
+local score = 0
 
 function beginContact(a, b)
     gameState = GameStates.GameOver
@@ -35,10 +37,8 @@ function postSolve(a, b, coll, normalimpulse, tangentimpulse)
  
 end
 
-player = {}
-score = 0
-
 function CreatePlayer()
+    registry = CurrentScene:GetRegistry()
     colour = Vector4.new(1.0,1.0,1.0,1.0)
 
     texture = LoadTextureWithParams("icon", "/CoreTextures/panda.png", TextureFilter.Linear, TextureWrap.Clamp)
@@ -47,7 +47,7 @@ function CreatePlayer()
     registry:assign_Sprite(player, Vector2.new(-1.0/2.0, -1.0/2.0), Vector2.new(1.15, 1.0), colour)
     registry:get_Sprite(player):SetTexture(texture)
 
-    params = PhysicsObjectParamaters.new()
+    params = RigidBodyParamaters.new()
     params.position = Vector3.new( 1.0, 1.0, 1.0)
     params.scale = Vector3.new(1.0 / 2.0, 1.0 / 2.0, 1.0)
 	params.shape = Shape.Circle
@@ -65,12 +65,13 @@ function CreatePlayer()
 end
 
 function CreatePillar(index, offset)
+    registry = CurrentScene:GetRegistry()
+
 	pillars[index] = registry:Create();
 	pillars[index + 1] = registry:Create();
 
 	colour = Vector4.new(Rand(0.0, 1.0), Rand(0.0, 1.0), Rand(0.0, 1.0), 1.0);
 
-	gapSize = 4.0;
     centre = Rand(-6.0, 6.0);
     
     --Top Pillar
@@ -86,7 +87,7 @@ function CreatePillar(index, offset)
 
     registry:get_Sprite(pillars[index]):SetTexture(texture)
 
-    params = PhysicsObjectParamaters.new()
+    params = RigidBodyParamaters.new()
 	params.position = pos
 	params.scale = scale
 	params.shape = Shape.Square
@@ -127,29 +128,46 @@ function CreatePillar(index, offset)
 
 end
 
-CreatePlayer()
-
-for i=1,10, 2 do
-    CreatePillar(i, (i + 2) * 10.0)
-end
-
-backgroundTexture = LoadTextureWithParams("grass", "/CoreTextures/backgroundColorGrass.png", TextureFilter.Linear, TextureWrap.Clamp)
-
-backgrounds = {}
-
 function CreateBackground(index)
+    registry = CurrentScene:GetRegistry()
+
     backgrounds[index] = registry:Create()
     registry:assign_Sprite(backgrounds[index], Vector2.new(-10.0, -10.0), Vector2.new(10.0 * 2.0, 10.0 * 2.0), Vector4.new(1.0,1.0,1.0,1.0))
     registry:get_Sprite(backgrounds[index]):SetTexture(backgroundTexture)
     registry:assign_Transform(backgrounds[index])
-    registry:get_Transform(backgrounds[index]):SetLocalPosition(Vector3.new(index * 20.0 - 40.0, 0.0,0.0))
+    registry:get_Transform(backgrounds[index]):SetLocalPosition(Vector3.new(index * 20.0 - 40.0, 0.0, -1.0))
 end
 
-for i=1,50, 1 do
-    CreateBackground(i)
+function updateSpeed(speed)
+    SPEED = speed
+end
+
+function updateGap(gap)
+    gapSize = gap
+end
+
+backgrounds = {}
+
+function OnInit()
+    camera = registry:Create();
+    registry:assign_Camera(camera, 1.0, 10.0, 1.0)
+
+    CreatePlayer()
+
+    for i=1,10, 2 do
+        CreatePillar(i, (i + 2) * 10.0)
+    end
+
+    backgroundTexture = LoadTextureWithParams("grass", "/CoreTextures/backgroundColorGrass.png", TextureFilter.Linear, TextureWrap.Clamp)
+
+    for i=1,50, 1 do
+        CreateBackground(i)
+    end
 end
 
 function OnUpdate(dt)
+    registry = CurrentScene:GetRegistry()
+
     if gameState == GameStates.Running then
 		phys = registry:get_Physics2DComponent(player)
 
@@ -163,7 +181,7 @@ function OnUpdate(dt)
             velocity = velocity + up * cameraSpeed * 400.0
         end
 
-        phys:GetPhysicsObject():GetB2Body():ApplyForce(b2Vec2(velocity.x,velocity.y), phys:GetPhysicsObject():GetB2Body():GetPosition(), true)
+        phys:GetRigidBody():GetB2Body():ApplyForce(b2Vec2(velocity.x,velocity.y), phys:GetRigidBody():GetB2Body():GetPosition(), true)
 
         pos = registry:get_Transform(player):GetWorldPosition()
 
@@ -210,11 +228,18 @@ function OnUpdate(dt)
         end
         gui.endWindow()
     end
+
+    gui.beginWindow("Settings")
+    gui.inputFloat("Gap Size", gapSize, updateGap)
+    gui.inputFloat("Speed", SPEED, updateSpeed)
+    gui.endWindow()
 end
 
 function Reset()
+    registry = CurrentScene:GetRegistry()
+
     gameState = GameStates.Running
-    phys = registry:get_Physics2DComponent(player):GetPhysicsObject()
+    phys = registry:get_Physics2DComponent(player):GetRigidBody()
 
 	phys:SetPosition(Vector2.new(0.0, 0.0))
 	phys:SetLinearVelocity(Vector2.new(SPEED, 0.0))
@@ -239,6 +264,8 @@ function Reset()
 end
 
 function OnCleanUp()
+    registry = CurrentScene:GetRegistry()
+
     backgroundTexture = nil
     texture = nil
     blockPhysics = nil
@@ -246,4 +273,5 @@ function OnCleanUp()
 
     registry:Destroy(player)
 end
+
 

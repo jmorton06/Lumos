@@ -4,8 +4,9 @@ width=1280
 height=800
 fullscreen=false
 borderless=false
+showConsole=true
 vsync=true
 title="Sandbox"
-renderAPI=0
+renderAPI=1
 
 -- OpenGL = 0, Vulkan = 1, Direct3D = 2

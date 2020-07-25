@@ -40,7 +40,6 @@ namespace Lumos
 		virtual void OnResize(u32 width, u32 height);
 		virtual void SetScreenBufferSize(u32 width, u32 height);
 		virtual void SetRenderTarget(Texture* texture);
-		virtual void SetRenderToGBufferTexture(bool set);
 
 		void SetSystemUniforms(Shader* shader) const;
 		float SubmitTexture(Texture* texture);
@@ -86,7 +85,6 @@ namespace Lumos
 		std::vector<Texture*> m_Textures;
 
 		Texture* m_RenderTexture;
-		bool m_RenderToGBufferTexture = false;
 		u32 m_CurrentBufferID = 0;
 		Maths::Vector4 m_ClearColour;
 

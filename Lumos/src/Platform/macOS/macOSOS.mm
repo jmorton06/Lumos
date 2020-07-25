@@ -3,7 +3,7 @@
 #include "macOSPower.h"
 #include "Platform/GLFW/GLFWWindow.h"
 #include "Core/CoreSystem.h"
-#include "App/Application.h"
+#include "Core/Application.h"
 
 #include <mach-o/dyld.h>
 
@@ -20,15 +20,15 @@ namespace Lumos
 
         LUMOS_CORE_INFO("Battery Info - Percentage : {0} , Time Left {1}s , State : {2}", percentage, secondsLeft, PowerStateToString(state));
         
-        const String root = ROOT_DIR;
+        const std::string root = ROOT_DIR;
 		VFS::Get()->Mount("Meshes", root + "/Assets/meshes");
 		VFS::Get()->Mount("Textures", root + "/Assets/textures");
 		VFS::Get()->Mount("Sounds", root + "/Assets/sounds");
         
-        auto app = Lumos::Application::Instance();
-        app->Init();
-        app->Run();
-        delete app;
+        auto& app = Lumos::Application::Get();
+        app.Init();
+        app.Run();
+        app.Release();
     }
 
     void macOSOS::Init()
@@ -36,7 +36,7 @@ namespace Lumos
         GLFWWindow::MakeDefault();
     }
 
-    String macOSOS::GetExecutablePath()
+    std::string macOSOS::GetExecutablePath()
     {
         std::string result;
 

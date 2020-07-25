@@ -14,7 +14,9 @@ namespace Lumos
     
         void UpdateScroll(Camera* camera, float offset, float dt) override;
 
+        void SetMode(bool is2D) { m_2DMode = is2D; }
 	private:
+        bool m_2DMode = false;
     
     };
 }

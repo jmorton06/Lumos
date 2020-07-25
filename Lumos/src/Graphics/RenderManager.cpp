@@ -26,8 +26,6 @@ namespace Lumos
 			m_ReflectSkyBox = false;
 			m_UseShadowMap = false;
 			m_NumShadowMaps = 4;
-			m_ShadowTexture = nullptr;
-			m_ShadowRenderer = nullptr;
 		}
 	}
 }

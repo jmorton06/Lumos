@@ -473,6 +473,11 @@ namespace Lumos::Maths
             return q;
         }
     };
+    
+    template<typename Archive> void serialize(Archive& archive, Maths::Quaternion& v4)
+    {
+        archive(v4.x, v4.y, v4.z, v4.w);
+    }
 
 	_FORCE_INLINE_ Quaternion operator*(const Vector3& v, const Quaternion& rhs)
 	{

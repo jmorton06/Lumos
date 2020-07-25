@@ -26,24 +26,24 @@ namespace Lumos
 			VkCommandBufferAllocateInfo cmdBufferCI{};
 
 			cmdBufferCI.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
-			cmdBufferCI.commandPool = VKDevice::Instance()->GetVKContext()->GetCommandPool()->GetCommandPool();
+			cmdBufferCI.commandPool = VKDevice::Get().GetVKContext()->GetCommandPool()->GetCommandPool();
 			cmdBufferCI.commandBufferCount = 1;
 			cmdBufferCI.level = primary ? VK_COMMAND_BUFFER_LEVEL_PRIMARY : VK_COMMAND_BUFFER_LEVEL_SECONDARY;
 
-			VK_CHECK_RESULT(vkAllocateCommandBuffers(VKDevice::Instance()->GetDevice(), &cmdBufferCI, &m_CommandBuffer));
+			VK_CHECK_RESULT(vkAllocateCommandBuffers(VKDevice::Get().GetDevice(), &cmdBufferCI, &m_CommandBuffer));
 
 			VkFenceCreateInfo fenceCI{};
 			fenceCI.sType = VK_STRUCTURE_TYPE_FENCE_CREATE_INFO;
 			fenceCI.flags = VK_FENCE_CREATE_SIGNALED_BIT;
-			VK_CHECK_RESULT(vkCreateFence(VKDevice::Instance()->GetDevice(), &fenceCI, nullptr, &m_Fence));
+			VK_CHECK_RESULT(vkCreateFence(VKDevice::Get().GetDevice(), &fenceCI, nullptr, &m_Fence));
 
 			return true;
 		}
 
 		void VKCommandBuffer::Unload()
 		{
-			vkDestroyFence(VKDevice::Instance()->GetDevice(), m_Fence, nullptr);
-			vkFreeCommandBuffers(VKDevice::Instance()->GetDevice(), VKDevice::Instance()->GetVKContext()->GetCommandPool()->GetCommandPool(),1, &m_CommandBuffer);
+			vkDestroyFence(VKDevice::Get().GetDevice(), m_Fence, nullptr);
+			vkFreeCommandBuffers(VKDevice::Get().GetDevice(), VKDevice::Get().GetVKContext()->GetCommandPool()->GetCommandPool(),1, &m_CommandBuffer);
 		}
 
 		void VKCommandBuffer::BeginRecording()
@@ -115,14 +115,14 @@ namespace Lumos
 
 				if (waitFence)
 				{
-					VK_CHECK_RESULT(vkQueueSubmit(VKDevice::Instance()->GetGraphicsQueue(), 1, &submitInfo, m_Fence));
-					VK_CHECK_RESULT(vkWaitForFences(VKDevice::Instance()->GetDevice(), 1, &m_Fence, VK_TRUE, UINT64_MAX));
-					VK_CHECK_RESULT(vkResetFences(VKDevice::Instance()->GetDevice(), 1, &m_Fence));
+                    VK_CHECK_RESULT(vkWaitForFences(VKDevice::Get().GetDevice(), 1, &m_Fence, VK_TRUE, UINT64_MAX));
+                    VK_CHECK_RESULT(vkResetFences(VKDevice::Get().GetDevice(), 1, &m_Fence));
+					VK_CHECK_RESULT(vkQueueSubmit(VKDevice::Get().GetGraphicsQueue(), 1, &submitInfo, m_Fence));
 				}
 				else 
 				{
-					VK_CHECK_RESULT(vkQueueSubmit(VKDevice::Instance()->GetGraphicsQueue(), 1, &submitInfo, VK_NULL_HANDLE));
-					VK_CHECK_RESULT(vkQueueWaitIdle(VKDevice::Instance()->GetGraphicsQueue()));
+					VK_CHECK_RESULT(vkQueueSubmit(VKDevice::Get().GetGraphicsQueue(), 1, &submitInfo, VK_NULL_HANDLE));
+					VK_CHECK_RESULT(vkQueueWaitIdle(VKDevice::Get().GetGraphicsQueue()));
 				}
 					
 			}

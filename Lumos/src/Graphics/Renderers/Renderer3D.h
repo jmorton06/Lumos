@@ -25,15 +25,19 @@ namespace Lumos
 		class LUMOS_EXPORT Renderer3D
 		{
 		public:
-
-			virtual	~Renderer3D() {}
+			virtual ~Renderer3D()
+			{
+			}
 
 			virtual void RenderScene(Scene* scene) = 0;
-			Framebuffer* GetFBO() const { return m_FBO; }
+			Framebuffer* GetFBO() const
+			{
+				return m_FBO;
+			}
 
 			virtual void Init() = 0;
 			virtual void Begin() = 0;
-			virtual void BeginScene(Scene* scene) = 0;
+			virtual void BeginScene(Scene* scene, Camera* overrideCamera) = 0;
 			virtual void Submit(const RenderCommand& command) = 0;
 			virtual void SubmitMesh(Mesh* mesh, Material* material, const Maths::Matrix4& transform, const Maths::Matrix4& textureMatrix) = 0;
 			virtual void EndScene() = 0;
@@ -42,18 +46,35 @@ namespace Lumos
 
 			virtual void OnResize(u32 width, u32 height) = 0;
 
-			virtual void SetScreenBufferSize(u32 width, u32 height) { if (width == 0) width = 1; if (height == 0) height = 1; m_ScreenBufferWidth = width; m_ScreenBufferHeight = height; }
+			virtual void SetScreenBufferSize(u32 width, u32 height)
+			{
+				if(width == 0)
+					width = 1;
+				if(height == 0)
+					height = 1;
+				m_ScreenBufferWidth = width;
+				m_ScreenBufferHeight = height;
+			}
 
-			virtual void SetRenderTarget(Graphics::Texture* texture) { m_RenderTexture = texture; }
-			virtual void SetRenderToGBufferTexture(bool set) { m_RenderToGBufferTexture = set; }
-			virtual void OnImGui() {};
-            
-            void SetCamera(Camera* camera) { m_Camera = camera; }
+			virtual void SetRenderTarget(Graphics::Texture* texture, bool rebuildFramebuffer = true)
+			{
+				m_RenderTexture = texture;
+			}
+			virtual void OnImGui(){};
+
+			void SetCamera(Camera* camera)
+			{
+				m_Camera = camera;
+			}
+			Texture* GetRenderTarget() const
+			{
+				return m_RenderTexture;
+			}
 
 		protected:
 			Framebuffer* m_FBO;
-            Shader* m_Shader;
-            Camera* m_Camera;
+			Shader* m_Shader;
+			Camera* m_Camera;
 
 			Lumos::Graphics::RenderPass* m_RenderPass;
 			Lumos::Graphics::Pipeline* m_Pipeline;
@@ -63,8 +84,7 @@ namespace Lumos
 			CommandQueue m_CommandQueue;
 			SystemUniformList m_SystemUniforms;
 			Texture* m_RenderTexture = nullptr;
-			bool m_RenderToGBufferTexture = false;
+			Texture* m_DepthTexture = nullptr;
 		};
 	}
 }
-

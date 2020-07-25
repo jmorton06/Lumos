@@ -33,22 +33,22 @@ namespace Lumos
 
 		m_CameraSpeed = camera->GetScale() * dt * 20.0f;
 
-		if (Input::GetInput()->GetKeyHeld(LUMOS_KEY_A))
+		if (Input::GetInput()->GetKeyHeld(Lumos::InputCode::Key::A))
 		{
 			m_Velocity -= right * m_CameraSpeed;
 		}
 
-		if (Input::GetInput()->GetKeyHeld(LUMOS_KEY_D))
+		if (Input::GetInput()->GetKeyHeld(Lumos::InputCode::Key::D))
 		{
 			m_Velocity += right * m_CameraSpeed;
 		}
 
-		if (Input::GetInput()->GetKeyHeld(LUMOS_KEY_W))
+		if (Input::GetInput()->GetKeyHeld(Lumos::InputCode::Key::W))
 		{
 			m_Velocity += up * m_CameraSpeed;
 		}
 
-		if (Input::GetInput()->GetKeyHeld(LUMOS_KEY_S))
+		if (Input::GetInput()->GetKeyHeld(Lumos::InputCode::Key::S))
 		{
 			m_Velocity -= up * m_CameraSpeed;
 		}
