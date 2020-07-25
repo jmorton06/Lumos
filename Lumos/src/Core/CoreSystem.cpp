@@ -17,7 +17,7 @@ namespace Lumos
 
 		if (enableProfiler)
 		{
-			Profiler::Instance()->Enable();
+			Profiler::Get().Enable();
 		}
 		LUMOS_PROFILE_BLOCK("CoreSystem::Init");
 
@@ -26,7 +26,7 @@ namespace Lumos
 		System::JobSystem::OnInit();
 		Debug::Log::Info("Initializing System");
 		VFS::OnInit();
-        LuaManager::Instance()->OnInit();
+        LuaManager::Get().OnInit();
 	}
 
 	void CoreSystem::Shutdown()

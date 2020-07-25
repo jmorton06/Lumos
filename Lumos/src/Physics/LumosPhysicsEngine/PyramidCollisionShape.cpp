@@ -1,11 +1,11 @@
 #include "lmpch.h"
 #include "PyramidCollisionShape.h"
-#include "PhysicsObject3D.h"
+#include "RigidBody3D.h"
 
 namespace Lumos
 {
 
-	Scope<Hull> PyramidCollisionShape::m_PyramidHull  = CreateScope<Hull>();
+	UniqueRef<Hull> PyramidCollisionShape::m_PyramidHull = CreateUniqueRef<Hull>();
 
 	PyramidCollisionShape::PyramidCollisionShape()
 	{
@@ -13,7 +13,7 @@ namespace Lumos
 		m_Type = CollisionShapeType::CollisionPyramid;
 		m_LocalTransform = Maths::Matrix4::Scale(m_PyramidHalfDimensions);
 
-		if (m_PyramidHull->GetNumVertices() == 0)
+		if(m_PyramidHull->GetNumVertices() == 0)
 		{
 			ConstructPyramidHull();
 		}
@@ -31,8 +31,7 @@ namespace Lumos
 			m_LocalTransform * Maths::Vector3(-1.0f, -1.0f, 1.0f),
 			m_LocalTransform * Maths::Vector3(1.0f, -1.0f, 1.0f),
 			m_LocalTransform * Maths::Vector3(1.0f, -1.0f, -1.0f),
-			m_LocalTransform * Maths::Vector3(0.0f, 1.0f, 0.0f)
-		};
+			m_LocalTransform * Maths::Vector3(0.0f, 1.0f, 0.0f)};
 
 		m_Normals[0] = Maths::Vector3::Cross(m_Points[0] - m_Points[3], m_Points[4] - m_Points[3]).Normalized();
 		m_Normals[1] = Maths::Vector3::Cross(m_Points[1] - m_Points[0], m_Points[4] - m_Points[0]).Normalized();
@@ -40,7 +39,7 @@ namespace Lumos
 		m_Normals[3] = Maths::Vector3::Cross(m_Points[3] - m_Points[2], m_Points[4] - m_Points[2]).Normalized();
 		m_Normals[4] = Maths::Vector3(0.0f, -1.0f, 0.0f);
 
-		if (m_PyramidHull->GetNumVertices() == 0)
+		if(m_PyramidHull->GetNumVertices() == 0)
 		{
 			ConstructPyramidHull();
 		}
@@ -63,9 +62,9 @@ namespace Lumos
 		return inertia;
 	}
 
-	void PyramidCollisionShape::GetCollisionAxes(const PhysicsObject3D* currentObject, std::vector<Maths::Vector3>* out_axes) const
+	void PyramidCollisionShape::GetCollisionAxes(const RigidBody3D* currentObject, std::vector<Maths::Vector3>* out_axes) const
 	{
-		if (out_axes)
+		if(out_axes)
 		{
 			const Maths::Matrix3 objOrientation = currentObject->GetOrientation().RotationMatrix();
 			out_axes->push_back(objOrientation * m_Normals[0]);
@@ -76,12 +75,12 @@ namespace Lumos
 		}
 	}
 
-	void PyramidCollisionShape::GetEdges(const PhysicsObject3D* currentObject, std::vector<CollisionEdge>* out_edges) const
+	void PyramidCollisionShape::GetEdges(const RigidBody3D* currentObject, std::vector<CollisionEdge>* out_edges) const
 	{
-		if (out_edges)
+		if(out_edges)
 		{
 			Maths::Matrix4 transform = currentObject->GetWorldSpaceTransform() * m_LocalTransform;
-			for (unsigned int i = 0; i < m_PyramidHull->GetNumEdges(); ++i)
+			for(unsigned int i = 0; i < m_PyramidHull->GetNumEdges(); ++i)
 			{
 				const HullEdge& edge = m_PyramidHull->GetEdge(i);
 				Maths::Vector3 A = transform * m_PyramidHull->GetVertex(edge.vStart).pos;
@@ -92,11 +91,11 @@ namespace Lumos
 		}
 	}
 
-	void PyramidCollisionShape::GetMinMaxVertexOnAxis(const PhysicsObject3D* currentObject, const Maths::Vector3& axis, Maths::Vector3* out_min, Maths::Vector3* out_max) const
+	void PyramidCollisionShape::GetMinMaxVertexOnAxis(const RigidBody3D* currentObject, const Maths::Vector3& axis, Maths::Vector3* out_min, Maths::Vector3* out_max) const
 	{
 		Maths::Matrix4 wsTransform;
 
-		if (currentObject == nullptr)
+		if(currentObject == nullptr)
 			wsTransform = m_LocalTransform;
 		else
 			wsTransform = currentObject->GetWorldSpaceTransform() * m_LocalTransform;
@@ -107,15 +106,17 @@ namespace Lumos
 		int vMin, vMax;
 		m_PyramidHull->GetMinMaxVerticesInAxis(local_axis, &vMin, &vMax);
 
-		if (out_min) *out_min = wsTransform * m_PyramidHull->GetVertex(vMin).pos;
-		if (out_max) *out_max = wsTransform * m_PyramidHull->GetVertex(vMax).pos;
+		if(out_min)
+			*out_min = wsTransform * m_PyramidHull->GetVertex(vMin).pos;
+		if(out_max)
+			*out_max = wsTransform * m_PyramidHull->GetVertex(vMax).pos;
 	}
 
-	void PyramidCollisionShape::GetIncidentReferencePolygon(const PhysicsObject3D* currentObject, const Maths::Vector3& axis, std::list<Maths::Vector3>* out_face, Maths::Vector3* out_normal, std::vector<Maths::Plane>* out_adjacent_planes) const
+	void PyramidCollisionShape::GetIncidentReferencePolygon(const RigidBody3D* currentObject, const Maths::Vector3& axis, std::list<Maths::Vector3>* out_face, Maths::Vector3* out_normal, std::vector<Maths::Plane>* out_adjacent_planes) const
 	{
 		Maths::Matrix4 wsTransform;
 
-		if (currentObject == nullptr)
+		if(currentObject == nullptr)
 			wsTransform = m_LocalTransform;
 		else
 			wsTransform = currentObject->GetWorldSpaceTransform() * m_LocalTransform;
@@ -132,34 +133,34 @@ namespace Lumos
 
 		const HullFace* best_face = nullptr;
 		float best_correlation = -FLT_MAX;
-		for (int faceIdx : vert.enclosing_faces)
+		for(int faceIdx : vert.enclosing_faces)
 		{
 			const HullFace* face = &m_PyramidHull->GetFace(faceIdx);
 			const float temp_correlation = Maths::Vector3::Dot(local_axis, face->normal);
-			if (temp_correlation > best_correlation)
+			if(temp_correlation > best_correlation)
 			{
 				best_correlation = temp_correlation;
 				best_face = face;
 			}
 		}
 
-		if (out_normal)
+		if(out_normal)
 		{
 			if(best_face)
 				*out_normal = normalMatrix * best_face->normal;
 			(*out_normal).Normalize();
 		}
 
-		if (out_face && best_face)
+		if(out_face && best_face)
 		{
-			for (int vertIdx : best_face->vert_ids)
+			for(int vertIdx : best_face->vert_ids)
 			{
 				const HullVertex& vertex = m_PyramidHull->GetVertex(vertIdx);
 				out_face->push_back(wsTransform * vertex.pos);
 			}
 		}
 
-		if (out_adjacent_planes && best_face != nullptr)
+		if(out_adjacent_planes && best_face != nullptr)
 		{
 			//Add the reference face itself to the list of adjacent planes
 			Maths::Vector3 wsPointOnPlane = wsTransform * m_PyramidHull->GetVertex(m_PyramidHull->GetEdge(best_face->edge_ids[0]).vStart).pos;
@@ -169,15 +170,15 @@ namespace Lumos
 
 			out_adjacent_planes->emplace_back(planeNrml, planeDist);
 
-			for (int edgeIdx : best_face->edge_ids)
+			for(int edgeIdx : best_face->edge_ids)
 			{
 				const HullEdge& edge = m_PyramidHull->GetEdge(edgeIdx);
 
 				wsPointOnPlane = wsTransform * m_PyramidHull->GetVertex(edge.vStart).pos;
 
-				for (int adjFaceIdx : edge.enclosing_faces)
+				for(int adjFaceIdx : edge.enclosing_faces)
 				{
-					if (adjFaceIdx != best_face->idx)
+					if(adjFaceIdx != best_face->idx)
 					{
 						const HullFace& adjFace = m_PyramidHull->GetFace(adjFaceIdx);
 
@@ -192,7 +193,7 @@ namespace Lumos
 		}
 	}
 
-	void PyramidCollisionShape::DebugDraw(const PhysicsObject3D* currentObject) const
+	void PyramidCollisionShape::DebugDraw(const RigidBody3D* currentObject) const
 	{
 		const Maths::Matrix4 transform = currentObject->GetWorldSpaceTransform() * m_LocalTransform;
 
@@ -201,23 +202,23 @@ namespace Lumos
 
 	void PyramidCollisionShape::ConstructPyramidHull()
 	{
-		Maths::Vector3 v0 = Maths::Vector3(-1.0f, -1.0f, -1.0f);	// 0
-		Maths::Vector3 v1 = Maths::Vector3(-1.0f, -1.0f, 1.0f);	// 1
-		Maths::Vector3 v2 = Maths::Vector3(1.0f, -1.0f, 1.0f);		// 2
-		Maths::Vector3 v3 = Maths::Vector3(1.0f, -1.0f, -1.0f);	// 3
-		Maths::Vector3 v4 = Maths::Vector3(0.0f, 1.0f, 0.0f);		// 4
+		Maths::Vector3 v0 = Maths::Vector3(-1.0f, -1.0f, -1.0f); // 0
+		Maths::Vector3 v1 = Maths::Vector3(-1.0f, -1.0f, 1.0f); // 1
+		Maths::Vector3 v2 = Maths::Vector3(1.0f, -1.0f, 1.0f); // 2
+		Maths::Vector3 v3 = Maths::Vector3(1.0f, -1.0f, -1.0f); // 3
+		Maths::Vector3 v4 = Maths::Vector3(0.0f, 1.0f, 0.0f); // 4
 		//Vertices
-		m_PyramidHull->AddVertex(v0);		// 0
-		m_PyramidHull->AddVertex(v1);		// 1
-		m_PyramidHull->AddVertex(v2);		// 2
-		m_PyramidHull->AddVertex(v3);		// 3
-		m_PyramidHull->AddVertex(v4);		// 4
+		m_PyramidHull->AddVertex(v0); // 0
+		m_PyramidHull->AddVertex(v1); // 1
+		m_PyramidHull->AddVertex(v2); // 2
+		m_PyramidHull->AddVertex(v3); // 3
+		m_PyramidHull->AddVertex(v4); // 4
 
-		int face1[] = { 0, 4, 3 };
-		int face2[] = { 1, 4, 0 };
-		int face3[] = { 2, 4, 1 };
-		int face4[] = { 3, 4, 2 };
-		int face5[] = { 0, 3, 2, 1 };
+		int face1[] = {0, 4, 3};
+		int face2[] = {1, 4, 0};
+		int face3[] = {2, 4, 1};
+		int face4[] = {3, 4, 2};
+		int face5[] = {0, 3, 2, 1};
 
 		m_PyramidHull->AddFace(Maths::Vector3::Cross((v0 - v3), v4 - v3).Normalized(), 3, face1);
 		m_PyramidHull->AddFace(Maths::Vector3::Cross(v1 - v0, v4 - v0).Normalized(), 3, face2);

@@ -15,17 +15,17 @@ namespace Lumos
 			~GridRenderer();
 
 			void Init() override;
-			void BeginScene(Scene* scene) override;
+			void BeginScene(Scene* scene, Camera* overrideCamera) override;
 			void OnResize(u32 width, u32 height) override;
 			void CreateGraphicsPipeline();
 			void UpdateUniformBuffer();
 
 			void Begin() override;
-			void Submit(const RenderCommand& command) override {};
-			void SubmitMesh(Mesh* mesh, Material* material, const Maths::Matrix4& transform, const Maths::Matrix4& textureMatrix) override {};
-			void EndScene() override {};
+			void Submit(const RenderCommand& command) override{};
+			void SubmitMesh(Mesh* mesh, Material* material, const Maths::Matrix4& transform, const Maths::Matrix4& textureMatrix) override{};
+			void EndScene() override{};
 			void End() override;
-			void Present() override {};
+			void Present() override{};
 			void RenderScene(Scene* scene) override;
 
 			void CreateFramebuffers();
@@ -37,15 +37,14 @@ namespace Lumos
 
 			struct UniformBufferObjectFrag
 			{
-                Maths::Vector4 cameraPos;
+				Maths::Vector4 cameraPos;
 				float scale;
 				float res;
 				float maxDistance;
 				float p1;
 			};
 
-			void SetRenderTarget(Texture* texture) override;
-			void SetRenderToGBufferTexture(bool set) override;
+			void SetRenderTarget(Texture* texture, bool rebuildFramebuffer) override;
 			void OnImGui() override;
 
 		private:

@@ -21,7 +21,7 @@ namespace Lumos
     ProfilerRecord::~ProfilerRecord()
     {
         m_EndTime = m_Timer.GetTimedMS();
-        Profiler::Instance()->Save(*this);
+        Profiler::Get().Save(*this);
 
 #ifdef LUMOS_PROFILER_ENABLED
 		s_CurrentProfilerName = m_Parent;

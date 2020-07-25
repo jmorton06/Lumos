@@ -23,15 +23,15 @@ namespace Lumos
 		static void Create();
 		static void Release() { lmdel s_Input; }
 
-		bool GetKeyPressed(u32 key)   const { return m_KeyPressed[key]; }
-		bool GetKeyHeld(u32 key)      const { return m_KeyHeld[key]; }
-		bool GetMouseClicked(u32 key) const { return m_MouseClicked[key]; }
-		bool GetMouseHeld(u32 key)    const { return m_MouseHeld[key]; }
+		bool GetKeyPressed(Lumos::InputCode::Key key)   const { return m_KeyPressed[int(key)]; }
+		bool GetKeyHeld(Lumos::InputCode::Key key)      const { return m_KeyHeld[int(key)]; }
+		bool GetMouseClicked(Lumos::InputCode::MouseKey key) const { return m_MouseClicked[int(key)]; }
+		bool GetMouseHeld(Lumos::InputCode::MouseKey key)    const { return m_MouseHeld[int(key)]; }
 
-		void SetKeyPressed(u32 key, bool a)   { m_KeyPressed[key] = a; }
-		void SetKeyHeld(u32 key, bool a)	   { m_KeyHeld[key] = a; }
-		void SetMouseClicked(u32 key, bool a) { m_MouseClicked[key] = a; }
-		void SetMouseHeld(u32 key, bool a)    { m_MouseHeld[key] = a; }
+		void SetKeyPressed(Lumos::InputCode::Key key, bool a)   { m_KeyPressed[int(key)] = a; }
+		void SetKeyHeld(Lumos::InputCode::Key key, bool a)	   { m_KeyHeld[int(key)] = a; }
+		void SetMouseClicked(Lumos::InputCode::MouseKey key, bool a) { m_MouseClicked[int(key)] = a; }
+		void SetMouseHeld(Lumos::InputCode::MouseKey key, bool a)    { m_MouseHeld[int(key)] = a; }
 
 		void SetMouseOnScreen(bool onScreen){ m_MouseOnScreen = onScreen; }
 		bool GetMouseOnScreen() const { return m_MouseOnScreen; }

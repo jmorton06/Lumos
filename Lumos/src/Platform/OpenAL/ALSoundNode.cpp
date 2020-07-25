@@ -3,7 +3,7 @@
 #include "ALSound.h"
 #include "ALManager.h"
 
-#include "App/Application.h"
+#include "Core/Application.h"
 
 #include "Graphics/Camera/Camera.h"
 
@@ -29,16 +29,16 @@ namespace Lumos
 		Maths::Vector3 position;
 		Maths::Vector3 velocity;
 
-		if (m_IsGlobal)
+		if(m_IsGlobal)
 		{
-			position = Application::Instance()->GetSystem<AudioManager>()->GetListener()->GetPosition();
+			position = Application::Get().GetSystem<AudioManager>()->GetListener()->GetPosition();
 		}
 		else
 		{
 			position = GetPosition();
 		}
 
-		if (m_Stationary)
+		if(m_Stationary)
 		{
 			velocity = Maths::Vector3(0.0f);
 		}
@@ -49,7 +49,6 @@ namespace Lumos
 
 		alSourcefv(m_Source, AL_POSITION, reinterpret_cast<float*>(&position));
 		alSourcefv(m_Source, AL_VELOCITY, reinterpret_cast<float*>(&velocity));
-
 	}
 
 	void ALSoundNode::Pause()
@@ -69,10 +68,10 @@ namespace Lumos
 		alSourceStop(m_Source);
 	}
 
-	void ALSoundNode::SetSound(Sound * s)
+	void ALSoundNode::SetSound(Sound* s)
 	{
 		m_Sound = s;
-		if (m_Sound)
+		if(m_Sound)
 		{
 			m_TimeLeft = m_Sound->GetLength();
 			alSourcei(m_Source, AL_BUFFER, static_cast<ALSound*>(m_Sound)->GetBuffer());

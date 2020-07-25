@@ -3,63 +3,31 @@
 using namespace Lumos;
 using namespace Maths;
 
-GraphicsScene::GraphicsScene(const std::string& SceneName) : Scene(SceneName), m_Terrain(entt::null) {}
+GraphicsScene::GraphicsScene(const std::string& SceneName)
+	: Scene(SceneName)
+{
+}
 
 GraphicsScene::~GraphicsScene() = default;
 
 void GraphicsScene::OnInit()
 {
 	Scene::OnInit();
-	Application::Instance()->GetSystem<LumosPhysicsEngine>()->SetDampingFactor(0.998f);
-	Application::Instance()->GetSystem<LumosPhysicsEngine>()->SetIntegrationType(IntegrationType::RUNGE_KUTTA_4);
-	Application::Instance()->GetSystem<LumosPhysicsEngine>()->SetBroadphase(Lumos::CreateRef<Octree>(5, 3, Lumos::CreateRef<SortAndSweepBroadphase>()));
+	Application::Get().GetSystem<LumosPhysicsEngine>()->SetDampingFactor(0.998f);
+	Application::Get().GetSystem<LumosPhysicsEngine>()->SetIntegrationType(IntegrationType::RUNGE_KUTTA_4);
+	Application::Get().GetSystem<LumosPhysicsEngine>()->SetBroadphase(Lumos::CreateRef<Octree>(5, 3, Lumos::CreateRef<SortAndSweepBroadphase>()));
 
 	LoadModels();
 
-	m_SceneBoundingRadius = 200.0f;
-
-    auto environment = m_Registry.create();
-    m_Registry.emplace<Graphics::Environment>(environment, "/Textures/cubemap/Arches_E_PineTree", 11, 3072, 4096, ".tga");
-    m_Registry.emplace<NameComponent>(environment, "Environment");
-
-	auto lightEntity = m_Registry.create();
-	m_Registry.emplace<Graphics::Light>(lightEntity, Maths::Vector3(26.0f, 22.0f, 48.5f), Maths::Vector4(1.0f), 1.3f);
-	m_Registry.emplace<Maths::Transform>(lightEntity, Matrix4::Translation(Maths::Vector3(26.0f, 22.0f, 48.5f)) * Maths::Quaternion::LookAt(Maths::Vector3(26.0f, 22.0f, 48.5f), Maths::Vector3::ZERO).RotationMatrix4());
-	m_Registry.emplace<NameComponent>(lightEntity, "Light");
-
-	auto cameraEntity = m_Registry.create();
-	auto& camera = m_Registry.emplace<Camera>(cameraEntity, 45.0f, 0.1f, 1000.0f, (float) m_ScreenWidth / (float) m_ScreenHeight);
-	m_Registry.emplace<NameComponent>(cameraEntity, "Camera");
-	camera.SetCameraController(CreateRef<EditorCameraController>());
-
-	auto audioSystem = Application::Instance()->GetSystem<AudioManager>();
-	if (audioSystem)
-		Application::Instance()->GetSystem<AudioManager>()->SetListener(&camera);
-
-    bool editor = false;
-
-    #ifdef LUMOS_EDITOR
-    editor = true;
-    #endif
-	auto deferredRenderer = new Graphics::ForwardRenderer(m_ScreenWidth, m_ScreenHeight, editor, true);
-	auto skyboxRenderer = new Graphics::SkyboxRenderer(m_ScreenWidth, m_ScreenHeight);
-
-    //Can't render to array texture on iPhoneX or older
-#ifndef LUMOS_PLATFORM_IOS
-    auto shadowRenderer = new Graphics::ShadowRenderer();
-	shadowRenderer->SetLightEntity(lightEntity);
-    auto shadowLayer = new Layer3D(shadowRenderer);
-    Application::Instance()->GetRenderManager()->SetShadowRenderer(shadowRenderer);
-    Application::Instance()->PushLayer(shadowLayer);
-#endif
-
-	deferredRenderer->SetRenderToGBufferTexture(editor);
-	skyboxRenderer->SetRenderToGBufferTexture(editor);
-
-	auto deferredLayer = new Layer3D(deferredRenderer);
-	auto skyBoxLayer = new Layer3D(skyboxRenderer);
-	Application::Instance()->PushLayer(deferredLayer);
-	Application::Instance()->PushLayer(skyBoxLayer);
+    auto environment = m_EntityManager->Create("Environment");
+    environment.AddComponent<Graphics::Environment>("/Textures/cubemap/Arches_E_PineTree", 11, 3072, 4096, ".tga");
+    
+    auto lightEntity = m_EntityManager->Create("Light");
+    lightEntity.AddComponent<Graphics::Light>(Maths::Vector3(26.0f, 22.0f, 48.5f), Maths::Vector4(1.0f), 1.3f);
+    lightEntity.AddComponent<Maths::Transform>(Matrix4::Translation(Maths::Vector3(26.0f, 22.0f, 48.5f)) * Maths::Quaternion::LookAt(Maths::Vector3(26.0f, 22.0f, 48.5f), Maths::Vector3::ZERO).RotationMatrix4());
+    
+    auto cameraEntity = m_EntityManager->Create("Camera");
+    cameraEntity.AddComponent<Camera>(-20.0f, -40.0f, Maths::Vector3(-31.0f, 12.0f, 51.0f), 60.0f, 0.1f, 1000.0f, (float)m_ScreenWidth / (float)m_ScreenHeight);
 }
 
 void GraphicsScene::OnUpdate(const TimeStep& timeStep)
@@ -75,18 +43,16 @@ void GraphicsScene::OnCleanupScene()
 void GraphicsScene::LoadModels()
 {
 	//HeightMap
-	m_Terrain = m_Registry.create(); // EntityManager::Instance()->CreateEntity("heightmap");
-	m_Registry.emplace<Maths::Transform>(m_Terrain, Matrix4::Scale(Maths::Vector3(1.0f)));
-	m_Registry.emplace<TextureMatrixComponent>(m_Terrain, Matrix4::Scale(Maths::Vector3(1.0f, 1.0f, 1.0f)));
-	m_Registry.emplace<NameComponent>(m_Terrain, "HeightMap");
-    Lumos::Ref<Graphics::Mesh> terrain = Lumos::Ref<Graphics::Mesh>(new Terrain());
+	m_Terrain = m_EntityManager->Create("HeightMap");
+    m_Terrain.AddComponent<Maths::Transform>(Matrix4::Scale(Maths::Vector3(1.0f)));
+    m_Terrain.AddComponent<TextureMatrixComponent>(Matrix4::Scale(Maths::Vector3(1.0f, 1.0f, 1.0f)));
+	Lumos::Ref<Graphics::Mesh> terrain = Lumos::Ref<Graphics::Mesh>(new Terrain());
 
 	auto material = Lumos::CreateRef<Material>();
 	material->LoadMaterial("checkerboard", "/CoreTextures/checkerboard.tga");
 
-	m_Registry.emplace<MaterialComponent>(m_Terrain, material);
-	m_Registry.emplace<MeshComponent>(m_Terrain, terrain);
-
+    m_Terrain.AddComponent<MaterialComponent>(material);
+    m_Terrain.AddComponent<MeshComponent>(terrain);
 }
 
 int width = 500;
@@ -101,7 +67,7 @@ float texRandZ = 1.0f / 16.0f;
 
 void GraphicsScene::OnImGui()
 {
-    ImGui::Begin("Terrain");
+	ImGui::Begin("Terrain");
 
 	ImGui::SliderInt("Width", &width, 1, 5000);
 	ImGui::SliderInt("Height", &height, 1, 5000);
@@ -114,23 +80,22 @@ void GraphicsScene::OnImGui()
 
 	ImGui::InputFloat("texRandX", &texRandX);
 	ImGui::InputFloat("texRandZ", &texRandZ);
+
+	if(ImGui::Button("Rebuild Terrain"))
+	{
+		m_Terrain.Destroy();
     
-    if(ImGui::Button("Rebuild Terrain"))
-    {
-		m_Registry.destroy(m_Terrain);
+        m_Terrain = m_EntityManager->Create("HeightMap");
+        m_Terrain.AddComponent<Maths::Transform>(Matrix4::Scale(Maths::Vector3(1.0f)));
+        m_Terrain.AddComponent<TextureMatrixComponent>(Matrix4::Scale(Maths::Vector3(1.0f, 1.0f, 1.0f)));
+        Lumos::Ref<Graphics::Mesh> terrain = Lumos::Ref<Graphics::Mesh>(new Terrain(width, height, lowside, lowscale, xRand, yRand, zRand, texRandX, texRandZ));
+        
+        auto material = Lumos::CreateRef<Material>();
+        material->LoadMaterial("checkerboard", "/CoreTextures/checkerboard.tga");
+        
+        m_Terrain.AddComponent<MaterialComponent>(material);
+        m_Terrain.AddComponent<MeshComponent>(terrain);
+	}
 
-		m_Terrain = m_Registry.create();
-		m_Registry.emplace<Maths::Transform>(m_Terrain, Matrix4::Scale(Maths::Vector3(1.0f)));
-		m_Registry.emplace<TextureMatrixComponent>(m_Terrain, Matrix4::Scale(Maths::Vector3(1.0f, 1.0f, 1.0f)));
-		m_Registry.emplace<NameComponent>(m_Terrain, "HeightMap");
-		Lumos::Ref<Graphics::Mesh> terrain = Lumos::Ref<Graphics::Mesh>(new Terrain(width, height, lowside, lowscale, xRand, yRand, zRand, texRandX, texRandZ));
-
-		auto material = Lumos::CreateRef<Material>();
-		material->LoadMaterial("checkerboard", "/CoreTextures/checkerboard.tga");
-
-		m_Registry.emplace<MaterialComponent>(m_Terrain, material);
-		m_Registry.emplace<MeshComponent>(m_Terrain, terrain);
-    }
-    
-    ImGui::End();
+	ImGui::End();
 }

@@ -13,22 +13,22 @@ namespace Lumos
 		class LUMOS_EXPORT SkyboxRenderer : public Renderer3D
 		{
 		public:
-			SkyboxRenderer(u32 width, u32 height, bool renderToGBuffer = false);
+			SkyboxRenderer(u32 width, u32 height);
 			~SkyboxRenderer();
 
 			void Init() override;
-			void BeginScene(Scene* scene) override;
+			void BeginScene(Scene* scene, Camera* overrideCamera) override;
 			void OnResize(u32 width, u32 height) override;
 			void CreateGraphicsPipeline();
 			void SetCubeMap(Texture* cubeMap);
 			void UpdateUniformBuffer();
 
 			void Begin() override;
-			void Submit(const RenderCommand& command) override {};
-			void SubmitMesh(Mesh* mesh, Material* material, const Maths::Matrix4& transform, const Maths::Matrix4& textureMatrix) override {};
-			void EndScene() override {};
+			void Submit(const RenderCommand& command) override{};
+			void SubmitMesh(Mesh* mesh, Material* material, const Maths::Matrix4& transform, const Maths::Matrix4& textureMatrix) override{};
+			void EndScene() override{};
 			void End() override;
-			void Present() override {};
+			void Present() override{};
 			void RenderScene(Scene* scene) override;
 
 			void CreateFramebuffers();
@@ -38,13 +38,11 @@ namespace Lumos
 				Lumos::Maths::Matrix4 invprojview;
 			};
 
-			void SetRenderTarget(Texture* texture) override;
-			void SetRenderToGBufferTexture(bool set) override;
+			void SetRenderTarget(Texture* texture, bool rebuildFramebuffer) override;
 
 			void OnImGui() override;
 
 		private:
-
 			void SetSystemUniforms(Shader* shader) const;
 
 			u8* m_VSSystemUniformBuffer{};

@@ -22,7 +22,10 @@ namespace Lumos
 			GLRenderer(u32 width, u32 height);
 			~GLRenderer();
 
-            static GLRenderer* Instance() { return static_cast<GLRenderer*>(s_Instance); }
+			static GLRenderer* Instance()
+			{
+				return static_cast<GLRenderer*>(s_Instance);
+			}
 
 			void Begin() override;
 			void InitInternal() override;
@@ -51,21 +54,21 @@ namespace Lumos
 
 			static void ClearInternal(u32 buffer);
 
-			Swapchain* GetSwapchainInternal() const override { return m_Swapchain; }
+			Swapchain* GetSwapchainInternal() const override
+			{
+				return m_Swapchain;
+			}
 
-			const String& GetTitleInternal() const override;
+			const std::string& GetTitleInternal() const override;
 
-            static void MakeDefault();
-        protected:
-            static Renderer* CreateFuncGL(u32 width, u32 height);
+			static void MakeDefault();
 
-			String m_RendererTitle;
+		protected:
+			static Renderer* CreateFuncGL(u32 width, u32 height);
+
+			std::string m_RendererTitle;
 			Graphics::GLContext* m_Context;
 			Graphics::GLSwapchain* m_Swapchain;
-
 		};
 	}
 }
-
-
-

@@ -3,6 +3,8 @@
 #include "Maths/Maths.h"
 #include "Renderable2D.h"
 
+#include <cereal/cereal.hpp>
+
 namespace Lumos
 {
 	namespace Maths 
@@ -25,6 +27,28 @@ namespace Lumos
             void SetSpriteSheet(const Ref<Texture2D>& texture, const Maths::Vector2& index, const Maths::Vector2& cellSize, const Maths::Vector2& spriteSize);
             void SetTexture(const Ref<Texture2D>& texture) { m_Texture = texture; }
 			void OnImGui();
+		
+			template<typename Archive>
+			void save(Archive& archive) const
+			{
+				archive(cereal::make_nvp("TexturePath", m_Texture ? m_Texture->GetFilepath() : ""),
+						cereal::make_nvp("Position", m_Position),
+						cereal::make_nvp("Scale", m_Scale),
+						cereal::make_nvp("Colour", m_Colour));
+			}
+
+			template<typename Archive>
+			void load(Archive& archive)
+			{
+				std::string textureFilePath;
+				archive(cereal::make_nvp("TexturePath", textureFilePath),
+					cereal::make_nvp("Position", m_Position),
+					cereal::make_nvp("Scale", m_Scale),
+					cereal::make_nvp("Colour", m_Colour));
+
+                if(!textureFilePath.empty())
+                    m_Texture = Ref<Graphics::Texture2D>(Graphics::Texture2D::CreateFromFile("sprite", textureFilePath));
+			}
 		};
 	}
 }

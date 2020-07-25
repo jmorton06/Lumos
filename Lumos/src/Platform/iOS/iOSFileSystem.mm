@@ -13,16 +13,16 @@
 
 namespace Lumos
 {
-    String NormaliseFilename(const char *filename)
+    std::string NormaliseFilename(const char *filename)
     {
-        String normalisedFilename;
+        std::string normalisedFilename;
         if (FileSystem::IsAbsolutePath(filename))
         {
             normalisedFilename = filename;
         }
         else
         {
-            normalisedFilename = iOSOS::Instance()->GetExecutablePath();
+            normalisedFilename = iOSOS::Get()->GetExecutablePath();
             //normalisedFilename.AppendPath(filename);
         }
 
@@ -30,16 +30,16 @@ namespace Lumos
         return normalisedFilename;
     }
 
-    String NormaliseDirectoryName(const char *dirname)
+    std::string NormaliseDirectoryName(const char *dirname)
     {
-        String normalisedDirname;
+        std::string normalisedDirname;
         if (FileSystem::IsAbsolutePath(dirname))
         {
             normalisedDirname = dirname;
         }
         else
         {
-            normalisedDirname = iOSOS::Instance()->GetExecutablePath();
+            normalisedDirname = iOSOS::Get()->GetExecutablePath();
             normalisedDirname.append(dirname);
 
         }
@@ -57,16 +57,16 @@ namespace Lumos
         return normalisedDirname;
     }
 
-    String ConvertToIOSPath(const String& filename, bool forWrite)
+    std::string ConvertToIOSPath(const std::string& filename, bool forWrite)
     {
         if (FileSystem::IsAbsolutePath(filename.c_str()))
         {
             return filename;
         }
         
-        String result;
-        String appPath = iOSOS::Instance()->GetExecutablePath();
-        String relFilename;// = filename.ToRelativePath(appPath);
+        std::string result;
+        std::string appPath = iOSOS::Get()->GetExecutablePath();
+        std::string relFilename;// = filename.ToRelativePath(appPath);
         
         if (!forWrite)
         {
@@ -103,19 +103,19 @@ namespace Lumos
             return true;
     }
 
-    bool FileSystem::FileExists(const String& path)
+    bool FileSystem::FileExists(const std::string& path)
     {
         struct stat buffer;
         return (stat (path.c_str(), &buffer) == 0);
     }
 	
-	 bool FileSystem::FolderExists(const String& path)
+	 bool FileSystem::FolderExists(const std::string& path)
     {
         struct stat buffer;
         return (stat (path.c_str(), &buffer) == 0);
     }
 
-    i64 FileSystem::GetFileSize(const String& path)
+    i64 FileSystem::GetFileSize(const std::string& path)
     {
         if (!FileExists(path))
             return -1;
@@ -124,7 +124,7 @@ namespace Lumos
         return buffer.st_size;
     }
 
-    bool FileSystem::ReadFile(const String& path, void* buffer, i64 size)
+    bool FileSystem::ReadFile(const std::string& path, void* buffer, i64 size)
     {
         if(!FileExists(path))
             return false;
@@ -141,7 +141,7 @@ namespace Lumos
         return result;
     }
 
-    u8* FileSystem::ReadFile(const String& path)
+    u8* FileSystem::ReadFile(const std::string& path)
     {
         if(!FileExists(path))
             return nullptr;
@@ -155,13 +155,13 @@ namespace Lumos
         return result ? buffer : nullptr;
     }
 
-    String FileSystem::ReadTextFile(const String& path)
+    std::string FileSystem::ReadTextFile(const std::string& path)
     {
         if(!FileExists(path))
-            return String();
+            return std::string();
         i64 size = GetFileSize(path);
         FILE* file = fopen(path.c_str(), "r");
-        String result(size, 0);
+        std::string result(size, 0);
         bool success = ReadFileInternal(file, &result[0], size, false);
         fclose(file);
         if (success)
@@ -169,10 +169,10 @@ namespace Lumos
             // Strip carriage returns
             result.erase(std::remove(result.begin(), result.end(), '\r'), result.end());
         }
-        return success ? result : String();
+        return success ? result : std::string();
     }
 
-    bool FileSystem::WriteFile(const String& path, u8* buffer)
+    bool FileSystem::WriteFile(const std::string& path, u8* buffer)
     {
         FILE* file = fopen(path.c_str(), "wb");
         size_t size = fwrite(buffer, 1, sizeof(buffer), file);
@@ -180,7 +180,7 @@ namespace Lumos
         return size > 0;
     }
 
-    bool FileSystem::WriteTextFile(const String& path, const String& text)
+    bool FileSystem::WriteTextFile(const std::string& path, const std::string& text)
     {
         FILE* file = fopen(path.c_str(), "w");
         size_t size = fwrite(text.c_str(), 1, sizeof(text), file);

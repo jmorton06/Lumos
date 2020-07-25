@@ -20,11 +20,5 @@ pipeline {
                 '''
             }
         }
-        stage('Save Output')
-        {
-            steps{
-                archiveArtifacts artifacts: 'bin/'
-            }
-        }
     }
 }

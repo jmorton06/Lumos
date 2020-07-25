@@ -25,12 +25,22 @@ namespace Lumos
 		class LUMOS_EXPORT VKRenderer : public Renderer
 		{
 		public:
-            VKRenderer(u32 width, u32 height) { m_Width = width; m_Height = height; }
-            ~VKRenderer();
+			VKRenderer(u32 width, u32 height)
+			{
+				m_Width = width;
+				m_Height = height;
+			}
+			~VKRenderer();
 
-			static VKRenderer* GetRenderer() { return static_cast<VKRenderer*>(s_Instance); }
+			static VKRenderer* GetRenderer()
+			{
+				return static_cast<VKRenderer*>(s_Instance);
+			}
 
-			Swapchain* GetSwapchainInternal() const override { return m_Swapchain.get(); }
+			Swapchain* GetSwapchainInternal() const override
+			{
+				return m_Swapchain.get();
+			}
 
 			void InitInternal() override;
 			void Begin() override;
@@ -41,17 +51,19 @@ namespace Lumos
 
 			void ClearSwapchainImage() const;
 
-			const String& GetTitleInternal() const override;
+			const std::string& GetTitleInternal() const override;
 
 			void BindDescriptorSetsInternal(Graphics::Pipeline* pipeline, Graphics::CommandBuffer* cmdBuffer, u32 dynamicOffset, std::vector<Graphics::DescriptorSet*>& descriptorSets) override;
 			void DrawIndexedInternal(CommandBuffer* commandBuffer, DrawType type, u32 count, u32 start) const override;
 			void DrawInternal(CommandBuffer* commandBuffer, DrawType type, u32 count, DataType datayType, void* indices) const override;
 
-            void CreateSemaphores();
-            
-            static void MakeDefault();
-        protected:
-            static Renderer* CreateFuncVulkan(u32 width, u32 height);
+			void CreateSemaphores();
+
+			static void MakeDefault();
+
+		protected:
+			static Renderer* CreateFuncVulkan(u32 width, u32 height);
+
 		private:
 			Lumos::Graphics::VKContext* m_Context;
 			Ref<Lumos::Graphics::VKSwapchain> m_Swapchain;
@@ -59,7 +71,7 @@ namespace Lumos
 			VkSemaphore m_ImageAvailableSemaphore[NUM_SEMAPHORES];
 			u32 m_CurrentSemaphoreIndex = 0;
 
-			String m_RendererTitle;
+			std::string m_RendererTitle;
 			u32 m_Width, m_Height;
 
 			VkDescriptorSet m_DescriptorSetPool[16];

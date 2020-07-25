@@ -36,19 +36,19 @@ workspace "Lumos"
 	targetdir ("bin/%{cfg.longname}/")
 	objdir ("bin-int/%{cfg.longname}/obj/")
 
-	group "Dependencies"
-		require("Dependencies/Box2D/premake5")
+	group "External"
+		require("Lumos/external/Box2D/premake5")
 			SetRecommendedSettings()
-		require("Dependencies/lua/premake5")
+		require("Lumos/external/lua/premake5")
 			SetRecommendedSettings()
-		require("Dependencies/imgui/premake5")
+		require("Lumos/external/imgui/premake5")
 			SetRecommendedSettings()
-		require("Dependencies/freetype/premake5")
+		require("Lumos/external/freetype/premake5")
 			SetRecommendedSettings()
-		require("Dependencies/SPIRVCrosspremake5")
+		require("Lumos/external/SPIRVCrosspremake5")
 			SetRecommendedSettings()
 		filter "system:not ios"
-			require("Dependencies/GLFWpremake5")
+			require("Lumos/external/GLFWpremake5")
 				SetRecommendedSettings()
 		filter()
 	group ""

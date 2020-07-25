@@ -24,33 +24,37 @@ namespace Lumos
 				Critical = 5,
 				Off = 6, // Display nothing
 			};
+
 		public:
-			Message(const String& message = "", Level level = Level::Invalid, const String& source = "", int threadID = 0);
+			Message(const std::string& message = "", Level level = Level::Invalid, const std::string& source = "", int threadID = 0);
 			void OnImGUIRender();
 
 			static Level GetLowerLevel(Level level);
 			static Level GetHigherLevel(Level level);
 			static const char* GetLevelName(Level level);
+
 		private:
 			static Maths::Colour GetRenderColour(Level level);
+
 		public:
 			const std::string m_Message;
 			const Level m_Level;
-			const String m_Source;
+			const std::string m_Source;
 			const int m_ThreadID;
 			static std::vector<Level> s_Levels;
 		};
 
-        ConsoleWindow();
+		ConsoleWindow();
 		~ConsoleWindow() = default;
 		static void Flush();
 		void OnImGui() override;
-		
+
 		static void AddMessage(const Ref<Message>& message);
 
 	private:
 		void ImGuiRenderHeader();
 		void ImGuiRenderMessages();
+
 	private:
 		static uint16_t s_MessageBufferCapacity;
 		static uint16_t s_MessageBufferSize;

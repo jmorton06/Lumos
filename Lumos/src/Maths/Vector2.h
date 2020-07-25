@@ -426,6 +426,11 @@ namespace Lumos::Maths
 
     /// Return a random value from [0, 1) from scalar seed.
     _FORCE_INLINE_ float StableRandom(float seed) { return StableRandom(Vector2(seed, seed)); }
+    
+    template<typename Archive> void serialize(Archive& archive, Maths::Vector2& v2)
+    {
+        archive(v2.x, v2.y);
+    }
 }
 
 namespace std

@@ -21,13 +21,13 @@ namespace Lumos
 			FRONTANDBACK,
 			NONE
 		};
-    
-        enum PolygonMode
-        {
-            Fill,
-            Line,
-            Point
-        };
+
+		enum PolygonMode
+		{
+			Fill,
+			Line,
+			Point
+		};
 
 		struct PipelineInfo
 		{
@@ -43,29 +43,28 @@ namespace Lumos
 			u32 numLayoutBindings;
 
 			CullMode cullMode;
-			String pipelineName;
+			std::string pipelineName;
 			int numColorAttachments;
 			PolygonMode polygonMode;
 			bool transparencyEnabled;
 			bool depthBiasEnabled;
 			u32 maxObjects;
-            float lineWidth = -1.0f;
+			float lineWidth = -1.0f;
 			DrawType drawType = DrawType::TRIANGLE;
-
 		};
 		class LUMOS_EXPORT Pipeline
 		{
 		public:
 			static Pipeline* Create(const PipelineInfo& pipelineInfo);
-			virtual ~Pipeline() {};
+			virtual ~Pipeline(){};
 
 			virtual void SetActive(CommandBuffer* cmdBuffer) = 0;
 
 			virtual DescriptorSet* GetDescriptorSet() const = 0;
 			virtual Shader* GetShader() const = 0;
-            
-        protected:
-            static Pipeline* (*CreateFunc)(const PipelineInfo&);
+
+		protected:
+			static Pipeline* (*CreateFunc)(const PipelineInfo&);
 		};
 	}
 }

@@ -4,7 +4,7 @@
 class Scene3D : public Lumos::Scene
 {
 public:
-	Scene3D(const String& SceneName);
+	Scene3D(const std::string& SceneName);
 	virtual ~Scene3D();
 
 	virtual void OnInit() override;

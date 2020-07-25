@@ -9,15 +9,14 @@ namespace Lumos
 	class TextEditWindow : public EditorWindow
 	{
 	public:
-		TextEditWindow(const String& filePath);
+		TextEditWindow(const std::string& filePath);
 		~TextEditWindow() = default;
 
 		void OnImGui() override;
-        void OnClose();
-		
-	private:
+		void OnClose();
 
-        String m_FilePath;
-        TextEditor editor;
+	private:
+		std::string m_FilePath;
+		TextEditor editor;
 	};
 }

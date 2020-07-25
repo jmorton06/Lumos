@@ -3,30 +3,30 @@
 
 namespace Lumos
 {
-	AudioData LoadWav(const String& fileName)
+	AudioData LoadWav(const std::string& fileName)
 	{
 		AudioData data = AudioData();
 
 		std::ifstream file(fileName.c_str(), std::ios::in | std::ios::binary);
 
-		if (!file)
+		if(!file)
 		{
 			LUMOS_LOG_CRITICAL("Failed to load WAV file '{0}'!", fileName);
 			return data;
 		}
 
-		std::string	 chunkName;
+		std::string chunkName;
 		u32 chunkSize = 0;
 
-		while (!file.eof())
+		while(!file.eof())
 		{
 			LoadWAVChunkInfo(file, chunkName, chunkSize);
 
-			if (chunkName == "RIFF")
+			if(chunkName == "RIFF")
 			{
 				file.seekg(4, std::ios_base::cur);
 			}
-			else if (chunkName == "fmt ")
+			else if(chunkName == "fmt ")
 			{
 				FMTCHUNK fmt{};
 
@@ -36,7 +36,7 @@ namespace Lumos
 				data.FreqRate = static_cast<float>(fmt.srate);
 				data.Channels = static_cast<u32>(fmt.channels);
 			}
-			else if (chunkName == "data")
+			else if(chunkName == "data")
 			{
 				data.Size = chunkSize;
 				data.Data = lmnew unsigned char[data.Size];
@@ -63,12 +63,12 @@ namespace Lumos
 		return data;
 	}
 
-	void LoadWAVChunkInfo(std::ifstream & file, String & name, unsigned int & size)
+	void LoadWAVChunkInfo(std::ifstream& file, std::string& name, unsigned int& size)
 	{
 		char chunk[4];
 		file.read(reinterpret_cast<char*>(&chunk), 4);
 		file.read(reinterpret_cast<char*>(&size), 4);
 
-		name = String(chunk, 4);
+		name = std::string(chunk, 4);
 	}
 }

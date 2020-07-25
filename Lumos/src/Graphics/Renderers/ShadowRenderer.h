@@ -3,7 +3,7 @@
 #include "Maths/Maths.h"
 #include "Renderer3D.h"
 
-#include <entt/entt.hpp>
+#include <entt/entity/fwd.hpp>
 #define SHADOWMAP_MAX 16
 
 namespace Lumos
@@ -38,7 +38,7 @@ namespace Lumos
 			ShadowRenderer& operator=(ShadowRenderer const&) = delete;
 
 			void Init() override;
-			void BeginScene(Scene* scene) override;
+			void BeginScene(Scene* scene, Camera* overrideCamera) override;
 			void OnResize(u32 width, u32 height) override;
 
 			void SetShadowMapNum(u32 num);
@@ -52,14 +52,32 @@ namespace Lumos
 			void Present() override;
 			void RenderScene(Scene* scene) override;
 
-			Maths::Vector4* GetSplitDepths() { return m_SplitDepth; }
-			Maths::Matrix4* GetShadowProjView() { return m_ShadowProjView; }
+			Maths::Vector4* GetSplitDepths()
+			{
+				return m_SplitDepth;
+			}
+			Maths::Matrix4* GetShadowProjView()
+			{
+				return m_ShadowProjView;
+			}
 
-			_FORCE_INLINE_ u32 GetShadowMapSize() const { return m_ShadowMapSize; }
-			_FORCE_INLINE_ u32 GetShadowMapNum()  const { return m_ShadowMapNum; }
-			_FORCE_INLINE_ void SetShadowInvalid() { m_ShadowMapsInvalidated = true; }
+			_FORCE_INLINE_ u32 GetShadowMapSize() const
+			{
+				return m_ShadowMapSize;
+			}
+			_FORCE_INLINE_ u32 GetShadowMapNum() const
+			{
+				return m_ShadowMapNum;
+			}
+			_FORCE_INLINE_ void SetShadowInvalid()
+			{
+				m_ShadowMapsInvalidated = true;
+			}
 
-			_FORCE_INLINE_ TextureDepthArray* GetTexture() const { return m_ShadowTex; }
+			_FORCE_INLINE_ TextureDepthArray* GetTexture() const
+			{
+				return m_ShadowTex;
+			}
 
 			u8* m_VSSystemUniformBuffer{};
 			u32 m_VSSystemUniformBufferSize{};
@@ -79,31 +97,26 @@ namespace Lumos
 			void CreateGraphicsPipeline(Graphics::RenderPass* renderPass);
 			void CreateFramebuffers();
 			void CreateUniformBuffer();
-			void UpdateCascades(Scene* scene);
-
-			void SetLightEntity(entt::entity entity) { m_LightEntity = entity; }
+			void UpdateCascades(Scene* scene, Camera* overrideCamera);
 
 			void OnImGui() override;
 
 		protected:
-
 			void SetSystemUniforms(Shader* shader);
 
 			TextureDepthArray* m_ShadowTex;
-			u32		        m_ShadowMapNum;
-			u32		        m_ShadowMapSize;
-			bool		    m_ShadowMapsInvalidated;
-			Framebuffer*    m_ShadowFramebuffer[SHADOWMAP_MAX]{};
-			Maths::Matrix4	m_ShadowProjView[SHADOWMAP_MAX];
-			Maths::Vector4  m_SplitDepth[SHADOWMAP_MAX];
+			u32 m_ShadowMapNum;
+			u32 m_ShadowMapSize;
+			bool m_ShadowMapsInvalidated;
+			Framebuffer* m_ShadowFramebuffer[SHADOWMAP_MAX]{};
+			Maths::Matrix4 m_ShadowProjView[SHADOWMAP_MAX];
+			Maths::Vector4 m_SplitDepth[SHADOWMAP_MAX];
 			Graphics::PushConstant* m_PushConstant = nullptr;
-			bool			m_DeleteTexture = false;
+			bool m_DeleteTexture = false;
 
 			Lumos::Graphics::UniformBuffer* m_UniformBuffer;
 			Lumos::Graphics::UniformBuffer* m_ModelUniformBuffer;
 			Lumos::Graphics::CommandBuffer* m_CommandBuffer{};
-
-			entt::entity m_LightEntity;
 
 			u32 m_Layer = 0;
 

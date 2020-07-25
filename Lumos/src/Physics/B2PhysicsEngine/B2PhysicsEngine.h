@@ -1,7 +1,7 @@
 #pragma once
 
 #include "Utilities/TSingleton.h"
-#include "ECS/ISystem.h"
+#include "Scene/ISystem.h"
 
 class b2World;
 class b2Body;
@@ -24,33 +24,41 @@ namespace Lumos
 		void SetDefaults();
 
 		void OnUpdate(const TimeStep& timeStep, Scene* scene) override;
-		void OnInit() override {};
+		void OnInit() override{};
 		void OnImGui() override;
 
-		b2World* GetB2World() const { return m_B2DWorld.get(); }
+		b2World* GetB2World() const
+		{
+			return m_B2DWorld.get();
+		}
 		b2Body* CreateB2Body(b2BodyDef* bodyDef) const;
 
 		static void CreateFixture(b2Body* body, const b2FixtureDef* fixtureDef);
 
-		void SetPaused(bool paused) { m_Paused = paused; }
-		bool IsPaused() const { return m_Paused; }
+		void SetPaused(bool paused)
+		{
+			m_Paused = paused;
+		}
+		bool IsPaused() const
+		{
+			return m_Paused;
+		}
 
-        void OnDebugDraw() override;
-    
-        u32 GetDebugDrawFlags();
-        void SetDebugDrawFlags(u32 flags);
-    
-        void SetContactListener(b2ContactListener* listener);
-    
+		void OnDebugDraw() override;
+
+		u32 GetDebugDrawFlags();
+		void SetDebugDrawFlags(u32 flags);
+
+		void SetContactListener(b2ContactListener* listener);
+
 	private:
-
-		Scope<b2World> m_B2DWorld;
-		Scope<B2DebugDraw> m_DebugDraw;
+		UniqueRef<b2World> m_B2DWorld;
+		UniqueRef<B2DebugDraw> m_DebugDraw;
 
 		float m_UpdateTimestep, m_UpdateAccum;
 		bool m_Paused = true;
 		bool m_MultipleUpdates = true;
-    
-        b2ContactListener* m_Listener;
+
+		b2ContactListener* m_Listener;
 	};
 }

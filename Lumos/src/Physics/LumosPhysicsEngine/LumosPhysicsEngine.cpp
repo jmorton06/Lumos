@@ -1,7 +1,7 @@
 #include "lmpch.h"
 #include "LumosPhysicsEngine.h"
 #include "CollisionDetection.h"
-#include "PhysicsObject3D.h"
+#include "RigidBody3D.h"
 #include "Core/OS/Window.h"
 
 #include "Integration.h"
@@ -10,7 +10,8 @@
 #include "Core/JobSystem.h"
 #include "Core/Profiler.h"
 
-#include "ECS/Component/Physics3DComponent.h"
+#include "Scene/Component/Physics3DComponent.h"
+
 #include "Maths/Transform.h"
 
 #include <imgui/imgui.h>
@@ -18,8 +19,8 @@
 namespace Lumos
 {
 
-    float LumosPhysicsEngine::s_UpdateTimestep = 1.0f/60.0f;
-    
+	float LumosPhysicsEngine::s_UpdateTimestep = 1.0f / 60.0f;
+
 	LumosPhysicsEngine::LumosPhysicsEngine()
 		: m_IsPaused(true)
 		, m_UpdateAccum(0.0f)
@@ -28,8 +29,8 @@ namespace Lumos
 		, m_BroadphaseDetection(nullptr)
 		, m_IntegrationType(IntegrationType::RUNGE_KUTTA_4)
 	{
-        m_DebugName = "Lumos3DPhysicsEngine";
-		m_PhysicsObjects.reserve(100);
+		m_DebugName = "Lumos3DPhysicsEngine";
+		m_RigidBodys.reserve(100);
 	}
 
 	void LumosPhysicsEngine::SetDefaults()
@@ -44,55 +45,57 @@ namespace Lumos
 
 	LumosPhysicsEngine::~LumosPhysicsEngine()
 	{
-        m_PhysicsObjects.clear();
-        
-        for (Constraint* c : m_Constraints)
-            delete c;
-        m_Constraints.clear();
-        
-        for (Manifold* m : m_Manifolds)
-            delete m;
-        m_Manifolds.clear();
-        
+		m_RigidBodys.clear();
+
+		for(Constraint* c : m_Constraints)
+			delete c;
+		m_Constraints.clear();
+
+		for(Manifold* m : m_Manifolds)
+			delete m;
+		m_Manifolds.clear();
+
 		CollisionDetection::Release();
 	}
 
 	void LumosPhysicsEngine::OnUpdate(const TimeStep& timeStep, Scene* scene)
 	{
-        LUMOS_PROFILE_BLOCK("LumosPhysicsEngine::OnUpdate");
-        m_PhysicsObjects.clear();
+		LUMOS_PROFILE_BLOCK("LumosPhysicsEngine::OnUpdate");
+		m_RigidBodys.clear();
 
-		if (!m_IsPaused)
+		if(!m_IsPaused)
 		{
-            auto& registry = scene->GetRegistry();
-            
-            auto group = registry.group<Physics3DComponent>(entt::get<Maths::Transform>);
+			auto& registry = scene->GetRegistry();
 
-            if (group.empty())
-                return;
-            
-            for(auto entity : group)
-            {
-                const auto &phys = group.get<Physics3DComponent>(entity);
+			auto group = registry.group<Physics3DComponent>(entt::get<Maths::Transform>);
 
-                auto& physicsObj = phys.GetPhysicsObject();
-                               
-                if(physicsObj)
-                    m_PhysicsObjects.emplace_back(physicsObj);
-            };
-            
-			if (m_MultipleUpdates)
+			if(group.empty())
+				return;
+
+			for(auto entity : group)
+			{
+				const auto& phys = group.get<Physics3DComponent>(entity);
+
+				auto& physicsObj = phys.GetRigidBody();
+
+				if(physicsObj)
+				{
+					m_RigidBodys.push_back(physicsObj);
+				}
+			};
+
+			if(m_MultipleUpdates)
 			{
 				const int max_updates_per_frame = 5;
 
 				m_UpdateAccum += timeStep.GetMillis();
-				for (int i = 0; (m_UpdateAccum >= s_UpdateTimestep) && i < max_updates_per_frame; ++i)
+				for(int i = 0; (m_UpdateAccum >= s_UpdateTimestep) && i < max_updates_per_frame; ++i)
 				{
 					m_UpdateAccum -= s_UpdateTimestep;
 					UpdatePhysics(scene);
 				}
 
-				if (m_UpdateAccum >= s_UpdateTimestep)
+				if(m_UpdateAccum >= s_UpdateTimestep)
 				{
 					Debug::Log::Error("Physics too slow to run in real time!");
 					//Drop Time in the hope that it can continue to run in real-time
@@ -104,21 +107,21 @@ namespace Lumos
 				s_UpdateTimestep = timeStep.GetMillis();
 				UpdatePhysics(scene);
 			}
-            
-            for(auto entity : group)
-            {
-                const auto &[phys,trans] = group.get<Physics3DComponent, Maths::Transform>(entity);
 
-                trans.SetLocalPosition(phys.GetPhysicsObject()->GetPosition());
-                trans.SetLocalOrientation(phys.GetPhysicsObject()->GetOrientation());
-            };
+			for(auto entity : group)
+			{
+				const auto& [phys, trans] = group.get<Physics3DComponent, Maths::Transform>(entity);
+
+				trans.SetLocalPosition(phys.GetRigidBody()->GetPosition());
+				trans.SetLocalOrientation(phys.GetRigidBody()->GetOrientation());
+			};
 		}
 	}
 
 	void LumosPhysicsEngine::UpdatePhysics(Scene* scene)
 	{
-        
-		for (Manifold* m : m_Manifolds)
+
+		for(Manifold* m : m_Manifolds)
 		{
 			delete m;
 		}
@@ -127,38 +130,36 @@ namespace Lumos
 		//Check for collisions
 		BroadPhaseCollisions();
 		NarrowPhaseCollisions();
-		
+
 		//Solve collision constraints
 		SolveConstraints();
-		
+
 		//Update movement
-		UpdatePhysicsObjects();
+		UpdateRigidBodys();
 	}
 
-	void LumosPhysicsEngine::UpdatePhysicsObjects()
+	void LumosPhysicsEngine::UpdateRigidBodys()
 	{
-        System::JobSystem::Dispatch(static_cast<u32>(m_PhysicsObjects.size()), 4, [&](JobDispatchArgs args)
-        {
-            UpdatePhysicsObject(m_PhysicsObjects[args.jobIndex]);
-        });
-        
-        System::JobSystem::Wait();
+		System::JobSystem::Dispatch(static_cast<u32>(m_RigidBodys.size()), 4, [&](JobDispatchArgs args) {
+			UpdateRigidBody(m_RigidBodys[args.jobIndex]);
+		});
+
+		System::JobSystem::Wait();
 	}
 
-	void LumosPhysicsEngine::UpdatePhysicsObject(const Ref<PhysicsObject3D>& obj) const
+	void LumosPhysicsEngine::UpdateRigidBody(const Ref<RigidBody3D>& obj) const
 	{
-		if (!obj->GetIsStatic() && obj->IsAwake())
+		if(!obj->GetIsStatic() && obj->IsAwake())
 		{
 			const float damping = m_DampingFactor;
 
 			// Apply gravity
-			if (obj->m_InvMass > 0.0f)
+			if(obj->m_InvMass > 0.0f)
 				obj->m_LinearVelocity += m_Gravity * s_UpdateTimestep;
 
-			switch (m_IntegrationType)
+			switch(m_IntegrationType)
 			{
-			case IntegrationType::EXPLICIT_EULER:
-			{
+			case IntegrationType::EXPLICIT_EULER: {
 				// Update position
 				obj->m_Position += obj->m_LinearVelocity * s_UpdateTimestep;
 
@@ -182,8 +183,7 @@ namespace Lumos
 			}
 
 			default:
-			case IntegrationType::SEMI_IMPLICIT_EULER:
-			{
+			case IntegrationType::SEMI_IMPLICIT_EULER: {
 				// Update linear velocity (v = u + at)
 				obj->m_LinearVelocity += obj->m_LinearVelocity * obj->m_InvMass * s_UpdateTimestep;
 
@@ -206,11 +206,10 @@ namespace Lumos
 				break;
 			}
 
-			case IntegrationType::RUNGE_KUTTA_2:
-			{
+			case IntegrationType::RUNGE_KUTTA_2: {
 				// RK2 integration for linear motion
-				Integration::State state = { obj->m_Position, obj->m_LinearVelocity, obj->m_Force * obj->m_InvMass };
-                Integration::RK2(state,0.0f, s_UpdateTimestep);
+				Integration::State state = {obj->m_Position, obj->m_LinearVelocity, obj->m_Force * obj->m_InvMass};
+				Integration::RK2(state, 0.0f, s_UpdateTimestep);
 
 				obj->m_Position = state.position;
 				obj->m_LinearVelocity = state.velocity;
@@ -231,10 +230,9 @@ namespace Lumos
 				break;
 			}
 
-			case IntegrationType::RUNGE_KUTTA_4:
-			{
+			case IntegrationType::RUNGE_KUTTA_4: {
 				// RK4 integration for linear motion
-				Integration::State state = { obj->m_Position, obj->m_LinearVelocity, obj->m_Force * obj->m_InvMass };
+				Integration::State state = {obj->m_Position, obj->m_LinearVelocity, obj->m_Force * obj->m_InvMass};
 				Integration::RK4(state, 0.0f, s_UpdateTimestep);
 				obj->m_Position = state.position;
 				obj->m_LinearVelocity = state.velocity;
@@ -267,35 +265,35 @@ namespace Lumos
 	void LumosPhysicsEngine::BroadPhaseCollisions()
 	{
 		m_BroadphaseCollisionPairs.clear();
-		if (m_BroadphaseDetection)
-			m_BroadphaseDetection->FindPotentialCollisionPairs(m_PhysicsObjects, m_BroadphaseCollisionPairs);
+		if(m_BroadphaseDetection)
+			m_BroadphaseDetection->FindPotentialCollisionPairs(m_RigidBodys, m_BroadphaseCollisionPairs);
 	}
 
 	void LumosPhysicsEngine::NarrowPhaseCollisions()
 	{
-		if (!m_BroadphaseCollisionPairs.empty())
+		if(!m_BroadphaseCollisionPairs.empty())
 		{
 			CollisionData colData;
 			CollisionDetection colDetect;
 
 			//System::JobSystem::Dispatch(static_cast<u32>(m_BroadphaseCollisionPairs.size()), 4, [&](JobDispatchArgs args)
-            for(auto& cp : m_BroadphaseCollisionPairs)
+			for(auto& cp : m_BroadphaseCollisionPairs)
 			{
 				//CollisionPair &cp = m_BroadphaseCollisionPairs[args.jobIndex];
 				auto shapeA = cp.pObjectA->GetCollisionShape();
 				auto shapeB = cp.pObjectB->GetCollisionShape();
 
-				if (shapeA && shapeB)
+				if(shapeA && shapeB)
 				{
 					// Detects if the objects are colliding - Seperating Axis Theorem
-					if (CollisionDetection::Instance()->CheckCollision(cp.pObjectA, cp.pObjectB, shapeA.get(), shapeB.get(), &colData))
+					if(CollisionDetection::Get().CheckCollision(cp.pObjectA, cp.pObjectB, shapeA.get(), shapeB.get(), &colData))
 					{
 						// Check to see if any of the objects have collision callbacks that dont
 						// want the objects to physically collide
 						const bool okA = cp.pObjectA->FireOnCollisionEvent(cp.pObjectA, cp.pObjectB);
 						const bool okB = cp.pObjectB->FireOnCollisionEvent(cp.pObjectB, cp.pObjectA);
 
-						if (okA && okB)
+						if(okA && okB)
 						{
 							// Build full collision manifold that will also handle the collision
 							// response between the two objects in the solver stage
@@ -303,7 +301,7 @@ namespace Lumos
 							manifold->Initiate(cp.pObjectA, cp.pObjectB);
 
 							// Construct contact points that form the perimeter of the collision manifold
-							if (CollisionDetection::Instance()->BuildCollisionManifold(cp.pObjectA, cp.pObjectB, shapeA.get(), shapeB.get(), colData, manifold))
+							if(CollisionDetection::Get().BuildCollisionManifold(cp.pObjectA, cp.pObjectB, shapeA.get(), shapeB.get(), colData, manifold))
 							{
 								// Fire callback
 								cp.pObjectA->FireOnCollisionManifoldCallback(cp.pObjectA, cp.pObjectB, manifold);
@@ -319,7 +317,7 @@ namespace Lumos
 						}
 					}
 				}
-			}//);
+			} //);
 
 			//System::JobSystem::Wait();
 		}
@@ -327,39 +325,46 @@ namespace Lumos
 
 	void LumosPhysicsEngine::SolveConstraints()
 	{
-		for (Manifold* m : m_Manifolds) m->PreSolverStep(s_UpdateTimestep);
-		for (Constraint* c : m_Constraints)	c->PreSolverStep(s_UpdateTimestep);
+		for(Manifold* m : m_Manifolds)
+			m->PreSolverStep(s_UpdateTimestep);
+		for(Constraint* c : m_Constraints)
+			c->PreSolverStep(s_UpdateTimestep);
 
-		for (size_t i = 0; i < SOLVER_ITERATIONS; ++i)
+		for(size_t i = 0; i < SOLVER_ITERATIONS; ++i)
 		{
-			for (Manifold* m : m_Manifolds)
+			for(Manifold* m : m_Manifolds)
 			{
 				m->ApplyImpulse();
 			}
 
-			for (Constraint* c : m_Constraints)
+			for(Constraint* c : m_Constraints)
 			{
 				c->ApplyImpulse();
 			}
 		}
 	}
 
-    void LumosPhysicsEngine::ClearConstraints()
-    {
-        for (Constraint* c : m_Constraints)
-            delete c;
-        m_Constraints.clear();
-    }
-
-	String IntegrationTypeToString(IntegrationType type)
+	void LumosPhysicsEngine::ClearConstraints()
 	{
-		switch (type)
+		for(Constraint* c : m_Constraints)
+			delete c;
+		m_Constraints.clear();
+	}
+
+	std::string IntegrationTypeToString(IntegrationType type)
+	{
+		switch(type)
 		{
-		case  IntegrationType::EXPLICIT_EULER : return "EXPLICIT EULER";
-		case  IntegrationType::SEMI_IMPLICIT_EULER : return "SEMI IMPLICIT EULER";
-		case  IntegrationType::RUNGE_KUTTA_2 : return "RUNGE KUTTA 2";
-		case  IntegrationType::RUNGE_KUTTA_4 : return "RUNGE KUTTA 4";
-		default : return "";
+		case IntegrationType::EXPLICIT_EULER:
+			return "EXPLICIT EULER";
+		case IntegrationType::SEMI_IMPLICIT_EULER:
+			return "SEMI IMPLICIT EULER";
+		case IntegrationType::RUNGE_KUTTA_2:
+			return "RUNGE KUTTA 2";
+		case IntegrationType::RUNGE_KUTTA_4:
+			return "RUNGE KUTTA 4";
+		default:
+			return "";
 		}
 	}
 
@@ -380,10 +385,10 @@ namespace Lumos
 		ImGui::NextColumn();
 
 		ImGui::AlignTextToFramePadding();
-		ImGui::TextUnformatted("Number Of Physics Objects");
+		ImGui::TextUnformatted("Number Of Rigid Bodys");
 		ImGui::NextColumn();
 		ImGui::PushItemWidth(-1);
-		ImGui::Text("%5.2i", GetNumberPhysicsObjects());
+		ImGui::Text("%5.2i", GetNumberRigidBodys());
 		ImGui::PopItemWidth();
 		ImGui::NextColumn();
 
@@ -423,12 +428,24 @@ namespace Lumos
 		ImGui::TextUnformatted("Integration Type");
 		ImGui::NextColumn();
 		ImGui::PushItemWidth(-1);
-		if (ImGui::BeginMenu(IntegrationTypeToString(m_IntegrationType).c_str()))
+		if(ImGui::BeginMenu(IntegrationTypeToString(m_IntegrationType).c_str()))
 		{
-			if (ImGui::MenuItem("EXPLICIT EULER", "", static_cast<int>(m_IntegrationType) == 0, true)) { m_IntegrationType = IntegrationType::EXPLICIT_EULER; }
-			if (ImGui::MenuItem("SEMI IMPLICIT EULER", "", static_cast<int>(m_IntegrationType) == 1, true)) { m_IntegrationType = IntegrationType::SEMI_IMPLICIT_EULER; }
-			if (ImGui::MenuItem("RUNGE KUTTA 2", "", static_cast<int>(m_IntegrationType) == 2, true)) { m_IntegrationType = IntegrationType::RUNGE_KUTTA_2; }
-			if (ImGui::MenuItem("RUNGE KUTTA 4", "", static_cast<int>(m_IntegrationType) == 3, true)) { m_IntegrationType = IntegrationType::RUNGE_KUTTA_4; }
+			if(ImGui::MenuItem("EXPLICIT EULER", "", static_cast<int>(m_IntegrationType) == 0, true))
+			{
+				m_IntegrationType = IntegrationType::EXPLICIT_EULER;
+			}
+			if(ImGui::MenuItem("SEMI IMPLICIT EULER", "", static_cast<int>(m_IntegrationType) == 1, true))
+			{
+				m_IntegrationType = IntegrationType::SEMI_IMPLICIT_EULER;
+			}
+			if(ImGui::MenuItem("RUNGE KUTTA 2", "", static_cast<int>(m_IntegrationType) == 2, true))
+			{
+				m_IntegrationType = IntegrationType::RUNGE_KUTTA_2;
+			}
+			if(ImGui::MenuItem("RUNGE KUTTA 4", "", static_cast<int>(m_IntegrationType) == 3, true))
+			{
+				m_IntegrationType = IntegrationType::RUNGE_KUTTA_4;
+			}
 			ImGui::EndMenu();
 		}
 
@@ -439,31 +456,31 @@ namespace Lumos
 		ImGui::Separator();
 		ImGui::PopStyleVar();
 	}
-    
-    void LumosPhysicsEngine::OnDebugDraw()
-    {
-        if (m_DebugDrawFlags & PhysicsDebugFlags::MANIFOLD)
-        {
-            for (Manifold *m : m_Manifolds)
-                m->DebugDraw();
-        }
 
-        // Draw all constraints
-        if (m_DebugDrawFlags & PhysicsDebugFlags::CONSTRAINT)
-        {
-            for (Constraint *c : m_Constraints)
-                c->DebugDraw();
-        }
+	void LumosPhysicsEngine::OnDebugDraw()
+	{
+		if(m_DebugDrawFlags & PhysicsDebugFlags::MANIFOLD)
+		{
+			for(Manifold* m : m_Manifolds)
+				m->DebugDraw();
+		}
 
-        if (m_BroadphaseDetection && (m_DebugDrawFlags & PhysicsDebugFlags::BROADPHASE))
-            m_BroadphaseDetection->DebugDraw();
-    
-        for(auto obj : m_PhysicsObjects)
-        {
-            obj->DebugDraw(m_DebugDrawFlags);
-        
-            if (obj->GetCollisionShape() && (m_DebugDrawFlags & PhysicsDebugFlags::COLLISIONVOLUMES))
-                obj->GetCollisionShape()->DebugDraw(obj.get());
-        }
-    }
+		// Draw all constraints
+		if(m_DebugDrawFlags & PhysicsDebugFlags::CONSTRAINT)
+		{
+			for(Constraint* c : m_Constraints)
+				c->DebugDraw();
+		}
+
+		if(m_BroadphaseDetection && (m_DebugDrawFlags & PhysicsDebugFlags::BROADPHASE))
+			m_BroadphaseDetection->DebugDraw();
+
+		for(auto obj : m_RigidBodys)
+		{
+			obj->DebugDraw(m_DebugDrawFlags);
+
+			if(obj->GetCollisionShape() && (m_DebugDrawFlags & PhysicsDebugFlags::COLLISIONVOLUMES))
+				obj->GetCollisionShape()->DebugDraw(obj.get());
+		}
+	}
 }

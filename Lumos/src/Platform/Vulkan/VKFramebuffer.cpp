@@ -41,12 +41,12 @@ namespace Lumos
 			framebufferCreateInfo.pNext = nullptr;
 			framebufferCreateInfo.flags = 0;
 
-			VK_CHECK_RESULT(vkCreateFramebuffer(VKDevice::Instance()->GetDevice(), &framebufferCreateInfo, VK_NULL_HANDLE, &m_Framebuffer));
+			VK_CHECK_RESULT(vkCreateFramebuffer(VKDevice::Get().GetDevice(), &framebufferCreateInfo, VK_NULL_HANDLE, &m_Framebuffer));
 		}
 
 		VKFramebuffer::~VKFramebuffer()
 		{
-			vkDestroyFramebuffer(VKDevice::Instance()->GetDevice(),m_Framebuffer, VK_NULL_HANDLE);
+			vkDestroyFramebuffer(VKDevice::Get().GetDevice(),m_Framebuffer, VK_NULL_HANDLE);
 		}
         
         void VKFramebuffer::MakeDefault()

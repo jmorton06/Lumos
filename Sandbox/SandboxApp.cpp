@@ -1,5 +1,5 @@
 #include <LumosEngine.h>
-#include <App/EntryPoint.h>
+#include <Core/EntryPoint.h>
 #include "Scenes/Scene3D.h"
 #include "Scenes/GraphicsScene.h"
 #include "Scenes/SceneModelViewer.h"
@@ -10,44 +10,46 @@ using namespace Lumos;
 
 class Game : public Application
 {
-public:
-	explicit Game(const WindowProperties& windowProperties) : Application(windowProperties)
+    public:
+	explicit Game(const WindowProperties& windowProperties)
+		: Application(windowProperties)
 	{
+        Application::Get().GetWindow()->SetWindowTitle("Sandbox");
 	}
-
+    
 	~Game()
 	{
 	}
-
+    
 	void Init() override
 	{
 		Application::Init();
-
-		const String root = ROOT_DIR;
+        
+		const std::string root = ROOT_DIR;
 		VFS::Get()->Mount("Meshes", root + "/Assets/meshes");
 		VFS::Get()->Mount("Textures", root + "/Assets/textures");
 		VFS::Get()->Mount("Sounds", root + "/Assets/sounds");
-        VFS::Get()->Mount("Scripts", root + "/Assets/scripts");
-
+		VFS::Get()->Mount("Scripts", root + "/Assets/scripts");
+        
 		GetSceneManager()->EnqueueScene<SceneModelViewer>("SceneModelViewer");
 		GetSceneManager()->EnqueueScene<Scene2D>("2D Test");
 		GetSceneManager()->EnqueueScene<Scene3D>("Physics Scene");
 		GetSceneManager()->EnqueueScene<GraphicsScene>("Terrain Test");
 		GetSceneManager()->EnqueueScene<MaterialTest>("Material Test");
-		GetSceneManager()->SwitchScene(2);
-        GetSceneManager()->ApplySceneSwitch();
+		GetSceneManager()->SwitchScene(1);
+		GetSceneManager()->ApplySceneSwitch();
 	}
 };
 
 Lumos::Application* Lumos::CreateApplication()
 {
 #ifdef LUMOS_PLATFORM_IOS
-    WindowProperties windowProperties;
-    windowProperties.RenderAPI = static_cast<int>(Graphics::RenderAPI::VULKAN);
+	WindowProperties windowProperties;
+	windowProperties.RenderAPI = static_cast<int>(Graphics::RenderAPI::VULKAN);
 #else
-    WindowProperties windowProperties = LuaManager::Instance()->LoadConfigFile(ROOT_DIR"/Sandbox/Settings.lua");
+	WindowProperties windowProperties = LuaManager::Get().LoadConfigFile(ROOT_DIR "/Sandbox/Settings.lua");
 	windowProperties.ShowConsole = true;
 #endif
-
-    return new Game(windowProperties);
+    
+	return new Game(windowProperties);
 }

@@ -1,7 +1,7 @@
 #if defined(LUMOS_RENDER_API_VULKAN)
 
 #include "Platform/Vulkan/VKDevice.h"
-#include "App/Application.h"
+#include "Core/Application.h"
 #include "iOSOS.h"
 #include "iOSWindow.h"
 

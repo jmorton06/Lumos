@@ -29,11 +29,11 @@ namespace Lumos
 	{
 		const Maths::Vector2 delta = (Maths::Vector2(xpos, ypos) - m_PreviousCurserPos);
 
-		if (Input::GetInput()->GetMouseHeld(LUMOS_MOUSE_MIDDLE))
+		if (Input::GetInput()->GetMouseHeld(Lumos::InputCode::MouseKey::ButtonRight))
 			MousePan(camera, delta);
-		else if (Input::GetInput()->GetMouseHeld(LUMOS_MOUSE_LEFT))
+		else if (Input::GetInput()->GetMouseHeld(Lumos::InputCode::MouseKey::ButtonLeft))
 			MouseRotate(delta, dt);
-		else if (Input::GetInput()->GetMouseHeld(LUMOS_MOUSE_RIGHT))
+		else if (Input::GetInput()->GetMouseHeld(Lumos::InputCode::MouseKey::ButtonMiddle))
 			MouseZoom(delta.y, dt);
 
 		float yawSign = camera->GetUpDirection().y < 0 ? -1.0f : 1.0f;
