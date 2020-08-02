@@ -1076,6 +1076,44 @@ namespace MM
 		ImGui::Separator();
 		ImGui::PopStyleVar();
 	}
+
+	template<>
+	void ComponentEditorWidget<Lumos::DefaultCameraController>(entt::registry& reg, entt::registry::entity_type e)
+	{
+		auto& controllerComp = reg.get<Lumos::DefaultCameraController>(e);
+		ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(2, 2));
+		ImGui::Columns(2);
+		ImGui::Separator();
+
+		ImGui::AlignTextToFramePadding();
+		ImGui::TextUnformatted("Controller Type");
+		ImGui::NextColumn();
+		ImGui::PushItemWidth(-1);
+
+		const char* controllerTypes[] = {"Editor", "FPS", "ThirdPerson", "2D", "Custom"};
+		std::string currentController = Lumos::DefaultCameraController::CameraControllerTypeToString(controllerComp.GetType());
+		if(ImGui::BeginCombo("", currentController.c_str(), 0)) // The second parameter is the label previewed before opening the combo.
+		{
+			for(int n = 0; n < 5; n++)
+			{
+				bool is_selected = (currentController.c_str() == controllerTypes[n]);
+				if(ImGui::Selectable(controllerTypes[n], currentController.c_str()))
+				{
+					controllerComp.SetControllerType(Lumos::DefaultCameraController::StringToControllerType(controllerTypes[n]));
+				}
+				if(is_selected)
+					ImGui::SetItemDefaultFocus();
+			}
+			ImGui::EndCombo();
+		}
+
+        if(controllerComp.GetController())
+            controllerComp.GetController()->OnImGui();
+
+		ImGui::Columns(1);
+		ImGui::Separator();
+		ImGui::PopStyleVar();
+	}
 }
 
 namespace Lumos
@@ -1118,6 +1156,7 @@ namespace Lumos
 		TRIVIAL_COMPONENT(LuaScriptComponent, "LuaScript");
 		TRIVIAL_COMPONENT(Graphics::Environment, "Environment");
 		TRIVIAL_COMPONENT(TextureMatrixComponent, "Texture Matrix");
+		TRIVIAL_COMPONENT(DefaultCameraController, "Default Camera Controller");
 	}
 
 	void InspectorWindow::OnImGui()

@@ -2,6 +2,8 @@
 
 #include "lmpch.h"
 #include "Maths/Maths.h"
+#include "Maths/Transform.h"
+
 #include "Graphics/API/DescriptorSet.h"
 
 #define RENDERER2DLINE_VERTEX_SIZE sizeof(LineVertexData)
@@ -81,10 +83,10 @@ namespace Lumos
 			void Init();
 			void Submit(const Maths::Vector3& p1, const Maths::Vector3& p2, const Maths::Vector4& colour);
 			void Begin();
-			void BeginScene(Scene* scene, Camera* overrideCamera);
+			void BeginScene(Scene* scene, Camera* overrideCamera, Maths::Transform* overrideCameraTransform);
 			void Present();
 			void End();
-			void RenderInternal(Scene* scene, Camera* overrideCamera);
+			void RenderInternal(Scene* scene, Camera* overrideCamera, Maths::Transform* overrideCameraTransform);
 			void OnResize(u32 width, u32 height);
 			void PresentToScreen();
 			void SetScreenBufferSize(u32 width, u32 height);
@@ -106,7 +108,7 @@ namespace Lumos
 
 			void FlushAndResetLines();
 
-			void SetCamera(Camera* camera)
+			void SetCamera(Camera* camera, Maths::Transform* transform)
 			{
 				m_Camera = camera;
 			}
@@ -141,6 +143,7 @@ namespace Lumos
 
 			std::vector<LineInfo> m_Lines;
 			Camera* m_Camera = nullptr;
+			Maths::Transform* m_CameraTransform = nullptr;
 		};
 	}
 }

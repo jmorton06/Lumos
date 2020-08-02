@@ -67,6 +67,11 @@ namespace Lumos
 			return m_SceneName;
 		}
 
+		void SetName(const std::string& name)
+		{
+			m_SceneName = name;
+		}
+
 		void SetScreenWidth(u32 width)
 		{
 			m_ScreenWidth = width;
@@ -96,7 +101,11 @@ namespace Lumos
     
         void UpdateSceneGraph();
 
-		void DuplicateEntity(Entity entity);
+        void DuplicateEntity(Entity entity);
+		void DuplicateEntity(Entity entity, Entity parent);
+        Entity CreateEntity();
+    
+        EntityManager* GetEntityManager() { return m_EntityManager.get(); }
 
 		void Serialise(const std::string& filePath, bool binary = false);
 		void Deserialise(const std::string& filePath, bool binary = false);

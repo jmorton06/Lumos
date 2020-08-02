@@ -5,8 +5,8 @@ project 'Box2D'
 	kind 'StaticLib'
 	cppdialect "C++14"
 	staticruntime "On"
-	files { 'Box2D/**' }
-	includedirs { '.' }
+	files { 'src/**' }
+	includedirs { 'include' , 'src' }
 
 	buildoptions { "-w" }
 

@@ -226,15 +226,18 @@ namespace Lumos
 			m_RenderPass->BeginRenderpass(m_DeferredCommandBuffers, Maths::Vector4(0.0f), m_FBO, Graphics::INLINE, m_ScreenBufferWidth, m_ScreenBufferHeight);
 		}
 
-		void DeferredOffScreenRenderer::BeginScene(Scene* scene, Camera* overrideCamera)
+		void DeferredOffScreenRenderer::BeginScene(Scene* scene, Camera* overrideCamera, Maths::Transform* overrideCameraTransform)
 		{
 			m_Camera = overrideCamera;
+			m_CameraTransform = overrideCameraTransform;
+
+			auto view = m_CameraTransform->GetWorldMatrix().Inverse();
 
 			LUMOS_ASSERT(m_Camera, "No Camera Set for Renderer");
-			auto projView = m_Camera->GetProjectionMatrix() * m_Camera->GetViewMatrix();
+			auto projView = m_Camera->GetProjectionMatrix() * view;
 			memcpy(m_VSSystemUniformBuffer + m_VSSystemUniformBufferOffsets[VSSystemUniformIndex_ProjectionViewMatrix], &projView, sizeof(Maths::Matrix4));
 
-			m_Frustum = m_Camera->GetFrustum();
+			m_Frustum = m_Camera->GetFrustum(view);
 		}
 
 		void DeferredOffScreenRenderer::Submit(const RenderCommand& command)

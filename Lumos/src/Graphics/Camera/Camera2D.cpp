@@ -14,24 +14,24 @@ namespace Lumos
 
 	CameraController2D::~CameraController2D() = default;
 
-    void CameraController2D::HandleMouse(Camera* camera, float dt, float xpos, float ypos)
+    void CameraController2D::HandleMouse(Maths::Transform& transform, float dt, float xpos, float ypos)
 	{
 		if (Input::GetInput()->GetMouseHeld(InputCode::MouseKey::ButtonRight))
 		{
-            Maths::Vector3 position = camera->GetPosition();
-			position.x -= (xpos - m_PreviousCurserPos.x) * camera->GetScale() * m_MouseSensitivity * 0.5f;
-			position.y += (ypos - m_PreviousCurserPos.y) * camera->GetScale() * m_MouseSensitivity * 0.5f;
-            camera->SetPosition(position);
+			Maths::Vector3 position = transform.GetLocalPosition();
+			position.x -= (xpos - m_PreviousCurserPos.x) * m_MouseSensitivity * 0.5f;
+			position.y += (ypos - m_PreviousCurserPos.y) * m_MouseSensitivity * 0.5f;
+            transform.SetLocalPosition(position);
 		}
 
 		m_PreviousCurserPos = Maths::Vector2(xpos, ypos);
 	}
 
-	void CameraController2D::HandleKeyboard(Camera* camera, float dt)
+	void CameraController2D::HandleKeyboard(Maths::Transform& transform, float dt)
 	{
 		Maths::Vector3 up = Maths::Vector3(0, 1, 0), right = Maths::Vector3(1, 0, 0);
 
-		m_CameraSpeed = camera->GetScale() * dt * 20.0f;
+		m_CameraSpeed = dt * 20.0f; //camera->GetScale() *
 
 		if (Input::GetInput()->GetKeyHeld(Lumos::InputCode::Key::A))
 		{
@@ -55,17 +55,17 @@ namespace Lumos
 
 		if (!Maths::Equals(m_Velocity, Maths::Vector3::ZERO, Maths::Vector3(Maths::M_EPSILON)))
 		{
-            Maths::Vector3 position = camera->GetPosition();
+            Maths::Vector3 position = transform.GetLocalPosition();
 			position += m_Velocity * dt;
 			m_Velocity = m_Velocity * pow(m_DampeningFactor, dt);
         
-            camera->SetPosition(position);
+            transform.SetLocalPosition(position);
 		}
 
-		UpdateScroll(camera, Input::GetInput()->GetScrollOffset(), dt);
+		UpdateScroll(transform, Input::GetInput()->GetScrollOffset(), dt);
 	}
 
-    void CameraController2D::UpdateScroll(Camera* camera, float offset, float dt)
+    void CameraController2D::UpdateScroll(Maths::Transform& transform, float offset, float dt)
     {
 		float multiplier = 2.0f;
 		if (Input::GetInput()->GetKeyHeld(InputCode::Key::LeftShift))
@@ -80,7 +80,7 @@ namespace Lumos
         
 		if (!Maths::Equals(m_ZoomVelocity, 0.0f))
 		{
-            float scale = camera->GetScale();
+            float scale = 1.0f;//camera->GetScale();
 
 			scale -= m_ZoomVelocity;
 
@@ -94,7 +94,7 @@ namespace Lumos
 				m_ZoomVelocity = m_ZoomVelocity * pow(m_ZoomDampeningFactor, dt);
 			}
         
-            camera->SetScale(scale);
+            //camera->SetScale(scale); TODO
 		}
     }
 }

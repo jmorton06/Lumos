@@ -36,7 +36,7 @@ class Game : public Application
 		GetSceneManager()->EnqueueScene<Scene3D>("Physics Scene");
 		GetSceneManager()->EnqueueScene<GraphicsScene>("Terrain Test");
 		GetSceneManager()->EnqueueScene<MaterialTest>("Material Test");
-		GetSceneManager()->SwitchScene(1);
+		GetSceneManager()->SwitchScene(2);
 		GetSceneManager()->ApplySceneSwitch();
 	}
 };

@@ -35,6 +35,7 @@ namespace Lumos
 		class Sphere;
 		class BoundingBox;
 		class Frustum;
+        class Transform;
 	}
 
 	class LUMOS_EXPORT DebugRenderer
@@ -46,10 +47,10 @@ namespace Lumos
 	public:
 		static void Init(u32 width, u32 height);
 		static void Release();
-		static void Render(Scene* scene, Camera* overrideCamera)
+		static void Render(Scene* scene, Camera* overrideCamera, Maths::Transform* overrideCameraTransform)
 		{
 			if(s_Instance)
-				s_Instance->RenderInternal(scene, s_Instance->m_OverrideCamera);
+				s_Instance->RenderInternal(scene, s_Instance->m_OverrideCamera, s_Instance->m_OverrideCameraTransform);
 		}
 		static void SetRenderTarget(Graphics::Texture* texture, bool rebuildFramebuffer);
 
@@ -93,19 +94,24 @@ namespace Lumos
 		static void DebugDraw(const Maths::BoundingBox& box, const Maths::Vector4& edgeColour, bool cornersOnly = false, float width = 0.02f);
 		static void DebugDraw(const Maths::Sphere& sphere, const Maths::Vector4& colour);
 		static void DebugDraw(const Maths::Frustum& frustum, const Maths::Vector4& colour);
-		static void DebugDraw(Graphics::Light* light, const Maths::Vector4& colour);
+		static void DebugDraw(Graphics::Light* light, const Maths::Quaternion& rotation, const Maths::Vector4& colour);
 		static void DebugDraw(SoundNode* sound, const Maths::Vector4& colour);
-
+        static void DebugDrawSphere(float radius, const Maths::Vector3& position, const Maths::Vector4& colour);
+        static void DebugDrawCircle(int numVerts, float radius, const Maths::Vector3& position, const Maths::Quaternion& rotation, const Maths::Vector4& colour);
+        static void DebugDrawCone(int numCircleVerts, int numLinesToCircle, float angle, float length, const Maths::Vector3& position , const Maths::Quaternion& rotation, const Maths::Vector4& colour);
 		static void OnResize(u32 width, u32 height)
 		{
 			if(s_Instance)
 				s_Instance->OnResizeInternal(width, height);
 		}
 
-		static void SetOverrideCamera(Camera* camera)
+		static void SetOverrideCamera(Camera* camera, Maths::Transform* overrideCameraTransform)
 		{
 			if(s_Instance)
+			{
 				s_Instance->m_OverrideCamera = camera;
+				s_Instance->m_OverrideCameraTransform = overrideCameraTransform;	
+			}
 		}
 
 	protected:
@@ -127,7 +133,7 @@ namespace Lumos
 
 	private:
 		void Begin();
-		void RenderInternal(Scene* scene, Camera* overrideCamera);
+		void RenderInternal(Scene* scene, Camera* overrideCamera, Maths::Transform* overrideCameraTransform);
 		void OnResizeInternal(u32 width, u32 height);
 
 		static DebugRenderer* s_Instance;
@@ -136,5 +142,6 @@ namespace Lumos
 		Graphics::LineRenderer* m_LineRenderer;
 		Graphics::PointRenderer* m_PointRenderer;
 		Camera* m_OverrideCamera = nullptr;
+		Maths::Transform* m_OverrideCameraTransform = nullptr;
 	};
 }

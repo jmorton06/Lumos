@@ -7,6 +7,7 @@
 #include "Core/Application.h"
 #include "Core/Engine.h"
 #include "Core/OS/Input.h"
+#include "Scene/SceneManager.h"
 #include "LuaScriptComponent.h"
 #include "Scene/SceneGraph.h"
 #include "Graphics/Camera/ThirdPersonCamera.h"
@@ -385,16 +386,10 @@ namespace Lumos
 		REGISTER_COMPONENT_WITH_ECS(state, MeshComponent, static_cast<MeshComponent& (entt::registry::*)(const entt::entity)>(&entt::registry::emplace<MeshComponent>));
 
 		sol::usertype<Camera> camera_type = state.new_usertype<Camera>("Camera", sol::constructors<Camera(float, float, float, float), Camera(float, float)>());
-		camera_type["position"] = &Camera::GetPosition;
-		camera_type["yaw"] = &Camera::GetYaw;
 		camera_type["fov"] = &Camera::GetFOV;
 		camera_type["aspectRatio"] = &Camera::GetAspectRatio;
 		camera_type["nearPlane"] = &Camera::GetNear;
 		camera_type["farPlane"] = &Camera::GetFar;
-		camera_type["GetForwardDir"] = &Camera::GetForwardDirection;
-		camera_type["GetUpDir"] = &Camera::GetUpDirection;
-		camera_type["GetRightDir"] = &Camera::GetRightDirection;
-		camera_type["SetPosition"] = &Camera::SetPosition;
         camera_type["SetIsOrthographic"] = &Camera::SetIsOrthographic;
         camera_type["SetNearPlane"] = &Camera::SetNear;
         camera_type["SetFarPlane"] = &Camera::SetFar;
@@ -468,5 +463,24 @@ namespace Lumos
 		texture2D_type.set_function("CreateFromFile", &Graphics::Texture2D::CreateFromFile);
 
 		state.set_function("Rand", &LuaRand);
+	}
+
+	static void SwitchSceneByIndex(int index)
+	{
+		Application::Get().GetSceneManager()->SwitchScene(index);
+	}
+
+	static void SwitchSceneByName(const std::string& name)
+	{
+		Application::Get().GetSceneManager()->SwitchScene(name);
+	}
+
+	void LuaManager::BindAppLua(sol::state& state)
+	{
+		sol::usertype<Application> app_type = state.new_usertype<Application>("Application");
+		state.set_function("SwitchSceneByIndex", &SwitchSceneByIndex);
+		state.set_function("SwitchSceneByName", &SwitchSceneByName);
+
+		state.set_function("GetAppInstance", &Application::Get);
 	}
 }

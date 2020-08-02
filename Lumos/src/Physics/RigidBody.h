@@ -12,9 +12,9 @@ namespace Lumos
 		Custom = 2
 	};
 
-	struct LUMOS_EXPORT RigidBodyParamaters
+	struct LUMOS_EXPORT RigidBodyParameters
 	{
-		RigidBodyParamaters()
+		RigidBodyParameters()
 		{
 			mass = 1.0f;
 			shape = Shape::Square;

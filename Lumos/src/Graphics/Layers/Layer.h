@@ -8,6 +8,11 @@ namespace Lumos
 {
 	class Scene;
 	class Camera;
+	
+	namespace Maths
+	{
+		class Transform;
+	}
 
 	namespace Graphics
 	{
@@ -44,9 +49,10 @@ namespace Lumos
 
 		//onlyIfTargetsScreen : so editor can override layers that render to screen
 		virtual void SetRenderTarget(Graphics::Texture* texture, bool onlyIfTargetsScreen = false, bool rebuildFramebuffer = true){};
-		void SetOverrideCamera(Camera* camera)
+		void SetOverrideCamera(Camera* camera, Maths::Transform* overrideCameraTransform)
 		{
 			m_OverrideCamera = camera;
+			m_OverrideCameraTransform = overrideCameraTransform;
 		}
 		_FORCE_INLINE_ const std::string& GetName() const
 		{
@@ -57,6 +63,7 @@ namespace Lumos
 		std::string m_DebugName;
 		bool m_ScreenLayer = true;
 		Camera* m_OverrideCamera = nullptr;
+		Maths::Transform* m_OverrideCameraTransform = nullptr;
 	};
 
 }

@@ -5,8 +5,8 @@
 
 #include "Maths/Vector2.h"
 
-#include <Box2D/Box2D.h>
-#include <Box2D/Dynamics/b2World.h>
+#include <box2d/box2d.h>
+#include <box2d/b2_world.h>
 
 namespace Lumos
 {
@@ -16,7 +16,7 @@ namespace Lumos
 	{
 	}
 
-	RigidBody2D::RigidBody2D(const RigidBodyParamaters& params)
+	RigidBody2D::RigidBody2D(const RigidBodyParameters& params)
 		: m_B2Body(nullptr)
 	{
 		Init(params);
@@ -53,7 +53,7 @@ namespace Lumos
 		m_B2Body->SetTransform(m_B2Body->GetPosition(), angle);
 	}
 
-	void RigidBody2D::Init(const RigidBodyParamaters& params)
+	void RigidBody2D::Init(const RigidBodyParameters& params)
 	{
 		m_Static = params.isStatic;
 		m_ShapeType = params.shape;

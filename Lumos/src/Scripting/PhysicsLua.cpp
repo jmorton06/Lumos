@@ -5,7 +5,7 @@
 #include "Core/Application.h"
 #include "Physics/B2PhysicsEngine/B2PhysicsEngine.h"
 
-#include <Box2D/Box2D.h>
+#include <box2d/box2d.h>
 #include <sol/sol.hpp>
 
 namespace Lumos
@@ -25,12 +25,12 @@ namespace Lumos
 				return ret;
 			});
 		auto b2Vec2_multiplication_overloads = sol::overload(
-			[](const float32& left, b2Vec2& right) {
+			[](const float& left, b2Vec2& right) {
 				b2Vec2 ret = right;
 				ret *= left;
 				return ret;
 			},
-			[](b2Vec2& left, const float32& right) {
+			[](b2Vec2& left, const float& right) {
 				b2Vec2 ret = left;
 				ret *= right;
 				return ret;
@@ -63,7 +63,7 @@ namespace Lumos
 			sol::call_constructor,
 			sol::constructors<
 				b2Vec2(),
-				b2Vec2(float32, float32)>()
+				b2Vec2(float, float)>()
 			// metas
 			,
 			sol::meta_function::addition,
@@ -88,12 +88,12 @@ namespace Lumos
 				return ret;
 			});
 		auto b2Vec3_multiplication_overloads = sol::overload(
-			[](const float32& left, b2Vec3& right) {
+			[](const float& left, b2Vec3& right) {
 				b2Vec3 ret = right;
 				ret *= left;
 				return ret;
 			},
-			[](b2Vec3& left, const float32& right) {
+			[](b2Vec3& left, const float& right) {
 				b2Vec3 ret = left;
 				ret *= right;
 				return ret;
@@ -118,7 +118,7 @@ namespace Lumos
 			sol::call_constructor,
 			sol::constructors<
 				b2Vec3(),
-				b2Vec3(float32, float32, float32)>()
+				b2Vec3(float, float, float)>()
 			// metas
 			,
 			sol::meta_function::addition,
@@ -155,7 +155,7 @@ namespace Lumos
 			sol::constructors<
 				b2Mat22(),
 				b2Mat22(const b2Vec2&, const b2Vec2&),
-				b2Mat22(float32, float32, float32, float32)>());
+				b2Mat22(float, float, float, float)>());
 	}
 	void register_type_b2Mat33(sol::state& state)
 	{
@@ -213,7 +213,7 @@ namespace Lumos
 			sol::call_constructor,
 			sol::constructors<
 				b2Rot(),
-				b2Rot(float32)>());
+				b2Rot(float)>());
 	}
 	void register_type_b2Transform(sol::state& state)
 	{
@@ -299,7 +299,7 @@ namespace Lumos
 		return CreateRef<RigidBody2D>();
 	}
 
-	Ref<RigidBody2D> CreateSharedPhysics2DWithParams(const RigidBodyParamaters& params)
+	Ref<RigidBody2D> CreateSharedPhysics2DWithParams(const RigidBodyParameters& params)
 	{
 		return CreateRef<RigidBody2D>(params);
 	}
@@ -309,7 +309,7 @@ namespace Lumos
 		return CreateRef<RigidBody3D>();
 	}
 
-	Ref<RigidBody3D> CreateSharedPhysics3DWithParams(const RigidBodyParamaters& params)
+	Ref<RigidBody3D> CreateSharedPhysics3DWithParams(const RigidBodyParameters& params)
 	{
 		return CreateRef<RigidBody3D>();
 	}
@@ -324,14 +324,14 @@ namespace Lumos
 		register_type_b2Transform(state);
 		register_type_b2Sweep(state);
 
-		sol::usertype<RigidBodyParamaters> physicsObjectParamaters_type = state.new_usertype<RigidBodyParamaters>("RigidBodyParamaters");
-		physicsObjectParamaters_type["mass"] = &RigidBodyParamaters::mass;
-		physicsObjectParamaters_type["shape"] = &RigidBodyParamaters::shape;
-		physicsObjectParamaters_type["position"] = &RigidBodyParamaters::position;
-		physicsObjectParamaters_type["scale"] = &RigidBodyParamaters::scale;
-		physicsObjectParamaters_type["isStatic"] = &RigidBodyParamaters::isStatic;
+		sol::usertype<RigidBodyParameters> physicsObjectParameters_type = state.new_usertype<RigidBodyParameters>("RigidBodyParameters");
+		physicsObjectParameters_type["mass"] = &RigidBodyParameters::mass;
+		physicsObjectParameters_type["shape"] = &RigidBodyParameters::shape;
+		physicsObjectParameters_type["position"] = &RigidBodyParameters::position;
+		physicsObjectParameters_type["scale"] = &RigidBodyParameters::scale;
+		physicsObjectParameters_type["isStatic"] = &RigidBodyParameters::isStatic;
 
-		sol::usertype<RigidBody3D> physics3D_type = state.new_usertype<RigidBody3D>("RigidBody3D", sol::constructors<RigidBody2D>());//;const RigidBodyParamaters&)>());
+		sol::usertype<RigidBody3D> physics3D_type = state.new_usertype<RigidBody3D>("RigidBody3D", sol::constructors<RigidBody2D>());//;const RigidBodyParameters&)>());
 		physics3D_type.set_function("SetForce", &RigidBody3D::SetForce);
 		physics3D_type.set_function("SetPosition", &RigidBody3D::SetPosition);
 		physics3D_type.set_function("SetLinearVelocity", &RigidBody3D::SetLinearVelocity);
@@ -352,7 +352,7 @@ namespace Lumos
 				{"Custom", Shape::Custom}};
 		state.new_enum<Shape, false>("Shape", shapes);
 
-		sol::usertype<RigidBody2D> physics2D_type = state.new_usertype<RigidBody2D>("RigidBody2D", sol::constructors<RigidBody2D(const RigidBodyParamaters&)>());
+		sol::usertype<RigidBody2D> physics2D_type = state.new_usertype<RigidBody2D>("RigidBody2D", sol::constructors<RigidBody2D(const RigidBodyParameters&)>());
 		physics2D_type.set_function("SetForce", &RigidBody2D::SetForce);
 		physics2D_type.set_function("SetPosition", &RigidBody2D::SetPosition);
 		physics2D_type.set_function("SetLinearVelocity", &RigidBody2D::SetLinearVelocity);
@@ -398,8 +398,6 @@ namespace Lumos
 			&b2BodyDef::fixedRotation,
 			"bullet",
 			&b2BodyDef::bullet,
-			"active",
-			&b2BodyDef::active,
 			"userData",
 			&b2BodyDef::userData,
 			"gravityScale",
@@ -411,7 +409,7 @@ namespace Lumos
 			sol::constructors<
 				b2BodyDef()>());
 
-		state.new_usertype<b2Body>("b2Body", "CreateFixture", sol::overload(sol::resolve<b2Fixture*(const b2FixtureDef*)>(&b2Body::CreateFixture), sol::resolve<b2Fixture*(const b2Shape*, float32)>(&b2Body::CreateFixture)), "DestroyFixture", &b2Body::DestroyFixture, "SetTransform", &b2Body::SetTransform, "GetTransform", &b2Body::GetTransform, "GetPosition", &b2Body::GetPosition, "GetAngle", &b2Body::GetAngle, "GetWorldCenter", &b2Body::GetWorldCenter, "GetLocalCenter", &b2Body::GetLocalCenter, "SetLinearVelocity", &b2Body::SetLinearVelocity, "GetLinearVelocity", &b2Body::GetLinearVelocity, "SetAngularVelocity", &b2Body::SetAngularVelocity, "GetAngularVelocity", &b2Body::GetAngularVelocity, "ApplyForce", &b2Body::ApplyForce, "ApplyForceToCenter", &b2Body::ApplyForceToCenter, "ApplyTorque", &b2Body::ApplyTorque, "ApplyLinearImpulse", &b2Body::ApplyLinearImpulse, "ApplyAngularImpulse", &b2Body::ApplyAngularImpulse, "GetMass", &b2Body::GetMass, "GetInertia", &b2Body::GetInertia, "GetMassData", &b2Body::GetMassData, "SetMassData", &b2Body::SetMassData, "ResetMassData", &b2Body::ResetMassData, "GetWorldPoint", &b2Body::GetWorldPoint, "GetWorldVector", &b2Body::GetWorldVector, "GetLocalPoint", &b2Body::GetLocalPoint, "GetLocalVector", &b2Body::GetLocalVector, "GetLinearVelocityFromWorldPoint", &b2Body::GetLinearVelocityFromWorldPoint, "GetLinearVelocityFromLocalPoint", &b2Body::GetLinearVelocityFromLocalPoint, "GetLinearDamping", &b2Body::GetLinearDamping, "SetLinearDamping", &b2Body::SetLinearDamping, "GetAngularDamping", &b2Body::GetAngularDamping, "SetAngularDamping", &b2Body::SetAngularDamping, "GetGravityScale", &b2Body::GetGravityScale, "SetGravityScale", &b2Body::SetGravityScale, "SetType", &b2Body::SetType, "GetType", &b2Body::GetType, "SetBullet", &b2Body::SetBullet, "IsBullet", &b2Body::IsBullet, "SetSleepingAllowed", &b2Body::SetSleepingAllowed, "IsSleepingAllowed", &b2Body::IsSleepingAllowed, "SetAwake", &b2Body::SetAwake, "IsAwake", &b2Body::IsAwake, "SetActive", &b2Body::SetActive, "IsActive", &b2Body::IsActive, "SetFixedRotation", &b2Body::SetFixedRotation, "IsFixedRotation", &b2Body::IsFixedRotation, "GetFixtureList", sol::overload(sol::resolve<b2Fixture*()>(&b2Body::GetFixtureList), sol::resolve<const b2Fixture*() const>(&b2Body::GetFixtureList)), "GetJointList", sol::overload(sol::resolve<b2JointEdge*()>(&b2Body::GetJointList), sol::resolve<const b2JointEdge*() const>(&b2Body::GetJointList)), "GetContactList", sol::overload(sol::resolve<b2ContactEdge*()>(&b2Body::GetContactList), sol::resolve<const b2ContactEdge*() const>(&b2Body::GetContactList)), "GetNext", sol::overload(sol::resolve<b2Body*()>(&b2Body::GetNext), sol::resolve<const b2Body*() const>(&b2Body::GetNext)), "GetUserData", &b2Body::GetUserData, "SetUserData", &b2Body::SetUserData, "GetWorld", sol::overload(sol::resolve<b2World*()>(&b2Body::GetWorld), sol::resolve<const b2World*() const>(&b2Body::GetWorld)), "Dump", &b2Body::Dump
+		state.new_usertype<b2Body>("b2Body", "CreateFixture", sol::overload(sol::resolve<b2Fixture*(const b2FixtureDef*)>(&b2Body::CreateFixture), sol::resolve<b2Fixture*(const b2Shape*, float)>(&b2Body::CreateFixture)), "DestroyFixture", &b2Body::DestroyFixture, "SetTransform", &b2Body::SetTransform, "GetTransform", &b2Body::GetTransform, "GetPosition", &b2Body::GetPosition, "GetAngle", &b2Body::GetAngle, "GetWorldCenter", &b2Body::GetWorldCenter, "GetLocalCenter", &b2Body::GetLocalCenter, "SetLinearVelocity", &b2Body::SetLinearVelocity, "GetLinearVelocity", &b2Body::GetLinearVelocity, "SetAngularVelocity", &b2Body::SetAngularVelocity, "GetAngularVelocity", &b2Body::GetAngularVelocity, "ApplyForce", &b2Body::ApplyForce, "ApplyForceToCenter", &b2Body::ApplyForceToCenter, "ApplyTorque", &b2Body::ApplyTorque, "ApplyLinearImpulse", &b2Body::ApplyLinearImpulse, "ApplyAngularImpulse", &b2Body::ApplyAngularImpulse, "GetMass", &b2Body::GetMass, "GetInertia", &b2Body::GetInertia, "GetMassData", &b2Body::GetMassData, "SetMassData", &b2Body::SetMassData, "ResetMassData", &b2Body::ResetMassData, "GetWorldPoint", &b2Body::GetWorldPoint, "GetWorldVector", &b2Body::GetWorldVector, "GetLocalPoint", &b2Body::GetLocalPoint, "GetLocalVector", &b2Body::GetLocalVector, "GetLinearVelocityFromWorldPoint", &b2Body::GetLinearVelocityFromWorldPoint, "GetLinearVelocityFromLocalPoint", &b2Body::GetLinearVelocityFromLocalPoint, "GetLinearDamping", &b2Body::GetLinearDamping, "SetLinearDamping", &b2Body::SetLinearDamping, "GetAngularDamping", &b2Body::GetAngularDamping, "SetAngularDamping", &b2Body::SetAngularDamping, "GetGravityScale", &b2Body::GetGravityScale, "SetGravityScale", &b2Body::SetGravityScale, "SetType", &b2Body::SetType, "GetType", &b2Body::GetType, "SetBullet", &b2Body::SetBullet, "IsBullet", &b2Body::IsBullet, "SetSleepingAllowed", &b2Body::SetSleepingAllowed, "IsSleepingAllowed", &b2Body::IsSleepingAllowed, "SetAwake", &b2Body::SetAwake, "IsAwake", &b2Body::IsAwake, "SetFixedRotation", &b2Body::SetFixedRotation, "IsFixedRotation", &b2Body::IsFixedRotation, "GetFixtureList", sol::overload(sol::resolve<b2Fixture*()>(&b2Body::GetFixtureList), sol::resolve<const b2Fixture*() const>(&b2Body::GetFixtureList)), "GetJointList", sol::overload(sol::resolve<b2JointEdge*()>(&b2Body::GetJointList), sol::resolve<const b2JointEdge*() const>(&b2Body::GetJointList)), "GetContactList", sol::overload(sol::resolve<b2ContactEdge*()>(&b2Body::GetContactList), sol::resolve<const b2ContactEdge*() const>(&b2Body::GetContactList)), "GetNext", sol::overload(sol::resolve<b2Body*()>(&b2Body::GetNext), sol::resolve<const b2Body*() const>(&b2Body::GetNext)), "GetUserData", &b2Body::GetUserData, "SetUserData", &b2Body::SetUserData, "GetWorld", sol::overload(sol::resolve<b2World*()>(&b2Body::GetWorld), sol::resolve<const b2World*() const>(&b2Body::GetWorld)), "Dump", &b2Body::Dump
 			// constructors
 		);
 	}

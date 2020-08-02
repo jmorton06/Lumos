@@ -20,6 +20,7 @@ local gameState = GameStates.Running
 
 local player = {}
 local score = 0
+local iconTexture = LoadTextureWithParams("icon", "/CoreTextures/icon.png", TextureFilter.Linear, TextureWrap.Clamp)
 
 function beginContact(a, b)
     gameState = GameStates.GameOver
@@ -47,7 +48,7 @@ function CreatePlayer()
     registry:assign_Sprite(player, Vector2.new(-1.0/2.0, -1.0/2.0), Vector2.new(1.15, 1.0), colour)
     registry:get_Sprite(player):SetTexture(texture)
 
-    params = RigidBodyParamaters.new()
+    params = RigidBodyParameters.new()
     params.position = Vector3.new( 1.0, 1.0, 1.0)
     params.scale = Vector3.new(1.0 / 2.0, 1.0 / 2.0, 1.0)
 	params.shape = Shape.Circle
@@ -81,13 +82,10 @@ function CreatePillar(index, offset)
 	pos = Vector3.new(offset / 2.0, ((topY - bottomY )/ 2.0) + bottomY, 0.0);
 	scale = Vector3.new(1.0, (topY - bottomY) / 2.0, 1.0);
 
-    texture = LoadTextureWithParams("icon", "/CoreTextures/icon.png", TextureFilter.Linear, TextureWrap.Clamp)
-
     registry:assign_Sprite(pillars[index], Vector2.new(-scale.x, -scale.y), Vector2.new(scale.x * 2.0, scale.y * 2.0), colour)
+    registry:get_Sprite(pillars[index]):SetTexture(iconTexture)
 
-    registry:get_Sprite(pillars[index]):SetTexture(texture)
-
-    params = RigidBodyParamaters.new()
+    params = RigidBodyParameters.new()
 	params.position = pos
 	params.scale = scale
 	params.shape = Shape.Square
@@ -151,6 +149,7 @@ backgrounds = {}
 function OnInit()
     camera = registry:Create();
     registry:assign_Camera(camera, 1.0, 10.0, 1.0)
+    registry:assign_Transform(camera)
 
     CreatePlayer()
 
@@ -192,7 +191,7 @@ function OnUpdate(dt)
         pos.y = 0.0
 
         cameraView = registry:view_Camera(registry)
-        registry:get_Camera(cameraView:front()):SetPosition(pos)
+        registry:get_Transform(cameraView:front()):SetLocalPosition(pos)
         
         score = math.floor((registry:get_Transform(player):GetWorldPosition().x - 5) / 10)
 
@@ -251,8 +250,7 @@ function Reset()
     m_PillarIndex = 1
 
 	registry:get_Transform(player):SetLocalPosition(Vector3.new(0.0,0.0,0.0))
-	--registry:get_Transform(player):UpdateMatrices()
-    
+
     for i=1,10, 2 do
         if registry:Valid(pillars[i]) then
             registry:Destroy(pillars[i]);
@@ -269,9 +267,9 @@ function OnCleanUp()
     backgroundTexture = nil
     texture = nil
     blockPhysics = nil
-    blockPhysics2 = nill
+    blockPhysics2 = nil
 
-    registry:Destroy(player)
+    --registry:Destroy(player)
 end
 
 

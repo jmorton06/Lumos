@@ -23,7 +23,6 @@ namespace Lumos
 	HierarchyWindow::HierarchyWindow()
 		: m_DoubleClicked()
 		, m_HadRecentDroppedEntity(entt::null)
-		, m_CopiedEntity()
 	{
 		m_Name = "Hierarchy###hierarchy";
 		m_SimpleName = "Hierarchy";
@@ -151,14 +150,28 @@ namespace Lumos
 			if(ImGui::BeginPopupContextItem(name.c_str()))
 			{
 				if(ImGui::Selectable("Copy"))
-					m_CopiedEntity = node;
+					m_Editor->SetCopiedEntity(node);
 
-				if(m_CopiedEntity != entt::null)
+				if(ImGui::Selectable("Cut"))
+					m_Editor->SetCopiedEntity(node, true);
+
+				if(m_Editor->GetCopiedEntity() != entt::null && registry.valid(m_Editor->GetCopiedEntity()))
 				{
 					if(ImGui::Selectable("Paste"))
 					{
-						entt::entity copy = registry.create();
-						m_CopiedEntity = entt::null;
+                        auto scene = Application::Get().GetSceneManager()->GetCurrentScene();
+                        Entity copiedEntity = {m_Editor->GetCopiedEntity(), scene};
+                        if(!copiedEntity.Valid())
+                        {
+                            m_Editor->SetCopiedEntity(entt::null);
+                        }
+                        else
+                        {
+                            scene->DuplicateEntity(copiedEntity, {node, scene});
+                            
+                            if(m_Editor->GetCutCopyEntity())
+                                deleteEntity = true;
+                        }
 					}
 				}
 				else
@@ -238,10 +251,12 @@ namespace Lumos
 			if(ImGui::IsMouseDoubleClicked(0) && ImGui::IsItemHovered(ImGuiHoveredFlags_None))
 			{
 				m_DoubleClicked = node;
-
-				auto transform = registry.try_get<Maths::Transform>(node);
-				if(transform)
-					m_Editor->FocusCamera(transform->GetWorldPosition(), 2.0f, 2.0f);
+				if(Application::Get().GetEditorState() == EditorState::Preview)
+				{
+					auto transform = registry.try_get<Maths::Transform>(node);
+					if(transform)
+						m_Editor->FocusCamera(transform->GetWorldPosition(), 2.0f, 2.0f);
+				}
 			}
 
 			if(deleteEntity)
@@ -265,9 +280,13 @@ namespace Lumos
 					ImGui::Indent(8.0f);
 					DrawNode(child, registry);
 					ImGui::Unindent(8.0f);
-					auto hierarchyComponent = registry.try_get<Hierarchy>(child);
-					if(hierarchyComponent)
-						child = hierarchyComponent->next();
+                
+                    if(registry.valid(child))
+                    {
+                        auto hierarchyComponent = registry.try_get<Hierarchy>(child);
+                        if(hierarchyComponent)
+                            child = hierarchyComponent->next();
+                    }
 				}
 			}
 
@@ -317,23 +336,38 @@ namespace Lumos
 
 	void HierarchyWindow::OnImGui()
 	{
-		auto flags = ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_MenuBar;
+		auto flags = ImGuiWindowFlags_NoCollapse;
 		ImGui::Begin(m_Name.c_str(), &m_Active, flags);
 		{
 			auto scene = Application::Get().GetSceneManager()->GetCurrentScene();
 			auto& registry = scene->GetRegistry();
 
+			if(ImGui::BeginPopupContextWindow())
+			{
+				if(ImGui::Selectable("Add Entity"))
+				{
+					scene->CreateEntity();
+				}
+				ImGui::EndPopup();
+			}
+        
+            const std::string& sceneName = scene->GetSceneName();
+            
+            static char objName[INPUT_BUF_SIZE];
+            strcpy(objName, sceneName.c_str());
+            
+            ImGui::PushItemWidth(-1);
+            if(ImGui::InputText("##Name", objName, IM_ARRAYSIZE(objName), 0))
+                scene->SetName(objName);
+            ImGui::Separator();
+
 			ImGui::PushStyleColor(ImGuiCol_MenuBarBg, ImGui::GetStyleColorVec4(ImGuiCol_TabActive));
-			ImGui::BeginMenuBar();
 			ImGui::TextUnformatted(ICON_MDI_MAGNIFY);
 			ImGui::SameLine();
 			m_HierarchyFilter.Draw("##HierarchyFilter", ImGui::GetContentRegionAvailWidth() - ImGui::GetStyle().IndentSpacing);
-			ImGui::EndMenuBar();
 			ImGui::PopStyleColor();
 			ImGui::Unindent();
 
-			const std::string& sceneName = scene->GetSceneName();
-			if(ImGui::CollapsingHeader(sceneName.c_str(), ImGuiTreeNodeFlags_DefaultOpen))
 			{
 				if(ImGui::BeginDragDropTarget())
 				{
@@ -373,6 +407,7 @@ namespace Lumos
 				max_space.y += ImGui::GetWindowPos().y - 1.0f + ImGui::GetScrollY();
 				ImRect bb{min_space, max_space};
 
+
 				const ImGuiPayload* payload = ImGui::GetDragDropPayload();
 				if(payload != NULL && payload->IsDataType("Drag_Entity"))
 				{
@@ -396,6 +431,8 @@ namespace Lumos
 							if(hierarchyComponent)
 							{
 								Hierarchy::Reparent(entity, entt::null, registry, *hierarchyComponent);
+                                Entity e(entity, scene);
+                                e.RemoveComponent<Hierarchy>();
 							}
 						}
 						ImGui::EndDragDropTarget();

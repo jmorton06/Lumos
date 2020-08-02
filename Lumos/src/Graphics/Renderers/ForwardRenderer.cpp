@@ -21,6 +21,8 @@
 #include "Maths/Maths.h"
 #include "Maths/Transform.h"
 
+#include "Embedded/CheckerBoardTextureArray.inl"
+
 #include "Core/Application.h"
 #include "Graphics/RenderManager.h"
 #include "Graphics/Camera/Camera.h"
@@ -207,7 +209,7 @@ namespace Lumos
 
 			m_ClearColour = Maths::Vector4(0.4f, 0.4f, 0.4f, 1.0f);
 
-			m_DefaultTexture = Texture2D::CreateFromFile("Test", "/CoreTextures/checkerboard.tga");
+			m_DefaultTexture = Texture2D::CreateFromSource(CheckerboardTextureArrayWidth, CheckerboardTextureArrayHeight, (void*)(u8*)CheckerboardTextureArray);
 
 			Graphics::DescriptorInfo info{};
 			info.pipeline = m_Pipeline;
@@ -240,30 +242,34 @@ namespace Lumos
 			m_RenderPass->BeginRenderpass(m_CommandBuffers[m_CurrentBufferID], m_ClearColour, m_Framebuffers[m_CurrentBufferID], Graphics::INLINE, m_ScreenBufferWidth, m_ScreenBufferHeight);
 		}
 
-		void ForwardRenderer::BeginScene(Scene* scene, Camera* overrideCamera)
+		void ForwardRenderer::BeginScene(Scene* scene, Camera* overrideCamera, Maths::Transform* overrideCameraTransform)
 		{
 			auto& registry = scene->GetRegistry();
 
 			if(overrideCamera)
+			{
 				m_Camera = overrideCamera;
+				m_CameraTransform = overrideCameraTransform;
+			}
 			else
 			{
 				auto cameraView = registry.view<Camera>();
 				if(!cameraView.empty())
 				{
-					m_Camera = &registry.get<Camera>(cameraView.front());
+					m_Camera = &cameraView.get<Camera>(cameraView.front());
+					m_CameraTransform = registry.try_get<Maths::Transform>(cameraView.front());
 				}
 			}
 
-			if(!m_Camera)
+			if(!m_Camera || !m_CameraTransform)
 				return;
 
 			auto proj = m_Camera->GetProjectionMatrix();
 
 			memcpy(m_VSSystemUniformBuffer + m_VSSystemUniformBufferOffsets[VSSystemUniformIndex_ProjectionMatrix], &proj, sizeof(Maths::Matrix4));
-			memcpy(m_VSSystemUniformBuffer + m_VSSystemUniformBufferOffsets[VSSystemUniformIndex_ViewMatrix], &m_Camera->GetViewMatrix(), sizeof(Maths::Matrix4));
+			//memcpy(m_VSSystemUniformBuffer + m_VSSystemUniformBufferOffsets[VSSystemUniformIndex_ViewMatrix], &m_Camera->GetViewMatrix(), sizeof(Maths::Matrix4));
 
-			m_Frustum = m_Camera->GetFrustum();
+			//m_Frustum = m_Camera->GetFrustum();
 
             m_CommandQueue.clear();
 

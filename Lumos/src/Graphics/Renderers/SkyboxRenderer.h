@@ -17,7 +17,7 @@ namespace Lumos
 			~SkyboxRenderer();
 
 			void Init() override;
-			void BeginScene(Scene* scene, Camera* overrideCamera) override;
+			void BeginScene(Scene* scene, Camera* overrideCamera, Maths::Transform* overrideCameraTransform) override;
 			void OnResize(u32 width, u32 height) override;
 			void CreateGraphicsPipeline();
 			void SetCubeMap(Texture* cubeMap);
