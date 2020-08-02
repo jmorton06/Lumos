@@ -1,6 +1,8 @@
 #pragma once
 #include "lmpch.h"
 #include "RenderCommand.h"
+#include "Maths/Maths.h"
+#include "Maths/Transform.h"
 
 namespace Lumos
 {
@@ -37,7 +39,7 @@ namespace Lumos
 
 			virtual void Init() = 0;
 			virtual void Begin() = 0;
-			virtual void BeginScene(Scene* scene, Camera* overrideCamera) = 0;
+			virtual void BeginScene(Scene* scene, Camera* overrideCamera, Maths::Transform* overrideCameraTransform) = 0;
 			virtual void Submit(const RenderCommand& command) = 0;
 			virtual void SubmitMesh(Mesh* mesh, Material* material, const Maths::Matrix4& transform, const Maths::Matrix4& textureMatrix) = 0;
 			virtual void EndScene() = 0;
@@ -72,15 +74,16 @@ namespace Lumos
 			}
 
 		protected:
-			Framebuffer* m_FBO;
-			Shader* m_Shader;
-			Camera* m_Camera;
+			Framebuffer* m_FBO = nullptr;
+			Shader* m_Shader = nullptr;
+			Camera* m_Camera = nullptr;
+			Maths::Transform* m_CameraTransform = nullptr;
 
-			Lumos::Graphics::RenderPass* m_RenderPass;
-			Lumos::Graphics::Pipeline* m_Pipeline;
-			Graphics::DescriptorSet* m_DescriptorSet;
+			Lumos::Graphics::RenderPass* m_RenderPass = nullptr;
+			Lumos::Graphics::Pipeline* m_Pipeline = nullptr;
+			Graphics::DescriptorSet* m_DescriptorSet = nullptr;
 
-			u32 m_ScreenBufferWidth, m_ScreenBufferHeight;
+			u32 m_ScreenBufferWidth = 0, m_ScreenBufferHeight = 0;
 			CommandQueue m_CommandQueue;
 			SystemUniformList m_SystemUniforms;
 			Texture* m_RenderTexture = nullptr;

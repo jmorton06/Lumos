@@ -1,10 +1,137 @@
 #pragma once
+#include "Graphics/Camera/Camera.h"
+#include "Graphics/Camera/CameraController.h"
+#include "Graphics/Camera/ThirdPersonCamera.h"
+#include "Graphics/Camera/Camera2D.h"
+#include "Graphics/Camera/FPSCamera.h"
+#include "Editor/EditorCamera.h"
 
 #include <entt/entity/fwd.hpp>
 #include <cereal/cereal.hpp>
 
 namespace Lumos
 {
+
+	class DefaultCameraController
+	{
+	public:
+		enum class ControllerType
+		{
+			FPS,
+			ThirdPerson,
+			Simple,
+			Camera2D,
+			EditorCamera,
+			Custom
+		};
+
+		DefaultCameraController()
+			: m_Type(ControllerType::Custom)
+		{
+		}
+
+		DefaultCameraController(ControllerType type)
+		{
+			SetControllerType(type);
+		}
+
+		void SetControllerType(ControllerType type)
+		{
+			if(type != m_Type)
+			{
+				m_Type = type;
+				switch(type)
+				{
+				case ControllerType::ThirdPerson:
+					m_CameraController = CreateRef<ThirdPersonCameraController>();
+					break;
+				case ControllerType::FPS:
+					m_CameraController = CreateRef<FPSCameraController>();
+					break;
+				case ControllerType::Simple:
+					m_CameraController = CreateRef<FPSCameraController>();
+					break;
+				case ControllerType::EditorCamera:
+					m_CameraController = CreateRef<EditorCameraController>();
+					break;
+				case ControllerType::Camera2D:
+					m_CameraController = CreateRef<CameraController2D>();
+					break;
+				case ControllerType::Custom:
+					m_CameraController = nullptr;
+					break;
+				}
+			}
+		}
+
+		static std::string CameraControllerTypeToString(ControllerType type)
+		{
+			switch(type)
+			{
+			case ControllerType::ThirdPerson:
+				return "ThirdPerson";
+			case ControllerType::FPS:
+				return "FPS";
+			case ControllerType::Simple:
+				return "Simple";
+			case ControllerType::EditorCamera:
+				return "Editor";
+			case ControllerType::Camera2D:
+				return "2D";
+			case ControllerType::Custom:
+				return "Custom";
+			}
+
+			return "Custom";
+		}
+
+		static ControllerType StringToControllerType(const std::string& type)
+		{
+			if(type == "ThirdPerson")
+				return ControllerType::ThirdPerson;
+			if(type == "FPS")
+				return ControllerType::FPS;
+			if(type == "Simple")
+				return ControllerType::Simple;
+			if(type == "Editor")
+				return ControllerType::EditorCamera;
+			if(type == "2D")
+				return ControllerType::Camera2D;
+			if(type == "Custom")
+				return ControllerType::Custom;
+
+			Lumos::Debug::Log::Error("Unsupported Camera controller {0}", type);
+			return ControllerType::Custom;
+		}
+
+		const Ref<CameraController> & GetController() const 
+		{
+			return m_CameraController;
+		}
+
+		template<typename Archive>
+		void save(Archive& archive) const
+		{
+			archive(cereal::make_nvp("ControllerType", m_Type));
+		}
+
+		template<typename Archive>
+		void load(Archive& archive)
+		{
+			archive(cereal::make_nvp("ControllerType", m_Type));
+			SetControllerType(m_Type);
+		}
+
+		ControllerType GetType() 
+		{
+			return m_Type;
+		}
+
+	private:
+		ControllerType m_Type = ControllerType::Custom;
+		Ref<CameraController> m_CameraController;
+	};
+
 	struct NameComponent
 	{
 		template<typename Archive>

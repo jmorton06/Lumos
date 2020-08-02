@@ -19,7 +19,6 @@ namespace Lumos
 	class ISystem;
 	class Scene;
 	class Event;
-	class Camera;
 	class WindowCloseEvent;
 	class WindowResizeEvent;
 
@@ -110,11 +109,6 @@ namespace Lumos
 			return m_EditorState;
 		}
     
-		Camera* GetActiveCamera() const
-		{
-			return m_ActiveCamera;
-		}
-    
 		SystemManager* GetSystemManager() const
 		{
 			return m_SystemManager.get();
@@ -132,8 +126,6 @@ namespace Lumos
 			m_EditorState = state;
 		}
     
-		void SetActiveCamera(Camera* camera);
-
 		void SetSceneActive(bool active)
 		{
 			m_SceneActive = active;
@@ -187,6 +179,8 @@ namespace Lumos
 			return m_Editor;
 		};
 #endif
+    
+        void EmbedTexture(const std::string& texFilePath, const std::string& outPath, const std::string& arrayName);
 
 	private:
 		void PushLayerInternal(Layer* layer, bool overlay, bool sceneAdded);
@@ -210,8 +204,6 @@ namespace Lumos
 		UniqueRef<SceneManager> m_SceneManager;
 		UniqueRef<SystemManager> m_SystemManager;
 		UniqueRef<Graphics::RenderManager> m_RenderManager;
-
-		Camera* m_ActiveCamera = nullptr;
 
 		LayerStack* m_LayerStack = nullptr;
 

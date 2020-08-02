@@ -54,6 +54,7 @@ namespace Lumos
 		void BindLogLua(sol::state& state);
 		void BindInputLua(sol::state& state);
 		void BindSceneLua(sol::state& state);
+		void BindAppLua(sol::state& state);
 
 		sol::state& GetState()
 		{

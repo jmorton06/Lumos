@@ -32,9 +32,10 @@ void MaterialTest::OnInit()
 	GetRegistry().emplace<Maths::Transform>(lightEntity, Matrix4::Translation(Maths::Vector3(26.0f, 22.0f, 48.5f)) * Maths::Quaternion::LookAt(Maths::Vector3(26.0f, 22.0f, 48.5f), Maths::Vector3::ZERO).RotationMatrix4());
 	GetRegistry().emplace<NameComponent>(lightEntity, "Light");
 
-	auto cameraEntity = GetRegistry().create();
-	auto& camera = GetRegistry().emplace<Camera>(cameraEntity, -1.0f, 358.0f, Maths::Vector3(-0.23f, 2.4f, 11.4f), 60.0f, 0.1f, 1000.0f, (float)m_ScreenWidth / (float)m_ScreenHeight);
-	GetRegistry().emplace<NameComponent>(cameraEntity, "Camera");
+    auto cameraEntity = m_EntityManager->Create("Camera");
+    cameraEntity.AddComponent<Maths::Transform>(Maths::Vector3(-31.0f, 12.0f, 51.0f));
+    cameraEntity.AddComponent<Camera>(-20.0f, -40.0f, Maths::Vector3(-31.0f, 12.0f, 51.0f), 60.0f, 0.1f, 1000.0f, (float)m_ScreenWidth / (float)m_ScreenHeight);
+    cameraEntity.AddComponent<DefaultCameraController>(DefaultCameraController::ControllerType::EditorCamera);
 }
 
 void MaterialTest::OnUpdate(const TimeStep& timeStep)

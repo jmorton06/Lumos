@@ -5,7 +5,12 @@
 #include "Graphics/API/GraphicsContext.h"
 #include "Mesh.h"
 #include "Utilities/AssetsManager.h"
+#include "Core/Application.h"
 #include "MeshFactory.h"
+
+#ifdef LUMOS_EDITOR
+#include "Editor/Editor.h"
+#endif
 
 #include <imgui/imgui.h>
 
@@ -42,6 +47,15 @@ namespace Lumos
             Maths::Vector2 max = {((index.x + spriteSize.x) * cellSize.x) / texture->GetWidth() , ((index.y+ spriteSize.y) * cellSize.y) / texture->GetHeight() };
             
             m_UVs = GetUVs(min, max);
+        }
+    
+        void Sprite::SetTextureFromFile(const std::string& filePath)
+        {
+            auto tex = Ref<Graphics::Texture2D>(Graphics::Texture2D::CreateFromFile(filePath, filePath));
+            if(tex)
+            {
+                m_Texture = tex;
+            }
         }
 
 		void Sprite::OnImGui()
@@ -87,21 +101,34 @@ namespace Lumos
 
 				ImGui::AlignTextToFramePadding();
 				auto tex = m_Texture;
-				if (tex)
-				{
-					ImGui::Image(tex->GetHandle(), ImVec2(64, 64), ImVec2(0.0f, flipImage ? 1.0f : 0.0f), ImVec2(1.0f, flipImage ? 0.0f : 1.0f));
-
-					if (ImGui::IsItemHovered())
-					{
-						ImGui::BeginTooltip();
-						ImGui::Image(tex->GetHandle(), ImVec2(256, 256), ImVec2(0.0f, flipImage ? 1.0f : 0.0f), ImVec2(1.0f, flipImage ? 0.0f : 1.0f));
-						ImGui::EndTooltip();
-					}
-				}
-				else
-				{
-					ImGui::Button("Empty", ImVec2(64, 64));
-				}
+            
+            if(tex)
+            {
+                if(ImGui::ImageButton(tex->GetHandle(), ImVec2(64, 64), ImVec2(0.0f, flipImage ? 1.0f : 0.0f), ImVec2(1.0f, flipImage ? 0.0f : 1.0f)))
+                {
+#ifdef LUMOS_EDITOR
+                    Application::Get().GetEditor()->GetFileBrowserWindow().Open();
+                    Application::Get().GetEditor()->GetFileBrowserWindow().SetCallback(std::bind(&Sprite::SetTextureFromFile, this, std::placeholders::_1));
+#endif
+                }
+                
+                if(ImGui::IsItemHovered() && tex)
+                {
+                    ImGui::BeginTooltip();
+                    ImGui::Image(tex->GetHandle(), ImVec2(256, 256), ImVec2(0.0f, flipImage ? 1.0f : 0.0f), ImVec2(1.0f, flipImage ? 0.0f : 1.0f));
+                    ImGui::EndTooltip();
+                }
+            }
+            else
+            {
+                if(ImGui::Button("Empty", ImVec2(64, 64)))
+                {
+#ifdef LUMOS_EDITOR
+                    Application::Get().GetEditor()->GetFileBrowserWindow().Open();
+                    Application::Get().GetEditor()->GetFileBrowserWindow().SetCallback(std::bind(&Sprite::SetTextureFromFile, this, std::placeholders::_1));
+#endif
+                }
+            }
 
 				ImGui::NextColumn();
 				ImGui::PushItemWidth(-1);

@@ -37,7 +37,7 @@ workspace "Lumos"
 	objdir ("bin-int/%{cfg.longname}/obj/")
 
 	group "External"
-		require("Lumos/external/Box2D/premake5")
+		require("Lumos/external/box2d/premake5")
 			SetRecommendedSettings()
 		require("Lumos/external/lua/premake5")
 			SetRecommendedSettings()

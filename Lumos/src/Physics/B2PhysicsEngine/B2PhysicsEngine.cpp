@@ -9,8 +9,8 @@
 #include "Maths/Transform.h"
 #include "B2DebugDraw.h"
 
-#include <Box2D/Box2D.h>
-#include <Box2D/Common/b2Math.h>
+#include <box2d/box2d.h>
+#include <box2d/b2_math.h>
 
 #include <imgui/imgui.h>
 
@@ -151,7 +151,7 @@ namespace Lumos
 
 	void B2PhysicsEngine::OnDebugDraw()
 	{
-		m_B2DWorld->DrawDebugData();
+		m_B2DWorld->DebugDraw();
 	}
 
 	void B2PhysicsEngine::SetDebugDrawFlags(u32 flags)

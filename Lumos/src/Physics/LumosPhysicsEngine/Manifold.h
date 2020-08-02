@@ -12,10 +12,10 @@ namespace Lumos
 	*/
 	struct LUMOS_EXPORT ContactPoint
 	{
-		float sumImpulseContact;
-		float sumImpulseFriction;
-		float elatisity_term;
-		float collisionPenetration;
+		float sumImpulseContact = 0.0f;
+		float sumImpulseFriction = 0.0f;
+		float elatisity_term = 0.0f;
+		float collisionPenetration = 0.0f;
 
 		Maths::Vector3 collisionNormal;
 		Maths::Vector3 relPosA; //Position relative to objectA

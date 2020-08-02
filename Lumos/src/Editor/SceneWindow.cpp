@@ -18,7 +18,7 @@
 #include "Core/OS/Input.h"
 #include "Graphics/Renderers/DebugRenderer.h"
 #include "EditorCamera.h"
-#include <Box2D/Box2D.h>
+#include <box2d/box2d.h>
 #include <imgui/imgui_internal.h>
 #include <imgui/plugins/ImGuizmo.h>
 #include <IconFontCppHeaders/IconsMaterialDesignIcons.h>
@@ -49,20 +49,22 @@ namespace Lumos
 		ImGui::Begin(m_Name.c_str(), &m_Active, flags);
 
 		Camera* camera = nullptr;
+        Maths::Transform* transform = nullptr;
 
 		bool gameView = false;
 
 		if(app.GetEditorState() == EditorState::Preview)
 		{
 			camera = m_Editor->GetCamera();
+			transform = &m_Editor->GetEditorCameraTransform();
 
 			auto sceneLayers = app.GetSceneLayers();
 			for(auto layer : *sceneLayers)
 			{
-				layer->SetOverrideCamera(camera);
+				layer->SetOverrideCamera(camera, transform);
 			}
 
-			DebugRenderer::SetOverrideCamera(camera);
+			DebugRenderer::SetOverrideCamera(camera, transform);
 		}
 		else
 		{
@@ -70,10 +72,10 @@ namespace Lumos
 			auto sceneLayers = app.GetSceneLayers();
 			for(auto layer : *sceneLayers)
 			{
-				layer->SetOverrideCamera(nullptr);
+				layer->SetOverrideCamera(nullptr, nullptr);
 			}
 
-			DebugRenderer::SetOverrideCamera(nullptr);
+			DebugRenderer::SetOverrideCamera(nullptr, nullptr);
 
 			auto& registry = m_CurrentScene->GetRegistry();
 			auto cameraView = registry.view<Camera>();
@@ -85,6 +87,9 @@ namespace Lumos
 
 		if(!gameView)
 			ToolBar();
+
+		if(!camera)
+			return;
 
 		ImGuizmo::SetDrawlist();
 		auto sceneViewSize = ImGui::GetContentRegionAvail();
@@ -142,7 +147,7 @@ namespace Lumos
 		{
 			if(camera->IsOrthographic())
 			{
-				m_Editor->Draw2DGrid(ImGui::GetWindowDrawList(), {camera->GetPosition().x, camera->GetPosition().y}, sceneViewPosition, {sceneViewSize.x, sceneViewSize.y}, camera->GetScale(), 1.5f);
+				m_Editor->Draw2DGrid(ImGui::GetWindowDrawList(), { transform->GetWorldPosition().x, transform->GetWorldPosition().y}, sceneViewPosition, {sceneViewSize.x, sceneViewSize.y}, 1.0f, 1.5f);
 			}
 		}
 
@@ -151,7 +156,7 @@ namespace Lumos
 		if(!gameView && app.GetSceneActive() && !ImGuizmo::IsUsing() && Input::GetInput()->GetMouseClicked(InputCode::MouseKey::ButtonLeft))
 		{
 			auto clickPos = Input::GetInput()->GetMousePosition() - Maths::Vector2(sceneViewPosition.x, sceneViewPosition.y);
-			m_Editor->SelectObject(m_Editor->GetScreenRay(clickPos.x, clickPos.y, camera, sceneViewSize.x, sceneViewSize.y));
+			m_Editor->SelectObject(m_Editor->GetScreenRay(int(clickPos.x), int(clickPos.y), camera, int(sceneViewSize.x), int(sceneViewSize.y)));
 		}
 
 		DrawGizmos(sceneViewSize.x, sceneViewSize.y, 0.0f, 40.0f, app.GetSceneManager()->GetCurrentScene()); // Not sure why 40
@@ -218,8 +223,9 @@ namespace Lumos
 	void SceneWindow::DrawGizmos(float width, float height, float xpos, float ypos, Scene* scene)
 	{
 		Camera* camera = m_Editor->GetCamera();
+        Maths::Transform& cameraTransform = m_Editor->GetEditorCameraTransform();
 		auto& registry = scene->GetRegistry();
-		Maths::Matrix4 view = camera->GetViewMatrix();
+		Maths::Matrix4 view = cameraTransform.GetWorldMatrix().Inverse();
 		Maths::Matrix4 proj = camera->GetProjectionMatrix();
 
 #ifdef LUMOS_RENDER_API_VULKAN
@@ -228,10 +234,10 @@ namespace Lumos
 #endif
 
 		Maths::Matrix4 viewProj = proj * view;
-		const Maths::Frustum& f = camera->GetFrustum();
+		const Maths::Frustum& f = camera->GetFrustum(view);
 
 		ShowComponentGizmo<Graphics::Light>(width, height, xpos, ypos, viewProj, f, registry);
-		ShowComponentGizmo<Camera>(width, height, xpos, ypos, viewProj, f, registry);
+        ShowComponentGizmo<Camera>(width, height, xpos, ypos, viewProj, f, registry);
 		ShowComponentGizmo<SoundComponent>(width, height, xpos, ypos, viewProj, f, registry);
 	}
 
@@ -539,7 +545,7 @@ namespace Lumos
 			if(ortho)
 			{
 				camera.SetIsOrthographic(false);
-				((EditorCameraController*)camera.GetController().get())->SetMode(false);
+				m_Editor->GetEditorCameraController().SetMode(false);
 			}
 		}
 		if(selected)
@@ -554,10 +560,8 @@ namespace Lumos
 			if(!ortho)
 			{
 				camera.SetIsOrthographic(true);
-				camera.SetRoll(0.0f);
-				camera.SetYaw(0.0f);
-				camera.SetPitch(0.0f);
-				((EditorCameraController*)camera.GetController().get())->SetMode(true);
+                m_Editor->GetEditorCameraTransform().SetLocalOrientation(Maths::Quaternion::EulerAnglesToQuaternion(0.0f, 0.0f, 0.0f));
+				m_Editor->GetEditorCameraController().SetMode(true);
 			}
 		}
 		if(selected)
@@ -576,11 +580,11 @@ namespace Lumos
 		for(auto layer : *sceneLayers)
 		{
 			layer->SetRenderTarget(m_GameViewTexture.get(), true);
-			layer->SetOverrideCamera(m_Editor->GetCamera());
+			layer->SetOverrideCamera(m_Editor->GetCamera(), &m_Editor->GetEditorCameraTransform());
 		}
 
 		DebugRenderer::SetRenderTarget(m_GameViewTexture.get(), true);
-		DebugRenderer::SetOverrideCamera(m_Editor->GetCamera());
+		DebugRenderer::SetOverrideCamera(m_Editor->GetCamera(), &m_Editor->GetEditorCameraTransform());
 	}
 
 	void SceneWindow::Resize(u32 width, u32 height)

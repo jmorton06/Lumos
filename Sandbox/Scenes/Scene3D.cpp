@@ -35,7 +35,9 @@ void Scene3D::OnInit()
     lightEntity.AddComponent<Maths::Transform>(Matrix4::Translation(Maths::Vector3(26.0f, 22.0f, 48.5f)) * Maths::Quaternion::LookAt(Maths::Vector3(26.0f, 22.0f, 48.5f), Maths::Vector3::ZERO).RotationMatrix4());
 
 	auto cameraEntity = m_EntityManager->Create("Camera");
+    cameraEntity.AddComponent<Maths::Transform>(Maths::Vector3(-31.0f, 12.0f, 51.0f));
 	cameraEntity.AddComponent<Camera>(-20.0f, -40.0f, Maths::Vector3(-31.0f, 12.0f, 51.0f), 60.0f, 0.1f, 1000.0f, (float)m_ScreenWidth / (float)m_ScreenHeight);
+    cameraEntity.AddComponent<DefaultCameraController>(DefaultCameraController::ControllerType::EditorCamera);
 }
 
 void Scene3D::OnUpdate(const TimeStep& timeStep)
@@ -49,21 +51,23 @@ void Scene3D::OnUpdate(const TimeStep& timeStep)
     }
 
 	Camera* cameraComponent = nullptr;
+    Maths::Transform* transform = nullptr;
 
 	auto cameraView = m_EntityManager->GetEntitiesWithType<Camera>();
-	if(cameraView.size() > 0)
+	if(cameraView.Size() > 0)
 	{
-		cameraComponent = cameraView.front().TryGetComponent<Camera>();
+		cameraComponent = cameraView.Front().TryGetComponent<Camera>();
+        transform = cameraView.Front().TryGetComponent<Maths::Transform>();
 	}
 
-	if(cameraComponent)
+	if(transform)
 	{
 		if(Input::GetInput()->GetKeyPressed(InputCode::Key::J))
-			CommonUtils::AddSphere(this, cameraComponent->GetPosition(), -cameraComponent->GetForwardDirection());
+			EntityFactory::AddSphere(this, transform->GetWorldPosition(), -transform->GetForwardDirection());
 		if(Input::GetInput()->GetKeyPressed(InputCode::Key::K))
-			CommonUtils::AddPyramid(this, cameraComponent->GetPosition(), -cameraComponent->GetForwardDirection());
+			EntityFactory::AddPyramid(this, transform->GetWorldPosition(), -transform->GetForwardDirection());
 		if(Input::GetInput()->GetKeyPressed(InputCode::Key::L))
-			CommonUtils::AddLightCube(this, cameraComponent->GetPosition(), -cameraComponent->GetForwardDirection());
+			EntityFactory::AddLightCube(this, transform->GetWorldPosition(), -transform->GetForwardDirection());
 	}
 }
 

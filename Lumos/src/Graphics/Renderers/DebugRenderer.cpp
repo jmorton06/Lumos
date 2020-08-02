@@ -322,13 +322,13 @@ namespace Lumos
 			m_PointRenderer->Begin();
 	}
 
-	void DebugRenderer::RenderInternal(Scene* scene, Camera* overrideCamera)
+	void DebugRenderer::RenderInternal(Scene* scene, Camera* overrideCamera, Maths::Transform* overrideCameraTransform)
 	{
 		LUMOS_PROFILE_FUNC;
 		if(m_Renderer2D)
 		{
 			m_Renderer2D->BeginRenderPass();
-			m_Renderer2D->BeginScene(scene, overrideCamera);
+			m_Renderer2D->BeginScene(scene, overrideCamera, overrideCameraTransform);
 			m_Renderer2D->SetSystemUniforms(m_Renderer2D->GetShader());
 			m_Renderer2D->SubmitTriangles();
 			m_Renderer2D->Present();
@@ -336,9 +336,9 @@ namespace Lumos
 		}
 
 		if(m_PointRenderer)
-			m_PointRenderer->RenderInternal(scene, overrideCamera);
+			m_PointRenderer->RenderInternal(scene, overrideCamera, overrideCameraTransform);
 		if(m_LineRenderer)
-			m_LineRenderer->RenderInternal(scene, overrideCamera);
+			m_LineRenderer->RenderInternal(scene, overrideCamera, overrideCameraTransform);
 	}
 
 	void DebugRenderer::OnResizeInternal(u32 width, u32 height)
@@ -351,23 +351,28 @@ namespace Lumos
 			m_PointRenderer->OnResize(width, height);
 	}
 
-	void DebugRenderer::DebugDraw(Graphics::Light* light, const Maths::Vector4& colour)
+    void DebugRenderer::DebugDraw(Graphics::Light* light, const Maths::Quaternion& rotation,  const Maths::Vector4& colour)
 	{
 		//Directional
 		if(light->Type < 0.1f)
 		{
-			DrawHairLine((light->Position - (light->Direction)).ToVector3(), (light->Position + (light->Direction)).ToVector3(), colour);
+            auto flipRotation = rotation * Maths::Quaternion::EulerAnglesToQuaternion(180.0f, 0.0f, 0.0f);
+            Maths::Vector3 offset(0.0f, 0.1f,0.0f);
+            DrawHairLine((light->Position).ToVector3() + offset, (light->Position + (light->Direction) * 2.0f).ToVector3() + offset, colour);
+            DrawHairLine((light->Position).ToVector3() - offset, (light->Position + (light->Direction) * 2.0f).ToVector3() - offset, colour);
+
+			DrawHairLine((light->Position).ToVector3(), (light->Position + (light->Direction) * 2.0f).ToVector3(), colour);
+            DebugDrawCone(20, 4, 30.0f, 1.5f, (light->Position - (light->Direction) * 1.5f).ToVector3(), flipRotation, colour);
 		}
 		//Spot
 		else if(light->Type < 1.1f)
 		{
-			DrawHairLine(light->Position.ToVector3(), (light->Position + light->Direction).ToVector3(), colour);
-			DrawPoint(light->Position.ToVector3(), light->Radius, colour);
+            DebugDrawCone(20, 4, light->Angle * Maths::M_RADTODEG, light->Intensity, light->Position.ToVector3(), rotation, colour);
 		}
 		//Point
 		else
 		{
-			DrawPoint(light->Position.ToVector3(), light->Radius, colour);
+			DebugDrawSphere(light->Radius, light->Position.ToVector3(), colour);
 		}
 	}
 
@@ -375,5 +380,45 @@ namespace Lumos
 	{
 		DrawPoint(sound->GetPosition(), sound->GetRadius(), colour);
 	}
-
+    
+    void DebugRenderer::DebugDrawCircle(int numVerts, float radius, const Maths::Vector3& position, const Maths::Quaternion& rotation, const Maths::Vector4& colour)
+    {
+        float step = 360.0f / float(numVerts);
+        
+        for (int i = 0; i < numVerts; i++)
+        {
+            float cx = Maths::Cos(step * i) * radius;
+            float cy = Maths::Sin(step * i) * radius;
+            Maths::Vector3 current =  Maths::Vector3(cx, cy);
+            
+            float nx = Maths::Cos(step * (i + 1)) * radius;
+            float ny = Maths::Sin(step * (i + 1)) * radius;
+            Maths::Vector3 next = Maths::Vector3(nx, ny);
+            
+            DrawHairLine(position + (rotation * current), position + (rotation * next), colour);
+        }
+    }
+    void DebugRenderer::DebugDrawSphere(float radius, const Maths::Vector3& position, const Maths::Vector4& colour)
+    {
+        float offset = 0.0f;
+        DebugDrawCircle(20, radius, position, Maths::Quaternion::EulerAnglesToQuaternion(0.0f, 0.0f, 0.0f), colour);
+        DebugDrawCircle(20, radius, position, Maths::Quaternion::EulerAnglesToQuaternion(90.0f, 0.0f, 0.0f), colour);
+        DebugDrawCircle(20, radius, position, Maths::Quaternion::EulerAnglesToQuaternion(0.0f, 90.0f, 90.0f), colour);
+    }
+    
+    void DebugRenderer::DebugDrawCone(int numCircleVerts, int numLinesToCircle, float angle, float length, const Maths::Vector3& position, const Maths::Quaternion& rotation, const Maths::Vector4& colour)
+    {
+        float endAngle = Maths::Tan(angle * 0.5f) * length;
+        Maths::Vector3 forward = -(rotation * Maths::Vector3::FORWARD);
+        Maths::Vector3 endPosition = position + forward * length;
+        float offset = 0.0f;
+        DebugDrawCircle(numCircleVerts, endAngle, endPosition, rotation, colour);
+        
+        for (int i = 0; i < numLinesToCircle; i++)
+        {
+            float a = i * 90.0f;
+            Maths::Vector3 point = rotation * Maths::Vector3(Maths::Cos(a), Maths::Sin(a)) * endAngle;
+            DrawHairLine(position, position + point + forward * length, colour);
+        }
+    }
 }

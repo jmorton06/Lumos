@@ -4,7 +4,7 @@ IncludeDir["Glad"] = "../Lumos/external/glad/include/"
 IncludeDir["lua"] = "../Lumos/external/lua/src/"
 IncludeDir["stb"] = "../Lumos/external/stb/"
 IncludeDir["OpenAL"] = "../Lumos/external/OpenAL/include/"
-IncludeDir["Box2D"] = "../Lumos/external/Box2D/"
+IncludeDir["Box2D"] = "../Lumos/external/box2d/include/"
 IncludeDir["vulkan"] = "../Lumos/external/vulkan/"
 IncludeDir["Lumos"] = "../Lumos/src"
 IncludeDir["External"] = "../Lumos/external/"
@@ -332,7 +332,8 @@ project "Sandbox"
 			"-fpermissive",
 			"-Wattributes",
 			"-fPIC",
-			"-Wignored-attributes"
+			"-Wignored-attributes",
+			"-Wno-psabi"
 		}
 
 		links

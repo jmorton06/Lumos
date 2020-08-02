@@ -47,7 +47,7 @@ function CreatePlayer()
     registry:assign_Sprite(player, Vector2.new(-1.0/2.0, -1.0/2.0), Vector2.new(1.15, 1.0), colour)
     registry:get_Sprite(player):SetTexture(texture)
 
-    params = RigidBodyParamaters.new()
+    params = RigidBodyParameters.new()
     params.position = Vector3.new( 1.0, 1.0, 1.0)
     params.scale = Vector3.new(1.0 / 2.0, 1.0 / 2.0, 1.0)
 	params.shape = Shape.Circle
@@ -86,7 +86,7 @@ function CreatePillar(index, offset)
 
     registry:get_Sprite(pillars[index]):SetTexture(texture)
 
-    params = RigidBodyParamaters.new()
+    params = RigidBodyParameters.new()
 	params.position = pos
 	params.scale = scale
 	params.shape = Shape.Square

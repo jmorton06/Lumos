@@ -3,6 +3,7 @@
 #include "Graphics/Renderable2D.h"
 #include "Graphics/API/BufferLayout.h"
 #include "Maths/Maths.h"
+#include "Maths/Transform.h"
 
 namespace Lumos
 {
@@ -68,7 +69,7 @@ namespace Lumos
 			virtual void BeginSimple();
 			virtual void BeginRenderPass();
 			virtual void Begin();
-			virtual void BeginScene(Scene* scene, Camera* overrideCamera);
+			virtual void BeginScene(Scene* scene, Camera* overrideCamera, Maths::Transform* overrideCameraTransform);
 			virtual void Present();
 			virtual void End();
 			virtual void Render(Scene* scene);
@@ -94,9 +95,10 @@ namespace Lumos
 			{
 				return m_Shader;
 			}
-			void SetCamera(Camera* camera)
+			void SetCamera(Camera* camera, Maths::Transform* transform)
 			{
 				m_Camera = camera;
+				m_CameraTransform = transform;
 			}
 			Texture* GetRenderTarget() const
 			{
@@ -145,6 +147,7 @@ namespace Lumos
 			bool m_RenderToDepthTexture;
 			Render2DLimits m_Limits;
 			Camera* m_Camera = nullptr;
+			Maths::Transform* m_CameraTransform = nullptr;
             bool m_Empty = false;
 		};
 	}

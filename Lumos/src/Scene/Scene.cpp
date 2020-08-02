@@ -60,10 +60,6 @@ namespace Lumos
 
 	void Scene::OnInit()
 	{
-		//m_EntityManager->AddDependency<Physics3DComponent, Maths::Transform>();
-		//m_EntityManager->AddDependency<Physics2DComponent, Maths::Transform>();
-		//m_EntityManager->AddDependency<MeshComponent, Maths::Transform>();
-
 		LuaManager::Get().GetState().set("registry", &m_EntityManager->GetRegistry());
 		LuaManager::Get().GetState().set("scene", this);
 
@@ -107,17 +103,16 @@ namespace Lumos
 	{
 		const Maths::Vector2 mousePos = Input::GetInput()->GetMousePosition();
 
-		auto cameraView = m_EntityManager->GetRegistry().view<Camera>();
-		if(!cameraView.empty())
+		auto defaultCameraControllerView = m_EntityManager->GetEntitiesWithType<DefaultCameraController>();
+
+		if(!defaultCameraControllerView.Empty())
 		{
-			Camera& camera = m_EntityManager->GetRegistry().get<Camera>(cameraView.front());
-
-			auto cameraController = camera.GetController();
-
-			if(cameraController && Application::Get().GetSceneActive())
+            auto& cameraController = defaultCameraControllerView.Front().GetComponent<DefaultCameraController>();
+            auto trans = defaultCameraControllerView.Front().TryGetComponent<Maths::Transform>();
+			if(Application::Get().GetSceneActive() && trans)
 			{
-				cameraController->HandleMouse(&camera, timeStep.GetMillis(), mousePos.x, mousePos.y);
-				cameraController->HandleKeyboard(&camera, timeStep.GetMillis());
+				cameraController.GetController()->HandleMouse(*trans, timeStep.GetMillis(), mousePos.x, mousePos.y);
+				cameraController.GetController()->HandleKeyboard(*trans, timeStep.GetMillis());
 			}
 		}
 
@@ -154,7 +149,7 @@ namespace Lumos
 		layer->OnAttach();
 	}
 
-#define ALL_COMPONENTS Maths::Transform, NameComponent, ActiveComponent, Hierarchy, Camera, LuaScriptComponent, MaterialComponent, MeshComponent, Graphics::Light, Physics3DComponent, Graphics::Environment, Graphics::Sprite, Physics2DComponent
+#define ALL_COMPONENTS Maths::Transform, NameComponent, ActiveComponent, Hierarchy, Camera, LuaScriptComponent, MaterialComponent, MeshComponent, Graphics::Light, Physics3DComponent, Graphics::Environment, Graphics::Sprite, Physics2DComponent, DefaultCameraController
 	void Scene::Serialise(const std::string& filePath, bool binary)
 	{
 		std::string path = filePath;
@@ -243,8 +238,30 @@ namespace Lumos
 			registry.emplace_or_replace<T>(dst, srcComponent);
 		}
 	}
+    
+    Entity Scene::CreateEntity()
+    {
+        return m_EntityManager->Create();
+    }
+    
+    void Scene::DuplicateEntity(Entity entity)
+    {
+        Entity newEntity = m_EntityManager->Create();
 
-	void Scene::DuplicateEntity(Entity entity)
+		CopyComponentIfExists<Maths::Transform>(newEntity.GetHandle(), entity.GetHandle(), m_EntityManager->GetRegistry());
+		CopyComponentIfExists<MeshComponent>(newEntity.GetHandle(), entity.GetHandle(), m_EntityManager->GetRegistry());
+		CopyComponentIfExists<LuaScriptComponent>(newEntity.GetHandle(), entity.GetHandle(), m_EntityManager->GetRegistry());
+		CopyComponentIfExists<Camera>(newEntity.GetHandle(), entity.GetHandle(), m_EntityManager->GetRegistry());
+		CopyComponentIfExists<Graphics::Sprite>(newEntity.GetHandle(), entity.GetHandle(), m_EntityManager->GetRegistry());
+		CopyComponentIfExists<RigidBody2D>(newEntity.GetHandle(), entity.GetHandle(), m_EntityManager->GetRegistry());
+		CopyComponentIfExists<RigidBody3D>(newEntity.GetHandle(), entity.GetHandle(), m_EntityManager->GetRegistry());
+		CopyComponentIfExists<Graphics::Light>(newEntity.GetHandle(), entity.GetHandle(), m_EntityManager->GetRegistry());
+		CopyComponentIfExists<MaterialComponent>(newEntity.GetHandle(), entity.GetHandle(), m_EntityManager->GetRegistry());
+		CopyComponentIfExists<SoundComponent>(newEntity.GetHandle(), entity.GetHandle(), m_EntityManager->GetRegistry());
+		CopyComponentIfExists<Graphics::Environment>(newEntity.GetHandle(), entity.GetHandle(), m_EntityManager->GetRegistry());
+	}
+
+	void Scene::DuplicateEntity(Entity entity, Entity parent)
 	{
 		Entity newEntity = m_EntityManager->Create();
 
@@ -256,8 +273,11 @@ namespace Lumos
 		CopyComponentIfExists<RigidBody2D>(newEntity.GetHandle(), entity.GetHandle(), m_EntityManager->GetRegistry());
 		CopyComponentIfExists<RigidBody3D>(newEntity.GetHandle(), entity.GetHandle(), m_EntityManager->GetRegistry());
 		CopyComponentIfExists<Graphics::Light>(newEntity.GetHandle(), entity.GetHandle(), m_EntityManager->GetRegistry());
-		CopyComponentIfExists<Material>(newEntity.GetHandle(), entity.GetHandle(), m_EntityManager->GetRegistry());
+		CopyComponentIfExists<MaterialComponent>(newEntity.GetHandle(), entity.GetHandle(), m_EntityManager->GetRegistry());
 		CopyComponentIfExists<SoundComponent>(newEntity.GetHandle(), entity.GetHandle(), m_EntityManager->GetRegistry());
 		CopyComponentIfExists<Graphics::Environment>(newEntity.GetHandle(), entity.GetHandle(), m_EntityManager->GetRegistry());
+
+		if(parent)
+            newEntity.SetParent(parent);
 	}
 }

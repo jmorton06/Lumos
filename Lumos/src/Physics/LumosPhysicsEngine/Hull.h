@@ -11,7 +11,7 @@ namespace Lumos
 
 	struct LUMOS_EXPORT HullVertex
 	{
-		int idx;
+		int idx = 0;
 		Maths::Vector3 pos;
 		std::vector<int> enclosing_edges;
 		std::vector<int> enclosing_faces;
@@ -19,8 +19,8 @@ namespace Lumos
 
 	struct LUMOS_EXPORT HullEdge
 	{
-		int idx;
-		int vStart, vEnd;
+		int idx = 0;
+		int vStart = 0, vEnd = 0;
 		std::vector<int> adjoining_edge_ids;
 		std::vector<int> enclosing_faces;
 	};

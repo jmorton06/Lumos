@@ -10,8 +10,8 @@ namespace Lumos
 		ThirdPersonCameraController();
 		virtual ~ThirdPersonCameraController() override;
 
-		virtual void HandleMouse(Camera* camera, float dt, float xpos, float ypos) override;
-		virtual void HandleKeyboard(Camera* camera, float dt) override;
+		virtual void HandleMouse(Maths::Transform& transform, float dt, float xpos, float ypos) override;
+		virtual void HandleKeyboard(Maths::Transform& transform, float dt) override;
 
 	private:
 		bool m_Free;
