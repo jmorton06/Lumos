@@ -3,7 +3,6 @@
 #include "Physics/LumosPhysicsEngine/SphereCollisionShape.h"
 #include "Physics/LumosPhysicsEngine/PyramidCollisionShape.h"
 #include "Physics/LumosPhysicsEngine/CuboidCollisionShape.h"
-#include "Utilities/AssetsManager.h"
 #include "Physics/LumosPhysicsEngine/LumosPhysicsEngine.h"
 #include "Graphics/ModelLoader/ModelLoader.h"
 #include "Utilities/RandomNumberGenerator.h"
@@ -12,6 +11,7 @@
 #include "Graphics/Camera/Camera.h"
 #include "Graphics/Material.h"
 #include "Graphics/Mesh.h"
+#include "Graphics/MeshFactory.h"
 #include "Graphics/Light.h"
 #include "Scene/Component/Components.h"
 #include "Maths/Transform.h"
@@ -45,8 +45,7 @@ namespace Lumos
 		auto pSphere = registry.create();
 		registry.emplace<NameComponent>(pSphere, name);
 
-		Ref<Graphics::Mesh> sphereModel = AssetsManager::DefaultModels()->Get("Sphere");
-		registry.emplace<MeshComponent>(pSphere, sphereModel);
+		registry.emplace<MeshComponent>(pSphere, Graphics::CreateSphere());
 
 		Ref<Material> matInstance = CreateRef<Material>();
 		MaterialProperties properties;
@@ -103,8 +102,7 @@ namespace Lumos
 		auto cube = registry.create();
 		registry.emplace<NameComponent>(cube, name);
 
-		Ref<Graphics::Mesh> cubeModel = AssetsManager::DefaultModels()->Get("Cube");
-		registry.emplace<MeshComponent>(cube, cubeModel);
+		registry.emplace<MeshComponent>(cube, Graphics::CreateCube());
 
 		auto matInstance = CreateRef<Material>();
 		MaterialProperties properties;
@@ -165,7 +163,6 @@ namespace Lumos
 		registry.emplace<Maths::Transform>(pyramid);
 
 		auto pyramidMeshEntity = registry.create();
-		Ref<Graphics::Mesh> pyramidModel = AssetsManager::DefaultModels()->Get("Pyramid");
 
 		Ref<Material> matInstance = CreateRef<Material>();
 		MaterialProperties properties;
@@ -180,7 +177,7 @@ namespace Lumos
 		registry.emplace<MaterialComponent>(pyramidMeshEntity, matInstance);
 		registry.emplace<Maths::Transform>(pyramidMeshEntity, Maths::Quaternion(-90.0f, 0.0f, 0.0f).RotationMatrix4() * Maths::Matrix4::Scale(halfdims));
 		registry.emplace<Hierarchy>(pyramidMeshEntity, pyramid);
-		registry.emplace<MeshComponent>(pyramidMeshEntity, pyramidModel);
+		registry.emplace<MeshComponent>(pyramidMeshEntity, Graphics::CreatePyramid());
 
 		if(physics_enabled)
 		{

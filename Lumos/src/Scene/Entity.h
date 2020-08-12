@@ -18,6 +18,7 @@ namespace Lumos
 			, m_Scene(scene)
 		{
 		}
+
 		~Entity()
 		{
 		}
@@ -195,9 +196,6 @@ namespace Lumos
 		{
 			return m_Scene->GetRegistry().valid(m_EntityHandle) && m_Scene;
 		}
-
-	private : 
-		Entity(const std::string& name);
 
 	private:
 		entt::entity m_EntityHandle = entt::null;

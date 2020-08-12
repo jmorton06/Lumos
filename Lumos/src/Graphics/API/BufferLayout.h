@@ -11,11 +11,11 @@ namespace Lumos
 		struct LUMOS_EXPORT BufferElement
 		{
 			std::string name;
-			u32 type;
-			u32 size;
-			u32 count;
-			u32 offset;
-			bool normalized;
+			u32 type = 0;
+			u32 size = 0;
+			u32 count = 0;
+			u32 offset = 0;
+			bool normalized = false;
 		};
 
 		class LUMOS_EXPORT BufferLayout

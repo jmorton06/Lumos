@@ -81,10 +81,10 @@ namespace Lumos
 
 		Window() = default;
 
-		bool m_Init;
+		bool m_Init = false;
 		Maths::Vector2 m_Position;
-		bool m_VSync;
-		bool m_HasResized;
+		bool m_VSync = false;
+		bool m_HasResized = false;
 	};
 
 }

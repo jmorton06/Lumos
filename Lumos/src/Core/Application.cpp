@@ -28,14 +28,13 @@
 #include "Maths/Transform.h"
 
 #include "Scene/EntityFactory.h"
-#include "Utilities/AssetsManager.h"
 #include "Utilities/LoadImage.h"
 #include "Core/OS/Input.h"
 #include "Core/OS/Window.h"
 #include "Core/Profiler.h"
 #include "Core/VFS.h"
 
-#include "Scripting/LuaManager.h"
+#include "Scripting/Lua/LuaManager.h"
 
 #include "ImGui/ImGuiLayer.h"
 
@@ -72,10 +71,10 @@ namespace Lumos
 
 		const std::string root = ROOT_DIR;
 
-		VFS::Get()->Mount("CoreShaders", root + "/Assets/shaders");
-		VFS::Get()->Mount("CoreMeshes", root + "/Assets/meshes");
-		VFS::Get()->Mount("CoreTextures", root + "/Assets/textures");
-		VFS::Get()->Mount("CoreFonts", root + "/Assets/fonts");
+		VFS::Get()->Mount("CoreShaders", root + "/Lumos/res/shaders");
+		VFS::Get()->Mount("CoreMeshes", root + "/Lumos/res/meshes");
+		VFS::Get()->Mount("CoreTextures", root + "/Lumos/res/textures");
+		VFS::Get()->Mount("CoreFonts", root + "/Lumos/res/fonts");
 
 		m_Window = UniqueRef<Window>(Window::Create(properties));
 #ifndef LUMOS_EDITOR
@@ -125,7 +124,6 @@ namespace Lumos
 		Graphics::Renderer::Init(screenWidth, screenHeight);
 
 		// Graphics Loading on main thread
-		AssetsManager::InitializeMeshes();
 		m_RenderManager = CreateUniqueRef<Graphics::RenderManager>(screenWidth, screenHeight);
 
 		m_ImGuiLayer = lmnew ImGuiLayer(false);
@@ -144,7 +142,7 @@ namespace Lumos
 
 		m_SystemManager->RegisterSystem<LumosPhysicsEngine>();
 		m_SystemManager->RegisterSystem<B2PhysicsEngine>();
-
+        
 		Material::InitDefaultTexture();
 
 		m_CurrentState = AppState::Running;
@@ -177,7 +175,6 @@ namespace Lumos
 		Material::ReleaseDefaultTexture();
 		Engine::Release();
 		Input::Release();
-		AssetsManager::ReleaseResources();
 		DebugRenderer::Release();
 
 		m_SceneManager.reset();
@@ -307,8 +304,8 @@ namespace Lumos
 #endif
 		{
 			m_SystemManager->OnUpdate(dt, m_SceneManager->GetCurrentScene());
-            m_SceneManager->GetCurrentScene()->OnUpdate(dt);
 			LuaManager::Get().OnUpdate(m_SceneManager->GetCurrentScene());
+			m_SceneManager->GetCurrentScene()->OnUpdate(dt);
 		}
 
 		if(!m_Minimized)

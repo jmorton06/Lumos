@@ -120,7 +120,6 @@ namespace Lumos
 
 	void LumosPhysicsEngine::UpdatePhysics(Scene* scene)
 	{
-
 		for(Manifold* m : m_Manifolds)
 		{
 			delete m;
@@ -182,7 +181,6 @@ namespace Lumos
 				break;
 			}
 
-			default:
 			case IntegrationType::SEMI_IMPLICIT_EULER: {
 				// Update linear velocity (v = u + at)
 				obj->m_LinearVelocity += obj->m_LinearVelocity * obj->m_InvMass * s_UpdateTimestep;

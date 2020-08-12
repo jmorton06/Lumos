@@ -1,23 +1,28 @@
-registry = scene:GetRegistry()
-
 pillars = {}
 
-MAX_HEIGHT = 10.0
-SPEED = 3.0
-m_FurthestPillarPosX = 0
+local MAX_HEIGHT = 10.0
+local SPEED = 3.0
+local m_FurthestPillarPosX = 0
+local gapSize = 4.0;
 
-m_PillarTarget = 35.0
-m_PillarIndex = 1
+local m_PillarTarget = 35.0
+local m_PillarIndex = 1
 
-PLAYERTYPEID = 1
-PILLARTYPEID = 2
+local PLAYERTYPEID = 1
+local PILLARTYPEID = 2
 
 local GameStates = {
     Running=0,
     GameOver=1
 }
 
-gameState = GameStates.Running
+local gameState = GameStates.Running
+local entityManager = {}
+
+local player = {}
+local camera = {}
+local score = 0
+local iconTexture = LoadTextureWithParams("icon", "/Textures/TappyPlane/PNG/rock.png", TextureFilter.Linear, TextureWrap.Clamp)
 
 function beginContact(a, b)
     gameState = GameStates.GameOver
@@ -35,137 +40,128 @@ function postSolve(a, b, coll, normalimpulse, tangentimpulse)
  
 end
 
-player = {}
-score = 0
-
 function CreatePlayer()
     colour = Vector4.new(1.0,1.0,1.0,1.0)
 
-    texture = LoadTextureWithParams("icon", "/CoreTextures/panda.png", TextureFilter.Linear, TextureWrap.Clamp)
+    texture = LoadTextureWithParams("icon", "/Textures/TappyPlane/PNG/Planes/planeBlue1.png", TextureFilter.Linear, TextureWrap.Clamp)
 
-    player = registry:Create()
-    registry:assign_Sprite(player, Vector2.new(-1.0/2.0, -1.0/2.0), Vector2.new(1.15, 1.0), colour)
-    registry:get_Sprite(player):SetTexture(texture)
+    player = entityManager:Create()
+    player:AddSprite(Vector2.new(-1.0/2.0, -1.0/2.0), Vector2.new(1.15, 1.0), colour):SetTexture(texture)
 
     params = RigidBodyParameters.new()
     params.position = Vector3.new( 1.0, 1.0, 1.0)
     params.scale = Vector3.new(1.0 / 2.0, 1.0 / 2.0, 1.0)
 	params.shape = Shape.Circle
 	params.isStatic = false
-    blockPhysics = CreatePhysics2DSharedWithParams(params)
-    blockPhysics:GetB2Body():SetLinearVelocity(b2Vec2(SPEED,0.0))
-    --blockPhysics:GetB2Body():SetUserData(1.0)
 
     SetCallback(beginContact)
 
-    registry:assign_Physics2DComponent(player, blockPhysics)
-    registry:assign_Transform(player)
-    tran = registry:get_Transform(player)
-    tran:SetLocalPosition(Vector3.new(1.0,1.0,1.0))
+    player:AddPhysics2DComponent(params):GetRigidBody():SetForce(Vector2.new(200.0,0.0))
+    player:AddTransform():SetLocalPosition(Vector3.new(1.0,1.0,1.0))
 end
 
 function CreatePillar(index, offset)
-	pillars[index] = registry:Create();
-	pillars[index + 1] = registry:Create();
 
-	colour = Vector4.new(Rand(0.0, 1.0), Rand(0.0, 1.0), Rand(0.0, 1.0), 1.0);
+	pillars[index] = entityManager:Create();
+	pillars[index + 1] = entityManager:Create();
 
-	gapSize = 4.0;
+	colour = Vector4.new(1.0,1.0,1.0,1.0);
+
     centre = Rand(-6.0, 6.0);
+    local width = Rand(1.0, 2.0)
     
     --Top Pillar
 	topY = MAX_HEIGHT;
 	bottomY = centre + (gapSize / 2.0);
 
 	pos = Vector3.new(offset / 2.0, ((topY - bottomY )/ 2.0) + bottomY, 0.0);
-	scale = Vector3.new(1.0, (topY - bottomY) / 2.0, 1.0);
+	scale = Vector3.new(width, (topY - bottomY) / 2.0, 1.0);
 
-    texture = LoadTextureWithParams("icon", "/CoreTextures/icon.png", TextureFilter.Linear, TextureWrap.Clamp)
-
-    registry:assign_Sprite(pillars[index], Vector2.new(-scale.x, -scale.y), Vector2.new(scale.x * 2.0, scale.y * 2.0), colour)
-
-    registry:get_Sprite(pillars[index]):SetTexture(texture)
+    pillars[index]:AddSprite(Vector2.new(-scale.x, -scale.y), Vector2.new(scale.x * 2.0, scale.y * 2.0), colour):SetTexture(iconTexture)
 
     params = RigidBodyParameters.new()
 	params.position = pos
 	params.scale = scale
-	params.shape = Shape.Square
+	params.shape = Shape.Custom
 	params.isStatic = true
-    blockPhysics = CreatePhysics2DSharedWithParams(params)
-   -- blockPhysics:GetB2Body():SetUserData(2.0)
+	params.customShapePositions = { Vector2.new(-scale.x, -scale.y), Vector2.new(scale.x * 0.25, scale.y * 1.05), Vector2.new(scale.x, -scale.y)}
 
-    registry:assign_Physics2DComponent(pillars[index], blockPhysics)
-    registry:assign_Transform(pillars[index])
-
-    tran = registry:get_Transform(pillars[index])
-    tran:SetLocalPosition(pos)
+    pillars[index]:AddPhysics2DComponent(params):GetRigidBody():SetOrientation(3.14)
+    pillars[index]:AddTransform():SetLocalPosition(pos)
 
 	--Bottom Pillar
 	topY = centre - (gapSize / 2.0)
 	bottomY = -MAX_HEIGHT;
-
+    width = Rand(1.0, 2.0)
 	pos = Vector3.new(offset / 2.0, ((topY - bottomY) / 2.0) + bottomY, 0.0)
-	scale = Vector3.new(1.0, (topY - bottomY) / 2.0, 1.0)
+	scale = Vector3.new(width, (topY - bottomY) / 2.0, 1.0)
 
-    registry:assign_Sprite(pillars[index + 1], Vector2.new(-scale.x, -scale.y), Vector2.new(scale.x * 2.0, scale.y * 2.0), colour)
+    pillars[index + 1]:AddSprite(Vector2.new(-scale.x, -scale.y), Vector2.new(scale.x * 2.0, scale.y * 2.0), colour):SetTexture(iconTexture)
 
 	params.position = pos
 	params.scale = scale
-	params.shape = Shape.Square
+	params.shape = Shape.Custom
 	params.isStatic = true
-    
-    blockPhysics2 = CreatePhysics2DSharedWithParams(params)
-    --blockPhysics2:GetB2Body():SetUserData(2.0)
-    registry:assign_Physics2DComponent(pillars[index + 1], blockPhysics2)
-    registry:assign_Transform(pillars[index + 1])
-    tran = registry:get_Transform(pillars[index + 1])
-    tran:SetLocalPosition(pos)
-    
+	params.customShapePositions = { Vector2.new(-scale.x, -scale.y), Vector2.new(scale.x * 0.25, scale.y * 1.05), Vector2.new(scale.x, -scale.y)}
+
+    pillars[index + 1]:AddPhysics2DComponent(params)
+    pillars[index + 1]:AddTransform():SetLocalPosition(pos)
+
 	if pos.x > m_FurthestPillarPosX then
         m_FurthestPillarPosX = pos.x;
     end
-
 end
 
-CreatePlayer()
-
-for i=1,10, 2 do
-    CreatePillar(i, (i + 2) * 10.0)
+function CreateBackground(index)
+    backgrounds[index] = entityManager:Create()
+    backgrounds[index]:AddSprite(Vector2.new(-10.0, -10.0), Vector2.new(10.0 * 2.0, 10.0 * 2.0), Vector4.new(1.0,1.0,1.0,1.0)):SetTexture(backgroundTexture)
+    backgrounds[index]:AddTransform():SetLocalPosition(Vector3.new(index * 20.0 - 40.0, 0.0, -1.0))
 end
 
-backgroundTexture = LoadTextureWithParams("grass", "/CoreTextures/backgroundColorGrass.png", TextureFilter.Linear, TextureWrap.Clamp)
+function updateSpeed(speed)
+    SPEED = speed
+end
+
+function updateGap(gap)
+    gapSize = gap
+end
 
 backgrounds = {}
 
-function CreateBackground(index)
-    backgrounds[index] = registry:Create()
-    registry:assign_Sprite(backgrounds[index], Vector2.new(-10.0, -10.0), Vector2.new(10.0 * 2.0, 10.0 * 2.0), Vector4.new(1.0,1.0,1.0,1.0))
-    registry:get_Sprite(backgrounds[index]):SetTexture(backgroundTexture)
-    registry:assign_Transform(backgrounds[index])
-    registry:get_Transform(backgrounds[index]):SetLocalPosition(Vector3.new(index * 20.0 - 20.0, 0.0,0.0))
-end
+function OnInit()
 
-for i=1,50, 1 do
-    CreateBackground(i)
+    entityManager = scene:GetEntityManager()
+
+    camera = entityManager:Create();
+    camera:AddCamera(1.0, 10.0, 1.0)
+    camera:AddTransform()
+
+    CreatePlayer()
+
+    for i=1,10, 2 do
+        CreatePillar(i, (i + 2) * 10.0)
+    end
+
+    backgroundTexture = LoadTextureWithParams("background", "/Textures/TappyPlane/PNG/background.png", TextureFilter.Linear, TextureWrap.Clamp)
+
+    for i=1,50, 1 do
+        CreateBackground(i)
+    end
 end
 
 function OnUpdate(dt)
+
     if gameState == GameStates.Running then
-		phys = registry:get_Physics2DComponent(player)
+		phys = player:GetPhysics2DComponent()
 
         up = Vector3.new(0, 1, 0)
         right = Vector3.new(1, 0, 0)
 
-	 	cameraSpeed = 1.0
-	 	velocity = Vector3.new(0.0, 0.0, 0.0)
-
         if Input.GetKeyPressed( Key.Space ) then
-            velocity = velocity + up * cameraSpeed * 400.0
+            phys:GetRigidBody():SetForce(Vector2.new(0.0,500.0))
         end
 
-        phys:GetRigidBody():GetB2Body():ApplyForce(b2Vec2(velocity.x,velocity.y), phys:GetRigidBody():GetB2Body():GetPosition(), true)
-
-        pos = registry:get_Transform(player):GetWorldPosition()
+        pos = player:GetTransform():GetWorldPosition()
 
 		if pos.y > MAX_HEIGHT or pos.y < -MAX_HEIGHT then
             gameState = GameStates.GameOver
@@ -173,20 +169,24 @@ function OnUpdate(dt)
 
         pos.y = 0.0
 
-        scene:GetCamera():SetPosition(pos)
+        camera:GetTransform():SetLocalPosition(pos)
+        
+        score = math.floor((pos.x - 5) / 10)
 
-        score = math.floor((registry:get_Transform(player):GetWorldPosition().x - 5) / 10)
-
-        if registry:get_Transform(player):GetWorldPosition().x > m_PillarTarget then
+        if pos.x > m_PillarTarget then
             
- 			if pillars[m_PillarIndex] and registry:Valid(pillars[m_PillarIndex]) then
-				registry:Destroy(pillars[m_PillarIndex])
-				registry:Destroy(pillars[m_PillarIndex + 1])
+ 			if pillars[m_PillarIndex] and pillars[m_PillarIndex]:Valid() then
+				pillars[m_PillarIndex]:Destroy()
+				pillars[m_PillarIndex+1]:Destroy()
+			else
+			    Log.Info("Not valid Pillar")
+			    Log.Info(tostring(m_PillarIndex))
             end
 
  			CreatePillar(m_PillarIndex, m_FurthestPillarPosX * 2.0 + 20.0)
-			m_PillarIndex = m_PillarIndex + 2
-		    m_PillarIndex = math.modf(m_PillarIndex, 10)
+ 			m_PillarIndex = m_PillarIndex + 2
+		    m_PillarIndex = math.fmod(m_PillarIndex, 10)
+
 			m_PillarTarget = m_PillarTarget + 10.0
         end 
 
@@ -209,14 +209,21 @@ function OnUpdate(dt)
         end
         gui.endWindow()
     end
+
+    gui.beginWindow("Settings")
+    gui.inputFloat("Gap Size", gapSize, updateGap)
+    gui.inputFloat("Speed", SPEED, updateSpeed)
+    gui.endWindow()
 end
 
 function Reset()
     gameState = GameStates.Running
-    phys = registry:get_Physics2DComponent(player):GetRigidBody()
+    phys = player:GetPhysics2DComponent():GetRigidBody()
 
-	phys:SetPosition(Vector2.new(0.0, 0.0))
-	phys:SetLinearVelocity(Vector2.new(SPEED, 0.0))
+    phys:SetPosition(Vector2.new(0.0, 0.0))
+    phys:SetForce(Vector2.new(200.0,0.0))
+
+    phys:SetLinearVelocity(Vector2.new(0.0, 0.0))
 	phys:SetOrientation(0.0)
 	phys:SetAngularVelocity(0.0)
 
@@ -224,25 +231,29 @@ function Reset()
 	m_PillarTarget = 35.0
     m_PillarIndex = 1
 
-	registry:get_Transform(player):SetLocalPosition(Vector3.new(0.0,0.0,0.0))
-	--registry:get_Transform(player):UpdateMatrices()
-    
+	player:GetTransform():SetLocalPosition(Vector3.new(0.0,0.0,0.0))
+
     for i=1,10, 2 do
-        if registry:Valid(pillars[i]) then
-            registry:Destroy(pillars[i]);
-            registry:Destroy(pillars[i + 1]);
+        if pillars[i] and pillars[i]:Valid() then
+            pillars[i]:Destroy();
+            pillars[i + 1]:Destroy();
+
+       	else
+       	    Log.Info("Not valid Pillar")
+       	    Log.Info(tostring(m_PillarIndex))
         end
 
         CreatePillar(i, (i + 2) * 10.0)
     end
+
+    collectgarbage()
 end
 
 function OnCleanUp()
     backgroundTexture = nil
     texture = nil
     blockPhysics = nil
-    blockPhysics2 = nill
-
-    registry:Destroy(player)
+    blockPhysics2 = nil
 end
+
 

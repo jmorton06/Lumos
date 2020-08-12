@@ -8,11 +8,7 @@ namespace Lumos
 {
 
 	Camera::Camera(float FOV, float Near, float Far, float aspect)
-		: m_Pitch(0.0f)
-		, m_Yaw(0.0f)
-		, m_Roll(0.0f)
-		, m_Position(Maths::Vector3(0.0f, 0.0f, 0.0f))
-		, m_AspectRatio(aspect)
+		: m_AspectRatio(aspect)
 		, m_FrustumDirty(true)
 		, m_ProjectionDirty(true)
 		, m_Fov(FOV)
@@ -24,11 +20,7 @@ namespace Lumos
 	};
 
 	Camera::Camera(float pitch, float yaw, const Maths::Vector3& position, float FOV, float Near, float Far, float aspect)
-		: m_Pitch(pitch)
-		, m_Yaw(yaw)
-		, m_Roll(0.0f)
-		, m_Position(position)
-		, m_AspectRatio(aspect)
+		: m_AspectRatio(aspect)
 		, m_FrustumDirty(true)
 		, m_ProjectionDirty(true)
 		, m_Fov(FOV)
@@ -40,10 +32,7 @@ namespace Lumos
 	}
 
 	Camera::Camera(float aspectRatio, float scale)
-		: m_Pitch(0)
-		, m_Yaw(0)
-		, m_Roll(0)
-		, m_AspectRatio(aspectRatio)
+		: m_AspectRatio(aspectRatio)
 		, m_Scale(scale)
 		, m_FrustumDirty(true)
 		, m_ProjectionDirty(true)
@@ -51,7 +40,6 @@ namespace Lumos
 		, m_Near(-10.0)
 		, m_Far(10.0f)
 		, m_Orthographic(true)
-		, m_Position(Maths::Vector3(0.0f))
 	{
 	}
 

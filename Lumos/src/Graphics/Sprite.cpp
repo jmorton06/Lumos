@@ -4,7 +4,6 @@
 #include "Graphics/API/Texture.h"
 #include "Graphics/API/GraphicsContext.h"
 #include "Mesh.h"
-#include "Utilities/AssetsManager.h"
 #include "Core/Application.h"
 #include "MeshFactory.h"
 

@@ -24,11 +24,11 @@ namespace Lumos
 #define lmnew		new(__FILE__, __LINE__)
 #define lmdel		delete
 
-void* operator new(std::size_t size);
+//void* operator new(std::size_t size);
 void* operator new(std::size_t size, const char *file, int line);
 void* operator new[](std::size_t size, const char *file, int line);
-void* operator new (std::size_t size, const std::nothrow_t& nothrow_value) noexcept;
-void* operator new[](std::size_t size);
+//void* operator new (std::size_t size, const std::nothrow_t& nothrow_value) noexcept;
+//void* operator new[](std::size_t size);
 
 void operator delete(void * p) throw();
 void operator delete[](void *p) throw();

@@ -27,7 +27,7 @@ namespace Lumos
 
 	struct LUMOS_EXPORT HullFace
 	{
-		int idx;
+		int idx = 0;
 		Maths::Vector3 normal;
 		std::vector<int> vert_ids;
 		std::vector<int> edge_ids;

@@ -23,7 +23,7 @@
 #include "Events/ApplicationEvent.h"
 
 #include "Scene/Component/Components.h"
-#include "Scripting/LuaScriptComponent.h"
+#include "Scripting/Lua/LuaScriptComponent.h"
 
 #include "Physics/LumosPhysicsEngine/LumosPhysicsEngine.h"
 #include "Physics/B2PhysicsEngine/B2PhysicsEngine.h"
@@ -37,13 +37,10 @@
 #include "Graphics/Camera/Camera.h"
 #include "Graphics/Layers/LayerStack.h"
 #include "Graphics/API/GraphicsContext.h"
-#include "Graphics/MeshFactory.h"
 #include "Graphics/Renderers/GridRenderer.h"
 #include "Graphics/Renderers/DebugRenderer.h"
 #include "Graphics/ModelLoader/ModelLoader.h"
 #include "Graphics/Environment.h"
-
-#include "Utilities/AssetsManager.h"
 
 #include "ImGui/ImGuiHelpers.h"
 
@@ -1070,13 +1067,13 @@ namespace Lumos
 				}
 			}
 
-			if((Input::GetInput()->GetKeyHeld(InputCode::Key::LeftSuper) || (Input::GetInput()->GetKeyHeld(InputCode::Key::LeftShift)) )) 
+			if((Input::GetInput()->GetKeyHeld(InputCode::Key::LeftSuper) || (Input::GetInput()->GetKeyHeld(InputCode::Key::LeftControl)) )) 
 			{
 				if(Input::GetInput()->GetKeyPressed(InputCode::Key::S))
-					Application::Get().GetSceneManager()->GetCurrentScene()->Serialise(ROOT_DIR "/Assets/scenes/", true);
+					Application::Get().GetSceneManager()->GetCurrentScene()->Serialise(ROOT_DIR "/Sandbox/res/scenes/", true);
 			
 				if(Input::GetInput()->GetKeyPressed(InputCode::Key::O))
-					Application::Get().GetSceneManager()->GetCurrentScene()->Deserialise(ROOT_DIR "/Assets/scenes/", true);
+					Application::Get().GetSceneManager()->GetCurrentScene()->Deserialise(ROOT_DIR "/Sandbox/res/scenes/", true);
             
                 if(Input::GetInput()->GetKeyPressed(InputCode::Key::X))
                 {
@@ -1140,10 +1137,10 @@ namespace Lumos
 
 #ifdef LUMOS_RENDER_API_VULKAN
 #	ifdef LUMOS_PLATFORM_WINDOWS
-		// std::string filePath = ROOT_DIR"/Assets/shaders/CompileShadersWindows.bat";
+		// std::string filePath = ROOT_DIR"/Lumos/res/shaders/CompileShadersWindows.bat";
 		// system(filePath.c_str());
 #	elif LUMOS_PLATFORM_MACOS
-		std::string filePath = ROOT_DIR "/Assets/shaders/CompileShadersMac.sh";
+		std::string filePath = ROOT_DIR "/Lumos/res/shaders/CompileShadersMac.sh";
 		system(filePath.c_str());
 #	endif
 #endif
@@ -1240,7 +1237,7 @@ namespace Lumos
 			}
 
 			auto light = registry.try_get<Graphics::Light>(m_SelectedEntity);
-			if(light)
+			if(light && transform)
 			{
 				DebugRenderer::DebugDraw(light, transform->GetWorldOrientation(), Maths::Vector4(light->Colour.ToVector3(), 0.2f));
 			}
@@ -1437,10 +1434,10 @@ namespace Lumos
 		}
 		else if(IsAudioFile(filePath))
 		{
-			AssetsManager::Sounds()->LoadAsset(StringFormat::GetFileName(filePath), filePath);
+			//AssetsManager::Sounds()->LoadAsset(StringFormat::GetFileName(filePath), filePath);
 
 			auto soundNode = Ref<SoundNode>(SoundNode::Create());
-			soundNode->SetSound(AssetsManager::Sounds()->Get(StringFormat::GetFileName(filePath)).get());
+			//soundNode->SetSound(AssetsManager::Sounds()->Get(StringFormat::GetFileName(filePath)).get());
 			soundNode->SetVolume(1.0f);
 			soundNode->SetPosition(Maths::Vector3(0.1f, 10.0f, 10.0f));
 			soundNode->SetLooping(true);

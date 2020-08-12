@@ -87,7 +87,6 @@ namespace Lumos
 
 	void ImGuiLayer::OnRender(Scene* scene)
 	{
-		//TODO: Render Using api
 		if(m_IMGUIRenderer && m_IMGUIRenderer->Implemented())
 		{
 			m_IMGUIRenderer->Render(nullptr);
@@ -106,7 +105,7 @@ namespace Lumos
             case Lumos::InputCode::MouseKey::ButtonLeft : return 0;
             case Lumos::InputCode::MouseKey::ButtonRight : return 1;
             case Lumos::InputCode::MouseKey::ButtonMiddle : return 2;
-            defualt : return 4;
+            default : return 4;
         }
     
         return 4;
@@ -254,15 +253,6 @@ namespace Lumos
         AddIconFont();
     
     #if 0
-        std::string physicalPath;
-        std::string filePath = "/CoreTextures/Roboto-Medium.ttf";
-    
-        if(VFS::Get()->ResolvePhysicalPath(filePath, physicalPath))
-        {
-            filePath = physicalPath;
-            io.Fonts->AddFontFromFileTTF(filePath.c_str(), m_FontSize, &icons_config);
-            AddIconFont();
-        }
 
 		io.Fonts->AddFontFromMemoryCompressedTTF(KarlaRegular_compressed_data, KarlaRegular_compressed_size, m_FontSize, &icons_config);
 		AddIconFont();

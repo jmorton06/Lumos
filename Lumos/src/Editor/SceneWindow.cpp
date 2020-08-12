@@ -35,7 +35,6 @@ namespace Lumos
 		m_ShowComponentGizmoMap[typeid(Camera).hash_code()] = true;
 		m_ShowComponentGizmoMap[typeid(SoundComponent).hash_code()] = true;
 
-		//TODO : Get from editors saved settings
 		m_AspectRatio = 1.0;
 		m_Width = 1280;
 		m_Height = 800;
@@ -123,7 +122,7 @@ namespace Lumos
 
 		Resize(static_cast<u32>(sceneViewSize.x), static_cast<u32>(sceneViewSize.y));
 
-		ImGuiHelpers::Image(m_GameViewTexture.get(), {sceneViewSize.x, sceneViewSize.y});
+		ImGuiHelpers::Image(m_GameViewTexture.get(), sceneViewSize);
 
 		auto windowSize = ImGui::GetWindowSize();
 		ImVec2 minBound = sceneViewPosition;

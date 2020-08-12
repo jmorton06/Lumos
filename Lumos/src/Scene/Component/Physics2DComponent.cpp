@@ -12,6 +12,11 @@ namespace Lumos
 		m_RigidBody = CreateRef<RigidBody2D>();
 	}
 
+	Physics2DComponent::Physics2DComponent(const RigidBodyParameters& params)
+	{
+		m_RigidBody = CreateRef<RigidBody2D>(params);
+	}
+
 	Physics2DComponent::Physics2DComponent(Ref<RigidBody2D>& physics)
 		: m_RigidBody(physics)
 	{
