@@ -90,7 +90,7 @@ void MaterialTest::LoadModels()
 	materials.push_back(stoneMaterial);
 
 	auto testMaterial = CreateRef<Material>();
-	testMaterial->LoadMaterial("checkerboard", "/CoreTextures/checkerboard.tga");
+	testMaterial->LoadMaterial("checkerboard", "/Textures/checkerboard.tga");
 	materials.push_back(testMaterial);
 
 	const float groundWidth = (float(materials.size()) * 1.2f + 1.0f) / 2.0f;
@@ -106,8 +106,7 @@ void MaterialTest::LoadModels()
 	testPhysics->SetIsStatic(true);
 
 	GetRegistry().emplace<Maths::Transform>(ground, Matrix4::Translation(Maths::Vector3((float(materials.size()) * 1.2f) / 2.0f - float(materials.size()) / 2.0f - 0.5f, 0.0f, 0.0f)) * Matrix4::Scale(Maths::Vector3(groundWidth, groundHeight, groundLength)));
-	Ref<Graphics::Mesh> groundModel = AssetsManager::DefaultModels()->Get("Cube");
-	GetRegistry().emplace<MeshComponent>(ground, groundModel);
+	GetRegistry().emplace<MeshComponent>(ground, Graphics::CreateCube());
 
 	auto groundMaterial = CreateRef<Material>();
 
@@ -132,7 +131,6 @@ void MaterialTest::LoadModels()
 
 		transform.SetLocalPosition(Maths::Vector3(float(numObjects) * 1.2f - float(materials.size()) / 2.0f, 1.2f, 0.0f));
 		transform.SetLocalScale(Maths::Vector3(0.5f, 0.5f, 0.5f));
-		//GetRegistry().emplace<MeshComponent>(obj, AssetsManager::DefaultModels()->Get("Sphere"));
 
 		if(entity.HasComponent<MaterialComponent>())
 			entity.RemoveComponent<MaterialComponent>();

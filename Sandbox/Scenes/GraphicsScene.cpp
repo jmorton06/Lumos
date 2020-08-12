@@ -51,7 +51,7 @@ void GraphicsScene::LoadModels()
 	Lumos::Ref<Graphics::Mesh> terrain = Lumos::Ref<Graphics::Mesh>(new Terrain());
 
 	auto material = Lumos::CreateRef<Material>();
-	material->LoadMaterial("checkerboard", "/CoreTextures/checkerboard.tga");
+	material->LoadMaterial("checkerboard", "/Textures/checkerboard.tga");
 
     m_Terrain.AddComponent<MaterialComponent>(material);
     m_Terrain.AddComponent<MeshComponent>(terrain);
@@ -93,7 +93,7 @@ void GraphicsScene::OnImGui()
         Lumos::Ref<Graphics::Mesh> terrain = Lumos::Ref<Graphics::Mesh>(new Terrain(width, height, lowside, lowscale, xRand, yRand, zRand, texRandX, texRandZ));
         
         auto material = Lumos::CreateRef<Material>();
-        material->LoadMaterial("checkerboard", "/CoreTextures/checkerboard.tga");
+        material->LoadMaterial("checkerboard", "/Textures/checkerboard.tga");
         
         m_Terrain.AddComponent<MaterialComponent>(material);
         m_Terrain.AddComponent<MeshComponent>(terrain);

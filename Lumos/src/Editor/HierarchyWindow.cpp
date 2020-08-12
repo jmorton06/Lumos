@@ -193,6 +193,14 @@ namespace Lumos
 				ImGui::Separator();
 				if(ImGui::Selectable("Rename"))
 					m_DoubleClicked = node;
+                ImGui::Separator();
+
+                if (ImGui::Selectable("Add Child"))
+                {
+                    auto scene = Application::Get().GetSceneManager()->GetCurrentScene();
+                    auto child = scene->CreateEntity();
+                    child.SetParent({ node, scene});
+                }
 				ImGui::EndPopup();
 			}
 
@@ -364,7 +372,7 @@ namespace Lumos
 			ImGui::PushStyleColor(ImGuiCol_MenuBarBg, ImGui::GetStyleColorVec4(ImGuiCol_TabActive));
 			ImGui::TextUnformatted(ICON_MDI_MAGNIFY);
 			ImGui::SameLine();
-			m_HierarchyFilter.Draw("##HierarchyFilter", ImGui::GetContentRegionAvailWidth() - ImGui::GetStyle().IndentSpacing);
+			m_HierarchyFilter.Draw("##HierarchyFilter", ImGui::GetContentRegionAvail().x - ImGui::GetStyle().IndentSpacing);
 			ImGui::PopStyleColor();
 			ImGui::Unindent();
 

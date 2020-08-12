@@ -21,7 +21,7 @@ namespace Lumos
         Entity operator[](int i)
 		{
 			LUMOS_ASSERT(i < Size(), "Index out of range on Entity View");
-			Entity(m_View[i], m_Scene);
+			return Entity(m_View[i], m_Scene);
 		}
 
         bool Empty() const { return m_View.empty(); }
@@ -45,7 +45,7 @@ namespace Lumos
 		Entity operator[](int i)
 		{
 			LUMOS_ASSERT(i < Size(), "Index out of range on Entity View");
-			Entity(m_Group[i], m_Scene);
+			return Entity(m_Group[i], m_Scene);
 		}
 
 		size_t Size() const

@@ -51,23 +51,6 @@ namespace Lumos
                 UpdateTransform(entity, registry);
             }
         }
-//		auto view = registry.view<Maths::Transform>();
-//
-//		if (view.empty())
-//			return;
-//
-//		for (auto entity : view)
-//		{
-//			const auto hierarchy = registry.try_get<Hierarchy>(entity);
-//			if (hierarchy && hierarchy->parent() != entt::null)
-//			{
-//				UpdateTransform(entity, registry);
-//			}
-//			else
-//			{
-//				registry.get<Maths::Transform>(entity).SetWorldMatrix(Maths::Matrix4());
-//			}
-//		}
     }
 
 	void SceneGraph::UpdateTransform(entt::entity entity, entt::registry & registry)
@@ -76,18 +59,21 @@ namespace Lumos
 		if (hierarchyComponent)
 		{
 			auto transform = registry.try_get<Maths::Transform>(entity);
-			if (transform && hierarchyComponent->parent() != entt::null)
+			if (transform)
 			{
-				auto parentTransform = registry.try_get<Maths::Transform>(hierarchyComponent->parent());
-				if (parentTransform)
+				if (hierarchyComponent->parent() != entt::null)
 				{
-					transform->SetWorldMatrix(parentTransform->GetWorldMatrix());
+					auto parentTransform = registry.try_get<Maths::Transform>(hierarchyComponent->parent());
+					if (parentTransform)
+					{
+						transform->SetWorldMatrix(parentTransform->GetWorldMatrix());
+					}
+				}
+				else
+					{
+					transform->SetWorldMatrix(Maths::Matrix4());
 				}
 			}
-            else
-            {
-                transform->SetWorldMatrix(Maths::Matrix4());
-            }
 
 			entt::entity child = hierarchyComponent->first();
 			while (child != entt::null)

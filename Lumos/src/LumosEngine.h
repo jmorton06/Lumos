@@ -39,8 +39,7 @@
 #include "Graphics/Terrain.h"
 #include "Graphics/Light.h"
 #include "Graphics/Environment.h"
-
-#include "Utilities/AssetsManager.h"
+#include "Graphics/MeshFactory.h"
 
 //Entity
 #include "Scene/Component/Components.h"
@@ -76,8 +75,8 @@
 #include "Core/OS/OS.h"
 
 //Scripting
-#include "Scripting/LuaScriptComponent.h"
-#include "Scripting/LuaManager.h"
+#include "Scripting/Lua/LuaScriptComponent.h"
+#include "Scripting/Lua/LuaManager.h"
 
 //Utilities
 #include "Utilities/LoadImage.h"

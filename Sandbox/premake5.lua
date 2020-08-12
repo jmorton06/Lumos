@@ -96,6 +96,8 @@ project "Sandbox"
 			"/MP"
 		}
 
+		disablewarnings { 4307 }
+
 	filter "system:macosx"
 		cppdialect "C++17"
 		staticruntime "On"
@@ -270,45 +272,33 @@ project "Sandbox"
 
 		SetRecommendedXcodeSettings()
 
+		local targetAssetDirectory = ""
+
 		filter {"system:ios", "configurations:release"}
-
-			local source = "../Assets/**"
-			local target = "../bin/release/Sandbox.app/Assets"
-				
-			buildmessage("copying "..source.." -> "..target)
-			
-			os.mkdir(target)
-
-			postbuildcommands {
-				"{COPY} "..source.." "..target
-			}
+			targetAssetDirectory = "../bin/release/Sandbox.app/Assets"
 
 		filter {"system:ios", "configurations:Production"}
-
-			local source = "../Assets/**"
-			local target = "../bin/dist/Sandbox.app/Assets"
-				
-			buildmessage("copying "..source.." -> "..target)
-			
-			os.mkdir(target)
-
-			postbuildcommands {
-				"{COPY} "..source.." "..target
-			}
+			targetAssetDirectory = "../bin/dist/Sandbox.app/Assets"
 
 		filter {"system:ios", "configurations:debug"}
-
-			local source = "../Assets/**"
-			local target = "../bin/debug/Sandbox.app/Assets"
-				
+			targetAssetDirectory = "../bin/debug/Sandbox.app/Assets"
+		
+		filter "system:ios"
+			local target = targetAssetDirectory.."/CoreAssets/"
+			local source = "../Lumos/res/**"
 			buildmessage("copying "..source.." -> "..target)
-			
 			os.mkdir(target)
-
 			postbuildcommands {
 				"{COPY} "..source.." "..target
 			}
 
+			target = targetAssetDirectory.."/AppAssets/"
+			local source = "res/**"
+			buildmessage("copying "..source.." -> "..target)
+			os.mkdir(target)
+			postbuildcommands {
+				"{COPY} "..source.." "..target
+			}
 
 	filter "system:linux"
 		cppdialect "C++17"

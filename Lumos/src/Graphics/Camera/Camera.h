@@ -132,15 +132,9 @@ namespace Lumos
 	protected:
 		void UpdateProjectionMatrix();
 
-		float m_Pitch;
-		float m_Yaw;
-		float m_Roll;
-
 		float m_ShadowBoundingRadius = 20.0f;
 
-		Maths::Vector3 m_Position = Maths::Vector3(0.0f);
-
-		float m_AspectRatio;
+		float m_AspectRatio = 0.0f;
 		float m_Scale = 1.0f;
 		float m_Zoom = 1.0f;
 
@@ -153,7 +147,7 @@ namespace Lumos
 		bool m_ProjectionDirty = false;
 		bool customProjection_ = false;
 
-		float m_Fov, m_Near, m_Far;
+		float m_Fov = 0.0f, m_Near = 0.0f, m_Far = 0.0f;
 		float m_MouseSensitivity = 0.1f;
 
 		bool m_Orthographic = false;

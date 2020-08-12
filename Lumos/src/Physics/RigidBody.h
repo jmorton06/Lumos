@@ -28,6 +28,7 @@ namespace Lumos
 		Maths::Vector3 scale;
 		bool isStatic;
 		Shape shape;
+		std::vector<Maths::Vector2> custumShapePositions;
 	};
 
 	class LUMOS_EXPORT RigidBody

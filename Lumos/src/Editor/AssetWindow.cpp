@@ -28,7 +28,7 @@ namespace Lumos
     #ifdef LUMOS_PLATFORM_IOS
 		m_BaseDirPath = "Assets/";
     #else
-        m_BaseDirPath = ROOT_DIR "/Assets/";
+        m_BaseDirPath = ROOT_DIR "/Sandbox/res/";
     #endif
 		m_CurrentDirPath = m_BaseDirPath;
 		m_prevDirPath = m_CurrentDirPath;

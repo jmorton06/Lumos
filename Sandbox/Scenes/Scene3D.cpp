@@ -92,7 +92,7 @@ void Scene3D::LoadModels()
 	const float groundLength = 100.0f;
 
 	auto testMaterial = CreateRef<Material>();
-	testMaterial->LoadMaterial("checkerboard", "/CoreTextures/checkerboard.tga");
+	testMaterial->LoadMaterial("checkerboard", "/Textures/checkerboard.tga");
 
 	auto ground = m_EntityManager->Create();
 	Ref<RigidBody3D> testPhysics = CreateRef<RigidBody3D>();
@@ -105,7 +105,7 @@ void Scene3D::LoadModels()
     ground.AddComponent<Maths::Transform>(Matrix4::Scale(Maths::Vector3(groundWidth, groundHeight, groundLength)));
     ground.AddComponent<Physics3DComponent>(testPhysics);
     ground.AddComponent<Lumos::LuaScriptComponent>("Scripts/LuaComponentTest.lua", this);
-    ground.AddComponent<MeshComponent>(AssetsManager::DefaultModels()->Get("Cube"));
+    ground.AddComponent<MeshComponent>(Graphics::CreateCube());
 
 	MaterialProperties properties;
 	properties.albedoColour = Vector4(0.6f, 0.1f, 0.1f, 1.0f);
@@ -133,8 +133,7 @@ void Scene3D::LoadModels()
 
     pendulumHolder.AddComponent<Physics3DComponent>(pendulumHolderPhysics);
     pendulumHolder.AddOrReplaceComponent<Maths::Transform>(Matrix4::Scale(Maths::Vector3(0.5f, 0.5f, 0.5f)));
-	Ref<Graphics::Mesh> pendulumHolderModel = AssetsManager::DefaultModels()->Get("Cube");
-    pendulumHolder.AddComponent<MeshComponent>(pendulumHolderModel);
+    pendulumHolder.AddComponent<MeshComponent>(Graphics::CreateCube());
     pendulumHolder.AddComponent<Lumos::LuaScriptComponent>("Scripts/PlayerTest.lua", this);
 
 	auto pendulum = m_EntityManager->Create("Pendulum");
@@ -147,8 +146,7 @@ void Scene3D::LoadModels()
 	pendulumPhysics->SetCollisionShape(CreateRef<SphereCollisionShape>(0.5f));
     pendulum.AddComponent<Physics3DComponent>(pendulumPhysics);
     pendulum.AddOrReplaceComponent<Maths::Transform>(Matrix4::Scale(Maths::Vector3(0.5f, 0.5f, 0.5f)));
-	Ref<Graphics::Mesh> pendulumModel = AssetsManager::DefaultModels()->Get("Sphere");
-    pendulum.AddComponent<MeshComponent>(pendulumModel);
+    pendulum.AddComponent<MeshComponent>(Graphics::CreateSphere());
 
 	auto pendulumConstraint = new SpringConstraint(pendulumHolder.GetComponent<Physics3DComponent>().GetRigidBody().get(), pendulum.GetComponent<Physics3DComponent>().GetRigidBody().get(), pendulumHolder.GetComponent<Physics3DComponent>().GetRigidBody()->GetPosition(), pendulum.GetComponent<Physics3DComponent>().GetRigidBody()->GetPosition(), 0.9f, 0.5f);
 	Application::Get().GetSystem<LumosPhysicsEngine>()->AddConstraint(pendulumConstraint);
@@ -175,7 +173,7 @@ void Scene3D::LoadModels()
 		auto sphere = m_EntityManager->Create("Sphere" + StringFormat::ToString(numSpheres++));
 
         sphere.AddComponent<Maths::Transform>(Matrix4::Translation(Maths::Vector3(float(i), 17.0f, 0.0f)) * Matrix4::Scale(Maths::Vector3(0.5f, 0.5f, 0.5f)));
-        sphere.AddComponent<MeshComponent>(AssetsManager::DefaultModels()->Get("Sphere"));
+        sphere.AddComponent<MeshComponent>(Graphics::CreateSphere());
         sphere.AddComponent<MaterialComponent>(m);
 	}
 
@@ -200,7 +198,7 @@ void Scene3D::LoadModels()
 		auto sphere = m_EntityManager->Create("Sphere" + StringFormat::ToString(numSpheres++));
 
         sphere.AddComponent<Maths::Transform>(Matrix4::Translation(Maths::Vector3(float(i), 18.0f, 0.0f)) * Matrix4::Scale(Maths::Vector3(0.5f, 0.5f, 0.5f)));
-        sphere.AddComponent<MeshComponent>(AssetsManager::DefaultModels()->Get("Sphere"));
+        sphere.AddComponent<MeshComponent>(Graphics::CreateSphere());
         sphere.AddComponent<MaterialComponent>(m);
 	}
 }

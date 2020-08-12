@@ -42,6 +42,10 @@ namespace Lumos
 
 		Maths::Vector2 GetPosition() const;
 		float GetAngle() const;
+        Shape GetShapeType() const { return m_ShapeType; }
+
+        void SetShape(Shape shape, const std::vector<Maths::Vector2>& customPositions = { Maths::Vector2(0.0f)} );
+
 
 		template<typename Archive>
 		void save(Archive& archive) const
