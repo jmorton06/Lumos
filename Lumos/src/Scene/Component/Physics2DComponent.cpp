@@ -2,7 +2,7 @@
 #include "Physics2DComponent.h"
 #include "Maths/Maths.h"
 
-#include <Box2D/Box2D.h>
+#include <box2d/box2d.h>
 #include <imgui/imgui.h>
 
 namespace Lumos
@@ -10,6 +10,11 @@ namespace Lumos
 	Physics2DComponent::Physics2DComponent()
 	{
 		m_RigidBody = CreateRef<RigidBody2D>();
+	}
+
+	Physics2DComponent::Physics2DComponent(const RigidBodyParameters& params)
+	{
+		m_RigidBody = CreateRef<RigidBody2D>(params);
 	}
 
 	Physics2DComponent::Physics2DComponent(Ref<RigidBody2D>& physics)

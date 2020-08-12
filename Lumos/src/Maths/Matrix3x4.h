@@ -689,18 +689,18 @@ namespace Lumos::Maths
             return hash;
         }
 
-        float m00_;
-        float m01_;
-        float m02_;
-        float m03_;
-        float m10_;
-        float m11_;
-        float m12_;
-        float m13_;
-        float m20_;
-        float m21_;
-        float m22_;
-        float m23_;
+        float m00_=0.0f;
+        float m01_=0.0f;
+        float m02_=0.0f;
+        float m03_=0.0f;
+        float m10_=0.0f;
+        float m11_=0.0f;
+        float m12_=0.0f;
+        float m13_=0.0f;
+        float m20_=0.0f;
+        float m21_=0.0f;
+        float m22_=0.0f;
+        float m23_=0.0f;
 
         /// Zero matrix.
         static const Matrix3x4 ZERO;

@@ -25,12 +25,6 @@ vector3.Print()
 vec3 = vec1.Add(vec1,vec2)
 vec3.Print()
 
-camera = MayaCamera(45.0,0.1,100.0)
-camera.SetPosition(Vector3(-3.0, 10.0, 15.0))
-camera.SetYaw(-20.0)
-camera.SetPitch(-40.0)
-camera.Print()
-
 currentScene.SetCamera(camera)
 currentScene.AddEntity(test)
 

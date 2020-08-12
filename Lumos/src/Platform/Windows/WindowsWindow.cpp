@@ -233,7 +233,7 @@ namespace Lumos
 			return false;
 		}
 
-		SetIcon("/CoreTextures/icon.png", "/CoreTextures/icon32.png");
+		SetIcon("/Textures/icon.png", "/Textures/icon32.png");
 
 		ShowWindow(hWnd, SW_SHOW);
 		SetFocus(hWnd);

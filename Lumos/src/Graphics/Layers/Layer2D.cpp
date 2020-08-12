@@ -27,7 +27,7 @@ namespace Lumos
 
 	void Layer2D::OnUpdate(const TimeStep& dt, Scene* scene)
 	{
-		m_Renderer->BeginScene(scene, m_OverrideCamera);
+		m_Renderer->BeginScene(scene, m_OverrideCamera, m_OverrideCameraTransform);
 	}
 
 	void Layer2D::OnEvent(Event& event)

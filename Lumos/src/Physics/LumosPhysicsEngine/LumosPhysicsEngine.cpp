@@ -9,7 +9,7 @@
 #include "Utilities/TimeStep.h"
 #include "Core/JobSystem.h"
 #include "Core/Profiler.h"
-
+#include "Core/Application.h"
 #include "Scene/Component/Physics3DComponent.h"
 
 #include "Maths/Transform.h"
@@ -120,7 +120,6 @@ namespace Lumos
 
 	void LumosPhysicsEngine::UpdatePhysics(Scene* scene)
 	{
-
 		for(Manifold* m : m_Manifolds)
 		{
 			delete m;
@@ -182,7 +181,6 @@ namespace Lumos
 				break;
 			}
 
-			default:
 			case IntegrationType::SEMI_IMPLICIT_EULER: {
 				// Update linear velocity (v = u + at)
 				obj->m_LinearVelocity += obj->m_LinearVelocity * obj->m_InvMass * s_UpdateTimestep;
@@ -474,13 +472,27 @@ namespace Lumos
 
 		if(m_BroadphaseDetection && (m_DebugDrawFlags & PhysicsDebugFlags::BROADPHASE))
 			m_BroadphaseDetection->DebugDraw();
-
-		for(auto obj : m_RigidBodys)
-		{
-			obj->DebugDraw(m_DebugDrawFlags);
-
-			if(obj->GetCollisionShape() && (m_DebugDrawFlags & PhysicsDebugFlags::COLLISIONVOLUMES))
-				obj->GetCollisionShape()->DebugDraw(obj.get());
-		}
+    
+        auto scene = Application::Get().GetCurrentScene();
+        auto& registry = scene->GetRegistry();
+        
+        auto group = registry.group<Physics3DComponent>(entt::get<Maths::Transform>);
+        
+        if(group.empty())
+            return;
+        
+        for(auto entity : group)
+        {
+            const auto& phys = group.get<Physics3DComponent>(entity);
+            
+            auto& physicsObj = phys.GetRigidBody();
+            
+            if(physicsObj)
+            {
+                physicsObj->DebugDraw(m_DebugDrawFlags);
+                if(physicsObj->GetCollisionShape() && (m_DebugDrawFlags & PhysicsDebugFlags::COLLISIONVOLUMES))
+                    physicsObj->GetCollisionShape()->DebugDraw(physicsObj.get());
+            }
+        }
 	}
 }

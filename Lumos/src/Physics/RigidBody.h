@@ -12,9 +12,9 @@ namespace Lumos
 		Custom = 2
 	};
 
-	struct LUMOS_EXPORT RigidBodyParamaters
+	struct LUMOS_EXPORT RigidBodyParameters
 	{
-		RigidBodyParamaters()
+		RigidBodyParameters()
 		{
 			mass = 1.0f;
 			shape = Shape::Square;
@@ -28,6 +28,7 @@ namespace Lumos
 		Maths::Vector3 scale;
 		bool isStatic;
 		Shape shape;
+		std::vector<Maths::Vector2> custumShapePositions;
 	};
 
 	class LUMOS_EXPORT RigidBody

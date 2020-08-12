@@ -27,6 +27,8 @@ namespace Lumos
             void SetSpriteSheet(const Ref<Texture2D>& texture, const Maths::Vector2& index, const Maths::Vector2& cellSize, const Maths::Vector2& spriteSize);
             void SetTexture(const Ref<Texture2D>& texture) { m_Texture = texture; }
 			void OnImGui();
+        
+            void SetTextureFromFile(const std::string& filePath);
 		
 			template<typename Archive>
 			void save(Archive& archive) const

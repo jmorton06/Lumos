@@ -20,12 +20,13 @@ namespace Lumos
     
         Entity operator[](int i)
 		{
-			LUMOS_ASSERT(i < size(), "Index out of range on Entity View");
-			Entity(m_View[i], m_Scene);
+			LUMOS_ASSERT(i < Size(), "Index out of range on Entity View");
+			return Entity(m_View[i], m_Scene);
 		}
 
-		size_t size() const { return m_View.size(); }
-		Entity front() { return Entity(m_View[0], m_Scene); }
+        bool Empty() const { return m_View.empty(); }
+        size_t Size() const { return m_View.size(); }
+		Entity Front() { return Entity(m_View[0], m_Scene); }
     private:
         Scene* m_Scene;
 		entt::basic_view<entt::entity, entt::exclude_t<>, T> m_View;
@@ -43,15 +44,15 @@ namespace Lumos
 
 		Entity operator[](int i)
 		{
-			LUMOS_ASSERT(i < size(), "Index out of range on Entity View");
-			Entity(m_Group[i], m_Scene);
+			LUMOS_ASSERT(i < Size(), "Index out of range on Entity View");
+			return Entity(m_Group[i], m_Scene);
 		}
 
-		size_t size() const
+		size_t Size() const
 		{
 			return m_Group.size();
 		}
-		Entity front()
+		Entity Front()
 		{
 			return Entity(m_Group[0], m_Scene);
 		}

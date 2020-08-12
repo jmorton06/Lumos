@@ -28,7 +28,7 @@
 #include "Graphics/API/Pipeline.h"
 #include "Graphics/API/GraphicsContext.h"
 #include "Graphics/Environment.h"
-
+#include "Embedded/BRDFTexture.inl"
 #include <imgui/imgui.h>
 
 #define MAX_LIGHTS 32
@@ -119,7 +119,7 @@ namespace Lumos
 			param.magFilter = TextureFilter::LINEAR;
 			param.format = TextureFormat::RGBA;
 			param.wrap = TextureWrap::CLAMP_TO_EDGE;
-			m_PreintegratedFG = UniqueRef<Texture2D>(Texture2D::CreateFromFile("PreintegratedFG", "/CoreTextures/PreintegratedFG.tga", param));
+			m_PreintegratedFG = UniqueRef<Texture2D>(Texture2D::CreateFromSource(BRDFTextureWidth, BRDFTextureHeight, (void*)BRDFTexture, param));
 
 			m_LightUniformBuffer = nullptr;
 			m_UniformBuffer = nullptr;
@@ -179,7 +179,7 @@ namespace Lumos
 			info.shader = m_Shader;
 			m_DescriptorSet = Graphics::DescriptorSet::Create(info);
 
-			m_ClearColour = Maths::Vector4(0.1f, 0.1f, 0.1f, 1.0f);
+			m_ClearColour = Maths::Vector4(0.2f, 0.2f, 0.2f, 1.0f);
 
 			UpdateScreenDescriptorSet();
 		}
@@ -220,22 +220,26 @@ namespace Lumos
 			m_RenderPass->BeginRenderpass(m_CommandBuffers[m_CommandBufferIndex], m_ClearColour, m_Framebuffers[m_CommandBufferIndex], Graphics::INLINE, m_ScreenBufferWidth, m_ScreenBufferHeight);
 		}
 
-		void DeferredRenderer::BeginScene(Scene* scene, Camera* overrideCamera)
+		void DeferredRenderer::BeginScene(Scene* scene, Camera* overrideCamera, Maths::Transform* overrideCameraTransform)
 		{
 			auto& registry = scene->GetRegistry();
 
 			if(overrideCamera)
+			{
 				m_Camera = overrideCamera;
+				m_CameraTransform = overrideCameraTransform;
+			}
 			else
 			{
 				auto cameraView = registry.view<Camera>();
 				if(!cameraView.empty())
 				{
-					m_Camera = &registry.get<Camera>(cameraView.front());
+					m_Camera = &cameraView.get<Camera>(cameraView.front());
+					m_CameraTransform = registry.try_get<Maths::Transform>(cameraView.front());
 				}
 			}
 
-			if(!m_Camera)
+			if(!m_Camera || !m_CameraTransform)
 				return;
 
 			auto view = registry.view<Graphics::Environment>();
@@ -273,7 +277,7 @@ namespace Lumos
 
 			SubmitLightSetup(scene);
 
-			m_OffScreenRenderer->BeginScene(scene, m_Camera);
+			m_OffScreenRenderer->BeginScene(scene, m_Camera, m_CameraTransform);
 		}
 
 		void DeferredRenderer::Submit(const RenderCommand& command)
@@ -301,7 +305,9 @@ namespace Lumos
 
 			u32 numLights = 0;
 
-			auto& frustum = m_Camera->GetFrustum();
+			auto viewMatrix = m_CameraTransform->GetWorldMatrix().Inverse();
+
+			auto& frustum = m_Camera->GetFrustum(viewMatrix);
 
 			for(auto entity : group)
 			{
@@ -325,17 +331,16 @@ namespace Lumos
 				numLights++;
 			}
 
-			Maths::Vector4 cameraPos = Maths::Vector4(m_Camera->GetPosition());
+			Maths::Vector4 cameraPos = Maths::Vector4(m_CameraTransform->GetWorldPosition());
 			memcpy(m_PSSystemUniformBuffer + m_PSSystemUniformBufferOffsets[PSSystemUniformIndex_CameraPosition], &cameraPos, sizeof(Maths::Vector4));
 
 			auto shadowRenderer = Application::Get().GetRenderManager()->GetShadowRenderer();
 			if(shadowRenderer)
 			{
 				Maths::Matrix4* shadowTransforms = shadowRenderer->GetShadowProjView();
-				auto viewMat = m_Camera->GetViewMatrix();
 				Lumos::Maths::Vector4* uSplitDepth = shadowRenderer->GetSplitDepths();
 
-				memcpy(m_PSSystemUniformBuffer + m_PSSystemUniformBufferOffsets[PSSystemUniformIndex_ViewMatrix], &viewMat, sizeof(Maths::Matrix4));
+				memcpy(m_PSSystemUniformBuffer + m_PSSystemUniformBufferOffsets[PSSystemUniformIndex_ViewMatrix], &viewMatrix, sizeof(Maths::Matrix4));
 				memcpy(m_PSSystemUniformBuffer + m_PSSystemUniformBufferOffsets[PSSystemUniformIndex_ShadowTransforms], shadowTransforms, sizeof(Maths::Matrix4) * MAX_SHADOWMAPS);
 				memcpy(m_PSSystemUniformBuffer + m_PSSystemUniformBufferOffsets[PSSystemUniformIndex_ShadowSplitDepths], uSplitDepth, sizeof(Maths::Vector4) * MAX_SHADOWMAPS);
 				memcpy(m_PSSystemUniformBuffer + m_PSSystemUniformBufferOffsets[PSSystemUniformIndex_BiasMatrix], &m_BiasMatrix, sizeof(Maths::Matrix4));

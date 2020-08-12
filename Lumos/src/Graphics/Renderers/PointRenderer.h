@@ -3,6 +3,7 @@
 #include "lmpch.h"
 #include "Maths/Maths.h"
 #include "Graphics/API/DescriptorSet.h"
+#include "Maths/Transform.h"
 
 #define RENDERER2DPOINT_VERTEX_SIZE sizeof(PointVertexData)
 
@@ -90,10 +91,10 @@ namespace Lumos
 			void Init();
 			void Submit(const Maths::Vector3& p1, float size, const Maths::Vector4& colour);
 			void Begin();
-			void BeginScene(Scene* scene, Camera* overrideCamera);
+			void BeginScene(Scene* scene, Camera* overrideCamera, Maths::Transform* overrideCameraTransform);
 			void Present();
 			void End();
-			void RenderInternal(Scene* scene, Camera* overrideCamera);
+			void RenderInternal(Scene* scene, Camera* overrideCamera, Maths::Transform* overrideCameraTransform);
 			void OnResize(u32 width, u32 height);
 			void PresentToScreen();
 			void SetScreenBufferSize(u32 width, u32 height);
@@ -152,7 +153,8 @@ namespace Lumos
 			Maths::Matrix4 m_ProjectionMatrix;
 
 			std::vector<PointInfo> m_Points;
-			Camera* m_Camera;
+			Camera* m_Camera = nullptr;
+			Maths::Transform* m_CameraTransform = nullptr;
 		};
 	}
 }

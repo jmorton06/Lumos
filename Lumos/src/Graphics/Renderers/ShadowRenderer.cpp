@@ -143,9 +143,9 @@ namespace Lumos
 			m_CommandBuffer->UpdateViewport(m_ShadowMapSize, m_ShadowMapSize);
 		}
 
-		void ShadowRenderer::BeginScene(Scene* scene, Camera* overrideCamera)
+		void ShadowRenderer::BeginScene(Scene* scene, Camera* overrideCamera, Maths::Transform* overrideCameraTransform)
 		{
-			UpdateCascades(scene, overrideCamera);
+			UpdateCascades(scene, overrideCamera, overrideCameraTransform);
 		}
 
 		void ShadowRenderer::EndScene()
@@ -260,7 +260,7 @@ namespace Lumos
 
 		float cascadeSplitLambda = 0.95f;
 
-		void ShadowRenderer::UpdateCascades(Scene* scene, Camera* overrideCamera)
+		void ShadowRenderer::UpdateCascades(Scene* scene, Camera* overrideCamera, Maths::Transform* overrideCameraTransform)
 		{
 			LUMOS_PROFILE_FUNC;
 
@@ -282,17 +282,21 @@ namespace Lumos
 			float cascadeSplits[SHADOWMAP_MAX];
 
 			if(overrideCamera)
+			{
 				m_Camera = overrideCamera;
+				m_CameraTransform = overrideCameraTransform;
+			}
 			else
 			{
 				auto cameraView = registry.view<Camera>();
 				if(!cameraView.empty())
 				{
-					m_Camera = &registry.get<Camera>(cameraView.front());
+					m_Camera = &cameraView.get<Camera>(cameraView.front());
+					m_CameraTransform = registry.try_get<Maths::Transform>(cameraView.front());
 				}
 			}
 
-			if(!m_Camera)
+			if(!m_Camera || !m_CameraTransform)
 				return;
 
 			float nearClip = m_Camera->GetNear();
@@ -337,7 +341,7 @@ namespace Lumos
 						Maths::Vector3(-1.0f, -1.0f, 1.0f),
 					};
 
-					const Maths::Matrix4 invCam = Maths::Matrix4::Inverse(m_Camera->GetProjectionMatrix() * m_Camera->GetViewMatrix());
+					const Maths::Matrix4 invCam = Maths::Matrix4::Inverse(m_Camera->GetProjectionMatrix() * m_CameraTransform->GetWorldMatrix().Inverse());
 
 					// Project frustum corners into world space
 					for(uint32_t j = 0; j < 8; j++)

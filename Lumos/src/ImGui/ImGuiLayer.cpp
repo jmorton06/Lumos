@@ -15,6 +15,12 @@
 #include <imgui/plugins/ImGuiAl/fonts/CousineRegular.inl>
 #include <imgui/plugins/ImGuiAl/fonts/KarlaRegular.inl>
 #include <imgui/plugins/ImGuiAl/fonts/MaterialDesign.inl>
+#include <imgui/plugins/ImGuiAl/fonts/CodingFontTobi.inl>
+#include <imgui/plugins/ImGuiAl/fonts/DroidSans.inl>
+#include <imgui/plugins/ImGuiAl/fonts/Crisp.inl>
+#include <imgui/plugins/ImGuiAl/fonts/RobotoMedium.inl>
+
+
 #include <imgui/misc/freetype/imgui_freetype.h>
 
 namespace Lumos
@@ -81,7 +87,6 @@ namespace Lumos
 
 	void ImGuiLayer::OnRender(Scene* scene)
 	{
-		//TODO: Render Using api
 		if(m_IMGUIRenderer && m_IMGUIRenderer->Implemented())
 		{
 			m_IMGUIRenderer->Render(nullptr);
@@ -92,11 +97,24 @@ namespace Lumos
 	{
 		m_IMGUIRenderer->Clear();
 	}
+    
+    int LumosMouseButtonToImGui(Lumos::InputCode::MouseKey key)
+    {
+        switch (key)
+        {
+            case Lumos::InputCode::MouseKey::ButtonLeft : return 0;
+            case Lumos::InputCode::MouseKey::ButtonRight : return 1;
+            case Lumos::InputCode::MouseKey::ButtonMiddle : return 2;
+            default : return 4;
+        }
+    
+        return 4;
+    }
 
 	bool ImGuiLayer::OnMouseButtonPressedEvent(MouseButtonPressedEvent& e)
 	{
 		ImGuiIO& io = ImGui::GetIO();
-		io.MouseDown[e.GetMouseButton()] = true;
+		io.MouseDown[LumosMouseButtonToImGui(e.GetMouseButton())] = true;
 
 		return false;
 	}
@@ -104,7 +122,7 @@ namespace Lumos
 	bool ImGuiLayer::OnMouseButtonReleasedEvent(MouseButtonReleasedEvent& e)
 	{
 		ImGuiIO& io = ImGui::GetIO();
-		io.MouseDown[e.GetMouseButton()] = false;
+		io.MouseDown[LumosMouseButtonToImGui(e.GetMouseButton())] = false;
 
 		return false;
 	}
@@ -120,8 +138,8 @@ namespace Lumos
 	bool ImGuiLayer::OnMouseScrolledEvent(MouseScrolledEvent& e)
 	{
 		ImGuiIO& io = ImGui::GetIO();
-		io.MouseWheel += e.GetYOffset();
-		io.MouseWheelH += e.GetXOffset();
+		io.MouseWheel += e.GetYOffset() / 10.0f;
+		io.MouseWheelH += e.GetXOffset() / 10.0f;
 
 		return false;
 	}
@@ -209,30 +227,48 @@ namespace Lumos
 
 		ImGui::StyleColorsDark();
 
-		std::string physicalPath;
-
-		std::string filePath = "/CoreTextures/Roboto-Medium.ttf";
-
-		if(!VFS::Get()->ResolvePhysicalPath(filePath, physicalPath))
-			LUMOS_LOG_CRITICAL("Failed to Load font {0}", filePath);
-
 		io.FontGlobalScale = 1.0f;
-		filePath = physicalPath;
+    
 		ImFontConfig icons_config;
 		icons_config.MergeMode = false;
 		icons_config.PixelSnapH = true;
 		icons_config.OversampleH = icons_config.OversampleV = 1;
-		icons_config.PixelSnapH = true;
+        icons_config.GlyphMinAdvanceX = 4.0f;
+        icons_config.SizePixels = 12.0f;
 
-		io.Fonts->AddFontFromFileTTF(filePath.c_str(), m_FontSize, &icons_config);
-		AddIconFont();
+        static const ImWchar ranges[] =
+        {
+        0x0020, 0x00FF,
+        0x0400, 0x044F,
+        0,
+        };
 
-		io.Fonts->AddFontDefault();
+        io.Fonts->AddFontFromMemoryCompressedTTF(roboto_medium_compressed_data, roboto_medium_compressed_size, m_FontSize, &icons_config, ranges);
+        AddIconFont();
+    
+        io.Fonts->AddFontFromMemoryCompressedTTF(DroidSans_compressed_data, DroidSans_compressed_size, m_FontSize, &icons_config, ranges);
+        AddIconFont();
+    
+        io.Fonts->AddFontDefault();
+        AddIconFont();
+    
+    #if 0
+
 		io.Fonts->AddFontFromMemoryCompressedTTF(KarlaRegular_compressed_data, KarlaRegular_compressed_size, m_FontSize, &icons_config);
 		AddIconFont();
 
 		io.Fonts->AddFontFromMemoryCompressedTTF(CousineRegular_compressed_data, CousineRegular_compressed_size, m_FontSize, &icons_config);
 		AddIconFont();
+    
+        io.Fonts->AddFontFromMemoryCompressedTTF(CodingFontTobi_compressed_data, CodingFontTobi_compressed_size, m_FontSize - 2.0f, &icons_config);
+        AddIconFont();
+        
+        io.Fonts->AddFontFromMemoryCompressedTTF(Crisp_compressed_data, Crisp_compressed_size, m_FontSize, &icons_config);
+        AddIconFont();
+    
+        io.Fonts->AddFontFromMemoryCompressedTTF(DroidSans_compressed_data, DroidSans_compressed_size, m_FontSize, &icons_config);
+        AddIconFont();
+    #endif
 
 		io.Fonts->TexGlyphPadding = 1;
 		for(int n = 0; n < io.Fonts->ConfigData.Size; n++)

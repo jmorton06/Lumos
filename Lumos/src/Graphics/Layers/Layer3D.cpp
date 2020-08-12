@@ -2,6 +2,7 @@
 #include "Layer3D.h"
 #include "Graphics/Renderers/Renderer3D.h"
 #include "Scene/Scene.h"
+#include "Maths/Transform.h"
 
 namespace Lumos
 {
@@ -37,7 +38,7 @@ namespace Lumos
 
 	void Layer3D::OnRender(Scene* scene)
 	{
-		m_Renderer->BeginScene(scene, m_OverrideCamera);
+		m_Renderer->BeginScene(scene, m_OverrideCamera, m_OverrideCameraTransform );
 		m_Renderer->RenderScene(scene);
 	}
 

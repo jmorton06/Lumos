@@ -34,23 +34,23 @@ namespace Lumos
 
 	void SceneGraph::Update(entt::registry & registry)
     {
-		auto view = registry.view<Maths::Transform>();
-
-		if (view.empty())
-			return;
-
-		for (auto entity : view)
-		{
-			const auto hierarchy = registry.try_get<Hierarchy>(entity);
-			if (hierarchy && hierarchy->parent() != entt::null)
-			{
-				UpdateTransform(entity, registry);
-			}
-			else
-			{
-				registry.get<Maths::Transform>(entity).SetWorldMatrix(Maths::Matrix4());
-			}
-		}
+        auto nonHierarchyView = registry.view<Maths::Transform>(entt::exclude<Hierarchy>);
+    
+        for(auto entity : nonHierarchyView)
+        {
+            registry.get<Maths::Transform>(entity).SetWorldMatrix(Maths::Matrix4());
+        }
+    
+        auto view = registry.view<Maths::Transform, Hierarchy>();
+        for (auto entity : view)
+        {
+            const auto hierarchy = registry.try_get<Hierarchy>(entity);
+            if (hierarchy && hierarchy->parent() == entt::null)
+            {
+                //Recursively update children
+                UpdateTransform(entity, registry);
+            }
+        }
     }
 
 	void SceneGraph::UpdateTransform(entt::entity entity, entt::registry & registry)
@@ -59,12 +59,19 @@ namespace Lumos
 		if (hierarchyComponent)
 		{
 			auto transform = registry.try_get<Maths::Transform>(entity);
-			if (transform && hierarchyComponent->parent() != entt::null)
+			if (transform)
 			{
-				auto parentTransform = registry.try_get<Maths::Transform>(hierarchyComponent->parent());
-				if (parentTransform)
+				if (hierarchyComponent->parent() != entt::null)
 				{
-					transform->SetWorldMatrix(parentTransform->GetWorldMatrix());
+					auto parentTransform = registry.try_get<Maths::Transform>(hierarchyComponent->parent());
+					if (parentTransform)
+					{
+						transform->SetWorldMatrix(parentTransform->GetWorldMatrix());
+					}
+				}
+				else
+					{
+					transform->SetWorldMatrix(Maths::Matrix4());
 				}
 			}
 
@@ -83,8 +90,11 @@ namespace Lumos
 	{
 		Hierarchy::on_destroy(registry, entity);
 
-		hierarchy._parent = parent;
-		Hierarchy::on_construct(registry, entity);
+        if(parent != entt::null)
+        {
+            hierarchy._parent = parent;
+            Hierarchy::on_construct(registry, entity);
+        }
 	}
 
 	bool Hierarchy::compare(const entt::registry& registry, const entt::entity rhs) const
@@ -93,7 +103,8 @@ namespace Lumos
 		{
 			return true;
 		}
-		else {
+		else
+        {
 			if (this->_parent == entt::null)
 			{
 				return false;

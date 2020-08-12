@@ -4,7 +4,7 @@ IncludeDir["Glad"] = "external/glad/include/"
 IncludeDir["lua"] = "external/lua/src/"
 IncludeDir["stb"] = "external/stb/"
 IncludeDir["OpenAL"] = "external/OpenAL/include/"
-IncludeDir["Box2D"] = "external/Box2D/"
+IncludeDir["Box2D"] = "external/box2d/include/"
 IncludeDir["external"] = "external/"
 IncludeDir["vulkan"] = "external/vulkan/"
 IncludeDir["Lumos"] = "src"
@@ -76,6 +76,7 @@ project "Lumos"
 		"FREEIMAGE_LIB",
 		"LUMOS_DYNAMIC",
 		"LUMOS_ROOT_DIR="  .. cwd,
+		"IMGUI_USER_CONFIG=\"src/ImGui/ImConfig.h\"",
 	}
 
 	filter "system:windows"
@@ -133,6 +134,7 @@ project "Lumos"
 		{
 			"/MP", "/bigobj"
 		}
+		disablewarnings { 4307 }
 
 		characterset ("MBCS")
 
@@ -333,7 +335,8 @@ project "Lumos"
 		{
 			"-fpermissive",
 			"-fPIC",
-			"-Wignored-attributes"
+			"-Wignored-attributes",
+			"-Wno-psabi"
 		}
 
 		links { "X11", "pthread"}

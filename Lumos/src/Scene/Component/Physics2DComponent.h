@@ -10,6 +10,7 @@ namespace Lumos
 	{
 	public:
 		Physics2DComponent();
+		Physics2DComponent(const RigidBodyParameters& params);
 		explicit Physics2DComponent(Ref<RigidBody2D>& physics);
 
 		void Update();

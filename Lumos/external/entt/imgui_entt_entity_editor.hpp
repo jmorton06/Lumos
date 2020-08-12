@@ -95,11 +95,11 @@ class ImGuiEntityEditor {
                     
                         bool removed = false;
                     
-                        ImGui::SameLine(ImGui::GetContentRegionAvailWidth() - 16.0f);
+                        ImGui::SameLine(ImGui::GetContentRegionAvail().x - 16.0f);
 
                         ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.7f, 0.7f, 0.7f, 0.0f));
 
-                        if (ImGui::Button((ICON_MDI_SETTINGS"##" + label).c_str()))
+                        if (ImGui::Button((ICON_MDI_TUNE"##" + label).c_str()))
                             ImGui::OpenPopup(("Remove Component" + label).c_str());
                         ImGui::PopStyleColor();
                     
@@ -133,12 +133,12 @@ class ImGuiEntityEditor {
 
 				if (!has_not.empty()) 
 				{
-					if (ImGui::Button("+ Add Component")) 
+					if (ImGui::Button(ICON_MDI_PLUS_BOX_OUTLINE" Add Component", ImVec2(ImGui::GetContentRegionAvail().x, 0.0f)))
 					{
-						ImGui::OpenPopup("add component");
+						ImGui::OpenPopup("addComponent");
 					}
 
-					if (ImGui::BeginPopup("add component")) 
+					if (ImGui::BeginPopup("addComponent"))
 					{
 						ImGui::TextUnformatted("Available:");
 						ImGui::Separator();

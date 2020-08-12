@@ -2,6 +2,7 @@
 #include "lmpch.h"
 
 #include "Maths/Maths.h"
+#include "Maths/Transform.h"
 
 namespace Lumos
 {
@@ -13,11 +14,11 @@ namespace Lumos
         CameraController() = default;
 		virtual ~CameraController() = default;
 
-		virtual void HandleMouse(Camera* camera, float dt, float xpos, float ypos) {};
-		virtual void HandleKeyboard(Camera* camera, float dt) {};
-        virtual void UpdateScroll(Camera* camera, float offset, float dt) { };
-    
-        virtual void OnImGui() {};
+		virtual void HandleMouse(Maths::Transform& transform, float dt, float xpos, float ypos) {};
+		virtual void HandleKeyboard(Maths::Transform& transform, float dt){};
+		virtual void UpdateScroll(Maths::Transform& transform, float offset, float dt){};
+
+		virtual void OnImGui() {};
 
 		void SetMouseSensitivity(float value) { m_MouseSensitivity = value; }
 

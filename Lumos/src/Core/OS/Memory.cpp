@@ -54,15 +54,15 @@ namespace Lumos
 }
 
 #ifdef CUSTOM_MEMORY_ALLOCATOR
-void* operator new(std::size_t size)
-{
-    void* result = Lumos::Memory::NewFunc(size, __FILE__, __LINE__);
-    if (result == nullptr)
-    {
-        throw std::bad_alloc();
-    }
-    return result;
-}
+//void* operator new(std::size_t size)
+//{
+//    void* result = Lumos::Memory::NewFunc(size, __FILE__, __LINE__);
+//    if (result == nullptr)
+//    {
+//        throw std::bad_alloc();
+//    }
+//    return result;
+//}
 
 void* operator new(std::size_t size, const char *file, int line)
 {
@@ -84,25 +84,25 @@ void* operator new[](std::size_t size, const char *file, int line)
     return result;
 }
 
-void* operator new (std::size_t size, const std::nothrow_t& nothrow_value) noexcept
-{
-    return Lumos::Memory::NewFunc(size, __FILE__, __LINE__);
-}
+//void* operator new (std::size_t size, const std::nothrow_t& nothrow_value) noexcept
+//{
+//    return Lumos::Memory::NewFunc(size, __FILE__, __LINE__);
+//}
 
 void operator delete(void * p) throw()
 {
     Lumos::Memory::DeleteFunc(p);
 }
 
-void* operator new[](std::size_t size)
-{
-    void* result = Lumos::Memory::NewFunc(size, __FILE__, __LINE__);
-    if (result == nullptr)
-    {
-        throw std::bad_alloc();
-    }
-    return result;
-}
+//void* operator new[](std::size_t size)
+//{
+//    void* result = Lumos::Memory::NewFunc(size, __FILE__, __LINE__);
+//    if (result == nullptr)
+//    {
+//        throw std::bad_alloc();
+//    }
+//    return result;
+//}
 
 void operator delete[](void *p) throw()
 {

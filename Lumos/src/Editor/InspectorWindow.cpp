@@ -11,7 +11,7 @@
 #include "Graphics/API/Texture.h"
 #include "Graphics/API/GraphicsContext.h"
 #include "Maths/Transform.h"
-#include "Scripting/LuaScriptComponent.h"
+#include "Scripting/Lua/LuaScriptComponent.h"
 #include "ImGui/ImGuiHelpers.h"
 #include "FileBrowserWindow.h"
 #include "Physics/LumosPhysicsEngine/CuboidCollisionShape.h"
@@ -205,6 +205,31 @@ namespace MM
 		}
 		ImGui::NextColumn();
 		ImGui::PushItemWidth(-1);
+	}
+
+	std::string CollisionShape2DTypeToString(Lumos::Shape shape)
+	{
+		switch (shape)
+		{
+			case Lumos::Shape::Circle : return "Circle";
+			case Lumos::Shape::Square : return "Square";
+			case Lumos::Shape::Custom : return "Custom";
+		}
+
+		return "Unknown Shape";
+	}
+
+	Lumos::Shape StringToCollisionShape2DType(const std::string& type)
+	{
+		if(type == "Circle")
+			return Lumos::Shape::Circle;
+		if(type == "Square")
+			return Lumos::Shape::Square;
+		if(type == "Custom")
+			return Lumos::Shape::Custom;
+
+		Lumos::Debug::Log::Error("Unsupported Collision shape {0}", type);
+		return Lumos::Shape::Circle;
 	}
 
 	std::string CollisionShapeTypeToString(Lumos::CollisionShapeType type)
@@ -410,8 +435,6 @@ namespace MM
 		ImGui::PopItemWidth();
 		ImGui::NextColumn();
 
-		bool updatedCollisionShape = false;
-
 		if(collisionShape)
 		{
 			switch(collisionShape->GetType())
@@ -514,6 +537,31 @@ namespace MM
 		ImGui::PushItemWidth(-1);
 		if(ImGui::Checkbox("##At Rest", &isRest))
 			phys.GetRigidBody()->SetIsAtRest(isRest);
+
+		ImGui::PopItemWidth();
+		ImGui::NextColumn();
+
+		ImGui::AlignTextToFramePadding();
+		ImGui::TextUnformatted("Shape Type");
+		ImGui::NextColumn();
+		ImGui::PushItemWidth(-1);
+
+		const char* shapes[] = {"Circle", "Square", "Custom"};
+		std::string shape_current = CollisionShape2DTypeToString(phys.GetRigidBody()->GetShapeType());
+		if(ImGui::BeginCombo("", shape_current.c_str(), 0)) // The second parameter is the label previewed before opening the combo.
+		{
+			for(int n = 0; n < 3; n++)
+			{
+				bool is_selected = (shape_current.c_str() == shapes[n]);
+				if(ImGui::Selectable(shapes[n], shape_current.c_str()))
+				{
+					phys.GetRigidBody()->SetShape(StringToCollisionShape2DType(shapes[n]));
+				}
+				if(is_selected)
+					ImGui::SetItemDefaultFocus();
+			}
+			ImGui::EndCombo();
+		}
 
 		ImGui::PopItemWidth();
 		ImGui::NextColumn();
@@ -1076,6 +1124,44 @@ namespace MM
 		ImGui::Separator();
 		ImGui::PopStyleVar();
 	}
+
+	template<>
+	void ComponentEditorWidget<Lumos::DefaultCameraController>(entt::registry& reg, entt::registry::entity_type e)
+	{
+		auto& controllerComp = reg.get<Lumos::DefaultCameraController>(e);
+		ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(2, 2));
+		ImGui::Columns(2);
+		ImGui::Separator();
+
+		ImGui::AlignTextToFramePadding();
+		ImGui::TextUnformatted("Controller Type");
+		ImGui::NextColumn();
+		ImGui::PushItemWidth(-1);
+
+		const char* controllerTypes[] = {"Editor", "FPS", "ThirdPerson", "2D", "Custom"};
+		std::string currentController = Lumos::DefaultCameraController::CameraControllerTypeToString(controllerComp.GetType());
+		if(ImGui::BeginCombo("", currentController.c_str(), 0)) // The second parameter is the label previewed before opening the combo.
+		{
+			for(int n = 0; n < 5; n++)
+			{
+				bool is_selected = (currentController.c_str() == controllerTypes[n]);
+				if(ImGui::Selectable(controllerTypes[n], currentController.c_str()))
+				{
+					controllerComp.SetControllerType(Lumos::DefaultCameraController::StringToControllerType(controllerTypes[n]));
+				}
+				if(is_selected)
+					ImGui::SetItemDefaultFocus();
+			}
+			ImGui::EndCombo();
+		}
+
+        if(controllerComp.GetController())
+            controllerComp.GetController()->OnImGui();
+
+		ImGui::Columns(1);
+		ImGui::Separator();
+		ImGui::PopStyleVar();
+	}
 }
 
 namespace Lumos
@@ -1118,6 +1204,7 @@ namespace Lumos
 		TRIVIAL_COMPONENT(LuaScriptComponent, "LuaScript");
 		TRIVIAL_COMPONENT(Graphics::Environment, "Environment");
 		TRIVIAL_COMPONENT(TextureMatrixComponent, "Texture Matrix");
+		TRIVIAL_COMPONENT(DefaultCameraController, "Default Camera Controller");
 	}
 
 	void InspectorWindow::OnImGui()
@@ -1157,6 +1244,7 @@ namespace Lumos
 			static char objName[INPUT_BUF_SIZE];
 			strcpy(objName, name.c_str());
 
+			if(m_DebugMode)
 			{
 				if(registry.valid(selected))
 				{
@@ -1168,14 +1256,76 @@ namespace Lumos
 				}
 			}
 
+            ImGui::SameLine(ImGui::GetWindowContentRegionWidth() - 16.0f);
+
+            ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.7f, 0.7f, 0.7f, 0.0f));
+
+            if (ImGui::Button(ICON_MDI_TUNE))
+                ImGui::OpenPopup("SetDebugMode");
+            ImGui::PopStyleColor();
+
+            if (ImGui::BeginPopup("SetDebugMode", 3))
+            {
+                if (ImGui::Selectable("Debug Mode", m_DebugMode))
+                {
+                    m_DebugMode = !m_DebugMode;
+                }
+                ImGui::EndPopup();
+            }
+
 			ImGui::PushItemWidth(-1);
 			if(ImGui::InputText("##Name", objName, IM_ARRAYSIZE(objName), 0))
 				registry.get_or_emplace<NameComponent>(selected).name = objName;
 
 			ImGui::Separator();
 
+			if(m_DebugMode)
+            {
+                auto hierarchyComp = registry.try_get<Hierarchy>(selected);
+
+                if(hierarchyComp)
+                {
+                    if(registry.valid(hierarchyComp->parent()))
+                    {
+                        ImGui::Text("Parent : ID: %d", static_cast<int>(registry.entity(hierarchyComp->parent())));
+                    }
+                    else
+                    {
+                        ImGui::TextUnformatted("Parent : null");
+                    }
+
+                    entt::entity child = hierarchyComp->first();
+                    ImGui::TextUnformatted("Children : ");
+                    ImGui::Indent(24.0f);
+
+                    while (child != entt::null)
+                    {
+                        ImGui::Text("ID: %d", static_cast<int>(registry.entity(child)));
+
+                        auto hierarchy = registry.try_get<Hierarchy>(child);
+
+                        if (hierarchy)
+                        {
+                            child = hierarchy->next();
+                        }
+                    }
+
+                    ImGui::Unindent(24.0f);
+
+                }
+
+
+                ImGui::Separator();
+            }
+
+
 			m_EnttEditor.RenderImGui(registry, selected);
 		}
 		ImGui::End();
 	}
+
+    void InspectorWindow::SetDebugMode(bool mode)
+    {
+		m_DebugMode = mode;
+    }
 }

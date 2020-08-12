@@ -1,6 +1,5 @@
 #include "lmpch.h"
 #include "SoundNode.h"
-#include "Graphics/Camera/Camera.h"
 
 #ifdef LUMOS_OPENAL
 #include "Platform/OpenAL/ALSoundNode.h"

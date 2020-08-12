@@ -317,29 +317,34 @@ namespace Lumos
 			m_UniformBuffer->SetData(sizeof(Maths::Matrix4), *&m_VSSystemUniformBuffer);
 		}
 
-		void Renderer2D::BeginScene(Scene* scene, Camera* overrideCamera)
+		void Renderer2D::BeginScene(Scene* scene, Camera* overrideCamera, Maths::Transform* overrideCameraTransform)
 		{
 			auto& registry = scene->GetRegistry();
 
 			if(overrideCamera)
+			{
 				m_Camera = overrideCamera;
+				m_CameraTransform = overrideCameraTransform;
+			}
 			else
 			{
 				auto cameraView = registry.view<Camera>();
 				if(!cameraView.empty())
 				{
-					m_Camera = &registry.get<Camera>(cameraView.front());
+					m_Camera = &cameraView.get<Camera>(cameraView.front());
+					m_CameraTransform = registry.try_get<Maths::Transform>(cameraView.front());
 				}
 			}
 
-			if(!m_Camera)
+			if(!m_Camera || !m_CameraTransform)
 				return;
 
-			auto projView = m_Camera->GetProjectionMatrix() * m_Camera->GetViewMatrix();
+            auto view = m_CameraTransform->GetWorldMatrix().Inverse();
+			auto projView = m_Camera->GetProjectionMatrix() * view;
 
 			memcpy(m_VSSystemUniformBuffer, &projView, sizeof(Maths::Matrix4));
 
-			m_Frustum = m_Camera->GetFrustum();
+			m_Frustum = m_Camera->GetFrustum(view);
 		}
 
 		void Renderer2D::Present()

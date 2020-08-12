@@ -18,7 +18,7 @@ namespace Lumos
 	{
 	public:
 		RigidBody2D();
-		explicit RigidBody2D(const RigidBodyParamaters& params);
+		explicit RigidBody2D(const RigidBodyParameters& params);
 
 		virtual ~RigidBody2D();
 
@@ -38,10 +38,14 @@ namespace Lumos
 		void SetPosition(const Maths::Vector2& pos) const;
 		void SetOrientation(float angle) const;
 
-		void Init(const RigidBodyParamaters& params);
+		void Init(const RigidBodyParameters& params);
 
 		Maths::Vector2 GetPosition() const;
 		float GetAngle() const;
+        Shape GetShapeType() const { return m_ShapeType; }
+
+        void SetShape(Shape shape, const std::vector<Maths::Vector2>& customPositions = { Maths::Vector2(0.0f)} );
+
 
 		template<typename Archive>
 		void save(Archive& archive) const
@@ -53,7 +57,7 @@ namespace Lumos
 		template<typename Archive>
 		void load(Archive& archive)
 		{
-			RigidBodyParamaters params;
+			RigidBodyParameters params;
 			float angle;
             Maths::Vector2 pos;
 			archive(cereal::make_nvp("Position", pos), cereal::make_nvp("Friction", m_Friction), cereal::make_nvp("Angle", angle), cereal::make_nvp("Static", m_Static), cereal::make_nvp("Mass", m_Mass), cereal::make_nvp("Scale", params.scale), cereal::make_nvp("Shape", m_ShapeType));

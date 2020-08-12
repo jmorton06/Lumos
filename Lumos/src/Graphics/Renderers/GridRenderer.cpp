@@ -16,6 +16,7 @@
 #include "Scene/Scene.h"
 #include "Core/Application.h"
 #include "Graphics/Camera/Camera.h"
+#include "Maths/Transform.h"
 
 #include <imgui/imgui.h>
 
@@ -147,22 +148,26 @@ namespace Lumos
 			m_RenderPass->BeginRenderpass(m_CommandBuffers[m_CurrentBufferID], Maths::Vector4(0.0f), m_Framebuffers[m_CurrentBufferID], Graphics::INLINE, m_ScreenBufferWidth, m_ScreenBufferHeight);
 		}
 
-		void GridRenderer::BeginScene(Scene* scene, Camera* overrideCamera)
+		void GridRenderer::BeginScene(Scene* scene, Camera* overrideCamera, Maths::Transform* overrideCameraTransform)
 		{
 			auto& registry = scene->GetRegistry();
 
 			if(overrideCamera)
+			{
 				m_Camera = overrideCamera;
+				m_CameraTransform = overrideCameraTransform;
+			}
 			else
 			{
 				auto cameraView = registry.view<Camera>();
 				if(!cameraView.empty())
 				{
-					m_Camera = &registry.get<Camera>(cameraView.front());
+					m_Camera = &cameraView.get<Camera>(cameraView.front());
+					m_CameraTransform = registry.try_get<Maths::Transform>(cameraView.front());
 				}
 			}
 
-			if(!m_Camera)
+			if(!m_Camera || !m_CameraTransform)
 				return;
 
 			auto proj = m_Camera->GetProjectionMatrix();
@@ -170,10 +175,10 @@ namespace Lumos
 			UniformBufferObjectFrag test;
 			test.res = m_GridRes;
 			test.scale = m_GridSize;
-			test.cameraPos = m_Camera->GetPosition();
+			test.cameraPos = m_CameraTransform->GetWorldPosition();
 			test.maxDistance = m_MaxDistance;
 
-			auto invViewProj = proj * m_Camera->GetViewMatrix();
+			auto invViewProj = proj * m_CameraTransform->GetWorldMatrix().Inverse();
 			memcpy(m_VSSystemUniformBuffer + m_VSSystemUniformBufferOffsets[VSSystemUniformIndex_InverseProjectionViewMatrix], &invViewProj, sizeof(Maths::Matrix4));
 			memcpy(m_PSSystemUniformBuffer + m_VSSystemUniformBufferOffsets[VSSystemUniformIndex_InverseProjectionViewMatrix], &test, sizeof(UniformBufferObjectFrag));
 		}

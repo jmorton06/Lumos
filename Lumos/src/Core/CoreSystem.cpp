@@ -2,7 +2,7 @@
 #include "CoreSystem.h"
 #include "VFS.h"
 #include "JobSystem.h"
-#include "Scripting/LuaManager.h"
+#include "Scripting/Lua/LuaManager.h"
 #include "Core/Version.h"
 #include "Core/Profiler.h"
 #include "Core/OS/MemoryManager.h"

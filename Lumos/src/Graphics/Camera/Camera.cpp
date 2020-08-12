@@ -1,11 +1,6 @@
 #include "lmpch.h"
 #include "Camera.h"
 #include "ImGui/ImGuiHelpers.h"
-#include "ThirdPersonCamera.h"
-#include "Camera2D.h"
-#include "FPSCamera.h"
-#include "MayaCamera.h"
-#include "Editor/EditorCamera.h"
 
 #include <imgui/imgui.h>
 
@@ -13,63 +8,40 @@ namespace Lumos
 {
 
 	Camera::Camera(float FOV, float Near, float Far, float aspect)
-		: m_Pitch(0.0f)
-		, m_Yaw(0.0f)
-		, m_Roll(0.0f)
-		, m_Position(Maths::Vector3(0.0f, 0.0f, 0.0f))
-		, m_AspectRatio(aspect)
+		: m_AspectRatio(aspect)
 		, m_FrustumDirty(true)
 		, m_ProjectionDirty(true)
-		, m_ViewDirty(true)
 		, m_Fov(FOV)
 		, m_Near(Near)
 		, m_Far(Far)
 		, m_Orthographic(false)
 		, m_Scale(1.0f)
 	{
-		SetCameraControllerType(ControllerType::EditorCamera);
 	};
 
 	Camera::Camera(float pitch, float yaw, const Maths::Vector3& position, float FOV, float Near, float Far, float aspect)
-		: m_Pitch(pitch)
-		, m_Yaw(yaw)
-		, m_Roll(0.0f)
-		, m_Position(position)
-		, m_AspectRatio(aspect)
+		: m_AspectRatio(aspect)
 		, m_FrustumDirty(true)
 		, m_ProjectionDirty(true)
-		, m_ViewDirty(true)
 		, m_Fov(FOV)
 		, m_Near(Near)
 		, m_Far(Far)
 		, m_Orthographic(false)
 		, m_Scale(1.0f)
 	{
-		SetCameraControllerType(ControllerType::EditorCamera);
 	}
 
 	Camera::Camera(float aspectRatio, float scale)
-		: m_Pitch(0)
-		, m_Yaw(0)
-		, m_Roll(0)
-		, m_AspectRatio(aspectRatio)
+		: m_AspectRatio(aspectRatio)
 		, m_Scale(scale)
 		, m_FrustumDirty(true)
 		, m_ProjectionDirty(true)
-		, m_ViewDirty(true)
 		, m_Fov(0)
 		, m_Near(-10.0)
 		, m_Far(10.0f)
 		, m_Orthographic(true)
-		, m_Position(Maths::Vector3(0.0f))
 	{
-		SetCameraControllerType(ControllerType::Camera2D);
 	}
-
-	void Camera::UpdateViewMatrix()
-	{
-		m_ViewMatrix = Maths::Matrix3x4(m_Position, Maths::Quaternion::EulerAnglesToQuaternion(m_Pitch, m_Yaw, m_Roll), Maths::Vector3(1.0f)).Inverse().ToMatrix4();
-	};
 
 	void Camera::UpdateProjectionMatrix()
 	{
@@ -79,43 +51,21 @@ namespace Lumos
 			m_ProjMatrix = Maths::Matrix4::Perspective(m_Near, m_Far, m_AspectRatio, m_Fov, m_ProjectionOffset.x, m_ProjectionOffset.y, m_Zoom);
 	}
 
-	Maths::Vector3 Camera::GetUpDirection() const
-	{
-		Maths::Vector3 up = Maths::Vector3::UP;
-		up = GetOrientation() * up;
-		return up;
-	}
-
-	Maths::Vector3 Camera::GetRightDirection() const
-	{
-		Maths::Vector3 right = Maths::Vector3::RIGHT;
-		right = GetOrientation() * right;
-		return right;
-	}
-
-	Maths::Vector3 Camera::GetForwardDirection() const
-	{
-		Maths::Vector3 forward = Maths::Vector3::FORWARD;
-		forward = GetOrientation() * forward;
-		return forward;
-	}
-
-	Maths::Frustum& Camera::GetFrustum()
+	Maths::Frustum& Camera::GetFrustum(const Maths::Matrix4& viewMatrix)
 	{
 		if(m_ProjectionDirty)
 			UpdateProjectionMatrix();
 
-		if(m_FrustumDirty)
 		{
 			customProjection_ = true; //temp
 			if(customProjection_)
-				m_Frustum.Define(m_ProjMatrix * m_ViewMatrix);
+				m_Frustum.Define(m_ProjMatrix * viewMatrix);
 			else
 			{
 				if(m_Orthographic)
-					m_Frustum.DefineOrtho(m_Scale, m_AspectRatio, m_Zoom, GetNear(), GetFar(), Maths::Matrix3x4(m_ViewMatrix));
+					m_Frustum.DefineOrtho(m_Scale, m_AspectRatio, m_Zoom, GetNear(), GetFar(), Maths::Matrix3x4(viewMatrix));
 				else
-					m_Frustum.Define(m_Fov, m_AspectRatio, m_Zoom, GetNear(), GetFar(), Maths::Matrix3x4(m_ViewMatrix));
+					m_Frustum.Define(m_Fov, m_AspectRatio, m_Zoom, GetNear(), GetFar(), Maths::Matrix3x4(viewMatrix));
 			}
 
 			m_FrustumDirty = false;
@@ -134,26 +84,11 @@ namespace Lumos
 		return m_ProjMatrix;
 	}
 
-	const Maths::Matrix4& Camera::GetViewMatrix()
-	{
-		if(m_ViewDirty)
-		{
-			UpdateViewMatrix();
-			m_ViewDirty = false;
-		}
-		return m_ViewMatrix;
-	}
-
-	Maths::Quaternion Camera::GetOrientation() const
-	{
-		return Maths::Quaternion::EulerAnglesToQuaternion(m_Pitch, m_Yaw, m_Roll);
-	}
-
-	Maths::Ray Camera::GetScreenRay(float x, float y, bool invertY) const
+	Maths::Ray Camera::GetScreenRay(float x, float y, const Maths::Matrix4& viewMatrix, bool invertY) const
 	{
 		Maths::Ray ret;
 
-		Maths::Matrix4 viewProjInverse = (m_ProjMatrix * m_ViewMatrix).Inverse();
+		Maths::Matrix4 viewProjInverse = (m_ProjMatrix * viewMatrix).Inverse();
 
 		// The parameters range from 0.0 to 1.0. Expand to normalized device coordinates (-1.0 to 1.0)
 		x = 2.0f * x - 1.0f;
@@ -170,50 +105,6 @@ namespace Lumos
 		return ret;
 	}
 
-	std::string CameraControllerTypeToString(ControllerType type)
-	{
-		switch(type)
-		{
-		case ControllerType::ThirdPerson:
-			return "ThirdPerson";
-		case ControllerType::Maya:
-			return "Maya";
-		case ControllerType::FPS:
-			return "FPS";
-		case ControllerType::Simple:
-			return "Simple";
-		case ControllerType::EditorCamera:
-			return "Editor";
-		case ControllerType::Camera2D:
-			return "2D";
-		case ControllerType::Custom:
-			return "Custom";
-		}
-
-		return "Custom";
-	}
-
-	ControllerType StringToControllerType(const std::string& type)
-	{
-		if(type == "ThirdPerson")
-			return ControllerType::ThirdPerson;
-		if(type == "Maya")
-			return ControllerType::Maya;
-		if(type == "FPS")
-			return ControllerType::FPS;
-		if(type == "Simple")
-			return ControllerType::Simple;
-		if(type == "Editor")
-			return ControllerType::EditorCamera;
-		if(type == "2D")
-			return ControllerType::Camera2D;
-		if(type == "Custom")
-			return ControllerType::Custom;
-
-		Lumos::Debug::Log::Error("Unsupported Camera controller {0}", type);
-		return ControllerType::Custom;
-	}
-
 	void Camera::OnImGui()
 	{
 		{
@@ -221,11 +112,11 @@ namespace Lumos
 			ImGui::Columns(2);
 			ImGui::Separator();
 
-			ImGuiHelpers::Property("Position", m_Position, -1000.0f, 1000.0f);
+			//ImGuiHelpers::Property("Position", m_Position, -1000.0f, 1000.0f);
 			ImGuiHelpers::Property("Aspect", m_AspectRatio, 0.0f, 10.0f);
-			ImGuiHelpers::Property("Pitch", m_Pitch, -360.0f, 360.0f);
-			ImGuiHelpers::Property("Yaw", m_Yaw, -360.0f, 360.0f);
-			ImGuiHelpers::Property("Roll", m_Roll, -360.0f, 360.0f);
+			//ImGuiHelpers::Property("Pitch", m_Pitch, -360.0f, 360.0f);
+			//ImGuiHelpers::Property("Yaw", m_Yaw, -360.0f, 360.0f);
+			//ImGuiHelpers::Property("Roll", m_Roll, -360.0f, 360.0f);
 			ImGuiHelpers::Property("Fov", m_Fov, 1.0f, 120.0f);
 			ImGuiHelpers::Property("Near", m_Near, 0.0f, 10.0f);
 			ImGuiHelpers::Property("Far", m_Far, 10.0f, 10000.0f);
@@ -235,64 +126,11 @@ namespace Lumos
             ImGuiHelpers::Property("Orthograhic", m_Orthographic);
 
 			m_ProjectionDirty = true;
-			m_ViewDirty = true;
 			m_FrustumDirty = true;
-
-			ImGui::AlignTextToFramePadding();
-			ImGui::TextUnformatted("Controller Type");
-			ImGui::NextColumn();
-			ImGui::PushItemWidth(-1);
-
-			const char* controllerTypes[] = {"Editor", "FPS", "ThirdPerson", "2D", "Maya", "Custom"};
-			std::string currentController = CameraControllerTypeToString(m_ControllerType);
-			if(ImGui::BeginCombo("", currentController.c_str(), 0)) // The second parameter is the label previewed before opening the combo.
-			{
-				for(int n = 0; n < 6; n++)
-				{
-					bool is_selected = (currentController.c_str() == controllerTypes[n]);
-					if(ImGui::Selectable(controllerTypes[n], currentController.c_str()))
-					{
-						SetCameraControllerType(StringToControllerType(controllerTypes[n]));
-					}
-					if(is_selected)
-						ImGui::SetItemDefaultFocus();
-				}
-				ImGui::EndCombo();
-			}
 
 			ImGui::Columns(1);
 			ImGui::Separator();
 			ImGui::PopStyleVar();
-		}
-	}
-
-	void Camera::SetCameraControllerType(ControllerType type)
-	{
-		m_ControllerType = type;
-
-		switch(type)
-		{
-		case ControllerType::ThirdPerson:
-			m_CameraController = CreateRef<ThirdPersonCameraController>();
-			break;
-		case ControllerType::Maya:
-			m_CameraController = CreateRef<MayaCameraController>();
-			break;
-		case ControllerType::FPS:
-			m_CameraController = CreateRef<FPSCameraController>();
-			break;
-		case ControllerType::Simple:
-			m_CameraController = CreateRef<FPSCameraController>();
-			break;
-		case ControllerType::EditorCamera:
-			m_CameraController = CreateRef<EditorCameraController>();
-			break;
-		case ControllerType::Camera2D:
-			m_CameraController = CreateRef<CameraController2D>();
-			break;
-		case ControllerType::Custom:
-			m_CameraController = nullptr;
-			break;
 		}
 	}
 }

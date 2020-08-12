@@ -33,7 +33,7 @@ namespace Lumos
 		float usingAOMap = 1.0f;
 		float usingEmissiveMap = 1.0f;
 		float workflow = PBR_WORKFLOW_SEPARATE_TEXTURES;
-		float padding;
+		float padding = 0.0f;
 	};
 
 	struct PBRMataterialTextures
