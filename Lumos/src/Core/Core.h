@@ -103,7 +103,7 @@
 	{												\
 		if(!(condition))							\
 		{											\
-			Debug::Log::Error("Assertion Failed!");		\
+			Lumos::Debug::Log::Error("Assertion Failed!");		\
 			LUMOS_BREAK();							\
 		}											\
 	}												
@@ -112,16 +112,18 @@
 	{																\
 		if(!(condition))											\
 		{															\
-			Debug::Log::Error("Assertion Failed : {0}", __VA_ARGS__);	\
+			Lumos::Debug::Log::Error("Assertion Failed : {0}", __VA_ARGS__);	\
 			LUMOS_BREAK();											\
 		}															\
 	}																
 
-	#define LUMOS_CLIENT_ASSERT	 LUMOS_ASSERT_MESSAGE
-	#define LUMOS_CORE_ASSERT		 LUMOS_ASSERT_MESSAGE
+	#define LUMOS_CLIENT_ASSERT	LUMOS_ASSERT_MESSAGE
+	#define LUMOS_CORE_ASSERT LUMOS_ASSERT_MESSAGE
 #else
 	#define LUMOS_CLIENT_ASSERT(...)
 	#define LUMOS_CORE_ASSERT(...)
+    #define LUMOS_ASSERT_NO_MESSAGE(...)
+    #define LUMOS_ASSERT_MESSAGE(condition)
 #endif
 
 #ifdef LUMOS_ENGINE
@@ -132,7 +134,7 @@
 
 #define UNIMPLEMENTED	 												\
 {																		\
-	Debug::Log::Error("Unimplemented : {0} : {1}", __FILE__, __LINE__); 		\
+	Lumos::Debug::Log::Error("Unimplemented : {0} : {1}", __FILE__, __LINE__); 		\
 	LUMOS_BREAK();  													\
 }
 

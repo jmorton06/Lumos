@@ -4,7 +4,7 @@ IncludeDir["Glad"] = "../Lumos/external/glad/include/"
 IncludeDir["lua"] = "../Lumos/external/lua/src/"
 IncludeDir["stb"] = "../Lumos/external/stb/"
 IncludeDir["OpenAL"] = "../Lumos/external/OpenAL/include/"
-IncludeDir["Box2D"] = "../Lumos/external/Box2D/"
+IncludeDir["Box2D"] = "../Lumos/external/box2d/include/"
 IncludeDir["vulkan"] = "../Lumos/external/vulkan/"
 IncludeDir["Lumos"] = "../Lumos/src"
 IncludeDir["External"] = "../Lumos/external/"
@@ -95,6 +95,8 @@ project "Sandbox"
 		{
 			"/MP"
 		}
+
+		disablewarnings { 4307 }
 
 	filter "system:macosx"
 		cppdialect "C++17"
@@ -270,45 +272,33 @@ project "Sandbox"
 
 		SetRecommendedXcodeSettings()
 
+		local targetAssetDirectory = ""
+
 		filter {"system:ios", "configurations:release"}
-
-			local source = "../Assets/**"
-			local target = "../bin/release/Sandbox.app/Assets"
-				
-			buildmessage("copying "..source.." -> "..target)
-			
-			os.mkdir(target)
-
-			postbuildcommands {
-				"{COPY} "..source.." "..target
-			}
+			targetAssetDirectory = "../bin/release/Sandbox.app/Assets"
 
 		filter {"system:ios", "configurations:Production"}
-
-			local source = "../Assets/**"
-			local target = "../bin/dist/Sandbox.app/Assets"
-				
-			buildmessage("copying "..source.." -> "..target)
-			
-			os.mkdir(target)
-
-			postbuildcommands {
-				"{COPY} "..source.." "..target
-			}
+			targetAssetDirectory = "../bin/dist/Sandbox.app/Assets"
 
 		filter {"system:ios", "configurations:debug"}
-
-			local source = "../Assets/**"
-			local target = "../bin/debug/Sandbox.app/Assets"
-				
+			targetAssetDirectory = "../bin/debug/Sandbox.app/Assets"
+		
+		filter "system:ios"
+			local target = targetAssetDirectory.."/CoreAssets/"
+			local source = "../Lumos/res/**"
 			buildmessage("copying "..source.." -> "..target)
-			
 			os.mkdir(target)
-
 			postbuildcommands {
 				"{COPY} "..source.." "..target
 			}
 
+			target = targetAssetDirectory.."/AppAssets/"
+			local source = "res/**"
+			buildmessage("copying "..source.." -> "..target)
+			os.mkdir(target)
+			postbuildcommands {
+				"{COPY} "..source.." "..target
+			}
 
 	filter "system:linux"
 		cppdialect "C++17"
@@ -332,7 +322,8 @@ project "Sandbox"
 			"-fpermissive",
 			"-Wattributes",
 			"-fPIC",
-			"-Wignored-attributes"
+			"-Wignored-attributes",
+			"-Wno-psabi"
 		}
 
 		links

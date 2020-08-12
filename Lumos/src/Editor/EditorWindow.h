@@ -45,6 +45,6 @@ namespace Lumos
 		bool m_Active = true;
 		std::string m_Name;
 		std::string m_SimpleName;
-		Editor* m_Editor;
+		Editor* m_Editor = nullptr;
 	};
 }

@@ -26,17 +26,17 @@ class Game : public Application
 		Application::Init();
         
 		const std::string root = ROOT_DIR;
-		VFS::Get()->Mount("Meshes", root + "/Assets/meshes");
-		VFS::Get()->Mount("Textures", root + "/Assets/textures");
-		VFS::Get()->Mount("Sounds", root + "/Assets/sounds");
-		VFS::Get()->Mount("Scripts", root + "/Assets/scripts");
+		VFS::Get()->Mount("Meshes", root + "/Sandbox/res/meshes");
+		VFS::Get()->Mount("Textures", root + "/Sandbox/res/textures");
+		VFS::Get()->Mount("Sounds", root + "/Sandbox/res/sounds");
+		VFS::Get()->Mount("Scripts", root + "/Sandbox/res/scripts");
         
 		GetSceneManager()->EnqueueScene<SceneModelViewer>("SceneModelViewer");
 		GetSceneManager()->EnqueueScene<Scene2D>("2D Test");
 		GetSceneManager()->EnqueueScene<Scene3D>("Physics Scene");
 		GetSceneManager()->EnqueueScene<GraphicsScene>("Terrain Test");
 		GetSceneManager()->EnqueueScene<MaterialTest>("Material Test");
-		GetSceneManager()->SwitchScene(1);
+		GetSceneManager()->SwitchScene(2);
 		GetSceneManager()->ApplySceneSwitch();
 	}
 };

@@ -9,10 +9,10 @@ namespace Lumos
 		EditorCameraController();
 		~EditorCameraController();
 
-		virtual void HandleMouse(Camera* camera, float dt, float xpos, float ypos) override;
-		virtual void HandleKeyboard(Camera* camera, float dt) override;
+		virtual void HandleMouse(Maths::Transform& transform, float dt, float xpos, float ypos) override;
+		virtual void HandleKeyboard(Maths::Transform& transform, float dt) override;
     
-        void UpdateScroll(Camera* camera, float offset, float dt) override;
+        void UpdateScroll(Maths::Transform& transform, float offset, float dt) override;
 
         void SetMode(bool is2D) { m_2DMode = is2D; }
 	private:

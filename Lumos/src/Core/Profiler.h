@@ -3,7 +3,6 @@
 #include "Utilities/Timer.h"
 #include "Utilities/TSingleton.h"
 
-#define LUMOS_PROFILER_ENABLED
 #ifdef LUMOS_PROFILER_ENABLED
 #define LUMOS_PROFILE_BLOCK(name) \
 UniqueRef<Lumos::ProfilerRecord> profilerData \
@@ -11,7 +10,7 @@ UniqueRef<Lumos::ProfilerRecord> profilerData \
 
 #define LUMOS_PROFILE_FUNC LUMOS_PROFILE_BLOCK(__FUNCTION__)
 #else
-#define LUMOS_PROFILE_BLOCK
+#define LUMOS_PROFILE_BLOCK(x)
 #define LUMOS_PROFILE_FUNC
 #endif
 

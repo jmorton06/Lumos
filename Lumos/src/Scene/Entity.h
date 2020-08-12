@@ -18,6 +18,7 @@ namespace Lumos
 			, m_Scene(scene)
 		{
 		}
+
 		~Entity()
 		{
 		}
@@ -87,6 +88,80 @@ namespace Lumos
 			return m_Scene->GetRegistry().get<Maths::Transform>(m_EntityHandle);
 		}
 
+		void SetParent(Entity entity)
+		{
+			bool acceptable = false;
+			auto hierarchyComponent = TryGetComponent<Hierarchy>();
+			if(hierarchyComponent != nullptr)
+			{
+				acceptable = entity.m_EntityHandle != m_EntityHandle && (!entity.IsParent(*this)) && (hierarchyComponent->parent() != m_EntityHandle);
+			}
+			else
+				acceptable = entity.m_EntityHandle != m_EntityHandle;
+
+			if(!acceptable)
+				return;
+
+			if(hierarchyComponent)
+				Hierarchy::Reparent(m_EntityHandle, entity.m_EntityHandle, m_Scene->GetRegistry(), *hierarchyComponent);
+			else
+			{
+				m_Scene->GetRegistry().emplace<Hierarchy>(m_EntityHandle, entity.m_EntityHandle);
+			}
+		}
+
+		Entity GetParent()
+		{
+			auto hierarchyComp = TryGetComponent<Hierarchy>();
+			if(hierarchyComp)
+				return Entity(hierarchyComp->parent(), m_Scene);
+			else
+				return Entity(entt::null, nullptr);
+			
+		}
+
+		std::vector<Entity> GetChildren()
+		{
+			std::vector<Entity> children;
+			auto hierarchyComponent = TryGetComponent<Hierarchy>();
+			if(hierarchyComponent)
+			{
+				entt::entity child = hierarchyComponent->first();
+				while(child != entt::null && m_Scene->GetRegistry().valid(child))
+				{
+					children.emplace_back(child, m_Scene);
+					auto hierarchyComponent = m_Scene->GetRegistry().try_get<Hierarchy>(child);
+					if(hierarchyComponent)
+						child = hierarchyComponent->next();
+				}
+			}
+				
+			return children;
+		}
+
+		bool IsParent(Entity potentialParent)
+		{
+			auto nodeHierarchyComponent = m_Scene->GetRegistry().try_get<Hierarchy>(m_EntityHandle);
+			if(nodeHierarchyComponent)
+			{
+				auto parent = nodeHierarchyComponent->parent();
+				while(parent != entt::null)
+				{
+					if(parent == potentialParent.m_EntityHandle)
+					{
+						return true;
+					}
+					else
+					{
+						nodeHierarchyComponent = m_Scene->GetRegistry().try_get<Hierarchy>(parent);
+						parent = nodeHierarchyComponent ? nodeHierarchyComponent->parent() : entt::null;
+					}
+				}
+			}
+
+			return false;
+		}
+
 		operator u32() const
 		{
 			return (u32)m_EntityHandle;
@@ -94,7 +169,7 @@ namespace Lumos
 
 		operator bool() const
 		{
-			return (u32)m_EntityHandle && m_Scene;
+			return m_EntityHandle != entt::null && m_Scene;
 		}
 
 		bool operator==(const Entity& other) const
@@ -119,14 +194,11 @@ namespace Lumos
 
 		bool Valid()
 		{
-			return m_Scene->GetRegistry().valid(m_EntityHandle);
+			return m_Scene->GetRegistry().valid(m_EntityHandle) && m_Scene;
 		}
 
-	private : 
-		Entity(const std::string& name);
-
 	private:
-		entt::entity m_EntityHandle;
+		entt::entity m_EntityHandle = entt::null;
 		Scene* m_Scene = nullptr;
 
 		friend class EntityManager;

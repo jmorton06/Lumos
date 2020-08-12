@@ -39,17 +39,15 @@
 #include "Graphics/Terrain.h"
 #include "Graphics/Light.h"
 #include "Graphics/Environment.h"
-
-#include "Utilities/AssetsManager.h"
+#include "Graphics/MeshFactory.h"
 
 //Entity
 #include "Scene/Component/Components.h"
 #include "Scene/EntityManager.h"
-
+#include "Scene/EntityFactory.h"
 //Cameras
 #include "Graphics/Camera/ThirdPersonCamera.h"
 #include "Graphics/Camera/FPSCamera.h"
-#include "Graphics/Camera/MayaCamera.h"
 #include "Graphics/Camera/Camera2D.h"
 #include "Graphics/Camera/Camera.h"
 
@@ -77,15 +75,14 @@
 #include "Core/OS/OS.h"
 
 //Scripting
-#include "Scripting/LuaScriptComponent.h"
-#include "Scripting/LuaManager.h"
+#include "Scripting/Lua/LuaScriptComponent.h"
+#include "Scripting/Lua/LuaManager.h"
 
 //Utilities
 #include "Utilities/LoadImage.h"
 #include "Utilities/Timer.h"
 #include "Utilities/RandomNumberGenerator.h"
 #include "Utilities/TimeStep.h"
-#include "Utilities/CommonUtils.h"
 #include "Utilities/StateMachine.h"
 #include "Utilities/State.h"
 
@@ -103,4 +100,3 @@
 
 //External
 #include <imgui/imgui.h>
-#include <Box2D/Box2D.h>

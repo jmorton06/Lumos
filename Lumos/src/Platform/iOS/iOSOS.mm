@@ -43,14 +43,14 @@ namespace Lumos
         Lumos::Internal::CoreSystem::Init(false);
 
         std::string root = GetAssetPath();
-        Lumos::VFS::Get()->Mount("CoreShaders", root + "/Assets/shaders");
-        Lumos::VFS::Get()->Mount("CoreMeshes", root + "/Assets/meshes");
-        Lumos::VFS::Get()->Mount("CoreTextures", root + "/Assets/textures");
+        Lumos::VFS::Get()->Mount("CoreShaders", root + "/Assets/CoreAssets/shaders");
+        Lumos::VFS::Get()->Mount("CoreMeshes", root + "/Assets/CoreAssets/meshes");
+        Lumos::VFS::Get()->Mount("CoreTextures", root + "/Assets/CoreAssets/textures");
 
-        Lumos::VFS::Get()->Mount("Shaders", root + "/Assets/shaders");
-        Lumos::VFS::Get()->Mount("Meshes", root + "/Assets/meshes");
-        Lumos::VFS::Get()->Mount("Textures", root + "/Assets/textures");
-        Lumos::VFS::Get()->Mount("Scripts", root + "/Assets/scripts");
+        Lumos::VFS::Get()->Mount("Shaders", root + "/Assets/AppAssets/shaders");
+        Lumos::VFS::Get()->Mount("Meshes", root + "/Assets/AppAssets/meshes");
+        Lumos::VFS::Get()->Mount("Textures", root + "/Assets/AppAssets/textures");
+        Lumos::VFS::Get()->Mount("Scripts", root + "/Assets/AppAssets/scripts");
 
         
         Lumos::Debug::Log::Info("Device : {0}",GetModelName());

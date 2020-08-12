@@ -5,8 +5,8 @@
 
 #include "Maths/Vector2.h"
 
-#include <Box2D/Box2D.h>
-#include <Box2D/Dynamics/b2World.h>
+#include <box2d/box2d.h>
+#include <box2d/b2_world.h>
 
 namespace Lumos
 {
@@ -16,7 +16,7 @@ namespace Lumos
 	{
 	}
 
-	RigidBody2D::RigidBody2D(const RigidBodyParamaters& params)
+	RigidBody2D::RigidBody2D(const RigidBodyParameters& params)
 		: m_B2Body(nullptr)
 	{
 		Init(params);
@@ -53,7 +53,7 @@ namespace Lumos
 		m_B2Body->SetTransform(m_B2Body->GetPosition(), angle);
 	}
 
-	void RigidBody2D::Init(const RigidBodyParamaters& params)
+	void RigidBody2D::Init(const RigidBodyParameters& params)
 	{
 		m_Static = params.isStatic;
 		m_ShapeType = params.shape;
@@ -103,7 +103,7 @@ namespace Lumos
 		else if(params.shape == Shape::Custom)
 		{
 			b2PolygonShape dynamicBox;
-			dynamicBox.SetAsBox(params.scale.x, params.scale.y);
+			dynamicBox.Set((b2Vec2*)params.custumShapePositions.data(), int32(params.custumShapePositions.size()));
 
 			if(params.isStatic)
 				m_B2Body->CreateFixture(&dynamicBox, 0.0f);
@@ -132,4 +132,21 @@ namespace Lumos
 	{
 		return m_B2Body->GetAngle();
 	}
+
+    void RigidBody2D::SetShape(Shape shape, const std::vector<Maths::Vector2> &customPositions)
+    {
+        m_ShapeType = shape;
+
+        if(m_B2Body && Application::Get().GetSystem<B2PhysicsEngine>())
+            Application::Get().GetSystem<B2PhysicsEngine>()->GetB2World()->DestroyBody(m_B2Body);
+
+        RigidBodyParameters params;
+        params.shape = m_ShapeType;
+        params.position = Maths::Vector3(GetPosition(), 1.0f);
+        params.custumShapePositions = customPositions;
+        params.mass = m_Mass;
+        params.scale = m_Scale;
+        params.isStatic = m_Static;
+        Init(params);
+    }
 }

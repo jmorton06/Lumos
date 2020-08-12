@@ -4,6 +4,7 @@
 #include "Maths/Frustum.h"
 #include "Maths/Transform.h"
 #include "Editor/Editor.h"
+#include "Graphics/Camera/Camera.h"
 
 #include "ImGui/ImGuiHelpers.h"
 

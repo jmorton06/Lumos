@@ -69,7 +69,6 @@ namespace Lumos
 		bool m_MouseHeld[MAX_BUTTONS];
 		bool m_MouseClicked[MAX_BUTTONS];
 
-		bool m_UpdateCamera = false;
 		float m_ScrollOffset = 0.0f;
 
 		bool m_MouseOnScreen;

@@ -86,27 +86,6 @@ namespace Lumos
 		auto pos = transform.Translation();
 		auto sphere = Maths::Sphere(pos, m_Radius);
 		DebugRenderer::DebugDraw(sphere, Maths::Vector4(1.0f, 1.0f, 1.0f, 0.2f));
-
-		Maths::Vector3 lastX = pos + Maths::Vector3(0.0f, 1.0f, 0.0f) * m_Radius;
-		Maths::Vector3 lastY = pos + Maths::Vector3(1.0f, 0.0f, 0.0f) * m_Radius;
-		Maths::Vector3 lastZ = pos + Maths::Vector3(1.0f, 0.0f, 0.0f) * m_Radius;
-		for(int itr = 1; itr <= 20; ++itr)
-		{
-			float angle = itr / 20.0f * 6.2831853f;
-			float alpha = cosf(angle) * m_Radius;
-			float beta = sinf(angle) * m_Radius;
-
-			Maths::Vector3 newX = pos + Maths::Vector3(0.0f, alpha, beta);
-			Maths::Vector3 newY = pos + Maths::Vector3(alpha, 0.0f, beta);
-			Maths::Vector3 newZ = pos + Maths::Vector3(alpha, beta, 0.0f);
-
-			DebugRenderer::DrawThickLine(lastX, newX, 0.02f, Maths::Vector4(1.0f, 0.3f, 1.0f, 1.0f));
-			DebugRenderer::DrawThickLine(lastY, newY, 0.02f, Maths::Vector4(1.0f, 0.3f, 1.0f, 1.0f));
-			DebugRenderer::DrawThickLine(lastZ, newZ, 0.02f, Maths::Vector4(1.0f, 0.3f, 1.0f, 1.0f));
-
-			lastX = newX;
-			lastY = newY;
-			lastZ = newZ;
-		}
+        DebugRenderer::DebugDrawSphere(m_Radius,pos, Maths::Vector4(1.0f, 0.3f, 1.0f, 1.0f));
 	}
 }

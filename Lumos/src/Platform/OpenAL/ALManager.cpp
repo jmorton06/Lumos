@@ -62,16 +62,17 @@ namespace Lumos
 				node->OnUpdate(dt.GetElapsedMillis());
 		}
 
+        //Pass Cameras transform
 		void ALManager::UpdateListener()
 		{
 			if(m_Listener)
 			{
-				Maths::Vector3 worldPos = m_Listener->GetPosition();
+				Maths::Vector3 worldPos;// = m_Listener->GetPosition();
 				Maths::Vector3 velocity = Maths::Vector3(0.0f); //m_Listener->GetVelocity();
 
 				ALfloat direction[6];
 
-				auto orientation = m_Listener->GetOrientation();
+				Maths::Quaternion orientation;// = m_Listener->GetOrientation();
 
 				direction[0] = -2 * (orientation.w * orientation.y + orientation.x * orientation.z);
 				direction[1] = 2 * (orientation.x * orientation.w - orientation.z * orientation.y);

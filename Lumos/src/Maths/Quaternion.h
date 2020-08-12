@@ -448,13 +448,13 @@ namespace Lumos::Maths
         }
 
         /// W coordinate.
-        float w;
+        float w =0.0f;
         /// X coordinate.
-        float x;
+		float x = 0.0f;
         /// Y coordinate.
-        float y;
+		float y = 0.0f;
         /// Z coordinate.
-        float z;
+		float z = 0.0f;
 
         /// Identity quaternion.
         static const Quaternion IDENTITY;

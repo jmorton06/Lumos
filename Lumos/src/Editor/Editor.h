@@ -1,17 +1,19 @@
 #pragma once
 #include "Maths/Maths.h"
 #include "Maths/Ray.h"
+#include "Maths/Transform.h"
 
 #include "EditorWindow.h"
 #include "FileBrowserWindow.h"
 #include "Utilities/IniFile.h"
+#include "EditorCamera.h"
 
 #include <imgui/imgui.h>
 #include <entt/entity/fwd.hpp>
 
 namespace Lumos
 {
-#define BIND_FILEBROWSER_FN(x) std::bind(&x, this, std::placeholders::_1)
+#define BIND_FILEBROWSER_FN(fn) [this](auto&&... args) -> decltype(auto) { return this->fn(std::forward<decltype(args)>(args)...); }
 
 	class Application;
 	class Scene;
@@ -108,11 +110,27 @@ namespace Lumos
 
 		void SetSelected(entt::entity entity)
 		{
-			m_Selected = entity;
+			m_SelectedEntity = entity;
 		}
 		entt::entity GetSelected() const
 		{
-			return m_Selected;
+			return m_SelectedEntity;
+		}
+
+		void SetCopiedEntity(entt::entity entity, bool cut = false)
+		{
+			m_CopiedEntity = entity;
+			m_CutCopyEntity = cut;
+		}
+
+		entt::entity GetCopiedEntity() const
+		{
+			return m_CopiedEntity;
+		}
+
+		bool GetCutCopyEntity()
+		{
+			return m_CutCopyEntity;
 		}
 
 		void BindEventFunction();
@@ -159,15 +177,28 @@ namespace Lumos
         void CreateGridRenderer();
         const Ref<Graphics::GridRenderer>& GetGridRenderer();
 
-	protected:
-        NONCOPYABLE(Editor)
+		EditorCameraController& GetEditorCameraController() 
+		{
+			return m_EditorCameraController;
+		}
 
-		bool OnWindowResize(WindowResizeEvent& e);
+		Maths::Transform& GetEditorCameraTransform()
+		{
+			return m_EditorCameraTransform;
+		}
+
+	protected:
+	
+		NONCOPYABLE(Editor)
+	    bool OnWindowResize(WindowResizeEvent& e);
 
 		Application* m_Application;
 
 		u32 m_ImGuizmoOperation = 0;
-		entt::entity m_Selected;
+		entt::entity m_SelectedEntity;
+		entt::entity m_CopiedEntity;
+		bool m_CutCopyEntity = false;
+
 		float m_GridSize = 10.0f;
 		u32 m_DebugDrawFlags = 0;
 
@@ -192,6 +223,8 @@ namespace Lumos
 		FileBrowserWindow m_FileBrowserWindow;
 		Camera* m_EditorCamera = nullptr;
 		Camera* m_CurrentCamera = nullptr;
+		EditorCameraController m_EditorCameraController;
+		Maths::Transform m_EditorCameraTransform;
 
 		Ref<Graphics::ForwardRenderer> m_PreviewRenderer;
 		Ref<Graphics::Texture2D> m_PreviewTexture;

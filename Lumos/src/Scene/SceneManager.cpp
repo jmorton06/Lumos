@@ -117,4 +117,17 @@ namespace Lumos
 
 		return names;
 	}
+
+	void SceneManager::EnqueueSceneFromFile(const std::string& filePath)
+	{
+		Scene* scene = new Scene("scene");
+		scene->Deserialise(filePath, false);
+		EnqueueScene(scene);
+	}
+
+	void SceneManager::EnqueueScene(Scene* scene)
+	{
+		m_vpAllScenes.push_back(Ref<Scene>(scene));
+		LUMOS_LOG_INFO("[SceneManager] - Enqueued scene : {0}", scene->GetSceneName().c_str());
+	}
 }

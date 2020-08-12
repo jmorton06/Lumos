@@ -16,86 +16,77 @@ namespace Lumos
 
 	FPSCameraController::~FPSCameraController() = default;
 
-	void FPSCameraController::HandleMouse(Camera* camera, float dt, float xpos, float ypos)
+	void FPSCameraController::HandleMouse(Maths::Transform& transform, float dt, float xpos, float ypos)
 	{
-		if(Input::GetInput()->GetWindowFocus())
-		{
-			{
-				Maths::Vector2 windowCentre = Maths::Vector2();
-				xpos -= windowCentre.x;
-				ypos -= windowCentre.y;
+		 if(Input::GetInput()->GetWindowFocus())
+		 {
+		 	{
+		 		Maths::Vector2 windowCentre = Maths::Vector2();
+		 		xpos -= windowCentre.x;
+		 		ypos -= windowCentre.y;
 
-				float pitch = camera->GetPitch();
-				float yaw = camera->GetYaw();
+		 		Application::Get().GetWindow()->SetMousePosition(windowCentre);
 
-				pitch -= (ypos)*m_MouseSensitivity;
-				yaw -= (xpos)*m_MouseSensitivity;
+                Maths::Vector3 euler = transform.GetLocalOrientation().EulerAngles();
+                float pitch = euler.x;
+                float yaw = euler.y;
+            
+                pitch -= (ypos)*m_MouseSensitivity;
+                yaw -= (xpos)*m_MouseSensitivity;
 
-				Application::Get().GetWindow()->SetMousePosition(windowCentre);
+                transform.SetLocalOrientation(Maths::Quaternion::EulerAnglesToQuaternion(pitch, yaw, euler.z));
+		 	}
 
-				if(yaw < 0)
-					yaw += 360.0f;
+		 	m_PreviousCurserPos = Maths::Vector2(xpos, ypos);
 
-				if(yaw > 360.0f)
-					yaw -= 360.0f;
-
-				camera->SetYaw(yaw);
-				camera->SetPitch(pitch);
-			}
-
-			m_PreviousCurserPos = Maths::Vector2(xpos, ypos);
-
-			UpdateScroll(camera, Input::GetInput()->GetScrollOffset(), dt);
-		}
+		 	UpdateScroll(transform, Input::GetInput()->GetScrollOffset(), dt);
+		 }
 	}
 
-	void FPSCameraController::HandleKeyboard(Camera* camera, float dt)
+	void FPSCameraController::HandleKeyboard(Maths::Transform& transform, float dt)
 	{
-		float pitch = camera->GetPitch();
-		float yaw = camera->GetYaw();
+        Maths::Vector3 euler = transform.GetLocalOrientation().EulerAngles();
+        float pitch = euler.x;
+        float yaw = euler.y;
 
-		const Maths::Quaternion orientation = Maths::Quaternion::EulerAnglesToQuaternion(pitch, yaw, 1.0f);
-		Maths::Vector3 up = Maths::Vector3(0, 1, 0), right = Maths::Vector3(1, 0, 0), forward = Maths::Vector3(0, 0, -1);
-		up = orientation * up;
-		right = orientation * right;
-		forward = orientation * forward;
+		 m_CameraSpeed = 1000.0f * dt;
 
-		m_CameraSpeed = 1000.0f * dt;
+		 if(Input::GetInput()->GetKeyHeld(Lumos::InputCode::Key::W))
+		 {
+		 	m_Velocity += transform.GetForwardDirection() * m_CameraSpeed;
+		 }
 
-		if(Input::GetInput()->GetKeyHeld(Lumos::InputCode::Key::W))
-		{
-			m_Velocity += forward * m_CameraSpeed;
-		}
+		 if(Input::GetInput()->GetKeyHeld(Lumos::InputCode::Key::S))
+		 {
+		 	m_Velocity -= transform.GetForwardDirection() * m_CameraSpeed;
+		 }
 
-		if(Input::GetInput()->GetKeyHeld(Lumos::InputCode::Key::S))
-		{
-			m_Velocity -= forward * m_CameraSpeed;
-		}
+		 if(Input::GetInput()->GetKeyHeld(Lumos::InputCode::Key::A))
+		 {
+		 	m_Velocity -= transform.GetRightDirection() * m_CameraSpeed;
+		 }
 
-		if(Input::GetInput()->GetKeyHeld(Lumos::InputCode::Key::A))
-		{
-			m_Velocity -= right * m_CameraSpeed;
-		}
+		 if(Input::GetInput()->GetKeyHeld(Lumos::InputCode::Key::D))
+		 {
+		 	m_Velocity += transform.GetRightDirection() * m_CameraSpeed;
+		 }
 
-		if(Input::GetInput()->GetKeyHeld(Lumos::InputCode::Key::D))
-		{
-			m_Velocity += right * m_CameraSpeed;
-		}
+		 if(Input::GetInput()->GetKeyHeld(Lumos::InputCode::Key::Space))
+		 {
+		 	m_Velocity -= transform.GetUpDirection() * m_CameraSpeed;
+		 }
 
-		if(Input::GetInput()->GetKeyHeld(Lumos::InputCode::Key::Space))
-		{
-			m_Velocity -= up * m_CameraSpeed;
-		}
+		 if(Input::GetInput()->GetKeyHeld(Lumos::InputCode::Key::LeftShift))
+		 {
+		 	m_Velocity += transform.GetUpDirection() * m_CameraSpeed;
+		 }
 
-		if(Input::GetInput()->GetKeyHeld(Lumos::InputCode::Key::LeftShift))
-		{
-			m_Velocity += up * m_CameraSpeed;
-		}
-
-		Maths::Vector3 pos = camera->GetPosition();
-		pos += m_Velocity * dt;
-		m_Velocity = m_Velocity * pow(m_DampeningFactor, dt);
-
-		camera->SetPosition(pos);
+        if(!Maths::Equals(m_Velocity, Maths::Vector3::ZERO, Maths::Vector3(Maths::M_EPSILON)))
+        {
+            Maths::Vector3 position = transform.GetLocalPosition();
+            position += m_Velocity * dt;
+            transform.SetLocalPosition(position);
+            m_Velocity = m_Velocity * pow(m_DampeningFactor, dt);
+        }
 	}
 }

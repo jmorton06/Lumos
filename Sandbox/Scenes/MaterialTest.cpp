@@ -32,9 +32,10 @@ void MaterialTest::OnInit()
 	GetRegistry().emplace<Maths::Transform>(lightEntity, Matrix4::Translation(Maths::Vector3(26.0f, 22.0f, 48.5f)) * Maths::Quaternion::LookAt(Maths::Vector3(26.0f, 22.0f, 48.5f), Maths::Vector3::ZERO).RotationMatrix4());
 	GetRegistry().emplace<NameComponent>(lightEntity, "Light");
 
-	auto cameraEntity = GetRegistry().create();
-	auto& camera = GetRegistry().emplace<Camera>(cameraEntity, -1.0f, 358.0f, Maths::Vector3(-0.23f, 2.4f, 11.4f), 60.0f, 0.1f, 1000.0f, (float)m_ScreenWidth / (float)m_ScreenHeight);
-	GetRegistry().emplace<NameComponent>(cameraEntity, "Camera");
+    auto cameraEntity = m_EntityManager->Create("Camera");
+    cameraEntity.AddComponent<Maths::Transform>(Maths::Vector3(-31.0f, 12.0f, 51.0f));
+    cameraEntity.AddComponent<Camera>(-20.0f, -40.0f, Maths::Vector3(-31.0f, 12.0f, 51.0f), 60.0f, 0.1f, 1000.0f, (float)m_ScreenWidth / (float)m_ScreenHeight);
+    cameraEntity.AddComponent<DefaultCameraController>(DefaultCameraController::ControllerType::EditorCamera);
 }
 
 void MaterialTest::OnUpdate(const TimeStep& timeStep)
@@ -89,7 +90,7 @@ void MaterialTest::LoadModels()
 	materials.push_back(stoneMaterial);
 
 	auto testMaterial = CreateRef<Material>();
-	testMaterial->LoadMaterial("checkerboard", "/CoreTextures/checkerboard.tga");
+	testMaterial->LoadMaterial("checkerboard", "/Textures/checkerboard.tga");
 	materials.push_back(testMaterial);
 
 	const float groundWidth = (float(materials.size()) * 1.2f + 1.0f) / 2.0f;
@@ -105,8 +106,7 @@ void MaterialTest::LoadModels()
 	testPhysics->SetIsStatic(true);
 
 	GetRegistry().emplace<Maths::Transform>(ground, Matrix4::Translation(Maths::Vector3((float(materials.size()) * 1.2f) / 2.0f - float(materials.size()) / 2.0f - 0.5f, 0.0f, 0.0f)) * Matrix4::Scale(Maths::Vector3(groundWidth, groundHeight, groundLength)));
-	Ref<Graphics::Mesh> groundModel = AssetsManager::DefaultModels()->Get("Cube");
-	GetRegistry().emplace<MeshComponent>(ground, groundModel);
+	GetRegistry().emplace<MeshComponent>(ground, Graphics::CreateCube());
 
 	auto groundMaterial = CreateRef<Material>();
 
@@ -131,7 +131,6 @@ void MaterialTest::LoadModels()
 
 		transform.SetLocalPosition(Maths::Vector3(float(numObjects) * 1.2f - float(materials.size()) / 2.0f, 1.2f, 0.0f));
 		transform.SetLocalScale(Maths::Vector3(0.5f, 0.5f, 0.5f));
-		//GetRegistry().emplace<MeshComponent>(obj, AssetsManager::DefaultModels()->Get("Sphere"));
 
 		if(entity.HasComponent<MaterialComponent>())
 			entity.RemoveComponent<MaterialComponent>();

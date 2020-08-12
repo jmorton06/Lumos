@@ -19,10 +19,11 @@
 #include "Core/Engine.h"
 #include "Scene/Scene.h"
 #include "Scene/SceneManager.h"
+#include "Scene/Entity.h"
 #include "Events/ApplicationEvent.h"
 
 #include "Scene/Component/Components.h"
-#include "Scripting/LuaScriptComponent.h"
+#include "Scripting/Lua/LuaScriptComponent.h"
 
 #include "Physics/LumosPhysicsEngine/LumosPhysicsEngine.h"
 #include "Physics/B2PhysicsEngine/B2PhysicsEngine.h"
@@ -36,13 +37,10 @@
 #include "Graphics/Camera/Camera.h"
 #include "Graphics/Layers/LayerStack.h"
 #include "Graphics/API/GraphicsContext.h"
-#include "Graphics/MeshFactory.h"
 #include "Graphics/Renderers/GridRenderer.h"
 #include "Graphics/Renderers/DebugRenderer.h"
 #include "Graphics/ModelLoader/ModelLoader.h"
 #include "Graphics/Environment.h"
-
-#include "Utilities/AssetsManager.h"
 
 #include "ImGui/ImGuiHelpers.h"
 
@@ -63,8 +61,9 @@ namespace Lumos
 {
 	Editor::Editor(Application* app, u32 width, u32 height)
 		: m_Application(app)
-		, m_Selected()
 		, m_IniFile("")
+        , m_SelectedEntity(entt::null)
+        , m_CopiedEntity(entt::null)
 	{
 	}
 
@@ -115,10 +114,12 @@ namespace Lumos
 			0.1f,
 			1000.0f,
 			(float)m_Application->GetWindowSize().x / (float)m_Application->GetWindowSize().y);
-		m_EditorCamera->SetCameraController(CreateRef<EditorCameraController>());
 		m_CurrentCamera = m_EditorCamera;
 
-		m_ComponentIconMap[typeid(Graphics::Light).hash_code()] = " " ICON_MDI_LIGHTBULB " ";
+		m_EditorCameraTransform.SetLocalPosition(Maths::Vector3(-31.0f, 12.0f, 51.0f));
+		m_EditorCameraTransform.SetLocalOrientation({-20.0f, -40.0f, 0.0f});
+
+		m_ComponentIconMap[typeid(Graphics::Light).hash_code()] = ICON_MDI_LIGHTBULB;
 		m_ComponentIconMap[typeid(Camera).hash_code()] = ICON_MDI_CAMERA;
 		m_ComponentIconMap[typeid(SoundComponent).hash_code()] = ICON_MDI_VOLUME_HIGH;
 		m_ComponentIconMap[typeid(Graphics::Sprite).hash_code()] = ICON_MDI_IMAGE;
@@ -153,7 +154,7 @@ namespace Lumos
 
 		ImGuiHelpers::SetTheme(ImGuiHelpers::Dark);
 
-		m_Selected = entt::null;
+		m_SelectedEntity = entt::null;
 
 		m_PreviewTexture = nullptr;
 	}
@@ -313,22 +314,42 @@ namespace Lumos
 			}
 			if(ImGui::BeginMenu("Edit"))
 			{
-				if(ImGui::MenuItem("Undo", "CTRL+Z"))
+				//TODO
+				// if(ImGui::MenuItem("Undo", "CTRL+Z"))
+				// {
+				// }
+				// if(ImGui::MenuItem("Redo", "CTRL+Y", false, false))
+				// {
+				// } // Disabled item
+				// ImGui::Separator();
+
+				bool enabled = m_SelectedEntity != entt::null;
+
+				if(ImGui::MenuItem("Cut", "CTRL+X", false, enabled))
 				{
+					m_CopiedEntity = m_SelectedEntity;
+					m_CutCopyEntity = true;
 				}
-				if(ImGui::MenuItem("Redo", "CTRL+Y", false, false))
+
+				if(ImGui::MenuItem("Copy", "CTRL+C", false, enabled))
 				{
-				} // Disabled item
-				ImGui::Separator();
-				if(ImGui::MenuItem("Cut", "CTRL+X"))
-				{
+					m_CopiedEntity = m_SelectedEntity;
+					m_CutCopyEntity = false;
 				}
-				if(ImGui::MenuItem("Copy", "CTRL+C"))
+
+				enabled = m_CopiedEntity != entt::null;
+
+				if(ImGui::MenuItem("Paste", "CTRL+V", false, enabled))
 				{
+					m_Application->GetCurrentScene()->DuplicateEntity({ m_CopiedEntity, m_Application->GetCurrentScene() });
+					if(m_CutCopyEntity)
+					{
+                        if(m_CopiedEntity == m_SelectedEntity)
+                            m_SelectedEntity = entt::null;
+						Entity(m_CopiedEntity, m_Application->GetCurrentScene()).Destroy();
+					}
 				}
-				if(ImGui::MenuItem("Paste", "CTRL+V"))
-				{
-				}
+
 				ImGui::EndMenu();
 			}
 
@@ -626,7 +647,7 @@ namespace Lumos
 
 	void Editor::OnImGuizmo()
 	{
-		Maths::Matrix4 view = m_CurrentCamera->GetViewMatrix();
+		Maths::Matrix4 view = m_EditorCameraTransform.GetWorldMatrix().Inverse();//m_CurrentCamera->GetViewMatrix();
 		Maths::Matrix4 proj = m_CurrentCamera->GetProjectionMatrix();
 
 #ifdef LUMOS_RENDER_API_VULKAN
@@ -643,7 +664,7 @@ namespace Lumos
 		                   Maths::ValuePointer(proj), identityMatrix, 120.f);
     #endif
 
-		if(m_Selected == entt::null || m_ImGuizmoOperation == 4)
+		if(m_SelectedEntity == entt::null || m_ImGuizmoOperation == 4)
 			return;
 
 		if(m_ShowGizmos)
@@ -652,7 +673,7 @@ namespace Lumos
 			ImGuizmo::SetOrthographic(m_CurrentCamera->IsOrthographic());
 
 			auto& registry = m_Application->GetSceneManager()->GetCurrentScene()->GetRegistry();
-			auto transform = registry.try_get<Maths::Transform>(m_Selected);
+			auto transform = registry.try_get<Maths::Transform>(m_SelectedEntity);
 			if(transform != nullptr)
 			{
 				Maths::Matrix4 model = transform->GetWorldMatrix();
@@ -681,7 +702,7 @@ namespace Lumos
 						auto mat = Maths::Matrix4(delta).Transpose() * transform->GetLocalMatrix();
 						transform->SetLocalTransform(mat);
 
-						auto physics2DComponent = registry.try_get<Physics2DComponent>(m_Selected);
+						auto physics2DComponent = registry.try_get<Physics2DComponent>(m_SelectedEntity);
 
 						if(physics2DComponent)
 						{
@@ -690,7 +711,7 @@ namespace Lumos
 						}
 						else
 						{
-							auto physics3DComponent = registry.try_get<Physics3DComponent>(m_Selected);
+							auto physics3DComponent = registry.try_get<Physics3DComponent>(m_SelectedEntity);
 							if(physics3DComponent)
 							{
 								physics3DComponent->GetRigidBody()->SetPosition(mat.Translation());
@@ -699,42 +720,6 @@ namespace Lumos
 						}
 					}
 				}
-			}
-		}
-
-		if(m_Selected != entt::null && m_ShowViewSelected)
-		{
-			auto& registry = m_Application->GetSceneManager()->GetCurrentScene()->GetRegistry();
-
-			auto transform = registry.try_get<Maths::Transform>(m_Selected);
-
-			float pos[3] = {
-				m_EditorCamera->GetPosition().x, m_EditorCamera->GetPosition().y, m_EditorCamera->GetPosition().z};
-			float rot[3] = {m_EditorCamera->GetPitch(), m_EditorCamera->GetYaw(), m_EditorCamera->GetRoll()};
-			float scale[3] = {1.0f, 1.0f, 1.0f};
-			float view[16];
-			ImGuizmo::RecomposeMatrixFromComponents(pos, rot, scale, view);
-
-			float camDistance =
-				1.0f; // transform ?
-			// (Application::Get().GetSceneManager()->GetCurrentScene()->GetCamera()->GetPosition()
-			// - transform->GetWorldMatrix().Translation()).Length() : 0.0f;
-
-			auto window = ImGui::GetCurrentWindow();
-			auto size = 128.0f;
-			auto windowPos = window->Pos;
-			auto windowSize = window->Size;
-			auto viewManipulatePos = ImVec2(windowPos.x + windowSize.x - size, size / 2.0f - 20.0f + windowPos.y);
-
-			ImGuizmo::ViewManipulate(view, camDistance, viewManipulatePos, ImVec2(size, size), 0x10101010);
-			ImGuizmo::DecomposeMatrixToComponents(view, pos, rot, scale);
-
-			// if (modified)
-			{
-				m_EditorCamera->SetPitch(rot[0]);
-				m_EditorCamera->SetYaw(rot[1]);
-				m_EditorCamera->SetRoll(rot[2]);
-				m_EditorCamera->SetPosition({pos[0], pos[1], pos[2]});
 			}
 		}
 	}
@@ -844,9 +829,10 @@ namespace Lumos
 
 	void Editor::OnNewScene(Scene* scene)
 	{
-		m_Selected = entt::null;
-        m_EditorCamera->SetPosition(Maths::Vector3(-31.0f, 12.0f, 51.0f));
-        m_EditorCamera->SetOrientation(-20.0f, -40.0f, 0.0f);
+		m_SelectedEntity = entt::null;
+
+		m_EditorCameraTransform.SetLocalPosition(Maths::Vector3(-31.0f, 12.0f, 51.0f));
+		m_EditorCameraTransform.SetLocalOrientation({-20.0f, -40.0f, 0.0f});
 
 		for(auto window : m_Windows)
 		{
@@ -917,7 +903,7 @@ namespace Lumos
 			return;
 		}
 
-		m_GridRenderer->BeginScene(Application::Get().GetSceneManager()->GetCurrentScene(), m_EditorCamera);
+		m_GridRenderer->BeginScene(Application::Get().GetSceneManager()->GetCurrentScene(), m_EditorCamera, &m_EditorCameraTransform);
 		m_GridRenderer->RenderScene(Application::Get().GetSceneManager()->GetCurrentScene());
 #endif
 	}
@@ -1002,7 +988,7 @@ namespace Lumos
 		if(Graphics::GraphicsContext::GetRenderAPI() == Graphics::RenderAPI::OPENGL)
 			flipY = true;
 #endif
-		return camera->GetScreenRay(screenX, screenY, flipY);
+		return camera->GetScreenRay(screenX, screenY, m_EditorCameraTransform.GetWorldMatrix().Inverse(), flipY);
 	}
 
 	void Editor::OnUpdate(const TimeStep& ts)
@@ -1010,24 +996,22 @@ namespace Lumos
         if(m_Application->GetEditorState() == EditorState::Preview)
         {
 			auto& registry = m_Application->GetSceneManager()->GetCurrentScene()->GetRegistry();
-
-			auto cameraController = m_CurrentCamera ? m_CurrentCamera->GetController() : nullptr;
 			
-			if(cameraController && Application::Get().GetSceneActive())
+			if(Application::Get().GetSceneActive())
 			{
 				const Maths::Vector2 mousePos = Input::GetInput()->GetMousePosition();
 				
-				cameraController->HandleMouse(m_CurrentCamera, ts.GetMillis(), mousePos.x, mousePos.y);
-				cameraController->HandleKeyboard(m_CurrentCamera, ts.GetMillis());
-			}
-			
-			if(Input::GetInput()->GetKeyPressed(InputCode::Key::F))
-			{
-				if(registry.valid(m_Selected))
+				m_EditorCameraController.HandleMouse(m_EditorCameraTransform, ts.GetMillis(), mousePos.x, mousePos.y);
+				m_EditorCameraController.HandleKeyboard(m_EditorCameraTransform, ts.GetMillis());
+
+				if(Input::GetInput()->GetKeyPressed(InputCode::Key::F))
 				{
-					auto transform = registry.try_get<Maths::Transform>(m_Selected);
-					if(transform)
-						FocusCamera(transform->GetWorldPosition(), 2.0f, 2.0f);
+					if(registry.valid(m_SelectedEntity))
+					{
+						auto transform = registry.try_get<Maths::Transform>(m_SelectedEntity);
+						if(transform)
+							FocusCamera(transform->GetWorldPosition(), 2.0f, 2.0f);
+					}
 				}
 			}
 			
@@ -1044,13 +1028,13 @@ namespace Lumos
 				float focusProgress =
 				Maths::Min((ts.GetElapsedMillis() - m_CameraTransitionStartTime) / m_CameraTransitionSpeed, 1.f);
 				Maths::Vector3 newCameraPosition = m_CameraStartPosition.Lerp(m_CameraDestination, focusProgress);
-				m_CurrentCamera->SetPosition(newCameraPosition);
-				
-				if(m_CurrentCamera->GetPosition().Equals(m_CameraDestination))
+				m_EditorCameraTransform.SetLocalPosition(newCameraPosition);
+
+				if(m_EditorCameraTransform.GetLocalPosition().Equals(m_CameraDestination))
 					m_TransitioningCamera = false;
 			}
 			
-			if(!Input::GetInput()->GetMouseHeld(InputCode::MouseKey::ButtonRight))
+			if(!Input::GetInput()->GetMouseHeld(InputCode::MouseKey::ButtonRight) && !ImGuizmo::IsUsing())
 			{
 				if(Input::GetInput()->GetKeyPressed(InputCode::Key::Q))
 				{
@@ -1083,11 +1067,39 @@ namespace Lumos
 				}
 			}
 
-			if((Input::GetInput()->GetKeyHeld(InputCode::Key::LeftSuper) || (Input::GetInput()->GetKeyHeld(InputCode::Key::LeftShift)) ) && Input::GetInput()->GetKeyPressed(InputCode::Key::Z))
-				Application::Get().GetSceneManager()->GetCurrentScene()->Serialise(ROOT_DIR "/Assets/scenes/", true);
+			if((Input::GetInput()->GetKeyHeld(InputCode::Key::LeftSuper) || (Input::GetInput()->GetKeyHeld(InputCode::Key::LeftControl)) )) 
+			{
+				if(Input::GetInput()->GetKeyPressed(InputCode::Key::S))
+					Application::Get().GetSceneManager()->GetCurrentScene()->Serialise(ROOT_DIR "/Sandbox/res/scenes/", true);
 			
-			if((Input::GetInput()->GetKeyHeld(InputCode::Key::LeftSuper) || (Input::GetInput()->GetKeyHeld(InputCode::Key::LeftShift)) ) && Input::GetInput()->GetKeyPressed(InputCode::Key::X))
-				Application::Get().GetSceneManager()->GetCurrentScene()->Deserialise(ROOT_DIR "/Assets/scenes/", true);
+				if(Input::GetInput()->GetKeyPressed(InputCode::Key::O))
+					Application::Get().GetSceneManager()->GetCurrentScene()->Deserialise(ROOT_DIR "/Sandbox/res/scenes/", true);
+            
+                if(Input::GetInput()->GetKeyPressed(InputCode::Key::X))
+                {
+                    m_CopiedEntity = m_SelectedEntity;
+                    m_CutCopyEntity = true;
+                }
+            
+                if(Input::GetInput()->GetKeyPressed(InputCode::Key::C))
+                {
+                    m_CopiedEntity = m_SelectedEntity;
+                    m_CutCopyEntity = false;
+                }
+                        
+                if(Input::GetInput()->GetKeyPressed(InputCode::Key::V))
+                {
+                    m_Application->GetCurrentScene()->DuplicateEntity({ m_CopiedEntity, m_Application->GetCurrentScene() });
+                    if(m_CutCopyEntity)
+                    {
+                        if(m_CopiedEntity == m_SelectedEntity)
+                            m_SelectedEntity = entt::null;
+                        Entity(m_CopiedEntity, m_Application->GetCurrentScene()).Destroy();
+                    }
+                }
+			}
+        
+            m_EditorCameraTransform.SetWorldMatrix(Maths::Matrix4());
 		}
 	}
 
@@ -1100,17 +1112,17 @@ namespace Lumos
 	{
 		if(m_CurrentCamera->IsOrthographic())
 		{
-			m_CurrentCamera->SetPosition(point);
-			m_CurrentCamera->SetScale(distance / 2.0f);
+            m_EditorCameraTransform.SetLocalPosition(point);
+			//m_CurrentCamera->SetScale(distance / 2.0f);
 		}
 		else
 		{
 			m_TransitioningCamera = true;
 
-			m_CameraDestination = point + m_CurrentCamera->GetForwardDirection() * distance;
+			m_CameraDestination = point + m_EditorCameraTransform.GetForwardDirection() * distance;
 			m_CameraTransitionStartTime = -1.0f;
 			m_CameraTransitionSpeed = 1.0f / speed;
-			m_CameraStartPosition = m_CurrentCamera->GetPosition();
+            m_CameraStartPosition = m_EditorCameraTransform.GetLocalPosition();
 		}
 	}
 
@@ -1125,10 +1137,10 @@ namespace Lumos
 
 #ifdef LUMOS_RENDER_API_VULKAN
 #	ifdef LUMOS_PLATFORM_WINDOWS
-		// std::string filePath = ROOT_DIR"/Assets/shaders/CompileShadersWindows.bat";
+		// std::string filePath = ROOT_DIR"/Lumos/res/shaders/CompileShadersWindows.bat";
 		// system(filePath.c_str());
 #	elif LUMOS_PLATFORM_MACOS
-		std::string filePath = ROOT_DIR "/Assets/shaders/CompileShadersMac.sh";
+		std::string filePath = ROOT_DIR "/Lumos/res/shaders/CompileShadersMac.sh";
 		system(filePath.c_str());
 #	endif
 #endif
@@ -1184,16 +1196,16 @@ namespace Lumos
 				const auto& [camera, trans] = cameraGroup.get<Camera, Maths::Transform>(entity);
 
 				{
-					DebugRenderer::DebugDraw(camera.GetFrustum(), Maths::Vector4(0.9f));
+					DebugRenderer::DebugDraw(camera.GetFrustum(trans.GetWorldMatrix().Inverse()), Maths::Vector4(0.9f));
 				}
 			}
 		}
-
-		if(registry.valid(m_Selected))
+    
+		if(registry.valid(m_SelectedEntity)  && Application::Get().GetEditorState() == EditorState::Preview)
 		{
-			auto transform = registry.try_get<Maths::Transform>(m_Selected);
+			auto transform = registry.try_get<Maths::Transform>(m_SelectedEntity);
 
-			auto meshComponent = registry.try_get<MeshComponent>(m_Selected);
+			auto meshComponent = registry.try_get<MeshComponent>(m_SelectedEntity);
 			if(transform && meshComponent)
 			{
 				if(meshComponent->GetMesh() && meshComponent->GetMesh()->GetActive())
@@ -1205,7 +1217,7 @@ namespace Lumos
 				}
 			}
 
-			auto sprite = registry.try_get<Graphics::Sprite>(m_Selected);
+			auto sprite = registry.try_get<Graphics::Sprite>(m_SelectedEntity);
 			if(transform && sprite)
 			{
 				{
@@ -1218,19 +1230,19 @@ namespace Lumos
 				}
 			}
 
-			auto camera = registry.try_get<Camera>(m_Selected);
-			if(camera)
+			auto camera = registry.try_get<Camera>(m_SelectedEntity);
+			if(camera && transform)
 			{
-				DebugRenderer::DebugDraw(camera->GetFrustum(), Maths::Vector4(0.9f));
+				DebugRenderer::DebugDraw(camera->GetFrustum(transform->GetWorldMatrix().Inverse()), Maths::Vector4(0.9f));
 			}
 
-			auto light = registry.try_get<Graphics::Light>(m_Selected);
-			if(light)
+			auto light = registry.try_get<Graphics::Light>(m_SelectedEntity);
+			if(light && transform)
 			{
-				DebugRenderer::DebugDraw(light, Maths::Vector4(light->Colour.ToVector3(), 0.2f));
+				DebugRenderer::DebugDraw(light, transform->GetWorldOrientation(), Maths::Vector4(light->Colour.ToVector3(), 0.2f));
 			}
 
-			auto sound = registry.try_get<SoundComponent>(m_Selected);
+			auto sound = registry.try_get<SoundComponent>(m_SelectedEntity);
 			if(sound)
 			{
 				DebugRenderer::DebugDraw(sound->GetSoundNode(), Maths::Vector4(0.8f, 0.8f, 0.8f, 0.2f));
@@ -1271,14 +1283,14 @@ namespace Lumos
 			}
 		}
 
-		if(m_Selected != entt::null)
+		if(m_SelectedEntity != entt::null)
 		{
-			if(m_Selected == currentClosestEntity)
+			if(m_SelectedEntity == currentClosestEntity)
 			{
 				if(timer.GetMS(1.0f) - timeSinceLastSelect < 1.0f)
 				{
-					auto& trans = registry.get<Maths::Transform>(m_Selected);
-					auto& mesh = registry.get<MeshComponent>(m_Selected);
+					auto& trans = registry.get<Maths::Transform>(m_SelectedEntity);
+					auto& mesh = registry.get<MeshComponent>(m_SelectedEntity);
 					auto bb = mesh.GetMesh()->GetBoundingBox()->Transformed(trans.GetWorldMatrix());
 
 					FocusCamera(trans.GetWorldPosition(), (bb.max_ - bb.min_).Length());
@@ -1290,7 +1302,7 @@ namespace Lumos
 			}
 
 			timeSinceLastSelect = timer.GetMS(1.0f);
-			m_Selected = currentClosestEntity;
+			m_SelectedEntity = currentClosestEntity;
 			return;
 		}
 
@@ -1315,12 +1327,12 @@ namespace Lumos
 			}
 		}
 
-		if(m_Selected != entt::null)
+		if(m_SelectedEntity != entt::null)
 		{
-			if(m_Selected == currentClosestEntity)
+			if(m_SelectedEntity == currentClosestEntity)
 			{
-				auto& trans = registry.get<Maths::Transform>(m_Selected);
-				auto& sprite = registry.get<Graphics::Sprite>(m_Selected);
+				auto& trans = registry.get<Maths::Transform>(m_SelectedEntity);
+				auto& sprite = registry.get<Graphics::Sprite>(m_SelectedEntity);
 				auto bb =
 					Maths::BoundingBox(Maths::Rect(sprite.GetPosition(), sprite.GetPosition() + sprite.GetScale()));
 
@@ -1328,7 +1340,7 @@ namespace Lumos
 			}
 		}
 
-		m_Selected = currentClosestEntity;
+		m_SelectedEntity = currentClosestEntity;
 	}
 
 	void Editor::OpenTextFile(const std::string& filePath)
@@ -1418,14 +1430,14 @@ namespace Lumos
 		{
 			auto entity =
 				ModelLoader::LoadModel(filePath, m_Application->GetSceneManager()->GetCurrentScene()->GetRegistry());
-			m_Selected = entity;
+			m_SelectedEntity = entity;
 		}
 		else if(IsAudioFile(filePath))
 		{
-			AssetsManager::Sounds()->LoadAsset(StringFormat::GetFileName(filePath), filePath);
+			//AssetsManager::Sounds()->LoadAsset(StringFormat::GetFileName(filePath), filePath);
 
 			auto soundNode = Ref<SoundNode>(SoundNode::Create());
-			soundNode->SetSound(AssetsManager::Sounds()->Get(StringFormat::GetFileName(filePath)).get());
+			//soundNode->SetSound(AssetsManager::Sounds()->Get(StringFormat::GetFileName(filePath)).get());
 			soundNode->SetVolume(1.0f);
 			soundNode->SetPosition(Maths::Vector3(0.1f, 10.0f, 10.0f));
 			soundNode->SetLooping(true);
@@ -1437,7 +1449,7 @@ namespace Lumos
 			auto& registry = m_Application->GetSceneManager()->GetCurrentScene()->GetRegistry();
 			entt::entity e = registry.create();
 			registry.emplace<SoundComponent>(e, soundNode);
-			m_Selected = e;
+			m_SelectedEntity = e;
 		}
 	}
 

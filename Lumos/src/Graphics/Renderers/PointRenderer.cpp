@@ -185,8 +185,8 @@ namespace Lumos
 		if(PointIndexCount >= MaxPointIndices)
 			FlushAndResetPoints();
 
-		Maths::Vector3 right = pointInfo.size * m_Camera->GetRightDirection();
-		Maths::Vector3 up = pointInfo.size * m_Camera->GetUpDirection();
+		Maths::Vector3 right = pointInfo.size * m_CameraTransform->GetRightDirection();
+		Maths::Vector3 up = pointInfo.size * m_CameraTransform->GetUpDirection();
 
 		m_Buffer->vertex = pointInfo.p1 - right - up; // + Maths::Vector3(-pointInfo.size, -pointInfo.size, 0.0f));
 		m_Buffer->color = pointInfo.col;
@@ -229,25 +229,29 @@ namespace Lumos
 		m_UniformBuffer->SetData(sizeof(UniformBufferObject), *&m_VSSystemUniformBuffer);
 	}
 
-	void PointRenderer::BeginScene(Scene* scene, Camera* overrideCamera)
+	void PointRenderer::BeginScene(Scene* scene, Camera* overrideCamera, Maths::Transform* overrideCameraTransform)
 	{
 		auto& registry = scene->GetRegistry();
 
 		if(overrideCamera)
+		{
 			m_Camera = overrideCamera;
+			m_CameraTransform = overrideCameraTransform;
+		}
 		else
 		{
 			auto cameraView = registry.view<Camera>();
 			if(!cameraView.empty())
 			{
-				m_Camera = &registry.get<Camera>(cameraView.front());
+				m_Camera = &cameraView.get<Camera>(cameraView.front());
+				m_CameraTransform = registry.try_get<Maths::Transform>(cameraView.front());
 			}
 		}
 
-		if(!m_Camera)
+		if(!m_Camera || !m_CameraTransform)
 			return;
 
-		auto projView = m_Camera->GetProjectionMatrix() * m_Camera->GetViewMatrix();
+		auto projView = m_Camera->GetProjectionMatrix() * m_CameraTransform->GetWorldMatrix().Inverse();
 		m_ProjectionMatrix = m_Camera->GetProjectionMatrix();
 
 		memcpy(m_VSSystemUniformBuffer, &projView, sizeof(Maths::Matrix4));
@@ -301,11 +305,11 @@ namespace Lumos
 		m_BatchDrawCallIndex = 0;
 	}
 
-	void PointRenderer::RenderInternal(Scene* scene, Camera* overrideCamera)
+	void PointRenderer::RenderInternal(Scene* scene, Camera* overrideCamera, Maths::Transform* overrideCameraTransform)
 	{
 		LUMOS_PROFILE_FUNC;
 
-		BeginScene(scene, overrideCamera);
+		BeginScene(scene, overrideCamera, overrideCameraTransform);
 
 		if(!m_RenderTexture)
 			m_CurrentBufferID = Renderer::GetSwapchain()->GetCurrentBufferId();

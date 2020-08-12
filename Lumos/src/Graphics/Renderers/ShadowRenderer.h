@@ -38,7 +38,7 @@ namespace Lumos
 			ShadowRenderer& operator=(ShadowRenderer const&) = delete;
 
 			void Init() override;
-			void BeginScene(Scene* scene, Camera* overrideCamera) override;
+			void BeginScene(Scene* scene, Camera* overrideCamera, Maths::Transform* overrideCameraTransform) override;
 			void OnResize(u32 width, u32 height) override;
 
 			void SetShadowMapNum(u32 num);
@@ -97,7 +97,7 @@ namespace Lumos
 			void CreateGraphicsPipeline(Graphics::RenderPass* renderPass);
 			void CreateFramebuffers();
 			void CreateUniformBuffer();
-			void UpdateCascades(Scene* scene, Camera* overrideCamera);
+			void UpdateCascades(Scene* scene, Camera* overrideCamera, Maths::Transform* overrideCameraTransform);
 
 			void OnImGui() override;
 

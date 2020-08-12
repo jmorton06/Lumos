@@ -48,7 +48,7 @@ namespace Lumos
 			u32 currWidth = m_Width;
 			u32 currHeight = m_Height;
 
-			for(int i = 0; i < m_NumMips; i++)
+			for(u32 i = 0; i < m_NumMips; i++)
 			{
 				envFiles[i] = m_FilePath + "_Env_" + StringFormat::ToString(i) + "_" + StringFormat::ToString(currWidth) + "x" + StringFormat::ToString(currHeight) + m_FileType;
 				irrFiles[i] = m_FilePath + "_Irr_" + StringFormat::ToString(i) + "_" + StringFormat::ToString(currWidth) + "x" + StringFormat::ToString(currHeight) + m_FileType;

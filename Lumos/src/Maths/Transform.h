@@ -43,6 +43,27 @@ namespace Lumos
 			//Sets R,T and S vectors from Local Matrix
 			void ApplyTransform();
 
+			Maths::Vector3 GetUpDirection() const
+			{
+				Maths::Vector3 up = Maths::Vector3::UP;
+				up = GetWorldOrientation() * up;
+				return up;
+			}
+
+			Maths::Vector3 GetRightDirection() const
+			{
+				Maths::Vector3 right = Maths::Vector3::RIGHT;
+				right = GetWorldOrientation() * right;
+				return right;
+			}
+
+			Maths::Vector3 GetForwardDirection() const
+			{
+				Maths::Vector3 forward = Maths::Vector3::FORWARD;
+				forward = GetWorldOrientation() * forward;
+				return forward;
+			}
+
 			void OnImGui();
 
             template<typename Archive>
