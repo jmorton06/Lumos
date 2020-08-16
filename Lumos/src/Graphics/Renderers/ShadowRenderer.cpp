@@ -11,11 +11,9 @@
 #include "Graphics/API/GraphicsContext.h"
 #include "Graphics/API/Shader.h"
 
-#include "Graphics/ModelLoader/ModelLoader.h"
+#include "Graphics/Model.h"
 #include "Graphics/Camera/Camera.h"
 #include "Graphics/Light.h"
-
-#include "Scene/Component/MeshComponent.h"
 #include "Maths/Transform.h"
 
 #include "Scene/Scene.h"
@@ -52,7 +50,6 @@ namespace Lumos
 			if(texture == nullptr)
 			{
 				m_ShadowTex = TextureDepthArray::Create(m_ShadowMapSize, m_ShadowMapSize, m_ShadowMapNum);
-				m_DeleteTexture = true;
 			}
 			else
 				m_ShadowTex = texture;
@@ -64,8 +61,7 @@ namespace Lumos
 
 		ShadowRenderer::~ShadowRenderer()
 		{
-			if(m_DeleteTexture)
-				delete m_ShadowTex;
+			delete m_ShadowTex;
 
 			for(u32 i = 0; i < m_ShadowMapNum; ++i)
 			{
@@ -76,13 +72,9 @@ namespace Lumos
 			delete[] m_PushConstant->data;
 
 			delete m_PushConstant;
-			delete m_DescriptorSet;
-			delete m_Pipeline;
 			delete m_UniformBuffer;
 			delete m_ModelUniformBuffer;
 			delete m_CommandBuffer;
-			delete m_RenderPass;
-			delete m_Shader;
 
 			Memory::AlignedFree(uboDataDynamic.model);
 		}
@@ -127,7 +119,7 @@ namespace Lumos
 			m_CommandBuffer = Graphics::CommandBuffer::Create();
 			m_CommandBuffer->Init(true);
 
-			CreateGraphicsPipeline(m_RenderPass);
+			CreateGraphicsPipeline(m_RenderPass.get());
 			CreateUniformBuffer();
 			CreateFramebuffers();
 		}
@@ -178,7 +170,7 @@ namespace Lumos
 				mesh->GetVertexArray()->Bind(m_CommandBuffer);
 				mesh->GetIndexBuffer()->Bind(m_CommandBuffer);
 
-				Renderer::BindDescriptorSets(m_Pipeline, m_CommandBuffer, dynamicOffset, descriptorSets);
+				Renderer::BindDescriptorSets(m_Pipeline.get(), m_CommandBuffer, dynamicOffset, descriptorSets);
 				Renderer::DrawIndexed(m_CommandBuffer, DrawType::TRIANGLE, mesh->GetIndexBuffer()->GetCount());
 
 				mesh->GetVertexArray()->Unbind();
@@ -217,7 +209,7 @@ namespace Lumos
 
 			auto& registry = scene->GetRegistry();
 
-			auto group = registry.group<MeshComponent>(entt::get<Maths::Transform>);
+			auto group = registry.group<Model>(entt::get<Maths::Transform>);
 
 			for(u32 i = 0; i < m_ShadowMapNum; ++i)
 			{
@@ -228,24 +220,28 @@ namespace Lumos
 
 				for(auto entity : group)
 				{
-					const auto& [mesh, trans] = group.get<MeshComponent, Maths::Transform>(entity);
+					const auto& [model, trans] = group.get<Model, Maths::Transform>(entity);
+                    const auto& meshes = model.GetMeshes();
+                                   
+                   for(auto mesh : meshes)
+                   {
+                        if(mesh->GetActive())
+                        {
+                            auto& worldTransform = trans.GetWorldMatrix();
 
-					if(mesh.GetMesh() && mesh.GetMesh()->GetActive())
-					{
-						auto& worldTransform = trans.GetWorldMatrix();
+                            auto bb = mesh->GetBoundingBox();
+                            auto bbCopy = bb->Transformed(worldTransform);
+                            auto inside = f.IsInsideFast(bbCopy);
 
-						auto bb = mesh.GetMesh()->GetBoundingBox();
-						auto bbCopy = bb->Transformed(worldTransform);
-						auto inside = f.IsInsideFast(bbCopy);
+                            if(inside == Maths::Intersection::OUTSIDE)
+                                continue;
 
-						if(inside == Maths::Intersection::OUTSIDE)
-							continue;
-
-						SubmitMesh(mesh.GetMesh(), nullptr, worldTransform, Maths::Matrix4());
-					}
+                            SubmitMesh(mesh.get(), nullptr, worldTransform, Maths::Matrix4());
+                        }
+                   }
 				}
 
-				SetSystemUniforms(m_Shader);
+				SetSystemUniforms(m_Shader.get());
 
 				u32 layer = static_cast<u32>(m_Layer);
 				memcpy(m_PushConstant->data, &layer, sizeof(u32));
@@ -412,7 +408,7 @@ namespace Lumos
 					bufferInfo.width = m_ShadowMapSize;
 					bufferInfo.height = m_ShadowMapSize;
 					bufferInfo.attachmentCount = attachmentCount;
-					bufferInfo.renderPass = m_RenderPass;
+					bufferInfo.renderPass = m_RenderPass.get();
 					bufferInfo.attachmentTypes = attachmentTypes;
 					bufferInfo.layer = i;
 					bufferInfo.screenFBO = false;
@@ -452,7 +448,7 @@ namespace Lumos
 
 			Graphics::PipelineInfo pipelineCI;
 			pipelineCI.pipelineName = "ShadowRenderer";
-			pipelineCI.shader = m_Shader;
+			pipelineCI.shader = m_Shader.get();
 			pipelineCI.renderpass = renderPass;
 			pipelineCI.numVertexLayout = static_cast<u32>(attributeDescriptions.size());
 			pipelineCI.descriptorLayouts = descriptorLayouts;

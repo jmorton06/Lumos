@@ -24,6 +24,7 @@
 #include "Scripting/Lua/LuaManager.h"
 #include "Graphics/MeshFactory.h"
 #include "Graphics/Light.h"
+#include "Graphics/Model.h"
 #include "Graphics/Environment.h"
 #include "Scene/EntityManager.h"
 
@@ -148,7 +149,7 @@ namespace Lumos
 		layer->OnAttach();
 	}
 
-#define ALL_COMPONENTS Maths::Transform, NameComponent, ActiveComponent, Hierarchy, Camera, LuaScriptComponent, MaterialComponent, MeshComponent, Graphics::Light, Physics3DComponent, Graphics::Environment, Graphics::Sprite, Physics2DComponent, DefaultCameraController
+#define ALL_COMPONENTS Maths::Transform, NameComponent, ActiveComponent, Hierarchy, Camera, LuaScriptComponent, Graphics::Model, Graphics::Light, Physics3DComponent, Graphics::Environment, Graphics::Sprite, Physics2DComponent, DefaultCameraController
 	void Scene::Serialise(const std::string& filePath, bool binary)
 	{
 		std::string path = filePath;
@@ -242,20 +243,24 @@ namespace Lumos
     {
         return m_EntityManager->Create();
     }
+
+	   Entity Scene::CreateEntity(const std::string& name)
+    {
+        return m_EntityManager->Create(name);
+    }
     
     void Scene::DuplicateEntity(Entity entity)
     {
         Entity newEntity = m_EntityManager->Create();
 
 		CopyComponentIfExists<Maths::Transform>(newEntity.GetHandle(), entity.GetHandle(), m_EntityManager->GetRegistry());
-		CopyComponentIfExists<MeshComponent>(newEntity.GetHandle(), entity.GetHandle(), m_EntityManager->GetRegistry());
+		CopyComponentIfExists<Graphics::Model>(newEntity.GetHandle(), entity.GetHandle(), m_EntityManager->GetRegistry());
 		CopyComponentIfExists<LuaScriptComponent>(newEntity.GetHandle(), entity.GetHandle(), m_EntityManager->GetRegistry());
 		CopyComponentIfExists<Camera>(newEntity.GetHandle(), entity.GetHandle(), m_EntityManager->GetRegistry());
 		CopyComponentIfExists<Graphics::Sprite>(newEntity.GetHandle(), entity.GetHandle(), m_EntityManager->GetRegistry());
 		CopyComponentIfExists<RigidBody2D>(newEntity.GetHandle(), entity.GetHandle(), m_EntityManager->GetRegistry());
 		CopyComponentIfExists<RigidBody3D>(newEntity.GetHandle(), entity.GetHandle(), m_EntityManager->GetRegistry());
 		CopyComponentIfExists<Graphics::Light>(newEntity.GetHandle(), entity.GetHandle(), m_EntityManager->GetRegistry());
-		CopyComponentIfExists<MaterialComponent>(newEntity.GetHandle(), entity.GetHandle(), m_EntityManager->GetRegistry());
 		CopyComponentIfExists<SoundComponent>(newEntity.GetHandle(), entity.GetHandle(), m_EntityManager->GetRegistry());
 		CopyComponentIfExists<Graphics::Environment>(newEntity.GetHandle(), entity.GetHandle(), m_EntityManager->GetRegistry());
 	}
@@ -265,14 +270,13 @@ namespace Lumos
 		Entity newEntity = m_EntityManager->Create();
 
 		CopyComponentIfExists<Maths::Transform>(newEntity.GetHandle(), entity.GetHandle(), m_EntityManager->GetRegistry());
-		CopyComponentIfExists<MeshComponent>(newEntity.GetHandle(), entity.GetHandle(), m_EntityManager->GetRegistry());
+		CopyComponentIfExists<Graphics::Model>(newEntity.GetHandle(), entity.GetHandle(), m_EntityManager->GetRegistry());
 		CopyComponentIfExists<LuaScriptComponent>(newEntity.GetHandle(), entity.GetHandle(), m_EntityManager->GetRegistry());
 		CopyComponentIfExists<Camera>(newEntity.GetHandle(), entity.GetHandle(), m_EntityManager->GetRegistry());
 		CopyComponentIfExists<Graphics::Sprite>(newEntity.GetHandle(), entity.GetHandle(), m_EntityManager->GetRegistry());
 		CopyComponentIfExists<RigidBody2D>(newEntity.GetHandle(), entity.GetHandle(), m_EntityManager->GetRegistry());
 		CopyComponentIfExists<RigidBody3D>(newEntity.GetHandle(), entity.GetHandle(), m_EntityManager->GetRegistry());
 		CopyComponentIfExists<Graphics::Light>(newEntity.GetHandle(), entity.GetHandle(), m_EntityManager->GetRegistry());
-		CopyComponentIfExists<MaterialComponent>(newEntity.GetHandle(), entity.GetHandle(), m_EntityManager->GetRegistry());
 		CopyComponentIfExists<SoundComponent>(newEntity.GetHandle(), entity.GetHandle(), m_EntityManager->GetRegistry());
 		CopyComponentIfExists<Graphics::Environment>(newEntity.GetHandle(), entity.GetHandle(), m_EntityManager->GetRegistry());
 

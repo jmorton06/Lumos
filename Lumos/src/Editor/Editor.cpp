@@ -20,6 +20,7 @@
 #include "Scene/Scene.h"
 #include "Scene/SceneManager.h"
 #include "Scene/Entity.h"
+#include "Scene/EntityManager.h"
 #include "Events/ApplicationEvent.h"
 
 #include "Scene/Component/Components.h"
@@ -39,8 +40,9 @@
 #include "Graphics/API/GraphicsContext.h"
 #include "Graphics/Renderers/GridRenderer.h"
 #include "Graphics/Renderers/DebugRenderer.h"
-#include "Graphics/ModelLoader/ModelLoader.h"
+#include "Graphics/Model.h"
 #include "Graphics/Environment.h"
+#include "Scene/EntityFactory.h"
 
 #include "ImGui/ImGuiHelpers.h"
 
@@ -70,8 +72,6 @@ namespace Lumos
 	Editor::~Editor()
 	{
 		SaveEditorSettings();
-		// put back when stop overriding with a scene camera
-		delete m_EditorCamera;
 	}
 
 	void Editor::OnInit()
@@ -107,14 +107,14 @@ namespace Lumos
 		}
 #endif
 
-		m_EditorCamera = new Camera(-20.0f,
+		m_EditorCamera =  CreateRef<Camera>(-20.0f,
 			-40.0f,
 			Maths::Vector3(-31.0f, 12.0f, 51.0f),
 			60.0f,
 			0.1f,
 			1000.0f,
 			(float)m_Application->GetWindowSize().x / (float)m_Application->GetWindowSize().y);
-		m_CurrentCamera = m_EditorCamera;
+		m_CurrentCamera = m_EditorCamera.get();
 
 		m_EditorCameraTransform.SetLocalPosition(Maths::Vector3(-31.0f, 12.0f, 51.0f));
 		m_EditorCameraTransform.SetLocalOrientation({-20.0f, -40.0f, 0.0f});
@@ -126,8 +126,7 @@ namespace Lumos
 		m_ComponentIconMap[typeid(Maths::Transform).hash_code()] = ICON_MDI_VECTOR_LINE;
 		m_ComponentIconMap[typeid(Physics2DComponent).hash_code()] = ICON_MDI_SQUARE_OUTLINE;
 		m_ComponentIconMap[typeid(Physics3DComponent).hash_code()] = ICON_MDI_CUBE_OUTLINE;
-		m_ComponentIconMap[typeid(MeshComponent).hash_code()] = ICON_MDI_SHAPE;
-		m_ComponentIconMap[typeid(MaterialComponent).hash_code()] = ICON_MDI_BRUSH;
+		m_ComponentIconMap[typeid(Graphics::Model).hash_code()] = ICON_MDI_SHAPE;
 		m_ComponentIconMap[typeid(LuaScriptComponent).hash_code()] = ICON_MDI_SCRIPT;
 		m_ComponentIconMap[typeid(Graphics::Environment).hash_code()] = ICON_MDI_EARTH;
 
@@ -388,62 +387,65 @@ namespace Lumos
 
 			if(ImGui::BeginMenu("Entity"))
 			{
-				auto& registry = m_Application->GetSceneManager()->GetCurrentScene()->GetRegistry();
+				auto scene = m_Application->GetSceneManager()->GetCurrentScene();
 
 				if(ImGui::MenuItem("CreateEmpty"))
 				{
-					registry.create();
+					scene->CreateEntity();
 				}
 
 				if(ImGui::MenuItem("Cube"))
 				{
-					auto entity = registry.create();
-					registry.emplace<MeshComponent>(entity, Graphics::CreatePrimative(Graphics::PrimitiveType::Cube));
-					registry.emplace<NameComponent>(entity, "Cube");
-					registry.emplace<Maths::Transform>(entity);
+					auto entity = scene->CreateEntity("Cube");
+					entity.AddComponent<Graphics::Model>(Ref<Graphics::Mesh>(Graphics::CreatePrimative(Graphics::PrimitiveType::Cube)),Graphics::PrimitiveType::Cube);
+					entity.AddComponent<Maths::Transform>();
 				}
 
 				if(ImGui::MenuItem("Sphere"))
 				{
-					auto entity = registry.create();
-					registry.emplace<MeshComponent>(entity, Graphics::CreatePrimative(Graphics::PrimitiveType::Sphere));
-					registry.emplace<NameComponent>(entity, "Sphere");
-					registry.emplace<Maths::Transform>(entity);
+					auto entity = scene->CreateEntity("Sphere");
+					entity.AddComponent<Graphics::Model>(Ref<Graphics::Mesh>(Graphics::CreatePrimative(Graphics::PrimitiveType::Sphere)),Graphics::PrimitiveType::Sphere);
+					entity.AddComponent<Maths::Transform>();
 				}
 
 				if(ImGui::MenuItem("Pyramid"))
 				{
-					auto entity = registry.create();
-					registry.emplace<MeshComponent>(
-						entity, Graphics::CreatePrimative(Graphics::PrimitiveType::Pyramid));
-					registry.emplace<NameComponent>(entity, "Pyramid");
-					registry.emplace<Maths::Transform>(entity);
+					auto entity = scene->CreateEntity("Pyramid");
+					entity.AddComponent<Graphics::Model>(Ref<Graphics::Mesh>(Graphics::CreatePrimative(Graphics::PrimitiveType::Pyramid)),Graphics::PrimitiveType::Pyramid);
+					entity.AddComponent<Maths::Transform>();
 				}
 
 				if(ImGui::MenuItem("Plane"))
 				{
-					auto entity = registry.create();
-					registry.emplace<MeshComponent>(entity, Graphics::CreatePrimative(Graphics::PrimitiveType::Plane));
-					registry.emplace<NameComponent>(entity, "Plane");
-					registry.emplace<Maths::Transform>(entity);
+					auto entity = scene->CreateEntity("Plane");
+					entity.AddComponent<Graphics::Model>(Ref<Graphics::Mesh>(Graphics::CreatePrimative(Graphics::PrimitiveType::Plane)),Graphics::PrimitiveType::Plane);
+					entity.AddComponent<Maths::Transform>();
 				}
 
 				if(ImGui::MenuItem("Cylinder"))
 				{
-					auto entity = registry.create();
-					registry.emplace<MeshComponent>(
-						entity, Graphics::CreatePrimative(Graphics::PrimitiveType::Cylinder));
-					registry.emplace<NameComponent>(entity, "Cylinder");
-					registry.emplace<Maths::Transform>(entity);
+					auto entity = scene->CreateEntity("Cylinder");
+					entity.AddComponent<Graphics::Model>(Ref<Graphics::Mesh>(Graphics::CreatePrimative(Graphics::PrimitiveType::Cylinder)),Graphics::PrimitiveType::Cylinder);
+					entity.AddComponent<Maths::Transform>();
 				}
 
 				if(ImGui::MenuItem("Capsule"))
 				{
-					auto entity = registry.create();
-					registry.emplace<MeshComponent>(
-						entity, Graphics::CreatePrimative(Graphics::PrimitiveType::Capsule));
-					registry.emplace<NameComponent>(entity, "Capsule");
-					registry.emplace<Maths::Transform>(entity);
+					auto entity = scene->CreateEntity("Capsule");
+					entity.AddComponent<Graphics::Model>(Ref<Graphics::Mesh>(Graphics::CreatePrimative(Graphics::PrimitiveType::Capsule)),Graphics::PrimitiveType::Capsule);
+					entity.AddComponent<Maths::Transform>();
+				}
+
+				if(ImGui::MenuItem("Terrain"))
+				{
+					auto entity = scene->CreateEntity("Terrain");
+					entity.AddComponent<Graphics::Model>(Ref<Graphics::Mesh>(Graphics::CreatePrimative(Graphics::PrimitiveType::Terrain)),Graphics::PrimitiveType::Terrain);
+					entity.AddComponent<Maths::Transform>();
+				}
+
+				if(ImGui::MenuItem("Light Cube"))
+				{
+					EntityFactory::AddLightCube(m_Application->GetSceneManager()->GetCurrentScene(), Maths::Vector3(0.0f), Maths::Vector3(0.0f));
 				}
 
 				ImGui::EndMenu();
@@ -903,7 +905,7 @@ namespace Lumos
 			return;
 		}
 
-		m_GridRenderer->BeginScene(Application::Get().GetSceneManager()->GetCurrentScene(), m_EditorCamera, &m_EditorCameraTransform);
+		m_GridRenderer->BeginScene(Application::Get().GetSceneManager()->GetCurrentScene(), m_EditorCamera.get(), &m_EditorCameraTransform);
 		m_GridRenderer->RenderScene(Application::Get().GetSceneManager()->GetCurrentScene());
 #endif
 	}
@@ -1152,18 +1154,20 @@ namespace Lumos
 
 		if(m_DebugDrawFlags & EditorDebugFlags::MeshBoundingBoxes)
 		{
-			auto group = registry.group<MeshComponent>(entt::get<Maths::Transform>);
+			auto group = registry.group<Graphics::Model>(entt::get<Maths::Transform>);
 
 			for(auto entity : group)
 			{
-				const auto& [mesh, trans] = group.get<MeshComponent, Maths::Transform>(entity);
-
-				if(mesh.GetMesh() && mesh.GetMesh()->GetActive())
+				const auto& [model, trans] = group.get<Graphics::Model, Maths::Transform>(entity);
+				auto& meshes = model.GetMeshes();
+				for(auto mesh : meshes)
 				{
-					auto& worldTransform = trans.GetWorldMatrix();
-
-					auto bbCopy = mesh.GetMesh()->GetBoundingBox()->Transformed(worldTransform);
-					DebugRenderer::DebugDraw(bbCopy, Maths::Vector4(0.1f, 0.9f, 0.1f, 0.4f), true);
+					if(mesh->GetActive())
+					{
+						auto& worldTransform = trans.GetWorldMatrix();
+						auto bbCopy = mesh->GetBoundingBox()->Transformed(worldTransform);
+						DebugRenderer::DebugDraw(bbCopy, Maths::Vector4(0.1f, 0.9f, 0.1f, 0.4f), true);
+					}
 				}
 			}
 		}
@@ -1205,15 +1209,18 @@ namespace Lumos
 		{
 			auto transform = registry.try_get<Maths::Transform>(m_SelectedEntity);
 
-			auto meshComponent = registry.try_get<MeshComponent>(m_SelectedEntity);
-			if(transform && meshComponent)
+			auto model = registry.try_get<Graphics::Model>(m_SelectedEntity);
+			if(transform && model)
 			{
-				if(meshComponent->GetMesh() && meshComponent->GetMesh()->GetActive())
+				auto& meshes = model->GetMeshes();
+				for(auto mesh : meshes)
 				{
-					auto& worldTransform = transform->GetWorldMatrix();
-
-					auto bbCopy = meshComponent->GetMesh()->GetBoundingBox()->Transformed(worldTransform);
-					DebugRenderer::DebugDraw(bbCopy, Maths::Vector4(0.1f, 0.9f, 0.1f, 0.4f), true);
+					if(mesh->GetActive())
+					{
+						auto& worldTransform = transform->GetWorldMatrix();
+						auto bbCopy = mesh->GetBoundingBox()->Transformed(worldTransform);
+						DebugRenderer::DebugDraw(bbCopy, Maths::Vector4(0.1f, 0.9f, 0.1f, 0.4f), true);
+					}
 				}
 			}
 
@@ -1256,28 +1263,33 @@ namespace Lumos
 		float closestEntityDist = Maths::M_INFINITY;
 		entt::entity currentClosestEntity = entt::null;
 
-		auto group = registry.group<MeshComponent>(entt::get<Maths::Transform>);
+		auto group = registry.group<Graphics::Model>(entt::get<Maths::Transform>);
 
 		static Timer timer;
 		static float timeSinceLastSelect = 0.0f;
 
 		for(auto entity : group)
 		{
-			const auto& [mesh, trans] = group.get<MeshComponent, Maths::Transform>(entity);
+			const auto& [model, trans] = group.get<Graphics::Model, Maths::Transform>(entity);
 
-			if(mesh.GetMesh() && mesh.GetMesh()->GetActive())
+			auto& meshes = model.GetMeshes();
+
+			for(auto mesh : meshes)
 			{
-				auto& worldTransform = trans.GetWorldMatrix();
-
-				auto bbCopy = mesh.GetMesh()->GetBoundingBox()->Transformed(worldTransform);
-				float dist = ray.HitDistance(bbCopy);
-
-				if(dist < Maths::M_INFINITY)
+				if(mesh->GetActive())
 				{
-					if(dist < closestEntityDist)
+					auto& worldTransform = trans.GetWorldMatrix();
+
+					auto bbCopy = mesh->GetBoundingBox()->Transformed(worldTransform);
+					float dist = ray.HitDistance(bbCopy);
+
+					if(dist < Maths::M_INFINITY)
 					{
-						closestEntityDist = dist;
-						currentClosestEntity = entity;
+						if(dist < closestEntityDist)
+						{
+							closestEntityDist = dist;
+							currentClosestEntity = entity;
+						}
 					}
 				}
 			}
@@ -1290,8 +1302,8 @@ namespace Lumos
 				if(timer.GetMS(1.0f) - timeSinceLastSelect < 1.0f)
 				{
 					auto& trans = registry.get<Maths::Transform>(m_SelectedEntity);
-					auto& mesh = registry.get<MeshComponent>(m_SelectedEntity);
-					auto bb = mesh.GetMesh()->GetBoundingBox()->Transformed(trans.GetWorldMatrix());
+					auto& model = registry.get<Graphics::Model>(m_SelectedEntity);
+                    auto bb = model.GetMeshes().front()->GetBoundingBox()->Transformed(trans.GetWorldMatrix());
 
 					FocusCamera(trans.GetWorldPosition(), (bb.max_ - bb.min_).Length());
 				}
@@ -1417,7 +1429,7 @@ namespace Lumos
 		m_PreviewRenderer->Begin();
 		m_PreviewRenderer->BeginScene(proj, view);
 		m_PreviewRenderer->SubmitMesh(m_PreviewSphere.get(), nullptr, Maths::Matrix4(), Maths::Matrix4());
-		m_PreviewRenderer->SetSystemUniforms(m_PreviewRenderer->GetShader());
+        m_PreviewRenderer->SetSystemUniforms(m_PreviewRenderer->GetShader().get());
 		m_PreviewRenderer->Present();
 		m_PreviewRenderer->End();
 	}
@@ -1428,9 +1440,9 @@ namespace Lumos
 			OpenTextFile(filePath);
 		else if(IsModelFile(filePath))
 		{
-			auto entity =
-				ModelLoader::LoadModel(filePath, m_Application->GetSceneManager()->GetCurrentScene()->GetRegistry());
-			m_SelectedEntity = entity;
+			Entity modelEntity = m_Application->GetSceneManager()->GetCurrentScene()->GetEntityManager()->Create();
+			modelEntity.AddComponent<Graphics::Model>(filePath);
+			m_SelectedEntity = modelEntity.GetHandle();
 		}
 		else if(IsAudioFile(filePath))
 		{

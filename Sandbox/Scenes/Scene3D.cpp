@@ -87,6 +87,8 @@ void Scene3D::OnCleanupScene()
 
 void Scene3D::LoadModels()
 {
+	using namespace Graphics;
+
 	const float groundWidth = 100.0f;
 	const float groundHeight = 0.5f;
 	const float groundLength = 100.0f;
@@ -105,18 +107,20 @@ void Scene3D::LoadModels()
     ground.AddComponent<Maths::Transform>(Matrix4::Scale(Maths::Vector3(groundWidth, groundHeight, groundLength)));
     ground.AddComponent<Physics3DComponent>(testPhysics);
     ground.AddComponent<Lumos::LuaScriptComponent>("Scripts/LuaComponentTest.lua", this);
-    ground.AddComponent<MeshComponent>(Graphics::CreateCube());
-
-	MaterialProperties properties;
-	properties.albedoColour = Vector4(0.6f, 0.1f, 0.1f, 1.0f);
-	properties.roughnessColour = Vector4(0.6f);
-	properties.metallicColour = Vector4(0.15f);
-	properties.usingAlbedoMap = 0.5f;
-	properties.usingRoughnessMap = 0.0f;
-	properties.usingNormalMap = 0.0f;
-	properties.usingMetallicMap = 0.0f;
-	testMaterial->SetMaterialProperites(properties);
-	ground.AddComponent<MaterialComponent>(testMaterial);
+    
+    Graphics::MaterialProperties properties;
+    properties.albedoColour = Vector4(0.6f, 0.1f, 0.1f, 1.0f);
+    properties.roughnessColour = Vector4(0.6f);
+    properties.metallicColour = Vector4(0.15f);
+    properties.usingAlbedoMap = 0.5f;
+    properties.usingRoughnessMap = 0.0f;
+    properties.usingNormalMap = 0.0f;
+    properties.usingMetallicMap = 0.0f;
+    testMaterial->SetMaterialProperites(properties);
+    
+    Ref<Graphics::Mesh> groundMesh = Ref<Graphics::Mesh>(Graphics::CreateCube());
+    groundMesh->SetMaterial(testMaterial);
+    ground.AddComponent<Model>(groundMesh, Graphics::PrimitiveType::Cube);
 
 	//Create a pendulum
 	auto pendulumHolder = m_EntityManager->Create("Pendulum Holder");
@@ -133,9 +137,8 @@ void Scene3D::LoadModels()
 
     pendulumHolder.AddComponent<Physics3DComponent>(pendulumHolderPhysics);
     pendulumHolder.AddOrReplaceComponent<Maths::Transform>(Matrix4::Scale(Maths::Vector3(0.5f, 0.5f, 0.5f)));
-    pendulumHolder.AddComponent<MeshComponent>(Graphics::CreateCube());
-    pendulumHolder.AddComponent<Lumos::LuaScriptComponent>("Scripts/PlayerTest.lua", this);
-
+    //pendulumHolder.AddComponent<Model>(Ref<Graphics::Mesh>(Graphics::CreateCube()), Graphics::PrimitiveType::Cube);
+    
 	auto pendulum = m_EntityManager->Create("Pendulum");
 	Ref<RigidBody3D> pendulumPhysics = CreateRef<RigidBody3D>();
 	pendulumPhysics->SetFriction(0.8f);
@@ -146,7 +149,7 @@ void Scene3D::LoadModels()
 	pendulumPhysics->SetCollisionShape(CreateRef<SphereCollisionShape>(0.5f));
     pendulum.AddComponent<Physics3DComponent>(pendulumPhysics);
     pendulum.AddOrReplaceComponent<Maths::Transform>(Matrix4::Scale(Maths::Vector3(0.5f, 0.5f, 0.5f)));
-    pendulum.AddComponent<MeshComponent>(Graphics::CreateSphere());
+    pendulum.AddComponent<Model>(Ref<Graphics::Mesh>(Graphics::CreateSphere()), Graphics::PrimitiveType::Sphere);
 
 	auto pendulumConstraint = new SpringConstraint(pendulumHolder.GetComponent<Physics3DComponent>().GetRigidBody().get(), pendulum.GetComponent<Physics3DComponent>().GetRigidBody().get(), pendulumHolder.GetComponent<Physics3DComponent>().GetRigidBody()->GetPosition(), pendulum.GetComponent<Physics3DComponent>().GetRigidBody()->GetPosition(), 0.9f, 0.5f);
 	Application::Get().GetSystem<LumosPhysicsEngine>()->AddConstraint(pendulumConstraint);
@@ -160,7 +163,7 @@ void Scene3D::LoadModels()
 		Vector4 diffuse(0.9f);
 
 		Ref<Material> m = CreateRef<Material>();
-		MaterialProperties properties;
+		Graphics::MaterialProperties properties;
 		properties.albedoColour = diffuse;
 		properties.roughnessColour = Vector4(roughness);
 		properties.metallicColour = spec;
@@ -173,8 +176,9 @@ void Scene3D::LoadModels()
 		auto sphere = m_EntityManager->Create("Sphere" + StringFormat::ToString(numSpheres++));
 
         sphere.AddComponent<Maths::Transform>(Matrix4::Translation(Maths::Vector3(float(i), 17.0f, 0.0f)) * Matrix4::Scale(Maths::Vector3(0.5f, 0.5f, 0.5f)));
-        sphere.AddComponent<MeshComponent>(Graphics::CreateSphere());
-        sphere.AddComponent<MaterialComponent>(m);
+        auto sphereMesh = Ref<Graphics::Mesh>(Graphics::CreateSphere());
+        sphereMesh->SetMaterial(m);
+        sphere.AddComponent<Model>(sphereMesh, Graphics::PrimitiveType::Sphere);
 	}
 
 	//metals
@@ -185,7 +189,7 @@ void Scene3D::LoadModels()
 		Vector4 diffuse(0.9f);
 
 		Ref<Material> m = CreateRef<Material>();
-		MaterialProperties properties;
+		Graphics::MaterialProperties properties;
 		properties.albedoColour = diffuse;
 		properties.roughnessColour = Vector4(roughness);
 		properties.metallicColour = spec;
@@ -198,8 +202,9 @@ void Scene3D::LoadModels()
 		auto sphere = m_EntityManager->Create("Sphere" + StringFormat::ToString(numSpheres++));
 
         sphere.AddComponent<Maths::Transform>(Matrix4::Translation(Maths::Vector3(float(i), 18.0f, 0.0f)) * Matrix4::Scale(Maths::Vector3(0.5f, 0.5f, 0.5f)));
-        sphere.AddComponent<MeshComponent>(Graphics::CreateSphere());
-        sphere.AddComponent<MaterialComponent>(m);
+        auto sphereMesh = Ref<Graphics::Mesh>(Graphics::CreateSphere());
+        sphereMesh->SetMaterial(m);
+        sphere.AddComponent<Model>(sphereMesh, Graphics::PrimitiveType::Sphere);
 	}
 }
 

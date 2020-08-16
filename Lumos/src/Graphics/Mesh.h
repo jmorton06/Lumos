@@ -6,6 +6,7 @@
 #include "Graphics/API/CommandBuffer.h"
 #include "Graphics/API/DescriptorSet.h"
 #include "Maths/Maths.h"
+#include "Material.h"
 
 #include <array>
 
@@ -84,31 +85,33 @@ namespace Lumos
 
 			Mesh();
 			Mesh(const Mesh& mesh);
-			Mesh(Ref<VertexArray>& vertexArray, Ref<IndexBuffer>& indexBuffer, const Ref<Maths::BoundingBox>& Sphere);
+			Mesh(Ref<VertexArray>& vertexArray, Ref<IndexBuffer>& indexBuffer, const Ref<Maths::BoundingBox>& boundingBox);
 
 			virtual ~Mesh();
-			virtual void Draw();
 
-			Ref<VertexArray> GetVertexArray() const { return m_VertexArray; }
-			Ref<IndexBuffer> GetIndexBuffer() const { return m_IndexBuffer; }
-			Ref<Maths::BoundingBox> GetBoundingBox() const { return m_BoundingBox; }
+			const Ref<VertexArray>& GetVertexArray() const { return m_VertexArray; }
+			const Ref<IndexBuffer>& GetIndexBuffer() const { return m_IndexBuffer; }
+			const Ref<Material>& GetMaterial() const { return m_Material; }
+			const Ref<Maths::BoundingBox>& GetBoundingBox() const { return m_BoundingBox; }
+
+			void SetMaterial(const Ref<Material>& material) { m_Material = material; }
 
 			bool& GetActive() { return m_Active; }
+			void SetName(const std::string& name) { m_Name = name; }
 
 		protected:
 
 			static Maths::Vector3 GenerateTangent(const Maths::Vector3 &a, const Maths::Vector3 &b, const Maths::Vector3 &c, const Maths::Vector2 &ta, const Maths::Vector2 &tb, const Maths::Vector2 &tc);
-
 			static Maths::Vector3* GenerateNormals(u32 numVertices, Maths::Vector3* vertices, u32* indices, u32 numIndices);
 			static Maths::Vector3* GenerateTangents(u32 numVertices, Maths::Vector3* vertices, u32* indices, u32 numIndices, Maths::Vector2* texCoords);
 
 			Ref<VertexArray> m_VertexArray;
 			Ref<IndexBuffer> m_IndexBuffer;
-
+			Ref<Material> m_Material;
 			Ref<Maths::BoundingBox> m_BoundingBox;
 
-			bool m_ArrayCleanUp;
-			bool m_TextureCleanUp;
+			std::string m_Name;
+			
 			bool m_Active = true;
 		};
 	}

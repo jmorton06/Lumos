@@ -1,10 +1,8 @@
 #include "lmpch.h"
-#include "ModelLoader.h"
+#include "Graphics/Model.h"
 #include "Graphics/Mesh.h"
 #include "Graphics/Material.h"
 #include "Maths/Transform.h"
-#include "Scene/Component/MeshComponent.h"
-#include "Scene/Component/MaterialComponent.h"
 #include "Graphics/API/Texture.h"
 #include "Maths/Maths.h"
 
@@ -37,7 +35,7 @@ namespace Lumos
 		}
 	}
 
-	entt::entity ModelLoader::LoadOBJ(const std::string& path, entt::registry& registry)
+	void Graphics::Model::LoadOBJ(const std::string& path)
 	{
 		std::string resolvedPath = path;
 		tinyobj::attrib_t attrib;
@@ -58,8 +56,6 @@ namespace Lumos
 			LUMOS_LOG_CRITICAL(error);
 		}
 
-		auto entity = registry.create();
-		registry.emplace<NameComponent>(entity, name);
 		bool singleMesh = shapes.size() == 1;
 
 		for(const auto& shape : shapes)
@@ -199,27 +195,12 @@ namespace Lumos
 			ib.reset(Graphics::IndexBuffer::Create(indices, numIndices));
 
 			auto mesh = CreateRef<Graphics::Mesh>(va, ib, boundingBox);
-			if(singleMesh)
-			{
-				registry.emplace<MeshComponent>(entity, mesh);
-				registry.emplace<MaterialComponent>(entity, pbrMaterial);
-				if(!registry.has<Maths::Transform>(entity))
-					registry.emplace<Maths::Transform>(entity);
-			}
-			else
-			{
-				auto meshEntity = registry.create();
-				registry.emplace<MeshComponent>(meshEntity, mesh);
-				registry.emplace<MaterialComponent>(meshEntity, pbrMaterial);
-				registry.emplace<Maths::Transform>(meshEntity);
-				registry.emplace<Hierarchy>(meshEntity, entity);
-			}
+			mesh->SetMaterial(pbrMaterial);
+			m_Meshes.push_back(mesh);
 
 			delete[] vertices;
 			delete[] indices;
 		}
-
-		return entity;
 	}
 
 }

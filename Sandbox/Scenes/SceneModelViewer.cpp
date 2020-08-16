@@ -55,9 +55,9 @@ void SceneModelViewer::LoadModels()
 		"/Meshes/Sponza/sponza.gltf",
 		"/Meshes/capsule.glb"};
 
-	auto TestObject = ModelLoader::LoadModel(ExampleModelPaths[0], GetRegistry());
-
-    GetRegistry().emplace_or_replace<Maths::Transform>(TestObject, Maths::Matrix4::Scale(Maths::Vector3(20.0f, 20.0f, 20.0f)));
+	Entity modelEntity = m_EntityManager->Create();
+	modelEntity.AddComponent<Graphics::Model>(ExampleModelPaths[0]);
+    modelEntity.AddOrReplaceComponent<Maths::Transform>(Maths::Matrix4::Scale(Maths::Vector3(20.0f, 20.0f, 20.0f)));
 }
 
 void SceneModelViewer::OnImGui()

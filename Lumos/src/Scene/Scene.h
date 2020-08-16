@@ -14,7 +14,6 @@ namespace Lumos
 {
 	class TimeStep;
 	class Font;
-	class Material;
 	class Event;
 	class Layer;
 	class Camera;
@@ -26,6 +25,7 @@ namespace Lumos
 	{
 		struct Light;
 		class GBuffer;
+		class Material;
 	}
 
 	class LUMOS_EXPORT Scene
@@ -104,6 +104,7 @@ namespace Lumos
         void DuplicateEntity(Entity entity);
 		void DuplicateEntity(Entity entity, Entity parent);
         Entity CreateEntity();
+		Entity CreateEntity(const std::string& name);
     
         EntityManager* GetEntityManager() { return m_EntityManager.get(); }
 

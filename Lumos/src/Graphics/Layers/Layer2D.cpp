@@ -38,7 +38,7 @@ namespace Lumos
 
 	void Layer2D::OnRender(Scene* scene)
 	{
-		m_Renderer->Render(scene);
+		m_Renderer->RenderScene(scene);
 	}
 
 	bool Layer2D::OnwindowResizeEvent(WindowResizeEvent& e)

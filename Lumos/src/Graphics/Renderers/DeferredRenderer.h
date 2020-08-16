@@ -1,5 +1,5 @@
 #pragma once
-#include "Renderer3D.h"
+#include "IRenderer.h"
 
 namespace Lumos
 {
@@ -19,7 +19,7 @@ namespace Lumos
 		class Framebuffer;
 		class DeferredOffScreenRenderer;
 
-		class LUMOS_EXPORT DeferredRenderer : public Renderer3D
+		class LUMOS_EXPORT DeferredRenderer : public IRenderer
 		{
 		public:
 			DeferredRenderer(u32 width, u32 height);
@@ -38,7 +38,7 @@ namespace Lumos
 			void End() override;
 			void Present() override;
 			void OnResize(u32 width, u32 height) override;
-			void PresentToScreen();
+			void PresentToScreen() override;
 
 			void CreateDeferredPipeline();
 			void CreateLightBuffer();
@@ -49,9 +49,10 @@ namespace Lumos
 			{
 				return static_cast<int>(m_CommandBuffers.size());
 			}
+
 			CommandBuffer* GetCommandBuffer(int id) const
 			{
-				return m_CommandBuffers[id];
+				return m_CommandBuffers[id].get();
 			}
 
 			void SetRenderTarget(Texture* texture, bool rebuildFramebuffer) override;
@@ -66,16 +67,10 @@ namespace Lumos
 			u8* m_PSSystemUniformBuffer;
 			u32 m_PSSystemUniformBufferSize;
 
-			std::vector<u32> m_PSSystemUniformBufferOffsets;
-
-			Maths::Vector4 m_ClearColour;
 			Maths::Matrix4 m_BiasMatrix;
 
 			UniformBuffer* m_UniformBuffer;
 			UniformBuffer* m_LightUniformBuffer;
-
-			std::vector<Framebuffer*> m_Framebuffers;
-			std::vector<CommandBuffer*> m_CommandBuffers;
 
 			CommandBuffer* m_DeferredCommandBuffers;
 

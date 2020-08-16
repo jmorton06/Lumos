@@ -4,7 +4,7 @@
 #include "Physics/LumosPhysicsEngine/PyramidCollisionShape.h"
 #include "Physics/LumosPhysicsEngine/CuboidCollisionShape.h"
 #include "Physics/LumosPhysicsEngine/LumosPhysicsEngine.h"
-#include "Graphics/ModelLoader/ModelLoader.h"
+#include "Graphics/Model.h"
 #include "Utilities/RandomNumberGenerator.h"
 #include "Scene/Scene.h"
 #include "Core/Application.h"
@@ -15,6 +15,7 @@
 #include "Graphics/Light.h"
 #include "Scene/Component/Components.h"
 #include "Maths/Transform.h"
+#include "Scene/EntityManager.h"
 
 namespace Lumos
 {
@@ -32,8 +33,8 @@ namespace Lumos
 		return c;
 	}
 
-	entt::entity EntityFactory::BuildSphereObject(
-		entt::registry& registry,
+	Entity EntityFactory::BuildSphereObject(
+		Scene* scene,
 		const std::string& name,
 		const Maths::Vector3& pos,
 		float radius,
@@ -42,13 +43,11 @@ namespace Lumos
 		bool collidable,
 		const Maths::Vector4& color)
 	{
-		auto pSphere = registry.create();
-		registry.emplace<NameComponent>(pSphere, name);
+		auto sphere = scene->GetEntityManager()->Create(name);
+		auto& model = sphere.AddComponent<Graphics::Model>(Ref<Graphics::Mesh>(Graphics::CreateSphere()), Graphics::PrimitiveType::Sphere);
 
-		registry.emplace<MeshComponent>(pSphere, Graphics::CreateSphere());
-
-		Ref<Material> matInstance = CreateRef<Material>();
-		MaterialProperties properties;
+		Ref<Graphics::Material> matInstance = CreateRef<Graphics::Material>();
+		Graphics::MaterialProperties properties;
 		properties.albedoColour = color;
 		properties.roughnessColour = Vector4(RandomNumberGenerator32::Rand(0.0f, 1.0f));
 		properties.metallicColour = Vector4(RandomNumberGenerator32::Rand(0.0f, 1.0f));
@@ -57,8 +56,8 @@ namespace Lumos
 		properties.usingNormalMap = 0.0f;
 		properties.usingMetallicMap = 0.0f;
 		matInstance->SetMaterialProperites(properties);
-		registry.emplace<MaterialComponent>(pSphere, matInstance);
-		registry.emplace<Maths::Transform>(pSphere, Maths::Matrix4::Scale(Maths::Vector3(radius, radius, radius)));
+		model.GetMeshes().front()->SetMaterial(matInstance);
+		sphere.AddComponent<Maths::Transform>(Maths::Matrix4::Scale(Maths::Vector3(radius, radius, radius)));
 
 		if(physics_enabled)
 		{
@@ -79,18 +78,18 @@ namespace Lumos
 				testPhysics->SetInverseInertia(testPhysics->GetCollisionShape()->BuildInverseInertia(inverse_mass));
 			}
 
-			registry.emplace<Physics3DComponent>(pSphere, testPhysics);
+			sphere.AddComponent<Physics3DComponent>(testPhysics);
 		}
 		else
 		{
-			registry.get<Maths::Transform>(pSphere).SetLocalPosition(pos);
+			sphere.GetTransform().SetLocalPosition(pos);
 		}
 
-		return pSphere;
+		return sphere;
 	}
 
-	entt::entity EntityFactory::BuildCuboidObject(
-		entt::registry& registry,
+	Entity EntityFactory::BuildCuboidObject(
+		Scene* scene,
 		const std::string& name,
 		const Maths::Vector3& pos,
 		const Maths::Vector3& halfdims,
@@ -99,13 +98,11 @@ namespace Lumos
 		bool collidable,
 		const Maths::Vector4& color)
 	{
-		auto cube = registry.create();
-		registry.emplace<NameComponent>(cube, name);
+		auto cube = scene->GetEntityManager()->Create(name);
+		auto& model = cube.AddComponent<Graphics::Model>(Ref<Graphics::Mesh>(Graphics::CreateCube()), Graphics::PrimitiveType::Cube);
 
-		registry.emplace<MeshComponent>(cube, Graphics::CreateCube());
-
-		auto matInstance = CreateRef<Material>();
-		MaterialProperties properties;
+		auto matInstance = CreateRef<Graphics::Material>();
+		Graphics::MaterialProperties properties;
 		properties.albedoColour = color;
 		properties.roughnessColour = Vector4(RandomNumberGenerator32::Rand(0.0f, 1.0f));
 		properties.metallicColour = Vector4(RandomNumberGenerator32::Rand(0.0f, 1.0f));
@@ -116,8 +113,8 @@ namespace Lumos
 		properties.usingMetallicMap = 0.0f;
 		matInstance->SetMaterialProperites(properties);
 		matInstance->SetRenderFlags(0);
-		registry.emplace<MaterialComponent>(cube, matInstance);
-		registry.emplace<Maths::Transform>(cube, Maths::Matrix4::Scale(halfdims));
+		model.GetMeshes().front()->SetMaterial(matInstance);
+		cube.AddComponent<Maths::Transform>(Maths::Matrix4::Scale(halfdims));
 
 		if(physics_enabled)
 		{
@@ -138,35 +135,32 @@ namespace Lumos
 				testPhysics->SetInverseInertia(testPhysics->GetCollisionShape()->BuildInverseInertia(inverse_mass));
 			}
 
-			registry.emplace<Physics3DComponent>(cube, testPhysics);
+			cube.AddComponent<Physics3DComponent>(testPhysics);
 		}
 		else
 		{
-			registry.get<Maths::Transform>(cube).SetLocalPosition(pos);
+			cube.GetTransform().SetLocalPosition(pos);
 		}
 
 		return cube;
 	}
 
-	entt::entity EntityFactory::BuildPyramidObject(
-		entt::registry& registry,
+	Entity EntityFactory::BuildPyramidObject(
+		Scene* scene,
 		const std::string& name,
 		const Maths::Vector3& pos,
 		const Maths::Vector3& halfdims,
 		bool physics_enabled,
 		float inverse_mass,
 		bool collidable,
-		const Maths::Vector4& color)
+		const Maths::Vector4& colour)
 	{
-		auto pyramid = registry.create();
-		registry.emplace<NameComponent>(pyramid, name);
-		registry.emplace<Maths::Transform>(pyramid);
+		auto pyramid = scene->GetEntityManager()->Create(name);
+		auto pyramidMeshEntity = scene->GetEntityManager()->Create();
 
-		auto pyramidMeshEntity = registry.create();
-
-		Ref<Material> matInstance = CreateRef<Material>();
-		MaterialProperties properties;
-		properties.albedoColour = color;
+		Ref<Graphics::Material> matInstance = CreateRef<Graphics::Material>();
+		Graphics::MaterialProperties properties;
+		properties.albedoColour = colour;
 		properties.roughnessColour = Vector4(RandomNumberGenerator32::Rand(0.0f, 1.0f));
 		properties.metallicColour = Vector4(RandomNumberGenerator32::Rand(0.0f, 1.0f));
 		properties.usingAlbedoMap = 0.0f;
@@ -174,10 +168,11 @@ namespace Lumos
 		properties.usingNormalMap = 0.0f;
 		properties.usingMetallicMap = 0.0f;
 		matInstance->SetMaterialProperites(properties);
-		registry.emplace<MaterialComponent>(pyramidMeshEntity, matInstance);
-		registry.emplace<Maths::Transform>(pyramidMeshEntity, Maths::Quaternion(-90.0f, 0.0f, 0.0f).RotationMatrix4() * Maths::Matrix4::Scale(halfdims));
-		registry.emplace<Hierarchy>(pyramidMeshEntity, pyramid);
-		registry.emplace<MeshComponent>(pyramidMeshEntity, Graphics::CreatePyramid());
+
+		pyramidMeshEntity.AddComponent<Maths::Transform>(Maths::Quaternion(-90.0f, 0.0f, 0.0f).RotationMatrix4() * Maths::Matrix4::Scale(halfdims));
+		pyramidMeshEntity.SetParent(pyramid);
+		auto& model = pyramidMeshEntity.AddComponent<Graphics::Model>(Ref<Graphics::Mesh>(Graphics::CreatePyramid()), Graphics::PrimitiveType::Pyramid);
+		model.GetMeshes().front()->SetMaterial(matInstance);
 
 		if(physics_enabled)
 		{
@@ -198,11 +193,11 @@ namespace Lumos
 				testPhysics->SetInverseInertia(testPhysics->GetCollisionShape()->BuildInverseInertia(inverse_mass));
 			}
 
-			registry.emplace<Physics3DComponent>(pyramid, testPhysics);
+			pyramid.AddComponent<Physics3DComponent>(testPhysics);
 		}
 		else
 		{
-			registry.get<Maths::Transform>(pyramid).SetLocalPosition(pos);
+			pyramid.GetTransform().SetLocalPosition(pos);
 		}
 
 		return pyramid;
@@ -218,7 +213,7 @@ namespace Lumos
 		entt::registry& registry = scene->GetRegistry();
 
 		auto cube = EntityFactory::BuildCuboidObject(
-			registry,
+			scene,
 			"light Cube",
 			pos,
 			Maths::Vector3(0.5f, 0.5f, 0.5f),
@@ -227,11 +222,11 @@ namespace Lumos
 			true,
 			colour);
 
-		registry.get<Physics3DComponent>(cube).GetRigidBody()->SetIsAtRest(true);
+		cube.GetComponent<Physics3DComponent>().GetRigidBody()->SetIsAtRest(true);
 		const float radius = RandomNumberGenerator32::Rand(1.0f, 30.0f);
 		const float intensity = RandomNumberGenerator32::Rand(0.0f, 2.0f);
 
-		registry.emplace<Graphics::Light>(cube, pos, colour, intensity, Graphics::LightType::PointLight, pos, radius);
+		cube.AddComponent<Graphics::Light>(pos, colour, intensity, Graphics::LightType::PointLight, pos, radius);
 	}
 
 	void EntityFactory::AddSphere(Scene* scene, const Maths::Vector3& pos, const Maths::Vector3& dir)
@@ -239,7 +234,7 @@ namespace Lumos
 		entt::registry& registry = scene->GetRegistry();
 
 		auto sphere = EntityFactory::BuildSphereObject(
-			registry,
+			scene,
 			"Sphere",
 			pos,
 			0.5f,
@@ -252,7 +247,7 @@ namespace Lumos
 				1.0f));
 
 		const Maths::Vector3 forward = dir;
-		registry.get<Physics3DComponent>(sphere).GetRigidBody()->SetLinearVelocity(forward * 30.0f);
+		sphere.GetComponent<Physics3DComponent>().GetRigidBody()->SetLinearVelocity(forward * 30.0f);
 	}
 
 	void EntityFactory::AddPyramid(Scene* scene, const Maths::Vector3& pos, const Maths::Vector3& dir)
@@ -260,7 +255,7 @@ namespace Lumos
 		entt::registry& registry = scene->GetRegistry();
 
 		auto sphere = EntityFactory::BuildPyramidObject(
-			registry,
+			scene,
 			"Pyramid",
 			pos,
 			Maths::Vector3(0.5f),
@@ -274,6 +269,6 @@ namespace Lumos
 
 		const Maths::Vector3 forward = dir;
 
-		registry.get<Physics3DComponent>(sphere).GetRigidBody()->SetLinearVelocity(forward * 30.0f);
+		sphere.GetComponent<Physics3DComponent>().GetRigidBody()->SetLinearVelocity(forward * 30.0f);
 	}
 }
