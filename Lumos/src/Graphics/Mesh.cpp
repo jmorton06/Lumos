@@ -6,31 +6,22 @@ namespace Lumos
 {
 	namespace Graphics
 	{
-		Mesh::Mesh() : m_VertexArray(nullptr), m_IndexBuffer(nullptr), m_ArrayCleanUp(false), m_TextureCleanUp(false), m_BoundingBox(nullptr)
+		Mesh::Mesh() : m_VertexArray(nullptr), m_IndexBuffer(nullptr), m_BoundingBox(nullptr)
 		{
 		}
 
 		Mesh::Mesh(const Mesh& mesh)
-			: m_VertexArray(mesh.m_VertexArray), m_IndexBuffer(mesh.m_IndexBuffer), m_ArrayCleanUp(false), m_TextureCleanUp(false), m_BoundingBox(mesh.m_BoundingBox)
+            : m_VertexArray(mesh.m_VertexArray), m_IndexBuffer(mesh.m_IndexBuffer), m_BoundingBox(mesh.m_BoundingBox), m_Name(mesh.m_Name), m_Material(mesh.m_Material)
 		{
 		}
 
-		Mesh::Mesh(Ref<VertexArray>& vertexArray, Ref<IndexBuffer>& indexBuffer, const Ref<Maths::BoundingBox>& BoundingBox)
-			: m_VertexArray(vertexArray), m_IndexBuffer(indexBuffer), m_ArrayCleanUp(true), m_TextureCleanUp(false), m_BoundingBox(BoundingBox)
-		{
+		Mesh::Mesh(Ref<VertexArray>& vertexArray, Ref<IndexBuffer>& indexBuffer, const Ref<Maths::BoundingBox>& boundingBox)
+			: m_VertexArray(vertexArray), m_IndexBuffer(indexBuffer), m_BoundingBox(boundingBox), m_Material(nullptr)
+        {
 		}
 
 		Mesh::~Mesh()
 		{
-		}
-
-		void Mesh::Draw()
-		{
-			m_VertexArray->Bind();
-			m_IndexBuffer->Bind();
-			Renderer::DrawIndexed(nullptr, DrawType::TRIANGLE, m_IndexBuffer->GetCount());
-			m_IndexBuffer->Unbind();
-			m_VertexArray->Unbind();
 		}
 
 		Maths::Vector3 Mesh::GenerateTangent(const Maths::Vector3 &a, const Maths::Vector3 &b, const Maths::Vector3 &c, const Maths::Vector2 &ta, const Maths::Vector2 &tb, const Maths::Vector2 &tc)

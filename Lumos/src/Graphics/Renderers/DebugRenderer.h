@@ -22,11 +22,11 @@ namespace Lumos
 		class Renderer2D;
 		class LineRenderer;
 		class PointRenderer;
+		class Material;
 		struct Light;
 	}
 	class SoundNode;
 	class Texture2D;
-	class Material;
 	class Scene;
 	class Camera;
 

@@ -4,6 +4,7 @@
 #include "Material.h"
 #include "API/VertexArray.h"
 #include "Maths/Maths.h"
+#include "Terrain.h"
 
 namespace Lumos
 {
@@ -923,9 +924,15 @@ namespace Lumos
 		case Graphics::PrimitiveType::Pyramid	: return Graphics::CreatePyramid();
 		case Graphics::PrimitiveType::Capsule	: return Graphics::CreateCapsule();
 		case Graphics::PrimitiveType::Cylinder  : return Graphics::CreateCylinder();
+        case Graphics::PrimitiveType::Terrain   : return Graphics::CreateTerrain();
 		}
 
 		LUMOS_LOG_ERROR("Primitive not supported");
 		return nullptr;
 	};
+
+    Graphics::Mesh* Graphics::CreateTerrain()
+    {
+        return new Terrain();
+    }
 }

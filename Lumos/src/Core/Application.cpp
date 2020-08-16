@@ -23,8 +23,6 @@
 #include "Graphics/Layers/Layer2D.h"
 #include "Graphics/Layers/Layer3D.h"
 
-#include "Scene/Component/MeshComponent.h"
-
 #include "Maths/Transform.h"
 
 #include "Scene/EntityFactory.h"
@@ -143,7 +141,7 @@ namespace Lumos
 		m_SystemManager->RegisterSystem<LumosPhysicsEngine>();
 		m_SystemManager->RegisterSystem<B2PhysicsEngine>();
         
-		Material::InitDefaultTexture();
+		Graphics::Material::InitDefaultTexture();
 
 		m_CurrentState = AppState::Running;
 
@@ -172,7 +170,7 @@ namespace Lumos
 
 	int Application::Quit(bool pause, const std::string& reason)
 	{
-		Material::ReleaseDefaultTexture();
+		Graphics::Material::ReleaseDefaultTexture();
 		Engine::Release();
 		Input::Release();
 		DebugRenderer::Release();

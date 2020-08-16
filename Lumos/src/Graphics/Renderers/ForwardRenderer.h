@@ -1,6 +1,6 @@
 #pragma once
 #include "lmpch.h"
-#include "Renderer3D.h"
+#include "IRenderer.h"
 #include "Maths/Frustum.h"
 
 namespace Lumos
@@ -12,20 +12,12 @@ namespace Lumos
 		class DescriptorSet;
 		class TextureDepth;
 
-		class LUMOS_EXPORT ForwardRenderer : public Renderer3D
+		class LUMOS_EXPORT ForwardRenderer : public IRenderer
 		{
 		public:
 			ForwardRenderer(u32 width, u32 height, bool depthTest = true);
 			~ForwardRenderer() override;
 			void RenderScene(Scene* scene) override;
-
-			u8* m_VSSystemUniformBuffer{};
-			u32 m_VSSystemUniformBufferSize{};
-			u8* m_PSSystemUniformBuffer{};
-			u32 m_PSSystemUniformBufferSize{};
-
-			std::vector<u32> m_VSSystemUniformBufferOffsets;
-			std::vector<u32> m_PSSystemUniformBufferOffsets;
 
 			void Init() override;
 			void Begin() override;
@@ -38,6 +30,8 @@ namespace Lumos
 			void End() override;
 			void Present() override;
 			void OnResize(u32 width, u32 height) override;
+            void PresentToScreen() override {}
+            void SetRenderTarget(Texture* texture, bool rebuildFramebuffer) override;
 
 			void CreateGraphicsPipeline();
 			void CreateFramebuffers();
@@ -53,17 +47,9 @@ namespace Lumos
 				Lumos::Maths::Matrix4* model;
 			};
 
-			void SetRenderTarget(Texture* texture, bool rebuildFramebuffer) override;
 			void SetSystemUniforms(Shader* shader) const;
 
-			Shader* GetShader()
-			{
-				return m_Shader;
-			}
-
 		private:
-			Maths::Vector4 m_ClearColour;
-
 			Texture2D* m_DefaultTexture;
 
 			UniformBuffer* m_UniformBuffer;
@@ -74,8 +60,6 @@ namespace Lumos
 
 			size_t m_DynamicAlignment;
 			UniformBufferModel m_UBODataDynamic;
-
-			Maths::Frustum m_Frustum;
 
 			u32 m_CurrentBufferID = 0;
 			bool m_DepthTest = false;

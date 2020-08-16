@@ -4,7 +4,6 @@
 
 namespace Lumos
 {
-    class Material;
 
     namespace Maths
     {
@@ -14,18 +13,20 @@ namespace Lumos
 
 	namespace Graphics
 	{
-		enum class PrimitiveType
+		enum class PrimitiveType : int
 		{
-			Plane,
-			Quad,
-			Cube,
-			Pyramid,
-			Sphere,
-			Capsule,
-			Cylinder,
-            None
+			Plane = 0,
+			Quad = 1,
+			Cube = 2,
+			Pyramid = 3,
+			Sphere = 4,
+			Capsule = 5,
+			Cylinder = 6,
+            Terrain = 7,
+            File = 8
 		};
 
+		class Material;
 		class Mesh;
 
 		LUMOS_EXPORT Mesh* CreatePrimative(PrimitiveType type);
@@ -40,5 +41,6 @@ namespace Lumos
 		Mesh* CreateCapsule(float radius = 1.0f, float midHeight = 1.0f, int radialSegments = 64, int rings = 8);
 		Mesh* CreatePlane(float width, float height, const Maths::Vector3 &normal);
 		Mesh* CreateCylinder(float bottomRadius = 1.0f, float topRadius = 1.0f, float height = 1.0f, int radialSegments = 64, int rings = 8);
+        Mesh* CreateTerrain();
 	}
 }

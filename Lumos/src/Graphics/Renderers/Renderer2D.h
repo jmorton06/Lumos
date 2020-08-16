@@ -1,5 +1,6 @@
 #pragma once
 #include "lmpch.h"
+#include "IRenderer.h"
 #include "Graphics/Renderable2D.h"
 #include "Graphics/API/BufferLayout.h"
 #include "Maths/Maths.h"
@@ -57,32 +58,32 @@ namespace Lumos
 			}
 		};
 
-		class LUMOS_EXPORT Renderer2D
+		class LUMOS_EXPORT Renderer2D : public IRenderer
 		{
 		public:
 			Renderer2D(u32 width, u32 height, bool clear = true, bool triangleIndicies = false, bool renderToDepthTexture = true);
 			virtual ~Renderer2D();
 
-			virtual void Init(bool triangleIndicies = false);
-			virtual void Submit(Renderable2D* renderable, const Maths::Matrix4& transform);
-			virtual void SubmitTriangle(const Maths::Vector3& p1, const Maths::Vector3& p2, const Maths::Vector3& p3, const Maths::Vector4& colour);
-			virtual void BeginSimple();
-			virtual void BeginRenderPass();
-			virtual void Begin();
-			virtual void BeginScene(Scene* scene, Camera* overrideCamera, Maths::Transform* overrideCameraTransform);
-			virtual void Present();
-			virtual void End();
-			virtual void Render(Scene* scene);
-			virtual void OnResize(u32 width, u32 height);
-			virtual void PresentToScreen();
-			virtual void SetScreenBufferSize(u32 width, u32 height);
-			virtual void SetRenderTarget(Texture* texture, bool rebuildFrameBuffer = true);
+			virtual void Init() override;
+			virtual void Begin() override;
+			virtual void BeginScene(Scene* scene, Camera* overrideCamera, Maths::Transform* overrideCameraTransform) override;
+			virtual void Present() override;
+			virtual void EndScene() override {};
+			virtual void End() override;
+			virtual void OnResize(u32 width, u32 height) override;
+			virtual void SetScreenBufferSize(u32 width, u32 height) override;
+			virtual void SetRenderTarget(Texture* texture, bool rebuildFrameBuffer = true) override;
+			virtual void RenderScene(Scene* scene) override;
 
-			void SetSystemUniforms(Shader* shader) const;
+			virtual void SubmitTriangle(const Maths::Vector3& p1, const Maths::Vector3& p2, const Maths::Vector3& p3, const Maths::Vector4& colour);
+			virtual void Submit(Renderable2D* renderable, const Maths::Matrix4& transform);
+			virtual void BeginSimple();
+			virtual void PresentToScreen() override;
+			virtual void BeginRenderPass();
+
 			float SubmitTexture(Texture* texture);
 
-			u8* m_VSSystemUniformBuffer{};
-			u32 m_VSSystemUniformBufferSize{};
+			void SetSystemUniforms(Shader* shader) const;
 
 			void CreateGraphicsPipeline();
 			void CreateFramebuffers();
@@ -91,64 +92,36 @@ namespace Lumos
 			void FlushAndReset();
 			void SubmitTriangles();
 
-			Shader* GetShader() const
-			{
-				return m_Shader;
-			}
-			void SetCamera(Camera* camera, Maths::Transform* transform)
-			{
-				m_Camera = camera;
-				m_CameraTransform = transform;
-			}
-			Texture* GetRenderTarget() const
-			{
-				return m_RenderTexture;
-			}
-
 		private:
 			void SubmitInternal(const TriangleInfo& triangle);
 
 			std::vector<Renderable2D*> m_Sprites;
-			u32 m_ScreenBufferWidth{}, m_ScreenBufferHeight{};
-
-			RenderPass* m_RenderPass{};
-			Pipeline* m_Pipeline{};
-			DescriptorSet* m_DescriptorSet{};
-			UniformBuffer* m_UniformBuffer{};
-			std::vector<CommandBuffer*> m_CommandBuffers;
 			std::vector<CommandBuffer*> m_SecondaryCommandBuffers;
+			std::vector<VertexArray*> m_VertexArrays;
 
 			u32 m_BatchDrawCallIndex = 0;
+			u32 m_IndexCount = 0;
 
-			std::vector<Framebuffer*> m_Framebuffers;
+			Render2DLimits m_Limits;
 
-			Shader* m_Shader{};
-
-			std::vector<VertexArray*> m_VertexArrays;
-			IndexBuffer* m_IndexBuffer{};
-			u32 m_IndexCount;
-
-			VertexData* m_Buffer{};
+			UniformBuffer* m_UniformBuffer = nullptr;
+			IndexBuffer* m_IndexBuffer = nullptr;
+			VertexData* m_Buffer = nullptr;
 
 			std::vector<Maths::Matrix4> m_TransformationStack;
 			const Maths::Matrix4* m_TransformationBack{};
 
 			std::vector<Texture*> m_Textures;
 
-			Texture* m_RenderTexture;
 			u32 m_CurrentBufferID = 0;
-			Maths::Vector4 m_ClearColour;
 			Maths::Vector3 m_QuadPositions[4];
-			bool m_Clear = false;
-			Maths::Frustum m_Frustum;
 
 			std::vector<TriangleInfo> m_Triangles;
 
+			bool m_Clear = false;
 			bool m_RenderToDepthTexture;
-			Render2DLimits m_Limits;
-			Camera* m_Camera = nullptr;
-			Maths::Transform* m_CameraTransform = nullptr;
             bool m_Empty = false;
+			bool m_TriangleIndicies = false;
 		};
 	}
 }

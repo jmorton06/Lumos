@@ -218,6 +218,7 @@ namespace Lumos
 		{
 			return m_Ptr != nullptr;
 		}
+
 		_FORCE_INLINE_ constexpr bool operator==(const T* p_ptr) const
 		{
 			return m_Ptr == p_ptr;

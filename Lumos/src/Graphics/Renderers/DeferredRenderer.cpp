@@ -61,26 +61,12 @@ namespace Lumos
 
 		DeferredRenderer::~DeferredRenderer()
 		{
-			delete m_Shader;
 			delete m_UniformBuffer;
 			delete m_LightUniformBuffer;
-			delete m_RenderPass;
-			delete m_Pipeline;
 			delete m_ScreenQuad;
-			delete m_DescriptorSet;
 			lmdel m_OffScreenRenderer;
 
 			delete[] m_PSSystemUniformBuffer;
-			for(auto& commandBuffer : m_CommandBuffers)
-			{
-				delete commandBuffer;
-			}
-
-			for(auto fbo : m_Framebuffers)
-				delete fbo;
-
-			m_CommandBuffers.clear();
-
 			delete m_DeferredCommandBuffers;
 		}
 
@@ -174,9 +160,9 @@ namespace Lumos
 			CreateLightBuffer();
 
 			Graphics::DescriptorInfo info{};
-			info.pipeline = m_Pipeline;
+            info.pipeline = m_Pipeline.get();
 			info.layoutIndex = 1;
-			info.shader = m_Shader;
+			info.shader = m_Shader.get();
 			m_DescriptorSet = Graphics::DescriptorSet::Create(info);
 
 			m_ClearColour = Maths::Vector4(0.2f, 0.2f, 0.2f, 1.0f);
@@ -190,7 +176,7 @@ namespace Lumos
 
 			m_OffScreenRenderer->RenderScene(scene);
 
-			SetSystemUniforms(m_Shader);
+			SetSystemUniforms(m_Shader.get());
 
 			int commandBufferIndex = 0;
 			if(!m_RenderTexture)
@@ -206,7 +192,7 @@ namespace Lumos
 
 		void DeferredRenderer::PresentToScreen()
 		{
-			Renderer::Present((m_CommandBuffers[Renderer::GetSwapchain()->GetCurrentBufferId()]));
+			Renderer::Present((m_CommandBuffers[Renderer::GetSwapchain()->GetCurrentBufferId()].get()));
 		}
 
 		void DeferredRenderer::Begin(int commandBufferID)
@@ -217,7 +203,7 @@ namespace Lumos
 			m_CommandBufferIndex = commandBufferID;
 			m_CommandBuffers[m_CommandBufferIndex]->BeginRecording();
 			m_CommandBuffers[m_CommandBufferIndex]->UpdateViewport(m_ScreenBufferWidth, m_ScreenBufferHeight);
-			m_RenderPass->BeginRenderpass(m_CommandBuffers[m_CommandBufferIndex], m_ClearColour, m_Framebuffers[m_CommandBufferIndex], Graphics::INLINE, m_ScreenBufferWidth, m_ScreenBufferHeight);
+			m_RenderPass->BeginRenderpass(m_CommandBuffers[m_CommandBufferIndex].get(), m_ClearColour, m_Framebuffers[m_CommandBufferIndex].get(), Graphics::INLINE, m_ScreenBufferWidth, m_ScreenBufferHeight);
 		}
 
 		void DeferredRenderer::BeginScene(Scene* scene, Camera* overrideCamera, Maths::Transform* overrideCameraTransform)
@@ -252,11 +238,9 @@ namespace Lumos
 					m_IrradianceMap = nullptr;
 
 					Graphics::DescriptorInfo info{};
-					info.pipeline = m_Pipeline;
+					info.pipeline = m_Pipeline.get();
 					info.layoutIndex = 1;
-					info.shader = m_Shader;
-					if(m_DescriptorSet)
-						delete m_DescriptorSet;
+					info.shader = m_Shader.get();
 					m_DescriptorSet = Graphics::DescriptorSet::Create(info);
 
 					UpdateScreenDescriptorSet();
@@ -361,7 +345,7 @@ namespace Lumos
 
 		void DeferredRenderer::End()
 		{
-			m_RenderPass->EndRenderpass(m_CommandBuffers[m_CommandBufferIndex]);
+			m_RenderPass->EndRenderpass(m_CommandBuffers[m_CommandBufferIndex].get());
 			m_CommandBuffers[m_CommandBufferIndex]->EndRecording();
 
 			if(m_RenderTexture)
@@ -376,16 +360,16 @@ namespace Lumos
 		void DeferredRenderer::Present()
 		{
 			LUMOS_PROFILE_FUNC;
-			Graphics::CommandBuffer* currentCMDBuffer = m_CommandBuffers[m_CommandBufferIndex];
+			Graphics::CommandBuffer* currentCMDBuffer = m_CommandBuffers[m_CommandBufferIndex].get();
 
 			m_Pipeline->SetActive(currentCMDBuffer);
 
-			std::vector<Graphics::DescriptorSet*> descriptorSets = {m_Pipeline->GetDescriptorSet(), m_DescriptorSet};
+			std::vector<Graphics::DescriptorSet*> descriptorSets = {m_Pipeline->GetDescriptorSet(), m_DescriptorSet.get()};
 
 			m_ScreenQuad->GetVertexArray()->Bind(currentCMDBuffer);
 			m_ScreenQuad->GetIndexBuffer()->Bind(currentCMDBuffer);
 
-			Renderer::BindDescriptorSets(m_Pipeline, currentCMDBuffer, 0, descriptorSets);
+			Renderer::BindDescriptorSets(m_Pipeline.get(), currentCMDBuffer, 0, descriptorSets);
 			Renderer::DrawIndexed(currentCMDBuffer, DrawType::TRIANGLE, m_ScreenQuad->GetIndexBuffer()->GetCount());
 
 			m_ScreenQuad->GetVertexArray()->Unbind();
@@ -441,8 +425,8 @@ namespace Lumos
 
 			Graphics::PipelineInfo pipelineCI{};
 			pipelineCI.pipelineName = "Deferred";
-			pipelineCI.shader = m_Shader;
-			pipelineCI.renderpass = m_RenderPass;
+			pipelineCI.shader = m_Shader.get();
+			pipelineCI.renderpass = m_RenderPass.get();
 			pipelineCI.numVertexLayout = static_cast<u32>(attributeDescriptions.size());
 			pipelineCI.descriptorLayouts = descriptorLayouts;
 			pipelineCI.vertexLayout = attributeDescriptions.data();
@@ -465,10 +449,7 @@ namespace Lumos
 
 			if(rebuildFramebuffer)
 			{
-				for(auto fbo : m_Framebuffers)
-					delete fbo;
 				m_Framebuffers.clear();
-
 				CreateFramebuffers();
 			}
 		}
@@ -551,7 +532,7 @@ namespace Lumos
 			bufferInfo.width = m_ScreenBufferWidth;
 			bufferInfo.height = m_ScreenBufferHeight;
 			bufferInfo.attachmentCount = 1;
-			bufferInfo.renderPass = m_RenderPass;
+			bufferInfo.renderPass = m_RenderPass.get();
 			bufferInfo.attachmentTypes = attachmentTypes;
 
 			if(m_RenderTexture)
@@ -604,9 +585,6 @@ namespace Lumos
 		void DeferredRenderer::OnResize(u32 width, u32 height)
 		{
 			LUMOS_PROFILE_FUNC;
-
-			for(auto fbo : m_Framebuffers)
-				delete fbo;
 			m_Framebuffers.clear();
 
 			DeferredRenderer::SetScreenBufferSize(width, height);

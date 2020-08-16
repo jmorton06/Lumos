@@ -30,10 +30,8 @@
 #include "Graphics/API/Shader.h"
 #include "Graphics/API/IMGUIRenderer.h"
 #include "Graphics/Mesh.h"
-#include "Graphics/ModelLoader/ModelLoader.h"
+#include "Graphics/Model.h"
 #include "Graphics/Material.h"
-#include "Graphics/Particle.h"
-#include "Graphics/Water.h"
 #include "Graphics/Sprite.h"
 #include "Graphics/GBuffer.h"
 #include "Graphics/Terrain.h"
@@ -50,12 +48,6 @@
 #include "Graphics/Camera/FPSCamera.h"
 #include "Graphics/Camera/Camera2D.h"
 #include "Graphics/Camera/Camera.h"
-
-#include "Editor/EditorCamera.h" //temp
-
-//Managers
-#include "Graphics/ParticleManager.h"
-
 //Maths
 #include "Maths/Maths.h"
 #include "Maths/Transform.h"

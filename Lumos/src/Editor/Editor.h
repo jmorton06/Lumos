@@ -7,6 +7,7 @@
 #include "FileBrowserWindow.h"
 #include "Utilities/IniFile.h"
 #include "EditorCamera.h"
+#include "Graphics/Camera/Camera.h"
 
 #include <imgui/imgui.h>
 #include <entt/entity/fwd.hpp>
@@ -22,7 +23,6 @@ namespace Lumos
 	class WindowCloseEvent;
 	class WindowResizeEvent;
 	class TimeStep;
-	class Camera;
 
 	namespace Graphics
 	{
@@ -171,7 +171,7 @@ namespace Lumos
 
 		Camera* GetCamera() const
 		{
-			return m_EditorCamera;
+            return m_EditorCamera.get();
 		}
     
         void CreateGridRenderer();
@@ -221,11 +221,11 @@ namespace Lumos
 		std::unordered_map<size_t, const char*> m_ComponentIconMap;
 
 		FileBrowserWindow m_FileBrowserWindow;
-		Camera* m_EditorCamera = nullptr;
 		Camera* m_CurrentCamera = nullptr;
 		EditorCameraController m_EditorCameraController;
 		Maths::Transform m_EditorCameraTransform;
 
+		Ref<Camera> m_EditorCamera = nullptr;
 		Ref<Graphics::ForwardRenderer> m_PreviewRenderer;
 		Ref<Graphics::Texture2D> m_PreviewTexture;
 		Ref<Graphics::Mesh> m_PreviewSphere;

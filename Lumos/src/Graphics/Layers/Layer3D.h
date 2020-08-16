@@ -8,13 +8,13 @@ namespace Lumos
 {
 	namespace Graphics
 	{
-		class Renderer3D;
+		class IRenderer;
 	}
 
     class LUMOS_EXPORT Layer3D : public Layer
 	{
 	public:
-		Layer3D(Graphics::Renderer3D* renderer, const std::string& name = "Layer3D");
+		Layer3D(Graphics::IRenderer* renderer, const std::string& name = "Layer3D");
 		virtual ~Layer3D();
 
 		virtual void OnAttach() override;
@@ -27,7 +27,7 @@ namespace Lumos
 
     protected:
         Scene* m_Scene;
-		Graphics::Renderer3D* m_Renderer;
+		Graphics::IRenderer* m_Renderer;
 	private:
         bool OnwindowResizeEvent(WindowResizeEvent& e);
 	};
