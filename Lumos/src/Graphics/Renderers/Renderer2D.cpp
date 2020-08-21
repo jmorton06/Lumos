@@ -336,7 +336,9 @@ namespace Lumos
 
 		void Renderer2D::Present()
 		{
-            if(m_IndexCount == 0){
+            if(m_IndexCount == 0)
+			{
+				m_VertexArrays[m_BatchDrawCallIndex]->GetBuffer()->ReleasePointer();
                 m_Empty = true;
                 return;
             }
