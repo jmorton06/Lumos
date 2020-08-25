@@ -35,7 +35,6 @@ namespace Lumos
 
 	PointRenderer::PointRenderer(u32 width, u32 height, bool clear)
 		: m_IndexCount(0)
-		, m_RenderTexture(nullptr)
 		, m_Buffer(nullptr)
 		, m_Clear(clear)
 	{
@@ -50,21 +49,9 @@ namespace Lumos
 	PointRenderer::~PointRenderer()
 	{
 		delete m_IndexBuffer;
-		delete m_Pipeline;
-		delete m_RenderPass;
-		delete m_Shader;
 		delete m_UniformBuffer;
-
 		delete[] m_VSSystemUniformBuffer;
-
-		for(auto frameBuffer : m_Framebuffers)
-			delete frameBuffer;
-
-		for(auto& commandBuffer : m_CommandBuffers)
-		{
-			delete commandBuffer;
-		}
-
+		
 		for(int i = 0; i < MAX_BATCH_DRAW_CALLS; i++)
 			delete m_VertexArrays[i];
 
@@ -79,7 +66,7 @@ namespace Lumos
 		m_Shader = Shader::CreateFromFile("Batch2DPoint", "/CoreShaders/");
 
 		m_VSSystemUniformBufferSize = sizeof(Maths::Matrix4);
-		m_VSSystemUniformBuffer = lmnew u8[m_VSSystemUniformBufferSize];
+		m_VSSystemUniformBuffer = new u8[m_VSSystemUniformBufferSize];
 
 		m_RenderPass = Graphics::RenderPass::Create();
 		m_UniformBuffer = Graphics::UniformBuffer::Create();
@@ -152,7 +139,7 @@ namespace Lumos
 			vertexArray->PushBuffer(buffer);
 		}
 
-		u32* indices = lmnew u32[MaxPointIndices];
+		u32* indices = new u32[MaxPointIndices];
 
 		i32 offset = 0;
 		for(i32 i = 0; i < MaxPointIndices; i += 6)
@@ -252,7 +239,6 @@ namespace Lumos
 			return;
 
 		auto projView = m_Camera->GetProjectionMatrix() * m_CameraTransform->GetWorldMatrix().Inverse();
-		m_ProjectionMatrix = m_Camera->GetProjectionMatrix();
 
 		memcpy(m_VSSystemUniformBuffer, &projView, sizeof(Maths::Matrix4));
 	}
@@ -263,9 +249,9 @@ namespace Lumos
 
 		Graphics::CommandBuffer* currentCMDBuffer = m_SecondaryCommandBuffers[m_BatchDrawCallIndex];
 
-		currentCMDBuffer->BeginRecordingSecondary(m_RenderPass, m_Framebuffers[m_CurrentBufferID]);
+		currentCMDBuffer->BeginRecordingSecondary(m_RenderPass.get(), m_Framebuffers[m_CurrentBufferID].get());
 		currentCMDBuffer->UpdateViewport(m_ScreenBufferWidth, m_ScreenBufferHeight);
-		m_Pipeline->SetActive(currentCMDBuffer);
+		m_Pipeline->Bind(currentCMDBuffer);
 
 		m_VertexArrays[m_BatchDrawCallIndex]->GetBuffer()->ReleasePointer();
 		m_VertexArrays[m_BatchDrawCallIndex]->Unbind();
@@ -277,7 +263,7 @@ namespace Lumos
 		m_VertexArrays[m_BatchDrawCallIndex]->Bind(currentCMDBuffer);
 		m_IndexBuffer->Bind(currentCMDBuffer);
 
-		Renderer::BindDescriptorSets(m_Pipeline, currentCMDBuffer, 0, descriptors);
+		Renderer::BindDescriptorSets(m_Pipeline.get(), currentCMDBuffer, 0, descriptors);
 		Renderer::DrawIndexed(currentCMDBuffer, DrawType::TRIANGLE, PointIndexCount);
 
 		m_VertexArrays[m_BatchDrawCallIndex]->Unbind();
@@ -286,14 +272,14 @@ namespace Lumos
 		PointIndexCount = 0;
 
 		currentCMDBuffer->EndRecording();
-		currentCMDBuffer->ExecuteSecondary(m_CommandBuffers[m_CurrentBufferID]);
+		currentCMDBuffer->ExecuteSecondary(m_CommandBuffers[m_CurrentBufferID].get());
 
 		m_BatchDrawCallIndex++;
 	}
 
 	void PointRenderer::End()
 	{
-		m_RenderPass->EndRenderpass(m_CommandBuffers[m_CurrentBufferID]);
+		m_RenderPass->EndRenderpass(m_CommandBuffers[m_CurrentBufferID].get());
 		m_CommandBuffers[m_CurrentBufferID]->EndRecording();
 
 		if(m_RenderTexture)
@@ -316,12 +302,12 @@ namespace Lumos
 
 		m_CommandBuffers[m_CurrentBufferID]->BeginRecording();
 
-		m_RenderPass->BeginRenderpass(m_CommandBuffers[m_CurrentBufferID], m_ClearColour, m_Framebuffers[m_CurrentBufferID], Graphics::SECONDARY, m_ScreenBufferWidth, m_ScreenBufferHeight);
+        m_RenderPass->BeginRenderpass(m_CommandBuffers[m_CurrentBufferID].get(), m_ClearColour, m_Framebuffers[m_CurrentBufferID].get(), Graphics::SECONDARY, m_ScreenBufferWidth, m_ScreenBufferHeight);
 
-		m_VertexArrays[m_BatchDrawCallIndex]->Bind(m_CommandBuffers[m_CurrentBufferID]);
+		m_VertexArrays[m_BatchDrawCallIndex]->Bind(m_CommandBuffers[m_CurrentBufferID].get());
 		m_Buffer = m_VertexArrays[m_BatchDrawCallIndex]->GetBuffer()->GetPointer<PointVertexData>();
 
-		SetSystemUniforms(m_Shader);
+		SetSystemUniforms(m_Shader.get());
 
 		for(auto& point : m_Points)
 			SubmitInternal(point);
@@ -333,8 +319,6 @@ namespace Lumos
 
 	void PointRenderer::OnResize(u32 width, u32 height)
 	{
-		for(auto fbo : m_Framebuffers)
-			delete fbo;
 		m_Framebuffers.clear();
 
 		SetScreenBufferSize(width, height);
@@ -344,7 +328,7 @@ namespace Lumos
 
 	void PointRenderer::PresentToScreen()
 	{
-		Renderer::Present((m_CommandBuffers[Renderer::GetSwapchain()->GetCurrentBufferId()]));
+		Renderer::Present((m_CommandBuffers[Renderer::GetSwapchain()->GetCurrentBufferId()].get()));
 	}
 
 	void PointRenderer::SetScreenBufferSize(u32 width, u32 height)
@@ -386,8 +370,8 @@ namespace Lumos
 
 		Graphics::PipelineInfo PipelineCI;
 		PipelineCI.pipelineName = "BatchPointRenderer";
-		PipelineCI.shader = m_Shader;
-		PipelineCI.renderpass = m_RenderPass;
+		PipelineCI.shader = m_Shader.get();
+		PipelineCI.renderpass = m_RenderPass.get();
 		PipelineCI.numVertexLayout = static_cast<u32>(attributeDescriptions.size());
 		PipelineCI.descriptorLayouts = descriptorLayouts;
 		PipelineCI.vertexLayout = attributeDescriptions.data();
@@ -416,7 +400,7 @@ namespace Lumos
 		bufferInfo.width = m_ScreenBufferWidth;
 		bufferInfo.height = m_ScreenBufferHeight;
 		bufferInfo.attachmentCount = 1;
-		bufferInfo.renderPass = m_RenderPass;
+		bufferInfo.renderPass = m_RenderPass.get();
 		bufferInfo.attachmentTypes = attachmentTypes;
 
 		if(m_RenderTexture)
@@ -446,9 +430,6 @@ namespace Lumos
 	void PointRenderer::SetRenderTarget(Graphics::Texture* texture, bool rebuildFramebuffer)
 	{
 		m_RenderTexture = texture;
-
-		for(auto fbo : m_Framebuffers)
-			delete fbo;
 		m_Framebuffers.clear();
 
 		CreateFramebuffers();

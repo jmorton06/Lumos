@@ -34,6 +34,14 @@ namespace Lumos
 				return FileName.substr(pos + 1);
 			return "";
 		}
+        
+        static std::string RemoveFilePathExtension(const std::string& FileName)
+        {
+            auto pos = FileName.find_last_of('.');
+            if(pos != std::string::npos)
+                return FileName.substr(0, pos + 1);
+            return FileName;
+        }
 
 		static std::string GetFileName(const std::string& FilePath)
 		{

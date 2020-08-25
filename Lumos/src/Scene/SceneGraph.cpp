@@ -276,4 +276,14 @@ namespace Lumos
 		//	return right_h.compare(registry, lhs);
 		//});
 	}
+
+    void SceneGraph::DisableOnConstruct(bool disable, entt::registry& registry)
+    {
+        if(disable)
+            registry.on_construct<Hierarchy>().disconnect<&Hierarchy::on_construct>();
+        else
+            registry.on_construct<Hierarchy>().connect<&Hierarchy::on_construct>();
+
+    }
+
 }

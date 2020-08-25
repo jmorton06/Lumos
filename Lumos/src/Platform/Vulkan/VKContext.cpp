@@ -475,7 +475,7 @@ namespace Lumos
 
 		GraphicsContext* VKContext::CreateFuncVulkan(const WindowProperties& properties, void* cont)
 		{
-			return lmnew VKContext(properties, cont);
+			return new VKContext(properties, cont);
 		}
 
 		void VKContext::WaitIdle() const

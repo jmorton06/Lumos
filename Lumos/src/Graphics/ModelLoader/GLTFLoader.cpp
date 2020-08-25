@@ -1,10 +1,7 @@
 #include "lmpch.h"
-#include "ModelLoader.h"
+#include "Graphics/Model.h"
 #include "Graphics/Mesh.h"
 #include "Graphics/Material.h"
-
-#include "Scene/Component/MeshComponent.h"
-#include "Scene/Component/MaterialComponent.h"
 
 #include "Graphics/API/Texture.h"
 #include "Maths/Maths.h"
@@ -20,7 +17,7 @@
 #endif
 #include <tinygltf/tiny_gltf.h>
 
-namespace Lumos
+namespace Lumos::Graphics
 {
 	std::string AlbedoTexName = "baseColorTexture";
 	std::string NormalTexName = "normalTexture";
@@ -131,7 +128,7 @@ namespace Lumos
 		{
 			Ref<Material> pbrMaterial = CreateRef<Material>();
 			PBRMataterialTextures textures;
-			MaterialProperties properties;
+			Graphics::MaterialProperties properties;
 
 			// metallic-roughness workflow:
 			auto baseColorTexture = mat.values.find("baseColorTexture");
@@ -236,7 +233,7 @@ namespace Lumos
 		return loadedMaterials;
 	}
 
-	std::vector<Graphics::Mesh*> LoadMesh(tinygltf::Model& model, tinygltf::Mesh& mesh, std::vector<Ref<Material>>& materials)
+	std::vector<Graphics::Mesh*> LoadMesh(tinygltf::Model& model, tinygltf::Mesh& mesh, std::vector<Ref<Material>>& materials, Maths::Transform& parentTransform)
 	{
 		std::vector<Graphics::Mesh*> meshes;
 
@@ -245,8 +242,8 @@ namespace Lumos
 			const tinygltf::Accessor& indices = model.accessors[primitive.indices];
 
 			const u32 numVertices = static_cast<u32>(indices.count);
-			Graphics::Vertex* tempvertices = lmnew Graphics::Vertex[numVertices];
-			u32* indicesArray = lmnew u32[numVertices];
+			Graphics::Vertex* tempvertices = new Graphics::Vertex[numVertices];
+			u32* indicesArray = new u32[numVertices];
 
 			size_t maxNumVerts = 0;
 
@@ -277,9 +274,7 @@ namespace Lumos
 					Maths::Vector3Simple* positions = reinterpret_cast<Maths::Vector3Simple*>(data.data());
 					for(auto p = 0; p < positionCount; ++p)
 					{
-						//positions[p] = glm::vec3(matrix * glm::vec4(positions[p], 1.0f));
-						tempvertices[p].Position = Maths::ToVector(positions[p]);
-
+						tempvertices[p].Position = parentTransform.GetWorldMatrix() * Maths::ToVector(positions[p]);
 						boundingBox->Merge(tempvertices[p].Position);
 					}
 				}
@@ -293,7 +288,7 @@ namespace Lumos
 					Maths::Vector3Simple* normals = reinterpret_cast<Maths::Vector3Simple*>(data.data());
 					for(auto p = 0; p < normalCount; ++p)
 					{
-						tempvertices[p].Normal = Maths::ToVector(normals[p]);
+						tempvertices[p].Normal = parentTransform.GetWorldMatrix() * Maths::ToVector(normals[p]);
 					}
 				}
 
@@ -332,7 +327,7 @@ namespace Lumos
 					Maths::Vector3Simple* uvs = reinterpret_cast<Maths::Vector3Simple*>(data.data());
 					for(auto p = 0; p < uvCount; ++p)
 					{
-						tempvertices[p].Tangent = ToVector(uvs[p]);
+						tempvertices[p].Tangent = parentTransform.GetWorldMatrix() * ToVector(uvs[p]);
 					}
 				}
 			}
@@ -392,7 +387,7 @@ namespace Lumos
 			Ref<Graphics::IndexBuffer> ib;
 			ib.reset(Graphics::IndexBuffer::Create(indicesArray, numVertices));
 
-			auto lMesh = lmnew Graphics::Mesh(va, ib, boundingBox);
+			auto lMesh = new Graphics::Mesh(va, ib, boundingBox);
 
 			delete[] tempvertices;
 			delete[] indicesArray;
@@ -403,7 +398,7 @@ namespace Lumos
 		return meshes;
 	}
 
-	void LoadNode(int nodeIndex, entt::entity parent, tinygltf::Model& model, std::vector<Ref<Material>>& materials, std::vector<std::vector<Graphics::Mesh*>>& meshes, entt::registry& registry)
+	void LoadNode(Model* mainModel, int nodeIndex, const Maths::Matrix4& parentTransform, tinygltf::Model& model, std::vector<Ref<Material>>& materials, std::vector<std::vector<Graphics::Mesh*>>& meshes)
 	{
 		if(nodeIndex < 0)
 		{
@@ -411,35 +406,51 @@ namespace Lumos
 		}
 
 		auto& node = model.nodes[nodeIndex];
-		auto meshEntity = registry.create();
-
 		auto name = node.name;
-		if(name != "")
-			registry.emplace<NameComponent>(meshEntity, name);
 
-		registry.emplace<Maths::Transform>(meshEntity);
+		Maths::Transform transform;
 
-		if(parent != entt::null)
-			registry.emplace<Hierarchy>(meshEntity, parent);
+		if(!node.scale.empty())
+		{
+			transform.SetLocalScale(Maths::Vector3(static_cast<float>(node.scale[0]), static_cast<float>(node.scale[1]), static_cast<float>(node.scale[2])));
+		}
+
+		if(!node.rotation.empty())
+		{
+			transform.SetLocalOrientation(Maths::Quaternion(static_cast<float>(node.rotation[3]), static_cast<float>(node.rotation[0]), static_cast<float>(node.rotation[1]), static_cast<float>(node.rotation[2])));
+		}
+
+		if(!node.translation.empty())
+		{
+			transform.SetLocalPosition(Maths::Vector3(static_cast<float>(node.translation[0]), static_cast<float>(node.translation[1]), static_cast<float>(node.translation[2])));
+		}
+
+		if(!node.matrix.empty())
+		{
+			auto lTransform = Maths::Matrix4(reinterpret_cast<float*>(node.matrix.data()));
+			transform.SetLocalTransform(lTransform.Transpose());
+		}
+
+		transform.UpdateMatrices();
+		transform.SetWorldMatrix(parentTransform);
 
 		if(node.mesh >= 0)
 		{
 			int subIndex = 0;
-			for(auto& meshes : meshes[node.mesh])
+
+			auto meshes = LoadMesh(model, model.meshes[node.mesh], materials, transform);
+
+			for(auto& mesh : meshes)
 			{
 				auto subname = node.name;
-				auto submeshEntity = registry.create();
-				auto lMesh = Ref<Graphics::Mesh>(meshes);
-
-				registry.emplace<MeshComponent>(submeshEntity, lMesh);
-				registry.emplace<Maths::Transform>(submeshEntity);
-				if(!subname.empty())
-					registry.emplace<NameComponent>(submeshEntity, subname);
-				registry.emplace<Hierarchy>(submeshEntity, meshEntity);
+				auto lMesh = Ref<Graphics::Mesh>(mesh);
+				lMesh->SetName(subname);
 
 				int materialIndex = model.meshes[node.mesh].primitives[subIndex].material;
 				if(materialIndex >= 0)
-					registry.emplace<MaterialComponent>(submeshEntity, materials[materialIndex]);
+					lMesh->SetMaterial(materials[materialIndex]);
+
+				mainModel->AddMesh(lMesh);
 
 				/*if (node.skin >= 0)
                 {
@@ -449,38 +460,16 @@ namespace Lumos
 			}
 		}
 
-		Maths::Transform& transform = registry.get<Maths::Transform>(meshEntity);
-
-		if(!node.scale.empty())
-		{
-			transform.SetLocalScale(Maths::Vector3(static_cast<float>(node.scale[0]), static_cast<float>(node.scale[1]), static_cast<float>(node.scale[2])));
-		}
-		if(!node.rotation.empty())
-		{
-			transform.SetLocalOrientation(Maths::Quaternion(static_cast<float>(node.rotation[3]), static_cast<float>(node.rotation[0]), static_cast<float>(node.rotation[1]), static_cast<float>(node.rotation[2])));
-		}
-		if(!node.translation.empty())
-		{
-			transform.SetLocalPosition(Maths::Vector3(static_cast<float>(node.translation[0]), static_cast<float>(node.translation[1]), static_cast<float>(node.translation[2])));
-		}
-		if(!node.matrix.empty())
-		{
-			auto lTransform = Maths::Matrix4(reinterpret_cast<float*>(node.matrix.data()));
-			transform.SetLocalTransform(lTransform.Transpose());
-		}
-
-		transform.UpdateMatrices();
-
 		if(!node.children.empty())
 		{
 			for(int child : node.children)
 			{
-				LoadNode(child, meshEntity, model, materials, meshes, registry);
+				LoadNode(mainModel, child, transform.GetLocalMatrix(), model, materials, meshes);
 			}
 		}
 	}
 
-	entt::entity ModelLoader::LoadGLTF(const std::string& path, entt::registry& registry)
+	void Model::LoadGLTF(const std::string& path)
 	{
 		tinygltf::Model model;
 		tinygltf::TinyGLTF loader;
@@ -522,24 +511,11 @@ namespace Lumos
 
 		std::string name = path.substr(path.find_last_of('/') + 1);
 
-		auto entity = registry.create();
-		registry.emplace<Maths::Transform>(entity);
-		registry.emplace<NameComponent>(entity, name);
-
 		auto meshes = std::vector<std::vector<Graphics::Mesh*>>();
-
-		for(auto& mesh : model.meshes)
-		{
-			meshes.emplace_back(LoadMesh(model, mesh, LoadedMaterials));
-		}
-
 		const tinygltf::Scene& gltfScene = model.scenes[Lumos::Maths::Max(0, model.defaultScene)];
 		for(size_t i = 0; i < gltfScene.nodes.size(); i++)
 		{
-			LoadNode(gltfScene.nodes[i], entity, model, LoadedMaterials, meshes, registry);
+			LoadNode(this, gltfScene.nodes[i], Maths::Matrix4(), model, LoadedMaterials, meshes);
 		}
-
-		return entity;
 	}
-
 }

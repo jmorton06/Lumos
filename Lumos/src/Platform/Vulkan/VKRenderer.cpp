@@ -157,7 +157,7 @@ namespace Lumos
 
 		Renderer* VKRenderer::CreateFuncVulkan(u32 width, u32 height)
 		{
-			return lmnew VKRenderer(width, height);
+			return new VKRenderer(width, height);
 		}
 	}
 }

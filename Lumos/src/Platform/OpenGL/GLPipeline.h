@@ -17,7 +17,7 @@ namespace Lumos
 
             bool Init(const PipelineInfo& pipelineCI);
 
-            void SetActive(Graphics::CommandBuffer* cmdBuffer) override;
+            void Bind(Graphics::CommandBuffer* cmdBuffer) override;
 			
 			DescriptorSet* GetDescriptorSet() const override { return m_DescriptorSet; }
 			Shader* GetShader() const override { return m_Shader; }

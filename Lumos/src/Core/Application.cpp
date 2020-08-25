@@ -23,8 +23,6 @@
 #include "Graphics/Layers/Layer2D.h"
 #include "Graphics/Layers/Layer3D.h"
 
-#include "Scene/Component/MeshComponent.h"
-
 #include "Maths/Transform.h"
 
 #include "Scene/EntityFactory.h"
@@ -61,7 +59,7 @@ namespace Lumos
 		s_Instance = this;
 
 #ifdef LUMOS_EDITOR
-		m_Editor = lmnew Editor(this, properties.Width, properties.Height);
+		m_Editor = new Editor(this, properties.Width, properties.Height);
 #endif
 		Graphics::GraphicsContext::SetRenderAPI(static_cast<Graphics::RenderAPI>(properties.RenderAPI));
 
@@ -117,19 +115,15 @@ namespace Lumos
 
 		Graphics::GraphicsContext::GetContext()->Init();
 
-#ifdef LUMOS_EDITOR
-		m_Editor->OnInit();
-#endif
-
 		Graphics::Renderer::Init(screenWidth, screenHeight);
 
 		// Graphics Loading on main thread
 		m_RenderManager = CreateUniqueRef<Graphics::RenderManager>(screenWidth, screenHeight);
 
-		m_ImGuiLayer = lmnew ImGuiLayer(false);
+		m_ImGuiLayer = new ImGuiLayer(false);
 		m_ImGuiLayer->OnAttach();
 
-		m_LayerStack = lmnew LayerStack();
+		m_LayerStack = new LayerStack();
 
 		m_SystemManager = CreateUniqueRef<SystemManager>();
 
@@ -143,9 +137,13 @@ namespace Lumos
 		m_SystemManager->RegisterSystem<LumosPhysicsEngine>();
 		m_SystemManager->RegisterSystem<B2PhysicsEngine>();
         
-		Material::InitDefaultTexture();
+		Graphics::Material::InitDefaultTexture();
 
 		m_CurrentState = AppState::Running;
+
+#ifdef LUMOS_EDITOR
+		m_Editor->OnInit();
+#endif
 
 		DebugRenderer::Init(screenWidth, screenHeight);
             
@@ -172,10 +170,13 @@ namespace Lumos
 
 	int Application::Quit(bool pause, const std::string& reason)
 	{
-		Material::ReleaseDefaultTexture();
+		Graphics::Material::ReleaseDefaultTexture();
 		Engine::Release();
 		Input::Release();
 		DebugRenderer::Release();
+#ifdef LUMOS_EDITOR
+        m_Editor->SaveEditorSettings();
+#endif
 
 		m_SceneManager.reset();
 		m_RenderManager.reset();
@@ -183,9 +184,9 @@ namespace Lumos
 
 		delete m_LayerStack;
 		delete m_ImGuiLayer;
-
+        
 #ifdef LUMOS_EDITOR
-		lmdel m_Editor;
+		delete m_Editor;
 #endif
 
 		Graphics::Renderer::Release();
@@ -225,9 +226,9 @@ namespace Lumos
 
 			ImGuiIO& io = ImGui::GetIO();
 			io.DeltaTime = ts.GetMillis();
-
-			Application& app = Application::Get();
-			app.GetWindow()->UpdateCursorImGui();
+            
+            m_SceneManager->ApplySceneSwitch();
+			m_Window->UpdateCursorImGui();
 
 			ImGui::NewFrame();
 
@@ -266,8 +267,6 @@ namespace Lumos
 			m_Updates = 0;
 			m_SceneManager->GetCurrentScene()->OnTick();
 		}
-
-		m_SceneManager->ApplySceneSwitch();
 
 		return m_CurrentState != AppState::Closing;
 	}

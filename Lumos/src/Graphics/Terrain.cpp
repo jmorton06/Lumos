@@ -11,23 +11,23 @@ namespace Lumos
 		int zCoord = 0;
 		u32 numVertices = width  * height;
 		u32 numIndices = (width - 1) * (height - 1) * 6;
-		Maths::Vector3* vertices = lmnew Maths::Vector3[numVertices];
-		Maths::Vector2* texCoords = lmnew Maths::Vector2[numVertices];
-		u32* indices = lmnew u32[numIndices];
+		Maths::Vector3* vertices = new Maths::Vector3[numVertices];
+		Maths::Vector2* texCoords = new Maths::Vector2[numVertices];
+		u32* indices = new u32[numIndices];
         m_BoundingBox = CreateRef<Maths::BoundingBox>();
 
-		float** lowMap = lmnew float*[lowside + 1];
+		float** lowMap = new float*[lowside + 1];
 
 		for (int x = 0; x < lowside + 1; ++x)
 		{
-			lowMap[x] = lmnew float[lowside + 1];
+			lowMap[x] = new float[lowside + 1];
 		}
 
-		float** lowMapExpand = lmnew float*[width];
+		float** lowMapExpand = new float*[width];
 
 		for (int x = 0; x < width; ++x)
 		{
-			lowMapExpand[x] = lmnew float[height];
+			lowMapExpand[x] = new float[height];
 		}
 
 
@@ -134,7 +134,7 @@ namespace Lumos
 		Maths::Vector3* normals = GenerateNormals(numVertices, vertices, indices, numIndices);
 		Maths::Vector3* tangents = GenerateTangents(numVertices, vertices, indices, numIndices, texCoords);
 
-		Graphics::Vertex* verts = lmnew Graphics::Vertex[numVertices];
+		Graphics::Vertex* verts = new Graphics::Vertex[numVertices];
 
 		for (u32 i = 0; i < numVertices; i++)
 		{
@@ -164,24 +164,24 @@ namespace Lumos
 
 		m_IndexBuffer = Ref<Graphics::IndexBuffer>(Graphics::IndexBuffer::Create(indices, numIndices));// / sizeof(u32));
         
-        lmdel[] normals;
-        lmdel[] tangents;
-        lmdel[] verts;
-        lmdel[] vertices;
-        lmdel[] indices;
-        lmdel[] texCoords;
+        delete[] normals;
+        delete[] tangents;
+        delete[] verts;
+        delete[] vertices;
+        delete[] indices;
+        delete[] texCoords;
 
 		for (int x = 0; x < lowside + 1; ++x)
 		{
-			lmdel[] lowMap[x];
+			delete[] lowMap[x];
 		}
 
 		for (int x = 0; x < width; ++x)
 		{
-			lmdel[] lowMapExpand[x];
+			delete[] lowMapExpand[x];
 		}
 
-		lmdel[] lowMap;
-		lmdel[] lowMapExpand;
+		delete[] lowMap;
+		delete[] lowMapExpand;
 	}
 }

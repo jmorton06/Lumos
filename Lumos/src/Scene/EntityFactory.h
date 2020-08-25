@@ -1,8 +1,7 @@
 #pragma once
 #include "lmpch.h"
 #include "Maths/Maths.h"
-
-#include <entt/entity/fwd.hpp>
+#include "Entity.h"
 
 namespace Lumos
 {
@@ -14,8 +13,8 @@ namespace Lumos
 		Maths::Vector4 GenColour(float alpha);
 
 		//Generates a default Sphere object with the parameters specified.
-		entt::entity BuildSphereObject(
-			entt::registry& registry,
+		Entity BuildSphereObject(
+			Scene* scene,
 			const std::string& name,
 			const Maths::Vector3& pos,
 			float radius,
@@ -25,8 +24,8 @@ namespace Lumos
 			const Maths::Vector4& color = Maths::Vector4(1.0f, 1.0f, 1.0f, 1.0f));
 
 		//Generates a default Cuboid object with the parameters specified
-		entt::entity BuildCuboidObject(
-			entt::registry& registry,
+		Entity BuildCuboidObject(
+			Scene* scene,
 			const std::string& name,
 			const Maths::Vector3& pos,
 			const Maths::Vector3& scale,
@@ -36,8 +35,8 @@ namespace Lumos
 			const Maths::Vector4& color = Maths::Vector4(1.0f, 1.0f, 1.0f, 1.0f));
 
 		//Generates a default Cuboid object with the parameters specified
-		entt::entity BuildPyramidObject(
-			entt::registry& registry,
+		Entity BuildPyramidObject(
+			Scene* scene,
 			const std::string& name,
 			const Maths::Vector3& pos,
 			const Maths::Vector3& scale,

@@ -35,7 +35,7 @@ namespace Lumos
 			uint32_t currentShaderStage = 0;
 			m_StageCount = 0;
 
-			std::map<ShaderType, std::string>* files = lmnew std::map<ShaderType, std::string>();
+			std::map<ShaderType, std::string>* files = new std::map<ShaderType, std::string>();
 			PreProcess(m_Source, files);
 
 			for(auto& source : *files)
@@ -44,7 +44,7 @@ namespace Lumos
 				m_StageCount++;
 			}
 
-			m_ShaderStages = lmnew VkPipelineShaderStageCreateInfo[m_StageCount];
+			m_ShaderStages = new VkPipelineShaderStageCreateInfo[m_StageCount];
 
 			for(uint32_t i = 0; i < m_StageCount; i++)
 				m_ShaderStages[i] = VkPipelineShaderStageCreateInfo();
@@ -166,7 +166,7 @@ namespace Lumos
 		{
 			std::string physicalPath;
 			Lumos::VFS::Get()->ResolvePhysicalPath(source, physicalPath, true);
-			return lmnew VKShader(name, physicalPath);
+			return new VKShader(name, physicalPath);
 		}
 
 	}

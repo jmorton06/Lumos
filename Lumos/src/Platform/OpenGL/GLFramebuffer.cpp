@@ -171,7 +171,7 @@ namespace Lumos
 
 		Framebuffer* GLFramebuffer::CreateFuncGL(const FramebufferInfo & bufferInfo)
 		{
-			return lmnew GLFramebuffer(bufferInfo);
+			return new GLFramebuffer(bufferInfo);
 		}
 	}
 }

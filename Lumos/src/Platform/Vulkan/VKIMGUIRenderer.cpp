@@ -92,7 +92,7 @@ namespace Lumos
             
             for (int i = 0; i < Renderer::GetSwapchain()->GetSwapchainBufferCount(); i++)
             {
-                VKCommandBuffer* commandBuffer = lmnew VKCommandBuffer();
+                VKCommandBuffer* commandBuffer = new VKCommandBuffer();
                 commandBuffer->Init(true);
                 m_CommandBuffers[i] = commandBuffer;
             }
@@ -104,7 +104,7 @@ namespace Lumos
 
             wd->BackBufferCount = static_cast<uint32_t>(swapChain->GetSwapchainBufferCount());
             
-			m_Renderpass = lmnew VKRenderpass();
+			m_Renderpass = new VKRenderpass();
 			AttachmentInfo textureTypes[2] =
 			{
 				{ TextureType::COLOUR, TextureFormat::RGBA8 }
@@ -144,7 +144,7 @@ namespace Lumos
 				attachments[0] = Renderer::GetRenderer()->GetSwapchain()->GetImage(i);
 				bufferInfo.attachments = attachments;
 
-				m_Framebuffers[i] = lmnew VKFramebuffer(bufferInfo);
+				m_Framebuffers[i] = new VKFramebuffer(bufferInfo);
 				wd->Framebuffer[i] = m_Framebuffers[i]->GetFramebuffer();
 			}
         }
@@ -178,7 +178,7 @@ namespace Lumos
 				int width, height;
 				io.Fonts->GetTexDataAsRGBA32(&pixels, &width, &height);
 
-				m_FontTexture = lmnew VKTexture2D(width, height, pixels, TextureParameters(TextureFilter::NEAREST, TextureFilter::NEAREST));
+				m_FontTexture = new VKTexture2D(width, height, pixels, TextureParameters(TextureFilter::NEAREST, TextureFilter::NEAREST));
 
 				 VkWriteDescriptorSet write_desc[1] = {};
 				 write_desc[0].sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
@@ -258,7 +258,7 @@ namespace Lumos
 				attachments[0] = Renderer::GetRenderer()->GetSwapchain()->GetImage(i);
 				bufferInfo.attachments = attachments;
 
-				m_Framebuffers[i] = lmnew VKFramebuffer(bufferInfo);
+				m_Framebuffers[i] = new VKFramebuffer(bufferInfo);
 				wd->Framebuffer[i] = m_Framebuffers[i]->GetFramebuffer();
 			}
         }
@@ -275,7 +275,7 @@ namespace Lumos
         
 		IMGUIRenderer* VKIMGUIRenderer::CreateFuncVulkan(u32 width, u32 height, bool clearScreen)
         {
-            return lmnew VKIMGUIRenderer(width, height, clearScreen);
+            return new VKIMGUIRenderer(width, height, clearScreen);
         }
 
         void VKIMGUIRenderer::RebuildFontTexture()
@@ -288,7 +288,7 @@ namespace Lumos
                 int width, height;
                 io.Fonts->GetTexDataAsRGBA32(&pixels, &width, &height);
 
-                m_FontTexture = lmnew VKTexture2D(width, height, pixels, TextureParameters(TextureFilter::NEAREST, TextureFilter::NEAREST, TextureWrap::REPEAT));
+                m_FontTexture = new VKTexture2D(width, height, pixels, TextureParameters(TextureFilter::NEAREST, TextureFilter::NEAREST, TextureWrap::REPEAT));
 
                 VkWriteDescriptorSet write_desc[1] = {};
                 write_desc[0].sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;

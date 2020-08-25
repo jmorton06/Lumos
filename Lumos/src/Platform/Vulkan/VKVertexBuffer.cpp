@@ -82,7 +82,7 @@ namespace Lumos
         
         VertexBuffer* VKVertexBuffer::CreateFuncVulkan(const BufferUsage& usage)
         {
-            return lmnew VKVertexBuffer(usage);
+            return new VKVertexBuffer(usage);
         }
 	}
 }

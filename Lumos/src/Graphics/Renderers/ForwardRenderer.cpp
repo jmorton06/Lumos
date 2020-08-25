@@ -6,6 +6,7 @@
 #include "Graphics/API/Texture.h"
 #include "Graphics/API/UniformBuffer.h"
 #include "Graphics/Mesh.h"
+#include "Graphics/Model.h"
 #include "Graphics/Material.h"
 #include "Graphics/API/Renderer.h"
 #include "Graphics/API/CommandBuffer.h"
@@ -15,8 +16,6 @@
 #include "Graphics/API/GraphicsContext.h"
 #include "Graphics/GBuffer.h"
 #include "Scene/Scene.h"
-#include "Scene/Component/MaterialComponent.h"
-#include "Scene/Component/MeshComponent.h"
 #include "Scene/Component/TextureMatrixComponent.h"
 #include "Maths/Maths.h"
 #include "Maths/Transform.h"
@@ -40,17 +39,12 @@ namespace Lumos
 
 		ForwardRenderer::~ForwardRenderer()
 		{
-			delete m_Shader;
-			delete m_FBO;
 			delete m_DefaultTexture;
 			delete m_UniformBuffer;
 
 			Memory::AlignedFree(m_UBODataDynamic.model);
 
 			delete m_ModelUniformBuffer;
-			delete m_RenderPass;
-			delete m_Pipeline;
-			delete m_DescriptorSet;
 
 			delete[] m_VSSystemUniformBuffer;
 			delete[] m_PSSystemUniformBuffer;
@@ -72,7 +66,7 @@ namespace Lumos
 			{
 				Begin();
 
-				SetSystemUniforms(m_Shader);
+				SetSystemUniforms(m_Shader.get());
 
 				Present();
 
@@ -107,7 +101,7 @@ namespace Lumos
 			// Vertex shader System uniforms
 			//
 			m_VSSystemUniformBufferSize = sizeof(Maths::Matrix4) + sizeof(Maths::Matrix4) + sizeof(Maths::Matrix4) + sizeof(Maths::Matrix4);
-			m_VSSystemUniformBuffer = lmnew u8[m_VSSystemUniformBufferSize];
+			m_VSSystemUniformBuffer = new u8[m_VSSystemUniformBufferSize];
 			memset(m_VSSystemUniformBuffer, 0, m_VSSystemUniformBufferSize);
 			m_VSSystemUniformBufferOffsets.resize(VSSystemUniformIndex_Size);
 
@@ -119,7 +113,7 @@ namespace Lumos
 
 			// Pixel/fragment shader System uniforms
 			m_PSSystemUniformBufferSize = sizeof(Graphics::Light);
-			m_PSSystemUniformBuffer = lmnew u8[m_PSSystemUniformBufferSize];
+			m_PSSystemUniformBuffer = new u8[m_PSSystemUniformBufferSize];
 			memset(m_PSSystemUniformBuffer, 0, m_PSSystemUniformBufferSize);
 			m_PSSystemUniformBufferOffsets.resize(PSSystemUniformIndex_Size);
 
@@ -154,8 +148,6 @@ namespace Lumos
 			}
 
 			m_RenderPass->Init(renderpassCI);
-
-			m_FBO = nullptr;
 
 			CreateFramebuffers();
 
@@ -212,9 +204,9 @@ namespace Lumos
 			m_DefaultTexture = Texture2D::CreateFromSource(CheckerboardTextureArrayWidth, CheckerboardTextureArrayHeight, (void*)(u8*)CheckerboardTextureArray);
 
 			Graphics::DescriptorInfo info{};
-			info.pipeline = m_Pipeline;
+			info.pipeline = m_Pipeline.get();
 			info.layoutIndex = 1;
-			info.shader = m_Shader;
+			info.shader = m_Shader.get();
 			m_DescriptorSet = Graphics::DescriptorSet::Create(info);
 
 			std::vector<Graphics::ImageInfo> bufferInfosDefault;
@@ -267,50 +259,52 @@ namespace Lumos
 			auto proj = m_Camera->GetProjectionMatrix();
 
 			memcpy(m_VSSystemUniformBuffer + m_VSSystemUniformBufferOffsets[VSSystemUniformIndex_ProjectionMatrix], &proj, sizeof(Maths::Matrix4));
-			//memcpy(m_VSSystemUniformBuffer + m_VSSystemUniformBufferOffsets[VSSystemUniformIndex_ViewMatrix], &m_Camera->GetViewMatrix(), sizeof(Maths::Matrix4));
-
-			//m_Frustum = m_Camera->GetFrustum();
 
             m_CommandQueue.clear();
 
-			auto group = registry.group<MeshComponent>(entt::get<Maths::Transform>);
+            auto group = registry.group<Model>(entt::get<Maths::Transform>);
 
-			for(auto entity : group)
-			{
-				const auto& [mesh, trans] = group.get<MeshComponent, Maths::Transform>(entity);
+            for(auto entity : group)
+            {
+                const auto& [model, trans] = group.get<Model, Maths::Transform>(entity);
 
-				if(mesh.GetMesh() && mesh.GetMesh()->GetActive())
-				{
-					auto& worldTransform = trans.GetWorldMatrix();
+                const auto& meshes = model.GetMeshes();
+                
+                for(auto mesh : meshes)
+                {
+                    if(mesh->GetActive())
+                    {
+                        auto& worldTransform = trans.GetWorldMatrix();
 
-					auto bb = mesh.GetMesh()->GetBoundingBox();
-					auto bbCopy = bb->Transformed(worldTransform);
-					auto inside = m_Frustum.IsInsideFast(bbCopy);
+                        auto bb = mesh->GetBoundingBox();
+                        auto bbCopy = bb->Transformed(worldTransform);
+                        auto inside = m_Frustum.IsInsideFast(bbCopy);
 
-					if(inside == Maths::Intersection::OUTSIDE)
-						continue;
+                        if(inside == Maths::Intersection::OUTSIDE)
+                            continue;
 
-					auto meshPtr = mesh.GetMesh();
-					auto materialComponent = registry.try_get<MaterialComponent>(entity);
-					Material* material = nullptr;
-					if(materialComponent && /* materialComponent->GetActive() &&*/ materialComponent->GetMaterial())
-					{
-						material = materialComponent->GetMaterial().get();
+                        auto meshPtr = mesh;
+                        auto material = meshPtr->GetMaterial();
+                        if(material)
+                        {
+                            if(material->GetDescriptorSet() == nullptr || material->GetPipeline() != m_Pipeline.get() || material->GetTexturesUpdated())
+                            {
+                                material->CreateDescriptorSet(m_Pipeline.get(), 1);
+                                material->SetTexturesUpdated(false);
+                            }
+                        }
 
-						if(material->GetDescriptorSet() == nullptr || material->GetPipeline() != m_Pipeline)
-							material->CreateDescriptorSet(m_Pipeline, 1, false);
-					}
+                        auto textureMatrixTransform = registry.try_get<TextureMatrixComponent>(entity);
+                        Maths::Matrix4 textureMatrix;
+                        if(textureMatrixTransform)
+                            textureMatrix = textureMatrixTransform->GetMatrix();
+                        else
+                            textureMatrix = Maths::Matrix4();
 
-					auto textureMatrixTransform = registry.try_get<TextureMatrixComponent>(entity);
-					Maths::Matrix4 textureMatrix;
-					if(textureMatrixTransform)
-						textureMatrix = textureMatrixTransform->GetMatrix();
-					else
-						textureMatrix = Maths::Matrix4();
-
-					SubmitMesh(meshPtr, material, worldTransform, textureMatrix);
-				}
-			}
+                        SubmitMesh(meshPtr.get(), material.get(), worldTransform, textureMatrix);
+                    }
+                }
+            }
 		}
 
 		void ForwardRenderer::BeginScene(const Maths::Matrix4& proj, const Maths::Matrix4& view)
@@ -377,18 +371,16 @@ namespace Lumos
 
 				Graphics::CommandBuffer* currentCMDBuffer = m_CommandBuffers[m_CurrentBufferID];
 
-				m_Pipeline->SetActive(currentCMDBuffer);
+				m_Pipeline->Bind(currentCMDBuffer);
 
 				uint32_t dynamicOffset = index * static_cast<uint32_t>(m_DynamicAlignment);
 
-				std::vector<Graphics::DescriptorSet*> descriptorSets;
-				descriptorSets.emplace_back(m_Pipeline->GetDescriptorSet());
-				descriptorSets.emplace_back(m_DescriptorSet);
-
+				std::vector<Graphics::DescriptorSet*> descriptorSets = { m_Pipeline->GetDescriptorSet(), m_DescriptorSet.get() };
+				
 				mesh->GetVertexArray()->Bind(currentCMDBuffer);
 				mesh->GetIndexBuffer()->Bind(currentCMDBuffer);
 
-				Renderer::BindDescriptorSets(m_Pipeline, currentCMDBuffer, dynamicOffset, descriptorSets);
+				Renderer::BindDescriptorSets(m_Pipeline.get(), currentCMDBuffer, dynamicOffset, descriptorSets);
 				Renderer::DrawIndexed(currentCMDBuffer, DrawType::TRIANGLE, mesh->GetIndexBuffer()->GetCount());
 
 				mesh->GetVertexArray()->Unbind();
@@ -401,10 +393,6 @@ namespace Lumos
 		void ForwardRenderer::OnResize(u32 width, u32 height)
 		{
 			SetScreenBufferSize(width, height);
-
-			for(auto fbo : m_Framebuffers)
-				delete fbo;
-
 			m_Framebuffers.clear();
 
 			CreateFramebuffers();
@@ -448,8 +436,8 @@ namespace Lumos
 
 			Graphics::PipelineInfo pipelineCI{};
 			pipelineCI.pipelineName = "ForwardRenderer";
-			pipelineCI.shader = m_Shader;
-			pipelineCI.renderpass = m_RenderPass;
+			pipelineCI.shader = m_Shader.get();
+			pipelineCI.renderpass = m_RenderPass.get();
 			pipelineCI.numVertexLayout = static_cast<u32>(attributeDescriptions.size());
 			pipelineCI.descriptorLayouts = descriptorLayouts;
 			pipelineCI.vertexLayout = attributeDescriptions.data();
@@ -473,8 +461,6 @@ namespace Lumos
 			if(!rebuildFramebuffer)
 				return;
 
-			for(auto fbo : m_Framebuffers)
-				delete fbo;
 			m_Framebuffers.clear();
 
 			CreateFramebuffers();
@@ -496,7 +482,7 @@ namespace Lumos
 			bufferInfo.width = m_ScreenBufferWidth;
 			bufferInfo.height = m_ScreenBufferHeight;
 			bufferInfo.attachmentCount = m_DepthTest ? 2 : 1;
-			bufferInfo.renderPass = m_RenderPass;
+			bufferInfo.renderPass = m_RenderPass.get();
 			bufferInfo.attachmentTypes = attachmentTypes;
 
 			if(m_RenderTexture)

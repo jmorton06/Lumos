@@ -1,11 +1,8 @@
 #include "lmpch.h"
-#include "ModelLoader.h"
+#include "Graphics/Model.h"
 #include "Graphics/Mesh.h"
 #include "Graphics/Material.h"
 #include "Core/OS/FileSystem.h"
-
-#include "Scene/Component/MeshComponent.h"
-#include "Scene/Component/MaterialComponent.h"
 
 #include "Graphics/API/Texture.h"
 #include "Maths/Maths.h"
@@ -17,7 +14,7 @@
 
 const u32 MAX_PATH_LENGTH = 260;
 
-namespace Lumos
+namespace Lumos::Graphics
 {
 	std::string m_FBXModelDirectory;
 
@@ -135,7 +132,7 @@ namespace Lumos
 		return Maths::Quaternion(float(quat.x), float(quat.y), float(quat.z), float(quat.w));
 	}
 
-	entt::entity ModelLoader::LoadFBX(const std::string& path, entt::registry& registry)
+	void Model::LoadFBX(const std::string& path)
 	{
 		std::string err;
 		std::string pathCopy = path;
@@ -174,9 +171,6 @@ namespace Lumos
 			break;
 		}
 
-		auto entity = registry.create();
-		registry.emplace<Maths::Transform>(entity);
-
 		int c = scene->getMeshCount();
 		for(int i = 0; i < c; ++i)
 		{
@@ -189,8 +183,8 @@ namespace Lumos
 			const ofbx::Vec3* tangents = geom->getTangents();
 			const ofbx::Vec4* colors = geom->getColors();
 			const ofbx::Vec2* uvs = geom->getUVs();
-			Graphics::Vertex* tempvertices = lmnew Graphics::Vertex[vertex_count];
-			u32* indicesArray = lmnew u32[numIndices];
+			Graphics::Vertex* tempvertices = new Graphics::Vertex[vertex_count];
+			u32* indicesArray = new u32[numIndices];
 
 			Ref<Maths::BoundingBox> boundingBox = CreateRef<Maths::BoundingBox>();
 
@@ -257,7 +251,7 @@ namespace Lumos
 			if(material)
 			{
 				PBRMataterialTextures textures;
-				MaterialProperties properties;
+				Graphics::MaterialProperties properties;
 
 				properties.albedoColour = ToLumosVector(material->getDiffuseColor());
 				properties.metallicColour = ToLumosVector(material->getSpecularColor());
@@ -379,16 +373,13 @@ namespace Lumos
 			auto mesh = CreateRef<Graphics::Mesh>(va, ib, boundingBox);
 			if(c == 1)
 			{
-				registry.emplace<MeshComponent>(entity, mesh);
-
-				if(!registry.has<Maths::Transform>(entity))
-					registry.emplace<Maths::Transform>(entity);
-				registry.emplace<NameComponent>(entity, fbx_mesh->name);
-
+				mesh->SetName(fbx_mesh->name);
 				if(material)
-					registry.emplace<MaterialComponent>(entity, pbrMaterial);
+					mesh->SetMaterial(pbrMaterial);
 
-				auto& transform = registry.get<Maths::Transform>(entity);
+				m_Meshes.push_back(mesh);
+
+				auto transform = Maths::Transform();
 
 				auto object = fbx_mesh;
 				ofbx::Vec3 p = object->getLocalTranslation();
@@ -407,16 +398,12 @@ namespace Lumos
 			}
 			else
 			{
-				auto meshEntity = registry.create();
-				registry.emplace<MeshComponent>(meshEntity, mesh);
-				registry.emplace<Maths::Transform>(meshEntity);
-				registry.emplace<Hierarchy>(meshEntity, entity);
-				registry.emplace<NameComponent>(meshEntity, fbx_mesh->name);
-
+				mesh->SetName(fbx_mesh->name);
 				if(material)
-					registry.emplace<MaterialComponent>(meshEntity, pbrMaterial);
+					mesh->SetMaterial(pbrMaterial);
 
-				auto& transform = registry.get<Maths::Transform>(meshEntity);
+				m_Meshes.push_back(mesh);
+				auto transform = Maths::Transform();
 
 				auto object = fbx_mesh;
 				ofbx::Vec3 p = object->getLocalTranslation();
@@ -438,8 +425,6 @@ namespace Lumos
 			delete[] tempvertices;
 			delete[] indicesArray;
 		}
-
-		return entity;
 	}
 
 }

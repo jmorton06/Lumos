@@ -45,7 +45,7 @@ namespace Lumos
 
 		CommandBuffer* GLCommandBuffer::CreateFuncGL()
 		{
-			return lmnew GLCommandBuffer();
+			return new GLCommandBuffer();
 		}
 	}
 }

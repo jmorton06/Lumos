@@ -333,9 +333,6 @@ namespace Lumos
 		physics3D_type.set_function("GetFriction", &RigidBody3D::GetFriction);
 		physics3D_type.set_function("GetIsStatic", &RigidBody3D::GetIsStatic);
 
-		state.set_function("CreatePhysics3DShared", &CreateSharedPhysics3D);
-		state.set_function("CreatePhysics3DSharedWithParams", &CreateSharedPhysics3DWithParams);
-
 		std::initializer_list<std::pair<sol::string_view, Shape>> shapes =
 			{
 				{"Square", Shape::Square},

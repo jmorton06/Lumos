@@ -1,6 +1,6 @@
 #pragma once
 #include "lmpch.h"
-#include "Renderer3D.h"
+#include "IRenderer.h"
 
 namespace Lumos
 {
@@ -8,10 +8,10 @@ namespace Lumos
 	{
 		class Shader;
 
-		class LUMOS_EXPORT GridRenderer : public Renderer3D
+		class LUMOS_EXPORT GridRenderer : public IRenderer
 		{
 		public:
-			GridRenderer(u32 width, u32 height, bool renderToGBuffer = false);
+			GridRenderer(u32 width, u32 height);
 			~GridRenderer();
 
 			void Init() override;
@@ -27,6 +27,7 @@ namespace Lumos
 			void End() override;
 			void Present() override{};
 			void RenderScene(Scene* scene) override;
+            void PresentToScreen() override {}
 
 			void CreateFramebuffers();
 
@@ -50,18 +51,8 @@ namespace Lumos
 		private:
 			void SetSystemUniforms(Shader* shader) const;
 
-			u8* m_VSSystemUniformBuffer{};
-			u32 m_VSSystemUniformBufferSize{};
-			u8* m_PSSystemUniformBuffer{};
-			u32 m_PSSystemUniformBufferSize{};
-
-			std::vector<u32> m_VSSystemUniformBufferOffsets;
-			std::vector<u32> m_PSSystemUniformBufferOffsets;
-
 			Lumos::Graphics::UniformBuffer* m_UniformBuffer;
 			Lumos::Graphics::UniformBuffer* m_UniformBufferFrag;
-			std::vector<Lumos::Graphics::CommandBuffer*> m_CommandBuffers;
-			std::vector<Framebuffer*> m_Framebuffers;
 
 			u32 m_CurrentBufferID = 0;
 			Mesh* m_Quad;

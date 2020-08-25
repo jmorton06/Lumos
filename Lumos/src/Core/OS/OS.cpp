@@ -20,19 +20,19 @@ namespace Lumos
 		LUMOS_ASSERT(!s_Instance, "OS already exists!");
 
 #if defined(LUMOS_PLATFORM_WINDOWS)
-		s_Instance = lmnew WindowsOS();
+		s_Instance = new WindowsOS();
 #elif defined(LUMOS_PLATFORM_MACOS)
-		s_Instance = lmnew macOSOS();
+		s_Instance = new macOSOS();
 #elif defined(LUMOS_PLATFORM_IOS)
-		s_Instance = lmnew iOSOS();
+		s_Instance = new iOSOS();
 #else
-		s_Instance = lmnew UnixOS();
+		s_Instance = new UnixOS();
 #endif
 	}
 
 	void OS::Release()
 	{
-		lmdel s_Instance;
+		delete s_Instance;
 		s_Instance = nullptr;
 	}
 

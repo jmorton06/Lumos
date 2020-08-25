@@ -66,22 +66,14 @@ namespace Lumos
 		if(!m_IsPaused)
 		{
 			auto& registry = scene->GetRegistry();
-
 			auto group = registry.group<Physics3DComponent>(entt::get<Maths::Transform>);
-
-			if(group.empty())
-				return;
 
 			for(auto entity : group)
 			{
 				const auto& phys = group.get<Physics3DComponent>(entity);
 
 				auto& physicsObj = phys.GetRigidBody();
-
-				if(physicsObj)
-				{
-					m_RigidBodys.push_back(physicsObj);
-				}
+				m_RigidBodys.push_back(physicsObj);
 			};
 
 			if(m_MultipleUpdates)
@@ -295,7 +287,7 @@ namespace Lumos
 						{
 							// Build full collision manifold that will also handle the collision
 							// response between the two objects in the solver stage
-							Manifold* manifold = lmnew Manifold();
+							Manifold* manifold = new Manifold();
 							manifold->Initiate(cp.pObjectA, cp.pObjectB);
 
 							// Construct contact points that form the perimeter of the collision manifold

@@ -62,7 +62,7 @@ namespace Lumos
 		template<class T>
 		void EnqueueScene(const std::string& name)
 		{
-			//T* scene = lmnew T(name);
+			//T* scene = new T(name);
 			m_vpAllScenes.emplace_back(CreateRef<T>(name));
 			LUMOS_LOG_INFO("[SceneManager] - Enqueued scene : {0}", name.c_str());
 		}

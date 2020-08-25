@@ -37,22 +37,9 @@ namespace Lumos
 
 		SkyboxRenderer::~SkyboxRenderer()
 		{
-			delete m_Shader;
 			delete m_UniformBuffer;
 			delete m_Skybox;
-			delete m_Pipeline;
-			delete m_RenderPass;
 			delete[] m_VSSystemUniformBuffer;
-
-			for(auto& commandBuffer : m_CommandBuffers)
-			{
-				delete commandBuffer;
-			}
-
-			for(auto& fbo : m_Framebuffers)
-			{
-				delete fbo;
-			}
 
 			m_Framebuffers.clear();
 			m_CommandBuffers.clear();
@@ -68,17 +55,17 @@ namespace Lumos
 				m_CurrentBufferID = Renderer::GetSwapchain()->GetCurrentBufferId();
 
 			Begin();
-			SetSystemUniforms(m_Shader);
-			m_Pipeline->SetActive(m_CommandBuffers[m_CurrentBufferID]);
+            SetSystemUniforms(m_Shader.get());
+			m_Pipeline->Bind(m_CommandBuffers[m_CurrentBufferID].get());
 
 			std::vector<Graphics::DescriptorSet*> descriptorSets;
 			descriptorSets.emplace_back(m_Pipeline->GetDescriptorSet());
 
-			m_Skybox->GetVertexArray()->Bind(m_CommandBuffers[m_CurrentBufferID]);
-			m_Skybox->GetIndexBuffer()->Bind(m_CommandBuffers[m_CurrentBufferID]);
+			m_Skybox->GetVertexArray()->Bind(m_CommandBuffers[m_CurrentBufferID].get());
+			m_Skybox->GetIndexBuffer()->Bind(m_CommandBuffers[m_CurrentBufferID].get());
 
-			Renderer::BindDescriptorSets(m_Pipeline, m_CommandBuffers[m_CurrentBufferID], 0, descriptorSets);
-			Renderer::DrawIndexed(m_CommandBuffers[m_CurrentBufferID], DrawType::TRIANGLE, m_Skybox->GetIndexBuffer()->GetCount());
+			Renderer::BindDescriptorSets(m_Pipeline.get(), m_CommandBuffers[m_CurrentBufferID].get(), 0, descriptorSets);
+			Renderer::DrawIndexed(m_CommandBuffers[m_CurrentBufferID].get(), DrawType::TRIANGLE, m_Skybox->GetIndexBuffer()->GetCount());
 
 			m_Skybox->GetVertexArray()->Unbind();
 			m_Skybox->GetIndexBuffer()->Unbind();
@@ -86,7 +73,7 @@ namespace Lumos
 			End();
 
 			if(!m_RenderTexture)
-				Renderer::Present((m_CommandBuffers[m_CurrentBufferID]));
+				Renderer::Present((m_CommandBuffers[m_CurrentBufferID].get()));
 		}
 
 		enum VSSystemUniformIndices : i32
@@ -102,7 +89,7 @@ namespace Lumos
 
 			// Vertex shader System uniforms
 			m_VSSystemUniformBufferSize = sizeof(Maths::Matrix4);
-			m_VSSystemUniformBuffer = lmnew u8[m_VSSystemUniformBufferSize];
+			m_VSSystemUniformBuffer = new u8[m_VSSystemUniformBufferSize];
 			memset(m_VSSystemUniformBuffer, 0, m_VSSystemUniformBufferSize);
 			m_VSSystemUniformBufferOffsets.resize(VSSystemUniformIndex_Size);
 
@@ -139,7 +126,7 @@ namespace Lumos
 			m_CommandBuffers[m_CurrentBufferID]->BeginRecording();
 			m_CommandBuffers[m_CurrentBufferID]->UpdateViewport(m_ScreenBufferWidth, m_ScreenBufferHeight);
 
-			m_RenderPass->BeginRenderpass(m_CommandBuffers[m_CurrentBufferID], Maths::Vector4(0.0f), m_Framebuffers[m_CurrentBufferID], Graphics::INLINE, m_ScreenBufferWidth, m_ScreenBufferHeight);
+			m_RenderPass->BeginRenderpass(m_CommandBuffers[m_CurrentBufferID].get(), Maths::Vector4(0.0f), m_Framebuffers[m_CurrentBufferID].get(), Graphics::INLINE, m_ScreenBufferWidth, m_ScreenBufferHeight);
 		}
 
 		void SkyboxRenderer::BeginScene(Scene* scene, Camera* overrideCamera, Maths::Transform* overrideCameraTransform)
@@ -189,7 +176,7 @@ namespace Lumos
 
 		void SkyboxRenderer::End()
 		{
-			m_RenderPass->EndRenderpass(m_CommandBuffers[m_CurrentBufferID]);
+			m_RenderPass->EndRenderpass(m_CommandBuffers[m_CurrentBufferID].get());
 			m_CommandBuffers[m_CurrentBufferID]->EndRecording();
 
 			if(m_RenderTexture)
@@ -203,8 +190,6 @@ namespace Lumos
 
 		void SkyboxRenderer::OnResize(u32 width, u32 height)
 		{
-			for(auto fbo : m_Framebuffers)
-				delete fbo;
 			m_Framebuffers.clear();
 
 			SetScreenBufferSize(width, height);
@@ -238,8 +223,8 @@ namespace Lumos
 
 			Graphics::PipelineInfo pipelineCI{};
 			pipelineCI.pipelineName = "SkyRenderer";
-			pipelineCI.shader = m_Shader;
-			pipelineCI.renderpass = m_RenderPass;
+			pipelineCI.shader = m_Shader.get();
+			pipelineCI.renderpass = m_RenderPass.get();
 			pipelineCI.numVertexLayout = static_cast<u32>(attributeDescriptions.size());
 			pipelineCI.descriptorLayouts = descriptorLayouts;
 			pipelineCI.vertexLayout = attributeDescriptions.data();
@@ -307,8 +292,6 @@ namespace Lumos
 
 			if(rebuildFramebuffer)
 			{
-				for(auto fbo : m_Framebuffers)
-					delete fbo;
 				m_Framebuffers.clear();
 
 				CreateFramebuffers();
@@ -326,7 +309,7 @@ namespace Lumos
 			bufferInfo.width = m_ScreenBufferWidth;
 			bufferInfo.height = m_ScreenBufferHeight;
 			bufferInfo.attachmentCount = 2;
-			bufferInfo.renderPass = m_RenderPass;
+			bufferInfo.renderPass = m_RenderPass.get();
 			bufferInfo.attachmentTypes = attachmentTypes;
 
 			attachments[1] = dynamic_cast<Texture*>(Application::Get().GetRenderManager()->GetGBuffer()->GetDepthTexture());

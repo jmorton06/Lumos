@@ -124,7 +124,7 @@ namespace Lumos
 
 			if(m_Counter->unreference())
 			{
-				lmdel m_Counter;
+				delete m_Counter;
 				m_Counter = nullptr;
 			}
 
@@ -143,7 +143,7 @@ namespace Lumos
 
 			if(m_Ptr != nullptr)
 			{
-				m_Counter = lmnew RefCount();
+				m_Counter = new RefCount();
 				m_Counter->InitRef();
 			}
 		}
@@ -218,6 +218,7 @@ namespace Lumos
 		{
 			return m_Ptr != nullptr;
 		}
+
 		_FORCE_INLINE_ constexpr bool operator==(const T* p_ptr) const
 		{
 			return m_Ptr == p_ptr;
@@ -269,7 +270,7 @@ namespace Lumos
 			LUMOS_ASSERT(ptr, "Creating shared ptr with nullptr");
 
             m_Ptr = ptr;
-			m_Counter = lmnew RefCount();
+			m_Counter = new RefCount();
 			m_Counter->InitRef();
 		}
 
@@ -279,11 +280,11 @@ namespace Lumos
 			{
 				if(m_Counter->unreference())
 				{
-					lmdel m_Ptr;
+					delete m_Ptr;
 
 					if(m_Counter->GetWeakReferenceCount() == 0)
 					{
-						lmdel m_Counter;
+						delete m_Counter;
 					}
 
 					m_Ptr = nullptr;
@@ -324,7 +325,7 @@ namespace Lumos
 		{
 			LUMOS_ASSERT(ptr, "Creating weak ptr with nullptr");
 
-			m_Counter = lmnew RefCount();
+			m_Counter = new RefCount();
 			m_Counter->weakReference();
 		}
 
@@ -347,7 +348,7 @@ namespace Lumos
 		{
 			if(m_Counter->weakUnreference())
 			{
-				lmdel m_Ptr;
+				delete m_Ptr;
 			}
 		}
 
@@ -436,7 +437,7 @@ namespace Lumos
 
 		~Owned()
 		{
-			lmdel m_Ptr;
+			delete m_Ptr;
 		}
 
 		Owned(Owned const&) = delete;
@@ -504,7 +505,7 @@ namespace Lumos
 		_FORCE_INLINE_ void reset()
 		{
 			T* tmp = release();
-			lmdel tmp;
+			delete tmp;
 		}
 
 		_FORCE_INLINE_ void swap(Owned& src) noexcept
@@ -531,7 +532,7 @@ namespace Lumos
 	template<typename T, typename... Args>
 	Ref<T> CreateRef(Args&&... args)
 	{
-		auto ptr = lmnew T(std::forward<Args>(args)...);
+		auto ptr = new T(std::forward<Args>(args)...);
 
 		return Reference<T>(ptr);
 	}
@@ -542,7 +543,7 @@ namespace Lumos
 	template<typename T, typename... Args>
 	UniqueRef<T> CreateUniqueRef(Args&&... args)
 	{
-		auto ptr = lmnew T(std::forward<Args>(args)...);
+		auto ptr = new T(std::forward<Args>(args)...);
 		return Owned<T>(ptr);
 	}
 

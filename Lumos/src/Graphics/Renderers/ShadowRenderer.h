@@ -1,7 +1,7 @@
 #pragma once
 #include "lmpch.h"
 #include "Maths/Maths.h"
-#include "Renderer3D.h"
+#include "IRenderer.h"
 
 #include <entt/entity/fwd.hpp>
 #define SHADOWMAP_MAX 16
@@ -28,7 +28,7 @@ namespace Lumos
 
 		typedef std::vector<RenderCommand> CommandQueue;
 
-		class LUMOS_EXPORT ShadowRenderer : public Renderer3D
+		class LUMOS_EXPORT ShadowRenderer : public IRenderer
 		{
 		public:
 			ShadowRenderer(TextureDepthArray* texture = nullptr, u32 shadowMapSize = 2048, u32 numMaps = 4);
@@ -51,6 +51,7 @@ namespace Lumos
 			void End() override;
 			void Present() override;
 			void RenderScene(Scene* scene) override;
+            void PresentToScreen() override {}
 
 			Maths::Vector4* GetSplitDepths()
 			{
@@ -112,14 +113,12 @@ namespace Lumos
 			Maths::Matrix4 m_ShadowProjView[SHADOWMAP_MAX];
 			Maths::Vector4 m_SplitDepth[SHADOWMAP_MAX];
 			Graphics::PushConstant* m_PushConstant = nullptr;
-			bool m_DeleteTexture = false;
 
 			Lumos::Graphics::UniformBuffer* m_UniformBuffer;
 			Lumos::Graphics::UniformBuffer* m_ModelUniformBuffer;
-			Lumos::Graphics::CommandBuffer* m_CommandBuffer{};
+			Lumos::Graphics::CommandBuffer* m_CommandBuffer = nullptr;
 
 			u32 m_Layer = 0;
-
 			size_t m_DynamicAlignment = 0;
 			UniformBufferModel uboDataDynamic;
 		};

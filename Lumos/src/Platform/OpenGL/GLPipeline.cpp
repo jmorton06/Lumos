@@ -23,7 +23,7 @@ namespace Lumos
             info.pipeline = this;
             info.layoutIndex = 0;
             info.shader = pipelineCI.shader;
-			m_DescriptorSet = lmnew GLDescriptorSet(info);
+			m_DescriptorSet = new GLDescriptorSet(info);
             m_TransparencyEnabled = pipelineCI.transparencyEnabled;
 
 			m_Shader = info.shader;
@@ -31,7 +31,7 @@ namespace Lumos
             return true;
         }
 
-        void GLPipeline::SetActive(Graphics::CommandBuffer* cmdBuffer)
+        void GLPipeline::Bind(Graphics::CommandBuffer* cmdBuffer)
         {
             if(m_TransparencyEnabled)
                 glEnable(GL_BLEND);
@@ -48,7 +48,7 @@ namespace Lumos
 
 		Pipeline* GLPipeline::CreateFuncGL(const PipelineInfo & pipelineCI)
 		{
-			return lmnew GLPipeline(pipelineCI);
+			return new GLPipeline(pipelineCI);
 		}
     }
 }

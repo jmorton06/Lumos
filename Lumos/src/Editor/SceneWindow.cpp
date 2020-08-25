@@ -88,7 +88,10 @@ namespace Lumos
 			ToolBar();
 
 		if(!camera)
-			return;
+		{
+            ImGui::End();
+            return;
+        }
 
 		ImGuizmo::SetDrawlist();
 		auto sceneViewSize = ImGui::GetContentRegionAvail();
@@ -582,6 +585,8 @@ namespace Lumos
 			layer->SetOverrideCamera(m_Editor->GetCamera(), &m_Editor->GetEditorCameraTransform());
 		}
 
+		m_Editor->GetGridRenderer()->SetRenderTarget(m_GameViewTexture.get(), true);
+
 		DebugRenderer::SetRenderTarget(m_GameViewTexture.get(), true);
 		DebugRenderer::SetOverrideCamera(m_Editor->GetCamera(), &m_Editor->GetEditorCameraTransform());
 	}
@@ -622,7 +627,6 @@ namespace Lumos
 			if(!m_Editor->GetGridRenderer())
 				m_Editor->CreateGridRenderer();
 			m_Editor->GetGridRenderer()->SetRenderTarget(m_GameViewTexture.get(), false);
-			m_Editor->GetGridRenderer()->OnResize(m_Width, m_Height);
 
 			WindowResizeEvent e(width, height);
 			auto& app = Application::Get();
@@ -633,6 +637,7 @@ namespace Lumos
 				layer->OnEvent(e);
 			}
 			DebugRenderer::OnResize(width, height);
+            m_Editor->GetGridRenderer()->OnResize(m_Width, m_Height);
 
 			Graphics::GraphicsContext::GetContext()->WaitIdle();
 		}

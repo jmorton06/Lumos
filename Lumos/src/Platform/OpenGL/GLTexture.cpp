@@ -276,12 +276,12 @@ namespace Lumos
 		u32 GLTextureCube::LoadFromVCross(u32 mips)
 		{
 			u32 srcWidth, srcHeight, bits;
-			u8*** cubeTextureData = lmnew u8 * *[mips];
+			u8*** cubeTextureData = new u8 * *[mips];
 			for(u32 i = 0; i < mips; i++)
-				cubeTextureData[i] = lmnew u8* [6];
+				cubeTextureData[i] = new u8* [6];
 
-			u32* faceWidths = lmnew u32[mips];
-			u32* faceHeights = lmnew u32[mips];
+			u32* faceWidths = new u32[mips];
+			u32* faceHeights = new u32[mips];
 
 			for(u32 m = 0; m < mips; m++)
 			{
@@ -305,7 +305,7 @@ namespace Lumos
 								continue;
 						}
 
-						cubeTextureData[m][face] = lmnew u8[faceWidth * faceHeight * stride];
+						cubeTextureData[m][face] = new u8[faceWidth * faceHeight * stride];
 
 						for(u32 y = 0; y < faceHeight; y++)
 						{
@@ -487,47 +487,47 @@ namespace Lumos
 
 		Texture2D* GLTexture2D::CreateFuncGL()
 		{
-			return lmnew GLTexture2D();
+			return new GLTexture2D();
 		}
 
 		Texture2D* GLTexture2D::CreateFromSourceFuncGL(u32 width, u32 height, void* data, TextureParameters parameters, TextureLoadOptions loadoptions)
 		{
-			return lmnew GLTexture2D(width, height, data, parameters, loadoptions);
+			return new GLTexture2D(width, height, data, parameters, loadoptions);
 		}
 
 		Texture2D* GLTexture2D::CreateFromFileFuncGL(const std::string& name, const std::string& filename, TextureParameters parameters, TextureLoadOptions loadoptions)
 		{
-			return lmnew GLTexture2D(name, filename, parameters, loadoptions);
+			return new GLTexture2D(name, filename, parameters, loadoptions);
 		}
 
 		TextureCube* GLTextureCube::CreateFuncGL(u32 size)
 		{
-			return lmnew GLTextureCube(size);
+			return new GLTextureCube(size);
 		}
 
 		TextureCube* GLTextureCube::CreateFromFileFuncGL(const std::string& filepath)
 		{
-			return lmnew GLTextureCube(filepath);
+			return new GLTextureCube(filepath);
 		}
 
 		TextureCube* GLTextureCube::CreateFromFilesFuncGL(const std::string* files)
 		{
-			return lmnew GLTextureCube(files);
+			return new GLTextureCube(files);
 		}
 
 		TextureCube* GLTextureCube::CreateFromVCrossFuncGL(const std::string* files, u32 mips, InputFormat format)
 		{
-			return lmnew GLTextureCube(files, mips, format);
+			return new GLTextureCube(files, mips, format);
 		}
 
 		TextureDepth* GLTextureDepth::CreateFuncGL(u32 width, u32 height)
 		{
-			return lmnew GLTextureDepth(width, height);
+			return new GLTextureDepth(width, height);
 		}
 
 		TextureDepthArray* GLTextureDepthArray::CreateFuncGL(u32 width, u32 height, u32 count)
 		{
-			return lmnew GLTextureDepthArray(width, height, count);
+			return new GLTextureDepthArray(width, height, count);
 		}
 
 		void GLTexture2D::MakeDefault()

@@ -54,8 +54,6 @@ namespace Lumos
 				m_Listener = &registry.get<Camera>(cameraView.front());
 			}
 
-			LUMOS_ASSERT(m_Listener, "No Camera Set for Renderer");
-
 			UpdateListener();
 
 			for(auto node : m_SoundNodes)

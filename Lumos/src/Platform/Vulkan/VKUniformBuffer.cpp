@@ -51,12 +51,12 @@ namespace Lumos
         
         UniformBuffer* VKUniformBuffer::CreateDataFuncVulkan(uint32_t size, const void* data)
         {
-            return lmnew VKUniformBuffer(size, data);
+            return new VKUniformBuffer(size, data);
         }
         
         UniformBuffer* VKUniformBuffer::CreateFuncVulkan()
         {
-            return lmnew VKUniformBuffer();
+            return new VKUniformBuffer();
         }
 	}
 }

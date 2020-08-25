@@ -22,7 +22,7 @@ namespace Lumos
 			NONE
 		};
 
-		enum PolygonMode
+		enum class PolygonMode
 		{
 			Fill,
 			Line,
@@ -58,7 +58,7 @@ namespace Lumos
 			static Pipeline* Create(const PipelineInfo& pipelineInfo);
 			virtual ~Pipeline(){};
 
-			virtual void SetActive(CommandBuffer* cmdBuffer) = 0;
+			virtual void Bind(CommandBuffer* cmdBuffer) = 0;
 
 			virtual DescriptorSet* GetDescriptorSet() const = 0;
 			virtual Shader* GetShader() const = 0;

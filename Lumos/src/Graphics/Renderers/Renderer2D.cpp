@@ -28,45 +28,32 @@ namespace Lumos
 	{
 		Renderer2D::Renderer2D(u32 width, u32 height, bool clear, bool triangleIndicies, bool renderToDepth)
 			: m_IndexCount(0)
-			, m_RenderTexture(nullptr)
 			, m_Buffer(nullptr)
 			, m_Clear(clear)
 			, m_RenderToDepthTexture(renderToDepth)
+			, m_TriangleIndicies(triangleIndicies)
 		{
 			m_Limits.SetMaxQuads(10000);
 			m_Limits.MaxQuads = 16; //Renderer::GetCapabilities().MaxTextureUnits;
 
 			Renderer2D::SetScreenBufferSize(width, height);
-			Renderer2D::Init(triangleIndicies);
+			Renderer2D::Init();
 		}
 
 		Renderer2D::~Renderer2D()
 		{
 			delete m_IndexBuffer;
-			delete m_Pipeline;
-			delete m_DescriptorSet;
-			delete m_RenderPass;
-			delete m_Shader;
 			delete m_UniformBuffer;
 
 			delete[] m_VSSystemUniformBuffer;
-
-			for(auto frameBuffer : m_Framebuffers)
-				delete frameBuffer;
-
 			for(u32 i = 0; i < m_Limits.MaxBatchDrawCalls; i++)
 			{
 				delete m_VertexArrays[i];
 				delete m_SecondaryCommandBuffers[i];
 			}
-
-			for(auto& commandBuffer : m_CommandBuffers)
-			{
-				delete commandBuffer;
-			}
 		}
 
-		void Renderer2D::Init(bool triangleIndicies)
+		void Renderer2D::Init()
 		{
 			LUMOS_PROFILE_FUNC;
 			m_Shader = Shader::CreateFromFile("Batch2D", "/CoreShaders/");
@@ -75,7 +62,7 @@ namespace Lumos
 			m_TransformationBack = &m_TransformationStack.back();
 
 			m_VSSystemUniformBufferSize = sizeof(Maths::Matrix4);
-			m_VSSystemUniformBuffer = lmnew u8[m_VSSystemUniformBufferSize];
+			m_VSSystemUniformBuffer = new u8[m_VSSystemUniformBufferSize];
 
 			m_RenderPass = Graphics::RenderPass::Create();
 			m_UniformBuffer = Graphics::UniformBuffer::Create();
@@ -136,9 +123,9 @@ namespace Lumos
 			m_Pipeline->GetDescriptorSet()->Update(bufferInfos);
 
 			Graphics::DescriptorInfo info{};
-			info.pipeline = m_Pipeline;
+            info.pipeline = m_Pipeline.get();
 			info.layoutIndex = 1; //?
-			info.shader = m_Shader;
+            info.shader = m_Shader.get();
 			m_DescriptorSet = Graphics::DescriptorSet::Create(info);
 
 			Graphics::BufferLayout layout;
@@ -159,9 +146,9 @@ namespace Lumos
 				vertexArray->PushBuffer(buffer);
 			}
 
-			u32* indices = lmnew u32[m_Limits.IndiciesSize];
+			u32* indices = new u32[m_Limits.IndiciesSize];
 
-			if(triangleIndicies)
+			if(m_TriangleIndicies)
 			{
 				for(u32 i = 0; i < m_Limits.IndiciesSize; i++)
 				{
@@ -286,9 +273,9 @@ namespace Lumos
 
 			m_CommandBuffers[m_CurrentBufferID]->BeginRecording();
 
-			m_RenderPass->BeginRenderpass(m_CommandBuffers[m_CurrentBufferID], m_ClearColour, m_Framebuffers[m_CurrentBufferID], Graphics::SECONDARY, m_ScreenBufferWidth, m_ScreenBufferHeight);
+            m_RenderPass->BeginRenderpass(m_CommandBuffers[m_CurrentBufferID].get(), m_ClearColour, m_Framebuffers[m_CurrentBufferID].get(), Graphics::SECONDARY, m_ScreenBufferWidth, m_ScreenBufferHeight);
 
-			m_VertexArrays[m_BatchDrawCallIndex]->Bind(m_CommandBuffers[m_CurrentBufferID]);
+			m_VertexArrays[m_BatchDrawCallIndex]->Bind(m_CommandBuffers[m_CurrentBufferID].get());
 			m_Buffer = m_VertexArrays[m_BatchDrawCallIndex]->GetBuffer()->GetPointer<VertexData>();
 		}
 
@@ -300,13 +287,13 @@ namespace Lumos
 
 			m_CommandBuffers[m_CurrentBufferID]->BeginRecording();
 
-			m_RenderPass->BeginRenderpass(m_CommandBuffers[m_CurrentBufferID], m_ClearColour, m_Framebuffers[m_CurrentBufferID], Graphics::SECONDARY, m_ScreenBufferWidth, m_ScreenBufferHeight);
+			m_RenderPass->BeginRenderpass(m_CommandBuffers[m_CurrentBufferID].get(), m_ClearColour, m_Framebuffers[m_CurrentBufferID].get(), Graphics::SECONDARY, m_ScreenBufferWidth, m_ScreenBufferHeight);
 
 			m_Textures.clear();
 			m_Sprites.clear();
 			m_Triangles.clear();
 
-			m_VertexArrays[m_BatchDrawCallIndex]->Bind(m_CommandBuffers[m_CurrentBufferID]);
+			m_VertexArrays[m_BatchDrawCallIndex]->Bind(m_CommandBuffers[m_CurrentBufferID].get());
 			m_Buffer = m_VertexArrays[m_BatchDrawCallIndex]->GetBuffer()->GetPointer<VertexData>();
 		}
 
@@ -349,7 +336,9 @@ namespace Lumos
 
 		void Renderer2D::Present()
 		{
-            if(m_IndexCount == 0){
+            if(m_IndexCount == 0)
+            {
+                m_VertexArrays[m_BatchDrawCallIndex]->GetBuffer()->ReleasePointer();
                 m_Empty = true;
                 return;
             }
@@ -359,21 +348,21 @@ namespace Lumos
 
 			Graphics::CommandBuffer* currentCMDBuffer = m_SecondaryCommandBuffers[m_BatchDrawCallIndex];
 
-			currentCMDBuffer->BeginRecordingSecondary(m_RenderPass, m_Framebuffers[m_CurrentBufferID]);
+			currentCMDBuffer->BeginRecordingSecondary(m_RenderPass.get(), m_Framebuffers[m_CurrentBufferID].get());
 			currentCMDBuffer->UpdateViewport(m_ScreenBufferWidth, m_ScreenBufferHeight);
-			m_Pipeline->SetActive(currentCMDBuffer);
+			m_Pipeline->Bind(currentCMDBuffer);
 
 			m_VertexArrays[m_BatchDrawCallIndex]->GetBuffer()->ReleasePointer();
 			m_VertexArrays[m_BatchDrawCallIndex]->Unbind();
 
 			m_IndexBuffer->SetCount(m_IndexCount);
 
-			std::vector<Graphics::DescriptorSet*> descriptors = {m_Pipeline->GetDescriptorSet(), m_DescriptorSet};
+			std::vector<Graphics::DescriptorSet*> descriptors = {m_Pipeline->GetDescriptorSet(), m_DescriptorSet.get()};
 
 			m_VertexArrays[m_BatchDrawCallIndex]->Bind(currentCMDBuffer);
 			m_IndexBuffer->Bind(currentCMDBuffer);
 
-			Renderer::BindDescriptorSets(m_Pipeline, currentCMDBuffer, 0, descriptors);
+			Renderer::BindDescriptorSets(m_Pipeline.get(), currentCMDBuffer, 0, descriptors);
 			Renderer::DrawIndexed(currentCMDBuffer, DrawType::TRIANGLE, m_IndexCount);
 
 			m_VertexArrays[m_BatchDrawCallIndex]->Unbind();
@@ -382,14 +371,14 @@ namespace Lumos
 			m_IndexCount = 0;
 
 			currentCMDBuffer->EndRecording();
-			currentCMDBuffer->ExecuteSecondary(m_CommandBuffers[m_CurrentBufferID]);
+			currentCMDBuffer->ExecuteSecondary(m_CommandBuffers[m_CurrentBufferID].get());
 
 			m_BatchDrawCallIndex++;
 		}
 
 		void Renderer2D::End()
 		{
-			m_RenderPass->EndRenderpass(m_CommandBuffers[m_CurrentBufferID]);
+			m_RenderPass->EndRenderpass(m_CommandBuffers[m_CurrentBufferID].get());
 			m_CommandBuffers[m_CurrentBufferID]->EndRecording();
 
 			if(m_RenderTexture)
@@ -401,12 +390,12 @@ namespace Lumos
 			m_BatchDrawCallIndex = 0;
 		}
 
-		void Renderer2D::Render(Scene* scene)
+		void Renderer2D::RenderScene(Scene* scene)
 		{
 			LUMOS_PROFILE_FUNC;
 			Begin();
 
-			SetSystemUniforms(m_Shader);
+			SetSystemUniforms(m_Shader.get());
 
 			auto& registry = scene->GetRegistry();
 			auto group = registry.group<Graphics::Sprite>(entt::get<Maths::Transform>);
@@ -457,8 +446,6 @@ namespace Lumos
 
 		void Renderer2D::OnResize(u32 width, u32 height)
 		{
-			for(auto fbo : m_Framebuffers)
-				delete fbo;
 			m_Framebuffers.clear();
 
 			SetScreenBufferSize(width, height);
@@ -468,7 +455,7 @@ namespace Lumos
 
 		void Renderer2D::PresentToScreen()
 		{
-			Renderer::Present((m_CommandBuffers[Renderer::GetSwapchain()->GetCurrentBufferId()]));
+			Renderer::Present((m_CommandBuffers[Renderer::GetSwapchain()->GetCurrentBufferId()].get()));
 		}
 
 		void Renderer2D::SetScreenBufferSize(u32 width, u32 height)
@@ -520,8 +507,8 @@ namespace Lumos
 
 			Graphics::PipelineInfo pipelineCI;
 			pipelineCI.pipelineName = "Batch2DRenderer";
-			pipelineCI.shader = m_Shader;
-			pipelineCI.renderpass = m_RenderPass;
+			pipelineCI.shader = m_Shader.get();
+			pipelineCI.renderpass = m_RenderPass.get();
 			pipelineCI.numVertexLayout = static_cast<u32>(attributeDescriptions.size());
 			pipelineCI.descriptorLayouts = descriptorLayouts;
 			pipelineCI.vertexLayout = attributeDescriptions.data();
@@ -554,7 +541,7 @@ namespace Lumos
 			bufferInfo.width = m_ScreenBufferWidth;
 			bufferInfo.height = m_ScreenBufferHeight;
 			bufferInfo.attachmentCount = m_RenderToDepthTexture ? 2 : 1;
-			bufferInfo.renderPass = m_RenderPass;
+			bufferInfo.renderPass = m_RenderPass.get();
 			bufferInfo.attachmentTypes = attachmentTypes;
 
 			if(m_RenderTexture)
@@ -598,9 +585,6 @@ namespace Lumos
 		void Renderer2D::SetRenderTarget(Texture* texture, bool rebuildFramebuffer)
 		{
 			m_RenderTexture = texture;
-
-			for(auto fbo : m_Framebuffers)
-				delete fbo;
 			m_Framebuffers.clear();
 
 			CreateFramebuffers();

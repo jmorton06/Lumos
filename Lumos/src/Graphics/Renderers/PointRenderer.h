@@ -1,6 +1,6 @@
 #pragma once
-
 #include "lmpch.h"
+#include "IRenderer.h"
 #include "Maths/Maths.h"
 #include "Graphics/API/DescriptorSet.h"
 #include "Maths/Transform.h"
@@ -9,13 +9,11 @@
 
 namespace Lumos
 {
-
 	class Scene;
 	class Camera;
 
 	namespace Graphics
 	{
-
 		struct PointInfo
 		{
 			Maths::Vector3 p1;
@@ -82,24 +80,26 @@ namespace Lumos
 		class IndexBuffer;
 		class VertexArray;
 
-		class LUMOS_EXPORT PointRenderer
+		class LUMOS_EXPORT PointRenderer : public IRenderer
 		{
 		public:
 			PointRenderer(u32 width, u32 height, bool clear);
 			~PointRenderer();
 
-			void Init();
-			void Submit(const Maths::Vector3& p1, float size, const Maths::Vector4& colour);
-			void Begin();
-			void BeginScene(Scene* scene, Camera* overrideCamera, Maths::Transform* overrideCameraTransform);
-			void Present();
-			void End();
-			void RenderInternal(Scene* scene, Camera* overrideCamera, Maths::Transform* overrideCameraTransform);
-			void OnResize(u32 width, u32 height);
-			void PresentToScreen();
-			void SetScreenBufferSize(u32 width, u32 height);
-			void SetRenderTarget(Graphics::Texture* texture, bool rebuildFramebuffer);
+			void Init() override;
+			void Begin() override;
+			void BeginScene(Scene* scene, Camera* overrideCamera, Maths::Transform* overrideCameraTransform) override;
+			void Present() override;
+			void End() override;
+			void EndScene() override {};
+			void OnResize(u32 width, u32 height) override;
+			void SetScreenBufferSize(u32 width, u32 height) override;
+			void SetRenderTarget(Graphics::Texture* texture, bool rebuildFramebuffer) override;
+			void RenderScene(Scene* scene) override {};
 
+			void RenderInternal(Scene* scene, Camera* overrideCamera, Maths::Transform* overrideCameraTransform) ;
+			void PresentToScreen() override;
+			void Submit(const Maths::Vector3& p1, float size, const Maths::Vector4& colour);
 			void SetSystemUniforms(Graphics::Shader* shader) const;
 			float SubmitTexture(Graphics::Texture* texture);
 
@@ -108,53 +108,26 @@ namespace Lumos
 				Maths::Matrix4 projView;
 			};
 
-			u8* m_VSSystemUniformBuffer{};
-			u32 m_VSSystemUniformBufferSize{};
-
 			void CreateGraphicsPipeline();
 			void CreateFramebuffers();
 			void UpdateDesciptorSet() const;
-
-			void SetCamera(Camera* camera)
-			{
-				m_Camera = camera;
-			}
-
+	
 		protected:
 			void FlushAndResetPoints();
 			void SubmitInternal(PointInfo& pointInfo);
 
-			u32 m_ScreenBufferWidth{}, m_ScreenBufferHeight{};
-
-			Graphics::RenderPass* m_RenderPass{};
-			Graphics::Pipeline* m_Pipeline{};
-			Graphics::UniformBuffer* m_UniformBuffer{};
-			std::vector<Graphics::CommandBuffer*> m_CommandBuffers;
+			PointVertexData* m_Buffer = nullptr;
+			Graphics::IndexBuffer* m_IndexBuffer = nullptr;
+			Graphics::UniformBuffer* m_UniformBuffer = nullptr;
 			std::vector<Graphics::CommandBuffer*> m_SecondaryCommandBuffers;
+			std::vector<Graphics::VertexArray*> m_VertexArrays;
+			std::vector<PointInfo> m_Points;
 
 			u32 m_BatchDrawCallIndex = 0;
 			u32 PointIndexCount = 0;
-
-			std::vector<Graphics::Framebuffer*> m_Framebuffers;
-
-			Graphics::Shader* m_Shader{};
-
-			std::vector<Graphics::VertexArray*> m_VertexArrays;
-			Graphics::IndexBuffer* m_IndexBuffer{};
-			u32 m_IndexCount;
-
-			PointVertexData* m_Buffer{};
-
-			Graphics::Texture* m_RenderTexture;
+			u32 m_IndexCount = 0;
 			u32 m_CurrentBufferID = 0;
-			Maths::Vector4 m_ClearColour;
 			bool m_Clear = false;
-
-			Maths::Matrix4 m_ProjectionMatrix;
-
-			std::vector<PointInfo> m_Points;
-			Camera* m_Camera = nullptr;
-			Maths::Transform* m_CameraTransform = nullptr;
 		};
 	}
 }

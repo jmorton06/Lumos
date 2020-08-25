@@ -18,7 +18,7 @@ namespace Lumos
 		GLRenderer::GLRenderer(u32 width, u32 height)
 			: m_Context(nullptr)
 		{
-			m_Swapchain = lmnew Graphics::GLSwapchain(width, height);
+			m_Swapchain = new Graphics::GLSwapchain(width, height);
 
 			m_RendererTitle = "OPENGL";
 
@@ -222,7 +222,7 @@ namespace Lumos
 
 		Renderer* GLRenderer::CreateFuncGL(u32 width, u32 height)
 		{
-			return lmnew GLRenderer(width, height);
+			return new GLRenderer(width, height);
 		}
 	}
 }
