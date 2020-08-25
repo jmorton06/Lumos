@@ -6,7 +6,11 @@
 #include "Scene/Component/Components.h"
 #include "Graphics/Camera/Camera.h"
 #include "Graphics/Sprite.h"
+#include "Graphics/Model.h"
+#include "Graphics/Mesh.h"
+#include "Graphics/MeshFactory.h"
 #include "Graphics/Light.h"
+#include "Graphics/Material.h"
 #include "Graphics/Environment.h"
 #include "Graphics/API/Texture.h"
 #include "Graphics/API/GraphicsContext.h"
@@ -30,18 +34,45 @@ namespace MM
 	{
 		auto& script = reg.get<Lumos::LuaScriptComponent>(e);
 
-		if(!script.Loaded())
+        if(!script.Loaded() && !script.GetFilePath().empty())
 		{
 			ImGui::Text("Script Failed to Load : %s", script.GetFilePath().c_str());
 			return;
 		}
 
-		ImGui::TextUnformatted("Loaded Functions : ");
-
 		auto& solEnv = script.GetSolEnvironment();
 
-        ImGui::Indent(12.0f);
+        std::string filePath = script.GetFilePath();
 
+        ImGui::Text("FilePath %s", filePath.c_str());
+
+#ifdef LUMOS_EDITOR
+        if(ImGui::Button("Edit File", ImVec2(ImGui::GetContentRegionAvail().x, 0.0f)))
+            Lumos::Application::Get().GetEditor()->OpenTextFile(script.GetFilePath());
+#endif
+        
+#ifdef LUMOS_EDITOR
+        if(ImGui::Button("Open File", ImVec2(ImGui::GetContentRegionAvail().x, 0.0f)))
+        {
+            Lumos::Application::Get().GetEditor()->GetFileBrowserWindow().Open();
+            Lumos::Application::Get().GetEditor()->GetFileBrowserWindow().SetCallback(std::bind(&Lumos::LuaScriptComponent::LoadScript, &script, std::placeholders::_1));
+        }
+#endif
+        bool hasReloaded = false;
+        if(ImGui::Button("Reload", ImVec2(ImGui::GetContentRegionAvail().x, 0.0f)))
+        {
+            script.Reload();
+            hasReloaded = true;
+        }
+        
+        if(!script.Loaded() || hasReloaded)
+        {
+            return;
+        }
+        
+        ImGui::TextUnformatted("Loaded Functions : ");
+
+        ImGui::Indent();
 		for(auto&& function : solEnv)
 		{
 			if(function.second.is<sol::function>())
@@ -49,31 +80,8 @@ namespace MM
 				ImGui::TextUnformatted(function.first.as<std::string>().c_str());
 			}
 		}
-    
-        ImGui::Unindent(12.0f);
-
-        ImGui::Indent(12.0f);
-
-        if(ImGui::Button("Reload", ImVec2{ ImGui::GetWindowWidth() - 24.0f, 20.0f }))
-			script.Reload();
-    
-        ImGui::Unindent(12.0f);
-
-
-		std::string filePath = script.GetFilePath();
-
-		static char filePathBuffer[INPUT_BUF_SIZE];
-		strcpy(filePathBuffer, filePath.c_str());
-
-		ImGui::PushItemWidth(-1);
-		if(ImGui::InputText("##filePath", filePathBuffer, IM_ARRAYSIZE(filePathBuffer), 0))
-			script.SetFilePath(filePathBuffer);
-
-#ifdef LUMOS_EDITOR
-		if(ImGui::Button("Edit File"))
-			Lumos::Application::Get().GetEditor()->OpenTextFile(script.GetFilePath());
-#endif
-	}
+        ImGui::Unindent();
+    }
 
 	template<>
 	void ComponentEditorWidget<Lumos::Maths::Transform>(entt::registry& reg, entt::registry::entity_type e)
@@ -129,14 +137,6 @@ namespace MM
 		ImGui::Columns(1);
 		ImGui::Separator();
 		ImGui::PopStyleVar();
-	}
-
-	template<>
-	void ComponentEditorWidget<Lumos::MeshComponent>(entt::registry& reg, entt::registry::entity_type e)
-	{
-		auto& meshComponent = reg.get<Lumos::MeshComponent>(e);
-		ImGui::TextUnformatted(meshComponent.GetFilePath().c_str());
-		auto primitiveType = meshComponent.GetPrimitiveType();
 	}
 
 	static void CuboidCollisionShapeInspector(Lumos::CuboidCollisionShape* shape, const Lumos::Physics3DComponent& phys)
@@ -709,357 +709,482 @@ namespace MM
 		ImGui::PopStyleVar();
 	}
 
+    Lumos::Graphics::PrimitiveType GetPrimativeName(const std::string& type)
+    {
+        if(type == "Cube")
+        {
+            return Lumos::Graphics::PrimitiveType::Cube;
+        }
+        else if(type == "Quad")
+        {
+            return Lumos::Graphics::PrimitiveType::Quad;
+        }
+        else if(type == "Sphere")
+        {
+            return Lumos::Graphics::PrimitiveType::Sphere;
+        }
+        else if(type == "Pyramid")
+        {
+            return Lumos::Graphics::PrimitiveType::Pyramid;
+        }
+        else if(type == "Capsule")
+        {
+            return Lumos::Graphics::PrimitiveType::Capsule;
+        }
+        else if(type == "Cylinder")
+        {
+            return Lumos::Graphics::PrimitiveType::Cylinder;
+        }
+        else if(type == "Terrain")
+        {
+            return Lumos::Graphics::PrimitiveType::Terrain;
+        }
+
+        LUMOS_LOG_ERROR("Primitive not supported");
+        return Lumos::Graphics::PrimitiveType::Cube;
+    };
+
+    std::string GetPrimativeName(Lumos::Graphics::PrimitiveType type)
+	{ 
+		switch (type)
+		{
+			case Lumos::Graphics::PrimitiveType::Cube		: return "Cube";
+			case Lumos::Graphics::PrimitiveType::Plane		: return "Plane";
+			case Lumos::Graphics::PrimitiveType::Quad		: return "Quad";
+			case Lumos::Graphics::PrimitiveType::Sphere		: return "Sphere";
+			case Lumos::Graphics::PrimitiveType::Pyramid	: return "Pyramid";
+			case Lumos::Graphics::PrimitiveType::Capsule	: return "Capsule";
+			case Lumos::Graphics::PrimitiveType::Cylinder  	: return "Cylinder";
+			case Lumos::Graphics::PrimitiveType::Terrain   	: return "Terrain";
+			case Lumos::Graphics::PrimitiveType::File   	: return "File";
+		}
+
+		LUMOS_LOG_ERROR("Primitive not supported");
+		return "";
+	};
+
 	template<>
-	void ComponentEditorWidget<Lumos::MaterialComponent>(entt::registry& reg, entt::registry::entity_type e)
+	void ComponentEditorWidget<Lumos::Graphics::Model>(entt::registry& reg, entt::registry::entity_type e)
 	{
-		using namespace Lumos;
-		auto& materialComponent = reg.get<Lumos::MaterialComponent>(e);
-		auto material = materialComponent.GetMaterial();
-		bool flipImage = Graphics::GraphicsContext::GetContext()->FlipImGUITexture();
+		auto& model = reg.get<Lumos::Graphics::Model>(e);
+		auto& meshes = model.GetMeshes();
+        auto primitiveType = model.GetPrimitiveType();
 
-		MaterialProperties* prop = material->GetProperties();
+        ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(2, 2));
+        ImGui::Columns(2);
+        ImGui::Separator();
 
-		if(ImGui::TreeNodeEx("Albedo", ImGuiTreeNodeFlags_DefaultOpen))
+		ImGui::TextUnformatted("Primitive Type");
+
+		ImGui::NextColumn();
+		ImGui::PushItemWidth(-1);
+
+		const char* shapes[] = {"Sphere", "Cube", "Pyramid", "Capsule", "Cylinder", "Terrain", "File", "Quad"};
+		std::string shape_current = GetPrimativeName(primitiveType).c_str();
+		if(ImGui::BeginCombo("", shape_current.c_str(), 0)) // The second parameter is the label previewed before opening the combo.
 		{
-			ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(2, 2));
-			ImGui::Columns(2);
-			ImGui::Separator();
-
-			ImGui::AlignTextToFramePadding();
-			auto tex = material->GetTextures().albedo;
-
-			if(tex)
+			for(int n = 0; n < 8; n++)
 			{
-				if(ImGui::ImageButton(tex->GetHandle(), ImVec2(64, 64), ImVec2(0.0f, flipImage ? 1.0f : 0.0f), ImVec2(1.0f, flipImage ? 0.0f : 1.0f)))
+				bool is_selected = (shape_current.c_str() == shapes[n]);
+				if(ImGui::Selectable(shapes[n], shape_current.c_str()))
 				{
-#ifdef LUMOS_EDITOR
-					Application::Get().GetEditor()->GetFileBrowserWindow().Open();
-					Application::Get().GetEditor()->GetFileBrowserWindow().SetCallback(std::bind(&MaterialComponent::SetAlbedoTexture, &materialComponent, std::placeholders::_1));
-#endif
+                    meshes.clear();
+					if(strcmp(shapes[n],"File") != 0)
+                        meshes.push_back(Lumos::Ref<Lumos::Graphics::Mesh>(Lumos::Graphics::CreatePrimative(GetPrimativeName(shapes[n]))));
+					else
+						model.SetPrimitiveType(Lumos::Graphics::PrimitiveType::File);
 				}
-
-				if(ImGui::IsItemHovered() && tex)
-				{
-					ImGui::BeginTooltip();
-					ImGui::Image(tex->GetHandle(), ImVec2(256, 256), ImVec2(0.0f, flipImage ? 1.0f : 0.0f), ImVec2(1.0f, flipImage ? 0.0f : 1.0f));
-					ImGui::EndTooltip();
-				}
+				if(is_selected)
+					ImGui::SetItemDefaultFocus();
 			}
-			else
-			{
-				if(ImGui::Button("Empty", ImVec2(64, 64)))
-				{
-#ifdef LUMOS_EDITOR
-					Application::Get().GetEditor()->GetFileBrowserWindow().Open();
-					Application::Get().GetEditor()->GetFileBrowserWindow().SetCallback(std::bind(&MaterialComponent::SetAlbedoTexture, &materialComponent, std::placeholders::_1));
-#endif
-				}
-			}
-
-			ImGui::NextColumn();
-			ImGui::PushItemWidth(-1);
-			ImGui::TextUnformatted(tex ? tex->GetFilepath().c_str() : "No Texture");
-
-			ImGui::PopItemWidth();
-			ImGui::NextColumn();
-
-			ImGuiHelpers::Property("Use Albedo Map", prop->usingAlbedoMap, 0.0f, 1.0f);
-			ImGuiHelpers::Property("Albedo", prop->albedoColour, 0.0f, 1.0f, false, Lumos::ImGuiHelpers::PropertyFlag::ColorProperty);
-
-			ImGui::Columns(1);
-			ImGui::Separator();
-			ImGui::PopStyleVar();
-
-			ImGui::TreePop();
+			ImGui::EndCombo();
 		}
 
-		ImGui::Separator();
+		ImGui::PopItemWidth();
+		ImGui::NextColumn();
+        
+        if(primitiveType == Lumos::Graphics::PrimitiveType::File)
+        {
+            ImGui::TextUnformatted("FilePath");
+            
+            ImGui::NextColumn();
+            ImGui::PushItemWidth(-1);
+            ImGui::TextUnformatted(model.GetFilePath().c_str());
 
-		if(ImGui::TreeNode("Normal"))
+            ImGui::PopItemWidth();
+            ImGui::NextColumn();
+        }
+
+        ImGui::Columns(1);
+        ImGui::Separator();
+        ImGui::PopStyleVar();
+        
+        int matIndex = 0;
+        
+		for(auto mesh : meshes)
 		{
-			ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(2, 2));
-			ImGui::Columns(2);
+			auto material = mesh->GetMaterial();
+            std::string matName = "Material";
+            matName += std::to_string(matIndex);
+            matIndex++;
+			if(!material)
+			{
+				ImGui::TextUnformatted("Empty Material");
+				if(ImGui::Button("Add Material", ImVec2(ImGui::GetContentRegionAvail().x, 0.0f)))
+					mesh->SetMaterial(Lumos::CreateRef<Lumos::Graphics::Material>());
+			}
+            else if(ImGui::TreeNodeEx(matName.c_str(), 0))
+            {
+			using namespace Lumos;
+			bool flipImage = Graphics::GraphicsContext::GetContext()->FlipImGUITexture();
+
+			Graphics::MaterialProperties* prop = material->GetProperties();
+            
+            if(ImGui::TreeNodeEx("Albedo", ImGuiTreeNodeFlags_DefaultOpen))
+			{
+				ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(2, 2));
+				ImGui::Columns(2);
+				ImGui::Separator();
+
+				ImGui::AlignTextToFramePadding();
+				auto tex = material->GetTextures().albedo;
+
+				if(tex)
+				{
+					if(ImGui::ImageButton(tex->GetHandle(), ImVec2(64, 64), ImVec2(0.0f, flipImage ? 1.0f : 0.0f), ImVec2(1.0f, flipImage ? 0.0f : 1.0f)))
+					{
+	#ifdef LUMOS_EDITOR
+						Application::Get().GetEditor()->GetFileBrowserWindow().Open();
+						Application::Get().GetEditor()->GetFileBrowserWindow().SetCallback(std::bind(&Lumos::Graphics::Material::SetAlbedoTexture, material, std::placeholders::_1));
+	#endif
+					}
+
+					if(ImGui::IsItemHovered() && tex)
+					{
+						ImGui::BeginTooltip();
+						ImGui::Image(tex->GetHandle(), ImVec2(256, 256), ImVec2(0.0f, flipImage ? 1.0f : 0.0f), ImVec2(1.0f, flipImage ? 0.0f : 1.0f));
+						ImGui::EndTooltip();
+					}
+				}
+				else
+				{
+					if(ImGui::Button("Empty", ImVec2(64, 64)))
+					{
+	#ifdef LUMOS_EDITOR
+						Application::Get().GetEditor()->GetFileBrowserWindow().Open();
+						Application::Get().GetEditor()->GetFileBrowserWindow().SetCallback(std::bind(&Graphics::Material::SetAlbedoTexture, material, std::placeholders::_1));
+	#endif
+					}
+				}
+
+				ImGui::NextColumn();
+				ImGui::PushItemWidth(-1);
+				ImGui::TextUnformatted(tex ? tex->GetFilepath().c_str() : "No Texture");
+
+				ImGui::PopItemWidth();
+				ImGui::NextColumn();
+
+				ImGuiHelpers::Property("Use Albedo Map", prop->usingAlbedoMap, 0.0f, 1.0f);
+				ImGuiHelpers::Property("Albedo", prop->albedoColour, 0.0f, 1.0f, false, Lumos::ImGuiHelpers::PropertyFlag::ColorProperty);
+
+				ImGui::Columns(1);
+				ImGui::Separator();
+				ImGui::PopStyleVar();
+
+				ImGui::TreePop();
+			}
+
 			ImGui::Separator();
 
-			ImGui::AlignTextToFramePadding();
-			auto tex = material->GetTextures().normal;
-
-			if(tex)
+			if(ImGui::TreeNode("Normal"))
 			{
-				if(ImGui::ImageButton(tex->GetHandle(), ImVec2(64, 64), ImVec2(0.0f, flipImage ? 1.0f : 0.0f), ImVec2(1.0f, flipImage ? 0.0f : 1.0f)))
+				ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(2, 2));
+				ImGui::Columns(2);
+				ImGui::Separator();
+
+				ImGui::AlignTextToFramePadding();
+				auto tex = material->GetTextures().normal;
+
+				if(tex)
 				{
-#ifdef LUMOS_EDITOR
-					Application::Get().GetEditor()->GetFileBrowserWindow().Open();
-					Application::Get().GetEditor()->GetFileBrowserWindow().SetCallback(std::bind(&MaterialComponent::SetNormalTexture, &materialComponent, std::placeholders::_1));
-#endif
+					if(ImGui::ImageButton(tex->GetHandle(), ImVec2(64, 64), ImVec2(0.0f, flipImage ? 1.0f : 0.0f), ImVec2(1.0f, flipImage ? 0.0f : 1.0f)))
+					{
+	#ifdef LUMOS_EDITOR
+						Application::Get().GetEditor()->GetFileBrowserWindow().Open();
+						Application::Get().GetEditor()->GetFileBrowserWindow().SetCallback(std::bind(&Graphics::Material::SetNormalTexture, material, std::placeholders::_1));
+	#endif
+					}
+
+					if(ImGui::IsItemHovered())
+					{
+						ImGui::BeginTooltip();
+						ImGui::Image(tex->GetHandle(), ImVec2(256, 256), ImVec2(0.0f, flipImage ? 1.0f : 0.0f), ImVec2(1.0f, flipImage ? 0.0f : 1.0f));
+						ImGui::EndTooltip();
+					}
+				}
+				else
+				{
+					if(ImGui::Button("Empty", ImVec2(64, 64)))
+					{
+	#ifdef LUMOS_EDITOR
+						Application::Get().GetEditor()->GetFileBrowserWindow().Open();
+						Application::Get().GetEditor()->GetFileBrowserWindow().SetCallback(std::bind(&Graphics::Material::SetNormalTexture, material, std::placeholders::_1));
+	#endif
+					}
 				}
 
-				if(ImGui::IsItemHovered())
-				{
-					ImGui::BeginTooltip();
-					ImGui::Image(tex->GetHandle(), ImVec2(256, 256), ImVec2(0.0f, flipImage ? 1.0f : 0.0f), ImVec2(1.0f, flipImage ? 0.0f : 1.0f));
-					ImGui::EndTooltip();
-				}
+				ImGui::NextColumn();
+				ImGui::PushItemWidth(-1);
+				ImGui::TextUnformatted(tex ? tex->GetFilepath().c_str() : "No Texture");
+
+				ImGui::PopItemWidth();
+				ImGui::NextColumn();
+
+				ImGuiHelpers::Property("Use Normal Map", prop->usingNormalMap, 0.0f, 1.0f);
+
+				ImGui::Columns(1);
+				ImGui::Separator();
+				ImGui::PopStyleVar();
+				ImGui::TreePop();
 			}
-			else
-			{
-				if(ImGui::Button("Empty", ImVec2(64, 64)))
-				{
-#ifdef LUMOS_EDITOR
-					Application::Get().GetEditor()->GetFileBrowserWindow().Open();
-					Application::Get().GetEditor()->GetFileBrowserWindow().SetCallback(std::bind(&MaterialComponent::SetNormalTexture, &materialComponent, std::placeholders::_1));
-#endif
-				}
-			}
 
-			ImGui::NextColumn();
-			ImGui::PushItemWidth(-1);
-			ImGui::TextUnformatted(tex ? tex->GetFilepath().c_str() : "No Texture");
-
-			ImGui::PopItemWidth();
-			ImGui::NextColumn();
-
-			ImGuiHelpers::Property("Use Normal Map", prop->usingNormalMap, 0.0f, 1.0f);
-
-			ImGui::Columns(1);
 			ImGui::Separator();
-			ImGui::PopStyleVar();
-			ImGui::TreePop();
+
+			if(ImGui::TreeNode("Metallic"))
+			{
+				ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(2, 2));
+				ImGui::Columns(2);
+				ImGui::Separator();
+
+				ImGui::AlignTextToFramePadding();
+				auto tex = material->GetTextures().metallic;
+
+				if(tex)
+				{
+					if(ImGui::ImageButton(tex->GetHandle(), ImVec2(64, 64), ImVec2(0.0f, flipImage ? 1.0f : 0.0f), ImVec2(1.0f, flipImage ? 0.0f : 1.0f)))
+					{
+	#ifdef LUMOS_EDITOR
+						Application::Get().GetEditor()->GetFileBrowserWindow().Open();
+						Application::Get().GetEditor()->GetFileBrowserWindow().SetCallback(std::bind(&Graphics::Material::SetMetallicTexture, material, std::placeholders::_1));
+	#endif
+					}
+
+					if(ImGui::IsItemHovered())
+					{
+						ImGui::BeginTooltip();
+						ImGui::Image(tex->GetHandle(), ImVec2(256, 256), ImVec2(0.0f, flipImage ? 1.0f : 0.0f), ImVec2(1.0f, flipImage ? 0.0f : 1.0f));
+						ImGui::EndTooltip();
+					}
+				}
+				else
+				{
+					if(ImGui::Button("Empty", ImVec2(64, 64)))
+					{
+	#ifdef LUMOS_EDITOR
+						Application::Get().GetEditor()->GetFileBrowserWindow().Open();
+						Application::Get().GetEditor()->GetFileBrowserWindow().SetCallback(std::bind(&Graphics::Material::SetMetallicTexture, material, std::placeholders::_1));
+	#endif
+					}
+				}
+
+				ImGui::NextColumn();
+				ImGui::PushItemWidth(-1);
+				ImGui::TextUnformatted(tex ? tex->GetFilepath().c_str() : "No Texture");
+
+				ImGui::PopItemWidth();
+				ImGui::NextColumn();
+
+				ImGuiHelpers::Property("Use Metallic Map", prop->usingMetallicMap, 0.0f, 1.0f);
+				ImGuiHelpers::Property("Metallic", prop->metallicColour, 0.0f, 1.0f, false);
+
+				ImGui::Columns(1);
+				ImGui::Separator();
+				ImGui::PopStyleVar();
+				ImGui::TreePop();
+			}
+
+			ImGui::Separator();
+
+			if(ImGui::TreeNode("Roughness"))
+			{
+				ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(2, 2));
+				ImGui::Columns(2);
+				ImGui::Separator();
+
+				ImGui::AlignTextToFramePadding();
+				auto tex = material->GetTextures().roughness;
+				if(tex)
+				{
+					if(ImGui::ImageButton(tex->GetHandle(), ImVec2(64, 64), ImVec2(0.0f, flipImage ? 1.0f : 0.0f), ImVec2(1.0f, flipImage ? 0.0f : 1.0f)))
+					{
+	#ifdef LUMOS_EDITOR
+						Application::Get().GetEditor()->GetFileBrowserWindow().Open();
+						Application::Get().GetEditor()->GetFileBrowserWindow().SetCallback(std::bind(&Graphics::Material::SetRoughnessTexture, material, std::placeholders::_1));
+	#endif
+					}
+
+					if(ImGui::IsItemHovered())
+					{
+						ImGui::BeginTooltip();
+						ImGui::Image(tex ? tex->GetHandle() : nullptr, ImVec2(256, 256), ImVec2(0.0f, flipImage ? 1.0f : 0.0f), ImVec2(1.0f, flipImage ? 0.0f : 1.0f));
+						ImGui::EndTooltip();
+					}
+				}
+				else
+				{
+					if(ImGui::Button("Empty", ImVec2(64, 64)))
+					{
+	#ifdef LUMOS_EDITOR
+						Application::Get().GetEditor()->GetFileBrowserWindow().Open();
+						Application::Get().GetEditor()->GetFileBrowserWindow().SetCallback(std::bind(&Graphics::Material::SetRoughnessTexture, material, std::placeholders::_1));
+	#endif
+					}
+				}
+
+				ImGui::NextColumn();
+				ImGui::PushItemWidth(-1);
+				ImGui::TextUnformatted(tex ? tex->GetFilepath().c_str() : "No Texture");
+
+				ImGui::PopItemWidth();
+				ImGui::NextColumn();
+
+				ImGuiHelpers::Property("Use Roughness Map", prop->usingRoughnessMap, 0.0f, 1.0f);
+				ImGuiHelpers::Property("Roughness", prop->roughnessColour, 0.0f, 1.0f, false);
+
+				ImGui::Columns(1);
+				ImGui::Separator();
+				ImGui::PopStyleVar();
+				ImGui::TreePop();
+			}
+
+			ImGui::Separator();
+
+			if(ImGui::TreeNode("Ao"))
+			{
+				ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(2, 2));
+				ImGui::Columns(2);
+				ImGui::Separator();
+
+				ImGui::AlignTextToFramePadding();
+				auto tex = material->GetTextures().ao;
+				if(tex)
+				{
+					if(ImGui::ImageButton(tex->GetHandle(), ImVec2(64, 64), ImVec2(0.0f, flipImage ? 1.0f : 0.0f), ImVec2(1.0f, flipImage ? 0.0f : 1.0f)))
+					{
+	#ifdef LUMOS_EDITOR
+						Application::Get().GetEditor()->GetFileBrowserWindow().Open();
+						Application::Get().GetEditor()->GetFileBrowserWindow().SetCallback(std::bind(&Graphics::Material::SetAOTexture, material, std::placeholders::_1));
+	#endif
+					}
+
+					if(ImGui::IsItemHovered())
+					{
+						ImGui::BeginTooltip();
+						ImGui::Image(tex->GetHandle(), ImVec2(256, 256), ImVec2(0.0f, flipImage ? 1.0f : 0.0f), ImVec2(1.0f, flipImage ? 0.0f : 1.0f));
+						ImGui::EndTooltip();
+					}
+				}
+				else
+				{
+					if(ImGui::Button("Empty", ImVec2(64, 64)))
+					{
+	#ifdef LUMOS_EDITOR
+						Application::Get().GetEditor()->GetFileBrowserWindow().Open();
+						Application::Get().GetEditor()->GetFileBrowserWindow().SetCallback(std::bind(&Graphics::Material::SetAOTexture, material, std::placeholders::_1));
+	#endif
+					}
+				}
+
+				ImGui::NextColumn();
+				ImGui::PushItemWidth(-1);
+				ImGui::TextUnformatted(tex ? tex->GetFilepath().c_str() : "No Texture");
+				ImGui::PopItemWidth();
+				ImGui::NextColumn();
+
+				ImGuiHelpers::Property("Use AO Map", prop->usingAOMap, 0.0f, 1.0f);
+
+				ImGui::Columns(1);
+				ImGui::Separator();
+				ImGui::PopStyleVar();
+				ImGui::TreePop();
+			}
+
+			ImGui::Separator();
+
+			if(ImGui::TreeNode("Emissive"))
+			{
+				ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(2, 2));
+				ImGui::Columns(2);
+				ImGui::Separator();
+
+				ImGui::AlignTextToFramePadding();
+				auto tex = material->GetTextures().emissive;
+				if(tex)
+				{
+					if(ImGui::ImageButton(tex->GetHandle(), ImVec2(64, 64), ImVec2(0.0f, flipImage ? 1.0f : 0.0f), ImVec2(1.0f, flipImage ? 0.0f : 1.0f)))
+					{
+	#ifdef LUMOS_EDITOR
+						Application::Get().GetEditor()->GetFileBrowserWindow().Open();
+						Application::Get().GetEditor()->GetFileBrowserWindow().SetCallback(std::bind(&Graphics::Material::SetEmissiveTexture, material, std::placeholders::_1));
+	#endif
+					}
+
+					if(ImGui::IsItemHovered())
+					{
+						ImGui::BeginTooltip();
+						ImGui::Image(tex->GetHandle(), ImVec2(256, 256), ImVec2(0.0f, flipImage ? 1.0f : 0.0f), ImVec2(1.0f, flipImage ? 0.0f : 1.0f));
+						ImGui::EndTooltip();
+					}
+				}
+				else
+				{
+					if(ImGui::Button("Empty", ImVec2(64, 64)))
+					{
+	#ifdef LUMOS_EDITOR
+						Application::Get().GetEditor()->GetFileBrowserWindow().Open();
+						Application::Get().GetEditor()->GetFileBrowserWindow().SetCallback(std::bind(&Graphics::Material::SetEmissiveTexture, material, std::placeholders::_1));
+	#endif
+					}
+				}
+
+				ImGui::NextColumn();
+				ImGui::PushItemWidth(-1);
+				ImGui::TextUnformatted(tex ? tex->GetFilepath().c_str() : "No Texture");
+
+				ImGui::PopItemWidth();
+				ImGui::NextColumn();
+
+				ImGui::AlignTextToFramePadding();
+				ImGui::TextUnformatted("Use Emissive Map");
+				ImGui::NextColumn();
+				ImGui::PushItemWidth(-1);
+				ImGui::SliderFloat("##UseEmissiveMap", &prop->usingEmissiveMap, 0.0f, 1.0f);
+
+				ImGui::PopItemWidth();
+				ImGui::NextColumn();
+
+				ImGui::AlignTextToFramePadding();
+				ImGui::TextUnformatted("Emissive");
+				ImGui::NextColumn();
+				ImGui::PushItemWidth(-1);
+				ImGui::SliderFloat3("##Emissive", Maths::ValuePointer(prop->emissiveColour), 0.0f, 1.0f);
+
+				ImGui::PopItemWidth();
+				ImGui::NextColumn();
+
+				ImGui::Columns(1);
+				ImGui::Separator();
+				ImGui::PopStyleVar();
+				ImGui::TreePop();
+			}
+                
+            ImGui::Separator();
+            material->SetMaterialProperites(*prop);
+            ImGui::TreePop();
+            }
+
+
 		}
-
-		ImGui::Separator();
-
-		if(ImGui::TreeNode("Metallic"))
-		{
-			ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(2, 2));
-			ImGui::Columns(2);
-			ImGui::Separator();
-
-			ImGui::AlignTextToFramePadding();
-			auto tex = material->GetTextures().metallic;
-
-			if(tex)
-			{
-				if(ImGui::ImageButton(tex->GetHandle(), ImVec2(64, 64), ImVec2(0.0f, flipImage ? 1.0f : 0.0f), ImVec2(1.0f, flipImage ? 0.0f : 1.0f)))
-				{
-#ifdef LUMOS_EDITOR
-					Application::Get().GetEditor()->GetFileBrowserWindow().Open();
-					Application::Get().GetEditor()->GetFileBrowserWindow().SetCallback(std::bind(&MaterialComponent::SetMetallicTexture, &materialComponent, std::placeholders::_1));
-#endif
-				}
-
-				if(ImGui::IsItemHovered())
-				{
-					ImGui::BeginTooltip();
-					ImGui::Image(tex->GetHandle(), ImVec2(256, 256), ImVec2(0.0f, flipImage ? 1.0f : 0.0f), ImVec2(1.0f, flipImage ? 0.0f : 1.0f));
-					ImGui::EndTooltip();
-				}
-			}
-			else
-			{
-				if(ImGui::Button("Empty", ImVec2(64, 64)))
-				{
-#ifdef LUMOS_EDITOR
-					Application::Get().GetEditor()->GetFileBrowserWindow().Open();
-					Application::Get().GetEditor()->GetFileBrowserWindow().SetCallback(std::bind(&MaterialComponent::SetMetallicTexture, &materialComponent, std::placeholders::_1));
-#endif
-				}
-			}
-
-			ImGui::NextColumn();
-			ImGui::PushItemWidth(-1);
-			ImGui::TextUnformatted(tex ? tex->GetFilepath().c_str() : "No Texture");
-
-			ImGui::PopItemWidth();
-			ImGui::NextColumn();
-
-			ImGuiHelpers::Property("Use Metallic Map", prop->usingMetallicMap, 0.0f, 1.0f);
-			ImGuiHelpers::Property("Metallic", prop->metallicColour, 0.0f, 1.0f, false);
-
-			ImGui::Columns(1);
-			ImGui::Separator();
-			ImGui::PopStyleVar();
-			ImGui::TreePop();
-		}
-
-		ImGui::Separator();
-
-		if(ImGui::TreeNode("Roughness"))
-		{
-			ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(2, 2));
-			ImGui::Columns(2);
-			ImGui::Separator();
-
-			ImGui::AlignTextToFramePadding();
-			auto tex = material->GetTextures().roughness;
-			if(tex)
-			{
-				if(ImGui::ImageButton(tex->GetHandle(), ImVec2(64, 64), ImVec2(0.0f, flipImage ? 1.0f : 0.0f), ImVec2(1.0f, flipImage ? 0.0f : 1.0f)))
-				{
-#ifdef LUMOS_EDITOR
-					Application::Get().GetEditor()->GetFileBrowserWindow().Open();
-					Application::Get().GetEditor()->GetFileBrowserWindow().SetCallback(std::bind(&MaterialComponent::SetRoughnessTexture, &materialComponent, std::placeholders::_1));
-#endif
-				}
-
-				if(ImGui::IsItemHovered())
-				{
-					ImGui::BeginTooltip();
-					ImGui::Image(tex ? tex->GetHandle() : nullptr, ImVec2(256, 256), ImVec2(0.0f, flipImage ? 1.0f : 0.0f), ImVec2(1.0f, flipImage ? 0.0f : 1.0f));
-					ImGui::EndTooltip();
-				}
-			}
-			else
-			{
-				if(ImGui::Button("Empty", ImVec2(64, 64)))
-				{
-#ifdef LUMOS_EDITOR
-					Application::Get().GetEditor()->GetFileBrowserWindow().Open();
-					Application::Get().GetEditor()->GetFileBrowserWindow().SetCallback(std::bind(&MaterialComponent::SetRoughnessTexture, &materialComponent, std::placeholders::_1));
-#endif
-				}
-			}
-
-			ImGui::NextColumn();
-			ImGui::PushItemWidth(-1);
-			ImGui::TextUnformatted(tex ? tex->GetFilepath().c_str() : "No Texture");
-
-			ImGui::PopItemWidth();
-			ImGui::NextColumn();
-
-			ImGuiHelpers::Property("Use Roughness Map", prop->usingRoughnessMap, 0.0f, 1.0f);
-			ImGuiHelpers::Property("Roughness", prop->roughnessColour, 0.0f, 1.0f, false);
-
-			ImGui::Columns(1);
-			ImGui::Separator();
-			ImGui::PopStyleVar();
-			ImGui::TreePop();
-		}
-
-		ImGui::Separator();
-
-		if(ImGui::TreeNode("Ao"))
-		{
-			ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(2, 2));
-			ImGui::Columns(2);
-			ImGui::Separator();
-
-			ImGui::AlignTextToFramePadding();
-			auto tex = material->GetTextures().ao;
-			if(tex)
-			{
-				if(ImGui::ImageButton(tex->GetHandle(), ImVec2(64, 64), ImVec2(0.0f, flipImage ? 1.0f : 0.0f), ImVec2(1.0f, flipImage ? 0.0f : 1.0f)))
-				{
-#ifdef LUMOS_EDITOR
-					Application::Get().GetEditor()->GetFileBrowserWindow().Open();
-					Application::Get().GetEditor()->GetFileBrowserWindow().SetCallback(std::bind(&MaterialComponent::SetAOTexture, &materialComponent, std::placeholders::_1));
-#endif
-				}
-
-				if(ImGui::IsItemHovered())
-				{
-					ImGui::BeginTooltip();
-					ImGui::Image(tex->GetHandle(), ImVec2(256, 256), ImVec2(0.0f, flipImage ? 1.0f : 0.0f), ImVec2(1.0f, flipImage ? 0.0f : 1.0f));
-					ImGui::EndTooltip();
-				}
-			}
-			else
-			{
-				if(ImGui::Button("Empty", ImVec2(64, 64)))
-				{
-#ifdef LUMOS_EDITOR
-					Application::Get().GetEditor()->GetFileBrowserWindow().Open();
-					Application::Get().GetEditor()->GetFileBrowserWindow().SetCallback(std::bind(&MaterialComponent::SetAOTexture, &materialComponent, std::placeholders::_1));
-#endif
-				}
-			}
-
-			ImGui::NextColumn();
-			ImGui::PushItemWidth(-1);
-			ImGui::TextUnformatted(tex ? tex->GetFilepath().c_str() : "No Texture");
-			ImGui::PopItemWidth();
-			ImGui::NextColumn();
-
-			ImGuiHelpers::Property("Use AO Map", prop->usingAOMap, 0.0f, 1.0f);
-
-			ImGui::Columns(1);
-			ImGui::Separator();
-			ImGui::PopStyleVar();
-			ImGui::TreePop();
-		}
-
-		ImGui::Separator();
-
-		if(ImGui::TreeNode("Emissive"))
-		{
-			ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(2, 2));
-			ImGui::Columns(2);
-			ImGui::Separator();
-
-			ImGui::AlignTextToFramePadding();
-			auto tex = material->GetTextures().emissive;
-			if(tex)
-			{
-				if(ImGui::ImageButton(tex->GetHandle(), ImVec2(64, 64), ImVec2(0.0f, flipImage ? 1.0f : 0.0f), ImVec2(1.0f, flipImage ? 0.0f : 1.0f)))
-				{
-#ifdef LUMOS_EDITOR
-					Application::Get().GetEditor()->GetFileBrowserWindow().Open();
-					Application::Get().GetEditor()->GetFileBrowserWindow().SetCallback(std::bind(&MaterialComponent::SetEmissiveTexture, &materialComponent, std::placeholders::_1));
-#endif
-				}
-
-				if(ImGui::IsItemHovered())
-				{
-					ImGui::BeginTooltip();
-					ImGui::Image(tex->GetHandle(), ImVec2(256, 256), ImVec2(0.0f, flipImage ? 1.0f : 0.0f), ImVec2(1.0f, flipImage ? 0.0f : 1.0f));
-					ImGui::EndTooltip();
-				}
-			}
-			else
-			{
-				if(ImGui::Button("Empty", ImVec2(64, 64)))
-				{
-#ifdef LUMOS_EDITOR
-					Application::Get().GetEditor()->GetFileBrowserWindow().Open();
-					Application::Get().GetEditor()->GetFileBrowserWindow().SetCallback(std::bind(&MaterialComponent::SetEmissiveTexture, &materialComponent, std::placeholders::_1));
-#endif
-				}
-			}
-
-			ImGui::NextColumn();
-			ImGui::PushItemWidth(-1);
-			ImGui::TextUnformatted(tex ? tex->GetFilepath().c_str() : "No Texture");
-
-			ImGui::PopItemWidth();
-			ImGui::NextColumn();
-
-			ImGui::AlignTextToFramePadding();
-			ImGui::TextUnformatted("Use Emissive Map");
-			ImGui::NextColumn();
-			ImGui::PushItemWidth(-1);
-			ImGui::SliderFloat("##UseEmissiveMap", &prop->usingEmissiveMap, 0.0f, 1.0f);
-
-			ImGui::PopItemWidth();
-			ImGui::NextColumn();
-
-			ImGui::AlignTextToFramePadding();
-			ImGui::TextUnformatted("Emissive");
-			ImGui::NextColumn();
-			ImGui::PushItemWidth(-1);
-			ImGui::SliderFloat3("##Emissive", Maths::ValuePointer(prop->emissiveColour), 0.0f, 1.0f);
-
-			ImGui::PopItemWidth();
-			ImGui::NextColumn();
-
-			ImGui::Columns(1);
-			ImGui::Separator();
-			ImGui::PopStyleVar();
-			ImGui::TreePop();
-		}
-
-		ImGui::Separator();
-
-		material->SetMaterialProperites(*prop);
 	}
 
 	template<>
@@ -1193,13 +1318,12 @@ namespace Lumos
 		m_EnttEditor.registerComponent<ComponentType>(Name.c_str()); \
 	}
 		TRIVIAL_COMPONENT(Maths::Transform, "Transform");
-		TRIVIAL_COMPONENT(MeshComponent, "Mesh");
+		TRIVIAL_COMPONENT(Graphics::Model, "Model");
 		TRIVIAL_COMPONENT(Camera, "Camera");
 		TRIVIAL_COMPONENT(Physics3DComponent, "Physics3D");
 		TRIVIAL_COMPONENT(Physics2DComponent, "Physics2D");
 		TRIVIAL_COMPONENT(SoundComponent, "Sound");
 		TRIVIAL_COMPONENT(Graphics::Sprite, "Sprite");
-		TRIVIAL_COMPONENT(MaterialComponent, "Material");
 		TRIVIAL_COMPONENT(Graphics::Light, "Light");
 		TRIVIAL_COMPONENT(LuaScriptComponent, "LuaScript");
 		TRIVIAL_COMPONENT(Graphics::Environment, "Environment");
@@ -1317,7 +1441,6 @@ namespace Lumos
 
                 ImGui::Separator();
             }
-
 
 			m_EnttEditor.RenderImGui(registry, selected);
 		}

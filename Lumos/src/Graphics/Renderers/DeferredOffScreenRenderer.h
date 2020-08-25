@@ -1,11 +1,10 @@
 #pragma once
-#include "Renderer3D.h"
+#include "IRenderer.h"
 #include "Maths/Frustum.h"
 
 namespace Lumos
 {
 	class LightSetup;
-	class Material;
 
 	namespace Graphics
 	{
@@ -19,8 +18,9 @@ namespace Lumos
 		class Shader;
 		class ShadowRenderer;
 		class Framebuffer;
+		class Material;
 
-		class LUMOS_EXPORT DeferredOffScreenRenderer : public Renderer3D
+		class LUMOS_EXPORT DeferredOffScreenRenderer : public IRenderer
 		{
 		public:
 			DeferredOffScreenRenderer(u32 width, u32 height);
@@ -37,16 +37,17 @@ namespace Lumos
 			void End() override;
 			void Present() override;
 			void OnResize(u32 width, u32 height) override;
-			void PresentToScreen();
+			void PresentToScreen() override;
 
 			void CreatePipeline();
 			void CreateBuffer();
-			void CreateFBO();
+			void CreateFramebuffer();
 
 			int GetCommandBufferCount() const
 			{
 				return static_cast<int>(m_CommandBuffers.size());
 			}
+
 			CommandBuffer* GetCommandBuffer(int id) const
 			{
 				return m_CommandBuffers[id];
@@ -57,26 +58,13 @@ namespace Lumos
 		private:
 			void SetSystemUniforms(Shader* shader);
 
-			u8* m_VSSystemUniformBuffer;
-			u32 m_VSSystemUniformBufferSize;
-			u8* m_PSSystemUniformBuffer;
-			u32 m_PSSystemUniformBufferSize;
-
-			std::vector<u32> m_VSSystemUniformBufferOffsets;
-			std::vector<u32> m_PSSystemUniformBufferOffsets;
-
-			Maths::Vector4 m_ClearColour;
-
 			Material* m_DefaultMaterial;
 
 			UniformBuffer* m_UniformBuffer;
 			UniformBuffer* m_ModelUniformBuffer;
 
 			std::vector<CommandBuffer*> m_CommandBuffers;
-
 			CommandBuffer* m_DeferredCommandBuffers;
-
-			Maths::Frustum m_Frustum;
 
 			struct UniformBufferModel
 			{

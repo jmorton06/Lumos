@@ -1,6 +1,6 @@
 #pragma once
-
 #include "lmpch.h"
+#include "IRenderer.h"
 #include "Maths/Maths.h"
 #include "Maths/Transform.h"
 
@@ -16,7 +16,6 @@ namespace Lumos
 
 	namespace Graphics
 	{
-
 		struct LUMOS_EXPORT LineVertexData
 		{
 			Maths::Vector3 vertex;
@@ -74,76 +73,55 @@ namespace Lumos
 			}
 		};
 
-		class LUMOS_EXPORT LineRenderer
+		class LUMOS_EXPORT LineRenderer : IRenderer
 		{
 		public:
 			LineRenderer(u32 width, u32 height, bool clear);
 			~LineRenderer();
 
-			void Init();
-			void Submit(const Maths::Vector3& p1, const Maths::Vector3& p2, const Maths::Vector4& colour);
-			void Begin();
-			void BeginScene(Scene* scene, Camera* overrideCamera, Maths::Transform* overrideCameraTransform);
-			void Present();
-			void End();
+			void Init() override;
+			void Begin() override;
+			void BeginScene(Scene* scene, Camera* overrideCamera, Maths::Transform* overrideCameraTransform) override;
+			void Present() override;
+			void End() override;
+			void EndScene() override {};
+
 			void RenderInternal(Scene* scene, Camera* overrideCamera, Maths::Transform* overrideCameraTransform);
-			void OnResize(u32 width, u32 height);
-			void PresentToScreen();
-			void SetScreenBufferSize(u32 width, u32 height);
-			void SetRenderTarget(Graphics::Texture* texture, bool rebuildFramebuffer);
+			void OnResize(u32 width, u32 height) override;
+			void SetScreenBufferSize(u32 width, u32 height) override;
+			void SetRenderTarget(Graphics::Texture* texture, bool rebuildFramebuffer) override;
 
 			void SetSystemUniforms(Graphics::Shader* shader) const;
 			float SubmitTexture(Graphics::Texture* texture);
+            void PresentToScreen() override;
+			void RenderScene(Scene* scene) override {};
+            
+            void Submit(const Maths::Vector3& p1, const Maths::Vector3& p2, const Maths::Vector4& colour);
 
 			struct UniformBufferObject
 			{
 				Maths::Matrix4 projView;
 			};
 
-			u8* m_VSSystemUniformBuffer{};
-			u32 m_VSSystemUniformBufferSize{};
-
 			void CreateGraphicsPipeline();
 			void CreateFramebuffers();
-
 			void FlushAndResetLines();
-
-			void SetCamera(Camera* camera, Maths::Transform* transform)
-			{
-				m_Camera = camera;
-			}
 
 		protected:
 			void SubmitInternal(const LineInfo& info);
 
-			u32 m_ScreenBufferWidth{}, m_ScreenBufferHeight{};
-
-			Graphics::RenderPass* m_RenderPass{};
-			Graphics::Pipeline* m_Pipeline{};
-			Graphics::UniformBuffer* m_UniformBuffer{};
-			std::vector<Graphics::CommandBuffer*> m_CommandBuffers;
+			Graphics::UniformBuffer* m_UniformBuffer = nullptr;
 			std::vector<Graphics::CommandBuffer*> m_SecondaryCommandBuffers;
-
-			u32 m_BatchDrawCallIndex = 0;
-			u32 LineIndexCount = 0;
-
-			std::vector<Graphics::Framebuffer*> m_Framebuffers;
-
-			Graphics::Shader* m_Shader{};
-
 			std::vector<Graphics::VertexArray*> m_VertexArrays;
 			Graphics::IndexBuffer* m_IndexBuffer{};
 
-			LineVertexData* m_Buffer{};
+			LineVertexData* m_Buffer = nullptr;
+            std::vector<LineInfo> m_Lines;
 
-			Graphics::Texture* m_RenderTexture;
 			u32 m_CurrentBufferID = 0;
-			Maths::Vector4 m_ClearColour;
-			bool m_Clear = false;
-
-			std::vector<LineInfo> m_Lines;
-			Camera* m_Camera = nullptr;
-			Maths::Transform* m_CameraTransform = nullptr;
+            u32 m_BatchDrawCallIndex = 0;
+            u32 LineIndexCount = 0;
+            bool m_Clear = false;
 		};
 	}
 }

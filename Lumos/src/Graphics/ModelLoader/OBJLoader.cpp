@@ -1,10 +1,8 @@
 #include "lmpch.h"
-#include "ModelLoader.h"
+#include "Graphics/Model.h"
 #include "Graphics/Mesh.h"
 #include "Graphics/Material.h"
 #include "Maths/Transform.h"
-#include "Scene/Component/MeshComponent.h"
-#include "Scene/Component/MaterialComponent.h"
 #include "Graphics/API/Texture.h"
 #include "Maths/Maths.h"
 
@@ -37,7 +35,7 @@ namespace Lumos
 		}
 	}
 
-	entt::entity ModelLoader::LoadOBJ(const std::string& path, entt::registry& registry)
+	void Graphics::Model::LoadOBJ(const std::string& path)
 	{
 		std::string resolvedPath = path;
 		tinyobj::attrib_t attrib;
@@ -58,8 +56,6 @@ namespace Lumos
 			LUMOS_LOG_CRITICAL(error);
 		}
 
-		auto entity = registry.create();
-		registry.emplace<NameComponent>(entity, name);
 		bool singleMesh = shapes.size() == 1;
 
 		for(const auto& shape : shapes)
@@ -67,8 +63,8 @@ namespace Lumos
 			u32 vertexCount = 0;
 			const u32 numIndices = static_cast<u32>(shape.mesh.indices.size());
 			const u32 numVertices = numIndices; // attrib.vertices.size();// numIndices / 3.0f;
-			Graphics::Vertex* vertices = lmnew Graphics::Vertex[numVertices];
-			u32* indices = lmnew u32[numIndices];
+			Graphics::Vertex* vertices = new Graphics::Vertex[numVertices];
+			u32* indices = new u32[numIndices];
 
 			std::unordered_map<Graphics::Vertex, uint32_t> uniqueVertices;
 
@@ -199,27 +195,12 @@ namespace Lumos
 			ib.reset(Graphics::IndexBuffer::Create(indices, numIndices));
 
 			auto mesh = CreateRef<Graphics::Mesh>(va, ib, boundingBox);
-			if(singleMesh)
-			{
-				registry.emplace<MeshComponent>(entity, mesh);
-				registry.emplace<MaterialComponent>(entity, pbrMaterial);
-				if(!registry.has<Maths::Transform>(entity))
-					registry.emplace<Maths::Transform>(entity);
-			}
-			else
-			{
-				auto meshEntity = registry.create();
-				registry.emplace<MeshComponent>(meshEntity, mesh);
-				registry.emplace<MaterialComponent>(meshEntity, pbrMaterial);
-				registry.emplace<Maths::Transform>(meshEntity);
-				registry.emplace<Hierarchy>(meshEntity, entity);
-			}
+			mesh->SetMaterial(pbrMaterial);
+			m_Meshes.push_back(mesh);
 
 			delete[] vertices;
 			delete[] indices;
 		}
-
-		return entity;
 	}
 
 }

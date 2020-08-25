@@ -18,7 +18,7 @@ namespace Lumos
         
         void RenderDevice::Release()
         {
-            lmdel s_Instance;
+            delete s_Instance;
         };
     }
 }

@@ -15,6 +15,6 @@ namespace Lumos::Graphics
     
 	RenderDevice* VKRenderDevice::CreateFuncVulkan()
     {
-        return lmnew VKRenderDevice();
+        return new VKRenderDevice();
     }
 }

@@ -1,12 +1,12 @@
 #include "lmpch.h"
 #include "Layer3D.h"
-#include "Graphics/Renderers/Renderer3D.h"
+#include "Graphics/Renderers/IRenderer.h"
 #include "Scene/Scene.h"
 #include "Maths/Transform.h"
 
 namespace Lumos
 {
-	Layer3D::Layer3D(Graphics::Renderer3D* renderer, const std::string& debugName)
+	Layer3D::Layer3D(Graphics::IRenderer* renderer, const std::string& debugName)
 		: m_Renderer(renderer)
 		, Layer(debugName)
 		, m_Scene(nullptr)

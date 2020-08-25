@@ -62,7 +62,7 @@ namespace Lumos
 
 		RenderPass* GLRenderPass::CreateFuncGL()
 		{
-			return lmnew GLRenderPass;
+			return new GLRenderPass;
 		}
     }
 }

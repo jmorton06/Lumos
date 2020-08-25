@@ -19,7 +19,7 @@
 #include "Graphics/Sprite.h"
 #include "Graphics/Light.h"
 #include "Graphics/API/Texture.h"
-#include "Graphics/ModelLoader/ModelLoader.h"
+#include "Graphics/Model.h"
 #include "Utilities/RandomNumberGenerator.h"
 #include "Scene/Entity.h"
 #include "Scene/EntityManager.h"
@@ -390,10 +390,23 @@ namespace Lumos
 
 		REGISTER_COMPONENT_WITH_ECS(state, Light, static_cast<Light& (Entity::*)()>(&Entity::AddComponent<Light>));
 
-		sol::usertype<MeshComponent> meshComponent_type = state.new_usertype<MeshComponent>("MeshComponent");
-		meshComponent_type["SetMesh"] = &MeshComponent::SetMesh;
+		std::initializer_list<std::pair<sol::string_view, Lumos::Graphics::PrimitiveType>> primitives =
+			{
+				{"Cube", Lumos::Graphics::PrimitiveType::Cube},
+				{"Plane", Lumos::Graphics::PrimitiveType::Plane},
+				{"Quad", Lumos::Graphics::PrimitiveType::Quad},
+				{"Pyramid", Lumos::Graphics::PrimitiveType::Pyramid},
+				{"Sphere", Lumos::Graphics::PrimitiveType::Sphere},
+				{"Capsule", Lumos::Graphics::PrimitiveType::Capsule},
+				{"Cylinder", Lumos::Graphics::PrimitiveType::Cylinder},
+				{"Terrain", Lumos::Graphics::PrimitiveType::Terrain},
+			};
 
-		REGISTER_COMPONENT_WITH_ECS(state, MeshComponent, static_cast<MeshComponent& (Entity::*)()>(&Entity::AddComponent<MeshComponent>));
+		state.new_enum<Lumos::Graphics::PrimitiveType, false>("PrimitiveType", primitives);
+
+
+		state.new_usertype<Model>("Model", sol::constructors<Model(const std::string&), Model(Lumos::Graphics::PrimitiveType)>());
+		REGISTER_COMPONENT_WITH_ECS(state, Model, static_cast<Model& (Entity::*)(const std::string&)>(&Entity::AddComponent<Model, const std::string&>));
 
 		sol::usertype<Camera> camera_type = state.new_usertype<Camera>("Camera", sol::constructors<Camera(float, float, float, float), Camera(float, float)>());
 		camera_type["fov"] = &Camera::GetFOV;
@@ -416,23 +429,10 @@ namespace Lumos
 		REGISTER_COMPONENT_WITH_ECS(state, Physics2DComponent, static_cast<Physics2DComponent& (Entity::*)(const RigidBodyParameters&)>(&Entity::AddComponent<Physics2DComponent, const RigidBodyParameters&>));
 
 		REGISTER_COMPONENT_WITH_ECS(state, SoundComponent, static_cast<SoundComponent& (Entity::*)()>(&Entity::AddComponent<SoundComponent>));
-		REGISTER_COMPONENT_WITH_ECS(state, MaterialComponent, static_cast<MaterialComponent& (Entity::*)()>(&Entity::AddComponent<MaterialComponent>));
 
-		state.set_function("LoadMesh", &ModelLoader::LoadModel);
-
+		//state.set_function("LoadMesh", &ModelLoader::LoadModel);
+        //TODO MODEL
 		sol::usertype<Graphics::Mesh> mesh_type = state.new_usertype<Graphics::Mesh>("Mesh");
-
-		std::initializer_list<std::pair<sol::string_view, Lumos::Graphics::PrimitiveType>> primitives =
-			{
-				{"Cube", Lumos::Graphics::PrimitiveType::Cube},
-				{"Plane", Lumos::Graphics::PrimitiveType::Plane},
-				{"Quad", Lumos::Graphics::PrimitiveType::Quad},
-				{"Pyramid", Lumos::Graphics::PrimitiveType::Pyramid},
-				{"Sphere", Lumos::Graphics::PrimitiveType::Sphere},
-				{"Capsule", Lumos::Graphics::PrimitiveType::Capsule},
-				{"Cylinder", Lumos::Graphics::PrimitiveType::Cylinder},
-
-			};
 
 		std::initializer_list<std::pair<sol::string_view, Lumos::Graphics::TextureFilter>> textureFilter =
 			{
@@ -449,7 +449,6 @@ namespace Lumos
 				{"ClampToEdge", Lumos::Graphics::TextureWrap::CLAMP_TO_EDGE},
 				{"ClampToBorder", Lumos::Graphics::TextureWrap::CLAMP_TO_BORDER}};
 
-		state.new_enum<Lumos::Graphics::PrimitiveType, false>("PrimitiveType", primitives);
 		state.set_function("LoadMesh", &CreatePrimative);
 
 		state.new_enum<Lumos::Graphics::TextureWrap, false>("TextureWrap", textureWrap);

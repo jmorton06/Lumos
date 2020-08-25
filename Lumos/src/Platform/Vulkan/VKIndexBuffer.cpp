@@ -46,12 +46,12 @@ namespace Lumos
         
 		IndexBuffer* VKIndexBuffer::CreateFuncVulkan(u32* data, u32 count, BufferUsage bufferUsage)
         {
-            return lmnew VKIndexBuffer(data, count, bufferUsage);
+            return new VKIndexBuffer(data, count, bufferUsage);
         }
 
 		IndexBuffer* VKIndexBuffer::CreateFunc16Vulkan(u16* data, u32 count, BufferUsage bufferUsage)
 		{
-			return lmnew VKIndexBuffer(data, count, bufferUsage);
+			return new VKIndexBuffer(data, count, bufferUsage);
 		}
 	}
 }

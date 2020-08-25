@@ -15,6 +15,6 @@ namespace Lumos::Graphics
 
 	RenderDevice* GLRenderDevice::CreateFuncGL()
 	{
-		return lmnew GLRenderDevice();
+		return new GLRenderDevice();
 	}
 }

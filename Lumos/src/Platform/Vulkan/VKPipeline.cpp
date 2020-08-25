@@ -70,9 +70,7 @@ namespace Lumos
 			pipelineLayoutCreateInfo.setLayoutCount = static_cast<uint32_t>(m_DescriptorLayouts.size());
 			pipelineLayoutCreateInfo.pSetLayouts = m_DescriptorLayouts.data();
 
-			auto result = vkCreatePipelineLayout(VKDevice::Get().GetDevice(), &pipelineLayoutCreateInfo, VK_NULL_HANDLE, &m_PipelineLayout);
-			if (result != VK_SUCCESS)
-				return false;
+			VK_CHECK_RESULT(vkCreatePipelineLayout(VKDevice::Get().GetDevice(), &pipelineLayoutCreateInfo, VK_NULL_HANDLE, &m_PipelineLayout));
 
 			std::vector<VkDescriptorPoolSize> poolSizes;
 			poolSizes.reserve(pipelineCI.numLayoutBindings);
@@ -100,20 +98,16 @@ namespace Lumos
 			info.layoutIndex = 0;
             info.shader = pipelineCI.shader;
 
-			m_DescriptorSet = lmnew VKDescriptorSet(info);
+			m_DescriptorSet = new VKDescriptorSet(info);
 
 			// Pipeline
-			VkDynamicState dynamicStateEnables[VK_DYNAMIC_STATE_RANGE_SIZE];
+			std::vector<VkDynamicState> dynamicStateDescriptors;
 			VkPipelineDynamicStateCreateInfo dynamicStateCI{};
 			dynamicStateCI.sType = VK_STRUCTURE_TYPE_PIPELINE_DYNAMIC_STATE_CREATE_INFO;
-			memset(dynamicStateEnables, 0, sizeof(dynamicStateEnables));
 			dynamicStateCI.pNext = NULL;
-			dynamicStateCI.pDynamicStates = dynamicStateEnables;
-			dynamicStateCI.dynamicStateCount = 0;
+			dynamicStateCI.pDynamicStates = dynamicStateDescriptors.data();
 
 			std::vector<VkVertexInputAttributeDescription> vertexInputDescription;
-
-			vertexInputDescription.reserve(pipelineCI.numVertexLayout);
 			for(u32 i = 0; i < pipelineCI.numVertexLayout; i++)
 			{
 				vertexInputDescription.push_back(VKTools::VertexInputDescriptionToVK(pipelineCI.vertexLayout[i]));
@@ -132,43 +126,11 @@ namespace Lumos
 			inputAssemblyCI.sType = VK_STRUCTURE_TYPE_PIPELINE_INPUT_ASSEMBLY_STATE_CREATE_INFO;
 			inputAssemblyCI.pNext = NULL;
 			inputAssemblyCI.primitiveRestartEnable = VK_FALSE;
-		
-            switch(pipelineCI.drawType)
-            {
-                case DrawType::TRIANGLE :
-                inputAssemblyCI.topology = VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST;
-                break;
-                case DrawType::LINES :
-                inputAssemblyCI.topology = VK_PRIMITIVE_TOPOLOGY_LINE_LIST;
-                break;
-                case DrawType::POINT :
-                inputAssemblyCI.topology = VK_PRIMITIVE_TOPOLOGY_POINT_LIST;
-                break;
-                default :
-                inputAssemblyCI.topology = VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST;
-                break;
-            }
+			inputAssemblyCI.topology = VKTools::DrawTypeToVk(pipelineCI.drawType);
         
             VkPipelineRasterizationStateCreateInfo rs{};
-
-            switch(pipelineCI.polygonMode)
-            {
-                case Graphics::PolygonMode::Fill :
-                rs.polygonMode = VK_POLYGON_MODE_FILL;
-                break;
-                case Graphics::PolygonMode::Line :
-                rs.polygonMode = VK_POLYGON_MODE_LINE;
-                break;
-                case Graphics::PolygonMode::Point :
-                rs.polygonMode = VK_POLYGON_MODE_POINT;
-                break;
-                default :
-                rs.polygonMode = VK_POLYGON_MODE_FILL;
-                break;
-            }
-        
 			rs.sType = VK_STRUCTURE_TYPE_PIPELINE_RASTERIZATION_STATE_CREATE_INFO;
-			rs.pNext = NULL;
+			rs.polygonMode = VKTools::PolygonModeToVk(pipelineCI.polygonMode);
 			rs.cullMode = VKTools::CullModeToVK(pipelineCI.cullMode);
 			rs.frontFace = VK_FRONT_FACE_COUNTER_CLOCKWISE;
 			rs.depthClampEnable = VK_FALSE;
@@ -178,6 +140,7 @@ namespace Lumos
 			rs.depthBiasClamp = 0;
 			rs.depthBiasSlopeFactor = 0;
 			rs.lineWidth = 1.0f;
+			rs.pNext = NULL;
 
 			VkPipelineColorBlendStateCreateInfo cb{};
 			cb.sType = VK_STRUCTURE_TYPE_PIPELINE_COLOR_BLEND_STATE_CREATE_INFO;
@@ -228,17 +191,17 @@ namespace Lumos
 			vp.scissorCount = 1;
 			vp.pScissors = NULL;
 			vp.pViewports = NULL;
-			dynamicStateEnables[dynamicStateCI.dynamicStateCount++] = VK_DYNAMIC_STATE_VIEWPORT;
-			dynamicStateEnables[dynamicStateCI.dynamicStateCount++] = VK_DYNAMIC_STATE_SCISSOR;
+			dynamicStateDescriptors.push_back(VK_DYNAMIC_STATE_VIEWPORT);
+			dynamicStateDescriptors.push_back(VK_DYNAMIC_STATE_SCISSOR);
         
             if(pipelineCI.lineWidth > 0.0f)
             {
-                dynamicStateEnables[dynamicStateCI.dynamicStateCount++] = VK_DYNAMIC_STATE_LINE_WIDTH;
+			    dynamicStateDescriptors.push_back(VK_DYNAMIC_STATE_LINE_WIDTH);
                 m_LineWidth = pipelineCI.lineWidth;
             }
 
 			if (pipelineCI.depthBiasEnabled)
-				dynamicStateEnables[dynamicStateCI.dynamicStateCount++] = VK_DYNAMIC_STATE_DEPTH_BIAS;
+				dynamicStateDescriptors.push_back(VK_DYNAMIC_STATE_DEPTH_BIAS);
 
 			VkPipelineDepthStencilStateCreateInfo ds{};
 			ds.sType = VK_STRUCTURE_TYPE_PIPELINE_DEPTH_STENCIL_STATE_CREATE_INFO;
@@ -259,7 +222,7 @@ namespace Lumos
 			ds.maxDepthBounds = 0;
 			ds.front = ds.back;
 
-			VkPipelineMultisampleStateCreateInfo ms;
+			VkPipelineMultisampleStateCreateInfo ms{};
 			ms.sType = VK_STRUCTURE_TYPE_PIPELINE_MULTISAMPLE_STATE_CREATE_INFO;
 			ms.pNext = NULL;
 			ms.pSampleMask = NULL;
@@ -268,6 +231,9 @@ namespace Lumos
 			ms.alphaToCoverageEnable = VK_FALSE;
 			ms.alphaToOneEnable = VK_FALSE;
 			ms.minSampleShading = 0.0;
+
+			dynamicStateCI.dynamicStateCount = u32(dynamicStateDescriptors.size());
+			dynamicStateCI.pDynamicStates = dynamicStateDescriptors.data();
 
 			VkGraphicsPipelineCreateInfo graphicsPipelineCI{};
 			graphicsPipelineCI.sType = VK_STRUCTURE_TYPE_GRAPHICS_PIPELINE_CREATE_INFO;
@@ -305,7 +271,7 @@ namespace Lumos
 			vkDestroyPipeline(VKDevice::Get().GetDevice(), m_Pipeline, VK_NULL_HANDLE);
 		}
 
-		void VKPipeline::SetActive(CommandBuffer* cmdBuffer)
+		void VKPipeline::Bind(CommandBuffer* cmdBuffer)
 		{
 			vkCmdBindPipeline(static_cast<VKCommandBuffer*>(cmdBuffer)->GetCommandBuffer(), VK_PIPELINE_BIND_POINT_GRAPHICS, m_Pipeline);
 		}
@@ -330,7 +296,7 @@ namespace Lumos
 
 		Pipeline* VKPipeline::CreateFuncVulkan(const PipelineInfo& pipelineCI)
         {
-            return lmnew VKPipeline(pipelineCI);
+            return new VKPipeline(pipelineCI);
         }
 	}
 }

@@ -20,7 +20,7 @@ namespace Lumos
 			bool Init(const PipelineInfo& pipelineCI);
 
 			void Unload() const;
-			void SetActive(Graphics::CommandBuffer* cmdBuffer) override;
+			void Bind(Graphics::CommandBuffer* cmdBuffer) override;
 			VkDescriptorSet CreateDescriptorSet();
 
 			VkDescriptorSetLayout* GetDescriptorLayout(int id)

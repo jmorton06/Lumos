@@ -49,7 +49,7 @@ namespace Lumos
 
 		Query* GLQuery::CreateFuncGL(QueryType type)
 		{
-			return lmnew GLQuery(type);
+			return new GLQuery(type);
 		}
 
 		u32 GLQuery::GetResult()

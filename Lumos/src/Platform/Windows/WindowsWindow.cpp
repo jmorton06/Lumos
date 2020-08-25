@@ -657,6 +657,6 @@ namespace Lumos
 
 	Window* WindowsWindow::CreateFuncWindows(const WindowProperties& properties)
 	{
-		return lmnew WindowsWindow(properties);
+		return new WindowsWindow(properties);
 	}
 }

@@ -207,13 +207,6 @@ namespace Lumos
 			AutoResizeBoundingBox();
 		}
 
-		void SetCollisionShape(CollisionShape* shape)
-		{
-			m_CollisionShape = Ref<CollisionShape>(shape);
-			m_InvInertia = m_CollisionShape->BuildInverseInertia(m_InvMass);
-			AutoResizeBoundingBox();
-		}
-
 		void SetCollisionShape(CollisionShapeType type);
 
 		void CollisionShapeUpdated()

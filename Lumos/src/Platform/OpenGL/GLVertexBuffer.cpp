@@ -69,13 +69,28 @@ namespace Lumos
 		void* GLVertexBuffer::GetPointerInternal()
         {
             Bind();
-			GLCall(void* result = glMapBuffer(GL_ARRAY_BUFFER, GL_WRITE_ONLY));
+            void* result = nullptr;
+            if(!m_Mapped)
+            {
+                GLCall(result = glMapBuffer(GL_ARRAY_BUFFER, GL_WRITE_ONLY));
+                m_Mapped = true;
+            }
+            else
+            {
+                Lumos::Debug::Log::Warning("Vertex buffer already mapped");
+            }
+
 			return result;
 		}
 
 		void GLVertexBuffer::ReleasePointer()
 		{
-			GLCall(glUnmapBuffer(GL_ARRAY_BUFFER));
+            if(m_Mapped)
+            {
+                GLCall(glUnmapBuffer(GL_ARRAY_BUFFER));
+                m_Mapped = false;
+            }
+
 			//SetLayout(m_Layout);
 		}
 
@@ -97,7 +112,7 @@ namespace Lumos
 
 		VertexBuffer* GLVertexBuffer::CreateFuncGL(const BufferUsage& usage)
 		{
-			return lmnew GLVertexBuffer(usage);
+			return new GLVertexBuffer(usage);
 		}
 	}
 }

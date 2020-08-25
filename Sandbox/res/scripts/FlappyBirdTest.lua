@@ -41,14 +41,12 @@ function postSolve(a, b, coll, normalimpulse, tangentimpulse)
 end
 
 function CreatePlayer()
-    colour = Vector4.new(1.0,1.0,1.0,1.0)
-
     texture = LoadTextureWithParams("icon", "/Textures/TappyPlane/PNG/Planes/planeBlue1.png", TextureFilter.Linear, TextureWrap.Clamp)
 
     player = entityManager:Create()
-    player:AddSprite(Vector2.new(-1.0/2.0, -1.0/2.0), Vector2.new(1.15, 1.0), colour):SetTexture(texture)
+    player:AddSprite(Vector2.new(-1.0/2.0, -1.0/2.0), Vector2.new(1.15, 1.0), Vector4.new(1.0,1.0,1.0,1.0)):SetTexture(texture)
 
-    params = RigidBodyParameters.new()
+    local params = RigidBodyParameters.new()
     params.position = Vector3.new( 1.0, 1.0, 1.0)
     params.scale = Vector3.new(1.0 / 2.0, 1.0 / 2.0, 1.0)
 	params.shape = Shape.Circle
@@ -65,21 +63,19 @@ function CreatePillar(index, offset)
 	pillars[index] = entityManager:Create();
 	pillars[index + 1] = entityManager:Create();
 
-	colour = Vector4.new(1.0,1.0,1.0,1.0);
-
-    centre = Rand(-6.0, 6.0);
+    local centre = Rand(-6.0, 6.0);
     local width = Rand(1.0, 2.0)
     
     --Top Pillar
-	topY = MAX_HEIGHT;
-	bottomY = centre + (gapSize / 2.0);
+	local topY = MAX_HEIGHT;
+	local bottomY = centre + (gapSize / 2.0);
 
-	pos = Vector3.new(offset / 2.0, ((topY - bottomY )/ 2.0) + bottomY, 0.0);
-	scale = Vector3.new(width, (topY - bottomY) / 2.0, 1.0);
+	local pos = Vector3.new(offset / 2.0, ((topY - bottomY )/ 2.0) + bottomY, 0.0);
+	local scale = Vector3.new(width, (topY - bottomY) / 2.0, 1.0);
 
-    pillars[index]:AddSprite(Vector2.new(-scale.x, -scale.y), Vector2.new(scale.x * 2.0, scale.y * 2.0), colour):SetTexture(iconTexture)
+    pillars[index]:AddSprite(Vector2.new(-scale.x, -scale.y), Vector2.new(scale.x * 2.0, scale.y * 2.0), Vector4.new(1.0,1.0,1.0,1.0)):SetTexture(iconTexture)
 
-    params = RigidBodyParameters.new()
+    local params = RigidBodyParameters.new()
 	params.position = pos
 	params.scale = scale
 	params.shape = Shape.Custom
@@ -96,7 +92,7 @@ function CreatePillar(index, offset)
 	pos = Vector3.new(offset / 2.0, ((topY - bottomY) / 2.0) + bottomY, 0.0)
 	scale = Vector3.new(width, (topY - bottomY) / 2.0, 1.0)
 
-    pillars[index + 1]:AddSprite(Vector2.new(-scale.x, -scale.y), Vector2.new(scale.x * 2.0, scale.y * 2.0), colour):SetTexture(iconTexture)
+    pillars[index + 1]:AddSprite(Vector2.new(-scale.x, -scale.y), Vector2.new(scale.x * 2.0, scale.y * 2.0), Vector4.new(1.0,1.0,1.0,1.0)):SetTexture(iconTexture)
 
 	params.position = pos
 	params.scale = scale
@@ -190,6 +186,8 @@ function OnUpdate(dt)
 			m_PillarTarget = m_PillarTarget + 10.0
         end 
 
+        gui.setNextWindowPos(gui.ImVec2.new(268.0, 50.0))
+        gui.setNextWindowBgAlpha(0.4)
         if gameState == GameStates.Running then
             gui.beginWindow("Running", gui.WindowFlags.NoDecoration)
             gui.text("Score : ")
@@ -198,7 +196,9 @@ function OnUpdate(dt)
             gui.endWindow()
         end
     elseif gameState == GameStates.GameOver then
-        gui.beginWindow("GameOver")
+        gui.setNextWindowPos(gui.ImVec2.new(268.0, 50.0))
+        gui.setNextWindowBgAlpha(0.4)
+        gui.beginWindow("GameOver", gui.WindowFlags.NoDecoration)
         gui.text("GameOver")
         gui.text("Score : ")
         gui.sameLine()
@@ -209,11 +209,6 @@ function OnUpdate(dt)
         end
         gui.endWindow()
     end
-
-    gui.beginWindow("Settings")
-    gui.inputFloat("Gap Size", gapSize, updateGap)
-    gui.inputFloat("Speed", SPEED, updateSpeed)
-    gui.endWindow()
 end
 
 function Reset()

@@ -15,9 +15,9 @@ namespace Lumos
 	class DefaultCameraController
 	{
 	public:
-		enum class ControllerType
+		enum class ControllerType : int
 		{
-			FPS,
+			FPS = 0,
 			ThirdPerson,
 			Simple,
 			Camera2D,
@@ -37,7 +37,7 @@ namespace Lumos
 
 		void SetControllerType(ControllerType type)
 		{
-			if(type != m_Type)
+            //if(type != m_Type)
 			{
 				m_Type = type;
 				switch(type)
@@ -218,6 +218,8 @@ namespace Lumos
 		~SceneGraph() = default;
 
 		void Init(entt::registry& registry);
+        
+        void DisableOnConstruct(bool disable, entt::registry& registry);
 
 		void Update(entt::registry& registry);
 		void UpdateTransform(entt::entity entity, entt::registry& registry);

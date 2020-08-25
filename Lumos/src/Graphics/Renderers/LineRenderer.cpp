@@ -36,8 +36,7 @@ namespace Lumos
 #define RENDERER_BUFFER_SIZE RENDERER_LINE_SIZE* MaxLineVertices
 
 	LineRenderer::LineRenderer(u32 width, u32 height, bool clear)
-		: m_RenderTexture(nullptr)
-		, m_Buffer(nullptr)
+		: m_Buffer(nullptr)
 		, m_Clear(clear)
 	{
 		m_RenderTexture = nullptr;
@@ -52,20 +51,12 @@ namespace Lumos
 	LineRenderer::~LineRenderer()
 	{
 		delete m_IndexBuffer;
-		delete m_Pipeline;
-		delete m_RenderPass;
-		delete m_Shader;
 		delete m_UniformBuffer;
 
 		delete[] m_VSSystemUniformBuffer;
 
-		for(auto frameBuffer : m_Framebuffers)
-			delete frameBuffer;
-
-		for(auto& commandBuffer : m_CommandBuffers)
-		{
-			delete commandBuffer;
-		}
+		m_Framebuffers.clear();
+		m_CommandBuffers.clear();
 
 		for(int i = 0; i < MAX_BATCH_DRAW_CALLS; i++)
 			delete m_VertexArrays[i];
@@ -81,7 +72,7 @@ namespace Lumos
 		m_Shader = Shader::CreateFromFile("Batch2DLine", "/CoreShaders/");
 
 		m_VSSystemUniformBufferSize = sizeof(Maths::Matrix4);
-		m_VSSystemUniformBuffer = lmnew u8[m_VSSystemUniformBufferSize];
+		m_VSSystemUniformBuffer = new u8[m_VSSystemUniformBufferSize];
 
 		m_RenderPass = Graphics::RenderPass::Create();
 		m_UniformBuffer = Graphics::UniformBuffer::Create();
@@ -151,7 +142,7 @@ namespace Lumos
 			vertexArray->PushBuffer(buffer);
 		}
 
-		u32* indices = lmnew u32[MaxLineIndices];
+		u32* indices = new u32[MaxLineIndices];
 
 		for(i32 i = 0; i < MaxLineIndices; i++)
 		{
@@ -251,9 +242,9 @@ namespace Lumos
 	{
 		Graphics::CommandBuffer* currentCMDBuffer = m_SecondaryCommandBuffers[m_BatchDrawCallIndex];
 
-		currentCMDBuffer->BeginRecordingSecondary(m_RenderPass, m_Framebuffers[m_CurrentBufferID]);
+		currentCMDBuffer->BeginRecordingSecondary(m_RenderPass.get(), m_Framebuffers[m_CurrentBufferID].get());
 		currentCMDBuffer->UpdateViewport(m_ScreenBufferWidth, m_ScreenBufferHeight);
-		m_Pipeline->SetActive(currentCMDBuffer);
+		m_Pipeline->Bind(currentCMDBuffer);
 
 		m_VertexArrays[m_BatchDrawCallIndex]->GetBuffer()->ReleasePointer();
 		m_VertexArrays[m_BatchDrawCallIndex]->Unbind();
@@ -265,7 +256,7 @@ namespace Lumos
 		m_VertexArrays[m_BatchDrawCallIndex]->Bind(currentCMDBuffer);
 		m_IndexBuffer->Bind(currentCMDBuffer);
 
-		Renderer::BindDescriptorSets(m_Pipeline, currentCMDBuffer, 0, descriptors);
+		Renderer::BindDescriptorSets(m_Pipeline.get(), currentCMDBuffer, 0, descriptors);
 		Renderer::DrawIndexed(currentCMDBuffer, DrawType::LINES, LineIndexCount);
 
 		m_VertexArrays[m_BatchDrawCallIndex]->Unbind();
@@ -274,14 +265,14 @@ namespace Lumos
 		LineIndexCount = 0;
 
 		currentCMDBuffer->EndRecording();
-		currentCMDBuffer->ExecuteSecondary(m_CommandBuffers[m_CurrentBufferID]);
+		currentCMDBuffer->ExecuteSecondary(m_CommandBuffers[m_CurrentBufferID].get());
 
 		m_BatchDrawCallIndex++;
 	}
 
 	void LineRenderer::End()
 	{
-		m_RenderPass->EndRenderpass(m_CommandBuffers[m_CurrentBufferID]);
+		m_RenderPass->EndRenderpass(m_CommandBuffers[m_CurrentBufferID].get());
 		m_CommandBuffers[m_CurrentBufferID]->EndRecording();
 
 		if(m_RenderTexture)
@@ -304,12 +295,12 @@ namespace Lumos
 
 		m_CommandBuffers[m_CurrentBufferID]->BeginRecording();
 
-		m_RenderPass->BeginRenderpass(m_CommandBuffers[m_CurrentBufferID], m_ClearColour, m_Framebuffers[m_CurrentBufferID], Graphics::SECONDARY, m_ScreenBufferWidth, m_ScreenBufferHeight);
+		m_RenderPass->BeginRenderpass(m_CommandBuffers[m_CurrentBufferID].get(), m_ClearColour, m_Framebuffers[m_CurrentBufferID].get(), Graphics::SECONDARY, m_ScreenBufferWidth, m_ScreenBufferHeight);
 
-		m_VertexArrays[m_BatchDrawCallIndex]->Bind(m_CommandBuffers[m_CurrentBufferID]);
+		m_VertexArrays[m_BatchDrawCallIndex]->Bind(m_CommandBuffers[m_CurrentBufferID].get());
 		m_Buffer = m_VertexArrays[m_BatchDrawCallIndex]->GetBuffer()->GetPointer<LineVertexData>();
 
-		SetSystemUniforms(m_Shader);
+		SetSystemUniforms(m_Shader.get());
 
 		for(auto& line : m_Lines)
 		{
@@ -323,8 +314,6 @@ namespace Lumos
 
 	void LineRenderer::OnResize(u32 width, u32 height)
 	{
-		for(auto fbo : m_Framebuffers)
-			delete fbo;
 		m_Framebuffers.clear();
 
 		SetScreenBufferSize(width, height);
@@ -334,7 +323,7 @@ namespace Lumos
 
 	void LineRenderer::PresentToScreen()
 	{
-		Renderer::Present((m_CommandBuffers[Renderer::GetSwapchain()->GetCurrentBufferId()]));
+		Renderer::Present((m_CommandBuffers[Renderer::GetSwapchain()->GetCurrentBufferId()].get()));
 	}
 
 	void LineRenderer::SetScreenBufferSize(u32 width, u32 height)
@@ -376,8 +365,8 @@ namespace Lumos
 
 		Graphics::PipelineInfo pipelineCI;
 		pipelineCI.pipelineName = "BatchLineRenderer";
-		pipelineCI.shader = m_Shader;
-		pipelineCI.renderpass = m_RenderPass;
+		pipelineCI.shader = m_Shader.get();
+		pipelineCI.renderpass = m_RenderPass.get();
 		pipelineCI.numVertexLayout = static_cast<u32>(attributeDescriptions.size());
 		pipelineCI.descriptorLayouts = descriptorLayouts;
 		pipelineCI.vertexLayout = attributeDescriptions.data();
@@ -406,7 +395,7 @@ namespace Lumos
 		bufferInfo.width = m_ScreenBufferWidth;
 		bufferInfo.height = m_ScreenBufferHeight;
 		bufferInfo.attachmentCount = 1;
-		bufferInfo.renderPass = m_RenderPass;
+		bufferInfo.renderPass = m_RenderPass.get();
 		bufferInfo.attachmentTypes = attachmentTypes;
 
 		if(m_RenderTexture)
@@ -436,8 +425,6 @@ namespace Lumos
 		if(!rebuildFramebuffer)
 			return;
 
-		for(auto fbo : m_Framebuffers)
-			delete fbo;
 		m_Framebuffers.clear();
 
 		CreateFramebuffers();

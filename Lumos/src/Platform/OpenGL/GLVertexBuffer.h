@@ -14,6 +14,7 @@ namespace Lumos
 			BufferUsage m_Usage;
 			u32 m_Size;
 			BufferLayout m_Layout;
+            bool m_Mapped = false;
 		public:
 			explicit GLVertexBuffer(BufferUsage usage);
 			~GLVertexBuffer();

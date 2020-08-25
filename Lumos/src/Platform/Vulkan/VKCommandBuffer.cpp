@@ -163,7 +163,7 @@ namespace Lumos
         
         CommandBuffer* VKCommandBuffer::CreateFuncVulkan()
         {
-            return lmnew VKCommandBuffer();
+            return new VKCommandBuffer();
         }
 	}
 }

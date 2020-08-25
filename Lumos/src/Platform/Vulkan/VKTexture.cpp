@@ -394,7 +394,7 @@ namespace Lumos
 
 			m_MipLevels = static_cast<uint32_t>(std::floor(std::log2(Maths::Max(texWidth, texHeight)))) + 1;
 
-			VKBuffer* stagingBuffer = lmnew VKBuffer(VK_BUFFER_USAGE_TRANSFER_SRC_BIT, static_cast<u32>(imageSize), pixels);
+			VKBuffer* stagingBuffer = new VKBuffer(VK_BUFFER_USAGE_TRANSFER_SRC_BIT, static_cast<u32>(imageSize), pixels);
 
 			if(m_Data == nullptr)
 				delete[] pixels;
@@ -480,12 +480,12 @@ namespace Lumos
 		void VKTextureCube::Load(u32 mips)
 		{
 			u32 srcWidth, srcHeight, bits = 0;
-			u8*** cubeTextureData = lmnew u8 * *[mips];
+			u8*** cubeTextureData = new u8 * *[mips];
 			for(u32 i = 0; i < mips; i++)
-				cubeTextureData[i] = lmnew u8* [6];
+				cubeTextureData[i] = new u8* [6];
 
-			u32* faceWidths = lmnew u32[mips];
-			u32* faceHeights = lmnew u32[mips];
+			u32* faceWidths = new u32[mips];
+			u32* faceHeights = new u32[mips];
 			u32 size = 0;
 			bool isHDR = false;
 
@@ -510,7 +510,7 @@ namespace Lumos
 								continue;
 						}
 
-						cubeTextureData[m][face] = lmnew u8[faceWidth * faceHeight * stride];
+						cubeTextureData[m][face] = new u8[faceWidth * faceHeight * stride];
 
 						size += stride * srcHeight * srcWidth;
 
@@ -539,7 +539,7 @@ namespace Lumos
 				delete[] data;
 			}
 
-			u8* allData = lmnew u8[size];
+			u8* allData = new u8[size];
 			u32 pointeroffset = 0;
 
 			u32 faceOrder[6] = {3, 1, 0, 4, 2, 5};
@@ -554,11 +554,11 @@ namespace Lumos
 				}
 			}
 
-			VKBuffer* stagingBuffer = lmnew VKBuffer(VK_BUFFER_USAGE_TRANSFER_SRC_BIT, static_cast<u32>(size), allData);
+			VKBuffer* stagingBuffer = new VKBuffer(VK_BUFFER_USAGE_TRANSFER_SRC_BIT, static_cast<u32>(size), allData);
 
 			if(m_Data == nullptr)
 			{
-				lmdel[] allData;
+				delete[] allData;
 				allData = nullptr;
 			}
 #ifdef USE_VMA_ALLOCATOR
@@ -799,47 +799,47 @@ namespace Lumos
 
 		Texture2D* VKTexture2D::CreateFuncVulkan()
 		{
-			return lmnew VKTexture2D();
+			return new VKTexture2D();
 		}
 
 		Texture2D* VKTexture2D::CreateFromSourceFuncVulkan(u32 width, u32 height, void* data, TextureParameters parameters, TextureLoadOptions loadoptions)
 		{
-			return lmnew VKTexture2D(width, height, data, parameters, loadoptions);
+			return new VKTexture2D(width, height, data, parameters, loadoptions);
 		}
 
 		Texture2D* VKTexture2D::CreateFromFileFuncVulkan(const std::string& name, const std::string& filename, TextureParameters parameters, TextureLoadOptions loadoptions)
 		{
-			return lmnew VKTexture2D(name, filename, parameters, loadoptions);
+			return new VKTexture2D(name, filename, parameters, loadoptions);
 		}
 
 		TextureCube* VKTextureCube::CreateFuncVulkan(u32 size)
 		{
-			return lmnew VKTextureCube(size);
+			return new VKTextureCube(size);
 		}
 
 		TextureCube* VKTextureCube::CreateFromFileFuncVulkan(const std::string& filepath)
 		{
-			return lmnew VKTextureCube(filepath);
+			return new VKTextureCube(filepath);
 		}
 
 		TextureCube* VKTextureCube::CreateFromFilesFuncVulkan(const std::string* files)
 		{
-			return lmnew VKTextureCube(files);
+			return new VKTextureCube(files);
 		}
 
 		TextureCube* VKTextureCube::CreateFromVCrossFuncVulkan(const std::string* files, u32 mips, InputFormat format)
 		{
-			return lmnew VKTextureCube(files, mips, format);
+			return new VKTextureCube(files, mips, format);
 		}
 
 		TextureDepth* VKTextureDepth::CreateFuncVulkan(u32 width, u32 height)
 		{
-			return lmnew VKTextureDepth(width, height);
+			return new VKTextureDepth(width, height);
 		}
 
 		TextureDepthArray* VKTextureDepthArray::CreateFuncVulkan(u32 width, u32 height, u32 count)
 		{
-			return lmnew VKTextureDepthArray(width, height, count);
+			return new VKTextureDepthArray(width, height, count);
 		}
 
 		void VKTexture2D::MakeDefault()

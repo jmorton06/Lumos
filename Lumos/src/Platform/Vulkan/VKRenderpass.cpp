@@ -141,7 +141,7 @@ namespace Lumos
 
 			VK_CHECK_RESULT(vkCreateRenderPass(VKDevice::Get().GetDevice(), &vkRenderpassCI, VK_NULL_HANDLE, &m_RenderPass));
 
-			m_ClearValue = lmnew VkClearValue[renderpassCI.attachmentCount];
+			m_ClearValue = new VkClearValue[renderpassCI.attachmentCount];
 			m_ClearCount = renderpassCI.attachmentCount;
 			return true;
 		}
@@ -209,7 +209,7 @@ namespace Lumos
 
 		RenderPass* VKRenderpass::CreateFuncVulkan()
 		{
-			return lmnew VKRenderpass();
+			return new VKRenderpass();
 		}
 	}
 }

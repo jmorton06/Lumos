@@ -56,7 +56,7 @@ namespace Lumos
         
 		Framebuffer* VKFramebuffer::CreateFuncVulkan(const FramebufferInfo& info)
         {
-            return lmnew VKFramebuffer(info);
+            return new VKFramebuffer(info);
         }
 	}
 }

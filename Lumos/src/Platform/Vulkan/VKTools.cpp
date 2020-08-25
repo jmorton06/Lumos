@@ -538,5 +538,45 @@ namespace Lumos
                     return VK_SHADER_STAGE_VERTEX_BIT;
             }
         }
+
+        VkPolygonMode VKTools::PolygonModeToVk(Lumos::Graphics::PolygonMode mode)
+        {
+            switch(mode)
+            {
+                case Graphics::PolygonMode::Fill :
+                    return VK_POLYGON_MODE_FILL;
+                break;
+                case Graphics::PolygonMode::Line :
+                    return VK_POLYGON_MODE_LINE;
+                break;
+                case Graphics::PolygonMode::Point :
+                    return VK_POLYGON_MODE_POINT;
+                break;
+                default :
+                    LUMOS_LOG_CRITICAL("Unknown Polygon Mode");
+                    return VK_POLYGON_MODE_FILL;
+                break;
+            }
+        }
+
+        VkPrimitiveTopology VKTools::DrawTypeToVk(Lumos::Graphics::DrawType type)
+        {
+            switch(type)
+            {
+                case DrawType::TRIANGLE :
+                return VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST;
+                break;
+                case DrawType::LINES :
+                return VK_PRIMITIVE_TOPOLOGY_LINE_LIST;
+                break;
+                case DrawType::POINT :
+                return VK_PRIMITIVE_TOPOLOGY_POINT_LIST;
+                break;
+                default :
+                LUMOS_LOG_CRITICAL("Unknown Draw Type");
+                return VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST;
+                break;
+            }
+        }
 	}
 }

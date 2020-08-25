@@ -74,7 +74,7 @@ namespace Lumos
 
 	Window* iOSWindow::CreateFunciOS(const WindowProperties& properties)
 	{
-		return lmnew iOSWindow(properties);
+		return new iOSWindow(properties);
 	}
 
     void iOSWindow::OnKeyEvent(Lumos::InputCode::Key key, bool down)

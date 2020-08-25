@@ -23,16 +23,14 @@ void MaterialTest::OnInit()
 
 	LoadModels();
 
-	auto environment = GetRegistry().create();
-	GetRegistry().emplace<Graphics::Environment>(environment, "/Textures/cubemap/Arches_E_PineTree", 11, 3072, 4096, ".tga");
-	GetRegistry().emplace<NameComponent>(environment, "Environment");
+	auto environment = CreateEntity("Environment");
+	environment.AddComponent<Graphics::Environment>("/Textures/cubemap/Arches_E_PineTree", 11, 3072, 4096, ".tga");
 
-	auto lightEntity = GetRegistry().create();
-	GetRegistry().emplace<Graphics::Light>(lightEntity, Maths::Vector3(26.0f, 22.0f, 48.5f), Maths::Vector4(1.0f), 1.3f);
-	GetRegistry().emplace<Maths::Transform>(lightEntity, Matrix4::Translation(Maths::Vector3(26.0f, 22.0f, 48.5f)) * Maths::Quaternion::LookAt(Maths::Vector3(26.0f, 22.0f, 48.5f), Maths::Vector3::ZERO).RotationMatrix4());
-	GetRegistry().emplace<NameComponent>(lightEntity, "Light");
+	auto lightEntity = CreateEntity("Light");
+	lightEntity.AddComponent<Graphics::Light>(Maths::Vector3(26.0f, 22.0f, 48.5f), Maths::Vector4(1.0f), 1.3f);
+	lightEntity.AddComponent<Maths::Transform>(Matrix4::Translation(Maths::Vector3(26.0f, 22.0f, 48.5f)) * Maths::Quaternion::LookAt(Maths::Vector3(26.0f, 22.0f, 48.5f), Maths::Vector3::ZERO).RotationMatrix4());
 
-    auto cameraEntity = m_EntityManager->Create("Camera");
+    auto cameraEntity = CreateEntity("Camera");
     cameraEntity.AddComponent<Maths::Transform>(Maths::Vector3(-31.0f, 12.0f, 51.0f));
     cameraEntity.AddComponent<Camera>(-20.0f, -40.0f, Maths::Vector3(-31.0f, 12.0f, 51.0f), 60.0f, 0.1f, 1000.0f, (float)m_ScreenWidth / (float)m_ScreenHeight);
     cameraEntity.AddComponent<DefaultCameraController>(DefaultCameraController::ControllerType::EditorCamera);
@@ -49,16 +47,12 @@ void MaterialTest::Render2D()
 
 void MaterialTest::OnCleanupScene()
 {
-	if(m_CurrentScene)
-	{
-		Application::Get().GetSystem<LumosPhysicsEngine>()->ClearConstraints();
-	}
-
 	Scene::OnCleanupScene();
 }
 
 void MaterialTest::LoadModels()
 {
+	using namespace Lumos::Graphics;
 	std::vector<Lumos::Ref<Material>> materials;
 
 	auto grassMaterial = CreateRef<Material>();
@@ -97,7 +91,7 @@ void MaterialTest::LoadModels()
 	const float groundHeight = 0.5f;
 	const float groundLength = 3.0f;
 
-	auto ground = GetRegistry().create();
+	auto ground = CreateEntity();
 	Ref<RigidBody3D> testPhysics = CreateRef<RigidBody3D>();
 	testPhysics->SetRestVelocityThreshold(-1.0f);
 	testPhysics->SetCollisionShape(CreateRef<CuboidCollisionShape>(Maths::Vector3(groundWidth, groundHeight, groundLength)));
@@ -105,12 +99,12 @@ void MaterialTest::LoadModels()
 	testPhysics->SetIsAtRest(true);
 	testPhysics->SetIsStatic(true);
 
-	GetRegistry().emplace<Maths::Transform>(ground, Matrix4::Translation(Maths::Vector3((float(materials.size()) * 1.2f) / 2.0f - float(materials.size()) / 2.0f - 0.5f, 0.0f, 0.0f)) * Matrix4::Scale(Maths::Vector3(groundWidth, groundHeight, groundLength)));
-	GetRegistry().emplace<MeshComponent>(ground, Graphics::CreateCube());
+	ground.AddComponent<Maths::Transform>(Matrix4::Translation(Maths::Vector3((float(materials.size()) * 1.2f) / 2.0f - float(materials.size()) / 2.0f - 0.5f, 0.0f, 0.0f)) * Matrix4::Scale(Maths::Vector3(groundWidth, groundHeight, groundLength)));
+	ground.AddComponent<Graphics::Model>(Ref<Graphics::Mesh>(Graphics::CreateCube()), Graphics::PrimitiveType::Cube);
 
 	auto groundMaterial = CreateRef<Material>();
 
-	MaterialProperties properties;
+	Graphics::MaterialProperties properties;
 	properties.albedoColour = Vector4(0.6f, 0.1f, 0.1f, 1.0f);
 	properties.roughnessColour = Vector4(0.6f);
 	properties.metallicColour = Vector4(0.15f);
@@ -119,27 +113,21 @@ void MaterialTest::LoadModels()
 	properties.usingNormalMap = 0.0f;
 	properties.usingMetallicMap = 0.0f;
 	groundMaterial->SetMaterialProperites(properties);
-	GetRegistry().emplace<MaterialComponent>(ground, groundMaterial);
+	ground.GetComponent<Graphics::Model>().GetMeshes().front()->SetMaterial(groundMaterial);
 
 	int numObjects = 0;
 
 	for(auto& material : materials)
 	{
-		auto obj = ModelLoader::LoadModel("/CoreMeshes/material_sphere/material_sphere.fbx", GetRegistry()); //GetRegistry().create();
-		Entity entity = {obj, this};
-		auto& transform = GetRegistry().get_or_emplace<Maths::Transform>(obj);
+        Entity modelEntity = m_EntityManager->Create();
+        modelEntity.AddComponent<Graphics::Model>("/CoreMeshes/material_sphere/material_sphere.fbx");
+        auto& transform = modelEntity.GetOrAddComponent<Maths::Transform>();
 
 		transform.SetLocalPosition(Maths::Vector3(float(numObjects) * 1.2f - float(materials.size()) / 2.0f, 1.2f, 0.0f));
 		transform.SetLocalScale(Maths::Vector3(0.5f, 0.5f, 0.5f));
-
-		if(entity.HasComponent<MaterialComponent>())
-			entity.RemoveComponent<MaterialComponent>();
-		GetRegistry().emplace<MaterialComponent>(obj, material ? material : testMaterial);
-		//GetRegistry().emplace<NameComponent>(obj, "Test Object" + StringFormat::ToString(numObjects++));
+        modelEntity.GetComponent<Graphics::Model>().GetMeshes().front()->SetMaterial(material ? material : testMaterial);
 		numObjects++;
 	}
-
-	//GetRegistry().destroy(testMesh);
 }
 
 void MaterialTest::OnImGui()

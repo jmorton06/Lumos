@@ -16,7 +16,7 @@ namespace Lumos
 	void MemoryManager::OnShutdown()
 	{
 		if(s_Instance)
-			lmdel s_Instance;
+			delete s_Instance;
 	}
 
 	MemoryManager* MemoryManager::Get()

@@ -1,0 +1,28 @@
+{
+    "value0": 1,
+    "value1": 0,
+    "value2": 0,
+    "value3": 1,
+    "value4": 0,
+    "value5": {
+        "Name": "GameController"
+    },
+    "value6": 0,
+    "value7": 0,
+    "value8": 0,
+    "value9": 1,
+    "value10": 0,
+    "value11": {
+        "FilePath": "/Scripts/FlappyBirdTest.lua"
+    },
+    "value12": 0,
+    "value13": 0,
+    "value14": 0,
+    "value15": 0,
+    "value16": 0,
+    "value17": 0,
+    "value18": 0,
+    "value19": {
+        "Scene Name": "2D"
+    }
+}

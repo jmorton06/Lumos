@@ -5,10 +5,11 @@
 
 namespace Lumos
 {
-	class Material;
 
 	namespace Graphics
 	{
+		class Material;
+		
 		struct LUMOS_EXPORT RendererUniform
 		{
 			std::string uniform;

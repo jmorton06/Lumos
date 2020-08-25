@@ -14,7 +14,6 @@ namespace Lumos
 {
 	class TimeStep;
 	class Font;
-	class Material;
 	class Event;
 	class Layer;
 	class Camera;
@@ -26,6 +25,7 @@ namespace Lumos
 	{
 		struct Light;
 		class GBuffer;
+		class Material;
 	}
 
 	class LUMOS_EXPORT Scene
@@ -104,11 +104,12 @@ namespace Lumos
         void DuplicateEntity(Entity entity);
 		void DuplicateEntity(Entity entity, Entity parent);
         Entity CreateEntity();
+		Entity CreateEntity(const std::string& name);
     
         EntityManager* GetEntityManager() { return m_EntityManager.get(); }
 
-		void Serialise(const std::string& filePath, bool binary = false);
-		void Deserialise(const std::string& filePath, bool binary = false);
+		virtual void Serialise(const std::string& filePath, bool binary = false);
+		virtual void Deserialise(const std::string& filePath, bool binary = false);
 
 		template<typename Archive>
 		void serialize(Archive& archive)
@@ -121,11 +122,9 @@ namespace Lumos
 
 		UniqueRef<EntityManager> m_EntityManager;
 
-		bool m_CurrentScene = false;
-
 		u32 m_ScreenWidth;
 		u32 m_ScreenHeight;
-
+        
 		SceneGraph m_SceneGraph;
 
 		LayerStack* m_LayerStack = nullptr;

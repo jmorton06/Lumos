@@ -107,7 +107,7 @@ project "Sandbox"
 		platforms {"x64"}
  		defaultplatform "x64"
 
-		xcodebuildresources { "../Resources/MacOSIcons/Images.xcassets" }
+		xcodebuildresources { "Images.xcassets" }
 
 		xcodebuildsettings
 		{
@@ -226,6 +226,11 @@ project "Sandbox"
 			"../Lumos/external/vulkan/libs/iOS/libMoltenVK.a"
 		}
 
+		files
+		{
+			"../Resources/IOSIcons/Images.xcassets",
+		}
+
 		xcodebuildsettings
 		{
 			['ARCHS'] = '$(ARCHS_STANDARD)',
@@ -258,16 +263,7 @@ project "Sandbox"
 		xcodebuildresources 
 		{
 			"../Lumos/src/Platform/iOS/Client",
-			--"Assets",
-			--"Images.xcassets"
-		}
-
-		xcodebuildresources { "../Resources/IOSIcons/Images.xcassets" }
-
-
-		files
-		{
-			"../Resources/IOSIcons/Images.xcassets",
+			"Images.xcassets"
 		}
 
 		SetRecommendedXcodeSettings()

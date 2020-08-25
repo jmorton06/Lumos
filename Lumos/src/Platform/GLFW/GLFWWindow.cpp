@@ -349,7 +349,7 @@ namespace Lumos
 
 	Window* GLFWWindow::CreateFuncGLFW(const WindowProperties& properties)
 	{
-		return lmnew GLFWWindow(properties);
+		return new GLFWWindow(properties);
 	}
 
 	void GLFWWindow::UpdateCursorImGui()

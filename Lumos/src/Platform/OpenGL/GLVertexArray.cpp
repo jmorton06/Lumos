@@ -54,7 +54,7 @@ namespace Lumos
 
 		VertexArray* GLVertexArray::CreateFuncGL()
 		{
-			return lmnew GLVertexArray();
+			return new GLVertexArray();
 		}
 	}
 }

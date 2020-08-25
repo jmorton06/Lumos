@@ -96,7 +96,7 @@ namespace Lumos
 				Debug::Log::Critical("[VULKAN] Failed to create window surface!");
 			}
 
-			VkBool32* supportsPresent = lmnew VkBool32[m_QueueFamiliyProperties.size()];
+			VkBool32* supportsPresent = new VkBool32[m_QueueFamiliyProperties.size()];
 			for(uint32_t i = 0; i < m_QueueFamiliyProperties.size(); i++)
 				vkGetPhysicalDeviceSurfaceSupportKHR(m_PhysicalDevice, i, m_Surface, &supportsPresent[i]);
 

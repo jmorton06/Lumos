@@ -329,7 +329,7 @@ namespace Lumos
 		{
 			m_Renderer2D->BeginRenderPass();
 			m_Renderer2D->BeginScene(scene, overrideCamera, overrideCameraTransform);
-			m_Renderer2D->SetSystemUniforms(m_Renderer2D->GetShader());
+            m_Renderer2D->SetSystemUniforms(m_Renderer2D->GetShader().get());
 			m_Renderer2D->SubmitTriangles();
 			m_Renderer2D->Present();
 			m_Renderer2D->End();
@@ -372,7 +372,7 @@ namespace Lumos
 		//Point
 		else
 		{
-			DebugDrawSphere(light->Radius, light->Position.ToVector3(), colour);
+			DebugDrawSphere(light->Radius / 2.0f, light->Position.ToVector3(), colour);
 		}
 	}
 

@@ -236,7 +236,7 @@ namespace Lumos
 
 		GraphicsContext* GLContext::CreateFuncGL(const WindowProperties& properties, void* cont)
 		{
-			return lmnew GLContext(properties, cont);
+			return new GLContext(properties, cont);
 		}
 	}
 }

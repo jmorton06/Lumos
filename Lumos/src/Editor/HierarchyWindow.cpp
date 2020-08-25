@@ -21,8 +21,8 @@
 namespace Lumos
 {
 	HierarchyWindow::HierarchyWindow()
-		: m_DoubleClicked()
-		, m_HadRecentDroppedEntity(entt::null)
+		: m_HadRecentDroppedEntity(entt::null)
+        , m_DoubleClicked(entt::null)
 	{
 		m_Name = "Hierarchy###hierarchy";
 		m_SimpleName = "Hierarchy";

@@ -145,7 +145,7 @@ namespace Lumos
 
 		DescriptorSet* GLDescriptorSet::CreateFuncGL(const DescriptorInfo& info)
 		{
-			return lmnew GLDescriptorSet(info);
+			return new GLDescriptorSet(info);
 		}
     }
 }

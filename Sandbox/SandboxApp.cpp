@@ -3,7 +3,6 @@
 #include "Scenes/Scene3D.h"
 #include "Scenes/GraphicsScene.h"
 #include "Scenes/SceneModelViewer.h"
-#include "Scenes/Scene2D.h"
 #include "Scenes/MaterialTest.h"
 
 using namespace Lumos;
@@ -31,13 +30,13 @@ class Game : public Application
 		VFS::Get()->Mount("Sounds", root + "/Sandbox/res/sounds");
 		VFS::Get()->Mount("Scripts", root + "/Sandbox/res/scripts");
         
+		auto scene = new Scene("2D");
+		scene->Deserialise(ROOT_DIR "/Sandbox/res/scenes/", false);
+		GetSceneManager()->EnqueueScene(scene);
+        GetSceneManager()->EnqueueScene<Scene3D>("Physics");
 		GetSceneManager()->EnqueueScene<SceneModelViewer>("SceneModelViewer");
-		GetSceneManager()->EnqueueScene<Scene2D>("2D Test");
-		GetSceneManager()->EnqueueScene<Scene3D>("Physics Scene");
-		GetSceneManager()->EnqueueScene<GraphicsScene>("Terrain Test");
-		GetSceneManager()->EnqueueScene<MaterialTest>("Material Test");
-		GetSceneManager()->SwitchScene(2);
-		GetSceneManager()->ApplySceneSwitch();
+		GetSceneManager()->EnqueueScene<GraphicsScene>("Terrain");
+		GetSceneManager()->EnqueueScene<MaterialTest>("Material");
 	}
 };
 

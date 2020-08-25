@@ -58,7 +58,7 @@ namespace Lumos
 			*bits = b;
 
 		i32 size = w * h * (b / 8);
-		u8* result = lmnew u8[size];
+		u8* result = new u8[size];
 		memcpy(result, pixels, size);
 		FreeImage_Unload(bitmap);
 #else
@@ -95,7 +95,7 @@ namespace Lumos
 			*bits = texChannels * sizeOfChannel; // texChannels;	  //32 bits for 4 bytes r g b a
 
 		const i32 size = texWidth * texHeight * texChannels;
-		u8* result = lmnew u8[size];
+		u8* result = new u8[size];
 		memcpy(result, pixels, size);
 
 		stbi_image_free(pixels);

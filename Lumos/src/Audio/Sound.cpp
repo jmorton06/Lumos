@@ -22,7 +22,7 @@ namespace Lumos
 	Sound* Sound::Create(const std::string& name, const std::string& extension)
 	{
 #ifdef LUMOS_OPENAL
-		return lmnew ALSound(name, extension);
+		return new ALSound(name, extension);
 #else
 		return nullptr;
 #endif

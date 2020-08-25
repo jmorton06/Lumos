@@ -2,8 +2,6 @@
 #include "DeferredOffScreenRenderer.h"
 #include "Scene/Scene.h"
 #include "Core/Application.h"
-#include "Scene/Component/MaterialComponent.h"
-#include "Scene/Component/MeshComponent.h"
 #include "Scene/Component/TextureMatrixComponent.h"
 
 #include "Maths/Maths.h"
@@ -13,6 +11,7 @@
 #include "Graphics/RenderManager.h"
 #include "Graphics/Camera/Camera.h"
 #include "Graphics/Mesh.h"
+#include "Graphics/Model.h"
 #include "Graphics/Material.h"
 #include "Graphics/GBuffer.h"
 
@@ -56,23 +55,17 @@ namespace Lumos
 
 		DeferredOffScreenRenderer::~DeferredOffScreenRenderer()
 		{
-			delete m_Shader;
-			delete m_FBO;
 			delete m_UniformBuffer;
-
 			delete m_ModelUniformBuffer;
-			delete m_RenderPass;
-			delete m_Pipeline;
 			delete m_DeferredCommandBuffers;
 			delete m_DefaultMaterial;
 
 			delete[] m_VSSystemUniformBuffer;
 
-			for(auto& commandBuffer : m_CommandBuffers)
-			{
+			for(auto commandBuffer : m_CommandBuffers)
 				delete commandBuffer;
-			}
 
+			m_Framebuffers.clear();
 			m_CommandBuffers.clear();
 
 			Memory::AlignedFree(m_UBODataDynamic.model);
@@ -82,9 +75,9 @@ namespace Lumos
 		{
 			LUMOS_PROFILE_FUNC;
 			m_Shader = Shader::CreateFromFile("DeferredColour", "/CoreShaders/");
-			m_DefaultMaterial = lmnew Material();
+			m_DefaultMaterial = new Material();
 
-			MaterialProperties properties;
+			Graphics::MaterialProperties properties;
 			properties.albedoColour = Maths::Vector4(1.0f);
 			properties.roughnessColour = Maths::Vector4(0.5f);
 			properties.metallicColour = Maths::Vector4(0.5f);
@@ -111,7 +104,7 @@ namespace Lumos
 			// Vertex shader System uniforms
 			//
 			m_VSSystemUniformBufferSize = sizeof(Maths::Matrix4);
-			m_VSSystemUniformBuffer = lmnew u8[m_VSSystemUniformBufferSize];
+			m_VSSystemUniformBuffer = new u8[m_VSSystemUniformBufferSize];
 			memset(m_VSSystemUniformBuffer, 0, m_VSSystemUniformBufferSize);
 			m_VSSystemUniformBufferOffsets.resize(VSSystemUniformIndex_Size);
 
@@ -147,9 +140,9 @@ namespace Lumos
 
 			CreatePipeline();
 			CreateBuffer();
-			CreateFBO();
+			CreateFramebuffer();
 
-			m_DefaultMaterial->CreateDescriptorSet(m_Pipeline, 1);
+			m_DefaultMaterial->CreateDescriptorSet(m_Pipeline.get(), 1);
 
 			m_ClearColour = Maths::Vector4(0.1f, 0.1f, 0.1f, 1.0f);
 		}
@@ -161,49 +154,51 @@ namespace Lumos
 			Begin();
 
 			auto& registry = scene->GetRegistry();
-			auto group = registry.group<MeshComponent>(entt::get<Maths::Transform>);
+			auto group = registry.group<Model>(entt::get<Maths::Transform>);
 
 			for(auto entity : group)
 			{
-				const auto& [mesh, trans] = group.get<MeshComponent, Maths::Transform>(entity);
+				const auto& [model, trans] = group.get<Model, Maths::Transform>(entity);
 
-				if(mesh.GetMesh() && mesh.GetMesh()->GetActive())
-				{
-					auto& worldTransform = trans.GetWorldMatrix();
+                const auto& meshes = model.GetMeshes();
+                
+                for(auto mesh : meshes)
+                {
+                    if(mesh->GetActive())
+                    {
+                        auto& worldTransform = trans.GetWorldMatrix();
 
-					auto bb = mesh.GetMesh()->GetBoundingBox();
-					auto bbCopy = bb->Transformed(worldTransform);
-					auto inside = m_Frustum.IsInsideFast(bbCopy);
+                        auto bb = mesh->GetBoundingBox();
+                        auto bbCopy = bb->Transformed(worldTransform);
+                        auto inside = m_Frustum.IsInsideFast(bbCopy);
 
-					if(inside == Maths::Intersection::OUTSIDE)
-						continue;
+                        if(inside == Maths::Intersection::OUTSIDE)
+                            continue;
 
-					auto meshPtr = mesh.GetMesh();
-					auto materialComponent = registry.try_get<MaterialComponent>(entity);
-					Material* material = nullptr;
-					if(materialComponent && materialComponent->GetActive() && materialComponent->GetMaterial())
-					{
-						material = materialComponent->GetMaterial().get();
+                        auto meshPtr = mesh;
+                        auto material = meshPtr->GetMaterial();
+                        if(material)
+                        {
+                            if(material->GetDescriptorSet() == nullptr || material->GetPipeline() != m_Pipeline.get() || material->GetTexturesUpdated())
+                            {
+                                material->CreateDescriptorSet(m_Pipeline.get(), 1);
+                                material->SetTexturesUpdated(false);
+                            }
+                        }
 
-						if(material->GetDescriptorSet() == nullptr || material->GetPipeline() != m_Pipeline || materialComponent->GetTexturesUpdated())
-						{
-							material->CreateDescriptorSet(m_Pipeline, 1);
-							materialComponent->SetTexturesUpdated(false);
-						}
-					}
+                        auto textureMatrixTransform = registry.try_get<TextureMatrixComponent>(entity);
+                        Maths::Matrix4 textureMatrix;
+                        if(textureMatrixTransform)
+                            textureMatrix = textureMatrixTransform->GetMatrix();
+                        else
+                            textureMatrix = Maths::Matrix4();
 
-					auto textureMatrixTransform = registry.try_get<TextureMatrixComponent>(entity);
-					Maths::Matrix4 textureMatrix;
-					if(textureMatrixTransform)
-						textureMatrix = textureMatrixTransform->GetMatrix();
-					else
-						textureMatrix = Maths::Matrix4();
-
-					SubmitMesh(meshPtr, material, worldTransform, textureMatrix);
-				}
+                        SubmitMesh(meshPtr.get(), material.get(), worldTransform, textureMatrix);
+                    }
+                }
 			}
 
-			SetSystemUniforms(m_Shader);
+			SetSystemUniforms(m_Shader.get());
 
 			Present();
 
@@ -223,7 +218,7 @@ namespace Lumos
 			m_DeferredCommandBuffers->BeginRecording();
 			m_DeferredCommandBuffers->UpdateViewport(m_ScreenBufferWidth, m_ScreenBufferHeight);
 
-			m_RenderPass->BeginRenderpass(m_DeferredCommandBuffers, Maths::Vector4(0.0f), m_FBO, Graphics::INLINE, m_ScreenBufferWidth, m_ScreenBufferHeight);
+			m_RenderPass->BeginRenderpass(m_DeferredCommandBuffers, Maths::Vector4(0.0f), m_Framebuffers.front().get(), Graphics::INLINE, m_ScreenBufferWidth, m_ScreenBufferHeight);
 		}
 
 		void DeferredOffScreenRenderer::BeginScene(Scene* scene, Camera* overrideCamera, Maths::Transform* overrideCameraTransform)
@@ -284,7 +279,7 @@ namespace Lumos
 
 		void DeferredOffScreenRenderer::Present()
 		{
-			m_Pipeline->SetActive(m_DeferredCommandBuffers);
+			m_Pipeline->Bind(m_DeferredCommandBuffers);
 
 			for(u32 i = 0; i < static_cast<u32>(m_CommandQueue.size()); i++)
 			{
@@ -298,7 +293,7 @@ namespace Lumos
 				mesh->GetVertexArray()->Bind(m_DeferredCommandBuffers);
 				mesh->GetIndexBuffer()->Bind(m_DeferredCommandBuffers);
 
-				Renderer::BindDescriptorSets(m_Pipeline, m_DeferredCommandBuffers, dynamicOffset, descriptorSets);
+				Renderer::BindDescriptorSets(m_Pipeline.get(), m_DeferredCommandBuffers, dynamicOffset, descriptorSets);
 				Renderer::DrawIndexed(m_DeferredCommandBuffers, DrawType::TRIANGLE, mesh->GetIndexBuffer()->GetCount());
 
 				mesh->GetVertexArray()->Unbind();
@@ -355,8 +350,8 @@ namespace Lumos
 
 			Graphics::PipelineInfo pipelineCI{};
 			pipelineCI.pipelineName = "OffScreenRenderer";
-			pipelineCI.shader = m_Shader;
-			pipelineCI.renderpass = m_RenderPass;
+			pipelineCI.shader = m_Shader.get();
+			pipelineCI.renderpass = m_RenderPass.get();
 			pipelineCI.numVertexLayout = static_cast<u32>(attributeDescriptions.size());
 			pipelineCI.descriptorLayouts = descriptorLayouts;
 			pipelineCI.vertexLayout = attributeDescriptions.data();
@@ -420,7 +415,7 @@ namespace Lumos
 			m_Pipeline->GetDescriptorSet()->Update(bufferInfos);
 		}
 
-		void DeferredOffScreenRenderer::CreateFBO()
+		void DeferredOffScreenRenderer::CreateFramebuffer()
 		{
 			const u32 attachmentCount = 5;
 			TextureType attachmentTypes[attachmentCount];
@@ -434,7 +429,7 @@ namespace Lumos
 			bufferInfo.width = m_ScreenBufferWidth;
 			bufferInfo.height = m_ScreenBufferHeight;
 			bufferInfo.attachmentCount = attachmentCount;
-			bufferInfo.renderPass = m_RenderPass;
+			bufferInfo.renderPass = m_RenderPass.get();
 			bufferInfo.attachmentTypes = attachmentTypes;
 
 			Texture* attachments[attachmentCount];
@@ -445,17 +440,17 @@ namespace Lumos
 			attachments[4] = Application::Get().GetRenderManager()->GetGBuffer()->GetDepthTexture();
 			bufferInfo.attachments = attachments;
 
-			m_FBO = Framebuffer::Create(bufferInfo);
+			m_Framebuffers.push_back(Ref<Framebuffer>(Framebuffer::Create(bufferInfo)));
 		}
 
 		void DeferredOffScreenRenderer::OnResize(u32 width, u32 height)
 		{
 			LUMOS_PROFILE_FUNC;
-			delete m_FBO;
+			m_Framebuffers.clear();
 
 			DeferredOffScreenRenderer::SetScreenBufferSize(width, height);
 
-			CreateFBO();
+			CreateFramebuffer();
 		}
 
 		void DeferredOffScreenRenderer::OnImGui()

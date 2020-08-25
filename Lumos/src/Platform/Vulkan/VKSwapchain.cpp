@@ -85,7 +85,7 @@ namespace Lumos
 			uint32_t swapChainImageCount;
             VK_CHECK_RESULT(vkGetSwapchainImagesKHR(VKDevice::Get().GetDevice(), m_SwapChain, &swapChainImageCount, VK_NULL_HANDLE));
 
-            VkImage * pSwapChainImages = lmnew VkImage[swapChainImageCount];
+            VkImage * pSwapChainImages = new VkImage[swapChainImageCount];
             VK_CHECK_RESULT(vkGetSwapchainImagesKHR(VKDevice::Get().GetDevice(), m_SwapChain, &swapChainImageCount, pSwapChainImages));
 
 			for (uint32_t i = 0; i < swapChainImageCount; i++)
@@ -108,7 +108,7 @@ namespace Lumos
 
 				VkImageView imageView;
 				VK_CHECK_RESULT(vkCreateImageView(VKDevice::Get().GetDevice(), &viewCI, VK_NULL_HANDLE, &imageView));
-				VKTexture2D* swapChainBuffer = lmnew VKTexture2D(pSwapChainImages[i], imageView);
+				VKTexture2D* swapChainBuffer = new VKTexture2D(pSwapChainImages[i], imageView);
 
 				m_SwapChainBuffers.push_back(swapChainBuffer);
 			}
@@ -145,7 +145,7 @@ namespace Lumos
         
 		Swapchain* VKSwapchain::CreateFuncVulkan(u32 width, u32 height)
         {
-            return lmnew VKSwapchain(width, height);
+            return new VKSwapchain(width, height);
         }
 	}
 }

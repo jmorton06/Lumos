@@ -10,7 +10,7 @@ namespace Lumos
 	SoundNode* SoundNode::Create()
 	{
 #ifdef LUMOS_OPENAL
-		return lmnew ALSoundNode();
+		return new ALSoundNode();
 #else
 		return nullptr;
 #endif

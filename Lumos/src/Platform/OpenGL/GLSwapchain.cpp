@@ -49,7 +49,7 @@ namespace Lumos
 
 		Swapchain* GLSwapchain::CreateFuncGL(u32 width, u32 height)
 		{
-			return lmnew GLSwapchain(width, height);
+			return new GLSwapchain(width, height);
 		}
 	}
 }
