@@ -5,7 +5,9 @@
 #include "iOSOS.h"
 #include "iOSWindow.h"
 
+#if 0
 #include <MoltenVK/vk_mvk_moltenvk.h>
+#endif
 
 namespace Lumos
 {

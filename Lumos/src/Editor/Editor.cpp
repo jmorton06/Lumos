@@ -75,7 +75,7 @@ namespace Lumos
 
 	void Editor::OnInit()
 	{
-        m_TempSceneSaveFilePath = ROOT_DIR"/LumosCache/";
+        m_TempSceneSaveFilePath = ROOT_DIR"/bin/";
 #ifndef LUMOS_PLATFORM_IOS
 		const char* ini[] = {ROOT_DIR "/Editor.ini", ROOT_DIR "/Editor/Editor.ini"};
 		bool fileFound = false;
