@@ -1,4 +1,4 @@
-#include "lmpch.h"
+#include "Precompiled.h"
 #include "LineRenderer.h"
 #include "Core/OS/Window.h"
 #include "Graphics/API/Shader.h"
@@ -67,14 +67,14 @@ namespace Lumos
 
 	void LineRenderer::Init()
 	{
-		LUMOS_PROFILE_FUNC;
+		LUMOS_PROFILE_FUNCTION();
 
-		m_Shader = Shader::CreateFromFile("Batch2DLine", "/CoreShaders/");
+		m_Shader = Ref<Graphics::Shader>(Shader::CreateFromFile("Batch2DLine", "/CoreShaders/"));
 
 		m_VSSystemUniformBufferSize = sizeof(Maths::Matrix4);
 		m_VSSystemUniformBuffer = new u8[m_VSSystemUniformBufferSize];
 
-		m_RenderPass = Graphics::RenderPass::Create();
+		m_RenderPass = Ref<Graphics::RenderPass>(Graphics::RenderPass::Create());
 		m_UniformBuffer = Graphics::UniformBuffer::Create();
 
 		AttachmentInfo textureTypes[2] =
@@ -94,7 +94,7 @@ namespace Lumos
 
 		for(auto& commandBuffer : m_CommandBuffers)
 		{
-			commandBuffer = Graphics::CommandBuffer::Create();
+			commandBuffer = Ref<Graphics::CommandBuffer>(Graphics::CommandBuffer::Create());
 			commandBuffer->Init(true);
 		}
 
@@ -286,7 +286,7 @@ namespace Lumos
 
 	void LineRenderer::RenderInternal(Scene* scene, Camera* overrideCamera, Maths::Transform* overrideCameraTransform)
 	{
-		LUMOS_PROFILE_FUNC;
+		LUMOS_PROFILE_FUNCTION();
 
 		BeginScene(scene, overrideCamera, overrideCameraTransform);
 
@@ -382,7 +382,7 @@ namespace Lumos
 		pipelineCI.drawType = DrawType::LINES;
 		pipelineCI.lineWidth = 20.0f;
 
-		m_Pipeline = Graphics::Pipeline::Create(pipelineCI);
+		m_Pipeline = Ref<Graphics::Pipeline>(Graphics::Pipeline::Create(pipelineCI));
 	}
 
 	void LineRenderer::CreateFramebuffers()

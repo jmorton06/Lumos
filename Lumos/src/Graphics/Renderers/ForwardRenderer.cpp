@@ -1,4 +1,4 @@
-#include "lmpch.h"
+#include "Precompiled.h"
 #include "ForwardRenderer.h"
 #include "Graphics/API/Shader.h"
 #include "Graphics/API/Framebuffer.h"
@@ -120,7 +120,7 @@ namespace Lumos
 			// Per Scene System Uniforms
 			m_PSSystemUniformBufferOffsets[PSSystemUniformIndex_Lights] = 0;
 
-			m_RenderPass = Graphics::RenderPass::Create();
+			m_RenderPass = Ref<Graphics::RenderPass>(Graphics::RenderPass::Create());
 			m_UniformBuffer = Graphics::UniformBuffer::Create();
 			m_ModelUniformBuffer = Graphics::UniformBuffer::Create();
 
@@ -400,7 +400,7 @@ namespace Lumos
 
 		void ForwardRenderer::CreateGraphicsPipeline()
 		{
-			m_Shader = Shader::CreateFromFile("Simple", "/CoreShaders/");
+			m_Shader = Ref<Graphics::Shader>(Shader::CreateFromFile("Simple", "/CoreShaders/"));
 
 			std::vector<Graphics::DescriptorPoolInfo> poolInfo =
 				{
@@ -451,7 +451,7 @@ namespace Lumos
 			pipelineCI.depthBiasEnabled = false;
 			pipelineCI.maxObjects = MAX_OBJECTS;
 
-			m_Pipeline = Graphics::Pipeline::Create(pipelineCI);
+			m_Pipeline = Ref<Graphics::Pipeline>(Graphics::Pipeline::Create(pipelineCI));
 		}
 
 		void ForwardRenderer::SetRenderTarget(Texture* texture, bool rebuildFramebuffer)

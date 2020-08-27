@@ -1,4 +1,4 @@
-#include "lmpch.h"
+#include "Precompiled.h"
 #include "PyramidCollisionShape.h"
 #include "RigidBody3D.h"
 

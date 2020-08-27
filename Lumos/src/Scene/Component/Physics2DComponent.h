@@ -1,5 +1,5 @@
 #pragma once
-#include "lmpch.h"
+
 #include "Physics/B2PhysicsEngine/RigidBody2D.h"
 
 #include <cereal/cereal.hpp>

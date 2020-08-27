@@ -1,4 +1,4 @@
-#include "lmpch.h"
+#include "Precompiled.h"
 #include "RandomNumberGenerator.h"
 
 #define SUPPORT_RANDOM_DEVICE LUMOS_PLATFORM_WINDOWS

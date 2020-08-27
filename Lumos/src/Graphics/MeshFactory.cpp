@@ -1,4 +1,4 @@
-#include "lmpch.h"
+#include "Precompiled.h"
 #include "MeshFactory.h"
 #include "Mesh.h"
 #include "Material.h"

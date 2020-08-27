@@ -1,4 +1,4 @@
-#include "lmpch.h"
+#include "Precompiled.h"
 #include "ShadowRenderer.h"
 
 #include "Graphics/API/Texture.h"
@@ -46,7 +46,7 @@ namespace Lumos
 			, m_UniformBuffer(nullptr)
 			, m_ModelUniformBuffer(nullptr)
 		{
-			m_Shader = Shader::CreateFromFile("Shadow", "/CoreShaders/");
+			m_Shader = Ref<Graphics::Shader>(Shader::CreateFromFile("Shadow", "/CoreShaders/"));
 			if(texture == nullptr)
 			{
 				m_ShadowTex = TextureDepthArray::Create(m_ShadowMapSize, m_ShadowMapSize, m_ShadowMapNum);
@@ -81,7 +81,7 @@ namespace Lumos
 
 		void ShadowRenderer::Init()
 		{
-			LUMOS_PROFILE_FUNC;
+			LUMOS_PROFILE_FUNCTION();
 			m_VSSystemUniformBufferSize = sizeof(Maths::Matrix4) * SHADOWMAP_MAX;
 			m_VSSystemUniformBuffer = new u8[m_VSSystemUniformBufferSize];
 			memset(m_VSSystemUniformBuffer, 0, m_VSSystemUniformBufferSize);
@@ -104,7 +104,7 @@ namespace Lumos
 			// Per Scene System Uniforms
 			m_VSSystemUniformBufferOffsets[VSSystemUniformIndex_ProjectionViewMatrix] = 0;
 
-			m_RenderPass = Graphics::RenderPass::Create();
+			m_RenderPass = Ref<Graphics::RenderPass>(Graphics::RenderPass::Create());
 			AttachmentInfo textureTypes[1] =
 				{
 					{TextureType::DEPTHARRAY, TextureFormat::DEPTH}};
@@ -130,6 +130,7 @@ namespace Lumos
 
 		void ShadowRenderer::Begin()
 		{
+			LUMOS_PROFILE_FUNCTION();
 			m_CommandQueue.clear();
 			m_CommandBuffer->BeginRecording();
 			m_CommandBuffer->UpdateViewport(m_ShadowMapSize, m_ShadowMapSize);
@@ -137,6 +138,7 @@ namespace Lumos
 
 		void ShadowRenderer::BeginScene(Scene* scene, Camera* overrideCamera, Maths::Transform* overrideCameraTransform)
 		{
+			LUMOS_PROFILE_FUNCTION();
 			UpdateCascades(scene, overrideCamera, overrideCameraTransform);
 		}
 
@@ -146,13 +148,14 @@ namespace Lumos
 
 		void ShadowRenderer::End()
 		{
+			LUMOS_PROFILE_FUNCTION();
 			m_CommandBuffer->EndRecording();
 			m_CommandBuffer->Execute(true);
 		}
 
 		void ShadowRenderer::Present()
 		{
-			LUMOS_PROFILE_FUNC;
+			LUMOS_PROFILE_FUNCTION();
 			int index = 0;
 
 			m_RenderPass->BeginRenderpass(m_CommandBuffer, Maths::Vector4(0.0f), m_ShadowFramebuffer[m_Layer], Graphics::INLINE, m_ShadowMapSize, m_ShadowMapSize);
@@ -184,6 +187,7 @@ namespace Lumos
 
 		void ShadowRenderer::SetShadowMapNum(u32 num)
 		{
+			LUMOS_PROFILE_FUNCTION();
 			if(m_ShadowMapNum != num && num <= SHADOWMAP_MAX)
 			{
 				m_ShadowMapNum = num;
@@ -193,6 +197,7 @@ namespace Lumos
 
 		void ShadowRenderer::SetShadowMapSize(u32 size)
 		{
+			LUMOS_PROFILE_FUNCTION();
 			if(!m_ShadowMapsInvalidated)
 				m_ShadowMapsInvalidated = (size != m_ShadowMapSize);
 
@@ -201,7 +206,7 @@ namespace Lumos
 
 		void ShadowRenderer::RenderScene(Scene* scene)
 		{
-			LUMOS_PROFILE_FUNC;
+			LUMOS_PROFILE_FUNCTION();
 
 			memcpy(m_VSSystemUniformBuffer + m_VSSystemUniformBufferOffsets[VSSystemUniformIndex_ProjectionViewMatrix], m_ShadowProjView, sizeof(Maths::Matrix4) * SHADOWMAP_MAX);
 
@@ -213,6 +218,7 @@ namespace Lumos
 
 			for(u32 i = 0; i < m_ShadowMapNum; ++i)
 			{
+				LUMOS_PROFILE_SCOPE("ShadowRenderer::RenderScene Per Shadow Map");
 				m_Layer = i;
 
 				Maths::Frustum f;
@@ -258,7 +264,7 @@ namespace Lumos
 
 		void ShadowRenderer::UpdateCascades(Scene* scene, Camera* overrideCamera, Maths::Transform* overrideCameraTransform)
 		{
-			LUMOS_PROFILE_FUNC;
+			LUMOS_PROFILE_FUNCTION();
 
 			auto& registry = scene->GetRegistry();
 			auto view = registry.view<Graphics::Light>();
@@ -394,6 +400,7 @@ namespace Lumos
 
 		void ShadowRenderer::CreateFramebuffers()
 		{
+			LUMOS_PROFILE_FUNCTION();
 			if(m_ShadowMapsInvalidated && m_ShadowMapNum > 0)
 			{
 				m_ShadowMapsInvalidated = false;
@@ -424,6 +431,7 @@ namespace Lumos
 
 		void ShadowRenderer::CreateGraphicsPipeline(Graphics::RenderPass* renderPass)
 		{
+			LUMOS_PROFILE_FUNCTION();
 			std::vector<Graphics::DescriptorPoolInfo> poolInfo =
 				{
 					{Graphics::DescriptorType::UNIFORM_BUFFER, MAX_OBJECTS},
@@ -463,11 +471,12 @@ namespace Lumos
 			pipelineCI.depthBiasEnabled = true;
 			pipelineCI.maxObjects = MAX_OBJECTS;
 
-			m_Pipeline = Graphics::Pipeline::Create(pipelineCI);
+			m_Pipeline = Ref<Graphics::Pipeline>(Graphics::Pipeline::Create(pipelineCI));
 		}
 
 		void ShadowRenderer::CreateUniformBuffer()
 		{
+			LUMOS_PROFILE_FUNCTION();
 			if(m_UniformBuffer == nullptr)
 			{
 				m_UniformBuffer = Graphics::UniformBuffer::Create();
@@ -514,6 +523,7 @@ namespace Lumos
 
 		void ShadowRenderer::SetSystemUniforms(Shader* shader)
 		{
+			LUMOS_PROFILE_FUNCTION();
 			m_UniformBuffer->SetData(sizeof(UniformBufferObject), *&m_VSSystemUniformBuffer);
 
 			int index = 0;
@@ -534,6 +544,7 @@ namespace Lumos
 
 		void ShadowRenderer::SubmitMesh(Mesh* mesh, Material* material, const Maths::Matrix4& transform, const Maths::Matrix4& textureMatrix)
 		{
+			LUMOS_PROFILE_FUNCTION();
 			RenderCommand command;
 			command.mesh = mesh;
 			command.transform = transform;
@@ -543,6 +554,7 @@ namespace Lumos
 
 		void ShadowRenderer::OnImGui()
 		{
+			LUMOS_PROFILE_FUNCTION();
 			ImGui::TextUnformatted("Shadow Renderer");
 			if(ImGui::TreeNode("Texture"))
 			{

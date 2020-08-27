@@ -1,9 +1,10 @@
-#include "lmpch.h"
+#include "Precompiled.h"
 #include "VKRenderpass.h"
 #include "VKCommandBuffer.h"
 #include "VKFramebuffer.h"
 #include "VKRenderer.h"
 #include "VKInitialisers.h"
+#include "VKTools.h"
 
 namespace Lumos
 {

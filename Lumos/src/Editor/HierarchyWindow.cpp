@@ -1,4 +1,4 @@
-#include "lmpch.h"
+#include "Precompiled.h"
 #include "HierarchyWindow.h"
 #include "Editor.h"
 #include "Core/Application.h"
@@ -14,9 +14,9 @@
 #include "Graphics/Environment.h"
 #include "Graphics/Sprite.h"
 #include "Scene/Component/Components.h"
+#include "ImGui/IconsMaterialDesignIcons.h"
 
 #include <imgui/imgui_internal.h>
-#include <IconFontCppHeaders/IconsMaterialDesignIcons.h>
 
 namespace Lumos
 {
@@ -36,7 +36,7 @@ namespace Lumos
 			return;
 
 		const auto nameComponent = registry.try_get<NameComponent>(node);
-		std::string name = nameComponent ? nameComponent->name : StringFormat::ToString(entt::to_integral(node));
+		std::string name = nameComponent ? nameComponent->name : StringUtilities::ToString(entt::to_integral(node));
 
 		if(m_HierarchyFilter.IsActive())
 		{

@@ -1,7 +1,6 @@
-#include "lmpch.h"
+#include "Precompiled.h"
 #include "Editor.h"
 #include "SceneWindow.h"
-#include "ProfilerWindow.h"
 #include "ConsoleWindow.h"
 #include "HierarchyWindow.h"
 #include "InspectorWindow.h"
@@ -10,6 +9,7 @@
 #include "TextEditWindow.h"
 #include "AssetWindow.h"
 #include "EditorCamera.h"
+#include "Utilities/Timer.h"
 
 #include "Core/Application.h"
 #include "Core/OS/Input.h"
@@ -45,12 +45,12 @@
 #include "Scene/EntityFactory.h"
 
 #include "ImGui/ImGuiHelpers.h"
+#include "ImGui/IconsMaterialDesignIcons.h"
 
 #include <imgui/imgui_internal.h>
 #include <imgui/plugins/ImGuizmo.h>
 #include <imgui/plugins/ImGuiAl/button/imguial_button.h>
 #include <imgui/plugins/ImTextEditor.h>
-#include <IconFontCppHeaders/IconsMaterialDesignIcons.h>
 
 #include <imgui/plugins/ImFileBrowser.h>
 
@@ -132,8 +132,6 @@ namespace Lumos
 
 		m_Windows.emplace_back(CreateRef<ConsoleWindow>());
 		m_Windows.emplace_back(CreateRef<SceneWindow>());
-		m_Windows.emplace_back(CreateRef<ProfilerWindow>());
-		m_Windows.back()->SetActive(false);
 		m_Windows.emplace_back(CreateRef<InspectorWindow>());
         m_Windows.emplace_back(CreateRef<ApplicationInfoWindow>());
 		m_Windows.emplace_back(CreateRef<HierarchyWindow>());
@@ -162,7 +160,7 @@ namespace Lumos
 
 	bool IsTextFile(const std::string& filePath)
 	{
-		std::string extension = StringFormat::GetFilePathExtension(filePath);
+		std::string extension = StringUtilities::GetFilePathExtension(filePath);
 
 		if(extension == "txt" || extension == "glsl" || extension == "shader" || extension == "vert"
 			|| extension == "frag" || extension == "lua" || extension == "Lua")
@@ -173,7 +171,7 @@ namespace Lumos
 
 	bool IsAudioFile(const std::string& filePath)
 	{
-		std::string extension = StringFormat::GetFilePathExtension(filePath);
+		std::string extension = StringUtilities::GetFilePathExtension(filePath);
 
 		if(extension == "ogg" || extension == "wav")
 			return true;
@@ -183,7 +181,7 @@ namespace Lumos
 
     bool IsSceneFile(const std::string& filePath)
     {
-        std::string extension = StringFormat::GetFilePathExtension(filePath);
+        std::string extension = StringUtilities::GetFilePathExtension(filePath);
 
         if(extension == "lsc")
             return true;
@@ -193,7 +191,7 @@ namespace Lumos
 
 	bool IsModelFile(const std::string& filePath)
 	{
-		std::string extension = StringFormat::GetFilePathExtension(filePath);
+		std::string extension = StringUtilities::GetFilePathExtension(filePath);
 
 		if(extension == "obj" || extension == "gltf" || extension == "glb" || extension == "fbx" || extension == "FBX")
 			return true;
@@ -203,7 +201,7 @@ namespace Lumos
 
 	void Editor::OnImGui()
 	{
-		LUMOS_PROFILE_FUNC;
+		LUMOS_PROFILE_FUNCTION();
 		DrawMenuBar();
 
 		BeginDockSpace(false);
@@ -659,7 +657,7 @@ namespace Lumos
 
 						if(pos != std::string::npos)
 						{
-							configFile.replace(pos + 10, 1, StringFormat::ToString(int(renderAPI)));
+							configFile.replace(pos + 10, 1, StringUtilities::ToString(int(renderAPI)));
 
 							FileSystem::WriteTextFile(physicalPath, configFile);
 						}
@@ -1476,10 +1474,10 @@ namespace Lumos
 		}
 		else if(IsAudioFile(filePath))
 		{
-			//AssetsManager::Sounds()->LoadAsset(StringFormat::GetFileName(filePath), filePath);
+			//AssetsManager::Sounds()->LoadAsset(StringUtilities::GetFileName(filePath), filePath);
 
 			auto soundNode = Ref<SoundNode>(SoundNode::Create());
-			//soundNode->SetSound(AssetsManager::Sounds()->Get(StringFormat::GetFileName(filePath)).get());
+			//soundNode->SetSound(AssetsManager::Sounds()->Get(StringUtilities::GetFileName(filePath)).get());
 			soundNode->SetVolume(1.0f);
 			soundNode->SetPosition(Maths::Vector3(0.1f, 10.0f, 10.0f));
 			soundNode->SetLooping(true);
@@ -1496,7 +1494,7 @@ namespace Lumos
         else if(IsSceneFile(filePath))
         {
             auto scene = new Scene("Loaded Scene");
-            auto path = StringFormat::RemoveFilePathExtension(filePath);
+            auto path = StringUtilities::RemoveFilePathExtension(filePath);
             scene->Deserialise(path);
             m_Application->GetSceneManager()->EnqueueScene(scene);
             m_Application->GetSceneManager()->SwitchScene((int)(m_Application->GetSceneManager()->GetScenes().size()) - 1);

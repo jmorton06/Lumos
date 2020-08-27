@@ -1,6 +1,6 @@
 #pragma once
 
-#include "lmpch.h"
+#include "Core/Types.h"
 
 namespace Lumos
 {

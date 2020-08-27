@@ -13,7 +13,7 @@ IncludeDir["ImGui"] = "external/imgui/"
 IncludeDir["freetype"] = "external/freetype/include"
 IncludeDir["SpirvCross"] = "external/SPIRV-Cross"
 IncludeDir["cereal"] = "external/cereal/include"
-
+IncludeDir["spdlog"] = "external/spdlog/include"
 
 project "Lumos"
 	kind "StaticLib"
@@ -62,7 +62,7 @@ project "Lumos"
 	links
 	{
 		"lua",
-		"Box2D",
+		"box2d",
 		"imgui",
 		"freetype",
 		"SpirvCross"
@@ -76,7 +76,9 @@ project "Lumos"
 		"FREEIMAGE_LIB",
 		"LUMOS_DYNAMIC",
 		"LUMOS_ROOT_DIR="  .. cwd,
-		"IMGUI_USER_CONFIG=\"src/ImGui/ImConfig.h\"",
+	"IMGUI_USER_CONFIG=\"src/ImGui/ImConfig.h\"",
+	"LUMOS_PROFILE",
+	"TRACY_ENABLE",
 	}
 
 	filter "system:windows"
@@ -84,8 +86,8 @@ project "Lumos"
 		staticruntime "on"
 		systemversion "latest"
 
-		pchheader "lmpch.h"
-		pchsource "src/lmpch.cpp"
+		pchheader "Precompiled.h"
+		pchsource "src/Precompiled.cpp"
 
 		defines
 		{
@@ -209,15 +211,16 @@ project "Lumos"
 
 		SetRecommendedXcodeSettings()
 
-		filter { "action:xcode4" }
-			pchheader "../Lumos/src/lmpch.h"
-			pchsource "../Lumos/src/lmpch.cpp"
+pchheader "../Lumos/src/Precompiled.h"
+pchsource "../Lumos/src/Precompiled.cpp"
 
 		filter 'files:external/**.cpp'
 			flags  { 'NoPCH' }
 		filter 'files:external/**.c'
 			flags  { 'NoPCH' }
 		filter 'files:src/**.m'
+			flags  { 'NoPCH' }
+		filter 'files:src/**.mm'
 			flags  { 'NoPCH' }
 
 	filter "system:ios"
@@ -341,8 +344,8 @@ project "Lumos"
 
 		links { "X11", "pthread"}
 
-		pchheader "../Lumos/src/lmpch.h"
-		pchsource "../Lumos/src/lmpch.cpp"
+		pchheader "../Lumos/src/Precompiled.h"
+		pchsource "../Lumos/src/Precompiled.cpp"
 
 		filter 'files:external/**.cpp'
 			flags  { 'NoPCH' }

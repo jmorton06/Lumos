@@ -1,5 +1,5 @@
 #pragma once
-#include "lmpch.h"
+
 #include "Audio/SoundNode.h"
 
 namespace Lumos

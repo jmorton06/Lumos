@@ -15,21 +15,21 @@ class Game : public Application
 	{
         Application::Get().GetWindow()->SetWindowTitle("Sandbox");
 	}
-    
+
 	~Game()
 	{
 	}
-    
+
 	void Init() override
 	{
 		Application::Init();
-        
+
 		const std::string root = ROOT_DIR;
 		VFS::Get()->Mount("Meshes", root + "/Sandbox/res/meshes");
 		VFS::Get()->Mount("Textures", root + "/Sandbox/res/textures");
 		VFS::Get()->Mount("Sounds", root + "/Sandbox/res/sounds");
 		VFS::Get()->Mount("Scripts", root + "/Sandbox/res/scripts");
-        
+
 		auto scene = new Scene("2D");
 		scene->Deserialise(ROOT_DIR "/Sandbox/res/scenes/", false);
 		GetSceneManager()->EnqueueScene(scene);
@@ -49,6 +49,6 @@ Lumos::Application* Lumos::CreateApplication()
 	WindowProperties windowProperties = LuaManager::Get().LoadConfigFile(ROOT_DIR "/Sandbox/Settings.lua");
 	windowProperties.ShowConsole = true;
 #endif
-    
+
 	return new Game(windowProperties);
 }

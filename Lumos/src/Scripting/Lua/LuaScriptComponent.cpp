@@ -1,4 +1,4 @@
-#include "lmpch.h"
+#include "Precompiled.h"
 #include "LuaScriptComponent.h"
 #include "LuaManager.h"
 #include "Scene/Scene.h"

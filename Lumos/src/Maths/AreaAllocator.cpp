@@ -1,4 +1,4 @@
-#include "lmpch.h"
+#include "Precompiled.h"
 #include "Maths/AreaAllocator.h"
 
 namespace Lumos::Maths

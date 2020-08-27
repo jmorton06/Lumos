@@ -1,5 +1,4 @@
 #pragma once
-#include "lmpch.h"
 #include "Renderer.h"
 
 namespace Lumos
@@ -56,7 +55,7 @@ namespace Lumos
 		{
 		public:
 			static Pipeline* Create(const PipelineInfo& pipelineInfo);
-			virtual ~Pipeline(){};
+			virtual ~Pipeline() = default;
 
 			virtual void Bind(CommandBuffer* cmdBuffer) = 0;
 

@@ -1,4 +1,4 @@
-#include "lmpch.h"
+#include "Precompiled.h"
 #include "DebugRenderer.h"
 #include "Core/OS/Window.h"
 #include "Graphics/API/Shader.h"
@@ -324,7 +324,7 @@ namespace Lumos
 
 	void DebugRenderer::RenderInternal(Scene* scene, Camera* overrideCamera, Maths::Transform* overrideCameraTransform)
 	{
-		LUMOS_PROFILE_FUNC;
+		LUMOS_PROFILE_FUNCTION();
 		if(m_Renderer2D)
 		{
 			m_Renderer2D->BeginRenderPass();

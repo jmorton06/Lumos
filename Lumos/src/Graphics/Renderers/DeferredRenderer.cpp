@@ -1,4 +1,4 @@
-#include "lmpch.h"
+#include "Precompiled.h"
 #include "DeferredRenderer.h"
 #include "DeferredOffScreenRenderer.h"
 #include "ShadowRenderer.h"
@@ -72,10 +72,10 @@ namespace Lumos
 
 		void DeferredRenderer::Init()
 		{
-			LUMOS_PROFILE_FUNC;
+			LUMOS_PROFILE_FUNCTION();
 			m_OffScreenRenderer = new DeferredOffScreenRenderer(m_ScreenBufferWidth, m_ScreenBufferHeight);
 
-			m_Shader = Shader::CreateFromFile("DeferredLight", "/CoreShaders/");
+			m_Shader = Ref<Graphics::Shader>(Shader::CreateFromFile("DeferredLight", "/CoreShaders/"));
 
 			switch(Graphics::GraphicsContext::GetRenderAPI())
 			{
@@ -132,7 +132,7 @@ namespace Lumos
 			m_PSSystemUniformBufferOffsets[PSSystemUniformIndex_RenderMode] = m_PSSystemUniformBufferOffsets[PSSystemUniformIndex_ShadowCount] + sizeof(int);
 			m_PSSystemUniformBufferOffsets[PSSystemUniformIndex_cubemapMipLevels] = m_PSSystemUniformBufferOffsets[PSSystemUniformIndex_RenderMode] + sizeof(int);
 
-			m_RenderPass = Graphics::RenderPass::Create();
+			m_RenderPass = Ref<Graphics::RenderPass>(Graphics::RenderPass::Create());
 
 			AttachmentInfo textureTypes[2] =
 				{
@@ -148,7 +148,7 @@ namespace Lumos
 
 			for(auto& commandBuffer : m_CommandBuffers)
 			{
-				commandBuffer = Graphics::CommandBuffer::Create();
+				commandBuffer = Ref<Graphics::CommandBuffer>(Graphics::CommandBuffer::Create());
 				commandBuffer->Init(true);
 			}
 
@@ -172,7 +172,7 @@ namespace Lumos
 
 		void DeferredRenderer::RenderScene(Scene* scene)
 		{
-			LUMOS_PROFILE_FUNC;
+			LUMOS_PROFILE_FUNCTION();
 
 			m_OffScreenRenderer->RenderScene(scene);
 
@@ -192,11 +192,13 @@ namespace Lumos
 
 		void DeferredRenderer::PresentToScreen()
 		{
+			LUMOS_PROFILE_FUNCTION();
 			Renderer::Present((m_CommandBuffers[Renderer::GetSwapchain()->GetCurrentBufferId()].get()));
 		}
 
 		void DeferredRenderer::Begin(int commandBufferID)
 		{
+			LUMOS_PROFILE_FUNCTION();
 			m_CommandQueue.clear();
 			m_SystemUniforms.clear();
 
@@ -208,6 +210,7 @@ namespace Lumos
 
 		void DeferredRenderer::BeginScene(Scene* scene, Camera* overrideCamera, Maths::Transform* overrideCameraTransform)
 		{
+			LUMOS_PROFILE_FUNCTION();
 			auto& registry = scene->GetRegistry();
 
 			if(overrideCamera)
@@ -266,11 +269,13 @@ namespace Lumos
 
 		void DeferredRenderer::Submit(const RenderCommand& command)
 		{
+			LUMOS_PROFILE_FUNCTION();
 			m_CommandQueue.push_back(command);
 		}
 
 		void DeferredRenderer::SubmitMesh(Mesh* mesh, Material* material, const Maths::Matrix4& transform, const Maths::Matrix4& textureMatrix)
 		{
+			LUMOS_PROFILE_FUNCTION();
 			RenderCommand command;
 			command.mesh = mesh;
 			command.transform = transform;
@@ -281,7 +286,7 @@ namespace Lumos
 
 		void DeferredRenderer::SubmitLightSetup(Scene* scene)
 		{
-			LUMOS_PROFILE_FUNC;
+			LUMOS_PROFILE_FUNCTION();
 
 			auto& registry = scene->GetRegistry();
 
@@ -345,6 +350,7 @@ namespace Lumos
 
 		void DeferredRenderer::End()
 		{
+			LUMOS_PROFILE_FUNCTION();
 			m_RenderPass->EndRenderpass(m_CommandBuffers[m_CommandBufferIndex].get());
 			m_CommandBuffers[m_CommandBufferIndex]->EndRecording();
 
@@ -354,12 +360,13 @@ namespace Lumos
 
 		void DeferredRenderer::SetSystemUniforms(Shader* shader) const
 		{
+			LUMOS_PROFILE_FUNCTION();
 			m_LightUniformBuffer->SetData(m_PSSystemUniformBufferSize, *&m_PSSystemUniformBuffer);
 		}
 
 		void DeferredRenderer::Present()
 		{
-			LUMOS_PROFILE_FUNC;
+			LUMOS_PROFILE_FUNCTION();
 			Graphics::CommandBuffer* currentCMDBuffer = m_CommandBuffers[m_CommandBufferIndex].get();
 
 			m_Pipeline->Bind(currentCMDBuffer);
@@ -378,6 +385,7 @@ namespace Lumos
 
 		void DeferredRenderer::CreateDeferredPipeline()
 		{
+			LUMOS_PROFILE_FUNCTION();
 			std::vector<Graphics::DescriptorPoolInfo> poolInfo =
 				{
 					{Graphics::DescriptorType::IMAGE_SAMPLER, 1},
@@ -440,11 +448,12 @@ namespace Lumos
 			pipelineCI.depthBiasEnabled = false;
 			pipelineCI.maxObjects = 10;
 
-			m_Pipeline = Graphics::Pipeline::Create(pipelineCI);
+			m_Pipeline = Ref<Graphics::Pipeline>(Graphics::Pipeline::Create(pipelineCI));
 		}
 
 		void DeferredRenderer::SetRenderTarget(Texture* texture, bool rebuildFramebuffer)
 		{
+			LUMOS_PROFILE_FUNCTION();
 			m_RenderTexture = texture;
 
 			if(rebuildFramebuffer)
@@ -481,6 +490,7 @@ namespace Lumos
 
 		void DeferredRenderer::OnImGui()
 		{
+			LUMOS_PROFILE_FUNCTION();
 			m_OffScreenRenderer->OnImGui();
 
 			ImGui::TextUnformatted("Deferred Renderer");
@@ -584,7 +594,7 @@ namespace Lumos
 
 		void DeferredRenderer::OnResize(u32 width, u32 height)
 		{
-			LUMOS_PROFILE_FUNC;
+			LUMOS_PROFILE_FUNCTION();
 			m_Framebuffers.clear();
 
 			DeferredRenderer::SetScreenBufferSize(width, height);

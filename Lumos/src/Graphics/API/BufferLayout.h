@@ -1,7 +1,5 @@
 #pragma once
 
-#include "lmpch.h"
-
 #include "Maths/Maths.h"
 
 namespace Lumos

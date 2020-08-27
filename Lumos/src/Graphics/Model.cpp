@@ -1,4 +1,4 @@
-#include "lmpch.h"
+#include "Precompiled.h"
 #include "Model.h"
 #include "Mesh.h"
 
@@ -37,7 +37,7 @@ namespace Lumos::Graphics
 
 		std::string resolvedPath = physicalPath;
 
-		const std::string fileExtension = StringFormat::GetFilePathExtension(path);
+		const std::string fileExtension = StringUtilities::GetFilePathExtension(path);
 
 		if(fileExtension == "obj")
 			LoadOBJ(resolvedPath);

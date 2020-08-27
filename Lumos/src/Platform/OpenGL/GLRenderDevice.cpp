@@ -1,4 +1,4 @@
-#include "lmpch.h"
+#include "Precompiled.h"
 #include "GLRenderDevice.h"
 
 namespace Lumos::Graphics

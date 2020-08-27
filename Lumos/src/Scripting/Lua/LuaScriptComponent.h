@@ -1,5 +1,5 @@
 #pragma once
-#include "lmpch.h"
+
 #include "Core/Application.h"
 
 #include <sol/sol.hpp>

@@ -1,5 +1,5 @@
 #pragma once
-#include "lmpch.h"
+
 #include "MeshFactory.h"
 #include "Mesh.h"
 #include "Material.h"
@@ -57,7 +57,7 @@ namespace Lumos
             const std::string& GetFilePath() const { return m_FilePath; }
             PrimitiveType GetPrimitiveType() { return m_PrimitiveType; }
             void SetPrimitiveType(PrimitiveType type) { m_PrimitiveType = type; }
-                        
+
         private:
             PrimitiveType m_PrimitiveType;
             std::vector<Ref<Mesh>> m_Meshes;

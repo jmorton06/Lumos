@@ -26,7 +26,7 @@ namespace Lumos
 
     protected:
         Scene* m_Scene;
-        Graphics::Renderer2D* m_Renderer;
+        UniqueRef<Graphics::Renderer2D> m_Renderer;
 	private:
         bool OnwindowResizeEvent(WindowResizeEvent& e);
 	};

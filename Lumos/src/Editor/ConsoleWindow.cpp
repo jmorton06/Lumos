@@ -1,6 +1,6 @@
-#include "lmpch.h"
+#include "Precompiled.h"
 #include "ConsoleWindow.h"
-#include <IconFontCppHeaders/IconsMaterialDesignIcons.h>
+#include "ImGui/IconsMaterialDesignIcons.h"
 namespace Lumos
 {
 	ConsoleWindow::Message::Level ConsoleWindow::s_MessageBufferRenderFilter = ConsoleWindow::Message::Level::Trace;

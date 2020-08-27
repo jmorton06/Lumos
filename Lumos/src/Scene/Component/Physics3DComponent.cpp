@@ -1,4 +1,4 @@
-#include "lmpch.h"
+#include "Precompiled.h"
 #include "Physics3DComponent.h"
 #include "Core/Application.h"
 #include "Physics/LumosPhysicsEngine/LumosPhysicsEngine.h"
@@ -145,5 +145,37 @@ namespace Lumos
 		ImGui::Columns(1);
 		ImGui::Separator();
 		ImGui::PopStyleVar();
+	}
+	
+	
+	SpringConstraintComponent::SpringConstraintComponent(Entity entity, Entity otherEntity, const Maths::Vector3& pos1, const Maths::Vector3& pos2, float constant)
+	{
+		m_Constraint = CreateRef<SpringConstraint>( entity.GetComponent<Physics3DComponent>().GetRigidBody(), otherEntity.GetComponent<Physics3DComponent>().GetRigidBody(), pos1, pos2, 0.9f, 0.5f);
+	}
+	SpringConstraintComponent::SpringConstraintComponent(Entity entity, Entity otherEntity)
+	{
+		m_Constraint = CreateRef<SpringConstraint>( entity.GetComponent<Physics3DComponent>().GetRigidBody(), otherEntity.GetComponent<Physics3DComponent>().GetRigidBody(), 0.9f, 0.5f);
+	}
+	
+	
+	WeldConstraintComponent::WeldConstraintComponent(Entity entity, Entity otherEntity, const Maths::Vector3& pos1, const Maths::Vector3& pos2, float constant)
+	{
+		m_Constraint = CreateRef<WeldConstraint>( entity.GetComponent<Physics3DComponent>().GetRigidBody().get(), otherEntity.GetComponent<Physics3DComponent>().GetRigidBody().get());
+	}
+	
+	WeldConstraintComponent::WeldConstraintComponent(Entity entity, Entity otherEntity)
+	{
+		m_Constraint = CreateRef<WeldConstraint>( entity.GetComponent<Physics3DComponent>().GetRigidBody().get(), otherEntity.GetComponent<Physics3DComponent>().GetRigidBody().get());
+	}
+	
+	DistanceConstraintComponent::DistanceConstraintComponent(Entity entity, Entity otherEntity, const Maths::Vector3& pos1, const Maths::Vector3& pos2, float constant)
+	{
+		m_Constraint = CreateRef<DistanceConstraint>( entity.GetComponent<Physics3DComponent>().GetRigidBody().get(), otherEntity.GetComponent<Physics3DComponent>().GetRigidBody().get(), pos1, pos2);
+	}
+	
+	DistanceConstraintComponent::DistanceConstraintComponent(Entity entity, Entity otherEntity)
+	{
+		m_Constraint = CreateRef<DistanceConstraint>( entity.GetComponent<Physics3DComponent>().GetRigidBody().get(), otherEntity.GetComponent<Physics3DComponent>().GetRigidBody().get(),
+																		 entity.GetComponent<Physics3DComponent>().GetRigidBody()->GetPosition(), otherEntity.GetComponent<Physics3DComponent>().GetRigidBody()->GetPosition());
 	}
 }

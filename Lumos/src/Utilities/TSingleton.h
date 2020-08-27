@@ -1,5 +1,6 @@
 #pragma once
-#include "lmpch.h"
+#include "Core/Core.h"
+#include "Core/LMLog.h"
 #include <mutex>
 
 namespace Lumos

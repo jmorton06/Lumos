@@ -1,4 +1,4 @@
-#include "lmpch.h"
+#include "Precompiled.h"
 #include "GLDebug.h"
 
 #ifdef GL_DEBUG

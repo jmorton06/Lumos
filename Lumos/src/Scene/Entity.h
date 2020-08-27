@@ -130,7 +130,7 @@ namespace Lumos
 				while(child != entt::null && m_Scene->GetRegistry().valid(child))
 				{
 					children.emplace_back(child, m_Scene);
-					auto hierarchyComponent = m_Scene->GetRegistry().try_get<Hierarchy>(child);
+					hierarchyComponent = m_Scene->GetRegistry().try_get<Hierarchy>(child);
 					if(hierarchyComponent)
 						child = hierarchyComponent->next();
 				}

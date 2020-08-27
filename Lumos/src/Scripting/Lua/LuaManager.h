@@ -1,5 +1,5 @@
 #pragma once
-#include "lmpch.h"
+
 #include "Utilities/TSingleton.h"
 #include "Scene/Entity.h"
 

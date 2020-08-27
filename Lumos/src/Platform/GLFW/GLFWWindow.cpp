@@ -1,4 +1,4 @@
-#include "lmpch.h"
+#include "Precompiled.h"
 
 #if defined(LUMOS_PLATFORM_MACOS)
 #	define GLFW_EXPOSE_NATIVE_COCOA

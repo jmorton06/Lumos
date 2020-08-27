@@ -1,10 +1,10 @@
-#include "lmpch.h"
+#include "Precompiled.h"
 #include "OS.h"
 
 #if defined(LUMOS_PLATFORM_WINDOWS)
 #	include "Platform/Windows/WindowsOS.h"
 #elif defined(LUMOS_PLATFORM_MACOS)
-#	include "Platform/macOS/macOSOS.h"
+#	include "Platform/MacOS/MacOSOS.h"
 #elif defined(LUMOS_PLATFORM_IOS)
 #	include "Platform/iOS/iOSOS.h"
 #else
@@ -22,7 +22,7 @@ namespace Lumos
 #if defined(LUMOS_PLATFORM_WINDOWS)
 		s_Instance = new WindowsOS();
 #elif defined(LUMOS_PLATFORM_MACOS)
-		s_Instance = new macOSOS();
+		s_Instance = new MacOSOS();
 #elif defined(LUMOS_PLATFORM_IOS)
 		s_Instance = new iOSOS();
 #else

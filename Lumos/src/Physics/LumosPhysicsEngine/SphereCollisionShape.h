@@ -1,6 +1,6 @@
 #pragma once
 
-#include "lmpch.h"
+
 #include "CollisionShape.h"
 
 namespace Lumos

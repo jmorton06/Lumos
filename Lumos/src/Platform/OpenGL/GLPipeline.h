@@ -1,5 +1,5 @@
 #pragma once
-#include "lmpch.h"
+
 #include "Graphics/API/Pipeline.h"
 
 namespace Lumos

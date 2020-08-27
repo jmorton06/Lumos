@@ -1,6 +1,6 @@
 #pragma once
 
-#include "lmpch.h"
+
 #include "Physics/RigidBody.h"
 #include "CollisionShape.h"
 #include "Physics/LumosPhysicsEngine/SphereCollisionShape.h"

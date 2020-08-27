@@ -1,6 +1,4 @@
 #pragma once
-
-#include "lmpch.h"
 #include "Mesh.h"
 
 namespace Lumos

@@ -1,6 +1,5 @@
 #pragma once
-#include "lmpch.h"
-#include "Maths/Maths.h"
+#include "Maths/Vector4.h"
 
 namespace Lumos
 {
@@ -41,7 +40,7 @@ namespace Lumos
 
 			static Framebuffer* Create(const FramebufferInfo& framebufferInfo);
 
-			virtual ~Framebuffer(){};
+			virtual ~Framebuffer();
 
 			virtual void Bind(u32 width, u32 height) const = 0;
 			virtual void Bind() const = 0;

@@ -1,5 +1,5 @@
 #pragma once
-#include "lmpch.h"
+
 #include "Graphics/API/Shader.h"
 #include "GLDebug.h"
 #include "GLShaderUniform.h"

@@ -1,10 +1,26 @@
-#include "lmpch.h"
+#include "Precompiled.h"
 #include "Terrain.h"
 #include "Maths/BoundingBox.h"
-#include <simplex/simplexnoise.h>
+#include <stb/stb_perlin.h>
 
 namespace Lumos
 {
+	float Noise(int x, int y)
+	{
+		const int offsetx = 100;
+		const int offsety = -50;
+		const float layer1 = 25.0f;
+		const float layer2 = 180.0f;
+		
+		float xx = float(x + offsetx);
+		float yy = float(y + offsety);
+		return
+            (
+			 ((stb_perlin_noise3(xx / layer1, yy / layer1, 0, 0, 0, 0) + 1.0f) / 2.0f) +
+			 ((stb_perlin_noise3(xx / layer2, yy / layer2, 0, 0, 0, 0) + 1.0f) / 2.0f)
+			 ) / 2.0f;
+	}
+	
 	Terrain::Terrain(int width, int height, int lowside, int lowscale, float xRand, float yRand, float zRand, float texRandX, float texRandZ)
 	{
 		int xCoord = 0;
@@ -16,89 +32,14 @@ namespace Lumos
 		u32* indices = new u32[numIndices];
         m_BoundingBox = CreateRef<Maths::BoundingBox>();
 
-		float** lowMap = new float*[lowside + 1];
-
-		for (int x = 0; x < lowside + 1; ++x)
-		{
-			lowMap[x] = new float[lowside + 1];
-		}
-
-		float** lowMapExpand = new float*[width];
-
-		for (int x = 0; x < width; ++x)
-		{
-			lowMapExpand[x] = new float[height];
-		}
-
-
-		for (int x = 0; x < lowside + 1; ++x)
-		{
-			for (int z = 0; z < lowside + 1; ++z)
-			{
-				lowMap[x][z] = (octave_noise_2d(1.0f, 0.1f, 0.01f, static_cast<float>(x) + static_cast<float>(xCoord * lowside), static_cast<float>(z) + static_cast<float>(zCoord * lowside)) / 2.0f) + 0.5f;
-			}
-		}
-
-		for (int x = 0; x < width; ++x)
-		{
-			for (int z = 0; z < height; ++z)
-			{
-				lowMapExpand[x][z] = 0.1f;
-			}
-		}
-
-		for (int x = 0; x < (lowside); ++x)
-		{
-			for (int lx = 0; lx < (lowscale); ++lx)
-			{
-				int currXCoord = (x * lowscale) + lx;
-
-				for (int z = 0; z < (lowside); ++z)
-				{
-					for (int lz = 0; lz < lowscale; ++lz)
-					{
-						int currZCoord = (z * lowscale) + lz;
-
-						float topL = lowMap[x + 1][z + 1];
-						float topR = lowMap[x][z + 1];
-						float botL = lowMap[x + 1][z];
-						float botR = lowMap[x][z];
-
-						float xScaleWeight = (static_cast<float>(lx) / (lowscale));
-						float xScaleTemp1 =
-							(xScaleWeight * topL) +
-							((1.0f - xScaleWeight) * topR);
-						float xScaleTemp2 =
-							(xScaleWeight * botL) +
-							((1.0f - xScaleWeight) * botR);
-
-						float yScaleWeight = (static_cast<float>(lz) / (lowscale));
-						float temp =
-							yScaleWeight * xScaleTemp1 +
-							(1.0f - yScaleWeight) * xScaleTemp2;
-
-						lowMapExpand[currXCoord][currZCoord] = temp;
-					}
-				}
-			}
-		}
-
 		for (int x = 0; x < width; ++x)
 		{
 			for (int z = 0; z < height; ++z)
 			{
 				int offset = (x * width) + z;
 
-				float lowWeight = 0.4f;
-				//float lowWeight = 0.0f;
-				float normWeight = 1.0f - lowWeight;
-
-				float dataVal = (
-					(lowMapExpand[x][z] * lowWeight) +
-					(((octave_noise_2d(5, 0.45f, 0.01f,
-					static_cast<float>(x) + (static_cast<float>(xCoord) * width),
-					static_cast<float>(z) + (static_cast<float>(zCoord) * width)) / 2.0f) + 0.5f) * normWeight)
-					);
+				float dataVal = Noise(static_cast<float>(x) + (static_cast<float>(xCoord) * width),
+									  static_cast<float>(z) + (static_cast<float>(zCoord) * width));
 
 				vertices[offset] = Maths::Vector3(
 					(static_cast<float>(x) + (static_cast<float>(xCoord) * width)) * xRand,
@@ -170,18 +111,5 @@ namespace Lumos
         delete[] vertices;
         delete[] indices;
         delete[] texCoords;
-
-		for (int x = 0; x < lowside + 1; ++x)
-		{
-			delete[] lowMap[x];
-		}
-
-		for (int x = 0; x < width; ++x)
-		{
-			delete[] lowMapExpand[x];
-		}
-
-		delete[] lowMap;
-		delete[] lowMapExpand;
 	}
 }
