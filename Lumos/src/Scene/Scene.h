@@ -1,5 +1,6 @@
 #pragma once
-#include "lmpch.h"
+
+#include "Core/Types.h"
 #include "SceneGraph.h"
 #include "Maths/Maths.h"
 #include "Utilities/AssetManager.h"

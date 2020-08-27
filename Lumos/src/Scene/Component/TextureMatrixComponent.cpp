@@ -1,6 +1,5 @@
-﻿#include "lmpch.h"
+﻿#include "Precompiled.h"
 #include "TextureMatrixComponent.h"
-#include <imgui/imgui.h>
 
 namespace Lumos
 {

@@ -1,5 +1,5 @@
 #pragma once
-#include "lmpch.h"
+
 #include "Core/VFS.h"
 #include "Audio/Sound.h"
 

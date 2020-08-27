@@ -1,5 +1,5 @@
 #pragma once
-#include "lmpch.h"
+
 #include "CameraController.h"
 
 namespace Lumos

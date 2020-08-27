@@ -1,4 +1,4 @@
-#include "lmpch.h"
+#include "Precompiled.h"
 #include "SceneWindow.h"
 #include "Editor.h"
 #include "Graphics/Camera/Camera.h"
@@ -17,12 +17,11 @@
 #include "Physics/B2PhysicsEngine/B2PhysicsEngine.h"
 #include "Core/OS/Input.h"
 #include "Graphics/Renderers/DebugRenderer.h"
+#include "ImGui/IconsMaterialDesignIcons.h"
 #include "EditorCamera.h"
 #include <box2d/box2d.h>
 #include <imgui/imgui_internal.h>
 #include <imgui/plugins/ImGuizmo.h>
-#include <IconFontCppHeaders/IconsMaterialDesignIcons.h>
-
 namespace Lumos
 {
 	SceneWindow::SceneWindow()

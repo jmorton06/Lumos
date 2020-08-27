@@ -1,4 +1,4 @@
-#include "lmpch.h"
+#include "Precompiled.h"
 #include "SkyboxRenderer.h"
 #include "Graphics/API/Shader.h"
 #include "Graphics/API/Framebuffer.h"
@@ -84,7 +84,7 @@ namespace Lumos
 
 		void SkyboxRenderer::Init()
 		{
-			m_Shader = Shader::CreateFromFile("Skybox", "/CoreShaders/");
+			m_Shader = Ref<Graphics::Shader>(Shader::CreateFromFile("Skybox", "/CoreShaders/"));
 			m_Skybox = Graphics::CreateQuad();
 
 			// Vertex shader System uniforms
@@ -100,11 +100,11 @@ namespace Lumos
 
 			for(auto& commandBuffer : m_CommandBuffers)
 			{
-				commandBuffer = Graphics::CommandBuffer::Create();
+				commandBuffer = Ref<Graphics::CommandBuffer>(Graphics::CommandBuffer::Create());
 				commandBuffer->Init(true);
 			}
 
-			m_RenderPass = Graphics::RenderPass::Create();
+			m_RenderPass = Ref<Graphics::RenderPass>(Graphics::RenderPass::Create());
 			AttachmentInfo textureTypes[2] = {
 				{TextureType::COLOUR, TextureFormat::RGBA32},
 				{TextureType::DEPTH, TextureFormat::DEPTH}};
@@ -238,7 +238,7 @@ namespace Lumos
 			pipelineCI.depthBiasEnabled = false;
 			pipelineCI.maxObjects = 1;
 
-			m_Pipeline = Graphics::Pipeline::Create(pipelineCI);
+			m_Pipeline = Ref<Graphics::Pipeline>(Graphics::Pipeline::Create(pipelineCI));
 		}
 
 		void SkyboxRenderer::UpdateUniformBuffer()

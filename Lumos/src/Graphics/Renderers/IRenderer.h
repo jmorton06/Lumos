@@ -1,8 +1,12 @@
 #pragma once
-#include "lmpch.h"
+
 #include "RenderCommand.h"
 #include "Maths/Maths.h"
 #include "Maths/Transform.h"
+
+#include "Graphics/API/Framebuffer.h"
+#include "Graphics/API/RenderPass.h"
+#include "Graphics/API/Pipeline.h"
 
 namespace Lumos
 {
@@ -12,10 +16,7 @@ namespace Lumos
 
 	namespace Graphics
 	{
-		class Pipeline;
 		class DescriptorSet;
-		class RenderPass;
-		class Framebuffer;
 		class TextureCube;
 		class Texture;
 		class Shader;

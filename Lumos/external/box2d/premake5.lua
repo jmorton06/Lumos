@@ -1,14 +1,12 @@
 -- Box2D premake5 script.
 -- https://premake.github.io/
 
-project 'Box2D'
+project 'box2d'
 	kind 'StaticLib'
 	cppdialect "C++14"
 	staticruntime "On"
 	files { 'src/**' }
 	includedirs { 'include' , 'src' }
-
-	buildoptions { "-w" }
 
 	filter "system:windows"
 		systemversion "latest"

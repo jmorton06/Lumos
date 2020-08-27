@@ -35,7 +35,6 @@ layout(location = 0) out vec4 outColor;
 layout(location = 1) out vec4 outPosition;
 layout(location = 2) out vec4 outNormal;
 layout(location = 3) out vec4 outPBR;
-layout(location = 4) out vec4 outDepth;
 
 const float PBR_WORKFLOW_SEPARATE_TEXTURES = 0.0f;
 const float PBR_WORKFLOW_METALLIC_ROUGHNESS = 1.0f;

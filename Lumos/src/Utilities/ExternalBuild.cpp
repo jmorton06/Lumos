@@ -1,4 +1,4 @@
-#include "lmpch.h"
+#include "Precompiled.h"
 
 #ifdef LUMOS_RENDER_API_OPENGL
 #define IMGUI_IMPL_OPENGL_LOADER_GLAD
@@ -12,7 +12,9 @@
 #include <imgui/misc/freetype/imgui_freetype.cpp>
 
 #include <stb/stb_vorbis.c>
-#include <simplex/simplexnoise.cpp>
+
+#define STB_PERLIN_IMPLEMENTATION
+#include <stb/stb_perlin.h>
 
 #ifdef LUMOS_RENDER_API_OPENGL
 #include <glad/src/glad.c>
@@ -26,3 +28,4 @@
 
 #include <OpenFBX/miniz.c>
 #include <OpenFBX/ofbx.cpp>
+#include <Tracy/TracyClient.cpp>

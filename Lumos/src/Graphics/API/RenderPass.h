@@ -1,5 +1,5 @@
 #pragma once
-#include "lmpch.h"
+
 
 namespace Lumos
 {
@@ -37,7 +37,7 @@ namespace Lumos
 		class LUMOS_EXPORT RenderPass
 		{
 		public:
-			virtual ~RenderPass() = default;
+			virtual ~RenderPass();
 			static RenderPass* Create();
 
 			virtual bool Init(const RenderpassInfo& renderpassCI) = 0;

@@ -1,4 +1,4 @@
-#include "lmpch.h"
+#include "Precompiled.h"
 #include "Texture.h"
 
 #include "Utilities/LoadImage.h"

@@ -1,5 +1,7 @@
-#include "lmpch.h"
+#include "Precompiled.h"
 #include "Material.h"
+#include "Graphics/API/Shader.h"
+#include "Graphics/API/Texture.h"
 #include "Graphics/API/DescriptorSet.h"
 #include "Graphics/API/Pipeline.h"
 #include "Graphics/API/UniformBuffer.h"

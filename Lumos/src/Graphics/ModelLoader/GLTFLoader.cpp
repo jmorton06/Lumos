@@ -1,4 +1,4 @@
-#include "lmpch.h"
+#include "Precompiled.h"
 #include "Graphics/Model.h"
 #include "Graphics/Mesh.h"
 #include "Graphics/Material.h"
@@ -476,7 +476,7 @@ namespace Lumos::Graphics
 		std::string err;
 		std::string warn;
 
-		std::string ext = StringFormat::GetFilePathExtension(path);
+		std::string ext = StringUtilities::GetFilePathExtension(path);
 
 		loader.SetImageLoader(tinygltf::LoadImageData, nullptr);
 		loader.SetImageWriter(tinygltf::WriteImageData, nullptr);

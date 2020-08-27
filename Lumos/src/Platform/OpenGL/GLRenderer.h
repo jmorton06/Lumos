@@ -1,5 +1,5 @@
 #pragma once
-#include "lmpch.h"
+
 #include "Graphics/API/Pipeline.h"
 #include "Maths/Maths.h"
 #include "Core/OS/Window.h"

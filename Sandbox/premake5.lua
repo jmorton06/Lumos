@@ -12,6 +12,7 @@ IncludeDir["ImGui"] = "../Lumos/external/imgui/"
 IncludeDir["freetype"] = "../Lumos/external/freetype/include"
 IncludeDir["SpirvCross"] = "../Lumos/external/SPIRV-Cross"
 IncludeDir["cereal"] = "../Lumos/external/cereal/include"
+IncludeDir["spdlog"] = "../Lumos/external/spdlog/include"
 
 project "Sandbox"
 	kind "WindowedApp"
@@ -47,11 +48,17 @@ project "Sandbox"
 	{
 		"Lumos",
 		"lua",
-		"Box2D",
+		"box2d",
 		"imgui",
 		"freetype",
 		"SpirvCross"
-	}
+}
+
+defines
+{
+	"LUMOS_PROFILE",
+	"TRACY_ENABLE",
+}
 
 	cwd = os.getcwd() .. "/.."
 
@@ -76,7 +83,7 @@ project "Sandbox"
 			"_SILENCE_CXX17_ITERATOR_BASE_CLASS_DEPRECATION_WARNING",
 			"LUMOS_ROOT_DIR="  .. cwd,
 			"LUMOS_VOLK",
-			"LUMOS_SSE"
+	"LUMOS_SSE",
 		}
 
 		libdirs
@@ -104,9 +111,6 @@ project "Sandbox"
 		systemversion "latest"
 		editandcontinue "Off"
 
-		platforms {"x64"}
- 		defaultplatform "x64"
-
 		xcodebuildresources { "Images.xcassets" }
 
 		xcodebuildsettings
@@ -133,11 +137,11 @@ project "Sandbox"
 			"LUMOS_SSE"
 		}
 
-		linkoptions 
-		{ 
+		linkoptions
+		{
 			"-framework OpenGL",
 			"-framework Cocoa",
-			"-framework IOKit", 
+			"-framework IOKit",
 			"-framework CoreVideo",
 			"-framework OpenAL",
 			"-framework QuartzCore"
@@ -159,9 +163,9 @@ project "Sandbox"
 
 			local source = "../Lumos/external/vulkan/libs/macOS/**"
 			local target = "../bin/release/"
-			
+
 			buildmessage("copying "..source.." -> "..target)
-			
+
 			postbuildcommands {
 				"{COPY} "..source.." "..target
 			}
@@ -170,9 +174,9 @@ project "Sandbox"
 
 			local source = "../Lumos/external/vulkan/libs/macOS/**"
 			local target = "../bin/dist/"
-			
+
 			buildmessage("copying "..source.." -> "..target)
-			
+
 			postbuildcommands {
 				"{COPY} "..source.." "..target
 			}
@@ -181,9 +185,9 @@ project "Sandbox"
 
 			local source = "../Lumos/external/vulkan/libs/macOS/**"
 			local target = "../bin/debug/"
-			
+
 			buildmessage("copying "..source.." -> "..target)
-			
+
 			postbuildcommands {
 				"{COPY} "..source.." "..target
 			}
@@ -255,12 +259,12 @@ project "Sandbox"
 
 		linkoptions { "-rpath @executable_path/Frameworks" }
 
-		excludes 
-		{ 
+		excludes
+		{
 			("**.DS_Store")
 		}
 
-		xcodebuildresources 
+		xcodebuildresources
 		{
 			"../Lumos/src/Platform/iOS/Client",
 			"Images.xcassets"
@@ -278,12 +282,12 @@ project "Sandbox"
 
 		filter {"system:ios", "configurations:debug"}
 			targetAssetDirectory = "../bin/debug/Sandbox.app/Assets"
-		
+
 		filter "system:ios"
 			local target = targetAssetDirectory.."/CoreAssets/"
 			local source = "../Lumos/res/**"
 			buildmessage("copying "..source.." -> "..target)
-			os.mkdir(target)
+			--os.mkdir(target)
 			postbuildcommands {
 				"{COPY} "..source.." "..target
 			}
@@ -291,7 +295,7 @@ project "Sandbox"
 			target = targetAssetDirectory.."/AppAssets/"
 			local source = "res/**"
 			buildmessage("copying "..source.." -> "..target)
-			os.mkdir(target)
+			--os.mkdir(target)
 			postbuildcommands {
 				"{COPY} "..source.." "..target
 			}

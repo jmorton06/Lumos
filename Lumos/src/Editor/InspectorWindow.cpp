@@ -1,4 +1,4 @@
-#include "lmpch.h"
+#include "Precompiled.h"
 #include "InspectorWindow.h"
 #include "Editor.h"
 #include "Core/Application.h"
@@ -22,9 +22,9 @@
 #include "Physics/LumosPhysicsEngine/SphereCollisionShape.h"
 #include "Physics/LumosPhysicsEngine/PyramidCollisionShape.h"
 #include "Physics/LumosPhysicsEngine/CapsuleCollisionShape.h"
+#include "ImGui/IconsMaterialDesignIcons.h"
 
 #include <imgui/imgui.h>
-#include <IconFontCppHeaders/IconsMaterialDesignIcons.h>
 #include <sol/sol.hpp>
 
 namespace MM
@@ -1363,7 +1363,7 @@ namespace Lumos
 			if(hasName)
 				name = registry.get<NameComponent>(selected).name;
 			else
-				name = StringFormat::ToString(entt::to_integral(selected));
+				name = StringUtilities::ToString(entt::to_integral(selected));
 
 			static char objName[INPUT_BUF_SIZE];
 			strcpy(objName, name.c_str());

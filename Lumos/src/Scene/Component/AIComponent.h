@@ -1,5 +1,5 @@
 #pragma once
-#include "lmpch.h"
+
 #include "AI/AINode.h"
 
 namespace Lumos

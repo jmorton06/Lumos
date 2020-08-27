@@ -1,6 +1,6 @@
 #pragma once
 
-#include "lmpch.h"
+
 #include "Physics/RigidBody.h"
 #include <cereal/cereal.hpp>
 #include <cereal/types/vector.hpp>

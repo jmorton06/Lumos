@@ -1,6 +1,5 @@
 #pragma once
-
-#include "lmpch.h"
+#include "Core.h"
 #include "ReferenceCounter.h"
 #include "OS/Memory.h"
 #include "Core/LMLog.h"

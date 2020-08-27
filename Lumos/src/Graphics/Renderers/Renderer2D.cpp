@@ -1,4 +1,4 @@
-#include "lmpch.h"
+#include "Precompiled.h"
 #include "Renderer2D.h"
 #include "Graphics/API/Shader.h"
 #include "Graphics/API/Framebuffer.h"
@@ -55,8 +55,8 @@ namespace Lumos
 
 		void Renderer2D::Init()
 		{
-			LUMOS_PROFILE_FUNC;
-			m_Shader = Shader::CreateFromFile("Batch2D", "/CoreShaders/");
+			LUMOS_PROFILE_FUNCTION();
+			m_Shader = Ref<Graphics::Shader>(Shader::CreateFromFile("Batch2D", "/CoreShaders/"));
 
 			m_TransformationStack.emplace_back(Maths::Matrix4());
 			m_TransformationBack = &m_TransformationStack.back();
@@ -64,7 +64,7 @@ namespace Lumos
 			m_VSSystemUniformBufferSize = sizeof(Maths::Matrix4);
 			m_VSSystemUniformBuffer = new u8[m_VSSystemUniformBufferSize];
 
-			m_RenderPass = Graphics::RenderPass::Create();
+			m_RenderPass = Ref<Graphics::RenderPass>(Graphics::RenderPass::Create());
 			m_UniformBuffer = Graphics::UniformBuffer::Create();
 
 			AttachmentInfo textureTypes[2] =
@@ -89,7 +89,7 @@ namespace Lumos
 
 			for(auto& commandBuffer : m_CommandBuffers)
 			{
-				commandBuffer = Graphics::CommandBuffer::Create();
+				commandBuffer = Ref<Graphics::CommandBuffer>(Graphics::CommandBuffer::Create());
 				commandBuffer->Init(true);
 			}
 
@@ -180,6 +180,7 @@ namespace Lumos
 
 		void Renderer2D::Submit(Renderable2D* renderable, const Maths::Matrix4& transform)
 		{
+			LUMOS_PROFILE_FUNCTION();
 			if(m_IndexCount >= m_Limits.IndiciesSize)
 				FlushAndReset();
 
@@ -232,6 +233,7 @@ namespace Lumos
 
 		void Renderer2D::SubmitInternal(const TriangleInfo& triangleInfo)
 		{
+			LUMOS_PROFILE_FUNCTION();
 			if(m_IndexCount >= m_Limits.IndiciesSize)
 				FlushAndReset();
 
@@ -260,6 +262,7 @@ namespace Lumos
 
 		void Renderer2D::BeginSimple()
 		{
+			LUMOS_PROFILE_FUNCTION();
 			m_Textures.clear();
 			m_Sprites.clear();
 			m_Triangles.clear();
@@ -267,6 +270,7 @@ namespace Lumos
 
 		void Renderer2D::BeginRenderPass()
 		{
+			LUMOS_PROFILE_FUNCTION();
 			m_CurrentBufferID = 0;
 			if(!m_RenderTexture)
 				m_CurrentBufferID = Renderer::GetSwapchain()->GetCurrentBufferId();
@@ -281,6 +285,7 @@ namespace Lumos
 
 		void Renderer2D::Begin()
 		{
+			LUMOS_PROFILE_FUNCTION();
 			m_CurrentBufferID = 0;
 			if(!m_RenderTexture)
 				m_CurrentBufferID = Renderer::GetSwapchain()->GetCurrentBufferId();
@@ -299,6 +304,7 @@ namespace Lumos
 
 		void Renderer2D::SetSystemUniforms(Shader* shader) const
 		{
+			LUMOS_PROFILE_FUNCTION();
 			shader->SetSystemUniformBuffer(ShaderType::VERTEX, m_VSSystemUniformBuffer, m_VSSystemUniformBufferSize, 0);
 
 			m_UniformBuffer->SetData(sizeof(Maths::Matrix4), *&m_VSSystemUniformBuffer);
@@ -306,6 +312,7 @@ namespace Lumos
 
 		void Renderer2D::BeginScene(Scene* scene, Camera* overrideCamera, Maths::Transform* overrideCameraTransform)
 		{
+			LUMOS_PROFILE_FUNCTION();
 			auto& registry = scene->GetRegistry();
 
 			if(overrideCamera)
@@ -336,6 +343,7 @@ namespace Lumos
 
 		void Renderer2D::Present()
 		{
+			LUMOS_PROFILE_FUNCTION();
             if(m_IndexCount == 0)
             {
                 m_VertexArrays[m_BatchDrawCallIndex]->GetBuffer()->ReleasePointer();
@@ -378,6 +386,7 @@ namespace Lumos
 
 		void Renderer2D::End()
 		{
+			LUMOS_PROFILE_FUNCTION();
 			m_RenderPass->EndRenderpass(m_CommandBuffers[m_CurrentBufferID].get());
 			m_CommandBuffers[m_CurrentBufferID]->EndRecording();
 
@@ -392,7 +401,7 @@ namespace Lumos
 
 		void Renderer2D::RenderScene(Scene* scene)
 		{
-			LUMOS_PROFILE_FUNC;
+			LUMOS_PROFILE_FUNCTION();
 			Begin();
 
 			SetSystemUniforms(m_Shader.get());
@@ -420,6 +429,7 @@ namespace Lumos
 
 		float Renderer2D::SubmitTexture(Texture* texture)
 		{
+			LUMOS_PROFILE_FUNCTION();
 			float result = 0.0f;
 			bool found = false;
 			for(u32 i = 0; i < m_Textures.size(); i++)
@@ -446,6 +456,7 @@ namespace Lumos
 
 		void Renderer2D::OnResize(u32 width, u32 height)
 		{
+			LUMOS_PROFILE_FUNCTION();
 			m_Framebuffers.clear();
 
 			SetScreenBufferSize(width, height);
@@ -455,11 +466,13 @@ namespace Lumos
 
 		void Renderer2D::PresentToScreen()
 		{
+			LUMOS_PROFILE_FUNCTION();
 			Renderer::Present((m_CommandBuffers[Renderer::GetSwapchain()->GetCurrentBufferId()].get()));
 		}
 
 		void Renderer2D::SetScreenBufferSize(u32 width, u32 height)
 		{
+			LUMOS_PROFILE_FUNCTION();
 			if(width == 0)
 			{
 				width = 1;
@@ -476,6 +489,7 @@ namespace Lumos
 
 		void Renderer2D::CreateGraphicsPipeline()
 		{
+			LUMOS_PROFILE_FUNCTION();
 			std::vector<Graphics::DescriptorPoolInfo> poolInfo =
 				{
 					{Graphics::DescriptorType::UNIFORM_BUFFER, m_Limits.MaxBatchDrawCalls},
@@ -522,11 +536,12 @@ namespace Lumos
 			pipelineCI.depthBiasEnabled = false;
 			pipelineCI.maxObjects = m_Limits.MaxBatchDrawCalls;
 
-			m_Pipeline = Graphics::Pipeline::Create(pipelineCI);
+			m_Pipeline = Ref<Graphics::Pipeline>(Graphics::Pipeline::Create(pipelineCI));
 		}
 
 		void Renderer2D::CreateFramebuffers()
 		{
+			LUMOS_PROFILE_FUNCTION();
 			TextureType attachmentTypes[2];
 			attachmentTypes[0] = TextureType::COLOUR;
 			Texture* attachments[2];
@@ -566,6 +581,7 @@ namespace Lumos
 
 		void Renderer2D::UpdateDesciptorSet() const
 		{
+			LUMOS_PROFILE_FUNCTION();
 			if(m_Textures.empty())
 				return;
 			std::vector<Graphics::ImageInfo> imageInfos;
@@ -584,14 +600,18 @@ namespace Lumos
 
 		void Renderer2D::SetRenderTarget(Texture* texture, bool rebuildFramebuffer)
 		{
+			LUMOS_PROFILE_FUNCTION();
 			m_RenderTexture = texture;
-			m_Framebuffers.clear();
-
-			CreateFramebuffers();
+			if(rebuildFramebuffer)
+			{
+				m_Framebuffers.clear();
+				CreateFramebuffers();
+			}
 		}
 
 		void Renderer2D::FlushAndReset()
 		{
+			LUMOS_PROFILE_FUNCTION();
 			Present();
 
 			m_Textures.clear();
@@ -604,6 +624,7 @@ namespace Lumos
 
 		void Renderer2D::SubmitTriangles()
 		{
+			LUMOS_PROFILE_FUNCTION();
 			for(auto& triangle : m_Triangles)
 				SubmitInternal(triangle);
 		}

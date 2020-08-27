@@ -1,7 +1,5 @@
 #pragma once
 
-#include "lmpch.h"
-
 namespace Lumos
 {
 	namespace Graphics

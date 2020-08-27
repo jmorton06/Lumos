@@ -1,4 +1,4 @@
-#include "lmpch.h"
+#include "Precompiled.h"
 #include "LoadImage.h"
 
 #include "Core/VFS.h"

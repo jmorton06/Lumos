@@ -1,4 +1,4 @@
-#include "lmpch.h"
+#include "Precompiled.h"
 #include "ReferenceCounter.h"
 
 #if defined(_MSC_VER)

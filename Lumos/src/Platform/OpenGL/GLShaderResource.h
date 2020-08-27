@@ -1,6 +1,6 @@
 #pragma once
 
-#include "lmpch.h"
+
 #include "Graphics/API/ShaderResource.h"
 #include "GLShaderUniform.h"
 #include "GLDebug.h"

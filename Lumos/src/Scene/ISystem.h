@@ -1,5 +1,5 @@
 #pragma once
-#include "lmpch.h"
+
 #include "Scene/Scene.h"
 
 namespace Lumos

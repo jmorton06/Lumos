@@ -1,10 +1,11 @@
-#include "lmpch.h"
+#include "Precompiled.h"
 #include "Application.h"
 
 #include "Scene/Scene.h"
 #include "Scene/SceneManager.h"
 #include "Engine.h"
 #include "Editor/Editor.h"
+#include "Utilities/Timer.h"
 
 #include "Graphics/API/Renderer.h"
 #include "Graphics/API/GraphicsContext.h"
@@ -46,7 +47,7 @@
 namespace Lumos
 {
 	Application* Application::s_Instance = nullptr;
-
+	
 	Application::Application(const WindowProperties& properties)
 		: m_UpdateTimer(0)
 		, m_Frames(0)
@@ -55,6 +56,7 @@ namespace Lumos
         , m_SceneViewHeight(600)
 		, m_InitialProperties(properties)
 	{
+		LUMOS_PROFILE_FUNCTION();
 		LUMOS_ASSERT(!s_Instance, "Application already exists!");
 		s_Instance = this;
 
@@ -89,21 +91,25 @@ namespace Lumos
 
 	Application::~Application()
 	{
+		LUMOS_PROFILE_FUNCTION();
 		ImGui::DestroyContext();
 	}
 
 	void Application::ClearLayers()
 	{
+		LUMOS_PROFILE_FUNCTION();
 		m_LayerStack->Clear();
 	}
 
 	Scene* Application::GetCurrentScene() const
 	{
+		LUMOS_PROFILE_FUNCTION();
 		return m_SceneManager->GetCurrentScene();
 	}
 
 	void Application::Init()
 	{
+		LUMOS_PROFILE_FUNCTION();
 		// Initialise the Window
 		if(!m_Window->HasInitialised())
 			Quit(true, "Window failed to initialise!");
@@ -170,6 +176,7 @@ namespace Lumos
 
 	int Application::Quit(bool pause, const std::string& reason)
 	{
+		LUMOS_PROFILE_FUNCTION();
 		Graphics::Material::ReleaseDefaultTexture();
 		Engine::Release();
 		Input::Release();
@@ -211,6 +218,7 @@ namespace Lumos
 
 	bool Application::OnFrame()
 	{
+		LUMOS_PROFILE_FUNCTION();
 		float now = m_Timer->GetMS(1.0f);
 
 #ifdef LUMOS_LIMIT_FRAMERATE
@@ -218,8 +226,6 @@ namespace Lumos
 		{
 			m_UpdateTimer += Engine::Get().TargetFrameRate();
 #endif
-
-			Profiler::Get().Update(now);
 
 			auto& ts = Engine::GetTimeStep();
 			ts.Update(now);
@@ -233,14 +239,14 @@ namespace Lumos
 			ImGui::NewFrame();
 
 			{
-				LUMOS_PROFILE_BLOCK("Application::Update");
+				LUMOS_PROFILE_SCOPE("Application::Update");
 				OnUpdate(ts);
 				m_Updates++;
 			}
 
 			if(!m_Minimized)
 			{
-				LUMOS_PROFILE_BLOCK("Application::Render");
+				LUMOS_PROFILE_SCOPE("Application::Render");
 				OnRender();
 				m_Frames++;
 			}
@@ -256,7 +262,7 @@ namespace Lumos
 
 		if(m_Timer->GetMS() - m_SecondTimer > 1.0f)
 		{
-			LUMOS_PROFILE_BLOCK("Application::FrameRateCalc");
+			LUMOS_PROFILE_SCOPE("Application::FrameRateCalc");
 
 			m_SecondTimer += 1.0f;
 			Engine::Get().SetFPS(m_Frames);
@@ -267,12 +273,15 @@ namespace Lumos
 			m_Updates = 0;
 			m_SceneManager->GetCurrentScene()->OnTick();
 		}
+		
+		LUMOS_PROFILE_FRAMEMARKER();
 
 		return m_CurrentState != AppState::Closing;
 	}
 
 	void Application::OnRender()
 	{
+		LUMOS_PROFILE_FUNCTION();
 		if(m_LayerStack->GetCount() > 0 || m_LayerStack->GetCount() > 0)
 		{
 			Graphics::Renderer::GetRenderer()->Begin();
@@ -294,7 +303,7 @@ namespace Lumos
 
 	void Application::OnUpdate(const TimeStep& dt)
 	{
-
+		LUMOS_PROFILE_FUNCTION();
 #ifdef LUMOS_EDITOR
 		m_Editor->OnUpdate(dt);
 
@@ -316,6 +325,7 @@ namespace Lumos
 
 	void Application::OnEvent(Event& e)
 	{
+		LUMOS_PROFILE_FUNCTION();
 		EventDispatcher dispatcher(e);
 		dispatcher.Dispatch<WindowCloseEvent>(BIND_EVENT_FN(Application::OnWindowClose));
 		dispatcher.Dispatch<WindowResizeEvent>(BIND_EVENT_FN(Application::OnWindowResize));
@@ -345,6 +355,7 @@ namespace Lumos
 
 	void Application::OnNewScene(Scene* scene)
 	{
+		LUMOS_PROFILE_FUNCTION();
 #ifdef LUMOS_EDITOR
 		m_SceneViewSizeUpdated = true;
 		m_Editor->OnNewScene(scene);
@@ -357,6 +368,7 @@ namespace Lumos
 
 	void Application::PushLayerInternal(Layer* layer, bool overlay, bool sceneAdded)
 	{
+		LUMOS_PROFILE_FUNCTION();
 		if(overlay)
 			m_LayerStack->PushOverlay(layer);
 		else
@@ -367,11 +379,13 @@ namespace Lumos
 
 	void Application::PushLayer(Layer* layer)
 	{
+		LUMOS_PROFILE_FUNCTION();
 		PushLayerInternal(layer, false, true);
 	}
 
 	void Application::PushOverLay(Layer* overlay)
 	{
+		LUMOS_PROFILE_FUNCTION();
 		PushLayerInternal(overlay, true, true);
 	}
 
@@ -383,6 +397,7 @@ namespace Lumos
 
 	bool Application::OnWindowResize(WindowResizeEvent& e)
 	{
+		LUMOS_PROFILE_FUNCTION();
 		Graphics::GraphicsContext::GetContext()->WaitIdle();
 
 		int width = e.GetWidth(), height = e.GetHeight();
@@ -405,6 +420,7 @@ namespace Lumos
 
 	void Application::OnImGui()
 	{
+		LUMOS_PROFILE_FUNCTION();
 #ifdef LUMOS_EDITOR
 		if(m_AppType == AppType::Editor)
 			m_Editor->OnImGui();
@@ -414,6 +430,7 @@ namespace Lumos
 
 	void Application::OnSceneViewSizeUpdated(u32 width, u32 height)
 	{
+		LUMOS_PROFILE_FUNCTION();
 		Graphics::GraphicsContext::GetContext()->WaitIdle();
 
 		WindowResizeEvent e(width, height);

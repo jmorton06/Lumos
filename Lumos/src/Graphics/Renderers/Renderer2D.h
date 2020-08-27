@@ -1,5 +1,5 @@
 #pragma once
-#include "lmpch.h"
+
 #include "IRenderer.h"
 #include "Graphics/Renderable2D.h"
 #include "Graphics/API/BufferLayout.h"

@@ -1,4 +1,4 @@
-#include "lmpch.h"
+#include "Precompiled.h"
 #include "Light.h"
 
 #include "ImGui/ImGuiHelpers.h"

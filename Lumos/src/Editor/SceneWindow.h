@@ -1,4 +1,4 @@
-#include "lmpch.h"
+
 #include "EditorWindow.h"
 #include "Maths/Maths.h"
 #include "Maths/Frustum.h"

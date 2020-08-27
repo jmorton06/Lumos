@@ -1,4 +1,4 @@
-#include "lmpch.h"
+#include "Precompiled.h"
 #include "GLShader.h"
 
 #include "Platform/OpenGL/GL.h"
@@ -565,7 +565,7 @@ namespace Lumos
 						const GLShaderUniformDeclaration::Type t = GLShaderUniformDeclaration::StringToType(typeString, count);
 						GLShaderUniformDeclaration* declaration;
 
-						name += "[" + StringFormat::ToString(countID) + "]";
+						name += "[" + StringUtilities::ToString(countID) + "]";
 						bool ISStruct = false;
 
 						if(t == GLShaderUniformDeclaration::Type::NONE)
@@ -596,7 +596,7 @@ namespace Lumos
 								for(u32 id = 0; id < static_cast<u32>(count); id++)
 								{
 									GLShaderUniformDeclaration* test = new GLShaderUniformDeclaration(*declaration);
-									test->SetName(name + "[" + StringFormat::ToString(id) + "]");
+									test->SetName(name + "[" + StringUtilities::ToString(id) + "]");
 									test->m_Struct = new ShaderStruct(*declaration->m_Struct);
 									m_UserUniformBuffers[type]->PushUniform(test);
 								}
@@ -1132,7 +1132,7 @@ namespace Lumos
 
 		Shader* GLShader::CreateFuncGL(const std::string& name, const std::string& filePath)
 		{
-			//            if(StringFormat::GetFilePathExtension(filePath) == "shader")
+			//            if(StringUtilities::GetFilePathExtension(filePath) == "shader")
 			//            {
 			//                const std::string source = Lumos::VFS::Get()->ReadTextFile(filePath);
 			//

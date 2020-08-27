@@ -1,4 +1,4 @@
-#include "lmpch.h"
+#include "Precompiled.h"
 
 #include "Core/Application.h"
 #include "Core/Version.h"
@@ -62,15 +62,15 @@ namespace Lumos
 
 			Debug::Log::Info("Vulkan : {0}.{1}.{2}", VK_VERSION_MAJOR(m_PhysicalDeviceProperties.apiVersion), VK_VERSION_MINOR(m_PhysicalDeviceProperties.apiVersion), VK_VERSION_PATCH(m_PhysicalDeviceProperties.apiVersion));
 			Debug::Log::Info("GPU : {0}", std::string(m_PhysicalDeviceProperties.deviceName));
-			Debug::Log::Info("Vendor ID : {0}", StringFormat::ToString(m_PhysicalDeviceProperties.vendorID));
+			Debug::Log::Info("Vendor ID : {0}", StringUtilities::ToString(m_PhysicalDeviceProperties.vendorID));
 			Debug::Log::Info("Device Type : {0}", std::string(TranslateVkPhysicalDeviceTypeToString(m_PhysicalDeviceProperties.deviceType)));
 			Debug::Log::Info("Driver Version : {0}.{1}.{2}", VK_VERSION_MAJOR(m_PhysicalDeviceProperties.driverVersion), VK_VERSION_MINOR(m_PhysicalDeviceProperties.driverVersion), VK_VERSION_PATCH(m_PhysicalDeviceProperties.driverVersion));
 
 			auto& caps = Renderer::GetCapabilities();
 
-			caps.Vendor = StringFormat::ToString(m_PhysicalDeviceProperties.vendorID);
+			caps.Vendor = StringUtilities::ToString(m_PhysicalDeviceProperties.vendorID);
 			caps.Renderer = std::string(m_PhysicalDeviceProperties.deviceName);
-			caps.Version = StringFormat::ToString(m_PhysicalDeviceProperties.driverVersion);
+			caps.Version = StringUtilities::ToString(m_PhysicalDeviceProperties.driverVersion);
 
 			caps.MaxAnisotropy = m_PhysicalDeviceProperties.limits.maxSamplerAnisotropy;
 			caps.MaxSamples = m_PhysicalDeviceProperties.limits.maxSamplerAllocationCount;

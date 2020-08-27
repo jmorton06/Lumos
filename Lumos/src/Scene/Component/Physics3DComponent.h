@@ -1,11 +1,56 @@
 #pragma once
-#include "lmpch.h"
-#include "Physics/LumosPhysicsEngine/RigidBody3D.h"
 
+#include "Physics/LumosPhysicsEngine/RigidBody3D.h"
+#include "Physics/LumosPhysicsEngine/SpringConstraint.h"
+#include "Physics/LumosPhysicsEngine/WeldConstraint.h"
+#include "Physics/LumosPhysicsEngine/DistanceConstraint.h"
+#include "Scene/Entity.h"
 #include <cereal/cereal.hpp>
 
 namespace Lumos
 {
+	class SpringConstraintComponent
+	{
+	public:
+		SpringConstraintComponent(Entity entity, Entity otherEntity, const Maths::Vector3& pos1, const Maths::Vector3& pos2, float constant = 1.0f);
+		SpringConstraintComponent(Entity entity, Entity otherEntity);
+		~SpringConstraintComponent() = default;
+		
+		const Ref<SpringConstraint>& GetConstraint() const { return m_Constraint;}
+
+	private:
+		Ref<SpringConstraint> m_Constraint;
+		Entity m_OtherEntity;
+	};
+
+	class WeldConstraintComponent
+	{
+	public:
+		WeldConstraintComponent(Entity entity,Entity otherEntity, const Maths::Vector3& pos1, const Maths::Vector3& pos2, float constant = 1.0f);
+		WeldConstraintComponent(Entity entity,Entity otherEntity);
+		~WeldConstraintComponent() = default;
+		
+		const Ref<WeldConstraint>& GetConstraint() const { return m_Constraint;}
+		
+	private:
+		Ref<WeldConstraint> m_Constraint;
+		Entity m_OtherEntity;
+	};
+
+	class DistanceConstraintComponent
+	{
+	public:
+		DistanceConstraintComponent(Entity entity,Entity otherEntity, const Maths::Vector3& pos1, const Maths::Vector3& pos2, float constant = 1.0f);
+		DistanceConstraintComponent(Entity entity,Entity otherEntity);
+		~DistanceConstraintComponent() = default;
+		
+		const Ref<DistanceConstraint>& GetConstraint() const { return m_Constraint;}
+		
+	private:
+		Ref<DistanceConstraint> m_Constraint;
+		Entity m_OtherEntity;
+	};
+
 	class LUMOS_EXPORT Physics3DComponent
 	{
 	public:

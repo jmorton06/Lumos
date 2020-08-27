@@ -1,4 +1,4 @@
-#include "lmpch.h"
+#include "Precompiled.h"
 #include "Scene.h"
 #include "Core/OS/Input.h"
 #include "Core/Application.h"
@@ -27,6 +27,7 @@
 #include "Graphics/Model.h"
 #include "Graphics/Environment.h"
 #include "Scene/EntityManager.h"
+#include "Core/Profiler.h"
 
 #include <cereal/types/polymorphic.hpp>
 #include <cereal/archives/binary.hpp>
@@ -60,6 +61,7 @@ namespace Lumos
 
 	void Scene::OnInit()
 	{
+		LUMOS_PROFILE_FUNCTION();
 		LuaManager::Get().GetState().set("registry", &m_EntityManager->GetRegistry());
 		LuaManager::Get().GetState().set("scene", this);
 
@@ -75,6 +77,7 @@ namespace Lumos
 
 	void Scene::OnCleanupScene()
 	{
+		LUMOS_PROFILE_FUNCTION();
 		m_LayerStack->Clear();
 
 		DeleteAllGameObjects();
@@ -92,11 +95,13 @@ namespace Lumos
 
 	void Scene::DeleteAllGameObjects()
 	{
+		LUMOS_PROFILE_FUNCTION();
 		m_EntityManager->Clear();
 	}
 
 	void Scene::OnUpdate(const TimeStep& timeStep)
 	{
+		LUMOS_PROFILE_FUNCTION();
 		const Maths::Vector2 mousePos = Input::GetInput()->GetMousePosition();
 
 		auto defaultCameraControllerView = m_EntityManager->GetEntitiesWithType<DefaultCameraController>();
@@ -117,12 +122,14 @@ namespace Lumos
 
 	void Scene::OnEvent(Event& e)
 	{
+		LUMOS_PROFILE_FUNCTION();
 		EventDispatcher dispatcher(e);
 		dispatcher.Dispatch<WindowResizeEvent>(BIND_EVENT_FN(Scene::OnWindowResize));
 	}
 
 	bool Scene::OnWindowResize(WindowResizeEvent& e)
 	{
+		LUMOS_PROFILE_FUNCTION();
 		if(!Application::Get().GetSceneActive())
 			return false;
 
@@ -137,6 +144,7 @@ namespace Lumos
 
 	void Scene::PushLayer(Layer* layer, bool overlay)
 	{
+		LUMOS_PROFILE_FUNCTION();
 		if(overlay)
 			m_LayerStack->PushOverlay(layer);
 		else
@@ -148,6 +156,7 @@ namespace Lumos
 #define ALL_COMPONENTS Maths::Transform, NameComponent, ActiveComponent, Hierarchy, Camera, LuaScriptComponent, Graphics::Model, Graphics::Light, Physics3DComponent, Graphics::Environment, Graphics::Sprite, Physics2DComponent, DefaultCameraController
 	void Scene::Serialise(const std::string& filePath, bool binary)
 	{
+		LUMOS_PROFILE_FUNCTION();
 		std::string path = filePath;
 		path += RemoveSpaces(m_SceneName);
 		if(binary)
@@ -181,6 +190,7 @@ namespace Lumos
 
 	void Scene::Deserialise(const std::string& filePath, bool binary)
 	{
+		LUMOS_PROFILE_FUNCTION();
         m_EntityManager->Clear();
         m_SceneGraph.DisableOnConstruct(true, m_EntityManager->GetRegistry());
 		std::string path = filePath;
@@ -224,6 +234,7 @@ namespace Lumos
 
 	void Scene::UpdateSceneGraph()
 	{
+		LUMOS_PROFILE_FUNCTION();
 		m_SceneGraph.Update(m_EntityManager->GetRegistry());
 	}
 
@@ -244,11 +255,13 @@ namespace Lumos
 
 	   Entity Scene::CreateEntity(const std::string& name)
     {
+		LUMOS_PROFILE_FUNCTION();
         return m_EntityManager->Create(name);
     }
     
     void Scene::DuplicateEntity(Entity entity)
     {
+		LUMOS_PROFILE_FUNCTION();
         Entity newEntity = m_EntityManager->Create();
 
 		CopyComponentIfExists<Maths::Transform>(newEntity.GetHandle(), entity.GetHandle(), m_EntityManager->GetRegistry());
@@ -265,6 +278,7 @@ namespace Lumos
 
 	void Scene::DuplicateEntity(Entity entity, Entity parent)
 	{
+		LUMOS_PROFILE_FUNCTION();
 		Entity newEntity = m_EntityManager->Create();
 
 		CopyComponentIfExists<Maths::Transform>(newEntity.GetHandle(), entity.GetHandle(), m_EntityManager->GetRegistry());

@@ -1,6 +1,6 @@
 #pragma once
 
-#include "lmpch.h"
+
 #include "RigidBody3D.h"
 
 namespace Lumos

@@ -1,8 +1,7 @@
 #pragma once
 
-#include "lmpch.h"
+#include "Core/Core.h"
 #include "AudioData.h"
-#include "Utilities/TSingleton.h"
 
 namespace Lumos
 {
@@ -34,7 +33,6 @@ namespace Lumos
 		{
 			return m_Data.Size;
 		}
-		//unsigned int	GetBuffer() const { return m_Buffer; }
 		bool IsStreaming() const
 		{
 			return m_Streaming;

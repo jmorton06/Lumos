@@ -1,4 +1,4 @@
-#include "lmpch.h"
+#include "Precompiled.h"
 #include "PointRenderer.h"
 #include "Core/OS/Window.h"
 #include "Graphics/API/Shader.h"
@@ -61,14 +61,14 @@ namespace Lumos
 
 	void PointRenderer::Init()
 	{
-		LUMOS_PROFILE_FUNC;
+		LUMOS_PROFILE_FUNCTION();
 
-		m_Shader = Shader::CreateFromFile("Batch2DPoint", "/CoreShaders/");
+		m_Shader = Ref<Graphics::Shader>(Shader::CreateFromFile("Batch2DPoint", "/CoreShaders/"));
 
 		m_VSSystemUniformBufferSize = sizeof(Maths::Matrix4);
 		m_VSSystemUniformBuffer = new u8[m_VSSystemUniformBufferSize];
 
-		m_RenderPass = Graphics::RenderPass::Create();
+		m_RenderPass = Ref<Graphics::RenderPass>(Graphics::RenderPass::Create());
 		m_UniformBuffer = Graphics::UniformBuffer::Create();
 
 		AttachmentInfo textureTypes[2] =
@@ -88,7 +88,7 @@ namespace Lumos
 
 		for(auto& commandBuffer : m_CommandBuffers)
 		{
-			commandBuffer = Graphics::CommandBuffer::Create();
+			commandBuffer = Ref<Graphics::CommandBuffer>(Graphics::CommandBuffer::Create());
 			commandBuffer->Init(true);
 		}
 
@@ -293,7 +293,7 @@ namespace Lumos
 
 	void PointRenderer::RenderInternal(Scene* scene, Camera* overrideCamera, Maths::Transform* overrideCameraTransform)
 	{
-		LUMOS_PROFILE_FUNC;
+		LUMOS_PROFILE_FUNCTION();
 
 		BeginScene(scene, overrideCamera, overrideCameraTransform);
 
@@ -387,7 +387,7 @@ namespace Lumos
 		PipelineCI.drawType = DrawType::TRIANGLE;
 		PipelineCI.lineWidth = 1.0f;
 
-		m_Pipeline = Graphics::Pipeline::Create(PipelineCI);
+		m_Pipeline = Ref<Graphics::Pipeline>(Graphics::Pipeline::Create(PipelineCI));
 	}
 
 	void PointRenderer::CreateFramebuffers()
@@ -430,9 +430,11 @@ namespace Lumos
 	void PointRenderer::SetRenderTarget(Graphics::Texture* texture, bool rebuildFramebuffer)
 	{
 		m_RenderTexture = texture;
-		m_Framebuffers.clear();
-
-		CreateFramebuffers();
+		if(rebuildFramebuffer)
+		{
+			m_Framebuffers.clear();
+			CreateFramebuffers();
+		}
 	}
 
 	void PointRenderer::FlushAndResetPoints()

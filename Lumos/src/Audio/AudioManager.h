@@ -1,7 +1,7 @@
 #pragma once
-#include "lmpch.h"
+#include "Core/Core.h"
 #include "Scene/ISystem.h"
-
+#include <vector>
 namespace Lumos
 {
 	class Camera;

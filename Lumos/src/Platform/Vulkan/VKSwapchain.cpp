@@ -1,4 +1,4 @@
-#include "lmpch.h"
+#include "Precompiled.h"
 #include "VKSwapchain.h"
 #include "VKTools.h"
 
@@ -41,7 +41,7 @@ namespace Lumos
 			swapChainExtent.width = static_cast<uint32_t>(m_Width);
 			swapChainExtent.height = static_cast<uint32_t>(m_Height);
 
-			VkPresentModeKHR swapChainPresentMode = VK_PRESENT_MODE_FIFO_KHR;
+			VkPresentModeKHR swapChainPresentMode = VK_PRESENT_MODE_IMMEDIATE_KHR;
 //			for (uint32_t i = 0; i < numPresentModes; i++)
 //			{
 //				if (pPresentModes[i] == VK_PRESENT_MODE_MAILBOX_KHR)
@@ -81,7 +81,7 @@ namespace Lumos
 			swapChainCI.clipped = VK_TRUE;
 
             VK_CHECK_RESULT(vkCreateSwapchainKHR(VKDevice::Get().GetDevice(), &swapChainCI, VK_NULL_HANDLE, &m_SwapChain));
-    
+
 			uint32_t swapChainImageCount;
             VK_CHECK_RESULT(vkGetSwapchainImagesKHR(VKDevice::Get().GetDevice(), m_SwapChain, &swapChainImageCount, VK_NULL_HANDLE));
 
@@ -137,12 +137,12 @@ namespace Lumos
 			present.pResults = VK_NULL_HANDLE;
 			VK_CHECK_RESULT(vkQueuePresentKHR(VKDevice::Get().GetPresentQueue(), &present));
 		}
-        
+
         void VKSwapchain::MakeDefault()
         {
             CreateFunc = CreateFuncVulkan;
         }
-        
+
 		Swapchain* VKSwapchain::CreateFuncVulkan(u32 width, u32 height)
         {
             return new VKSwapchain(width, height);

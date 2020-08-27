@@ -1,4 +1,4 @@
-#include "lmpch.h"
+#include "Precompiled.h"
 #include "GLIndexBuffer.h"
 
 #include "GL.h"

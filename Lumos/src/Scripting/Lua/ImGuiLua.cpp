@@ -1,4 +1,4 @@
-#include "lmpch.h"
+#include "Precompiled.h"
 #include "ImGuiLua.h"
 
 #include <sol/sol.hpp>

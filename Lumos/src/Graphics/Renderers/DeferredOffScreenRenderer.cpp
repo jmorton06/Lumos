@@ -1,4 +1,4 @@
-#include "lmpch.h"
+#include "Precompiled.h"
 #include "DeferredOffScreenRenderer.h"
 #include "Scene/Scene.h"
 #include "Core/Application.h"
@@ -73,8 +73,8 @@ namespace Lumos
 
 		void DeferredOffScreenRenderer::Init()
 		{
-			LUMOS_PROFILE_FUNC;
-			m_Shader = Shader::CreateFromFile("DeferredColour", "/CoreShaders/");
+			LUMOS_PROFILE_FUNCTION();
+			m_Shader = Ref<Graphics::Shader>(Shader::CreateFromFile("DeferredColour", "/CoreShaders/"));
 			m_DefaultMaterial = new Material();
 
 			Graphics::MaterialProperties properties;
@@ -111,7 +111,7 @@ namespace Lumos
 			// Per Scene System Uniforms
 			m_VSSystemUniformBufferOffsets[VSSystemUniformIndex_ProjectionViewMatrix] = 0;
 
-			m_RenderPass = Graphics::RenderPass::Create();
+			m_RenderPass = Ref<Graphics::RenderPass>(Graphics::RenderPass::Create());
 
 			AttachmentInfo textureTypesOffScreen[5] =
 				{
@@ -149,7 +149,7 @@ namespace Lumos
 
 		void DeferredOffScreenRenderer::RenderScene(Scene* scene)
 		{
-			LUMOS_PROFILE_FUNC;
+			LUMOS_PROFILE_FUNCTION();
 
 			Begin();
 
@@ -207,11 +207,13 @@ namespace Lumos
 
 		void DeferredOffScreenRenderer::PresentToScreen()
 		{
+			LUMOS_PROFILE_FUNCTION();
 			Renderer::Present(m_CommandBuffers[Renderer::GetSwapchain()->GetCurrentBufferId()]);
 		}
 
 		void DeferredOffScreenRenderer::Begin()
 		{
+			LUMOS_PROFILE_FUNCTION();
 			m_CommandQueue.clear();
 			m_SystemUniforms.clear();
 
@@ -223,6 +225,7 @@ namespace Lumos
 
 		void DeferredOffScreenRenderer::BeginScene(Scene* scene, Camera* overrideCamera, Maths::Transform* overrideCameraTransform)
 		{
+			LUMOS_PROFILE_FUNCTION();
 			m_Camera = overrideCamera;
 			m_CameraTransform = overrideCameraTransform;
 
@@ -237,11 +240,13 @@ namespace Lumos
 
 		void DeferredOffScreenRenderer::Submit(const RenderCommand& command)
 		{
+			LUMOS_PROFILE_FUNCTION();
 			m_CommandQueue.push_back(command);
 		}
 
 		void DeferredOffScreenRenderer::SubmitMesh(Mesh* mesh, Material* material, const Maths::Matrix4& transform, const Maths::Matrix4& textureMatrix)
 		{
+			LUMOS_PROFILE_FUNCTION();
 			RenderCommand command;
 			command.mesh = mesh;
 			command.material = material;
@@ -256,6 +261,7 @@ namespace Lumos
 
 		void DeferredOffScreenRenderer::End()
 		{
+			LUMOS_PROFILE_FUNCTION();
 			m_RenderPass->EndRenderpass(m_DeferredCommandBuffers);
 			m_DeferredCommandBuffers->EndRecording();
 			m_DeferredCommandBuffers->Execute(true);
@@ -263,6 +269,7 @@ namespace Lumos
 
 		void DeferredOffScreenRenderer::SetSystemUniforms(Shader* shader)
 		{
+			LUMOS_PROFILE_FUNCTION();
 			m_UniformBuffer->SetData(m_VSSystemUniformBufferSize, *&m_VSSystemUniformBuffer);
 
 			int index = 0;
@@ -279,6 +286,7 @@ namespace Lumos
 
 		void DeferredOffScreenRenderer::Present()
 		{
+			LUMOS_PROFILE_FUNCTION();
 			m_Pipeline->Bind(m_DeferredCommandBuffers);
 
 			for(u32 i = 0; i < static_cast<u32>(m_CommandQueue.size()); i++)
@@ -303,6 +311,7 @@ namespace Lumos
 
 		void DeferredOffScreenRenderer::CreatePipeline()
 		{
+			LUMOS_PROFILE_FUNCTION();
 			std::vector<Graphics::DescriptorPoolInfo> poolInfo =
 				{
 					{Graphics::DescriptorType::UNIFORM_BUFFER, MAX_OBJECTS},
@@ -365,11 +374,12 @@ namespace Lumos
 			pipelineCI.depthBiasEnabled = false;
 			pipelineCI.maxObjects = MAX_OBJECTS;
 
-			m_Pipeline = Graphics::Pipeline::Create(pipelineCI);
+			m_Pipeline = Ref<Graphics::Pipeline>(Graphics::Pipeline::Create(pipelineCI));
 		}
 
 		void DeferredOffScreenRenderer::CreateBuffer()
 		{
+			LUMOS_PROFILE_FUNCTION();
 			if(m_UniformBuffer == nullptr)
 			{
 				m_UniformBuffer = Graphics::UniformBuffer::Create();
@@ -417,6 +427,7 @@ namespace Lumos
 
 		void DeferredOffScreenRenderer::CreateFramebuffer()
 		{
+			LUMOS_PROFILE_FUNCTION();
 			const u32 attachmentCount = 5;
 			TextureType attachmentTypes[attachmentCount];
 			attachmentTypes[0] = TextureType::COLOUR;
@@ -445,7 +456,7 @@ namespace Lumos
 
 		void DeferredOffScreenRenderer::OnResize(u32 width, u32 height)
 		{
-			LUMOS_PROFILE_FUNC;
+			LUMOS_PROFILE_FUNCTION();
 			m_Framebuffers.clear();
 
 			DeferredOffScreenRenderer::SetScreenBufferSize(width, height);

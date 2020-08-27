@@ -3,6 +3,8 @@
 #include "Event.h"
 #include "Core/OS/KeyCodes.h"
 
+#include <sstream>
+
 namespace Lumos
 {
 

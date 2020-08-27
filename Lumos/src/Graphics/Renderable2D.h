@@ -1,7 +1,5 @@
 #pragma once
-#include "lmpch.h"
 #include "Maths/Maths.h"
-
 #include "Graphics/API/DescriptorSet.h"
 #include "Graphics/API/Texture.h"
 
