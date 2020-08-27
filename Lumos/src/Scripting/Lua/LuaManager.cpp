@@ -470,7 +470,7 @@ namespace Lumos
 		scene_type.set_function("GetEntityManager", &Scene::GetEntityManager);
 
 		sol::usertype<Graphics::Texture2D> texture2D_type = state.new_usertype<Graphics::Texture2D>("Texture2D");
-		texture2D_type.set_function("CreateFromFile", &Graphics::Texture2D::CreateFromFile);
+		//texture2D_type.set_function("CreateFromFile", &Graphics::Texture2D::CreateFromFile);
 
 		state.set_function("Rand", &LuaRand);
 	}
