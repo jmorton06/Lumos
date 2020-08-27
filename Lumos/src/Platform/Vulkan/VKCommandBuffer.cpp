@@ -1,6 +1,5 @@
 #include "Precompiled.h"
 #include "VKCommandBuffer.h"
-
 #include "VKDevice.h"
 #include "VKCommandPool.h"
 #include "VKFramebuffer.h"

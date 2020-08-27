@@ -38,13 +38,13 @@ namespace Lumos
 			{
 				int offset = (x * width) + z;
 
-				float dataVal = Noise(static_cast<float>(x) + (static_cast<float>(xCoord) * width),
-									  static_cast<float>(z) + (static_cast<float>(zCoord) * width));
+				float dataVal = Noise(static_cast<float>(x) + (static_cast<float>(xCoord) * float(width)),
+					static_cast<float>(z) + (static_cast<float>(zCoord) * float(width)));
 
 				vertices[offset] = Maths::Vector3(
-					(static_cast<float>(x) + (static_cast<float>(xCoord) * width)) * xRand,
+					(static_cast<float>(x) + (static_cast<float>(xCoord) * float(width))) * xRand,
 					(dataVal * dataVal * dataVal) * yRand,
-					(static_cast<float>(z) + static_cast<float>(zCoord * width)) * zRand
+					(static_cast<float>(z) + static_cast<float>(zCoord * float(width))) * zRand
 					);
 
 				texCoords[offset] = Maths::Vector2(x * texRandX, z * texRandZ);
