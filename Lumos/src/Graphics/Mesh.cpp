@@ -6,17 +6,17 @@ namespace Lumos
 {
 	namespace Graphics
 	{
-		Mesh::Mesh() : m_VertexArray(nullptr), m_IndexBuffer(nullptr), m_BoundingBox(nullptr)
+		Mesh::Mesh() : m_VertexBuffer(nullptr), m_IndexBuffer(nullptr), m_BoundingBox(nullptr)
 		{
 		}
 
 		Mesh::Mesh(const Mesh& mesh)
-            : m_VertexArray(mesh.m_VertexArray), m_IndexBuffer(mesh.m_IndexBuffer), m_BoundingBox(mesh.m_BoundingBox), m_Name(mesh.m_Name), m_Material(mesh.m_Material)
+            : m_VertexBuffer(mesh.m_VertexBuffer), m_IndexBuffer(mesh.m_IndexBuffer), m_BoundingBox(mesh.m_BoundingBox), m_Name(mesh.m_Name), m_Material(mesh.m_Material)
 		{
 		}
 
-		Mesh::Mesh(Ref<VertexArray>& vertexArray, Ref<IndexBuffer>& indexBuffer, const Ref<Maths::BoundingBox>& boundingBox)
-			: m_VertexArray(vertexArray), m_IndexBuffer(indexBuffer), m_BoundingBox(boundingBox), m_Material(nullptr)
+		Mesh::Mesh(Ref<VertexBuffer>& vertexBuffer, Ref<IndexBuffer>& indexBuffer, const Ref<Maths::BoundingBox>& boundingBox)
+			: m_VertexBuffer(vertexBuffer), m_IndexBuffer(indexBuffer), m_BoundingBox(boundingBox), m_Material(nullptr)
         {
 		}
 

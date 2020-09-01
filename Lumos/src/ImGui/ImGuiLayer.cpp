@@ -6,7 +6,7 @@
 #include "Graphics/API/IMGUIRenderer.h"
 #include "Core/VFS.h"
 #include "ImGuiHelpers.h"
-#include "Core/Profiler.h"
+ 
 #include "IconsMaterialDesignIcons.h"
 
 #define IMGUI_DISABLE_OBSOLETE_FUNCTIONS

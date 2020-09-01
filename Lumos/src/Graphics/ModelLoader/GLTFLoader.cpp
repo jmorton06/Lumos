@@ -332,22 +332,9 @@ namespace Lumos::Graphics
 				}
 			}
 
-			Ref<Graphics::VertexArray> va;
-			va.reset(Graphics::VertexArray::Create());
-
-			Graphics::VertexBuffer* buffer = Graphics::VertexBuffer::Create(Graphics::BufferUsage::STATIC);
-			buffer->SetData(sizeof(Graphics::Vertex) * numVertices, tempvertices);
-
-			Graphics::BufferLayout layout;
-			layout.Push<Maths::Vector3>("position");
-			layout.Push<Maths::Vector4>("colour");
-			layout.Push<Maths::Vector2>("texCoord");
-			layout.Push<Maths::Vector3>("normal");
-			layout.Push<Maths::Vector3>("tangent");
-			buffer->SetLayout(layout);
-
-			va->PushBuffer(buffer);
-
+			Ref<VertexBuffer> vb = Ref<VertexBuffer>(VertexBuffer::Create(BufferUsage::STATIC));
+			vb->SetData(sizeof(Graphics::Vertex) * numVertices, tempvertices);
+            
 			// -------- Indices ----------
 			{
 				// Get accessor info
@@ -387,7 +374,7 @@ namespace Lumos::Graphics
 			Ref<Graphics::IndexBuffer> ib;
 			ib.reset(Graphics::IndexBuffer::Create(indicesArray, numVertices));
 
-			auto lMesh = new Graphics::Mesh(va, ib, boundingBox);
+			auto lMesh = new Graphics::Mesh(vb, ib, boundingBox);
 
 			delete[] tempvertices;
 			delete[] indicesArray;

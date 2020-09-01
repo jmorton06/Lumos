@@ -14,7 +14,6 @@
 #include "GLSwapchain.h"
 #include "GLTexture.h"
 #include "GLUniformBuffer.h"
-#include "GLVertexArray.h"
 #include "GLVertexBuffer.h"
 
 void Lumos::Graphics::GL::MakeDefault()
@@ -36,6 +35,5 @@ void Lumos::Graphics::GL::MakeDefault()
 	GLTextureDepth::MakeDefault();
 	GLTextureDepthArray::MakeDefault();
 	GLUniformBuffer::MakeDefault();
-	GLVertexArray::MakeDefault();
 	GLVertexBuffer::MakeDefault();
 }

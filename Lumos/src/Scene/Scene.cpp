@@ -27,13 +27,12 @@
 #include "Graphics/Model.h"
 #include "Graphics/Environment.h"
 #include "Scene/EntityManager.h"
-#include "Core/Profiler.h"
+ 
 
 #include <cereal/types/polymorphic.hpp>
 #include <cereal/archives/binary.hpp>
 #include <cereal/archives/json.hpp>
 #include <entt/entity/registry.hpp>
-//#include <cereal/cereal.hpp>
 #include <sol/sol.hpp>
 
 namespace Lumos

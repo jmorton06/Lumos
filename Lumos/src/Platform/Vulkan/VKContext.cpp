@@ -107,7 +107,6 @@ namespace Lumos
 
 		void VKContext::Init()
 		{
-			m_CommandPool = CreateRef<VKCommandPool>();
 		};
 
 		void VKContext::Present()

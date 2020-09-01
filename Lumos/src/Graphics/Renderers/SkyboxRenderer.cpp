@@ -58,16 +58,15 @@ namespace Lumos
             SetSystemUniforms(m_Shader.get());
 			m_Pipeline->Bind(m_CommandBuffers[m_CurrentBufferID].get());
 
-			std::vector<Graphics::DescriptorSet*> descriptorSets;
-			descriptorSets.emplace_back(m_Pipeline->GetDescriptorSet());
+            m_CurrentDescriptorSets[0] = m_Pipeline->GetDescriptorSet();
 
-			m_Skybox->GetVertexArray()->Bind(m_CommandBuffers[m_CurrentBufferID].get());
+			m_Skybox->GetVertexBuffer()->Bind(m_CommandBuffers[m_CurrentBufferID].get(), m_Pipeline.get());
 			m_Skybox->GetIndexBuffer()->Bind(m_CommandBuffers[m_CurrentBufferID].get());
 
-			Renderer::BindDescriptorSets(m_Pipeline.get(), m_CommandBuffers[m_CurrentBufferID].get(), 0, descriptorSets);
+			Renderer::BindDescriptorSets(m_Pipeline.get(), m_CommandBuffers[m_CurrentBufferID].get(), 0, m_CurrentDescriptorSets);
 			Renderer::DrawIndexed(m_CommandBuffers[m_CurrentBufferID].get(), DrawType::TRIANGLE, m_Skybox->GetIndexBuffer()->GetCount());
 
-			m_Skybox->GetVertexArray()->Unbind();
+			m_Skybox->GetVertexBuffer()->Unbind();
 			m_Skybox->GetIndexBuffer()->Unbind();
 
 			End();
@@ -119,6 +118,8 @@ namespace Lumos
 			CreateGraphicsPipeline();
 			UpdateUniformBuffer();
 			CreateFramebuffers();
+            
+            m_CurrentDescriptorSets.resize(1);
 		}
 
 		void SkyboxRenderer::Begin()

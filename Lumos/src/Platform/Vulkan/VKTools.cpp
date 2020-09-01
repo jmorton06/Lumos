@@ -72,7 +72,7 @@ namespace Lumos
             VkCommandBufferAllocateInfo allocInfo = {};
 			allocInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
 			allocInfo.level = VK_COMMAND_BUFFER_LEVEL_PRIMARY;
-            allocInfo.commandPool = VKDevice::Get().GetVKContext()->GetCommandPool()->GetCommandPool();
+            allocInfo.commandPool = VKDevice::Get().GetCommandPool()->GetCommandPool();
             allocInfo.commandBufferCount = 1;
 
 			VkCommandBuffer commandBuffer;
@@ -105,7 +105,7 @@ namespace Lumos
 			VK_CHECK_RESULT(vkQueueWaitIdle(VKDevice::Get().GetGraphicsQueue()));
 
 			vkFreeCommandBuffers(VKDevice::Get().GetDevice(),
-				VKDevice::Get().GetVKContext()->GetCommandPool()->GetCommandPool(), 1, &commandBuffer);
+				VKDevice::Get().GetCommandPool()->GetCommandPool(), 1, &commandBuffer);
         }
 
         void VKTools::CopyBufferToImage(VkBuffer buffer, VkImage image, uint32_t width, uint32_t height)

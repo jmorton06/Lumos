@@ -50,7 +50,7 @@ namespace Lumos
 
 			CommandBuffer* GetCommandBuffer(int id) const
 			{
-				return m_CommandBuffers[id];
+				return m_CommandBuffers[id].get();
 			}
 
 			void OnImGui() override;
@@ -63,7 +63,6 @@ namespace Lumos
 			UniformBuffer* m_UniformBuffer;
 			UniformBuffer* m_ModelUniformBuffer;
 
-			std::vector<CommandBuffer*> m_CommandBuffers;
 			CommandBuffer* m_DeferredCommandBuffers;
 
 			struct UniformBufferModel

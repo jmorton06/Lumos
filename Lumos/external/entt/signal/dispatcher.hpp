@@ -23,7 +23,7 @@ namespace entt {
  * events to be published all together once per tick.<br/>
  * Listeners are provided in the form of member functions. For each event of
  * type `Event`, listeners are such that they can be invoked with an argument of
- * type `const Event &`, no matter what the return type is.
+ * type `Event &`, no matter what the return type is.
  *
  * The dispatcher creates instances of the `sigh` class internally. Refer to the
  * documentation of the latter for more details.
@@ -32,13 +32,14 @@ class dispatcher {
     struct basic_pool {
         virtual ~basic_pool() = default;
         virtual void publish() = 0;
+        virtual void disconnect(void *) = 0;
         virtual void clear() ENTT_NOEXCEPT = 0;
         [[nodiscard]] virtual id_type type_id() const ENTT_NOEXCEPT = 0;
     };
 
     template<typename Event>
     struct pool_handler final: basic_pool {
-        using signal_type = sigh<void(const Event &)>;
+        using signal_type = sigh<void(Event &)>;
         using sink_type = typename signal_type::sink_type;
 
         void publish() override {
@@ -51,6 +52,10 @@ class dispatcher {
             events.erase(events.cbegin(), events.cbegin()+length);
         }
 
+        void disconnect(void *instance) override {
+            sink().disconnect(instance);
+        }
+
         void clear() ENTT_NOEXCEPT override {
             events.clear();
         }
@@ -61,7 +66,8 @@ class dispatcher {
 
         template<typename... Args>
         void trigger(Args &&... args) {
-            signal.publish(Event{std::forward<Args>(args)...});
+            Event instance{std::forward<Args>(args)...};
+            signal.publish(instance);
         }
 
         template<typename... Args>
@@ -90,7 +96,7 @@ class dispatcher {
             const auto index = type_index<Event>::value();
 
             if(!(index < pools.size())) {
-                pools.resize(index+1);
+                pools.resize(index+1u);
             }
 
             if(!pools[index]) {
@@ -110,9 +116,9 @@ public:
      *
      * A sink is an opaque object used to connect listeners to events.
      *
-     * The function type for a listener is:
+     * The function type for a listener is _compatible_ with:
      * @code{.cpp}
-     * void(const Event &);
+     * void(Event &);
      * @endcode
      *
      * The order of invocation of the listeners isn't guaranteed.
@@ -183,6 +189,32 @@ public:
     template<typename Event>
     void enqueue(Event &&event) {
         assure<std::decay_t<Event>>().enqueue(std::forward<Event>(event));
+    }
+
+    /**
+     * @brief Utility function to disconnect everything related to a given value
+     * or instance from a dispatcher.
+     * @tparam Type Type of class or type of payload.
+     * @param value_or_instance A valid object that fits the purpose.
+     */
+    template<typename Type>
+    void disconnect(Type &value_or_instance) {
+        disconnect(&value_or_instance);
+    }
+
+    /**
+     * @brief Utility function to disconnect everything related to a given value
+     * or instance from a dispatcher.
+     * @tparam Type Type of class or type of payload.
+     * @param value_or_instance A valid object that fits the purpose.
+     */
+    template<typename Type>
+    void disconnect(Type *value_or_instance) {
+        for(auto &&cpool: pools) {
+            if(cpool) {
+                cpool->disconnect(value_or_instance);
+            }
+        }
     }
 
     /**

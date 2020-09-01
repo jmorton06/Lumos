@@ -15,6 +15,7 @@ namespace Lumos
 {
 	u8* LoadImageFromFile(const char* filename, u32* width, u32* height, u32* bits, bool* isHDR, bool flipY)
 	{
+		LUMOS_PROFILE_FUNCTION();
 		std::string filePath = std::string(filename);
 		std::string physicalPath;
 		if(!VFS::Get()->ResolvePhysicalPath(filePath, physicalPath))

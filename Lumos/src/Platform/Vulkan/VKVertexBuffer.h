@@ -14,15 +14,11 @@ namespace Lumos
 			~VKVertexBuffer();
 
 			void Resize(u32 size) override;
-			void SetLayout(const Graphics::BufferLayout& layout) override;
 			void SetData(u32 size, const void* data) override;
 			void SetDataSub(u32 size, const void* data, u32 offset) override;
-
-			const BufferLayout& GetLayout() const { return m_Layout; }
-
 			void ReleasePointer() override;
 
-			void Bind() override;
+			void Bind(CommandBuffer* commandBuffer, Pipeline* pipeline) override;
 			void Unbind() override;
             
             static void MakeDefault();
@@ -34,7 +30,6 @@ namespace Lumos
 
 			BufferUsage m_Usage;
 			u32 m_Size;
-			Graphics::BufferLayout m_Layout;
 		};
 
 	}

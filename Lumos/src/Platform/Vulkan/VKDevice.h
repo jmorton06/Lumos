@@ -11,6 +11,8 @@
 #include <vulkan/vk_mem_alloc.h>
 #endif
 
+#include <Tracy/TracyVulkan.hpp>
+
 namespace Lumos
 {
 	namespace Graphics
@@ -38,20 +40,27 @@ namespace Lumos
 			void Unload();
 			bool MemoryTypeFromProperties(uint32_t typeBits, VkMemoryPropertyFlags reqMask, uint32_t* typeIndex);
 			void CreatePipelineCache();
+			void CreateTracyContext();
 
 			VkDevice GetDevice()							const { return m_Device; };
 			VkPhysicalDevice GetGPU()						const { return m_PhysicalDevice; };
 			VkQueue GetGraphicsQueue()					    const { return m_GraphicsQueue; };
 			VkQueue GetPresentQueue()						const { return m_PresentQueue; };
-			uint32_t GetGraphicsQueueFamilyIndex()			const { return m_GraphicsQueueFamilyIndex; };
 			VkSurfaceKHR GetSurface()						const { return m_Surface; };
 			VkFormat GetFormat()							const { return m_Format; };
             VkColorSpaceKHR GetColourSpace()                const { return m_ColourSpace; };
+            
+            static uint32_t GetGraphicsQueueFamilyIndex() { return s_GraphicsQueueFamilyIndex; };
+
+            const Ref<VKCommandPool>& GetCommandPool() const { return m_CommandPool; }
+
 
 			VkPhysicalDeviceProperties GetGPUProperties()	const { return m_PhysicalDeviceProperties; };
 			VkPipelineCache GetPipelineCache() 			    const { return m_PipelineCache; }
 
 			VKContext* GetVKContext() 						const { return m_VKContext; }
+			
+			tracy::VkCtx* GetTracyContext()  { return m_TracyContext; }
             
 #ifdef USE_VMA_ALLOCATOR
             VmaAllocator GetAllocator()                     const { return m_Allocator; }
@@ -67,15 +76,20 @@ namespace Lumos
 			VkPhysicalDeviceMemoryProperties m_MemoryProperties{};
 			std::vector<VkQueueFamilyProperties> m_QueueFamiliyProperties;
 			VkSurfaceKHR m_Surface{};
-			uint32_t m_GraphicsQueueFamilyIndex{};
 			VkFormat m_Format;
             VkColorSpaceKHR m_ColourSpace;
 			VkQueue m_GraphicsQueue{};
 			VkQueue m_PresentQueue{};
 			VkPipelineCache m_PipelineCache{};
 			VkDescriptorPool m_DescriptorPool{};
+            
+            Ref<VKCommandPool> m_CommandPool;
 
 			VKContext* m_VKContext;
+            
+            static uint32_t s_GraphicsQueueFamilyIndex;
+			
+			tracy::VkCtx* m_TracyContext = nullptr;
             
 #ifdef USE_VMA_ALLOCATOR
             VmaAllocator m_Allocator{};

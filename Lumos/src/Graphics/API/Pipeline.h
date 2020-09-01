@@ -57,8 +57,9 @@ namespace Lumos
 			static Pipeline* Create(const PipelineInfo& pipelineInfo);
 			virtual ~Pipeline() = default;
 
-			virtual void Bind(CommandBuffer* cmdBuffer) = 0;
+            virtual void Bind(CommandBuffer* cmdBuffer) = 0;
 
+            virtual size_t GetStride() const = 0;
 			virtual DescriptorSet* GetDescriptorSet() const = 0;
 			virtual Shader* GetShader() const = 0;
 

@@ -37,7 +37,7 @@ namespace Lumos
         {
             auto pos = FileName.find_last_of('.');
             if(pos != std::string::npos)
-                return FileName.substr(0, pos + 1);
+                return FileName.substr(0, pos);
             return FileName;
         }
 
@@ -48,6 +48,13 @@ namespace Lumos
 				return FilePath.substr(pos + 1);
 			return FilePath;
 		}
+		
+		static std::string RemoveName(const std::string& FilePath)
+		{
+			auto pos = FilePath.find_last_of('/');
+			if(pos != std::string::npos)
+                return FilePath.substr(0, pos + 1);
+            return FilePath;}
 	};
 
 	std::vector<std::string> LUMOS_EXPORT SplitString(const std::string& string, const std::string& delimiters);

@@ -34,6 +34,7 @@ namespace Lumos
 
 	void SceneGraph::Update(entt::registry & registry)
     {
+		LUMOS_PROFILE_FUNCTION();
         auto nonHierarchyView = registry.view<Maths::Transform>(entt::exclude<Hierarchy>);
     
         for(auto entity : nonHierarchyView)
@@ -55,6 +56,7 @@ namespace Lumos
 
 	void SceneGraph::UpdateTransform(entt::entity entity, entt::registry & registry)
 	{
+		LUMOS_PROFILE_FUNCTION();
 		auto hierarchyComponent = registry.try_get<Hierarchy>(entity);
 		if (hierarchyComponent)
 		{
@@ -88,6 +90,7 @@ namespace Lumos
 
 	void Hierarchy::Reparent(entt::entity entity, entt::entity parent, entt::registry& registry, Hierarchy& hierarchy)
 	{
+		LUMOS_PROFILE_FUNCTION();
 		Hierarchy::on_destroy(registry, entity);
 
         if(parent != entt::null)
@@ -99,6 +102,7 @@ namespace Lumos
 
 	bool Hierarchy::compare(const entt::registry& registry, const entt::entity rhs) const
 	{
+		LUMOS_PROFILE_FUNCTION();
 		if (rhs == entt::null || rhs == this->_parent || rhs == this->_prev)
 		{
 			return true;
@@ -124,6 +128,7 @@ namespace Lumos
 
 	void Hierarchy::on_construct(entt::registry& registry, entt::entity entity)
 	{
+		LUMOS_PROFILE_FUNCTION();
         auto& hierarchy = registry.get<Hierarchy>(entity);
 		if (hierarchy._parent != entt::null)
 		{
@@ -159,6 +164,7 @@ namespace Lumos
 
 	void DeleteChildren(entt::entity parent, entt::registry& registry)
 	{
+		LUMOS_PROFILE_FUNCTION();
 		auto hierarchy = registry.try_get<Hierarchy>(parent);
 
 		if (hierarchy)
@@ -181,6 +187,7 @@ namespace Lumos
 
 	void Hierarchy::on_update(entt::registry& registry, entt::entity entity)
 	{
+		LUMOS_PROFILE_FUNCTION();
 		auto& hierarchy = registry.get<Hierarchy>(entity);
 		// if is the first child
 		if (hierarchy._prev == entt::null)
@@ -230,6 +237,7 @@ namespace Lumos
 
 	void Hierarchy::on_destroy(entt::registry& registry, entt::entity entity) 
 	{
+		LUMOS_PROFILE_FUNCTION();
 		auto& hierarchy = registry.get<Hierarchy>(entity);
 		// if is the first child
 		if (hierarchy._prev == entt::null || !registry.valid(hierarchy._prev))
@@ -279,6 +287,7 @@ namespace Lumos
 
     void SceneGraph::DisableOnConstruct(bool disable, entt::registry& registry)
     {
+		LUMOS_PROFILE_FUNCTION();
         if(disable)
             registry.on_construct<Hierarchy>().disconnect<&Hierarchy::on_construct>();
         else

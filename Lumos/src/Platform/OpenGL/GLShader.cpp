@@ -83,8 +83,6 @@ namespace Lumos
 			std::map<ShaderType, std::string>* sources = new std::map<ShaderType, std::string>();
 			PreProcess(m_Source, sources);
 
-			//sources = files
-
 			for(auto& file : *sources)
 			{
 				auto fileSize = FileSystem::GetFileSize(m_Path + file.second); //TODO: once process
@@ -156,7 +154,7 @@ namespace Lumos
 				// Compile to GLSL, ready to give to GL driver.
 				std::string glslSource = glsl->compile();
 				file.second = glslSource;
-
+                
 				m_pShaderCompilers.push_back(glsl);
 			}
 
@@ -892,18 +890,6 @@ namespace Lumos
 			}
 
 			return result;
-		}
-
-		void GLShader::SetSystemUniformBuffer(ShaderType type, u8* data, u32 size, u32 slot)
-		{
-			Bind();
-			LUMOS_ASSERT(m_UniformBuffers[type].size() > slot, "");
-			if(!m_UniformBuffers[type].empty())
-			{
-				ShaderUniformBufferDeclaration* declaration = m_UniformBuffers[type][slot];
-				if(declaration != nullptr)
-					ResolveAndSetUniforms(declaration, data, size);
-			}
 		}
 
 		void GLShader::SetUserUniformBuffer(ShaderType type, u8* data, u32 size)

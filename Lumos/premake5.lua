@@ -206,7 +206,8 @@ project "Lumos"
 		buildoptions
 		{
 			"-Wno-attributes",
-			"-Wno-nullability-completeness"
+	"-Wno-nullability-completeness",
+	"-fdiagnostics-absolute-paths"
 		}
 
 		SetRecommendedXcodeSettings()

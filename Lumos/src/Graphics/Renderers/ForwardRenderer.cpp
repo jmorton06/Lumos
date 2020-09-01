@@ -219,6 +219,8 @@ namespace Lumos
 			bufferInfosDefault.push_back(imageInfo);
 
 			m_DescriptorSet->Update(bufferInfosDefault);
+            
+            m_CurrentDescriptorSets.resize(2);
 		}
 
 		void ForwardRenderer::Begin()
@@ -343,8 +345,6 @@ namespace Lumos
 
 		void ForwardRenderer::SetSystemUniforms(Shader* shader) const
 		{
-			shader->SetSystemUniformBuffer(ShaderType::VERTEX, m_VSSystemUniformBuffer, m_VSSystemUniformBufferSize, 0);
-
 			m_UniformBuffer->SetData(sizeof(UniformBufferObject), *&m_VSSystemUniformBuffer);
 
 			int index = 0;
@@ -355,8 +355,6 @@ namespace Lumos
 				*modelMat = command.transform;
 				index++;
 			}
-
-			shader->SetSystemUniformBuffer(ShaderType::FRAGMENT, m_PSSystemUniformBuffer, m_PSSystemUniformBufferSize, 0);
 
 			m_ModelUniformBuffer->SetDynamicData(static_cast<uint32_t>(index * m_DynamicAlignment), sizeof(Maths::Matrix4), &*m_UBODataDynamic.model);
 		}
@@ -375,15 +373,16 @@ namespace Lumos
 
 				uint32_t dynamicOffset = index * static_cast<uint32_t>(m_DynamicAlignment);
 
-				std::vector<Graphics::DescriptorSet*> descriptorSets = { m_Pipeline->GetDescriptorSet(), m_DescriptorSet.get() };
+                m_CurrentDescriptorSets[0] = m_Pipeline->GetDescriptorSet();
+                m_CurrentDescriptorSets[1] = m_DescriptorSet.get();
 				
-				mesh->GetVertexArray()->Bind(currentCMDBuffer);
+				mesh->GetVertexBuffer()->Bind(currentCMDBuffer, m_Pipeline.get());
 				mesh->GetIndexBuffer()->Bind(currentCMDBuffer);
 
-				Renderer::BindDescriptorSets(m_Pipeline.get(), currentCMDBuffer, dynamicOffset, descriptorSets);
+				Renderer::BindDescriptorSets(m_Pipeline.get(), currentCMDBuffer, dynamicOffset, m_CurrentDescriptorSets);
 				Renderer::DrawIndexed(currentCMDBuffer, DrawType::TRIANGLE, mesh->GetIndexBuffer()->GetCount());
 
-				mesh->GetVertexArray()->Unbind();
+				mesh->GetVertexBuffer()->Unbind();
 				mesh->GetIndexBuffer()->Unbind();
 
 				index++;

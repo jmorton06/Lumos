@@ -9,7 +9,6 @@ namespace Lumos
 		class DescriptorSet;
 		class Swapchain;
 		class IndexBuffer;
-		class VertexArray;
 		class Mesh;
 
 		enum RendererBufferType

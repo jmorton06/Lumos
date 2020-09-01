@@ -175,28 +175,17 @@ namespace Lumos
 
 			pbrMaterial->SetTextures(textures);
 
-			Ref<Graphics::VertexArray> va;
-			va.reset(Graphics::VertexArray::Create());
-
-			Graphics::VertexBuffer* buffer = Graphics::VertexBuffer::Create(Graphics::BufferUsage::STATIC);
-			buffer->SetData(sizeof(Graphics::Vertex) * numVertices, vertices);
-
-			Graphics::BufferLayout layout;
-			layout.Push<Maths::Vector3>("position");
-			layout.Push<Maths::Vector4>("colour");
-			layout.Push<Maths::Vector2>("texCoord");
-			layout.Push<Maths::Vector3>("normal");
-			layout.Push<Maths::Vector3>("tangent");
-			buffer->SetLayout(layout);
-
-			va->PushBuffer(buffer);
+			Ref<VertexBuffer> vb = Ref<VertexBuffer>(VertexBuffer::Create(BufferUsage::STATIC));
+			vb->SetData(sizeof(Graphics::Vertex) * numVertices, vertices);
 
 			Ref<Graphics::IndexBuffer> ib;
 			ib.reset(Graphics::IndexBuffer::Create(indices, numIndices));
 
-			auto mesh = CreateRef<Graphics::Mesh>(va, ib, boundingBox);
+			auto mesh = CreateRef<Graphics::Mesh>(vb, ib, boundingBox);
 			mesh->SetMaterial(pbrMaterial);
 			m_Meshes.push_back(mesh);
+			
+			m_Textures.clear();
 
 			delete[] vertices;
 			delete[] indices;

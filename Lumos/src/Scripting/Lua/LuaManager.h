@@ -35,7 +35,6 @@ namespace Lumos
 	}
 
 	class Scene;
-	struct WindowProperties;
 
 	class LUMOS_EXPORT LuaManager : public ThreadSafeSingleton<LuaManager>
 	{
@@ -59,8 +58,6 @@ namespace Lumos
 		{
 			return m_State;
 		}
-
-		WindowProperties LoadConfigFile(const std::string& file);
 
 	private:
 		sol::state m_State;

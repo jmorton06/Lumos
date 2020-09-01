@@ -1,7 +1,6 @@
 #include "Precompiled.h"
 #include "Entity.h"
 #include "EntityManager.h"
-
 namespace Lumos
 {
 

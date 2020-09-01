@@ -78,7 +78,6 @@ namespace Lumos
 		class Texture;
 		class Shader;
 		class IndexBuffer;
-		class VertexArray;
 
 		class LUMOS_EXPORT PointRenderer : public IRenderer
 		{
@@ -120,7 +119,7 @@ namespace Lumos
 			Graphics::IndexBuffer* m_IndexBuffer = nullptr;
 			Graphics::UniformBuffer* m_UniformBuffer = nullptr;
 			std::vector<Graphics::CommandBuffer*> m_SecondaryCommandBuffers;
-			std::vector<Graphics::VertexArray*> m_VertexArrays;
+			std::vector<Graphics::VertexBuffer*> m_VertexBuffers;
 			std::vector<PointInfo> m_Points;
 
 			u32 m_BatchDrawCallIndex = 0;

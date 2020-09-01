@@ -19,7 +19,7 @@
 #include "Scene/Scene.h"
 #include "Maths/Maths.h"
 #include "RenderCommand.h"
-#include "Core/Profiler.h"
+ 
 
 #include <imgui/imgui.h>
 
@@ -69,9 +69,12 @@ namespace Lumos
 			}
 
 			delete[] m_VSSystemUniformBuffer;
-			delete[] m_PushConstant->data;
+            
+            for(auto& pc: m_PushConstants)
+                delete[] pc.data;
+            
+            m_PushConstants.clear();
 
-			delete m_PushConstant;
 			delete m_UniformBuffer;
 			delete m_ModelUniformBuffer;
 			delete m_CommandBuffer;
@@ -95,11 +98,13 @@ namespace Lumos
 				m_DynamicAlignment = (m_DynamicAlignment + minUboAlignment - 1) & ~(minUboAlignment - 1);
 			}
 
-			m_PushConstant = new Graphics::PushConstant();
-			m_PushConstant->type = Graphics::PushConstantDataType::UINT;
-			m_PushConstant->size = sizeof(i32);
-			m_PushConstant->data = new u8[sizeof(i32)];
-			m_PushConstant->shaderStage = ShaderType::VERTEX;
+			auto pushConstant = Graphics::PushConstant();
+            pushConstant.type = Graphics::PushConstantDataType::UINT;
+            pushConstant.size = sizeof(i32);
+            pushConstant.data = new u8[sizeof(i32)];
+            pushConstant.shaderStage = ShaderType::VERTEX;
+            
+            m_PushConstants.push_back(pushConstant);
 
 			// Per Scene System Uniforms
 			m_VSSystemUniformBufferOffsets[VSSystemUniformIndex_ProjectionViewMatrix] = 0;
@@ -122,6 +127,7 @@ namespace Lumos
 			CreateGraphicsPipeline(m_RenderPass.get());
 			CreateUniformBuffer();
 			CreateFramebuffers();
+            m_CurrentDescriptorSets.resize(1);
 		}
 
 		void ShadowRenderer::OnResize(u32 width, u32 height)
@@ -168,15 +174,15 @@ namespace Lumos
 
 				const uint32_t dynamicOffset = index * static_cast<uint32_t>(m_DynamicAlignment);
 
-				std::vector<Graphics::DescriptorSet*> descriptorSets = {m_Pipeline->GetDescriptorSet()};
+                m_CurrentDescriptorSets[0] = m_Pipeline->GetDescriptorSet();
 
-				mesh->GetVertexArray()->Bind(m_CommandBuffer);
+				mesh->GetVertexBuffer()->Bind(m_CommandBuffer, m_Pipeline.get());
 				mesh->GetIndexBuffer()->Bind(m_CommandBuffer);
-
-				Renderer::BindDescriptorSets(m_Pipeline.get(), m_CommandBuffer, dynamicOffset, descriptorSets);
+                
+				Renderer::BindDescriptorSets(m_Pipeline.get(), m_CommandBuffer, dynamicOffset, m_CurrentDescriptorSets);
 				Renderer::DrawIndexed(m_CommandBuffer, DrawType::TRIANGLE, mesh->GetIndexBuffer()->GetCount());
 
-				mesh->GetVertexArray()->Unbind();
+				mesh->GetVertexBuffer()->Unbind();
 				mesh->GetIndexBuffer()->Unbind();
 
 				index++;
@@ -250,10 +256,8 @@ namespace Lumos
 				SetSystemUniforms(m_Shader.get());
 
 				u32 layer = static_cast<u32>(m_Layer);
-				memcpy(m_PushConstant->data, &layer, sizeof(u32));
-				std::vector<Graphics::PushConstant> pcVector;
-				pcVector.push_back(*m_PushConstant);
-				m_Pipeline->GetDescriptorSet()->SetPushConstants(pcVector);
+                memcpy(m_PushConstants[0].data, &layer, sizeof(u32));
+				m_Pipeline->GetDescriptorSet()->SetPushConstants(m_PushConstants);
 
 				Present();
 			}

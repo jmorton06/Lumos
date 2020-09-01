@@ -8,7 +8,7 @@
 #include "Constraint.h"
 #include "Utilities/TimeStep.h"
 #include "Core/JobSystem.h"
-#include "Core/Profiler.h"
+ 
 #include "Core/Application.h"
 #include "Scene/Component/Physics3DComponent.h"
 
@@ -99,7 +99,6 @@ namespace Lumos
 				const auto& constraint = viewDis.get<DistanceConstraintComponent>(entity).GetConstraint();
 				m_Constraints.push_back(constraint.get());
 			}
-				
 			}
 			
 			{
@@ -150,7 +149,8 @@ namespace Lumos
 				trans.SetLocalOrientation(phys.GetRigidBody()->GetOrientation());
 				};
 			}
-		}
+			m_Constraints.clear();
+			}
 	}
 	
 	void LumosPhysicsEngine::UpdatePhysics(Scene* scene)

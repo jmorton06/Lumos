@@ -1,3 +1,3 @@
 cd build
-time make Sandbox -j4
+time make Sandbox -j4 config=release
 echo "Build Finished!"

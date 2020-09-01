@@ -2,7 +2,7 @@
 
 
 #include "API/IndexBuffer.h"
-#include "API/VertexArray.h"
+#include "API/VertexBuffer.h"
 #include "Graphics/API/CommandBuffer.h"
 #include "Graphics/API/DescriptorSet.h"
 #include "Maths/Maths.h"
@@ -19,7 +19,6 @@ namespace Lumos
 		struct LUMOS_EXPORT BasicVertex
 		{
 			Maths::Vector3 Position;
-			Maths::Vector3 color;
 			Maths::Vector2 TexCoords;
 		};
 
@@ -85,11 +84,11 @@ namespace Lumos
 
 			Mesh();
 			Mesh(const Mesh& mesh);
-			Mesh(Ref<VertexArray>& vertexArray, Ref<IndexBuffer>& indexBuffer, const Ref<Maths::BoundingBox>& boundingBox);
+			Mesh(Ref<VertexBuffer>& vertexBuffer, Ref<IndexBuffer>& indexBuffer, const Ref<Maths::BoundingBox>& boundingBox);
 
 			virtual ~Mesh();
 
-			const Ref<VertexArray>& GetVertexArray() const { return m_VertexArray; }
+			const Ref<VertexBuffer>& GetVertexBuffer() const { return m_VertexBuffer; }
 			const Ref<IndexBuffer>& GetIndexBuffer() const { return m_IndexBuffer; }
 			const Ref<Material>& GetMaterial() const { return m_Material; }
 			const Ref<Maths::BoundingBox>& GetBoundingBox() const { return m_BoundingBox; }
@@ -105,7 +104,7 @@ namespace Lumos
 			static Maths::Vector3* GenerateNormals(u32 numVertices, Maths::Vector3* vertices, u32* indices, u32 numIndices);
 			static Maths::Vector3* GenerateTangents(u32 numVertices, Maths::Vector3* vertices, u32* indices, u32 numIndices, Maths::Vector2* texCoords);
 
-			Ref<VertexArray> m_VertexArray;
+			Ref<VertexBuffer> m_VertexBuffer;
 			Ref<IndexBuffer> m_IndexBuffer;
 			Ref<Material> m_Material;
 			Ref<Maths::BoundingBox> m_BoundingBox;

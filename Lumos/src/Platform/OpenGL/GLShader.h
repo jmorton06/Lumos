@@ -64,9 +64,7 @@ namespace Lumos
 			void Bind() const override;
 			void Unbind() const override;
 
-			void SetSystemUniformBuffer(ShaderType type, u8* data, u32 size, u32 slot) override;
-			void SetUserUniformBuffer(ShaderType type, u8* data, u32 size) override;
-
+			void SetUserUniformBuffer(ShaderType type, u8* data, u32 size);
 			void SetUniform(const std::string& name, u8* data);
 			void ResolveAndSetUniformField(const GLShaderUniformDeclaration& field, u8* data, i32 offset, u32 count) const;
 
@@ -79,28 +77,6 @@ namespace Lumos
 				return m_Path;
 			}
 
-			_FORCE_INLINE_ const ShaderUniformBufferList GetSystemUniforms(ShaderType type) const override
-			{
-				try
-				{
-					return m_UniformBuffers.at(type);
-				}
-				catch(std::exception)
-				{
-					return ShaderUniformBufferList();
-				}
-			}
-			_FORCE_INLINE_ const ShaderUniformBufferDeclaration* GetUserUniformBuffer(ShaderType type) const override
-			{
-				try
-				{
-					return m_UserUniformBuffers.at(type);
-				}
-				catch(std::exception)
-				{
-					return nullptr;
-				}
-			}
 			_FORCE_INLINE_ const std::vector<ShaderType> GetShaderTypes() const override
 			{
 				return m_ShaderTypes;

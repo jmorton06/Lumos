@@ -2,7 +2,6 @@
 
 #include "IRenderer.h"
 #include "Graphics/Renderable2D.h"
-#include "Graphics/API/BufferLayout.h"
 #include "Maths/Maths.h"
 #include "Maths/Transform.h"
 
@@ -23,7 +22,7 @@ namespace Lumos
 		class Texture;
 		class Shader;
 		class IndexBuffer;
-		class VertexArray;
+		class VertexBuffer;
 
 		struct TriangleInfo
 		{
@@ -97,7 +96,7 @@ namespace Lumos
 
 			std::vector<Renderable2D*> m_Sprites;
 			std::vector<CommandBuffer*> m_SecondaryCommandBuffers;
-			std::vector<VertexArray*> m_VertexArrays;
+			std::vector<VertexBuffer*> m_VertexBuffers;
 
 			u32 m_BatchDrawCallIndex = 0;
 			u32 m_IndexCount = 0;

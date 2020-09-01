@@ -82,7 +82,7 @@ namespace Lumos
 		if(m_QueuedSceneIndex < 0 || m_QueuedSceneIndex >= static_cast<int>(m_vpAllScenes.size()))
 		{
 			Debug::Log::Error("[SceneManager] - Invalid Scene Index : {0}", m_QueuedSceneIndex);
-			return;
+            m_QueuedSceneIndex = 0;
 		}
 
 		auto& app = Application::Get();
@@ -140,9 +140,13 @@ namespace Lumos
 
 	void SceneManager::EnqueueSceneFromFile(const std::string& filePath)
 	{
-		Scene* scene = new Scene("scene");
-		scene->Deserialise(filePath, false);
-		EnqueueScene(scene);
+		m_SceneFilePaths.push_back(filePath);
+        auto name = StringUtilities::RemoveFilePathExtension(StringUtilities::GetFileName(filePath));
+        auto scene = new Scene(name);
+        auto path = StringUtilities::RemoveFilePathExtension(filePath);
+        path = StringUtilities::RemoveName(path);
+        scene->Deserialise(path);
+        EnqueueScene(scene);
 	}
 
 	void SceneManager::EnqueueScene(Scene* scene)

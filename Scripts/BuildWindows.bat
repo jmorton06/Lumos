@@ -1,3 +1,2 @@
-@echo off
 cd build
-msbuild Lumos.sln
+"%MSBUILD_PATH%\MSBuild.exe" /p:Platform=x64 /p:Configuration=Debug Lumos.sln

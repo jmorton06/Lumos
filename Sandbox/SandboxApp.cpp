@@ -10,8 +10,8 @@ using namespace Lumos;
 class Game : public Application
 {
     public:
-	explicit Game(const WindowProperties& windowProperties)
-		: Application(windowProperties)
+	explicit Game()
+		: Application("/Sandbox/Sandbox.lmproj")
 	{
         Application::Get().GetWindow()->SetWindowTitle("Sandbox");
 	}
@@ -30,9 +30,6 @@ class Game : public Application
 		VFS::Get()->Mount("Sounds", root + "/Sandbox/res/sounds");
 		VFS::Get()->Mount("Scripts", root + "/Sandbox/res/scripts");
 
-		auto scene = new Scene("2D");
-		scene->Deserialise(ROOT_DIR "/Sandbox/res/scenes/", false);
-		GetSceneManager()->EnqueueScene(scene);
         GetSceneManager()->EnqueueScene<Scene3D>("Physics");
 		GetSceneManager()->EnqueueScene<SceneModelViewer>("SceneModelViewer");
 		GetSceneManager()->EnqueueScene<GraphicsScene>("Terrain");
@@ -42,13 +39,5 @@ class Game : public Application
 
 Lumos::Application* Lumos::CreateApplication()
 {
-#ifdef LUMOS_PLATFORM_IOS
-	WindowProperties windowProperties;
-	windowProperties.RenderAPI = static_cast<int>(Graphics::RenderAPI::VULKAN);
-#else
-	WindowProperties windowProperties = LuaManager::Get().LoadConfigFile(ROOT_DIR "/Sandbox/Settings.lua");
-	windowProperties.ShowConsole = true;
-#endif
-
-	return new Game(windowProperties);
+	return new Game();
 }

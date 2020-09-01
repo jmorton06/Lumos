@@ -2,7 +2,6 @@
 #include "MeshFactory.h"
 #include "Mesh.h"
 #include "Material.h"
-#include "API/VertexArray.h"
 #include "Maths/Maths.h"
 #include "Terrain.h"
 
@@ -12,6 +11,7 @@ namespace Lumos
 	{
 		Mesh* CreateQuad(float x, float y, float width, float height)
 		{
+			LUMOS_PROFILE_FUNCTION();
 			struct QuadVertex
 			{
 				Maths::Vector3 position;
@@ -32,21 +32,11 @@ namespace Lumos
 			data[3].position = Maths::Vector3(x, y + height, 0.0f);
 			data[3].uv = Maths::Vector2(1, 1);
             
-			Ref<VertexArray> va;
-			va.reset(VertexArray::Create());
-            va->Bind();
-            
-			VertexBuffer* buffer = VertexBuffer::Create(BufferUsage::STATIC);
-			buffer->SetData(sizeof(QuadVertex) * 4, data);
+			Ref<VertexBuffer> vb = Ref<VertexBuffer>(VertexBuffer::Create(BufferUsage::STATIC));
+			vb->SetData(sizeof(QuadVertex) * 4, data);
             
 			delete[] data;
             
-			Graphics::BufferLayout layout;
-			layout.Push<Maths::Vector3>("position");
-			layout.Push<Maths::Vector2>("texCoord");
-			buffer->SetLayout(layout);
-            
-			va->PushBuffer(buffer);
 			u32 indices[6] = { 0, 1, 2, 2, 3, 0, };
 			Ref<IndexBuffer> ib;
 			ib.reset(IndexBuffer::Create(indices, 6));
@@ -56,7 +46,7 @@ namespace Lumos
 			{
 				boundingBox->Merge(data[i].position);
 			}
-			return new Mesh(va, ib, boundingBox);
+			return new Mesh(vb, ib, boundingBox);
 		}
         
 		Mesh* CreateQuad(const Maths::Vector2& position, const Maths::Vector2& size)
@@ -66,6 +56,7 @@ namespace Lumos
         
 		Mesh* CreateQuad()
 		{
+			LUMOS_PROFILE_FUNCTION();
 			Vertex* data = new Vertex[4];
             
 			data[0].Position = Maths::Vector3(-1.0f, -1.0f, 0.0f);
@@ -83,12 +74,9 @@ namespace Lumos
 			data[3].Position = Maths::Vector3(-1.0f, 1.0f, 0.0f);
 			data[3].Colours = Lumos::Maths::Vector4(0.0f);
 			data[3].TexCoords = Maths::Vector2(0.0f, 1.0f);
-            
-			Ref<VertexArray> va;
-			va.reset(VertexArray::Create());
-            
-			VertexBuffer* buffer = VertexBuffer::Create(BufferUsage::STATIC);
-			buffer->SetData(sizeof(Vertex) * 4, data);
+        
+			Ref<VertexBuffer> vb = Ref<VertexBuffer>(VertexBuffer::Create(BufferUsage::STATIC));
+			vb->SetData(sizeof(Vertex) * 4, data);
             
             Ref<Maths::BoundingBox> BoundingBox = CreateRef<Maths::BoundingBox>();
             for (int i = 0; i < 4; i++)
@@ -97,23 +85,14 @@ namespace Lumos
             }
             
 			delete[] data;
-            
-			Graphics::BufferLayout layout;
-			layout.Push<Maths::Vector3>("position");
-			layout.Push<Maths::Vector4>("colour");
-			layout.Push<Maths::Vector2>("texCoord");
-			layout.Push<Maths::Vector3>("normal");
-			layout.Push<Maths::Vector3>("tangent");
-			buffer->SetLayout(layout);
-            
-			va->PushBuffer(buffer);
+        
 			u32 indices[6] = { 0, 1, 2, 2, 3, 0, };
 			Ref<IndexBuffer> ib;
 			ib.reset(IndexBuffer::Create(indices, 6));
             
 			Ref<Material> empty;
             
-            return new Mesh(va, ib, BoundingBox);
+            return new Mesh(vb, ib, BoundingBox);
 		}
         
 		Mesh* CreateCube()
@@ -125,7 +104,7 @@ namespace Lumos
 			//  | |v7---|-|v4
 			//  |/      |/
 			//  v2------v3
-            
+            LUMOS_PROFILE_FUNCTION();
 			Vertex* data = new Vertex[24];
             
 			data[0].Position = Maths::Vector3(1.0f, 1.0f, 1.0f);
@@ -226,9 +205,6 @@ namespace Lumos
 			data[23].Colours = Maths::Vector4(0.0f);
 			data[23].Normal = Maths::Vector3(0.0f, 0.0f, -1.0f);
             
-			Ref<VertexArray> va;
-			va.reset(VertexArray::Create());
-            
 			for (int i = 0; i < 6; i++)
 			{
 				data[i * 4 + 0].TexCoords = Maths::Vector2(0.0f, 0.0f);
@@ -238,8 +214,8 @@ namespace Lumos
                 
 			}
             
-			VertexBuffer* buffer = VertexBuffer::Create(BufferUsage::STATIC);
-			buffer->SetData(24 * sizeof(Vertex), data);
+			Ref<VertexBuffer> vb = Ref<VertexBuffer>(VertexBuffer::Create(BufferUsage::STATIC));
+			vb->SetData(24 * sizeof(Vertex), data);
             
             Ref<Maths::BoundingBox> BoundingBox = CreateRef<Maths::BoundingBox>();
             for (int i = 0; i < 8; i++)
@@ -248,16 +224,6 @@ namespace Lumos
             }
             
 			delete[] data;
-            
-			Graphics::BufferLayout layout;
-			layout.Push<Maths::Vector3>("position");
-			layout.Push<Maths::Vector4>("colour");
-			layout.Push<Maths::Vector2>("texCoord");
-			layout.Push<Maths::Vector3>("normal");
-			layout.Push<Maths::Vector3>("tangent");
-			buffer->SetLayout(layout);
-            
-			va->PushBuffer(buffer);
             
 			u32 indices[36]
 			{
@@ -278,11 +244,12 @@ namespace Lumos
 			Ref<IndexBuffer> ib;
 			ib.reset(IndexBuffer::Create(indices, 36));
 			
-			return new Mesh(va, ib, BoundingBox);
+			return new Mesh(vb, ib, BoundingBox);
 		}
         
 		Mesh* CreatePyramid()
 		{
+			LUMOS_PROFILE_FUNCTION();
 			Vertex* data = new Vertex[18];
             
 			data[0].Position = Maths::Vector3(1.0f, 1.0f, -1.0f);
@@ -375,30 +342,17 @@ namespace Lumos
 			data[17].TexCoords = Maths::Vector2(0.0f, 0.0f);
 			data[17].Normal = Maths::Vector3(0.0f, 0.0f, 0.0f);
             
-			Ref<VertexArray> va;
-			va.reset(VertexArray::Create());
             
-			VertexBuffer* buffer = VertexBuffer::Create(BufferUsage::STATIC);
-			buffer->SetData(18 * sizeof(Vertex), data);
+			Ref<VertexBuffer> vb = Ref<VertexBuffer>(VertexBuffer::Create(BufferUsage::STATIC));
+			vb->SetData(18 * sizeof(Vertex), data);
             
             Ref<Maths::BoundingBox> BoundingBox = CreateRef<Maths::BoundingBox>();
             for (int i = 0; i < 18; i++)
             {
                 BoundingBox->Merge(data[i].Position);
             }
-            
 			delete[] data;
-            
-			Graphics::BufferLayout layout;
-			layout.Push<Maths::Vector3>("position");
-			layout.Push<Maths::Vector4>("colour");
-			layout.Push<Maths::Vector2>("texCoord");
-			layout.Push<Maths::Vector3>("normal");
-			layout.Push<Maths::Vector3>("tangent");
-			buffer->SetLayout(layout);
-            
-			va->PushBuffer(buffer);
-            
+                        
 			u32 indices[18]
 			{
 				0,1,2,
@@ -412,15 +366,13 @@ namespace Lumos
 			Ref<IndexBuffer> ib;
 			ib.reset(IndexBuffer::Create(indices, 18));
 			
-			return new Mesh(va, ib, BoundingBox);
+			return new Mesh(vb, ib, BoundingBox);
 		}
         
 		Mesh* CreateSphere(u32 xSegments, u32 ySegments)
 		{
+			LUMOS_PROFILE_FUNCTION();
 			auto data = std::vector<Vertex>();
-            
-			Ref<VertexArray> va;
-			va.reset(VertexArray::Create());
             
 			float sectorCount = static_cast<float>(xSegments);
 			float stackCount = static_cast<float>(ySegments);
@@ -457,19 +409,9 @@ namespace Lumos
 				}
 			}
             
-			VertexBuffer* buffer = VertexBuffer::Create(BufferUsage::STATIC);
-			buffer->SetData(int(data.size()) * sizeof(Vertex), data.data());
-            
-			Graphics::BufferLayout layout;
-			layout.Push<Maths::Vector3>("position");
-			layout.Push<Maths::Vector4>("colour");
-			layout.Push<Maths::Vector2>("texCoord");
-			layout.Push<Maths::Vector3>("normal");
-			layout.Push<Maths::Vector3>("tangent");
-			buffer->SetLayout(layout);
-            
-			va->PushBuffer(buffer);
-            
+			Ref<VertexBuffer> vb = Ref<VertexBuffer>(VertexBuffer::Create(BufferUsage::STATIC));
+			vb->SetData(int(data.size()) * sizeof(Vertex), data.data());
+       
 			std::vector<u32> indices;
 			u32 k1, k2;
 			for (u32 i = 0; i < stackCount; ++i)
@@ -507,7 +449,7 @@ namespace Lumos
 			Ref<IndexBuffer> ib;
 			ib.reset(IndexBuffer::Create(indices.data(), static_cast<u32>(indices.size())));
             
-			return new Mesh(va, ib, boundingBox);
+			return new Mesh(vb, ib, boundingBox);
 		}
         
 		Mesh* CreateIcoSphere(u32 radius, u32 subdivision)
@@ -517,6 +459,7 @@ namespace Lumos
         
 		Mesh* CreatePlane(float width, float height, const Maths::Vector3& normal)
 		{
+			LUMOS_PROFILE_FUNCTION();
 			Maths::Vector3 vec = normal * 90.0f;
 			Maths::Quaternion rotation = Maths::Quaternion(vec.z, Maths::Vector3(1.0f, 0.0f, 0.0f)) * Maths::Quaternion(vec.y, Maths::Vector3(0.0f, 1.0f, 0.0f)) * Maths::Quaternion(vec.x, Maths::Vector3(0.0f, 0.0f, 1.0f));
             
@@ -539,28 +482,14 @@ namespace Lumos
 			data[3].Normal = normal;
 			data[3].TexCoords = Maths::Vector2(1.0f, 0.0f);
             
-			VertexBuffer* buffer = VertexBuffer::Create(BufferUsage::STATIC);
-			buffer->SetData(4 * sizeof(Vertex), data);
+			Ref<VertexBuffer> vb = Ref<VertexBuffer>(VertexBuffer::Create(BufferUsage::STATIC));
+			vb->SetData(4 * sizeof(Vertex), data);
             
             Ref<Maths::BoundingBox> boundingBox = CreateRef<Maths::BoundingBox>();
             for (int i = 0; i < 4; i++)
             {
                 boundingBox->Merge(data[i].Position);
             }
-            
-			Ref<VertexArray> va;
-			va.reset(VertexArray::Create());
-			va->Bind();
-            
-            Graphics::BufferLayout layout;
-            layout.Push<Maths::Vector3>("postion");
-            layout.Push<Maths::Vector4>("colours");
-            layout.Push<Maths::Vector2>("texCoord");
-            layout.Push<Maths::Vector3>("normal");
-            layout.Push<Maths::Vector3>("tangent");
-            buffer->SetLayout(layout);
-			va->PushBuffer(buffer);
-			va->Unbind();
             
 			u32 indices[6]
 			{
@@ -571,11 +500,12 @@ namespace Lumos
 			Ref<IndexBuffer> ib;
 			ib.reset(IndexBuffer::Create(indices, 6));
 			
-			return new Mesh(va, ib, boundingBox);
+			return new Mesh(vb, ib, boundingBox);
 		}
         
 		Mesh* CreateCapsule(float radius, float midHeight, int radialSegments, int rings)
 		{
+			LUMOS_PROFILE_FUNCTION();
 			int i, j, prevrow, thisrow, point;
 			float x, y, z, u, v, w;
 			float onethird = 1.0f / 3.0f;
@@ -722,8 +652,8 @@ namespace Lumos
 				thisrow = point;
 			}
             
-			VertexBuffer* buffer = VertexBuffer::Create(BufferUsage::STATIC);
-			buffer->SetData(static_cast<u32>(data.size() * sizeof(Vertex)), data.data());
+			Ref<VertexBuffer> vb = Ref<VertexBuffer>(VertexBuffer::Create(BufferUsage::STATIC));
+			vb->SetData(static_cast<u32>(data.size() * sizeof(Vertex)), data.data());
             
 			Ref<Maths::BoundingBox> boundingBox = CreateRef<Maths::BoundingBox>();
 			for (size_t i = 0; i < data.size(); i++)
@@ -731,27 +661,16 @@ namespace Lumos
 				boundingBox->Merge(data[i].Position);
 			}
             
-			Graphics::BufferLayout layout;
-			layout.Push<Maths::Vector3>("postion");
-			layout.Push<Maths::Vector4>("colours");
-			layout.Push<Maths::Vector2>("texCoord");
-			layout.Push<Maths::Vector3>("normal");
-			layout.Push<Maths::Vector3>("tangent");
-			buffer->SetLayout(layout);
-            
-			Ref<VertexArray> va;
-			va.reset(VertexArray::Create());
-			va->PushBuffer(buffer);
-            
 			Ref<IndexBuffer> ib;
 			ib.reset(IndexBuffer::Create(indices.data(), static_cast<u32>(indices.size())));
             
-			return new Mesh(va, ib, boundingBox);
+			return new Mesh(vb, ib, boundingBox);
 		}
 	}
     
 	Graphics::Mesh* Graphics::CreateCylinder(float bottomRadius, float topRadius, float height, int radialSegments, int rings)
 	{
+		LUMOS_PROFILE_FUNCTION();
 		int i, j, prevrow, thisrow, point = 0;
 		float x, y, z, u, v, radius;
         
@@ -886,8 +805,8 @@ namespace Lumos
 			};
 		};
         
-		VertexBuffer* buffer = VertexBuffer::Create(BufferUsage::STATIC);
-		buffer->SetData(static_cast<u32>(data.size() * sizeof(Vertex)), data.data());
+		Ref<VertexBuffer> vb = Ref<VertexBuffer>(VertexBuffer::Create(BufferUsage::STATIC));
+		vb->SetData(static_cast<u32>(data.size() * sizeof(Vertex)), data.data());
         
 		Ref<Maths::BoundingBox> boundingBox = CreateRef<Maths::BoundingBox>();
 		for (size_t i = 0; i < data.size(); i++)
@@ -895,22 +814,10 @@ namespace Lumos
 			boundingBox->Merge(data[i].Position);
 		}
         
-		Graphics::BufferLayout layout;
-		layout.Push<Maths::Vector3>("postion");
-		layout.Push<Maths::Vector4>("colours");
-		layout.Push<Maths::Vector2>("texCoord");
-		layout.Push<Maths::Vector3>("normal");
-		layout.Push<Maths::Vector3>("tangent");
-		buffer->SetLayout(layout);
-        
-		Ref<VertexArray> va;
-		va.reset(VertexArray::Create());
-		va->PushBuffer(buffer);
-        
 		Ref<IndexBuffer> ib;
 		ib.reset(IndexBuffer::Create(indices.data(), static_cast<u32>(indices.size())));
         
-		return new Mesh(va, ib, boundingBox);
+		return new Mesh(vb, ib, boundingBox);
 	}
     
 	Graphics::Mesh* Graphics::CreatePrimative(PrimitiveType type)

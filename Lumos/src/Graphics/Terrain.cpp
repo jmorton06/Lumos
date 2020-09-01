@@ -23,6 +23,7 @@ namespace Lumos
 	
 	Terrain::Terrain(int width, int height, int lowside, int lowscale, float xRand, float yRand, float zRand, float texRandX, float texRandZ)
 	{
+		LUMOS_PROFILE_FUNCTION();
 		int xCoord = 0;
 		int zCoord = 0;
 		u32 numVertices = width  * height;
@@ -88,20 +89,8 @@ namespace Lumos
             m_BoundingBox->Merge(verts[i].Position);
 		}
 
-		m_VertexArray = Ref<Graphics::VertexArray>(Graphics::VertexArray::Create());
-
-		Graphics::VertexBuffer* buffer = Graphics::VertexBuffer::Create(Graphics::BufferUsage::STATIC);
-		buffer->SetData(sizeof(Graphics::Vertex) * numVertices, (void*)verts);
-
-		Graphics::BufferLayout layout;
-		layout.Push<Maths::Vector3>("position");
-		layout.Push<Maths::Vector4>("colour");
-		layout.Push<Maths::Vector2>("texCoord");
-		layout.Push<Maths::Vector3>("normal");
-		layout.Push<Maths::Vector3>("tangent");
-		buffer->SetLayout(layout);
-
-		m_VertexArray->PushBuffer(buffer);
+		m_VertexBuffer = Ref<Graphics::VertexBuffer>(Graphics::VertexBuffer::Create(Graphics::BufferUsage::STATIC));
+		m_VertexBuffer->SetData(sizeof(Graphics::Vertex) * numVertices, (void*)verts);
 
 		m_IndexBuffer = Ref<Graphics::IndexBuffer>(Graphics::IndexBuffer::Create(indices, numIndices));// / sizeof(u32));
         

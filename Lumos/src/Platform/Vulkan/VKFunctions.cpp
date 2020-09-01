@@ -14,7 +14,6 @@
 #include "VKSwapchain.h"
 #include "VKTexture.h"
 #include "VKUniformBuffer.h"
-#include "VKVertexArray.h"
 #include "VKVertexBuffer.h"
 
 void Lumos::Graphics::Vulkan::MakeDefault()
@@ -36,6 +35,5 @@ void Lumos::Graphics::Vulkan::MakeDefault()
 	VKTextureDepth::MakeDefault();
 	VKTextureDepthArray::MakeDefault();
 	VKUniformBuffer::MakeDefault();
-	VKVertexArray::MakeDefault();
 	VKVertexBuffer::MakeDefault();
 }
