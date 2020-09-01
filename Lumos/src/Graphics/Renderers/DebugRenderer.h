@@ -18,7 +18,6 @@ namespace Lumos
 		class Texture;
 		class Shader;
 		class IndexBuffer;
-		class VertexArray;
 		class Renderer2D;
 		class LineRenderer;
 		class PointRenderer;

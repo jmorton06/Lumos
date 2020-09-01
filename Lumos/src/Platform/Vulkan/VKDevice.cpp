@@ -4,22 +4,22 @@
 #include "Core/Version.h"
 #include "VKDevice.h"
 #include "VKRenderer.h"
+#include "VKCommandPool.h"
 
 namespace Lumos
 {
 	namespace Graphics
 	{
+        uint32_t VKDevice::s_GraphicsQueueFamilyIndex = 0;
+    
 		VKDevice::VKDevice()
 		{
 			m_VKContext = dynamic_cast<VKContext*>(GraphicsContext::GetContext());
-
-			Init();
-
-			CreatePipelineCache();
 		}
 
 		VKDevice::~VKDevice()
 		{
+			m_CommandPool.reset();
 			Unload();
 		}
 
@@ -100,14 +100,14 @@ namespace Lumos
 			for(uint32_t i = 0; i < m_QueueFamiliyProperties.size(); i++)
 				vkGetPhysicalDeviceSurfaceSupportKHR(m_PhysicalDevice, i, m_Surface, &supportsPresent[i]);
 
-			m_GraphicsQueueFamilyIndex = UINT32_MAX;
+			s_GraphicsQueueFamilyIndex = UINT32_MAX;
 			for(uint32_t i = 0; i < m_QueueFamiliyProperties.size(); i++)
 			{
 				if((m_QueueFamiliyProperties[i].queueFlags & VK_QUEUE_GRAPHICS_BIT))
 				{
 					if(supportsPresent[i] == VK_TRUE)
 					{
-						m_GraphicsQueueFamilyIndex = i;
+						s_GraphicsQueueFamilyIndex = i;
 						break;
 					}
 				}
@@ -115,7 +115,7 @@ namespace Lumos
 
 			delete[] supportsPresent;
 
-			if(m_GraphicsQueueFamilyIndex == UINT32_MAX)
+			if(s_GraphicsQueueFamilyIndex == UINT32_MAX)
 			{
 				Debug::Log::Critical("[VULKAN] Couldn't find a Graphics queue family index!");
 				return false;
@@ -165,7 +165,7 @@ namespace Lumos
 			VkDeviceQueueCreateInfo deviceQueueCI{};
 			deviceQueueCI.sType = VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO;
 			deviceQueueCI.queueCount = 1;
-			deviceQueueCI.queueFamilyIndex = m_GraphicsQueueFamilyIndex;
+			deviceQueueCI.queueFamilyIndex = s_GraphicsQueueFamilyIndex;
 			deviceQueueCI.pQueuePriorities = pQueuePriorities;
 
 			VkPhysicalDeviceFeatures deviceFeatures{};
@@ -208,8 +208,8 @@ namespace Lumos
 				return false;
 			}
 
-			vkGetDeviceQueue(m_Device, m_GraphicsQueueFamilyIndex, 0, &m_GraphicsQueue);
-			vkGetDeviceQueue(m_Device, m_GraphicsQueueFamilyIndex, 0, &m_PresentQueue);
+			vkGetDeviceQueue(m_Device, s_GraphicsQueueFamilyIndex, 0, &m_GraphicsQueue);
+			vkGetDeviceQueue(m_Device, s_GraphicsQueueFamilyIndex, 0, &m_PresentQueue);
 
 #ifdef USE_VMA_ALLOCATOR
 			VmaAllocatorCreateInfo allocatorInfo = {};
@@ -249,7 +249,11 @@ namespace Lumos
 				Debug::Log::Critical("[VULKAN] Failed to create VMA allocator");
 			}
 #endif
-
+            m_CommandPool = CreateRef<VKCommandPool>();
+            
+			CreateTracyContext();
+            
+            CreatePipelineCache();
 			return VK_SUCCESS;
 		}
 
@@ -260,6 +264,7 @@ namespace Lumos
 #ifdef USE_VMA_ALLOCATOR
 			vmaDestroyAllocator(m_Allocator);
 #endif
+			TracyVkDestroy(m_TracyContext);
 
 			vkDestroyDevice(m_Device, VK_NULL_HANDLE);
 			vkDestroySurfaceKHR(m_VKContext->GetVKInstance(), m_Surface, VK_NULL_HANDLE);
@@ -289,5 +294,22 @@ namespace Lumos
 			pipelineCacheCI.pNext = NULL;
 			vkCreatePipelineCache(m_Device, &pipelineCacheCI, VK_NULL_HANDLE, &m_PipelineCache);
 		}
+		
+		void VKDevice::CreateTracyContext()
+        {
+            VkCommandBufferAllocateInfo allocInfo = {};
+            allocInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
+            allocInfo.level = VK_COMMAND_BUFFER_LEVEL_PRIMARY;
+            allocInfo.commandPool = m_CommandPool->GetCommandPool();
+            allocInfo.commandBufferCount = 1;
+			
+            VkCommandBuffer tracyBuffer;
+            vkAllocateCommandBuffers(m_Device, &allocInfo, &tracyBuffer);
+			
+            m_TracyContext = TracyVkContext(m_PhysicalDevice, m_Device, m_GraphicsQueue, tracyBuffer);
+			
+            vkQueueWaitIdle(m_GraphicsQueue);
+            vkFreeCommandBuffers(m_Device,  m_CommandPool->GetCommandPool(), 1, &tracyBuffer);
+        }
 	}
 }

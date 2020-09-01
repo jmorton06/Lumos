@@ -231,20 +231,9 @@ namespace Lumos::Graphics
 				indicesArray[i] = index;
 			}
 			
-			Ref<Graphics::VertexArray> va = Ref<Graphics::VertexArray>(Graphics::VertexArray::Create());
-			va->Bind();
-			Graphics::VertexBuffer* buffer = Graphics::VertexBuffer::Create(Graphics::BufferUsage::STATIC);
-			buffer->SetData(sizeof(Graphics::Vertex) * vertex_count, tempvertices);
-			
-			Graphics::BufferLayout layout;
-			layout.Push<Maths::Vector3>("position");
-			layout.Push<Maths::Vector4>("colour");
-			layout.Push<Maths::Vector2>("texCoord");
-			layout.Push<Maths::Vector3>("normal");
-			layout.Push<Maths::Vector3>("tangent");
-			buffer->SetLayout(layout);
-			
-			va->PushBuffer(buffer);
+			Ref<Graphics::VertexBuffer> vb = Ref<Graphics::VertexBuffer>(Graphics::VertexBuffer::Create());
+			vb->SetData(sizeof(Graphics::Vertex) * vertex_count, tempvertices);
+    
 			Ref<Graphics::IndexBuffer> ib;
 			ib.reset(Graphics::IndexBuffer::Create(indicesArray, numIndices));
 			
@@ -373,7 +362,7 @@ namespace Lumos::Graphics
 				pbrMaterial->SetMaterialProperites(properties);
 			}
 			
-			auto mesh = CreateRef<Graphics::Mesh>(va, ib, boundingBox);
+			auto mesh = CreateRef<Graphics::Mesh>(vb, ib, boundingBox);
 			if(c == 1)
 			{
 				mesh->SetName(fbx_mesh->name);

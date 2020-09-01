@@ -32,38 +32,41 @@
 #include "Core/OS/Window.h"
 #include "Core/Profiler.h"
 #include "Core/VFS.h"
-
+#include "Core/OS/FileSystem.h"
 #include "Scripting/Lua/LuaManager.h"
-
 #include "ImGui/ImGuiLayer.h"
-
 #include "Events/ApplicationEvent.h"
 #include "Audio/AudioManager.h"
 #include "Audio/Sound.h"
 #include "Physics/B2PhysicsEngine/B2PhysicsEngine.h"
 #include "Physics/LumosPhysicsEngine/LumosPhysicsEngine.h"
 
+#include <cereal/archives/json.hpp>
 #include <imgui/imgui.h>
 namespace Lumos
 {
 	Application* Application::s_Instance = nullptr;
 	
-	Application::Application(const WindowProperties& properties)
+	Application::Application(const std::string& projectFilePath)
 		: m_UpdateTimer(0)
 		, m_Frames(0)
 		, m_Updates(0)
         , m_SceneViewWidth(800)
         , m_SceneViewHeight(600)
-		, m_InitialProperties(properties)
+		, FilePath(projectFilePath)
 	{
 		LUMOS_PROFILE_FUNCTION();
 		LUMOS_ASSERT(!s_Instance, "Application already exists!");
 		s_Instance = this;
+		
+        m_SceneManager = CreateUniqueRef<SceneManager>();
+
+		Deserialise(projectFilePath);
 
 #ifdef LUMOS_EDITOR
-		m_Editor = new Editor(this, properties.Width, properties.Height);
+		m_Editor = new Editor(this, Width, Height);
 #endif
-		Graphics::GraphicsContext::SetRenderAPI(static_cast<Graphics::RenderAPI>(properties.RenderAPI));
+		Graphics::GraphicsContext::SetRenderAPI(static_cast<Graphics::RenderAPI>(RenderAPI));
 
 		Engine::Get();
 
@@ -75,15 +78,22 @@ namespace Lumos
 		VFS::Get()->Mount("CoreMeshes", root + "/Lumos/res/meshes");
 		VFS::Get()->Mount("CoreTextures", root + "/Lumos/res/textures");
 		VFS::Get()->Mount("CoreFonts", root + "/Lumos/res/fonts");
-
-		m_Window = UniqueRef<Window>(Window::Create(properties));
+		
+		WindowProperties  windowProperties;
+		windowProperties.Width = Width;
+		windowProperties.Height = Height;
+		windowProperties.RenderAPI = RenderAPI;
+		windowProperties.Fullscreen = Fullscreen;
+		windowProperties.Borderless = Borderless;
+		windowProperties.ShowConsole = ShowConsole;
+		windowProperties.Title = Title;
+		
+		m_Window = UniqueRef<Window>(Window::Create(windowProperties));
 #ifndef LUMOS_EDITOR
 		m_Window->SetEventCallback(BIND_EVENT_FN(Application::OnEvent));
 #else
 		m_Editor->BindEventFunction();
 #endif
-
-		m_SceneManager = CreateUniqueRef<SceneManager>();
 
 		ImGui::CreateContext();
 		ImGui::StyleColorsDark();
@@ -177,6 +187,7 @@ namespace Lumos
 	int Application::Quit(bool pause, const std::string& reason)
 	{
 		LUMOS_PROFILE_FUNCTION();
+		Serialise(FilePath);
 		Graphics::Material::ReleaseDefaultTexture();
 		Engine::Release();
 		Input::Release();
@@ -465,4 +476,50 @@ namespace Lumos
         
         file.close();
     }
+	
+	void Application::Serialise(const std::string& filePath)
+	{
+		LUMOS_PROFILE_FUNCTION();
+		{
+			std::stringstream storage;
+			{
+				// output finishes flushing its contents when it goes out of scope
+				cereal::JSONOutputArchive output{storage};
+				output(*this);
+			}
+			auto fullPath = ROOT_DIR + filePath;
+			FileSystem::WriteTextFile(fullPath, storage.str());
+		}
+	}
+	
+	void Application::Deserialise(const std::string& filePath)
+	{
+		LUMOS_PROFILE_FUNCTION();
+		{
+			auto fullPath = ROOT_DIR + filePath;
+			if(!FileSystem::FileExists(fullPath))
+			{
+                Lumos::Debug::Log::Info("No saved Project file found {0}", fullPath);
+				{
+					//Set Default values
+					RenderAPI = 1;
+					Width = 1200;
+					Height = 800;
+					Borderless = false;
+					VSync = false;
+					Title = "LumosGame";
+					ShowConsole = false;
+					Fullscreen = false;
+				}
+				return;
+			}
+			
+			std::string data = FileSystem::ReadTextFile(fullPath);
+			std::istringstream istr;
+			istr.str(data);
+			cereal::JSONInputArchive input(istr);
+			input(*this);
+	}
+	}
 }
+	

@@ -6,7 +6,7 @@
 
 #include "Maths/Maths.h"
 #include "Maths/Transform.h"
-#include "Core/Profiler.h"
+ 
 
 #include "Graphics/RenderManager.h"
 #include "Graphics/Camera/Camera.h"
@@ -61,9 +61,6 @@ namespace Lumos
 			delete m_DefaultMaterial;
 
 			delete[] m_VSSystemUniformBuffer;
-
-			for(auto commandBuffer : m_CommandBuffers)
-				delete commandBuffer;
 
 			m_Framebuffers.clear();
 			m_CommandBuffers.clear();
@@ -145,6 +142,7 @@ namespace Lumos
 			m_DefaultMaterial->CreateDescriptorSet(m_Pipeline.get(), 1);
 
 			m_ClearColour = Maths::Vector4(0.1f, 0.1f, 0.1f, 1.0f);
+            m_CurrentDescriptorSets.resize(2);
 		}
 
 		void DeferredOffScreenRenderer::RenderScene(Scene* scene)
@@ -152,14 +150,56 @@ namespace Lumos
 			LUMOS_PROFILE_FUNCTION();
 
 			Begin();
+			SetSystemUniforms(m_Shader.get());
+			Present();
+			End();
+		}
 
+		void DeferredOffScreenRenderer::PresentToScreen()
+		{
+			LUMOS_PROFILE_FUNCTION();
+			Renderer::Present(m_CommandBuffers[Renderer::GetSwapchain()->GetCurrentBufferId()].get());
+		}
+
+		void DeferredOffScreenRenderer::Begin()
+		{
+			LUMOS_PROFILE_FUNCTION();
+			m_DeferredCommandBuffers->BeginRecording();
+			m_DeferredCommandBuffers->UpdateViewport(m_ScreenBufferWidth, m_ScreenBufferHeight);
+
+			m_RenderPass->BeginRenderpass(m_DeferredCommandBuffers, Maths::Vector4(0.0f), m_Framebuffers.front().get(), Graphics::INLINE, m_ScreenBufferWidth, m_ScreenBufferHeight);
+		}
+
+		void DeferredOffScreenRenderer::BeginScene(Scene* scene, Camera* overrideCamera, Maths::Transform* overrideCameraTransform)
+		{
+			LUMOS_PROFILE_FUNCTION();
+            m_CommandQueue.clear();
+            m_SystemUniforms.clear();
+            
+			m_Camera = overrideCamera;
+			m_CameraTransform = overrideCameraTransform;
+
+			auto view = m_CameraTransform->GetWorldMatrix().Inverse();
+			
+			if(!m_Camera)
+			{
+				return;
+			}
+
+			LUMOS_ASSERT(m_Camera, "No Camera Set for Renderer");
+			auto projView = m_Camera->GetProjectionMatrix() * view;
+			memcpy(m_VSSystemUniformBuffer + m_VSSystemUniformBufferOffsets[VSSystemUniformIndex_ProjectionViewMatrix], &projView, sizeof(Maths::Matrix4));
+
+			m_Frustum = m_Camera->GetFrustum(view);
+			
+			
 			auto& registry = scene->GetRegistry();
 			auto group = registry.group<Model>(entt::get<Maths::Transform>);
-
+			
 			for(auto entity : group)
 			{
 				const auto& [model, trans] = group.get<Model, Maths::Transform>(entity);
-
+				
                 const auto& meshes = model.GetMeshes();
                 
                 for(auto mesh : meshes)
@@ -167,14 +207,14 @@ namespace Lumos
                     if(mesh->GetActive())
                     {
                         auto& worldTransform = trans.GetWorldMatrix();
-
+						
                         auto bb = mesh->GetBoundingBox();
                         auto bbCopy = bb->Transformed(worldTransform);
                         auto inside = m_Frustum.IsInsideFast(bbCopy);
-
+						
                         if(inside == Maths::Intersection::OUTSIDE)
                             continue;
-
+						
                         auto meshPtr = mesh;
                         auto material = meshPtr->GetMaterial();
                         if(material)
@@ -185,57 +225,18 @@ namespace Lumos
                                 material->SetTexturesUpdated(false);
                             }
                         }
-
+						
                         auto textureMatrixTransform = registry.try_get<TextureMatrixComponent>(entity);
                         Maths::Matrix4 textureMatrix;
                         if(textureMatrixTransform)
                             textureMatrix = textureMatrixTransform->GetMatrix();
                         else
                             textureMatrix = Maths::Matrix4();
-
+						
                         SubmitMesh(meshPtr.get(), material.get(), worldTransform, textureMatrix);
                     }
                 }
 			}
-
-			SetSystemUniforms(m_Shader.get());
-
-			Present();
-
-			End();
-		}
-
-		void DeferredOffScreenRenderer::PresentToScreen()
-		{
-			LUMOS_PROFILE_FUNCTION();
-			Renderer::Present(m_CommandBuffers[Renderer::GetSwapchain()->GetCurrentBufferId()]);
-		}
-
-		void DeferredOffScreenRenderer::Begin()
-		{
-			LUMOS_PROFILE_FUNCTION();
-			m_CommandQueue.clear();
-			m_SystemUniforms.clear();
-
-			m_DeferredCommandBuffers->BeginRecording();
-			m_DeferredCommandBuffers->UpdateViewport(m_ScreenBufferWidth, m_ScreenBufferHeight);
-
-			m_RenderPass->BeginRenderpass(m_DeferredCommandBuffers, Maths::Vector4(0.0f), m_Framebuffers.front().get(), Graphics::INLINE, m_ScreenBufferWidth, m_ScreenBufferHeight);
-		}
-
-		void DeferredOffScreenRenderer::BeginScene(Scene* scene, Camera* overrideCamera, Maths::Transform* overrideCameraTransform)
-		{
-			LUMOS_PROFILE_FUNCTION();
-			m_Camera = overrideCamera;
-			m_CameraTransform = overrideCameraTransform;
-
-			auto view = m_CameraTransform->GetWorldMatrix().Inverse();
-
-			LUMOS_ASSERT(m_Camera, "No Camera Set for Renderer");
-			auto projView = m_Camera->GetProjectionMatrix() * view;
-			memcpy(m_VSSystemUniformBuffer + m_VSSystemUniformBufferOffsets[VSSystemUniformIndex_ProjectionViewMatrix], &projView, sizeof(Maths::Matrix4));
-
-			m_Frustum = m_Camera->GetFrustum(view);
 		}
 
 		void DeferredOffScreenRenderer::Submit(const RenderCommand& command)
@@ -297,14 +298,17 @@ namespace Lumos
 				uint32_t dynamicOffset = i * static_cast<uint32_t>(m_DynamicAlignment);
 
 				std::vector<Graphics::DescriptorSet*> descriptorSets = {m_Pipeline->GetDescriptorSet(), command.material ? command.material->GetDescriptorSet() : m_DefaultMaterial->GetDescriptorSet()};
+                
+                m_CurrentDescriptorSets[0] = m_Pipeline->GetDescriptorSet();
+                m_CurrentDescriptorSets[1] = command.material ? command.material->GetDescriptorSet() : m_DefaultMaterial->GetDescriptorSet();
 
-				mesh->GetVertexArray()->Bind(m_DeferredCommandBuffers);
+				mesh->GetVertexBuffer()->Bind(m_DeferredCommandBuffers, m_Pipeline.get());
 				mesh->GetIndexBuffer()->Bind(m_DeferredCommandBuffers);
 
-				Renderer::BindDescriptorSets(m_Pipeline.get(), m_DeferredCommandBuffers, dynamicOffset, descriptorSets);
+				Renderer::BindDescriptorSets(m_Pipeline.get(), m_DeferredCommandBuffers, dynamicOffset, m_CurrentDescriptorSets);
 				Renderer::DrawIndexed(m_DeferredCommandBuffers, DrawType::TRIANGLE, mesh->GetIndexBuffer()->GetCount());
 
-				mesh->GetVertexArray()->Unbind();
+				mesh->GetVertexBuffer()->Unbind();
 				mesh->GetIndexBuffer()->Unbind();
 			}
 		}

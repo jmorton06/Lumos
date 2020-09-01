@@ -63,7 +63,8 @@ namespace Lumos
 		
 		 while (chunkPtr + actualSize <= Chunk(m_Max))
 		 {
-			 free(chunkPtr);
+			Free(chunkPtr);
+			chunkPtr += actualSize;
 		 }
 	}
 }

@@ -10,7 +10,6 @@
 #include "Graphics/API/RenderPass.h"
 #include "Graphics/API/Pipeline.h"
 #include "Graphics/API/IndexBuffer.h"
-#include "Graphics/API/VertexArray.h"
 #include "Graphics/API/Texture.h"
 #include "Graphics/GBuffer.h"
 #include "Graphics/Sprite.h"
@@ -22,7 +21,7 @@
 #include "Graphics/Camera/Camera.h"
 #include "Graphics/Renderers/Renderer2D.h"
 #include "Maths/Transform.h"
-#include "Core/Profiler.h"
+ 
 
 namespace Lumos
 {
@@ -44,7 +43,6 @@ namespace Lumos
 		LineIndexCount = 0;
 
 		LineRenderer::SetScreenBufferSize(width, height);
-
 		LineRenderer::Init();
 	}
 
@@ -59,7 +57,7 @@ namespace Lumos
 		m_CommandBuffers.clear();
 
 		for(int i = 0; i < MAX_BATCH_DRAW_CALLS; i++)
-			delete m_VertexArrays[i];
+			delete m_VertexBuffers[i];
 
 		for(int i = 0; i < MAX_BATCH_DRAW_CALLS; i++)
 			delete m_SecondaryCommandBuffers[i];
@@ -127,19 +125,12 @@ namespace Lumos
 
 		m_Pipeline->GetDescriptorSet()->Update(bufferInfos);
 
-		Graphics::BufferLayout layout;
-		layout.Push<Maths::Vector3>("POSITION"); // Position
-		layout.Push<Maths::Vector4>("COLOUR"); // UV
+		m_VertexBuffers.resize(MAX_BATCH_DRAW_CALLS);
 
-		m_VertexArrays.resize(MAX_BATCH_DRAW_CALLS);
-
-		for(auto& vertexArray : m_VertexArrays)
+		for(auto& vertexBuffer : m_VertexBuffers)
 		{
-			vertexArray = Graphics::VertexArray::Create();
-			VertexBuffer* buffer = VertexBuffer::Create(BufferUsage::DYNAMIC);
-			buffer->Resize(RENDERER_BUFFER_SIZE);
-			buffer->SetLayout(layout);
-			vertexArray->PushBuffer(buffer);
+			vertexBuffer = Graphics::VertexBuffer::Create(BufferUsage::DYNAMIC);
+			vertexBuffer->Resize(RENDERER_BUFFER_SIZE);
 		}
 
 		u32* indices = new u32[MaxLineIndices];
@@ -154,6 +145,7 @@ namespace Lumos
 		delete[] indices;
 
 		m_ClearColour = Maths::Vector4(0.2f, 0.7f, 0.2f, 1.0f);
+        m_CurrentDescriptorSets.resize(1);
 	}
 
 	void LineRenderer::Submit(const Maths::Vector3& p1, const Maths::Vector3& p2, const Maths::Vector4& colour)
@@ -206,8 +198,6 @@ namespace Lumos
 
 	void LineRenderer::SetSystemUniforms(Shader* shader) const
 	{
-		shader->SetSystemUniformBuffer(ShaderType::VERTEX, m_VSSystemUniformBuffer, m_VSSystemUniformBufferSize, 0);
-
 		m_UniformBuffer->SetData(sizeof(UniformBufferObject), *&m_VSSystemUniformBuffer);
 	}
 
@@ -246,20 +236,20 @@ namespace Lumos
 		currentCMDBuffer->UpdateViewport(m_ScreenBufferWidth, m_ScreenBufferHeight);
 		m_Pipeline->Bind(currentCMDBuffer);
 
-		m_VertexArrays[m_BatchDrawCallIndex]->GetBuffer()->ReleasePointer();
-		m_VertexArrays[m_BatchDrawCallIndex]->Unbind();
+		m_VertexBuffers[m_BatchDrawCallIndex]->ReleasePointer();
+		m_VertexBuffers[m_BatchDrawCallIndex]->Unbind();
 
 		m_IndexBuffer->SetCount(LineIndexCount);
 
-		std::vector<Graphics::DescriptorSet*> descriptors = {m_Pipeline->GetDescriptorSet()};
+        m_CurrentDescriptorSets[0] = m_Pipeline->GetDescriptorSet();
 
-		m_VertexArrays[m_BatchDrawCallIndex]->Bind(currentCMDBuffer);
+        m_VertexBuffers[m_BatchDrawCallIndex]->Bind(currentCMDBuffer, m_Pipeline.get());
 		m_IndexBuffer->Bind(currentCMDBuffer);
-
-		Renderer::BindDescriptorSets(m_Pipeline.get(), currentCMDBuffer, 0, descriptors);
+        
+		Renderer::BindDescriptorSets(m_Pipeline.get(), currentCMDBuffer, 0, m_CurrentDescriptorSets);
 		Renderer::DrawIndexed(currentCMDBuffer, DrawType::LINES, LineIndexCount);
 
-		m_VertexArrays[m_BatchDrawCallIndex]->Unbind();
+		m_VertexBuffers[m_BatchDrawCallIndex]->Unbind();
 		m_IndexBuffer->Unbind();
 
 		LineIndexCount = 0;
@@ -294,11 +284,12 @@ namespace Lumos
 			m_CurrentBufferID = Renderer::GetSwapchain()->GetCurrentBufferId();
 
 		m_CommandBuffers[m_CurrentBufferID]->BeginRecording();
+        m_Pipeline->Bind(m_CommandBuffers[m_CurrentBufferID].get());
 
 		m_RenderPass->BeginRenderpass(m_CommandBuffers[m_CurrentBufferID].get(), m_ClearColour, m_Framebuffers[m_CurrentBufferID].get(), Graphics::SECONDARY, m_ScreenBufferWidth, m_ScreenBufferHeight);
 
-		m_VertexArrays[m_BatchDrawCallIndex]->Bind(m_CommandBuffers[m_CurrentBufferID].get());
-		m_Buffer = m_VertexArrays[m_BatchDrawCallIndex]->GetBuffer()->GetPointer<LineVertexData>();
+        m_VertexBuffers[m_BatchDrawCallIndex]->Bind(m_CommandBuffers[m_CurrentBufferID].get(), m_Pipeline.get());
+		m_Buffer = m_VertexBuffers[m_BatchDrawCallIndex]->GetPointer<LineVertexData>();
 
 		SetSystemUniforms(m_Shader.get());
 
@@ -436,7 +427,7 @@ namespace Lumos
 
 		m_Lines.clear();
 
-		m_VertexArrays[m_BatchDrawCallIndex]->Bind();
-		m_Buffer = m_VertexArrays[m_BatchDrawCallIndex]->GetBuffer()->GetPointer<LineVertexData>();
+		m_VertexBuffers[m_BatchDrawCallIndex]->Bind(nullptr, nullptr);
+		m_Buffer = m_VertexBuffers[m_BatchDrawCallIndex]->GetPointer<LineVertexData>();
 	}
 }

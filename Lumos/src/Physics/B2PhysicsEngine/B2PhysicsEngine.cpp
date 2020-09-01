@@ -3,7 +3,7 @@
 #include "RigidBody2D.h"
 
 #include "Utilities/TimeStep.h"
-#include "Core/Profiler.h"
+ 
 #include "Scene/Component/Physics2DComponent.h"
 
 #include "Maths/Transform.h"

@@ -2,6 +2,10 @@
 #include "Core/Reference.h"
 #include "Scene/SystemManager.h"
 #include "Core/OS/Window.h"
+#include "Scene/SceneManager.h"
+
+#include <cereal/types/vector.hpp>
+#include <cereal/cereal.hpp>
 
 #define LUMOS_EDITOR //temp
 
@@ -10,7 +14,6 @@ namespace Lumos
 	class Timer;
 	class Window;
 	struct WindowProperties;
-	class SceneManager;
 	class AudioManager;
 	class SystemManager;
 	class Editor;
@@ -59,7 +62,7 @@ namespace Lumos
 		friend class Editor;
 
 	public:
-		Application(const WindowProperties& properties);
+		Application(const std::string& projectFilePath = "");
 		virtual ~Application();
 
 		int Quit(bool pause = false, const std::string& reason = "");
@@ -181,6 +184,70 @@ namespace Lumos
 #endif
     
         void EmbedTexture(const std::string& texFilePath, const std::string& outPath, const std::string& arrayName);
+		
+		virtual void Serialise(const std::string& filePath);
+		virtual void Deserialise(const std::string& filePath);
+		
+		template<typename Archive>
+			void save(Archive& archive) const
+			
+		{
+			 int projectVersion = 3;
+			
+			archive(cereal::make_nvp("Project Version", projectVersion));
+			//Version 1
+			archive(cereal::make_nvp("RenderAPI", RenderAPI),
+						cereal::make_nvp("Width", m_Window->GetWidth()),
+						cereal::make_nvp("Height", m_Window->GetHeight()),
+						cereal::make_nvp("Fullscreen", Fullscreen),
+						cereal::make_nvp("VSync", VSync),
+						cereal::make_nvp("ShowConsole", ShowConsole),
+						cereal::make_nvp("Title", Title),
+						cereal::make_nvp("FilePath", FilePath)
+						);
+			//Version 2
+			archive(cereal::make_nvp("Scenes", m_SceneManager->GetSceneFilePaths()));
+            //Version 3
+            archive(cereal::make_nvp("SceneIndex", m_SceneManager->GetCurrentSceneIndex()));
+
+		}
+		
+		
+		template<typename Archive>
+			void load(Archive& archive)
+		{
+			 int projectVersion = 0;
+			archive(cereal::make_nvp("Project Version", projectVersion));
+			
+			if(projectVersion > 0)
+			{
+			archive(cereal::make_nvp("RenderAPI", RenderAPI),
+					cereal::make_nvp("Width", Width),
+					cereal::make_nvp("Height", Height),
+					cereal::make_nvp("Fullscreen", Fullscreen),
+					cereal::make_nvp("VSync", VSync),
+					cereal::make_nvp("ShowConsole", ShowConsole),
+					cereal::make_nvp("Title", Title),
+							cereal::make_nvp("FilePath", FilePath));
+			}
+			if(projectVersion > 2)
+			{
+				std::vector<std::string> sceneFilePaths;
+				archive(cereal::make_nvp("Scenes", sceneFilePaths));
+				
+				for(auto& filePath : sceneFilePaths)
+				{
+					m_SceneManager->EnqueueSceneFromFile(filePath);
+				}
+			}
+            if(projectVersion > 3)
+            {
+                int sceneIndex;
+                archive(cereal::make_nvp("SceneIndex", sceneIndex));
+                m_SceneManager->SwitchScene(sceneIndex);
+            }
+		}
+					
 
 	private:
 		void PushLayerInternal(Layer* layer, bool overlay, bool sceneAdded);
@@ -189,6 +256,17 @@ namespace Lumos
 
 		float m_UpdateTimer;
 		UniqueRef<Timer> m_Timer;
+		
+		//Start proj saving
+		u32 Width, Height;
+		bool Fullscreen;
+		bool VSync;
+		bool Borderless;
+		bool ShowConsole = true;
+		std::string Title;
+		int RenderAPI;
+		std::string FilePath;
+		//
 
 		u32 m_Frames;
 		u32 m_Updates;
@@ -214,7 +292,6 @@ namespace Lumos
 		static Application* s_Instance;
 
 		Layer* m_ImGuiLayer = nullptr;
-		WindowProperties m_InitialProperties;
 
 #ifdef LUMOS_EDITOR
 		Editor* m_Editor = nullptr;

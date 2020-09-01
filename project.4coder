@@ -52,7 +52,7 @@ command_list = {
    .out = "*Clean*", .footer_panel = true, .save_dirty_files = false,.cursor_at_end = true,
    .cmd = { { "Tools/premake5 clean", .os = "win"   },
             { "Tools/linux/premake5 clean" , .os = "linux" },
-            { "Tools/premake5 clean" , .os = "mac"   }, }, },
+            { "./Scripts/CleanMacOS.sh" , .os = "mac"   }, }, },
  { .name = "build and run release",
    .out = "*Build And Run - Release*", .footer_panel = true, .save_dirty_files = false,.cursor_at_end = true,
    .cmd = { { "", .os = "win"   },
@@ -68,5 +68,5 @@ fkey_command[1] = "gen project";
 fkey_command[2] = "build";
 fkey_command[3] = "run";
 fkey_command[4] = "clean";
-fkey_command[5] = "build and run release";
-fkey_command[6] = "compileShaders"
+fkey_command[5] = "compileShaders";
+fkey_command[6] = "build and run release"

@@ -6,7 +6,7 @@
 #include "VKTools.h"
 #include "VKPipeline.h"
 
-#include "Core/Profiler.h"
+ 
 
 namespace Lumos
 {
@@ -19,7 +19,7 @@ namespace Lumos
 
 			m_RendererTitle = "Vulkan";
 
-			VKDevice::Get();
+            VKDevice::Get().Init();
 
 			m_Swapchain = CreateRef<VKSwapchain>(m_Width, m_Height);
 			m_Swapchain->Init();
@@ -44,7 +44,8 @@ namespace Lumos
 		void VKRenderer::PresentInternal(CommandBuffer* cmdBuffer)
 		{
 			LUMOS_PROFILE_FUNCTION();
-			dynamic_cast<VKCommandBuffer*>(cmdBuffer)->ExecuteInternal(VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT,
+            TracyVkCollect(VKDevice::Get().GetTracyContext(), static_cast<VKCommandBuffer*>(cmdBuffer)->GetCommandBuffer());
+			static_cast<VKCommandBuffer*>(cmdBuffer)->ExecuteInternal(VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT,
 				m_ImageAvailableSemaphore[m_CurrentSemaphoreIndex],
 				m_ImageAvailableSemaphore[m_CurrentSemaphoreIndex + 1],
 				false);
@@ -161,6 +162,8 @@ namespace Lumos
 		void VKRenderer::DrawInternal(CommandBuffer* commandBuffer, DrawType type, u32 count, DataType datayType, void* indices) const
 		{
 			LUMOS_PROFILE_FUNCTION();
+            TracyVkCollect(VKDevice::Get().GetTracyContext(), static_cast<VKCommandBuffer*>(commandBuffer)->GetCommandBuffer());
+            
 			vkCmdDraw(static_cast<VKCommandBuffer*>(commandBuffer)->GetCommandBuffer(), count, 1, 0, 0);
 		}
 

@@ -58,14 +58,7 @@ namespace Lumos
 
 			virtual ~Shader() = default;
 
-			virtual void SetSystemUniformBuffer(ShaderType type, u8* data, u32 size, u32 slot = 0) = 0;
-			virtual void SetUserUniformBuffer(ShaderType type, u8* data, u32 size) = 0;
-
-			virtual const ShaderUniformBufferList GetSystemUniforms(ShaderType type) const = 0;
-			virtual const ShaderUniformBufferDeclaration* GetUserUniformBuffer(ShaderType type) const = 0;
-
 			virtual const std::vector<ShaderType> GetShaderTypes() const = 0;
-
 			virtual const std::string& GetName() const = 0;
 			virtual const std::string& GetFilePath() const = 0;
 

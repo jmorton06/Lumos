@@ -20,8 +20,9 @@ namespace Lumos
 			bool Init(const PipelineInfo& pipelineCI);
 
 			void Unload() const;
-			void Bind(Graphics::CommandBuffer* cmdBuffer) override;
-			VkDescriptorSet CreateDescriptorSet();
+            void Bind(CommandBuffer* cmdBuffer) override;
+
+            VkDescriptorSet CreateDescriptorSet();
 
 			VkDescriptorSetLayout* GetDescriptorLayout(int id)
 			{
@@ -54,6 +55,11 @@ namespace Lumos
 			{
 				return m_Shader;
 			}
+            
+            size_t GetStride() const override
+            {
+                return m_VertexBindingDescription.stride;
+            }
 
 			static void MakeDefault();
 

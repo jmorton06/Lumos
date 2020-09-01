@@ -1,2 +1,2 @@
-cd bin/debug
+cd bin/release
 ./Sandbox.app

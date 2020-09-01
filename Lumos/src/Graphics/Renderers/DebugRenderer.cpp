@@ -10,7 +10,6 @@
 #include "Graphics/API/RenderPass.h"
 #include "Graphics/API/Pipeline.h"
 #include "Graphics/API/IndexBuffer.h"
-#include "Graphics/API/VertexArray.h"
 #include "Graphics/API/Texture.h"
 #include "Graphics/GBuffer.h"
 #include "Graphics/Sprite.h"
@@ -29,7 +28,7 @@
 #include "Maths/BoundingBox.h"
 #include "Maths/Sphere.h"
 #include "Audio/SoundNode.h"
-#include "Core/Profiler.h"
+ 
 
 namespace Lumos
 {

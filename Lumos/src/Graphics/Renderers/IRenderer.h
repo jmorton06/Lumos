@@ -84,6 +84,8 @@ namespace Lumos
 			Ref<Lumos::Graphics::RenderPass> m_RenderPass;
 			Ref<Lumos::Graphics::Pipeline> m_Pipeline;
 			Ref<Graphics::DescriptorSet> m_DescriptorSet;
+            
+            std::vector<Graphics::DescriptorSet*> m_CurrentDescriptorSets;
 
 			u32 m_ScreenBufferWidth = 0, m_ScreenBufferHeight = 0;
 			CommandQueue m_CommandQueue;

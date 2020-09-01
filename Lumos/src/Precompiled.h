@@ -26,6 +26,7 @@
 #include "Core/LMLog.h"
 #include "Core/Core.h"
 #include "Core/OS/Memory.h"
+#include "Core/Profiler.h"
 #endif
 
 #include <stdio.h>

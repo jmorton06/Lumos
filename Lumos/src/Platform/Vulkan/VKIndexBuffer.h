@@ -28,7 +28,6 @@ namespace Lumos
 			BufferUsage m_Usage;
 			u32 m_Count;
 			u32 m_Size;
-			Graphics::BufferLayout m_Layout;
 		};
 	}
 }

@@ -1,7 +1,5 @@
 #pragma once
 
-
-
 namespace Lumos
 {
 	class Scene;
@@ -66,12 +64,17 @@ namespace Lumos
 			m_vpAllScenes.emplace_back(CreateRef<T>(name));
 			LUMOS_LOG_INFO("[SceneManager] - Enqueued scene : {0}", name.c_str());
 		}
+		
+		const std::vector<std::string>& GetSceneFilePaths() const 
+		{
+			return m_SceneFilePaths;
+		}
 
 	protected:
 		u32 m_SceneIdx;
 		Scene* m_CurrentScene;
 		std::vector<Ref<Scene>> m_vpAllScenes;
-
+		std::vector<std::string> m_SceneFilePaths;
 	private:
 		bool m_SwitchingScenes = false;
 		int m_QueuedSceneIndex = -1;

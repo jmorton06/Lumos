@@ -1,5 +1,6 @@
 #include "Precompiled.h"
 #include "GLVertexBuffer.h"
+#include "GLPipeline.h"
 
 #include "GL.h"
 
@@ -37,27 +38,11 @@ namespace Lumos
 			GLCall(glBufferData(GL_ARRAY_BUFFER, size, NULL, BufferUsageToOpenGL(m_Usage)));
 		}
 
-		void GLVertexBuffer::SetLayout(const Graphics::BufferLayout& bufferLayout)
-        {
-			Bind();
-			m_Layout = bufferLayout;
-			const std::vector<Graphics::BufferElement>& layout = bufferLayout.GetLayout();
-                        
-			for (u32 i = 0; i < layout.size(); i++)
-            {
-				const Graphics::BufferElement& element = layout[i];
-				GLCall(glEnableVertexAttribArray(i));
-				size_t offset = static_cast<size_t>(element.offset);
-				GLCall(glVertexAttribPointer(i, element.count, element.type, element.normalized, bufferLayout.GetStride(), reinterpret_cast<const void*>(offset)));
-			}
-		}
-
 		void GLVertexBuffer::SetData(u32 size, const void* data)
 		{
 			GLCall(glBindBuffer(GL_ARRAY_BUFFER, m_Handle));
 			GLCall(glBufferData(GL_ARRAY_BUFFER, size, data, BufferUsageToOpenGL(m_Usage)));
 		}
-
 
 		void GLVertexBuffer::SetDataSub(u32 size, const void* data, u32 offset)
 		{
@@ -68,7 +53,6 @@ namespace Lumos
 
 		void* GLVertexBuffer::GetPointerInternal()
         {
-            Bind();
             void* result = nullptr;
             if(!m_Mapped)
             {
@@ -90,14 +74,12 @@ namespace Lumos
                 GLCall(glUnmapBuffer(GL_ARRAY_BUFFER));
                 m_Mapped = false;
             }
-
-			//SetLayout(m_Layout);
 		}
 
-		void GLVertexBuffer::Bind()
+		void GLVertexBuffer::Bind(CommandBuffer* commandBuffer, Pipeline* pipeline)
 		{
 			GLCall(glBindBuffer(GL_ARRAY_BUFFER, m_Handle));
-			// SetLayout(m_Layout);
+            ((GLPipeline*)pipeline)->BindVertexArray();
 		}
 
 		void GLVertexBuffer::Unbind()

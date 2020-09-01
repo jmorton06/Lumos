@@ -1,7 +1,6 @@
 #include "Precompiled.h"
 #include "GLContext.h"
 
-#include "GLVertexArray.h"
 #include "GL.h"
 #include "GLDebug.h"
 #ifndef LUMOS_PLATFORM_MOBILE

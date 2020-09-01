@@ -43,9 +43,7 @@ namespace Lumos
             
 			VkInstance GetVKInstance()		const { return m_VkInstance; }
 			void* GetWindowContext()			const { return m_WindowContext; }
-            
-			const Ref<VKCommandPool>& GetCommandPool() const { return m_CommandPool; }
-            
+                        
 			size_t GetMinUniformBufferOffsetAlignment() const override;
             
             bool FlipImGUITexture() const override { return false; }

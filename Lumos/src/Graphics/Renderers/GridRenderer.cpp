@@ -58,15 +58,15 @@ namespace Lumos
             
             m_Pipeline->Bind(m_CommandBuffers[m_CurrentBufferID].get());
 
-			std::vector<Graphics::DescriptorSet*> descriptorSets = {m_Pipeline->GetDescriptorSet()};
+            m_CurrentDescriptorSets[0] = m_Pipeline->GetDescriptorSet();
 
-			m_Quad->GetVertexArray()->Bind(m_CommandBuffers[m_CurrentBufferID].get());
+			m_Quad->GetVertexBuffer()->Bind(m_CommandBuffers[m_CurrentBufferID].get(), m_Pipeline.get());
 			m_Quad->GetIndexBuffer()->Bind(m_CommandBuffers[m_CurrentBufferID].get());
 
-			Renderer::BindDescriptorSets(m_Pipeline.get(), m_CommandBuffers[m_CurrentBufferID].get(), 0, descriptorSets);
+			Renderer::BindDescriptorSets(m_Pipeline.get(), m_CommandBuffers[m_CurrentBufferID].get(), 0, m_CurrentDescriptorSets);
 			Renderer::DrawIndexed(m_CommandBuffers[m_CurrentBufferID].get(), DrawType::TRIANGLE, m_Quad->GetIndexBuffer()->GetCount());
 
-			m_Quad->GetVertexArray()->Unbind();
+			m_Quad->GetVertexBuffer()->Unbind();
 			m_Quad->GetIndexBuffer()->Unbind();
 
 			End();
@@ -124,6 +124,8 @@ namespace Lumos
 			CreateGraphicsPipeline();
 			UpdateUniformBuffer();
 			CreateFramebuffers();
+            
+            m_CurrentDescriptorSets.resize(1);
 		}
 
 		void GridRenderer::Begin()

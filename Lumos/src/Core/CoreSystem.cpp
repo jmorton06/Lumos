@@ -4,7 +4,7 @@
 #include "JobSystem.h"
 #include "Scripting/Lua/LuaManager.h"
 #include "Core/Version.h"
-#include "Core/Profiler.h"
+ 
 #include "Core/OS/MemoryManager.h"
 
 namespace Lumos

@@ -64,7 +64,7 @@ public:
     /*! @brief Unsigned integer type. */
     using size_type = std::size_t;
     /*! @brief Sink type. */
-    using sink_type = entt::sink<Ret(Args...)>;
+    using sink_type = sink<Ret(Args...)>;
 
     /**
      * @brief Instance type when it comes to connecting member functions.
@@ -257,6 +257,10 @@ private:
  * The clear separation between a signal and a sink permits to store the former
  * as private data member without exposing the publish functionality to the
  * users of the class.
+ * 
+ * @warning
+ * Lifetime of a sink must not overcome that of the signal to which it refers.
+ * In any other case, attempting to use a sink results in undefined behavior.
  *
  * @tparam Ret Return type of a function type.
  * @tparam Args Types of arguments of a function type.
@@ -324,7 +328,7 @@ public:
     template<auto Candidate, typename Type>
     [[nodiscard]] sink before(Type &&value_or_instance) {
         delegate<Ret(Args...)> call{};
-        call.template connect<Candidate>(std::forward<Type>(value_or_instance));
+        call.template connect<Candidate>(value_or_instance);
 
         const auto &calls = signal->calls;
         const auto it = std::find(calls.cbegin(), calls.cend(), std::move(call));
@@ -454,7 +458,7 @@ public:
     void disconnect(Type &&value_or_instance) {
         auto &calls = signal->calls;
         delegate<Ret(Args...)> call{};
-        call.template connect<Candidate>(std::forward<Type>(value_or_instance));
+        call.template connect<Candidate>(value_or_instance);
         calls.erase(std::remove(calls.begin(), calls.end(), std::move(call)), calls.end());
     }
 

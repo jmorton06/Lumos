@@ -2,6 +2,7 @@
 #include "Maths/Transform.h"
 #include "Scene/Scene.h"
 #include "Scene/SceneGraph.h"
+#include "Core/Profiler.h"
 #include <entt/entt.hpp>
 
 namespace Lumos
@@ -67,6 +68,7 @@ namespace Lumos
 
 		bool Active()
 		{
+			LUMOS_PROFILE_FUNCTION();
 			if(HasComponent<ActiveComponent>())
 				return m_Scene->GetRegistry().get<ActiveComponent>(m_EntityHandle).active;
 
@@ -75,6 +77,7 @@ namespace Lumos
 
 		void SetActive(bool isActive)
 		{
+			LUMOS_PROFILE_FUNCTION();
 			GetOrAddComponent<ActiveComponent>().active = isActive;
 		}
 
@@ -90,6 +93,7 @@ namespace Lumos
 
 		void SetParent(Entity entity)
 		{
+			LUMOS_PROFILE_FUNCTION();
 			bool acceptable = false;
 			auto hierarchyComponent = TryGetComponent<Hierarchy>();
 			if(hierarchyComponent != nullptr)
@@ -112,6 +116,7 @@ namespace Lumos
 
 		Entity GetParent()
 		{
+			LUMOS_PROFILE_FUNCTION();
 			auto hierarchyComp = TryGetComponent<Hierarchy>();
 			if(hierarchyComp)
 				return Entity(hierarchyComp->parent(), m_Scene);
@@ -122,6 +127,7 @@ namespace Lumos
 
 		std::vector<Entity> GetChildren()
 		{
+			LUMOS_PROFILE_FUNCTION();
 			std::vector<Entity> children;
 			auto hierarchyComponent = TryGetComponent<Hierarchy>();
 			if(hierarchyComponent)
@@ -141,6 +147,7 @@ namespace Lumos
 
 		bool IsParent(Entity potentialParent)
 		{
+			LUMOS_PROFILE_FUNCTION();
 			auto nodeHierarchyComponent = m_Scene->GetRegistry().try_get<Hierarchy>(m_EntityHandle);
 			if(nodeHierarchyComponent)
 			{

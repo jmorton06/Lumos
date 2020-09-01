@@ -7,7 +7,7 @@
 #include "Core/Application.h"
 #include "Maths/Maths.h"
 #include "Maths/Transform.h"
-#include "Core/Profiler.h"
+ 
 
 #include "Graphics/RenderManager.h"
 #include "Graphics/Camera/Camera.h"
@@ -168,6 +168,8 @@ namespace Lumos
 			m_ClearColour = Maths::Vector4(0.2f, 0.2f, 0.2f, 1.0f);
 
 			UpdateScreenDescriptorSet();
+            
+            m_CurrentDescriptorSets.resize(2);
 		}
 
 		void DeferredRenderer::RenderScene(Scene* scene)
@@ -371,15 +373,16 @@ namespace Lumos
 
 			m_Pipeline->Bind(currentCMDBuffer);
 
-			std::vector<Graphics::DescriptorSet*> descriptorSets = {m_Pipeline->GetDescriptorSet(), m_DescriptorSet.get()};
+            m_CurrentDescriptorSets[0] = m_Pipeline->GetDescriptorSet();
+            m_CurrentDescriptorSets[1] = m_DescriptorSet.get();
 
-			m_ScreenQuad->GetVertexArray()->Bind(currentCMDBuffer);
+            m_ScreenQuad->GetVertexBuffer()->Bind(currentCMDBuffer, m_Pipeline.get());
 			m_ScreenQuad->GetIndexBuffer()->Bind(currentCMDBuffer);
 
-			Renderer::BindDescriptorSets(m_Pipeline.get(), currentCMDBuffer, 0, descriptorSets);
+			Renderer::BindDescriptorSets(m_Pipeline.get(), currentCMDBuffer, 0, m_CurrentDescriptorSets);
 			Renderer::DrawIndexed(currentCMDBuffer, DrawType::TRIANGLE, m_ScreenQuad->GetIndexBuffer()->GetCount());
 
-			m_ScreenQuad->GetVertexArray()->Unbind();
+			m_ScreenQuad->GetVertexBuffer()->Unbind();
 			m_ScreenQuad->GetIndexBuffer()->Unbind();
 		}
 
@@ -435,7 +438,7 @@ namespace Lumos
 			pipelineCI.pipelineName = "Deferred";
 			pipelineCI.shader = m_Shader.get();
 			pipelineCI.renderpass = m_RenderPass.get();
-			pipelineCI.numVertexLayout = static_cast<u32>(attributeDescriptions.size());
+            pipelineCI.numVertexLayout = static_cast<u32>(attributeDescriptions.size());
 			pipelineCI.descriptorLayouts = descriptorLayouts;
 			pipelineCI.vertexLayout = attributeDescriptions.data();
 			pipelineCI.numLayoutBindings = static_cast<u32>(poolInfo.size());
