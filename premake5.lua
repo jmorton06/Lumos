@@ -2,6 +2,8 @@ require 'Scripts/premake-ios'
 require 'Scripts/premake-defines'
 require 'Scripts/premake-common'
 
+root_dir = os.getcwd()
+
 workspace "Lumos"
 	startproject "Sandbox"
 	location "build"

@@ -69,12 +69,21 @@ namespace Lumos
 		{
 			return m_SceneFilePaths;
 		}
-
+        
+        void AddFileToLoadList(const std::string& filePath)
+        {
+            m_SceneFilePathsToLoad.push_back(filePath);
+        }
+        
+        void LoadCurrentList();
+        
 	protected:
 		u32 m_SceneIdx;
 		Scene* m_CurrentScene;
 		std::vector<Ref<Scene>> m_vpAllScenes;
 		std::vector<std::string> m_SceneFilePaths;
+        std::vector<std::string> m_SceneFilePathsToLoad;
+        
 	private:
 		bool m_SwitchingScenes = false;
 		int m_QueuedSceneIndex = -1;

@@ -68,14 +68,12 @@ project "Lumos"
 		"SpirvCross"
 	}
 
-	cwd = os.getcwd() .. "/.."
-
 	defines
 	{
 		"LUMOS_ENGINE",
 		"FREEIMAGE_LIB",
 		"LUMOS_DYNAMIC",
-		"LUMOS_ROOT_DIR="  .. cwd,
+		"LUMOS_ROOT_DIR="  .. root_dir,
 	"IMGUI_USER_CONFIG=\"src/ImGui/ImConfig.h\"",
 	"LUMOS_PROFILE",
 	"TRACY_ENABLE",

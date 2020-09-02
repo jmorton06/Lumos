@@ -141,9 +141,14 @@ namespace Lumos
 	void SceneManager::EnqueueSceneFromFile(const std::string& filePath)
 	{
 		m_SceneFilePaths.push_back(filePath);
-        auto name = StringUtilities::RemoveFilePathExtension(StringUtilities::GetFileName(filePath));
+        
+        std::string physicalPath;
+        if(!VFS::Get()->ResolvePhysicalPath(filePath, physicalPath))
+            return;
+
+        auto name = StringUtilities::RemoveFilePathExtension(StringUtilities::GetFileName(physicalPath));
         auto scene = new Scene(name);
-        auto path = StringUtilities::RemoveFilePathExtension(filePath);
+        auto path = StringUtilities::RemoveFilePathExtension(physicalPath);
         path = StringUtilities::RemoveName(path);
         scene->Deserialise(path);
         EnqueueScene(scene);
@@ -154,4 +159,14 @@ namespace Lumos
 		m_vpAllScenes.push_back(Ref<Scene>(scene));
 		LUMOS_LOG_INFO("[SceneManager] - Enqueued scene : {0}", scene->GetSceneName().c_str());
 	}
+
+    void SceneManager::LoadCurrentList()
+    {
+        for(auto& filePath : m_SceneFilePathsToLoad)
+        {
+            EnqueueSceneFromFile(filePath);
+        }
+        
+        m_SceneFilePathsToLoad.clear();
+    }
 }

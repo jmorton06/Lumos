@@ -87,5 +87,25 @@ namespace Lumos
 		std::string physicalPath;
 		return ResolvePhysicalPath(path, physicalPath) ? FileSystem::WriteTextFile(physicalPath, text) : false;
 	}
-
+	
+	bool VFS::AbsoulePathToVFS(const std::string& path, std::string& outVFSPath, bool folder)
+	{
+		for( auto const& [key, val] : m_MountPoints )
+		{
+			for(auto& vfsPath : val)
+			{
+				if (path.find(vfsPath) != std::string::npos)
+				{
+					std::string newPath = path;
+					std::string newPartPath = "/" + key;
+					newPath.replace(0, vfsPath.length(), newPartPath);
+					outVFSPath = newPath;
+					return true;
+				} 
+			}
+		}
+		
+        outVFSPath = path;
+		return false;
+	}
 }

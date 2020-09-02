@@ -47,21 +47,34 @@ namespace Lumos
 {
 	Application* Application::s_Instance = nullptr;
 	
-	Application::Application(const std::string& projectFilePath)
+	Application::Application(const std::string& projectRoot, const std::string& projectName)
 		: m_UpdateTimer(0)
 		, m_Frames(0)
 		, m_Updates(0)
         , m_SceneViewWidth(800)
         , m_SceneViewHeight(600)
-		, FilePath(projectFilePath)
 	{
 		LUMOS_PROFILE_FUNCTION();
 		LUMOS_ASSERT(!s_Instance, "Application already exists!");
 		s_Instance = this;
+        
+        FilePath = projectRoot + projectName + ".lmproj";
+        
+        const std::string root = ROOT_DIR;
+        VFS::Get()->Mount("Meshes", root + projectRoot + "/res/meshes");
+        VFS::Get()->Mount("Textures", root + projectRoot +  "/res/textures");
+        VFS::Get()->Mount("Sounds", root + projectRoot + "/res/sounds");
+        VFS::Get()->Mount("Scripts", root + projectRoot + "/res/scripts");
+        VFS::Get()->Mount("Scenes", root + projectRoot + "/res/scenes");
+
+        VFS::Get()->Mount("CoreShaders", root + "/Lumos/res/shaders");
+        VFS::Get()->Mount("CoreMeshes", root + "/Lumos/res/meshes");
+        VFS::Get()->Mount("CoreTextures", root + "/Lumos/res/textures");
+        VFS::Get()->Mount("CoreFonts", root + "/Lumos/res/fonts");
 		
         m_SceneManager = CreateUniqueRef<SceneManager>();
 
-		Deserialise(projectFilePath);
+		Deserialise(FilePath);
 
 #ifdef LUMOS_EDITOR
 		m_Editor = new Editor(this, Width, Height);
@@ -71,14 +84,7 @@ namespace Lumos
 		Engine::Get();
 
 		m_Timer = CreateUniqueRef<Timer>();
-
-		const std::string root = ROOT_DIR;
-
-		VFS::Get()->Mount("CoreShaders", root + "/Lumos/res/shaders");
-		VFS::Get()->Mount("CoreMeshes", root + "/Lumos/res/meshes");
-		VFS::Get()->Mount("CoreTextures", root + "/Lumos/res/textures");
-		VFS::Get()->Mount("CoreFonts", root + "/Lumos/res/fonts");
-		
+        
 		WindowProperties  windowProperties;
 		windowProperties.Width = Width;
 		windowProperties.Height = Height;
@@ -154,6 +160,8 @@ namespace Lumos
 		m_SystemManager->RegisterSystem<B2PhysicsEngine>();
         
 		Graphics::Material::InitDefaultTexture();
+        
+        m_SceneManager->LoadCurrentList();
 
 		m_CurrentState = AppState::Running;
 

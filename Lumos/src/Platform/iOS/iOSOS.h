@@ -1,6 +1,6 @@
 #pragma once
 #include "Core/OS/OS.h"
-#include "Core/Core.h"
+#include "Core/Types.h"
 
 namespace Lumos
 {
