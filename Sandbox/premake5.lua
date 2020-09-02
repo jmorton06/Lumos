@@ -60,8 +60,6 @@ defines
 	"TRACY_ENABLE",
 }
 
-	cwd = os.getcwd() .. "/.."
-
 	filter { "files:external/**"}
 		warnings "Off"
 
@@ -81,7 +79,7 @@ defines
 			"_CRT_SECURE_NO_WARNINGS",
 			"_DISABLE_EXTENDED_ALIGNED_STORAGE",
 			"_SILENCE_CXX17_ITERATOR_BASE_CLASS_DEPRECATION_WARNING",
-			"LUMOS_ROOT_DIR="  .. cwd,
+			"LUMOS_ROOT_DIR="  .. root_dir,
 			"LUMOS_VOLK",
 	"LUMOS_SSE",
 		}
@@ -132,7 +130,7 @@ defines
 			"LUMOS_RENDER_API_VULKAN",
 			"VK_EXT_metal_surface",
 			"LUMOS_IMGUI",
-			"LUMOS_ROOT_DIR="  .. cwd,
+			"LUMOS_ROOT_DIR="  .. root_dir,
 			"LUMOS_VOLK",
 			"LUMOS_SSE"
 		}
@@ -313,7 +311,7 @@ defines
 			"LUMOS_RENDER_API_VULKAN",
 			"VK_USE_PLATFORM_XCB_KHR",
 			"LUMOS_IMGUI",
-			"LUMOS_ROOT_DIR="  .. cwd,
+			"LUMOS_ROOT_DIR="  .. root_dir,
 			"LUMOS_VOLK"
 		}
 

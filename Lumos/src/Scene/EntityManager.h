@@ -9,9 +9,10 @@ namespace Lumos
 	class Scene;
 	class Entity;
 
-	template<class T>
+	template<typename T>
 	class EntityView
 	{
+		class iterator;
     public:
 		EntityView(Scene* scene)
 			: m_Scene(scene), m_View(scene->GetRegistry().view<T>())
@@ -27,10 +28,59 @@ namespace Lumos
         bool Empty() const { return m_View.empty(); }
         size_t Size() const { return m_View.size(); }
 		Entity Front() { return Entity(m_View[0], m_Scene); }
-    private:
+		
+		iterator begin();
+		iterator end();
+		
+		private:
+		
+		class iterator : public std::iterator<std::output_iterator_tag, Entity>
+		{
+			public:
+			explicit iterator(EntityView<T> & view, size_t index = 0)
+				:view(view)
+				,nIndex(index)
+			{
+			}
+			
+			Entity operator*() const
+			{
+				return view[nIndex];
+			}
+			iterator & operator++()
+			{
+				nIndex++;
+				return *this;
+			}
+			iterator operator++(int)
+			{
+				return ++(*this);
+			}
+			bool operator!=(const iterator & rhs) const
+			{
+				return nIndex != rhs.nIndex;
+			}
+			
+			private:
+			size_t nIndex = 0;
+			EntityView<T>& view;
+		};
+		
         Scene* m_Scene;
 		entt::basic_view<entt::entity, entt::exclude_t<>, T> m_View;
 	};
+	
+	template<typename T>
+		typename EntityView<T>::iterator EntityView<T>::begin()
+	{
+		return EntityView<T>::iterator(*this, 0);
+	}
+	
+	template<typename T>
+	typename EntityView<T>::iterator EntityView<T>::end()
+	{
+		return EntityView<T>::iterator(*this, Size());
+	}
 
 	template<typename... Components>
 	class EntityGroup

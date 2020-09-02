@@ -62,7 +62,7 @@ namespace Lumos
 		friend class Editor;
 
 	public:
-		Application(const std::string& projectFilePath = "");
+		Application(const std::string& projectRoot, const std::string& projectName);
 		virtual ~Application();
 
 		int Quit(bool pause = false, const std::string& reason = "");
@@ -206,7 +206,16 @@ namespace Lumos
 						cereal::make_nvp("FilePath", FilePath)
 						);
 			//Version 2
-			archive(cereal::make_nvp("Scenes", m_SceneManager->GetSceneFilePaths()));
+            
+            auto paths = m_SceneManager->GetSceneFilePaths();
+            std::vector<std::string> newPaths;
+            for(auto& path : paths)
+            {
+                std::string newPath;
+                VFS::Get()->AbsoulePathToVFS(path, newPath);
+                newPaths.push_back(newPath);
+            }
+			archive(cereal::make_nvp("Scenes", newPaths));
             //Version 3
             archive(cereal::make_nvp("SceneIndex", m_SceneManager->GetCurrentSceneIndex()));
 
@@ -237,7 +246,7 @@ namespace Lumos
 				
 				for(auto& filePath : sceneFilePaths)
 				{
-					m_SceneManager->EnqueueSceneFromFile(filePath);
+					m_SceneManager->AddFileToLoadList(filePath);
 				}
 			}
             if(projectVersion > 3)
