@@ -13,7 +13,7 @@ namespace Lumos
 			GLSwapchain(u32 width, u32 height);
 			~GLSwapchain();
 
-			bool Init() override;
+			bool Init(bool vsync) override;
 
 			Texture* GetCurrentImage() override;
 			Texture* GetImage(u32 id) override { return nullptr; };

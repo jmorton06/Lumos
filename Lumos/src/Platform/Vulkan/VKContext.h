@@ -4,6 +4,8 @@
 #include "VK.h"
 #include "Core/Reference.h"
 
+#include "VKDevice.h"
+
 #ifdef USE_VMA_ALLOCATOR
 #include <vulkan/vk_mem_alloc.h>
 #endif
@@ -19,6 +21,7 @@ namespace Lumos
 	namespace Graphics
 	{
 		class VKCommandPool;
+        class VKSwapchain;
         
 		class VKContext : public GraphicsContext
 		{
@@ -30,7 +33,7 @@ namespace Lumos
 			void Present() override;
 			void Unload();
             
-			_FORCE_INLINE_ static VKContext* Get() { return static_cast<VKContext*>(s_Context); }
+			static VKContext* Get() { return static_cast<VKContext*>(s_Context); }
             
 			static VKAPI_ATTR VkBool32 VKAPI_CALL DebugCallback(VkDebugReportFlagsEXT flags,
                                                                 VkDebugReportObjectTypeEXT objType,
@@ -41,8 +44,8 @@ namespace Lumos
                                                                 const char* pMsg,
                                                                 void* userData);
             
-			VkInstance GetVKInstance()		const { return m_VkInstance; }
-			void* GetWindowContext()			const { return m_WindowContext; }
+			VkInstance GetVKInstance() const { return m_VkInstance; }
+			void* GetWindowContext() const { return m_WindowContext; }
                         
 			size_t GetMinUniformBufferOffsetAlignment() const override;
             
@@ -50,8 +53,10 @@ namespace Lumos
             void WaitIdle() const override;
 			void OnImGui() override;
             
-			const std::vector<const char*>& GetLayerNames()			const { return m_InstanceLayerNames; }
-			const std::vector<const char*>& GetExtensionNames()		const { return m_InstanceExtensionNames; }
+			const std::vector<const char*>& GetLayerNames() const { return m_InstanceLayerNames; }
+			const std::vector<const char*>& GetExtensionNames() const { return m_InstanceExtensionNames; }
+			
+			const Ref<Lumos::Graphics::VKSwapchain>& GetSwapchain() const { return m_Swapchain; }
             
             static void MakeDefault();
             protected:
@@ -80,7 +85,11 @@ namespace Lumos
 			std::vector<const char*> m_InstanceLayerNames;
 			std::vector<const char*> m_InstanceExtensionNames;
             
-			Ref<VKCommandPool> m_CommandPool;
+			Ref<Lumos::Graphics::VKSwapchain> m_Swapchain;
+			
+			u32 m_Width, m_Height;
+			bool m_VSync;
+			
 			void* m_WindowContext;
             
 			bool m_StandardValidationLayer = false;

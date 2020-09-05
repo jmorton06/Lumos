@@ -15,30 +15,18 @@ namespace Lumos
 		void VKRenderer::InitInternal()
 		{
 			LUMOS_PROFILE_FUNCTION();
-			m_Context = VKContext::Get();
 
 			m_RendererTitle = "Vulkan";
-
-            VKDevice::Get().Init();
-
-			m_Swapchain = CreateRef<VKSwapchain>(m_Width, m_Height);
-			m_Swapchain->Init();
 
 			CreateSemaphores();
 		}
 
 		VKRenderer::~VKRenderer()
 		{
-			m_Swapchain.reset();
-
 			for(int i = 0; i < NUM_SEMAPHORES; i++)
 			{
 				vkDestroySemaphore(VKDevice::Get().GetDevice(), m_ImageAvailableSemaphore[i], nullptr);
 			}
-
-			m_Context->Unload();
-
-			VKDevice::Release();
 		}
 
 		void VKRenderer::PresentInternal(CommandBuffer* cmdBuffer)
@@ -55,6 +43,8 @@ namespace Lumos
 		void VKRenderer::ClearSwapchainImage() const
 		{
 			LUMOS_PROFILE_FUNCTION();
+            
+            auto m_Swapchain = VKContext::Get()->GetSwapchain();
 			for(int i = 0; i < m_Swapchain->GetSwapchainBufferCount(); i++)
 			{
 				auto cmd = VKTools::BeginSingleTimeCommands();
@@ -76,6 +66,8 @@ namespace Lumos
 		void VKRenderer::PresentInternal()
 		{
 			LUMOS_PROFILE_FUNCTION();
+            auto m_Swapchain = VKContext::Get()->GetSwapchain();
+
 			m_Swapchain->Present(m_ImageAvailableSemaphore[m_CurrentSemaphoreIndex]);
 		}
 
@@ -87,10 +79,7 @@ namespace Lumos
 
 			m_Width = width;
 			m_Height = height;
-
-			m_Swapchain = CreateRef<VKSwapchain>(width, height);
-			m_Swapchain->Init();
-		}
+        }
 
 		void VKRenderer::CreateSemaphores()
 		{
@@ -104,11 +93,18 @@ namespace Lumos
 				VK_CHECK_RESULT(vkCreateSemaphore(VKDevice::Get().GetDevice(), &semaphoreInfo, nullptr, &m_ImageAvailableSemaphore[i]));
 			}
 		}
+    
+        Swapchain* VKRenderer::GetSwapchainInternal() const
+        {
+            return VKContext::Get()->GetSwapchain().get();
+        }
 
 		void VKRenderer::Begin()
 		{
 			LUMOS_PROFILE_FUNCTION();
 			m_CurrentSemaphoreIndex = 0;
+            auto m_Swapchain = VKContext::Get()->GetSwapchain();
+
 			auto result = m_Swapchain->AcquireNextImage(m_ImageAvailableSemaphore[m_CurrentSemaphoreIndex]);
 
 			if(result == VK_ERROR_OUT_OF_DATE_KHR)

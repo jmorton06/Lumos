@@ -40,6 +40,7 @@
 #include "Graphics/Light.h"
 #include "Graphics/Environment.h"
 #include "Graphics/MeshFactory.h"
+#include "Graphics/AnimatedSprite.h"
 
 //Entity
 #include "Scene/Component/Components.h"

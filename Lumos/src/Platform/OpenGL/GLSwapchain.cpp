@@ -22,7 +22,7 @@ namespace Lumos
 				delete buffer;
 		}
 
-		bool GLSwapchain::Init()
+		bool GLSwapchain::Init(bool vsync)
 		{
 			return true;
 		}

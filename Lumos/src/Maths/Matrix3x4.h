@@ -5,6 +5,8 @@
 #include <emmintrin.h>
 #endif
 
+#include <iostream>
+
 namespace Lumos::Maths
 {
     /// 3x4 matrix for scene node transform calculations.

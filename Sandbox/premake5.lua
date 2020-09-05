@@ -285,15 +285,15 @@ defines
 			local target = targetAssetDirectory.."/CoreAssets/"
 			local source = "../Lumos/res/**"
 			buildmessage("copying "..source.." -> "..target)
-			--os.mkdir(target)
+			os.mkdir(target)
 			postbuildcommands {
 				"{COPY} "..source.." "..target
 			}
 
 			target = targetAssetDirectory.."/AppAssets/"
-			local source = "res/**"
+			local source =root_dir ..  "/Sandbox/res/**"
 			buildmessage("copying "..source.." -> "..target)
-			--os.mkdir(target)
+			os.mkdir(target)
 			postbuildcommands {
 				"{COPY} "..source.." "..target
 			}

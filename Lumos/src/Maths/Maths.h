@@ -1,6 +1,5 @@
 #pragma once
 
-
 #include "Maths/Matrix3.h"
 #include "Maths/Matrix4.h"
 #include "Maths/Plane.h"
@@ -12,6 +11,8 @@
 #include "Maths/Sphere.h"
 #include "Maths/Frustum.h"
 #include "Maths/MathDefs.h"
+#include "Core/LMLog.h"
+#include "Core/Core.h"
 
 namespace Lumos
 {

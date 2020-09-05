@@ -1,6 +1,7 @@
 #pragma once
 
 #include "Core/OS/KeyCodes.h"
+#include <map>
 
 namespace Lumos
 {
