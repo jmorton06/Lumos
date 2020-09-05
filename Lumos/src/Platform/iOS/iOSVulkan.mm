@@ -1,6 +1,6 @@
 #if defined(LUMOS_RENDER_API_VULKAN)
 
-#include "Platform/Vulkan/VKSwachain.h"
+#include "Platform/Vulkan/VKSwapchain.h"
 #include "Core/Application.h"
 #include "iOSOS.h"
 #include "iOSWindow.h"
@@ -11,7 +11,7 @@
 
 namespace Lumos
 {
-	VkSurfaceKHR Graphics::VKSwachain::CreatePlatformSurface(VkInstance vkInstance, Window* window)
+	VkSurfaceKHR Graphics::VKSwapchain::CreatePlatformSurface(VkInstance vkInstance, Window* window)
 	{
 		VkSurfaceKHR surface;
 
