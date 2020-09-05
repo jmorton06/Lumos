@@ -79,6 +79,8 @@ namespace Lumos
 
 			m_Width = width;
 			m_Height = height;
+			
+			VKContext::Get()->OnResize(m_Width, m_Height);
         }
 
 		void VKRenderer::CreateSemaphores()

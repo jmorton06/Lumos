@@ -51,6 +51,7 @@ namespace Lumos
             
             bool FlipImGUITexture() const override { return false; }
             void WaitIdle() const override;
+			void OnResize(uint32_t width, uint32_t height); 
 			void OnImGui() override;
             
 			const std::vector<const char*>& GetLayerNames() const { return m_InstanceLayerNames; }

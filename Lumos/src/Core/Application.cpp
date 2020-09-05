@@ -93,6 +93,7 @@ namespace Lumos
 		windowProperties.Borderless = Borderless;
 		windowProperties.ShowConsole = ShowConsole;
 		windowProperties.Title = Title;
+		windowProperties.VSync = VSync;
 		
 		m_Window = UniqueRef<Window>(Window::Create(windowProperties));
 #ifndef LUMOS_EDITOR
