@@ -119,6 +119,12 @@ namespace Lumos
 			
 			Maths::Matrix4::SetUpCoordSystem(false, true);
 		};
+		
+		void VKContext::OnResize(uint32_t width, uint32_t height)
+		{
+			m_Swapchain = CreateRef<VKSwapchain>(m_Width, m_Height);
+			m_Swapchain->Init(m_VSync);
+		}
 
 		void VKContext::Present()
 		{
