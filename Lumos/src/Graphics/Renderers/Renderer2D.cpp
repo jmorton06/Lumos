@@ -12,6 +12,7 @@
 #include "Graphics/API/Texture.h"
 #include "Graphics/GBuffer.h"
 #include "Graphics/Sprite.h"
+#include "Graphics/AnimatedSprite.h"
 #include "Scene/Scene.h"
 #include "Core/Application.h"
 #include "Graphics/RenderManager.h"
@@ -408,6 +409,21 @@ namespace Lumos
 				if(inside == Maths::Intersection::OUTSIDE)
 					continue;
 
+				Submit(reinterpret_cast<Renderable2D*>(&sprite), trans.GetWorldMatrix());
+			};
+			
+			auto group2 = registry.group<Graphics::AnimatedSprite>(entt::get<Maths::Transform>);
+			for(auto entity : group2)
+			{
+				const auto& [sprite, trans] = group2.get<Graphics::AnimatedSprite, Maths::Transform>(entity);
+				
+				auto bb = Maths::BoundingBox(Maths::Rect(sprite.GetPosition(), sprite.GetPosition() + sprite.GetScale()));
+				bb.Transform(trans.GetWorldMatrix());
+				auto inside = m_Frustum.IsInside(bb);
+				
+				if(inside == Maths::Intersection::OUTSIDE)
+					continue;
+				
 				Submit(reinterpret_cast<Renderable2D*>(&sprite), trans.GetWorldMatrix());
 			};
 

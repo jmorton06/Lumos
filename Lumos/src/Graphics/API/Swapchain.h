@@ -15,7 +15,7 @@ namespace Lumos
 			virtual ~Swapchain() = default;
 			static Swapchain* Create(u32 width, u32 height);
 
-			virtual bool Init() = 0;
+			virtual bool Init(bool vsync) = 0;
 			virtual Texture* GetCurrentImage() = 0;
 			virtual Texture* GetImage(u32 id) = 0;
 			virtual uint32_t GetCurrentBufferId() const = 0;

@@ -7,6 +7,7 @@
 #include "Graphics/RenderManager.h"
 #include "Graphics/Camera/Camera.h"
 #include "Graphics/Sprite.h"
+#include "Graphics/AnimatedSprite.h"
 #include "Utilities/TimeStep.h"
 #include "Audio/AudioManager.h"
 #include "Physics/LumosPhysicsEngine/SortAndSweepBroadphase.h"
@@ -27,7 +28,6 @@
 #include "Graphics/Model.h"
 #include "Graphics/Environment.h"
 #include "Scene/EntityManager.h"
- 
 
 #include <cereal/types/polymorphic.hpp>
 #include <cereal/archives/binary.hpp>
@@ -117,6 +117,14 @@ namespace Lumos
 		}
 
 		m_SceneGraph.Update(m_EntityManager->GetRegistry());
+		
+		auto animatedSpriteView = m_EntityManager->GetEntitiesWithType<Graphics::AnimatedSprite>();
+		
+		for(auto entity : animatedSpriteView)
+		{
+			auto& animSprite = entity.GetComponent<Graphics::AnimatedSprite>();
+			animSprite.OnUpdate(timeStep.GetMillis());
+		}
 	}
 
 	void Scene::OnEvent(Event& e)
@@ -167,8 +175,8 @@ namespace Lumos
 			{
 				// output finishes flushing its contents when it goes out of scope
 				cereal::BinaryOutputArchive output{file};
+                output(*this);
 				entt::snapshot{m_EntityManager->GetRegistry()}.entities(output).component<ALL_COMPONENTS>(output);
-				output(*this);
 			}
 			file.close();
 		}
@@ -180,8 +188,8 @@ namespace Lumos
 			{
 				// output finishes flushing its contents when it goes out of scope
 				cereal::JSONOutputArchive output{storage};
+                output(*this);
 				entt::snapshot{m_EntityManager->GetRegistry()}.entities(output).component<ALL_COMPONENTS>(output);
-				output(*this);
 			}
 			FileSystem::WriteTextFile(path, storage.str());
 		}
@@ -207,8 +215,8 @@ namespace Lumos
 
 			std::ifstream file(path, std::ios::binary);
 			cereal::BinaryInputArchive input(file);
-			entt::snapshot_loader{m_EntityManager->GetRegistry()}.entities(input).component<ALL_COMPONENTS>(input); //continuous_loader
 			input(*this);
+			entt::snapshot_loader{m_EntityManager->GetRegistry()}.entities(input).component<ALL_COMPONENTS>(input); //continuous_loader
 		}
 		else
 		{
@@ -219,13 +227,12 @@ namespace Lumos
                 Lumos::Debug::Log::Error("No saved scene file found {0}", path);
 				return;
 			}
-
 			std::string data = FileSystem::ReadTextFile(path);
 			std::istringstream istr;
 			istr.str(data);
 			cereal::JSONInputArchive input(istr);
-			entt::snapshot_loader{m_EntityManager->GetRegistry()}.entities(input).component<ALL_COMPONENTS>(input); //continuous_loader
 			input(*this);
+			entt::snapshot_loader{m_EntityManager->GetRegistry()}.entities(input).component<ALL_COMPONENTS>(input); //continuous_loader
 		}
         
         m_SceneGraph.DisableOnConstruct(false, m_EntityManager->GetRegistry());

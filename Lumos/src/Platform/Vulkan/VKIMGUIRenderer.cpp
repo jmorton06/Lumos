@@ -7,6 +7,7 @@
 #include "VKCommandBuffer.h"
 #include "VKRenderer.h"
 #include "VKRenderpass.h"
+#include "VKTexture.h"
 
 static ImGui_ImplVulkanH_WindowData g_WindowData;
 static VkAllocationCallbacks* g_Allocator = nullptr;
@@ -121,7 +122,7 @@ namespace Lumos
             {
                 for (uint32_t i = 0; i < wd->BackBufferCount; i++)
                 {
-                    auto scBuffer = swapChain->GetTexture(i);
+                    auto scBuffer = (VKTexture2D*)swapChain->GetTexture(i);
                     wd->BackBuffer[i] = scBuffer->GetImage();
                     wd->BackBufferView[i] = scBuffer->GetImageView();
                 }
@@ -155,7 +156,7 @@ namespace Lumos
             w = (int)m_Width;
             h = (int)m_Height;
             ImGui_ImplVulkanH_WindowData* wd = &g_WindowData;
-            VkSurfaceKHR surface = VKDevice::Get().GetSurface();
+            VkSurfaceKHR surface = VKContext::Get()->GetSwapchain()->GetSurface();
             SetupVulkanWindowData(wd, surface, w, h);
 
             // Setup Vulkan binding
@@ -163,7 +164,7 @@ namespace Lumos
             init_info.Instance = static_cast<VKContext*>(VKContext::GetContext())->GetVKInstance();
             init_info.PhysicalDevice = VKDevice::Get().GetGPU();
             init_info.Device = VKDevice::Get().GetDevice();
-            init_info.QueueFamily = VKDevice::Get().GetGraphicsQueueFamilyIndex();
+            init_info.QueueFamily = VKDevice::Get().GetPhysicalDevice()->GetGraphicsQueueFamilyIndex();
             init_info.Queue = VKDevice::Get().GetGraphicsQueue();
             init_info.PipelineCache = VKDevice::Get().GetPipelineCache();
             init_info.DescriptorPool = g_DescriptorPool;
@@ -228,7 +229,7 @@ namespace Lumos
             wd->Swapchain = swapChain->GetSwapchain();
             for (uint32_t i = 0; i < wd->BackBufferCount; i++)
             {
-                auto scBuffer = swapChain->GetTexture(i);
+                auto scBuffer = (VKTexture2D*)swapChain->GetTexture(i);
                 wd->BackBuffer[i] = scBuffer->GetImage();
                 wd->BackBufferView[i] = scBuffer->GetImageView();
             }

@@ -130,7 +130,7 @@
 #  include <stdio.h>
 #  include <stdlib.h>
 #  if defined(__APPLE__)
-#    include <mach/mach_vm.h>
+//#    include <mach/mach_vm.h>
 #    include <mach/vm_statistics.h>
 #    include <pthread.h>
 #  endif

@@ -6,6 +6,7 @@
 #include "Scene/Component/Components.h"
 #include "Graphics/Camera/Camera.h"
 #include "Graphics/Sprite.h"
+#include "Graphics/AnimatedSprite.h"
 #include "Graphics/Model.h"
 #include "Graphics/Mesh.h"
 #include "Graphics/MeshFactory.h"
@@ -654,6 +655,14 @@ namespace MM
 		auto& sprite = reg.get<Lumos::Graphics::Sprite>(e);
 
 		sprite.OnImGui();
+	}
+	
+	
+	template<>
+		void ComponentEditorWidget<Lumos::Graphics::AnimatedSprite>(entt::registry& reg, entt::registry::entity_type e)
+	{
+		auto& sprite = reg.get<Lumos::Graphics::AnimatedSprite>(e);
+		
 	}
 
 	template<>
@@ -1323,6 +1332,7 @@ namespace Lumos
 		TRIVIAL_COMPONENT(Physics3DComponent, "Physics3D");
 		TRIVIAL_COMPONENT(Physics2DComponent, "Physics2D");
 		TRIVIAL_COMPONENT(SoundComponent, "Sound");
+		TRIVIAL_COMPONENT(Graphics::AnimatedSprite, "Animated Sprite");
 		TRIVIAL_COMPONENT(Graphics::Sprite, "Sprite");
 		TRIVIAL_COMPONENT(Graphics::Light, "Light");
 		TRIVIAL_COMPONENT(LuaScriptComponent, "LuaScript");
