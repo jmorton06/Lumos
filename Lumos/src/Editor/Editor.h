@@ -8,6 +8,7 @@
 #include "Utilities/IniFile.h"
 #include "EditorCamera.h"
 #include "Graphics/Camera/Camera.h"
+#include "ImGui/ImGuiHelpers.h"
 
 #include <imgui/imgui.h>
 #include <entt/entity/fwd.hpp>
@@ -218,6 +219,7 @@ namespace Lumos
 		Maths::Vector3 m_CameraStartPosition;
 		float m_CameraTransitionStartTime = 0.0f;
 		float m_CameraTransitionSpeed = 0.0f;
+		ImGuiHelpers::Theme m_Theme = ImGuiHelpers::Theme::Dark;
 
 		std::vector<Ref<EditorWindow>> m_Windows;
 

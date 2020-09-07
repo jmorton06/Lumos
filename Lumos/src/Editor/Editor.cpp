@@ -44,7 +44,6 @@
 #include "Graphics/Environment.h"
 #include "Scene/EntityFactory.h"
 
-#include "ImGui/ImGuiHelpers.h"
 #include "ImGui/IconsMaterialDesignIcons.h"
 
 #include <imgui/imgui_internal.h>
@@ -149,10 +148,7 @@ namespace Lumos
 
 		m_ShowImGuiDemo = false;
 
-		ImGuiHelpers::SetTheme(ImGuiHelpers::Dark);
-
 		m_SelectedEntity = entt::null;
-
 		m_PreviewTexture = nullptr;
 		
 		ImGuizmo::SetGizmoSizeClipSpace(0.25f);
@@ -284,42 +280,52 @@ namespace Lumos
 				{
 					if(ImGui::MenuItem("Dark", ""))
 					{
+						m_Theme = ImGuiHelpers::Dark;
 						ImGuiHelpers::SetTheme(ImGuiHelpers::Dark);
 					}
 					if(ImGui::MenuItem("Black", ""))
 					{
+						m_Theme = ImGuiHelpers::Black;
 						ImGuiHelpers::SetTheme(ImGuiHelpers::Black);
 					}
 					if(ImGui::MenuItem("Grey", ""))
 					{
+						m_Theme = ImGuiHelpers::Grey;
 						ImGuiHelpers::SetTheme(ImGuiHelpers::Grey);
 					}
 					if(ImGui::MenuItem("Light", ""))
 					{
+						m_Theme = ImGuiHelpers::Light;
 						ImGuiHelpers::SetTheme(ImGuiHelpers::Light);
 					}
 					if(ImGui::MenuItem("Cherry", ""))
 					{
+						m_Theme = ImGuiHelpers::Cherry;
 						ImGuiHelpers::SetTheme(ImGuiHelpers::Cherry);
 					}
 					if(ImGui::MenuItem("Blue", ""))
 					{
+						m_Theme = ImGuiHelpers::Blue;
 						ImGuiHelpers::SetTheme(ImGuiHelpers::Blue);
 					}
 					if(ImGui::MenuItem("Cinder", ""))
 					{
+						m_Theme = ImGuiHelpers::Cinder;
 						ImGuiHelpers::SetTheme(ImGuiHelpers::Cinder);
 					}
 					if(ImGui::MenuItem("Classic", ""))
 					{
+						m_Theme = ImGuiHelpers::Classic;
 						ImGuiHelpers::SetTheme(ImGuiHelpers::Classic);
 					}
 					if(ImGui::MenuItem("ClassicDark", ""))
 					{
+						m_Theme = ImGuiHelpers::ClassicDark;
 						ImGuiHelpers::SetTheme(ImGuiHelpers::ClassicDark);
 					}
 					if(ImGui::MenuItem("ClassicLight", ""))
 					{
+						m_Theme = ImGuiHelpers::ClassicLight;
 						ImGuiHelpers::SetTheme(ImGuiHelpers::ClassicLight);
 					}
 					ImGui::EndMenu();
@@ -487,7 +493,8 @@ namespace Lumos
 				if(ImGui::MenuItem(githubMenuText.c_str()))
 				{
 #ifdef LUMOS_PLATFORM_WINDOWS
-// TODO
+					// TODO
+					//ShellExecuteA( NULL, "open",  "https://www.github.com/jmorton06/Lumos", NULL, NULL, SW_SHOWNORMAL );
 #else
 #	ifndef LUMOS_PLATFORM_IOS
 					system("open https://www.github.com/jmorton06/Lumos");
@@ -565,14 +572,18 @@ namespace Lumos
 					ImGui::PopStyleColor();
 			}
 
-			ImGui::SameLine(ImGui::GetWindowContentRegionMax().x - 100.0f);
+			ImGui::SameLine(ImGui::GetWindowContentRegionMax().x - 240.0f);
+			
+			ImGui::Text("%.2f ms (%i FPS)", 1000.0f / (float)Engine::Get().GetFPS(), Engine::Get().GetFPS());
+			
+			ImGui::SameLine();
 
 			ImGui::PushStyleColor(ImGuiCol_FrameBg, ImGui::GetColorU32(ImGuiCol_TitleBg));
 			ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(7, 2));
 
 			bool setNewValue = false;
 			std::string RenderAPI = "";
-			//static auto renderAPI = Graphics::GraphicsContext::GetRenderAPI();
+			
 			auto renderAPI = (Graphics::RenderAPI)m_Application->RenderAPI;
 
 			bool needsRestart = false;
@@ -1511,6 +1522,7 @@ namespace Lumos
 		m_IniFile.SetOrAdd("DebugDrawFlags", m_DebugDrawFlags);
 		m_IniFile.SetOrAdd("PhysicsDebugDrawFlags", Application::Get().GetSystem<LumosPhysicsEngine>()->GetDebugDrawFlags());
 		m_IniFile.SetOrAdd("PhysicsDebugDrawFlags2D", Application::Get().GetSystem<B2PhysicsEngine>()->GetDebugDrawFlags());
+		m_IniFile.SetOrAdd("Theme", (int)m_Theme);
 		m_IniFile.Rewrite();
 	}
 
@@ -1527,6 +1539,7 @@ namespace Lumos
 		m_IniFile.Add("DebugDrawFlags", m_DebugDrawFlags);
 		m_IniFile.Add("PhysicsDebugDrawFlags", 0);
 		m_IniFile.Set("PhysicsDebugDrawFlags2D", 0);
+		m_IniFile.Set("Theme", (int)m_Theme);
 		m_IniFile.Rewrite();
 	}
 
@@ -1541,8 +1554,11 @@ namespace Lumos
 		m_SnapAmount = m_IniFile.GetOrDefault("SnapAmount", m_SnapAmount);
 		m_SnapQuizmo = m_IniFile.GetOrDefault("SnapQuizmo", m_SnapQuizmo);
 		m_DebugDrawFlags = m_IniFile.GetOrDefault("DebugDrawFlags", m_DebugDrawFlags);
+		m_Theme = ImGuiHelpers::Theme(m_IniFile.GetOrDefault("Theme", (int)m_Theme));
 		Application::Get().GetSystem<LumosPhysicsEngine>()->SetDebugDrawFlags(m_IniFile.GetOrDefault("PhysicsDebugDrawFlags", 0));
 		Application::Get().GetSystem<B2PhysicsEngine>()->SetDebugDrawFlags(m_IniFile.GetOrDefault("PhysicsDebugDrawFlags2D", 0));
+		
+		ImGuiHelpers::SetTheme(m_Theme);
 	}
 
 	const char* Editor::GetIconFontIcon(const std::string& filePath)

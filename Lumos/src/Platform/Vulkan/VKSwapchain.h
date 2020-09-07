@@ -6,6 +6,7 @@
 
 namespace Lumos
 {
+    class Window;
 	namespace Graphics
 	{
         class Texture2D;
@@ -16,7 +17,7 @@ namespace Lumos
 			~VKSwapchain();
 
 			bool Init(bool vsync) override;
-
+            void Init(bool vsync, Window* windowHandle);
             VkResult AcquireNextImage(VkSemaphore signalSemaphore);
             void Present(VkSemaphore waitSemaphore);
 

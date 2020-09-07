@@ -37,12 +37,14 @@ namespace Lumos
 	{
 		m_Init = false;
 		m_VSync = properties.VSync;
-		SetHasResized(true);
+		m_HasResized = true;
 		m_Data.m_RenderAPI = static_cast<Graphics::RenderAPI>(properties.RenderAPI);
 
 		m_Init = Init(properties);
-
-		Graphics::GraphicsContext::Create(properties, m_Handle);
+		
+		Graphics::GraphicsContext::SetRenderAPI(static_cast<Graphics::RenderAPI>(properties.RenderAPI));
+		Graphics::GraphicsContext::Create(properties, this);
+		Graphics::GraphicsContext::GetContext()->Init();
 	}
 
 	GLFWWindow::~GLFWWindow()
@@ -54,6 +56,9 @@ namespace Lumos
 		}
 
 		glfwDestroyWindow(m_Handle);
+        
+        Graphics::GraphicsContext::Release();
+        
 		s_NumGLFWWindows--;
 
 		if(s_NumGLFWWindows < 1)

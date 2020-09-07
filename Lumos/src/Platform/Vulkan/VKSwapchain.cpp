@@ -24,11 +24,15 @@ namespace Lumos
 			}
 			vkDestroySwapchainKHR(VKDevice::Get().GetDevice(), m_SwapChain, VK_NULL_HANDLE);
 		}
+    
+        void VKSwapchain::Init(bool vsync, Window* windowHandle)
+        {
+            m_Surface = CreatePlatformSurface(VKContext::Get()->GetVKInstance(), windowHandle);
+            Init(vsync);
+        }
 
 		bool VKSwapchain::Init(bool vsync)
 		{
-            m_Surface = CreatePlatformSurface(VKContext::Get()->GetVKInstance(), Application::Get().GetWindow());
-
             FindImageFormatAndColorSpace();
             
             if(!m_Surface)

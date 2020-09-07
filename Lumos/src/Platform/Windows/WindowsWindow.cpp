@@ -52,12 +52,15 @@ namespace Lumos
 		m_Data.m_RenderAPI = static_cast<Graphics::RenderAPI>(properties.RenderAPI);
 
 		m_Init = Init(properties);
-
-		Graphics::GraphicsContext::Create(properties, hWnd);
+		
+		Graphics::GraphicsContext::SetRenderAPI(static_cast<Graphics::RenderAPI>(properties.RenderAPI));
+		Graphics::GraphicsContext::Create(properties, this);
+		Graphics::GraphicsContext::GetContext()->Init();
 	}
 
 	WindowsWindow::~WindowsWindow()
 	{
+		Graphics::GraphicsContext::Release();
 	}
 
 	static PIXELFORMATDESCRIPTOR GetPixelFormat()

@@ -20,7 +20,7 @@ namespace Lumos
 
 		enum Theme
 		{
-			Black,
+			Black = 0,
 			Dark,
 			Grey,
 			Light,

@@ -21,7 +21,7 @@ namespace Lumos
 		public:
 			virtual ~GraphicsContext();
 
-			static void Create(const WindowProperties& properties, void* deviceContext);
+			static void Create(const WindowProperties& properties, Window* window);
 			static void Release();
 
 			static RenderAPI GetRenderAPI() { return s_RenderAPI; }
@@ -38,7 +38,7 @@ namespace Lumos
 			virtual void OnImGui() = 0;
 
         protected:
-            static GraphicsContext* (*CreateFunc)(const WindowProperties&, void*);
+            static GraphicsContext* (*CreateFunc)(const WindowProperties&, Window*);
 
 			static GraphicsContext* s_Context;
 			static RenderAPI s_RenderAPI;
