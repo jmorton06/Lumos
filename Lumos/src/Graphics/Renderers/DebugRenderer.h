@@ -1,6 +1,6 @@
 #pragma once
 
-#include "lmpch.h"
+
 #include "Maths/Maths.h"
 
 namespace Lumos
@@ -18,7 +18,6 @@ namespace Lumos
 		class Texture;
 		class Shader;
 		class IndexBuffer;
-		class VertexArray;
 		class Renderer2D;
 		class LineRenderer;
 		class PointRenderer;

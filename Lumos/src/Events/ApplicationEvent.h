@@ -2,6 +2,8 @@
 
 #include "Event.h"
 
+#include <sstream>
+
 namespace Lumos
 {
 	class LUMOS_EXPORT WindowResizeEvent : public Event

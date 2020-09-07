@@ -1,4 +1,4 @@
-﻿#include "lmpch.h"
+﻿#include "Precompiled.h"
 #include "GLSwapchain.h"
 #include "Graphics/API/Framebuffer.h"
 #include "GLTexture.h"
@@ -22,7 +22,7 @@ namespace Lumos
 				delete buffer;
 		}
 
-		bool GLSwapchain::Init()
+		bool GLSwapchain::Init(bool vsync)
 		{
 			return true;
 		}
@@ -49,7 +49,7 @@ namespace Lumos
 
 		Swapchain* GLSwapchain::CreateFuncGL(u32 width, u32 height)
 		{
-			return lmnew GLSwapchain(width, height);
+			return new GLSwapchain(width, height);
 		}
 	}
 }

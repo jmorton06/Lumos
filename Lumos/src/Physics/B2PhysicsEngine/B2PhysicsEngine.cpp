@@ -1,9 +1,9 @@
-#include "lmpch.h"
+#include "Precompiled.h"
 #include "B2PhysicsEngine.h"
 #include "RigidBody2D.h"
 
 #include "Utilities/TimeStep.h"
-#include "Core/Profiler.h"
+ 
 #include "Scene/Component/Physics2DComponent.h"
 
 #include "Maths/Transform.h"
@@ -50,7 +50,7 @@ namespace Lumos
 
 	void B2PhysicsEngine::OnUpdate(const TimeStep& timeStep, Scene* scene)
 	{
-		LUMOS_PROFILE_FUNC;
+		LUMOS_PROFILE_FUNCTION();
 		const int max_updates_per_frame = 5;
 
 		if(!m_Paused)

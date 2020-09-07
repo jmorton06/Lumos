@@ -1,4 +1,4 @@
-#include "lmpch.h"
+#include "Precompiled.h"
 #include "Framebuffer.h"
 #include "Graphics/API/GraphicsContext.h"
 
@@ -13,6 +13,10 @@ namespace Lumos
             LUMOS_ASSERT(CreateFunc, "No Framebuffer Create Function");
             
             return CreateFunc(framebufferInfo);
+		}
+
+		Framebuffer::~Framebuffer()
+		{
 		}
 	}
 }

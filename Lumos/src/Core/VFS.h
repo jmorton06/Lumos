@@ -1,6 +1,7 @@
 #pragma once
 
-#include "lmpch.h"
+#include "Core/Types.h"
+#include <unordered_map>
 
 namespace Lumos
 {
@@ -16,6 +17,7 @@ namespace Lumos
 		void Mount(const std::string& virtualPath, const std::string& physicalPath);
 		void Unmount(const std::string& path);
 		bool ResolvePhysicalPath(const std::string& path, std::string& outPhysicalPath, bool folder = false);
+		bool AbsoulePathToVFS(const std::string& path, std::string& outVFSPath, bool folder = false);
 
 		u8* ReadFile(const std::string& path);
 		std::string ReadTextFile(const std::string& path);

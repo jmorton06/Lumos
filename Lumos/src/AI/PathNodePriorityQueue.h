@@ -1,23 +1,8 @@
 #pragma once
-#include "lmpch.h"
 #include "QueueablePathNode.h"
-
+#include <vector>
 namespace Lumos
 {
-
-	//template <typename T> struct greater_ptr : std::binary_function<bool, const T *, const T *>
-	//{
-	//	bool operator()(const T *a, const T *b) const
-	//	{
-	//		if (a == nullptr)
-	//			// If b is also 0, then they are equal, hence a is not < than b
-	//			return b != nullptr;
-	//		else if (b == nullptr)
-	//			return false;
-	//		else
-	//			return (*a) > (*b);
-	//	}
-	//};
 
 	class PathNodePriorityQueue : public std::vector<QueueablePathNode *>
 	{

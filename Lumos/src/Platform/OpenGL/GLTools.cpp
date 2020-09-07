@@ -1,4 +1,4 @@
-#include "lmpch.h"
+#include "Precompiled.h"
 #include "GLTools.h"
 #include "GL.h"
 #include "GLRenderer.h"

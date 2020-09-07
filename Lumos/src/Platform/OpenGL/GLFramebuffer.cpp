@@ -1,4 +1,4 @@
-#include "lmpch.h"
+#include "Precompiled.h"
 #include "GLFramebuffer.h"
 
 #include "Platform/OpenGL/GLDebug.h"
@@ -171,7 +171,7 @@ namespace Lumos
 
 		Framebuffer* GLFramebuffer::CreateFuncGL(const FramebufferInfo & bufferInfo)
 		{
-			return lmnew GLFramebuffer(bufferInfo);
+			return new GLFramebuffer(bufferInfo);
 		}
 	}
 }

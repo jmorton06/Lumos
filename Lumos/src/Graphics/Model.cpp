@@ -1,4 +1,4 @@
-#include "lmpch.h"
+#include "Precompiled.h"
 #include "Model.h"
 #include "Mesh.h"
 
@@ -7,24 +7,24 @@
 namespace Lumos::Graphics
 {
     Model::Model(const std::string& filePath)
+		: m_FilePath(filePath)
+		, m_PrimitiveType(PrimitiveType::File)
     {
-        m_FilePath = filePath;
-        m_PrimitiveType = PrimitiveType::File;
         LoadModel(m_FilePath);
     }
 
     Model::Model(const Ref<Mesh>& mesh, PrimitiveType type)
+		: m_FilePath("Primitive")
+		, m_PrimitiveType(type)
     {
         m_Meshes.push_back(mesh);
-        m_PrimitiveType = type;
-        m_FilePath = "";
     }
 
 	Model::Model(PrimitiveType type)
+		: m_FilePath("Primitive")
+		, m_PrimitiveType(type)
     {
         m_Meshes.push_back(Ref<Mesh>(CreatePrimative(type)));
-        m_PrimitiveType = type;
-        m_FilePath = "";
     }
 
     void Model::LoadModel(const std::string& path)
@@ -37,7 +37,7 @@ namespace Lumos::Graphics
 
 		std::string resolvedPath = physicalPath;
 
-		const std::string fileExtension = StringFormat::GetFilePathExtension(path);
+		const std::string fileExtension = StringUtilities::GetFilePathExtension(path);
 
 		if(fileExtension == "obj")
 			LoadOBJ(resolvedPath);

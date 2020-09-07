@@ -1,7 +1,5 @@
 #pragma once
 
-#include "lmpch.h"
-
 namespace Lumos
 {
 	class Scene;
@@ -62,16 +60,30 @@ namespace Lumos
 		template<class T>
 		void EnqueueScene(const std::string& name)
 		{
-			//T* scene = lmnew T(name);
+			//T* scene = new T(name);
 			m_vpAllScenes.emplace_back(CreateRef<T>(name));
 			LUMOS_LOG_INFO("[SceneManager] - Enqueued scene : {0}", name.c_str());
 		}
-
+		
+		const std::vector<std::string>& GetSceneFilePaths() const 
+		{
+			return m_SceneFilePaths;
+		}
+        
+        void AddFileToLoadList(const std::string& filePath)
+        {
+            m_SceneFilePathsToLoad.push_back(filePath);
+        }
+        
+        void LoadCurrentList();
+        
 	protected:
 		u32 m_SceneIdx;
 		Scene* m_CurrentScene;
 		std::vector<Ref<Scene>> m_vpAllScenes;
-
+		std::vector<std::string> m_SceneFilePaths;
+        std::vector<std::string> m_SceneFilePathsToLoad;
+        
 	private:
 		bool m_SwitchingScenes = false;
 		int m_QueuedSceneIndex = -1;

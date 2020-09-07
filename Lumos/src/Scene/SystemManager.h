@@ -1,6 +1,5 @@
 #pragma once
 #include "Scene/ISystem.h"
-#include "Core/Typename.h"
 
 namespace Lumos
 {

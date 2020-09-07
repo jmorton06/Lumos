@@ -1,5 +1,5 @@
 #pragma once
-#include "lmpch.h"
+
 #include "MeshFactory.h"
 #include "Mesh.h"
 #include "Material.h"
@@ -19,15 +19,19 @@ namespace Lumos
 
             ~Model() = default;
 
+            std::vector<Ref<Mesh>>& GetMeshes() { return m_Meshes; }
             const std::vector<Ref<Mesh>>& GetMeshes() const { return m_Meshes; }
             void AddMesh(Ref<Mesh> mesh) { m_Meshes.push_back(mesh); }
 
             template<typename Archive>
             void save(Archive& archive) const
             {
-                auto material = std::unique_ptr<Material>(m_Meshes.front()->GetMaterial().get());
-                archive(cereal::make_nvp("PrimitiveType", m_PrimitiveType), cereal::make_nvp("FilePath", m_FilePath), cereal::make_nvp("Material", material));
-                material.release();
+                if(m_Meshes.size() > 0)
+                {
+                    auto material = std::unique_ptr<Material>(m_Meshes.front()->GetMaterial().get());
+                            archive(cereal::make_nvp("PrimitiveType", m_PrimitiveType), cereal::make_nvp("FilePath", m_FilePath), cereal::make_nvp("Material", material));
+                            material.release();
+                }
             }
 
             template<typename Archive>
@@ -52,7 +56,8 @@ namespace Lumos
 
             const std::string& GetFilePath() const { return m_FilePath; }
             PrimitiveType GetPrimitiveType() { return m_PrimitiveType; }
-            
+            void SetPrimitiveType(PrimitiveType type) { m_PrimitiveType = type; }
+
         private:
             PrimitiveType m_PrimitiveType;
             std::vector<Ref<Mesh>> m_Meshes;

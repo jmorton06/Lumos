@@ -1,5 +1,6 @@
 #pragma once
-#include "lmpch.h"
+#include "Core/Types.h"
+#include "Core/Core.h"
 #include "Utilities/TimeStep.h"
 #include "Utilities/TSingleton.h"
 

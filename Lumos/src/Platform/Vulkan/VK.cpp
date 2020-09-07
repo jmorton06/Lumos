@@ -1,4 +1,4 @@
-#include "lmpch.h"
+#include "Precompiled.h"
 
 #ifdef USE_VMA_ALLOCATOR
 #define VMA_IMPLEMENTATION

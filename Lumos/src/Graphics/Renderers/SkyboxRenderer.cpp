@@ -1,4 +1,4 @@
-#include "lmpch.h"
+#include "Precompiled.h"
 #include "SkyboxRenderer.h"
 #include "Graphics/API/Shader.h"
 #include "Graphics/API/Framebuffer.h"
@@ -56,18 +56,17 @@ namespace Lumos
 
 			Begin();
             SetSystemUniforms(m_Shader.get());
-			m_Pipeline->SetActive(m_CommandBuffers[m_CurrentBufferID].get());
+			m_Pipeline->Bind(m_CommandBuffers[m_CurrentBufferID].get());
 
-			std::vector<Graphics::DescriptorSet*> descriptorSets;
-			descriptorSets.emplace_back(m_Pipeline->GetDescriptorSet());
+            m_CurrentDescriptorSets[0] = m_Pipeline->GetDescriptorSet();
 
-			m_Skybox->GetVertexArray()->Bind(m_CommandBuffers[m_CurrentBufferID].get());
+			m_Skybox->GetVertexBuffer()->Bind(m_CommandBuffers[m_CurrentBufferID].get(), m_Pipeline.get());
 			m_Skybox->GetIndexBuffer()->Bind(m_CommandBuffers[m_CurrentBufferID].get());
 
-			Renderer::BindDescriptorSets(m_Pipeline.get(), m_CommandBuffers[m_CurrentBufferID].get(), 0, descriptorSets);
+			Renderer::BindDescriptorSets(m_Pipeline.get(), m_CommandBuffers[m_CurrentBufferID].get(), 0, m_CurrentDescriptorSets);
 			Renderer::DrawIndexed(m_CommandBuffers[m_CurrentBufferID].get(), DrawType::TRIANGLE, m_Skybox->GetIndexBuffer()->GetCount());
 
-			m_Skybox->GetVertexArray()->Unbind();
+			m_Skybox->GetVertexBuffer()->Unbind();
 			m_Skybox->GetIndexBuffer()->Unbind();
 
 			End();
@@ -84,12 +83,12 @@ namespace Lumos
 
 		void SkyboxRenderer::Init()
 		{
-			m_Shader = Shader::CreateFromFile("Skybox", "/CoreShaders/");
+			m_Shader = Ref<Graphics::Shader>(Shader::CreateFromFile("Skybox", "/CoreShaders/"));
 			m_Skybox = Graphics::CreateQuad();
 
 			// Vertex shader System uniforms
 			m_VSSystemUniformBufferSize = sizeof(Maths::Matrix4);
-			m_VSSystemUniformBuffer = lmnew u8[m_VSSystemUniformBufferSize];
+			m_VSSystemUniformBuffer = new u8[m_VSSystemUniformBufferSize];
 			memset(m_VSSystemUniformBuffer, 0, m_VSSystemUniformBufferSize);
 			m_VSSystemUniformBufferOffsets.resize(VSSystemUniformIndex_Size);
 
@@ -100,11 +99,11 @@ namespace Lumos
 
 			for(auto& commandBuffer : m_CommandBuffers)
 			{
-				commandBuffer = Graphics::CommandBuffer::Create();
+				commandBuffer = Ref<Graphics::CommandBuffer>(Graphics::CommandBuffer::Create());
 				commandBuffer->Init(true);
 			}
 
-			m_RenderPass = Graphics::RenderPass::Create();
+			m_RenderPass = Ref<Graphics::RenderPass>(Graphics::RenderPass::Create());
 			AttachmentInfo textureTypes[2] = {
 				{TextureType::COLOUR, TextureFormat::RGBA32},
 				{TextureType::DEPTH, TextureFormat::DEPTH}};
@@ -119,6 +118,8 @@ namespace Lumos
 			CreateGraphicsPipeline();
 			UpdateUniformBuffer();
 			CreateFramebuffers();
+            
+            m_CurrentDescriptorSets.resize(1);
 		}
 
 		void SkyboxRenderer::Begin()
@@ -238,7 +239,7 @@ namespace Lumos
 			pipelineCI.depthBiasEnabled = false;
 			pipelineCI.maxObjects = 1;
 
-			m_Pipeline = Graphics::Pipeline::Create(pipelineCI);
+			m_Pipeline = Ref<Graphics::Pipeline>(Graphics::Pipeline::Create(pipelineCI));
 		}
 
 		void SkyboxRenderer::UpdateUniformBuffer()

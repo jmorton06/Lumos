@@ -1,4 +1,4 @@
-#include "lmpch.h"
+#include "Precompiled.h"
 #include "UniformBuffer.h"
 
 namespace Lumos

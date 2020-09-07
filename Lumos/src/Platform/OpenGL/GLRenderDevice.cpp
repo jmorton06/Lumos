@@ -1,4 +1,4 @@
-#include "lmpch.h"
+#include "Precompiled.h"
 #include "GLRenderDevice.h"
 
 namespace Lumos::Graphics
@@ -15,6 +15,6 @@ namespace Lumos::Graphics
 
 	RenderDevice* GLRenderDevice::CreateFuncGL()
 	{
-		return lmnew GLRenderDevice();
+		return new GLRenderDevice();
 	}
 }

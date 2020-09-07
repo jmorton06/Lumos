@@ -1,4 +1,4 @@
-#include "lmpch.h"
+#include "Precompiled.h"
 #include "DebugRenderer.h"
 #include "Core/OS/Window.h"
 #include "Graphics/API/Shader.h"
@@ -10,7 +10,6 @@
 #include "Graphics/API/RenderPass.h"
 #include "Graphics/API/Pipeline.h"
 #include "Graphics/API/IndexBuffer.h"
-#include "Graphics/API/VertexArray.h"
 #include "Graphics/API/Texture.h"
 #include "Graphics/GBuffer.h"
 #include "Graphics/Sprite.h"
@@ -29,7 +28,7 @@
 #include "Maths/BoundingBox.h"
 #include "Maths/Sphere.h"
 #include "Audio/SoundNode.h"
-#include "Core/Profiler.h"
+ 
 
 namespace Lumos
 {
@@ -324,7 +323,7 @@ namespace Lumos
 
 	void DebugRenderer::RenderInternal(Scene* scene, Camera* overrideCamera, Maths::Transform* overrideCameraTransform)
 	{
-		LUMOS_PROFILE_FUNC;
+		LUMOS_PROFILE_FUNCTION();
 		if(m_Renderer2D)
 		{
 			m_Renderer2D->BeginRenderPass();

@@ -1,4 +1,4 @@
-#include "lmpch.h"
+#include "Precompiled.h"
 #include "SoundNode.h"
 
 #ifdef LUMOS_OPENAL
@@ -10,7 +10,7 @@ namespace Lumos
 	SoundNode* SoundNode::Create()
 	{
 #ifdef LUMOS_OPENAL
-		return lmnew ALSoundNode();
+		return new ALSoundNode();
 #else
 		return nullptr;
 #endif

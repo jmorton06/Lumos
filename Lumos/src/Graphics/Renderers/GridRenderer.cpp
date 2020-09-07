@@ -1,4 +1,4 @@
-#include "lmpch.h"
+#include "Precompiled.h"
 #include "GridRenderer.h"
 #include "Graphics/API/Shader.h"
 #include "Graphics/API/Framebuffer.h"
@@ -24,7 +24,7 @@ namespace Lumos
 {
 	namespace Graphics
 	{
-		GridRenderer::GridRenderer(u32 width, u32 height, bool renderToGBuffer)
+		GridRenderer::GridRenderer(u32 width, u32 height)
 			: m_UniformBuffer(nullptr)
 			, m_UniformBufferFrag(nullptr)
 		{
@@ -43,6 +43,7 @@ namespace Lumos
 			delete m_UniformBuffer;
 			delete m_UniformBufferFrag;
 			delete[] m_VSSystemUniformBuffer;
+            delete[] m_PSSystemUniformBuffer;
 		}
 
 		void GridRenderer::RenderScene(Scene* scene)
@@ -54,16 +55,18 @@ namespace Lumos
 			Begin();
 
 			SetSystemUniforms(m_Shader.get());
+            
+            m_Pipeline->Bind(m_CommandBuffers[m_CurrentBufferID].get());
 
-			std::vector<Graphics::DescriptorSet*> descriptorSets = {m_Pipeline->GetDescriptorSet()};
+            m_CurrentDescriptorSets[0] = m_Pipeline->GetDescriptorSet();
 
-			m_Quad->GetVertexArray()->Bind(m_CommandBuffers[m_CurrentBufferID].get());
+			m_Quad->GetVertexBuffer()->Bind(m_CommandBuffers[m_CurrentBufferID].get(), m_Pipeline.get());
 			m_Quad->GetIndexBuffer()->Bind(m_CommandBuffers[m_CurrentBufferID].get());
 
-			Renderer::BindDescriptorSets(m_Pipeline.get(), m_CommandBuffers[m_CurrentBufferID].get(), 0, descriptorSets);
+			Renderer::BindDescriptorSets(m_Pipeline.get(), m_CommandBuffers[m_CurrentBufferID].get(), 0, m_CurrentDescriptorSets);
 			Renderer::DrawIndexed(m_CommandBuffers[m_CurrentBufferID].get(), DrawType::TRIANGLE, m_Quad->GetIndexBuffer()->GetCount());
 
-			m_Quad->GetVertexArray()->Unbind();
+			m_Quad->GetVertexBuffer()->Unbind();
 			m_Quad->GetIndexBuffer()->Unbind();
 
 			End();
@@ -80,17 +83,17 @@ namespace Lumos
 
 		void GridRenderer::Init()
 		{
-			m_Shader = Shader::CreateFromFile("Grid", "/CoreShaders/");
+			m_Shader = Ref<Graphics::Shader>(Shader::CreateFromFile("Grid", "/CoreShaders/"));
 			m_Quad = Graphics::CreatePlane(5000.0f, 5000.f, Maths::Vector3(0.0f, 1.0f, 0.0f));
 
 			// Vertex shader System uniforms
 			m_VSSystemUniformBufferSize = sizeof(Maths::Matrix4);
-			m_VSSystemUniformBuffer = lmnew u8[m_VSSystemUniformBufferSize];
+			m_VSSystemUniformBuffer = new u8[m_VSSystemUniformBufferSize];
 			memset(m_VSSystemUniformBuffer, 0, m_VSSystemUniformBufferSize);
 			m_VSSystemUniformBufferOffsets.resize(VSSystemUniformIndex_Size);
 
 			m_PSSystemUniformBufferSize = sizeof(UniformBufferObjectFrag);
-			m_PSSystemUniformBuffer = lmnew u8[m_PSSystemUniformBufferSize];
+			m_PSSystemUniformBuffer = new u8[m_PSSystemUniformBufferSize];
 			memset(m_PSSystemUniformBuffer, 0, m_PSSystemUniformBufferSize);
 			m_PSSystemUniformBufferOffsets.resize(VSSystemUniformIndex_Size);
 
@@ -101,15 +104,14 @@ namespace Lumos
 
 			for(auto& commandBuffer : m_CommandBuffers)
 			{
-				commandBuffer = Graphics::CommandBuffer::Create();
+				commandBuffer = Ref<Graphics::CommandBuffer>(Graphics::CommandBuffer::Create());
 				commandBuffer->Init(true);
 			}
 
-			m_RenderPass = Graphics::RenderPass::Create();
+			m_RenderPass = Ref<Graphics::RenderPass>(Graphics::RenderPass::Create());
 			AttachmentInfo textureTypes[1] =
 				{
-					{TextureType::COLOUR, TextureFormat::RGBA8},
-					//{TextureType::DEPTH, TextureFormat::DEPTH}
+					{TextureType::COLOUR, TextureFormat::RGBA32},
 				};
 
 			Graphics::RenderpassInfo renderpassCI;
@@ -122,11 +124,14 @@ namespace Lumos
 			CreateGraphicsPipeline();
 			UpdateUniformBuffer();
 			CreateFramebuffers();
+            
+            m_CurrentDescriptorSets.resize(1);
 		}
 
 		void GridRenderer::Begin()
 		{
 			m_CommandBuffers[m_CurrentBufferID]->BeginRecording();
+			m_CommandBuffers[m_CurrentBufferID]->UpdateViewport(m_ScreenBufferWidth, m_ScreenBufferHeight);
 
 			m_RenderPass->BeginRenderpass(m_CommandBuffers[m_CurrentBufferID].get(), Maths::Vector4(0.0f), m_Framebuffers[m_CurrentBufferID].get(), Graphics::INLINE, m_ScreenBufferWidth, m_ScreenBufferHeight);
 		}
@@ -240,10 +245,10 @@ namespace Lumos
 			pipelineCI.polygonMode = Graphics::PolygonMode::Fill;
 			pipelineCI.cullMode = Graphics::CullMode::NONE;
 			pipelineCI.transparencyEnabled = true;
-			pipelineCI.depthBiasEnabled = true;
+			pipelineCI.depthBiasEnabled = false;
 			pipelineCI.maxObjects = 1;
 
-			m_Pipeline = Graphics::Pipeline::Create(pipelineCI);
+			m_Pipeline = Ref<Graphics::Pipeline>(Graphics::Pipeline::Create(pipelineCI));
 		}
 
 		void GridRenderer::UpdateUniformBuffer()
@@ -303,9 +308,8 @@ namespace Lumos
 
 		void GridRenderer::CreateFramebuffers()
 		{
-			TextureType attachmentTypes[2];
+			TextureType attachmentTypes[1];
 			attachmentTypes[0] = TextureType::COLOUR;
-			attachmentTypes[1] = TextureType::DEPTH;
 
 			Texture* attachments[1];
 			FramebufferInfo bufferInfo{};
@@ -314,8 +318,6 @@ namespace Lumos
 			bufferInfo.attachmentCount = 1;
 			bufferInfo.renderPass = m_RenderPass.get();
 			bufferInfo.attachmentTypes = attachmentTypes;
-
-			//attachments[1] = dynamic_cast<Texture*>(Application::Get().GetRenderManager()->GetGBuffer()->GetDepthTexture());
 
 			if(m_RenderTexture)
 			{

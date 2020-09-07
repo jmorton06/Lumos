@@ -1,4 +1,4 @@
-#include "lmpch.h"
+#include "Precompiled.h"
 #include "ForwardRenderer.h"
 #include "Graphics/API/Shader.h"
 #include "Graphics/API/Framebuffer.h"
@@ -101,7 +101,7 @@ namespace Lumos
 			// Vertex shader System uniforms
 			//
 			m_VSSystemUniformBufferSize = sizeof(Maths::Matrix4) + sizeof(Maths::Matrix4) + sizeof(Maths::Matrix4) + sizeof(Maths::Matrix4);
-			m_VSSystemUniformBuffer = lmnew u8[m_VSSystemUniformBufferSize];
+			m_VSSystemUniformBuffer = new u8[m_VSSystemUniformBufferSize];
 			memset(m_VSSystemUniformBuffer, 0, m_VSSystemUniformBufferSize);
 			m_VSSystemUniformBufferOffsets.resize(VSSystemUniformIndex_Size);
 
@@ -113,14 +113,14 @@ namespace Lumos
 
 			// Pixel/fragment shader System uniforms
 			m_PSSystemUniformBufferSize = sizeof(Graphics::Light);
-			m_PSSystemUniformBuffer = lmnew u8[m_PSSystemUniformBufferSize];
+			m_PSSystemUniformBuffer = new u8[m_PSSystemUniformBufferSize];
 			memset(m_PSSystemUniformBuffer, 0, m_PSSystemUniformBufferSize);
 			m_PSSystemUniformBufferOffsets.resize(PSSystemUniformIndex_Size);
 
 			// Per Scene System Uniforms
 			m_PSSystemUniformBufferOffsets[PSSystemUniformIndex_Lights] = 0;
 
-			m_RenderPass = Graphics::RenderPass::Create();
+			m_RenderPass = Ref<Graphics::RenderPass>(Graphics::RenderPass::Create());
 			m_UniformBuffer = Graphics::UniformBuffer::Create();
 			m_ModelUniformBuffer = Graphics::UniformBuffer::Create();
 
@@ -219,6 +219,8 @@ namespace Lumos
 			bufferInfosDefault.push_back(imageInfo);
 
 			m_DescriptorSet->Update(bufferInfosDefault);
+            
+            m_CurrentDescriptorSets.resize(2);
 		}
 
 		void ForwardRenderer::Begin()
@@ -343,8 +345,6 @@ namespace Lumos
 
 		void ForwardRenderer::SetSystemUniforms(Shader* shader) const
 		{
-			shader->SetSystemUniformBuffer(ShaderType::VERTEX, m_VSSystemUniformBuffer, m_VSSystemUniformBufferSize, 0);
-
 			m_UniformBuffer->SetData(sizeof(UniformBufferObject), *&m_VSSystemUniformBuffer);
 
 			int index = 0;
@@ -355,8 +355,6 @@ namespace Lumos
 				*modelMat = command.transform;
 				index++;
 			}
-
-			shader->SetSystemUniformBuffer(ShaderType::FRAGMENT, m_PSSystemUniformBuffer, m_PSSystemUniformBufferSize, 0);
 
 			m_ModelUniformBuffer->SetDynamicData(static_cast<uint32_t>(index * m_DynamicAlignment), sizeof(Maths::Matrix4), &*m_UBODataDynamic.model);
 		}
@@ -371,19 +369,20 @@ namespace Lumos
 
 				Graphics::CommandBuffer* currentCMDBuffer = m_CommandBuffers[m_CurrentBufferID];
 
-				m_Pipeline->SetActive(currentCMDBuffer);
+				m_Pipeline->Bind(currentCMDBuffer);
 
 				uint32_t dynamicOffset = index * static_cast<uint32_t>(m_DynamicAlignment);
 
-				std::vector<Graphics::DescriptorSet*> descriptorSets = { m_Pipeline->GetDescriptorSet(), m_DescriptorSet.get() };
+                m_CurrentDescriptorSets[0] = m_Pipeline->GetDescriptorSet();
+                m_CurrentDescriptorSets[1] = m_DescriptorSet.get();
 				
-				mesh->GetVertexArray()->Bind(currentCMDBuffer);
+				mesh->GetVertexBuffer()->Bind(currentCMDBuffer, m_Pipeline.get());
 				mesh->GetIndexBuffer()->Bind(currentCMDBuffer);
 
-				Renderer::BindDescriptorSets(m_Pipeline.get(), currentCMDBuffer, dynamicOffset, descriptorSets);
+				Renderer::BindDescriptorSets(m_Pipeline.get(), currentCMDBuffer, dynamicOffset, m_CurrentDescriptorSets);
 				Renderer::DrawIndexed(currentCMDBuffer, DrawType::TRIANGLE, mesh->GetIndexBuffer()->GetCount());
 
-				mesh->GetVertexArray()->Unbind();
+				mesh->GetVertexBuffer()->Unbind();
 				mesh->GetIndexBuffer()->Unbind();
 
 				index++;
@@ -400,7 +399,7 @@ namespace Lumos
 
 		void ForwardRenderer::CreateGraphicsPipeline()
 		{
-			m_Shader = Shader::CreateFromFile("Simple", "/CoreShaders/");
+			m_Shader = Ref<Graphics::Shader>(Shader::CreateFromFile("Simple", "/CoreShaders/"));
 
 			std::vector<Graphics::DescriptorPoolInfo> poolInfo =
 				{
@@ -451,7 +450,7 @@ namespace Lumos
 			pipelineCI.depthBiasEnabled = false;
 			pipelineCI.maxObjects = MAX_OBJECTS;
 
-			m_Pipeline = Graphics::Pipeline::Create(pipelineCI);
+			m_Pipeline = Ref<Graphics::Pipeline>(Graphics::Pipeline::Create(pipelineCI));
 		}
 
 		void ForwardRenderer::SetRenderTarget(Texture* texture, bool rebuildFramebuffer)

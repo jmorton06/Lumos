@@ -1,5 +1,4 @@
 #pragma once
-#include "lmpch.h"
 #include "Maths/Maths.h"
 #include "Renderable2D.h"
 

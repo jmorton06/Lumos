@@ -1,24 +1,15 @@
 #pragma once
-#include "lmpch.h"
 
 namespace Lumos
 {
-	class LUMOS_EXPORT AINode
+	class AINode
 	{
 	public:
-        AINode();
-		virtual ~AINode();
+        AINode() = default;
+		virtual ~AINode() = default;
 
         void Update(float dt) {};
 		
 		
 	};
-
-	_FORCE_INLINE_ AINode::AINode()
-	{
-	}
-
-	_FORCE_INLINE_ AINode::~AINode()
-	{
-	}
 }

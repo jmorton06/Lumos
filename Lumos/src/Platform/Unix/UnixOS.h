@@ -1,4 +1,4 @@
-#include "lmpch.h"
+#pragma once
 #include "Core/OS/OS.h"
 
 namespace Lumos

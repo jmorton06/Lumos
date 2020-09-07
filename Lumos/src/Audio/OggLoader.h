@@ -1,6 +1,4 @@
 #pragma once
-
-#include "lmpch.h"
 #include "AudioData.h"
 
 namespace Lumos

@@ -1,4 +1,4 @@
-#include "lmpch.h"
+#include "Precompiled.h"
 #include "RigidBody2D.h"
 #include "B2PhysicsEngine.h"
 #include "Core/Application.h"
@@ -102,6 +102,8 @@ namespace Lumos
 		}
 		else if(params.shape == Shape::Custom)
 		{
+            m_CustomShapePositions = params.custumShapePositions;
+
 			b2PolygonShape dynamicBox;
 			dynamicBox.Set((b2Vec2*)params.custumShapePositions.data(), int32(params.custumShapePositions.size()));
 
@@ -136,6 +138,7 @@ namespace Lumos
     void RigidBody2D::SetShape(Shape shape, const std::vector<Maths::Vector2> &customPositions)
     {
         m_ShapeType = shape;
+        m_CustomShapePositions = customPositions;
 
         if(m_B2Body && Application::Get().GetSystem<B2PhysicsEngine>())
             Application::Get().GetSystem<B2PhysicsEngine>()->GetB2World()->DestroyBody(m_B2Body);

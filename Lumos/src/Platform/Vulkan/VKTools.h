@@ -23,6 +23,8 @@ namespace Lumos
 		enum class TextureWrap;
         enum class Format;
         enum class TextureFilter;
+		enum class PolygonMode;
+		enum class DrawType;
         
 		namespace VKTools
 		{
@@ -53,6 +55,9 @@ namespace Lumos
             VkFilter TextureFilterToVK(const TextureFilter filter);
             VkShaderStageFlagBits ShaderTypeToVK(const ShaderType& shaderName);
             VkFormat FormatToVK(Lumos::Graphics::Format format);
+			VkPolygonMode PolygonModeToVk(Lumos::Graphics::PolygonMode mode);
+			VkPrimitiveTopology DrawTypeToVk(Lumos::Graphics::DrawType type);
+
 
 			void SetImageLayout(
 				VkCommandBuffer cmdbuffer,

@@ -44,7 +44,7 @@ class sparse_set {
     static_assert(ENTT_PAGE_SIZE && ((ENTT_PAGE_SIZE & (ENTT_PAGE_SIZE - 1)) == 0), "ENTT_PAGE_SIZE must be a power of two");
     static constexpr auto entt_per_page = ENTT_PAGE_SIZE / sizeof(Entity);
 
-    using traits_type = entt_traits<std::underlying_type_t<Entity>>;
+    using traits_type = entt_traits<Entity>;
     using page_type = std::unique_ptr<Entity[]>;
 
     class sparse_set_iterator final {
@@ -72,7 +72,7 @@ class sparse_set {
 
         sparse_set_iterator operator++(int) ENTT_NOEXCEPT {
             iterator orig = *this;
-            return operator++(), orig;
+            return ++(*this), orig;
         }
 
         sparse_set_iterator & operator--() ENTT_NOEXCEPT {
@@ -107,7 +107,7 @@ class sparse_set {
         }
 
         [[nodiscard]] reference operator[](const difference_type value) const {
-            const auto pos = size_type(index-value-1);
+            const auto pos = size_type(index-value-1u);
             return (*packed)[pos];
         }
 
@@ -136,7 +136,7 @@ class sparse_set {
         }
 
         [[nodiscard]] pointer operator->() const {
-            const auto pos = size_type(index-1);
+            const auto pos = size_type(index-1u);
             return &(*packed)[pos];
         }
 
@@ -150,11 +150,11 @@ class sparse_set {
     };
 
     [[nodiscard]] auto page(const Entity entt) const ENTT_NOEXCEPT {
-        return std::size_t{(to_integral(entt) & traits_type::entity_mask) / entt_per_page};
+        return size_type{(to_integral(entt) & traits_type::entity_mask) / entt_per_page};
     }
 
     [[nodiscard]] auto offset(const Entity entt) const ENTT_NOEXCEPT {
-        return std::size_t{to_integral(entt) & (entt_per_page - 1)};
+        return size_type{to_integral(entt) & (entt_per_page - 1)};
     }
 
     [[nodiscard]] page_type & assure(const std::size_t pos) {
@@ -163,7 +163,7 @@ class sparse_set {
         }
 
         if(!sparse[pos]) {
-            sparse[pos] = std::make_unique<entity_type[]>(entt_per_page);
+            sparse[pos].reset(new entity_type[entt_per_page]);
             // null is safe in all cases for our purposes
             for(auto *first = sparse[pos].get(), *last = first + entt_per_page; first != last; ++first) {
                 *first = null;
@@ -180,6 +180,8 @@ public:
     using size_type = std::size_t;
     /*! @brief Random access iterator type. */
     using iterator = sparse_set_iterator;
+    /*! @brief Reverse iterator type. */
+    using reverse_iterator = const entity_type *;
 
     /*! @brief Default constructor. */
     sparse_set() = default;
@@ -284,10 +286,6 @@ public:
      * array. If the sparse set is empty, the returned iterator will be equal to
      * `end()`.
      *
-     * @note
-     * Random access iterators stay true to the order imposed by a call to
-     * `respect`.
-     *
      * @return An iterator to the first entity of the internal packed array.
      */
     [[nodiscard]] iterator begin() const ENTT_NOEXCEPT {
@@ -302,15 +300,39 @@ public:
      * the internal packed array. Attempting to dereference the returned
      * iterator results in undefined behavior.
      *
-     * @note
-     * Random access iterators stay true to the order imposed by a call to
-     * `respect`.
-     *
      * @return An iterator to the element following the last entity of the
      * internal packed array.
      */
     [[nodiscard]] iterator end() const ENTT_NOEXCEPT {
         return iterator{packed, {}};
+    }
+
+    /**
+     * @brief Returns a reverse iterator to the beginning.
+     *
+     * The returned iterator points to the first entity of the reversed internal
+     * packed array. If the sparse set is empty, the returned iterator will be
+     * equal to `rend()`.
+     *
+     * @return An iterator to the first entity of the reversed internal packed
+     * array.
+     */
+    [[nodiscard]] reverse_iterator rbegin() const ENTT_NOEXCEPT {
+        return packed.data();
+    }
+
+    /**
+     * @brief Returns a reverse iterator to the end.
+     *
+     * The returned iterator points to the element following the last entity in
+     * the reversed internal packed array. Attempting to dereference the
+     * returned iterator results in undefined behavior.
+     *
+     * @return An iterator to the element following the last entity of the
+     * reversed internal packed array.
+     */
+    [[nodiscard]] reverse_iterator rend() const ENTT_NOEXCEPT {
+        return rbegin() + packed.size();
     }
 
     /**
@@ -348,7 +370,7 @@ public:
      */
     [[nodiscard]] size_type index(const entity_type entt) const {
         ENTT_ASSERT(contains(entt));
-        return size_type(sparse[page(entt)][offset(entt)]);
+        return size_type{to_integral(sparse[page(entt)][offset(entt)])};
     }
 
     /**
@@ -364,7 +386,7 @@ public:
      */
     void emplace(const entity_type entt) {
         ENTT_ASSERT(!contains(entt));
-        assure(page(entt))[offset(entt)] = entity_type(packed.size());
+        assure(page(entt))[offset(entt)] = entity_type(static_cast<typename traits_type::entity_type>(packed.size()));
         packed.push_back(entt);
     }
 
@@ -383,7 +405,7 @@ public:
      */
     template<typename It>
     void insert(It first, It last) {
-        auto next = packed.size();
+        auto next = static_cast<typename traits_type::entity_type>(packed.size());
         packed.insert(packed.end(), first, last);
 
         while(first != last) {
@@ -408,7 +430,7 @@ public:
         ENTT_ASSERT(contains(entt));
         const auto curr = page(entt);
         const auto pos = offset(entt);
-        packed[size_type(sparse[curr][pos])] = entity_type(packed.back());
+        packed[size_type{to_integral(sparse[curr][pos])}] = packed.back();
         sparse[page(packed.back())][offset(packed.back())] = sparse[curr][pos];
         sparse[curr][pos] = null;
         packed.pop_back();
@@ -432,7 +454,7 @@ public:
     virtual void swap(const entity_type lhs, const entity_type rhs) {
         auto &from = sparse[page(lhs)][offset(lhs)];
         auto &to = sparse[page(rhs)][offset(rhs)];
-        std::swap(packed[size_type(from)], packed[size_type(to)]);
+        std::swap(packed[size_type{to_integral(from)}], packed[size_type{to_integral(to)}]);
         std::swap(from, to);
     }
 
@@ -483,7 +505,7 @@ public:
         algo(from, to, std::move(compare), std::forward<Args>(args)...);
 
         for(size_type pos = skip, end = skip+length; pos < end; ++pos) {
-            sparse[page(packed[pos])][offset(packed[pos])] = entity_type(pos);
+            sparse[page(packed[pos])][offset(packed[pos])] = entity_type(static_cast<typename traits_type::entity_type>(pos));
         }
     }
 
@@ -532,7 +554,7 @@ public:
 
             while(curr != next) {
                 apply(packed[curr], packed[next]);
-                sparse[page(packed[curr])][offset(packed[curr])] = entity_type(curr);
+                sparse[page(packed[curr])][offset(packed[curr])] = entity_type(static_cast<typename traits_type::entity_type>(curr));
 
                 curr = next;
                 next = index(packed[curr]);

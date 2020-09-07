@@ -56,13 +56,13 @@ int main(int argc, char** argv)
 
 #elif defined(LUMOS_PLATFORM_MACOS)
 
-#include "Platform/macOS/macOSOS.h"
+#include "Platform/MacOS/MacOSOS.h"
 
 int main(int argc, char** argv)
 {
 	Lumos::Internal::CoreSystem::Init(false);
 
-    auto macOSOS = new Lumos::macOSOS();
+    auto macOSOS = new Lumos::MacOSOS();
     Lumos::OS::SetInstance(macOSOS);
     macOSOS->Init();
     

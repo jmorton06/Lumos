@@ -1,4 +1,4 @@
-#include "lmpch.h"
+#include "Precompiled.h"
 #include "EntityFactory.h"
 #include "Physics/LumosPhysicsEngine/SphereCollisionShape.h"
 #include "Physics/LumosPhysicsEngine/PyramidCollisionShape.h"
@@ -157,6 +157,7 @@ namespace Lumos
 	{
 		auto pyramid = scene->GetEntityManager()->Create(name);
 		auto pyramidMeshEntity = scene->GetEntityManager()->Create();
+        pyramid.AddComponent<Maths::Transform>();
 
 		Ref<Graphics::Material> matInstance = CreateRef<Graphics::Material>();
 		Graphics::MaterialProperties properties;

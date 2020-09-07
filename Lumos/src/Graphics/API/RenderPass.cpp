@@ -1,10 +1,11 @@
-#include "lmpch.h"
+#include "Precompiled.h"
 #include "RenderPass.h"
 
 namespace Lumos
 {
 	namespace Graphics
 	{
+		RenderPass::~RenderPass() = default;
         RenderPass*(*RenderPass::CreateFunc)() = nullptr;
 
 		RenderPass* RenderPass::Create()

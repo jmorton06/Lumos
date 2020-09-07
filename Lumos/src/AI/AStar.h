@@ -1,5 +1,4 @@
 #pragma once
-#include "lmpch.h"
 
 #include "PathNode.h"
 #include "PathNodePriorityQueue.h"
@@ -7,7 +6,7 @@
 
 namespace Lumos
 {
-	class LUMOS_EXPORT AStar
+	class AStar
 	{
 	public:
 		explicit AStar(const std::vector<PathNode *> &nodes);
@@ -16,22 +15,22 @@ namespace Lumos
 		void Reset();
 		bool FindPath(PathNode *start, PathNode *end);
 		
-		_FORCE_INLINE_ PathNodePriorityQueue OpenList() const
+		PathNodePriorityQueue OpenList() const
 		{
 			return m_OpenList;
 		}
 
-		_FORCE_INLINE_ std::vector<QueueablePathNode *> ClosedList() const
+		const std::vector<QueueablePathNode *>& ClosedList() const
 		{
 			return m_ClosedList;
 		}
 
-		_FORCE_INLINE_ std::vector<PathNode *> Path() const
+		const std::vector<PathNode *>& Path() const
 		{
 			return m_Path;
 		}
 
-		_FORCE_INLINE_ float PathCost() const
+		float PathCost() const
 		{
 			return m_ClosedList.back()->gScore;
 		}

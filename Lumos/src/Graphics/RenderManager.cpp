@@ -1,4 +1,4 @@
-#include "lmpch.h"
+#include "Precompiled.h"
 #include "RenderManager.h"
 #include "GBuffer.h"
 
@@ -10,7 +10,7 @@ namespace Lumos
 		{
 			SetScreenBufferSize(width, height);
 
-			m_GBuffer = lmnew GBuffer(width, height);
+			m_GBuffer = new GBuffer(width, height);
 			Reset();
 		}
 		RenderManager::~RenderManager() { delete m_GBuffer; }

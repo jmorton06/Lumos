@@ -1,4 +1,4 @@
-#include "lmpch.h"
+#include "Precompiled.h"
 #include "Scene.h"
 #include "Core/OS/Input.h"
 #include "Core/Application.h"
@@ -7,6 +7,7 @@
 #include "Graphics/RenderManager.h"
 #include "Graphics/Camera/Camera.h"
 #include "Graphics/Sprite.h"
+#include "Graphics/AnimatedSprite.h"
 #include "Utilities/TimeStep.h"
 #include "Audio/AudioManager.h"
 #include "Physics/LumosPhysicsEngine/SortAndSweepBroadphase.h"
@@ -32,7 +33,6 @@
 #include <cereal/archives/binary.hpp>
 #include <cereal/archives/json.hpp>
 #include <entt/entity/registry.hpp>
-//#include <cereal/cereal.hpp>
 #include <sol/sol.hpp>
 
 namespace Lumos
@@ -60,10 +60,9 @@ namespace Lumos
 
 	void Scene::OnInit()
 	{
+		LUMOS_PROFILE_FUNCTION();
 		LuaManager::Get().GetState().set("registry", &m_EntityManager->GetRegistry());
 		LuaManager::Get().GetState().set("scene", this);
-
-		m_CurrentScene = true;
 
 		//Default physics setup
 		Application::Get().GetSystem<LumosPhysicsEngine>()->SetDampingFactor(0.998f);
@@ -77,6 +76,7 @@ namespace Lumos
 
 	void Scene::OnCleanupScene()
 	{
+		LUMOS_PROFILE_FUNCTION();
 		m_LayerStack->Clear();
 
 		DeleteAllGameObjects();
@@ -90,17 +90,17 @@ namespace Lumos
 		{
 			audioManager->ClearNodes();
 		}
-
-		m_CurrentScene = false;
 	};
 
 	void Scene::DeleteAllGameObjects()
 	{
+		LUMOS_PROFILE_FUNCTION();
 		m_EntityManager->Clear();
 	}
 
 	void Scene::OnUpdate(const TimeStep& timeStep)
 	{
+		LUMOS_PROFILE_FUNCTION();
 		const Maths::Vector2 mousePos = Input::GetInput()->GetMousePosition();
 
 		auto defaultCameraControllerView = m_EntityManager->GetEntitiesWithType<DefaultCameraController>();
@@ -109,7 +109,7 @@ namespace Lumos
 		{
             auto& cameraController = defaultCameraControllerView.Front().GetComponent<DefaultCameraController>();
             auto trans = defaultCameraControllerView.Front().TryGetComponent<Maths::Transform>();
-			if(Application::Get().GetSceneActive() && trans)
+			if(Application::Get().GetSceneActive() && trans && cameraController.GetController())
 			{
 				cameraController.GetController()->HandleMouse(*trans, timeStep.GetMillis(), mousePos.x, mousePos.y);
 				cameraController.GetController()->HandleKeyboard(*trans, timeStep.GetMillis());
@@ -117,16 +117,26 @@ namespace Lumos
 		}
 
 		m_SceneGraph.Update(m_EntityManager->GetRegistry());
+		
+		auto animatedSpriteView = m_EntityManager->GetEntitiesWithType<Graphics::AnimatedSprite>();
+		
+		for(auto entity : animatedSpriteView)
+		{
+			auto& animSprite = entity.GetComponent<Graphics::AnimatedSprite>();
+			animSprite.OnUpdate(timeStep.GetMillis());
+		}
 	}
 
 	void Scene::OnEvent(Event& e)
 	{
+		LUMOS_PROFILE_FUNCTION();
 		EventDispatcher dispatcher(e);
 		dispatcher.Dispatch<WindowResizeEvent>(BIND_EVENT_FN(Scene::OnWindowResize));
 	}
 
 	bool Scene::OnWindowResize(WindowResizeEvent& e)
 	{
+		LUMOS_PROFILE_FUNCTION();
 		if(!Application::Get().GetSceneActive())
 			return false;
 
@@ -141,6 +151,7 @@ namespace Lumos
 
 	void Scene::PushLayer(Layer* layer, bool overlay)
 	{
+		LUMOS_PROFILE_FUNCTION();
 		if(overlay)
 			m_LayerStack->PushOverlay(layer);
 		else
@@ -152,6 +163,7 @@ namespace Lumos
 #define ALL_COMPONENTS Maths::Transform, NameComponent, ActiveComponent, Hierarchy, Camera, LuaScriptComponent, Graphics::Model, Graphics::Light, Physics3DComponent, Graphics::Environment, Graphics::Sprite, Physics2DComponent, DefaultCameraController
 	void Scene::Serialise(const std::string& filePath, bool binary)
 	{
+		LUMOS_PROFILE_FUNCTION();
 		std::string path = filePath;
 		path += RemoveSpaces(m_SceneName);
 		if(binary)
@@ -163,8 +175,8 @@ namespace Lumos
 			{
 				// output finishes flushing its contents when it goes out of scope
 				cereal::BinaryOutputArchive output{file};
+                output(*this);
 				entt::snapshot{m_EntityManager->GetRegistry()}.entities(output).component<ALL_COMPONENTS>(output);
-				output(*this);
 			}
 			file.close();
 		}
@@ -176,8 +188,8 @@ namespace Lumos
 			{
 				// output finishes flushing its contents when it goes out of scope
 				cereal::JSONOutputArchive output{storage};
+                output(*this);
 				entt::snapshot{m_EntityManager->GetRegistry()}.entities(output).component<ALL_COMPONENTS>(output);
-				output(*this);
 			}
 			FileSystem::WriteTextFile(path, storage.str());
 		}
@@ -185,8 +197,9 @@ namespace Lumos
 
 	void Scene::Deserialise(const std::string& filePath, bool binary)
 	{
-		m_EntityManager->Clear();
-
+		LUMOS_PROFILE_FUNCTION();
+        m_EntityManager->Clear();
+        m_SceneGraph.DisableOnConstruct(true, m_EntityManager->GetRegistry());
 		std::string path = filePath;
 		path += RemoveSpaces(m_SceneName);
 
@@ -196,14 +209,14 @@ namespace Lumos
 
 			if(!FileSystem::FileExists(path))
 			{
-				Lumos::Debug::Log::Error("No saved scene file found");
+				Lumos::Debug::Log::Error("No saved scene file found {0}", path);
 				return;
 			}
 
 			std::ifstream file(path, std::ios::binary);
 			cereal::BinaryInputArchive input(file);
-			entt::snapshot_loader{m_EntityManager->GetRegistry()}.entities(input).component<ALL_COMPONENTS>(input); //continuous_loader
 			input(*this);
+			entt::snapshot_loader{m_EntityManager->GetRegistry()}.entities(input).component<ALL_COMPONENTS>(input); //continuous_loader
 		}
 		else
 		{
@@ -211,21 +224,23 @@ namespace Lumos
 
 			if(!FileSystem::FileExists(path))
 			{
-				Lumos::Debug::Log::Error("No saved scene file found");
+                Lumos::Debug::Log::Error("No saved scene file found {0}", path);
 				return;
 			}
-
 			std::string data = FileSystem::ReadTextFile(path);
 			std::istringstream istr;
 			istr.str(data);
 			cereal::JSONInputArchive input(istr);
-			entt::snapshot_loader{m_EntityManager->GetRegistry()}.entities(input).component<ALL_COMPONENTS>(input); //continuous_loader
 			input(*this);
+			entt::snapshot_loader{m_EntityManager->GetRegistry()}.entities(input).component<ALL_COMPONENTS>(input); //continuous_loader
 		}
+        
+        m_SceneGraph.DisableOnConstruct(false, m_EntityManager->GetRegistry());
 	}
 
 	void Scene::UpdateSceneGraph()
 	{
+		LUMOS_PROFILE_FUNCTION();
 		m_SceneGraph.Update(m_EntityManager->GetRegistry());
 	}
 
@@ -246,11 +261,13 @@ namespace Lumos
 
 	   Entity Scene::CreateEntity(const std::string& name)
     {
+		LUMOS_PROFILE_FUNCTION();
         return m_EntityManager->Create(name);
     }
     
     void Scene::DuplicateEntity(Entity entity)
     {
+		LUMOS_PROFILE_FUNCTION();
         Entity newEntity = m_EntityManager->Create();
 
 		CopyComponentIfExists<Maths::Transform>(newEntity.GetHandle(), entity.GetHandle(), m_EntityManager->GetRegistry());
@@ -267,6 +284,7 @@ namespace Lumos
 
 	void Scene::DuplicateEntity(Entity entity, Entity parent)
 	{
+		LUMOS_PROFILE_FUNCTION();
 		Entity newEntity = m_EntityManager->Create();
 
 		CopyComponentIfExists<Maths::Transform>(newEntity.GetHandle(), entity.GetHandle(), m_EntityManager->GetRegistry());

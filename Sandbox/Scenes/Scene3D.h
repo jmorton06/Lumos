@@ -12,5 +12,4 @@ public:
 	virtual void OnUpdate(const Lumos::TimeStep& timeStep) override;
 	virtual void Render2D() override;
 	virtual void OnImGui() override;
-	void LoadModels();
 };

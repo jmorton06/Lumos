@@ -13,6 +13,24 @@ namespace entt {
 
 
 /**
+ * @brief Using declaration to be used to _repeat_ the same type a number of
+ * times equal to the size of a given parameter pack.
+ * @tparam Type A type to repeat.
+ */
+template<typename Type, typename>
+using unpack_as_t = Type;
+
+
+/**
+ * @brief Helper variable template to be used to _repeat_ the same value a
+ * number of times equal to the size of a given parameter pack.
+ * @tparam Value A value to repeat.
+ */
+template<auto Value, typename>
+inline constexpr auto unpack_as_v = Value;
+
+
+/**
  * @brief Wraps a static constant.
  * @tparam Value A static constant.
  */
@@ -37,7 +55,7 @@ struct choice_t
         // Unfortunately, doxygen cannot parse such a construct.
         /*! @cond TURN_OFF_DOXYGEN */
         : choice_t<N-1>
-        /*! @endcond TURN_OFF_DOXYGEN */
+        /*! @endcond */
 {};
 
 
@@ -175,7 +193,9 @@ struct is_equality_comparable: std::false_type {};
 
 /*! @copydoc is_equality_comparable */
 template<typename Type>
-struct is_equality_comparable<Type, std::void_t<decltype(std::declval<Type>() == std::declval<Type>())>>: std::true_type {};
+struct is_equality_comparable<Type, std::void_t<decltype(std::declval<Type>() == std::declval<Type>())>>
+        : std::true_type
+{};
 
 
 /**
@@ -184,6 +204,25 @@ struct is_equality_comparable<Type, std::void_t<decltype(std::declval<Type>() ==
  */
 template<class Type>
 inline constexpr auto is_equality_comparable_v = is_equality_comparable<Type>::value;
+
+
+/**
+ * @brief Provides the member constant `value` to true if a given type is empty
+ * and the empty type optimization is enabled, false otherwise.
+ * @tparam Type Potential empty type.
+ */
+template<typename Type, typename = void>
+struct is_eto_eligible
+    : ENTT_IS_EMPTY(Type)
+{};
+
+
+/**
+ * @brief Helper variable template.
+ * @tparam Type Potential empty type.
+ */
+template<typename Type>
+inline constexpr auto is_eto_eligible_v = is_eto_eligible<Type>::value;
 
 
 /**
@@ -218,26 +257,6 @@ using member_class_t = typename member_class<Member>::type;
 
 
 }
-
-
-#define ENTT_OPAQUE_TYPE(clazz, type)\
-    /**\
-     * @brief Defines an enum class to use for opaque identifiers and a\
-     * dedicate `to_integer` function to convert the identifiers to their\
-     * underlying type.\
-     * @param clazz The name to use for the enum class.\
-     * @param type The underlying type for the enum class.\
-     */\
-    enum class clazz: type {};\
-    /**\
-     * @brief Converts an opaque type value to its underlying type.\
-     * @param id The value to convert.\
-     * @return The integral representation of the given value.
-     */\
-    [[nodiscard]] constexpr auto to_integral(const clazz id) ENTT_NOEXCEPT {\
-        return static_cast<std::underlying_type_t<clazz>>(id);\
-    }\
-    static_assert(true)
 
 
 #endif

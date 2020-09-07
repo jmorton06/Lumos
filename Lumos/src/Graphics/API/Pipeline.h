@@ -1,5 +1,4 @@
 #pragma once
-#include "lmpch.h"
 #include "Renderer.h"
 
 namespace Lumos
@@ -22,7 +21,7 @@ namespace Lumos
 			NONE
 		};
 
-		enum PolygonMode
+		enum class PolygonMode
 		{
 			Fill,
 			Line,
@@ -56,10 +55,11 @@ namespace Lumos
 		{
 		public:
 			static Pipeline* Create(const PipelineInfo& pipelineInfo);
-			virtual ~Pipeline(){};
+			virtual ~Pipeline() = default;
 
-			virtual void SetActive(CommandBuffer* cmdBuffer) = 0;
+            virtual void Bind(CommandBuffer* cmdBuffer) = 0;
 
+            virtual size_t GetStride() const = 0;
 			virtual DescriptorSet* GetDescriptorSet() const = 0;
 			virtual Shader* GetShader() const = 0;
 

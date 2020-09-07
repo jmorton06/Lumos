@@ -1,4 +1,4 @@
-#include "lmpch.h"
+#include "Precompiled.h"
 #include "FPSCamera.h"
 #include "Core/Application.h"
 #include "Core/OS/Input.h"

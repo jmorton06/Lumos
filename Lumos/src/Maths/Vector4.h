@@ -1,5 +1,6 @@
 #pragma once
 #include "Maths/Vector3.h"
+#include <iostream>
 
 namespace Lumos::Maths
 {

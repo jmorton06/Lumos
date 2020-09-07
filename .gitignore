@@ -12,7 +12,6 @@
 *.userosscache
 *.sln.docstates
 .vs/
-.vscode
 
 # User-specific files (MonoDevelop/Xamarin Studio)
 *.userprefs
@@ -142,20 +141,23 @@ build
 bin-int
 
 # Specific files
-Dependencies/OpenAL/native-tools/bin2h
-Dependencies/OpenAL/native-tools/bsincgen
-Dependencies/OpenAL/config.h
-Dependencies/OpenAL/openal.pc
-Dependencies/OpenAL/OpenALConfig.cmake
-Dependencies/OpenAL/version.h
-Dependencies/Assimp/contrib/zlib/CTestTestfile.cmake
-Dependencies/Assimp/contrib/zlib/CTestTestfile.cmake
-Dependencies/tinyobjloader/tinyobjloader-targets.cmake
+Lumos/external/OpenAL/native-tools/bin2h
+Lumos/external/OpenAL/native-tools/bsincgen
+Lumos/external/OpenAL/config.h
+Lumos/external/OpenAL/openal.pc
+Lumos/external/OpenAL/OpenALConfig.cmake
+Lumos/external/OpenAL/version.h
+Lumos/external/Assimp/contrib/zlib/CTestTestfile.cmake
+Lumos/external/Assimp/contrib/zlib/CTestTestfile.cmake
+Lumos/external/tinyobjloader/tinyobjloader-targets.cmake
 imgui.ini
 *.kdev4
-!Dependencies/OpenAL/libs/linux/**
-!Dependencies/vulkan/libs/linux/**
+!Lumos/external/OpenAL/libs/linux/**
+!Lumos/external/vulkan/libs/linux/**
 
 
 LumosLog.txt
+.DS_Store
+.DS_Store
 editor.ini
+LumosCache

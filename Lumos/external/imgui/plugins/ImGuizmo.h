@@ -179,4 +179,5 @@ namespace ImGuizmo
    IMGUI_API void ViewManipulate(float* view, float length, ImVec2 position, ImVec2 size, ImU32 backgroundColor);
    
    IMGUI_API void SetID(int id);
+	IMGUI_API void SetGizmoSizeClipSpace(float value);
 };

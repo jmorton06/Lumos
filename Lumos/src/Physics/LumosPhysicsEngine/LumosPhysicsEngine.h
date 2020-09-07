@@ -1,6 +1,6 @@
 #pragma once
 
-#include "lmpch.h"
+
 #include "Utilities/TSingleton.h"
 #include "RigidBody3D.h"
 #include "Manifold.h"

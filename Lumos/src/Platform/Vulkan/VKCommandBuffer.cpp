@@ -1,10 +1,11 @@
-#include "lmpch.h"
+#include "Precompiled.h"
 #include "VKCommandBuffer.h"
-
 #include "VKDevice.h"
 #include "VKCommandPool.h"
 #include "VKFramebuffer.h"
 #include "VKTools.h"
+
+#include <Tracy/TracyVulkan.hpp>
 
 namespace Lumos
 {
@@ -26,7 +27,7 @@ namespace Lumos
 			VkCommandBufferAllocateInfo cmdBufferCI{};
 
 			cmdBufferCI.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
-			cmdBufferCI.commandPool = VKDevice::Get().GetVKContext()->GetCommandPool()->GetCommandPool();
+            cmdBufferCI.commandPool = VKDevice::Get().GetCommandPool()->GetCommandPool();
 			cmdBufferCI.commandBufferCount = 1;
 			cmdBufferCI.level = primary ? VK_COMMAND_BUFFER_LEVEL_PRIMARY : VK_COMMAND_BUFFER_LEVEL_SECONDARY;
 
@@ -43,7 +44,7 @@ namespace Lumos
 		void VKCommandBuffer::Unload()
 		{
 			vkDestroyFence(VKDevice::Get().GetDevice(), m_Fence, nullptr);
-			vkFreeCommandBuffers(VKDevice::Get().GetDevice(), VKDevice::Get().GetVKContext()->GetCommandPool()->GetCommandPool(),1, &m_CommandBuffer);
+			vkFreeCommandBuffers(VKDevice::Get().GetDevice(), VKDevice::Get().GetCommandPool()->GetCommandPool(),1, &m_CommandBuffer);
 		}
 
 		void VKCommandBuffer::BeginRecording()
@@ -57,6 +58,8 @@ namespace Lumos
 			}
 			else
 				Debug::Log::Critical("BeginRecording() called from a secondary command buffer!");
+			
+			//TracyVkZone(VKDevice::Get().GetTracyContext(), m_CommandBuffer, "Render");
 		}
 
 		void VKCommandBuffer::BeginRecordingSecondary(RenderPass* renderPass, Framebuffer* framebuffer)
@@ -163,7 +166,7 @@ namespace Lumos
         
         CommandBuffer* VKCommandBuffer::CreateFuncVulkan()
         {
-            return lmnew VKCommandBuffer();
+            return new VKCommandBuffer();
         }
 	}
 }

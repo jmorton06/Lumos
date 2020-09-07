@@ -1,10 +1,9 @@
-#include "lmpch.h"
+#include "Precompiled.h"
 #include "Entity.h"
 #include "EntityManager.h"
 
 namespace Lumos
 {
-
 	Entity EntityManager::Create()
 	{
 		return Entity(m_Registry.create(), m_Scene);

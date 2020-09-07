@@ -1,5 +1,5 @@
 #pragma once
-#include "lmpch.h"
+#include "Core/Core.h"
 #include "PathNode.h"
 
 namespace Lumos

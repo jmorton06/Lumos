@@ -1,7 +1,8 @@
-#include "lmpch.h"
+#include "Precompiled.h"
+#include "VKDevice.h"
 #include "VKSwapchain.h"
 #include "VKTools.h"
-
+#include "Core/Application.h"
 
 namespace Lumos
 {
@@ -23,32 +24,45 @@ namespace Lumos
 			}
 			vkDestroySwapchainKHR(VKDevice::Get().GetDevice(), m_SwapChain, VK_NULL_HANDLE);
 		}
+    
+        void VKSwapchain::Init(bool vsync, Window* windowHandle)
+        {
+            m_Surface = CreatePlatformSurface(VKContext::Get()->GetVKInstance(), windowHandle);
+            Init(vsync);
+        }
 
-		bool VKSwapchain::Init()
+		bool VKSwapchain::Init(bool vsync)
 		{
+            FindImageFormatAndColorSpace();
+            
+            if(!m_Surface)
+            {
+                Debug::Log::Critical("[VULKAN] Failed to create window surface!");
+            }
+
 			// Swap chain
             VkSurfaceCapabilitiesKHR surfaceCapabilities;
-			vkGetPhysicalDeviceSurfaceCapabilitiesKHR(VKDevice::Get().GetGPU(), VKDevice::Get().GetSurface(), &surfaceCapabilities);
+			vkGetPhysicalDeviceSurfaceCapabilitiesKHR(VKDevice::Get().GetGPU(), m_Surface, &surfaceCapabilities);
 
 			uint32_t numPresentModes;
-			vkGetPhysicalDeviceSurfacePresentModesKHR(VKDevice::Get().GetGPU(), VKDevice::Get().GetSurface(), &numPresentModes, VK_NULL_HANDLE);
+			vkGetPhysicalDeviceSurfacePresentModesKHR(VKDevice::Get().GetGPU(), m_Surface, &numPresentModes, VK_NULL_HANDLE);
 
 			VkPresentModeKHR * pPresentModes = new VkPresentModeKHR[numPresentModes];
-			vkGetPhysicalDeviceSurfacePresentModesKHR(VKDevice::Get().GetGPU(), VKDevice::Get().GetSurface(), &numPresentModes, pPresentModes);
+			vkGetPhysicalDeviceSurfacePresentModesKHR(VKDevice::Get().GetGPU(), m_Surface, &numPresentModes, pPresentModes);
 
             VkExtent2D swapChainExtent;
 
 			swapChainExtent.width = static_cast<uint32_t>(m_Width);
 			swapChainExtent.height = static_cast<uint32_t>(m_Height);
 
-			VkPresentModeKHR swapChainPresentMode = VK_PRESENT_MODE_FIFO_KHR;
-//			for (uint32_t i = 0; i < numPresentModes; i++)
-//			{
-//				if (pPresentModes[i] == VK_PRESENT_MODE_MAILBOX_KHR)
-//					swapChainPresentMode = VK_PRESENT_MODE_MAILBOX_KHR;
-//				if ((swapChainPresentMode != VK_PRESENT_MODE_MAILBOX_KHR) && (pPresentModes[i] == VK_PRESENT_MODE_IMMEDIATE_KHR))
-//					swapChainPresentMode = VK_PRESENT_MODE_IMMEDIATE_KHR;
-//			}
+			VkPresentModeKHR swapChainPresentMode = VK_PRESENT_MODE_IMMEDIATE_KHR;
+			for (uint32_t i = 0; i < numPresentModes; i++)
+			{
+				if (pPresentModes[i] == VK_PRESENT_MODE_MAILBOX_KHR)
+					swapChainPresentMode = VK_PRESENT_MODE_MAILBOX_KHR;
+				if ((swapChainPresentMode != VK_PRESENT_MODE_MAILBOX_KHR) && (pPresentModes[i] == VK_PRESENT_MODE_IMMEDIATE_KHR))
+					swapChainPresentMode = VK_PRESENT_MODE_IMMEDIATE_KHR;
+			}
 
 			// Use triple-buffering
 			uint32_t numSwapChainImages = surfaceCapabilities.maxImageCount;
@@ -63,9 +77,9 @@ namespace Lumos
 
             VkSwapchainCreateInfoKHR swapChainCI{};
 			swapChainCI.sType = VK_STRUCTURE_TYPE_SWAPCHAIN_CREATE_INFO_KHR;
-			swapChainCI.surface = VKDevice::Get().GetSurface();
+			swapChainCI.surface = m_Surface;
 			swapChainCI.minImageCount = numSwapChainImages;
-			swapChainCI.imageFormat = VKDevice::Get().GetFormat();
+			swapChainCI.imageFormat = m_ColorFormat;
 			swapChainCI.imageExtent.width = swapChainExtent.width;
 			swapChainCI.imageExtent.height = swapChainExtent.height;
 			swapChainCI.preTransform = preTransform;
@@ -73,7 +87,7 @@ namespace Lumos
 			swapChainCI.imageArrayLayers = 1;
 			swapChainCI.presentMode = swapChainPresentMode;
 			swapChainCI.oldSwapchain = VK_NULL_HANDLE;
-            swapChainCI.imageColorSpace = VKDevice::Get().GetColourSpace();
+            swapChainCI.imageColorSpace = m_ColorSpace;
             swapChainCI.imageSharingMode = VK_SHARING_MODE_EXCLUSIVE;
 			swapChainCI.queueFamilyIndexCount = 0;
             swapChainCI.imageUsage = VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT;
@@ -81,18 +95,18 @@ namespace Lumos
 			swapChainCI.clipped = VK_TRUE;
 
             VK_CHECK_RESULT(vkCreateSwapchainKHR(VKDevice::Get().GetDevice(), &swapChainCI, VK_NULL_HANDLE, &m_SwapChain));
-    
+
 			uint32_t swapChainImageCount;
             VK_CHECK_RESULT(vkGetSwapchainImagesKHR(VKDevice::Get().GetDevice(), m_SwapChain, &swapChainImageCount, VK_NULL_HANDLE));
 
-            VkImage * pSwapChainImages = lmnew VkImage[swapChainImageCount];
+            VkImage * pSwapChainImages = new VkImage[swapChainImageCount];
             VK_CHECK_RESULT(vkGetSwapchainImagesKHR(VKDevice::Get().GetDevice(), m_SwapChain, &swapChainImageCount, pSwapChainImages));
 
 			for (uint32_t i = 0; i < swapChainImageCount; i++)
 			{
                 VkImageViewCreateInfo viewCI{};
 				viewCI.sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO;
-				viewCI.format = VKDevice::Get().GetFormat();
+				viewCI.format = m_ColorFormat;
 				viewCI.components.r = VK_COMPONENT_SWIZZLE_R;
 				viewCI.components.g = VK_COMPONENT_SWIZZLE_G;
 				viewCI.components.b = VK_COMPONENT_SWIZZLE_B;
@@ -108,14 +122,14 @@ namespace Lumos
 
 				VkImageView imageView;
 				VK_CHECK_RESULT(vkCreateImageView(VKDevice::Get().GetDevice(), &viewCI, VK_NULL_HANDLE, &imageView));
-				VKTexture2D* swapChainBuffer = lmnew VKTexture2D(pSwapChainImages[i], imageView);
+				VKTexture2D* swapChainBuffer = new VKTexture2D(pSwapChainImages[i], imageView);
 
 				m_SwapChainBuffers.push_back(swapChainBuffer);
 			}
 
 			delete[] pSwapChainImages;
 			delete[] pPresentModes;
-
+			
 			return true;
 		}
 
@@ -137,15 +151,61 @@ namespace Lumos
 			present.pResults = VK_NULL_HANDLE;
 			VK_CHECK_RESULT(vkQueuePresentKHR(VKDevice::Get().GetPresentQueue(), &present));
 		}
-        
+
         void VKSwapchain::MakeDefault()
         {
             CreateFunc = CreateFuncVulkan;
         }
-        
+
 		Swapchain* VKSwapchain::CreateFuncVulkan(u32 width, u32 height)
         {
-            return lmnew VKSwapchain(width, height);
+            return new VKSwapchain(width, height);
         }
+	}
+	
+    void Graphics::VKSwapchain::FindImageFormatAndColorSpace()
+	{
+		VkPhysicalDevice physicalDevice = VKDevice::Get().GetPhysicalDevice()->GetVulkanPhysicalDevice();
+		
+		// Get list of supported surface formats
+		uint32_t formatCount;
+		VK_CHECK_RESULT(vkGetPhysicalDeviceSurfaceFormatsKHR(physicalDevice, m_Surface, &formatCount, NULL));
+		LUMOS_ASSERT(formatCount > 0, "");
+		
+		std::vector<VkSurfaceFormatKHR> surfaceFormats(formatCount);
+		VK_CHECK_RESULT(vkGetPhysicalDeviceSurfaceFormatsKHR(physicalDevice, m_Surface, &formatCount, surfaceFormats.data()));
+		
+		// If the surface format list only includes one entry with VK_FORMAT_UNDEFINED,
+		// there is no preferered format, so we assume VK_FORMAT_B8G8R8A8_UNORM
+		if ((formatCount == 1) && (surfaceFormats[0].format == VK_FORMAT_UNDEFINED))
+		{
+			m_ColorFormat = VK_FORMAT_B8G8R8A8_UNORM;
+			m_ColorSpace = surfaceFormats[0].colorSpace;
+		}
+		else
+		{
+			// iterate over the list of available surface format and
+			// check for the presence of VK_FORMAT_B8G8R8A8_UNORM
+			bool found_B8G8R8A8_UNORM = false;
+			for (auto&& surfaceFormat : surfaceFormats)
+			{
+                if (surfaceFormat.format == VK_FORMAT_B8G8R8A8_UNORM)
+				{
+					m_ColorFormat = surfaceFormat.format;
+					m_ColorSpace = surfaceFormat.colorSpace;
+					found_B8G8R8A8_UNORM = true;
+					break;
+				}
+			}
+			
+			// in case VK_FORMAT_B8G8R8A8_UNORM is not available
+			// select the first available color format
+			if (!found_B8G8R8A8_UNORM)
+			{
+				m_ColorFormat = surfaceFormats[0].format;
+				m_ColorSpace = surfaceFormats[0].colorSpace;
+			}
+		}
+		
 	}
 }

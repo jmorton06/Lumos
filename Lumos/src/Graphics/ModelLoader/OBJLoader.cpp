@@ -1,4 +1,4 @@
-#include "lmpch.h"
+#include "Precompiled.h"
 #include "Graphics/Model.h"
 #include "Graphics/Mesh.h"
 #include "Graphics/Material.h"
@@ -63,8 +63,8 @@ namespace Lumos
 			u32 vertexCount = 0;
 			const u32 numIndices = static_cast<u32>(shape.mesh.indices.size());
 			const u32 numVertices = numIndices; // attrib.vertices.size();// numIndices / 3.0f;
-			Graphics::Vertex* vertices = lmnew Graphics::Vertex[numVertices];
-			u32* indices = lmnew u32[numIndices];
+			Graphics::Vertex* vertices = new Graphics::Vertex[numVertices];
+			u32* indices = new u32[numIndices];
 
 			std::unordered_map<Graphics::Vertex, uint32_t> uniqueVertices;
 
@@ -175,28 +175,17 @@ namespace Lumos
 
 			pbrMaterial->SetTextures(textures);
 
-			Ref<Graphics::VertexArray> va;
-			va.reset(Graphics::VertexArray::Create());
-
-			Graphics::VertexBuffer* buffer = Graphics::VertexBuffer::Create(Graphics::BufferUsage::STATIC);
-			buffer->SetData(sizeof(Graphics::Vertex) * numVertices, vertices);
-
-			Graphics::BufferLayout layout;
-			layout.Push<Maths::Vector3>("position");
-			layout.Push<Maths::Vector4>("colour");
-			layout.Push<Maths::Vector2>("texCoord");
-			layout.Push<Maths::Vector3>("normal");
-			layout.Push<Maths::Vector3>("tangent");
-			buffer->SetLayout(layout);
-
-			va->PushBuffer(buffer);
+			Ref<VertexBuffer> vb = Ref<VertexBuffer>(VertexBuffer::Create(BufferUsage::STATIC));
+			vb->SetData(sizeof(Graphics::Vertex) * numVertices, vertices);
 
 			Ref<Graphics::IndexBuffer> ib;
 			ib.reset(Graphics::IndexBuffer::Create(indices, numIndices));
 
-			auto mesh = CreateRef<Graphics::Mesh>(va, ib, boundingBox);
+			auto mesh = CreateRef<Graphics::Mesh>(vb, ib, boundingBox);
 			mesh->SetMaterial(pbrMaterial);
 			m_Meshes.push_back(mesh);
+			
+			m_Textures.clear();
 
 			delete[] vertices;
 			delete[] indices;

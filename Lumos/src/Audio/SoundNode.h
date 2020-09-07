@@ -1,5 +1,5 @@
 #pragma once
-#include "lmpch.h"
+
 #include "Sound.h"
 #include "Maths/Maths.h"
 

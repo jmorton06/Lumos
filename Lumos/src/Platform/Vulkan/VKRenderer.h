@@ -1,13 +1,8 @@
 #pragma once
 
-#include "lmpch.h"
 #include "VK.h"
-#include "Maths/Maths.h"
 #include "VKContext.h"
-#include "VKTools.h"
-#include "Graphics/Mesh.h"
 #include "VKSwapchain.h"
-#include "VKPipeline.h"
 #include "Graphics/API/DescriptorSet.h"
 #include "Graphics/API/RenderPass.h"
 #include "VKUniformBuffer.h"
@@ -37,12 +32,8 @@ namespace Lumos
 				return static_cast<VKRenderer*>(s_Instance);
 			}
 
-			Swapchain* GetSwapchainInternal() const override
-			{
-				return m_Swapchain.get();
-			}
-
-			void InitInternal() override;
+            Swapchain* GetSwapchainInternal() const override;
+            void InitInternal() override;
 			void Begin() override;
 			void OnResize(u32 width, u32 height) override;
 
@@ -66,7 +57,6 @@ namespace Lumos
 
 		private:
 			Lumos::Graphics::VKContext* m_Context;
-			Ref<Lumos::Graphics::VKSwapchain> m_Swapchain;
 
 			VkSemaphore m_ImageAvailableSemaphore[NUM_SEMAPHORES];
 			u32 m_CurrentSemaphoreIndex = 0;

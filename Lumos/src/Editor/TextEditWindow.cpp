@@ -1,4 +1,4 @@
-#include "lmpch.h"
+#include "Precompiled.h"
 #include "TextEditWindow.h"
 #include "Core/OS/FileSystem.h"
 #include "Editor.h"
@@ -14,7 +14,7 @@ namespace Lumos
 		m_Name = "TextEditWindow";
 		m_SimpleName = "TextEdit";
 
-		auto extension = StringFormat::GetFilePathExtension(m_FilePath);
+		auto extension = StringUtilities::GetFilePathExtension(m_FilePath);
 
 		if(extension == "lua" || extension == "Lua")
 		{

@@ -1,4 +1,4 @@
-#include "lmpch.h"
+#include "Precompiled.h"
 #include "VKFramebuffer.h"
 #include "VKDevice.h"
 #include "VKTexture.h"
@@ -56,7 +56,7 @@ namespace Lumos
         
 		Framebuffer* VKFramebuffer::CreateFuncVulkan(const FramebufferInfo& info)
         {
-            return lmnew VKFramebuffer(info);
+            return new VKFramebuffer(info);
         }
 	}
 }

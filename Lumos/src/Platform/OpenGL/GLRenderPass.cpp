@@ -1,4 +1,4 @@
-#include "lmpch.h"
+#include "Precompiled.h"
 #include "GLRenderPass.h"
 #include "Graphics/API/Renderer.h"
 #include "GLFramebuffer.h"
@@ -62,7 +62,7 @@ namespace Lumos
 
 		RenderPass* GLRenderPass::CreateFuncGL()
 		{
-			return lmnew GLRenderPass;
+			return new GLRenderPass;
 		}
     }
 }

@@ -1,5 +1,5 @@
 #pragma once
-#include "lmpch.h"
+
 #include "Maths/Maths.h"
 
 #include "Events/Event.h"
@@ -21,7 +21,7 @@ namespace Lumos
 		static Input* GetInput() { return s_Input; }
 
 		static void Create();
-		static void Release() { lmdel s_Input; }
+		static void Release() { delete s_Input; }
 
 		bool GetKeyPressed(Lumos::InputCode::Key key)   const { return m_KeyPressed[int(key)]; }
 		bool GetKeyHeld(Lumos::InputCode::Key key)      const { return m_KeyHeld[int(key)]; }

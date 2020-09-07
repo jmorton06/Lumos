@@ -21,7 +21,7 @@ namespace entt {
 template<bool Const, typename Entity>
 struct as_view {
     /*! @brief Type of registry to convert. */
-    using registry_type = std::conditional_t<Const, const entt::basic_registry<Entity>, entt::basic_registry<Entity>>;
+    using registry_type = std::conditional_t<Const, const basic_registry<Entity>, basic_registry<Entity>>;
 
     /**
      * @brief Constructs a converter for a given registry.
@@ -36,7 +36,7 @@ struct as_view {
      * @return A newly created view.
      */
     template<typename Exclude, typename... Component>
-    operator entt::basic_view<Entity, Exclude, Component...>() const {
+    operator basic_view<Entity, Exclude, Component...>() const {
         return reg.template view<Component...>(Exclude{});
     }
 
@@ -70,7 +70,7 @@ as_view(const basic_registry<Entity> &) ENTT_NOEXCEPT -> as_view<true, Entity>;
 template<bool Const, typename Entity>
 struct as_group {
     /*! @brief Type of registry to convert. */
-    using registry_type = std::conditional_t<Const, const entt::basic_registry<Entity>, entt::basic_registry<Entity>>;
+    using registry_type = std::conditional_t<Const, const basic_registry<Entity>, basic_registry<Entity>>;
 
     /**
      * @brief Constructs a converter for a given registry.
@@ -86,7 +86,7 @@ struct as_group {
      * @return A newly created group.
      */
     template<typename Exclude, typename Get, typename... Owned>
-    operator entt::basic_group<Entity, Exclude, Get, Owned...>() const {
+    operator basic_group<Entity, Exclude, Get, Owned...>() const {
         return reg.template group<Owned...>(Get{}, Exclude{});
     }
 
@@ -126,6 +126,20 @@ void invoke(basic_registry<Entity> &reg, const Entity entt) {
     delegate<void(basic_registry<Entity> &, const Entity)> func;
     func.template connect<Member>(reg.template get<member_class_t<decltype(Member)>>(entt));
     func(reg, entt);
+}
+
+
+/**
+ * @brief Returns the entity associated with a given component.
+ * @tparam Entity A valid entity type (see entt_traits for more details).
+ * @tparam Component Type of component.
+ * @param reg A registry that contains the given entity and its components.
+ * @param component A valid component instance.
+ * @return The entity associated with the given component.
+ */
+template<typename Entity, typename Component>
+Entity to_entity(const basic_registry<Entity> &reg, const Component &component) {
+    return *(reg.template data<Component>() + (&component - reg.template raw<Component>()));
 }
 
 

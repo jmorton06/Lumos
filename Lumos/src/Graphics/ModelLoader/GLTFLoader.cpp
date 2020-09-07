@@ -1,4 +1,4 @@
-#include "lmpch.h"
+#include "Precompiled.h"
 #include "Graphics/Model.h"
 #include "Graphics/Mesh.h"
 #include "Graphics/Material.h"
@@ -242,8 +242,8 @@ namespace Lumos::Graphics
 			const tinygltf::Accessor& indices = model.accessors[primitive.indices];
 
 			const u32 numVertices = static_cast<u32>(indices.count);
-			Graphics::Vertex* tempvertices = lmnew Graphics::Vertex[numVertices];
-			u32* indicesArray = lmnew u32[numVertices];
+			Graphics::Vertex* tempvertices = new Graphics::Vertex[numVertices];
+			u32* indicesArray = new u32[numVertices];
 
 			size_t maxNumVerts = 0;
 
@@ -332,22 +332,9 @@ namespace Lumos::Graphics
 				}
 			}
 
-			Ref<Graphics::VertexArray> va;
-			va.reset(Graphics::VertexArray::Create());
-
-			Graphics::VertexBuffer* buffer = Graphics::VertexBuffer::Create(Graphics::BufferUsage::STATIC);
-			buffer->SetData(sizeof(Graphics::Vertex) * numVertices, tempvertices);
-
-			Graphics::BufferLayout layout;
-			layout.Push<Maths::Vector3>("position");
-			layout.Push<Maths::Vector4>("colour");
-			layout.Push<Maths::Vector2>("texCoord");
-			layout.Push<Maths::Vector3>("normal");
-			layout.Push<Maths::Vector3>("tangent");
-			buffer->SetLayout(layout);
-
-			va->PushBuffer(buffer);
-
+			Ref<VertexBuffer> vb = Ref<VertexBuffer>(VertexBuffer::Create(BufferUsage::STATIC));
+			vb->SetData(sizeof(Graphics::Vertex) * numVertices, tempvertices);
+            
 			// -------- Indices ----------
 			{
 				// Get accessor info
@@ -387,7 +374,7 @@ namespace Lumos::Graphics
 			Ref<Graphics::IndexBuffer> ib;
 			ib.reset(Graphics::IndexBuffer::Create(indicesArray, numVertices));
 
-			auto lMesh = lmnew Graphics::Mesh(va, ib, boundingBox);
+			auto lMesh = new Graphics::Mesh(vb, ib, boundingBox);
 
 			delete[] tempvertices;
 			delete[] indicesArray;
@@ -476,7 +463,7 @@ namespace Lumos::Graphics
 		std::string err;
 		std::string warn;
 
-		std::string ext = StringFormat::GetFilePathExtension(path);
+		std::string ext = StringUtilities::GetFilePathExtension(path);
 
 		loader.SetImageLoader(tinygltf::LoadImageData, nullptr);
 		loader.SetImageWriter(tinygltf::WriteImageData, nullptr);

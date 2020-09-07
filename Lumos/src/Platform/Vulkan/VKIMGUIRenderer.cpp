@@ -1,4 +1,4 @@
-#include "lmpch.h"
+#include "Precompiled.h"
 #include "VKIMGUIRenderer.h"
 #include <imgui/imgui.h>
 #include <imgui/examples/imgui_impl_vulkan.h>
@@ -7,6 +7,7 @@
 #include "VKCommandBuffer.h"
 #include "VKRenderer.h"
 #include "VKRenderpass.h"
+#include "VKTexture.h"
 
 static ImGui_ImplVulkanH_WindowData g_WindowData;
 static VkAllocationCallbacks* g_Allocator = nullptr;
@@ -92,7 +93,7 @@ namespace Lumos
             
             for (int i = 0; i < Renderer::GetSwapchain()->GetSwapchainBufferCount(); i++)
             {
-                VKCommandBuffer* commandBuffer = lmnew VKCommandBuffer();
+                VKCommandBuffer* commandBuffer = new VKCommandBuffer();
                 commandBuffer->Init(true);
                 m_CommandBuffers[i] = commandBuffer;
             }
@@ -104,7 +105,7 @@ namespace Lumos
 
             wd->BackBufferCount = static_cast<uint32_t>(swapChain->GetSwapchainBufferCount());
             
-			m_Renderpass = lmnew VKRenderpass();
+			m_Renderpass = new VKRenderpass();
 			AttachmentInfo textureTypes[2] =
 			{
 				{ TextureType::COLOUR, TextureFormat::RGBA8 }
@@ -121,7 +122,7 @@ namespace Lumos
             {
                 for (uint32_t i = 0; i < wd->BackBufferCount; i++)
                 {
-                    auto scBuffer = swapChain->GetTexture(i);
+                    auto scBuffer = (VKTexture2D*)swapChain->GetTexture(i);
                     wd->BackBuffer[i] = scBuffer->GetImage();
                     wd->BackBufferView[i] = scBuffer->GetImageView();
                 }
@@ -144,7 +145,7 @@ namespace Lumos
 				attachments[0] = Renderer::GetRenderer()->GetSwapchain()->GetImage(i);
 				bufferInfo.attachments = attachments;
 
-				m_Framebuffers[i] = lmnew VKFramebuffer(bufferInfo);
+				m_Framebuffers[i] = new VKFramebuffer(bufferInfo);
 				wd->Framebuffer[i] = m_Framebuffers[i]->GetFramebuffer();
 			}
         }
@@ -155,7 +156,7 @@ namespace Lumos
             w = (int)m_Width;
             h = (int)m_Height;
             ImGui_ImplVulkanH_WindowData* wd = &g_WindowData;
-            VkSurfaceKHR surface = VKDevice::Get().GetSurface();
+            VkSurfaceKHR surface = VKContext::Get()->GetSwapchain()->GetSurface();
             SetupVulkanWindowData(wd, surface, w, h);
 
             // Setup Vulkan binding
@@ -163,7 +164,7 @@ namespace Lumos
             init_info.Instance = static_cast<VKContext*>(VKContext::GetContext())->GetVKInstance();
             init_info.PhysicalDevice = VKDevice::Get().GetGPU();
             init_info.Device = VKDevice::Get().GetDevice();
-            init_info.QueueFamily = VKDevice::Get().GetGraphicsQueueFamilyIndex();
+            init_info.QueueFamily = VKDevice::Get().GetPhysicalDevice()->GetGraphicsQueueFamilyIndex();
             init_info.Queue = VKDevice::Get().GetGraphicsQueue();
             init_info.PipelineCache = VKDevice::Get().GetPipelineCache();
             init_info.DescriptorPool = g_DescriptorPool;
@@ -178,7 +179,7 @@ namespace Lumos
 				int width, height;
 				io.Fonts->GetTexDataAsRGBA32(&pixels, &width, &height);
 
-				m_FontTexture = lmnew VKTexture2D(width, height, pixels, TextureParameters(TextureFilter::NEAREST, TextureFilter::NEAREST));
+				m_FontTexture = new VKTexture2D(width, height, pixels, TextureParameters(TextureFilter::NEAREST, TextureFilter::NEAREST));
 
 				 VkWriteDescriptorSet write_desc[1] = {};
 				 write_desc[0].sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
@@ -228,7 +229,7 @@ namespace Lumos
             wd->Swapchain = swapChain->GetSwapchain();
             for (uint32_t i = 0; i < wd->BackBufferCount; i++)
             {
-                auto scBuffer = swapChain->GetTexture(i);
+                auto scBuffer = (VKTexture2D*)swapChain->GetTexture(i);
                 wd->BackBuffer[i] = scBuffer->GetImage();
                 wd->BackBufferView[i] = scBuffer->GetImageView();
             }
@@ -258,7 +259,7 @@ namespace Lumos
 				attachments[0] = Renderer::GetRenderer()->GetSwapchain()->GetImage(i);
 				bufferInfo.attachments = attachments;
 
-				m_Framebuffers[i] = lmnew VKFramebuffer(bufferInfo);
+				m_Framebuffers[i] = new VKFramebuffer(bufferInfo);
 				wd->Framebuffer[i] = m_Framebuffers[i]->GetFramebuffer();
 			}
         }
@@ -275,7 +276,7 @@ namespace Lumos
         
 		IMGUIRenderer* VKIMGUIRenderer::CreateFuncVulkan(u32 width, u32 height, bool clearScreen)
         {
-            return lmnew VKIMGUIRenderer(width, height, clearScreen);
+            return new VKIMGUIRenderer(width, height, clearScreen);
         }
 
         void VKIMGUIRenderer::RebuildFontTexture()
@@ -288,7 +289,7 @@ namespace Lumos
                 int width, height;
                 io.Fonts->GetTexDataAsRGBA32(&pixels, &width, &height);
 
-                m_FontTexture = lmnew VKTexture2D(width, height, pixels, TextureParameters(TextureFilter::NEAREST, TextureFilter::NEAREST, TextureWrap::REPEAT));
+                m_FontTexture = new VKTexture2D(width, height, pixels, TextureParameters(TextureFilter::NEAREST, TextureFilter::NEAREST, TextureWrap::REPEAT));
 
                 VkWriteDescriptorSet write_desc[1] = {};
                 write_desc[0].sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;

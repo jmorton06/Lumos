@@ -4,6 +4,7 @@
 #include "Maths/Vector4.h"
 #include "Maths/Matrix3.h"
 
+#include <iostream>
 #ifdef LUMOS_SSE
 #include <emmintrin.h>
 #endif

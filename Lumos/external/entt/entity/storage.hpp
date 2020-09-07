@@ -10,8 +10,9 @@
 #include <type_traits>
 #include "../config/config.h"
 #include "../core/algorithm.hpp"
-#include "sparse_set.hpp"
+#include "../core/type_traits.hpp"
 #include "entity.hpp"
+#include "sparse_set.hpp"
 
 
 namespace entt {
@@ -49,7 +50,7 @@ class storage: public sparse_set<Entity> {
     static_assert(std::is_move_constructible_v<Type> && std::is_move_assignable_v<Type>, "The managed type must be at least move constructible and assignable");
 
     using underlying_type = sparse_set<Entity>;
-    using traits_type = entt_traits<std::underlying_type_t<Entity>>;
+    using traits_type = entt_traits<Entity>;
 
     template<bool Const>
     class storage_iterator final {
@@ -77,7 +78,7 @@ class storage: public sparse_set<Entity> {
 
         storage_iterator operator++(int) ENTT_NOEXCEPT {
             storage_iterator orig = *this;
-            return operator++(), orig;
+            return ++(*this), orig;
         }
 
         storage_iterator & operator--() ENTT_NOEXCEPT {
@@ -141,7 +142,7 @@ class storage: public sparse_set<Entity> {
         }
 
         [[nodiscard]] pointer operator->() const ENTT_NOEXCEPT {
-            const auto pos = size_type(index-1);
+            const auto pos = size_type(index-1u);
             return &(*instances)[pos];
         }
 
@@ -165,6 +166,11 @@ public:
     using iterator = storage_iterator<false>;
     /*! @brief Constant random access iterator type. */
     using const_iterator = storage_iterator<true>;
+    /*! @brief Reverse iterator type. */
+    using reverse_iterator = Type *;
+    /*! @brief Constant reverse iterator type. */
+    using const_reverse_iterator = const Type *;
+
 
     /**
      * @brief Increases the capacity of a storage.
@@ -209,14 +215,10 @@ public:
     /**
      * @brief Returns an iterator to the beginning.
      *
-     * The returned iterator points to the first instance of the given type. If
-     * the storage is empty, the returned iterator will be equal to `end()`.
+     * The returned iterator points to the first instance of the internal array.
+     * If the storage is empty, the returned iterator will be equal to `end()`.
      *
-     * @note
-     * Random access iterators stay true to the order imposed by a call to
-     * either `sort` or `respect`.
-     *
-     * @return An iterator to the first instance of the given type.
+     * @return An iterator to the first instance of the internal array.
      */
     [[nodiscard]] const_iterator cbegin() const ENTT_NOEXCEPT {
         const typename traits_type::difference_type pos = underlying_type::size();
@@ -238,15 +240,11 @@ public:
      * @brief Returns an iterator to the end.
      *
      * The returned iterator points to the element following the last instance
-     * of the given type. Attempting to dereference the returned iterator
+     * of the internal array. Attempting to dereference the returned iterator
      * results in undefined behavior.
      *
-     * @note
-     * Random access iterators stay true to the order imposed by a call to
-     * either `sort` or `respect`.
-     *
      * @return An iterator to the element following the last instance of the
-     * given type.
+     * internal array.
      */
     [[nodiscard]] const_iterator cend() const ENTT_NOEXCEPT {
         return const_iterator{instances, {}};
@@ -260,6 +258,53 @@ public:
     /*! @copydoc end */
     [[nodiscard]] iterator end() ENTT_NOEXCEPT {
         return iterator{instances, {}};
+    }
+
+    /**
+     * @brief Returns a reverse iterator to the beginning.
+     *
+     * The returned iterator points to the first instance of the reversed
+     * internal array. If the storage is empty, the returned iterator will be
+     * equal to `rend()`.
+     *
+     * @return An iterator to the first instance of the reversed internal array.
+     */
+    [[nodiscard]] const_reverse_iterator crbegin() const ENTT_NOEXCEPT {
+        return instances.data();
+    }
+
+    /*! @copydoc crbegin */
+    [[nodiscard]] const_reverse_iterator rbegin() const ENTT_NOEXCEPT {
+        return crbegin();
+    }
+
+    /*! @copydoc rbegin */
+    [[nodiscard]] reverse_iterator rbegin() ENTT_NOEXCEPT {
+        return instances.data();
+    }
+
+    /**
+     * @brief Returns a reverse iterator to the end.
+     *
+     * The returned iterator points to the element following the last instance
+     * of the reversed internal array. Attempting to dereference the returned
+     * iterator results in undefined behavior.
+     *
+     * @return An iterator to the element following the last instance of the
+     * reversed internal array.
+     */
+    [[nodiscard]] const_reverse_iterator crend() const ENTT_NOEXCEPT {
+        return crbegin() + instances.size();
+    }
+
+    /*! @copydoc crend */
+    [[nodiscard]] const_reverse_iterator rend() const ENTT_NOEXCEPT {
+        return crend();
+    }
+
+    /*! @copydoc rend */
+    [[nodiscard]] reverse_iterator rend() ENTT_NOEXCEPT {
+        return rbegin() + instances.size();
     }
 
     /**
@@ -477,8 +522,7 @@ private:
 
 /*! @copydoc storage */
 template<typename Entity, typename Type>
-class storage<Entity, Type, std::enable_if_t<ENTT_IS_EMPTY(Type)>>: public sparse_set<Entity> {
-    using traits_type = entt_traits<std::underlying_type_t<Entity>>;
+class storage<Entity, Type, std::enable_if_t<is_eto_eligible_v<Type>>>: public sparse_set<Entity> {
     using underlying_type = sparse_set<Entity>;
 
 public:

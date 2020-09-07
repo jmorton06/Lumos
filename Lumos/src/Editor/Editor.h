@@ -8,6 +8,7 @@
 #include "Utilities/IniFile.h"
 #include "EditorCamera.h"
 #include "Graphics/Camera/Camera.h"
+#include "ImGui/ImGuiHelpers.h"
 
 #include <imgui/imgui.h>
 #include <entt/entity/fwd.hpp>
@@ -187,6 +188,9 @@ namespace Lumos
 			return m_EditorCameraTransform;
 		}
 
+		void CacheScene();
+		void LoadCachedScene();
+
 	protected:
 	
 		NONCOPYABLE(Editor)
@@ -215,6 +219,7 @@ namespace Lumos
 		Maths::Vector3 m_CameraStartPosition;
 		float m_CameraTransitionStartTime = 0.0f;
 		float m_CameraTransitionSpeed = 0.0f;
+		ImGuiHelpers::Theme m_Theme = ImGuiHelpers::Theme::Dark;
 
 		std::vector<Ref<EditorWindow>> m_Windows;
 
@@ -230,6 +235,7 @@ namespace Lumos
 		Ref<Graphics::Texture2D> m_PreviewTexture;
 		Ref<Graphics::Mesh> m_PreviewSphere;
         Ref<Graphics::GridRenderer> m_GridRenderer;
+		std::string m_TempSceneSaveFilePath;
 
 		IniFile m_IniFile;
 	};

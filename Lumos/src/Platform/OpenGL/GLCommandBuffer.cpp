@@ -1,4 +1,4 @@
-#include "lmpch.h"
+#include "Precompiled.h"
 #include "GLCommandBuffer.h"
 
 namespace Lumos
@@ -45,7 +45,7 @@ namespace Lumos
 
 		CommandBuffer* GLCommandBuffer::CreateFuncGL()
 		{
-			return lmnew GLCommandBuffer();
+			return new GLCommandBuffer();
 		}
 	}
 }

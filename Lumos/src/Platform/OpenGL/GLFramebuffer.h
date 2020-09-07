@@ -1,5 +1,4 @@
 #pragma once
-#include "lmpch.h"
 #include "Graphics/API/Framebuffer.h"
 #include "Platform/OpenGL/GL.h"
 #include "GLTexture.h"

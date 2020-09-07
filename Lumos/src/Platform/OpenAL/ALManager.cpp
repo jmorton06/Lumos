@@ -1,4 +1,4 @@
-#include "lmpch.h"
+#include "Precompiled.h"
 #include "ALManager.h"
 #include "ALSoundNode.h"
 #include "Maths/Maths.h"
@@ -29,6 +29,7 @@ namespace Lumos
 
 		void ALManager::OnInit()
 		{
+			LUMOS_PROFILE_FUNCTION();
 			LUMOS_LOG_INFO("Creating SoundSystem!");
 			LUMOS_LOG_INFO("Found the following devices: {0}", alcGetString(nullptr, ALC_DEVICE_SPECIFIER));
 
@@ -47,14 +48,13 @@ namespace Lumos
 
 		void ALManager::OnUpdate(const TimeStep& dt, Scene* scene)
 		{
+			LUMOS_PROFILE_FUNCTION();
 			auto& registry = scene->GetRegistry();
 			auto cameraView = registry.view<Camera>();
 			if(!cameraView.empty())
 			{
 				m_Listener = &registry.get<Camera>(cameraView.front());
 			}
-
-			LUMOS_ASSERT(m_Listener, "No Camera Set for Renderer");
 
 			UpdateListener();
 
@@ -65,6 +65,7 @@ namespace Lumos
         //Pass Cameras transform
 		void ALManager::UpdateListener()
 		{
+			LUMOS_PROFILE_FUNCTION();
 			if(m_Listener)
 			{
 				Maths::Vector3 worldPos;// = m_Listener->GetPosition();
@@ -89,6 +90,7 @@ namespace Lumos
 
 		void ALManager::OnImGui()
 		{
+			LUMOS_PROFILE_FUNCTION();
 			ImGui::TextUnformatted("OpenAL Audio");
 
 			ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(2, 2));

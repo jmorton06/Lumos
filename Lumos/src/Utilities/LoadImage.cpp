@@ -1,4 +1,4 @@
-#include "lmpch.h"
+#include "Precompiled.h"
 #include "LoadImage.h"
 
 #include "Core/VFS.h"
@@ -15,6 +15,7 @@ namespace Lumos
 {
 	u8* LoadImageFromFile(const char* filename, u32* width, u32* height, u32* bits, bool* isHDR, bool flipY)
 	{
+		LUMOS_PROFILE_FUNCTION();
 		std::string filePath = std::string(filename);
 		std::string physicalPath;
 		if(!VFS::Get()->ResolvePhysicalPath(filePath, physicalPath))
@@ -58,7 +59,7 @@ namespace Lumos
 			*bits = b;
 
 		i32 size = w * h * (b / 8);
-		u8* result = lmnew u8[size];
+		u8* result = new u8[size];
 		memcpy(result, pixels, size);
 		FreeImage_Unload(bitmap);
 #else
@@ -95,7 +96,7 @@ namespace Lumos
 			*bits = texChannels * sizeOfChannel; // texChannels;	  //32 bits for 4 bytes r g b a
 
 		const i32 size = texWidth * texHeight * texChannels;
-		u8* result = lmnew u8[size];
+		u8* result = new u8[size];
 		memcpy(result, pixels, size);
 
 		stbi_image_free(pixels);

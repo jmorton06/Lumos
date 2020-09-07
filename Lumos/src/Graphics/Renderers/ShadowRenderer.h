@@ -1,5 +1,5 @@
 #pragma once
-#include "lmpch.h"
+
 #include "Maths/Maths.h"
 #include "IRenderer.h"
 
@@ -112,7 +112,6 @@ namespace Lumos
 			Framebuffer* m_ShadowFramebuffer[SHADOWMAP_MAX]{};
 			Maths::Matrix4 m_ShadowProjView[SHADOWMAP_MAX];
 			Maths::Vector4 m_SplitDepth[SHADOWMAP_MAX];
-			Graphics::PushConstant* m_PushConstant = nullptr;
 
 			Lumos::Graphics::UniformBuffer* m_UniformBuffer;
 			Lumos::Graphics::UniformBuffer* m_ModelUniformBuffer;
@@ -121,6 +120,8 @@ namespace Lumos
 			u32 m_Layer = 0;
 			size_t m_DynamicAlignment = 0;
 			UniformBufferModel uboDataDynamic;
+            
+            std::vector<Graphics::PushConstant> m_PushConstants;
 		};
 	}
 }

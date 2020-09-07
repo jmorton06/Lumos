@@ -1,8 +1,7 @@
-#include "lmpch.h"
+#include "Precompiled.h"
 #include "MathsLua.h"
 #include "Maths/Maths.h"
 #include "Maths/Transform.h"
-
 #include <sol/sol.hpp>
 
 namespace Lumos
@@ -10,6 +9,7 @@ namespace Lumos
 
     void BindMathsLua(sol::state& state)
     {
+		LUMOS_PROFILE_FUNCTION();
         state.new_usertype<Maths::Vector2>("Vector2",
             sol::constructors<Maths::Vector2(float, float)>(),
             "x", &Maths::Vector2::x,

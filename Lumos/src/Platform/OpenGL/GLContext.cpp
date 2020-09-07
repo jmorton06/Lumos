@@ -1,7 +1,6 @@
-#include "lmpch.h"
+#include "Precompiled.h"
 #include "GLContext.h"
 
-#include "GLVertexArray.h"
 #include "GL.h"
 #include "GLDebug.h"
 #ifndef LUMOS_PLATFORM_MOBILE
@@ -134,11 +133,11 @@ namespace Lumos
 {
 	namespace Graphics
 	{
-		GLContext::GLContext(const WindowProperties& properties, void* deviceContext)
+		GLContext::GLContext(const WindowProperties& properties, Window* window)
 		{
 
 #if defined(LUMOS_PLATFORM_WINDOWS) && !defined(LUMOS_USE_GLFW_WINDOWS)
-			HDC hDc = GetDC(static_cast<HWND>(deviceContext));
+			HDC hDc = GetDC(static_cast<HWND>(window->GetHandle()));
 
 			HGLRC tempContext = wglCreateContext(hDc);
 			wglMakeCurrent(hDc, tempContext);
@@ -234,9 +233,9 @@ namespace Lumos
 			CreateFunc = CreateFuncGL;
 		}
 
-		GraphicsContext* GLContext::CreateFuncGL(const WindowProperties& properties, void* cont)
+		GraphicsContext* GLContext::CreateFuncGL(const WindowProperties& properties, Window* cont)
 		{
-			return lmnew GLContext(properties, cont);
+			return new GLContext(properties, cont);
 		}
 	}
 }

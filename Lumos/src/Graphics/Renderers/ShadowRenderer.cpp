@@ -1,4 +1,4 @@
-#include "lmpch.h"
+#include "Precompiled.h"
 #include "ShadowRenderer.h"
 
 #include "Graphics/API/Texture.h"
@@ -19,7 +19,7 @@
 #include "Scene/Scene.h"
 #include "Maths/Maths.h"
 #include "RenderCommand.h"
-#include "Core/Profiler.h"
+ 
 
 #include <imgui/imgui.h>
 
@@ -46,7 +46,7 @@ namespace Lumos
 			, m_UniformBuffer(nullptr)
 			, m_ModelUniformBuffer(nullptr)
 		{
-			m_Shader = Shader::CreateFromFile("Shadow", "/CoreShaders/");
+			m_Shader = Ref<Graphics::Shader>(Shader::CreateFromFile("Shadow", "/CoreShaders/"));
 			if(texture == nullptr)
 			{
 				m_ShadowTex = TextureDepthArray::Create(m_ShadowMapSize, m_ShadowMapSize, m_ShadowMapNum);
@@ -69,9 +69,12 @@ namespace Lumos
 			}
 
 			delete[] m_VSSystemUniformBuffer;
-			delete[] m_PushConstant->data;
+            
+            for(auto& pc: m_PushConstants)
+                delete[] pc.data;
+            
+            m_PushConstants.clear();
 
-			delete m_PushConstant;
 			delete m_UniformBuffer;
 			delete m_ModelUniformBuffer;
 			delete m_CommandBuffer;
@@ -81,9 +84,9 @@ namespace Lumos
 
 		void ShadowRenderer::Init()
 		{
-			LUMOS_PROFILE_FUNC;
+			LUMOS_PROFILE_FUNCTION();
 			m_VSSystemUniformBufferSize = sizeof(Maths::Matrix4) * SHADOWMAP_MAX;
-			m_VSSystemUniformBuffer = lmnew u8[m_VSSystemUniformBufferSize];
+			m_VSSystemUniformBuffer = new u8[m_VSSystemUniformBufferSize];
 			memset(m_VSSystemUniformBuffer, 0, m_VSSystemUniformBufferSize);
 			m_VSSystemUniformBufferOffsets.resize(VSSystemUniformIndex_Size);
 
@@ -95,16 +98,18 @@ namespace Lumos
 				m_DynamicAlignment = (m_DynamicAlignment + minUboAlignment - 1) & ~(minUboAlignment - 1);
 			}
 
-			m_PushConstant = lmnew Graphics::PushConstant();
-			m_PushConstant->type = Graphics::PushConstantDataType::UINT;
-			m_PushConstant->size = sizeof(i32);
-			m_PushConstant->data = lmnew u8[sizeof(i32)];
-			m_PushConstant->shaderStage = ShaderType::VERTEX;
+			auto pushConstant = Graphics::PushConstant();
+            pushConstant.type = Graphics::PushConstantDataType::UINT;
+            pushConstant.size = sizeof(i32);
+            pushConstant.data = new u8[sizeof(i32)];
+            pushConstant.shaderStage = ShaderType::VERTEX;
+            
+            m_PushConstants.push_back(pushConstant);
 
 			// Per Scene System Uniforms
 			m_VSSystemUniformBufferOffsets[VSSystemUniformIndex_ProjectionViewMatrix] = 0;
 
-			m_RenderPass = Graphics::RenderPass::Create();
+			m_RenderPass = Ref<Graphics::RenderPass>(Graphics::RenderPass::Create());
 			AttachmentInfo textureTypes[1] =
 				{
 					{TextureType::DEPTHARRAY, TextureFormat::DEPTH}};
@@ -122,6 +127,7 @@ namespace Lumos
 			CreateGraphicsPipeline(m_RenderPass.get());
 			CreateUniformBuffer();
 			CreateFramebuffers();
+            m_CurrentDescriptorSets.resize(1);
 		}
 
 		void ShadowRenderer::OnResize(u32 width, u32 height)
@@ -130,6 +136,7 @@ namespace Lumos
 
 		void ShadowRenderer::Begin()
 		{
+			LUMOS_PROFILE_FUNCTION();
 			m_CommandQueue.clear();
 			m_CommandBuffer->BeginRecording();
 			m_CommandBuffer->UpdateViewport(m_ShadowMapSize, m_ShadowMapSize);
@@ -137,6 +144,7 @@ namespace Lumos
 
 		void ShadowRenderer::BeginScene(Scene* scene, Camera* overrideCamera, Maths::Transform* overrideCameraTransform)
 		{
+			LUMOS_PROFILE_FUNCTION();
 			UpdateCascades(scene, overrideCamera, overrideCameraTransform);
 		}
 
@@ -146,18 +154,19 @@ namespace Lumos
 
 		void ShadowRenderer::End()
 		{
+			LUMOS_PROFILE_FUNCTION();
 			m_CommandBuffer->EndRecording();
 			m_CommandBuffer->Execute(true);
 		}
 
 		void ShadowRenderer::Present()
 		{
-			LUMOS_PROFILE_FUNC;
+			LUMOS_PROFILE_FUNCTION();
 			int index = 0;
 
 			m_RenderPass->BeginRenderpass(m_CommandBuffer, Maths::Vector4(0.0f), m_ShadowFramebuffer[m_Layer], Graphics::INLINE, m_ShadowMapSize, m_ShadowMapSize);
 
-			m_Pipeline->SetActive(m_CommandBuffer);
+			m_Pipeline->Bind(m_CommandBuffer);
 
 			for(auto& command : m_CommandQueue)
 			{
@@ -165,15 +174,15 @@ namespace Lumos
 
 				const uint32_t dynamicOffset = index * static_cast<uint32_t>(m_DynamicAlignment);
 
-				std::vector<Graphics::DescriptorSet*> descriptorSets = {m_Pipeline->GetDescriptorSet()};
+                m_CurrentDescriptorSets[0] = m_Pipeline->GetDescriptorSet();
 
-				mesh->GetVertexArray()->Bind(m_CommandBuffer);
+				mesh->GetVertexBuffer()->Bind(m_CommandBuffer, m_Pipeline.get());
 				mesh->GetIndexBuffer()->Bind(m_CommandBuffer);
-
-				Renderer::BindDescriptorSets(m_Pipeline.get(), m_CommandBuffer, dynamicOffset, descriptorSets);
+                
+				Renderer::BindDescriptorSets(m_Pipeline.get(), m_CommandBuffer, dynamicOffset, m_CurrentDescriptorSets);
 				Renderer::DrawIndexed(m_CommandBuffer, DrawType::TRIANGLE, mesh->GetIndexBuffer()->GetCount());
 
-				mesh->GetVertexArray()->Unbind();
+				mesh->GetVertexBuffer()->Unbind();
 				mesh->GetIndexBuffer()->Unbind();
 
 				index++;
@@ -184,6 +193,7 @@ namespace Lumos
 
 		void ShadowRenderer::SetShadowMapNum(u32 num)
 		{
+			LUMOS_PROFILE_FUNCTION();
 			if(m_ShadowMapNum != num && num <= SHADOWMAP_MAX)
 			{
 				m_ShadowMapNum = num;
@@ -193,6 +203,7 @@ namespace Lumos
 
 		void ShadowRenderer::SetShadowMapSize(u32 size)
 		{
+			LUMOS_PROFILE_FUNCTION();
 			if(!m_ShadowMapsInvalidated)
 				m_ShadowMapsInvalidated = (size != m_ShadowMapSize);
 
@@ -201,7 +212,7 @@ namespace Lumos
 
 		void ShadowRenderer::RenderScene(Scene* scene)
 		{
-			LUMOS_PROFILE_FUNC;
+			LUMOS_PROFILE_FUNCTION();
 
 			memcpy(m_VSSystemUniformBuffer + m_VSSystemUniformBufferOffsets[VSSystemUniformIndex_ProjectionViewMatrix], m_ShadowProjView, sizeof(Maths::Matrix4) * SHADOWMAP_MAX);
 
@@ -213,6 +224,7 @@ namespace Lumos
 
 			for(u32 i = 0; i < m_ShadowMapNum; ++i)
 			{
+				LUMOS_PROFILE_SCOPE("ShadowRenderer::RenderScene Per Shadow Map");
 				m_Layer = i;
 
 				Maths::Frustum f;
@@ -244,10 +256,8 @@ namespace Lumos
 				SetSystemUniforms(m_Shader.get());
 
 				u32 layer = static_cast<u32>(m_Layer);
-				memcpy(m_PushConstant->data, &layer, sizeof(u32));
-				std::vector<Graphics::PushConstant> pcVector;
-				pcVector.push_back(*m_PushConstant);
-				m_Pipeline->GetDescriptorSet()->SetPushConstants(pcVector);
+                memcpy(m_PushConstants[0].data, &layer, sizeof(u32));
+				m_Pipeline->GetDescriptorSet()->SetPushConstants(m_PushConstants);
 
 				Present();
 			}
@@ -258,7 +268,7 @@ namespace Lumos
 
 		void ShadowRenderer::UpdateCascades(Scene* scene, Camera* overrideCamera, Maths::Transform* overrideCameraTransform)
 		{
-			LUMOS_PROFILE_FUNC;
+			LUMOS_PROFILE_FUNCTION();
 
 			auto& registry = scene->GetRegistry();
 			auto view = registry.view<Graphics::Light>();
@@ -394,6 +404,7 @@ namespace Lumos
 
 		void ShadowRenderer::CreateFramebuffers()
 		{
+			LUMOS_PROFILE_FUNCTION();
 			if(m_ShadowMapsInvalidated && m_ShadowMapNum > 0)
 			{
 				m_ShadowMapsInvalidated = false;
@@ -424,6 +435,7 @@ namespace Lumos
 
 		void ShadowRenderer::CreateGraphicsPipeline(Graphics::RenderPass* renderPass)
 		{
+			LUMOS_PROFILE_FUNCTION();
 			std::vector<Graphics::DescriptorPoolInfo> poolInfo =
 				{
 					{Graphics::DescriptorType::UNIFORM_BUFFER, MAX_OBJECTS},
@@ -463,11 +475,12 @@ namespace Lumos
 			pipelineCI.depthBiasEnabled = true;
 			pipelineCI.maxObjects = MAX_OBJECTS;
 
-			m_Pipeline = Graphics::Pipeline::Create(pipelineCI);
+			m_Pipeline = Ref<Graphics::Pipeline>(Graphics::Pipeline::Create(pipelineCI));
 		}
 
 		void ShadowRenderer::CreateUniformBuffer()
 		{
+			LUMOS_PROFILE_FUNCTION();
 			if(m_UniformBuffer == nullptr)
 			{
 				m_UniformBuffer = Graphics::UniformBuffer::Create();
@@ -514,6 +527,7 @@ namespace Lumos
 
 		void ShadowRenderer::SetSystemUniforms(Shader* shader)
 		{
+			LUMOS_PROFILE_FUNCTION();
 			m_UniformBuffer->SetData(sizeof(UniformBufferObject), *&m_VSSystemUniformBuffer);
 
 			int index = 0;
@@ -534,6 +548,7 @@ namespace Lumos
 
 		void ShadowRenderer::SubmitMesh(Mesh* mesh, Material* material, const Maths::Matrix4& transform, const Maths::Matrix4& textureMatrix)
 		{
+			LUMOS_PROFILE_FUNCTION();
 			RenderCommand command;
 			command.mesh = mesh;
 			command.transform = transform;
@@ -543,6 +558,7 @@ namespace Lumos
 
 		void ShadowRenderer::OnImGui()
 		{
+			LUMOS_PROFILE_FUNCTION();
 			ImGui::TextUnformatted("Shadow Renderer");
 			if(ImGui::TreeNode("Texture"))
 			{

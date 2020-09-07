@@ -1,5 +1,5 @@
 #pragma once
-#include "lmpch.h"
+
 #include "Maths/Maths.h"
 
 namespace Lumos
@@ -20,7 +20,7 @@ namespace Lumos
 
 		enum Theme
 		{
-			Black,
+			Black = 0,
 			Dark,
 			Grey,
 			Light,

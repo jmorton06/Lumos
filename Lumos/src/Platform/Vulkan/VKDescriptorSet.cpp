@@ -1,4 +1,4 @@
-#include "lmpch.h"
+#include "Precompiled.h"
 #include "VKDescriptorSet.h"
 #include "VKPipeline.h"
 #include "VKTools.h"
@@ -25,16 +25,16 @@ namespace Lumos
 
 			VK_CHECK_RESULT(vkAllocateDescriptorSets(VKDevice::Device(), &descriptorSetAllocateInfo, &m_DescriptorSet));
 
-			m_BufferInfoPool = lmnew VkDescriptorBufferInfo[MAX_BUFFER_INFOS];
-			m_ImageInfoPool = lmnew VkDescriptorImageInfo[MAX_IMAGE_INFOS];
-			m_WriteDescriptorSetPool = lmnew VkWriteDescriptorSet[MAX_WRITE_DESCTIPTORS];
+			m_BufferInfoPool = new VkDescriptorBufferInfo[MAX_BUFFER_INFOS];
+			m_ImageInfoPool = new VkDescriptorImageInfo[MAX_IMAGE_INFOS];
+			m_WriteDescriptorSetPool = new VkWriteDescriptorSet[MAX_WRITE_DESCTIPTORS];
 		}
 
 		VKDescriptorSet::~VKDescriptorSet()
 		{
-			lmdel[] m_BufferInfoPool;
-			lmdel[] m_ImageInfoPool;
-			lmdel[] m_WriteDescriptorSetPool;
+			delete[] m_BufferInfoPool;
+			delete[] m_ImageInfoPool;
+			delete[] m_WriteDescriptorSetPool;
 		}
 
 		void VKDescriptorSet::Update(std::vector<BufferInfo>& bufferInfos)
@@ -68,7 +68,7 @@ namespace Lumos
 
 		DescriptorSet* VKDescriptorSet::CreateFuncVulkan(const DescriptorInfo& info)
 		{
-			return lmnew VKDescriptorSet(info);
+			return new VKDescriptorSet(info);
 		}
     
         void VKDescriptorSet::UpdateInternal(std::vector<ImageInfo>* imageInfos, std::vector<BufferInfo>* bufferInfos)

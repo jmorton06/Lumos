@@ -22,18 +22,6 @@ namespace Lumos
 			void Bind() const override{};
 			void Unbind() const override{};
 
-			void SetSystemUniformBuffer(ShaderType type, u8* data, u32 size, u32 slot = 0) override{};
-			void SetUserUniformBuffer(ShaderType type, u8* data, u32 size) override{};
-
-			const ShaderUniformBufferList GetSystemUniforms(ShaderType type) const override
-			{
-				return ShaderUniformBufferList();
-			};
-			const ShaderUniformBufferDeclaration* GetUserUniformBuffer(ShaderType type) const override
-			{
-				return nullptr;
-			};
-
 			const std::vector<ShaderType> GetShaderTypes() const override
 			{
 				return std::vector<ShaderType>();

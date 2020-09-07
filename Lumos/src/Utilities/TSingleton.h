@@ -1,5 +1,6 @@
 #pragma once
-#include "lmpch.h"
+#include "Core/Core.h"
+#include "Core/LMLog.h"
 #include <mutex>
 
 namespace Lumos
@@ -13,7 +14,7 @@ namespace Lumos
 		{
 			if (!m_pInstance)	//This if statement prevents the costly Lock-step being required each time the instance is requested
 			{
-				m_pInstance = lmnew T();
+				m_pInstance = new T();
 			}
 			return *m_pInstance;
 		}
@@ -23,7 +24,7 @@ namespace Lumos
 		{
 			if (m_pInstance)
 			{
-				lmdel m_pInstance;
+				delete m_pInstance;
 				m_pInstance = nullptr;
 			}
 		}
@@ -66,7 +67,7 @@ namespace Lumos
         {
             if (m_pInstance)
             {
-                lmdel m_pInstance;
+                delete m_pInstance;
                 m_pInstance = nullptr;
             }
         }
@@ -98,7 +99,7 @@ namespace Lumos
 				std::lock_guard<std::mutex> lock(m_mConstructed);		//Lock is required here though, to prevent multiple threads initialising multiple instances of the class when it turns out it has not been initialised yet
 				if (!m_pInstance) //Check to see if a previous thread has already initialised an instance in the time it took to acquire a lock.
 				{
-					m_pInstance = lmnew T();
+					m_pInstance = new T();
 				}
 			}
 			return *m_pInstance;
@@ -111,7 +112,7 @@ namespace Lumos
 			std::lock_guard<std::mutex> lock(m_mConstructed);
 			if (m_pInstance)
 			{
-				lmdel m_pInstance;
+				delete m_pInstance;
 				m_pInstance = nullptr;
 			}
 		}

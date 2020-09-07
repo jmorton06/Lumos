@@ -1,7 +1,6 @@
-#include "lmpch.h"
+#include "Precompiled.h"
 #include "Editor.h"
 #include "SceneWindow.h"
-#include "ProfilerWindow.h"
 #include "ConsoleWindow.h"
 #include "HierarchyWindow.h"
 #include "InspectorWindow.h"
@@ -10,11 +9,12 @@
 #include "TextEditWindow.h"
 #include "AssetWindow.h"
 #include "EditorCamera.h"
+#include "Utilities/Timer.h"
 
 #include "Core/Application.h"
 #include "Core/OS/Input.h"
 #include "Core/OS/FileSystem.h"
-#include "Core/Profiler.h"
+ 
 #include "Core/Version.h"
 #include "Core/Engine.h"
 #include "Scene/Scene.h"
@@ -44,13 +44,12 @@
 #include "Graphics/Environment.h"
 #include "Scene/EntityFactory.h"
 
-#include "ImGui/ImGuiHelpers.h"
+#include "ImGui/IconsMaterialDesignIcons.h"
 
 #include <imgui/imgui_internal.h>
 #include <imgui/plugins/ImGuizmo.h>
 #include <imgui/plugins/ImGuiAl/button/imguial_button.h>
 #include <imgui/plugins/ImTextEditor.h>
-#include <IconFontCppHeaders/IconsMaterialDesignIcons.h>
 
 #include <imgui/plugins/ImFileBrowser.h>
 
@@ -71,11 +70,12 @@ namespace Lumos
 
 	Editor::~Editor()
 	{
-		SaveEditorSettings();
 	}
 
 	void Editor::OnInit()
 	{
+		LUMOS_PROFILE_FUNCTION();
+        m_TempSceneSaveFilePath = ROOT_DIR"/bin/";
 #ifndef LUMOS_PLATFORM_IOS
 		const char* ini[] = {ROOT_DIR "/Editor.ini", ROOT_DIR "/Editor/Editor.ini"};
 		bool fileFound = false;
@@ -132,8 +132,6 @@ namespace Lumos
 
 		m_Windows.emplace_back(CreateRef<ConsoleWindow>());
 		m_Windows.emplace_back(CreateRef<SceneWindow>());
-		m_Windows.emplace_back(CreateRef<ProfilerWindow>());
-		m_Windows.back()->SetActive(false);
 		m_Windows.emplace_back(CreateRef<InspectorWindow>());
         m_Windows.emplace_back(CreateRef<ApplicationInfoWindow>());
 		m_Windows.emplace_back(CreateRef<HierarchyWindow>());
@@ -146,21 +144,20 @@ namespace Lumos
 		for(auto& window : m_Windows)
 			window->SetEditor(this);
 
-		m_DebugDrawFlags =
-			0; // EditorDebugFlags::MeshBoundingBoxes | EditorDebugFlags::CameraFrustum | EditorDebugFlags::SpriteBoxes;
+        CreateGridRenderer();
 
 		m_ShowImGuiDemo = false;
 
-		ImGuiHelpers::SetTheme(ImGuiHelpers::Dark);
-
 		m_SelectedEntity = entt::null;
-
 		m_PreviewTexture = nullptr;
+		
+		ImGuizmo::SetGizmoSizeClipSpace(0.25f);
 	}
 
 	bool IsTextFile(const std::string& filePath)
 	{
-		std::string extension = StringFormat::GetFilePathExtension(filePath);
+		LUMOS_PROFILE_FUNCTION();
+		std::string extension = StringUtilities::GetFilePathExtension(filePath);
 
 		if(extension == "txt" || extension == "glsl" || extension == "shader" || extension == "vert"
 			|| extension == "frag" || extension == "lua" || extension == "Lua")
@@ -171,7 +168,8 @@ namespace Lumos
 
 	bool IsAudioFile(const std::string& filePath)
 	{
-		std::string extension = StringFormat::GetFilePathExtension(filePath);
+		LUMOS_PROFILE_FUNCTION();
+		std::string extension = StringUtilities::GetFilePathExtension(filePath);
 
 		if(extension == "ogg" || extension == "wav")
 			return true;
@@ -179,9 +177,21 @@ namespace Lumos
 		return false;
 	}
 
+    bool IsSceneFile(const std::string& filePath)
+    {
+		LUMOS_PROFILE_FUNCTION();
+        std::string extension = StringUtilities::GetFilePathExtension(filePath);
+
+        if(extension == "lsn")
+            return true;
+
+        return false;
+    }
+
 	bool IsModelFile(const std::string& filePath)
 	{
-		std::string extension = StringFormat::GetFilePathExtension(filePath);
+		LUMOS_PROFILE_FUNCTION();
+		std::string extension = StringUtilities::GetFilePathExtension(filePath);
 
 		if(extension == "obj" || extension == "gltf" || extension == "glb" || extension == "fbx" || extension == "FBX")
 			return true;
@@ -191,7 +201,7 @@ namespace Lumos
 
 	void Editor::OnImGui()
 	{
-		LUMOS_PROFILE_FUNC;
+		LUMOS_PROFILE_FUNCTION();
 		DrawMenuBar();
 
 		BeginDockSpace(false);
@@ -237,12 +247,14 @@ namespace Lumos
 
 	void Editor::OpenFile()
 	{
+		LUMOS_PROFILE_FUNCTION();
 		m_FileBrowserWindow.SetCallback(BIND_FILEBROWSER_FN(Editor::FileOpenCallback));
 		m_FileBrowserWindow.Open();
 	}
 
 	void Editor::DrawMenuBar()
 	{
+		LUMOS_PROFILE_FUNCTION();
 		if(ImGui::BeginMainMenuBar())
 		{
 			if(ImGui::BeginMenu("File"))
@@ -268,42 +280,52 @@ namespace Lumos
 				{
 					if(ImGui::MenuItem("Dark", ""))
 					{
+						m_Theme = ImGuiHelpers::Dark;
 						ImGuiHelpers::SetTheme(ImGuiHelpers::Dark);
 					}
 					if(ImGui::MenuItem("Black", ""))
 					{
+						m_Theme = ImGuiHelpers::Black;
 						ImGuiHelpers::SetTheme(ImGuiHelpers::Black);
 					}
 					if(ImGui::MenuItem("Grey", ""))
 					{
+						m_Theme = ImGuiHelpers::Grey;
 						ImGuiHelpers::SetTheme(ImGuiHelpers::Grey);
 					}
 					if(ImGui::MenuItem("Light", ""))
 					{
+						m_Theme = ImGuiHelpers::Light;
 						ImGuiHelpers::SetTheme(ImGuiHelpers::Light);
 					}
 					if(ImGui::MenuItem("Cherry", ""))
 					{
+						m_Theme = ImGuiHelpers::Cherry;
 						ImGuiHelpers::SetTheme(ImGuiHelpers::Cherry);
 					}
 					if(ImGui::MenuItem("Blue", ""))
 					{
+						m_Theme = ImGuiHelpers::Blue;
 						ImGuiHelpers::SetTheme(ImGuiHelpers::Blue);
 					}
 					if(ImGui::MenuItem("Cinder", ""))
 					{
+						m_Theme = ImGuiHelpers::Cinder;
 						ImGuiHelpers::SetTheme(ImGuiHelpers::Cinder);
 					}
 					if(ImGui::MenuItem("Classic", ""))
 					{
+						m_Theme = ImGuiHelpers::Classic;
 						ImGuiHelpers::SetTheme(ImGuiHelpers::Classic);
 					}
 					if(ImGui::MenuItem("ClassicDark", ""))
 					{
+						m_Theme = ImGuiHelpers::ClassicDark;
 						ImGuiHelpers::SetTheme(ImGuiHelpers::ClassicDark);
 					}
 					if(ImGui::MenuItem("ClassicLight", ""))
 					{
+						m_Theme = ImGuiHelpers::ClassicLight;
 						ImGuiHelpers::SetTheme(ImGuiHelpers::ClassicLight);
 					}
 					ImGui::EndMenu();
@@ -382,6 +404,7 @@ namespace Lumos
 						Application::Get().GetSceneManager()->SwitchScene(name);
 					}
 				}
+
 				ImGui::EndMenu();
 			}
 
@@ -470,7 +493,8 @@ namespace Lumos
 				if(ImGui::MenuItem(githubMenuText.c_str()))
 				{
 #ifdef LUMOS_PLATFORM_WINDOWS
-// TODO
+					// TODO
+					//ShellExecuteA( NULL, "open",  "https://www.github.com/jmorton06/Lumos", NULL, NULL, SW_SHOWNORMAL );
 #else
 #	ifndef LUMOS_PLATFORM_IOS
 					system("open https://www.github.com/jmorton06/Lumos");
@@ -499,6 +523,15 @@ namespace Lumos
                     m_Application->GetSystem<LumosPhysicsEngine>()->SetPaused(selected);
                     m_Application->GetSystem<B2PhysicsEngine>()->SetPaused(selected);
                     m_Application->SetEditorState(selected ? EditorState::Preview : EditorState::Play);
+
+                    m_SelectedEntity = entt::null;
+					if(selected)
+						LoadCachedScene();
+					else
+                    {
+                        CacheScene();
+                        m_Application->GetCurrentScene()->OnInit();
+                    }
                 }
 
 				ImGuiHelpers::Tooltip("Play");
@@ -539,14 +572,19 @@ namespace Lumos
 					ImGui::PopStyleColor();
 			}
 
-			ImGui::SameLine(ImGui::GetWindowContentRegionMax().x - 100.0f);
+			ImGui::SameLine(ImGui::GetWindowContentRegionMax().x - 240.0f);
+			
+			ImGui::Text("%.2f ms (%i FPS)", 1000.0f / (float)Engine::Get().GetFPS(), Engine::Get().GetFPS());
+			
+			ImGui::SameLine();
 
 			ImGui::PushStyleColor(ImGuiCol_FrameBg, ImGui::GetColorU32(ImGuiCol_TitleBg));
 			ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(7, 2));
 
 			bool setNewValue = false;
 			std::string RenderAPI = "";
-			static auto renderAPI = Graphics::GraphicsContext::GetRenderAPI();
+			
+			auto renderAPI = (Graphics::RenderAPI)m_Application->RenderAPI;
 
 			bool needsRestart = false;
 			if(renderAPI != Graphics::GraphicsContext::GetRenderAPI())
@@ -615,26 +653,7 @@ namespace Lumos
 
 			if(setNewValue)
 			{
-				renderAPI = StringToRenderAPI(current_api);
-				auto& appProps = m_Application->m_InitialProperties;
-				if(appProps.FilePath != "")
-				{
-					std::string physicalPath;
-					if(VFS::Get()->ResolvePhysicalPath(appProps.FilePath, physicalPath))
-					{
-						auto configFile = FileSystem::ReadTextFile(physicalPath);
-
-						std::string toReplace("renderAPI=");
-						size_t pos = configFile.find(toReplace);
-
-						if(pos != std::string::npos)
-						{
-							configFile.replace(pos + 10, 1, StringFormat::ToString(int(renderAPI)));
-
-							FileSystem::WriteTextFile(physicalPath, configFile);
-						}
-					}
-				}
+				m_Application->RenderAPI = int(StringToRenderAPI(current_api));
 			}
 
 			ImGui::PopStyleColor(2);
@@ -649,6 +668,7 @@ namespace Lumos
 
 	void Editor::OnImGuizmo()
 	{
+		LUMOS_PROFILE_FUNCTION();
 		Maths::Matrix4 view = m_EditorCameraTransform.GetWorldMatrix().Inverse();//m_CurrentCamera->GetViewMatrix();
 		Maths::Matrix4 proj = m_CurrentCamera->GetProjectionMatrix();
 
@@ -728,6 +748,7 @@ namespace Lumos
 
 	void Editor::BeginDockSpace(bool infoBar)
 	{
+		LUMOS_PROFILE_FUNCTION();
 		static bool p_open = true;
 		static bool opt_fullscreen_persistant = true;
 		static ImGuiDockNodeFlags opt_flags = ImGuiDockNodeFlags_NoWindowMenuButton | ImGuiDockNodeFlags_NoCloseButton;
@@ -831,6 +852,7 @@ namespace Lumos
 
 	void Editor::OnNewScene(Scene* scene)
 	{
+		LUMOS_PROFILE_FUNCTION();
 		m_SelectedEntity = entt::null;
 
 		m_EditorCameraTransform.SetLocalPosition(Maths::Vector3(-31.0f, 12.0f, 51.0f));
@@ -899,6 +921,7 @@ namespace Lumos
 
 	void Editor::Draw3DGrid()
 	{
+		LUMOS_PROFILE_FUNCTION();
 #if 1
 		if(!m_GridRenderer)
 		{
@@ -917,6 +940,7 @@ namespace Lumos
 		const float factor,
 		const float thickness)
 	{
+		LUMOS_PROFILE_FUNCTION();
 		static const auto graduation = 10;
 		float GRID_SZ = canvasSize.y * 0.5f / factor;
 		const ImVec2& offset = {
@@ -970,6 +994,7 @@ namespace Lumos
 
 	void Editor::OnEvent(Event& e)
 	{
+		LUMOS_PROFILE_FUNCTION();
 		EventDispatcher dispatcher(e);
 		dispatcher.Dispatch<WindowResizeEvent>(BIND_EVENT_FN(Editor::OnWindowResize));
 
@@ -978,6 +1003,7 @@ namespace Lumos
 
 	Maths::Ray Editor::GetScreenRay(int x, int y, Camera* camera, int width, int height)
 	{
+		LUMOS_PROFILE_FUNCTION();
 		if(!camera)
 			return Maths::Ray();
 
@@ -995,6 +1021,7 @@ namespace Lumos
 
 	void Editor::OnUpdate(const TimeStep& ts)
 	{
+		LUMOS_PROFILE_FUNCTION();
         if(m_Application->GetEditorState() == EditorState::Preview)
         {
 			auto& registry = m_Application->GetSceneManager()->GetCurrentScene()->GetRegistry();
@@ -1072,10 +1099,10 @@ namespace Lumos
 			if((Input::GetInput()->GetKeyHeld(InputCode::Key::LeftSuper) || (Input::GetInput()->GetKeyHeld(InputCode::Key::LeftControl)) )) 
 			{
 				if(Input::GetInput()->GetKeyPressed(InputCode::Key::S))
-					Application::Get().GetSceneManager()->GetCurrentScene()->Serialise(ROOT_DIR "/Sandbox/res/scenes/", true);
+					Application::Get().GetSceneManager()->GetCurrentScene()->Serialise(ROOT_DIR "/Sandbox/res/scenes/", false);
 			
 				if(Input::GetInput()->GetKeyPressed(InputCode::Key::O))
-					Application::Get().GetSceneManager()->GetCurrentScene()->Deserialise(ROOT_DIR "/Sandbox/res/scenes/", true);
+					Application::Get().GetSceneManager()->GetCurrentScene()->Deserialise(ROOT_DIR "/Sandbox/res/scenes/", false);
             
                 if(Input::GetInput()->GetKeyPressed(InputCode::Key::X))
                 {
@@ -1107,11 +1134,13 @@ namespace Lumos
 
 	void Editor::BindEventFunction()
 	{
+		LUMOS_PROFILE_FUNCTION();
 		m_Application->GetWindow()->SetEventCallback(BIND_EVENT_FN(Editor::OnEvent));
 	}
 
 	void Editor::FocusCamera(const Maths::Vector3& point, float distance, float speed)
 	{
+		LUMOS_PROFILE_FUNCTION();
 		if(m_CurrentCamera->IsOrthographic())
 		{
             m_EditorCameraTransform.SetLocalPosition(point);
@@ -1135,6 +1164,7 @@ namespace Lumos
 
 	void Editor::RecompileShaders()
 	{
+		LUMOS_PROFILE_FUNCTION();
 		Lumos::Debug::Log::Info("Recompiling shaders");
 
 #ifdef LUMOS_RENDER_API_VULKAN
@@ -1150,6 +1180,7 @@ namespace Lumos
 
 	void Editor::DebugDraw()
 	{
+		LUMOS_PROFILE_FUNCTION();
 		auto& registry = Application::Get().GetSceneManager()->GetCurrentScene()->GetRegistry();
 
 		if(m_DebugDrawFlags & EditorDebugFlags::MeshBoundingBoxes)
@@ -1259,6 +1290,7 @@ namespace Lumos
 
 	void Editor::SelectObject(const Maths::Ray& ray)
 	{
+		LUMOS_PROFILE_FUNCTION();
 		auto& registry = Application::Get().GetSceneManager()->GetCurrentScene()->GetRegistry();
 		float closestEntityDist = Maths::M_INFINITY;
 		entt::entity currentClosestEntity = entt::null;
@@ -1357,6 +1389,7 @@ namespace Lumos
 
 	void Editor::OpenTextFile(const std::string& filePath)
 	{
+		LUMOS_PROFILE_FUNCTION();
 		std::string physicalPath;
 		if(!VFS::Get()->ResolvePhysicalPath(filePath, physicalPath))
 		{
@@ -1380,6 +1413,7 @@ namespace Lumos
 
 	void Editor::RemoveWindow(EditorWindow* window)
 	{
+		LUMOS_PROFILE_FUNCTION();
 		for(int i = 0; i < int(m_Windows.size()); i++)
 		{
 			EditorWindow* w = m_Windows[i].get();
@@ -1393,6 +1427,7 @@ namespace Lumos
 
 	void Editor::ShowPreview()
 	{
+		LUMOS_PROFILE_FUNCTION();
 		ImGui::Begin("Preview");
 		if(m_PreviewTexture)
 			ImGuiHelpers::Image(m_PreviewTexture.get(), {200, 200});
@@ -1401,6 +1436,7 @@ namespace Lumos
 
 	void Editor::OnRender()
 	{
+		LUMOS_PROFILE_FUNCTION();
 		//DrawPreview();
 
 		if(m_Application->GetEditorState() == EditorState::Preview && m_ShowGrid && !m_EditorCamera->IsOrthographic())
@@ -1409,6 +1445,7 @@ namespace Lumos
 
 	void Editor::DrawPreview()
 	{
+		LUMOS_PROFILE_FUNCTION();
 		if(!m_PreviewTexture)
 		{
 			m_PreviewTexture = Ref<Graphics::Texture2D>(Graphics::Texture2D::Create());
@@ -1436,20 +1473,22 @@ namespace Lumos
 
 	void Editor::FileOpenCallback(const std::string& filePath)
 	{
+		LUMOS_PROFILE_FUNCTION();
 		if(IsTextFile(filePath))
 			OpenTextFile(filePath);
 		else if(IsModelFile(filePath))
 		{
 			Entity modelEntity = m_Application->GetSceneManager()->GetCurrentScene()->GetEntityManager()->Create();
 			modelEntity.AddComponent<Graphics::Model>(filePath);
+			modelEntity.AddComponent<Maths::Transform>();
 			m_SelectedEntity = modelEntity.GetHandle();
 		}
 		else if(IsAudioFile(filePath))
 		{
-			//AssetsManager::Sounds()->LoadAsset(StringFormat::GetFileName(filePath), filePath);
+			//AssetsManager::Sounds()->LoadAsset(StringUtilities::GetFileName(filePath), filePath);
 
 			auto soundNode = Ref<SoundNode>(SoundNode::Create());
-			//soundNode->SetSound(AssetsManager::Sounds()->Get(StringFormat::GetFileName(filePath)).get());
+			//soundNode->SetSound(AssetsManager::Sounds()->Get(StringUtilities::GetFileName(filePath)).get());
 			soundNode->SetVolume(1.0f);
 			soundNode->SetPosition(Maths::Vector3(0.1f, 10.0f, 10.0f));
 			soundNode->SetLooping(true);
@@ -1463,10 +1502,16 @@ namespace Lumos
 			registry.emplace<SoundComponent>(e, soundNode);
 			m_SelectedEntity = e;
 		}
+        else if(IsSceneFile(filePath))
+        {
+            m_Application->GetSceneManager()->EnqueueSceneFromFile(filePath);
+            m_Application->GetSceneManager()->SwitchScene((int)(m_Application->GetSceneManager()->GetScenes().size()) - 1);
+        }
 	}
 
 	void Editor::SaveEditorSettings()
 	{
+		LUMOS_PROFILE_FUNCTION();
 		m_IniFile.SetOrAdd("ShowGrid", m_ShowGrid);
 		m_IniFile.SetOrAdd("ShowGizmos", m_ShowGizmos);
 		m_IniFile.SetOrAdd("ShowViewSelected", m_ShowViewSelected);
@@ -1475,15 +1520,15 @@ namespace Lumos
 		m_IniFile.SetOrAdd("SnapAmount", m_SnapAmount);
 		m_IniFile.SetOrAdd("SnapQuizmo", m_SnapQuizmo);
 		m_IniFile.SetOrAdd("DebugDrawFlags", m_DebugDrawFlags);
-		// m_IniFile.SetOrAdd("PhysicsDebugDrawFlags",
-		// Application::Get().GetSystem<LumosPhysicsEngine>()->GetDebugDrawFlags());
-		// m_IniFile.SetOrAdd("PhysicsDebugDrawFlags2D",
-		// Application::Get().GetSystem<B2PhysicsEngine>()->GetDebugDrawFlags());
+		m_IniFile.SetOrAdd("PhysicsDebugDrawFlags", Application::Get().GetSystem<LumosPhysicsEngine>()->GetDebugDrawFlags());
+		m_IniFile.SetOrAdd("PhysicsDebugDrawFlags2D", Application::Get().GetSystem<B2PhysicsEngine>()->GetDebugDrawFlags());
+		m_IniFile.SetOrAdd("Theme", (int)m_Theme);
 		m_IniFile.Rewrite();
 	}
 
 	void Editor::AddDefaultEditorSettings()
 	{
+		LUMOS_PROFILE_FUNCTION();
 		m_IniFile.Add("ShowGrid", m_ShowGrid);
 		m_IniFile.Add("ShowGizmos", m_ShowGizmos);
 		m_IniFile.Add("ShowViewSelected", m_ShowViewSelected);
@@ -1492,15 +1537,15 @@ namespace Lumos
 		m_IniFile.Add("SnapAmount", m_SnapAmount);
 		m_IniFile.Add("SnapQuizmo", m_SnapQuizmo);
 		m_IniFile.Add("DebugDrawFlags", m_DebugDrawFlags);
-		// m_IniFile.Add("PhysicsDebugDrawFlags",
-		// Application::Get().GetSystem<LumosPhysicsEngine>()->GetDebugDrawFlags());
-		// m_IniFile.Set("PhysicsDebugDrawFlags2D",
-		// Application::Get().GetSystem<B2PhysicsEngine>()->GetDebugDrawFlags());
+		m_IniFile.Add("PhysicsDebugDrawFlags", 0);
+		m_IniFile.Set("PhysicsDebugDrawFlags2D", 0);
+		m_IniFile.Set("Theme", (int)m_Theme);
 		m_IniFile.Rewrite();
 	}
 
 	void Editor::LoadEditorSettings()
 	{
+		LUMOS_PROFILE_FUNCTION();
 		m_ShowGrid = m_IniFile.GetOrDefault("ShowGrid", m_ShowGrid);
 		m_ShowGizmos = m_IniFile.GetOrDefault("ShowGizmos", m_ShowGizmos);
 		m_ShowViewSelected = m_IniFile.GetOrDefault("ShowViewSelected", m_ShowViewSelected);
@@ -1509,14 +1554,16 @@ namespace Lumos
 		m_SnapAmount = m_IniFile.GetOrDefault("SnapAmount", m_SnapAmount);
 		m_SnapQuizmo = m_IniFile.GetOrDefault("SnapQuizmo", m_SnapQuizmo);
 		m_DebugDrawFlags = m_IniFile.GetOrDefault("DebugDrawFlags", m_DebugDrawFlags);
-		//        Application::Get().GetSystem<LumosPhysicsEngine>()->SetDebugDrawFlags(m_IniFile.GetOrDefault("PhysicsDebugDrawFlags",
-		//        0));
-		//        Application::Get().GetSystem<B2PhysicsEngine>()->SetDebugDrawFlags(m_IniFile.GetOrDefault("PhysicsDebugDrawFlags2D",
-		//        0));
+		m_Theme = ImGuiHelpers::Theme(m_IniFile.GetOrDefault("Theme", (int)m_Theme));
+		Application::Get().GetSystem<LumosPhysicsEngine>()->SetDebugDrawFlags(m_IniFile.GetOrDefault("PhysicsDebugDrawFlags", 0));
+		Application::Get().GetSystem<B2PhysicsEngine>()->SetDebugDrawFlags(m_IniFile.GetOrDefault("PhysicsDebugDrawFlags2D", 0));
+		
+		ImGuiHelpers::SetTheme(m_Theme);
 	}
 
 	const char* Editor::GetIconFontIcon(const std::string& filePath)
 	{ 
+		LUMOS_PROFILE_FUNCTION();
 		if(IsTextFile(filePath))
 		{
 			return ICON_MDI_FILE_XML;
@@ -1535,15 +1582,29 @@ namespace Lumos
 
 	void Editor::CreateGridRenderer()
 	{
+		LUMOS_PROFILE_FUNCTION();
 		if(!m_GridRenderer)
-			m_GridRenderer = CreateRef<Graphics::GridRenderer>(u32(Application::Get().m_SceneViewWidth), u32(Application::Get().m_SceneViewHeight), true);
+			m_GridRenderer = CreateRef<Graphics::GridRenderer>(u32(Application::Get().m_SceneViewWidth), u32(Application::Get().m_SceneViewHeight));
 	}
 
 	const Ref<Graphics::GridRenderer>& Editor::GetGridRenderer()
 	{
+		LUMOS_PROFILE_FUNCTION();
 		//if(!m_GridRenderer)
 		//  m_GridRenderer = CreateRef<Graphics::GridRenderer>(u32(Application::Get().m_SceneViewWidth), u32(Application::Get().m_SceneViewHeight), true);
 		return m_GridRenderer;
+	}
+
+	void Editor::CacheScene()
+	{
+		LUMOS_PROFILE_FUNCTION();
+		m_Application->GetCurrentScene()->Serialise(m_TempSceneSaveFilePath, true);
+	}
+
+	void Editor::LoadCachedScene()
+	{
+		LUMOS_PROFILE_FUNCTION();
+		m_Application->GetCurrentScene()->Deserialise(m_TempSceneSaveFilePath, true);
 	}
 
 }

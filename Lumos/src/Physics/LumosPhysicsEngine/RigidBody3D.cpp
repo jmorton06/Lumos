@@ -1,4 +1,4 @@
-#include "lmpch.h"
+#include "Precompiled.h"
 #include "RigidBody3D.h"
 #include "LumosPhysicsEngine.h"
 #include "Graphics/Renderers/DebugRenderer.h"
