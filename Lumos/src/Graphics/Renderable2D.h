@@ -1,7 +1,5 @@
 #pragma once
-#include "lmpch.h"
 #include "Maths/Maths.h"
-
 #include "Graphics/API/DescriptorSet.h"
 #include "Graphics/API/Texture.h"
 
@@ -23,9 +21,9 @@ namespace Lumos
 				return vertex == other.vertex  && uv == other.uv && tid == other.tid && color == other.color;
 			}
 
-			static std::array<Graphics::VertexInputDescription, 5> getAttributeDescriptions()
+			static std::array<Graphics::VertexInputDescription, 4> getAttributeDescriptions()
 			{
-				std::array<Graphics::VertexInputDescription, 5> attributeDescriptions = {};
+				std::array<Graphics::VertexInputDescription, 4> attributeDescriptions = {};
 
 				attributeDescriptions[0].binding = 0;
 				attributeDescriptions[0].location = 0;
@@ -42,10 +40,10 @@ namespace Lumos
 				attributeDescriptions[2].format = Graphics::Format::R32G32_FLOAT;
 				attributeDescriptions[2].offset = offsetof(VertexData, tid);
 
-				attributeDescriptions[4].binding = 0;
-				attributeDescriptions[4].location = 3;
-				attributeDescriptions[4].format = Graphics::Format::R32G32B32A32_FLOAT;
-				attributeDescriptions[4].offset = offsetof(VertexData, color);
+				attributeDescriptions[3].binding = 0;
+				attributeDescriptions[3].location = 3;
+				attributeDescriptions[3].format = Graphics::Format::R32G32B32A32_FLOAT;
+				attributeDescriptions[3].offset = offsetof(VertexData, color);
 
 				return attributeDescriptions;
 			}

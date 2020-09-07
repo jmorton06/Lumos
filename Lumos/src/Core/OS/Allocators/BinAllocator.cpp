@@ -1,4 +1,4 @@
-#include "lmpch.h"
+#include "Precompiled.h"
 #include "BinAllocator.h"
 
 namespace Lumos
@@ -63,7 +63,8 @@ namespace Lumos
 		
 		 while (chunkPtr + actualSize <= Chunk(m_Max))
 		 {
-			 free(chunkPtr);
+			Free(chunkPtr);
+			chunkPtr += actualSize;
 		 }
 	}
 }

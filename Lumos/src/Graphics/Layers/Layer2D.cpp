@@ -1,4 +1,4 @@
-#include "lmpch.h"
+#include "Precompiled.h"
 #include "Layer2D.h"
 #include "Graphics/Renderers/Renderer2D.h"
 #include "Scene/Scene.h"
@@ -14,7 +14,6 @@ namespace Lumos
 
 	Layer2D::~Layer2D()
 	{
-		delete m_Renderer;
 	}
 
 	void Layer2D::OnAttach()

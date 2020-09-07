@@ -5,8 +5,8 @@ namespace Lumos
     struct InternalVersion 
     {
         int major = 0;
-        int minor = 2;
-        int patch = 2;
+        int minor = 3;
+        int patch = 0;
     };
 
     constexpr InternalVersion const LumosVersion = InternalVersion();
@@ -22,10 +22,10 @@ namespace Lumos
             Release
         };
 
-        int year = 2019;
+        int year = 2020;
         int release = 0;
-        Stage stage = Stage::Preview;
-        int rev = 2;
+        Stage stage = Stage::Alpha;
+        int rev = 3;
     };
 
 	constexpr Version const version = Version();

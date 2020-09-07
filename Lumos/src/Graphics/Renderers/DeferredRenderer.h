@@ -83,6 +83,6 @@ namespace Lumos
 
 			Texture* m_EnvironmentMap = nullptr;
 			Texture* m_IrradianceMap = nullptr;
-		};
+        };
 	}
 }

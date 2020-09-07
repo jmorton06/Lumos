@@ -1,5 +1,6 @@
-#include "lmpch.h"
+#include "Precompiled.h"
 #include "GLVertexBuffer.h"
+#include "GLPipeline.h"
 
 #include "GL.h"
 
@@ -37,27 +38,11 @@ namespace Lumos
 			GLCall(glBufferData(GL_ARRAY_BUFFER, size, NULL, BufferUsageToOpenGL(m_Usage)));
 		}
 
-		void GLVertexBuffer::SetLayout(const Graphics::BufferLayout& bufferLayout)
-        {
-			Bind();
-			m_Layout = bufferLayout;
-			const std::vector<Graphics::BufferElement>& layout = bufferLayout.GetLayout();
-                        
-			for (u32 i = 0; i < layout.size(); i++)
-            {
-				const Graphics::BufferElement& element = layout[i];
-				GLCall(glEnableVertexAttribArray(i));
-				size_t offset = static_cast<size_t>(element.offset);
-				GLCall(glVertexAttribPointer(i, element.count, element.type, element.normalized, bufferLayout.GetStride(), reinterpret_cast<const void*>(offset)));
-			}
-		}
-
 		void GLVertexBuffer::SetData(u32 size, const void* data)
 		{
 			GLCall(glBindBuffer(GL_ARRAY_BUFFER, m_Handle));
 			GLCall(glBufferData(GL_ARRAY_BUFFER, size, data, BufferUsageToOpenGL(m_Usage)));
 		}
-
 
 		void GLVertexBuffer::SetDataSub(u32 size, const void* data, u32 offset)
 		{
@@ -68,21 +53,33 @@ namespace Lumos
 
 		void* GLVertexBuffer::GetPointerInternal()
         {
-            Bind();
-			GLCall(void* result = glMapBuffer(GL_ARRAY_BUFFER, GL_WRITE_ONLY));
+            void* result = nullptr;
+            if(!m_Mapped)
+            {
+                GLCall(result = glMapBuffer(GL_ARRAY_BUFFER, GL_WRITE_ONLY));
+                m_Mapped = true;
+            }
+            else
+            {
+                Lumos::Debug::Log::Warning("Vertex buffer already mapped");
+            }
+
 			return result;
 		}
 
 		void GLVertexBuffer::ReleasePointer()
 		{
-			GLCall(glUnmapBuffer(GL_ARRAY_BUFFER));
-			//SetLayout(m_Layout);
+            if(m_Mapped)
+            {
+                GLCall(glUnmapBuffer(GL_ARRAY_BUFFER));
+                m_Mapped = false;
+            }
 		}
 
-		void GLVertexBuffer::Bind()
+		void GLVertexBuffer::Bind(CommandBuffer* commandBuffer, Pipeline* pipeline)
 		{
 			GLCall(glBindBuffer(GL_ARRAY_BUFFER, m_Handle));
-			// SetLayout(m_Layout);
+            ((GLPipeline*)pipeline)->BindVertexArray();
 		}
 
 		void GLVertexBuffer::Unbind()
@@ -97,7 +94,7 @@ namespace Lumos
 
 		VertexBuffer* GLVertexBuffer::CreateFuncGL(const BufferUsage& usage)
 		{
-			return lmnew GLVertexBuffer(usage);
+			return new GLVertexBuffer(usage);
 		}
 	}
 }

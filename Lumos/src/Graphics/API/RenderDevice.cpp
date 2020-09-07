@@ -1,4 +1,4 @@
-#include "lmpch.h"
+#include "Precompiled.h"
 #include "RenderDevice.h"
 
 namespace Lumos
@@ -18,7 +18,7 @@ namespace Lumos
         
         void RenderDevice::Release()
         {
-            lmdel s_Instance;
+            delete s_Instance;
         };
     }
 }

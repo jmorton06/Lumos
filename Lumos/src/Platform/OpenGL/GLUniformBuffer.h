@@ -1,5 +1,4 @@
 #pragma once
-#include "lmpch.h"
 #include "Graphics/API/UniformBuffer.h"
 
 namespace Lumos

@@ -2,7 +2,7 @@
 echo "Compiling shaders"
 cd "$(dirname "$0")"
 
-COMPILER="/Users/josephmorton/vulkansdk-macos-1.2.141.0/macOS/bin/glslangValidator"
+COMPILER="/Users/jmorton/MoltenVK/macOS/bin/glslangValidator"
 
 echo $COMPILER
 

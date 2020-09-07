@@ -1,4 +1,4 @@
-#include "lmpch.h"
+#include "Precompiled.h"
 #include "ImGuiLayer.h"
 #include "Core/OS/Input.h"
 #include "Core/OS/Window.h"
@@ -6,12 +6,12 @@
 #include "Graphics/API/IMGUIRenderer.h"
 #include "Core/VFS.h"
 #include "ImGuiHelpers.h"
-#include "Core/Profiler.h"
+ 
+#include "IconsMaterialDesignIcons.h"
 
 #define IMGUI_DISABLE_OBSOLETE_FUNCTIONS
 #include <imgui/imgui.h>
 #include <imgui/plugins/ImGuizmo.h>
-#include <IconFontCppHeaders/IconsMaterialDesignIcons.h>
 #include <imgui/plugins/ImGuiAl/fonts/CousineRegular.inl>
 #include <imgui/plugins/ImGuiAl/fonts/KarlaRegular.inl>
 #include <imgui/plugins/ImGuiAl/fonts/MaterialDesign.inl>
@@ -64,7 +64,7 @@ namespace Lumos
 
 	void ImGuiLayer::OnUpdate(const TimeStep& dt, Scene* scene)
 	{
-		LUMOS_PROFILE_FUNC;
+		LUMOS_PROFILE_FUNCTION();
 		ImGuizmo::BeginFrame();
 
 		Application::Get().OnImGui();

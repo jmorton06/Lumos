@@ -1,221 +1,314 @@
-#include "lmpch.h"
+#include "Precompiled.h"
 
 #include "Core/Application.h"
 #include "Core/Version.h"
 #include "VKDevice.h"
 #include "VKRenderer.h"
+#include "VKCommandPool.h"
 
 namespace Lumos
 {
 	namespace Graphics
 	{
-		VKDevice::VKDevice()
-		{
-			m_VKContext = dynamic_cast<VKContext*>(GraphicsContext::GetContext());
-
-			Init();
-
-			CreatePipelineCache();
-		}
-
-		VKDevice::~VKDevice()
-		{
-			Unload();
-		}
-
+		
 		const char* TranslateVkPhysicalDeviceTypeToString(VkPhysicalDeviceType type)
 		{
 			switch(type)
 			{
-			case VK_PHYSICAL_DEVICE_TYPE_OTHER:
+				case VK_PHYSICAL_DEVICE_TYPE_OTHER:
 				return "OTHER";
-			case VK_PHYSICAL_DEVICE_TYPE_INTEGRATED_GPU:
+				case VK_PHYSICAL_DEVICE_TYPE_INTEGRATED_GPU:
 				return "INTEGRATED GPU";
-			case VK_PHYSICAL_DEVICE_TYPE_DISCRETE_GPU:
+				case VK_PHYSICAL_DEVICE_TYPE_DISCRETE_GPU:
 				return "DISCRETE GPU";
-			case VK_PHYSICAL_DEVICE_TYPE_VIRTUAL_GPU:
+				case VK_PHYSICAL_DEVICE_TYPE_VIRTUAL_GPU:
 				return "VIRTUAL GPU";
-			case VK_PHYSICAL_DEVICE_TYPE_CPU:
+				case VK_PHYSICAL_DEVICE_TYPE_CPU:
 				return "CPU";
-			default:
+				default:
 				return "UNKNOWN";
 			}
 		}
-
-		bool VKDevice::Init()
+		
+		VKPhysicalDevice::VKPhysicalDevice()
 		{
+			///
 			// GPU
 			uint32_t numGPUs = 0;
-			vkEnumeratePhysicalDevices(m_VKContext->GetVKInstance(), &numGPUs, VK_NULL_HANDLE);
+			auto vkInstance = VKContext::Get()->GetVKInstance();
+			vkEnumeratePhysicalDevices(vkInstance, &numGPUs, VK_NULL_HANDLE);
 			if(numGPUs == 0)
 			{
 				Debug::Log::Critical("ERROR : No GPUs found!");
-				return false;
 			}
-
-			std::vector<VkPhysicalDevice> pGPUs(numGPUs);
-			vkEnumeratePhysicalDevices(m_VKContext->GetVKInstance(), &numGPUs, pGPUs.data());
-			m_PhysicalDevice = pGPUs[0];
-
+			
+			std::vector<VkPhysicalDevice> physicalDevices(numGPUs);
+			vkEnumeratePhysicalDevices(vkInstance, &numGPUs, physicalDevices.data());
+			m_PhysicalDevice = physicalDevices.back();
+			
+			for (VkPhysicalDevice physicalDevice : physicalDevices)
+			{
+				vkGetPhysicalDeviceProperties(physicalDevice, &m_PhysicalDeviceProperties);
+				if (m_PhysicalDeviceProperties.deviceType == VK_PHYSICAL_DEVICE_TYPE_DISCRETE_GPU)
+				{
+					m_PhysicalDevice = physicalDevice;
+					break;
+				}
+			}
+			
 			vkGetPhysicalDeviceProperties(m_PhysicalDevice, &m_PhysicalDeviceProperties);
 			vkGetPhysicalDeviceMemoryProperties(m_PhysicalDevice, &m_MemoryProperties);
-
+			
 			Debug::Log::Info("Vulkan : {0}.{1}.{2}", VK_VERSION_MAJOR(m_PhysicalDeviceProperties.apiVersion), VK_VERSION_MINOR(m_PhysicalDeviceProperties.apiVersion), VK_VERSION_PATCH(m_PhysicalDeviceProperties.apiVersion));
 			Debug::Log::Info("GPU : {0}", std::string(m_PhysicalDeviceProperties.deviceName));
-			Debug::Log::Info("Vendor ID : {0}", StringFormat::ToString(m_PhysicalDeviceProperties.vendorID));
+			Debug::Log::Info("Vendor ID : {0}", StringUtilities::ToString(m_PhysicalDeviceProperties.vendorID));
 			Debug::Log::Info("Device Type : {0}", std::string(TranslateVkPhysicalDeviceTypeToString(m_PhysicalDeviceProperties.deviceType)));
 			Debug::Log::Info("Driver Version : {0}.{1}.{2}", VK_VERSION_MAJOR(m_PhysicalDeviceProperties.driverVersion), VK_VERSION_MINOR(m_PhysicalDeviceProperties.driverVersion), VK_VERSION_PATCH(m_PhysicalDeviceProperties.driverVersion));
-
+			
 			auto& caps = Renderer::GetCapabilities();
-
-			caps.Vendor = StringFormat::ToString(m_PhysicalDeviceProperties.vendorID);
+			
+			caps.Vendor = StringUtilities::ToString(m_PhysicalDeviceProperties.vendorID);
 			caps.Renderer = std::string(m_PhysicalDeviceProperties.deviceName);
-			caps.Version = StringFormat::ToString(m_PhysicalDeviceProperties.driverVersion);
-
+			caps.Version = StringUtilities::ToString(m_PhysicalDeviceProperties.driverVersion);
+			
 			caps.MaxAnisotropy = m_PhysicalDeviceProperties.limits.maxSamplerAnisotropy;
 			caps.MaxSamples = m_PhysicalDeviceProperties.limits.maxSamplerAllocationCount;
 			caps.MaxTextureUnits = m_PhysicalDeviceProperties.limits.maxDescriptorSetSamplers;
 			caps.UniformBufferOffsetAlignment = int(m_PhysicalDeviceProperties.limits.minUniformBufferOffsetAlignment);
-
-			// Queue family
-			uint32_t numQueueFamily = 0;
-			vkGetPhysicalDeviceQueueFamilyProperties(m_PhysicalDevice, &numQueueFamily, VK_NULL_HANDLE);
-			if(numQueueFamily == 0)
+			///
+			
+			uint32_t queueFamilyCount;
+			vkGetPhysicalDeviceQueueFamilyProperties(m_PhysicalDevice, &queueFamilyCount, nullptr);
+			LUMOS_ASSERT(queueFamilyCount > 0, "");
+			m_QueueFamilyProperties.resize(queueFamilyCount);
+			vkGetPhysicalDeviceQueueFamilyProperties(m_PhysicalDevice, &queueFamilyCount, m_QueueFamilyProperties.data());
+			
+			uint32_t extCount = 0;
+			vkEnumerateDeviceExtensionProperties(m_PhysicalDevice, nullptr, &extCount, nullptr);
+			if (extCount > 0)
 			{
-				Debug::Log::Critical("ERROR : No Queue Families were found!");
-				return false;
-			}
-
-			m_QueueFamiliyProperties.resize(numQueueFamily);
-			vkGetPhysicalDeviceQueueFamilyProperties(m_PhysicalDevice, &numQueueFamily, m_QueueFamiliyProperties.data());
-
-			m_Surface = CreatePlatformSurface(m_VKContext->GetVKInstance(), Application::Get().GetWindow());
-
-			if(!m_Surface)
-			{
-				Debug::Log::Critical("[VULKAN] Failed to create window surface!");
-			}
-
-			VkBool32* supportsPresent = lmnew VkBool32[m_QueueFamiliyProperties.size()];
-			for(uint32_t i = 0; i < m_QueueFamiliyProperties.size(); i++)
-				vkGetPhysicalDeviceSurfaceSupportKHR(m_PhysicalDevice, i, m_Surface, &supportsPresent[i]);
-
-			m_GraphicsQueueFamilyIndex = UINT32_MAX;
-			for(uint32_t i = 0; i < m_QueueFamiliyProperties.size(); i++)
-			{
-				if((m_QueueFamiliyProperties[i].queueFlags & VK_QUEUE_GRAPHICS_BIT))
+				std::vector<VkExtensionProperties> extensions(extCount);
+				if (vkEnumerateDeviceExtensionProperties(m_PhysicalDevice, nullptr, &extCount, &extensions.front()) == VK_SUCCESS)
 				{
-					if(supportsPresent[i] == VK_TRUE)
+					Debug::Log::Info("Selected physical device has {0} extensions", extensions.size());
+					for (const auto& ext : extensions)
 					{
-						m_GraphicsQueueFamilyIndex = i;
+						m_SupportedExtensions.emplace(ext.extensionName);
+						Debug::Log::Info("  {0}", ext.extensionName);
+					}
+				}
+			}
+			
+			// Queue families
+			// Desired queues need to be requested upon logical device creation
+			// Due to differing queue family configurations of Vulkan implementations this can be a bit tricky, especially if the application
+			// requests different queue types
+			
+			// Get queue family indices for the requested queue family types
+			// Note that the indices may overlap depending on the implementation
+			
+			static const float defaultQueuePriority(0.0f);
+			
+            int requestedQueueTypes = VK_QUEUE_GRAPHICS_BIT;// | VK_QUEUE_COMPUTE_BIT | VK_QUEUE_TRANSFER_BIT;
+			m_QueueFamilyIndices = GetQueueFamilyIndices(requestedQueueTypes);
+			
+			// Graphics queue
+			if (requestedQueueTypes & VK_QUEUE_GRAPHICS_BIT)
+			{
+				VkDeviceQueueCreateInfo queueInfo{};
+				queueInfo.sType = VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO;
+				queueInfo.queueFamilyIndex = m_QueueFamilyIndices.Graphics;
+				queueInfo.queueCount = 1;
+				queueInfo.pQueuePriorities = &defaultQueuePriority;
+				m_QueueCreateInfos.push_back(queueInfo);
+			}
+			
+			// Dedicated compute queue
+			if (requestedQueueTypes & VK_QUEUE_COMPUTE_BIT)
+			{
+				if (m_QueueFamilyIndices.Compute != m_QueueFamilyIndices.Graphics)
+				{
+					// If compute family index differs, we need an additional queue create info for the compute queue
+					VkDeviceQueueCreateInfo queueInfo{};
+					queueInfo.sType = VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO;
+					queueInfo.queueFamilyIndex = m_QueueFamilyIndices.Compute;
+					queueInfo.queueCount = 1;
+					queueInfo.pQueuePriorities = &defaultQueuePriority;
+					m_QueueCreateInfos.push_back(queueInfo);
+				}
+			}
+			
+			// Dedicated transfer queue
+			if (requestedQueueTypes & VK_QUEUE_TRANSFER_BIT)
+			{
+				if ((m_QueueFamilyIndices.Transfer != m_QueueFamilyIndices.Graphics) && (m_QueueFamilyIndices.Transfer != m_QueueFamilyIndices.Compute))
+				{
+					// If compute family index differs, we need an additional queue create info for the compute queue
+					VkDeviceQueueCreateInfo queueInfo{};
+					queueInfo.sType = VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO;
+					queueInfo.queueFamilyIndex = m_QueueFamilyIndices.Transfer;
+					queueInfo.queueCount = 1;
+					queueInfo.pQueuePriorities = &defaultQueuePriority;
+					m_QueueCreateInfos.push_back(queueInfo);
+				}
+			}
+		}
+		
+		VKPhysicalDevice::~VKPhysicalDevice()
+		{
+		}
+		
+		bool VKPhysicalDevice::IsExtensionSupported(const std::string& extensionName) const
+		{
+			return m_SupportedExtensions.find(extensionName) != m_SupportedExtensions.end();
+		}
+		
+		VKPhysicalDevice::QueueFamilyIndices VKPhysicalDevice::GetQueueFamilyIndices(int flags)
+		{
+			QueueFamilyIndices indices;
+			
+			// Dedicated queue for compute
+			// Try to find a queue family index that supports compute but not graphics
+			if (flags & VK_QUEUE_COMPUTE_BIT)
+			{
+				for (uint32_t i = 0; i < m_QueueFamilyProperties.size(); i++)
+				{
+					auto& queueFamilyProperties = m_QueueFamilyProperties[i];
+					if ((queueFamilyProperties.queueFlags & VK_QUEUE_COMPUTE_BIT) && ((queueFamilyProperties.queueFlags & VK_QUEUE_GRAPHICS_BIT) == 0))
+					{
+						indices.Compute = i;
 						break;
 					}
 				}
 			}
-
-			delete[] supportsPresent;
-
-			if(m_GraphicsQueueFamilyIndex == UINT32_MAX)
+			
+			// Dedicated queue for transfer
+			// Try to find a queue family index that supports transfer but not graphics and compute
+			if (flags & VK_QUEUE_TRANSFER_BIT)
 			{
-				Debug::Log::Critical("[VULKAN] Couldn't find a Graphics queue family index!");
-				return false;
-			}
-
-			uint32_t formatCount;
-			vkGetPhysicalDeviceSurfaceFormatsKHR(m_PhysicalDevice, m_Surface, &formatCount, NULL);
-			LUMOS_ASSERT(formatCount > 0, "Format count 0");
-
-			std::vector<VkSurfaceFormatKHR> surfaceFormats(formatCount);
-			vkGetPhysicalDeviceSurfaceFormatsKHR(m_PhysicalDevice, m_Surface, &formatCount, surfaceFormats.data());
-
-			// If the surface format list only includes one entry with VK_FORMAT_UNDEFINED,
-			// there is no preferered format, so we assume VK_FORMAT_B8G8R8A8_UNORM
-			if((formatCount == 1) && (surfaceFormats[0].format == VK_FORMAT_UNDEFINED))
-			{
-				m_Format = VK_FORMAT_B8G8R8A8_UNORM;
-				m_ColourSpace = surfaceFormats[0].colorSpace;
-			}
-			else
-			{
-				// iterate over the list of available surface format and
-				// check for the presence of VK_FORMAT_B8G8R8A8_UNORM
-				bool found_B8G8R8A8_UNORM = false;
-				for(auto&& surfaceFormat : surfaceFormats)
+				for (uint32_t i = 0; i < m_QueueFamilyProperties.size(); i++)
 				{
-					if(surfaceFormat.format == VK_FORMAT_B8G8R8A8_UNORM)
+					auto& queueFamilyProperties = m_QueueFamilyProperties[i];
+					if ((queueFamilyProperties.queueFlags & VK_QUEUE_TRANSFER_BIT) && ((queueFamilyProperties.queueFlags & VK_QUEUE_GRAPHICS_BIT) == 0) && ((queueFamilyProperties.queueFlags & VK_QUEUE_COMPUTE_BIT) == 0))
 					{
-						m_Format = surfaceFormat.format;
-						m_ColourSpace = surfaceFormat.colorSpace;
-						found_B8G8R8A8_UNORM = true;
+						indices.Transfer = i;
 						break;
 					}
 				}
-
-				// in case VK_FORMAT_B8G8R8A8_UNORM is not available
-				// select the first available color format
-				if(!found_B8G8R8A8_UNORM)
+			}
+			
+			// For other queue types or if no separate compute queue is present, return the first one to support the requested flags
+			for (uint32_t i = 0; i < m_QueueFamilyProperties.size(); i++)
+			{
+				if ((flags & VK_QUEUE_TRANSFER_BIT) && indices.Transfer == -1)
 				{
-					m_Format = surfaceFormats[0].format;
-					m_ColourSpace = surfaceFormats[0].colorSpace;
+					if (m_QueueFamilyProperties[i].queueFlags & VK_QUEUE_TRANSFER_BIT)
+						indices.Transfer = i;
+				}
+				
+				if ((flags & VK_QUEUE_COMPUTE_BIT) && indices.Compute == -1)
+				{
+					if (m_QueueFamilyProperties[i].queueFlags & VK_QUEUE_COMPUTE_BIT)
+						indices.Compute = i;
+				}
+				
+				if (flags & VK_QUEUE_GRAPHICS_BIT)
+				{
+					if (m_QueueFamilyProperties[i].queueFlags & VK_QUEUE_GRAPHICS_BIT)
+						indices.Graphics = i;
 				}
 			}
+			
+			return indices;
+		}
+		
+		uint32_t VKPhysicalDevice::GetMemoryTypeIndex(uint32_t typeBits, VkMemoryPropertyFlags properties) const
+		{
+			// Iterate over all memory types available for the device used in this example
+			for (uint32_t i = 0; i < m_MemoryProperties.memoryTypeCount; i++)
+			{
+				if ((typeBits & 1) == 1)
+				{
+					if ((m_MemoryProperties.memoryTypes[i].propertyFlags & properties) == properties)
+						return i;
+				}
+				typeBits >>= 1;
+			}
+			
+            LUMOS_ASSERT(false, "Could not find a suitable memory type!");
+			return UINT32_MAX;
+		}
+		/////////////////////////
+		
+        uint32_t VKDevice::s_GraphicsQueueFamilyIndex = 0;
+    
+		VKDevice::VKDevice()
+		{
+		}
 
-			// Device queue
-			float pQueuePriorities[] = {1.0f};
-			VkDeviceQueueCreateInfo deviceQueueCI{};
-			deviceQueueCI.sType = VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO;
-			deviceQueueCI.queueCount = 1;
-			deviceQueueCI.queueFamilyIndex = m_GraphicsQueueFamilyIndex;
-			deviceQueueCI.pQueuePriorities = pQueuePriorities;
+		VKDevice::~VKDevice()
+		{
+			m_CommandPool.reset();
+			vkDestroyPipelineCache(m_Device, m_PipelineCache, VK_NULL_HANDLE);
+			
+#ifdef USE_VMA_ALLOCATOR
+			vmaDestroyAllocator(m_Allocator);
+#endif
+			TracyVkDestroy(m_TracyContext);
+			
+			vkDestroyDevice(m_Device, VK_NULL_HANDLE);
+		}
 
-			VkPhysicalDeviceFeatures deviceFeatures{};
+
+		bool VKDevice::Init()
+		{
+			m_PhysicalDevice = CreateRef<VKPhysicalDevice>();
+			
+			VkPhysicalDeviceFeatures deviceFeatures;
+            memset(&deviceFeatures, 0, sizeof(VkPhysicalDeviceFeatures));
 			deviceFeatures.shaderClipDistance = VK_TRUE;
-			//deviceFeatures.shaderCullDistance = VK_TRUE;
 			deviceFeatures.geometryShader = VK_FALSE;
 			deviceFeatures.shaderTessellationAndGeometryPointSize = VK_TRUE;
 			deviceFeatures.fillModeNonSolid = VK_TRUE;
 			deviceFeatures.samplerAnisotropy = VK_TRUE;
 
-			auto& layers = m_VKContext->GetLayerNames();
-
-			const std::vector<const char*> deviceExtensions =
-				{
-					VK_KHR_SWAPCHAIN_EXTENSION_NAME};
-
+            std::vector<const char*> deviceExtensions =
+            {
+				VK_KHR_SWAPCHAIN_EXTENSION_NAME
+			};
+			
+			// Enable the debug marker extension if it is present (likely meaning a debugging tool is present)
+			if (m_PhysicalDevice->IsExtensionSupported(VK_EXT_DEBUG_MARKER_EXTENSION_NAME))
+			{
+				deviceExtensions.push_back(VK_EXT_DEBUG_MARKER_EXTENSION_NAME);
+				m_EnableDebugMarkers = true;
+			}
+			
 			// Device
 			VkDeviceCreateInfo deviceCI{};
 			deviceCI.sType = VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO;
-			deviceCI.queueCreateInfoCount = 1;
-			deviceCI.pQueueCreateInfos = &deviceQueueCI;
-			deviceCI.enabledExtensionCount = static_cast<uint32_t>(deviceExtensions.size());
+			deviceCI.queueCreateInfoCount = static_cast<uint32_t>(m_PhysicalDevice->m_QueueCreateInfos.size());;
+			deviceCI.pQueueCreateInfos = m_PhysicalDevice->m_QueueCreateInfos.data();
+            deviceCI.enabledExtensionCount = static_cast<uint32_t>(deviceExtensions.size());
 			deviceCI.ppEnabledExtensionNames = deviceExtensions.data();
 			deviceCI.pEnabledFeatures = &deviceFeatures;
+            deviceCI.enabledLayerCount = 0;
 
-			if(EnableValidationLayers)
-			{
-				deviceCI.enabledLayerCount = static_cast<uint32_t>(layers.size());
-				deviceCI.ppEnabledLayerNames = layers.data();
-			}
-			else
-			{
-				deviceCI.enabledLayerCount = 0;
-			}
-
-			auto result = vkCreateDevice(m_PhysicalDevice, &deviceCI, VK_NULL_HANDLE, &m_Device);
+			auto result = vkCreateDevice(m_PhysicalDevice->GetVulkanPhysicalDevice(), &deviceCI, VK_NULL_HANDLE, &m_Device);
 			if(result != VK_SUCCESS)
 			{
 				Debug::Log::Critical("[VULKAN] vkCreateDevice() failed!");
 				return false;
 			}
 
-			vkGetDeviceQueue(m_Device, m_GraphicsQueueFamilyIndex, 0, &m_GraphicsQueue);
-			vkGetDeviceQueue(m_Device, m_GraphicsQueueFamilyIndex, 0, &m_PresentQueue);
-
+			vkGetDeviceQueue(m_Device, m_PhysicalDevice->m_QueueFamilyIndices.Graphics, 0, &m_GraphicsQueue);
+			vkGetDeviceQueue(m_Device, m_PhysicalDevice->m_QueueFamilyIndices.Graphics, 0, &m_PresentQueue);
+			
 #ifdef USE_VMA_ALLOCATOR
 			VmaAllocatorCreateInfo allocatorInfo = {};
-			allocatorInfo.physicalDevice = m_PhysicalDevice;
+			allocatorInfo.physicalDevice = m_PhysicalDevice->GetVulkanPhysicalDevice();
 			allocatorInfo.device = m_Device;
-			allocatorInfo.instance = m_VKContext->GetVKInstance();
+			allocatorInfo.instance = VKContext::Get()->GetVKInstance();
 
 			VmaVulkanFunctions fn;
 			fn.vkAllocateMemory = (PFN_vkAllocateMemory)vkAllocateMemory;
@@ -249,37 +342,11 @@ namespace Lumos
 				Debug::Log::Critical("[VULKAN] Failed to create VMA allocator");
 			}
 #endif
-
+            m_CommandPool = CreateRef<VKCommandPool>();
+            
+			CreateTracyContext();
+            CreatePipelineCache();
 			return VK_SUCCESS;
-		}
-
-		void VKDevice::Unload()
-		{
-			vkDestroyPipelineCache(m_Device, m_PipelineCache, VK_NULL_HANDLE);
-
-#ifdef USE_VMA_ALLOCATOR
-			vmaDestroyAllocator(m_Allocator);
-#endif
-
-			vkDestroyDevice(m_Device, VK_NULL_HANDLE);
-			vkDestroySurfaceKHR(m_VKContext->GetVKInstance(), m_Surface, VK_NULL_HANDLE);
-		}
-
-		bool VKDevice::MemoryTypeFromProperties(uint32_t typeBits, VkMemoryPropertyFlags reqMask, uint32_t* typeIndex)
-		{
-			for(uint32_t i = 0; i < m_MemoryProperties.memoryTypeCount; i++)
-			{
-				if((typeBits & 1) == 1)
-				{
-					if((m_MemoryProperties.memoryTypes[i].propertyFlags & reqMask) == reqMask)
-					{
-						*typeIndex = i;
-						return true;
-					}
-				}
-				typeBits >>= 1;
-			}
-			return false;
 		}
 
 		void VKDevice::CreatePipelineCache()
@@ -289,5 +356,22 @@ namespace Lumos
 			pipelineCacheCI.pNext = NULL;
 			vkCreatePipelineCache(m_Device, &pipelineCacheCI, VK_NULL_HANDLE, &m_PipelineCache);
 		}
+		
+		void VKDevice::CreateTracyContext()
+        {
+            VkCommandBufferAllocateInfo allocInfo = {};
+            allocInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
+            allocInfo.level = VK_COMMAND_BUFFER_LEVEL_PRIMARY;
+            allocInfo.commandPool = m_CommandPool->GetCommandPool();
+            allocInfo.commandBufferCount = 1;
+			
+            VkCommandBuffer tracyBuffer;
+            vkAllocateCommandBuffers(m_Device, &allocInfo, &tracyBuffer);
+			
+            m_TracyContext = TracyVkContext(m_PhysicalDevice->GetVulkanPhysicalDevice(), m_Device, m_GraphicsQueue, tracyBuffer);
+			
+            vkQueueWaitIdle(m_GraphicsQueue);
+            vkFreeCommandBuffers(m_Device,  m_CommandPool->GetCommandPool(), 1, &tracyBuffer);
+        }
 	}
 }

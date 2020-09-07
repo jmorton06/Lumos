@@ -1,5 +1,5 @@
 #pragma once
-#include "lmpch.h"
+
 #include "IRenderer.h"
 
 namespace Lumos
@@ -11,7 +11,7 @@ namespace Lumos
 		class LUMOS_EXPORT GridRenderer : public IRenderer
 		{
 		public:
-			GridRenderer(u32 width, u32 height, bool renderToGBuffer = false);
+			GridRenderer(u32 width, u32 height);
 			~GridRenderer();
 
 			void Init() override;

@@ -7,10 +7,10 @@
 [![Build Status](https://github.com/skypjack/entt/workflows/build/badge.svg)](https://github.com/skypjack/entt/actions)
 [![Coverage](https://codecov.io/gh/skypjack/entt/branch/master/graph/badge.svg)](https://codecov.io/gh/skypjack/entt)
 [![Try online](https://img.shields.io/badge/try-online-brightgreen)](https://godbolt.org/z/cOUcm1)
+[![Documentation](https://img.shields.io/badge/docs-docsforge-blue)](http://entt.docsforge.com/)
 [![Gitter chat](https://badges.gitter.im/skypjack/entt.png)](https://gitter.im/skypjack/entt)
 [![Discord channel](https://img.shields.io/discord/707607951396962417?logo=discord)](https://discord.gg/5BjPWBd)
 [![Donate](https://img.shields.io/badge/donate-paypal-blue.svg)](https://www.paypal.me/skypjack)
-[![Patreon](https://img.shields.io/badge/become-patron-red.svg)](https://www.patreon.com/bePatron?c=1772573)
 
 `EnTT` is a header-only, tiny and easy to use library for game programming and
 much more written in **modern C++**, mainly known for its innovative
@@ -26,8 +26,9 @@ add the [#entt](https://github.com/topics/entt) tag to your _topics_! :+1:
 
 Do you want to **keep up with changes** or do you have a **question** that
 doesn't require you to open an issue?<br/>
-Join the [gitter channel](https://gitter.im/skypjack/entt) and meet other users
-like you. The more we are, the better for everyone.
+Join the [gitter channel](https://gitter.im/skypjack/entt) or the
+[discord server](https://discord.gg/5BjPWBd) and meet other users like you. The
+more we are, the better for everyone.
 
 Wondering why your **debug build** is so slow on Windows or how to represent a
 **hierarchy** with components?<br/>
@@ -101,10 +102,10 @@ Here is a brief, yet incomplete list of what it offers today:
 Consider this list a work in progress as well as the project. The whole API is
 fully documented in-code for those who are brave enough to read it.
 
-Currently, `EnTT` is tested on Linux, Microsoft Windows and OSX. It has proven
-to work also on both Android and iOS.<br/>
-Most likely it won't be problematic on other systems as well, but it hasn't been
-sufficiently tested so far.
+It is also known that `EnTT` (version 3) is used in **Minecraft**.<br/>
+Given that the game is available literally everywhere, I can confidently say 
+that the library has been sufficiently tested on every platform that can come to 
+mind.
 
 ## Code Example
 
@@ -269,8 +270,11 @@ The API reference will be created in HTML format within the directory
 <!--
 @cond TURN_OFF_DOXYGEN
 -->
-It's also available [online](https://skypjack.github.io/entt/) for the latest
-version, that is the last stable tag.<br/>
+The same version is also available [online](https://skypjack.github.io/entt/)
+for the latest release, that is the last stable tag. If you are looking for
+something more pleasing to the eye, consider reading the nice-looking version
+available on [docsforge](https://entt.docsforge.com/): same documentation, much
+more pleasant to read.<br/>
 Moreover, there exists a [wiki](https://github.com/skypjack/entt/wiki) dedicated
 to the project where users can find all related documentation pages.
 <!--
@@ -324,6 +328,32 @@ Note that benchmarks are not part of this set.
   ```
   brew install skypjack/entt/entt
   ```
+
+* [`build2`](https://build2.org), build toolchain for developing and packaging C
+  and C++ code.<br/>
+  In order to use the [`entt`](https://cppget.org/entt) package in a `build2`
+  project, add the following line or a similar one to the `manifest` file:
+
+  ```
+  depends: entt ^3.0.0
+  ```
+
+  Also check that the configuration refers to a valid repository, so that the
+  package can be found by `build2`:
+
+  * [`cppget.org`](https://cppget.org), the open-source community central
+    repository, accessible as `https://pkg.cppget.org/1/stable`.
+
+  * [Package source repository](https://github.com/build2-packaging/entt):
+    accessible as either `https://github.com/build2-packaging/entt.git` or
+    `ssh://git@github.com/build2-packaging/entt.git`.
+    Feel free to [report issues](https://github.com/build2-packaging/entt) with
+    this package.
+
+  Both can be used with `bpkg add-repo` or added in a project
+  `repositories.manifest`. See the official
+  [documentation](https://build2.org/build2-toolchain/doc/build2-toolchain-intro.xhtml#guide-repositories)
+  for more details.
 
 Consider this list a work in progress and help me to make it longer.
 

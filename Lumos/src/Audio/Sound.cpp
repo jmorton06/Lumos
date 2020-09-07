@@ -1,4 +1,4 @@
-#include "lmpch.h"
+#include "Precompiled.h"
 #include "Sound.h"
 #include "Core/VFS.h"
 
@@ -22,7 +22,7 @@ namespace Lumos
 	Sound* Sound::Create(const std::string& name, const std::string& extension)
 	{
 #ifdef LUMOS_OPENAL
-		return lmnew ALSound(name, extension);
+		return new ALSound(name, extension);
 #else
 		return nullptr;
 #endif

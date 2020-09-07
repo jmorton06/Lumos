@@ -1,10 +1,10 @@
-#include "lmpch.h"
+#include "Precompiled.h"
 #include "CoreSystem.h"
 #include "VFS.h"
 #include "JobSystem.h"
 #include "Scripting/Lua/LuaManager.h"
 #include "Core/Version.h"
-#include "Core/Profiler.h"
+ 
 #include "Core/OS/MemoryManager.h"
 
 namespace Lumos
@@ -14,12 +14,6 @@ namespace Lumos
 	void CoreSystem::Init(bool enableProfiler)
 	{
         Debug::Log::OnInit();
-
-		if (enableProfiler)
-		{
-			Profiler::Get().Enable();
-		}
-		LUMOS_PROFILE_BLOCK("CoreSystem::Init");
 
 		Debug::Log::Info("Lumos Engine - Version {0}.{1}.{2}", LumosVersion.major, LumosVersion.minor, LumosVersion.patch);
 
@@ -32,7 +26,6 @@ namespace Lumos
 	void CoreSystem::Shutdown()
 	{
 		Debug::Log::Info("Shutting down System");
-        Profiler::Release();
 		LuaManager::Release();
 		VFS::OnShutdown();
 		Lumos::Memory::LogMemoryInformation();

@@ -1,4 +1,4 @@
-#include "lmpch.h"
+#include "Precompiled.h"
 #include "VKTools.h"
 #include "VKDevice.h"
 #include "VKShader.h"
@@ -72,7 +72,7 @@ namespace Lumos
             VkCommandBufferAllocateInfo allocInfo = {};
 			allocInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
 			allocInfo.level = VK_COMMAND_BUFFER_LEVEL_PRIMARY;
-            allocInfo.commandPool = VKDevice::Get().GetVKContext()->GetCommandPool()->GetCommandPool();
+            allocInfo.commandPool = VKDevice::Get().GetCommandPool()->GetCommandPool();
             allocInfo.commandBufferCount = 1;
 
 			VkCommandBuffer commandBuffer;
@@ -105,7 +105,7 @@ namespace Lumos
 			VK_CHECK_RESULT(vkQueueWaitIdle(VKDevice::Get().GetGraphicsQueue()));
 
 			vkFreeCommandBuffers(VKDevice::Get().GetDevice(),
-				VKDevice::Get().GetVKContext()->GetCommandPool()->GetCommandPool(), 1, &commandBuffer);
+				VKDevice::Get().GetCommandPool()->GetCommandPool(), 1, &commandBuffer);
         }
 
         void VKTools::CopyBufferToImage(VkBuffer buffer, VkImage image, uint32_t width, uint32_t height)
@@ -536,6 +536,46 @@ namespace Lumos
                 default:
                     LUMOS_LOG_CRITICAL("Unknown Shader Type");
                     return VK_SHADER_STAGE_VERTEX_BIT;
+            }
+        }
+
+        VkPolygonMode VKTools::PolygonModeToVk(Lumos::Graphics::PolygonMode mode)
+        {
+            switch(mode)
+            {
+                case Graphics::PolygonMode::Fill :
+                    return VK_POLYGON_MODE_FILL;
+                break;
+                case Graphics::PolygonMode::Line :
+                    return VK_POLYGON_MODE_LINE;
+                break;
+                case Graphics::PolygonMode::Point :
+                    return VK_POLYGON_MODE_POINT;
+                break;
+                default :
+                    LUMOS_LOG_CRITICAL("Unknown Polygon Mode");
+                    return VK_POLYGON_MODE_FILL;
+                break;
+            }
+        }
+
+        VkPrimitiveTopology VKTools::DrawTypeToVk(Lumos::Graphics::DrawType type)
+        {
+            switch(type)
+            {
+                case DrawType::TRIANGLE :
+                return VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST;
+                break;
+                case DrawType::LINES :
+                return VK_PRIMITIVE_TOPOLOGY_LINE_LIST;
+                break;
+                case DrawType::POINT :
+                return VK_PRIMITIVE_TOPOLOGY_POINT_LIST;
+                break;
+                default :
+                LUMOS_LOG_CRITICAL("Unknown Draw Type");
+                return VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST;
+                break;
             }
         }
 	}

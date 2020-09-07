@@ -1,4 +1,4 @@
-#include "lmpch.h"
+#include "Precompiled.h"
 #include "Query.h"
 
 #ifdef LUMOS_RENDER_API_OPENGL

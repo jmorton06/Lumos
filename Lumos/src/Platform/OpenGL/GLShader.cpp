@@ -1,4 +1,4 @@
-#include "lmpch.h"
+#include "Precompiled.h"
 #include "GLShader.h"
 
 #include "Platform/OpenGL/GL.h"
@@ -21,7 +21,7 @@ namespace Lumos
 
 		bool GLShader::TryCompile(const std::string& source, std::string& error)
 		{
-			std::map<ShaderType, std::string>* sources = lmnew std::map<ShaderType, std::string>();
+			std::map<ShaderType, std::string>* sources = new std::map<ShaderType, std::string>();
 			GLShader::PreProcess(source, sources);
 
 			GLShaderErrorInfo info;
@@ -80,10 +80,8 @@ namespace Lumos
 
 		void GLShader::Init()
 		{
-			std::map<ShaderType, std::string>* sources = lmnew std::map<ShaderType, std::string>();
+			std::map<ShaderType, std::string>* sources = new std::map<ShaderType, std::string>();
 			PreProcess(m_Source, sources);
-
-			//sources = files
 
 			for(auto& file : *sources)
 			{
@@ -156,7 +154,7 @@ namespace Lumos
 				// Compile to GLSL, ready to give to GL driver.
 				std::string glslSource = glsl->compile();
 				file.second = glslSource;
-
+                
 				m_pShaderCompilers.push_back(glsl);
 			}
 
@@ -511,7 +509,7 @@ namespace Lumos
 		{
 			for(auto& source : *sources)
 			{
-				m_UniformBuffers[source.first].push_back(lmnew GLShaderUniformBufferDeclaration("Global", static_cast<u32>(source.first)));
+				m_UniformBuffers[source.first].push_back(new GLShaderUniformBufferDeclaration("Global", static_cast<u32>(source.first)));
 
 				const char* token;
 				const char* str;
@@ -552,7 +550,7 @@ namespace Lumos
 
 			if(IsTypeStringResource(typeString))
 			{
-				ShaderResourceDeclaration* declaration = lmnew GLShaderResourceDeclaration(GLShaderResourceDeclaration::StringToType(typeString), name, count);
+				ShaderResourceDeclaration* declaration = new GLShaderResourceDeclaration(GLShaderResourceDeclaration::StringToType(typeString), name, count);
 				m_Resources.push_back(declaration);
 			}
 			else
@@ -565,20 +563,20 @@ namespace Lumos
 						const GLShaderUniformDeclaration::Type t = GLShaderUniformDeclaration::StringToType(typeString, count);
 						GLShaderUniformDeclaration* declaration;
 
-						name += "[" + StringFormat::ToString(countID) + "]";
+						name += "[" + StringUtilities::ToString(countID) + "]";
 						bool ISStruct = false;
 
 						if(t == GLShaderUniformDeclaration::Type::NONE)
 						{
 							ShaderStruct* s = FindStruct(typeString);
 							LUMOS_ASSERT(s, "");
-							declaration = lmnew GLShaderUniformDeclaration(s, name, count);
+							declaration = new GLShaderUniformDeclaration(s, name, count);
 
 							ISStruct = true;
 						}
 						else
 						{
-							declaration = lmnew GLShaderUniformDeclaration(t, name, count);
+							declaration = new GLShaderUniformDeclaration(t, name, count);
 						}
 
 						if(StartsWith(name, "sys_"))
@@ -589,15 +587,15 @@ namespace Lumos
 						{
 
 							if(m_UserUniformBuffers[type] == nullptr)
-								m_UserUniformBuffers[type] = lmnew GLShaderUniformBufferDeclaration("", 0);
+								m_UserUniformBuffers[type] = new GLShaderUniformBufferDeclaration("", 0);
 
 							if(ISStruct)
 							{
 								for(u32 id = 0; id < static_cast<u32>(count); id++)
 								{
-									GLShaderUniformDeclaration* test = lmnew GLShaderUniformDeclaration(*declaration);
-									test->SetName(name + "[" + StringFormat::ToString(id) + "]");
-									test->m_Struct = lmnew ShaderStruct(*declaration->m_Struct);
+									GLShaderUniformDeclaration* test = new GLShaderUniformDeclaration(*declaration);
+									test->SetName(name + "[" + StringUtilities::ToString(id) + "]");
+									test->m_Struct = new ShaderStruct(*declaration->m_Struct);
 									m_UserUniformBuffers[type]->PushUniform(test);
 								}
 							}
@@ -623,12 +621,12 @@ namespace Lumos
 					{
 						//ShaderStruct* s = FindStruct(typeString);
 						//LUMOS_ASSERT(s, "");
-						//declaration = lmnew GLShaderUniformDeclaration(s, name, count);
+						//declaration = new GLShaderUniformDeclaration(s, name, count);
 
 						ShaderStruct* s = FindStruct(typeString);
 						if(s)
 						{
-							declaration = lmnew GLShaderUniformDeclaration(s, name, count);
+							declaration = new GLShaderUniformDeclaration(s, name, count);
 
 							isStruct = true;
 						}
@@ -639,7 +637,7 @@ namespace Lumos
 					}
 					else
 					{
-						declaration = lmnew GLShaderUniformDeclaration(t, name, count);
+						declaration = new GLShaderUniformDeclaration(t, name, count);
 					}
 
 					if(StartsWith(name, "sys_"))
@@ -653,9 +651,9 @@ namespace Lumos
 
 						if(isStruct)
 						{
-							GLShaderUniformDeclaration* test = lmnew GLShaderUniformDeclaration(*declaration);
+							GLShaderUniformDeclaration* test = new GLShaderUniformDeclaration(*declaration);
 							test->SetName(name);
-							test->m_Struct = lmnew ShaderStruct(*declaration->m_Struct);
+							test->m_Struct = new ShaderStruct(*declaration->m_Struct);
 							m_UserUniformBuffers[type]->PushUniform(test);
 						}
 						else
@@ -674,7 +672,7 @@ namespace Lumos
 			u32 index = 0;
 			index++; // struct
 			std::string name = tokens[index++];
-			ShaderStruct* uniformStruct = lmnew ShaderStruct(name);
+			ShaderStruct* uniformStruct = new ShaderStruct(name);
 			index++; // {
 			while(index < tokens.size())
 			{
@@ -699,7 +697,7 @@ namespace Lumos
 					count = atoi(c.c_str());
 				}
 
-				ShaderUniformDeclaration* field = lmnew GLShaderUniformDeclaration(GLShaderUniformDeclaration::StringToType(type, count), name, count);
+				ShaderUniformDeclaration* field = new GLShaderUniformDeclaration(GLShaderUniformDeclaration::StringToType(type, count), name, count);
 				uniformStruct->AddField(field);
 			}
 			m_Structs.push_back(uniformStruct);
@@ -819,7 +817,7 @@ namespace Lumos
 				{
 					resource->m_Register = 0;
 					u32 count = resource->GetCount();
-					i32* samplers = lmnew i32[count];
+					i32* samplers = new i32[count];
 					for(u32 s = 0; s < count; s++)
 						samplers[s] = s;
 					SetUniform1iv(resource->GetName(), samplers, count);
@@ -892,18 +890,6 @@ namespace Lumos
 			}
 
 			return result;
-		}
-
-		void GLShader::SetSystemUniformBuffer(ShaderType type, u8* data, u32 size, u32 slot)
-		{
-			Bind();
-			LUMOS_ASSERT(m_UniformBuffers[type].size() > slot, "");
-			if(!m_UniformBuffers[type].empty())
-			{
-				ShaderUniformBufferDeclaration* declaration = m_UniformBuffers[type][slot];
-				if(declaration != nullptr)
-					ResolveAndSetUniforms(declaration, data, size);
-			}
 		}
 
 		void GLShader::SetUserUniformBuffer(ShaderType type, u8* data, u32 size)
@@ -1132,25 +1118,25 @@ namespace Lumos
 
 		Shader* GLShader::CreateFuncGL(const std::string& name, const std::string& filePath)
 		{
-			//            if(StringFormat::GetFilePathExtension(filePath) == "shader")
+			//            if(StringUtilities::GetFilePathExtension(filePath) == "shader")
 			//            {
 			//                const std::string source = Lumos::VFS::Get()->ReadTextFile(filePath);
 			//
-			//                GLShader* result = lmnew GLShader(name, source, true);
+			//                GLShader* result = new GLShader(name, source, true);
 			//                result->m_Path = filePath;
 			//                return result;
 			//            }
 			//            else
 			//            {
 			//                const std::string source = Lumos::VFS::Get()->ReadTextFile(filePath + name + ".glsl");
-			//                GLShader* result = lmnew GLShader(name, source);
+			//                GLShader* result = new GLShader(name, source);
 			//                result->m_Path = filePath;
 			//                return result;
 			//            }
 
 			std::string physicalPath;
 			Lumos::VFS::Get()->ResolvePhysicalPath(filePath, physicalPath, true);
-			GLShader* result = lmnew GLShader(name, physicalPath);
+			GLShader* result = new GLShader(name, physicalPath);
 			result->m_Path = filePath;
 			return result;
 		}

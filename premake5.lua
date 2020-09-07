@@ -2,8 +2,11 @@ require 'Scripts/premake-ios'
 require 'Scripts/premake-defines'
 require 'Scripts/premake-common'
 
+root_dir = os.getcwd()
+
 workspace "Lumos"
-	
+	startproject "Sandbox"
+	location "build"
 	Arch = ""
 
 	if _OPTIONS["arch"] then
@@ -29,9 +32,10 @@ workspace "Lumos"
 		"Production"
 	}
 
-	startproject "Sandbox"
-
-	location "build"
+	flags
+	{
+		"MultiProcessorCompile"
+	}
 
 	targetdir ("bin/%{cfg.longname}/")
 	objdir ("bin-int/%{cfg.longname}/obj/")
@@ -53,8 +57,8 @@ workspace "Lumos"
 		filter()
 	group ""
 
-	require("Lumos/premake5")
-	require("Sandbox/premake5")
+	include "Lumos/premake5"
+	include "Sandbox/premake5"
 
 	filter()
 

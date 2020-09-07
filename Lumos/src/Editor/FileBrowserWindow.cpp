@@ -1,11 +1,11 @@
-#include "lmpch.h"
+#include "Precompiled.h"
 #include "FileBrowserWindow.h"
 #include "Core/OS/FileSystem.h"
 #include "Editor.h"
 
+#include "ImGui/IconsMaterialDesignIcons.h"
 #include <imgui/imgui.h>
 #include <imgui/plugins/ImFileBrowser.h>
-#include <IconFontCppHeaders/IconsMaterialDesignIcons.h>
 
 namespace Lumos
 {
@@ -14,7 +14,7 @@ namespace Lumos
 		m_Name = "FileBrowserWindow";
 		m_SimpleName = "FileBrowser";
 
-		m_FileBrowser = lmnew ImGui::FileBrowser(ImGuiFileBrowserFlags_CreateNewDir | ImGuiFileBrowserFlags_EnterNewFilename | ImGuiFileBrowserFlags_NoModal);
+		m_FileBrowser = new ImGui::FileBrowser(ImGuiFileBrowserFlags_CreateNewDir | ImGuiFileBrowserFlags_EnterNewFilename | ImGuiFileBrowserFlags_NoModal);
 		m_FileBrowser->SetTitle("Test File Browser");
 		//m_FileBrowser->SetFileFilters({ ".sh" , ".h" });
 		m_FileBrowser->SetLabels(ICON_MDI_FOLDER, ICON_MDI_FILE, ICON_MDI_FOLDER_OPEN);

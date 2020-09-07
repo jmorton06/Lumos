@@ -1,4 +1,4 @@
-#include "lmpch.h"
+#include "Precompiled.h"
 #include "GraphicsContext.h"
 
 #ifdef LUMOS_RENDER_API_OPENGL
@@ -18,21 +18,21 @@ namespace Lumos
 {
 	namespace Graphics
 	{
-        GraphicsContext*(*GraphicsContext::CreateFunc)(const WindowProperties&, void*) = nullptr;
+        GraphicsContext*(*GraphicsContext::CreateFunc)(const WindowProperties&, Window*) = nullptr;
 
 		GraphicsContext* GraphicsContext::s_Context = nullptr;
 		RenderAPI GraphicsContext::s_RenderAPI;
 
-		void GraphicsContext::Create(const WindowProperties& properties, void* deviceContext)
+		void GraphicsContext::Create(const WindowProperties& properties, Window* window)
 		{
             LUMOS_ASSERT(CreateFunc, "No GraphicsContext Create Function");
             
-			s_Context = CreateFunc(properties, deviceContext);
+			s_Context = CreateFunc(properties, window);
 		}
 
 		void GraphicsContext::Release()
 		{
-			lmdel s_Context;
+			delete s_Context;
 		}
 
 		GraphicsContext::~GraphicsContext()

@@ -1,5 +1,6 @@
 #pragma once
-#include "lmpch.h"
+
+#include "Core/Types.h"
 #include "SceneGraph.h"
 #include "Maths/Maths.h"
 #include "Utilities/AssetManager.h"
@@ -108,8 +109,8 @@ namespace Lumos
     
         EntityManager* GetEntityManager() { return m_EntityManager.get(); }
 
-		void Serialise(const std::string& filePath, bool binary = false);
-		void Deserialise(const std::string& filePath, bool binary = false);
+		virtual void Serialise(const std::string& filePath, bool binary = false);
+		virtual void Deserialise(const std::string& filePath, bool binary = false);
 
 		template<typename Archive>
 		void serialize(Archive& archive)
@@ -122,11 +123,9 @@ namespace Lumos
 
 		UniqueRef<EntityManager> m_EntityManager;
 
-		bool m_CurrentScene = false;
-
 		u32 m_ScreenWidth;
 		u32 m_ScreenHeight;
-
+        
 		SceneGraph m_SceneGraph;
 
 		LayerStack* m_LayerStack = nullptr;

@@ -1,10 +1,12 @@
 #pragma once
 
 //App
+#include "Core/Core.h"
 #include "Core/Engine.h"
 #include "Core/Application.h"
 #include "Scene/SceneManager.h"
 #include "Scene/Scene.h"
+#include "Core/LMLog.h"
 
 //Physics
 #include "Physics/LumosPhysicsEngine/LumosPhysicsEngine.h"
@@ -38,6 +40,7 @@
 #include "Graphics/Light.h"
 #include "Graphics/Environment.h"
 #include "Graphics/MeshFactory.h"
+#include "Graphics/AnimatedSprite.h"
 
 //Entity
 #include "Scene/Component/Components.h"
@@ -60,7 +63,7 @@
 //System
 #include "Core/VFS.h"
 #include "Core/OS/FileSystem.h"
-#include "Core/String.h"
+#include "Core/StringUtilities.h"
 #include "Core/CoreSystem.h"
 #include "Core/LMLog.h"
 #include "Core/OS/Input.h"

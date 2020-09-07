@@ -1,9 +1,10 @@
-#include "lmpch.h"
+#include "Precompiled.h"
 #include "VKRenderpass.h"
 #include "VKCommandBuffer.h"
 #include "VKFramebuffer.h"
 #include "VKRenderer.h"
 #include "VKInitialisers.h"
+#include "VKTools.h"
 
 namespace Lumos
 {
@@ -26,55 +27,49 @@ namespace Lumos
 
 		VkAttachmentDescription GetAttachmentDescription(AttachmentInfo info, bool clear = true)
 		{
+				VkAttachmentDescription attachment = {};
 			if(info.textureType == TextureType::COLOUR)
 			{
-				VkAttachmentDescription colorAttachment = {};
-				colorAttachment.format = VKTools::TextureFormatToVK(info.format);
-				colorAttachment.samples = VK_SAMPLE_COUNT_1_BIT;
-				colorAttachment.loadOp = clear ? VK_ATTACHMENT_LOAD_OP_CLEAR : VK_ATTACHMENT_LOAD_OP_LOAD; // VK_ATTACHMENT_LOAD_OP_DONT_CARE;
-				colorAttachment.storeOp = VK_ATTACHMENT_STORE_OP_STORE;
-				colorAttachment.stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
-				colorAttachment.stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
-				colorAttachment.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
-				colorAttachment.finalLayout = VK_IMAGE_LAYOUT_PRESENT_SRC_KHR;
-				colorAttachment.flags = 0;
-
-				return colorAttachment;
+				attachment.format = VKTools::TextureFormatToVK(info.format);
+				attachment.finalLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
 			}
 			else if(info.textureType == TextureType::DEPTH)
 			{
-				VkAttachmentDescription depthAttachment = {};
-				depthAttachment.format = VKTools::FindDepthFormat();
-				depthAttachment.samples = VK_SAMPLE_COUNT_1_BIT;
-				depthAttachment.loadOp = clear ? VK_ATTACHMENT_LOAD_OP_CLEAR : VK_ATTACHMENT_LOAD_OP_LOAD; //VK_ATTACHMENT_LOAD_OP_DONT_CARE;
-				depthAttachment.storeOp = VK_ATTACHMENT_STORE_OP_STORE;
-				depthAttachment.stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
-				depthAttachment.stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
-				depthAttachment.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
-				depthAttachment.finalLayout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
-				depthAttachment.flags = 0;
-				return depthAttachment;
+				attachment.format = VKTools::FindDepthFormat();
+				attachment.finalLayout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
 			}
 			else if(info.textureType == TextureType::DEPTHARRAY)
 			{
-				VkAttachmentDescription depthAttachment = {};
-				depthAttachment.format = VKTools::FindDepthFormat();
-				depthAttachment.samples = VK_SAMPLE_COUNT_1_BIT;
-				depthAttachment.loadOp = clear ? VK_ATTACHMENT_LOAD_OP_CLEAR : VK_ATTACHMENT_LOAD_OP_LOAD; //VK_ATTACHMENT_LOAD_OP_DONT_CARE;;
-				depthAttachment.storeOp = VK_ATTACHMENT_STORE_OP_STORE;
-				depthAttachment.stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
-				depthAttachment.stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
-				depthAttachment.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
-				depthAttachment.finalLayout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_READ_ONLY_OPTIMAL;
-				depthAttachment.flags = 0;
-				return depthAttachment;
+				attachment.format = VKTools::FindDepthFormat();
+				attachment.finalLayout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
 			}
 			else
 			{
-				VkAttachmentDescription Attachment = {};
 				Debug::Log::Critical("[VULKAN] - Unsupported TextureType - {0}", static_cast<int>(info.textureType));
-				return Attachment;
+				return attachment;
 			}
+			
+			
+				if(clear)
+				{
+					attachment.loadOp =  VK_ATTACHMENT_LOAD_OP_CLEAR;
+					attachment.stencilLoadOp = VK_ATTACHMENT_LOAD_OP_CLEAR;
+					attachment.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
+				}
+				else
+				{
+					attachment.loadOp =  VK_ATTACHMENT_LOAD_OP_LOAD;
+					attachment.stencilLoadOp = VK_ATTACHMENT_LOAD_OP_LOAD;
+					attachment.initialLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
+				}
+				
+				attachment.samples = VK_SAMPLE_COUNT_1_BIT;
+				attachment.storeOp = VK_ATTACHMENT_STORE_OP_STORE;
+				attachment.stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
+			attachment.flags = 0;
+			
+			return attachment;
+			
 		}
 
 		bool VKRenderpass::Init(const RenderpassInfo& renderpassCI)
@@ -141,7 +136,7 @@ namespace Lumos
 
 			VK_CHECK_RESULT(vkCreateRenderPass(VKDevice::Get().GetDevice(), &vkRenderpassCI, VK_NULL_HANDLE, &m_RenderPass));
 
-			m_ClearValue = lmnew VkClearValue[renderpassCI.attachmentCount];
+			m_ClearValue = new VkClearValue[renderpassCI.attachmentCount];
 			m_ClearCount = renderpassCI.attachmentCount;
 			return true;
 		}
@@ -209,7 +204,7 @@ namespace Lumos
 
 		RenderPass* VKRenderpass::CreateFuncVulkan()
 		{
-			return lmnew VKRenderpass();
+			return new VKRenderpass();
 		}
 	}
 }

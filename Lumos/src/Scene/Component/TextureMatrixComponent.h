@@ -1,11 +1,9 @@
 #pragma once
-#include "lmpch.h"
-#include "Maths/Maths.h"
-
+#include "Maths/Matrix4.h"
 
 namespace Lumos
 {
-	class LUMOS_EXPORT TextureMatrixComponent
+	class TextureMatrixComponent
 	{
 	public:
 		explicit TextureMatrixComponent(const Maths::Matrix4& matrix = Maths::Matrix4());

@@ -1,4 +1,4 @@
-#include "lmpch.h"
+#include "Precompiled.h"
 #include "GLIMGUIRenderer.h"
 #include <imgui/imgui.h>
 #define IMGUI_IMPL_OPENGL_LOADER_GLAD
@@ -57,7 +57,7 @@ namespace Lumos
 
 		IMGUIRenderer* GLIMGUIRenderer::CreateFuncGL(u32 width, u32 height, bool clearScreen)
 		{
-			return lmnew GLIMGUIRenderer(width, height, clearScreen);
+			return new GLIMGUIRenderer(width, height, clearScreen);
 		}
 
         void GLIMGUIRenderer::RebuildFontTexture()

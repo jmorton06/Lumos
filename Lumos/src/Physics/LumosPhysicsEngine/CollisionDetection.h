@@ -1,5 +1,5 @@
 #pragma once
-#include "lmpch.h"
+
 #include "RigidBody3D.h"
 #include "CollisionShape.h"
 #include "Manifold.h"

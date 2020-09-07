@@ -1,4 +1,4 @@
-#include "lmpch.h"
+#include "Precompiled.h"
 #include "SceneWindow.h"
 #include "Editor.h"
 #include "Graphics/Camera/Camera.h"
@@ -17,12 +17,11 @@
 #include "Physics/B2PhysicsEngine/B2PhysicsEngine.h"
 #include "Core/OS/Input.h"
 #include "Graphics/Renderers/DebugRenderer.h"
+#include "ImGui/IconsMaterialDesignIcons.h"
 #include "EditorCamera.h"
 #include <box2d/box2d.h>
 #include <imgui/imgui_internal.h>
 #include <imgui/plugins/ImGuizmo.h>
-#include <IconFontCppHeaders/IconsMaterialDesignIcons.h>
-
 namespace Lumos
 {
 	SceneWindow::SceneWindow()
@@ -88,7 +87,10 @@ namespace Lumos
 			ToolBar();
 
 		if(!camera)
-			return;
+		{
+            ImGui::End();
+            return;
+        }
 
 		ImGuizmo::SetDrawlist();
 		auto sceneViewSize = ImGui::GetContentRegionAvail();
@@ -582,6 +584,8 @@ namespace Lumos
 			layer->SetOverrideCamera(m_Editor->GetCamera(), &m_Editor->GetEditorCameraTransform());
 		}
 
+		m_Editor->GetGridRenderer()->SetRenderTarget(m_GameViewTexture.get(), true);
+
 		DebugRenderer::SetRenderTarget(m_GameViewTexture.get(), true);
 		DebugRenderer::SetOverrideCamera(m_Editor->GetCamera(), &m_Editor->GetEditorCameraTransform());
 	}
@@ -622,7 +626,6 @@ namespace Lumos
 			if(!m_Editor->GetGridRenderer())
 				m_Editor->CreateGridRenderer();
 			m_Editor->GetGridRenderer()->SetRenderTarget(m_GameViewTexture.get(), false);
-			m_Editor->GetGridRenderer()->OnResize(m_Width, m_Height);
 
 			WindowResizeEvent e(width, height);
 			auto& app = Application::Get();
@@ -633,6 +636,7 @@ namespace Lumos
 				layer->OnEvent(e);
 			}
 			DebugRenderer::OnResize(width, height);
+            m_Editor->GetGridRenderer()->OnResize(m_Width, m_Height);
 
 			Graphics::GraphicsContext::GetContext()->WaitIdle();
 		}

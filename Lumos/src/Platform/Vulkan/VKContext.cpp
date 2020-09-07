@@ -1,6 +1,7 @@
-#include "lmpch.h"
+#include "Precompiled.h"
 #include "VKContext.h"
 #include "VKDevice.h"
+#include "VKSwapchain.h"
 #include "VKCommandPool.h"
 #include "Core/Version.h"
 
@@ -88,35 +89,45 @@ namespace Lumos
 			}
 		}
 
-		VKContext::VKContext(const WindowProperties& properties, void* deviceContext)
+		VKContext::VKContext(const WindowProperties& properties, Window* window)
 			: m_VkInstance(nullptr)
-			, m_CommandPool(nullptr)
 		{
-			m_WindowContext = deviceContext;
-			CreateInstance();
-			SetupDebugCallback();
-
-			Maths::Matrix4::SetUpCoordSystem(false, true);
+			m_Window = window;
+			m_Width = properties.Width;
+			m_Height = properties.Height;
+			m_VSync = properties.VSync;
 		}
 
 		VKContext::~VKContext()
 		{
+            m_Swapchain.reset();
+            VKDevice::Release();
 			DestroyDebugReportCallbackEXT(m_VkInstance, m_DebugCallback, nullptr);
 			vkDestroyInstance(m_VkInstance, nullptr);
 		}
 
 		void VKContext::Init()
 		{
-			m_CommandPool = CreateRef<VKCommandPool>();
+			CreateInstance();
+			
+			VKDevice::Get().Init();
+			
+			m_Swapchain = CreateRef<VKSwapchain>(m_Width, m_Height);
+			m_Swapchain->Init(m_VSync, m_Window);
+			
+			SetupDebugCallback();
+			
+			Maths::Matrix4::SetUpCoordSystem(false, true);
 		};
+		
+		void VKContext::OnResize(uint32_t width, uint32_t height)
+		{
+			m_Swapchain = CreateRef<VKSwapchain>(m_Width, m_Height);
+			m_Swapchain->Init(m_VSync, m_Window);
+		}
 
 		void VKContext::Present()
 		{
-		}
-
-		void VKContext::Unload()
-		{
-			m_CommandPool.reset();
 		}
 
 		VkBool32 VKContext::DebugCallback(VkDebugReportFlagsEXT flags,
@@ -228,7 +239,7 @@ namespace Lumos
 
 		size_t VKContext::GetMinUniformBufferOffsetAlignment() const
 		{
-			return Graphics::VKDevice::Get().GetGPUProperties().limits.minUniformBufferOffsetAlignment;
+			return Graphics::VKDevice::Get().GetPhysicalDevice()->GetProperties().limits.minUniformBufferOffsetAlignment;
 		}
 
 		void VKContext::CreateInstance()
@@ -297,7 +308,8 @@ namespace Lumos
 
 			VkDebugReportCallbackCreateInfoEXT createInfo = {};
 			createInfo.sType = VK_STRUCTURE_TYPE_DEBUG_REPORT_CALLBACK_CREATE_INFO_EXT;
-			createInfo.flags = VK_DEBUG_REPORT_ERROR_BIT_EXT | VK_DEBUG_REPORT_WARNING_BIT_EXT | VK_DEBUG_REPORT_INFORMATION_BIT_EXT | VK_DEBUG_REPORT_DEBUG_BIT_EXT;
+			createInfo.flags = VK_DEBUG_REPORT_ERROR_BIT_EXT | VK_DEBUG_REPORT_WARNING_BIT_EXT | VK_DEBUG_REPORT_INFORMATION_BIT_EXT | VK_DEBUG_REPORT_DEBUG_BIT_EXT |
+				VK_DEBUG_REPORT_PERFORMANCE_WARNING_BIT_EXT;
 
 			createInfo.pfnCallback = reinterpret_cast<PFN_vkDebugReportCallbackEXT>(DebugCallback);
 
@@ -307,7 +319,24 @@ namespace Lumos
 				Debug::Log::Critical("[VULKAN] Failed to set up debug callback!");
 			}
 		}
-
+		
+		void VKContext::MakeDefault()
+		{
+			CreateFunc = CreateFuncVulkan;
+		}
+		
+		GraphicsContext* VKContext::CreateFuncVulkan(const WindowProperties& properties, Window* win)
+		{
+			return new VKContext(properties, win);
+		}
+		
+		void VKContext::WaitIdle() const
+		{
+			vkDeviceWaitIdle(VKDevice::Get().GetDevice());
+		}
+		
+		
+		//Debug ImGui Windows
 		static auto const readOnlyFlag = ImGuiInputTextFlags_ReadOnly;
 
 		void VKContext::OnImGui()
@@ -466,21 +495,6 @@ namespace Lumos
 				}
 			}
 #endif
-		}
-
-		void VKContext::MakeDefault()
-		{
-			CreateFunc = CreateFuncVulkan;
-		}
-
-		GraphicsContext* VKContext::CreateFuncVulkan(const WindowProperties& properties, void* cont)
-		{
-			return lmnew VKContext(properties, cont);
-		}
-
-		void VKContext::WaitIdle() const
-		{
-			vkDeviceWaitIdle(VKDevice::Get().GetDevice());
 		}
 
 #ifdef USE_VMA_ALLOCATOR

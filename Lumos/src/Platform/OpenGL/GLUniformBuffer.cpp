@@ -1,4 +1,4 @@
-#include "lmpch.h"
+#include "Precompiled.h"
 #include "GLUniformBuffer.h"
 #include "GL.h"
 #include "GLDebug.h"
@@ -67,12 +67,12 @@ namespace Lumos
 		UniformBuffer* GLUniformBuffer::CreateDataFuncGL(uint32_t size, const void* data)
 		{
 			//TODO
-			return lmnew GLUniformBuffer();
+			return new GLUniformBuffer();
 		}
 
 		UniformBuffer* GLUniformBuffer::CreateFuncGL()
 		{
-			return lmnew GLUniformBuffer();
+			return new GLUniformBuffer();
 		}
 	}
 }

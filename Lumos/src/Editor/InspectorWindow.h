@@ -1,7 +1,7 @@
 #pragma once
-#include "lmpch.h"
+
 #include "EditorWindow.h"
-#include <entt/imgui_entt_entity_editor.hpp>
+#include "ImGui/ImGuiEnttEditor.hpp"
 
 namespace Lumos
 {

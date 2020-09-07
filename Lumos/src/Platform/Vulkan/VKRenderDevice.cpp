@@ -1,4 +1,4 @@
-#include "lmpch.h"
+#include "Precompiled.h"
 #include "VKRenderDevice.h"
 
 namespace Lumos::Graphics
@@ -15,6 +15,6 @@ namespace Lumos::Graphics
     
 	RenderDevice* VKRenderDevice::CreateFuncVulkan()
     {
-        return lmnew VKRenderDevice();
+        return new VKRenderDevice();
     }
 }

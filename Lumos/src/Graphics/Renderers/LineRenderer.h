@@ -1,5 +1,5 @@
 #pragma once
-#include "lmpch.h"
+
 #include "IRenderer.h"
 #include "Maths/Maths.h"
 #include "Maths/Transform.h"
@@ -54,7 +54,7 @@ namespace Lumos
 		class Texture;
 		class Shader;
 		class IndexBuffer;
-		class VertexArray;
+		class VertexBuffer;
 		class Renderer2D;
 		class Texture2D;
 		class Material;
@@ -112,7 +112,7 @@ namespace Lumos
 
 			Graphics::UniformBuffer* m_UniformBuffer = nullptr;
 			std::vector<Graphics::CommandBuffer*> m_SecondaryCommandBuffers;
-			std::vector<Graphics::VertexArray*> m_VertexArrays;
+			std::vector<Graphics::VertexBuffer*> m_VertexBuffers;
 			Graphics::IndexBuffer* m_IndexBuffer{};
 
 			LineVertexData* m_Buffer = nullptr;

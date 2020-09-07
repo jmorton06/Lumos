@@ -1,4 +1,4 @@
-#include "lmpch.h"
+#include "Precompiled.h"
 #include "VKUniformBuffer.h"
 #include "VKDevice.h"
 #include "VKTools.h"
@@ -51,12 +51,12 @@ namespace Lumos
         
         UniformBuffer* VKUniformBuffer::CreateDataFuncVulkan(uint32_t size, const void* data)
         {
-            return lmnew VKUniformBuffer(size, data);
+            return new VKUniformBuffer(size, data);
         }
         
         UniformBuffer* VKUniformBuffer::CreateFuncVulkan()
         {
-            return lmnew VKUniformBuffer();
+            return new VKUniformBuffer();
         }
 	}
 }

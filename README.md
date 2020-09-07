@@ -53,6 +53,9 @@ cd Lumos
 Tools/premake5 xcode4 --os=ios
 xcodebuild -project build/Sandbox.xcodeproj CODE_SIGN_IDENTITY="" CODE_SIGNING_REQUIRED=NO CODE_SIGNING_ALLOWED=NO
 ```
+
+
+To run on apple devices with Vulkan ( MoltenVK ), disable Metal API Validation here : Product > Scheme > Edit Scheme… > Run > Options > Metal API Validation
 #
 
 ## Screenshots
@@ -86,7 +89,5 @@ xcodebuild -project build/Sandbox.xcodeproj CODE_SIGN_IDENTITY="" CODE_SIGNING_R
  * [volk](https://github.com/zeux/volk) : Meta loader for Vulkan API.
  * [glad](https://github.com/Dav1dde/glad) : Meta loader for OpenGL API.
  * [Box2D](https://github.com/erincatto/Box2D) : 2D physics engine.
- * [catch](https://github.com/catchorg/Catch2) : A testing framework.
  * [sol2](https://github.com/ThePhD/sol2) : C++ <-> Lua API wrapper
- * [IconFontCppHeaders](https://github.com/juliettef/IconFontCppHeaders) : C, C++ headers and C# classes for icon fonts
  * [cereal](https://github.com/USCiLab/cereal) : A C++11 library for serialization

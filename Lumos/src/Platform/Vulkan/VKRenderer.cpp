@@ -1,8 +1,12 @@
-#include "lmpch.h"
+#include "Precompiled.h"
 #include "VKRenderer.h"
 #include "VKDevice.h"
 #include "VKShader.h"
 #include "VKDescriptorSet.h"
+#include "VKTools.h"
+#include "VKPipeline.h"
+
+ 
 
 namespace Lumos
 {
@@ -10,35 +14,26 @@ namespace Lumos
 	{
 		void VKRenderer::InitInternal()
 		{
-			m_Context = VKContext::Get();
+			LUMOS_PROFILE_FUNCTION();
 
 			m_RendererTitle = "Vulkan";
-
-			VKDevice::Get();
-
-			m_Swapchain = CreateRef<VKSwapchain>(m_Width, m_Height);
-			m_Swapchain->Init();
 
 			CreateSemaphores();
 		}
 
 		VKRenderer::~VKRenderer()
 		{
-			m_Swapchain.reset();
-
 			for(int i = 0; i < NUM_SEMAPHORES; i++)
 			{
 				vkDestroySemaphore(VKDevice::Get().GetDevice(), m_ImageAvailableSemaphore[i], nullptr);
 			}
-
-			m_Context->Unload();
-
-			VKDevice::Release();
 		}
 
 		void VKRenderer::PresentInternal(CommandBuffer* cmdBuffer)
 		{
-			dynamic_cast<VKCommandBuffer*>(cmdBuffer)->ExecuteInternal(VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT,
+			LUMOS_PROFILE_FUNCTION();
+            TracyVkCollect(VKDevice::Get().GetTracyContext(), static_cast<VKCommandBuffer*>(cmdBuffer)->GetCommandBuffer());
+			static_cast<VKCommandBuffer*>(cmdBuffer)->ExecuteInternal(VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT,
 				m_ImageAvailableSemaphore[m_CurrentSemaphoreIndex],
 				m_ImageAvailableSemaphore[m_CurrentSemaphoreIndex + 1],
 				false);
@@ -47,6 +42,9 @@ namespace Lumos
 
 		void VKRenderer::ClearSwapchainImage() const
 		{
+			LUMOS_PROFILE_FUNCTION();
+            
+            auto m_Swapchain = VKContext::Get()->GetSwapchain();
 			for(int i = 0; i < m_Swapchain->GetSwapchainBufferCount(); i++)
 			{
 				auto cmd = VKTools::BeginSingleTimeCommands();
@@ -67,23 +65,27 @@ namespace Lumos
 
 		void VKRenderer::PresentInternal()
 		{
+			LUMOS_PROFILE_FUNCTION();
+            auto m_Swapchain = VKContext::Get()->GetSwapchain();
+
 			m_Swapchain->Present(m_ImageAvailableSemaphore[m_CurrentSemaphoreIndex]);
 		}
 
 		void VKRenderer::OnResize(u32 width, u32 height)
 		{
+			LUMOS_PROFILE_FUNCTION();
 			if(width == 0 || height == 0)
 				return;
 
 			m_Width = width;
 			m_Height = height;
-
-			m_Swapchain = CreateRef<VKSwapchain>(width, height);
-			m_Swapchain->Init();
-		}
+			
+			VKContext::Get()->OnResize(m_Width, m_Height);
+        }
 
 		void VKRenderer::CreateSemaphores()
 		{
+			LUMOS_PROFILE_FUNCTION();
 			VkSemaphoreCreateInfo semaphoreInfo = {};
 			semaphoreInfo.sType = VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO;
 			semaphoreInfo.pNext = nullptr;
@@ -93,10 +95,18 @@ namespace Lumos
 				VK_CHECK_RESULT(vkCreateSemaphore(VKDevice::Get().GetDevice(), &semaphoreInfo, nullptr, &m_ImageAvailableSemaphore[i]));
 			}
 		}
+    
+        Swapchain* VKRenderer::GetSwapchainInternal() const
+        {
+            return VKContext::Get()->GetSwapchain().get();
+        }
 
 		void VKRenderer::Begin()
 		{
+			LUMOS_PROFILE_FUNCTION();
 			m_CurrentSemaphoreIndex = 0;
+            auto m_Swapchain = VKContext::Get()->GetSwapchain();
+
 			auto result = m_Swapchain->AcquireNextImage(m_ImageAvailableSemaphore[m_CurrentSemaphoreIndex]);
 
 			if(result == VK_ERROR_OUT_OF_DATE_KHR)
@@ -117,6 +127,7 @@ namespace Lumos
 
 		void VKRenderer::BindDescriptorSetsInternal(Graphics::Pipeline* pipeline, Graphics::CommandBuffer* cmdBuffer, u32 dynamicOffset, std::vector<Graphics::DescriptorSet*>& descriptorSets)
 		{
+			LUMOS_PROFILE_FUNCTION();
 			u32 numDynamicDescriptorSets = 0;
 			u32 numDesciptorSets = 0;
 
@@ -142,11 +153,15 @@ namespace Lumos
 
 		void VKRenderer::DrawIndexedInternal(CommandBuffer* commandBuffer, DrawType type, u32 count, u32 start) const
 		{
+			LUMOS_PROFILE_FUNCTION();
 			vkCmdDrawIndexed(static_cast<VKCommandBuffer*>(commandBuffer)->GetCommandBuffer(), count, 1, 0, 0, 0);
 		}
 
 		void VKRenderer::DrawInternal(CommandBuffer* commandBuffer, DrawType type, u32 count, DataType datayType, void* indices) const
 		{
+			LUMOS_PROFILE_FUNCTION();
+            TracyVkCollect(VKDevice::Get().GetTracyContext(), static_cast<VKCommandBuffer*>(commandBuffer)->GetCommandBuffer());
+            
 			vkCmdDraw(static_cast<VKCommandBuffer*>(commandBuffer)->GetCommandBuffer(), count, 1, 0, 0);
 		}
 
@@ -157,7 +172,7 @@ namespace Lumos
 
 		Renderer* VKRenderer::CreateFuncVulkan(u32 width, u32 height)
 		{
-			return lmnew VKRenderer(width, height);
+			return new VKRenderer(width, height);
 		}
 	}
 }

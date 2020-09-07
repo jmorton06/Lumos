@@ -1,4 +1,4 @@
-#include "lmpch.h"
+#include "Precompiled.h"
 #include "Core/OS/FileSystem.h"
 
 #ifdef LUMOS_PLATFORM_WINDOWS
@@ -71,7 +71,7 @@ namespace Lumos
 	{
 		const HANDLE file = OpenFileForReading(path);
 		const i64 size = GetFileSizeInternal(file);
-		u8* buffer = lmnew u8[static_cast<u32>(size)];
+		u8* buffer = new u8[static_cast<u32>(size)];
 		const bool result = ReadFileInternal(file, buffer, size);
 		CloseHandle(file);
 		if(!result)

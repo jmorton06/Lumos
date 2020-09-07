@@ -1,15 +1,17 @@
 #if defined(LUMOS_RENDER_API_VULKAN)
 
-#include "Platform/Vulkan/VKDevice.h"
+#include "Platform/Vulkan/VKSwapchain.h"
 #include "Core/Application.h"
 #include "iOSOS.h"
 #include "iOSWindow.h"
 
+#if 0
 #include <MoltenVK/vk_mvk_moltenvk.h>
+#endif
 
 namespace Lumos
 {
-	VkSurfaceKHR Graphics::VKDevice::CreatePlatformSurface(VkInstance vkInstance, Window* window)
+	VkSurfaceKHR Graphics::VKSwapchain::CreatePlatformSurface(VkInstance vkInstance, Window* window)
 	{
 		VkSurfaceKHR surface;
 

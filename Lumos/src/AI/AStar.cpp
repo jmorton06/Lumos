@@ -1,4 +1,4 @@
-#include "lmpch.h"
+#include "Precompiled.h"
 #include "AStar.h"
 #include "PathEdge.h"
 
@@ -9,7 +9,7 @@ namespace Lumos
 	{
 		// Create node data
 		for (auto it = nodes.begin(); it != nodes.end(); ++it)
-			m_NodeData[*it] = lmnew QueueablePathNode(*it);
+			m_NodeData[*it] = new QueueablePathNode(*it);
 	}
 
 	AStar::~AStar()

@@ -1,5 +1,4 @@
 #pragma once
-#include "lmpch.h"
 
 #define MAX_MIPS 11
 

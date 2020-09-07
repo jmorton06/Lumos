@@ -1,4 +1,4 @@
-#include "lmpch.h"
+#include "Precompiled.h"
 #include "LuaScriptComponent.h"
 #include "LuaManager.h"
 #include "Scene/Scene.h"
@@ -27,6 +27,7 @@ namespace Lumos
 
 	void LuaScriptComponent::LoadScript(const std::string& fileName)
 	{
+        m_FileName = fileName;
 		std::string physicalPath;
 		if(!VFS::Get()->ResolvePhysicalPath(fileName, physicalPath))
 		{
@@ -113,7 +114,7 @@ namespace Lumos
 
 	void LuaScriptComponent::Reload()
 	{
-		if((*m_Env) && (*m_Env)["OnRelease"])
+		if(m_Env && (*m_Env)["OnRelease"])
 			(*m_Env)["OnRelease"]();
 
 		Init();
@@ -121,7 +122,7 @@ namespace Lumos
 
 	void LuaScriptComponent::Load(const std::string& fileName)
 	{
-		if((*m_Env) && (*m_Env)["OnRelease"])
+		if(m_Env && (*m_Env)["OnRelease"])
 			(*m_Env)["OnRelease"]();
 
 		m_FileName = fileName;

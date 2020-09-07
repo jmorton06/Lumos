@@ -1,3 +1,4 @@
+#pragma once
 #include "Core/OS/Window.h"
 #include "Core/OS/KeyCodes.h"
 
@@ -21,11 +22,11 @@ namespace Lumos
 			return (void*)m_Handle;
 		}
 
-		inline uint GetWidth() const override
+		inline u32 GetWidth() const override
 		{
 			return m_Data.Width;
 		}
-		inline uint GetHeight() const override
+		inline u32 GetHeight() const override
 		{
 			return m_Data.Height;
 		}
@@ -34,6 +35,7 @@ namespace Lumos
 		{
 			return false;
 		}
+		
 		void SetExit(bool exit) override
 		{
 		}
@@ -41,6 +43,7 @@ namespace Lumos
 		void SetVSync(bool set) override
 		{
 		}
+		
 		float GetScreenRatio() const override
 		{
 			return (float)m_Data.Width / (float)m_Data.Height;
@@ -50,6 +53,7 @@ namespace Lumos
 		{
 			m_Data.EventCallback = callback;
 		};
+		
 		void SetIcon(const std::string& filePath, const std::string& smallIconFilePath) override{};
 		void UpdateCursorImGui() override{};
 

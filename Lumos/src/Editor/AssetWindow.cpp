@@ -1,4 +1,4 @@
-#include "lmpch.h"
+#include "Precompiled.h"
 #include "AssetWindow.h"
 #include "Core/OS/FileSystem.h"
 #include "Editor.h"
@@ -9,7 +9,7 @@
 #	include <experimental/filesystem>
 #endif
 
-#include <IconFontCppHeaders/IconsMaterialDesignIcons.h>
+#include "ImGui/IconsMaterialDesignIcons.h"
 #include <imgui/imgui.h>
 
 namespace Lumos

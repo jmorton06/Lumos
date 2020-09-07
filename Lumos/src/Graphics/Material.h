@@ -1,10 +1,7 @@
 #pragma once
-
-#include "lmpch.h"
 #include "Maths/Maths.h"
-#include "Graphics/API/Shader.h"
-#include "Graphics/API/Texture.h"
-
+#include "API/Texture.h"
+#include "API/Shader.h"
 #include <cereal/cereal.hpp>
 
 namespace Lumos

@@ -1,4 +1,4 @@
-#include "lmpch.h"
+#include "Precompiled.h"
 #include "SceneManager.h"
 
 #include "Physics/B2PhysicsEngine/B2PhysicsEngine.h"
@@ -6,6 +6,7 @@
 #include "Core/Application.h"
 #include "Scene.h"
 #include "Physics/LumosPhysicsEngine/LumosPhysicsEngine.h"
+#include "Core/OS/FileSystem.h"
 
 namespace Lumos
 {
@@ -68,12 +69,20 @@ namespace Lumos
 	void SceneManager::ApplySceneSwitch()
 	{
 		if(m_SwitchingScenes == false)
-			return;
+        {
+            if(m_CurrentScene)
+                return;
+            
+            if(m_vpAllScenes.empty())
+                m_vpAllScenes.push_back(CreateRef<Scene>("NewScene"));
+            
+            m_QueuedSceneIndex = 0;
+        }
 
 		if(m_QueuedSceneIndex < 0 || m_QueuedSceneIndex >= static_cast<int>(m_vpAllScenes.size()))
 		{
 			Debug::Log::Error("[SceneManager] - Invalid Scene Index : {0}", m_QueuedSceneIndex);
-			return;
+            m_QueuedSceneIndex = 0;
 		}
 
 		auto& app = Application::Get();
@@ -83,6 +92,8 @@ namespace Lumos
 		{
 			Debug::Log::Info("[SceneManager] - Exiting scene : {0}", m_CurrentScene->GetSceneName());
 			app.GetSystem<LumosPhysicsEngine>()->SetPaused(true);
+            app.GetSystem<LumosPhysicsEngine>()->ClearConstraints();
+
 			m_CurrentScene->OnCleanupScene();
 			app.OnExitScene();
 		}
@@ -97,7 +108,16 @@ namespace Lumos
 		auto screenSize = app.GetWindowSize();
 		m_CurrentScene->SetScreenWidth(static_cast<u32>(screenSize.x));
 		m_CurrentScene->SetScreenHeight(static_cast<u32>(screenSize.y));
-		m_CurrentScene->OnInit();
+        
+        if(FileSystem::FileExists(ROOT_DIR "/Sandbox/res/scenes/" + m_CurrentScene->GetSceneName() + ".lsn"))
+        {
+            m_CurrentScene->Deserialise(ROOT_DIR "/Sandbox/res/scenes/", false);
+        }
+        
+	#ifdef LUMOS_EDITOR
+        if(app.GetEditorState() == EditorState::Play)
+	#endif
+            m_CurrentScene->OnInit();
 
 		Application::Get().OnNewScene(m_CurrentScene);
 
@@ -120,9 +140,18 @@ namespace Lumos
 
 	void SceneManager::EnqueueSceneFromFile(const std::string& filePath)
 	{
-		Scene* scene = new Scene("scene");
-		scene->Deserialise(filePath, false);
-		EnqueueScene(scene);
+		m_SceneFilePaths.push_back(filePath);
+        
+        std::string physicalPath;
+        if(!VFS::Get()->ResolvePhysicalPath(filePath, physicalPath))
+            return;
+
+        auto name = StringUtilities::RemoveFilePathExtension(StringUtilities::GetFileName(physicalPath));
+        auto scene = new Scene(name);
+        auto path = StringUtilities::RemoveFilePathExtension(physicalPath);
+        path = StringUtilities::RemoveName(path);
+        scene->Deserialise(path);
+        EnqueueScene(scene);
 	}
 
 	void SceneManager::EnqueueScene(Scene* scene)
@@ -130,4 +159,14 @@ namespace Lumos
 		m_vpAllScenes.push_back(Ref<Scene>(scene));
 		LUMOS_LOG_INFO("[SceneManager] - Enqueued scene : {0}", scene->GetSceneName().c_str());
 	}
+
+    void SceneManager::LoadCurrentList()
+    {
+        for(auto& filePath : m_SceneFilePathsToLoad)
+        {
+            EnqueueSceneFromFile(filePath);
+        }
+        
+        m_SceneFilePathsToLoad.clear();
+    }
 }

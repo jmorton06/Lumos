@@ -1,5 +1,5 @@
 #pragma once
-#include "lmpch.h"
+
 #include "Graphics/API/Pipeline.h"
 #include "Maths/Maths.h"
 #include "Core/OS/Window.h"
@@ -8,12 +8,12 @@
 
 namespace Lumos
 {
+    class Window;
 	namespace Graphics
 	{
 		class GLContext;
 		class CommandBuffer;
 		class Shader;
-		class Window;
 
 		class LUMOS_EXPORT GLRenderer : public Renderer
 		{

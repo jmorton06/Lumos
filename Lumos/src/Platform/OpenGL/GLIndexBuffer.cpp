@@ -1,4 +1,4 @@
-#include "lmpch.h"
+#include "Precompiled.h"
 #include "GLIndexBuffer.h"
 
 #include "GL.h"
@@ -63,12 +63,12 @@ namespace Lumos
 
 		IndexBuffer* GLIndexBuffer::CreateFuncGL(u32* data, u32 count, BufferUsage bufferUsage)
 		{
-			return lmnew GLIndexBuffer(data, count, bufferUsage);
+			return new GLIndexBuffer(data, count, bufferUsage);
 		}
 
 		IndexBuffer* GLIndexBuffer::CreateFunc16GL(u16* data, u32 count, BufferUsage bufferUsage)
 		{
-			return lmnew GLIndexBuffer(data, count, bufferUsage);
+			return new GLIndexBuffer(data, count, bufferUsage);
 		}
 	}
 }

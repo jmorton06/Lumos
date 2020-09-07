@@ -1,4 +1,4 @@
-#include "lmpch.h"
+#include "Precompiled.h"
 #include "Input.h"
 
 namespace Lumos
@@ -8,7 +8,7 @@ namespace Lumos
 
 	void Input::Create()
 	{
-		s_Input = lmnew Input();
+		s_Input = new Input();
 	}
 
 	Input::Input()

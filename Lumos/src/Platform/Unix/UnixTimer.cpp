@@ -1,4 +1,4 @@
-#include "lmpch.h"
+#include "Precompiled.h"
 #include "Utilities/Timer.h"
 
 namespace Lumos

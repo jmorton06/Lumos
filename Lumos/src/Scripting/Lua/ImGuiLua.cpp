@@ -1,4 +1,4 @@
-#include "lmpch.h"
+#include "Precompiled.h"
 #include "ImGuiLua.h"
 
 #include <sol/sol.hpp>
@@ -664,6 +664,12 @@ namespace Lumos
 			1 << 5,
 			"Default",
 			0);
+        
+        imgui.new_usertype<ImVec2>("ImVec2",
+               sol::constructors<ImVec2(float, float)>(),
+               "x", &ImVec2::x,
+               "y", &ImVec2::y
+               );
 
 		//@TODO: Put a lot more stuff in here
 		imgui.new_usertype<ImGuiIO>("IO",

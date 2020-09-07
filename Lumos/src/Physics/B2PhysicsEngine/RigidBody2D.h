@@ -1,8 +1,9 @@
 #pragma once
 
-#include "lmpch.h"
+
 #include "Physics/RigidBody.h"
 #include <cereal/cereal.hpp>
+#include <cereal/types/vector.hpp>
 
 class Object;
 class b2Body;
@@ -44,14 +45,14 @@ namespace Lumos
 		float GetAngle() const;
         Shape GetShapeType() const { return m_ShapeType; }
 
-        void SetShape(Shape shape, const std::vector<Maths::Vector2>& customPositions = { Maths::Vector2(0.0f)} );
+        void SetShape(Shape shape, const std::vector<Maths::Vector2>& customPositions = {} );
 
 
 		template<typename Archive>
 		void save(Archive& archive) const
 		{
 			archive(cereal::make_nvp("Position", GetPosition()), cereal::make_nvp("Friction", m_Friction), cereal::make_nvp("Angle", GetAngle()), cereal::make_nvp("Static", GetIsStatic()), cereal::make_nvp("Mass", m_Mass), cereal::make_nvp("Scale", m_Scale),
-                cereal::make_nvp("Shape", m_ShapeType));
+                cereal::make_nvp("Shape", m_ShapeType), cereal::make_nvp("CustomShapePos", m_CustomShapePositions));
 		}
 
 		template<typename Archive>
@@ -60,7 +61,7 @@ namespace Lumos
 			RigidBodyParameters params;
 			float angle;
             Maths::Vector2 pos;
-			archive(cereal::make_nvp("Position", pos), cereal::make_nvp("Friction", m_Friction), cereal::make_nvp("Angle", angle), cereal::make_nvp("Static", m_Static), cereal::make_nvp("Mass", m_Mass), cereal::make_nvp("Scale", params.scale), cereal::make_nvp("Shape", m_ShapeType));
+            archive(cereal::make_nvp("Position", pos), cereal::make_nvp("Friction", m_Friction), cereal::make_nvp("Angle", angle), cereal::make_nvp("Static", m_Static), cereal::make_nvp("Mass", m_Mass), cereal::make_nvp("Scale", params.scale), cereal::make_nvp("Shape", m_ShapeType), cereal::make_nvp("CustomShapePos", params.custumShapePositions));
 			params.shape = m_ShapeType;
             params.position = Maths::Vector3(pos, 1.0f);
 			Init(params);
@@ -73,5 +74,6 @@ namespace Lumos
 		float m_Mass;
 		float m_Angle;
 		Maths::Vector3 m_Scale;
+        std::vector<Maths::Vector2> m_CustomShapePositions;
 	};
 }

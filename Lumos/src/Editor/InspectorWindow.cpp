@@ -1,4 +1,4 @@
-#include "lmpch.h"
+#include "Precompiled.h"
 #include "InspectorWindow.h"
 #include "Editor.h"
 #include "Core/Application.h"
@@ -6,7 +6,10 @@
 #include "Scene/Component/Components.h"
 #include "Graphics/Camera/Camera.h"
 #include "Graphics/Sprite.h"
+#include "Graphics/AnimatedSprite.h"
 #include "Graphics/Model.h"
+#include "Graphics/Mesh.h"
+#include "Graphics/MeshFactory.h"
 #include "Graphics/Light.h"
 #include "Graphics/Material.h"
 #include "Graphics/Environment.h"
@@ -20,9 +23,9 @@
 #include "Physics/LumosPhysicsEngine/SphereCollisionShape.h"
 #include "Physics/LumosPhysicsEngine/PyramidCollisionShape.h"
 #include "Physics/LumosPhysicsEngine/CapsuleCollisionShape.h"
+#include "ImGui/IconsMaterialDesignIcons.h"
 
 #include <imgui/imgui.h>
-#include <IconFontCppHeaders/IconsMaterialDesignIcons.h>
 #include <sol/sol.hpp>
 
 namespace MM
@@ -32,18 +35,45 @@ namespace MM
 	{
 		auto& script = reg.get<Lumos::LuaScriptComponent>(e);
 
-		if(!script.Loaded())
+        if(!script.Loaded() && !script.GetFilePath().empty())
 		{
 			ImGui::Text("Script Failed to Load : %s", script.GetFilePath().c_str());
 			return;
 		}
 
-		ImGui::TextUnformatted("Loaded Functions : ");
-
 		auto& solEnv = script.GetSolEnvironment();
 
-        ImGui::Indent(12.0f);
+        std::string filePath = script.GetFilePath();
 
+        ImGui::Text("FilePath %s", filePath.c_str());
+
+#ifdef LUMOS_EDITOR
+        if(ImGui::Button("Edit File", ImVec2(ImGui::GetContentRegionAvail().x, 0.0f)))
+            Lumos::Application::Get().GetEditor()->OpenTextFile(script.GetFilePath());
+#endif
+        
+#ifdef LUMOS_EDITOR
+        if(ImGui::Button("Open File", ImVec2(ImGui::GetContentRegionAvail().x, 0.0f)))
+        {
+            Lumos::Application::Get().GetEditor()->GetFileBrowserWindow().Open();
+            Lumos::Application::Get().GetEditor()->GetFileBrowserWindow().SetCallback(std::bind(&Lumos::LuaScriptComponent::LoadScript, &script, std::placeholders::_1));
+        }
+#endif
+        bool hasReloaded = false;
+        if(ImGui::Button("Reload", ImVec2(ImGui::GetContentRegionAvail().x, 0.0f)))
+        {
+            script.Reload();
+            hasReloaded = true;
+        }
+        
+        if(!script.Loaded() || hasReloaded)
+        {
+            return;
+        }
+        
+        ImGui::TextUnformatted("Loaded Functions : ");
+
+        ImGui::Indent();
 		for(auto&& function : solEnv)
 		{
 			if(function.second.is<sol::function>())
@@ -51,31 +81,8 @@ namespace MM
 				ImGui::TextUnformatted(function.first.as<std::string>().c_str());
 			}
 		}
-    
-        ImGui::Unindent(12.0f);
-
-        ImGui::Indent(12.0f);
-
-        if(ImGui::Button("Reload", ImVec2{ ImGui::GetWindowWidth() - 24.0f, 20.0f }))
-			script.Reload();
-    
-        ImGui::Unindent(12.0f);
-
-
-		std::string filePath = script.GetFilePath();
-
-		static char filePathBuffer[INPUT_BUF_SIZE];
-		strcpy(filePathBuffer, filePath.c_str());
-
-		ImGui::PushItemWidth(-1);
-		if(ImGui::InputText("##filePath", filePathBuffer, IM_ARRAYSIZE(filePathBuffer), 0))
-			script.SetFilePath(filePathBuffer);
-
-#ifdef LUMOS_EDITOR
-		if(ImGui::Button("Edit File"))
-			Lumos::Application::Get().GetEditor()->OpenTextFile(script.GetFilePath());
-#endif
-	}
+        ImGui::Unindent();
+    }
 
 	template<>
 	void ComponentEditorWidget<Lumos::Maths::Transform>(entt::registry& reg, entt::registry::entity_type e)
@@ -649,6 +656,14 @@ namespace MM
 
 		sprite.OnImGui();
 	}
+	
+	
+	template<>
+		void ComponentEditorWidget<Lumos::Graphics::AnimatedSprite>(entt::registry& reg, entt::registry::entity_type e)
+	{
+		auto& sprite = reg.get<Lumos::Graphics::AnimatedSprite>(e);
+		
+	}
 
 	template<>
 	void ComponentEditorWidget<Lumos::Graphics::Light>(entt::registry& reg, entt::registry::entity_type e)
@@ -703,19 +718,54 @@ namespace MM
 		ImGui::PopStyleVar();
 	}
 
+    Lumos::Graphics::PrimitiveType GetPrimativeName(const std::string& type)
+    {
+        if(type == "Cube")
+        {
+            return Lumos::Graphics::PrimitiveType::Cube;
+        }
+        else if(type == "Quad")
+        {
+            return Lumos::Graphics::PrimitiveType::Quad;
+        }
+        else if(type == "Sphere")
+        {
+            return Lumos::Graphics::PrimitiveType::Sphere;
+        }
+        else if(type == "Pyramid")
+        {
+            return Lumos::Graphics::PrimitiveType::Pyramid;
+        }
+        else if(type == "Capsule")
+        {
+            return Lumos::Graphics::PrimitiveType::Capsule;
+        }
+        else if(type == "Cylinder")
+        {
+            return Lumos::Graphics::PrimitiveType::Cylinder;
+        }
+        else if(type == "Terrain")
+        {
+            return Lumos::Graphics::PrimitiveType::Terrain;
+        }
+
+        LUMOS_LOG_ERROR("Primitive not supported");
+        return Lumos::Graphics::PrimitiveType::Cube;
+    };
+
     std::string GetPrimativeName(Lumos::Graphics::PrimitiveType type)
 	{ 
 		switch (type)
 		{
-		case Lumos::Graphics::PrimitiveType::Cube		: return "Cube";
-		case Lumos::Graphics::PrimitiveType::Plane		: return "Plane";
-		case Lumos::Graphics::PrimitiveType::Quad		: return "Quad";
-		case Lumos::Graphics::PrimitiveType::Sphere		: return "Sphere";
-		case Lumos::Graphics::PrimitiveType::Pyramid	: return "Pyramid";
-		case Lumos::Graphics::PrimitiveType::Capsule	: return "Capsule";
-		case Lumos::Graphics::PrimitiveType::Cylinder  	: return "Cylinder";
-        case Lumos::Graphics::PrimitiveType::Terrain   	: return "Terrain";
-		case Lumos::Graphics::PrimitiveType::File   	: return "File";
+			case Lumos::Graphics::PrimitiveType::Cube		: return "Cube";
+			case Lumos::Graphics::PrimitiveType::Plane		: return "Plane";
+			case Lumos::Graphics::PrimitiveType::Quad		: return "Quad";
+			case Lumos::Graphics::PrimitiveType::Sphere		: return "Sphere";
+			case Lumos::Graphics::PrimitiveType::Pyramid	: return "Pyramid";
+			case Lumos::Graphics::PrimitiveType::Capsule	: return "Capsule";
+			case Lumos::Graphics::PrimitiveType::Cylinder  	: return "Cylinder";
+			case Lumos::Graphics::PrimitiveType::Terrain   	: return "Terrain";
+			case Lumos::Graphics::PrimitiveType::File   	: return "File";
 		}
 
 		LUMOS_LOG_ERROR("Primitive not supported");
@@ -732,6 +782,35 @@ namespace MM
         ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(2, 2));
         ImGui::Columns(2);
         ImGui::Separator();
+
+		ImGui::TextUnformatted("Primitive Type");
+
+		ImGui::NextColumn();
+		ImGui::PushItemWidth(-1);
+
+		const char* shapes[] = {"Sphere", "Cube", "Pyramid", "Capsule", "Cylinder", "Terrain", "File", "Quad"};
+		std::string shape_current = GetPrimativeName(primitiveType).c_str();
+		if(ImGui::BeginCombo("", shape_current.c_str(), 0)) // The second parameter is the label previewed before opening the combo.
+		{
+			for(int n = 0; n < 8; n++)
+			{
+				bool is_selected = (shape_current.c_str() == shapes[n]);
+				if(ImGui::Selectable(shapes[n], shape_current.c_str()))
+				{
+                    meshes.clear();
+					if(strcmp(shapes[n],"File") != 0)
+                        meshes.push_back(Lumos::Ref<Lumos::Graphics::Mesh>(Lumos::Graphics::CreatePrimative(GetPrimativeName(shapes[n]))));
+					else
+						model.SetPrimitiveType(Lumos::Graphics::PrimitiveType::File);
+				}
+				if(is_selected)
+					ImGui::SetItemDefaultFocus();
+			}
+			ImGui::EndCombo();
+		}
+
+		ImGui::PopItemWidth();
+		ImGui::NextColumn();
         
         if(primitiveType == Lumos::Graphics::PrimitiveType::File)
         {
@@ -744,18 +823,7 @@ namespace MM
             ImGui::PopItemWidth();
             ImGui::NextColumn();
         }
-        else
-        {
-            ImGui::TextUnformatted("Primitive Type");
-            
-            ImGui::NextColumn();
-            ImGui::PushItemWidth(-1);
-            ImGui::TextUnformatted(GetPrimativeName(primitiveType).c_str());
 
-            ImGui::PopItemWidth();
-            ImGui::NextColumn();
-        }
-        
         ImGui::Columns(1);
         ImGui::Separator();
         ImGui::PopStyleVar();
@@ -768,8 +836,13 @@ namespace MM
             std::string matName = "Material";
             matName += std::to_string(matIndex);
             matIndex++;
-
-            if(ImGui::TreeNodeEx(matName.c_str(), 0))
+			if(!material)
+			{
+				ImGui::TextUnformatted("Empty Material");
+				if(ImGui::Button("Add Material", ImVec2(ImGui::GetContentRegionAvail().x, 0.0f)))
+					mesh->SetMaterial(Lumos::CreateRef<Lumos::Graphics::Material>());
+			}
+            else if(ImGui::TreeNodeEx(matName.c_str(), 0))
             {
 			using namespace Lumos;
 			bool flipImage = Graphics::GraphicsContext::GetContext()->FlipImGUITexture();
@@ -1259,6 +1332,7 @@ namespace Lumos
 		TRIVIAL_COMPONENT(Physics3DComponent, "Physics3D");
 		TRIVIAL_COMPONENT(Physics2DComponent, "Physics2D");
 		TRIVIAL_COMPONENT(SoundComponent, "Sound");
+		TRIVIAL_COMPONENT(Graphics::AnimatedSprite, "Animated Sprite");
 		TRIVIAL_COMPONENT(Graphics::Sprite, "Sprite");
 		TRIVIAL_COMPONENT(Graphics::Light, "Light");
 		TRIVIAL_COMPONENT(LuaScriptComponent, "LuaScript");
@@ -1299,7 +1373,7 @@ namespace Lumos
 			if(hasName)
 				name = registry.get<NameComponent>(selected).name;
 			else
-				name = StringFormat::ToString(entt::to_integral(selected));
+				name = StringUtilities::ToString(entt::to_integral(selected));
 
 			static char objName[INPUT_BUF_SIZE];
 			strcpy(objName, name.c_str());
@@ -1377,7 +1451,6 @@ namespace Lumos
 
                 ImGui::Separator();
             }
-
 
 			m_EnttEditor.RenderImGui(registry, selected);
 		}

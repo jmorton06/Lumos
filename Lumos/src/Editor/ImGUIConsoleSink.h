@@ -1,5 +1,5 @@
 #pragma once
-#include "lmpch.h"
+
 #include "ConsoleWindow.h"
 #include <spdlog/sinks/base_sink.h>
 

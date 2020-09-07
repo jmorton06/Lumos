@@ -1,4 +1,4 @@
-#include "lmpch.h"
+#include "Precompiled.h"
 #include "iOSWindow.h"
 #include "iOSOS.h"
 #include "Graphics/API/GraphicsContext.h"
@@ -27,11 +27,15 @@ namespace Lumos
         
         m_Handle = iosOS->GetIOSView();
         
-		Graphics::GraphicsContext::Create(prop, m_Handle);
+		Graphics::GraphicsContext::SetRenderAPI(static_cast<Graphics::RenderAPI>(properties.RenderAPI));
+		Graphics::GraphicsContext::Create(properties, this);
+		Graphics::GraphicsContext::GetContext()->Init();
+		
 	}
 
 	iOSWindow::~iOSWindow()
 	{
+		Graphics::GraphicsContext::Release();
 	}
 
 
@@ -74,7 +78,7 @@ namespace Lumos
 
 	Window* iOSWindow::CreateFunciOS(const WindowProperties& properties)
 	{
-		return lmnew iOSWindow(properties);
+		return new iOSWindow(properties);
 	}
 
     void iOSWindow::OnKeyEvent(Lumos::InputCode::Key key, bool down)

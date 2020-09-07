@@ -1,5 +1,5 @@
 #pragma once
-#include "lmpch.h"
+
 #include "EditorWindow.h"
 
 #include <entt/entity/fwd.hpp>

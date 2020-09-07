@@ -1,6 +1,4 @@
 #pragma once
-#include "lmpch.h"
-#include "Maths/Maths.h"
 
 namespace Lumos
 {
@@ -11,7 +9,6 @@ namespace Lumos
 		class DescriptorSet;
 		class Swapchain;
 		class IndexBuffer;
-		class VertexArray;
 		class Mesh;
 
 		enum RendererBufferType

@@ -1,4 +1,4 @@
-#include "lmpch.h"
+#include "Precompiled.h"
 #include "LuaManager.h"
 #include "Maths/Transform.h"
 #include "Core/OS/Window.h"
@@ -99,6 +99,7 @@ namespace Lumos
 
 	void LuaManager::OnInit()
 	{
+		LUMOS_PROFILE_FUNCTION();
 		m_State.open_libraries(sol::lib::base, sol::lib::package, sol::lib::math, sol::lib::table);
 
 		BindInputLua(m_State);
@@ -116,6 +117,7 @@ namespace Lumos
 
 	void LuaManager::OnInit(Scene* scene)
 	{
+		LUMOS_PROFILE_FUNCTION();
 		auto& registry = scene->GetRegistry();
 
 		auto view = registry.view<LuaScriptComponent>();
@@ -132,6 +134,7 @@ namespace Lumos
 
 	void LuaManager::OnUpdate(Scene* scene)
 	{
+		LUMOS_PROFILE_FUNCTION();
 		auto& registry = scene->GetRegistry();
 
 		auto view = registry.view<LuaScriptComponent>();
@@ -148,30 +151,9 @@ namespace Lumos
 		}
 	}
 
-	WindowProperties LuaManager::LoadConfigFile(const std::string& file)
-	{
-		WindowProperties windowProperties;
-
-		std::string physicalPath;
-		if(!VFS::Get()->ResolvePhysicalPath(file, physicalPath))
-			return windowProperties;
-
-		m_State.script_file(physicalPath);
-		windowProperties.Title = m_State.get<std::string>("title");
-		windowProperties.Width = m_State.get<int>("width");
-		windowProperties.Height = m_State.get<int>("height");
-		windowProperties.RenderAPI = m_State.get<int>("renderAPI");
-		windowProperties.Fullscreen = m_State.get<bool>("fullscreen");
-		windowProperties.Borderless = m_State.get<bool>("borderless");
-		windowProperties.ShowConsole = m_State.get<bool>("showConsole");
-
-		windowProperties.FilePath = file;
-
-		return windowProperties;
-	}
-
 	entt::entity GetEntityByName(entt::registry& registry, const std::string& name)
 	{
+		LUMOS_PROFILE_FUNCTION();
 		entt::entity e = entt::null;
 		registry.view<NameComponent>().each([&](const entt::entity& entity, const NameComponent& component) {
 			if(name == component.name)
@@ -185,6 +167,7 @@ namespace Lumos
 
 	void LuaManager::BindLogLua(sol::state& state)
 	{
+		LUMOS_PROFILE_FUNCTION();
 		auto log = state.create_table("Log");
 
 		log.set_function("Trace", [&](sol::this_state s, std::string_view message) {
@@ -210,6 +193,7 @@ namespace Lumos
 
 	void LuaManager::BindInputLua(sol::state& state)
 	{
+		LUMOS_PROFILE_FUNCTION();
 		auto input = state["Input"].get_or_create<sol::table>();
 
 		input.set_function("GetKeyPressed", [](Lumos::InputCode::Key key) -> bool {
@@ -347,16 +331,20 @@ namespace Lumos
 
 	Ref<Graphics::Texture2D> LoadTexture(const std::string& name, const std::string& path)
 	{
+		LUMOS_PROFILE_FUNCTION();
 		return Ref<Graphics::Texture2D>(Graphics::Texture2D::CreateFromFile(name, path));
 	}
 
-	Ref<Graphics::Texture2D> LoadTextureWithParams(const std::string& name, const std::string& path, Lumos::Graphics::TextureFilter filter, Lumos::Graphics::TextureWrap wrapMode)
+	Ref<Graphics::Texture2D> LoadTextureWithParams(const std::string& name, const std::string& path, Lumos::Graphics::TextureFilter filter, 
+Lumos::Graphics::TextureWrap wrapMode)
 	{
+		LUMOS_PROFILE_FUNCTION();
 		return Ref<Graphics::Texture2D>(Graphics::Texture2D::CreateFromFile(name, path, Graphics::TextureParameters(filter, filter, wrapMode)));
 	}
 
 	void LuaManager::BindECSLua(sol::state& state)
 	{
+		LUMOS_PROFILE_FUNCTION();
 		sol::usertype<Entity> entityType = state.new_usertype<Entity>("Entity");
 		sol::usertype<EntityManager> entityManagerType = state.new_usertype<EntityManager>("EntityManager");
 		entityManagerType.set_function("Create", static_cast<Entity (EntityManager::*)()>(&EntityManager::Create));
@@ -405,8 +393,7 @@ namespace Lumos
 		state.new_enum<Lumos::Graphics::PrimitiveType, false>("PrimitiveType", primitives);
 
 
-		sol::usertype<Model> modelComponent_type = state.new_usertype<Model>("Model", sol::constructors<Model(const std::string&), Model(Lumos::Graphics::PrimitiveType)>());
-
+		state.new_usertype<Model>("Model", sol::constructors<Model(const std::string&), Model(Lumos::Graphics::PrimitiveType)>());
 		REGISTER_COMPONENT_WITH_ECS(state, Model, static_cast<Model& (Entity::*)(const std::string&)>(&Entity::AddComponent<Model, const std::string&>));
 
 		sol::usertype<Camera> camera_type = state.new_usertype<Camera>("Camera", sol::constructors<Camera(float, float, float, float), Camera(float, float)>());
