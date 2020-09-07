@@ -9,7 +9,7 @@ namespace Lumos
 		class LUMOS_EXPORT GLContext : public GraphicsContext
 		{
 		public:
-			GLContext(const WindowProperties& properties, void* deviceContext);
+			GLContext(const WindowProperties& properties, Window* window);
 			~GLContext();
 
 			void Present() override;
@@ -26,7 +26,7 @@ namespace Lumos
 			void OnImGui() override;
             static void MakeDefault();
         protected:
-            static GraphicsContext* CreateFuncGL(const WindowProperties& properties, void* cont);
+            static GraphicsContext* CreateFuncGL(const WindowProperties& properties, Window* cont);
 		};
 	}
 }

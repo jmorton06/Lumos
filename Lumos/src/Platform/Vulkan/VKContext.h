@@ -26,7 +26,7 @@ namespace Lumos
 		class VKContext : public GraphicsContext
 		{
             public:
-			VKContext(const WindowProperties& properties, void* deviceContext);
+			VKContext(const WindowProperties& properties, Window* window);
 			~VKContext();
             
 			void Init() override;
@@ -45,7 +45,7 @@ namespace Lumos
                                                                 void* userData);
             
 			VkInstance GetVKInstance() const { return m_VkInstance; }
-			void* GetWindowContext() const { return m_WindowContext; }
+			void* GetWindowContext() const { return m_Window->GetHandle(); }
                         
 			size_t GetMinUniformBufferOffsetAlignment() const override;
             
@@ -61,7 +61,7 @@ namespace Lumos
             
             static void MakeDefault();
             protected:
-            static GraphicsContext* CreateFuncVulkan(const WindowProperties&, void*);
+            static GraphicsContext* CreateFuncVulkan(const WindowProperties&,Window*);
             
 			void CreateInstance();
 			void SetupDebugCallback();
@@ -91,7 +91,7 @@ namespace Lumos
 			u32 m_Width, m_Height;
 			bool m_VSync;
 			
-			void* m_WindowContext;
+			Window* m_Window;
             
 			bool m_StandardValidationLayer = false;
 			bool m_RenderDocLayer = false;

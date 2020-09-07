@@ -89,10 +89,10 @@ namespace Lumos
 			}
 		}
 
-		VKContext::VKContext(const WindowProperties& properties, void* deviceContext)
+		VKContext::VKContext(const WindowProperties& properties, Window* window)
 			: m_VkInstance(nullptr)
 		{
-			m_WindowContext = deviceContext;
+			m_Window = window;
 			m_Width = properties.Width;
 			m_Height = properties.Height;
 			m_VSync = properties.VSync;
@@ -113,7 +113,7 @@ namespace Lumos
 			VKDevice::Get().Init();
 			
 			m_Swapchain = CreateRef<VKSwapchain>(m_Width, m_Height);
-			m_Swapchain->Init(m_VSync);
+			m_Swapchain->Init(m_VSync, m_Window);
 			
 			SetupDebugCallback();
 			
@@ -123,7 +123,7 @@ namespace Lumos
 		void VKContext::OnResize(uint32_t width, uint32_t height)
 		{
 			m_Swapchain = CreateRef<VKSwapchain>(m_Width, m_Height);
-			m_Swapchain->Init(m_VSync);
+			m_Swapchain->Init(m_VSync, m_Window);
 		}
 
 		void VKContext::Present()
@@ -325,9 +325,9 @@ namespace Lumos
 			CreateFunc = CreateFuncVulkan;
 		}
 		
-		GraphicsContext* VKContext::CreateFuncVulkan(const WindowProperties& properties, void* cont)
+		GraphicsContext* VKContext::CreateFuncVulkan(const WindowProperties& properties, Window* win)
 		{
-			return new VKContext(properties, cont);
+			return new VKContext(properties, win);
 		}
 		
 		void VKContext::WaitIdle() const

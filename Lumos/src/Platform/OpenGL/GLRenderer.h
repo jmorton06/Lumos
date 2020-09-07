@@ -8,12 +8,12 @@
 
 namespace Lumos
 {
+    class Window;
 	namespace Graphics
 	{
 		class GLContext;
 		class CommandBuffer;
 		class Shader;
-		class Window;
 
 		class LUMOS_EXPORT GLRenderer : public Renderer
 		{

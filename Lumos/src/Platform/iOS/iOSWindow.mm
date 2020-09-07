@@ -27,11 +27,15 @@ namespace Lumos
         
         m_Handle = iosOS->GetIOSView();
         
-		Graphics::GraphicsContext::Create(prop, m_Handle);
+		Graphics::GraphicsContext::SetRenderAPI(static_cast<Graphics::RenderAPI>(properties.RenderAPI));
+		Graphics::GraphicsContext::Create(properties, this);
+		Graphics::GraphicsContext::GetContext()->Init();
+		
 	}
 
 	iOSWindow::~iOSWindow()
 	{
+		Graphics::GraphicsContext::Release();
 	}
 
 

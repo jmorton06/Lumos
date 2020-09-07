@@ -273,17 +273,17 @@ defines
 		local targetAssetDirectory = ""
 
 		filter {"system:ios", "configurations:release"}
-			targetAssetDirectory = "../bin/release/Sandbox.app/Assets"
+targetAssetDirectory  =root_dir.."/bin/release/Sandbox.app/Assets"
 
 		filter {"system:ios", "configurations:Production"}
-			targetAssetDirectory = "../bin/dist/Sandbox.app/Assets"
+targetAssetDirectory = root_dir.."/bin/dist/Sandbox.app/Assets"
 
 		filter {"system:ios", "configurations:debug"}
-			targetAssetDirectory = "../bin/debug/Sandbox.app/Assets"
+targetAssetDirectory =root_dir.."/bin/debug/Sandbox.app/Assets"
 
 		filter "system:ios"
 			local target = targetAssetDirectory.."/CoreAssets/"
-			local source = "../Lumos/res/**"
+local source = root_dir.."/Lumos/res/**"
 			buildmessage("copying "..source.." -> "..target)
 			os.mkdir(target)
 			postbuildcommands {
@@ -291,7 +291,7 @@ defines
 			}
 
 			target = targetAssetDirectory.."/AppAssets/"
-			local source =root_dir ..  "/Sandbox/res/**"
+			local source =root_dir.."/Sandbox/res/**"
 			buildmessage("copying "..source.." -> "..target)
 			os.mkdir(target)
 			postbuildcommands {

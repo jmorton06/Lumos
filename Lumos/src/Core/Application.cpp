@@ -79,8 +79,6 @@ namespace Lumos
 #ifdef LUMOS_EDITOR
 		m_Editor = new Editor(this, Width, Height);
 #endif
-		Graphics::GraphicsContext::SetRenderAPI(static_cast<Graphics::RenderAPI>(RenderAPI));
-
 		Engine::Get();
 
 		m_Timer = CreateUniqueRef<Timer>();
@@ -135,9 +133,7 @@ namespace Lumos
 		u32 screenHeight = m_Window->GetHeight();
 
 		Lumos::Input::Create();
-
-		Graphics::GraphicsContext::GetContext()->Init();
-
+		
 		Graphics::Renderer::Init(screenWidth, screenHeight);
 
 		// Graphics Loading on main thread
@@ -217,7 +213,8 @@ namespace Lumos
 #endif
 
 		Graphics::Renderer::Release();
-		Graphics::GraphicsContext::Release();
+		
+        m_Window.reset();
 
 		if(pause)
 		{

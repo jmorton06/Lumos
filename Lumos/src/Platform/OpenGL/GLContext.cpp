@@ -133,7 +133,7 @@ namespace Lumos
 {
 	namespace Graphics
 	{
-		GLContext::GLContext(const WindowProperties& properties, void* deviceContext)
+		GLContext::GLContext(const WindowProperties& properties, Window* window)
 		{
 
 #if defined(LUMOS_PLATFORM_WINDOWS) && !defined(LUMOS_USE_GLFW_WINDOWS)
@@ -233,7 +233,7 @@ namespace Lumos
 			CreateFunc = CreateFuncGL;
 		}
 
-		GraphicsContext* GLContext::CreateFuncGL(const WindowProperties& properties, void* cont)
+		GraphicsContext* GLContext::CreateFuncGL(const WindowProperties& properties, Window* cont)
 		{
 			return new GLContext(properties, cont);
 		}
