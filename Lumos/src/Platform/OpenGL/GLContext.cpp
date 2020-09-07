@@ -137,7 +137,7 @@ namespace Lumos
 		{
 
 #if defined(LUMOS_PLATFORM_WINDOWS) && !defined(LUMOS_USE_GLFW_WINDOWS)
-			HDC hDc = GetDC(static_cast<HWND>(deviceContext));
+			HDC hDc = GetDC(static_cast<HWND>(window->GetHandle()));
 
 			HGLRC tempContext = wglCreateContext(hDc);
 			wglMakeCurrent(hDc, tempContext);
