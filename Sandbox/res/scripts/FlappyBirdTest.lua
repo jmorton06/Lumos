@@ -54,8 +54,8 @@ function CreatePlayer()
 
     SetCallback(beginContact)
 
+    player:GetTransform():SetLocalPosition(Vector3.new(1.0,1.0,1.0))
     player:AddPhysics2DComponent(params):GetRigidBody():SetForce(Vector2.new(200.0,0.0))
-    player:AddTransform():SetLocalPosition(Vector3.new(1.0,1.0,1.0))
 end
 
 function CreatePillar(index, offset)
@@ -82,8 +82,8 @@ function CreatePillar(index, offset)
 	params.isStatic = true
 	params.customShapePositions = { Vector2.new(-scale.x, -scale.y), Vector2.new(scale.x * 0.25, scale.y * 1.05), Vector2.new(scale.x, -scale.y)}
 
+    pillars[index]:GetTransform():SetLocalPosition(pos)
     pillars[index]:AddPhysics2DComponent(params):GetRigidBody():SetOrientation(3.14)
-    pillars[index]:AddTransform():SetLocalPosition(pos)
 
 	--Bottom Pillar
 	topY = centre - (gapSize / 2.0)
@@ -100,8 +100,8 @@ function CreatePillar(index, offset)
 	params.isStatic = true
 	params.customShapePositions = { Vector2.new(-scale.x, -scale.y), Vector2.new(scale.x * 0.25, scale.y * 1.05), Vector2.new(scale.x, -scale.y)}
 
+    pillars[index + 1]:GetTransform():SetLocalPosition(pos)
     pillars[index + 1]:AddPhysics2DComponent(params)
-    pillars[index + 1]:AddTransform():SetLocalPosition(pos)
 
 	if pos.x > m_FurthestPillarPosX then
         m_FurthestPillarPosX = pos.x;
@@ -110,8 +110,8 @@ end
 
 function CreateBackground(index)
     backgrounds[index] = entityManager:Create()
-    backgrounds[index]:AddSprite(Vector2.new(-10.0, -10.0), Vector2.new(10.0 * 2.0, 10.0 * 2.0), Vector4.new(1.0,1.0,1.0,1.0)):SetTexture(backgroundTexture)
     backgrounds[index]:AddTransform():SetLocalPosition(Vector3.new(index * 20.0 - 40.0, 0.0, -1.0))
+    backgrounds[index]:AddSprite(Vector2.new(-10.0, -10.0), Vector2.new(10.0 * 2.0, 10.0 * 2.0), Vector4.new(1.0,1.0,1.0,1.0)):SetTexture(backgroundTexture)
 end
 
 function updateSpeed(speed)
@@ -128,9 +128,9 @@ function OnInit()
 
     entityManager = scene:GetEntityManager()
 
-    camera = entityManager:Create();
-    camera:AddCamera(1.0, 10.0, 1.0)
+    camera = entityManager:Create()
     camera:AddTransform()
+    camera:AddCamera(1.0, 10.0, 1.0)
 
     CreatePlayer()
 
@@ -167,7 +167,7 @@ function OnUpdate(dt)
 
         camera:GetTransform():SetLocalPosition(pos)
         
-        score = math.floor((pos.x - 5) / 10)
+        score = math.max(math.floor((pos.x - 5) / 10), 0)
 
         if pos.x > m_PillarTarget then
             
@@ -250,5 +250,6 @@ function OnCleanUp()
     blockPhysics = nil
     blockPhysics2 = nil
 end
+
 
 

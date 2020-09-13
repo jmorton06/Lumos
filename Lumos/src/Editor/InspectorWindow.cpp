@@ -133,12 +133,12 @@ namespace MM
 		}
 
 		ImGui::PopItemWidth();
-		ImGui::NextColumn();
+		ImGui::NextColumn(); 
 
 		ImGui::Columns(1);
 		ImGui::Separator();
 		ImGui::PopStyleVar();
-	}
+	 }
 
 	static void CuboidCollisionShapeInspector(Lumos::CuboidCollisionShape* shape, const Lumos::Physics3DComponent& phys)
 	{
@@ -229,7 +229,7 @@ namespace MM
 		if(type == "Custom")
 			return Lumos::Shape::Custom;
 
-		Lumos::Debug::Log::Error("Unsupported Collision shape {0}", type);
+		LUMOS_LOG_ERROR("Unsupported Collision shape {0}", type);
 		return Lumos::Shape::Circle;
 	}
 
@@ -246,7 +246,7 @@ namespace MM
 		case Lumos::CollisionShapeType::CollisionCapsule:
 			return "Capsule";
 		default:
-			Lumos::Debug::Log::Error("Unsupported Collision shape");
+			LUMOS_LOG_ERROR("Unsupported Collision shape");
 			break;
 		}
 
@@ -264,7 +264,7 @@ namespace MM
 		if(type == "Capsule")
 			return Lumos::CollisionShapeType::CollisionCapsule;
 
-		Lumos::Debug::Log::Error("Unsupported Collision shape {0}", type);
+		LUMOS_LOG_ERROR("Unsupported Collision shape {0}", type);
 		return Lumos::CollisionShapeType::CollisionSphere;
 	}
 
@@ -453,7 +453,7 @@ namespace MM
 				CapsuleCollisionShapeInspector(reinterpret_cast<Lumos::CapsuleCollisionShape*>(collisionShape.get()), phys);
 				break;
 			default:
-				Lumos::Debug::Log::Error("Unsupported Collision shape");
+				LUMOS_LOG_ERROR("Unsupported Collision shape");
 				break;
 			}
 		}
@@ -661,7 +661,282 @@ namespace MM
 	template<>
 		void ComponentEditorWidget<Lumos::Graphics::AnimatedSprite>(entt::registry& reg, entt::registry::entity_type e)
 	{
+		using namespace Lumos;
+		using namespace Graphics;
 		auto& sprite = reg.get<Lumos::Graphics::AnimatedSprite>(e);
+		
+		ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(2, 2));
+		ImGui::Columns(2);
+		ImGui::Separator();
+		
+		ImGui::AlignTextToFramePadding();
+		ImGui::TextUnformatted("Position");
+		ImGui::NextColumn();
+		ImGui::PushItemWidth(-1);
+		auto pos = sprite.GetPosition();
+		if(ImGui::InputFloat2("##Position", Maths::ValuePointer(pos)))
+			sprite.SetPosition(pos);
+		
+		ImGui::PopItemWidth();
+		ImGui::NextColumn();
+		
+		ImGui::AlignTextToFramePadding();
+		ImGui::TextUnformatted("Scale");
+		ImGui::NextColumn();
+		ImGui::PushItemWidth(-1);
+		auto scale = sprite.GetScale();
+		if(ImGui::InputFloat2("##Scale", Maths::ValuePointer(scale)))
+			sprite.SetScale(scale);
+		
+		ImGui::PopItemWidth();
+		ImGui::NextColumn();
+		
+		ImGui::AlignTextToFramePadding();
+		ImGui::TextUnformatted("Colour");
+		ImGui::NextColumn();
+		ImGui::PushItemWidth(-1);
+		auto colour = sprite.GetColour();
+		if(ImGui::ColorEdit4("##Colour", Maths::ValuePointer(colour)))
+			sprite.SetColour(colour);
+		
+		ImGui::PopItemWidth();
+		ImGui::NextColumn();
+		
+		ImGui::AlignTextToFramePadding();
+		ImGui::TextUnformatted("Current State");
+		ImGui::NextColumn();
+		ImGui::PushItemWidth(-1);
+		
+		{
+			std::vector<std::string> states;
+			auto& animStates = sprite.GetAnimationStates();
+			
+			if(animStates.empty())
+			{
+				ImGui::TextUnformatted("No States Available");
+			}
+			else
+			{
+			for(auto& [name, frame] : animStates)
+			{
+				states.push_back(name);
+			}
+			
+			std::string currentStateName = sprite.GetState();
+			if(ImGui::BeginCombo("##FrameSelect",  currentStateName.c_str(), 0)) // The second parameter is the label previewed before opening the combo.
+			{
+				for(int n = 0; n < animStates.size(); n++)
+				{
+					bool is_selected = ( currentStateName.c_str() == states[n].c_str());
+					if(ImGui::Selectable(states[n].c_str(),  currentStateName.c_str()))
+					{
+						sprite.SetState(states[n]);
+					}
+					if(is_selected)
+						ImGui::SetItemDefaultFocus();
+				}
+				ImGui::EndCombo();
+			}
+			}
+		}
+		ImGui::PopItemWidth();
+		ImGui::NextColumn();
+		
+		ImGui::Columns(1);
+		auto& animStates = sprite.GetAnimationStates();
+		if (ImGui::TreeNode("States"))
+		{
+			ImGui::Indent(20.0f);
+			if(ImGui::Button("Add New State"))
+				   {
+				Graphics::AnimatedSprite::AnimationState state;
+				state.Frames = {};
+				state.FrameDuration = 1.0f;
+				state.Mode = Graphics::AnimatedSprite::PlayMode::Loop;
+				animStates["--New--"] = state;
+			}
+			
+			ImGui::Separator();
+			
+			int frameID = 0;
+			
+			std::vector<std::string> statesToDelete;
+			std::vector<std::pair<std::string, std::string>> statesToRename;
+			
+		for(auto& [name, state] : animStates)
+			{
+				ImGui::PushID(frameID);
+				ImGui::Columns(2);
+				
+				ImGui::AlignTextToFramePadding();
+				
+				ImGui::TextUnformatted("Name");
+				ImGui::NextColumn();
+				ImGui::PushItemWidth(-1);
+				
+				static char objName[INPUT_BUF_SIZE];
+				strcpy(objName, name.c_str());
+				ImGui::PushItemWidth(-1);
+				
+				bool renameState = false;
+				std::string newName;
+				
+				if(ImGui::InputText("##Name", objName, IM_ARRAYSIZE(objName), 0))
+				{
+					renameState = true;
+					newName = objName;
+				}
+				
+				ImGui::PopItemWidth();
+				ImGui::NextColumn();
+				
+				ImGui::AlignTextToFramePadding();
+				ImGui::TextUnformatted("PlayMode");
+				ImGui::NextColumn();
+				ImGui::PushItemWidth(-1);
+				
+				const char* modeTypes[] = {"Loop", "Ping Pong"};
+				std::string mode_current = state.Mode == Graphics::AnimatedSprite::PlayMode::Loop ? "Loop" : "PingPong";
+				if(ImGui::BeginCombo("##ModeSelect",  mode_current.c_str(), 0)) // The second parameter is the label previewed before opening the combo.
+				{
+					for(int n = 0; n < 2; n++)
+					{
+						bool is_selected = ( mode_current.c_str() == modeTypes[n]);
+						if(ImGui::Selectable(modeTypes[n],  mode_current.c_str()))
+						{
+							state.Mode = n == 0 ? Graphics::AnimatedSprite::PlayMode::Loop : Graphics::AnimatedSprite::PlayMode::PingPong;
+						}
+						if(is_selected)
+							ImGui::SetItemDefaultFocus();
+					}
+					ImGui::EndCombo();
+				}
+				
+				//ImGui::PopItemWidth();
+				//ImGui::NextColumn();
+				
+				ImGui::Columns(1);
+				if(ImGui::TreeNode("Frames"))
+				{
+					std::vector<Maths::Vector2>& frames = state.Frames;
+					ImGui::Columns(2);
+					for(auto& pos : frames)
+					{
+						ImGui::PushID(&pos);
+						ImGui::AlignTextToFramePadding();
+						ImGui::TextUnformatted("Position");
+						ImGui::NextColumn();
+						ImGui::PushItemWidth(-1);
+						
+						ImGui::DragFloat2("##Position", Maths::ValuePointer(pos));
+						
+						ImGui::PopItemWidth();
+						ImGui::NextColumn();
+						ImGui::PopID();
+					}
+					ImGui::TreePop();
+				}
+				
+				ImGui::Columns(2);
+				
+				ImGui::AlignTextToFramePadding();
+				ImGui::TextUnformatted("Duration");
+				ImGui::NextColumn();
+				ImGui::PushItemWidth(-1);
+				
+				ImGui::DragFloat("##Duration", &state.FrameDuration);
+				
+				ImGui::PopItemWidth();
+				ImGui::NextColumn();
+				
+				ImGui::Columns(1);
+				
+				if(ImGui::Button("Remove"))
+				{
+					statesToDelete.push_back(name);
+				}
+				
+				if(renameState)
+				{
+					statesToRename.emplace_back(name, newName);
+				}
+				
+				frameID++;
+				ImGui::PopID();
+				ImGui::Separator();
+			}
+			
+			for(auto& stateName : statesToDelete)
+			{
+				animStates.erase(stateName);
+			}
+			
+			for(auto& statePair : statesToRename)
+			{
+				auto nodeHandler = animStates.extract(statePair.first);
+				nodeHandler.key() = statePair.second;
+				animStates.insert(std::move(nodeHandler));
+			}
+			
+			ImGui::Unindent(20.0f);
+			ImGui::TreePop();
+		}
+		
+		if (ImGui::TreeNode("Texture"))
+		{
+			ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(2, 2));
+			ImGui::Columns(2);
+			ImGui::Separator();
+			
+			bool flipImage = Graphics::GraphicsContext::GetContext()->FlipImGUITexture();
+			
+			ImGui::AlignTextToFramePadding();
+			auto tex = sprite.GetTexture();
+            
+            if(tex)
+            {
+                if(ImGui::ImageButton(tex->GetHandle(), ImVec2(64, 64), ImVec2(0.0f, flipImage ? 1.0f : 0.0f), ImVec2(1.0f, flipImage ? 0.0f : 1.0f)))
+                {
+#ifdef LUMOS_EDITOR
+                    Application::Get().GetEditor()->GetFileBrowserWindow().Open();
+                    Application::Get().GetEditor()->GetFileBrowserWindow().SetCallback(std::bind(&Sprite::SetTextureFromFile, &sprite, std::placeholders::_1));
+#endif
+                }
+                
+                if(ImGui::IsItemHovered() && tex)
+                {
+                    ImGui::BeginTooltip();
+                    ImGui::Image(tex->GetHandle(), ImVec2(256, 256), ImVec2(0.0f, flipImage ? 1.0f : 0.0f), ImVec2(1.0f, flipImage ? 0.0f : 1.0f));
+                    ImGui::EndTooltip();
+                }
+            }
+            else
+            {
+                if(ImGui::Button("Empty", ImVec2(64, 64)))
+                {
+#ifdef LUMOS_EDITOR
+                    Application::Get().GetEditor()->GetFileBrowserWindow().Open();
+                    Application::Get().GetEditor()->GetFileBrowserWindow().SetCallback(std::bind(&Sprite::SetTextureFromFile, &sprite, std::placeholders::_1));
+#endif
+                }
+            }
+			
+			ImGui::NextColumn();
+			ImGui::PushItemWidth(-1);
+			ImGui::Text("%s", tex ? tex->GetFilepath().c_str() : "No Texture");
+			
+			ImGui::PopItemWidth();
+			ImGui::NextColumn();
+			
+			ImGui::Columns(1);
+			ImGui::Separator();
+			ImGui::PopStyleVar();
+			ImGui::TreePop();
+		}
+		
+		ImGui::Columns(1);
+		ImGui::Separator();
+		ImGui::PopStyleVar();
 		
 	}
 
@@ -1342,7 +1617,7 @@ namespace Lumos
 	}
 
 	void InspectorWindow::OnImGui()
-	{
+	{   
 		auto& registry = Application::Get().GetSceneManager()->GetCurrentScene()->GetRegistry();
 		auto selected = m_Editor->GetSelected();
 
@@ -1413,7 +1688,7 @@ namespace Lumos
 
 			ImGui::Separator();
 
-			if(m_DebugMode)
+			if(m_DebugMode) 
             {
                 auto hierarchyComp = registry.try_get<Hierarchy>(selected);
 
@@ -1445,9 +1720,7 @@ namespace Lumos
                     }
 
                     ImGui::Unindent(24.0f);
-
                 }
-
 
                 ImGui::Separator();
             }

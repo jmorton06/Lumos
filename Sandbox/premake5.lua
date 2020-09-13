@@ -109,7 +109,7 @@ defines
 		systemversion "latest"
 		editandcontinue "Off"
 
-		xcodebuildresources { "Images.xcassets" }
+xcodebuildresources { "Images.xcassets", "libMoltenVK.dylib" }
 
 		xcodebuildsettings
 		{
@@ -147,7 +147,8 @@ defines
 
 		files
 		{
-			"../Resources/MacOSIcons/Images.xcassets",
+	"../Resources/MacOSIcons/Images.xcassets",
+	"../Lumos/external/vulkan/libs/macOS/libMoltenVK.dylib"
 		}
 
 		links
@@ -156,39 +157,6 @@ defines
 		}
 
 		SetRecommendedXcodeSettings()
-
-		filter {"system:macosx", "configurations:release"}
-
-			local source = "../Lumos/external/vulkan/libs/macOS/**"
-			local target = "../bin/release/"
-
-			buildmessage("copying "..source.." -> "..target)
-
-			postbuildcommands {
-				"{COPY} "..source.." "..target
-			}
-
-		filter {"system:macosx", "configurations:Production"}
-
-			local source = "../Lumos/external/vulkan/libs/macOS/**"
-			local target = "../bin/dist/"
-
-			buildmessage("copying "..source.." -> "..target)
-
-			postbuildcommands {
-				"{COPY} "..source.." "..target
-			}
-
-		filter {"system:macosx", "configurations:debug"}
-
-			local source = "../Lumos/external/vulkan/libs/macOS/**"
-			local target = "../bin/debug/"
-
-			buildmessage("copying "..source.." -> "..target)
-
-			postbuildcommands {
-				"{COPY} "..source.." "..target
-			}
 
 	filter "system:ios"
 		cppdialect "C++17"
@@ -284,7 +252,8 @@ targetAssetDirectory =root_dir.."/bin/debug/Sandbox.app/Assets"
 		filter "system:ios"
 			local target = targetAssetDirectory.."/CoreAssets/"
 local source = root_dir.."/Lumos/res/**"
-			buildmessage("copying "..source.." -> "..target)
+buildmessage("copying "..source.." -> "..target)
+os.mkdir(targetAssetDirectory)
 			os.mkdir(target)
 			postbuildcommands {
 				"{COPY} "..source.." "..target

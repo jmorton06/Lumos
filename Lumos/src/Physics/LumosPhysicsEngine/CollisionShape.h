@@ -93,13 +93,13 @@ namespace Lumos
 		template<class Archive>
 		void load(Archive& archive)
 		{
-			Lumos::Debug::Log::Error("Loading abstract CollisionShape");
+			LUMOS_LOG_ERROR("Loading abstract CollisionShape");
 		}
 
 		template<class Archive>
 		void save(Archive& archive) const
 		{
-			Lumos::Debug::Log::Error("Serialising abstract CollisionShape");
+			LUMOS_LOG_ERROR("Serialising abstract CollisionShape");
 		}
 
 	protected:

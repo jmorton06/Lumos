@@ -28,7 +28,7 @@ namespace Lumos
 			if(!GLShader::Compile(sources, info))
 			{
 				error = info.message[info.shader];
-				Debug::Log::Error(error);
+				LUMOS_LOG_ERROR(error);
 				return false;
 			}
 			return true;
@@ -170,11 +170,11 @@ namespace Lumos
 
 			if(!m_Handle)
 			{
-				Debug::Log::Error("{0} - {1}", error.message[error.shader], m_Name);
+				LUMOS_LOG_ERROR("{0} - {1}", error.message[error.shader], m_Name);
 			}
 			else
 			{
-				Debug::Log::Info("Successfully compiled shader: {0}", m_Name);
+				LUMOS_LOG_INFO("Successfully compiled shader: {0}", m_Name);
 			}
 
 			//LUMOS_ASSERT(m_Handle, "");
@@ -325,7 +325,7 @@ namespace Lumos
 						if(j != std::string::npos)
 							file.erase(j, rem.length());
 						file = StringReplace(file, '\"');
-						Debug::Log::Warning("Including file \'{0}\' into shader.", file);
+						LUMOS_LOG_WARN("Including file \'{0}\' into shader.", file);
 						VFS::Get()->ReadTextFile(file);
 						ReadShaderFile(GetLines(VFS::Get()->ReadTextFile(file)), shaders);
 					}
@@ -372,7 +372,7 @@ namespace Lumos
 			for(auto source : *sources)
 			{
 				//source.second.insert(0, glVersion);
-				//Lumos::Debug::Log::Info(source.second);
+				//LUMOS_LOG_INFO(source.second);
 				shaders.push_back(CompileShader(source.first, source.second, program, info));
 			}
 
@@ -397,7 +397,7 @@ namespace Lumos
 				info.line[info.shader] = 0;
 				info.message[info.shader] += errorMessage;
 
-				Debug::Log::Error(info.message[info.shader]);
+				LUMOS_LOG_ERROR(info.message[info.shader]);
 				return 0;
 			}
 
@@ -431,7 +431,7 @@ namespace Lumos
 				return GL_COMPUTE_SHADER;
 #endif
 			default:
-				Debug::Log::Error("Unsupported Shader Type");
+				LUMOS_LOG_ERROR("Unsupported Shader Type");
 				return GL_VERTEX_SHADER;
 			}
 		}
@@ -484,7 +484,7 @@ namespace Lumos
 				info.message[info.shader] += errorMessage;
 				GLCall(glDeleteShader(shader));
 
-				Debug::Log::Error(info.message[info.shader]);
+				LUMOS_LOG_ERROR(info.message[info.shader]);
 				return 0;
 			}
 			return shader;
@@ -972,7 +972,7 @@ namespace Lumos
 			ShaderUniformDeclaration* uniform = FindUniformDeclaration(name);
 			if(!uniform)
 			{
-				Debug::Log::Error("Cannot find uniform in {0} shader with name '{1}'", m_Name, name);
+				LUMOS_LOG_ERROR("Cannot find uniform in {0} shader with name '{1}'", m_Name, name);
 				return;
 			}
 			ResolveAndSetUniform(static_cast<GLShaderUniformDeclaration*>(uniform), data, 0, uniform->GetCount());

@@ -171,23 +171,23 @@ namespace Lumos
 		auto log = state.create_table("Log");
 
 		log.set_function("Trace", [&](sol::this_state s, std::string_view message) {
-			Lumos::Debug::Log::Trace(message);
+			LUMOS_LOG_TRACE(message);
 		});
 
 		log.set_function("Info", [&](sol::this_state s, std::string_view message) {
-			Lumos::Debug::Log::Trace(message);
+			LUMOS_LOG_TRACE(message);
 		});
 
 		log.set_function("Warn", [&](sol::this_state s, std::string_view message) {
-			Lumos::Debug::Log::Warning(message);
+			LUMOS_LOG_WARN(message);
 		});
 
 		log.set_function("Error", [&](sol::this_state s, std::string_view message) {
-			Lumos::Debug::Log::Error(message);
+			LUMOS_LOG_ERROR(message);
 		});
 
 		log.set_function("Critical", [&](sol::this_state s, std::string_view message) {
-			Lumos::Debug::Log::Critical(message);
+			LUMOS_LOG_CRITICAL(message);
 		});
 	}
 

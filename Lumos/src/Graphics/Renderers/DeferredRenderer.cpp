@@ -112,8 +112,6 @@ namespace Lumos
 
 			m_ScreenQuad = Graphics::CreateQuad();
 
-			m_DescriptorSet = nullptr;
-
 			// Pixel/fragment shader System uniforms
 			m_PSSystemUniformBufferSize = sizeof(Light) * MAX_LIGHTS + sizeof(Maths::Vector4) + sizeof(Maths::Matrix4) * 2 + (sizeof(Maths::Matrix4) + sizeof(Maths::Vector4)) * MAX_SHADOWMAPS + sizeof(int) * 4;
 			m_PSSystemUniformBuffer = new u8[m_PSSystemUniformBufferSize];
@@ -163,7 +161,7 @@ namespace Lumos
             info.pipeline = m_Pipeline.get();
 			info.layoutIndex = 1;
 			info.shader = m_Shader.get();
-			m_DescriptorSet = Graphics::DescriptorSet::Create(info);
+			m_DescriptorSet = Ref<Graphics::DescriptorSet>(Graphics::DescriptorSet::Create(info));
 
 			m_ClearColour = Maths::Vector4(0.2f, 0.2f, 0.2f, 1.0f);
 
@@ -246,7 +244,7 @@ namespace Lumos
 					info.pipeline = m_Pipeline.get();
 					info.layoutIndex = 1;
 					info.shader = m_Shader.get();
-					m_DescriptorSet = Graphics::DescriptorSet::Create(info);
+					m_DescriptorSet = Ref<Graphics::DescriptorSet>(Graphics::DescriptorSet::Create(info));
 
 					UpdateScreenDescriptorSet();
 				}

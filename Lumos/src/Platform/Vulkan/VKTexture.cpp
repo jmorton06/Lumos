@@ -26,7 +26,7 @@ namespace Lumos
 			VkImageView imageView;
 			if(vkCreateImageView(VKDevice::Get().GetDevice(), &viewInfo, nullptr, &imageView) != VK_SUCCESS)
 			{
-				Lumos::Debug::Log::Error("Failed to create texture image view!");
+				LUMOS_LOG_ERROR("Failed to create texture image view!");
 			}
 
 			return imageView;
@@ -55,7 +55,7 @@ namespace Lumos
 
 			if(vkCreateSampler(VKDevice::Get().GetDevice(), &samplerInfo, nullptr, &sampler) != VK_SUCCESS)
 			{
-				Lumos::Debug::Log::Error("Failed to create texture sampler!");
+				LUMOS_LOG_ERROR("Failed to create texture sampler!");
 			}
 
 			return sampler;
@@ -263,7 +263,7 @@ namespace Lumos
 
 			if(!(formatProperties.optimalTilingFeatures & VK_FORMAT_FEATURE_SAMPLED_IMAGE_FILTER_LINEAR_BIT))
 			{
-				Lumos::Debug::Log::Error("Texture image format does not support linear blitting!");
+				LUMOS_LOG_ERROR("Texture image format does not support linear blitting!");
 			}
 
 			VkCommandBuffer commandBuffer = VKTools::BeginSingleTimeCommands();
@@ -387,7 +387,7 @@ namespace Lumos
 
 			if(!pixels)
 			{
-				Debug::Log::Critical("failed to load texture image!");
+				LUMOS_LOG_CRITICAL("failed to load texture image!");
 			}
 
 			m_MipLevels = static_cast<uint32_t>(std::floor(std::log2(Maths::Max(m_Width, m_Height)))) + 1;

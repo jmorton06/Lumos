@@ -53,7 +53,7 @@ namespace Lumos
         Lumos::VFS::Get()->Mount("Scripts", root + "/Assets/AppAssets/scripts");
 
         
-        Lumos::Debug::Log::Info("Device : {0}",GetModelName());
+        LUMOS_LOG_INFO("Device : {0}",GetModelName());
         
         iOSWindow::MakeDefault();
 

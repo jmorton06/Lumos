@@ -160,7 +160,7 @@ namespace Lumos
 			SetCollisionShape(CreateRef<CapsuleCollisionShape>());
 			break;
 		default:
-			Lumos::Debug::Log::Error("Unsupported Collision shape");
+			LUMOS_LOG_ERROR("Unsupported Collision shape");
 			break;
 		}
 	}

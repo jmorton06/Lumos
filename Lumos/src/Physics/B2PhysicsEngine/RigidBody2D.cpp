@@ -120,7 +120,7 @@ namespace Lumos
 		}
 		else
 		{
-			Debug::Log::Error("Shape Not Supported");
+			LUMOS_LOG_ERROR("Shape Not Supported");
 		}
 	}
 

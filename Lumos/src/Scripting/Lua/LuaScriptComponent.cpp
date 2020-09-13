@@ -31,7 +31,7 @@ namespace Lumos
 		std::string physicalPath;
 		if(!VFS::Get()->ResolvePhysicalPath(fileName, physicalPath))
 		{
-			Debug::Log::Error("Failed to Load Lua script {0}", fileName);
+			LUMOS_LOG_ERROR("Failed to Load Lua script {0}", fileName);
 			m_Env = nullptr;
 			return;
 		}
@@ -42,8 +42,8 @@ namespace Lumos
 		if(!loadFileResult.valid())
 		{
 			sol::error err = loadFileResult;
-			Debug::Log::Error("Failed to Execute Lua script {0}", physicalPath);
-			Debug::Log::Error("Error : {0}", err.what());
+			LUMOS_LOG_ERROR("Failed to Execute Lua script {0}", physicalPath);
+			LUMOS_LOG_ERROR("Error : {0}", err.what());
 			m_Errors.push_back(std::string(err.what()));
 		}
 
@@ -92,8 +92,8 @@ namespace Lumos
 			if(!result.valid())
 			{
 				sol::error err = result;
-				Debug::Log::Error("Failed to Execute Script Lua Init function");
-				Debug::Log::Error("Error : {0}", err.what());
+				LUMOS_LOG_ERROR("Failed to Execute Script Lua Init function");
+				LUMOS_LOG_ERROR("Error : {0}", err.what());
 			}
 		}
 	}
@@ -106,8 +106,8 @@ namespace Lumos
 			if(!result.valid())
 			{
 				sol::error err = result;
-				Debug::Log::Error("Failed to Execute Script Lua OnUpdate");
-				Debug::Log::Error("Error : {0}", err.what());
+				LUMOS_LOG_ERROR("Failed to Execute Script Lua OnUpdate");
+				LUMOS_LOG_ERROR("Error : {0}", err.what());
 			}
 		}
 	}
@@ -137,8 +137,8 @@ namespace Lumos
             if(!result.valid())
             {
                 sol::error err = result;
-                Debug::Log::Error("Failed to Execute Script Lua OnCollision2DBegin");
-                Debug::Log::Error("Error : {0}", err.what());
+                LUMOS_LOG_ERROR("Failed to Execute Script Lua OnCollision2DBegin");
+                LUMOS_LOG_ERROR("Error : {0}", err.what());
             }
         }
 	}
@@ -151,8 +151,8 @@ namespace Lumos
            if(!result.valid())
            {
                sol::error err = result;
-               Debug::Log::Error("Failed to Execute Script Lua OnCollision2DEnd");
-               Debug::Log::Error("Error : {0}", err.what());
+               LUMOS_LOG_ERROR("Failed to Execute Script Lua OnCollision2DEnd");
+               LUMOS_LOG_ERROR("Error : {0}", err.what());
            }
         }
 	}
@@ -165,8 +165,8 @@ namespace Lumos
             if(!result.valid())
             {
                 sol::error err = result;
-                Debug::Log::Error("Failed to Execute Script Lua OnCollision3DBegin");
-                Debug::Log::Error("Error : {0}", err.what());
+                LUMOS_LOG_ERROR("Failed to Execute Script Lua OnCollision3DBegin");
+                LUMOS_LOG_ERROR("Error : {0}", err.what());
             }
         }
 	}
@@ -179,8 +179,8 @@ namespace Lumos
             if(!result.valid())
             {
                 sol::error err = result;
-                Debug::Log::Error("Failed to Execute Script Lua OnCollision3DEnd");
-                Debug::Log::Error("Error : {0}", err.what());
+                LUMOS_LOG_ERROR("Failed to Execute Script Lua OnCollision3DEnd");
+                LUMOS_LOG_ERROR("Error : {0}", err.what());
             }
         }
 	}

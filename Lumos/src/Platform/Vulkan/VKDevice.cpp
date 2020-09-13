@@ -39,7 +39,7 @@ namespace Lumos
 			vkEnumeratePhysicalDevices(vkInstance, &numGPUs, VK_NULL_HANDLE);
 			if(numGPUs == 0)
 			{
-				Debug::Log::Critical("ERROR : No GPUs found!");
+				LUMOS_LOG_CRITICAL("ERROR : No GPUs found!");
 			}
 			
 			std::vector<VkPhysicalDevice> physicalDevices(numGPUs);
@@ -59,11 +59,11 @@ namespace Lumos
 			vkGetPhysicalDeviceProperties(m_PhysicalDevice, &m_PhysicalDeviceProperties);
 			vkGetPhysicalDeviceMemoryProperties(m_PhysicalDevice, &m_MemoryProperties);
 			
-			Debug::Log::Info("Vulkan : {0}.{1}.{2}", VK_VERSION_MAJOR(m_PhysicalDeviceProperties.apiVersion), VK_VERSION_MINOR(m_PhysicalDeviceProperties.apiVersion), VK_VERSION_PATCH(m_PhysicalDeviceProperties.apiVersion));
-			Debug::Log::Info("GPU : {0}", std::string(m_PhysicalDeviceProperties.deviceName));
-			Debug::Log::Info("Vendor ID : {0}", StringUtilities::ToString(m_PhysicalDeviceProperties.vendorID));
-			Debug::Log::Info("Device Type : {0}", std::string(TranslateVkPhysicalDeviceTypeToString(m_PhysicalDeviceProperties.deviceType)));
-			Debug::Log::Info("Driver Version : {0}.{1}.{2}", VK_VERSION_MAJOR(m_PhysicalDeviceProperties.driverVersion), VK_VERSION_MINOR(m_PhysicalDeviceProperties.driverVersion), VK_VERSION_PATCH(m_PhysicalDeviceProperties.driverVersion));
+			LUMOS_LOG_INFO("Vulkan : {0}.{1}.{2}", VK_VERSION_MAJOR(m_PhysicalDeviceProperties.apiVersion), VK_VERSION_MINOR(m_PhysicalDeviceProperties.apiVersion), VK_VERSION_PATCH(m_PhysicalDeviceProperties.apiVersion));
+			LUMOS_LOG_INFO("GPU : {0}", std::string(m_PhysicalDeviceProperties.deviceName));
+			LUMOS_LOG_INFO("Vendor ID : {0}", StringUtilities::ToString(m_PhysicalDeviceProperties.vendorID));
+			LUMOS_LOG_INFO("Device Type : {0}", std::string(TranslateVkPhysicalDeviceTypeToString(m_PhysicalDeviceProperties.deviceType)));
+			LUMOS_LOG_INFO("Driver Version : {0}.{1}.{2}", VK_VERSION_MAJOR(m_PhysicalDeviceProperties.driverVersion), VK_VERSION_MINOR(m_PhysicalDeviceProperties.driverVersion), VK_VERSION_PATCH(m_PhysicalDeviceProperties.driverVersion));
 			
 			auto& caps = Renderer::GetCapabilities();
 			
@@ -90,11 +90,11 @@ namespace Lumos
 				std::vector<VkExtensionProperties> extensions(extCount);
 				if (vkEnumerateDeviceExtensionProperties(m_PhysicalDevice, nullptr, &extCount, &extensions.front()) == VK_SUCCESS)
 				{
-					Debug::Log::Info("Selected physical device has {0} extensions", extensions.size());
+					LUMOS_LOG_INFO("Selected physical device has {0} extensions", extensions.size());
 					for (const auto& ext : extensions)
 					{
 						m_SupportedExtensions.emplace(ext.extensionName);
-						Debug::Log::Info("  {0}", ext.extensionName);
+						LUMOS_LOG_INFO("  {0}", ext.extensionName);
 					}
 				}
 			}
@@ -297,7 +297,7 @@ namespace Lumos
 			auto result = vkCreateDevice(m_PhysicalDevice->GetVulkanPhysicalDevice(), &deviceCI, VK_NULL_HANDLE, &m_Device);
 			if(result != VK_SUCCESS)
 			{
-				Debug::Log::Critical("[VULKAN] vkCreateDevice() failed!");
+				LUMOS_LOG_CRITICAL("[VULKAN] vkCreateDevice() failed!");
 				return false;
 			}
 
@@ -339,7 +339,7 @@ namespace Lumos
 
 			if(vmaCreateAllocator(&allocatorInfo, &m_Allocator) != VK_SUCCESS)
 			{
-				Debug::Log::Critical("[VULKAN] Failed to create VMA allocator");
+				LUMOS_LOG_CRITICAL("[VULKAN] Failed to create VMA allocator");
 			}
 #endif
             m_CommandPool = CreateRef<VKCommandPool>();

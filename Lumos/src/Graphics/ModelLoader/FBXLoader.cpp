@@ -147,7 +147,7 @@ namespace Lumos::Graphics
 		
 		if(data == nullptr)
 		{
-			Lumos::Debug::Log::Warning("Failed to load fbx file"); return;
+			LUMOS_LOG_WARN("Failed to load fbx file"); return;
 		}
 		const bool ignoreGeometry = false;
 		const u64 flags = ignoreGeometry ? (u64)ofbx::LoadFlags::IGNORE_GEOMETRY : (u64)ofbx::LoadFlags::TRIANGULATE;
