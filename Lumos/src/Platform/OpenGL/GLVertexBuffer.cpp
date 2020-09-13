@@ -61,7 +61,7 @@ namespace Lumos
             }
             else
             {
-                Lumos::Debug::Log::Warning("Vertex buffer already mapped");
+                LUMOS_LOG_WARN("Vertex buffer already mapped");
             }
 
 			return result;

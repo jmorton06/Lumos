@@ -505,7 +505,7 @@ namespace Lumos
 			auto fullPath = ROOT_DIR + filePath;
 			if(!FileSystem::FileExists(fullPath))
 			{
-                Lumos::Debug::Log::Info("No saved Project file found {0}", fullPath);
+                LUMOS_LOG_INFO("No saved Project file found {0}", fullPath);
 				{
 					//Set Default values
 					RenderAPI = 1;

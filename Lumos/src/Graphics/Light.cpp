@@ -45,7 +45,7 @@ namespace Lumos
 			if(type == "Spot")
 				return float(Graphics::LightType::SpotLight);
 
-			Lumos::Debug::Log::Error("Unknown Light Type");
+			LUMOS_LOG_ERROR("Unknown Light Type");
 			return 0.0f;
 		}
 

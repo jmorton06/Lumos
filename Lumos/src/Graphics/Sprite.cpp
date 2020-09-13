@@ -62,86 +62,86 @@ namespace Lumos
 			ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(2, 2));
 			ImGui::Columns(2);
 			ImGui::Separator();
-
+			
 			ImGui::AlignTextToFramePadding();
 			ImGui::TextUnformatted("Position");
 			ImGui::NextColumn();
 			ImGui::PushItemWidth(-1);
 			ImGui::InputFloat2("##Position", Maths::ValuePointer(m_Position));
-
+			
 			ImGui::PopItemWidth();
 			ImGui::NextColumn();
-
+			
 			ImGui::AlignTextToFramePadding();
 			ImGui::TextUnformatted("Scale");
 			ImGui::NextColumn();
 			ImGui::PushItemWidth(-1);
 			ImGui::InputFloat2("##Scale", Maths::ValuePointer(m_Scale));
-
+			
 			ImGui::PopItemWidth();
 			ImGui::NextColumn();
-
+			
 			ImGui::AlignTextToFramePadding();
 			ImGui::TextUnformatted("Colour");
 			ImGui::NextColumn();
 			ImGui::PushItemWidth(-1);
 			ImGui::ColorEdit4("##Colour", Maths::ValuePointer(m_Colour));
-
+			
 			ImGui::PopItemWidth();
 			ImGui::NextColumn();
-
+			
 			if (ImGui::TreeNode("Texture"))
 			{
 				ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(2, 2));
 				ImGui::Columns(2);
 				ImGui::Separator();
-
+				
 				bool flipImage = Graphics::GraphicsContext::GetContext()->FlipImGUITexture();
-
+				
 				ImGui::AlignTextToFramePadding();
 				auto tex = m_Texture;
-            
-            if(tex)
-            {
-                if(ImGui::ImageButton(tex->GetHandle(), ImVec2(64, 64), ImVec2(0.0f, flipImage ? 1.0f : 0.0f), ImVec2(1.0f, flipImage ? 0.0f : 1.0f)))
-                {
+				
+				if(tex)
+				{
+					if(ImGui::ImageButton(tex->GetHandle(), ImVec2(64, 64), ImVec2(0.0f, flipImage ? 1.0f : 0.0f), ImVec2(1.0f, flipImage ? 0.0f : 1.0f)))
+					{
 #ifdef LUMOS_EDITOR
-                    Application::Get().GetEditor()->GetFileBrowserWindow().Open();
-                    Application::Get().GetEditor()->GetFileBrowserWindow().SetCallback(std::bind(&Sprite::SetTextureFromFile, this, std::placeholders::_1));
+						Application::Get().GetEditor()->GetFileBrowserWindow().Open();
+						Application::Get().GetEditor()->GetFileBrowserWindow().SetCallback(std::bind(&Sprite::SetTextureFromFile, this, std::placeholders::_1));
 #endif
-                }
-                
-                if(ImGui::IsItemHovered() && tex)
-                {
-                    ImGui::BeginTooltip();
-                    ImGui::Image(tex->GetHandle(), ImVec2(256, 256), ImVec2(0.0f, flipImage ? 1.0f : 0.0f), ImVec2(1.0f, flipImage ? 0.0f : 1.0f));
-                    ImGui::EndTooltip();
-                }
-            }
-            else
-            {
-                if(ImGui::Button("Empty", ImVec2(64, 64)))
-                {
+					}
+					
+					if(ImGui::IsItemHovered() && tex)
+					{
+						ImGui::BeginTooltip();
+						ImGui::Image(tex->GetHandle(), ImVec2(256, 256), ImVec2(0.0f, flipImage ? 1.0f : 0.0f), ImVec2(1.0f, flipImage ? 0.0f : 1.0f));
+						ImGui::EndTooltip();
+					}
+				}
+				else
+				{
+					if(ImGui::Button("Empty", ImVec2(64, 64)))
+					{
 #ifdef LUMOS_EDITOR
-                    Application::Get().GetEditor()->GetFileBrowserWindow().Open();
-                    Application::Get().GetEditor()->GetFileBrowserWindow().SetCallback(std::bind(&Sprite::SetTextureFromFile, this, std::placeholders::_1));
+						Application::Get().GetEditor()->GetFileBrowserWindow().Open();
+						Application::Get().GetEditor()->GetFileBrowserWindow().SetCallback(std::bind(&Sprite::SetTextureFromFile, this, std::placeholders::_1));
 #endif
-                }
-            }
-
+					}
+				}
+				
 				ImGui::NextColumn();
 				ImGui::PushItemWidth(-1);
 				ImGui::Text("%s", tex ? tex->GetFilepath().c_str() : "No Texture");
-
+				
 				ImGui::PopItemWidth();
 				ImGui::NextColumn();
-
+				
 				ImGui::Columns(1);
 				ImGui::Separator();
 				ImGui::PopStyleVar();
 				ImGui::TreePop();
 			}
-
+			
 			ImGui::Columns(1);
 			ImGui::Separator();
 			ImGui::PopStyleVar();

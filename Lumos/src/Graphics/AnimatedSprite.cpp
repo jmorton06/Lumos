@@ -18,7 +18,7 @@ namespace Lumos::Graphics
 		AnimationState state;
 		state.Frames = frames;
 		state.FrameDuration = frameDuration;
-		state.Mode = PlayMode::PingPong;
+		state.Mode = PlayMode::Loop;
 		
 		m_AnimationStates[stateName] = state;
 		
@@ -27,11 +27,13 @@ namespace Lumos::Graphics
 		
 		m_UVs = GetAnimatedUVs();
 	}
-
+ 
 	std::vector<Maths::Vector2> AnimatedSprite::GetAnimatedUVs()
 	{
 		auto& currentState = m_AnimationStates[m_State];
-		
+		if (m_AnimationStates.find(m_State) == m_AnimationStates.end() || currentState.Frames.empty())
+			return GetDefaultUVs();
+			   
 		auto min = currentState.Frames[m_CurrentFrame];
 		auto max = currentState.Frames[m_CurrentFrame] + m_Scale;
 		
@@ -39,7 +41,7 @@ namespace Lumos::Graphics
 		min.y /= m_Texture->GetHeight();
 		
 		max.x /= m_Texture->GetWidth();
-		max.y /= m_Texture->GetHeight();
+		max.y /= m_Texture->GetHeight(); 
 		
         m_UVs = GetUVs(min, max);
 		
@@ -48,6 +50,9 @@ namespace Lumos::Graphics
 	
 	void AnimatedSprite::OnUpdate(float dt)
 	{
+		if (m_AnimationStates.find(m_State) == m_AnimationStates.end())
+			return;
+		
 		 m_FrameTimer += dt;
 		
 		auto& currentState = m_AnimationStates[m_State];
@@ -116,7 +121,7 @@ namespace Lumos::Graphics
 		
 		if(found == m_AnimationStates.end())
 		{
-			Debug::Log::Error("Animated Sprite does not contain state {0}", state);
+			LUMOS_LOG_ERROR("Animated Sprite does not contain state {0}", state);
 		}
 	}
 }

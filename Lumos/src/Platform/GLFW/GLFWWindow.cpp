@@ -30,7 +30,7 @@ namespace Lumos
 
 	static void GLFWErrorCallback(int error, const char* description)
 	{
-		Debug::Log::Error("GLFW Error - {0} : {1}", error, description);
+		LUMOS_LOG_ERROR("GLFW Error - {0} : {1}", error, description);
 	}
 
 	GLFWWindow::GLFWWindow(const WindowProperties& properties)

@@ -22,6 +22,8 @@ namespace Lumos
 			Sprite(const Ref<Texture2D>& texture, const Maths::Vector2& position, const Maths::Vector2& scale, const Maths::Vector4& colour);
 			virtual ~Sprite();
 			void SetPosition(const Maths::Vector2& vector2) { m_Position = vector2; };
+			void SetColour(const Maths::Vector4& colour) { m_Colour = colour; }
+			void SetScale(const Maths::Vector2& scale) { m_Scale = scale; }
         
             void SetSpriteSheet(const Ref<Texture2D>& texture, const Maths::Vector2& index, const Maths::Vector2& cellSize, const Maths::Vector2& spriteSize);
             void SetTexture(const Ref<Texture2D>& texture) { m_Texture = texture; }

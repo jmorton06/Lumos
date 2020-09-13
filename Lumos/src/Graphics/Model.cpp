@@ -32,7 +32,7 @@ namespace Lumos::Graphics
 		std::string physicalPath;
 		if(!Lumos::VFS::Get()->ResolvePhysicalPath(path, physicalPath))
 		{
-			Debug::Log::Info("Loaded Model - {0}", path);
+			LUMOS_LOG_INFO("Loaded Model - {0}", path);
 		}
 
 		std::string resolvedPath = physicalPath;
@@ -46,8 +46,8 @@ namespace Lumos::Graphics
 		else if(fileExtension == "fbx" || fileExtension == "FBX")
 		    LoadFBX(resolvedPath);
 		else
-			Debug::Log::Error("Unsupported File Type : {0}", fileExtension);
+			LUMOS_LOG_ERROR("Unsupported File Type : {0}", fileExtension);
 
-		Debug::Log::Info("Loaded Model - {0}", resolvedPath);
+		LUMOS_LOG_INFO("Loaded Model - {0}", resolvedPath);
 	}
 }

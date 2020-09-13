@@ -18,7 +18,7 @@ namespace Lumos
         auto secondsLeft = power.GetPowerSecondsLeft();
         auto state = power.GetPowerState();
 
-        LUMOS_CORE_INFO("Battery Info - Percentage : {0} , Time Left {1}s , State : {2}", percentage, secondsLeft, PowerStateToString(state));
+        LUMOS_LOG_INFO("Battery Info - Percentage : {0} , Time Left {1}s , State : {2}", percentage, secondsLeft, PowerStateToString(state));
         
         const std::string root = ROOT_DIR;
 		VFS::Get()->Mount("Meshes", root + "/Assets/meshes");

@@ -45,7 +45,7 @@ namespace Lumos
 			}
 			else
 			{
-				Debug::Log::Critical("[VULKAN] - Unsupported TextureType - {0}", static_cast<int>(info.textureType));
+				LUMOS_LOG_CRITICAL("[VULKAN] - Unsupported TextureType - {0}", static_cast<int>(info.textureType));
 				return attachment;
 			}
 			

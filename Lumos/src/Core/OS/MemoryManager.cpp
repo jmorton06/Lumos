@@ -56,8 +56,8 @@ namespace Lumos
 		avm = MemoryManager::BytesToString(availableVirtualMemory);
 		tvm = MemoryManager::BytesToString(totalVirtualMemory);
 
-		Debug::Log::Info("Memory Info:");
-		Debug::Log::Info("\tPhysical Memory : {0} / {1}", apm, tpm);
-		Debug::Log::Info("\tVirtual Memory : {0} / {1}: ", avm, tvm);
+		LUMOS_LOG_INFO("Memory Info:");
+		LUMOS_LOG_INFO("\tPhysical Memory : {0} / {1}", apm, tpm);
+		LUMOS_LOG_INFO("\tVirtual Memory : {0} / {1}: ", avm, tvm);
 	}
 }

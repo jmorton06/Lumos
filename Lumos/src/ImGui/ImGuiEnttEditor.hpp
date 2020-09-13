@@ -39,6 +39,7 @@ class ImGuiEntityEditor {
     
     private:
         using ComponentTypeID = ENTT_ID_TYPE;
+		ImGuiTextFilter m_ComponentFilter;
 
         std::map<ComponentTypeID, ComponentInfo> component_infos;
 
@@ -137,20 +138,37 @@ class ImGuiEntityEditor {
 					{
 						ImGui::OpenPopup("addComponent");
 					}
-
+					
 					if (ImGui::BeginPopup("addComponent"))
 					{
-						ImGui::TextUnformatted("Available:");
 						ImGui::Separator();
+						
+						ImGui::TextUnformatted(ICON_MDI_MAGNIFY);
+						ImGui::SameLine();
+						
+						float filterSize = ImGui::GetContentRegionAvail().x - ImGui::GetStyle().IndentSpacing;
+						filterSize = filterSize < 200 ? 200 : filterSize;
+						m_ComponentFilter.Draw("##ComponentFilter", filterSize);
                         
                         for (auto& [component_type_id, ci] : has_not)
                         {
+							bool show = true;
+							if(m_ComponentFilter.IsActive())
+							{
+								if(!m_ComponentFilter.PassFilter(ci.name.c_str()))
+								{
+									show = false;
+								}
+							}
+							if(show)
+							{
                             ImGui::PushID(component_type_id);
                             if (ImGui::Selectable(ci.name.c_str()))
                             {
                                 ci.create(registry, e);
                             }
-                            ImGui::PopID();
+								ImGui::PopID();
+							}
                         }
 
 						ImGui::EndPopup();

@@ -23,7 +23,7 @@ namespace Lumos
 
 		if(m_CurrentScene)
 		{
-			Debug::Log::Info("[SceneManager] - Exiting scene : {0}", m_CurrentScene->GetSceneName());
+			LUMOS_LOG_INFO("[SceneManager] - Exiting scene : {0}", m_CurrentScene->GetSceneName());
 			m_CurrentScene->OnCleanupScene();
 		}
 
@@ -62,7 +62,7 @@ namespace Lumos
 		}
 		else
 		{
-			Debug::Log::Error("[SceneManager] - Unknown Scene Alias : {0}", name.c_str());
+			LUMOS_LOG_ERROR("[SceneManager] - Unknown Scene Alias : {0}", name.c_str());
 		}
 	}
 
@@ -81,7 +81,7 @@ namespace Lumos
 
 		if(m_QueuedSceneIndex < 0 || m_QueuedSceneIndex >= static_cast<int>(m_vpAllScenes.size()))
 		{
-			Debug::Log::Error("[SceneManager] - Invalid Scene Index : {0}", m_QueuedSceneIndex);
+			LUMOS_LOG_ERROR("[SceneManager] - Invalid Scene Index : {0}", m_QueuedSceneIndex);
             m_QueuedSceneIndex = 0;
 		}
 
@@ -90,9 +90,8 @@ namespace Lumos
 		//Clear up old scene
 		if(m_CurrentScene)
 		{
-			Debug::Log::Info("[SceneManager] - Exiting scene : {0}", m_CurrentScene->GetSceneName());
+			LUMOS_LOG_INFO("[SceneManager] - Exiting scene : {0}", m_CurrentScene->GetSceneName());
 			app.GetSystem<LumosPhysicsEngine>()->SetPaused(true);
-            app.GetSystem<LumosPhysicsEngine>()->ClearConstraints();
 
 			m_CurrentScene->OnCleanupScene();
 			app.OnExitScene();
@@ -121,7 +120,7 @@ namespace Lumos
 
 		Application::Get().OnNewScene(m_CurrentScene);
 
-		Debug::Log::Info("[SceneManager] - Scene switched to : {0}", m_CurrentScene->GetSceneName().c_str());
+		LUMOS_LOG_INFO("[SceneManager] - Scene switched to : {0}", m_CurrentScene->GetSceneName().c_str());
 
 		m_SwitchingScenes = false;
 	}
@@ -142,15 +141,8 @@ namespace Lumos
 	{
 		m_SceneFilePaths.push_back(filePath);
         
-        std::string physicalPath;
-        if(!VFS::Get()->ResolvePhysicalPath(filePath, physicalPath))
-            return;
-
-        auto name = StringUtilities::RemoveFilePathExtension(StringUtilities::GetFileName(physicalPath));
+        auto name = StringUtilities::RemoveFilePathExtension(StringUtilities::GetFileName(filePath));
         auto scene = new Scene(name);
-        auto path = StringUtilities::RemoveFilePathExtension(physicalPath);
-        path = StringUtilities::RemoveName(path);
-        scene->Deserialise(path);
         EnqueueScene(scene);
 	}
 

@@ -112,14 +112,14 @@ namespace Lumos
 
 		if(!color)
 		{
-			Debug::Log::Error("Win32: Failed to create RGBA bitmap");
+			LUMOS_LOG_ERROR("Win32: Failed to create RGBA bitmap");
 			return NULL;
 		}
 
 		mask = CreateBitmap(width, height, 1, 1, NULL);
 		if(!mask)
 		{
-			Debug::Log::Error("Win32: Failed to create mask bitmap");
+			LUMOS_LOG_ERROR("Win32: Failed to create mask bitmap");
 			DeleteObject(color);
 			return NULL;
 		}
@@ -150,11 +150,11 @@ namespace Lumos
 		{
 			if(icon)
 			{
-				Debug::Log::Error("Win32: Failed to create icon");
+				LUMOS_LOG_ERROR("Win32: Failed to create icon");
 			}
 			else
 			{
-				Debug::Log::Error("Win32: Failed to create cursor");
+				LUMOS_LOG_ERROR("Win32: Failed to create cursor");
 			}
 		}
 
