@@ -1,6 +1,7 @@
 #include "Precompiled.h"
 #include "HierarchyWindow.h"
 #include "Editor.h"
+#include "Core/OS/Input.h"
 #include "Core/Application.h"
 #include "Scene/SceneManager.h"
 #include "ImGui/ImGuiHelpers.h"
@@ -274,6 +275,26 @@ namespace Lumos
 					ImGui::TreePop();
 				return;
 			}
+			
+			if(m_SelectUp)
+			{
+					if(m_Editor->GetSelected() == node && registry.valid(m_CurrentPrevious))
+				{
+					m_SelectUp = false;
+					m_Editor->SetSelected(m_CurrentPrevious);
+					   }
+			}
+			
+			if(m_SelectDown)
+			{
+				if(registry.valid(m_CurrentPrevious) && m_CurrentPrevious == m_Editor->GetSelected())
+				{
+					m_SelectDown = false;
+					m_Editor->SetSelected(node);
+				}
+			}
+			
+			m_CurrentPrevious = node;
 
 			if(nodeOpen == false)
 			{
@@ -345,6 +366,13 @@ namespace Lumos
 	void HierarchyWindow::OnImGui()
 	{
 		auto flags = ImGuiWindowFlags_NoCollapse;
+		m_CurrentPrevious = entt::null;
+		m_SelectUp = false;
+		m_SelectDown = false;
+		
+		m_SelectUp = Input::GetInput()->GetKeyPressed(Lumos::InputCode::Key::Up);
+		m_SelectDown = Input::GetInput()->GetKeyPressed(Lumos::InputCode::Key::Down);
+		
 		ImGui::Begin(m_Name.c_str(), &m_Active, flags);
 		{
 			auto scene = Application::Get().GetSceneManager()->GetCurrentScene();

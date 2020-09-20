@@ -20,9 +20,10 @@ namespace Lumos
 	}
 
 	LuaScriptComponent::~LuaScriptComponent()
-	{
-		if(m_Env && (*m_Env)["OnRelease"])
-			(*m_Env)["OnRelease"]();
+	{        
+        sol::protected_function releaseFunc = (*m_Env)["OnRelease"];
+        if(releaseFunc.valid())
+            releaseFunc.call();
 	}
 
 	void LuaScriptComponent::LoadScript(const std::string& fileName)
@@ -50,36 +51,29 @@ namespace Lumos
 		if(m_Scene)
 			(*m_Env)["CurrentScene"] = m_Scene;
 
-		if((*m_Env)["OnInit"])
-			m_OnInitFunc = CreateRef<sol::protected_function>((*m_Env)["OnInit"]);
-		else
-			m_OnInitFunc = nullptr;
+        m_OnInitFunc = CreateRef<sol::protected_function>((*m_Env)["OnInit"]);
+        if(!m_OnInitFunc->valid())
+            m_OnInitFunc.reset();
+		
+        m_UpdateFunc = CreateRef<sol::protected_function>((*m_Env)["OnUpdate"]);
+        if(!m_UpdateFunc->valid())
+            m_UpdateFunc.reset();
+        
+        m_Phys2DBeginFunc = CreateRef<sol::protected_function>((*m_Env)["OnCollision2DBegin"]);
+        if(!m_OnInitFunc->valid())
+            m_OnInitFunc.reset();
 
-		if((*m_Env)["OnUpdate"])
-			m_UpdateFunc = CreateRef<sol::protected_function>((*m_Env)["OnUpdate"]);
-		else
-			m_UpdateFunc = nullptr;
+        m_Phys2DEndFunc = CreateRef<sol::protected_function>((*m_Env)["OnCollision2DEnd"]);
+        if(!m_Phys2DEndFunc->valid())
+            m_Phys2DEndFunc.reset();
         
-        if((*m_Env)["OnCollision2DBegin"])
-                m_Phys2DBeginFunc = CreateRef<sol::protected_function>((*m_Env)["OnCollision2DBegin"]);
-            else
-                m_Phys2DBeginFunc = nullptr;
+        m_Phys3DBeginFunc = CreateRef<sol::protected_function>((*m_Env)["OnCollision3DBegin"]);
+        if(!m_Phys3DBeginFunc->valid())
+            m_Phys3DBeginFunc.reset();m_Phys3DBeginFunc = nullptr;
         
-        if((*m_Env)["OnCollision2DEnd"])
-                m_Phys2DEndFunc = CreateRef<sol::protected_function>((*m_Env)["OnCollision2DEnd"]);
-            else
-                m_Phys2DEndFunc = nullptr;
-        
-        if((*m_Env)["OnCollision3DBegin"])
-                m_Phys3DBeginFunc = CreateRef<sol::protected_function>((*m_Env)["OnCollision3DBegin"]);
-            else
-                m_Phys3DBeginFunc = nullptr;
-        
-        if((*m_Env)["OnCollision3DEnd"])
-                m_Phys3DEndFunc = CreateRef<sol::protected_function>((*m_Env)["OnCollision3DEnd"]);
-            else
-                m_Phys3DEndFunc = nullptr;
-    
+        m_Phys3DEndFunc = CreateRef<sol::protected_function>((*m_Env)["OnCollision3DEnd"]);
+        if(!m_Phys3DEndFunc->valid())
+            m_Phys3DEndFunc.reset();
 
 		LuaManager::Get().GetState().collect_garbage();
     }
