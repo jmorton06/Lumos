@@ -551,9 +551,9 @@
     "value87": 28,
     "value88": {
         "Position": {
-            "value0": 0.0,
-            "value1": 10.0,
-            "value2": 0.0
+            "value0": 34.3039436340332,
+            "value1": 15.190068244934082,
+            "value2": 28.320514678955079
         },
         "Rotation": {
             "value0": 0.0,
@@ -562,9 +562,9 @@
             "value3": 1.0
         },
         "Scale": {
-            "value0": 1.0,
-            "value1": 1.0,
-            "value2": 1.0
+            "value0": 0.9999999403953552,
+            "value1": 0.9999999403953552,
+            "value2": 0.9999999403953552
         }
     },
     "value89": 29,
@@ -697,7 +697,7 @@
     },
     "value146": 28,
     "value147": {
-        "Name": "Player"
+        "Name": "Cat"
     },
     "value148": 29,
     "value149": {
@@ -1832,8 +1832,8 @@
         "value2": 0.0,
         "value3": 0.0,
         "value4": {
-            "value0": 0.4387131631374359,
-            "value1": 0.37121883034706118,
+            "value0": 0.43871307373046877,
+            "value1": 0.3712187707424164,
             "value2": 0.8183687925338745,
             "value3": 1.0
         },
@@ -2094,14 +2094,14 @@
     "value227": 1,
     "value228": 28,
     "value229": {
-        "TexturePath": "/Textures/Charactervector.png",
+        "TexturePath": "/Textures/cat.png",
         "Position": {
             "value0": 0.0,
             "value1": 0.0
         },
         "Scale": {
-            "value0": 133.5,
-            "value1": 199.75
+            "value0": 32.0,
+            "value1": 32.0
         },
         "Colour": {
             "value0": 1.0,
@@ -2111,25 +2111,50 @@
         },
         "AnimationFrames": [
             {
+                "key": "Sleep",
+                "value": {
+                    "PlayMode": 0,
+                    "Frames": [
+                        {
+                            "value0": 0.0,
+                            "value1": 192.0
+                        },
+                        {
+                            "value0": 32.0,
+                            "value1": 192.0
+                        },
+                        {
+                            "value0": 64.0,
+                            "value1": 192.0
+                        },
+                        {
+                            "value0": 96.0,
+                            "value1": 192.0
+                        }
+                    ],
+                    "FrameDuration": 0.10000000149011612
+                }
+            },
+            {
                 "key": "RunRight",
                 "value": {
                     "PlayMode": 0,
                     "Frames": [
                         {
                             "value0": 0.0,
-                            "value1": 599.25
+                            "value1": 42.0
                         },
                         {
-                            "value0": 133.5,
-                            "value1": 599.25
+                            "value0": 32.0,
+                            "value1": 42.0
                         },
                         {
-                            "value0": 267.0,
-                            "value1": 599.25
+                            "value0": 64.0,
+                            "value1": 42.0
                         },
                         {
-                            "value0": 400.5,
-                            "value1": 599.25
+                            "value0": 96.0,
+                            "value1": 42.0
                         }
                     ],
                     "FrameDuration": 0.10000000149011612
@@ -2142,19 +2167,19 @@
                     "Frames": [
                         {
                             "value0": 0.0,
-                            "value1": 399.5
+                            "value1": 96.0
                         },
                         {
-                            "value0": 133.5,
-                            "value1": 399.5
+                            "value0": 32.0,
+                            "value1": 96.0
                         },
                         {
-                            "value0": 267.0,
-                            "value1": 399.5
+                            "value0": 64.0,
+                            "value1": 96.0
                         },
                         {
-                            "value0": 400.5,
-                            "value1": 399.5
+                            "value0": 96.0,
+                            "value1": 96.0
                         }
                     ],
                     "FrameDuration": 0.10000000149011612
@@ -2167,19 +2192,19 @@
                     "Frames": [
                         {
                             "value0": 0.0,
-                            "value1": 199.75
+                            "value1": 64.0
                         },
                         {
-                            "value0": 133.5,
-                            "value1": 199.75
+                            "value0": 32.0,
+                            "value1": 64.0
                         },
                         {
-                            "value0": 267.0,
-                            "value1": 199.75
+                            "value0": 64.0,
+                            "value1": 64.0
                         },
                         {
-                            "value0": 400.5,
-                            "value1": 199.75
+                            "value0": 96.0,
+                            "value1": 64.0
                         }
                     ],
                     "FrameDuration": 0.10000000149011612
@@ -2195,15 +2220,15 @@
                             "value1": 0.0
                         },
                         {
-                            "value0": 133.5,
+                            "value0": 32.0,
                             "value1": 0.0
                         },
                         {
-                            "value0": 267.0,
+                            "value0": 64.0,
                             "value1": 0.0
                         },
                         {
-                            "value0": 400.5,
+                            "value0": 96.0,
                             "value1": 0.0
                         }
                     ],
@@ -2211,6 +2236,6 @@
                 }
             }
         ],
-        "State": "Run"
+        "State": "RunLeft"
     }
 }

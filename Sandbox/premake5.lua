@@ -180,6 +180,7 @@ xcodebuildresources { "Images.xcassets", "libMoltenVK.dylib" }
 		{
 			"QuartzCore.framework",
 			"Metal.framework",
+            "MetalKit.framework",
         	"IOKit.framework",
         	"CoreFoundation.framework",
 			"CoreVideo.framework",
@@ -199,6 +200,15 @@ xcodebuildresources { "Images.xcassets", "libMoltenVK.dylib" }
 		files
 		{
 			"../Resources/IOSIcons/Images.xcassets",
+	"../Lumos/res/EngineShaders",
+	"../Lumos/src/Platform/iOS/Client/**",
+            "res/scenes",
+            "res/scripts",
+            "res/meshes",
+            "res/sounds",
+            "res/textures",
+	"Sandbox.lmproj",
+	"Launch Screen.storyboard"
 		}
 
 		xcodebuildsettings
@@ -214,7 +224,6 @@ xcodebuildresources { "Images.xcassets", "libMoltenVK.dylib" }
 			['DEVELOPMENT_TEAM'] = 'C5L4T5BF6L',
 			['INFOPLIST_FILE'] = '../Lumos/src/Platform/iOS/Client/Info.plist',
 			['ASSETCATALOG_COMPILER_APPICON_NAME'] = 'AppIcon',
-			['ASSETCATALOG_COMPILER_LAUNCHIMAGE_NAME'] = 'LaunchImage'
 		}
 
 		if _OPTIONS["teamid"] then
@@ -233,39 +242,16 @@ xcodebuildresources { "Images.xcassets", "libMoltenVK.dylib" }
 		xcodebuildresources
 		{
 			"../Lumos/src/Platform/iOS/Client",
-			"Images.xcassets"
+			"Images.xcassets",
+            "EngineShaders",
+            "meshes",
+            "scenes",
+            "scripts",
+            "sounds",
+            "textures",
+            "Sandbox.lmproj"
 		}
-
 		SetRecommendedXcodeSettings()
-
-		local targetAssetDirectory = ""
-
-		filter {"system:ios", "configurations:release"}
-targetAssetDirectory  =root_dir.."/bin/release/Sandbox.app/Assets"
-
-		filter {"system:ios", "configurations:Production"}
-targetAssetDirectory = root_dir.."/bin/dist/Sandbox.app/Assets"
-
-		filter {"system:ios", "configurations:debug"}
-targetAssetDirectory =root_dir.."/bin/debug/Sandbox.app/Assets"
-
-		filter "system:ios"
-			local target = targetAssetDirectory.."/CoreAssets/"
-local source = root_dir.."/Lumos/res/**"
-buildmessage("copying "..source.." -> "..target)
-os.mkdir(targetAssetDirectory)
-			os.mkdir(target)
-			postbuildcommands {
-				"{COPY} "..source.." "..target
-			}
-
-			target = targetAssetDirectory.."/AppAssets/"
-			local source =root_dir.."/Sandbox/res/**"
-			buildmessage("copying "..source.." -> "..target)
-			os.mkdir(target)
-			postbuildcommands {
-				"{COPY} "..source.." "..target
-			}
 
 	filter "system:linux"
 		cppdialect "C++17"

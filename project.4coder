@@ -53,20 +53,20 @@ command_list = {
    .cmd = { { "Tools\premake5.exe clean", .os = "win"   },
             { "Tools/linux/premake5 clean" , .os = "linux" },
             { "./Scripts/CleanMacOS.sh" , .os = "mac"   }, }, },
- { .name = "build and run release",
-   .out = "*Build And Run - Release*", .footer_panel = true, .save_dirty_files = false,.cursor_at_end = true,
+ { .name = "buildiOS",
+   .out = "*Build iOS*", .footer_panel = true, .save_dirty_files = false,.cursor_at_end = true,
    .cmd = { { "", .os = "win"   },
             { "" , .os = "linux" },
-            { "./Scripts/RunMacOS-Release.sh" , .os = "mac"   }, }, },
+            { "./Scripts/BuildIOS.sh" , .os = "mac"   }, }, },
 	{ .name = "compileShaders",
 		.out = "*Compile Shaders*", .footer_panel = true, .save_dirty_files = false,.cursor_at_end = true,
-		.cmd = { { "Lumos\res\shaders\CompileShadersWindows.bat", .os = "win"   },
+		.cmd = { { "Lumos\res\EngineShaders\CompileShadersWindows.bat", .os = "win"   },
             { "" , .os = "linux" },
-            { "./Lumos/res/shaders/CompileShadersMac.sh" , .os = "mac"   }, }, },
+            { "./Lumos/res/EngineShaders/CompileShadersMac.sh" , .os = "mac"   }, }, },
 };
 fkey_command[1] = "gen project";
 fkey_command[2] = "build";
 fkey_command[3] = "run";
 fkey_command[4] = "clean";
 fkey_command[5] = "compileShaders";
-fkey_command[6] = "build and run release";
+fkey_command[6] = "buildiOS";

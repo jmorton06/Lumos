@@ -29,7 +29,7 @@ namespace Lumos
 		{
 #ifdef LUMOS_DEBUG
             if(HasComponent<T>())
-                LUMOS_LOG_WARN("Attamptin to add Component twice");
+                LUMOS_LOG_WARN("Attempting to add Component twice");
 #endif
 			return m_Scene->GetRegistry().emplace<T>(m_EntityHandle, std::forward<Args>(args)...);
 		}

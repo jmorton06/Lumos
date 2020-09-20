@@ -746,8 +746,11 @@ namespace MM
 		auto& animStates = sprite.GetAnimationStates();
 		if (ImGui::TreeNode("States"))
 		{
-			ImGui::Indent(20.0f);
-			if(ImGui::Button("Add New State"))
+			//ImGui::Indent(20.0f);
+			ImGui::SameLine(ImGui::GetWindowContentRegionWidth() - 16.0f);
+            ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.7f, 0.7f, 0.7f, 0.0f));
+			
+			if(ImGui::Button(ICON_MDI_PLUS))
 				   {
 				Graphics::AnimatedSprite::AnimationState state;
 				state.Frames = {};
@@ -755,6 +758,10 @@ namespace MM
 				state.Mode = Graphics::AnimatedSprite::PlayMode::Loop;
 				animStates["--New--"] = state;
 			}
+			
+			ImGuiHelpers::Tooltip("Add New State");
+			
+			ImGui::PopStyleColor();
 			
 			ImGui::Separator();
 			
@@ -766,6 +773,29 @@ namespace MM
 		for(auto& [name, state] : animStates)
 			{
 				ImGui::PushID(frameID);
+				bool open = ImGui::TreeNode(&state, "%s", name.c_str());
+				
+				ImGui::SameLine(ImGui::GetWindowContentRegionWidth() - 16.0f);
+				ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.7f, 0.7f, 0.7f, 0.0f));
+				
+				if (ImGui::Button((ICON_MDI_MINUS"##" + name).c_str()))
+					ImGui::OpenPopup(("##" + name).c_str());
+				
+				ImGuiHelpers::Tooltip("Remove State");
+				
+				ImGui::PopStyleColor();
+				
+				if (ImGui::BeginPopup(("##" + name).c_str(), 3))
+				{
+					if(ImGui::Button(("Remove##" + name).c_str()))
+					{
+						statesToDelete.push_back(name);
+					}
+					ImGui::EndPopup();
+				}
+				
+				if(open)
+					{
 				ImGui::Columns(2);
 				
 				ImGui::AlignTextToFramePadding();
@@ -788,7 +818,17 @@ namespace MM
 				}
 				
 				ImGui::PopItemWidth();
-				ImGui::NextColumn();
+					ImGui::NextColumn();
+					
+					ImGui::AlignTextToFramePadding();
+					ImGui::TextUnformatted("Duration");
+					ImGui::NextColumn();
+					ImGui::PushItemWidth(-1);
+					
+					ImGui::DragFloat("##Duration", &state.FrameDuration);
+					
+					ImGui::PopItemWidth();
+					ImGui::NextColumn();
 				
 				ImGui::AlignTextToFramePadding();
 				ImGui::TextUnformatted("PlayMode");
@@ -812,48 +852,57 @@ namespace MM
 					ImGui::EndCombo();
 				}
 				
-				//ImGui::PopItemWidth();
-				//ImGui::NextColumn();
-				
 				ImGui::Columns(1);
 				if(ImGui::TreeNode("Frames"))
-				{
-					std::vector<Maths::Vector2>& frames = state.Frames;
-					ImGui::Columns(2);
-					for(auto& pos : frames)
 					{
-						ImGui::PushID(&pos);
-						ImGui::AlignTextToFramePadding();
-						ImGui::TextUnformatted("Position");
-						ImGui::NextColumn();
-						ImGui::PushItemWidth(-1);
+						ImGui::SameLine(ImGui::GetWindowContentRegionWidth() - 16.0f);
+						ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.7f, 0.7f, 0.7f, 0.0f));
 						
-						ImGui::DragFloat2("##Position", Maths::ValuePointer(pos));
+						std::vector<Maths::Vector2>& frames = state.Frames;
 						
-						ImGui::PopItemWidth();
-						ImGui::NextColumn();
+						if(ImGui::Button(ICON_MDI_PLUS))
+						{
+							frames.emplace_back(0.0f,0.0f);
+						}
+						
+						ImGui::PopStyleColor();
+						
+						auto begin = frames.begin();
+						auto end = frames.end();
+						
+						static int numRemoved = 0;
+						for (auto it = begin; it != end; ++it)
+						{
+							auto& pos = (*it);
+							ImGui::PushID(&pos + numRemoved * 100);
+							ImGui::PushItemWidth(ImGui::GetWindowContentRegionWidth() - 60.0f);
+							
+							ImGui::DragFloat2("##Position", Maths::ValuePointer(pos));
+							
+							ImGui::SameLine(ImGui::GetWindowContentRegionWidth() - 16.0f);
+							
+							ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.7f, 0.7f, 0.7f, 0.0f));
+							
+							if (ImGui::Button(ICON_MDI_MINUS))
+								ImGui::OpenPopup("Remove");
+							
+							ImGuiHelpers::Tooltip("Remove");
+							
+							ImGui::PopStyleColor();
+							
+							if (ImGui::BeginPopup("Remove", 3))
+							{
+								if(ImGui::Button("Remove"))
+								{
+									frames.erase(it);
+									numRemoved++;
+								}
+								ImGui::EndPopup();
+							}
+							
 						ImGui::PopID();
 					}
 					ImGui::TreePop();
-				}
-				
-				ImGui::Columns(2);
-				
-				ImGui::AlignTextToFramePadding();
-				ImGui::TextUnformatted("Duration");
-				ImGui::NextColumn();
-				ImGui::PushItemWidth(-1);
-				
-				ImGui::DragFloat("##Duration", &state.FrameDuration);
-				
-				ImGui::PopItemWidth();
-				ImGui::NextColumn();
-				
-				ImGui::Columns(1);
-				
-				if(ImGui::Button("Remove"))
-				{
-					statesToDelete.push_back(name);
 				}
 				
 				if(renameState)
@@ -862,8 +911,11 @@ namespace MM
 				}
 				
 				frameID++;
+				
+					ImGui::Separator();
+					ImGui::TreePop();
+				}
 				ImGui::PopID();
-				ImGui::Separator();
 			}
 			
 			for(auto& stateName : statesToDelete)
