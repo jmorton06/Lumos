@@ -30,6 +30,7 @@
 #include "Utilities/LoadImage.h"
 #include "Core/OS/Input.h"
 #include "Core/OS/Window.h"
+#include "Core/OS/OS.h"
 #include "Core/Profiler.h"
 #include "Core/VFS.h"
 #include "Core/OS/FileSystem.h"
@@ -58,19 +59,21 @@ namespace Lumos
 		LUMOS_ASSERT(!s_Instance, "Application already exists!");
 		s_Instance = this;
         
+#ifdef LUMOS_PLATFORM_IOS
+        FilePath = Lumos::OS::Instance()->GetAssetPath() + projectName + ".lmproj";
+#else
         FilePath = projectRoot + projectName + ".lmproj";
+#endif
         
+#ifndef LUMOS_PLATFORM_IOS
         const std::string root = ROOT_DIR;
         VFS::Get()->Mount("Meshes", root + projectRoot + "/res/meshes");
         VFS::Get()->Mount("Textures", root + projectRoot +  "/res/textures");
         VFS::Get()->Mount("Sounds", root + projectRoot + "/res/sounds");
         VFS::Get()->Mount("Scripts", root + projectRoot + "/res/scripts");
         VFS::Get()->Mount("Scenes", root + projectRoot + "/res/scenes");
-
-        VFS::Get()->Mount("CoreShaders", root + "/Lumos/res/shaders");
-        VFS::Get()->Mount("CoreMeshes", root + "/Lumos/res/meshes");
-        VFS::Get()->Mount("CoreTextures", root + "/Lumos/res/textures");
-        VFS::Get()->Mount("CoreFonts", root + "/Lumos/res/fonts");
+        VFS::Get()->Mount("CoreShaders", root + "/Lumos/res/EngineShaders");
+#endif
 		
         m_SceneManager = CreateUniqueRef<SceneManager>();
 
@@ -502,7 +505,11 @@ namespace Lumos
 	{
 		LUMOS_PROFILE_FUNCTION();
 		{
-			auto fullPath = ROOT_DIR + filePath;
+#ifdef LUMOS_PLATFORM_IOS
+            auto fullPath = filePath;
+#else
+            auto fullPath = ROOT_DIR + filePath;
+#endif
 			if(!FileSystem::FileExists(fullPath))
 			{
                 LUMOS_LOG_INFO("No saved Project file found {0}", fullPath);
@@ -520,7 +527,7 @@ namespace Lumos
 				return;
 			}
 			
-			std::string data = FileSystem::ReadTextFile(fullPath);
+  			std::string data = FileSystem::ReadTextFile(fullPath);
 			std::istringstream istr;
 			istr.str(data);
 			cereal::JSONInputArchive input(istr);

@@ -14,6 +14,7 @@
 #include "Core/Application.h"
 #include "Core/OS/Input.h"
 #include "Core/OS/FileSystem.h"
+#include "Core/OS/OS.h"
 
 #include "Core/Version.h"
 #include "Core/Engine.h"
@@ -33,6 +34,7 @@
 #include "Graphics/MeshFactory.h"
 #include "Graphics/Layers/Layer3D.h"
 #include "Graphics/Sprite.h"
+#include "Graphics/AnimatedSprite.h"
 #include "Graphics/Light.h"
 #include "Graphics/API/Texture.h"
 #include "Graphics/Camera/Camera.h"
@@ -75,8 +77,11 @@ namespace Lumos
 	void Editor::OnInit()
 	{
 		LUMOS_PROFILE_FUNCTION();
+        
+#ifdef LUMOS_PLATFORM_IOS
+        m_TempSceneSaveFilePath = OS::Instance()->GetAssetPath();
+#else
         m_TempSceneSaveFilePath = ROOT_DIR"/bin/";
-#ifndef LUMOS_PLATFORM_IOS
 		const char* ini[] = {ROOT_DIR "/Editor.ini", ROOT_DIR "/Editor/Editor.ini"};
 		bool fileFound = false;
 		std::string filePath;
@@ -1169,10 +1174,10 @@ namespace Lumos
         
 #ifdef LUMOS_RENDER_API_VULKAN
 #	ifdef LUMOS_PLATFORM_WINDOWS
-		// std::string filePath = ROOT_DIR"/Lumos/res/shaders/CompileShadersWindows.bat";
+		// std::string filePath = ROOT_DIR"/Lumos/res/EngineShaders/CompileShadersWindows.bat";
 		// system(filePath.c_str());
 #	elif LUMOS_PLATFORM_MACOS
-		std::string filePath = ROOT_DIR "/Lumos/res/shaders/CompileShadersMac.sh";
+		std::string filePath = ROOT_DIR "/Lumos/res/EngineShaders/CompileShadersMac.sh";
 		system(filePath.c_str());
 #	endif
 #endif
@@ -1267,6 +1272,18 @@ namespace Lumos
 					DebugRenderer::DebugDraw(bb, Maths::Vector4(0.1f, 0.9f, 0.1f, 0.4f), true);
 				}
 			}
+			
+			auto animSprite = registry.try_get<Graphics::AnimatedSprite>(m_SelectedEntity);
+			if(transform && animSprite)
+			{
+				{
+					auto& worldTransform = transform->GetWorldMatrix();
+                    
+					auto bb = Maths::BoundingBox(Maths::Rect(animSprite->GetPosition(), animSprite->GetPosition() + animSprite->GetScale()));
+					bb.Transform(worldTransform);
+					DebugRenderer::DebugDraw(bb, Maths::Vector4(0.1f, 0.9f, 0.1f, 0.4f), true);
+				}
+			}
             
 			auto camera = registry.try_get<Camera>(m_SelectedEntity);
 			if(camera && transform)
@@ -1355,6 +1372,27 @@ namespace Lumos
 		for(auto entity : spriteGroup)
 		{
 			const auto& [sprite, trans] = spriteGroup.get<Graphics::Sprite, Maths::Transform>(entity);
+            
+			auto& worldTransform = trans.GetWorldMatrix();
+			auto bb = Maths::BoundingBox(Maths::Rect(sprite.GetPosition(), sprite.GetPosition() + sprite.GetScale()));
+			bb.Transform(trans.GetWorldMatrix());
+			float dist = ray.HitDistance(bb);
+            
+			if(dist < Maths::M_INFINITY)
+			{
+				if(dist < closestEntityDist)
+				{
+					closestEntityDist = dist;
+					currentClosestEntity = entity;
+				}
+			}
+		}
+		
+		auto animSpriteGroup = registry.group<Graphics::AnimatedSprite>(entt::get<Maths::Transform>);
+        
+		for(auto entity : animSpriteGroup)
+		{
+			const auto& [sprite, trans] = animSpriteGroup.get<Graphics::AnimatedSprite, Maths::Transform>(entity);
             
 			auto& worldTransform = trans.GetWorldMatrix();
 			auto bb = Maths::BoundingBox(Maths::Rect(sprite.GetPosition(), sprite.GetPosition() + sprite.GetScale()));
@@ -1598,24 +1636,26 @@ namespace Lumos
 	void Editor::CacheScene()
 	{
 		LUMOS_PROFILE_FUNCTION();
-		m_Application->GetCurrentScene()->Serialise(m_TempSceneSaveFilePath, true);
+		m_Application->GetCurrentScene()->Serialise(m_TempSceneSaveFilePath, false);
 	}
     
 	void Editor::LoadCachedScene()
 	{
 		LUMOS_PROFILE_FUNCTION();
         
-        
-        if(FileSystem::FileExists(m_TempSceneSaveFilePath + m_Application->GetCurrentScene()->GetSceneName() + ".bin"))
+        if(FileSystem::FileExists(m_TempSceneSaveFilePath + m_Application->GetCurrentScene()->GetSceneName() + ".lsn"))
         {
-            m_Application->GetCurrentScene()->Deserialise(m_TempSceneSaveFilePath, true);
+            m_Application->GetCurrentScene()->Deserialise(m_TempSceneSaveFilePath, false);
         }
-        else if(FileSystem::FileExists(ROOT_DIR "/Sandbox/res/scenes/" + m_Application->GetCurrentScene()->GetSceneName() + ".lsn"))
+        else
         {
-            m_Application->GetCurrentScene()->Deserialise(ROOT_DIR "/Sandbox/res/scenes/", false);
+            std::string physicalPath;
+            if(Lumos::VFS::Get()->ResolvePhysicalPath("/Scenes/" + m_Application->GetCurrentScene()->GetSceneName() + ".lsn", physicalPath))
+            {
+                auto newPath = StringUtilities::RemoveName(physicalPath);
+                m_Application->GetCurrentScene()->Deserialise(newPath, false);
+            }
         }
-        
-		
 	}
     
 }

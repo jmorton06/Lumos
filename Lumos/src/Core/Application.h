@@ -213,7 +213,7 @@ namespace Lumos
             {
                 std::string newPath;
                 VFS::Get()->AbsoulePathToVFS(path, newPath);
-                newPaths.push_back(newPath);
+                newPaths.push_back(path);
             }
 			archive(cereal::make_nvp("Scenes", newPaths));
             //Version 3

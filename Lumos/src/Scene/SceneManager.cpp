@@ -7,6 +7,7 @@
 #include "Scene.h"
 #include "Physics/LumosPhysicsEngine/LumosPhysicsEngine.h"
 #include "Core/OS/FileSystem.h"
+#include "Core/VFS.h"
 
 namespace Lumos
 {
@@ -108,9 +109,11 @@ namespace Lumos
 		m_CurrentScene->SetScreenWidth(static_cast<u32>(screenSize.x));
 		m_CurrentScene->SetScreenHeight(static_cast<u32>(screenSize.y));
         
-        if(FileSystem::FileExists(ROOT_DIR "/Sandbox/res/scenes/" + m_CurrentScene->GetSceneName() + ".lsn"))
+        std::string physicalPath;
+        if(Lumos::VFS::Get()->ResolvePhysicalPath("/Scenes/" + m_CurrentScene->GetSceneName() + ".lsn", physicalPath))
         {
-            m_CurrentScene->Deserialise(ROOT_DIR "/Sandbox/res/scenes/", false);
+            auto newPath = StringUtilities::RemoveName(physicalPath);
+            m_CurrentScene->Deserialise(newPath, false);
         }
         
 	#ifdef LUMOS_EDITOR
@@ -156,6 +159,8 @@ namespace Lumos
     {
         for(auto& filePath : m_SceneFilePathsToLoad)
         {
+            std::string newPath;
+            VFS::Get()->AbsoulePathToVFS(filePath, newPath);
             EnqueueSceneFromFile(filePath);
         }
         
