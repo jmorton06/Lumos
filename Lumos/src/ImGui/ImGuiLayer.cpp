@@ -41,10 +41,10 @@ namespace Lumos
 		Application& app = Application::Get();
 		ImGuiIO& io = ImGui::GetIO();
 		io.DisplaySize = ImVec2(static_cast<float>(app.GetWindow()->GetWidth()), static_cast<float>(app.GetWindow()->GetHeight()));
-		io.ConfigFlags |= ImGuiConfigFlags_DockingEnable;
+        io.ConfigFlags |= ImGuiConfigFlags_DockingEnable;// | ImGuiConfigFlags_IsSRGB;
 
 #ifdef LUMOS_PLATFORM_IOS
-		io.ConfigFlags |= ImGuiConfigFlags_IsTouchScreen;
+		//io.ConfigFlags |= ImGuiConfigFlags_IsTouchScreen;
 #endif
 		io.BackendFlags |= ImGuiBackendFlags_HasMouseCursors;
 		io.ConfigWindowsMoveFromTitleBarOnly = true;

@@ -192,7 +192,7 @@ namespace Lumos
 			void save(Archive& archive) const
 			
 		{
-			 int projectVersion = 3;
+			 int projectVersion = 4;
 			
 			archive(cereal::make_nvp("Project Version", projectVersion));
 			//Version 1
@@ -213,7 +213,7 @@ namespace Lumos
             {
                 std::string newPath;
                 VFS::Get()->AbsoulePathToVFS(path, newPath);
-                newPaths.push_back(newPath);
+                newPaths.push_back(path);
             }
 			archive(cereal::make_nvp("Scenes", newPaths));
             //Version 3

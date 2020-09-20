@@ -113,13 +113,22 @@ namespace Lumos
 		virtual void Deserialise(const std::string& filePath, bool binary = false);
 
 		template<typename Archive>
-		void serialize(Archive& archive)
+		void save(Archive& archive) const
 		{
+			archive(cereal::make_nvp("Version", 3));
+			archive(cereal::make_nvp("Scene Name", m_SceneName));
+		}
+		
+		template<typename Archive>
+			void load(Archive& archive)
+		{
+			archive(cereal::make_nvp("Version", m_SceneSerialisationVersion));
 			archive(cereal::make_nvp("Scene Name", m_SceneName));
 		}
 
 	protected:
 		std::string m_SceneName;
+		int m_SceneSerialisationVersion = 0 ;
 
 		UniqueRef<EntityManager> m_EntityManager;
 

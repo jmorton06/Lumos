@@ -60,18 +60,18 @@ namespace Lumos
 			if(!m_ScreenFramebuffer)
 				GLCall(glGenFramebuffers(1, &m_Handle));
 		}
-
-		void GLFramebuffer::UnBind() const
-		{
-			GLCall(glBindFramebuffer(GL_FRAMEBUFFER, 0));
-		}
-
+		
 		void GLFramebuffer::Bind(u32 width, u32 height) const
 		{
 			GLCall(glBindFramebuffer(GL_DRAW_FRAMEBUFFER, m_ScreenFramebuffer ? 0 : m_Handle));
 			GLCall(glViewport(0, 0, width, height));
-
+			
 			GLCall(glDrawBuffers(static_cast<GLsizei>(m_AttachmentData.size()), m_AttachmentData.data()));
+		}
+
+		void GLFramebuffer::UnBind() const
+		{
+			GLCall(glBindFramebuffer(GL_FRAMEBUFFER, 0));
 		}
 
 		GLenum GLFramebuffer::GetAttachmentPoint(Graphics::TextureFormat format)
@@ -160,7 +160,7 @@ namespace Lumos
 			u32 status = glCheckFramebufferStatus(GL_FRAMEBUFFER);
 			if (status != GL_FRAMEBUFFER_COMPLETE)
 			{
-				Debug::Log::Critical("Unable to create Framebuffer! StatusCode: {0}", status);
+				LUMOS_LOG_CRITICAL("Unable to create Framebuffer! StatusCode: {0}", status);
 			}
 		}
 

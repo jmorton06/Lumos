@@ -144,13 +144,13 @@ namespace Lumos
 		
 			if (!wglMakeCurrent(hDc, tempContext))
 			{
-				Debug::Log::Error("Failed to initialize OpenGL context");
+				LUMOS_LOG_ERROR("Failed to initialize OpenGL context");
 			}
 
 			if (!gladLoadWGL(hDc))
-				Debug::Log::Error("glad failed to load WGL!");
+				LUMOS_LOG_ERROR("glad failed to load WGL!");
 			if (!gladLoadGL())
-				Debug::Log::Error("glad failed to load OpenGL!");
+				LUMOS_LOG_ERROR("glad failed to load OpenGL!");
 
 			const int contextAttribsList[] =
 			{
@@ -168,7 +168,7 @@ namespace Lumos
 			HGLRC hrc = wglCreateContextAttribsARB(hDc, nullptr, contextAttribsList);
 			if (hrc == nullptr)
 			{
-				Debug::Log::Error("Failed to create core OpenGL context");
+				LUMOS_LOG_ERROR("Failed to create core OpenGL context");
 			}
 			else
 			{
@@ -185,12 +185,12 @@ namespace Lumos
 
 			glClearColor(0.2f, 0.2f, 0.2f, 1.0f);
 
-			Debug::Log::Info("----------------------------------");
-			Debug::Log::Info(OPENGLLOG);
-			Debug::Log::Info(glGetString(GL_VERSION));
-			Debug::Log::Info(glGetString(GL_VENDOR));
-			Debug::Log::Info(glGetString(GL_RENDERER));
-			Debug::Log::Info("----------------------------------");
+			LUMOS_LOG_INFO("----------------------------------");
+			LUMOS_LOG_INFO(OPENGLLOG);
+			LUMOS_LOG_INFO(glGetString(GL_VERSION));
+			LUMOS_LOG_INFO(glGetString(GL_VENDOR));
+			LUMOS_LOG_INFO(glGetString(GL_RENDERER));
+			LUMOS_LOG_INFO("----------------------------------");
 
 #if LUMOS_DEBUG
 #ifdef GL_DEBUD_CALLBACK
@@ -208,7 +208,7 @@ namespace Lumos
 					&unusedIds,
 					true);
 #else
-			Debug::Log::Info(OPENGLLOG"glDebugMessageCallback not available");
+			LUMOS_LOG_INFO(OPENGLLOG"glDebugMessageCallback not available");
 #endif
 #endif
 #endif

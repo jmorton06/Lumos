@@ -27,6 +27,10 @@ namespace Lumos
 		template<typename T, typename... Args>
 		T& AddComponent(Args&&... args)
 		{
+#ifdef LUMOS_DEBUG
+            if(HasComponent<T>())
+                LUMOS_LOG_WARN("Attempting to add Component twice");
+#endif
 			return m_Scene->GetRegistry().emplace<T>(m_EntityHandle, std::forward<Args>(args)...);
 		}
 

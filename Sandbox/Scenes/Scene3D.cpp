@@ -3,7 +3,6 @@
 using namespace Lumos;
 using namespace Maths;
 
-static Graphics::AnimatedSprite* sprite = nullptr;
 Scene3D::Scene3D(const std::string& SceneName)
 	: Scene(SceneName)
 {
@@ -33,48 +32,6 @@ void Scene3D::OnInit()
     pendulumHolder.AddComponent<Physics3DComponent>(pendulumHolderPhysics);
     pendulumHolder.AddOrReplaceComponent<Maths::Transform>(Matrix4::Scale(Maths::Vector3(0.5f, 0.5f, 0.5f)));
     //pendulumHolder.AddComponent<Model>(Ref<Graphics::Mesh>(Graphics::CreateCube()), Graphics::PrimitiveType::Cube);
-    
-	auto animatedSpriteTest = m_EntityManager->Create("Player");
-	animatedSpriteTest.AddComponent<Maths::Transform>(Maths::Matrix4::Translation(Maths::Vector3(0.0f,10.0f,0.0f)));
-	animatedSpriteTest.AddComponent<Graphics::AnimatedSprite>(Ref<Graphics::Texture2D>(Graphics::Texture2D::CreateFromFile("animTest","/Textures/Charactervector.png"))
-																  ,Maths::Vector2(0.0f,0.0f),
-																  Maths::Vector2(133.5f,199.75f),
-																  std::vector<Maths::Vector2>{
-																 Maths::Vector2(0.0f,0.0f),
-																	 Maths::Vector2(133.5f,0.0f),
-                                                                    Maths::Vector2(133.5f * 2.0f, 0.0f),
-                                                                    Maths::Vector2(133.5f * 3.0f, 0.0f),
-																  }, 
-																  0.1f,
-																  "Run");
-	
-	sprite = animatedSpriteTest.TryGetComponent<Graphics::AnimatedSprite>();
-	sprite->AddState(std::vector<Maths::Vector2>{
-							 Maths::Vector2(0.0f,199.75f),
-							 Maths::Vector2(133.5f,199.75f),
-							 Maths::Vector2(133.5f * 2.0f, 199.75f),
-							 Maths::Vector2(133.5f * 3.0f, 199.75f),
-					 }, 
-					 0.1f,
-						 "RunUp");
-	
-	sprite->AddState({
-							 {  0.0f,199.75f*2.0f },
-							  { 133.5f,199.75f*2.0f },
-							 { 133.5f * 2.0f, 199.75f*2.0f },
-							 { 133.5f * 3.0f, 199.75f*2.0f },
-					 }, 
-					 0.1f,
-						 "RunLeft");
-	
-	sprite->AddState(std::vector<Maths::Vector2>{
-							 Maths::Vector2(0.0f,199.75f*3.0f),
-							 Maths::Vector2(133.5f,199.75f*3.0f),
-							 Maths::Vector2(133.5f * 2.0f, 199.75f*3.0f),
-							 Maths::Vector2(133.5f * 3.0f, 199.75f*3.0f),
-					 }, 
-					 0.1f,
-					 "RunRight");
 	
 	auto pendulum = m_EntityManager->Create("Pendulum");
 	Ref<RigidBody3D> pendulumPhysics = CreateRef<RigidBody3D>();
@@ -99,23 +56,6 @@ void Scene3D::OnUpdate(const TimeStep& timeStep)
         Application::Get().GetSystem<LumosPhysicsEngine>()->SetPaused(!Application::Get().GetSystem<LumosPhysicsEngine>()->IsPaused());
         Application::Get().GetSystem<B2PhysicsEngine>()->SetPaused(!Application::Get().GetSystem<B2PhysicsEngine>()->IsPaused());
     }
-	
-	if(Input::GetInput()->GetKeyPressed(InputCode::Key::Left))
-	{
-		sprite->SetState("RunLeft");
-	}
-	if(Input::GetInput()->GetKeyPressed(InputCode::Key::Right))
-	{
-		sprite->SetState("RunRight");
-	}
-	if(Input::GetInput()->GetKeyPressed(InputCode::Key::Up))
-	{
-		sprite->SetState("RunUp");
-	}
-	if(Input::GetInput()->GetKeyPressed(InputCode::Key::Down))
-	{
-		sprite->SetState("Run");
-	}
 
 	Camera* cameraComponent = nullptr;
     Maths::Transform* transform = nullptr;

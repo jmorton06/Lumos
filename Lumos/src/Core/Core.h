@@ -103,7 +103,7 @@
 	{												\
 		if(!(condition))							\
 		{											\
-			Lumos::Debug::Log::Error("Assertion Failed!");		\
+			LUMOS_LOG_ERROR("Assertion Failed!");		\
 			LUMOS_BREAK();							\
 		}											\
 	}												
@@ -112,7 +112,7 @@
 	{																\
 		if(!(condition))											\
 		{															\
-			Lumos::Debug::Log::Error("Assertion Failed : {0}", __VA_ARGS__);	\
+			LUMOS_LOG_ERROR("Assertion Failed : {0}", __VA_ARGS__);	\
 			LUMOS_BREAK();											\
 		}															\
 	}																
@@ -134,7 +134,7 @@
 
 #define UNIMPLEMENTED	 												\
 {																		\
-	Lumos::Debug::Log::Error("Unimplemented : {0} : {1}", __FILE__, __LINE__); 		\
+	LUMOS_LOG_ERROR("Unimplemented : {0} : {1}", __FILE__, __LINE__); 		\
 	LUMOS_BREAK();  													\
 }
 
