@@ -37,7 +37,7 @@ namespace Lumos
             
             if(!m_Surface)
             {
-                Debug::Log::Critical("[VULKAN] Failed to create window surface!");
+                LUMOS_LOG_CRITICAL("[VULKAN] Failed to create window surface!");
             }
 
 			// Swap chain

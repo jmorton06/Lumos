@@ -1,5 +1,6 @@
 {
     "value0": {
+        "Version": 3,
         "Scene Name": "Material"
     },
     "value1": 12,
@@ -315,21 +316,21 @@
                     "Ao": "",
                     "Emissive": "",
                     "albedoColour": {
-                        "value0": 1.0,
-                        "value1": 0.0,
-                        "value2": 1.0,
+                        "value0": 0.5118629932403565,
+                        "value1": 0.6216560006141663,
+                        "value2": 0.6399999856948853,
                         "value3": 1.0
                     },
                     "roughnessColour": {
-                        "value0": 1.0,
-                        "value1": 0.0,
-                        "value2": 1.0,
+                        "value0": 0.696426510810852,
+                        "value1": 0.696426510810852,
+                        "value2": 0.696426510810852,
                         "value3": 1.0
                     },
                     "metallicColour": {
-                        "value0": 0.0,
-                        "value1": 1.0,
-                        "value2": 0.0,
+                        "value0": 0.5,
+                        "value1": 0.5,
+                        "value2": 0.5,
                         "value3": 1.0
                     },
                     "emissiveColour": {
@@ -364,21 +365,21 @@
                     "Ao": "",
                     "Emissive": "",
                     "albedoColour": {
-                        "value0": 1.0,
-                        "value1": 0.0,
-                        "value2": 1.0,
+                        "value0": 0.5118629932403565,
+                        "value1": 0.6216560006141663,
+                        "value2": 0.6399999856948853,
                         "value3": 1.0
                     },
                     "roughnessColour": {
-                        "value0": 1.0,
-                        "value1": 0.0,
-                        "value2": 1.0,
+                        "value0": 0.696426510810852,
+                        "value1": 0.696426510810852,
+                        "value2": 0.696426510810852,
                         "value3": 1.0
                     },
                     "metallicColour": {
-                        "value0": 0.0,
-                        "value1": 1.0,
-                        "value2": 0.0,
+                        "value0": 0.5,
+                        "value1": 0.5,
+                        "value2": 0.5,
                         "value3": 1.0
                     },
                     "emissiveColour": {
@@ -413,21 +414,21 @@
                     "Ao": "",
                     "Emissive": "",
                     "albedoColour": {
-                        "value0": 1.0,
-                        "value1": 0.0,
-                        "value2": 1.0,
+                        "value0": 0.5118629932403565,
+                        "value1": 0.6216560006141663,
+                        "value2": 0.6399999856948853,
                         "value3": 1.0
                     },
                     "roughnessColour": {
-                        "value0": 1.0,
-                        "value1": 0.0,
-                        "value2": 1.0,
+                        "value0": 0.696426510810852,
+                        "value1": 0.696426510810852,
+                        "value2": 0.696426510810852,
                         "value3": 1.0
                     },
                     "metallicColour": {
-                        "value0": 0.0,
-                        "value1": 1.0,
-                        "value2": 0.0,
+                        "value0": 0.5,
+                        "value1": 0.5,
+                        "value2": 0.5,
                         "value3": 1.0
                     },
                     "emissiveColour": {
@@ -462,21 +463,21 @@
                     "Ao": "",
                     "Emissive": "",
                     "albedoColour": {
-                        "value0": 1.0,
-                        "value1": 0.0,
-                        "value2": 1.0,
+                        "value0": 0.5118629932403565,
+                        "value1": 0.6216560006141663,
+                        "value2": 0.6399999856948853,
                         "value3": 1.0
                     },
                     "roughnessColour": {
-                        "value0": 1.0,
-                        "value1": 0.0,
-                        "value2": 1.0,
+                        "value0": 0.696426510810852,
+                        "value1": 0.696426510810852,
+                        "value2": 0.696426510810852,
                         "value3": 1.0
                     },
                     "metallicColour": {
-                        "value0": 0.0,
-                        "value1": 1.0,
-                        "value2": 0.0,
+                        "value0": 0.5,
+                        "value1": 0.5,
+                        "value2": 0.5,
                         "value3": 1.0
                     },
                     "emissiveColour": {
@@ -511,21 +512,21 @@
                     "Ao": "",
                     "Emissive": "",
                     "albedoColour": {
-                        "value0": 1.0,
-                        "value1": 0.0,
-                        "value2": 1.0,
+                        "value0": 0.5118629932403565,
+                        "value1": 0.6216560006141663,
+                        "value2": 0.6399999856948853,
                         "value3": 1.0
                     },
                     "roughnessColour": {
-                        "value0": 1.0,
-                        "value1": 0.0,
-                        "value2": 1.0,
+                        "value0": 0.696426510810852,
+                        "value1": 0.696426510810852,
+                        "value2": 0.696426510810852,
                         "value3": 1.0
                     },
                     "metallicColour": {
-                        "value0": 0.0,
-                        "value1": 1.0,
-                        "value2": 0.0,
+                        "value0": 0.5,
+                        "value1": 0.5,
+                        "value2": 0.5,
                         "value3": 1.0
                     },
                     "emissiveColour": {
@@ -560,21 +561,21 @@
                     "Ao": "",
                     "Emissive": "",
                     "albedoColour": {
-                        "value0": 1.0,
-                        "value1": 0.0,
-                        "value2": 1.0,
+                        "value0": 0.5118629932403565,
+                        "value1": 0.6216560006141663,
+                        "value2": 0.6399999856948853,
                         "value3": 1.0
                     },
                     "roughnessColour": {
-                        "value0": 1.0,
-                        "value1": 0.0,
-                        "value2": 1.0,
+                        "value0": 0.696426510810852,
+                        "value1": 0.696426510810852,
+                        "value2": 0.696426510810852,
                         "value3": 1.0
                     },
                     "metallicColour": {
-                        "value0": 0.0,
-                        "value1": 1.0,
-                        "value2": 0.0,
+                        "value0": 0.5,
+                        "value1": 0.5,
+                        "value2": 0.5,
                         "value3": 1.0
                     },
                     "emissiveColour": {
@@ -609,21 +610,21 @@
                     "Ao": "",
                     "Emissive": "",
                     "albedoColour": {
-                        "value0": 1.0,
-                        "value1": 0.0,
-                        "value2": 1.0,
+                        "value0": 0.5118629932403565,
+                        "value1": 0.6216560006141663,
+                        "value2": 0.6399999856948853,
                         "value3": 1.0
                     },
                     "roughnessColour": {
-                        "value0": 1.0,
-                        "value1": 0.0,
-                        "value2": 1.0,
+                        "value0": 0.696426510810852,
+                        "value1": 0.696426510810852,
+                        "value2": 0.696426510810852,
                         "value3": 1.0
                     },
                     "metallicColour": {
-                        "value0": 0.0,
-                        "value1": 1.0,
-                        "value2": 0.0,
+                        "value0": 0.5,
+                        "value1": 0.5,
+                        "value2": 0.5,
                         "value3": 1.0
                     },
                     "emissiveColour": {
@@ -651,28 +652,28 @@
             "ptr_wrapper": {
                 "valid": 1,
                 "data": {
-                    "Albedo": "/Textures/checkerboard.tga",
+                    "Albedo": "",
                     "Normal": "",
                     "Metallic": "",
                     "Roughness": "",
                     "Ao": "",
                     "Emissive": "",
                     "albedoColour": {
-                        "value0": 1.0,
-                        "value1": 0.0,
-                        "value2": 1.0,
+                        "value0": 0.5118629932403565,
+                        "value1": 0.6216560006141663,
+                        "value2": 0.6399999856948853,
                         "value3": 1.0
                     },
                     "roughnessColour": {
-                        "value0": 1.0,
-                        "value1": 0.0,
-                        "value2": 1.0,
+                        "value0": 0.696426510810852,
+                        "value1": 0.696426510810852,
+                        "value2": 0.696426510810852,
                         "value3": 1.0
                     },
                     "metallicColour": {
-                        "value0": 0.0,
-                        "value1": 1.0,
-                        "value2": 0.0,
+                        "value0": 0.5,
+                        "value1": 0.5,
+                        "value2": 0.5,
                         "value3": 1.0
                     },
                     "emissiveColour": {
@@ -681,7 +682,7 @@
                         "value2": 0.0,
                         "value3": 1.0
                     },
-                    "usingAlbedoMap": 1.0,
+                    "usingAlbedoMap": 0.0,
                     "usingMetallicMap": 0.0,
                     "usingRoughnessMap": 0.0,
                     "usingNormalMap": 0.0,
@@ -710,8 +711,8 @@
         "value2": 0.0,
         "value3": 0.0,
         "value4": {
-            "value0": 0.43871307373046877,
-            "value1": 0.37121880054473879,
+            "value0": 0.4387131631374359,
+            "value1": 0.37121883034706118,
             "value2": 0.8183687925338745,
             "value3": 1.0
         },
@@ -734,5 +735,6 @@
     "value79": 11,
     "value80": {
         "ControllerType": 4
-    }
+    },
+    "value81": 0
 }

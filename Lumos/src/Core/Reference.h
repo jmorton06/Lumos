@@ -50,11 +50,9 @@ namespace Lumos
 		}
 
 		explicit Reference(T* ptr) noexcept
-			: m_Ptr(ptr)
+			: m_Ptr(nullptr)
+			, m_Counter(nullptr)
 		{
-			m_Ptr = nullptr;
-			m_Counter = nullptr;
-
 			if(ptr)
 				refPointer(ptr);
 		}
@@ -98,7 +96,7 @@ namespace Lumos
 			}
 			else
 			{
-				Debug::Log::Error("Failed to cast Reference");
+				LUMOS_LOG_ERROR("Failed to cast Reference");
 			}
 		}
 
@@ -160,8 +158,7 @@ namespace Lumos
 
 		_FORCE_INLINE_ Reference& operator=(T* newData)
 		{
-			if(newData != nullptr)
-				refPointer(newData);
+			reset(newData);
 			return *this;
 		}
 
@@ -185,7 +182,7 @@ namespace Lumos
 			}
 			else
 			{
-				Debug::Log::Error("Failed to cast Reference");
+				LUMOS_LOG_ERROR("Failed to cast Reference");
 			}
 
 			return *this;

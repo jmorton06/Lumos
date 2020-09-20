@@ -109,7 +109,7 @@ defines
 		systemversion "latest"
 		editandcontinue "Off"
 
-		xcodebuildresources { "Images.xcassets" }
+xcodebuildresources { "Images.xcassets", "libMoltenVK.dylib" }
 
 		xcodebuildsettings
 		{
@@ -147,7 +147,8 @@ defines
 
 		files
 		{
-			"../Resources/MacOSIcons/Images.xcassets",
+	"../Resources/MacOSIcons/Images.xcassets",
+	"../Lumos/external/vulkan/libs/macOS/libMoltenVK.dylib"
 		}
 
 		links
@@ -156,39 +157,6 @@ defines
 		}
 
 		SetRecommendedXcodeSettings()
-
-		filter {"system:macosx", "configurations:release"}
-
-			local source = "../Lumos/external/vulkan/libs/macOS/**"
-			local target = "../bin/release/"
-
-			buildmessage("copying "..source.." -> "..target)
-
-			postbuildcommands {
-				"{COPY} "..source.." "..target
-			}
-
-		filter {"system:macosx", "configurations:Production"}
-
-			local source = "../Lumos/external/vulkan/libs/macOS/**"
-			local target = "../bin/dist/"
-
-			buildmessage("copying "..source.." -> "..target)
-
-			postbuildcommands {
-				"{COPY} "..source.." "..target
-			}
-
-		filter {"system:macosx", "configurations:debug"}
-
-			local source = "../Lumos/external/vulkan/libs/macOS/**"
-			local target = "../bin/debug/"
-
-			buildmessage("copying "..source.." -> "..target)
-
-			postbuildcommands {
-				"{COPY} "..source.." "..target
-			}
 
 	filter "system:ios"
 		cppdialect "C++17"
@@ -212,6 +180,7 @@ defines
 		{
 			"QuartzCore.framework",
 			"Metal.framework",
+            "MetalKit.framework",
         	"IOKit.framework",
         	"CoreFoundation.framework",
 			"CoreVideo.framework",
@@ -231,6 +200,16 @@ defines
 		files
 		{
 			"../Resources/IOSIcons/Images.xcassets",
+	"../Lumos/res/EngineShaders",
+	"../Lumos/src/Platform/iOS/Client/**",
+            "res/shaders",
+            "res/scenes",
+            "res/scripts",
+            "res/meshes",
+            "res/sounds",
+            "res/textures",
+	"Sandbox.lmproj",
+	"Launch Screen.storyboard"
 		}
 
 		xcodebuildsettings
@@ -246,7 +225,6 @@ defines
 			['DEVELOPMENT_TEAM'] = 'C5L4T5BF6L',
 			['INFOPLIST_FILE'] = '../Lumos/src/Platform/iOS/Client/Info.plist',
 			['ASSETCATALOG_COMPILER_APPICON_NAME'] = 'AppIcon',
-			['ASSETCATALOG_COMPILER_LAUNCHIMAGE_NAME'] = 'LaunchImage'
 		}
 
 		if _OPTIONS["teamid"] then
@@ -265,38 +243,17 @@ defines
 		xcodebuildresources
 		{
 			"../Lumos/src/Platform/iOS/Client",
-			"Images.xcassets"
+			"Images.xcassets",
+            "EngineShaders",
+            "shaders",
+            "meshes",
+            "scenes",
+            "scripts",
+            "sounds",
+            "textures",
+            "Sandbox.lmproj"
 		}
-
 		SetRecommendedXcodeSettings()
-
-		local targetAssetDirectory = ""
-
-		filter {"system:ios", "configurations:release"}
-targetAssetDirectory  =root_dir.."/bin/release/Sandbox.app/Assets"
-
-		filter {"system:ios", "configurations:Production"}
-targetAssetDirectory = root_dir.."/bin/dist/Sandbox.app/Assets"
-
-		filter {"system:ios", "configurations:debug"}
-targetAssetDirectory =root_dir.."/bin/debug/Sandbox.app/Assets"
-
-		filter "system:ios"
-			local target = targetAssetDirectory.."/CoreAssets/"
-local source = root_dir.."/Lumos/res/**"
-			buildmessage("copying "..source.." -> "..target)
-			os.mkdir(target)
-			postbuildcommands {
-				"{COPY} "..source.." "..target
-			}
-
-			target = targetAssetDirectory.."/AppAssets/"
-			local source =root_dir.."/Sandbox/res/**"
-			buildmessage("copying "..source.." -> "..target)
-			os.mkdir(target)
-			postbuildcommands {
-				"{COPY} "..source.." "..target
-			}
 
 	filter "system:linux"
 		cppdialect "C++17"

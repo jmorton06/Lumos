@@ -11,7 +11,7 @@ namespace Lumos
 		static VFS* s_Instance;
 
 	private:
-		std::unordered_map<std::string, std::vector<std::string>> m_MountPoints;
+        std::unordered_map<std::string, std::vector<std::string>> m_MountPoints;
 
 	public:
 		void Mount(const std::string& virtualPath, const std::string& physicalPath);

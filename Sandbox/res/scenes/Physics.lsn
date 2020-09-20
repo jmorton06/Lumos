@@ -1,8 +1,9 @@
 {
     "value0": {
+        "Version": 3,
         "Scene Name": "Physics"
     },
-    "value1": 27,
+    "value1": 30,
     "value2": 0,
     "value3": 1,
     "value4": 2,
@@ -30,9 +31,12 @@
     "value26": 24,
     "value27": 25,
     "value28": 26,
-    "value29": 26,
-    "value30": 0,
-    "value31": {
+    "value29": 27,
+    "value30": 28,
+    "value31": 29,
+    "value32": 29,
+    "value33": 0,
+    "value34": {
         "Position": {
             "value0": 0.0,
             "value1": 5.881874084472656,
@@ -50,8 +54,8 @@
             "value2": 1.0
         }
     },
-    "value32": 1,
-    "value33": {
+    "value35": 1,
+    "value36": {
         "Position": {
             "value0": 0.0,
             "value1": 0.0,
@@ -69,8 +73,8 @@
             "value2": 100.0
         }
     },
-    "value34": 2,
-    "value35": {
+    "value37": 2,
+    "value38": {
         "Position": {
             "value0": 12.5,
             "value1": 15.0,
@@ -88,18 +92,18 @@
             "value2": 0.4999999701976776
         }
     },
-    "value36": 3,
-    "value37": {
+    "value39": 3,
+    "value40": {
         "Position": {
             "value0": 12.5,
-            "value1": 10.0,
+            "value1": 2.883321762084961,
             "value2": 20.0
         },
         "Rotation": {
             "value0": 0.0,
             "value1": 0.0,
             "value2": 0.0,
-            "value3": 1.0
+            "value3": 0.9999998807907105
         },
         "Scale": {
             "value0": 0.4999999701976776,
@@ -107,8 +111,8 @@
             "value2": 0.4999999701976776
         }
     },
-    "value38": 4,
-    "value39": {
+    "value41": 4,
+    "value42": {
         "Position": {
             "value0": 0.0,
             "value1": 17.0,
@@ -126,8 +130,8 @@
             "value2": 0.4999999701976776
         }
     },
-    "value40": 5,
-    "value41": {
+    "value43": 5,
+    "value44": {
         "Position": {
             "value0": 1.0,
             "value1": 17.0,
@@ -145,8 +149,8 @@
             "value2": 0.4999999701976776
         }
     },
-    "value42": 6,
-    "value43": {
+    "value45": 6,
+    "value46": {
         "Position": {
             "value0": 2.0,
             "value1": 17.0,
@@ -164,8 +168,8 @@
             "value2": 0.4999999701976776
         }
     },
-    "value44": 7,
-    "value45": {
+    "value47": 7,
+    "value48": {
         "Position": {
             "value0": 3.0,
             "value1": 17.0,
@@ -183,8 +187,8 @@
             "value2": 0.4999999701976776
         }
     },
-    "value46": 8,
-    "value47": {
+    "value49": 8,
+    "value50": {
         "Position": {
             "value0": 4.0,
             "value1": 17.0,
@@ -202,8 +206,8 @@
             "value2": 0.4999999701976776
         }
     },
-    "value48": 9,
-    "value49": {
+    "value51": 9,
+    "value52": {
         "Position": {
             "value0": 5.0,
             "value1": 17.0,
@@ -221,8 +225,8 @@
             "value2": 0.4999999701976776
         }
     },
-    "value50": 10,
-    "value51": {
+    "value53": 10,
+    "value54": {
         "Position": {
             "value0": 6.0,
             "value1": 17.0,
@@ -240,8 +244,8 @@
             "value2": 0.4999999701976776
         }
     },
-    "value52": 11,
-    "value53": {
+    "value55": 11,
+    "value56": {
         "Position": {
             "value0": 7.0,
             "value1": 17.0,
@@ -259,8 +263,8 @@
             "value2": 0.4999999701976776
         }
     },
-    "value54": 12,
-    "value55": {
+    "value57": 12,
+    "value58": {
         "Position": {
             "value0": 8.0,
             "value1": 17.0,
@@ -278,8 +282,8 @@
             "value2": 0.4999999701976776
         }
     },
-    "value56": 13,
-    "value57": {
+    "value59": 13,
+    "value60": {
         "Position": {
             "value0": 9.0,
             "value1": 17.0,
@@ -297,8 +301,8 @@
             "value2": 0.4999999701976776
         }
     },
-    "value58": 14,
-    "value59": {
+    "value61": 14,
+    "value62": {
         "Position": {
             "value0": 0.0,
             "value1": 18.0,
@@ -316,8 +320,8 @@
             "value2": 0.4999999701976776
         }
     },
-    "value60": 15,
-    "value61": {
+    "value63": 15,
+    "value64": {
         "Position": {
             "value0": 1.0,
             "value1": 18.0,
@@ -335,8 +339,8 @@
             "value2": 0.4999999701976776
         }
     },
-    "value62": 16,
-    "value63": {
+    "value65": 16,
+    "value66": {
         "Position": {
             "value0": 2.0,
             "value1": 18.0,
@@ -354,8 +358,8 @@
             "value2": 0.4999999701976776
         }
     },
-    "value64": 17,
-    "value65": {
+    "value67": 17,
+    "value68": {
         "Position": {
             "value0": 3.0,
             "value1": 18.0,
@@ -373,8 +377,8 @@
             "value2": 0.4999999701976776
         }
     },
-    "value66": 18,
-    "value67": {
+    "value69": 18,
+    "value70": {
         "Position": {
             "value0": 4.0,
             "value1": 18.0,
@@ -392,8 +396,8 @@
             "value2": 0.4999999701976776
         }
     },
-    "value68": 19,
-    "value69": {
+    "value71": 19,
+    "value72": {
         "Position": {
             "value0": 5.0,
             "value1": 18.0,
@@ -411,8 +415,8 @@
             "value2": 0.4999999701976776
         }
     },
-    "value70": 20,
-    "value71": {
+    "value73": 20,
+    "value74": {
         "Position": {
             "value0": 6.0,
             "value1": 18.0,
@@ -430,8 +434,8 @@
             "value2": 0.4999999701976776
         }
     },
-    "value72": 21,
-    "value73": {
+    "value75": 21,
+    "value76": {
         "Position": {
             "value0": 7.0,
             "value1": 18.0,
@@ -449,8 +453,8 @@
             "value2": 0.4999999701976776
         }
     },
-    "value74": 22,
-    "value75": {
+    "value77": 22,
+    "value78": {
         "Position": {
             "value0": 8.0,
             "value1": 18.0,
@@ -468,8 +472,8 @@
             "value2": 0.4999999701976776
         }
     },
-    "value76": 23,
-    "value77": {
+    "value79": 23,
+    "value80": {
         "Position": {
             "value0": 9.0,
             "value1": 18.0,
@@ -487,8 +491,8 @@
             "value2": 0.4999999701976776
         }
     },
-    "value78": 25,
-    "value79": {
+    "value81": 25,
+    "value82": {
         "Position": {
             "value0": 26.0,
             "value1": 22.0,
@@ -506,8 +510,8 @@
             "value2": 0.9999999403953552
         }
     },
-    "value80": 26,
-    "value81": {
+    "value83": 26,
+    "value84": {
         "Position": {
             "value0": -31.00002670288086,
             "value1": 11.999995231628418,
@@ -525,126 +529,195 @@
             "value2": 1.0000008344650269
         }
     },
-    "value82": 26,
-    "value83": 0,
-    "value84": {
+    "value85": 27,
+    "value86": {
+        "Position": {
+            "value0": 12.5,
+            "value1": 22.0,
+            "value2": 20.0
+        },
+        "Rotation": {
+            "value0": 0.0,
+            "value1": 0.0,
+            "value2": 0.0,
+            "value3": 1.0
+        },
+        "Scale": {
+            "value0": 0.5,
+            "value1": 0.5,
+            "value2": 0.5
+        }
+    },
+    "value87": 28,
+    "value88": {
+        "Position": {
+            "value0": 34.3039436340332,
+            "value1": 15.190068244934082,
+            "value2": 28.320514678955079
+        },
+        "Rotation": {
+            "value0": 0.0,
+            "value1": 0.0,
+            "value2": 0.0,
+            "value3": 1.0
+        },
+        "Scale": {
+            "value0": 0.9999999403953552,
+            "value1": 0.9999999403953552,
+            "value2": 0.9999999403953552
+        }
+    },
+    "value89": 29,
+    "value90": {
+        "Position": {
+            "value0": 12.5,
+            "value1": 17.0,
+            "value2": 20.0
+        },
+        "Rotation": {
+            "value0": 0.0,
+            "value1": 0.0,
+            "value2": 0.0,
+            "value3": 1.0
+        },
+        "Scale": {
+            "value0": 0.5,
+            "value1": 0.5,
+            "value2": 0.5
+        }
+    },
+    "value91": 29,
+    "value92": 0,
+    "value93": {
         "Name": "Sphere"
     },
-    "value85": 2,
-    "value86": {
+    "value94": 2,
+    "value95": {
         "Name": "Pendulum Holder"
     },
-    "value87": 3,
-    "value88": {
+    "value96": 3,
+    "value97": {
         "Name": "Pendulum"
     },
-    "value89": 4,
-    "value90": {
+    "value98": 4,
+    "value99": {
         "Name": "Sphere0"
     },
-    "value91": 5,
-    "value92": {
+    "value100": 5,
+    "value101": {
         "Name": "Sphere1"
     },
-    "value93": 6,
-    "value94": {
+    "value102": 6,
+    "value103": {
         "Name": "Sphere2"
     },
-    "value95": 7,
-    "value96": {
+    "value104": 7,
+    "value105": {
         "Name": "Sphere3"
     },
-    "value97": 8,
-    "value98": {
+    "value106": 8,
+    "value107": {
         "Name": "Sphere4"
     },
-    "value99": 9,
-    "value100": {
+    "value108": 9,
+    "value109": {
         "Name": "Sphere5"
     },
-    "value101": 10,
-    "value102": {
+    "value110": 10,
+    "value111": {
         "Name": "Sphere6"
     },
-    "value103": 11,
-    "value104": {
+    "value112": 11,
+    "value113": {
         "Name": "Sphere7"
     },
-    "value105": 12,
-    "value106": {
+    "value114": 12,
+    "value115": {
         "Name": "Sphere8"
     },
-    "value107": 13,
-    "value108": {
+    "value116": 13,
+    "value117": {
         "Name": "Sphere9"
     },
-    "value109": 14,
-    "value110": {
+    "value118": 14,
+    "value119": {
         "Name": "Sphere10"
     },
-    "value111": 15,
-    "value112": {
+    "value120": 15,
+    "value121": {
         "Name": "Sphere11"
     },
-    "value113": 16,
-    "value114": {
+    "value122": 16,
+    "value123": {
         "Name": "Sphere12"
     },
-    "value115": 17,
-    "value116": {
+    "value124": 17,
+    "value125": {
         "Name": "Sphere13"
     },
-    "value117": 18,
-    "value118": {
+    "value126": 18,
+    "value127": {
         "Name": "Sphere14"
     },
-    "value119": 19,
-    "value120": {
+    "value128": 19,
+    "value129": {
         "Name": "Sphere15"
     },
-    "value121": 20,
-    "value122": {
+    "value130": 20,
+    "value131": {
         "Name": "Sphere16"
     },
-    "value123": 21,
-    "value124": {
+    "value132": 21,
+    "value133": {
         "Name": "Sphere17"
     },
-    "value125": 22,
-    "value126": {
+    "value134": 22,
+    "value135": {
         "Name": "Sphere18"
     },
-    "value127": 23,
-    "value128": {
+    "value136": 23,
+    "value137": {
         "Name": "Sphere19"
     },
-    "value129": 24,
-    "value130": {
+    "value138": 24,
+    "value139": {
         "Name": "Environment"
     },
-    "value131": 25,
-    "value132": {
+    "value140": 25,
+    "value141": {
         "Name": "Light"
     },
-    "value133": 26,
-    "value134": {
+    "value142": 26,
+    "value143": {
         "Name": "Camera"
     },
-    "value135": 0,
-    "value136": 0,
-    "value137": 1,
-    "value138": 26,
-    "value139": {
+    "value144": 27,
+    "value145": {
+        "Name": "Pendulum Holder"
+    },
+    "value146": 28,
+    "value147": {
+        "Name": "Cat"
+    },
+    "value148": 29,
+    "value149": {
+        "Name": "Pendulum"
+    },
+    "value150": 0,
+    "value151": 0,
+    "value152": 1,
+    "value153": 26,
+    "value154": {
         "Scale": 1.0,
-        "Aspect": 1.5625,
+        "Aspect": 1.537102460861206,
         "FOV": 60.0,
         "Near": 0.10000000149011612,
         "Far": 1000.0
     },
-    "value140": 0,
-    "value141": 24,
-    "value142": 0,
-    "value143": {
+    "value155": 0,
+    "value156": 24,
+    "value157": 0,
+    "value158": {
         "PrimitiveType": 4,
         "FilePath": "Primitive",
         "Material": {
@@ -692,8 +765,8 @@
             }
         }
     },
-    "value144": 1,
-    "value145": {
+    "value159": 1,
+    "value160": {
         "PrimitiveType": 2,
         "FilePath": "Primitive",
         "Material": {
@@ -741,8 +814,8 @@
             }
         }
     },
-    "value146": 2,
-    "value147": {
+    "value161": 2,
+    "value162": {
         "PrimitiveType": 2,
         "FilePath": "Primitive",
         "Material": {
@@ -751,8 +824,8 @@
             }
         }
     },
-    "value148": 3,
-    "value149": {
+    "value163": 3,
+    "value164": {
         "PrimitiveType": 4,
         "FilePath": "Primitive",
         "Material": {
@@ -761,8 +834,8 @@
             }
         }
     },
-    "value150": 4,
-    "value151": {
+    "value165": 4,
+    "value166": {
         "PrimitiveType": 4,
         "FilePath": "Primitive",
         "Material": {
@@ -810,8 +883,8 @@
             }
         }
     },
-    "value152": 5,
-    "value153": {
+    "value167": 5,
+    "value168": {
         "PrimitiveType": 4,
         "FilePath": "Primitive",
         "Material": {
@@ -859,8 +932,8 @@
             }
         }
     },
-    "value154": 6,
-    "value155": {
+    "value169": 6,
+    "value170": {
         "PrimitiveType": 4,
         "FilePath": "Primitive",
         "Material": {
@@ -908,8 +981,8 @@
             }
         }
     },
-    "value156": 7,
-    "value157": {
+    "value171": 7,
+    "value172": {
         "PrimitiveType": 4,
         "FilePath": "Primitive",
         "Material": {
@@ -957,8 +1030,8 @@
             }
         }
     },
-    "value158": 8,
-    "value159": {
+    "value173": 8,
+    "value174": {
         "PrimitiveType": 4,
         "FilePath": "Primitive",
         "Material": {
@@ -1006,8 +1079,8 @@
             }
         }
     },
-    "value160": 9,
-    "value161": {
+    "value175": 9,
+    "value176": {
         "PrimitiveType": 4,
         "FilePath": "Primitive",
         "Material": {
@@ -1055,8 +1128,8 @@
             }
         }
     },
-    "value162": 10,
-    "value163": {
+    "value177": 10,
+    "value178": {
         "PrimitiveType": 4,
         "FilePath": "Primitive",
         "Material": {
@@ -1104,8 +1177,8 @@
             }
         }
     },
-    "value164": 11,
-    "value165": {
+    "value179": 11,
+    "value180": {
         "PrimitiveType": 4,
         "FilePath": "Primitive",
         "Material": {
@@ -1153,8 +1226,8 @@
             }
         }
     },
-    "value166": 12,
-    "value167": {
+    "value181": 12,
+    "value182": {
         "PrimitiveType": 4,
         "FilePath": "Primitive",
         "Material": {
@@ -1202,8 +1275,8 @@
             }
         }
     },
-    "value168": 13,
-    "value169": {
+    "value183": 13,
+    "value184": {
         "PrimitiveType": 4,
         "FilePath": "Primitive",
         "Material": {
@@ -1251,8 +1324,8 @@
             }
         }
     },
-    "value170": 14,
-    "value171": {
+    "value185": 14,
+    "value186": {
         "PrimitiveType": 4,
         "FilePath": "Primitive",
         "Material": {
@@ -1300,8 +1373,8 @@
             }
         }
     },
-    "value172": 15,
-    "value173": {
+    "value187": 15,
+    "value188": {
         "PrimitiveType": 4,
         "FilePath": "Primitive",
         "Material": {
@@ -1349,8 +1422,8 @@
             }
         }
     },
-    "value174": 16,
-    "value175": {
+    "value189": 16,
+    "value190": {
         "PrimitiveType": 4,
         "FilePath": "Primitive",
         "Material": {
@@ -1398,352 +1471,352 @@
             }
         }
     },
-    "value176": 17,
-    "value177": {
-        "PrimitiveType": 4,
-        "FilePath": "Primitive",
-        "Material": {
-            "ptr_wrapper": {
-                "valid": 1,
-                "data": {
-                    "Albedo": "",
-                    "Normal": "",
-                    "Metallic": "",
-                    "Roughness": "",
-                    "Ao": "",
-                    "Emissive": "",
-                    "albedoColour": {
-                        "value0": 0.8999999761581421,
-                        "value1": 0.8999999761581421,
-                        "value2": 0.8999999761581421,
-                        "value3": 0.8999999761581421
-                    },
-                    "roughnessColour": {
-                        "value0": 0.30000001192092898,
-                        "value1": 0.30000001192092898,
-                        "value2": 0.30000001192092898,
-                        "value3": 0.30000001192092898
-                    },
-                    "metallicColour": {
-                        "value0": 0.8999999761581421,
-                        "value1": 0.8999999761581421,
-                        "value2": 0.8999999761581421,
-                        "value3": 0.8999999761581421
-                    },
-                    "emissiveColour": {
-                        "value0": 0.0,
-                        "value1": 0.0,
-                        "value2": 0.0,
-                        "value3": 1.0
-                    },
-                    "usingAlbedoMap": 0.0,
-                    "usingMetallicMap": 0.0,
-                    "usingRoughnessMap": 0.0,
-                    "usingNormalMap": 0.0,
-                    "usingAOMap": 0.0,
-                    "usingEmissiveMap": 0.0,
-                    "workflow": 0.0
-                }
-            }
-        }
-    },
-    "value178": 18,
-    "value179": {
-        "PrimitiveType": 4,
-        "FilePath": "Primitive",
-        "Material": {
-            "ptr_wrapper": {
-                "valid": 1,
-                "data": {
-                    "Albedo": "",
-                    "Normal": "",
-                    "Metallic": "",
-                    "Roughness": "",
-                    "Ao": "",
-                    "Emissive": "",
-                    "albedoColour": {
-                        "value0": 0.8999999761581421,
-                        "value1": 0.8999999761581421,
-                        "value2": 0.8999999761581421,
-                        "value3": 0.8999999761581421
-                    },
-                    "roughnessColour": {
-                        "value0": 0.4000000059604645,
-                        "value1": 0.4000000059604645,
-                        "value2": 0.4000000059604645,
-                        "value3": 0.4000000059604645
-                    },
-                    "metallicColour": {
-                        "value0": 0.8999999761581421,
-                        "value1": 0.8999999761581421,
-                        "value2": 0.8999999761581421,
-                        "value3": 0.8999999761581421
-                    },
-                    "emissiveColour": {
-                        "value0": 0.0,
-                        "value1": 0.0,
-                        "value2": 0.0,
-                        "value3": 1.0
-                    },
-                    "usingAlbedoMap": 0.0,
-                    "usingMetallicMap": 0.0,
-                    "usingRoughnessMap": 0.0,
-                    "usingNormalMap": 0.0,
-                    "usingAOMap": 0.0,
-                    "usingEmissiveMap": 0.0,
-                    "workflow": 0.0
-                }
-            }
-        }
-    },
-    "value180": 19,
-    "value181": {
-        "PrimitiveType": 4,
-        "FilePath": "Primitive",
-        "Material": {
-            "ptr_wrapper": {
-                "valid": 1,
-                "data": {
-                    "Albedo": "",
-                    "Normal": "",
-                    "Metallic": "",
-                    "Roughness": "",
-                    "Ao": "",
-                    "Emissive": "",
-                    "albedoColour": {
-                        "value0": 0.8999999761581421,
-                        "value1": 0.8999999761581421,
-                        "value2": 0.8999999761581421,
-                        "value3": 0.8999999761581421
-                    },
-                    "roughnessColour": {
-                        "value0": 0.5,
-                        "value1": 0.5,
-                        "value2": 0.5,
-                        "value3": 0.5
-                    },
-                    "metallicColour": {
-                        "value0": 0.8999999761581421,
-                        "value1": 0.8999999761581421,
-                        "value2": 0.8999999761581421,
-                        "value3": 0.8999999761581421
-                    },
-                    "emissiveColour": {
-                        "value0": 0.0,
-                        "value1": 0.0,
-                        "value2": 0.0,
-                        "value3": 1.0
-                    },
-                    "usingAlbedoMap": 0.0,
-                    "usingMetallicMap": 0.0,
-                    "usingRoughnessMap": 0.0,
-                    "usingNormalMap": 0.0,
-                    "usingAOMap": 0.0,
-                    "usingEmissiveMap": 0.0,
-                    "workflow": 0.0
-                }
-            }
-        }
-    },
-    "value182": 20,
-    "value183": {
-        "PrimitiveType": 4,
-        "FilePath": "Primitive",
-        "Material": {
-            "ptr_wrapper": {
-                "valid": 1,
-                "data": {
-                    "Albedo": "",
-                    "Normal": "",
-                    "Metallic": "",
-                    "Roughness": "",
-                    "Ao": "",
-                    "Emissive": "",
-                    "albedoColour": {
-                        "value0": 0.8999999761581421,
-                        "value1": 0.8999999761581421,
-                        "value2": 0.8999999761581421,
-                        "value3": 0.8999999761581421
-                    },
-                    "roughnessColour": {
-                        "value0": 0.6000000238418579,
-                        "value1": 0.6000000238418579,
-                        "value2": 0.6000000238418579,
-                        "value3": 0.6000000238418579
-                    },
-                    "metallicColour": {
-                        "value0": 0.8999999761581421,
-                        "value1": 0.8999999761581421,
-                        "value2": 0.8999999761581421,
-                        "value3": 0.8999999761581421
-                    },
-                    "emissiveColour": {
-                        "value0": 0.0,
-                        "value1": 0.0,
-                        "value2": 0.0,
-                        "value3": 1.0
-                    },
-                    "usingAlbedoMap": 0.0,
-                    "usingMetallicMap": 0.0,
-                    "usingRoughnessMap": 0.0,
-                    "usingNormalMap": 0.0,
-                    "usingAOMap": 0.0,
-                    "usingEmissiveMap": 0.0,
-                    "workflow": 0.0
-                }
-            }
-        }
-    },
-    "value184": 21,
-    "value185": {
-        "PrimitiveType": 4,
-        "FilePath": "Primitive",
-        "Material": {
-            "ptr_wrapper": {
-                "valid": 1,
-                "data": {
-                    "Albedo": "",
-                    "Normal": "",
-                    "Metallic": "",
-                    "Roughness": "",
-                    "Ao": "",
-                    "Emissive": "",
-                    "albedoColour": {
-                        "value0": 0.8999999761581421,
-                        "value1": 0.8999999761581421,
-                        "value2": 0.8999999761581421,
-                        "value3": 0.8999999761581421
-                    },
-                    "roughnessColour": {
-                        "value0": 0.699999988079071,
-                        "value1": 0.699999988079071,
-                        "value2": 0.699999988079071,
-                        "value3": 0.699999988079071
-                    },
-                    "metallicColour": {
-                        "value0": 0.8999999761581421,
-                        "value1": 0.8999999761581421,
-                        "value2": 0.8999999761581421,
-                        "value3": 0.8999999761581421
-                    },
-                    "emissiveColour": {
-                        "value0": 0.0,
-                        "value1": 0.0,
-                        "value2": 0.0,
-                        "value3": 1.0
-                    },
-                    "usingAlbedoMap": 0.0,
-                    "usingMetallicMap": 0.0,
-                    "usingRoughnessMap": 0.0,
-                    "usingNormalMap": 0.0,
-                    "usingAOMap": 0.0,
-                    "usingEmissiveMap": 0.0,
-                    "workflow": 0.0
-                }
-            }
-        }
-    },
-    "value186": 22,
-    "value187": {
-        "PrimitiveType": 4,
-        "FilePath": "Primitive",
-        "Material": {
-            "ptr_wrapper": {
-                "valid": 1,
-                "data": {
-                    "Albedo": "",
-                    "Normal": "",
-                    "Metallic": "",
-                    "Roughness": "",
-                    "Ao": "",
-                    "Emissive": "",
-                    "albedoColour": {
-                        "value0": 0.8999999761581421,
-                        "value1": 0.8999999761581421,
-                        "value2": 0.8999999761581421,
-                        "value3": 0.8999999761581421
-                    },
-                    "roughnessColour": {
-                        "value0": 0.800000011920929,
-                        "value1": 0.800000011920929,
-                        "value2": 0.800000011920929,
-                        "value3": 0.800000011920929
-                    },
-                    "metallicColour": {
-                        "value0": 0.8999999761581421,
-                        "value1": 0.8999999761581421,
-                        "value2": 0.8999999761581421,
-                        "value3": 0.8999999761581421
-                    },
-                    "emissiveColour": {
-                        "value0": 0.0,
-                        "value1": 0.0,
-                        "value2": 0.0,
-                        "value3": 1.0
-                    },
-                    "usingAlbedoMap": 0.0,
-                    "usingMetallicMap": 0.0,
-                    "usingRoughnessMap": 0.0,
-                    "usingNormalMap": 0.0,
-                    "usingAOMap": 0.0,
-                    "usingEmissiveMap": 0.0,
-                    "workflow": 0.0
-                }
-            }
-        }
-    },
-    "value188": 23,
-    "value189": {
-        "PrimitiveType": 4,
-        "FilePath": "Primitive",
-        "Material": {
-            "ptr_wrapper": {
-                "valid": 1,
-                "data": {
-                    "Albedo": "",
-                    "Normal": "",
-                    "Metallic": "",
-                    "Roughness": "",
-                    "Ao": "",
-                    "Emissive": "",
-                    "albedoColour": {
-                        "value0": 0.8999999761581421,
-                        "value1": 0.8999999761581421,
-                        "value2": 0.8999999761581421,
-                        "value3": 0.8999999761581421
-                    },
-                    "roughnessColour": {
-                        "value0": 0.9000000357627869,
-                        "value1": 0.9000000357627869,
-                        "value2": 0.9000000357627869,
-                        "value3": 0.9000000357627869
-                    },
-                    "metallicColour": {
-                        "value0": 0.8999999761581421,
-                        "value1": 0.8999999761581421,
-                        "value2": 0.8999999761581421,
-                        "value3": 0.8999999761581421
-                    },
-                    "emissiveColour": {
-                        "value0": 0.0,
-                        "value1": 0.0,
-                        "value2": 0.0,
-                        "value3": 1.0
-                    },
-                    "usingAlbedoMap": 0.0,
-                    "usingMetallicMap": 0.0,
-                    "usingRoughnessMap": 0.0,
-                    "usingNormalMap": 0.0,
-                    "usingAOMap": 0.0,
-                    "usingEmissiveMap": 0.0,
-                    "workflow": 0.0
-                }
-            }
-        }
-    },
-    "value190": 1,
-    "value191": 25,
+    "value191": 17,
     "value192": {
+        "PrimitiveType": 4,
+        "FilePath": "Primitive",
+        "Material": {
+            "ptr_wrapper": {
+                "valid": 1,
+                "data": {
+                    "Albedo": "",
+                    "Normal": "",
+                    "Metallic": "",
+                    "Roughness": "",
+                    "Ao": "",
+                    "Emissive": "",
+                    "albedoColour": {
+                        "value0": 0.8999999761581421,
+                        "value1": 0.8999999761581421,
+                        "value2": 0.8999999761581421,
+                        "value3": 0.8999999761581421
+                    },
+                    "roughnessColour": {
+                        "value0": 0.30000001192092898,
+                        "value1": 0.30000001192092898,
+                        "value2": 0.30000001192092898,
+                        "value3": 0.30000001192092898
+                    },
+                    "metallicColour": {
+                        "value0": 0.8999999761581421,
+                        "value1": 0.8999999761581421,
+                        "value2": 0.8999999761581421,
+                        "value3": 0.8999999761581421
+                    },
+                    "emissiveColour": {
+                        "value0": 0.0,
+                        "value1": 0.0,
+                        "value2": 0.0,
+                        "value3": 1.0
+                    },
+                    "usingAlbedoMap": 0.0,
+                    "usingMetallicMap": 0.0,
+                    "usingRoughnessMap": 0.0,
+                    "usingNormalMap": 0.0,
+                    "usingAOMap": 0.0,
+                    "usingEmissiveMap": 0.0,
+                    "workflow": 0.0
+                }
+            }
+        }
+    },
+    "value193": 18,
+    "value194": {
+        "PrimitiveType": 4,
+        "FilePath": "Primitive",
+        "Material": {
+            "ptr_wrapper": {
+                "valid": 1,
+                "data": {
+                    "Albedo": "",
+                    "Normal": "",
+                    "Metallic": "",
+                    "Roughness": "",
+                    "Ao": "",
+                    "Emissive": "",
+                    "albedoColour": {
+                        "value0": 0.8999999761581421,
+                        "value1": 0.8999999761581421,
+                        "value2": 0.8999999761581421,
+                        "value3": 0.8999999761581421
+                    },
+                    "roughnessColour": {
+                        "value0": 0.4000000059604645,
+                        "value1": 0.4000000059604645,
+                        "value2": 0.4000000059604645,
+                        "value3": 0.4000000059604645
+                    },
+                    "metallicColour": {
+                        "value0": 0.8999999761581421,
+                        "value1": 0.8999999761581421,
+                        "value2": 0.8999999761581421,
+                        "value3": 0.8999999761581421
+                    },
+                    "emissiveColour": {
+                        "value0": 0.0,
+                        "value1": 0.0,
+                        "value2": 0.0,
+                        "value3": 1.0
+                    },
+                    "usingAlbedoMap": 0.0,
+                    "usingMetallicMap": 0.0,
+                    "usingRoughnessMap": 0.0,
+                    "usingNormalMap": 0.0,
+                    "usingAOMap": 0.0,
+                    "usingEmissiveMap": 0.0,
+                    "workflow": 0.0
+                }
+            }
+        }
+    },
+    "value195": 19,
+    "value196": {
+        "PrimitiveType": 4,
+        "FilePath": "Primitive",
+        "Material": {
+            "ptr_wrapper": {
+                "valid": 1,
+                "data": {
+                    "Albedo": "",
+                    "Normal": "",
+                    "Metallic": "",
+                    "Roughness": "",
+                    "Ao": "",
+                    "Emissive": "",
+                    "albedoColour": {
+                        "value0": 0.8999999761581421,
+                        "value1": 0.8999999761581421,
+                        "value2": 0.8999999761581421,
+                        "value3": 0.8999999761581421
+                    },
+                    "roughnessColour": {
+                        "value0": 0.5,
+                        "value1": 0.5,
+                        "value2": 0.5,
+                        "value3": 0.5
+                    },
+                    "metallicColour": {
+                        "value0": 0.8999999761581421,
+                        "value1": 0.8999999761581421,
+                        "value2": 0.8999999761581421,
+                        "value3": 0.8999999761581421
+                    },
+                    "emissiveColour": {
+                        "value0": 0.0,
+                        "value1": 0.0,
+                        "value2": 0.0,
+                        "value3": 1.0
+                    },
+                    "usingAlbedoMap": 0.0,
+                    "usingMetallicMap": 0.0,
+                    "usingRoughnessMap": 0.0,
+                    "usingNormalMap": 0.0,
+                    "usingAOMap": 0.0,
+                    "usingEmissiveMap": 0.0,
+                    "workflow": 0.0
+                }
+            }
+        }
+    },
+    "value197": 20,
+    "value198": {
+        "PrimitiveType": 4,
+        "FilePath": "Primitive",
+        "Material": {
+            "ptr_wrapper": {
+                "valid": 1,
+                "data": {
+                    "Albedo": "",
+                    "Normal": "",
+                    "Metallic": "",
+                    "Roughness": "",
+                    "Ao": "",
+                    "Emissive": "",
+                    "albedoColour": {
+                        "value0": 0.8999999761581421,
+                        "value1": 0.8999999761581421,
+                        "value2": 0.8999999761581421,
+                        "value3": 0.8999999761581421
+                    },
+                    "roughnessColour": {
+                        "value0": 0.6000000238418579,
+                        "value1": 0.6000000238418579,
+                        "value2": 0.6000000238418579,
+                        "value3": 0.6000000238418579
+                    },
+                    "metallicColour": {
+                        "value0": 0.8999999761581421,
+                        "value1": 0.8999999761581421,
+                        "value2": 0.8999999761581421,
+                        "value3": 0.8999999761581421
+                    },
+                    "emissiveColour": {
+                        "value0": 0.0,
+                        "value1": 0.0,
+                        "value2": 0.0,
+                        "value3": 1.0
+                    },
+                    "usingAlbedoMap": 0.0,
+                    "usingMetallicMap": 0.0,
+                    "usingRoughnessMap": 0.0,
+                    "usingNormalMap": 0.0,
+                    "usingAOMap": 0.0,
+                    "usingEmissiveMap": 0.0,
+                    "workflow": 0.0
+                }
+            }
+        }
+    },
+    "value199": 21,
+    "value200": {
+        "PrimitiveType": 4,
+        "FilePath": "Primitive",
+        "Material": {
+            "ptr_wrapper": {
+                "valid": 1,
+                "data": {
+                    "Albedo": "",
+                    "Normal": "",
+                    "Metallic": "",
+                    "Roughness": "",
+                    "Ao": "",
+                    "Emissive": "",
+                    "albedoColour": {
+                        "value0": 0.8999999761581421,
+                        "value1": 0.8999999761581421,
+                        "value2": 0.8999999761581421,
+                        "value3": 0.8999999761581421
+                    },
+                    "roughnessColour": {
+                        "value0": 0.699999988079071,
+                        "value1": 0.699999988079071,
+                        "value2": 0.699999988079071,
+                        "value3": 0.699999988079071
+                    },
+                    "metallicColour": {
+                        "value0": 0.8999999761581421,
+                        "value1": 0.8999999761581421,
+                        "value2": 0.8999999761581421,
+                        "value3": 0.8999999761581421
+                    },
+                    "emissiveColour": {
+                        "value0": 0.0,
+                        "value1": 0.0,
+                        "value2": 0.0,
+                        "value3": 1.0
+                    },
+                    "usingAlbedoMap": 0.0,
+                    "usingMetallicMap": 0.0,
+                    "usingRoughnessMap": 0.0,
+                    "usingNormalMap": 0.0,
+                    "usingAOMap": 0.0,
+                    "usingEmissiveMap": 0.0,
+                    "workflow": 0.0
+                }
+            }
+        }
+    },
+    "value201": 22,
+    "value202": {
+        "PrimitiveType": 4,
+        "FilePath": "Primitive",
+        "Material": {
+            "ptr_wrapper": {
+                "valid": 1,
+                "data": {
+                    "Albedo": "",
+                    "Normal": "",
+                    "Metallic": "",
+                    "Roughness": "",
+                    "Ao": "",
+                    "Emissive": "",
+                    "albedoColour": {
+                        "value0": 0.8999999761581421,
+                        "value1": 0.8999999761581421,
+                        "value2": 0.8999999761581421,
+                        "value3": 0.8999999761581421
+                    },
+                    "roughnessColour": {
+                        "value0": 0.800000011920929,
+                        "value1": 0.800000011920929,
+                        "value2": 0.800000011920929,
+                        "value3": 0.800000011920929
+                    },
+                    "metallicColour": {
+                        "value0": 0.8999999761581421,
+                        "value1": 0.8999999761581421,
+                        "value2": 0.8999999761581421,
+                        "value3": 0.8999999761581421
+                    },
+                    "emissiveColour": {
+                        "value0": 0.0,
+                        "value1": 0.0,
+                        "value2": 0.0,
+                        "value3": 1.0
+                    },
+                    "usingAlbedoMap": 0.0,
+                    "usingMetallicMap": 0.0,
+                    "usingRoughnessMap": 0.0,
+                    "usingNormalMap": 0.0,
+                    "usingAOMap": 0.0,
+                    "usingEmissiveMap": 0.0,
+                    "workflow": 0.0
+                }
+            }
+        }
+    },
+    "value203": 23,
+    "value204": {
+        "PrimitiveType": 4,
+        "FilePath": "Primitive",
+        "Material": {
+            "ptr_wrapper": {
+                "valid": 1,
+                "data": {
+                    "Albedo": "",
+                    "Normal": "",
+                    "Metallic": "",
+                    "Roughness": "",
+                    "Ao": "",
+                    "Emissive": "",
+                    "albedoColour": {
+                        "value0": 0.8999999761581421,
+                        "value1": 0.8999999761581421,
+                        "value2": 0.8999999761581421,
+                        "value3": 0.8999999761581421
+                    },
+                    "roughnessColour": {
+                        "value0": 0.9000000357627869,
+                        "value1": 0.9000000357627869,
+                        "value2": 0.9000000357627869,
+                        "value3": 0.9000000357627869
+                    },
+                    "metallicColour": {
+                        "value0": 0.8999999761581421,
+                        "value1": 0.8999999761581421,
+                        "value2": 0.8999999761581421,
+                        "value3": 0.8999999761581421
+                    },
+                    "emissiveColour": {
+                        "value0": 0.0,
+                        "value1": 0.0,
+                        "value2": 0.0,
+                        "value3": 1.0
+                    },
+                    "usingAlbedoMap": 0.0,
+                    "usingMetallicMap": 0.0,
+                    "usingRoughnessMap": 0.0,
+                    "usingNormalMap": 0.0,
+                    "usingAOMap": 0.0,
+                    "usingEmissiveMap": 0.0,
+                    "workflow": 0.0
+                }
+            }
+        }
+    },
+    "value205": 1,
+    "value206": 25,
+    "value207": {
         "value0": {
             "value0": 26.0,
             "value1": 22.0,
@@ -1759,17 +1832,17 @@
         "value2": 0.0,
         "value3": 0.0,
         "value4": {
-            "value0": 0.4387131631374359,
-            "value1": 0.37121883034706118,
+            "value0": 0.43871307373046877,
+            "value1": 0.3712187707424164,
             "value2": 0.8183687925338745,
             "value3": 1.0
         },
         "value5": 1.2999999523162842,
         "value6": 1.0
     },
-    "value193": 3,
-    "value194": 1,
-    "value195": {
+    "value208": 5,
+    "value209": 1,
+    "value210": {
         "value0": {
             "Position": {
                 "value0": 0.0,
@@ -1817,8 +1890,8 @@
             "Trigger": false
         }
     },
-    "value196": 2,
-    "value197": {
+    "value211": 2,
+    "value212": {
         "value0": {
             "Position": {
                 "value0": 12.5,
@@ -1865,17 +1938,17 @@
             "Trigger": false
         }
     },
-    "value198": 3,
-    "value199": {
+    "value213": 3,
+    "value214": {
         "value0": {
             "Position": {
                 "value0": 12.5,
-                "value1": 10.0,
+                "value1": 2.883321762084961,
                 "value2": 20.0
             },
             "LinearVelocity": {
                 "value0": 0.0,
-                "value1": 0.0,
+                "value1": -11.172093391418457,
                 "value2": 0.0
             },
             "Force": {
@@ -1910,20 +1983,259 @@
             "Trigger": false
         }
     },
-    "value200": 1,
-    "value201": 24,
-    "value202": {
+    "value215": 27,
+    "value216": {
+        "value0": {
+            "Position": {
+                "value0": 12.5,
+                "value1": 22.0,
+                "value2": 20.0
+            },
+            "LinearVelocity": {
+                "value0": 0.0,
+                "value1": 0.0,
+                "value2": 0.0
+            },
+            "Force": {
+                "value0": 0.0,
+                "value1": 0.0,
+                "value2": 0.0
+            },
+            "Mass": 1.0,
+            "AngularVelocity": {
+                "value0": 0.0,
+                "value1": 0.0,
+                "value2": 0.0
+            },
+            "Torque": {
+                "value0": 0.0,
+                "value1": 0.0,
+                "value2": 0.0
+            },
+            "Static": true,
+            "Friction": 0.800000011920929,
+            "Elasticity": 0.8999999761581421,
+            "CollisionShape": {
+                "polymorphic_id": 1,
+                "ptr_wrapper": {
+                    "valid": 1,
+                    "data": {
+                        "value0": {
+                            "value0": 0.5,
+                            "value1": 0.5,
+                            "value2": 0.5
+                        }
+                    }
+                }
+            },
+            "Trigger": false
+        }
+    },
+    "value217": 29,
+    "value218": {
+        "value0": {
+            "Position": {
+                "value0": 12.5,
+                "value1": 17.0,
+                "value2": 20.0
+            },
+            "LinearVelocity": {
+                "value0": 0.0,
+                "value1": 0.0,
+                "value2": 0.0
+            },
+            "Force": {
+                "value0": 0.0,
+                "value1": 0.0,
+                "value2": 0.0
+            },
+            "Mass": 1.0,
+            "AngularVelocity": {
+                "value0": 0.0,
+                "value1": 0.0,
+                "value2": 0.0
+            },
+            "Torque": {
+                "value0": 0.0,
+                "value1": 0.0,
+                "value2": 0.0
+            },
+            "Static": false,
+            "Friction": 0.800000011920929,
+            "Elasticity": 0.8999999761581421,
+            "CollisionShape": {
+                "polymorphic_id": 2,
+                "ptr_wrapper": {
+                    "valid": 1,
+                    "data": {
+                        "value0": 0.5
+                    }
+                }
+            },
+            "Trigger": false
+        }
+    },
+    "value219": 1,
+    "value220": 24,
+    "value221": {
         "value0": "/Textures/cubemap/Arches_E_PineTree",
         "value1": 11,
         "value2": 3072,
         "value3": 4096,
         "value4": ".tga"
     },
-    "value203": 0,
-    "value204": 0,
-    "value205": 1,
-    "value206": 26,
-    "value207": {
+    "value222": 0,
+    "value223": 0,
+    "value224": 1,
+    "value225": 26,
+    "value226": {
         "ControllerType": 4
+    },
+    "value227": 1,
+    "value228": 28,
+    "value229": {
+        "TexturePath": "/Textures/cat.png",
+        "Position": {
+            "value0": 0.0,
+            "value1": 0.0
+        },
+        "Scale": {
+            "value0": 32.0,
+            "value1": 32.0
+        },
+        "Colour": {
+            "value0": 1.0,
+            "value1": 1.0,
+            "value2": 1.0,
+            "value3": 1.0
+        },
+        "AnimationFrames": [
+            {
+                "key": "Sleep",
+                "value": {
+                    "PlayMode": 0,
+                    "Frames": [
+                        {
+                            "value0": 0.0,
+                            "value1": 192.0
+                        },
+                        {
+                            "value0": 32.0,
+                            "value1": 192.0
+                        },
+                        {
+                            "value0": 64.0,
+                            "value1": 192.0
+                        },
+                        {
+                            "value0": 96.0,
+                            "value1": 192.0
+                        }
+                    ],
+                    "FrameDuration": 0.10000000149011612
+                }
+            },
+            {
+                "key": "RunRight",
+                "value": {
+                    "PlayMode": 0,
+                    "Frames": [
+                        {
+                            "value0": 0.0,
+                            "value1": 42.0
+                        },
+                        {
+                            "value0": 32.0,
+                            "value1": 42.0
+                        },
+                        {
+                            "value0": 64.0,
+                            "value1": 42.0
+                        },
+                        {
+                            "value0": 96.0,
+                            "value1": 42.0
+                        }
+                    ],
+                    "FrameDuration": 0.10000000149011612
+                }
+            },
+            {
+                "key": "RunLeft",
+                "value": {
+                    "PlayMode": 0,
+                    "Frames": [
+                        {
+                            "value0": 0.0,
+                            "value1": 96.0
+                        },
+                        {
+                            "value0": 32.0,
+                            "value1": 96.0
+                        },
+                        {
+                            "value0": 64.0,
+                            "value1": 96.0
+                        },
+                        {
+                            "value0": 96.0,
+                            "value1": 96.0
+                        }
+                    ],
+                    "FrameDuration": 0.10000000149011612
+                }
+            },
+            {
+                "key": "RunUp",
+                "value": {
+                    "PlayMode": 0,
+                    "Frames": [
+                        {
+                            "value0": 0.0,
+                            "value1": 64.0
+                        },
+                        {
+                            "value0": 32.0,
+                            "value1": 64.0
+                        },
+                        {
+                            "value0": 64.0,
+                            "value1": 64.0
+                        },
+                        {
+                            "value0": 96.0,
+                            "value1": 64.0
+                        }
+                    ],
+                    "FrameDuration": 0.10000000149011612
+                }
+            },
+            {
+                "key": "Run",
+                "value": {
+                    "PlayMode": 0,
+                    "Frames": [
+                        {
+                            "value0": 0.0,
+                            "value1": 0.0
+                        },
+                        {
+                            "value0": 32.0,
+                            "value1": 0.0
+                        },
+                        {
+                            "value0": 64.0,
+                            "value1": 0.0
+                        },
+                        {
+                            "value0": 96.0,
+                            "value1": 0.0
+                        }
+                    ],
+                    "FrameDuration": 0.10000000149011612
+                }
+            }
+        ],
+        "State": "RunLeft"
     }
 }

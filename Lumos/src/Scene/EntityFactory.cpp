@@ -44,6 +44,7 @@ namespace Lumos
 		const Maths::Vector4& color)
 	{
 		auto sphere = scene->GetEntityManager()->Create(name);
+		sphere.AddComponent<Maths::Transform>(Maths::Matrix4::Scale(Maths::Vector3(radius, radius, radius)));
 		auto& model = sphere.AddComponent<Graphics::Model>(Ref<Graphics::Mesh>(Graphics::CreateSphere()), Graphics::PrimitiveType::Sphere);
 
 		Ref<Graphics::Material> matInstance = CreateRef<Graphics::Material>();
@@ -57,7 +58,6 @@ namespace Lumos
 		properties.usingMetallicMap = 0.0f;
 		matInstance->SetMaterialProperites(properties);
 		model.GetMeshes().front()->SetMaterial(matInstance);
-		sphere.AddComponent<Maths::Transform>(Maths::Matrix4::Scale(Maths::Vector3(radius, radius, radius)));
 
 		if(physics_enabled)
 		{
@@ -99,6 +99,7 @@ namespace Lumos
 		const Maths::Vector4& color)
 	{
 		auto cube = scene->GetEntityManager()->Create(name);
+		cube.AddComponent<Maths::Transform>(Maths::Matrix4::Scale(halfdims));
 		auto& model = cube.AddComponent<Graphics::Model>(Ref<Graphics::Mesh>(Graphics::CreateCube()), Graphics::PrimitiveType::Cube);
 
 		auto matInstance = CreateRef<Graphics::Material>();
@@ -114,7 +115,6 @@ namespace Lumos
 		matInstance->SetMaterialProperites(properties);
 		matInstance->SetRenderFlags(0);
 		model.GetMeshes().front()->SetMaterial(matInstance);
-		cube.AddComponent<Maths::Transform>(Maths::Matrix4::Scale(halfdims));
 
 		if(physics_enabled)
 		{
@@ -157,7 +157,6 @@ namespace Lumos
 	{
 		auto pyramid = scene->GetEntityManager()->Create(name);
 		auto pyramidMeshEntity = scene->GetEntityManager()->Create();
-        pyramid.AddComponent<Maths::Transform>();
 
 		Ref<Graphics::Material> matInstance = CreateRef<Graphics::Material>();
 		Graphics::MaterialProperties properties;

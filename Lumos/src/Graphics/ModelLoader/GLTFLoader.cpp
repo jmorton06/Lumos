@@ -481,17 +481,17 @@ namespace Lumos::Graphics
 
 		if(!err.empty())
 		{
-			Debug::Log::Error(err);
+			LUMOS_LOG_ERROR(err);
 		}
 
 		if(!warn.empty())
 		{
-			Debug::Log::Error(warn);
+			LUMOS_LOG_ERROR(warn);
 		}
 
 		if(!ret)
 		{
-			Debug::Log::Error("Failed to parse glTF");
+			LUMOS_LOG_ERROR("Failed to parse glTF");
 		}
 
 		auto LoadedMaterials = LoadMaterials(model);

@@ -833,7 +833,7 @@ namespace Lumos
             case Graphics::PrimitiveType::Cylinder  : return Graphics::CreateCylinder();
             case Graphics::PrimitiveType::Terrain   : return Graphics::CreateTerrain();
             case Graphics::PrimitiveType::File :
-            Lumos::Debug::Log::Warning("Trying to create primitive of type File"); return nullptr;
+            LUMOS_LOG_WARN("Trying to create primitive of type File"); return nullptr;
 		}
         
 		LUMOS_LOG_ERROR("Primitive not supported");

@@ -57,7 +57,7 @@ namespace Lumos
 				VK_CHECK_RESULT(vkBeginCommandBuffer(m_CommandBuffer, &beginCI));
 			}
 			else
-				Debug::Log::Critical("BeginRecording() called from a secondary command buffer!");
+				LUMOS_LOG_CRITICAL("BeginRecording() called from a secondary command buffer!");
 			
 			//TracyVkZone(VKDevice::Get().GetTracyContext(), m_CommandBuffer, "Render");
 		}
@@ -80,7 +80,7 @@ namespace Lumos
 				VK_CHECK_RESULT(vkBeginCommandBuffer(m_CommandBuffer, &beginCI));
 			}
 			else
-				Debug::Log::Critical("BeginRecordingSecondary() called from a primary command buffer!");
+				LUMOS_LOG_CRITICAL("BeginRecordingSecondary() called from a primary command buffer!");
 		}
 
 		void VKCommandBuffer::EndRecording()
@@ -130,7 +130,7 @@ namespace Lumos
 					
 			}
 			else
-				Debug::Log::Critical("Used Execute on secondary command buffer!");
+				LUMOS_LOG_CRITICAL("Used Execute on secondary command buffer!");
 		}
 
 		void VKCommandBuffer::ExecuteSecondary(CommandBuffer* primaryCmdBuffer)
@@ -138,7 +138,7 @@ namespace Lumos
 			if (!m_Primary)
 				vkCmdExecuteCommands(static_cast<VKCommandBuffer*>(primaryCmdBuffer)->GetCommandBuffer(), 1, &m_CommandBuffer);
 			else
-				Debug::Log::Critical("Used ExecuteSecondary on primary command buffer!");
+				LUMOS_LOG_CRITICAL("Used ExecuteSecondary on primary command buffer!");
 		}
 
 		void VKCommandBuffer::UpdateViewport(u32 width, u32 height)

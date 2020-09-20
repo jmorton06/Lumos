@@ -105,7 +105,7 @@ namespace Lumos
 					std::string file = (char*)data->Data;
 					if(MoveFile(file, m_MovePath))
 					{
-						Lumos::Debug::Log::Info("Moved File: " + file + " to " + m_MovePath);
+						LUMOS_LOG_INFO("Moved File: " + file + " to " + m_MovePath);
 						m_CurrentDir = ReadDirectory(m_CurrentDirPath);
 					}
 					m_IsDragging = false;
@@ -160,7 +160,7 @@ namespace Lumos
 					std::string a = (char*)data->Data;
 					if(MoveFile(a, m_MovePath))
 					{
-						LUMOS_CORE_INFO("Moved File: " + a + " to " + m_MovePath);
+						LUMOS_LOG_INFO("Moved File: " + a + " to " + m_MovePath);
 					}
 					m_IsDragging = false;
 				}
@@ -181,7 +181,7 @@ namespace Lumos
 						auto data = GetFsContents(m_BaseDirPath);
 						for(int i = 0; i < data.size(); i++)
 						{
-							LUMOS_CORE_INFO(data[i].filename);
+							LUMOS_LOG_INFO(data[i].filename);
 						}
 					}
 

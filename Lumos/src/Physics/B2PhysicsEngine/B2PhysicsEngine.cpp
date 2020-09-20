@@ -66,7 +66,7 @@ namespace Lumos
 
 				if(m_UpdateAccum >= m_UpdateTimestep)
 				{
-					Debug::Log::Error("Physics too slow to run in real time!");
+					LUMOS_LOG_ERROR("Physics too slow to run in real time!");
 					//Drop Time in the hope that it can continue to run in real-time
 					m_UpdateAccum = 0.0f;
 				}

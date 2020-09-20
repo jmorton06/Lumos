@@ -44,8 +44,15 @@ namespace Lumos
 	{
 		m_LayerStack = new LayerStack();
 		m_EntityManager = CreateUniqueRef<EntityManager>(this);
+		m_EntityManager->AddDependency<Physics3DComponent, Maths::Transform>();
+		m_EntityManager->AddDependency<Physics2DComponent, Maths::Transform>();
+		m_EntityManager->AddDependency<Camera, Maths::Transform>();
+		m_EntityManager->AddDependency<Graphics::Model, Maths::Transform>();
+		m_EntityManager->AddDependency<Graphics::Light, Maths::Transform>();
+		m_EntityManager->AddDependency<Graphics::Sprite, Maths::Transform>();
+		m_EntityManager->AddDependency<Graphics::AnimatedSprite, Maths::Transform>();
 	}
-
+	
 	Scene::~Scene()
 	{
 		delete m_LayerStack;
@@ -160,7 +167,10 @@ namespace Lumos
 		layer->OnAttach();
 	}
 
-#define ALL_COMPONENTS Maths::Transform, NameComponent, ActiveComponent, Hierarchy, Camera, LuaScriptComponent, Graphics::Model, Graphics::Light, Physics3DComponent, Graphics::Environment, Graphics::Sprite, Physics2DComponent, DefaultCameraController
+#define ALL_COMPONENTSV1 Maths::Transform, NameComponent, ActiveComponent, Hierarchy, Camera, LuaScriptComponent, Graphics::Model, Graphics::Light, Physics3DComponent, Graphics::Environment, Graphics::Sprite, Physics2DComponent, DefaultCameraController
+	
+#define ALL_COMPONENTSV2 ALL_COMPONENTSV1 , Graphics::AnimatedSprite
+	
 	void Scene::Serialise(const std::string& filePath, bool binary)
 	{
 		LUMOS_PROFILE_FUNCTION();
@@ -176,7 +186,7 @@ namespace Lumos
 				// output finishes flushing its contents when it goes out of scope
 				cereal::BinaryOutputArchive output{file};
                 output(*this);
-				entt::snapshot{m_EntityManager->GetRegistry()}.entities(output).component<ALL_COMPONENTS>(output);
+					entt::snapshot{m_EntityManager->GetRegistry()}.entities(output).component<ALL_COMPONENTSV2>(output);
 			}
 			file.close();
 		}
@@ -189,7 +199,7 @@ namespace Lumos
 				// output finishes flushing its contents when it goes out of scope
 				cereal::JSONOutputArchive output{storage};
                 output(*this);
-				entt::snapshot{m_EntityManager->GetRegistry()}.entities(output).component<ALL_COMPONENTS>(output);
+				entt::snapshot{m_EntityManager->GetRegistry()}.entities(output).component<ALL_COMPONENTSV2>(output);
 			}
 			FileSystem::WriteTextFile(path, storage.str());
 		}
@@ -209,14 +219,17 @@ namespace Lumos
 
 			if(!FileSystem::FileExists(path))
 			{
-				Lumos::Debug::Log::Error("No saved scene file found {0}", path);
+				LUMOS_LOG_ERROR("No saved scene file found {0}", path);
 				return;
 			}
 
 			std::ifstream file(path, std::ios::binary);
 			cereal::BinaryInputArchive input(file);
 			input(*this);
-			entt::snapshot_loader{m_EntityManager->GetRegistry()}.entities(input).component<ALL_COMPONENTS>(input); //continuous_loader
+			if(m_SceneSerialisationVersion < 2)
+				entt::snapshot_loader{m_EntityManager->GetRegistry()}.entities(input).component<ALL_COMPONENTSV1>(input);
+			else
+				entt::snapshot_loader{m_EntityManager->GetRegistry()}.entities(input).component<ALL_COMPONENTSV2>(input);
 		}
 		else
 		{
@@ -224,7 +237,7 @@ namespace Lumos
 
 			if(!FileSystem::FileExists(path))
 			{
-                Lumos::Debug::Log::Error("No saved scene file found {0}", path);
+                LUMOS_LOG_ERROR("No saved scene file found {0}", path);
 				return;
 			}
 			std::string data = FileSystem::ReadTextFile(path);
@@ -232,7 +245,10 @@ namespace Lumos
 			istr.str(data);
 			cereal::JSONInputArchive input(istr);
 			input(*this);
-			entt::snapshot_loader{m_EntityManager->GetRegistry()}.entities(input).component<ALL_COMPONENTS>(input); //continuous_loader
+			if(m_SceneSerialisationVersion < 2)
+				entt::snapshot_loader{m_EntityManager->GetRegistry()}.entities(input).component<ALL_COMPONENTSV1>(input);
+			else
+				entt::snapshot_loader{m_EntityManager->GetRegistry()}.entities(input).component<ALL_COMPONENTSV2>(input);
 		}
         
         m_SceneGraph.DisableOnConstruct(false, m_EntityManager->GetRegistry());

@@ -15,17 +15,17 @@ namespace Lumos
 	{
         Debug::Log::OnInit();
 
-		Debug::Log::Info("Lumos Engine - Version {0}.{1}.{2}", LumosVersion.major, LumosVersion.minor, LumosVersion.patch);
+		LUMOS_LOG_INFO("Lumos Engine - Version {0}.{1}.{2}", LumosVersion.major, LumosVersion.minor, LumosVersion.patch);
 
 		System::JobSystem::OnInit();
-		Debug::Log::Info("Initializing System");
+		LUMOS_LOG_INFO("Initializing System");
 		VFS::OnInit();
         LuaManager::Get().OnInit();
 	}
 
 	void CoreSystem::Shutdown()
 	{
-		Debug::Log::Info("Shutting down System");
+		LUMOS_LOG_INFO("Shutting down System");
 		LuaManager::Release();
 		VFS::OnShutdown();
 		Lumos::Memory::LogMemoryInformation();

@@ -37,8 +37,10 @@ workspace "Lumos"
 		"MultiProcessorCompile"
 	}
 
-	targetdir ("bin/%{cfg.longname}/")
-	objdir ("bin-int/%{cfg.longname}/obj/")
+    outputdir = "%{cfg.buildcfg}-%{cfg.system}-%{cfg.architecture}"
+
+	targetdir ("bin/%{outputdir}/")
+	objdir ("bin-int/%{outputdir}/obj/")
 
 	group "External"
 		require("Lumos/external/box2d/premake5")
