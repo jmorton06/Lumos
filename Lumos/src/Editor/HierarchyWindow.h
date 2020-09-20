@@ -23,5 +23,8 @@ namespace Lumos
 		ImGuiTextFilter m_HierarchyFilter;
 		entt::entity m_DoubleClicked;
 		entt::entity m_HadRecentDroppedEntity;
+		entt::entity m_CurrentPrevious;
+		bool m_SelectUp;
+		bool m_SelectDown;
 	};
 }
