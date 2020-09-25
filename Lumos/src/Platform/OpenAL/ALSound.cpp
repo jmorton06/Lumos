@@ -9,6 +9,7 @@ namespace Lumos
 	ALSound::ALSound(const std::string& fileName, const std::string& format)
 		: m_Format(0)
 	{
+		m_FilePath = fileName;
 		if(format == "wav")
 			m_Data = LoadWav(fileName);
 		else if(format == "ogg")

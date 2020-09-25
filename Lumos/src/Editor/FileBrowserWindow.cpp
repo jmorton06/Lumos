@@ -34,7 +34,7 @@ namespace Lumos
 		{
 			std::string tempFilePath = m_FileBrowser->GetSelected().string();
 
-			std::string filePath = Lumos::BackSlashesToSlashes(tempFilePath);
+			std::string filePath = Lumos::StringUtilities::BackSlashesToSlashes(tempFilePath);
 
 			m_Callback(filePath);
 

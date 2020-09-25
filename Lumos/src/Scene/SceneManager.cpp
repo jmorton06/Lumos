@@ -146,6 +146,7 @@ namespace Lumos
         
         auto name = StringUtilities::RemoveFilePathExtension(StringUtilities::GetFileName(filePath));
         auto scene = new Scene(name);
+		scene->SetHasCppClass(false);
         EnqueueScene(scene);
 	}
 

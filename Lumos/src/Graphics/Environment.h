@@ -63,16 +63,28 @@ namespace Lumos
 				if(m_FilePath != "")
 					Load();
 			}
-
+			
+			const std::string& GetFilePath() const { return m_FilePath; } 
+			const std::string& GetFileType() const { return m_FileType; }
+			u32 GetNumMips() { return m_NumMips; }
+			u32 GetWidth() { return m_Width; }
+			u32 GetHeight() { return m_Height; }
+			
+			void SetFilePath(const std::string& path) { m_FilePath = path; } 
+			void SetFileType(const std::string& type) { m_FileType = type; }
+			 void SetNumMips(u32 num) { m_NumMips = num; }
+			void SetWidth(u32 width) { m_Width = width; }
+			void SetHeight(u32 height) { m_Height = height; }
+			
 		private:
 			Ref<TextureCube> m_Environmnet;
 			Ref<TextureCube> m_PrefilteredEnvironment;
 			Ref<TextureCube> m_IrradianceMap;
-
-			std::string m_FilePath;
+			
 			u32 m_NumMips = 0;
 			u32 m_Width = 0;
 			u32 m_Height = 0;
+			std::string m_FilePath;
 			std::string m_FileType;
 		};
 	}

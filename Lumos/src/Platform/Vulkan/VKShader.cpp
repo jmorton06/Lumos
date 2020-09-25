@@ -96,7 +96,7 @@ namespace Lumos
 		void VKShader::PreProcess(const std::string& source, std::map<ShaderType, std::string>* sources)
 		{
 			type = ShaderType::UNKNOWN;
-			std::vector<std::string> lines = GetLines(source);
+			std::vector<std::string> lines = StringUtilities::GetLines(source);
 			ReadShaderFile(lines, sources);
 		}
 
@@ -105,47 +105,47 @@ namespace Lumos
 			for(u32 i = 0; i < lines.size(); i++)
 			{
 				std::string str = std::string(lines[i]);
-				str = StringReplace(str, '\t');
+				str = StringUtilities::StringReplace(str, '\t');
 
-				if(StartsWith(str, "#shader"))
+				if(StringUtilities::StartsWith(str, "#shader"))
 				{
-					if(StringContains(str, "vertex"))
+					if(StringUtilities::StringContains(str, "vertex"))
 					{
 						type = ShaderType::VERTEX;
 						std::map<ShaderType, std::string>::iterator it = shaders->begin();
 						shaders->insert(it, std::pair<ShaderType, std::string>(type, ""));
 					}
-					else if(StringContains(str, "geometry"))
+					else if(StringUtilities::StringContains(str, "geometry"))
 					{
 						type = ShaderType::GEOMETRY;
 						std::map<ShaderType, std::string>::iterator it = shaders->begin();
 						shaders->insert(it, std::pair<ShaderType, std::string>(type, ""));
 					}
-					else if(StringContains(str, "fragment"))
+					else if(StringUtilities::StringContains(str, "fragment"))
 					{
 						type = ShaderType::FRAGMENT;
 						std::map<ShaderType, std::string>::iterator it = shaders->begin();
 						shaders->insert(it, std::pair<ShaderType, std::string>(type, ""));
 					}
-					else if(StringContains(str, "tess_cont"))
+					else if(StringUtilities::StringContains(str, "tess_cont"))
 					{
 						type = ShaderType::TESSELLATION_CONTROL;
 						std::map<ShaderType, std::string>::iterator it = shaders->begin();
 						shaders->insert(it, std::pair<ShaderType, std::string>(type, ""));
 					}
-					else if(StringContains(str, "tess_eval"))
+					else if(StringUtilities::StringContains(str, "tess_eval"))
 					{
 						type = ShaderType::TESSELLATION_EVALUATION;
 						std::map<ShaderType, std::string>::iterator it = shaders->begin();
 						shaders->insert(it, std::pair<ShaderType, std::string>(type, ""));
 					}
-					else if(StringContains(str, "compute"))
+					else if(StringUtilities::StringContains(str, "compute"))
 					{
 						type = ShaderType::COMPUTE;
 						std::map<ShaderType, std::string>::iterator it = shaders->begin();
 						shaders->insert(it, std::pair<ShaderType, std::string>(type, ""));
 					}
-					else if(StringContains(str, "end"))
+					else if(StringUtilities::StringContains(str, "end"))
 					{
 						type = ShaderType::UNKNOWN;
 					}

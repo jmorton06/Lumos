@@ -21,9 +21,12 @@ namespace Lumos
 
 	LuaScriptComponent::~LuaScriptComponent()
 	{        
+		if(m_Env)
+		{
         sol::protected_function releaseFunc = (*m_Env)["OnRelease"];
         if(releaseFunc.valid())
-            releaseFunc.call();
+				releaseFunc.call();
+		}
 	}
 
 	void LuaScriptComponent::LoadScript(const std::string& fileName)

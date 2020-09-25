@@ -43,9 +43,9 @@ namespace Lumos
 				}
 
 				ImGui::NewLine();
-				ImGui::Text("FPS : %5.2i", Engine::Get().GetFPS());
-				ImGui::Text("UPS : %5.2i", Engine::Get().GetUPS());
-				ImGui::Text("Frame Time : %5.2f ms", Engine::Get().GetFrametime());
+				ImGui::Text("FPS : %5.2i", Engine::Get().Statistics().FramesPerSecond);
+				ImGui::Text("UPS : %5.2i", Engine::Get().Statistics().UpdatesPerSecond);
+				ImGui::Text("Frame Time : %5.2f ms", Engine::Get().Statistics().FrameTime);
 				ImGui::NewLine();
 				ImGui::Text("Scene : %s", Application::Get().GetSceneManager()->GetCurrentScene()->GetSceneName().c_str());
 
