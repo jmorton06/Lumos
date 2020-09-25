@@ -5,6 +5,7 @@
 #include "Maths/Transform.h"
 #include "Editor/Editor.h"
 #include "Graphics/Camera/Camera.h"
+#include "Core/StringUtilities.h"
 
 #include "ImGui/ImGuiHelpers.h"
 
@@ -56,7 +57,7 @@ namespace Lumos
                 
                     ImGui::PopStyleColor();
 
-                    ImGuiHelpers::Tooltip(typeid(T).name());
+                    ImGuiHelpers::Tooltip(StringUtilities::Demangle(typeid(T).name()));
 				}
 			}
 		}

@@ -108,6 +108,16 @@ namespace Lumos
 		Entity CreateEntity(const std::string& name);
     
         EntityManager* GetEntityManager() { return m_EntityManager.get(); }
+		
+		void SetHasCppClass(bool value) 
+		{
+			m_HasCppClass = value;
+		}
+		
+		bool GetHasCppClass() const
+		{
+			return m_HasCppClass;
+		}
 
 		virtual void Serialise(const std::string& filePath, bool binary = false);
 		virtual void Deserialise(const std::string& filePath, bool binary = false);
@@ -115,7 +125,7 @@ namespace Lumos
 		template<typename Archive>
 		void save(Archive& archive) const
 		{
-			archive(cereal::make_nvp("Version", 3));
+			archive(cereal::make_nvp("Version", 4));
 			archive(cereal::make_nvp("Scene Name", m_SceneName));
 		}
 		
@@ -138,6 +148,7 @@ namespace Lumos
 		SceneGraph m_SceneGraph;
 
 		LayerStack* m_LayerStack = nullptr;
+		bool m_HasCppClass = true;
 
 	private:
 		NONCOPYABLE(Scene)

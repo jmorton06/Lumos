@@ -12,9 +12,8 @@ std::string to_string(const T& n)
 
 namespace Lumos
 {
-	class LUMOS_EXPORT StringUtilities
+	 namespace StringUtilities
 	{
-	public:
 		template<typename T>
 		static std::string ToString(const T& input)
 		{
@@ -25,37 +24,10 @@ namespace Lumos
 #endif
 		}
 
-		static std::string GetFilePathExtension(const std::string& FileName)
-		{
-			auto pos = FileName.find_last_of('.');
-			if(pos != std::string::npos)
-				return FileName.substr(pos + 1);
-			return "";
-		}
-
-        static std::string RemoveFilePathExtension(const std::string& FileName)
-        {
-            auto pos = FileName.find_last_of('.');
-            if(pos != std::string::npos)
-                return FileName.substr(0, pos);
-            return FileName;
-        }
-
-		static std::string GetFileName(const std::string& FilePath)
-		{
-			auto pos = FilePath.find_last_of('/');
-			if(pos != std::string::npos)
-				return FilePath.substr(pos + 1);
-			return FilePath;
-		}
-		
-		static std::string RemoveName(const std::string& FilePath)
-		{
-			auto pos = FilePath.find_last_of('/');
-			if(pos != std::string::npos)
-                return FilePath.substr(0, pos + 1);
-            return FilePath;}
-	};
+		std::string GetFilePathExtension(const std::string& FileName);
+        std::string RemoveFilePathExtension(const std::string& FileName);
+		std::string GetFileName(const std::string& FilePath);
+		std::string RemoveName(const std::string& FilePath);
 
 	std::vector<std::string> LUMOS_EXPORT SplitString(const std::string& string, const std::string& delimiters);
 	std::vector<std::string> LUMOS_EXPORT SplitString(const std::string& string, const char delimiter);
@@ -83,5 +55,7 @@ namespace Lumos
 
 	std::string& BackSlashesToSlashes(std::string& string);
 	std::string& SlashesToBackSlashes(std::string& string);
-	std::string& RemoveSpaces(std::string& string);
+		std::string& RemoveSpaces(std::string& string);
+		std::string Demangle(const std::string& string);
+	}
 }

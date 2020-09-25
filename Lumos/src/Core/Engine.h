@@ -14,25 +14,29 @@ namespace Lumos
         Engine();
         ~Engine();
 
-        u32  GetFPS() const { return m_FramesPerSecond;  }
-        u32  GetUPS() const { return m_UpdatesPerSecond; }
-        float GetFrametime() const { return m_Frametime;  }
-        float TargetFrameRate() const { return m_MaxFramesPerSecond; }
         
-        void SetFPS(u32 fps) { m_FramesPerSecond = fps;  }
-        void SetUPS(u32 ups) { m_UpdatesPerSecond = ups; }
-        void SetFrametime(float frameTime) { m_Frametime = frameTime;  }
+        float TargetFrameRate() const { return m_MaxFramesPerSecond; }
         void SetTargetFrameRate(float targetFPS) { m_MaxFramesPerSecond = targetFPS; }
         
         static TimeStep& GetTimeStep() { return Engine::Get().m_TimeStep; }
-
-    private:
-
-        u32  m_UpdatesPerSecond;
-        u32  m_FramesPerSecond;
-        float m_Frametime = 0.1f;
-        float m_MaxFramesPerSecond;
+		
+		struct Stats
+		{
+			u32 UpdatesPerSecond;
+			u32 FramesPerSecond;
+			u32 NumRenderedObjects = 0;
+			u32 NumShadowObjects = 0;
+			float FrameTime = 0.1f;
+			float UsedGPUMemory = 0.0f;
+			float UsedRam = 0.0f;
+		};
+		
+		Stats& Statistics() { return m_Stats; }
+		
+		private:
         
+		Stats m_Stats;
+		float m_MaxFramesPerSecond;
         TimeStep m_TimeStep;
     };
 }
