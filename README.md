@@ -3,8 +3,8 @@
 </h1>
 <h3 align="center">Cross-platform 2D and 3D Game Engine written in C++ that supports both OpenGL and Vulkan.</h3>
 <p align="center">
-  <a href="#building-🔨">Building</a> |
   <a href="#screenshots">Screenshots</a> |
+  <a href="#building-🔨">Building</a> |
   <a href="#features">Features</a> |
   <a href="#dependencies">Dependencies</a>
 <br/>
@@ -20,6 +20,11 @@
 </p>
 
 #
+
+## Screenshots
+![Lumos](/Resources/Screenshot0920.png?raw=true)
+#
+
 ## Building 🔨
 
 ```
@@ -58,20 +63,17 @@ xcodebuild -project build/Sandbox.xcodeproj CODE_SIGN_IDENTITY="" CODE_SIGNING_R
 To run on apple devices with Vulkan ( MoltenVK ), disable Metal API Validation here : Product > Scheme > Edit Scheme… > Run > Options > Metal API Validation
 #
 
-## Screenshots
-![Lumos](/Resources/Screenshot-1610.png?raw=true)
-#
 ## Features
 
 * Support for Windows, Linux, macOS.
 * Support for OpenGL/Vulkan.
-* 3D audio using OpenAL-Soft.
+* 3D audio using OpenAL.
 * Rendering 3D models with deferred PBR shading.
 * Debug gui using ImGui
 * Custom maths library with simd optimisation.
 * 3D collision detection - cuboid/sphere/pyramid.
 * 2D collision detection - Box2D.
-* Basic lua scripting support - bindings in progress.
+* Basic lua scripting support.
 #
 ## Contributing
 

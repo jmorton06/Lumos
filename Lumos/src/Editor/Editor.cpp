@@ -277,7 +277,9 @@ namespace Lumos
                 
 				if(ImGui::MenuItem("New Scene"))
 				{
-					m_Application->GetSceneManager()->EnqueueScene<Scene>("New Scene");
+					auto scene = new Scene("New Scene");
+					scene->SetHasCppClass(false);
+					m_Application->GetSceneManager()->EnqueueScene(scene);
 					m_Application->GetSceneManager()->SwitchScene((int)(m_Application->GetSceneManager()->GetScenes().size()) - 1);
 				}
                 
@@ -426,49 +428,42 @@ namespace Lumos
 				{
 					auto entity = scene->CreateEntity("Cube");
 					entity.AddComponent<Graphics::Model>(Ref<Graphics::Mesh>(Graphics::CreatePrimative(Graphics::PrimitiveType::Cube)),Graphics::PrimitiveType::Cube);
-					entity.AddComponent<Maths::Transform>();
 				}
                 
 				if(ImGui::MenuItem("Sphere"))
 				{
 					auto entity = scene->CreateEntity("Sphere");
 					entity.AddComponent<Graphics::Model>(Ref<Graphics::Mesh>(Graphics::CreatePrimative(Graphics::PrimitiveType::Sphere)),Graphics::PrimitiveType::Sphere);
-					entity.AddComponent<Maths::Transform>();
 				}
                 
 				if(ImGui::MenuItem("Pyramid"))
 				{
 					auto entity = scene->CreateEntity("Pyramid");
 					entity.AddComponent<Graphics::Model>(Ref<Graphics::Mesh>(Graphics::CreatePrimative(Graphics::PrimitiveType::Pyramid)),Graphics::PrimitiveType::Pyramid);
-					entity.AddComponent<Maths::Transform>();
 				}
                 
 				if(ImGui::MenuItem("Plane"))
 				{
 					auto entity = scene->CreateEntity("Plane");
 					entity.AddComponent<Graphics::Model>(Ref<Graphics::Mesh>(Graphics::CreatePrimative(Graphics::PrimitiveType::Plane)),Graphics::PrimitiveType::Plane);
-					entity.AddComponent<Maths::Transform>();
 				}
                 
 				if(ImGui::MenuItem("Cylinder"))
 				{
 					auto entity = scene->CreateEntity("Cylinder");
 					entity.AddComponent<Graphics::Model>(Ref<Graphics::Mesh>(Graphics::CreatePrimative(Graphics::PrimitiveType::Cylinder)),Graphics::PrimitiveType::Cylinder);
-					entity.AddComponent<Maths::Transform>();
 				}
                 
 				if(ImGui::MenuItem("Capsule"))
 				{
 					auto entity = scene->CreateEntity("Capsule");
 					entity.AddComponent<Graphics::Model>(Ref<Graphics::Mesh>(Graphics::CreatePrimative(Graphics::PrimitiveType::Capsule)),Graphics::PrimitiveType::Capsule);
-					entity.AddComponent<Maths::Transform>();
 				}
                 
 				if(ImGui::MenuItem("Terrain"))
 				{
 					auto entity = scene->CreateEntity("Terrain");
 					entity.AddComponent<Graphics::Model>(Ref<Graphics::Mesh>(Graphics::CreatePrimative(Graphics::PrimitiveType::Terrain)),Graphics::PrimitiveType::Terrain);
-					entity.AddComponent<Maths::Transform>();
 				}
                 
 				if(ImGui::MenuItem("Light Cube"))
@@ -487,7 +482,7 @@ namespace Lumos
 				}
 				ImGui::EndMenu();
 			}
-            
+			
 			if(ImGui::BeginMenu("About"))
 			{
 				auto& version = Lumos::LumosVersion;
@@ -579,7 +574,7 @@ namespace Lumos
             
 			ImGui::SameLine(ImGui::GetWindowContentRegionMax().x - 240.0f);
 			
-			ImGui::Text("%.2f ms (%i FPS)", 1000.0f / (float)Engine::Get().GetFPS(), Engine::Get().GetFPS());
+			ImGui::Text("%.2f ms (%i FPS)", Engine::Get().Statistics().FrameTime, Engine::Get().Statistics().FramesPerSecond);
 			
 			ImGui::SameLine();
             
@@ -1518,7 +1513,6 @@ namespace Lumos
 		{
 			Entity modelEntity = m_Application->GetSceneManager()->GetCurrentScene()->GetEntityManager()->Create();
 			modelEntity.AddComponent<Graphics::Model>(filePath);
-			modelEntity.AddComponent<Maths::Transform>();
 			m_SelectedEntity = modelEntity.GetHandle();
 		}
 		else if(IsAudioFile(filePath))

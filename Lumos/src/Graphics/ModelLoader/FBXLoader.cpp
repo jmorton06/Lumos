@@ -136,7 +136,7 @@ namespace Lumos::Graphics
 	{
 		std::string err;
 		std::string pathCopy = path;
-		pathCopy = BackSlashesToSlashes(pathCopy);
+		pathCopy = StringUtilities::BackSlashesToSlashes(pathCopy);
 		m_FBXModelDirectory = pathCopy.substr(0, pathCopy.find_last_of('/'));
 		
 		std::string name = m_FBXModelDirectory.substr(m_FBXModelDirectory.find_last_of('/') + 1);
@@ -263,7 +263,7 @@ namespace Lumos::Graphics
 					filename.toString(filePath);
 					
 					stringFilepath = std::string(filePath);
-					stringFilepath = m_FBXModelDirectory + "/" + BackSlashesToSlashes(stringFilepath);
+					stringFilepath = m_FBXModelDirectory + "/" + StringUtilities::BackSlashesToSlashes(stringFilepath);
 					Graphics::Texture2D* texture2D = Graphics::Texture2D::CreateFromFile(stringFilepath, stringFilepath, Graphics::TextureParameters(Graphics::TextureFilter::LINEAR, Graphics::TextureFilter::LINEAR));
 					if(texture2D)
 						textures.albedo = (Ref<Graphics::Texture2D>(texture2D));
@@ -281,7 +281,7 @@ namespace Lumos::Graphics
 					filename.toString(filePath);
 					
 					stringFilepath = std::string(filePath);
-					stringFilepath = m_FBXModelDirectory + "/" + BackSlashesToSlashes(stringFilepath);
+					stringFilepath = m_FBXModelDirectory + "/" + StringUtilities::BackSlashesToSlashes(stringFilepath);
 					Graphics::Texture2D* texture2D = Graphics::Texture2D::CreateFromFile(stringFilepath, stringFilepath, Graphics::TextureParameters(Graphics::TextureFilter::LINEAR, Graphics::TextureFilter::LINEAR));
 					if(texture2D)
 						textures.normal = (Ref<Graphics::Texture2D>(texture2D));
@@ -299,7 +299,7 @@ namespace Lumos::Graphics
 					filename.toString(filePath);
 					
 					stringFilepath = std::string(filePath);
-					stringFilepath = m_FBXModelDirectory + "/" + BackSlashesToSlashes(stringFilepath);
+					stringFilepath = m_FBXModelDirectory + "/" + StringUtilities::BackSlashesToSlashes(stringFilepath);
 					Graphics::Texture2D* texture2D = Graphics::Texture2D::CreateFromFile(stringFilepath, stringFilepath, Graphics::TextureParameters(Graphics::TextureFilter::LINEAR, Graphics::TextureFilter::LINEAR));
 					if(texture2D)
 						textures.metallic = (Ref<Graphics::Texture2D>(texture2D));
@@ -317,7 +317,7 @@ namespace Lumos::Graphics
 					filename.toString(filePath);
 					
 					stringFilepath = std::string(filePath);
-					stringFilepath = m_FBXModelDirectory + "/" + BackSlashesToSlashes(stringFilepath);
+					stringFilepath = m_FBXModelDirectory + "/" +StringUtilities::BackSlashesToSlashes(stringFilepath);
 					Graphics::Texture2D* texture2D = Graphics::Texture2D::CreateFromFile(stringFilepath, stringFilepath, Graphics::TextureParameters(Graphics::TextureFilter::LINEAR, Graphics::TextureFilter::LINEAR));
 					if(texture2D)
 						textures.roughness = (Ref<Graphics::Texture2D>(texture2D));
@@ -334,7 +334,7 @@ namespace Lumos::Graphics
 					filename.toString(filePath);
 					
 					stringFilepath = std::string(filePath);
-					stringFilepath = m_FBXModelDirectory + "/" + BackSlashesToSlashes(stringFilepath);
+					stringFilepath = m_FBXModelDirectory + "/" + StringUtilities::BackSlashesToSlashes(stringFilepath);
 					Graphics::Texture2D* texture2D = Graphics::Texture2D::CreateFromFile(stringFilepath, stringFilepath, Graphics::TextureParameters(Graphics::TextureFilter::LINEAR, Graphics::TextureFilter::LINEAR));
 					if(texture2D)
 						textures.emissive = (Ref<Graphics::Texture2D>(texture2D));
@@ -352,7 +352,7 @@ namespace Lumos::Graphics
 					filename.toString(filePath);
 					
 					stringFilepath = std::string(filePath);
-					stringFilepath = m_FBXModelDirectory + "/" + BackSlashesToSlashes(stringFilepath);
+					stringFilepath = m_FBXModelDirectory + "/" + StringUtilities::BackSlashesToSlashes(stringFilepath);
 					Graphics::Texture2D* texture2D = Graphics::Texture2D::CreateFromFile(stringFilepath, stringFilepath, Graphics::TextureParameters(Graphics::TextureFilter::LINEAR, Graphics::TextureFilter::LINEAR));
 					if(texture2D)
 						textures.metallic = (Ref<Graphics::Texture2D>(texture2D));

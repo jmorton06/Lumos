@@ -42,10 +42,13 @@ namespace Lumos
 		{
 			return 0.0f;
 		}
+		
+		const std::string& GetFilePath() const { return m_FilePath; }
 
 	protected:
 		Sound();
 		bool m_Streaming;
+		std::string m_FilePath;
 
 		AudioData m_Data;
 	};

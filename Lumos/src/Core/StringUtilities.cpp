@@ -2,8 +2,51 @@
 #include "StringUtilities.h"
 #include <cctype>
 
+
+#ifdef _WIN32
+#define WIN32_LEAN_AND_MEAN
+#include <windows.h>
+//
+#include <DbgHelp.h>
+#else
+#include <cxxabi.h>  // __cxa_demangle()
+#endif
+
 namespace Lumos
 {
+	namespace StringUtilities
+	{
+	std::string GetFilePathExtension(const std::string& FileName)
+	{
+		auto pos = FileName.find_last_of('.');
+		if(pos != std::string::npos)
+			return FileName.substr(pos + 1);
+		return "";
+	}
+	
+	std::string RemoveFilePathExtension(const std::string& FileName)
+	{
+		auto pos = FileName.find_last_of('.');
+		if(pos != std::string::npos)
+			return FileName.substr(0, pos);
+		return FileName;
+	}
+	
+	std::string GetFileName(const std::string& FilePath)
+	{
+		auto pos = FilePath.find_last_of('/');
+		if(pos != std::string::npos)
+			return FilePath.substr(pos + 1);
+		return FilePath;
+	}
+	
+	std::string RemoveName(const std::string& FilePath)
+	{
+		auto pos = FilePath.find_last_of('/');
+		if(pos != std::string::npos)
+			return FilePath.substr(0, pos + 1);
+		}
+		
 	std::vector<std::string> SplitString(const std::string& string, const std::string& delimiters)
 	{
 		size_t start = 0;
@@ -97,7 +140,7 @@ namespace Lumos
 	std::string GetBlock(const std::string& string, u32 offset)
 	{
 		const char* str = string.c_str() + offset;
-		return GetBlock(str);
+		return StringUtilities::GetBlock(str);
 	}
 
 	std::string GetStatement(const char* str, const char** outPosition)
@@ -200,4 +243,32 @@ namespace Lumos
 
 		return string;
 	}
+	
+	std::string Demangle(const std::string& string)
+	{
+		if (string.empty()) return {};
+		
+#if defined(_WIN32)
+		char undecorated_name[1024];
+		if (!UnDecorateSymbolName(
+										  string.c_str(), undecorated_name, sizeof(undecorated_name),
+								  UNDNAME_COMPLETE))
+		{
+			return string;
+		}
+		else
+		{
+			return std::string(undecorated_name);
+		}
+#else
+		char* demangled = nullptr;
+		int status = -1;
+		demangled =
+			abi::__cxa_demangle(string.c_str(), nullptr, nullptr, &status);
+		std::string ret = status == 0 ? std::string(demangled) : string;
+		free(demangled);
+		return ret;
+#endif
+	}
 }
+	}
