@@ -22,6 +22,7 @@ namespace Lumos
 		GLIndexBuffer::GLIndexBuffer(u16* data, u32 count, BufferUsage bufferUsage)
 			: m_Count(count), m_Usage(bufferUsage)
 		{
+			LUMOS_PROFILE_FUNCTION();
 			GLCall(glGenBuffers(1, &m_Handle));
 			GLCall(glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_Handle));
 			GLCall(glBufferData(GL_ELEMENT_ARRAY_BUFFER, count * sizeof(u16), data, BufferUsageToOpenGL(m_Usage)));
@@ -30,6 +31,7 @@ namespace Lumos
 		GLIndexBuffer::GLIndexBuffer(u32* data, u32 count, BufferUsage bufferUsage)
 			: m_Count(count), m_Usage(bufferUsage)
 		{
+			LUMOS_PROFILE_FUNCTION();
 			GLCall(glGenBuffers(1, &m_Handle));
 			GLCall(glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_Handle));
 			GLCall(glBufferData(GL_ELEMENT_ARRAY_BUFFER, count * sizeof(u32), data, BufferUsageToOpenGL(m_Usage)));
@@ -37,16 +39,19 @@ namespace Lumos
 
 		GLIndexBuffer::~GLIndexBuffer()
 		{
+			LUMOS_PROFILE_FUNCTION();
 			GLCall(glDeleteBuffers(1, &m_Handle));
 		}
 
 		void GLIndexBuffer::Bind(CommandBuffer* commandBuffer) const
 		{
+			LUMOS_PROFILE_FUNCTION();
 			GLCall(glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_Handle));
 		}
 
 		void GLIndexBuffer::Unbind() const
 		{
+			LUMOS_PROFILE_FUNCTION();
 			GLCall(glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0));
 		}
 

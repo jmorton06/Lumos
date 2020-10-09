@@ -15,7 +15,7 @@
 #include "Graphics/Camera/Camera.h"
 #include "Graphics/Light.h"
 #include "Maths/Transform.h"
-
+#include "Core/Engine.h"
 #include "Scene/Scene.h"
 #include "Maths/Maths.h"
 #include "RenderCommand.h"
@@ -23,7 +23,7 @@
 
 #include <imgui/imgui.h>
 
-#define THREAD_CASCADE_GEN
+//#define THREAD_CASCADE_GEN
 #ifdef THREAD_CASCADE_GEN
 #	include "Core/JobSystem.h"
 #endif
@@ -44,7 +44,6 @@ namespace Lumos
 			, m_ShadowMapSize(shadowMapSize)
 			, m_ShadowMapsInvalidated(true)
 			, m_UniformBuffer(nullptr)
-			, m_ModelUniformBuffer(nullptr)
 		{
 			m_Shader = Ref<Graphics::Shader>(Shader::CreateFromFile("Shadow", "/CoreShaders/"));
 			if(texture == nullptr)
@@ -76,10 +75,7 @@ namespace Lumos
             m_PushConstants.clear();
 
 			delete m_UniformBuffer;
-			delete m_ModelUniformBuffer;
 			delete m_CommandBuffer;
-
-			Memory::AlignedFree(uboDataDynamic.model);
 		}
 
 		void ShadowRenderer::Init()
@@ -90,18 +86,9 @@ namespace Lumos
 			memset(m_VSSystemUniformBuffer, 0, m_VSSystemUniformBufferSize);
 			m_VSSystemUniformBufferOffsets.resize(VSSystemUniformIndex_Size);
 
-			const size_t minUboAlignment = size_t(Graphics::Renderer::GetCapabilities().UniformBufferOffsetAlignment);
-
-			m_DynamicAlignment = sizeof(Lumos::Maths::Matrix4);
-			if(minUboAlignment > 0)
-			{
-				m_DynamicAlignment = (m_DynamicAlignment + minUboAlignment - 1) & ~(minUboAlignment - 1);
-			}
-
 			auto pushConstant = Graphics::PushConstant();
-            pushConstant.type = Graphics::PushConstantDataType::UINT;
-            pushConstant.size = sizeof(i32);
-            pushConstant.data = new u8[sizeof(i32)];
+            pushConstant.size = sizeof(i32) + sizeof(Lumos::Maths::Matrix4);
+            pushConstant.data = new u8[sizeof(i32) + sizeof(Lumos::Maths::Matrix4)];
             pushConstant.shaderStage = ShaderType::VERTEX;
             
             m_PushConstants.push_back(pushConstant);
@@ -128,6 +115,8 @@ namespace Lumos
 			CreateUniformBuffer();
 			CreateFramebuffers();
             m_CurrentDescriptorSets.resize(1);
+
+			m_CommandQueue.reserve(1000);
 		}
 
 		void ShadowRenderer::OnResize(u32 width, u32 height)
@@ -138,8 +127,8 @@ namespace Lumos
 		{
 			LUMOS_PROFILE_FUNCTION();
 			m_CommandQueue.clear();
+			
 			m_CommandBuffer->BeginRecording();
-			m_CommandBuffer->UpdateViewport(m_ShadowMapSize, m_ShadowMapSize);
 		}
 
 		void ShadowRenderer::BeginScene(Scene* scene, Camera* overrideCamera, Maths::Transform* overrideCameraTransform)
@@ -156,7 +145,7 @@ namespace Lumos
 		{
 			LUMOS_PROFILE_FUNCTION();
 			m_CommandBuffer->EndRecording();
-			m_CommandBuffer->Execute(true);
+			m_CommandBuffer->Execute(false);
 		}
 
 		void ShadowRenderer::Present()
@@ -164,22 +153,29 @@ namespace Lumos
 			LUMOS_PROFILE_FUNCTION();
 			int index = 0;
 
-			m_RenderPass->BeginRenderpass(m_CommandBuffer, Maths::Vector4(0.0f), m_ShadowFramebuffer[m_Layer], Graphics::INLINE, m_ShadowMapSize, m_ShadowMapSize);
+			m_RenderPass->BeginRenderpass(m_CommandBuffer, Maths::Vector4(0.0f), m_ShadowFramebuffer[m_Layer], Graphics::INLINE, m_ShadowMapSize, m_ShadowMapSize, false);
 
 			m_Pipeline->Bind(m_CommandBuffer);
 
 			for(auto& command : m_CommandQueue)
 			{
+				Engine::Get().Statistics().NumShadowObjects++;
+				
 				Mesh* mesh = command.mesh;
-
-				const uint32_t dynamicOffset = index * static_cast<uint32_t>(m_DynamicAlignment);
 
                 m_CurrentDescriptorSets[0] = m_Pipeline->GetDescriptorSet();
 
 				mesh->GetVertexBuffer()->Bind(m_CommandBuffer, m_Pipeline.get());
 				mesh->GetIndexBuffer()->Bind(m_CommandBuffer);
                 
-				Renderer::BindDescriptorSets(m_Pipeline.get(), m_CommandBuffer, dynamicOffset, m_CurrentDescriptorSets);
+                u32 layer = static_cast<u32>(m_Layer);
+                auto trans = command.transform;
+                memcpy(m_PushConstants[0].data, &trans, sizeof(Maths::Matrix4));
+                memcpy(m_PushConstants[0].data + sizeof(Maths::Matrix4), &layer, sizeof(u32));
+
+                m_CurrentDescriptorSets[0]->SetPushConstants(m_PushConstants);
+                
+				Renderer::BindDescriptorSets(m_Pipeline.get(), m_CommandBuffer, 0, m_CurrentDescriptorSets);
 				Renderer::DrawIndexed(m_CommandBuffer, DrawType::TRIANGLE, mesh->GetIndexBuffer()->GetCount());
 
 				mesh->GetVertexBuffer()->Unbind();
@@ -188,7 +184,8 @@ namespace Lumos
 				index++;
 			}
 
-			m_RenderPass->EndRenderpass(m_CommandBuffer);
+			m_RenderPass->EndRenderpass(m_CommandBuffer, false);
+            //m_CommandBuffer->Execute(true);
 		}
 
 		void ShadowRenderer::SetShadowMapNum(u32 num)
@@ -229,7 +226,10 @@ namespace Lumos
 
 				Maths::Frustum f;
 				f.Define(m_ShadowProjView[i]);
-
+				
+				if(group.empty())
+					continue;
+				
 				for(auto entity : group)
 				{
 					const auto& [model, trans] = group.get<Model, Maths::Transform>(entity);
@@ -254,10 +254,6 @@ namespace Lumos
 				}
 
 				SetSystemUniforms(m_Shader.get());
-
-				u32 layer = static_cast<u32>(m_Layer);
-                memcpy(m_PushConstants[0].data, &layer, sizeof(u32));
-				m_Pipeline->GetDescriptorSet()->SetPushConstants(m_PushConstants);
 
 				Present();
 			}
@@ -445,7 +441,6 @@ namespace Lumos
 			std::vector<Graphics::DescriptorLayoutInfo> layoutInfo =
 				{
 					{Graphics::DescriptorType::UNIFORM_BUFFER, Graphics::ShaderType::VERTEX, 0},
-					{Graphics::DescriptorType::UNIFORM_BUFFER_DYNAMIC, Graphics::ShaderType::VERTEX, 1},
 				};
 
 			auto attributeDescriptions = Vertex::getAttributeDescriptions();
@@ -473,6 +468,8 @@ namespace Lumos
 			pipelineCI.cullMode = Graphics::CullMode::FRONT;
 			pipelineCI.transparencyEnabled = false;
 			pipelineCI.depthBiasEnabled = true;
+            pipelineCI.pushConstSize = sizeof(u32) + sizeof(Maths::Matrix4);
+            pipelineCI.pushConstSize = 1;
 			pipelineCI.maxObjects = MAX_OBJECTS;
 
 			m_Pipeline = Ref<Graphics::Pipeline>(Graphics::Pipeline::Create(pipelineCI));
@@ -488,15 +485,7 @@ namespace Lumos
 				const uint32_t bufferSize = static_cast<uint32_t>(sizeof(UniformBufferObject));
 				m_UniformBuffer->Init(bufferSize, nullptr);
 			}
-
-			if(m_ModelUniformBuffer == nullptr)
-			{
-				m_ModelUniformBuffer = Graphics::UniformBuffer::Create();
-				const uint32_t bufferSize2 = static_cast<uint32_t>(MAX_OBJECTS * m_DynamicAlignment);
-				uboDataDynamic.model = static_cast<Maths::Matrix4*>(Memory::AlignedAlloc(bufferSize2, m_DynamicAlignment));
-				m_ModelUniformBuffer->Init(bufferSize2, nullptr);
-			}
-
+            
 			std::vector<Graphics::BufferInfo> bufferInfos;
 
 			Graphics::BufferInfo bufferInfo;
@@ -509,18 +498,7 @@ namespace Lumos
 			bufferInfo.shaderType = ShaderType::VERTEX;
 			bufferInfo.systemUniforms = false;
 
-			Graphics::BufferInfo bufferInfo2 = {};
-			bufferInfo2.buffer = m_ModelUniformBuffer;
-			bufferInfo2.offset = 0;
-			bufferInfo2.name = "UniformBufferObject2";
-			bufferInfo2.size = sizeof(Maths::Matrix4);
-			bufferInfo2.type = Graphics::DescriptorType::UNIFORM_BUFFER_DYNAMIC;
-			bufferInfo2.binding = 1;
-			bufferInfo2.shaderType = ShaderType::VERTEX;
-			bufferInfo2.systemUniforms = false;
-
 			bufferInfos.push_back(bufferInfo);
-			bufferInfos.push_back(bufferInfo2);
 
 			m_Pipeline->GetDescriptorSet()->Update(bufferInfos);
 		}
@@ -528,22 +506,16 @@ namespace Lumos
 		void ShadowRenderer::SetSystemUniforms(Shader* shader)
 		{
 			LUMOS_PROFILE_FUNCTION();
-			m_UniformBuffer->SetData(sizeof(UniformBufferObject), *&m_VSSystemUniformBuffer);
-
-			int index = 0;
-
-			for(auto& command : m_CommandQueue)
+			
 			{
-				Maths::Matrix4* modelMat = reinterpret_cast<Maths::Matrix4*>((reinterpret_cast<uint64_t>(uboDataDynamic.model) + (index * m_DynamicAlignment)));
-				*modelMat = command.transform;
-				index++;
+				LUMOS_PROFILE_SCOPE("Vertex Uniform Buffer Update");
+                m_UniformBuffer->SetData(sizeof(Maths::Matrix4) * m_ShadowMapNum, *&m_VSSystemUniformBuffer);
 			}
-			m_ModelUniformBuffer->SetDynamicData(static_cast<uint32_t>(index * m_DynamicAlignment), sizeof(Maths::Matrix4), &*uboDataDynamic.model);
 		}
 
 		void ShadowRenderer::Submit(const RenderCommand& command)
 		{
-			m_CommandQueue.emplace_back(command);
+			m_CommandQueue.push_back(command);
 		}
 
 		void ShadowRenderer::SubmitMesh(Mesh* mesh, Material* material, const Maths::Matrix4& transform, const Maths::Matrix4& textureMatrix)

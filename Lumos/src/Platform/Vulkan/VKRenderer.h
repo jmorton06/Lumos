@@ -9,7 +9,7 @@
 #include "VKDescriptorSet.h"
 #include "Graphics/API/Renderer.h"
 
-#define NUM_SEMAPHORES 10
+#define NUM_SEMAPHORES 3
 
 namespace Lumos
 {
@@ -59,6 +59,8 @@ namespace Lumos
 			Lumos::Graphics::VKContext* m_Context;
 
 			VkSemaphore m_ImageAvailableSemaphore[NUM_SEMAPHORES];
+            VkSemaphore m_RenderFinishedSemaphore[NUM_SEMAPHORES];
+
 			u32 m_CurrentSemaphoreIndex = 0;
 
 			std::string m_RendererTitle;

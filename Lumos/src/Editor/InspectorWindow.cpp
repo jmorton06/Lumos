@@ -33,6 +33,7 @@ namespace MM
 	template<>
 	void ComponentEditorWidget<Lumos::LuaScriptComponent>(entt::registry& reg, entt::registry::entity_type e)
 	{
+		LUMOS_PROFILE_FUNCTION();
 		auto& script = reg.get<Lumos::LuaScriptComponent>(e);
 
         if(!script.Loaded() && !script.GetFilePath().empty())
@@ -87,6 +88,7 @@ namespace MM
 	template<>
 	void ComponentEditorWidget<Lumos::Maths::Transform>(entt::registry& reg, entt::registry::entity_type e)
 	{
+		LUMOS_PROFILE_FUNCTION();
 		auto& transform = reg.get<Lumos::Maths::Transform>(e);
 
 		auto rotation = transform.GetLocalOrientation().EulerAngles();
@@ -142,6 +144,7 @@ namespace MM
 
 	static void CuboidCollisionShapeInspector(Lumos::CuboidCollisionShape* shape, const Lumos::Physics3DComponent& phys)
 	{
+		LUMOS_PROFILE_FUNCTION();
 		ImGui::AlignTextToFramePadding();
 		ImGui::TextUnformatted("Half Dimensions");
 		ImGui::NextColumn();
@@ -159,6 +162,7 @@ namespace MM
 
 	static void SphereCollisionShapeInspector(Lumos::SphereCollisionShape* shape, const Lumos::Physics3DComponent& phys)
 	{
+		LUMOS_PROFILE_FUNCTION();
 		ImGui::AlignTextToFramePadding();
 		ImGui::TextUnformatted("Radius");
 		ImGui::NextColumn();
@@ -176,6 +180,7 @@ namespace MM
 
 	static void PyramidCollisionShapeInspector(Lumos::PyramidCollisionShape* shape, const Lumos::Physics3DComponent& phys)
 	{
+		LUMOS_PROFILE_FUNCTION();
 		ImGui::AlignTextToFramePadding();
 		ImGui::TextUnformatted("Half Dimensions");
 		ImGui::NextColumn();
@@ -193,6 +198,7 @@ namespace MM
 
 	static void CapsuleCollisionShapeInspector(Lumos::CapsuleCollisionShape* shape, const Lumos::Physics3DComponent& phys)
 	{
+		LUMOS_PROFILE_FUNCTION();
 		ImGui::AlignTextToFramePadding();
 		ImGui::TextUnformatted("Half Dimensions");
 		ImGui::NextColumn();
@@ -210,6 +216,7 @@ namespace MM
 
 	std::string CollisionShape2DTypeToString(Lumos::Shape shape)
 	{
+		LUMOS_PROFILE_FUNCTION();
 		switch (shape)
 		{
 			case Lumos::Shape::Circle : return "Circle";
@@ -222,6 +229,7 @@ namespace MM
 
 	Lumos::Shape StringToCollisionShape2DType(const std::string& type)
 	{
+		LUMOS_PROFILE_FUNCTION();
 		if(type == "Circle")
 			return Lumos::Shape::Circle;
 		if(type == "Square")
@@ -235,6 +243,7 @@ namespace MM
 
 	std::string CollisionShapeTypeToString(Lumos::CollisionShapeType type)
 	{
+		LUMOS_PROFILE_FUNCTION();
 		switch(type)
 		{
 		case Lumos::CollisionShapeType::CollisionCuboid:
@@ -255,6 +264,7 @@ namespace MM
 
 	Lumos::CollisionShapeType StringToCollisionShapeType(const std::string& type)
 	{
+		LUMOS_PROFILE_FUNCTION();
 		if(type == "Sphere")
 			return Lumos::CollisionShapeType::CollisionSphere;
 		if(type == "Cuboid")
@@ -271,6 +281,7 @@ namespace MM
 	template<>
 	void ComponentEditorWidget<Lumos::Physics3DComponent>(entt::registry& reg, entt::registry::entity_type e)
 	{
+		LUMOS_PROFILE_FUNCTION();
 		ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(2, 2));
 		ImGui::Columns(2);
 		ImGui::Separator();
@@ -468,6 +479,7 @@ namespace MM
 	template<>
 	void ComponentEditorWidget<Lumos::Physics2DComponent>(entt::registry& reg, entt::registry::entity_type e)
 	{
+		LUMOS_PROFILE_FUNCTION();
 		auto& phys = reg.get<Lumos::Physics2DComponent>(e);
 
 		auto pos = phys.GetRigidBody()->GetPosition();
@@ -575,6 +587,7 @@ namespace MM
 	template<>
 	void ComponentEditorWidget<Lumos::SoundComponent>(entt::registry& reg, entt::registry::entity_type e)
 	{
+		LUMOS_PROFILE_FUNCTION();
 		auto& sound = reg.get<Lumos::SoundComponent>(e);
 
 		auto pos = sound.GetSoundNode()->GetPosition();
@@ -645,6 +658,7 @@ namespace MM
 	template<>
 	void ComponentEditorWidget<Lumos::Camera>(entt::registry& reg, entt::registry::entity_type e)
 	{
+		LUMOS_PROFILE_FUNCTION();
 		auto& camera = reg.get<Lumos::Camera>(e);
 		camera.OnImGui();
 	}
@@ -652,8 +666,8 @@ namespace MM
 	template<>
 	void ComponentEditorWidget<Lumos::Graphics::Sprite>(entt::registry& reg, entt::registry::entity_type e)
 	{
+		LUMOS_PROFILE_FUNCTION();
 		auto& sprite = reg.get<Lumos::Graphics::Sprite>(e);
-
 		sprite.OnImGui();
 	}
 	
@@ -661,6 +675,7 @@ namespace MM
 	template<>
 		void ComponentEditorWidget<Lumos::Graphics::AnimatedSprite>(entt::registry& reg, entt::registry::entity_type e)
 	{
+		LUMOS_PROFILE_FUNCTION();
 		using namespace Lumos;
 		using namespace Graphics;
 		auto& sprite = reg.get<Lumos::Graphics::AnimatedSprite>(e);
@@ -995,6 +1010,7 @@ namespace MM
 	template<>
 	void ComponentEditorWidget<Lumos::Graphics::Light>(entt::registry& reg, entt::registry::entity_type e)
 	{
+		LUMOS_PROFILE_FUNCTION();
 		auto& light = reg.get<Lumos::Graphics::Light>(e);
 
 		ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(2, 2));
@@ -1047,6 +1063,7 @@ namespace MM
 
     Lumos::Graphics::PrimitiveType GetPrimativeName(const std::string& type)
     {
+		LUMOS_PROFILE_FUNCTION();
         if(type == "Cube")
         {
             return Lumos::Graphics::PrimitiveType::Cube;
@@ -1082,6 +1099,7 @@ namespace MM
 
     std::string GetPrimativeName(Lumos::Graphics::PrimitiveType type)
 	{ 
+		LUMOS_PROFILE_FUNCTION();
 		switch (type)
 		{
 			case Lumos::Graphics::PrimitiveType::Cube		: return "Cube";
@@ -1102,6 +1120,7 @@ namespace MM
 	template<>
 	void ComponentEditorWidget<Lumos::Graphics::Model>(entt::registry& reg, entt::registry::entity_type e)
 	{
+		LUMOS_PROFILE_FUNCTION();
 		auto& model = reg.get<Lumos::Graphics::Model>(e);
 		auto& meshes = model.GetMeshes();
         auto primitiveType = model.GetPrimitiveType();
@@ -1526,6 +1545,7 @@ namespace MM
 	template<>
 	void ComponentEditorWidget<Lumos::Graphics::Environment>(entt::registry& reg, entt::registry::entity_type e)
 	{
+		LUMOS_PROFILE_FUNCTION();
 		auto& environment = reg.get<Lumos::Graphics::Environment>(e);
 		Lumos::ImGuiHelpers::Image(environment.GetEnvironmentMap(), Lumos::Maths::Vector2(200, 200));
 		
@@ -1616,6 +1636,7 @@ namespace MM
 	template<>
 	void ComponentEditorWidget<Lumos::TextureMatrixComponent>(entt::registry& reg, entt::registry::entity_type e)
 	{
+		LUMOS_PROFILE_FUNCTION();
 		auto& textureMatrix = reg.get<Lumos::TextureMatrixComponent>(e);
 		Lumos::Maths::Matrix4& mat = textureMatrix.GetMatrix();
 		auto rotation = textureMatrix.GetMatrix().Rotation();
@@ -1672,6 +1693,7 @@ namespace MM
 	template<>
 	void ComponentEditorWidget<Lumos::DefaultCameraController>(entt::registry& reg, entt::registry::entity_type e)
 	{
+		LUMOS_PROFILE_FUNCTION();
 		auto& controllerComp = reg.get<Lumos::DefaultCameraController>(e);
 		ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(2, 2));
 		ImGui::Columns(2);
@@ -1719,6 +1741,7 @@ namespace Lumos
 	static bool init = false;
 	void InspectorWindow::OnNewScene(Scene* scene)
 	{
+		LUMOS_PROFILE_FUNCTION();
 		if(init)
 			return;
 
@@ -1753,6 +1776,7 @@ namespace Lumos
 
 	void InspectorWindow::OnImGui()
 	{   
+		LUMOS_PROFILE_FUNCTION();
 		auto& registry = Application::Get().GetSceneManager()->GetCurrentScene()->GetRegistry();
 		auto selected = m_Editor->GetSelected();
 

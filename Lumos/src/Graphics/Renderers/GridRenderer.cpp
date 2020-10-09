@@ -48,6 +48,7 @@ namespace Lumos
         
 		void GridRenderer::RenderScene(Scene* scene)
 		{
+			LUMOS_PROFILE_FUNCTION();
 			m_CurrentBufferID = 0;
 			if(!m_RenderTexture)
 				m_CurrentBufferID = Renderer::GetSwapchain()->GetCurrentBufferId();
@@ -83,6 +84,7 @@ namespace Lumos
         
 		void GridRenderer::Init()
 		{
+			LUMOS_PROFILE_FUNCTION();
 			m_Shader = Ref<Graphics::Shader>(Shader::CreateFromFile("Grid", "/CoreShaders/"));
 			m_Quad = Graphics::CreatePlane(5000.0f, 5000.f, Maths::Vector3(0.0f, 1.0f, 0.0f));
             
@@ -125,14 +127,13 @@ namespace Lumos
         
 		void GridRenderer::Begin()
 		{
-			m_CommandBuffers[m_CurrentBufferID]->BeginRecording();
-			m_CommandBuffers[m_CurrentBufferID]->UpdateViewport(m_ScreenBufferWidth, m_ScreenBufferHeight);
-            
+			LUMOS_PROFILE_FUNCTION();
 			m_RenderPass->BeginRenderpass(m_CommandBuffers[m_CurrentBufferID].get(), Maths::Vector4(0.0f), m_Framebuffers[m_CurrentBufferID].get(), Graphics::INLINE, m_ScreenBufferWidth, m_ScreenBufferHeight);
 		}
         
 		void GridRenderer::BeginScene(Scene* scene, Camera* overrideCamera, Maths::Transform* overrideCameraTransform)
 		{
+			LUMOS_PROFILE_FUNCTION();
 			auto& registry = scene->GetRegistry();
             
 			if(overrideCamera)
@@ -168,8 +169,8 @@ namespace Lumos
         
 		void GridRenderer::End()
 		{
+			LUMOS_PROFILE_FUNCTION();
 			m_RenderPass->EndRenderpass(m_CommandBuffers[m_CurrentBufferID].get());
-			m_CommandBuffers[m_CurrentBufferID]->EndRecording();
             
 			if(m_RenderTexture)
 				m_CommandBuffers[m_CurrentBufferID]->Execute(true);
@@ -177,12 +178,14 @@ namespace Lumos
         
 		void GridRenderer::SetSystemUniforms(Shader* shader) const
 		{
+			LUMOS_PROFILE_FUNCTION();
 			m_UniformBuffer->SetData(sizeof(UniformBufferObject), *&m_VSSystemUniformBuffer);
 			m_UniformBufferFrag->SetData(sizeof(UniformBufferObjectFrag), *&m_PSSystemUniformBuffer);
 		}
         
 		void GridRenderer::OnImGui()
 		{
+			LUMOS_PROFILE_FUNCTION();
 			ImGui::TextUnformatted("Grid Renderer");
             
 			if(ImGui::TreeNode("Parameters"))
@@ -197,6 +200,7 @@ namespace Lumos
         
 		void GridRenderer::OnResize(u32 width, u32 height)
 		{
+			LUMOS_PROFILE_FUNCTION();
 			m_Framebuffers.clear();
             
 			SetScreenBufferSize(width, height);
@@ -207,6 +211,7 @@ namespace Lumos
         
 		void GridRenderer::CreateGraphicsPipeline()
 		{
+			LUMOS_PROFILE_FUNCTION();
 			std::vector<Graphics::DescriptorPoolInfo> poolInfo =
             {
                 {Graphics::DescriptorType::UNIFORM_BUFFER, 2}};
@@ -248,6 +253,7 @@ namespace Lumos
         
 		void GridRenderer::UpdateUniformBuffer()
 		{
+			LUMOS_PROFILE_FUNCTION();
 			if(m_UniformBuffer == nullptr)
 			{
 				m_UniformBuffer = Graphics::UniformBuffer::Create();
@@ -292,6 +298,7 @@ namespace Lumos
         
 		void GridRenderer::SetRenderTarget(Texture* texture, bool rebuildFramebuffer)
 		{
+			LUMOS_PROFILE_FUNCTION();
 			m_RenderTexture = texture;
             
 			if(!rebuildFramebuffer)
@@ -304,6 +311,7 @@ namespace Lumos
         
 		void GridRenderer::CreateFramebuffers()
 		{
+			LUMOS_PROFILE_FUNCTION();
 			TextureType attachmentTypes[1];
 			attachmentTypes[0] = TextureType::COLOUR;
             

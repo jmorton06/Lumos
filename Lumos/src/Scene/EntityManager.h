@@ -45,7 +45,7 @@ namespace Lumos
 			
 			Entity operator*() const
 			{
-				return view[nIndex];
+				return view[int(nIndex)];
 			}
 			iterator & operator++()
 			{
@@ -77,7 +77,7 @@ namespace Lumos
 	}
 	
 	template<typename T>
-	typename EntityView<T>::iterator EntityView<T>::end()
+	typename EntityView<T>::iterator EntityView<T>::end() 
 	{
 		return EntityView<T>::iterator(*this, Size());
 	}

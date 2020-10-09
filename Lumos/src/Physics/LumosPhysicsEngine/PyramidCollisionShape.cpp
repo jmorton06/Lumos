@@ -12,15 +12,19 @@ namespace Lumos
 		m_PyramidHalfDimensions = Maths::Vector3(0.5f, 0.5f, 0.5f);
 		m_Type = CollisionShapeType::CollisionPyramid;
 		m_LocalTransform = Maths::Matrix4::Scale(m_PyramidHalfDimensions);
-
+        
 		if(m_PyramidHull->GetNumVertices() == 0)
 		{
 			ConstructPyramidHull();
 		}
+        
+        m_Axes.resize(5);
+        m_Edges.resize(m_PyramidHull->GetNumEdges());
 	}
 
 	PyramidCollisionShape::PyramidCollisionShape(const Maths::Vector3& halfdims)
 	{
+        LUMOS_PROFILE_FUNCTION();
 		m_PyramidHalfDimensions = halfdims;
 
 		m_LocalTransform = Maths::Matrix4::Scale(m_PyramidHalfDimensions);
@@ -43,6 +47,9 @@ namespace Lumos
 		{
 			ConstructPyramidHull();
 		}
+        
+        m_Axes.resize(5);
+        m_Edges.resize(m_PyramidHull->GetNumEdges());
 	}
 
 	PyramidCollisionShape::~PyramidCollisionShape()
@@ -51,6 +58,7 @@ namespace Lumos
 
 	Maths::Matrix3 PyramidCollisionShape::BuildInverseInertia(float invMass) const
 	{
+        LUMOS_PROFILE_FUNCTION();
 		Maths::Vector3 scaleSq = m_PyramidHalfDimensions * m_PyramidHalfDimensions;
 
 		Maths::Matrix3 inertia;
@@ -62,37 +70,41 @@ namespace Lumos
 		return inertia;
 	}
 
-	void PyramidCollisionShape::GetCollisionAxes(const RigidBody3D* currentObject, std::vector<Maths::Vector3>* out_axes) const
-	{
-		if(out_axes)
-		{
-			const Maths::Matrix3 objOrientation = currentObject->GetOrientation().RotationMatrix();
-			out_axes->push_back(objOrientation * m_Normals[0]);
-			out_axes->push_back(objOrientation * m_Normals[1]);
-			out_axes->push_back(objOrientation * m_Normals[2]);
-			out_axes->push_back(objOrientation * m_Normals[3]);
-			out_axes->push_back(objOrientation * m_Normals[4]);
-		}
-	}
+    std::vector<CollisionEdge>& PyramidCollisionShape::GetEdges(const RigidBody3D* currentObject)
+    {
+        LUMOS_PROFILE_FUNCTION();
+        {
+            Maths::Matrix4 transform = currentObject->GetWorldSpaceTransform() * m_LocalTransform;
+            for(unsigned int i = 0; i < m_PyramidHull->GetNumEdges(); ++i)
+            {
+                const HullEdge& edge = m_PyramidHull->GetEdge(i);
+                Maths::Vector3 A = transform * m_PyramidHull->GetVertex(edge.vStart).pos;
+                Maths::Vector3 B = transform * m_PyramidHull->GetVertex(edge.vEnd).pos;
 
-	void PyramidCollisionShape::GetEdges(const RigidBody3D* currentObject, std::vector<CollisionEdge>* out_edges) const
-	{
-		if(out_edges)
-		{
-			Maths::Matrix4 transform = currentObject->GetWorldSpaceTransform() * m_LocalTransform;
-			for(unsigned int i = 0; i < m_PyramidHull->GetNumEdges(); ++i)
-			{
-				const HullEdge& edge = m_PyramidHull->GetEdge(i);
-				Maths::Vector3 A = transform * m_PyramidHull->GetVertex(edge.vStart).pos;
-				Maths::Vector3 B = transform * m_PyramidHull->GetVertex(edge.vEnd).pos;
+                m_Edges[i] = {A, B};
+            }
+        }
+        return m_Edges;
+    }
 
-				out_edges->emplace_back(A, B);
-			}
-		}
-	}
+    std::vector<Maths::Vector3>& PyramidCollisionShape::GetCollisionAxes(const RigidBody3D* currentObject)
+    {
+        LUMOS_PROFILE_FUNCTION();
+        {
+            const Maths::Matrix3 objOrientation = currentObject->GetOrientation().RotationMatrix();
+            m_Axes[0] = (objOrientation * m_Normals[0]);
+            m_Axes[1] = (objOrientation * m_Normals[1]);
+            m_Axes[2] = (objOrientation * m_Normals[2]);
+            m_Axes[3] = (objOrientation * m_Normals[3]);
+            m_Axes[4] = (objOrientation * m_Normals[4]);
+        }
+        
+        return m_Axes;
+    }
 
 	void PyramidCollisionShape::GetMinMaxVertexOnAxis(const RigidBody3D* currentObject, const Maths::Vector3& axis, Maths::Vector3* out_min, Maths::Vector3* out_max) const
 	{
+        LUMOS_PROFILE_FUNCTION();
 		Maths::Matrix4 wsTransform;
 
 		if(currentObject == nullptr)
@@ -114,6 +126,7 @@ namespace Lumos
 
 	void PyramidCollisionShape::GetIncidentReferencePolygon(const RigidBody3D* currentObject, const Maths::Vector3& axis, std::list<Maths::Vector3>* out_face, Maths::Vector3* out_normal, std::vector<Maths::Plane>* out_adjacent_planes) const
 	{
+        LUMOS_PROFILE_FUNCTION();
 		Maths::Matrix4 wsTransform;
 
 		if(currentObject == nullptr)
@@ -195,6 +208,7 @@ namespace Lumos
 
 	void PyramidCollisionShape::DebugDraw(const RigidBody3D* currentObject) const
 	{
+        LUMOS_PROFILE_FUNCTION();
 		const Maths::Matrix4 transform = currentObject->GetWorldSpaceTransform() * m_LocalTransform;
 
 		m_PyramidHull->DebugDraw(transform);
@@ -202,6 +216,7 @@ namespace Lumos
 
 	void PyramidCollisionShape::ConstructPyramidHull()
 	{
+        LUMOS_PROFILE_FUNCTION();
 		Maths::Vector3 v0 = Maths::Vector3(-1.0f, -1.0f, -1.0f); // 0
 		Maths::Vector3 v1 = Maths::Vector3(-1.0f, -1.0f, 1.0f); // 1
 		Maths::Vector3 v2 = Maths::Vector3(1.0f, -1.0f, 1.0f); // 2

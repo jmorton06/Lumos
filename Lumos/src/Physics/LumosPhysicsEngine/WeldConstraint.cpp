@@ -17,6 +17,8 @@ namespace Lumos
 
 	void WeldConstraint::ApplyImpulse()
 	{
+        LUMOS_PROFILE_FUNCTION();
+
 		// Position
 		Maths::Vector3 pos(m_positionOffset);
 		pos = m_pObj1->GetOrientation() * pos;

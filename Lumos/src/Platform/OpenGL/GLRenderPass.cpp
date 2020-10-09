@@ -24,14 +24,8 @@ namespace Lumos
             return false;
         }
 
-        void GLRenderPass::Unload() const
-        {
-
-        }
-
         void GLRenderPass::BeginRenderpass(CommandBuffer *commandBuffer, const Maths::Vector4 &clearColour,
-                                           Framebuffer *frame, SubPassContents contents, uint32_t width,
-                                           uint32_t height) const
+                                           Framebuffer *frame, SubPassContents contents, uint32_t width, uint32_t height, bool beginCommandBuffer) const
         {
             if(frame != nullptr)
             {
@@ -50,7 +44,7 @@ namespace Lumos
 				GLRenderer::ClearInternal(RENDERER_BUFFER_COLOUR | RENDERER_BUFFER_DEPTH | RENDERER_BUFFER_STENCIL);
         }
 
-        void GLRenderPass::EndRenderpass(CommandBuffer *commandBuffer)
+        void GLRenderPass::EndRenderpass(CommandBuffer* commandBuffer, bool endCommandBuffer)
         {
 			GLCall(glBindFramebuffer(GL_FRAMEBUFFER, 0));
         }

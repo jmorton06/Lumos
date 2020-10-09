@@ -194,6 +194,8 @@ namespace Lumos
 		LineIndexCount = 0;
 
 		m_Lines.clear();
+
+		m_RenderPass->BeginRenderpass(m_CommandBuffers[m_CurrentBufferID].get(), m_ClearColour, m_Framebuffers[m_CurrentBufferID].get(), Graphics::SECONDARY, m_ScreenBufferWidth, m_ScreenBufferHeight);
 	}
 
 	void LineRenderer::SetSystemUniforms(Shader* shader) const
@@ -263,7 +265,6 @@ namespace Lumos
 	void LineRenderer::End()
 	{
 		m_RenderPass->EndRenderpass(m_CommandBuffers[m_CurrentBufferID].get());
-		m_CommandBuffers[m_CurrentBufferID]->EndRecording();
 
 		if(m_RenderTexture)
 			m_CommandBuffers[m_CurrentBufferID]->Execute(true);

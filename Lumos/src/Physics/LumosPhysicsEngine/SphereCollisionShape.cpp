@@ -27,6 +27,7 @@ namespace Lumos
 
 	Maths::Matrix3 SphereCollisionShape::BuildInverseInertia(float invMass) const
 	{
+        LUMOS_PROFILE_FUNCTION();
 		float i = 2.5f * invMass / (m_Radius * m_Radius); //SOLID
 		//float i = 1.5f * invMass * m_Radius * m_Radius; //HOLLOW
 
@@ -38,18 +39,21 @@ namespace Lumos
 		return inertia;
 	}
 
-	void SphereCollisionShape::GetCollisionAxes(const RigidBody3D* currentObject, std::vector<Maths::Vector3>* out_axes) const
-	{
-		/* There is infinite edges so handle seperately */
-	}
+    std::vector<Maths::Vector3>& SphereCollisionShape::GetCollisionAxes(const RigidBody3D* currentObject)
+    {
+        /* There is infinite edges so handle seperately */
+        return m_Axes;
+    }
 
-	void SphereCollisionShape::GetEdges(const RigidBody3D* currentObject, std::vector<CollisionEdge>* out_edges) const
-	{
-		/* There is infinite edges on a sphere so handle seperately */
-	}
+    std::vector<CollisionEdge>& SphereCollisionShape::GetEdges(const RigidBody3D* currentObject)
+    {
+        /* There is infinite edges on a sphere so handle seperately */
+        return m_Edges;
+    }
 
 	void SphereCollisionShape::GetMinMaxVertexOnAxis(const RigidBody3D* currentObject, const Maths::Vector3& axis, Maths::Vector3* out_min, Maths::Vector3* out_max) const
 	{
+        LUMOS_PROFILE_FUNCTION();
 		Maths::Matrix4 transform;
 
 		if(currentObject == nullptr)
@@ -68,6 +72,7 @@ namespace Lumos
 
 	void SphereCollisionShape::GetIncidentReferencePolygon(const RigidBody3D* currentObject, const Maths::Vector3& axis, std::list<Maths::Vector3>* out_face, Maths::Vector3* out_normal, std::vector<Maths::Plane>* out_adjacent_planes) const
 	{
+        LUMOS_PROFILE_FUNCTION();
 		if(out_face)
 		{
 			out_face->push_back(currentObject->GetPosition() + axis * m_Radius);
@@ -81,6 +86,7 @@ namespace Lumos
 
 	void SphereCollisionShape::DebugDraw(const RigidBody3D* currentObject) const
 	{
+        LUMOS_PROFILE_FUNCTION();
 		Maths::Matrix4 transform = currentObject->GetWorldSpaceTransform() * m_LocalTransform;
 
 		auto pos = transform.Translation();

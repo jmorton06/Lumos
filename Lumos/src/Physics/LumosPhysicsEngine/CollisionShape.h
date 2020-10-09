@@ -10,7 +10,7 @@ namespace Lumos
 
 	struct LUMOS_EXPORT CollisionEdge
 	{
-		CollisionEdge(const Maths::Vector3& a, const Maths::Vector3& b)
+		CollisionEdge(const Maths::Vector3& a = Maths::Vector3(0.0f), const Maths::Vector3& b = Maths::Vector3(0.0f))
 			: posA(a)
 			, posB(b)
 		{
@@ -52,16 +52,12 @@ namespace Lumos
 		//<----- USED BY COLLISION DETECTION ----->
 		// Get all possible collision axes
 		//	- This is a list of all the face normals ignoring any duplicates and parallel vectors.
-		virtual void GetCollisionAxes(
-			const RigidBody3D* currentObject,
-			std::vector<Maths::Vector3>* out_axes) const = 0;
+		virtual std::vector<Maths::Vector3>& GetCollisionAxes(const RigidBody3D* currentObject) = 0;
 
 		// Get all shape Edges
 		//	- Returns a list of all edges AB that form the convex hull of the collision shape. These are
 		//    used to check edge/edge collisions aswell as finding the closest point to a sphere. */
-		virtual void GetEdges(
-			const RigidBody3D* currentObject,
-			std::vector<CollisionEdge>* out_edges) const = 0;
+		virtual std::vector<CollisionEdge>& GetEdges(const RigidBody3D* currentObject) = 0;
 
 		// Get the min/max vertices along a given axis
 		virtual void GetMinMaxVertexOnAxis(
@@ -105,5 +101,7 @@ namespace Lumos
 	protected:
 		CollisionShapeType m_Type;
 		Maths::Matrix4 m_LocalTransform;
+        std::vector<CollisionEdge> m_Edges;
+        std::vector<Maths::Vector3> m_Axes;
 	};
 }

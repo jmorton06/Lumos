@@ -38,6 +38,7 @@ namespace Lumos
 
 	void ImGuiLayer::OnAttach()
 	{
+		LUMOS_PROFILE_FUNCTION();
 		Application& app = Application::Get();
 		ImGuiIO& io = ImGui::GetIO();
 		io.DisplaySize = ImVec2(static_cast<float>(app.GetWindow()->GetWidth()), static_cast<float>(app.GetWindow()->GetHeight()));
@@ -87,6 +88,7 @@ namespace Lumos
 
 	void ImGuiLayer::OnRender(Scene* scene)
 	{
+		LUMOS_PROFILE_FUNCTION();
 		if(m_IMGUIRenderer && m_IMGUIRenderer->Implemented())
 		{
 			m_IMGUIRenderer->Render(nullptr);
@@ -95,6 +97,7 @@ namespace Lumos
 
 	void ImGuiLayer::OnNewScene(Scene* scene)
 	{
+		LUMOS_PROFILE_FUNCTION();
 		m_IMGUIRenderer->Clear();
 	}
     
@@ -182,6 +185,7 @@ namespace Lumos
 
 	bool ImGuiLayer::OnwindowResizeEvent(WindowResizeEvent& e)
 	{
+		LUMOS_PROFILE_FUNCTION();
 		ImGuiIO& io = ImGui::GetIO();
 		io.DisplaySize = ImVec2(static_cast<float>(e.GetWidth()), static_cast<float>(e.GetHeight()));
 		io.DisplayFramebufferScale = ImVec2(1.0f, 1.0f);
@@ -223,6 +227,7 @@ namespace Lumos
 
 	void ImGuiLayer::SetImGuiStyle()
 	{
+		LUMOS_PROFILE_FUNCTION();
 		ImGuiIO& io = ImGui::GetIO();
 
 		ImGui::StyleColorsDark();

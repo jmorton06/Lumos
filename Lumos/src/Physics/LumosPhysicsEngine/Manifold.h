@@ -21,6 +21,7 @@ namespace Lumos
 		Maths::Vector3 relPosA; //Position relative to objectA
 		Maths::Vector3 relPosB; //Position relative to objectB
 	};
+	#define MAX_CONTACT_POINTS 8
 
 	class LUMOS_EXPORT Manifold
 	{
@@ -58,6 +59,7 @@ namespace Lumos
 	protected:
 		RigidBody3D* m_pNodeA;
 		RigidBody3D* m_pNodeB;
-		std::vector<ContactPoint> m_vContacts;
+		ContactPoint m_vContacts[MAX_CONTACT_POINTS];
+		u32 m_ContactCount = 0;
 	};
 }

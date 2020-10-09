@@ -574,7 +574,17 @@ namespace Lumos
             
 			ImGui::SameLine(ImGui::GetWindowContentRegionMax().x - 240.0f);
 			
-			ImGui::Text("%.2f ms (%i FPS)", Engine::Get().Statistics().FrameTime, Engine::Get().Statistics().FramesPerSecond);
+			static Engine::Stats stats = {};
+			static float timer = 1.1f;
+			timer += Engine::GetTimeStep().GetMillis();
+			
+			if(timer > 1.0f)
+			{
+				timer = 0.0f;
+				stats = Engine::Get().Statistics();
+			}
+			
+			ImGui::Text("%.2f ms (%i FPS)", stats.FrameTime * 1000.0f, stats.FramesPerSecond);
 			
 			ImGui::SameLine();
             
@@ -582,7 +592,7 @@ namespace Lumos
 			ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(7, 2));
             
 			bool setNewValue = false;
-			std::string RenderAPI = "";
+			static std::string RenderAPI = "";
 			
 			auto renderAPI = (Graphics::RenderAPI)m_Application->RenderAPI;
             
@@ -1343,7 +1353,7 @@ namespace Lumos
 		{
 			if(m_SelectedEntity == currentClosestEntity)
 			{
-				if(timer.GetMS(1.0f) - timeSinceLastSelect < 1.0f)
+				if(timer.GetElapsedS() - timeSinceLastSelect < 1.0f)
 				{
 					auto& trans = registry.get<Maths::Transform>(m_SelectedEntity);
 					auto& model = registry.get<Graphics::Model>(m_SelectedEntity);
@@ -1357,7 +1367,7 @@ namespace Lumos
 				}
 			}
             
-			timeSinceLastSelect = timer.GetMS(1.0f);
+			timeSinceLastSelect = timer.GetElapsedS();
 			m_SelectedEntity = currentClosestEntity;
 			return;
 		}

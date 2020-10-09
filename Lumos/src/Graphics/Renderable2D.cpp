@@ -18,6 +18,7 @@ namespace Lumos
 		const std::vector<Maths::Vector2>& Renderable2D::GetDefaultUVs()
 		{
 			static std::vector<Maths::Vector2> results;
+			results.reserve(4);
 			if (results.empty())
 			{
 				results.push_back(Maths::Vector2(0, 1));

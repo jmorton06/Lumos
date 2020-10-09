@@ -38,6 +38,7 @@ namespace Lumos
 
 		void RenderBreadCrumbs();
 		void RenderBottom();
+		void GetDirectories(const std::string& path);
 
 		int GetParsedAssetID(const std::string& extension)
 		{
@@ -60,7 +61,7 @@ namespace Lumos
 		static std::vector<DirectoryInformation> ReadDirectoryRecursive(const std::string& path);
 		static std::string GetParentPath(const std::string& path);
 
-		static std::vector<std::string> GetDirectories(const std::string& path);
+		
 		static std::vector<std::string> SearchFiles(const std::string& query);
 		static bool MoveFile(const std::string& filePath, const std::string& movePath);
 
@@ -76,6 +77,9 @@ namespace Lumos
 		std::string m_MovePath;
 		std::string m_lastNavPath;
 		static std::string m_Delimiter;
+		
+		std::string m_Directories[100];
+		int m_DirectoryCount;
 
 		size_t m_basePathLen;
 		bool m_IsDragging;

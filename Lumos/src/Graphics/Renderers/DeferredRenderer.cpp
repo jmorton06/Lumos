@@ -8,7 +8,6 @@
 #include "Maths/Maths.h"
 #include "Maths/Transform.h"
  
-
 #include "Graphics/RenderManager.h"
 #include "Graphics/Camera/Camera.h"
 #include "Graphics/Mesh.h"
@@ -203,8 +202,6 @@ namespace Lumos
 			m_SystemUniforms.clear();
 
 			m_CommandBufferIndex = commandBufferID;
-			m_CommandBuffers[m_CommandBufferIndex]->BeginRecording();
-			m_CommandBuffers[m_CommandBufferIndex]->UpdateViewport(m_ScreenBufferWidth, m_ScreenBufferHeight);
 			m_RenderPass->BeginRenderpass(m_CommandBuffers[m_CommandBufferIndex].get(), m_ClearColour, m_Framebuffers[m_CommandBufferIndex].get(), Graphics::INLINE, m_ScreenBufferWidth, m_ScreenBufferHeight);
 		}
 
@@ -352,7 +349,6 @@ namespace Lumos
 		{
 			LUMOS_PROFILE_FUNCTION();
 			m_RenderPass->EndRenderpass(m_CommandBuffers[m_CommandBufferIndex].get());
-			m_CommandBuffers[m_CommandBufferIndex]->EndRecording();
 
 			if(m_RenderTexture)
 				m_CommandBuffers[0]->Execute(true);
@@ -389,14 +385,7 @@ namespace Lumos
 			LUMOS_PROFILE_FUNCTION();
 			std::vector<Graphics::DescriptorPoolInfo> poolInfo =
 				{
-					{Graphics::DescriptorType::IMAGE_SAMPLER, 1},
-					{Graphics::DescriptorType::IMAGE_SAMPLER, 1},
-					{Graphics::DescriptorType::IMAGE_SAMPLER, 1},
-					{Graphics::DescriptorType::IMAGE_SAMPLER, 1},
-					{Graphics::DescriptorType::IMAGE_SAMPLER, 1},
-					{Graphics::DescriptorType::IMAGE_SAMPLER, 1},
-					{Graphics::DescriptorType::IMAGE_SAMPLER, 1},
-					{Graphics::DescriptorType::IMAGE_SAMPLER, 1},
+					{Graphics::DescriptorType::IMAGE_SAMPLER, 8},
 					{Graphics::DescriptorType::UNIFORM_BUFFER, 1}};
 
 			std::vector<Graphics::DescriptorLayoutInfo> layoutInfo =
@@ -444,7 +433,7 @@ namespace Lumos
 			pipelineCI.strideSize = sizeof(Vertex);
 			pipelineCI.numColorAttachments = 1;
 			pipelineCI.polygonMode = Graphics::PolygonMode::Fill;
-			pipelineCI.cullMode = Graphics::CullMode::NONE; //TODO
+			pipelineCI.cullMode = Graphics::CullMode::FRONT; //TODO
 			pipelineCI.transparencyEnabled = false;
 			pipelineCI.depthBiasEnabled = false;
 			pipelineCI.maxObjects = 10;

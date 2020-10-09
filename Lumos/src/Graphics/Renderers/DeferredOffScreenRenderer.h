@@ -61,7 +61,6 @@ namespace Lumos
 			Material* m_DefaultMaterial;
 
 			UniformBuffer* m_UniformBuffer;
-			UniformBuffer* m_ModelUniformBuffer;
 
 			CommandBuffer* m_DeferredCommandBuffers;
 
@@ -71,9 +70,8 @@ namespace Lumos
 			};
 
 			UniformBufferModel m_UBODataDynamic;
-
-			size_t m_DynamicAlignment;
 			int m_CommandBufferIndex = 0;
+            std::vector<Graphics::PushConstant> m_PushConstants;
 		};
 	}
 }

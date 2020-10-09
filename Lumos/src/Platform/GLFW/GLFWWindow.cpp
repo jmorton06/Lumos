@@ -37,6 +37,8 @@ namespace Lumos
 	{
 		m_Init = false;
 		m_VSync = properties.VSync;
+		
+		LUMOS_LOG_INFO("VSync : {0}", m_VSync ? "True" : "False");
 		m_HasResized = true;
 		m_Data.m_RenderAPI = static_cast<Graphics::RenderAPI>(properties.RenderAPI);
 
@@ -70,6 +72,7 @@ namespace Lumos
 
 	bool GLFWWindow::Init(const WindowProperties& properties)
 	{
+		LUMOS_PROFILE_FUNCTION();
 		LUMOS_LOG_INFO("Creating window - Title : {0}, Width : {1}, Height : {2}", properties.Title, properties.Width, properties.Height);
 
 		if(!s_GLFWInitialized)
@@ -279,11 +282,13 @@ namespace Lumos
 
 	void GLFWWindow::SetWindowTitle(const std::string& title)
 	{
+		LUMOS_PROFILE_FUNCTION();
 		glfwSetWindowTitle(m_Handle, title.c_str());
 	}
 
 	void GLFWWindow::ToggleVSync()
 	{
+		LUMOS_PROFILE_FUNCTION();
 		if(m_VSync)
 		{
 			SetVSync(false);
@@ -292,10 +297,13 @@ namespace Lumos
 		{
 			SetVSync(true);
 		}
+		
+		LUMOS_LOG_INFO("VSync : {0}", m_VSync ? "True" : "False");
 	}
 
 	void GLFWWindow::SetVSync(bool set)
 	{
+		LUMOS_PROFILE_FUNCTION();
 		if(set)
 		{
 			m_VSync = true;
@@ -306,10 +314,12 @@ namespace Lumos
 			m_VSync = false;
 			glfwSwapInterval(0);
 		}
+		LUMOS_LOG_INFO("VSync : {0}", m_VSync ? "True" : "False");
 	}
 
 	void GLFWWindow::OnUpdate()
 	{
+		LUMOS_PROFILE_FUNCTION();
 #ifdef LUMOS_RENDER_API_OPENGL
 		if(m_Data.m_RenderAPI == Graphics::RenderAPI::OPENGL)
 			glfwSwapBuffers(m_Handle);
@@ -320,6 +330,7 @@ namespace Lumos
 
 	void GLFWWindow::SetBorderlessWindow(bool borderless)
 	{
+		LUMOS_PROFILE_FUNCTION();
 		if(borderless)
 		{
 			glfwWindowHint(GLFW_DECORATED, false);
@@ -332,6 +343,7 @@ namespace Lumos
 
 	void GLFWWindow::HideMouse(bool hide)
 	{
+		LUMOS_PROFILE_FUNCTION();
 		if(hide)
 		{
 			glfwSetInputMode(m_Handle, GLFW_CURSOR, GLFW_CURSOR_HIDDEN);
@@ -344,6 +356,7 @@ namespace Lumos
 
 	void GLFWWindow::SetMousePosition(const Maths::Vector2& pos)
 	{
+		LUMOS_PROFILE_FUNCTION();
 		glfwSetCursorPos(m_Handle, pos.x, pos.y);
 	}
 
@@ -359,6 +372,7 @@ namespace Lumos
 
 	void GLFWWindow::UpdateCursorImGui()
 	{
+		LUMOS_PROFILE_FUNCTION();
 		ImGuiIO& io = ImGui::GetIO();
 		ImGuiMouseCursor imgui_cursor = ImGui::GetMouseCursor();
 		if(imgui_cursor == ImGuiMouseCursor_None || io.MouseDrawCursor)

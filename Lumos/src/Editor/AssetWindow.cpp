@@ -22,6 +22,7 @@ namespace Lumos
 #endif
 	AssetWindow::AssetWindow()
 	{
+		LUMOS_PROFILE_FUNCTION();
 		m_Name = "AssetWindow";
 		m_SimpleName = "Assets";
 
@@ -45,6 +46,7 @@ namespace Lumos
 
 	void AssetWindow::OnImGui()
 	{
+		LUMOS_PROFILE_FUNCTION();
 		ImGui::Begin(m_SimpleName.c_str());
 		{
 			ImGui::Columns(2, "AB", true);            
@@ -196,6 +198,7 @@ namespace Lumos
 
 	void AssetWindow::RenderBreadCrumbs()
 	{
+		LUMOS_PROFILE_FUNCTION();
 		ImGui::BeginChild("##directory_breadcrumbs", ImVec2(ImGui::GetColumnWidth() - 100, 30));
 		{
 			if(m_isInListView)
@@ -256,16 +259,16 @@ namespace Lumos
 			}
 			ImGui::SameLine();
 
-			auto data = GetDirectories(m_CurrentDirPath);
+			GetDirectories(m_CurrentDirPath);
 
-			for(int i = 0; i < data.size(); i++)
+			for(int i = 0; i < m_DirectoryCount; i++)
 			{
-				if(data[i] != m_BaseDirPath)
+				if(m_Directories[i] != m_BaseDirPath)
 				{
 					ImGui::TextUnformatted(ICON_MDI_CHEVRON_RIGHT);
 				}
 				ImGui::SameLine();
-				ImGui::TextUnformatted(data[i].c_str());
+				ImGui::TextUnformatted(m_Directories[i].c_str());
 				ImGui::SameLine();
 			}
 
@@ -279,6 +282,7 @@ namespace Lumos
 
 	void AssetWindow::RenderFileListView(int dirIndex)
 	{
+		LUMOS_PROFILE_FUNCTION();
 		auto fileID = GetParsedAssetID(m_CurrentDir[dirIndex].fileType);
 
 		ImGui::TextUnformatted(m_Editor->GetIconFontIcon(m_CurrentDir[dirIndex].absolutePath));
@@ -306,6 +310,7 @@ namespace Lumos
 
 	void AssetWindow::RenderFileGridView(int dirIndex)
 	{
+		LUMOS_PROFILE_FUNCTION();
 		ImGui::BeginGroup();
 
 		auto fileID = GetParsedAssetID(m_CurrentDir[dirIndex].fileType);
@@ -332,6 +337,7 @@ namespace Lumos
 
 	void AssetWindow::RenderDircListView(int dirIndex)
 	{
+		LUMOS_PROFILE_FUNCTION();
 		ImGui::TextUnformatted(ICON_MDI_FOLDER);
 		ImGui::SameLine();
 
@@ -359,6 +365,7 @@ namespace Lumos
 
 	void AssetWindow::RenderDircGridView(int dirIndex)
 	{
+		LUMOS_PROFILE_FUNCTION();
 		//ImGui::BeginGroup();
 		//ImGui::TextUnformatted(ICON_MDI_FOLDER);
 
@@ -380,6 +387,7 @@ namespace Lumos
 
 	void AssetWindow::RenderBottom()
 	{
+		LUMOS_PROFILE_FUNCTION();
 		ImGui::BeginChild("##nav", ImVec2(ImGui::GetColumnWidth() - 12, 23));
 		{
 			ImGui::EndChild();
@@ -388,6 +396,7 @@ namespace Lumos
 
 	std::vector<DirectoryInformation> AssetWindow::GetFsContents(const std::string& path)
 	{
+		LUMOS_PROFILE_FUNCTION();
 		std::vector<DirectoryInformation> dInfo;
 
 		for(const auto& entry : std::filesystem::directory_iterator(path))
@@ -444,6 +453,7 @@ namespace Lumos
 
 	std::vector<DirectoryInformation> AssetWindow::ReadDirectoryRecursive(const std::string& path)
 	{
+		LUMOS_PROFILE_FUNCTION();
 		std::vector<DirectoryInformation> dInfo;
 
 		for(const auto& entry : std::filesystem::recursive_directory_iterator(path))
@@ -472,24 +482,25 @@ namespace Lumos
 
 	std::string AssetWindow::GetParentPath(const std::string& path)
 	{
+		LUMOS_PROFILE_FUNCTION();
 		auto p = std::filesystem::path(path);
 		return p.parent_path().string();
 	}
 
-	std::vector<std::string> AssetWindow::GetDirectories(const std::string& path)
+	 void AssetWindow::GetDirectories(const std::string& path)
 	{
-		std::vector<std::string> out;
+		LUMOS_PROFILE_FUNCTION();
+		m_DirectoryCount = 0;
 		size_t start;
 		size_t end = 0;
 
 		while((start = path.find_first_not_of(m_Delimiter.c_str(), end)) != std::string::npos)
 		{
 			end = path.find(m_Delimiter.c_str(), start);
-			out.push_back(path.substr(start, end - start));
+			m_Directories[m_DirectoryCount] = path.substr(start, end - start);
+			m_DirectoryCount++;
 		}
-
-		return out;
-	}
+}
 
 	std::vector<std::string> AssetWindow::SearchFiles(const std::string& query)
 	{
@@ -498,6 +509,7 @@ namespace Lumos
 
 	bool AssetWindow::MoveFile(const std::string& filePath, const std::string& movePath)
 	{
+		LUMOS_PROFILE_FUNCTION();
 		std::string s = "move " + filePath + " " + movePath.c_str();
     #ifndef LUMOS_PLATFORM_IOS
 		system(s.c_str());
@@ -518,6 +530,7 @@ namespace Lumos
 
 	std::string AssetWindow::StripExtras(const std::string& filename)
 	{
+		LUMOS_PROFILE_FUNCTION();
 		std::vector<std::string> out;
 		size_t start;
 		size_t end = 0;
@@ -551,6 +564,7 @@ namespace Lumos
 
 	std::string AssetWindow::ParseFilename(const std::string& str, const char delim, std::vector<std::string>& out)
 	{
+		LUMOS_PROFILE_FUNCTION();
 		size_t start;
 		size_t end = 0;
 
@@ -565,6 +579,7 @@ namespace Lumos
 
 	std::string AssetWindow::ParseFiletype(const std::string& filename)
 	{
+		LUMOS_PROFILE_FUNCTION();
 		size_t start;
 		size_t end = 0;
 		std::vector<std::string> out;
