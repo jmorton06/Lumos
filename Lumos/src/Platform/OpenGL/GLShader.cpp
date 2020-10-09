@@ -254,7 +254,7 @@ namespace Lumos
 		void GLShader::PreProcess(const std::string& source, std::map<ShaderType, std::string>* sources)
 		{
 			s_Type = ShaderType::UNKNOWN;
-			std::vector<std::string> lines = GetLines(source);
+			std::vector<std::string> lines = StringUtilities::GetLines(source);
 			ReadShaderFile(lines, sources);
 		}
 
@@ -263,59 +263,59 @@ namespace Lumos
 			for(u32 i = 0; i < lines.size(); i++)
 			{
 				std::string str = std::string(lines[i]);
-				str = StringReplace(str, '\t');
+				str = StringUtilities::StringReplace(str, '\t');
 
 				if(IGNORE_LINES)
 				{
-					if(StartsWith(str, "#end"))
+					if(StringUtilities::StartsWith(str, "#end"))
 					{
 						IGNORE_LINES = false;
 					}
 				}
-				else if(StartsWith(str, "#shader"))
+				else if(StringUtilities::StartsWith(str, "#shader"))
 				{
-					if(StringContains(str, "vertex"))
+					if(StringUtilities::StringContains(str, "vertex"))
 					{
 						s_Type = ShaderType::VERTEX;
 						std::map<ShaderType, std::string>::iterator it = shaders->begin();
 						shaders->insert(it, std::pair<ShaderType, std::string>(s_Type, ""));
 					}
-					else if(StringContains(str, "geometry"))
+					else if(StringUtilities::StringContains(str, "geometry"))
 					{
 						s_Type = ShaderType::GEOMETRY;
 						std::map<ShaderType, std::string>::iterator it = shaders->begin();
 						shaders->insert(it, std::pair<ShaderType, std::string>(s_Type, ""));
 					}
-					else if(StringContains(str, "fragment"))
+					else if(StringUtilities::StringContains(str, "fragment"))
 					{
 						s_Type = ShaderType::FRAGMENT;
 						std::map<ShaderType, std::string>::iterator it = shaders->begin();
 						shaders->insert(it, std::pair<ShaderType, std::string>(s_Type, ""));
 					}
-					else if(StringContains(str, "tess_cont"))
+					else if(StringUtilities::StringContains(str, "tess_cont"))
 					{
 						s_Type = ShaderType::TESSELLATION_CONTROL;
 						std::map<ShaderType, std::string>::iterator it = shaders->begin();
 						shaders->insert(it, std::pair<ShaderType, std::string>(s_Type, ""));
 					}
-					else if(StringContains(str, "tess_eval"))
+					else if(StringUtilities::StringContains(str, "tess_eval"))
 					{
 						s_Type = ShaderType::TESSELLATION_EVALUATION;
 						std::map<ShaderType, std::string>::iterator it = shaders->begin();
 						shaders->insert(it, std::pair<ShaderType, std::string>(s_Type, ""));
 					}
-					else if(StringContains(str, "compute"))
+					else if(StringUtilities::StringContains(str, "compute"))
 					{
 						s_Type = ShaderType::COMPUTE;
 						std::map<ShaderType, std::string>::iterator it = shaders->begin();
 						shaders->insert(it, std::pair<ShaderType, std::string>(s_Type, ""));
 					}
-					else if(StringContains(str, "end"))
+					else if(StringUtilities::StringContains(str, "end"))
 					{
 						s_Type = ShaderType::UNKNOWN;
 					}
 				}
-				else if(StartsWith(str, "#include"))
+				else if(StringUtilities::StartsWith(str, "#include"))
 				{
 					std::string rem = "#include ";
 					std::string file = std::string(str);
@@ -324,13 +324,13 @@ namespace Lumos
 						std::string::size_type j = file.find(rem);
 						if(j != std::string::npos)
 							file.erase(j, rem.length());
-						file = StringReplace(file, '\"');
+						file = StringUtilities::StringReplace(file, '\"');
 						LUMOS_LOG_WARN("Including file \'{0}\' into shader.", file);
 						VFS::Get()->ReadTextFile(file);
-						ReadShaderFile(GetLines(VFS::Get()->ReadTextFile(file)), shaders);
+						ReadShaderFile(StringUtilities::GetLines(VFS::Get()->ReadTextFile(file)), shaders);
 					}
 				}
-				else if(StartsWith(str, "#if"))
+				else if(StringUtilities::StartsWith(str, "#if"))
 				{
 					std::string rem = "#if ";
 					std::string def = std::string(str);
@@ -339,7 +339,7 @@ namespace Lumos
 						std::string::size_type j = def.find(rem);
 						if(j != std::string::npos)
 							def.erase(j, rem.length());
-						def = StringReplace(def, '\"');
+						def = StringUtilities::StringReplace(def, '\"');
 
 						if(def == "0")
 						{
@@ -515,18 +515,18 @@ namespace Lumos
 				const char* str;
 
 				str = source.second.c_str();
-				while((token = FindToken(str, "struct")))
-					ParseUniformStruct(GetBlock(token, &str), source.first);
+				while((token = StringUtilities::FindToken(str, "struct")))
+					ParseUniformStruct(StringUtilities::GetBlock(token, &str), source.first);
 
 				str = source.second.c_str();
-				while((token = FindToken(str, "uniform")))
-					ParseUniform(GetStatement(token, &str), source.first);
+				while((token = StringUtilities::FindToken(str, "uniform")))
+					ParseUniform(StringUtilities::GetStatement(token, &str), source.first);
 			}
 		}
 
 		void GLShader::ParseUniform(const std::string& statement, ShaderType type)
 		{
-			std::vector<std::string> tokens = Tokenize(statement);
+			std::vector<std::string> tokens  =StringUtilities::Tokenize(statement);
 			u32 index = 0;
 
 			index++; // "uniform"
@@ -579,7 +579,7 @@ namespace Lumos
 							declaration = new GLShaderUniformDeclaration(t, name, count);
 						}
 
-						if(StartsWith(name, "sys_"))
+						if(StringUtilities::StartsWith(name, "sys_"))
 						{
 							static_cast<GLShaderUniformBufferDeclaration*>(m_UniformBuffers[type].front())->PushUniform(declaration);
 						}
@@ -640,7 +640,7 @@ namespace Lumos
 						declaration = new GLShaderUniformDeclaration(t, name, count);
 					}
 
-					if(StartsWith(name, "sys_"))
+					if(StringUtilities::StartsWith(name, "sys_"))
 					{
 						static_cast<GLShaderUniformBufferDeclaration*>(m_UniformBuffers[type].front())->PushUniform(declaration);
 					}
@@ -667,7 +667,7 @@ namespace Lumos
 
 		void GLShader::ParseUniformStruct(const std::string& block, ShaderType shaderType)
 		{
-			std::vector<std::string> tokens = Tokenize(block);
+			std::vector<std::string> tokens = StringUtilities::Tokenize(block);
 
 			u32 index = 0;
 			index++; // struct
@@ -833,7 +833,7 @@ namespace Lumos
 
 		bool GLShader::IsSystemUniform(ShaderUniformDeclaration* uniform)
 		{
-			return StartsWith(uniform->GetName(), "sys_");
+			return StringUtilities::StartsWith(uniform->GetName(), "sys_");
 		}
 
 		GLint GLShader::GetUniformLocation(const std::string& name) const

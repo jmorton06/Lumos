@@ -178,7 +178,7 @@ namespace Lumos
 			ImGui::SetNextWindowBgAlpha(0.35f); // Transparent background
 			if(ImGui::Begin("Example: Simple overlay", &p_open, (corner != -1 ? ImGuiWindowFlags_NoMove : 0) | ImGuiWindowFlags_NoDocking | ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoSavedSettings | ImGuiWindowFlags_NoFocusOnAppearing | ImGuiWindowFlags_NoNav))
 			{
-				ImGui::Text("%.2f ms (%i FPS)", 1000.0f / (float)Engine::Get().GetFPS(), Engine::Get().GetFPS());
+				ImGui::Text("%.2f ms (%i FPS)", Engine::Get().Statistics().FrameTime, Engine::Get().Statistics().FramesPerSecond);
 				ImGui::Separator();
 				ImGuiIO& io = ImGui::GetIO();
 				if(ImGui::IsMousePosValid())

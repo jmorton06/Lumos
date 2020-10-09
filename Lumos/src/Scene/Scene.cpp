@@ -28,6 +28,7 @@
 #include "Graphics/Model.h"
 #include "Graphics/Environment.h"
 #include "Scene/EntityManager.h"
+#include "Scene/Component/SoundComponent.h"
 
 #include <cereal/types/polymorphic.hpp>
 #include <cereal/archives/binary.hpp>
@@ -170,12 +171,13 @@ namespace Lumos
 #define ALL_COMPONENTSV1 Maths::Transform, NameComponent, ActiveComponent, Hierarchy, Camera, LuaScriptComponent, Graphics::Model, Graphics::Light, Physics3DComponent, Graphics::Environment, Graphics::Sprite, Physics2DComponent, DefaultCameraController
 	
 #define ALL_COMPONENTSV2 ALL_COMPONENTSV1 , Graphics::AnimatedSprite
+#define ALL_COMPONENTSV3 ALL_COMPONENTSV2 , SoundComponent
 	
 	void Scene::Serialise(const std::string& filePath, bool binary)
 	{
 		LUMOS_PROFILE_FUNCTION();
 		std::string path = filePath;
-		path += RemoveSpaces(m_SceneName);
+		path += StringUtilities::RemoveSpaces(m_SceneName);
 		if(binary)
 		{
 			path += std::string(".bin");
@@ -186,7 +188,7 @@ namespace Lumos
 				// output finishes flushing its contents when it goes out of scope
 				cereal::BinaryOutputArchive output{file};
                 output(*this);
-					entt::snapshot{m_EntityManager->GetRegistry()}.entities(output).component<ALL_COMPONENTSV2>(output);
+					entt::snapshot{m_EntityManager->GetRegistry()}.entities(output).component<ALL_COMPONENTSV3>(output);
 			}
 			file.close();
 		}
@@ -199,7 +201,7 @@ namespace Lumos
 				// output finishes flushing its contents when it goes out of scope
 				cereal::JSONOutputArchive output{storage};
                 output(*this);
-				entt::snapshot{m_EntityManager->GetRegistry()}.entities(output).component<ALL_COMPONENTSV2>(output);
+				entt::snapshot{m_EntityManager->GetRegistry()}.entities(output).component<ALL_COMPONENTSV3>(output);
 			}
 			FileSystem::WriteTextFile(path, storage.str());
 		}
@@ -211,7 +213,7 @@ namespace Lumos
         m_EntityManager->Clear();
         m_SceneGraph.DisableOnConstruct(true, m_EntityManager->GetRegistry());
 		std::string path = filePath;
-		path += RemoveSpaces(m_SceneName);
+		path += StringUtilities::RemoveSpaces(m_SceneName);
 
 		if(binary)
 		{
@@ -228,8 +230,10 @@ namespace Lumos
 			input(*this);
 			if(m_SceneSerialisationVersion < 2)
 				entt::snapshot_loader{m_EntityManager->GetRegistry()}.entities(input).component<ALL_COMPONENTSV1>(input);
-			else
+			else if(m_SceneSerialisationVersion == 3)
 				entt::snapshot_loader{m_EntityManager->GetRegistry()}.entities(input).component<ALL_COMPONENTSV2>(input);
+			else if(m_SceneSerialisationVersion == 4)
+				entt::snapshot_loader{m_EntityManager->GetRegistry()}.entities(input).component<ALL_COMPONENTSV3>(input);
 		}
 		else
 		{
@@ -245,10 +249,13 @@ namespace Lumos
 			istr.str(data);
 			cereal::JSONInputArchive input(istr);
 			input(*this);
+			
 			if(m_SceneSerialisationVersion < 2)
 				entt::snapshot_loader{m_EntityManager->GetRegistry()}.entities(input).component<ALL_COMPONENTSV1>(input);
-			else
+			else if(m_SceneSerialisationVersion == 3)
 				entt::snapshot_loader{m_EntityManager->GetRegistry()}.entities(input).component<ALL_COMPONENTSV2>(input);
+			else if(m_SceneSerialisationVersion == 4)
+				entt::snapshot_loader{m_EntityManager->GetRegistry()}.entities(input).component<ALL_COMPONENTSV3>(input);
 		}
         
         m_SceneGraph.DisableOnConstruct(false, m_EntityManager->GetRegistry());

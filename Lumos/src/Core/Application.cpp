@@ -285,9 +285,12 @@ namespace Lumos
 			LUMOS_PROFILE_SCOPE("Application::FrameRateCalc");
 
 			m_SecondTimer += 1.0f;
-			Engine::Get().SetFPS(m_Frames);
-			Engine::Get().SetUPS(m_Updates);
-			Engine::Get().SetFrametime(1000.0f / m_Frames);
+			
+			auto& stats = Engine::Get().Statistics();
+			
+			stats.FramesPerSecond = m_Frames;
+			stats.UpdatesPerSecond = m_Updates;
+			stats.FrameTime = 1000.0f / m_Frames;
 
 			m_Frames = 0;
 			m_Updates = 0;

@@ -38,7 +38,7 @@ namespace Lumos
 			return folder ? FileSystem ::FolderExists(path) : FileSystem::FileExists(path);
 		}
 
-		std::vector<std::string> dirs = SplitString(path, '/');
+		std::vector<std::string> dirs = StringUtilities::SplitString(path, '/');
 		const std::string& virtualDir = dirs.front();
 
 		if(m_MountPoints.find(virtualDir) == m_MountPoints.end() || m_MountPoints[virtualDir].empty())

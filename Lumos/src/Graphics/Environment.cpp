@@ -2,6 +2,7 @@
 #include "Environment.h"
 
 #include "API/Texture.h"
+#include "Core/VFS.h"
 
 namespace Lumos
 {
@@ -47,6 +48,8 @@ namespace Lumos
 
 			u32 currWidth = m_Width;
 			u32 currHeight = m_Height;
+			
+			bool failed = false;
 
 			for(u32 i = 0; i < m_NumMips; i++)
 			{
@@ -55,10 +58,32 @@ namespace Lumos
 
 				currHeight /= 2;
 				currWidth /= 2;
+				
+				std::string newPath;
+				if(!VFS::Get()->ResolvePhysicalPath(envFiles[i], newPath))
+				{
+					LUMOS_LOG_ERROR("Failed to load {0}", envFiles[i]);
+					failed = true;
+					break;
+				}
+				
+				if(!VFS::Get()->ResolvePhysicalPath(irrFiles[i], newPath))
+				{
+					LUMOS_LOG_ERROR("Failed to load {0}", irrFiles[i]);
+					failed = true;
+					break;
+				}
 			}
-
+			
+			if(!failed)
+			{
 			m_Environmnet = Graphics::TextureCube::CreateFromVCross(envFiles, m_NumMips);
-			m_IrradianceMap = Graphics::TextureCube::CreateFromVCross(irrFiles, m_NumMips);
+				m_IrradianceMap = Graphics::TextureCube::CreateFromVCross(irrFiles, m_NumMips);
+			}
+			else
+			{
+				LUMOS_LOG_ERROR("Failed to load environment");
+			}
 
 			delete[] envFiles;
 			delete[] irrFiles;

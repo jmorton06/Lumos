@@ -16,7 +16,9 @@
 #include "Graphics/Sprite.h"
 #include "Scene/Component/Components.h"
 #include "ImGui/IconsMaterialDesignIcons.h"
+#include "Core/StringUtilities.h"
 
+#include <typeinfo>
 #include <imgui/imgui_internal.h>
 
 namespace Lumos
@@ -377,6 +379,13 @@ namespace Lumos
 		{
 			auto scene = Application::Get().GetSceneManager()->GetCurrentScene();
 			auto& registry = scene->GetRegistry();
+			
+			if(scene->GetHasCppClass())
+			{
+			ImGui::Separator();
+				ImGui::Text("C++ scene : %s", StringUtilities::Demangle(typeid(*scene).name()).c_str());
+				ImGui::Separator();
+			}
 
 			if(ImGui::BeginPopupContextWindow())
 			{

@@ -1528,6 +1528,89 @@ namespace MM
 	{
 		auto& environment = reg.get<Lumos::Graphics::Environment>(e);
 		Lumos::ImGuiHelpers::Image(environment.GetEnvironmentMap(), Lumos::Maths::Vector2(200, 200));
+		
+		ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(2, 2));
+        ImGui::Columns(2);
+        ImGui::Separator();
+		
+		ImGui::TextUnformatted("File Path");
+		ImGui::NextColumn();
+		ImGui::PushItemWidth(-1);
+		
+		static char filePath[INPUT_BUF_SIZE];
+		strcpy(filePath, environment.GetFilePath().c_str());
+		
+		if(ImGui::InputText("##filePath", filePath, IM_ARRAYSIZE(filePath), 0))
+		{
+			environment.SetFilePath(filePath);
+		}
+		
+		ImGui::PopItemWidth();
+		ImGui::NextColumn();
+		
+		ImGui::AlignTextToFramePadding();
+		ImGui::TextUnformatted("File Type");
+		ImGui::NextColumn();
+		ImGui::PushItemWidth(-1);
+		
+		static char fileType[INPUT_BUF_SIZE];
+		strcpy(fileType, environment.GetFileType().c_str());
+		
+		if(ImGui::InputText("##fileType", fileType, IM_ARRAYSIZE(fileType), 0))
+		{
+			environment.SetFileType(fileType);
+		}
+		
+		ImGui::PopItemWidth();
+		ImGui::NextColumn();
+		
+		ImGui::AlignTextToFramePadding();
+		ImGui::TextUnformatted("Width");
+		ImGui::NextColumn();
+		ImGui::PushItemWidth(-1);
+		 int width = environment.GetWidth();
+		
+		if(ImGui::DragInt("##Width", &width))
+		{
+			environment.SetWidth(width);
+		}
+		
+		ImGui::PopItemWidth();
+		ImGui::NextColumn();
+		
+		ImGui::AlignTextToFramePadding();
+		ImGui::TextUnformatted("Height");
+		ImGui::NextColumn();
+		ImGui::PushItemWidth(-1);
+		 int height = environment.GetHeight();
+		
+		if(ImGui::DragInt("##Height", &height))
+		{
+			environment.SetHeight(height);
+		}
+		
+		ImGui::PopItemWidth();
+		ImGui::NextColumn();
+		
+		ImGui::AlignTextToFramePadding();
+		ImGui::TextUnformatted("Num Mips");
+		ImGui::NextColumn();
+		ImGui::PushItemWidth(-1);
+		 int numMips = environment.GetNumMips();
+		if(ImGui::InputInt("##NumMips", &numMips))
+		{
+			environment.SetNumMips(numMips);
+		}
+		
+		ImGui::PopItemWidth();
+		ImGui::NextColumn();
+		
+		ImGui::Columns(1);
+		if(ImGui::Button("Reload", ImVec2(ImGui::GetContentRegionAvail().x, 0.0)))
+			environment.Load();
+		
+		ImGui::Separator();
+		ImGui::PopStyleVar();
 	}
 
 	template<>
