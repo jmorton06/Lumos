@@ -230,9 +230,6 @@ namespace Lumos
 				m_CurrentBufferID = Renderer::GetSwapchain()->GetCurrentBufferId();
 
 			m_SystemUniforms.clear();
-
-			m_CommandBuffers[m_CurrentBufferID]->BeginRecording();
-
 			m_RenderPass->BeginRenderpass(m_CommandBuffers[m_CurrentBufferID], m_ClearColour, m_Framebuffers[m_CurrentBufferID], Graphics::INLINE, m_ScreenBufferWidth, m_ScreenBufferHeight);
 		}
 

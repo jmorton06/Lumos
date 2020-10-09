@@ -20,7 +20,7 @@ namespace Lumos
 
 		void SetAxis(const Maths::Vector3& axis);
 
-		void FindPotentialCollisionPairs(std::vector<Ref<RigidBody3D>>& objects, std::vector<CollisionPair>& collisionPairs) override;
+		void FindPotentialCollisionPairs(Ref<RigidBody3D>* objects, u32 objectCount, std::vector<CollisionPair>& collisionPairs) override;
 		void DebugDraw() override;
 
 	protected:

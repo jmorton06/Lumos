@@ -41,6 +41,7 @@ namespace Lumos
 
 	void SceneWindow::OnImGui()
 	{
+		LUMOS_PROFILE_FUNCTION();
 		Application& app = Application::Get();
 		auto flags = ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoScrollWithMouse;
 		ImGui::SetNextWindowBgAlpha(0.0f);
@@ -151,6 +152,8 @@ namespace Lumos
 				m_Editor->Draw2DGrid(ImGui::GetWindowDrawList(), { transform->GetWorldPosition().x, transform->GetWorldPosition().y}, sceneViewPosition, {sceneViewSize.x, sceneViewSize.y}, 1.0f, 1.5f);
 			}
 		}
+        
+        ImGui::GetWindowDrawList()->PushClipRect(sceneViewPosition,{ sceneViewSize.x + sceneViewPosition.x, sceneViewSize.y - 18.0f + sceneViewPosition.y} );
 
 		m_Editor->OnImGuizmo();
 
@@ -178,13 +181,32 @@ namespace Lumos
 			ImGui::SetNextWindowBgAlpha(0.35f); // Transparent background
 			if(ImGui::Begin("Example: Simple overlay", &p_open, (corner != -1 ? ImGuiWindowFlags_NoMove : 0) | ImGuiWindowFlags_NoDocking | ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoSavedSettings | ImGuiWindowFlags_NoFocusOnAppearing | ImGuiWindowFlags_NoNav))
 			{
-				ImGui::Text("%.2f ms (%i FPS)", Engine::Get().Statistics().FrameTime, Engine::Get().Statistics().FramesPerSecond);
-				ImGui::Separator();
 				ImGuiIO& io = ImGui::GetIO();
+				
+				static Engine::Stats stats = Engine::Get().Statistics();
+				static float timer = 1.0f;
+				timer += io.DeltaTime;
+				
+				if(timer > 1.0f)
+				{
+					timer = 0.0f;
+					stats = Engine::Get().Statistics();
+				}
+					Engine::Get().ResetStats();
+				
+				ImGui::Text("%.2f ms (%i FPS)", stats.FrameTime * 1000.0f, stats.FramesPerSecond);
+				ImGui::Separator();
+				
 				if(ImGui::IsMousePosValid())
 					ImGui::Text("Mouse Position: (%.1f,%.1f)", io.MousePos.x, io.MousePos.y);
 				else
 					ImGui::TextUnformatted("Mouse Position: <invalid>");
+				
+				ImGui::Text("Num Rendered Objects %u", stats.NumRenderedObjects);
+				ImGui::Text("Num Shadow Objects %u", stats.NumShadowObjects);
+				ImGui::Text("Num Draw Calls  %u", stats.NumDrawCalls);
+				ImGui::Text("Used GPU Memory : %.1f mb | Total : %.1f mb", stats.UsedGPUMemory * 0.000001f, stats.TotalGPUMemory * 0.000001f);
+				
 				if(ImGui::BeginPopupContextWindow())
 				{
 					if(ImGui::MenuItem("Custom", NULL, corner == -1))
@@ -223,6 +245,7 @@ namespace Lumos
 
 	void SceneWindow::DrawGizmos(float width, float height, float xpos, float ypos, Scene* scene)
 	{
+		LUMOS_PROFILE_FUNCTION();
 		Camera* camera = m_Editor->GetCamera();
         Maths::Transform& cameraTransform = m_Editor->GetEditorCameraTransform();
 		auto& registry = scene->GetRegistry();
@@ -244,6 +267,7 @@ namespace Lumos
 
 	void SceneWindow::ToolBar()
 	{
+		LUMOS_PROFILE_FUNCTION();
 		ImGui::Indent();
 		ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.7f, 0.7f, 0.7f, 0.0f));
 		bool selected = false;
@@ -574,6 +598,7 @@ namespace Lumos
 
 	void SceneWindow::OnNewScene(Scene* scene)
 	{
+		LUMOS_PROFILE_FUNCTION();
 		m_AspectRatio = 1.0f;
 		m_CurrentScene = scene;
 		auto sceneLayers = Application::Get().GetSceneLayers();

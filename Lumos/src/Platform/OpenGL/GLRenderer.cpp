@@ -2,6 +2,7 @@
 #include "GLRenderer.h"
 #include "Graphics/API/Shader.h"
 #include "Core/OS/Window.h"
+#include "Core/Engine.h"
 #include "GLDebug.h"
 
 #include "GL.h"
@@ -41,6 +42,7 @@ namespace Lumos
 
 		void GLRenderer::InitInternal()
 		{
+			LUMOS_PROFILE_FUNCTION();
 			GLCall(glEnable(GL_DEPTH_TEST));
 			GLCall(glEnable(GL_STENCIL_TEST));
 			GLCall(glEnable(GL_CULL_FACE));
@@ -77,6 +79,7 @@ namespace Lumos
 
 		void GLRenderer::SetDepthTestingInternal(bool enabled)
 		{
+			LUMOS_PROFILE_FUNCTION();
 			if(enabled)
 			{
 				GLCall(glEnable(GL_DEPTH_TEST));
@@ -89,11 +92,13 @@ namespace Lumos
 
 		void GLRenderer::SetDepthMaskInternal(bool enabled)
 		{
+			LUMOS_PROFILE_FUNCTION();
 			GLCall(glDepthMask(enabled ? GL_TRUE : GL_FALSE));
 		}
 
 		void GLRenderer::SetPixelPackType(const PixelPackType type)
 		{
+			LUMOS_PROFILE_FUNCTION();
 			switch(type)
 			{
 			case PixelPackType::PACK:
@@ -107,6 +112,7 @@ namespace Lumos
 
 		void GLRenderer::SetBlendInternal(bool enabled)
 		{
+			LUMOS_PROFILE_FUNCTION();
 			if(enabled)
 			{
 				GLCall(glEnable(GL_BLEND));
@@ -119,6 +125,7 @@ namespace Lumos
 
 		void GLRenderer::SetBlendFunctionInternal(RendererBlendFunction source, RendererBlendFunction destination)
 		{
+			LUMOS_PROFILE_FUNCTION();
 			GLCall(glBlendFunc(GLTools::RendererBlendFunctionToGL(source), GLTools::RendererBlendFunctionToGL(destination)));
 		}
 
@@ -129,6 +136,7 @@ namespace Lumos
 
 		void GLRenderer::SetViewportInternal(u32 x, u32 y, u32 width, u32 height)
 		{
+			LUMOS_PROFILE_FUNCTION();
 			GLCall(glViewport(x, y, width, height));
 		}
 
@@ -139,6 +147,7 @@ namespace Lumos
 
 		void GLRenderer::SetRenderModeInternal(RenderMode mode)
 		{
+			LUMOS_PROFILE_FUNCTION();
 #ifndef LUMOS_PLATFORM_MOBILE
 			switch(mode)
 			{
@@ -158,6 +167,7 @@ namespace Lumos
 
 		void GLRenderer::SetCullingInternal(bool enabled, bool front)
 		{
+			LUMOS_PROFILE_FUNCTION();
 			if(enabled)
 			{
 				GLCall(glEnable(GL_CULL_FACE));
@@ -171,6 +181,7 @@ namespace Lumos
 
 		void GLRenderer::SetStencilTestInternal(bool enabled)
 		{
+			LUMOS_PROFILE_FUNCTION();
 			if(enabled)
 			{
 				GLCall(glEnable(GL_STENCIL_TEST));
@@ -183,32 +194,40 @@ namespace Lumos
 
 		void GLRenderer::SetStencilFunctionInternal(const StencilType type, u32 ref, u32 mask)
 		{
+			LUMOS_PROFILE_FUNCTION();
 			glStencilFunc(GLTools::StencilTypeToGL(type), ref, mask);
 		}
 
 		void GLRenderer::SetStencilOpInternal(const StencilType fail, const StencilType zfail, const StencilType zpass)
 		{
+			LUMOS_PROFILE_FUNCTION();
 			glStencilOp(GLTools::StencilTypeToGL(fail), GLTools::StencilTypeToGL(zfail), GLTools::StencilTypeToGL(zpass));
 		}
 
 		void GLRenderer::SetColourMaskInternal(bool r, bool g, bool b, bool a)
 		{
+			LUMOS_PROFILE_FUNCTION();
 			glColorMask(r, g, b, a);
 		}
 
 		void GLRenderer::DrawInternal(CommandBuffer* commandBuffer, const DrawType type, u32 count, DataType dataType, void* indices) const
 		{
+			LUMOS_PROFILE_FUNCTION();
+			Engine::Get().Statistics().NumDrawCalls++;
 			GLCall(glDrawElements(GLTools::DrawTypeToGL(type), count, GLTools::DataTypeToGL(dataType), indices));
 		}
 
 		void GLRenderer::DrawIndexedInternal(CommandBuffer* commandBuffer, const DrawType type, u32 count, u32 start) const
 		{
+			LUMOS_PROFILE_FUNCTION();
+			Engine::Get().Statistics().NumDrawCalls++;
 			GLCall(glDrawElements(GLTools::DrawTypeToGL(type), count, GLTools::DataTypeToGL(DataType::UNSIGNED_INT), nullptr));
 			//GLCall(glDrawArrays(GLTools::DrawTypeToGL(type), start, count));
 		}
 
 		void GLRenderer::BindDescriptorSetsInternal(Graphics::Pipeline* pipeline, Graphics::CommandBuffer* cmdBuffer, u32 dynamicOffset, std::vector<Graphics::DescriptorSet*>& descriptorSets)
 		{
+			LUMOS_PROFILE_FUNCTION();
 			for(auto descriptor : descriptorSets)
 			{
 				static_cast<Graphics::GLDescriptorSet*>(descriptor)->Bind(dynamicOffset);

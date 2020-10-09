@@ -6,7 +6,7 @@
 #include "VKShader.h"
 #include "VKTools.h"
 #include "Graphics/API/DescriptorSet.h"
-
+#include "VKInitialisers.h"
 
 namespace Lumos
 {
@@ -65,10 +65,14 @@ namespace Lumos
 				m_DescriptorLayouts.push_back(layout);
 			}
 
+            VkPushConstantRange pushConstantRange = VKInitialisers::pushConstantRange(VK_SHADER_STAGE_VERTEX_BIT, pipelineCI.pushConstSize, 0);
+
 			VkPipelineLayoutCreateInfo pipelineLayoutCreateInfo{};
 			pipelineLayoutCreateInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO;
 			pipelineLayoutCreateInfo.setLayoutCount = static_cast<uint32_t>(m_DescriptorLayouts.size());
 			pipelineLayoutCreateInfo.pSetLayouts = m_DescriptorLayouts.data();
+            pipelineLayoutCreateInfo.pushConstantRangeCount = pipelineCI.pushConstSize;
+            pipelineLayoutCreateInfo.pPushConstantRanges = &pushConstantRange;
 
 			VK_CHECK_RESULT(vkCreatePipelineLayout(VKDevice::Get().GetDevice(), &pipelineLayoutCreateInfo, VK_NULL_HANDLE, &m_PipelineLayout));
 

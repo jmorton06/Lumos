@@ -5,9 +5,8 @@
 #include "VKDescriptorSet.h"
 #include "VKTools.h"
 #include "VKPipeline.h"
-
+#include "Core/Engine.h"
  
-
 namespace Lumos
 {
 	namespace Graphics
@@ -26,6 +25,8 @@ namespace Lumos
 			for(int i = 0; i < NUM_SEMAPHORES; i++)
 			{
 				vkDestroySemaphore(VKDevice::Get().GetDevice(), m_ImageAvailableSemaphore[i], nullptr);
+                vkDestroySemaphore(VKDevice::Get().GetDevice(), m_RenderFinishedSemaphore[i], nullptr);
+
 			}
 		}
 
@@ -35,9 +36,9 @@ namespace Lumos
             TracyVkCollect(VKDevice::Get().GetTracyContext(), static_cast<VKCommandBuffer*>(cmdBuffer)->GetCommandBuffer());
 			static_cast<VKCommandBuffer*>(cmdBuffer)->ExecuteInternal(VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT,
 				m_ImageAvailableSemaphore[m_CurrentSemaphoreIndex],
-				m_ImageAvailableSemaphore[m_CurrentSemaphoreIndex + 1],
-				false);
-			m_CurrentSemaphoreIndex++;
+				m_RenderFinishedSemaphore[m_CurrentSemaphoreIndex],
+				true);
+            m_CurrentSemaphoreIndex = (m_CurrentSemaphoreIndex + 1) % NUM_SEMAPHORES;
 		}
 
 		void VKRenderer::ClearSwapchainImage() const
@@ -93,6 +94,7 @@ namespace Lumos
 			for(int i = 0; i < NUM_SEMAPHORES; i++)
 			{
 				VK_CHECK_RESULT(vkCreateSemaphore(VKDevice::Get().GetDevice(), &semaphoreInfo, nullptr, &m_ImageAvailableSemaphore[i]));
+                VK_CHECK_RESULT(vkCreateSemaphore(VKDevice::Get().GetDevice(), &semaphoreInfo, nullptr, &m_RenderFinishedSemaphore[i]));
 			}
 		}
     
@@ -104,17 +106,19 @@ namespace Lumos
 		void VKRenderer::Begin()
 		{
 			LUMOS_PROFILE_FUNCTION();
-			m_CurrentSemaphoreIndex = 0;
             auto m_Swapchain = VKContext::Get()->GetSwapchain();
-
+			
 			auto result = m_Swapchain->AcquireNextImage(m_ImageAvailableSemaphore[m_CurrentSemaphoreIndex]);
-
 			if(result == VK_ERROR_OUT_OF_DATE_KHR)
 			{
 				OnResize(m_Width, m_Height);
 				return;
 			}
-			else if(result != VK_SUCCESS && result != VK_SUBOPTIMAL_KHR)
+			else if(result == VK_SUBOPTIMAL_KHR)
+			{
+				LUMOS_LOG_WARN("[VULKAN] Swapchain Image - SubOptimal!");
+			}
+			else if(result != VK_SUCCESS)
 			{
 				LUMOS_LOG_CRITICAL("[VULKAN] Failed to acquire swap chain image!");
 			}
@@ -154,14 +158,14 @@ namespace Lumos
 		void VKRenderer::DrawIndexedInternal(CommandBuffer* commandBuffer, DrawType type, u32 count, u32 start) const
 		{
 			LUMOS_PROFILE_FUNCTION();
+			Engine::Get().Statistics().NumDrawCalls++;
 			vkCmdDrawIndexed(static_cast<VKCommandBuffer*>(commandBuffer)->GetCommandBuffer(), count, 1, 0, 0, 0);
 		}
 
 		void VKRenderer::DrawInternal(CommandBuffer* commandBuffer, DrawType type, u32 count, DataType datayType, void* indices) const
 		{
 			LUMOS_PROFILE_FUNCTION();
-            TracyVkCollect(VKDevice::Get().GetTracyContext(), static_cast<VKCommandBuffer*>(commandBuffer)->GetCommandBuffer());
-            
+            Engine::Get().Statistics().NumDrawCalls++;
 			vkCmdDraw(static_cast<VKCommandBuffer*>(commandBuffer)->GetCommandBuffer(), count, 1, 0, 0);
 		}
 

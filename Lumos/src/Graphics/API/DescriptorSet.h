@@ -86,10 +86,9 @@ namespace Lumos
 		struct PushConstant
 		{
 			u32 size;
-			PushConstantDataType type;
 			u8* data;
 			ShaderType shaderStage;
-		};
+        };
 
 		struct ImageInfo
 		{

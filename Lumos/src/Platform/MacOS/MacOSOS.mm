@@ -23,7 +23,7 @@ namespace Lumos
 		hours = minutes / 60;
 		minutes = minutes % 60;
 		
-        LUMOS_LOG_INFO("Battery Info - Percentage : {0} , Time Left {1}h : {2}m , State : {3}", percentage, hours, minutes, PowerStateToString(state));
+        LUMOS_LOG_INFO("Battery Info - {0}% , Time Left {1}h : {2}m , State : {3}", percentage, hours, minutes, PowerStateToString(state));
         
         const std::string root = ROOT_DIR;
 		VFS::Get()->Mount("Meshes", root + "/Assets/meshes");

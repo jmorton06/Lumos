@@ -22,6 +22,7 @@ namespace Lumos
 
 		bool VKCommandBuffer::Init(bool primary)
 		{
+			LUMOS_PROFILE_FUNCTION();
 			m_Primary = primary;
 
 			VkCommandBufferAllocateInfo cmdBufferCI{};
@@ -43,12 +44,14 @@ namespace Lumos
 
 		void VKCommandBuffer::Unload()
 		{
+			LUMOS_PROFILE_FUNCTION();
 			vkDestroyFence(VKDevice::Get().GetDevice(), m_Fence, nullptr);
 			vkFreeCommandBuffers(VKDevice::Get().GetDevice(), VKDevice::Get().GetCommandPool()->GetCommandPool(),1, &m_CommandBuffer);
 		}
 
 		void VKCommandBuffer::BeginRecording()
 		{
+			LUMOS_PROFILE_FUNCTION();
 			if (m_Primary)
 			{
 				VkCommandBufferBeginInfo beginCI{};
@@ -64,6 +67,7 @@ namespace Lumos
 
 		void VKCommandBuffer::BeginRecordingSecondary(RenderPass* renderPass, Framebuffer* framebuffer)
 		{
+			LUMOS_PROFILE_FUNCTION();
 			if (!m_Primary)
 			{
 				VkCommandBufferInheritanceInfo inheritanceInfo{};
@@ -85,27 +89,24 @@ namespace Lumos
 
 		void VKCommandBuffer::EndRecording()
 		{
+			LUMOS_PROFILE_FUNCTION();
 			VK_CHECK_RESULT(vkEndCommandBuffer(m_CommandBuffer));
 		}
 
 		void VKCommandBuffer::Execute(bool waitFence)
 		{
+			LUMOS_PROFILE_FUNCTION();
 			ExecuteInternal(VkPipelineStageFlags(), VK_NULL_HANDLE, VK_NULL_HANDLE, waitFence);
 		}
 
 		void VKCommandBuffer::ExecuteInternal(VkPipelineStageFlags flags, VkSemaphore waitSemaphore, VkSemaphore signalSemaphore, bool waitFence)
 		{
+			LUMOS_PROFILE_FUNCTION();
 			if (m_Primary)
 			{
-				uint32_t waitSemaphoreCount = 1, signalSemaphoreCount = 1;
+				uint32_t waitSemaphoreCount = waitSemaphore ? 1 : 0, signalSemaphoreCount = signalSemaphore ? 1 : 0;
 
-				if (!waitSemaphore)
-					waitSemaphoreCount = 0;
-
-				if (!signalSemaphore)
-					signalSemaphoreCount = 0;
-
-				VkSubmitInfo submitInfo{};
+				VkSubmitInfo submitInfo = {};
 				submitInfo.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
 				submitInfo.pNext = VK_NULL_HANDLE;
 				submitInfo.waitSemaphoreCount = waitSemaphoreCount;
@@ -116,16 +117,31 @@ namespace Lumos
 				submitInfo.signalSemaphoreCount = signalSemaphoreCount;
 				submitInfo.pSignalSemaphores = &signalSemaphore;
 
-				if (waitFence)
+				if (waitFence && false)
 				{
-                    VK_CHECK_RESULT(vkWaitForFences(VKDevice::Get().GetDevice(), 1, &m_Fence, VK_TRUE, UINT64_MAX));
-                    VK_CHECK_RESULT(vkResetFences(VKDevice::Get().GetDevice(), 1, &m_Fence));
-					VK_CHECK_RESULT(vkQueueSubmit(VKDevice::Get().GetGraphicsQueue(), 1, &submitInfo, m_Fence));
+					{
+						LUMOS_PROFILE_SCOPE("vkWaitForFences");
+						VK_CHECK_RESULT(vkWaitForFences(VKDevice::Get().GetDevice(), 1, &m_Fence, VK_TRUE, UINT64_MAX));
+					}
+					{
+						LUMOS_PROFILE_SCOPE("vkResetFences");
+						VK_CHECK_RESULT(vkResetFences(VKDevice::Get().GetDevice(), 1, &m_Fence));
+					}
+					{
+						LUMOS_PROFILE_SCOPE("vkQueueSubmit");
+						VK_CHECK_RESULT(vkQueueSubmit(VKDevice::Get().GetGraphicsQueue(), 1, &submitInfo, m_Fence));
+					}
 				}
 				else 
 				{
-					VK_CHECK_RESULT(vkQueueSubmit(VKDevice::Get().GetGraphicsQueue(), 1, &submitInfo, VK_NULL_HANDLE));
-					VK_CHECK_RESULT(vkQueueWaitIdle(VKDevice::Get().GetGraphicsQueue()));
+					{
+						LUMOS_PROFILE_SCOPE("vkQueueSubmit");
+						VK_CHECK_RESULT(vkQueueSubmit(VKDevice::Get().GetGraphicsQueue(), 1, &submitInfo, VK_NULL_HANDLE));
+					}
+					{
+						LUMOS_PROFILE_SCOPE("vkQueueWaitIdle");
+						VK_CHECK_RESULT(vkQueueWaitIdle(VKDevice::Get().GetGraphicsQueue()));
+					}
 				}
 					
 			}
@@ -135,6 +151,7 @@ namespace Lumos
 
 		void VKCommandBuffer::ExecuteSecondary(CommandBuffer* primaryCmdBuffer)
 		{
+			LUMOS_PROFILE_FUNCTION();
 			if (!m_Primary)
 				vkCmdExecuteCommands(static_cast<VKCommandBuffer*>(primaryCmdBuffer)->GetCommandBuffer(), 1, &m_CommandBuffer);
 			else
@@ -143,6 +160,7 @@ namespace Lumos
 
 		void VKCommandBuffer::UpdateViewport(u32 width, u32 height)
 		{
+			LUMOS_PROFILE_FUNCTION();
 			VkViewport viewport = {};
 			viewport.x = 0.0f;
 			viewport.y = 0.0f;

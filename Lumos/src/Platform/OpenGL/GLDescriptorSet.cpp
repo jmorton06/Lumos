@@ -16,6 +16,7 @@ namespace Lumos
 
         void GLDescriptorSet::Update(std::vector<ImageInfo> &imageInfos, std::vector<BufferInfo> &bufferInfos)
         {
+			LUMOS_PROFILE_FUNCTION();
 			m_ImageInfos.clear();
 			m_BufferInfos.clear();
 
@@ -39,6 +40,7 @@ namespace Lumos
 
         void GLDescriptorSet::Update(std::vector<ImageInfo>& imageInfos)
         {
+			LUMOS_PROFILE_FUNCTION();
 			m_ImageInfos.clear();
 
             m_Shader->Bind();
@@ -57,6 +59,7 @@ namespace Lumos
 
         void GLDescriptorSet::Update(std::vector<BufferInfo>& bufferInfos)
         {
+			LUMOS_PROFILE_FUNCTION();
             m_Shader->Bind();
 
 			for (auto& bufferInfo : bufferInfos)
@@ -67,6 +70,7 @@ namespace Lumos
 
 		void GLDescriptorSet::Bind(u32 offset)
 		{
+			LUMOS_PROFILE_FUNCTION();
 			for (auto& imageInfo : m_ImageInfos)
 			{
 				for(int i = 0; i < imageInfo.count; i++)
@@ -100,25 +104,36 @@ namespace Lumos
                     //buffer->SetData(size, data);
                     auto bufferHandle = static_cast<GLUniformBuffer*>(buffer)->GetHandle();
                     auto slot = bufferInfo.binding;
-                    GLCall(glBindBufferBase(GL_UNIFORM_BUFFER, slot, bufferHandle));
-
+					{
+						LUMOS_PROFILE_SCOPE("glBindBufferBase");
+						GLCall(glBindBufferBase(GL_UNIFORM_BUFFER, slot, bufferHandle));
+					}
+					
 					if(buffer->GetDynamic())
+					{
+						LUMOS_PROFILE_SCOPE("glBindBufferRange");
 						GLCall(glBindBufferRange(GL_UNIFORM_BUFFER, slot, bufferHandle, offset, size));
+					}
 
 					if (bufferInfo.name != "")
 					{
+						LUMOS_PROFILE_SCOPE("glUniformBlockBinding");
 						auto loc = glGetUniformBlockIndex(static_cast<GLShader*>(m_Shader)->GetHandleInternal(), bufferInfo.name.c_str());
 						GLCall(glUniformBlockBinding(static_cast<GLShader*>(m_Shader)->GetHandleInternal(), loc, slot));
 					}
                 }
 			}
-
+			
+			{
+				LUMOS_PROFILE_SCOPE("Push Constants");
 			for (auto pc : m_PushConstants)
-				static_cast<GLShader*>(m_Shader)->SetUserUniformBuffer(pc.shaderStage, pc.data, pc.size);
+					static_cast<GLShader*>(m_Shader)->SetUserUniformBuffer(pc.shaderStage, pc.data, pc.size);
+			}
 		}
 
         void GLDescriptorSet::SetPushConstants(std::vector<PushConstant>& pushConstants)
 		{
+			LUMOS_PROFILE_FUNCTION();
 			m_PushConstants.clear();
 			for (auto& pushConstant : pushConstants)
 			{

@@ -26,7 +26,7 @@ namespace Lumos
             //normalisedFilename.AppendPath(filename);
         }
 
-        BackSlashesToSlashes(normalisedFilename);
+        StringUtilities::BackSlashesToSlashes(normalisedFilename);
         return normalisedFilename;
     }
 
@@ -43,7 +43,7 @@ namespace Lumos
             normalisedDirname.append(dirname);
 
         }
-        BackSlashesToSlashes(normalisedDirname);
+        StringUtilities::BackSlashesToSlashes(normalisedDirname);
 
         size_t length = normalisedDirname.length();
         if (length > 0)

@@ -18,7 +18,7 @@
 #include "Physics/LumosPhysicsEngine/SpringConstraint.h"
 #include "Physics/LumosPhysicsEngine/WeldConstraint.h"
 #include "Physics/LumosPhysicsEngine/Broadphase.h"
-#include "Physics/LumosPhysicsEngine/Octree.h"
+#include "Physics/LumosPhysicsEngine/OctreeBroadphase.h"
 #include "Physics/LumosPhysicsEngine/BruteForceBroadphase.h"
 #include "Physics/LumosPhysicsEngine/SortAndSweepBroadphase.h"
 #include "Physics/RigidBody.h"

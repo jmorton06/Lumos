@@ -269,7 +269,6 @@ namespace Lumos
 	void PointRenderer::End()
 	{
 		m_RenderPass->EndRenderpass(m_CommandBuffers[m_CurrentBufferID].get());
-		m_CommandBuffers[m_CurrentBufferID]->EndRecording();
 
 		if(m_RenderTexture)
 			m_CommandBuffers[m_CurrentBufferID]->Execute(true);
@@ -289,10 +288,9 @@ namespace Lumos
 		if(!m_RenderTexture)
 			m_CurrentBufferID = Renderer::GetSwapchain()->GetCurrentBufferId();
 
-		m_CommandBuffers[m_CurrentBufferID]->BeginRecording();
-        m_Pipeline->Bind(m_CommandBuffers[m_CurrentBufferID].get());
+		m_RenderPass->BeginRenderpass(m_CommandBuffers[m_CurrentBufferID].get(), m_ClearColour, m_Framebuffers[m_CurrentBufferID].get(), Graphics::SECONDARY, m_ScreenBufferWidth, m_ScreenBufferHeight);
 
-        m_RenderPass->BeginRenderpass(m_CommandBuffers[m_CurrentBufferID].get(), m_ClearColour, m_Framebuffers[m_CurrentBufferID].get(), Graphics::SECONDARY, m_ScreenBufferWidth, m_ScreenBufferHeight);
+        m_Pipeline->Bind(m_CommandBuffers[m_CurrentBufferID].get());
 
         m_VertexBuffers[m_BatchDrawCallIndex]->Bind(m_CommandBuffers[m_CurrentBufferID].get(), m_Pipeline.get());
 		m_Buffer = m_VertexBuffers[m_BatchDrawCallIndex]->GetPointer<PointVertexData>();

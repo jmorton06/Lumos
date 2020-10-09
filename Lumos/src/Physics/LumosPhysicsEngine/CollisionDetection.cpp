@@ -18,13 +18,13 @@ namespace Lumos
 		m_CollisionCheckFunctions[CollisionSphere | CollisionCuboid] = &CollisionDetection::CheckPolyhedronSphereCollision;
 	}
 	
-	bool CollisionDetection::InvalidCheckCollision(const RigidBody3D* obj1, const RigidBody3D* obj2, const CollisionShape* shape1, const CollisionShape* shape2, CollisionData* out_coldata) const
+	bool CollisionDetection::InvalidCheckCollision(  RigidBody3D* obj1,   RigidBody3D* obj2, CollisionShape* shape1, CollisionShape* shape2, CollisionData* out_coldata)
 	{
 		LUMOS_LOG_CRITICAL("Invalid Collision type specified");
 		return false;
 	}
 	
-	bool CollisionDetection::CheckSphereCollision(const RigidBody3D* obj1, const RigidBody3D* obj2, const CollisionShape* shape1, const CollisionShape* shape2, CollisionData* out_coldata) const
+	bool CollisionDetection::CheckSphereCollision(  RigidBody3D* obj1,   RigidBody3D* obj2, CollisionShape* shape1, CollisionShape* shape2, CollisionData* out_coldata)
 	{
 		CollisionData colData;
 		Maths::Vector3 axis = obj2->GetPosition() - obj1->GetPosition();
@@ -56,11 +56,11 @@ namespace Lumos
 		possible_collision_axes->push_back(axis);
 	}
 	
-	bool CollisionDetection::CheckPolyhedronSphereCollision(const RigidBody3D* obj1, const RigidBody3D* obj2, const CollisionShape* shape1, const CollisionShape* shape2, CollisionData* out_coldata) const
+	bool CollisionDetection::CheckPolyhedronSphereCollision(RigidBody3D* obj1, RigidBody3D* obj2, CollisionShape* shape1, CollisionShape* shape2, CollisionData* out_coldata)
 	{
-		const CollisionShape* complexShape;
-		const RigidBody3D* complexObj;
-		const RigidBody3D* sphereObj;
+        CollisionShape* complexShape;
+        RigidBody3D* complexObj;
+        RigidBody3D* sphereObj;
 		
 		if(obj1->GetCollisionShape()->GetType() == CollisionShapeType::CollisionSphere)
 		{
@@ -79,15 +79,10 @@ namespace Lumos
 		CollisionData best_colData;
 		best_colData.penetration = -FLT_MAX;
 		
-		std::vector<Maths::Vector3> possibleCollisionAxes;
-		complexShape->GetCollisionAxes(complexObj, &possibleCollisionAxes);
-		
-		std::vector<CollisionEdge> complex_shape_edges;
-		
-		complexShape->GetEdges(complexObj, &complex_shape_edges);
+        std::vector<Maths::Vector3>& possibleCollisionAxes = complexShape->GetCollisionAxes(complexObj);
+        std::vector<CollisionEdge>& complex_shape_edges = complexShape->GetEdges(complexObj);
 		
 		Maths::Vector3 p = GetClosestPointOnEdges(sphereObj->GetPosition(), complex_shape_edges);
-		//NCLDebug::DrawPoint(p, 0.1f);
 		Maths::Vector3 p_t = sphereObj->GetPosition() - p;
 		p_t.Normalize();
 		AddPossibleCollisionAxis(p_t, &possibleCollisionAxes);
@@ -107,24 +102,19 @@ namespace Lumos
 		return true;
 	}
 	
-	bool CollisionDetection::CheckPolyhedronCollision(const RigidBody3D* obj1, const RigidBody3D* obj2, const CollisionShape* shape1, const CollisionShape* shape2, CollisionData* out_coldata) const
+	bool CollisionDetection::CheckPolyhedronCollision(  RigidBody3D* obj1,   RigidBody3D* obj2, CollisionShape* shape1, CollisionShape* shape2, CollisionData* out_coldata)
 	{
 		CollisionData cur_colData;
 		CollisionData best_colData;
 		best_colData.penetration = -FLT_MAX;
 		
-		std::vector<Maths::Vector3> possibleCollisionAxes;
-		std::vector<Maths::Vector3> tempPossibleCollisionAxes;
-		shape1->GetCollisionAxes(obj1, &possibleCollisionAxes);
-		shape2->GetCollisionAxes(obj2, &tempPossibleCollisionAxes);
+        std::vector<Maths::Vector3>& possibleCollisionAxes = shape1->GetCollisionAxes(obj1);
+        std::vector<Maths::Vector3>& tempPossibleCollisionAxes = shape2->GetCollisionAxes(obj2);
 		for(Maths::Vector3& temp : tempPossibleCollisionAxes)
 			AddPossibleCollisionAxis(temp, &possibleCollisionAxes);
 		
-		std::vector<CollisionEdge> shape1_edges;
-		std::vector<CollisionEdge> shape2_edges;
-		
-		shape1->GetEdges(obj1, &shape1_edges);
-		shape2->GetEdges(obj2, &shape2_edges);
+        std::vector<CollisionEdge>& shape1_edges = shape1->GetEdges(obj1);
+        std::vector<CollisionEdge>& shape2_edges = shape2->GetEdges(obj2);
 		
 		for(const CollisionEdge& edge1 : shape1_edges)
 		{
@@ -155,7 +145,7 @@ namespace Lumos
 		return true;
 	}
 	
-	bool CollisionDetection::CheckCollisionAxis(const Maths::Vector3& axis, const RigidBody3D* obj1, const RigidBody3D* obj2, const CollisionShape* shape1, const CollisionShape* shape2, CollisionData* out_coldata)
+	bool CollisionDetection::CheckCollisionAxis(const Maths::Vector3& axis,   RigidBody3D* obj1,   RigidBody3D* obj2, CollisionShape* shape1, CollisionShape* shape2, CollisionData* out_coldata)
 	{
 		Maths::Vector3 min1, min2, max1, max2;
 		
@@ -193,15 +183,17 @@ namespace Lumos
 		return false;
 	}
 	
-	bool CollisionDetection::BuildCollisionManifold(const RigidBody3D* obj1, const RigidBody3D* obj2, const CollisionShape* shape1, const CollisionShape* shape2, const CollisionData& coldata, Manifold* manifold) const
+	bool CollisionDetection::BuildCollisionManifold( RigidBody3D* obj1,   RigidBody3D* obj2, CollisionShape* shape1, CollisionShape* shape2, CollisionData& coldata, Manifold* manifold)
 	{
+        LUMOS_PROFILE_FUNCTION();
 		if(!manifold)
 			return false;
 		
 		std::list<Maths::Vector3> polygon1, polygon2;
 		Maths::Vector3 normal1, normal2;
 		std::vector<Maths::Plane> adjPlanes1, adjPlanes2;
-		
+		adjPlanes1.reserve(20);
+		adjPlanes2.reserve(20);
 		shape1->GetIncidentReferencePolygon(obj1, coldata.normal, &polygon1, &normal1, &adjPlanes1);
 		shape2->GetIncidentReferencePolygon(obj2, -coldata.normal, &polygon2, &normal2, &adjPlanes2);
 		
@@ -328,6 +320,7 @@ namespace Lumos
 	
 	void CollisionDetection::SutherlandHodgesonClipping(const std::list<Maths::Vector3>& input_polygon, int num_clip_planes, const Maths::Plane* clip_planes, std::list<Maths::Vector3>* out_polygon, bool removePoints) const
 	{
+        LUMOS_PROFILE_FUNCTION();
 		if(!out_polygon)
 			return;
 		

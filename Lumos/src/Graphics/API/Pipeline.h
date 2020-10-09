@@ -49,6 +49,8 @@ namespace Lumos
 			bool depthBiasEnabled;
 			u32 maxObjects;
 			float lineWidth = -1.0f;
+            int numPushConst = 0;
+            int pushConstSize = 0;
 			DrawType drawType = DrawType::TRIANGLE;
 		};
 		class LUMOS_EXPORT Pipeline

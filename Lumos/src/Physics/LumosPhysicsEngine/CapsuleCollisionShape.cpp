@@ -39,15 +39,17 @@ namespace Lumos
 		return inertia;
 	}
 
-	void CapsuleCollisionShape::GetCollisionAxes(const RigidBody3D* currentObject, std::vector<Maths::Vector3>* out_axes) const
-	{
-		/* There is infinite edges so handle seperately */
-	}
+    std::vector<Maths::Vector3>& CapsuleCollisionShape::GetCollisionAxes(const RigidBody3D* currentObject)
+    {
+        /* There is infinite edges so handle seperately */
+        return m_Axes;
+    }
 
-	void CapsuleCollisionShape::GetEdges(const RigidBody3D* currentObject, std::vector<CollisionEdge>* out_edges) const
-	{
-		/* There is infinite edges on a sphere so handle seperately */
-	}
+    std::vector<CollisionEdge>& CapsuleCollisionShape::GetEdges(const RigidBody3D* currentObject)
+    {
+        /* There is infinite edges on a sphere so handle seperately */
+        return m_Edges;
+    }
 
 	void CapsuleCollisionShape::GetMinMaxVertexOnAxis(const RigidBody3D* currentObject, const Maths::Vector3& axis, Maths::Vector3* out_min, Maths::Vector3* out_max) const
 	{

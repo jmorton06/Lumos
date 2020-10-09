@@ -239,27 +239,38 @@ namespace Lumos
 	bool Application::OnFrame()
 	{
 		LUMOS_PROFILE_FUNCTION();
-		float now = m_Timer->GetMS(1.0f);
+		float now = m_Timer->GetElapsedS();
 
 #ifdef LUMOS_LIMIT_FRAMERATE
 		if(now - m_UpdateTimer > Engine::Get().TargetFrameRate())
 		{
 			m_UpdateTimer += Engine::Get().TargetFrameRate();
 #endif
-
-			auto& ts = Engine::GetTimeStep();
-			ts.Update(now);
-
-			ImGuiIO& io = ImGui::GetIO();
-			io.DeltaTime = ts.GetMillis();
-            
+				auto& stats = Engine::Get().Statistics();
+				auto& ts = Engine::GetTimeStep();
+			
+			{
+				LUMOS_PROFILE_SCOPE("Application::TimeStepUpdates");
+				ts.Update(now);
+				
+				ImGuiIO& io = ImGui::GetIO();
+				io.DeltaTime = ts.GetMillis();
+				
+				stats.FrameTime = ts.GetMillis();
+			}
+			
+			{
+				LUMOS_PROFILE_SCOPE("Application::SceneSwitch");
             m_SceneManager->ApplySceneSwitch();
-			m_Window->UpdateCursorImGui();
-
-			ImGui::NewFrame();
+			}
+			{
+				LUMOS_PROFILE_SCOPE("Application::ImGui::NewFrame");
+				ImGui::NewFrame();
+			}
 
 			{
 				LUMOS_PROFILE_SCOPE("Application::Update");
+				m_Window->UpdateCursorImGui();
 				OnUpdate(ts);
 				m_Updates++;
 			}
@@ -270,30 +281,36 @@ namespace Lumos
 				OnRender();
 				m_Frames++;
 			}
-
+			
+			{
+				LUMOS_PROFILE_SCOPE("Application::UpdateGraphicsStats");
+			stats.UsedGPUMemory = Graphics::GraphicsContext::GetContext()->GetGPUMemoryUsed();
+				stats.TotalGPUMemory = Graphics::GraphicsContext::GetContext()-> GetTotalGPUMemory();
+			}
+			{
+				LUMOS_PROFILE_SCOPE("Application::WindowUpdate");
 			Input::GetInput()->ResetPressed();
-			m_Window->OnUpdate();
+				m_Window->OnUpdate();
+			}
 
 			if(Input::GetInput()->GetKeyPressed(Lumos::InputCode::Key::Escape))
 				m_CurrentState = AppState::Closing;
 #ifdef LUMOS_LIMIT_FRAMERATE
 		}
 #endif
-
-		if(m_Timer->GetMS() - m_SecondTimer > 1.0f)
+		
+		if(m_Timer->GetElapsedS() - m_SecondTimer > 1.0f)
 		{
 			LUMOS_PROFILE_SCOPE("Application::FrameRateCalc");
 
 			m_SecondTimer += 1.0f;
 			
-			auto& stats = Engine::Get().Statistics();
-			
 			stats.FramesPerSecond = m_Frames;
 			stats.UpdatesPerSecond = m_Updates;
-			stats.FrameTime = 1000.0f / m_Frames;
 
 			m_Frames = 0;
 			m_Updates = 0;
+			
 			m_SceneManager->GetCurrentScene()->OnTick();
 		}
 		
@@ -368,7 +385,7 @@ namespace Lumos
 
 	void Application::Run()
 	{
-		m_UpdateTimer = m_Timer->GetMS(1.0f);
+		m_UpdateTimer = m_Timer->GetElapsedS();
 		while(OnFrame())
 		{
 		}

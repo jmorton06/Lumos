@@ -241,6 +241,14 @@ namespace Lumos
 			std::swap(m_Ptr, other.m_Ptr);
 			std::swap(m_Counter, other.m_Counter);
 		}
+		
+		
+		template<typename U>
+			_FORCE_INLINE_ Reference<U> As()
+		{
+			return Reference<U>(*this);
+		}
+		
 
 	private:
 		_FORCE_INLINE_ void ref(const Reference& p_from)

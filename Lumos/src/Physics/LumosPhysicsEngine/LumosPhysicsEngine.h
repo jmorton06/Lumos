@@ -157,7 +157,7 @@ namespace Lumos
 		std::vector<CollisionPair> m_BroadphaseCollisionPairs;
 
 		std::vector<Constraint*> m_Constraints; // Misc constraints between pairs of objects
-		std::vector<Manifold*> m_Manifolds; // Contact constraints between pairs of objects
+		std::vector<Manifold> m_Manifolds; // Contact constraints between pairs of objects
 		std::mutex m_ManifoldsMutex;
 
 		Ref<Broadphase> m_BroadphaseDetection;

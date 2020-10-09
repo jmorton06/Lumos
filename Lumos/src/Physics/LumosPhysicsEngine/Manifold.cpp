@@ -11,9 +11,6 @@ namespace Lumos
 
 #define persistentThresholdSq 0.025f
 
-	typedef std::list<ContactPoint> ContactList;
-	typedef ContactList::iterator ContactListItr;
-
 	Manifold::Manifold()
 		: m_pNodeA(nullptr)
 		, m_pNodeB(nullptr)
@@ -26,7 +23,7 @@ namespace Lumos
 
 	void Manifold::Initiate(RigidBody3D* nodeA, RigidBody3D* nodeB)
 	{
-		m_vContacts.clear();
+		m_ContactCount = 0;
 
 		m_pNodeA = nodeA;
 		m_pNodeB = nodeB;
@@ -34,14 +31,17 @@ namespace Lumos
 
 	void Manifold::ApplyImpulse()
 	{
-		for(ContactPoint& contact : m_vContacts)
+        LUMOS_PROFILE_FUNCTION();
+		for(int i = 0; i < m_ContactCount; i++)
 		{
-			SolveContactPoint(contact);
+			SolveContactPoint(m_vContacts[i]);
 		}
 	}
 
 	void Manifold::SolveContactPoint(ContactPoint& c) const
 	{
+        LUMOS_PROFILE_FUNCTION();
+
 		if(m_pNodeA->GetInverseMass() + m_pNodeB->GetInverseMass() == 0.0f)
 			return;
 
@@ -154,14 +154,18 @@ namespace Lumos
 
 	void Manifold::PreSolverStep(float dt)
 	{
-		for(ContactPoint& contact : m_vContacts)
+        LUMOS_PROFILE_FUNCTION();
+		
+		for(int i = 0; i < m_ContactCount; i++)
 		{
-			UpdateConstraint(contact);
+			UpdateConstraint(m_vContacts[i]);
 		}
 	}
 
 	void Manifold::UpdateConstraint(ContactPoint& contact)
 	{
+        LUMOS_PROFILE_FUNCTION();
+
 		//Reset total impulse forces computed this physics timestep
 		contact.sumImpulseContact = 0.0f;
 		contact.sumImpulseFriction = 0.0f;
@@ -202,6 +206,7 @@ namespace Lumos
 
 	void Manifold::AddContact(const Maths::Vector3& globalOnA, const Maths::Vector3& globalOnB, const Maths::Vector3& _normal, const float& _penetration)
 	{
+        LUMOS_PROFILE_FUNCTION();
 		//Get relative offsets from each object centre of mass
 		// Used to compute rotational velocity at the point of contact.
 		Maths::Vector3 r1 = (globalOnA - m_pNodeA->GetPosition());
@@ -220,17 +225,18 @@ namespace Lumos
 		//Check to see if we already contain a contact point almost in that location
 		const float min_allowed_dist_sq = 0.2f * 0.2f;
 		bool should_add = true;
-		for(auto itr = m_vContacts.begin(); itr != m_vContacts.end();)
+		for(int i = 0; i < m_ContactCount; i++)
 		{
-			Maths::Vector3 ab = itr->relPosA - contact.relPosA;
+			Maths::Vector3 ab = m_vContacts[i].relPosA - contact.relPosA;
 			float distsq = Maths::Vector3::Dot(ab, ab);
 
 			//Choose the contact point with the largest penetration and therefore the largest collision response
 			if(distsq < min_allowed_dist_sq)
 			{
-				if(itr->collisionPenetration > contact.collisionPenetration)
+				if(m_vContacts[i].collisionPenetration > contact.collisionPenetration)
 				{
-					itr = m_vContacts.erase(itr);
+					std::swap(m_vContacts[i],  m_vContacts[m_ContactCount - 1]);
+					m_ContactCount--;
 					continue;
 				}
 				else
@@ -238,22 +244,26 @@ namespace Lumos
 					should_add = false;
 				}
 			}
-
-			itr++;
 		}
 
 		if(should_add)
-			m_vContacts.push_back(contact);
+		{
+			m_vContacts[m_ContactCount] = contact;
+			m_ContactCount++;
+		}
 	}
 
 	void Manifold::DebugDraw() const
 	{
-		if(m_vContacts.size() > 0)
+        LUMOS_PROFILE_FUNCTION();
+
+		if(m_ContactCount > 0)
 		{
 			//Loop around all contact points and draw them all as a line-fan
-			Maths::Vector3 globalOnA1 = m_pNodeA->GetPosition() + m_vContacts.back().relPosA;
-			for(const ContactPoint& contact : m_vContacts)
+			Maths::Vector3 globalOnA1 = m_pNodeA->GetPosition() + m_vContacts[m_ContactCount - 1].relPosA;
+			for(int i = 0; i < m_ContactCount; i++)
 			{
+				auto& contact = m_vContacts[i];
 				Maths::Vector3 globalOnA2 = m_pNodeA->GetPosition() + contact.relPosA;
 				Maths::Vector3 globalOnB = m_pNodeB->GetPosition() + contact.relPosB;
 

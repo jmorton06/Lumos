@@ -36,6 +36,7 @@ namespace Lumos
 
 		void VKBuffer::Init(VkBufferUsageFlags usage, uint32_t size, const void* data)
 		{
+			LUMOS_PROFILE_FUNCTION();
 			VkBufferCreateInfo bufferInfo = {};
 			bufferInfo.sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO;
 			bufferInfo.size = size;
@@ -68,6 +69,7 @@ namespace Lumos
 
 		void VKBuffer::SetData(uint32_t size, const void* data)
 		{
+			LUMOS_PROFILE_FUNCTION();
 			Map(size, 0);
 			memcpy(m_Mapped, data, size);
 			UnMap();
@@ -75,6 +77,7 @@ namespace Lumos
 		
 		void VKBuffer::Map(VkDeviceSize size, VkDeviceSize offset)
 		{
+			LUMOS_PROFILE_FUNCTION();
 #ifdef USE_VMA_ALLOCATOR
 			VkResult res = static_cast<VkResult>(vmaMapMemory(VKDevice::Get().GetAllocator(), m_Allocation, &m_Mapped));
 #else
@@ -86,6 +89,7 @@ namespace Lumos
 
 		void VKBuffer::UnMap()
 		{
+			LUMOS_PROFILE_FUNCTION();
 			if (m_Mapped)
 			{
 #ifdef USE_VMA_ALLOCATOR
@@ -99,6 +103,7 @@ namespace Lumos
 
 		void VKBuffer::Flush(VkDeviceSize size, VkDeviceSize offset)
 		{
+			LUMOS_PROFILE_FUNCTION();
 #ifdef USE_VMA_ALLOCATOR
 			vmaFlushAllocation(VKDevice::Get().GetAllocator(), m_Allocation, offset, size);
 #else
@@ -112,6 +117,7 @@ namespace Lumos
 		
 		void VKBuffer::Invalidate(VkDeviceSize size, VkDeviceSize offset)
 		{
+			LUMOS_PROFILE_FUNCTION();
 #ifdef USE_VMA_ALLOCATOR
 			vmaInvalidateAllocation(VKDevice::Get().GetAllocator(), m_Allocation, offset, size);
 #else

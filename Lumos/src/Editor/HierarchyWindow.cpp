@@ -33,6 +33,7 @@ namespace Lumos
 
 	void HierarchyWindow::DrawNode(entt::entity node, entt::registry& registry)
 	{
+		LUMOS_PROFILE_FUNCTION();
 		bool show = true;
 
 		if(!registry.valid(node))
@@ -327,6 +328,7 @@ namespace Lumos
 
 	void HierarchyWindow::DestroyEntity(entt::entity entity, entt::registry& registry)
 	{
+		LUMOS_PROFILE_FUNCTION();
 		auto hierarchyComponent = registry.try_get<Hierarchy>(entity);
 		if(hierarchyComponent)
 		{
@@ -344,6 +346,7 @@ namespace Lumos
 
 	bool HierarchyWindow::IsParentOfEntity(entt::entity entity, entt::entity child, entt::registry& registry)
 	{
+		LUMOS_PROFILE_FUNCTION();
 		auto nodeHierarchyComponent = registry.try_get<Hierarchy>(child);
 		if(nodeHierarchyComponent)
 		{
@@ -367,6 +370,7 @@ namespace Lumos
 
 	void HierarchyWindow::OnImGui()
 	{
+		LUMOS_PROFILE_FUNCTION();
 		auto flags = ImGuiWindowFlags_NoCollapse;
 		m_CurrentPrevious = entt::null;
 		m_SelectUp = false;

@@ -45,7 +45,8 @@ namespace Lumos
 		auto pos = FilePath.find_last_of('/');
 		if(pos != std::string::npos)
 			return FilePath.substr(0, pos + 1);
-		}
+        return FilePath;
+    }
 		
 	std::vector<std::string> SplitString(const std::string& string, const std::string& delimiters)
 	{

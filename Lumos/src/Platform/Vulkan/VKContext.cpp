@@ -108,6 +108,7 @@ namespace Lumos
 
 		void VKContext::Init()
 		{
+			LUMOS_PROFILE_FUNCTION();
 			CreateInstance();
 			
 			VKDevice::Get().Init();
@@ -122,6 +123,7 @@ namespace Lumos
 		
 		void VKContext::OnResize(uint32_t width, uint32_t height)
 		{
+			LUMOS_PROFILE_FUNCTION();
 			m_Width = width;
 			m_Height = height;
 
@@ -245,6 +247,7 @@ namespace Lumos
 
 		void VKContext::CreateInstance()
 		{
+			LUMOS_PROFILE_FUNCTION();
 #ifndef LUMOS_PLATFORM_IOS
 			if(volkInitialize() != VK_SUCCESS)
 			{
@@ -263,7 +266,7 @@ namespace Lumos
 			appInfo.pEngineName = "Lumos";
 			appInfo.engineVersion = VK_MAKE_VERSION(LumosVersion.major, LumosVersion.minor, LumosVersion.patch);
 #if defined(LUMOS_PLATFORM_MACOS) || defined(LUMOS_PLATFORM_IOS)
-			appInfo.apiVersion = VK_API_VERSION_1_0;
+			appInfo.apiVersion = VK_API_VERSION_1_1;
 #else
 			appInfo.apiVersion = VK_API_VERSION_1_1;
 #endif
@@ -304,6 +307,7 @@ namespace Lumos
 
 		void VKContext::SetupDebugCallback()
 		{
+			LUMOS_PROFILE_FUNCTION();
 			if(!EnableValidationLayers)
 				return;
 
@@ -336,12 +340,38 @@ namespace Lumos
 			vkDeviceWaitIdle(VKDevice::Get().GetDevice());
 		}
 		
+		float VKContext::GetGPUMemoryUsed()
+		{
+#ifdef USE_VMA_ALLOCATOR
+			VmaAllocator allocator = VKDevice::Get().GetAllocator();
+			VmaStats stats;
+			vmaCalculateStats(allocator, &stats);
+			auto info = stats.total;
+			 return static_cast<float>(info.usedBytes);
+			#else
+			return 0.0f;
+			#endif
+		}
+		
+		float VKContext::GetTotalGPUMemory() 
+		{
+#ifdef USE_VMA_ALLOCATOR
+			VmaAllocator allocator = VKDevice::Get().GetAllocator();
+			VmaStats stats;
+			vmaCalculateStats(allocator, &stats);
+			auto info = stats.total;
+			return static_cast<float>(info.unusedBytes + info.usedBytes);
+			#else
+			return 0.0f; 
+			#endif
+		}
 		
 		//Debug ImGui Windows
 		static auto const readOnlyFlag = ImGuiInputTextFlags_ReadOnly;
 
 		void VKContext::OnImGui()
 		{
+			LUMOS_PROFILE_FUNCTION();
 			ImGui::TextUnformatted("Vulkan Info");
 
 			if(ImGui::TreeNode("Instance"))
@@ -501,6 +531,7 @@ namespace Lumos
 #ifdef USE_VMA_ALLOCATOR
 		void VKContext::DebugDrawVmaMemory(VmaStatInfo& info, bool indent)
 		{
+			LUMOS_PROFILE_FUNCTION();
 			if(indent)
 				ImGui::Indent();
 

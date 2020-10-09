@@ -17,6 +17,9 @@ namespace Lumos
 		{
 			ConstructCubeHull();
 		}
+        
+        m_Axes.resize(3);
+        m_Edges.resize(m_CubeHull->GetNumEdges());
 	}
 
 	CuboidCollisionShape::CuboidCollisionShape(const Maths::Vector3& halfdims)
@@ -24,11 +27,14 @@ namespace Lumos
 		m_CuboidHalfDimensions = halfdims;
 		m_LocalTransform = Maths::Matrix4::Scale(halfdims);
 		m_Type = CollisionShapeType::CollisionCuboid;
-
+        
 		if(m_CubeHull->GetNumVertices() == 0)
 		{
 			ConstructCubeHull();
 		}
+        
+        m_Axes.resize(3);
+        m_Edges.resize(m_CubeHull->GetNumEdges());
 	}
 
 	CuboidCollisionShape::~CuboidCollisionShape()
@@ -37,6 +43,7 @@ namespace Lumos
 
 	Maths::Matrix3 CuboidCollisionShape::BuildInverseInertia(float invMass) const
 	{
+        LUMOS_PROFILE_FUNCTION();
 		Maths::Matrix3 inertia;
 
 		Maths::Vector3 dimsSq = (m_CuboidHalfDimensions + m_CuboidHalfDimensions);
@@ -49,35 +56,39 @@ namespace Lumos
 		return inertia;
 	}
 
-	void CuboidCollisionShape::GetCollisionAxes(const RigidBody3D* currentObject, std::vector<Maths::Vector3>* out_axes) const
-	{
-		if(out_axes)
-		{
-			Maths::Matrix3 objOrientation = currentObject->GetOrientation().RotationMatrix();
-			out_axes->push_back(objOrientation * Maths::Vector3(1.0f, 0.0f, 0.0f)); //X - Axis
-			out_axes->push_back(objOrientation * Maths::Vector3(0.0f, 1.0f, 0.0f)); //Y - Axis
-			out_axes->push_back(objOrientation * Maths::Vector3(0.0f, 0.0f, 1.0f)); //Z - Axis
-		}
-	}
+    std::vector<Maths::Vector3>& CuboidCollisionShape::GetCollisionAxes(const RigidBody3D* currentObject)
+    {
+        LUMOS_PROFILE_FUNCTION();
+        {
+            Maths::Matrix3 objOrientation = currentObject->GetOrientation().RotationMatrix();
+            m_Axes[0] = (objOrientation * Maths::Vector3(1.0f, 0.0f, 0.0f)); //X - Axis
+            m_Axes[1] = (objOrientation * Maths::Vector3(0.0f, 1.0f, 0.0f)); //Y - Axis
+            m_Axes[2] = (objOrientation * Maths::Vector3(0.0f, 0.0f, 1.0f)); //Z - Axis
+        }
+        
+        return m_Axes;
+    }
 
-	void CuboidCollisionShape::GetEdges(const RigidBody3D* currentObject, std::vector<CollisionEdge>* out_edges) const
-	{
-		if(out_edges)
-		{
-			Maths::Matrix4 transform = currentObject->GetWorldSpaceTransform() * m_LocalTransform;
-			for(unsigned int i = 0; i < m_CubeHull->GetNumEdges(); ++i)
-			{
-				const HullEdge& edge = m_CubeHull->GetEdge(i);
-				Maths::Vector3 A = transform * m_CubeHull->GetVertex(edge.vStart).pos;
-				Maths::Vector3 B = transform * m_CubeHull->GetVertex(edge.vEnd).pos;
+    std::vector<CollisionEdge>& CuboidCollisionShape::GetEdges(const RigidBody3D* currentObject)
+    {
+        LUMOS_PROFILE_FUNCTION();
+        {
+            Maths::Matrix4 transform = currentObject->GetWorldSpaceTransform() * m_LocalTransform;
+            for(unsigned int i = 0; i < m_CubeHull->GetNumEdges(); ++i)
+            {
+                const HullEdge& edge = m_CubeHull->GetEdge(i);
+                Maths::Vector3 A = transform * m_CubeHull->GetVertex(edge.vStart).pos;
+                Maths::Vector3 B = transform * m_CubeHull->GetVertex(edge.vEnd).pos;
 
-				out_edges->emplace_back(A, B);
-			}
-		}
-	}
+                m_Edges[i] = {A, B};
+            }
+        }
+        return m_Edges;
+    }
 
 	void CuboidCollisionShape::GetMinMaxVertexOnAxis(const RigidBody3D* currentObject, const Maths::Vector3& axis, Maths::Vector3* out_min, Maths::Vector3* out_max) const
 	{
+        LUMOS_PROFILE_FUNCTION();
 		Maths::Matrix4 wsTransform;
 
 		if(currentObject == nullptr)
@@ -100,6 +111,7 @@ namespace Lumos
 
 	void CuboidCollisionShape::GetIncidentReferencePolygon(const RigidBody3D* currentObject, const Maths::Vector3& axis, std::list<Maths::Vector3>* out_face, Maths::Vector3* out_normal, std::vector<Maths::Plane>* out_adjacent_planes) const
 	{
+        LUMOS_PROFILE_FUNCTION();
 		Maths::Matrix4 wsTransform;
 
 		if(currentObject == nullptr)
@@ -192,6 +204,7 @@ namespace Lumos
 
 	void CuboidCollisionShape::ConstructCubeHull()
 	{
+        LUMOS_PROFILE_FUNCTION();
 		//Vertices
 		m_CubeHull->AddVertex(Maths::Vector3(-1.0f, -1.0f, -1.0f)); // 0
 		m_CubeHull->AddVertex(Maths::Vector3(-1.0f, 1.0f, -1.0f)); // 1

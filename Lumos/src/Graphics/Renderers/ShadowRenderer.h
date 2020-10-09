@@ -90,11 +90,6 @@ namespace Lumos
 				Lumos::Maths::Matrix4 projView[SHADOWMAP_MAX];
 			};
 
-			struct UniformBufferModel
-			{
-				Lumos::Maths::Matrix4* model;
-			};
-
 			void CreateGraphicsPipeline(Graphics::RenderPass* renderPass);
 			void CreateFramebuffers();
 			void CreateUniformBuffer();
@@ -114,12 +109,9 @@ namespace Lumos
 			Maths::Vector4 m_SplitDepth[SHADOWMAP_MAX];
 
 			Lumos::Graphics::UniformBuffer* m_UniformBuffer;
-			Lumos::Graphics::UniformBuffer* m_ModelUniformBuffer;
 			Lumos::Graphics::CommandBuffer* m_CommandBuffer = nullptr;
-
+			
 			u32 m_Layer = 0;
-			size_t m_DynamicAlignment = 0;
-			UniformBufferModel uboDataDynamic;
             
             std::vector<Graphics::PushConstant> m_PushConstants;
 		};

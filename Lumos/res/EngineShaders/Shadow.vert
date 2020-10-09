@@ -4,6 +4,7 @@
 
 layout(push_constant) uniform PushConsts
 {
+	mat4 transform;
 	uint cascadeIndex;
 } pushConsts;
 
@@ -11,11 +12,6 @@ layout(set = 0,binding = 0) uniform UniformBufferObject
 {
     mat4 projView[16];
 } ubo;
-
-layout(set = 0,binding = 1) uniform UniformBufferObject2
-{
-    mat4 model;
-} ubo2;
 
 out gl_PerVertex
 {
@@ -42,5 +38,5 @@ void main()
             proj = ubo.projView[3];
             break;
     }
-    gl_Position = vec4(position, 1.0) * ubo2.model * proj; 
+    gl_Position = vec4(position, 1.0) * pushConsts.transform * proj; 
 }

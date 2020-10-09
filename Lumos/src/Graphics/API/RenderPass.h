@@ -41,10 +41,8 @@ namespace Lumos
 			static RenderPass* Create();
 
 			virtual bool Init(const RenderpassInfo& renderpassCI) = 0;
-			virtual void Unload() const = 0;
-			virtual void BeginRenderpass(CommandBuffer* commandBuffer, const Maths::Vector4& clearColour, Framebuffer* frame,
-				SubPassContents contents, uint32_t width, uint32_t height) const = 0;
-			virtual void EndRenderpass(CommandBuffer * commandBuffer) = 0;
+			virtual void BeginRenderpass(CommandBuffer* commandBuffer, const Maths::Vector4& clearColour, Framebuffer* frame, SubPassContents contents, uint32_t width, uint32_t height, bool beginCommandBuffer = true) const = 0;
+			virtual void EndRenderpass(CommandBuffer* commandBuffer, bool endCommandBuffer = true) = 0;
             
         protected:
             static RenderPass* (*CreateFunc)();

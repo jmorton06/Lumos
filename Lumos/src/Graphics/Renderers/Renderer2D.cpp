@@ -20,7 +20,7 @@
 #include "Graphics/Renderable2D.h"
 #include "Graphics/Camera/Camera.h"
 #include "Maths/Transform.h"
- 
+#include "Core/Engine.h"
 
 namespace Lumos
 {
@@ -172,6 +172,9 @@ namespace Lumos
 		void Renderer2D::Submit(Renderable2D* renderable, const Maths::Matrix4& transform)
 		{
 			LUMOS_PROFILE_FUNCTION();
+			
+			Engine::Get().Statistics().NumRenderedObjects++;
+				
 			if(m_IndexCount >= m_Limits.IndiciesSize)
 				FlushAndReset();
 
@@ -266,8 +269,6 @@ namespace Lumos
 			if(!m_RenderTexture)
 				m_CurrentBufferID = Renderer::GetSwapchain()->GetCurrentBufferId();
 
-			m_CommandBuffers[m_CurrentBufferID]->BeginRecording();
-
             m_RenderPass->BeginRenderpass(m_CommandBuffers[m_CurrentBufferID].get(), m_ClearColour, m_Framebuffers[m_CurrentBufferID].get(), Graphics::SECONDARY, m_ScreenBufferWidth, m_ScreenBufferHeight);
 
             m_VertexBuffers[m_BatchDrawCallIndex]->Bind(m_CommandBuffers[m_CurrentBufferID].get(), m_Pipeline.get());
@@ -280,8 +281,6 @@ namespace Lumos
 			m_CurrentBufferID = 0;
 			if(!m_RenderTexture)
 				m_CurrentBufferID = Renderer::GetSwapchain()->GetCurrentBufferId();
-
-			m_CommandBuffers[m_CurrentBufferID]->BeginRecording();
 
 			m_RenderPass->BeginRenderpass(m_CommandBuffers[m_CurrentBufferID].get(), m_ClearColour, m_Framebuffers[m_CurrentBufferID].get(), Graphics::SECONDARY, m_ScreenBufferWidth, m_ScreenBufferHeight);
 
@@ -378,7 +377,6 @@ namespace Lumos
 		{
 			LUMOS_PROFILE_FUNCTION();
 			m_RenderPass->EndRenderpass(m_CommandBuffers[m_CurrentBufferID].get());
-			m_CommandBuffers[m_CurrentBufferID]->EndRecording();
 
 			if(m_RenderTexture)
 				m_CommandBuffers[m_CurrentBufferID]->Execute(true);
@@ -409,7 +407,7 @@ namespace Lumos
 				if(inside == Maths::Intersection::OUTSIDE)
 					continue;
 
-				Submit(reinterpret_cast<Renderable2D*>(&sprite), trans.GetWorldMatrix());
+				Submit(&sprite, trans.GetWorldMatrix());
 			};
 			
 			auto group2 = registry.group<Graphics::AnimatedSprite>(entt::get<Maths::Transform>);
@@ -424,7 +422,7 @@ namespace Lumos
 				if(inside == Maths::Intersection::OUTSIDE)
 					continue;
 				
-				Submit(reinterpret_cast<Renderable2D*>(&sprite), trans.GetWorldMatrix());
+				Submit(&sprite, trans.GetWorldMatrix());
 			};
 
 			Present();

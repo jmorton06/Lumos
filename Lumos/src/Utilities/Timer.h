@@ -25,17 +25,28 @@ namespace Lumos
 
 		static double Duration(TimeStamp start, TimeStamp end, double timeResolution = 1.0);
 		static float  Duration(TimeStamp start, TimeStamp end, float timeResolution);
-
-		float GetMS(const float timeResolution) const
+		
+		float GetElapsedMS()
+		{
+			return GetElapsed(1000.0f);
+		}
+		
+		float GetElapsedS()
+		{
+			return GetElapsed();
+		}
+		
+		protected:
+		float GetElapsed(const float timeResolution) const
 		{
 			return Duration(m_Start, Now(), timeResolution);
 		}
-		double GetMS(const double timeResolution = 1.0) const
+		
+		double GetElapsed(const double timeResolution = 1.0) const
 		{
 			return Duration(m_Start, Now(), timeResolution);
 		}
-
-	protected:
+		
 		TimeStamp m_Start;		//Start of timer
 		TimeStamp m_Frequency;	//Ticks Per Second
 		TimeStamp m_LastTime;	//Last time GetTimedMS was called
