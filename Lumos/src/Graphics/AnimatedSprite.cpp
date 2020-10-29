@@ -28,8 +28,9 @@ namespace Lumos::Graphics
 		m_UVs = GetAnimatedUVs();
 	}
  
-	std::vector<Maths::Vector2> AnimatedSprite::GetAnimatedUVs()
+    const std::array<Maths::Vector2, 4>& AnimatedSprite::GetAnimatedUVs()
 	{
+        LUMOS_PROFILE_FUNCTION();
 		auto& currentState = m_AnimationStates[m_State];
 		if (m_AnimationStates.find(m_State) == m_AnimationStates.end() || currentState.Frames.empty())
 			return GetDefaultUVs();
@@ -50,6 +51,7 @@ namespace Lumos::Graphics
 	
 	void AnimatedSprite::OnUpdate(float dt)
 	{
+        LUMOS_PROFILE_FUNCTION();
 		if (m_AnimationStates.find(m_State) == m_AnimationStates.end())
 			return;
 		

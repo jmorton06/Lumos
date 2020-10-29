@@ -274,7 +274,7 @@ namespace Lumos
 			if(m_CubeMap)
 			{
 				Graphics::ImageInfo imageInfo = {};
-				imageInfo.texture = {m_CubeMap};
+				imageInfo.texture = m_CubeMap;
 				imageInfo.name = "u_CubeMap";
 				imageInfo.binding = 1;
 				imageInfo.type = TextureType::CUBE;

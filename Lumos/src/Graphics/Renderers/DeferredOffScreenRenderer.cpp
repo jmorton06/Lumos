@@ -172,62 +172,70 @@ namespace Lumos
 			LUMOS_PROFILE_FUNCTION();
             m_CommandQueue.clear();
             m_SystemUniforms.clear();
-            
-			m_Camera = overrideCamera;
-			m_CameraTransform = overrideCameraTransform;
+            {
+                LUMOS_PROFILE_SCOPE("Get Camera");
 
-			auto view = m_CameraTransform->GetWorldMatrix().Inverse();
-			
-			if(!m_Camera)
-			{
-				return;
-			}
+                m_Camera = overrideCamera;
+                m_CameraTransform = overrideCameraTransform;
 
-			LUMOS_ASSERT(m_Camera, "No Camera Set for Renderer");
-			auto projView = m_Camera->GetProjectionMatrix() * view;
-			memcpy(m_VSSystemUniformBuffer + m_VSSystemUniformBufferOffsets[VSSystemUniformIndex_ProjectionViewMatrix], &projView, sizeof(Maths::Matrix4));
-
-			m_Frustum = m_Camera->GetFrustum(view);
-			
-			auto& registry = scene->GetRegistry();
-			auto group = registry.group<Model>(entt::get<Maths::Transform>);
-			
-			for(auto entity : group)
-			{
-				const auto& [model, trans] = group.get<Model, Maths::Transform>(entity);
-                const auto& meshes = model.GetMeshes();
+                auto view = m_CameraTransform->GetWorldMatrix().Inverse();
                 
-                for(auto mesh : meshes)
+                if(!m_Camera)
                 {
-                    if(mesh->GetActive())
+                    return;
+                }
+
+                LUMOS_ASSERT(m_Camera, "No Camera Set for Renderer");
+                auto projView = m_Camera->GetProjectionMatrix() * view;
+                memcpy(m_VSSystemUniformBuffer + m_VSSystemUniformBufferOffsets[VSSystemUniformIndex_ProjectionViewMatrix], &projView, sizeof(Maths::Matrix4));
+
+                m_Frustum = m_Camera->GetFrustum(view);
+            }
+			
+            {
+                auto& registry = scene->GetRegistry();
+                auto group = registry.group<Model>(entt::get<Maths::Transform>);
+                
+                for(auto entity : group)
+                {
+                    const auto& [model, trans] = group.get<Model, Maths::Transform>(entity);
+                    const auto& meshes = model.GetMeshes();
+                    
+                    for(auto& mesh : meshes)
                     {
-                        auto& worldTransform = trans.GetWorldMatrix();
-                        auto inside = m_Frustum.IsInsideFast(mesh->GetBoundingBox()->Transformed(worldTransform));
-						
-                        if(inside == Maths::Intersection::OUTSIDE)
-                            continue;
-						
-                        auto material = mesh->GetMaterial();
-                        if(material)
+
+                        if(mesh->GetActive())
                         {
-                            if(material->GetDescriptorSet() == nullptr || material->GetPipeline() != m_Pipeline.get() || material->GetTexturesUpdated())
+
+                            auto& worldTransform = trans.GetWorldMatrix();
+                            Maths::Intersection inside;
                             {
-                                material->CreateDescriptorSet(m_Pipeline.get(), 1);
-                                material->SetTexturesUpdated(false);
+                                LUMOS_PROFILE_SCOPE("Frustum Check");
+
+                                inside = m_Frustum.IsInsideFast(mesh->GetBoundingBox()->Transformed(worldTransform));
                             }
+                            
+                            if(inside == Maths::Intersection::OUTSIDE)
+                                continue;
+                            
+                            auto material = mesh->GetMaterial();
+                            if(material)
+                            {
+                                if(material->GetDescriptorSet() == nullptr || material->GetPipeline() != m_Pipeline.get() || material->GetTexturesUpdated())
+                                {
+                                    LUMOS_PROFILE_SCOPE("Create DescriptorSet");
+
+                                    material->CreateDescriptorSet(m_Pipeline.get(), 1);
+                                    material->SetTexturesUpdated(false);
+                                }
+                            }
+                            
+                            auto textureMatrixTransform = registry.try_get<TextureMatrixComponent>(entity);
+                            SubmitMesh(mesh.get(), material.get(), worldTransform, textureMatrixTransform ? textureMatrixTransform->GetMatrix() : Maths::Matrix4());
                         }
-						
-                        auto textureMatrixTransform = registry.try_get<TextureMatrixComponent>(entity);
-                        Maths::Matrix4 textureMatrix;
-                        if(textureMatrixTransform)
-                            textureMatrix = textureMatrixTransform->GetMatrix();
-                        else
-                            textureMatrix = Maths::Matrix4();
-						
-                        SubmitMesh(mesh.get(), material.get(), worldTransform, textureMatrix);
                     }
                 }
-			}
+            }
 		}
 
 		void DeferredOffScreenRenderer::Submit(const RenderCommand& command)

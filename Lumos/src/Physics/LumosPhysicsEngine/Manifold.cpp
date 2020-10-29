@@ -32,7 +32,7 @@ namespace Lumos
 	void Manifold::ApplyImpulse()
 	{
         LUMOS_PROFILE_FUNCTION();
-		for(int i = 0; i < m_ContactCount; i++)
+		for(u32 i = 0; i < m_ContactCount; i++)
 		{
 			SolveContactPoint(m_vContacts[i]);
 		}
@@ -156,7 +156,7 @@ namespace Lumos
 	{
         LUMOS_PROFILE_FUNCTION();
 		
-		for(int i = 0; i < m_ContactCount; i++)
+		for(u32 i = 0; i < m_ContactCount; i++)
 		{
 			UpdateConstraint(m_vContacts[i]);
 		}
@@ -225,7 +225,7 @@ namespace Lumos
 		//Check to see if we already contain a contact point almost in that location
 		const float min_allowed_dist_sq = 0.2f * 0.2f;
 		bool should_add = true;
-		for(int i = 0; i < m_ContactCount; i++)
+		for(u32 i = 0; i < m_ContactCount; i++)
 		{
 			Maths::Vector3 ab = m_vContacts[i].relPosA - contact.relPosA;
 			float distsq = Maths::Vector3::Dot(ab, ab);
@@ -261,7 +261,7 @@ namespace Lumos
 		{
 			//Loop around all contact points and draw them all as a line-fan
 			Maths::Vector3 globalOnA1 = m_pNodeA->GetPosition() + m_vContacts[m_ContactCount - 1].relPosA;
-			for(int i = 0; i < m_ContactCount; i++)
+			for(u32 i = 0; i < m_ContactCount; i++)
 			{
 				auto& contact = m_vContacts[i];
 				Maths::Vector3 globalOnA2 = m_pNodeA->GetPosition() + contact.relPosA;

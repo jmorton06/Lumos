@@ -146,7 +146,7 @@ function OnInit()
 end
 
 function OnUpdate(dt)
-
+tracy.ZoneBegin()
     if gameState == GameStates.Running then
 		phys = player:GetPhysics2DComponent()
 
@@ -208,7 +208,9 @@ function OnUpdate(dt)
             Reset();
         end
         gui.endWindow()
-    end
+end
+
+tracy.ZoneEnd()
 end
 
 function Reset()

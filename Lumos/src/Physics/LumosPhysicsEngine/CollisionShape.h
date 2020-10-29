@@ -7,6 +7,15 @@
 namespace Lumos
 {
 	class RigidBody3D;
+	
+	struct ReferencePolygon
+	{
+		Maths::Vector3 Faces[8];
+		Maths::Plane AdjacentPlanes[8];
+		Maths::Vector3 Normal;
+		u32 FaceCount = 0;
+		u32 PlaneCount = 0;
+	};
 
 	struct LUMOS_EXPORT CollisionEdge
 	{
@@ -72,9 +81,7 @@ namespace Lumos
 		//    of all adjacent faces in order to clip against.
 		virtual void GetIncidentReferencePolygon(const RigidBody3D* currentObject,
 			const Maths::Vector3& axis,
-			std::list<Maths::Vector3>* out_face,
-			Maths::Vector3* out_normal,
-			std::vector<Maths::Plane>* out_adjacent_planes) const = 0;
+            ReferencePolygon& refPolygon) const = 0;
 
 		void SetLocalTransform(const Maths::Matrix4& transform)
 		{

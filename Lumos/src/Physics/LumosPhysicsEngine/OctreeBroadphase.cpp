@@ -11,9 +11,8 @@ namespace Lumos
 		: m_MaxObjectsPerPartition(maxObjectsPerPartition)
 		, m_MaxPartitionDepth(maxPartitionDepth)
 		, m_SecondaryBroadphase(secondaryBroadphase)
-	{
-        //m_LeafNodes.reserve(m_MaxPartitionDepth * m_MaxPartitionDepth * m_MaxPartitionDepth);
-    
+		, m_Leaves()
+	{    
         m_NodePool[0].ChildCount = 0;
         m_NodePool[0].PhysicsObjectCount = 0;
         m_NodePool[0].Index = 0;
@@ -37,7 +36,7 @@ namespace Lumos
             {
                 m_NodePool[i].ChildCount = 0;
                 
-                for(int j = 0; j < m_NodePool[i].PhysicsObjectCount; j++)
+                for(u32 j = 0; j < m_NodePool[i].PhysicsObjectCount; j++)
                     m_NodePool[i].PhysicsObjects[j] = nullptr;
                 
                 m_NodePool[i].PhysicsObjectCount = 0;
@@ -47,7 +46,7 @@ namespace Lumos
 
         }
 
-		for(int i = 0; i < objectCount; i++)
+		for(u32 i = 0; i < objectCount; i++)
 		{
 			auto physicsObject = objects[i];
 			
@@ -64,7 +63,7 @@ namespace Lumos
 		Divide(m_NodePool[0], 0);
 
 		// Add collision pairs in leaf world divisions
-        for(int i = 0; i < m_LeafCount; i++)
+        for(u32 i = 0; i < m_LeafCount; i++)
         {
             if(m_NodePool[m_Leaves[i]].PhysicsObjectCount > 1)
                 m_SecondaryBroadphase->FindPotentialCollisionPairs(m_NodePool[m_Leaves[i]].PhysicsObjects, m_NodePool[m_Leaves[i]].PhysicsObjectCount, collisionPairs);
@@ -130,7 +129,7 @@ namespace Lumos
 			newNode.boundingBox = Maths::BoundingBox(lower, upper);
 
 			// Add objects inside division
-            for(int i = 0; i < division.PhysicsObjectCount; i++)
+            for(u32 i = 0; i < division.PhysicsObjectCount; i++)
 			{
                 auto& physicsObject = division.PhysicsObjects[i];
 				if(newNode.boundingBox.IsInsideFast(physicsObject->GetWorldSpaceAABB()))
@@ -150,7 +149,7 @@ namespace Lumos
 			DebugRenderer::DebugDraw(node.boundingBox, Maths::Vector4(0.8f, 0.2f, 0.4f, 1.0f), false, 0.1f);
 
 			// Draw sub divisions
-			for(int i = 0; i < node.ChildCount; i++)
+			for(u32 i = 0; i < node.ChildCount; i++)
 				DebugDrawOctreeNode(m_NodePool[node.ChildNodeIndices[i]]);
 }
 }

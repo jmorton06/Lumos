@@ -33,7 +33,7 @@ namespace Lumos
 		
 		float GetElapsedS()
 		{
-			return GetElapsed();
+			return GetElapsed(1.0f);
 		}
 		
 		protected:

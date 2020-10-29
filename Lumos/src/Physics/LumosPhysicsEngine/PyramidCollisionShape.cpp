@@ -105,15 +105,8 @@ namespace Lumos
 	void PyramidCollisionShape::GetMinMaxVertexOnAxis(const RigidBody3D* currentObject, const Maths::Vector3& axis, Maths::Vector3* out_min, Maths::Vector3* out_max) const
 	{
         LUMOS_PROFILE_FUNCTION();
-		Maths::Matrix4 wsTransform;
-
-		if(currentObject == nullptr)
-			wsTransform = m_LocalTransform;
-		else
-			wsTransform = currentObject->GetWorldSpaceTransform() * m_LocalTransform;
-
-		const Maths::Matrix3 invNormalMatrix = wsTransform.ToMatrix3().Transpose();
-		const Maths::Vector3 local_axis = invNormalMatrix * axis;
+        Maths::Matrix4 wsTransform = currentObject ? currentObject->GetWorldSpaceTransform() * m_LocalTransform : m_LocalTransform;
+		const Maths::Vector3 local_axis = wsTransform.ToMatrix3().Transpose() * axis;
 
 		int vMin, vMax;
 		m_PyramidHull->GetMinMaxVerticesInAxis(local_axis, &vMin, &vMax);
@@ -124,15 +117,12 @@ namespace Lumos
 			*out_max = wsTransform * m_PyramidHull->GetVertex(vMax).pos;
 	}
 
-	void PyramidCollisionShape::GetIncidentReferencePolygon(const RigidBody3D* currentObject, const Maths::Vector3& axis, std::list<Maths::Vector3>* out_face, Maths::Vector3* out_normal, std::vector<Maths::Plane>* out_adjacent_planes) const
+	void PyramidCollisionShape::GetIncidentReferencePolygon(const RigidBody3D* currentObject,
+                                                            const Maths::Vector3& axis,
+                                                            ReferencePolygon& refPolygon) const
 	{
         LUMOS_PROFILE_FUNCTION();
-		Maths::Matrix4 wsTransform;
-
-		if(currentObject == nullptr)
-			wsTransform = m_LocalTransform;
-		else
-			wsTransform = currentObject->GetWorldSpaceTransform() * m_LocalTransform;
+		Maths::Matrix4 wsTransform = currentObject ? currentObject->GetWorldSpaceTransform() * m_LocalTransform : m_LocalTransform;
 
 		const Maths::Matrix3 invNormalMatrix = wsTransform.ToMatrix3().Inverse();
 		const Maths::Matrix3 normalMatrix = invNormalMatrix.Transpose();
@@ -156,32 +146,31 @@ namespace Lumos
 				best_face = face;
 			}
 		}
-
-		if(out_normal)
+         
 		{
 			if(best_face)
-				*out_normal = normalMatrix * best_face->normal;
-			(*out_normal).Normalize();
+                refPolygon.Normal = normalMatrix * best_face->normal;
+            refPolygon.Normal.Normalize();
 		}
 
-		if(out_face && best_face)
+		if(best_face)
 		{
 			for(int vertIdx : best_face->vert_ids)
 			{
 				const HullVertex& vertex = m_PyramidHull->GetVertex(vertIdx);
-				out_face->push_back(wsTransform * vertex.pos);
+                refPolygon.Faces[refPolygon.FaceCount++] = wsTransform * vertex.pos;
 			}
 		}
 
-		if(out_adjacent_planes && best_face != nullptr)
+		if(best_face)
 		{
 			//Add the reference face itself to the list of adjacent planes
 			Maths::Vector3 wsPointOnPlane = wsTransform * m_PyramidHull->GetVertex(m_PyramidHull->GetEdge(best_face->edge_ids[0]).vStart).pos;
 			Maths::Vector3 planeNrml = -(normalMatrix * best_face->normal);
 			planeNrml.Normalize();
 			float planeDist = -Maths::Vector3::Dot(planeNrml, wsPointOnPlane);
-
-			out_adjacent_planes->emplace_back(planeNrml, planeDist);
+            
+            refPolygon.AdjacentPlanes[refPolygon.PlaneCount++] = {planeNrml, planeDist};
 
 			for(int edgeIdx : best_face->edge_ids)
 			{
@@ -199,7 +188,7 @@ namespace Lumos
 						planeNrml.Normalize();
 						planeDist = -Maths::Vector3::Dot(planeNrml, wsPointOnPlane);
 
-						out_adjacent_planes->emplace_back(planeNrml, planeDist);
+                        refPolygon.AdjacentPlanes[refPolygon.PlaneCount++] = {planeNrml, planeDist};
 					}
 				}
 			}

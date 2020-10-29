@@ -25,10 +25,18 @@ namespace Lumos
             for(auto& imageInfo : imageInfos)
             {
 				m_ImageInfos.push_back(imageInfo);
-				for (int i = 0; i < imageInfo.count; i++)
-				{
-					imageInfo.texture[i]->Bind(imageInfo.binding + i);
-				}
+                
+                if(imageInfo.count == 1)
+                {
+                    imageInfo.texture->Bind(imageInfo.binding);
+                }
+                else
+                {
+                    for (int i = 0; i < imageInfo.count; i++)
+                    {
+                        imageInfo.textures[i]->Bind(imageInfo.binding + i);
+                    }
+                }
 				dynamic_cast<GLShader*>(m_Shader)->SetUniform1i(imageInfo.name, imageInfo.binding);
             }
 
@@ -48,10 +56,18 @@ namespace Lumos
             for(auto& imageInfo : imageInfos)
             {
 				m_ImageInfos.push_back(imageInfo);
-				for (int i = 0; i < imageInfo.count; i++)
-				{
-					imageInfo.texture[i]->Bind(imageInfo.binding + i);
-				}
+                
+                if(imageInfo.count == 1)
+                {
+                    imageInfo.texture->Bind(imageInfo.binding);
+                }
+                else
+                {
+                    for (int i = 0; i < imageInfo.count; i++)
+                    {
+                        imageInfo.textures[i]->Bind(imageInfo.binding + i);
+                    }
+                }
 				dynamic_cast<GLShader*>(m_Shader)->SetUniform1i(imageInfo.name, imageInfo.binding);
             }
 
@@ -73,11 +89,17 @@ namespace Lumos
 			LUMOS_PROFILE_FUNCTION();
 			for (auto& imageInfo : m_ImageInfos)
 			{
-				for(int i = 0; i < imageInfo.count; i++)
-				{
-                    if(imageInfo.texture[i])
-                        imageInfo.texture[i]->Bind(imageInfo.binding + i);
-				}
+                if(imageInfo.count == 1)
+                {
+                    imageInfo.texture->Bind(imageInfo.binding);
+                }
+                else
+                {
+                    for (int i = 0; i < imageInfo.count; i++)
+                    {
+                        imageInfo.textures[i]->Bind(imageInfo.binding + i);
+                    }
+                }
 
 				dynamic_cast<GLShader*>(m_Shader)->SetUniform1i(imageInfo.name, imageInfo.binding);
 			}

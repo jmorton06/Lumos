@@ -19,7 +19,9 @@ namespace Lumos
 		virtual std::vector<CollisionEdge>& GetEdges(const RigidBody3D* currentObject) override;
 
 		virtual void GetMinMaxVertexOnAxis(const RigidBody3D* currentObject, const Maths::Vector3& axis, Maths::Vector3* out_min, Maths::Vector3* out_max) const override;
-		virtual void GetIncidentReferencePolygon(const RigidBody3D* currentObject, const Maths::Vector3& axis, std::list<Maths::Vector3>* out_face, Maths::Vector3* out_normal, std::vector<Maths::Plane>* out_adjacent_planes) const override;
+		virtual void GetIncidentReferencePolygon(const RigidBody3D* currentObject,
+                                                 const Maths::Vector3& axis,
+                                                 ReferencePolygon& refPolygon) const override;
 
 		virtual void DebugDraw(const RigidBody3D* currentObject) const override;
 

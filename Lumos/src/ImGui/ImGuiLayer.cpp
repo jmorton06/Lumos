@@ -12,15 +12,8 @@
 #define IMGUI_DISABLE_OBSOLETE_FUNCTIONS
 #include <imgui/imgui.h>
 #include <imgui/plugins/ImGuizmo.h>
-#include <imgui/plugins/ImGuiAl/fonts/CousineRegular.inl>
-#include <imgui/plugins/ImGuiAl/fonts/KarlaRegular.inl>
 #include <imgui/plugins/ImGuiAl/fonts/MaterialDesign.inl>
-#include <imgui/plugins/ImGuiAl/fonts/CodingFontTobi.inl>
-#include <imgui/plugins/ImGuiAl/fonts/DroidSans.inl>
-#include <imgui/plugins/ImGuiAl/fonts/Crisp.inl>
-#include <imgui/plugins/ImGuiAl/fonts/RobotoMedium.inl>
-
-
+#include <imgui/plugins/ImGuiAl/fonts/RobotoRegular.inl>
 #include <imgui/misc/freetype/imgui_freetype.h>
 
 namespace Lumos
@@ -42,10 +35,10 @@ namespace Lumos
 		Application& app = Application::Get();
 		ImGuiIO& io = ImGui::GetIO();
 		io.DisplaySize = ImVec2(static_cast<float>(app.GetWindow()->GetWidth()), static_cast<float>(app.GetWindow()->GetHeight()));
-        io.ConfigFlags |= ImGuiConfigFlags_DockingEnable;// | ImGuiConfigFlags_IsSRGB;
+        io.ConfigFlags |= ImGuiConfigFlags_DockingEnable;
 
 #ifdef LUMOS_PLATFORM_IOS
-		//io.ConfigFlags |= ImGuiConfigFlags_IsTouchScreen;
+		io.ConfigFlags |= ImGuiConfigFlags_IsTouchScreen;
 #endif
 		io.BackendFlags |= ImGuiBackendFlags_HasMouseCursors;
 		io.ConfigWindowsMoveFromTitleBarOnly = true;
@@ -75,6 +68,7 @@ namespace Lumos
 
 	void ImGuiLayer::OnEvent(Event& event)
 	{
+        LUMOS_PROFILE_FUNCTION();
 		EventDispatcher dispatcher(event);
 		dispatcher.Dispatch<MouseButtonPressedEvent>(BIND_EVENT_FN(ImGuiLayer::OnMouseButtonPressedEvent));
 		dispatcher.Dispatch<MouseButtonReleasedEvent>(BIND_EVENT_FN(ImGuiLayer::OnMouseButtonReleasedEvent));
@@ -248,32 +242,11 @@ namespace Lumos
         0,
         };
 
-        io.Fonts->AddFontFromMemoryCompressedTTF(roboto_medium_compressed_data, roboto_medium_compressed_size, m_FontSize, &icons_config, ranges);
-        AddIconFont();
-    
-        io.Fonts->AddFontFromMemoryCompressedTTF(DroidSans_compressed_data, DroidSans_compressed_size, m_FontSize, &icons_config, ranges);
+        io.Fonts->AddFontFromMemoryCompressedTTF(RobotoRegular_compressed_data, RobotoRegular_compressed_size, m_FontSize, &icons_config, ranges);
         AddIconFont();
     
         io.Fonts->AddFontDefault();
         AddIconFont();
-    
-    #if 0
-
-		io.Fonts->AddFontFromMemoryCompressedTTF(KarlaRegular_compressed_data, KarlaRegular_compressed_size, m_FontSize, &icons_config);
-		AddIconFont();
-
-		io.Fonts->AddFontFromMemoryCompressedTTF(CousineRegular_compressed_data, CousineRegular_compressed_size, m_FontSize, &icons_config);
-		AddIconFont();
-    
-        io.Fonts->AddFontFromMemoryCompressedTTF(CodingFontTobi_compressed_data, CodingFontTobi_compressed_size, m_FontSize - 2.0f, &icons_config);
-        AddIconFont();
-        
-        io.Fonts->AddFontFromMemoryCompressedTTF(Crisp_compressed_data, Crisp_compressed_size, m_FontSize, &icons_config);
-        AddIconFont();
-    
-        io.Fonts->AddFontFromMemoryCompressedTTF(DroidSans_compressed_data, DroidSans_compressed_size, m_FontSize, &icons_config);
-        AddIconFont();
-    #endif
 
 		io.Fonts->TexGlyphPadding = 1;
 		for(int n = 0; n < io.Fonts->ConfigData.Size; n++)
@@ -286,6 +259,9 @@ namespace Lumos
 		ImGuiFreeType::BuildFontAtlas(io.Fonts, ImGuiFreeType::RasterizerFlags::ForceAutoHint);
 
 		ImGuiStyle& style = ImGui::GetStyle();
+#ifdef LUMOS_PLATFORM_IOS
+        style.ScaleAllSizes(3.0f);
+#endif
 
 		style.WindowPadding = ImVec2(5, 5);
 		style.FramePadding = ImVec2(2, 2);
@@ -303,10 +279,10 @@ namespace Lumos
 
 		style.WindowRounding = 4;
 		style.ChildRounding = 4;
-		style.FrameRounding = 4;
+		style.FrameRounding = 0;
 		style.ScrollbarRounding = 4;
 		style.GrabRounding = 4;
-		style.WindowMinSize = ImVec2(100.0f, 100.0f);
+		style.WindowMinSize = ImVec2(200.0f, 200.0f);
 
 #ifdef IMGUI_HAS_DOCK
 		style.TabBorderSize = 0.0f;
@@ -326,8 +302,6 @@ namespace Lumos
 	{
 		ImGuiIO& io = ImGui::GetIO();
 
-#define USE_FA_ICONS
-#ifdef USE_FA_ICONS
 		static const ImWchar icons_ranges[] = {ICON_MIN_MDI, ICON_MAX_MDI, 0};
 		ImFontConfig icons_config;
 		// merge in icons from Font Awesome
@@ -339,14 +313,5 @@ namespace Lumos
 		icons_config.SizePixels = 13.0f * 1.0f;
 
 		io.Fonts->AddFontFromMemoryCompressedTTF(MaterialDesign_compressed_data, MaterialDesign_compressed_size, m_FontSize, &icons_config, icons_ranges);
-		//io.Fonts->AddFontFromMemoryCompressedTTF(FontAwesome5Brands400_compressed_data, FontAwesome5Brands400_compressed_size, m_FontSize, &icons_config, icons_ranges);
-
-#else
-
-		static const ImWchar ranges[] = {ICON_MIN_MD, ICON_MAX_MD, 0};
-		ImFontConfig config;
-		config.MergeMode = true;
-		io.Fonts->AddFontFromMemoryCompressedTTF(GoogleMaterialDesign_compressed_data, GoogleMaterialDesign_compressed_size, m_FontSize, &config, ranges);
-#endif
 	}
 }

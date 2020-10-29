@@ -92,7 +92,9 @@ namespace Lumos
 
 		struct ImageInfo
 		{
-			std::vector<Texture*> texture;
+			Texture** textures;
+            Texture* texture;
+
 			int count = 1;
 			int binding;
 			std::string name;

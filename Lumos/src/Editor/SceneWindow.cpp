@@ -43,6 +43,11 @@ namespace Lumos
 	{
 		LUMOS_PROFILE_FUNCTION();
 		Application& app = Application::Get();
+        
+        ImGuiStyle& style = ImGui::GetStyle();
+        style.WindowPadding = ImVec2(0, 0);
+        
+
 		auto flags = ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoScrollWithMouse;
 		ImGui::SetNextWindowBgAlpha(0.0f);
 		ImGui::Begin(m_Name.c_str(), &m_Active, flags);
@@ -90,6 +95,7 @@ namespace Lumos
 		if(!camera)
 		{
             ImGui::End();
+            style.WindowPadding = ImVec2(5, 5);
             return;
         }
 
@@ -140,6 +146,7 @@ namespace Lumos
 		if(gameView)
 		{
 			ImGui::End();
+            style.WindowPadding = ImVec2(5, 5);
 			return;
 		}
 
@@ -225,7 +232,7 @@ namespace Lumos
 				}
 			}
 			ImGui::End();
-		}
+        }
 
 		const ImGuiPayload* payload = ImGui::GetDragDropPayload();
 
@@ -241,6 +248,7 @@ namespace Lumos
 		}
 
 		ImGui::End();
+        style.WindowPadding = ImVec2(5, 5);
 	}
 
 	void SceneWindow::DrawGizmos(float width, float height, float xpos, float ypos, Scene* scene)

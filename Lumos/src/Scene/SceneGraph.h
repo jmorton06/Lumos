@@ -169,45 +169,44 @@ namespace Lumos
 		Hierarchy(entt::entity p);
 		Hierarchy();
 
-		inline entt::entity parent() const
+		inline entt::entity Parent() const
 		{
-			return _parent;
+			return m_Parent;
 		}
-		inline entt::entity next() const
+		inline entt::entity Next() const
 		{
-			return _next;
+			return m_Next;
 		}
-		inline entt::entity prev() const
+        inline entt::entity Prev() const
 		{
-			return _prev;
+			return m_Prev;
 		}
-		inline entt::entity first() const
+		inline entt::entity First() const
 		{
-			return _first;
+			return m_First;
 		}
 
 		// Return true if rhs is an ancestor of rhs
-		bool compare(const entt::registry& registry, const entt::entity rhs) const;
+		bool Compare(const entt::registry& registry, const entt::entity rhs) const;
+        void Reset();
 
 		// update hierarchy components when hierarchy component is added
-		static void on_construct(entt::registry& registry, entt::entity entity);
+		static void OnConstruct(entt::registry& registry, entt::entity entity);
 
 		// update hierarchy components when hierarchy component is removed
-		static void on_destroy(entt::registry& registry, entt::entity entity);
-
-		static void on_update(entt::registry& registry, entt::entity entity);
-
+		static void OnDestroy(entt::registry& registry, entt::entity entity);
+		static void OnUpdate(entt::registry& registry, entt::entity entity);
 		static void Reparent(entt::entity entity, entt::entity parent, entt::registry& registry, Hierarchy& hierarchy);
 
-		entt::entity _parent;
-		entt::entity _first;
-		entt::entity _next;
-		entt::entity _prev;
+		entt::entity m_Parent;
+		entt::entity m_First;
+		entt::entity m_Next;
+		entt::entity m_Prev;
 
 		template<typename Archive>
 		void serialize(Archive& archive)
 		{
-			archive(cereal::make_nvp("First", _first), cereal::make_nvp("Next", _next), cereal::make_nvp("Previous", _prev), cereal::make_nvp("Parent", _parent));
+			archive(cereal::make_nvp("First", m_First), cereal::make_nvp("Next", m_Next), cereal::make_nvp("Previous", m_Prev), cereal::make_nvp("Parent", m_Parent));
 		}
 	};
 

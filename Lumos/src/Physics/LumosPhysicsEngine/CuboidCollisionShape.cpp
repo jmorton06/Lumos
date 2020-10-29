@@ -89,15 +89,8 @@ namespace Lumos
 	void CuboidCollisionShape::GetMinMaxVertexOnAxis(const RigidBody3D* currentObject, const Maths::Vector3& axis, Maths::Vector3* out_min, Maths::Vector3* out_max) const
 	{
         LUMOS_PROFILE_FUNCTION();
-		Maths::Matrix4 wsTransform;
-
-		if(currentObject == nullptr)
-			wsTransform = m_LocalTransform;
-		else
-			wsTransform = currentObject->GetWorldSpaceTransform() * m_LocalTransform;
-
-		Maths::Matrix3 invNormalMatrix = Maths::Matrix3::Transpose(wsTransform.ToMatrix3());
-		Maths::Vector3 local_axis = invNormalMatrix * axis;
+		Maths::Matrix4 wsTransform = currentObject ? currentObject->GetWorldSpaceTransform() * m_LocalTransform : m_LocalTransform;
+        const Maths::Vector3 local_axis = wsTransform.ToMatrix3().Transpose() * axis;
 
 		int vMin, vMax;
 
@@ -109,85 +102,82 @@ namespace Lumos
 			*out_max = wsTransform * m_CubeHull->GetVertex(vMax).pos;
 	}
 
-	void CuboidCollisionShape::GetIncidentReferencePolygon(const RigidBody3D* currentObject, const Maths::Vector3& axis, std::list<Maths::Vector3>* out_face, Maths::Vector3* out_normal, std::vector<Maths::Plane>* out_adjacent_planes) const
+	void CuboidCollisionShape::GetIncidentReferencePolygon(const RigidBody3D* currentObject,
+                                                           const Maths::Vector3& axis,
+                                                           ReferencePolygon& refPolygon) const
 	{
         LUMOS_PROFILE_FUNCTION();
-		Maths::Matrix4 wsTransform;
+        Maths::Matrix4 wsTransform = currentObject ? currentObject->GetWorldSpaceTransform() * m_LocalTransform : m_LocalTransform;
 
-		if(currentObject == nullptr)
-			wsTransform = m_LocalTransform;
-		else
-			wsTransform = currentObject->GetWorldSpaceTransform() * m_LocalTransform;
+        const Maths::Matrix3 invNormalMatrix = wsTransform.ToMatrix3().Inverse();
+        const Maths::Matrix3 normalMatrix = invNormalMatrix.Transpose();
 
-		Maths::Matrix3 invNormalMatrix = wsTransform.ToMatrix3().Inverse();
-		Maths::Matrix3 normalMatrix = invNormalMatrix.Transpose();
+        const Maths::Vector3 local_axis = invNormalMatrix * axis;
 
-		Maths::Vector3 local_axis = invNormalMatrix * axis;
+        int minVertex, maxVertex;
+        m_CubeHull->GetMinMaxVerticesInAxis(local_axis, &minVertex, &maxVertex);
 
-		int minVertex, maxVertex;
-		m_CubeHull->GetMinMaxVerticesInAxis(local_axis, &minVertex, &maxVertex);
+        const HullVertex& vert = m_CubeHull->GetVertex(maxVertex);
 
-		const HullVertex& vert = m_CubeHull->GetVertex(maxVertex);
+        const HullFace* best_face = nullptr;
+        float best_correlation = -FLT_MAX;
+        for(int faceIdx : vert.enclosing_faces)
+        {
+            const HullFace* face = &m_CubeHull->GetFace(faceIdx);
+            const float temp_correlation = Maths::Vector3::Dot(local_axis, face->normal);
+            if(temp_correlation > best_correlation)
+            {
+                best_correlation = temp_correlation;
+                best_face = face;
+            }
+        }
+         
+        {
+            if(best_face)
+                refPolygon.Normal = normalMatrix * best_face->normal;
+            refPolygon.Normal.Normalize();
+        }
 
-		const HullFace* best_face = nullptr;
-		float best_correlation = -FLT_MAX;
-		for(int faceIdx : vert.enclosing_faces)
-		{
-			const HullFace* face = &m_CubeHull->GetFace(faceIdx);
-			float temp_correlation = Maths::Vector3::Dot(local_axis, face->normal);
-			if(temp_correlation > best_correlation)
-			{
-				best_correlation = temp_correlation;
-				best_face = face;
-			}
-		}
+        if(best_face)
+        {
+            for(int vertIdx : best_face->vert_ids)
+            {
+                const HullVertex& vertex = m_CubeHull->GetVertex(vertIdx);
+                refPolygon.Faces[refPolygon.FaceCount++] = wsTransform * vertex.pos;
+            }
+        }
 
-		if(out_normal && best_face)
-		{
-			*out_normal = normalMatrix * best_face->normal;
-			(*out_normal).Normalize();
-		}
+        if(best_face)
+        {
+            //Add the reference face itself to the list of adjacent planes
+            Maths::Vector3 wsPointOnPlane = wsTransform * m_CubeHull->GetVertex(m_CubeHull->GetEdge(best_face->edge_ids[0]).vStart).pos;
+            Maths::Vector3 planeNrml = -(normalMatrix * best_face->normal);
+            planeNrml.Normalize();
+            float planeDist = -Maths::Vector3::Dot(planeNrml, wsPointOnPlane);
+            
+            refPolygon.AdjacentPlanes[refPolygon.PlaneCount++] = {planeNrml, planeDist};
 
-		if(out_face && best_face)
-		{
-			for(int vertIdx : best_face->vert_ids)
-			{
-				const HullVertex& currentVert = m_CubeHull->GetVertex(vertIdx);
-				out_face->push_back(wsTransform * currentVert.pos);
-			}
-		}
+            for(int edgeIdx : best_face->edge_ids)
+            {
+                const HullEdge& edge = m_CubeHull->GetEdge(edgeIdx);
 
-		if(out_adjacent_planes && best_face)
-		{
-			//Add the reference face itself to the list of adjacent planes
-			Maths::Vector3 wsPointOnPlane = wsTransform * m_CubeHull->GetVertex(m_CubeHull->GetEdge(best_face->edge_ids[0]).vStart).pos;
-			Maths::Vector3 planeNrml = -(normalMatrix * best_face->normal);
-			planeNrml.Normalize();
-			float planeDist = -Maths::Vector3::Dot(planeNrml, wsPointOnPlane);
+                wsPointOnPlane = wsTransform * m_CubeHull->GetVertex(edge.vStart).pos;
 
-			out_adjacent_planes->emplace_back(planeNrml, planeDist);
+                for(int adjFaceIdx : edge.enclosing_faces)
+                {
+                    if(adjFaceIdx != best_face->idx)
+                    {
+                        const HullFace& adjFace = m_CubeHull->GetFace(adjFaceIdx);
 
-			for(int edgeIdx : best_face->edge_ids)
-			{
-				const HullEdge& edge = m_CubeHull->GetEdge(edgeIdx);
+                        planeNrml = -(normalMatrix * adjFace.normal);
+                        planeNrml.Normalize();
+                        planeDist = -Maths::Vector3::Dot(planeNrml, wsPointOnPlane);
 
-				wsPointOnPlane = wsTransform * m_CubeHull->GetVertex(edge.vStart).pos;
-
-				for(int adjFaceIdx : edge.enclosing_faces)
-				{
-					if(adjFaceIdx != best_face->idx)
-					{
-						const HullFace& adjFace = m_CubeHull->GetFace(adjFaceIdx);
-
-						planeNrml = -(normalMatrix * adjFace.normal);
-						planeNrml.Normalize();
-						planeDist = -Maths::Vector3::Dot(planeNrml, wsPointOnPlane);
-
-						out_adjacent_planes->emplace_back(planeNrml, planeDist);
-					}
-				}
-			}
-		}
+                        refPolygon.AdjacentPlanes[refPolygon.PlaneCount++] = {planeNrml, planeDist};
+                    }
+                }
+            }
+        }
 	}
 
 	void CuboidCollisionShape::DebugDraw(const RigidBody3D* currentObject) const

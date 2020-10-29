@@ -143,7 +143,7 @@ namespace Lumos
 		m_Windows.emplace_back(CreateRef<GraphicsInfoWindow>());
 		m_Windows.back()->SetActive(false);
 #ifndef LUMOS_PLATFORM_IOS
-		m_Windows.emplace_back(CreateRef<AssetWindow>());
+		//m_Windows.emplace_back(CreateRef<AssetWindow>());
 #endif
         
 		for(auto& window : m_Windows)
@@ -938,6 +938,11 @@ namespace Lumos
 			return;
 		}
         
+		DebugRenderer::DrawHairLine(Maths::Vector3(-5000.0f, 0.0f, 0.0f), Maths::Vector3(5000.0f, 0.0f, 0.0f), Maths::Vector4(1.0f, 0.0f, 0.0f,1.0f));
+		DebugRenderer::DrawHairLine(Maths::Vector3(0.0f, -5000.0f, 0.0f), Maths::Vector3(0.0f, 5000.0f, 0.0f), Maths::Vector4(0.0f, 1.0f, 0.0f,1.0f));
+		DebugRenderer::DrawHairLine(Maths::Vector3(0.0f, 0.0f, -5000.0f), Maths::Vector3(0.0f, 0.0f, 5000.0f), Maths::Vector4(0.0f, 0.0f, 1.0f,1.0f));
+		
+		
 		m_GridRenderer->BeginScene(Application::Get().GetSceneManager()->GetCurrentScene(), m_EditorCamera.get(), &m_EditorCameraTransform);
 		m_GridRenderer->RenderScene(Application::Get().GetSceneManager()->GetCurrentScene());
 #endif
