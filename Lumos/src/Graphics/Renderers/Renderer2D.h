@@ -5,6 +5,8 @@
 #include "Maths/Maths.h"
 #include "Maths/Transform.h"
 
+#define MAX_BOUND_TEXTURES 16
+
 namespace Lumos
 {
 	class Scene;
@@ -86,7 +88,7 @@ namespace Lumos
 
 			void CreateGraphicsPipeline();
 			void CreateFramebuffers();
-			void UpdateDesciptorSet() const;
+			void UpdateDesciptorSet();
 
 			void FlushAndReset();
 			void SubmitTriangles();
@@ -110,7 +112,8 @@ namespace Lumos
 			std::vector<Maths::Matrix4> m_TransformationStack;
 			const Maths::Matrix4* m_TransformationBack{};
 
-			std::vector<Texture*> m_Textures;
+			Texture* m_Textures[MAX_BOUND_TEXTURES];
+            u32 m_TextureCount;
 
 			u32 m_CurrentBufferID = 0;
 			Maths::Vector3 m_QuadPositions[4];

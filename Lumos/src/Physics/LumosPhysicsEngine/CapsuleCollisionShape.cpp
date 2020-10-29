@@ -53,13 +53,7 @@ namespace Lumos
 
 	void CapsuleCollisionShape::GetMinMaxVertexOnAxis(const RigidBody3D* currentObject, const Maths::Vector3& axis, Maths::Vector3* out_min, Maths::Vector3* out_max) const
 	{
-		Maths::Matrix4 transform;
-
-		if(currentObject == nullptr)
-			transform = m_LocalTransform;
-		else
-			transform = currentObject->GetWorldSpaceTransform() * m_LocalTransform;
-
+        Maths::Matrix4 transform = currentObject ? currentObject->GetWorldSpaceTransform() * m_LocalTransform : m_LocalTransform;
 		Maths::Vector3 pos = transform.Translation();
 
 		if(out_min)
@@ -69,17 +63,14 @@ namespace Lumos
 			*out_max = pos + axis * m_Radius;
 	}
 
-	void CapsuleCollisionShape::GetIncidentReferencePolygon(const RigidBody3D* currentObject, const Maths::Vector3& axis, std::list<Maths::Vector3>* out_face, Maths::Vector3* out_normal, std::vector<Maths::Plane>* out_adjacent_planes) const
+	void CapsuleCollisionShape::GetIncidentReferencePolygon(const RigidBody3D* currentObject,
+                                                            const Maths::Vector3& axis,
+                                                            ReferencePolygon& refPolygon) const
 	{
-		if(out_face)
-		{
-			out_face->push_back(currentObject->GetPosition() + axis * m_Radius);
-		}
-
-		if(out_normal)
-		{
-			*out_normal = axis;
-		}
+        refPolygon.Faces[0] = currentObject->GetPosition() + axis * m_Radius;
+        refPolygon.FaceCount = 1;
+        
+        refPolygon.Normal = axis;
 	}
 
 	void CapsuleCollisionShape::DebugDraw(const RigidBody3D* currentObject) const

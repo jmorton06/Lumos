@@ -59,17 +59,17 @@ namespace Lumos
 			Maths::Vector2 GetPosition() const { return m_Position; }
 			Maths::Vector2 GetScale() const { return m_Scale; }
 			const Maths::Vector4& GetColour() const { return m_Colour; }
-			const std::vector<Maths::Vector2>& GetUVs() const { return m_UVs; }
+			const std::array<Maths::Vector2, 4>& GetUVs() const { return m_UVs; }
 
-			static const std::vector<Maths::Vector2>& GetDefaultUVs();
-            static std::vector<Maths::Vector2> GetUVs(const Maths::Vector2& min, const Maths::Vector2& max);
+            static const std::array<Maths::Vector2, 4>& GetDefaultUVs();
+            static const std::array<Maths::Vector2, 4>& GetUVs(const Maths::Vector2& min, const Maths::Vector2& max);
 
 		protected:
 			Ref<Texture2D> m_Texture;
 			Maths::Vector2 m_Position;
 			Maths::Vector2 m_Scale;
 			Maths::Vector4 m_Colour;
-			std::vector<Maths::Vector2> m_UVs;
+			std::array<Maths::Vector2, 4> m_UVs;
 		};
 	}
 }

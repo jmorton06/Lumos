@@ -29,6 +29,7 @@
 #include "MathsLua.h"
 
 #include <imgui/imgui.h>
+#include <Tracy/TracyLua.hpp>
 
 #ifdef CUSTOM_SMART_PTR
 namespace sol
@@ -101,6 +102,7 @@ namespace Lumos
 	{
 		LUMOS_PROFILE_FUNCTION();
 		m_State.open_libraries(sol::lib::base, sol::lib::package, sol::lib::math, sol::lib::table);
+        tracy::LuaRegister(m_State.lua_state());
 
 		BindInputLua(m_State);
 		BindMathsLua(m_State);

@@ -103,7 +103,7 @@ namespace MM
 		ImGui::TextUnformatted("Position");
 		ImGui::NextColumn();
 		ImGui::PushItemWidth(-1);
-		if(ImGui::DragFloat3("##Position", Lumos::Maths::ValuePointer(position)))
+		if(ImGui::DragFloat3Coloured("##Position", Lumos::Maths::ValuePointer(position)))
 		{
 			transform.SetLocalPosition(position);
 		}
@@ -115,7 +115,7 @@ namespace MM
 		ImGui::TextUnformatted("Rotation");
 		ImGui::NextColumn();
 		ImGui::PushItemWidth(-1);
-		if(ImGui::DragFloat3("##Rotation", Lumos::Maths::ValuePointer(rotation)))
+		if(ImGui::DragFloat3Coloured("##Rotation", Lumos::Maths::ValuePointer(rotation)))
 		{
 			float pitch = Lumos::Maths::Min(rotation.x, 89.9f);
 			pitch = Lumos::Maths::Max(pitch, -89.9f);
@@ -129,7 +129,7 @@ namespace MM
 		ImGui::TextUnformatted("Scale");
 		ImGui::NextColumn();
 		ImGui::PushItemWidth(-1);
-		if(ImGui::DragFloat3("##Scale", Lumos::Maths::ValuePointer(scale), 0.1f))
+		if(ImGui::DragFloat3Coloured("##Scale", Lumos::Maths::ValuePointer(scale), 0.1f))
 		{
 			transform.SetLocalScale(scale);
 		}
@@ -151,7 +151,7 @@ namespace MM
 		ImGui::PushItemWidth(-1);
 
 		Lumos::Maths::Vector3 size = shape->GetHalfDimensions();
-		if(ImGui::DragFloat3("##CollisionShapeHalfDims", Lumos::Maths::ValuePointer(size), 1.0f, 0.0f, 10000.0f))
+		if(ImGui::DragFloat3("##CollisionShapeHalfDims", Lumos::Maths::ValuePointer(size), 1.0f, 0.0f, 10000.0f, "%.2f"))
 		{
 			shape->SetHalfDimensions(size);
 			phys.GetRigidBody()->CollisionShapeUpdated();
@@ -187,7 +187,7 @@ namespace MM
 		ImGui::PushItemWidth(-1);
 
 		Lumos::Maths::Vector3 size = shape->GetHalfDimensions();
-		if(ImGui::DragFloat3("##CollisionShapeHalfDims", Lumos::Maths::ValuePointer(size), 1.0f, 0.0f, 10000.0f))
+		if(ImGui::DragFloat3("##CollisionShapeHalfDims", Lumos::Maths::ValuePointer(size), 1.0f, 0.0f, 10000.0f, "%.2f"))
 		{
 			shape->SetHalfDimensions(size);
 			phys.GetRigidBody()->CollisionShapeUpdated();
@@ -205,7 +205,7 @@ namespace MM
 		ImGui::PushItemWidth(-1);
 
 		float radius = shape->GetRadius();
-		if(ImGui::DragFloat("##CollisionShapeRadius", &radius, 1.0f, 0.0f, 10000.0f))
+		if(ImGui::DragFloat("##CollisionShapeRadius", &radius, 1.0f, 0.0f, 10000.0f, "%.2f"))
 		{
 			shape->SetRadius(radius);
 			phys.GetRigidBody()->CollisionShapeUpdated();
@@ -290,7 +290,7 @@ namespace MM
 		auto pos = phys.GetRigidBody()->GetPosition();
 		auto force = phys.GetRigidBody()->GetForce();
 		auto torque = phys.GetRigidBody()->GetTorque();
-		auto orientation = phys.GetRigidBody()->GetOrientation();
+		auto orientation = phys.GetRigidBody()->GetOrientation().EulerAngles();
 		auto angularVelocity = phys.GetRigidBody()->GetAngularVelocity();
 		auto friction = phys.GetRigidBody()->GetFriction();
 		auto isStatic = phys.GetRigidBody()->GetIsStatic();
@@ -305,7 +305,7 @@ namespace MM
 		ImGui::TextUnformatted("Position");
 		ImGui::NextColumn();
 		ImGui::PushItemWidth(-1);
-		if(ImGui::DragFloat3("##Position", Lumos::Maths::ValuePointer(pos)))
+		if(ImGui::DragFloat3("##Position", Lumos::Maths::ValuePointer(pos), 1.0f, 0.0f, 0.0f, "%.2f"))
 			phys.GetRigidBody()->SetPosition(pos);
 
 		ImGui::PopItemWidth();
@@ -315,7 +315,7 @@ namespace MM
 		ImGui::TextUnformatted("Velocity");
 		ImGui::NextColumn();
 		ImGui::PushItemWidth(-1);
-		if(ImGui::DragFloat3("##Velocity", Lumos::Maths::ValuePointer(velocity)))
+		if(ImGui::DragFloat3("##Velocity", Lumos::Maths::ValuePointer(velocity), 1.0f, 0.0f, 0.0f, "%.2f"))
 			phys.GetRigidBody()->SetLinearVelocity(velocity);
 
 		ImGui::PopItemWidth();
@@ -325,7 +325,7 @@ namespace MM
 		ImGui::TextUnformatted("Torque");
 		ImGui::NextColumn();
 		ImGui::PushItemWidth(-1);
-		if(ImGui::DragFloat3("##Torque", Lumos::Maths::ValuePointer(torque)))
+		if(ImGui::DragFloat3("##Torque", Lumos::Maths::ValuePointer(torque), 1.0f, 0.0f, 0.0f, "%.2f"))
 			phys.GetRigidBody()->SetTorque(torque);
 
 		ImGui::PopItemWidth();
@@ -335,8 +335,8 @@ namespace MM
 		ImGui::TextUnformatted("Orientation");
 		ImGui::NextColumn();
 		ImGui::PushItemWidth(-1);
-		if(ImGui::DragFloat4("##Orientation", Lumos::Maths::ValuePointer(orientation)))
-			phys.GetRigidBody()->SetOrientation(orientation);
+		if(ImGui::DragFloat3("##Orientation", Lumos::Maths::ValuePointer(orientation), 1.0f, 0.0f, 0.0f, "%.2f"))
+			phys.GetRigidBody()->SetOrientation(Lumos::Maths::Quaternion(orientation));
 
 		ImGui::PopItemWidth();
 		ImGui::NextColumn();
@@ -345,7 +345,7 @@ namespace MM
 		ImGui::TextUnformatted("Force");
 		ImGui::NextColumn();
 		ImGui::PushItemWidth(-1);
-		if(ImGui::DragFloat4("##Force", Lumos::Maths::ValuePointer(force)))
+		if(ImGui::DragFloat3("##Force", Lumos::Maths::ValuePointer(force), 1.0f, 0.0f, 0.0f, "%.2f"))
 			phys.GetRigidBody()->SetForce(force);
 
 		ImGui::PopItemWidth();
@@ -355,7 +355,7 @@ namespace MM
 		ImGui::TextUnformatted("Angular Velocity");
 		ImGui::NextColumn();
 		ImGui::PushItemWidth(-1);
-		if(ImGui::DragFloat3("##Angular Velocity", Lumos::Maths::ValuePointer(angularVelocity)))
+		if(ImGui::DragFloat3("##Angular Velocity", Lumos::Maths::ValuePointer(angularVelocity), 1.0f, 0.0f, 0.0f, "%.2f"))
 			phys.GetRigidBody()->SetAngularVelocity(angularVelocity);
 
 		ImGui::PopItemWidth();
@@ -365,7 +365,7 @@ namespace MM
 		ImGui::TextUnformatted("Friction");
 		ImGui::NextColumn();
 		ImGui::PushItemWidth(-1);
-		if(ImGui::DragFloat("##Friction", &friction))
+		if(ImGui::DragFloat("##Friction", &friction, 1.0f, 0.0f, 0.0f, "%.2f"))
 			phys.GetRigidBody()->SetFriction(friction);
 
 		ImGui::PopItemWidth();
@@ -375,7 +375,7 @@ namespace MM
 		ImGui::TextUnformatted("Mass");
 		ImGui::NextColumn();
 		ImGui::PushItemWidth(-1);
-		if(ImGui::DragFloat("##Mass", &mass))
+		if(ImGui::DragFloat("##Mass", &mass, 1.0f, 0.0f, 0.0f, "%.2f"))
 			phys.GetRigidBody()->SetInverseMass(1.0f / mass);
 
 		ImGui::PopItemWidth();
@@ -385,7 +385,7 @@ namespace MM
 		ImGui::TextUnformatted("Elasticity");
 		ImGui::NextColumn();
 		ImGui::PushItemWidth(-1);
-		if(ImGui::DragFloat("##Elasticity", &elasticity))
+		if(ImGui::DragFloat("##Elasticity", &elasticity, 1.0f, 0.0f, 0.0f, "%.2f"))
 			phys.GetRigidBody()->SetElasticity(elasticity);
 
 		ImGui::PopItemWidth();
@@ -1853,16 +1853,16 @@ namespace Lumos
 
                 if(hierarchyComp)
                 {
-                    if(registry.valid(hierarchyComp->parent()))
+                    if(registry.valid(hierarchyComp->Parent()))
                     {
-                        ImGui::Text("Parent : ID: %d", static_cast<int>(registry.entity(hierarchyComp->parent())));
+                        ImGui::Text("Parent : ID: %d", static_cast<int>(registry.entity(hierarchyComp->Parent())));
                     }
                     else
                     {
                         ImGui::TextUnformatted("Parent : null");
                     }
 
-                    entt::entity child = hierarchyComp->first();
+                    entt::entity child = hierarchyComp->First();
                     ImGui::TextUnformatted("Children : ");
                     ImGui::Indent(24.0f);
 
@@ -1874,7 +1874,7 @@ namespace Lumos
 
                         if (hierarchy)
                         {
-                            child = hierarchy->next();
+                            child = hierarchy->Next();
                         }
                     }
 

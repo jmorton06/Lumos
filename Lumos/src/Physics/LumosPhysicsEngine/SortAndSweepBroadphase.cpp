@@ -40,13 +40,13 @@ namespace Lumos
 			return a->GetWorldSpaceAABB().min_[this->m_axisIndex] < b->GetWorldSpaceAABB().min_[this->m_axisIndex];
 		});
 
-		for(int i = 0; i < objectCount; i++)
+		for(u32 i = 0; i < objectCount; i++)
 		{
 			auto obj = objects[i];
 			
 			float thisBoxRight = obj->GetWorldSpaceAABB().max_[m_axisIndex];
 
-            for(auto iit = i + 1; iit < objectCount; iit++)
+            for(u32 iit = i + 1; iit < objectCount; iit++)
 			{
                 auto obj2 = objects[iit];
 				// Skip pairs of two at rest/static objects

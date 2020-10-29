@@ -189,54 +189,56 @@ namespace Lumos
 		if(!manifold)
 			return false;
 		
-		std::list<Maths::Vector3> polygon1, polygon2;
-		Maths::Vector3 normal1, normal2;
-		std::vector<Maths::Plane> adjPlanes1, adjPlanes2;
-		adjPlanes1.reserve(20);
-		adjPlanes2.reserve(20);
-		shape1->GetIncidentReferencePolygon(obj1, coldata.normal, &polygon1, &normal1, &adjPlanes1);
-		shape2->GetIncidentReferencePolygon(obj2, -coldata.normal, &polygon2, &normal2, &adjPlanes2);
+        ReferencePolygon poly1, poly2;
+		shape1->GetIncidentReferencePolygon(obj1, coldata.normal, poly1);
+		shape2->GetIncidentReferencePolygon(obj2, -coldata.normal, poly2);
 		
-		if(polygon1.empty() || polygon2.empty())
+		if(poly1.FaceCount == 0 || poly2.FaceCount == 0 )
 			return false;
-		else if(polygon1.size() == 1)
-			manifold->AddContact(polygon1.front(), polygon1.front() - coldata.normal * coldata.penetration, coldata.normal, coldata.penetration);
-		else if(polygon2.size() == 1)
-			manifold->AddContact(polygon2.front() + coldata.normal * coldata.penetration, polygon2.front(), coldata.normal, coldata.penetration);
+		else if(poly1.FaceCount == 1)
+			manifold->AddContact(poly1.Faces[0], poly1.Faces[0] - coldata.normal * coldata.penetration, coldata.normal, coldata.penetration);
+		else if(poly2.FaceCount == 1)
+			manifold->AddContact(poly2.Faces[0] + coldata.normal * coldata.penetration, poly2.Faces[0], coldata.normal, coldata.penetration);
 		else
 		{
 			bool flipped;
-			std::list<Maths::Vector3>* incPolygon;
-			std::vector<Maths::Plane>* refAdjPlanes;
+			Maths::Vector3* incPolygon;
+            int incPolygonCount;
+			Maths::Plane* refAdjPlanes;
+            int refAdjPlanesCount;
 			Maths::Plane refPlane;
 			
-			if(fabs(coldata.normal.DotProduct(normal1)) > fabs(coldata.normal.DotProduct(normal2)))
+			if(fabs(coldata.normal.DotProduct(poly1.Normal)) > fabs(coldata.normal.DotProduct(poly2.Normal)))
 			{
-				float planeDist = -(polygon1.front().DotProduct(-normal1));
-				refPlane = Maths::Plane(-normal1, planeDist);
-				refAdjPlanes = &adjPlanes1;
+				float planeDist = -(poly1.Faces[0].DotProduct(-poly1.Normal));
+				refPlane = Maths::Plane(-poly1.Normal, planeDist);
 				
-				incPolygon = &polygon2;
+                refAdjPlanes = poly1.AdjacentPlanes;
+                refAdjPlanesCount = poly1.PlaneCount;
+				incPolygon = poly2.Faces;
+                incPolygonCount = poly2.FaceCount;
 				
 				flipped = false;
 			}
 			else
 			{
-				float planeDist = -(polygon2.front().DotProduct(-normal2));
-				refPlane = Maths::Plane(-normal2, planeDist);
-				refAdjPlanes = &adjPlanes2;
+				float planeDist = -(poly2.Faces[0].DotProduct(-poly2.Normal));
+				refPlane = Maths::Plane(-poly2.Normal, planeDist);
 				
-				incPolygon = &polygon1;
+                refAdjPlanes = poly2.AdjacentPlanes;
+                refAdjPlanesCount = poly2.PlaneCount;
+                incPolygon = poly1.Faces;
+                incPolygonCount = poly1.FaceCount;
 				
 				flipped = true;
 			}
+            
+			SutherlandHodgesonClipping(incPolygon, incPolygonCount, refAdjPlanesCount, refAdjPlanes, incPolygon, incPolygonCount, false);
+            SutherlandHodgesonClipping(incPolygon, incPolygonCount, 1, &refPlane, incPolygon, incPolygonCount, true);
 			
-			SutherlandHodgesonClipping(*incPolygon, static_cast<int>(refAdjPlanes->size()), &(*refAdjPlanes)[0], incPolygon, false);
-			
-			SutherlandHodgesonClipping(*incPolygon, 1, &refPlane, incPolygon, true);
-			
-			for(const Maths::Vector3& endPoint : *incPolygon)
+            for(int i = 0; i < incPolygonCount; i++)
 			{
+                auto& endPoint = incPolygon[i];
 				float contact_penetration;
 				Maths::Vector3 globalOnA, globalOnB;
 				
@@ -244,14 +246,14 @@ namespace Lumos
 				{
 					contact_penetration =
 						-(endPoint.DotProduct(coldata.normal)
-						  - (coldata.normal.DotProduct(polygon2.front())));
+						  - (coldata.normal.DotProduct(poly2.Faces[0])));
 					
 					globalOnA = endPoint + coldata.normal * contact_penetration;
 					globalOnB = endPoint;
 				}
 				else
 				{
-					contact_penetration = endPoint.DotProduct(coldata.normal) - coldata.normal.DotProduct(polygon1.front());
+					contact_penetration = endPoint.DotProduct(coldata.normal) - coldata.normal.DotProduct(poly1.Faces[0]);
 					
 					globalOnA = endPoint;
 					globalOnB = endPoint - coldata.normal * contact_penetration;
@@ -318,50 +320,57 @@ namespace Lumos
 		return start;
 	}
 	
-	void CollisionDetection::SutherlandHodgesonClipping(const std::list<Maths::Vector3>& input_polygon, int num_clip_planes, const Maths::Plane* clip_planes, std::list<Maths::Vector3>* out_polygon, bool removePoints) const
+	void CollisionDetection::SutherlandHodgesonClipping(Maths::Vector3* input_polygon, int input_polygon_count, int num_clip_planes, const Maths::Plane* clip_planes, Maths::Vector3* output_polygon, int& output_polygon_count, bool removePoints) const
 	{
         LUMOS_PROFILE_FUNCTION();
-		if(!out_polygon)
+		if(!output_polygon)
 			return;
 		
-		std::list<Maths::Vector3> ppPolygon1, ppPolygon2;
-		std::list<Maths::Vector3>*input = &ppPolygon1, *output = &ppPolygon2;
-		
-		*output = input_polygon;
+		Maths::Vector3 ppPolygon1[8], ppPolygon2[8];
+        int inputCount = 0, outputCount = 0;
+
+		Maths::Vector3*input = ppPolygon1, *output = ppPolygon2;
+        inputCount = input_polygon_count;
+		output = input_polygon;
+        outputCount = inputCount;
+        
 		for(int iterations = 0; iterations < num_clip_planes; ++iterations)
 		{
-			if(output->empty())
+			if(outputCount == 0)
 				break;
 			
 			const Maths::Plane& plane = clip_planes[iterations];
 			
 			std::swap(input, output);
-			output->clear();
+            inputCount = outputCount;
+
+            outputCount = 0;
 			
-			Maths::Vector3 startPoint = input->back();
-			for(const Maths::Vector3& endPoint : *input)
+			Maths::Vector3 startPoint = input[inputCount - 1];
+            for(int i = 0; i < inputCount; i++)
 			{
+                const auto& endPoint = input[i];
 				bool startInPlane = plane.PointInPlane(startPoint);
 				bool endInPlane = plane.PointInPlane(endPoint);
 				
 				if(removePoints)
 				{
 					if(endInPlane)
-						output->push_back(endPoint);
+						output[outputCount++] = endPoint;
 				}
 				else
 				{
 					//if entire edge is within the clipping plane, keep it as it is
 					if(startInPlane && endInPlane)
-						output->push_back(endPoint);
+                        output[outputCount++] = endPoint;
 					
 					//if edge interesects the clipping plane, cut the edge along clip plane
 					else if(startInPlane && !endInPlane)
-						output->push_back(PlaneEdgeIntersection(plane, startPoint, endPoint));
+                        output[outputCount++] = PlaneEdgeIntersection(plane, startPoint, endPoint);
 					else if(!startInPlane && endInPlane)
 					{
-						output->push_back(PlaneEdgeIntersection(plane, endPoint, startPoint));
-						output->push_back(endPoint);
+                        output[outputCount++] = PlaneEdgeIntersection(plane, endPoint, startPoint);
+                        output[outputCount++] = endPoint;
 					}
 				}
 				
@@ -369,6 +378,7 @@ namespace Lumos
 			}
 		}
 		
-		*out_polygon = *output;
+        output_polygon = output;
+        output_polygon_count = outputCount;
 	}
 }

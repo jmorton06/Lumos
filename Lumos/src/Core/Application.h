@@ -192,7 +192,7 @@ namespace Lumos
 			void save(Archive& archive) const
 			
 		{
-			 int projectVersion = 4;
+            int projectVersion = 5;
 			
 			archive(cereal::make_nvp("Project Version", projectVersion));
 			//Version 1
@@ -218,6 +218,8 @@ namespace Lumos
 			archive(cereal::make_nvp("Scenes", newPaths));
             //Version 3
             archive(cereal::make_nvp("SceneIndex", m_SceneManager->GetCurrentSceneIndex()));
+            //Version 4
+            archive(cereal::make_nvp("Borderless", Borderless));
 
 		}
 		
@@ -255,6 +257,11 @@ namespace Lumos
                 archive(cereal::make_nvp("SceneIndex", sceneIndex));
                 m_SceneManager->SwitchScene(sceneIndex);
             }
+            if(projectVersion > 4)
+            {
+                archive(cereal::make_nvp("Borderless", Borderless));
+            }
+
 		}
 					
 
@@ -270,7 +277,7 @@ namespace Lumos
 		u32 Width, Height;
 		bool Fullscreen;
 		bool VSync;
-		bool Borderless;
+		bool Borderless = false;
 		bool ShowConsole = true;
 		std::string Title;
 		int RenderAPI;

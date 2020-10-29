@@ -1,5 +1,6 @@
 #include "Precompiled.h"
 
+#pragma warning(push, 0)
 #ifdef LUMOS_RENDER_API_OPENGL
 #define IMGUI_IMPL_OPENGL_LOADER_GLAD
 #include <imgui/examples/imgui_impl_opengl3.cpp>
@@ -29,3 +30,4 @@
 #include <OpenFBX/miniz.c>
 #include <OpenFBX/ofbx.cpp>
 #include <Tracy/TracyClient.cpp>
+#pragma warning(pop)

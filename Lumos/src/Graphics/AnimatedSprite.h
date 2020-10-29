@@ -39,7 +39,7 @@ namespace Lumos::Graphics
 		
 		void OnUpdate(float dt);
 		
-		std::vector<Maths::Vector2> GetAnimatedUVs();
+        const std::array<Maths::Vector2, 4>& GetAnimatedUVs();
 		
 		void AddState(const std::vector<Maths::Vector2>& frames, float frameDuration, const std::string& stateName);
 		void SetState(const std::string& state);

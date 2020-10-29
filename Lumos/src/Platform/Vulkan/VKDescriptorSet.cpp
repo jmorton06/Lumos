@@ -88,13 +88,23 @@ namespace Lumos
 
                 for (auto& imageInfo : *imageInfos)
                 {
-					for (int i = 0; i < imageInfo.count; i++)
-					{
-						VkDescriptorImageInfo& des = *static_cast<VkDescriptorImageInfo*>(imageInfo.texture[i]->GetHandle());
-						m_ImageInfoPool[i + imageIndex].imageLayout = des.imageLayout;
-						m_ImageInfoPool[i + imageIndex].imageView = des.imageView;
-						m_ImageInfoPool[i + imageIndex].sampler = des.sampler;
-					}
+                    if(imageInfo.count == 1)
+                    {
+                        VkDescriptorImageInfo& des = *static_cast<VkDescriptorImageInfo*>(imageInfo.texture->GetHandle());
+                        m_ImageInfoPool[imageIndex].imageLayout = des.imageLayout;
+                        m_ImageInfoPool[imageIndex].imageView = des.imageView;
+                        m_ImageInfoPool[imageIndex].sampler = des.sampler;
+                    }
+                    else
+                    {
+                        for (int i = 0; i < imageInfo.count; i++)
+                        {
+                            VkDescriptorImageInfo& des = *static_cast<VkDescriptorImageInfo*>(imageInfo.textures[i]->GetHandle());
+                            m_ImageInfoPool[i + imageIndex].imageLayout = des.imageLayout;
+                            m_ImageInfoPool[i + imageIndex].imageView = des.imageView;
+                            m_ImageInfoPool[i + imageIndex].sampler = des.sampler;
+                        }
+                    }
 
 					VkWriteDescriptorSet writeDescriptorSet{};
 					writeDescriptorSet.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;

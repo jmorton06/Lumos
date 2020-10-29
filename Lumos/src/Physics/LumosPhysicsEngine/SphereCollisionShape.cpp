@@ -54,12 +54,7 @@ namespace Lumos
 	void SphereCollisionShape::GetMinMaxVertexOnAxis(const RigidBody3D* currentObject, const Maths::Vector3& axis, Maths::Vector3* out_min, Maths::Vector3* out_max) const
 	{
         LUMOS_PROFILE_FUNCTION();
-		Maths::Matrix4 transform;
-
-		if(currentObject == nullptr)
-			transform = m_LocalTransform;
-		else
-			transform = currentObject->GetWorldSpaceTransform() * m_LocalTransform;
+        Maths::Matrix4 transform = currentObject ? currentObject->GetWorldSpaceTransform() * m_LocalTransform : m_LocalTransform;
 
 		Maths::Vector3 pos = transform.Translation();
 
@@ -70,18 +65,15 @@ namespace Lumos
 			*out_max = pos + axis * m_Radius;
 	}
 
-	void SphereCollisionShape::GetIncidentReferencePolygon(const RigidBody3D* currentObject, const Maths::Vector3& axis, std::list<Maths::Vector3>* out_face, Maths::Vector3* out_normal, std::vector<Maths::Plane>* out_adjacent_planes) const
+	void SphereCollisionShape::GetIncidentReferencePolygon(const RigidBody3D* currentObject,
+                                                           const Maths::Vector3& axis,
+                                                           ReferencePolygon& refPolygon) const
 	{
         LUMOS_PROFILE_FUNCTION();
-		if(out_face)
-		{
-			out_face->push_back(currentObject->GetPosition() + axis * m_Radius);
-		}
-
-		if(out_normal)
-		{
-			*out_normal = axis;
-		}
+        refPolygon.Faces[0] = currentObject->GetPosition() + axis * m_Radius;
+        refPolygon.FaceCount = 1;
+        
+        refPolygon.Normal = axis;
 	}
 
 	void SphereCollisionShape::DebugDraw(const RigidBody3D* currentObject) const

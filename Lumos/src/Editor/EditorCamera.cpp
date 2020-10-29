@@ -9,10 +9,9 @@ namespace Lumos
 {
 	EditorCameraController::EditorCameraController()
 	{
-		m_RotateDampeningFactor = 0.0f;
 		m_FocalPoint = Maths::Vector3::ZERO;
 		m_Velocity = Maths::Vector3(0.0f);
-		m_MouseSensitivity = 0.005f;
+		m_MouseSensitivity = 0.00001f;
 	}
 
 	EditorCameraController::~EditorCameraController()
@@ -21,9 +20,10 @@ namespace Lumos
 
 	void EditorCameraController::HandleMouse(Maths::Transform& transform, float dt, float xpos, float ypos)
 	{
-		if(Input::GetInput()->GetMouseHeld(InputCode::MouseKey::ButtonRight))
-		{
+		LUMOS_PROFILE_FUNCTION();
 			if(m_2DMode)
+		{
+			if(Input::GetInput()->GetMouseHeld(InputCode::MouseKey::ButtonRight))
 			{
 				m_MouseSensitivity = 0.005f;
 				Maths::Vector3 position = transform.GetLocalPosition();
@@ -31,16 +31,23 @@ namespace Lumos
 				position.y += (ypos - m_PreviousCurserPos.y) /** camera->GetScale() */ *m_MouseSensitivity * 0.5f;
 				transform.SetLocalPosition(position);
 			}
-			else
-			{
-				m_MouseSensitivity = 0.1f;
-				m_RotateVelocity = m_RotateVelocity + Maths::Vector2((xpos - m_PreviousCurserPos.x), (ypos - m_PreviousCurserPos.y)) * m_MouseSensitivity;
-				Maths::Vector3 euler = transform.GetLocalOrientation().EulerAngles();
-				float pitch = euler.x - m_RotateVelocity.y;
-				float yaw = euler.y - m_RotateVelocity.x;
-            
-				transform.SetLocalOrientation(Maths::Quaternion::EulerAnglesToQuaternion(pitch, yaw, euler.z));
 			}
+			else
+		{
+			if(Input::GetInput()->GetMouseHeld(InputCode::MouseKey::ButtonRight))
+			{
+				m_MouseSensitivity = 0.03f;
+				m_RotateVelocity = m_RotateVelocity + Maths::Vector2((xpos - m_PreviousCurserPos.x), (ypos - m_PreviousCurserPos.y)) * m_MouseSensitivity;
+			}
+				
+			Maths::Vector3 euler = transform.GetLocalOrientation().EulerAngles();
+			float pitch = euler.x - m_RotateVelocity.y;
+			float yaw = euler.y - m_RotateVelocity.x;
+			
+			pitch = Maths::Min(pitch, 84.0f);
+			pitch = Maths::Max(pitch, -84.0f);
+			
+			transform.SetLocalOrientation(Maths::Quaternion::EulerAnglesToQuaternion(pitch, yaw, 0.0f));
 		}
 
 		m_PreviousCurserPos = Maths::Vector2(xpos, ypos);

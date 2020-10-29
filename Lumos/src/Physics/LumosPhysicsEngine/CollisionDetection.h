@@ -134,6 +134,6 @@ namespace Lumos
 
 		static Maths::Vector3 GetClosestPointOnEdges(const Maths::Vector3& target, const std::vector<CollisionEdge>& edges);
 		Maths::Vector3 PlaneEdgeIntersection(const Maths::Plane& plane, const Maths::Vector3& start, const Maths::Vector3& end) const;
-		void SutherlandHodgesonClipping(const std::list<Maths::Vector3>& input_polygon, int num_clip_planes, const Maths::Plane* clip_planes, std::list<Maths::Vector3>* out_polygon, bool removePoints) const;
+		void SutherlandHodgesonClipping(Maths::Vector3* input_polygon, int input_polygon_count, int num_clip_planes, const Maths::Plane* clip_planes, Maths::Vector3* output_polygon, int& output_polygon_count, bool removePoints) const;
 	};
 }

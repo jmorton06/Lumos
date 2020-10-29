@@ -1,9 +1,9 @@
 {
     "value0": {
-        "Project Version": 4,
+        "Project Version": 5,
         "RenderAPI": 1,
-        "Width": 1440,
-        "Height": 779,
+        "Width": 1285,
+        "Height": 748,
         "Fullscreen": false,
         "VSync": false,
         "ShowConsole": false,
@@ -12,6 +12,7 @@
         "Scenes": [
             "/Scenes/2D.lsn"
         ],
-        "SceneIndex": 1
+        "SceneIndex": 1,
+        "Borderless": false
     }
 }

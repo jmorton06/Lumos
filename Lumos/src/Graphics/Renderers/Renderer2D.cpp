@@ -164,7 +164,7 @@ namespace Lumos
 			m_IndexBuffer = IndexBuffer::Create(indices, m_Limits.IndiciesSize);
 
 			delete[] indices;
-
+            
 			m_ClearColour = Maths::Vector4(0.2f, 0.2f, 0.2f, 1.0f);
             m_CurrentDescriptorSets.resize(2);
 		}
@@ -182,7 +182,7 @@ namespace Lumos
 			const Maths::Vector2 max = renderable->GetPosition() + renderable->GetScale();
 
 			const Maths::Vector4 colour = renderable->GetColour();
-			const std::vector<Maths::Vector2>& uv = renderable->GetUVs();
+			const auto& uv = renderable->GetUVs();
 			const Texture* texture = renderable->GetTexture();
 
 			float textureSlot = 0.0f;
@@ -257,7 +257,7 @@ namespace Lumos
 		void Renderer2D::BeginSimple()
 		{
 			LUMOS_PROFILE_FUNCTION();
-			m_Textures.clear();
+            m_TextureCount = 0;
 			m_Sprites.clear();
 			m_Triangles.clear();
 		}
@@ -284,7 +284,7 @@ namespace Lumos
 
 			m_RenderPass->BeginRenderpass(m_CommandBuffers[m_CurrentBufferID].get(), m_ClearColour, m_Framebuffers[m_CurrentBufferID].get(), Graphics::SECONDARY, m_ScreenBufferWidth, m_ScreenBufferHeight);
 
-			m_Textures.clear();
+			m_TextureCount = 0;
 			m_Sprites.clear();
 			m_Triangles.clear();
 
@@ -435,7 +435,7 @@ namespace Lumos
 			LUMOS_PROFILE_FUNCTION();
 			float result = 0.0f;
 			bool found = false;
-			for(u32 i = 0; i < m_Textures.size(); i++)
+			for(u32 i = 0; i < m_TextureCount; i++)
 			{
 				if(m_Textures[i] == texture) //Temp
 				{
@@ -447,12 +447,13 @@ namespace Lumos
 
 			if(!found)
 			{
-				if(m_Textures.size() >= m_Limits.MaxTextures)
+				if(m_TextureCount >= m_Limits.MaxTextures)
 				{
 					FlushAndReset();
 				}
-				m_Textures.push_back(texture);
-				result = static_cast<float>(m_Textures.size());
+				m_Textures[m_TextureCount] = texture;
+                m_TextureCount++;
+				result = static_cast<float>(m_TextureCount);
 			}
 			return result;
 		}
@@ -582,10 +583,10 @@ namespace Lumos
 			}
 		}
 
-		void Renderer2D::UpdateDesciptorSet() const
+		void Renderer2D::UpdateDesciptorSet()
 		{
 			LUMOS_PROFILE_FUNCTION();
-			if(m_Textures.empty())
+			if(m_TextureCount == 0)
 				return;
 			std::vector<Graphics::ImageInfo> imageInfos;
 
@@ -593,8 +594,11 @@ namespace Lumos
 
 			imageInfo.binding = 0;
 			imageInfo.name = "textures";
-			imageInfo.texture = m_Textures;
-			imageInfo.count = static_cast<int>(m_Textures.size());
+            if(m_TextureCount > 1)
+                imageInfo.textures = m_Textures;
+            else
+                imageInfo.texture = m_Textures[0];
+			imageInfo.count = m_TextureCount;
 
 			imageInfos.push_back(imageInfo);
 
@@ -617,7 +621,7 @@ namespace Lumos
 			LUMOS_PROFILE_FUNCTION();
 			Present();
 
-			m_Textures.clear();
+			m_TextureCount = 0;
 			m_Sprites.clear();
 			m_Triangles.clear();
 
