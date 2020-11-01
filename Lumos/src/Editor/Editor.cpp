@@ -505,7 +505,7 @@ namespace Lumos
 				ImGui::EndMenu();
 			}
             
-			ImGui::SameLine(ImGui::GetWindowContentRegionMax().x / 2.0f);
+			ImGui::SameLine((ImGui::GetWindowContentRegionMax().x / 2.0f) - (1.5f * (ImGui::GetFontSize() + ImGui::GetStyle().ItemSpacing.x)));
             
 			ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.1f, 0.2f, 0.7f, 0.0f));
             
@@ -518,7 +518,7 @@ namespace Lumos
 				if(selected)
 					ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(0.28f, 0.56f, 0.9f, 1.0f));
                 
-				if(ImGui::Button(ICON_MDI_PLAY, ImVec2(19.0f, 19.0f)))
+				if(ImGui::Button(ICON_MDI_PLAY))
                 {
                     m_Application->GetSystem<LumosPhysicsEngine>()->SetPaused(selected);
                     m_Application->GetSystem<B2PhysicsEngine>()->SetPaused(selected);
@@ -547,7 +547,7 @@ namespace Lumos
 				if(selected)
 					ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(0.28f, 0.56f, 0.9f, 1.0f));
                 
-				if(ImGui::Button(ICON_MDI_PAUSE, ImVec2(19.0f, 19.0f)))
+				if(ImGui::Button(ICON_MDI_PAUSE))
 					m_Application->SetEditorState(selected ? EditorState::Play : EditorState::Paused);
                 
 				ImGuiHelpers::Tooltip("Pause");
@@ -563,7 +563,7 @@ namespace Lumos
 				if(selected)
 					ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(0.28f, 0.56f, 0.9f, 1.0f));
                 
-				if(ImGui::Button(ICON_MDI_STEP_FORWARD, ImVec2(19.0f, 19.0f)))
+				if(ImGui::Button(ICON_MDI_STEP_FORWARD))
 					m_Application->SetEditorState(EditorState::Next);
                 
 				ImGuiHelpers::Tooltip("Next");

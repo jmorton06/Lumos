@@ -84,7 +84,7 @@ namespace Lumos
 
 	bool Input::OnMouseMoved(MouseMovedEvent& e)
 	{
-		StoreMousePosition((int)e.GetX(), (int)e.GetY());
+		StoreMousePosition(e.GetX(), e.GetY());
 		return false;
 	}
 

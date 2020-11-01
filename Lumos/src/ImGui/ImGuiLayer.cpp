@@ -264,7 +264,7 @@ namespace Lumos
 #endif
 
 		style.WindowPadding = ImVec2(5, 5);
-		style.FramePadding = ImVec2(2, 2);
+		style.FramePadding = ImVec2(4, 4);
 		style.ItemSpacing = ImVec2(6, 2);
 		style.ItemInnerSpacing = ImVec2(6, 4);
 		style.IndentSpacing = 6.0f;
@@ -274,23 +274,24 @@ namespace Lumos
 		style.WindowBorderSize = 0;
 		style.ChildBorderSize = 1;
 		style.PopupBorderSize = 3;
-		style.PopupRounding = 4;
 		style.FrameBorderSize = 0.0f;
 
-		style.WindowRounding = 4;
-		style.ChildRounding = 4;
-		style.FrameRounding = 0;
-		style.ScrollbarRounding = 4;
-		style.GrabRounding = 4;
+        const int roundingAmount = 6;
+        style.PopupRounding = roundingAmount;
+		style.WindowRounding = roundingAmount;
+		style.ChildRounding = 0;
+		style.FrameRounding = roundingAmount;
+		style.ScrollbarRounding = roundingAmount;
+		style.GrabRounding = roundingAmount;
 		style.WindowMinSize = ImVec2(200.0f, 200.0f);
 
 #ifdef IMGUI_HAS_DOCK
-		style.TabBorderSize = 0.0f;
-		style.TabRounding = 4;
+		style.TabBorderSize = 1.0f;
+		style.TabRounding = roundingAmount + 2;
 
 		if(ImGui::GetIO().ConfigFlags & ImGuiConfigFlags_ViewportsEnable)
 		{
-			style.WindowRounding = 4;
+			style.WindowRounding = roundingAmount;
 			style.Colors[ImGuiCol_WindowBg].w = 1.0f;
 		}
 #endif
@@ -307,7 +308,7 @@ namespace Lumos
 		// merge in icons from Font Awesome
 		icons_config.MergeMode = true;
 		icons_config.PixelSnapH = true;
-		icons_config.GlyphOffset.y += 1.0f;
+		icons_config.GlyphOffset.y = 1.0f;
 		icons_config.OversampleH = icons_config.OversampleV = 1;
 		icons_config.PixelSnapH = true;
 		icons_config.SizePixels = 13.0f * 1.0f;

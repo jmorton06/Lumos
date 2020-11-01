@@ -12,6 +12,9 @@ namespace Lumos
 		m_FocalPoint = Maths::Vector3::ZERO;
 		m_Velocity = Maths::Vector3(0.0f);
 		m_MouseSensitivity = 0.00001f;
+        m_ZoomDampeningFactor = 0.00001f;
+        m_DampeningFactor = 0.00001f;
+        m_RotateDampeningFactor = 0.0000001f;
 	}
 
 	EditorCameraController::~EditorCameraController()
@@ -21,7 +24,7 @@ namespace Lumos
 	void EditorCameraController::HandleMouse(Maths::Transform& transform, float dt, float xpos, float ypos)
 	{
 		LUMOS_PROFILE_FUNCTION();
-			if(m_2DMode)
+        if(m_2DMode)
 		{
 			if(Input::GetInput()->GetMouseHeld(InputCode::MouseKey::ButtonRight))
 			{
@@ -31,26 +34,34 @@ namespace Lumos
 				position.y += (ypos - m_PreviousCurserPos.y) /** camera->GetScale() */ *m_MouseSensitivity * 0.5f;
 				transform.SetLocalPosition(position);
 			}
-			}
-			else
+        }
+        else
 		{
 			if(Input::GetInput()->GetMouseHeld(InputCode::MouseKey::ButtonRight))
 			{
 				m_MouseSensitivity = 0.03f;
 				m_RotateVelocity = m_RotateVelocity + Maths::Vector2((xpos - m_PreviousCurserPos.x), (ypos - m_PreviousCurserPos.y)) * m_MouseSensitivity;
-			}
+                //Application::Get().GetWindow()->HideMouse(true);
+               // Application::Get().GetWindow()->SetMousePosition(m_PreviousCurserPos);
+               // LUMOS_LOG_INFO(m_PreviousCurserPos);
+               // LUMOS_LOG_INFO("{0}, {1}", xpos, ypos);
+            }
+            else
+            {
+                //Application::Get().GetWindow()->HideMouse(false);
+            }
+            
 				
 			Maths::Vector3 euler = transform.GetLocalOrientation().EulerAngles();
 			float pitch = euler.x - m_RotateVelocity.y;
 			float yaw = euler.y - m_RotateVelocity.x;
 			
-			pitch = Maths::Min(pitch, 84.0f);
-			pitch = Maths::Max(pitch, -84.0f);
-			
+			pitch = Maths::Min(pitch, 89.0f);
+			pitch = Maths::Max(pitch, -89.0f);
+            m_PreviousCurserPos = Maths::Vector2(xpos, ypos);
+
 			transform.SetLocalOrientation(Maths::Quaternion::EulerAnglesToQuaternion(pitch, yaw, 0.0f));
 		}
-
-		m_PreviousCurserPos = Maths::Vector2(xpos, ypos);
 
 		m_RotateVelocity = m_RotateVelocity * pow(m_RotateDampeningFactor, dt);
 
