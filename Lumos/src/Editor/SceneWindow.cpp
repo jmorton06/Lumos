@@ -285,7 +285,7 @@ namespace Lumos
 			if(selected)
 				ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(0.28f, 0.56f, 0.9f, 1.0f));
 			ImGui::SameLine();
-			if(ImGui::Button(ICON_MDI_CURSOR_DEFAULT, ImVec2(19.0f, 19.0f)))
+			if(ImGui::Button(ICON_MDI_CURSOR_DEFAULT))
 				m_Editor->SetImGuizmoOperation(4);
 
 			if(selected)
@@ -302,7 +302,7 @@ namespace Lumos
 			if(selected)
 				ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(0.28f, 0.56f, 0.9f, 1.0f));
 			ImGui::SameLine();
-			if(ImGui::Button(ICON_MDI_ARROW_ALL, ImVec2(19.0f, 19.0f)))
+			if(ImGui::Button(ICON_MDI_ARROW_ALL))
 				m_Editor->SetImGuizmoOperation(ImGuizmo::TRANSLATE);
 
 			if(selected)
@@ -316,7 +316,7 @@ namespace Lumos
 				ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(0.28f, 0.56f, 0.9f, 1.0f));
 
 			ImGui::SameLine();
-			if(ImGui::Button(ICON_MDI_ROTATE_ORBIT, ImVec2(19.0f, 19.0f)))
+			if(ImGui::Button(ICON_MDI_ROTATE_ORBIT))
 				m_Editor->SetImGuizmoOperation(ImGuizmo::ROTATE);
 
 			if(selected)
@@ -330,7 +330,7 @@ namespace Lumos
 				ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(0.28f, 0.56f, 0.9f, 1.0f));
 
 			ImGui::SameLine();
-			if(ImGui::Button(ICON_MDI_ARROW_EXPAND_ALL, ImVec2(19.0f, 19.0f)))
+			if(ImGui::Button(ICON_MDI_ARROW_EXPAND_ALL))
 				m_Editor->SetImGuizmoOperation(ImGuizmo::SCALE);
 
 			if(selected)
@@ -348,7 +348,7 @@ namespace Lumos
 				ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(0.28f, 0.56f, 0.9f, 1.0f));
 
 			ImGui::SameLine();
-			if(ImGui::Button(ICON_MDI_BORDER_NONE, ImVec2(19.0f, 19.0f)))
+			if(ImGui::Button(ICON_MDI_BORDER_NONE))
 				m_Editor->SetImGuizmoOperation(ImGuizmo::BOUNDS);
 
 			if(selected)
@@ -367,7 +367,7 @@ namespace Lumos
 			if(selected)
 				ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(0.28f, 0.56f, 0.9f, 1.0f));
 
-			if(ImGui::Button(ICON_MDI_MAGNET, ImVec2(19.0f, 19.0f)))
+			if(ImGui::Button(ICON_MDI_MAGNET))
 				m_Editor->SnapGuizmo() = !selected;
 
 			if(selected)

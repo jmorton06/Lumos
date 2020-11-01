@@ -366,7 +366,7 @@ namespace Lumos
 			colours[ImGuiCol_PopupBg] = ImVec4(0.08f, 0.08f, 0.08f, 0.94f);
 			colours[ImGuiCol_Border] = ImVec4(0.08f, 0.10f, 0.12f, 1.00f);
 			colours[ImGuiCol_BorderShadow] = ImVec4(0.00f, 0.00f, 0.00f, 0.00f);
-			colours[ImGuiCol_FrameBg] = ImVec4(0.20f, 0.25f, 0.29f, 1.00f);
+            colours[ImGuiCol_FrameBg] = ImVec4(0.35f, 0.43f, 0.50f, 1.00f);
 			colours[ImGuiCol_FrameBgHovered] = ImVec4(0.12f, 0.20f, 0.28f, 1.00f);
 			colours[ImGuiCol_FrameBgActive] = ImVec4(0.09f, 0.12f, 0.14f, 1.00f);
 
@@ -645,6 +645,14 @@ namespace Lumos
 		colours[ImGuiCol_Separator] = colours[ImGuiCol_MenuBarBg];
 		colours[ImGuiCol_SeparatorActive] = colours[ImGuiCol_Separator];
 		colours[ImGuiCol_SeparatorHovered] = colours[ImGuiCol_Separator];
+        
+        colours[ImGuiCol_WindowBg] = colours[ImGuiCol_TabActive];
+        colours[ImGuiCol_ChildBg] = colours[ImGuiCol_TabActive];
+        colours[ImGuiCol_ScrollbarBg] = colours[ImGuiCol_TabActive];
+        
+        colours[ImGuiCol_ScrollbarGrab] = ImVec4(0.6f, 0.6f, 0.6f, 1.00f);
+        colours[ImGuiCol_ScrollbarGrabActive] = ImVec4(0.7f, 0.7f, 0.7f, 1.00f);
+        colours[ImGuiCol_ScrollbarGrabHovered] = ImVec4(0.8f, 0.8f, 0.8f, 1.00f);
 	}
 }
 
