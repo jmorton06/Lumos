@@ -398,56 +398,34 @@ namespace Lumos
 		{
 			m_Shader = Ref<Graphics::Shader>(Shader::CreateFromFile("Simple", "/CoreShaders/"));
 
-			std::vector<Graphics::DescriptorPoolInfo> poolInfo =
-				{
-					{Graphics::DescriptorType::UNIFORM_BUFFER, MAX_OBJECTS},
-					{Graphics::DescriptorType::UNIFORM_BUFFER_DYNAMIC, MAX_OBJECTS},
-					{Graphics::DescriptorType::IMAGE_SAMPLER, MAX_OBJECTS}};
-
 			std::vector<Graphics::DescriptorLayoutInfo> layoutInfo =
-				{
-					{Graphics::DescriptorType::UNIFORM_BUFFER, Graphics::ShaderType::VERTEX, 0},
-					{Graphics::DescriptorType::UNIFORM_BUFFER_DYNAMIC, Graphics::ShaderType::VERTEX, 1},
-				};
+            {
+                {Graphics::DescriptorType::UNIFORM_BUFFER, Graphics::ShaderType::VERTEX, 0},
+                {Graphics::DescriptorType::UNIFORM_BUFFER_DYNAMIC, Graphics::ShaderType::VERTEX, 1},
+                {Graphics::DescriptorType::IMAGE_SAMPLER, Graphics::ShaderType::FRAGMENT, 0}
+            };
 
-			std::vector<Graphics::DescriptorLayoutInfo> layoutInfoMesh =
-				{
-					{Graphics::DescriptorType::IMAGE_SAMPLER, Graphics::ShaderType::FRAGMENT, 0}};
+            Graphics::BufferLayout vertexBufferLayout;
+            vertexBufferLayout.Push<Maths::Vector3>("position");
+            vertexBufferLayout.Push<Maths::Vector4>("colour");
+            vertexBufferLayout.Push<Maths::Vector2>("uv");
+            vertexBufferLayout.Push<Maths::Vector3>("normal");
+            vertexBufferLayout.Push<Maths::Vector3>("tangent");
 
-			auto attributeDescriptions = Vertex::getAttributeDescriptions();
+            
+			Graphics::PipelineInfo pipelineCreateInfo{};
+			pipelineCreateInfo.pipelineName = "ForwardRenderer";
+            pipelineCreateInfo.vertexBufferLayout = vertexBufferLayout;
+			pipelineCreateInfo.shader = m_Shader.get();
+			pipelineCreateInfo.renderpass = m_RenderPass.get();
+			pipelineCreateInfo.descriptorLayouts = layoutInfo;
+			pipelineCreateInfo.polygonMode = Graphics::PolygonMode::Fill;
+			pipelineCreateInfo.cullMode = Graphics::CullMode::BACK;
+			pipelineCreateInfo.transparencyEnabled = false;
+			pipelineCreateInfo.depthBiasEnabled = false;
+			pipelineCreateInfo.maxObjects = MAX_OBJECTS;
 
-			std::vector<Graphics::DescriptorLayout> descriptorLayouts;
-
-			Graphics::DescriptorLayout sceneDescriptorLayout{};
-			sceneDescriptorLayout.count = static_cast<u32>(layoutInfo.size());
-			sceneDescriptorLayout.layoutInfo = layoutInfo.data();
-
-			descriptorLayouts.push_back(sceneDescriptorLayout);
-
-			Graphics::DescriptorLayout meshDescriptorLayout{};
-			meshDescriptorLayout.count = static_cast<u32>(layoutInfoMesh.size());
-			meshDescriptorLayout.layoutInfo = layoutInfoMesh.data();
-
-			descriptorLayouts.push_back(meshDescriptorLayout);
-
-			Graphics::PipelineInfo pipelineCI{};
-			pipelineCI.pipelineName = "ForwardRenderer";
-			pipelineCI.shader = m_Shader.get();
-			pipelineCI.renderpass = m_RenderPass.get();
-			pipelineCI.numVertexLayout = static_cast<u32>(attributeDescriptions.size());
-			pipelineCI.descriptorLayouts = descriptorLayouts;
-			pipelineCI.vertexLayout = attributeDescriptions.data();
-			pipelineCI.numLayoutBindings = static_cast<u32>(poolInfo.size());
-			pipelineCI.typeCounts = poolInfo.data();
-			pipelineCI.strideSize = sizeof(Vertex);
-			pipelineCI.numColorAttachments = 1;
-			pipelineCI.polygonMode = Graphics::PolygonMode::Fill;
-			pipelineCI.cullMode = Graphics::CullMode::BACK;
-			pipelineCI.transparencyEnabled = false;
-			pipelineCI.depthBiasEnabled = false;
-			pipelineCI.maxObjects = MAX_OBJECTS;
-
-			m_Pipeline = Ref<Graphics::Pipeline>(Graphics::Pipeline::Create(pipelineCI));
+			m_Pipeline = Ref<Graphics::Pipeline>(Graphics::Pipeline::Create(pipelineCreateInfo));
 		}
 
 		void ForwardRenderer::SetRenderTarget(Texture* texture, bool rebuildFramebuffer)

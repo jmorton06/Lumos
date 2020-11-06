@@ -336,45 +336,30 @@ namespace Lumos
 
 	void LineRenderer::CreateGraphicsPipeline()
 	{
-		std::vector<Graphics::DescriptorPoolInfo> poolInfo =
-			{
-				{Graphics::DescriptorType::UNIFORM_BUFFER, MAX_BATCH_DRAW_CALLS},
-			};
-
 		std::vector<Graphics::DescriptorLayoutInfo> layoutInfo =
-			{
-				{Graphics::DescriptorType::UNIFORM_BUFFER, Graphics::ShaderType::VERTEX, 0}};
+        {
+            {Graphics::DescriptorType::UNIFORM_BUFFER, Graphics::ShaderType::VERTEX, 0}
+        };
 
-		auto attributeDescriptions = LineVertexData::getAttributeDescriptions();
+        Graphics::BufferLayout vertexBufferLayout;
+        vertexBufferLayout.Push<Maths::Vector3>("position");
+        vertexBufferLayout.Push<Maths::Vector4>("colour");
+        
+		Graphics::PipelineInfo pipelineCreateInfo;
+		pipelineCreateInfo.pipelineName = "BatchLineRenderer";
+		pipelineCreateInfo.shader = m_Shader.get();
+		pipelineCreateInfo.renderpass = m_RenderPass.get();
+        pipelineCreateInfo.vertexBufferLayout = vertexBufferLayout;
+		pipelineCreateInfo.descriptorLayouts = layoutInfo;
+		pipelineCreateInfo.polygonMode = Graphics::PolygonMode::Fill;
+		pipelineCreateInfo.cullMode = Graphics::CullMode::BACK;
+		pipelineCreateInfo.transparencyEnabled = false;
+		pipelineCreateInfo.depthBiasEnabled = true;
+		pipelineCreateInfo.maxObjects = MAX_BATCH_DRAW_CALLS;
+		pipelineCreateInfo.drawType = DrawType::LINES;
+		pipelineCreateInfo.lineWidth = 20.0f;
 
-		std::vector<Graphics::DescriptorLayout> descriptorLayouts;
-
-		Graphics::DescriptorLayout sceneDescriptorLayout;
-		sceneDescriptorLayout.count = static_cast<u32>(layoutInfo.size());
-		sceneDescriptorLayout.layoutInfo = layoutInfo.data();
-
-		descriptorLayouts.push_back(sceneDescriptorLayout);
-
-		Graphics::PipelineInfo pipelineCI;
-		pipelineCI.pipelineName = "BatchLineRenderer";
-		pipelineCI.shader = m_Shader.get();
-		pipelineCI.renderpass = m_RenderPass.get();
-		pipelineCI.numVertexLayout = static_cast<u32>(attributeDescriptions.size());
-		pipelineCI.descriptorLayouts = descriptorLayouts;
-		pipelineCI.vertexLayout = attributeDescriptions.data();
-		pipelineCI.numLayoutBindings = static_cast<u32>(poolInfo.size());
-		pipelineCI.typeCounts = poolInfo.data();
-		pipelineCI.strideSize = sizeof(LineVertexData);
-		pipelineCI.numColorAttachments = 1;
-		pipelineCI.polygonMode = Graphics::PolygonMode::Fill;
-		pipelineCI.cullMode = Graphics::CullMode::BACK;
-		pipelineCI.transparencyEnabled = false;
-		pipelineCI.depthBiasEnabled = true;
-		pipelineCI.maxObjects = MAX_BATCH_DRAW_CALLS;
-		pipelineCI.drawType = DrawType::LINES;
-		pipelineCI.lineWidth = 20.0f;
-
-		m_Pipeline = Ref<Graphics::Pipeline>(Graphics::Pipeline::Create(pipelineCI));
+		m_Pipeline = Ref<Graphics::Pipeline>(Graphics::Pipeline::Create(pipelineCreateInfo));
 	}
 
 	void LineRenderer::CreateFramebuffers()

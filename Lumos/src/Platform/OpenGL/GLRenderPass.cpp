@@ -21,6 +21,7 @@ namespace Lumos
         bool GLRenderPass::Init(const RenderpassInfo &renderpassCI)
         {
 			m_Clear = renderpassCI.clear;
+            m_ClearCount = renderpassCI.attachmentCount;
             return false;
         }
 

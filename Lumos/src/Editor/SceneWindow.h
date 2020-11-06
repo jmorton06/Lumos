@@ -67,11 +67,13 @@ namespace Lumos
 
 		std::unordered_map<size_t, bool> m_ShowComponentGizmoMap;
 
-		bool m_ShowStats = true;
+		bool m_ShowStats = false;
         Ref<Graphics::Texture2D> m_GameViewTexture = nullptr;
 		Scene* m_CurrentScene = nullptr;
 		float m_AspectRatio;
 		u32 m_Width, m_Height;
-
+        
+        bool m_FreeAspect = true;
+        float m_FixedAspect = 1.0f;
 	};
 }

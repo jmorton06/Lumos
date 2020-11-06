@@ -305,66 +305,42 @@ namespace Lumos
 		void DeferredOffScreenRenderer::CreatePipeline()
 		{
 			LUMOS_PROFILE_FUNCTION();
-			std::vector<Graphics::DescriptorPoolInfo> poolInfo =
-				{
-					{Graphics::DescriptorType::UNIFORM_BUFFER, MAX_OBJECTS},
-					{Graphics::DescriptorType::UNIFORM_BUFFER_DYNAMIC, MAX_OBJECTS},
-                    {Graphics::DescriptorType::IMAGE_SAMPLER, MAX_OBJECTS}
-                };
 
 			std::vector<Graphics::DescriptorLayoutInfo> layoutInfo =
-				{
-					{Graphics::DescriptorType::UNIFORM_BUFFER, Graphics::ShaderType::VERTEX, 0},
-					{Graphics::DescriptorType::UNIFORM_BUFFER_DYNAMIC, Graphics::ShaderType::VERTEX, 1},
-				};
+            {
+                {Graphics::DescriptorType::UNIFORM_BUFFER, Graphics::ShaderType::VERTEX, 0, 0},
+                {Graphics::DescriptorType::UNIFORM_BUFFER_DYNAMIC, Graphics::ShaderType::VERTEX, 1, 0},
+                {Graphics::DescriptorType::IMAGE_SAMPLER, Graphics::ShaderType::FRAGMENT, 0, 1},
+                {Graphics::DescriptorType::IMAGE_SAMPLER, Graphics::ShaderType::FRAGMENT, 1, 1},
+                {Graphics::DescriptorType::IMAGE_SAMPLER, Graphics::ShaderType::FRAGMENT, 2, 1},
+                {Graphics::DescriptorType::IMAGE_SAMPLER, Graphics::ShaderType::FRAGMENT, 3, 1},
+                {Graphics::DescriptorType::IMAGE_SAMPLER, Graphics::ShaderType::FRAGMENT, 4, 1},
+                {Graphics::DescriptorType::IMAGE_SAMPLER, Graphics::ShaderType::FRAGMENT, 5, 1},
+                {Graphics::DescriptorType::UNIFORM_BUFFER, Graphics::ShaderType::FRAGMENT, 6, 1},
+            };
+            
+            Graphics::BufferLayout vertexBufferLayout;
+            vertexBufferLayout.Push<Maths::Vector3>("position");
+            vertexBufferLayout.Push<Maths::Vector4>("colour");
+            vertexBufferLayout.Push<Maths::Vector2>("uv");
+            vertexBufferLayout.Push<Maths::Vector3>("normal");
+            vertexBufferLayout.Push<Maths::Vector3>("tangent");
 
-			std::vector<Graphics::DescriptorLayoutInfo> layoutInfoMesh =
-				{
-					{Graphics::DescriptorType::IMAGE_SAMPLER, Graphics::ShaderType::FRAGMENT, 0},
-					{Graphics::DescriptorType::IMAGE_SAMPLER, Graphics::ShaderType::FRAGMENT, 1},
-					{Graphics::DescriptorType::IMAGE_SAMPLER, Graphics::ShaderType::FRAGMENT, 2},
-					{Graphics::DescriptorType::IMAGE_SAMPLER, Graphics::ShaderType::FRAGMENT, 3},
-					{Graphics::DescriptorType::IMAGE_SAMPLER, Graphics::ShaderType::FRAGMENT, 4},
-					{Graphics::DescriptorType::IMAGE_SAMPLER, Graphics::ShaderType::FRAGMENT, 5},
-					{Graphics::DescriptorType::UNIFORM_BUFFER, Graphics::ShaderType::FRAGMENT, 6},
-				};
+			Graphics::PipelineInfo pipelineCreateInfo{};
+			pipelineCreateInfo.pipelineName = "OffScreenRenderer";
+			pipelineCreateInfo.shader = m_Shader.get();
+			pipelineCreateInfo.renderpass = m_RenderPass.get();
+            pipelineCreateInfo.vertexBufferLayout = vertexBufferLayout;
+			pipelineCreateInfo.descriptorLayouts = layoutInfo;
+            pipelineCreateInfo.polygonMode = Graphics::PolygonMode::Fill;
+			pipelineCreateInfo.cullMode = Graphics::CullMode::BACK;
+			pipelineCreateInfo.transparencyEnabled = false;
+			pipelineCreateInfo.depthBiasEnabled = false;
+			pipelineCreateInfo.maxObjects = MAX_OBJECTS;
+            pipelineCreateInfo.numPushConst = 1;
+            pipelineCreateInfo.pushConstSize = sizeof(Maths::Matrix4);
 
-			auto attributeDescriptions = Vertex::getAttributeDescriptions();
-
-			std::vector<Graphics::DescriptorLayout> descriptorLayouts;
-
-			Graphics::DescriptorLayout sceneDescriptorLayout{};
-			sceneDescriptorLayout.count = static_cast<u32>(layoutInfo.size());
-			sceneDescriptorLayout.layoutInfo = layoutInfo.data();
-
-			descriptorLayouts.push_back(sceneDescriptorLayout);
-
-			Graphics::DescriptorLayout meshDescriptorLayout{};
-			meshDescriptorLayout.count = static_cast<u32>(layoutInfoMesh.size());
-			meshDescriptorLayout.layoutInfo = layoutInfoMesh.data();
-
-			descriptorLayouts.push_back(meshDescriptorLayout);
-
-			Graphics::PipelineInfo pipelineCI{};
-			pipelineCI.pipelineName = "OffScreenRenderer";
-			pipelineCI.shader = m_Shader.get();
-			pipelineCI.renderpass = m_RenderPass.get();
-			pipelineCI.numVertexLayout = static_cast<u32>(attributeDescriptions.size());
-			pipelineCI.descriptorLayouts = descriptorLayouts;
-			pipelineCI.vertexLayout = attributeDescriptions.data();
-			pipelineCI.numLayoutBindings = static_cast<u32>(poolInfo.size());
-			pipelineCI.typeCounts = poolInfo.data();
-			pipelineCI.strideSize = sizeof(Vertex);
-			pipelineCI.numColorAttachments = 6;
-			pipelineCI.polygonMode = Graphics::PolygonMode::Fill;
-			pipelineCI.cullMode = Graphics::CullMode::BACK;
-			pipelineCI.transparencyEnabled = false;
-			pipelineCI.depthBiasEnabled = false;
-			pipelineCI.maxObjects = MAX_OBJECTS;
-            pipelineCI.numPushConst = 1;
-            pipelineCI.pushConstSize = sizeof(Maths::Matrix4);
-
-			m_Pipeline = Ref<Graphics::Pipeline>(Graphics::Pipeline::Create(pipelineCI));
+			m_Pipeline = Ref<Graphics::Pipeline>(Graphics::Pipeline::Create(pipelineCreateInfo));
 		}
 
 		void DeferredOffScreenRenderer::CreateBuffer()

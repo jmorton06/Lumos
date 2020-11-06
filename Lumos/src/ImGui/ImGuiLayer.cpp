@@ -181,10 +181,14 @@ namespace Lumos
 	{
 		LUMOS_PROFILE_FUNCTION();
 		ImGuiIO& io = ImGui::GetIO();
-		io.DisplaySize = ImVec2(static_cast<float>(e.GetWidth()), static_cast<float>(e.GetHeight()));
+
+		u32 width = Maths::Max(1, e.GetWidth());
+		u32 height = Maths::Max(1, e.GetHeight());
+
+		io.DisplaySize = ImVec2(static_cast<float>(width), static_cast<float>(height));
 		io.DisplayFramebufferScale = ImVec2(1.0f, 1.0f);
 
-		m_IMGUIRenderer->OnResize(e.GetWidth(), e.GetHeight());
+		m_IMGUIRenderer->OnResize(width, height);
 
 		return false;
 	}
@@ -276,7 +280,7 @@ namespace Lumos
 		style.PopupBorderSize = 3;
 		style.FrameBorderSize = 0.0f;
 
-        const int roundingAmount = 6;
+        const int roundingAmount = 2;
         style.PopupRounding = roundingAmount;
 		style.WindowRounding = roundingAmount;
 		style.ChildRounding = 0;

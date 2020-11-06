@@ -18,16 +18,18 @@ namespace Lumos
             void EndRenderpass(CommandBuffer* commandBuffer, bool endCommandBuffer = true) override;
 
             const VkRenderPass& GetRenderpass() const { return m_RenderPass; };
+            int GetAttachmentCount() const override { return m_ClearCount; };
 
             static void MakeDefault();
         protected:
             static RenderPass* CreateFuncVulkan();
 		private:
 			VkRenderPass 	m_RenderPass;
-			VkClearValue* m_ClearValue;
+			VkClearValue*   m_ClearValue;
 			int 			m_ClearCount;
 			bool 			m_DepthOnly;
 			bool			m_ClearDepth;
+            
 		};
 	}
 }

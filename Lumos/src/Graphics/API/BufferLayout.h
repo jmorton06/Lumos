@@ -1,6 +1,7 @@
 #pragma once
 
 #include "Maths/Maths.h"
+#include "DescriptorSet.h"
 
 namespace Lumos
 {
@@ -9,9 +10,7 @@ namespace Lumos
 		struct LUMOS_EXPORT BufferElement
 		{
 			std::string name;
-			u32 type = 0;
-			u32 size = 0;
-			u32 count = 0;
+            Format format;
 			u32 offset = 0;
 			bool normalized = false;
 		};
@@ -26,7 +25,7 @@ namespace Lumos
 			BufferLayout();
 
 			template<typename T>
-			void Push(const std::string& name, u32 count = 1, bool normalized = false)
+			void Push(const std::string& name, bool normalized = false)
 			{
 				LUMOS_ASSERT(false, "Unkown type!");
 			}
@@ -41,22 +40,21 @@ namespace Lumos
 			}
 
 		private:
-			void Push(const std::string& name, u32 type, u32 size, u32 count, bool normalized);
-			void Push(const std::string& name, u32 type, u32 size, u32 count, bool normalized, u32 offset);
+			void Push(const std::string& name, Format format, u32 size, bool normalized);
 		};
 
 		template<>
-		void LUMOS_EXPORT BufferLayout::Push<float>(const std::string& name, u32 count, bool normalized);
+		void LUMOS_EXPORT BufferLayout::Push<float>(const std::string& name, bool normalized);
 		template<>
-		void LUMOS_EXPORT BufferLayout::Push<u32>(const std::string& name, u32 count, bool normalized);
+		void LUMOS_EXPORT BufferLayout::Push<u32>(const std::string& name, bool normalized);
 		template<>
-		void LUMOS_EXPORT BufferLayout::Push<u8>(const std::string& name, u32 count, bool normalized);
+		void LUMOS_EXPORT BufferLayout::Push<u8>(const std::string& name, bool normalized);
 		template<>
-		void LUMOS_EXPORT BufferLayout::Push<Maths::Vector2>(const std::string& name, u32 count, bool normalized);
+		void LUMOS_EXPORT BufferLayout::Push<Maths::Vector2>(const std::string& name, bool normalized);
 		template<>
-		void LUMOS_EXPORT BufferLayout::Push<Maths::Vector3>(const std::string& name, u32 count, bool normalized);
+		void LUMOS_EXPORT BufferLayout::Push<Maths::Vector3>(const std::string& name, bool normalized);
 		template<>
-		void LUMOS_EXPORT BufferLayout::Push<Maths::Vector4>(const std::string& name, u32 count, bool normalized);
+		void LUMOS_EXPORT BufferLayout::Push<Maths::Vector4>(const std::string& name, bool normalized);
 
 	}
 }

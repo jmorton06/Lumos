@@ -1,5 +1,6 @@
 #pragma once
 #include "Renderer.h"
+#include "BufferLayout.h"
 
 namespace Lumos
 {
@@ -10,7 +11,7 @@ namespace Lumos
 		class CommandBuffer;
 		class DescriptorSet;
 		struct VertexInputDescription;
-		struct DescriptorLayout;
+		struct DescriptorLayoutInfo;
 		struct DescriptorPoolInfo;
 
 		enum class CullMode
@@ -32,19 +33,11 @@ namespace Lumos
 		{
 			Shader* shader;
 			RenderPass* renderpass;
-			VertexInputDescription* vertexLayout;
-
-			uint32_t numVertexLayout;
-			size_t strideSize;
-			DescriptorPoolInfo* typeCounts;
-
-			std::vector<DescriptorLayout> descriptorLayouts;
-			u32 numLayoutBindings;
-
+            BufferLayout vertexBufferLayout;
+			std::vector<DescriptorLayoutInfo> descriptorLayouts;
 			CullMode cullMode;
 			std::string pipelineName;
-			int numColorAttachments;
-			PolygonMode polygonMode;
+			PolygonMode polygonMode = PolygonMode::Fill;
 			bool transparencyEnabled;
 			bool depthBiasEnabled;
 			u32 maxObjects;
@@ -61,7 +54,6 @@ namespace Lumos
 
             virtual void Bind(CommandBuffer* cmdBuffer) = 0;
 
-            virtual size_t GetStride() const = 0;
 			virtual DescriptorSet* GetDescriptorSet() const = 0;
 			virtual Shader* GetShader() const = 0;
 

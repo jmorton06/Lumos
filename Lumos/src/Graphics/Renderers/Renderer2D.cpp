@@ -495,52 +495,36 @@ namespace Lumos
 		{
 			LUMOS_PROFILE_FUNCTION();
 			std::vector<Graphics::DescriptorPoolInfo> poolInfo =
-				{
-					{Graphics::DescriptorType::UNIFORM_BUFFER, m_Limits.MaxBatchDrawCalls},
-					{Graphics::DescriptorType::IMAGE_SAMPLER, m_Limits.MaxBatchDrawCalls}};
+            {
+                {Graphics::DescriptorType::UNIFORM_BUFFER, m_Limits.MaxBatchDrawCalls},
+                {Graphics::DescriptorType::IMAGE_SAMPLER, m_Limits.MaxBatchDrawCalls}
+            };
 
 			std::vector<Graphics::DescriptorLayoutInfo> layoutInfo =
-				{
-					{Graphics::DescriptorType::UNIFORM_BUFFER, Graphics::ShaderType::VERTEX, 0}};
+            {
+                {Graphics::DescriptorType::UNIFORM_BUFFER, Graphics::ShaderType::VERTEX, 0, 0, 1},
+                {Graphics::DescriptorType::IMAGE_SAMPLER, Graphics::ShaderType::FRAGMENT, 0, 1, m_Limits.MaxTextures}
+            };
 
-			std::vector<Graphics::DescriptorLayoutInfo> layoutInfoMesh =
-				{
-					{Graphics::DescriptorType::IMAGE_SAMPLER, Graphics::ShaderType::FRAGMENT, 0, m_Limits.MaxTextures}};
+            Graphics::BufferLayout vertexBufferLayout;
+            vertexBufferLayout.Push<Maths::Vector3>("position");
+            vertexBufferLayout.Push<Maths::Vector2>("uv");
+            vertexBufferLayout.Push<Maths::Vector2>("tid");
+            vertexBufferLayout.Push<Maths::Vector4>("colour");
 
-			auto attributeDescriptions = VertexData::getAttributeDescriptions();
+			Graphics::PipelineInfo pipelineCreateInfo;
+			pipelineCreateInfo.pipelineName = "Batch2DRenderer";
+			pipelineCreateInfo.shader = m_Shader.get();
+			pipelineCreateInfo.renderpass = m_RenderPass.get();
+            pipelineCreateInfo.vertexBufferLayout = vertexBufferLayout;
+			pipelineCreateInfo.descriptorLayouts = layoutInfo;
+			pipelineCreateInfo.polygonMode = Graphics::PolygonMode::Fill;
+			pipelineCreateInfo.cullMode = Graphics::CullMode::BACK;
+			pipelineCreateInfo.transparencyEnabled = true;
+			pipelineCreateInfo.depthBiasEnabled = false;
+			pipelineCreateInfo.maxObjects = m_Limits.MaxBatchDrawCalls;
 
-			std::vector<Graphics::DescriptorLayout> descriptorLayouts;
-
-			Graphics::DescriptorLayout sceneDescriptorLayout;
-			sceneDescriptorLayout.count = static_cast<u32>(layoutInfo.size());
-			sceneDescriptorLayout.layoutInfo = layoutInfo.data();
-
-			descriptorLayouts.push_back(sceneDescriptorLayout);
-
-			Graphics::DescriptorLayout meshDescriptorLayout;
-			meshDescriptorLayout.count = static_cast<u32>(layoutInfoMesh.size());
-			meshDescriptorLayout.layoutInfo = layoutInfoMesh.data();
-
-			descriptorLayouts.push_back(meshDescriptorLayout);
-
-			Graphics::PipelineInfo pipelineCI;
-			pipelineCI.pipelineName = "Batch2DRenderer";
-			pipelineCI.shader = m_Shader.get();
-			pipelineCI.renderpass = m_RenderPass.get();
-			pipelineCI.numVertexLayout = static_cast<u32>(attributeDescriptions.size());
-			pipelineCI.descriptorLayouts = descriptorLayouts;
-			pipelineCI.vertexLayout = attributeDescriptions.data();
-			pipelineCI.numLayoutBindings = static_cast<u32>(poolInfo.size());
-			pipelineCI.typeCounts = poolInfo.data();
-			pipelineCI.strideSize = sizeof(VertexData);
-			pipelineCI.numColorAttachments = 1;
-			pipelineCI.polygonMode = Graphics::PolygonMode::Fill;
-			pipelineCI.cullMode = Graphics::CullMode::BACK;
-			pipelineCI.transparencyEnabled = true;
-			pipelineCI.depthBiasEnabled = false;
-			pipelineCI.maxObjects = m_Limits.MaxBatchDrawCalls;
-
-			m_Pipeline = Ref<Graphics::Pipeline>(Graphics::Pipeline::Create(pipelineCI));
+			m_Pipeline = Ref<Graphics::Pipeline>(Graphics::Pipeline::Create(pipelineCreateInfo));
 		}
 
 		void Renderer2D::CreateFramebuffers()

@@ -20,6 +20,8 @@ namespace Lumos
 		{
 			for (uint32_t i = 0; i < m_SwapChainBuffers.size(); i++)
 			{
+                vkDestroySemaphore(VKDevice::Get().GetDevice(), m_ImageAquiredSemaphores[i], nullptr);
+
 				delete m_SwapChainBuffers[i];
 			}
             if (m_Surface != VK_NULL_HANDLE)
@@ -131,6 +133,14 @@ namespace Lumos
 				VKTexture2D* swapChainBuffer = new VKTexture2D(pSwapChainImages[i], imageView);
 
 				m_SwapChainBuffers.push_back(swapChainBuffer);
+                
+                VkSemaphoreCreateInfo semaphoreInfo = {};
+                semaphoreInfo.sType = VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO;
+                semaphoreInfo.pNext = nullptr;
+
+                VkSemaphore semaphore;
+                VK_CHECK_RESULT(vkCreateSemaphore(VKDevice::Get().GetDevice(), &semaphoreInfo, nullptr, &semaphore));
+                m_ImageAquiredSemaphores.push_back(semaphore);
 			}
 
 			delete[] pSwapChainImages;
@@ -142,7 +152,7 @@ namespace Lumos
         VkResult VKSwapchain::AcquireNextImage(VkSemaphore signalSemaphore)
 		{
 			LUMOS_PROFILE_FUNCTION();
-			return vkAcquireNextImageKHR(VKDevice::Get().GetDevice(), m_SwapChain, UINT64_MAX, signalSemaphore, VK_NULL_HANDLE, &m_CurrentBuffer);
+			return vkAcquireNextImageKHR(VKDevice::Get().GetDevice(), m_SwapChain, UINT64_MAX, signalSemaphore/* m_ImageAquiredSemaphores[m_CurrentBuffer]*/, VK_NULL_HANDLE, &m_CurrentBuffer);
 		}
 
         void VKSwapchain::Present(VkSemaphore waitSemaphore)

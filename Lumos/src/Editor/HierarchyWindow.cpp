@@ -21,11 +21,6 @@
 #include <typeinfo>
 #include <imgui/imgui_internal.h>
 
-static ImVec2 operator+(const ImVec2& a, const ImVec2& b)
-{
-    return ImVec2(a.x + b.x, a.y + b.y);
-}
-
 namespace Lumos
 {
 	HierarchyWindow::HierarchyWindow()
@@ -310,7 +305,7 @@ namespace Lumos
 			}
 
             const ImColor TreeLineColor = ImColor(128, 128, 128, 128);
-            const float SmallOffsetX = 4.0f;// ImGui::GetCursorPos().x;
+            const float SmallOffsetX = 6.0f;
             ImDrawList* drawList = ImGui::GetWindowDrawList();
 
             ImVec2 verticalLineStart = ImGui::GetCursorScreenPos();

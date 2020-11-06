@@ -206,44 +206,32 @@ namespace Lumos
 		void SkyboxRenderer::CreateGraphicsPipeline()
 		{
 			LUMOS_PROFILE_FUNCTION();
-			std::vector<Graphics::DescriptorPoolInfo> poolInfo =
-				{
-					{Graphics::DescriptorType::UNIFORM_BUFFER, 1},
-					{Graphics::DescriptorType::IMAGE_SAMPLER, 1}};
-
 			std::vector<Graphics::DescriptorLayoutInfo> layoutInfo =
-				{
-					{Graphics::DescriptorType::UNIFORM_BUFFER, Graphics::ShaderType::VERTEX, 0},
-					{Graphics::DescriptorType::IMAGE_SAMPLER, Graphics::ShaderType::FRAGMENT, 1}};
+            {
+                {Graphics::DescriptorType::UNIFORM_BUFFER, Graphics::ShaderType::VERTEX, 0},
+                {Graphics::DescriptorType::IMAGE_SAMPLER, Graphics::ShaderType::FRAGMENT, 1}
+            };
 
-			auto attributeDescriptions = Vertex::getAttributeDescriptions();
+            Graphics::BufferLayout vertexBufferLayout;
+            vertexBufferLayout.Push<Maths::Vector3>("position");
+            vertexBufferLayout.Push<Maths::Vector4>("colour");
+            vertexBufferLayout.Push<Maths::Vector2>("uv");
+            vertexBufferLayout.Push<Maths::Vector3>("normal");
+            vertexBufferLayout.Push<Maths::Vector3>("tangent");
 
-			std::vector<Graphics::DescriptorLayout> descriptorLayouts;
+			Graphics::PipelineInfo pipelineCreateInfo{};
+			pipelineCreateInfo.pipelineName = "SkyRenderer";
+			pipelineCreateInfo.shader = m_Shader.get();
+			pipelineCreateInfo.renderpass = m_RenderPass.get();
+            pipelineCreateInfo.vertexBufferLayout = vertexBufferLayout;
+			pipelineCreateInfo.descriptorLayouts = layoutInfo;
+			pipelineCreateInfo.polygonMode = Graphics::PolygonMode::Fill;
+			pipelineCreateInfo.cullMode = Graphics::CullMode::NONE;
+			pipelineCreateInfo.transparencyEnabled = false;
+			pipelineCreateInfo.depthBiasEnabled = false;
+			pipelineCreateInfo.maxObjects = 1;
 
-			Graphics::DescriptorLayout sceneDescriptorLayout{};
-			sceneDescriptorLayout.count = static_cast<u32>(layoutInfo.size());
-			sceneDescriptorLayout.layoutInfo = layoutInfo.data();
-
-			descriptorLayouts.push_back(sceneDescriptorLayout);
-
-			Graphics::PipelineInfo pipelineCI{};
-			pipelineCI.pipelineName = "SkyRenderer";
-			pipelineCI.shader = m_Shader.get();
-			pipelineCI.renderpass = m_RenderPass.get();
-			pipelineCI.numVertexLayout = static_cast<u32>(attributeDescriptions.size());
-			pipelineCI.descriptorLayouts = descriptorLayouts;
-			pipelineCI.vertexLayout = attributeDescriptions.data();
-			pipelineCI.numLayoutBindings = static_cast<u32>(poolInfo.size());
-			pipelineCI.typeCounts = poolInfo.data();
-			pipelineCI.strideSize = sizeof(Vertex);
-			pipelineCI.numColorAttachments = 1;
-			pipelineCI.polygonMode = Graphics::PolygonMode::Fill;
-			pipelineCI.cullMode = Graphics::CullMode::NONE;
-			pipelineCI.transparencyEnabled = false;
-			pipelineCI.depthBiasEnabled = false;
-			pipelineCI.maxObjects = 1;
-
-			m_Pipeline = Ref<Graphics::Pipeline>(Graphics::Pipeline::Create(pipelineCI));
+			m_Pipeline = Ref<Graphics::Pipeline>(Graphics::Pipeline::Create(pipelineCreateInfo));
 		}
 
 		void SkyboxRenderer::UpdateUniformBuffer()

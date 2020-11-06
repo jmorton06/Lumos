@@ -337,45 +337,32 @@ namespace Lumos
 
 	void PointRenderer::CreateGraphicsPipeline()
 	{
-		std::vector<Graphics::DescriptorPoolInfo> poolInfo =
-			{
-				{Graphics::DescriptorType::UNIFORM_BUFFER, MAX_BATCH_DRAW_CALLS},
-			};
-
 		std::vector<Graphics::DescriptorLayoutInfo> layoutInfo =
-			{
-				{Graphics::DescriptorType::UNIFORM_BUFFER, Graphics::ShaderType::VERTEX, 0}};
+        {
+            {Graphics::DescriptorType::UNIFORM_BUFFER, Graphics::ShaderType::VERTEX, 0}
+        };
 
-		auto attributeDescriptions = PointVertexData::getAttributeDescriptions();
+        Graphics::BufferLayout vertexBufferLayout;
+        vertexBufferLayout.Push<Maths::Vector3>("position");
+        vertexBufferLayout.Push<Maths::Vector4>("colour");
+        vertexBufferLayout.Push<Maths::Vector2>("size");
+        vertexBufferLayout.Push<Maths::Vector2>("uv");
 
-		std::vector<Graphics::DescriptorLayout> descriptorLayouts;
+		Graphics::PipelineInfo pipelineCreateInfo;
+		pipelineCreateInfo.pipelineName = "BatchPointRenderer";
+		pipelineCreateInfo.shader = m_Shader.get();
+		pipelineCreateInfo.renderpass = m_RenderPass.get();
+        pipelineCreateInfo.vertexBufferLayout = vertexBufferLayout;
+		pipelineCreateInfo.descriptorLayouts = layoutInfo;
+		pipelineCreateInfo.polygonMode = Graphics::PolygonMode::Fill;
+		pipelineCreateInfo.cullMode = Graphics::CullMode::NONE;
+		pipelineCreateInfo.transparencyEnabled = true;
+		pipelineCreateInfo.depthBiasEnabled = true;
+		pipelineCreateInfo.maxObjects = MAX_BATCH_DRAW_CALLS;
+		pipelineCreateInfo.drawType = DrawType::TRIANGLE;
+		pipelineCreateInfo.lineWidth = 1.0f;
 
-		Graphics::DescriptorLayout sceneDescriptorLayout;
-		sceneDescriptorLayout.count = static_cast<u32>(layoutInfo.size());
-		sceneDescriptorLayout.layoutInfo = layoutInfo.data();
-
-		descriptorLayouts.push_back(sceneDescriptorLayout);
-
-		Graphics::PipelineInfo PipelineCI;
-		PipelineCI.pipelineName = "BatchPointRenderer";
-		PipelineCI.shader = m_Shader.get();
-		PipelineCI.renderpass = m_RenderPass.get();
-		PipelineCI.numVertexLayout = static_cast<u32>(attributeDescriptions.size());
-		PipelineCI.descriptorLayouts = descriptorLayouts;
-		PipelineCI.vertexLayout = attributeDescriptions.data();
-		PipelineCI.numLayoutBindings = static_cast<u32>(poolInfo.size());
-		PipelineCI.typeCounts = poolInfo.data();
-		PipelineCI.strideSize = sizeof(PointVertexData);
-		PipelineCI.numColorAttachments = 1;
-		PipelineCI.polygonMode = Graphics::PolygonMode::Fill;
-		PipelineCI.cullMode = Graphics::CullMode::NONE;
-		PipelineCI.transparencyEnabled = true;
-		PipelineCI.depthBiasEnabled = true;
-		PipelineCI.maxObjects = MAX_BATCH_DRAW_CALLS;
-		PipelineCI.drawType = DrawType::TRIANGLE;
-		PipelineCI.lineWidth = 1.0f;
-
-		m_Pipeline = Ref<Graphics::Pipeline>(Graphics::Pipeline::Create(PipelineCI));
+		m_Pipeline = Ref<Graphics::Pipeline>(Graphics::Pipeline::Create(pipelineCreateInfo));
 	}
 
 	void PointRenderer::CreateFramebuffers()
