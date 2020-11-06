@@ -39,12 +39,16 @@ namespace Lumos
 		m_Height = 800;
 	}
 
+
 	void SceneWindow::OnImGui()
 	{
 		LUMOS_PROFILE_FUNCTION();
 		Application& app = Application::Get();
         
         ImGuiStyle& style = ImGui::GetStyle();
+		
+		auto savedPadding = style.WindowPadding;
+		
         style.WindowPadding = ImVec2(0, 0);
         
 
@@ -88,46 +92,65 @@ namespace Lumos
 				camera = &registry.get<Camera>(cameraView.front());
 			}
 		}
+        
+        ImVec2 offset = { 0.0f, 0.0f };
 
 		if(!gameView)
-			ToolBar();
+        {
+            ToolBar();
+            offset.y = ImGui::GetFontSize() + ImGui::GetStyle().FramePadding.y;
+        }
 
 		if(!camera)
 		{
             ImGui::End();
-            style.WindowPadding = ImVec2(5, 5);
+            style.WindowPadding = savedPadding;
             return;
         }
+		
+		auto viewportOffset = ImGui::GetCursorPos(); //Usually ImVec2(0.0f, 50.0f);
 
 		ImGuizmo::SetDrawlist();
-		auto sceneViewSize = ImGui::GetContentRegionAvail();
-		auto sceneViewPosition = ImGui::GetWindowPos();
-
-		auto viewportOffset = ImGui::GetCursorPos();
-
-		sceneViewPosition.x = viewportOffset.x + ImGui::GetWindowPos().x;
-		sceneViewPosition.y = viewportOffset.y + ImGui::GetWindowPos().y;
-
-		m_Editor->m_SceneWindowPos = {sceneViewPosition.x, sceneViewPosition.y};
-
-		sceneViewSize.x = ImGui::GetWindowContentRegionMax().x - ImGui::GetWindowContentRegionMin().x;
-		sceneViewSize.y = ImGui::GetWindowContentRegionMax().y - ImGui::GetWindowContentRegionMin().y;
-
+        auto sceneViewSize = ImGui::GetWindowContentRegionMax() - ImGui::GetWindowContentRegionMin() - viewportOffset / 2.0f;// - offset * 0.5f;
+        auto sceneViewPosition = ImGui::GetWindowPos() + viewportOffset;
+		
 		sceneViewSize.x -= static_cast<int>(sceneViewSize.x) % 2 != 0 ? 1.0f : 0.0f;
 		sceneViewSize.y -= static_cast<int>(sceneViewSize.y) % 2 != 0 ? 1.0f : 0.0f;
-    
     
         if(sceneViewSize.x == 0.0f || sceneViewSize.y == 0.0f)
         {
             sceneViewSize = ImVec2(80.0f, 60.0f);
         }
 
-		float aspect = static_cast<float>(sceneViewSize.x) / static_cast<float>(sceneViewSize.y);
+        if(!m_FreeAspect)
+        {
+			const float aspect = 1.0f;
+			
+			if(sceneViewSize.x/sceneViewSize.y > 1.0f)
+			{
+            sceneViewSize.x = sceneViewSize.y;
+				auto pos = ImVec2((ImGui::GetContentRegionAvail() - sceneViewSize) * 0.5f + viewportOffset);
+				sceneViewPosition.x += pos.x;
+				ImGui::SetCursorPos(pos);;
+			}
+			else
+			{
+				sceneViewSize.y = sceneViewSize.x;
+				auto pos = ImVec2((ImGui::GetContentRegionAvail() - sceneViewSize) * 0.5f + viewportOffset);
+				sceneViewPosition.y += pos.y;
+				ImGui::SetCursorPos(pos);
+			}
+			
+        }
+        
+        float aspect = static_cast<float>(sceneViewSize.x) / static_cast<float>(sceneViewSize.y);
 
 		if(!Maths::Equals(aspect, camera->GetAspectRatio()))
 		{
 			camera->SetAspectRatio(aspect);
 		}
+        
+        m_Editor->m_SceneWindowPos = sceneViewPosition;
 
 		Resize(static_cast<u32>(sceneViewSize.x), static_cast<u32>(sceneViewSize.y));
 
@@ -135,8 +158,6 @@ namespace Lumos
 
 		auto windowSize = ImGui::GetWindowSize();
 		ImVec2 minBound = sceneViewPosition;
-		minBound.x += viewportOffset.x;
-		minBound.y += viewportOffset.y;
 
 		ImVec2 maxBound = {minBound.x + windowSize.x, minBound.y + windowSize.y};
 		bool updateCamera = ImGui::IsMouseHoveringRect(minBound, maxBound);
@@ -146,7 +167,7 @@ namespace Lumos
 		if(gameView)
 		{
 			ImGui::End();
-            style.WindowPadding = ImVec2(5, 5);
+            style.WindowPadding = savedPadding;
 			return;
 		}
 
@@ -160,7 +181,7 @@ namespace Lumos
 			}
 		}
         
-        ImGui::GetWindowDrawList()->PushClipRect(sceneViewPosition,{ sceneViewSize.x + sceneViewPosition.x, sceneViewSize.y - 18.0f + sceneViewPosition.y} );
+        ImGui::GetWindowDrawList()->PushClipRect(sceneViewPosition,{ sceneViewSize.x + sceneViewPosition.x, sceneViewSize.y - ( viewportOffset.y * 0.5f + 1.0f)  + sceneViewPosition.y} );
 
 		m_Editor->OnImGuizmo();
 
@@ -170,7 +191,7 @@ namespace Lumos
 			m_Editor->SelectObject(m_Editor->GetScreenRay(int(clickPos.x), int(clickPos.y), camera, int(sceneViewSize.x), int(sceneViewSize.y)));
 		}
 
-		DrawGizmos(sceneViewSize.x, sceneViewSize.y, 0.0f, 40.0f, app.GetSceneManager()->GetCurrentScene()); // Not sure why 40
+		DrawGizmos(sceneViewSize.x, sceneViewSize.y, 0.0f, offset.y * 2.0f, app.GetSceneManager()->GetCurrentScene());
 
 		if(m_ShowStats && ImGui::IsWindowFocused())
 		{
@@ -248,7 +269,7 @@ namespace Lumos
 		}
 
 		ImGui::End();
-        style.WindowPadding = ImVec2(5, 5);
+        style.WindowPadding = savedPadding;
 	}
 
 	void SceneWindow::DrawGizmos(float width, float height, float xpos, float ypos, Scene* scene)
@@ -599,6 +620,10 @@ namespace Lumos
 		}
 		if(selected)
 			ImGui::PopStyleColor();
+        
+        ImGui::SameLine();
+        
+        ImGui::Checkbox("Free Aspect", &m_FreeAspect);
 
 		ImGui::PopStyleColor();
 		ImGui::Unindent();

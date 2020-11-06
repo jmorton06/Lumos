@@ -14,10 +14,10 @@ namespace Lumos
 		class VKPipeline : public Pipeline
 		{
 		public:
-			VKPipeline(const PipelineInfo& pipelineCI);
+			VKPipeline(const PipelineInfo& pipelineCreateInfo);
 			~VKPipeline();
 
-			bool Init(const PipelineInfo& pipelineCI);
+			bool Init(const PipelineInfo& pipelineCreateInfo);
 
 			void Unload() const;
             void Bind(CommandBuffer* cmdBuffer) override;
@@ -55,16 +55,11 @@ namespace Lumos
 			{
 				return m_Shader;
 			}
-            
-            size_t GetStride() const override
-            {
-                return m_VertexBindingDescription.stride;
-            }
 
 			static void MakeDefault();
 
 		protected:
-			static Pipeline* CreateFuncVulkan(const PipelineInfo& pipelineCI);
+			static Pipeline* CreateFuncVulkan(const PipelineInfo& pipelineCreateInfo);
 
 		private:
 			

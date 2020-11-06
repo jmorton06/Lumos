@@ -12,10 +12,10 @@ namespace Lumos
         class GLPipeline : public Pipeline
         {
         public:
-            GLPipeline(const PipelineInfo& pipelineCI);
+            GLPipeline(const PipelineInfo& pipelineCreateInfo);
             ~GLPipeline();
 
-            bool Init(const PipelineInfo& pipelineCI);
+            bool Init(const PipelineInfo& pipelineCreateInfo);
 
             void Bind(Graphics::CommandBuffer* cmdBuffer) override;
             
@@ -24,14 +24,9 @@ namespace Lumos
 			DescriptorSet* GetDescriptorSet() const override { return m_DescriptorSet; }
 			Shader* GetShader() const override { return m_Shader; }
             
-            size_t GetStride() const override
-            {
-                return m_StrideSize;
-            }
-            
             static void MakeDefault();
         protected:
-            static Pipeline* CreateFuncGL(const PipelineInfo& pipelineCI);
+            static Pipeline* CreateFuncGL(const PipelineInfo& pipelineCreateInfo);
         private:
 			DescriptorSet* m_DescriptorSet = nullptr;
 			Shader* m_Shader = nullptr;
@@ -39,8 +34,7 @@ namespace Lumos
             std::string pipelineName;
             bool m_TransparencyEnabled = false;
             u32 m_VertexArray = -1;
-            std::vector<VertexInputDescription> m_VertexDescriptions;
-            u32 m_StrideSize = 0;
+            BufferLayout m_VertexBufferLayout;
         };
     }
 }

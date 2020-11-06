@@ -359,8 +359,8 @@ namespace Lumos
 		if(!m_Minimized)
 		{
 			m_LayerStack->OnUpdate(dt, m_SceneManager->GetCurrentScene());
-			m_ImGuiLayer->OnUpdate(dt, m_SceneManager->GetCurrentScene());
 		}
+		m_ImGuiLayer->OnUpdate(dt, m_SceneManager->GetCurrentScene());
 	}
 
 	void Application::OnEvent(Event& e)

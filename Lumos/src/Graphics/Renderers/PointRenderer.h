@@ -38,34 +38,7 @@ namespace Lumos
 			bool operator==(const PointVertexData& other) const
 			{
 				return vertex == other.vertex && color == other.color && size == other.size && uv == other.uv;
-			}
-
-			static std::array<Graphics::VertexInputDescription, 4> getAttributeDescriptions()
-			{
-				std::array<Graphics::VertexInputDescription, 4> attributeDescriptions = {};
-
-				attributeDescriptions[0].binding = 0;
-				attributeDescriptions[0].location = 0;
-				attributeDescriptions[0].format = Graphics::Format::R32G32B32_FLOAT;
-				attributeDescriptions[0].offset = offsetof(PointVertexData, vertex);
-
-				attributeDescriptions[1].binding = 0;
-				attributeDescriptions[1].location = 1;
-				attributeDescriptions[1].format = Graphics::Format::R32G32B32A32_FLOAT;
-				attributeDescriptions[1].offset = offsetof(PointVertexData, color);
-
-				attributeDescriptions[2].binding = 0;
-				attributeDescriptions[2].location = 2;
-				attributeDescriptions[2].format = Graphics::Format::R32G32_FLOAT;
-				attributeDescriptions[2].offset = offsetof(PointVertexData, size);
-
-				attributeDescriptions[3].binding = 0;
-				attributeDescriptions[3].location = 3;
-				attributeDescriptions[3].format = Graphics::Format::R32G32_FLOAT;
-				attributeDescriptions[3].offset = offsetof(PointVertexData, uv);
-
-				return attributeDescriptions;
-			}
+            }
 		};
 
 		class RenderPass;

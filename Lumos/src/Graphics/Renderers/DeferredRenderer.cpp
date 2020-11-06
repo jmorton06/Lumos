@@ -383,62 +383,39 @@ namespace Lumos
 		void DeferredRenderer::CreateDeferredPipeline()
 		{
 			LUMOS_PROFILE_FUNCTION();
-			std::vector<Graphics::DescriptorPoolInfo> poolInfo =
-				{
-					{Graphics::DescriptorType::IMAGE_SAMPLER, 8},
-					{Graphics::DescriptorType::UNIFORM_BUFFER, 1}};
-
 			std::vector<Graphics::DescriptorLayoutInfo> layoutInfo =
-				{
-					{Graphics::DescriptorType::UNIFORM_BUFFER, Graphics::ShaderType::FRAGMENT, 0},
+            {
+                {Graphics::DescriptorType::UNIFORM_BUFFER, Graphics::ShaderType::FRAGMENT, 0, 0},
+                {Graphics::DescriptorType::IMAGE_SAMPLER, Graphics::ShaderType::FRAGMENT, 0, 1},
+                {Graphics::DescriptorType::IMAGE_SAMPLER, Graphics::ShaderType::FRAGMENT, 1, 1},
+                {Graphics::DescriptorType::IMAGE_SAMPLER, Graphics::ShaderType::FRAGMENT, 2, 1},
+                {Graphics::DescriptorType::IMAGE_SAMPLER, Graphics::ShaderType::FRAGMENT, 3, 1},
+                {Graphics::DescriptorType::IMAGE_SAMPLER, Graphics::ShaderType::FRAGMENT, 4, 1},
+                {Graphics::DescriptorType::IMAGE_SAMPLER, Graphics::ShaderType::FRAGMENT, 5, 1},
+                {Graphics::DescriptorType::IMAGE_SAMPLER, Graphics::ShaderType::FRAGMENT, 6, 1},
+                {Graphics::DescriptorType::IMAGE_SAMPLER, Graphics::ShaderType::FRAGMENT, 7, 1}
+            };
+            
+            Graphics::BufferLayout vertexBufferLayout;
+            vertexBufferLayout.Push<Maths::Vector3>("position");
+            vertexBufferLayout.Push<Maths::Vector4>("colour");
+            vertexBufferLayout.Push<Maths::Vector2>("uv");
+            vertexBufferLayout.Push<Maths::Vector3>("normal");
+            vertexBufferLayout.Push<Maths::Vector3>("tangent");
 
-				};
+			Graphics::PipelineInfo pipelineCreateInfo{};
+			pipelineCreateInfo.pipelineName = "Deferred";
+            pipelineCreateInfo.vertexBufferLayout = vertexBufferLayout;
+			pipelineCreateInfo.shader = m_Shader.get();
+            pipelineCreateInfo.renderpass = m_RenderPass.get();
+			pipelineCreateInfo.descriptorLayouts = layoutInfo;
+			pipelineCreateInfo.polygonMode = Graphics::PolygonMode::Fill;
+			pipelineCreateInfo.cullMode = Graphics::CullMode::FRONT; //TODO
+			pipelineCreateInfo.transparencyEnabled = false;
+			pipelineCreateInfo.depthBiasEnabled = false;
+			pipelineCreateInfo.maxObjects = 10;
 
-			std::vector<Graphics::DescriptorLayoutInfo> layoutInfoMesh =
-				{
-					{Graphics::DescriptorType::IMAGE_SAMPLER, Graphics::ShaderType::FRAGMENT, 0},
-					{Graphics::DescriptorType::IMAGE_SAMPLER, Graphics::ShaderType::FRAGMENT, 1},
-					{Graphics::DescriptorType::IMAGE_SAMPLER, Graphics::ShaderType::FRAGMENT, 2},
-					{Graphics::DescriptorType::IMAGE_SAMPLER, Graphics::ShaderType::FRAGMENT, 3},
-					{Graphics::DescriptorType::IMAGE_SAMPLER, Graphics::ShaderType::FRAGMENT, 4},
-					{Graphics::DescriptorType::IMAGE_SAMPLER, Graphics::ShaderType::FRAGMENT, 5},
-					{Graphics::DescriptorType::IMAGE_SAMPLER, Graphics::ShaderType::FRAGMENT, 6},
-					{Graphics::DescriptorType::IMAGE_SAMPLER, Graphics::ShaderType::FRAGMENT, 7}};
-
-			auto attributeDescriptions = Vertex::getAttributeDescriptions();
-
-			std::vector<Graphics::DescriptorLayout> descriptorLayouts;
-
-			Graphics::DescriptorLayout sceneDescriptorLayout{};
-			sceneDescriptorLayout.count = static_cast<u32>(layoutInfo.size());
-			sceneDescriptorLayout.layoutInfo = layoutInfo.data();
-
-			descriptorLayouts.push_back(sceneDescriptorLayout);
-
-			Graphics::DescriptorLayout meshDescriptorLayout{};
-			meshDescriptorLayout.count = static_cast<u32>(layoutInfoMesh.size());
-			meshDescriptorLayout.layoutInfo = layoutInfoMesh.data();
-
-			descriptorLayouts.push_back(meshDescriptorLayout);
-
-			Graphics::PipelineInfo pipelineCI{};
-			pipelineCI.pipelineName = "Deferred";
-			pipelineCI.shader = m_Shader.get();
-			pipelineCI.renderpass = m_RenderPass.get();
-            pipelineCI.numVertexLayout = static_cast<u32>(attributeDescriptions.size());
-			pipelineCI.descriptorLayouts = descriptorLayouts;
-			pipelineCI.vertexLayout = attributeDescriptions.data();
-			pipelineCI.numLayoutBindings = static_cast<u32>(poolInfo.size());
-			pipelineCI.typeCounts = poolInfo.data();
-			pipelineCI.strideSize = sizeof(Vertex);
-			pipelineCI.numColorAttachments = 1;
-			pipelineCI.polygonMode = Graphics::PolygonMode::Fill;
-			pipelineCI.cullMode = Graphics::CullMode::FRONT; //TODO
-			pipelineCI.transparencyEnabled = false;
-			pipelineCI.depthBiasEnabled = false;
-			pipelineCI.maxObjects = 10;
-
-			m_Pipeline = Ref<Graphics::Pipeline>(Graphics::Pipeline::Create(pipelineCI));
+			m_Pipeline = Ref<Graphics::Pipeline>(Graphics::Pipeline::Create(pipelineCreateInfo));
 		}
 
 		void DeferredRenderer::SetRenderTarget(Texture* texture, bool rebuildFramebuffer)

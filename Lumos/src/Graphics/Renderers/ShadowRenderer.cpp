@@ -432,47 +432,33 @@ namespace Lumos
 		void ShadowRenderer::CreateGraphicsPipeline(Graphics::RenderPass* renderPass)
 		{
 			LUMOS_PROFILE_FUNCTION();
-			std::vector<Graphics::DescriptorPoolInfo> poolInfo =
-				{
-					{Graphics::DescriptorType::UNIFORM_BUFFER, MAX_OBJECTS},
-					{Graphics::DescriptorType::UNIFORM_BUFFER_DYNAMIC, MAX_OBJECTS},
-				};
-
 			std::vector<Graphics::DescriptorLayoutInfo> layoutInfo =
-				{
-					{Graphics::DescriptorType::UNIFORM_BUFFER, Graphics::ShaderType::VERTEX, 0},
-				};
+            {
+                {Graphics::DescriptorType::UNIFORM_BUFFER, Graphics::ShaderType::VERTEX, 0},
+            };
+            
+            Graphics::BufferLayout vertexBufferLayout;
+            vertexBufferLayout.Push<Maths::Vector3>("position");
+            vertexBufferLayout.Push<Maths::Vector4>("colour");
+            vertexBufferLayout.Push<Maths::Vector2>("uv");
+            vertexBufferLayout.Push<Maths::Vector3>("normal");
+            vertexBufferLayout.Push<Maths::Vector3>("tangent");
 
-			auto attributeDescriptions = Vertex::getAttributeDescriptions();
+			Graphics::PipelineInfo pipelineCreateInfo;
+			pipelineCreateInfo.pipelineName = "ShadowRenderer";
+			pipelineCreateInfo.shader = m_Shader.get();
+			pipelineCreateInfo.renderpass = renderPass;
+            pipelineCreateInfo.vertexBufferLayout = vertexBufferLayout;
+			pipelineCreateInfo.descriptorLayouts = layoutInfo;
+			pipelineCreateInfo.polygonMode = Graphics::PolygonMode::Fill;
+			pipelineCreateInfo.cullMode = Graphics::CullMode::FRONT;
+			pipelineCreateInfo.transparencyEnabled = false;
+			pipelineCreateInfo.depthBiasEnabled = true;
+            pipelineCreateInfo.pushConstSize = sizeof(u32) + sizeof(Maths::Matrix4);
+            pipelineCreateInfo.pushConstSize = 1;
+			pipelineCreateInfo.maxObjects = MAX_OBJECTS;
 
-			std::vector<Graphics::DescriptorLayout> descriptorLayouts;
-
-			Graphics::DescriptorLayout sceneDescriptorLayout;
-			sceneDescriptorLayout.count = static_cast<u32>(layoutInfo.size());
-			sceneDescriptorLayout.layoutInfo = layoutInfo.data();
-
-			descriptorLayouts.push_back(sceneDescriptorLayout);
-
-			Graphics::PipelineInfo pipelineCI;
-			pipelineCI.pipelineName = "ShadowRenderer";
-			pipelineCI.shader = m_Shader.get();
-			pipelineCI.renderpass = renderPass;
-			pipelineCI.numVertexLayout = static_cast<u32>(attributeDescriptions.size());
-			pipelineCI.descriptorLayouts = descriptorLayouts;
-			pipelineCI.vertexLayout = attributeDescriptions.data();
-			pipelineCI.numLayoutBindings = static_cast<u32>(poolInfo.size());
-			pipelineCI.typeCounts = poolInfo.data();
-			pipelineCI.strideSize = sizeof(Vertex);
-			pipelineCI.numColorAttachments = 0;
-			pipelineCI.polygonMode = Graphics::PolygonMode::Fill;
-			pipelineCI.cullMode = Graphics::CullMode::FRONT;
-			pipelineCI.transparencyEnabled = false;
-			pipelineCI.depthBiasEnabled = true;
-            pipelineCI.pushConstSize = sizeof(u32) + sizeof(Maths::Matrix4);
-            pipelineCI.pushConstSize = 1;
-			pipelineCI.maxObjects = MAX_OBJECTS;
-
-			m_Pipeline = Ref<Graphics::Pipeline>(Graphics::Pipeline::Create(pipelineCI));
+			m_Pipeline = Ref<Graphics::Pipeline>(Graphics::Pipeline::Create(pipelineCreateInfo));
 		}
 
 		void ShadowRenderer::CreateUniformBuffer()

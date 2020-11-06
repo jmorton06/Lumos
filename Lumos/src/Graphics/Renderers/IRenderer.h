@@ -72,6 +72,16 @@ namespace Lumos
 				m_Camera = camera;
 				m_CameraTransform = transform;
 			}
+            
+            int GetRenderPriority() const
+            {
+                return m_RenderPriority;
+            }
+            
+            void SetRenderPriority(int priority)
+            {
+                m_RenderPriority = priority;
+            }
 
 		protected:
 			Camera* m_Camera = nullptr;
@@ -103,6 +113,8 @@ namespace Lumos
 			std::vector<u32> m_VSSystemUniformBufferOffsets;
 			std::vector<u32> m_PSSystemUniformBufferOffsets;
 			Maths::Vector4 m_ClearColour;
+            
+            int m_RenderPriority = 0;
 
 		};
 	}

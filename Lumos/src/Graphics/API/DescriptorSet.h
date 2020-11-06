@@ -46,8 +46,9 @@ namespace Lumos
 		{
 			DescriptorType type;
 			ShaderType stage;
-			u32 size;
-			u32 count = 1;
+            u32 binding = 0;
+            u32 setID = 0;
+            u32 count = 1;
 		};
 
 		struct DescriptorLayout

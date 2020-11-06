@@ -20,33 +20,6 @@ namespace Lumos
 			{
 				return vertex == other.vertex  && uv == other.uv && tid == other.tid && color == other.color;
 			}
-
-			static std::array<Graphics::VertexInputDescription, 4> getAttributeDescriptions()
-			{
-				std::array<Graphics::VertexInputDescription, 4> attributeDescriptions = {};
-
-				attributeDescriptions[0].binding = 0;
-				attributeDescriptions[0].location = 0;
-				attributeDescriptions[0].format = Graphics::Format::R32G32B32_FLOAT;
-				attributeDescriptions[0].offset = offsetof(VertexData, vertex);
-
-				attributeDescriptions[1].binding = 0;
-				attributeDescriptions[1].location = 1;
-				attributeDescriptions[1].format = Graphics::Format::R32G32_FLOAT;
-				attributeDescriptions[1].offset = offsetof(VertexData, uv);
-
-				attributeDescriptions[2].binding = 0;
-				attributeDescriptions[2].location = 2;
-				attributeDescriptions[2].format = Graphics::Format::R32G32_FLOAT;
-				attributeDescriptions[2].offset = offsetof(VertexData, tid);
-
-				attributeDescriptions[3].binding = 0;
-				attributeDescriptions[3].location = 3;
-				attributeDescriptions[3].format = Graphics::Format::R32G32B32A32_FLOAT;
-				attributeDescriptions[3].offset = offsetof(VertexData, color);
-
-				return attributeDescriptions;
-			}
 		};
 
 		class LUMOS_EXPORT Renderable2D

@@ -3,13 +3,7 @@
 #include "Graphics/API/Texture.h"
 #include "Graphics/API/GraphicsContext.h"
 
-#include <imgui/imgui.h>
 #include <imgui/imgui_internal.h>
-
-static ImVec4 operator+(const ImVec4& a, const ImVec4& b)
-{
-	return ImVec4(a.x + b.x, a.y + b.y, a.z + b.z, a.w + b.w);
-}
 
 namespace Lumos
 {
