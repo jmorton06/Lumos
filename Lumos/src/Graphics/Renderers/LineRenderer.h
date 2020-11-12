@@ -3,10 +3,7 @@
 #include "IRenderer.h"
 #include "Maths/Maths.h"
 #include "Maths/Transform.h"
-
 #include "Graphics/API/DescriptorSet.h"
-
-#define RENDERER2DLINE_VERTEX_SIZE sizeof(LineVertexData)
 
 namespace Lumos
 {

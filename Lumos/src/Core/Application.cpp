@@ -9,7 +9,7 @@
 
 #include "Graphics/API/Renderer.h"
 #include "Graphics/API/GraphicsContext.h"
-#include "Graphics/RenderManager.h"
+#include "Graphics/Renderers/RenderGraph.h"
 #include "Graphics/Layers/LayerStack.h"
 #include "Graphics/Camera/Camera.h"
 #include "Graphics/Material.h"
@@ -140,7 +140,7 @@ namespace Lumos
 		Graphics::Renderer::Init(screenWidth, screenHeight);
 
 		// Graphics Loading on main thread
-		m_RenderManager = CreateUniqueRef<Graphics::RenderManager>(screenWidth, screenHeight);
+		m_RenderGraph = CreateUniqueRef<Graphics::RenderGraph>(screenWidth, screenHeight);
 
 		m_ImGuiLayer = new ImGuiLayer(false);
 		m_ImGuiLayer->OnAttach();
@@ -174,7 +174,7 @@ namespace Lumos
     #ifndef LUMOS_PLATFORM_IOS
         auto shadowRenderer = new Graphics::ShadowRenderer();
         auto shadowLayer = new Layer3D(shadowRenderer);
-        Application::Get().GetRenderManager()->SetShadowRenderer(shadowRenderer);
+        Application::Get().GetRenderGraph()->SetShadowRenderer(shadowRenderer);
         shadowLayer->OnAttach();
         m_LayerStack->PushLayer(shadowLayer);
     #endif
@@ -205,7 +205,7 @@ namespace Lumos
 #endif
 
 		m_SceneManager.reset();
-		m_RenderManager.reset();
+		m_RenderGraph.reset();
 		m_SystemManager.reset();
 
 		delete m_LayerStack;
@@ -449,7 +449,7 @@ namespace Lumos
 		}
 		m_Minimized = false;
 
-		m_RenderManager->OnResize(width, height);
+		m_RenderGraph->OnResize(width, height);
 		Graphics::Renderer::GetRenderer()->OnResize(width, height);
 		DebugRenderer::OnResize(width, height);
 
@@ -479,7 +479,7 @@ namespace Lumos
 			m_Minimized = true;
 		}
 		m_Minimized = false;
-		m_RenderManager->OnResize(width, height);
+		m_RenderGraph->OnResize(width, height);
 		m_LayerStack->OnEvent(e);
 		DebugRenderer::OnResize(width, height);
 

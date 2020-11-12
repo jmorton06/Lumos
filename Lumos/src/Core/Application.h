@@ -27,7 +27,7 @@ namespace Lumos
 
 	namespace Graphics
 	{
-		class RenderManager;
+		class RenderGraph;
 		enum class RenderAPI : u32;
 	}
 
@@ -92,9 +92,9 @@ namespace Lumos
 			return m_SceneManager.get();
 		}
     
-		Graphics::RenderManager* GetRenderManager() const
+		Graphics::RenderGraph* GetRenderGraph() const
 		{
-			return m_RenderManager.get();
+			return m_RenderGraph.get();
 		}
     
 		Window* GetWindow() const
@@ -297,7 +297,7 @@ namespace Lumos
 		UniqueRef<Window> m_Window;
 		UniqueRef<SceneManager> m_SceneManager;
 		UniqueRef<SystemManager> m_SystemManager;
-		UniqueRef<Graphics::RenderManager> m_RenderManager;
+		UniqueRef<Graphics::RenderGraph> m_RenderGraph;
 
 		LayerStack* m_LayerStack = nullptr;
 

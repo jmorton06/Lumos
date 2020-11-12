@@ -7,7 +7,7 @@
 #include "Maths/Maths.h"
 #include "Maths/Transform.h"
 
-#include "Graphics/RenderManager.h"
+#include "RenderGraph.h"
 #include "Graphics/Camera/Camera.h"
 #include "Graphics/Mesh.h"
 #include "Graphics/Model.h"
@@ -105,10 +105,10 @@ namespace Lumos
 
 			AttachmentInfo textureTypesOffScreen[5] =
 				{
-					{TextureType::COLOUR, Application::Get().GetRenderManager()->GetGBuffer()->GetTextureFormat(SCREENTEX_COLOUR)},
-					{TextureType::COLOUR, Application::Get().GetRenderManager()->GetGBuffer()->GetTextureFormat(SCREENTEX_POSITION)},
-					{TextureType::COLOUR, Application::Get().GetRenderManager()->GetGBuffer()->GetTextureFormat(SCREENTEX_NORMALS)},
-					{TextureType::COLOUR, Application::Get().GetRenderManager()->GetGBuffer()->GetTextureFormat(SCREENTEX_PBR)},
+					{TextureType::COLOUR, Application::Get().GetRenderGraph()->GetGBuffer()->GetTextureFormat(SCREENTEX_COLOUR)},
+					{TextureType::COLOUR, Application::Get().GetRenderGraph()->GetGBuffer()->GetTextureFormat(SCREENTEX_POSITION)},
+					{TextureType::COLOUR, Application::Get().GetRenderGraph()->GetGBuffer()->GetTextureFormat(SCREENTEX_NORMALS)},
+					{TextureType::COLOUR, Application::Get().GetRenderGraph()->GetGBuffer()->GetTextureFormat(SCREENTEX_PBR)},
 					{TextureType::DEPTH, TextureFormat::DEPTH}};
 
 			Graphics::RenderpassInfo renderpassCIOffScreen{};
@@ -389,11 +389,11 @@ namespace Lumos
 			bufferInfo.attachmentTypes = attachmentTypes;
 
 			Texture* attachments[attachmentCount];
-			attachments[0] = Application::Get().GetRenderManager()->GetGBuffer()->GetTexture(SCREENTEX_COLOUR);
-			attachments[1] = Application::Get().GetRenderManager()->GetGBuffer()->GetTexture(SCREENTEX_POSITION);
-			attachments[2] = Application::Get().GetRenderManager()->GetGBuffer()->GetTexture(SCREENTEX_NORMALS);
-			attachments[3] = Application::Get().GetRenderManager()->GetGBuffer()->GetTexture(SCREENTEX_PBR);
-			attachments[4] = Application::Get().GetRenderManager()->GetGBuffer()->GetDepthTexture();
+			attachments[0] = Application::Get().GetRenderGraph()->GetGBuffer()->GetTexture(SCREENTEX_COLOUR);
+			attachments[1] = Application::Get().GetRenderGraph()->GetGBuffer()->GetTexture(SCREENTEX_POSITION);
+			attachments[2] = Application::Get().GetRenderGraph()->GetGBuffer()->GetTexture(SCREENTEX_NORMALS);
+			attachments[3] = Application::Get().GetRenderGraph()->GetGBuffer()->GetTexture(SCREENTEX_PBR);
+			attachments[4] = Application::Get().GetRenderGraph()->GetGBuffer()->GetDepthTexture();
 			bufferInfo.attachments = attachments;
 
 			m_Framebuffers.push_back(Ref<Framebuffer>(Framebuffer::Create(bufferInfo)));

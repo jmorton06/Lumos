@@ -15,7 +15,7 @@
 #include "Graphics/AnimatedSprite.h"
 #include "Scene/Scene.h"
 #include "Core/Application.h"
-#include "Graphics/RenderManager.h"
+#include "RenderGraph.h"
 #include "Platform/OpenGL/GLDescriptorSet.h"
 #include "Graphics/Renderable2D.h"
 #include "Graphics/Camera/Camera.h"
@@ -537,7 +537,7 @@ namespace Lumos
 			if(m_RenderToDepthTexture)
 			{
 				attachmentTypes[1] = TextureType::DEPTH;
-				attachments[1] = reinterpret_cast<Texture*>(Application::Get().GetRenderManager()->GetGBuffer()->GetDepthTexture());
+				attachments[1] = reinterpret_cast<Texture*>(Application::Get().GetRenderGraph()->GetGBuffer()->GetDepthTexture());
 			}
 
 			FramebufferInfo bufferInfo{};

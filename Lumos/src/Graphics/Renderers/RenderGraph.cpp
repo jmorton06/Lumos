@@ -1,19 +1,32 @@
 #include "Precompiled.h"
 #include "RenderGraph.h"
+#include "GBuffer.h"
 #include "Graphics/Renderers/IRenderer.h"
 
 namespace Lumos::Graphics
 {
-    
-    RenderGraph::RenderGraph()
-    {
-
-    }
-
-    RenderGraph::~RenderGraph()
-    {
-        
-    }
+	RenderGraph::RenderGraph(u32 width, u32 height)
+	{
+		SetScreenBufferSize(width, height);
+		
+		m_GBuffer = new GBuffer(width, height);
+		Reset();
+	}
+	
+	RenderGraph::~RenderGraph() { delete m_GBuffer; }
+	
+	void RenderGraph::OnResize(u32 width, u32 height)
+	{
+		SetScreenBufferSize(width, height);
+		m_GBuffer->UpdateTextureSize(width, height);
+	}
+	
+	void RenderGraph::Reset()
+	{
+		m_ReflectSkyBox = false;
+		m_UseShadowMap = false;
+		m_NumShadowMaps = 4;
+	}
 
     void RenderGraph::AddRenderer(Graphics::IRenderer* renderer)
     {

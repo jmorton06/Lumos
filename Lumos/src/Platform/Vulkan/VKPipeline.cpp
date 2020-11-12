@@ -142,7 +142,7 @@ namespace Lumos
 			vi.pNext = NULL;
 			vi.vertexBindingDescriptionCount = 1;
 			vi.pVertexBindingDescriptions = &m_VertexBindingDescription;
-			vi.vertexAttributeDescriptionCount = vertexInputDescription.size();
+			vi.vertexAttributeDescriptionCount = u32(vertexInputDescription.size());
 			vi.pVertexAttributeDescriptions = vertexInputDescription.data();
 
 			VkPipelineInputAssemblyStateCreateInfo inputAssemblyCI{};

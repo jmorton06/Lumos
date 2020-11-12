@@ -13,7 +13,7 @@
 #include "Graphics/GBuffer.h"
 #include "Graphics/Mesh.h"
 #include "Graphics/MeshFactory.h"
-#include "Graphics/RenderManager.h"
+#include "RenderGraph.h"
 #include "Scene/Scene.h"
 #include "Core/Application.h"
 #include "Graphics/Camera/Camera.h"
@@ -198,6 +198,7 @@ namespace Lumos
 
 			SetScreenBufferSize(width, height);
 
+            m_CubeMap = nullptr;
 			UpdateUniformBuffer();
 			CreateFramebuffers();
 
@@ -309,7 +310,7 @@ namespace Lumos
 			bufferInfo.renderPass = m_RenderPass.get();
 			bufferInfo.attachmentTypes = attachmentTypes;
 
-			attachments[1] = dynamic_cast<Texture*>(Application::Get().GetRenderManager()->GetGBuffer()->GetDepthTexture());
+			attachments[1] = dynamic_cast<Texture*>(Application::Get().GetRenderGraph()->GetGBuffer()->GetDepthTexture());
 
 			if(m_RenderTexture)
 			{

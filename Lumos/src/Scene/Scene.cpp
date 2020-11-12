@@ -4,7 +4,7 @@
 #include "Core/Application.h"
 #include "Graphics/API/GraphicsContext.h"
 #include "Graphics/Layers/LayerStack.h"
-#include "Graphics/RenderManager.h"
+#include "RenderGraph.h"
 #include "Graphics/Camera/Camera.h"
 #include "Graphics/Sprite.h"
 #include "Graphics/AnimatedSprite.h"
@@ -91,7 +91,7 @@ namespace Lumos
 
 		LuaManager::Get().GetState().collect_garbage();
 
-		Application::Get().GetRenderManager()->Reset();
+		Application::Get().GetRenderGraph()->Reset();
 
 		auto audioManager = Application::Get().GetSystem<AudioManager>();
 		if(audioManager)

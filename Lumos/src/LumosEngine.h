@@ -91,7 +91,7 @@
 #include "Graphics/Renderers/ShadowRenderer.h"
 #include "Graphics/Renderers/GridRenderer.h"
 #include "Graphics/Renderers/SkyboxRenderer.h"
-#include "Graphics/RenderManager.h"
+#include "Graphics/Renderers/RenderGraph.h"
 
 //External
 #include <imgui/imgui.h>

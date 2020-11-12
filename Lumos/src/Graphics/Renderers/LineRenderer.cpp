@@ -15,7 +15,6 @@
 #include "Graphics/Sprite.h"
 #include "Scene/Scene.h"
 #include "Core/Application.h"
-#include "Graphics/RenderManager.h"
 #include "Platform/OpenGL/GLDescriptorSet.h"
 #include "Graphics/Renderable2D.h"
 #include "Graphics/Camera/Camera.h"
@@ -30,9 +29,9 @@ namespace Lumos
 	static const uint32_t MaxLines = 10000;
 	static const uint32_t MaxLineVertices = MaxLines * 2;
 	static const uint32_t MaxLineIndices = MaxLines * 6;
-#define MAX_BATCH_DRAW_CALLS 100
-#define RENDERER_LINE_SIZE RENDERER2DLINE_VERTEX_SIZE * 4
-#define RENDERER_BUFFER_SIZE RENDERER_LINE_SIZE* MaxLineVertices
+    static const uint32_t MAX_BATCH_DRAW_CALLS = 100;
+    static const uint32_t RENDERER_LINE_SIZE = sizeof(LineVertexData) * 4;
+    static const uint32_t RENDERER_BUFFER_SIZE = RENDERER_LINE_SIZE* MaxLineVertices;
 
 	LineRenderer::LineRenderer(u32 width, u32 height, bool clear)
 		: m_Buffer(nullptr)
