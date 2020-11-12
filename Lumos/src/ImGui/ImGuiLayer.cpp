@@ -182,8 +182,8 @@ namespace Lumos
 		LUMOS_PROFILE_FUNCTION();
 		ImGuiIO& io = ImGui::GetIO();
 
-		u32 width = Maths::Max(1, e.GetWidth());
-		u32 height = Maths::Max(1, e.GetHeight());
+		u32 width = Maths::Max(1u, e.GetWidth());
+		u32 height = Maths::Max(1u, e.GetHeight());
 
 		io.DisplaySize = ImVec2(static_cast<float>(width), static_cast<float>(height));
 		io.DisplayFramebufferScale = ImVec2(1.0f, 1.0f);

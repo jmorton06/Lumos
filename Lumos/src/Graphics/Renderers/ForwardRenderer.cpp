@@ -23,7 +23,7 @@
 #include "Embedded/CheckerBoardTextureArray.inl"
 
 #include "Core/Application.h"
-#include "Graphics/RenderManager.h"
+#include "RenderGraph.h"
 #include "Graphics/Camera/Camera.h"
 
 namespace Lumos
@@ -449,7 +449,7 @@ namespace Lumos
 			if(m_DepthTest)
 			{
 				attachmentTypes[1] = TextureType::DEPTH;
-				attachments[1] = reinterpret_cast<Texture*>(Application::Get().GetRenderManager()->GetGBuffer()->GetDepthTexture());
+				attachments[1] = reinterpret_cast<Texture*>(Application::Get().GetRenderGraph()->GetGBuffer()->GetDepthTexture());
 			}
 
 			FramebufferInfo bufferInfo{};

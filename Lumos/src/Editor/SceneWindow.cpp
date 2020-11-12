@@ -7,7 +7,7 @@
 #include "Core/Engine.h"
 #include "Graphics/API/GraphicsContext.h"
 #include "Graphics/API/Texture.h"
-#include "Graphics/RenderManager.h"
+#include "RenderGraph.h"
 #include "Graphics/GBuffer.h"
 #include "Graphics/Light.h"
 #include "Scene/Component/SoundComponent.h"
@@ -99,6 +99,7 @@ namespace Lumos
         {
             ToolBar();
             offset.y = ImGui::GetFontSize() + ImGui::GetStyle().FramePadding.y;
+			 offset = ImGui::GetCursorPos(); //Usually ImVec2(0.0f, 50.0f);
         }
 
 		if(!camera)
@@ -107,12 +108,10 @@ namespace Lumos
             style.WindowPadding = savedPadding;
             return;
         }
-		
-		auto viewportOffset = ImGui::GetCursorPos(); //Usually ImVec2(0.0f, 50.0f);
 
 		ImGuizmo::SetDrawlist();
-        auto sceneViewSize = ImGui::GetWindowContentRegionMax() - ImGui::GetWindowContentRegionMin() - viewportOffset / 2.0f;// - offset * 0.5f;
-        auto sceneViewPosition = ImGui::GetWindowPos() + viewportOffset;
+        auto sceneViewSize = ImGui::GetWindowContentRegionMax() - ImGui::GetWindowContentRegionMin() - offset / 2.0f;// - offset * 0.5f;
+        auto sceneViewPosition = ImGui::GetWindowPos() + offset;
 		
 		sceneViewSize.x -= static_cast<int>(sceneViewSize.x) % 2 != 0 ? 1.0f : 0.0f;
 		sceneViewSize.y -= static_cast<int>(sceneViewSize.y) % 2 != 0 ? 1.0f : 0.0f;
@@ -124,19 +123,19 @@ namespace Lumos
 
         if(!m_FreeAspect)
         {
-			const float aspect = 1.0f;
+			const float aspect = 4.0f/ 3.0f;
 			
-			if(sceneViewSize.x/sceneViewSize.y > 1.0f)
+			if(sceneViewSize.x/sceneViewSize.y > aspect)
 			{
             sceneViewSize.x = sceneViewSize.y;
-				auto pos = ImVec2((ImGui::GetContentRegionAvail() - sceneViewSize) * 0.5f + viewportOffset);
+				auto pos = ImVec2((ImGui::GetContentRegionAvail() - sceneViewSize) * 0.5f + offset);
 				sceneViewPosition.x += pos.x;
-				ImGui::SetCursorPos(pos);;
+				ImGui::SetCursorPos(pos);
 			}
 			else
 			{
 				sceneViewSize.y = sceneViewSize.x;
-				auto pos = ImVec2((ImGui::GetContentRegionAvail() - sceneViewSize) * 0.5f + viewportOffset);
+				auto pos = ImVec2((ImGui::GetContentRegionAvail() - sceneViewSize) * 0.5f + offset);
 				sceneViewPosition.y += pos.y;
 				ImGui::SetCursorPos(pos);
 			}
@@ -181,7 +180,7 @@ namespace Lumos
 			}
 		}
         
-        ImGui::GetWindowDrawList()->PushClipRect(sceneViewPosition,{ sceneViewSize.x + sceneViewPosition.x, sceneViewSize.y - ( viewportOffset.y * 0.5f + 1.0f)  + sceneViewPosition.y} );
+        ImGui::GetWindowDrawList()->PushClipRect(sceneViewPosition,{ sceneViewSize.x + sceneViewPosition.x, sceneViewSize.y - ( offset.y * 0.5f + 1.0f)  + sceneViewPosition.y} );
 
 		m_Editor->OnImGuizmo();
 
@@ -687,7 +686,7 @@ namespace Lumos
 
 			WindowResizeEvent e(width, height);
 			auto& app = Application::Get();
-			app.GetRenderManager()->OnResize(width, height);
+			app.GetRenderGraph()->OnResize(width, height);
 
 			for(auto layer : *sceneLayers)
 			{

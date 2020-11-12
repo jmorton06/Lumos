@@ -388,9 +388,28 @@ namespace Lumos
 
 					Maths::Matrix4 lightOrthoMatrix = Maths::Matrix4::Orthographic(minExtents.x, maxExtents.x, minExtents.y, maxExtents.y, -(maxExtents.z - minExtents.z), maxExtents.z - minExtents.z);
 
+                    auto shadowProj = lightOrthoMatrix * lightViewMatrix.Inverse();
+                    const bool StabilizeCascades = true;
+					if(StabilizeCascades)
+					{
+						// Create the rounding matrix, by projecting the world-space origin and determining
+						// the fractional offset in texel space
+						Maths::Matrix4 shadowMatrix = shadowProj;
+						Maths::Vector3 shadowOrigin = Maths::Vector3(0.0f);
+						shadowOrigin = (shadowMatrix * Maths::Vector4(shadowOrigin, 1.0f)).ToVector3();
+						shadowOrigin *= (m_ShadowMapSize / 2.0f);
+
+                        Maths::Vector3 roundedOrigin = Maths::VectorRound(shadowOrigin);
+                        Maths::Vector3 roundOffset = roundedOrigin - shadowOrigin;
+						roundOffset = roundOffset * (2.0f / m_ShadowMapSize);
+						roundOffset.z = 0.0f;
+
+                        shadowProj.ElementRef(0, 3) += roundOffset.x;
+                        shadowProj.ElementRef(1, 3) += roundOffset.y;
+					}
 					// Store split distance and matrix in cascade
 					m_SplitDepth[i] = Maths::Vector4((m_Camera->GetNear() + splitDist * clipRange) * -1.0f);
-					m_ShadowProjView[i] = lightOrthoMatrix * lightViewMatrix.Inverse();
+					m_ShadowProjView[i] = shadowProj;
 				}
 #ifdef THREAD_CASCADE_GEN
 			);
@@ -451,7 +470,7 @@ namespace Lumos
             pipelineCreateInfo.vertexBufferLayout = vertexBufferLayout;
 			pipelineCreateInfo.descriptorLayouts = layoutInfo;
 			pipelineCreateInfo.polygonMode = Graphics::PolygonMode::Fill;
-			pipelineCreateInfo.cullMode = Graphics::CullMode::FRONT;
+			pipelineCreateInfo.cullMode = Graphics::CullMode::NONE;
 			pipelineCreateInfo.transparencyEnabled = false;
 			pipelineCreateInfo.depthBiasEnabled = true;
             pipelineCreateInfo.pushConstSize = sizeof(u32) + sizeof(Maths::Matrix4);

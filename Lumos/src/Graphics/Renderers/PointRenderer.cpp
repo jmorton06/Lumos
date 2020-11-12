@@ -17,11 +17,9 @@
 #include "Graphics/Camera/Camera.h"
 #include "Scene/Scene.h"
 #include "Core/Application.h"
-#include "Graphics/RenderManager.h"
 #include "Platform/OpenGL/GLDescriptorSet.h"
 #include "Maths/Transform.h"
  
-
 namespace Lumos
 {
 	using namespace Graphics;
@@ -29,9 +27,9 @@ namespace Lumos
 	static const uint32_t MaxPoints = 10000;
 	static const uint32_t MaxPointVertices = MaxPoints * 4;
 	static const uint32_t MaxPointIndices = MaxPoints * 6;
-#define MAX_BATCH_DRAW_CALLS 100
-#define RENDERER_POINT_SIZE RENDERER2DPOINT_VERTEX_SIZE * 4
-#define RENDERER_BUFFER_SIZE RENDERER_POINT_SIZE* MaxPointVertices
+    static const uint32_t MAX_BATCH_DRAW_CALLS = 100;
+    static const uint32_t RENDERER_POINT_SIZE = sizeof(PointVertexData) * 4;
+    static const uint32_t RENDERER_BUFFER_SIZE = RENDERER_POINT_SIZE * MaxPointVertices;
 
 	PointRenderer::PointRenderer(u32 width, u32 height, bool clear)
 		: m_IndexCount(0)
