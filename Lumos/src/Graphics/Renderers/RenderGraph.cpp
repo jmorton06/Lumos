@@ -1,6 +1,6 @@
 #include "Precompiled.h"
 #include "RenderGraph.h"
-#include "GBuffer.h"
+#include "Graphics/GBuffer.h"
 #include "Graphics/Renderers/IRenderer.h"
 
 namespace Lumos::Graphics
