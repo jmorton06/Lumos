@@ -39,6 +39,63 @@ namespace Lumos
 		m_Height = 800;
 	}
 
+    static std::string AspectToString(float aspect)
+    {
+        if(Maths::Equals(aspect, 16.0f/10.0f))
+        {
+            return "16:10";
+        }
+        else if(Maths::Equals(aspect, 16.0f/9.0f))
+        {
+            return "16:9";
+        }
+        else if(Maths::Equals(aspect, 4.0f/3.0f))
+        {
+            return "4:3";
+        }
+        else if(Maths::Equals(aspect, 3.0f/2.0f))
+        {
+            return "3:2";
+        }
+        else if(Maths::Equals(aspect, 9.0f/16.0f))
+        {
+            return "9:16";
+        }
+        else
+        {
+            return "Unsupported";
+        }
+    }
+
+    static float StringToAspect(const std::string& aspect)
+    {
+        if(aspect == "16:10")
+        {
+            return 16.0f/10.0f;
+        }
+        else if(aspect == "16:9")
+        {
+            return 16.0f/9.0f;
+        }
+        else if(aspect == "4:3")
+        {
+            return 4.0f/3.0f;
+        }
+        else if(aspect == "3:2")
+        {
+            return 3.0f/2.0f;
+        }
+        else if(aspect == "9:16")
+        {
+            return 9.0f/16.0f;
+        }
+        else
+        {
+            return 1.0f;
+        }
+
+    }
+
 
 	void SceneWindow::OnImGui()
 	{
@@ -51,7 +108,6 @@ namespace Lumos
 		
         style.WindowPadding = ImVec2(0, 0);
         
-
 		auto flags = ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoScrollWithMouse;
 		ImGui::SetNextWindowBgAlpha(0.0f);
 		ImGui::Begin(m_Name.c_str(), &m_Active, flags);
@@ -98,8 +154,7 @@ namespace Lumos
 		if(!gameView)
         {
             ToolBar();
-            offset.y = ImGui::GetFontSize() + ImGui::GetStyle().FramePadding.y;
-			 offset = ImGui::GetCursorPos(); //Usually ImVec2(0.0f, 50.0f);
+            offset = ImGui::GetCursorPos(); //Usually ImVec2(0.0f, 50.0f);
         }
 
 		if(!camera)
@@ -115,33 +170,30 @@ namespace Lumos
 		
 		sceneViewSize.x -= static_cast<int>(sceneViewSize.x) % 2 != 0 ? 1.0f : 0.0f;
 		sceneViewSize.y -= static_cast<int>(sceneViewSize.y) % 2 != 0 ? 1.0f : 0.0f;
-    
-        if(sceneViewSize.x == 0.0f || sceneViewSize.y == 0.0f)
-        {
-            sceneViewSize = ImVec2(80.0f, 60.0f);
-        }
-
+  
         if(!m_FreeAspect)
         {
-			const float aspect = 4.0f/ 3.0f;
-			
-			if(sceneViewSize.x/sceneViewSize.y > aspect)
+            float heightNeededForAspect = sceneViewSize.x / m_FixedAspect;
+            
+			if(heightNeededForAspect > sceneViewSize.y)
 			{
-            sceneViewSize.x = sceneViewSize.y;
-				auto pos = ImVec2((ImGui::GetContentRegionAvail() - sceneViewSize) * 0.5f + offset);
-				sceneViewPosition.x += pos.x;
-				ImGui::SetCursorPos(pos);
+                sceneViewSize.x = sceneViewSize.y * m_FixedAspect;
+				float xOffset = ((ImGui::GetContentRegionAvail() - sceneViewSize) * 0.5f).x;
+				sceneViewPosition.x += xOffset;
+                ImGui::SetCursorPos({xOffset, ImGui::GetCursorPosY() + offset.x});
+                offset.x += xOffset;
 			}
 			else
 			{
-				sceneViewSize.y = sceneViewSize.x;
-				auto pos = ImVec2((ImGui::GetContentRegionAvail() - sceneViewSize) * 0.5f + offset);
-				sceneViewPosition.y += pos.y;
-				ImGui::SetCursorPos(pos);
+				sceneViewSize.y = sceneViewSize.x / m_FixedAspect;
+                float yOffset = ((ImGui::GetContentRegionAvail() - sceneViewSize) * 0.5f).y;
+				sceneViewPosition.y += yOffset;
+              
+                ImGui::SetCursorPos({ImGui::GetCursorPosX() ,yOffset + offset.y});
+                offset.y += yOffset;
 			}
-			
         }
-        
+                
         float aspect = static_cast<float>(sceneViewSize.x) / static_cast<float>(sceneViewSize.y);
 
 		if(!Maths::Equals(aspect, camera->GetAspectRatio()))
@@ -180,7 +232,7 @@ namespace Lumos
 			}
 		}
         
-        ImGui::GetWindowDrawList()->PushClipRect(sceneViewPosition,{ sceneViewSize.x + sceneViewPosition.x, sceneViewSize.y - ( offset.y * 0.5f + 1.0f)  + sceneViewPosition.y} );
+        ImGui::GetWindowDrawList()->PushClipRect(sceneViewPosition,{ sceneViewSize.x + sceneViewPosition.x, sceneViewSize.y + sceneViewPosition.y - 2.0f} );
 
 		m_Editor->OnImGuizmo();
 
@@ -190,7 +242,7 @@ namespace Lumos
 			m_Editor->SelectObject(m_Editor->GetScreenRay(int(clickPos.x), int(clickPos.y), camera, int(sceneViewSize.x), int(sceneViewSize.y)));
 		}
 
-		DrawGizmos(sceneViewSize.x, sceneViewSize.y, 0.0f, offset.y * 2.0f, app.GetSceneManager()->GetCurrentScene());
+		DrawGizmos(sceneViewSize.x, sceneViewSize.y, offset.x, offset.y, app.GetSceneManager()->GetCurrentScene());
 
 		if(m_ShowStats && ImGui::IsWindowFocused())
 		{
@@ -622,7 +674,33 @@ namespace Lumos
         
         ImGui::SameLine();
         
-        ImGui::Checkbox("Free Aspect", &m_FreeAspect);
+        ImGui::PushItemWidth(ImGui::GetFontSize() * 7);
+        ImGui::PushID(this);
+        static std::string supportedAspects[] = {"Free Aspect", "16:10", "16:9", "4:3", "3:2", "9:16" };
+        std::string currentAspect = m_FreeAspect ? "Free Aspect" : AspectToString(m_FixedAspect);
+        if(ImGui::BeginCombo("", currentAspect.c_str(), 0)) // The second parameter is the label previewed before opening the combo.
+        {
+            for(int n = 0; n < 6; n++)
+            {
+                bool is_selected = (currentAspect == supportedAspects[n]);
+                if(ImGui::Selectable(supportedAspects[n].c_str(), currentAspect.c_str()))
+                {
+                    if(supportedAspects[n] == "Free Aspect")
+                    {
+                        m_FreeAspect = true;
+                    }
+                    else
+                    {
+                        m_FreeAspect = false;
+                        m_FixedAspect = StringToAspect(supportedAspects[n]);
+                    }
+                }
+                if(is_selected)
+                    ImGui::SetItemDefaultFocus();
+            }
+            ImGui::EndCombo();
+        }
+        ImGui::PopID();
 
 		ImGui::PopStyleColor();
 		ImGui::Unindent();
