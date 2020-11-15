@@ -81,7 +81,7 @@ defines
 			"_SILENCE_CXX17_ITERATOR_BASE_CLASS_DEPRECATION_WARNING",
 			"LUMOS_ROOT_DIR="  .. root_dir,
 			"LUMOS_VOLK",
-	"LUMOS_SSE",
+			"LUMOS_SSE",
 		}
 
 		libdirs
@@ -109,7 +109,7 @@ defines
 		systemversion "latest"
 		editandcontinue "Off"
 
-xcodebuildresources { "Images.xcassets", "libMoltenVK.dylib" }
+		xcodebuildresources { "Assets.xcassets", "libMoltenVK.dylib" }
 
 		xcodebuildsettings
 		{
@@ -147,8 +147,8 @@ xcodebuildresources { "Images.xcassets", "libMoltenVK.dylib" }
 
 		files
 		{
-	"../Resources/MacOSIcons/Images.xcassets",
-	"../Lumos/external/vulkan/libs/macOS/libMoltenVK.dylib"
+			"../Resources/AppIcons/Assets.xcassets",
+			"../Lumos/external/vulkan/libs/macOS/libMoltenVK.dylib"
 		}
 
 		links
@@ -199,16 +199,16 @@ xcodebuildresources { "Images.xcassets", "libMoltenVK.dylib" }
 
 		files
 		{
-			"../Resources/IOSIcons/Images.xcassets",
-	"../Lumos/res/EngineShaders",
-	"../Lumos/src/Platform/iOS/Client/**",
+			"../Resources/AppIcons/Assets.xcassets",
+			"../Lumos/res/EngineShaders",
+			"../Lumos/src/Platform/iOS/Client/**",
             "res/scenes",
             "res/scripts",
             "res/meshes",
             "res/sounds",
             "res/textures",
-	"Sandbox.lmproj",
-	"Launch Screen.storyboard"
+			"Sandbox.lmproj",
+			"Launch Screen.storyboard"
 		}
 
 		xcodebuildsettings
@@ -242,7 +242,7 @@ xcodebuildresources { "Images.xcassets", "libMoltenVK.dylib" }
 		xcodebuildresources
 		{
 			"../Lumos/src/Platform/iOS/Client",
-			"Images.xcassets",
+			"Assets.xcassets",
             "EngineShaders",
             "meshes",
             "scenes",

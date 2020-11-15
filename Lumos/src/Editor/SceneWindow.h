@@ -75,5 +75,6 @@ namespace Lumos
         
         bool m_FreeAspect = true;
         float m_FixedAspect = 1.0f;
+        bool m_HalfRes = false;
 	};
 }
