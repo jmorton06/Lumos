@@ -193,7 +193,7 @@ namespace Lumos
                 offset.y += yOffset;
 			}
         }
-                
+        
         float aspect = static_cast<float>(sceneViewSize.x) / static_cast<float>(sceneViewSize.y);
 
 		if(!Maths::Equals(aspect, camera->GetAspectRatio()))
@@ -203,9 +203,15 @@ namespace Lumos
         
         m_Editor->m_SceneWindowPos = sceneViewPosition;
 
+        if(m_HalfRes)
+            sceneViewSize /= 2.0f;
+         
 		Resize(static_cast<u32>(sceneViewSize.x), static_cast<u32>(sceneViewSize.y));
 
-		ImGuiHelpers::Image(m_GameViewTexture.get(), sceneViewSize);
+        if(m_HalfRes)
+            sceneViewSize *= 2.0f;
+        
+		ImGuiHelpers::Image(m_GameViewTexture.get(),sceneViewSize);
 
 		auto windowSize = ImGui::GetWindowSize();
 		ImVec2 minBound = sceneViewPosition;
@@ -701,6 +707,9 @@ namespace Lumos
             ImGui::EndCombo();
         }
         ImGui::PopID();
+        
+        ImGui::SameLine();
+        ImGui::Checkbox("Half Res", &m_HalfRes);
 
 		ImGui::PopStyleColor();
 		ImGui::Unindent();
