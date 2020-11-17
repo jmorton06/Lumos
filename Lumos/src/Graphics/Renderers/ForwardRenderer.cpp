@@ -396,7 +396,7 @@ namespace Lumos
 
 		void ForwardRenderer::CreateGraphicsPipeline()
 		{
-			m_Shader = Ref<Graphics::Shader>(Shader::CreateFromFile("Simple", "/CoreShaders/"));
+			m_Shader = Ref<Graphics::Shader>(Shader::CreateFromFile("/CoreShaders/Simple.shader"));
 
 			std::vector<Graphics::DescriptorLayoutInfo> layoutInfo =
             {

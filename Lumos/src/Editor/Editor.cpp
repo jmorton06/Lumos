@@ -1654,7 +1654,7 @@ namespace Lumos
         else
         {
             std::string physicalPath;
-            if(Lumos::VFS::Get()->ResolvePhysicalPath("/Scenes/" + m_Application->GetCurrentScene()->GetSceneName() + ".lsn", physicalPath))
+            if(Lumos::VFS::Get()->ResolvePhysicalPath("//Scenes/" + m_Application->GetCurrentScene()->GetSceneName() + ".lsn", physicalPath))
             {
                 auto newPath = StringUtilities::RemoveName(physicalPath);
                 m_Application->GetCurrentScene()->Deserialise(newPath, false);

@@ -85,7 +85,7 @@ namespace Lumos
 		void SkyboxRenderer::Init()
 		{
 			LUMOS_PROFILE_FUNCTION();
-			m_Shader = Ref<Graphics::Shader>(Shader::CreateFromFile("Skybox", "/CoreShaders/"));
+			m_Shader = Ref<Graphics::Shader>(Shader::CreateFromFile("/CoreShaders/Skybox.shader"));
 			m_Skybox = Graphics::CreateQuad();
 
 			// Vertex shader System uniforms

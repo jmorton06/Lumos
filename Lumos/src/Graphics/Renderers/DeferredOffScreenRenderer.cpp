@@ -71,7 +71,7 @@ namespace Lumos
 		void DeferredOffScreenRenderer::Init()
 		{
 			LUMOS_PROFILE_FUNCTION();
-			m_Shader = Ref<Graphics::Shader>(Shader::CreateFromFile("DeferredColour", "/CoreShaders/"));
+			m_Shader = Ref<Graphics::Shader>(Shader::CreateFromFile("/CoreShaders/DeferredColour.shader"));
 			m_DefaultMaterial = new Material();
 
 			Graphics::MaterialProperties properties;

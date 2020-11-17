@@ -211,8 +211,11 @@ namespace Lumos
 			ImGui::PushID(this);
 			ImGui::PushStyleColor(ImGuiCol_Text, GetRenderColour(m_Level));
 			auto levelIcon = GetLevelIcon(m_Level);
-			ImGui::Text("%s %s", levelIcon,  m_Message.c_str());
-			
+			ImGui::TextUnformatted(levelIcon);
+            ImGui::PopStyleColor();
+            ImGui::SameLine();
+            ImGui::TextUnformatted(m_Message.c_str());
+
 			if (ImGui::BeginPopupContextWindow())
 			{
 				if (ImGui::MenuItem("Copy"))
@@ -236,7 +239,6 @@ namespace Lumos
 				ImGui::Text("%d", m_Count);
 			}
 			
-			ImGui::PopStyleColor();
 			ImGui::PopID();
 		}
 	}

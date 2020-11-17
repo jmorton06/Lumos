@@ -56,7 +56,7 @@ namespace Lumos
 		void Renderer2D::Init()
 		{
 			LUMOS_PROFILE_FUNCTION();
-			m_Shader = Ref<Graphics::Shader>(Shader::CreateFromFile("Batch2D", "/CoreShaders/"));
+			m_Shader = Ref<Graphics::Shader>(Shader::CreateFromFile("/CoreShaders/Batch2D.shader"));
 
 			m_TransformationStack.emplace_back(Maths::Matrix4());
 			m_TransformationBack = &m_TransformationStack.back();

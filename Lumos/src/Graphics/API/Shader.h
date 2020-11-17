@@ -12,11 +12,6 @@
 #define SHADER_MID_INDEX 4
 #define SHADER_COLOR_INDEX 5
 
-#define SHADER_UNIFORM_PROJECTION_MATRIX_NAME "sys_ProjectionMatrix"
-#define SHADER_UNIFORM_VIEW_MATRIX_NAME "sys_ViewMatrix"
-#define SHADER_UNIFORM_MODEL_MATRIX_NAME "sys_ModelMatrix"
-#define SHADER_UNIFORM_TEXTURE_MATRIX_NAME "sys_TextureMatrix"
-
 namespace Lumos
 {
 	namespace Graphics
@@ -65,12 +60,10 @@ namespace Lumos
 			virtual void* GetHandle() const = 0;
 
 		public:
-			static Shader* CreateFromFile(const std::string& name, const std::string& filepath);
-			static bool TryCompile(const std::string& source, std::string& error, const std::string& name);
-			static bool TryCompileFromFile(const std::string& filepath, std::string& error);
+			static Shader* CreateFromFile(const std::string& filepath);
 
 		protected:
-			static Shader* (*CreateFunc)(const std::string&, const std::string&);
+			static Shader* (*CreateFunc)(const std::string&);
 		};
 	}
 }

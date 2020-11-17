@@ -37,6 +37,14 @@ namespace Lumos
 			return FilePath.substr(pos + 1);
 		return FilePath;
 	}
+    
+    std::string GetFileLocation(const std::string& FilePath)
+    {
+        auto pos = FilePath.find_last_of('/');
+        if(pos != std::string::npos)
+            return FilePath.substr(0, pos + 1);
+        return FilePath;
+    }
 	
 	std::string RemoveName(const std::string& FilePath)
 	{

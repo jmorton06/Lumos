@@ -928,7 +928,7 @@
             "ptr_wrapper": {
                 "valid": 1,
                 "data": {
-                    "Albedo": "/Textures/checkerboard.tga",
+                    "Albedo": "//Textures/checkerboard.tga",
                     "Normal": "",
                     "Metallic": "",
                     "Roughness": "",
@@ -1908,7 +1908,7 @@
             "ptr_wrapper": {
                 "valid": 1,
                 "data": {
-                    "Albedo": "/Textures/checkerboard.tga",
+                    "Albedo": "//Textures/checkerboard.tga",
                     "Normal": "",
                     "Metallic": "",
                     "Roughness": "",
@@ -1957,7 +1957,7 @@
             "ptr_wrapper": {
                 "valid": 1,
                 "data": {
-                    "Albedo": "/Textures/checkerboard.tga",
+                    "Albedo": "//Textures/checkerboard.tga",
                     "Normal": "",
                     "Metallic": "",
                     "Roughness": "",
@@ -2006,7 +2006,7 @@
             "ptr_wrapper": {
                 "valid": 1,
                 "data": {
-                    "Albedo": "/Textures/checkerboard.tga",
+                    "Albedo": "//Textures/checkerboard.tga",
                     "Normal": "",
                     "Metallic": "",
                     "Roughness": "",
@@ -2055,7 +2055,7 @@
             "ptr_wrapper": {
                 "valid": 1,
                 "data": {
-                    "Albedo": "/Textures/checkerboard.tga",
+                    "Albedo": "//Textures/checkerboard.tga",
                     "Normal": "",
                     "Metallic": "",
                     "Roughness": "",
@@ -2446,7 +2446,7 @@
     "value262": 1,
     "value263": 24,
     "value264": {
-        "value0": "/Textures/cubemap/Arches_E_PineTree",
+        "value0": "//Textures/cubemap/Arches_E_PineTree",
         "value1": 11,
         "value2": 3072,
         "value3": 4096,
@@ -2462,7 +2462,7 @@
     "value270": 1,
     "value271": 28,
     "value272": {
-        "TexturePath": "/Textures/cat.png",
+        "TexturePath": "//Textures/cat.png",
         "Position": {
             "value0": 0.0,
             "value1": 0.0

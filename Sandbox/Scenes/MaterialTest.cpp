@@ -24,11 +24,11 @@ void MaterialTest::OnInit()
 	LoadModels();
 	
 	auto environment = CreateEntity("Environment");
-	environment.AddComponent<Graphics::Environment>("/Textures/cubemap/Arches_E_PineTree", 11, 3072, 4096, ".tga");
+	environment.AddComponent<Graphics::Environment>("//Textures/cubemap/Arches_E_PineTree", 11, 3072, 4096, ".tga");
 	
 	auto lightEntity = CreateEntity("Light");
 	lightEntity.AddComponent<Graphics::Light>(Maths::Vector3(26.0f, 22.0f, 48.5f), Maths::Vector4(1.0f), 1.3f);
-	lightEntity.AddComponent<Maths::Transform>(Matrix4::Translation(Maths::Vector3(26.0f, 22.0f, 48.5f)) * Maths::Quaternion::LookAt(Maths::Vector3(26.0f, 22.0f, 48.5f), Maths::Vector3::ZERO).RotationMatrix4());
+	lightEntity.GetComponent<Maths::Transform>().SetLocalTransform(Matrix4::Translation(Maths::Vector3(26.0f, 22.0f, 48.5f)) * Maths::Quaternion::LookAt(Maths::Vector3(26.0f, 22.0f, 48.5f), Maths::Vector3::ZERO).RotationMatrix4());
 	
     auto cameraEntity = CreateEntity("Camera");
     cameraEntity.AddComponent<Maths::Transform>(Maths::Vector3(-31.0f, 12.0f, 51.0f));
@@ -56,35 +56,35 @@ void MaterialTest::LoadModels()
 	std::vector<Lumos::Ref<Material>> materials;
 	
 	auto grassMaterial = CreateRef<Material>();
-	grassMaterial->LoadPBRMaterial("grass", "/Textures/pbr");
+	grassMaterial->LoadPBRMaterial("grass", "//Textures/pbr");
 	materials.push_back(grassMaterial);
 	
 	auto stonewallMaterial = CreateRef<Material>();
-	stonewallMaterial->LoadPBRMaterial("stonewall", "/Textures/pbr");
+	stonewallMaterial->LoadPBRMaterial("stonewall", "//Textures/pbr");
 	materials.push_back(stonewallMaterial);
 	
 	auto castIronMaterial = CreateRef<Material>();
-	castIronMaterial->LoadPBRMaterial("CastIron", "/Textures/pbr", ".tga");
+	castIronMaterial->LoadPBRMaterial("CastIron", "//Textures/pbr", ".tga");
 	materials.push_back(castIronMaterial);
 	
 	auto GunMetalMaterial = CreateRef<Material>();
-	GunMetalMaterial->LoadPBRMaterial("GunMetal", "/Textures/pbr", ".tga");
+	GunMetalMaterial->LoadPBRMaterial("GunMetal", "//Textures/pbr", ".tga");
 	materials.push_back(GunMetalMaterial);
 	
 	auto WornWoodMaterial = CreateRef<Material>();
-	WornWoodMaterial->LoadPBRMaterial("WornWood", "/Textures/pbr", ".tga");
+	WornWoodMaterial->LoadPBRMaterial("WornWood", "//Textures/pbr", ".tga");
 	materials.push_back(WornWoodMaterial);
 	
 	auto marbleMaterial = CreateRef<Material>();
-	marbleMaterial->LoadPBRMaterial("marble", "/Textures/pbr");
+	marbleMaterial->LoadPBRMaterial("marble", "//Textures/pbr");
 	materials.push_back(marbleMaterial);
 	
 	auto stoneMaterial = CreateRef<Material>();
-	stoneMaterial->LoadPBRMaterial("stone", "/Textures/pbr");
+	stoneMaterial->LoadPBRMaterial("stone", "//Textures/pbr");
 	materials.push_back(stoneMaterial);
 	
 	auto testMaterial = CreateRef<Material>();
-	testMaterial->LoadMaterial("checkerboard", "/Textures/checkerboard.tga");
+	testMaterial->LoadMaterial("checkerboard", "//Textures/checkerboard.tga");
 	materials.push_back(testMaterial);
 	
 	const float groundWidth = (float(materials.size()) * 1.2f + 1.0f) / 2.0f;
@@ -120,7 +120,7 @@ void MaterialTest::LoadModels()
 	for(auto& material : materials)
 	{
         Entity modelEntity = m_EntityManager->Create();
-        modelEntity.AddComponent<Graphics::Model>("/Meshes/material_sphere/material_sphere.fbx");
+        modelEntity.AddComponent<Graphics::Model>("//Meshes/material_sphere/material_sphere.fbx");
         auto& transform = modelEntity.GetOrAddComponent<Maths::Transform>();
 		
 		transform.SetLocalPosition(Maths::Vector3(float(numObjects) * 1.2f - float(materials.size()) / 2.0f, 1.2f, 0.0f));
