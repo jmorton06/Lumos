@@ -2,6 +2,7 @@
 #include "ImGui/ImGuiHelpers.h"
 #include "Graphics/API/Texture.h"
 #include "Graphics/API/GraphicsContext.h"
+#include "Core/OS/OS.h"
 
 #include <imgui/imgui_internal.h>
 
@@ -350,17 +351,15 @@ namespace Lumos
 		case Lumos::ImGuiHelpers::Dark:
 			ImGui::StyleColorsDark();
 
-#define red ImVec4(1.0f, 0.0f, 0.0f, 1.0f)
-
 			colours[ImGuiCol_Text] = ImVec4(0.95f, 0.96f, 0.98f, 1.00f);
 			colours[ImGuiCol_TextDisabled] = ImVec4(0.36f, 0.42f, 0.47f, 1.00f);
 
-			colours[ImGuiCol_WindowBg] = TabActive; // TabActive;//windowBackground;
-			colours[ImGuiCol_ChildBg] = TabActive; //TabActive;//windowBackground;
+			colours[ImGuiCol_WindowBg] = TabActive;
+			colours[ImGuiCol_ChildBg] = TabActive;
 
 			colours[ImGuiCol_PopupBg] = ImVec4(0.08f, 0.08f, 0.08f, 0.94f);
 			colours[ImGuiCol_Border] = ImVec4(0.08f, 0.10f, 0.12f, 1.00f);
-			colours[ImGuiCol_BorderShadow] = ImVec4(0.00f, 0.00f, 0.00f, 0.00f);
+            colours[ImGuiCol_BorderShadow] = ImVec4(0.00f, 0.00f, 0.00f, 0.00f);
             colours[ImGuiCol_FrameBg] = ImVec4(61.0f/255.0f, 83.0f/255.0f, 103.0f/255.0f, 1.00f);
 			colours[ImGuiCol_FrameBgHovered] = ImVec4(0.12f, 0.20f, 0.28f, 1.00f);
 			colours[ImGuiCol_FrameBgActive] = ImVec4(0.09f, 0.12f, 0.14f, 1.00f);
@@ -371,9 +370,10 @@ namespace Lumos
 			colours[ImGuiCol_MenuBarBg] = Titlebar;
 
 			colours[ImGuiCol_ScrollbarBg] = ImVec4(0.02f, 0.02f, 0.02f, 0.39f);
-			colours[ImGuiCol_ScrollbarGrab] = ImVec4(0.20f, 0.25f, 0.29f, 1.00f);
-			colours[ImGuiCol_ScrollbarGrabHovered] = ImVec4(0.18f, 0.22f, 0.25f, 1.00f);
-			colours[ImGuiCol_ScrollbarGrabActive] = ImVec4(0.09f, 0.21f, 0.31f, 1.00f);
+            colours[ImGuiCol_ScrollbarGrab] = ImVec4(0.6f, 0.6f, 0.6f, 1.00f);
+            colours[ImGuiCol_ScrollbarGrabActive] = ImVec4(0.7f, 0.7f, 0.7f, 1.00f);
+            colours[ImGuiCol_ScrollbarGrabHovered] = ImVec4(0.8f, 0.8f, 0.8f, 1.00f);
+                
 			colours[ImGuiCol_CheckMark] = ImVec4(0.28f, 0.56f, 1.00f, 1.00f);
 			colours[ImGuiCol_SliderGrab] = ImVec4(0.28f, 0.56f, 1.00f, 1.00f);
 			colours[ImGuiCol_SliderGrabActive] = ImVec4(0.37f, 0.61f, 1.00f, 1.00f);
@@ -384,6 +384,7 @@ namespace Lumos
 			colours[ImGuiCol_Separator] = ImVec4(0.20f, 0.25f, 0.29f, 1.00f);
 			colours[ImGuiCol_SeparatorHovered] = ImVec4(0.10f, 0.40f, 0.75f, 0.78f);
 			colours[ImGuiCol_SeparatorActive] = ImVec4(0.10f, 0.40f, 0.75f, 1.00f);
+                
 			colours[ImGuiCol_ResizeGrip] = ImVec4(0.26f, 0.59f, 0.98f, 0.25f);
 			colours[ImGuiCol_ResizeGripHovered] = ImVec4(0.26f, 0.59f, 0.98f, 0.67f);
 			colours[ImGuiCol_ResizeGripActive] = ImVec4(0.26f, 0.59f, 0.98f, 0.95f);
@@ -653,10 +654,11 @@ namespace Lumos
         colours[ImGuiCol_TitleBgCollapsed] = colours[ImGuiCol_TitleBg];
         colours[ImGuiCol_MenuBarBg] = colours[ImGuiCol_TitleBg];
         colours[ImGuiCol_Separator] = colours[ImGuiCol_TitleBg];
-                
-        colours[ImGuiCol_ScrollbarGrab] = ImVec4(0.6f, 0.6f, 0.6f, 1.00f);
-        colours[ImGuiCol_ScrollbarGrabActive] = ImVec4(0.7f, 0.7f, 0.7f, 1.00f);
-        colours[ImGuiCol_ScrollbarGrabHovered] = ImVec4(0.8f, 0.8f, 0.8f, 1.00f);
+        
+        colours[ImGuiCol_Border] = ImVec4(0.08f, 0.10f, 0.12f, 0.00f);
+        colours[ImGuiCol_BorderShadow] = ImVec4(0.00f, 0.00f, 0.00f, 0.00f);
+        
+        OS::Instance()->SetTitleBarColour(colours[ImGuiCol_MenuBarBg]);
 	}
 }
 

@@ -304,7 +304,7 @@
     "value53": 1,
     "value54": {
         "PrimitiveType": 8,
-        "FilePath": "/Meshes/material_sphere/material_sphere.fbx",
+        "FilePath": "//Meshes/material_sphere/material_sphere.fbx",
         "Material": {
             "ptr_wrapper": {
                 "valid": 1,
@@ -353,7 +353,7 @@
     "value55": 2,
     "value56": {
         "PrimitiveType": 8,
-        "FilePath": "/Meshes/material_sphere/material_sphere.fbx",
+        "FilePath": "//Meshes/material_sphere/material_sphere.fbx",
         "Material": {
             "ptr_wrapper": {
                 "valid": 1,
@@ -402,7 +402,7 @@
     "value57": 3,
     "value58": {
         "PrimitiveType": 8,
-        "FilePath": "/Meshes/material_sphere/material_sphere.fbx",
+        "FilePath": "//Meshes/material_sphere/material_sphere.fbx",
         "Material": {
             "ptr_wrapper": {
                 "valid": 1,
@@ -451,7 +451,7 @@
     "value59": 4,
     "value60": {
         "PrimitiveType": 8,
-        "FilePath": "/Meshes/material_sphere/material_sphere.fbx",
+        "FilePath": "//Meshes/material_sphere/material_sphere.fbx",
         "Material": {
             "ptr_wrapper": {
                 "valid": 1,
@@ -500,7 +500,7 @@
     "value61": 5,
     "value62": {
         "PrimitiveType": 8,
-        "FilePath": "/Meshes/material_sphere/material_sphere.fbx",
+        "FilePath": "//Meshes/material_sphere/material_sphere.fbx",
         "Material": {
             "ptr_wrapper": {
                 "valid": 1,
@@ -549,7 +549,7 @@
     "value63": 6,
     "value64": {
         "PrimitiveType": 8,
-        "FilePath": "/Meshes/material_sphere/material_sphere.fbx",
+        "FilePath": "//Meshes/material_sphere/material_sphere.fbx",
         "Material": {
             "ptr_wrapper": {
                 "valid": 1,
@@ -598,7 +598,7 @@
     "value65": 7,
     "value66": {
         "PrimitiveType": 8,
-        "FilePath": "/Meshes/material_sphere/material_sphere.fbx",
+        "FilePath": "//Meshes/material_sphere/material_sphere.fbx",
         "Material": {
             "ptr_wrapper": {
                 "valid": 1,
@@ -647,7 +647,7 @@
     "value67": 8,
     "value68": {
         "PrimitiveType": 8,
-        "FilePath": "/Meshes/material_sphere/material_sphere.fbx",
+        "FilePath": "//Meshes/material_sphere/material_sphere.fbx",
         "Material": {
             "ptr_wrapper": {
                 "valid": 1,
@@ -723,7 +723,7 @@
     "value73": 1,
     "value74": 9,
     "value75": {
-        "value0": "/Textures/cubemap/Arches_E_PineTree",
+        "value0": "//Textures/cubemap/Arches_E_PineTree",
         "value1": 11,
         "value2": 3072,
         "value3": 4096,

@@ -19,33 +19,13 @@ namespace Lumos
 		bool IGNORE_LINES = false;
 		static ShaderType s_Type = ShaderType::UNKNOWN;
 
-		bool GLShader::TryCompile(const std::string& source, std::string& error)
+		GLShader::GLShader(const std::string& filePath, bool loadSPV)
+			: m_LoadSPV(loadSPV)
 		{
-			std::map<ShaderType, std::string>* sources = new std::map<ShaderType, std::string>();
-			GLShader::PreProcess(source, sources);
+            m_Name = StringUtilities::GetFileName(filePath);
+            m_Path = StringUtilities::GetFileLocation(filePath);
 
-			GLShaderErrorInfo info;
-			if(!GLShader::Compile(sources, info))
-			{
-				error = info.message[info.shader];
-				LUMOS_LOG_ERROR(error);
-				return false;
-			}
-			return true;
-		}
-
-		bool GLShader::TryCompileFromFile(const std::string& filepath, std::string& error)
-		{
-			const std::string source = VFS::Get()->ReadTextFile(filepath + ".glsl");
-			return TryCompile(source, error);
-		}
-
-		GLShader::GLShader(const std::string& name, const std::string& source, bool loadSPV)
-			: m_Name(name)
-			, m_Path(source)
-			, m_LoadSPV(loadSPV)
-		{
-			m_Source = VFS::Get()->ReadTextFile(source + name + ".shader");
+			m_Source = VFS::Get()->ReadTextFile(filePath);
 
 			Init();
 		}
@@ -356,7 +336,7 @@ namespace Lumos
 				else if(s_Type != ShaderType::UNKNOWN)
 				{
 					shaders->at(s_Type).append(lines[i]);
-					//shaders->at(s_Type).append("\n");
+					///Shaders->at(s_Type).append("\n");
 				}
 			}
 		}
@@ -628,7 +608,7 @@ namespace Lumos
 					bool isStruct = false;
 					if(t == GLShaderUniformDeclaration::Type::NONE)
 					{
-						//ShaderStruct* s = FindStruct(typeString);
+						///Shaderstruct* s = FindStruct(typeString);
 						//LUMOS_ASSERT(s, "");
 						//declaration = new GLShaderUniformDeclaration(s, name, count);
 
@@ -1146,27 +1126,11 @@ namespace Lumos
 			GLCall(glUniformMatrix4fv(location, count, GL_FALSE /*GLTRUE*/, Maths::ValuePointer(matrix)));
 		}
 
-		Shader* GLShader::CreateFuncGL(const std::string& name, const std::string& filePath)
+		Shader* GLShader::CreateFuncGL(const std::string& filePath)
 		{
-			//            if(StringUtilities::GetFilePathExtension(filePath) == "shader")
-			//            {
-			//                const std::string source = Lumos::VFS::Get()->ReadTextFile(filePath);
-			//
-			//                GLShader* result = new GLShader(name, source, true);
-			//                result->m_Path = filePath;
-			//                return result;
-			//            }
-			//            else
-			//            {
-			//                const std::string source = Lumos::VFS::Get()->ReadTextFile(filePath + name + ".glsl");
-			//                GLShader* result = new GLShader(name, source);
-			//                result->m_Path = filePath;
-			//                return result;
-			//            }
-
 			std::string physicalPath;
 			Lumos::VFS::Get()->ResolvePhysicalPath(filePath, physicalPath, true);
-			GLShader* result = new GLShader(name, physicalPath);
+			GLShader* result = new GLShader(physicalPath);
 			result->m_Path = filePath;
 			return result;
 		}

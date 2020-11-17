@@ -10,7 +10,7 @@ namespace Lumos
 		class VKShader : public Shader
 		{
 		public:
-			VKShader(const std::string& shaderName, const std::string& filePath);
+			VKShader(const std::string& filePath);
 			~VKShader();
 
 			bool Init();
@@ -47,7 +47,7 @@ namespace Lumos
 			}
 
 		protected:
-			static Shader* CreateFuncVulkan(const std::string&, const std::string&);
+			static Shader* CreateFuncVulkan(const std::string&);
 
 		private:
 			VkPipelineShaderStageCreateInfo* m_ShaderStages;

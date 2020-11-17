@@ -55,7 +55,7 @@ namespace Lumos
 			}
 
 		public:
-			GLShader(const std::string& name, const std::string& source, bool loadSPV = false);
+			GLShader(const std::string& filePath, bool loadSPV = false);
 
 			~GLShader();
 
@@ -142,11 +142,7 @@ namespace Lumos
 			static void MakeDefault();
 
 		protected:
-			static Shader* CreateFuncGL(const std::string& name, const std::string& filePath);
-
-		public:
-			static bool TryCompile(const std::string& source, std::string& error);
-			static bool TryCompileFromFile(const std::string& filepath, std::string& error);
+			static Shader* CreateFuncGL(const std::string& filePath);
 		};
 	}
 }

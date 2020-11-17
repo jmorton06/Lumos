@@ -66,7 +66,7 @@ namespace Lumos
 	{
 		LUMOS_PROFILE_FUNCTION();
 
-		m_Shader = Ref<Graphics::Shader>(Shader::CreateFromFile("Batch2DLine", "/CoreShaders/"));
+		m_Shader = Ref<Graphics::Shader>(Shader::CreateFromFile("/CoreShaders/Batch2DLine.shader"));
 
 		m_VSSystemUniformBufferSize = sizeof(Maths::Matrix4);
 		m_VSSystemUniformBuffer = new u8[m_VSSystemUniformBufferSize];

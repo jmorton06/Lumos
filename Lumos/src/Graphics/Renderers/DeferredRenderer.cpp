@@ -74,7 +74,7 @@ namespace Lumos
 			LUMOS_PROFILE_FUNCTION();
 			m_OffScreenRenderer = new DeferredOffScreenRenderer(m_ScreenBufferWidth, m_ScreenBufferHeight);
 
-			m_Shader = Ref<Graphics::Shader>(Shader::CreateFromFile("DeferredLight", "/CoreShaders/"));
+			m_Shader = Ref<Graphics::Shader>(Shader::CreateFromFile("/CoreShaders/DeferredLight.shader"));
 
 			switch(Graphics::GraphicsContext::GetRenderAPI())
 			{

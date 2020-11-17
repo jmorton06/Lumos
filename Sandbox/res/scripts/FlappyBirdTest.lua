@@ -22,7 +22,7 @@ local entityManager = {}
 local player = {}
 local camera = {}
 local score = 0
-local iconTexture = LoadTextureWithParams("icon", "/Textures/TappyPlane/PNG/rock.png", TextureFilter.Linear, TextureWrap.Clamp)
+local iconTexture = LoadTextureWithParams("icon", "//Textures/TappyPlane/PNG/rock.png", TextureFilter.Linear, TextureWrap.Clamp)
 
 function beginContact(a, b)
     gameState = GameStates.GameOver
@@ -41,7 +41,7 @@ function postSolve(a, b, coll, normalimpulse, tangentimpulse)
 end
 
 function CreatePlayer()
-    texture = LoadTextureWithParams("icon", "/Textures/TappyPlane/PNG/Planes/planeBlue1.png", TextureFilter.Linear, TextureWrap.Clamp)
+    texture = LoadTextureWithParams("icon", "//Textures/TappyPlane/PNG/Planes/planeBlue1.png", TextureFilter.Linear, TextureWrap.Clamp)
 
     player = entityManager:Create()
     player:AddSprite(Vector2.new(-1.0/2.0, -1.0/2.0), Vector2.new(1.15, 1.0), Vector4.new(1.0,1.0,1.0,1.0)):SetTexture(texture)
@@ -138,7 +138,7 @@ function OnInit()
         CreatePillar(i, (i + 2) * 10.0)
     end
 
-    backgroundTexture = LoadTextureWithParams("background", "/Textures/TappyPlane/PNG/background.png", TextureFilter.Linear, TextureWrap.Clamp)
+    backgroundTexture = LoadTextureWithParams("background", "//Textures/TappyPlane/PNG/background.png", TextureFilter.Linear, TextureWrap.Clamp)
 
     for i=1,50, 1 do
         CreateBackground(i)

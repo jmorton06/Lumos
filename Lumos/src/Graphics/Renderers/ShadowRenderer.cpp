@@ -45,7 +45,7 @@ namespace Lumos
 			, m_ShadowMapsInvalidated(true)
 			, m_UniformBuffer(nullptr)
 		{
-			m_Shader = Ref<Graphics::Shader>(Shader::CreateFromFile("Shadow", "/CoreShaders/"));
+			m_Shader = Ref<Graphics::Shader>(Shader::CreateFromFile("/CoreShaders/Shadow.shader"));
 			if(texture == nullptr)
 			{
 				m_ShadowTex = TextureDepthArray::Create(m_ShadowMapSize, m_ShadowMapSize, m_ShadowMapNum);

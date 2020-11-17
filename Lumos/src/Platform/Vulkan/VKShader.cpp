@@ -11,14 +11,13 @@ namespace Lumos
 	{
 		static ShaderType type = ShaderType::UNKNOWN;
 
-		VKShader::VKShader(const std::string& shaderName, const std::string& filePath)
+		VKShader::VKShader(const std::string& filePath)
 			: m_StageCount(0)
-			, m_Name(shaderName)
-			, m_FilePath(filePath)
 		{
 			m_ShaderStages = VK_NULL_HANDLE;
-
-			m_Source = VFS::Get()->ReadTextFile(filePath + shaderName + ".shader");
+            m_Name = StringUtilities::GetFileName(filePath);
+            m_FilePath = StringUtilities::GetFileLocation(filePath);
+			m_Source = VFS::Get()->ReadTextFile(filePath);
 
 			Init();
 		}
@@ -162,11 +161,11 @@ namespace Lumos
 			CreateFunc = CreateFuncVulkan;
 		}
 
-		Shader* VKShader::CreateFuncVulkan(const std::string& name, const std::string& source)
+		Shader* VKShader::CreateFuncVulkan(const std::string& filepath)
 		{
 			std::string physicalPath;
-			Lumos::VFS::Get()->ResolvePhysicalPath(source, physicalPath, true);
-			return new VKShader(name, physicalPath);
+			Lumos::VFS::Get()->ResolvePhysicalPath(filepath, physicalPath, true);
+			return new VKShader(physicalPath);
 		}
 
 	}

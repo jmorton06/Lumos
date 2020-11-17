@@ -403,7 +403,6 @@ namespace Lumos
 			
 			if(scene->GetHasCppClass())
 			{
-			ImGui::Separator();
 				ImGui::Text("C++ scene : %s", StringUtilities::Demangle(typeid(*scene).name()).c_str());
 				ImGui::Separator();
 			}
