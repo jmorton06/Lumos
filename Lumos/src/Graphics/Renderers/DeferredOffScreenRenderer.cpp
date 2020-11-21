@@ -71,7 +71,7 @@ namespace Lumos
 		void DeferredOffScreenRenderer::Init()
 		{
 			LUMOS_PROFILE_FUNCTION();
-			m_Shader = Ref<Graphics::Shader>(Shader::CreateFromFile("/CoreShaders/DeferredColour.shader"));
+			m_Shader = Application::Get().GetShaderLibrary()->GetResource("/CoreShaders/DeferredColour.shader");
 			m_DefaultMaterial = new Material();
 
 			Graphics::MaterialProperties properties;
@@ -327,16 +327,14 @@ namespace Lumos
             vertexBufferLayout.Push<Maths::Vector3>("tangent");
 
 			Graphics::PipelineInfo pipelineCreateInfo{};
-			pipelineCreateInfo.pipelineName = "OffScreenRenderer";
-			pipelineCreateInfo.shader = m_Shader.get();
-			pipelineCreateInfo.renderpass = m_RenderPass.get();
+			pipelineCreateInfo.shader = m_Shader;
+			pipelineCreateInfo.renderpass = m_RenderPass;
             pipelineCreateInfo.vertexBufferLayout = vertexBufferLayout;
 			pipelineCreateInfo.descriptorLayouts = layoutInfo;
-            pipelineCreateInfo.polygonMode = Graphics::PolygonMode::Fill;
+            pipelineCreateInfo.polygonMode = Graphics::PolygonMode::FILL;
 			pipelineCreateInfo.cullMode = Graphics::CullMode::BACK;
 			pipelineCreateInfo.transparencyEnabled = false;
 			pipelineCreateInfo.depthBiasEnabled = false;
-			pipelineCreateInfo.maxObjects = MAX_OBJECTS;
             pipelineCreateInfo.numPushConst = 1;
             pipelineCreateInfo.pushConstSize = sizeof(Maths::Matrix4);
 

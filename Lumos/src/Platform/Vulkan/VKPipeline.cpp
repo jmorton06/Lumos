@@ -10,6 +10,8 @@
 
 namespace Lumos
 {
+    static constexpr uint32_t MAX_DESCRIPTOR_SET_COUNT = 1500;
+
 	namespace Graphics
 	{
 		VKPipeline::VKPipeline(const PipelineInfo& pipelineCreateInfo)
@@ -26,8 +28,7 @@ namespace Lumos
 
 		bool VKPipeline::Init(const PipelineInfo& pipelineCreateInfo)
 		{
-			m_PipelineName = pipelineCreateInfo.pipelineName;
-			m_Shader	   = pipelineCreateInfo.shader;
+			m_Shader = pipelineCreateInfo.shader;
 
             std::vector<std::vector<Graphics::DescriptorLayoutInfo>> layouts;
             
@@ -98,7 +99,7 @@ namespace Lumos
             pool_create_info.flags          = 0;
             pool_create_info.poolSizeCount  = static_cast<uint32_t>(pool_sizes.size());
             pool_create_info.pPoolSizes     = pool_sizes.data();
-            pool_create_info.maxSets        = pipelineCreateInfo.maxObjects;
+            pool_create_info.maxSets        = MAX_DESCRIPTOR_SET_COUNT;
 
             // Pool
             VK_CHECK_RESULT(vkCreateDescriptorPool(VKDevice::Get().GetDevice(), &pool_create_info, nullptr, &m_DescriptorPool));
@@ -106,7 +107,7 @@ namespace Lumos
 			DescriptorInfo info;
 			info.pipeline = this;
 			info.layoutIndex = 0;
-            info.shader = pipelineCreateInfo.shader;
+            info.shader = pipelineCreateInfo.shader.get();
 
 			m_DescriptorSet = new VKDescriptorSet(info);
 
@@ -216,12 +217,6 @@ namespace Lumos
 			vp.pViewports = NULL;
 			dynamicStateDescriptors.push_back(VK_DYNAMIC_STATE_VIEWPORT);
 			dynamicStateDescriptors.push_back(VK_DYNAMIC_STATE_SCISSOR);
-        
-            if(pipelineCreateInfo.lineWidth > 0.0f)
-            {
-			    dynamicStateDescriptors.push_back(VK_DYNAMIC_STATE_LINE_WIDTH);
-                m_LineWidth = pipelineCreateInfo.lineWidth;
-            }
 
 			if (pipelineCreateInfo.depthBiasEnabled)
 				dynamicStateDescriptors.push_back(VK_DYNAMIC_STATE_DEPTH_BIAS);
@@ -258,6 +253,7 @@ namespace Lumos
 			dynamicStateCI.dynamicStateCount = u32(dynamicStateDescriptors.size());
 			dynamicStateCI.pDynamicStates = dynamicStateDescriptors.data();
 
+            auto vkshader = pipelineCreateInfo.shader.As<VKShader>();
 			VkGraphicsPipelineCreateInfo graphicsPipelineCreateInfo{};
 			graphicsPipelineCreateInfo.sType = VK_STRUCTURE_TYPE_GRAPHICS_PIPELINE_CREATE_INFO;
 			graphicsPipelineCreateInfo.pNext = NULL;
@@ -273,9 +269,9 @@ namespace Lumos
 			graphicsPipelineCreateInfo.pDynamicState = &dynamicStateCI;
 			graphicsPipelineCreateInfo.pViewportState = &vp;
 			graphicsPipelineCreateInfo.pDepthStencilState = &ds;
-			graphicsPipelineCreateInfo.pStages = static_cast<VKShader*>(pipelineCreateInfo.shader)->GetShaderStages();
-			graphicsPipelineCreateInfo.stageCount = static_cast<VKShader*>(pipelineCreateInfo.shader)->GetStageCount();
-			graphicsPipelineCreateInfo.renderPass = static_cast<VKRenderpass*>(pipelineCreateInfo.renderpass)->GetRenderpass();
+			graphicsPipelineCreateInfo.pStages = vkshader->GetShaderStages();
+			graphicsPipelineCreateInfo.stageCount = vkshader->GetStageCount();
+			graphicsPipelineCreateInfo.renderPass = pipelineCreateInfo.renderpass.As<VKRenderpass>()->GetRenderpass();
 			graphicsPipelineCreateInfo.subpass = 0;
 
 			VK_CHECK_RESULT(vkCreateGraphicsPipelines(VKDevice::Get().GetDevice(), VKDevice::Get().GetPipelineCache(), 1, &graphicsPipelineCreateInfo, VK_NULL_HANDLE, &m_Pipeline));

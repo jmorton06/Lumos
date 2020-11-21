@@ -19,7 +19,7 @@
 #include "Scene/Scene.h"
 #include "Maths/Maths.h"
 #include "RenderCommand.h"
- 
+#include "Core/Application.h"
 
 #include <imgui/imgui.h>
 
@@ -44,8 +44,10 @@ namespace Lumos
 			, m_ShadowMapSize(shadowMapSize)
 			, m_ShadowMapsInvalidated(true)
 			, m_UniformBuffer(nullptr)
+            , m_CascadeSplitLambda(0.95f)
+            , m_SceneRadiusMultiplier(1.4f)
 		{
-			m_Shader = Ref<Graphics::Shader>(Shader::CreateFromFile("/CoreShaders/Shadow.shader"));
+			m_Shader = Application::Get().GetShaderLibrary()->GetResource("/CoreShaders/Shadow.shader");
 			if(texture == nullptr)
 			{
 				m_ShadowTex = TextureDepthArray::Create(m_ShadowMapSize, m_ShadowMapSize, m_ShadowMapNum);
@@ -111,7 +113,7 @@ namespace Lumos
 			m_CommandBuffer = Graphics::CommandBuffer::Create();
 			m_CommandBuffer->Init(true);
 
-			CreateGraphicsPipeline(m_RenderPass.get());
+			CreateGraphicsPipeline();
 			CreateUniformBuffer();
 			CreateFramebuffers();
             m_CurrentDescriptorSets.resize(1);
@@ -259,9 +261,7 @@ namespace Lumos
 			}
 			End();
 		}
-
-		float cascadeSplitLambda = 0.95f;
-
+    
 		void ShadowRenderer::UpdateCascades(Scene* scene, Camera* overrideCamera, Maths::Transform* overrideCameraTransform)
 		{
 			LUMOS_PROFILE_FUNCTION();
@@ -316,7 +316,7 @@ namespace Lumos
 				float p = static_cast<float>(i + 1) / static_cast<float>(m_ShadowMapNum);
 				float log = minZ * std::pow(ratio, p);
 				float uniform = minZ + range * p;
-				float d = cascadeSplitLambda * (log - uniform) + uniform;
+				float d = m_CascadeSplitLambda * (log - uniform) + uniform;
 				cascadeSplits[i] = (d - nearClip) / clipRange;
 			}
 
@@ -374,7 +374,7 @@ namespace Lumos
 						radius = Maths::Max(radius, distance);
 					}
 					radius = std::ceil(radius * 16.0f) / 16.0f;
-					float sceneBoundingRadius = m_Camera->GetShadowBoundingRadius() * 1.4f;
+					float sceneBoundingRadius = m_Camera->GetShadowBoundingRadius() * m_SceneRadiusMultiplier;
 					//Extend the Z depths to catch shadow casters outside view frustum
 					radius = Maths::Max(radius, sceneBoundingRadius);
 
@@ -448,7 +448,7 @@ namespace Lumos
 			}
 		}
 
-		void ShadowRenderer::CreateGraphicsPipeline(Graphics::RenderPass* renderPass)
+		void ShadowRenderer::CreateGraphicsPipeline()
 		{
 			LUMOS_PROFILE_FUNCTION();
 			std::vector<Graphics::DescriptorLayoutInfo> layoutInfo =
@@ -464,18 +464,15 @@ namespace Lumos
             vertexBufferLayout.Push<Maths::Vector3>("tangent");
 
 			Graphics::PipelineInfo pipelineCreateInfo;
-			pipelineCreateInfo.pipelineName = "ShadowRenderer";
-			pipelineCreateInfo.shader = m_Shader.get();
-			pipelineCreateInfo.renderpass = renderPass;
+			pipelineCreateInfo.shader = m_Shader;
+			pipelineCreateInfo.renderpass = m_RenderPass;
             pipelineCreateInfo.vertexBufferLayout = vertexBufferLayout;
 			pipelineCreateInfo.descriptorLayouts = layoutInfo;
-			pipelineCreateInfo.polygonMode = Graphics::PolygonMode::Fill;
 			pipelineCreateInfo.cullMode = Graphics::CullMode::NONE;
 			pipelineCreateInfo.transparencyEnabled = false;
 			pipelineCreateInfo.depthBiasEnabled = true;
             pipelineCreateInfo.pushConstSize = sizeof(u32) + sizeof(Maths::Matrix4);
             pipelineCreateInfo.pushConstSize = 1;
-			pipelineCreateInfo.maxObjects = MAX_OBJECTS;
 
 			m_Pipeline = Ref<Graphics::Pipeline>(Graphics::Pipeline::Create(pipelineCreateInfo));
 		}
@@ -558,6 +555,10 @@ namespace Lumos
 
 				ImGui::TreePop();
 			}
+                        
+            ImGui::DragFloat("Cascade Split Lambda", &m_CascadeSplitLambda, 0.005f, 0.0f, 3.0f);
+            ImGui::DragFloat("Scene Radius Multiplier", &m_SceneRadiusMultiplier, 0.005f, 0.0f, 5.0f);
+
 		}
 	}
 }

@@ -89,7 +89,7 @@ namespace Lumos
 
 				if(moving.GetCounter() && moving.get())
 				{
-					m_Ptr = moving.get();
+					m_Ptr = castPointer;
 					m_Counter = moving.GetCounter();
 					m_Counter->reference();
 				}
@@ -244,7 +244,7 @@ namespace Lumos
 		
 		
 		template<typename U>
-			_FORCE_INLINE_ Reference<U> As()
+			_FORCE_INLINE_ Reference<U> As() const
 		{
 			return Reference<U>(*this);
 		}

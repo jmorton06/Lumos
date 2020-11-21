@@ -28,6 +28,8 @@
 #include "Graphics/API/GraphicsContext.h"
 #include "Graphics/Environment.h"
 #include "Embedded/BRDFTexture.inl"
+#include "Utilities/AssetManager.h"
+
 #include <imgui/imgui.h>
 
 #define MAX_LIGHTS 32
@@ -74,7 +76,7 @@ namespace Lumos
 			LUMOS_PROFILE_FUNCTION();
 			m_OffScreenRenderer = new DeferredOffScreenRenderer(m_ScreenBufferWidth, m_ScreenBufferHeight);
 
-			m_Shader = Ref<Graphics::Shader>(Shader::CreateFromFile("/CoreShaders/DeferredLight.shader"));
+            m_Shader = Application::Get().GetShaderLibrary()->GetResource("/CoreShaders/DeferredLight.shader");
 
 			switch(Graphics::GraphicsContext::GetRenderAPI())
 			{
@@ -404,16 +406,14 @@ namespace Lumos
             vertexBufferLayout.Push<Maths::Vector3>("tangent");
 
 			Graphics::PipelineInfo pipelineCreateInfo{};
-			pipelineCreateInfo.pipelineName = "Deferred";
             pipelineCreateInfo.vertexBufferLayout = vertexBufferLayout;
-			pipelineCreateInfo.shader = m_Shader.get();
-            pipelineCreateInfo.renderpass = m_RenderPass.get();
+			pipelineCreateInfo.shader = m_Shader;
+            pipelineCreateInfo.renderpass = m_RenderPass;
 			pipelineCreateInfo.descriptorLayouts = layoutInfo;
-			pipelineCreateInfo.polygonMode = Graphics::PolygonMode::Fill;
+			pipelineCreateInfo.polygonMode = Graphics::PolygonMode::FILL;
 			pipelineCreateInfo.cullMode = Graphics::CullMode::FRONT; //TODO
 			pipelineCreateInfo.transparencyEnabled = false;
 			pipelineCreateInfo.depthBiasEnabled = false;
-			pipelineCreateInfo.maxObjects = 10;
 
 			m_Pipeline = Ref<Graphics::Pipeline>(Graphics::Pipeline::Create(pipelineCreateInfo));
 		}

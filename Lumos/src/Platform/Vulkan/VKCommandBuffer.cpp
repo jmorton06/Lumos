@@ -52,39 +52,31 @@ namespace Lumos
 		void VKCommandBuffer::BeginRecording()
 		{
 			LUMOS_PROFILE_FUNCTION();
-			if (m_Primary)
-			{
-				VkCommandBufferBeginInfo beginCI{};
-				beginCI.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
-				beginCI.flags = VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT;
-				VK_CHECK_RESULT(vkBeginCommandBuffer(m_CommandBuffer, &beginCI));
-			}
-			else
-				LUMOS_LOG_CRITICAL("BeginRecording() called from a secondary command buffer!");
-			
-			//TracyVkZone(VKDevice::Get().GetTracyContext(), m_CommandBuffer, "Render");
+            LUMOS_ASSERT(m_Primary, "BeginRecording() called from a secondary command buffer!");
+            
+            VkCommandBufferBeginInfo beginCI{};
+            beginCI.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
+            beginCI.flags = VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT;
+            VK_CHECK_RESULT(vkBeginCommandBuffer(m_CommandBuffer, &beginCI));
 		}
 
 		void VKCommandBuffer::BeginRecordingSecondary(RenderPass* renderPass, Framebuffer* framebuffer)
 		{
 			LUMOS_PROFILE_FUNCTION();
-			if (!m_Primary)
-			{
-				VkCommandBufferInheritanceInfo inheritanceInfo{};
-				inheritanceInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_INHERITANCE_INFO;
-				inheritanceInfo.subpass = 0;
-				inheritanceInfo.renderPass = static_cast<VKRenderpass*>(renderPass)->GetRenderpass();
-				inheritanceInfo.framebuffer = static_cast<VKFramebuffer*>(framebuffer)->GetFramebuffer();
+            LUMOS_ASSERT(!m_Primary, "BeginRecordingSecondary() called from a primary command buffer!");
 
-				VkCommandBufferBeginInfo beginCI{};
-				beginCI.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
-				beginCI.flags = VK_COMMAND_BUFFER_USAGE_RENDER_PASS_CONTINUE_BIT;
-				beginCI.pInheritanceInfo = &inheritanceInfo;
+            VkCommandBufferInheritanceInfo inheritanceInfo{};
+            inheritanceInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_INHERITANCE_INFO;
+            inheritanceInfo.subpass = 0;
+            inheritanceInfo.renderPass = static_cast<VKRenderpass*>(renderPass)->GetRenderpass();
+            inheritanceInfo.framebuffer = static_cast<VKFramebuffer*>(framebuffer)->GetFramebuffer();
 
-				VK_CHECK_RESULT(vkBeginCommandBuffer(m_CommandBuffer, &beginCI));
-			}
-			else
-				LUMOS_LOG_CRITICAL("BeginRecordingSecondary() called from a primary command buffer!");
+            VkCommandBufferBeginInfo beginCI{};
+            beginCI.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
+            beginCI.flags = VK_COMMAND_BUFFER_USAGE_RENDER_PASS_CONTINUE_BIT;
+            beginCI.pInheritanceInfo = &inheritanceInfo;
+
+            VK_CHECK_RESULT(vkBeginCommandBuffer(m_CommandBuffer, &beginCI));
 		}
 
 		void VKCommandBuffer::EndRecording()
@@ -102,60 +94,55 @@ namespace Lumos
 		void VKCommandBuffer::ExecuteInternal(VkPipelineStageFlags flags, VkSemaphore waitSemaphore, VkSemaphore signalSemaphore, bool waitFence)
 		{
 			LUMOS_PROFILE_FUNCTION();
-			if (m_Primary)
-			{
-				uint32_t waitSemaphoreCount = waitSemaphore ? 1 : 0, signalSemaphoreCount = signalSemaphore ? 1 : 0;
+            LUMOS_ASSERT(m_Primary, "Used Execute on secondary command buffer!");
+		
+            uint32_t waitSemaphoreCount = waitSemaphore ? 1 : 0, signalSemaphoreCount = signalSemaphore ? 1 : 0;
 
-				VkSubmitInfo submitInfo = {};
-				submitInfo.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
-				submitInfo.pNext = VK_NULL_HANDLE;
-				submitInfo.waitSemaphoreCount = waitSemaphoreCount;
-				submitInfo.pWaitSemaphores = &waitSemaphore;
-				submitInfo.pWaitDstStageMask = &flags;
-				submitInfo.commandBufferCount = 1;
-				submitInfo.pCommandBuffers = &m_CommandBuffer;
-				submitInfo.signalSemaphoreCount = signalSemaphoreCount;
-				submitInfo.pSignalSemaphores = &signalSemaphore;
+            VkSubmitInfo submitInfo = {};
+            submitInfo.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
+            submitInfo.pNext = VK_NULL_HANDLE;
+            submitInfo.waitSemaphoreCount = waitSemaphoreCount;
+            submitInfo.pWaitSemaphores = &waitSemaphore;
+            submitInfo.pWaitDstStageMask = &flags;
+            submitInfo.commandBufferCount = 1;
+            submitInfo.pCommandBuffers = &m_CommandBuffer;
+            submitInfo.signalSemaphoreCount = signalSemaphoreCount;
+            submitInfo.pSignalSemaphores = &signalSemaphore;
 
-				if (waitFence && false)
-				{
-					{
-						LUMOS_PROFILE_SCOPE("vkWaitForFences");
-						VK_CHECK_RESULT(vkWaitForFences(VKDevice::Get().GetDevice(), 1, &m_Fence, VK_TRUE, UINT64_MAX));
-					}
-					{
-						LUMOS_PROFILE_SCOPE("vkResetFences");
-						VK_CHECK_RESULT(vkResetFences(VKDevice::Get().GetDevice(), 1, &m_Fence));
-					}
-					{
-						LUMOS_PROFILE_SCOPE("vkQueueSubmit");
-						VK_CHECK_RESULT(vkQueueSubmit(VKDevice::Get().GetGraphicsQueue(), 1, &submitInfo, m_Fence));
-					}
-				}
-				else 
-				{
-					{
-						LUMOS_PROFILE_SCOPE("vkQueueSubmit");
-						VK_CHECK_RESULT(vkQueueSubmit(VKDevice::Get().GetGraphicsQueue(), 1, &submitInfo, VK_NULL_HANDLE));
-					}
-					{
-						LUMOS_PROFILE_SCOPE("vkQueueWaitIdle");
-						VK_CHECK_RESULT(vkQueueWaitIdle(VKDevice::Get().GetGraphicsQueue()));
-					}
-				}
-					
-			}
-			else
-				LUMOS_LOG_CRITICAL("Used Execute on secondary command buffer!");
+            if (waitFence)
+            {
+                {
+                    LUMOS_PROFILE_SCOPE("vkQueueSubmit");
+                    VK_CHECK_RESULT(vkQueueSubmit(VKDevice::Get().GetGraphicsQueue(), 1, &submitInfo, m_Fence));
+                }
+                {
+                    LUMOS_PROFILE_SCOPE("vkWaitForFences");
+                    VK_CHECK_RESULT(vkWaitForFences(VKDevice::Get().GetDevice(), 1, &m_Fence, VK_TRUE, UINT64_MAX));
+                }
+                {
+                    LUMOS_PROFILE_SCOPE("vkResetFences");
+                    VK_CHECK_RESULT(vkResetFences(VKDevice::Get().GetDevice(), 1, &m_Fence));
+                }
+            }
+            else
+            {
+                {
+                    LUMOS_PROFILE_SCOPE("vkQueueSubmit");
+                    VK_CHECK_RESULT(vkQueueSubmit(VKDevice::Get().GetGraphicsQueue(), 1, &submitInfo, VK_NULL_HANDLE));
+                }
+                {
+                    LUMOS_PROFILE_SCOPE("vkQueueWaitIdle");
+                    VK_CHECK_RESULT(vkQueueWaitIdle(VKDevice::Get().GetGraphicsQueue()));
+                }
+            }
 		}
 
 		void VKCommandBuffer::ExecuteSecondary(CommandBuffer* primaryCmdBuffer)
 		{
 			LUMOS_PROFILE_FUNCTION();
-			if (!m_Primary)
-				vkCmdExecuteCommands(static_cast<VKCommandBuffer*>(primaryCmdBuffer)->GetCommandBuffer(), 1, &m_CommandBuffer);
-			else
-				LUMOS_LOG_CRITICAL("Used ExecuteSecondary on primary command buffer!");
+            LUMOS_ASSERT(!m_Primary, "Used ExecuteSecondary on primary command buffer!");
+
+            vkCmdExecuteCommands(static_cast<VKCommandBuffer*>(primaryCmdBuffer)->GetCommandBuffer(), 1, &m_CommandBuffer);
 		}
 
 		void VKCommandBuffer::UpdateViewport(u32 width, u32 height)

@@ -543,13 +543,13 @@ namespace Lumos
         {
             switch(mode)
             {
-                case Graphics::PolygonMode::Fill :
+                case Graphics::PolygonMode::FILL :
                     return VK_POLYGON_MODE_FILL;
                 break;
-                case Graphics::PolygonMode::Line :
+                case Graphics::PolygonMode::LINE :
                     return VK_POLYGON_MODE_LINE;
                 break;
-                case Graphics::PolygonMode::Point :
+                case Graphics::PolygonMode::POINT :
                     return VK_POLYGON_MODE_POINT;
                 break;
                 default :

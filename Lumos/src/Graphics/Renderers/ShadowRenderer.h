@@ -90,7 +90,7 @@ namespace Lumos
 				Lumos::Maths::Matrix4 projView[SHADOWMAP_MAX];
 			};
 
-			void CreateGraphicsPipeline(Graphics::RenderPass* renderPass);
+			void CreateGraphicsPipeline();
 			void CreateFramebuffers();
 			void CreateUniformBuffer();
 			void UpdateCascades(Scene* scene, Camera* overrideCamera, Maths::Transform* overrideCameraTransform);
@@ -112,6 +112,8 @@ namespace Lumos
 			Lumos::Graphics::CommandBuffer* m_CommandBuffer = nullptr;
 			
 			u32 m_Layer = 0;
+            float m_CascadeSplitLambda;
+            float m_SceneRadiusMultiplier;
             
             std::vector<Graphics::PushConstant> m_PushConstants;
 		};
