@@ -29,11 +29,6 @@ namespace Lumos
 				return &m_DescriptorLayouts[id];
 			};
 
-			const std::string& GetPipelineName() const
-			{
-				return m_PipelineName;
-			};
-
 			const VkDescriptorPool& GetDescriptorPool() const
 			{
 				return m_DescriptorPool;
@@ -53,7 +48,7 @@ namespace Lumos
 			}
 			Shader* GetShader() const override
 			{
-				return m_Shader;
+				return m_Shader.get();
 			}
 
 			static void MakeDefault();
@@ -67,12 +62,10 @@ namespace Lumos
 			std::vector<VkDescriptorSetLayout> m_DescriptorLayouts;
 			VkDescriptorPool m_DescriptorPool;
 			DescriptorSet* m_DescriptorSet = nullptr;
-			Shader* m_Shader = nullptr;
+			Ref<Shader> m_Shader;
 			
 			VkPipelineLayout m_PipelineLayout;
 			VkPipeline m_Pipeline;
-			float m_LineWidth = -1.0f;
-			std::string m_PipelineName;
 		};
 	}
 }

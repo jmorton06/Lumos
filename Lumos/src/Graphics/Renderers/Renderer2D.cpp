@@ -513,16 +513,14 @@ namespace Lumos
             vertexBufferLayout.Push<Maths::Vector4>("colour");
 
 			Graphics::PipelineInfo pipelineCreateInfo;
-			pipelineCreateInfo.pipelineName = "Batch2DRenderer";
-			pipelineCreateInfo.shader = m_Shader.get();
-			pipelineCreateInfo.renderpass = m_RenderPass.get();
+			pipelineCreateInfo.shader = m_Shader;
+			pipelineCreateInfo.renderpass = m_RenderPass;
             pipelineCreateInfo.vertexBufferLayout = vertexBufferLayout;
 			pipelineCreateInfo.descriptorLayouts = layoutInfo;
-			pipelineCreateInfo.polygonMode = Graphics::PolygonMode::Fill;
+			pipelineCreateInfo.polygonMode = Graphics::PolygonMode::FILL;
 			pipelineCreateInfo.cullMode = Graphics::CullMode::BACK;
 			pipelineCreateInfo.transparencyEnabled = true;
 			pipelineCreateInfo.depthBiasEnabled = false;
-			pipelineCreateInfo.maxObjects = m_Limits.MaxBatchDrawCalls;
 
 			m_Pipeline = Ref<Graphics::Pipeline>(Graphics::Pipeline::Create(pipelineCreateInfo));
 		}

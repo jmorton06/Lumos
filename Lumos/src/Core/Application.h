@@ -3,6 +3,7 @@
 #include "Scene/SystemManager.h"
 #include "Core/OS/Window.h"
 #include "Scene/SceneManager.h"
+#include "Utilities/AssetManager.h"
 
 #include <cereal/types/vector.hpp>
 #include <cereal/cereal.hpp>
@@ -140,6 +141,8 @@ namespace Lumos
 		}
     
 		Maths::Vector2 GetWindowSize() const;
+        
+        Ref<ShaderLibrary>& GetShaderLibrary() { return m_ShaderLibrary; }
 
 		static Application& Get()
 		{
@@ -298,6 +301,8 @@ namespace Lumos
 		UniqueRef<SceneManager> m_SceneManager;
 		UniqueRef<SystemManager> m_SystemManager;
 		UniqueRef<Graphics::RenderGraph> m_RenderGraph;
+        
+        Ref<ShaderLibrary> m_ShaderLibrary;
 
 		LayerStack* m_LayerStack = nullptr;
 

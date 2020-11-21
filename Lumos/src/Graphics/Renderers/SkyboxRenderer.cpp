@@ -85,7 +85,7 @@ namespace Lumos
 		void SkyboxRenderer::Init()
 		{
 			LUMOS_PROFILE_FUNCTION();
-			m_Shader = Ref<Graphics::Shader>(Shader::CreateFromFile("/CoreShaders/Skybox.shader"));
+			m_Shader = Application::Get().GetShaderLibrary()->GetResource("/CoreShaders/Skybox.shader");
 			m_Skybox = Graphics::CreateQuad();
 
 			// Vertex shader System uniforms
@@ -221,16 +221,14 @@ namespace Lumos
             vertexBufferLayout.Push<Maths::Vector3>("tangent");
 
 			Graphics::PipelineInfo pipelineCreateInfo{};
-			pipelineCreateInfo.pipelineName = "SkyRenderer";
-			pipelineCreateInfo.shader = m_Shader.get();
-			pipelineCreateInfo.renderpass = m_RenderPass.get();
+			pipelineCreateInfo.shader = m_Shader;
+			pipelineCreateInfo.renderpass = m_RenderPass;
             pipelineCreateInfo.vertexBufferLayout = vertexBufferLayout;
 			pipelineCreateInfo.descriptorLayouts = layoutInfo;
-			pipelineCreateInfo.polygonMode = Graphics::PolygonMode::Fill;
+			pipelineCreateInfo.polygonMode = Graphics::PolygonMode::FILL;
 			pipelineCreateInfo.cullMode = Graphics::CullMode::NONE;
 			pipelineCreateInfo.transparencyEnabled = false;
 			pipelineCreateInfo.depthBiasEnabled = false;
-			pipelineCreateInfo.maxObjects = 1;
 
 			m_Pipeline = Ref<Graphics::Pipeline>(Graphics::Pipeline::Create(pipelineCreateInfo));
 		}

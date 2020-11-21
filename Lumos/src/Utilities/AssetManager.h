@@ -2,12 +2,14 @@
 
 #include "Core/VFS.h"
 #include "Audio/Sound.h"
+#include "Graphics/API/Shader.h"
+#include "Utilities/TSingleton.h"
 
 namespace Lumos
 {
 	template<typename T>
 	class ResourceManager
-	{
+    {
 	public:
 		typedef T Type;
 		typedef std::string IDType;
@@ -22,12 +24,12 @@ namespace Lumos
 
 		typedef std::unordered_map<IDType, Resource> MapType;
 
-		typedef std::function<bool(const IDType&, T&)> LoadFunc;
-		typedef std::function<void(T&)> ReleaseFunc;
-		typedef std::function<bool(const IDType&, T&)> ReloadFunc;
-		typedef std::function<IDType(const T&)> GetIdFunc;
+		typedef std::function<bool(const IDType&, ResourceHandle&)> LoadFunc;
+		typedef std::function<void(ResourceHandle&)> ReleaseFunc;
+		typedef std::function<bool(const IDType&, ResourceHandle&)> ReloadFunc;
+		typedef std::function<IDType(const ResourceHandle&)> GetIdFunc;
 
-		static ResourceHandle GetResource(const IDType& name)
+        ResourceHandle GetResource(const IDType& name)
 		{
 			typename MapType::iterator itr = m_nameResourceMap.find(name);
 			if(itr != m_nameResourceMap.end())
@@ -35,8 +37,8 @@ namespace Lumos
 				return itr->second.data;
 			}
 
-			ResourceHandle resourceData(new T);
-			if(!m_loadFunc(name, *resourceData))
+			ResourceHandle resourceData;
+			if(!m_loadFunc(name, resourceData))
 			{
 				std::cerr << "ERROR: Resource Manager could not load resource name \"" << name << "\" of type " << typeid(T).name() << std::endl;
 				return ResourceHandle(nullptr);
@@ -51,15 +53,14 @@ namespace Lumos
 			return resourceData;
 		}
 
-		static ResourceHandle GetResource(const T& data)
+        ResourceHandle GetResource(const ResourceHandle& data)
 		{
 			IDType newId = m_getIdFunc(data);
 
 			typename MapType::iterator itr = m_nameResourceMap.find(newId);
 			if(itr == m_nameResourceMap.end())
 			{
-				ResourceHandle resourceData(new T);
-				*resourceData = data;
+				ResourceHandle resourceData = data;
 
 				Resource newResource;
 				newResource.data = resourceData;
@@ -73,36 +74,36 @@ namespace Lumos
 			return itr->second.data;
 		}
 
-		static void Destroy()
+        void Destroy()
 		{
 			typename MapType::iterator itr = m_nameResourceMap.begin();
 			while(itr != m_nameResourceMap.end())
 			{
-				m_releaseFunc(*(itr->second.data));
+				m_releaseFunc((itr->second.data));
 				++itr;
 			}
 		}
 
-		static void Update(const float elapsedMilliseconds)
+        void Update(const float elapsedMilliseconds)
 		{
 			typename MapType::iterator itr = m_nameResourceMap.begin();
 
 			while(itr != m_nameResourceMap.end())
 			{
-				if(itr->second.data.use_count() == 1)
+				if(itr->second.data.GetCounter()->GetReferenceCount() == 1)
 					itr = m_nameResourceMap.erase(itr);
 				else
 					++itr;
 			}
 		}
 
-		static bool ReloadResources()
+        bool ReloadResources()
 		{
 			typename MapType::iterator itr = m_nameResourceMap.begin();
 			while(itr != m_nameResourceMap.end())
 			{
 				itr->second.timeSinceReload = 0;
-				if(!m_reloadFunc(itr->first, *(itr->second.data)))
+				if(!m_reloadFunc(itr->first, (itr->second.data)))
 				{
 					std::cerr << "ERROR: Resource Manager could not RE-load resource \"" << itr->first << "\" of type " << typeid(T).name() << std::endl;
 					// some can't be loaded because they weren't files but data
@@ -112,16 +113,35 @@ namespace Lumos
 			return true;
 		}
 
-		static LoadFunc& LoadFunction() { return m_loadFunc; }
-		static ReleaseFunc& ReleaseFunction() { return m_releaseFunc; }
-		static ReloadFunc& ReloadFunction() { return m_reloadFunc; }
+        LoadFunc& LoadFunction() { return m_loadFunc; }
+        ReleaseFunc& ReleaseFunction() { return m_releaseFunc; }
+        ReloadFunc& ReloadFunction() { return m_reloadFunc; }
 
 
-	private:
-		inline static MapType m_nameResourceMap = {};
-		static LoadFunc m_loadFunc;
-		static ReleaseFunc m_releaseFunc;
-		static ReloadFunc m_reloadFunc;
-		static GetIdFunc m_getIdFunc;
+	protected:
+        MapType m_nameResourceMap = {};
+        LoadFunc m_loadFunc;
+        ReleaseFunc m_releaseFunc;
+        ReloadFunc m_reloadFunc;
+        GetIdFunc m_getIdFunc;
 	};
+
+    class ShaderLibrary : public ResourceManager<Graphics::Shader>
+    {
+        public:
+        ShaderLibrary()
+        {
+            m_loadFunc = Load;
+        }
+        
+        ~ShaderLibrary()
+        {
+        }
+        
+        static bool Load(const std::string& filePath, Ref<Graphics::Shader>& shader)
+        {
+            shader = Ref<Graphics::Shader>(Graphics::Shader::CreateFromFile(filePath));
+            return true;
+        }
+    };
 }

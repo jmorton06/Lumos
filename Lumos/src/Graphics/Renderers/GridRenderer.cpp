@@ -84,7 +84,7 @@ namespace Lumos
 		void GridRenderer::Init()
 		{
 			LUMOS_PROFILE_FUNCTION();
-			m_Shader = Ref<Graphics::Shader>(Shader::CreateFromFile("/CoreShaders/Grid.shader"));
+			m_Shader = Application::Get().GetShaderLibrary()->GetResource("/CoreShaders/Grid.shader");
 			m_Quad = Graphics::CreatePlane(5000.0f, 5000.f, Maths::Vector3(0.0f, 1.0f, 0.0f));
             
 			// Vertex shader System uniforms
@@ -226,16 +226,14 @@ namespace Lumos
             vertexBufferLayout.Push<Maths::Vector3>("tangent");
 
 			Graphics::PipelineInfo pipelineCreateInfo;
-			pipelineCreateInfo.pipelineName = "GridRenderer";
-            pipelineCreateInfo.vertexBufferLayout = vertexBufferLayout;
-			pipelineCreateInfo.shader = m_Shader.get();
-			pipelineCreateInfo.renderpass = m_RenderPass.get();
+			pipelineCreateInfo.shader = m_Shader;
+			pipelineCreateInfo.renderpass = m_RenderPass;
 			pipelineCreateInfo.descriptorLayouts = layoutInfo;
-			pipelineCreateInfo.polygonMode = Graphics::PolygonMode::Fill;
+            pipelineCreateInfo.vertexBufferLayout = vertexBufferLayout;
+			pipelineCreateInfo.polygonMode = Graphics::PolygonMode::FILL;
 			pipelineCreateInfo.cullMode = Graphics::CullMode::NONE;
 			pipelineCreateInfo.transparencyEnabled = true;
 			pipelineCreateInfo.depthBiasEnabled = false;
-			pipelineCreateInfo.maxObjects = 1;
             
 			m_Pipeline = Ref<Graphics::Pipeline>(Graphics::Pipeline::Create(pipelineCreateInfo));
 		}

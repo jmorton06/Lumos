@@ -66,7 +66,7 @@ namespace Lumos
 	{
 		LUMOS_PROFILE_FUNCTION();
 
-		m_Shader = Ref<Graphics::Shader>(Shader::CreateFromFile("/CoreShaders/Batch2DLine.shader"));
+		m_Shader = Application::Get().GetShaderLibrary()->GetResource("/CoreShaders/Batch2DLine.shader");
 
 		m_VSSystemUniformBufferSize = sizeof(Maths::Matrix4);
 		m_VSSystemUniformBuffer = new u8[m_VSSystemUniformBufferSize];
@@ -345,18 +345,15 @@ namespace Lumos
         vertexBufferLayout.Push<Maths::Vector4>("colour");
         
 		Graphics::PipelineInfo pipelineCreateInfo;
-		pipelineCreateInfo.pipelineName = "BatchLineRenderer";
-		pipelineCreateInfo.shader = m_Shader.get();
-		pipelineCreateInfo.renderpass = m_RenderPass.get();
+		pipelineCreateInfo.shader = m_Shader;
+		pipelineCreateInfo.renderpass = m_RenderPass;
         pipelineCreateInfo.vertexBufferLayout = vertexBufferLayout;
 		pipelineCreateInfo.descriptorLayouts = layoutInfo;
-		pipelineCreateInfo.polygonMode = Graphics::PolygonMode::Fill;
+		pipelineCreateInfo.polygonMode = Graphics::PolygonMode::FILL;
 		pipelineCreateInfo.cullMode = Graphics::CullMode::BACK;
 		pipelineCreateInfo.transparencyEnabled = false;
 		pipelineCreateInfo.depthBiasEnabled = true;
-		pipelineCreateInfo.maxObjects = MAX_BATCH_DRAW_CALLS;
 		pipelineCreateInfo.drawType = DrawType::LINES;
-		pipelineCreateInfo.lineWidth = 20.0f;
 
 		m_Pipeline = Ref<Graphics::Pipeline>(Graphics::Pipeline::Create(pipelineCreateInfo));
 	}

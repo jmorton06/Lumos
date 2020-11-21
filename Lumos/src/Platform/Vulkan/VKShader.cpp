@@ -164,7 +164,7 @@ namespace Lumos
 		Shader* VKShader::CreateFuncVulkan(const std::string& filepath)
 		{
 			std::string physicalPath;
-			Lumos::VFS::Get()->ResolvePhysicalPath(filepath, physicalPath, true);
+			Lumos::VFS::Get()->ResolvePhysicalPath(filepath, physicalPath, false);
 			return new VKShader(physicalPath);
 		}
 

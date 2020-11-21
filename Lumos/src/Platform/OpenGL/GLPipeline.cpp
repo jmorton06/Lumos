@@ -50,7 +50,7 @@ namespace Lumos
             DescriptorInfo info;
             info.pipeline = this;
             info.layoutIndex = 0;
-            info.shader = pipelineCreateInfo.shader;
+            info.shader = pipelineCreateInfo.shader.get();
 			m_DescriptorSet = new GLDescriptorSet(info);
             m_TransparencyEnabled = pipelineCreateInfo.transparencyEnabled;
 

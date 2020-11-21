@@ -6,7 +6,7 @@ namespace Lumos
 {
 	namespace Graphics
 	{
-		class Shader;
+        class Shader;
 		class RenderPass;
 		class CommandBuffer;
 		class DescriptorSet;
@@ -24,28 +24,30 @@ namespace Lumos
 
 		enum class PolygonMode
 		{
-			Fill,
-			Line,
-			Point
+			FILL,
+			LINE,
+			POINT
 		};
 
 		struct PipelineInfo
 		{
-			Shader* shader;
-			RenderPass* renderpass;
+            Ref<RenderPass> renderpass;
+            //Shader Information
+			Ref<Shader> shader;
             BufferLayout vertexBufferLayout;
 			std::vector<DescriptorLayoutInfo> descriptorLayouts;
-			CullMode cullMode;
-			std::string pipelineName;
-			PolygonMode polygonMode = PolygonMode::Fill;
-			bool transparencyEnabled;
-			bool depthBiasEnabled;
-			u32 maxObjects;
-			float lineWidth = -1.0f;
             int numPushConst = 0;
             int pushConstSize = 0;
-			DrawType drawType = DrawType::TRIANGLE;
+            //
+            
+			CullMode cullMode = CullMode::BACK;
+			PolygonMode polygonMode = PolygonMode::FILL;
+            DrawType drawType = DrawType::TRIANGLE;
+
+			bool transparencyEnabled;
+			bool depthBiasEnabled;
 		};
+    
 		class LUMOS_EXPORT Pipeline
 		{
 		public:

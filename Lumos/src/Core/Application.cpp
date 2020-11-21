@@ -136,7 +136,9 @@ namespace Lumos
 		u32 screenHeight = m_Window->GetHeight();
 
 		Lumos::Input::Create();
-		
+        
+        m_ShaderLibrary = CreateRef<ShaderLibrary>();
+        
 		Graphics::Renderer::Init(screenWidth, screenHeight);
 
 		// Graphics Loading on main thread
@@ -204,6 +206,7 @@ namespace Lumos
         m_Editor->SaveEditorSettings();
 #endif
 
+		m_ShaderLibrary.reset();
 		m_SceneManager.reset();
 		m_RenderGraph.reset();
 		m_SystemManager.reset();
@@ -361,6 +364,8 @@ namespace Lumos
 			m_LayerStack->OnUpdate(dt, m_SceneManager->GetCurrentScene());
 		}
 		m_ImGuiLayer->OnUpdate(dt, m_SceneManager->GetCurrentScene());
+        
+        m_ShaderLibrary->Update(dt.GetElapsedMillis());
 	}
 
 	void Application::OnEvent(Event& e)

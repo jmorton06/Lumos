@@ -396,7 +396,7 @@ namespace Lumos
 
 		void ForwardRenderer::CreateGraphicsPipeline()
 		{
-			m_Shader = Ref<Graphics::Shader>(Shader::CreateFromFile("/CoreShaders/Simple.shader"));
+			m_Shader = Application::Get().GetShaderLibrary()->GetResource("/CoreShaders/Simple.shader");
 
 			std::vector<Graphics::DescriptorLayoutInfo> layoutInfo =
             {
@@ -414,16 +414,14 @@ namespace Lumos
 
             
 			Graphics::PipelineInfo pipelineCreateInfo{};
-			pipelineCreateInfo.pipelineName = "ForwardRenderer";
             pipelineCreateInfo.vertexBufferLayout = vertexBufferLayout;
-			pipelineCreateInfo.shader = m_Shader.get();
-			pipelineCreateInfo.renderpass = m_RenderPass.get();
+			pipelineCreateInfo.shader = m_Shader;
+			pipelineCreateInfo.renderpass = m_RenderPass;
 			pipelineCreateInfo.descriptorLayouts = layoutInfo;
-			pipelineCreateInfo.polygonMode = Graphics::PolygonMode::Fill;
+			pipelineCreateInfo.polygonMode = Graphics::PolygonMode::FILL;
 			pipelineCreateInfo.cullMode = Graphics::CullMode::BACK;
 			pipelineCreateInfo.transparencyEnabled = false;
 			pipelineCreateInfo.depthBiasEnabled = false;
-			pipelineCreateInfo.maxObjects = MAX_OBJECTS;
 
 			m_Pipeline = Ref<Graphics::Pipeline>(Graphics::Pipeline::Create(pipelineCreateInfo));
 		}
