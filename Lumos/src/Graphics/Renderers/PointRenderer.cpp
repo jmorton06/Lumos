@@ -335,11 +335,6 @@ namespace Lumos
 
 	void PointRenderer::CreateGraphicsPipeline()
 	{
-		std::vector<Graphics::DescriptorLayoutInfo> layoutInfo =
-        {
-            {Graphics::DescriptorType::UNIFORM_BUFFER, Graphics::ShaderType::VERTEX, 0}
-        };
-
         Graphics::BufferLayout vertexBufferLayout;
         vertexBufferLayout.Push<Maths::Vector3>("position");
         vertexBufferLayout.Push<Maths::Vector4>("colour");
@@ -350,7 +345,6 @@ namespace Lumos
 		pipelineCreateInfo.shader = m_Shader;
 		pipelineCreateInfo.renderpass = m_RenderPass;
         pipelineCreateInfo.vertexBufferLayout = vertexBufferLayout;
-		pipelineCreateInfo.descriptorLayouts = layoutInfo;
 		pipelineCreateInfo.polygonMode = Graphics::PolygonMode::FILL;
 		pipelineCreateInfo.cullMode = Graphics::CullMode::NONE;
 		pipelineCreateInfo.transparencyEnabled = true;

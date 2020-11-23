@@ -40,7 +40,7 @@ namespace Lumos
 			ResourceHandle resourceData;
 			if(!m_loadFunc(name, resourceData))
 			{
-				std::cerr << "ERROR: Resource Manager could not load resource name \"" << name << "\" of type " << typeid(T).name() << std::endl;
+				LUMOS_LOG_ERROR("Resource Manager could not load resource name {0} of type {1}", name, typeid(T).name());
 				return ResourceHandle(nullptr);
 			}
 
@@ -105,13 +105,23 @@ namespace Lumos
 				itr->second.timeSinceReload = 0;
 				if(!m_reloadFunc(itr->first, (itr->second.data)))
 				{
-					std::cerr << "ERROR: Resource Manager could not RE-load resource \"" << itr->first << "\" of type " << typeid(T).name() << std::endl;
-					// some can't be loaded because they weren't files but data
+                    LUMOS_LOG_ERROR("Resource Manager could not reload resource name {0} of type {1}", itr->first, typeid(T).name());
 				}
 				++itr;
 			}
 			return true;
 		}
+        
+        bool ResourceExists(const IDType& name)
+        {
+            typename MapType::iterator itr = m_nameResourceMap.find(name);
+            return itr != m_nameResourceMap.end();
+        }
+        
+        ResourceHandle operator[](const IDType& name)
+        {
+            return GetResource(name);
+        }
 
         LoadFunc& LoadFunction() { return m_loadFunc; }
         ReleaseFunc& ReleaseFunction() { return m_releaseFunc; }

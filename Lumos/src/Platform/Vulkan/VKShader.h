@@ -2,6 +2,7 @@
 
 #include "VK.h"
 #include "Graphics/API/Shader.h"
+#include "Graphics/API/DescriptorSet.h"
 
 namespace Lumos
 {
@@ -35,6 +36,9 @@ namespace Lumos
 			{
 				return m_FilePath;
 			};
+            
+            const std::vector<DescriptorLayoutInfo>& GetDescriptorLayout() const { return m_DescriptorLayoutInfo; }
+            const std::vector<PushConstant>& GetPushConstant() const { return m_PushConstants; }
 
 			static void PreProcess(const std::string& source, std::map<ShaderType, std::string>* sources);
 			static void ReadShaderFile(std::vector<std::string> lines, std::map<ShaderType, std::string>* shaders);
@@ -56,6 +60,9 @@ namespace Lumos
 			std::string m_FilePath;
 			std::string m_Source;
 			std::vector<ShaderType> m_ShaderTypes;
+            
+            std::vector<PushConstant> m_PushConstants;
+            std::vector<Graphics::DescriptorLayoutInfo> m_DescriptorLayoutInfo;
 		};
 	}
 }

@@ -67,9 +67,7 @@ namespace Lumos
 		void VKRenderer::PresentInternal()
 		{
 			LUMOS_PROFILE_FUNCTION();
-            auto m_Swapchain = VKContext::Get()->GetSwapchain();
-
-			m_Swapchain->Present(m_ImageAvailableSemaphore[m_CurrentSemaphoreIndex]);
+            VKContext::Get()->GetSwapchain()->Present(m_ImageAvailableSemaphore[m_CurrentSemaphoreIndex]);
 		}
 
 		void VKRenderer::OnResize(u32 width, u32 height)

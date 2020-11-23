@@ -211,12 +211,6 @@ namespace Lumos
 		void GridRenderer::CreateGraphicsPipeline()
 		{
 			LUMOS_PROFILE_FUNCTION();
-            
-			std::vector<Graphics::DescriptorLayoutInfo> layoutInfo =
-            {
-                {Graphics::DescriptorType::UNIFORM_BUFFER, Graphics::ShaderType::VERTEX, 0},
-                {Graphics::DescriptorType::UNIFORM_BUFFER, Graphics::ShaderType::FRAGMENT, 1}
-            };
                         
             Graphics::BufferLayout vertexBufferLayout;
             vertexBufferLayout.Push<Maths::Vector3>("position");
@@ -228,7 +222,6 @@ namespace Lumos
 			Graphics::PipelineInfo pipelineCreateInfo;
 			pipelineCreateInfo.shader = m_Shader;
 			pipelineCreateInfo.renderpass = m_RenderPass;
-			pipelineCreateInfo.descriptorLayouts = layoutInfo;
             pipelineCreateInfo.vertexBufferLayout = vertexBufferLayout;
 			pipelineCreateInfo.polygonMode = Graphics::PolygonMode::FILL;
 			pipelineCreateInfo.cullMode = Graphics::CullMode::NONE;

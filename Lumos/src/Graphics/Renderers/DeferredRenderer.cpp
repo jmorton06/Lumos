@@ -385,19 +385,6 @@ namespace Lumos
 		void DeferredRenderer::CreateDeferredPipeline()
 		{
 			LUMOS_PROFILE_FUNCTION();
-			std::vector<Graphics::DescriptorLayoutInfo> layoutInfo =
-            {
-                {Graphics::DescriptorType::UNIFORM_BUFFER, Graphics::ShaderType::FRAGMENT, 0, 0},
-                {Graphics::DescriptorType::IMAGE_SAMPLER, Graphics::ShaderType::FRAGMENT, 0, 1},
-                {Graphics::DescriptorType::IMAGE_SAMPLER, Graphics::ShaderType::FRAGMENT, 1, 1},
-                {Graphics::DescriptorType::IMAGE_SAMPLER, Graphics::ShaderType::FRAGMENT, 2, 1},
-                {Graphics::DescriptorType::IMAGE_SAMPLER, Graphics::ShaderType::FRAGMENT, 3, 1},
-                {Graphics::DescriptorType::IMAGE_SAMPLER, Graphics::ShaderType::FRAGMENT, 4, 1},
-                {Graphics::DescriptorType::IMAGE_SAMPLER, Graphics::ShaderType::FRAGMENT, 5, 1},
-                {Graphics::DescriptorType::IMAGE_SAMPLER, Graphics::ShaderType::FRAGMENT, 6, 1},
-                {Graphics::DescriptorType::IMAGE_SAMPLER, Graphics::ShaderType::FRAGMENT, 7, 1}
-            };
-            
             Graphics::BufferLayout vertexBufferLayout;
             vertexBufferLayout.Push<Maths::Vector3>("position");
             vertexBufferLayout.Push<Maths::Vector4>("colour");
@@ -409,7 +396,6 @@ namespace Lumos
             pipelineCreateInfo.vertexBufferLayout = vertexBufferLayout;
 			pipelineCreateInfo.shader = m_Shader;
             pipelineCreateInfo.renderpass = m_RenderPass;
-			pipelineCreateInfo.descriptorLayouts = layoutInfo;
 			pipelineCreateInfo.polygonMode = Graphics::PolygonMode::FILL;
 			pipelineCreateInfo.cullMode = Graphics::CullMode::FRONT; //TODO
 			pipelineCreateInfo.transparencyEnabled = false;
