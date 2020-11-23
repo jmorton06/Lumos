@@ -494,18 +494,6 @@ namespace Lumos
 		void Renderer2D::CreateGraphicsPipeline()
 		{
 			LUMOS_PROFILE_FUNCTION();
-			std::vector<Graphics::DescriptorPoolInfo> poolInfo =
-            {
-                {Graphics::DescriptorType::UNIFORM_BUFFER, m_Limits.MaxBatchDrawCalls},
-                {Graphics::DescriptorType::IMAGE_SAMPLER, m_Limits.MaxBatchDrawCalls}
-            };
-
-			std::vector<Graphics::DescriptorLayoutInfo> layoutInfo =
-            {
-                {Graphics::DescriptorType::UNIFORM_BUFFER, Graphics::ShaderType::VERTEX, 0, 0, 1},
-                {Graphics::DescriptorType::IMAGE_SAMPLER, Graphics::ShaderType::FRAGMENT, 0, 1, m_Limits.MaxTextures}
-            };
-
             Graphics::BufferLayout vertexBufferLayout;
             vertexBufferLayout.Push<Maths::Vector3>("position");
             vertexBufferLayout.Push<Maths::Vector2>("uv");
@@ -516,7 +504,6 @@ namespace Lumos
 			pipelineCreateInfo.shader = m_Shader;
 			pipelineCreateInfo.renderpass = m_RenderPass;
             pipelineCreateInfo.vertexBufferLayout = vertexBufferLayout;
-			pipelineCreateInfo.descriptorLayouts = layoutInfo;
 			pipelineCreateInfo.polygonMode = Graphics::PolygonMode::FILL;
 			pipelineCreateInfo.cullMode = Graphics::CullMode::BACK;
 			pipelineCreateInfo.transparencyEnabled = true;

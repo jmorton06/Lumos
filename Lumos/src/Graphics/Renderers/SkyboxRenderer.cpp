@@ -207,12 +207,6 @@ namespace Lumos
 		void SkyboxRenderer::CreateGraphicsPipeline()
 		{
 			LUMOS_PROFILE_FUNCTION();
-			std::vector<Graphics::DescriptorLayoutInfo> layoutInfo =
-            {
-                {Graphics::DescriptorType::UNIFORM_BUFFER, Graphics::ShaderType::VERTEX, 0},
-                {Graphics::DescriptorType::IMAGE_SAMPLER, Graphics::ShaderType::FRAGMENT, 1}
-            };
-
             Graphics::BufferLayout vertexBufferLayout;
             vertexBufferLayout.Push<Maths::Vector3>("position");
             vertexBufferLayout.Push<Maths::Vector4>("colour");
@@ -224,7 +218,6 @@ namespace Lumos
 			pipelineCreateInfo.shader = m_Shader;
 			pipelineCreateInfo.renderpass = m_RenderPass;
             pipelineCreateInfo.vertexBufferLayout = vertexBufferLayout;
-			pipelineCreateInfo.descriptorLayouts = layoutInfo;
 			pipelineCreateInfo.polygonMode = Graphics::PolygonMode::FILL;
 			pipelineCreateInfo.cullMode = Graphics::CullMode::NONE;
 			pipelineCreateInfo.transparencyEnabled = false;

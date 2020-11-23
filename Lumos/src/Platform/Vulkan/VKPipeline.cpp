@@ -32,7 +32,7 @@ namespace Lumos
 
             std::vector<std::vector<Graphics::DescriptorLayoutInfo>> layouts;
             
-            for (auto& descriptorLayout : pipelineCreateInfo.descriptorLayouts)
+            for (auto& descriptorLayout : pipelineCreateInfo.shader.As<VKShader>()->GetDescriptorLayout())
             {
                 if(layouts.size() < descriptorLayout.setID + 1)
                 {
@@ -71,15 +71,22 @@ namespace Lumos
 
                 m_DescriptorLayouts.push_back(layout);
             }
-
-            VkPushConstantRange pushConstantRange = VKInitialisers::pushConstantRange(VK_SHADER_STAGE_VERTEX_BIT, pipelineCreateInfo.pushConstSize, 0);
+            
+            const auto& pushConsts = m_Shader.As<VKShader>()->GetPushConstant();
+            std::vector<VkPushConstantRange> pushConstantRanges;
+            
+            for(auto& pushConst : pushConsts)
+            {
+                pushConstantRanges.push_back(VKInitialisers::pushConstantRange(VKTools::ShaderTypeToVK(pushConst.shaderStage), pushConst.size, pushConst.offset));
+            }
 
 			VkPipelineLayoutCreateInfo pipelineLayoutCreateInfo{};
 			pipelineLayoutCreateInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO;
 			pipelineLayoutCreateInfo.setLayoutCount = static_cast<uint32_t>(m_DescriptorLayouts.size());
 			pipelineLayoutCreateInfo.pSetLayouts = m_DescriptorLayouts.data();
-            pipelineLayoutCreateInfo.pushConstantRangeCount = pipelineCreateInfo.pushConstSize;
-            pipelineLayoutCreateInfo.pPushConstantRanges = &pushConstantRange;
+            
+            pipelineLayoutCreateInfo.pushConstantRangeCount = u32(pushConstantRanges.size());
+            pipelineLayoutCreateInfo.pPushConstantRanges = pushConstantRanges.data();
 
 			VK_CHECK_RESULT(vkCreatePipelineLayout(VKDevice::Get().GetDevice(), &pipelineLayoutCreateInfo, VK_NULL_HANDLE, &m_PipelineLayout));
 

@@ -32,13 +32,8 @@ namespace Lumos
 		struct PipelineInfo
 		{
             Ref<RenderPass> renderpass;
-            //Shader Information
 			Ref<Shader> shader;
             BufferLayout vertexBufferLayout;
-			std::vector<DescriptorLayoutInfo> descriptorLayouts;
-            int numPushConst = 0;
-            int pushConstSize = 0;
-            //
             
 			CullMode cullMode = CullMode::BACK;
 			PolygonMode polygonMode = PolygonMode::FILL;

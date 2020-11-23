@@ -51,23 +51,22 @@ namespace Lumos
 				return attachment;
 			}
 			
-			
-				if(clear)
-				{
-					attachment.loadOp =  VK_ATTACHMENT_LOAD_OP_CLEAR;
-					attachment.stencilLoadOp = VK_ATTACHMENT_LOAD_OP_CLEAR;
-					attachment.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
-				}
-				else
-				{
-					attachment.loadOp =  VK_ATTACHMENT_LOAD_OP_LOAD;
-					attachment.stencilLoadOp = VK_ATTACHMENT_LOAD_OP_LOAD;
-					attachment.initialLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
-				}
-				
-				attachment.samples = VK_SAMPLE_COUNT_1_BIT;
-				attachment.storeOp = VK_ATTACHMENT_STORE_OP_STORE;
-				attachment.stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
+            if(clear)
+            {
+                attachment.loadOp =  VK_ATTACHMENT_LOAD_OP_CLEAR;
+                attachment.stencilLoadOp = VK_ATTACHMENT_LOAD_OP_CLEAR;
+                attachment.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
+            }
+            else
+            {
+                attachment.loadOp =  VK_ATTACHMENT_LOAD_OP_LOAD;
+                attachment.stencilLoadOp = VK_ATTACHMENT_LOAD_OP_LOAD;
+                attachment.initialLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
+            }
+            
+            attachment.samples = VK_SAMPLE_COUNT_1_BIT;
+            attachment.storeOp = VK_ATTACHMENT_STORE_OP_STORE;
+            attachment.stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
 			attachment.flags = 0;
 			
 			return attachment;

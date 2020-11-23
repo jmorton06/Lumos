@@ -398,26 +398,17 @@ namespace Lumos
 		{
 			m_Shader = Application::Get().GetShaderLibrary()->GetResource("/CoreShaders/Simple.shader");
 
-			std::vector<Graphics::DescriptorLayoutInfo> layoutInfo =
-            {
-                {Graphics::DescriptorType::UNIFORM_BUFFER, Graphics::ShaderType::VERTEX, 0},
-                {Graphics::DescriptorType::UNIFORM_BUFFER_DYNAMIC, Graphics::ShaderType::VERTEX, 1},
-                {Graphics::DescriptorType::IMAGE_SAMPLER, Graphics::ShaderType::FRAGMENT, 0}
-            };
-
             Graphics::BufferLayout vertexBufferLayout;
             vertexBufferLayout.Push<Maths::Vector3>("position");
             vertexBufferLayout.Push<Maths::Vector4>("colour");
             vertexBufferLayout.Push<Maths::Vector2>("uv");
             vertexBufferLayout.Push<Maths::Vector3>("normal");
             vertexBufferLayout.Push<Maths::Vector3>("tangent");
-
             
 			Graphics::PipelineInfo pipelineCreateInfo{};
             pipelineCreateInfo.vertexBufferLayout = vertexBufferLayout;
 			pipelineCreateInfo.shader = m_Shader;
 			pipelineCreateInfo.renderpass = m_RenderPass;
-			pipelineCreateInfo.descriptorLayouts = layoutInfo;
 			pipelineCreateInfo.polygonMode = Graphics::PolygonMode::FILL;
 			pipelineCreateInfo.cullMode = Graphics::CullMode::BACK;
 			pipelineCreateInfo.transparencyEnabled = false;
