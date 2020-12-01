@@ -207,8 +207,7 @@ defines
             "res/meshes",
             "res/sounds",
             "res/textures",
-			"Sandbox.lmproj",
-			"Launch Screen.storyboard"
+			"Sandbox.lmproj"
 		}
 
 		xcodebuildsettings

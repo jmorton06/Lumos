@@ -54,6 +54,8 @@ namespace Lumos
 
 		bool BufferingBar(const char* label, float value, const Maths::Vector2& size_arg, const u32& bg_col, const u32& fg_col);
 		bool Spinner(const char* label, float radius, int thickness, const u32& color);
+    
+        Maths::Vector4 GetSelectedColour();
 
 	}
 }

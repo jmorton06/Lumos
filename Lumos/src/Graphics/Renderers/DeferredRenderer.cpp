@@ -131,17 +131,16 @@ namespace Lumos
 			m_PSSystemUniformBufferOffsets[PSSystemUniformIndex_RenderMode] = m_PSSystemUniformBufferOffsets[PSSystemUniformIndex_ShadowCount] + sizeof(int);
 			m_PSSystemUniformBufferOffsets[PSSystemUniformIndex_cubemapMipLevels] = m_PSSystemUniformBufferOffsets[PSSystemUniformIndex_RenderMode] + sizeof(int);
 
-			m_RenderPass = Ref<Graphics::RenderPass>(Graphics::RenderPass::Create());
-
 			AttachmentInfo textureTypes[2] =
-				{
-					{TextureType::COLOUR, TextureFormat::RGBA32}};
-			Graphics::RenderpassInfo renderpassCI{};
+            {
+                {TextureType::COLOUR, TextureFormat::RGBA32}
+            };
+			Graphics::RenderPassInfo renderpassCI{};
 			renderpassCI.attachmentCount = 1;
 			renderpassCI.textureType = textureTypes;
 			renderpassCI.clear = true;
 
-			m_RenderPass->Init(renderpassCI);
+            m_RenderPass = Ref<Graphics::RenderPass>(Graphics::RenderPass::Create(renderpassCI));
 
 			m_CommandBuffers.resize(Renderer::GetSwapchain()->GetSwapchainBufferCount());
 

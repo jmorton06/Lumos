@@ -1,5 +1,5 @@
 #include "Precompiled.h"
-#include "ImGuiLayer.h"
+#include "ImGuiManager.h"
 #include "Core/OS/Input.h"
 #include "Core/OS/Window.h"
 #include "Core/Application.h"
@@ -18,18 +18,21 @@
 
 namespace Lumos
 {
-	ImGuiLayer::ImGuiLayer(bool clearScreen, const std::string& debugName)
-		: Layer(debugName)
+    ImGuiManager::ImGuiManager(bool clearScreen)
 	{
 		m_ClearScreen = clearScreen;
 		m_FontSize = 16.0f;
+        
+#ifdef LUMOS_PLATFORM_IOS
+        m_FontSize *= 2.0f;
+#endif
 	}
 
-	ImGuiLayer::~ImGuiLayer()
+    ImGuiManager::~ImGuiManager()
 	{
 	}
 
-	void ImGuiLayer::OnAttach()
+	void ImGuiManager::OnInit()
 	{
 		LUMOS_PROFILE_FUNCTION();
 		Application& app = Application::Get();
@@ -42,9 +45,13 @@ namespace Lumos
 #endif
 		io.BackendFlags |= ImGuiBackendFlags_HasMouseCursors;
 		io.ConfigWindowsMoveFromTitleBarOnly = true;
-
+        
 		SetImGuiKeyCodes();
 		SetImGuiStyle();
+
+#ifdef LUMOS_PLATFORM_IOS
+        ImGui::GetStyle().ScaleAllSizes(0.5f);
+#endif
 
 		m_IMGUIRenderer = UniqueRef<Graphics::IMGUIRenderer>(Graphics::IMGUIRenderer::Create(app.GetWindow()->GetWidth(), app.GetWindow()->GetHeight(), m_ClearScreen));
 
@@ -52,11 +59,7 @@ namespace Lumos
 			m_IMGUIRenderer->Init();
 	}
 
-	void ImGuiLayer::OnDetach()
-	{
-	}
-
-	void ImGuiLayer::OnUpdate(const TimeStep& dt, Scene* scene)
+	void ImGuiManager::OnUpdate(const TimeStep& dt, Scene* scene)
 	{
 		LUMOS_PROFILE_FUNCTION();
 		ImGuizmo::BeginFrame();
@@ -66,21 +69,21 @@ namespace Lumos
 		ImGui::Render();
 	}
 
-	void ImGuiLayer::OnEvent(Event& event)
+	void ImGuiManager::OnEvent(Event& event)
 	{
         LUMOS_PROFILE_FUNCTION();
 		EventDispatcher dispatcher(event);
-		dispatcher.Dispatch<MouseButtonPressedEvent>(BIND_EVENT_FN(ImGuiLayer::OnMouseButtonPressedEvent));
-		dispatcher.Dispatch<MouseButtonReleasedEvent>(BIND_EVENT_FN(ImGuiLayer::OnMouseButtonReleasedEvent));
-		dispatcher.Dispatch<MouseMovedEvent>(BIND_EVENT_FN(ImGuiLayer::OnMouseMovedEvent));
-		dispatcher.Dispatch<MouseScrolledEvent>(BIND_EVENT_FN(ImGuiLayer::OnMouseScrolledEvent));
-		dispatcher.Dispatch<KeyPressedEvent>(BIND_EVENT_FN(ImGuiLayer::OnKeyPressedEvent));
-		dispatcher.Dispatch<KeyReleasedEvent>(BIND_EVENT_FN(ImGuiLayer::OnKeyReleasedEvent));
-		dispatcher.Dispatch<KeyTypedEvent>(BIND_EVENT_FN(ImGuiLayer::OnKeyTypedEvent));
-		dispatcher.Dispatch<WindowResizeEvent>(BIND_EVENT_FN(ImGuiLayer::OnwindowResizeEvent));
+		dispatcher.Dispatch<MouseButtonPressedEvent>(BIND_EVENT_FN(ImGuiManager::OnMouseButtonPressedEvent));
+		dispatcher.Dispatch<MouseButtonReleasedEvent>(BIND_EVENT_FN(ImGuiManager::OnMouseButtonReleasedEvent));
+		dispatcher.Dispatch<MouseMovedEvent>(BIND_EVENT_FN(ImGuiManager::OnMouseMovedEvent));
+		dispatcher.Dispatch<MouseScrolledEvent>(BIND_EVENT_FN(ImGuiManager::OnMouseScrolledEvent));
+		dispatcher.Dispatch<KeyPressedEvent>(BIND_EVENT_FN(ImGuiManager::OnKeyPressedEvent));
+		dispatcher.Dispatch<KeyReleasedEvent>(BIND_EVENT_FN(ImGuiManager::OnKeyReleasedEvent));
+		dispatcher.Dispatch<KeyTypedEvent>(BIND_EVENT_FN(ImGuiManager::OnKeyTypedEvent));
+		dispatcher.Dispatch<WindowResizeEvent>(BIND_EVENT_FN(ImGuiManager::OnwindowResizeEvent));
 	}
 
-	void ImGuiLayer::OnRender(Scene* scene)
+	void ImGuiManager::OnRender(Scene* scene)
 	{
 		LUMOS_PROFILE_FUNCTION();
 		if(m_IMGUIRenderer && m_IMGUIRenderer->Implemented())
@@ -89,7 +92,7 @@ namespace Lumos
 		}
 	}
 
-	void ImGuiLayer::OnNewScene(Scene* scene)
+	void ImGuiManager::OnNewScene(Scene* scene)
 	{
 		LUMOS_PROFILE_FUNCTION();
 		m_IMGUIRenderer->Clear();
@@ -108,7 +111,7 @@ namespace Lumos
         return 4;
     }
 
-	bool ImGuiLayer::OnMouseButtonPressedEvent(MouseButtonPressedEvent& e)
+	bool ImGuiManager::OnMouseButtonPressedEvent(MouseButtonPressedEvent& e)
 	{
 		ImGuiIO& io = ImGui::GetIO();
 		io.MouseDown[LumosMouseButtonToImGui(e.GetMouseButton())] = true;
@@ -116,7 +119,7 @@ namespace Lumos
 		return false;
 	}
 
-	bool ImGuiLayer::OnMouseButtonReleasedEvent(MouseButtonReleasedEvent& e)
+	bool ImGuiManager::OnMouseButtonReleasedEvent(MouseButtonReleasedEvent& e)
 	{
 		ImGuiIO& io = ImGui::GetIO();
 		io.MouseDown[LumosMouseButtonToImGui(e.GetMouseButton())] = false;
@@ -124,7 +127,7 @@ namespace Lumos
 		return false;
 	}
 
-	bool ImGuiLayer::OnMouseMovedEvent(MouseMovedEvent& e)
+	bool ImGuiManager::OnMouseMovedEvent(MouseMovedEvent& e)
 	{
 		ImGuiIO& io = ImGui::GetIO();
 		io.MousePos = ImVec2(e.GetX(), e.GetY());
@@ -132,7 +135,7 @@ namespace Lumos
 		return false;
 	}
 
-	bool ImGuiLayer::OnMouseScrolledEvent(MouseScrolledEvent& e)
+	bool ImGuiManager::OnMouseScrolledEvent(MouseScrolledEvent& e)
 	{
 		ImGuiIO& io = ImGui::GetIO();
 		io.MouseWheel += e.GetYOffset() / 10.0f;
@@ -141,7 +144,7 @@ namespace Lumos
 		return false;
 	}
 
-	bool ImGuiLayer::OnKeyPressedEvent(KeyPressedEvent& e)
+	bool ImGuiManager::OnKeyPressedEvent(KeyPressedEvent& e)
 	{
 		ImGuiIO& io = ImGui::GetIO();
 		io.KeysDown[(int)e.GetKeyCode()] = true;
@@ -159,7 +162,7 @@ namespace Lumos
 		return io.WantTextInput;
 	}
 
-	bool ImGuiLayer::OnKeyReleasedEvent(KeyReleasedEvent& e)
+	bool ImGuiManager::OnKeyReleasedEvent(KeyReleasedEvent& e)
 	{
 		ImGuiIO& io = ImGui::GetIO();
 		io.KeysDown[(int)e.GetKeyCode()] = false;
@@ -167,7 +170,7 @@ namespace Lumos
 		return false;
 	}
 
-	bool ImGuiLayer::OnKeyTypedEvent(KeyTypedEvent& e)
+	bool ImGuiManager::OnKeyTypedEvent(KeyTypedEvent& e)
 	{
 		ImGuiIO& io = ImGui::GetIO();
 		int keycode = (int)e.Character;
@@ -177,7 +180,7 @@ namespace Lumos
 		return false;
 	}
 
-	bool ImGuiLayer::OnwindowResizeEvent(WindowResizeEvent& e)
+	bool ImGuiManager::OnwindowResizeEvent(WindowResizeEvent& e)
 	{
 		LUMOS_PROFILE_FUNCTION();
 		ImGuiIO& io = ImGui::GetIO();
@@ -193,7 +196,7 @@ namespace Lumos
 		return false;
 	}
 
-	void ImGuiLayer::SetImGuiKeyCodes()
+	void ImGuiManager::SetImGuiKeyCodes()
 	{
 		ImGuiIO& io = ImGui::GetIO();
 		io.BackendFlags |= ImGuiBackendFlags_HasMouseCursors;
@@ -223,7 +226,7 @@ namespace Lumos
 		io.KeyRepeatRate = 40.0f;
 	}
 
-	void ImGuiLayer::SetImGuiStyle()
+	void ImGuiManager::SetImGuiStyle()
 	{
 		LUMOS_PROFILE_FUNCTION();
 		ImGuiIO& io = ImGui::GetIO();
@@ -272,6 +275,7 @@ namespace Lumos
 		style.ItemSpacing = ImVec2(6, 2);
 		style.ItemInnerSpacing = ImVec2(6, 4);
 		style.IndentSpacing = 6.0f;
+        style.TouchExtraPadding = ImVec2(4, 4);
 
 		style.ScrollbarSize = 18;
 
@@ -291,7 +295,7 @@ namespace Lumos
 
 #ifdef IMGUI_HAS_DOCK
 		style.TabBorderSize = 1.0f;
-		style.TabRounding = roundingAmount + 2;
+		style.TabRounding = roundingAmount + 4;
 
 		if(ImGui::GetIO().ConfigFlags & ImGuiConfigFlags_ViewportsEnable)
 		{
@@ -303,7 +307,7 @@ namespace Lumos
 		ImGuiHelpers::SetTheme(ImGuiHelpers::Theme::Dark);
 	}
 
-	void ImGuiLayer::AddIconFont()
+	void ImGuiManager::AddIconFont()
 	{
 		ImGuiIO& io = ImGui::GetIO();
 

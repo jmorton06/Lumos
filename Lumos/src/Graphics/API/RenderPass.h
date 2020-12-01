@@ -21,7 +21,7 @@ namespace Lumos
 			TextureFormat format;
 		};
 
-		struct RenderpassInfo
+		struct RenderPassInfo
 		{
 			AttachmentInfo* textureType;
 			int attachmentCount;
@@ -38,15 +38,14 @@ namespace Lumos
 		{
 		public:
 			virtual ~RenderPass();
-			static RenderPass* Create();
+			static RenderPass* Create(const RenderPassInfo& renderPassCI);
 
-			virtual bool Init(const RenderpassInfo& renderpassCI) = 0;
 			virtual void BeginRenderpass(CommandBuffer* commandBuffer, const Maths::Vector4& clearColour, Framebuffer* frame, SubPassContents contents, uint32_t width, uint32_t height, bool beginCommandBuffer = true) const = 0;
 			virtual void EndRenderpass(CommandBuffer* commandBuffer, bool endCommandBuffer = true) = 0;
             virtual int GetAttachmentCount() const = 0;
             
         protected:
-            static RenderPass* (*CreateFunc)();
+            static RenderPass* (*CreateFunc)(const RenderPassInfo&);
 		};
 	}
 }

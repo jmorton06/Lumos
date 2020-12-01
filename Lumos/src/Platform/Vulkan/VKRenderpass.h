@@ -10,10 +10,10 @@ namespace Lumos
 		class VKRenderpass : public RenderPass
 		{
 		public:
-            VKRenderpass();
+            VKRenderpass(const RenderPassInfo& renderPassCI);
             ~VKRenderpass();
 
-            bool Init(const RenderpassInfo& renderpassCI) override;
+            bool Init(const RenderPassInfo& renderpassCI);
             void BeginRenderpass(CommandBuffer * commandBuffer, const Maths::Vector4& clearColour, Framebuffer* frame, SubPassContents contents, uint32_t width, uint32_t height, bool beginCommandBuffer = true) const override;
             void EndRenderpass(CommandBuffer* commandBuffer, bool endCommandBuffer = true) override;
 
@@ -22,7 +22,7 @@ namespace Lumos
 
             static void MakeDefault();
         protected:
-            static RenderPass* CreateFuncVulkan();
+            static RenderPass* CreateFuncVulkan(const RenderPassInfo& renderPassCI);
 		private:
 			VkRenderPass 	m_RenderPass;
 			VkClearValue*   m_ClearValue;

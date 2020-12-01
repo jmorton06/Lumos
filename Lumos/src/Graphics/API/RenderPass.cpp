@@ -6,13 +6,13 @@ namespace Lumos
 	namespace Graphics
 	{
 		RenderPass::~RenderPass() = default;
-        RenderPass*(*RenderPass::CreateFunc)() = nullptr;
+        RenderPass*(*RenderPass::CreateFunc)(const RenderPassInfo&) = nullptr;
 
-		RenderPass* RenderPass::Create()
+		RenderPass* RenderPass::Create(const RenderPassInfo& renderPassCI)
 		{
             LUMOS_ASSERT(CreateFunc, "No RenderPass Create Function");
             
-            return CreateFunc();
+            return CreateFunc(renderPassCI);
 		}
 	}
 }

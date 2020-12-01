@@ -14,6 +14,7 @@
 #include "Graphics/GBuffer.h"
 #include "Graphics/Sprite.h"
 #include "Graphics/Light.h"
+#include "Graphics/Camera/Camera.h"
 #include "Scene/Scene.h"
 #include "Core/Application.h"
 #include "RenderGraph.h"

@@ -10,7 +10,6 @@
 #include "Graphics/API/Renderer.h"
 #include "Graphics/API/GraphicsContext.h"
 #include "Graphics/Renderers/RenderGraph.h"
-#include "Graphics/Layers/LayerStack.h"
 #include "Graphics/Camera/Camera.h"
 #include "Graphics/Material.h"
 #include "Graphics/Renderers/DebugRenderer.h"
@@ -20,9 +19,6 @@
 #include "Graphics/Renderers/ShadowRenderer.h"
 #include "Graphics/Renderers/GridRenderer.h"
 #include "Graphics/Renderers/SkyboxRenderer.h"
-
-#include "Graphics/Layers/Layer2D.h"
-#include "Graphics/Layers/Layer3D.h"
 
 #include "Maths/Transform.h"
 
@@ -35,7 +31,7 @@
 #include "Core/VFS.h"
 #include "Core/OS/FileSystem.h"
 #include "Scripting/Lua/LuaManager.h"
-#include "ImGui/ImGuiLayer.h"
+#include "ImGui/ImGuiManager.h"
 #include "Events/ApplicationEvent.h"
 #include "Audio/AudioManager.h"
 #include "Audio/Sound.h"
@@ -113,12 +109,6 @@ namespace Lumos
 		ImGui::DestroyContext();
 	}
 
-	void Application::ClearLayers()
-	{
-		LUMOS_PROFILE_FUNCTION();
-		m_LayerStack->Clear();
-	}
-
 	Scene* Application::GetCurrentScene() const
 	{
 		LUMOS_PROFILE_FUNCTION();
@@ -144,10 +134,8 @@ namespace Lumos
 		// Graphics Loading on main thread
 		m_RenderGraph = CreateUniqueRef<Graphics::RenderGraph>(screenWidth, screenHeight);
 
-		m_ImGuiLayer = new ImGuiLayer(false);
-		m_ImGuiLayer->OnAttach();
-
-		m_LayerStack = new LayerStack();
+        m_ImGuiManager = new ImGuiManager(false);
+        m_ImGuiManager->OnInit();
 
 		m_SystemManager = CreateUniqueRef<SystemManager>();
 
@@ -175,23 +163,13 @@ namespace Lumos
             
     #ifndef LUMOS_PLATFORM_IOS
         auto shadowRenderer = new Graphics::ShadowRenderer();
-        auto shadowLayer = new Layer3D(shadowRenderer);
         Application::Get().GetRenderGraph()->SetShadowRenderer(shadowRenderer);
-        shadowLayer->OnAttach();
-        m_LayerStack->PushLayer(shadowLayer);
+        m_RenderGraph->AddRenderer(shadowRenderer);
     #endif
         
-        auto layerSky = new Layer3D(new Graphics::SkyboxRenderer(screenWidth, screenHeight), "Skybox");
-        auto layer2D = new Layer2D(new Graphics::Renderer2D(screenWidth, screenHeight, false, false, true));
-        auto layerDeferred = new Layer3D(new Graphics::DeferredRenderer(screenWidth, screenHeight), "Deferred");
-        m_LayerStack->PushLayer(layerDeferred);
-        m_LayerStack->PushLayer(layerSky);
-        m_LayerStack->PushLayer(layer2D);
-        
-        layerDeferred->OnAttach();
-        layerSky->OnAttach();
-        layer2D->OnAttach();
-    
+        m_RenderGraph->AddRenderer(new Graphics::DeferredRenderer(screenWidth, screenHeight));
+        m_RenderGraph->AddRenderer(new Graphics::SkyboxRenderer(screenWidth, screenHeight));
+        m_RenderGraph->AddRenderer(new Graphics::Renderer2D(screenWidth, screenHeight, false, false, true));
 	}
 
 	int Application::Quit(bool pause, const std::string& reason)
@@ -211,8 +189,7 @@ namespace Lumos
 		m_RenderGraph.reset();
 		m_SystemManager.reset();
 
-		delete m_LayerStack;
-		delete m_ImGuiLayer;
+		delete m_ImGuiManager;
         
 #ifdef LUMOS_EDITOR
 		delete m_Editor;
@@ -273,7 +250,6 @@ namespace Lumos
 
 			{
 				LUMOS_PROFILE_SCOPE("Application::Update");
-				m_Window->UpdateCursorImGui();
 				OnUpdate(ts);
 				m_Updates++;
 			}
@@ -287,12 +263,13 @@ namespace Lumos
 			
 			{
 				LUMOS_PROFILE_SCOPE("Application::UpdateGraphicsStats");
-			stats.UsedGPUMemory = Graphics::GraphicsContext::GetContext()->GetGPUMemoryUsed();
+                stats.UsedGPUMemory = Graphics::GraphicsContext::GetContext()->GetGPUMemoryUsed();
 				stats.TotalGPUMemory = Graphics::GraphicsContext::GetContext()-> GetTotalGPUMemory();
 			}
 			{
 				LUMOS_PROFILE_SCOPE("Application::WindowUpdate");
-			Input::GetInput()->ResetPressed();
+                Input::GetInput()->ResetPressed();
+                m_Window->UpdateCursorImGui();
 				m_Window->OnUpdate();
 			}
 
@@ -325,20 +302,20 @@ namespace Lumos
 	void Application::OnRender()
 	{
 		LUMOS_PROFILE_FUNCTION();
-		if(m_LayerStack->GetCount() > 0 || m_LayerStack->GetCount() > 0)
+		if(m_RenderGraph->GetCount() > 0)
 		{
 			Graphics::Renderer::GetRenderer()->Begin();
 			DebugRenderer::Reset();
 
 			m_SystemManager->OnDebugDraw();
 
-			m_LayerStack->OnRender(m_SceneManager->GetCurrentScene());
+			m_RenderGraph->OnRender(m_SceneManager->GetCurrentScene());
 #ifdef LUMOS_EDITOR
 			m_Editor->DebugDraw();
 			m_Editor->OnRender();
 #endif
 			DebugRenderer::Render(m_SceneManager->GetCurrentScene(), nullptr, nullptr);
-			m_ImGuiLayer->OnRender(m_SceneManager->GetCurrentScene());
+            m_ImGuiManager->OnRender(m_SceneManager->GetCurrentScene());
 
 			Graphics::Renderer::GetRenderer()->Present();
 		}
@@ -361,9 +338,9 @@ namespace Lumos
 
 		if(!m_Minimized)
 		{
-			m_LayerStack->OnUpdate(dt, m_SceneManager->GetCurrentScene());
+			m_RenderGraph->OnUpdate(dt, m_SceneManager->GetCurrentScene());
 		}
-		m_ImGuiLayer->OnUpdate(dt, m_SceneManager->GetCurrentScene());
+        m_ImGuiManager->OnUpdate(dt, m_SceneManager->GetCurrentScene());
         
         m_ShaderLibrary->Update(dt.GetElapsedMillis());
 	}
@@ -375,10 +352,10 @@ namespace Lumos
 		dispatcher.Dispatch<WindowCloseEvent>(BIND_EVENT_FN(Application::OnWindowClose));
 		dispatcher.Dispatch<WindowResizeEvent>(BIND_EVENT_FN(Application::OnWindowResize));
 
-		m_ImGuiLayer->OnEvent(e);
+        m_ImGuiManager->OnEvent(e);
 		if(e.Handled())
 			return;
-		m_LayerStack->OnEvent(e);
+		m_RenderGraph->OnEvent(e);
 
 		if(e.Handled())
 			return;
@@ -409,29 +386,6 @@ namespace Lumos
 
 	void Application::OnExitScene()
 	{
-	}
-
-	void Application::PushLayerInternal(Layer* layer, bool overlay, bool sceneAdded)
-	{
-		LUMOS_PROFILE_FUNCTION();
-		if(overlay)
-			m_LayerStack->PushOverlay(layer);
-		else
-			m_LayerStack->PushLayer(layer);
-
-		layer->OnAttach();
-	}
-
-	void Application::PushLayer(Layer* layer)
-	{
-		LUMOS_PROFILE_FUNCTION();
-		PushLayerInternal(layer, false, true);
-	}
-
-	void Application::PushOverLay(Layer* overlay)
-	{
-		LUMOS_PROFILE_FUNCTION();
-		PushLayerInternal(overlay, true, true);
 	}
 
 	bool Application::OnWindowClose(WindowCloseEvent& e)
@@ -485,7 +439,7 @@ namespace Lumos
 		}
 		m_Minimized = false;
 		m_RenderGraph->OnResize(width, height);
-		m_LayerStack->OnEvent(e);
+		m_RenderGraph->OnEvent(e);
 		DebugRenderer::OnResize(width, height);
 
 		Graphics::GraphicsContext::GetContext()->WaitIdle();

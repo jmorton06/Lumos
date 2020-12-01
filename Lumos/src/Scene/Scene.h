@@ -20,9 +20,7 @@ namespace Lumos
 	class TimeStep;
 	class Font;
 	class Event;
-	class Layer;
 	class Camera;
-	class LayerStack;
 	class EntityManager;
 	class Entity;
 
@@ -97,13 +95,6 @@ namespace Lumos
 
 		entt::registry& GetRegistry();
 
-		LayerStack* GetLayers() const
-		{
-			return m_LayerStack;
-		}
-
-		void PushLayer(Layer* layer, bool overlay = false);
-    
         void UpdateSceneGraph();
 
         void DuplicateEntity(Entity entity);
@@ -151,7 +142,6 @@ namespace Lumos
         
 		SceneGraph m_SceneGraph;
 
-		LayerStack* m_LayerStack = nullptr;
 		bool m_HasCppClass = true;
 
 	private:

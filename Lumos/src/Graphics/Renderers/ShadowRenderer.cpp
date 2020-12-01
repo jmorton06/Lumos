@@ -98,17 +98,16 @@ namespace Lumos
 			// Per Scene System Uniforms
 			m_VSSystemUniformBufferOffsets[VSSystemUniformIndex_ProjectionViewMatrix] = 0;
 
-			m_RenderPass = Ref<Graphics::RenderPass>(Graphics::RenderPass::Create());
 			AttachmentInfo textureTypes[1] =
 				{
 					{TextureType::DEPTHARRAY, TextureFormat::DEPTH}};
 
-			Graphics::RenderpassInfo renderpassCI{};
+			Graphics::RenderPassInfo renderpassCI{};
 			renderpassCI.attachmentCount = 1;
 			renderpassCI.textureType = textureTypes;
 			renderpassCI.clear = true;
 
-			m_RenderPass->Init(renderpassCI);
+            m_RenderPass = Ref<Graphics::RenderPass>(Graphics::RenderPass::Create(renderpassCI));
 
 			m_CommandBuffer = Graphics::CommandBuffer::Create();
 			m_CommandBuffer->Init(true);
@@ -136,7 +135,49 @@ namespace Lumos
 		void ShadowRenderer::BeginScene(Scene* scene, Camera* overrideCamera, Maths::Transform* overrideCameraTransform)
 		{
 			LUMOS_PROFILE_FUNCTION();
-			UpdateCascades(scene, overrideCamera, overrideCameraTransform);
+            
+            auto& registry = scene->GetRegistry();
+            auto view = registry.view<Graphics::Light>();
+
+            Light* light = nullptr;
+
+            for(auto& lightEntity : view)
+            {
+                auto& currentLight = view.get<Graphics::Light>(lightEntity);
+                if(currentLight.Type == (float)Graphics::LightType::DirectionalLight)
+                    light = &currentLight;
+            }
+
+            if(!light)
+            {
+                m_ShouldRender = false;
+                return;
+            }
+
+            if(overrideCamera)
+            {
+                m_Camera = overrideCamera;
+                m_CameraTransform = overrideCameraTransform;
+            }
+            else
+            {
+                auto cameraView = registry.view<Camera>();
+                if(!cameraView.empty())
+                {
+                    m_Camera = &cameraView.get<Camera>(cameraView.front());
+                    m_CameraTransform = registry.try_get<Maths::Transform>(cameraView.front());
+                }
+            }
+
+            if(!m_Camera || !m_CameraTransform)
+            {
+                m_ShouldRender = false;
+                return;
+            }
+            
+			UpdateCascades(scene, overrideCamera, overrideCameraTransform, light);
+            
+            m_ShouldRender = true;
 		}
 
 		void ShadowRenderer::EndScene()
@@ -212,6 +253,9 @@ namespace Lumos
 		void ShadowRenderer::RenderScene(Scene* scene)
 		{
 			LUMOS_PROFILE_FUNCTION();
+            
+            if(!m_ShouldRender)
+                return;
 
 			memcpy(m_VSSystemUniformBuffer + m_VSSystemUniformBufferOffsets[VSSystemUniformIndex_ProjectionViewMatrix], m_ShadowProjView, sizeof(Maths::Matrix4) * SHADOWMAP_MAX);
 
@@ -262,44 +306,10 @@ namespace Lumos
 			End();
 		}
     
-		void ShadowRenderer::UpdateCascades(Scene* scene, Camera* overrideCamera, Maths::Transform* overrideCameraTransform)
+		void ShadowRenderer::UpdateCascades(Scene* scene, Camera* overrideCamera, Maths::Transform* overrideCameraTransform, Light* light)
 		{
 			LUMOS_PROFILE_FUNCTION();
-
-			auto& registry = scene->GetRegistry();
-			auto view = registry.view<Graphics::Light>();
-
-			Light* light = nullptr;
-
-			for(auto& lightEntity : view)
-			{
-				auto& currentLight = view.get<Graphics::Light>(lightEntity);
-				if(currentLight.Type == (float)Graphics::LightType::DirectionalLight)
-					light = &currentLight;
-			}
-
-			if(!light)
-				return;
-
-			float cascadeSplits[SHADOWMAP_MAX];
-
-			if(overrideCamera)
-			{
-				m_Camera = overrideCamera;
-				m_CameraTransform = overrideCameraTransform;
-			}
-			else
-			{
-				auto cameraView = registry.view<Camera>();
-				if(!cameraView.empty())
-				{
-					m_Camera = &cameraView.get<Camera>(cameraView.front());
-					m_CameraTransform = registry.try_get<Maths::Transform>(cameraView.front());
-				}
-			}
-
-			if(!m_Camera || !m_CameraTransform)
-				return;
+            float cascadeSplits[SHADOWMAP_MAX];
 
 			float nearClip = m_Camera->GetNear();
 			float farClip = m_Camera->GetFar();

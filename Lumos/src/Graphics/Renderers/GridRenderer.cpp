@@ -104,19 +104,18 @@ namespace Lumos
 				commandBuffer->Init(true);
 			}
             
-			m_RenderPass = Ref<Graphics::RenderPass>(Graphics::RenderPass::Create());
 			AttachmentInfo textureTypes[1] =
             {
                 {TextureType::COLOUR, TextureFormat::RGBA32},
             };
             
-			Graphics::RenderpassInfo renderpassCI;
+			Graphics::RenderPassInfo renderpassCI;
 			renderpassCI.attachmentCount = 1;
 			renderpassCI.textureType = textureTypes;
 			renderpassCI.clear = false;
             
-			m_RenderPass->Init(renderpassCI);
-            
+            m_RenderPass = Ref<Graphics::RenderPass>(Graphics::RenderPass::Create(renderpassCI));
+
 			CreateGraphicsPipeline();
 			UpdateUniformBuffer();
 			CreateFramebuffers();

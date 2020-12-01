@@ -56,7 +56,7 @@ namespace Lumos
 		void Renderer2D::Init()
 		{
 			LUMOS_PROFILE_FUNCTION();
-			m_Shader = Ref<Graphics::Shader>(Shader::CreateFromFile("/CoreShaders/Batch2D.shader"));
+            m_Shader = Application::Get().GetShaderLibrary()->GetResource("/CoreShaders/Batch2D.shader");
 
 			m_TransformationStack.emplace_back(Maths::Matrix4());
 			m_TransformationBack = &m_TransformationStack.back();
@@ -64,7 +64,6 @@ namespace Lumos
 			m_VSSystemUniformBufferSize = sizeof(Maths::Matrix4);
 			m_VSSystemUniformBuffer = new u8[m_VSSystemUniformBufferSize];
 
-			m_RenderPass = Ref<Graphics::RenderPass>(Graphics::RenderPass::Create());
 			m_UniformBuffer = Graphics::UniformBuffer::Create();
 
 			AttachmentInfo textureTypes[2] =
@@ -76,12 +75,12 @@ namespace Lumos
 				textureTypes[1] = {TextureType::DEPTH, TextureFormat::DEPTH};
 			}
 
-			Graphics::RenderpassInfo renderpassCI;
+			Graphics::RenderPassInfo renderpassCI;
 			renderpassCI.attachmentCount = m_RenderToDepthTexture ? 2 : 1;
 			renderpassCI.textureType = textureTypes;
 			renderpassCI.clear = m_Clear;
 
-			m_RenderPass->Init(renderpassCI);
+            m_RenderPass = Ref<Graphics::RenderPass>(Graphics::RenderPass::Create(renderpassCI));
 
 			CreateFramebuffers();
 

@@ -8,9 +8,9 @@ namespace Lumos
 {
     namespace Graphics
     {
-        GLRenderPass::GLRenderPass()
+        GLRenderPass::GLRenderPass(const RenderPassInfo& renderpassCI)
         {
-
+            Init(renderpassCI);
         }
 
         GLRenderPass::~GLRenderPass()
@@ -18,7 +18,7 @@ namespace Lumos
 
         }
 
-        bool GLRenderPass::Init(const RenderpassInfo &renderpassCI)
+        bool GLRenderPass::Init(const RenderPassInfo &renderpassCI)
         {
 			m_Clear = renderpassCI.clear;
             m_ClearCount = renderpassCI.attachmentCount;
@@ -55,9 +55,9 @@ namespace Lumos
 			CreateFunc = CreateFuncGL;
 		}
 
-		RenderPass* GLRenderPass::CreateFuncGL()
+		RenderPass* GLRenderPass::CreateFuncGL(const RenderPassInfo& renderpassCI)
 		{
-			return new GLRenderPass;
+			return new GLRenderPass(renderpassCI);
 		}
     }
 }

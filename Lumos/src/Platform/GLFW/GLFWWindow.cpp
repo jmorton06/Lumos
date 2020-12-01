@@ -375,6 +375,10 @@ namespace Lumos
 		LUMOS_PROFILE_FUNCTION();
 		ImGuiIO& io = ImGui::GetIO();
 		ImGuiMouseCursor imgui_cursor = ImGui::GetMouseCursor();
+        
+        if ((io.ConfigFlags & ImGuiConfigFlags_NoMouseCursorChange) || glfwGetInputMode(m_Handle, GLFW_CURSOR) == GLFW_CURSOR_DISABLED)
+              return;
+        
 		if(imgui_cursor == ImGuiMouseCursor_None || io.MouseDrawCursor)
 		{
 			// Hide OS mouse cursor if imgui is drawing it or if it wants no cursor
