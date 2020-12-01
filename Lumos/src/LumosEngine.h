@@ -81,10 +81,7 @@
 #include "Utilities/StateMachine.h"
 #include "Utilities/State.h"
 
-//Layers
-#include "ImGui/ImGuiLayer.h"
-#include "Graphics/Layers/Layer3D.h"
-#include "Graphics/Layers/Layer2D.h"
+#include "ImGui/ImGuiManager.h"
 #include "Graphics/Renderers/Renderer2D.h"
 #include "Graphics/Renderers/DeferredRenderer.h"
 #include "Graphics/Renderers/ForwardRenderer.h"

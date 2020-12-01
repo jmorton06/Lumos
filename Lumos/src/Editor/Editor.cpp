@@ -32,13 +32,11 @@
 
 #include "Graphics/Renderers/ForwardRenderer.h"
 #include "Graphics/MeshFactory.h"
-#include "Graphics/Layers/Layer3D.h"
 #include "Graphics/Sprite.h"
 #include "Graphics/AnimatedSprite.h"
 #include "Graphics/Light.h"
 #include "Graphics/API/Texture.h"
 #include "Graphics/Camera/Camera.h"
-#include "Graphics/Layers/LayerStack.h"
 #include "Graphics/API/GraphicsContext.h"
 #include "Graphics/Renderers/GridRenderer.h"
 #include "Graphics/Renderers/DebugRenderer.h"
@@ -204,7 +202,7 @@ namespace Lumos
 		LUMOS_PROFILE_FUNCTION();
 		DrawMenuBar();
         
-		BeginDockSpace(false);
+		BeginDockSpace(m_FullScreenOnPlay && m_Application->GetEditorState() == EditorState::Play);
         
 		for(auto& window : m_Windows)
 		{
@@ -751,7 +749,7 @@ namespace Lumos
 		}
 	}
     
-	void Editor::BeginDockSpace(bool infoBar)
+	void Editor::BeginDockSpace(bool gameFullScreen)
 	{
 		LUMOS_PROFILE_FUNCTION();
 		static bool p_open = true;
@@ -771,14 +769,7 @@ namespace Lumos
 			bool menuBar = true;
 			if(menuBar)
 			{
-				const float infoBarSize = 19.0f;
-				pos.y += infoBarSize;
-				size.y -= infoBarSize;
-			}
-            
-			if(infoBar)
-			{
-				const float infoBarSize = 24.0f;
+				const float infoBarSize = ImGui::GetFrameHeight();
 				pos.y += infoBarSize;
 				size.y -= infoBarSize;
 			}
@@ -807,6 +798,33 @@ namespace Lumos
         
         ImGuiID DockspaceID = ImGui::GetID("MyDockspace");
         
+        static std::vector<Ref<EditorWindow>> hiddenWindows;
+        if(m_FullScreenSceneView != gameFullScreen)
+        {
+            m_FullScreenSceneView = gameFullScreen;
+            
+            if(m_FullScreenSceneView)
+            {
+                for(auto window : m_Windows)
+                {
+                    if(window->GetSimpleName() != "Scene" && window->Active())
+                    {
+                        window->SetActive(false);
+                        hiddenWindows.push_back(window);
+                    }
+                }
+            }
+            else
+            {
+                for(auto window : hiddenWindows)
+                {
+                    window->SetActive(true);
+                }
+                
+                hiddenWindows.clear();
+            }
+        }
+        
         if (!ImGui::DockBuilderGetNode(DockspaceID))
 		{
             ImGui::DockBuilderRemoveNode(DockspaceID); // Clear out existing layout
@@ -830,6 +848,7 @@ namespace Lumos
             ImGuiID DockMiddle = ImGui::DockBuilderSplitNode(dock_main_id, ImGuiDir_Right, 0.8f, nullptr, &dock_main_id);
             
             ImGui::DockBuilderDockWindow("###scene", DockMiddle);
+    
             ImGui::DockBuilderDockWindow("###inspector", DockRight);
             ImGui::DockBuilderDockWindow("###console", DockingBottomLeftChild);
             ImGui::DockBuilderDockWindow("###profiler", DockingBottomLeftChild);
@@ -1032,6 +1051,7 @@ namespace Lumos
 	void Editor::OnUpdate(const TimeStep& ts)
 	{
 		LUMOS_PROFILE_FUNCTION();
+        
         if(m_Application->GetEditorState() == EditorState::Preview)
         {
 			auto& registry = m_Application->GetSceneManager()->GetCurrentScene()->GetRegistry();

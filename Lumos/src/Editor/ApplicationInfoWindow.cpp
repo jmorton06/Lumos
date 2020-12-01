@@ -6,7 +6,6 @@
 #include "Core/Application.h"
 #include "Scene/SceneManager.h"
 #include "Core/Engine.h"
-#include "Graphics/Layers/LayerStack.h"
 #include "Graphics/Renderers/RenderGraph.h"
 #include "Graphics/GBuffer.h"
 #include "ImGui/ImGuiHelpers.h"
@@ -35,10 +34,10 @@ namespace Lumos
 					ImGui::TreePop();
 				}
 
-				auto layerStack = Application::Get().GetSceneLayers();
-				if(ImGui::TreeNode("Layers"))
+				auto renderGraph = Application::Get().GetRenderGraph();
+				if(ImGui::TreeNode("RenderGraph"))
 				{
-					layerStack->OnImGui();
+                    renderGraph->OnImGui();
 					ImGui::TreePop();
 				}
 

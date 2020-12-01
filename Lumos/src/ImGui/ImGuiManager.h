@@ -1,7 +1,6 @@
 #pragma once
 
 #include "Core/Core.h"
-#include "Graphics/Layers/Layer.h"
 #include "Events/KeyEvent.h"
 #include "Events/Event.h"
 #include "Events/MouseEvent.h"
@@ -9,23 +8,24 @@
 
 namespace Lumos
 {
+    class Scene;
+    class TimeStep;
     namespace Graphics
     {
 		class IMGUIRenderer;
     }
 
-	class LUMOS_EXPORT ImGuiLayer : public Layer
+	class LUMOS_EXPORT ImGuiManager
 	{
 	public:
-		ImGuiLayer(bool clearScreen = false, const std::string& name = "ImGuiLayer");
-		~ImGuiLayer();
-
-		void OnAttach() override;
-		void OnDetach() override;
-		void OnUpdate(const TimeStep& dt, Scene* scene) override;
-		void OnEvent(Event& event) override;
-		void OnRender(Scene* scene) override;
-		void OnNewScene(Scene* scene) override;
+        ImGuiManager(bool clearScreen = false);
+		~ImGuiManager();
+        
+        void OnInit();
+		void OnUpdate(const TimeStep& dt, Scene* scene);
+		void OnEvent(Event& event);
+		void OnRender(Scene* scene);
+		void OnNewScene(Scene* scene);
 
 	private:
 

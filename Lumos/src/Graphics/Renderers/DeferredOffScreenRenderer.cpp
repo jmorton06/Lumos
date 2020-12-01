@@ -101,8 +101,6 @@ namespace Lumos
 			// Per Scene System Uniforms
 			m_VSSystemUniformBufferOffsets[VSSystemUniformIndex_ProjectionViewMatrix] = 0;
 
-			m_RenderPass = Ref<Graphics::RenderPass>(Graphics::RenderPass::Create());
-
 			AttachmentInfo textureTypesOffScreen[5] =
 				{
 					{TextureType::COLOUR, Application::Get().GetRenderGraph()->GetGBuffer()->GetTextureFormat(SCREENTEX_COLOUR)},
@@ -111,11 +109,12 @@ namespace Lumos
 					{TextureType::COLOUR, Application::Get().GetRenderGraph()->GetGBuffer()->GetTextureFormat(SCREENTEX_PBR)},
 					{TextureType::DEPTH, TextureFormat::DEPTH}};
 
-			Graphics::RenderpassInfo renderpassCIOffScreen{};
+			Graphics::RenderPassInfo renderpassCIOffScreen{};
 			renderpassCIOffScreen.attachmentCount = 5;
 			renderpassCIOffScreen.textureType = textureTypesOffScreen;
 
-			m_RenderPass->Init(renderpassCIOffScreen);
+            m_RenderPass = Ref<Graphics::RenderPass>(Graphics::RenderPass::Create(renderpassCIOffScreen));
+
             
             auto pushConstant = Graphics::PushConstant();
             pushConstant.size = sizeof(Lumos::Maths::Matrix4);

@@ -71,19 +71,18 @@ namespace Lumos
 		m_VSSystemUniformBufferSize = sizeof(Maths::Matrix4);
 		m_VSSystemUniformBuffer = new u8[m_VSSystemUniformBufferSize];
 
-		m_RenderPass = Ref<Graphics::RenderPass>(Graphics::RenderPass::Create());
 		m_UniformBuffer = Graphics::UniformBuffer::Create();
 
 		AttachmentInfo textureTypes[2] =
 			{
 				{TextureType::COLOUR, TextureFormat::RGBA8}};
 
-		Graphics::RenderpassInfo renderpassCI;
+		Graphics::RenderPassInfo renderpassCI;
 		renderpassCI.attachmentCount = 1;
 		renderpassCI.textureType = textureTypes;
 		renderpassCI.clear = false;
 
-		m_RenderPass->Init(renderpassCI);
+        m_RenderPass = Ref<Graphics::RenderPass>(Graphics::RenderPass::Create(renderpassCI));
 
 		CreateFramebuffers();
 

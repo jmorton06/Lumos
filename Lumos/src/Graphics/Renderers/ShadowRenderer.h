@@ -93,7 +93,7 @@ namespace Lumos
 			void CreateGraphicsPipeline();
 			void CreateFramebuffers();
 			void CreateUniformBuffer();
-			void UpdateCascades(Scene* scene, Camera* overrideCamera, Maths::Transform* overrideCameraTransform);
+			void UpdateCascades(Scene* scene, Camera* overrideCamera, Maths::Transform* overrideCameraTransform, Light* light);
 
 			void OnImGui() override;
 
@@ -114,6 +114,7 @@ namespace Lumos
 			u32 m_Layer = 0;
             float m_CascadeSplitLambda;
             float m_SceneRadiusMultiplier;
+            bool m_ShouldRender = false;
             
             std::vector<Graphics::PushConstant> m_PushConstants;
 		};

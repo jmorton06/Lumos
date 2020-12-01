@@ -18,13 +18,12 @@ namespace Lumos
 	class AudioManager;
 	class SystemManager;
 	class Editor;
-	class LayerStack;
-	class Layer;
 	class ISystem;
 	class Scene;
 	class Event;
 	class WindowCloseEvent;
 	class WindowResizeEvent;
+    class ImGuiManager;
 
 	namespace Graphics
 	{
@@ -76,17 +75,9 @@ namespace Lumos
 		void OnImGui();
 		void OnNewScene(Scene* scene);
 		void OnExitScene();
-		void PushLayer(Layer* layer);
-		void PushOverLay(Layer* overlay);
-		void ClearLayers();
 		void OnSceneViewSizeUpdated(u32 width, u32 height);
 
 		virtual void Init();
-
-        LayerStack* GetSceneLayers() const
-        {
-            return m_LayerStack;
-        }
 
 		SceneManager* GetSceneManager() const
 		{
@@ -269,8 +260,6 @@ namespace Lumos
 					
 
 	private:
-		void PushLayerInternal(Layer* layer, bool overlay, bool sceneAdded);
-
 		bool OnWindowClose(WindowCloseEvent& e);
 
 		float m_UpdateTimer;
@@ -304,15 +293,13 @@ namespace Lumos
         
         Ref<ShaderLibrary> m_ShaderLibrary;
 
-		LayerStack* m_LayerStack = nullptr;
-
 		AppState m_CurrentState = AppState::Loading;
 		EditorState m_EditorState = EditorState::Preview;
 		AppType m_AppType = AppType::Editor;
 
 		static Application* s_Instance;
 
-		Layer* m_ImGuiLayer = nullptr;
+        ImGuiManager* m_ImGuiManager = nullptr;
 
 #ifdef LUMOS_EDITOR
 		Editor* m_Editor = nullptr;

@@ -20,7 +20,6 @@ namespace Lumos
 	class Application;
 	class Scene;
 	class Event;
-	class Layer3D;
 	class WindowCloseEvent;
 	class WindowResizeEvent;
 	class TimeStep;
@@ -57,7 +56,7 @@ namespace Lumos
 		void OnImGui();
 		void OnRender();
 		void DrawMenuBar();
-		void BeginDockSpace(bool infoBar);
+		void BeginDockSpace(bool gameFullScreen);
 		void EndDockSpace();
 
 		void SetImGuizmoOperation(u32 operation)
@@ -99,6 +98,11 @@ namespace Lumos
 		{
 			m_SnapQuizmo = !m_SnapQuizmo;
 		}
+        
+        bool& FullScreenOnPlay()
+        {
+            return m_FullScreenOnPlay;
+        }
 
 		bool& SnapGuizmo()
 		{
@@ -212,6 +216,7 @@ namespace Lumos
 		bool m_SnapQuizmo = false;
 		bool m_ShowImGuiDemo = true;
 		bool m_View2D = false;
+        bool m_FullScreenOnPlay = false;
 		float m_SnapAmount = 1.0f;
 		float m_CurrentSceneAspectRatio = 0.0f;
 		bool m_TransitioningCamera = false;
@@ -219,6 +224,8 @@ namespace Lumos
 		Maths::Vector3 m_CameraStartPosition;
 		float m_CameraTransitionStartTime = 0.0f;
 		float m_CameraTransitionSpeed = 0.0f;
+        
+        bool m_FullScreenSceneView = false;
 		ImGuiHelpers::Theme m_Theme = ImGuiHelpers::Theme::Dark;
 
 		std::vector<Ref<EditorWindow>> m_Windows;

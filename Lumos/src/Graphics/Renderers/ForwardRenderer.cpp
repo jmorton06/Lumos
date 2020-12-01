@@ -120,11 +120,10 @@ namespace Lumos
 			// Per Scene System Uniforms
 			m_PSSystemUniformBufferOffsets[PSSystemUniformIndex_Lights] = 0;
 
-			m_RenderPass = Ref<Graphics::RenderPass>(Graphics::RenderPass::Create());
 			m_UniformBuffer = Graphics::UniformBuffer::Create();
 			m_ModelUniformBuffer = Graphics::UniformBuffer::Create();
 
-			Graphics::RenderpassInfo renderpassCI{};
+			Graphics::RenderPassInfo renderpassCI{};
 
 			if(m_DepthTest)
 			{
@@ -147,7 +146,7 @@ namespace Lumos
 				renderpassCI.textureType = textureTypes;
 			}
 
-			m_RenderPass->Init(renderpassCI);
+            m_RenderPass = Ref<Graphics::RenderPass>(Graphics::RenderPass::Create(renderpassCI));
 
 			CreateFramebuffers();
 

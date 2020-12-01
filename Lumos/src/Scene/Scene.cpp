@@ -3,7 +3,6 @@
 #include "Core/OS/Input.h"
 #include "Core/Application.h"
 #include "Graphics/API/GraphicsContext.h"
-#include "Graphics/Layers/LayerStack.h"
 #include "Graphics/Renderers/RenderGraph.h"
 #include "Graphics/Camera/Camera.h"
 #include "Graphics/Sprite.h"
@@ -17,7 +16,6 @@
 #include "Physics/LumosPhysicsEngine/CuboidCollisionShape.h"
 #include "Physics/LumosPhysicsEngine/PyramidCollisionShape.h"
 
-#include "Graphics/Layers/LayerStack.h"
 #include "Maths/Transform.h"
 #include "Core/OS/FileSystem.h"
 #include "Scene/Component/Components.h"
@@ -43,7 +41,6 @@ namespace Lumos
 		, m_ScreenWidth(0)
 		, m_ScreenHeight(0)
 	{
-		m_LayerStack = new LayerStack();
 		m_EntityManager = CreateUniqueRef<EntityManager>(this);
 		m_EntityManager->AddDependency<Physics3DComponent, Maths::Transform>();
 		m_EntityManager->AddDependency<Physics2DComponent, Maths::Transform>();
@@ -56,8 +53,6 @@ namespace Lumos
 	
 	Scene::~Scene()
 	{
-		delete m_LayerStack;
-
 		m_EntityManager->Clear();
 	}
 
@@ -85,8 +80,6 @@ namespace Lumos
 	void Scene::OnCleanupScene()
 	{
 		LUMOS_PROFILE_FUNCTION();
-		m_LayerStack->Clear();
-
 		DeleteAllGameObjects();
 
 		LuaManager::Get().GetState().collect_garbage();
@@ -155,17 +148,6 @@ namespace Lumos
 		}
 
 		return false;
-	}
-
-	void Scene::PushLayer(Layer* layer, bool overlay)
-	{
-		LUMOS_PROFILE_FUNCTION();
-		if(overlay)
-			m_LayerStack->PushOverlay(layer);
-		else
-			m_LayerStack->PushLayer(layer);
-
-		layer->OnAttach();
 	}
 
 #define ALL_COMPONENTSV1 Maths::Transform, NameComponent, ActiveComponent, Hierarchy, Camera, LuaScriptComponent, Graphics::Model, Graphics::Light, Physics3DComponent, Graphics::Environment, Graphics::Sprite, Physics2DComponent, DefaultCameraController

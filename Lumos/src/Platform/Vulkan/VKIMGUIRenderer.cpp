@@ -105,17 +105,17 @@ namespace Lumos
 
             wd->BackBufferCount = static_cast<uint32_t>(swapChain->GetSwapchainBufferCount());
             
-			m_Renderpass = new VKRenderpass();
 			AttachmentInfo textureTypes[2] =
 			{
 				{ TextureType::COLOUR, TextureFormat::RGBA8 }
 			};
 
-            Graphics::RenderpassInfo renderpassCI;
+            Graphics::RenderPassInfo renderpassCI;
             renderpassCI.attachmentCount = 1;
             renderpassCI.textureType = textureTypes;
             renderpassCI.clear = m_ClearScreen;
-			m_Renderpass->Init(renderpassCI);
+            
+			m_Renderpass = new VKRenderpass(renderpassCI);
             wd->RenderPass = m_Renderpass->GetRenderpass();
 
             // Create The Image Views

@@ -8,6 +8,8 @@
 
 namespace Lumos
 {
+    Maths::Vector4 SelectedColour = Maths::Vector4(0.28f, 0.56f, 0.9f, 1.0f);
+
 	bool ImGuiHelpers::Property(const std::string& name, bool& value)
 	{
 		bool updated = false;
@@ -127,27 +129,30 @@ namespace Lumos
 	}
 
 	void ImGuiHelpers::Tooltip(const std::string& text)
-	{
-		if(ImGui::IsItemHovered())
-		{
-			ImGui::BeginTooltip();
-			ImGui::TextUnformatted(text.c_str());
-			ImGui::EndTooltip();
-		}
+    {
+        ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(5, 5));
+        Tooltip(text.c_str());
+        ImGui::PopStyleVar();
 	}
 
 	void ImGuiHelpers::Tooltip(const char* text)
 	{
+        ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(5, 5));
+
 		if(ImGui::IsItemHovered())
 		{
 			ImGui::BeginTooltip();
 			ImGui::TextUnformatted(text);
 			ImGui::EndTooltip();
 		}
+        
+        ImGui::PopStyleVar();
 	}
 
 	void ImGuiHelpers::Tooltip(Graphics::Texture2D* texture, const Maths::Vector2& size)
 	{
+        ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(5, 5));
+
 		if(ImGui::IsItemHovered())
 		{
 			ImGui::BeginTooltip();
@@ -155,10 +160,14 @@ namespace Lumos
 			ImGui::Image(texture ? texture->GetHandle() : nullptr, ImVec2(size.x, size.y), ImVec2(0.0f, flipImage ? 1.0f : 0.0f), ImVec2(1.0f, flipImage ? 0.0f : 1.0f));
 			ImGui::EndTooltip();
 		}
+        
+        ImGui::PopStyleVar();
 	}
 
 	void ImGuiHelpers::Tooltip(Graphics::Texture2D* texture, const Maths::Vector2& size, const std::string& text)
 	{
+        ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(5, 5));
+
 		if(ImGui::IsItemHovered())
 		{
 			ImGui::BeginTooltip();
@@ -167,6 +176,8 @@ namespace Lumos
 			ImGui::TextUnformatted(text.c_str());
 			ImGui::EndTooltip();
 		}
+        
+        ImGui::PopStyleVar();
 	}
 
 	void ImGuiHelpers::Image(Graphics::Texture2D* texture, const Maths::Vector2& size)
@@ -552,6 +563,8 @@ namespace Lumos
 			colours[ImGuiCol_PlotHistogramHovered] = MED(1.00f);
 			colours[ImGuiCol_TextSelectedBg] = MED(0.43f);
 			colours[ImGuiCol_Border] = ImVec4(0.539f, 0.479f, 0.255f, 0.162f);
+            colours[ImGuiCol_TabHovered] = colours[ImGuiCol_ButtonHovered];
+
 			break;
 		case Blue:
 			colours[ImGuiCol_Text] = ImVec4(color_for_text.x, color_for_text.y, color_for_text.z, 1.00f);
@@ -660,6 +673,11 @@ namespace Lumos
         
         OS::Instance()->SetTitleBarColour(colours[ImGuiCol_MenuBarBg]);
 	}
+
+    Maths::Vector4 ImGuiHelpers::GetSelectedColour()
+    {
+        return SelectedColour;
+    }
 }
 
 namespace ImGui

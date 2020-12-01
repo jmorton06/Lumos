@@ -70,6 +70,7 @@ static iOSOS* os = nullptr;
     
     void iOSOS::OnQuit()
     {
+        Application::Get().Quit();
         Application::Release();
 	    Lumos::Internal::CoreSystem::Shutdown();
     }
@@ -261,7 +262,7 @@ static iOSOS* os = nullptr;
         
         Lumos::os->OnScreenResize(self.drawableWidth, self.drawableHeight);
     }
-    
+        
     Lumos::os->OnFrame();
 }
     
@@ -328,17 +329,27 @@ static iOSOS* os = nullptr;
 {
     LumosAppDelegate *delegate = UIApplication.sharedApplication.delegate;
     CGRect frame = delegate.window.bounds;
+    
+    UIEdgeInsets safeAreaInsets = delegate.window.safeAreaInsets;
+    CGRect safeAreaFrame = CGRectMake(safeAreaInsets.left,
+                                      safeAreaInsets.top,
+                                      frame.size.width - safeAreaInsets.left - safeAreaInsets.right,
+                                      frame.size.height - safeAreaInsets.top - safeAreaInsets.bottom);
+    
     CGFloat scale = [UIScreen mainScreen].nativeScale;
     UIView<LumosView> *lumosView = nil;
-    
-    if (self.metalDevice) {
+        
+    if (self.metalDevice)
+    {
         lumosView = [[[LumosMetalView alloc] initWithFrame:frame
-                                       contentScaleFactor:scale
+                                            contentScaleFactor:scale
                                                    device:self.metalDevice
                                               ] autorelease ];
     }
+    
     self.view = lumosView;
     self.view.autoresizingMask = UIViewAutoresizingFlexibleWidth | UIViewAutoresizingFlexibleHeight;
+    
     
     Lumos::os->SetIOSView((__bridge void *)lumosView);
     Lumos::os->SetWindowSize(frame.size.width * scale, frame.size.height * scale);
@@ -351,7 +362,7 @@ static iOSOS* os = nullptr;
 
     LumosAppDelegate *delegate = UIApplication.sharedApplication.delegate;
     self.lumosView.animating = delegate.active;
-    
+        
 #if TARGET_OS_IOS
     self.view.multipleTouchEnabled = self.multipleTouchEnabled;
 
