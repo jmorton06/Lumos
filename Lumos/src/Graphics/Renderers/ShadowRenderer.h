@@ -104,7 +104,7 @@ namespace Lumos
 			u32 m_ShadowMapNum;
 			u32 m_ShadowMapSize;
 			bool m_ShadowMapsInvalidated;
-			Framebuffer* m_ShadowFramebuffer[SHADOWMAP_MAX]{};
+			Ref<Framebuffer> m_ShadowFramebuffer[SHADOWMAP_MAX]{};
 			Maths::Matrix4 m_ShadowProjView[SHADOWMAP_MAX];
 			Maths::Vector4 m_SplitDepth[SHADOWMAP_MAX];
 

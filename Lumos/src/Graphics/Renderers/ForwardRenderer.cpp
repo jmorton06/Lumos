@@ -48,12 +48,7 @@ namespace Lumos
 
 			delete[] m_VSSystemUniformBuffer;
 			delete[] m_PSSystemUniformBuffer;
-
-			for(auto& framebuffer : m_Framebuffers)
-			{
-				delete framebuffer;
-			}
-
+            
 			for(auto& commandBuffer : m_CommandBuffers)
 			{
 				delete commandBuffer;
@@ -146,7 +141,7 @@ namespace Lumos
 				renderpassCI.textureType = textureTypes;
 			}
 
-            m_RenderPass = Ref<Graphics::RenderPass>(Graphics::RenderPass::Create(renderpassCI));
+            m_RenderPass = Graphics::RenderPass::Get(renderpassCI);
 
 			CreateFramebuffers();
 
@@ -229,7 +224,7 @@ namespace Lumos
 				m_CurrentBufferID = Renderer::GetSwapchain()->GetCurrentBufferId();
 
 			m_SystemUniforms.clear();
-			m_RenderPass->BeginRenderpass(m_CommandBuffers[m_CurrentBufferID], m_ClearColour, m_Framebuffers[m_CurrentBufferID], Graphics::INLINE, m_ScreenBufferWidth, m_ScreenBufferHeight);
+			m_RenderPass->BeginRenderpass(m_CommandBuffers[m_CurrentBufferID], m_ClearColour, m_Framebuffers[m_CurrentBufferID].get(), Graphics::INLINE, m_ScreenBufferWidth, m_ScreenBufferHeight);
 		}
 
 		void ForwardRenderer::BeginScene(Scene* scene, Camera* overrideCamera, Maths::Transform* overrideCameraTransform)
@@ -413,7 +408,7 @@ namespace Lumos
 			pipelineCreateInfo.transparencyEnabled = false;
 			pipelineCreateInfo.depthBiasEnabled = false;
 
-			m_Pipeline = Ref<Graphics::Pipeline>(Graphics::Pipeline::Create(pipelineCreateInfo));
+			m_Pipeline = Graphics::Pipeline::Get(pipelineCreateInfo);
 		}
 
 		void ForwardRenderer::SetRenderTarget(Texture* texture, bool rebuildFramebuffer)
@@ -452,7 +447,7 @@ namespace Lumos
 				attachments[0] = m_RenderTexture;
 				bufferInfo.attachments = attachments;
 				bufferInfo.screenFBO = false;
-				m_Framebuffers.emplace_back(Framebuffer::Create(bufferInfo));
+				m_Framebuffers.emplace_back(Framebuffer::Get(bufferInfo));
 			}
 			else
 			{
@@ -462,7 +457,7 @@ namespace Lumos
 					attachments[0] = Renderer::GetSwapchain()->GetImage(i);
 					bufferInfo.attachments = attachments;
 
-					m_Framebuffers.emplace_back(Framebuffer::Create(bufferInfo));
+					m_Framebuffers.emplace_back(Framebuffer::Get(bufferInfo));
 				}
 			}
 		}

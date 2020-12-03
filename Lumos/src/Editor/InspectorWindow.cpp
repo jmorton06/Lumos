@@ -95,27 +95,26 @@ namespace MM
 		auto position = transform.GetLocalPosition();
 		auto scale = transform.GetLocalScale();
 
-		ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(2, 2));
-		ImGui::Columns(2);
-		ImGui::Separator();
+        ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(2, 2));
+        ImGui::Columns(2);
+        ImGui::Separator();
 
-		ImGui::AlignTextToFramePadding();
 		ImGui::TextUnformatted("Position");
 		ImGui::NextColumn();
 		ImGui::PushItemWidth(-1);
-		if(ImGui::DragFloat3Coloured("##Position", Lumos::Maths::ValuePointer(position)))
+        
+		if(ImGui::DragFloat3("##Position", Lumos::Maths::ValuePointer(position), 3, 0.05f))
 		{
 			transform.SetLocalPosition(position);
 		}
 
-		ImGui::PopItemWidth();
+        ImGui::PopItemWidth();
 		ImGui::NextColumn();
 
-		ImGui::AlignTextToFramePadding();
 		ImGui::TextUnformatted("Rotation");
 		ImGui::NextColumn();
 		ImGui::PushItemWidth(-1);
-		if(ImGui::DragFloat3Coloured("##Rotation", Lumos::Maths::ValuePointer(rotation)))
+        if(ImGui::DragFloat3("##Rotation", Lumos::Maths::ValuePointer(rotation), 3, 0.05f))
 		{
 			float pitch = Lumos::Maths::Min(rotation.x, 89.9f);
 			pitch = Lumos::Maths::Max(pitch, -89.9f);
@@ -125,11 +124,10 @@ namespace MM
 		ImGui::PopItemWidth();
 		ImGui::NextColumn();
 
-		ImGui::AlignTextToFramePadding();
 		ImGui::TextUnformatted("Scale");
 		ImGui::NextColumn();
 		ImGui::PushItemWidth(-1);
-		if(ImGui::DragFloat3Coloured("##Scale", Lumos::Maths::ValuePointer(scale), 0.1f))
+        if(ImGui::DragFloat3("##Scale", Lumos::Maths::ValuePointer(scale), 3, 0.05f))
 		{
 			transform.SetLocalScale(scale);
 		}
@@ -139,7 +137,7 @@ namespace MM
 
 		ImGui::Columns(1);
 		ImGui::Separator();
-		ImGui::PopStyleVar();
+        ImGui::PopStyleVar();
 	 }
 
 	static void CuboidCollisionShapeInspector(Lumos::CuboidCollisionShape* shape, const Lumos::Physics3DComponent& phys)

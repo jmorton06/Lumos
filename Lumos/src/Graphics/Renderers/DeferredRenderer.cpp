@@ -140,7 +140,7 @@ namespace Lumos
 			renderpassCI.textureType = textureTypes;
 			renderpassCI.clear = true;
 
-            m_RenderPass = Ref<Graphics::RenderPass>(Graphics::RenderPass::Create(renderpassCI));
+            m_RenderPass = Graphics::RenderPass::Get(renderpassCI);
 
 			m_CommandBuffers.resize(Renderer::GetSwapchain()->GetSwapchainBufferCount());
 
@@ -400,7 +400,7 @@ namespace Lumos
 			pipelineCreateInfo.transparencyEnabled = false;
 			pipelineCreateInfo.depthBiasEnabled = false;
 
-			m_Pipeline = Ref<Graphics::Pipeline>(Graphics::Pipeline::Create(pipelineCreateInfo));
+			m_Pipeline = Graphics::Pipeline::Get(pipelineCreateInfo);
 		}
 
 		void DeferredRenderer::SetRenderTarget(Texture* texture, bool rebuildFramebuffer)
@@ -502,7 +502,7 @@ namespace Lumos
 				attachments[0] = m_RenderTexture;
 				bufferInfo.attachments = attachments;
 				bufferInfo.screenFBO = false;
-				m_Framebuffers.emplace_back(Framebuffer::Create(bufferInfo));
+				m_Framebuffers.emplace_back(Framebuffer::Get(bufferInfo));
 			}
 			else
 			{
@@ -512,7 +512,7 @@ namespace Lumos
 					attachments[0] = Renderer::GetSwapchain()->GetImage(i);
 					bufferInfo.attachments = attachments;
 
-					m_Framebuffers.emplace_back(Framebuffer::Create(bufferInfo));
+					m_Framebuffers.emplace_back(Framebuffer::Get(bufferInfo));
 				}
 			}
 		}
@@ -548,7 +548,7 @@ namespace Lumos
 		{
 			LUMOS_PROFILE_FUNCTION();
 			m_Framebuffers.clear();
-
+            
 			DeferredRenderer::SetScreenBufferSize(width, height);
 
 			CreateFramebuffers();

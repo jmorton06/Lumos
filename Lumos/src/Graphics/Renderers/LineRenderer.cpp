@@ -82,7 +82,7 @@ namespace Lumos
 		renderpassCI.textureType = textureTypes;
 		renderpassCI.clear = false;
 
-        m_RenderPass = Ref<Graphics::RenderPass>(Graphics::RenderPass::Create(renderpassCI));
+        m_RenderPass = Graphics::RenderPass::Get(renderpassCI);
 
 		CreateFramebuffers();
 
@@ -348,7 +348,7 @@ namespace Lumos
 		pipelineCreateInfo.depthBiasEnabled = true;
 		pipelineCreateInfo.drawType = DrawType::LINES;
 
-		m_Pipeline = Ref<Graphics::Pipeline>(Graphics::Pipeline::Create(pipelineCreateInfo));
+		m_Pipeline = Graphics::Pipeline::Get(pipelineCreateInfo);
 	}
 
 	void LineRenderer::CreateFramebuffers()
@@ -369,7 +369,7 @@ namespace Lumos
 			attachments[0] = m_RenderTexture;
 			bufferInfo.attachments = attachments;
 			bufferInfo.screenFBO = false;
-			m_Framebuffers.emplace_back(Framebuffer::Create(bufferInfo));
+			m_Framebuffers.emplace_back(Framebuffer::Get(bufferInfo));
 		}
 		else
 		{
@@ -379,7 +379,7 @@ namespace Lumos
 				attachments[0] = Renderer::GetSwapchain()->GetImage(i);
 				bufferInfo.attachments = attachments;
 
-				m_Framebuffers.emplace_back(Framebuffer::Create(bufferInfo));
+				m_Framebuffers.emplace_back(Framebuffer::Get(bufferInfo));
 			}
 		}
 	}

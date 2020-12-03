@@ -56,6 +56,7 @@ namespace Lumos
 				m_ShadowTex = texture;
 
 			m_DescriptorSet = nullptr;
+            m_ScreenRenderer = false;
 
 			ShadowRenderer::Init();
 		}
@@ -63,11 +64,6 @@ namespace Lumos
 		ShadowRenderer::~ShadowRenderer()
 		{
 			delete m_ShadowTex;
-
-			for(u32 i = 0; i < m_ShadowMapNum; ++i)
-			{
-				delete m_ShadowFramebuffer[i];
-			}
 
 			delete[] m_VSSystemUniformBuffer;
             
@@ -107,7 +103,7 @@ namespace Lumos
 			renderpassCI.textureType = textureTypes;
 			renderpassCI.clear = true;
 
-            m_RenderPass = Ref<Graphics::RenderPass>(Graphics::RenderPass::Create(renderpassCI));
+            m_RenderPass = Graphics::RenderPass::Get(renderpassCI);
 
 			m_CommandBuffer = Graphics::CommandBuffer::Create();
 			m_CommandBuffer->Init(true);
@@ -196,7 +192,7 @@ namespace Lumos
 			LUMOS_PROFILE_FUNCTION();
 			int index = 0;
 
-			m_RenderPass->BeginRenderpass(m_CommandBuffer, Maths::Vector4(0.0f), m_ShadowFramebuffer[m_Layer], Graphics::INLINE, m_ShadowMapSize, m_ShadowMapSize, false);
+			m_RenderPass->BeginRenderpass(m_CommandBuffer, Maths::Vector4(0.0f), m_ShadowFramebuffer[m_Layer].get(), Graphics::INLINE, m_ShadowMapSize, m_ShadowMapSize, false);
 
 			m_Pipeline->Bind(m_CommandBuffer);
 
@@ -453,7 +449,7 @@ namespace Lumos
 					attachments[0] = m_ShadowTex;
 					bufferInfo.attachments = attachments;
 
-					m_ShadowFramebuffer[i] = Framebuffer::Create(bufferInfo);
+					m_ShadowFramebuffer[i] = Framebuffer::Get(bufferInfo);
 				}
 			}
 		}
@@ -476,7 +472,7 @@ namespace Lumos
 			pipelineCreateInfo.transparencyEnabled = false;
 			pipelineCreateInfo.depthBiasEnabled = true;
             
-			m_Pipeline = Ref<Graphics::Pipeline>(Graphics::Pipeline::Create(pipelineCreateInfo));
+			m_Pipeline = Graphics::Pipeline::Get(pipelineCreateInfo);
 		}
 
 		void ShadowRenderer::CreateUniformBuffer()
