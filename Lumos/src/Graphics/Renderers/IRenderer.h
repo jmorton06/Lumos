@@ -82,6 +82,11 @@ namespace Lumos
             {
                 m_RenderPriority = priority;
             }
+            
+            bool GetScreenRenderer()
+            {
+                return m_ScreenRenderer;
+            }
 
 		protected:
 			Camera* m_Camera = nullptr;
@@ -115,6 +120,7 @@ namespace Lumos
 			Maths::Vector4 m_ClearColour;
             
             int m_RenderPriority = 0;
+            bool m_ScreenRenderer = true;
 
 		};
 	}

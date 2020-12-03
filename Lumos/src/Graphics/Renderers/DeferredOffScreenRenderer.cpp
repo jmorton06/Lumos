@@ -48,9 +48,11 @@ namespace Lumos
 
 		DeferredOffScreenRenderer::DeferredOffScreenRenderer(u32 width, u32 height)
 		{
+            m_ScreenRenderer = false;
+
 			DeferredOffScreenRenderer::SetScreenBufferSize(width, height);
 			DeferredOffScreenRenderer::Init();
-		}
+        }
 
 		DeferredOffScreenRenderer::~DeferredOffScreenRenderer()
 		{
@@ -113,7 +115,7 @@ namespace Lumos
 			renderpassCIOffScreen.attachmentCount = 5;
 			renderpassCIOffScreen.textureType = textureTypesOffScreen;
 
-            m_RenderPass = Ref<Graphics::RenderPass>(Graphics::RenderPass::Create(renderpassCIOffScreen));
+            m_RenderPass = Graphics::RenderPass::Get(renderpassCIOffScreen);
 
             
             auto pushConstant = Graphics::PushConstant();
@@ -320,7 +322,7 @@ namespace Lumos
 			pipelineCreateInfo.transparencyEnabled = false;
 			pipelineCreateInfo.depthBiasEnabled = false;
 
-			m_Pipeline = Ref<Graphics::Pipeline>(Graphics::Pipeline::Create(pipelineCreateInfo));
+			m_Pipeline = Graphics::Pipeline::Get(pipelineCreateInfo);
 		}
 
 		void DeferredOffScreenRenderer::CreateBuffer()
@@ -376,7 +378,7 @@ namespace Lumos
 			attachments[4] = Application::Get().GetRenderGraph()->GetGBuffer()->GetDepthTexture();
 			bufferInfo.attachments = attachments;
 
-			m_Framebuffers.push_back(Ref<Framebuffer>(Framebuffer::Create(bufferInfo)));
+			m_Framebuffers.push_back(Ref<Framebuffer>(Framebuffer::Get(bufferInfo)));
 		}
 
 		void DeferredOffScreenRenderer::OnResize(u32 width, u32 height)

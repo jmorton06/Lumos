@@ -47,6 +47,9 @@ namespace Lumos
 		{
 		public:
 			static Pipeline* Create(const PipelineInfo& pipelineInfo);
+            static Ref<Pipeline> Get(const PipelineInfo& pipelineInfo);
+            static void ClearCache();
+
 			virtual ~Pipeline() = default;
 
             virtual void Bind(CommandBuffer* cmdBuffer) = 0;
@@ -56,6 +59,6 @@ namespace Lumos
 
 		protected:
 			static Pipeline* (*CreateFunc)(const PipelineInfo&);
-		};
+        };
 	}
 }

@@ -40,7 +40,7 @@ namespace Lumos::Graphics
     {
         for(auto renderer: m_Renderers)
         {
-           // if(!onlyIfTargetsScreen )//|| renderer-GetScreenRenderer())
+            if(!onlyIfTargetsScreen || renderer->GetScreenRenderer())
                 renderer->SetRenderTarget(texture, rebuildFramebuffer);
         }
     }
@@ -94,6 +94,13 @@ namespace Lumos::Graphics
 
     void RenderGraph::AddRenderer(Graphics::IRenderer* renderer)
     {
+        m_Renderers.push_back(renderer);
+        //SortRenderers();
+    }
+
+    void RenderGraph::AddRenderer(Graphics::IRenderer* renderer, int renderPriority)
+    {
+        renderer->SetRenderPriority(renderPriority);
         m_Renderers.push_back(renderer);
         //SortRenderers();
     }

@@ -194,8 +194,11 @@ namespace Lumos
 #ifdef LUMOS_EDITOR
 		delete m_Editor;
 #endif
-
+        
 		Graphics::Renderer::Release();
+        Graphics::Pipeline::ClearCache();
+        Graphics::RenderPass::ClearCache();
+        Graphics::Framebuffer::ClearCache();
 		
         m_Window.reset();
 

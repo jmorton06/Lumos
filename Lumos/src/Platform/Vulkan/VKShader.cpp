@@ -104,7 +104,7 @@ namespace Lumos
                     for(auto& range : ranges)
                     {
                         SHADER_LOG(LUMOS_LOG_INFO("Accessing Member {0} offset {1}, size {2}", range.index, range.offset, range.range));
-                        size += range.range;
+                        size += u32(range.range);
                     }
 
                     SHADER_LOG(LUMOS_LOG_INFO("Found Push Constant {0} at set = {1}, binding = {2}", u.name.c_str(), set, binding, type.array.size() ? u32(type.array[0]) : 1));

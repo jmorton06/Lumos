@@ -317,9 +317,20 @@ namespace Lumos
 				entt::entity child = hierarchyComponent->First();
 				while(child != entt::null && registry.valid(child))
 				{
-                    const float HorizontalTreeLineSize = 8.0f; //chosen arbitrarily
+                    float HorizontalTreeLineSize = 16.0f; //chosen arbitrarily
                     auto currentPos = ImGui::GetCursorScreenPos();
 					ImGui::Indent(10.0f);
+                    
+                    auto childHerarchyComponent = registry.try_get<Hierarchy>(child);
+
+                    if(childHerarchyComponent)
+                    {
+                        entt::entity firstChild = childHerarchyComponent->First();
+                        if(firstChild != entt::null && registry.valid(firstChild))
+                        {
+                            HorizontalTreeLineSize *= 0.5f;
+                        }
+                    }
 					DrawNode(child, registry);
 					ImGui::Unindent(10.0f);
                     

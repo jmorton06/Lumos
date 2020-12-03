@@ -36,6 +36,8 @@ namespace Lumos
 			~RenderGraph();
 
 			void AddRenderer(Graphics::IRenderer* renderer);
+            void AddRenderer(Graphics::IRenderer* renderer, int renderPriority);
+
 			void SortRenderers();
 			
 			void Reset();
@@ -62,7 +64,15 @@ namespace Lumos
 			ShadowRenderer* GetShadowRenderer() const { return m_ShadowRenderer; };
 			void SetShadowRenderer(ShadowRenderer* renderer) { m_ShadowRenderer = renderer; }
 			
-			void SetScreenBufferSize(u32 width, u32 height) { if (width == 0) width = 1; if (height == 0) height = 1; m_ScreenBufferWidth = width; m_ScreenBufferHeight = height; }
+			void SetScreenBufferSize(u32 width, u32 height)
+            {
+                if (width == 0)
+                    width = 1;
+                if (height == 0)
+                    height = 1;
+                m_ScreenBufferWidth = width;
+                m_ScreenBufferHeight = height;
+            }
 			
             void SetRenderTarget(Graphics::Texture* texture, bool onlyIfTargetsScreen = false, bool rebuildFramebuffer = true);
             

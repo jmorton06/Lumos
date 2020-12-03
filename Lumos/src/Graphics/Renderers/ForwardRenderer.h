@@ -56,7 +56,6 @@ namespace Lumos
 			UniformBuffer* m_ModelUniformBuffer;
 
 			std::vector<Lumos::Graphics::CommandBuffer*> m_CommandBuffers;
-			std::vector<Framebuffer*> m_Framebuffers;
 
 			size_t m_DynamicAlignment;
 			UniformBufferModel m_UBODataDynamic;
