@@ -276,7 +276,7 @@ vec3 Lighting(vec3 F0, vec3 wsPos, Material material)
 		}
 		else
 		{
-			float bias = 0.0005;
+			float bias = 0.00035;
 			bias = bias + (bias * tan(acos(clamp(dot(material.Normal, light.direction.xyz), 0.0, 1.0))) * 0.5);
 			
 			int cascadeIndex = CalculateCascadeIndex(wsPos);

@@ -37,7 +37,7 @@ namespace Lumos
 				{
 					switch (bufferInfo.attachmentTypes[i])
 					{
-					case TextureType::COLOUR		: AddTextureAttachment(TextureFormat::RGBA32, bufferInfo.attachments[i]); break;
+					case TextureType::COLOUR		: AddTextureAttachment(TextureFormat::RGBA8, bufferInfo.attachments[i]); break;
 					case TextureType::DEPTH			: AddTextureAttachment(TextureFormat::DEPTH, bufferInfo.attachments[i]); break;
 					case TextureType::DEPTHARRAY	: AddTextureLayer(bufferInfo.layer, bufferInfo.attachments[i]); break;
 					case TextureType::OTHER			: UNIMPLEMENTED; break;

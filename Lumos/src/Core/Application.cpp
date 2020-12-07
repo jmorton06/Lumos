@@ -161,11 +161,11 @@ namespace Lumos
 
 		DebugRenderer::Init(screenWidth, screenHeight);
             
-    #ifndef LUMOS_PLATFORM_IOS
+//#ifndef LUMOS_PLATFORM_IOS //Need to disable for A12 and earlier
         auto shadowRenderer = new Graphics::ShadowRenderer();
         Application::Get().GetRenderGraph()->SetShadowRenderer(shadowRenderer);
         m_RenderGraph->AddRenderer(shadowRenderer);
-    #endif
+//#endif
         
         m_RenderGraph->AddRenderer(new Graphics::DeferredRenderer(screenWidth, screenHeight));
         m_RenderGraph->AddRenderer(new Graphics::SkyboxRenderer(screenWidth, screenHeight));
@@ -345,6 +345,12 @@ namespace Lumos
 		}
         m_ImGuiManager->OnUpdate(dt, m_SceneManager->GetCurrentScene());
         
+        {
+            //Do every few frames instead?
+            Graphics::Pipeline::DeleteUnusedCache();
+            Graphics::RenderPass::DeleteUnusedCache();
+            Graphics::Framebuffer::DeleteUnusedCache();
+        }
         m_ShaderLibrary->Update(dt.GetElapsedMillis());
 	}
 

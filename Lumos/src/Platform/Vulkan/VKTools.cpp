@@ -507,19 +507,39 @@ namespace Lumos
 
         VkFormat VKTools::TextureFormatToVK(const TextureFormat format, bool srgb)
         {
-            switch (format)
+            if(srgb)
             {
-                case TextureFormat::RGBA:				return VK_FORMAT_R8G8B8A8_UNORM;
-                case TextureFormat::RGB:				return VK_FORMAT_R8G8B8_UNORM;
-                case TextureFormat::R8:				    return VK_FORMAT_R8_UNORM;
-                case TextureFormat::RG8:				return VK_FORMAT_R8G8_UNORM;
-                case TextureFormat::RGB8:				return srgb ? VK_FORMAT_R8G8B8A8_SRGB : VK_FORMAT_R8G8B8A8_UNORM; //VK_FORMAT_R8G8B8_UNORM not supported mac
-                case TextureFormat::RGBA8:				return srgb ? VK_FORMAT_R8G8B8A8_SRGB : VK_FORMAT_R8G8B8A8_UNORM; //Temp : VK_FORMAT_R8G8B8A8_UNORM mimmap gen broken
-                case TextureFormat::RGB16:              return VK_FORMAT_R16G16B16_SFLOAT;
-                case TextureFormat::RGBA16:             return VK_FORMAT_R16G16B16A16_SFLOAT;
-				case TextureFormat::RGB32:              return VK_FORMAT_R32G32B32_SFLOAT;
-				case TextureFormat::RGBA32:             return VK_FORMAT_R32G32B32A32_SFLOAT;
-                default: LUMOS_LOG_CRITICAL("[Texture] Unsupported image bit-depth!");  return VK_FORMAT_R8G8B8A8_UNORM;
+                switch (format)
+                {
+                    case TextureFormat::RGBA:               return VK_FORMAT_R8G8B8A8_UNORM;
+                    case TextureFormat::RGB:                return VK_FORMAT_R8G8B8_SRGB;
+                    case TextureFormat::R8:                 return VK_FORMAT_R8_SRGB;
+                    case TextureFormat::RG8:                return VK_FORMAT_R8G8_SRGB;
+                    case TextureFormat::RGB8:               return VK_FORMAT_R8G8B8A8_SRGB;
+                    case TextureFormat::RGBA8:              return VK_FORMAT_R8G8B8A8_SRGB;
+                    case TextureFormat::RGB16:              return VK_FORMAT_R16G16B16_SFLOAT;
+                    case TextureFormat::RGBA16:             return VK_FORMAT_R16G16B16A16_SFLOAT;
+                    case TextureFormat::RGB32:              return VK_FORMAT_R32G32B32_SFLOAT;
+                    case TextureFormat::RGBA32:             return VK_FORMAT_R32G32B32A32_SFLOAT;
+                    default: LUMOS_LOG_CRITICAL("[Texture] Unsupported image bit-depth!");  return VK_FORMAT_R8G8B8A8_SRGB;
+                }
+            }
+            else
+            {
+                switch (format)
+                {
+                    case TextureFormat::RGBA:               return VK_FORMAT_R8G8B8A8_UNORM;
+                    case TextureFormat::RGB:                return VK_FORMAT_R8G8B8_UNORM;
+                    case TextureFormat::R8:                 return VK_FORMAT_R8_UNORM;
+                    case TextureFormat::RG8:                return VK_FORMAT_R8G8_UNORM;
+                    case TextureFormat::RGB8:               return VK_FORMAT_R8G8B8A8_UNORM;
+                    case TextureFormat::RGBA8:              return VK_FORMAT_R8G8B8A8_UNORM;
+                    case TextureFormat::RGB16:              return VK_FORMAT_R16G16B16_SFLOAT;
+                    case TextureFormat::RGBA16:             return VK_FORMAT_R16G16B16A16_SFLOAT;
+                    case TextureFormat::RGB32:              return VK_FORMAT_R32G32B32_SFLOAT;
+                    case TextureFormat::RGBA32:             return VK_FORMAT_R32G32B32A32_SFLOAT;
+                    default: LUMOS_LOG_CRITICAL("[Texture] Unsupported image bit-depth!");  return VK_FORMAT_R8G8B8A8_UNORM;
+                }
             }
         }
         

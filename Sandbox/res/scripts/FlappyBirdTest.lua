@@ -153,7 +153,7 @@ tracy.ZoneBegin()
         up = Vector3.new(0, 1, 0)
         right = Vector3.new(1, 0, 0)
 
-        if Input.GetKeyPressed( Key.Space ) then
+        if Input.GetKeyPressed( Key.Space ) or Input.GetMouseClicked(MouseButton.Left) then
             phys:GetRigidBody():SetForce(Vector2.new(0.0,500.0))
         end
 

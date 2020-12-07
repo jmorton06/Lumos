@@ -59,7 +59,7 @@ namespace Lumos
 				m_Name = name;
 			}
 
-			void BuildTexture(TextureFormat internalformat, u32 width, u32 height, bool depth, bool samplerShadow) override;
+			void BuildTexture(TextureFormat internalformat, u32 width, u32 height, bool srgb, bool depth, bool samplerShadow) override;
 
 			const VkDescriptorImageInfo* GetDescriptor() const
 			{
@@ -125,7 +125,7 @@ namespace Lumos
 			VKTextureCube(u32 size);
 			VKTextureCube(const std::string& filepath);
 			VKTextureCube(const std::string* files);
-			VKTextureCube(const std::string* files, u32 mips, InputFormat format);
+			VKTextureCube(const std::string* files, u32 mips, TextureParameters params, TextureLoadOptions loadOptions, InputFormat format);
 			~VKTextureCube();
 
 			virtual void* GetHandle() const override
@@ -186,7 +186,7 @@ namespace Lumos
 			static TextureCube* CreateFuncVulkan(u32);
 			static TextureCube* CreateFromFileFuncVulkan(const std::string& filepath);
 			static TextureCube* CreateFromFilesFuncVulkan(const std::string* files);
-			static TextureCube* CreateFromVCrossFuncVulkan(const std::string* files, u32 mips, InputFormat format);
+			static TextureCube* CreateFromVCrossFuncVulkan(const std::string* files, u32 mips, TextureParameters params, TextureLoadOptions loadOptions, InputFormat format);
 
 		private:
 			std::string m_Name;

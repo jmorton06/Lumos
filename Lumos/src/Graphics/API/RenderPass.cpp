@@ -30,7 +30,7 @@ namespace Lumos
             }
             
             auto found = m_RenderPassCache.find(hash);
-            if (found != m_RenderPassCache.end())
+            if (found != m_RenderPassCache.end() && found->second)
             {
                 return found->second;
             }
@@ -43,6 +43,15 @@ namespace Lumos
         void RenderPass::ClearCache()
         {
             m_RenderPassCache.clear();
+        }
+    
+        void RenderPass::DeleteUnusedCache()
+        {
+            for (const auto & [ key, value ] : m_RenderPassCache)
+            {
+                if(value && value.GetCounter()->GetReferenceCount() == 1)
+                    m_RenderPassCache[key] = nullptr;
+            }
         }
 	}
 }

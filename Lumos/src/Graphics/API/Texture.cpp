@@ -17,7 +17,7 @@ namespace Lumos
 		TextureCube* (*TextureCube::CreateFunc)(u32) = nullptr;
 		TextureCube* (*TextureCube::CreateFromFileFunc)(const std::string&) = nullptr;
 		TextureCube* (*TextureCube::CreateFromFilesFunc)(const std::string*) = nullptr;
-		TextureCube* (*TextureCube::CreateFromVCrossFunc)(const std::string*, u32, InputFormat) = nullptr;
+		TextureCube* (*TextureCube::CreateFromVCrossFunc)(const std::string*, u32, TextureParameters, TextureLoadOptions, InputFormat) = nullptr;
 
 		u8 Texture::GetStrideFromFormat(const TextureFormat format)
 		{
@@ -113,11 +113,11 @@ namespace Lumos
 			return CreateFromFilesFunc(files);
 		}
 
-		TextureCube* TextureCube::CreateFromVCross(const std::string* files, u32 mips, InputFormat format)
+		TextureCube* TextureCube::CreateFromVCross(const std::string* files, u32 mips, TextureParameters params, TextureLoadOptions loadOptions, InputFormat format)
 		{
 			LUMOS_ASSERT(CreateFromVCrossFunc, "No TextureCube Create Function");
 
-			return CreateFromVCrossFunc(files, mips, format);
+			return CreateFromVCrossFunc(files, mips, params, loadOptions, format);
 		}
 
 		TextureDepth* TextureDepth::Create(u32 width, u32 height)

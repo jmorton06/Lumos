@@ -106,7 +106,7 @@ namespace Lumos
 			}
 
 			AttachmentInfo textureTypes[2] = {
-				{TextureType::COLOUR, TextureFormat::RGBA32},
+				{TextureType::COLOUR, TextureFormat::RGBA8},
 				{TextureType::DEPTH, TextureFormat::DEPTH}};
 
 			Graphics::RenderPassInfo renderpassCI{};

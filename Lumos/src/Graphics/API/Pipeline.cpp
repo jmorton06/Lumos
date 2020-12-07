@@ -31,7 +31,7 @@ namespace Lumos
             }
             
             auto found = m_PipelineCache.find(hash);
-            if (found != m_PipelineCache.end())
+            if (found != m_PipelineCache.end() && found->second)
             {
                 return found->second;
             }
@@ -44,6 +44,15 @@ namespace Lumos
         void Pipeline::ClearCache()
         {
             m_PipelineCache.clear();
+        }
+    
+        void Pipeline::DeleteUnusedCache()
+        {
+            for (const auto & [ key, value ] : m_PipelineCache)
+            {
+                if(value && value.GetCounter()->GetReferenceCount() == 1)
+                    m_PipelineCache[key] = nullptr;
+            }
         }
 	}
 }
