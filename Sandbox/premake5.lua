@@ -80,8 +80,7 @@ defines
 			"_DISABLE_EXTENDED_ALIGNED_STORAGE",
 			"_SILENCE_CXX17_ITERATOR_BASE_CLASS_DEPRECATION_WARNING",
 			"LUMOS_ROOT_DIR="  .. root_dir,
-			"LUMOS_VOLK",
-			"LUMOS_SSE",
+			"LUMOS_VOLK"
 		}
 
 		libdirs
@@ -94,7 +93,10 @@ defines
 			"glfw",
 			"OpenGL32",
 			"OpenAL32"
-		}
+}
+if _OPTIONS["arch"] ~= "arm" then
+defines { "LUMOS_SSE" ,"USE_VMA_ALLOCATOR"}
+end
 
 		buildoptions
 		{
@@ -120,7 +122,7 @@ defines
 			['INFOPLIST_FILE'] = '../Lumos/src/Platform/macOS/Info.plist',
 			['ASSETCATALOG_COMPILER_APPICON_NAME'] = 'AppIcon'
 			--['ENABLE_HARDENED_RUNTIME'] = 'YES'
-		}
+}
 
 		defines
 		{
@@ -131,8 +133,7 @@ defines
 			"VK_EXT_metal_surface",
 			"LUMOS_IMGUI",
 			"LUMOS_ROOT_DIR="  .. root_dir,
-			"LUMOS_VOLK",
-			"LUMOS_SSE"
+			"LUMOS_VOLK"
 		}
 
 		linkoptions
@@ -143,7 +144,7 @@ defines
 			"-framework CoreVideo",
 			"-framework OpenAL",
 			"-framework QuartzCore"
-		}
+}
 
 		files
 		{
@@ -156,7 +157,20 @@ defines
 			"glfw",
 		}
 
-		SetRecommendedXcodeSettings()
+SetRecommendedXcodeSettings()
+
+if _OPTIONS["arch"] ~= "arm" then
+defines { "LUMOS_SSE" ,"USE_VMA_ALLOCATOR"}
+xcodebuildsettings
+{
+	ARCHS="x86_64"
+}
+else
+xcodebuildsettings
+{
+	ARCHS="arm64"
+}
+end
 
 	filter "system:ios"
 		cppdialect "C++17"
