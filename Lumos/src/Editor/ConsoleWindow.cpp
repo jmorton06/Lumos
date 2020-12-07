@@ -109,8 +109,8 @@ namespace Lumos
         ImGui::TextUnformatted(ICON_MDI_MAGNIFY);
         ImGui::SameLine();
         
-        float levelButtonWidths = 8 * 20.0f;
-        Filter.Draw("###ConsoleFilter", ImGui::GetWindowWidth() - levelButtonWidths * 1.5f);
+        float levelButtonWidths = 6 * (ImGui::GetFontSize() + ImGui::GetStyle().ItemSpacing.x) + 2.0f;
+        Filter.Draw("###ConsoleFilter", ImGui::GetWindowWidth() - levelButtonWidths * 1.6f);
         
         ImGui::SameLine(ImGui::GetWindowWidth() - levelButtonWidths);
         

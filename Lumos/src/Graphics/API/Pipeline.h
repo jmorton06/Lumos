@@ -49,6 +49,7 @@ namespace Lumos
 			static Pipeline* Create(const PipelineInfo& pipelineInfo);
             static Ref<Pipeline> Get(const PipelineInfo& pipelineInfo);
             static void ClearCache();
+            static void DeleteUnusedCache();
 
 			virtual ~Pipeline() = default;
 

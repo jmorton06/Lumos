@@ -1512,7 +1512,7 @@ namespace Lumos
 		if(!m_PreviewTexture)
 		{
 			m_PreviewTexture = Ref<Graphics::Texture2D>(Graphics::Texture2D::Create());
-			m_PreviewTexture->BuildTexture(Graphics::TextureFormat::RGBA32, 200, 200, false, false);
+			m_PreviewTexture->BuildTexture(Graphics::TextureFormat::RGBA8, 200, 200, false, false, false);
             
 			m_PreviewRenderer = CreateRef<Graphics::ForwardRenderer>(200, 200, false);
 			m_PreviewSphere = Ref<Graphics::Mesh>(Graphics::CreateSphere());

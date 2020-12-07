@@ -41,6 +41,7 @@ namespace Lumos
 			static RenderPass* Create(const RenderPassInfo& renderPassCI);
             static Ref<RenderPass> Get(const RenderPassInfo& renderPassCI);
             static void ClearCache();
+            static void DeleteUnusedCache();
 
 			virtual void BeginRenderpass(CommandBuffer* commandBuffer, const Maths::Vector4& clearColour, Framebuffer* frame, SubPassContents contents, uint32_t width, uint32_t height, bool beginCommandBuffer = true) const = 0;
 			virtual void EndRenderpass(CommandBuffer* commandBuffer, bool endCommandBuffer = true) = 0;

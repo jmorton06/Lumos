@@ -34,7 +34,7 @@ namespace Lumos
 				VkAttachmentDescription attachment = {};
 			if(info.textureType == TextureType::COLOUR)
 			{
-				attachment.format = VKTools::TextureFormatToVK(info.format);
+				attachment.format = VKTools::TextureFormatToVK(info.format, false);
 				attachment.finalLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
 			}
 			else if(info.textureType == TextureType::DEPTH)

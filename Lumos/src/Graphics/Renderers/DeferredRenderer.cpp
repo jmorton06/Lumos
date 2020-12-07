@@ -104,7 +104,8 @@ namespace Lumos
 			TextureParameters param;
 			param.minFilter = TextureFilter::LINEAR;
 			param.magFilter = TextureFilter::LINEAR;
-			param.format = TextureFormat::RGBA;
+			param.format = TextureFormat::RGBA8;
+            param.srgb = false;
 			param.wrap = TextureWrap::CLAMP_TO_EDGE;
 			m_PreintegratedFG = UniqueRef<Texture2D>(Texture2D::CreateFromSource(BRDFTextureWidth, BRDFTextureHeight, (void*)BRDFTexture, param));
 
@@ -133,7 +134,7 @@ namespace Lumos
 
 			AttachmentInfo textureTypes[2] =
             {
-                {TextureType::COLOUR, TextureFormat::RGBA32}
+                {TextureType::COLOUR, TextureFormat::RGBA8}
             };
 			Graphics::RenderPassInfo renderpassCI{};
 			renderpassCI.attachmentCount = 1;

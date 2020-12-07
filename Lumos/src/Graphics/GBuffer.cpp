@@ -55,17 +55,27 @@ namespace Lumos
 				m_DepthTexture = TextureDepth::Create(m_Width, m_Height);
 			}
 
+#ifdef LUMOS_PLATFORM_IOS
+            //Unless all render targets were rgba32 there were visual glitches on ios
 			m_Formats[0] = TextureFormat::RGBA32;
 			m_Formats[1] = TextureFormat::RGBA32;
 			m_Formats[2] = TextureFormat::RGBA32;
 			m_Formats[3] = TextureFormat::RGBA32;
-			m_Formats[4] = TextureFormat::RGBA32;
+            m_Formats[4] = TextureFormat::RGBA32;
+#else
+            m_Formats[0] = TextureFormat::RGBA8;
+            m_Formats[1] = TextureFormat::RGBA32;
+            m_Formats[2] = TextureFormat::RGBA16;
+            m_Formats[3] = TextureFormat::RGBA16;
+            m_Formats[4] = TextureFormat::RGBA8;
+#endif
+		
 
-			m_ScreenTex[SCREENTEX_COLOUR]->BuildTexture(m_Formats[0], m_Width, m_Height, false, false);
-			m_ScreenTex[SCREENTEX_POSITION]->BuildTexture(m_Formats[1], m_Width, m_Height, false, false);
-			m_ScreenTex[SCREENTEX_NORMALS]->BuildTexture(m_Formats[2], m_Width, m_Height, false, false);
-			m_ScreenTex[SCREENTEX_PBR]->BuildTexture(m_Formats[3], m_Width, m_Height, false, false);
-			m_ScreenTex[SCREENTEX_OFFSCREEN0]->BuildTexture(m_Formats[4], m_Width, m_Height, false, false);
+			m_ScreenTex[SCREENTEX_COLOUR]->BuildTexture(m_Formats[0], m_Width, m_Height, false, false, false);
+			m_ScreenTex[SCREENTEX_POSITION]->BuildTexture(m_Formats[1], m_Width, m_Height, false, false, false);
+			m_ScreenTex[SCREENTEX_NORMALS]->BuildTexture(m_Formats[2], m_Width, m_Height, false, false, false);
+			m_ScreenTex[SCREENTEX_PBR]->BuildTexture(m_Formats[3], m_Width, m_Height, false, false, false);
+			m_ScreenTex[SCREENTEX_OFFSCREEN0]->BuildTexture(m_Formats[4], m_Width, m_Height, false, false, false);
 
 			m_DepthTexture->Resize(m_Width, m_Height);
 		}
