@@ -23,7 +23,7 @@
 #include "Embedded/CheckerBoardTextureArray.inl"
 
 #include "Core/Application.h"
-#include "Graphics/RenderManager.h"
+#include "RenderGraph.h"
 #include "Graphics/Camera/Camera.h"
 
 namespace Lumos
@@ -48,12 +48,7 @@ namespace Lumos
 
 			delete[] m_VSSystemUniformBuffer;
 			delete[] m_PSSystemUniformBuffer;
-
-			for(auto& framebuffer : m_Framebuffers)
-			{
-				delete framebuffer;
-			}
-
+            
 			for(auto& commandBuffer : m_CommandBuffers)
 			{
 				delete commandBuffer;
@@ -120,11 +115,10 @@ namespace Lumos
 			// Per Scene System Uniforms
 			m_PSSystemUniformBufferOffsets[PSSystemUniformIndex_Lights] = 0;
 
-			m_RenderPass = Ref<Graphics::RenderPass>(Graphics::RenderPass::Create());
 			m_UniformBuffer = Graphics::UniformBuffer::Create();
 			m_ModelUniformBuffer = Graphics::UniformBuffer::Create();
 
-			Graphics::RenderpassInfo renderpassCI{};
+			Graphics::RenderPassInfo renderpassCI{};
 
 			if(m_DepthTest)
 			{
@@ -147,7 +141,7 @@ namespace Lumos
 				renderpassCI.textureType = textureTypes;
 			}
 
-			m_RenderPass->Init(renderpassCI);
+            m_RenderPass = Graphics::RenderPass::Get(renderpassCI);
 
 			CreateFramebuffers();
 
@@ -230,10 +224,7 @@ namespace Lumos
 				m_CurrentBufferID = Renderer::GetSwapchain()->GetCurrentBufferId();
 
 			m_SystemUniforms.clear();
-
-			m_CommandBuffers[m_CurrentBufferID]->BeginRecording();
-
-			m_RenderPass->BeginRenderpass(m_CommandBuffers[m_CurrentBufferID], m_ClearColour, m_Framebuffers[m_CurrentBufferID], Graphics::INLINE, m_ScreenBufferWidth, m_ScreenBufferHeight);
+			m_RenderPass->BeginRenderpass(m_CommandBuffers[m_CurrentBufferID], m_ClearColour, m_Framebuffers[m_CurrentBufferID].get(), Graphics::INLINE, m_ScreenBufferWidth, m_ScreenBufferHeight);
 		}
 
 		void ForwardRenderer::BeginScene(Scene* scene, Camera* overrideCamera, Maths::Transform* overrideCameraTransform)
@@ -399,58 +390,25 @@ namespace Lumos
 
 		void ForwardRenderer::CreateGraphicsPipeline()
 		{
-			m_Shader = Ref<Graphics::Shader>(Shader::CreateFromFile("Simple", "/CoreShaders/"));
+			m_Shader = Application::Get().GetShaderLibrary()->GetResource("/CoreShaders/Simple.shader");
 
-			std::vector<Graphics::DescriptorPoolInfo> poolInfo =
-				{
-					{Graphics::DescriptorType::UNIFORM_BUFFER, MAX_OBJECTS},
-					{Graphics::DescriptorType::UNIFORM_BUFFER_DYNAMIC, MAX_OBJECTS},
-					{Graphics::DescriptorType::IMAGE_SAMPLER, MAX_OBJECTS}};
+            Graphics::BufferLayout vertexBufferLayout;
+            vertexBufferLayout.Push<Maths::Vector3>("position");
+            vertexBufferLayout.Push<Maths::Vector4>("colour");
+            vertexBufferLayout.Push<Maths::Vector2>("uv");
+            vertexBufferLayout.Push<Maths::Vector3>("normal");
+            vertexBufferLayout.Push<Maths::Vector3>("tangent");
+            
+			Graphics::PipelineInfo pipelineCreateInfo{};
+            pipelineCreateInfo.vertexBufferLayout = vertexBufferLayout;
+			pipelineCreateInfo.shader = m_Shader;
+			pipelineCreateInfo.renderpass = m_RenderPass;
+			pipelineCreateInfo.polygonMode = Graphics::PolygonMode::FILL;
+			pipelineCreateInfo.cullMode = Graphics::CullMode::BACK;
+			pipelineCreateInfo.transparencyEnabled = false;
+			pipelineCreateInfo.depthBiasEnabled = false;
 
-			std::vector<Graphics::DescriptorLayoutInfo> layoutInfo =
-				{
-					{Graphics::DescriptorType::UNIFORM_BUFFER, Graphics::ShaderType::VERTEX, 0},
-					{Graphics::DescriptorType::UNIFORM_BUFFER_DYNAMIC, Graphics::ShaderType::VERTEX, 1},
-				};
-
-			std::vector<Graphics::DescriptorLayoutInfo> layoutInfoMesh =
-				{
-					{Graphics::DescriptorType::IMAGE_SAMPLER, Graphics::ShaderType::FRAGMENT, 0}};
-
-			auto attributeDescriptions = Vertex::getAttributeDescriptions();
-
-			std::vector<Graphics::DescriptorLayout> descriptorLayouts;
-
-			Graphics::DescriptorLayout sceneDescriptorLayout{};
-			sceneDescriptorLayout.count = static_cast<u32>(layoutInfo.size());
-			sceneDescriptorLayout.layoutInfo = layoutInfo.data();
-
-			descriptorLayouts.push_back(sceneDescriptorLayout);
-
-			Graphics::DescriptorLayout meshDescriptorLayout{};
-			meshDescriptorLayout.count = static_cast<u32>(layoutInfoMesh.size());
-			meshDescriptorLayout.layoutInfo = layoutInfoMesh.data();
-
-			descriptorLayouts.push_back(meshDescriptorLayout);
-
-			Graphics::PipelineInfo pipelineCI{};
-			pipelineCI.pipelineName = "ForwardRenderer";
-			pipelineCI.shader = m_Shader.get();
-			pipelineCI.renderpass = m_RenderPass.get();
-			pipelineCI.numVertexLayout = static_cast<u32>(attributeDescriptions.size());
-			pipelineCI.descriptorLayouts = descriptorLayouts;
-			pipelineCI.vertexLayout = attributeDescriptions.data();
-			pipelineCI.numLayoutBindings = static_cast<u32>(poolInfo.size());
-			pipelineCI.typeCounts = poolInfo.data();
-			pipelineCI.strideSize = sizeof(Vertex);
-			pipelineCI.numColorAttachments = 1;
-			pipelineCI.polygonMode = Graphics::PolygonMode::Fill;
-			pipelineCI.cullMode = Graphics::CullMode::BACK;
-			pipelineCI.transparencyEnabled = false;
-			pipelineCI.depthBiasEnabled = false;
-			pipelineCI.maxObjects = MAX_OBJECTS;
-
-			m_Pipeline = Ref<Graphics::Pipeline>(Graphics::Pipeline::Create(pipelineCI));
+			m_Pipeline = Graphics::Pipeline::Get(pipelineCreateInfo);
 		}
 
 		void ForwardRenderer::SetRenderTarget(Texture* texture, bool rebuildFramebuffer)
@@ -474,7 +432,7 @@ namespace Lumos
 			if(m_DepthTest)
 			{
 				attachmentTypes[1] = TextureType::DEPTH;
-				attachments[1] = reinterpret_cast<Texture*>(Application::Get().GetRenderManager()->GetGBuffer()->GetDepthTexture());
+				attachments[1] = reinterpret_cast<Texture*>(Application::Get().GetRenderGraph()->GetGBuffer()->GetDepthTexture());
 			}
 
 			FramebufferInfo bufferInfo{};
@@ -489,7 +447,7 @@ namespace Lumos
 				attachments[0] = m_RenderTexture;
 				bufferInfo.attachments = attachments;
 				bufferInfo.screenFBO = false;
-				m_Framebuffers.emplace_back(Framebuffer::Create(bufferInfo));
+				m_Framebuffers.emplace_back(Framebuffer::Get(bufferInfo));
 			}
 			else
 			{
@@ -499,7 +457,7 @@ namespace Lumos
 					attachments[0] = Renderer::GetSwapchain()->GetImage(i);
 					bufferInfo.attachments = attachments;
 
-					m_Framebuffers.emplace_back(Framebuffer::Create(bufferInfo));
+					m_Framebuffers.emplace_back(Framebuffer::Get(bufferInfo));
 				}
 			}
 		}

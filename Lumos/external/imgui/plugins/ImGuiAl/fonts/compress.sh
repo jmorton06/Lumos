@@ -28,3 +28,7 @@ binary_to_compressed_c ProggySquareSZ.ttf ProggySquareSZ > ProggySquareSZ.inl
 binary_to_compressed_c ProggySquare.ttf ProggySquare > ProggySquare.inl
 binary_to_compressed_c ProggyTinySZ.ttf ProggyTinySZ > ProggyTinySZ.inl
 binary_to_compressed_c ProggyTiny.ttf ProggyTiny > ProggyTiny.inl
+binary_to_compressed_c JetBrainsMono-Bold.ttf JetBrainsMono-Bold > JetBrainsMono-Bold.inl
+binary_to_compressed_c JetBrainsMono-Regular.ttf JetBrainsMono-Regular > JetBrainsMono-Regular.inl
+binary_to_compressed_c JetBrainsMono-Light.ttf JetBrainsMono-Light > JetBrainsMono-Light.inl
+binary_to_compressed_c RobotoRegular.ttf RobotoRegular > RobotoRegular.inl

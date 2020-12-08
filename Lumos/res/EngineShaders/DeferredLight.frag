@@ -99,7 +99,183 @@ vec3 fresnelSchlickRoughness(vec3 F0, float cosTheta, float roughness)
     return F0 + (max(vec3(1.0 - roughness), F0) - F0) * pow(1.0 - cosTheta, 5.0);
 }
 
-vec3 Lighting(vec3 F0, float shadow, vec3 wsPos, Material material)
+const mat4 biasMat = mat4(
+						  0.5, 0.0, 0.0, 0.5,
+						  0.0, 0.5, 0.0, 0.5,
+						  0.0, 0.0, 1.0, 0.0,
+						  0.0, 0.0, 0.0, 1.0
+						  );
+
+const vec2 PoissonDistribution16[16] = vec2[](
+							  vec2(-0.94201624, -0.39906216), vec2(0.94558609, -0.76890725), vec2(-0.094184101, -0.92938870), vec2(0.34495938, 0.29387760),
+							  vec2(-0.91588581, 0.45771432), vec2(-0.81544232, -0.87912464), vec2(-0.38277543, 0.27676845), vec2(0.97484398, 0.75648379),
+							  vec2(0.44323325, -0.97511554), vec2(0.53742981, -0.47373420), vec2(-0.26496911, -0.41893023), vec2(0.79197514, 0.19090188),
+							  vec2(-0.24188840, 0.99706507), vec2(-0.81409955, 0.91437590), vec2(0.19984126, 0.78641367), vec2(0.14383161, -0.14100790)
+							  );
+
+
+const vec2 PoissonDistribution[64] = vec2[](
+											vec2(-0.884081, 0.124488), vec2(-0.714377, 0.027940), vec2(-0.747945, 0.227922), vec2(-0.939609, 0.243634),
+											vec2(-0.985465, 0.045534),vec2(-0.861367, -0.136222),vec2(-0.881934, 0.396908),vec2(-0.466938, 0.014526),
+											vec2(-0.558207, 0.212662),vec2(-0.578447, -0.095822),vec2(-0.740266, -0.095631),vec2(-0.751681, 0.472604),
+											vec2(-0.553147, -0.243177),vec2(-0.674762, -0.330730),vec2(-0.402765, -0.122087),vec2(-0.319776, -0.312166),
+											vec2(-0.413923, -0.439757),vec2(-0.979153, -0.201245),vec2(-0.865579, -0.288695),vec2(-0.243704, -0.186378),
+											vec2(-0.294920, -0.055748),vec2(-0.604452, -0.544251),vec2(-0.418056, -0.587679),vec2(-0.549156, -0.415877),
+											vec2(-0.238080, -0.611761),vec2(-0.267004, -0.459702),vec2(-0.100006, -0.229116),vec2(-0.101928, -0.380382),
+											vec2(-0.681467, -0.700773),vec2(-0.763488, -0.543386),vec2(-0.549030, -0.750749),vec2(-0.809045, -0.408738),
+											vec2(-0.388134, -0.773448),vec2(-0.429392, -0.894892),vec2(-0.131597, 0.065058),vec2(-0.275002, 0.102922),
+											vec2(-0.106117, -0.068327),vec2(-0.294586, -0.891515),vec2(-0.629418, 0.379387),vec2(-0.407257, 0.339748),
+											vec2(0.071650, -0.384284),vec2(0.022018, -0.263793),vec2(0.003879, -0.136073),vec2(-0.137533, -0.767844),
+											vec2(-0.050874, -0.906068),vec2(0.114133, -0.070053),vec2(0.163314, -0.217231),vec2(-0.100262, -0.587992),
+											vec2(-0.004942, 0.125368),vec2(0.035302, -0.619310),vec2(0.195646, -0.459022),vec2(0.303969, -0.346362),
+											vec2(-0.678118, 0.685099),vec2(-0.628418, 0.507978),vec2(-0.508473, 0.458753),vec2(0.032134, -0.782030),
+											vec2(0.122595, 0.280353),vec2(-0.043643, 0.312119),vec2(0.132993, 0.085170),vec2(-0.192106, 0.285848),
+											vec2(0.183621, -0.713242),vec2(0.265220, -0.596716),vec2(-0.009628, -0.483058),vec2(-0.018516, 0.435703)
+											);
+
+
+float Random(vec3 seed, int i)
+{
+	vec4 seed4 = vec4(seed, i);
+	float dot_product = dot(seed4, vec4(12.9898, 78.233, 45.164, 94.673));
+	return fract(sin(dot_product) * 43758.5453);
+}
+
+
+float PHI = 1.61803398874989484820459;  // Φ = Golden Ratio   
+
+float gold_noise(vec2 xy, float seed)
+{
+	return fract(tan(distance(xy*PHI, xy)*seed)*xy.x);
+}
+
+ float rand(vec2 co)
+{
+     float a = 12.9898;
+     float b = 78.233;
+     float c = 43758.5453;
+    float dt= dot(co.xy ,vec2(a,b));
+    float sn= mod(dt,3.14);
+    return fract(sin(sn) * c);
+}
+
+float TextureProj(vec4 shadowCoord, vec2 offset, int cascadeIndex, float bias)
+{
+	float shadow = 1.0;
+	float ambient = 0.0;
+	
+	if ( shadowCoord.z > -1.0 && shadowCoord.z < 1.0 && shadowCoord.w > 0)
+	{
+		float dist = texture(uShadowMap, vec3(shadowCoord.st + offset, cascadeIndex)).r;
+		if (dist < (shadowCoord.z - bias) / shadowCoord.w)
+		{
+			shadow = ambient;//dist;
+		}
+	}
+	return shadow;
+	
+}
+
+float PCFShadow(vec4 sc, int cascadeIndex, float bias, vec3 wsPos)
+{
+	ivec2 texDim = textureSize(uShadowMap, 0).xy;
+	float scale = 0.75;
+	
+	vec2 dx = scale * 1.0 / texDim;
+	
+	float shadowFactor = 0.0;
+	int count = 0;
+	float range = 1.0;
+	
+	for (float x = -range; x <= range; x += 1.0) 
+	{
+		for (float y = -range; y <= range; y += 1.0) 
+		{
+			shadowFactor += TextureProj(sc, vec2(dx.x * x, dx.y * y), cascadeIndex, bias);
+			count++;
+		}
+	}
+	return shadowFactor / count;
+}
+
+float PoissonShadow(vec4 sc, int cascadeIndex, float bias, vec3 wsPos)
+{
+	ivec2 texDim = textureSize(uShadowMap, 0).xy;
+	float scale = 0.8;
+	
+	vec2 dx = scale * 1.0 / texDim;
+
+	float shadowFactor = 1.0;
+	int count = 0;
+
+	for(int i = 0; i < 8; i ++)
+	{
+		int index = int(16.0*Random(floor(wsPos*1000.0), count))%16;
+		shadowFactor -= 0.1 * (1.0 - TextureProj(sc, dx * PoissonDistribution16[index], cascadeIndex, bias));
+		count++;
+	}
+	return shadowFactor;
+}
+
+vec2 searchRegionRadiusUV(float zWorld)
+{
+	float light_zNear = 0.0; 
+	float light_zFar = 10000.0;
+	vec2 lightRadiusUV = vec2(0.05);
+    return lightRadiusUV * (zWorld - light_zNear) / zWorld;
+}
+
+// PCF + Poisson + RandomSample model method
+float PoissonDotShadow(vec4 sc, int cascadeIndex, float bias, vec3 wsPos)
+{
+	int loop;
+	int taps = 32;
+	
+	float multiplier = 0.75 / float(taps);
+	float shadowMapDepth = 1.0;
+	ivec2 texDim = textureSize(uShadowMap, 0).xy;
+	
+    for (int i = 0; i < taps; i++)
+	{
+		int index = int(float(taps)*gold_noise(wsPos.xy, wsPos.z + i))%taps;
+		vec2 pd = (3.0 / texDim) * PoissonDistribution[index];
+		shadowMapDepth  -= multiplier * (1.0 - TextureProj(sc, pd, cascadeIndex, bias));
+	}
+	
+	return shadowMapDepth;
+}
+
+int CalculateCascadeIndex(vec3 wsPos)
+{
+	int cascadeIndex = 0;
+	vec4 viewPos = vec4(wsPos, 1.0) * ubo.viewMatrix;
+	
+	for(int i = 0; i < ubo.shadowCount - 1; ++i)
+	{
+		if(viewPos.z < ubo.uSplitDepths[i].x)
+		{
+			cascadeIndex = i + 1;
+		}
+	}
+	
+	return cascadeIndex;
+}
+
+float CalculateShadow(vec3 wsPos, int cascadeIndex, float bias)
+{
+	vec4 shadowCoord =  vec4(wsPos, 1.0) * ubo.uShadowTransform[cascadeIndex] * ubo.biasMat;
+	 //return PCFShadow(shadowCoord * ( 1.0 / shadowCoord.w), cascadeIndex, bias, wsPos);
+	
+	//shadow = pow(shadow, 2.2);
+	//return shadow;
+	
+	//if(cascadeIndex < 2)
+	return PoissonDotShadow(shadowCoord * ( 1.0 / shadowCoord.w), cascadeIndex, bias, wsPos);
+	//else
+		//return TextureProj(shadowCoord * ( 1.0 / shadowCoord.w), vec2(0.0,0.0), cascadeIndex, bias);
+}
+
+vec3 Lighting(vec3 F0, vec3 wsPos, Material material)
 {
 	vec3 result = vec3(0.0);
 
@@ -107,7 +283,7 @@ vec3 Lighting(vec3 F0, float shadow, vec3 wsPos, Material material)
 	{
 		Light light = ubo.lights[i];
 
-		float value = shadow;
+		float value = 0.0;
 
 		if(light.type == 2.0)
 		{
@@ -143,6 +319,14 @@ vec3 Lighting(vec3 F0, float shadow, vec3 wsPos, Material material)
 			//intensity *= step(theta, cutoffAngle);
 
 			value = clamp(attenuation, 0.0, 1.0);
+		}
+		else
+		{
+			float bias = 0.0005;
+			bias = bias + (bias * tan(acos(clamp(dot(material.Normal, light.direction.xyz), 0.0, 1.0))) * 0.5);
+			
+			int cascadeIndex = CalculateCascadeIndex(wsPos);
+			 value = CalculateShadow(wsPos,cascadeIndex, bias);
 		}
 
 		vec3 Li = light.direction.xyz;
@@ -207,73 +391,6 @@ float Attentuate( vec3 lightData, float dist )
 	return max(att * damping, 0.0);
 }
 
-float textureProj(vec4 shadowCoord, vec2 offset, int cascadeIndex)
-{
-	float shadow = 1.0;
-	float bias = 0.001;
-	float ambient = 0.2;
-
-	if ( shadowCoord.z > -1.0 && shadowCoord.z < 1.0 && shadowCoord.w > 0)
-	{
-		float dist = texture(uShadowMap, vec3(shadowCoord.st + offset, cascadeIndex)).r;
-		if (dist < shadowCoord.z - bias)
-		{
-			shadow = ambient;
-		}
-	}
-	return shadow;
-
-}
-
-const mat4 biasMat = mat4(
-	0.5, 0.0, 0.0, 0.5,
-	0.0, 0.5, 0.0, 0.5,
-	0.0, 0.0, 1.0, 0.0,
-	0.0, 0.0, 0.0, 1.0
-);
-
-float filterPCF(vec4 sc, int cascadeIndex)
-{
-	ivec2 texDim = textureSize(uShadowMap, 0).xy;
-	float scale = 0.75;
-	float dx = scale * 1.0 / float(texDim.x);
-	float dy = scale * 1.0 / float(texDim.y);
-
-	float shadowFactor = 0.0;
-	int count = 0;
-	int range = 1;
-
-	for (int x = -range; x <= range; x++) {
-		for (int y = -range; y <= range; y++) {
-			shadowFactor += textureProj(sc, vec2(dx*x, dy*y), cascadeIndex);
-			count++;
-		}
-	}
-	return shadowFactor / count;
-}
-
-int CalculateCascadeIndex(vec3 wsPos)
-{
-	int cascadeIndex = 0;
-	vec4 viewPos = vec4(wsPos, 1.0) * ubo.viewMatrix;
-
-	for(int i = 0; i < ubo.shadowCount - 1; ++i)
-	{
-		if(viewPos.z < ubo.uSplitDepths[i].x)
-		{
-			cascadeIndex = i + 1;
-		}
-	}
-
-	return cascadeIndex;
-}
-
-float CalculateShadow(vec3 wsPos, int cascadeIndex)
-{
-	vec4 shadowCoord =  vec4(wsPos, 1.0) * (ubo.uShadowTransform[cascadeIndex] * ubo.biasMat);
-	return filterPCF(shadowCoord * ( 1.0 / shadowCoord.w), cascadeIndex);
-}
-
 layout(location = 0) out vec4 outColor;
 
 void main()
@@ -300,19 +417,16 @@ void main()
     material.Metallic  = spec;
     material.Roughness = max(roughness, 0.05);
     material.Normal    = normal;
-	material.AO		   = pbrTex.z;
+	material.AO		= pbrTex.z;
 	material.Emissive  = emissive;
-	material.View 	   = normalize(ubo.cameraPosition.xyz - wsPos);
-	material.NDotV 	   = max(dot(material.Normal, material.View), 0.0);
-
-	int cascadeIndex = CalculateCascadeIndex(wsPos);
-	float shadow = CalculateShadow(wsPos,cascadeIndex);
-
+	material.View 	 = normalize(ubo.cameraPosition.xyz - wsPos);
+	material.NDotV     = max(dot(material.Normal, material.View), 0.0);
+	
 	vec3 Lr = 2.0 * material.NDotV * material.Normal - material.View;
 	// Fresnel reflectance, metals use albedo
 	vec3 F0 = mix(Fdielectric, material.Albedo.xyz, material.Metallic.x);
 
-	vec3 lightContribution = Lighting(F0, shadow, wsPos, material);
+	vec3 lightContribution = Lighting(F0, wsPos, material);
 	vec3 iblContribution = IBL(F0, Lr, material) * 2.0;
 
 	finalColour = lightContribution + iblContribution + emissive;
@@ -341,6 +455,7 @@ void main()
 				outColor = vec4(material.Normal,1.0);
 				break;
             case 7:
+			int cascadeIndex = CalculateCascadeIndex(wsPos);
                 switch(cascadeIndex)
                 {
                     case 0 : outColor = outColor * vec4(0.8,0.2,0.2,1.0); break;

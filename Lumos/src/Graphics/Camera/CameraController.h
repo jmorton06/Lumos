@@ -41,7 +41,7 @@ namespace Lumos
 
 		float m_ZoomDampeningFactor = 0.00001f;
 		float m_DampeningFactor = 0.00001f;
-		float m_RotateDampeningFactor = 0.00001f;
+		float m_RotateDampeningFactor = 0.001f;
 	};
 
 }

@@ -17,7 +17,7 @@ namespace Lumos
 
 		namespace GLTools
 		{
-			u32 TextureFormatToGL(TextureFormat format);
+			u32 TextureFormatToGL(TextureFormat format, bool srgb = true);
 			u32 TextureWrapToGL(TextureWrap wrap);
 			u32 TextureFormatToInternalFormat(u32 format);
 			u32 StencilTypeToGL(const StencilType type);

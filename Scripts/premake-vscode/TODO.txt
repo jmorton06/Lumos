@@ -1,0 +1,2 @@
+- execute premake5 gmake2 command from vscode generator
+    - should have access to options via _OPTIONS

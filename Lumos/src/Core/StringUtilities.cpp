@@ -4,9 +4,7 @@
 
 
 #ifdef _WIN32
-#define WIN32_LEAN_AND_MEAN
 #include <windows.h>
-//
 #include <DbgHelp.h>
 #else
 #include <cxxabi.h>  // __cxa_demangle()
@@ -39,13 +37,22 @@ namespace Lumos
 			return FilePath.substr(pos + 1);
 		return FilePath;
 	}
+    
+    std::string GetFileLocation(const std::string& FilePath)
+    {
+        auto pos = FilePath.find_last_of('/');
+        if(pos != std::string::npos)
+            return FilePath.substr(0, pos + 1);
+        return FilePath;
+    }
 	
 	std::string RemoveName(const std::string& FilePath)
 	{
 		auto pos = FilePath.find_last_of('/');
 		if(pos != std::string::npos)
 			return FilePath.substr(0, pos + 1);
-		}
+        return FilePath;
+    }
 		
 	std::vector<std::string> SplitString(const std::string& string, const std::string& delimiters)
 	{

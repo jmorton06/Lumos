@@ -28,7 +28,7 @@ namespace Lumos::Maths
 
         /// Copy-construct from another quaternion.
         Quaternion(const Quaternion& quat) noexcept
-    #if defined(LUMOS_SSE) && (!defined(_MSC_VER) || _MSC_VER >= 1700) /* Visual Studio 2012 and newer. VS2010 has a bug with these, see https://github.com/Lumos/Lumos/issues/1044 */
+    #if defined(LUMOS_SSE) && (!defined(_MSC_VER) || _MSC_VER >= 1700) /* Visual Studio 2012 and newer. VS2010 bug */
         {
             _mm_storeu_ps(&w, _mm_loadu_ps(&quat.w));
         }

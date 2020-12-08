@@ -1,6 +1,9 @@
 #pragma once
 
 #if LUMOS_PROFILE
+#ifdef LUMOS_PLATFORM_WINDOWS
+#define TRACY_CALLSTACK 1
+#endif
 #include <Tracy/Tracy.hpp>
 #define LUMOS_PROFILE_SCOPE(name) ZoneScopedN(name)
 #define LUMOS_PROFILE_FUNCTION() ZoneScoped

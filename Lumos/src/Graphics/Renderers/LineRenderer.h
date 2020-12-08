@@ -3,10 +3,7 @@
 #include "IRenderer.h"
 #include "Maths/Maths.h"
 #include "Maths/Transform.h"
-
 #include "Graphics/API/DescriptorSet.h"
-
-#define RENDERER2DLINE_VERTEX_SIZE sizeof(LineVertexData)
 
 namespace Lumos
 {
@@ -24,23 +21,6 @@ namespace Lumos
 			bool operator==(const LineVertexData& other) const
 			{
 				return vertex == other.vertex && color == other.color;
-			}
-
-			static std::array<Graphics::VertexInputDescription, 2> getAttributeDescriptions()
-			{
-				std::array<Graphics::VertexInputDescription, 2> attributeDescriptions = {};
-
-				attributeDescriptions[0].binding = 0;
-				attributeDescriptions[0].location = 0;
-				attributeDescriptions[0].format = Graphics::Format::R32G32B32_FLOAT;
-				attributeDescriptions[0].offset = offsetof(LineVertexData, vertex);
-
-				attributeDescriptions[1].binding = 0;
-				attributeDescriptions[1].location = 1;
-				attributeDescriptions[1].format = Graphics::Format::R32G32B32A32_FLOAT;
-				attributeDescriptions[1].offset = offsetof(LineVertexData, color);
-
-				return attributeDescriptions;
 			}
 		};
 

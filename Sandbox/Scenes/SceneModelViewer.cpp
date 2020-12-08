@@ -21,7 +21,7 @@ void SceneModelViewer::OnInit()
 	auto audioSystem = Application::Get().GetSystem<AudioManager>();
 
     auto environment = m_EntityManager->Create("Environment");
-    environment.AddComponent<Graphics::Environment>("/Textures/cubemap/Arches_E_PineTree", 11, 3072, 4096, ".tga");
+    environment.AddComponent<Graphics::Environment>("//Textures/cubemap/Arches_E_PineTree", 11, 3072, 4096, ".tga");
     
     auto lightEntity = m_EntityManager->Create("Light");
     lightEntity.AddComponent<Maths::Transform>(Matrix4::Translation(Maths::Vector3(26.0f, 22.0f, 48.5f)) * Maths::Quaternion::LookAt(Maths::Vector3(26.0f, 22.0f, 48.5f), Maths::Vector3::ZERO).RotationMatrix4());
@@ -46,14 +46,14 @@ void SceneModelViewer::OnCleanupScene()
 void SceneModelViewer::LoadModels()
 {
 	std::vector<std::string> ExampleModelPaths{
-		"/Meshes/DamagedHelmet/glTF/DamagedHelmet.gltf",
-		"/Meshes/Scene/scene.gltf",
-		"/Meshes/Spyro/ArtisansHub.obj",
-		"/Meshes/Cube/Cube.gltf",
-		"/Meshes/KhronosExamples/MetalRoughSpheres/glTF/MetalRoughSpheres.gltf",
-		"/Meshes/KhronosExamples/EnvironmentTest/glTF/EnvironmentTest.gltf",
-		"/Meshes/Sponza/sponza.gltf",
-		"/Meshes/capsule.glb"};
+		"//Meshes/DamagedHelmet/glTF/DamagedHelmet.gltf",
+		"//Meshes/Scene/scene.gltf",
+		"//Meshes/Spyro/ArtisansHub.obj",
+		"//Meshes/Cube/Cube.gltf",
+		"//Meshes/KhronosExamples/MetalRoughSpheres/glTF/MetalRoughSpheres.gltf",
+		"//Meshes/KhronosExamples/EnvironmentTest/glTF/EnvironmentTest.gltf",
+		"//Meshes/Sponza/sponza.gltf",
+		"//Meshes/capsule.glb"};
 
 	Entity modelEntity = m_EntityManager->Create();
 	modelEntity.AddComponent<Graphics::Model>(ExampleModelPaths[0]);

@@ -33,6 +33,7 @@ namespace MM
 	template<>
 	void ComponentEditorWidget<Lumos::LuaScriptComponent>(entt::registry& reg, entt::registry::entity_type e)
 	{
+		LUMOS_PROFILE_FUNCTION();
 		auto& script = reg.get<Lumos::LuaScriptComponent>(e);
 
         if(!script.Loaded() && !script.GetFilePath().empty())
@@ -87,33 +88,33 @@ namespace MM
 	template<>
 	void ComponentEditorWidget<Lumos::Maths::Transform>(entt::registry& reg, entt::registry::entity_type e)
 	{
+		LUMOS_PROFILE_FUNCTION();
 		auto& transform = reg.get<Lumos::Maths::Transform>(e);
 
 		auto rotation = transform.GetLocalOrientation().EulerAngles();
 		auto position = transform.GetLocalPosition();
 		auto scale = transform.GetLocalScale();
 
-		ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(2, 2));
-		ImGui::Columns(2);
-		ImGui::Separator();
+        ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(2, 2));
+        ImGui::Columns(2);
+        ImGui::Separator();
 
-		ImGui::AlignTextToFramePadding();
 		ImGui::TextUnformatted("Position");
 		ImGui::NextColumn();
 		ImGui::PushItemWidth(-1);
-		if(ImGui::DragFloat3("##Position", Lumos::Maths::ValuePointer(position)))
+        
+		if(ImGui::DragFloat3("##Position", Lumos::Maths::ValuePointer(position), 3, 0.05f))
 		{
 			transform.SetLocalPosition(position);
 		}
 
-		ImGui::PopItemWidth();
+        ImGui::PopItemWidth();
 		ImGui::NextColumn();
 
-		ImGui::AlignTextToFramePadding();
 		ImGui::TextUnformatted("Rotation");
 		ImGui::NextColumn();
 		ImGui::PushItemWidth(-1);
-		if(ImGui::DragFloat3("##Rotation", Lumos::Maths::ValuePointer(rotation)))
+        if(ImGui::DragFloat3("##Rotation", Lumos::Maths::ValuePointer(rotation), 3, 0.05f))
 		{
 			float pitch = Lumos::Maths::Min(rotation.x, 89.9f);
 			pitch = Lumos::Maths::Max(pitch, -89.9f);
@@ -123,11 +124,10 @@ namespace MM
 		ImGui::PopItemWidth();
 		ImGui::NextColumn();
 
-		ImGui::AlignTextToFramePadding();
 		ImGui::TextUnformatted("Scale");
 		ImGui::NextColumn();
 		ImGui::PushItemWidth(-1);
-		if(ImGui::DragFloat3("##Scale", Lumos::Maths::ValuePointer(scale), 0.1f))
+        if(ImGui::DragFloat3("##Scale", Lumos::Maths::ValuePointer(scale), 3, 0.05f))
 		{
 			transform.SetLocalScale(scale);
 		}
@@ -137,18 +137,19 @@ namespace MM
 
 		ImGui::Columns(1);
 		ImGui::Separator();
-		ImGui::PopStyleVar();
+        ImGui::PopStyleVar();
 	 }
 
 	static void CuboidCollisionShapeInspector(Lumos::CuboidCollisionShape* shape, const Lumos::Physics3DComponent& phys)
 	{
+		LUMOS_PROFILE_FUNCTION();
 		ImGui::AlignTextToFramePadding();
 		ImGui::TextUnformatted("Half Dimensions");
 		ImGui::NextColumn();
 		ImGui::PushItemWidth(-1);
 
 		Lumos::Maths::Vector3 size = shape->GetHalfDimensions();
-		if(ImGui::DragFloat3("##CollisionShapeHalfDims", Lumos::Maths::ValuePointer(size), 1.0f, 0.0f, 10000.0f))
+		if(ImGui::DragFloat3("##CollisionShapeHalfDims", Lumos::Maths::ValuePointer(size), 1.0f, 0.0f, 10000.0f, "%.2f"))
 		{
 			shape->SetHalfDimensions(size);
 			phys.GetRigidBody()->CollisionShapeUpdated();
@@ -159,6 +160,7 @@ namespace MM
 
 	static void SphereCollisionShapeInspector(Lumos::SphereCollisionShape* shape, const Lumos::Physics3DComponent& phys)
 	{
+		LUMOS_PROFILE_FUNCTION();
 		ImGui::AlignTextToFramePadding();
 		ImGui::TextUnformatted("Radius");
 		ImGui::NextColumn();
@@ -176,13 +178,14 @@ namespace MM
 
 	static void PyramidCollisionShapeInspector(Lumos::PyramidCollisionShape* shape, const Lumos::Physics3DComponent& phys)
 	{
+		LUMOS_PROFILE_FUNCTION();
 		ImGui::AlignTextToFramePadding();
 		ImGui::TextUnformatted("Half Dimensions");
 		ImGui::NextColumn();
 		ImGui::PushItemWidth(-1);
 
 		Lumos::Maths::Vector3 size = shape->GetHalfDimensions();
-		if(ImGui::DragFloat3("##CollisionShapeHalfDims", Lumos::Maths::ValuePointer(size), 1.0f, 0.0f, 10000.0f))
+		if(ImGui::DragFloat3("##CollisionShapeHalfDims", Lumos::Maths::ValuePointer(size), 1.0f, 0.0f, 10000.0f, "%.2f"))
 		{
 			shape->SetHalfDimensions(size);
 			phys.GetRigidBody()->CollisionShapeUpdated();
@@ -193,13 +196,14 @@ namespace MM
 
 	static void CapsuleCollisionShapeInspector(Lumos::CapsuleCollisionShape* shape, const Lumos::Physics3DComponent& phys)
 	{
+		LUMOS_PROFILE_FUNCTION();
 		ImGui::AlignTextToFramePadding();
 		ImGui::TextUnformatted("Half Dimensions");
 		ImGui::NextColumn();
 		ImGui::PushItemWidth(-1);
 
 		float radius = shape->GetRadius();
-		if(ImGui::DragFloat("##CollisionShapeRadius", &radius, 1.0f, 0.0f, 10000.0f))
+		if(ImGui::DragFloat("##CollisionShapeRadius", &radius, 1.0f, 0.0f, 10000.0f, "%.2f"))
 		{
 			shape->SetRadius(radius);
 			phys.GetRigidBody()->CollisionShapeUpdated();
@@ -210,6 +214,7 @@ namespace MM
 
 	std::string CollisionShape2DTypeToString(Lumos::Shape shape)
 	{
+		LUMOS_PROFILE_FUNCTION();
 		switch (shape)
 		{
 			case Lumos::Shape::Circle : return "Circle";
@@ -222,6 +227,7 @@ namespace MM
 
 	Lumos::Shape StringToCollisionShape2DType(const std::string& type)
 	{
+		LUMOS_PROFILE_FUNCTION();
 		if(type == "Circle")
 			return Lumos::Shape::Circle;
 		if(type == "Square")
@@ -235,6 +241,7 @@ namespace MM
 
 	std::string CollisionShapeTypeToString(Lumos::CollisionShapeType type)
 	{
+		LUMOS_PROFILE_FUNCTION();
 		switch(type)
 		{
 		case Lumos::CollisionShapeType::CollisionCuboid:
@@ -255,6 +262,7 @@ namespace MM
 
 	Lumos::CollisionShapeType StringToCollisionShapeType(const std::string& type)
 	{
+		LUMOS_PROFILE_FUNCTION();
 		if(type == "Sphere")
 			return Lumos::CollisionShapeType::CollisionSphere;
 		if(type == "Cuboid")
@@ -271,6 +279,7 @@ namespace MM
 	template<>
 	void ComponentEditorWidget<Lumos::Physics3DComponent>(entt::registry& reg, entt::registry::entity_type e)
 	{
+		LUMOS_PROFILE_FUNCTION();
 		ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(2, 2));
 		ImGui::Columns(2);
 		ImGui::Separator();
@@ -279,7 +288,7 @@ namespace MM
 		auto pos = phys.GetRigidBody()->GetPosition();
 		auto force = phys.GetRigidBody()->GetForce();
 		auto torque = phys.GetRigidBody()->GetTorque();
-		auto orientation = phys.GetRigidBody()->GetOrientation();
+		auto orientation = phys.GetRigidBody()->GetOrientation().EulerAngles();
 		auto angularVelocity = phys.GetRigidBody()->GetAngularVelocity();
 		auto friction = phys.GetRigidBody()->GetFriction();
 		auto isStatic = phys.GetRigidBody()->GetIsStatic();
@@ -294,7 +303,7 @@ namespace MM
 		ImGui::TextUnformatted("Position");
 		ImGui::NextColumn();
 		ImGui::PushItemWidth(-1);
-		if(ImGui::DragFloat3("##Position", Lumos::Maths::ValuePointer(pos)))
+		if(ImGui::DragFloat3("##Position", Lumos::Maths::ValuePointer(pos), 1.0f, 0.0f, 0.0f, "%.2f"))
 			phys.GetRigidBody()->SetPosition(pos);
 
 		ImGui::PopItemWidth();
@@ -304,7 +313,7 @@ namespace MM
 		ImGui::TextUnformatted("Velocity");
 		ImGui::NextColumn();
 		ImGui::PushItemWidth(-1);
-		if(ImGui::DragFloat3("##Velocity", Lumos::Maths::ValuePointer(velocity)))
+		if(ImGui::DragFloat3("##Velocity", Lumos::Maths::ValuePointer(velocity), 1.0f, 0.0f, 0.0f, "%.2f"))
 			phys.GetRigidBody()->SetLinearVelocity(velocity);
 
 		ImGui::PopItemWidth();
@@ -314,7 +323,7 @@ namespace MM
 		ImGui::TextUnformatted("Torque");
 		ImGui::NextColumn();
 		ImGui::PushItemWidth(-1);
-		if(ImGui::DragFloat3("##Torque", Lumos::Maths::ValuePointer(torque)))
+		if(ImGui::DragFloat3("##Torque", Lumos::Maths::ValuePointer(torque), 1.0f, 0.0f, 0.0f, "%.2f"))
 			phys.GetRigidBody()->SetTorque(torque);
 
 		ImGui::PopItemWidth();
@@ -324,8 +333,8 @@ namespace MM
 		ImGui::TextUnformatted("Orientation");
 		ImGui::NextColumn();
 		ImGui::PushItemWidth(-1);
-		if(ImGui::DragFloat4("##Orientation", Lumos::Maths::ValuePointer(orientation)))
-			phys.GetRigidBody()->SetOrientation(orientation);
+		if(ImGui::DragFloat3("##Orientation", Lumos::Maths::ValuePointer(orientation), 1.0f, 0.0f, 0.0f, "%.2f"))
+			phys.GetRigidBody()->SetOrientation(Lumos::Maths::Quaternion(orientation));
 
 		ImGui::PopItemWidth();
 		ImGui::NextColumn();
@@ -334,7 +343,7 @@ namespace MM
 		ImGui::TextUnformatted("Force");
 		ImGui::NextColumn();
 		ImGui::PushItemWidth(-1);
-		if(ImGui::DragFloat4("##Force", Lumos::Maths::ValuePointer(force)))
+		if(ImGui::DragFloat3("##Force", Lumos::Maths::ValuePointer(force), 1.0f, 0.0f, 0.0f, "%.2f"))
 			phys.GetRigidBody()->SetForce(force);
 
 		ImGui::PopItemWidth();
@@ -344,7 +353,7 @@ namespace MM
 		ImGui::TextUnformatted("Angular Velocity");
 		ImGui::NextColumn();
 		ImGui::PushItemWidth(-1);
-		if(ImGui::DragFloat3("##Angular Velocity", Lumos::Maths::ValuePointer(angularVelocity)))
+		if(ImGui::DragFloat3("##Angular Velocity", Lumos::Maths::ValuePointer(angularVelocity), 1.0f, 0.0f, 0.0f, "%.2f"))
 			phys.GetRigidBody()->SetAngularVelocity(angularVelocity);
 
 		ImGui::PopItemWidth();
@@ -354,7 +363,7 @@ namespace MM
 		ImGui::TextUnformatted("Friction");
 		ImGui::NextColumn();
 		ImGui::PushItemWidth(-1);
-		if(ImGui::DragFloat("##Friction", &friction))
+		if(ImGui::DragFloat("##Friction", &friction, 1.0f, 0.0f, 0.0f, "%.2f"))
 			phys.GetRigidBody()->SetFriction(friction);
 
 		ImGui::PopItemWidth();
@@ -364,7 +373,7 @@ namespace MM
 		ImGui::TextUnformatted("Mass");
 		ImGui::NextColumn();
 		ImGui::PushItemWidth(-1);
-		if(ImGui::DragFloat("##Mass", &mass))
+		if(ImGui::DragFloat("##Mass", &mass, 1.0f, 0.0f, 0.0f, "%.2f"))
 			phys.GetRigidBody()->SetInverseMass(1.0f / mass);
 
 		ImGui::PopItemWidth();
@@ -374,7 +383,7 @@ namespace MM
 		ImGui::TextUnformatted("Elasticity");
 		ImGui::NextColumn();
 		ImGui::PushItemWidth(-1);
-		if(ImGui::DragFloat("##Elasticity", &elasticity))
+		if(ImGui::DragFloat("##Elasticity", &elasticity, 1.0f, 0.0f, 0.0f, "%.2f"))
 			phys.GetRigidBody()->SetElasticity(elasticity);
 
 		ImGui::PopItemWidth();
@@ -468,6 +477,7 @@ namespace MM
 	template<>
 	void ComponentEditorWidget<Lumos::Physics2DComponent>(entt::registry& reg, entt::registry::entity_type e)
 	{
+		LUMOS_PROFILE_FUNCTION();
 		auto& phys = reg.get<Lumos::Physics2DComponent>(e);
 
 		auto pos = phys.GetRigidBody()->GetPosition();
@@ -575,6 +585,7 @@ namespace MM
 	template<>
 	void ComponentEditorWidget<Lumos::SoundComponent>(entt::registry& reg, entt::registry::entity_type e)
 	{
+		LUMOS_PROFILE_FUNCTION();
 		auto& sound = reg.get<Lumos::SoundComponent>(e);
 
 		auto pos = sound.GetSoundNode()->GetPosition();
@@ -645,6 +656,7 @@ namespace MM
 	template<>
 	void ComponentEditorWidget<Lumos::Camera>(entt::registry& reg, entt::registry::entity_type e)
 	{
+		LUMOS_PROFILE_FUNCTION();
 		auto& camera = reg.get<Lumos::Camera>(e);
 		camera.OnImGui();
 	}
@@ -652,8 +664,8 @@ namespace MM
 	template<>
 	void ComponentEditorWidget<Lumos::Graphics::Sprite>(entt::registry& reg, entt::registry::entity_type e)
 	{
+		LUMOS_PROFILE_FUNCTION();
 		auto& sprite = reg.get<Lumos::Graphics::Sprite>(e);
-
 		sprite.OnImGui();
 	}
 	
@@ -661,6 +673,7 @@ namespace MM
 	template<>
 		void ComponentEditorWidget<Lumos::Graphics::AnimatedSprite>(entt::registry& reg, entt::registry::entity_type e)
 	{
+		LUMOS_PROFILE_FUNCTION();
 		using namespace Lumos;
 		using namespace Graphics;
 		auto& sprite = reg.get<Lumos::Graphics::AnimatedSprite>(e);
@@ -775,7 +788,7 @@ namespace MM
 				ImGui::PushID(frameID);
 				bool open = ImGui::TreeNode(&state, "%s", name.c_str());
 				
-				ImGui::SameLine(ImGui::GetWindowContentRegionWidth() - 16.0f);
+				ImGui::SameLine(ImGui::GetWindowContentRegionWidth() - ImGui::GetFontSize());
 				ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.7f, 0.7f, 0.7f, 0.0f));
 				
 				if (ImGui::Button((ICON_MDI_MINUS"##" + name).c_str()))
@@ -855,7 +868,7 @@ namespace MM
 				ImGui::Columns(1);
 				if(ImGui::TreeNode("Frames"))
 					{
-						ImGui::SameLine(ImGui::GetWindowContentRegionWidth() - 16.0f);
+						ImGui::SameLine(ImGui::GetWindowContentRegionWidth() - ImGui::GetFontSize());
 						ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.7f, 0.7f, 0.7f, 0.0f));
 						
 						std::vector<Maths::Vector2>& frames = state.Frames;
@@ -875,11 +888,11 @@ namespace MM
 						{
 							auto& pos = (*it);
 							ImGui::PushID(&pos + numRemoved * 100);
-							ImGui::PushItemWidth(ImGui::GetWindowContentRegionWidth() - 60.0f);
+							ImGui::PushItemWidth(ImGui::GetWindowContentRegionWidth() - ImGui::GetFontSize() * 3.0f);
 							
 							ImGui::DragFloat2("##Position", Maths::ValuePointer(pos));
 							
-							ImGui::SameLine(ImGui::GetWindowContentRegionWidth() - 16.0f);
+							ImGui::SameLine(ImGui::GetWindowContentRegionWidth() - ImGui::GetFontSize());
 							
 							ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.7f, 0.7f, 0.7f, 0.0f));
 							
@@ -942,7 +955,7 @@ namespace MM
 			
 			bool flipImage = Graphics::GraphicsContext::GetContext()->FlipImGUITexture();
 			
-			ImGui::AlignTextToFramePadding();
+			//ImGui::AlignTextToFramePadding();
 			auto tex = sprite.GetTexture();
             
             if(tex)
@@ -995,6 +1008,7 @@ namespace MM
 	template<>
 	void ComponentEditorWidget<Lumos::Graphics::Light>(entt::registry& reg, entt::registry::entity_type e)
 	{
+		LUMOS_PROFILE_FUNCTION();
 		auto& light = reg.get<Lumos::Graphics::Light>(e);
 
 		ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(2, 2));
@@ -1047,6 +1061,7 @@ namespace MM
 
     Lumos::Graphics::PrimitiveType GetPrimativeName(const std::string& type)
     {
+		LUMOS_PROFILE_FUNCTION();
         if(type == "Cube")
         {
             return Lumos::Graphics::PrimitiveType::Cube;
@@ -1082,6 +1097,7 @@ namespace MM
 
     std::string GetPrimativeName(Lumos::Graphics::PrimitiveType type)
 	{ 
+		LUMOS_PROFILE_FUNCTION();
 		switch (type)
 		{
 			case Lumos::Graphics::PrimitiveType::Cube		: return "Cube";
@@ -1102,6 +1118,7 @@ namespace MM
 	template<>
 	void ComponentEditorWidget<Lumos::Graphics::Model>(entt::registry& reg, entt::registry::entity_type e)
 	{
+		LUMOS_PROFILE_FUNCTION();
 		auto& model = reg.get<Lumos::Graphics::Model>(e);
 		auto& meshes = model.GetMeshes();
         auto primitiveType = model.GetPrimitiveType();
@@ -1526,6 +1543,7 @@ namespace MM
 	template<>
 	void ComponentEditorWidget<Lumos::Graphics::Environment>(entt::registry& reg, entt::registry::entity_type e)
 	{
+		LUMOS_PROFILE_FUNCTION();
 		auto& environment = reg.get<Lumos::Graphics::Environment>(e);
 		Lumos::ImGuiHelpers::Image(environment.GetEnvironmentMap(), Lumos::Maths::Vector2(200, 200));
 		
@@ -1616,6 +1634,7 @@ namespace MM
 	template<>
 	void ComponentEditorWidget<Lumos::TextureMatrixComponent>(entt::registry& reg, entt::registry::entity_type e)
 	{
+		LUMOS_PROFILE_FUNCTION();
 		auto& textureMatrix = reg.get<Lumos::TextureMatrixComponent>(e);
 		Lumos::Maths::Matrix4& mat = textureMatrix.GetMatrix();
 		auto rotation = textureMatrix.GetMatrix().Rotation();
@@ -1672,6 +1691,7 @@ namespace MM
 	template<>
 	void ComponentEditorWidget<Lumos::DefaultCameraController>(entt::registry& reg, entt::registry::entity_type e)
 	{
+		LUMOS_PROFILE_FUNCTION();
 		auto& controllerComp = reg.get<Lumos::DefaultCameraController>(e);
 		ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(2, 2));
 		ImGui::Columns(2);
@@ -1719,6 +1739,7 @@ namespace Lumos
 	static bool init = false;
 	void InspectorWindow::OnNewScene(Scene* scene)
 	{
+		LUMOS_PROFILE_FUNCTION();
 		if(init)
 			return;
 
@@ -1753,6 +1774,7 @@ namespace Lumos
 
 	void InspectorWindow::OnImGui()
 	{   
+		LUMOS_PROFILE_FUNCTION();
 		auto& registry = Application::Get().GetSceneManager()->GetCurrentScene()->GetRegistry();
 		auto selected = m_Editor->GetSelected();
 
@@ -1800,7 +1822,7 @@ namespace Lumos
 				}
 			}
 
-            ImGui::SameLine(ImGui::GetWindowContentRegionWidth() - 16.0f);
+            ImGui::SameLine(ImGui::GetWindowContentRegionWidth() - ImGui::GetFontSize());
 
             ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.7f, 0.7f, 0.7f, 0.0f));
 
@@ -1829,16 +1851,16 @@ namespace Lumos
 
                 if(hierarchyComp)
                 {
-                    if(registry.valid(hierarchyComp->parent()))
+                    if(registry.valid(hierarchyComp->Parent()))
                     {
-                        ImGui::Text("Parent : ID: %d", static_cast<int>(registry.entity(hierarchyComp->parent())));
+                        ImGui::Text("Parent : ID: %d", static_cast<int>(registry.entity(hierarchyComp->Parent())));
                     }
                     else
                     {
                         ImGui::TextUnformatted("Parent : null");
                     }
 
-                    entt::entity child = hierarchyComp->first();
+                    entt::entity child = hierarchyComp->First();
                     ImGui::TextUnformatted("Children : ");
                     ImGui::Indent(24.0f);
 
@@ -1850,7 +1872,7 @@ namespace Lumos
 
                         if (hierarchy)
                         {
-                            child = hierarchy->next();
+                            child = hierarchy->Next();
                         }
                     }
 

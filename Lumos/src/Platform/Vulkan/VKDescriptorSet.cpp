@@ -16,6 +16,7 @@ namespace Lumos
 	{
 		VKDescriptorSet::VKDescriptorSet(const DescriptorInfo& info)
 		{
+			LUMOS_PROFILE_FUNCTION();
 			VkDescriptorSetAllocateInfo descriptorSetAllocateInfo;
 			descriptorSetAllocateInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO;
 			descriptorSetAllocateInfo.descriptorPool = static_cast<Graphics::VKPipeline*>(info.pipeline)->GetDescriptorPool();
@@ -39,21 +40,25 @@ namespace Lumos
 
 		void VKDescriptorSet::Update(std::vector<BufferInfo>& bufferInfos)
 		{
+			LUMOS_PROFILE_FUNCTION();
             UpdateInternal(nullptr, &bufferInfos);
 		}
 
 		void VKDescriptorSet::Update(std::vector<ImageInfo>& imageInfos)
 		{
+			LUMOS_PROFILE_FUNCTION();
              UpdateInternal(&imageInfos, nullptr);
 		}
 
 		void VKDescriptorSet::Update(std::vector<ImageInfo>& imageInfos, std::vector<BufferInfo>& bufferInfos)
 		{
+			LUMOS_PROFILE_FUNCTION();
             UpdateInternal(&imageInfos, &bufferInfos);
 		}
 
 		void VKDescriptorSet::SetPushConstants(std::vector<PushConstant>& pushConstants)
 		{
+			LUMOS_PROFILE_FUNCTION();
 			m_PushConstants.clear();
 			for (auto& pushConstant : pushConstants)
 			{
@@ -73,6 +78,7 @@ namespace Lumos
     
         void VKDescriptorSet::UpdateInternal(std::vector<ImageInfo>* imageInfos, std::vector<BufferInfo>* bufferInfos)
         {
+			LUMOS_PROFILE_FUNCTION();
             m_Dynamic = false;
 			int descriptorWritesCount = 0;
 
@@ -82,13 +88,23 @@ namespace Lumos
 
                 for (auto& imageInfo : *imageInfos)
                 {
-					for (int i = 0; i < imageInfo.count; i++)
-					{
-						VkDescriptorImageInfo& des = *static_cast<VkDescriptorImageInfo*>(imageInfo.texture[i]->GetHandle());
-						m_ImageInfoPool[i + imageIndex].imageLayout = des.imageLayout;
-						m_ImageInfoPool[i + imageIndex].imageView = des.imageView;
-						m_ImageInfoPool[i + imageIndex].sampler = des.sampler;
-					}
+                    if(imageInfo.count == 1)
+                    {
+                        VkDescriptorImageInfo& des = *static_cast<VkDescriptorImageInfo*>(imageInfo.texture->GetHandle());
+                        m_ImageInfoPool[imageIndex].imageLayout = des.imageLayout;
+                        m_ImageInfoPool[imageIndex].imageView = des.imageView;
+                        m_ImageInfoPool[imageIndex].sampler = des.sampler;
+                    }
+                    else
+                    {
+                        for (int i = 0; i < imageInfo.count; i++)
+                        {
+                            VkDescriptorImageInfo& des = *static_cast<VkDescriptorImageInfo*>(imageInfo.textures[i]->GetHandle());
+                            m_ImageInfoPool[i + imageIndex].imageLayout = des.imageLayout;
+                            m_ImageInfoPool[i + imageIndex].imageView = des.imageView;
+                            m_ImageInfoPool[i + imageIndex].sampler = des.sampler;
+                        }
+                    }
 
 					VkWriteDescriptorSet writeDescriptorSet{};
 					writeDescriptorSet.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;

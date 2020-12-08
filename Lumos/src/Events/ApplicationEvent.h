@@ -9,11 +9,11 @@ namespace Lumos
 	class LUMOS_EXPORT WindowResizeEvent : public Event
 	{
 	public:
-		WindowResizeEvent(unsigned int width, unsigned int height)
+		WindowResizeEvent(u32 width, u32 height)
 			: m_Width(width), m_Height(height) {}
 
-		_FORCE_INLINE_ unsigned int GetWidth() const { return m_Width; }
-		_FORCE_INLINE_ unsigned int GetHeight() const { return m_Height; }
+		_FORCE_INLINE_ u32 GetWidth() const { return m_Width; }
+		_FORCE_INLINE_ u32 GetHeight() const { return m_Height; }
 
 		std::string ToString() const override
 		{
@@ -26,7 +26,7 @@ namespace Lumos
 		EVENT_CLASS_CATEGORY(EventCategoryApplication)
 
 	private:
-		unsigned int m_Width, m_Height;
+		u32 m_Width, m_Height;
 	};
 
 	class LUMOS_EXPORT WindowCloseEvent : public Event

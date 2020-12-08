@@ -4,7 +4,11 @@
 #include "Scene/Entity.h"
 
 #include <sol/sol.hpp>
+
+DISABLE_WARNING_PUSH
+DISABLE_WARNING_CONVERSION_TO_SMALLER_TYPE
 #include <entt/entt.hpp>
+DISABLE_WARNING_POP
 
 namespace Lumos
 {

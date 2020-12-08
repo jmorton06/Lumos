@@ -2,13 +2,12 @@
 #include "DeferredOffScreenRenderer.h"
 #include "Scene/Scene.h"
 #include "Core/Application.h"
+#include "Core/Engine.h"
 #include "Scene/Component/TextureMatrixComponent.h"
-
 #include "Maths/Maths.h"
 #include "Maths/Transform.h"
- 
 
-#include "Graphics/RenderManager.h"
+#include "RenderGraph.h"
 #include "Graphics/Camera/Camera.h"
 #include "Graphics/Mesh.h"
 #include "Graphics/Model.h"
@@ -49,29 +48,32 @@ namespace Lumos
 
 		DeferredOffScreenRenderer::DeferredOffScreenRenderer(u32 width, u32 height)
 		{
+            m_ScreenRenderer = false;
+
 			DeferredOffScreenRenderer::SetScreenBufferSize(width, height);
 			DeferredOffScreenRenderer::Init();
-		}
+        }
 
 		DeferredOffScreenRenderer::~DeferredOffScreenRenderer()
 		{
 			delete m_UniformBuffer;
-			delete m_ModelUniformBuffer;
 			delete m_DeferredCommandBuffers;
 			delete m_DefaultMaterial;
 
 			delete[] m_VSSystemUniformBuffer;
-
+            
+            for(auto& pc: m_PushConstants)
+                delete[] pc.data;
+            
+            m_PushConstants.clear();
 			m_Framebuffers.clear();
 			m_CommandBuffers.clear();
-
-			Memory::AlignedFree(m_UBODataDynamic.model);
 		}
 
 		void DeferredOffScreenRenderer::Init()
 		{
 			LUMOS_PROFILE_FUNCTION();
-			m_Shader = Ref<Graphics::Shader>(Shader::CreateFromFile("DeferredColour", "/CoreShaders/"));
+			m_Shader = Application::Get().GetShaderLibrary()->GetResource("/CoreShaders/DeferredColour.shader");
 			m_DefaultMaterial = new Material();
 
 			Graphics::MaterialProperties properties;
@@ -86,14 +88,7 @@ namespace Lumos
 
 			const size_t minUboAlignment = size_t(Graphics::Renderer::GetCapabilities().UniformBufferOffsetAlignment);
 
-			m_DynamicAlignment = sizeof(Lumos::Maths::Matrix4);
-			if(minUboAlignment > 0)
-			{
-				m_DynamicAlignment = (m_DynamicAlignment + minUboAlignment - 1) & ~(minUboAlignment - 1);
-			}
-
 			m_UniformBuffer = nullptr;
-			m_ModelUniformBuffer = nullptr;
 
 			m_CommandQueue.reserve(1000);
 
@@ -108,21 +103,27 @@ namespace Lumos
 			// Per Scene System Uniforms
 			m_VSSystemUniformBufferOffsets[VSSystemUniformIndex_ProjectionViewMatrix] = 0;
 
-			m_RenderPass = Ref<Graphics::RenderPass>(Graphics::RenderPass::Create());
-
 			AttachmentInfo textureTypesOffScreen[5] =
 				{
-					{TextureType::COLOUR, Application::Get().GetRenderManager()->GetGBuffer()->GetTextureFormat(SCREENTEX_COLOUR)},
-					{TextureType::COLOUR, Application::Get().GetRenderManager()->GetGBuffer()->GetTextureFormat(SCREENTEX_POSITION)},
-					{TextureType::COLOUR, Application::Get().GetRenderManager()->GetGBuffer()->GetTextureFormat(SCREENTEX_NORMALS)},
-					{TextureType::COLOUR, Application::Get().GetRenderManager()->GetGBuffer()->GetTextureFormat(SCREENTEX_PBR)},
+					{TextureType::COLOUR, Application::Get().GetRenderGraph()->GetGBuffer()->GetTextureFormat(SCREENTEX_COLOUR)},
+					{TextureType::COLOUR, Application::Get().GetRenderGraph()->GetGBuffer()->GetTextureFormat(SCREENTEX_POSITION)},
+					{TextureType::COLOUR, Application::Get().GetRenderGraph()->GetGBuffer()->GetTextureFormat(SCREENTEX_NORMALS)},
+					{TextureType::COLOUR, Application::Get().GetRenderGraph()->GetGBuffer()->GetTextureFormat(SCREENTEX_PBR)},
 					{TextureType::DEPTH, TextureFormat::DEPTH}};
 
-			Graphics::RenderpassInfo renderpassCIOffScreen{};
+			Graphics::RenderPassInfo renderpassCIOffScreen{};
 			renderpassCIOffScreen.attachmentCount = 5;
 			renderpassCIOffScreen.textureType = textureTypesOffScreen;
 
-			m_RenderPass->Init(renderpassCIOffScreen);
+            m_RenderPass = Graphics::RenderPass::Get(renderpassCIOffScreen);
+
+            
+            auto pushConstant = Graphics::PushConstant();
+            pushConstant.size = sizeof(Lumos::Maths::Matrix4);
+            pushConstant.data = new u8[sizeof(Lumos::Maths::Matrix4)];
+            pushConstant.shaderStage = ShaderType::VERTEX;
+            
+            m_PushConstants.push_back(pushConstant);
 
 			m_CommandBuffers.resize(Renderer::GetSwapchain()->GetSwapchainBufferCount());
 
@@ -164,9 +165,6 @@ namespace Lumos
 		void DeferredOffScreenRenderer::Begin()
 		{
 			LUMOS_PROFILE_FUNCTION();
-			m_DeferredCommandBuffers->BeginRecording();
-			m_DeferredCommandBuffers->UpdateViewport(m_ScreenBufferWidth, m_ScreenBufferHeight);
-
 			m_RenderPass->BeginRenderpass(m_DeferredCommandBuffers, Maths::Vector4(0.0f), m_Framebuffers.front().get(), Graphics::INLINE, m_ScreenBufferWidth, m_ScreenBufferHeight);
 		}
 
@@ -175,68 +173,70 @@ namespace Lumos
 			LUMOS_PROFILE_FUNCTION();
             m_CommandQueue.clear();
             m_SystemUniforms.clear();
-            
-			m_Camera = overrideCamera;
-			m_CameraTransform = overrideCameraTransform;
+            {
+                LUMOS_PROFILE_SCOPE("Get Camera");
 
-			auto view = m_CameraTransform->GetWorldMatrix().Inverse();
-			
-			if(!m_Camera)
-			{
-				return;
-			}
+                m_Camera = overrideCamera;
+                m_CameraTransform = overrideCameraTransform;
 
-			LUMOS_ASSERT(m_Camera, "No Camera Set for Renderer");
-			auto projView = m_Camera->GetProjectionMatrix() * view;
-			memcpy(m_VSSystemUniformBuffer + m_VSSystemUniformBufferOffsets[VSSystemUniformIndex_ProjectionViewMatrix], &projView, sizeof(Maths::Matrix4));
-
-			m_Frustum = m_Camera->GetFrustum(view);
-			
-			
-			auto& registry = scene->GetRegistry();
-			auto group = registry.group<Model>(entt::get<Maths::Transform>);
-			
-			for(auto entity : group)
-			{
-				const auto& [model, trans] = group.get<Model, Maths::Transform>(entity);
-				
-                const auto& meshes = model.GetMeshes();
+                auto view = m_CameraTransform->GetWorldMatrix().Inverse();
                 
-                for(auto mesh : meshes)
+                if(!m_Camera)
                 {
-                    if(mesh->GetActive())
+                    return;
+                }
+
+                LUMOS_ASSERT(m_Camera, "No Camera Set for Renderer");
+                auto projView = m_Camera->GetProjectionMatrix() * view;
+                memcpy(m_VSSystemUniformBuffer + m_VSSystemUniformBufferOffsets[VSSystemUniformIndex_ProjectionViewMatrix], &projView, sizeof(Maths::Matrix4));
+
+                m_Frustum = m_Camera->GetFrustum(view);
+            }
+			
+            {
+                auto& registry = scene->GetRegistry();
+                auto group = registry.group<Model>(entt::get<Maths::Transform>);
+                
+                for(auto entity : group)
+                {
+                    const auto& [model, trans] = group.get<Model, Maths::Transform>(entity);
+                    const auto& meshes = model.GetMeshes();
+                    
+                    for(auto& mesh : meshes)
                     {
-                        auto& worldTransform = trans.GetWorldMatrix();
-						
-                        auto bb = mesh->GetBoundingBox();
-                        auto bbCopy = bb->Transformed(worldTransform);
-                        auto inside = m_Frustum.IsInsideFast(bbCopy);
-						
-                        if(inside == Maths::Intersection::OUTSIDE)
-                            continue;
-						
-                        auto meshPtr = mesh;
-                        auto material = meshPtr->GetMaterial();
-                        if(material)
+
+                        if(mesh->GetActive())
                         {
-                            if(material->GetDescriptorSet() == nullptr || material->GetPipeline() != m_Pipeline.get() || material->GetTexturesUpdated())
+
+                            auto& worldTransform = trans.GetWorldMatrix();
+                            Maths::Intersection inside;
                             {
-                                material->CreateDescriptorSet(m_Pipeline.get(), 1);
-                                material->SetTexturesUpdated(false);
+                                LUMOS_PROFILE_SCOPE("Frustum Check");
+
+                                inside = m_Frustum.IsInsideFast(mesh->GetBoundingBox()->Transformed(worldTransform));
                             }
+                            
+                            if(inside == Maths::Intersection::OUTSIDE)
+                                continue;
+                            
+                            auto material = mesh->GetMaterial();
+                            if(material)
+                            {
+                                if(material->GetDescriptorSet() == nullptr || material->GetPipeline() != m_Pipeline.get() || material->GetTexturesUpdated())
+                                {
+                                    LUMOS_PROFILE_SCOPE("Create DescriptorSet");
+
+                                    material->CreateDescriptorSet(m_Pipeline.get(), 1);
+                                    material->SetTexturesUpdated(false);
+                                }
+                            }
+                            
+                            auto textureMatrixTransform = registry.try_get<TextureMatrixComponent>(entity);
+                            SubmitMesh(mesh.get(), material.get(), worldTransform, textureMatrixTransform ? textureMatrixTransform->GetMatrix() : Maths::Matrix4());
                         }
-						
-                        auto textureMatrixTransform = registry.try_get<TextureMatrixComponent>(entity);
-                        Maths::Matrix4 textureMatrix;
-                        if(textureMatrixTransform)
-                            textureMatrix = textureMatrixTransform->GetMatrix();
-                        else
-                            textureMatrix = Maths::Matrix4();
-						
-                        SubmitMesh(meshPtr.get(), material.get(), worldTransform, textureMatrix);
                     }
                 }
-			}
+            }
 		}
 
 		void DeferredOffScreenRenderer::Submit(const RenderCommand& command)
@@ -264,7 +264,6 @@ namespace Lumos
 		{
 			LUMOS_PROFILE_FUNCTION();
 			m_RenderPass->EndRenderpass(m_DeferredCommandBuffers);
-			m_DeferredCommandBuffers->EndRecording();
 			m_DeferredCommandBuffers->Execute(true);
 		}
 
@@ -272,17 +271,6 @@ namespace Lumos
 		{
 			LUMOS_PROFILE_FUNCTION();
 			m_UniformBuffer->SetData(m_VSSystemUniformBufferSize, *&m_VSSystemUniformBuffer);
-
-			int index = 0;
-
-			for(auto& command : m_CommandQueue)
-			{
-				Maths::Matrix4* modelMat = reinterpret_cast<Maths::Matrix4*>((reinterpret_cast<uint64_t>(m_UBODataDynamic.model) + (index * m_DynamicAlignment)));
-				command.transform = command.transform;
-				*modelMat = command.transform;
-				index++;
-			}
-			m_ModelUniformBuffer->SetDynamicData(static_cast<uint32_t>(index * m_DynamicAlignment), sizeof(Maths::Matrix4), &*m_UBODataDynamic.model);
 		}
 
 		void DeferredOffScreenRenderer::Present()
@@ -292,20 +280,22 @@ namespace Lumos
 
 			for(u32 i = 0; i < static_cast<u32>(m_CommandQueue.size()); i++)
 			{
+				Engine::Get().Statistics().NumRenderedObjects++;
+				
 				auto command = m_CommandQueue[i];
 				Mesh* mesh = command.mesh;
-
-				uint32_t dynamicOffset = i * static_cast<uint32_t>(m_DynamicAlignment);
-
-				std::vector<Graphics::DescriptorSet*> descriptorSets = {m_Pipeline->GetDescriptorSet(), command.material ? command.material->GetDescriptorSet() : m_DefaultMaterial->GetDescriptorSet()};
                 
                 m_CurrentDescriptorSets[0] = m_Pipeline->GetDescriptorSet();
                 m_CurrentDescriptorSets[1] = command.material ? command.material->GetDescriptorSet() : m_DefaultMaterial->GetDescriptorSet();
+                
+                auto trans = command.transform;
+                memcpy(m_PushConstants[0].data, &trans, sizeof(Maths::Matrix4));
+                m_CurrentDescriptorSets[0]->SetPushConstants(m_PushConstants);
 
 				mesh->GetVertexBuffer()->Bind(m_DeferredCommandBuffers, m_Pipeline.get());
 				mesh->GetIndexBuffer()->Bind(m_DeferredCommandBuffers);
 
-				Renderer::BindDescriptorSets(m_Pipeline.get(), m_DeferredCommandBuffers, dynamicOffset, m_CurrentDescriptorSets);
+				Renderer::BindDescriptorSets(m_Pipeline.get(), m_DeferredCommandBuffers, 0, m_CurrentDescriptorSets);
 				Renderer::DrawIndexed(m_DeferredCommandBuffers, DrawType::TRIANGLE, mesh->GetIndexBuffer()->GetCount());
 
 				mesh->GetVertexBuffer()->Unbind();
@@ -316,69 +306,23 @@ namespace Lumos
 		void DeferredOffScreenRenderer::CreatePipeline()
 		{
 			LUMOS_PROFILE_FUNCTION();
-			std::vector<Graphics::DescriptorPoolInfo> poolInfo =
-				{
-					{Graphics::DescriptorType::UNIFORM_BUFFER, MAX_OBJECTS},
-					{Graphics::DescriptorType::UNIFORM_BUFFER, MAX_OBJECTS},
-					{Graphics::DescriptorType::UNIFORM_BUFFER_DYNAMIC, MAX_OBJECTS},
-					{Graphics::DescriptorType::IMAGE_SAMPLER, MAX_OBJECTS},
-					{Graphics::DescriptorType::IMAGE_SAMPLER, MAX_OBJECTS},
-					{Graphics::DescriptorType::IMAGE_SAMPLER, MAX_OBJECTS},
-					{Graphics::DescriptorType::IMAGE_SAMPLER, MAX_OBJECTS},
-					{Graphics::DescriptorType::IMAGE_SAMPLER, MAX_OBJECTS},
-					{Graphics::DescriptorType::IMAGE_SAMPLER, MAX_OBJECTS}};
+            Graphics::BufferLayout vertexBufferLayout;
+            vertexBufferLayout.Push<Maths::Vector3>("position");
+            vertexBufferLayout.Push<Maths::Vector4>("colour");
+            vertexBufferLayout.Push<Maths::Vector2>("uv");
+            vertexBufferLayout.Push<Maths::Vector3>("normal");
+            vertexBufferLayout.Push<Maths::Vector3>("tangent");
 
-			std::vector<Graphics::DescriptorLayoutInfo> layoutInfo =
-				{
-					{Graphics::DescriptorType::UNIFORM_BUFFER, Graphics::ShaderType::VERTEX, 0},
-					{Graphics::DescriptorType::UNIFORM_BUFFER_DYNAMIC, Graphics::ShaderType::VERTEX, 1},
-				};
+			Graphics::PipelineInfo pipelineCreateInfo{};
+			pipelineCreateInfo.shader = m_Shader;
+			pipelineCreateInfo.renderpass = m_RenderPass;
+            pipelineCreateInfo.vertexBufferLayout = vertexBufferLayout;
+            pipelineCreateInfo.polygonMode = Graphics::PolygonMode::FILL;
+			pipelineCreateInfo.cullMode = Graphics::CullMode::BACK;
+			pipelineCreateInfo.transparencyEnabled = false;
+			pipelineCreateInfo.depthBiasEnabled = false;
 
-			std::vector<Graphics::DescriptorLayoutInfo> layoutInfoMesh =
-				{
-					{Graphics::DescriptorType::IMAGE_SAMPLER, Graphics::ShaderType::FRAGMENT, 0},
-					{Graphics::DescriptorType::IMAGE_SAMPLER, Graphics::ShaderType::FRAGMENT, 1},
-					{Graphics::DescriptorType::IMAGE_SAMPLER, Graphics::ShaderType::FRAGMENT, 2},
-					{Graphics::DescriptorType::IMAGE_SAMPLER, Graphics::ShaderType::FRAGMENT, 3},
-					{Graphics::DescriptorType::IMAGE_SAMPLER, Graphics::ShaderType::FRAGMENT, 4},
-					{Graphics::DescriptorType::IMAGE_SAMPLER, Graphics::ShaderType::FRAGMENT, 5},
-					{Graphics::DescriptorType::UNIFORM_BUFFER, Graphics::ShaderType::FRAGMENT, 6},
-				};
-
-			auto attributeDescriptions = Vertex::getAttributeDescriptions();
-
-			std::vector<Graphics::DescriptorLayout> descriptorLayouts;
-
-			Graphics::DescriptorLayout sceneDescriptorLayout{};
-			sceneDescriptorLayout.count = static_cast<u32>(layoutInfo.size());
-			sceneDescriptorLayout.layoutInfo = layoutInfo.data();
-
-			descriptorLayouts.push_back(sceneDescriptorLayout);
-
-			Graphics::DescriptorLayout meshDescriptorLayout{};
-			meshDescriptorLayout.count = static_cast<u32>(layoutInfoMesh.size());
-			meshDescriptorLayout.layoutInfo = layoutInfoMesh.data();
-
-			descriptorLayouts.push_back(meshDescriptorLayout);
-
-			Graphics::PipelineInfo pipelineCI{};
-			pipelineCI.pipelineName = "OffScreenRenderer";
-			pipelineCI.shader = m_Shader.get();
-			pipelineCI.renderpass = m_RenderPass.get();
-			pipelineCI.numVertexLayout = static_cast<u32>(attributeDescriptions.size());
-			pipelineCI.descriptorLayouts = descriptorLayouts;
-			pipelineCI.vertexLayout = attributeDescriptions.data();
-			pipelineCI.numLayoutBindings = static_cast<u32>(poolInfo.size());
-			pipelineCI.typeCounts = poolInfo.data();
-			pipelineCI.strideSize = sizeof(Vertex);
-			pipelineCI.numColorAttachments = 6;
-			pipelineCI.polygonMode = Graphics::PolygonMode::Fill;
-			pipelineCI.cullMode = Graphics::CullMode::BACK;
-			pipelineCI.transparencyEnabled = false;
-			pipelineCI.depthBiasEnabled = false;
-			pipelineCI.maxObjects = MAX_OBJECTS;
-
-			m_Pipeline = Ref<Graphics::Pipeline>(Graphics::Pipeline::Create(pipelineCI));
+			m_Pipeline = Graphics::Pipeline::Get(pipelineCreateInfo);
 		}
 
 		void DeferredOffScreenRenderer::CreateBuffer()
@@ -392,15 +336,6 @@ namespace Lumos
 				m_UniformBuffer->Init(bufferSize, nullptr);
 			}
 
-			if(m_ModelUniformBuffer == nullptr)
-			{
-				m_ModelUniformBuffer = Graphics::UniformBuffer::Create();
-
-				uint32_t bufferSize2 = static_cast<uint32_t>(MAX_OBJECTS * m_DynamicAlignment);
-				m_UBODataDynamic.model = static_cast<Maths::Matrix4*>(Memory::AlignedAlloc(bufferSize2, m_DynamicAlignment));
-				m_ModelUniformBuffer->Init(bufferSize2, nullptr);
-			}
-
 			std::vector<Graphics::BufferInfo> bufferInfos;
 
 			Graphics::BufferInfo bufferInfo = {};
@@ -412,19 +347,7 @@ namespace Lumos
 			bufferInfo.shaderType = ShaderType::VERTEX;
 			bufferInfo.systemUniforms = true;
 			bufferInfo.name = "UniformBufferObject";
-
-			Graphics::BufferInfo bufferInfo2 = {};
-			bufferInfo2.buffer = m_ModelUniformBuffer;
-			bufferInfo2.offset = 0;
-			bufferInfo2.size = sizeof(Maths::Matrix4);
-			bufferInfo2.type = Graphics::DescriptorType::UNIFORM_BUFFER_DYNAMIC;
-			bufferInfo2.binding = 1;
-			bufferInfo2.shaderType = ShaderType::VERTEX;
-			bufferInfo2.systemUniforms = false;
-			bufferInfo2.name = "UniformBufferObject2";
-
 			bufferInfos.push_back(bufferInfo);
-			bufferInfos.push_back(bufferInfo2);
 
 			m_Pipeline->GetDescriptorSet()->Update(bufferInfos);
 		}
@@ -448,14 +371,14 @@ namespace Lumos
 			bufferInfo.attachmentTypes = attachmentTypes;
 
 			Texture* attachments[attachmentCount];
-			attachments[0] = Application::Get().GetRenderManager()->GetGBuffer()->GetTexture(SCREENTEX_COLOUR);
-			attachments[1] = Application::Get().GetRenderManager()->GetGBuffer()->GetTexture(SCREENTEX_POSITION);
-			attachments[2] = Application::Get().GetRenderManager()->GetGBuffer()->GetTexture(SCREENTEX_NORMALS);
-			attachments[3] = Application::Get().GetRenderManager()->GetGBuffer()->GetTexture(SCREENTEX_PBR);
-			attachments[4] = Application::Get().GetRenderManager()->GetGBuffer()->GetDepthTexture();
+			attachments[0] = Application::Get().GetRenderGraph()->GetGBuffer()->GetTexture(SCREENTEX_COLOUR);
+			attachments[1] = Application::Get().GetRenderGraph()->GetGBuffer()->GetTexture(SCREENTEX_POSITION);
+			attachments[2] = Application::Get().GetRenderGraph()->GetGBuffer()->GetTexture(SCREENTEX_NORMALS);
+			attachments[3] = Application::Get().GetRenderGraph()->GetGBuffer()->GetTexture(SCREENTEX_PBR);
+			attachments[4] = Application::Get().GetRenderGraph()->GetGBuffer()->GetDepthTexture();
 			bufferInfo.attachments = attachments;
 
-			m_Framebuffers.push_back(Ref<Framebuffer>(Framebuffer::Create(bufferInfo)));
+			m_Framebuffers.push_back(Ref<Framebuffer>(Framebuffer::Get(bufferInfo)));
 		}
 
 		void DeferredOffScreenRenderer::OnResize(u32 width, u32 height)

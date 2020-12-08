@@ -38,7 +38,10 @@ namespace Lumos
 		{
 		public:
 
+            static Ref<Framebuffer> Get(const FramebufferInfo& framebufferInfo);
 			static Framebuffer* Create(const FramebufferInfo& framebufferInfo);
+            static void ClearCache();
+            static void DeleteUnusedCache();
 
 			virtual ~Framebuffer();
 

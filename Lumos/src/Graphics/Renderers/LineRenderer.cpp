@@ -15,7 +15,6 @@
 #include "Graphics/Sprite.h"
 #include "Scene/Scene.h"
 #include "Core/Application.h"
-#include "Graphics/RenderManager.h"
 #include "Platform/OpenGL/GLDescriptorSet.h"
 #include "Graphics/Renderable2D.h"
 #include "Graphics/Camera/Camera.h"
@@ -30,9 +29,9 @@ namespace Lumos
 	static const uint32_t MaxLines = 10000;
 	static const uint32_t MaxLineVertices = MaxLines * 2;
 	static const uint32_t MaxLineIndices = MaxLines * 6;
-#define MAX_BATCH_DRAW_CALLS 100
-#define RENDERER_LINE_SIZE RENDERER2DLINE_VERTEX_SIZE * 4
-#define RENDERER_BUFFER_SIZE RENDERER_LINE_SIZE* MaxLineVertices
+    static const uint32_t MAX_BATCH_DRAW_CALLS = 100;
+    static const uint32_t RENDERER_LINE_SIZE = sizeof(LineVertexData) * 4;
+    static const uint32_t RENDERER_BUFFER_SIZE = RENDERER_LINE_SIZE* MaxLineVertices;
 
 	LineRenderer::LineRenderer(u32 width, u32 height, bool clear)
 		: m_Buffer(nullptr)
@@ -67,24 +66,23 @@ namespace Lumos
 	{
 		LUMOS_PROFILE_FUNCTION();
 
-		m_Shader = Ref<Graphics::Shader>(Shader::CreateFromFile("Batch2DLine", "/CoreShaders/"));
+		m_Shader = Application::Get().GetShaderLibrary()->GetResource("/CoreShaders/Batch2DLine.shader");
 
 		m_VSSystemUniformBufferSize = sizeof(Maths::Matrix4);
 		m_VSSystemUniformBuffer = new u8[m_VSSystemUniformBufferSize];
 
-		m_RenderPass = Ref<Graphics::RenderPass>(Graphics::RenderPass::Create());
 		m_UniformBuffer = Graphics::UniformBuffer::Create();
 
 		AttachmentInfo textureTypes[2] =
 			{
 				{TextureType::COLOUR, TextureFormat::RGBA8}};
 
-		Graphics::RenderpassInfo renderpassCI;
+		Graphics::RenderPassInfo renderpassCI;
 		renderpassCI.attachmentCount = 1;
 		renderpassCI.textureType = textureTypes;
 		renderpassCI.clear = false;
 
-		m_RenderPass->Init(renderpassCI);
+        m_RenderPass = Graphics::RenderPass::Get(renderpassCI);
 
 		CreateFramebuffers();
 
@@ -194,6 +192,8 @@ namespace Lumos
 		LineIndexCount = 0;
 
 		m_Lines.clear();
+
+		m_RenderPass->BeginRenderpass(m_CommandBuffers[m_CurrentBufferID].get(), m_ClearColour, m_Framebuffers[m_CurrentBufferID].get(), Graphics::SECONDARY, m_ScreenBufferWidth, m_ScreenBufferHeight);
 	}
 
 	void LineRenderer::SetSystemUniforms(Shader* shader) const
@@ -263,7 +263,6 @@ namespace Lumos
 	void LineRenderer::End()
 	{
 		m_RenderPass->EndRenderpass(m_CommandBuffers[m_CurrentBufferID].get());
-		m_CommandBuffers[m_CurrentBufferID]->EndRecording();
 
 		if(m_RenderTexture)
 			m_CommandBuffers[m_CurrentBufferID]->Execute(true);
@@ -335,45 +334,21 @@ namespace Lumos
 
 	void LineRenderer::CreateGraphicsPipeline()
 	{
-		std::vector<Graphics::DescriptorPoolInfo> poolInfo =
-			{
-				{Graphics::DescriptorType::UNIFORM_BUFFER, MAX_BATCH_DRAW_CALLS},
-			};
+        Graphics::BufferLayout vertexBufferLayout;
+        vertexBufferLayout.Push<Maths::Vector3>("position");
+        vertexBufferLayout.Push<Maths::Vector4>("colour");
+        
+		Graphics::PipelineInfo pipelineCreateInfo;
+		pipelineCreateInfo.shader = m_Shader;
+		pipelineCreateInfo.renderpass = m_RenderPass;
+        pipelineCreateInfo.vertexBufferLayout = vertexBufferLayout;
+		pipelineCreateInfo.polygonMode = Graphics::PolygonMode::FILL;
+		pipelineCreateInfo.cullMode = Graphics::CullMode::BACK;
+		pipelineCreateInfo.transparencyEnabled = false;
+		pipelineCreateInfo.depthBiasEnabled = true;
+		pipelineCreateInfo.drawType = DrawType::LINES;
 
-		std::vector<Graphics::DescriptorLayoutInfo> layoutInfo =
-			{
-				{Graphics::DescriptorType::UNIFORM_BUFFER, Graphics::ShaderType::VERTEX, 0}};
-
-		auto attributeDescriptions = LineVertexData::getAttributeDescriptions();
-
-		std::vector<Graphics::DescriptorLayout> descriptorLayouts;
-
-		Graphics::DescriptorLayout sceneDescriptorLayout;
-		sceneDescriptorLayout.count = static_cast<u32>(layoutInfo.size());
-		sceneDescriptorLayout.layoutInfo = layoutInfo.data();
-
-		descriptorLayouts.push_back(sceneDescriptorLayout);
-
-		Graphics::PipelineInfo pipelineCI;
-		pipelineCI.pipelineName = "BatchLineRenderer";
-		pipelineCI.shader = m_Shader.get();
-		pipelineCI.renderpass = m_RenderPass.get();
-		pipelineCI.numVertexLayout = static_cast<u32>(attributeDescriptions.size());
-		pipelineCI.descriptorLayouts = descriptorLayouts;
-		pipelineCI.vertexLayout = attributeDescriptions.data();
-		pipelineCI.numLayoutBindings = static_cast<u32>(poolInfo.size());
-		pipelineCI.typeCounts = poolInfo.data();
-		pipelineCI.strideSize = sizeof(LineVertexData);
-		pipelineCI.numColorAttachments = 1;
-		pipelineCI.polygonMode = Graphics::PolygonMode::Fill;
-		pipelineCI.cullMode = Graphics::CullMode::BACK;
-		pipelineCI.transparencyEnabled = false;
-		pipelineCI.depthBiasEnabled = true;
-		pipelineCI.maxObjects = MAX_BATCH_DRAW_CALLS;
-		pipelineCI.drawType = DrawType::LINES;
-		pipelineCI.lineWidth = 20.0f;
-
-		m_Pipeline = Ref<Graphics::Pipeline>(Graphics::Pipeline::Create(pipelineCI));
+		m_Pipeline = Graphics::Pipeline::Get(pipelineCreateInfo);
 	}
 
 	void LineRenderer::CreateFramebuffers()
@@ -394,7 +369,7 @@ namespace Lumos
 			attachments[0] = m_RenderTexture;
 			bufferInfo.attachments = attachments;
 			bufferInfo.screenFBO = false;
-			m_Framebuffers.emplace_back(Framebuffer::Create(bufferInfo));
+			m_Framebuffers.emplace_back(Framebuffer::Get(bufferInfo));
 		}
 		else
 		{
@@ -404,7 +379,7 @@ namespace Lumos
 				attachments[0] = Renderer::GetSwapchain()->GetImage(i);
 				bufferInfo.attachments = attachments;
 
-				m_Framebuffers.emplace_back(Framebuffer::Create(bufferInfo));
+				m_Framebuffers.emplace_back(Framebuffer::Get(bufferInfo));
 			}
 		}
 	}

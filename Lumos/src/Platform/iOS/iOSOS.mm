@@ -70,6 +70,7 @@ static iOSOS* os = nullptr;
     
     void iOSOS::OnQuit()
     {
+        Application::Get().Quit();
         Application::Release();
 	    Lumos::Internal::CoreSystem::Shutdown();
     }
@@ -261,7 +262,7 @@ static iOSOS* os = nullptr;
         
         Lumos::os->OnScreenResize(self.drawableWidth, self.drawableHeight);
     }
-    
+        
     Lumos::os->OnFrame();
 }
     
@@ -328,17 +329,21 @@ static iOSOS* os = nullptr;
 {
     LumosAppDelegate *delegate = UIApplication.sharedApplication.delegate;
     CGRect frame = delegate.window.bounds;
+    
     CGFloat scale = [UIScreen mainScreen].nativeScale;
     UIView<LumosView> *lumosView = nil;
-    
-    if (self.metalDevice) {
+        
+    if (self.metalDevice)
+    {
         lumosView = [[[LumosMetalView alloc] initWithFrame:frame
-                                       contentScaleFactor:scale
+                                            contentScaleFactor:scale
                                                    device:self.metalDevice
                                               ] autorelease ];
     }
+    
     self.view = lumosView;
     self.view.autoresizingMask = UIViewAutoresizingFlexibleWidth | UIViewAutoresizingFlexibleHeight;
+    
     
     Lumos::os->SetIOSView((__bridge void *)lumosView);
     Lumos::os->SetWindowSize(frame.size.width * scale, frame.size.height * scale);
@@ -351,7 +356,7 @@ static iOSOS* os = nullptr;
 
     LumosAppDelegate *delegate = UIApplication.sharedApplication.delegate;
     self.lumosView.animating = delegate.active;
-    
+        
 #if TARGET_OS_IOS
     self.view.multipleTouchEnabled = self.multipleTouchEnabled;
 
@@ -606,15 +611,24 @@ typedef enum {
     Lumos::os = (Lumos::iOSOS*)Lumos::iOSOS::Instance();
     
     self.window = [[[UIWindow alloc] init] autorelease];
+    
     if (self.window.bounds.size.width <= 0.0 || self.window.bounds.size.height <= 0.0)
     {
-            // Set UIWindow frame for iOS 8.
-            // On iOS 9, the UIWindow frame may be different than the UIScreen bounds for iPad's
-            // Split View or Slide Over.
-            self.window.frame = [[UIScreen mainScreen] bounds];
-        }
+        // Set UIWindow frame for iOS 8.
+        // On iOS 9, the UIWindow frame may be different than the UIScreen bounds for iPad's
+        // Split View or Slide Over.
+        self.window.frame = [[UIScreen mainScreen] bounds];
+    }
+    
+    UIEdgeInsets safeAreaInsets = self.window.safeAreaInsets;
+    CGRect safeAreaFrame = CGRectMake(safeAreaInsets.left,
+                                      safeAreaInsets.top,
+                                      self.window.frame.size.width - safeAreaInsets.left - safeAreaInsets.right,
+                                      self.window.frame.size.height - safeAreaInsets.top - safeAreaInsets.bottom);
+    self.window.frame = safeAreaFrame;
+
     self.window.rootViewController = [[[LumosViewController alloc] init] autorelease];
-        [self.window makeKeyAndVisible];
+    [self.window makeKeyAndVisible];
         
     return YES;
 }

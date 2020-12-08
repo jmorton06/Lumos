@@ -13,7 +13,7 @@
 
 namespace Lumos
 {
-	u8* LoadImageFromFile(const char* filename, u32* width, u32* height, u32* bits, bool* isHDR, bool flipY)
+	u8* LoadImageFromFile(const char* filename, u32* width, u32* height, u32* bits, bool* isHDR, bool flipY, bool srgb)
 	{
 		LUMOS_PROFILE_FUNCTION();
 		std::string filePath = std::string(filename);
@@ -23,46 +23,6 @@ namespace Lumos
 
 		filename = physicalPath.c_str();
 
-#ifdef FREEIMAGE
-		FREE_IMAGE_FORMAT fif = FIF_UNKNOWN;
-		FIBITMAP* dib = nullptr;
-		fif = FreeImage_GetFileType(filename, 0);
-		if(fif == FIF_UNKNOWN)
-			fif = FreeImage_GetFIFFromFilename(filename);
-		if(fif == FIF_UNKNOWN)
-			return nullptr;
-
-		if(FreeImage_FIFSupportsReading(fif))
-			dib = FreeImage_Load(fif, filename);
-
-		LUMOS_ASSERT(dib, "Could not load image '{0}'!", filename);
-
-		FIBITMAP* bitmap = FreeImage_ConvertTo32Bits(dib);
-		FreeImage_Unload(dib);
-
-		u8* pixels = FreeImage_GetBits(bitmap);
-		u32 w = FreeImage_GetWidth(bitmap);
-		u32 h = FreeImage_GetHeight(bitmap);
-		u32 b = FreeImage_GetBPP(bitmap);
-
-		if(flipY)
-			FreeImage_FlipVertical(bitmap);
-
-		if(FreeImage_GetRedMask(bitmap) == 0xff0000)
-			SwapRedBlue32(bitmap);
-
-		if(width)
-			*width = w;
-		if(height)
-			*height = h;
-		if(bits)
-			*bits = b;
-
-		i32 size = w * h * (b / 8);
-		u8* result = new u8[size];
-		memcpy(result, pixels, size);
-		FreeImage_Unload(bitmap);
-#else
 		int texWidth = 0, texHeight = 0, texChannels = 0;
 		stbi_uc* pixels = nullptr;
 		int sizeOfChannel = 8;
@@ -100,12 +60,11 @@ namespace Lumos
 		memcpy(result, pixels, size);
 
 		stbi_image_free(pixels);
-#endif
 		return result;
 	}
 
-	u8* LoadImageFromFile(const std::string& filename, u32* width, u32* height, u32* bits, bool* isHDR, bool flipY)
+	u8* LoadImageFromFile(const std::string& filename, u32* width, u32* height, u32* bits, bool* isHDR, bool flipY, bool srgb)
 	{
-		return LoadImageFromFile(filename.c_str(), width, height, bits, isHDR, flipY);
+		return LoadImageFromFile(filename.c_str(), width, height, bits, isHDR, srgb, flipY);
 	}
 }

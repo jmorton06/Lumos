@@ -41,7 +41,7 @@ namespace Lumos
 				return m_FileName;
 			}
 
-			void BuildTexture(TextureFormat internalformat, u32 width, u32 height, bool depth, bool samplerShadow) override;
+			void BuildTexture(TextureFormat internalformat, u32 width, u32 height, bool srgb, bool depth, bool samplerShadow) override;
 
 			u8* LoadTextureData();
 			u32 LoadTexture(void* data) const;
@@ -71,7 +71,7 @@ namespace Lumos
 			GLTextureCube(u32 size);
 			GLTextureCube(const std::string& filepath);
 			GLTextureCube(const std::string* files);
-			GLTextureCube(const std::string* files, u32 mips, InputFormat format);
+			GLTextureCube(const std::string* files, u32 mips, TextureParameters params, TextureLoadOptions loadOptions, InputFormat format);
 			~GLTextureCube();
 
 			_FORCE_INLINE_ void* GetHandle() const override
@@ -106,7 +106,7 @@ namespace Lumos
 			static TextureCube* CreateFuncGL(u32);
 			static TextureCube* CreateFromFileFuncGL(const std::string& filepath);
 			static TextureCube* CreateFromFilesFuncGL(const std::string* files);
-			static TextureCube* CreateFromVCrossFuncGL(const std::string* files, u32 mips, InputFormat format);
+			static TextureCube* CreateFromVCrossFuncGL(const std::string* files, u32 mips, TextureParameters params, TextureLoadOptions loadOptions, InputFormat format);
 
 		private:
 			static u32 LoadFromSingleFile();

@@ -8,8 +8,7 @@
 #include "Maths/Maths.h"
 #include "Maths/Transform.h"
  
-
-#include "Graphics/RenderManager.h"
+#include "RenderGraph.h"
 #include "Graphics/Camera/Camera.h"
 #include "Graphics/Mesh.h"
 #include "Graphics/MeshFactory.h"
@@ -29,6 +28,8 @@
 #include "Graphics/API/GraphicsContext.h"
 #include "Graphics/Environment.h"
 #include "Embedded/BRDFTexture.inl"
+#include "Utilities/AssetManager.h"
+
 #include <imgui/imgui.h>
 
 #define MAX_LIGHTS 32
@@ -75,7 +76,7 @@ namespace Lumos
 			LUMOS_PROFILE_FUNCTION();
 			m_OffScreenRenderer = new DeferredOffScreenRenderer(m_ScreenBufferWidth, m_ScreenBufferHeight);
 
-			m_Shader = Ref<Graphics::Shader>(Shader::CreateFromFile("DeferredLight", "/CoreShaders/"));
+            m_Shader = Application::Get().GetShaderLibrary()->GetResource("/CoreShaders/DeferredLight.shader");
 
 			switch(Graphics::GraphicsContext::GetRenderAPI())
 			{
@@ -103,7 +104,8 @@ namespace Lumos
 			TextureParameters param;
 			param.minFilter = TextureFilter::LINEAR;
 			param.magFilter = TextureFilter::LINEAR;
-			param.format = TextureFormat::RGBA;
+			param.format = TextureFormat::RGBA8;
+            param.srgb = false;
 			param.wrap = TextureWrap::CLAMP_TO_EDGE;
 			m_PreintegratedFG = UniqueRef<Texture2D>(Texture2D::CreateFromSource(BRDFTextureWidth, BRDFTextureHeight, (void*)BRDFTexture, param));
 
@@ -130,17 +132,16 @@ namespace Lumos
 			m_PSSystemUniformBufferOffsets[PSSystemUniformIndex_RenderMode] = m_PSSystemUniformBufferOffsets[PSSystemUniformIndex_ShadowCount] + sizeof(int);
 			m_PSSystemUniformBufferOffsets[PSSystemUniformIndex_cubemapMipLevels] = m_PSSystemUniformBufferOffsets[PSSystemUniformIndex_RenderMode] + sizeof(int);
 
-			m_RenderPass = Ref<Graphics::RenderPass>(Graphics::RenderPass::Create());
-
 			AttachmentInfo textureTypes[2] =
-				{
-					{TextureType::COLOUR, TextureFormat::RGBA32}};
-			Graphics::RenderpassInfo renderpassCI{};
+            {
+                {TextureType::COLOUR, TextureFormat::RGBA8}
+            };
+			Graphics::RenderPassInfo renderpassCI{};
 			renderpassCI.attachmentCount = 1;
 			renderpassCI.textureType = textureTypes;
 			renderpassCI.clear = true;
 
-			m_RenderPass->Init(renderpassCI);
+            m_RenderPass = Graphics::RenderPass::Get(renderpassCI);
 
 			m_CommandBuffers.resize(Renderer::GetSwapchain()->GetSwapchainBufferCount());
 
@@ -203,8 +204,6 @@ namespace Lumos
 			m_SystemUniforms.clear();
 
 			m_CommandBufferIndex = commandBufferID;
-			m_CommandBuffers[m_CommandBufferIndex]->BeginRecording();
-			m_CommandBuffers[m_CommandBufferIndex]->UpdateViewport(m_ScreenBufferWidth, m_ScreenBufferHeight);
 			m_RenderPass->BeginRenderpass(m_CommandBuffers[m_CommandBufferIndex].get(), m_ClearColour, m_Framebuffers[m_CommandBufferIndex].get(), Graphics::INLINE, m_ScreenBufferWidth, m_ScreenBufferHeight);
 		}
 
@@ -323,7 +322,7 @@ namespace Lumos
 			Maths::Vector4 cameraPos = Maths::Vector4(m_CameraTransform->GetWorldPosition());
 			memcpy(m_PSSystemUniformBuffer + m_PSSystemUniformBufferOffsets[PSSystemUniformIndex_CameraPosition], &cameraPos, sizeof(Maths::Vector4));
 
-			auto shadowRenderer = Application::Get().GetRenderManager()->GetShadowRenderer();
+			auto shadowRenderer = Application::Get().GetRenderGraph()->GetShadowRenderer();
 			if(shadowRenderer)
 			{
 				Maths::Matrix4* shadowTransforms = shadowRenderer->GetShadowProjView();
@@ -352,7 +351,6 @@ namespace Lumos
 		{
 			LUMOS_PROFILE_FUNCTION();
 			m_RenderPass->EndRenderpass(m_CommandBuffers[m_CommandBufferIndex].get());
-			m_CommandBuffers[m_CommandBufferIndex]->EndRecording();
 
 			if(m_RenderTexture)
 				m_CommandBuffers[0]->Execute(true);
@@ -387,69 +385,23 @@ namespace Lumos
 		void DeferredRenderer::CreateDeferredPipeline()
 		{
 			LUMOS_PROFILE_FUNCTION();
-			std::vector<Graphics::DescriptorPoolInfo> poolInfo =
-				{
-					{Graphics::DescriptorType::IMAGE_SAMPLER, 1},
-					{Graphics::DescriptorType::IMAGE_SAMPLER, 1},
-					{Graphics::DescriptorType::IMAGE_SAMPLER, 1},
-					{Graphics::DescriptorType::IMAGE_SAMPLER, 1},
-					{Graphics::DescriptorType::IMAGE_SAMPLER, 1},
-					{Graphics::DescriptorType::IMAGE_SAMPLER, 1},
-					{Graphics::DescriptorType::IMAGE_SAMPLER, 1},
-					{Graphics::DescriptorType::IMAGE_SAMPLER, 1},
-					{Graphics::DescriptorType::UNIFORM_BUFFER, 1}};
+            Graphics::BufferLayout vertexBufferLayout;
+            vertexBufferLayout.Push<Maths::Vector3>("position");
+            vertexBufferLayout.Push<Maths::Vector4>("colour");
+            vertexBufferLayout.Push<Maths::Vector2>("uv");
+            vertexBufferLayout.Push<Maths::Vector3>("normal");
+            vertexBufferLayout.Push<Maths::Vector3>("tangent");
 
-			std::vector<Graphics::DescriptorLayoutInfo> layoutInfo =
-				{
-					{Graphics::DescriptorType::UNIFORM_BUFFER, Graphics::ShaderType::FRAGMENT, 0},
+			Graphics::PipelineInfo pipelineCreateInfo{};
+            pipelineCreateInfo.vertexBufferLayout = vertexBufferLayout;
+			pipelineCreateInfo.shader = m_Shader;
+            pipelineCreateInfo.renderpass = m_RenderPass;
+			pipelineCreateInfo.polygonMode = Graphics::PolygonMode::FILL;
+			pipelineCreateInfo.cullMode = Graphics::CullMode::FRONT; //TODO
+			pipelineCreateInfo.transparencyEnabled = false;
+			pipelineCreateInfo.depthBiasEnabled = false;
 
-				};
-
-			std::vector<Graphics::DescriptorLayoutInfo> layoutInfoMesh =
-				{
-					{Graphics::DescriptorType::IMAGE_SAMPLER, Graphics::ShaderType::FRAGMENT, 0},
-					{Graphics::DescriptorType::IMAGE_SAMPLER, Graphics::ShaderType::FRAGMENT, 1},
-					{Graphics::DescriptorType::IMAGE_SAMPLER, Graphics::ShaderType::FRAGMENT, 2},
-					{Graphics::DescriptorType::IMAGE_SAMPLER, Graphics::ShaderType::FRAGMENT, 3},
-					{Graphics::DescriptorType::IMAGE_SAMPLER, Graphics::ShaderType::FRAGMENT, 4},
-					{Graphics::DescriptorType::IMAGE_SAMPLER, Graphics::ShaderType::FRAGMENT, 5},
-					{Graphics::DescriptorType::IMAGE_SAMPLER, Graphics::ShaderType::FRAGMENT, 6},
-					{Graphics::DescriptorType::IMAGE_SAMPLER, Graphics::ShaderType::FRAGMENT, 7}};
-
-			auto attributeDescriptions = Vertex::getAttributeDescriptions();
-
-			std::vector<Graphics::DescriptorLayout> descriptorLayouts;
-
-			Graphics::DescriptorLayout sceneDescriptorLayout{};
-			sceneDescriptorLayout.count = static_cast<u32>(layoutInfo.size());
-			sceneDescriptorLayout.layoutInfo = layoutInfo.data();
-
-			descriptorLayouts.push_back(sceneDescriptorLayout);
-
-			Graphics::DescriptorLayout meshDescriptorLayout{};
-			meshDescriptorLayout.count = static_cast<u32>(layoutInfoMesh.size());
-			meshDescriptorLayout.layoutInfo = layoutInfoMesh.data();
-
-			descriptorLayouts.push_back(meshDescriptorLayout);
-
-			Graphics::PipelineInfo pipelineCI{};
-			pipelineCI.pipelineName = "Deferred";
-			pipelineCI.shader = m_Shader.get();
-			pipelineCI.renderpass = m_RenderPass.get();
-            pipelineCI.numVertexLayout = static_cast<u32>(attributeDescriptions.size());
-			pipelineCI.descriptorLayouts = descriptorLayouts;
-			pipelineCI.vertexLayout = attributeDescriptions.data();
-			pipelineCI.numLayoutBindings = static_cast<u32>(poolInfo.size());
-			pipelineCI.typeCounts = poolInfo.data();
-			pipelineCI.strideSize = sizeof(Vertex);
-			pipelineCI.numColorAttachments = 1;
-			pipelineCI.polygonMode = Graphics::PolygonMode::Fill;
-			pipelineCI.cullMode = Graphics::CullMode::NONE; //TODO
-			pipelineCI.transparencyEnabled = false;
-			pipelineCI.depthBiasEnabled = false;
-			pipelineCI.maxObjects = 10;
-
-			m_Pipeline = Ref<Graphics::Pipeline>(Graphics::Pipeline::Create(pipelineCI));
+			m_Pipeline = Graphics::Pipeline::Get(pipelineCreateInfo);
 		}
 
 		void DeferredRenderer::SetRenderTarget(Texture* texture, bool rebuildFramebuffer)
@@ -551,7 +503,7 @@ namespace Lumos
 				attachments[0] = m_RenderTexture;
 				bufferInfo.attachments = attachments;
 				bufferInfo.screenFBO = false;
-				m_Framebuffers.emplace_back(Framebuffer::Create(bufferInfo));
+				m_Framebuffers.emplace_back(Framebuffer::Get(bufferInfo));
 			}
 			else
 			{
@@ -561,7 +513,7 @@ namespace Lumos
 					attachments[0] = Renderer::GetSwapchain()->GetImage(i);
 					bufferInfo.attachments = attachments;
 
-					m_Framebuffers.emplace_back(Framebuffer::Create(bufferInfo));
+					m_Framebuffers.emplace_back(Framebuffer::Get(bufferInfo));
 				}
 			}
 		}
@@ -597,12 +549,15 @@ namespace Lumos
 		{
 			LUMOS_PROFILE_FUNCTION();
 			m_Framebuffers.clear();
-
+            
 			DeferredRenderer::SetScreenBufferSize(width, height);
 
 			CreateFramebuffers();
 
 			m_OffScreenRenderer->OnResize(width, height);
+            
+            m_EnvironmentMap = nullptr;
+            m_IrradianceMap = nullptr;
 
 			//Update DescriptorSet with updated gbuffer textures
 			UpdateScreenDescriptorSet();
@@ -613,22 +568,22 @@ namespace Lumos
 			std::vector<Graphics::ImageInfo> bufferInfos;
 
 			Graphics::ImageInfo imageInfo = {};
-			imageInfo.texture = {Application::Get().GetRenderManager()->GetGBuffer()->GetTexture(SCREENTEX_COLOUR)};
+			imageInfo.texture = {Application::Get().GetRenderGraph()->GetGBuffer()->GetTexture(SCREENTEX_COLOUR)};
 			imageInfo.binding = 0;
 			imageInfo.name = "uColourSampler";
 
 			Graphics::ImageInfo imageInfo2 = {};
-			imageInfo2.texture = {Application::Get().GetRenderManager()->GetGBuffer()->GetTexture(SCREENTEX_POSITION)};
+			imageInfo2.texture = {Application::Get().GetRenderGraph()->GetGBuffer()->GetTexture(SCREENTEX_POSITION)};
 			imageInfo2.binding = 1;
 			imageInfo2.name = "uPositionSampler";
 
 			Graphics::ImageInfo imageInfo3 = {};
-			imageInfo3.texture = {Application::Get().GetRenderManager()->GetGBuffer()->GetTexture(SCREENTEX_NORMALS)};
+			imageInfo3.texture = {Application::Get().GetRenderGraph()->GetGBuffer()->GetTexture(SCREENTEX_NORMALS)};
 			imageInfo3.binding = 2;
 			imageInfo3.name = "uNormalSampler";
 
 			Graphics::ImageInfo imageInfo4 = {};
-			imageInfo4.texture = {Application::Get().GetRenderManager()->GetGBuffer()->GetTexture(SCREENTEX_PBR)};
+			imageInfo4.texture = {Application::Get().GetRenderGraph()->GetGBuffer()->GetTexture(SCREENTEX_PBR)};
 			imageInfo4.binding = 3;
 			imageInfo4.name = "uPBRSampler";
 
@@ -650,7 +605,7 @@ namespace Lumos
 			imageInfo7.name = "uIrradianceMap";
 
 			Graphics::ImageInfo imageInfo8 = {};
-			auto shadowRenderer = Application::Get().GetRenderManager()->GetShadowRenderer();
+			auto shadowRenderer = Application::Get().GetRenderGraph()->GetShadowRenderer();
 			if(shadowRenderer)
 			{
 				imageInfo8.texture = {reinterpret_cast<Texture*>(shadowRenderer->GetTexture())};
@@ -660,7 +615,7 @@ namespace Lumos
 			}
 
 			Graphics::ImageInfo imageInfo9 = {};
-			imageInfo9.texture = {Application::Get().GetRenderManager()->GetGBuffer()->GetDepthTexture()};
+			imageInfo9.texture = {Application::Get().GetRenderGraph()->GetGBuffer()->GetDepthTexture()};
 			imageInfo9.binding = 8;
 			imageInfo9.type = TextureType::DEPTH;
 			imageInfo9.name = "uDepthSampler";

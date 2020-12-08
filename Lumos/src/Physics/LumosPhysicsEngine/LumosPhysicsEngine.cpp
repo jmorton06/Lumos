@@ -31,6 +31,8 @@ namespace Lumos
 	{
 		m_DebugName = "Lumos3DPhysicsEngine";
 		m_RigidBodys.reserve(100);
+        m_BroadphaseCollisionPairs.reserve(1000);
+        m_Manifolds.reserve(100);
 	}
 	
 	void LumosPhysicsEngine::SetDefaults()
@@ -47,9 +49,6 @@ namespace Lumos
 	{
 		m_RigidBodys.clear();
 		m_Constraints.clear();
-		
-		for(Manifold* m : m_Manifolds)
-			delete m;
 		m_Manifolds.clear();
 		
 		CollisionDetection::Release();
@@ -67,48 +66,51 @@ namespace Lumos
 			
 			{
 				LUMOS_PROFILE_SCOPE("Physics::Get Rigid Bodies");
-			
-			for(auto entity : group)
-			{
-				const auto& phys = group.get<Physics3DComponent>(entity);
-				
-				auto& physicsObj = phys.GetRigidBody();
-				m_RigidBodys.push_back(physicsObj);
+                for(auto entity : group)
+                {
+                    const auto& phys = group.get<Physics3DComponent>(entity);
+                    auto& physicsObj = phys.GetRigidBody();
+                    m_RigidBodys.push_back(physicsObj);
 				};
 			}
+            
+            if(m_RigidBodys.empty())
+            {
+                return;
+            }
 			
 			{
 				LUMOS_PROFILE_SCOPE("Physics::Get Spring Constraints");
-			m_Constraints.clear();
-			
-			auto viewSpring = registry.view<SpringConstraintComponent>();
-			
-			for(auto entity : viewSpring)
-			{
-				const auto& constraint = viewSpring.get<SpringConstraintComponent>(entity).GetConstraint();
-				m_Constraints.push_back(constraint.get());
+                m_Constraints.clear();
+                
+                auto viewSpring = registry.view<SpringConstraintComponent>();
+                
+                for(auto entity : viewSpring)
+                {
+                    const auto& constraint = viewSpring.get<SpringConstraintComponent>(entity).GetConstraint();
+                    m_Constraints.push_back(constraint.get());
 				}
 			}
 			
 			{
 				LUMOS_PROFILE_SCOPE("Physics::Get Distance Constraints");
-			auto viewDis = registry.view<DistanceConstraintComponent>();
-			
-			for(auto entity : viewDis)
-			{
-				const auto& constraint = viewDis.get<DistanceConstraintComponent>(entity).GetConstraint();
-				m_Constraints.push_back(constraint.get());
-			}
+                auto viewDis = registry.view<DistanceConstraintComponent>();
+                
+                for(auto entity : viewDis)
+                {
+                    const auto& constraint = viewDis.get<DistanceConstraintComponent>(entity).GetConstraint();
+                    m_Constraints.push_back(constraint.get());
+                }
 			}
 			
 			{
 				LUMOS_PROFILE_SCOPE("Physics::Get Weld Constraints");
-			auto viewWeld = registry.view<WeldConstraintComponent>();
-			
-			for(auto entity : viewWeld)
-			{
-				const auto& constraint = viewWeld.get<WeldConstraintComponent>(entity).GetConstraint();
-				m_Constraints.push_back(constraint.get());
+                auto viewWeld = registry.view<WeldConstraintComponent>();
+                
+                for(auto entity : viewWeld)
+                {
+                    const auto& constraint = viewWeld.get<WeldConstraintComponent>(entity).GetConstraint();
+                    m_Constraints.push_back(constraint.get());
 				}
 			}
 			
@@ -141,24 +143,20 @@ namespace Lumos
 			
 			{
 				LUMOS_PROFILE_SCOPE("Physics::Set Transforms");
-			for(auto entity : group)
-			{
-				const auto& [phys, trans] = group.get<Physics3DComponent, Maths::Transform>(entity);
-				
-				trans.SetLocalPosition(phys.GetRigidBody()->GetPosition());
-				trans.SetLocalOrientation(phys.GetRigidBody()->GetOrientation());
-				};
-			}
-			m_Constraints.clear();
-			}
+                for(auto entity : group)
+                {
+                    const auto& [phys, trans] = group.get<Physics3DComponent, Maths::Transform>(entity);
+                    
+                    trans.SetLocalPosition(phys.GetRigidBody()->GetPosition());
+                    trans.SetLocalOrientation(phys.GetRigidBody()->GetOrientation());
+                };
+            }
+            m_Constraints.clear();
+        }
 	}
 	
 	void LumosPhysicsEngine::UpdatePhysics(Scene* scene)
 	{
-		for(Manifold* m : m_Manifolds)
-		{
-			delete m;
-		}
 		m_Manifolds.clear();
 		
 		//Check for collisions
@@ -174,11 +172,20 @@ namespace Lumos
 	
 	void LumosPhysicsEngine::UpdateRigidBodys()
 	{
+#ifdef THREAD_RIGID_BODY_UPDATE
+        LUMOS_PROFILE_SCOPE("Thread Update Rigid Body");
+
 		System::JobSystem::Dispatch(static_cast<u32>(m_RigidBodys.size()), 4, [&](JobDispatchArgs args) {
 										UpdateRigidBody(m_RigidBodys[args.jobIndex]);
 									});
 		
 		System::JobSystem::Wait();
+#else
+        LUMOS_PROFILE_SCOPE("Update Rigid Body");
+
+        for(int i = 0; i < m_RigidBodys.size(); i++)
+            UpdateRigidBody(m_RigidBodys[i]);
+#endif
 	}
 	
 	void LumosPhysicsEngine::UpdateRigidBody(const Ref<RigidBody3D>& obj) const
@@ -301,7 +308,7 @@ namespace Lumos
 		LUMOS_PROFILE_FUNCTION();
 		m_BroadphaseCollisionPairs.clear();
 		if(m_BroadphaseDetection)
-			m_BroadphaseDetection->FindPotentialCollisionPairs(m_RigidBodys, m_BroadphaseCollisionPairs);
+			m_BroadphaseDetection->FindPotentialCollisionPairs(m_RigidBodys.data(),(u32)m_RigidBodys.size(), m_BroadphaseCollisionPairs);
 	}
 	
 	void LumosPhysicsEngine::NarrowPhaseCollisions()
@@ -310,11 +317,11 @@ namespace Lumos
 		if(!m_BroadphaseCollisionPairs.empty())
 		{
 			CollisionData colData;
-			CollisionDetection colDetect;
 			
 			//System::JobSystem::Dispatch(static_cast<u32>(m_BroadphaseCollisionPairs.size()), 4, [&](JobDispatchArgs args)
 			for(auto& cp : m_BroadphaseCollisionPairs)
 			{
+                LUMOS_PROFILE_SCOPE("Collision Pairs");
 				//CollisionPair &cp = m_BroadphaseCollisionPairs[args.jobIndex];
 				auto shapeA = cp.pObjectA->GetCollisionShape();
 				auto shapeB = cp.pObjectB->GetCollisionShape();
@@ -333,22 +340,19 @@ namespace Lumos
 						{
 							// Build full collision manifold that will also handle the collision
 							// response between the two objects in the solver stage
-							Manifold* manifold = new Manifold();
-							manifold->Initiate(cp.pObjectA, cp.pObjectB);
+							Manifold& manifold = m_Manifolds.emplace_back();
+							manifold.Initiate(cp.pObjectA, cp.pObjectB);
 							
 							// Construct contact points that form the perimeter of the collision manifold
-							if(CollisionDetection::Get().BuildCollisionManifold(cp.pObjectA, cp.pObjectB, shapeA.get(), shapeB.get(), colData, manifold))
+							if(CollisionDetection::Get().BuildCollisionManifold(cp.pObjectA, cp.pObjectB, shapeA.get(), shapeB.get(), colData, &manifold))
 							{
 								// Fire callback
-								cp.pObjectA->FireOnCollisionManifoldCallback(cp.pObjectA, cp.pObjectB, manifold);
-								cp.pObjectB->FireOnCollisionManifoldCallback(cp.pObjectB, cp.pObjectA, manifold);
-								
-								// Add to list of manifolds that need solving
-								m_Manifolds.push_back(manifold);
+								cp.pObjectA->FireOnCollisionManifoldCallback(cp.pObjectA, cp.pObjectB, &manifold);
+								cp.pObjectB->FireOnCollisionManifoldCallback(cp.pObjectB, cp.pObjectA, &manifold);
 							}
 							else
 							{
-								delete manifold;
+                                m_Manifolds.pop_back();
 							}
 						}
 					}
@@ -362,29 +366,40 @@ namespace Lumos
 	void LumosPhysicsEngine::SolveConstraints()
 	{
 		LUMOS_PROFILE_FUNCTION();
-		for(Manifold* m : m_Manifolds)
-			m->PreSolverStep(s_UpdateTimestep);
-		for(Constraint* c : m_Constraints)
-			c->PreSolverStep(s_UpdateTimestep);
+        
+        {
+            LUMOS_PROFILE_SCOPE("Solve Manifolds");
+
+            for(Manifold& m : m_Manifolds)
+                m.PreSolverStep(s_UpdateTimestep);
+        }
+        {
+            LUMOS_PROFILE_SCOPE("Solve Constraints");
+
+            for(Constraint* c : m_Constraints)
+                c->PreSolverStep(s_UpdateTimestep);
+        }
 		
-		for(size_t i = 0; i < SOLVER_ITERATIONS; ++i)
-		{
-			for(Manifold* m : m_Manifolds)
-			{
-				m->ApplyImpulse();
-			}
-			
-			for(Constraint* c : m_Constraints)
-			{
-				c->ApplyImpulse();
-			}
-		}
+        {
+            for(size_t i = 0; i < SOLVER_ITERATIONS; ++i)
+            {
+                LUMOS_PROFILE_SCOPE("Apply Impulse");
+
+                for(Manifold& m : m_Manifolds)
+                {
+                    m.ApplyImpulse();
+                }
+                
+                for(Constraint* c : m_Constraints)
+                {
+                    c->ApplyImpulse();
+                }
+            }
+        }
 	}
 	
 	void LumosPhysicsEngine::ClearConstraints()
 	{
-		//for(Constraint* c : m_Constraints)
-			//delete c;
 		m_Constraints.clear();
 	}
 	
@@ -500,8 +515,8 @@ namespace Lumos
 		LUMOS_PROFILE_FUNCTION();
 		if(m_DebugDrawFlags & PhysicsDebugFlags::MANIFOLD)
 		{
-			for(Manifold* m : m_Manifolds)
-				m->DebugDraw();
+			for(Manifold& m : m_Manifolds)
+				m.DebugDraw();
 		}
 		
 		// Draw all constraints

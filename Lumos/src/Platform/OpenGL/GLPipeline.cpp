@@ -9,9 +9,9 @@ namespace Lumos
 {
     namespace Graphics
     {
-        GLPipeline::GLPipeline(const PipelineInfo &pipelineCI) : m_RenderPass(nullptr)
+        GLPipeline::GLPipeline(const PipelineInfo &pipelineCreateInfo) : m_RenderPass(nullptr)
         {
-            Init(pipelineCI);
+            Init(pipelineCreateInfo);
         }
 
         GLPipeline::~GLPipeline()
@@ -45,27 +45,19 @@ namespace Lumos
             }
         }
 
-        bool GLPipeline::Init(const PipelineInfo &pipelineCI)
+        bool GLPipeline::Init(const PipelineInfo &pipelineCreateInfo)
         {
             DescriptorInfo info;
             info.pipeline = this;
             info.layoutIndex = 0;
-            info.shader = pipelineCI.shader;
+            info.shader = pipelineCreateInfo.shader.get();
 			m_DescriptorSet = new GLDescriptorSet(info);
-            m_TransparencyEnabled = pipelineCI.transparencyEnabled;
+            m_TransparencyEnabled = pipelineCreateInfo.transparencyEnabled;
 
             GLCall(glGenVertexArrays(1, &m_VertexArray));
 
 			m_Shader = info.shader;
-        
-            auto vLayout = pipelineCI.vertexLayout;
-            for(u32 i = 0; i < pipelineCI.numVertexLayout; i++)
-            {
-                m_VertexDescriptions.push_back(vLayout[i]);
-            }
-            
-            m_StrideSize = (u32)pipelineCI.strideSize;
-
+            m_VertexBufferLayout = pipelineCreateInfo.vertexBufferLayout;
             return true;
         }
     
@@ -73,12 +65,15 @@ namespace Lumos
         {
             GLCall(glBindVertexArray(m_VertexArray));
 
-            for(u32 i = 0; i < m_VertexDescriptions.size(); i++)
+            auto& vertexLayout = m_VertexBufferLayout.GetLayout();
+            int count = 0;
+            
+            for(auto& layout : vertexLayout)
             {
-                GLCall(glEnableVertexAttribArray(i));
-                auto layout = m_VertexDescriptions[i];
+                GLCall(glEnableVertexAttribArray(count));
                 size_t offset = static_cast<size_t>(layout.offset);
-                VertexAtrribPointer(layout.format, i, offset, m_StrideSize);
+                VertexAtrribPointer(layout.format, count, offset, m_VertexBufferLayout.GetStride());
+                count++;
             }
         }
     
@@ -97,9 +92,9 @@ namespace Lumos
 			CreateFunc = CreateFuncGL;
 		}
 
-		Pipeline* GLPipeline::CreateFuncGL(const PipelineInfo & pipelineCI)
+		Pipeline* GLPipeline::CreateFuncGL(const PipelineInfo & pipelineCreateInfo)
 		{
-			return new GLPipeline(pipelineCI);
+			return new GLPipeline(pipelineCreateInfo);
 		}
     }
 }

@@ -43,6 +43,7 @@ namespace Lumos
 			
             VkSwapchainKHR m_SwapChain;
 			std::vector<Texture2D*> m_SwapChainBuffers;
+            std::vector<VkSemaphore> m_ImageAquiredSemaphores;
 			uint32_t m_CurrentBuffer = 0;
 			u32	m_Width;
 			u32	m_Height;

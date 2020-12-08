@@ -44,38 +44,6 @@ namespace Lumos
 			{
 				return Position == other.Position  && TexCoords == other.TexCoords && Colours == other.Colours && Normal == other.Normal && Tangent == other.Tangent;
 			}
-
-			static std::array<Graphics::VertexInputDescription, 5> getAttributeDescriptions()
-			{
-				std::array<Graphics::VertexInputDescription, 5> attributeDescriptions = {};
-
-				attributeDescriptions[0].binding = 0;
-				attributeDescriptions[0].location = 0;
-				attributeDescriptions[0].format = Graphics::Format::R32G32B32_FLOAT;
-				attributeDescriptions[0].offset = offsetof(Vertex, Position);
-
-				attributeDescriptions[1].binding = 0;
-				attributeDescriptions[1].location = 1;
-				attributeDescriptions[1].format = Graphics::Format::R32G32B32A32_FLOAT;
-				attributeDescriptions[1].offset = offsetof(Vertex, Colours);
-
-				attributeDescriptions[2].binding = 0;
-				attributeDescriptions[2].location = 2;
-				attributeDescriptions[2].format = Graphics::Format::R32G32_FLOAT;
-				attributeDescriptions[2].offset = offsetof(Vertex, TexCoords);
-
-				attributeDescriptions[3].binding = 0;
-				attributeDescriptions[3].location = 3;
-				attributeDescriptions[3].format = Graphics::Format::R32G32B32_FLOAT;
-				attributeDescriptions[3].offset = offsetof(Vertex, Normal);
-
-				attributeDescriptions[4].binding = 0;
-				attributeDescriptions[4].location = 4;
-				attributeDescriptions[4].format = Graphics::Format::R32G32B32_FLOAT;
-				attributeDescriptions[4].offset = offsetof(Vertex, Tangent);
-
-				return attributeDescriptions;
-			}
 		};
 
 		class LUMOS_EXPORT Mesh

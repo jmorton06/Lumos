@@ -1,16 +1,17 @@
 #pragma once
 #include "Renderer.h"
+#include "BufferLayout.h"
 
 namespace Lumos
 {
 	namespace Graphics
 	{
-		class Shader;
+        class Shader;
 		class RenderPass;
 		class CommandBuffer;
 		class DescriptorSet;
 		struct VertexInputDescription;
-		struct DescriptorLayout;
+		struct DescriptorLayoutInfo;
 		struct DescriptorPoolInfo;
 
 		enum class CullMode
@@ -23,48 +24,42 @@ namespace Lumos
 
 		enum class PolygonMode
 		{
-			Fill,
-			Line,
-			Point
+			FILL,
+			LINE,
+			POINT
 		};
 
 		struct PipelineInfo
 		{
-			Shader* shader;
-			RenderPass* renderpass;
-			VertexInputDescription* vertexLayout;
+            Ref<RenderPass> renderpass;
+			Ref<Shader> shader;
+            BufferLayout vertexBufferLayout;
+            
+			CullMode cullMode = CullMode::BACK;
+			PolygonMode polygonMode = PolygonMode::FILL;
+            DrawType drawType = DrawType::TRIANGLE;
 
-			uint32_t numVertexLayout;
-			size_t strideSize;
-			DescriptorPoolInfo* typeCounts;
-
-			std::vector<DescriptorLayout> descriptorLayouts;
-			u32 numLayoutBindings;
-
-			CullMode cullMode;
-			std::string pipelineName;
-			int numColorAttachments;
-			PolygonMode polygonMode;
 			bool transparencyEnabled;
 			bool depthBiasEnabled;
-			u32 maxObjects;
-			float lineWidth = -1.0f;
-			DrawType drawType = DrawType::TRIANGLE;
 		};
+    
 		class LUMOS_EXPORT Pipeline
 		{
 		public:
 			static Pipeline* Create(const PipelineInfo& pipelineInfo);
+            static Ref<Pipeline> Get(const PipelineInfo& pipelineInfo);
+            static void ClearCache();
+            static void DeleteUnusedCache();
+
 			virtual ~Pipeline() = default;
 
             virtual void Bind(CommandBuffer* cmdBuffer) = 0;
 
-            virtual size_t GetStride() const = 0;
 			virtual DescriptorSet* GetDescriptorSet() const = 0;
 			virtual Shader* GetShader() const = 0;
 
 		protected:
 			static Pipeline* (*CreateFunc)(const PipelineInfo&);
-		};
+        };
 	}
 }

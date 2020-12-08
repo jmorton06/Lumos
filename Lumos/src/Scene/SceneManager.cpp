@@ -110,7 +110,7 @@ namespace Lumos
 		m_CurrentScene->SetScreenHeight(static_cast<u32>(screenSize.y));
         
         std::string physicalPath;
-        if(Lumos::VFS::Get()->ResolvePhysicalPath("/Scenes/" + m_CurrentScene->GetSceneName() + ".lsn", physicalPath))
+        if(Lumos::VFS::Get()->ResolvePhysicalPath("//Scenes/" + m_CurrentScene->GetSceneName() + ".lsn", physicalPath))
         {
             auto newPath = StringUtilities::RemoveName(physicalPath);
             m_CurrentScene->Deserialise(newPath, false);

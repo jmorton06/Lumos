@@ -29,6 +29,8 @@ namespace Lumos
 
 			virtual void Init() = 0;
 			virtual void Present() = 0;
+			virtual float GetGPUMemoryUsed() = 0;
+			virtual float GetTotalGPUMemory() = 0;
 
 			virtual size_t GetMinUniformBufferOffsetAlignment() const = 0;
 

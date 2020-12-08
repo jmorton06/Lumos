@@ -80,8 +80,7 @@ defines
 			"_DISABLE_EXTENDED_ALIGNED_STORAGE",
 			"_SILENCE_CXX17_ITERATOR_BASE_CLASS_DEPRECATION_WARNING",
 			"LUMOS_ROOT_DIR="  .. root_dir,
-			"LUMOS_VOLK",
-	"LUMOS_SSE",
+			"LUMOS_VOLK"
 		}
 
 		libdirs
@@ -94,7 +93,10 @@ defines
 			"glfw",
 			"OpenGL32",
 			"OpenAL32"
-		}
+}
+if _OPTIONS["arch"] ~= "arm" then
+defines { "LUMOS_SSE" ,"USE_VMA_ALLOCATOR"}
+end
 
 		buildoptions
 		{
@@ -109,7 +111,7 @@ defines
 		systemversion "latest"
 		editandcontinue "Off"
 
-xcodebuildresources { "Images.xcassets", "libMoltenVK.dylib" }
+		xcodebuildresources { "Assets.xcassets", "libMoltenVK.dylib" }
 
 		xcodebuildsettings
 		{
@@ -120,7 +122,7 @@ xcodebuildresources { "Images.xcassets", "libMoltenVK.dylib" }
 			['INFOPLIST_FILE'] = '../Lumos/src/Platform/macOS/Info.plist',
 			['ASSETCATALOG_COMPILER_APPICON_NAME'] = 'AppIcon'
 			--['ENABLE_HARDENED_RUNTIME'] = 'YES'
-		}
+}
 
 		defines
 		{
@@ -131,8 +133,7 @@ xcodebuildresources { "Images.xcassets", "libMoltenVK.dylib" }
 			"VK_EXT_metal_surface",
 			"LUMOS_IMGUI",
 			"LUMOS_ROOT_DIR="  .. root_dir,
-			"LUMOS_VOLK",
-			"LUMOS_SSE"
+			"LUMOS_VOLK"
 		}
 
 		linkoptions
@@ -143,12 +144,12 @@ xcodebuildresources { "Images.xcassets", "libMoltenVK.dylib" }
 			"-framework CoreVideo",
 			"-framework OpenAL",
 			"-framework QuartzCore"
-		}
+}
 
 		files
 		{
-	"../Resources/MacOSIcons/Images.xcassets",
-	"../Lumos/external/vulkan/libs/macOS/libMoltenVK.dylib"
+			"../Resources/AppIcons/Assets.xcassets",
+			"../Lumos/external/vulkan/libs/macOS/libMoltenVK.dylib"
 		}
 
 		links
@@ -156,7 +157,20 @@ xcodebuildresources { "Images.xcassets", "libMoltenVK.dylib" }
 			"glfw",
 		}
 
-		SetRecommendedXcodeSettings()
+SetRecommendedXcodeSettings()
+
+if _OPTIONS["arch"] ~= "arm" then
+defines { "LUMOS_SSE" ,"USE_VMA_ALLOCATOR"}
+xcodebuildsettings
+{
+	ARCHS="x86_64"
+}
+else
+xcodebuildsettings
+{
+	ARCHS="arm64"
+}
+end
 
 	filter "system:ios"
 		cppdialect "C++17"
@@ -199,16 +213,15 @@ xcodebuildresources { "Images.xcassets", "libMoltenVK.dylib" }
 
 		files
 		{
-			"../Resources/IOSIcons/Images.xcassets",
-	"../Lumos/res/EngineShaders",
-	"../Lumos/src/Platform/iOS/Client/**",
+			"../Resources/AppIcons/Assets.xcassets",
+			"../Lumos/res/EngineShaders",
+			"../Lumos/src/Platform/iOS/Client/**",
             "res/scenes",
             "res/scripts",
             "res/meshes",
             "res/sounds",
             "res/textures",
-	"Sandbox.lmproj",
-	"Launch Screen.storyboard"
+			"Sandbox.lmproj"
 		}
 
 		xcodebuildsettings
@@ -242,7 +255,7 @@ xcodebuildresources { "Images.xcassets", "libMoltenVK.dylib" }
 		xcodebuildresources
 		{
 			"../Lumos/src/Platform/iOS/Client",
-			"Images.xcassets",
+			"Assets.xcassets",
             "EngineShaders",
             "meshes",
             "scenes",

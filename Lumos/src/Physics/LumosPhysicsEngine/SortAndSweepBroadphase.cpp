@@ -18,6 +18,7 @@ namespace Lumos
 
 	void SortAndSweepBroadphase::SetAxis(const Maths::Vector3& axis)
 	{
+        LUMOS_PROFILE_FUNCTION();
 		// Determine axis
 		m_axis = axis;
 		m_axis.Normalize();
@@ -30,32 +31,36 @@ namespace Lumos
 			m_axisIndex = 2;
 	}
 
-	void SortAndSweepBroadphase::FindPotentialCollisionPairs(std::vector<Ref<RigidBody3D>>& objects,
+	void SortAndSweepBroadphase::FindPotentialCollisionPairs(Ref<RigidBody3D>* objects, u32 objectCount,
 		std::vector<CollisionPair>& collisionPairs)
 	{
+        LUMOS_PROFILE_FUNCTION();
 		// Sort entities along axis
-		std::sort(objects.begin(), objects.end(), [this](Ref<RigidBody3D> a, Ref<RigidBody3D> b) -> bool {
+		std::sort(objects, objects + objectCount, [this](Ref<RigidBody3D> a, Ref<RigidBody3D> b) -> bool {
 			return a->GetWorldSpaceAABB().min_[this->m_axisIndex] < b->GetWorldSpaceAABB().min_[this->m_axisIndex];
 		});
 
-		for(auto it = objects.begin(); it != objects.end(); ++it)
+		for(u32 i = 0; i < objectCount; i++)
 		{
-			float thisBoxRight = (*it)->GetWorldSpaceAABB().max_[m_axisIndex];
+			auto obj = objects[i];
+			
+			float thisBoxRight = obj->GetWorldSpaceAABB().max_[m_axisIndex];
 
-			for(auto iit = it + 1; iit != objects.end(); ++iit)
+            for(u32 iit = i + 1; iit < objectCount; iit++)
 			{
+                auto obj2 = objects[iit];
 				// Skip pairs of two at rest/static objects
-				if(((*it)->GetIsAtRest() || (*it)->GetIsStatic()) && ((*iit)->GetIsAtRest() || (*iit)->GetIsStatic()))
+				if((obj->GetIsAtRest() || obj->GetIsStatic()) && (obj2->GetIsAtRest() || obj2->GetIsStatic()))
 					continue;
 
-				float testBoxLeft = (*iit)->GetWorldSpaceAABB().min_[m_axisIndex];
+				float testBoxLeft = obj2->GetWorldSpaceAABB().min_[m_axisIndex];
 
 				// Test for overlap between the axis values of the bounding boxes
 				if(testBoxLeft < thisBoxRight)
 				{
 					CollisionPair cp;
-					cp.pObjectA = (*it).get();
-					cp.pObjectB = (*iit).get();
+					cp.pObjectA = obj.get();
+					cp.pObjectB = obj2.get();
 
 					collisionPairs.push_back(cp);
 				}

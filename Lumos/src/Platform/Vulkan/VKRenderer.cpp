@@ -5,9 +5,8 @@
 #include "VKDescriptorSet.h"
 #include "VKTools.h"
 #include "VKPipeline.h"
-
+#include "Core/Engine.h"
  
-
 namespace Lumos
 {
 	namespace Graphics
@@ -26,6 +25,7 @@ namespace Lumos
 			for(int i = 0; i < NUM_SEMAPHORES; i++)
 			{
 				vkDestroySemaphore(VKDevice::Get().GetDevice(), m_ImageAvailableSemaphore[i], nullptr);
+
 			}
 		}
 
@@ -36,7 +36,7 @@ namespace Lumos
 			static_cast<VKCommandBuffer*>(cmdBuffer)->ExecuteInternal(VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT,
 				m_ImageAvailableSemaphore[m_CurrentSemaphoreIndex],
 				m_ImageAvailableSemaphore[m_CurrentSemaphoreIndex + 1],
-				false);
+				true);
 			m_CurrentSemaphoreIndex++;
 		}
 
@@ -66,9 +66,7 @@ namespace Lumos
 		void VKRenderer::PresentInternal()
 		{
 			LUMOS_PROFILE_FUNCTION();
-            auto m_Swapchain = VKContext::Get()->GetSwapchain();
-
-			m_Swapchain->Present(m_ImageAvailableSemaphore[m_CurrentSemaphoreIndex]);
+            VKContext::Get()->GetSwapchain()->Present(m_ImageAvailableSemaphore[m_CurrentSemaphoreIndex]);
 		}
 
 		void VKRenderer::OnResize(u32 width, u32 height)
@@ -106,15 +104,17 @@ namespace Lumos
 			LUMOS_PROFILE_FUNCTION();
 			m_CurrentSemaphoreIndex = 0;
             auto m_Swapchain = VKContext::Get()->GetSwapchain();
-
 			auto result = m_Swapchain->AcquireNextImage(m_ImageAvailableSemaphore[m_CurrentSemaphoreIndex]);
-
 			if(result == VK_ERROR_OUT_OF_DATE_KHR)
 			{
 				OnResize(m_Width, m_Height);
 				return;
 			}
-			else if(result != VK_SUCCESS && result != VK_SUBOPTIMAL_KHR)
+			else if(result == VK_SUBOPTIMAL_KHR)
+			{
+				LUMOS_LOG_WARN("[VULKAN] Swapchain Image - SubOptimal!");
+			}
+			else if(result != VK_SUCCESS)
 			{
 				LUMOS_LOG_CRITICAL("[VULKAN] Failed to acquire swap chain image!");
 			}
@@ -154,14 +154,14 @@ namespace Lumos
 		void VKRenderer::DrawIndexedInternal(CommandBuffer* commandBuffer, DrawType type, u32 count, u32 start) const
 		{
 			LUMOS_PROFILE_FUNCTION();
+			Engine::Get().Statistics().NumDrawCalls++;
 			vkCmdDrawIndexed(static_cast<VKCommandBuffer*>(commandBuffer)->GetCommandBuffer(), count, 1, 0, 0, 0);
 		}
 
 		void VKRenderer::DrawInternal(CommandBuffer* commandBuffer, DrawType type, u32 count, DataType datayType, void* indices) const
 		{
 			LUMOS_PROFILE_FUNCTION();
-            TracyVkCollect(VKDevice::Get().GetTracyContext(), static_cast<VKCommandBuffer*>(commandBuffer)->GetCommandBuffer());
-            
+            Engine::Get().Statistics().NumDrawCalls++;
 			vkCmdDraw(static_cast<VKCommandBuffer*>(commandBuffer)->GetCommandBuffer(), count, 1, 0, 0);
 		}
 

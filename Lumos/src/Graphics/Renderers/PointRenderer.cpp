@@ -17,11 +17,9 @@
 #include "Graphics/Camera/Camera.h"
 #include "Scene/Scene.h"
 #include "Core/Application.h"
-#include "Graphics/RenderManager.h"
 #include "Platform/OpenGL/GLDescriptorSet.h"
 #include "Maths/Transform.h"
  
-
 namespace Lumos
 {
 	using namespace Graphics;
@@ -29,9 +27,9 @@ namespace Lumos
 	static const uint32_t MaxPoints = 10000;
 	static const uint32_t MaxPointVertices = MaxPoints * 4;
 	static const uint32_t MaxPointIndices = MaxPoints * 6;
-#define MAX_BATCH_DRAW_CALLS 100
-#define RENDERER_POINT_SIZE RENDERER2DPOINT_VERTEX_SIZE * 4
-#define RENDERER_BUFFER_SIZE RENDERER_POINT_SIZE* MaxPointVertices
+    static const uint32_t MAX_BATCH_DRAW_CALLS = 100;
+    static const uint32_t RENDERER_POINT_SIZE = sizeof(PointVertexData) * 4;
+    static const uint32_t RENDERER_BUFFER_SIZE = RENDERER_POINT_SIZE * MaxPointVertices;
 
 	PointRenderer::PointRenderer(u32 width, u32 height, bool clear)
 		: m_IndexCount(0)
@@ -63,24 +61,23 @@ namespace Lumos
 	{
 		LUMOS_PROFILE_FUNCTION();
 
-		m_Shader = Ref<Graphics::Shader>(Shader::CreateFromFile("Batch2DPoint", "/CoreShaders/"));
+		m_Shader = Application::Get().GetShaderLibrary()->GetResource("/CoreShaders/Batch2DPoint.shader");
 
 		m_VSSystemUniformBufferSize = sizeof(Maths::Matrix4);
 		m_VSSystemUniformBuffer = new u8[m_VSSystemUniformBufferSize];
 
-		m_RenderPass = Ref<Graphics::RenderPass>(Graphics::RenderPass::Create());
 		m_UniformBuffer = Graphics::UniformBuffer::Create();
 
 		AttachmentInfo textureTypes[2] =
 			{
 				{TextureType::COLOUR, TextureFormat::RGBA8}};
 
-		Graphics::RenderpassInfo renderpassCI;
+		Graphics::RenderPassInfo renderpassCI;
 		renderpassCI.attachmentCount = 1;
 		renderpassCI.textureType = textureTypes;
 		renderpassCI.clear = false;
 
-		m_RenderPass->Init(renderpassCI);
+        m_RenderPass = Graphics::RenderPass::Get(renderpassCI);
 
 		CreateFramebuffers();
 
@@ -269,7 +266,6 @@ namespace Lumos
 	void PointRenderer::End()
 	{
 		m_RenderPass->EndRenderpass(m_CommandBuffers[m_CurrentBufferID].get());
-		m_CommandBuffers[m_CurrentBufferID]->EndRecording();
 
 		if(m_RenderTexture)
 			m_CommandBuffers[m_CurrentBufferID]->Execute(true);
@@ -289,10 +285,9 @@ namespace Lumos
 		if(!m_RenderTexture)
 			m_CurrentBufferID = Renderer::GetSwapchain()->GetCurrentBufferId();
 
-		m_CommandBuffers[m_CurrentBufferID]->BeginRecording();
-        m_Pipeline->Bind(m_CommandBuffers[m_CurrentBufferID].get());
+		m_RenderPass->BeginRenderpass(m_CommandBuffers[m_CurrentBufferID].get(), m_ClearColour, m_Framebuffers[m_CurrentBufferID].get(), Graphics::SECONDARY, m_ScreenBufferWidth, m_ScreenBufferHeight);
 
-        m_RenderPass->BeginRenderpass(m_CommandBuffers[m_CurrentBufferID].get(), m_ClearColour, m_Framebuffers[m_CurrentBufferID].get(), Graphics::SECONDARY, m_ScreenBufferWidth, m_ScreenBufferHeight);
+        m_Pipeline->Bind(m_CommandBuffers[m_CurrentBufferID].get());
 
         m_VertexBuffers[m_BatchDrawCallIndex]->Bind(m_CommandBuffers[m_CurrentBufferID].get(), m_Pipeline.get());
 		m_Buffer = m_VertexBuffers[m_BatchDrawCallIndex]->GetPointer<PointVertexData>();
@@ -339,45 +334,23 @@ namespace Lumos
 
 	void PointRenderer::CreateGraphicsPipeline()
 	{
-		std::vector<Graphics::DescriptorPoolInfo> poolInfo =
-			{
-				{Graphics::DescriptorType::UNIFORM_BUFFER, MAX_BATCH_DRAW_CALLS},
-			};
+        Graphics::BufferLayout vertexBufferLayout;
+        vertexBufferLayout.Push<Maths::Vector3>("position");
+        vertexBufferLayout.Push<Maths::Vector4>("colour");
+        vertexBufferLayout.Push<Maths::Vector2>("size");
+        vertexBufferLayout.Push<Maths::Vector2>("uv");
 
-		std::vector<Graphics::DescriptorLayoutInfo> layoutInfo =
-			{
-				{Graphics::DescriptorType::UNIFORM_BUFFER, Graphics::ShaderType::VERTEX, 0}};
+		Graphics::PipelineInfo pipelineCreateInfo;
+		pipelineCreateInfo.shader = m_Shader;
+		pipelineCreateInfo.renderpass = m_RenderPass;
+        pipelineCreateInfo.vertexBufferLayout = vertexBufferLayout;
+		pipelineCreateInfo.polygonMode = Graphics::PolygonMode::FILL;
+		pipelineCreateInfo.cullMode = Graphics::CullMode::NONE;
+		pipelineCreateInfo.transparencyEnabled = true;
+		pipelineCreateInfo.depthBiasEnabled = true;
+		pipelineCreateInfo.drawType = DrawType::TRIANGLE;
 
-		auto attributeDescriptions = PointVertexData::getAttributeDescriptions();
-
-		std::vector<Graphics::DescriptorLayout> descriptorLayouts;
-
-		Graphics::DescriptorLayout sceneDescriptorLayout;
-		sceneDescriptorLayout.count = static_cast<u32>(layoutInfo.size());
-		sceneDescriptorLayout.layoutInfo = layoutInfo.data();
-
-		descriptorLayouts.push_back(sceneDescriptorLayout);
-
-		Graphics::PipelineInfo PipelineCI;
-		PipelineCI.pipelineName = "BatchPointRenderer";
-		PipelineCI.shader = m_Shader.get();
-		PipelineCI.renderpass = m_RenderPass.get();
-		PipelineCI.numVertexLayout = static_cast<u32>(attributeDescriptions.size());
-		PipelineCI.descriptorLayouts = descriptorLayouts;
-		PipelineCI.vertexLayout = attributeDescriptions.data();
-		PipelineCI.numLayoutBindings = static_cast<u32>(poolInfo.size());
-		PipelineCI.typeCounts = poolInfo.data();
-		PipelineCI.strideSize = sizeof(PointVertexData);
-		PipelineCI.numColorAttachments = 1;
-		PipelineCI.polygonMode = Graphics::PolygonMode::Fill;
-		PipelineCI.cullMode = Graphics::CullMode::NONE;
-		PipelineCI.transparencyEnabled = true;
-		PipelineCI.depthBiasEnabled = true;
-		PipelineCI.maxObjects = MAX_BATCH_DRAW_CALLS;
-		PipelineCI.drawType = DrawType::TRIANGLE;
-		PipelineCI.lineWidth = 1.0f;
-
-		m_Pipeline = Ref<Graphics::Pipeline>(Graphics::Pipeline::Create(PipelineCI));
+		m_Pipeline = Graphics::Pipeline::Get(pipelineCreateInfo);
 	}
 
 	void PointRenderer::CreateFramebuffers()
@@ -398,7 +371,7 @@ namespace Lumos
 			attachments[0] = m_RenderTexture;
 			bufferInfo.attachments = attachments;
 			bufferInfo.screenFBO = false;
-			m_Framebuffers.emplace_back(Framebuffer::Create(bufferInfo));
+			m_Framebuffers.emplace_back(Framebuffer::Get(bufferInfo));
 		}
 		else
 		{
@@ -408,7 +381,7 @@ namespace Lumos
 				attachments[0] = Renderer::GetSwapchain()->GetImage(i);
 				bufferInfo.attachments = attachments;
 
-				m_Framebuffers.emplace_back(Framebuffer::Create(bufferInfo));
+				m_Framebuffers.emplace_back(Framebuffer::Get(bufferInfo));
 			}
 		}
 	}

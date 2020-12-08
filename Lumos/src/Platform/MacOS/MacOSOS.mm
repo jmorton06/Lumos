@@ -7,6 +7,11 @@
 
 #include <mach-o/dyld.h>
 
+#import <Cocoa/Cocoa.h>
+#define GLFW_EXPOSE_NATIVE_COCOA
+#include <GLFW/glfw3.h>
+#include <GLFW/glfw3native.h>
+
 extern Lumos::Application* Lumos::CreateApplication();
 
 namespace Lumos
@@ -23,7 +28,7 @@ namespace Lumos
 		hours = minutes / 60;
 		minutes = minutes % 60;
 		
-        LUMOS_LOG_INFO("Battery Info - Percentage : {0} , Time Left {1}h : {2}m , State : {3}", percentage, hours, minutes, PowerStateToString(state));
+        LUMOS_LOG_INFO("Battery Info - {0}% , Time Left {1}h : {2}m , State : {3}", percentage, hours, minutes, PowerStateToString(state));
         
         const std::string root = ROOT_DIR;
 		VFS::Get()->Mount("Meshes", root + "/Assets/meshes");
@@ -31,6 +36,7 @@ namespace Lumos
 		VFS::Get()->Mount("Sounds", root + "/Assets/sounds");
         
         auto& app = Lumos::Application::Get();
+
         app.Init();
         app.Run();
         app.Release();
@@ -39,6 +45,22 @@ namespace Lumos
     void MacOSOS::Init()
     {
         GLFWWindow::MakeDefault();
+    }
+
+    void MacOSOS::SetTitleBarColour(const Maths::Vector4& colour, bool dark)
+    {
+        auto& app = Lumos::Application::Get();
+
+        NSWindow* window = (NSWindow*)glfwGetCocoaWindow(static_cast<GLFWwindow*>(app.GetWindow()->GetHandle()));
+        window.titlebarAppearsTransparent = YES;
+        //window.titleVisibility = NSWindowTitleHidden;
+        
+        NSColor *titleColour = [NSColor colorWithSRGBRed:colour.x green:colour.y blue:colour.z alpha:colour.w];
+        window.backgroundColor = titleColour;
+        if(dark)
+            window.appearance = [NSAppearance appearanceNamed:NSAppearanceNameVibrantDark];
+        else
+            window.appearance = [NSAppearance appearanceNamed:NSAppearanceNameVibrantLight];
     }
 
     std::string MacOSOS::GetExecutablePath()
