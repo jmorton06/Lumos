@@ -788,7 +788,7 @@ namespace MM
 				ImGui::PushID(frameID);
 				bool open = ImGui::TreeNode(&state, "%s", name.c_str());
 				
-				ImGui::SameLine(ImGui::GetWindowContentRegionWidth() - 16.0f);
+				ImGui::SameLine(ImGui::GetWindowContentRegionWidth() - ImGui::GetFontSize());
 				ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.7f, 0.7f, 0.7f, 0.0f));
 				
 				if (ImGui::Button((ICON_MDI_MINUS"##" + name).c_str()))
@@ -868,7 +868,7 @@ namespace MM
 				ImGui::Columns(1);
 				if(ImGui::TreeNode("Frames"))
 					{
-						ImGui::SameLine(ImGui::GetWindowContentRegionWidth() - 16.0f);
+						ImGui::SameLine(ImGui::GetWindowContentRegionWidth() - ImGui::GetFontSize());
 						ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.7f, 0.7f, 0.7f, 0.0f));
 						
 						std::vector<Maths::Vector2>& frames = state.Frames;
@@ -888,11 +888,11 @@ namespace MM
 						{
 							auto& pos = (*it);
 							ImGui::PushID(&pos + numRemoved * 100);
-							ImGui::PushItemWidth(ImGui::GetWindowContentRegionWidth() - 60.0f);
+							ImGui::PushItemWidth(ImGui::GetWindowContentRegionWidth() - ImGui::GetFontSize() * 3.0f);
 							
 							ImGui::DragFloat2("##Position", Maths::ValuePointer(pos));
 							
-							ImGui::SameLine(ImGui::GetWindowContentRegionWidth() - 16.0f);
+							ImGui::SameLine(ImGui::GetWindowContentRegionWidth() - ImGui::GetFontSize());
 							
 							ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.7f, 0.7f, 0.7f, 0.0f));
 							
@@ -955,7 +955,7 @@ namespace MM
 			
 			bool flipImage = Graphics::GraphicsContext::GetContext()->FlipImGUITexture();
 			
-			ImGui::AlignTextToFramePadding();
+			//ImGui::AlignTextToFramePadding();
 			auto tex = sprite.GetTexture();
             
             if(tex)
@@ -1822,7 +1822,7 @@ namespace Lumos
 				}
 			}
 
-            ImGui::SameLine(ImGui::GetWindowContentRegionWidth() - 16.0f);
+            ImGui::SameLine(ImGui::GetWindowContentRegionWidth() - ImGui::GetFontSize());
 
             ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.7f, 0.7f, 0.7f, 0.0f));
 
