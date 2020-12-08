@@ -14,7 +14,4 @@ public:
 	void LoadModels();
     
 private:
-    
-    Lumos::Entity m_Terrain;
-
 };

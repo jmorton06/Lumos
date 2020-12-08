@@ -58,17 +58,17 @@ namespace Lumos
 #ifdef LUMOS_PLATFORM_IOS
         FilePath = Lumos::OS::Instance()->GetAssetPath() + projectName + ".lmproj";
 #else
-        FilePath = projectRoot + projectName + ".lmproj";
+        FilePath = projectRoot + projectName + std::string(".lmproj");
 #endif
         
 #ifndef LUMOS_PLATFORM_IOS
         const std::string root = ROOT_DIR;
-        VFS::Get()->Mount("Meshes", root + projectRoot + "/res/meshes");
-        VFS::Get()->Mount("Textures", root + projectRoot +  "/res/textures");
-        VFS::Get()->Mount("Sounds", root + projectRoot + "/res/sounds");
-        VFS::Get()->Mount("Scripts", root + projectRoot + "/res/scripts");
-        VFS::Get()->Mount("Scenes", root + projectRoot + "/res/scenes");
-        VFS::Get()->Mount("CoreShaders", root + "/Lumos/res/EngineShaders");
+        VFS::Get()->Mount("Meshes", root + projectRoot + std::string("/res/meshes"));
+        VFS::Get()->Mount("Textures", root + projectRoot +  std::string("/res/textures"));
+        VFS::Get()->Mount("Sounds", root + projectRoot + std::string("/res/sounds"));
+        VFS::Get()->Mount("Scripts", root + projectRoot + std::string("/res/scripts"));
+        VFS::Get()->Mount("Scenes", root + projectRoot + std::string("/res/scenes"));
+        VFS::Get()->Mount("CoreShaders", root + std::string("/Lumos/res/EngineShaders"));
 #endif
 		
         m_SceneManager = CreateUniqueRef<SceneManager>();

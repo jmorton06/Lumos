@@ -25,7 +25,6 @@ namespace Lumos
 			for(int i = 0; i < NUM_SEMAPHORES; i++)
 			{
 				vkDestroySemaphore(VKDevice::Get().GetDevice(), m_ImageAvailableSemaphore[i], nullptr);
-                vkDestroySemaphore(VKDevice::Get().GetDevice(), m_RenderFinishedSemaphore[i], nullptr);
 
 			}
 		}
@@ -36,9 +35,9 @@ namespace Lumos
             TracyVkCollect(VKDevice::Get().GetTracyContext(), static_cast<VKCommandBuffer*>(cmdBuffer)->GetCommandBuffer());
 			static_cast<VKCommandBuffer*>(cmdBuffer)->ExecuteInternal(VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT,
 				m_ImageAvailableSemaphore[m_CurrentSemaphoreIndex],
-				m_RenderFinishedSemaphore[m_CurrentSemaphoreIndex],
+				m_ImageAvailableSemaphore[m_CurrentSemaphoreIndex + 1],
 				true);
-            m_CurrentSemaphoreIndex = (m_CurrentSemaphoreIndex + 1) % NUM_SEMAPHORES;
+			m_CurrentSemaphoreIndex++;
 		}
 
 		void VKRenderer::ClearSwapchainImage() const
@@ -92,7 +91,6 @@ namespace Lumos
 			for(int i = 0; i < NUM_SEMAPHORES; i++)
 			{
 				VK_CHECK_RESULT(vkCreateSemaphore(VKDevice::Get().GetDevice(), &semaphoreInfo, nullptr, &m_ImageAvailableSemaphore[i]));
-                VK_CHECK_RESULT(vkCreateSemaphore(VKDevice::Get().GetDevice(), &semaphoreInfo, nullptr, &m_RenderFinishedSemaphore[i]));
 			}
 		}
     
@@ -104,8 +102,8 @@ namespace Lumos
 		void VKRenderer::Begin()
 		{
 			LUMOS_PROFILE_FUNCTION();
+			m_CurrentSemaphoreIndex = 0;
             auto m_Swapchain = VKContext::Get()->GetSwapchain();
-			
 			auto result = m_Swapchain->AcquireNextImage(m_ImageAvailableSemaphore[m_CurrentSemaphoreIndex]);
 			if(result == VK_ERROR_OUT_OF_DATE_KHR)
 			{

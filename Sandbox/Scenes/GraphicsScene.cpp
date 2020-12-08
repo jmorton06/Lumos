@@ -45,14 +45,14 @@ void GraphicsScene::OnCleanupScene()
 void GraphicsScene::LoadModels()
 {
 	//HeightMap
-	m_Terrain = m_EntityManager->Create("HeightMap");
-    m_Terrain.AddComponent<Maths::Transform>(Matrix4::Translation(Maths::Vector3(-100.0f, -60.0f,-318.0f)));
-    m_Terrain.AddComponent<TextureMatrixComponent>(Matrix4::Scale(Maths::Vector3(1.0f, 1.0f, 1.0f)));
+	Entity terrianEntity = m_EntityManager->Create("HeightMap");
+    terrianEntity.AddComponent<Maths::Transform>(Matrix4::Translation(Maths::Vector3(-100.0f, -60.0f,-318.0f)));
+    terrianEntity.AddComponent<TextureMatrixComponent>(Matrix4::Scale(Maths::Vector3(1.0f, 1.0f, 1.0f)));
 	Lumos::Ref<Graphics::Mesh> terrain = Lumos::Ref<Graphics::Mesh>(new Terrain());
 
 	auto material = Lumos::CreateRef<Graphics::Material>();
 	material->LoadMaterial("checkerboard", "//Textures/checkerboard.tga");
 
 	terrain->SetMaterial(material);
-    m_Terrain.AddComponent<Graphics::Model>(terrain, Graphics::PrimitiveType::Terrain);
+    terrianEntity.AddComponent<Graphics::Model>(terrain, Graphics::PrimitiveType::Terrain);
 }
