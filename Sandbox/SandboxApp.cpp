@@ -11,7 +11,7 @@ class Game : public Application
 {
     public:
 	explicit Game()
-		: Application("/Sandbox/", "Sandbox")
+		: Application(std::string("/Sandbox/"), std::string("Sandbox"))
 	{
         Application::Get().GetWindow()->SetWindowTitle("Sandbox");
 	}
@@ -24,10 +24,10 @@ class Game : public Application
 	{
 		Application::Init();
         
-        GetSceneManager()->EnqueueScene<Scene3D>("Physics");
-		GetSceneManager()->EnqueueScene<SceneModelViewer>("SceneModelViewer");
-		GetSceneManager()->EnqueueScene<GraphicsScene>("Terrain");
-		GetSceneManager()->EnqueueScene<MaterialTest>("Material");
+        GetSceneManager()->EnqueueScene<Scene3D>(std::string("Physics"));
+		GetSceneManager()->EnqueueScene<SceneModelViewer>(std::string("SceneModelViewer"));
+		GetSceneManager()->EnqueueScene<GraphicsScene>(std::string("Terrain"));
+		GetSceneManager()->EnqueueScene<MaterialTest>(std::string("Material"));
 	}
 };
 

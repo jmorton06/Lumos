@@ -8,9 +8,9 @@ namespace Lumos
 {
     namespace Graphics
     {
-        GLRenderPass::GLRenderPass()
+        GLRenderPass::GLRenderPass(const RenderPassInfo& renderpassCI)
         {
-
+            Init(renderpassCI);
         }
 
         GLRenderPass::~GLRenderPass()
@@ -18,20 +18,15 @@ namespace Lumos
 
         }
 
-        bool GLRenderPass::Init(const RenderpassInfo &renderpassCI)
+        bool GLRenderPass::Init(const RenderPassInfo &renderpassCI)
         {
 			m_Clear = renderpassCI.clear;
+            m_ClearCount = renderpassCI.attachmentCount;
             return false;
         }
 
-        void GLRenderPass::Unload() const
-        {
-
-        }
-
         void GLRenderPass::BeginRenderpass(CommandBuffer *commandBuffer, const Maths::Vector4 &clearColour,
-                                           Framebuffer *frame, SubPassContents contents, uint32_t width,
-                                           uint32_t height) const
+                                           Framebuffer *frame, SubPassContents contents, uint32_t width, uint32_t height, bool beginCommandBuffer) const
         {
             if(frame != nullptr)
             {
@@ -50,7 +45,7 @@ namespace Lumos
 				GLRenderer::ClearInternal(RENDERER_BUFFER_COLOUR | RENDERER_BUFFER_DEPTH | RENDERER_BUFFER_STENCIL);
         }
 
-        void GLRenderPass::EndRenderpass(CommandBuffer *commandBuffer)
+        void GLRenderPass::EndRenderpass(CommandBuffer* commandBuffer, bool endCommandBuffer)
         {
 			GLCall(glBindFramebuffer(GL_FRAMEBUFFER, 0));
         }
@@ -60,9 +55,9 @@ namespace Lumos
 			CreateFunc = CreateFuncGL;
 		}
 
-		RenderPass* GLRenderPass::CreateFuncGL()
+		RenderPass* GLRenderPass::CreateFuncGL(const RenderPassInfo& renderpassCI)
 		{
-			return new GLRenderPass;
+			return new GLRenderPass(renderpassCI);
 		}
     }
 }

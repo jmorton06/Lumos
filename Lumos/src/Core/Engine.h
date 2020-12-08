@@ -14,7 +14,6 @@ namespace Lumos
         Engine();
         ~Engine();
 
-        
         float TargetFrameRate() const { return m_MaxFramesPerSecond; }
         void SetTargetFrameRate(float targetFPS) { m_MaxFramesPerSecond = targetFPS; }
         
@@ -26,10 +25,23 @@ namespace Lumos
 			u32 FramesPerSecond;
 			u32 NumRenderedObjects = 0;
 			u32 NumShadowObjects = 0;
-			float FrameTime = 0.1f;
+			u32 NumDrawCalls = 0;
+			float FrameTime = 0.0f;
 			float UsedGPUMemory = 0.0f;
 			float UsedRam = 0.0f;
+			float TotalGPUMemory = 0.0f;
 		};
+		
+		void ResetStats() 
+		{
+			m_Stats.NumRenderedObjects = 0;
+			m_Stats.NumShadowObjects = 0;
+			m_Stats.FrameTime = 0.0f;
+			m_Stats.UsedGPUMemory = 0.0f;
+			m_Stats.UsedRam = 0.0f;
+			m_Stats.NumDrawCalls = 0;
+			m_Stats.TotalGPUMemory = 0.0f;
+		}
 		
 		Stats& Statistics() { return m_Stats; }
 		

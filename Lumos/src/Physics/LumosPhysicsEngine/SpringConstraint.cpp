@@ -37,6 +37,8 @@ namespace Lumos
 
 	void SpringConstraint::ApplyImpulse()
 	{
+        LUMOS_PROFILE_FUNCTION();
+
 		if(m_pObj1->GetInverseMass() + m_pObj2->GetInverseMass() == 0.0f)
 			return;
 

@@ -6,8 +6,7 @@
 #include "Core/Application.h"
 #include "Scene/SceneManager.h"
 #include "Core/Engine.h"
-#include "Graphics/Layers/LayerStack.h"
-#include "Graphics/RenderManager.h"
+#include "Graphics/Renderers/RenderGraph.h"
 #include "Graphics/GBuffer.h"
 #include "ImGui/ImGuiHelpers.h"
 #include <imgui/imgui.h>
@@ -35,10 +34,10 @@ namespace Lumos
 					ImGui::TreePop();
 				}
 
-				auto layerStack = Application::Get().GetSceneLayers();
-				if(ImGui::TreeNode("Layers"))
+				auto renderGraph = Application::Get().GetRenderGraph();
+				if(ImGui::TreeNode("RenderGraph"))
 				{
-					layerStack->OnImGui();
+                    renderGraph->OnImGui();
 					ImGui::TreePop();
 				}
 
@@ -53,29 +52,29 @@ namespace Lumos
 				{
 					if(ImGui::TreeNode("Colour Texture"))
 					{
-						ImGuiHelpers::Image(Application::Get().GetRenderManager()->GetGBuffer()->GetTexture(Graphics::SCREENTEX_COLOUR), Maths::Vector2(128.0f, 128.0f));
-						ImGuiHelpers::Tooltip(Application::Get().GetRenderManager()->GetGBuffer()->GetTexture(Graphics::SCREENTEX_COLOUR), Maths::Vector2(256.0f, 256.0f));
+						ImGuiHelpers::Image(Application::Get().GetRenderGraph()->GetGBuffer()->GetTexture(Graphics::SCREENTEX_COLOUR), Maths::Vector2(128.0f, 128.0f));
+						ImGuiHelpers::Tooltip(Application::Get().GetRenderGraph()->GetGBuffer()->GetTexture(Graphics::SCREENTEX_COLOUR), Maths::Vector2(256.0f, 256.0f));
 
 						ImGui::TreePop();
 					}
 					if(ImGui::TreeNode("Normal Texture"))
 					{
-						ImGuiHelpers::Image(Application::Get().GetRenderManager()->GetGBuffer()->GetTexture(Graphics::SCREENTEX_NORMALS), Maths::Vector2(128.0f, 128.0f));
-						ImGuiHelpers::Tooltip(Application::Get().GetRenderManager()->GetGBuffer()->GetTexture(Graphics::SCREENTEX_NORMALS), Maths::Vector2(256.0f, 256.0f));
+						ImGuiHelpers::Image(Application::Get().GetRenderGraph()->GetGBuffer()->GetTexture(Graphics::SCREENTEX_NORMALS), Maths::Vector2(128.0f, 128.0f));
+						ImGuiHelpers::Tooltip(Application::Get().GetRenderGraph()->GetGBuffer()->GetTexture(Graphics::SCREENTEX_NORMALS), Maths::Vector2(256.0f, 256.0f));
 
 						ImGui::TreePop();
 					}
 					if(ImGui::TreeNode("PBR Texture"))
 					{
-						ImGuiHelpers::Image(Application::Get().GetRenderManager()->GetGBuffer()->GetTexture(Graphics::SCREENTEX_PBR), Maths::Vector2(128.0f, 128.0f));
-						ImGuiHelpers::Tooltip(Application::Get().GetRenderManager()->GetGBuffer()->GetTexture(Graphics::SCREENTEX_PBR), Maths::Vector2(256.0f, 256.0f));
+						ImGuiHelpers::Image(Application::Get().GetRenderGraph()->GetGBuffer()->GetTexture(Graphics::SCREENTEX_PBR), Maths::Vector2(128.0f, 128.0f));
+						ImGuiHelpers::Tooltip(Application::Get().GetRenderGraph()->GetGBuffer()->GetTexture(Graphics::SCREENTEX_PBR), Maths::Vector2(256.0f, 256.0f));
 
 						ImGui::TreePop();
 					}
 					if(ImGui::TreeNode("Position Texture"))
 					{
-						ImGuiHelpers::Image(Application::Get().GetRenderManager()->GetGBuffer()->GetTexture(Graphics::SCREENTEX_POSITION), Maths::Vector2(128.0f, 128.0f));
-						ImGuiHelpers::Tooltip(Application::Get().GetRenderManager()->GetGBuffer()->GetTexture(Graphics::SCREENTEX_POSITION), Maths::Vector2(256.0f, 256.0f));
+						ImGuiHelpers::Image(Application::Get().GetRenderGraph()->GetGBuffer()->GetTexture(Graphics::SCREENTEX_POSITION), Maths::Vector2(128.0f, 128.0f));
+						ImGuiHelpers::Tooltip(Application::Get().GetRenderGraph()->GetGBuffer()->GetTexture(Graphics::SCREENTEX_POSITION), Maths::Vector2(256.0f, 256.0f));
 
 						ImGui::TreePop();
 					}

@@ -1,6 +1,7 @@
 require 'Scripts/premake-ios'
 require 'Scripts/premake-defines'
 require 'Scripts/premake-common'
+require 'Scripts/premake-vscode/vscode'
 
 root_dir = os.getcwd()
 

@@ -46,8 +46,9 @@ namespace Lumos
 		{
 			DescriptorType type;
 			ShaderType stage;
-			u32 size;
-			u32 count = 1;
+            u32 binding = 0;
+            u32 setID = 0;
+            u32 count = 1;
 		};
 
 		struct DescriptorLayout
@@ -86,14 +87,16 @@ namespace Lumos
 		struct PushConstant
 		{
 			u32 size;
-			PushConstantDataType type;
-			u8* data;
 			ShaderType shaderStage;
-		};
+            u8* data;
+            u32 offset = 0;
+        };
 
 		struct ImageInfo
 		{
-			std::vector<Texture*> texture;
+			Texture** textures;
+            Texture* texture;
+
 			int count = 1;
 			int binding;
 			std::string name;

@@ -13,7 +13,7 @@
 #include "Graphics/GBuffer.h"
 #include "Graphics/Mesh.h"
 #include "Graphics/MeshFactory.h"
-#include "Graphics/RenderManager.h"
+#include "RenderGraph.h"
 #include "Scene/Scene.h"
 #include "Core/Application.h"
 #include "Graphics/Camera/Camera.h"
@@ -47,6 +47,7 @@ namespace Lumos
 
 		void SkyboxRenderer::RenderScene(Scene* scene)
 		{
+			LUMOS_PROFILE_FUNCTION();
 			if(!m_CubeMap)
 				return;
 
@@ -83,7 +84,8 @@ namespace Lumos
 
 		void SkyboxRenderer::Init()
 		{
-			m_Shader = Ref<Graphics::Shader>(Shader::CreateFromFile("Skybox", "/CoreShaders/"));
+			LUMOS_PROFILE_FUNCTION();
+			m_Shader = Application::Get().GetShaderLibrary()->GetResource("/CoreShaders/Skybox.shader");
 			m_Skybox = Graphics::CreateQuad();
 
 			// Vertex shader System uniforms
@@ -103,17 +105,16 @@ namespace Lumos
 				commandBuffer->Init(true);
 			}
 
-			m_RenderPass = Ref<Graphics::RenderPass>(Graphics::RenderPass::Create());
 			AttachmentInfo textureTypes[2] = {
-				{TextureType::COLOUR, TextureFormat::RGBA32},
+				{TextureType::COLOUR, TextureFormat::RGBA8},
 				{TextureType::DEPTH, TextureFormat::DEPTH}};
 
-			Graphics::RenderpassInfo renderpassCI{};
+			Graphics::RenderPassInfo renderpassCI{};
 			renderpassCI.attachmentCount = 2;
 			renderpassCI.textureType = textureTypes;
 			renderpassCI.clear = false;
 
-			m_RenderPass->Init(renderpassCI);
+            m_RenderPass = Graphics::RenderPass::Get(renderpassCI);
 
 			CreateGraphicsPipeline();
 			UpdateUniformBuffer();
@@ -124,14 +125,13 @@ namespace Lumos
 
 		void SkyboxRenderer::Begin()
 		{
-			m_CommandBuffers[m_CurrentBufferID]->BeginRecording();
-			m_CommandBuffers[m_CurrentBufferID]->UpdateViewport(m_ScreenBufferWidth, m_ScreenBufferHeight);
-
+			LUMOS_PROFILE_FUNCTION();
 			m_RenderPass->BeginRenderpass(m_CommandBuffers[m_CurrentBufferID].get(), Maths::Vector4(0.0f), m_Framebuffers[m_CurrentBufferID].get(), Graphics::INLINE, m_ScreenBufferWidth, m_ScreenBufferHeight);
 		}
 
 		void SkyboxRenderer::BeginScene(Scene* scene, Camera* overrideCamera, Maths::Transform* overrideCameraTransform)
 		{
+			LUMOS_PROFILE_FUNCTION();
 			auto& registry = scene->GetRegistry();
 
 			auto view = registry.view<Graphics::Environment>();
@@ -177,8 +177,8 @@ namespace Lumos
 
 		void SkyboxRenderer::End()
 		{
+			LUMOS_PROFILE_FUNCTION();
 			m_RenderPass->EndRenderpass(m_CommandBuffers[m_CurrentBufferID].get());
-			m_CommandBuffers[m_CurrentBufferID]->EndRecording();
 
 			if(m_RenderTexture)
 				m_CommandBuffers[m_CurrentBufferID]->Execute(true);
@@ -186,15 +186,18 @@ namespace Lumos
 
 		void SkyboxRenderer::SetSystemUniforms(Shader* shader) const
 		{
+			LUMOS_PROFILE_FUNCTION();
 			m_UniformBuffer->SetData(sizeof(UniformBufferObject), *&m_VSSystemUniformBuffer);
 		}
 
 		void SkyboxRenderer::OnResize(u32 width, u32 height)
 		{
+			LUMOS_PROFILE_FUNCTION();
 			m_Framebuffers.clear();
 
 			SetScreenBufferSize(width, height);
 
+            m_CubeMap = nullptr;
 			UpdateUniformBuffer();
 			CreateFramebuffers();
 
@@ -202,48 +205,29 @@ namespace Lumos
 
 		void SkyboxRenderer::CreateGraphicsPipeline()
 		{
-			std::vector<Graphics::DescriptorPoolInfo> poolInfo =
-				{
-					{Graphics::DescriptorType::UNIFORM_BUFFER, 1},
-					{Graphics::DescriptorType::IMAGE_SAMPLER, 1}};
+			LUMOS_PROFILE_FUNCTION();
+            Graphics::BufferLayout vertexBufferLayout;
+            vertexBufferLayout.Push<Maths::Vector3>("position");
+            vertexBufferLayout.Push<Maths::Vector4>("colour");
+            vertexBufferLayout.Push<Maths::Vector2>("uv");
+            vertexBufferLayout.Push<Maths::Vector3>("normal");
+            vertexBufferLayout.Push<Maths::Vector3>("tangent");
 
-			std::vector<Graphics::DescriptorLayoutInfo> layoutInfo =
-				{
-					{Graphics::DescriptorType::UNIFORM_BUFFER, Graphics::ShaderType::VERTEX, 0},
-					{Graphics::DescriptorType::IMAGE_SAMPLER, Graphics::ShaderType::FRAGMENT, 1}};
+			Graphics::PipelineInfo pipelineCreateInfo{};
+			pipelineCreateInfo.shader = m_Shader;
+			pipelineCreateInfo.renderpass = m_RenderPass;
+            pipelineCreateInfo.vertexBufferLayout = vertexBufferLayout;
+			pipelineCreateInfo.polygonMode = Graphics::PolygonMode::FILL;
+			pipelineCreateInfo.cullMode = Graphics::CullMode::NONE;
+			pipelineCreateInfo.transparencyEnabled = false;
+			pipelineCreateInfo.depthBiasEnabled = false;
 
-			auto attributeDescriptions = Vertex::getAttributeDescriptions();
-
-			std::vector<Graphics::DescriptorLayout> descriptorLayouts;
-
-			Graphics::DescriptorLayout sceneDescriptorLayout{};
-			sceneDescriptorLayout.count = static_cast<u32>(layoutInfo.size());
-			sceneDescriptorLayout.layoutInfo = layoutInfo.data();
-
-			descriptorLayouts.push_back(sceneDescriptorLayout);
-
-			Graphics::PipelineInfo pipelineCI{};
-			pipelineCI.pipelineName = "SkyRenderer";
-			pipelineCI.shader = m_Shader.get();
-			pipelineCI.renderpass = m_RenderPass.get();
-			pipelineCI.numVertexLayout = static_cast<u32>(attributeDescriptions.size());
-			pipelineCI.descriptorLayouts = descriptorLayouts;
-			pipelineCI.vertexLayout = attributeDescriptions.data();
-			pipelineCI.numLayoutBindings = static_cast<u32>(poolInfo.size());
-			pipelineCI.typeCounts = poolInfo.data();
-			pipelineCI.strideSize = sizeof(Vertex);
-			pipelineCI.numColorAttachments = 1;
-			pipelineCI.polygonMode = Graphics::PolygonMode::Fill;
-			pipelineCI.cullMode = Graphics::CullMode::NONE;
-			pipelineCI.transparencyEnabled = false;
-			pipelineCI.depthBiasEnabled = false;
-			pipelineCI.maxObjects = 1;
-
-			m_Pipeline = Ref<Graphics::Pipeline>(Graphics::Pipeline::Create(pipelineCI));
+			m_Pipeline = Graphics::Pipeline::Get(pipelineCreateInfo);
 		}
 
 		void SkyboxRenderer::UpdateUniformBuffer()
 		{
+			LUMOS_PROFILE_FUNCTION();
 			if(m_UniformBuffer == nullptr)
 			{
 				m_UniformBuffer = Graphics::UniformBuffer::Create();
@@ -269,7 +253,7 @@ namespace Lumos
 			if(m_CubeMap)
 			{
 				Graphics::ImageInfo imageInfo = {};
-				imageInfo.texture = {m_CubeMap};
+				imageInfo.texture = m_CubeMap;
 				imageInfo.name = "u_CubeMap";
 				imageInfo.binding = 1;
 				imageInfo.type = TextureType::CUBE;
@@ -283,12 +267,14 @@ namespace Lumos
 
 		void SkyboxRenderer::SetCubeMap(Texture* cubeMap)
 		{
+			LUMOS_PROFILE_FUNCTION();
 			m_CubeMap = cubeMap;
 			UpdateUniformBuffer();
 		}
 
 		void SkyboxRenderer::SetRenderTarget(Texture* texture, bool rebuildFramebuffer)
 		{
+			LUMOS_PROFILE_FUNCTION();
 			m_RenderTexture = texture;
 
 			if(rebuildFramebuffer)
@@ -301,6 +287,7 @@ namespace Lumos
 
 		void SkyboxRenderer::CreateFramebuffers()
 		{
+			LUMOS_PROFILE_FUNCTION();
 			TextureType attachmentTypes[2];
 			attachmentTypes[0] = TextureType::COLOUR;
 			attachmentTypes[1] = TextureType::DEPTH;
@@ -313,14 +300,14 @@ namespace Lumos
 			bufferInfo.renderPass = m_RenderPass.get();
 			bufferInfo.attachmentTypes = attachmentTypes;
 
-			attachments[1] = dynamic_cast<Texture*>(Application::Get().GetRenderManager()->GetGBuffer()->GetDepthTexture());
+			attachments[1] = dynamic_cast<Texture*>(Application::Get().GetRenderGraph()->GetGBuffer()->GetDepthTexture());
 
 			if(m_RenderTexture)
 			{
 				attachments[0] = m_RenderTexture;
 				bufferInfo.attachments = attachments;
 				bufferInfo.screenFBO = false;
-				m_Framebuffers.emplace_back(Framebuffer::Create(bufferInfo));
+				m_Framebuffers.emplace_back(Framebuffer::Get(bufferInfo));
 			}
 			else
 			{
@@ -330,13 +317,14 @@ namespace Lumos
 					attachments[0] = Renderer::GetSwapchain()->GetImage(i);
 					bufferInfo.attachments = attachments;
 
-					m_Framebuffers.emplace_back(Framebuffer::Create(bufferInfo));
+					m_Framebuffers.emplace_back(Framebuffer::Get(bufferInfo));
 				}
 			}
 		}
 
 		void SkyboxRenderer::OnImGui()
 		{
+			LUMOS_PROFILE_FUNCTION();
 			ImGui::TextUnformatted("Skybox Renderer");
 			if(ImGui::TreeNode("CubeMap"))
 			{

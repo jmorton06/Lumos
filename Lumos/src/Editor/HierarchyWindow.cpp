@@ -33,6 +33,7 @@ namespace Lumos
 
 	void HierarchyWindow::DrawNode(entt::entity node, entt::registry& registry)
 	{
+		LUMOS_PROFILE_FUNCTION();
 		bool show = true;
 
 		if(!registry.valid(node))
@@ -54,7 +55,7 @@ namespace Lumos
 			auto hierarchyComponent = registry.try_get<Hierarchy>(node);
 			bool noChildren = true;
 
-			if(hierarchyComponent != nullptr && hierarchyComponent->first() != entt::null)
+			if(hierarchyComponent != nullptr && hierarchyComponent->First() != entt::null)
 				noChildren = false;
 
 			ImGuiTreeNodeFlags nodeFlags = ((m_Editor->GetSelected() == node) ? ImGuiTreeNodeFlags_Selected : 0);
@@ -65,7 +66,7 @@ namespace Lumos
 			{
 				nodeFlags |= ImGuiTreeNodeFlags_Leaf;
 			}
-
+            
 			auto activeComponent = registry.try_get<ActiveComponent>(node);
 			bool active = activeComponent ? activeComponent->active : true;
 
@@ -225,7 +226,7 @@ namespace Lumos
 				auto hierarchyComponent = registry.try_get<Hierarchy>(entity);
 				if(hierarchyComponent != nullptr)
 				{
-					acceptable = entity != node && (!IsParentOfEntity(entity, node, registry)) && (hierarchyComponent->parent() != node);
+					acceptable = entity != node && (!IsParentOfEntity(entity, node, registry)) && (hierarchyComponent->Parent() != node);
 				}
 				else
 					acceptable = entity != node;
@@ -303,23 +304,51 @@ namespace Lumos
 				return;
 			}
 
+            const ImColor TreeLineColor = ImColor(128, 128, 128, 128);
+            const float SmallOffsetX = 6.0f;
+            ImDrawList* drawList = ImGui::GetWindowDrawList();
+
+            ImVec2 verticalLineStart = ImGui::GetCursorScreenPos();
+            verticalLineStart.x += SmallOffsetX; //to nicely line up with the arrow symbol
+            ImVec2 verticalLineEnd = verticalLineStart;
+            
 			if(!noChildren)
 			{
-				entt::entity child = hierarchyComponent->first();
+				entt::entity child = hierarchyComponent->First();
 				while(child != entt::null && registry.valid(child))
 				{
-					ImGui::Indent(8.0f);
+                    float HorizontalTreeLineSize = 16.0f; //chosen arbitrarily
+                    auto currentPos = ImGui::GetCursorScreenPos();
+					ImGui::Indent(10.0f);
+                    
+                    auto childHerarchyComponent = registry.try_get<Hierarchy>(child);
+
+                    if(childHerarchyComponent)
+                    {
+                        entt::entity firstChild = childHerarchyComponent->First();
+                        if(firstChild != entt::null && registry.valid(firstChild))
+                        {
+                            HorizontalTreeLineSize *= 0.5f;
+                        }
+                    }
 					DrawNode(child, registry);
-					ImGui::Unindent(8.0f);
+					ImGui::Unindent(10.0f);
+                    
+                    const ImRect childRect = ImRect(currentPos, currentPos + ImVec2(0.0f, ImGui::GetFontSize() + ImGui::GetStyle().FramePadding.y));
+                    
+                    const float midpoint = (childRect.Min.y + childRect.Max.y) / 2.0f;
+                    drawList->AddLine(ImVec2(verticalLineStart.x, midpoint), ImVec2(verticalLineStart.x + HorizontalTreeLineSize, midpoint), TreeLineColor);
+                    verticalLineEnd.y = midpoint;
                 
                     if(registry.valid(child))
                     {
                         auto hierarchyComponent = registry.try_get<Hierarchy>(child);
-                        if(hierarchyComponent)
-                            child = hierarchyComponent->next();
+                        child = hierarchyComponent ? hierarchyComponent->Next() : entt::null;
                     }
 				}
 			}
+            
+            drawList->AddLine(verticalLineStart, verticalLineEnd, TreeLineColor);
 
 			ImGui::TreePop();
 		}
@@ -327,14 +356,15 @@ namespace Lumos
 
 	void HierarchyWindow::DestroyEntity(entt::entity entity, entt::registry& registry)
 	{
+		LUMOS_PROFILE_FUNCTION();
 		auto hierarchyComponent = registry.try_get<Hierarchy>(entity);
 		if(hierarchyComponent)
 		{
-			entt::entity child = hierarchyComponent->first();
+			entt::entity child = hierarchyComponent->First();
 			while(child != entt::null)
 			{
 				auto hierarchyComponent = registry.try_get<Hierarchy>(child);
-				auto next = hierarchyComponent ? hierarchyComponent->next() : entt::null;
+				auto next = hierarchyComponent ? hierarchyComponent->Next() : entt::null;
 				DestroyEntity(child, registry);
 				child = next;
 			}
@@ -344,10 +374,11 @@ namespace Lumos
 
 	bool HierarchyWindow::IsParentOfEntity(entt::entity entity, entt::entity child, entt::registry& registry)
 	{
+		LUMOS_PROFILE_FUNCTION();
 		auto nodeHierarchyComponent = registry.try_get<Hierarchy>(child);
 		if(nodeHierarchyComponent)
 		{
-			auto parent = nodeHierarchyComponent->parent();
+			auto parent = nodeHierarchyComponent->Parent();
 			while(parent != entt::null)
 			{
 				if(parent == entity)
@@ -357,7 +388,7 @@ namespace Lumos
 				else
 				{
 					nodeHierarchyComponent = registry.try_get<Hierarchy>(parent);
-					parent = nodeHierarchyComponent ? nodeHierarchyComponent->parent() : entt::null;
+					parent = nodeHierarchyComponent ? nodeHierarchyComponent->Parent() : entt::null;
 				}
 			}
 		}
@@ -367,6 +398,7 @@ namespace Lumos
 
 	void HierarchyWindow::OnImGui()
 	{
+		LUMOS_PROFILE_FUNCTION();
 		auto flags = ImGuiWindowFlags_NoCollapse;
 		m_CurrentPrevious = entt::null;
 		m_SelectUp = false;
@@ -382,7 +414,6 @@ namespace Lumos
 			
 			if(scene->GetHasCppClass())
 			{
-			ImGui::Separator();
 				ImGui::Text("C++ scene : %s", StringUtilities::Demangle(typeid(*scene).name()).c_str());
 				ImGui::Separator();
 			}
@@ -436,7 +467,7 @@ namespace Lumos
 					{
 						auto hierarchyComponent = registry.try_get<Hierarchy>(entity);
 
-						if(!hierarchyComponent || hierarchyComponent->parent() == entt::null)
+						if(!hierarchyComponent || hierarchyComponent->Parent() == entt::null)
 							DrawNode(entity, registry);
 					}
 				});
@@ -463,7 +494,7 @@ namespace Lumos
 					auto hierarchyComponent = registry.try_get<Hierarchy>(entity);
 					if(hierarchyComponent)
 					{
-						acceptable = hierarchyComponent->parent() != entt::null;
+						acceptable = hierarchyComponent->Parent() != entt::null;
 					}
 
 					if(acceptable && ImGui::BeginDragDropTargetCustom(bb, ImGui::GetID("Panel Hierarchy")))

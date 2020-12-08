@@ -183,6 +183,14 @@ namespace Lumos::Maths
                 && Lumos::Maths::Equals(b_, rhs.b_, eps)
                 && Lumos::Maths::Equals(a_, rhs.a_, eps);
         }
+        
+        static Colour Hex( uint32_t hexValue )
+        {
+            uint8_t red = ( hexValue >> 16 ) & 255;
+            uint8_t green = ( hexValue >> 8 ) & 255;
+            uint8_t blue = hexValue & 255;
+            return Colour( red, green, blue );
+        }
 
         /// Return as string.
 

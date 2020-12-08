@@ -10,7 +10,10 @@
 #include "ImGui/ImGuiHelpers.h"
 
 #include <imgui/imgui.h>
+DISABLE_WARNING_PUSH
+DISABLE_WARNING_CONVERSION_TO_SMALLER_TYPE
 #include <entt/entt.hpp>
+DISABLE_WARNING_POP
 
 namespace Lumos
 {
@@ -64,11 +67,14 @@ namespace Lumos
 
 		std::unordered_map<size_t, bool> m_ShowComponentGizmoMap;
 
-		bool m_ShowStats = true;
+		bool m_ShowStats = false;
         Ref<Graphics::Texture2D> m_GameViewTexture = nullptr;
 		Scene* m_CurrentScene = nullptr;
 		float m_AspectRatio;
 		u32 m_Width, m_Height;
-
+        
+        bool m_FreeAspect = true;
+        float m_FixedAspect = 1.0f;
+        bool m_HalfRes = false;
 	};
 }

@@ -2,17 +2,14 @@
 #include "ImGui/ImGuiHelpers.h"
 #include "Graphics/API/Texture.h"
 #include "Graphics/API/GraphicsContext.h"
+#include "Core/OS/OS.h"
 
-#include <imgui/imgui.h>
 #include <imgui/imgui_internal.h>
-
-static ImVec4 operator+(const ImVec4& a, const ImVec4& b)
-{
-	return ImVec4(a.x + b.x, a.y + b.y, a.z + b.z, a.w + b.w);
-}
 
 namespace Lumos
 {
+    Maths::Vector4 SelectedColour = Maths::Vector4(0.28f, 0.56f, 0.9f, 1.0f);
+
 	bool ImGuiHelpers::Property(const std::string& name, bool& value)
 	{
 		bool updated = false;
@@ -132,27 +129,30 @@ namespace Lumos
 	}
 
 	void ImGuiHelpers::Tooltip(const std::string& text)
-	{
-		if(ImGui::IsItemHovered())
-		{
-			ImGui::BeginTooltip();
-			ImGui::TextUnformatted(text.c_str());
-			ImGui::EndTooltip();
-		}
+    {
+        ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(5, 5));
+        Tooltip(text.c_str());
+        ImGui::PopStyleVar();
 	}
 
 	void ImGuiHelpers::Tooltip(const char* text)
 	{
+        ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(5, 5));
+
 		if(ImGui::IsItemHovered())
 		{
 			ImGui::BeginTooltip();
 			ImGui::TextUnformatted(text);
 			ImGui::EndTooltip();
 		}
+        
+        ImGui::PopStyleVar();
 	}
 
 	void ImGuiHelpers::Tooltip(Graphics::Texture2D* texture, const Maths::Vector2& size)
 	{
+        ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(5, 5));
+
 		if(ImGui::IsItemHovered())
 		{
 			ImGui::BeginTooltip();
@@ -160,10 +160,14 @@ namespace Lumos
 			ImGui::Image(texture ? texture->GetHandle() : nullptr, ImVec2(size.x, size.y), ImVec2(0.0f, flipImage ? 1.0f : 0.0f), ImVec2(1.0f, flipImage ? 0.0f : 1.0f));
 			ImGui::EndTooltip();
 		}
+        
+        ImGui::PopStyleVar();
 	}
 
 	void ImGuiHelpers::Tooltip(Graphics::Texture2D* texture, const Maths::Vector2& size, const std::string& text)
 	{
+        ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(5, 5));
+
 		if(ImGui::IsItemHovered())
 		{
 			ImGui::BeginTooltip();
@@ -172,6 +176,8 @@ namespace Lumos
 			ImGui::TextUnformatted(text.c_str());
 			ImGui::EndTooltip();
 		}
+        
+        ImGui::PopStyleVar();
 	}
 
 	void ImGuiHelpers::Image(Graphics::Texture2D* texture, const Maths::Vector2& size)
@@ -293,7 +299,8 @@ namespace Lumos
 
 		ImVec4 Titlebar = ImVec4(30.0f / max, 37.0f / max, 50.0f / max, 1.0f);
 		ImVec4 TabActive = ImVec4(48.0f / max, 59.0f / max, 81.0f / max, 1.0f);
-		ImVec4 windowBackground = ImVec4(36.0f / max, 44.0f / max, 60.0f / max, 1.0f);
+		ImVec4 windowBackground = ImVec4(28.0f / max, 40.0f / max, 64.0f / max, 1.0f);
+        TabActive = windowBackground;
 		ImVec4 TabUnactive = ImVec4(35.0f / max, 43.0f / max, 59.0f / max, 1.0f);
 
 		ImVec4* colours = ImGui::GetStyle().Colors;
@@ -355,18 +362,16 @@ namespace Lumos
 		case Lumos::ImGuiHelpers::Dark:
 			ImGui::StyleColorsDark();
 
-#define red ImVec4(1.0f, 0.0f, 0.0f, 1.0f)
-
 			colours[ImGuiCol_Text] = ImVec4(0.95f, 0.96f, 0.98f, 1.00f);
 			colours[ImGuiCol_TextDisabled] = ImVec4(0.36f, 0.42f, 0.47f, 1.00f);
 
-			colours[ImGuiCol_WindowBg] = windowBackground; // TabActive;//windowBackground;
-			colours[ImGuiCol_ChildBg] = windowBackground; //TabActive;//windowBackground;
+			colours[ImGuiCol_WindowBg] = TabActive;
+			colours[ImGuiCol_ChildBg] = TabActive;
 
 			colours[ImGuiCol_PopupBg] = ImVec4(0.08f, 0.08f, 0.08f, 0.94f);
 			colours[ImGuiCol_Border] = ImVec4(0.08f, 0.10f, 0.12f, 1.00f);
-			colours[ImGuiCol_BorderShadow] = ImVec4(0.00f, 0.00f, 0.00f, 0.00f);
-			colours[ImGuiCol_FrameBg] = ImVec4(0.20f, 0.25f, 0.29f, 1.00f);
+            colours[ImGuiCol_BorderShadow] = ImVec4(0.00f, 0.00f, 0.00f, 0.00f);
+            colours[ImGuiCol_FrameBg] = ImVec4(61.0f/255.0f, 83.0f/255.0f, 103.0f/255.0f, 1.00f);
 			colours[ImGuiCol_FrameBgHovered] = ImVec4(0.12f, 0.20f, 0.28f, 1.00f);
 			colours[ImGuiCol_FrameBgActive] = ImVec4(0.09f, 0.12f, 0.14f, 1.00f);
 
@@ -376,9 +381,10 @@ namespace Lumos
 			colours[ImGuiCol_MenuBarBg] = Titlebar;
 
 			colours[ImGuiCol_ScrollbarBg] = ImVec4(0.02f, 0.02f, 0.02f, 0.39f);
-			colours[ImGuiCol_ScrollbarGrab] = ImVec4(0.20f, 0.25f, 0.29f, 1.00f);
-			colours[ImGuiCol_ScrollbarGrabHovered] = ImVec4(0.18f, 0.22f, 0.25f, 1.00f);
-			colours[ImGuiCol_ScrollbarGrabActive] = ImVec4(0.09f, 0.21f, 0.31f, 1.00f);
+            colours[ImGuiCol_ScrollbarGrab] = ImVec4(0.6f, 0.6f, 0.6f, 1.00f);
+            colours[ImGuiCol_ScrollbarGrabActive] = ImVec4(0.7f, 0.7f, 0.7f, 1.00f);
+            colours[ImGuiCol_ScrollbarGrabHovered] = ImVec4(0.8f, 0.8f, 0.8f, 1.00f);
+                
 			colours[ImGuiCol_CheckMark] = ImVec4(0.28f, 0.56f, 1.00f, 1.00f);
 			colours[ImGuiCol_SliderGrab] = ImVec4(0.28f, 0.56f, 1.00f, 1.00f);
 			colours[ImGuiCol_SliderGrabActive] = ImVec4(0.37f, 0.61f, 1.00f, 1.00f);
@@ -389,6 +395,7 @@ namespace Lumos
 			colours[ImGuiCol_Separator] = ImVec4(0.20f, 0.25f, 0.29f, 1.00f);
 			colours[ImGuiCol_SeparatorHovered] = ImVec4(0.10f, 0.40f, 0.75f, 0.78f);
 			colours[ImGuiCol_SeparatorActive] = ImVec4(0.10f, 0.40f, 0.75f, 1.00f);
+                
 			colours[ImGuiCol_ResizeGrip] = ImVec4(0.26f, 0.59f, 0.98f, 0.25f);
 			colours[ImGuiCol_ResizeGripHovered] = ImVec4(0.26f, 0.59f, 0.98f, 0.67f);
 			colours[ImGuiCol_ResizeGripActive] = ImVec4(0.26f, 0.59f, 0.98f, 0.95f);
@@ -556,6 +563,8 @@ namespace Lumos
 			colours[ImGuiCol_PlotHistogramHovered] = MED(1.00f);
 			colours[ImGuiCol_TextSelectedBg] = MED(0.43f);
 			colours[ImGuiCol_Border] = ImVec4(0.539f, 0.479f, 0.255f, 0.162f);
+            colours[ImGuiCol_TabHovered] = colours[ImGuiCol_ButtonHovered];
+
 			break;
 		case Blue:
 			colours[ImGuiCol_Text] = ImVec4(color_for_text.x, color_for_text.y, color_for_text.z, 1.00f);
@@ -611,10 +620,10 @@ namespace Lumos
 			colours[ImGuiCol_FrameBg] = ImVec4(0.20f, 0.22f, 0.27f, 1.00f);
 			colours[ImGuiCol_FrameBgHovered] = ImVec4(0.92f, 0.18f, 0.29f, 0.78f);
 			colours[ImGuiCol_FrameBgActive] = ImVec4(0.92f, 0.18f, 0.29f, 1.00f);
-			colours[ImGuiCol_TitleBg] = ImVec4(0.20f, 0.22f, 0.27f, 1.00f);
+			colours[ImGuiCol_TitleBg] = ImVec4(0.92f, 0.18f, 0.29f, 0.86f);
 			colours[ImGuiCol_TitleBgCollapsed] = ImVec4(0.20f, 0.22f, 0.27f, 0.75f);
 			colours[ImGuiCol_TitleBgActive] = ImVec4(0.92f, 0.18f, 0.29f, 1.00f);
-			colours[ImGuiCol_MenuBarBg] = ImVec4(0.20f, 0.22f, 0.27f, 0.47f);
+			colours[ImGuiCol_MenuBarBg] = ImVec4(0.92f, 0.18f, 0.29f, 0.86f);
 			colours[ImGuiCol_ScrollbarBg] = ImVec4(0.20f, 0.22f, 0.27f, 1.00f);
 			colours[ImGuiCol_ScrollbarGrab] = ImVec4(0.09f, 0.15f, 0.16f, 1.00f);
 			colours[ImGuiCol_ScrollbarGrabHovered] = ImVec4(0.92f, 0.18f, 0.29f, 0.78f);
@@ -645,5 +654,134 @@ namespace Lumos
 		colours[ImGuiCol_Separator] = colours[ImGuiCol_MenuBarBg];
 		colours[ImGuiCol_SeparatorActive] = colours[ImGuiCol_Separator];
 		colours[ImGuiCol_SeparatorHovered] = colours[ImGuiCol_Separator];
+        
+        //colours[ImGuiCol_WindowBg] = colours[ImGuiCol_TabActive];
+        colours[ImGuiCol_Tab] = colours[ImGuiCol_WindowBg];
+        colours[ImGuiCol_TabUnfocused] = colours[ImGuiCol_WindowBg];;
+        colours[ImGuiCol_TabUnfocusedActive] = colours[ImGuiCol_WindowBg];
+        colours[ImGuiCol_TabActive] = colours[ImGuiCol_WindowBg];
+        colours[ImGuiCol_ChildBg] = colours[ImGuiCol_TabActive];
+        colours[ImGuiCol_ScrollbarBg] = colours[ImGuiCol_TabActive];
+        
+        colours[ImGuiCol_TitleBgActive] = colours[ImGuiCol_TitleBg];
+        colours[ImGuiCol_TitleBgCollapsed] = colours[ImGuiCol_TitleBg];
+        colours[ImGuiCol_MenuBarBg] = colours[ImGuiCol_TitleBg];
+        colours[ImGuiCol_Separator] = colours[ImGuiCol_TitleBg];
+        
+        colours[ImGuiCol_Border] = ImVec4(0.08f, 0.10f, 0.12f, 0.00f);
+        colours[ImGuiCol_BorderShadow] = ImVec4(0.00f, 0.00f, 0.00f, 0.00f);
+        
+        OS::Instance()->SetTitleBarColour(colours[ImGuiCol_MenuBarBg]);
 	}
+
+    Maths::Vector4 ImGuiHelpers::GetSelectedColour()
+    {
+        return SelectedColour;
+    }
+}
+
+namespace ImGui
+{
+bool DragFloatN_Colored(const char* label, float* v, int components, float v_speed, float v_min, float v_max, const char* display_format, float power)
+{
+    ImGuiWindow* window = GetCurrentWindow();
+    if (window->SkipItems)
+        return false;
+
+    ImGuiContext& g = *GImGui;
+    bool value_changed = false;
+    BeginGroup();
+    PushID(label);
+    PushMultiItemsWidths(components, CalcItemWidth());
+    for (int i = 0; i < components; i++)
+    {
+        static const ImU32 colors[] = {
+            0xBB0000FF, // red
+            0xBB00FF00, // green
+            0xBBFF0000, // blue
+            0xBBFFFFFF, // white for alpha?
+        };
+
+        PushID(i);
+        value_changed |= DragFloat("##v", &v[i], v_speed, v_min, v_max, display_format, power);
+
+        const ImVec2 min = GetItemRectMin();
+        const ImVec2 max = GetItemRectMax();
+        const float spacing = g.Style.FrameRounding;
+        const float halfSpacing = spacing / 2;
+
+        // This is the main change
+        window->DrawList->AddLine({ min.x + spacing, max.y - halfSpacing }, { max.x - spacing, max.y - halfSpacing }, colors[i], 4);
+
+        SameLine(0, g.Style.ItemInnerSpacing.x);
+        PopID();
+        PopItemWidth();
+    }
+    PopID();
+
+    TextUnformatted(label, FindRenderedTextEnd(label));
+    EndGroup();
+
+    return value_changed;
+}
+
+void PushMultiItemsWidthsAndLabels(const char* labels[], int components, float w_full)
+{
+    ImGuiWindow* window = GetCurrentWindow();
+    const ImGuiStyle& style = GImGui->Style;
+    if(w_full <= 0.0f)
+        w_full =  GetContentRegionAvail().x;
+
+    const float w_item_one =
+        ImMax(1.0f, (w_full - (style.ItemInnerSpacing.x * 2.0f) * (components - 1)) / (float)components) -
+        style.ItemInnerSpacing.x;
+    for(int i = 0; i < components; i++)
+        window->DC.ItemWidthStack.push_back(w_item_one - CalcTextSize(labels[i]).x);
+    window->DC.ItemWidth = window->DC.ItemWidthStack.back();
+}
+
+bool DragFloatNEx(const char* labels[], float* v, int components, float v_speed, float v_min, float v_max,
+                  const char* display_format, float power)
+{
+    ImGuiWindow* window = GetCurrentWindow();
+    if(window->SkipItems)
+        return false;
+
+    ImGuiContext& g = *GImGui;
+    bool value_changed = false;
+    BeginGroup();
+
+    PushMultiItemsWidthsAndLabels(labels, components, 0.0f);
+    for(int i = 0; i < components; i++)
+    {
+        PushID(labels[i]);
+        PushID(i);
+        TextUnformatted(labels[i], FindRenderedTextEnd(labels[i]));
+        SameLine();
+        value_changed |= DragFloat("", &v[i], v_speed, v_min, v_max, display_format, power);
+        SameLine(0, g.Style.ItemInnerSpacing.x);
+        PopID();
+        PopID();
+        PopItemWidth();
+    }
+
+    EndGroup();
+
+    return value_changed;
+}
+
+bool DragFloat3Coloured(const char* label, float* v, float v_speed, float v_min, float v_max)
+{
+    return DragFloatN_Colored(label,v,3,v_speed, v_min, v_max);
+}
+
+bool DragFloat4Coloured(const char* label, float* v, float v_speed, float v_min, float v_max)
+{
+    return DragFloatN_Colored(label,v,4,v_speed, v_min, v_max);
+}
+
+bool DragFloat2Coloured(const char* label, float* v, float v_speed, float v_min, float v_max)
+{
+    return DragFloatN_Colored(label,v,2,v_speed, v_min, v_max);
+}
 }

@@ -56,10 +56,11 @@ namespace Lumos
 			TextureFilter minFilter;
 			TextureFilter magFilter;
 			TextureWrap wrap;
+            bool srgb = false;
 
 			TextureParameters()
 			{
-				format = TextureFormat::RGBA;
+				format = TextureFormat::RGBA8;
 				minFilter = TextureFilter::NEAREST;
 				magFilter = TextureFilter::NEAREST;
 				wrap = TextureWrap::REPEAT;
@@ -74,7 +75,7 @@ namespace Lumos
 			}
 
 			TextureParameters(TextureFilter minFilter, TextureFilter magFilter)
-				: format(TextureFormat::RGBA)
+				: format(TextureFormat::RGBA8)
 				, minFilter(minFilter)
 				, magFilter(magFilter)
 				, wrap(TextureWrap::CLAMP)
@@ -82,7 +83,7 @@ namespace Lumos
 			}
 
 			TextureParameters(TextureFilter minFilter, TextureFilter magFilter, TextureWrap wrap)
-				: format(TextureFormat::RGBA)
+				: format(TextureFormat::RGBA8)
 				, minFilter(minFilter)
 				, magFilter(magFilter)
 				, wrap(wrap)
@@ -90,7 +91,7 @@ namespace Lumos
 			}
 
 			TextureParameters(TextureWrap wrap)
-				: format(TextureFormat::RGBA)
+				: format(TextureFormat::RGBA8)
 				, minFilter(TextureFilter::LINEAR)
 				, magFilter(TextureFilter::LINEAR)
 				, wrap(wrap)
@@ -185,7 +186,7 @@ namespace Lumos
 			static Texture2D* CreateFromSource(u32 width, u32 height, void* data, TextureParameters parameters = TextureParameters(), TextureLoadOptions loadOptions = TextureLoadOptions());
 			static Texture2D* CreateFromFile(const std::string& name, const std::string& filepath, TextureParameters parameters = TextureParameters(), TextureLoadOptions loadOptions = TextureLoadOptions());
 
-			virtual void BuildTexture(TextureFormat internalformat, u32 width, u32 height, bool depth, bool samplerShadow) = 0;
+			virtual void BuildTexture(TextureFormat internalformat, u32 width, u32 height, bool srgb = false, bool depth = false, bool samplerShadow = false) = 0;
 
 		protected:
 			static Texture2D* (*CreateFunc)();
@@ -206,13 +207,13 @@ namespace Lumos
 			static TextureCube* Create(u32 size);
 			static TextureCube* CreateFromFile(const std::string& filepath);
 			static TextureCube* CreateFromFiles(const std::string* files);
-			static TextureCube* CreateFromVCross(const std::string* files, u32 mips, InputFormat = InputFormat::VERTICAL_CROSS);
+			static TextureCube* CreateFromVCross(const std::string* files, u32 mips, TextureParameters params, TextureLoadOptions loadOptions, InputFormat = InputFormat::VERTICAL_CROSS);
 
 		protected:
 			static TextureCube* (*CreateFunc)(u32);
 			static TextureCube* (*CreateFromFileFunc)(const std::string&);
 			static TextureCube* (*CreateFromFilesFunc)(const std::string*);
-			static TextureCube* (*CreateFromVCrossFunc)(const std::string*, u32, InputFormat);
+			static TextureCube* (*CreateFromVCrossFunc)(const std::string*, u32, TextureParameters, TextureLoadOptions, InputFormat);
 		};
 
 		class LUMOS_EXPORT TextureDepth : public Texture

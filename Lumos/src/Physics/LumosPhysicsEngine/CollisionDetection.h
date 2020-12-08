@@ -19,7 +19,7 @@ namespace Lumos
 	class LUMOS_EXPORT CollisionDetection : public ThreadSafeSingleton<CollisionDetection>
 	{
 		friend class TSingleton<CollisionDetection>;
-		typedef bool (CollisionDetection::*CollisionCheckFunc)(const RigidBody3D* obj1, const RigidBody3D* obj2, const CollisionShape* shape1, const CollisionShape* shape2, CollisionData* out_coldata) const;
+		typedef bool (CollisionDetection::*CollisionCheckFunc)( RigidBody3D* obj1, RigidBody3D* obj2, CollisionShape* shape1, CollisionShape* shape2, CollisionData* out_coldata);
 
 		CollisionCheckFunc* m_CollisionCheckFunctions;
 
@@ -31,12 +31,13 @@ namespace Lumos
 				delete[] m_CollisionCheckFunctions;
 		}
 
-		_FORCE_INLINE_ bool CheckCollision(const RigidBody3D* obj1, const RigidBody3D* obj2, const CollisionShape* shape1, const CollisionShape* shape2, CollisionData* out_coldata = nullptr) const
+		_FORCE_INLINE_ bool CheckCollision(RigidBody3D* obj1, RigidBody3D* obj2, CollisionShape* shape1, CollisionShape* shape2, CollisionData* out_coldata = nullptr)
 		{
+            LUMOS_PROFILE_FUNCTION();
 			return CALL_MEMBER_FN(*this, m_CollisionCheckFunctions[shape1->GetType() | shape2->GetType()])(obj1, obj2, shape1, shape2, out_coldata);
 		}
 
-		bool BuildCollisionManifold(const RigidBody3D* obj1, const RigidBody3D* obj2, const CollisionShape* shape1, const CollisionShape* shape2, const CollisionData& coldata, Manifold* out_manifold) const;
+		bool BuildCollisionManifold(RigidBody3D* obj1, RigidBody3D* obj2, CollisionShape* shape1, CollisionShape* shape2,   CollisionData& coldata, Manifold* out_manifold);
 
 		static _FORCE_INLINE_ bool CheckSphereOverlap(const Maths::Vector3& pos1, float radius1, const Maths::Vector3& pos2, float radius2)
 		{
@@ -125,14 +126,14 @@ namespace Lumos
 		}
 
 	protected:
-		bool CheckPolyhedronCollision(const RigidBody3D* obj1, const RigidBody3D* obj2, const CollisionShape* shape1, const CollisionShape* shape2, CollisionData* out_coldata = nullptr) const;
-		bool CheckPolyhedronSphereCollision(const RigidBody3D* obj1, const RigidBody3D* obj2, const CollisionShape* shape1, const CollisionShape* shape2, CollisionData* out_coldata = nullptr) const;
-		bool CheckSphereCollision(const RigidBody3D* obj1, const RigidBody3D* obj2, const CollisionShape* shape1, const CollisionShape* shape2, CollisionData* out_coldata = nullptr) const;
-		bool InvalidCheckCollision(const RigidBody3D* obj1, const RigidBody3D* obj2, const CollisionShape* shape1, const CollisionShape* shape2, CollisionData* out_coldata = nullptr) const;
-		static bool CheckCollisionAxis(const Maths::Vector3& axis, const RigidBody3D* obj1, const RigidBody3D* obj2, const CollisionShape* shape1, const CollisionShape* shape2, CollisionData* out_coldata);
+		bool CheckPolyhedronCollision(  RigidBody3D* obj1,   RigidBody3D* obj2, CollisionShape* shape1, CollisionShape* shape2, CollisionData* out_coldata = nullptr);
+		bool CheckPolyhedronSphereCollision(  RigidBody3D* obj1,   RigidBody3D* obj2, CollisionShape* shape1, CollisionShape* shape2, CollisionData* out_coldata = nullptr);
+		bool CheckSphereCollision(  RigidBody3D* obj1,   RigidBody3D* obj2, CollisionShape* shape1, CollisionShape* shape2, CollisionData* out_coldata = nullptr);
+		bool InvalidCheckCollision(  RigidBody3D* obj1,   RigidBody3D* obj2, CollisionShape* shape1, CollisionShape* shape2, CollisionData* out_coldata = nullptr);
+		static bool CheckCollisionAxis(const Maths::Vector3& axis,   RigidBody3D* obj1,   RigidBody3D* obj2, CollisionShape* shape1, CollisionShape* shape2, CollisionData* out_coldata);
 
 		static Maths::Vector3 GetClosestPointOnEdges(const Maths::Vector3& target, const std::vector<CollisionEdge>& edges);
 		Maths::Vector3 PlaneEdgeIntersection(const Maths::Plane& plane, const Maths::Vector3& start, const Maths::Vector3& end) const;
-		void SutherlandHodgesonClipping(const std::list<Maths::Vector3>& input_polygon, int num_clip_planes, const Maths::Plane* clip_planes, std::list<Maths::Vector3>* out_polygon, bool removePoints) const;
+		void SutherlandHodgesonClipping(Maths::Vector3* input_polygon, int input_polygon_count, int num_clip_planes, const Maths::Plane* clip_planes, Maths::Vector3* output_polygon, int& output_polygon_count, bool removePoints) const;
 	};
 }

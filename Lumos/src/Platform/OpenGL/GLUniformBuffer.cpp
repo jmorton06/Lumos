@@ -10,16 +10,19 @@ namespace Lumos
 	{
 		GLUniformBuffer::GLUniformBuffer()
 		{
+			LUMOS_PROFILE_FUNCTION();
 			glGenBuffers(1, &m_Handle);
 		}
 
 		GLUniformBuffer::~GLUniformBuffer()
 		{
+			LUMOS_PROFILE_FUNCTION();
 			GLCall(glDeleteBuffers(1, &m_Handle));
 		}
 
 		void GLUniformBuffer::Init(uint32_t size, const void* data)
 		{
+			LUMOS_PROFILE_FUNCTION();
 			m_Data = (u8*)data;
 			m_Size = size;
 			glBindBuffer(GL_UNIFORM_BUFFER, m_Handle);
@@ -28,30 +31,59 @@ namespace Lumos
 
 		void GLUniformBuffer::SetData(uint32_t size, const void* data)
 		{
+			LUMOS_PROFILE_FUNCTION();
 			m_Data = (u8*)data;
-			m_Size = size;
-
+			GLvoid* p = nullptr;
+			
 			glBindBuffer(GL_UNIFORM_BUFFER, m_Handle);
-			GLvoid* p = glMapBuffer(GL_UNIFORM_BUFFER, GL_WRITE_ONLY);
-			memcpy(p, m_Data, m_Size);
-			glUnmapBuffer(GL_UNIFORM_BUFFER);
+			
+			if(size != m_Size)
+			{
+				LUMOS_PROFILE_SCOPE("glMapBuffer");
+				p = glMapBuffer(GL_UNIFORM_BUFFER, GL_WRITE_ONLY);
+				m_Size = size;
+				
+				memcpy(p, m_Data, m_Size);
+				glUnmapBuffer(GL_UNIFORM_BUFFER);
+			}
+			else
+			{
+				LUMOS_PROFILE_SCOPE("glBufferSubData");
+				glBufferSubData(GL_UNIFORM_BUFFER, 0, size, m_Data );
+			}
 		}
 
 		void GLUniformBuffer::SetDynamicData(uint32_t size, uint32_t typeSize, const void* data)
 		{
+			LUMOS_PROFILE_FUNCTION();
 			m_Data = (u8*)data;
 			m_Size = size;
 			m_Dynamic = true;
 			m_DynamicTypeSize = typeSize;
-
+			
+			GLvoid* p = nullptr;
+			
 			glBindBuffer(GL_UNIFORM_BUFFER, m_Handle);
-			GLvoid* p = glMapBuffer(GL_UNIFORM_BUFFER, GL_WRITE_ONLY);
-			memcpy(p, m_Data, m_Size);
-			glUnmapBuffer(GL_UNIFORM_BUFFER);
+			
+			if(size != m_Size)
+			{
+				LUMOS_PROFILE_SCOPE("glMapBuffer");
+				p = glMapBuffer(GL_UNIFORM_BUFFER, GL_WRITE_ONLY);
+				m_Size = size;
+				
+				memcpy(p, m_Data, m_Size);
+				glUnmapBuffer(GL_UNIFORM_BUFFER);
+			}
+			else
+			{
+				LUMOS_PROFILE_SCOPE("glBufferSubData");
+				glBufferSubData(GL_UNIFORM_BUFFER, 0, m_Size, m_Data );
+			}
 		}
 
 		void GLUniformBuffer::Bind(u32 slot, GLShader* shader, std::string& name)
 		{
+			LUMOS_PROFILE_FUNCTION();
 			GLCall(glBindBufferBase(GL_UNIFORM_BUFFER, slot, m_Handle));
 			shader->BindUniformBuffer(this, slot, name);
 			//u32 location = glGetUniformBlockIndex(shader->GetHandle(), name.c_str());

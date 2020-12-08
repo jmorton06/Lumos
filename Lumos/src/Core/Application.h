@@ -3,6 +3,7 @@
 #include "Scene/SystemManager.h"
 #include "Core/OS/Window.h"
 #include "Scene/SceneManager.h"
+#include "Utilities/AssetManager.h"
 
 #include <cereal/types/vector.hpp>
 #include <cereal/cereal.hpp>
@@ -17,17 +18,16 @@ namespace Lumos
 	class AudioManager;
 	class SystemManager;
 	class Editor;
-	class LayerStack;
-	class Layer;
 	class ISystem;
 	class Scene;
 	class Event;
 	class WindowCloseEvent;
 	class WindowResizeEvent;
+    class ImGuiManager;
 
 	namespace Graphics
 	{
-		class RenderManager;
+		class RenderGraph;
 		enum class RenderAPI : u32;
 	}
 
@@ -75,26 +75,18 @@ namespace Lumos
 		void OnImGui();
 		void OnNewScene(Scene* scene);
 		void OnExitScene();
-		void PushLayer(Layer* layer);
-		void PushOverLay(Layer* overlay);
-		void ClearLayers();
 		void OnSceneViewSizeUpdated(u32 width, u32 height);
 
 		virtual void Init();
-
-        LayerStack* GetSceneLayers() const
-        {
-            return m_LayerStack;
-        }
 
 		SceneManager* GetSceneManager() const
 		{
 			return m_SceneManager.get();
 		}
     
-		Graphics::RenderManager* GetRenderManager() const
+		Graphics::RenderGraph* GetRenderGraph() const
 		{
-			return m_RenderManager.get();
+			return m_RenderGraph.get();
 		}
     
 		Window* GetWindow() const
@@ -140,6 +132,8 @@ namespace Lumos
 		}
     
 		Maths::Vector2 GetWindowSize() const;
+        
+        Ref<ShaderLibrary>& GetShaderLibrary() { return m_ShaderLibrary; }
 
 		static Application& Get()
 		{
@@ -192,7 +186,7 @@ namespace Lumos
 			void save(Archive& archive) const
 			
 		{
-			 int projectVersion = 4;
+            int projectVersion = 5;
 			
 			archive(cereal::make_nvp("Project Version", projectVersion));
 			//Version 1
@@ -218,6 +212,8 @@ namespace Lumos
 			archive(cereal::make_nvp("Scenes", newPaths));
             //Version 3
             archive(cereal::make_nvp("SceneIndex", m_SceneManager->GetCurrentSceneIndex()));
+            //Version 4
+            archive(cereal::make_nvp("Borderless", Borderless));
 
 		}
 		
@@ -255,12 +251,15 @@ namespace Lumos
                 archive(cereal::make_nvp("SceneIndex", sceneIndex));
                 m_SceneManager->SwitchScene(sceneIndex);
             }
+            if(projectVersion > 4)
+            {
+                archive(cereal::make_nvp("Borderless", Borderless));
+            }
+
 		}
 					
 
 	private:
-		void PushLayerInternal(Layer* layer, bool overlay, bool sceneAdded);
-
 		bool OnWindowClose(WindowCloseEvent& e);
 
 		float m_UpdateTimer;
@@ -270,7 +269,7 @@ namespace Lumos
 		u32 Width, Height;
 		bool Fullscreen;
 		bool VSync;
-		bool Borderless;
+		bool Borderless = false;
 		bool ShowConsole = true;
 		std::string Title;
 		int RenderAPI;
@@ -290,9 +289,9 @@ namespace Lumos
 		UniqueRef<Window> m_Window;
 		UniqueRef<SceneManager> m_SceneManager;
 		UniqueRef<SystemManager> m_SystemManager;
-		UniqueRef<Graphics::RenderManager> m_RenderManager;
-
-		LayerStack* m_LayerStack = nullptr;
+		UniqueRef<Graphics::RenderGraph> m_RenderGraph;
+        
+        Ref<ShaderLibrary> m_ShaderLibrary;
 
 		AppState m_CurrentState = AppState::Loading;
 		EditorState m_EditorState = EditorState::Preview;
@@ -300,7 +299,7 @@ namespace Lumos
 
 		static Application* s_Instance;
 
-		Layer* m_ImGuiLayer = nullptr;
+        ImGuiManager* m_ImGuiManager = nullptr;
 
 #ifdef LUMOS_EDITOR
 		Editor* m_Editor = nullptr;

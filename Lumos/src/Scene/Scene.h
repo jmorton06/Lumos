@@ -9,16 +9,18 @@
 #include "Events/ApplicationEvent.h"
 
 #include <sol/forward.hpp>
+
+DISABLE_WARNING_PUSH
+DISABLE_WARNING_CONVERSION_TO_SMALLER_TYPE
 #include <entt/entity/registry.hpp>
+DISABLE_WARNING_POP
 
 namespace Lumos
 {
 	class TimeStep;
 	class Font;
 	class Event;
-	class Layer;
 	class Camera;
-	class LayerStack;
 	class EntityManager;
 	class Entity;
 
@@ -93,13 +95,6 @@ namespace Lumos
 
 		entt::registry& GetRegistry();
 
-		LayerStack* GetLayers() const
-		{
-			return m_LayerStack;
-		}
-
-		void PushLayer(Layer* layer, bool overlay = false);
-    
         void UpdateSceneGraph();
 
         void DuplicateEntity(Entity entity);
@@ -147,7 +142,6 @@ namespace Lumos
         
 		SceneGraph m_SceneGraph;
 
-		LayerStack* m_LayerStack = nullptr;
 		bool m_HasCppClass = true;
 
 	private:

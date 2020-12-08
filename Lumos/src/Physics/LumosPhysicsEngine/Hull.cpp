@@ -135,6 +135,7 @@ namespace Lumos
 
 	void Hull::GetMinMaxVerticesInAxis(const Maths::Vector3& local_axis, int* out_min_vert, int* out_max_vert)
 	{
+        LUMOS_PROFILE_FUNCTION();
 		int minVertex = 0, maxVertex = 0;
 
 		float minCorrelation = FLT_MAX, maxCorrelation = -FLT_MAX;

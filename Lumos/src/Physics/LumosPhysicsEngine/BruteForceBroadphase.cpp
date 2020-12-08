@@ -14,15 +14,15 @@ namespace Lumos
 	{
 	}
 
-	void BruteForceBroadphase::FindPotentialCollisionPairs(std::vector<Ref<RigidBody3D>>& objects,
+	void BruteForceBroadphase::FindPotentialCollisionPairs(Ref<RigidBody3D>* objects, u32 objectCount,
 		std::vector<CollisionPair>& collisionPairs)
 	{
-		if(objects.empty())
+		if(objectCount == 0)
 			return;
 
-		for(size_t i = 0; i < objects.size() - 1; ++i)
+		for(size_t i = 0; i < objectCount - 1; ++i)
 		{
-			for(size_t j = i + 1; j < objects.size(); ++j)
+			for(size_t j = i + 1; j < objectCount; ++j)
 			{
 				RigidBody3D* obj1 = objects[i].get();
 				RigidBody3D* obj2 = objects[j].get();

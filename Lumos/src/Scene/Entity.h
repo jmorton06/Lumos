@@ -3,7 +3,11 @@
 #include "Scene/Scene.h"
 #include "Scene/SceneGraph.h"
 #include "Core/Profiler.h"
+
+DISABLE_WARNING_PUSH
+DISABLE_WARNING_CONVERSION_TO_SMALLER_TYPE
 #include <entt/entt.hpp>
+DISABLE_WARNING_POP
 
 namespace Lumos
 {
@@ -102,7 +106,7 @@ namespace Lumos
 			auto hierarchyComponent = TryGetComponent<Hierarchy>();
 			if(hierarchyComponent != nullptr)
 			{
-				acceptable = entity.m_EntityHandle != m_EntityHandle && (!entity.IsParent(*this)) && (hierarchyComponent->parent() != m_EntityHandle);
+				acceptable = entity.m_EntityHandle != m_EntityHandle && (!entity.IsParent(*this)) && (hierarchyComponent->Parent() != m_EntityHandle);
 			}
 			else
 				acceptable = entity.m_EntityHandle != m_EntityHandle;
@@ -123,7 +127,7 @@ namespace Lumos
 			LUMOS_PROFILE_FUNCTION();
 			auto hierarchyComp = TryGetComponent<Hierarchy>();
 			if(hierarchyComp)
-				return Entity(hierarchyComp->parent(), m_Scene);
+                return Entity(hierarchyComp->Parent(), m_Scene);
 			else
 				return Entity(entt::null, nullptr);
 			
@@ -136,13 +140,13 @@ namespace Lumos
 			auto hierarchyComponent = TryGetComponent<Hierarchy>();
 			if(hierarchyComponent)
 			{
-				entt::entity child = hierarchyComponent->first();
+				entt::entity child = hierarchyComponent->First();
 				while(child != entt::null && m_Scene->GetRegistry().valid(child))
 				{
 					children.emplace_back(child, m_Scene);
 					hierarchyComponent = m_Scene->GetRegistry().try_get<Hierarchy>(child);
 					if(hierarchyComponent)
-						child = hierarchyComponent->next();
+						child = hierarchyComponent->Next();
 				}
 			}
 				
@@ -155,7 +159,7 @@ namespace Lumos
 			auto nodeHierarchyComponent = m_Scene->GetRegistry().try_get<Hierarchy>(m_EntityHandle);
 			if(nodeHierarchyComponent)
 			{
-				auto parent = nodeHierarchyComponent->parent();
+				auto parent = nodeHierarchyComponent->Parent();
 				while(parent != entt::null)
 				{
 					if(parent == potentialParent.m_EntityHandle)
@@ -165,13 +169,18 @@ namespace Lumos
 					else
 					{
 						nodeHierarchyComponent = m_Scene->GetRegistry().try_get<Hierarchy>(parent);
-						parent = nodeHierarchyComponent ? nodeHierarchyComponent->parent() : entt::null;
+						parent = nodeHierarchyComponent ? nodeHierarchyComponent->Parent() : entt::null;
 					}
 				}
 			}
 
 			return false;
 		}
+        
+        operator entt::entity() const
+        {
+            return m_EntityHandle;
+        }
 
 		operator u32() const
 		{

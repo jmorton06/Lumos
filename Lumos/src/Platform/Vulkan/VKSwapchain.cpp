@@ -20,19 +20,27 @@ namespace Lumos
 		{
 			for (uint32_t i = 0; i < m_SwapChainBuffers.size(); i++)
 			{
+                vkDestroySemaphore(VKDevice::Get().GetDevice(), m_ImageAquiredSemaphores[i], nullptr);
+
 				delete m_SwapChainBuffers[i];
 			}
+            if (m_Surface != VK_NULL_HANDLE)
+            {
+                vkDestroySurfaceKHR(VKContext::Get()->GetVKInstance(), m_Surface, nullptr);
+            }
 			vkDestroySwapchainKHR(VKDevice::Get().GetDevice(), m_SwapChain, VK_NULL_HANDLE);
 		}
     
         void VKSwapchain::Init(bool vsync, Window* windowHandle)
         {
+			LUMOS_PROFILE_FUNCTION();
             m_Surface = CreatePlatformSurface(VKContext::Get()->GetVKInstance(), windowHandle);
             Init(vsync);
         }
 
 		bool VKSwapchain::Init(bool vsync)
 		{
+			LUMOS_PROFILE_FUNCTION();
             FindImageFormatAndColorSpace();
             
             if(!m_Surface)
@@ -125,6 +133,14 @@ namespace Lumos
 				VKTexture2D* swapChainBuffer = new VKTexture2D(pSwapChainImages[i], imageView);
 
 				m_SwapChainBuffers.push_back(swapChainBuffer);
+                
+                VkSemaphoreCreateInfo semaphoreInfo = {};
+                semaphoreInfo.sType = VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO;
+                semaphoreInfo.pNext = nullptr;
+
+                VkSemaphore semaphore;
+                VK_CHECK_RESULT(vkCreateSemaphore(VKDevice::Get().GetDevice(), &semaphoreInfo, nullptr, &semaphore));
+                m_ImageAquiredSemaphores.push_back(semaphore);
 			}
 
 			delete[] pSwapChainImages;
@@ -135,11 +151,13 @@ namespace Lumos
 
         VkResult VKSwapchain::AcquireNextImage(VkSemaphore signalSemaphore)
 		{
-			return vkAcquireNextImageKHR(VKDevice::Get().GetDevice(), m_SwapChain, UINT64_MAX, signalSemaphore, VK_NULL_HANDLE, &m_CurrentBuffer);
+			LUMOS_PROFILE_FUNCTION();
+			return vkAcquireNextImageKHR(VKDevice::Get().GetDevice(), m_SwapChain, UINT64_MAX, signalSemaphore/* m_ImageAquiredSemaphores[m_CurrentBuffer]*/, VK_NULL_HANDLE, &m_CurrentBuffer);
 		}
 
         void VKSwapchain::Present(VkSemaphore waitSemaphore)
 		{
+			LUMOS_PROFILE_FUNCTION();
             VkPresentInfoKHR present;
 			present.sType = VK_STRUCTURE_TYPE_PRESENT_INFO_KHR;
 			present.pNext = VK_NULL_HANDLE;
@@ -149,7 +167,20 @@ namespace Lumos
 			present.waitSemaphoreCount = 1;
 			present.pWaitSemaphores = &waitSemaphore;
 			present.pResults = VK_NULL_HANDLE;
-			VK_CHECK_RESULT(vkQueuePresentKHR(VKDevice::Get().GetPresentQueue(), &present));
+			auto error = vkQueuePresentKHR(VKDevice::Get().GetPresentQueue(), &present);
+            
+            if (error == VK_ERROR_OUT_OF_DATE_KHR)
+            {
+                LUMOS_LOG_ERROR("[Vulkan] Swapchain out of data");
+            }
+            else if (error == VK_SUBOPTIMAL_KHR)
+            {
+                LUMOS_LOG_ERROR("[Vulkan] Swapchain suboptimal");
+            }
+            else
+            {
+                VK_CHECK_RESULT(error);
+            }
 		}
 
         void VKSwapchain::MakeDefault()
@@ -165,6 +196,7 @@ namespace Lumos
 	
     void Graphics::VKSwapchain::FindImageFormatAndColorSpace()
 	{
+		LUMOS_PROFILE_FUNCTION();
 		VkPhysicalDevice physicalDevice = VKDevice::Get().GetPhysicalDevice()->GetVulkanPhysicalDevice();
 		
 		// Get list of supported surface formats

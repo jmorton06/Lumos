@@ -19,33 +19,13 @@ namespace Lumos
 		bool IGNORE_LINES = false;
 		static ShaderType s_Type = ShaderType::UNKNOWN;
 
-		bool GLShader::TryCompile(const std::string& source, std::string& error)
+		GLShader::GLShader(const std::string& filePath, bool loadSPV)
+			: m_LoadSPV(loadSPV)
 		{
-			std::map<ShaderType, std::string>* sources = new std::map<ShaderType, std::string>();
-			GLShader::PreProcess(source, sources);
+            m_Name = StringUtilities::GetFileName(filePath);
+            m_Path = StringUtilities::GetFileLocation(filePath);
 
-			GLShaderErrorInfo info;
-			if(!GLShader::Compile(sources, info))
-			{
-				error = info.message[info.shader];
-				LUMOS_LOG_ERROR(error);
-				return false;
-			}
-			return true;
-		}
-
-		bool GLShader::TryCompileFromFile(const std::string& filepath, std::string& error)
-		{
-			const std::string source = VFS::Get()->ReadTextFile(filepath + ".glsl");
-			return TryCompile(source, error);
-		}
-
-		GLShader::GLShader(const std::string& name, const std::string& source, bool loadSPV)
-			: m_Name(name)
-			, m_Path(source)
-			, m_LoadSPV(loadSPV)
-		{
-			m_Source = VFS::Get()->ReadTextFile(source + name + ".shader");
+			m_Source = VFS::Get()->ReadTextFile(filePath);
 
 			Init();
 		}
@@ -80,6 +60,7 @@ namespace Lumos
 
 		void GLShader::Init()
 		{
+			LUMOS_PROFILE_FUNCTION();
 			std::map<ShaderType, std::string>* sources = new std::map<ShaderType, std::string>();
 			PreProcess(m_Source, sources);
 
@@ -188,11 +169,13 @@ namespace Lumos
 
 		void GLShader::Shutdown() const
 		{
+			LUMOS_PROFILE_FUNCTION();
 			GLCall(glDeleteProgram(m_Handle));
 		}
 
 		bool GLShader::CreateLocations()
 		{
+			LUMOS_PROFILE_FUNCTION();
 			for(auto& compiler : m_pShaderCompilers)
 			{
 				const spirv_cross::ShaderResources shaderResources = compiler->get_shader_resources();
@@ -233,6 +216,7 @@ namespace Lumos
 
 		bool GLShader::SetUniformLocation(const char* szName)
 		{
+			LUMOS_PROFILE_FUNCTION();
 			GLuint name = HashValue(szName);
 
 			if(m_uniformBlockLocations.find(name) == m_uniformBlockLocations.end())
@@ -253,6 +237,7 @@ namespace Lumos
 
 		void GLShader::PreProcess(const std::string& source, std::map<ShaderType, std::string>* sources)
 		{
+			LUMOS_PROFILE_FUNCTION();
 			s_Type = ShaderType::UNKNOWN;
 			std::vector<std::string> lines = StringUtilities::GetLines(source);
 			ReadShaderFile(lines, sources);
@@ -260,6 +245,7 @@ namespace Lumos
 
 		void GLShader::ReadShaderFile(std::vector<std::string> lines, std::map<ShaderType, std::string>* shaders)
 		{
+			LUMOS_PROFILE_FUNCTION();
 			for(u32 i = 0; i < lines.size(); i++)
 			{
 				std::string str = std::string(lines[i]);
@@ -350,13 +336,14 @@ namespace Lumos
 				else if(s_Type != ShaderType::UNKNOWN)
 				{
 					shaders->at(s_Type).append(lines[i]);
-					//shaders->at(s_Type).append("\n");
+					///Shaders->at(s_Type).append("\n");
 				}
 			}
 		}
 
 		u32 GLShader::Compile(std::map<ShaderType, std::string>* sources, GLShaderErrorInfo& info)
 		{
+			LUMOS_PROFILE_FUNCTION();
 			GLCall(u32 program = glCreateProgram());
 
 			std::vector<GLuint> shaders;
@@ -460,6 +447,7 @@ namespace Lumos
 
 		GLuint GLShader::CompileShader(ShaderType type, std::string source, u32 program, GLShaderErrorInfo& info)
 		{
+			LUMOS_PROFILE_FUNCTION();
 			const char* cstr = source.c_str();
 
 			GLCall(GLuint shader = glCreateShader(TypeToGL(type)));
@@ -526,6 +514,7 @@ namespace Lumos
 
 		void GLShader::ParseUniform(const std::string& statement, ShaderType type)
 		{
+			LUMOS_PROFILE_FUNCTION();
 			std::vector<std::string> tokens  =StringUtilities::Tokenize(statement);
 			u32 index = 0;
 
@@ -619,7 +608,7 @@ namespace Lumos
 					bool isStruct = false;
 					if(t == GLShaderUniformDeclaration::Type::NONE)
 					{
-						//ShaderStruct* s = FindStruct(typeString);
+						///Shaderstruct* s = FindStruct(typeString);
 						//LUMOS_ASSERT(s, "");
 						//declaration = new GLShaderUniformDeclaration(s, name, count);
 
@@ -718,6 +707,7 @@ namespace Lumos
 
 		void GLShader::ResolveUniforms()
 		{
+			LUMOS_PROFILE_FUNCTION();
 			Bind();
 
 			for(auto shader : m_UniformBuffers)
@@ -833,11 +823,13 @@ namespace Lumos
 
 		bool GLShader::IsSystemUniform(ShaderUniformDeclaration* uniform)
 		{
+			LUMOS_PROFILE_FUNCTION();
 			return StringUtilities::StartsWith(uniform->GetName(), "sys_");
 		}
 
 		GLint GLShader::GetUniformLocation(const std::string& name) const
 		{
+			LUMOS_PROFILE_FUNCTION();
 			GLCall(const GLint result = glGetUniformLocation(m_Handle, name.c_str()));
 			//if (result == -1)
 			//	LUMOS_LOG_WARN("{0} : could not find uniform {1} in shader!",m_Name,name);
@@ -847,6 +839,7 @@ namespace Lumos
 
 		void GLShader::SetUniformStruct(GLShaderUniformDeclaration* uniform, u8* data, i32 offset) const
 		{
+			LUMOS_PROFILE_FUNCTION();
 			const ShaderStruct& s = uniform->GetShaderUniformStruct();
 			const auto& fields = s.GetFields();
 			for(u32 k = 0; k < fields.size(); k++)
@@ -859,6 +852,7 @@ namespace Lumos
 
 		ShaderUniformDeclaration* GLShader::FindUniformDeclaration(const std::string& name, const ShaderUniformBufferDeclaration* buffer)
 		{
+			LUMOS_PROFILE_FUNCTION();
 			const ShaderUniformList& uniforms = buffer->GetUniformDeclarations();
 			for(u32 i = 0; i < uniforms.size(); i++)
 			{
@@ -870,6 +864,7 @@ namespace Lumos
 
 		ShaderUniformDeclaration* GLShader::FindUniformDeclaration(const std::string& name)
 		{
+			LUMOS_PROFILE_FUNCTION();
 			ShaderUniformDeclaration* result = nullptr;
 
 			for(auto shader : m_UniformBuffers)
@@ -894,11 +889,13 @@ namespace Lumos
 
 		void GLShader::SetUserUniformBuffer(ShaderType type, u8* data, u32 size)
 		{
+			LUMOS_PROFILE_FUNCTION();
 			ResolveAndSetUniforms(m_UserUniformBuffers[type], data, size);
 		}
 
 		ShaderStruct* GLShader::FindStruct(const std::string& name)
 		{
+			LUMOS_PROFILE_FUNCTION();
 			for(ShaderStruct* s : m_Structs)
 			{
 				if(s->GetName() == name)
@@ -909,6 +906,7 @@ namespace Lumos
 
 		void GLShader::ResolveAndSetUniforms(ShaderUniformBufferDeclaration* buffer, u8* data, u32 size) const
 		{
+			LUMOS_PROFILE_FUNCTION();
 			const ShaderUniformList& uniforms = buffer->GetUniformDeclarations();
 			for(u32 i = 0; i < uniforms.size(); i++)
 			{
@@ -920,6 +918,7 @@ namespace Lumos
 
 		void GLShader::ResolveAndSetUniform(GLShaderUniformDeclaration* uniform, u8* data, u32 size, u32 count) const
 		{
+			LUMOS_PROFILE_FUNCTION();
 			if(uniform->GetLocation() == -1)
 			{
 				//LUMOS_LOG_ERROR( "Couldnt Find Uniform In Shader: " + uniform->GetName());
@@ -969,6 +968,7 @@ namespace Lumos
 
 		void GLShader::SetUniform(const std::string& name, u8* data)
 		{
+			LUMOS_PROFILE_FUNCTION();
 			ShaderUniformDeclaration* uniform = FindUniformDeclaration(name);
 			if(!uniform)
 			{
@@ -980,6 +980,7 @@ namespace Lumos
 
 		void GLShader::ResolveAndSetUniformField(const GLShaderUniformDeclaration& field, u8* data, i32 offset, u32 count) const
 		{
+			LUMOS_PROFILE_FUNCTION();
 			//LUMOS_ASSERT(field.GetLocation() < 0, "Couldnt Find Uniform In Shader: " + field.GetName());
 
 			switch(field.GetType())
@@ -1018,46 +1019,55 @@ namespace Lumos
 
 		void GLShader::SetUniform1f(const std::string& name, float value) const
 		{
+			LUMOS_PROFILE_FUNCTION();
 			SetUniform1f(GetUniformLocation(name), value);
 		}
 
 		void GLShader::SetUniform1fv(const std::string& name, float* value, i32 count) const
 		{
+			LUMOS_PROFILE_FUNCTION();
 			SetUniform1fv(GetUniformLocation(name), value, count);
 		}
 
 		void GLShader::SetUniform1i(const std::string& name, i32 value) const
 		{
+			LUMOS_PROFILE_FUNCTION();
 			SetUniform1i(GetUniformLocation(name), value);
 		}
 
 		void GLShader::SetUniform1ui(const std::string& name, u32 value) const
 		{
+			LUMOS_PROFILE_FUNCTION();
 			SetUniform1ui(GetUniformLocation(name), value);
 		}
 
 		void GLShader::SetUniform1iv(const std::string& name, i32* value, i32 count) const
 		{
+			LUMOS_PROFILE_FUNCTION();
 			SetUniform1iv(GetUniformLocation(name), value, count);
 		}
 
 		void GLShader::SetUniform2f(const std::string& name, const Maths::Vector2& vector) const
 		{
+			LUMOS_PROFILE_FUNCTION();
 			SetUniform2f(GetUniformLocation(name), vector);
 		}
 
 		void GLShader::SetUniform3f(const std::string& name, const Maths::Vector3& vector) const
 		{
+			LUMOS_PROFILE_FUNCTION();
 			SetUniform3f(GetUniformLocation(name), vector);
 		}
 
 		void GLShader::SetUniform4f(const std::string& name, const Maths::Vector4& vector) const
 		{
+			LUMOS_PROFILE_FUNCTION();
 			SetUniform4f(GetUniformLocation(name), vector);
 		}
 
 		void GLShader::SetUniformMat4(const std::string& name, const Maths::Matrix4& matrix) const
 		{
+			LUMOS_PROFILE_FUNCTION();
 			SetUniformMat4(GetUniformLocation(name), matrix);
 		}
 
@@ -1116,27 +1126,11 @@ namespace Lumos
 			GLCall(glUniformMatrix4fv(location, count, GL_FALSE /*GLTRUE*/, Maths::ValuePointer(matrix)));
 		}
 
-		Shader* GLShader::CreateFuncGL(const std::string& name, const std::string& filePath)
+		Shader* GLShader::CreateFuncGL(const std::string& filePath)
 		{
-			//            if(StringUtilities::GetFilePathExtension(filePath) == "shader")
-			//            {
-			//                const std::string source = Lumos::VFS::Get()->ReadTextFile(filePath);
-			//
-			//                GLShader* result = new GLShader(name, source, true);
-			//                result->m_Path = filePath;
-			//                return result;
-			//            }
-			//            else
-			//            {
-			//                const std::string source = Lumos::VFS::Get()->ReadTextFile(filePath + name + ".glsl");
-			//                GLShader* result = new GLShader(name, source);
-			//                result->m_Path = filePath;
-			//                return result;
-			//            }
-
 			std::string physicalPath;
 			Lumos::VFS::Get()->ResolvePhysicalPath(filePath, physicalPath, true);
-			GLShader* result = new GLShader(name, physicalPath);
+			GLShader* result = new GLShader(physicalPath);
 			result->m_Path = filePath;
 			return result;
 		}

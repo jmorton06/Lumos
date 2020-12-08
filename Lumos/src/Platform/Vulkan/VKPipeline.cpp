@@ -6,15 +6,17 @@
 #include "VKShader.h"
 #include "VKTools.h"
 #include "Graphics/API/DescriptorSet.h"
-
+#include "VKInitialisers.h"
 
 namespace Lumos
 {
+    static constexpr uint32_t MAX_DESCRIPTOR_SET_COUNT = 1500;
+
 	namespace Graphics
 	{
-		VKPipeline::VKPipeline(const PipelineInfo& pipelineCI)
+		VKPipeline::VKPipeline(const PipelineInfo& pipelineCreateInfo)
 		{
-			Init(pipelineCI);
+			Init(pipelineCreateInfo);
 		}
 
 		VKPipeline::~VKPipeline()
@@ -24,79 +26,95 @@ namespace Lumos
             delete m_DescriptorSet;
 		}
 
-		bool VKPipeline::Init(const PipelineInfo& pipelineCI)
+		bool VKPipeline::Init(const PipelineInfo& pipelineCreateInfo)
 		{
-			m_PipelineName = pipelineCI.pipelineName;
-			m_Shader	   = pipelineCI.shader;
+			m_Shader = pipelineCreateInfo.shader;
 
-			// Vertex layout
-			m_VertexBindingDescription.binding = 0;
-			m_VertexBindingDescription.inputRate = VK_VERTEX_INPUT_RATE_VERTEX;
-			m_VertexBindingDescription.stride = static_cast<uint32_t>(pipelineCI.strideSize);
+            std::vector<std::vector<Graphics::DescriptorLayoutInfo>> layouts;
+            
+            for (auto& descriptorLayout : pipelineCreateInfo.shader.As<VKShader>()->GetDescriptorLayout())
+            {
+                if(layouts.size() < descriptorLayout.setID + 1)
+                {
+                    layouts.emplace_back();
+                }
+                
+                layouts[descriptorLayout.setID].push_back(descriptorLayout);
+            }
+            
+            for (auto& l : layouts)
+            {
+                std::vector<VkDescriptorSetLayoutBinding> setLayoutBindings;
+                setLayoutBindings.reserve(l.size());
+                
+                for (u32 i = 0; i < l.size(); i++)
+                {
+                    auto& info = l[i];
 
-			for (auto& descriptorLayout : pipelineCI.descriptorLayouts)
-			{
-				std::vector<VkDescriptorSetLayoutBinding> setLayoutBindings;
+                    VkDescriptorSetLayoutBinding setLayoutBinding{};
+                    setLayoutBinding.descriptorType = VKTools::DescriptorTypeToVK(info.type);
+                    setLayoutBinding.stageFlags = VKTools::ShaderTypeToVK(info.stage);
+                    setLayoutBinding.binding = info.binding;
+                    setLayoutBinding.descriptorCount = info.count;
 
-				setLayoutBindings.reserve(descriptorLayout.count);
+                    setLayoutBindings.push_back(setLayoutBinding);
+                }
 
-				for (u32 i = 0; i < descriptorLayout.count; i++)
-				{
-					auto info = descriptorLayout.layoutInfo[i];
+                // Pipeline layout
+                VkDescriptorSetLayoutCreateInfo descriptorLayoutCI{};
+                descriptorLayoutCI.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO;
+                descriptorLayoutCI.bindingCount = static_cast<u32>(setLayoutBindings.size());
+                descriptorLayoutCI.pBindings = setLayoutBindings.data();
 
-					VkDescriptorSetLayoutBinding setLayoutBinding{};
-					setLayoutBinding.descriptorType = VKTools::DescriptorTypeToVK(info.type);
-					setLayoutBinding.stageFlags = VKTools::ShaderTypeToVK(info.stage);
-					setLayoutBinding.binding = info.size;
-					setLayoutBinding.descriptorCount = info.count;
+                VkDescriptorSetLayout layout;
+                vkCreateDescriptorSetLayout(VKDevice::Get().GetDevice(), &descriptorLayoutCI, VK_NULL_HANDLE, &layout);
 
-					setLayoutBindings.push_back(setLayoutBinding);
-				}
-
-				// Pipeline layout
-				VkDescriptorSetLayoutCreateInfo descriptorLayoutCI{};
-				descriptorLayoutCI.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO;
-				descriptorLayoutCI.bindingCount = static_cast<u32>(setLayoutBindings.size());
-				descriptorLayoutCI.pBindings = setLayoutBindings.data();
-
-				VkDescriptorSetLayout layout;
-				vkCreateDescriptorSetLayout(VKDevice::Get().GetDevice(), &descriptorLayoutCI, VK_NULL_HANDLE, &layout);
-
-				m_DescriptorLayouts.push_back(layout);
-			}
+                m_DescriptorLayouts.push_back(layout);
+            }
+            
+            const auto& pushConsts = m_Shader.As<VKShader>()->GetPushConstant();
+            std::vector<VkPushConstantRange> pushConstantRanges;
+            
+            for(auto& pushConst : pushConsts)
+            {
+                pushConstantRanges.push_back(VKInitialisers::pushConstantRange(VKTools::ShaderTypeToVK(pushConst.shaderStage), pushConst.size, pushConst.offset));
+            }
 
 			VkPipelineLayoutCreateInfo pipelineLayoutCreateInfo{};
 			pipelineLayoutCreateInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO;
 			pipelineLayoutCreateInfo.setLayoutCount = static_cast<uint32_t>(m_DescriptorLayouts.size());
 			pipelineLayoutCreateInfo.pSetLayouts = m_DescriptorLayouts.data();
+            
+            pipelineLayoutCreateInfo.pushConstantRangeCount = u32(pushConstantRanges.size());
+            pipelineLayoutCreateInfo.pPushConstantRanges = pushConstantRanges.data();
 
 			VK_CHECK_RESULT(vkCreatePipelineLayout(VKDevice::Get().GetDevice(), &pipelineLayoutCreateInfo, VK_NULL_HANDLE, &m_PipelineLayout));
 
-			std::vector<VkDescriptorPoolSize> poolSizes;
-			poolSizes.reserve(pipelineCI.numLayoutBindings);
+            // Pool sizes
+            std::array<VkDescriptorPoolSize, 5> pool_sizes =
+            {
+                VkDescriptorPoolSize{ VK_DESCRIPTOR_TYPE_SAMPLER,                   10 },
+                VkDescriptorPoolSize{ VK_DESCRIPTOR_TYPE_SAMPLED_IMAGE,             10 },
+                VkDescriptorPoolSize{ VK_DESCRIPTOR_TYPE_STORAGE_IMAGE,             10 },
+                VkDescriptorPoolSize{ VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,            10 },
+                VkDescriptorPoolSize{ VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER_DYNAMIC,    10 }
+            };
 
-			for (u32 i = 0; i < pipelineCI.numLayoutBindings; i++)
-			{
-				auto info = pipelineCI.typeCounts[i];
-				VkDescriptorPoolSize descriptorPoolSize{};
-				descriptorPoolSize.type = VKTools::DescriptorTypeToVK(info.type);
-				descriptorPoolSize.descriptorCount = info.size;
-				poolSizes.push_back(descriptorPoolSize);
-			}
+            // Create info
+            VkDescriptorPoolCreateInfo pool_create_info = {};
+            pool_create_info.sType          = VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO;
+            pool_create_info.flags          = 0;
+            pool_create_info.poolSizeCount  = static_cast<uint32_t>(pool_sizes.size());
+            pool_create_info.pPoolSizes     = pool_sizes.data();
+            pool_create_info.maxSets        = MAX_DESCRIPTOR_SET_COUNT;
 
-			// Descriptor pool
-			VkDescriptorPoolCreateInfo descriptorPoolInfo{};
-			descriptorPoolInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO;
-			descriptorPoolInfo.poolSizeCount = static_cast<uint32_t>(poolSizes.size());
-			descriptorPoolInfo.pPoolSizes = poolSizes.data();
-			descriptorPoolInfo.maxSets = pipelineCI.maxObjects;
-
-			VK_CHECK_RESULT(vkCreateDescriptorPool(VKDevice::Get().GetDevice(), &descriptorPoolInfo, nullptr, &m_DescriptorPool));
+            // Pool
+            VK_CHECK_RESULT(vkCreateDescriptorPool(VKDevice::Get().GetDevice(), &pool_create_info, nullptr, &m_DescriptorPool));
 
 			DescriptorInfo info;
 			info.pipeline = this;
 			info.layoutIndex = 0;
-            info.shader = pipelineCI.shader;
+            info.shader = pipelineCreateInfo.shader.get();
 
 			m_DescriptorSet = new VKDescriptorSet(info);
 
@@ -108,34 +126,47 @@ namespace Lumos
 			dynamicStateCI.pDynamicStates = dynamicStateDescriptors.data();
 
 			std::vector<VkVertexInputAttributeDescription> vertexInputDescription;
-			for(u32 i = 0; i < pipelineCI.numVertexLayout; i++)
-			{
-				vertexInputDescription.push_back(VKTools::VertexInputDescriptionToVK(pipelineCI.vertexLayout[i]));
-			}
-
+            
+            // Vertex layout
+            m_VertexBindingDescription.binding = 0;
+            m_VertexBindingDescription.inputRate = VK_VERTEX_INPUT_RATE_VERTEX;
+            m_VertexBindingDescription.stride = pipelineCreateInfo.vertexBufferLayout.GetStride();
+            
+            auto& vertexLayout = pipelineCreateInfo.vertexBufferLayout.GetLayout();
+            int count = 0;
+            for(auto& layout : vertexLayout)
+            {
+                VkVertexInputAttributeDescription vInputAttribDescription;
+                vInputAttribDescription.location = count++;
+                vInputAttribDescription.binding = 0;
+                vInputAttribDescription.format = VKTools::FormatToVK(layout.format);
+                vInputAttribDescription.offset = layout.offset;
+                vertexInputDescription.push_back(vInputAttribDescription);
+            }
+            
 			VkPipelineVertexInputStateCreateInfo vi{};
 			memset(&vi, 0, sizeof(vi));
             vi.sType = VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO;
 			vi.pNext = NULL;
 			vi.vertexBindingDescriptionCount = 1;
 			vi.pVertexBindingDescriptions = &m_VertexBindingDescription;
-			vi.vertexAttributeDescriptionCount = pipelineCI.numVertexLayout;
+			vi.vertexAttributeDescriptionCount = u32(vertexInputDescription.size());
 			vi.pVertexAttributeDescriptions = vertexInputDescription.data();
 
 			VkPipelineInputAssemblyStateCreateInfo inputAssemblyCI{};
 			inputAssemblyCI.sType = VK_STRUCTURE_TYPE_PIPELINE_INPUT_ASSEMBLY_STATE_CREATE_INFO;
 			inputAssemblyCI.pNext = NULL;
 			inputAssemblyCI.primitiveRestartEnable = VK_FALSE;
-			inputAssemblyCI.topology = VKTools::DrawTypeToVk(pipelineCI.drawType);
+			inputAssemblyCI.topology = VKTools::DrawTypeToVk(pipelineCreateInfo.drawType);
         
             VkPipelineRasterizationStateCreateInfo rs{};
 			rs.sType = VK_STRUCTURE_TYPE_PIPELINE_RASTERIZATION_STATE_CREATE_INFO;
-			rs.polygonMode = VKTools::PolygonModeToVk(pipelineCI.polygonMode);
-			rs.cullMode = VKTools::CullModeToVK(pipelineCI.cullMode);
+			rs.polygonMode = VKTools::PolygonModeToVk(pipelineCreateInfo.polygonMode);
+			rs.cullMode = VKTools::CullModeToVK(pipelineCreateInfo.cullMode);
 			rs.frontFace = VK_FRONT_FACE_COUNTER_CLOCKWISE;
 			rs.depthClampEnable = VK_FALSE;
 			rs.rasterizerDiscardEnable = VK_FALSE;
-			rs.depthBiasEnable = (pipelineCI.depthBiasEnabled ? VK_TRUE : VK_FALSE);
+			rs.depthBiasEnable = (pipelineCreateInfo.depthBiasEnabled ? VK_TRUE : VK_FALSE);
 			rs.depthBiasConstantFactor = 0;
 			rs.depthBiasClamp = 0;
 			rs.depthBiasSlopeFactor = 0;
@@ -148,7 +179,7 @@ namespace Lumos
 			cb.flags = 0;
 
 			std::vector<VkPipelineColorBlendAttachmentState> blendAttachState;
-			blendAttachState.resize(pipelineCI.numColorAttachments);
+			blendAttachState.resize(pipelineCreateInfo.renderpass->GetAttachmentCount());
 
 			for (unsigned int i = 0; i < blendAttachState.size(); i++)
 			{
@@ -157,7 +188,7 @@ namespace Lumos
 				blendAttachState[i].alphaBlendOp = VK_BLEND_OP_ADD;
 				blendAttachState[i].colorBlendOp = VK_BLEND_OP_ADD;
 
-				if (pipelineCI.transparencyEnabled)
+				if (pipelineCreateInfo.transparencyEnabled)
 				{
 					blendAttachState[i].blendEnable = VK_TRUE;
 					blendAttachState[i].srcColorBlendFactor = VK_BLEND_FACTOR_SRC_ALPHA;
@@ -193,14 +224,8 @@ namespace Lumos
 			vp.pViewports = NULL;
 			dynamicStateDescriptors.push_back(VK_DYNAMIC_STATE_VIEWPORT);
 			dynamicStateDescriptors.push_back(VK_DYNAMIC_STATE_SCISSOR);
-        
-            if(pipelineCI.lineWidth > 0.0f)
-            {
-			    dynamicStateDescriptors.push_back(VK_DYNAMIC_STATE_LINE_WIDTH);
-                m_LineWidth = pipelineCI.lineWidth;
-            }
 
-			if (pipelineCI.depthBiasEnabled)
+			if (pipelineCreateInfo.depthBiasEnabled)
 				dynamicStateDescriptors.push_back(VK_DYNAMIC_STATE_DEPTH_BIAS);
 
 			VkPipelineDepthStencilStateCreateInfo ds{};
@@ -235,27 +260,28 @@ namespace Lumos
 			dynamicStateCI.dynamicStateCount = u32(dynamicStateDescriptors.size());
 			dynamicStateCI.pDynamicStates = dynamicStateDescriptors.data();
 
-			VkGraphicsPipelineCreateInfo graphicsPipelineCI{};
-			graphicsPipelineCI.sType = VK_STRUCTURE_TYPE_GRAPHICS_PIPELINE_CREATE_INFO;
-			graphicsPipelineCI.pNext = NULL;
-			graphicsPipelineCI.layout = m_PipelineLayout;
-			graphicsPipelineCI.basePipelineHandle = VK_NULL_HANDLE;
-			graphicsPipelineCI.basePipelineIndex = -1;
-			graphicsPipelineCI.pVertexInputState = &vi;
-			graphicsPipelineCI.pInputAssemblyState = &inputAssemblyCI;
-			graphicsPipelineCI.pRasterizationState = &rs;
-			graphicsPipelineCI.pColorBlendState = &cb;
-			graphicsPipelineCI.pTessellationState = VK_NULL_HANDLE;
-			graphicsPipelineCI.pMultisampleState = &ms;
-			graphicsPipelineCI.pDynamicState = &dynamicStateCI;
-			graphicsPipelineCI.pViewportState = &vp;
-			graphicsPipelineCI.pDepthStencilState = &ds;
-			graphicsPipelineCI.pStages = static_cast<VKShader*>(pipelineCI.shader)->GetShaderStages();
-			graphicsPipelineCI.stageCount = static_cast<VKShader*>(pipelineCI.shader)->GetStageCount();
-			graphicsPipelineCI.renderPass = static_cast<VKRenderpass*>(pipelineCI.renderpass)->GetRenderpass();
-			graphicsPipelineCI.subpass = 0;
+            auto vkshader = pipelineCreateInfo.shader.As<VKShader>();
+			VkGraphicsPipelineCreateInfo graphicsPipelineCreateInfo{};
+			graphicsPipelineCreateInfo.sType = VK_STRUCTURE_TYPE_GRAPHICS_PIPELINE_CREATE_INFO;
+			graphicsPipelineCreateInfo.pNext = NULL;
+			graphicsPipelineCreateInfo.layout = m_PipelineLayout;
+			graphicsPipelineCreateInfo.basePipelineHandle = VK_NULL_HANDLE;
+			graphicsPipelineCreateInfo.basePipelineIndex = -1;
+			graphicsPipelineCreateInfo.pVertexInputState = &vi;
+			graphicsPipelineCreateInfo.pInputAssemblyState = &inputAssemblyCI;
+			graphicsPipelineCreateInfo.pRasterizationState = &rs;
+			graphicsPipelineCreateInfo.pColorBlendState = &cb;
+			graphicsPipelineCreateInfo.pTessellationState = VK_NULL_HANDLE;
+			graphicsPipelineCreateInfo.pMultisampleState = &ms;
+			graphicsPipelineCreateInfo.pDynamicState = &dynamicStateCI;
+			graphicsPipelineCreateInfo.pViewportState = &vp;
+			graphicsPipelineCreateInfo.pDepthStencilState = &ds;
+			graphicsPipelineCreateInfo.pStages = vkshader->GetShaderStages();
+			graphicsPipelineCreateInfo.stageCount = vkshader->GetStageCount();
+			graphicsPipelineCreateInfo.renderPass = pipelineCreateInfo.renderpass.As<VKRenderpass>()->GetRenderpass();
+			graphicsPipelineCreateInfo.subpass = 0;
 
-			VK_CHECK_RESULT(vkCreateGraphicsPipelines(VKDevice::Get().GetDevice(), VKDevice::Get().GetPipelineCache(), 1, &graphicsPipelineCI, VK_NULL_HANDLE, &m_Pipeline));
+			VK_CHECK_RESULT(vkCreateGraphicsPipelines(VKDevice::Get().GetDevice(), VKDevice::Get().GetPipelineCache(), 1, &graphicsPipelineCreateInfo, VK_NULL_HANDLE, &m_Pipeline));
 
 			return true;
 		}
@@ -294,9 +320,9 @@ namespace Lumos
             CreateFunc = CreateFuncVulkan;
         }
 
-		Pipeline* VKPipeline::CreateFuncVulkan(const PipelineInfo& pipelineCI)
+		Pipeline* VKPipeline::CreateFuncVulkan(const PipelineInfo& pipelineCreateInfo)
         {
-            return new VKPipeline(pipelineCI);
+            return new VKPipeline(pipelineCreateInfo);
         }
 	}
 }

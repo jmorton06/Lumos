@@ -2,23 +2,26 @@
 #include "SceneGraph.h"
 #include "Maths/Transform.h"
 
+DISABLE_WARNING_PUSH
+DISABLE_WARNING_CONVERSION_TO_SMALLER_TYPE
 #include <entt/entt.hpp>
+DISABLE_WARNING_POP
 
 namespace Lumos
 {
-    Hierarchy::Hierarchy(entt::entity p) : _parent(p)
+    Hierarchy::Hierarchy(entt::entity p) : m_Parent(p)
     {
-        _first = entt::null;
-        _next = entt::null;
-        _prev = entt::null;
+        m_First = entt::null;
+        m_Next = entt::null;
+        m_Prev = entt::null;
     }
     
     Hierarchy::Hierarchy()
     {
-        _parent = entt::null;
-        _first = entt::null;
-        _next = entt::null;
-        _prev = entt::null;
+        m_Parent = entt::null;
+        m_First = entt::null;
+        m_Next = entt::null;
+        m_Prev = entt::null;
     }
 
 	SceneGraph::SceneGraph()
@@ -27,9 +30,9 @@ namespace Lumos
 
 	void SceneGraph::Init(entt::registry & registry)
 	{
-		registry.on_construct<Hierarchy>().connect<&Hierarchy::on_construct>();
-		registry.on_update<Hierarchy>().connect<&Hierarchy::on_update>();
-		registry.on_destroy<Hierarchy>().connect<&Hierarchy::on_destroy>();
+		registry.on_construct<Hierarchy>().connect<&Hierarchy::OnConstruct>();
+		registry.on_update<Hierarchy>().connect<&Hierarchy::OnUpdate>();
+		registry.on_destroy<Hierarchy>().connect<&Hierarchy::OnDestroy>();
 	}
 
 	void SceneGraph::Update(entt::registry & registry)
@@ -46,7 +49,7 @@ namespace Lumos
         for (auto entity : view)
         {
             const auto hierarchy = registry.try_get<Hierarchy>(entity);
-            if (hierarchy && hierarchy->parent() == entt::null)
+            if (hierarchy && hierarchy->Parent() == entt::null)
             {
                 //Recursively update children
                 UpdateTransform(entity, registry);
@@ -63,9 +66,9 @@ namespace Lumos
 			auto transform = registry.try_get<Maths::Transform>(entity);
 			if (transform)
 			{
-				if (hierarchyComponent->parent() != entt::null)
+				if (hierarchyComponent->Parent() != entt::null)
 				{
-					auto parentTransform = registry.try_get<Maths::Transform>(hierarchyComponent->parent());
+					auto parentTransform = registry.try_get<Maths::Transform>(hierarchyComponent->Parent());
 					if (parentTransform)
 					{
 						transform->SetWorldMatrix(parentTransform->GetWorldMatrix());
@@ -77,11 +80,11 @@ namespace Lumos
 				}
 			}
 
-			entt::entity child = hierarchyComponent->first();
+			entt::entity child = hierarchyComponent->First();
 			while (child != entt::null)
 			{
 				auto hierarchyComponent = registry.try_get<Hierarchy>(child);
-				auto next = hierarchyComponent ? hierarchyComponent->next() : entt::null;
+				auto next = hierarchyComponent ? hierarchyComponent->Next() : entt::null;
 				UpdateTransform(child, registry);
 				child = next;
 			}
@@ -91,33 +94,37 @@ namespace Lumos
 	void Hierarchy::Reparent(entt::entity entity, entt::entity parent, entt::registry& registry, Hierarchy& hierarchy)
 	{
 		LUMOS_PROFILE_FUNCTION();
-		Hierarchy::on_destroy(registry, entity);
+		Hierarchy::OnDestroy(registry, entity);
+        
+        hierarchy.m_Parent = entt::null;
+        hierarchy.m_Next = entt::null;
+        hierarchy.m_Prev = entt::null;
 
         if(parent != entt::null)
         {
-            hierarchy._parent = parent;
-            Hierarchy::on_construct(registry, entity);
+            hierarchy.m_Parent = parent;
+            Hierarchy::OnConstruct(registry, entity);
         }
 	}
 
-	bool Hierarchy::compare(const entt::registry& registry, const entt::entity rhs) const
+	bool Hierarchy::Compare(const entt::registry& registry, const entt::entity rhs) const
 	{
 		LUMOS_PROFILE_FUNCTION();
-		if (rhs == entt::null || rhs == this->_parent || rhs == this->_prev)
+		if (rhs == entt::null || rhs == m_Parent || rhs == m_Prev)
 		{
 			return true;
 		}
 		else
         {
-			if (this->_parent == entt::null)
+			if (m_Parent == entt::null)
 			{
 				return false;
 			}
 			else
 			{
-				auto& this_parent_h = registry.get<Hierarchy>(this->_parent);
+				auto& this_parent_h = registry.get<Hierarchy>(m_Parent);
 				auto& rhs_h = registry.get<Hierarchy>(rhs);
-				if (this_parent_h.compare(registry, rhs_h._parent)) 
+				if (this_parent_h.Compare(registry, rhs_h.m_Parent))
 				{
 					return true;
 				}
@@ -126,38 +133,46 @@ namespace Lumos
 		return false;
 	}
 
-	void Hierarchy::on_construct(entt::registry& registry, entt::entity entity)
+    void Hierarchy::Reset()
+    {
+        m_Parent = entt::null;
+        m_First = entt::null;
+        m_Next = entt::null;
+        m_Prev = entt::null;
+    }
+
+	void Hierarchy::OnConstruct(entt::registry& registry, entt::entity entity)
 	{
 		LUMOS_PROFILE_FUNCTION();
         auto& hierarchy = registry.get<Hierarchy>(entity);
-		if (hierarchy._parent != entt::null)
+		if (hierarchy.m_Parent != entt::null)
 		{
-			auto& parent_hierarchy = registry.get_or_emplace<Hierarchy>(hierarchy._parent);
+			auto& parent_hierarchy = registry.get_or_emplace<Hierarchy>(hierarchy.m_Parent);
 
-			if (parent_hierarchy._first == entt::null) 
+			if (parent_hierarchy.m_First == entt::null)
 			{
-				parent_hierarchy._first = entity;
+				parent_hierarchy.m_First = entity;
 			}
 			else
 			{
 				// get last children
-				auto prev_ent = parent_hierarchy._first;
+				auto prev_ent = parent_hierarchy.m_First;
 				auto current_hierarchy = registry.try_get<Hierarchy>(prev_ent);
-				while (current_hierarchy != nullptr && current_hierarchy->_next != entt::null)
+				while (current_hierarchy != nullptr && current_hierarchy->m_Next != entt::null)
 				{
-					prev_ent = current_hierarchy->_next;
+					prev_ent = current_hierarchy->m_Next;
 					current_hierarchy = registry.try_get<Hierarchy>(prev_ent);
 				}
 				// add new
-				current_hierarchy->_next = entity;
-				hierarchy._prev = prev_ent;
+				current_hierarchy->m_Next = entity;
+				hierarchy.m_Prev = prev_ent;
 			}
-			//// sort
-		/*	registry.sort<Hierarchy>([&registry](const entt::entity lhs, const entt::entity rhs) {
-				auto& right_h = registry.get<Hierarchy>(rhs);
-				auto result = right_h.compare(registry, lhs);
-				return result;
-			});*/
+			// sort
+//			registry.sort<Hierarchy>([&registry](const entt::entity lhs, const entt::entity rhs) {
+//				auto& right_h = registry.get<Hierarchy>(rhs);
+//				auto result = right_h.Compare(registry, lhs);
+//				return result;
+//			});
 		}
 
 	}
@@ -169,7 +184,7 @@ namespace Lumos
 
 		if (hierarchy)
 		{
-			entt::entity child = hierarchy->first();
+			entt::entity child = hierarchy->First();
 			while (child != entt::null)
 			{
 				DeleteChildren(child, registry);
@@ -178,120 +193,117 @@ namespace Lumos
 				
 				if (hierarchy)
 				{
-					child = hierarchy->next();
+					child = hierarchy->Next();
 				}
-
 			}
 		}
 	}
 
-	void Hierarchy::on_update(entt::registry& registry, entt::entity entity)
+	void Hierarchy::OnUpdate(entt::registry& registry, entt::entity entity)
 	{
 		LUMOS_PROFILE_FUNCTION();
 		auto& hierarchy = registry.get<Hierarchy>(entity);
 		// if is the first child
-		if (hierarchy._prev == entt::null)
+		if (hierarchy.m_Prev == entt::null)
 		{
-			if (hierarchy._parent != entt::null)
+			if (hierarchy.m_Parent != entt::null)
 			{
-				auto parent_hierarchy = registry.try_get<Hierarchy>(hierarchy._parent);
+				auto parent_hierarchy = registry.try_get<Hierarchy>(hierarchy.m_Parent);
 				if (parent_hierarchy != nullptr)
 				{
-					parent_hierarchy->_first = hierarchy._next;
-					if (hierarchy._next != entt::null)
+					parent_hierarchy->m_First = hierarchy.m_Next;
+					if (hierarchy.m_Next != entt::null)
 					{
-						auto next_hierarchy = registry.try_get<Hierarchy>(hierarchy._next);
+						auto next_hierarchy = registry.try_get<Hierarchy>(hierarchy.m_Next);
 						if (next_hierarchy != nullptr)
 						{
-							next_hierarchy->_prev = entt::null;
+							next_hierarchy->m_Prev = entt::null;
 						}
 					}
-					
 				}
 			}
 		}
 		else
 		{
-			auto prev_hierarchy = registry.try_get<Hierarchy>(hierarchy._prev);
+			auto prev_hierarchy = registry.try_get<Hierarchy>(hierarchy.m_Prev);
 			if (prev_hierarchy != nullptr)
 			{
-				prev_hierarchy->_next = hierarchy._next;
+				prev_hierarchy->m_Next = hierarchy.m_Next;
 			}
-			if (hierarchy._next != entt::null)
+			if (hierarchy.m_Next != entt::null)
 			{
-				auto next_hierarchy = registry.try_get<Hierarchy>(hierarchy._next);
+				auto next_hierarchy = registry.try_get<Hierarchy>(hierarchy.m_Next);
 				if (next_hierarchy != nullptr)
 				{
-					next_hierarchy->_prev = hierarchy._prev;
+					next_hierarchy->m_Prev = hierarchy.m_Prev;
 				}
 			}
 		}
 
 		// sort
-	/*	registry.sort<Hierarchy>([&registry](const entt::entity lhs, const entt::entity rhs)
-		{
-			auto& right_h = registry.get<Hierarchy>(rhs);
-			return right_h.compare(registry, lhs);
-		});*/
+//		registry.sort<Hierarchy>([&registry](const entt::entity lhs, const entt::entity rhs)
+//		{
+//			auto& right_h = registry.get<Hierarchy>(rhs);
+//			return right_h.Compare(registry, lhs);
+//		});
 	}
 
-	void Hierarchy::on_destroy(entt::registry& registry, entt::entity entity) 
+	void Hierarchy::OnDestroy(entt::registry& registry, entt::entity entity)
 	{
 		LUMOS_PROFILE_FUNCTION();
 		auto& hierarchy = registry.get<Hierarchy>(entity);
 		// if is the first child
-		if (hierarchy._prev == entt::null || !registry.valid(hierarchy._prev))
+		if (hierarchy.m_Prev == entt::null || !registry.valid(hierarchy.m_Prev))
 		{
-			if (hierarchy._parent != entt::null && registry.valid(hierarchy._parent))
+			if (hierarchy.m_Parent != entt::null && registry.valid(hierarchy.m_Parent))
 			{
-				auto parent_hierarchy = registry.try_get<Hierarchy>(hierarchy._parent);
+				auto parent_hierarchy = registry.try_get<Hierarchy>(hierarchy.m_Parent);
 				if (parent_hierarchy != nullptr)
 				{
-					parent_hierarchy->_first = hierarchy._next;
-					if (hierarchy._next != entt::null)
+					parent_hierarchy->m_First = hierarchy.m_Next;
+					if (hierarchy.m_Next != entt::null)
 					{
-						auto next_hierarchy = registry.try_get<Hierarchy>(hierarchy._next);
+						auto next_hierarchy = registry.try_get<Hierarchy>(hierarchy.m_Next);
 						if (next_hierarchy != nullptr)
 						{
-							next_hierarchy->_prev = entt::null;
+							next_hierarchy->m_Prev = entt::null;
 						}
 					}
-
 				}
 			}
 		}
 		else 
 		{
-			auto prev_hierarchy = registry.try_get<Hierarchy>(hierarchy._prev);
+			auto prev_hierarchy = registry.try_get<Hierarchy>(hierarchy.m_Prev);
 			if (prev_hierarchy != nullptr)
 			{
-				prev_hierarchy->_next = hierarchy._next;
+				prev_hierarchy->m_Next = hierarchy.m_Next;
 			}
-			if (hierarchy._next != entt::null) 
+			if (hierarchy.m_Next != entt::null)
 			{
-				auto next_hierarchy = registry.try_get<Hierarchy>(hierarchy._next);
+				auto next_hierarchy = registry.try_get<Hierarchy>(hierarchy.m_Next);
 				if (next_hierarchy != nullptr) 
 				{
-					next_hierarchy->_prev = hierarchy._prev;
+					next_hierarchy->m_Prev = hierarchy.m_Prev;
 				}
 			}
 		}
 
 		// sort
-		//registry.sort<Hierarchy>([&registry](const entt::entity lhs, const entt::entity rhs) 
-		//{
-		//	auto& right_h = registry.get<Hierarchy>(rhs);
-		//	return right_h.compare(registry, lhs);
-		//});
+//		registry.sort<Hierarchy>([&registry](const entt::entity lhs, const entt::entity rhs)
+//		{
+//			auto& right_h = registry.get<Hierarchy>(rhs);
+//			return right_h.Compare(registry, lhs);
+//		});
 	}
 
     void SceneGraph::DisableOnConstruct(bool disable, entt::registry& registry)
     {
 		LUMOS_PROFILE_FUNCTION();
         if(disable)
-            registry.on_construct<Hierarchy>().disconnect<&Hierarchy::on_construct>();
+            registry.on_construct<Hierarchy>().disconnect<&Hierarchy::OnConstruct>();
         else
-            registry.on_construct<Hierarchy>().connect<&Hierarchy::on_construct>();
+            registry.on_construct<Hierarchy>().connect<&Hierarchy::OnConstruct>();
 
     }
 

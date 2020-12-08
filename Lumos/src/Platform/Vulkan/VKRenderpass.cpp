@@ -11,26 +11,30 @@ namespace Lumos
 	namespace Graphics
 	{
 
-		VKRenderpass::VKRenderpass()
+		VKRenderpass::VKRenderpass(const RenderPassInfo& renderPassCI)
 			: m_ClearCount(0)
 			, m_DepthOnly(false)
 		{
 			m_ClearValue = NULL;
 			m_ClearDepth = false;
+            
+            Init(renderPassCI);
 		}
 
 		VKRenderpass::~VKRenderpass()
 		{
 			delete[] m_ClearValue;
-			Unload();
+			LUMOS_PROFILE_FUNCTION();
+			vkDestroyRenderPass(VKDevice::Get().GetDevice(), m_RenderPass, VK_NULL_HANDLE);
 		}
 
 		VkAttachmentDescription GetAttachmentDescription(AttachmentInfo info, bool clear = true)
 		{
+			LUMOS_PROFILE_FUNCTION();
 				VkAttachmentDescription attachment = {};
 			if(info.textureType == TextureType::COLOUR)
 			{
-				attachment.format = VKTools::TextureFormatToVK(info.format);
+				attachment.format = VKTools::TextureFormatToVK(info.format, false);
 				attachment.finalLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
 			}
 			else if(info.textureType == TextureType::DEPTH)
@@ -49,31 +53,31 @@ namespace Lumos
 				return attachment;
 			}
 			
-			
-				if(clear)
-				{
-					attachment.loadOp =  VK_ATTACHMENT_LOAD_OP_CLEAR;
-					attachment.stencilLoadOp = VK_ATTACHMENT_LOAD_OP_CLEAR;
-					attachment.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
-				}
-				else
-				{
-					attachment.loadOp =  VK_ATTACHMENT_LOAD_OP_LOAD;
-					attachment.stencilLoadOp = VK_ATTACHMENT_LOAD_OP_LOAD;
-					attachment.initialLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
-				}
-				
-				attachment.samples = VK_SAMPLE_COUNT_1_BIT;
-				attachment.storeOp = VK_ATTACHMENT_STORE_OP_STORE;
-				attachment.stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
+            if(clear)
+            {
+                attachment.loadOp =  VK_ATTACHMENT_LOAD_OP_CLEAR;
+                attachment.stencilLoadOp = VK_ATTACHMENT_LOAD_OP_CLEAR;
+                attachment.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
+            }
+            else
+            {
+                attachment.loadOp =  VK_ATTACHMENT_LOAD_OP_LOAD;
+                attachment.stencilLoadOp = VK_ATTACHMENT_LOAD_OP_LOAD;
+                attachment.initialLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
+            }
+            
+            attachment.samples = VK_SAMPLE_COUNT_1_BIT;
+            attachment.storeOp = VK_ATTACHMENT_STORE_OP_STORE;
+            attachment.stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
 			attachment.flags = 0;
 			
 			return attachment;
 			
 		}
 
-		bool VKRenderpass::Init(const RenderpassInfo& renderpassCI)
+		bool VKRenderpass::Init(const RenderPassInfo& renderpassCI)
 		{
+			LUMOS_PROFILE_FUNCTION();
 			VkSubpassDependency dependency = {};
 			dependency.srcSubpass = VK_SUBPASS_EXTERNAL;
 			dependency.dstSubpass = 0;
@@ -141,13 +145,9 @@ namespace Lumos
 			return true;
 		}
 
-		void VKRenderpass::Unload() const
-		{
-			vkDestroyRenderPass(VKDevice::Get().GetDevice(), m_RenderPass, VK_NULL_HANDLE);
-		}
-
 		VkSubpassContents SubPassContentsToVK(SubPassContents contents)
 		{
+			LUMOS_PROFILE_FUNCTION();
 			switch(contents)
 			{
 			case INLINE:
@@ -159,8 +159,13 @@ namespace Lumos
 			}
 		}
 
-		void VKRenderpass::BeginRenderpass(CommandBuffer* commandBuffer, const Maths::Vector4& clearColour, Framebuffer* frame, SubPassContents contents, uint32_t width, uint32_t height) const
+		void VKRenderpass::BeginRenderpass(CommandBuffer* commandBuffer, const Maths::Vector4& clearColour, Framebuffer* frame, SubPassContents contents, uint32_t width, uint32_t height, bool beginCommandBuffer) const
 		{
+			if(beginCommandBuffer)
+				commandBuffer->BeginRecording();
+			commandBuffer->UpdateViewport(width, height);
+			
+			LUMOS_PROFILE_FUNCTION();
 			if(!m_DepthOnly)
 			{
 				for(int i = 0; i < m_ClearCount; i++)
@@ -192,9 +197,12 @@ namespace Lumos
 			vkCmdBeginRenderPass(static_cast<VKCommandBuffer*>(commandBuffer)->GetCommandBuffer(), &rpBegin, SubPassContentsToVK(contents));
 		}
 
-		void VKRenderpass::EndRenderpass(CommandBuffer* commandBuffer)
+		void VKRenderpass::EndRenderpass(CommandBuffer* commandBuffer, bool endCommandBuffer)
 		{
-			vkCmdEndRenderPass(reinterpret_cast<VKCommandBuffer*>(commandBuffer)->GetCommandBuffer());
+			LUMOS_PROFILE_FUNCTION();
+			vkCmdEndRenderPass(static_cast<VKCommandBuffer*>(commandBuffer)->GetCommandBuffer());
+			if(endCommandBuffer)
+			commandBuffer->EndRecording();
 		}
 
 		void VKRenderpass::MakeDefault()
@@ -202,9 +210,9 @@ namespace Lumos
 			CreateFunc = CreateFuncVulkan;
 		}
 
-		RenderPass* VKRenderpass::CreateFuncVulkan()
+		RenderPass* VKRenderpass::CreateFuncVulkan(const RenderPassInfo& renderPassCI)
 		{
-			return new VKRenderpass();
+			return new VKRenderpass(renderPassCI);
 		}
 	}
 }

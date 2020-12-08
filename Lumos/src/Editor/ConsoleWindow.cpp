@@ -13,6 +13,7 @@ namespace Lumos
 
 	ConsoleWindow::ConsoleWindow()
 	{
+		LUMOS_PROFILE_FUNCTION();
 		m_Name = ICON_MDI_VIEW_LIST " Console###console";
 		m_SimpleName = "Console";
         s_MessageBufferRenderFilter = Message::Level::Trace | Message::Level::Info | Message::Level::Debug | Message::Level::Warn | Message::Level::Error | Message::Level::Critical;
@@ -20,6 +21,7 @@ namespace Lumos
 
 	void ConsoleWindow::AddMessage(const Ref<Message>& message)
 	{
+		LUMOS_PROFILE_FUNCTION();
 		if(message->m_Level == 0)
 			return;
 		
@@ -63,6 +65,7 @@ namespace Lumos
 
 	void ConsoleWindow::Flush()
 	{
+		LUMOS_PROFILE_FUNCTION();
 		for(auto message = s_MessageBuffer.begin(); message != s_MessageBuffer.end(); message++)
 			(*message) = nullptr;
 		s_MessageBufferBegin = 0;
@@ -70,6 +73,7 @@ namespace Lumos
 
 	void ConsoleWindow::OnImGui()
 	{
+		LUMOS_PROFILE_FUNCTION();
 		auto flags = ImGuiWindowFlags_NoCollapse;
 		ImGui::SetNextWindowSize(ImVec2(640, 480), ImGuiCond_FirstUseEver);
 		ImGui::Begin(m_Name.c_str(), &m_Active, flags);
@@ -83,6 +87,7 @@ namespace Lumos
 
 	void ConsoleWindow::ImGuiRenderHeader()
 	{
+		LUMOS_PROFILE_FUNCTION();
 		ImGuiStyle& style = ImGui::GetStyle();
 	
 		// Button for advanced settings
@@ -104,8 +109,8 @@ namespace Lumos
         ImGui::TextUnformatted(ICON_MDI_MAGNIFY);
         ImGui::SameLine();
         
-        float levelButtonWidths = 7 * 22.0f;
-        Filter.Draw("###ConsoleFilter", ImGui::GetWindowWidth() - levelButtonWidths * 1.5f);
+        float levelButtonWidths = 6 * (ImGui::GetFontSize() + ImGui::GetStyle().ItemSpacing.x) + 2.0f;
+        Filter.Draw("###ConsoleFilter", ImGui::GetWindowWidth() - levelButtonWidths * 1.6f);
         
         ImGui::SameLine(ImGui::GetWindowWidth() - levelButtonWidths);
         
@@ -137,6 +142,7 @@ namespace Lumos
 
 	void ConsoleWindow::ImGuiRenderMessages()
 	{
+		LUMOS_PROFILE_FUNCTION();
 		ImGui::BeginChild("ScrollRegion", ImVec2(0, 0), false, ImGuiWindowFlags_HorizontalScrollbar);
 		{
 			auto messageStart = s_MessageBuffer.begin() + s_MessageBufferBegin;
@@ -199,13 +205,17 @@ namespace Lumos
 
 	void ConsoleWindow::Message::OnImGUIRender()
 	{
+		LUMOS_PROFILE_FUNCTION();
         if(s_MessageBufferRenderFilter & m_Level)
 		{
 			ImGui::PushID(this);
 			ImGui::PushStyleColor(ImGuiCol_Text, GetRenderColour(m_Level));
 			auto levelIcon = GetLevelIcon(m_Level);
-			ImGui::Text("%s %s", levelIcon,  m_Message.c_str());
-			
+			ImGui::TextUnformatted(levelIcon);
+            ImGui::PopStyleColor();
+            ImGui::SameLine();
+            ImGui::TextUnformatted(m_Message.c_str());
+
 			if (ImGui::BeginPopupContextWindow())
 			{
 				if (ImGui::MenuItem("Copy"))
@@ -229,7 +239,6 @@ namespace Lumos
 				ImGui::Text("%d", m_Count);
 			}
 			
-			ImGui::PopStyleColor();
 			ImGui::PopID();
 		}
 	}

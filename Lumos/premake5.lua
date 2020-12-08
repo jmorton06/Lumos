@@ -100,9 +100,7 @@ project "Lumos"
 			"_SILENCE_CXX17_ITERATOR_BASE_CLASS_DEPRECATION_WARNING",
 			"LUMOS_IMGUI",
 			"LUMOS_OPENAL",
-			"LUMOS_VOLK",
-			"USE_VMA_ALLOCATOR",
-			"LUMOS_SSE"
+			"LUMOS_VOLK"
 		}
 
 		files
@@ -133,7 +131,12 @@ project "Lumos"
 		buildoptions
 		{
 			"/MP", "/bigobj"
-		}
+}
+
+if _OPTIONS["arch"] ~= "arm" then
+defines { "LUMOS_SSE" ,"USE_VMA_ALLOCATOR"}
+end
+
 		disablewarnings { 4307 }
 
 		characterset ("MBCS")
@@ -178,9 +181,7 @@ project "Lumos"
 			"VK_USE_PLATFORM_METAL_EXT",
 			"LUMOS_IMGUI",
 			"LUMOS_OPENAL",
-			"LUMOS_VOLK",
-			"USE_VMA_ALLOCATOR",
-			"LUMOS_SSE"
+			"LUMOS_VOLK"
 		}
 
 		links
@@ -206,9 +207,22 @@ project "Lumos"
 			"-Wno-attributes",
 	"-Wno-nullability-completeness",
 	"-fdiagnostics-absolute-paths"
-		}
+}
 
-		SetRecommendedXcodeSettings()
+SetRecommendedXcodeSettings()
+
+if _OPTIONS["arch"] ~= "arm" then
+defines { "LUMOS_SSE" ,"USE_VMA_ALLOCATOR"}
+xcodebuildsettings
+{
+	ARCHS="x86_64"
+}
+else
+xcodebuildsettings
+{
+	ARCHS="arm64"
+}
+end
 
 pchheader "../Lumos/src/Precompiled.h"
 pchsource "../Lumos/src/Precompiled.cpp"

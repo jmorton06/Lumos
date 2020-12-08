@@ -77,8 +77,11 @@ namespace Lumos
 			
 			if(!failed)
 			{
-			m_Environmnet = Graphics::TextureCube::CreateFromVCross(envFiles, m_NumMips);
-				m_IrradianceMap = Graphics::TextureCube::CreateFromVCross(irrFiles, m_NumMips);
+                TextureParameters params;
+                params.srgb = true;
+                TextureLoadOptions loadOptions;
+                m_Environmnet = Graphics::TextureCube::CreateFromVCross(envFiles, m_NumMips, params, loadOptions);
+                m_IrradianceMap = Graphics::TextureCube::CreateFromVCross(irrFiles, m_NumMips, params, loadOptions);
 			}
 			else
 			{

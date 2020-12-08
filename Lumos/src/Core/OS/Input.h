@@ -36,7 +36,7 @@ namespace Lumos
 		void SetMouseOnScreen(bool onScreen){ m_MouseOnScreen = onScreen; }
 		bool GetMouseOnScreen() const { return m_MouseOnScreen; }
 
-		void StoreMousePosition(int xpos, int ypos) { m_MousePosition = Maths::Vector2(float(xpos), float(ypos)); }
+		void StoreMousePosition(float xpos, float ypos) { m_MousePosition = Maths::Vector2(float(xpos), float(ypos)); }
 		const Maths::Vector2& GetMousePosition() const { return m_MousePosition; }
 
 		void SetWindowFocus(bool focus)		{ m_WindowFocus = focus; }

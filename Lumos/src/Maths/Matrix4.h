@@ -665,6 +665,8 @@ namespace Lumos::Maths
         /// Return matrix element.
         float Element(unsigned i, unsigned j) const { return Data()[i * 4 + j]; }
 
+        float& ElementRef(unsigned i, unsigned j) { return (&m00_)[i * 4 + j]; }
+
         /// Return matrix row.
         Vector4 Row(unsigned i) const { return Vector4(Element(i, 0), Element(i, 1), Element(i, 2), Element(i, 3)); }
 

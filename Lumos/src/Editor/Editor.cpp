@@ -32,13 +32,11 @@
 
 #include "Graphics/Renderers/ForwardRenderer.h"
 #include "Graphics/MeshFactory.h"
-#include "Graphics/Layers/Layer3D.h"
 #include "Graphics/Sprite.h"
 #include "Graphics/AnimatedSprite.h"
 #include "Graphics/Light.h"
 #include "Graphics/API/Texture.h"
 #include "Graphics/Camera/Camera.h"
-#include "Graphics/Layers/LayerStack.h"
 #include "Graphics/API/GraphicsContext.h"
 #include "Graphics/Renderers/GridRenderer.h"
 #include "Graphics/Renderers/DebugRenderer.h"
@@ -54,11 +52,6 @@
 #include <imgui/plugins/ImTextEditor.h>
 
 #include <imgui/plugins/ImFileBrowser.h>
-
-static ImVec2 operator+(const ImVec2& a, const ImVec2& b)
-{
-	return ImVec2(a.x + b.x, a.y + b.y);
-}
 
 namespace Lumos
 {
@@ -143,7 +136,7 @@ namespace Lumos
 		m_Windows.emplace_back(CreateRef<GraphicsInfoWindow>());
 		m_Windows.back()->SetActive(false);
 #ifndef LUMOS_PLATFORM_IOS
-		m_Windows.emplace_back(CreateRef<AssetWindow>());
+		//m_Windows.emplace_back(CreateRef<AssetWindow>());
 #endif
         
 		for(auto& window : m_Windows)
@@ -209,7 +202,7 @@ namespace Lumos
 		LUMOS_PROFILE_FUNCTION();
 		DrawMenuBar();
         
-		BeginDockSpace(false);
+		BeginDockSpace(m_FullScreenOnPlay && m_Application->GetEditorState() == EditorState::Play);
         
 		for(auto& window : m_Windows)
 		{
@@ -505,7 +498,7 @@ namespace Lumos
 				ImGui::EndMenu();
 			}
             
-			ImGui::SameLine(ImGui::GetWindowContentRegionMax().x / 2.0f);
+			ImGui::SameLine((ImGui::GetWindowContentRegionMax().x / 2.0f) - (1.5f * (ImGui::GetFontSize() + ImGui::GetStyle().ItemSpacing.x)));
             
 			ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.1f, 0.2f, 0.7f, 0.0f));
             
@@ -518,7 +511,7 @@ namespace Lumos
 				if(selected)
 					ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(0.28f, 0.56f, 0.9f, 1.0f));
                 
-				if(ImGui::Button(ICON_MDI_PLAY, ImVec2(19.0f, 19.0f)))
+				if(ImGui::Button(ICON_MDI_PLAY))
                 {
                     m_Application->GetSystem<LumosPhysicsEngine>()->SetPaused(selected);
                     m_Application->GetSystem<B2PhysicsEngine>()->SetPaused(selected);
@@ -547,7 +540,7 @@ namespace Lumos
 				if(selected)
 					ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(0.28f, 0.56f, 0.9f, 1.0f));
                 
-				if(ImGui::Button(ICON_MDI_PAUSE, ImVec2(19.0f, 19.0f)))
+				if(ImGui::Button(ICON_MDI_PAUSE))
 					m_Application->SetEditorState(selected ? EditorState::Play : EditorState::Paused);
                 
 				ImGuiHelpers::Tooltip("Pause");
@@ -563,7 +556,7 @@ namespace Lumos
 				if(selected)
 					ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(0.28f, 0.56f, 0.9f, 1.0f));
                 
-				if(ImGui::Button(ICON_MDI_STEP_FORWARD, ImVec2(19.0f, 19.0f)))
+				if(ImGui::Button(ICON_MDI_STEP_FORWARD))
 					m_Application->SetEditorState(EditorState::Next);
                 
 				ImGuiHelpers::Tooltip("Next");
@@ -574,7 +567,17 @@ namespace Lumos
             
 			ImGui::SameLine(ImGui::GetWindowContentRegionMax().x - 240.0f);
 			
-			ImGui::Text("%.2f ms (%i FPS)", Engine::Get().Statistics().FrameTime, Engine::Get().Statistics().FramesPerSecond);
+			static Engine::Stats stats = {};
+			static float timer = 1.1f;
+			timer += Engine::GetTimeStep().GetMillis();
+			
+			if(timer > 1.0f)
+			{
+				timer = 0.0f;
+				stats = Engine::Get().Statistics();
+			}
+			
+			ImGui::Text("%.2f ms (%i FPS)", stats.FrameTime * 1000.0f, stats.FramesPerSecond);
 			
 			ImGui::SameLine();
             
@@ -582,7 +585,7 @@ namespace Lumos
 			ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(7, 2));
             
 			bool setNewValue = false;
-			std::string RenderAPI = "";
+			static std::string RenderAPI = "";
 			
 			auto renderAPI = (Graphics::RenderAPI)m_Application->RenderAPI;
             
@@ -746,7 +749,7 @@ namespace Lumos
 		}
 	}
     
-	void Editor::BeginDockSpace(bool infoBar)
+	void Editor::BeginDockSpace(bool gameFullScreen)
 	{
 		LUMOS_PROFILE_FUNCTION();
 		static bool p_open = true;
@@ -766,14 +769,7 @@ namespace Lumos
 			bool menuBar = true;
 			if(menuBar)
 			{
-				const float infoBarSize = 19.0f;
-				pos.y += infoBarSize;
-				size.y -= infoBarSize;
-			}
-            
-			if(infoBar)
-			{
-				const float infoBarSize = 24.0f;
+				const float infoBarSize = ImGui::GetFrameHeight();
 				pos.y += infoBarSize;
 				size.y -= infoBarSize;
 			}
@@ -802,6 +798,33 @@ namespace Lumos
         
         ImGuiID DockspaceID = ImGui::GetID("MyDockspace");
         
+        static std::vector<Ref<EditorWindow>> hiddenWindows;
+        if(m_FullScreenSceneView != gameFullScreen)
+        {
+            m_FullScreenSceneView = gameFullScreen;
+            
+            if(m_FullScreenSceneView)
+            {
+                for(auto window : m_Windows)
+                {
+                    if(window->GetSimpleName() != "Scene" && window->Active())
+                    {
+                        window->SetActive(false);
+                        hiddenWindows.push_back(window);
+                    }
+                }
+            }
+            else
+            {
+                for(auto window : hiddenWindows)
+                {
+                    window->SetActive(true);
+                }
+                
+                hiddenWindows.clear();
+            }
+        }
+        
         if (!ImGui::DockBuilderGetNode(DockspaceID))
 		{
             ImGui::DockBuilderRemoveNode(DockspaceID); // Clear out existing layout
@@ -825,6 +848,7 @@ namespace Lumos
             ImGuiID DockMiddle = ImGui::DockBuilderSplitNode(dock_main_id, ImGuiDir_Right, 0.8f, nullptr, &dock_main_id);
             
             ImGui::DockBuilderDockWindow("###scene", DockMiddle);
+    
             ImGui::DockBuilderDockWindow("###inspector", DockRight);
             ImGui::DockBuilderDockWindow("###console", DockingBottomLeftChild);
             ImGui::DockBuilderDockWindow("###profiler", DockingBottomLeftChild);
@@ -928,6 +952,11 @@ namespace Lumos
 			return;
 		}
         
+		DebugRenderer::DrawHairLine(Maths::Vector3(-5000.0f, 0.0f, 0.0f), Maths::Vector3(5000.0f, 0.0f, 0.0f), Maths::Vector4(1.0f, 0.0f, 0.0f,1.0f));
+		DebugRenderer::DrawHairLine(Maths::Vector3(0.0f, -5000.0f, 0.0f), Maths::Vector3(0.0f, 5000.0f, 0.0f), Maths::Vector4(0.0f, 1.0f, 0.0f,1.0f));
+		DebugRenderer::DrawHairLine(Maths::Vector3(0.0f, 0.0f, -5000.0f), Maths::Vector3(0.0f, 0.0f, 5000.0f), Maths::Vector4(0.0f, 0.0f, 1.0f,1.0f));
+		
+		
 		m_GridRenderer->BeginScene(Application::Get().GetSceneManager()->GetCurrentScene(), m_EditorCamera.get(), &m_EditorCameraTransform);
 		m_GridRenderer->RenderScene(Application::Get().GetSceneManager()->GetCurrentScene());
 #endif
@@ -1022,6 +1051,7 @@ namespace Lumos
 	void Editor::OnUpdate(const TimeStep& ts)
 	{
 		LUMOS_PROFILE_FUNCTION();
+        
         if(m_Application->GetEditorState() == EditorState::Preview)
         {
 			auto& registry = m_Application->GetSceneManager()->GetCurrentScene()->GetRegistry();
@@ -1343,7 +1373,7 @@ namespace Lumos
 		{
 			if(m_SelectedEntity == currentClosestEntity)
 			{
-				if(timer.GetMS(1.0f) - timeSinceLastSelect < 1.0f)
+				if(timer.GetElapsedS() - timeSinceLastSelect < 1.0f)
 				{
 					auto& trans = registry.get<Maths::Transform>(m_SelectedEntity);
 					auto& model = registry.get<Graphics::Model>(m_SelectedEntity);
@@ -1357,7 +1387,7 @@ namespace Lumos
 				}
 			}
             
-			timeSinceLastSelect = timer.GetMS(1.0f);
+			timeSinceLastSelect = timer.GetElapsedS();
 			m_SelectedEntity = currentClosestEntity;
 			return;
 		}
@@ -1482,7 +1512,7 @@ namespace Lumos
 		if(!m_PreviewTexture)
 		{
 			m_PreviewTexture = Ref<Graphics::Texture2D>(Graphics::Texture2D::Create());
-			m_PreviewTexture->BuildTexture(Graphics::TextureFormat::RGBA32, 200, 200, false, false);
+			m_PreviewTexture->BuildTexture(Graphics::TextureFormat::RGBA8, 200, 200, false, false, false);
             
 			m_PreviewRenderer = CreateRef<Graphics::ForwardRenderer>(200, 200, false);
 			m_PreviewSphere = Ref<Graphics::Mesh>(Graphics::CreateSphere());
@@ -1644,7 +1674,7 @@ namespace Lumos
         else
         {
             std::string physicalPath;
-            if(Lumos::VFS::Get()->ResolvePhysicalPath("/Scenes/" + m_Application->GetCurrentScene()->GetSceneName() + ".lsn", physicalPath))
+            if(Lumos::VFS::Get()->ResolvePhysicalPath("//Scenes/" + m_Application->GetCurrentScene()->GetSceneName() + ".lsn", physicalPath))
             {
                 auto newPath = StringUtilities::RemoveName(physicalPath);
                 m_Application->GetCurrentScene()->Deserialise(newPath, false);

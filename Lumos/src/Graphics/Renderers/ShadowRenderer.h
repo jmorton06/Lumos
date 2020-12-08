@@ -90,15 +90,10 @@ namespace Lumos
 				Lumos::Maths::Matrix4 projView[SHADOWMAP_MAX];
 			};
 
-			struct UniformBufferModel
-			{
-				Lumos::Maths::Matrix4* model;
-			};
-
-			void CreateGraphicsPipeline(Graphics::RenderPass* renderPass);
+			void CreateGraphicsPipeline();
 			void CreateFramebuffers();
 			void CreateUniformBuffer();
-			void UpdateCascades(Scene* scene, Camera* overrideCamera, Maths::Transform* overrideCameraTransform);
+			void UpdateCascades(Scene* scene, Camera* overrideCamera, Maths::Transform* overrideCameraTransform, Light* light);
 
 			void OnImGui() override;
 
@@ -109,17 +104,17 @@ namespace Lumos
 			u32 m_ShadowMapNum;
 			u32 m_ShadowMapSize;
 			bool m_ShadowMapsInvalidated;
-			Framebuffer* m_ShadowFramebuffer[SHADOWMAP_MAX]{};
+			Ref<Framebuffer> m_ShadowFramebuffer[SHADOWMAP_MAX]{};
 			Maths::Matrix4 m_ShadowProjView[SHADOWMAP_MAX];
 			Maths::Vector4 m_SplitDepth[SHADOWMAP_MAX];
 
 			Lumos::Graphics::UniformBuffer* m_UniformBuffer;
-			Lumos::Graphics::UniformBuffer* m_ModelUniformBuffer;
 			Lumos::Graphics::CommandBuffer* m_CommandBuffer = nullptr;
-
+			
 			u32 m_Layer = 0;
-			size_t m_DynamicAlignment = 0;
-			UniformBufferModel uboDataDynamic;
+            float m_CascadeSplitLambda;
+            float m_SceneRadiusMultiplier;
+            bool m_ShouldRender = false;
             
             std::vector<Graphics::PushConstant> m_PushConstants;
 		};

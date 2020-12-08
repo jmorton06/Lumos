@@ -40,7 +40,7 @@ command_list = {
  { .name = "run",
    .out = "*Run - Debug*", .footer_panel = true, .save_dirty_files = false,.cursor_at_end = true,
    .cmd = { { "bin\\Release\\Sandbox.exe", .os = "win"   },
-            { "./bin/debug/x64/Sandbox" , .os = "linux" },
+            { "./Scripts/RunLinux.sh" , .os = "linux" },
             { "./Scripts/RunMacOS.sh" , .os = "mac"   }, }, },
 
  { .name = "gen project",
@@ -53,14 +53,14 @@ command_list = {
    .cmd = { { "Tools\premake5.exe clean", .os = "win"   },
             { "Tools/linux/premake5 clean" , .os = "linux" },
             { "./Scripts/CleanMacOS.sh" , .os = "mac"   }, }, },
- { .name = "buildiOS",
-   .out = "*Build iOS*", .footer_panel = true, .save_dirty_files = false,.cursor_at_end = true,
+ { .name = "build and run release",
+   .out = "*Build And Run - Release*", .footer_panel = true, .save_dirty_files = false,.cursor_at_end = true,
    .cmd = { { "", .os = "win"   },
             { "" , .os = "linux" },
-            { "./Scripts/BuildIOS.sh" , .os = "mac"   }, }, },
+            { "./Scripts/RunMacOS-Release.sh" , .os = "mac"   }, }, },
 	{ .name = "compileShaders",
 		.out = "*Compile Shaders*", .footer_panel = true, .save_dirty_files = false,.cursor_at_end = true,
-		.cmd = { { "Lumos\res\EngineShaders\CompileShadersWindows.bat", .os = "win"   },
+		.cmd = { { "Lumos\res\shaders\CompileShadersWindows.bat", .os = "win"   },
             { "" , .os = "linux" },
             { "./Lumos/res/EngineShaders/CompileShadersMac.sh" , .os = "mac"   }, }, },
 };
@@ -69,4 +69,4 @@ fkey_command[2] = "build";
 fkey_command[3] = "run";
 fkey_command[4] = "clean";
 fkey_command[5] = "compileShaders";
-fkey_command[6] = "buildiOS";
+fkey_command[6] = "build and run release";
