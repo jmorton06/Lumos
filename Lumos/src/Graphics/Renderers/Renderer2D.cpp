@@ -113,7 +113,6 @@ namespace Lumos
 			bufferInfo.size = bufferSize;
 			bufferInfo.type = Graphics::DescriptorType::UNIFORM_BUFFER;
 			bufferInfo.shaderType = ShaderType::VERTEX;
-			bufferInfo.systemUniforms = false;
 			bufferInfo.name = "UniformBufferObject";
 			bufferInfo.binding = 0;
 

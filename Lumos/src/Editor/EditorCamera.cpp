@@ -28,7 +28,7 @@ namespace Lumos
 		{
 			if(Input::GetInput()->GetMouseHeld(InputCode::MouseKey::ButtonRight))
 			{
-				m_MouseSensitivity = 0.005f;
+				m_MouseSensitivity = 0.0005f;
 				Maths::Vector3 position = transform.GetLocalPosition();
 				position.x -= (xpos - m_PreviousCurserPos.x) /** camera->GetScale() */* m_MouseSensitivity * 0.5f;
 				position.y += (ypos - m_PreviousCurserPos.y) /** camera->GetScale() */ *m_MouseSensitivity * 0.5f;
@@ -39,7 +39,7 @@ namespace Lumos
 		{
 			if(Input::GetInput()->GetMouseHeld(InputCode::MouseKey::ButtonRight))
 			{
-				m_MouseSensitivity = 0.03f;
+				m_MouseSensitivity = 0.02f;
 				m_RotateVelocity = m_RotateVelocity + Maths::Vector2((xpos - m_PreviousCurserPos.x), (ypos - m_PreviousCurserPos.y)) * m_MouseSensitivity;
                 //Application::Get().GetWindow()->HideMouse(true);
                // Application::Get().GetWindow()->SetMousePosition(m_PreviousCurserPos);
@@ -56,8 +56,8 @@ namespace Lumos
 			float pitch = euler.x - m_RotateVelocity.y;
 			float yaw = euler.y - m_RotateVelocity.x;
 			
-			pitch = Maths::Min(pitch, 89.0f);
-			pitch = Maths::Max(pitch, -89.0f);
+			pitch = Maths::Min(pitch, 84.0f);
+			pitch = Maths::Max(pitch, -84.0f);
             m_PreviousCurserPos = Maths::Vector2(xpos, ypos);
 
 			transform.SetLocalOrientation(Maths::Quaternion::EulerAnglesToQuaternion(pitch, yaw, 0.0f));

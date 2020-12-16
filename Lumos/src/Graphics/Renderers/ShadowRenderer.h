@@ -95,7 +95,15 @@ namespace Lumos
 			void CreateUniformBuffer();
 			void UpdateCascades(Scene* scene, Camera* overrideCamera, Maths::Transform* overrideCameraTransform, Light* light);
 
+            const Lumos::Maths::Matrix4& GetLightView() const { return m_LightMatrix; }
+            
 			void OnImGui() override;
+            
+            float GetLightSize() { return m_LightSize; }
+            float GetMaxShadowDistance() { return m_MaxShadowDistance; }
+            float GetShadowFade() { return m_ShadowFade; }
+            float GetCascadeTransitionFade() { return m_CascadeTransitionFade; }
+            float GetInitialBias() { return m_InitialBias; }
 
 		protected:
 			void SetSystemUniforms(Shader* shader);
@@ -107,6 +115,7 @@ namespace Lumos
 			Ref<Framebuffer> m_ShadowFramebuffer[SHADOWMAP_MAX]{};
 			Maths::Matrix4 m_ShadowProjView[SHADOWMAP_MAX];
 			Maths::Vector4 m_SplitDepth[SHADOWMAP_MAX];
+            Maths::Matrix4 m_LightMatrix;
 
 			Lumos::Graphics::UniformBuffer* m_UniformBuffer;
 			Lumos::Graphics::CommandBuffer* m_CommandBuffer = nullptr;
@@ -115,6 +124,12 @@ namespace Lumos
             float m_CascadeSplitLambda;
             float m_SceneRadiusMultiplier;
             bool m_ShouldRender = false;
+            
+            float m_LightSize;
+            float m_MaxShadowDistance;
+            float m_ShadowFade;
+            float m_CascadeTransitionFade;
+            float m_InitialBias;
             
             std::vector<Graphics::PushConstant> m_PushConstants;
 		};

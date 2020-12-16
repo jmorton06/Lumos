@@ -29,6 +29,7 @@
 
 #define MAX_LIGHTS 32
 #define MAX_SHADOWMAPS 16
+#define MAX_BONES 100
 
 namespace Lumos
 {
@@ -57,6 +58,7 @@ namespace Lumos
 		DeferredOffScreenRenderer::~DeferredOffScreenRenderer()
 		{
 			delete m_UniformBuffer;
+            delete m_AnimUniformBuffer;
 			delete m_DeferredCommandBuffers;
 			delete m_DefaultMaterial;
 
@@ -74,6 +76,8 @@ namespace Lumos
 		{
 			LUMOS_PROFILE_FUNCTION();
 			m_Shader = Application::Get().GetShaderLibrary()->GetResource("/CoreShaders/DeferredColour.shader");
+            m_AnimatedShader = Application::Get().GetShaderLibrary()->GetResource("/CoreShaders/DeferredColourAnim.shader");
+
 			m_DefaultMaterial = new Material();
 
 			Graphics::MaterialProperties properties;
@@ -89,6 +93,7 @@ namespace Lumos
 			const size_t minUboAlignment = size_t(Graphics::Renderer::GetCapabilities().UniformBufferOffsetAlignment);
 
 			m_UniformBuffer = nullptr;
+            m_AnimUniformBuffer = nullptr;
 
 			m_CommandQueue.reserve(1000);
 
@@ -99,6 +104,11 @@ namespace Lumos
 			m_VSSystemUniformBuffer = new u8[m_VSSystemUniformBufferSize];
 			memset(m_VSSystemUniformBuffer, 0, m_VSSystemUniformBufferSize);
 			m_VSSystemUniformBufferOffsets.resize(VSSystemUniformIndex_Size);
+            
+            //Animated Vertex shader uniform
+            m_VSSystemUniformBufferAnimSize = sizeof(Maths::Matrix4) * MAX_BONES;
+            m_VSSystemUniformBufferAnim = new u8[m_VSSystemUniformBufferAnimSize];
+            memset(m_VSSystemUniformBufferAnim, 0, m_VSSystemUniformBufferAnimSize);
 
 			// Per Scene System Uniforms
 			m_VSSystemUniformBufferOffsets[VSSystemUniformIndex_ProjectionViewMatrix] = 0;
@@ -271,6 +281,8 @@ namespace Lumos
 		{
 			LUMOS_PROFILE_FUNCTION();
 			m_UniformBuffer->SetData(m_VSSystemUniformBufferSize, *&m_VSSystemUniformBuffer);
+            //Move as per mesh
+            m_AnimUniformBuffer->SetData(m_VSSystemUniformBufferAnimSize, *&m_VSSystemUniformBufferAnim);
 		}
 
 		void DeferredOffScreenRenderer::Present()
@@ -323,6 +335,26 @@ namespace Lumos
 			pipelineCreateInfo.depthBiasEnabled = false;
 
 			m_Pipeline = Graphics::Pipeline::Get(pipelineCreateInfo);
+            
+            Graphics::BufferLayout vertexBufferLayoutAnim;
+            vertexBufferLayoutAnim.Push<Maths::Vector3>("position");
+            vertexBufferLayoutAnim.Push<Maths::Vector4>("colour");
+            vertexBufferLayoutAnim.Push<Maths::Vector2>("uv");
+            vertexBufferLayoutAnim.Push<Maths::Vector3>("normal");
+            vertexBufferLayoutAnim.Push<Maths::Vector3>("tangent");
+            vertexBufferLayoutAnim.Push<Maths::IntVector4>("boneIndices");
+            vertexBufferLayoutAnim.Push<Maths::Vector4>("boneWeights");
+            
+            Graphics::PipelineInfo pipelineCreateInfoAnim{};
+            pipelineCreateInfoAnim.shader = m_AnimatedShader;
+            pipelineCreateInfoAnim.renderpass = m_RenderPass;
+            pipelineCreateInfoAnim.vertexBufferLayout = vertexBufferLayoutAnim;
+            pipelineCreateInfoAnim.polygonMode = Graphics::PolygonMode::FILL;
+            pipelineCreateInfoAnim.cullMode = Graphics::CullMode::BACK;
+            pipelineCreateInfoAnim.transparencyEnabled = false;
+            pipelineCreateInfoAnim.depthBiasEnabled = false;
+
+            m_AnimatedPipeline = Graphics::Pipeline::Get(pipelineCreateInfoAnim);
 		}
 
 		void DeferredOffScreenRenderer::CreateBuffer()
@@ -335,6 +367,14 @@ namespace Lumos
 				uint32_t bufferSize = m_VSSystemUniformBufferSize;
 				m_UniformBuffer->Init(bufferSize, nullptr);
 			}
+            
+            if(m_AnimUniformBuffer == nullptr)
+            {
+                m_AnimUniformBuffer = Graphics::UniformBuffer::Create();
+
+                uint32_t bufferSize = m_VSSystemUniformBufferAnimSize;
+                m_AnimUniformBuffer->Init(bufferSize, nullptr);
+            }
 
 			std::vector<Graphics::BufferInfo> bufferInfos;
 
@@ -345,11 +385,23 @@ namespace Lumos
 			bufferInfo.type = Graphics::DescriptorType::UNIFORM_BUFFER;
 			bufferInfo.binding = 0;
 			bufferInfo.shaderType = ShaderType::VERTEX;
-			bufferInfo.systemUniforms = true;
 			bufferInfo.name = "UniformBufferObject";
 			bufferInfos.push_back(bufferInfo);
 
 			m_Pipeline->GetDescriptorSet()->Update(bufferInfos);
+            
+            Graphics::BufferInfo bufferInfoAnim = {};
+            bufferInfoAnim.buffer = m_AnimUniformBuffer;
+            bufferInfoAnim.offset = 0;
+            bufferInfoAnim.size = m_VSSystemUniformBufferAnimSize;
+            bufferInfoAnim.type = Graphics::DescriptorType::UNIFORM_BUFFER;
+            bufferInfoAnim.binding = 1;
+            bufferInfoAnim.shaderType = ShaderType::VERTEX;
+            bufferInfoAnim.name = "UniformBufferObjectAnim";
+            bufferInfos.push_back(bufferInfoAnim);
+            
+            m_AnimatedPipeline->GetDescriptorSet()->Update(bufferInfos);
+
 		}
 
 		void DeferredOffScreenRenderer::CreateFramebuffer()

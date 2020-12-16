@@ -25,8 +25,8 @@ for SRC in *.vert *.frag *.comp; do
                 echo "Compiling $OUT from:"
 
                 $COMPILER -V "$SRC" -o "$OUT"
-            else
-                echo "(Unchanged $SRC)"
+            #else
+               # echo "(Unchanged $SRC)"
             fi
         else
             echo "Compiling $OUT from:"

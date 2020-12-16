@@ -2535,19 +2535,19 @@
                     "Frames": [
                         {
                             "value0": 0.0,
-                            "value1": 42.0
+                            "value1": 32.0
                         },
                         {
                             "value0": 32.0,
-                            "value1": 42.0
+                            "value1": 32.0
                         },
                         {
                             "value0": 64.0,
-                            "value1": 42.0
+                            "value1": 32.0
                         },
                         {
                             "value0": 96.0,
-                            "value1": 42.0
+                            "value1": 32.0
                         }
                     ],
                     "FrameDuration": 0.10000000149011612
@@ -2604,7 +2604,7 @@
                 }
             }
         ],
-        "State": "RunLeft"
+        "State": "RunRight"
     },
     "value273": 0
 }

@@ -55,6 +55,10 @@ namespace Lumos
 		void LUMOS_EXPORT BufferLayout::Push<Maths::Vector3>(const std::string& name, bool normalized);
 		template<>
 		void LUMOS_EXPORT BufferLayout::Push<Maths::Vector4>(const std::string& name, bool normalized);
+        template<>
+        void LUMOS_EXPORT BufferLayout::Push<Maths::IntVector3>(const std::string& name, bool normalized);
+        template<>
+        void LUMOS_EXPORT BufferLayout::Push<Maths::IntVector4>(const std::string& name, bool normalized);
 
 	}
 }
