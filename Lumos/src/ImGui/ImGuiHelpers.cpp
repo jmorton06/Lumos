@@ -297,7 +297,7 @@ namespace Lumos
 		ImVec4 blue = ImVec4(0.0f, 0.0f, 1.0f, 1.0f);
 		ImVec4 red = ImVec4(1.0f, 0.0f, 0.0f, 1.0f);
 
-		ImVec4 Titlebar = ImVec4(30.0f / max, 37.0f / max, 50.0f / max, 1.0f);
+		ImVec4 Titlebar = ImVec4(50.0f / max, 57.0f / max, 90.0f / max, 1.0f);
 		ImVec4 TabActive = ImVec4(48.0f / max, 59.0f / max, 81.0f / max, 1.0f);
 		ImVec4 windowBackground = ImVec4(28.0f / max, 40.0f / max, 64.0f / max, 1.0f);
         TabActive = windowBackground;
@@ -411,9 +411,9 @@ namespace Lumos
 			colours[ImGuiCol_NavWindowingDimBg] = ImVec4(0.80f, 0.80f, 0.80f, 0.20f);
 			colours[ImGuiCol_ModalWindowDimBg] = ImVec4(0.80f, 0.80f, 0.80f, 0.35f);
 
-			colours[ImGuiCol_Header] = TabActive;
+			colours[ImGuiCol_Header] = TabActive + ImVec4(0.1f, 0.1f, 0.1f, 0.1f);
 			colours[ImGuiCol_HeaderHovered] = TabActive + ImVec4(0.1f, 0.1f, 0.1f, 0.1f);
-			colours[ImGuiCol_HeaderActive] = TabActive;
+			colours[ImGuiCol_HeaderActive] = TabActive + ImVec4(0.05f, 0.05f, 0.05f, 0.1f);
 
 #ifdef IMGUI_HAS_DOCK
 
@@ -655,9 +655,9 @@ namespace Lumos
 		colours[ImGuiCol_SeparatorActive] = colours[ImGuiCol_Separator];
 		colours[ImGuiCol_SeparatorHovered] = colours[ImGuiCol_Separator];
         
-        //colours[ImGuiCol_WindowBg] = colours[ImGuiCol_TabActive];
-        colours[ImGuiCol_Tab] = colours[ImGuiCol_WindowBg];
-        colours[ImGuiCol_TabUnfocused] = colours[ImGuiCol_WindowBg];;
+        colours[ImGuiCol_Tab] = colours[ImGuiCol_MenuBarBg];
+        colours[ImGuiCol_TabUnfocused] = colours[ImGuiCol_MenuBarBg];
+        
         colours[ImGuiCol_TabUnfocusedActive] = colours[ImGuiCol_WindowBg];
         colours[ImGuiCol_TabActive] = colours[ImGuiCol_WindowBg];
         colours[ImGuiCol_ChildBg] = colours[ImGuiCol_TabActive];
@@ -667,6 +667,7 @@ namespace Lumos
         colours[ImGuiCol_TitleBgCollapsed] = colours[ImGuiCol_TitleBg];
         colours[ImGuiCol_MenuBarBg] = colours[ImGuiCol_TitleBg];
         colours[ImGuiCol_Separator] = colours[ImGuiCol_TitleBg];
+        colours[ImGuiCol_PopupBg] = colours[ImGuiCol_WindowBg];
         
         colours[ImGuiCol_Border] = ImVec4(0.08f, 0.10f, 0.12f, 0.00f);
         colours[ImGuiCol_BorderShadow] = ImVec4(0.00f, 0.00f, 0.00f, 0.00f);

@@ -61,6 +61,12 @@ namespace Lumos
 			Material* m_DefaultMaterial;
 
 			UniformBuffer* m_UniformBuffer;
+            
+            Ref<Shader> m_AnimatedShader = nullptr;
+            Ref<Lumos::Graphics::Pipeline> m_AnimatedPipeline;
+            UniformBuffer* m_AnimUniformBuffer;
+            u8* m_VSSystemUniformBufferAnim = nullptr;
+            u32 m_VSSystemUniformBufferAnimSize = 0;
 
 			CommandBuffer* m_DeferredCommandBuffers;
 

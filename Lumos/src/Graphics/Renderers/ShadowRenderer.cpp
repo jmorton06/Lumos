@@ -44,19 +44,20 @@ namespace Lumos
 			, m_ShadowMapSize(shadowMapSize)
 			, m_ShadowMapsInvalidated(true)
 			, m_UniformBuffer(nullptr)
-            , m_CascadeSplitLambda(0.95f)
+            , m_CascadeSplitLambda(0.91f)
             , m_SceneRadiusMultiplier(1.4f)
 		{
 			m_Shader = Application::Get().GetShaderLibrary()->GetResource("/CoreShaders/Shadow.shader");
-			if(texture == nullptr)
-			{
-				m_ShadowTex = TextureDepthArray::Create(m_ShadowMapSize, m_ShadowMapSize, m_ShadowMapNum);
-			}
-			else
-				m_ShadowTex = texture;
+            m_ShadowTex = texture ? texture : TextureDepthArray::Create(m_ShadowMapSize, m_ShadowMapSize, m_ShadowMapNum);
 
 			m_DescriptorSet = nullptr;
             m_ScreenRenderer = false;
+            
+            m_LightSize = 0.25f;
+            m_MaxShadowDistance = 400.0f;
+            m_ShadowFade = 25.0f;
+            m_CascadeTransitionFade = 1.0f;
+            m_InitialBias = 0.0005f;
 
 			ShadowRenderer::Init();
 		}
@@ -95,8 +96,9 @@ namespace Lumos
 			m_VSSystemUniformBufferOffsets[VSSystemUniformIndex_ProjectionViewMatrix] = 0;
 
 			AttachmentInfo textureTypes[1] =
-				{
-					{TextureType::DEPTHARRAY, TextureFormat::DEPTH}};
+            {
+                {TextureType::DEPTHARRAY, TextureFormat::DEPTH}
+            };
 
 			Graphics::RenderPassInfo renderpassCI{};
 			renderpassCI.attachmentCount = 1;
@@ -416,6 +418,9 @@ namespace Lumos
 					// Store split distance and matrix in cascade
 					m_SplitDepth[i] = Maths::Vector4((m_Camera->GetNear() + splitDist * clipRange) * -1.0f);
 					m_ShadowProjView[i] = shadowProj;
+                
+                    if(i == 0)
+                        m_LightMatrix = lightViewMatrix.Inverse();
 				}
 #ifdef THREAD_CASCADE_GEN
 			);
@@ -496,7 +501,6 @@ namespace Lumos
 			bufferInfo.type = Graphics::DescriptorType::UNIFORM_BUFFER;
 			bufferInfo.binding = 0;
 			bufferInfo.shaderType = ShaderType::VERTEX;
-			bufferInfo.systemUniforms = false;
 
 			bufferInfos.push_back(bufferInfo);
 
@@ -553,7 +557,13 @@ namespace Lumos
 
 				ImGui::TreePop();
 			}
-                        
+            
+            ImGui::DragFloat("Initial Bias", &m_InitialBias, 0.00005f, 0.0f, 1.0f, "%.6f");
+            ImGui::DragFloat("Light Size", &m_LightSize, 0.00005f, 0.0f, 1.0f);
+            ImGui::DragFloat("Max Shadow Distance", &m_MaxShadowDistance, 0.05f, 0.0f, 10000.0f);
+            ImGui::DragFloat("Shadow Fade", &m_ShadowFade, 0.0005f, 0.0f, 500.0f);
+            ImGui::DragFloat("Cascade Transition Fade", &m_CascadeTransitionFade, 0.0005f, 0.0f, 5.0f);
+
             ImGui::DragFloat("Cascade Split Lambda", &m_CascadeSplitLambda, 0.005f, 0.0f, 3.0f);
             ImGui::DragFloat("Scene Radius Multiplier", &m_SceneRadiusMultiplier, 0.005f, 0.0f, 5.0f);
 

@@ -244,7 +244,6 @@ namespace Lumos
 			bufferInfo.type = Graphics::DescriptorType::UNIFORM_BUFFER;
 			bufferInfo.binding = 0;
 			bufferInfo.shaderType = ShaderType::VERTEX;
-			bufferInfo.systemUniforms = true;
 
 			bufferInfos.push_back(bufferInfo);
 

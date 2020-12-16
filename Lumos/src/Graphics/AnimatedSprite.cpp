@@ -125,5 +125,7 @@ namespace Lumos::Graphics
 		{
 			LUMOS_LOG_ERROR("Animated Sprite does not contain state {0}", state);
 		}
+        
+        m_UVs = GetAnimatedUVs();
 	}
 }

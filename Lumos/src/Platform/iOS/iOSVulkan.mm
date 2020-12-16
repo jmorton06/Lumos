@@ -36,10 +36,13 @@ namespace Lumos
 		return surface;
 	}
 
+#if 0
     static const char* GetPlatformSurfaceExtension()
 	{
 		return VK_MVK_IOS_SURFACE_EXTENSION_NAME;
 	}
+#endif
+
 }
 
 #endif

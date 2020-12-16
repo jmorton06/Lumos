@@ -250,7 +250,6 @@ namespace Lumos
 			bufferInfo.type = Graphics::DescriptorType::UNIFORM_BUFFER;
 			bufferInfo.binding = 0;
 			bufferInfo.shaderType = ShaderType::VERTEX;
-			bufferInfo.systemUniforms = true;
             
 			if(m_UniformBufferFrag == nullptr)
 			{
@@ -267,7 +266,6 @@ namespace Lumos
 			bufferInfo2.type = Graphics::DescriptorType::UNIFORM_BUFFER;
 			bufferInfo2.binding = 1;
 			bufferInfo2.shaderType = ShaderType::FRAGMENT;
-			bufferInfo2.systemUniforms = false;
             
 			bufferInfos.push_back(bufferInfo);
 			bufferInfos.push_back(bufferInfo2);

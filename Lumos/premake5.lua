@@ -74,15 +74,20 @@ project "Lumos"
 		"FREEIMAGE_LIB",
 		"LUMOS_DYNAMIC",
 		"LUMOS_ROOT_DIR="  .. root_dir,
-	"IMGUI_USER_CONFIG=\"src/ImGui/ImConfig.h\"",
-	"LUMOS_PROFILE",
-	"TRACY_ENABLE",
+		"IMGUI_USER_CONFIG=\"src/ImGui/ImConfig.h\"",
+		"LUMOS_PROFILE",
+		"TRACY_ENABLE",
 	}
+
+	filter 'architecture:x86_64'
+		defines { "LUMOS_SSE" ,"USE_VMA_ALLOCATOR"}
 
 	filter "system:windows"
 		cppdialect "C++17"
 		staticruntime "on"
 		systemversion "latest"
+		disablewarnings { 4307 }
+		characterset ("MBCS")
 
 		pchheader "Precompiled.h"
 		pchsource "src/Precompiled.cpp"
@@ -131,15 +136,7 @@ project "Lumos"
 		buildoptions
 		{
 			"/MP", "/bigobj"
-}
-
-if _OPTIONS["arch"] ~= "arm" then
-defines { "LUMOS_SSE" ,"USE_VMA_ALLOCATOR"}
-end
-
-		disablewarnings { 4307 }
-
-		characterset ("MBCS")
+		}
 
 		filter 'files:external/**.cpp'
 			flags  { 'NoPCH' }
@@ -205,27 +202,25 @@ end
 		buildoptions
 		{
 			"-Wno-attributes",
-	"-Wno-nullability-completeness",
-	"-fdiagnostics-absolute-paths"
-}
+			"-Wno-nullability-completeness",
+			"-fdiagnostics-absolute-paths"
+		}
 
-SetRecommendedXcodeSettings()
+		SetRecommendedXcodeSettings()
 
-if _OPTIONS["arch"] ~= "arm" then
-defines { "LUMOS_SSE" ,"USE_VMA_ALLOCATOR"}
-xcodebuildsettings
-{
-	ARCHS="x86_64"
-}
-else
-xcodebuildsettings
-{
-	ARCHS="arm64"
-}
-end
+		filter { 'system:macosx', 'architecture:x86_64' }
+			xcodebuildsettings
+			{
+				ARCHS="x86_64"
+			}
+		filter { 'system:macosx', 'architecture:ARM'}
+			xcodebuildsettings
+			{
+				ARCHS="arm64"
+			}
 
-pchheader "../Lumos/src/Precompiled.h"
-pchsource "../Lumos/src/Precompiled.cpp"
+		pchheader "../Lumos/src/Precompiled.h"
+		pchsource "../Lumos/src/Precompiled.cpp"
 
 		filter 'files:external/**.cpp'
 			flags  { 'NoPCH' }
@@ -367,14 +362,11 @@ pchsource "../Lumos/src/Precompiled.cpp"
 		filter 'files:src/**.c'
 			flags  { 'NoPCH' }
 
-		if _OPTIONS["arch"] ~= "arm" then
+		filter {'system:linux', 'architecture:x86_64'}
 			buildoptions
 			{
 				"-msse4.1",
 			}
-
-			defines { "LUMOS_SSE" ,"USE_VMA_ALLOCATOR"}
-		end
 
 	filter "configurations:Debug"
 		defines { "LUMOS_DEBUG", "_DEBUG" }
@@ -387,7 +379,7 @@ pchsource "../Lumos/src/Precompiled.cpp"
 		symbols "On"
 		runtime "Release"
 
-		filter "configurations:Production"
+	filter "configurations:Production"
 		defines "LUMOS_PRODUCTION"
 		symbols "Off"
 		optimize "Full"
