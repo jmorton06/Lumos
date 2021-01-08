@@ -1,6 +1,7 @@
 require 'Scripts/premake-defines'
 require 'Scripts/premake-common'
 require 'Scripts/premake-triggers'
+require 'Scripts/premake-settings'
 require 'Scripts/premake-vscode/vscode'
 
 root_dir = os.getcwd()
@@ -19,7 +20,7 @@ else
 	end
 end
 
-workspace "Lumos"
+workspace( settings.workspace_name )
 	location "build"
 	flags { 'MultiProcessorCompile' }
 	
@@ -65,18 +66,7 @@ workspace "Lumos"
 
 	include "Lumos/premake5"
 	include "Sandbox/premake5"
+	include "LumosEditor/premake5"
 
-workspace("Lumos")
+workspace( settings.workspace_name )
 	startproject("Sandbox")
-newaction
-{
-	trigger     = "clean",
-	description = "clean the software",
-	execute     = function ()
-		print("clean the build...")
-		os.rmdir("./build")
-		os.rmdir("./bin")
-		os.rmdir("./bin-int")
-		print("done.")
-	end
-}

@@ -4,7 +4,7 @@ function SetRecommendedXcodeSettings()
    xcodebuildsettings
    {
 		['ARCHS'] = false,
-		['GCC_ENABLE_FIX_AND_CONTIUE'] = 0,
+		['GCC_ENABLE_FIX_AND_CONTINUE'] = false,
 	  	['CLANG_WARN_EMPTY_BODY'] = 'YES',
 	  	['CLANG_ENABLE_OBJC_WEAK'] = 'YES',
 	  	['GCC_WARN_UNUSED_FUNCTION'] = 'YES',
@@ -86,8 +86,9 @@ function SetRecommendedXcodeSettings()
 		}
 	filter{"system:macosx"}
 		xcodebuildsettings 
-		{
-			["MACOSX_DEPLOYMENT_TARGET"] = "10.15"
+  {   ['ONLY_ACTIVE_ARCH'] = 'YES',
+	["MACOSX_DEPLOYMENT_TARGET"] = "10.15",
+		['ARCHS'] = 'x86_64'
 		}
 
 	filter {"system:ios"}

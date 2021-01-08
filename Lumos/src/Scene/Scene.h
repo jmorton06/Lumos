@@ -83,11 +83,14 @@ namespace Lumos
 		{
 			m_ScreenHeight = height;
 		}
+		
+		void SetScreenSize(u32 width, u32 height);
 
 		u32 GetScreenWidth() const
 		{
 			return m_ScreenWidth;
 		}
+		
 		u32 GetScreenHeight() const
 		{
 			return m_ScreenHeight;

@@ -50,11 +50,13 @@ namespace Lumos
             sol::meta_function::subtraction, sol::overload(
                 static_cast<Maths::Vector3(Maths::Vector3::*)(const Maths::Vector3&) const>(&Maths::Vector3::operator-)
             ),
+            sol::meta_function::unary_minus, []( Maths::Vector3& v ) -> Maths::Vector3 { return -v; },
             sol::meta_function::division, sol::overload(
                 static_cast<Maths::Vector3(Maths::Vector3::*)(float) const>(&Maths::Vector3::operator/),
                 static_cast<Maths::Vector3(Maths::Vector3::*)(const Maths::Vector3&) const>(&Maths::Vector3::operator/)
             ),
             sol::meta_function::equal_to, &Maths::Vector3::operator==
+
             );
 
         state.new_usertype<Maths::Vector4>("Vector4",
@@ -140,7 +142,8 @@ namespace Lumos
             "SetLocalScale", &Maths::Transform::SetLocalScale,
             "SetLocalOrientation", &Maths::Transform::SetLocalOrientation,
             "GetWorldPosition", &Maths::Transform::GetWorldPosition,
-            "GetWorldOrientation", &Maths::Transform::GetWorldOrientation
+            "GetWorldOrientation", &Maths::Transform::GetWorldOrientation,
+            "GetForwardDirection", &Maths::Transform::GetForwardDirection
             );
     }
 }

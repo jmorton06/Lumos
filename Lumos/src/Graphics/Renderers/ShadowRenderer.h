@@ -31,7 +31,7 @@ namespace Lumos
 		class LUMOS_EXPORT ShadowRenderer : public IRenderer
 		{
 		public:
-			ShadowRenderer(TextureDepthArray* texture = nullptr, u32 shadowMapSize = 2048, u32 numMaps = 4);
+			ShadowRenderer(TextureDepthArray* texture = nullptr, u32 shadowMapSize = 4096, u32 numMaps = 4);
 			~ShadowRenderer();
 
 			ShadowRenderer(ShadowRenderer const&) = delete;

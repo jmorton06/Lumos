@@ -1,5 +1,4 @@
 #pragma once
-
 #include "Maths/Matrix3.h"
 #include "Maths/Matrix4.h"
 #include "Maths/Plane.h"

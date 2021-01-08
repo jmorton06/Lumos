@@ -53,11 +53,11 @@ namespace Lumos
 			m_DescriptorSet = nullptr;
             m_ScreenRenderer = false;
             
-            m_LightSize = 0.25f;
+            m_LightSize = 0.1f;
             m_MaxShadowDistance = 400.0f;
-            m_ShadowFade = 25.0f;
-            m_CascadeTransitionFade = 1.0f;
-            m_InitialBias = 0.0005f;
+            m_ShadowFade = 40.0f;
+            m_CascadeTransitionFade = 1.5f;
+            m_InitialBias = 0.0023f;
 
 			ShadowRenderer::Init();
 		}

@@ -24,11 +24,17 @@ class Game : public Application
 	{
 		Application::Init();
         
+        Application::Get().GetWindow()->SetEventCallback(BIND_EVENT_FN(Game::OnEvent));
         GetSceneManager()->EnqueueScene<Scene3D>(std::string("Physics"));
 		GetSceneManager()->EnqueueScene<SceneModelViewer>(std::string("SceneModelViewer"));
 		GetSceneManager()->EnqueueScene<GraphicsScene>(std::string("Terrain"));
 		GetSceneManager()->EnqueueScene<MaterialTest>(std::string("Material"));
 	}
+    
+    void OnEvent(Event& e) override
+    {
+        Application::OnEvent(e);
+    }
 };
 
 Lumos::Application* Lumos::CreateApplication()

@@ -1,6 +1,5 @@
 #include "Precompiled.h"
 #include "EditorCamera.h"
-#include "Editor.h"
 #include "Graphics/Camera/Camera.h"
 #include "Core/Application.h"
 #include "Core/OS/Input.h"

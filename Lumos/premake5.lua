@@ -208,17 +208,6 @@ project "Lumos"
 
 		SetRecommendedXcodeSettings()
 
-		filter { 'system:macosx', 'architecture:x86_64' }
-			xcodebuildsettings
-			{
-				ARCHS="x86_64"
-			}
-		filter { 'system:macosx', 'architecture:ARM'}
-			xcodebuildsettings
-			{
-				ARCHS="arm64"
-			}
-
 		pchheader "../Lumos/src/Precompiled.h"
 		pchsource "../Lumos/src/Precompiled.cpp"
 

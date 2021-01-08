@@ -112,7 +112,7 @@ project "Sandbox"
 		{
 			['ARCHS'] = false,
 			['CODE_SIGN_IDENTITY'] = 'Mac Developer',
-			['PRODUCT_BUNDLE_IDENTIFIER'] = 'com.jmorton06',
+			['PRODUCT_BUNDLE_IDENTIFIER'] = settings.bundle_identifier,
 			['DEVELOPMENT_TEAM'] = 'C5L4T5BF6L',
 			['INFOPLIST_FILE'] = '../Lumos/src/Platform/macOS/Info.plist',
 			['ASSETCATALOG_COMPILER_APPICON_NAME'] = 'AppIcon'
@@ -153,17 +153,6 @@ project "Sandbox"
 		}
 
 		SetRecommendedXcodeSettings()
-
-		filter {'system:macosx', 'architecture:x86_64'}
-			xcodebuildsettings
-			{
-				ARCHS="x86_64"
-			}
-		filter {'system:macosx', 'architecture:ARM'}
-			xcodebuildsettings
-			{
-				ARCHS="arm64"
-			}
 
 	filter "system:ios"
 		cppdialect "C++17"
@@ -226,7 +215,7 @@ project "Sandbox"
 			['SUPPORTED_PLATFORMS'] = 'iphonesimulator iphoneos',
 			['CODE_SIGN_IDENTITY[sdk=iphoneos*]'] = 'iPhone Developer',
 			['IPHONEOS_DEPLOYMENT_TARGET'] = '13.0',
-			['PRODUCT_BUNDLE_IDENTIFIER'] = 'com.jmorton06',
+			['PRODUCT_BUNDLE_IDENTIFIER'] = settings.bundle_identifier,
 			['DEVELOPMENT_TEAM'] = 'C5L4T5BF6L',
 			['INFOPLIST_FILE'] = '../Lumos/src/Platform/iOS/Client/Info.plist',
 			['ASSETCATALOG_COMPILER_APPICON_NAME'] = 'AppIcon',

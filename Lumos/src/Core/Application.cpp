@@ -4,7 +4,6 @@
 #include "Scene/Scene.h"
 #include "Scene/SceneManager.h"
 #include "Engine.h"
-#include "Editor/Editor.h"
 #include "Utilities/Timer.h"
 
 #include "Graphics/API/Renderer.h"
@@ -75,9 +74,6 @@ namespace Lumos
 
 		Deserialise(FilePath);
 
-#ifdef LUMOS_EDITOR
-		m_Editor = new Editor(this, Width, Height);
-#endif
 		Engine::Get();
 
 		m_Timer = CreateUniqueRef<Timer>();
@@ -93,11 +89,9 @@ namespace Lumos
 		windowProperties.VSync = VSync;
 		
 		m_Window = UniqueRef<Window>(Window::Create(windowProperties));
-#ifndef LUMOS_EDITOR
 		m_Window->SetEventCallback(BIND_EVENT_FN(Application::OnEvent));
-#else
-		m_Editor->BindEventFunction();
-#endif
+        
+        m_EditorState = EditorState::Play;
 
 		ImGui::CreateContext();
 		ImGui::StyleColorsDark();
@@ -107,6 +101,20 @@ namespace Lumos
 	{
 		LUMOS_PROFILE_FUNCTION();
 		ImGui::DestroyContext();
+	}
+	
+	void Application::OpenProject(const std::string& filePath)
+	{
+        FilePath = filePath;
+        
+#ifndef LUMOS_PLATFORM_IOS
+		auto projectRoot = StringUtilities::GetFileLocation(filePath);
+        VFS::Get()->Mount("Meshes",  projectRoot + std::string("/res/meshes"));
+        VFS::Get()->Mount("Textures", projectRoot +  std::string("/res/textures"));
+        VFS::Get()->Mount("Sounds", projectRoot + std::string("/res/sounds"));
+        VFS::Get()->Mount("Scripts", projectRoot + std::string("/res/scripts"));
+        VFS::Get()->Mount("Scenes", projectRoot + std::string("/res/scenes"));
+		#endif
 	}
 
 	Scene* Application::GetCurrentScene() const
@@ -120,7 +128,7 @@ namespace Lumos
 		LUMOS_PROFILE_FUNCTION();
 		// Initialise the Window
 		if(!m_Window->HasInitialised())
-			Quit(true, "Window failed to initialise!");
+			Quit();
 
 		u32 screenWidth = m_Window->GetWidth();
 		u32 screenHeight = m_Window->GetHeight();
@@ -148,16 +156,15 @@ namespace Lumos
 
 		m_SystemManager->RegisterSystem<LumosPhysicsEngine>();
 		m_SystemManager->RegisterSystem<B2PhysicsEngine>();
+		
+		Application::Get().GetSystem<LumosPhysicsEngine>()->SetPaused(false);
+		Application::Get().GetSystem<B2PhysicsEngine>()->SetPaused(false);
         
 		Graphics::Material::InitDefaultTexture();
         
         m_SceneManager->LoadCurrentList();
 
 		m_CurrentState = AppState::Running;
-
-#ifdef LUMOS_EDITOR
-		m_Editor->OnInit();
-#endif
 
 		DebugRenderer::Init(screenWidth, screenHeight);
             
@@ -172,7 +179,7 @@ namespace Lumos
         m_RenderGraph->AddRenderer(new Graphics::Renderer2D(screenWidth, screenHeight, false, false, true));
 	}
 
-	int Application::Quit(bool pause, const std::string& reason)
+	void Application::Quit()
 	{
 		LUMOS_PROFILE_FUNCTION();
 		Serialise(FilePath);
@@ -180,9 +187,6 @@ namespace Lumos
 		Engine::Release();
 		Input::Release();
 		DebugRenderer::Release();
-#ifdef LUMOS_EDITOR
-        m_Editor->SaveEditorSettings();
-#endif
 
 		m_ShaderLibrary.reset();
 		m_SceneManager.reset();
@@ -191,32 +195,17 @@ namespace Lumos
 
 		delete m_ImGuiManager;
         
-#ifdef LUMOS_EDITOR
-		delete m_Editor;
-#endif
-        
 		Graphics::Renderer::Release();
         Graphics::Pipeline::ClearCache();
         Graphics::RenderPass::ClearCache();
         Graphics::Framebuffer::ClearCache();
 		
         m_Window.reset();
-
-		if(pause)
-		{
-			LUMOS_LOG_ERROR("{0}", reason);
-		}
-
-		return 0;
 	}
 
 	Maths::Vector2 Application::GetWindowSize() const
 	{
-#ifdef LUMOS_EDITOR
-		return Maths::Vector2(static_cast<float>(m_SceneViewWidth), static_cast<float>(m_SceneViewHeight));
-#else
 		return Maths::Vector2(static_cast<float>(m_Window->GetWidth()), static_cast<float>(m_Window->GetHeight()));
-#endif
 	}
 
 	bool Application::OnFrame()
@@ -244,7 +233,7 @@ namespace Lumos
 			
 			{
 				LUMOS_PROFILE_SCOPE("Application::SceneSwitch");
-            m_SceneManager->ApplySceneSwitch();
+                m_SceneManager->ApplySceneSwitch();
 			}
 			{
 				LUMOS_PROFILE_SCOPE("Application::ImGui::NewFrame");
@@ -261,6 +250,7 @@ namespace Lumos
 			{
 				LUMOS_PROFILE_SCOPE("Application::Render");
 				OnRender();
+                Graphics::Renderer::GetRenderer()->Present();
 				m_Frames++;
 			}
 			
@@ -313,26 +303,16 @@ namespace Lumos
 			m_SystemManager->OnDebugDraw();
 
 			m_RenderGraph->OnRender(m_SceneManager->GetCurrentScene());
-#ifdef LUMOS_EDITOR
-			m_Editor->DebugDraw();
-			m_Editor->OnRender();
-#endif
+            
 			DebugRenderer::Render(m_SceneManager->GetCurrentScene(), nullptr, nullptr);
             m_ImGuiManager->OnRender(m_SceneManager->GetCurrentScene());
-
-			Graphics::Renderer::GetRenderer()->Present();
 		}
 	}
 
 	void Application::OnUpdate(const TimeStep& dt)
 	{
-		LUMOS_PROFILE_FUNCTION();
-#ifdef LUMOS_EDITOR
-		m_Editor->OnUpdate(dt);
-
 		if(Application::Get().GetEditorState() != EditorState::Paused
 			&& Application::Get().GetEditorState() != EditorState::Preview)
-#endif
 		{
 			m_SystemManager->OnUpdate(dt, m_SceneManager->GetCurrentScene());
 			LuaManager::Get().OnUpdate(m_SceneManager->GetCurrentScene());
@@ -387,10 +367,6 @@ namespace Lumos
 	void Application::OnNewScene(Scene* scene)
 	{
 		LUMOS_PROFILE_FUNCTION();
-#ifdef LUMOS_EDITOR
-		m_SceneViewSizeUpdated = true;
-		m_Editor->OnNewScene(scene);
-#endif
 	}
 
 	void Application::OnExitScene()
@@ -429,10 +405,6 @@ namespace Lumos
 	void Application::OnImGui()
 	{
 		LUMOS_PROFILE_FUNCTION();
-#ifdef LUMOS_EDITOR
-		if(m_AppType == AppType::Editor)
-			m_Editor->OnImGui();
-#endif
 		m_SceneManager->GetCurrentScene()->OnImGui();
 	}
 
