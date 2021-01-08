@@ -53,8 +53,8 @@ layout(std140, binding = 0) uniform UniformBufferLight
 #define PI 3.1415926535897932384626433832795
 #define GAMMA 2.2
 
-const int NumPCFSamples = 64;
-const int numBlockerSearchSamples = 64;
+const int NumPCFSamples = 16;
+const int numBlockerSearchSamples = 16;
 const bool fadeCascades = true;
 
 struct Material

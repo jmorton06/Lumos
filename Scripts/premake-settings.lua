@@ -1,3 +1,3 @@
 settings = { }
-settings.workspace_name   = 'Lumos Editor'
+settings.workspace_name   = 'Lumos'
 settings.bundle_identifier = 'com.jmorton06'
