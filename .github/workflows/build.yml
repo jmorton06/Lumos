@@ -58,9 +58,9 @@ jobs:
       - name: Build x64 Debug
         shell: cmd
         run: |
-          "%MSBUILD_PATH%\MSBuild.exe" /p:Platform=x64 /p:Configuration=Debug build/Lumos.sln
+          "%MSBUILD_PATH%\MSBuild.exe" /p:Platform=x64 /p:Configuration=Debug build/Lumos Editor.sln
       - name: Build x64 Release
         shell: cmd
         run: |
-          "%MSBUILD_PATH%\MSBuild.exe" /p:Platform=x64 /p:Configuration=Release build/Lumos.sln
+          "%MSBUILD_PATH%\MSBuild.exe" /p:Platform=x64 /p:Configuration=Release build/Lumos Editor.sln
 
