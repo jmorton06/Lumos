@@ -40,6 +40,8 @@ namespace Lumos
 			return;
 		}
 
+        VFS::Get()->AbsoulePathToVFS(m_FileName, m_FileName);
+
 		m_Env = CreateRef<sol::environment>(LuaManager::Get().GetState(), sol::create, LuaManager::Get().GetState().globals());
 
 		auto loadFileResult = LuaManager::Get().GetState().script_file(physicalPath, *m_Env, sol::script_pass_on_error);
@@ -63,8 +65,8 @@ namespace Lumos
             m_UpdateFunc.reset();
         
         m_Phys2DBeginFunc = CreateRef<sol::protected_function>((*m_Env)["OnCollision2DBegin"]);
-        if(!m_OnInitFunc->valid())
-            m_OnInitFunc.reset();
+        if(!m_Phys2DBeginFunc->valid())
+            m_Phys2DBeginFunc.reset();
 
         m_Phys2DEndFunc = CreateRef<sol::protected_function>((*m_Env)["OnCollision2DEnd"]);
         if(!m_Phys2DEndFunc->valid())
@@ -72,7 +74,7 @@ namespace Lumos
         
         m_Phys3DBeginFunc = CreateRef<sol::protected_function>((*m_Env)["OnCollision3DBegin"]);
         if(!m_Phys3DBeginFunc->valid())
-            m_Phys3DBeginFunc.reset();m_Phys3DBeginFunc = nullptr;
+            m_Phys3DBeginFunc.reset();
         
         m_Phys3DEndFunc = CreateRef<sol::protected_function>((*m_Env)["OnCollision3DEnd"]);
         if(!m_Phys3DEndFunc->valid())

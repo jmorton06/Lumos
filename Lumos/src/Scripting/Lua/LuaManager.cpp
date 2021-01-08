@@ -23,6 +23,7 @@
 #include "Utilities/RandomNumberGenerator.h"
 #include "Scene/Entity.h"
 #include "Scene/EntityManager.h"
+#include "Scene/EntityFactory.h"
 
 #include "ImGuiLua.h"
 #include "PhysicsLua.h"
@@ -337,8 +338,7 @@ namespace Lumos
 		return Ref<Graphics::Texture2D>(Graphics::Texture2D::CreateFromFile(name, path));
 	}
 
-	Ref<Graphics::Texture2D> LoadTextureWithParams(const std::string& name, const std::string& path, Lumos::Graphics::TextureFilter filter, 
-Lumos::Graphics::TextureWrap wrapMode)
+	Ref<Graphics::Texture2D> LoadTextureWithParams(const std::string& name, const std::string& path, Lumos::Graphics::TextureFilter filter, Lumos::Graphics::TextureWrap wrapMode)
 	{
 		LUMOS_PROFILE_FUNCTION();
 		return Ref<Graphics::Texture2D>(Graphics::Texture2D::CreateFromFile(name, path, Graphics::TextureParameters(filter, filter, wrapMode)));
@@ -347,9 +347,13 @@ Lumos::Graphics::TextureWrap wrapMode)
 	void LuaManager::BindECSLua(sol::state& state)
 	{
 		LUMOS_PROFILE_FUNCTION();
-		sol::usertype<Entity> entityType = state.new_usertype<Entity>("Entity");
+        
+        sol::usertype<entt::registry> enttRegistry = state.new_usertype<entt::registry>("enttRegistry");
+        
+		sol::usertype<Entity> entityType = state.new_usertype<Entity>("Entity", sol::constructors<sol::types<entt::entity, Scene*>>());
 		sol::usertype<EntityManager> entityManagerType = state.new_usertype<EntityManager>("EntityManager");
 		entityManagerType.set_function("Create", static_cast<Entity (EntityManager::*)()>(&EntityManager::Create));
+        entityManagerType.set_function("GetRegistry", &EntityManager::GetRegistry);
 		
 		entityType.set_function("Valid", &Entity::Valid);
 		entityType.set_function("Destroy", &Entity::Destroy);
@@ -361,6 +365,10 @@ Lumos::Graphics::TextureWrap wrapMode)
         entityType.set_function("Active", &Entity::Active);
 
 		state.set_function("GetEntityByName", &GetEntityByName);
+        
+        state.set_function("AddPyramidEntity", &EntityFactory::AddPyramid);
+        state.set_function("AddSphereEntity", &EntityFactory::AddSphere);
+        state.set_function("AddLightCubeEntity", &EntityFactory::AddLightCube);
 
 		sol::usertype<NameComponent> nameComponent_type = state.new_usertype<NameComponent>("NameComponent");
 		nameComponent_type["name"] = &NameComponent::name;

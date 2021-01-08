@@ -1129,7 +1129,7 @@ namespace Lumos
 		Shader* GLShader::CreateFuncGL(const std::string& filePath)
 		{
 			std::string physicalPath;
-			Lumos::VFS::Get()->ResolvePhysicalPath(filePath, physicalPath, true);
+			Lumos::VFS::Get()->ResolvePhysicalPath(filePath, physicalPath);
 			GLShader* result = new GLShader(physicalPath);
 			result->m_Path = filePath;
 			return result;

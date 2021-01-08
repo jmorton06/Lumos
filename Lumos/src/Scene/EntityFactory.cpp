@@ -44,7 +44,7 @@ namespace Lumos
 		const Maths::Vector4& color)
 	{
 		auto sphere = scene->GetEntityManager()->Create(name);
-		sphere.AddComponent<Maths::Transform>(Maths::Matrix4::Scale(Maths::Vector3(radius, radius, radius)));
+		sphere.AddComponent<Maths::Transform>(Maths::Matrix4::Translation(pos) * Maths::Matrix4::Scale(Maths::Vector3(radius, radius, radius)));
 		auto& model = sphere.AddComponent<Graphics::Model>(Ref<Graphics::Mesh>(Graphics::CreateSphere()), Graphics::PrimitiveType::Sphere);
 
 		Ref<Graphics::Material> matInstance = CreateRef<Graphics::Material>();
@@ -99,7 +99,7 @@ namespace Lumos
 		const Maths::Vector4& color)
 	{
 		auto cube = scene->GetEntityManager()->Create(name);
-		cube.AddComponent<Maths::Transform>(Maths::Matrix4::Scale(halfdims));
+		cube.AddComponent<Maths::Transform>(Maths::Matrix4::Translation(pos) * Maths::Matrix4::Scale(halfdims));
 		auto& model = cube.AddComponent<Graphics::Model>(Ref<Graphics::Mesh>(Graphics::CreateCube()), Graphics::PrimitiveType::Cube);
 
 		auto matInstance = CreateRef<Graphics::Material>();
@@ -194,6 +194,7 @@ namespace Lumos
 			}
 
 			pyramid.AddComponent<Physics3DComponent>(testPhysics);
+            pyramid.GetOrAddComponent<Maths::Transform>().SetLocalPosition(pos);
 		}
 		else
 		{

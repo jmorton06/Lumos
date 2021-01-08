@@ -4,7 +4,7 @@
 #include "Graphics/Camera/ThirdPersonCamera.h"
 #include "Graphics/Camera/Camera2D.h"
 #include "Graphics/Camera/FPSCamera.h"
-#include "Editor/EditorCamera.h"
+#include "Graphics/Camera/EditorCamera.h"
 
 #include <entt/entity/fwd.hpp>
 #include <cereal/cereal.hpp>

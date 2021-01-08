@@ -1,4 +1,3 @@
-#include "Precompiled.h"
 #include "Editor.h"
 #include "SceneWindow.h"
 #include "ConsoleWindow.h"
@@ -8,7 +7,7 @@
 #include "GraphicsInfoWindow.h"
 #include "TextEditWindow.h"
 #include "AssetWindow.h"
-#include "EditorCamera.h"
+#include "Graphics/Camera/EditorCamera.h"
 #include "Utilities/Timer.h"
 
 #include "Core/Application.h"
@@ -45,6 +44,7 @@
 #include "Scene/EntityFactory.h"
 
 #include "ImGui/IconsMaterialDesignIcons.h"
+#include "ImGUIConsoleSink.h"
 
 #include <imgui/imgui_internal.h>
 #include <imgui/plugins/ImGuizmo.h>
@@ -55,22 +55,45 @@
 
 namespace Lumos
 {
-	Editor::Editor(Application* app, u32 width, u32 height)
-		: m_Application(app)
-		, m_IniFile("")
+	Editor* Editor::s_Editor = nullptr;
+	
+	Editor::Editor()
+		: Application(std::string("/Sandbox/"), std::string("Sandbox"))
         , m_SelectedEntity(entt::null)
         , m_CopiedEntity(entt::null)
+		, m_IniFile("")
 	{
+		Application::Get().GetWindow()->SetWindowTitle("Lumos Editor");
+        spdlog::sink_ptr sink = std::make_shared<ImGuiConsoleSink_mt>();
+
+        Lumos::Debug::Log::AddSink(sink);
+		
+		s_Editor = this;
 	}
     
 	Editor::~Editor()
 	{
 	}
+
+    void Editor::Quit()
+    {
+        m_GridRenderer.reset();
+        m_PreviewRenderer.reset();
+        m_PreviewTexture.reset();
+        m_PreviewSphere.reset();
+        m_Windows.clear();
+        
+        Application::Quit();
+    }
     
-	void Editor::OnInit()
+	void Editor::Init()
 	{
 		LUMOS_PROFILE_FUNCTION();
         
+		Application::Init();
+        Application::SetEditorState(EditorState::Preview);
+		Application::Get().GetWindow()->SetEventCallback(BIND_EVENT_FN(Editor::OnEvent));
+
 #ifdef LUMOS_PLATFORM_IOS
         m_TempSceneSaveFilePath = OS::Instance()->GetAssetPath();
 #else
@@ -111,7 +134,7 @@ namespace Lumos
                                             60.0f,
                                             0.1f,
                                             1000.0f,
-                                            (float)m_Application->GetWindowSize().x / (float)m_Application->GetWindowSize().y);
+                                            (float)Application::Get().GetWindowSize().x / (float)Application::Get().GetWindowSize().y);
 		m_CurrentCamera = m_EditorCamera.get();
         
 		m_EditorCameraTransform.SetLocalPosition(Maths::Vector3(-31.0f, 12.0f, 51.0f));
@@ -202,7 +225,7 @@ namespace Lumos
 		LUMOS_PROFILE_FUNCTION();
 		DrawMenuBar();
         
-		BeginDockSpace(m_FullScreenOnPlay && m_Application->GetEditorState() == EditorState::Play);
+		BeginDockSpace(m_FullScreenOnPlay && Application::Get().GetEditorState() == EditorState::Play);
         
 		for(auto& window : m_Windows)
 		{
@@ -217,10 +240,12 @@ namespace Lumos
         
 		m_FileBrowserWindow.OnImGui();
         
-		if(m_Application->GetEditorState() == EditorState::Preview)
-			m_Application->GetSceneManager()->GetCurrentScene()->UpdateSceneGraph();
+		if(Application::Get().GetEditorState() == EditorState::Preview)
+			Application::Get().GetSceneManager()->GetCurrentScene()->UpdateSceneGraph();
         
 		EndDockSpace();
+        
+        Application::OnImGui();
 	}
     
 	Graphics::RenderAPI StringToRenderAPI(const std::string& name)
@@ -272,8 +297,8 @@ namespace Lumos
 				{
 					auto scene = new Scene("New Scene");
 					scene->SetHasCppClass(false);
-					m_Application->GetSceneManager()->EnqueueScene(scene);
-					m_Application->GetSceneManager()->SwitchScene((int)(m_Application->GetSceneManager()->GetScenes().size()) - 1);
+					Application::Get().GetSceneManager()->EnqueueScene(scene);
+					Application::Get().GetSceneManager()->SwitchScene((int)(Application::Get().GetSceneManager()->GetScenes().size()) - 1);
 				}
                 
 				if(ImGui::BeginMenu("Style"))
@@ -362,12 +387,12 @@ namespace Lumos
                 
 				if(ImGui::MenuItem("Paste", "CTRL+V", false, enabled))
 				{
-					m_Application->GetCurrentScene()->DuplicateEntity({ m_CopiedEntity, m_Application->GetCurrentScene() });
+					Application::Get().GetCurrentScene()->DuplicateEntity({ m_CopiedEntity, Application::Get().GetCurrentScene() });
 					if(m_CutCopyEntity)
 					{
                         if(m_CopiedEntity == m_SelectedEntity)
                             m_SelectedEntity = entt::null;
-						Entity(m_CopiedEntity, m_Application->GetCurrentScene()).Destroy();
+						Entity(m_CopiedEntity, Application::Get().GetCurrentScene()).Destroy();
 					}
 				}
                 
@@ -410,7 +435,7 @@ namespace Lumos
             
 			if(ImGui::BeginMenu("Entity"))
 			{
-				auto scene = m_Application->GetSceneManager()->GetCurrentScene();
+				auto scene = Application::Get().GetSceneManager()->GetCurrentScene();
                 
 				if(ImGui::MenuItem("CreateEmpty"))
 				{
@@ -461,7 +486,7 @@ namespace Lumos
                 
 				if(ImGui::MenuItem("Light Cube"))
 				{
-					EntityFactory::AddLightCube(m_Application->GetSceneManager()->GetCurrentScene(), Maths::Vector3(0.0f), Maths::Vector3(0.0f));
+					EntityFactory::AddLightCube(Application::Get().GetSceneManager()->GetCurrentScene(), Maths::Vector3(0.0f), Maths::Vector3(0.0f));
 				}
                 
 				ImGui::EndMenu();
@@ -502,20 +527,20 @@ namespace Lumos
             
 			ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.1f, 0.2f, 0.7f, 0.0f));
             
-			if(m_Application->GetEditorState() == EditorState::Next)
-				m_Application->SetEditorState(EditorState::Paused);
+			if(Application::Get().GetEditorState() == EditorState::Next)
+				Application::Get().SetEditorState(EditorState::Paused);
             
 			bool selected;
 			{
-				selected = m_Application->GetEditorState() == EditorState::Play;
+				selected = Application::Get().GetEditorState() == EditorState::Play;
 				if(selected)
 					ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(0.28f, 0.56f, 0.9f, 1.0f));
                 
 				if(ImGui::Button(ICON_MDI_PLAY))
                 {
-                    m_Application->GetSystem<LumosPhysicsEngine>()->SetPaused(selected);
-                    m_Application->GetSystem<B2PhysicsEngine>()->SetPaused(selected);
-                    m_Application->SetEditorState(selected ? EditorState::Preview : EditorState::Play);
+                    Application::Get().GetSystem<LumosPhysicsEngine>()->SetPaused(selected);
+                    Application::Get().GetSystem<B2PhysicsEngine>()->SetPaused(selected);
+                    Application::Get().SetEditorState(selected ? EditorState::Preview : EditorState::Play);
                     
                     m_SelectedEntity = entt::null;
 					if(selected)
@@ -523,7 +548,7 @@ namespace Lumos
 					else
                     {
                         CacheScene();
-                        m_Application->GetCurrentScene()->OnInit();
+                        Application::Get().GetCurrentScene()->OnInit();
                     }
                 }
                 
@@ -536,12 +561,12 @@ namespace Lumos
 			ImGui::SameLine();
             
 			{
-				selected = m_Application->GetEditorState() == EditorState::Paused;
+				selected = Application::Get().GetEditorState() == EditorState::Paused;
 				if(selected)
 					ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(0.28f, 0.56f, 0.9f, 1.0f));
                 
 				if(ImGui::Button(ICON_MDI_PAUSE))
-					m_Application->SetEditorState(selected ? EditorState::Play : EditorState::Paused);
+					Application::Get().SetEditorState(selected ? EditorState::Play : EditorState::Paused);
                 
 				ImGuiHelpers::Tooltip("Pause");
                 
@@ -552,12 +577,12 @@ namespace Lumos
 			ImGui::SameLine();
             
 			{
-				selected = m_Application->GetEditorState() == EditorState::Next;
+				selected = Application::Get().GetEditorState() == EditorState::Next;
 				if(selected)
 					ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(0.28f, 0.56f, 0.9f, 1.0f));
                 
 				if(ImGui::Button(ICON_MDI_STEP_FORWARD))
-					m_Application->SetEditorState(EditorState::Next);
+					Application::Get().SetEditorState(EditorState::Next);
                 
 				ImGuiHelpers::Tooltip("Next");
                 
@@ -587,7 +612,7 @@ namespace Lumos
 			bool setNewValue = false;
 			static std::string RenderAPI = "";
 			
-			auto renderAPI = (Graphics::RenderAPI)m_Application->RenderAPI;
+			auto renderAPI = (Graphics::RenderAPI)Application::Get().RenderAPI;
             
 			bool needsRestart = false;
 			if(renderAPI != Graphics::GraphicsContext::GetRenderAPI())
@@ -656,7 +681,7 @@ namespace Lumos
             
 			if(setNewValue)
 			{
-				m_Application->RenderAPI = int(StringToRenderAPI(current_api));
+				Application::Get().RenderAPI = int(StringToRenderAPI(current_api));
 			}
             
 			ImGui::PopStyleColor(2);
@@ -697,7 +722,7 @@ namespace Lumos
 			ImGuizmo::SetDrawlist();
 			ImGuizmo::SetOrthographic(m_CurrentCamera->IsOrthographic());
             
-			auto& registry = m_Application->GetSceneManager()->GetCurrentScene()->GetRegistry();
+			auto& registry = Application::Get().GetSceneManager()->GetCurrentScene()->GetRegistry();
 			auto transform = registry.try_get<Maths::Transform>(m_SelectedEntity);
 			if(transform != nullptr)
 			{
@@ -1025,9 +1050,9 @@ namespace Lumos
 	{
 		LUMOS_PROFILE_FUNCTION();
 		EventDispatcher dispatcher(e);
-		dispatcher.Dispatch<WindowResizeEvent>(BIND_EVENT_FN(Editor::OnWindowResize));
+		// Block events here
         
-		m_Application->OnEvent(e);
+		Application::OnEvent(e);
 	}
     
 	Maths::Ray Editor::GetScreenRay(int x, int y, Camera* camera, int width, int height)
@@ -1052,9 +1077,11 @@ namespace Lumos
 	{
 		LUMOS_PROFILE_FUNCTION();
         
-        if(m_Application->GetEditorState() == EditorState::Preview)
+        Application::OnUpdate(ts);
+        
+        if(Application::Get().GetEditorState() == EditorState::Preview)
         {
-			auto& registry = m_Application->GetSceneManager()->GetCurrentScene()->GetRegistry();
+			auto& registry = Application::Get().GetSceneManager()->GetCurrentScene()->GetRegistry();
 			
 			if(Application::Get().GetSceneActive())
 			{
@@ -1148,12 +1175,12 @@ namespace Lumos
                 
                 if(Input::GetInput()->GetKeyPressed(InputCode::Key::V))
                 {
-                    m_Application->GetCurrentScene()->DuplicateEntity({ m_CopiedEntity, m_Application->GetCurrentScene() });
+                    Application::Get().GetCurrentScene()->DuplicateEntity({ m_CopiedEntity, Application::Get().GetCurrentScene() });
                     if(m_CutCopyEntity)
                     {
                         if(m_CopiedEntity == m_SelectedEntity)
                             m_SelectedEntity = entt::null;
-                        Entity(m_CopiedEntity, m_Application->GetCurrentScene()).Destroy();
+                        Entity(m_CopiedEntity, Application::Get().GetCurrentScene()).Destroy();
                     }
                 }
 			}
@@ -1161,12 +1188,7 @@ namespace Lumos
             m_EditorCameraTransform.SetWorldMatrix(Maths::Matrix4());
 		}
 	}
-    
-	void Editor::BindEventFunction()
-	{
-		LUMOS_PROFILE_FUNCTION();
-		m_Application->GetWindow()->SetEventCallback(BIND_EVENT_FN(Editor::OnEvent));
-	}
+
     
 	void Editor::FocusCamera(const Maths::Vector3& point, float distance, float speed)
 	{
@@ -1502,7 +1524,9 @@ namespace Lumos
 		LUMOS_PROFILE_FUNCTION();
 		//DrawPreview();
         
-		if(m_Application->GetEditorState() == EditorState::Preview && m_ShowGrid && !m_EditorCamera->IsOrthographic())
+        Application::OnRender();
+        
+		if(Application::Get().GetEditorState() == EditorState::Preview && m_ShowGrid && !m_EditorCamera->IsOrthographic())
 			Draw3DGrid();
 	}
     
@@ -1541,7 +1565,7 @@ namespace Lumos
 			OpenTextFile(filePath);
 		else if(IsModelFile(filePath))
 		{
-			Entity modelEntity = m_Application->GetSceneManager()->GetCurrentScene()->GetEntityManager()->Create();
+			Entity modelEntity = Application::Get().GetSceneManager()->GetCurrentScene()->GetEntityManager()->Create();
 			modelEntity.AddComponent<Graphics::Model>(filePath);
 			m_SelectedEntity = modelEntity.GetHandle();
 		}
@@ -1559,15 +1583,15 @@ namespace Lumos
 			soundNode->SetReferenceDistance(1.0f);
 			soundNode->SetRadius(30.0f);
             
-			auto& registry = m_Application->GetSceneManager()->GetCurrentScene()->GetRegistry();
+			auto& registry = Application::Get().GetSceneManager()->GetCurrentScene()->GetRegistry();
 			entt::entity e = registry.create();
 			registry.emplace<SoundComponent>(e, soundNode);
 			m_SelectedEntity = e;
 		}
         else if(IsSceneFile(filePath))
         {
-            m_Application->GetSceneManager()->EnqueueSceneFromFile(filePath);
-            m_Application->GetSceneManager()->SwitchScene((int)(m_Application->GetSceneManager()->GetScenes().size()) - 1);
+            Application::Get().GetSceneManager()->EnqueueSceneFromFile(filePath);
+            Application::Get().GetSceneManager()->SwitchScene((int)(Application::Get().GetSceneManager()->GetScenes().size()) - 1);
         }
 	}
     
@@ -1660,24 +1684,24 @@ namespace Lumos
 	void Editor::CacheScene()
 	{
 		LUMOS_PROFILE_FUNCTION();
-		m_Application->GetCurrentScene()->Serialise(m_TempSceneSaveFilePath, false);
+		Application::Get().GetCurrentScene()->Serialise(m_TempSceneSaveFilePath, false);
 	}
     
 	void Editor::LoadCachedScene()
 	{
 		LUMOS_PROFILE_FUNCTION();
         
-        if(FileSystem::FileExists(m_TempSceneSaveFilePath + m_Application->GetCurrentScene()->GetSceneName() + ".lsn"))
+        if(FileSystem::FileExists(m_TempSceneSaveFilePath + Application::Get().GetCurrentScene()->GetSceneName() + ".lsn"))
         {
-            m_Application->GetCurrentScene()->Deserialise(m_TempSceneSaveFilePath, false);
+            Application::Get().GetCurrentScene()->Deserialise(m_TempSceneSaveFilePath, false);
         }
         else
         {
             std::string physicalPath;
-            if(Lumos::VFS::Get()->ResolvePhysicalPath("//Scenes/" + m_Application->GetCurrentScene()->GetSceneName() + ".lsn", physicalPath))
+            if(Lumos::VFS::Get()->ResolvePhysicalPath("//Scenes/" + Application::Get().GetCurrentScene()->GetSceneName() + ".lsn", physicalPath))
             {
                 auto newPath = StringUtilities::RemoveName(physicalPath);
-                m_Application->GetCurrentScene()->Deserialise(newPath, false);
+                Application::Get().GetCurrentScene()->Deserialise(newPath, false);
             }
         }
 	}

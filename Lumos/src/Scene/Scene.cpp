@@ -149,6 +149,18 @@ namespace Lumos
 
 		return false;
 	}
+	
+	void Scene::SetScreenSize(u32 width, u32 height)
+	{
+		m_ScreenWidth = width;
+		m_ScreenHeight = height;
+		
+		auto cameraView = m_EntityManager->GetRegistry().view<Camera>();
+		if(!cameraView.empty())
+		{
+			m_EntityManager->GetRegistry().get<Camera>(cameraView.front()).SetAspectRatio(static_cast<float>(m_ScreenWidth) / static_cast<float>(m_ScreenHeight));
+		}
+	}
 
 #define ALL_COMPONENTSV1 Maths::Transform, NameComponent, ActiveComponent, Hierarchy, Camera, LuaScriptComponent, Graphics::Model, Graphics::Light, Physics3DComponent, Graphics::Environment, Graphics::Sprite, Physics2DComponent, DefaultCameraController
 	
