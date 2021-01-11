@@ -55,7 +55,7 @@ layout(std140, binding = 0) uniform UniformBufferLight
 
 const int NumPCFSamples = 16;
 const int numBlockerSearchSamples = 16;
-const bool fadeCascades = true;
+const bool fadeCascades = false;
 
 struct Material
 {

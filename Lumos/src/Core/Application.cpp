@@ -249,7 +249,13 @@ namespace Lumos
 			if(!m_Minimized)
 			{
 				LUMOS_PROFILE_SCOPE("Application::Render");
+                DebugRenderer::Reset();
+
 				OnRender();
+                
+                DebugRenderer::Render(m_SceneManager->GetCurrentScene(), nullptr, nullptr);
+                m_ImGuiManager->OnRender(m_SceneManager->GetCurrentScene());
+                
                 Graphics::Renderer::GetRenderer()->Present();
 				m_Frames++;
 			}
@@ -298,14 +304,10 @@ namespace Lumos
 		if(m_RenderGraph->GetCount() > 0)
 		{
 			Graphics::Renderer::GetRenderer()->Begin();
-			DebugRenderer::Reset();
 
 			m_SystemManager->OnDebugDraw();
 
 			m_RenderGraph->OnRender(m_SceneManager->GetCurrentScene());
-            
-			DebugRenderer::Render(m_SceneManager->GetCurrentScene(), nullptr, nullptr);
-            m_ImGuiManager->OnRender(m_SceneManager->GetCurrentScene());
 		}
 	}
 

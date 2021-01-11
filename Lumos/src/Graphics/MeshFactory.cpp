@@ -89,9 +89,7 @@ namespace Lumos
 			u32 indices[6] = { 0, 1, 2, 2, 3, 0, };
 			Ref<IndexBuffer> ib;
 			ib.reset(IndexBuffer::Create(indices, 6));
-            
-			Ref<Material> empty;
-            
+                        
             return new Mesh(vb, ib, BoundingBox);
 		}
         
