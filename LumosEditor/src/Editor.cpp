@@ -77,6 +77,8 @@ namespace Lumos
 
     void Editor::Quit()
     {
+        SaveEditorSettings();
+
         m_GridRenderer.reset();
         m_PreviewRenderer.reset();
         m_PreviewTexture.reset();
@@ -1523,6 +1525,8 @@ namespace Lumos
 	{
 		LUMOS_PROFILE_FUNCTION();
 		//DrawPreview();
+        
+        DebugDraw();
         
         Application::OnRender();
         

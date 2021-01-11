@@ -84,7 +84,7 @@ namespace Lumos
             GLCall(glBindVertexArray(m_VertexArray));
 
             auto& vertexLayout = m_VertexBufferLayout.GetLayout();
-            int count = 0;
+            u32 count = 0;
             
             for(auto& layout : vertexLayout)
             {

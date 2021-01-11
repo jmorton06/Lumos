@@ -71,7 +71,8 @@ namespace Lumos
 			GLCall(glBindFramebuffer(GL_DRAW_FRAMEBUFFER, m_ScreenFramebuffer ? 0 : m_Handle));
 			GLCall(glViewport(0, 0, width, height));
 			
-			GLCall(glDrawBuffers(static_cast<GLsizei>(m_AttachmentData.size()), m_AttachmentData.data()));
+            if(!m_ScreenFramebuffer)
+                GLCall(glDrawBuffers(static_cast<GLsizei>(m_AttachmentData.size()), m_AttachmentData.data()));
 		}
 
 		void GLFramebuffer::UnBind() const
