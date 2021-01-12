@@ -67,7 +67,7 @@ namespace Lumos
 			void OnResize(u32 width, u32 height) override;
 			void SetScreenBufferSize(u32 width, u32 height) override;
 			void SetRenderTarget(Graphics::Texture* texture, bool rebuildFramebuffer) override;
-			void RenderScene(Scene* scene) override {};
+			void RenderScene() override {};
 
 			void RenderInternal(Scene* scene, Camera* overrideCamera, Maths::Transform* overrideCameraTransform) ;
 			void PresentToScreen() override;

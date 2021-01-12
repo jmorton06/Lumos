@@ -45,7 +45,7 @@ namespace Lumos
             delete[] m_PSSystemUniformBuffer;
 		}
         
-		void GridRenderer::RenderScene(Scene* scene)
+		void GridRenderer::RenderScene()
 		{
 			LUMOS_PROFILE_FUNCTION();
 			m_CurrentBufferID = 0;

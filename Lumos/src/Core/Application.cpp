@@ -62,11 +62,11 @@ namespace Lumos
         
 #ifndef LUMOS_PLATFORM_IOS
         const std::string root = ROOT_DIR;
-        VFS::Get()->Mount("Meshes", root + projectRoot + std::string("/res/meshes"));
-        VFS::Get()->Mount("Textures", root + projectRoot +  std::string("/res/textures"));
-        VFS::Get()->Mount("Sounds", root + projectRoot + std::string("/res/sounds"));
-        VFS::Get()->Mount("Scripts", root + projectRoot + std::string("/res/scripts"));
-        VFS::Get()->Mount("Scenes", root + projectRoot + std::string("/res/scenes"));
+        VFS::Get()->Mount("Meshes", root + projectRoot + std::string("res/meshes"));
+        VFS::Get()->Mount("Textures", root + projectRoot +  std::string("res/textures"));
+        VFS::Get()->Mount("Sounds", root + projectRoot + std::string("res/sounds"));
+        VFS::Get()->Mount("Scripts", root + projectRoot + std::string("res/scripts"));
+        VFS::Get()->Mount("Scenes", root + projectRoot + std::string("res/scenes"));
         VFS::Get()->Mount("CoreShaders", root + std::string("/Lumos/res/EngineShaders"));
 #endif
 		
@@ -109,11 +109,11 @@ namespace Lumos
         
 #ifndef LUMOS_PLATFORM_IOS
 		auto projectRoot = StringUtilities::GetFileLocation(filePath);
-        VFS::Get()->Mount("Meshes",  projectRoot + std::string("/res/meshes"));
-        VFS::Get()->Mount("Textures", projectRoot +  std::string("/res/textures"));
-        VFS::Get()->Mount("Sounds", projectRoot + std::string("/res/sounds"));
-        VFS::Get()->Mount("Scripts", projectRoot + std::string("/res/scripts"));
-        VFS::Get()->Mount("Scenes", projectRoot + std::string("/res/scenes"));
+        VFS::Get()->Mount("Meshes",  projectRoot + std::string("res/meshes"));
+        VFS::Get()->Mount("Textures", projectRoot +  std::string("res/textures"));
+        VFS::Get()->Mount("Sounds", projectRoot + std::string("res/sounds"));
+        VFS::Get()->Mount("Scripts", projectRoot + std::string("res/scripts"));
+        VFS::Get()->Mount("Scenes", projectRoot + std::string("res/scenes"));
 		#endif
 	}
 
@@ -142,7 +142,7 @@ namespace Lumos
 		// Graphics Loading on main thread
 		m_RenderGraph = CreateUniqueRef<Graphics::RenderGraph>(screenWidth, screenHeight);
 
-        m_ImGuiManager = new ImGuiManager(false);
+        m_ImGuiManager = CreateUniqueRef<ImGuiManager>(false);
         m_ImGuiManager->OnInit();
 
 		m_SystemManager = CreateUniqueRef<SystemManager>();
@@ -192,8 +192,7 @@ namespace Lumos
 		m_SceneManager.reset();
 		m_RenderGraph.reset();
 		m_SystemManager.reset();
-
-		delete m_ImGuiManager;
+		m_ImGuiManager.reset();
         
 		Graphics::Renderer::Release();
         Graphics::Pipeline::ClearCache();
@@ -307,6 +306,7 @@ namespace Lumos
 
 			m_SystemManager->OnDebugDraw();
 
+            m_RenderGraph->BeginScene(m_SceneManager->GetCurrentScene());
 			m_RenderGraph->OnRender(m_SceneManager->GetCurrentScene());
 		}
 	}

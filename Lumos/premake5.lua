@@ -19,6 +19,7 @@ project "Lumos"
 	kind "StaticLib"
 	language "C++"
 	editandcontinue "Off"
+	inlining("auto")
 
 	files
 	{
@@ -361,10 +362,11 @@ project "Lumos"
 		defines { "LUMOS_DEBUG", "_DEBUG" }
 		symbols "On"
 		runtime "Debug"
+		optimize "Debug"
 
 	filter "configurations:Release"
 		defines "LUMOS_RELEASE"
-		optimize "On"
+		optimize "Speed"
 		symbols "On"
 		runtime "Release"
 

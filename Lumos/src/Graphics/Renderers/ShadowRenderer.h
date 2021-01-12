@@ -46,11 +46,14 @@ namespace Lumos
 
 			void Begin() override;
 			void Submit(const RenderCommand& command) override;
+            void Submit(const RenderCommand& command, u32 cascadeIndex);
+            void SubmitMesh(Mesh* mesh, Material* material, const Maths::Matrix4& transform, const Maths::Matrix4& textureMatrix, u32 cascadeIndex);
+            
 			void SubmitMesh(Mesh* mesh, Material* material, const Maths::Matrix4& transform, const Maths::Matrix4& textureMatrix) override;
 			void EndScene() override;
 			void End() override;
 			void Present() override;
-			void RenderScene(Scene* scene) override;
+			void RenderScene() override;
             void PresentToScreen() override {}
 
 			Maths::Vector4* GetSplitDepths()
@@ -116,6 +119,8 @@ namespace Lumos
 			Maths::Matrix4 m_ShadowProjView[SHADOWMAP_MAX];
 			Maths::Vector4 m_SplitDepth[SHADOWMAP_MAX];
             Maths::Matrix4 m_LightMatrix;
+            
+            CommandQueue m_CascadeCommandQueue[SHADOWMAP_MAX];
 
 			Lumos::Graphics::UniformBuffer* m_UniformBuffer;
 			Lumos::Graphics::CommandBuffer* m_CommandBuffer = nullptr;
@@ -123,7 +128,6 @@ namespace Lumos
 			u32 m_Layer = 0;
             float m_CascadeSplitLambda;
             float m_SceneRadiusMultiplier;
-            bool m_ShouldRender = false;
             
             float m_LightSize;
             float m_MaxShadowDistance;

@@ -1,6 +1,7 @@
 #pragma once
 #include "Maths/Maths.h"
 #include "Renderable2D.h"
+#include "Core/VFS.h"
 
 #include <cereal/cereal.hpp>
 
@@ -33,7 +34,13 @@ namespace Lumos
 			template<typename Archive>
 			void save(Archive& archive) const
 			{
-				archive(cereal::make_nvp("TexturePath", m_Texture ? m_Texture->GetFilepath() : ""),
+                std::string newPath = "";
+                if(m_Texture)
+                {
+                    VFS::Get()->AbsoulePathToVFS(m_Texture->GetFilepath() , newPath);
+                }
+    
+				archive(cereal::make_nvp("TexturePath", newPath),
 						cereal::make_nvp("Position", m_Position),
 						cereal::make_nvp("Scale", m_Scale),
 						cereal::make_nvp("Colour", m_Colour));

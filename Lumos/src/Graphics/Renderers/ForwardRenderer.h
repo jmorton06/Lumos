@@ -17,7 +17,7 @@ namespace Lumos
 		public:
 			ForwardRenderer(u32 width, u32 height, bool depthTest = true);
 			~ForwardRenderer() override;
-			void RenderScene(Scene* scene) override;
+			void RenderScene() override;
 
 			void Init() override;
 			void Begin() override;
