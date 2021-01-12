@@ -18,7 +18,8 @@ project "LumosEditor"
 	kind "WindowedApp"
 	language "C++"
 	editandcontinue "Off"
-
+	inlining("auto")
+	
 	files
 	{
 		"**.h",

@@ -253,9 +253,6 @@ namespace Lumos
 
 	private:
 		bool OnWindowClose(WindowCloseEvent& e);
-
-		float m_UpdateTimer;
-		UniqueRef<Timer> m_Timer;
 		
 		//Start proj saving
 		u32 Width, Height;
@@ -282,16 +279,17 @@ namespace Lumos
 		UniqueRef<SceneManager> m_SceneManager;
 		UniqueRef<SystemManager> m_SystemManager;
 		UniqueRef<Graphics::RenderGraph> m_RenderGraph;
-        
+        UniqueRef<ImGuiManager> m_ImGuiManager;
+        UniqueRef<Timer> m_Timer;
         Ref<ShaderLibrary> m_ShaderLibrary;
+
+        float m_UpdateTimer;
 
 		AppState m_CurrentState = AppState::Loading;
 		EditorState m_EditorState = EditorState::Preview;
 		AppType m_AppType = AppType::Editor;
 
 		static Application* s_Instance;
-
-        ImGuiManager* m_ImGuiManager = nullptr;
 
 		NONCOPYABLE(Application)
 	};

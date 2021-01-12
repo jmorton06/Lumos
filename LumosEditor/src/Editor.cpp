@@ -985,7 +985,7 @@ namespace Lumos
 		
 		
 		m_GridRenderer->BeginScene(Application::Get().GetSceneManager()->GetCurrentScene(), m_EditorCamera.get(), &m_EditorCameraTransform);
-		m_GridRenderer->RenderScene(Application::Get().GetSceneManager()->GetCurrentScene());
+		m_GridRenderer->RenderScene();
 #endif
 	}
     

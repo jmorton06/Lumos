@@ -17,6 +17,7 @@ IncludeDir["spdlog"] = "../Lumos/external/spdlog/include"
 project "Sandbox"
 	kind "WindowedApp"
 	language "C++"
+	inlining("auto")
 
 	files
 	{

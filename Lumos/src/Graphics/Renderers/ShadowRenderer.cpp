@@ -115,7 +115,7 @@ namespace Lumos
 			CreateFramebuffers();
             m_CurrentDescriptorSets.resize(1);
 
-			m_CommandQueue.reserve(1000);
+            m_CascadeCommandQueue[0].reserve(1000);
 		}
 
 		void ShadowRenderer::OnResize(u32 width, u32 height)
@@ -125,8 +125,6 @@ namespace Lumos
 		void ShadowRenderer::Begin()
 		{
 			LUMOS_PROFILE_FUNCTION();
-			m_CommandQueue.clear();
-			
 			m_CommandBuffer->BeginRecording();
 		}
 
@@ -174,6 +172,48 @@ namespace Lumos
             }
             
 			UpdateCascades(scene, overrideCamera, overrideCameraTransform, light);
+                      
+            m_CascadeCommandQueue[0].clear();
+            m_CascadeCommandQueue[1].clear();
+            m_CascadeCommandQueue[2].clear();
+            m_CascadeCommandQueue[3].clear();
+            
+            auto group = registry.group<Model>(entt::get<Maths::Transform>);
+
+            for(u32 i = 0; i < m_ShadowMapNum; ++i)
+            {
+                m_Layer = i;
+
+                Maths::Frustum f;
+                f.Define(m_ShadowProjView[i]);
+                
+                if(group.empty())
+                    continue;
+                
+                for(auto entity : group)
+                {
+                    const auto& [model, trans] = group.get<Model, Maths::Transform>(entity);
+                    const auto& meshes = model.GetMeshes();
+                                   
+                   for(auto mesh : meshes)
+                   {
+                        if(mesh->GetActive())
+                        {
+                            auto& worldTransform = trans.GetWorldMatrix();
+
+                            auto bb = mesh->GetBoundingBox();
+                            auto bbCopy = bb->Transformed(worldTransform);
+                            auto inside = f.IsInsideFast(bbCopy);
+
+                            if(inside == Maths::Intersection::OUTSIDE)
+                                continue;
+
+                            SubmitMesh(mesh.get(), nullptr, worldTransform, Maths::Matrix4(), i);
+                        }
+                   }
+                }
+            }
+
             
             m_ShouldRender = true;
 		}
@@ -198,7 +238,7 @@ namespace Lumos
 
 			m_Pipeline->Bind(m_CommandBuffer);
 
-			for(auto& command : m_CommandQueue)
+			for(auto& command : m_CascadeCommandQueue[m_Layer])
 			{
 				Engine::Get().Statistics().NumShadowObjects++;
 				
@@ -248,7 +288,7 @@ namespace Lumos
 			m_ShadowMapSize = size;
 		}
 
-		void ShadowRenderer::RenderScene(Scene* scene)
+		void ShadowRenderer::RenderScene()
 		{
 			LUMOS_PROFILE_FUNCTION();
             
@@ -259,46 +299,10 @@ namespace Lumos
 
 			Begin();
 
-			auto& registry = scene->GetRegistry();
-
-			auto group = registry.group<Model>(entt::get<Maths::Transform>);
-
 			for(u32 i = 0; i < m_ShadowMapNum; ++i)
 			{
-				LUMOS_PROFILE_SCOPE("ShadowRenderer::RenderScene Per Shadow Map");
-				m_Layer = i;
-
-				Maths::Frustum f;
-				f.Define(m_ShadowProjView[i]);
-				
-				if(group.empty())
-					continue;
-				
-				for(auto entity : group)
-				{
-					const auto& [model, trans] = group.get<Model, Maths::Transform>(entity);
-                    const auto& meshes = model.GetMeshes();
-                                   
-                   for(auto mesh : meshes)
-                   {
-                        if(mesh->GetActive())
-                        {
-                            auto& worldTransform = trans.GetWorldMatrix();
-
-                            auto bb = mesh->GetBoundingBox();
-                            auto bbCopy = bb->Transformed(worldTransform);
-                            auto inside = f.IsInsideFast(bbCopy);
-
-                            if(inside == Maths::Intersection::OUTSIDE)
-                                continue;
-
-                            SubmitMesh(mesh.get(), nullptr, worldTransform, Maths::Matrix4());
-                        }
-                   }
-				}
-
-				SetSystemUniforms(m_Shader.get());
-
+                m_Layer = i;
+                SetSystemUniforms(m_Shader.get());
 				Present();
 			}
 			End();
@@ -519,8 +523,13 @@ namespace Lumos
 
 		void ShadowRenderer::Submit(const RenderCommand& command)
 		{
-			m_CommandQueue.push_back(command);
+            m_CascadeCommandQueue[0].push_back(command);
 		}
+    
+        void ShadowRenderer::Submit(const RenderCommand& command, u32 cascadeIndex)
+        {
+            m_CascadeCommandQueue[cascadeIndex].push_back(command);
+        }
 
 		void ShadowRenderer::SubmitMesh(Mesh* mesh, Material* material, const Maths::Matrix4& transform, const Maths::Matrix4& textureMatrix)
 		{
@@ -531,6 +540,16 @@ namespace Lumos
 			command.material = material;
 			Submit(command);
 		}
+    
+        void ShadowRenderer::SubmitMesh(Mesh* mesh, Material* material, const Maths::Matrix4& transform, const Maths::Matrix4& textureMatrix, u32 cascadeIndex)
+        {
+            LUMOS_PROFILE_FUNCTION();
+            RenderCommand command;
+            command.mesh = mesh;
+            command.transform = transform;
+            command.material = material;
+            Submit(command, cascadeIndex);
+        }
 
 		void ShadowRenderer::OnImGui()
 		{

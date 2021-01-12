@@ -41,6 +41,15 @@ namespace Lumos
 				col = colour;
 			}
 		};
+    
+        struct LUMOS_EXPORT RenderCommand2D
+        {
+            Renderable2D* renderable = nullptr;
+            Maths::Matrix4 transform;
+        };
+    
+        typedef std::vector<RenderCommand2D> CommandQueue2D;
+
 
 		struct Render2DLimits
 		{
@@ -74,7 +83,7 @@ namespace Lumos
 			virtual void OnResize(u32 width, u32 height) override;
 			virtual void SetScreenBufferSize(u32 width, u32 height) override;
 			virtual void SetRenderTarget(Texture* texture, bool rebuildFrameBuffer = true) override;
-			virtual void RenderScene(Scene* scene) override;
+			virtual void RenderScene() override;
 
 			virtual void SubmitTriangle(const Maths::Vector3& p1, const Maths::Vector3& p2, const Maths::Vector3& p3, const Maths::Vector4& colour);
 			virtual void Submit(Renderable2D* renderable, const Maths::Matrix4& transform);
@@ -95,8 +104,9 @@ namespace Lumos
 
 		private:
 			void SubmitInternal(const TriangleInfo& triangle);
+            void SubmitQueue();
 
-			std::vector<Renderable2D*> m_Sprites;
+            CommandQueue2D m_CommandQueue2D;
 			std::vector<CommandBuffer*> m_SecondaryCommandBuffers;
 			std::vector<VertexBuffer*> m_VertexBuffers;
 

@@ -156,7 +156,7 @@ namespace Lumos
             m_CurrentDescriptorSets.resize(2);
 		}
 
-		void DeferredOffScreenRenderer::RenderScene(Scene* scene)
+		void DeferredOffScreenRenderer::RenderScene()
 		{
 			LUMOS_PROFILE_FUNCTION();
 

@@ -26,7 +26,7 @@ namespace Lumos
 			void EndScene() override{};
 			void End() override;
 			void Present() override{};
-			void RenderScene(Scene* scene) override;
+			void RenderScene() override;
             void PresentToScreen() override {}
 
 			void CreateFramebuffers();

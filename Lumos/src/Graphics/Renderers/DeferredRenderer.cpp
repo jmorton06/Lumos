@@ -183,11 +183,11 @@ namespace Lumos
             m_CurrentDescriptorSets.resize(2);
 		}
 
-		void DeferredRenderer::RenderScene(Scene* scene)
+		void DeferredRenderer::RenderScene()
 		{
 			LUMOS_PROFILE_FUNCTION();
 
-			m_OffScreenRenderer->RenderScene(scene);
+			m_OffScreenRenderer->RenderScene();
 
 			SetSystemUniforms(m_Shader.get());
 
