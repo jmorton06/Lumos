@@ -103,13 +103,15 @@ static iOSOS* os = nullptr;
     std::string iOSOS::GetExecutablePath()
     {
         return GetAssetPath();
+#if 0
         static char path[512] = "";
-        if (!path[0]) 
+        if (!path[0])
         {
             NSString *bundlePath = [[NSBundle mainBundle] bundlePath];
             strcpy(path, (const char *)[bundlePath cStringUsingEncoding:NSUTF8StringEncoding]);
         }
         return path;
+#endif
     }
 
     void iOSOS::Vibrate() const
@@ -327,7 +329,7 @@ static iOSOS* os = nullptr;
 
 - (void)loadView
 {
-    LumosAppDelegate *delegate = UIApplication.sharedApplication.delegate;
+    auto *delegate = UIApplication.sharedApplication.delegate;
     CGRect frame = delegate.window.bounds;
     
     CGFloat scale = [UIScreen mainScreen].nativeScale;
@@ -354,7 +356,7 @@ static iOSOS* os = nullptr;
 {
     [super viewDidLoad];
 
-    LumosAppDelegate *delegate = UIApplication.sharedApplication.delegate;
+    auto *delegate = (LumosAppDelegate*)UIApplication.sharedApplication.delegate;
     self.lumosView.animating = delegate.active;
         
 #if TARGET_OS_IOS
@@ -369,7 +371,7 @@ static iOSOS* os = nullptr;
 }
 
 - (UIInterfaceOrientationMask)supportedInterfaceOrientations {
-    return UIInterfaceOrientationMaskLandscape;
+    return UIInterfaceOrientationMaskAll;
 }
 
 - (void)didReceiveMemoryWarning {

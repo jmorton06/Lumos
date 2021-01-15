@@ -45,7 +45,7 @@ namespace Lumos
 			m_CommandBuffers.clear();
 		}
 
-		void SkyboxRenderer::RenderScene(Scene* scene)
+		void SkyboxRenderer::RenderScene()
 		{
 			LUMOS_PROFILE_FUNCTION();
 			if(!m_CubeMap)
@@ -244,7 +244,6 @@ namespace Lumos
 			bufferInfo.type = Graphics::DescriptorType::UNIFORM_BUFFER;
 			bufferInfo.binding = 0;
 			bufferInfo.shaderType = ShaderType::VERTEX;
-			bufferInfo.systemUniforms = true;
 
 			bufferInfos.push_back(bufferInfo);
 

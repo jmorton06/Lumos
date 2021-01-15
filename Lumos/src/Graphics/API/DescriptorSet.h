@@ -20,12 +20,19 @@ namespace Lumos
 
 		enum class Format
 		{
+            R32G32B32A32_UINT,
+            R32G32B32_UINT,
+            R32G32_UINT,
+            R32_UINT,
+            R8_UINT,
+            R32G32B32A32_INT,
+            R32G32B32_INT,
+            R32G32_INT,
+            R32_INT,
 			R32G32B32A32_FLOAT,
 			R32G32B32_FLOAT,
 			R32G32_FLOAT,
-			R32_FLOAT,
-			R32_UINT,
-			R8_UINT
+			R32_FLOAT
 		};
 
 		struct VertexInputDescription
@@ -74,7 +81,6 @@ namespace Lumos
 			std::string name = "";
 			DescriptorType type;
 			ShaderType shaderType;
-			bool systemUniforms = false;
 		};
 
 		enum class PushConstantDataType

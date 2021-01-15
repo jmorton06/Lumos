@@ -49,8 +49,7 @@ namespace Lumos::Graphics
     {
         for(auto renderer : m_Renderers)
         {
-            renderer->BeginScene(scene, m_OverrideCamera, m_OverrideCameraTransform );
-            renderer->RenderScene(scene);
+            renderer->RenderScene();
         }
     }
 

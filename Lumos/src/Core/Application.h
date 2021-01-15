@@ -8,8 +8,6 @@
 #include <cereal/types/vector.hpp>
 #include <cereal/cereal.hpp>
 
-#define LUMOS_EDITOR //temp
-
 namespace Lumos
 {
 	class Timer;
@@ -65,19 +63,20 @@ namespace Lumos
 		Application(const std::string& projectRoot, const std::string& projectName);
 		virtual ~Application();
 
-		int Quit(bool pause = false, const std::string& reason = "");
-
 		void Run();
 		bool OnFrame();
-		void OnUpdate(const TimeStep& dt);
-		void OnRender();
-		void OnEvent(Event& e);
-		void OnImGui();
-		void OnNewScene(Scene* scene);
+	
 		void OnExitScene();
 		void OnSceneViewSizeUpdated(u32 width, u32 height);
+		void OpenProject(const std::string& filePath);
 
+        virtual void Quit();
 		virtual void Init();
+        virtual void OnEvent(Event& e);
+        virtual void OnNewScene(Scene* scene);
+        virtual void OnRender();
+        virtual void OnUpdate(const TimeStep& dt);
+        virtual void OnImGui();
 
 		SceneManager* GetSceneManager() const
 		{
@@ -170,13 +169,6 @@ namespace Lumos
 			}
 		}
 
-#ifdef LUMOS_EDITOR
-		Editor* GetEditor() const
-		{
-			return m_Editor;
-		};
-#endif
-    
         void EmbedTexture(const std::string& texFilePath, const std::string& outPath, const std::string& arrayName);
 		
 		virtual void Serialise(const std::string& filePath);
@@ -261,9 +253,6 @@ namespace Lumos
 
 	private:
 		bool OnWindowClose(WindowCloseEvent& e);
-
-		float m_UpdateTimer;
-		UniqueRef<Timer> m_Timer;
 		
 		//Start proj saving
 		u32 Width, Height;
@@ -290,20 +279,17 @@ namespace Lumos
 		UniqueRef<SceneManager> m_SceneManager;
 		UniqueRef<SystemManager> m_SystemManager;
 		UniqueRef<Graphics::RenderGraph> m_RenderGraph;
-        
+        UniqueRef<ImGuiManager> m_ImGuiManager;
+        UniqueRef<Timer> m_Timer;
         Ref<ShaderLibrary> m_ShaderLibrary;
+
+        float m_UpdateTimer;
 
 		AppState m_CurrentState = AppState::Loading;
 		EditorState m_EditorState = EditorState::Preview;
 		AppType m_AppType = AppType::Editor;
 
 		static Application* s_Instance;
-
-        ImGuiManager* m_ImGuiManager = nullptr;
-
-#ifdef LUMOS_EDITOR
-		Editor* m_Editor = nullptr;
-#endif
 
 		NONCOPYABLE(Application)
 	};

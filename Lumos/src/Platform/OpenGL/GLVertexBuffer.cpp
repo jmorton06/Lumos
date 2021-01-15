@@ -44,6 +44,7 @@ namespace Lumos
 		void GLVertexBuffer::SetData(u32 size, const void* data)
 		{
 			LUMOS_PROFILE_FUNCTION();
+            m_Size = size;
 			GLCall(glBindBuffer(GL_ARRAY_BUFFER, m_Handle));
 			GLCall(glBufferData(GL_ARRAY_BUFFER, size, data, BufferUsageToOpenGL(m_Usage)));
 		}
@@ -51,6 +52,7 @@ namespace Lumos
 		void GLVertexBuffer::SetDataSub(u32 size, const void* data, u32 offset)
 		{
 			LUMOS_PROFILE_FUNCTION();
+            m_Size = size;
 			GLCall(glBindBuffer(GL_ARRAY_BUFFER, m_Handle));
 			GLCall(glBufferSubData(GL_ARRAY_BUFFER, offset, size, data));
 		}
@@ -88,7 +90,7 @@ namespace Lumos
 			LUMOS_PROFILE_FUNCTION();
 			GLCall(glBindBuffer(GL_ARRAY_BUFFER, m_Handle));
             ((GLPipeline*)pipeline)->BindVertexArray();
-		}
+        }
 
 		void GLVertexBuffer::Unbind()
 		{

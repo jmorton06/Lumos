@@ -89,9 +89,7 @@ namespace Lumos
 			u32 indices[6] = { 0, 1, 2, 2, 3, 0, };
 			Ref<IndexBuffer> ib;
 			ib.reset(IndexBuffer::Create(indices, 6));
-            
-			Ref<Material> empty;
-            
+                        
             return new Mesh(vb, ib, BoundingBox);
 		}
         
@@ -583,7 +581,7 @@ namespace Lumos
                     
 					Vertex vertex;
 					vertex.Position = p;
-					vertex.Normal = Maths::Vector3(x, y, z);
+					vertex.Normal = Maths::Vector3(x, 0.0f, z);
 					vertex.TexCoords = Maths::Vector2(u, onethird + (v * onethird));
 					data.emplace_back(vertex);
                     
@@ -701,7 +699,7 @@ namespace Lumos
                 
 				Vertex vertex;
 				vertex.Position = p;
-				vertex.Normal = Maths::Vector3(x, y, z);
+				vertex.Normal = Maths::Vector3(x, 0.0f, z);
 				vertex.TexCoords = Maths::Vector2(u, v * 0.5f);
 				data.emplace_back(vertex);
                 

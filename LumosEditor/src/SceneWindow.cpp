@@ -17,7 +17,8 @@
 #include "Core/OS/Input.h"
 #include "Graphics/Renderers/DebugRenderer.h"
 #include "ImGui/IconsMaterialDesignIcons.h"
-#include "EditorCamera.h"
+#include "Graphics/Camera/EditorCamera.h"
+#include "ImGui/ImGuiHelpers.h"
 #include <box2d/box2d.h>
 #include <imgui/imgui_internal.h>
 #include <imgui/plugins/ImGuizmo.h>
@@ -187,8 +188,7 @@ namespace Lumos
 		{
 			camera->SetAspectRatio(aspect);
 		}
-        
-        m_Editor->m_SceneWindowPos = sceneViewPosition;
+        m_Editor->m_SceneWindowPos = Maths::Vector2(sceneViewPosition.x, sceneViewPosition.y);
 
         if(m_HalfRes)
             sceneViewSize /= 2.0f;
@@ -198,7 +198,7 @@ namespace Lumos
         if(m_HalfRes)
             sceneViewSize *= 2.0f;
         
-		ImGuiHelpers::Image(m_GameViewTexture.get(),sceneViewSize);
+		ImGuiHelpers::Image(m_GameViewTexture.get(),Maths::Vector2(sceneViewSize.x, sceneViewSize.y));
 
 		auto windowSize = ImGui::GetWindowSize();
 		ImVec2 minBound = sceneViewPosition;

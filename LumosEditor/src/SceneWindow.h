@@ -3,7 +3,7 @@
 #include "Maths/Maths.h"
 #include "Maths/Frustum.h"
 #include "Maths/Transform.h"
-#include "Editor/Editor.h"
+#include "Editor.h"
 #include "Graphics/Camera/Camera.h"
 #include "Core/StringUtilities.h"
 

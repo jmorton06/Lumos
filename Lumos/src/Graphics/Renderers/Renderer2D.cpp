@@ -113,7 +113,6 @@ namespace Lumos
 			bufferInfo.size = bufferSize;
 			bufferInfo.type = Graphics::DescriptorType::UNIFORM_BUFFER;
 			bufferInfo.shaderType = ShaderType::VERTEX;
-			bufferInfo.systemUniforms = false;
 			bufferInfo.name = "UniformBufferObject";
 			bufferInfo.binding = 0;
 
@@ -171,52 +170,11 @@ namespace Lumos
 		void Renderer2D::Submit(Renderable2D* renderable, const Maths::Matrix4& transform)
 		{
 			LUMOS_PROFILE_FUNCTION();
-			
-			Engine::Get().Statistics().NumRenderedObjects++;
-				
-			if(m_IndexCount >= m_Limits.IndiciesSize)
-				FlushAndReset();
-
-			const Maths::Vector2 min = renderable->GetPosition();
-			const Maths::Vector2 max = renderable->GetPosition() + renderable->GetScale();
-
-			const Maths::Vector4 colour = renderable->GetColour();
-			const auto& uv = renderable->GetUVs();
-			const Texture* texture = renderable->GetTexture();
-
-			float textureSlot = 0.0f;
-			if(texture)
-				textureSlot = SubmitTexture(renderable->GetTexture());
-
-			Maths::Vector3 vertex = transform * Maths::Vector3(min.x, min.y, 0.0f);
-			m_Buffer->vertex = vertex;
-			m_Buffer->uv = uv[0];
-			m_Buffer->tid = Maths::Vector2(textureSlot, 0.0f);
-			m_Buffer->color = colour;
-			m_Buffer++;
-
-			vertex = transform * Maths::Vector3(max.x, min.y, 0.0f);
-			m_Buffer->vertex = vertex;
-			m_Buffer->uv = uv[1];
-			m_Buffer->tid = Maths::Vector2(textureSlot, 0.0f);
-			m_Buffer->color = colour;
-			m_Buffer++;
-
-			vertex = transform * Maths::Vector3(max.x, max.y, 0.0f);
-			m_Buffer->vertex = vertex;
-			m_Buffer->uv = uv[2];
-			m_Buffer->tid = Maths::Vector2(textureSlot, 0.0f);
-			m_Buffer->color = colour;
-			m_Buffer++;
-
-			vertex = transform * Maths::Vector3(min.x, max.y, 0.0f);
-			m_Buffer->vertex = vertex;
-			m_Buffer->uv = uv[3];
-			m_Buffer->tid = Maths::Vector2(textureSlot, 0.0f);
-			m_Buffer->color = colour;
-			m_Buffer++;
-
-			m_IndexCount += 6;
+            
+            RenderCommand2D command;
+            command.renderable = renderable;
+            command.transform = transform;
+            m_CommandQueue2D.push_back(command);
 		}
 
 		void Renderer2D::SubmitTriangle(const Maths::Vector3& p1, const Maths::Vector3& p2, const Maths::Vector3& p3, const Maths::Vector4& colour)
@@ -257,7 +215,6 @@ namespace Lumos
 		{
 			LUMOS_PROFILE_FUNCTION();
             m_TextureCount = 0;
-			m_Sprites.clear();
 			m_Triangles.clear();
 		}
 
@@ -284,7 +241,6 @@ namespace Lumos
 			m_RenderPass->BeginRenderpass(m_CommandBuffers[m_CurrentBufferID].get(), m_ClearColour, m_Framebuffers[m_CurrentBufferID].get(), Graphics::SECONDARY, m_ScreenBufferWidth, m_ScreenBufferHeight);
 
 			m_TextureCount = 0;
-			m_Sprites.clear();
 			m_Triangles.clear();
 
             m_VertexBuffers[m_BatchDrawCallIndex]->Bind(m_CommandBuffers[m_CurrentBufferID].get(), m_Pipeline.get());
@@ -326,6 +282,37 @@ namespace Lumos
 			memcpy(m_VSSystemUniformBuffer, &projView, sizeof(Maths::Matrix4));
 
 			m_Frustum = m_Camera->GetFrustum(view);
+            m_CommandQueue2D.clear();
+            
+            auto group = registry.group<Graphics::Sprite>(entt::get<Maths::Transform>);
+            for(auto entity : group)
+            {
+                const auto& [sprite, trans] = group.get<Graphics::Sprite, Maths::Transform>(entity);
+
+                auto bb = Maths::BoundingBox(Maths::Rect(sprite.GetPosition(), sprite.GetPosition() + sprite.GetScale()));
+                bb.Transform(trans.GetWorldMatrix());
+                auto inside = m_Frustum.IsInside(bb);
+
+                if(inside == Maths::Intersection::OUTSIDE)
+                    continue;
+
+                Submit(&sprite, trans.GetWorldMatrix());
+            };
+            
+            auto group2 = registry.group<Graphics::AnimatedSprite>(entt::get<Maths::Transform>);
+            for(auto entity : group2)
+            {
+                const auto& [sprite, trans] = group2.get<Graphics::AnimatedSprite, Maths::Transform>(entity);
+                
+                auto bb = Maths::BoundingBox(Maths::Rect(sprite.GetPosition(), sprite.GetPosition() + sprite.GetScale()));
+                bb.Transform(trans.GetWorldMatrix());
+                auto inside = m_Frustum.IsInside(bb);
+                
+                if(inside == Maths::Intersection::OUTSIDE)
+                    continue;
+                
+                Submit(&sprite, trans.GetWorldMatrix());
+            };
 		}
 
 		void Renderer2D::Present()
@@ -385,45 +372,69 @@ namespace Lumos
 
 			m_BatchDrawCallIndex = 0;
 		}
+    
+        void Renderer2D::SubmitQueue()
+        {
+            for(auto& command : m_CommandQueue2D)
+            {
+                Engine::Get().Statistics().NumRenderedObjects++;
+                    
+                if(m_IndexCount >= m_Limits.IndiciesSize)
+                    FlushAndReset();
+                
+                auto& renderable = command.renderable;
+                auto& transform = command.transform;
 
-		void Renderer2D::RenderScene(Scene* scene)
+                const Maths::Vector2 min = renderable->GetPosition();
+                const Maths::Vector2 max = renderable->GetPosition() + renderable->GetScale();
+
+                const Maths::Vector4 colour = renderable->GetColour();
+                const auto& uv = renderable->GetUVs();
+                const Texture* texture = renderable->GetTexture();
+
+                float textureSlot = 0.0f;
+                if(texture)
+                    textureSlot = SubmitTexture(renderable->GetTexture());
+
+                Maths::Vector3 vertex = transform * Maths::Vector3(min.x, min.y, 0.0f);
+                m_Buffer->vertex = vertex;
+                m_Buffer->uv = uv[0];
+                m_Buffer->tid = Maths::Vector2(textureSlot, 0.0f);
+                m_Buffer->color = colour;
+                m_Buffer++;
+
+                vertex = transform * Maths::Vector3(max.x, min.y, 0.0f);
+                m_Buffer->vertex = vertex;
+                m_Buffer->uv = uv[1];
+                m_Buffer->tid = Maths::Vector2(textureSlot, 0.0f);
+                m_Buffer->color = colour;
+                m_Buffer++;
+
+                vertex = transform * Maths::Vector3(max.x, max.y, 0.0f);
+                m_Buffer->vertex = vertex;
+                m_Buffer->uv = uv[2];
+                m_Buffer->tid = Maths::Vector2(textureSlot, 0.0f);
+                m_Buffer->color = colour;
+                m_Buffer++;
+
+                vertex = transform * Maths::Vector3(min.x, max.y, 0.0f);
+                m_Buffer->vertex = vertex;
+                m_Buffer->uv = uv[3];
+                m_Buffer->tid = Maths::Vector2(textureSlot, 0.0f);
+                m_Buffer->color = colour;
+                m_Buffer++;
+
+                m_IndexCount += 6;
+            }
+        }
+
+		void Renderer2D::RenderScene()
 		{
 			LUMOS_PROFILE_FUNCTION();
 			Begin();
 
 			SetSystemUniforms(m_Shader.get());
-
-			auto& registry = scene->GetRegistry();
-			auto group = registry.group<Graphics::Sprite>(entt::get<Maths::Transform>);
-			for(auto entity : group)
-			{
-				const auto& [sprite, trans] = group.get<Graphics::Sprite, Maths::Transform>(entity);
-
-				auto bb = Maths::BoundingBox(Maths::Rect(sprite.GetPosition(), sprite.GetPosition() + sprite.GetScale()));
-				bb.Transform(trans.GetWorldMatrix());
-				auto inside = m_Frustum.IsInside(bb);
-
-				if(inside == Maths::Intersection::OUTSIDE)
-					continue;
-
-				Submit(&sprite, trans.GetWorldMatrix());
-			};
-			
-			auto group2 = registry.group<Graphics::AnimatedSprite>(entt::get<Maths::Transform>);
-			for(auto entity : group2)
-			{
-				const auto& [sprite, trans] = group2.get<Graphics::AnimatedSprite, Maths::Transform>(entity);
-				
-				auto bb = Maths::BoundingBox(Maths::Rect(sprite.GetPosition(), sprite.GetPosition() + sprite.GetScale()));
-				bb.Transform(trans.GetWorldMatrix());
-				auto inside = m_Frustum.IsInside(bb);
-				
-				if(inside == Maths::Intersection::OUTSIDE)
-					continue;
-				
-				Submit(&sprite, trans.GetWorldMatrix());
-			};
-
+            SubmitQueue();
 			Present();
 
 			End();
@@ -590,7 +601,6 @@ namespace Lumos
 			Present();
 
 			m_TextureCount = 0;
-			m_Sprites.clear();
 			m_Triangles.clear();
 
 			m_VertexBuffers[m_BatchDrawCallIndex]->Bind(nullptr, nullptr);

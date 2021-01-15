@@ -271,7 +271,7 @@ namespace Lumos
 #endif
 
 		style.WindowPadding = ImVec2(5, 5);
-		style.FramePadding = ImVec2(2, 2);
+		style.FramePadding = ImVec2(4, 4);
 		style.ItemSpacing = ImVec2(6, 2);
 		style.ItemInnerSpacing = ImVec2(2, 2);
 		style.IndentSpacing = 6.0f;

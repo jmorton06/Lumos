@@ -16,7 +16,7 @@ layout(set = 1, binding = 7) uniform sampler2DArray uShadowMap;
 layout(set = 1, binding = 8) uniform sampler2D uDepthSampler;
 
 #define MAX_LIGHTS 32
-#define MAX_SHADOWMAPS 16
+#define MAX_SHADOWMAPS 4
 
 struct Light
 {
@@ -31,20 +31,31 @@ struct Light
 
 layout(std140, binding = 0) uniform UniformBufferLight
 {
-	Light lights[MAX_LIGHTS];
- 	vec4 cameraPosition;
-	mat4 viewMatrix;
-	mat4 uShadowTransform[MAX_SHADOWMAPS];
-    vec4 uSplitDepths[MAX_SHADOWMAPS];
-	mat4 biasMat;
-	int lightCount;
-	int shadowCount;
-	int mode;
-	int cubemapMipLevels;
+	Light lights[MAX_LIGHTS]; //64 bytes * 32
+	mat4 uShadowTransform[MAX_SHADOWMAPS]; //64 * 4 = 256
+
+	mat4 viewMatrix; //64
+	mat4 lightView; //64
+	mat4 biasMat; //64
+	vec4 cameraPosition; //16
+	vec4 uSplitDepths[MAX_SHADOWMAPS]; //4 * 16 = 64
+	float lightSize;
+	float maxShadowDistance;
+	float shadowFade;
+	float cascadeTransitionFade;
+	int lightCount; //4
+	int shadowCount; // 4
+	int mode; // 4
+	int cubemapMipLevels; // 4
+	float initialBias;
 } ubo;
 
 #define PI 3.1415926535897932384626433832795
 #define GAMMA 2.2
+
+const int NumPCFSamples = 16;
+const int numBlockerSearchSamples = 16;
+const bool fadeCascades = false;
 
 struct Material
 {
@@ -59,6 +70,8 @@ struct Material
 };
 
 const float Epsilon = 0.00001;
+
+float ShadowFade = 1.0;
 
 // Constant normal incidence Fresnel factor for all dielectrics.
 const vec3 Fdielectric = vec3(0.04);
@@ -134,6 +147,16 @@ const vec2 PoissonDistribution[64] = vec2[](
 											);
 
 
+vec2 SamplePoisson(int index)
+{
+   return PoissonDistribution[index % 64];
+}
+
+vec2 SamplePoisson16(int index)
+{
+   return PoissonDistribution16[index % 16];
+}
+
 float Random(vec3 seed, int i)
 {
 	vec4 seed4 = vec4(seed, i);
@@ -141,19 +164,18 @@ float Random(vec3 seed, int i)
 	return fract(sin(dot_product) * 43758.5453);
 }
 
-
 float PHI = 1.61803398874989484820459;  // Φ = Golden Ratio   
 
-float gold_noise(vec2 xy, float seed)
+float GoldNoise(vec2 xy, float seed)
 {
 	return fract(tan(distance(xy*PHI, xy)*seed)*xy.x);
 }
 
  float rand(vec2 co)
 {
-     float a = 12.9898;
-     float b = 78.233;
-     float c = 43758.5453;
+    float a = 12.9898;
+    float b = 78.233;
+    float c = 43758.5453;
     float dt= dot(co.xy ,vec2(a,b));
     float sn= mod(dt,3.14);
     return fract(sin(sn) * c);
@@ -167,7 +189,7 @@ float TextureProj(vec4 shadowCoord, vec2 offset, int cascadeIndex, float bias)
 	if ( shadowCoord.z > -1.0 && shadowCoord.z < 1.0 && shadowCoord.w > 0)
 	{
 		float dist = texture(uShadowMap, vec3(shadowCoord.st + offset, cascadeIndex)).r;
-		if (dist < (shadowCoord.z - bias) / shadowCoord.w)
+		if (dist < (shadowCoord.z - bias))
 		{
 			shadow = ambient;//dist;
 		}
@@ -217,32 +239,95 @@ float PoissonShadow(vec4 sc, int cascadeIndex, float bias, vec3 wsPos)
 	return shadowFactor;
 }
 
-vec2 searchRegionRadiusUV(float zWorld)
+vec2 SearchRegionRadiusUV(float zWorld)
 {
 	float light_zNear = 0.0; 
-	float light_zFar = 10000.0;
 	vec2 lightRadiusUV = vec2(0.05);
     return lightRadiusUV * (zWorld - light_zNear) / zWorld;
 }
 
+float SearchWidth(float uvLightSize, float receiverDistance, vec3 cameraPos)
+{
+	const float NEAR = 0.1;
+	return uvLightSize * (receiverDistance - NEAR) / cameraPos.z;
+}
+
 // PCF + Poisson + RandomSample model method
 float PoissonDotShadow(vec4 sc, int cascadeIndex, float bias, vec3 wsPos)
-{
-	int loop;
-	int taps = 32;
-	
-	float multiplier = 0.75 / float(taps);
-	float shadowMapDepth = 1.0;
+{	
+	float shadowMapDepth = 0.0;
 	ivec2 texDim = textureSize(uShadowMap, 0).xy;
 	
-    for (int i = 0; i < taps; i++)
+    for (int i = 0; i < NumPCFSamples; i++)
 	{
-		int index = int(float(taps)*gold_noise(wsPos.xy, wsPos.z + i))%taps;
-		vec2 pd = (3.0 / texDim) * PoissonDistribution[index];
-		shadowMapDepth  -= multiplier * (1.0 - TextureProj(sc, pd, cascadeIndex, bias));
+		int index = int(float(NumPCFSamples)*GoldNoise(wsPos.xy, wsPos.z + i))%NumPCFSamples;
+		vec2 pd = (2.0 / texDim) * PoissonDistribution[index];
+		float z = texture(uShadowMap, vec3(sc.xy + SamplePoisson(index) * pd, cascadeIndex)).r;
+		shadowMapDepth += (z < (sc.z - bias)) ? 1 : 0;
 	}
 	
-	return shadowMapDepth;
+	return shadowMapDepth / float(NumPCFSamples);
+}
+
+float GetShadowBias(vec3 lightDirection, vec3 normal)
+{
+	float MINIMUM_SHADOW_BIAS = ubo.initialBias;
+	float bias = max(MINIMUM_SHADOW_BIAS * (1.0 - dot(normal, lightDirection)), MINIMUM_SHADOW_BIAS);
+	return bias;
+}
+
+float FindBlockerDistance_DirectionalLight(sampler2DArray shadowMap, vec4 shadowCoords, float uvLightSize, vec3 lightDirection, vec3 normal, vec3 wsPos, int cascadeIndex)
+{
+	float bias = GetShadowBias(lightDirection, normal);
+
+	int blockers = 0;
+	float avgBlockerDistance = 0;
+	
+	float zEye = -(vec4(wsPos, 1.0) * ubo.lightView).z;
+	vec2 searchWidth = SearchRegionRadiusUV(zEye);
+
+	for (int i = 0; i < numBlockerSearchSamples; i++)
+	{
+		float z = texture(shadowMap, vec3(shadowCoords.xy + SamplePoisson(i) * searchWidth , cascadeIndex)).r;
+		if (z < (shadowCoords.z - bias))
+		{
+			blockers++;
+			avgBlockerDistance += z;
+		}
+	}
+
+	if (blockers > 0)
+		return avgBlockerDistance / float(blockers);
+
+	return -1;
+}
+
+float PCF_DirectionalLight(sampler2DArray shadowMap, vec4 shadowCoords, float uvRadius, vec3 lightDirection, vec3 normal, vec3 wsPos, int cascadeIndex)
+{
+	float bias = GetShadowBias(lightDirection, normal);
+	float sum = 0;
+
+	for (int i = 0; i < NumPCFSamples; i++)
+	{
+		int index = int(float(NumPCFSamples)*GoldNoise(wsPos.xy, wsPos.z * i))%NumPCFSamples;
+		float z = texture(shadowMap, vec3(shadowCoords.xy + SamplePoisson(index)  * uvRadius, cascadeIndex)).r;
+		sum += (z < (shadowCoords.z - bias)) ? 1 : 0;
+	}
+	return sum / NumPCFSamples;
+}
+
+float PCSS_DirectionalLight(sampler2DArray shadowMap, vec4 shadowCoords, float uvLightSize, vec3 lightDirection, vec3 normal, vec3 wsPos, int cascadeIndex)
+{
+	float blockerDistance = FindBlockerDistance_DirectionalLight(shadowMap, shadowCoords, uvLightSize, lightDirection, normal, wsPos, cascadeIndex);
+	if (blockerDistance == -1)
+		return 1;		
+
+	float penumbraWidth = ( shadowCoords.z - blockerDistance) / blockerDistance;
+
+	float NEAR = 0.01;
+	float uvRadius = penumbraWidth * uvLightSize * NEAR / shadowCoords.z;
+
+	return 1.0 - PCF_DirectionalLight(shadowMap, shadowCoords, uvRadius, lightDirection, normal, wsPos, cascadeIndex) * ShadowFade;
 }
 
 int CalculateCascadeIndex(vec3 wsPos)
@@ -261,18 +346,65 @@ int CalculateCascadeIndex(vec3 wsPos)
 	return cascadeIndex;
 }
 
-float CalculateShadow(vec3 wsPos, int cascadeIndex, float bias)
+float CalculateShadow(vec3 wsPos, int cascadeIndex, float bias, vec3 lightDirection, vec3 normal)
 {
 	vec4 shadowCoord =  vec4(wsPos, 1.0) * ubo.uShadowTransform[cascadeIndex] * ubo.biasMat;
-	 //return PCFShadow(shadowCoord * ( 1.0 / shadowCoord.w), cascadeIndex, bias, wsPos);
-	
-	//shadow = pow(shadow, 2.2);
-	//return shadow;
-	
-	//if(cascadeIndex < 2)
-	return PoissonDotShadow(shadowCoord * ( 1.0 / shadowCoord.w), cascadeIndex, bias, wsPos);
-	//else
-		//return TextureProj(shadowCoord * ( 1.0 / shadowCoord.w), vec2(0.0,0.0), cascadeIndex, bias);
+
+	if(cascadeIndex < 3)
+	{	
+		if (fadeCascades)
+		{
+			float cascadeTransitionFade = ubo.cascadeTransitionFade;
+			vec4 viewPos = vec4(wsPos, 1.0) * ubo.viewMatrix;
+			float c0 = smoothstep(ubo.uSplitDepths[0].x + cascadeTransitionFade * 0.5f, ubo.uSplitDepths[0].x - cascadeTransitionFade * 0.5f, viewPos.z);
+			float c1 = smoothstep(ubo.uSplitDepths[1].x + cascadeTransitionFade * 0.5f, ubo.uSplitDepths[1].x - cascadeTransitionFade * 0.5f, viewPos.z);
+			float c2 = smoothstep(ubo.uSplitDepths[2].x + cascadeTransitionFade * 0.5f, ubo.uSplitDepths[2].x - cascadeTransitionFade * 0.5f, viewPos.z);
+		
+			if (c0 > 0.0 && c0 < 1.0)
+			{
+				// Sample 0 & 1
+				vec4 shadowMapCoords = vec4(wsPos, 1.0) * ubo.uShadowTransform[0] * ubo.biasMat;
+				float shadowAmount0 = PCSS_DirectionalLight(uShadowMap, shadowMapCoords * ( 1.0 / shadowMapCoords.w), ubo.lightSize, lightDirection, normal, wsPos, 0 );
+				shadowMapCoords = vec4(wsPos, 1.0) * ubo.uShadowTransform[1] * ubo.biasMat;
+				float shadowAmount1 = PCSS_DirectionalLight(uShadowMap, shadowMapCoords * ( 1.0 / shadowMapCoords.w), ubo.lightSize, lightDirection, normal, wsPos, 1);
+
+				return mix(shadowAmount0, shadowAmount1, c0);
+			}
+			else if (c1 > 0.0 && c1 < 1.0)
+			{
+				// Sample 1 & 2
+				vec4 shadowMapCoords = vec4(wsPos, 1.0) * ubo.uShadowTransform[1] * ubo.biasMat;
+				float shadowAmount0 = PCSS_DirectionalLight(uShadowMap, shadowMapCoords * ( 1.0 / shadowMapCoords.w), ubo.lightSize, lightDirection, normal, wsPos, 1 );
+				shadowMapCoords = vec4(wsPos, 1.0) * ubo.uShadowTransform[2] * ubo.biasMat;
+				float shadowAmount1 = PCSS_DirectionalLight(uShadowMap, shadowMapCoords * ( 1.0 / shadowMapCoords.w), ubo.lightSize, lightDirection, normal, wsPos, 2);
+
+				return mix(shadowAmount0, shadowAmount1, c0);
+			}
+			else if (c2 > 0.0 && c2 < 1.0)
+			{
+				// Sample 2 & 3
+				vec4 shadowMapCoords = vec4(wsPos, 1.0) * ubo.uShadowTransform[2] * ubo.biasMat;
+				float shadowAmount0 = PCSS_DirectionalLight(uShadowMap, shadowMapCoords * ( 1.0 / shadowMapCoords.w), ubo.lightSize, lightDirection, normal, wsPos, 2 );
+				shadowMapCoords = vec4(wsPos, 1.0) * ubo.uShadowTransform[3] * ubo.biasMat;
+				float bias = 0.0005;
+				float shadowAmount1 = 1.0 - PoissonDotShadow(shadowMapCoords * ( 1.0 / shadowMapCoords.w), 3, bias, wsPos) * ShadowFade;
+				return mix(shadowAmount0, shadowAmount1, c0);
+			}
+			else
+			{
+				return PCSS_DirectionalLight(uShadowMap, shadowCoord * ( 1.0 / shadowCoord.w), ubo.lightSize, lightDirection, normal, wsPos, cascadeIndex );
+			}
+		}
+		else
+		{
+			return PCSS_DirectionalLight(uShadowMap, shadowCoord * ( 1.0 / shadowCoord.w), ubo.lightSize, lightDirection, normal, wsPos, cascadeIndex );
+		}
+	}
+	else
+	{
+		float bias = 0.0005;
+		return 1.0 - PoissonDotShadow(shadowCoord, cascadeIndex, bias, wsPos) * ShadowFade;
+	}
 }
 
 vec3 Lighting(vec3 F0, vec3 wsPos, Material material)
@@ -322,11 +454,11 @@ vec3 Lighting(vec3 F0, vec3 wsPos, Material material)
 		}
 		else
 		{
-			float bias = 0.0005;
+			float bias = ubo.initialBias;
 			bias = bias + (bias * tan(acos(clamp(dot(material.Normal, light.direction.xyz), 0.0, 1.0))) * 0.5);
 			
 			int cascadeIndex = CalculateCascadeIndex(wsPos);
-			 value = CalculateShadow(wsPos,cascadeIndex, bias);
+			value = CalculateShadow(wsPos,cascadeIndex, bias, light.direction.xyz, material.Normal);
 		}
 
 		vec3 Li = light.direction.xyz;
@@ -410,17 +542,26 @@ void main()
 	vec3 emissive	= vec3(positionTex.w, normalTex.w, pbrTex.w);
     vec3 wsPos      = positionTex.xyz;
 	vec3 normal		= normalize(normalTex.xyz);
-    vec3 finalColour;
 
 	Material material;
     material.Albedo    = colourTex;
     material.Metallic  = spec;
     material.Roughness = max(roughness, 0.05);
     material.Normal    = normal;
-	material.AO		= pbrTex.z;
+	material.AO		   = pbrTex.z;
 	material.Emissive  = emissive;
-	material.View 	 = normalize(ubo.cameraPosition.xyz - wsPos);
+	material.View 	   = normalize(ubo.cameraPosition.xyz - wsPos);
 	material.NDotV     = max(dot(material.Normal, material.View), 0.0);
+
+	float shadowDistance = ubo.maxShadowDistance;
+	float transitionDistance = ubo.shadowFade;
+
+	vec4 viewPos = vec4(wsPos, 1.0) * ubo.viewMatrix;
+
+	float distance = length(viewPos);
+	ShadowFade = distance - (shadowDistance - transitionDistance);
+	ShadowFade /= transitionDistance;
+	ShadowFade = clamp(1.0 - ShadowFade, 0.0, 1.0);
 	
 	vec3 Lr = 2.0 * material.NDotV * material.Normal - material.View;
 	// Fresnel reflectance, metals use albedo
@@ -429,7 +570,7 @@ void main()
 	vec3 lightContribution = Lighting(F0, wsPos, material);
 	vec3 iblContribution = IBL(F0, Lr, material) * 2.0;
 
-	finalColour = lightContribution + iblContribution + emissive;
+	vec3 finalColour = lightContribution + iblContribution + emissive;
 	outColor = vec4(finalColour, 1.0);
 
 	if(ubo.mode > 0)

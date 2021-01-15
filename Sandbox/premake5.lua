@@ -17,6 +17,7 @@ IncludeDir["spdlog"] = "../Lumos/external/spdlog/include"
 project "Sandbox"
 	kind "WindowedApp"
 	language "C++"
+	inlining("auto")
 
 	files
 	{
@@ -52,16 +53,19 @@ project "Sandbox"
 		"imgui",
 		"freetype",
 		"SpirvCross"
-}
+	}
 
-defines
-{
-	"LUMOS_PROFILE",
-	"TRACY_ENABLE",
-}
+	defines
+	{
+		"LUMOS_PROFILE",
+		"TRACY_ENABLE",
+	}
 
 	filter { "files:external/**"}
 		warnings "Off"
+
+	filter 'architecture:x86_64'
+		defines { "LUMOS_SSE" ,"USE_VMA_ALLOCATOR"}
 
 	filter "system:windows"
 		cppdialect "C++17"
@@ -93,14 +97,6 @@ defines
 			"glfw",
 			"OpenGL32",
 			"OpenAL32"
-}
-if _OPTIONS["arch"] ~= "arm" then
-defines { "LUMOS_SSE" ,"USE_VMA_ALLOCATOR"}
-end
-
-		buildoptions
-		{
-			"/MP"
 		}
 
 		disablewarnings { 4307 }
@@ -117,7 +113,7 @@ end
 		{
 			['ARCHS'] = false,
 			['CODE_SIGN_IDENTITY'] = 'Mac Developer',
-			['PRODUCT_BUNDLE_IDENTIFIER'] = 'com.jmorton06',
+			['PRODUCT_BUNDLE_IDENTIFIER'] = settings.bundle_identifier,
 			['DEVELOPMENT_TEAM'] = 'C5L4T5BF6L',
 			['INFOPLIST_FILE'] = '../Lumos/src/Platform/macOS/Info.plist',
 			['ASSETCATALOG_COMPILER_APPICON_NAME'] = 'AppIcon'
@@ -144,7 +140,7 @@ end
 			"-framework CoreVideo",
 			"-framework OpenAL",
 			"-framework QuartzCore"
-}
+		}
 
 		files
 		{
@@ -157,20 +153,7 @@ end
 			"glfw",
 		}
 
-SetRecommendedXcodeSettings()
-
-if _OPTIONS["arch"] ~= "arm" then
-defines { "LUMOS_SSE" ,"USE_VMA_ALLOCATOR"}
-xcodebuildsettings
-{
-	ARCHS="x86_64"
-}
-else
-xcodebuildsettings
-{
-	ARCHS="arm64"
-}
-end
+		SetRecommendedXcodeSettings()
 
 	filter "system:ios"
 		cppdialect "C++17"
@@ -232,8 +215,8 @@ end
 			['TARGETED_DEVICE_FAMILY'] = '1,2',
 			['SUPPORTED_PLATFORMS'] = 'iphonesimulator iphoneos',
 			['CODE_SIGN_IDENTITY[sdk=iphoneos*]'] = 'iPhone Developer',
-			['IPHONEOS_DEPLOYMENT_TARGET'] = '12.1',
-			['PRODUCT_BUNDLE_IDENTIFIER'] = 'com.jmorton06',
+			['IPHONEOS_DEPLOYMENT_TARGET'] = '13.0',
+			['PRODUCT_BUNDLE_IDENTIFIER'] = settings.bundle_identifier,
 			['DEVELOPMENT_TEAM'] = 'C5L4T5BF6L',
 			['INFOPLIST_FILE'] = '../Lumos/src/Platform/iOS/Client/Info.plist',
 			['ASSETCATALOG_COMPILER_APPICON_NAME'] = 'AppIcon',
@@ -242,6 +225,14 @@ end
 		if _OPTIONS["teamid"] then
 			xcodebuildsettings {
 				["DEVELOPMENT_TEAM"] = _OPTIONS["teamid"]
+			}
+		end
+
+		if _OPTIONS["tvOS"] then
+			xcodebuildsettings {
+				["SDKROOT"] = _OPTIONS["tvos"],
+				['TARGETED_DEVICE_FAMILY'] = '3',
+				['SUPPORTED_PLATFORMS'] = 'tvos'
 			}
 		end
 
@@ -301,14 +292,11 @@ end
 
 		linkoptions { "-L%{cfg.targetdir}", "-Wl,-rpath=\\$$ORIGIN" }
 
-		if _OPTIONS["arch"] ~= "arm" then
+		filter {'system:linux', 'architecture:x86_64'}
 			buildoptions
 			{
 				"-msse4.1",
 			}
-
-			defines { "LUMOS_SSE" ,"USE_VMA_ALLOCATOR"}
-		end
 
 	filter "configurations:Debug"
 		defines "LUMOS_DEBUG"

@@ -1,4 +1,27 @@
 #pragma once
+
+#include <algorithm>
+#include <functional>
+#include <iostream>
+#include <string>
+#include <sstream>
+
+#include <vector>
+#include <list>
+#include <array>
+#include <map>
+#include <unordered_map>
+#include <cstddef>
+#include <fstream>
+#include <cfloat>
+#include <cstring>
+#include <utility>
+#include <memory>
+#include <thread>
+
+#include <stdio.h>
+#include <math.h>
+
 #include "Maths/Maths.h"
 #include "Maths/Ray.h"
 #include "Maths/Transform.h"
@@ -6,10 +29,11 @@
 #include "EditorWindow.h"
 #include "FileBrowserWindow.h"
 #include "Utilities/IniFile.h"
-#include "EditorCamera.h"
+#include "Graphics/Camera/EditorCamera.h"
 #include "Graphics/Camera/Camera.h"
+#include "Core/Types.h"
 #include "ImGui/ImGuiHelpers.h"
-
+#include "Core/Application.h"
 #include <imgui/imgui.h>
 #include <entt/entity/fwd.hpp>
 
@@ -17,7 +41,6 @@ namespace Lumos
 {
 #define BIND_FILEBROWSER_FN(fn) [this](auto&&... args) -> decltype(auto) { return this->fn(std::forward<decltype(args)>(args)...); }
 
-	class Application;
 	class Scene;
 	class Event;
 	class WindowCloseEvent;
@@ -43,18 +66,21 @@ namespace Lumos
 		SpriteBoxes = 32,
 	};
 
-	class Editor
+	class Editor : public Application
 	{
 		friend class Application;
 		friend class SceneWindow;
 
 	public:
-		Editor(Application* app, u32 width, u32 height);
-		~Editor();
+		Editor();
+		virtual ~Editor();
 
-		void OnInit();
-		void OnImGui();
-		void OnRender();
+		void Init() override;
+		void OnImGui() override;
+		void OnRender() override;
+		void OnEvent(Event& e) override;
+        void Quit() override;
+
 		void DrawMenuBar();
 		void BeginDockSpace(bool gameFullScreen);
 		void EndDockSpace();
@@ -68,10 +94,9 @@ namespace Lumos
 			return m_ImGuizmoOperation;
 		}
 
-		void OnNewScene(Scene* scene);
+		void OnNewScene(Scene* scene) override;
 		void OnImGuizmo();
-		void OnEvent(Event& e);
-		void OnUpdate(const TimeStep& ts);
+		void OnUpdate(const TimeStep& ts) override;
 
 		void Draw2DGrid(ImDrawList* drawList, const ImVec2& cameraPos, const ImVec2& windowPos, const ImVec2& canvasSize, const float factor, const float thickness);
         void Draw3DGrid();
@@ -138,8 +163,6 @@ namespace Lumos
 			return m_CutCopyEntity;
 		}
 
-		void BindEventFunction();
-
 		std::unordered_map<size_t, const char*>& GetComponentIconMap()
 		{
 			return m_ComponentIconMap;
@@ -156,6 +179,8 @@ namespace Lumos
 
 		void ShowPreview();
 		void DrawPreview();
+		
+		static Editor* GetEditor() { return s_Editor; }
 
 		Maths::Vector2 m_SceneWindowPos;
 		Maths::Ray GetScreenRay(int x, int y, Camera* camera, int width, int height);
@@ -245,5 +270,7 @@ namespace Lumos
 		std::string m_TempSceneSaveFilePath;
 
 		IniFile m_IniFile;
+		
+		static Editor* s_Editor;
 	};
 }

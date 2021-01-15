@@ -1,6 +1,7 @@
 #pragma once
 #include "Maths/Maths.h"
 #include "Renderable2D.h"
+#include "Core/VFS.h"
 
 #include <cereal/cereal.hpp>
 
@@ -27,14 +28,19 @@ namespace Lumos
         
             void SetSpriteSheet(const Ref<Texture2D>& texture, const Maths::Vector2& index, const Maths::Vector2& cellSize, const Maths::Vector2& spriteSize);
             void SetTexture(const Ref<Texture2D>& texture) { m_Texture = texture; }
-			void OnImGui();
         
             void SetTextureFromFile(const std::string& filePath);
 		
 			template<typename Archive>
 			void save(Archive& archive) const
 			{
-				archive(cereal::make_nvp("TexturePath", m_Texture ? m_Texture->GetFilepath() : ""),
+                std::string newPath = "";
+                if(m_Texture)
+                {
+                    VFS::Get()->AbsoulePathToVFS(m_Texture->GetFilepath() , newPath);
+                }
+    
+				archive(cereal::make_nvp("TexturePath", newPath),
 						cereal::make_nvp("Position", m_Position),
 						cereal::make_nvp("Scale", m_Scale),
 						cereal::make_nvp("Colour", m_Colour));

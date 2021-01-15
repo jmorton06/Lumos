@@ -1,16 +1,17 @@
 {
     "value0": {
         "Project Version": 5,
-        "RenderAPI": 1,
-        "Width": 1440,
-        "Height": 743,
+        "RenderAPI": 0,
+        "Width": 1183,
+        "Height": 686,
         "Fullscreen": false,
         "VSync": false,
         "ShowConsole": false,
         "Title": "LumosGame",
         "FilePath": "/Sandbox/Sandbox.lmproj",
         "Scenes": [
-            "/Scenes/2D.lsn"
+            "/Scenes/2D.lsn",
+            "/Scenes/Physics.lsn"
         ],
         "SceneIndex": 1,
         "Borderless": false

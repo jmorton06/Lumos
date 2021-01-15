@@ -36,6 +36,11 @@ namespace Lumos
 		entity_type.set_function("TryGet" #Comp, &Entity::TryGetComponent<Comp>); \
         entity_type.set_function("AddOrReplace" #Comp, &Entity::AddOrReplaceComponent<Comp>); \
         entity_type.set_function("Has" #Comp, &Entity::HasComponent<Comp>); \
+        auto entityManager_type = curLuaState["enttRegistry"].get_or_create<sol::usertype<registry>>(); \
+            entityManager_type.set_function( "view_" #Comp, &_ECS_export_view< type_list< Comp >, type_list<> >::view ); \
+        auto V = curLuaState.new_usertype< basic_view< entity, exclude_t<>, Comp > >( #Comp "_view" ); \
+        V.set_function( "each", &basic_view< entity, exclude_t<>, Comp >::each< std::function< void( Comp& ) > > ); \
+        V.set_function( "front", &basic_view< entity, exclude_t<>, Comp >::front ); \
 	}
 
 	class Scene;
