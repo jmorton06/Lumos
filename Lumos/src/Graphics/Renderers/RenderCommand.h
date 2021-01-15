@@ -22,6 +22,7 @@ namespace Lumos
 			Material* material = nullptr;
 			Maths::Matrix4 transform;
 			Maths::Matrix4 textureMatrix;
+            bool animated = false;
 		};
 	}
 }

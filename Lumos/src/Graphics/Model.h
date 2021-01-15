@@ -3,6 +3,7 @@
 #include "MeshFactory.h"
 #include "Mesh.h"
 #include "Material.h"
+#include "Core/VFS.h"
 #include <cereal/cereal.hpp>
 
 namespace Lumos
@@ -28,8 +29,11 @@ namespace Lumos
             {
                 if(m_Meshes.size() > 0)
                 {
+                    std::string newPath;
+                    VFS::Get()->AbsoulePathToVFS(m_FilePath , newPath);
+                    
                     auto material = std::unique_ptr<Material>(m_Meshes.front()->GetMaterial().get());
-                            archive(cereal::make_nvp("PrimitiveType", m_PrimitiveType), cereal::make_nvp("FilePath", m_FilePath), cereal::make_nvp("Material", material));
+                            archive(cereal::make_nvp("PrimitiveType", m_PrimitiveType), cereal::make_nvp("FilePath", newPath), cereal::make_nvp("Material", material));
                             material.release();
                 }
             }
@@ -38,6 +42,7 @@ namespace Lumos
             void load(Archive& archive)
             {
                 auto material = std::unique_ptr<Graphics::Material>();
+                
                 archive(cereal::make_nvp("PrimitiveType", m_PrimitiveType), cereal::make_nvp("FilePath", m_FilePath), cereal::make_nvp("Material", material));
                 
                 m_Meshes.clear();

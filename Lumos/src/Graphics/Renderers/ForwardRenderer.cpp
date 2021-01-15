@@ -55,7 +55,7 @@ namespace Lumos
 			}
 		}
 
-		void ForwardRenderer::RenderScene(Scene* scene)
+		void ForwardRenderer::RenderScene()
 		{
 			//for (i = 0; i < commandBuffers.size(); i++)
 			{

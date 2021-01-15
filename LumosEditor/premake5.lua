@@ -14,17 +14,18 @@ IncludeDir["SpirvCross"] = "../Lumos/external/SPIRV-Cross"
 IncludeDir["cereal"] = "../Lumos/external/cereal/include"
 IncludeDir["spdlog"] = "../Lumos/external/spdlog/include"
 
-project "Sandbox"
+project "LumosEditor"
 	kind "WindowedApp"
 	language "C++"
+	editandcontinue "Off"
 	inlining("auto")
-
+	
 	files
 	{
 		"**.h",
 		"**.cpp",
-		"Scenes/**.h",
-		"Scenes/**.cpp"
+		"src/**.h",
+		"src/**.cpp"
 	}
 
 	sysincludedirs
@@ -59,6 +60,7 @@ project "Sandbox"
 	{
 		"LUMOS_PROFILE",
 		"TRACY_ENABLE",
+		"IMGUI_USER_CONFIG=\"../../Lumos/src/ImGui/ImConfig.h\"",
 	}
 
 	filter { "files:external/**"}
@@ -204,7 +206,7 @@ project "Sandbox"
             "res/meshes",
             "res/sounds",
             "res/textures",
-			"Sandbox.lmproj"
+			"LumosEditor.lmproj"
 		}
 
 		xcodebuildsettings
@@ -253,7 +255,7 @@ project "Sandbox"
             "scripts",
             "sounds",
             "textures",
-            "Sandbox.lmproj"
+            "LumosEditor.lmproj"
 		}
 		SetRecommendedXcodeSettings()
 

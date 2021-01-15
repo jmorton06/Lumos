@@ -64,6 +64,15 @@ namespace Lumos
 		{
             Push(name, Format::R32G32B32A32_FLOAT, sizeof(Maths::Vector4), normalized);
 		}
-
+        template<>
+        void BufferLayout::Push<Maths::IntVector3>(const std::string& name, bool normalized)
+        {
+            Push(name, Format::R32G32B32_INT, sizeof(Maths::IntVector3), normalized);
+        }
+        template<>
+        void BufferLayout::Push<Maths::IntVector4>(const std::string& name, bool normalized)
+        {
+            Push(name, Format::R32G32B32A32_INT, sizeof(Maths::IntVector4), normalized);
+        }
 	}
 }

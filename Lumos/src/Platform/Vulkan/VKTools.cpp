@@ -296,6 +296,15 @@ namespace Lumos
                 case Lumos::Graphics::Format::R32G32B32_FLOAT :      return VkFormat::VK_FORMAT_R32G32B32_SFLOAT;
                 case Lumos::Graphics::Format::R32G32_FLOAT :         return VkFormat::VK_FORMAT_R32G32_SFLOAT;
                 case Lumos::Graphics::Format::R32_FLOAT :            return VkFormat::VK_FORMAT_R32_SFLOAT;
+                case Lumos::Graphics::Format::R32G32B32A32_UINT :    return VkFormat::VK_FORMAT_R32G32B32A32_UINT;
+                case Lumos::Graphics::Format::R32G32B32_UINT :       return VkFormat::VK_FORMAT_R32G32B32_UINT;
+                case Lumos::Graphics::Format::R32G32_UINT :          return VkFormat::VK_FORMAT_R32G32_UINT;
+                case Lumos::Graphics::Format::R32_UINT :             return VkFormat::VK_FORMAT_R32_UINT;
+                case Lumos::Graphics::Format::R8_UINT :              return VkFormat::VK_FORMAT_R8_UINT;
+                case Lumos::Graphics::Format::R32G32B32A32_INT :     return VkFormat::VK_FORMAT_R32G32B32A32_SINT;
+                case Lumos::Graphics::Format::R32G32B32_INT :        return VkFormat::VK_FORMAT_R32G32B32_SINT;
+                case Lumos::Graphics::Format::R32G32_INT :           return VkFormat::VK_FORMAT_R32G32_SINT;
+                case Lumos::Graphics::Format::R32_INT :              return VkFormat::VK_FORMAT_R32_SINT;
                 default: return VkFormat::VK_FORMAT_R32G32B32A32_SFLOAT;
             }
         }

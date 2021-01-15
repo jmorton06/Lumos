@@ -44,19 +44,20 @@ namespace Lumos
 			, m_ShadowMapSize(shadowMapSize)
 			, m_ShadowMapsInvalidated(true)
 			, m_UniformBuffer(nullptr)
-            , m_CascadeSplitLambda(0.95f)
+            , m_CascadeSplitLambda(0.91f)
             , m_SceneRadiusMultiplier(1.4f)
 		{
 			m_Shader = Application::Get().GetShaderLibrary()->GetResource("/CoreShaders/Shadow.shader");
-			if(texture == nullptr)
-			{
-				m_ShadowTex = TextureDepthArray::Create(m_ShadowMapSize, m_ShadowMapSize, m_ShadowMapNum);
-			}
-			else
-				m_ShadowTex = texture;
+            m_ShadowTex = texture ? texture : TextureDepthArray::Create(m_ShadowMapSize, m_ShadowMapSize, m_ShadowMapNum);
 
 			m_DescriptorSet = nullptr;
             m_ScreenRenderer = false;
+            
+            m_LightSize = 0.1f;
+            m_MaxShadowDistance = 400.0f;
+            m_ShadowFade = 40.0f;
+            m_CascadeTransitionFade = 1.5f;
+            m_InitialBias = 0.0023f;
 
 			ShadowRenderer::Init();
 		}
@@ -95,8 +96,9 @@ namespace Lumos
 			m_VSSystemUniformBufferOffsets[VSSystemUniformIndex_ProjectionViewMatrix] = 0;
 
 			AttachmentInfo textureTypes[1] =
-				{
-					{TextureType::DEPTHARRAY, TextureFormat::DEPTH}};
+            {
+                {TextureType::DEPTHARRAY, TextureFormat::DEPTH}
+            };
 
 			Graphics::RenderPassInfo renderpassCI{};
 			renderpassCI.attachmentCount = 1;
@@ -113,7 +115,7 @@ namespace Lumos
 			CreateFramebuffers();
             m_CurrentDescriptorSets.resize(1);
 
-			m_CommandQueue.reserve(1000);
+            m_CascadeCommandQueue[0].reserve(1000);
 		}
 
 		void ShadowRenderer::OnResize(u32 width, u32 height)
@@ -123,8 +125,6 @@ namespace Lumos
 		void ShadowRenderer::Begin()
 		{
 			LUMOS_PROFILE_FUNCTION();
-			m_CommandQueue.clear();
-			
 			m_CommandBuffer->BeginRecording();
 		}
 
@@ -172,6 +172,48 @@ namespace Lumos
             }
             
 			UpdateCascades(scene, overrideCamera, overrideCameraTransform, light);
+                      
+            m_CascadeCommandQueue[0].clear();
+            m_CascadeCommandQueue[1].clear();
+            m_CascadeCommandQueue[2].clear();
+            m_CascadeCommandQueue[3].clear();
+            
+            auto group = registry.group<Model>(entt::get<Maths::Transform>);
+
+            for(u32 i = 0; i < m_ShadowMapNum; ++i)
+            {
+                m_Layer = i;
+
+                Maths::Frustum f;
+                f.Define(m_ShadowProjView[i]);
+                
+                if(group.empty())
+                    continue;
+                
+                for(auto entity : group)
+                {
+                    const auto& [model, trans] = group.get<Model, Maths::Transform>(entity);
+                    const auto& meshes = model.GetMeshes();
+                                   
+                   for(auto mesh : meshes)
+                   {
+                        if(mesh->GetActive())
+                        {
+                            auto& worldTransform = trans.GetWorldMatrix();
+
+                            auto bb = mesh->GetBoundingBox();
+                            auto bbCopy = bb->Transformed(worldTransform);
+                            auto inside = f.IsInsideFast(bbCopy);
+
+                            if(inside == Maths::Intersection::OUTSIDE)
+                                continue;
+
+                            SubmitMesh(mesh.get(), nullptr, worldTransform, Maths::Matrix4(), i);
+                        }
+                   }
+                }
+            }
+
             
             m_ShouldRender = true;
 		}
@@ -196,7 +238,7 @@ namespace Lumos
 
 			m_Pipeline->Bind(m_CommandBuffer);
 
-			for(auto& command : m_CommandQueue)
+			for(auto& command : m_CascadeCommandQueue[m_Layer])
 			{
 				Engine::Get().Statistics().NumShadowObjects++;
 				
@@ -246,7 +288,7 @@ namespace Lumos
 			m_ShadowMapSize = size;
 		}
 
-		void ShadowRenderer::RenderScene(Scene* scene)
+		void ShadowRenderer::RenderScene()
 		{
 			LUMOS_PROFILE_FUNCTION();
             
@@ -257,46 +299,10 @@ namespace Lumos
 
 			Begin();
 
-			auto& registry = scene->GetRegistry();
-
-			auto group = registry.group<Model>(entt::get<Maths::Transform>);
-
 			for(u32 i = 0; i < m_ShadowMapNum; ++i)
 			{
-				LUMOS_PROFILE_SCOPE("ShadowRenderer::RenderScene Per Shadow Map");
-				m_Layer = i;
-
-				Maths::Frustum f;
-				f.Define(m_ShadowProjView[i]);
-				
-				if(group.empty())
-					continue;
-				
-				for(auto entity : group)
-				{
-					const auto& [model, trans] = group.get<Model, Maths::Transform>(entity);
-                    const auto& meshes = model.GetMeshes();
-                                   
-                   for(auto mesh : meshes)
-                   {
-                        if(mesh->GetActive())
-                        {
-                            auto& worldTransform = trans.GetWorldMatrix();
-
-                            auto bb = mesh->GetBoundingBox();
-                            auto bbCopy = bb->Transformed(worldTransform);
-                            auto inside = f.IsInsideFast(bbCopy);
-
-                            if(inside == Maths::Intersection::OUTSIDE)
-                                continue;
-
-                            SubmitMesh(mesh.get(), nullptr, worldTransform, Maths::Matrix4());
-                        }
-                   }
-				}
-
-				SetSystemUniforms(m_Shader.get());
-
+                m_Layer = i;
+                SetSystemUniforms(m_Shader.get());
 				Present();
 			}
 			End();
@@ -416,6 +422,9 @@ namespace Lumos
 					// Store split distance and matrix in cascade
 					m_SplitDepth[i] = Maths::Vector4((m_Camera->GetNear() + splitDist * clipRange) * -1.0f);
 					m_ShadowProjView[i] = shadowProj;
+                
+                    if(i == 0)
+                        m_LightMatrix = lightViewMatrix.Inverse();
 				}
 #ifdef THREAD_CASCADE_GEN
 			);
@@ -496,7 +505,6 @@ namespace Lumos
 			bufferInfo.type = Graphics::DescriptorType::UNIFORM_BUFFER;
 			bufferInfo.binding = 0;
 			bufferInfo.shaderType = ShaderType::VERTEX;
-			bufferInfo.systemUniforms = false;
 
 			bufferInfos.push_back(bufferInfo);
 
@@ -515,8 +523,13 @@ namespace Lumos
 
 		void ShadowRenderer::Submit(const RenderCommand& command)
 		{
-			m_CommandQueue.push_back(command);
+            m_CascadeCommandQueue[0].push_back(command);
 		}
+    
+        void ShadowRenderer::Submit(const RenderCommand& command, u32 cascadeIndex)
+        {
+            m_CascadeCommandQueue[cascadeIndex].push_back(command);
+        }
 
 		void ShadowRenderer::SubmitMesh(Mesh* mesh, Material* material, const Maths::Matrix4& transform, const Maths::Matrix4& textureMatrix)
 		{
@@ -527,6 +540,16 @@ namespace Lumos
 			command.material = material;
 			Submit(command);
 		}
+    
+        void ShadowRenderer::SubmitMesh(Mesh* mesh, Material* material, const Maths::Matrix4& transform, const Maths::Matrix4& textureMatrix, u32 cascadeIndex)
+        {
+            LUMOS_PROFILE_FUNCTION();
+            RenderCommand command;
+            command.mesh = mesh;
+            command.transform = transform;
+            command.material = material;
+            Submit(command, cascadeIndex);
+        }
 
 		void ShadowRenderer::OnImGui()
 		{
@@ -553,7 +576,13 @@ namespace Lumos
 
 				ImGui::TreePop();
 			}
-                        
+            
+            ImGui::DragFloat("Initial Bias", &m_InitialBias, 0.00005f, 0.0f, 1.0f, "%.6f");
+            ImGui::DragFloat("Light Size", &m_LightSize, 0.00005f, 0.0f, 1.0f);
+            ImGui::DragFloat("Max Shadow Distance", &m_MaxShadowDistance, 0.05f, 0.0f, 10000.0f);
+            ImGui::DragFloat("Shadow Fade", &m_ShadowFade, 0.0005f, 0.0f, 500.0f);
+            ImGui::DragFloat("Cascade Transition Fade", &m_CascadeTransitionFade, 0.0005f, 0.0f, 5.0f);
+
             ImGui::DragFloat("Cascade Split Lambda", &m_CascadeSplitLambda, 0.005f, 0.0f, 3.0f);
             ImGui::DragFloat("Scene Radius Multiplier", &m_SceneRadiusMultiplier, 0.005f, 0.0f, 5.0f);
 

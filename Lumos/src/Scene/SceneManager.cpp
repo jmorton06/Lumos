@@ -104,10 +104,7 @@ namespace Lumos
 		//Initialize new scene
 		app.GetSystem<LumosPhysicsEngine>()->SetDefaults();
 		app.GetSystem<B2PhysicsEngine>()->SetDefaults();
-
-		auto screenSize = app.GetWindowSize();
-		m_CurrentScene->SetScreenWidth(static_cast<u32>(screenSize.x));
-		m_CurrentScene->SetScreenHeight(static_cast<u32>(screenSize.y));
+		app.GetSystem<LumosPhysicsEngine>()->SetPaused(false);
         
         std::string physicalPath;
         if(Lumos::VFS::Get()->ResolvePhysicalPath("//Scenes/" + m_CurrentScene->GetSceneName() + ".lsn", physicalPath))
@@ -116,9 +113,10 @@ namespace Lumos
             m_CurrentScene->Deserialise(newPath, false);
         }
         
-	#ifdef LUMOS_EDITOR
+        auto screenSize = app.GetWindowSize();
+        m_CurrentScene->SetScreenSize(static_cast<u32>(screenSize.x),static_cast<u32>(screenSize.y));
+        
         if(app.GetEditorState() == EditorState::Play)
-	#endif
             m_CurrentScene->OnInit();
 
 		Application::Get().OnNewScene(m_CurrentScene);

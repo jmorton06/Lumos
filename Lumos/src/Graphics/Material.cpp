@@ -290,7 +290,6 @@ namespace Lumos::Graphics
 			bufferInfo.binding = 6;
 			bufferInfo.shaderType = Graphics::ShaderType::FRAGMENT;
 			bufferInfo.name = "UniformMaterialData";
-			bufferInfo.systemUniforms = false;
 
 			bufferInfos.push_back(bufferInfo);
 

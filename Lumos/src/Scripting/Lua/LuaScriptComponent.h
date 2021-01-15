@@ -57,7 +57,9 @@ namespace Lumos
 		template<typename Archive>
 		void save(Archive& archive) const
 		{
-			archive(cereal::make_nvp("FilePath", m_FileName));
+			std::string newPath;
+            VFS::Get()->AbsoulePathToVFS(m_FileName, newPath);
+			archive(cereal::make_nvp("FilePath", newPath));
 		}
 
 		template<typename Archive>

@@ -29,7 +29,7 @@ namespace Lumos
 		{
 		public:
 			virtual ~IRenderer();
-			virtual void RenderScene(Scene* scene) = 0;
+			virtual void RenderScene() = 0;
 			virtual void Init() = 0;
 			virtual void Begin() = 0;
 			virtual void BeginScene(Scene* scene, Camera* overrideCamera, Maths::Transform* overrideCameraTransform) = 0;
@@ -87,6 +87,11 @@ namespace Lumos
             {
                 return m_ScreenRenderer;
             }
+            
+            bool GetShouldRender()
+            {
+                return m_ShouldRender;
+            }
 
 		protected:
 			Camera* m_Camera = nullptr;
@@ -121,6 +126,7 @@ namespace Lumos
             
             int m_RenderPriority = 0;
             bool m_ScreenRenderer = true;
+            bool m_ShouldRender = true;
 
 		};
 	}

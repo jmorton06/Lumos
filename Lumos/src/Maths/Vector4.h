@@ -4,6 +4,150 @@
 
 namespace Lumos::Maths
 {
+
+    /// Four-dimensional vector with integer values.
+    class IntVector4
+    {
+    public:
+        /// Construct a zero vector.
+        IntVector4() noexcept :
+            x(0),
+            y(0),
+            z(0),
+            w(0)
+        {
+        }
+
+        /// Construct from coordinates.
+        IntVector4(int x, int y, int z, int w) noexcept :
+            x(x),
+            y(y),
+            z(z),
+            w(w)
+        {
+        }
+
+        /// Construct from an int array.
+        explicit IntVector4(const int* data) noexcept :
+            x(data[0]),
+            y(data[1]),
+            z(data[2]),
+            w(data[3])
+        {
+        }
+
+        /// Copy-construct from another vector.
+        IntVector4(const IntVector4& rhs) noexcept = default;
+
+        /// Assign from another vector.
+        IntVector4& operator =(const IntVector4& rhs) noexcept = default;
+
+        /// Test for equality with another vector.
+        bool operator ==(const IntVector4& rhs) const { return x == rhs.x && y == rhs.y && z == rhs.z && w == rhs.w; }
+
+        /// Test for inequality with another vector.
+        bool operator !=(const IntVector4& rhs) const { return x != rhs.x || y != rhs.y || z != rhs.z || w != rhs.w; }
+
+        /// Add a vector.
+        IntVector4 operator +(const IntVector4& rhs) const { return IntVector4(x + rhs.x, y + rhs.y, z + rhs.z, w + rhs.w); }
+
+        /// Return negation.
+        IntVector4 operator -() const { return IntVector4(-x, -y, -z, -w); }
+
+        /// Subtract a vector.
+        IntVector4 operator -(const IntVector4& rhs) const { return IntVector4(x - rhs.x, y - rhs.y, z - rhs.z, w - rhs.w); }
+
+        /// Multiply with a scalar.
+        IntVector4 operator *(int rhs) const { return IntVector4(x * rhs, y * rhs, z * rhs, w * rhs); }
+
+        /// Multiply with a vector.
+        IntVector4 operator *(const IntVector4& rhs) const { return IntVector4(x * rhs.x, y * rhs.y, z * rhs.z, w * rhs.w); }
+
+        /// Divide by a scalar.
+        IntVector4 operator /(int rhs) const { return IntVector4(x / rhs, y / rhs, z / rhs, w / rhs); }
+
+        /// Divide by a vector.
+        IntVector4 operator /(const IntVector4& rhs) const { return IntVector4(x / rhs.x, y / rhs.y, z / rhs.z, w / rhs.w); }
+
+        /// Add-assign a vector.
+        IntVector4& operator +=(const IntVector4& rhs)
+        {
+            x += rhs.x;
+            y += rhs.y;
+            z += rhs.z;
+            w += rhs.w;
+            return *this;
+        }
+
+        /// Subtract-assign a vector.
+        IntVector4& operator -=(const IntVector4& rhs)
+        {
+            x -= rhs.x;
+            y -= rhs.y;
+            z -= rhs.z;
+            w -= rhs.w;
+            return *this;
+        }
+
+        /// Multiply-assign a scalar.
+        IntVector4& operator *=(int rhs)
+        {
+            x *= rhs;
+            y *= rhs;
+            z *= rhs;
+            return *this;
+        }
+
+        /// Multiply-assign a vector.
+        IntVector4& operator *=(const IntVector4& rhs)
+        {
+            x *= rhs.x;
+            y *= rhs.y;
+            z *= rhs.z;
+            w *= rhs.w;
+            return *this;
+        }
+
+        /// Divide-assign a scalar.
+        IntVector4& operator /=(int rhs)
+        {
+            x /= rhs;
+            y /= rhs;
+            z /= rhs;
+            w /= rhs;
+            return *this;
+        }
+
+        /// Divide-assign a vector.
+        IntVector4& operator /=(const IntVector4& rhs)
+        {
+            x /= rhs.x;
+            y /= rhs.y;
+            z /= rhs.z;
+            w /= rhs.w;
+            return *this;
+        }
+
+        /// Return integer data.
+        const int* Data() const { return &x; }
+
+        /// Return as string.
+
+        /// Return hash value for HashSet & HashMap.
+        unsigned ToHash() const { return (unsigned)x * 31 * 31 * 31 + (unsigned)y * 31 * 31 + (unsigned)z * 31 + (unsigned)w;  }
+
+        /// Return length.
+        float Length() const { return sqrtf((float)(x * x + y * y + z * z + w * w)); }
+
+        /// X coordinate.
+        int x;
+        /// Y coordinate.
+        int y;
+        /// Z coordinate.
+        int z;
+        /// W coordinate.
+        int w;
+    };
     /// Four-dimensional vector.
     class  Vector4
     {

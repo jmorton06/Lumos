@@ -1,57 +1,10 @@
-newoption 
-{
-   trigger     = "renderer",
-   value       = "API",
-   description = "Choose a renderer",
-   allowed = 
-   {
-      { "opengl", "OpenGL (macOS, linux, Windows)" },
-      --{ "dx11",  "DirectX 11 (Windows only)" },
-      --{ "metal", "Metal (macOS, iOS only)" },
-      { "vulkan", "Vulkan (Windows, linux, iOS, macOS)" }
-   }
-}
-
-newoption
-{
-	trigger = "arch",
-	value   = "arch",
-	description = "Choose architecture",
-	allowed = 
-	{
-		{"x86", "x86" },
-		{"x64", "x64" },
-		{"arm", "arm" },
-		{"arm64", "arm64"}
-	}
-}
-
-newoption 
-{
-   trigger     = "xcode_target",
-   value       = "TARGET",
-   description = "Choose an xcode build target",
-   allowed = 
-   {
-      { "osx", "OSX" },
-      { "ios",  "iOS" },
-      { "tvOS", "TVOS" },
-   }
-}
-
-newoption
-{
-	trigger     = "teamid",
-	value	    = "id",
-	description = "development team id for apple developers"
-}
-
 function SetRecommendedXcodeSettings()
 
+   debugformat "Dwarf"
    xcodebuildsettings
    {
 		['ARCHS'] = false,
-		['GCC_ENABLE_FIX_AND_CONTIUE'] = false,
+		['GCC_ENABLE_FIX_AND_CONTINUE'] = false,
 	  	['CLANG_WARN_EMPTY_BODY'] = 'YES',
 	  	['CLANG_ENABLE_OBJC_WEAK'] = 'YES',
 	  	['GCC_WARN_UNUSED_FUNCTION'] = 'YES',
@@ -133,8 +86,19 @@ function SetRecommendedXcodeSettings()
 		}
 	filter{"system:macosx"}
 		xcodebuildsettings 
+  {   ['ONLY_ACTIVE_ARCH'] = 'YES',
+	["MACOSX_DEPLOYMENT_TARGET"] = "10.15",
+		['ARCHS'] = 'x86_64'
+		}
+
+	filter {"system:ios"}
+		xcodebuildsettings
 		{
-			["MACOSX_DEPLOYMENT_TARGET"] = "10.15"
+			['ARCHS'] = '$(ARCHS_STANDARD)',
+			['SDKROOT'] = 'iphoneos',
+			['TARGETED_DEVICE_FAMILY'] = '1,2',
+			['SUPPORTED_PLATFORMS'] = 'iphonesimulator iphoneos',
+			['IPHONEOS_DEPLOYMENT_TARGET'] = '13.0'
 		}
 end
 
@@ -146,5 +110,4 @@ function SetRecommendedSettings()
 	filter ()
 	editandcontinue "Off"
 	warnings "Off"
-	
 end

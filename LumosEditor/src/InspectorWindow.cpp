@@ -35,11 +35,11 @@ namespace MM
 	{
 		LUMOS_PROFILE_FUNCTION();
 		auto& script = reg.get<Lumos::LuaScriptComponent>(e);
-
+		bool loaded = true;
         if(!script.Loaded() && !script.GetFilePath().empty())
 		{
 			ImGui::Text("Script Failed to Load : %s", script.GetFilePath().c_str());
-			return;
+			loaded = false;
 		}
 
 		auto& solEnv = script.GetSolEnvironment();
@@ -48,18 +48,15 @@ namespace MM
 
         ImGui::Text("FilePath %s", filePath.c_str());
 
-#ifdef LUMOS_EDITOR
         if(ImGui::Button("Edit File", ImVec2(ImGui::GetContentRegionAvail().x, 0.0f)))
-            Lumos::Application::Get().GetEditor()->OpenTextFile(script.GetFilePath());
-#endif
+            Lumos::Editor::GetEditor()->OpenTextFile(script.GetFilePath());
         
-#ifdef LUMOS_EDITOR
         if(ImGui::Button("Open File", ImVec2(ImGui::GetContentRegionAvail().x, 0.0f)))
         {
-            Lumos::Application::Get().GetEditor()->GetFileBrowserWindow().Open();
-            Lumos::Application::Get().GetEditor()->GetFileBrowserWindow().SetCallback(std::bind(&Lumos::LuaScriptComponent::LoadScript, &script, std::placeholders::_1));
+            Lumos::Editor::GetEditor()->GetFileBrowserWindow().Open();
+            Lumos::Editor::GetEditor()->GetFileBrowserWindow().SetCallback(std::bind(&Lumos::LuaScriptComponent::LoadScript, &script, std::placeholders::_1));
         }
-#endif
+		
         bool hasReloaded = false;
         if(ImGui::Button("Reload", ImVec2(ImGui::GetContentRegionAvail().x, 0.0f)))
         {
@@ -67,7 +64,7 @@ namespace MM
             hasReloaded = true;
         }
         
-        if(!script.Loaded() || hasReloaded)
+        if(!script.Loaded() || hasReloaded || !loaded)
         {
             return;
         }
@@ -664,11 +661,98 @@ namespace MM
 	template<>
 	void ComponentEditorWidget<Lumos::Graphics::Sprite>(entt::registry& reg, entt::registry::entity_type e)
 	{
+        using namespace Lumos;
 		LUMOS_PROFILE_FUNCTION();
 		auto& sprite = reg.get<Lumos::Graphics::Sprite>(e);
-		sprite.OnImGui();
+        ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(2, 2));
+        ImGui::Columns(2);
+        ImGui::Separator();
+        
+        ImGui::AlignTextToFramePadding();
+        ImGui::TextUnformatted("Position");
+        ImGui::NextColumn();
+        ImGui::PushItemWidth(-1);
+        auto pos = sprite.GetPosition();
+        if(ImGui::InputFloat2("##Position", Maths::ValuePointer(pos)))
+            sprite.SetPosition(pos);
+        
+        ImGui::PopItemWidth();
+        ImGui::NextColumn();
+        
+        ImGui::AlignTextToFramePadding();
+        ImGui::TextUnformatted("Scale");
+        ImGui::NextColumn();
+        ImGui::PushItemWidth(-1);
+        auto scale = sprite.GetScale();
+        if(ImGui::InputFloat2("##Scale", Maths::ValuePointer(scale)))
+            sprite.SetScale(scale);
+        
+        ImGui::PopItemWidth();
+        ImGui::NextColumn();
+        
+        ImGui::AlignTextToFramePadding();
+        ImGui::TextUnformatted("Colour");
+        ImGui::NextColumn();
+        ImGui::PushItemWidth(-1);
+        auto colour = sprite.GetColour();
+        if(ImGui::ColorEdit4("##Colour", Maths::ValuePointer(colour)))
+            sprite.SetColour(colour);
+        
+        ImGui::PopItemWidth();
+        ImGui::NextColumn();
+        
+        if (ImGui::TreeNode("Texture"))
+        {
+            ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(2, 2));
+            ImGui::Columns(2);
+            ImGui::Separator();
+            
+            bool flipImage = Graphics::GraphicsContext::GetContext()->FlipImGUITexture();
+            
+            ImGui::AlignTextToFramePadding();
+            auto tex = sprite.GetTexture();
+            
+            if(tex)
+            {
+                if(ImGui::ImageButton(tex->GetHandle(), ImVec2(64, 64), ImVec2(0.0f, flipImage ? 1.0f : 0.0f), ImVec2(1.0f, flipImage ? 0.0f : 1.0f)))
+                {
+                    Lumos::Editor::GetEditor()->GetFileBrowserWindow().Open();
+                    Lumos::Editor::GetEditor()->GetFileBrowserWindow().SetCallback(std::bind(&Lumos::Graphics::Sprite::SetTextureFromFile, &sprite, std::placeholders::_1));
+                }
+                
+                if(ImGui::IsItemHovered() && tex)
+                {
+                    ImGui::BeginTooltip();
+                    ImGui::Image(tex->GetHandle(), ImVec2(256, 256), ImVec2(0.0f, flipImage ? 1.0f : 0.0f), ImVec2(1.0f, flipImage ? 0.0f : 1.0f));
+                    ImGui::EndTooltip();
+                }
+            }
+            else
+            {
+                if(ImGui::Button("Empty", ImVec2(64, 64)))
+                {
+                    Lumos::Editor::GetEditor()->GetFileBrowserWindow().Open();
+                    Lumos::Editor::GetEditor()->GetFileBrowserWindow().SetCallback(std::bind(&Lumos::Graphics::Sprite::SetTextureFromFile, &sprite, std::placeholders::_1));
+                }
+            }
+            
+            ImGui::NextColumn();
+            ImGui::PushItemWidth(-1);
+            ImGui::Text("%s", tex ? tex->GetFilepath().c_str() : "No Texture");
+            
+            ImGui::PopItemWidth();
+            ImGui::NextColumn();
+            
+            ImGui::Columns(1);
+            ImGui::Separator();
+            ImGui::PopStyleVar();
+            ImGui::TreePop();
+        }
+        
+        ImGui::Columns(1);
+        ImGui::Separator();
+        ImGui::PopStyleVar();
 	}
-	
 	
 	template<>
 		void ComponentEditorWidget<Lumos::Graphics::AnimatedSprite>(entt::registry& reg, entt::registry::entity_type e)
@@ -962,10 +1046,8 @@ namespace MM
             {
                 if(ImGui::ImageButton(tex->GetHandle(), ImVec2(64, 64), ImVec2(0.0f, flipImage ? 1.0f : 0.0f), ImVec2(1.0f, flipImage ? 0.0f : 1.0f)))
                 {
-#ifdef LUMOS_EDITOR
-                    Application::Get().GetEditor()->GetFileBrowserWindow().Open();
-                    Application::Get().GetEditor()->GetFileBrowserWindow().SetCallback(std::bind(&Sprite::SetTextureFromFile, &sprite, std::placeholders::_1));
-#endif
+                    Lumos::Editor::GetEditor()->GetFileBrowserWindow().Open();
+                    Lumos::Editor::GetEditor()->GetFileBrowserWindow().SetCallback(std::bind(&Sprite::SetTextureFromFile, &sprite, std::placeholders::_1));
                 }
                 
                 if(ImGui::IsItemHovered() && tex)
@@ -979,10 +1061,8 @@ namespace MM
             {
                 if(ImGui::Button("Empty", ImVec2(64, 64)))
                 {
-#ifdef LUMOS_EDITOR
-                    Application::Get().GetEditor()->GetFileBrowserWindow().Open();
-                    Application::Get().GetEditor()->GetFileBrowserWindow().SetCallback(std::bind(&Sprite::SetTextureFromFile, &sprite, std::placeholders::_1));
-#endif
+                    Lumos::Editor::GetEditor()->GetFileBrowserWindow().Open();
+                    Lumos::Editor::GetEditor()->GetFileBrowserWindow().SetCallback(std::bind(&Sprite::SetTextureFromFile, &sprite, std::placeholders::_1));
                 }
             }
 			
@@ -1206,10 +1286,8 @@ namespace MM
 				{
 					if(ImGui::ImageButton(tex->GetHandle(), ImVec2(64, 64), ImVec2(0.0f, flipImage ? 1.0f : 0.0f), ImVec2(1.0f, flipImage ? 0.0f : 1.0f)))
 					{
-	#ifdef LUMOS_EDITOR
-						Application::Get().GetEditor()->GetFileBrowserWindow().Open();
-						Application::Get().GetEditor()->GetFileBrowserWindow().SetCallback(std::bind(&Lumos::Graphics::Material::SetAlbedoTexture, material, std::placeholders::_1));
-	#endif
+						Lumos::Editor::GetEditor()->GetFileBrowserWindow().Open();
+						Lumos::Editor::GetEditor()->GetFileBrowserWindow().SetCallback(std::bind(&Lumos::Graphics::Material::SetAlbedoTexture, material, std::placeholders::_1));
 					}
 
 					if(ImGui::IsItemHovered() && tex)
@@ -1223,10 +1301,8 @@ namespace MM
 				{
 					if(ImGui::Button("Empty", ImVec2(64, 64)))
 					{
-	#ifdef LUMOS_EDITOR
-						Application::Get().GetEditor()->GetFileBrowserWindow().Open();
-						Application::Get().GetEditor()->GetFileBrowserWindow().SetCallback(std::bind(&Graphics::Material::SetAlbedoTexture, material, std::placeholders::_1));
-	#endif
+						Lumos::Editor::GetEditor()->GetFileBrowserWindow().Open();
+						Lumos::Editor::GetEditor()->GetFileBrowserWindow().SetCallback(std::bind(&Graphics::Material::SetAlbedoTexture, material, std::placeholders::_1));
 					}
 				}
 
@@ -1262,10 +1338,8 @@ namespace MM
 				{
 					if(ImGui::ImageButton(tex->GetHandle(), ImVec2(64, 64), ImVec2(0.0f, flipImage ? 1.0f : 0.0f), ImVec2(1.0f, flipImage ? 0.0f : 1.0f)))
 					{
-	#ifdef LUMOS_EDITOR
-						Application::Get().GetEditor()->GetFileBrowserWindow().Open();
-						Application::Get().GetEditor()->GetFileBrowserWindow().SetCallback(std::bind(&Graphics::Material::SetNormalTexture, material, std::placeholders::_1));
-	#endif
+						Lumos::Editor::GetEditor()->GetFileBrowserWindow().Open();
+						Lumos::Editor::GetEditor()->GetFileBrowserWindow().SetCallback(std::bind(&Graphics::Material::SetNormalTexture, material, std::placeholders::_1));
 					}
 
 					if(ImGui::IsItemHovered())
@@ -1279,10 +1353,8 @@ namespace MM
 				{
 					if(ImGui::Button("Empty", ImVec2(64, 64)))
 					{
-	#ifdef LUMOS_EDITOR
-						Application::Get().GetEditor()->GetFileBrowserWindow().Open();
-						Application::Get().GetEditor()->GetFileBrowserWindow().SetCallback(std::bind(&Graphics::Material::SetNormalTexture, material, std::placeholders::_1));
-	#endif
+						Lumos::Editor::GetEditor()->GetFileBrowserWindow().Open();
+						Lumos::Editor::GetEditor()->GetFileBrowserWindow().SetCallback(std::bind(&Graphics::Material::SetNormalTexture, material, std::placeholders::_1));
 					}
 				}
 
@@ -1316,10 +1388,8 @@ namespace MM
 				{
 					if(ImGui::ImageButton(tex->GetHandle(), ImVec2(64, 64), ImVec2(0.0f, flipImage ? 1.0f : 0.0f), ImVec2(1.0f, flipImage ? 0.0f : 1.0f)))
 					{
-	#ifdef LUMOS_EDITOR
-						Application::Get().GetEditor()->GetFileBrowserWindow().Open();
-						Application::Get().GetEditor()->GetFileBrowserWindow().SetCallback(std::bind(&Graphics::Material::SetMetallicTexture, material, std::placeholders::_1));
-	#endif
+						Lumos::Editor::GetEditor()->GetFileBrowserWindow().Open();
+						Lumos::Editor::GetEditor()->GetFileBrowserWindow().SetCallback(std::bind(&Graphics::Material::SetMetallicTexture, material, std::placeholders::_1));
 					}
 
 					if(ImGui::IsItemHovered())
@@ -1333,10 +1403,8 @@ namespace MM
 				{
 					if(ImGui::Button("Empty", ImVec2(64, 64)))
 					{
-	#ifdef LUMOS_EDITOR
-						Application::Get().GetEditor()->GetFileBrowserWindow().Open();
-						Application::Get().GetEditor()->GetFileBrowserWindow().SetCallback(std::bind(&Graphics::Material::SetMetallicTexture, material, std::placeholders::_1));
-	#endif
+						Lumos::Editor::GetEditor()->GetFileBrowserWindow().Open();
+						Lumos::Editor::GetEditor()->GetFileBrowserWindow().SetCallback(std::bind(&Graphics::Material::SetMetallicTexture, material, std::placeholders::_1));
 					}
 				}
 
@@ -1370,10 +1438,8 @@ namespace MM
 				{
 					if(ImGui::ImageButton(tex->GetHandle(), ImVec2(64, 64), ImVec2(0.0f, flipImage ? 1.0f : 0.0f), ImVec2(1.0f, flipImage ? 0.0f : 1.0f)))
 					{
-	#ifdef LUMOS_EDITOR
-						Application::Get().GetEditor()->GetFileBrowserWindow().Open();
-						Application::Get().GetEditor()->GetFileBrowserWindow().SetCallback(std::bind(&Graphics::Material::SetRoughnessTexture, material, std::placeholders::_1));
-	#endif
+						Lumos::Editor::GetEditor()->GetFileBrowserWindow().Open();
+						Lumos::Editor::GetEditor()->GetFileBrowserWindow().SetCallback(std::bind(&Graphics::Material::SetRoughnessTexture, material, std::placeholders::_1));
 					}
 
 					if(ImGui::IsItemHovered())
@@ -1387,10 +1453,8 @@ namespace MM
 				{
 					if(ImGui::Button("Empty", ImVec2(64, 64)))
 					{
-	#ifdef LUMOS_EDITOR
-						Application::Get().GetEditor()->GetFileBrowserWindow().Open();
-						Application::Get().GetEditor()->GetFileBrowserWindow().SetCallback(std::bind(&Graphics::Material::SetRoughnessTexture, material, std::placeholders::_1));
-	#endif
+						Lumos::Editor::GetEditor()->GetFileBrowserWindow().Open();
+						Lumos::Editor::GetEditor()->GetFileBrowserWindow().SetCallback(std::bind(&Graphics::Material::SetRoughnessTexture, material, std::placeholders::_1));
 					}
 				}
 
@@ -1424,10 +1488,8 @@ namespace MM
 				{
 					if(ImGui::ImageButton(tex->GetHandle(), ImVec2(64, 64), ImVec2(0.0f, flipImage ? 1.0f : 0.0f), ImVec2(1.0f, flipImage ? 0.0f : 1.0f)))
 					{
-	#ifdef LUMOS_EDITOR
-						Application::Get().GetEditor()->GetFileBrowserWindow().Open();
-						Application::Get().GetEditor()->GetFileBrowserWindow().SetCallback(std::bind(&Graphics::Material::SetAOTexture, material, std::placeholders::_1));
-	#endif
+						Lumos::Editor::GetEditor()->GetFileBrowserWindow().Open();
+						Lumos::Editor::GetEditor()->GetFileBrowserWindow().SetCallback(std::bind(&Graphics::Material::SetAOTexture, material, std::placeholders::_1));
 					}
 
 					if(ImGui::IsItemHovered())
@@ -1441,10 +1503,8 @@ namespace MM
 				{
 					if(ImGui::Button("Empty", ImVec2(64, 64)))
 					{
-	#ifdef LUMOS_EDITOR
-						Application::Get().GetEditor()->GetFileBrowserWindow().Open();
-						Application::Get().GetEditor()->GetFileBrowserWindow().SetCallback(std::bind(&Graphics::Material::SetAOTexture, material, std::placeholders::_1));
-	#endif
+						Lumos::Editor::GetEditor()->GetFileBrowserWindow().Open();
+						Lumos::Editor::GetEditor()->GetFileBrowserWindow().SetCallback(std::bind(&Graphics::Material::SetAOTexture, material, std::placeholders::_1));
 					}
 				}
 
@@ -1476,10 +1536,8 @@ namespace MM
 				{
 					if(ImGui::ImageButton(tex->GetHandle(), ImVec2(64, 64), ImVec2(0.0f, flipImage ? 1.0f : 0.0f), ImVec2(1.0f, flipImage ? 0.0f : 1.0f)))
 					{
-	#ifdef LUMOS_EDITOR
-						Application::Get().GetEditor()->GetFileBrowserWindow().Open();
-						Application::Get().GetEditor()->GetFileBrowserWindow().SetCallback(std::bind(&Graphics::Material::SetEmissiveTexture, material, std::placeholders::_1));
-	#endif
+						Lumos::Editor::GetEditor()->GetFileBrowserWindow().Open();
+						Lumos::Editor::GetEditor()->GetFileBrowserWindow().SetCallback(std::bind(&Graphics::Material::SetEmissiveTexture, material, std::placeholders::_1));
 					}
 
 					if(ImGui::IsItemHovered())
@@ -1493,10 +1551,8 @@ namespace MM
 				{
 					if(ImGui::Button("Empty", ImVec2(64, 64)))
 					{
-	#ifdef LUMOS_EDITOR
-						Application::Get().GetEditor()->GetFileBrowserWindow().Open();
-						Application::Get().GetEditor()->GetFileBrowserWindow().SetCallback(std::bind(&Graphics::Material::SetEmissiveTexture, material, std::placeholders::_1));
-	#endif
+						Lumos::Editor::GetEditor()->GetFileBrowserWindow().Open();
+						Lumos::Editor::GetEditor()->GetFileBrowserWindow().SetCallback(std::bind(&Graphics::Material::SetEmissiveTexture, material, std::placeholders::_1));
 					}
 				}
 
