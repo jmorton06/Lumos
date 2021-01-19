@@ -1,0 +1,740 @@
+{
+    "value0": {
+        "Version": 3,
+        "Scene Name": "Material"
+    },
+    "value1": 12,
+    "value2": 0,
+    "value3": 1,
+    "value4": 2,
+    "value5": 3,
+    "value6": 4,
+    "value7": 5,
+    "value8": 6,
+    "value9": 7,
+    "value10": 8,
+    "value11": 9,
+    "value12": 10,
+    "value13": 11,
+    "value14": 11,
+    "value15": 0,
+    "value16": {
+        "Position": {
+            "value0": 0.3000001907348633,
+            "value1": 0.0,
+            "value2": 0.0
+        },
+        "Rotation": {
+            "value0": 0.0,
+            "value1": 0.0,
+            "value2": 0.0,
+            "value3": 1.0
+        },
+        "Scale": {
+            "value0": 5.300000190734863,
+            "value1": 0.4999999701976776,
+            "value2": 2.999999761581421
+        }
+    },
+    "value17": 1,
+    "value18": {
+        "Position": {
+            "value0": -4.0,
+            "value1": 1.2000000476837159,
+            "value2": 0.0
+        },
+        "Rotation": {
+            "value0": 0.0,
+            "value1": 0.0,
+            "value2": 0.0,
+            "value3": 1.0
+        },
+        "Scale": {
+            "value0": 0.5,
+            "value1": 0.5,
+            "value2": 0.5
+        }
+    },
+    "value19": 2,
+    "value20": {
+        "Position": {
+            "value0": -2.799999952316284,
+            "value1": 1.2000000476837159,
+            "value2": 0.0
+        },
+        "Rotation": {
+            "value0": 0.0,
+            "value1": 0.0,
+            "value2": 0.0,
+            "value3": 1.0
+        },
+        "Scale": {
+            "value0": 0.5,
+            "value1": 0.5,
+            "value2": 0.5
+        }
+    },
+    "value21": 3,
+    "value22": {
+        "Position": {
+            "value0": -1.5999999046325684,
+            "value1": 1.2000000476837159,
+            "value2": 0.0
+        },
+        "Rotation": {
+            "value0": 0.0,
+            "value1": 0.0,
+            "value2": 0.0,
+            "value3": 1.0
+        },
+        "Scale": {
+            "value0": 0.5,
+            "value1": 0.5,
+            "value2": 0.5
+        }
+    },
+    "value23": 4,
+    "value24": {
+        "Position": {
+            "value0": -0.39999985694885256,
+            "value1": 1.2000000476837159,
+            "value2": 0.0
+        },
+        "Rotation": {
+            "value0": 0.0,
+            "value1": 0.0,
+            "value2": 0.0,
+            "value3": 1.0
+        },
+        "Scale": {
+            "value0": 0.5,
+            "value1": 0.5,
+            "value2": 0.5
+        }
+    },
+    "value25": 5,
+    "value26": {
+        "Position": {
+            "value0": 0.8000001907348633,
+            "value1": 1.2000000476837159,
+            "value2": 0.0
+        },
+        "Rotation": {
+            "value0": 0.0,
+            "value1": 0.0,
+            "value2": 0.0,
+            "value3": 1.0
+        },
+        "Scale": {
+            "value0": 0.5,
+            "value1": 0.5,
+            "value2": 0.5
+        }
+    },
+    "value27": 6,
+    "value28": {
+        "Position": {
+            "value0": 2.0,
+            "value1": 1.2000000476837159,
+            "value2": 0.0
+        },
+        "Rotation": {
+            "value0": 0.0,
+            "value1": 0.0,
+            "value2": 0.0,
+            "value3": 1.0
+        },
+        "Scale": {
+            "value0": 0.5,
+            "value1": 0.5,
+            "value2": 0.5
+        }
+    },
+    "value29": 7,
+    "value30": {
+        "Position": {
+            "value0": 3.200000286102295,
+            "value1": 1.2000000476837159,
+            "value2": 0.0
+        },
+        "Rotation": {
+            "value0": 0.0,
+            "value1": 0.0,
+            "value2": 0.0,
+            "value3": 1.0
+        },
+        "Scale": {
+            "value0": 0.5,
+            "value1": 0.5,
+            "value2": 0.5
+        }
+    },
+    "value31": 8,
+    "value32": {
+        "Position": {
+            "value0": 4.40000057220459,
+            "value1": 1.2000000476837159,
+            "value2": 0.0
+        },
+        "Rotation": {
+            "value0": 0.0,
+            "value1": 0.0,
+            "value2": 0.0,
+            "value3": 1.0
+        },
+        "Scale": {
+            "value0": 0.5,
+            "value1": 0.5,
+            "value2": 0.5
+        }
+    },
+    "value33": 10,
+    "value34": {
+        "Position": {
+            "value0": 26.0,
+            "value1": 22.0,
+            "value2": 48.5
+        },
+        "Rotation": {
+            "value0": -0.1833239644765854,
+            "value1": 0.23918181657791139,
+            "value2": 0.04603926092386246,
+            "value3": 0.952399492263794
+        },
+        "Scale": {
+            "value0": 0.9999999403953552,
+            "value1": 0.9999999403953552,
+            "value2": 0.9999999403953552
+        }
+    },
+    "value35": 11,
+    "value36": {
+        "Position": {
+            "value0": -0.8511750102043152,
+            "value1": 2.52034068107605,
+            "value2": 10.702302932739258
+        },
+        "Rotation": {
+            "value0": -0.09323498606681824,
+            "value1": 0.009557492099702359,
+            "value2": 0.0008950376650318503,
+            "value3": 0.9955978393554688
+        },
+        "Scale": {
+            "value0": 1.0,
+            "value1": 1.0,
+            "value2": 1.0
+        }
+    },
+    "value37": 3,
+    "value38": 9,
+    "value39": {
+        "Name": "Environment"
+    },
+    "value40": 10,
+    "value41": {
+        "Name": "Light"
+    },
+    "value42": 11,
+    "value43": {
+        "Name": "Camera"
+    },
+    "value44": 0,
+    "value45": 0,
+    "value46": 1,
+    "value47": 11,
+    "value48": {
+        "Scale": 1.0,
+        "Aspect": 1.46484375,
+        "FOV": 60.0,
+        "Near": 0.10000000149011612,
+        "Far": 1000.0
+    },
+    "value49": 0,
+    "value50": 9,
+    "value51": 0,
+    "value52": {
+        "PrimitiveType": 2,
+        "FilePath": "Primitive",
+        "Material": {
+            "ptr_wrapper": {
+                "valid": 1,
+                "data": {
+                    "Albedo": "",
+                    "Normal": "",
+                    "Metallic": "",
+                    "Roughness": "",
+                    "Ao": "",
+                    "Emissive": "",
+                    "albedoColour": {
+                        "value0": 0.6000000238418579,
+                        "value1": 0.10000000149011612,
+                        "value2": 0.10000000149011612,
+                        "value3": 1.0
+                    },
+                    "roughnessColour": {
+                        "value0": 0.6000000238418579,
+                        "value1": 0.6000000238418579,
+                        "value2": 0.6000000238418579,
+                        "value3": 0.6000000238418579
+                    },
+                    "metallicColour": {
+                        "value0": 0.15000000596046449,
+                        "value1": 0.15000000596046449,
+                        "value2": 0.15000000596046449,
+                        "value3": 0.15000000596046449
+                    },
+                    "emissiveColour": {
+                        "value0": 0.0,
+                        "value1": 0.0,
+                        "value2": 0.0,
+                        "value3": 1.0
+                    },
+                    "usingAlbedoMap": 0.0,
+                    "usingMetallicMap": 0.0,
+                    "usingRoughnessMap": 0.0,
+                    "usingNormalMap": 0.0,
+                    "usingAOMap": 0.0,
+                    "usingEmissiveMap": 0.0,
+                    "workflow": 0.0
+                }
+            }
+        }
+    },
+    "value53": 1,
+    "value54": {
+        "PrimitiveType": 8,
+        "FilePath": "//Meshes/material_sphere/material_sphere.fbx",
+        "Material": {
+            "ptr_wrapper": {
+                "valid": 1,
+                "data": {
+                    "Albedo": "",
+                    "Normal": "",
+                    "Metallic": "",
+                    "Roughness": "",
+                    "Ao": "",
+                    "Emissive": "",
+                    "albedoColour": {
+                        "value0": 0.5118629932403565,
+                        "value1": 0.6216560006141663,
+                        "value2": 0.6399999856948853,
+                        "value3": 1.0
+                    },
+                    "roughnessColour": {
+                        "value0": 0.696426510810852,
+                        "value1": 0.696426510810852,
+                        "value2": 0.696426510810852,
+                        "value3": 1.0
+                    },
+                    "metallicColour": {
+                        "value0": 0.5,
+                        "value1": 0.5,
+                        "value2": 0.5,
+                        "value3": 1.0
+                    },
+                    "emissiveColour": {
+                        "value0": 0.0,
+                        "value1": 0.0,
+                        "value2": 0.0,
+                        "value3": 1.0
+                    },
+                    "usingAlbedoMap": 0.0,
+                    "usingMetallicMap": 0.0,
+                    "usingRoughnessMap": 0.0,
+                    "usingNormalMap": 0.0,
+                    "usingAOMap": 0.0,
+                    "usingEmissiveMap": 0.0,
+                    "workflow": 0.0
+                }
+            }
+        }
+    },
+    "value55": 2,
+    "value56": {
+        "PrimitiveType": 8,
+        "FilePath": "//Meshes/material_sphere/material_sphere.fbx",
+        "Material": {
+            "ptr_wrapper": {
+                "valid": 1,
+                "data": {
+                    "Albedo": "",
+                    "Normal": "",
+                    "Metallic": "",
+                    "Roughness": "",
+                    "Ao": "",
+                    "Emissive": "",
+                    "albedoColour": {
+                        "value0": 0.5118629932403565,
+                        "value1": 0.6216560006141663,
+                        "value2": 0.6399999856948853,
+                        "value3": 1.0
+                    },
+                    "roughnessColour": {
+                        "value0": 0.696426510810852,
+                        "value1": 0.696426510810852,
+                        "value2": 0.696426510810852,
+                        "value3": 1.0
+                    },
+                    "metallicColour": {
+                        "value0": 0.5,
+                        "value1": 0.5,
+                        "value2": 0.5,
+                        "value3": 1.0
+                    },
+                    "emissiveColour": {
+                        "value0": 0.0,
+                        "value1": 0.0,
+                        "value2": 0.0,
+                        "value3": 1.0
+                    },
+                    "usingAlbedoMap": 0.0,
+                    "usingMetallicMap": 0.0,
+                    "usingRoughnessMap": 0.0,
+                    "usingNormalMap": 0.0,
+                    "usingAOMap": 0.0,
+                    "usingEmissiveMap": 0.0,
+                    "workflow": 0.0
+                }
+            }
+        }
+    },
+    "value57": 3,
+    "value58": {
+        "PrimitiveType": 8,
+        "FilePath": "//Meshes/material_sphere/material_sphere.fbx",
+        "Material": {
+            "ptr_wrapper": {
+                "valid": 1,
+                "data": {
+                    "Albedo": "",
+                    "Normal": "",
+                    "Metallic": "",
+                    "Roughness": "",
+                    "Ao": "",
+                    "Emissive": "",
+                    "albedoColour": {
+                        "value0": 0.5118629932403565,
+                        "value1": 0.6216560006141663,
+                        "value2": 0.6399999856948853,
+                        "value3": 1.0
+                    },
+                    "roughnessColour": {
+                        "value0": 0.696426510810852,
+                        "value1": 0.696426510810852,
+                        "value2": 0.696426510810852,
+                        "value3": 1.0
+                    },
+                    "metallicColour": {
+                        "value0": 0.5,
+                        "value1": 0.5,
+                        "value2": 0.5,
+                        "value3": 1.0
+                    },
+                    "emissiveColour": {
+                        "value0": 0.0,
+                        "value1": 0.0,
+                        "value2": 0.0,
+                        "value3": 1.0
+                    },
+                    "usingAlbedoMap": 0.0,
+                    "usingMetallicMap": 0.0,
+                    "usingRoughnessMap": 0.0,
+                    "usingNormalMap": 0.0,
+                    "usingAOMap": 0.0,
+                    "usingEmissiveMap": 0.0,
+                    "workflow": 0.0
+                }
+            }
+        }
+    },
+    "value59": 4,
+    "value60": {
+        "PrimitiveType": 8,
+        "FilePath": "//Meshes/material_sphere/material_sphere.fbx",
+        "Material": {
+            "ptr_wrapper": {
+                "valid": 1,
+                "data": {
+                    "Albedo": "",
+                    "Normal": "",
+                    "Metallic": "",
+                    "Roughness": "",
+                    "Ao": "",
+                    "Emissive": "",
+                    "albedoColour": {
+                        "value0": 0.5118629932403565,
+                        "value1": 0.6216560006141663,
+                        "value2": 0.6399999856948853,
+                        "value3": 1.0
+                    },
+                    "roughnessColour": {
+                        "value0": 0.696426510810852,
+                        "value1": 0.696426510810852,
+                        "value2": 0.696426510810852,
+                        "value3": 1.0
+                    },
+                    "metallicColour": {
+                        "value0": 0.5,
+                        "value1": 0.5,
+                        "value2": 0.5,
+                        "value3": 1.0
+                    },
+                    "emissiveColour": {
+                        "value0": 0.0,
+                        "value1": 0.0,
+                        "value2": 0.0,
+                        "value3": 1.0
+                    },
+                    "usingAlbedoMap": 0.0,
+                    "usingMetallicMap": 0.0,
+                    "usingRoughnessMap": 0.0,
+                    "usingNormalMap": 0.0,
+                    "usingAOMap": 0.0,
+                    "usingEmissiveMap": 0.0,
+                    "workflow": 0.0
+                }
+            }
+        }
+    },
+    "value61": 5,
+    "value62": {
+        "PrimitiveType": 8,
+        "FilePath": "//Meshes/material_sphere/material_sphere.fbx",
+        "Material": {
+            "ptr_wrapper": {
+                "valid": 1,
+                "data": {
+                    "Albedo": "",
+                    "Normal": "",
+                    "Metallic": "",
+                    "Roughness": "",
+                    "Ao": "",
+                    "Emissive": "",
+                    "albedoColour": {
+                        "value0": 0.5118629932403565,
+                        "value1": 0.6216560006141663,
+                        "value2": 0.6399999856948853,
+                        "value3": 1.0
+                    },
+                    "roughnessColour": {
+                        "value0": 0.696426510810852,
+                        "value1": 0.696426510810852,
+                        "value2": 0.696426510810852,
+                        "value3": 1.0
+                    },
+                    "metallicColour": {
+                        "value0": 0.5,
+                        "value1": 0.5,
+                        "value2": 0.5,
+                        "value3": 1.0
+                    },
+                    "emissiveColour": {
+                        "value0": 0.0,
+                        "value1": 0.0,
+                        "value2": 0.0,
+                        "value3": 1.0
+                    },
+                    "usingAlbedoMap": 0.0,
+                    "usingMetallicMap": 0.0,
+                    "usingRoughnessMap": 0.0,
+                    "usingNormalMap": 0.0,
+                    "usingAOMap": 0.0,
+                    "usingEmissiveMap": 0.0,
+                    "workflow": 0.0
+                }
+            }
+        }
+    },
+    "value63": 6,
+    "value64": {
+        "PrimitiveType": 8,
+        "FilePath": "//Meshes/material_sphere/material_sphere.fbx",
+        "Material": {
+            "ptr_wrapper": {
+                "valid": 1,
+                "data": {
+                    "Albedo": "",
+                    "Normal": "",
+                    "Metallic": "",
+                    "Roughness": "",
+                    "Ao": "",
+                    "Emissive": "",
+                    "albedoColour": {
+                        "value0": 0.5118629932403565,
+                        "value1": 0.6216560006141663,
+                        "value2": 0.6399999856948853,
+                        "value3": 1.0
+                    },
+                    "roughnessColour": {
+                        "value0": 0.696426510810852,
+                        "value1": 0.696426510810852,
+                        "value2": 0.696426510810852,
+                        "value3": 1.0
+                    },
+                    "metallicColour": {
+                        "value0": 0.5,
+                        "value1": 0.5,
+                        "value2": 0.5,
+                        "value3": 1.0
+                    },
+                    "emissiveColour": {
+                        "value0": 0.0,
+                        "value1": 0.0,
+                        "value2": 0.0,
+                        "value3": 1.0
+                    },
+                    "usingAlbedoMap": 0.0,
+                    "usingMetallicMap": 0.0,
+                    "usingRoughnessMap": 0.0,
+                    "usingNormalMap": 0.0,
+                    "usingAOMap": 0.0,
+                    "usingEmissiveMap": 0.0,
+                    "workflow": 0.0
+                }
+            }
+        }
+    },
+    "value65": 7,
+    "value66": {
+        "PrimitiveType": 8,
+        "FilePath": "//Meshes/material_sphere/material_sphere.fbx",
+        "Material": {
+            "ptr_wrapper": {
+                "valid": 1,
+                "data": {
+                    "Albedo": "",
+                    "Normal": "",
+                    "Metallic": "",
+                    "Roughness": "",
+                    "Ao": "",
+                    "Emissive": "",
+                    "albedoColour": {
+                        "value0": 0.5118629932403565,
+                        "value1": 0.6216560006141663,
+                        "value2": 0.6399999856948853,
+                        "value3": 1.0
+                    },
+                    "roughnessColour": {
+                        "value0": 0.696426510810852,
+                        "value1": 0.696426510810852,
+                        "value2": 0.696426510810852,
+                        "value3": 1.0
+                    },
+                    "metallicColour": {
+                        "value0": 0.5,
+                        "value1": 0.5,
+                        "value2": 0.5,
+                        "value3": 1.0
+                    },
+                    "emissiveColour": {
+                        "value0": 0.0,
+                        "value1": 0.0,
+                        "value2": 0.0,
+                        "value3": 1.0
+                    },
+                    "usingAlbedoMap": 0.0,
+                    "usingMetallicMap": 0.0,
+                    "usingRoughnessMap": 0.0,
+                    "usingNormalMap": 0.0,
+                    "usingAOMap": 0.0,
+                    "usingEmissiveMap": 0.0,
+                    "workflow": 0.0
+                }
+            }
+        }
+    },
+    "value67": 8,
+    "value68": {
+        "PrimitiveType": 8,
+        "FilePath": "//Meshes/material_sphere/material_sphere.fbx",
+        "Material": {
+            "ptr_wrapper": {
+                "valid": 1,
+                "data": {
+                    "Albedo": "",
+                    "Normal": "",
+                    "Metallic": "",
+                    "Roughness": "",
+                    "Ao": "",
+                    "Emissive": "",
+                    "albedoColour": {
+                        "value0": 0.5118629932403565,
+                        "value1": 0.6216560006141663,
+                        "value2": 0.6399999856948853,
+                        "value3": 1.0
+                    },
+                    "roughnessColour": {
+                        "value0": 0.696426510810852,
+                        "value1": 0.696426510810852,
+                        "value2": 0.696426510810852,
+                        "value3": 1.0
+                    },
+                    "metallicColour": {
+                        "value0": 0.5,
+                        "value1": 0.5,
+                        "value2": 0.5,
+                        "value3": 1.0
+                    },
+                    "emissiveColour": {
+                        "value0": 0.0,
+                        "value1": 0.0,
+                        "value2": 0.0,
+                        "value3": 1.0
+                    },
+                    "usingAlbedoMap": 0.0,
+                    "usingMetallicMap": 0.0,
+                    "usingRoughnessMap": 0.0,
+                    "usingNormalMap": 0.0,
+                    "usingAOMap": 0.0,
+                    "usingEmissiveMap": 0.0,
+                    "workflow": 0.0
+                }
+            }
+        }
+    },
+    "value69": 1,
+    "value70": 10,
+    "value71": {
+        "value0": {
+            "value0": 26.0,
+            "value1": 22.0,
+            "value2": 48.5,
+            "value3": 1.0
+        },
+        "value1": {
+            "value0": 1.0,
+            "value1": 1.0,
+            "value2": 1.0,
+            "value3": 1.0
+        },
+        "value2": 0.0,
+        "value3": 0.0,
+        "value4": {
+            "value0": 0.4387131631374359,
+            "value1": 0.37121883034706118,
+            "value2": 0.8183687925338745,
+            "value3": 1.0
+        },
+        "value5": 1.2999999523162842,
+        "value6": 1.0
+    },
+    "value72": 0,
+    "value73": 1,
+    "value74": 9,
+    "value75": {
+        "value0": "//Textures/cubemap/Arches_E_PineTree",
+        "value1": 11,
+        "value2": 3072,
+        "value3": 4096,
+        "value4": ".tga"
+    },
+    "value76": 0,
+    "value77": 0,
+    "value78": 1,
+    "value79": 11,
+    "value80": {
+        "ControllerType": 4
+    },
+    "value81": 0
+}

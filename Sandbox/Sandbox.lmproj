@@ -1,9 +1,9 @@
 {
     "value0": {
         "Project Version": 5,
-        "RenderAPI": 0,
-        "Width": 1183,
-        "Height": 686,
+        "RenderAPI": 1,
+        "Width": 1267,
+        "Height": 692,
         "Fullscreen": false,
         "VSync": false,
         "ShowConsole": false,

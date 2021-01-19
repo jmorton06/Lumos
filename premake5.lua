@@ -46,18 +46,18 @@ workspace( settings.workspace_name )
 	}
 
 	group "External"
-		require("Lumos/external/box2d/premake5")
+		require("Lumos/External/box2d/premake5")
 			SetRecommendedSettings()
-		require("Lumos/external/lua/premake5")
+		require("Lumos/External/lua/premake5")
 			SetRecommendedSettings()
-		require("Lumos/external/imgui/premake5")
+		require("Lumos/External/imgui/premake5")
 			SetRecommendedSettings()
-		require("Lumos/external/freetype/premake5")
+		require("Lumos/External/freetype/premake5")
 			SetRecommendedSettings()
-		require("Lumos/external/SPIRVCrosspremake5")
+		require("Lumos/External/SPIRVCrosspremake5")
 			SetRecommendedSettings()
 		if not os.istarget(premake.IOS) and not os.istarget(premake.ANDROID) then
-			require("Lumos/external/GLFWpremake5")
+			require("Lumos/External/GLFWpremake5")
 			SetRecommendedSettings()
 		end
 			
@@ -66,7 +66,7 @@ workspace( settings.workspace_name )
 
 	include "Lumos/premake5"
 	include "Sandbox/premake5"
-	include "LumosEditor/premake5"
+	include "Editor/premake5"
 
 workspace( settings.workspace_name )
 	startproject("Sandbox")
