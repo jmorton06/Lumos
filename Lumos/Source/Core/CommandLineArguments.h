@@ -4,8 +4,12 @@
 #include <utility>
 #include <vector>
 #include <map>
-#include <getopt.h>
 #include <sstream>
+
+#ifdef LUMOS_PLATFORM_UNIX
+#include <getopt.h>
+#endif
+
 
 namespace Lumos
 {
