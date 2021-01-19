@@ -125,7 +125,7 @@ project "Lumos"
 			"Source/Platform/Vulkan/*.h",
 			"Source/Platform/Vulkan/*.cpp",
 
-			"external/glad/Source/glad_wgl.c"
+			"External/glad/src/glad_wgl.c"
 		}
 
 		links
