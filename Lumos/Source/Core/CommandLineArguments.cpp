@@ -73,6 +73,8 @@ namespace Lumos
 
     const std::map<std::string, argument_t>& CommandLineArguments::GetArguments(std::vector<option_t>& possible_options)
     {
+#ifdef LUMOS_PLATFORM_UNIX
+
         opterr = 0;
 
         add_help_option(possible_options);
@@ -91,7 +93,7 @@ namespace Lumos
                         element->shortOption,
                         element->needsArgument >= ArgumentRequirement::REQUIRE ? optarg == NULL ? "" : optarg : "");
         }
-        
+#endif
         return m_Arguments;
     }
 }
