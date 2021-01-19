@@ -57,40 +57,9 @@ int main(int argc, char** argv)
 #elif defined(LUMOS_PLATFORM_MACOS)
 
 #include "Platform/MacOS/MacOSOS.h"
-#include "Core/CommandLineArguments.h"
 
 int main(int argc, char** argv)
 {
-    std::vector<Lumos::option_t> my_options =
-    {
-        { "Flag with no argument", "flag", 'm', Lumos::ArgumentRequirement::NONE },
-        { "Flag with a required argument", "input-file", 'f', Lumos::ArgumentRequirement::REQUIRE},
-        { "Flag with an optional argument", "optimize"  , 'o', Lumos::ArgumentRequirement::OPTIONAL}
-    };
-    
-    // Then call get_arguments
-    Lumos::CommandLineArguments::Get().Init(argc, argv);
-    auto cli_arguments = Lumos::CommandLineArguments::Get().GetArguments(my_options);
-     
-    // If the help flag was provided, print out the help message
-      if(cli_arguments["help"]) {
-          std::cout << "Example Help Print \n";
-          Lumos::CommandLineArguments::Get().PrintHelp(my_options);
-          return 0;
-      }
-      // You can test if an argument was provided by simply testing for the long name
-      if(cli_arguments["flag"])
-      {
-          // std::string flag_file = cli_arguments["flag"].as_string(); // Throws a runtime_exception, since there are no arguments on '--flag'
-      }
-      if(cli_arguments["input-file"])
-      {
-          std::string input_file = cli_arguments["input-file"].AsString();
-      }
-      if(cli_arguments["optimize"]) {
-          std::string optimize_strategy = cli_arguments["optimize"].AsString(); // Throws a runtime_exception if no flag was provided
-      }
-    
 	Lumos::Internal::CoreSystem::Init(false);
 
     auto macOSOS = new Lumos::MacOSOS();
