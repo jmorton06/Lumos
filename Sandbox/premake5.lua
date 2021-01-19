@@ -1,23 +1,22 @@
 IncludeDir = {}
-IncludeDir["GLFW"] = "../Lumos/external/glfw/include/"
-IncludeDir["Glad"] = "../Lumos/external/glad/include/"
-IncludeDir["lua"] = "../Lumos/external/lua/src/"
-IncludeDir["stb"] = "../Lumos/external/stb/"
-IncludeDir["OpenAL"] = "../Lumos/external/OpenAL/include/"
-IncludeDir["Box2D"] = "../Lumos/external/box2d/include/"
-IncludeDir["vulkan"] = "../Lumos/external/vulkan/"
-IncludeDir["Lumos"] = "../Lumos/src"
-IncludeDir["External"] = "../Lumos/external/"
-IncludeDir["ImGui"] = "../Lumos/external/imgui/"
-IncludeDir["freetype"] = "../Lumos/external/freetype/include"
-IncludeDir["SpirvCross"] = "../Lumos/external/SPIRV-Cross"
-IncludeDir["cereal"] = "../Lumos/external/cereal/include"
-IncludeDir["spdlog"] = "../Lumos/external/spdlog/include"
+IncludeDir["GLFW"] = "../Lumos/External/glfw/include/"
+IncludeDir["Glad"] = "../Lumos/External/glad/include/"
+IncludeDir["lua"] = "../Lumos/External/lua/src/"
+IncludeDir["stb"] = "../Lumos/External/stb/"
+IncludeDir["OpenAL"] = "../Lumos/External/OpenAL/include/"
+IncludeDir["Box2D"] = "../Lumos/External/box2d/include/"
+IncludeDir["vulkan"] = "../Lumos/External/vulkan/"
+IncludeDir["Lumos"] = "../Lumos/Source"
+IncludeDir["External"] = "../Lumos/External/"
+IncludeDir["ImGui"] = "../Lumos/External/imgui/"
+IncludeDir["freetype"] = "../Lumos/External/freetype/include"
+IncludeDir["SpirvCross"] = "../Lumos/External/SPIRV-Cross"
+IncludeDir["cereal"] = "../Lumos/External/cereal/include"
+IncludeDir["spdlog"] = "../Lumos/External/spdlog/include"
 
 project "Sandbox"
 	kind "WindowedApp"
 	language "C++"
-	inlining("auto")
 
 	files
 	{
@@ -61,7 +60,7 @@ project "Sandbox"
 		"TRACY_ENABLE",
 	}
 
-	filter { "files:external/**"}
+	filter { "files:External/**"}
 		warnings "Off"
 
 	filter 'architecture:x86_64'
@@ -89,7 +88,7 @@ project "Sandbox"
 
 		libdirs
 		{
-			"../Lumos/external/OpenAL/libs/Win32"
+			"../Lumos/External/OpenAL/libs/Win32"
 		}
 
 		links
@@ -115,7 +114,7 @@ project "Sandbox"
 			['CODE_SIGN_IDENTITY'] = 'Mac Developer',
 			['PRODUCT_BUNDLE_IDENTIFIER'] = settings.bundle_identifier,
 			['DEVELOPMENT_TEAM'] = 'C5L4T5BF6L',
-			['INFOPLIST_FILE'] = '../Lumos/src/Platform/macOS/Info.plist',
+			['INFOPLIST_FILE'] = '../Lumos/Source/Platform/macOS/Info.plist',
 			['ASSETCATALOG_COMPILER_APPICON_NAME'] = 'AppIcon'
 			--['ENABLE_HARDENED_RUNTIME'] = 'YES'
 }
@@ -145,7 +144,7 @@ project "Sandbox"
 		files
 		{
 			"../Resources/AppIcons/Assets.xcassets",
-			"../Lumos/external/vulkan/libs/macOS/libMoltenVK.dylib"
+			"../Lumos/External/vulkan/libs/macOS/libMoltenVK.dylib"
 		}
 
 		links
@@ -191,14 +190,14 @@ project "Sandbox"
 
 		linkoptions
 		{
-			"../Lumos/external/vulkan/libs/iOS/libMoltenVK.a"
+			"../Lumos/External/vulkan/libs/iOS/libMoltenVK.a"
 		}
 
 		files
 		{
 			"../Resources/AppIcons/Assets.xcassets",
 			"../Lumos/res/EngineShaders",
-			"../Lumos/src/Platform/iOS/Client/**",
+			"../Lumos/Source/Platform/iOS/Client/**",
             "res/scenes",
             "res/scripts",
             "res/meshes",
@@ -218,7 +217,7 @@ project "Sandbox"
 			['IPHONEOS_DEPLOYMENT_TARGET'] = '13.0',
 			['PRODUCT_BUNDLE_IDENTIFIER'] = settings.bundle_identifier,
 			['DEVELOPMENT_TEAM'] = 'C5L4T5BF6L',
-			['INFOPLIST_FILE'] = '../Lumos/src/Platform/iOS/Client/Info.plist',
+			['INFOPLIST_FILE'] = '../Lumos/Source/Platform/iOS/Client/Info.plist',
 			['ASSETCATALOG_COMPILER_APPICON_NAME'] = 'AppIcon',
 		}
 
@@ -245,7 +244,7 @@ project "Sandbox"
 
 		xcodebuildresources
 		{
-			"../Lumos/src/Platform/iOS/Client",
+			"../Lumos/Source/Platform/iOS/Client",
 			"Assets.xcassets",
             "EngineShaders",
             "meshes",
