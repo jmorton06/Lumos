@@ -196,13 +196,13 @@ project "Sandbox"
 		files
 		{
 			"../Resources/AppIcons/Assets.xcassets",
-			"../Lumos/res/EngineShaders",
+			"../Lumos/Assets/Shaders",
 			"../Lumos/Source/Platform/iOS/Client/**",
-            "res/scenes",
-            "res/scripts",
-            "res/meshes",
-            "res/sounds",
-            "res/textures",
+	"Assets/Scenes",
+	"Assets/Scripts",
+	"Assets/Meshes",
+	"Assets/Sounds",
+	"Assets/Textures",
 			"Sandbox.lmproj"
 		}
 
