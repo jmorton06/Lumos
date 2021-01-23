@@ -104,7 +104,8 @@ namespace Lumos
 		LUMOS_PROFILE_FUNCTION();
 		m_State.open_libraries(sol::lib::base, sol::lib::package, sol::lib::math, sol::lib::table);
         tracy::LuaRegister(m_State.lua_state());
-
+		
+		BindAppLua(m_State);
 		BindInputLua(m_State);
 		BindMathsLua(m_State);
 		BindImGuiLua(m_State);
@@ -482,13 +483,13 @@ namespace Lumos
 	{
 		Application::Get().GetSceneManager()->SwitchScene(name);
 	}
-
+	
 	void LuaManager::BindAppLua(sol::state& state)
 	{
 		sol::usertype<Application> app_type = state.new_usertype<Application>("Application");
 		state.set_function("SwitchSceneByIndex", &SwitchSceneByIndex);
 		state.set_function("SwitchSceneByName", &SwitchSceneByName);
-
+		app_type.set_function("GetWindowSize",&Application::GetWindowSize);
 		state.set_function("GetAppInstance", &Application::Get);
 	}
 }

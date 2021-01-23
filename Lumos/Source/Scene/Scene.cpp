@@ -103,7 +103,7 @@ namespace Lumos
 	{
 		LUMOS_PROFILE_FUNCTION();
 		const Maths::Vector2 mousePos = Input::GetInput()->GetMousePosition();
-
+        
 		auto defaultCameraControllerView = m_EntityManager->GetEntitiesWithType<DefaultCameraController>();
 
 		if(!defaultCameraControllerView.Empty())

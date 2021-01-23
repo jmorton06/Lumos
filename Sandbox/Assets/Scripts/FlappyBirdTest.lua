@@ -129,8 +129,10 @@ function OnInit()
     entityManager = scene:GetEntityManager()
 
     camera = entityManager:Create()
-    camera:AddTransform()
-    camera:AddCamera(1.0, 10.0, 1.0)
+camera:AddTransform()
+
+local screenSize = GetAppInstance():GetWindowSize()
+    camera:AddCamera(screenSize.x / screenSize.y, 10.0, 1.0)
 
     CreatePlayer()
 
