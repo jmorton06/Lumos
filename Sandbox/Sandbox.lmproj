@@ -2,8 +2,8 @@
     "value0": {
         "Project Version": 5,
         "RenderAPI": 1,
-        "Width": 1267,
-        "Height": 692,
+        "Width": 1275,
+        "Height": 698,
         "Fullscreen": false,
         "VSync": false,
         "ShowConsole": false,
@@ -13,7 +13,7 @@
             "/Scenes/2D.lsn",
             "/Scenes/Physics.lsn"
         ],
-        "SceneIndex": 1,
+        "SceneIndex": 0,
         "Borderless": false
     }
 }

@@ -2525,9 +2525,9 @@
     "value273": 24,
     "value274": {
         "value0": "//Textures/cubemap/noga",
-        "value1": 11,
-        "value2": 3072,
-        "value3": 4096,
+        "value1": 9,
+        "value2": 1536,
+        "value3": 2048,
         "value4": ".tga"
     },
     "value275": 0,

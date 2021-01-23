@@ -38,7 +38,7 @@ namespace Lumos
 
 			Renderer2D::SetScreenBufferSize(width, height);
 			Renderer2D::Init();
-		}
+			}
 
 		Renderer2D::~Renderer2D()
 		{
@@ -472,7 +472,7 @@ namespace Lumos
 		{
 			LUMOS_PROFILE_FUNCTION();
 			m_Framebuffers.clear();
-
+			
 			SetScreenBufferSize(width, height);
 
 			CreateFramebuffers();
@@ -482,23 +482,6 @@ namespace Lumos
 		{
 			LUMOS_PROFILE_FUNCTION();
 			Renderer::Present((m_CommandBuffers[Renderer::GetSwapchain()->GetCurrentBufferId()].get()));
-		}
-
-		void Renderer2D::SetScreenBufferSize(u32 width, u32 height)
-		{
-			LUMOS_PROFILE_FUNCTION();
-			if(width == 0)
-			{
-				width = 1;
-				LUMOS_LOG_CRITICAL("Width 0");
-			}
-			if(height == 0)
-			{
-				height = 1;
-				LUMOS_LOG_CRITICAL("Height 0");
-			}
-			m_ScreenBufferWidth = width;
-			m_ScreenBufferHeight = height;
 		}
 
 		void Renderer2D::CreateGraphicsPipeline()
@@ -534,7 +517,7 @@ namespace Lumos
 				attachmentTypes[1] = TextureType::DEPTH;
 				attachments[1] = reinterpret_cast<Texture*>(Application::Get().GetRenderGraph()->GetGBuffer()->GetDepthTexture());
 			}
-
+			
 			FramebufferInfo bufferInfo{};
 			bufferInfo.width = m_ScreenBufferWidth;
 			bufferInfo.height = m_ScreenBufferHeight;

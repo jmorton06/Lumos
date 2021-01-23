@@ -666,7 +666,7 @@ namespace Lumos
         colours[ImGuiCol_TitleBgActive] = colours[ImGuiCol_TitleBg];
         colours[ImGuiCol_TitleBgCollapsed] = colours[ImGuiCol_TitleBg];
         colours[ImGuiCol_MenuBarBg] = colours[ImGuiCol_TitleBg];
-        colours[ImGuiCol_PopupBg] = colours[ImGuiCol_WindowBg] + ImVec4(0.2f, 0.2f, 0.2f, 0.0f);
+        colours[ImGuiCol_PopupBg] = colours[ImGuiCol_WindowBg] + ImVec4(0.1f, 0.1f, 0.1f, 0.0f);
         
         colours[ImGuiCol_Border] = ImVec4(0.08f, 0.10f, 0.12f, 0.00f);
         colours[ImGuiCol_BorderShadow] = ImVec4(0.00f, 0.00f, 0.00f, 0.00f);

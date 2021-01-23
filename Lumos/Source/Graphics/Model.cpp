@@ -49,6 +49,6 @@ namespace Lumos::Graphics
 		else
 			LUMOS_LOG_ERROR("Unsupported File Type : {0}", fileExtension);
 
-		LUMOS_LOG_INFO("Loaded Model - {0}", resolvedPath);
+		LUMOS_LOG_INFO("Loaded Model - {0}", path);
 	}
 }

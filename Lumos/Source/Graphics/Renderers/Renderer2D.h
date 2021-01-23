@@ -81,7 +81,6 @@ namespace Lumos
 			virtual void EndScene() override {};
 			virtual void End() override;
 			virtual void OnResize(u32 width, u32 height) override;
-			virtual void SetScreenBufferSize(u32 width, u32 height) override;
 			virtual void SetRenderTarget(Texture* texture, bool rebuildFrameBuffer = true) override;
 			virtual void RenderScene() override;
 
