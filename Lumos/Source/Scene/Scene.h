@@ -1,7 +1,6 @@
 #pragma once
 
 #include "Core/Types.h"
-#include "SceneGraph.h"
 #include "Maths/Maths.h"
 #include "Utilities/AssetManager.h"
 
@@ -9,7 +8,7 @@
 #include "Events/ApplicationEvent.h"
 
 #include <sol/forward.hpp>
-
+#include <cereal/cereal.hpp>
 DISABLE_WARNING_PUSH
 DISABLE_WARNING_CONVERSION_TO_SMALLER_TYPE
 #include <entt/entity/registry.hpp>
@@ -23,6 +22,7 @@ namespace Lumos
 	class Camera;
 	class EntityManager;
 	class Entity;
+	class SceneGraph;
 
 	namespace Graphics
 	{
@@ -139,11 +139,10 @@ namespace Lumos
 		int m_SceneSerialisationVersion = 0 ;
 
 		UniqueRef<EntityManager> m_EntityManager;
-
+		UniqueRef<SceneGraph> m_SceneGraph;
+		
 		u32 m_ScreenWidth;
 		u32 m_ScreenHeight;
-        
-		SceneGraph m_SceneGraph;
 
 		bool m_HasCppClass = true;
 

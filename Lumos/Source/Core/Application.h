@@ -1,10 +1,7 @@
 #pragma once
 #include "Core/Reference.h"
-#include "Scene/SystemManager.h"
-#include "Core/OS/Window.h"
 #include "Scene/SceneManager.h"
-#include "Utilities/AssetManager.h"
-
+#include "Scene/SystemManager.h"
 #include <cereal/types/vector.hpp>
 #include <cereal/cereal.hpp>
 
@@ -16,7 +13,6 @@ namespace Lumos
 	class AudioManager;
 	class SystemManager;
 	class Editor;
-	class ISystem;
 	class Scene;
 	class Event;
 	class WindowCloseEvent;
@@ -132,7 +128,7 @@ namespace Lumos
     
 		Maths::Vector2 GetWindowSize() const;
         
-        Ref<ShaderLibrary>& GetShaderLibrary() { return m_ShaderLibrary; }
+        Ref<ShaderLibrary>& GetShaderLibrary();
 
 		static Application& Get()
 		{
@@ -168,7 +164,7 @@ namespace Lumos
 				m_SceneViewSizeUpdated = true;
 			}
 		}
-
+		
         void EmbedTexture(const std::string& texFilePath, const std::string& outPath, const std::string& arrayName);
 		
 		virtual void Serialise(const std::string& filePath);
@@ -182,9 +178,11 @@ namespace Lumos
 			
 			archive(cereal::make_nvp("Project Version", projectVersion));
 			//Version 1
+			
+			auto windowSize = GetWindowSize();
 			archive(cereal::make_nvp("RenderAPI", RenderAPI),
-						cereal::make_nvp("Width", m_Window->GetWidth()),
-						cereal::make_nvp("Height", m_Window->GetHeight()),
+						cereal::make_nvp("Width", (int)windowSize.x),
+						cereal::make_nvp("Height", (int)windowSize.y),
 						cereal::make_nvp("Fullscreen", Fullscreen),
 						cereal::make_nvp("VSync", VSync),
 						cereal::make_nvp("ShowConsole", ShowConsole),

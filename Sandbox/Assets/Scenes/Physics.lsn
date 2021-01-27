@@ -889,7 +889,7 @@
     "value198": 26,
     "value199": {
         "Scale": 1.0,
-        "Aspect": 1.822157382965088,
+        "Aspect": 1.8266475200653077,
         "FOV": 60.0,
         "Near": 0.10000000149011612,
         "Far": 1000.0
@@ -2241,9 +2241,9 @@
         "value2": 0.0,
         "value3": 0.0,
         "value4": {
-            "value0": 0.4387131333351135,
-            "value1": 0.37121880054473879,
-            "value2": 0.8183687329292297,
+            "value0": 0.43871307373046877,
+            "value1": 0.3712187707424164,
+            "value2": 0.8183687925338745,
             "value3": 1.0
         },
         "value5": 1.2999999523162842,
@@ -2525,10 +2525,11 @@
     "value273": 24,
     "value274": {
         "value0": "//Textures/cubemap/noga",
-        "value1": 9,
-        "value2": 1536,
-        "value3": 2048,
-        "value4": ".tga"
+        "value1": 11,
+        "value2": 3072,
+        "value3": 4096,
+        "value4": ".tga",
+        "value5": 0.03125
     },
     "value275": 0,
     "value276": 0,
@@ -2607,31 +2608,6 @@
                 }
             },
             {
-                "key": "RunLeft",
-                "value": {
-                    "PlayMode": 0,
-                    "Frames": [
-                        {
-                            "value0": 0.0,
-                            "value1": 96.0
-                        },
-                        {
-                            "value0": 32.0,
-                            "value1": 96.0
-                        },
-                        {
-                            "value0": 64.0,
-                            "value1": 96.0
-                        },
-                        {
-                            "value0": 96.0,
-                            "value1": 96.0
-                        }
-                    ],
-                    "FrameDuration": 0.10000000149011612
-                }
-            },
-            {
                 "key": "RunRight",
                 "value": {
                     "PlayMode": 0,
@@ -2651,6 +2627,31 @@
                         {
                             "value0": 96.0,
                             "value1": 32.0
+                        }
+                    ],
+                    "FrameDuration": 0.10000000149011612
+                }
+            },
+            {
+                "key": "RunLeft",
+                "value": {
+                    "PlayMode": 0,
+                    "Frames": [
+                        {
+                            "value0": 0.0,
+                            "value1": 96.0
+                        },
+                        {
+                            "value0": 32.0,
+                            "value1": 96.0
+                        },
+                        {
+                            "value0": 64.0,
+                            "value1": 96.0
+                        },
+                        {
+                            "value0": 96.0,
+                            "value1": 96.0
                         }
                     ],
                     "FrameDuration": 0.10000000149011612
