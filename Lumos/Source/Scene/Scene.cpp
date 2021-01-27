@@ -27,6 +27,7 @@
 #include "Graphics/Environment.h"
 #include "Scene/EntityManager.h"
 #include "Scene/Component/SoundComponent.h"
+#include "SceneGraph.h"
 
 #include <cereal/types/polymorphic.hpp>
 #include <cereal/archives/binary.hpp>
@@ -71,8 +72,9 @@ namespace Lumos
 		Application::Get().GetSystem<LumosPhysicsEngine>()->SetDampingFactor(0.998f);
 		Application::Get().GetSystem<LumosPhysicsEngine>()->SetIntegrationType(IntegrationType::RUNGE_KUTTA_4);
 		Application::Get().GetSystem<LumosPhysicsEngine>()->SetBroadphase(Lumos::CreateRef<OctreeBroadphase>(5, 3, Lumos::CreateRef<SortAndSweepBroadphase>()));
-
-		m_SceneGraph.Init(m_EntityManager->GetRegistry());
+		
+		m_SceneGraph = CreateUniqueRef<SceneGraph>();
+		m_SceneGraph->Init(m_EntityManager->GetRegistry());
 
 		LuaManager::Get().OnInit(this);
 	}
@@ -117,7 +119,7 @@ namespace Lumos
 			}
 		}
 
-		m_SceneGraph.Update(m_EntityManager->GetRegistry());
+		m_SceneGraph->Update(m_EntityManager->GetRegistry());
 		
 		auto animatedSpriteView = m_EntityManager->GetEntitiesWithType<Graphics::AnimatedSprite>();
 		
@@ -205,7 +207,7 @@ namespace Lumos
 	{
 		LUMOS_PROFILE_FUNCTION();
         m_EntityManager->Clear();
-        m_SceneGraph.DisableOnConstruct(true, m_EntityManager->GetRegistry());
+        m_SceneGraph->DisableOnConstruct(true, m_EntityManager->GetRegistry());
 		std::string path = filePath;
 		path += StringUtilities::RemoveSpaces(m_SceneName);
 
@@ -252,13 +254,13 @@ namespace Lumos
 				entt::snapshot_loader{m_EntityManager->GetRegistry()}.entities(input).component<ALL_COMPONENTSV3>(input);
 		}
         
-        m_SceneGraph.DisableOnConstruct(false, m_EntityManager->GetRegistry());
+        m_SceneGraph->DisableOnConstruct(false, m_EntityManager->GetRegistry());
 	}
 
 	void Scene::UpdateSceneGraph()
 	{
 		LUMOS_PROFILE_FUNCTION();
-		m_SceneGraph.Update(m_EntityManager->GetRegistry());
+		m_SceneGraph->Update(m_EntityManager->GetRegistry());
 	}
 
 	template<typename T>

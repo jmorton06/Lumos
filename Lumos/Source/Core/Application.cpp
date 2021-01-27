@@ -2,7 +2,6 @@
 #include "Application.h"
 
 #include "Scene/Scene.h"
-#include "Scene/SceneManager.h"
 #include "Engine.h"
 #include "Utilities/Timer.h"
 
@@ -370,6 +369,8 @@ namespace Lumos
 	{
 		LUMOS_PROFILE_FUNCTION();
 	}
+	
+	Ref<ShaderLibrary>& Application::GetShaderLibrary() { return m_ShaderLibrary; }
 
 	void Application::OnExitScene()
 	{

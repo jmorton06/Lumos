@@ -172,14 +172,14 @@ namespace Lumos
 	void LuaManager::BindLogLua(sol::state& state)
 	{
 		LUMOS_PROFILE_FUNCTION();
-		auto log = state.create_table("Log");
+		 auto log = state.create_table("Log");
 
 		log.set_function("Trace", [&](sol::this_state s, std::string_view message) {
 			LUMOS_LOG_TRACE(message);
 		});
 
 		log.set_function("Info", [&](sol::this_state s, std::string_view message) {
-			LUMOS_LOG_TRACE(message);
+			      LUMOS_LOG_TRACE(message);
 		});
 
 		log.set_function("Warn", [&](sol::this_state s, std::string_view message) {
@@ -444,7 +444,7 @@ namespace Lumos
 				{"None", Lumos::Graphics::TextureWrap::NONE},
 				{"Repeat", Lumos::Graphics::TextureWrap::REPEAT},
 				{"Clamp", Lumos::Graphics::TextureWrap::CLAMP},
-				{"MorroredRepeat", Lumos::Graphics::TextureWrap::MIRRORED_REPEAT},
+				{"MirroredRepeat", Lumos::Graphics::TextureWrap::MIRRORED_REPEAT},
 				{"ClampToEdge", Lumos::Graphics::TextureWrap::CLAMP_TO_EDGE},
 				{"ClampToBorder", Lumos::Graphics::TextureWrap::CLAMP_TO_BORDER}};
 
@@ -478,6 +478,11 @@ namespace Lumos
 	{
 		Application::Get().GetSceneManager()->SwitchScene(index);
 	}
+	
+	static void SwitchScene(int index)
+	{
+		Application::Get().GetSceneManager()->SwitchScene();
+	}
 
 	static void SwitchSceneByName(const std::string& name)
 	{
@@ -489,6 +494,8 @@ namespace Lumos
 		sol::usertype<Application> app_type = state.new_usertype<Application>("Application");
 		state.set_function("SwitchSceneByIndex", &SwitchSceneByIndex);
 		state.set_function("SwitchSceneByName", &SwitchSceneByName);
+		state.set_function("SwitchScene", &SwitchScene);
+		
 		app_type.set_function("GetWindowSize",&Application::GetWindowSize);
 		state.set_function("GetAppInstance", &Application::Get);
 	}

@@ -11,9 +11,10 @@
         "FilePath": "/Sandbox/Sandbox.lmproj",
         "Scenes": [
             "/Scenes/2D.lsn",
-            "/Scenes/Physics.lsn"
+            "/Scenes/Physics.lsn",
+            "/Scenes/Terrain.lsn"
         ],
-        "SceneIndex": 0,
+        "SceneIndex": 2,
         "Borderless": false
     }
 }

@@ -20,7 +20,7 @@ void GraphicsScene::OnInit()
 	LoadModels();
 
     auto environment = m_EntityManager->Create("Environment");
-    environment.AddComponent<Graphics::Environment>("//TextuAssets/cubemap/Arches_E_PineTree", 11, 3072, 4096, ".tga");
+    environment.AddComponent<Graphics::Environment>("//TextuAssets/cubemap/Arches_E_PineTree", 11, 3072, 4096, 1.0f/ 32.0f, ".tga");
     
     auto lightEntity = m_EntityManager->Create("Light");
     lightEntity.AddComponent<Graphics::Light>(Maths::Vector3(26.0f, 22.0f, 48.5f), Maths::Vector4(1.0f), 1.3f);

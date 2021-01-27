@@ -1223,7 +1223,10 @@ namespace MM
 				{
                     meshes.clear();
 					if(strcmp(shapes[n],"File") != 0)
-                        meshes.push_back(Lumos::Ref<Lumos::Graphics::Mesh>(Lumos::Graphics::CreatePrimative(GetPrimativeName(shapes[n]))));
+					{
+						meshes.push_back(Lumos::Ref<Lumos::Graphics::Mesh>(Lumos::Graphics::CreatePrimative(GetPrimativeName(shapes[n]))));
+						model.SetPrimitiveType(GetPrimativeName(shapes[n]));
+					}
 					else
 						model.SetPrimitiveType(Lumos::Graphics::PrimitiveType::File);
 				}

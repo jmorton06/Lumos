@@ -13,30 +13,33 @@ namespace Lumos
 			m_Environmnet = nullptr;
 			m_PrefilteredEnvironment = nullptr;
 			m_IrradianceMap = nullptr;
+			m_IrrFactor = 32.0f/ 1024.0f;
 		}
 
 		Environment::Environment(const std::string& filepath, bool genPrefilter, bool genIrradiance)
 		{
 		}
 
-		Environment::Environment(const std::string& name, u32 numMip, u32 width, u32 height, const std::string& fileType)
+		Environment::Environment(const std::string& name, u32 numMip, u32 width, u32 height, float irrSizeFactor, const std::string& fileType)
 		{
 			m_Width = width;
 			m_Height = height;
 			m_NumMips = numMip;
 			m_FilePath = name;
 			m_FileType = fileType;
+			m_IrrFactor = irrSizeFactor;
 
 			Load();
 		}
 
-		void Environment::Load(const std::string& name, u32 numMip, u32 width, u32 height, const std::string& fileType)
+		void Environment::Load(const std::string& name, u32 numMip, u32 width, u32 height, float irrSizeFactor, const std::string& fileType)
 		{
 			m_Width = width;
 			m_Height = height;
 			m_NumMips = numMip;
 			m_FilePath = name;
 			m_FileType = fileType;
+			m_IrrFactor = irrSizeFactor;
 
 			Load();
 		}
@@ -54,10 +57,12 @@ namespace Lumos
 			for(u32 i = 0; i < m_NumMips; i++)
 			{
 				envFiles[i] = m_FilePath + "_Env_" + StringUtilities::ToString(i) + "_" + StringUtilities::ToString(currWidth) + "x" + StringUtilities::ToString(currHeight) + m_FileType;
-				irrFiles[i] = m_FilePath + "_Irr_" + StringUtilities::ToString(i) + "_" + StringUtilities::ToString(currWidth) + "x" + StringUtilities::ToString(currHeight) + m_FileType;
 
 				currHeight /= 2;
 				currWidth /= 2;
+				
+				if(currHeight < 1 || currWidth < 1)
+					break;
 				
 				std::string newPath;
 				if(!VFS::Get()->ResolvePhysicalPath(envFiles[i], newPath))
@@ -66,13 +71,32 @@ namespace Lumos
 					failed = true;
 					break;
 				}
+			}
+			
+			currWidth = m_Width * m_IrrFactor;
+			currHeight = m_Height * m_IrrFactor;
+			
+			int numMipsIrr = 0;
+			
+			for(u32 i = 0; i < m_NumMips; i++)
+			{
+				irrFiles[i] = m_FilePath + "_Irr_" + StringUtilities::ToString(i) + "_" + StringUtilities::ToString(currWidth) + "x" + StringUtilities::ToString(currHeight) + m_FileType;
 				
+				currHeight /= 2;
+				currWidth /= 2;
+				
+				if(currHeight < 1 || currWidth < 1)
+					break;
+				
+				std::string newPath;
 				if(!VFS::Get()->ResolvePhysicalPath(irrFiles[i], newPath))
 				{
 					LUMOS_LOG_ERROR("Failed to load {0}", irrFiles[i]);
 					failed = true;
 					break;
 				}
+				
+				numMipsIrr++;
 			}
 			
 			if(!failed)
@@ -81,7 +105,7 @@ namespace Lumos
                 params.srgb = true;
                 TextureLoadOptions loadOptions;
                 m_Environmnet = Graphics::TextureCube::CreateFromVCross(envFiles, m_NumMips, params, loadOptions);
-                m_IrradianceMap = Graphics::TextureCube::CreateFromVCross(irrFiles, m_NumMips, params, loadOptions);
+                m_IrradianceMap = Graphics::TextureCube::CreateFromVCross(irrFiles, numMipsIrr, params, loadOptions);
 			}
 			else
 			{

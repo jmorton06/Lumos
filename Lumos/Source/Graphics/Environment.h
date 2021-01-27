@@ -27,10 +27,10 @@ namespace Lumos
 			}
 
 			Environment(const std::string& filepath, bool genPrefilter, bool genIrradiance);
-			Environment(const std::string& name, u32 numMip, u32 width, u32 height, const std::string& fileType = ".tga");
+			Environment(const std::string& name, u32 numMip, u32 width, u32 height,float irrSizeFactor, const std::string& fileType = ".tga");
 			~Environment();
 
-			void Load(const std::string& name, u32 numMip, u32 width, u32 height, const std::string& fileType = ".tga");
+			void Load(const std::string& name, u32 numMip, u32 width, u32 height, float irrSizeFactor, const std::string& fileType = ".tga");
 			void Load();
 
 			TextureCube* GetEnvironmentMap() const
@@ -53,13 +53,13 @@ namespace Lumos
 			template<class Archive>
 			void save(Archive& archive) const
 			{
-				archive(m_FilePath, m_NumMips, m_Width, m_Height, m_FileType);
+				archive(m_FilePath, m_NumMips, m_Width, m_Height, m_FileType, m_IrrFactor);
 			}
 
 			template<class Archive>
 			void load(Archive& archive)
 			{
-				archive(m_FilePath, m_NumMips, m_Width, m_Height, m_FileType);
+				archive(m_FilePath, m_NumMips, m_Width, m_Height, m_FileType, m_IrrFactor);
 				if(m_FilePath != "")
 					Load();
 			}
@@ -84,6 +84,7 @@ namespace Lumos
 			u32 m_NumMips = 0;
 			u32 m_Width = 0;
 			u32 m_Height = 0;
+			float m_IrrFactor = 1.0f;
 			std::string m_FilePath;
 			std::string m_FileType;
 		};
