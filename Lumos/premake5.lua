@@ -90,7 +90,7 @@ project "Lumos"
 		characterset ("MBCS")
 
 		pchheader "Precompiled.h"
-		pchsource "Source/Lumos/Precompiled.cpp"
+		pchsource "Source/Precompiled.cpp"
 
 		defines
 		{
@@ -208,8 +208,8 @@ project "Lumos"
 
 		SetRecommendedXcodeSettings()
 
-		pchheader "../Lumos/Source/Lumos/Precompiled.h"
-		pchsource "../Lumos/Source/Lumos/Precompiled.cpp"
+		pchheader "../Lumos/Source/Precompiled.h"
+		pchsource "../Lumos/Source/Precompiled.cpp"
 
 		filter 'files:External/**.cpp'
 			flags  { 'NoPCH' }
@@ -341,8 +341,8 @@ project "Lumos"
 
 		links { "X11", "pthread"}
 
-		pchheader "../Lumos/Source/Lumos/Precompiled.h"
-		pchsource "../Lumos/Source/Lumos/Precompiled.cpp"
+		pchheader "../Lumos/Source/Precompiled.h"
+		pchsource "../Lumos/Source/Precompiled.cpp"
 
 		filter 'files:External/**.cpp'
 			flags  { 'NoPCH' }
