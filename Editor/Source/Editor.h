@@ -1,39 +1,17 @@
 #pragma once
 
-#include <algorithm>
-#include <functional>
-#include <iostream>
-#include <string>
-#include <sstream>
-
-#include <vector>
-#include <list>
-#include <array>
-#include <map>
-#include <unordered_map>
-#include <cstddef>
-#include <fstream>
-#include <cfloat>
-#include <cstring>
-#include <utility>
-#include <memory>
-#include <thread>
-
-#include <stdio.h>
-#include <math.h>
-
-#include "Maths/Maths.h"
-#include "Maths/Ray.h"
-#include "Maths/Transform.h"
-
 #include "EditorWindow.h"
 #include "FileBrowserWindow.h"
-#include "Utilities/IniFile.h"
-#include "Graphics/Camera/EditorCamera.h"
-#include "Graphics/Camera/Camera.h"
-#include "Core/Types.h"
-#include "ImGui/ImGuiHelpers.h"
-#include "Core/Application.h"
+
+#include <Lumos/Maths/Maths.h>
+#include <Lumos/Maths/Ray.h>
+#include <Lumos/Maths/Transform.h>
+#include <Lumos/Utilities/IniFile.h>
+#include <Lumos/Graphics/Camera/EditorCamera.h>
+#include <Lumos/Graphics/Camera/Camera.h>
+#include <Lumos/ImGui/ImGuiHelpers.h>
+#include <Lumos/Core/Application.h>
+
 #include <imgui/imgui.h>
 #include <entt/entity/fwd.hpp>
 
@@ -56,7 +34,7 @@ namespace Lumos
 		class Mesh;
 	}
 
-	enum EditorDebugFlags : u32
+	enum EditorDebugFlags : uint32_t
 	{
 		Grid = 1,
 		Gizmo = 2,
@@ -85,11 +63,11 @@ namespace Lumos
 		void BeginDockSpace(bool gameFullScreen);
 		void EndDockSpace();
 
-		void SetImGuizmoOperation(u32 operation)
+		void SetImGuizmoOperation(uint32_t operation)
 		{
 			m_ImGuizmoOperation = operation;
 		}
-		u32 GetImGuizmoOperation() const
+		uint32_t GetImGuizmoOperation() const
 		{
 			return m_ImGuizmoOperation;
 		}
@@ -227,13 +205,13 @@ namespace Lumos
 
 		Application* m_Application;
 
-		u32 m_ImGuizmoOperation = 0;
+		uint32_t m_ImGuizmoOperation = 0;
 		entt::entity m_SelectedEntity;
 		entt::entity m_CopiedEntity;
 		bool m_CutCopyEntity = false;
 
 		float m_GridSize = 10.0f;
-		u32 m_DebugDrawFlags = 0;
+		uint32_t m_DebugDrawFlags = 0;
 
 		bool m_ShowGrid = false;
 		bool m_ShowGizmos = true;

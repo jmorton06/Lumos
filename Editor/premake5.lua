@@ -26,6 +26,11 @@ project "LumosEditor"
 		"Source/**.h",
 		"Source/**.cpp"
 	}
+	
+	includedirs
+	{
+		"../Lumos/Source/Lumos",
+	}
 
 	sysincludedirs
 	{
@@ -59,7 +64,7 @@ project "LumosEditor"
 	{
 		"LUMOS_PROFILE",
 		"TRACY_ENABLE",
-		"IMGUI_USER_CONFIG=\"../../Lumos/Source/ImGui/ImConfig.h\"",
+		"IMGUI_USER_CONFIG=\"../../Lumos/Source/Lumos/ImGui/ImConfig.h\"",
 	}
 
 	filter { "files:External/**"}
@@ -116,7 +121,7 @@ project "LumosEditor"
 			['CODE_SIGN_IDENTITY'] = 'Mac Developer',
 			['PRODUCT_BUNDLE_IDENTIFIER'] = settings.bundle_identifier,
 			['DEVELOPMENT_TEAM'] = 'C5L4T5BF6L',
-			['INFOPLIST_FILE'] = '../Lumos/Source/Platform/macOS/Info.plist',
+			['INFOPLIST_FILE'] = '../Lumos/Source/Lumos/Platform/macOS/Info.plist',
 			['ASSETCATALOG_COMPILER_APPICON_NAME'] = 'AppIcon'
 			--['ENABLE_HARDENED_RUNTIME'] = 'YES'
 }
@@ -219,7 +224,7 @@ project "LumosEditor"
 			['IPHONEOS_DEPLOYMENT_TARGET'] = '13.0',
 			['PRODUCT_BUNDLE_IDENTIFIER'] = settings.bundle_identifier,
 			['DEVELOPMENT_TEAM'] = 'C5L4T5BF6L',
-			['INFOPLIST_FILE'] = '../Lumos/Source/Platform/iOS/Client/Info.plist',
+			['INFOPLIST_FILE'] = '../Lumos/Source/Lumos/Platform/iOS/Client/Info.plist',
 			['ASSETCATALOG_COMPILER_APPICON_NAME'] = 'AppIcon',
 		}
 

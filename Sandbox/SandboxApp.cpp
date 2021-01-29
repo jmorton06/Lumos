@@ -1,5 +1,5 @@
 #include <LumosEngine.h>
-#include <Core/EntryPoint.h>
+#include <Lumos/Core/EntryPoint.h>
 #include "Scenes/Scene3D.h"
 #include "Scenes/GraphicsScene.h"
 #include "Scenes/SceneModelViewer.h"

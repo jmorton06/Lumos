@@ -44,6 +44,11 @@ project "Sandbox"
 		"%{IncludeDir.Lumos}",
 	}
 
+	includedirs
+	{
+		"../Lumos/Source/Lumos",
+	}
+
 	links
 	{
 		"Lumos",
@@ -114,7 +119,7 @@ project "Sandbox"
 			['CODE_SIGN_IDENTITY'] = 'Mac Developer',
 			['PRODUCT_BUNDLE_IDENTIFIER'] = settings.bundle_identifier,
 			['DEVELOPMENT_TEAM'] = 'C5L4T5BF6L',
-			['INFOPLIST_FILE'] = '../Lumos/Source/Platform/macOS/Info.plist',
+			['INFOPLIST_FILE'] = '../Lumos/Source/Lumos/Platform/macOS/Info.plist',
 			['ASSETCATALOG_COMPILER_APPICON_NAME'] = 'AppIcon'
 			--['ENABLE_HARDENED_RUNTIME'] = 'YES'
 }
@@ -197,7 +202,7 @@ project "Sandbox"
 		{
 			"../Resources/AppIcons/Assets.xcassets",
 			"../Lumos/Assets/Shaders",
-			"../Lumos/Source/Platform/iOS/Client/**",
+			"../Lumos/Source/Lumos/Platform/iOS/Client/**",
 	"Assets/Scenes",
 	"Assets/Scripts",
 	"Assets/Meshes",
@@ -217,7 +222,7 @@ project "Sandbox"
 			['IPHONEOS_DEPLOYMENT_TARGET'] = '13.0',
 			['PRODUCT_BUNDLE_IDENTIFIER'] = settings.bundle_identifier,
 			['DEVELOPMENT_TEAM'] = 'C5L4T5BF6L',
-			['INFOPLIST_FILE'] = '../Lumos/Source/Platform/iOS/Client/Info.plist',
+			['INFOPLIST_FILE'] = '../Lumos/Source/Lumos/Platform/iOS/Client/Info.plist',
 			['ASSETCATALOG_COMPILER_APPICON_NAME'] = 'AppIcon',
 		}
 

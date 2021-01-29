@@ -22,22 +22,22 @@ project "Lumos"
 
 	files
 	{
-		"Source/**.h",
-		"Source/**.c",
-		"Source/**.cpp"
+		"Source/Lumos/**.h",
+		"Source/Lumos/**.c",
+		"Source/Lumos/**.cpp"
 	}
 
 	removefiles
 	{
-		"Source/Platform/**"
+		"Source/Lumos/Platform/**"
 	}
 
 	includedirs
 	{
+		"",
 		"../",
 		"Source/",
-		"",
-		"../Source/"
+		"Source/Lumos",
 	}
 
 	sysincludedirs
@@ -74,7 +74,7 @@ project "Lumos"
 		"FREEIMAGE_LIB",
 		"LUMOS_DYNAMIC",
 		"LUMOS_ROOT_DIR="  .. root_dir,
-		"IMGUI_USER_CONFIG=\"Source/ImGui/ImConfig.h\"",
+		"IMGUI_USER_CONFIG=\"Source/Lumos/ImGui/ImConfig.h\"",
 		"LUMOS_PROFILE",
 		"TRACY_ENABLE",
 	}
@@ -90,7 +90,7 @@ project "Lumos"
 		characterset ("MBCS")
 
 		pchheader "Precompiled.h"
-		pchsource "Source/Precompiled.cpp"
+		pchsource "Source/Lumos/Precompiled.cpp"
 
 		defines
 		{
@@ -110,20 +110,20 @@ project "Lumos"
 
 		files
 		{
-			"Source/Platform/Windows/*.h",
-			"Source/Platform/Windows/*.cpp",
+			"Source/Lumos/Platform/Windows/*.h",
+			"Source/Lumos/Platform/Windows/*.cpp",
 
-			"Source/Platform/GLFW/*.h",
-			"Source/Platform/GLFW/*.cpp",
+			"Source/Lumos/Platform/GLFW/*.h",
+			"Source/Lumos/Platform/GLFW/*.cpp",
 
-			"Source/Platform/OpenAL/*.h",
-			"Source/Platform/OpenAL/*.cpp",
+			"Source/Lumos/Platform/OpenAL/*.h",
+			"Source/Lumos/Platform/OpenAL/*.cpp",
 
-			"Source/Platform/OpenGL/*.h",
-			"Source/Platform/OpenGL/*.cpp",
+			"Source/Lumos/Platform/OpenGL/*.h",
+			"Source/Lumos/Platform/OpenGL/*.cpp",
 
-			"Source/Platform/Vulkan/*.h",
-			"Source/Platform/Vulkan/*.cpp",
+			"Source/Lumos/Platform/Vulkan/*.h",
+			"Source/Lumos/Platform/Vulkan/*.cpp",
 
 			"External/glad/src/glad_wgl.c"
 		}
@@ -149,24 +149,24 @@ project "Lumos"
 
 		files
 		{
-			"Source/Platform/macOS/*.mm",
-			"Source/Platform/macOS/*.h",
-			"Source/Platform/macOS/*.cpp",
+			"Source/Lumos/Platform/macOS/*.mm",
+			"Source/Lumos/Platform/macOS/*.h",
+			"Source/Lumos/Platform/macOS/*.cpp",
 
-			"Source/Platform/Unix/*.h",
-			"Source/Platform/Unix/*.cpp",
+			"Source/Lumos/Platform/Unix/*.h",
+			"Source/Lumos/Platform/Unix/*.cpp",
 
-			"Source/Platform/GLFW/*.h",
-			"Source/Platform/GLFW/*.cpp",
+			"Source/Lumos/Platform/GLFW/*.h",
+			"Source/Lumos/Platform/GLFW/*.cpp",
 
-			"Source/Platform/OpenAL/*.h",
-			"Source/Platform/OpenAL/*.cpp",
+			"Source/Lumos/Platform/OpenAL/*.h",
+			"Source/Lumos/Platform/OpenAL/*.cpp",
 
-			"Source/Platform/OpenGL/*.h",
-			"Source/Platform/OpenGL/*.cpp",
+			"Source/Lumos/Platform/OpenGL/*.h",
+			"Source/Lumos/Platform/OpenGL/*.cpp",
 
-			"Source/Platform/Vulkan/*.h",
-			"Source/Platform/Vulkan/*.cpp"
+			"Source/Lumos/Platform/Vulkan/*.h",
+			"Source/Lumos/Platform/Vulkan/*.cpp"
 		}
 
 		defines
@@ -208,16 +208,16 @@ project "Lumos"
 
 		SetRecommendedXcodeSettings()
 
-		pchheader "../Lumos/Source/Precompiled.h"
-		pchsource "../Lumos/Source/Precompiled.cpp"
+		pchheader "../Lumos/Source/Lumos/Precompiled.h"
+		pchsource "../Lumos/Source/Lumos/Precompiled.cpp"
 
 		filter 'files:External/**.cpp'
 			flags  { 'NoPCH' }
 		filter 'files:External/**.c'
 			flags  { 'NoPCH' }
-		filter 'files:Source/**.m'
+		filter 'files:Source/Lumos/**.m'
 			flags  { 'NoPCH' }
-		filter 'files:Source/**.mm'
+		filter 'files:Source/Lumos/**.mm'
 			flags  { 'NoPCH' }
 
 	filter "system:ios"
@@ -239,23 +239,23 @@ project "Lumos"
 
 		files
 		{
-			"Source/Platform/iOS/*.mm",
-			"Source/Platform/iOS/*.h",
-			"Source/Platform/iOS/*.cpp",
+			"Source/Lumos/Platform/iOS/*.mm",
+			"Source/Lumos/Platform/iOS/*.h",
+			"Source/Lumos/Platform/iOS/*.cpp",
 
-			"Source/Platform/OpenAL/*.h",
-			"Source/Platform/OpenAL/*.cpp",
+			"Source/Lumos/Platform/OpenAL/*.h",
+			"Source/Lumos/Platform/OpenAL/*.cpp",
 
-			"Source/Platform/Unix/*.h",
-			"Source/Platform/Unix/*.cpp",
+			"Source/Lumos/Platform/Unix/*.h",
+			"Source/Lumos/Platform/Unix/*.cpp",
 
-			"Source/Platform/Vulkan/*.h",
-			"Source/Platform/Vulkan/*.cpp"
+			"Source/Lumos/Platform/Vulkan/*.h",
+			"Source/Lumos/Platform/Vulkan/*.cpp"
 		}
 
 		removefiles
 		{
-			"Source/Platform/Unix/UnixFileSystem.cpp"
+			"Source/Lumos/Platform/Unix/UnixFileSystem.cpp"
 		}
 
 		links
@@ -298,20 +298,20 @@ project "Lumos"
 
 		files
 		{
-			"Source/Platform/Unix/*.h",
-			"Source/Platform/Unix/*.cpp",
+			"Source/Lumos/Platform/Unix/*.h",
+			"Source/Lumos/Platform/Unix/*.cpp",
 
-			"Source/Platform/GLFW/*.h",
-			"Source/Platform/GLFW/*.cpp",
+			"Source/Lumos/Platform/GLFW/*.h",
+			"Source/Lumos/Platform/GLFW/*.cpp",
 
-			"Source/Platform/OpenAL/*.h",
-			"Source/Platform/OpenAL/*.cpp",
+			"Source/Lumos/Platform/OpenAL/*.h",
+			"Source/Lumos/Platform/OpenAL/*.cpp",
 
-			"Source/Platform/OpenGL/*.h",
-			"Source/Platform/OpenGL/*.cpp",
+			"Source/Lumos/Platform/OpenGL/*.h",
+			"Source/Lumos/Platform/OpenGL/*.cpp",
 
-			"Source/Platform/Vulkan/*.h",
-			"Source/Platform/Vulkan/*.cpp"
+			"Source/Lumos/Platform/Vulkan/*.h",
+			"Source/Lumos/Platform/Vulkan/*.cpp"
 		}
 
 		links
@@ -341,14 +341,14 @@ project "Lumos"
 
 		links { "X11", "pthread"}
 
-		pchheader "../Lumos/Source/Precompiled.h"
-		pchsource "../Lumos/Source/Precompiled.cpp"
+		pchheader "../Lumos/Source/Lumos/Precompiled.h"
+		pchsource "../Lumos/Source/Lumos/Precompiled.cpp"
 
 		filter 'files:External/**.cpp'
 			flags  { 'NoPCH' }
 		filter 'files:External/**.c'
 			flags  { 'NoPCH' }
-		filter 'files:Source/**.c'
+		filter 'files:Source/Lumos/**.c'
 			flags  { 'NoPCH' }
 
 		filter {'system:linux', 'architecture:x86_64'}

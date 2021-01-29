@@ -7,44 +7,39 @@
 #include "GraphicsInfoWindow.h"
 #include "TextEditWindow.h"
 #include "AssetWindow.h"
-#include "Graphics/Camera/EditorCamera.h"
-#include "Utilities/Timer.h"
-
-#include "Core/Application.h"
-#include "Core/OS/Input.h"
-#include "Core/OS/FileSystem.h"
-#include "Core/OS/OS.h"
-
-#include "Core/Version.h"
-#include "Core/Engine.h"
-#include "Scene/Scene.h"
-#include "Scene/SceneManager.h"
-#include "Scene/Entity.h"
-#include "Scene/EntityManager.h"
-#include "Events/ApplicationEvent.h"
-
-#include "Scene/Component/Components.h"
-#include "Scripting/Lua/LuaScriptComponent.h"
-
-#include "Physics/LumosPhysicsEngine/LumosPhysicsEngine.h"
-#include "Physics/B2PhysicsEngine/B2PhysicsEngine.h"
-
-#include "Graphics/Renderers/ForwardRenderer.h"
-#include "Graphics/MeshFactory.h"
-#include "Graphics/Sprite.h"
-#include "Graphics/AnimatedSprite.h"
-#include "Graphics/Light.h"
-#include "Graphics/API/Texture.h"
-#include "Graphics/Camera/Camera.h"
-#include "Graphics/API/GraphicsContext.h"
-#include "Graphics/Renderers/GridRenderer.h"
-#include "Graphics/Renderers/DebugRenderer.h"
-#include "Graphics/Model.h"
-#include "Graphics/Environment.h"
-#include "Scene/EntityFactory.h"
-
-#include "ImGui/IconsMaterialDesignIcons.h"
 #include "ImGUIConsoleSink.h"
+
+#include <Lumos/Graphics/Camera/EditorCamera.h>
+#include <Lumos/Utilities/Timer.h>
+#include <Lumos/Core/Application.h>
+#include <Lumos/Core/OS/Input.h>
+#include <Lumos/Core/OS/FileSystem.h>
+#include <Lumos/Core/OS/OS.h>
+#include <Lumos/Core/Version.h>
+#include <Lumos/Core/Engine.h>
+#include <Lumos/Scene/Scene.h>
+#include <Lumos/Scene/SceneManager.h>
+#include <Lumos/Scene/Entity.h>
+#include <Lumos/Scene/EntityManager.h>
+#include <Lumos/Events/ApplicationEvent.h>
+#include <Lumos/Scene/Component/Components.h>
+#include <Lumos/Scripting/Lua/LuaScriptComponent.h>
+#include <Lumos/Physics/LumosPhysicsEngine/LumosPhysicsEngine.h>
+#include <Lumos/Physics/B2PhysicsEngine/B2PhysicsEngine.h>
+#include <Lumos/Graphics/Renderers/ForwardRenderer.h>
+#include <Lumos/Graphics/MeshFactory.h>
+#include <Lumos/Graphics/Sprite.h>
+#include <Lumos/Graphics/AnimatedSprite.h>
+#include <Lumos/Graphics/Light.h>
+#include <Lumos/Graphics/API/Texture.h>
+#include <Lumos/Graphics/Camera/Camera.h>
+#include <Lumos/Graphics/API/GraphicsContext.h>
+#include <Lumos/Graphics/Renderers/GridRenderer.h>
+#include <Lumos/Graphics/Renderers/DebugRenderer.h>
+#include <Lumos/Graphics/Model.h>
+#include <Lumos/Graphics/Environment.h>
+#include <Lumos/Scene/EntityFactory.h>
+#include <Lumos/ImGui/IconsMaterialDesignIcons.h>
 
 #include <imgui/imgui_internal.h>
 #include <imgui/plugins/ImGuizmo.h>
@@ -1675,14 +1670,14 @@ namespace Lumos
 	{
 		LUMOS_PROFILE_FUNCTION();
 		if(!m_GridRenderer)
-			m_GridRenderer = CreateRef<Graphics::GridRenderer>(u32(Application::Get().m_SceneViewWidth), u32(Application::Get().m_SceneViewHeight));
+			m_GridRenderer = CreateRef<Graphics::GridRenderer>(uint32_t(Application::Get().m_SceneViewWidth), uint32_t(Application::Get().m_SceneViewHeight));
 	}
     
 	const Ref<Graphics::GridRenderer>& Editor::GetGridRenderer()
 	{
 		LUMOS_PROFILE_FUNCTION();
 		//if(!m_GridRenderer)
-		//  m_GridRenderer = CreateRef<Graphics::GridRenderer>(u32(Application::Get().m_SceneViewWidth), u32(Application::Get().m_SceneViewHeight), true);
+		//  m_GridRenderer = CreateRef<Graphics::GridRenderer>(uint32_t(Application::Get().m_SceneViewWidth), uint32_t(Application::Get().m_SceneViewHeight), true);
 		return m_GridRenderer;
 	}
     

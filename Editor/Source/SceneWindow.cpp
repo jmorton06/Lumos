@@ -1,24 +1,25 @@
-#include "Precompiled.h"
+#include <Precompiled.h>
 #include "SceneWindow.h"
 #include "Editor.h"
-#include "Graphics/Camera/Camera.h"
-#include "Core/Application.h"
-#include "Scene/SceneManager.h"
-#include "Core/Engine.h"
-#include "Graphics/API/GraphicsContext.h"
-#include "Graphics/API/Texture.h"
-#include "Graphics/Renderers/RenderGraph.h"
-#include "Graphics/GBuffer.h"
-#include "Graphics/Light.h"
-#include "Scene/Component/SoundComponent.h"
-#include "Graphics/Renderers/GridRenderer.h"
-#include "Physics/LumosPhysicsEngine/LumosPhysicsEngine.h"
-#include "Physics/B2PhysicsEngine/B2PhysicsEngine.h"
-#include "Core/OS/Input.h"
-#include "Graphics/Renderers/DebugRenderer.h"
-#include "ImGui/IconsMaterialDesignIcons.h"
-#include "Graphics/Camera/EditorCamera.h"
-#include "ImGui/ImGuiHelpers.h"
+#include <Lumos/Graphics/Camera/Camera.h>
+#include <Lumos/Core/Application.h>
+#include <Lumos/Scene/SceneManager.h>
+#include <Lumos/Core/Engine.h>
+#include <Lumos/Graphics/API/GraphicsContext.h>
+#include <Lumos/Graphics/API/Texture.h>
+#include <Lumos/Graphics/Renderers/RenderGraph.h>
+#include <Lumos/Graphics/GBuffer.h>
+#include <Lumos/Graphics/Light.h>
+#include <Lumos/Scene/Component/SoundComponent.h>
+#include <Lumos/Graphics/Renderers/GridRenderer.h>
+#include <Lumos/Physics/LumosPhysicsEngine/LumosPhysicsEngine.h>
+#include <Lumos/Physics/B2PhysicsEngine/B2PhysicsEngine.h>
+#include <Lumos/Core/OS/Input.h>
+#include <Lumos/Graphics/Renderers/DebugRenderer.h>
+#include <Lumos/ImGui/IconsMaterialDesignIcons.h>
+#include <Lumos/Graphics/Camera/EditorCamera.h>
+#include <Lumos/ImGui/ImGuiHelpers.h>
+
 #include <box2d/box2d.h>
 #include <imgui/imgui_internal.h>
 #include <imgui/plugins/ImGuizmo.h>
@@ -193,7 +194,7 @@ namespace Lumos
         if(m_HalfRes)
             sceneViewSize /= 2.0f;
          
-		Resize(static_cast<u32>(sceneViewSize.x), static_cast<u32>(sceneViewSize.y));
+		Resize(static_cast<uint32_t>(sceneViewSize.x), static_cast<uint32_t>(sceneViewSize.y));
 
         if(m_HalfRes)
             sceneViewSize *= 2.0f;
@@ -465,7 +466,7 @@ namespace Lumos
 
 				if(physics2D)
 				{
-					u32 flags = physics2D->GetDebugDrawFlags();
+					uint32_t flags = physics2D->GetDebugDrawFlags();
 
 					bool show2DShapes = flags & b2Draw::e_shapeBit;
 					if(ImGui::Checkbox("Shapes (2D)", &show2DShapes))
@@ -519,7 +520,7 @@ namespace Lumos
 
 				if(physics3D)
 				{
-					u32 flags = physics3D->GetDebugDrawFlags();
+					uint32_t flags = physics3D->GetDebugDrawFlags();
 
 					bool showCollisionShapes = flags & PhysicsDebugFlags::COLLISIONVOLUMES;
 					if(ImGui::Checkbox("Collision Volumes", &showCollisionShapes))
@@ -746,7 +747,7 @@ namespace Lumos
 		DebugRenderer::SetOverrideCamera(m_Editor->GetCamera(), &m_Editor->GetEditorCameraTransform());
 	}
 
-	void SceneWindow::Resize(u32 width, u32 height)
+	void SceneWindow::Resize(uint32_t width, uint32_t height)
 	{
 		bool resize = false;
 

@@ -1,24 +1,23 @@
-#include "Precompiled.h"
+#include <Precompiled.h>
 #include "HierarchyWindow.h"
 #include "Editor.h"
-#include "Core/OS/Input.h"
-#include "Core/Application.h"
-#include "Scene/SceneManager.h"
-#include "ImGui/ImGuiHelpers.h"
-#include "Scene/SceneGraph.h"
-#include "Maths/Transform.h"
 #include "InspectorWindow.h"
-#include "Scene/Entity.h"
 
-#include "Graphics/Camera/Camera.h"
-#include "Graphics/Light.h"
-#include "Graphics/Environment.h"
-#include "Graphics/Sprite.h"
-#include "Scene/Component/Components.h"
-#include "Scripting/Lua/LuaScriptComponent.h"
-
-#include "ImGui/IconsMaterialDesignIcons.h"
-#include "Core/StringUtilities.h"
+#include <Lumos/Core/OS/Input.h>
+#include <Lumos/Core/Application.h>
+#include <Lumos/Scene/SceneManager.h>
+#include <Lumos/ImGui/ImGuiHelpers.h>
+#include <Lumos/Scene/SceneGraph.h>
+#include <Lumos/Maths/Transform.h>
+#include <Lumos/Scene/Entity.h>
+#include <Lumos/Graphics/Camera/Camera.h>
+#include <Lumos/Graphics/Light.h>
+#include <Lumos/Graphics/Environment.h>
+#include <Lumos/Graphics/Sprite.h>
+#include <Lumos/Scene/Component/Components.h>
+#include <Lumos/Scripting/Lua/LuaScriptComponent.h>
+#include <Lumos/ImGui/IconsMaterialDesignIcons.h>
+#include <Lumos/Core/StringUtilities.h>
 
 #include <typeinfo>
 #include <imgui/imgui_internal.h>

@@ -1,13 +1,12 @@
 
 #include "EditorWindow.h"
-#include "Maths/Maths.h"
-#include "Maths/Frustum.h"
-#include "Maths/Transform.h"
 #include "Editor.h"
-#include "Graphics/Camera/Camera.h"
-#include "Core/StringUtilities.h"
-
-#include "ImGui/ImGuiHelpers.h"
+#include <Lumos/Maths/Maths.h>
+#include <Lumos/Maths/Frustum.h>
+#include <Lumos/Maths/Transform.h>
+#include <Lumos/Graphics/Camera/Camera.h>
+#include <Lumos/Core/StringUtilities.h>
+#include <Lumos/ImGui/ImGuiHelpers.h>
 
 #include <imgui/imgui.h>
 DISABLE_WARNING_PUSH
@@ -28,7 +27,7 @@ namespace Lumos
         void ToolBar();
 		void DrawGizmos(float width, float height, float xpos, float ypos, Scene* scene);
 
-		void Resize(u32 width, u32 height);
+		void Resize(uint32_t width, uint32_t height);
 	private:
 
 		template<typename T>
@@ -71,7 +70,7 @@ namespace Lumos
         Ref<Graphics::Texture2D> m_GameViewTexture = nullptr;
 		Scene* m_CurrentScene = nullptr;
 		float m_AspectRatio;
-		u32 m_Width, m_Height;
+		uint32_t m_Width, m_Height;
         
         bool m_FreeAspect = true;
         float m_FixedAspect = 1.0f;

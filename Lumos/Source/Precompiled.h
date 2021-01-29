@@ -21,7 +21,7 @@
 #include <thread>
 
 #include "Core/Reference.h"
-#include "Core/Types.h"
+
 #include "Core/StringUtilities.h"
 #include "Core/LMLog.h"
 #include "Core/Core.h"

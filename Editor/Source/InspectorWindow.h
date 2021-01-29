@@ -1,7 +1,7 @@
 #pragma once
 
 #include "EditorWindow.h"
-#include "ImGui/ImGuiEnttEditor.hpp"
+#include <Lumos/ImGui/ImGuiEnttEditor.hpp>
 
 namespace Lumos
 {

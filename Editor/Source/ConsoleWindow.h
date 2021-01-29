@@ -3,7 +3,7 @@
 #include "EditorWindow.h"
 
 #include <imgui/imgui.h>
-#include "Maths/Colour.h"
+#include <Lumos/Maths/Colour.h>
 
 namespace Lumos
 {
@@ -13,7 +13,7 @@ namespace Lumos
 		class Message
 		{
 		public:
-			enum Level : u32
+			enum Level : uint32_t
 			{
 				Trace = 1,
 				Debug = 2,
@@ -60,7 +60,7 @@ namespace Lumos
 		static std::vector<Ref<Message>> s_MessageBuffer;
 		static bool s_AllowScrollingToBottom;
 		static bool s_RequestScrollToBottom;
-		static u32 s_MessageBufferRenderFilter;
+		static uint32_t s_MessageBufferRenderFilter;
 		ImGuiTextFilter Filter;
 	};
 }

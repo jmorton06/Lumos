@@ -1,6 +1,6 @@
-#include "Precompiled.h"
+#include <Precompiled.h>
 #include "GraphicsInfoWindow.h"
-#include "Graphics/API/GraphicsContext.h"
+#include <Lumos/Graphics/API/GraphicsContext.h>
 
 #include <imgui/imgui.h>
 

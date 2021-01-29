@@ -1,10 +1,10 @@
-#include "Precompiled.h"
+#include <Precompiled.h>
 #include "ConsoleWindow.h"
-#include "ImGui/IconsMaterialDesignIcons.h"
-#include "ImGui/ImGuiHelpers.h"
+#include <Lumos/ImGui/IconsMaterialDesignIcons.h>
+#include <Lumos/ImGui/ImGuiHelpers.h>
 namespace Lumos
 {
-	u32 ConsoleWindow::s_MessageBufferRenderFilter = 0;
+	uint32_t ConsoleWindow::s_MessageBufferRenderFilter = 0;
 	uint16_t ConsoleWindow::s_MessageBufferCapacity = 200;
 	uint16_t ConsoleWindow::s_MessageBufferSize = 0;
 	uint16_t ConsoleWindow::s_MessageBufferBegin = 0;
