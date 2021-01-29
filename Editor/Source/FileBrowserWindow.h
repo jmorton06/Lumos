@@ -1,6 +1,6 @@
 #pragma once
-
 #include "EditorWindow.h"
+#include <functional>
 
 namespace ImGui
 {
