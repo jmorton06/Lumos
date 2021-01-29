@@ -22,9 +22,9 @@ project "Lumos"
 
 	files
 	{
-		"Source/Lumos/**.h",
-		"Source/Lumos/**.c",
-		"Source/Lumos/**.cpp"
+		"Source/**.h",
+		"Source/**.c",
+		"Source/**.cpp"
 	}
 
 	removefiles
