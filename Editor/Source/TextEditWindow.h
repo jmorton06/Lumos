@@ -1,7 +1,5 @@
 #pragma once
-
 #include "EditorWindow.h"
-
 #include <imgui/plugins/ImTextEditor.h>
 
 namespace Lumos

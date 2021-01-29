@@ -1,8 +1,8 @@
-#include "Precompiled.h"
+#include <Precompiled.h>
 #include "TextEditWindow.h"
-#include "Core/OS/FileSystem.h"
 #include "Editor.h"
-#include "Core/OS/Input.h"
+#include <Lumos/Core/OS/FileSystem.h>
+#include <Lumos/Core/OS/Input.h>
 
 #include <imgui/imgui.h>
 

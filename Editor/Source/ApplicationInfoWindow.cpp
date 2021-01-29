@@ -1,14 +1,15 @@
-#include "Precompiled.h"
-#include "ApplicationInfoWindow.h"
-#include "Graphics/API/GraphicsContext.h"
+#include <Precompiled.h>
 #include "HierarchyWindow.h"
 #include "Editor.h"
-#include "Core/Application.h"
-#include "Scene/SceneManager.h"
-#include "Core/Engine.h"
-#include "Graphics/Renderers/RenderGraph.h"
-#include "Graphics/GBuffer.h"
-#include "ImGui/ImGuiHelpers.h"
+#include "ApplicationInfoWindow.h"
+
+#include <Lumos/Graphics/API/GraphicsContext.h>
+#include <Lumos/Core/Application.h>
+#include <Lumos/Scene/SceneManager.h>
+#include <Lumos/Core/Engine.h>
+#include <Lumos/Graphics/Renderers/RenderGraph.h>
+#include <Lumos/Graphics/GBuffer.h>
+#include <Lumos/ImGui/ImGuiHelpers.h>
 #include <imgui/imgui.h>
 
 namespace Lumos

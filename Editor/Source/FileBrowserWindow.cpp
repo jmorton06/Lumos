@@ -1,9 +1,9 @@
-#include "Precompiled.h"
+#include <Precompiled.h>
 #include "FileBrowserWindow.h"
-#include "Core/OS/FileSystem.h"
 #include "Editor.h"
 
-#include "ImGui/IconsMaterialDesignIcons.h"
+#include <Lumos/Core/OS/FileSystem.h>
+#include <Lumos/ImGui/IconsMaterialDesignIcons.h>
 #include <imgui/imgui.h>
 #include <imgui/plugins/ImFileBrowser.h>
 

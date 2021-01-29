@@ -1,7 +1,7 @@
-#include "Precompiled.h"
-#include "AssetWindow.h"
-#include "Core/OS/FileSystem.h"
+#include <Precompiled.h>
 #include "Editor.h"
+#include "AssetWindow.h"
+#include <Lumos/Core/OS/FileSystem.h>
 
 #if __has_include(<filesystem>)
 #	include <filesystem>
@@ -9,7 +9,7 @@
 #	include <experimental/filesystem>
 #endif
 
-#include "ImGui/IconsMaterialDesignIcons.h"
+#include <Lumos/ImGui/IconsMaterialDesignIcons.h>
 #include <imgui/imgui.h>
 
 namespace Lumos

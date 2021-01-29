@@ -1,5 +1,5 @@
 #include <LumosEngine.h>
-#include <Core/EntryPoint.h>
+#include <Lumos/Core/EntryPoint.h>
 #include "Editor.h"
 
 Lumos::Application* Lumos::CreateApplication()
