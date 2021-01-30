@@ -1,9 +1,9 @@
 {
     "value0": {
         "Project Version": 5,
-        "RenderAPI": 0,
-        "Width": 1183,
-        "Height": 686,
+        "RenderAPI": 1,
+        "Width": 1275,
+        "Height": 698,
         "Fullscreen": false,
         "VSync": false,
         "ShowConsole": false,
@@ -11,9 +11,10 @@
         "FilePath": "/Sandbox/Sandbox.lmproj",
         "Scenes": [
             "/Scenes/2D.lsn",
-            "/Scenes/Physics.lsn"
+            "/Scenes/Physics.lsn",
+            "/Scenes/Terrain.lsn"
         ],
-        "SceneIndex": 1,
+        "SceneIndex": 0,
         "Borderless": false
     }
 }
