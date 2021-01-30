@@ -1,6 +1,7 @@
 #include "Precompiled.h"
 #include "IniFile.h"
 #include "Core/OS/FileSystem.h"
+#include "Core/StringUtilities.h"
 
 #include <filesystem>
 #include <fstream>

@@ -1,4 +1,3 @@
-#include <Precompiled.h>
 #include "HierarchyWindow.h"
 #include "Editor.h"
 #include "ApplicationInfoWindow.h"

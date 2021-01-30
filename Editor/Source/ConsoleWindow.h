@@ -4,6 +4,7 @@
 
 #include <imgui/imgui.h>
 #include <Lumos/Maths/Colour.h>
+#include <Lumos/Core/Reference.h>
 
 namespace Lumos
 {

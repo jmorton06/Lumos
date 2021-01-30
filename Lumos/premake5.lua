@@ -206,10 +206,10 @@ project "Lumos"
 			"-fdiagnostics-absolute-paths"
 		}
 
-		SetRecommendedXcodeSettings()
-
 		pchheader "../Lumos/Source/Precompiled.h"
 		pchsource "../Lumos/Source/Precompiled.cpp"
+
+		SetRecommendedXcodeSettings()
 
 		filter 'files:External/**.cpp'
 			flags  { 'NoPCH' }
