@@ -1,4 +1,3 @@
-#include <Precompiled.h>
 #include "InspectorWindow.h"
 #include "Editor.h"
 #include "FileBrowserWindow.h"

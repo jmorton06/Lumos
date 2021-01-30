@@ -27,6 +27,7 @@
 #include "Core/OS/OS.h"
 #include "Core/Profiler.h"
 #include "Core/VFS.h"
+#include "Core/StringUtilities.h"
 #include "Core/OS/FileSystem.h"
 #include "Scripting/Lua/LuaManager.h"
 #include "ImGui/ImGuiManager.h"

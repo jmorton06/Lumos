@@ -8,6 +8,8 @@
 #include "Physics/LumosPhysicsEngine/LumosPhysicsEngine.h"
 #include "Core/OS/FileSystem.h"
 #include "Core/VFS.h"
+#include "Core/StringUtilities.h"
+
 
 namespace Lumos
 {
