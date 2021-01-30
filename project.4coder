@@ -18,11 +18,12 @@ patterns = {
 };
 blacklist_patterns = {
 ".*",
-"Lumos/external/.*"
+"Lumos/External/.*"
 };
 load_paths_base = {
- { "./Lumos/src", .relative = true, .recursive = true, },
- { "./Sandbox", .relative = true, .recursive = true, },
+ { "./Lumos/Source", .relative = true, .recursive = true, },
+	{ "./Sandbox", .relative = true, .recursive = true, },
+	{ "./Editor", .relative = true, .recursive = true, },
 };
 load_paths = {
  { load_paths_base, .os = "win", },
@@ -60,9 +61,21 @@ command_list = {
             { "./Scripts/RunMacOS-Release.sh" , .os = "mac"   }, }, },
 	{ .name = "compileShaders",
 		.out = "*Compile Shaders*", .footer_panel = true, .save_dirty_files = false,.cursor_at_end = true,
-		.cmd = { { "Lumos\res\shaders\CompileShadersWindows.bat", .os = "win"   },
+		.cmd = { { "Lumos\Assets\Shaders\CompileShadersWindows.bat", .os = "win"   },
             { "" , .os = "linux" },
-            { "./Lumos/res/EngineShaders/CompileShadersMac.sh" , .os = "mac"   }, }, },
+            { "./Lumos/Assets/Shaders/CompileShadersMac.sh" , .os = "mac"   }, }, },
+	
+	{ .name = "build-Editor",
+		.out = "*Compilation*", .footer_panel = true, .save_dirty_files = true,.cursor_at_end = true,
+		.cmd = { { "Scripts\BuildWindows-Editro.bat" , .os = "win"   },
+            { "./Scripts/BuildLinux-Editor.sh", .os = "linux" },
+            { "./Scripts/BuildMacOS-Editor.sh", .os = "mac"   }, }, },
+	
+	{ .name = "run-Editor",
+		.out = "*Run - Editor - Debug*", .footer_panel = true, .save_dirty_files = false,.cursor_at_end = true,
+		.cmd = { { "bin\\Release\\LumosEditor.exe", .os = "win"   },
+            { "./Scripts/RunLinux-Editor.sh" , .os = "linux" },
+            { "./Scripts/RunMacOS-Editor.sh" , .os = "mac"   }, }, },
 };
 fkey_command[1] = "gen project";
 fkey_command[2] = "build";
@@ -70,3 +83,5 @@ fkey_command[3] = "run";
 fkey_command[4] = "clean";
 fkey_command[5] = "compileShaders";
 fkey_command[6] = "build and run release";
+fkey_command[7] = "build-Editor";
+fkey_command[8] = "run-Editor";

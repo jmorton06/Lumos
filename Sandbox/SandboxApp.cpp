@@ -1,5 +1,5 @@
 #include <LumosEngine.h>
-#include <Core/EntryPoint.h>
+#include <Lumos/Core/EntryPoint.h>
 #include "Scenes/Scene3D.h"
 #include "Scenes/GraphicsScene.h"
 #include "Scenes/SceneModelViewer.h"
@@ -31,16 +31,16 @@ class Game : public Application
         Application::SetEditorState(EditorState::Play);
         Application::Get().GetWindow()->SetEventCallback(BIND_EVENT_FN(Game::OnEvent));
         
-        GetSceneManager()->EnqueueScene<Scene3D>(std::string("Physics"));
-		GetSceneManager()->EnqueueScene<SceneModelViewer>(std::string("SceneModelViewer"));
-		GetSceneManager()->EnqueueScene<GraphicsScene>(std::string("Terrain"));
-		GetSceneManager()->EnqueueScene<MaterialTest>(std::string("Material"));
+        //GetSceneManager()->EnqueueScene<Scene3D>(std::string("Physics"));
+		//GetSceneManager()->EnqueueScene<SceneModelViewer>(std::string("SceneModelViewer"));
+		//GetSceneManager()->EnqueueScene<GraphicsScene>(std::string("Terrain"));
+		//GetSceneManager()->EnqueueScene<MaterialTest>(std::string("Material"));
 	}
     
     void OnImGui() override
     {
-        ImGui::Begin("Test");
-        ImGui::TextUnformatted("Test Window");
+        ImGui::Begin("Metrics");
+        ImGui::Text("FPS : %.2f",(float)Lumos::Engine::Get().Statistics().FramesPerSecond );
         ImGui::End();
         Application::OnImGui();
     }

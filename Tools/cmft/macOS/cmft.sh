@@ -37,7 +37,7 @@ CMFT=./cmft
 #--outputGammaDenominator 1.0      \
 #              --srcFaceSize 512                 \
 
-eval $CMFT $@ --input "Arches_E_PineTree_3k.hdr" \
+eval $CMFT $@ --input "noga_4k.hdr" \
               ::Filter options                  \
               --filter Radiance                 \
               --excludeBase true               \
@@ -61,18 +61,24 @@ eval $CMFT $@ --input "Arches_E_PineTree_3k.hdr" \
               --outputGammaDenominator 2.2      \
               ::Output                          \
               --outputNum 1                     \
-              --output0 "Arches_E_PineTree_Env"\
+              --output0 "noga_Env"\
               --output0params tga,bgr8,VCross   \
               
-eval $CMFT $@ --input "Arches_E_PineTree_3k.hdr" \
+eval $CMFT $@ --input "noga_4k.hdr" \
             ::Filter options                  \
             --filter irradiance               \
             --edgeFixup none                  \
             --excludeBase true               \
-            --dstFaceSize 1024                 \
+            --dstFaceSize 32                 \
             --generateMipChain true           \
             --glossScale 10                   \
             --glossBias 2                     \
+            ::Processing devices          \
+            --numCpuProcessingThreads 8   \
+            --useOpenCL false              \
+            --clVendor anyGpuVendor       \
+            --deviceType gpu              \
+            --deviceIndex 0               \
             ::Aditional operations            \
             --inputGammaNumerator 1.0         \
             --inputGammaDenominator 2.2       \
@@ -80,7 +86,7 @@ eval $CMFT $@ --input "Arches_E_PineTree_3k.hdr" \
             --outputGammaDenominator 2.2      \
             ::Output                          \
             --outputNum 1                     \
-            --output0 "Arches_E_PineTree_Irr"\
+            --output0 "noga_Irr"\
             --output0params tga,bgr8,VCross   \
 
 

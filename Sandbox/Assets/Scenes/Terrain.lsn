@@ -1,0 +1,141 @@
+{
+    "value0": {
+        "Version": 4,
+        "Scene Name": "Terrain"
+    },
+    "value1": 3,
+    "value2": 0,
+    "value3": 1,
+    "value4": 2,
+    "value5": 3,
+    "value6": 1,
+    "value7": {
+        "Position": {
+            "value0": 0.0,
+            "value1": 0.0,
+            "value2": 0.0
+        },
+        "Rotation": {
+            "value0": -0.32251736521720889,
+            "value1": 0.2442595511674881,
+            "value2": -0.08653092384338379,
+            "value3": 0.9104021787643433
+        },
+        "Scale": {
+            "value0": 1.0000011920928956,
+            "value1": 1.0000061988830567,
+            "value2": 1.0000035762786866
+        }
+    },
+    "value8": 0,
+    "value9": {
+        "Position": {
+            "value0": 0.0,
+            "value1": 0.0,
+            "value2": 0.0
+        },
+        "Rotation": {
+            "value0": 0.0,
+            "value1": 0.0,
+            "value2": 0.0,
+            "value3": 1.0
+        },
+        "Scale": {
+            "value0": 1.0,
+            "value1": 1.0,
+            "value2": 1.0
+        }
+    },
+    "value10": 2,
+    "value11": {
+        "Position": {
+            "value0": 228.4239044189453,
+            "value1": 133.44451904296876,
+            "value2": 345.7474365234375
+        },
+        "Rotation": {
+            "value0": -0.41048136353492739,
+            "value1": 0.0,
+            "value2": 0.0,
+            "value3": 0.9118689298629761
+        },
+        "Scale": {
+            "value0": 0.9999998211860657,
+            "value1": 1.0000016689300538,
+            "value2": 1.0000016689300538
+        }
+    },
+    "value12": 3,
+    "value13": 1,
+    "value14": {
+        "Name": "Light"
+    },
+    "value15": 0,
+    "value16": {
+        "Name": "Terrain"
+    },
+    "value17": 2,
+    "value18": {
+        "Name": "Camera"
+    },
+    "value19": 0,
+    "value20": 0,
+    "value21": 1,
+    "value22": 2,
+    "value23": {
+        "Scale": 1.0,
+        "Aspect": 1.8266475200653077,
+        "FOV": 79.24700164794922,
+        "Near": 0.27399998903274538,
+        "Far": 831.0960083007813
+    },
+    "value24": 0,
+    "value25": 1,
+    "value26": 0,
+    "value27": {
+        "PrimitiveType": 7,
+        "FilePath": "",
+        "Material": {
+            "ptr_wrapper": {
+                "valid": 0
+            }
+        }
+    },
+    "value28": 1,
+    "value29": 1,
+    "value30": {
+        "value0": {
+            "value0": 0.0,
+            "value1": 0.0,
+            "value2": 0.0,
+            "value3": 1.0
+        },
+        "value1": {
+            "value0": 1.0,
+            "value1": 1.0,
+            "value2": 1.0,
+            "value3": 1.0
+        },
+        "value2": 0.0,
+        "value3": 0.0,
+        "value4": {
+            "value0": 0.5005642175674439,
+            "value1": 0.5449690818786621,
+            "value2": 0.6726396679878235,
+            "value3": 1.0
+        },
+        "value5": 1.0,
+        "value6": 1.0
+    },
+    "value31": 0,
+    "value32": 0,
+    "value33": 0,
+    "value34": 0,
+    "value35": 1,
+    "value36": 2,
+    "value37": {
+        "ControllerType": 4
+    },
+    "value38": 0,
+    "value39": 0
+}
