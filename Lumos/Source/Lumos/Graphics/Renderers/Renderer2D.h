@@ -133,6 +133,8 @@ namespace Lumos
 			bool m_RenderToDepthTexture;
             bool m_Empty = false;
 			bool m_TriangleIndicies = false;
+			
+			uint32_t m_PreviousFrameTextureCount = 0;
 		};
 	}
 }

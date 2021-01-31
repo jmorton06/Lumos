@@ -6,9 +6,6 @@
 #endif
 #endif
 
-#include "ReferenceCounter.h"
-#include "Core/Core.h"
-
 #pragma warning(push, 0)
 #include <spdlog/spdlog.h>
 #include <spdlog/fmt/ostr.h>
@@ -25,7 +22,7 @@ namespace Lumos
 {
 	namespace Debug
 	{
-		class LUMOS_EXPORT Log
+		class Log
 		{
 		public:
 			static void OnInit();

@@ -272,11 +272,9 @@ namespace Lumos
 		m_BatchDrawCallIndex = 0;
 	}
 
-	void LineRenderer::RenderInternal(Scene* scene, Camera* overrideCamera, Maths::Transform* overrideCameraTransform)
+	void LineRenderer::RenderInternal()
 	{
 		LUMOS_PROFILE_FUNCTION();
-
-		BeginScene(scene, overrideCamera, overrideCameraTransform);
 
 		if(!m_RenderTexture)
 			m_CurrentBufferID = Renderer::GetSwapchain()->GetCurrentBufferId();
