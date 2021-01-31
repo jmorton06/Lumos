@@ -550,6 +550,18 @@ namespace Lumos
 			LUMOS_PROFILE_FUNCTION();
 			if(m_TextureCount == 0)
 				return;
+			
+			if(m_TextureCount != m_PreviousFrameTextureCount)
+			{
+				//When previous frame texture count was less then than the previous frame
+				// and the texture previously used was deleted, there was a crash - maybe moltenvk only
+				Graphics::DescriptorInfo info{};
+				info.pipeline = m_Pipeline.get();
+				info.layoutIndex = 1;
+				info.shader = m_Shader.get();
+				m_DescriptorSet = Graphics::DescriptorSet::Create(info);
+			}
+			
 			std::vector<Graphics::ImageInfo> imageInfos;
 
 			Graphics::ImageInfo imageInfo = {};
@@ -565,6 +577,8 @@ namespace Lumos
 			imageInfos.push_back(imageInfo);
 
 			m_DescriptorSet->Update(imageInfos);
+			
+			m_PreviousFrameTextureCount = m_TextureCount;
 		}
 
 		void Renderer2D::SetRenderTarget(Texture* texture, bool rebuildFramebuffer)

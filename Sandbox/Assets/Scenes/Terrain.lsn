@@ -3,13 +3,15 @@
         "Version": 4,
         "Scene Name": "Terrain"
     },
-    "value1": 3,
+    "value1": 5,
     "value2": 0,
     "value3": 1,
     "value4": 2,
     "value5": 3,
-    "value6": 1,
-    "value7": {
+    "value6": 4,
+    "value7": 3,
+    "value8": 1,
+    "value9": {
         "Position": {
             "value0": 0.0,
             "value1": 0.0,
@@ -27,8 +29,8 @@
             "value2": 1.0000035762786866
         }
     },
-    "value8": 0,
-    "value9": {
+    "value10": 0,
+    "value11": {
         "Position": {
             "value0": 0.0,
             "value1": 0.0,
@@ -46,8 +48,8 @@
             "value2": 1.0
         }
     },
-    "value10": 2,
-    "value11": {
+    "value12": 2,
+    "value13": {
         "Position": {
             "value0": 228.4239044189453,
             "value1": 133.44451904296876,
@@ -65,45 +67,96 @@
             "value2": 1.0000016689300538
         }
     },
-    "value12": 3,
-    "value13": 1,
-    "value14": {
+    "value14": 5,
+    "value15": 1,
+    "value16": {
         "Name": "Light"
     },
-    "value15": 0,
-    "value16": {
+    "value17": 0,
+    "value18": {
         "Name": "Terrain"
     },
-    "value17": 2,
-    "value18": {
+    "value19": 2,
+    "value20": {
         "Name": "Camera"
     },
-    "value19": 0,
-    "value20": 0,
-    "value21": 1,
-    "value22": 2,
-    "value23": {
+    "value21": 3,
+    "value22": {
+        "Name": "LuaScript"
+    },
+    "value23": 4,
+    "value24": {
+        "Name": "Environment"
+    },
+    "value25": 0,
+    "value26": 0,
+    "value27": 1,
+    "value28": 2,
+    "value29": {
         "Scale": 1.0,
-        "Aspect": 1.8266475200653077,
+        "Aspect": 1.777616262435913,
         "FOV": 79.24700164794922,
         "Near": 0.27399998903274538,
         "Far": 831.0960083007813
     },
-    "value24": 0,
-    "value25": 1,
-    "value26": 0,
-    "value27": {
+    "value30": 1,
+    "value31": 3,
+    "value32": {
+        "FilePath": "//Scripts/Projectile.lua"
+    },
+    "value33": 1,
+    "value34": 0,
+    "value35": {
         "PrimitiveType": 7,
         "FilePath": "",
         "Material": {
             "ptr_wrapper": {
-                "valid": 0
+                "valid": 1,
+                "data": {
+                    "Albedo": "",
+                    "Normal": "",
+                    "Metallic": "",
+                    "Roughness": "",
+                    "Ao": "",
+                    "Emissive": "",
+                    "albedoColour": {
+                        "value0": 0.4077385663986206,
+                        "value1": 0.4189186692237854,
+                        "value2": 0.442396342754364,
+                        "value3": 1.0
+                    },
+                    "roughnessColour": {
+                        "value0": 0.699999988079071,
+                        "value1": 0.0,
+                        "value2": 1.0,
+                        "value3": 1.0
+                    },
+                    "metallicColour": {
+                        "value0": 0.125,
+                        "value1": 1.0,
+                        "value2": 0.0,
+                        "value3": 1.0
+                    },
+                    "emissiveColour": {
+                        "value0": 0.0,
+                        "value1": 0.0,
+                        "value2": 0.0,
+                        "value3": 1.0
+                    },
+                    "usingAlbedoMap": 0.0,
+                    "usingMetallicMap": 0.0,
+                    "usingRoughnessMap": 0.0,
+                    "usingNormalMap": 0.0,
+                    "usingAOMap": 0.0,
+                    "usingEmissiveMap": 0.0,
+                    "workflow": 0.0
+                }
             }
         }
     },
-    "value28": 1,
-    "value29": 1,
-    "value30": {
+    "value36": 1,
+    "value37": 1,
+    "value38": {
         "value0": {
             "value0": 0.0,
             "value1": 0.0,
@@ -127,15 +180,24 @@
         "value5": 1.0,
         "value6": 1.0
     },
-    "value31": 0,
-    "value32": 0,
-    "value33": 0,
-    "value34": 0,
-    "value35": 1,
-    "value36": 2,
-    "value37": {
+    "value39": 0,
+    "value40": 1,
+    "value41": 4,
+    "value42": {
+        "value0": "//Textures/cubemap/noga",
+        "value1": 11,
+        "value2": 3072,
+        "value3": 4096,
+        "value4": ".tga",
+        "value5": 0.03125
+    },
+    "value43": 0,
+    "value44": 0,
+    "value45": 1,
+    "value46": 2,
+    "value47": {
         "ControllerType": 4
     },
-    "value38": 0,
-    "value39": 0
+    "value48": 0,
+    "value49": 0
 }

@@ -39,6 +39,7 @@ namespace Lumos
             void AddRenderer(Graphics::IRenderer* renderer, int renderPriority);
 
 			void SortRenderers();
+			void EnableDebugRenderer(bool enable);
 			
 			void Reset();
 			void OnResize(uint32_t width, uint32_t height);

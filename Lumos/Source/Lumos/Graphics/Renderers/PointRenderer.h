@@ -69,7 +69,7 @@ namespace Lumos
 			void SetRenderTarget(Graphics::Texture* texture, bool rebuildFramebuffer) override;
 			void RenderScene() override {};
 
-			void RenderInternal(Scene* scene, Camera* overrideCamera, Maths::Transform* overrideCameraTransform) ;
+			void RenderInternal();
 			void PresentToScreen() override;
 			void Submit(const Maths::Vector3& p1, float size, const Maths::Vector4& colour);
 			void SetSystemUniforms(Graphics::Shader* shader) const;
