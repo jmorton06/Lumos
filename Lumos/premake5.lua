@@ -65,7 +65,8 @@ project "Lumos"
 		"box2d",
 		"imgui",
 		"freetype",
-		"SpirvCross"
+		"SpirvCross",
+		"spdlog"
 	}
 
 	defines
@@ -77,6 +78,7 @@ project "Lumos"
 		"IMGUI_USER_CONFIG=\"Source/Lumos/ImGui/ImConfig.h\"",
 		"LUMOS_PROFILE",
 		"TRACY_ENABLE",
+		"SPDLOG_COMPILED_LIB"
 	}
 
 	filter 'architecture:x86_64'
@@ -206,10 +208,10 @@ project "Lumos"
 			"-fdiagnostics-absolute-paths"
 		}
 
-		SetRecommendedXcodeSettings()
-
 		pchheader "../Lumos/Source/Precompiled.h"
 		pchsource "../Lumos/Source/Precompiled.cpp"
+
+		SetRecommendedXcodeSettings()
 
 		filter 'files:External/**.cpp'
 			flags  { 'NoPCH' }

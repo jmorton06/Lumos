@@ -1,7 +1,6 @@
-#include <Precompiled.h>
 #include "FileBrowserWindow.h"
 #include "Editor.h"
-
+#include <Lumos/Core/StringUtilities.h>
 #include <Lumos/Core/OS/FileSystem.h>
 #include <Lumos/ImGui/IconsMaterialDesignIcons.h>
 #include <imgui/imgui.h>

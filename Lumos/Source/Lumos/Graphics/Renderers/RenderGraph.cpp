@@ -2,6 +2,7 @@
 #include "RenderGraph.h"
 #include "Graphics/GBuffer.h"
 #include "Graphics/Renderers/IRenderer.h"
+#include "Graphics/Renderers/DebugRenderer.h"
 
 namespace Lumos::Graphics
 {
@@ -20,6 +21,8 @@ namespace Lumos::Graphics
         {
             delete renderer;
         }
+		
+		DebugRenderer::Release();
     }
 	
 	void RenderGraph::OnResize(uint32_t width, uint32_t height)
@@ -27,13 +30,25 @@ namespace Lumos::Graphics
 		SetScreenBufferSize(width, height);
 		m_GBuffer->UpdateTextureSize(width, height);
 	}
+	
+	void RenderGraph::EnableDebugRenderer(bool enable)
+	{
+		if(enable)
+			DebugRenderer::Init(m_ScreenBufferWidth, m_ScreenBufferHeight);
+		else
+			DebugRenderer::Release();
+	}
 
     void RenderGraph::BeginScene(Scene* scene)
     {
+		DebugRenderer::Reset();
+		
         for(auto renderer: m_Renderers)
         {
             renderer->BeginScene(scene, m_OverrideCamera , m_OverrideCameraTransform);
         }
+		
+		DebugRenderer::BeginScene(scene, m_OverrideCamera, m_OverrideCameraTransform);
     }
 
     void RenderGraph::SetRenderTarget(Graphics::Texture* texture, bool onlyIfTargetsScreen, bool rebuildFramebuffer)
@@ -43,6 +58,8 @@ namespace Lumos::Graphics
             if(!onlyIfTargetsScreen || renderer->GetScreenRenderer())
                 renderer->SetRenderTarget(texture, rebuildFramebuffer);
         }
+		
+		//DebugRenderer?
     }
 
     void RenderGraph::OnRender()
@@ -51,6 +68,9 @@ namespace Lumos::Graphics
         {
             renderer->RenderScene();
         }
+		
+		DebugRenderer::Render();
+
     }
 
     void RenderGraph::OnUpdate(const TimeStep& timeStep, Scene* scene)
@@ -63,6 +83,9 @@ namespace Lumos::Graphics
         {
             renderer->OnResize(e.GetWidth(), e.GetHeight());
         }
+		
+		DebugRenderer::OnResize(e.GetWidth(), e.GetHeight());
+		
         return false;
     }
 

@@ -8,6 +8,7 @@
 
 #include "Maths/Transform.h"
 #include "Core/Application.h"
+#include "Core/StringUtilities.h"
 
 #define TINYGLTF_IMPLEMENTATION
 #define STB_IMAGE_WRITE_IMPLEMENTATION

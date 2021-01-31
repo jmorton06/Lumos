@@ -10,6 +10,8 @@
 #	include "Platform/GLFW/GLFWWindow.h"
 #endif
 
+#include <Windows.h>
+
 extern Lumos::Application* Lumos::CreateApplication();
 
 namespace Lumos

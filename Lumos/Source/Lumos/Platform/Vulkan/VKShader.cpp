@@ -2,9 +2,11 @@
 #include "VKShader.h"
 #include "VKDevice.h"
 #include "VKTools.h"
+#include "VKDescriptorSet.h"
+
 #include "Core/OS/FileSystem.h"
 #include "Core/VFS.h"
-#include "VKDescriptorSet.h"
+#include "Core/StringUtilities.h"
 
 #include <spirv_cross.hpp>
 

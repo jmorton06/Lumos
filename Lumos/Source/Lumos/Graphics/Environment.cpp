@@ -3,6 +3,7 @@
 
 #include "API/Texture.h"
 #include "Core/VFS.h"
+#include "Core/StringUtilities.h"
 
 namespace Lumos
 {

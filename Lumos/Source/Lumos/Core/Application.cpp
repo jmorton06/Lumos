@@ -27,6 +27,7 @@
 #include "Core/OS/OS.h"
 #include "Core/Profiler.h"
 #include "Core/VFS.h"
+#include "Core/StringUtilities.h"
 #include "Core/OS/FileSystem.h"
 #include "Scripting/Lua/LuaManager.h"
 #include "ImGui/ImGuiManager.h"
@@ -164,8 +165,6 @@ namespace Lumos
         m_SceneManager->LoadCurrentList();
 
 		m_CurrentState = AppState::Running;
-
-		DebugRenderer::Init(screenWidth, screenHeight);
             
 //#ifndef LUMOS_PLATFORM_IOS //Need to disable for A12 and earlier
         auto shadowRenderer = new Graphics::ShadowRenderer();
@@ -176,6 +175,8 @@ namespace Lumos
         m_RenderGraph->AddRenderer(new Graphics::DeferredRenderer(screenWidth, screenHeight));
         m_RenderGraph->AddRenderer(new Graphics::SkyboxRenderer(screenWidth, screenHeight));
         m_RenderGraph->AddRenderer(new Graphics::Renderer2D(screenWidth, screenHeight, false, false, true));
+        
+        m_RenderGraph->EnableDebugRenderer(true);
 	}
 
 	void Application::Quit()
@@ -185,7 +186,6 @@ namespace Lumos
 		Graphics::Material::ReleaseDefaultTexture();
 		Engine::Release();
 		Input::Release();
-		DebugRenderer::Release();
 
 		m_ShaderLibrary.reset();
 		m_SceneManager.reset();
@@ -247,11 +247,8 @@ namespace Lumos
 			if(!m_Minimized)
 			{
 				LUMOS_PROFILE_SCOPE("Application::Render");
-                DebugRenderer::Reset();
 
 				OnRender();
-                
-                DebugRenderer::Render(m_SceneManager->GetCurrentScene(), nullptr, nullptr);
                 m_ImGuiManager->OnRender(m_SceneManager->GetCurrentScene());
                 
                 Graphics::Renderer::GetRenderer()->Present();
@@ -303,9 +300,9 @@ namespace Lumos
 		{
 			Graphics::Renderer::GetRenderer()->Begin();
 
-			m_SystemManager->OnDebugDraw();
-
             m_RenderGraph->BeginScene(m_SceneManager->GetCurrentScene());
+            m_SystemManager->OnDebugDraw();
+
 			m_RenderGraph->OnRender();
 		}
 	}
@@ -398,7 +395,6 @@ namespace Lumos
 
 		m_RenderGraph->OnResize(width, height);
 		Graphics::Renderer::GetRenderer()->OnResize(width, height);
-		DebugRenderer::OnResize(width, height);
 
 		Graphics::GraphicsContext::GetContext()->WaitIdle();
 
@@ -425,7 +421,6 @@ namespace Lumos
 		m_Minimized = false;
 		m_RenderGraph->OnResize(width, height);
 		m_RenderGraph->OnEvent(e);
-		DebugRenderer::OnResize(width, height);
 
 		Graphics::GraphicsContext::GetContext()->WaitIdle();
 	}

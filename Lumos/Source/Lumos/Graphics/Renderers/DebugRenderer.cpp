@@ -322,23 +322,36 @@ namespace Lumos
 			m_PointRenderer->Begin();
 	}
 
-	void DebugRenderer::RenderInternal(Scene* scene, Camera* overrideCamera, Maths::Transform* overrideCameraTransform)
+	void DebugRenderer::BeginSceneInternal(Scene* scene, Camera* overrideCamera, Maths::Transform* overrideCameraTransform)
+	{
+		LUMOS_PROFILE_FUNCTION();
+		if(m_Renderer2D)
+		{
+			m_Renderer2D->BeginScene(scene, overrideCamera, overrideCameraTransform);
+		}
+
+		if(m_PointRenderer)
+			m_PointRenderer->BeginScene(scene, overrideCamera, overrideCameraTransform);
+		if(m_LineRenderer)
+			m_LineRenderer->BeginScene(scene, overrideCamera, overrideCameraTransform);
+	}
+	
+	void DebugRenderer::RenderInternal()
 	{
 		LUMOS_PROFILE_FUNCTION();
 		if(m_Renderer2D)
 		{
 			m_Renderer2D->BeginRenderPass();
-			m_Renderer2D->BeginScene(scene, overrideCamera, overrideCameraTransform);
             m_Renderer2D->SetSystemUniforms(m_Renderer2D->GetShader().get());
 			m_Renderer2D->SubmitTriangles();
 			m_Renderer2D->Present();
 			m_Renderer2D->End();
 		}
-
+		
 		if(m_PointRenderer)
-			m_PointRenderer->RenderInternal(scene, overrideCamera, overrideCameraTransform);
+			m_PointRenderer->RenderInternal();
 		if(m_LineRenderer)
-			m_LineRenderer->RenderInternal(scene, overrideCamera, overrideCameraTransform);
+			m_LineRenderer->RenderInternal();
 	}
 
 	void DebugRenderer::OnResizeInternal(uint32_t width, uint32_t height)

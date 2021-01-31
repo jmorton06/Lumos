@@ -1,4 +1,3 @@
-#include <Precompiled.h>
 #include "GraphicsInfoWindow.h"
 #include <Lumos/Graphics/API/GraphicsContext.h>
 
