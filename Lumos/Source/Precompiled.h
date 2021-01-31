@@ -21,11 +21,8 @@
 #include <thread>
 
 #include "Core/Reference.h"
-
-#include "Core/StringUtilities.h"
 #include "Core/LMLog.h"
 #include "Core/Core.h"
-#include "Core/OS/Memory.h"
 #include "Core/Profiler.h"
 #endif
 

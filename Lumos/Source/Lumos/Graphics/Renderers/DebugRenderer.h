@@ -42,14 +42,22 @@ namespace Lumos
 		friend class Scene;
 		friend class GraphicsPipeline;
 		friend class Application;
+		friend class RenderGraph;
 
 	public:
 		static void Init(uint32_t width, uint32_t height);
 		static void Release();
-		static void Render(Scene* scene, Camera* overrideCamera, Maths::Transform* overrideCameraTransform)
+		
+		static void BeginScene(Scene* scene, Camera* overrideCamera, Maths::Transform* overrideCameraTransform)
 		{
 			if(s_Instance)
-				s_Instance->RenderInternal(scene, s_Instance->m_OverrideCamera, s_Instance->m_OverrideCameraTransform);
+				s_Instance->BeginSceneInternal(scene, s_Instance->m_OverrideCamera, s_Instance->m_OverrideCameraTransform);
+		}
+		
+		static void Render()
+		{
+			if(s_Instance)
+				s_Instance->RenderInternal();
 		}
 		static void SetRenderTarget(Graphics::Texture* texture, bool rebuildFramebuffer);
 
@@ -112,14 +120,7 @@ namespace Lumos
 				s_Instance->m_OverrideCameraTransform = overrideCameraTransform;	
 			}
 		}
-
-	protected:
-		//Actual functions managing data parsing to save code bloat - called by public functions
-		static void GenDrawPoint(bool ndt, const Maths::Vector3& pos, float point_radius, const Maths::Vector4& colour);
-		static void GenDrawThickLine(bool ndt, const Maths::Vector3& start, const Maths::Vector3& end, float line_width, const Maths::Vector4& colour);
-		static void GenDrawHairLine(bool ndt, const Maths::Vector3& start, const Maths::Vector3& end, const Maths::Vector4& colour);
-		static void GenDrawTriangle(bool ndt, const Maths::Vector3& v0, const Maths::Vector3& v1, const Maths::Vector3& v2, const Maths::Vector4& colour);
-
+		
 		static DebugRenderer* GetInstance()
 		{
 			return s_Instance;
@@ -130,9 +131,18 @@ namespace Lumos
 				s_Instance->Begin();
 		}
 
+	protected:
+		//Actual functions managing data parsing to save code bloat - called by public functions
+		static void GenDrawPoint(bool ndt, const Maths::Vector3& pos, float point_radius, const Maths::Vector4& colour);
+		static void GenDrawThickLine(bool ndt, const Maths::Vector3& start, const Maths::Vector3& end, float line_width, const Maths::Vector4& colour);
+		static void GenDrawHairLine(bool ndt, const Maths::Vector3& start, const Maths::Vector3& end, const Maths::Vector4& colour);
+		static void GenDrawTriangle(bool ndt, const Maths::Vector3& v0, const Maths::Vector3& v1, const Maths::Vector3& v2, const Maths::Vector4& colour);
+
 	private:
 		void Begin();
-		void RenderInternal(Scene* scene, Camera* overrideCamera, Maths::Transform* overrideCameraTransform);
+		void BeginSceneInternal(Scene* scene, Camera* overrideCamera, Maths::Transform* overrideCameraTransform);
+		void RenderInternal();
+		
 		void OnResizeInternal(uint32_t width, uint32_t height);
 
 		static DebugRenderer* s_Instance;

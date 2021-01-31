@@ -1,7 +1,7 @@
 #include "Precompiled.h"
 #include "Model.h"
 #include "Mesh.h"
-
+#include "Core/StringUtilities.h"
 #include "Core/VFS.h"
 
 namespace Lumos::Graphics

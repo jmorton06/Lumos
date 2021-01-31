@@ -13,6 +13,7 @@
 
 #pragma once
 
+#include "Core/LMLog.h"
 #include "Core/Core.h"
 #include "Maths/Vector2.h"
 #include "Maths/Vector4.h"

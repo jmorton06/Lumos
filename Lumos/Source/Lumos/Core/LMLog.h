@@ -1,13 +1,11 @@
 #pragma once
+#include "Core.h"
 
 #ifdef LUMOS_PLATFORM_WINDOWS
 #ifndef NOMINMAX
 #define NOMINMAX // For windows.h
 #endif
 #endif
-
-#include "ReferenceCounter.h"
-#include "Core/Core.h"
 
 #pragma warning(push, 0)
 #include <spdlog/spdlog.h>

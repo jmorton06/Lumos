@@ -2,6 +2,8 @@
 
 #include "Core/Application.h"
 #include "Core/Version.h"
+#include "Core/StringUtilities.h"
+
 #include "VKDevice.h"
 #include "VKRenderer.h"
 #include "VKCommandPool.h"

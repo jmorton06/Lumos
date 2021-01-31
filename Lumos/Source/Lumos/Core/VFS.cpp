@@ -1,6 +1,6 @@
 #include "Precompiled.h"
 #include "VFS.h"
-
+#include "StringUtilities.h"
 #include "OS/FileSystem.h"
 
 namespace Lumos

@@ -1,10 +1,10 @@
-#include <Precompiled.h>
 #include "SceneWindow.h"
 #include "Editor.h"
 #include <Lumos/Graphics/Camera/Camera.h>
 #include <Lumos/Core/Application.h>
 #include <Lumos/Scene/SceneManager.h>
 #include <Lumos/Core/Engine.h>
+#include <Lumos/Core/Profiler.h>
 #include <Lumos/Graphics/API/GraphicsContext.h>
 #include <Lumos/Graphics/API/Texture.h>
 #include <Lumos/Graphics/Renderers/RenderGraph.h>

@@ -1,7 +1,7 @@
-#include <Precompiled.h>
 #include "Editor.h"
 #include "AssetWindow.h"
 #include <Lumos/Core/OS/FileSystem.h>
+#include <Lumos/Core/Profiler.h>
 
 #if __has_include(<filesystem>)
 #	include <filesystem>
