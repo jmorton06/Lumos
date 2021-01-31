@@ -57,7 +57,8 @@ project "LumosEditor"
 		"box2d",
 		"imgui",
 		"freetype",
-		"SpirvCross"
+		"SpirvCross",
+		"spdlog"
 	}
 
 	defines
@@ -65,6 +66,7 @@ project "LumosEditor"
 		"LUMOS_PROFILE",
 		"TRACY_ENABLE",
 		"IMGUI_USER_CONFIG=\"../../Lumos/Source/Lumos/ImGui/ImConfig.h\"",
+		"SPDLOG_COMPILED_LIB"
 	}
 
 	filter { "files:External/**"}

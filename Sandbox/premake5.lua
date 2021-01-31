@@ -56,13 +56,15 @@ project "Sandbox"
 		"box2d",
 		"imgui",
 		"freetype",
-		"SpirvCross"
+		"SpirvCross",
+		"spdlog"
 	}
 
 	defines
 	{
 		"LUMOS_PROFILE",
 		"TRACY_ENABLE",
+		"SPDLOG_COMPILED_LIB"
 	}
 
 	filter { "files:External/**"}

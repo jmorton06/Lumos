@@ -1,4 +1,5 @@
 #pragma once
+#include "Core.h"
 
 #ifdef LUMOS_PLATFORM_WINDOWS
 #ifndef NOMINMAX
@@ -22,7 +23,7 @@ namespace Lumos
 {
 	namespace Debug
 	{
-		class Log
+		class LUMOS_EXPORT Log
 		{
 		public:
 			static void OnInit();
