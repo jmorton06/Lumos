@@ -18,14 +18,14 @@ namespace Lumos
             m_Elapsed += m_Timestep;
         }
 
-        inline float GetMillis() const { return m_Timestep; }
-        inline float GetElapsedMillis() const { return m_Elapsed; }
+        inline float GetMillis() const { return m_Timestep * 1000.0f; }
+        inline float GetElapsedMillis() const { return m_Elapsed * 1000.0f; }
 
-        inline float GetSeconds() const { return m_Timestep * 0.001f; }
-        inline float GetElapsedSeconds() const { return m_Elapsed * 0.001f; }
+        inline float GetSeconds() const { return m_Timestep; }
+        inline float GetElapsedSeconds() const { return m_Elapsed; }
 
     private:
-        float m_Timestep;
+        float m_Timestep; // Seconds
         float m_LastTime;
         float m_Elapsed;
     };

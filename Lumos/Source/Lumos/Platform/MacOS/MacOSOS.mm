@@ -1,4 +1,3 @@
-#include "Precompiled.h"
 #include "MacOSOS.h"
 #include "MacOSPower.h"
 #include "Platform/GLFW/GLFWWindow.h"

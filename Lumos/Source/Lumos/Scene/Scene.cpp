@@ -114,8 +114,8 @@ namespace Lumos
             auto trans = defaultCameraControllerView.Front().TryGetComponent<Maths::Transform>();
 			if(Application::Get().GetSceneActive() && trans && cameraController.GetController())
 			{
-				cameraController.GetController()->HandleMouse(*trans, timeStep.GetMillis(), mousePos.x, mousePos.y);
-				cameraController.GetController()->HandleKeyboard(*trans, timeStep.GetMillis());
+				cameraController.GetController()->HandleMouse(*trans, timeStep.GetSeconds(), mousePos.x, mousePos.y);
+				cameraController.GetController()->HandleKeyboard(*trans, timeStep.GetSeconds());
 			}
 		}
 

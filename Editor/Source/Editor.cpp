@@ -592,7 +592,7 @@ namespace Lumos
 			
 			static Engine::Stats stats = {};
 			static float timer = 1.1f;
-			timer += Engine::GetTimeStep().GetMillis();
+			timer += Engine::GetTimeStep().GetSeconds();
 			
 			if(timer > 1.0f)
 			{
@@ -600,7 +600,7 @@ namespace Lumos
 				stats = Engine::Get().Statistics();
 			}
 			
-			ImGui::Text("%.2f ms (%i FPS)", stats.FrameTime * 1000.0f, stats.FramesPerSecond);
+			ImGui::Text("%.2f ms (%.i FPS)", stats.FrameTime, stats.FramesPerSecond);
 			
 			ImGui::SameLine();
             
@@ -1085,8 +1085,8 @@ namespace Lumos
 			{
 				const Maths::Vector2 mousePos = Input::GetInput()->GetMousePosition();
 				
-				m_EditorCameraController.HandleMouse(m_EditorCameraTransform, ts.GetMillis(), mousePos.x, mousePos.y);
-				m_EditorCameraController.HandleKeyboard(m_EditorCameraTransform, ts.GetMillis());
+				m_EditorCameraController.HandleMouse(m_EditorCameraTransform, ts.GetSeconds(), mousePos.x, mousePos.y);
+				m_EditorCameraController.HandleKeyboard(m_EditorCameraTransform, ts.GetSeconds());
                 
 				if(Input::GetInput()->GetKeyPressed(InputCode::Key::F))
 				{
