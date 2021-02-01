@@ -86,7 +86,7 @@ namespace Lumos
 		windowProperties.Borderless = Borderless;
 		windowProperties.ShowConsole = ShowConsole;
 		windowProperties.Title = Title;
-		windowProperties.VSync = VSync;
+        windowProperties.VSync = VSync;
 		
 		m_Window = UniqueRef<Window>(Window::Create(windowProperties));
 		m_Window->SetEventCallback(BIND_EVENT_FN(Application::OnEvent));
@@ -273,10 +273,9 @@ namespace Lumos
 		}
 #endif
 		
-		if(m_Timer->GetElapsedS() - m_SecondTimer > 1.0f)
+		if(now - m_SecondTimer > 1.0f)
 		{
 			LUMOS_PROFILE_SCOPE("Application::FrameRateCalc");
-
 			m_SecondTimer += 1.0f;
 			
 			stats.FramesPerSecond = m_Frames;
