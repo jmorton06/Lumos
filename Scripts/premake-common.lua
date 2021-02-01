@@ -88,7 +88,7 @@ function SetRecommendedXcodeSettings()
 		xcodebuildsettings 
 		{   
 			["MACOSX_DEPLOYMENT_TARGET"] = "10.15",
-			['ARCHS'] = '$(ARCHS_STANDARD)',
+			['ARCHS'] = 'x86_64',
 			['ONLY_ACTIVE_ARCH'] = 'YES',
 		}
 
