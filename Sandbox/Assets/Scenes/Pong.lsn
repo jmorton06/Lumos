@@ -1,0 +1,105 @@
+{
+    "value0": {
+        "Version": 4,
+        "Scene Name": "Pong"
+    },
+    "value1": 3,
+    "value2": 0,
+    "value3": 1,
+    "value4": 2,
+    "value5": 2,
+    "value6": 1,
+    "value7": {
+        "Position": {
+            "value0": 0.0,
+            "value1": 0.0,
+            "value2": 0.0
+        },
+        "Rotation": {
+            "value0": 0.0,
+            "value1": 0.0,
+            "value2": 0.0,
+            "value3": 1.0
+        },
+        "Scale": {
+            "value0": 1.0,
+            "value1": 1.0,
+            "value2": 1.0
+        }
+    },
+    "value8": 2,
+    "value9": {
+        "Position": {
+            "value0": 0.0,
+            "value1": 0.0,
+            "value2": 12.44615364074707
+        },
+        "Rotation": {
+            "value0": 0.0,
+            "value1": 0.0,
+            "value2": 0.0,
+            "value3": 1.0
+        },
+        "Scale": {
+            "value0": 0.9999999403953552,
+            "value1": 0.9999999403953552,
+            "value2": 0.9999999403953552
+        }
+    },
+    "value10": 3,
+    "value11": 0,
+    "value12": {
+        "Name": "LuaScript"
+    },
+    "value13": 1,
+    "value14": {
+        "Name": "Sprite"
+    },
+    "value15": 2,
+    "value16": {
+        "Name": "Camera"
+    },
+    "value17": 0,
+    "value18": 0,
+    "value19": 1,
+    "value20": 2,
+    "value21": {
+        "Scale": 1.0,
+        "Aspect": 1.0140000581741334,
+        "FOV": 44.11600112915039,
+        "Near": 0.0,
+        "Far": 10.0
+    },
+    "value22": 1,
+    "value23": 0,
+    "value24": {
+        "FilePath": ""
+    },
+    "value25": 0,
+    "value26": 0,
+    "value27": 0,
+    "value28": 0,
+    "value29": 1,
+    "value30": 1,
+    "value31": {
+        "TexturePath": "",
+        "Position": {
+            "value0": 0.0,
+            "value1": 0.0
+        },
+        "Scale": {
+            "value0": 1.0,
+            "value1": 1.0
+        },
+        "Colour": {
+            "value0": 1.0,
+            "value1": 1.0,
+            "value2": 1.0,
+            "value3": 1.0
+        }
+    },
+    "value32": 0,
+    "value33": 0,
+    "value34": 0,
+    "value35": 0
+}

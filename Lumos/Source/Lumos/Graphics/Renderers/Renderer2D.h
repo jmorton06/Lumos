@@ -88,7 +88,6 @@ namespace Lumos
 			virtual void Submit(Renderable2D* renderable, const Maths::Matrix4& transform);
 			virtual void BeginSimple();
 			virtual void PresentToScreen() override;
-			virtual void BeginRenderPass();
 
 			float SubmitTexture(Texture* texture);
 

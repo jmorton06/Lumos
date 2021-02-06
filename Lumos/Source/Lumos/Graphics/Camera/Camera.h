@@ -32,8 +32,7 @@ namespace Lumos
 		Camera(float aspectRatio, float scale);
 
 		~Camera() = default;
-		void OnImGui();
-
+        
 		void SetMouseSensitivity(float value)
 		{
 			m_MouseSensitivity = value;
@@ -104,6 +103,13 @@ namespace Lumos
 			m_ProjectionDirty = true;
 			m_FrustumDirty = true;
 		}
+        
+        void SetFOV(float fov)
+        {
+            m_Fov = fov;
+            m_ProjectionDirty = true;
+            m_FrustumDirty = true;
+        }
 
 		Maths::Frustum& GetFrustum(const Maths::Matrix4& viewMatrix);
 

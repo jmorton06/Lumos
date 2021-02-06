@@ -26,6 +26,8 @@ namespace Lumos
 
 			void Bind(CommandBuffer* commandBuffer, Pipeline* pipeline) override;
 			void Unbind() override;
+            uint32_t GetSize() override { return m_Size; }
+
             
             static void MakeDefault();
         protected:

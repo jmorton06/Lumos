@@ -5,8 +5,6 @@
 #include "Core/OS/Window.h"
 #include "Camera.h"
 
-#include <imgui/imgui.h>
-
 namespace Lumos
 {
 

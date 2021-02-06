@@ -23,6 +23,7 @@ namespace Lumos
 			virtual void ReleasePointer() = 0;
 			virtual void Bind(CommandBuffer* commandBuffer, Pipeline* pipeline) = 0;
 			virtual void Unbind() = 0;
+            virtual uint32_t GetSize() { return 0; }
 
 			template<typename T>
 			T* GetPointer()

@@ -133,19 +133,22 @@ namespace Lumos
 
 			for(auto descriptorSet : descriptorSets)
 			{
-				auto vkDesSet = static_cast<Graphics::VKDescriptorSet*>(descriptorSet);
-				if(vkDesSet->GetIsDynamic())
-					numDynamicDescriptorSets++;
+                if(descriptorSet)
+                {
+                    auto vkDesSet = static_cast<Graphics::VKDescriptorSet*>(descriptorSet);
+                    if(vkDesSet->GetIsDynamic())
+                        numDynamicDescriptorSets++;
 
-				m_DescriptorSetPool[numDesciptorSets] = vkDesSet->GetDescriptorSet();
+                    m_DescriptorSetPool[numDesciptorSets] = vkDesSet->GetDescriptorSet();
 
-				uint32_t index = 0;
-				for(auto& pc : vkDesSet->GetPushConstants())
-				{
-					vkCmdPushConstants(static_cast<Graphics::VKCommandBuffer*>(cmdBuffer)->GetCommandBuffer(), static_cast<Graphics::VKPipeline*>(pipeline)->GetPipelineLayout(), VKTools::ShaderTypeToVK(pc.shaderStage), index, pc.size, pc.data);
-				}
+                    uint32_t index = 0;
+                    for(auto& pc : vkDesSet->GetPushConstants())
+                    {
+                        vkCmdPushConstants(static_cast<Graphics::VKCommandBuffer*>(cmdBuffer)->GetCommandBuffer(), static_cast<Graphics::VKPipeline*>(pipeline)->GetPipelineLayout(), VKTools::ShaderTypeToVK(pc.shaderStage), index, pc.size, pc.data);
+                    }
 
-				numDesciptorSets++;
+                    numDesciptorSets++;
+                }
 			}
 
 			vkCmdBindDescriptorSets(static_cast<Graphics::VKCommandBuffer*>(cmdBuffer)->GetCommandBuffer(), VK_PIPELINE_BIND_POINT_GRAPHICS, static_cast<Graphics::VKPipeline*>(pipeline)->GetPipelineLayout(), 0, numDesciptorSets, m_DescriptorSetPool, numDynamicDescriptorSets, &dynamicOffset);

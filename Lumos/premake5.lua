@@ -363,7 +363,7 @@ project "Lumos"
 		defines { "LUMOS_DEBUG", "_DEBUG" }
 		symbols "On"
 		runtime "Debug"
-		optimize "Debug"
+		optimize "Off"
 
 	filter "configurations:Release"
 		defines "LUMOS_RELEASE"

@@ -126,7 +126,7 @@ namespace Lumos
 		for(auto entity : animatedSpriteView)
 		{
 			auto& animSprite = entity.GetComponent<Graphics::AnimatedSprite>();
-			animSprite.OnUpdate(timeStep.GetMillis());
+			animSprite.OnUpdate(timeStep.GetSeconds());
 		}
 	}
 
