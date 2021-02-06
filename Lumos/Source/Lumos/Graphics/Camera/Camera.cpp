@@ -1,8 +1,5 @@
 #include "Precompiled.h"
 #include "Camera.h"
-#include "ImGui/ImGuiHelpers.h"
-
-#include <imgui/imgui.h>
 
 namespace Lumos
 {
@@ -103,34 +100,5 @@ namespace Lumos
 		ret.direction_ = ((viewProjInverse * farPlane) - ret.origin_).Normalized();
 
 		return ret;
-	}
-
-	void Camera::OnImGui()
-	{
-		{
-			ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(2, 2));
-			ImGui::Columns(2);
-			ImGui::Separator();
-
-			//ImGuiHelpers::Property("Position", m_Position, -1000.0f, 1000.0f);
-			ImGuiHelpers::Property("Aspect", m_AspectRatio, 0.0f, 10.0f);
-			//ImGuiHelpers::Property("Pitch", m_Pitch, -360.0f, 360.0f);
-			//ImGuiHelpers::Property("Yaw", m_Yaw, -360.0f, 360.0f);
-			//ImGuiHelpers::Property("Roll", m_Roll, -360.0f, 360.0f);
-			ImGuiHelpers::Property("Fov", m_Fov, 1.0f, 120.0f);
-			ImGuiHelpers::Property("Near", m_Near, 0.0f, 10.0f);
-			ImGuiHelpers::Property("Far", m_Far, 10.0f, 10000.0f);
-			ImGuiHelpers::Property("Zoom", m_Zoom, 0.0f, 100.0f);
-			ImGuiHelpers::Property("Offset", m_ProjectionOffset, 0.0f, 10.0f);
-			ImGuiHelpers::Property("Scale", m_Scale, 0.0f, 1000.0f);
-            ImGuiHelpers::Property("Orthograhic", m_Orthographic);
-
-			m_ProjectionDirty = true;
-			m_FrustumDirty = true;
-
-			ImGui::Columns(1);
-			ImGui::Separator();
-			ImGui::PopStyleVar();
-		}
 	}
 }

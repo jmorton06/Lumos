@@ -218,19 +218,6 @@ namespace Lumos
 			m_Triangles.clear();
 		}
 
-		void Renderer2D::BeginRenderPass()
-		{
-			LUMOS_PROFILE_FUNCTION();
-			m_CurrentBufferID = 0;
-			if(!m_RenderTexture)
-				m_CurrentBufferID = Renderer::GetSwapchain()->GetCurrentBufferId();
-
-            m_RenderPass->BeginRenderpass(m_CommandBuffers[m_CurrentBufferID].get(), m_ClearColour, m_Framebuffers[m_CurrentBufferID].get(), Graphics::SECONDARY, m_ScreenBufferWidth, m_ScreenBufferHeight);
-
-            m_VertexBuffers[m_BatchDrawCallIndex]->Bind(m_CommandBuffers[m_CurrentBufferID].get(), m_Pipeline.get());
-			m_Buffer = m_VertexBuffers[m_BatchDrawCallIndex]->GetPointer<VertexData>();
-		}
-
 		void Renderer2D::Begin()
 		{
 			LUMOS_PROFILE_FUNCTION();
@@ -340,7 +327,7 @@ namespace Lumos
 			m_IndexBuffer->SetCount(m_IndexCount);
 
             m_CurrentDescriptorSets[0] = m_Pipeline->GetDescriptorSet();
-            m_CurrentDescriptorSets[1] = m_DescriptorSet.get();
+            m_CurrentDescriptorSets[1] = m_TextureCount > 0 ? m_DescriptorSet.get() : nullptr;
 
 			m_VertexBuffers[m_BatchDrawCallIndex]->Bind(currentCMDBuffer, m_Pipeline.get());
 			m_IndexBuffer->Bind(currentCMDBuffer);

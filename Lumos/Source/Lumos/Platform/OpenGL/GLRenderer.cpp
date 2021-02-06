@@ -230,7 +230,8 @@ namespace Lumos
 			LUMOS_PROFILE_FUNCTION();
 			for(auto descriptor : descriptorSets)
 			{
-				static_cast<Graphics::GLDescriptorSet*>(descriptor)->Bind(dynamicOffset);
+                if(descriptor)
+                    static_cast<Graphics::GLDescriptorSet*>(descriptor)->Bind(dynamicOffset);
 			}
 		}
 

@@ -64,8 +64,6 @@ namespace Lumos
 				return forward;
 			}
 
-			void OnImGui();
-
             template<typename Archive>
             void save(Archive &archive) const
             {

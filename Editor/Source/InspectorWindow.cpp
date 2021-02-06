@@ -3,6 +3,7 @@
 #include "FileBrowserWindow.h"
 
 #include <Lumos/Core/Application.h>
+#include <Lumos/Core/OS/FileSystem.h>
 #include <Lumos/Scene/SceneManager.h>
 #include <Lumos/Scene/Component/Components.h>
 #include <Lumos/Graphics/Camera/Camera.h>
@@ -47,6 +48,37 @@ namespace MM
         std::string filePath = script.GetFilePath();
 
         ImGui::Text("FilePath %s", filePath.c_str());
+        bool hasReloaded = false;
+
+		if(ImGui::Button("New File", ImVec2(ImGui::GetContentRegionAvail().x, 0.0f)))
+		{
+			std::string newFilePath = "//Scripts";
+			std::string physicalPath;
+			if(!Lumos::VFS::Get()->ResolvePhysicalPath(newFilePath, physicalPath, true))
+			{
+				LUMOS_LOG_ERROR("Failed to Create Lua script {0}", physicalPath);
+			}
+            else
+            {
+                std::string defaultScript =
+R"(--Default Lua Script
+                
+function OnInit()
+end
+
+function OnUpdate(dt)
+end
+
+function OnCleanUp()
+end
+)";
+
+                Lumos::FileSystem::WriteTextFile(physicalPath + "Script.lua", defaultScript);
+                script.SetFilePath(newFilePath + "/Script.lua");
+                script.Reload();
+                hasReloaded = true;
+            }
+		}
 
         if(ImGui::Button("Edit File", ImVec2(ImGui::GetContentRegionAvail().x, 0.0f)))
             Lumos::Editor::GetEditor()->OpenTextFile(script.GetFilePath());
@@ -57,7 +89,6 @@ namespace MM
             Lumos::Editor::GetEditor()->GetFileBrowserWindow().SetCallback(std::bind(&Lumos::LuaScriptComponent::LoadScript, &script, std::placeholders::_1));
         }
 		
-        bool hasReloaded = false;
         if(ImGui::Button("Reload", ImVec2(ImGui::GetContentRegionAvail().x, 0.0f)))
         {
             script.Reload();
@@ -208,6 +239,12 @@ namespace MM
 		ImGui::NextColumn();
 		ImGui::PushItemWidth(-1);
 	}
+	
+	static void HullCollisionShapeInspector(Lumos::HullCollisionShape* shape, const Lumos::Physics3DComponent& phys)
+	{
+		LUMOS_PROFILE_FUNCTION();
+		ImGui::TextUnformatted("Hull Collision Shape");
+	}
 
 	std::string CollisionShape2DTypeToString(Lumos::Shape shape)
 	{
@@ -249,6 +286,8 @@ namespace MM
 			return "Pyramid";
 		case Lumos::CollisionShapeType::CollisionCapsule:
 			return "Capsule";
+			case Lumos::CollisionShapeType::CollisionHull:
+			return "Hull";
 		default:
 			LUMOS_LOG_ERROR("Unsupported Collision shape");
 			break;
@@ -268,7 +307,8 @@ namespace MM
 			return Lumos::CollisionShapeType::CollisionPyramid;
 		if(type == "Capsule")
 			return Lumos::CollisionShapeType::CollisionCapsule;
-
+		if(type == "Hull")
+			return Lumos::CollisionShapeType::CollisionHull;
 		LUMOS_LOG_ERROR("Unsupported Collision shape {0}", type);
 		return Lumos::CollisionShapeType::CollisionSphere;
 	}
@@ -422,11 +462,11 @@ namespace MM
 		ImGui::NextColumn();
 		ImGui::PushItemWidth(-1);
 
-		const char* shapes[] = {"Sphere", "Cuboid", "Pyramid", "Capsule"};
+		const char* shapes[] = {"Sphere", "Cuboid", "Pyramid", "Capsule", "Hull"};
 		std::string shape_current = collisionShape ? CollisionShapeTypeToString(collisionShape->GetType()) : "";
 		if(ImGui::BeginCombo("", shape_current.c_str(), 0)) // The second parameter is the label previewed before opening the combo.
 		{
-			for(int n = 0; n < 4; n++)
+			for(int n = 0; n < 5; n++)
 			{
 				bool is_selected = (shape_current.c_str() == shapes[n]);
 				if(ImGui::Selectable(shapes[n], shape_current.c_str()))
@@ -457,6 +497,9 @@ namespace MM
 				break;
 			case Lumos::CollisionShapeType::CollisionCapsule:
 				CapsuleCollisionShapeInspector(reinterpret_cast<Lumos::CapsuleCollisionShape*>(collisionShape.get()), phys);
+				break;
+				case Lumos::CollisionShapeType::CollisionHull:
+				HullCollisionShapeInspector(reinterpret_cast<Lumos::HullCollisionShape*>(collisionShape.get()), phys);
 				break;
 			default:
 				LUMOS_LOG_ERROR("Unsupported Collision shape");
@@ -655,7 +698,48 @@ namespace MM
 	{
 		LUMOS_PROFILE_FUNCTION();
 		auto& camera = reg.get<Lumos::Camera>(e);
-		camera.OnImGui();
+        
+        ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(2, 2));
+        ImGui::Columns(2);
+        ImGui::Separator();
+        
+        using namespace Lumos;
+
+        float aspect = camera.GetAspectRatio();
+        if(ImGuiHelpers::Property("Aspect", aspect, 0.0f, 10.0f))
+            camera.SetAspectRatio(aspect);
+        
+        float fov = camera.GetFOV();
+        if(ImGuiHelpers::Property("Fov", fov, 1.0f, 120.0f))
+            camera.SetFOV(fov);
+        
+        float near = camera.GetNear();
+        if(ImGuiHelpers::Property("Near", near, 0.0f, 10.0f))
+            camera.SetNear(near);
+        
+        float far = camera.GetFar();
+        if(ImGuiHelpers::Property("Far", far, 10.0f, 10000.0f))
+            camera.SetFar(far);
+        
+//        float zoom = camera.GetZoom();
+//        ImGuiHelpers::Property("Zoom", m_Zoom, 0.0f, 100.0f);
+//
+//        float offset = camera.GetOffset();
+//        ImGuiHelpers::Property("Offset", m_ProjectionOffset, 0.0f, 10.0f);
+        
+        float scale = camera.GetScale();
+        if(ImGuiHelpers::Property("Scale", scale, 0.0f, 1000.0f))
+            camera.SetScale(scale);
+        
+        bool ortho = camera.IsOrthographic();
+        if(ImGuiHelpers::Property("Orthograhic", ortho))
+            camera.SetIsOrthographic(ortho);
+
+
+        ImGui::Columns(1);
+        ImGui::Separator();
+        ImGui::PopStyleVar();
+    
 	}
 
 	template<>
