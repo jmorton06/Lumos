@@ -299,6 +299,11 @@ namespace Lumos
 					Application::Get().GetSceneManager()->SwitchScene((int)(Application::Get().GetSceneManager()->GetScenes().size()) - 1);
 				}
                 
+                if(ImGui::MenuItem("Save Scene", "CTRL+S"))
+                {
+                    Application::Get().GetSceneManager()->GetCurrentScene()->Serialise(ROOT_DIR "/Sandbox/Assets/scenes/", false);
+                }
+                
 				if(ImGui::BeginMenu("Style"))
 				{
 					if(ImGui::MenuItem("Dark", ""))
@@ -1153,8 +1158,10 @@ namespace Lumos
             
 			if((Input::GetInput()->GetKeyHeld(InputCode::Key::LeftSuper) || (Input::GetInput()->GetKeyHeld(InputCode::Key::LeftControl)) )) 
 			{
-				if(Input::GetInput()->GetKeyPressed(InputCode::Key::S))
+				if(Input::GetInput()->GetKeyPressed(InputCode::Key::S) && Application::Get().GetSceneActive())
+                {
 					Application::Get().GetSceneManager()->GetCurrentScene()->Serialise(ROOT_DIR "/Sandbox/Assets/scenes/", false);
+                }
                 
 				if(Input::GetInput()->GetKeyPressed(InputCode::Key::O))
 					Application::Get().GetSceneManager()->GetCurrentScene()->Deserialise(ROOT_DIR "/Sandbox/Assets/scenes/", false);

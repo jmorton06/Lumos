@@ -6,6 +6,12 @@
 
 namespace Lumos
 {
+	LuaScriptComponent::LuaScriptComponent()
+	{
+		m_Scene = nullptr;
+		m_FileName = "";
+		m_Env = nullptr;
+	}
 	LuaScriptComponent::LuaScriptComponent(const std::string& fileName, Scene* scene)
 	{
 		m_Scene = scene;

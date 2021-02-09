@@ -66,7 +66,8 @@ project "Lumos"
 		"imgui",
 		"freetype",
 		"SpirvCross",
-		"spdlog"
+		"spdlog",
+		"meshoptimizer"
 	}
 
 	defines
