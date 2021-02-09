@@ -34,18 +34,29 @@ namespace Lumos
 
 		auto string = FileSystem::ReadTextFile(m_FilePath);
 		editor.SetText(string);
+        editor.SetShowWhitespaces(false);
 	}
 
 	void TextEditWindow::OnImGui()
 	{
+        
+        if((Input::GetInput()->GetKeyHeld(InputCode::Key::LeftSuper) || (Input::GetInput()->GetKeyHeld(InputCode::Key::LeftControl)) ))
+        {
+            if(Input::GetInput()->GetKeyPressed(InputCode::Key::S))
+            {
+                auto textToSave = editor.GetText();
+                FileSystem::WriteTextFile(m_FilePath, textToSave);
+            }
+        }
+        
 		auto cpos = editor.GetCursorPosition();
-		ImGui::Begin("Text Editor", nullptr, ImGuiWindowFlags_HorizontalScrollbar | ImGuiWindowFlags_MenuBar);
+		ImGui::Begin("Text Editor", &m_Active, ImGuiWindowFlags_HorizontalScrollbar | ImGuiWindowFlags_MenuBar);
 		ImGui::SetWindowSize(ImVec2(800, 600), ImGuiCond_FirstUseEver);
 		if(ImGui::BeginMenuBar())
 		{
 			if(ImGui::BeginMenu("File"))
 			{
-				if(ImGui::MenuItem("Save"))
+				if(ImGui::MenuItem("Save", "CTRL+S"))
 				{
 					auto textToSave = editor.GetText();
 					FileSystem::WriteTextFile(m_FilePath, textToSave);
@@ -99,7 +110,7 @@ namespace Lumos
 			ImGui::EndMenuBar();
 		}
 
-		ImGui::Text("%6d/%-6d %6d lines  | %s | %s | %s | %s", cpos.mLine + 1, cpos.mColumn + 1, editor.GetTotalLines(), editor.IsOverwrite() ? "Ovr" : "Ins", editor.CanUndo() ? "*" : " ", editor.GetLanguageDefinition().mName.c_str(), m_FilePath.c_str());
+		ImGui::Text("%6d/%-6d %6d lines  | %s | %s | %s | %s", cpos.mLine + 1, cpos.mColumn + 1, editor.GetTotalLines(), editor.IsOverwrite() ? "Ovr" : "Ins", editor.CanUndo() ? "*" : " ", editor.GetLanguageDefinition().mName.c_str(), Lumos::StringUtilities::GetFileName(m_FilePath).c_str());
 
 		if(ImGui::IsItemActive())
 		{

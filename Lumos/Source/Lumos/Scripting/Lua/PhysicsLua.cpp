@@ -347,6 +347,8 @@ namespace Lumos
 		physics2D_type.set_function("SetOrientation", &RigidBody2D::SetOrientation);
 		physics2D_type.set_function("SetAngularVelocity", &RigidBody2D::SetAngularVelocity);
 		physics2D_type.set_function("SetFriction", &RigidBody2D::SetFriction);
+        physics2D_type.set_function("GetLinearVelocity", &RigidBody2D::GetLinearVelocity);
+
 		physics2D_type.set_function("GetPosition", &RigidBody2D::GetPosition);
 		physics2D_type.set_function("GetAngle", &RigidBody2D::GetAngle);
 		physics2D_type.set_function("GetFriction", &RigidBody2D::GetFriction);

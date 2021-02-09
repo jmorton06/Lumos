@@ -12,7 +12,7 @@ namespace Lumos
 	class LUMOS_EXPORT LuaScriptComponent
 	{
 	public:
-		LuaScriptComponent() = default;
+		LuaScriptComponent();
 		LuaScriptComponent(const std::string& fileName, Scene* scene);
 		~LuaScriptComponent();
 
@@ -51,7 +51,7 @@ namespace Lumos
 
 		bool Loaded()
 		{
-			return m_Env != nullptr;
+			return m_Env.get() != nullptr;
 		}
 
 		template<typename Archive>

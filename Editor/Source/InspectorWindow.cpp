@@ -36,18 +36,29 @@ namespace MM
 	{
 		LUMOS_PROFILE_FUNCTION();
 		auto& script = reg.get<Lumos::LuaScriptComponent>(e);
-		bool loaded = true;
-        if(!script.Loaded() && !script.GetFilePath().empty())
+		bool loaded = false;
+        if(!script.Loaded())
 		{
 			ImGui::Text("Script Failed to Load : %s", script.GetFilePath().c_str());
 			loaded = false;
 		}
+        else if(!script.Loaded() && script.GetFilePath().empty())
+        {
+            ImGui::Text("FilePath empty : %s", script.GetFilePath().c_str());
+            loaded = false;
+        }
+		else
+			loaded = true;
 
 		auto& solEnv = script.GetSolEnvironment();
-
         std::string filePath = script.GetFilePath();
 
-        ImGui::Text("FilePath %s", filePath.c_str());
+        static char objName[INPUT_BUF_SIZE];
+        strcpy(objName, filePath.c_str());
+        ImGui::PushItemWidth(-1);
+        if(ImGui::InputText("##Name", objName, IM_ARRAYSIZE(objName), 0))
+            script.SetFilePath(objName);
+        
         bool hasReloaded = false;
 
 		if(ImGui::Button("New File", ImVec2(ImGui::GetContentRegionAvail().x, 0.0f)))
@@ -79,20 +90,31 @@ end
                 hasReloaded = true;
             }
 		}
-
-        if(ImGui::Button("Edit File", ImVec2(ImGui::GetContentRegionAvail().x, 0.0f)))
-            Lumos::Editor::GetEditor()->OpenTextFile(script.GetFilePath());
-        
-        if(ImGui::Button("Open File", ImVec2(ImGui::GetContentRegionAvail().x, 0.0f)))
-        {
-            Lumos::Editor::GetEditor()->GetFileBrowserWindow().Open();
-            Lumos::Editor::GetEditor()->GetFileBrowserWindow().SetCallback(std::bind(&Lumos::LuaScriptComponent::LoadScript, &script, std::placeholders::_1));
-        }
 		
-        if(ImGui::Button("Reload", ImVec2(ImGui::GetContentRegionAvail().x, 0.0f)))
+		if(loaded)
+		{
+            if(ImGui::Button("Edit File", ImVec2(ImGui::GetContentRegionAvail().x, 0.0f)))
+                Lumos::Editor::GetEditor()->OpenTextFile(script.GetFilePath());
+            
+            if(ImGui::Button("Open File", ImVec2(ImGui::GetContentRegionAvail().x, 0.0f)))
+            {
+                Lumos::Editor::GetEditor()->GetFileBrowserWindow().Open();
+                Lumos::Editor::GetEditor()->GetFileBrowserWindow().SetCallback(std::bind(&Lumos::LuaScriptComponent::LoadScript, &script, std::placeholders::_1));
+            }
+            
+            if(ImGui::Button("Reload", ImVec2(ImGui::GetContentRegionAvail().x, 0.0f)))
+            {
+                script.Reload();
+                hasReloaded = true;
+            }
+		}
+        else
         {
-            script.Reload();
-            hasReloaded = true;
+            if(ImGui::Button("Load", ImVec2(ImGui::GetContentRegionAvail().x, 0.0f)))
+            {
+                script.Reload();
+                hasReloaded = true;
+            }
         }
         
         if(!script.Loaded() || hasReloaded || !loaded)
@@ -1983,7 +2005,7 @@ namespace Lumos
                 }
                 ImGui::EndPopup();
             }
-
+            
 			ImGui::PushItemWidth(-1);
 			if(ImGui::InputText("##Name", objName, IM_ARRAYSIZE(objName), 0))
 				registry.get_or_emplace<NameComponent>(selected).name = objName;

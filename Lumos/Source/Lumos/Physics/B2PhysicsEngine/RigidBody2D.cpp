@@ -135,6 +135,11 @@ namespace Lumos
 		return m_B2Body->GetAngle();
 	}
 
+    const Maths::Vector2 RigidBody2D::GetLinearVelocity() const
+    {
+        return Maths::Vector2(m_B2Body->GetLinearVelocity().x, m_B2Body->GetLinearVelocity().y);
+    }
+
     void RigidBody2D::SetShape(Shape shape, const std::vector<Maths::Vector2> &customPositions)
     {
         m_ShapeType = shape;

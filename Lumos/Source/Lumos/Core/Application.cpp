@@ -224,7 +224,7 @@ namespace Lumos
 				ts.Update(now);
 				
 				ImGuiIO& io = ImGui::GetIO();
-				io.DeltaTime = ts.GetMillis();
+				io.DeltaTime = ts.GetSeconds();
 				
 				stats.FrameTime = ts.GetMillis();
 			}

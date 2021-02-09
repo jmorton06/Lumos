@@ -17,6 +17,7 @@
 #	define TINYGLTF_NOEXCEPTION
 #endif
 #include <tinygltf/tiny_gltf.h>
+#include <meshoptimizer/src/meshoptimizer.h>
 
 namespace Lumos::Graphics
 {
@@ -332,9 +333,8 @@ namespace Lumos::Graphics
 					}
 				}
 			}
-
-			Ref<VertexBuffer> vb = Ref<VertexBuffer>(VertexBuffer::Create(BufferUsage::STATIC));
-			vb->SetData(sizeof(Graphics::Vertex) * numVertices, tempvertices);
+            
+            uint32_t indexCount = 0;
             
 			// -------- Indices ----------
 			{
@@ -354,9 +354,10 @@ namespace Lumos::Graphics
 				std::vector<uint8_t> data = std::vector<uint8_t>(first, last);
 
 				size_t indicesCount = indexAccessor.count;
+                indexCount = (uint32_t)indicesCount;
 				if(componentTypeByteSize == 2)
 				{
-					uint16_t* in = reinterpret_cast<uint16_t*>(data.data()); //TODO: Test different models to check size - uint32_t or 16
+					uint16_t* in = reinterpret_cast<uint16_t*>(data.data());
 					for(auto iCount = 0; iCount < indicesCount; iCount++)
 					{
 						indicesArray[iCount] = in[iCount];
@@ -371,9 +372,38 @@ namespace Lumos::Graphics
 					}
 				}
 			}
+			
+			int lod = 2;
+            
+            	float threshold = powf(0.7f, float(lod));
+			size_t target_index_count = size_t(  indexCount * threshold );
 
-			Ref<Graphics::IndexBuffer> ib;
-			ib.reset(Graphics::IndexBuffer::Create(indicesArray, numVertices));
+			float target_error = 1e-3f;
+            float* resultError = nullptr;
+            
+            //void meshopt_generateShadowIndexBuffer(unsigned int* destination, const unsigned int* indices, size_t index_count, const void* vertices, size_t vertex_count, size_t vertex_size, size_t vertex_stride);
+            
+            //inline void meshopt_generateShadowIndexBuffer(T* destination, const T* indices, size_t index_count, const void* vertices, size_t vertex_count, size_t vertex_size, size_t vertex_stride)
+            //unsigned int* positions = new unsigned int[indexCount];
+            //meshopt_generateShadowIndexBuffer(positions, indicesArray, indexCount, tempvertices, numVertices, sizeof(Maths::Vector3), sizeof(Graphics::Vertex));
+//
+            auto newIndexCount = meshopt_simplify(indicesArray, indicesArray, (size_t)indexCount, (const float*)(&tempvertices[0]), (size_t)numVertices, sizeof(Graphics::Vertex), target_index_count, target_error, resultError);
+            
+            auto vertex_size = meshopt_optimizeVertexFetch( // return vertices (not vertex attribute values)
+                                                           (&tempvertices[0]),
+															   (unsigned int*)(&indicesArray[0]),
+                                                           newIndexCount, // total new indices (not faces)
+                                                           (&tempvertices[0]),
+                                                           (size_t)numVertices, // total vertices (not vertex attribute values)
+                                                           sizeof(Graphics::Vertex) // vertex stride
+															   );
+			
+			LUMOS_LOG_INFO("Mesh Optimizer - Before : {0} indices {1} vertices , After : {2} indices , {3} vertices", indexCount, numVertices, newIndexCount, vertex_size);
+            
+			Ref<Graphics::IndexBuffer> ib = Ref<Graphics::IndexBuffer>(Graphics::IndexBuffer::Create(indicesArray, (uint32_t)newIndexCount));
+            
+            Ref<VertexBuffer> vb = Ref<VertexBuffer>(VertexBuffer::Create(BufferUsage::STATIC));
+            vb->SetData(sizeof(Graphics::Vertex) * (uint32_t)vertex_size, tempvertices);
 
 			auto lMesh = new Graphics::Mesh(vb, ib, boundingBox);
 

@@ -16,6 +16,7 @@
 <a href="https://github.com/jmorton06/Lumos/issues"><img alt="Issues" src="https://img.shields.io/github/issues-raw/jmorton06/Lumos.svg?style=flat-square"/></a>
 <a href=""><img alt="size" src="https://img.shields.io/github/repo-size/jmorton06/Lumos?style=flat-square"/></a>
 <a href=""><img alt="stars" src="https://img.shields.io/github/stars/jmorton06/Lumos?style=social"/></a>
+<a href="https://discord.gg/n9PDrNjJwt"><img alt="Discord" src="https://img.shields.io/badge/chat-on_discord-7389D8.svg?logo=discord&logoColor=ffffff&labelColor=6A7EC2"/></a>
 <br/>
 </p>
 
@@ -93,3 +94,4 @@ To run on apple devices with Vulkan ( MoltenVK ), disable Metal API Validation h
  * [Box2D](https://github.com/erincatto/Box2D) : 2D physics engine.
  * [sol2](https://github.com/ThePhD/sol2) : C++ <-> Lua API wrapper
  * [cereal](https://github.com/USCiLab/cereal) : A C++11 library for serialization
+ * [meshoptimizer](https://github.com/zeux/meshoptimizer) : Mesh optimization library that makes meshes smaller and faster to render
