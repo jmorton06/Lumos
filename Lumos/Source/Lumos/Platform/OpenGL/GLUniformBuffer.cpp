@@ -49,7 +49,11 @@ namespace Lumos
 			else
 			{
 				LUMOS_PROFILE_SCOPE("glBufferSubData");
-				glBufferSubData(GL_UNIFORM_BUFFER, 0, size, m_Data );
+				#ifdef LUMOS_PLATFORM_MACOS
+				glBufferData(GL_UNIFORM_BUFFER, m_Size, m_Data, GL_DYNAMIC_DRAW );
+#else
+				glBufferSubData(GL_UNIFORM_BUFFER, 0, m_Size, m_Data );
+				#endif
 			}
 		}
 

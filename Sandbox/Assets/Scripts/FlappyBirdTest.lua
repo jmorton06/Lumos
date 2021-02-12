@@ -129,11 +129,12 @@ function OnInit()
     entityManager = scene:GetEntityManager()
 
     camera = entityManager:Create()
-camera:AddTransform()
+	camera:AddTransform()
 
-local screenSize = GetAppInstance():GetWindowSize()
+	local screenSize = GetAppInstance():GetWindowSize()
     camera:AddCamera(screenSize.x / screenSize.y, 10.0, 1.0)
 
+	SetB2DGravity(Vector2.new(0.0, -18.0))
     CreatePlayer()
 
     for i=1,10, 2 do
@@ -160,10 +161,7 @@ function OnUpdate(dt)
         right = Vector3.new(1, 0, 0)
 
         if Input.GetKeyPressed( Key.Space ) or Input.GetMouseClicked(MouseButton.Left) then
-
-            local velocity = phys:GetRigidBody():GetLinearVelocity()
-            velocity.y = velocity.y + 10.0
-            phys:GetRigidBody():SetLinearVelocity(velocity)
+            phys:GetRigidBody():SetForce(Vector2.new(0.0,700.0))
         end
 
         pos = player:GetTransform():GetWorldPosition()

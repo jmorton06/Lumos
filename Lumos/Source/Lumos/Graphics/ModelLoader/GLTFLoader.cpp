@@ -17,7 +17,6 @@
 #	define TINYGLTF_NOEXCEPTION
 #endif
 #include <tinygltf/tiny_gltf.h>
-#include <meshoptimizer/src/meshoptimizer.h>
 
 namespace Lumos::Graphics
 {
@@ -241,16 +240,14 @@ namespace Lumos::Graphics
 
 		for(auto& primitive : mesh.primitives)
 		{
-			const tinygltf::Accessor& indices = model.accessors[primitive.indices];
-
-			const uint32_t numVertices = static_cast<uint32_t>(indices.count);
-			Graphics::Vertex* tempvertices = new Graphics::Vertex[numVertices];
-			uint32_t* indicesArray = new uint32_t[numVertices];
-
-			size_t maxNumVerts = 0;
-
-			Ref<Maths::BoundingBox> boundingBox = CreateRef<Maths::BoundingBox>();
-
+			const tinygltf::Accessor& indicesAccessor = model.accessors[primitive.indices];
+            
+            std::vector<uint32_t> indices;
+            std::vector<Graphics::Vertex> vertices;
+            
+            indices.resize(indicesAccessor.count);
+            vertices.resize(indicesAccessor.count);
+            
 			for(auto& attribute : primitive.attributes)
 			{
 				// Get accessor info
@@ -266,18 +263,16 @@ namespace Lumos::Graphics
 				auto first = buffer.data.begin() + bufferOffset;
 				auto last = buffer.data.begin() + bufferOffset + bufferLength;
 				std::vector<uint8_t> data = std::vector<uint8_t>(first, last);
-
+                
 				// -------- Position attribute -----------
 
 				if(attribute.first == "POSITION")
 				{
 					size_t positionCount = accessor.count;
-					maxNumVerts = Lumos::Maths::Max(maxNumVerts, positionCount);
 					Maths::Vector3Simple* positions = reinterpret_cast<Maths::Vector3Simple*>(data.data());
 					for(auto p = 0; p < positionCount; ++p)
 					{
-						tempvertices[p].Position = parentTransform.GetWorldMatrix() * Maths::ToVector(positions[p]);
-						boundingBox->Merge(tempvertices[p].Position);
+                        vertices[p].Position = parentTransform.GetWorldMatrix() * Maths::ToVector(positions[p]);
 					}
 				}
 
@@ -286,11 +281,10 @@ namespace Lumos::Graphics
 				else if(attribute.first == "NORMAL")
 				{
 					size_t normalCount = accessor.count;
-					maxNumVerts = Lumos::Maths::Max(maxNumVerts, normalCount);
 					Maths::Vector3Simple* normals = reinterpret_cast<Maths::Vector3Simple*>(data.data());
 					for(auto p = 0; p < normalCount; ++p)
 					{
-						tempvertices[p].Normal = parentTransform.GetWorldMatrix() * Maths::ToVector(normals[p]);
+                        vertices[p].Normal = parentTransform.GetWorldMatrix() * Maths::ToVector(normals[p]);
 					}
 				}
 
@@ -299,11 +293,10 @@ namespace Lumos::Graphics
 				else if(attribute.first == "TEXCOORD_0")
 				{
 					size_t uvCount = accessor.count;
-					maxNumVerts = Lumos::Maths::Max(maxNumVerts, uvCount);
 					Maths::Vector2Simple* uvs = reinterpret_cast<Maths::Vector2Simple*>(data.data());
 					for(auto p = 0; p < uvCount; ++p)
 					{
-						tempvertices[p].TexCoords = ToVector(uvs[p]);
+                        vertices[p].TexCoords = ToVector(uvs[p]);
 					}
 				}
 
@@ -312,11 +305,10 @@ namespace Lumos::Graphics
 				else if(attribute.first == "COLOR_0")
 				{
 					size_t uvCount = accessor.count;
-					maxNumVerts = Lumos::Maths::Max(maxNumVerts, uvCount);
 					Maths::Vector4Simple* colours = reinterpret_cast<Maths::Vector4Simple*>(data.data());
 					for(auto p = 0; p < uvCount; ++p)
 					{
-						tempvertices[p].Colours = ToVector(colours[p]);
+                        vertices[p].Colours = ToVector(colours[p]);
 					}
 				}
 
@@ -325,17 +317,14 @@ namespace Lumos::Graphics
 				else if(attribute.first == "TANGENT")
 				{
 					size_t uvCount = accessor.count;
-					maxNumVerts = Lumos::Maths::Max(maxNumVerts, uvCount);
 					Maths::Vector3Simple* uvs = reinterpret_cast<Maths::Vector3Simple*>(data.data());
 					for(auto p = 0; p < uvCount; ++p)
 					{
-						tempvertices[p].Tangent = parentTransform.GetWorldMatrix() * ToVector(uvs[p]);
+                        vertices[p].Tangent = parentTransform.GetWorldMatrix() * ToVector(uvs[p]);
 					}
 				}
 			}
-            
-            uint32_t indexCount = 0;
-            
+                        
 			// -------- Indices ----------
 			{
 				// Get accessor info
@@ -354,13 +343,12 @@ namespace Lumos::Graphics
 				std::vector<uint8_t> data = std::vector<uint8_t>(first, last);
 
 				size_t indicesCount = indexAccessor.count;
-                indexCount = (uint32_t)indicesCount;
 				if(componentTypeByteSize == 2)
 				{
 					uint16_t* in = reinterpret_cast<uint16_t*>(data.data());
 					for(auto iCount = 0; iCount < indicesCount; iCount++)
 					{
-						indicesArray[iCount] = in[iCount];
+						indices[iCount] = (uint32_t)in[iCount];
 					}
 				}
 				else if(componentTypeByteSize == 4)
@@ -368,48 +356,12 @@ namespace Lumos::Graphics
 					auto in = reinterpret_cast<uint32_t*>(data.data());
 					for(auto iCount = 0; iCount < indicesCount; iCount++)
 					{
-						indicesArray[iCount] = in[iCount];
+                        indices[iCount] = in[iCount];
 					}
 				}
 			}
-			
-			int lod = 2;
-            
-            	float threshold = powf(0.7f, float(lod));
-			size_t target_index_count = size_t(  indexCount * threshold );
-
-			float target_error = 1e-3f;
-            float* resultError = nullptr;
-            
-            //void meshopt_generateShadowIndexBuffer(unsigned int* destination, const unsigned int* indices, size_t index_count, const void* vertices, size_t vertex_count, size_t vertex_size, size_t vertex_stride);
-            
-            //inline void meshopt_generateShadowIndexBuffer(T* destination, const T* indices, size_t index_count, const void* vertices, size_t vertex_count, size_t vertex_size, size_t vertex_stride)
-            //unsigned int* positions = new unsigned int[indexCount];
-            //meshopt_generateShadowIndexBuffer(positions, indicesArray, indexCount, tempvertices, numVertices, sizeof(Maths::Vector3), sizeof(Graphics::Vertex));
-//
-            auto newIndexCount = meshopt_simplify(indicesArray, indicesArray, (size_t)indexCount, (const float*)(&tempvertices[0]), (size_t)numVertices, sizeof(Graphics::Vertex), target_index_count, target_error, resultError);
-            
-            auto vertex_size = meshopt_optimizeVertexFetch( // return vertices (not vertex attribute values)
-                                                           (&tempvertices[0]),
-															   (unsigned int*)(&indicesArray[0]),
-                                                           newIndexCount, // total new indices (not faces)
-                                                           (&tempvertices[0]),
-                                                           (size_t)numVertices, // total vertices (not vertex attribute values)
-                                                           sizeof(Graphics::Vertex) // vertex stride
-															   );
-			
-			LUMOS_LOG_INFO("Mesh Optimizer - Before : {0} indices {1} vertices , After : {2} indices , {3} vertices", indexCount, numVertices, newIndexCount, vertex_size);
-            
-			Ref<Graphics::IndexBuffer> ib = Ref<Graphics::IndexBuffer>(Graphics::IndexBuffer::Create(indicesArray, (uint32_t)newIndexCount));
-            
-            Ref<VertexBuffer> vb = Ref<VertexBuffer>(VertexBuffer::Create(BufferUsage::STATIC));
-            vb->SetData(sizeof(Graphics::Vertex) * (uint32_t)vertex_size, tempvertices);
-
-			auto lMesh = new Graphics::Mesh(vb, ib, boundingBox);
-
-			delete[] tempvertices;
-			delete[] indicesArray;
-
+        
+			auto lMesh = new Graphics::Mesh(indices, vertices);
 			meshes.emplace_back(lMesh);
 		}
 
