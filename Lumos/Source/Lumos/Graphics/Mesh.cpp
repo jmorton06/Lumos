@@ -2,22 +2,66 @@
 #include "Mesh.h"
 #include "API/Renderer.h"
 
+#include <meshoptimizer/src/meshoptimizer.h>
+
 namespace Lumos
 {
 	namespace Graphics
 	{
-		Mesh::Mesh() : m_VertexBuffer(nullptr), m_IndexBuffer(nullptr), m_BoundingBox(nullptr)
+		Mesh::Mesh() : m_VertexBuffer(nullptr), m_IndexBuffer(nullptr), m_BoundingBox(nullptr), m_Indices(), m_Vertices()
 		{
 		}
 
 		Mesh::Mesh(const Mesh& mesh)
             : m_VertexBuffer(mesh.m_VertexBuffer), m_IndexBuffer(mesh.m_IndexBuffer), m_BoundingBox(mesh.m_BoundingBox), m_Name(mesh.m_Name), m_Material(mesh.m_Material)
+			, m_Indices(mesh.m_Indices), m_Vertices(mesh.m_Vertices)
+		{
+		}
+		
+		Mesh::Mesh(Ref<VertexBuffer>& vertexBuffer, Ref<IndexBuffer>& indexBuffer, const Ref<Maths::BoundingBox>& boundingBox)
+			: m_VertexBuffer(vertexBuffer), m_IndexBuffer(indexBuffer), m_BoundingBox(boundingBox), m_Material(nullptr)
 		{
 		}
 
-		Mesh::Mesh(Ref<VertexBuffer>& vertexBuffer, Ref<IndexBuffer>& indexBuffer, const Ref<Maths::BoundingBox>& boundingBox)
-			: m_VertexBuffer(vertexBuffer), m_IndexBuffer(indexBuffer), m_BoundingBox(boundingBox), m_Material(nullptr)
+		Mesh::Mesh(const std::vector<uint32_t>& indices, const std::vector<Vertex>& vertices, float optimiseThreshold)
         {
+			m_Indices = indices;
+			m_Vertices = vertices;
+            
+            //int lod = 2;
+            //float threshold = powf(0.7f, float(lod));
+
+            size_t indexCount = indices.size();
+            size_t target_index_count = size_t( indices.size() * optimiseThreshold );
+
+            float target_error = 1e-3f;
+            float* resultError = nullptr;
+            
+            auto newIndexCount = meshopt_simplify(m_Indices.data(), m_Indices.data(), m_Indices.size(), (const float*)(&m_Vertices[0]), m_Vertices.size(), sizeof(Graphics::Vertex), target_index_count, target_error, resultError);
+            
+            auto newVertexCount = meshopt_optimizeVertexFetch( // return vertices (not vertex attribute values)
+                                                           (m_Vertices.data()),
+                                                               (unsigned int*)(m_Indices.data()),
+                                                           newIndexCount, // total new indices (not faces)
+                                                           (m_Vertices.data()),
+                                                           (size_t)m_Vertices.size(), // total vertices (not vertex attribute values)
+                                                           sizeof(Graphics::Vertex) // vertex stride
+                                                               );
+            
+            LUMOS_LOG_INFO("Mesh Optimizer - Before : {0} indices {1} vertices , After : {2} indices , {3} vertices", indexCount, m_Vertices.size(), newIndexCount, newVertexCount);
+            
+            
+            m_BoundingBox = CreateRef<Maths::BoundingBox>();
+            
+            for(auto& vertex : m_Vertices)
+            {
+                m_BoundingBox->Merge(vertex.Position);
+            }
+			
+			m_IndexBuffer = Ref<Graphics::IndexBuffer>(Graphics::IndexBuffer::Create(m_Indices.data(), (uint32_t)newIndexCount));
+			
+			m_VertexBuffer = Ref<VertexBuffer>(VertexBuffer::Create(BufferUsage::STATIC));
+            m_VertexBuffer->SetData((uint32_t)(sizeof(Graphics::Vertex) * newVertexCount), m_Vertices.data());
 		}
 
 		Mesh::~Mesh()

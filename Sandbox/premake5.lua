@@ -57,7 +57,8 @@ project "Sandbox"
 		"imgui",
 		"freetype",
 		"SpirvCross",
-		"spdlog"
+		"spdlog",
+		"meshoptimizer"
 	}
 
 	defines

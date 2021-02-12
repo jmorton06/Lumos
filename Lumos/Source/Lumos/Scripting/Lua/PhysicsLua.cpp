@@ -293,6 +293,11 @@ namespace Lumos
 		listener->SetBeginFunction(func);
 		Application::Get().GetSystem<B2PhysicsEngine>()->SetContactListener(listener);
 	}
+	
+	static void SetB2DGravity(const Maths::Vector2& gravity)
+	{
+		Application::Get().GetSystem<B2PhysicsEngine>()->SetGravity(gravity);
+	}
 
 	Ref<RigidBody3D> CreateSharedPhysics3D()
 	{
@@ -357,6 +362,7 @@ namespace Lumos
 		physics2D_type.set_function("Init", &RigidBody2D::Init);
 
 		state.set_function("SetCallback", &SetCallback);
+		state.set_function("SetB2DGravity", &SetB2DGravity);
 
 		state.new_enum("b2BodyType", "b2_staticBody", b2BodyType::b2_staticBody, "b2_kinematicBody", b2BodyType::b2_kinematicBody, "b2_dynamicBody", b2BodyType::b2_dynamicBody);
 

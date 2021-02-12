@@ -158,6 +158,11 @@ namespace Lumos
 	{
 		m_DebugDraw->SetFlags(flags);
 	}
+	
+	void B2PhysicsEngine::SetGravity(const Maths::Vector2& gravity)
+	{
+		m_B2DWorld->SetGravity({ gravity.x, gravity.y });
+	}
 
 	uint32_t B2PhysicsEngine::GetDebugDrawFlags()
 	{
