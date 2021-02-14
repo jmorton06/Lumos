@@ -86,9 +86,10 @@ function SetRecommendedXcodeSettings()
 		}
 	filter{"system:macosx"}
 		xcodebuildsettings 
-  {   ['ONLY_ACTIVE_ARCH'] = 'YES',
-	["MACOSX_DEPLOYMENT_TARGET"] = "10.15",
-		['ARCHS'] = 'x86_64'
+		{   
+			["MACOSX_DEPLOYMENT_TARGET"] = "10.15",
+			['ARCHS'] = 'x86_64',
+			['ONLY_ACTIVE_ARCH'] = 'YES',
 		}
 
 	filter {"system:ios"}

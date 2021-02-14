@@ -132,7 +132,7 @@ namespace Lumos
 			{
 				const int max_updates_per_frame = 5;
 				
-				m_UpdateAccum += timeStep.GetMillis();
+				m_UpdateAccum += timeStep.GetSeconds();
 				for(int i = 0; (m_UpdateAccum >= s_UpdateTimestep) && i < max_updates_per_frame; ++i)
 				{
 					m_UpdateAccum -= s_UpdateTimestep;
@@ -148,7 +148,7 @@ namespace Lumos
 			}
 			else
 			{
-				s_UpdateTimestep = timeStep.GetMillis();
+				s_UpdateTimestep = timeStep.GetSeconds();
 				UpdatePhysics(scene);
 				}
 			}

@@ -37,6 +37,63 @@ namespace Lumos
             m_Surface = CreatePlatformSurface(VKContext::Get()->GetVKInstance(), windowHandle);
             Init(vsync);
         }
+    
+        bool IsPresentModeSupported(const std::vector<VkPresentModeKHR>& supportedModes, VkPresentModeKHR presentMode)
+        {
+            for (const auto& mode : supportedModes)
+            {
+                if (mode == presentMode)
+                {
+                    return true;
+                }
+            }
+            return false;
+        }
+    
+        VkPresentModeKHR ChoosePresentMode(const std::vector<VkPresentModeKHR>& supportedModes, bool vsync)
+        {
+            VkPresentModeKHR presentMode = VK_PRESENT_MODE_MAILBOX_KHR;
+            if (vsync)
+            {
+                if (IsPresentModeSupported(supportedModes, VK_PRESENT_MODE_MAILBOX_KHR))
+                {
+                    presentMode = VK_PRESENT_MODE_MAILBOX_KHR;
+                }
+                else if (IsPresentModeSupported(supportedModes, VK_PRESENT_MODE_FIFO_KHR))
+                {
+                    presentMode = VK_PRESENT_MODE_FIFO_KHR;
+                }
+                else if (IsPresentModeSupported(supportedModes, VK_PRESENT_MODE_IMMEDIATE_KHR))
+                {
+                    presentMode = VK_PRESENT_MODE_IMMEDIATE_KHR;
+                }
+                else
+                {
+                  LUMOS_LOG_ERROR("Failed to find supported presentation mode.");
+                }
+            }
+            else
+            {
+                if (IsPresentModeSupported(supportedModes, VK_PRESENT_MODE_IMMEDIATE_KHR))
+                {
+                    presentMode = VK_PRESENT_MODE_IMMEDIATE_KHR;
+                }
+                else if (IsPresentModeSupported(supportedModes, VK_PRESENT_MODE_FIFO_RELAXED_KHR))
+                {
+                    presentMode = VK_PRESENT_MODE_FIFO_RELAXED_KHR;
+                }
+                else if (IsPresentModeSupported(supportedModes, VK_PRESENT_MODE_FIFO_KHR))
+                {
+                    presentMode = VK_PRESENT_MODE_FIFO_KHR;
+                }
+                else
+                {
+                    LUMOS_LOG_ERROR("Failed to find supported presentation mode.");
+                }
+            }
+            
+            return presentMode;
+        }
 
 		bool VKSwapchain::Init(bool vsync)
 		{
@@ -55,22 +112,15 @@ namespace Lumos
 			uint32_t numPresentModes;
 			vkGetPhysicalDeviceSurfacePresentModesKHR(VKDevice::Get().GetGPU(), m_Surface, &numPresentModes, VK_NULL_HANDLE);
 
-			VkPresentModeKHR * pPresentModes = new VkPresentModeKHR[numPresentModes];
-			vkGetPhysicalDeviceSurfacePresentModesKHR(VKDevice::Get().GetGPU(), m_Surface, &numPresentModes, pPresentModes);
+            std::vector<VkPresentModeKHR> pPresentModes(numPresentModes);
+			vkGetPhysicalDeviceSurfacePresentModesKHR(VKDevice::Get().GetGPU(), m_Surface, &numPresentModes, pPresentModes.data());
 
             VkExtent2D swapChainExtent;
 
 			swapChainExtent.width = static_cast<uint32_t>(m_Width);
 			swapChainExtent.height = static_cast<uint32_t>(m_Height);
 
-			VkPresentModeKHR swapChainPresentMode = VK_PRESENT_MODE_IMMEDIATE_KHR;
-			for (uint32_t i = 0; i < numPresentModes; i++)
-			{
-				if (pPresentModes[i] == VK_PRESENT_MODE_MAILBOX_KHR)
-					swapChainPresentMode = VK_PRESENT_MODE_MAILBOX_KHR;
-				if ((swapChainPresentMode != VK_PRESENT_MODE_MAILBOX_KHR) && (pPresentModes[i] == VK_PRESENT_MODE_IMMEDIATE_KHR))
-					swapChainPresentMode = VK_PRESENT_MODE_IMMEDIATE_KHR;
-			}
+            VkPresentModeKHR swapChainPresentMode = ChoosePresentMode(pPresentModes, vsync);
 
 			// Use triple-buffering
 			uint32_t numSwapChainImages = surfaceCapabilities.maxImageCount;
@@ -144,7 +194,6 @@ namespace Lumos
 			}
 
 			delete[] pSwapChainImages;
-			delete[] pPresentModes;
 			
 			return true;
 		}

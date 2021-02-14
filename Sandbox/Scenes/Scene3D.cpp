@@ -1,5 +1,7 @@
 #include "Scene3D.h"
 
+#include <Lumos/Physics/LumosPhysicsEngine/HullCollisionShape.h>
+
 using namespace Lumos;
 using namespace Maths;
 

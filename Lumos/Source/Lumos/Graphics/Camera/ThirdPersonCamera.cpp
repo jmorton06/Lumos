@@ -2,7 +2,6 @@
 #include "ThirdPersonCamera.h"
 #include "Core/OS/Input.h"
 #include "Camera.h"
-#include <imgui/imgui.h>
 
 namespace Lumos
 {

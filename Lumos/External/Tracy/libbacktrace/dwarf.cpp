@@ -2622,7 +2622,7 @@ add_line (struct backtrace_state *state, struct dwarf_data *ddata,
 
   ln->filename = filename;
   ln->lineno = lineno;
-  ln->idx = vec->count;
+  ln->idx = (int)vec->count;
 
   ++vec->count;
 
@@ -3088,7 +3088,7 @@ read_line_program (struct backtrace_state *state, struct dwarf_data *ddata,
 		f = read_string (line_buf);
 		if (f == NULL)
 		  return 0;
-		dir_index = read_uleb128 (line_buf);
+		dir_index = (unsigned int)read_uleb128 (line_buf);
 		/* Ignore that time and length.  */
 		read_uleb128 (line_buf);
 		read_uleb128 (line_buf);
@@ -3624,7 +3624,7 @@ read_function_entry (struct backtrace_state *state, struct dwarf_data *ddata,
 
 		case DW_AT_call_line:
 		  if (val.encoding == ATTR_VAL_UINT)
-		    function->caller_lineno = val.u.uint;
+		    function->caller_lineno = (int)val.u.uint;
 		  break;
 
 		case DW_AT_abstract_origin:

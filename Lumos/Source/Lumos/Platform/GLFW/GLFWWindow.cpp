@@ -322,10 +322,15 @@ namespace Lumos
 		LUMOS_PROFILE_FUNCTION();
 #ifdef LUMOS_RENDER_API_OPENGL
 		if(m_Data.m_RenderAPI == Graphics::RenderAPI::OPENGL)
+		{
+			LUMOS_PROFILE_SCOPE("GLFW SwapBuffers");
 			glfwSwapBuffers(m_Handle);
+		}
 #endif
-
-		glfwPollEvents();
+		{
+			LUMOS_PROFILE_SCOPE("GLFW PollEvents");
+			glfwPollEvents();
+		}
 	}
 
 	void GLFWWindow::SetBorderlessWindow(bool borderless)

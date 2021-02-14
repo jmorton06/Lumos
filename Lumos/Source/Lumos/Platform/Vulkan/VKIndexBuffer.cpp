@@ -17,6 +17,12 @@ namespace Lumos
 
 		VKIndexBuffer::~VKIndexBuffer()
 		{
+			if (m_MappedBuffer)
+			{
+				VKBuffer::Flush(m_Size);
+				VKBuffer::UnMap();
+				m_MappedBuffer = false;
+			}
 		}
 
 		void VKIndexBuffer::Bind(CommandBuffer* commandBuffer) const
@@ -36,6 +42,29 @@ namespace Lumos
 		uint32_t VKIndexBuffer::GetSize() const
 		{
 			return m_Size;
+		}
+		
+		void* VKIndexBuffer::GetPointerInternal()
+		{
+			LUMOS_PROFILE_FUNCTION();
+			if (!m_MappedBuffer)
+			{
+				VKBuffer::Map();
+				m_MappedBuffer = true;
+			}
+			
+			return m_Mapped;
+		}
+		
+		void VKIndexBuffer::ReleasePointer()
+		{
+			LUMOS_PROFILE_FUNCTION();
+			if (m_MappedBuffer)
+			{
+				VKBuffer::Flush(m_Size);
+				VKBuffer::UnMap();
+				m_MappedBuffer = false;
+			}
 		}
         
         void VKIndexBuffer::MakeDefault()

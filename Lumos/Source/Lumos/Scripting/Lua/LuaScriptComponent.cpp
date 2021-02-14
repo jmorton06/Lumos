@@ -6,6 +6,12 @@
 
 namespace Lumos
 {
+	LuaScriptComponent::LuaScriptComponent()
+	{
+		m_Scene = nullptr;
+		m_FileName = "";
+		m_Env = nullptr;
+	}
 	LuaScriptComponent::LuaScriptComponent(const std::string& fileName, Scene* scene)
 	{
 		m_Scene = scene;
@@ -113,16 +119,24 @@ namespace Lumos
 
 	void LuaScriptComponent::Reload()
 	{
-		if(m_Env && (*m_Env)["OnRelease"])
-			(*m_Env)["OnRelease"]();
+        if(m_Env)
+        {
+            sol::protected_function releaseFunc = (*m_Env)["OnRelease"];
+            if(releaseFunc.valid())
+                    releaseFunc.call();
+        }
 
 		Init();
 	}
 
 	void LuaScriptComponent::Load(const std::string& fileName)
 	{
-		if(m_Env && (*m_Env)["OnRelease"])
-			(*m_Env)["OnRelease"]();
+        if(m_Env)
+        {
+            sol::protected_function releaseFunc = (*m_Env)["OnRelease"];
+            if(releaseFunc.valid())
+                    releaseFunc.call();
+        }
 
 		m_FileName = fileName;
 		Init();

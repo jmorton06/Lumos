@@ -70,7 +70,7 @@ backtrace_get_view (struct backtrace_state *state ATTRIBUTE_UNUSED,
     }
 
   pagesize = getpagesize ();
-  inpage = offset % pagesize;
+  inpage = (int)(offset % pagesize);
   pageoff = offset - inpage;
 
   size += inpage;

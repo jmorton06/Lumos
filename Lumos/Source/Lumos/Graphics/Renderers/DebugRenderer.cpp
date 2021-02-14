@@ -341,7 +341,7 @@ namespace Lumos
 		LUMOS_PROFILE_FUNCTION();
 		if(m_Renderer2D)
 		{
-			m_Renderer2D->BeginRenderPass();
+			m_Renderer2D->Begin();
             m_Renderer2D->SetSystemUniforms(m_Renderer2D->GetShader().get());
 			m_Renderer2D->SubmitTriangles();
 			m_Renderer2D->Present();

@@ -35,12 +35,14 @@ namespace Lumos
 		void VKVertexBuffer::SetData(uint32_t size, const void* data)
 		{
 			LUMOS_PROFILE_FUNCTION();
+			m_Size = size;
 			VKBuffer::Init(VK_BUFFER_USAGE_VERTEX_BUFFER_BIT, size, data);
 		}
 
 		void VKVertexBuffer::SetDataSub(uint32_t size, const void* data, uint32_t offset)
 		{
 			LUMOS_PROFILE_FUNCTION();
+			m_Size = size;
 			VKBuffer::Init(VK_BUFFER_USAGE_VERTEX_BUFFER_BIT, size, data);
 		}
 

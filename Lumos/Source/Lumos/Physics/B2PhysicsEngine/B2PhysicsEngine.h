@@ -48,6 +48,7 @@ namespace Lumos
 
 		uint32_t GetDebugDrawFlags();
 		void SetDebugDrawFlags(uint32_t flags);
+		void SetGravity(const Maths::Vector2& gravity);
 
 		void SetContactListener(b2ContactListener* listener);
 

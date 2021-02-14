@@ -20,11 +20,11 @@
 #include <memory>
 #include <thread>
 
+#include <stdio.h>
+#include <math.h>
+
 #include "Core/Reference.h"
 #include "Core/LMLog.h"
 #include "Core/Core.h"
 #include "Core/Profiler.h"
 #endif
-
-#include <stdio.h>
-#include <math.h>

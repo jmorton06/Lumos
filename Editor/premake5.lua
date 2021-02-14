@@ -58,7 +58,8 @@ project "LumosEditor"
 		"imgui",
 		"freetype",
 		"SpirvCross",
-		"spdlog"
+		"spdlog",
+		"meshoptimizer"
 	}
 
 	defines

@@ -401,7 +401,7 @@ macho_add_dwarf_segment (struct backtrace_state *state, int descriptor,
 
 	    memcpy (&section, psecs + secoffset, sizeof section);
 	    macho_add_dwarf_section (state, descriptor, section.sectname,
-				     offset + section.offset, section.size,
+				     uint32_t(offset + section.offset), section.size,
 				     error_callback, data, dwarf_sections);
 	  }
 	  break;
@@ -412,7 +412,7 @@ macho_add_dwarf_segment (struct backtrace_state *state, int descriptor,
 
 	    memcpy (&section, psecs + secoffset, sizeof section);
 	    macho_add_dwarf_section (state, descriptor, section.sectname,
-				     offset + section.offset, section.size,
+                     uint32_t(offset + section.offset), section.size,
 				     error_callback, data, dwarf_sections);
 	  }
 	  break;
