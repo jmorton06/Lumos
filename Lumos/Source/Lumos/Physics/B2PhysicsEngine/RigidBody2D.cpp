@@ -52,6 +52,12 @@ namespace Lumos
 	{
 		m_B2Body->SetTransform(m_B2Body->GetPosition(), angle);
 	}
+	
+	void RigidBody2D::SetIsStatic(bool isStatic) 
+	{
+		m_Static = isStatic;
+        m_B2Body->SetType(isStatic ? b2BodyType::b2_staticBody : b2BodyType::b2_dynamicBody);
+	}
 
 	void RigidBody2D::Init(const RigidBodyParameters& params)
 	{
